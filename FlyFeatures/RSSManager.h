@@ -130,7 +130,8 @@ enum RSSManagerTasks
 };
 
 class RSSManager :
-	public Singleton<RSSManager>, public Speaker<RSSListener>, public BackgroundTaskExecuter<RSSManagerTasks>, private SettingsManagerListener, private TimerManagerListener
+	public Singleton<RSSManager>,
+	public Speaker<RSSListener>, public BackgroundTaskExecuter<RSSManagerTasks>, private TimerManagerListener
 {
 	public:
 	
@@ -138,36 +139,36 @@ class RSSManager :
 		
 		typedef vector<RSSFeed*> FeedList;
 		
-		void updateFeeds();
+		static void updateFeeds();
 		
-		const FeedList& lockFeedList()
+		static const FeedList& lockFeedList()
 		{
-			csFeed.lock();
-			return m_feeds;
+			g_csFeed.lock();
+			return g_feeds;
 		}
-		void unlockFeedList()
+		static void unlockFeedList()
 		{
-			csFeed.unlock();
-		}
-		
-		const NewsList& lockNewsList()
-		{
-			csNews.lock();
-			return m_newsList;
-		}
-		void unlockNewsList()
-		{
-			csNews.unlock();
+			g_csFeed.unlock();
 		}
 		
-		bool hasRSSFeed(const string& url, const string& name);
+		static const NewsList& lockNewsList()
+		{
+			g_csNews.lock();
+			return g_newsList;
+		}
+		static  void unlockNewsList()
+		{
+			g_csNews.unlock();
+		}
 		
-		RSSFeed* addNewFeed(const string &url, const string & name, const string& codeing, bool bUpdateFeeds = false);
-		bool removeFeedAt(size_t pos);
+		static bool hasRSSFeed(const string& url, const string& name);
 		
-		static const string& getCodeing(const size_t i);
+		static RSSFeed* addNewFeed(const string &url, const string & name, const string& codeing, bool bUpdateFeeds = false);
+		static bool removeFeedAt(size_t pos);
+		
+		static const string getCodeing(const size_t i);
 		static size_t GetCodeingByString(const string& codeing);
-		
+
 	private:
 	
 		static StringList g_codeingList;
@@ -176,30 +177,25 @@ class RSSManager :
 		RSSManager();
 		virtual ~RSSManager() ;
 		void clearLists();
-		FeedList m_feeds;
-		NewsList m_newsList;
 		
-		CriticalSection csFeed;
-		FastCriticalSection csNews;
+		static FeedList g_feeds;
+		static NewsList g_newsList;
+		static CriticalSection g_csFeed;
+		static FastCriticalSection g_csNews;
 		
 		void fail(const string& aError);
 		void execute(const RSSManagerTasks& p_task);
 		
 		void updateAllFeeds();
 		
-		bool canAdd(const RSSItem* p_item);
-		// SettingsManagerListener
-		virtual void on(SettingsManagerListener::Save, SimpleXML& xml) override;
-		virtual void on(SettingsManagerListener::Load, SimpleXML& xml) override;
+		static bool canAdd(const RSSItem* p_item);
 		
 		// TimerManagerListener
 		virtual void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
-		void load(SimpleXML& aXml);
-		void save(SimpleXML& aXml);
 		unsigned int m_minuteCounter;
-		
-		// Show ballon
-		// void ShowBallonNews(); TODO?
+public:
+		static void load(SimpleXML& aXml);
+		static void save(SimpleXML& aXml);
 };
 #endif // !defined(RSS_MANAGER_H)
 

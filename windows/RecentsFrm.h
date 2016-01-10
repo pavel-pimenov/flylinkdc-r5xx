@@ -136,7 +136,7 @@ class RecentHubsFrame : public MDITabChildWindowImpl < RecentHubsFrame, RGB(0, 0
 		}
 		void on(RecentUpdated, const RecentHubEntry* entry) noexcept override;
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
+		void on(SettingsManagerListener::Repaint) override;
 };
 
 #endif

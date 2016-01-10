@@ -34,7 +34,9 @@
 #include <boost/algorithm/string.hpp>
 #include "../FlyFeatures/AutoUpdate.h"
 #include "../FlyFeatures/flyServer.h"
+#include "../FlyFeatures/RSSManager.h"
 #include "ConnectivityManager.h"
+#include "../windows/ToolbarManager.h"
 
 StringList SettingsManager::g_connectionSpeeds;
 boost::logic::tribool SettingsManager::g_TestUDPSearchLevel = boost::logic::indeterminate;
@@ -1602,6 +1604,13 @@ void SettingsManager::loadOtherSettings()
 		SimpleXML xml;
 		xml.fromXML(File(getConfigFile(), File::READ, File::OPEN).read());
 		xml.stepIn();
+		UserManager::reloadProtUsers();
+		RSSManager::load(xml);
+		ToolbarManager::load(xml);
+		ShareManager::load(xml);
+		FavoriteManager::recentload(xml);
+		FavoriteManager::previewload(xml);
+
 		fly_fire1(SettingsManagerListener::Load(), xml);
 		xml.stepOut();
 	}
@@ -1730,10 +1739,6 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 		case PROT_USERS:
 		{
 			REPLACE_SPACES();
-			if (isValidInstance())
-			{
-				getInstance()->fly_fire(SettingsManagerListener::UsersChanges());
-			}
 		}
 		break;
 		case LOW_PRIO_FILES:
@@ -1745,10 +1750,6 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 		case SKIPLIST_SHARE:
 		{
 			REPLACE_SPACES();
-			if (isValidInstance())
-			{
-				getInstance()->fly_fire(SettingsManagerListener::ShareChanges());
-			}
 		}
 		break;
 		// [~] IRainamn opt.
@@ -2142,7 +2143,6 @@ void SettingsManager::save(const string& aFileName)
 	//  }
 	//}
 	xml.stepOut();
-	
 	/*xml.addTag("SearchTypes");
 	xml.stepIn();
 	for (auto i = g_searchTypes.cbegin(); i != g_searchTypes.cend(); ++i)
@@ -2151,9 +2151,18 @@ void SettingsManager::save(const string& aFileName)
 	    xml.addChildAttrib("Id", i->first);
 	}
 	xml.stepOut();*/
-	
+	FavoriteManager::previewsave(xml);
+
+	ShareManager::save(xml);
+
+	RSSManager::save(xml);
+
+	ToolbarManager::save(xml);
+
 	fly_fire1(SettingsManagerListener::Save(), xml);
-	
+
+	fly_fire(SettingsManagerListener::Repaint());
+
 	try
 	{
 		File out(aFileName + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);

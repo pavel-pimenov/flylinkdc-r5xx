@@ -2198,12 +2198,11 @@ void QueueFrame::removeSources()
 		QueueManager::getInstance()->removeSource(j->first, j->second, QueueItem::Source::FLAG_REMOVED);
 	}
 }
-void QueueFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
+void QueueFrame::on(SettingsManagerListener::Repaint)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		if (ctrlQueue.isRedraw())
 		{
 			ctrlQueue.setFlickerFree(Colors::g_bgBrush);

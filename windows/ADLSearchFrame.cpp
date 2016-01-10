@@ -564,12 +564,11 @@ void ADLSearchFrame::UpdateSearch(size_t index, BOOL doDelete)
 	ctrlList.SetCheckState(index, search.isActive);
 }
 
-void ADLSearchFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
+void ADLSearchFrame::on(SettingsManagerListener::Repaint)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		if (ctrlList.isRedraw())
 		{
 			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);

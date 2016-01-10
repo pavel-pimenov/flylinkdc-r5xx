@@ -196,7 +196,11 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	                          WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON | /*BS_AUTOCHECKBOX | */BS_FLAT
 	                          , 0,
 	                          IDC_AVDB_BLOCK_CONNECTIONS);
+#ifdef FLYLINKDC_USE_SKULL_TAB
 	m_AVDB_BlockButton.SetIcon(*WinUtil::g_HubVirusIcon[2]);
+#else
+	m_AVDB_BlockButton.SetIcon(*WinUtil::g_HubVirusIcon);
+#endif
 	m_AVDB_BlockButton.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	
 	
@@ -2089,12 +2093,11 @@ LRESULT TransferView::onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 	return 0;
 }
 
-void TransferView::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
+void TransferView::on(SettingsManagerListener::Repaint)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		if (ctrlTransfers.isRedraw())
 		{
 			ctrlTransfers.setFlickerFree(Colors::g_bgBrush);

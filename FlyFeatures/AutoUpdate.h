@@ -79,8 +79,8 @@ class AutoUpdateObject
 		string m_sUpdateDate;
 		AutoUpdateModules m_Modules;
 		AutoUpdateModule m_updater;
-	string m_update_xml;
-	bool checkSignXML(const string& p_url_sign) const;
+		string m_update_xml;
+		bool checkSignXML(const string& p_url_sign) const;
 };
 
 enum AutoUpdateTasks
@@ -93,16 +93,15 @@ class AutoUpdateGUIMethod
 	public:
 		virtual ~AutoUpdateGUIMethod() { }
 		virtual UINT ShowDialogUpdate(const std::string& message, const std::string& rtfMessage, const AutoUpdateFiles& fileList) = 0;
-    virtual void NewVerisonEvent(const std::string& p_new_version) = 0;
+		virtual void NewVerisonEvent(const std::string& p_new_version) = 0;
 };
 
 class AutoUpdate :
-	public Singleton<AutoUpdate>, 
-  public BackgroundTaskExecuter<AutoUpdateTasks, Thread::IDLE, 10000>, 
-   //private SettingsManagerListener, 
-  private TimerManagerListener
+	public Singleton<AutoUpdate>,
+	public BackgroundTaskExecuter<AutoUpdateTasks, Thread::IDLE, 10000>,
+private TimerManagerListener
 {
-	friend class AutoUpdateObject;
+		friend class AutoUpdateObject;
 	public:
 		void initialize(HWND p_mainFrameHWND, AutoUpdateGUIMethod* p_guiDelegate);
 		void startUpdateManually();
@@ -116,7 +115,7 @@ class AutoUpdate :
 			return m_isUpdateStarted != 0;
 		}
 		void shutdownAndUpdate();
-
+		
 		bool getExitOnUpdate() const
 		{
 			return m_exitOnUpdate;
@@ -168,18 +167,18 @@ class AutoUpdate :
 		static const string& UPDATE_DESCRIPTION();
 		static const string& getAUTOUPDATE_SERVER_URL();
 		static AutoUpdateFile parseNode(const XMLParser::XMLNode& Node);
-		int64_t	checkFilesToNeedsUpdate(AutoUpdateFiles& p_files4Update,
-			                            AutoUpdateFiles& p_files4Description, 
-										const AutoUpdateModules& p_modules, 
-										const string& p_path);
+		int64_t checkFilesToNeedsUpdate(AutoUpdateFiles& p_files4Update,
+		                                AutoUpdateFiles& p_files4Description,
+		                                const AutoUpdateModules& p_modules,
+		                                const string& p_path);
 		bool preparingFiles(const AutoUpdateFiles& p_files, const string& p_path, string& p_errorFileName);
-	    string	getUpdateFilesList(const string&  p_componentName, 
-									string  p_serverUrl, // —сылку не делать!
-									const char*   p_rootNode, 
-									const string& p_file, 
-									const string& p_descr, 
-									unique_ptr<AutoUpdateObject>& p_autoUpdateObject,
-									string& p_base_update_url);
+		string  getUpdateFilesList(const string&  p_componentName,
+		                           string  p_serverUrl, // —сылку не делать!
+		                           const char*   p_rootNode,
+		                           const string& p_file,
+		                           const string& p_descr,
+		                           unique_ptr<AutoUpdateObject>& p_autoUpdateObject,
+		                           string& p_base_update_url);
 };
 
 #endif // _AUTO_UPDATE_H_

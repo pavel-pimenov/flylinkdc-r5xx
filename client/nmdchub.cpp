@@ -1551,7 +1551,9 @@ void NmdcHub::toParse(const string& param)
 {
 	if (isSupressChatAndPM())
 		return;
-		
+	// string param = "FlylinkDC-dev4 From: FlylinkDC-dev4 $<!> ";
+	//"SCALOlaz From: 13382 $<k> "
+	//string param = p_param;
 	string::size_type pos_a = param.find(" From: ");
 	
 	if (pos_a == string::npos)

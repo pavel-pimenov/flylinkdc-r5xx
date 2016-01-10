@@ -267,15 +267,17 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	, m_tabMenu(nullptr)
 	, m_ActivateCounter(0)
 	, m_is_window_text_update(0)
-	, m_virus_icon_index(0)
 	, m_Theme(nullptr)
 	, m_is_process_disconnected(false)
+#ifdef FLYLINKDC_USE_SKULL_TAB
+	, m_virus_icon_index(0)
 	, m_is_red_virus_icon_index(false)
+#endif
 	, m_is_ddos_detect(false)
 	, m_is_ext_json_hub(false)
 	, m_count_speak(0)
 {
-	//m_userMapCS = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+	m_userMapCS = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 	m_ctrlStatusCache.resize(5);
 	m_showUsersStore = p_UserListState;
 	m_showUsers = false;
@@ -1303,8 +1305,8 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 			PROFILE_THREAD_SCOPED_DESC("HubFrame::updateUser-NEW_USER")
 			ui = new UserInfo(p_ou);
 			{
-				//CFlyWriteLock(*m_userMapCS);
-				CFlyLock(m_userMapCS);
+				CFlyWriteLock(*m_userMapCS);
+				//CFlyLock(m_userMapCS);
 				dcassert(!m_is_process_disconnected);
 				m_userMap.insert(make_pair(p_ou, ui));
 			}
@@ -1336,8 +1338,8 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 				m_ctrlUsers->deleteItem(ui);
 			}
 			{
-				//CFlyWriteLock(*m_userMapCS);
-				CFlyLock(m_userMapCS);
+				CFlyWriteLock(*m_userMapCS);
+				//CFlyLock(m_userMapCS);
 				m_userMap.erase(ui->getOnlineUser());
 			}
 			delete ui;
@@ -1428,8 +1430,8 @@ void HubFrame::removeUser(const OnlineUserPtr& p_ou)
 		m_ctrlUsers->deleteItem(ui);  // Lock - redraw при закрытии?
 	}
 	{
-		//CFlyWriteLock(*m_userMapCS);
-		CFlyLock(m_userMapCS);
+		CFlyWriteLock(*m_userMapCS);
+		//CFlyLock(m_userMapCS);
 		m_userMap.erase(p_ou);
 	}
 	delete ui;
@@ -1521,7 +1523,9 @@ void HubFrame::clearTaskAndUserList()
 void HubFrame::doDisconnected()
 {
 	dcassert(!ClientManager::isShutdown());
+#ifdef FLYLINKDC_USE_SKULL_TAB
 	m_virus_icon_index = 0;
+#endif
 	clearTaskAndUserList();
 	if (!ClientManager::isShutdown())
 	{
@@ -2484,8 +2488,8 @@ void HubFrame::clearUserList()
 		m_ctrlUsers->DeleteAllItems();
 	}
 	{
-		//CFlyWriteLock(*m_userMapCS);
-		CFlyLock(m_userMapCS);
+		CFlyWriteLock(*m_userMapCS);
+		//CFlyLock(m_userMapCS);
 		for (auto i = m_userMap.cbegin(); i != m_userMap.cend(); ++i)
 		{
 			delete i->second; //[2] https://www.box.net/shared/202f89c842ee60bdecb9
@@ -3029,7 +3033,8 @@ void HubFrame::firstLoadAllUsers()
 
 void HubFrame::usermap2ListrView()
 {
-	CFlyLock(m_userMapCS);
+	CFlyReadLock(*m_userMapCS);
+	//CFlyLock(m_userMapCS);
 	for (auto i = m_userMap.cbegin(); i != m_userMap.cend(); ++i)
 	{
 		const UserInfo* ui = i->second;
@@ -3284,6 +3289,7 @@ void HubFrame::timer_process_internal()
 			   )
 			{
 				dcassert(m_client);
+#ifdef FLYLINKDC_USE_SKULL_TAB
 				if (m_client)
 				{
 					const auto l_count_virus_bot = m_client->getVirusBotCount();
@@ -3308,6 +3314,7 @@ void HubFrame::timer_process_internal()
 						}
 					}
 				}
+#endif
 				
 				//dcdebug("HubFrame::timer_process_internal() [2] m_needsUpdateStats Hub = %s\n", this->getHubHint().c_str());
 				dcassert(!ClientManager::isShutdown());
@@ -3404,8 +3411,9 @@ void HubFrame::on(ClientListener::DDoSSearchDetect, const string&) noexcept
 		m_is_ddos_detect = true;
 	}
 }
-bool HubFrame::flickerVirusIcon()
+void HubFrame::flickerVirusIcon()
 {
+#ifdef FLYLINKDC_USE_SKULL_TAB
 	dcassert(!ClientManager::isShutdown());
 	if (!isClosedOrShutdown())
 	{
@@ -3416,7 +3424,6 @@ bool HubFrame::flickerVirusIcon()
 				const auto l_index = m_virus_icon_index - (m_is_red_virus_icon_index ? 1 : 0);
 				setCustomIcon(*WinUtil::g_HubVirusIcon[l_index].get());
 				m_is_red_virus_icon_index = !m_is_red_virus_icon_index;
-				return true;
 			}
 			else
 			{
@@ -3424,7 +3431,7 @@ bool HubFrame::flickerVirusIcon()
 			}
 		}
 	}
-	return false;
+#endif
 }
 void HubFrame::on(ClientListener::UserDescUpdated, const OnlineUserPtr& user) noexcept
 {
@@ -3504,19 +3511,19 @@ void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 	string redirAdr = Util::formatDchubUrl(line); // [+] IRainman fix http://code.google.com/p/flylinkdc/issues/detail?id=1237
 	const int l_code = CFlyServerConfig::getAlternativeHub(redirAdr);
 	bool l_is_double_redir = false;
-	const string l_reserve_server = "dchub://dc.livedc.ru";
+	//const string l_reserve_server = "dchub://dc.livedc.ru";
 	if (ClientManager::isConnected(redirAdr))
 	{
 		speak(ADD_STATUS_LINE, STRING(REDIRECT_ALREADY_CONNECTED), true);
-		if (ClientManager::isConnected(l_reserve_server))
+		//if (ClientManager::isConnected(l_reserve_server))
+		//{
+		//  return;
+		//}
+		//else
 		{
-			return;
-		}
-		else
-		{
-			redirAdr = l_reserve_server;
+			//redirAdr = l_reserve_server;
 			l_is_double_redir = true;
-			const string l_redirect = "HubFrame::on(Redirect) " + getHubHint() + " -> " + redirAdr + " REDIRECT_ALREADY_CONNECTED -> connect to " + l_reserve_server;
+			const string l_redirect = "HubFrame::on(Redirect) " + getHubHint() + " -> " + redirAdr + " REDIRECT_ALREADY_CONNECTED!";
 			if (m_last_redirect != l_redirect)
 			{
 				m_last_redirect = l_redirect;
@@ -3529,13 +3536,15 @@ void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 	if (l_is_double_redir == false)
 	{
 		string l_loop_message;
-		if (++m_count_redirect_map[m_redirect] > 1)
+		if (++m_count_redirect_map[m_redirect] > 2)
 		{
+			/*
 			if (!ClientManager::isConnected(l_reserve_server))
 			{
-				m_redirect = l_reserve_server;
-				l_loop_message = "(stop loop) ";
+			    m_redirect = l_reserve_server;
+			    l_loop_message = "(stop loop) ";
 			}
+			*/
 		}
 		const string l_redirect = "HubFrame::on(Redirect) " + l_loop_message + getHubHint() + " -> " + m_redirect + " auto follow = " + Util::toString(BOOLSETTING(AUTO_FOLLOW));
 		if (m_last_redirect != l_redirect)
@@ -3934,8 +3943,8 @@ void HubFrame::updateUserList() // [!] IRainman opt.
 		dcassert(m_ctrlFilterSel);
 		const int sel = getFilterSelPos();
 		const bool doSizeCompare = sel == COLUMN_SHARED && parseFilter(mode, size);
-		//CFlyReadLock(*m_userMapCS);
-		CFlyLock(m_userMapCS);
+		CFlyReadLock(*m_userMapCS);
+		//CFlyLock(m_userMapCS);
 		for (auto i = m_userMap.cbegin(); i != m_userMap.cend(); ++i)
 		{
 			UserInfo* ui = i->second;
@@ -4298,12 +4307,11 @@ LRESULT HubFrame::onStyleChanged(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	return 0;
 }
 
-void HubFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
+void HubFrame::on(SettingsManagerListener::Repaint)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (m_ctrlUsers && !ClientManager::isShutdown())
 	{
-		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		m_ctrlUsers->SetImageList(g_userImage.getIconList(), LVSIL_SMALL);
 		//!!!!m_ctrlUsers->SetImageList(g_userStateImage.getIconList(), LVSIL_STATE);
 		if (m_ctrlUsers->isRedraw())
@@ -4558,8 +4566,8 @@ void HubFrame::addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param)
 			const auto& frame = f->second;
 			if (frame->isClosedOrShutdown())
 				continue;
-			//CFlyReadLock(*frame->m_userMapCS);
-			CFlyLock(frame->m_userMapCS);
+			CFlyReadLock(*frame->m_userMapCS);
+			//CFlyLock(frame->m_userMapCS);
 			for (auto i = frame->m_userMap.cbegin(); i != frame->m_userMap.cend(); ++i) // TODO https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=28097
 			{
 				if (frame->isClosedOrShutdown())
@@ -4600,7 +4608,12 @@ void HubFrame::addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param)
 					l_menu_strings.push_back(make_pair(info, flags));
 					if (!l_id.getApplication().empty() || !l_cur_ip.empty())
 					{
-						l_menu_strings.push_back(make_pair(Text::toT(l_id.getTag() + ",   IP: " + l_cur_ip), 0));
+						string l_menu_ip;
+						if (!l_cur_ip.empty() && l_cur_ip != "0.0.0.0")
+						{
+							l_menu_ip = ",   IP: " + l_cur_ip;
+						}
+						l_menu_strings.push_back(make_pair(Text::toT(l_id.getTag() + l_menu_ip), 0));
 					}
 					else
 					{
@@ -4643,7 +4656,8 @@ UserInfo* HubFrame::findUser(const OnlineUserPtr& p_user)
 	//{
 	//  LogManager::message("findUser after m_is_fynally_clear_user_list = " + p_user->getUser()->getLastNick());
 	//}
-	CFlyLock(m_userMapCS);
+	CFlyReadLock(*m_userMapCS);
+	//CFlyLock(m_userMapCS);
 	return m_userMap.findUser(p_user);
 }
 
@@ -4656,7 +4670,7 @@ UserInfo* HubFrame::findUser(const tstring& p_nick)   // !SMT!-S
 		dcassert(0);
 		return nullptr;
 	}
-		
+	
 	const OnlineUserPtr ou = m_client->findUser(Text::fromT(p_nick));
 	if (ou)
 	{

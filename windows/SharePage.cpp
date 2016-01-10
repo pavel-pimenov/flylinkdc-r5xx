@@ -292,7 +292,7 @@ void SharePage::directoryListInit()
 		{
 			int i = ctrlDirectories.insert(cnt++, Text::toT(j->m_synonym));
 			ctrlDirectories.SetItemText(i, 1, Text::toT(j->m_path).c_str());
-			ctrlDirectories.SetItemText(i, 2, Util::formatBytesW(ShareManager::getInstance()->getShareSize(j->m_path)).c_str());
+			ctrlDirectories.SetItemText(i, 2, Util::formatBytesW(ShareManager::getShareSize(j->m_path)).c_str());
 		}
 	}
 	// Display the new total share size
@@ -342,7 +342,7 @@ void SharePage::addDirectory(const tstring& aPath)
 			ShareManager::getInstance()->addDirectory(Text::fromT(path), Text::fromT(virt.line), true);
 			int i = ctrlDirectories.insert(ctrlDirectories.GetItemCount(), virt.line);
 			ctrlDirectories.SetItemText(i, 1, path.c_str());
-			ctrlDirectories.SetItemText(i, 2, Util::formatBytesW(ShareManager::getInstance()->getShareSize(Text::fromT(path))).c_str());
+			ctrlDirectories.SetItemText(i, 2, Util::formatBytesW(ShareManager::getShareSize(Text::fromT(path))).c_str());
 			ctrlTotal.SetWindowText(ShareManager::getShareSizeformatBytesW().c_str());
 		}
 	}

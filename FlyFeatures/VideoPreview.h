@@ -101,7 +101,7 @@ typedef SocketProcessorS::iterator SocketProcessorSIter;
 typedef std::queue<std::string> LogInfoDataStack;
 
 class VideoPreview :
-	public Singleton<VideoPreview>, public Speaker<VideoPreviewListener>, public Thread, private SettingsManagerListener,
+	public Singleton<VideoPreview>, public Speaker<VideoPreviewListener>, public Thread, 
 	public QueueItemDelegate, private QueueManagerListener
 {
 	public:
@@ -166,7 +166,7 @@ class VideoPreview :
 		VideoPreview(): failed(false), _serverStarted(false), _serverPreview(false), _isServerDie(false), _isAcceptConnection(false)
 			, _previewFileSize(0)
 			, _canUseFile(true)
-			, _viewStarted(true)			
+			, _viewStarted(true)
 		{
 			_ask2Download.reserve(10);
 			start(64, "VideoPreview");
@@ -205,11 +205,11 @@ class VideoPreview :
 		
 		void addTask(Tasks task, TaskData* data)
 		{
-		   {
-		    CFlyLock(cs);
-		    m_tasks.push_back(make_pair(task, data));
-		   }
-		   m_taskSem.signal();
+			{
+				CFlyLock(cs);
+				m_tasks.push_back(make_pair(task, data));
+			}
+			m_taskSem.signal();
 		}
 		bool _serverStarted;
 		
@@ -270,8 +270,8 @@ class VideoPreview :
 		
 	private:
 		// QueueManagerListener
-		void on(QueueManagerListener::FileMoved, const string& n) noexcept; // [IntelC++ 2012 beta2] warning #1125: overloaded function "SettingsManagerListener::on" is hidden by "VideoPreview::on" -- virtual function override intended?
-		void on(QueueManagerListener::TryFileMoving, const string& n) noexcept; // [IntelC++ 2012 beta2] warning #1125: overloaded function "SettingsManagerListener::on" is hidden by "VideoPreview::on" -- virtual function override intended?
+		void on(QueueManagerListener::FileMoved, const string& n) noexcept override;
+		void on(QueueManagerListener::TryFileMoving, const string& n) noexcept override; 
 		
 };
 #endif // SSA_VIDEO_PREVIEW_FEATURE

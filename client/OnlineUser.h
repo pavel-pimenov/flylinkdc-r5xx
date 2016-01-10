@@ -787,36 +787,14 @@ class Identity
 		mutable FastCriticalSection m_si_fcs;
 		InfMap m_stringInfo;
 		
-		typedef vector<const string*> StringDictionaryReductionPointers;
+		typedef vector<const string> StringDictionaryReductionPointers;
 		typedef boost::unordered_map<string, uint16_t> StringDictionaryIndex;
 		
 		static StringDictionaryReductionPointers g_infoDic;
 		static StringDictionaryIndex g_infoDicIndex;
 		
-		uint32_t mergeDicIdL(const string& p_val)
-		{
-			if (p_val.empty())
-				return 0;
-			auto l_find = g_infoDicIndex.insert(make_pair(p_val, uint16_t(g_infoDic.size() + 1)));
-			if (l_find.second == true) // Новое значение в справочнике?
-			{
-				g_infoDic.push_back(&l_find.first->first);   // Сохраняем указатель на строчку
-			}
-			return l_find.first->second;
-		}
-		
-		const string& getDicValL(uint16_t p_index) const
-		{
-			dcassert(p_index > 0);
-			if (p_index > 0)
-			{
-				return *g_infoDic[p_index - 1];
-			}
-			else
-			{
-				return Util::emptyString;
-			}
-		}
+		static uint32_t mergeDicId(const string& p_val);
+		static string getDicVal(uint16_t p_index);
 		
 #pragma pack(push,1)
 		struct

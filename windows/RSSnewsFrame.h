@@ -172,7 +172,7 @@ class RSSNewsFrame : public MDITabChildWindowImpl < RSSNewsFrame, RGB(0, 0, 0), 
 		static int columnSizes[COLUMN_LAST];
 		static int columnIndexes[COLUMN_LAST];
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
+		void on(SettingsManagerListener::Repaint) override;
 		void on(RSSListener::Added, const RSSItem*) noexcept override;
 		void on(RSSListener::NewRSS, const unsigned int) noexcept override;
 		LRESULT updateList(const RSSManager::NewsList& list);

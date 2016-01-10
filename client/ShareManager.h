@@ -51,7 +51,7 @@ typedef std::vector<SearchResult> SearchResultList;
 typedef boost::unordered_set<std::string> QueryNotExistsSet;
 typedef boost::unordered_map<std::string, SearchResultList> QueryCacheMap;
 
-class ShareManager : public Singleton<ShareManager>, private SettingsManagerListener, private BASE_THREAD, private TimerManagerListener,
+class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, private TimerManagerListener,
 	private HashManagerListener, private QueueManagerListener
 {
 	public:
@@ -126,7 +126,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		static void internalClearCache(bool p_is_force);
 	public:
 		// [~] IRainman opt.
-		int64_t getShareSize(const string& realPath);
+		static int64_t getShareSize(const string& realPath);
 		
 		static size_t getLastSharedFiles()
 		{
@@ -153,7 +153,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		static Search::TypeModes getFType(const string& p_fileName, bool p_include_flylinkdc_ext = false) noexcept;
 		static string validateVirtual(const string& aVirt) noexcept;
-		bool hasVirtual(const string& name) const noexcept;
+		static bool hasVirtual(const string& name);
 		
 		static void incHits()
 		{
@@ -434,12 +434,12 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		
 		// List of root directory items
 		typedef std::list<Directory::Ptr> DirList;
-		DirList m_list_directories;
+		static DirList g_list_directories;
 		
 		/** Map real name to virtual name - multiple real names may be mapped to a single virtual one */
 		typedef boost::unordered_map<string, CFlyBaseDirItem> ShareMap;
 		static ShareMap g_shares;
-		ShareMap m_lost_shares;
+		static ShareMap g_lost_shares;
 		
 #ifdef STRONG_USE_DHT
 		friend class ::dht::IndexManager;
@@ -484,7 +484,7 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		void generateXmlList();
 		static StringList g_notShared;
 		bool loadCache() noexcept;
-		DirList::const_iterator getByVirtualL(const string& virtualName) const;
+		static DirList::const_iterator getByVirtualL(const string& virtualName);
 		pair<Directory::Ptr, string> splitVirtualL(const string& virtualPath) const;
 		static string findRealRootL(const string& virtualRoot, const string& virtualLeaf);
 		
@@ -514,7 +514,9 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		{
 			return getDirectoryL(p_fname) != NULL;
 		}
-		
+		static void load(SimpleXML& aXml);
+		static void save(SimpleXML& aXml);
+
 	private:
 		// QueueManagerListener
 		void on(QueueManagerListener::FileMoved, const string& n) noexcept override;
@@ -523,17 +525,12 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		void on(HashManagerListener::TTHDone, const string& fname, const TTHValue& root,
 		        int64_t aTimeStamp, const CFlyMediaInfo& p_out_media, int64_t p_size) noexcept override;
 		        
-		// SettingsManagerListener
-		void on(SettingsManagerListener::Save, SimpleXML& xml) override;
-		void on(SettingsManagerListener::Load, SimpleXML& xml) override;
-		// [+] IRainman opt.
-		void on(SettingsManagerListener::ShareChanges) noexcept override;
-		
 		bool isInSkipList(const string& lowerName) const;
-		bool skipListEmpty() const
+		bool isSkipListEmpty() const
 		{
 			return m_skipList.empty();
 		}
+		void rebuildSkipList();
 		StringList m_skipList;
 		int m_count_sec;
 		mutable FastCriticalSection m_csSkipList;
@@ -542,8 +539,6 @@ class ShareManager : public Singleton<ShareManager>, private SettingsManagerList
 		// TimerManagerListener
 		void on(TimerManagerListener::Minute, uint64_t tick) noexcept override;
 		void on(TimerManagerListener::Second, uint64_t tick) noexcept override;
-		void load(SimpleXML& aXml);
-		void save(SimpleXML& aXml);
 		
 };
 

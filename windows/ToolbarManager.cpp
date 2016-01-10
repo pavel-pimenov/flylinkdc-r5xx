@@ -14,15 +14,14 @@
 #include "../client/StringTokenizer.h"
 #include "../client/Pointer.h"
 
+ToolbarEntry::List ToolbarManager::g_toolbarEntries;
 ToolbarManager::ToolbarManager()
 {
-	SettingsManager::getInstance()->addListener(this);
 }
 
 ToolbarManager::~ToolbarManager()
 {
-	SettingsManager::getInstance()->removeListener(this);
-	for_each(toolbarEntries.begin(), toolbarEntries.end(), DeleteFunction());
+	for_each(g_toolbarEntries.begin(), g_toolbarEntries.end(), DeleteFunction());
 }
 
 void ToolbarManager::load(SimpleXML& aXml)
@@ -39,7 +38,7 @@ void ToolbarManager::load(SimpleXML& aXml)
 			t->setCX(aXml.getChildAttrib("CX"));
 			t->setBreakLine(aXml.getChildAttrib("BreakLine"));
 			t->setBandCount(aXml.getIntChildAttrib("BandCount"));
-			toolbarEntries.push_back(t);
+			g_toolbarEntries.push_back(t);
 		}
 		aXml.stepOut();
 	}
@@ -52,7 +51,7 @@ void ToolbarManager::load(SimpleXML& aXml)
 		t->setCX("1147,213,1142,255");
 		t->setBreakLine("1,0,1,1");
 		t->setBandCount(4);
-		toolbarEntries.push_back(t);
+		g_toolbarEntries.push_back(t);
 	}
 }
 
@@ -61,7 +60,7 @@ void ToolbarManager::save(SimpleXML& aXml)
 	aXml.addTag("Rebars");
 	aXml.stepIn();
 	
-	for (auto i = toolbarEntries.cbegin(); i != toolbarEntries.cend(); ++i)
+	for (auto i = g_toolbarEntries.cbegin(); i != g_toolbarEntries.cend(); ++i)
 	{
 		aXml.addTag("Rebar");
 		aXml.addChildAttrib("Name", (*i)->getName());
@@ -77,74 +76,68 @@ void ToolbarManager::save(SimpleXML& aXml)
 void ToolbarManager::getFrom(CReBarCtrl& ReBar, const string& aName)
 {
 	dcassert(ReBar.IsWindow());
-	removeToolbarEntry(getToolbarEntry(aName));
-	
-	ToolbarEntry* t = new ToolbarEntry();
-	string id, cx, bl, dl;
-	t->setName(aName);
-	t->setBandCount(ReBar.GetBandCount());
-	
-	for (int i = 0; i < t->getBandCount(); i++)
+	if (ReBar.IsWindow())
 	{
-		dl = ((i > 0) ? "," : "");
-		REBARBANDINFO rbi = {0};
-		rbi.cbSize = sizeof(rbi);
-		rbi.fMask = RBBIM_ID | RBBIM_SIZE | RBBIM_STYLE;
-		ReBar.GetBandInfo(i, &rbi);
-		id += dl + Util::toString(rbi.wID);
-		cx += dl + Util::toString(rbi.cx);
-		bl += dl + (((rbi.fStyle & RBBS_BREAK) != 0) ? "1" : "0");
+		removeToolbarEntry(getToolbarEntry(aName));
 		
+		ToolbarEntry* t = new ToolbarEntry();
+		string id, cx, bl, dl;
+		t->setName(aName);
+		t->setBandCount(ReBar.GetBandCount());
+		
+		for (int i = 0; i < t->getBandCount(); i++)
+		{
+			dl = ((i > 0) ? "," : "");
+			REBARBANDINFO rbi = { 0 };
+			rbi.cbSize = sizeof(rbi);
+			rbi.fMask = RBBIM_ID | RBBIM_SIZE | RBBIM_STYLE;
+			ReBar.GetBandInfo(i, &rbi);
+			id += dl + Util::toString(rbi.wID);
+			cx += dl + Util::toString(rbi.cx);
+			bl += dl + (((rbi.fStyle & RBBS_BREAK) != 0) ? "1" : "0");
+			
+		}
+		
+		t->setID(id);
+		t->setCX(cx);
+		t->setBreakLine(bl);
+		g_toolbarEntries.push_back(t);
 	}
-	
-	t->setID(id);
-	t->setCX(cx);
-	t->setBreakLine(bl);
-	toolbarEntries.push_back(t);
 }
 
 void ToolbarManager::applyTo(CReBarCtrl& ReBar, const string& aName) const
 {
 	dcassert(ReBar.IsWindow());
-	
-	ToolbarEntry* t = getToolbarEntry(aName);
-	if (t != NULL)
+	if (ReBar.IsWindow())
 	{
-		const StringTokenizer<string> id(t->getID(), ',');
-		const StringList& idList = id.getTokens();
-		const StringTokenizer<string> cx(t->getCX(), ',');
-		const StringList& cxList = cx.getTokens();
-		const StringTokenizer<string> bl(t->getBreakLine(), ',');
-		const StringList& blList = bl.getTokens();
-		
-		for (int i = 0; i < t->getBandCount(); i++)
+		ToolbarEntry* t = getToolbarEntry(aName);
+		if (t)
 		{
-			ReBar.MoveBand(ReBar.IdToIndex(Util::toInt(idList[i])), i);
-			REBARBANDINFO rbi = {0};
-			rbi.cbSize = sizeof(rbi);
-			rbi.fMask = RBBIM_ID | RBBIM_SIZE | RBBIM_STYLE;
-			ReBar.GetBandInfo(i, &rbi);
+			const StringTokenizer<string> id(t->getID(), ',');
+			const StringList& idList = id.getTokens();
+			const StringTokenizer<string> cx(t->getCX(), ',');
+			const StringList& cxList = cx.getTokens();
+			const StringTokenizer<string> bl(t->getBreakLine(), ',');
+			const StringList& blList = bl.getTokens();
 			
-			rbi.cx = Util::toInt(cxList[i]);
-			if (Util::toInt(blList[i]) > 0)
-				rbi.fStyle |= RBBS_BREAK;
-			else
-				rbi.fStyle &= (~RBBS_BREAK);
+			for (int i = 0; i < t->getBandCount(); i++)
+			{
+				ReBar.MoveBand(ReBar.IdToIndex(Util::toInt(idList[i])), i);
+				REBARBANDINFO rbi = { 0 };
+				rbi.cbSize = sizeof(rbi);
+				rbi.fMask = RBBIM_ID | RBBIM_SIZE | RBBIM_STYLE;
+				ReBar.GetBandInfo(i, &rbi);
 				
-			ReBar.SetBandInfo(i, &rbi);
+				rbi.cx = Util::toInt(cxList[i]);
+				if (Util::toInt(blList[i]) > 0)
+					rbi.fStyle |= RBBS_BREAK;
+				else
+					rbi.fStyle &= (~RBBS_BREAK);
+					
+				ReBar.SetBandInfo(i, &rbi);
+			}
 		}
 	}
-}
-
-void ToolbarManager::on(SettingsManagerListener::Load, SimpleXML& aXml)
-{
-	load(aXml);
-}
-
-void ToolbarManager::on(SettingsManagerListener::Save, SimpleXML& aXml)
-{
-	CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
-	save(aXml);
 }
 
 void ToolbarManager::removeToolbarEntry(const ToolbarEntry* entry)
@@ -152,19 +145,19 @@ void ToolbarManager::removeToolbarEntry(const ToolbarEntry* entry)
 	if (entry == NULL)
 		return;
 		
-	ToolbarEntry::List::iterator i = find(toolbarEntries.begin(), toolbarEntries.end(), entry);
-	if (i == toolbarEntries.end())
+	ToolbarEntry::List::iterator i = find(g_toolbarEntries.begin(), g_toolbarEntries.end(), entry);
+	if (i == g_toolbarEntries.end())
 	{
 		return;
 	}
 	
-	toolbarEntries.erase(i);
+	g_toolbarEntries.erase(i);
 	delete entry;
 }
 
-ToolbarEntry* ToolbarManager::getToolbarEntry(const string& aName) const
+ToolbarEntry* ToolbarManager::getToolbarEntry(const string& aName)
 {
-	for (auto i = toolbarEntries.cbegin(); i != toolbarEntries.cend(); ++i)
+	for (auto i = g_toolbarEntries.cbegin(); i != g_toolbarEntries.cend(); ++i)
 	{
 		ToolbarEntry* t = *i;
 		if (stricmp(t->getName(), aName) == 0)

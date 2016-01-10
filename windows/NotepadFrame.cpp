@@ -117,12 +117,11 @@ LRESULT NotepadFrame::onLButton(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam,
 	return 0;
 }
 
-void NotepadFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
+void NotepadFrame::on(SettingsManagerListener::Repaint)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
 	}
 }

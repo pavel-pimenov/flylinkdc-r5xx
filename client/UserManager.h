@@ -48,7 +48,7 @@ class UserManagerListener
 #endif
 };
 
-class UserManager : public Singleton<UserManager>, public Speaker<UserManagerListener>, private SettingsManagerListener
+class UserManager : public Singleton<UserManager>, public Speaker<UserManagerListener>
 {
 	public:
 		void outgoingPrivateMessage(const UserPtr& user, const string& hubHint, const tstring& message)
@@ -81,54 +81,13 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		typedef StringSet IgnoreMap;
 		
 		static tstring getIgnoreListAsString();
-		static void getIgnoreList(StringSet& p_ignoreList)
-		{
-			CFlyReadLock(*g_csIgnoreList);
-			dcassert(g_ignoreListLoaded);
-			p_ignoreList = g_ignoreList;
-		}
-		static void addToIgnoreList(const string& userName)
-		{
-			{
-				CFlyWriteLock(*g_csIgnoreList);
-				dcassert(g_ignoreListLoaded);
-				g_ignoreList.insert(userName);
-			}
-			saveIgnoreList();
-		}
-		static void removeFromIgnoreList(const string& userName)
-		{
-			{
-				CFlyWriteLock(*g_csIgnoreList);
-				dcassert(g_ignoreListLoaded);
-				g_ignoreList.erase(userName);
-			}
-			saveIgnoreList();
-		}
-		static bool isInIgnoreList(const string& nick)
-		{
-			// dcassert(!nick.empty());
-			if (!g_isEmptyIgnoreList && !nick.empty())
-			{
-				dcassert(!nick.empty());
-				CFlyReadLock(*g_csIgnoreList);
-				dcassert(g_ignoreListLoaded);
-				return g_ignoreList.find(nick) != g_ignoreList.cend();
-			}
-			else
-			{
-				return false;
-			}
-		}
-		static void setIgnoreList(const IgnoreMap& newlist)
-		{
-			{
-				CFlyWriteLock(*g_csIgnoreList);
-				g_ignoreList = newlist;
-			}
-			saveIgnoreList();
-		}
-		
+		static void getIgnoreList(StringSet& p_ignoreList);
+		static void addToIgnoreList(const string& userName);
+		static void removeFromIgnoreList(const string& userName);
+		static bool isInIgnoreList(const string& nick);
+		static void setIgnoreList(const IgnoreMap& newlist);
+		static void reloadProtUsers();
+
 		static bool protectedUserListEmpty()
 		{
 			return g_protectedUsersLower.empty();
@@ -154,13 +113,6 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		friend class Singleton<UserManager>;
 		UserManager();
 		~UserManager();
-		
-		void on(SettingsManagerListener::UsersChanges) noexcept override;
-		
-		void on(SettingsManagerListener::Load, SimpleXML& /*xml*/) override
-		{
-			on(SettingsManagerListener::UsersChanges());
-		}
 		
 		static StringList g_protectedUsersLower;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csProtectedUsers;

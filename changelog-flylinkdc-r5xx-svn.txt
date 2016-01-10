@@ -1,4 +1,49 @@
 ------------------------------------------------------------------------
+r19368 | ppa | 2016-01-09 20:36:20 +0300 (Сб, 09 янв 2016) | 6 lines
+
+Merged revision(s) 19366-19367 from trunk:
+* Удалены черпки из закладок хабов зараженных - убедить админов не получилось (только лишние вопрсоы у юзеров)
+* Удалил редирект на dchub://dc.livedc.ru
+........
+
+
+------------------------------------------------------------------------
+r19367 | ppa | 2016-01-09 20:33:55 +0300 (Сб, 09 янв 2016) | 1 line
+
+# Log
+------------------------------------------------------------------------
+r19365 | ppa | 2015-12-31 14:18:55 +0300 (Чт, 31 дек 2015) | 24 lines
+
+Merged revision(s) 19362-19364 from trunk:
+# Обновление конфига автообновки
+# MediaInfo
+
+Version 0.7.81, 2015-12-31
+--------------
++ Acquisition Metadata: support of all SMPTE RDD18 elements
++ Matroska: cover presence and content of the cover, thanks to Max Pozdeev
++ #F446, Matroska: Handling of cropping values, thanks to Max Pozdeev
++ Improvement of Python binding: Mac Os X support, Python2 and Python3 can use same MediaInfoDLL.py
++ #F484, AVI: OpenDML Interlaced / Progressive scan type detection
++ MP4: support of AtomicParsley imdb tag
+x #B959, MPEG-TS: MPEG-1 Video appeared as MPEG-2 Video
+x #B914, Matroska: Undefined number of chapters in some M4V with Timed Text, thanks to Max Pozdeev
+x #B962, Matroska: negative timecodes were not correctly handled
+x #B964, FLV: was hanging trying to open some FLV files
+x JPEG in AVI or MOV: better handling of buggy APP0/AVI1, avoiding some false positives about interlacement
+x DVCPRO HD: some containers consider DVCPRO HD as with width 1920 despite the fact it is 1280 or 1440, using 1280 or 1440 in all cases
+
+........
+# Сократил блокировки в Identity
+# В HubFrame m_userMap перевел локер на RWLockWrapper
+........
+
+------------------------------------------------------------------------
+r19364 | ppa | 2015-12-31 14:16:32 +0300 (Чт, 31 дек 2015) | 2 lines
+
+# Сократил блокировки в Identity
+# В HubFrame m_userMap перевел локер на RWLockWrapper
+------------------------------------------------------------------------
 r19359 | ppa | 2015-12-30 12:16:35 +0300 (Ср, 30 дек 2015) | 8 lines
 
 Merged revision(s) 19355-19358 from trunk:

@@ -38,9 +38,9 @@
 #include "wtl_flylinkdc.h"
 
 // [+] IRainman copy-past fix.
-#define SHOW_POPUP(popup_key, msg, title) { if (POPUP_ENABLED(popup_key)) MainFrame::getMainFrame()->ShowBalloonTip((msg).c_str(), (title).c_str()); }
-#define SHOW_POPUPF(popup_key, msg, title, flags) { if (POPUP_ENABLED(popup_key)) MainFrame::getMainFrame()->ShowBalloonTip((msg).c_str(), (title).c_str(), flags); }
-#define SHOW_POPUP_EXT(popup_key, msg, popup_ext_key, ext_msg, ext_len, title) { if (POPUP_ENABLED(popup_key)) if (BOOLSETTING(popup_ext_key)) MainFrame::getMainFrame()->ShowBalloonTip((msg + ext_msg.substr(0, ext_len)).c_str(), (title).c_str()); }
+#define SHOW_POPUP(popup_key, msg, title) { if (POPUP_ENABLED(popup_key)) MainFrame::ShowBalloonTip((msg).c_str(), (title).c_str()); }
+#define SHOW_POPUPF(popup_key, msg, title, flags) { if (POPUP_ENABLED(popup_key)) MainFrame::ShowBalloonTip((msg).c_str(), (title).c_str(), flags); }
+#define SHOW_POPUP_EXT(popup_key, msg, popup_ext_key, ext_msg, ext_len, title) { if (POPUP_ENABLED(popup_key)) if (BOOLSETTING(popup_ext_key)) MainFrame::ShowBalloonTip((msg + ext_msg.substr(0, ext_len)).c_str(), (title).c_str()); }
 
 #define SET_EXTENDENT_LIST_VIEW_STYLE(ctrlList)            ctrlList.SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_INFOTIP | (BOOLSETTING(VIEW_GRIDCONTROLS) ? LVS_EX_GRIDLINES /*TODO LVS_OWNERDRAWFIXED*/ : 0))
 #define SET_EXTENDENT_LIST_VIEW_STYLE_PTR(ctrlList)            ctrlList->SetExtendedListViewStyle(LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER | LVS_EX_INFOTIP | (BOOLSETTING(VIEW_GRIDCONTROLS) ? LVS_EX_GRIDLINES /*TODO LVS_OWNERDRAWFIXED*/ : 0))
@@ -1515,7 +1515,11 @@ class WinUtil
 		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIcon;
 		static std::unique_ptr<HIconWrapper> g_HubDDoSIcon;
 		static std::unique_ptr<HIconWrapper> g_HubAntivirusIcon;
+#ifdef FLYLINKDC_USE_SKULL_TAB
 		static std::unique_ptr<HIconWrapper> g_HubVirusIcon[4];
+#else
+		static std::unique_ptr<HIconWrapper> g_HubVirusIcon;
+#endif
 		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[12]; // VIP_ICON
 		
 		static void initThemeIcons();

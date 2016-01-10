@@ -139,12 +139,11 @@ void WebServerManager::getLoginPage(string& p_out)
 	p_out += pagehtml;
 }
 
-void WebServerManager::on(SettingsManagerListener::Save, SimpleXML&)
+void WebServerManager::on(SettingsManagerListener::Repaint)
 {
 	dcassert(!ClientManager::isShutdown())
 	if (!ClientManager::isShutdown())
 	{
-		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		if (BOOLSETTING(WEBSERVER))
 		{
 			Restart();

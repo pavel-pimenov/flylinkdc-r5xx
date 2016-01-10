@@ -143,7 +143,7 @@ class ADLSearchFrame : public MDITabChildWindowImpl < ADLSearchFrame, RGB(0, 0, 
 		// Column parameters
 		static int columnIndexes[];
 		static int columnSizes[];
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
+		void on(SettingsManagerListener::Repaint) override;
 };
 
 #endif // !defined(ADL_SEARCH_FRAME_H)

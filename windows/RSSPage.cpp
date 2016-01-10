@@ -49,9 +49,9 @@ LRESULT RSSPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 {
 	if (m_CodeingList.empty())
 	{
-		m_CodeingList.insert(CodeingMapPair(TSTRING(RSS_CODEING_AUTO), RSSManager::getInstance()->getCodeing(0)));
-		m_CodeingList.insert(CodeingMapPair(TSTRING(RSS_CODEING_UTF8), RSSManager::getInstance()->getCodeing(1)));
-		m_CodeingList.insert(CodeingMapPair(TSTRING(RSS_CODEING_CP1251), RSSManager::getInstance()->getCodeing(2)));
+		m_CodeingList.insert(CodeingMapPair(TSTRING(RSS_CODEING_AUTO), RSSManager::getCodeing(0)));
+		m_CodeingList.insert(CodeingMapPair(TSTRING(RSS_CODEING_UTF8), RSSManager::getCodeing(1)));
+		m_CodeingList.insert(CodeingMapPair(TSTRING(RSS_CODEING_CP1251), RSSManager::getCodeing(2)));
 	}
 	
 	PropPage::translate((HWND)(*this), texts);
@@ -77,13 +77,13 @@ LRESULT RSSPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	spin.Detach();
 	
 	// Do specialized reading here
-	const RSSManager::FeedList& lst = RSSManager::getInstance()->lockFeedList();
+	const RSSManager::FeedList& lst = RSSManager::lockFeedList();
 	auto cnt = ctrlCommands.GetItemCount();
 	for (auto i = lst.cbegin(); i != lst.cend(); ++i)
 	{
 		addRSSEntry(*i, cnt++);
 	}
-	RSSManager::getInstance()->unlockFeedList();
+	RSSManager::unlockFeedList();
 	
 	return TRUE;
 }
@@ -169,7 +169,7 @@ LRESULT RSSPage::onChangeFeed(WORD , WORD , HWND , BOOL&)
 	{
 		int sel = ctrlCommands.GetSelectedIndex();
 		// Get RSSFeed
-		RSSFeed* feed = RSSManager::getInstance()->lockFeedList().at(sel);
+		RSSFeed* feed = RSSManager::lockFeedList().at(sel);
 		if (feed)
 		{
 			RSS_SetFeedDlg dlg;
@@ -186,7 +186,7 @@ LRESULT RSSPage::onChangeFeed(WORD , WORD , HWND , BOOL&)
 				addRSSEntry(feed,  sel);
 			}
 		}
-		RSSManager::getInstance()->unlockFeedList();
+		RSSManager::unlockFeedList();
 	}
 	return 0;
 }

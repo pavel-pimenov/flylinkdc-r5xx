@@ -585,12 +585,11 @@ LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	return 0;
 }
 
-void WaitingUsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
+void WaitingUsersFrame::on(SettingsManagerListener::Repaint)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		if (m_ctrlList.isRedraw())
 		{
 			ctrlQueued.SetBkColor(Colors::g_bgColor);

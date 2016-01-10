@@ -388,10 +388,9 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 				bool m_is_first_run;
 		} m_userMapInitThread;
 		
-		//std::unique_ptr<webrtc::RWLockWrapper> m_userMapCS;
 #endif
-		
-		CriticalSection m_userMapCS;
+		std::unique_ptr<webrtc::RWLockWrapper> m_userMapCS;
+		//CriticalSection m_userMapCS;
 		UserInfo::OnlineUserMap m_userMap;
 		bool m_needsUpdateStats;
 		// bool m_is_op_chat_opened;
@@ -411,7 +410,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		bool matchFilter(UserInfo& ui, int sel, bool doSizeCompare = false, FilterModes mode = NONE, int64_t size = 0);
 		UserInfo* findUser(const tstring& p_nick);   // !SMT!-S
 		UserInfo* findUser(const OnlineUserPtr& p_user);
-	
+		
 		FavoriteHubEntry* addAsFavorite(const FavoriteManager::AutoStartType p_autoconnect = FavoriteManager::NOT_CHANGE);// [!] IRainman fav options
 		void removeFavoriteHub();
 		
@@ -430,7 +429,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void resortForFavsFirst(bool justDoIt = false);
 		
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
+		void on(SettingsManagerListener::Repaint) override;
 		
 		// ClientListener
 		void on(ClientListener::Connecting, const Client*) noexcept override;
@@ -564,11 +563,13 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void initShowJoins(const FavoriteHubEntry *p_fhe);
 		
 		bool m_isUpdateColumnsInfoProcessed;
+#ifdef FLYLINKDC_USE_SKULL_TAB
 		bool m_is_red_virus_icon_index;
+		uint8_t m_virus_icon_index;
+#endif
 		bool m_is_ddos_detect;
 		bool m_is_ext_json_hub;
-		uint8_t m_virus_icon_index;
-		bool flickerVirusIcon();
+		void flickerVirusIcon();
 		void setCustomVIPIcon();
 		size_t m_ActivateCounter;
 		

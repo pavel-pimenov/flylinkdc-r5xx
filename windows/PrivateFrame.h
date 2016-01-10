@@ -197,7 +197,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 				PostMessage(WM_SPEAKER, USER_UPDATED);
 			}
 		}
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
+		void on(SettingsManagerListener::Repaint) override;
 		// [+] IRainman: copy-past fix.
 		void processFrameCommand(const tstring& fullMessageText, const tstring& cmd, tstring& param, bool& resetInputMessageText);
 		void processFrameMessage(const tstring& fullMessageText, bool& resetInputMessageText);

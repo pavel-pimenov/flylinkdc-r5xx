@@ -29,13 +29,11 @@
 
 CustomMenuManager::CustomMenuManager(void)
 {
-	SettingsManager::getInstance()->addListener(this);
 }
 
 CustomMenuManager::~CustomMenuManager(void)
 {
 	clearList();
-	SettingsManager::getInstance()->removeListener(this);
 }
 
 void

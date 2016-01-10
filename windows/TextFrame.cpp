@@ -130,12 +130,11 @@ void TextFrame::UpdateLayout(BOOL /*bResizeBars*/ /* = TRUE */)
 	ctrlPad.MoveWindow(rc);
 }
 
-void TextFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
+void TextFrame::on(SettingsManagerListener::Repaint)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
 	}
 }

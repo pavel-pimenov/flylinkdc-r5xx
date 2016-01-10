@@ -14,6 +14,10 @@
 
 #pragma once
 
+#include <atlbase.h>
+#include <atlapp.h>
+#include <atlctrls.h>
+
 #include "../client/DCPlusPlus.h"
 
 #include "../client/Singleton.h"
@@ -26,11 +30,11 @@ class ToolbarEntry
 		typedef ToolbarEntry* Ptr;
 		typedef vector<Ptr> List;
 		
-		ToolbarEntry() noexcept
+		ToolbarEntry() 
 		{
 			bandcount = 0;
 		}
-		~ToolbarEntry() noexcept { }
+		~ToolbarEntry() { }
 		
 		GETSET(string, name, Name);
 		GETSET(string, id, ID);
@@ -39,7 +43,7 @@ class ToolbarEntry
 		GETSET(int, bandcount, BandCount);
 };
 
-class ToolbarManager: public Singleton<ToolbarManager>, private SettingsManagerListener
+class ToolbarManager: public Singleton<ToolbarManager>
 {
 	public:
 		ToolbarManager();
@@ -48,24 +52,21 @@ class ToolbarManager: public Singleton<ToolbarManager>, private SettingsManagerL
 		// Get & Set toolbar positions
 		void getFrom(CReBarCtrl& ReBar, const string& aName);
 		void applyTo(CReBarCtrl& ReBar, const string& aName) const;
-		
+
+		// Save & load
+		static void load(SimpleXML& aXml);
+		static void save(SimpleXML& aXml);
+
 	private:
 		// Get data by name
-		ToolbarEntry* getToolbarEntry(const string& aName) const;
+		static ToolbarEntry* getToolbarEntry(const string& aName);
 		
 		// Remove old entry, when adding new
-		void removeToolbarEntry(const ToolbarEntry* entry);
+		static void removeToolbarEntry(const ToolbarEntry* entry);
 		
-		// Save & load
-		void load(SimpleXML& aXml);
-		void save(SimpleXML& aXml);
-		
-		// SettingsManagerListener
-		void on(SettingsManagerListener::Load, SimpleXML& xml) override;
-		void on(SettingsManagerListener::Save, SimpleXML& xml) override;
 		
 		// Store Toolbar infos here
-		ToolbarEntry::List toolbarEntries;
+		static ToolbarEntry::List g_toolbarEntries;
 		
 };
 

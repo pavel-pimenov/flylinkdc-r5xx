@@ -255,7 +255,7 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		bool parseFilter(FilterModes& mode, double& size);
 		bool matchFilter(const HubEntry& entry, const int& sel, bool doSizeCompare, const FilterModes& mode, const double& size);
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
+		void on(SettingsManagerListener::Repaint) override;
 		
 };
 

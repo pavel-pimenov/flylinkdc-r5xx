@@ -639,9 +639,7 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 			const auto l_dic_value = getDicAP();
 			if (l_dic_value > 0)
 			{
-				CFlyReadLock(*g_rw_cs);
-				
-				const string& l_value = getDicValL(l_dic_value);
+				const string l_value = getDicVal(l_dic_value);
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
 				CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
 #endif
@@ -657,8 +655,7 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 			const auto l_dic_value = getDicVE();
 			if (l_dic_value > 0)
 			{
-				CFlyReadLock(*g_rw_cs);
-				const string& l_value = getDicValL(l_dic_value);
+				const string l_value = getDicVal(l_dic_value);
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
 				CFlylinkDBManager::getInstance()->identity_get(name, l_value); // TODO вывести из лока g_rw_cs
 #endif
@@ -695,7 +692,6 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 	
 	{
 		CFlyFastLock(m_si_fcs);
-		
 		const auto i = m_stringInfo.find(*(short*)name);
 		if (i != m_stringInfo.end())
 		{
@@ -707,6 +703,32 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 	}
 	return Util::emptyString;
 }
+uint32_t Identity::mergeDicId(const string& p_val)
+{
+	if (p_val.empty())
+		return 0;
+	CFlyWriteLock(*g_rw_cs);
+	auto l_find = g_infoDicIndex.insert(make_pair(p_val, uint16_t(g_infoDic.size() + 1)));
+	if (l_find.second == true) // Новое значение в справочнике?
+	{
+		g_infoDic.push_back(p_val);   // Сохраняем индекс на строчку в справочнике
+	}
+	return l_find.first->second;
+}
+
+string Identity::getDicVal(uint16_t p_index)
+{
+	dcassert(p_index > 0 && p_index <= g_infoDic.size());
+	if (p_index > 0)
+	{
+		CFlyReadLock(*g_rw_cs);
+		return g_infoDic[p_index - 1];
+	}
+	else
+	{
+		return Util::emptyString;
+	}
+}
 
 void Identity::setStringParam(const char* name, const string& val) // [!] IRainman fix.
 {
@@ -715,21 +737,21 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 #ifdef PPA_INCLUDE_TEST
 	{
 		static std::map<short, int> g_cnt;
-		CFlyFastLock(ll(csTest);
+		CFlyFastLock(csTest);
 //	auto& i = g_cnt[*(short*)name];
 //	i++;
 //	if (i % 100 == 0)
 //	{
 //		dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! set[%s] '%s' count = %d sizeof(*this) = %d\n", name, val.c_str(), i, sizeof(*this));
 //	}
-		             static std::map<string, int> g_cnt_val;
-		             string l_key = string(name).substr(0, 2);
-		             auto& j = g_cnt_val[l_key + "~" + val];
-		             j++;
-		             if (l_key != "AP" && l_key != "EM" &&  l_key != "DE" &&  l_key != "VE")
-	{
-		//dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! set[%s] '%s' count = %d sizeof(*this) = %d\n", name, val.c_str(), j, sizeof(*this));
-		LogManager::message("Identity::setStringParam = " + string(name) + " val = " + val);
+		static std::map<string, int> g_cnt_val;
+		string l_key = string(name).substr(0, 2);
+		auto& j = g_cnt_val[l_key + "~" + val];
+		j++;
+		if (l_key != "AP" && l_key != "EM" &&  l_key != "DE" &&  l_key != "VE")
+		{
+			//dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! set[%s] '%s' count = %d sizeof(*this) = %d\n", name, val.c_str(), j, sizeof(*this));
+			LogManager::message("Identity::setStringParam = " + string(name) + " val = " + val);
 		}
 	}
 #endif
@@ -755,40 +777,37 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 			}
 		}
 	}
+	bool l_is_skip_string_map = false;
 	if (l_is_processing_stringInfo_map)
 	{
-		CFlyWriteLock(*g_rw_cs);
-#ifdef FLYLINKDC_USE_PROFILER_CS
-		char l_name[3] = { 0 };
-		l_name[0] = name[0];
-		l_name[1] = name[1];
-		l_lock.m_add_log_info = l_name;
-		l_lock.m_add_log_info += " Value = " + val + " User = " + getUser()->getLastNick();
-#endif
-		
-		switch (*(short*)name) // TODO: move to instantly method
 		{
-			case TAG('A', 'P'):
+			switch (*(short*)name)
 			{
-				setDicAP(mergeDicIdL(val));
-				break;
-			}
-			case TAG('V', 'E'):
-			{
-				setDicVE(mergeDicIdL(val));
-				break;
-			}
-			case TAG('E', 'M'): //  http://code.google.com/p/flylinkdc/issues/detail?id=1314
-			{
-				setNotEmptyStringBit(EM, !val.empty());
-				break;
-			}
-			case TAG('D', 'E'): //  http://code.google.com/p/flylinkdc/issues/detail?id=1314
-			{
-				setNotEmptyStringBit(DE, !val.empty());
-				break;
+				case TAG('A', 'P'):
+				{
+					setDicAP(mergeDicId(val));
+					l_is_skip_string_map = true;
+					break;
+				}
+				case TAG('V', 'E'):
+				{
+					setDicVE(mergeDicId(val));
+					l_is_skip_string_map = true;
+					break;
+				}
+				case TAG('E', 'M'): //  http://code.google.com/p/flylinkdc/issues/detail?id=1314
+				{
+					setNotEmptyStringBit(EM, !val.empty());
+					break;
+				}
+				case TAG('D', 'E'): //  http://code.google.com/p/flylinkdc/issues/detail?id=1314
+				{
+					setNotEmptyStringBit(DE, !val.empty());
+					break;
+				}
 			}
 		}
+		if (l_is_skip_string_map == false)
 		{
 			CFlyFastLock(m_si_fcs);
 			if (val.empty())

@@ -107,3 +107,4 @@ FlylinkDC-*.7z
 /compiled/UpdateTools/FlyUpdate/commit_update.bat
 
 /openssl/openssl.vcxproj.user
+/compiled/*.dmp

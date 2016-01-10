@@ -1850,7 +1850,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	{
 		parseCommandLine(GetCommandLine());
 	}
-	else if (wParam == SHOW_POPUP)
+	else if (wParam == SHOW_POPUP_MESSAGE)
 	{
 		Popup* msg = (Popup*)lParam;
 		dcassert(PopupManager::isValidInstance());
@@ -2560,7 +2560,7 @@ void setAwayByMinimized() // [+] IRainman fix.
 	{
 		invertAwaySettingIfNeeded();
 	}
-};
+}
 
 LRESULT MainFrame::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
@@ -2570,13 +2570,13 @@ LRESULT MainFrame::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL&
 		if (!g_bAppMinimized)
 		{
 			g_bAppMinimized = true;
-			setAwayByMinimized();
 			if (BOOLSETTING(MINIMIZE_TRAY) != WinUtil::isShift())
 			{
 				ShowWindow(SW_HIDE);
 				if (BOOLSETTING(REDUCE_PRIORITY_IF_MINIMIZED_TO_TRAY))
 					CompatibilityManager::reduceProcessPriority();
 			}
+			setAwayByMinimized();
 		}
 		m_maximized = IsZoomed() > 0;
 	}
@@ -3278,15 +3278,16 @@ LRESULT MainFrame::onAppShow(WORD /*wNotifyCode*/, WORD /*wParam*/, HWND, BOOL& 
 
 void MainFrame::ShowBalloonTip(LPCTSTR szMsg, LPCTSTR szTitle, DWORD dwInfoFlags)
 {
-	//dcassert(PopupManager::isValidInstance());
-	//dcassert(!CGDIImage::isShutdown());
-	if (!CGDIImage::isShutdown() && PopupManager::isValidInstance())
+	dcassert(PopupManager::isValidInstance());
+	dcassert(!CGDIImage::isShutdown());
+	dcassert(getMainFrame());
+	if (getMainFrame() && !CGDIImage::isShutdown() && PopupManager::isValidInstance())
 	{
 		Popup* p = new Popup;
 		p->Title = szTitle;
 		p->Message = szMsg;
 		p->Icon = dwInfoFlags;
-		safe_post_message(*this, SHOW_POPUP, p);
+		safe_post_message(*getMainFrame(), SHOW_POPUP_MESSAGE, p);
 	}
 }
 
@@ -3772,16 +3773,16 @@ void MainFrame::toggleTopmost() const
 
 void MainFrame::toggleLockToolbars() const
 {
-	CReBarCtrl rbc = m_hWndToolBar;
+	CReBarCtrl l_rebar = m_hWndToolBar;
 	REBARBANDINFO rbi = {0};
 	rbi.cbSize = sizeof(rbi);
 	rbi.fMask  = RBBIM_STYLE;
-	int nCount  = rbc.GetBandCount();
+	int nCount = l_rebar.GetBandCount();
 	for (int i  = 0; i < nCount; i++)
 	{
-		rbc.GetBandInfo(i, &rbi);
+		l_rebar.GetBandInfo(i, &rbi);
 		rbi.fStyle ^= RBBS_NOGRIPPER | RBBS_GRIPPERALWAYS;
-		rbc.SetBandInfo(i, &rbi);
+		l_rebar.SetBandInfo(i, &rbi);
 	}
 }
 #ifdef IRAINMAN_INCLUDE_SMILE

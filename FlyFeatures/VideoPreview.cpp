@@ -29,7 +29,6 @@
 VideoPreview::~VideoPreview()
 {
 	/* [-] IRainman fix.
-	SettingsManager::getInstance()->removeListener(this);
 	QueueManager::getInstance()->removeListener(this);
 	*/
 }
@@ -38,10 +37,7 @@ void
 VideoPreview::shutdown()
 {
 	clear();
-	// [+] IRainman fix.
-	SettingsManager::getInstance()->removeListener(this);
 	QueueManager::getInstance()->removeListener(this);
-	// [~] IRainman fix.
 	addTask(SHUTDOWN, nullptr);
 }
 
@@ -55,18 +51,13 @@ void VideoPreview::StopServer()
 }
 void VideoPreview::AddLogInfo(const std::string& p_loginfo)
 {
-	// [!] TODO: refactoring witout this.
 	addTask(ADD_LOG_INFO, new TaskData(p_loginfo));
-	// 2012-04-23_20-04-20_OZJ2EQXWZYW6V333A2W5HBCNLUGLVFTLC54Q7BQ_A0B55B4D_crash-stack-r502-beta21-x64-build-9811.dmp
-	// 2012-04-27_18-47-20_DPP42GQ5GG7Y5Q45X5O6LX6QUQMJRZ7XQPGYBZA_609C4718_crash-stack-r502-beta22-x64-build-9854.dmp
-} //[6] https://www.box.net/shared/805daddf39c3c4c631d3
+}
 
 void
 VideoPreview::initialize()
 {
-	SettingsManager::getInstance()->addListener(this);
 	QueueManager::getInstance()->addListener(this);
-	// StartServer();
 }
 
 int
@@ -94,9 +85,9 @@ bool VideoPreview::checkEvents()
 		pair<Tasks, TaskData*> p;
 		p.second = 0;
 		{
-			CFlyLock(cs); // [1] https://www.box.net/shared/8051e3afc6d6ee56fdfe
+			CFlyLock(cs); 
 			dcassert(!m_tasks.empty());
-			if (m_tasks.empty())  
+			if (m_tasks.empty())
 				return false;
 			p = m_tasks.front();
 			m_tasks.pop_front();
@@ -118,13 +109,13 @@ bool VideoPreview::checkEvents()
 					if (!IsServerStarted())
 					{
 						_StartServer();
-					}	
+					}
 				}
 				break;
 				case STOP_PREVIEW_SERVER:
 				{
 					if (IsServerStarted())
-						_StopServer();		
+						_StopServer();
 				}
 				break;
 				case ADD_LOG_INFO:
@@ -138,7 +129,7 @@ bool VideoPreview::checkEvents()
 						_StopServer();
 				}
 				return false;
-			}			
+			}
 			// delete p.second; [-] IRainman fix.
 		}
 		catch (const Exception& e)
@@ -147,7 +138,7 @@ bool VideoPreview::checkEvents()
 			fail(e.getError());
 		}
 		// [+] IRainman fix.
-	check_events_clean_task_data:
+check_events_clean_task_data:
 		delete p.second;
 		// [~] IRainman fix.
 	}
@@ -164,7 +155,7 @@ void VideoPreview::clear()
 		auto qi = QueueManager::FileQueue::find_target(_currentFilePreview);
 		if (qi)
 		{
-				qi->setDelegate(nullptr);
+			qi->setDelegate(nullptr);
 		}
 	}
 	// Stop/Remove Items
@@ -386,7 +377,7 @@ void VideoPreview::SetDownloadSegment(int64_t pos, int64_t size)
 	int64_t sizeNew = size;
 	if (!_fileRoadMap->GetInsertableSizeAndPos(posNew, sizeNew))
 	{
-	    bool iFound = false;
+		bool iFound = false;
 		MapVItems::const_iterator i = _ask2Download.cbegin();
 		while (i != _ask2Download.cend()) // Это цикл должен убить все скачанные из заказа не зависимо от найденных
 		{
@@ -448,7 +439,7 @@ size_t VideoPreview::getDownloadItems(int64_t blockSize, vector<int64_t>& ItemsA
 			const int64_t endPos = ((i->getPosition() + i->getSize()) / blockSize) * blockSize;
 			for (; startPos <= endPos; startPos += blockSize)
 				ItemsArray.push_back(startPos);
-
+				
 			++i;
 		}
 		
@@ -465,7 +456,7 @@ void VideoPreview::setDownloadItem(int64_t pos, int64_t blockSize)
 int VideoPreviewSocketProcessor::run()
 {
 	// ReadHeaders from socket.
-	vector<char> buff(8192);	
+	vector<char> buff(8192);
 	::Sleep(1);
 	
 	int size = recv(sock, buff.data(), buff.size(), 0);
@@ -546,48 +537,48 @@ int VideoPreviewSocketProcessor::run()
 	//int test = 0;
 	//test = setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (char*)&optval, optlen);
 	
-		// Accept new socket thread
-		if (VideoPreview::getInstance() != NULL && endValue > 0)
+	// Accept new socket thread
+	if (VideoPreview::getInstance() != NULL && endValue > 0)
+	{
+		const std::string content_type = "application/avi";
+		
+		std::string data = "HTTP/1.1 200 OK\nContent-type: ";
+		data += content_type;
+		data += "\nContent-Encoding: 8bit";
+		if (VideoPreview::getInstance()->IsPreviewFileExists() && BOOLSETTING(INT_PREVIEW_USE_VIDEO_SCROLL))
 		{
-			const std::string content_type = "application/avi";
-			
-			std::string data = "HTTP/1.1 200 OK\nContent-type: ";
-			data += content_type;
-			data += "\nContent-Encoding: 8bit";
-			if (VideoPreview::getInstance()->IsPreviewFileExists() && BOOLSETTING(INT_PREVIEW_USE_VIDEO_SCROLL))
+			data += "\nAccept-Ranges: bytes";
+			data += "\nContent-Length:";
+			data += Util::toString(dataLength);
+			data += "\nContent-Range: bytes ";
+			data += Util::toString(startValue);
+			data += '-';
+			data += Util::toString(endValue);
+			data += '/';
+			data += Util::toString(realFileDataLength);
+		}
+		data += "\nContent-Disposition: attachment; filename=";
+		data += Util::getFileName(VideoPreview::getInstance()->GetFilePreviewName());
+		data += "\n\n";
+		
+		int64_t filePosition = startValue;
+		
+		if (SOCKET_ERROR != ::send(sock, data.c_str(), static_cast<int>(data.size()), 0))
+		{
+			bool dataAsks = false;
+			while (!isServerDie)
 			{
-				data += "\nAccept-Ranges: bytes";
-				data += "\nContent-Length:";
-				data += Util::toString(dataLength);
-				data += "\nContent-Range: bytes ";
-				data += Util::toString(startValue);
-				data += '-';
-				data += Util::toString(endValue);
-				data += '/';
-				data += Util::toString(realFileDataLength);
-			}
-			data += "\nContent-Disposition: attachment; filename=";
-			data += Util::getFileName(VideoPreview::getInstance()->GetFilePreviewName());
-			data += "\n\n";
-			
-			int64_t filePosition = startValue;
-			
-			if (SOCKET_ERROR != ::send(sock, data.c_str(), static_cast<int>(data.size()), 0))
-			{
-				bool dataAsks = false;
-				while (!isServerDie)
+				if (filePosition >= endValue)
 				{
-					if (filePosition >= endValue)
+					_snprintf(buff.data(), buff.size(), "Finished sending for client %s (" I64_FMT " - " I64_FMT ")", clientName.c_str(), startValue, endValue);
+					loginfo = buff.data();
+					VideoPreview::getInstance()->AddLogInfo(loginfo);
+					break;
+				}
+				if (VideoPreview::getInstance()->CanUseFile())
+				{
+					try
 					{
-						_snprintf(buff.data(),buff.size(), "Finished sending for client %s (" I64_FMT " - " I64_FMT ")", clientName.c_str(), startValue, endValue);
-						loginfo = buff.data();
-						VideoPreview::getInstance()->AddLogInfo(loginfo);
-						break;
-					}
-					if (VideoPreview::getInstance()->CanUseFile())
-					{
-						try
-						{
 						unique_ptr<SharedFileStream> openedFile(new SharedFileStream(VideoPreview::getInstance()->GetFilePreviewTempName(),  File::READ, File::OPEN | File::SHARED | File::CREATE | File::NO_CACHE_HINT));
 						if (openedFile.get() != NULL)
 						{
@@ -595,7 +586,7 @@ int VideoPreviewSocketProcessor::run()
 							{
 								if (dataAsks)
 								{
-									_snprintf(buff.data(),buff.size(), "Data was downloaded for client %s (" I64_FMT " - " I64_FMT ")", clientName.c_str(), startValue, endValue);
+									_snprintf(buff.data(), buff.size(), "Data was downloaded for client %s (" I64_FMT " - " I64_FMT ")", clientName.c_str(), startValue, endValue);
 									loginfo = buff.data();
 									VideoPreview::getInstance()->AddLogInfo(loginfo);
 								}
@@ -608,14 +599,14 @@ int VideoPreviewSocketProcessor::run()
 								filePosition += readSize;
 								if (readSize == 0)
 								{
-									_snprintf(buff.data(),buff.size(), "Finished sending for client %s (" I64_FMT " - " I64_FMT ")", clientName.c_str(), startValue, endValue);
+									_snprintf(buff.data(), buff.size(), "Finished sending for client %s (" I64_FMT " - " I64_FMT ")", clientName.c_str(), startValue, endValue);
 									loginfo = buff.data();
 									VideoPreview::getInstance()->AddLogInfo(loginfo);
 									break;
 								}
-
+								
 								// dcdebug("VideoPreviewSocketProcessor SENDING Ranger: %s - %s\n", Util::toString(filePosition).c_str(), Util::toString(readSize).c_str());
-								_snprintf(buff.data(),buff.size(), "Sending " I64_FMT " - %u for client %s (" I64_FMT " - " I64_FMT ")", filePosition, unsigned(readSize), clientName.c_str(), startValue, endValue);
+								_snprintf(buff.data(), buff.size(), "Sending " I64_FMT " - %u for client %s (" I64_FMT " - " I64_FMT ")", filePosition, unsigned(readSize), clientName.c_str(), startValue, endValue);
 								loginfo = buff.data();
 								VideoPreview::getInstance()->AddLogInfo(loginfo);
 								
@@ -651,25 +642,25 @@ int VideoPreviewSocketProcessor::run()
 						{
 							::Sleep(1);
 						}
-
+						
 					}
-					catch (Exception& e)					
+					catch (Exception& e)
 					{
-						LogManager::message("[VideoPreviewSocketProcessor] Error open SharedFileStream for file = [" + VideoPreview::getInstance()->GetFilePreviewTempName() + "] Error =" +e.getError());
+						LogManager::message("[VideoPreviewSocketProcessor] Error open SharedFileStream for file = [" + VideoPreview::getInstance()->GetFilePreviewTempName() + "] Error =" + e.getError());
 					}
-					}
-					else
-					{
-						::Sleep(1000);
-					}
+				}
+				else
+				{
+					::Sleep(1000);
 				}
 			}
 		}
+	}
 	
 	::closesocket(sock);
 	inProcess = false;
 	
-	_snprintf(buff.data(),buff.size(), "SOCKET Closed by Client %s range " I64_FMT " - " I64_FMT, clientName.c_str(), startValue, endValue);
+	_snprintf(buff.data(), buff.size(), "SOCKET Closed by Client %s range " I64_FMT " - " I64_FMT, clientName.c_str(), startValue, endValue);
 	loginfo = buff.data();
 	VideoPreview::getInstance()->AddLogInfo(loginfo);
 	return 0;
@@ -749,7 +740,7 @@ bool VideoPreview::GetNextLogItem(string& outString)
 	}
 	else
 		outString.clear();
-	
+		
 	return !outString.empty();
 }
 

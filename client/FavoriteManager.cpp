@@ -69,7 +69,6 @@ const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
 
 FavoriteManager::FavoriteManager() : m_lastId(0), m_count_hub(0)
 {
-	SettingsManager::getInstance()->addListener(this);
 	ClientManager::getInstance()->addListener(this);
 	
 	File::ensureDirectory(Util::getHubListsPath());
@@ -78,7 +77,6 @@ FavoriteManager::FavoriteManager() : m_lastId(0), m_count_hub(0)
 FavoriteManager::~FavoriteManager()
 {
 	ClientManager::getInstance()->removeListener(this);
-	SettingsManager::getInstance()->removeListener(this);
 	shutdown();
 	
 	for_each(g_favoriteHubs.begin(), g_favoriteHubs.end(), DeleteFunction());
@@ -1154,10 +1152,12 @@ void FavoriteManager::load(SimpleXML& aXml
 				const string l_CurrentServerUrl = Text::toLower(Util::formatDchubUrl(aXml.getChildAttrib("Server")));
 				if (l_is_fly_hub_exists == false && l_CurrentServerUrl == CFlyServerConfig::g_support_hub)
 					l_is_fly_hub_exists = true;
-				if (l_CurrentServerUrl.find("kurskhub.ru") != string::npos ||  // http://dchublist.ru/forum/viewtopic.php?p=24102#p24102
+				if (l_CurrentServerUrl.find("kurskhub.ru") != string::npos || // http://dchublist.ru/forum/viewtopic.php?p=24102#p24102
+#ifdef FLYLINKDC_USE_SUPPORT_HUB_EN
 				        l_CurrentServerUrl.find("tankafett.biz") != string::npos ||
 				        l_CurrentServerUrl.find(".dchub.net") != string::npos ||
 				        l_CurrentServerUrl.find(".dchublist.biz") != string::npos ||
+#endif
 				        CFlyServerConfig::g_block_hubs.count(l_CurrentServerUrl))
 				{
 					CFlyServerJSON::pushError(35, "Block hub: " + l_CurrentServerUrl);
@@ -1174,11 +1174,9 @@ void FavoriteManager::load(SimpleXML& aXml
 				e->setName(l_Name);
 				if (l_is_connect &&
 				        (l_CurrentServerUrl.rfind(".ru") != string::npos ||
-				         l_CurrentServerUrl.rfind("ozerki.org") != string::npos ||
 				         l_CurrentServerUrl.rfind("dc.filimania.com") != string::npos ||
 				         l_CurrentServerUrl.rfind("dc.rutrack.net") != string::npos ||
-				         l_CurrentServerUrl.rfind("artcool.org") != string::npos ||
-				         l_CurrentServerUrl.rfind("kcahdep.org") != string::npos
+				         l_CurrentServerUrl.rfind("artcool.org") != string::npos
 				        ))
 				{
 					l_count_active_ru_hub++;
@@ -1847,18 +1845,6 @@ void FavoriteManager::speakUserUpdate(const bool added, FavoriteMap::iterator& i
 		}
 	}
 }
-void FavoriteManager::on(SettingsManagerListener::Save, SimpleXML& xml)
-{
-	CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
-	previewsave(xml);
-}
-void FavoriteManager::on(SettingsManagerListener::Load, SimpleXML& xml)
-{
-	// [-] IRainman fix: not load Favorites from main config! load(xml);
-	recentload(xml); // [!] IRainman: This is only for compatibility, FlylinkDC stores recents hubs in the sqlite database.
-	previewload(xml);
-}
-
 RecentHubEntry* FavoriteManager::getRecentHubEntry(const string& aServer)
 {
 	// TODO Lock

@@ -54,13 +54,10 @@ UserManager::UserManager()
 	CFlylinkDBManager::getInstance()->load_ignore(g_ignoreList);
 	g_isEmptyIgnoreList = g_ignoreList.empty();
 	dcdrun(g_ignoreListLoaded = true);
-	
-	SettingsManager::getInstance()->addListener(this);
 }
 
 UserManager::~UserManager()
 {
-	SettingsManager::getInstance()->removeListener(this);
 }
 
 UserManager::PasswordStatus UserManager::checkPrivateMessagePassword(const ChatMessage& pm)
@@ -119,13 +116,61 @@ void UserManager::checkUser(const OnlineUserPtr& user)
 }
 #endif // IRAINMAN_INCLUDE_USER_CHECK
 
-void UserManager::on(SettingsManagerListener::UsersChanges) noexcept
+void UserManager::getIgnoreList(StringSet& p_ignoreList)
+{
+	CFlyReadLock(*g_csIgnoreList);
+	dcassert(g_ignoreListLoaded);
+	p_ignoreList = g_ignoreList;
+}
+void UserManager::addToIgnoreList(const string& userName)
+{
+	{
+		CFlyWriteLock(*g_csIgnoreList);
+		dcassert(g_ignoreListLoaded);
+		g_ignoreList.insert(userName);
+	}
+	saveIgnoreList();
+}
+void UserManager::removeFromIgnoreList(const string& userName)
+{
+	{
+		CFlyWriteLock(*g_csIgnoreList);
+		dcassert(g_ignoreListLoaded);
+		g_ignoreList.erase(userName);
+	}
+	saveIgnoreList();
+}
+bool UserManager::isInIgnoreList(const string& nick)
+{
+	// dcassert(!nick.empty());
+	if (!g_isEmptyIgnoreList && !nick.empty())
+	{
+		dcassert(!nick.empty());
+		CFlyReadLock(*g_csIgnoreList);
+		dcassert(g_ignoreListLoaded);
+		return g_ignoreList.find(nick) != g_ignoreList.cend();
+	}
+	else
+	{
+		return false;
+	}
+}
+void UserManager::setIgnoreList(const IgnoreMap& newlist)
+{
+	{
+		CFlyWriteLock(*g_csIgnoreList);
+		g_ignoreList = newlist;
+	}
+	saveIgnoreList();
+}
+
+void UserManager::reloadProtUsers()
 {
 	auto protUsers = SPLIT_SETTING_AND_LOWER(PROT_USERS);
-	
 	CFlyWriteLock(*g_csProtectedUsers);
 	swap(g_protectedUsersLower, protUsers);
 }
+
 bool UserManager::expectPasswordFromUser(const UserPtr& user)
 {
 	CFlyFastLock(g_csPsw);

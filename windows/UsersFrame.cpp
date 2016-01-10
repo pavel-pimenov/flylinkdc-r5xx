@@ -457,12 +457,11 @@ void UsersFrame::on(StatusChanged, const UserPtr& aUser) noexcept
 	}
 }
 
-void UsersFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
+void UsersFrame::on(SettingsManagerListener::Repaint)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		if (ctrlUsers.isRedraw())
 		{
 			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);

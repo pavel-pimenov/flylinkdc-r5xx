@@ -4029,12 +4029,11 @@ LRESULT SearchFrame::onEditChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 }
 //-BugMaster: new options; small optimization
 
-void SearchFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
+void SearchFrame::on(SettingsManagerListener::Repaint)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		if (ctrlResults.isRedraw())
 		{
 			ctrlResults.setFlickerFree(Colors::g_bgBrush);

@@ -59,7 +59,7 @@ struct SettingsAutoUpdateTaskData
 };
 
 class SettingsAutoUpdate :
-	public Singleton<SettingsAutoUpdate>, public Speaker<SettingsAutoUpdateListener>, public BackgroundTaskExecuter<pair<SettingsAutoUpdateTasks, SettingsAutoUpdateTaskData*>>, private SettingsManagerListener
+	public Singleton<SettingsAutoUpdate>, public Speaker<SettingsAutoUpdateListener>, public BackgroundTaskExecuter<pair<SettingsAutoUpdateTasks, SettingsAutoUpdateTaskData*>>
 {
 	public:
 		void initialize();

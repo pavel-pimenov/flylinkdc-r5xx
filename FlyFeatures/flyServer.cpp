@@ -125,7 +125,9 @@ std::unordered_set<std::string> CFlyServerConfig::g_block_ip_str;
 std::unordered_set<std::string> CFlyServerConfig::g_block_hubs;
 #ifdef USE_SUPPORT_HUB
 string CFlyServerConfig::g_support_hub = "dchub://dc.fly-server.ru";
-string CFlyServerConfig::g_support_hub_en = "dchub://nemesis.te-home.net";
+#ifdef FLYLINKDC_USE_SUPPORT_HUB_EN
+string CFlyServerConfig::g_support_hub_en = "dchub://dc.fly-server.ru";
+#endif
 string CFlyServerConfig::g_support_upnp = "http://www.flylinkdc.ru/2015/11/upnp.html";
 #endif // USE_SUPPORT_HUB
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -520,7 +522,10 @@ void CFlyServerConfig::loadConfig()
 					
 #ifdef USE_SUPPORT_HUB
 					initString("support_hub", g_support_hub);
+#ifdef FLYLINKDC_USE_SUPPORT_HUB_EN
 					initString("support_hub_en", g_support_hub_en);
+#endif
+					
 #endif // USE_SUPPORT_HUB
 					initString("support_upnp", g_support_upnp);
 					
@@ -694,13 +699,13 @@ void CFlyServerConfig::loadConfig()
 //======================================================================================================
 int CFlyServerConfig::getAlternativeHub(string& p_url)
 {
-	if (p_url.find("tankafett.biz") != string::npos ||
-	        p_url.find(".dchub.net") != string::npos ||
-	        p_url.find(".dchublist.biz") != string::npos)
+#ifdef FLYLINKDC_USE_SUPPORT_HUB_EN
+	if (p_url.find("tankafett.biz") != string::npos || p_url.find(".dchub.net") != string::npos || p_url.find(".dchublist.biz") != string::npos)
 	{
 		p_url = CFlyServerConfig::g_support_hub_en;
 		return 52;
 	}
+#endif
 	const auto l_dead_hubs = getDeadHub();
 	for (auto i = l_dead_hubs.cbegin(); i != l_dead_hubs.cend(); ++i)
 	{

@@ -911,7 +911,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		{
 			speak(HUB_REMOVED, c);
 		}
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
+		void on(SettingsManagerListener::Repaint) override;
 		
 		void initHubs();
 		void onHubAdded(HubInfo* info);

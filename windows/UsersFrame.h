@@ -185,7 +185,7 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 		void on(UserRemoved, const FavoriteUser& aUser) noexcept override;
 		void on(StatusChanged, const UserPtr& aUser) noexcept override;
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
+		void on(SettingsManagerListener::Repaint) override;
 		
 		void addUser(const FavoriteUser& aUser);
 		void updateUser(const UserPtr& aUser);

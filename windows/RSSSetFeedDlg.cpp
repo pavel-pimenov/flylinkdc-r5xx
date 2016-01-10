@@ -75,9 +75,9 @@ void RSS_SetFeedDlg::FillCodeingCombo()
 {
 	if (m_CodeingList.empty())
 	{
-		m_CodeingList.insert(CodeingMapPair(TSTRING(RSS_CODEING_AUTO), RSSManager::getInstance()->getCodeing(0)));
-		m_CodeingList.insert(CodeingMapPair(TSTRING(RSS_CODEING_UTF8), RSSManager::getInstance()->getCodeing(1)));
-		m_CodeingList.insert(CodeingMapPair(TSTRING(RSS_CODEING_CP1251), RSSManager::getInstance()->getCodeing(2)));
+		m_CodeingList.insert(CodeingMapPair(TSTRING(RSS_CODEING_AUTO), RSSManager::getCodeing(0)));
+		m_CodeingList.insert(CodeingMapPair(TSTRING(RSS_CODEING_UTF8), RSSManager::getCodeing(1)));
+		m_CodeingList.insert(CodeingMapPair(TSTRING(RSS_CODEING_CP1251), RSSManager::getCodeing(2)));
 	}
 	
 	ctrlCodeing.Attach(GetDlgItem(IDC_RSSFEED_CODEING));

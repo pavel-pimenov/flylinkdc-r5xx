@@ -270,7 +270,9 @@ class CFlyServerConfig
 		
 #ifdef USE_SUPPORT_HUB
 		static string   g_support_hub;
+#ifdef FLYLINKDC_USE_SUPPORT_HUB_EN
 		static string   g_support_hub_en;
+#endif
 #endif // USE_SUPPORT_HUB
 		static string   g_support_upnp;
 		static std::vector<std::string> g_mapping_hubs;

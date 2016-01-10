@@ -163,7 +163,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		void getLoginPage(string& p_out);
 		
 		// SettingsManagerListener
-		void on(SettingsManagerListener::Save, SimpleXML&) override;
+		void on(SettingsManagerListener::Repaint) override;
 		// SearchManagerListener
 		void on(SearchManagerListener::SR, const SearchResult& aResult) noexcept override;
 		

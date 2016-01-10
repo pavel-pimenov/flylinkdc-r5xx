@@ -77,10 +77,10 @@ LRESULT RSSNewsFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	SettingsManager::getInstance()->addListener(this);
 	RSSManager::getInstance()->addListener(this);
 	
-	RSSManager::getInstance()->updateFeeds();
+	RSSManager::updateFeeds();
 	
-	updateList(RSSManager::getInstance()->lockNewsList());
-	RSSManager::getInstance()->unlockNewsList();
+	updateList(RSSManager::lockNewsList());
+	RSSManager::unlockNewsList();
 	
 	bHandled = FALSE;
 	return TRUE;
@@ -181,12 +181,11 @@ void RSSNewsFrame::UpdateLayout(BOOL bResizeBars /*= TRUE*/)
 //  return 0;
 //}
 
-void RSSNewsFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
+void RSSNewsFrame::on(SettingsManagerListener::Repaint)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		if (ctrlList.isRedraw())
 		{
 			RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);

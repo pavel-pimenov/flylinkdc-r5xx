@@ -58,7 +58,7 @@ class SimpleXML;
  */
 class FavoriteManager : public Speaker<FavoriteManagerListener>,
 	public Singleton<FavoriteManager>,
-	private SettingsManagerListener, private ClientManagerListener
+	private ClientManagerListener
 {
 	public:
 		// [+] IRainman mimicry function
@@ -376,6 +376,11 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		void prepareClose();
 		void shutdown();
 		static void connectToFlySupportHub();
+
+		static void recentload(SimpleXML& aXml);
+		static void previewload(SimpleXML& aXml);
+		static void previewsave(SimpleXML& aXml);
+
 	private:
 		/** Used during loading to prevent saving. */
 		
@@ -391,18 +396,11 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		void on(UserConnected, const UserPtr& user) noexcept override;
 		void on(UserDisconnected, const UserPtr& user) noexcept override;
 		
-		// SettingsManagerListener
-		void on(SettingsManagerListener::Load, SimpleXML& xml) override;
-		void on(SettingsManagerListener::Save, SimpleXML& xml) override;
-		
 		void load(SimpleXML& aXml
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 		          , bool p_is_url = false
 #endif
 		         );
-		void recentload(SimpleXML& aXml);
-		void previewload(SimpleXML& aXml);
-		void previewsave(SimpleXML& aXml);
 		
 		static string getConfigFavoriteFile()
 		{

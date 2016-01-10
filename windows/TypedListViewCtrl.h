@@ -1426,7 +1426,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				delete ti;
 			}
 			const int l_Count = GetItemCount();
-			dcassert(l_Count == 0)
+			//dcassert(l_Count == 0)
 			for (int i = 0; i < l_Count; i++)
 			{
 				T* si = getItemData(i);
@@ -1936,7 +1936,7 @@ class TypedTreeListViewCtrlSafe : public TypedListViewCtrl<T, ctrlId>
 				delete ti;
 			}
 			const int l_Count = GetItemCount();
-			dcassert(l_Count == 0)
+			//dcassert(l_Count == 0)
 			for (int i = 0; i < l_Count; i++)
 			{
 				T* si = getItemData(i);

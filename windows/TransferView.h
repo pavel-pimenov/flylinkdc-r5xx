@@ -613,7 +613,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		// virtual void on(AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept;
 		void on(QueueManagerListener::Finished, const QueueItemPtr&, const string&, const DownloadPtr& aDownload) noexcept override;
 		
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override;
+		void on(SettingsManagerListener::Repaint) override;
 		
 		void onTransferComplete(const Transfer* aTransfer, const bool download, const string& aFileName); // [!] IRainman fix.
 		void starting(UpdateInfo* ui, const Transfer* t);

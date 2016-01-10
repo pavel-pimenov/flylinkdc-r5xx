@@ -649,12 +649,11 @@ void PrivateFrame::closeAllOffline()
 	dcassert(l_size_g_frames == g_pm_frames.size());
 }
 
-void PrivateFrame::on(SettingsManagerListener::Save, SimpleXML& /*xml*/)
+void PrivateFrame::on(SettingsManagerListener::Repaint)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		CFlyCrashReportMarker l_crash_marker(_T(__FUNCTION__));
 		if (ctrlClient.IsWindow())
 		{
 			ctrlClient.SetBackgroundColor(Colors::g_bgColor);

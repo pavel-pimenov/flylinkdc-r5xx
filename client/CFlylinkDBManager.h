@@ -564,15 +564,15 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlyLevelDBCacheIP  m_IPCacheLevelDB;
 #endif
 #else
-		auto_ptr<sqlite3_command> m_get_status_file;
+		CFlySQLCommand m_get_status_file;
 #endif // FLYLINKDC_USE_LEVELDB
 		FastCriticalSection m_path_cache_cs;
 		CFlyPathCache m_path_cache;
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
 	private:
-		auto_ptr<sqlite3_command> m_update_identity_stat_get;
-		auto_ptr<sqlite3_command> m_update_identity_stat_set;
-		auto_ptr<sqlite3_command> m_insert_identity_stat;
+		CFlySQLCommand m_update_identity_stat_get;
+		CFlySQLCommand m_update_identity_stat_set;
+		CFlySQLCommand m_insert_identity_stat;
 		void identity_initL(const string& p_key, const string& p_value, const string& p_hub);
 	public:
 		void identity_set(string p_key, string p_value, const string& p_hub = "-");
@@ -580,18 +580,18 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif // FLYLINKDC_USE_GATHER_IDENTITY_STAT
 	private:
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-		auto_ptr<sqlite3_command> m_select_fly_server_cache;
-		auto_ptr<sqlite3_command> m_insert_fly_server_cache;
-		auto_ptr<sqlite3_command> m_delete_mediainfo;
-		auto_ptr<sqlite3_command> m_load_mediainfo_ext;
-		auto_ptr<sqlite3_command> m_load_mediainfo_ext_only_inform;
-		auto_ptr<sqlite3_command> m_load_mediainfo_base;
-		auto_ptr<sqlite3_command> m_insert_mediainfo;
+		CFlySQLCommand m_select_fly_server_cache;
+		CFlySQLCommand m_insert_fly_server_cache;
+		CFlySQLCommand m_delete_mediainfo;
+		CFlySQLCommand m_load_mediainfo_ext;
+		CFlySQLCommand m_load_mediainfo_ext_only_inform;
+		CFlySQLCommand m_load_mediainfo_base;
+		CFlySQLCommand m_insert_mediainfo;
 		
 		void merge_mediainfo_ext(const __int64 l_tth_id, const CFlyMediaInfo& p_media, bool p_delete_old_info);
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 		
-		auto_ptr<sqlite3_command> m_update_base_mediainfo;
+		CFlySQLCommand m_update_base_mediainfo;
 		
 #ifdef STRONG_USE_DHT
 		CFlySQLCommand m_load_dht_nodes;
@@ -601,10 +601,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_check_expiration_dht_files;
 		CFlySQLCommand m_delete_dht_nodes;
 #endif // STRONG_USE_DHT
-		auto_ptr<sqlite3_command> m_fly_hash_block_convert_loop;
-		auto_ptr<sqlite3_command> m_fly_hash_block_convert_update;
-		auto_ptr<sqlite3_command> m_fly_hash_block_convert_drop_dup;
-		auto_ptr<sqlite3_command> m_add_tree_find;
+		CFlySQLCommand m_fly_hash_block_convert_loop;
+		CFlySQLCommand m_fly_hash_block_convert_update;
+		CFlySQLCommand m_fly_hash_block_convert_drop_dup;
+		CFlySQLCommand m_add_tree_find;
 		
 		CFlySQLCommand m_select_ratio_load;
 		
@@ -638,16 +638,16 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_insert_ratio;
 		
 #ifdef _DEBUG
-		auto_ptr<sqlite3_command> m_check_message_count;
-		auto_ptr<sqlite3_command> m_select_store_ip;
+		CFlySQLCommand m_check_message_count;
+		CFlySQLCommand m_select_store_ip;
 #endif
 		CFlySQLCommand m_insert_store_all_ip_and_message_count;
 		
-		auto_ptr<sqlite3_command> m_insert_fly_hash_block;
-		//auto_ptr<sqlite3_command> m_update_fly_hash_block;
-		auto_ptr<sqlite3_command> m_insert_file;
-		auto_ptr<sqlite3_command> m_update_file;
-		auto_ptr<sqlite3_command> m_check_tth_sql;
+		CFlySQLCommand m_insert_fly_hash_block;
+		//CFlySQLCommand m_update_fly_hash_block;
+		CFlySQLCommand m_insert_file;
+		CFlySQLCommand m_update_file;
+		CFlySQLCommand m_check_tth_sql;
 		CFlySQLCommand m_load_dir_sql;
 		CFlySQLCommand m_load_dir_sql_without_mediainfo;
 		CFlySQLCommand m_set_ftype;
@@ -670,12 +670,12 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_get_fly_queue;
 		CFlySQLCommand m_get_fly_queue_all_source;
 		
-		auto_ptr<sqlite3_command> m_get_ignores;
-		auto_ptr<sqlite3_command> m_insert_ignores;
-		auto_ptr<sqlite3_command> m_delete_ignores;
+		CFlySQLCommand m_get_ignores;
+		CFlySQLCommand m_insert_ignores;
+		CFlySQLCommand m_delete_ignores;
 		
-		auto_ptr<sqlite3_command> m_select_fly_dic;
-		auto_ptr<sqlite3_command> m_insert_fly_dic;
+		CFlySQLCommand m_select_fly_dic;
+		CFlySQLCommand m_insert_fly_dic;
 		CFlySQLCommand m_get_registry;
 		CFlySQLCommand m_insert_registry;
 		CFlySQLCommand m_delete_registry;
@@ -705,9 +705,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
 		CFlySQLCommand m_select_count_location;
-		auto_ptr<sqlite3_command> m_select_location_lost;
-		auto_ptr<sqlite3_command> m_update_location_lost;
-		auto_ptr<sqlite3_command> m_insert_location_lost;
+		CFlySQLCommand m_select_location_lost;
+		CFlySQLCommand m_update_location_lost;
+		CFlySQLCommand m_insert_location_lost;
 		boost::unordered_set<string> m_lost_location_cache;
 #endif
 #ifdef FLYLINKDC_USE_GEO_IP
@@ -731,10 +731,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif  // FLYLINKDC_USE_GATHER_STATISTICS
 		
 #ifdef FLYLINKDC_USE_COLLECT_STAT
-		auto_ptr<sqlite3_command> m_insert_statistic_dc_command;
-		auto_ptr<sqlite3_command> m_select_statistic_dc_command;
+		CFlySQLCommand m_insert_statistic_dc_command;
+		CFlySQLCommand m_select_statistic_dc_command;
 		
-		auto_ptr<sqlite3_command> m_insert_event_stat;
+		CFlySQLCommand m_insert_event_stat;
 #endif
 		
 		CFlySQLCommand m_insert_fly_message;

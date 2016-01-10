@@ -828,7 +828,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		{
 			SendMessage(WM_SPEAKER, SPEAK_UPDATE_STATUS, (WPARAM)nullptr);
 		}
-		void on(SettingsManagerListener::Save, SimpleXML& /*xml*/) override
+		void on(SettingsManagerListener::Repaint) override
 		{
 			dcassert(!ClientManager::isShutdown());
 			if (!ClientManager::isShutdown())

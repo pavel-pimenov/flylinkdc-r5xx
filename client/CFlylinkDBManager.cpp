@@ -798,10 +798,10 @@ CFlylinkDBManager::CFlylinkDBManager()
 		            dcassert(!ec);
 		            if (!ec)
 		            {
-		                l_trg_sql.get()->bind(1, l_q.getstring(0), SQLITE_TRANSIENT);
-		                l_trg_sql.get()->bind(2, l_q.getint64(1));
-		                l_trg_sql.get()->bind(3, sqlite_int64(l_ip.to_ulong()));
-		                l_trg_sql.get()->executenonquery();
+		                l_trg_sql->bind(1, l_q.getstring(0), SQLITE_TRANSIENT);
+		                l_trg_sql->bind(2, l_q.getint64(1));
+		                l_trg_sql->bind(3, sqlite_int64(l_ip.to_ulong()));
+		                l_trg_sql->executenonquery();
 		            }
 		        }
 		        l_trans.commit();
@@ -847,19 +847,16 @@ void CFlylinkDBManager::merge_mediainfo_ext(const __int64 l_tth_id, const CFlyMe
 {
 	if (p_delete_old_info) // TODO - никогда не работает почему-то
 	{
-		if (!m_delete_mediainfo.get())
-			m_delete_mediainfo = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                   "delete from media_db.fly_media where tth_id=?\n"));
-		m_delete_mediainfo.get()->bind(1, l_tth_id);
-		m_delete_mediainfo.get()->executenonquery();
+		m_delete_mediainfo.init(m_flySQLiteDB, "delete from media_db.fly_media where tth_id=?\n");
+		m_delete_mediainfo->bind(1, l_tth_id);
+		m_delete_mediainfo->executenonquery();
 	}
 	if (p_media.isMediaAttrExists())
 	{
-		if (!m_insert_mediainfo.get())
-			m_insert_mediainfo = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                   "insert or replace into media_db.fly_media\n"
-			                                                                   "(tth_id,stream_type,channel,param,value) values (?,?,?,?,?);"));
-		sqlite3_command* l_sql = m_insert_mediainfo.get();
+		m_insert_mediainfo.init(m_flySQLiteDB,
+		                        "insert or replace into media_db.fly_media\n"
+		                        "(tth_id,stream_type,channel,param,value) values (?,?,?,?,?);");
+		sqlite3_command* l_sql = m_insert_mediainfo.get_sql();
 		for (auto i = p_media.m_ext_array.cbegin(); i != p_media.m_ext_array.cend(); ++i)
 		{
 			if (i->m_is_delete == false) // Ёто параметр временный и его писать в базу не нужно
@@ -885,11 +882,10 @@ bool CFlylinkDBManager::load_media_info(const TTHValue& p_tth, CFlyMediaInfo& p_
 		if (l_tth_id)
 		{
 			// „итаем базовую инфу (TODO - если есть в пам€ти попробовать забрать из нее)
-			if (!m_load_mediainfo_base.get())
-				m_load_mediainfo_base = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                      "select bitrate,media_x,media_y,media_video,media_audio from fly_file where tth_id=? limit 1"));
-			m_load_mediainfo_base.get()->bind(1, l_tth_id);
-			sqlite3_reader l_q_base = m_load_mediainfo_base.get()->executereader();
+			m_load_mediainfo_base.init(m_flySQLiteDB,
+			                           "select bitrate,media_x,media_y,media_video,media_audio from fly_file where tth_id=? limit 1");
+			m_load_mediainfo_base->bind(1, l_tth_id);
+			sqlite3_reader l_q_base = m_load_mediainfo_base->executereader();
 			if (l_q_base.read()) // забираем всегда одну запись. (limit = 1) в шаре может быть несколько одинаковых файлов в разных каталогах.
 			{
 				p_media_info.m_bitrate = l_q_base.getint(0);
@@ -903,25 +899,23 @@ bool CFlylinkDBManager::load_media_info(const TTHValue& p_tth, CFlyMediaInfo& p_
 			{
 				if (!p_only_inform)
 				{
-					if (!m_load_mediainfo_ext.get())
-						m_load_mediainfo_ext = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-						                                                                     "select stream_type,channel,param,value from media_db.fly_media\n"
-						                                                                     "where tth_id = ? order by stream_type,channel"));
-					m_load_mediainfo_ext.get()->bind(1, l_tth_id);
+					m_load_mediainfo_ext.init(m_flySQLiteDB,
+					                          "select stream_type,channel,param,value from media_db.fly_media\n"
+					                          "where tth_id = ? order by stream_type,channel");
+					m_load_mediainfo_ext->bind(1, l_tth_id);
 				}
 				else
 				{
-					if (!m_load_mediainfo_ext_only_inform.get())
-						m_load_mediainfo_ext_only_inform = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-						                                                             "select stream_type,channel,param,value from media_db.fly_media\n"
-						                                                             "where tth_id = ? and param = 'Infrom' order by stream_type,channel"));
-					m_load_mediainfo_ext_only_inform.get()->bind(1, l_tth_id);
+					m_load_mediainfo_ext_only_inform.init(m_flySQLiteDB,
+					                                      "select stream_type,channel,param,value from media_db.fly_media\n"
+					                                      "where tth_id = ? and param = 'Infrom' order by stream_type,channel");
+					m_load_mediainfo_ext_only_inform->bind(1, l_tth_id);
 				}
 				sqlite3_reader l_q;
 				if (p_only_inform)
-					l_q = m_load_mediainfo_ext_only_inform.get()->executereader();
+					l_q = m_load_mediainfo_ext_only_inform->executereader();
 				else
-					l_q = m_load_mediainfo_ext.get()->executereader();
+					l_q = m_load_mediainfo_ext->executereader();
 				while (l_q.read())
 				{
 					CFlyMediaInfo::ExtItem l_item;
@@ -947,11 +941,10 @@ bool CFlylinkDBManager::find_fly_server_cache(const TTHValue& p_tth, CFlyServerC
 	CFlyLock(m_cs);
 	try
 	{
-		if (!m_select_fly_server_cache.get())
-			m_select_fly_server_cache = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                          "select fly_audio,fly_audio_br,fly_video,fly_xy from media_db.fly_server_cache where tth=?"));
-		m_select_fly_server_cache.get()->bind(1, p_tth.data, 24, SQLITE_STATIC);
-		sqlite3_reader l_q = m_select_fly_server_cache.get()->executereader();
+		m_select_fly_server_cache.init(m_flySQLiteDB,
+		                               "select fly_audio,fly_audio_br,fly_video,fly_xy from media_db.fly_server_cache where tth=?");
+		m_select_fly_server_cache->bind(1, p_tth.data, 24, SQLITE_STATIC);
+		sqlite3_reader l_q = m_select_fly_server_cache->executereader();
 		if (l_q.read())
 		{
 			p_value.m_audio = l_q.getstring(0);
@@ -973,10 +966,9 @@ void CFlylinkDBManager::save_fly_server_cache(const TTHValue& p_tth, const CFlyS
 	CFlyLock(m_cs);
 	try
 	{
-		if (!m_insert_fly_server_cache.get())
-			m_insert_fly_server_cache = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                          "insert or replace into media_db.fly_server_cache (tth,fly_audio,fly_audio_br,fly_video,fly_xy) values(?,?,?,?,?)"));
-		auto l_sql = m_insert_fly_server_cache.get();
+		m_insert_fly_server_cache.init(m_flySQLiteDB,
+		                               "insert or replace into media_db.fly_server_cache (tth,fly_audio,fly_audio_br,fly_video,fly_xy) values(?,?,?,?,?)");
+		auto l_sql = m_insert_fly_server_cache.get_sql();
 		l_sql->bind(1, p_tth.data, 24, SQLITE_STATIC);
 		l_sql->bind(2, p_value.m_audio, SQLITE_STATIC);
 		l_sql->bind(3, p_value.m_audio_br, SQLITE_STATIC);
@@ -993,13 +985,11 @@ void CFlylinkDBManager::save_fly_server_cache(const TTHValue& p_tth, const CFlyS
 //========================================================================================================
 void CFlylinkDBManager::convert_fly_hash_block_internalL()
 {
-	if (!m_fly_hash_block_convert_loop.get())
-		m_fly_hash_block_convert_loop = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-		                                                                              "select id,tth from fly_hash"));
-	if (!m_fly_hash_block_convert_update.get())
-		m_fly_hash_block_convert_update = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-		                                                            "update fly_hash_block set tth=? where tth_id=?"));
-	sqlite3_reader l_q = m_fly_hash_block_convert_loop.get()->executereader();
+	m_fly_hash_block_convert_loop.init(m_flySQLiteDB,
+	                                   "select id,tth from fly_hash");
+	m_fly_hash_block_convert_update.init(m_flySQLiteDB,
+	                                     "update fly_hash_block set tth=? where tth_id=?");
+	sqlite3_reader l_q = m_fly_hash_block_convert_loop->executereader();
 	int l_count_convert_error = 0;
 	string l_last_error;
 	while (l_q.read())
@@ -1009,7 +999,7 @@ void CFlylinkDBManager::convert_fly_hash_block_internalL()
 		dcassert(l_tth.size() == 24);
 		if (l_tth.size() == 24)
 		{
-			m_fly_hash_block_convert_update.get()->bind(1, l_tth.data(), l_tth.size(), SQLITE_STATIC);
+			m_fly_hash_block_convert_update->bind(1, l_tth.data(), l_tth.size(), SQLITE_STATIC);
 			m_fly_hash_block_convert_update->bind(2, l_q.getint64(0));
 			try
 			{
@@ -1101,14 +1091,13 @@ void CFlylinkDBManager::identity_initL(const string& p_hub, const string& p_key,
 {
 	try
 	{
-		if (!m_insert_identity_stat.get())
-			m_insert_identity_stat = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                       "insert into stat_db.fly_identity (hub,key,value,count_get,count_set,last_time_get,last_time_set)\n"
-			                                                                       "values(?,?,?,0,0,strftime('%d.%m.%Y %H:%M:%S','now','localtime'),strftime('%d.%m.%Y %H:%M:%S','now','localtime'))"));
-		m_insert_identity_stat.get()->bind(1, p_hub, SQLITE_STATIC);
-		m_insert_identity_stat.get()->bind(2, p_key, SQLITE_STATIC);
-		m_insert_identity_stat.get()->bind(3, p_value, SQLITE_STATIC);
-		m_insert_identity_stat.get()->executenonquery();
+		m_insert_identity_stat.init(m_flySQLiteDB,
+		                            "insert into stat_db.fly_identity (hub,key,value,count_get,count_set,last_time_get,last_time_set)\n"
+		                            "values(?,?,?,0,0,strftime('%d.%m.%Y %H:%M:%S','now','localtime'),strftime('%d.%m.%Y %H:%M:%S','now','localtime'))");
+		m_insert_identity_stat->bind(1, p_hub, SQLITE_STATIC);
+		m_insert_identity_stat->bind(2, p_key, SQLITE_STATIC);
+		m_insert_identity_stat->bind(3, p_value, SQLITE_STATIC);
+		m_insert_identity_stat->executenonquery();
 	}
 	catch (const database_error& e)
 	{
@@ -1129,14 +1118,13 @@ void CFlylinkDBManager::identity_set(string p_key, string p_value, const string&
 	try
 	{
 		sqlite3_transaction l_trans(m_flySQLiteDB);
-		if (!m_update_identity_stat_set.get())
-			m_update_identity_stat_set = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                           "update stat_db.fly_identity set count_set = count_set+1, last_time_set = strftime('%d.%m.%Y %H:%M:%S','now','localtime')\n"
-			                                                                           "where hub = ? and key=? and value =?"));
-		m_update_identity_stat_set.get()->bind(1, p_hub, SQLITE_STATIC);
-		m_update_identity_stat_set.get()->bind(2, p_key, SQLITE_STATIC);
-		m_update_identity_stat_set.get()->bind(3, p_value, SQLITE_STATIC);
-		m_update_identity_stat_set.get()->executenonquery();
+		m_update_identity_stat_set.init(m_flySQLiteDB,
+		                                "update stat_db.fly_identity set count_set = count_set+1, last_time_set = strftime('%d.%m.%Y %H:%M:%S','now','localtime')\n"
+		                                "where hub = ? and key=? and value =?");
+		m_update_identity_stat_set->bind(1, p_hub, SQLITE_STATIC);
+		m_update_identity_stat_set->bind(2, p_key, SQLITE_STATIC);
+		m_update_identity_stat_set->bind(3, p_value, SQLITE_STATIC);
+		m_update_identity_stat_set->executenonquery();
 		if (m_flySQLiteDB.sqlite3_changes() == 0)
 		{
 			identity_initL(p_hub, p_key, p_value);
@@ -1162,14 +1150,13 @@ void CFlylinkDBManager::identity_get(string p_key, string p_value, const string&
 	try
 	{
 		sqlite3_transaction l_trans(m_flySQLiteDB);
-		if (!m_update_identity_stat_get.get())
-			m_update_identity_stat_get = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                           "update stat_db.fly_identity set count_get = count_get+1, last_time_get = strftime('%d.%m.%Y %H:%M:%S','now','localtime')\n"
-			                                                                           "where hub = ? and key=? and value =?"));
-		m_update_identity_stat_get.get()->bind(1, p_hub, SQLITE_STATIC);
-		m_update_identity_stat_get.get()->bind(2, p_key, SQLITE_STATIC);
-		m_update_identity_stat_get.get()->bind(3, p_value, SQLITE_STATIC);
-		m_update_identity_stat_get.get()->executenonquery();
+		m_update_identity_stat_get.init(m_flySQLiteDB,
+		                                "update stat_db.fly_identity set count_get = count_get+1, last_time_get = strftime('%d.%m.%Y %H:%M:%S','now','localtime')\n"
+		                                "where hub = ? and key=? and value =?"));
+		m_update_identity_stat_get->bind(1, p_hub, SQLITE_STATIC);
+		m_update_identity_stat_get->bind(2, p_key, SQLITE_STATIC);
+		m_update_identity_stat_get->bind(3, p_value, SQLITE_STATIC);
+		m_update_identity_stat_get->executenonquery();
 		if (m_flySQLiteDB.sqlite3_changes() == 0)
 		{
 			identity_initL(p_hub, p_key, p_value);
@@ -1195,17 +1182,16 @@ void CFlylinkDBManager::push_event_statistic(const std::string& p_event_type, co
 	CFlyLock(m_cs);
 	try
 	{
-		if (!m_insert_event_stat.get())
-			m_insert_event_stat = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                    "insert into stat_db.fly_event(type,event_key,event_value,ip,port,hub,tth,event_time) values(?,?,?,?,?,?,?,strftime('%d.%m.%Y %H:%M:%S','now','localtime'))"));
-		m_insert_event_stat.get()->bind(1, p_event_type, SQLITE_STATIC);
-		m_insert_event_stat.get()->bind(2, p_event_key, SQLITE_STATIC);
-		m_insert_event_stat.get()->bind(3, p_event_value, SQLITE_STATIC);
-		m_insert_event_stat.get()->bind(4, p_ip, SQLITE_STATIC);
-		m_insert_event_stat.get()->bind(5, p_port, SQLITE_STATIC);
-		m_insert_event_stat.get()->bind(6, p_hub, SQLITE_STATIC);
-		m_insert_event_stat.get()->bind(7, p_tth, SQLITE_STATIC);
-		m_insert_event_stat.get()->executenonquery();
+		m_insert_event_stat.init(m_flySQLiteDB,
+		                         "insert into stat_db.fly_event(type,event_key,event_value,ip,port,hub,tth,event_time) values(?,?,?,?,?,?,?,strftime('%d.%m.%Y %H:%M:%S','now','localtime'))");
+		m_insert_event_stat->bind(1, p_event_type, SQLITE_STATIC);
+		m_insert_event_stat->bind(2, p_event_key, SQLITE_STATIC);
+		m_insert_event_stat->bind(3, p_event_value, SQLITE_STATIC);
+		m_insert_event_stat->bind(4, p_ip, SQLITE_STATIC);
+		m_insert_event_stat->bind(5, p_port, SQLITE_STATIC);
+		m_insert_event_stat->bind(6, p_hub, SQLITE_STATIC);
+		m_insert_event_stat->bind(7, p_tth, SQLITE_STATIC);
+		m_insert_event_stat->executenonquery();
 	}
 	catch (const database_error& e)
 	{
@@ -1225,27 +1211,25 @@ void CFlylinkDBManager::push_dc_command_statistic(const std::string& p_hub, cons
 		{
 			__int64 l_counter = 0;
 			{
-				if (!m_select_statistic_dc_command.get())
-					m_select_statistic_dc_command = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-					                                                                              "select counter from stat_db.fly_dc_command_log where hub = ? and command = ?"));
-				m_select_statistic_dc_command.get()->bind(1, p_hub, SQLITE_STATIC);
-				m_select_statistic_dc_command.get()->bind(2, p_command, SQLITE_STATIC);
+				m_select_statistic_dc_command.init(m_flySQLiteDB,
+				                                   "select counter from stat_db.fly_dc_command_log where hub = ? and command = ?");
+				m_select_statistic_dc_command->bind(1, p_hub, SQLITE_STATIC);
+				m_select_statistic_dc_command->bind(2, p_command, SQLITE_STATIC);
 				sqlite3_reader l_q = m_select_statistic_dc_command.get()->executereader();
 				while (l_q.read())
 				{
 					l_counter = l_q.getint64(0);
 				}
 			}
-			if (!m_insert_statistic_dc_command.get())
-				m_insert_statistic_dc_command = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                              "insert or replace into stat_db.fly_dc_command_log(hub, command, server, port, sender_nick, counter, last_time) values(?,?,?,?,?,?,strftime('%d.%m.%Y %H:%M:%S','now','localtime'))"));
-			m_insert_statistic_dc_command.get()->bind(1, p_hub, SQLITE_STATIC);
-			m_insert_statistic_dc_command.get()->bind(2, p_command, SQLITE_STATIC);
-			m_insert_statistic_dc_command.get()->bind(3, p_server, SQLITE_STATIC);
-			m_insert_statistic_dc_command.get()->bind(4, p_port, SQLITE_STATIC);
-			m_insert_statistic_dc_command.get()->bind(5, p_sender_nick, SQLITE_STATIC);
-			m_insert_statistic_dc_command.get()->bind(6, l_counter + 1);
-			m_insert_statistic_dc_command.get()->executenonquery();
+			m_insert_statistic_dc_command.init(m_flySQLiteDB,
+			                                   "insert or replace into stat_db.fly_dc_command_log(hub, command, server, port, sender_nick, counter, last_time) values(?,?,?,?,?,?,strftime('%d.%m.%Y %H:%M:%S','now','localtime'))");
+			m_insert_statistic_dc_command->bind(1, p_hub, SQLITE_STATIC);
+			m_insert_statistic_dc_command->bind(2, p_command, SQLITE_STATIC);
+			m_insert_statistic_dc_command->bind(3, p_server, SQLITE_STATIC);
+			m_insert_statistic_dc_command->bind(4, p_port, SQLITE_STATIC);
+			m_insert_statistic_dc_command->bind(5, p_sender_nick, SQLITE_STATIC);
+			m_insert_statistic_dc_command->bind(6, l_counter + 1);
+			m_insert_statistic_dc_command->executenonquery();
 		}
 		catch (const database_error& e)
 		{
@@ -1346,9 +1330,8 @@ void CFlylinkDBManager::get_lost_location(std::vector<std::string>& p_lost_ip_ar
 		try
 		{
 			{
-				if (!m_select_location_lost.get())
-					m_select_location_lost = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-					                                                                       "select ip from location_db.fly_location_ip_lost where is_send_fly_server is null limit 100")); // «а один раз больше 100 не шлем
+				m_select_location_lost.init(m_flySQLiteDB,
+				                            "select ip from location_db.fly_location_ip_lost where is_send_fly_server is null limit 100"); // «а один раз больше 100 не шлем
 				sqlite3_reader l_q = m_select_location_lost.get()->executereader();
 				while (l_q.read())
 				{
@@ -1357,13 +1340,12 @@ void CFlylinkDBManager::get_lost_location(std::vector<std::string>& p_lost_ip_ar
 			}
 			// ќтметим факт пересылки массива IP на сервер
 			sqlite3_transaction l_trans(m_flySQLiteDB, p_lost_ip_array.size() > 1);
-			if (!m_update_location_lost.get())
-				m_update_location_lost = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                       "update location_db.fly_location_ip_lost set is_send_fly_server=1 where ip=?"));
+			m_update_location_lost.init(m_flySQLiteDB,
+			                            "update location_db.fly_location_ip_lost set is_send_fly_server=1 where ip=?");
 			for (auto i = p_lost_ip_array.cbegin(); i != p_lost_ip_array.cend(); ++i)
 			{
-				m_update_location_lost.get()->bind(1, *i, SQLITE_STATIC);
-				m_update_location_lost.get()->executenonquery();
+				m_update_location_lost->bind(1, *i, SQLITE_STATIC);
+				m_update_location_lost->executenonquery();
 			}
 			l_trans.commit();
 		}
@@ -1380,9 +1362,8 @@ void CFlylinkDBManager::save_lost_location(const string& p_ip)
 	CFlyLock(m_cs);
 	if (m_count_fly_location_ip_record < 0)
 	{
-		if (!m_select_count_location.get())
-			m_select_count_location = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                        "select count(*) from location_db.fly_location_ip"));
+		m_select_count_location.init(m_flySQLiteDB,
+		                             "select count(*) from location_db.fly_location_ip");
 		sqlite3_reader l_count_q = m_select_count_location.get()->executereader();
 		if (l_count_q.read())
 		{
@@ -1395,13 +1376,12 @@ void CFlylinkDBManager::save_lost_location(const string& p_ip)
 		{
 			try
 			{
-				if (!m_insert_location_lost.get())
-					m_insert_location_lost = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-					                                                                       "insert into location_db.fly_location_ip_lost (ip) values(?)"));
+				m_insert_location_lost.init(m_flySQLiteDB,
+				                            "insert into location_db.fly_location_ip_lost (ip) values(?)");
 				try
 				{
-					m_insert_location_lost.get()->bind(1, p_ip, SQLITE_STATIC);
-					m_insert_location_lost.get()->executenonquery();
+					m_insert_location_lost->bind(1, p_ip, SQLITE_STATIC);
+					m_insert_location_lost->executenonquery();
 				}
 				catch (const database_error&)
 				{
@@ -1854,7 +1834,7 @@ void CFlylinkDBManager::purge_antivirus_db(const uint64_t p_delete_counter, cons
 	{
 		unique_ptr<sqlite3_command> l_delete_antivirus_db(new sqlite3_command(m_flySQLiteDB,
 		                                                                      "delete from antivirus_db.fly_suspect_user"));
-		l_delete_antivirus_db.get()->executenonquery();
+		l_delete_antivirus_db->executenonquery();
 		set_registry_variable_int64(e_DeleteCounterAntivirusDB, p_delete_counter);
 		set_registry_variable_int64(e_TimeStampAntivirusDB, p_unixtime);
 		set_registry_variable_int64(e_MergeCounterAntivirusDB, 0);
@@ -2351,10 +2331,9 @@ void CFlylinkDBManager::load_ignore(StringSet& p_ignores)
 	// CFlyLock(m_cs);
 	try
 	{
-		if (!m_get_ignores.get())
-			m_get_ignores = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                              "select trim(nick) from fly_ignore"));
-		sqlite3_reader l_q = m_get_ignores.get()->executereader();
+		m_get_ignores.init(m_flySQLiteDB,
+		                   "select trim(nick) from fly_ignore");
+		sqlite3_reader l_q = m_get_ignores->executereader();
 		string l_users;
 		string l_sep;
 		while (l_q.read())
@@ -2384,21 +2363,19 @@ void CFlylinkDBManager::save_ignore(const StringSet& p_ignores)
 	try
 	{
 		sqlite3_transaction l_trans(m_flySQLiteDB);
-		if (!m_delete_ignores.get())
-			m_delete_ignores = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                 "delete from fly_ignore"));
-		m_delete_ignores.get()->executenonquery();
-		if (!m_insert_ignores.get())
-			m_insert_ignores = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                 "insert or replace into fly_ignore (nick) values(?)"));
+		m_delete_ignores.init(m_flySQLiteDB,
+		                      "delete from fly_ignore");
+		m_delete_ignores->executenonquery();
+		m_insert_ignores.init(m_flySQLiteDB,
+		                      "insert or replace into fly_ignore (nick) values(?)");
 		for (auto k = p_ignores.cbegin(); k != p_ignores.cend(); ++k)
 		{
 			string l_ignore_user = (*k);
 			boost::algorithm::trim(l_ignore_user);
 			if (!l_ignore_user.empty())
 			{
-				m_insert_ignores.get()->bind(1, l_ignore_user, SQLITE_TRANSIENT);
-				m_insert_ignores.get()->executenonquery();
+				m_insert_ignores->bind(1, l_ignore_user, SQLITE_TRANSIENT);
+				m_insert_ignores->executenonquery();
 			}
 		}
 		l_trans.commit();
@@ -2679,12 +2656,12 @@ void CFlylinkDBManager::remove_queue_all_items()
 	{
 		unique_ptr<sqlite3_command> l_delete_all_fly_queue_src(new sqlite3_command(m_flySQLiteDB,
 		                                                                           "delete from fly_queue_source"));
-		l_delete_all_fly_queue_src.get()->executenonquery();
+		l_delete_all_fly_queue_src->executenonquery();
 	}
 	{
 		unique_ptr<sqlite3_command> l_delete_all_fly_queue(new sqlite3_command(m_flySQLiteDB,
 		                                                                       "delete from fly_queue"));
-		l_delete_all_fly_queue.get()->executenonquery();
+		l_delete_all_fly_queue->executenonquery();
 	}
 }
 //========================================================================================================
@@ -3308,9 +3285,8 @@ void CFlylinkDBManager::flush_all_last_ip_and_message_count()
 #ifdef _DEBUG
 						{
 							// ѕроверим что данные не затираютс€
-							if (!m_check_message_count.get())
-								m_check_message_count = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-								"select message_count from user_db.user_info where nick=? and dic_hub=?"));
+							m_check_message_count.init(m_flySQLiteDB,
+							"select message_count from user_db.user_info where nick=? and dic_hub=?");
 							sqlite3_command* l_sql_command = m_check_message_count.get();
 							l_sql_command->bind(1, i->first, SQLITE_STATIC);
 							l_sql_command->bind(2, __int64(h->first));
@@ -3369,11 +3345,10 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 #ifdef _DEBUG
 	{
 #if 0
-		if (!m_select_store_ip.get())
-			m_select_store_ip = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                  "select last_ip,message_count from user_db.user_info where nick=? and dic_hub=?"));
-		m_select_store_ip.get()->bind(1, p_nick, SQLITE_STATIC);
-		m_select_store_ip.get()->bind(2, __int64(p_hub_id));
+		m_select_store_ip.init(m_flySQLiteDB,
+		                       "select last_ip,message_count from user_db.user_info where nick=? and dic_hub=?");
+		m_select_store_ip->bind(1, p_nick, SQLITE_STATIC);
+		m_select_store_ip->bind(2, __int64(p_hub_id));
 		sqlite3_reader l_q = m_select_store_ip.get()->executereader();
 		while (l_q.read())
 		{
@@ -3391,9 +3366,8 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 	if (!p_last_ip.is_unspecified() && p_message_count)
 	{
 #if 0
-		if (!m_insert_store_ip_and_message_count.get())
-			m_insert_store_ip_and_message_count = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                "insert or replace into user_db.user_info (nick,dic_hub,last_ip,message_count) values(?,?,?,?)"));
+		m_insert_store_ip_and_message_count.init(m_flySQLiteDB,
+		                                         "insert or replace into user_db.user_info (nick,dic_hub,last_ip,message_count) values(?,?,?,?)");
 		sqlite3_command* l_sql = m_insert_store_ip_and_message_count.get();
 		l_sql->bind(1, p_nick, SQLITE_STATIC);
 		l_sql->bind(2, __int64(p_hub_id));
@@ -3413,9 +3387,8 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 		if (!p_last_ip.is_unspecified())
 		{
 #if 0
-			if (!m_insert_store_ip.get())
-				m_insert_store_ip = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                  "insert or replace into user_db.user_info (nick,dic_hub,last_ip) values(?,?,?)"));
+			m_insert_store_ip.init(m_flySQLiteDB,
+			                       "insert or replace into user_db.user_info (nick,dic_hub,last_ip) values(?,?,?)");
 			sqlite3_command* l_sql = m_insert_store_ip.get();
 			l_sql->bind(1, p_nick, SQLITE_STATIC);
 			l_sql->bind(2, __int64(p_hub_id));
@@ -3432,9 +3405,8 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 		if (p_message_count)
 		{
 #if 0
-			if (!m_insert_store_message_count.get())
-				m_insert_store_message_count = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                             "insert or replace into user_db.user_info (nick,dic_hub,message_count) values(?,?,?)"));
+			m_insert_store_message_count.init(m_flySQLiteDB,
+			                                  "insert or replace into user_db.user_info (nick,dic_hub,message_count) values(?,?,?)");
 			sqlite3_command* l_sql = m_insert_store_message_count.get();
 			l_sql->bind(1, p_nick, SQLITE_STATIC);
 			l_sql->bind(2, __int64(p_hub_id));
@@ -3519,10 +3491,9 @@ bool CFlylinkDBManager::is_table_exists(const string& p_table_name)
 //========================================================================================================
 __int64 CFlylinkDBManager::find_dic_idL(const string& p_name, const eTypeDIC p_DIC, bool p_cache_result)
 {
-	if (!m_select_fly_dic.get())
-		m_select_fly_dic = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-		                                                                 "select id from fly_dic where name=? and dic=?"));
-	sqlite3_command* l_sql = m_select_fly_dic.get();
+	m_select_fly_dic.init(m_flySQLiteDB,
+	                      "select id from fly_dic where name=? and dic=?");
+	sqlite3_command* l_sql = m_select_fly_dic.get_sql();
 	l_sql->bind(1, p_name, SQLITE_STATIC);
 	l_sql->bind(2, p_DIC);
 	__int64 l_dic_id = l_sql->executeint64_no_throw();
@@ -3553,10 +3524,9 @@ __int64 CFlylinkDBManager::get_dic_idL(const string& p_name, const eTypeDIC p_DI
 		l_Cache_ID = find_dic_idL(p_name, p_DIC, false);
 		if (!l_Cache_ID)
 		{
-			if (!m_insert_fly_dic.get())
-				m_insert_fly_dic = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                 "insert into fly_dic (dic,name) values(?,?)"));
-			sqlite3_command* l_sql = m_insert_fly_dic.get();
+			m_insert_fly_dic.init(m_flySQLiteDB,
+			                      "insert into fly_dic (dic,name) values(?,?)");
+			sqlite3_command* l_sql = m_insert_fly_dic.get_sql();
 			l_sql->bind(1, p_DIC);
 			l_sql->bind(2, p_name, SQLITE_STATIC);
 			l_sql->executenonquery();
@@ -3844,12 +3814,11 @@ void CFlylinkDBManager::sweep_files(__int64 p_path_id, const CFlyDirMap& p_sweep
 		{
 			if (i->second.m_is_found == false)
 			{
-				if (!m_sweep_dir_sql.get())
-					m_sweep_dir_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-					                                                                "delete from fly_file where dic_path=? and name=?"));
-				m_sweep_dir_sql.get()->bind(1, p_path_id);
-				m_sweep_dir_sql.get()->bind(2, i->first);
-				m_sweep_dir_sql.get()->executenonquery();
+				m_sweep_dir_sql.init(m_flySQLiteDB,
+				                     "delete from fly_file where dic_path=? and name=?");
+				m_sweep_dir_sql->bind(1, p_path_id);
+				m_sweep_dir_sql->bind(2, i->first);
+				m_sweep_dir_sql->executenonquery();
 			}
 		}
 		l_trans.commit();
@@ -3964,10 +3933,9 @@ void CFlylinkDBManager::load_dir(__int64 p_path_id, CFlyDirMap& p_dir_map, bool 
 void CFlylinkDBManager::update_file_infoL(const string& p_fname, __int64 p_path_id,
                                           int64_t p_Size, int64_t p_TimeStamp, __int64 p_tth_id)
 {
-	if (!m_update_file.get())
-		m_update_file = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-		                                                              "update fly_file set size=?,stamp=?,tth_id=?,stamp_share=? where name=? and dic_path=?;"));
-	const auto &l_update_file = m_update_file.get(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'm_update_file.get()' expression repeatedly. cflylinkdbmanager.cpp 2021
+	m_update_file.init(m_flySQLiteDB,
+	                   "update fly_file set size=?,stamp=?,tth_id=?,stamp_share=? where name=? and dic_path=?;");
+	const auto &l_update_file = m_update_file.get_sql(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'm_update_file.get()' expression repeatedly. cflylinkdbmanager.cpp 2021
 	l_update_file->bind(1, p_Size);
 	l_update_file->bind(2, p_TimeStamp);
 	l_update_file->bind(3, p_tth_id);
@@ -3983,17 +3951,16 @@ bool CFlylinkDBManager::check_tth(const string& p_fname, __int64 p_path_id,
 	CFlyLock(m_cs);
 	try
 	{
-		if (!m_check_tth_sql.get())
-			m_check_tth_sql = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                "select size,stamp,tth from fly_file ff,fly_hash_block fhb where\n"
-			                                                                "fhb.tth_id=ff.tth_id and ff.name=? and ff.dic_path=?"));
+		m_check_tth_sql.init(m_flySQLiteDB,
+		                     "select size,stamp,tth from fly_file ff,fly_hash_block fhb where\n"
+		                     "fhb.tth_id=ff.tth_id and ff.name=? and ff.dic_path=?");
 		// TODO - тут индекс по tth_id не мешаетс€?
 		// ѕротестировать и забрать tth из fly_hash_block подзапросом
 		//
 		dcassert(p_fname == Text::toLower(p_fname));
-		m_check_tth_sql.get()->bind(1, p_fname, SQLITE_STATIC);
-		m_check_tth_sql.get()->bind(2, p_path_id);
-		sqlite3_reader l_q = m_check_tth_sql.get()->executereader();
+		m_check_tth_sql->bind(1, p_fname, SQLITE_STATIC);
+		m_check_tth_sql->bind(2, p_path_id);
+		sqlite3_reader l_q = m_check_tth_sql->executereader();
 		if (l_q.read())
 			// 2012-05-11_23-53-01_WUUQMV7KVCODO3KRNOPB3YHXKYCEBYFA47ZIRFA_5ADD234D_crash-stack-r502-beta26-build-9946.dmp
 		{
@@ -4250,12 +4217,11 @@ bool CFlylinkDBManager::merge_mediainfoL(const __int64 p_tth_id, const __int64 p
 {
 	try
 	{
-		if (!m_update_base_mediainfo.get())
-			m_update_base_mediainfo = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                        "update fly_file set\n"
-			                                                                        "bitrate=?, media_x=?, media_y=?, media_video=?, media_audio=?\n"
-			                                                                        "where dic_path=? and name=?"));
-		sqlite3_command* l_sql = m_update_base_mediainfo.get();
+		m_update_base_mediainfo.init(m_flySQLiteDB,
+		                             "update fly_file set\n"
+		                             "bitrate=?, media_x=?, media_y=?, media_video=?, media_audio=?\n"
+		                             "where dic_path=? and name=?");
+		sqlite3_command* l_sql = m_update_base_mediainfo.get_sql();
 		if (p_media.m_bitrate)
 			l_sql->bind(1, p_media.m_bitrate);
 		else
@@ -4312,11 +4278,10 @@ __int64 CFlylinkDBManager::merge_fileL(const string& p_Path, const string& p_fil
 		dcassert(l_tth_id);
 		if (!l_tth_id)
 			return 0;
-		if (!m_insert_file.get())
-			m_insert_file = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                              "insert or replace into fly_file(tth_id,dic_path,name,size,stamp,stamp_share,ftype) "
-			                                                              "values(?,?,?,?,?,?,?);"));
-		sqlite3_command* l_sql = m_insert_file.get();
+		m_insert_file.init(m_flySQLiteDB,
+		                   "insert or replace into fly_file(tth_id,dic_path,name,size,stamp,stamp_share,ftype) "
+		                   "values(?,?,?,?,?,?,?);");
+		sqlite3_command* l_sql = m_insert_file.get_sql();
 		l_sql->bind(1, l_tth_id);
 		l_sql->bind(2, p_path_id);
 		dcassert(p_file_name == Text::toLower(p_file_name));
@@ -4368,10 +4333,9 @@ __int64 CFlylinkDBManager::add_treeL(const TigerTree& p_tt)
 		__int64 l_tth_id = 0;
 		try
 		{
-			if (!m_insert_fly_hash_block.get())
-				m_insert_fly_hash_block = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                        "insert into fly_hash_block(file_size,tiger_tree,block_size,tth) values(?,?,?,?)"));
-			l_sql = m_insert_fly_hash_block.get();
+			m_insert_fly_hash_block.init(m_flySQLiteDB,
+			                             "insert into fly_hash_block(file_size,tiger_tree,block_size,tth) values(?,?,?,?)");
+			l_sql = m_insert_fly_hash_block.get_sql();
 			add_tree_internal_bind_and_executeL(l_sql, p_tt);
 			l_tth_id = m_flySQLiteDB.insertid();
 		}
@@ -4381,9 +4345,8 @@ __int64 CFlylinkDBManager::add_treeL(const TigerTree& p_tt)
 			{
 				//dcassert(0);
 				/*
-				if (!m_update_fly_hash_block.get())
-				    m_update_fly_hash_block = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-				                                                                            "update fly_hash_block set file_size=?,tiger_tree=?,block_size=? where tth=?"));
+				    m_update_fly_hash_block.init(m_flySQLiteDB,
+				                                                                            "update fly_hash_block set file_size=?,tiger_tree=?,block_size=? where tth=?");
 				l_sql = m_update_fly_hash_block.get();
 				add_tree_internal_bind_and_executeL(l_sql, p_tt);
 				*/
@@ -4414,9 +4377,8 @@ __int64 CFlylinkDBManager::add_treeL(const TigerTree& p_tt)
     {
         const __int64 l_file_size = p_tt.getFileSize();
         __int64 l_tth_id = 0;
-        if (!m_insert_fly_hash_block.get())
-                m_insert_fly_hash_block = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-                                                                                        "insert or replace into fly_hash_block(file_size,tiger_tree,block_size,tth) values(?,?,?,?)"));
+                m_insert_fly_hash_block.init(m_flySQLiteDB,
+                                                                                        "insert or replace into fly_hash_block(file_size,tiger_tree,block_size,tth) values(?,?,?,?)");
         sqlite3_command* l_sql = m_insert_fly_hash_block.get();
         l_sql->bind(1, l_file_size);
         if (l_file_size > MIN_BLOCK_SIZE)
@@ -4538,9 +4500,8 @@ CFlylinkDBManager::FileStatus CFlylinkDBManager::get_status_file(const TTHValue&
 	CFlyLock(m_cs);
 	try
 	{
-		if (!m_get_status_file.get())
-			m_get_status_file = auto_ptr<sqlite3_command>(new sqlite3_command(m_flySQLiteDB,
-			                                                                  "select 2 from fly_hash_block where tth=?"));
+		m_get_status_file.init(m_flySQLiteDB,
+		                       "select 2 from fly_hash_block where tth=?");
 		sqlite3_command* l_sql = m_get_status_file.get();
 		l_sql->bind(1, p_tth.data, 24, SQLITE_STATIC);
 		l_sql->bind(2, p_tth.data, 24, SQLITE_STATIC);

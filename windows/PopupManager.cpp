@@ -32,14 +32,13 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 		
 	if (!m_is_activated)
 		return;
+
 		
 	if (!Util::getAway() && BOOLSETTING(POPUP_AWAY) && !preview)
 		return;
 		
 	if (!MainFrame::isAppMinimized() && BOOLSETTING(POPUP_MINIMIZED) && !preview)
-	{
 		return;
-	}
 	
 	tstring msg = aMsg;
 	if (int(aMsg.length()) > SETTING(MAX_MSG_LENGTH))
@@ -63,27 +62,18 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 		return;
 	}
 	
-//	if (PopupImage != SETTING(POPUPFILE) || popuptype != SETTING(POPUP_TYPE))
-//	{
+	if (m_popups.size() > 10)
+	{
+		//LogManager::message("PopupManager - m_popups.size() > 10! Ignore");
+		return;
+	}
+
 	if (SETTING(POPUP_TYPE) == CUSTOM && PopupImage != SETTING(POPUPFILE))
 	{
 		PopupImage = SETTING(POPUPFILE);
 		m_popuptype = SETTING(POPUP_TYPE);
-		m_hBitmap = (HBITMAP)::LoadImage(NULL, (Text::toT(PopupImage).c_str()), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+		m_hBitmap = (HBITMAP)::LoadImage(NULL, Text::toT(PopupImage).c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
 	}
-//		if (m_hBitmap && SETTING(POPUP_TYPE) == CUSTOM)
-//		{
-//			BITMAP bm = {0};
-//			GetObject(m_hBitmap, sizeof(bm), &bm);
-//			height = (uint16_t)bm.bmHeight;
-//			width = (uint16_t)bm.bmWidth;
-//		}
-//		else if (SETTING(POPUP_TYPE) != CUSTOM)
-//		{
-//			height = 90;
-//			width = 200;
-//		}
-//	}
 
 	height = SETTING(POPUP_H);
 	width = SETTING(POPUP_W);

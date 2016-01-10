@@ -43,16 +43,12 @@ class SettingsManagerListener
 		typedef X<0> Load;
 		typedef X<1> Save;
 		typedef X<2> SearchTypesChanged;
-		// [+] IRainman opt.
-		typedef X<3> UsersChanges;
-		typedef X<5> ShareChanges;
-		// [~] IRainman opt.
-		
+		typedef X<4> Repaint;
+
 		virtual void on(Load, SimpleXML&) { }
 		virtual void on(Save, SimpleXML&) { }
 		virtual void on(SearchTypesChanged) noexcept { }
-		virtual void on(UsersChanges) noexcept { }
-		virtual void on(ShareChanges) noexcept { }
+		virtual void on(Repaint) noexcept { }
 };
 
 class SettingsManager : public Singleton<SettingsManager>, public Speaker<SettingsManagerListener>

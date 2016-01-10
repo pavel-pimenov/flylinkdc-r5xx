@@ -393,9 +393,9 @@ void BaseChatFrame::processingHotKeys(UINT uMsg, WPARAM wParam, LPARAM /*lParam*
 						ctrlClient.SendMessage(WM_VSCROLL, SB_PAGEDOWN);
 					break;
 				default:
-					checkMultiLine();
 					bHandled = FALSE;
 			}
+			checkMultiLine();
 		}
 		else
 		{

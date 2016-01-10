@@ -79,7 +79,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 			VIEW_FILE_AND_DELETE,
 			SET_STATUSTEXT,
 			STATUS_MESSAGE,
-			SHOW_POPUP,
+			SHOW_POPUP_MESSAGE,
 			REMOVE_POPUP,
 			SET_PM_TRAY_ICON
 		};
@@ -569,16 +569,22 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		static void setAwayButton(bool check)
 		{
-			g_anyMF->ctrlToolbar.CheckButton(IDC_AWAY, check);
+			if (g_anyMF)
+			{
+				g_anyMF->ctrlToolbar.CheckButton(IDC_AWAY, check);
+			}
 		}
 		
 		static void setLimiterButton(bool check)
 		{
-			g_anyMF->ctrlToolbar.CheckButton(IDC_LIMITER, check);
-			g_anyMF->UISetCheck(IDC_TRAY_LIMITER, check);
+			if (g_anyMF)
+			{
+				g_anyMF->ctrlToolbar.CheckButton(IDC_LIMITER, check);
+				g_anyMF->UISetCheck(IDC_TRAY_LIMITER, check);
+			}
 		}
 		
-		void ShowBalloonTip(LPCTSTR szMsg, LPCTSTR szTitle, DWORD dwInfoFlags = NIIF_INFO);
+		static void ShowBalloonTip(LPCTSTR szMsg, LPCTSTR szTitle, DWORD dwInfoFlags = NIIF_INFO);
 		
 		CImageList largeImages, largeImagesHot, winampImages, winampImagesHot;
 		int run(); // TODO отказаться от наследования

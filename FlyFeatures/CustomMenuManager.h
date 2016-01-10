@@ -41,15 +41,13 @@ class CustomMenuItem
 };
 
 class CustomMenuManager
-	: public Singleton<CustomMenuManager>, private SettingsManagerListener
+	: public Singleton<CustomMenuManager>
 {
 	public:
 	
 		typedef vector<CustomMenuItem*> MenuList;
-//		typedef MenuList::const_iterator MenuIter;
-		
 		typedef std::map<int, string> URLList;
-		
+	
 		
 		CustomMenuManager(void);
 		~CustomMenuManager(void);
@@ -73,13 +71,6 @@ class CustomMenuManager
 		
 		MenuList m_menuList;
 		URLList m_urlList;
-		
-		// SettingsManagerListener
-		// Load by hand now.
-		//virtual void on(SettingsManagerListener::Load, SimpleXML& xml) override  {
-		//  load(xml);
-		//}
-		//void load(SimpleXML& aXml);
 		
 		
 		void ProcessXMLSubMenu(SimpleXML& xml, int& i);
