@@ -32,20 +32,23 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 		
 	if (!m_is_activated)
 		return;
-
+		
 		
 	if (!Util::getAway() && BOOLSETTING(POPUP_AWAY) && !preview)
 		return;
 		
 	if (!MainFrame::isAppMinimized() && BOOLSETTING(POPUP_MINIMIZED) && !preview)
 		return;
-	
+		
 	tstring msg = aMsg;
 	if (int(aMsg.length()) > SETTING(MAX_MSG_LENGTH))
 	{
 		msg = aMsg.substr(0, (SETTING(MAX_MSG_LENGTH) - 3));
 		msg += _T("...");
 	}
+#ifdef _DEBUG
+	msg += Text::toT(" m_popups.size() = " + Util::toString(m_popups.size()));
+#endif
 	
 	if (SETTING(POPUP_TYPE) == BALLOON && MainFrame::getMainFrame())
 	{
@@ -67,14 +70,14 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 		//LogManager::message("PopupManager - m_popups.size() > 10! Ignore");
 		return;
 	}
-
+	
 	if (SETTING(POPUP_TYPE) == CUSTOM && PopupImage != SETTING(POPUPFILE))
 	{
 		PopupImage = SETTING(POPUPFILE);
 		m_popuptype = SETTING(POPUP_TYPE);
 		m_hBitmap = (HBITMAP)::LoadImage(NULL, Text::toT(PopupImage).c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
 	}
-
+	
 	height = SETTING(POPUP_H);
 	width = SETTING(POPUP_W);
 	

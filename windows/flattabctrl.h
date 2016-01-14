@@ -312,30 +312,27 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		void setIconState(HWND aWnd)
 		{
 			if (TabInfo* ti = getTabInfo(aWnd))
-				if (ti->m_hCustomIcon == nullptr)
-				{
-					ti->m_bState = true;
+			{
+				ti->m_bState = true;
 #ifdef IRAINMAN_FAST_FLAT_TAB
-					m_needsInvalidate = true;
+				m_needsInvalidate = true;
 #else
-					Invalidate();
+				Invalidate();
 #endif
-				}
+			}
 		}
 		void unsetIconState(HWND aWnd)
 		{
 			if (TabInfo* ti = getTabInfo(aWnd))
-				if (ti->m_hCustomIcon == nullptr)
-				{
-					ti->m_bState = false;
+			{
+				ti->m_bState = false;
 #ifdef IRAINMAN_FAST_FLAT_TAB
-					m_needsInvalidate = true;
+				m_needsInvalidate = true;
 #else
-					Invalidate();
+				Invalidate();
 #endif
-				}
+			}
 		}
-		
 		// !SMT!-UI
 		void setCustomIcon(HWND p_hWnd, HICON p_custom)
 		{
@@ -352,9 +349,10 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		void setColor(HWND aWnd, COLORREF p_color)
 		{
+			return; //
 			if (TabInfo* ti = getTabInfo(aWnd))
 			{
-				ti->m_color_pen = p_color;
+				//ti->m_color_pen = p_color;
 #ifdef IRAINMAN_FAST_FLAT_TAB
 				m_needsInvalidate = true;
 #else
@@ -1018,7 +1016,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				TabInfo(HWND p_Wnd, COLORREF p_color, uint16_t p_icon, uint16_t p_stateIcon, bool p_is_update) :
 					hWnd(p_Wnd), m_len(0), m_xpos(0), m_row(0), m_dirty(false),
 					m_hCustomIcon(nullptr), m_bState(false), m_mini(false),
-					m_color_pen(p_color), m_icon_index(p_icon), m_state_icon_index(p_stateIcon), m_count_messages(0)
+					//m_color_pen(p_color),
+					m_icon_index(p_icon), m_state_icon_index(p_stateIcon), m_count_messages(0)
 					//,m_title_id(p_title_id)
 				{
 					memzero(&m_size, sizeof(m_size));
@@ -1033,7 +1032,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				{
 				}
 				HWND hWnd;
-				COLORREF m_color_pen;
+				//COLORREF m_color_pen;
 				
 				LocalArray<TCHAR, MAX_LENGTH> name; // TODO - заменить на tstring
 				size_t m_len;
@@ -1048,6 +1047,10 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				uint16_t m_count_messages;
 				
 				HICON m_hCustomIcon; // !SMT!-UI custom icon should be set / freed outside this class
+				bool isVIP() const
+				{
+					return false; // return m_state_icon_index != IDR_HUB_OFF && m_state_icon_index == IDR_HUB;
+				}
 				bool m_bState;
 				bool m_mini;
 				bool m_dirty;

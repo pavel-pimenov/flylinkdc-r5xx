@@ -415,7 +415,7 @@ bool UPNPCheckDlg::StartPortListener(uint16_t tcp, uint16_t udp)
 	}
 	catch (Exception & e)
 	{
-		::MessageBox(NULL, Text::toT(e.getError()).c_str(), _T("UPNP Wizard Error!"), MB_OK | MB_ICONERROR);
+		::MessageBox(NULL, Text::toT(e.getError()).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
 		return false;
 	}
 	return true;

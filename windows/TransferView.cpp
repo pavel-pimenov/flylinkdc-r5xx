@@ -1734,7 +1734,7 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 		case COLUMN_STATUS:
 			return m_statusString;
 		case COLUMN_TIMELEFT:
-			dcassert(m_timeLeft >= 0);
+			//dcassert(m_timeLeft >= 0);
 			return (m_status == STATUS_RUNNING && m_timeLeft > 0) ? Util::formatSecondsW(m_timeLeft) : Util::emptyStringT;
 		case COLUMN_SPEED:
 			return m_status == STATUS_RUNNING ? (Util::formatBytesW(m_speed) + _T('/') + WSTRING(S)) : Util::emptyStringT;

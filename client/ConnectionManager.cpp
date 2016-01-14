@@ -1147,7 +1147,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 			NmdcHub* hub = static_cast<NmdcHub*>(ClientManager::getInstance()->findClient(i.m_HubUrl));
 			if (!hub)
 				dcdebug("REASON_DETECT_CONNECTION: can't find hub %s\n", i.m_HubUrl.c_str());
-			dcassert(hub);
+			//dcassert(hub);
 			
 			if (hub && hub->IsAutodetectPending())
 			{

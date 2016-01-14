@@ -560,7 +560,7 @@ void ShareManager::load(SimpleXML& aXml)
 					tstring l_message = TSTRING(RESTORE_LOST_SHARE);
 					l_message += Text::toT(l_message_lost_share);
 					g_lost_shares.erase(realPath);
-					if (MessageBox(NULL, l_message.c_str() , _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_YESNO | MB_ICONQUESTION | MB_TOPMOST) == IDYES)
+					if (MessageBox(NULL, l_message.c_str() , T_APPNAME_WITH_VERSION, MB_YESNO | MB_ICONQUESTION | MB_TOPMOST) == IDYES)
 					{
 						g_shares.insert(std::make_pair(realPath, CFlyBaseDirItem(vName, 0)));
 					}

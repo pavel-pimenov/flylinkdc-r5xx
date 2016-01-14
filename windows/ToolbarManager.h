@@ -18,10 +18,6 @@
 #include <atlapp.h>
 #include <atlctrls.h>
 
-#include "../client/DCPlusPlus.h"
-
-#include "../client/Singleton.h"
-#include "../client/SettingsManager.h"
 #include "../client/SimpleXML.h"
 
 class ToolbarEntry
@@ -30,7 +26,7 @@ class ToolbarEntry
 		typedef ToolbarEntry* Ptr;
 		typedef vector<Ptr> List;
 		
-		ToolbarEntry() 
+		ToolbarEntry()
 		{
 			bandcount = 0;
 		}
@@ -43,31 +39,34 @@ class ToolbarEntry
 		GETSET(int, bandcount, BandCount);
 };
 
-class ToolbarManager: public Singleton<ToolbarManager>
+class ToolbarManager
 {
 	public:
 		ToolbarManager();
 		~ToolbarManager();
 		
 		// Get & Set toolbar positions
-		void getFrom(CReBarCtrl& ReBar, const string& aName);
-		void applyTo(CReBarCtrl& ReBar, const string& aName) const;
-
+		static void getFrom(CReBarCtrl& ReBar, const string& aName);
+		static void applyTo(CReBarCtrl& ReBar, const string& aName);
+		
 		// Save & load
 		static void load(SimpleXML& aXml);
 		static void save(SimpleXML& aXml);
-
+		
 	private:
 		// Get data by name
-		static ToolbarEntry* getToolbarEntry(const string& aName);
+		static const ToolbarEntry* getToolbarEntryL(const string& aName);
 		
 		// Remove old entry, when adding new
-		static void removeToolbarEntry(const ToolbarEntry* entry);
-		
+		static void removeToolbarEntryL(const ToolbarEntry* entry);
+		static void addToolBarEntryL(ToolbarEntry* p_entry)
+		{
+			g_toolbarEntries.push_back(p_entry);
+		}
 		
 		// Store Toolbar infos here
 		static ToolbarEntry::List g_toolbarEntries;
-		
+		static CriticalSection g_cs;
 };
 
 #endif // TOOLBARMANAGER_H

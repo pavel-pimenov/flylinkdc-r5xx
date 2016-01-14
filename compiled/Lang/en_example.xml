@@ -85,7 +85,6 @@
 	<string name="AutoupdateDownloadUpdateonexit">They will be installed on application exit</string>
 	<string name="AutoupdateEmopacks">Emoticon packs</string>
 	<string name="AutoupdateEnable">Enable Autoupdate</string>
-	<string name="AutoupdateError">FlylinkDC++ update error</string>
 	<string name="AutoupdateErrorStartFlyupdateFailed">The FlyUpdate utility does not start. Error:</string>
 	<string name="AutoupdateErrorUpdateFile">Error on updating file:</string>
 	<string name="AutoupdateErrorVerif">Verification error - (Please send email ppa74@ya.ru)</string>
@@ -903,6 +902,7 @@
 	<string name="NeedUserFilesMenu">Queued downloads from user</string>
 	<string name="NetlimiterWarning">NetLimiter was detected in your computer. It is frequently responsible for FlylinkDC++ crash, upload disconnecting and slow download speed. Please uninstall it and use an alternate product, or built-in limiter.</string>
 	<string name="NetworkStatistics">Network Statistics</string>
+	<string name="NetworkTraffic">Network traffic</string>
 	<string name="New">&amp;New…</string>
 	<string name="NewsBlog">The News Blog</string>
 	<string name="NewBeta">New beta released</string>

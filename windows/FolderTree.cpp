@@ -1464,7 +1464,7 @@ LRESULT FolderTree::OnChecked(HTREEITEM hItem, BOOL &bHandled)
 		}
 		catch (const ShareException& e)
 		{
-			MessageBox(Text::toT(e.getError()).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_ICONSTOP | MB_OK);
+			MessageBox(Text::toT(e.getError()).c_str(), T_APPNAME_WITH_VERSION, MB_ICONSTOP | MB_OK);
 			bHandled = TRUE;
 			return 1;
 		}

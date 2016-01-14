@@ -26,7 +26,7 @@ class CZDCPage : public CPropertyPage<IDD_CZDCPAGE>, public PropPage
 	public:
 		explicit CZDCPage() : PropPage()
 		{
-			SetTitle(_T(APPNAME));
+			SetTitle(T_APPNAME_WITH_VERSION);
 			m_psp.dwFlags |= PSP_RTLREADING;
 		};
 		virtual ~CZDCPage() { }

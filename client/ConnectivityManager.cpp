@@ -291,6 +291,7 @@ void ConnectivityManager::mappingFinished(const string& p_mapper)
 
 void ConnectivityManager::listen() // TODO - fix copy-paste
 {
+	const bool l_is_manual_connection = !BOOLSETTING(AUTO_DETECT_CONNECTION) && SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_NAT;
 	string l_exceptions;
 	for (int i = 0; i < 5; ++i)
 	{
@@ -300,20 +301,25 @@ void ConnectivityManager::listen() // TODO - fix copy-paste
 		}
 		catch (const SocketException& e)
 		{
-			if (e.getErrorCode() == 10048)
+			if (!l_is_manual_connection)
 			{
-				if (i == 0)
+				if (e.getErrorCode() == 10048)
 				{
-					SET_SETTING(TCP_PORT, 0); // Первую попытку делаем подключаясь к порту = 0
+					if (i == 0)
+					{
+						SET_SETTING(TCP_PORT, 0);
+						LogManager::message("Try bind free TCP Port");
+						continue;
+					}
+					SettingsManager::generateNewTCPPort();
+					LogManager::message("Try bind random TCP Port = " + Util::toString(SETTING(TCP_PORT)));
 					continue;
 				}
-				SettingsManager::generateNewTCPPort();
-				LogManager::message("Try bind random TCP Port = " + Util::toString(SETTING(TCP_PORT)));
-				continue;
 			}
-			else
+			l_exceptions += " * TCP/TLS listen TCP Port = " + Util::toString(SETTING(TCP_PORT)) + " error = " + e.getError() + "\r\n";
+			if (l_is_manual_connection)
 			{
-				l_exceptions += " * TCP/TLS listen error = " + e.getError() + "\r\n";
+				::MessageBox(nullptr, Text::toT(l_exceptions).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
 			}
 		}
 		break;
@@ -326,25 +332,30 @@ void ConnectivityManager::listen() // TODO - fix copy-paste
 		}
 		catch (const SocketException& e)
 		{
-			if (e.getErrorCode() == 10048)
+			if (!l_is_manual_connection)
 			{
-				if (j == 0)
+				if (e.getErrorCode() == 10048)
 				{
-					SET_SETTING(UDP_PORT, 0); // Первую попытку делаем подключаясь к порту = 0
+					if (j == 0)
+					{
+						SET_SETTING(UDP_PORT, 0);
+						LogManager::message("Try bind free UDP Port");
+						continue;
+					}
+					SettingsManager::generateNewUDPPort();
+					LogManager::message("Try bind random UDP Port = " + Util::toString(SETTING(UDP_PORT)));
 					continue;
 				}
-				SettingsManager::generateNewUDPPort();
-				LogManager::message("Try bind random UDP Port = " + Util::toString(SETTING(UDP_PORT)));
-				continue;
 			}
-			else
+			l_exceptions += " * UDP listen UDP Port = " + Util::toString(SETTING(UDP_PORT))  + " error = " + e.getError() + "\r\n";
+			if (l_is_manual_connection)
 			{
-				l_exceptions += " * UDP listen error = " + e.getError() + "\r\n";
+				::MessageBox(nullptr, Text::toT(l_exceptions).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
 			}
 		}
 		catch (const Exception& e)
 		{
-			l_exceptions += " * UDP listen error = " + e.getError() + "\r\n";
+			l_exceptions += " * UDP listen UDP Port = " + Util::toString(SETTING(UDP_PORT)) + " error = " + e.getError() + "\r\n";
 		}
 		break;
 	}
@@ -360,7 +371,7 @@ void ConnectivityManager::listen() // TODO - fix copy-paste
 	}
 	catch (const Exception& e)
 	{
-		l_exceptions += " * DHT listen error = " + e.getError() + "\r\n";
+		l_exceptions += " * DHT listen UDP Port = " + Util::toString(SETTING(DHT_PORT)) + " error = " + e.getError() + "\r\n";
 	}
 #endif
 	if (!l_exceptions.empty())

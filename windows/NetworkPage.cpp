@@ -123,7 +123,7 @@ LRESULT NetworkPage::OnEnKillfocusExternalIp(WORD /*wNotifyCode*/, WORD /*wID*/,
 		if (ec)
 		{
 			const auto l_last_ip = SETTING(EXTERNAL_IP);
-			::MessageBox(NULL, Text::toT("Error IP = " + l_externalIP + ", restore last valid IP = " + l_last_ip).c_str(), _T("IP Error!"), MB_OK | MB_ICONERROR);
+			::MessageBox(NULL, Text::toT("Error IP = " + l_externalIP + ", restore last valid IP = " + l_last_ip).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
 			::SetWindowText(GetDlgItem(IDC_EXTERNAL_IP), Text::toT(SETTING(EXTERNAL_IP)).c_str());
 		}
 	}
@@ -388,7 +388,7 @@ LRESULT NetworkPage::onAddWinFirewallException(WORD /* wNotifyCode */, WORD /*wI
 	// "C:\\vc10\\r5xx\\compiled\\FlylinkDC_Debug.exe"
 	if (l_res)
 	{
-		::MessageBox(NULL, Text::toT("FlylinkDC.exe - OK").c_str(), _T("Windows Firewall"), MB_OK | MB_ICONINFORMATION);
+		::MessageBox(NULL, Text::toT("[Windows Firewall] FlylinkDC.exe - OK").c_str(), T_APPNAME_WITH_VERSION , MB_OK | MB_ICONINFORMATION);
 	}
 	else
 	{
@@ -397,7 +397,7 @@ LRESULT NetworkPage::onAddWinFirewallException(WORD /* wNotifyCode */, WORD /*wI
 		l_message += l_app_path;
 		l_message += Text::toT("\r\nError code = " + Util::toString(hr_auth) +
 		                       "\r\nError text = ") + l_error_message.ErrorMessage();
-		::MessageBox(NULL, l_message.c_str(), _T("Windows Firewall"), MB_OK | MB_ICONERROR);
+		::MessageBox(NULL, l_message.c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
 	}
 #endif
 	TestWinFirewall();
@@ -499,12 +499,12 @@ LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndC
 				catch (Exception & e)
 				{
 					// TODO - сюда никогда не попадаем?
-					::MessageBox(NULL, Text::toT(e.getError()).c_str(), _T("SetIP Error!"), MB_OK | MB_ICONERROR);
+					::MessageBox(NULL, Text::toT(e.getError() + " (SetIP Error!)").c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
 				}
 			}
 			else
 			{
-				::MessageBox(NULL, Text::toT(l_url).c_str(), _T("http:// URL Error !"), MB_OK | MB_ICONERROR);
+				::MessageBox(NULL, Text::toT(l_url + " (http:// URL Error !)").c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
 			}
 		}
 	}

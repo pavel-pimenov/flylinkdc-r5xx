@@ -41,12 +41,13 @@ class FinishedItem
 			COLUMN_HUB,
 			COLUMN_SIZE,
 			COLUMN_SPEED,
-			COLUMN_IP, //[+] PPA
+			COLUMN_IP,
+			COLUMN_NETWORK_TRAFFIC,
 			COLUMN_LAST
 		};
 		
 		FinishedItem(const string& aTarget, const string& aNick, const string& aHubUrl, int64_t aSize, int64_t aSpeed,
-		             const time_t aTime, const TTHValue& aTTH, const string& aIP, int64_t aID) :
+		             const time_t aTime, const TTHValue& aTTH, const string& aIP, int64_t aID, int64_t aActual) :
 			target(aTarget),
 			// cid(aCID),
 			hub(aHubUrl),
@@ -57,11 +58,12 @@ class FinishedItem
 			tth(aTTH),
 			ip(aIP),
 			nick(aNick),
-			id(aID)
+			id(aID),
+			actual(aActual)
 		{
 		}
 		FinishedItem(const string& aTarget, const HintedUser& aUser, int64_t aSize, int64_t aSpeed,
-		             const time_t aTime, const TTHValue& aTTH, const string& aIP = Util::emptyString) :
+		             const time_t aTime, const TTHValue& aTTH, int64_t aActual, const string& aIP = Util::emptyString) :
 			target(aTarget),
 			cid(aUser.user->getCID()),
 			hub(aUser.hint),
@@ -72,7 +74,8 @@ class FinishedItem
 			tth(aTTH),
 			ip(aIP),
 			nick(aUser.user->getLastNick()),
-			id(0)
+			id(0),
+			actual(aActual)
 		{
 		}
 		
@@ -95,12 +98,18 @@ class FinishedItem
 					return Text::toT(getHubs());
 				case COLUMN_SIZE:
 					return Util::formatBytesW(getSize());
+				case COLUMN_NETWORK_TRAFFIC:
+					if (getActual())
+						return Util::formatBytesW(getActual());
+					else
+						return Util::emptyStringT;
 				case COLUMN_SPEED:
 					return Util::formatBytesW(getAvgSpeed()) + _T('/') + WSTRING(S);
 				case COLUMN_IP:
 					return Text::toT(getIP()); //[+]PPA
 				case COLUMN_TTH:
 					return Text::toT(getTTH().toBase32()); //[+]PPA
+					
 				default:
 					return Util::emptyStringT;
 			}
@@ -114,6 +123,8 @@ class FinishedItem
 					return compare(a->getAvgSpeed(), b->getAvgSpeed());
 				case COLUMN_SIZE:
 					return compare(a->getSize(), b->getSize());
+				case COLUMN_NETWORK_TRAFFIC:
+					return compare(a->getActual(), b->getActual());
 				default:
 					return lstrcmpi(a->getText(col).c_str(), b->getText(col).c_str());
 			}
@@ -130,6 +141,7 @@ class FinishedItem
 		GETC(int64_t, avgSpeed, AvgSpeed);
 		GETC(time_t, time, Time);
 		GETC(int64_t, id, ID);
+		GETC(int64_t, actual, Actual); // Socket Bytes!
 	private:
 		friend class FinishedManager;
 };

@@ -37,8 +37,8 @@ class TokenManager
 		~TokenManager()
 		{
 #ifdef _DEBUG
-			CFlyFastLock(m_cs);
-			dcassert(m_tokens.empty());
+			//CFlyFastLock(m_cs);
+			//dcassert(m_tokens.empty());
 #endif
 		}
 	private:

@@ -394,7 +394,6 @@ void DestroySplash() // [+] IRainman
 
 void GuiInit(void*)
 {
-	ToolbarManager::newInstance();
 	createFlyFeatures(); // [+] SSA
 }
 
@@ -402,7 +401,6 @@ void GuiUninit(void*)
 {
 	deleteFlyFeatures(); // [+] SSA
 	PopupManager::deleteInstance();
-	ToolbarManager::deleteInstance();
 }
 
 static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
@@ -447,11 +445,11 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 			rc.top = SETTING(MAIN_WINDOW_POS_Y);
 			rc.right = rc.left + SETTING(MAIN_WINDOW_SIZE_X);
 			rc.bottom = rc.top + SETTING(MAIN_WINDOW_SIZE_Y);
-			// Now, let's ensure we have sane values here...
-			if ((rc.left < 0) || (rc.top < 0) || (rc.right - rc.left < 100) || ((rc.bottom - rc.top) < 100))
-			{
-				rc = wndMain.rcDefault;
-			}
+		}
+		// Now, let's ensure we have sane values here...
+		if ((rc.left < 0) || (rc.top < 0) || (rc.right - rc.left < 500) || ((rc.bottom - rc.top) < 300))
+		{
+			rc = wndMain.rcDefault;
 		}
 		
 		const int rtl = /*ResourceManager::getInstance()->isRTL() ? WS_EX_RTLREADING :*/ 0; // [!] IRainman fix.
@@ -653,11 +651,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	// First, load the settings! Any code running before will not get the value of SettingsManager!
 	SettingsManager::newInstance();
 	SettingsManager::getInstance()->load();
-	const bool l_is_create_wide = SettingsManager::getInstance()->LoadLanguage();
+	const bool l_is_create_wide = SettingsManager::LoadLanguage();
 	ResourceManager::startup(l_is_create_wide);
 	SettingsManager::getInstance()->setDefaults(); // !SMT!-S: allow localized defaults in string settings
-	extern SettingsManager* g_settings;
-	g_settings = SettingsManager::getInstance();
 	LogManager::init();
 	CreateSplash(); //[+]PPA
 	

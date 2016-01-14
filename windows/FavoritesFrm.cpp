@@ -417,7 +417,7 @@ LRESULT FavoriteHubsFrame::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 	{
 		int i = -1;
 		UINT checkState = BOOLSETTING(CONFIRM_HUB_REMOVAL) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-		if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), _T(APPNAME) _T(" ") T_VERSIONSTRING, CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
+		if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), T_APPNAME_WITH_VERSION, CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
 		{
 			while ((i = ctrlHubs.GetNextItem(-1, LVNI_SELECTED)) != -1)
 			{
@@ -481,7 +481,7 @@ bool FavoriteHubsFrame::checkNick()
 {
 	if (SETTING(NICK).empty())
 	{
-		MessageBox(CTSTRING(ENTER_NICK), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_ICONSTOP | MB_OK);
+		MessageBox(CTSTRING(ENTER_NICK), T_APPNAME_WITH_VERSION, MB_ICONSTOP | MB_OK);
 		return false;
 	}
 	return true;

@@ -2726,7 +2726,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 		char l_buf[4000];
 		l_buf[0] = 0;
 		sprintf_s(l_buf, _countof(l_buf), CSTRING(ERROR_MEDIAINFO_SCAN), p_name.c_str(), e.what());
-		::MessageBox(0, Text::toT(l_buf).c_str(), _T("Error mediainfo!"), MB_ICONERROR);
+		::MessageBox(0, Text::toT(l_buf).c_str(), T_APPNAME_WITH_VERSION, MB_ICONERROR);
 		return false;
 	}
 	catch (...)

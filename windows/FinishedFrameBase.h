@@ -62,6 +62,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			m_transfer_type(p_transfer_type),
 			m_is_crrent_tree_node(false),
 			m_totalBytes(0),
+			m_totalActual(0),
 			m_totalSpeed(0),
 			m_totalCount(0),
 			m_totalCountLast(0),
@@ -94,6 +95,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		COMMAND_ID_HANDLER(IDC_COPY_TYPE, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_PATH     , onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_SIZE     , onCopy)
+		COMMAND_ID_HANDLER(IDC_NETWORK_TRAFFIC, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_TTH      , onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_HUB_URL      , onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_SPEED      , onCopy)
@@ -137,6 +139,9 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 						break;
 					case IDC_COPY_SIZE:
 						sCopy = l_item->getText(FinishedItem::COLUMN_SIZE);
+						break;
+					case IDC_NETWORK_TRAFFIC:
+						sCopy = l_item->getText(FinishedItem::COLUMN_NETWORK_TRAFFIC);
 						break;
 					case IDC_COPY_HUB_URL:
 						sCopy = l_item->getText(FinishedItem::COLUMN_HUB);
@@ -194,7 +199,8 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			                                                  ResourceManager::HUB,
 			                                                  ResourceManager::SIZE,
 			                                                  ResourceManager::SPEED,
-			                                                  ResourceManager::IP_BARE
+			                                                  ResourceManager::IP_BARE,
+			                                                  ResourceManager::NETWORK_TRAFFIC
 			                                                };
 			                                                
 			BOOST_STATIC_ASSERT(_countof(columnSizes) == FinishedItem::COLUMN_LAST);
@@ -202,7 +208,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			
 			for (size_t j = 0; j < FinishedItem::COLUMN_LAST; j++) //-V104
 			{
-				const int fmt = (j == FinishedItem::COLUMN_SIZE || j == FinishedItem::COLUMN_SPEED) ? LVCFMT_RIGHT : LVCFMT_LEFT; //-V104
+				const int fmt = (j == FinishedItem::COLUMN_SIZE || j == FinishedItem::COLUMN_SPEED || j == FinishedItem::COLUMN_NETWORK_TRAFFIC) ? LVCFMT_RIGHT : LVCFMT_LEFT; //-V104
 				ctrlList.InsertColumn(j, TSTRING_I(columnNames[j]), fmt, columnSizes[j], j); //-V107
 			}
 			
@@ -223,6 +229,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			copyMenu.AppendMenu(MF_STRING, IDC_COPY_TYPE, CTSTRING(TYPE));
 			copyMenu.AppendMenu(MF_STRING, IDC_COPY_PATH, CTSTRING(PATH));
 			copyMenu.AppendMenu(MF_STRING, IDC_COPY_SIZE, CTSTRING(SIZE));
+			copyMenu.AppendMenu(MF_STRING, IDC_NETWORK_TRAFFIC, CTSTRING(NETWORK_TRAFFIC));
 			copyMenu.AppendMenu(MF_STRING, IDC_COPY_HUB_URL, CTSTRING(HUB_ADDRESS));
 			copyMenu.AppendMenu(MF_STRING, IDC_COPY_TTH, CTSTRING(TTH_ROOT));
 			copyMenu.AppendMenu(MF_STRING, IDC_COPY_SPEED,      CTSTRING(SPEED));
@@ -295,8 +302,23 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			int l_index = 0;
 			for (auto i = m_transfer_histogram.cbegin(); i != m_transfer_histogram.cend(); ++i, ++l_index)
 			{
+				string l_caption = i->m_date + " (" + Util::toString(i->m_count) + ")";
+					if (m_transfer_type == e_TransferUpload)
+					{
+						if (i->m_actual)
+						{
+							l_caption += " (" + Util::formatBytes(i->m_actual) + ")";
+						}
+					}
+					else
+					{
+						if (i->m_file_size)
+						{
+							l_caption += " (" + Util::formatBytes(i->m_file_size) + ")";
+						}
+					}
 				m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
-				                      Text::toT(i->m_date + " (" + Util::toString(i->m_count) + ") (" + Util::formatBytes(i->m_size) + ")").c_str(),
+				                      Text::toT(l_caption).c_str(),
 				                      0, // g_ISPImage.m_flagImageCount + 14, // nImage
 				                      0, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
 				                      0, // nState
@@ -323,6 +345,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			NMTREEVIEW* p = (NMTREEVIEW*)pnmh;
 			m_is_crrent_tree_node = false;
 			m_totalBytes = 0;
+			m_totalActual = 0;
 			m_totalSpeed = 0;
 			m_totalCount = 0;
 			if (p->itemNew.state & TVIS_SELECTED)
@@ -463,6 +486,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 							FinishedManager::removeItem(ii->m_entry, m_type);
 						}
 						m_totalBytes -= ii->m_entry->getSize();
+						m_totalActual -= ii->m_entry->getActual();
 						m_totalCount--;
 						ctrlList.DeleteItem(i);
 						p = i;
@@ -492,6 +516,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					}
 					ctrlList.DeleteAndCleanAllItems(); // [!] IRainman
 					m_totalBytes = 0;
+					m_totalActual = 0;
 					m_totalSpeed = 0;
 					m_totalCount = 0;
 					updateStatus();
@@ -688,14 +713,15 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			if (m_ctrlStatus.IsWindow())
 			{
 				CRect sr;
-				int w[4];
+				int w[5];
 				m_ctrlStatus.GetClientRect(sr);
-				w[3] = sr.right - 16;
+				w[4] = sr.right - 16;
+				w[3] = max(w[4] - 100, 0);
 				w[2] = max(w[3] - 100, 0);
 				w[1] = max(w[2] - 100, 0);
 				w[0] = max(w[1] - 100, 0);
 				
-				m_ctrlStatus.SetParts(4, w);
+				m_ctrlStatus.SetParts(5, w);
 			}
 			
 			CRect rc(rect);
@@ -771,6 +797,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		HTREEITEM               m_HistoryItem;
 		
 		int64_t m_totalBytes;
+		int64_t m_totalActual;
 		int64_t m_totalSpeed;
 		int64_t m_totalCount;
 		int64_t m_totalCountLast;
@@ -797,7 +824,8 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				m_totalCountLast = m_totalCount;
 				m_ctrlStatus.SetText(1, (Util::toStringW(m_totalCount) + _T(' ') + TSTRING(ITEMS)).c_str());
 				m_ctrlStatus.SetText(2, Util::formatBytesW(m_totalBytes).c_str());
-				m_ctrlStatus.SetText(3, (Util::formatBytesW(m_totalCount > 0 ? m_totalSpeed / m_totalCount : 0) + _T('/') + WSTRING(S)).c_str());
+				m_ctrlStatus.SetText(3, Util::formatBytesW(m_totalActual).c_str());
+				m_ctrlStatus.SetText(4, (Util::formatBytesW(m_totalCount > 0 ? m_totalSpeed / m_totalCount : 0) + _T('/') + WSTRING(S)).c_str());
 				setCountMessages(m_totalCount);
 			}
 		}
@@ -816,6 +844,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		{
 			const auto ii = new FinishedItemInfo(p_entry);
 			m_totalBytes += p_entry->getSize();
+			m_totalActual += p_entry->getActual();
 			m_totalSpeed += p_entry->getAvgSpeed();
 			m_totalCount++;
 			const int loc = ctrlList.insertItem(ii, I_IMAGECALLBACK); // ii->getImageIndex() // fix I_IMAGECALLBACK https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47103
@@ -851,12 +880,13 @@ int FinishedFrameBase<T, title, id, icon>::columnIndexes[] = { FinishedItem::COL
                                                                FinishedItem::COLUMN_NICK,
                                                                FinishedItem::COLUMN_HUB,
                                                                FinishedItem::COLUMN_SIZE,
+                                                               FinishedItem::COLUMN_NETWORK_TRAFFIC,
                                                                FinishedItem::COLUMN_SPEED,
                                                                FinishedItem::COLUMN_IP
                                                              };
 
 template <class T, int title, int id, int icon>
-int FinishedFrameBase<T, title, id, icon>::columnSizes[] = { 100, 110, 20, 290, 125, 80, 80, 80, 80};
+int FinishedFrameBase<T, title, id, icon>::columnSizes[] = { 100, 110, 20, 290, 125, 80, 80, 80, 80, 80};
 
 
 #endif // !defined(FINISHED_FRAME_BASE_H)

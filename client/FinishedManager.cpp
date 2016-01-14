@@ -105,7 +105,8 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 		}
 		if (isFile || (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS)))
 		{
-			std::shared_ptr<FinishedItem> item(new FinishedItem(qi->getTarget(), p_download->getHintedUser(), qi->getSize(), p_download->getRunningAverage(), GET_TIME(), qi->getTTH(), p_download->getUser()->getIPAsString()));
+			std::shared_ptr<FinishedItem> item(new FinishedItem(qi->getTarget(), p_download->getHintedUser(),
+			                                                    qi->getSize(), p_download->getRunningAverage(), GET_TIME(), qi->getTTH(), p_download->getActual(), p_download->getUser()->getIPAsString()));
 			if (SETTING(DB_LOG_FINISHED_DOWNLOADS))
 			{
 				CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferDownload, item);
@@ -134,7 +135,8 @@ void FinishedManager::on(UploadManagerListener::Complete, const UploadPtr& u) no
 	{
 		PLAY_SOUND(SOUND_UPLOADFILE);
 		
-		std::shared_ptr<FinishedItem> item(new FinishedItem(u->getPath(), u->getHintedUser(), u->getFileSize(), u->getRunningAverage(), GET_TIME(), u->getTTH(), u->getUser()->getIPAsString()));
+		std::shared_ptr<FinishedItem> item(new FinishedItem(u->getPath(), u->getHintedUser(),
+		u->getFileSize(), u->getRunningAverage(), GET_TIME(), u->getTTH(), u->getActual(), u->getUser()->getIPAsString()));
 		if (SETTING(DB_LOG_FINISHED_UPLOADS))
 		{
 			CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferUpload, item);

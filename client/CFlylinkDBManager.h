@@ -55,6 +55,10 @@ class CFlySQLCommand
 			}
 			return m_sql.get();
 		}
+		int sqlite3_changes() const
+		{
+			return m_sql->get_connection().sqlite3_changes();
+		}
 	private:
 		unique_ptr<sqlite3_command> m_sql;
 		FastCriticalSection m_cs;
@@ -180,7 +184,8 @@ struct CFlyTransferHistogram
 	std::string m_date;
 	unsigned m_count;
 	unsigned m_date_as_int;
-	uint64_t m_size;
+	uint64_t m_actual;
+	uint64_t m_file_size;
 };
 typedef std::vector<CFlyTransferHistogram> CFlyTransferHistogramArray;
 
@@ -615,8 +620,11 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #else
 		CFlySQLCommand m_select_last_ip_and_message_count;
 		CFlySQLCommand m_insert_last_ip_and_message_count;
+		CFlySQLCommand m_update_last_ip_and_message_count;
 		CFlySQLCommand m_insert_last_ip;
+		CFlySQLCommand m_update_last_ip;
 		CFlySQLCommand m_insert_message_count;
+		CFlySQLCommand m_update_message_count;
 #endif // FLYLINKDC_USE_LASTIP_CACHE
 		
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -636,6 +644,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 	private:
 	
 		CFlySQLCommand m_insert_ratio;
+		CFlySQLCommand m_update_ratio;
 		
 #ifdef _DEBUG
 		CFlySQLCommand m_check_message_count;
@@ -661,6 +670,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_get_blocksize;  // [+] brain-ripper
 		CFlySQLCommand m_insert_fly_path;
 		CFlySQLCommand m_insert_and_full_update_fly_queue;
+		CFlySQLCommand m_update_and_full_update_fly_queue;
 		CFlySQLCommand m_select_for_update_fly_queue;
 		CFlySQLCommand m_update_segments_fly_queue;
 		CFlySQLCommand m_insert_fly_queue_source;
@@ -678,8 +688,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_insert_fly_dic;
 		CFlySQLCommand m_get_registry;
 		CFlySQLCommand m_insert_registry;
+		CFlySQLCommand m_update_registry;
 		CFlySQLCommand m_delete_registry;
-		
 		
 		FastCriticalSection m_cache_location_cs;
 		vector<CFlyLocationDesc> m_location_cache_array;

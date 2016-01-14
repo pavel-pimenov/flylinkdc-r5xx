@@ -41,13 +41,9 @@ class SettingsManagerListener
 		};
 		
 		typedef X<0> Load;
-		typedef X<1> Save;
-		typedef X<2> SearchTypesChanged;
-		typedef X<4> Repaint;
-
+		typedef X<1> Repaint;
+		
 		virtual void on(Load, SimpleXML&) { }
-		virtual void on(Save, SimpleXML&) { }
-		virtual void on(SearchTypesChanged) noexcept { }
 		virtual void on(Repaint) noexcept { }
 };
 

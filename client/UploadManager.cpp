@@ -1433,7 +1433,7 @@ void UploadManager::on(ClientManagerListener::UserDisconnected, const UserPtr& a
 
 void UploadManager::removeDelayUpload(const UserPtr& aUser)
 {
-	dcassert(!ClientManager::isShutdown());
+	//dcassert(!ClientManager::isShutdown());
 	CFlyWriteLock(*g_csUploadsDelay);
 	for (auto i = g_delayUploads.cbegin(); i != g_delayUploads.cend(); ++i)
 	{

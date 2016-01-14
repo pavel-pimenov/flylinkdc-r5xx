@@ -466,7 +466,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		{
 			CFlylinkDBManager::getInstance()->set_registry_variable_string(e_IncopatibleSoftwareList, CompatibilityManager::getIncompatibleSoftwareList());
 			CFlyServerJSON::pushError(4, "CompatibilityManager::detectUncompatibleSoftware = " + CompatibilityManager::getIncompatibleSoftwareList());
-			if (MessageBox(Text::toT(CompatibilityManager::getIncompatibleSoftwareMessage()).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)
+			if (MessageBox(Text::toT(CompatibilityManager::getIncompatibleSoftwareMessage()).c_str(), T_APPNAME_WITH_VERSION, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)
 			{
 				WinUtil::openLink(WinUtil::GetWikiLink() + _T("incompatiblesoftware"));
 			}
@@ -476,7 +476,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	if (BOOLSETTING(REPORT_TO_USER_IF_OUTDATED_OS_DETECTED) && CompatibilityManager::runningAnOldOS()) // https://code.google.com/p/flylinkdc/issues/detail?id=1032
 	{
 		SET_SETTING(REPORT_TO_USER_IF_OUTDATED_OS_DETECTED, false);
-		if (MessageBox(CTSTRING(OUTDATED_OS_DETECTED), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)
+		if (MessageBox(CTSTRING(OUTDATED_OS_DETECTED), T_APPNAME_WITH_VERSION, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)
 		{
 			WinUtil::openLink(WinUtil::GetWikiLink() + _T("outdatedoperatingsystem"));
 		}
@@ -487,7 +487,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 #ifdef NIGHTORION_USE_STATISTICS_REQUEST
 	if (BOOLSETTING(SETTINGS_STATISTICS_ASK))
 	{
-		MessageBox(CTSTRING(TEXT_STAT_INFO), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_TOPMOST);
+		MessageBox(CTSTRING(TEXT_STAT_INFO), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_TOPMOST);
 		SET_SETTING(USE_FLY_SERVER_STATICTICS_SEND, true);
 		SET_SETTING(SETTINGS_STATISTICS_ASK, false);
 	}
@@ -600,7 +600,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	CreateSimpleStatusBar();
 	
 	m_rebar = m_hWndToolBar;
-	ToolbarManager::getInstance()->applyTo(m_rebar, "MainToolBar");
+	ToolbarManager::applyTo(m_rebar, "MainToolBar");
 	
 	m_ctrlStatus.Attach(m_hWndStatusBar);
 	m_ctrlStatus.SetSimple(FALSE); // https://www.box.net/shared/6d96012d9690dc892187
@@ -939,23 +939,26 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		HubFrame::timer_process_all();
 #endif
 #ifdef FLYLINKDC_CALC_MEMORY_USAGE
-		if ((aTick / 1000) % 3 == 0)
+		if (!CompatibilityManager::isWine())
 		{
-			char l_buf[128];
-			l_buf[0] = 0;
-			if (l_mem)
+			if ((aTick / 1000) % 3 == 0)
 			{
-				CompatibilityManager::caclPhysMemoryStat();
-				_snprintf(l_buf, _countof(l_buf), " [RAM: %dM / %dM][Free:%dM][GDI: %d]",
-				          g_RAM_WorkingSetSize,
-				          g_RAM_PeakWorkingSetSize,
-				          int(CompatibilityManager::getFreePhysMemory() / 1024 / 1024),
-				          int(g_GDI_count));
-			}
-			const tstring* l_temp = new tstring(tstring(T_APPNAME_WITH_VERSION) + Text::toT(l_buf));
-			if (!PostMessage(IDC_UPDATE_WINDOW_TITLE, (LPARAM)l_temp))
-			{
-				delete l_temp;
+				char l_buf[128];
+				l_buf[0] = 0;
+				if (l_mem)
+				{
+					CompatibilityManager::caclPhysMemoryStat();
+					_snprintf(l_buf, _countof(l_buf), " [RAM: %dM / %dM][Free:%dM][GDI: %d]",
+					          g_RAM_WorkingSetSize,
+					          g_RAM_PeakWorkingSetSize,
+					          int(CompatibilityManager::getFreePhysMemory() / 1024 / 1024),
+					          int(g_GDI_count));
+				}
+				const tstring* l_temp = new tstring(tstring(T_APPNAME_WITH_VERSION) + Text::toT(l_buf));
+				if (!PostMessage(IDC_UPDATE_WINDOW_TITLE, (LPARAM)l_temp))
+				{
+					delete l_temp;
+				}
 			}
 		}
 #else
@@ -2633,7 +2636,7 @@ void MainFrame::storeWindowsPos()
 	CRect rc;
 	GetWindowRect(rc);
 	
-	if (wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWNORMAL)
+//	if (wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWNORMAL)
 	{
 		SET_SETTING(MAIN_WINDOW_POS_X, rc.left);
 		SET_SETTING(MAIN_WINDOW_POS_Y, rc.top);
@@ -2641,7 +2644,13 @@ void MainFrame::storeWindowsPos()
 		SET_SETTING(MAIN_WINDOW_SIZE_Y, rc.Height());
 	}
 	if (wp.showCmd == SW_SHOWNORMAL || wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWMAXIMIZED || wp.showCmd == SW_MAXIMIZE)
+	{
 		SET_SETTING(MAIN_WINDOW_STATE, (int)wp.showCmd);
+	}
+	else
+	{
+		dcassert(0);
+	}
 }
 
 LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -2752,7 +2761,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 					ConnectionManager::getInstance()->disconnect();
 					
 					CReBarCtrl l_rebar = m_hWndToolBar;
-					ToolbarManager::getInstance()->getFrom(l_rebar, "MainToolBar"); // Для сохранения позиций тулбара (SCALOlаz)
+					ToolbarManager::getFrom(l_rebar, "MainToolBar"); // Для сохранения позиций тулбара (SCALOlаz)
 					
 					updateTray(false);
 					if (m_nProportionalPos > 300) // http://code.google.com/p/flylinkdc/issues/detail?id=1398
@@ -3030,7 +3039,7 @@ LRESULT MainFrame::onOpenFileList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 		//{
 		//  // [!] IRainman Support broken file lists and non-standard formats like that dcls
 		//  //if (
-		//  MessageBox(CTSTRING(INVALID_LISTNAME), _T(APPNAME) _T(' ') T_VERSIONSTRING);
+		//  MessageBox(CTSTRING(INVALID_LISTNAME), T_APPNAME_WITH_VERSION);
 		//}
 	}
 	return 0;
@@ -3894,7 +3903,7 @@ UINT MainFrame::ShowSetupWizard()
 	}
 	catch (Exception & e)
 	{
-		::MessageBox(NULL, Text::toT(e.getError()).c_str(), _T("Wizard Error!"), MB_OK | MB_ICONERROR); // [1] https://www.box.net/shared/tsdgrjdhgdfjrsz168r7
+		::MessageBox(NULL, Text::toT(e.getError()).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR); // [1] https://www.box.net/shared/tsdgrjdhgdfjrsz168r7
 		return IDCLOSE;
 	}
 }

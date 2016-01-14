@@ -32,7 +32,6 @@ class CFlyLockProfiler
 		}
 		~CFlyLockProfiler();
 		static void print_stat();
-	protected:
 		void log(const char* p_path, int p_recursion_count, bool p_is_unlock = false);
 	private:
 		const char* m_function;

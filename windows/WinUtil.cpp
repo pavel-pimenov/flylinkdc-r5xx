@@ -2228,7 +2228,7 @@ void WinUtil::openBitTorrent(const tstring& p_magnetURI) // [+] IRainman http://
 	}
 	else
 	{
-		::MessageBox(nullptr, CTSTRING(SETTINGS_BITTORRENT_ERROR_CONFIG),  _T(APPNAME) T_VERSIONSTRING, MB_OK | MB_ICONERROR);
+		::MessageBox(nullptr, CTSTRING(SETTINGS_BITTORRENT_ERROR_CONFIG), T_APPNAME_WITH_VERSION , MB_OK | MB_ICONERROR);
 		// TODO support auto detect with "OpenWithProgids" key http://msdn.microsoft.com/en-us/library/bb166549(v=VS.100).aspx
 		/*HKEY hk;
 		LocalArray<TCHAR, MAX_PATH> openCmd;

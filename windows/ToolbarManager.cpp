@@ -13,14 +13,18 @@
 #include "ToolbarManager.h"
 #include "../client/StringTokenizer.h"
 #include "../client/Pointer.h"
+#include "../client/ClientManager.h"
 
 ToolbarEntry::List ToolbarManager::g_toolbarEntries;
+CriticalSection ToolbarManager::g_cs;
+
 ToolbarManager::ToolbarManager()
 {
 }
 
 ToolbarManager::~ToolbarManager()
 {
+	CFlyLock(g_cs);
 	for_each(g_toolbarEntries.begin(), g_toolbarEntries.end(), DeleteFunction());
 }
 
@@ -30,6 +34,7 @@ void ToolbarManager::load(SimpleXML& aXml)
 	if (aXml.findChild("Rebars"))
 	{
 		aXml.stepIn();
+		CFlyLock(g_cs);
 		while (aXml.findChild("Rebar"))
 		{
 			ToolbarEntry* t = new ToolbarEntry();
@@ -38,7 +43,7 @@ void ToolbarManager::load(SimpleXML& aXml)
 			t->setCX(aXml.getChildAttrib("CX"));
 			t->setBreakLine(aXml.getChildAttrib("BreakLine"));
 			t->setBandCount(aXml.getIntChildAttrib("BandCount"));
-			g_toolbarEntries.push_back(t);
+			addToolBarEntryL(t);
 		}
 		aXml.stepOut();
 	}
@@ -51,7 +56,10 @@ void ToolbarManager::load(SimpleXML& aXml)
 		t->setCX("1147,213,1142,255");
 		t->setBreakLine("1,0,1,1");
 		t->setBandCount(4);
-		g_toolbarEntries.push_back(t);
+		{
+			CFlyLock(g_cs);
+			addToolBarEntryL(t);
+		}
 	}
 }
 
@@ -59,7 +67,7 @@ void ToolbarManager::save(SimpleXML& aXml)
 {
 	aXml.addTag("Rebars");
 	aXml.stepIn();
-	
+	CFlyLock(g_cs);
 	for (auto i = g_toolbarEntries.cbegin(); i != g_toolbarEntries.cend(); ++i)
 	{
 		aXml.addTag("Rebar");
@@ -78,7 +86,8 @@ void ToolbarManager::getFrom(CReBarCtrl& ReBar, const string& aName)
 	dcassert(ReBar.IsWindow());
 	if (ReBar.IsWindow())
 	{
-		removeToolbarEntry(getToolbarEntry(aName));
+		CFlyLock(g_cs);
+		removeToolbarEntryL(getToolbarEntryL(aName));
 		
 		ToolbarEntry* t = new ToolbarEntry();
 		string id, cx, bl, dl;
@@ -87,7 +96,7 @@ void ToolbarManager::getFrom(CReBarCtrl& ReBar, const string& aName)
 		
 		for (int i = 0; i < t->getBandCount(); i++)
 		{
-			dl = ((i > 0) ? "," : "");
+			dl = i > 0 ? "," : "";
 			REBARBANDINFO rbi = { 0 };
 			rbi.cbSize = sizeof(rbi);
 			rbi.fMask = RBBIM_ID | RBBIM_SIZE | RBBIM_STYLE;
@@ -101,16 +110,17 @@ void ToolbarManager::getFrom(CReBarCtrl& ReBar, const string& aName)
 		t->setID(id);
 		t->setCX(cx);
 		t->setBreakLine(bl);
-		g_toolbarEntries.push_back(t);
+		addToolBarEntryL(t);
 	}
 }
 
-void ToolbarManager::applyTo(CReBarCtrl& ReBar, const string& aName) const
+void ToolbarManager::applyTo(CReBarCtrl& ReBar, const string& aName)
 {
 	dcassert(ReBar.IsWindow());
 	if (ReBar.IsWindow())
 	{
-		ToolbarEntry* t = getToolbarEntry(aName);
+		CFlyLock(g_cs);
+		const ToolbarEntry* t = getToolbarEntryL(aName);
 		if (t)
 		{
 			const StringTokenizer<string> id(t->getID(), ',');
@@ -140,26 +150,25 @@ void ToolbarManager::applyTo(CReBarCtrl& ReBar, const string& aName) const
 	}
 }
 
-void ToolbarManager::removeToolbarEntry(const ToolbarEntry* entry)
+void ToolbarManager::removeToolbarEntryL(const ToolbarEntry* entry)
 {
-	if (entry == NULL)
-		return;
-		
-	ToolbarEntry::List::iterator i = find(g_toolbarEntries.begin(), g_toolbarEntries.end(), entry);
-	if (i == g_toolbarEntries.end())
+	if (entry)
 	{
-		return;
+		auto i = find(g_toolbarEntries.begin(), g_toolbarEntries.end(), entry);
+		if (i == g_toolbarEntries.end())
+		{
+			return;
+		}
+		g_toolbarEntries.erase(i);
+		delete entry;
 	}
-	
-	g_toolbarEntries.erase(i);
-	delete entry;
 }
 
-ToolbarEntry* ToolbarManager::getToolbarEntry(const string& aName)
+const ToolbarEntry* ToolbarManager::getToolbarEntryL(const string& aName)
 {
 	for (auto i = g_toolbarEntries.cbegin(); i != g_toolbarEntries.cend(); ++i)
 	{
-		ToolbarEntry* t = *i;
+		const ToolbarEntry* t = *i;
 		if (stricmp(t->getName(), aName) == 0)
 		{
 			return t;

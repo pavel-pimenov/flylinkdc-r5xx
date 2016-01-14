@@ -413,7 +413,7 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		GETSET(time_t, added, Added);
 		GETSET_DIRTY(uint8_t, maxSegments, MaxSegments);
 		GETSET_DIRTY(bool, autoPriority, AutoPriority);
-		GETSET_DIRTY(int64_t, flyQueueID, FlyQueueID);
+		GETSET(int64_t, flyQueueID, FlyQueueID);
 		
 	private:
 		Priority m_priority;

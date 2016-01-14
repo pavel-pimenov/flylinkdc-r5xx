@@ -177,7 +177,7 @@ void BaseChatFrame::checkMultiLine()
 		tstring fullMessageText;
 		WinUtil::GetWindowText(fullMessageText, *m_ctrlMessage);
 		const auto l_count_lines = std::count(fullMessageText.cbegin(), fullMessageText.cend(), L'\r');
-		if (l_count_lines != m_MultiChatCountLines && m_MultiChatCountLines < 10)
+		if (l_count_lines != m_MultiChatCountLines)
 		{
 			m_MultiChatCountLines = l_count_lines;
 			UpdateLayout();

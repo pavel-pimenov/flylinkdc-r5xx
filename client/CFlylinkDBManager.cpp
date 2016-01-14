@@ -104,7 +104,7 @@ int gf_busy_handler(void *p_params, int p_tryes)
 		CFlyBusy l_busy(g_MessageBox);
 		if (g_MessageBox <= 1)
 		{
-			MessageBox(NULL, Text::toT(l_message).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
+			MessageBox(NULL, Text::toT(l_message).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR | MB_TOPMOST);
 		}
 	}
 	return 1;
@@ -289,7 +289,7 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 		CFlyBusy l_busy(g_MessageBox);
 		if (g_MessageBox <= 1)
 		{
-			MessageBox(NULL, (l_russian_error + Text::toT(l_message)).c_str(), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK | MB_ICONERROR | MB_TOPMOST);
+			MessageBox(NULL, (l_russian_error + Text::toT(l_message)).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR | MB_TOPMOST);
 		}
 	}
 	bool l_is_send = CFlyServerJSON::pushError(16, l_error);
@@ -350,6 +350,49 @@ CFlylinkDBManager::CFlylinkDBManager()
 					LogManager::message("[Error] sqlite3_initialize = " + Util::toString(l_status), true);
 				}
 				dcassert(l_status == SQLITE_OK);
+#if 0
+				for (int j = 0; j < 2; ++j)
+				{
+					{
+						sqlite3_connection l_DB;
+						File::deleteFile("users.sqlite");
+						File::copyFile("users-orig.sqlite", "users.sqlite");
+						l_DB.open("users.sqlite");
+						auto_ptr<sqlite3_command> l_load_all(new sqlite3_command(l_DB, "select nick from userinfo"));
+						sqlite3_reader l_q = l_load_all.get()->executereader();
+						std::vector<string> l_nick;
+						l_nick.reserve(160000);
+						while (l_q.read())
+						{
+							l_nick.push_back(l_q.getstring(0));
+						}
+						CFlySQLCommand l_sql;
+						sqlite3_transaction l_trans(l_DB);
+						{
+							CFlyLockProfiler l_log;
+							for (auto i = l_nick.cbegin(); i != l_nick.cend(); ++i)
+							{
+								switch (j)
+								{
+									case 1:
+										l_sql.init(l_DB,
+										           "INSERT OR REPLACE INTO userinfo (nick, last_updated, ip_address, share, description, tag, connection, email) VALUES(?,DATETIME('now'),'ip','share','description','tag','connection','email')");
+										break;
+									case 0:
+										l_sql.init(l_DB,
+										           "UPDATE userinfo set last_updated = DATETIME('now'), ip_address == 'ip', share = 'share', description = 'description', tag = 'tag', connection = 'connection', email = 'email' where nick = ?");
+										break;
+								}
+								l_sql->bind(1, *i, SQLITE_STATIC);
+								l_sql->executenonquery();
+							}
+							l_trans.commit();
+							l_log.log("D:\\time.txt", j);
+						}
+					}
+				}
+#endif
+				
 				m_flySQLiteDB.open("FlylinkDC.sqlite");
 				sqlite3_busy_handler(m_flySQLiteDB.get_db(), gf_busy_handler, this);
 				// m_flySQLiteDB.setbusytimeout(1000);
@@ -745,9 +788,10 @@ CFlylinkDBManager::CFlylinkDBManager()
 		
 		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS transfer_db.fly_transfer_file("
 		                              "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,type int not null,day int64 not null,stamp int64 not null,"
-		                              "tth char(39),path text not null,nick text, hub text,size int64 not null,speed int,ip text);");
+		                              "tth char(39),path text not null,nick text, hub text,size int64 not null,speed int,ip text, actual int64);");
 		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS transfer_db.fly_transfer_file_day_type ON fly_transfer_file(day,type);");
 		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS transfer_db.fly_transfer_file_tth ON fly_transfer_file(tth);");
+		safeAlter("ALTER TABLE transfer_db.fly_transfer_file add column actual int64");
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS antivirus_db.fly_suspect_user("
 		                              "nick text not null,ip4 int not null,share int64 not null,virus_path text);");
@@ -1125,7 +1169,7 @@ void CFlylinkDBManager::identity_set(string p_key, string p_value, const string&
 		m_update_identity_stat_set->bind(2, p_key, SQLITE_STATIC);
 		m_update_identity_stat_set->bind(3, p_value, SQLITE_STATIC);
 		m_update_identity_stat_set->executenonquery();
-		if (m_flySQLiteDB.sqlite3_changes() == 0)
+		if (m_update_identity_stat_set.sqlite3_changes() == 0)
 		{
 			identity_initL(p_hub, p_key, p_value);
 		}
@@ -1157,7 +1201,7 @@ void CFlylinkDBManager::identity_get(string p_key, string p_value, const string&
 		m_update_identity_stat_get->bind(2, p_key, SQLITE_STATIC);
 		m_update_identity_stat_get->bind(3, p_value, SQLITE_STATIC);
 		m_update_identity_stat_get->executenonquery();
-		if (m_flySQLiteDB.sqlite3_changes() == 0)
+		if (m_update_identity_stat_get.sqlite3_changes() == 0)
 		{
 			identity_initL(p_hub, p_key, p_value);
 		}
@@ -2019,20 +2063,30 @@ void CFlylinkDBManager::clean_registryL(int p_Segment, __int64 p_tick)
 //========================================================================================================
 void CFlylinkDBManager::save_registry(const CFlyRegistryMap& p_values, int p_Segment, bool p_is_cleanup_old_value)
 {
-	const __int64 l_tick = GET_TICK();
+	const __int64 l_tick = GET_TICK() + Util::rand();
 	CFlyLock(m_cs);
 	try
 	{
 		m_insert_registry.init(m_flySQLiteDB, "insert or replace into fly_registry (segment,key,val_str,val_number,tick_count) values(?,?,?,?,?)");
+		m_update_registry.init(m_flySQLiteDB, "update fly_registry set val_str=?,val_number=?,tick_count=? where segment=? and key=?");
 		sqlite3_transaction l_trans(m_flySQLiteDB, (p_values.size() > 1) || p_is_cleanup_old_value);
 		for (auto k = p_values.cbegin(); k != p_values.cend(); ++k)
 		{
-			m_insert_registry->bind(1, p_Segment);
-			m_insert_registry->bind(2, k->first, SQLITE_TRANSIENT);
-			m_insert_registry->bind(3, k->second.m_val_str, SQLITE_TRANSIENT);
-			m_insert_registry->bind(4, k->second.m_val_int64);
-			m_insert_registry->bind(5, l_tick);
-			m_insert_registry->executenonquery();
+			m_update_registry->bind(1, k->second.m_val_str, SQLITE_TRANSIENT);
+			m_update_registry->bind(2, k->second.m_val_int64);
+			m_update_registry->bind(3, l_tick);
+			m_update_registry->bind(4, p_Segment);
+			m_update_registry->bind(5, k->first, SQLITE_TRANSIENT);
+			m_update_registry->executenonquery();
+			if (m_update_registry.sqlite3_changes() == 0)
+			{
+				m_insert_registry->bind(1, p_Segment);
+				m_insert_registry->bind(2, k->first, SQLITE_TRANSIENT);
+				m_insert_registry->bind(3, k->second.m_val_str, SQLITE_TRANSIENT);
+				m_insert_registry->bind(4, k->second.m_val_int64);
+				m_insert_registry->bind(5, l_tick);
+				m_insert_registry->executenonquery();
+			}
 		}
 		if (p_is_cleanup_old_value)
 		{
@@ -2052,7 +2106,7 @@ void CFlylinkDBManager::load_transfer_historgam(eTypeTransfer p_type, CFlyTransf
 	try
 	{
 		m_select_transfer_histrogram.init(m_flySQLiteDB,
-		                                  "select day,strftime('%d.%m.%Y',day*60*60*24,'unixepoch'),count(*),sum(size) "
+			"select day,strftime('%d.%m.%Y',day*60*60*24,'unixepoch'),count(*),sum(actual),sum(size) "
 		                                  "from transfer_db.fly_transfer_file where type=? group by day order by day desc");
 		m_select_transfer_histrogram->bind(1, p_type);
 		sqlite3_reader l_q = m_select_transfer_histrogram->executereader();
@@ -2062,15 +2116,15 @@ void CFlylinkDBManager::load_transfer_historgam(eTypeTransfer p_type, CFlyTransf
 			l_item.m_date = l_q.getstring(1);
 			l_item.m_count = l_q.getint(2);
 			l_item.m_date_as_int = l_q.getint(0);
-			l_item.m_size = l_q.getint64(3);
+			l_item.m_actual = l_q.getint64(3);
+			l_item.m_file_size = l_q.getint64(4);
 			p_array.push_back(l_item);
 		}
 	}
 	catch (const database_error& e)
 	{
 		errorDB("SQLite - load_transfer_historgam: " + e.getError());
-	}
-	
+	}	
 }
 //========================================================================================================
 void CFlylinkDBManager::load_transfer_history(eTypeTransfer p_type, int p_day)
@@ -2082,7 +2136,7 @@ void CFlylinkDBManager::load_transfer_history(eTypeTransfer p_type, int p_day)
 		                       "select path,"
 		                       // "strftime('%d.%m.%Y %H:%M:%S',stamp,'unixepoch'),"
 		                       // "strftime('%d.%m.%Y',day*60*60*24,'unixepoch'),"
-		                       "nick,hub,size,speed,stamp,ip,tth,id "
+		                       "nick,hub,size,speed,stamp,ip,tth,id,actual "
 		                       "from transfer_db.fly_transfer_file where type=? and day=?");
 		m_select_transfer->bind(1, p_type);
 		m_select_transfer->bind(2, p_day);
@@ -2097,7 +2151,8 @@ void CFlylinkDBManager::load_transfer_history(eTypeTransfer p_type, int p_day)
 			                                                    l_q.getint64(5),
 			                                                    TTHValue(l_q.getstring(7)),
 			                                                    l_q.getstring(6),
-			                                                    l_q.getint64(8)
+			                                                    l_q.getint64(8),
+			                                                    l_q.getint64(9)
 			                                                   ));
 			FinishedManager::getInstance()->pushHistoryFinishedItem(item, p_type);
 		}
@@ -2146,8 +2201,8 @@ void CFlylinkDBManager::save_transfer_history(eTypeTransfer p_type, const Finish
 	try
 	{
 		m_insert_transfer.init(m_flySQLiteDB,
-		                       "insert into transfer_db.fly_transfer_file (type,day,stamp,path,nick,hub,size,speed,ip,tth) "
-		                       "values(?,strftime('%s','now','localtime')/60/60/24,strftime('%s','now','localtime'),?,?,?,?,?,?,?)");
+		                       "insert into transfer_db.fly_transfer_file (type,day,stamp,path,nick,hub,size,speed,ip,tth,actual) "
+		                       "values(?,strftime('%s','now','localtime')/60/60/24,strftime('%s','now','localtime'),?,?,?,?,?,?,?,?)");
 		m_insert_transfer->bind(1, p_type);
 		m_insert_transfer->bind(2, p_item->getTarget(), SQLITE_STATIC);
 		m_insert_transfer->bind(3, p_item->getNick(), SQLITE_STATIC);
@@ -2159,6 +2214,7 @@ void CFlylinkDBManager::save_transfer_history(eTypeTransfer p_type, const Finish
 			m_insert_transfer->bind(8, p_item->getTTH().toBase32(), SQLITE_TRANSIENT); // SQLITE_TRANSIENT!
 		else
 			m_insert_transfer->bind(8);
+		m_insert_transfer->bind(9, p_item->getActual());
 		m_insert_transfer->executenonquery();
 	}
 	catch (const database_error& e)
@@ -2426,7 +2482,6 @@ int32_t CFlylinkDBManager::load_queue()
 					l_src_log.step("Files: " + Util::toString(l_sources_map.size()) + " Users: " + Util::toString(l_count_users));
 				}
 			}
-			// select * from(SELECT *, (select count(*) from fly_queue_source where fly_queue_id = f.id) as cnt_source  FROM fly_queue f)
 			const char* l_sql = "select "
 			                    "id,"
 			                    "Target,"
@@ -2922,31 +2977,54 @@ bool CFlylinkDBManager::merge_queue_item(QueueItemPtr& p_QueueItem)
 #endif // FLYLINKDC_BETA
 			if (l_is_need_update)
 			{
-				m_insert_and_full_update_fly_queue.init(m_flySQLiteDB,
-				                                        "insert or replace into fly_queue ("
-				                                        "Target,"
-				                                        "Size,"
-				                                        "Priority,"
-				                                        "Sections,"
-				                                        "Added,"
-				                                        "TTH,"
-				                                        "TempTarget,"
-				                                        "AutoPriority,"
-				                                        "MaxSegments,"
-				                                        "id"
-				                                        ") values(?,?,?,?,?,?,?,?,?,?)");
-				sqlite3_command* l_sql = m_insert_and_full_update_fly_queue.get_sql();
-				l_sql->bind(1, p_QueueItem->getTarget(), SQLITE_TRANSIENT);
-				l_sql->bind(2, p_QueueItem->getSize());
-				l_sql->bind(3, int(p_QueueItem->getPriority()));
-				l_sql->bind(4, p_QueueItem->getSectionStringL(), SQLITE_TRANSIENT);
-				l_sql->bind(5, p_QueueItem->getAdded());
-				l_sql->bind(6, p_QueueItem->getTTH().data, 24, SQLITE_TRANSIENT);
-				l_sql->bind(7, p_QueueItem->getDownloadedBytes() > 0 ? p_QueueItem->getTempTargetConst() : Util::emptyString, SQLITE_TRANSIENT);
-				l_sql->bind(8, p_QueueItem->getAutoPriority());
-				l_sql->bind(9, p_QueueItem->getMaxSegments());
-				l_sql->bind(10, l_id);
-				l_sql->executenonquery();
+				auto bind_values = [](sqlite3_command * p_sql, const QueueItemPtr & p_qitem, __int64 p_id)
+				{
+					p_sql->bind(1, p_qitem->getTarget(), SQLITE_TRANSIENT);
+					p_sql->bind(2, p_qitem->getSize());
+					p_sql->bind(3, int(p_qitem->getPriority()));
+					p_sql->bind(4, p_qitem->getSectionStringL(), SQLITE_TRANSIENT);
+					p_sql->bind(5, p_qitem->getAdded());
+					p_sql->bind(6, p_qitem->getTTH().data, 24, SQLITE_TRANSIENT);
+					p_sql->bind(7, p_qitem->getDownloadedBytes() > 0 ? p_qitem->getTempTargetConst() : Util::emptyString, SQLITE_TRANSIENT);
+					p_sql->bind(8, p_qitem->getAutoPriority());
+					p_sql->bind(9, p_qitem->getMaxSegments());
+					p_sql->bind(10, p_id);
+				};
+				
+				if (l_is_new_id == false)
+				{
+					m_update_and_full_update_fly_queue.init(m_flySQLiteDB,
+					                                        "update fly_queue set "
+					                                        "Target=?,"
+					                                        "Size=?,"
+					                                        "Priority=?,"
+					                                        "Sections=?,"
+					                                        "Added=?,"
+					                                        "TTH=?,"
+					                                        "TempTarget=?,"
+					                                        "AutoPriority=?,"
+					                                        "MaxSegments=? where id=?");
+					bind_values(m_update_and_full_update_fly_queue.get_sql(), p_QueueItem, l_id);
+					m_update_and_full_update_fly_queue->executenonquery();
+				}
+				if (l_is_new_id == true || m_update_and_full_update_fly_queue.sqlite3_changes() == 0)
+				{
+					m_insert_and_full_update_fly_queue.init(m_flySQLiteDB,
+					                                        "insert or replace into fly_queue ("
+					                                        "Target,"
+					                                        "Size,"
+					                                        "Priority,"
+					                                        "Sections,"
+					                                        "Added,"
+					                                        "TTH,"
+					                                        "TempTarget,"
+					                                        "AutoPriority,"
+					                                        "MaxSegments,"
+					                                        "id"
+					                                        ") values(?,?,?,?,?,?,?,?,?,?)");
+					bind_values(m_insert_and_full_update_fly_queue.get_sql(), p_QueueItem, l_id);
+					m_insert_and_full_update_fly_queue->executenonquery();
+				}
 #ifdef _DEBUG
 				//          LogManager::message("insert or replace into fly_queue! l_id = "  + Util::toString(l_id)
 				//                                             + " l_count_total_source = " + Util::toString(l_count_total_source),true);
@@ -3209,11 +3287,11 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
 		if (p_upload_download_stats && !p_upload_download_stats->empty())
 		{
 			sqlite3_transaction l_trans_insert(m_flySQLiteDB, p_upload_download_stats->size() > 1);
-			m_insert_ratio.init(m_flySQLiteDB, "insert or replace into fly_ratio(dic_ip,dic_nick,dic_hub,upload,download) values(?,?,?,?,?)");
+			m_update_ratio.init(m_flySQLiteDB, "update fly_ratio set upload=?,download=? where dic_ip=? and dic_nick=? and dic_hub=?");
+			m_insert_ratio.init(m_flySQLiteDB, "insert or replace into fly_ratio(upload,download,dic_ip,dic_nick,dic_hub) values(?,?,?,?,?)");
 			// TODO провести конвертацию в другой формат и файл БД + отказаться от DIC
-			sqlite3_command* l_sql = m_insert_ratio.get_sql();
-			l_sql->bind(2, l_dic_nick);
-			l_sql->bind(3, __int64(p_hub_id));
+			m_update_ratio->bind(4, l_dic_nick);
+			m_update_ratio->bind(5, __int64(p_hub_id));
 			for (auto i = p_upload_download_stats->begin(); i != p_upload_download_stats->end(); ++i)
 			{
 				l_last_ip_id = get_dic_idL(boost::asio::ip::address_v4(i->first).to_string(), e_DIC_IP, false); // TODO - второй раз делаем запрос ! криво - изменить структуру fly_ratio
@@ -3222,10 +3300,19 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
 				        i->second.is_dirty() &&
 				        (i->second.get_upload() != 0 || i->second.get_download() != 0)) // Если все по нулям - тоже странно
 				{
-					l_sql->bind(1, __int64(l_last_ip_id));
-					l_sql->bind(4, __int64(i->second.get_upload()));
-					l_sql->bind(5, __int64(i->second.get_download()));
-					l_sql->executenonquery();
+					m_update_ratio->bind(3, __int64(l_last_ip_id));
+					m_update_ratio->bind(1, __int64(i->second.get_upload()));
+					m_update_ratio->bind(2, __int64(i->second.get_download()));
+					m_update_ratio->executenonquery();
+					if (m_update_ratio.sqlite3_changes() == 0)
+					{
+						m_insert_ratio->bind(4, l_dic_nick);
+						m_insert_ratio->bind(5, __int64(p_hub_id));
+						m_insert_ratio->bind(3, __int64(l_last_ip_id));
+						m_insert_ratio->bind(1, __int64(i->second.get_upload()));
+						m_insert_ratio->bind(2, __int64(i->second.get_download()));
+						m_insert_ratio->executenonquery();
+					}
 					i->second.reset_dirty();
 				}
 			}
@@ -3435,40 +3522,61 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 	
 	if (!p_last_ip.is_unspecified() && p_message_count)
 	{
-		if (p_message_count)
+		m_update_last_ip_and_message_count.init(m_flySQLiteDB,
+		                                        "update user_db.user_info set last_ip=?,message_count=? where dic_hub=? and nick=?");
+		m_update_last_ip_and_message_count->bind(1, __int64(p_last_ip.to_ulong()));
+		m_update_last_ip_and_message_count->bind(2, __int64(p_message_count));
+		m_update_last_ip_and_message_count->bind(3, __int64(p_hub_id));
+		m_update_last_ip_and_message_count->bind(4, p_nick, SQLITE_STATIC);
+		m_update_last_ip_and_message_count->executenonquery();
+		if (m_update_last_ip_and_message_count.sqlite3_changes() == 0)
 		{
 			m_insert_last_ip_and_message_count.init(m_flySQLiteDB,
 			                                        "insert or replace into user_db.user_info(nick,dic_hub,last_ip,message_count) values(?,?,?,?)");
-			sqlite3_command* l_sql = m_insert_last_ip_and_message_count.get_sql();
-			l_sql->bind(1, p_nick, SQLITE_STATIC);
-			l_sql->bind(2, __int64(p_hub_id));
-			l_sql->bind(3, __int64(p_last_ip.to_ulong()));
-			l_sql->bind(4, __int64(p_message_count));
-			l_sql->executenonquery();
+			m_insert_last_ip_and_message_count->bind(1, p_nick, SQLITE_STATIC);
+			m_insert_last_ip_and_message_count->bind(2, __int64(p_hub_id));
+			m_insert_last_ip_and_message_count->bind(3, __int64(p_last_ip.to_ulong()));
+			m_insert_last_ip_and_message_count->bind(4, __int64(p_message_count));
+			m_insert_last_ip_and_message_count->executenonquery();
 		}
 	}
 	else
 	{
 		if (!p_last_ip.is_unspecified())
 		{
-			m_insert_last_ip.init(m_flySQLiteDB,
-			                      "insert or replace into user_db.user_info(nick,dic_hub,last_ip) values(?,?,?)");
-			sqlite3_command* l_sql = m_insert_last_ip.get_sql();
-			l_sql->bind(1, p_nick, SQLITE_STATIC);
-			l_sql->bind(2, __int64(p_hub_id));
-			l_sql->bind(3, __int64(p_last_ip.to_ulong()));
-			l_sql->executenonquery();
+			m_update_last_ip.init(m_flySQLiteDB,
+			                      "update user_db.user_info set last_ip=? where dic_hub=? and nick=?");
+			m_update_last_ip->bind(1, __int64(p_last_ip.to_ulong()));
+			m_update_last_ip->bind(2, __int64(p_hub_id));
+			m_update_last_ip->bind(3, p_nick, SQLITE_STATIC);
+			m_update_last_ip->executenonquery();
+			if (m_update_last_ip.sqlite3_changes() == 0)
+			{
+				m_insert_last_ip.init(m_flySQLiteDB,
+				                      "insert or replace into user_db.user_info(nick,dic_hub,last_ip) values(?,?,?)");
+				m_insert_last_ip->bind(1, p_nick, SQLITE_STATIC);
+				m_insert_last_ip->bind(2, __int64(p_hub_id));
+				m_insert_last_ip->bind(3, __int64(p_last_ip.to_ulong()));
+				m_insert_last_ip->executenonquery();
+			}
 		}
 		else if (p_message_count)
 		{
-			m_insert_message_count.init(m_flySQLiteDB,
-			                            "insert or replace into user_db.user_info(nick,dic_hub,message_count) values(?,?,?)");
-			sqlite3_command* l_sql = m_insert_message_count.get_sql();
-			l_sql->bind(1, p_nick, SQLITE_STATIC);
-			l_sql->bind(2, __int64(p_hub_id));
-			l_sql->bind(3, __int64(p_message_count));
-			l_sql->executenonquery();
-	
+			m_update_message_count.init(m_flySQLiteDB,
+			                            "update user_db.user_info set message_count=? where dic_hub=? and nick=?");
+			m_update_message_count->bind(1, __int64(p_message_count));
+			m_update_message_count->bind(2, __int64(p_hub_id));
+			m_update_message_count->bind(3, p_nick, SQLITE_STATIC);
+			m_update_message_count->executenonquery();
+			if (m_update_message_count.sqlite3_changes() == 0)
+			{
+				m_insert_message_count.init(m_flySQLiteDB,
+				                            "insert or replace into user_db.user_info(nick,dic_hub,message_count) values(?,?,?)");
+				m_insert_message_count->bind(1, p_nick, SQLITE_STATIC);
+				m_insert_message_count->bind(2, __int64(p_hub_id));
+				m_insert_message_count->bind(3, __int64(p_message_count));
+				m_insert_message_count->executenonquery();
+			}
 		}
 		else
 		{

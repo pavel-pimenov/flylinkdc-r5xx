@@ -1610,7 +1610,7 @@ void SettingsManager::loadOtherSettings()
 		ShareManager::load(xml);
 		FavoriteManager::recentload(xml);
 		FavoriteManager::previewload(xml);
-
+		
 		fly_fire1(SettingsManagerListener::Load(), xml);
 		xml.stepOut();
 	}
@@ -2152,17 +2152,18 @@ void SettingsManager::save(const string& aFileName)
 	}
 	xml.stepOut();*/
 	FavoriteManager::previewsave(xml);
-
+	
 	ShareManager::save(xml);
-
-	RSSManager::save(xml);
-
+	
 	ToolbarManager::save(xml);
-
-	fly_fire1(SettingsManagerListener::Save(), xml);
-
-	fly_fire(SettingsManagerListener::Repaint());
-
+	
+	RSSManager::save(xml);
+	
+	if (!ClientManager::isShutdown())
+	{
+		fly_fire(SettingsManagerListener::Repaint());
+	}
+	
 	try
 	{
 		File out(aFileName + ".tmp", File::WRITE, File::CREATE | File::TRUNCATE);
@@ -2204,7 +2205,6 @@ void SettingsManager::setSearchTypeDefaults()
 	for (size_t i = 0, n = l_searchExts.size(); i < n; ++i)
 		g_searchTypes[string(1, '1' + i)] = l_searchExts[i];
 		
-	fly_fire(SettingsManagerListener::SearchTypesChanged());
 }
 
 void SettingsManager::addSearchType(const string& name, const StringList& extensions, bool validated)
@@ -2220,14 +2220,12 @@ void SettingsManager::addSearchType(const string& name, const StringList& extens
 	}
 	
 	g_searchTypes[name] = extensions;
-	fly_fire(SettingsManagerListener::SearchTypesChanged());
 }
 
 void SettingsManager::delSearchType(const string& name)
 {
 	validateSearchTypeName(name);
 	g_searchTypes.erase(name);
-	fly_fire(SettingsManagerListener::SearchTypesChanged());
 }
 
 void SettingsManager::renameSearchType(const string& oldName, const string& newName)
@@ -2241,7 +2239,6 @@ void SettingsManager::renameSearchType(const string& oldName, const string& newN
 void SettingsManager::modSearchType(const string& name, const StringList& extensions)
 {
 	getSearchType(name)->second = extensions;
-	fly_fire(SettingsManagerListener::SearchTypesChanged());
 }
 
 const StringList& SettingsManager::getExtensions(const string& name)

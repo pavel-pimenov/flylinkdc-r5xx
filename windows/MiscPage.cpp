@@ -89,7 +89,7 @@ LRESULT MiscPage::onIgnoreAdd(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWnd
 		}
 		else
 		{
-			MessageBox(CTSTRING(ALREADY_IGNORED), _T(APPNAME) _T(" ") T_VERSIONSTRING, MB_OK);
+			MessageBox(CTSTRING(ALREADY_IGNORED), T_APPNAME_WITH_VERSION, MB_OK);
 		}
 	}
 	SetDlgItemText(IDC_IGNORELIST_EDIT, _T(""));

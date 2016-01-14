@@ -66,17 +66,17 @@ void AutoUpdate::initialize(HWND p_mainFrameHWND, AutoUpdateGUIMethod* p_guiDele
 }
 void AutoUpdate::shutdownAndUpdate()
 {
-	        m_guiDelegate = nullptr; // https://drdump.com/Problem.aspx?ProblemID=106436
-			forceStop();
-			TimerManager::getInstance()->removeListener(this);
-			runFlyUpdate(); 
+	m_guiDelegate = nullptr; // https://drdump.com/Problem.aspx?ProblemID=106436
+	forceStop();
+	TimerManager::getInstance()->removeListener(this);
+	runFlyUpdate();
 }
 
 void AutoUpdate::on(TimerManagerListener::Hour, uint64_t tick) noexcept
 {
 	if (isUpdateStarted())
 		return;
-
+		
 #ifndef AUTOUPDATE_NOT_DISABLE
 	if (BOOLSETTING(AUTOUPDATE_ENABLE) && BOOLSETTING(AUTOUPDATE_STARTATTIME))
 #endif
@@ -89,9 +89,9 @@ void AutoUpdate::on(TimerManagerListener::Hour, uint64_t tick) noexcept
 			const int l_settings = SETTING(AUTOUPDATE_TIME);
 			if (
 #ifdef HOURLY_CHECK_UPDATE
-				24 == l_settings ||
+			    24 == l_settings ||
 #endif
-				currentLocalTime->tm_hour == l_settings)
+			    currentLocalTime->tm_hour == l_settings)
 			{
 				addTask(START_UPDATE);
 			}
@@ -103,21 +103,21 @@ void AutoUpdate::startUpdateManually()
 {
 	if (isUpdateStarted())
 		return;
-
+		
 	m_manualUpdate = true;
-
+	
 	// [!] SSA - set the ignore update list as empty if manual update started.
 	SET_SETTING(AUTOUPDATE_IGNORE_VERSION, Util::emptyString);
-
+	
 	addTask(START_UPDATE);
 }
 
 void AutoUpdate::execute(const AutoUpdateTasks& p_task)
 {
 #ifdef _DEBUG
-//	return; 
+//	return;
 #endif
-	dcassert (p_task == START_UPDATE);
+	dcassert(p_task == START_UPDATE);
 	startUpdateThisThread();
 }
 bool AutoUpdate::preparingFiles(const AutoUpdateFiles& p_files, const string& p_path, string& p_errorFileName)
@@ -135,107 +135,107 @@ bool AutoUpdate::preparingFiles(const AutoUpdateFiles& p_files, const string& p_
 	}
 	return p_errorFileName.empty();
 };
-int64_t	AutoUpdate::checkFilesToNeedsUpdate(AutoUpdateFiles& p_files4Update, AutoUpdateFiles& p_files4Description, const AutoUpdateModules& p_modules, const string& p_path)
+int64_t AutoUpdate::checkFilesToNeedsUpdate(AutoUpdateFiles& p_files4Update, AutoUpdateFiles& p_files4Description, const AutoUpdateModules& p_modules, const string& p_path)
 {
 	int64_t l_local_totalSize = 0;
 	for (auto i = p_modules.cbegin(); i != p_modules.cend(); ++i)
-					{
-						if (i->m_iSetting != SettingsManager::INT_LAST &&
-							SettingsManager::getInstance()->getBool(i->m_iSetting, true))
+	{
+		if (i->m_iSetting != SettingsManager::INT_LAST &&
+		        SettingsManager::getBool(i->m_iSetting, true))
+		{
+			for (auto j = i->m_Files.cbegin(); j != i->m_Files.cend(); ++j)
 			{
-							for (auto j = i->m_Files.cbegin(); j != i->m_Files.cend(); ++j)
+				const AutoUpdateFile& l_file = *j;
+				if (needUpdateFile(l_file, p_path))
 				{
-								const AutoUpdateFile& l_file = *j;
-								if (needUpdateFile(l_file, p_path))
-								{
-									p_files4Update.push_back(l_file);
-									p_files4Description.push_back(l_file);
-									l_local_totalSize += l_file.m_packedSize;
-								}
-							}
-						}
-				}
-	return l_local_totalSize;
-			}
-string AutoUpdate::getUpdateFilesList(const string& p_componentName, 
-									string  p_serverUrl, 
-									const char*   p_rootNode, 
-									const string& p_file, 
-									const string& p_descr, 
-									unique_ptr<AutoUpdateObject>& p_autoUpdateObject,
-									string& p_base_update_url)
-{
-			AppendUriSeparator(p_serverUrl);
-			p_base_update_url = p_serverUrl;
-			const string l_serverUpdateFile = p_serverUrl + p_file;
-			const string l_log_url_info = " (" + p_componentName + ')' + " ( URL:" + l_serverUpdateFile + ')';
-		        // 60 sec - http://code.google.com/p/flylinkdc/issues/detail?id=1403
-			size_t l_dataSize =  Util::getDataFromInet(l_serverUpdateFile, p_autoUpdateObject->m_update_xml,60000); 
-			if (l_dataSize)
-			{
-				message(STRING(AUTOUPDATE_DOWNLOAD_SUCCESS) + l_log_url_info);
-				XMLParser::XMLResults xRes;
-				// Try to parse data
-				XMLParser::XMLNode xRootNode = XMLParser::XMLNode::parseString(p_autoUpdateObject->m_update_xml.c_str(), 0, &xRes);
-				if (xRes.error == XMLParser::eXMLErrorNone)
-				{
-					XMLParser::XMLNode update5Node = xRootNode.getChildNode(p_rootNode);
-					dcassert(!update5Node.isEmpty());
-					if (!update5Node.isEmpty())
-					{
-						p_autoUpdateObject->m_sVersion = update5Node.getAttributeOrDefault("Version");
-						p_autoUpdateObject->m_sUpdateDate = update5Node.getAttributeOrDefault("UpdateDate");
-						// Let's asks for updater....
-						{
-							int i = 0;
-							XMLParser::XMLNode uNode = update5Node.getChildNode("Updater", &i);
-							if (!uNode.isEmpty())
-							{
-								int j = 0;
-								XMLParser::XMLNode fileNode = uNode.getChildNode("File", &j);
-								while (!fileNode.isEmpty())
-								{
-									p_autoUpdateObject->m_updater.m_Files.push_back(AutoUpdate::parseNode(fileNode));
-									fileNode = uNode.getChildNode("File", &j);
-								}
-							}
-						}
-						{
-							int i = 0;
-							XMLParser::XMLNode moduleNode = update5Node.getChildNode("Module", &i);
-							while (!moduleNode.isEmpty())
-							{
-								AutoUpdateModule module;
-								module.m_sName = moduleNode.getAttributeOrDefault("Title");
-								module.m_iSetting = getSettingByTitle(module.m_sName);
-						
-								int j = 0;
-								XMLParser::XMLNode fileNode = moduleNode.getChildNode("File", &j);
-								while (!fileNode.isEmpty())
-								{
-									module.m_Files.push_back(parseNode(fileNode));
-									fileNode = moduleNode.getChildNode("File", &j);
-								}
-								p_autoUpdateObject->m_Modules.push_back(module);
-
-								moduleNode = update5Node.getChildNode("Module", &i);
-							}
-						}
-					}
-					else
-					{
-						const string l_error = "update5Node.isEmpty() - send error - ppa74@ya.ru (p_rootNode = [" + string(p_rootNode) + "]";
-						CFlyServerJSON::pushError(58, l_error);
-						::MessageBox(m_mainFrameHWND, Text::toT(l_error).c_str(), CWSTRING(AUTOUPDATE_TITLE), MB_OK | MB_ICONERROR);
-					}
+					p_files4Update.push_back(l_file);
+					p_files4Description.push_back(l_file);
+					l_local_totalSize += l_file.m_packedSize;
 				}
 			}
-			return p_serverUrl + p_descr;
 		}
+	}
+	return l_local_totalSize;
+}
+string AutoUpdate::getUpdateFilesList(const string& p_componentName,
+                                      string  p_serverUrl,
+                                      const char*   p_rootNode,
+                                      const string& p_file,
+                                      const string& p_descr,
+                                      unique_ptr<AutoUpdateObject>& p_autoUpdateObject,
+                                      string& p_base_update_url)
+{
+	AppendUriSeparator(p_serverUrl);
+	p_base_update_url = p_serverUrl;
+	const string l_serverUpdateFile = p_serverUrl + p_file;
+	const string l_log_url_info = " (" + p_componentName + ')' + " ( URL:" + l_serverUpdateFile + ')';
+	// 60 sec - http://code.google.com/p/flylinkdc/issues/detail?id=1403
+	size_t l_dataSize =  Util::getDataFromInet(l_serverUpdateFile, p_autoUpdateObject->m_update_xml, 60000);
+	if (l_dataSize)
+	{
+		message(STRING(AUTOUPDATE_DOWNLOAD_SUCCESS) + l_log_url_info);
+		XMLParser::XMLResults xRes;
+		// Try to parse data
+		XMLParser::XMLNode xRootNode = XMLParser::XMLNode::parseString(p_autoUpdateObject->m_update_xml.c_str(), 0, &xRes);
+		if (xRes.error == XMLParser::eXMLErrorNone)
+		{
+			XMLParser::XMLNode update5Node = xRootNode.getChildNode(p_rootNode);
+			dcassert(!update5Node.isEmpty());
+			if (!update5Node.isEmpty())
+			{
+				p_autoUpdateObject->m_sVersion = update5Node.getAttributeOrDefault("Version");
+				p_autoUpdateObject->m_sUpdateDate = update5Node.getAttributeOrDefault("UpdateDate");
+				// Let's asks for updater....
+				{
+					int i = 0;
+					XMLParser::XMLNode uNode = update5Node.getChildNode("Updater", &i);
+					if (!uNode.isEmpty())
+					{
+						int j = 0;
+						XMLParser::XMLNode fileNode = uNode.getChildNode("File", &j);
+						while (!fileNode.isEmpty())
+						{
+							p_autoUpdateObject->m_updater.m_Files.push_back(AutoUpdate::parseNode(fileNode));
+							fileNode = uNode.getChildNode("File", &j);
+						}
+					}
+				}
+				{
+					int i = 0;
+					XMLParser::XMLNode moduleNode = update5Node.getChildNode("Module", &i);
+					while (!moduleNode.isEmpty())
+					{
+						AutoUpdateModule module;
+						module.m_sName = moduleNode.getAttributeOrDefault("Title");
+						module.m_iSetting = getSettingByTitle(module.m_sName);
+						
+						int j = 0;
+						XMLParser::XMLNode fileNode = moduleNode.getChildNode("File", &j);
+						while (!fileNode.isEmpty())
+						{
+							module.m_Files.push_back(parseNode(fileNode));
+							fileNode = moduleNode.getChildNode("File", &j);
+						}
+						p_autoUpdateObject->m_Modules.push_back(module);
+						
+						moduleNode = update5Node.getChildNode("Module", &i);
+					}
+				}
+			}
+			else
+			{
+				const string l_error = "update5Node.isEmpty() - send error - ppa74@ya.ru (p_rootNode = [" + string(p_rootNode) + "]";
+				CFlyServerJSON::pushError(58, l_error);
+				::MessageBox(m_mainFrameHWND, Text::toT(l_error).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
+			}
+		}
+	}
+	return p_serverUrl + p_descr;
+}
 bool AutoUpdateObject::checkSignXML(const string& p_url_sign) const
 {
 	std::vector<byte> l_signData;
-  CFlyHTTPDownloader l_http_downloader;
+	CFlyHTTPDownloader l_http_downloader;
 	const size_t l_signDataSize = l_http_downloader.getBinaryDataFromInet(p_url_sign, l_signData); // update*.sign fize == 128
 	return l_signDataSize != 0 && AutoUpdate::verifyUpdate(l_signData.data(), l_signDataSize, m_update_xml, m_update_xml.length());
 }
@@ -252,20 +252,20 @@ void AutoUpdate::startUpdateThisThread()
 	string l_base_updateAU_url;
 	if (Util::isHttpLink(serverURL))
 	{
-		const string programUpdateDescription = getUpdateFilesList(STRING(PROGRAM_FILES), serverURL, "Update5", 
-			                                                       UPDATE_FILEDOWNLOAD(), UPDATE_DESCRIPTION(), autoUpdateObject, 
-																   l_base_update_url);
+		const string programUpdateDescription = getUpdateFilesList(STRING(PROGRAM_FILES), serverURL, "Update5",
+		                                                           UPDATE_FILEDOWNLOAD(), UPDATE_DESCRIPTION(), autoUpdateObject,
+		                                                           l_base_update_url);
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
-		// TODO - результат не юзается const string basesUpdateDescription = 
-			getUpdateFilesList(STRING(PROGRAM_DATA), UPDATE_AU_URL, "UpdateAU",
-			                                                       UPDATE_UPDATE_FILE, UPDATE_DESCRIPTION_FILE, autoUpdateObjectAU,
-																   l_base_updateAU_url);
+		// TODO - результат не юзается const string basesUpdateDescription =
+		getUpdateFilesList(STRING(PROGRAM_DATA), UPDATE_AU_URL, "UpdateAU",
+		                   UPDATE_UPDATE_FILE, UPDATE_DESCRIPTION_FILE, autoUpdateObjectAU,
+		                   l_base_updateAU_url);
 #endif
-		if (!autoUpdateObject->m_Modules.empty() 
+		if (!autoUpdateObject->m_Modules.empty()
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
-			|| !autoUpdateObjectAU->m_Modules.empty()
+		        || !autoUpdateObjectAU->m_Modules.empty()
 #endif
-			)
+		   )
 		{
 			// Process with Object
 			// check what files to update....
@@ -282,9 +282,9 @@ void AutoUpdate::startUpdateThisThread()
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
 				l_totalSize += checkFilesToNeedsUpdate(l_files4UpdateInAllUsersSettings, l_files4Description, autoUpdateObjectAU->m_Modules, Util::getConfigPath(
 #ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
-					true
+				                                           true
 #endif
-					));
+				                                       ));
 #endif
 			}
 			else
@@ -298,9 +298,9 @@ void AutoUpdate::startUpdateThisThread()
 #endif
 			if (l_needsToStartUpdate
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
-				|| needsUpdateBases
+			        || needsUpdateBases
 #endif
-				)
+			   )
 			{
 				m_isUpdate = false;
 				// Check if Need to Update UpdateUpdater
@@ -314,39 +314,39 @@ void AutoUpdate::startUpdateThisThread()
 						l_totalSize += file.m_packedSize;
 					}
 				}
-			    // 
-				if(l_totalSize) // Есть кандидаты для обновления?
+				//
+				if (l_totalSize) // Есть кандидаты для обновления?
 				{
 					string l_check_file_url = l_base_update_url + UPDATE_SIGNFILEDOWNLOAD();
 					string l_check_message;
 					bool l_check_result = autoUpdateObject->checkSignXML(l_check_file_url);
-					if(l_check_result == false)
+					if (l_check_result == false)
 					{
 						l_check_message = STRING(AUTOUPDATE_ERROR_VERIF) + " url: " + l_check_file_url;
 					}
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
 					l_check_file_url = l_base_updateAU_url + UPDATE_SIGN_FILE;
 					l_check_result = autoUpdateObjectAU->checkSignXML(l_check_file_url);
-					if(l_check_result == false)
+					if (l_check_result == false)
 					{
 						l_check_message += "\r\n";
 						l_check_message += STRING(AUTOUPDATE_ERROR_VERIF) + " url: " + l_check_file_url;
 					}
 #endif
-					if(!l_check_message.empty())
+					if (!l_check_message.empty())
 					{
 						m_isUpdate        = false;
 						m_manualUpdate    = false;
 						const string l_error = STRING(AUTOUPDATE_ERROR_VERIF) + l_check_message;
 						fail(l_error);
 						CFlyServerJSON::pushError(58, l_error);
-						::MessageBox(m_mainFrameHWND, Text::toT(l_error).c_str(), CWSTRING(AUTOUPDATE_TITLE), MB_OK | MB_ICONERROR);
+						::MessageBox(m_mainFrameHWND, Text::toT(l_error).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
 						return;
 					}
 				}
 				// Create TempFolder
 				static string g_tempFolder = getTempFolderForUpdate(autoUpdateObject->m_sVersion);
-			
+				
 				// Start Update (show info if need?)
 				bool needToUpdate = true;
 				string l_message = STRING(AUTOUPDATE_DOWNLOAD_START1);
@@ -356,16 +356,16 @@ void AutoUpdate::startUpdateThisThread()
 				l_message += ' ' + Util::formatBytes(l_totalSize) + " (";
 				l_message += Util::toString(l_files4Update.size() + l_files4UpdateInSettings.size()
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
-					+ l_files4UpdateInAllUsersSettings.size()
+				                            + l_files4UpdateInAllUsersSettings.size()
 #endif
-					) + ' ' + STRING(FILES) + "). ";
+				                           ) + ' ' + STRING(FILES) + "). ";
 				message(l_message);
-
+				
 				const bool l_userAsk = BOOLSETTING(AUTOUPDATE_SHOWUPDATEREADY) || m_manualUpdate;
-	    if (m_guiDelegate && !ClientManager::isShutdown())
-        {
-			m_guiDelegate->NewVerisonEvent(Text::fromT(TSTRING(MENU_FLYLINK_NEW_VERSION)) + " " + autoUpdateObject->m_sVersion);
-        }
+				if (m_guiDelegate && !ClientManager::isShutdown())
+				{
+					m_guiDelegate->NewVerisonEvent(Text::fromT(TSTRING(MENU_FLYLINK_NEW_VERSION)) + " " + autoUpdateObject->m_sVersion);
+				}
 				if (l_userAsk)
 				{
 					// [!]TODO Ask to setup
@@ -390,14 +390,14 @@ void AutoUpdate::startUpdateThisThread()
 						{
 							idResult = (UpdateResult)m_guiDelegate->ShowDialogUpdate(l_message, programRtfData, l_files4Description
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
-								//+ basesRtfData
+							                                                         //+ basesRtfData
 #endif
-								); // TODO Crash beta14
+							                                                        ); // TODO Crash beta14
 						}
 					}
 					else
 					{
-						UINT iResult = ::MessageBox(m_mainFrameHWND, Text::toT(l_message).c_str(), CTSTRING(AUTOUPDATE_TITLE), MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1);
+						UINT iResult = ::MessageBox(m_mainFrameHWND, Text::toT(l_message).c_str(), T_APPNAME_WITH_VERSION, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1);
 						switch (iResult)
 						{
 							case IDYES:
@@ -416,9 +416,9 @@ void AutoUpdate::startUpdateThisThread()
 					{
 						const string l_versionToIgnore = ' ' + autoUpdateObject->m_sVersion + " (" + autoUpdateObject->m_sUpdateDate + ')'
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
-								// + "\nBases" + autoUpdateObjectAU->m_sVersion + " (" + autoUpdateObjectAU->m_sUpdateDate + ')'
+						                                 // + "\nBases" + autoUpdateObjectAU->m_sVersion + " (" + autoUpdateObjectAU->m_sUpdateDate + ')'
 #endif
-								;
+						                                 ;
 						if (idResult == UPDATE_IGNORE)
 						{
 							message(STRING(AUTOUPDATE_IGNORED) + l_versionToIgnore);
@@ -435,15 +435,15 @@ void AutoUpdate::startUpdateThisThread()
 					// Start file Uploading
 					InetDownloadReporter::getInstance()->ReportResultWait(l_totalSize); // 2012-06-05_21-53-06_UYEYEPCLMNGQEQACGNE4IXHF5KUQEUBR7PERSKA_D1DE0AA9_crash-stack-r502-beta27-x64-build-10242.dmp
 					string l_errorFileName;
-
+					
 					// Update Settings file at first
 					if (preparingFiles(l_files4UpdateInSettings, Util::getConfigPath(), l_errorFileName))
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
 						if (preparingFiles(l_files4UpdateInAllUsersSettings, Util::getConfigPath(
 #ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
-							true
+						                       true
 #endif
-							), l_errorFileName))
+						                   ), l_errorFileName))
 #endif
 							if (preparingFiles(l_files4Update, g_tempFolder, l_errorFileName))
 							{
@@ -454,7 +454,7 @@ void AutoUpdate::startUpdateThisThread()
 									{
 										wMessage += ' ';
 										wMessage += WSTRING(AUTOUPDATE_DOWNLOAD_RESTART);
-										l_needsToStartUpdate = ::MessageBox(m_mainFrameHWND, wMessage.c_str(), CWSTRING(AUTOUPDATE_TITLE), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1) == IDYES;
+										l_needsToStartUpdate = ::MessageBox(m_mainFrameHWND, wMessage.c_str(), T_APPNAME_WITH_VERSION, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1) == IDYES;
 										if (!l_needsToStartUpdate)
 										{
 											message(STRING(AUTOUPDATE_CANCEL));
@@ -464,7 +464,7 @@ void AutoUpdate::startUpdateThisThread()
 									{
 										l_needsToStartUpdate = true;
 										wMessage += WSTRING(AUTOUPDATE_DOWNLOAD_UPDATEONEXIT);
-										::MessageBox(m_mainFrameHWND, wMessage.c_str(), CWSTRING(AUTOUPDATE_TITLE), MB_OK);
+										::MessageBox(m_mainFrameHWND, wMessage.c_str(), T_APPNAME_WITH_VERSION, MB_OK);
 									}
 								}
 								
@@ -477,11 +477,11 @@ void AutoUpdate::startUpdateThisThread()
 									try // [+] IRainman fix.
 									{
 										{
-										File f(flagName, File::WRITE, File::CREATE | File::TRUNCATE); // [1] https://www.box.net/shared/75247d259e1ee4eab670
-										f.close();
+											File f(flagName, File::WRITE, File::CREATE | File::TRUNCATE); // [1] https://www.box.net/shared/75247d259e1ee4eab670
+											f.close();
 										}
 										SET_SETTING(AUTOUPDATE_PATH_WITH_UPDATE, g_tempFolder);
-								
+										
 										message(STRING(AUTOUPDATE_STARTED));
 										if (BOOLSETTING(AUTOUPDATE_FORCE_RESTART))
 										{
@@ -523,7 +523,7 @@ void AutoUpdate::startUpdateThisThread()
 								{
 									const tstring l_message = TSTRING(AUTOUPDATE_DOWNLOAD_FAILED) + _T("\r\n") + TSTRING(FAILED_TO_LOAD) + _T("\r\n") + Text::toT(l_errorFileName);
 									CFlyServerJSON::pushError(58, Text::fromT(l_message));
-									::MessageBox(m_mainFrameHWND, l_message.c_str() , CWSTRING(AUTOUPDATE_TITLE), MB_OK | MB_ICONERROR);
+									::MessageBox(m_mainFrameHWND, l_message.c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
 								}
 								else
 									message(STRING(AUTOUPDATE_ERROR_UPDATE_FILE) + ' ' + l_errorFileName);
@@ -536,7 +536,7 @@ void AutoUpdate::startUpdateThisThread()
 				message(STRING(YOU_HAVE_THE_LATEST_VERSION));
 				if (m_manualUpdate)
 				{
-					::MessageBox(m_mainFrameHWND, CWSTRING(YOU_HAVE_THE_LATEST_VERSION), CWSTRING(AUTOUPDATE_TITLE), MB_OK | MB_ICONINFORMATION);
+					::MessageBox(m_mainFrameHWND, CWSTRING(YOU_HAVE_THE_LATEST_VERSION), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONINFORMATION);
 				}
 			}
 		}
@@ -546,7 +546,7 @@ void AutoUpdate::startUpdateThisThread()
 		m_isUpdate = false;
 		message(STRING(ADDRESS_FOR_UPDATE_ERROR));
 	}
-
+	
 	m_manualUpdate = false;
 }
 
@@ -638,7 +638,7 @@ bool AutoUpdate::needUpdateFile(const AutoUpdateFile& p_file, const string& p_ou
 		if (fiter->getSize() == p_file.m_size)
 		{
 			// Calculate TTH (in string)
-			const int c_size_buf = std::min(p_file.m_size,static_cast<int64_t>(1024*1024));
+			const int c_size_buf = std::min(p_file.m_size, static_cast<int64_t>(1024 * 1024));
 			unique_ptr<TigerTree>  tth;
 			if (Util::getTTH_MD5(filePath, c_size_buf, &tth))
 			{
@@ -648,7 +648,7 @@ bool AutoUpdate::needUpdateFile(const AutoUpdateFile& p_file, const string& p_ou
 			}
 			else
 			{
-                         // TODO
+				// TODO
 			}
 		}
 	}
@@ -682,11 +682,11 @@ bool AutoUpdate::prepareFile(const AutoUpdateFile& file, const string& tempFolde
 	
 	if (file.m_sDownloadURL.empty())
 		return false;
-
+		
 	std::vector<byte> l_binary_data;
 	IDateReceiveReporter* reporter = InetDownloadReporter::getInstance();
-        // 60 sec - http://code.google.com/p/flylinkdc/issues/detail?id=1403
-  CFlyHTTPDownloader l_http_downloader;
+	// 60 sec - http://code.google.com/p/flylinkdc/issues/detail?id=1403
+	CFlyHTTPDownloader l_http_downloader;
 	int64_t sizeRead = l_http_downloader.getBinaryDataFromInet(file.m_sDownloadURL, l_binary_data, 60000, reporter); // TODO - передать размер буфера сразу
 	if (sizeRead == file.m_packedSize)
 	{
@@ -751,7 +751,7 @@ bool AutoUpdate::prepareFile(const AutoUpdateFile& file, const string& tempFolde
 				const string l_error = STRING(ERROR_STRING) + '[' + l_ErrorString + ']';
 				fail(l_error);
 				CFlyServerJSON::pushError(58, l_error);
-				::MessageBox(0, Text::toT(l_ErrorString).c_str(), CTSTRING(AUTOUPDATE_ERROR), MB_ICONSTOP);
+				::MessageBox(0, Text::toT(l_ErrorString).c_str(), T_APPNAME_WITH_VERSION , MB_ICONSTOP);
 				return false;
 			}
 		}
@@ -759,8 +759,8 @@ bool AutoUpdate::prepareFile(const AutoUpdateFile& file, const string& tempFolde
 	else
 	{
 		fail("Util::getDataFromInet error: sizeRead = " +
-			Util::toString(sizeRead) + " file.m_packedSize = " + Util::toString(file.m_packedSize) + 
-			" [ " + file.m_sDownloadURL + " ]" + " Error: " + l_http_downloader.getErroMessage());
+		     Util::toString(sizeRead) + " file.m_packedSize = " + Util::toString(file.m_packedSize) +
+		     " [ " + file.m_sDownloadURL + " ]" + " Error: " + l_http_downloader.getErroMessage());
 	}
 	
 	return false;
@@ -832,9 +832,9 @@ bool AutoUpdate::verifyUpdate(byte* sig, size_t sig_len, const string& data, siz
 			break;
 	}
 	while (false);
-	if (r) 
+	if (r)
 	{
-			RSA_free(r);
+		RSA_free(r);
 	}
 	if (rc == 1)
 		return true;
@@ -899,7 +899,7 @@ AutoUpdateFile AutoUpdate::parseNode(const XMLParser::XMLNode& Node)
 		file.m_packer = AutoUpdateFile::BZip2;
 	else
 		file.m_packer = AutoUpdateFile::PackUnknown;
-	
+		
 	if (!Util::isHttpLink(file.m_sDownloadURL))
 	{
 		string serverURL = getAUTOUPDATE_SERVER_URL();
@@ -925,12 +925,12 @@ void AutoUpdate::runFlyUpdate()
 		CompatibilityManager::restoreProcessPriority(); // [+] IRainman
 		
 		const wstring flyUpdatepath = Text::toT(Util::getConfigPath());
-	
+		
 		LocalArray<TCHAR, MAX_PATH> buf;
 		::GetModuleFileName(nullptr, buf.data(), MAX_PATH);
-	
+		
 		wstring flylinkDC = buf.data();
-	
+		
 		wstring parameters = L'\"' + flylinkDC + L"\" \"";
 		parameters += m_updateFolder;
 		parameters += m_exitOnUpdate ? L"\" 1" : L"\" 0";
@@ -938,9 +938,9 @@ void AutoUpdate::runFlyUpdate()
 		const uint64_t processID = ::GetCurrentProcessId(); // TODO DWORD
 		parameters += L' ' + Util::toStringW(processID); // TODO DWORD - please update function Util::toStringW
 		parameters += L" 1";
-	
+		
 		SHELLEXECUTEINFO shex = {0};
-	
+		
 		shex.cbSize         = sizeof(SHELLEXECUTEINFO);
 		//shex.fMask          = 0;
 		//shex.hwnd           = NULL; //(HWND)*this;
@@ -962,7 +962,7 @@ void AutoUpdate::runFlyUpdate()
 		{
 			const tstring l_error = TSTRING(AUTOUPDATE_ERROR_START_FLYUPDATE_FAILED) + Text::toT(Util::translateError());
 			CFlyServerJSON::pushError(58, Text::fromT(l_error));
-			MessageBox(nullptr, l_error.c_str(), CTSTRING(AUTOUPDATE_ERROR), MB_OK | MB_ICONERROR);
+			MessageBox(nullptr, l_error.c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
 		}
 	}
 }
@@ -984,7 +984,7 @@ bool AutoUpdate::startupUpdate()
 			if (File::isExist(flagName))
 			{
 				// Run Update and Exit
-				if (MessageBox(m_mainFrameHWND, CTSTRING(AUTOUPDATE_DOWNLOADED_REMOVE_OR_INSTALL), CWSTRING(AUTOUPDATE_TITLE), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1) == IDYES)
+				if (MessageBox(m_mainFrameHWND, CTSTRING(AUTOUPDATE_DOWNLOADED_REMOVE_OR_INSTALL), T_APPNAME_WITH_VERSION, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1) == IDYES)
 				{
 					m_exitOnUpdate = true;
 					return true;

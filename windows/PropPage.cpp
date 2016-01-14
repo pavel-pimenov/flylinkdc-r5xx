@@ -69,7 +69,7 @@ void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL 
 						// Control not exist ? Why ??
 						throw;
 					}
-					if (g_settings->getBool(SettingsManager::IntSetting(i->setting), useDef))
+					if (SettingsManager::getBool(SettingsManager::IntSetting(i->setting), useDef))
 						::CheckDlgButton(page, i->itemID, BST_CHECKED);
 					else
 						::CheckDlgButton(page, i->itemID, BST_UNCHECKED);
@@ -100,7 +100,7 @@ void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL 
 			lvi.iItem = i;
 			lvi.pszText = const_cast<TCHAR*>(CTSTRING_I(listItems[i].desc));
 			ctrl.InsertItem(&lvi);
-			ctrl.SetCheckState(i, SettingsManager::getInstance()->getBool(SettingsManager::IntSetting(listItems[i].setting), true));
+			ctrl.SetCheckState(i, SettingsManager::getBool(SettingsManager::IntSetting(listItems[i].setting), true));
 		}
 		ctrl.SetColumnWidth(0, LVSCW_AUTOSIZE);
 		ctrl.Detach();

@@ -3352,7 +3352,10 @@ void HubFrame::timer_process_internal()
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 LRESULT HubFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
-	timer_process_internal();
+	if (!ClientManager::isShutdown())
+	{
+		timer_process_internal();
+	}
 	return 0;
 }
 #endif

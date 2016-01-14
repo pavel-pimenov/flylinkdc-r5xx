@@ -140,7 +140,10 @@ namespace sqlite3x {
 		sqlite3_command(sqlite3_connection &p_con, const std::wstring &sql);
 #endif
 		~sqlite3_command();
-
+		sqlite3_connection& get_connection()
+		{
+			return m_con;
+		}
 		void bind(int index);
 		void bind(int index, int data);
 		void bind(int index, long long data);
