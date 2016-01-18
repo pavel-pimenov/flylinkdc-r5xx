@@ -29,7 +29,7 @@
 
 namespace sqlite3x {
 
-sqlite3_command::sqlite3_command(sqlite3_connection &p_con, const char *sql) : m_con(p_con),m_refs(0) {
+	sqlite3_command::sqlite3_command(sqlite3_connection &p_con, const char *sql) : m_con(p_con), m_refs(0), m_no_data_found(false) {
 	const char *tail=NULL;
 	if(sqlite3_prepare_v2(p_con.db, sql, -1, &this->stmt, &tail)!=SQLITE_OK)
 		throw database_error(&p_con);
@@ -37,7 +37,7 @@ sqlite3_command::sqlite3_command(sqlite3_connection &p_con, const char *sql) : m
 	m_argc=sqlite3_column_count(this->stmt);
 }
 
-sqlite3_command::sqlite3_command(sqlite3_connection &p_con, const std::string &sql) : m_con(p_con),m_refs(0) {
+	sqlite3_command::sqlite3_command(sqlite3_connection &p_con, const std::string &sql) : m_con(p_con), m_refs(0), m_no_data_found(false) {
 	const char *tail=NULL;
 	if(sqlite3_prepare_v2(p_con.db, sql.data(), (int)sql.length(), &this->stmt, &tail)!=SQLITE_OK)
 		throw database_error(&p_con);

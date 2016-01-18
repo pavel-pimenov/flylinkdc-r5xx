@@ -21,7 +21,7 @@ namespace ZenLib
 /// @brief Helper for translation
 //***************************************************************************
 
-class Translation : public std::map<Ztring, Ztring>
+	class Translation : public std::map<Ztring, Ztring>, protected ZSeparator
 {
 public :
     //Constructors/Destructor
@@ -49,10 +49,6 @@ public :
     /// During Read() or Write() method, if there is more elements, merge them with the last element
     void Max_Set (size_type Level, size_type Max);
 
-protected :
-    Ztring Separator[2];
-    Ztring Quote;
-    size_type Max[2];
 };
 
 } //namespace

@@ -95,7 +95,7 @@ class MappingManager :
 		int run();
 		
 		void close(Mapper& mapper);
-		void log(const string& message);
+		void log_internal(const string& message);
 		string deviceString(const Mapper& p_mapper) const;
 		
 		void on(TimerManagerListener::Minute, uint64_t tick) noexcept override;

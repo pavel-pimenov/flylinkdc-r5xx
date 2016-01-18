@@ -327,6 +327,14 @@ EmoticonsDlg::~EmoticonsDlg()
 CAnimatedButton::CAnimatedButton(CGDIImage *pImage):
 	m_pImage(pImage), m_bInited(false), m_hBackDC(nullptr) , m_hDC(nullptr)
 {
+	m_xBk = 0;
+	m_yBk = 0;
+	m_xSrc = 0;
+	m_ySrc = 0;
+	m_wSrc = 0;
+	m_hSrc = 0;
+	m_h = m_w = 0;
+
 	if (m_pImage)
 	{
 		m_pImage->AddRef();

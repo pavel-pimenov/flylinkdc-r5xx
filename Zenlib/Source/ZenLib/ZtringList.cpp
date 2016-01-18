@@ -50,6 +50,7 @@ ZtringList::ZtringList ()
 ZtringList::ZtringList(const ZtringList &Source)
 : std::vector<ZenLib::Ztring, std::allocator<ZenLib::Ztring> > ()
 {
+	Max[0] = Error;
     Separator[0]=Source.Separator[0];
     Quote=Source.Quote;
 
@@ -77,6 +78,7 @@ ZtringList::ZtringList (const Char *Source)
 #ifdef _UNICODE
 ZtringList::ZtringList (const char* S)
 {
+	Max[0] = Error;
     Write(Ztring(S));
 }
 #endif

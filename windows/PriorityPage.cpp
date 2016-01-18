@@ -77,7 +77,7 @@ void PriorityPage::write()
 // [+] InfinitySky. При отключении автоприоритета активируются указанные элементы.
 void PriorityPage::fixControls()
 {
-	bool state = (IsDlgButtonChecked(IDC_USE_AUTOPRIORITY) == 0);
+	const BOOL state = IsDlgButtonChecked(IDC_USE_AUTOPRIORITY) == 0;
 	::EnableWindow(GetDlgItem(IDC_PRIO_HIGHEST_SIZE), state);
 	::EnableWindow(GetDlgItem(IDC_PRIO_HIGH_SIZE), state);
 	::EnableWindow(GetDlgItem(IDC_PRIO_NORMAL_SIZE), state);

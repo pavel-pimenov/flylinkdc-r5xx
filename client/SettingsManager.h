@@ -59,6 +59,20 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		static boost::logic::tribool g_TestUDPDHTLevel;
 		static boost::logic::tribool g_TestTCPLevel;
 		static boost::logic::tribool g_TestTLSLevel;
+
+		static boost::logic::tribool g_upnpUDPSearchLevel;
+		static boost::logic::tribool g_upnpUDPDHTLevel;
+		static boost::logic::tribool g_upnpTCPLevel;
+		static boost::logic::tribool g_upnpTLSLevel;
+		
+		static void upnpPortLevelInit()
+		{
+			g_upnpUDPSearchLevel = boost::logic::indeterminate;
+			g_upnpUDPDHTLevel = boost::logic::indeterminate;
+			g_upnpTCPLevel = boost::logic::indeterminate;
+			g_upnpTLSLevel = boost::logic::indeterminate;
+		}
+
 		static void testPortLevelInit()
 		{
 			g_TestUDPSearchLevel = boost::logic::indeterminate;

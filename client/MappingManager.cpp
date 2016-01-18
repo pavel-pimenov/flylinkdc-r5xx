@@ -76,13 +76,13 @@ bool MappingManager::open()
 		
 	if (m_mappers.empty())
 	{
-		log(STRING(UPNP_NO_IMPLEMENTATION));
+		log_internal(STRING(UPNP_NO_IMPLEMENTATION));
 		return false;
 	}
 	
 	if (m_busy.test_and_set())
 	{
-		log("Another UPnP port mapping attempt is in progress...");
+		log_internal("Another UPnP port mapping attempt is in progress...");
 		return false;
 	}
 	
@@ -153,22 +153,30 @@ int MappingManager::run()
 			return 0;
 		}
 	
-		auto addRule = [this, &mapper](const unsigned short port, Mapper::Protocol protocol, const string & description)
+		auto addRule = [this, &mapper](const unsigned short port, Mapper::Protocol protocol, const string & description) -> bool
 		{
 			// just launch renewal requests - don't bother with possible failures.
 			if (port)
 			{
-				mapper.open(port, protocol, APPNAME + description + " port (" + Util::toString(port) + ' ' + Mapper::protocols[protocol] + ")");
+				return mapper.open(port, protocol, APPNAME + description + " port (" + Util::toString(port) + ' ' + Mapper::protocols[protocol] + ")");
 			}
+			return false;
 		};
+		SettingsManager::upnpPortLevelInit();
 		g_mapperName = mapper.getMapperName();
-		addRule(conn_port, Mapper::PROTOCOL_TCP, ("Transfer"));
-		addRule(secure_port, Mapper::PROTOCOL_TCP, ("Encrypted transfer"));
-		addRule(search_port, Mapper::PROTOCOL_UDP, ("Search"));
+		SettingsManager::g_upnpTCPLevel = addRule(conn_port, Mapper::PROTOCOL_TCP, ("Transfer"));
+		if (CryptoManager::TLSOk())
+		{
+			SettingsManager::g_upnpTLSLevel = addRule(secure_port, Mapper::PROTOCOL_TCP, ("Encrypted transfer"));
+		}
+		SettingsManager::g_upnpUDPSearchLevel = addRule(search_port, Mapper::PROTOCOL_UDP, ("Search"));
 #ifdef STRONG_USE_DHT
-		addRule(dht_port, Mapper::PROTOCOL_UDP, (dht::NetworkName));
+		if (BOOLSETTING(USE_DHT))
+		{
+			SettingsManager::g_upnpUDPDHTLevel = addRule(dht_port, Mapper::PROTOCOL_UDP, dht::NetworkName);
+		}
 #endif
-	
+
 		auto minutes = mapper.renewal();
 		if (minutes)
 		{
@@ -210,7 +218,7 @@ int MappingManager::run()
 		ScopedFunctor([&mapper] { mapper.uninit(); });
 		if (!mapper.init())
 		{
-			log("Failed to initalize the " + mapper.getMapperName() + " interface");
+			log_internal("Failed to initalize the " + mapper.getMapperName() + " interface");
 			continue;
 		}
 		auto addRule = [this, &mapper](const unsigned short port, Mapper::Protocol protocol, const string & description) -> bool
@@ -223,7 +231,7 @@ int MappingManager::run()
 				if (!mapper.open(port, protocol, APPNAME + l_info_port))
 				{
 					l_info = "Failed to map the ";
-					mapper.close();
+					// не скидываем все пробросы! mapper.close();
 					l_is_ok = false;
 				}
 #ifdef STRONG_USE_DHT
@@ -237,19 +245,36 @@ int MappingManager::run()
 					l_is_ok = true;
 				}
 #endif // STRONG_USE_DHT
-				log(l_info + l_info_port + " with the " + mapper.getMapperName() + " interface");
+				log_internal(l_info + l_info_port + " with the " + mapper.getMapperName() + " interface");
 			}
 			return l_is_ok;
 		};
 	
 		g_mapperName.clear();
-	
+		SettingsManager::upnpPortLevelInit();
 		const bool l_is_map_tcp = addRule(conn_port, Mapper::PROTOCOL_TCP, ("Transfer"));
-		const bool l_is_map_tls = addRule(secure_port, Mapper::PROTOCOL_TCP, ("Encrypted transfer"));
+		bool l_is_map_tls = false;
+		if (CryptoManager::TLSOk())
+		{
+			l_is_map_tls = addRule(secure_port, Mapper::PROTOCOL_TCP, ("Encrypted transfer"));
+		}
 		const bool l_is_map_udp = addRule(search_port, Mapper::PROTOCOL_UDP, ("Search"));
 #ifdef STRONG_USE_DHT
-		const bool l_is_map_dht = addRule(dht_port, Mapper::PROTOCOL_UDP, (dht::NetworkName));
+		bool l_is_map_dht = false;
+		if (BOOLSETTING(USE_DHT))
+		{
+			l_is_map_dht = addRule(dht_port, Mapper::PROTOCOL_UDP, (dht::NetworkName));
+
+			SettingsManager::g_upnpUDPDHTLevel = l_is_map_dht;
+		}
 #endif
+		SettingsManager::g_upnpUDPSearchLevel = l_is_map_udp;
+		SettingsManager::g_upnpTCPLevel = l_is_map_tcp;
+		if (CryptoManager::TLSOk())
+		{
+			SettingsManager::g_upnpTLSLevel = l_is_map_tls;
+		}
+
 		if (!(l_is_map_tcp &&
 		        l_is_map_tls &&
 		        l_is_map_udp
@@ -260,7 +285,7 @@ int MappingManager::run()
 			continue;
 	
 		g_mapperName = mapper.getMapperName();
-		log(STRING(UPNP_SUCCESSFULLY_CREATED_MAPPINGS));
+		log_internal(STRING(UPNP_SUCCESSFULLY_CREATED_MAPPINGS));
 	
 		m_working = move(pMapper); // [IntelC++ 2012 beta2] warning #734: "std::unique_ptr<_Ty, _Dx>::unique_ptr(const std::unique_ptr<_Ty, _Dx>::_Myt &) [with _Ty=Mapper, _Dx=std::default_delete<Mapper>]" (declared at line 2347 of "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\memory"), required for copy that was eliminated, is inaccessible
 	
@@ -268,7 +293,7 @@ int MappingManager::run()
 		if (g_externalIP.empty())
 		{
 			// no cleanup because the mappings work and hubs will likely provide the correct IP.
-			log(STRING(UPNP_FAILED_TO_GET_EXTERNAL_IP));
+			log_internal(STRING(UPNP_FAILED_TO_GET_EXTERNAL_IP));
 		}
 	
 		ConnectivityManager::getInstance()->mappingFinished(mapper.getMapperName());
@@ -289,7 +314,7 @@ int MappingManager::run()
 	
 	if (!getOpened())
 	{
-		log(STRING(UPNP_FAILED_TO_CREATE_MAPPINGS));
+		log_internal(STRING(UPNP_FAILED_TO_CREATE_MAPPINGS));
 		ConnectivityManager::getInstance()->mappingFinished(Util::emptyString);
 		ClientManager::upnp_error_force_passive();
 	}
@@ -305,15 +330,18 @@ void MappingManager::close(Mapper& mapper)
 		bool ret = mapper.init();
 		if (ret)
 		{
-			ret = mapper.close();
+			ret = mapper.close_all_rules();
 			mapper.uninit();
+			SettingsManager::upnpPortLevelInit();
 		}
 		if (!ret)
-			log(STRING(UPNP_FAILED_TO_REMOVE_MAPPINGS));
+		{
+				log_internal(STRING(UPNP_FAILED_TO_REMOVE_MAPPINGS));
+		}
 	}
 }
 
-void MappingManager::log(const string& message)
+void MappingManager::log_internal(const string& message)
 {
 	LogManager::message("Port mapping: " + message);
 }

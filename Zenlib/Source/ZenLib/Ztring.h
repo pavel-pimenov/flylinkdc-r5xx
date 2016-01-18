@@ -365,6 +365,19 @@ public :
     bool Compare (const Ztring &ToCompare, const Ztring &Comparator=__T("=="), ztring_t Options=Ztring_Nothing) const;
 };
 
+class ZSeparator // [+]FlylinkDC++
+{
+   public:
+	   ZSeparator()
+	   {
+		   Max[0] = Max[1] = Error;
+	   }
+   protected:
+	Ztring Separator[2];
+	Ztring Quote;
+	size_t Max[2];
+};
+
 } //NameSpace
 
 #endif

@@ -194,7 +194,8 @@ MainFrame::MainFrame() :
 	m_numberOfReadBytes(0),
 	m_maxnumberOfReadBytes(100),
 	statusContainer(STATUSCLASSNAME, this, STATUS_MESSAGE_MAP),
-	m_diff(GET_TICK()) // [!] IRainman fix.
+	m_diff(GET_TICK()), // [!] IRainman fix.
+	m_stopexit(false)
 {
 	m_bUpdateProportionalPos = false; // Исправил залипание сплиттера в верхней части
 	g_anyMF = this;

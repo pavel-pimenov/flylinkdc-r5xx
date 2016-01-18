@@ -95,7 +95,11 @@ void WinFirewall::WindowFirewallSetAppAuthorization(const TCHAR* in_pAuthorizedD
 		if (FAILED(hr)) throw E_UNEXPECTED;
 		pFwAuthorizedApplicationPtr->put_Name(_bstr_t(in_pAuthorizedDisplayname));
 		pFwAuthorizedApplicationPtr->put_ProcessImageFileName(_bstr_t(in_pAuthorizedFilename));
-		pFwAuthorizedApplicationPtr->put_Enabled(bEnableService);
+		if (bEnableService)
+			pFwAuthorizedApplicationPtr->put_Enabled(VARIANT_TRUE);
+		else
+			pFwAuthorizedApplicationPtr->put_Enabled(VARIANT_FALSE);
+
 		hr = pFwAuthorizedApplicationsPtr->Add(pFwAuthorizedApplicationPtr);
 		if (FAILED(hr)) throw E_UNEXPECTED;
 	}

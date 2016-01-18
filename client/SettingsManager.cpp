@@ -44,8 +44,12 @@ boost::logic::tribool SettingsManager::g_TestUDPDHTLevel = boost::logic::indeter
 boost::logic::tribool SettingsManager::g_TestTCPLevel = boost::logic::indeterminate;
 boost::logic::tribool SettingsManager::g_TestTLSLevel = boost::logic::indeterminate;
 
-string SettingsManager::g_UDPTestExternalIP;
+boost::logic::tribool SettingsManager::g_upnpUDPSearchLevel = boost::logic::indeterminate;
+boost::logic::tribool SettingsManager::g_upnpUDPDHTLevel = boost::logic::indeterminate;
+boost::logic::tribool SettingsManager::g_upnpTCPLevel = boost::logic::indeterminate;
+boost::logic::tribool SettingsManager::g_upnpTLSLevel = boost::logic::indeterminate;
 
+string SettingsManager::g_UDPTestExternalIP;
 
 // [!] IRainman opt: use this data as static.
 string SettingsManager::strSettings[STR_LAST - STR_FIRST];

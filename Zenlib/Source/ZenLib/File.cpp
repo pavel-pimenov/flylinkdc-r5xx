@@ -943,23 +943,23 @@ bool File::Opened_Get()
 //***************************************************************************
 
 //---------------------------------------------------------------------------
-int64u File::Size_Get(const Ztring &File_Name)
+int64u File::Size_Get(const Ztring &p_File_Name)
 {
-    File F(File_Name);
+	File F(p_File_Name);
     return F.Size_Get();
 }
 
 //---------------------------------------------------------------------------
-Ztring File::Created_Get(const Ztring &File_Name)
+Ztring File::Created_Get(const Ztring &p_File_Name)
 {
-    File F(File_Name);
+	File F(p_File_Name);
     return F.Created_Get();
 }
 
 //---------------------------------------------------------------------------
-Ztring File::Modified_Get(const Ztring &File_Name)
+Ztring File::Modified_Get(const Ztring &p_File_Name)
 {
-    File F(File_Name);
+	File F(p_File_Name);
     return F.Modified_Get();
 }
 

@@ -287,11 +287,36 @@ void NetworkPage::fixControls()
 	::EnableWindow(GetDlgItem(IDC_BIND_ADDRESS), !auto_detect);
 	//::EnableWindow(GetDlgItem(IDC_SETTINGS_BIND_ADDRESS_HELP), !auto_detect);
 	//::EnableWindow(GetDlgItem(IDC_NATT), passive); // for passive settings only,  [-] IRainman fix: why??
+	//::EnableWindow(GetDlgItem(IDC_SETTINGS_PORTS_UPNP), upnp);
+	
 	
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	::EnableWindow(GetDlgItem(IDC_AUTODETECT), !passive);
 #endif
 	TestWinFirewall();
+	auto calcUPnPIconsIndex = [&](const int p_icon, const boost::logic::tribool & p_status) -> bool
+	{
+		if (p_status)
+		{
+			SetStage(p_icon, StageSuccess);
+			return true;
+		}
+		else if (!p_status)
+		{
+			SetStage(p_icon, StageFail);
+		}
+		else
+		{
+			SetStage(p_icon, StageUnknown);
+		}
+		return false;
+	};
+
+	calcUPnPIconsIndex(IDC_NETWORK_TEST_PORT_TCP_ICO_UPNP, SettingsManager::g_upnpTCPLevel);
+	calcUPnPIconsIndex(IDC_NETWORK_TEST_PORT_UDP_ICO_UPNP, SettingsManager::g_upnpUDPSearchLevel);
+	calcUPnPIconsIndex(IDC_NETWORK_TEST_PORT_TLS_TCP_ICO_UPNP, SettingsManager::g_upnpTLSLevel);
+	calcUPnPIconsIndex(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO_UPNP, SettingsManager::g_upnpUDPDHTLevel);
+
 }
 
 LRESULT NetworkPage::onClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

@@ -21,7 +21,7 @@ namespace ZenLib
 /// @brief Helper for InfoMap
 //***************************************************************************
 
-class InfoMap : public std::multimap<Ztring, ZtringList>
+	class InfoMap : public std::multimap<Ztring, ZtringList>, protected ZSeparator
 {
 public :
     //Constructors/Destructor
@@ -47,10 +47,6 @@ public :
     /// During Read() or Write() method, if there is more elements, merge them with the last element
     void Max_Set (size_type Level, size_type Max);
 
-protected :
-    Ztring Separator[2];
-    Ztring Quote;
-    size_type Max[2];
 };
 
 } //namespace

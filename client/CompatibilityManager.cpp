@@ -756,9 +756,8 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 
 WORD CompatibilityManager::getDllPlatform(const string& fullpath)
 {
-	PLOADED_IMAGE imgLoad = nullptr;
 	WORD bRet = IMAGE_FILE_MACHINE_UNKNOWN;
-	imgLoad = ::ImageLoad(Text::fromUtf8(fullpath).c_str(), Util::emptyString.c_str()); // TODO: IRainman: I don't know to use unicode here, Windows sucks.
+	PLOADED_IMAGE imgLoad = ::ImageLoad(Text::fromUtf8(fullpath).c_str(), Util::emptyString.c_str()); // TODO: IRainman: I don't know to use unicode here, Windows sucks.
 	if (imgLoad && imgLoad->FileHeader)
 	{
 		bRet = imgLoad->FileHeader->FileHeader.Machine;

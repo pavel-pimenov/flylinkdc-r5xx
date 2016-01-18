@@ -2106,7 +2106,7 @@ void CFlylinkDBManager::load_transfer_historgam(eTypeTransfer p_type, CFlyTransf
 	try
 	{
 		m_select_transfer_histrogram.init(m_flySQLiteDB,
-			"select day,strftime('%d.%m.%Y',day*60*60*24,'unixepoch'),count(*),sum(actual),sum(size) "
+			"select day,strftime('%d.%m.%Y',day*60*60*24,'unixepoch'),count(*),sum(actual) "
 		                                  "from transfer_db.fly_transfer_file where type=? group by day order by day desc");
 		m_select_transfer_histrogram->bind(1, p_type);
 		sqlite3_reader l_q = m_select_transfer_histrogram->executereader();
@@ -2117,7 +2117,6 @@ void CFlylinkDBManager::load_transfer_historgam(eTypeTransfer p_type, CFlyTransf
 			l_item.m_count = l_q.getint(2);
 			l_item.m_date_as_int = l_q.getint(0);
 			l_item.m_actual = l_q.getint64(3);
-			l_item.m_file_size = l_q.getint64(4);
 			p_array.push_back(l_item);
 		}
 	}

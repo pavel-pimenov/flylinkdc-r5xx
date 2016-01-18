@@ -262,11 +262,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
 			SetSplitterPanes(m_ctrlTree.m_hWnd, ctrlList.m_hWnd);
 			m_nProportionalPos = 2000; //SETTING(FLYSERVER_HUBLIST_SPLIT);
-			
-			HTREEITEM               m_RootItem;
-			HTREEITEM               m_CurrentItem;
-			HTREEITEM               m_HistoryItem;
-			
+
 			m_RootItem = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
 			                                   m_transfer_type == e_TransferDownload ? _T("Download") : _T("Upload"),
 			                                   0, // g_ISPImage.m_flagImageCount + 14, // nImage
@@ -303,20 +299,10 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			for (auto i = m_transfer_histogram.cbegin(); i != m_transfer_histogram.cend(); ++i, ++l_index)
 			{
 				string l_caption = i->m_date + " (" + Util::toString(i->m_count) + ")";
-					if (m_transfer_type == e_TransferUpload)
-					{
-						if (i->m_actual)
-						{
-							l_caption += " (" + Util::formatBytes(i->m_actual) + ")";
-						}
-					}
-					else
-					{
-						if (i->m_file_size)
-						{
-							l_caption += " (" + Util::formatBytes(i->m_file_size) + ")";
-						}
-					}
+				if (i->m_actual)
+				{
+					l_caption += " (" + Util::formatBytes(i->m_actual) + ")";
+				}
 				m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
 				                      Text::toT(l_caption).c_str(),
 				                      0, // g_ISPImage.m_flagImageCount + 14, // nImage

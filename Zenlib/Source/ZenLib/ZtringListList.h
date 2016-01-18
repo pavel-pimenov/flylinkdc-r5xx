@@ -26,7 +26,7 @@ namespace ZenLib
 /// @brief Vector of vectors of strings manipulation (based on std::vector<std::vector<std::(w)string>>)
 //***************************************************************************
 
-class ZtringListList : public std::vector<ZtringList>
+class ZtringListList : public std::vector<ZtringList>, protected ZSeparator
 {
 public :
     //Constructors/Destructor
@@ -122,10 +122,6 @@ public :
     /// During Read() or Write() method, if there is more elements, merge them with the last element
     void Max_Set (size_type Level, size_type Max);
 
-protected :
-    Ztring Separator[2];
-    Ztring Quote;
-    size_type Max[2];
 };
 
 } //namespace

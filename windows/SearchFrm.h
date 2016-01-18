@@ -235,6 +235,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			m_searchStartTime(0),
 			m_waitingResults(false),
 			m_needsUpdateStats(false), // [+] IRainman opt.
+			m_is_expand_tree(false),
 			m_Theme(nullptr),
 			m_need_resort(false),
 			m_is_use_tree(true),

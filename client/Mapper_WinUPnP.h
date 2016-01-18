@@ -28,7 +28,7 @@ struct IStaticPortMappingCollection;
 class Mapper_WinUPnP : public Mapper
 {
 	public:
-		Mapper_WinUPnP() : Mapper(), pUN(0), lastPort(0) { }
+		Mapper_WinUPnP() : Mapper(), pUN(0), lastPort(0), lastProtocol(PROTOCOL_TCP) {}
 		
 		static const string g_name;
 		

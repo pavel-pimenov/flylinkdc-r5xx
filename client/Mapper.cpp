@@ -31,23 +31,25 @@ bool Mapper::open(const unsigned short port, const Protocol protocol, const stri
 	if (!add(port, protocol, description))
 		return false;
 		
-	rules.insert(make_pair(port, protocol));
+	m_rules.insert(make_pair(port, protocol));
 	return true;
 }
 
-bool Mapper::close()
+bool Mapper::close_all_rules()
 {
 	bool ret = true;
 	
-	for (auto i = rules.cbegin(), iend = rules.cend(); i != iend; ++i)
+	for (auto i = m_rules.cbegin(); i != m_rules.cend(); ++i)
+	{
 		ret &= remove(i->first, i->second);
+	}
 		
-	rules.clear();
+	m_rules.clear();
 	
 	return ret;
 }
 
 bool Mapper::hasRules() const
 {
-	return !rules.empty();
+	return !m_rules.empty();
 }

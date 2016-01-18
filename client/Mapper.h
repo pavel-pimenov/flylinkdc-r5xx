@@ -44,7 +44,7 @@ class Mapper
 		virtual void uninit() = 0;
 		
 		bool open(const unsigned short port, const Protocol protocol, const string& description);
-		bool close();
+		bool close_all_rules();
 		bool hasRules() const;
 		
 		/** interval after which ports should be re-mapped, in minutes. 0 = no renewal. */
@@ -66,7 +66,7 @@ class Mapper
 		/** remove a port mapping rule. */
 		virtual bool remove(const unsigned short port, const Protocol protocol) = 0;
 		
-		std::set<std::pair<unsigned short, Protocol>> rules;
+		std::set<std::pair<unsigned short, Protocol>> m_rules;
 };
 
 #endif

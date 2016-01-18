@@ -61,7 +61,7 @@ class VideoPreviewSocketProcessor: public Thread
 {
 	public:
 	
-		VideoPreviewSocketProcessor() : inProcess(false), isServerDie(false), sock(NULL), thread(NULL) {}
+		VideoPreviewSocketProcessor() : inProcess(false), isServerDie(false), sock(INVALID_SOCKET), thread(nullptr) {}
 		
 		void accept(const Socket& socket)
 		{
@@ -101,7 +101,7 @@ typedef SocketProcessorS::iterator SocketProcessorSIter;
 typedef std::queue<std::string> LogInfoDataStack;
 
 class VideoPreview :
-	public Singleton<VideoPreview>, public Speaker<VideoPreviewListener>, public Thread, 
+	public Singleton<VideoPreview>, public Speaker<VideoPreviewListener>, public Thread,
 	public QueueItemDelegate, private QueueManagerListener
 {
 	public:
@@ -167,6 +167,8 @@ class VideoPreview :
 			, _previewFileSize(0)
 			, _canUseFile(true)
 			, _viewStarted(true)
+			, _callWnd(nullptr)
+			, _logWnd(nullptr)
 		{
 			_ask2Download.reserve(10);
 			start(64, "VideoPreview");
@@ -271,7 +273,7 @@ class VideoPreview :
 	private:
 		// QueueManagerListener
 		void on(QueueManagerListener::FileMoved, const string& n) noexcept override;
-		void on(QueueManagerListener::TryFileMoving, const string& n) noexcept override; 
+		void on(QueueManagerListener::TryFileMoving, const string& n) noexcept override;
 		
 };
 #endif // SSA_VIDEO_PREVIEW_FEATURE

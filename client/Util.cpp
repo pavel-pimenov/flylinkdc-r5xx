@@ -1326,6 +1326,42 @@ wstring Util::formatExactSize(int64_t aBytes)
 	return tstring(buf) + TSTRING(B);
 #endif
 }
+static string findBindIP(const string& tmp, const string& p_gateway_mask,const bool p_check_bind_address,sockaddr_in& dest,const hostent* he)
+{
+	for (int i = 1; he->h_addr_list[i]; ++i)
+		{
+			memcpy(&dest.sin_addr, he->h_addr_list[i], he->h_length);
+			const string tmp2 = inet_ntoa(dest.sin_addr);
+			if (p_check_bind_address && tmp2 == SETTING(BIND_ADDRESS)) // http://code.google.com/p/flylinkdc/issues/detail?id=1359
+				return tmp2;
+			if (tmp2.find(p_gateway_mask) != string::npos)
+			{
+				if (Util::isPrivateIp(tmp2)) // Проблема с Hamachi
+				{
+					return tmp2;
+				}
+			}
+			if (tmp2 == "192.168.56.1") // Virtual Box ?
+			{
+				continue;
+			}
+			// Проблема с Hamachi - часть 2
+			//else if (isNotPrivateIpAndNot169(tmp2))
+			//{
+			//  tmp = tmp2;
+			//}
+			/*
+			 Выявилась проблема с UPnP, при установленной программе Hamachi.
+			У пользователя win7. Хамачи сделал свой сетевой интферфейс с ip адресом 25.41.14.130
+			
+			UPnP пытается сделать перенаправление именно на этот адрес
+			если во флайлинке задать "сетевой интерфейс для всех соединений" 192.168.0.103 (адрес который дает ему роутер), то это не помогает :(
+			
+			К письму прикладываю вывод UPnP правил из роутера, для того что-бы ты понял о чем речь.
+			*/
+		}
+	return tmp;
+}
 string Util::getLocalOrBindIp(const bool p_check_bind_address)
 {
 	string tmp;
@@ -1347,51 +1383,16 @@ string Util::getLocalOrBindIp(const bool p_check_bind_address)
 		if (he == nullptr || he->h_addr_list[0] == 0)
 			return Util::emptyString;
 		sockaddr_in dest  = { { 0 } };
-		int i = 0;
 		// We take the first ip as default, but if we can find a better one, use it instead...
-		memcpy(&dest.sin_addr, he->h_addr_list[i++], he->h_length);
+		memcpy(&dest.sin_addr, he->h_addr_list[0], he->h_length);
 		tmp = inet_ntoa(dest.sin_addr);
 		if (p_check_bind_address && tmp == SETTING(BIND_ADDRESS)) // http://code.google.com/p/flylinkdc/issues/detail?id=1359
+		{
 			return tmp;
+		}
 		if (Util::isPrivateIp(tmp) || strncmp(tmp.c_str(), "169", 3) == 0)
 		{
-			auto findBindIP = [&](const string & p_gateway_mask) -> string
-			{
-				for (; he->h_addr_list[i]; ++i)
-				{
-					memcpy(&dest.sin_addr, he->h_addr_list[i], he->h_length);
-					const string tmp2 = inet_ntoa(dest.sin_addr);
-					if (p_check_bind_address && tmp2 == SETTING(BIND_ADDRESS)) // http://code.google.com/p/flylinkdc/issues/detail?id=1359
-						return tmp2;
-					if (tmp2.find(p_gateway_mask) != string::npos)
-					{
-						if (Util::isPrivateIp(tmp2)) // Проблема с Hamachi
-						{
-							return tmp2;
-						}
-					}
-					if (tmp2 == "192.168.56.1") // Virtual Box ?
-					{
-						continue;
-					}
-					// Проблема с Hamachi - часть 2
-					//else if (isNotPrivateIpAndNot169(tmp2))
-					//{
-					//  tmp = tmp2;
-					//}
-					/*
-					 Выявилась проблема с UPnP, при установленной программе Hamachi.
-					У пользователя win7. Хамачи сделал свой сетевой интферфейс с ip адресом 25.41.14.130
-					
-					UPnP пытается сделать перенаправление именно на этот адрес
-					если во флайлинке задать "сетевой интерфейс для всех соединений" 192.168.0.103 (адрес который дает ему роутер), то это не помогает :(
-					
-					К письму прикладываю вывод UPnP правил из роутера, для того что-бы ты понял о чем речь.
-					*/
-				}
-				return tmp;
-			};
-			const auto l_bind_address = findBindIP(l_gateway_ip);
+			const auto l_bind_address = findBindIP(tmp, l_gateway_ip,p_check_bind_address,dest,he);
 			if (!l_bind_address.empty())
 			{
 				return l_bind_address;
