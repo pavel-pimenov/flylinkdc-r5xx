@@ -604,10 +604,6 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				mid = (low + high) / 2;
 				b = getItemData(mid);
 				comp = T::compareItems(a, b, static_cast<uint8_t>(sortColumn));
-				// 2012-04-18_11-17-28_B3BB3VL7PHSN5IZDVYVHG2DRYABDDNJKCNRCLTA_FB684B71_crash-stack-r502-beta18-build-9768.dmp
-				// 2012-05-03_22-00-59_Z3A2HUBL63PXNXFOWUL464IBUWZMFX4OFFEMPIQ_86105807_crash-stack-r502-beta24-build-9900.dmp
-				// 2012-06-17_22-40-29_WLKKNKN2VQZTGIBREBJAGIOA2SD57ZYUC5ZQOAQ_5912005A_crash-stack-r502-beta36-x64-build-10378.dmp
-				
 				if (!sortAscending)
 					comp = -comp;
 					

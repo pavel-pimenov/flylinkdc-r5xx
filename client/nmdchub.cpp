@@ -224,7 +224,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 		OnlineUser* newUser = new OnlineUser(p, *this, 0);
 		{
 			CFlyWriteLock(*m_cs);
-			ou = m_users.insert(make_pair(aNick, newUser)).first->second; //2012-06-09_18-19-42_JBOQDRXR35PEW7OJOPLNPXJSQDETX4IUV3SHOHA_DEF32407_crash-stack-r501-x64-build-10294.dmp
+			ou = m_users.insert(make_pair(aNick, newUser)).first->second; 
 			ou->inc();
 		}
 		ou->getIdentity().setNick(aNick);
@@ -252,7 +252,7 @@ OnlineUserPtr NmdcHub::findUser(const string& aNick) const
 #ifdef FLYLINKDC_USE_PROFILER_CS
 	l_lock.m_add_log_info = " User = " + aNick;
 #endif
-	return i == m_users.end() ? nullptr : i->second; // 2012-04-29_13-38-26_EJMPFXUHZAKEQON7Y6X7EIKZVS3S3GMF43CWO3Y_C95F3090_crash-stack-r501-build-9869.dmp
+	return i == m_users.end() ? nullptr : i->second; 
 }
 
 void NmdcHub::putUser(const string& aNick)
@@ -706,7 +706,7 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 			if (!u->getUser()->isSet(User::NMDC_SEARCH_PASSIVE))
 			{
 				u->getUser()->setFlag(User::NMDC_SEARCH_PASSIVE);
-				updated(u);
+				//updatedMyINFO(u); // Обновлять не нужно - используется только в отчете по юзеру
 			}
 			// [~] IRainman fix.
 			
@@ -981,7 +981,7 @@ void NmdcHub::chatMessageParse(const string& p_line)
 		{
 			chatMessage->m_from = l_user; ////getUser(nick, false, false); // Тут внутри снова идет поиск findUser(nick)
 			chatMessage->m_from->getIdentity().setHub();
-			fly_fire1(ClientListener::UserUpdated(), chatMessage->m_from);
+			//updatedMyINFO(chatMessage->m_from);
 		}
 	}
 	if (!isSupressChatAndPM())
@@ -1216,7 +1216,7 @@ void NmdcHub::helloParse(const string& param)
 				//SetEvent(m_hEventClientInitialized);
 			}
 		}
-		fly_fire1(ClientListener::UserUpdated(), ou); // !SMT!-fix
+		// updatedMyINFO(ou);
 	}
 }
 //==========================================================================================
@@ -1277,6 +1277,17 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 					ou->getIdentity().m_is_real_user_ip_from_hub = true;
 					{
 						CFlyFastLock(m_cs_virus);
+#ifdef _DEBUG
+						const auto l_check_nick = m_virus_nick_checked.insert(l_user);
+						if (l_check_nick.second == false)
+						{
+							LogManager::message("Dup virus check [1]! Nick = " + l_user + " Hub = " + getHubUrl());
+						}
+						else
+						{
+							LogManager::message("IP virus check [0]! Nick = " + l_user + " Hub = " + getHubUrl());
+						}
+#endif
 						if (m_virus_nick.find(l_user) == m_virus_nick.end())
 						{
 							if (CFlylinkDBManager::getInstance()->is_virus_bot(l_user, ou->getIdentity().getBytesShared(), ou->getIdentity().getIpRAW()))
@@ -1285,7 +1296,6 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 							}
 						}
 					}
-					
 				}
 				// "FlylinkDC-dev"
 				if (m_isAutobanAntivirusIP || m_isAutobanAntivirusNick
@@ -1621,14 +1631,14 @@ void NmdcHub::toParse(const string& param)
 			// Assume it's from the hub
 			message->m_replyTo = getUser(rtNick, false, false); // [!] IRainman fix: use OnlineUserPtr
 			message->m_replyTo->getIdentity().setHub();
-			fly_fire1(ClientListener::UserUpdated(), message->m_replyTo); // !SMT!-fix
+			//[-] updatedMyINFO(message->m_replyTo); // TODO ??
 		}
 		if (message->m_from == nullptr)
 		{
 			// Assume it's from the hub
 			message->m_from = getUser(fromNick, false, false); // [!] IRainman fix: use OnlineUserPtr
 			message->m_from->getIdentity().setHub();
-			fly_fire1(ClientListener::UserUpdated(), message->m_from); // !SMT!-fix
+			//[-] updatedMyINFO(message->m_from); // TODO ??
 		}
 		
 		// Update pointers just in case they've been invalidated
@@ -2363,7 +2373,7 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 		tmp[i] = '$';
 	}
 	string tmp2;
-	bool l_is_passive = p_search_param.m_is_force_passive || BOOLSETTING(SEARCH_PASSIVE);
+	bool l_is_passive = p_search_param.m_is_force_passive_searh || BOOLSETTING(SEARCH_PASSIVE);
 	if (SearchManager::getSearchPortUint() == 0)
 	{
 		l_is_passive = true;
@@ -2392,8 +2402,8 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 	{
 		if (SearchManager::getSearchPortUint() == 0)
 			g_last_search_string += " [InvalidPort=0]";
-		if (p_search_param.m_is_force_passive)
-			g_last_search_string += " [AutoPasive]";
+		if (p_search_param.m_is_force_passive_searh)
+			g_last_search_string += " [AutoPassive]";
 		if (BOOLSETTING(SEARCH_PASSIVE))
 			g_last_search_string += " [GlobalPassive]";
 		if (SETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS))
@@ -2597,7 +2607,7 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 			{
 				if (p_is_disable_fire == false)
 				{
-					fly_fire1(ClientListener::UserUpdated(), ou); // TODO обновлять только JSON
+					updatedMyINFO(ou); // TODO обновлять только JSON
 				}
 			}
 		}
@@ -2777,9 +2787,32 @@ void NmdcHub::myInfoParse(const string& param)
 		l_share_size = 0;
 		LogManager::message("ShareSize < 0 !, param = " + param);
 	}
-	changeBytesSharedL(ou->getIdentity(), l_share_size);
+	if (changeBytesSharedL(ou->getIdentity(), l_share_size) && l_share_size)
 	{
 		CFlyFastLock(m_cs_virus);
+#ifdef _DEBUG
+		const auto l_check_nick = m_virus_nick_checked.insert(l_nick);
+		if (l_check_nick.second == false)
+		{
+			auto& l_new_my_info = m_check_myinfo_dup[l_nick];
+			if (l_new_my_info != param)
+			{
+				if (!l_new_my_info.empty())
+				{
+					LogManager::message("Change MyINFO [2]! Nick = " + l_nick + " Hub = " + getHubUrl() + " New MyINFO = " + param + " Old MyINFO = " + l_new_my_info);
+				}
+				l_new_my_info = param;
+			}
+			else
+			{
+				//LogManager::message("Duplicate MyINFO[2]! " + l_nick + " Hub = " + getHubUrl() + " MyINFO = " + param);
+			}
+		}
+		else
+		{
+			//LogManager::message("First virus check [0]! Nick = " + l_nick + " Hub = " + getHubUrl() + " MyINFO = " + param);
+		}
+#endif
 		if (m_virus_nick.find(l_nick) == m_virus_nick.end())
 		{
 			if (CFlylinkDBManager::getInstance()->is_virus_bot(l_nick, l_share_size, ou->getIdentity().m_is_real_user_ip_from_hub ? ou->getIdentity().getIpRAW() : boost::asio::ip::address_v4()))
@@ -2811,7 +2844,7 @@ void NmdcHub::myInfoParse(const string& param)
 		}
 		if (!l_ext_json_param.empty())
 		{
-			extJSONParse(l_ext_json_param, true);
+			extJSONParse(l_ext_json_param, true); // true - не зовем ClientListener::UserUpdatedMyINFO
 			CFlyWriteLock(*m_cs);
 			m_ext_json_deferred.erase(l_nick);
 		}
@@ -2819,7 +2852,7 @@ void NmdcHub::myInfoParse(const string& param)
 #endif // FLYLINKDC_USE_EXT_JSON
 		if (!ClientManager::isShutdown())
 		{
-			fly_fire1(ClientListener::UserUpdated(), ou); // !SMT!-fix
+			updatedMyINFO(ou);
 		}
 	}
 }

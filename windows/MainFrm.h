@@ -135,7 +135,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		MESSAGE_HANDLER(FTM_SELECTED, onSelected)
 		MESSAGE_HANDLER(FTM_ROWS_CHANGED, onRowsChanged)
 		MESSAGE_HANDLER(WM_APP + 242, onTrayIcon) // TODO небезопасный код!
-		// 2012-04-29_13-38-26_AMK7KUCLDXYOSIBOIB4H4SQRMALKYZG4ZLU7S7Y_756621E8_crash-stack-r501-build-9869.dmp
 		MESSAGE_HANDLER(WM_DESTROY, onDestroy)
 		MESSAGE_HANDLER(WM_SIZE, onSize)
 		MESSAGE_HANDLER(WM_ENDSESSION, onEndSession)

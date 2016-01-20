@@ -172,7 +172,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	MappingManager::newInstance();
 	//DebugManager::newInstance(); [-] IRainman opt.
 	
-	LOAD_STEP_L(FAVORITE_HUBS, FavoriteManager::getInstance()->load());
+	LOAD_STEP_L(FAVORITE_HUBS, FavoriteManager::load());
 	
 // FLYLINKDC_CRYPTO_DISABLE
 	LOAD_STEP_L(CERTIFICATES, CryptoManager::getInstance()->loadCertificates());
@@ -319,7 +319,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		}
 		ADLSearchManager::deleteInstance();
 		FinishedManager::deleteInstance();
-		ShareManager::deleteInstance(); // 2012-04-29_06-52-32_7DCSOGEGBL7SCFPXL7QNF2EUVF3XY22Y6PVKEWQ_4F9F3ED2_crash-stack-r502-beta23-build-9860.dmp
+		ShareManager::deleteInstance(); 
 #ifdef STRONG_USE_DHT
 		dht::DHT::deleteInstance();
 #endif

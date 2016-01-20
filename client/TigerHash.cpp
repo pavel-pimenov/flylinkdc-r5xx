@@ -192,7 +192,7 @@ void TigerHash::update(const void* data, size_t length)
 	}
 	
 	// So, now either tmp is empty or all data has been consumed...
-	dcassert(length == 0 || tmppos == 0); // length = 961, tmppos = 0 . 2012-06-25_22-17-42_MGCTAOANKUWVBVHGFDCAC5O7ASLZMSNNUCK4QDA_61E6B1FA_crash-stack-r502-beta39-build-10495.dmp
+	dcassert(length == 0 || tmppos == 0); 
 	
 	// Process the bulk of data
 	while (length >= BLOCK_SIZE)
@@ -203,8 +203,6 @@ void TigerHash::update(const void* data, size_t length)
 		tiger_compress_macro(((uint64_t*)buf), res);
 #else
 		tiger_compress_macro(((uint64_t*)str), res); // [5] https://www.box.net/shared/56e20a1bb6bfd4f2433f
-		// 2012-04-23_22-28-18_ETFY7EDN5BIPZZSIMVUUBOZFZOGWBZY3F4D2HUA_2C747F0D_crash-stack-r501-build-9812.dmp
-		// 2012-06-25_22-17-42_MGCTAOANKUWVBVHGFDCAC5O7ASLZMSNNUCK4QDA_61E6B1FA_crash-stack-r502-beta39-build-10495.dmp
 #endif
 		str += BLOCK_SIZE;
 		pos += BLOCK_SIZE;

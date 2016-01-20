@@ -109,7 +109,6 @@
 		<String Name="AutoupdateDownloadUpdateonexit">Они будут установлены сразу после выхода из приложения.</String>
 		<String Name="AutoupdateEmopacks">Модуль смайлов</String>
 		<String Name="AutoupdateEnable">Включить автообновление</String>
-		<String Name="AutoupdateError">Ошибка обновления FlylinkDC++</String>
 		<String Name="AutoupdateErrorStartFlyupdateFailed">Утилита FlyUpdate не запустилась. Ошибка:</String>
 		<String Name="AutoupdateErrorUpdateFile">Ошибка при обновлении файла:</String>
 		<String Name="AutoupdateErrorVerif">Ошибка подписи (пожалуйста, сообщите об этом на почту ppa74@ya.ru)</String>
@@ -602,6 +601,12 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="FlyHubCountry">Страна</String>
 		<String Name="FlyHubCity">Город</String>
 		<String Name="FlyHubIsp">ISP</String>
+		<String Name="FlyHubCountFiles">Файлов</String>
+		<String Name="FlyHubLastShareDate">Посл.шаринг</String>
+		<String Name="FlyHubRam">ОЗУ</String>
+		<String Name="FlyHubSqliteDbSize">Размер базы SQLite</String>
+		<String Name="FlyHubTimes">Раз</String>
+		<String Name="FlyHubGender">Пол</String>
 		<String Name="Flyupdate">Автоматическое обновление FlylinkDC++</String>
 		<String Name="FlyupdateCannotupdate">Автоматическое обновление не смогло обновить FlylinkDC++. Скачайте установщик с http://www.flylinkdc.ru/ и запустите вручную.</String>
 		<String Name="FlyupdateCheckupdatebase">Проверка обновления  FlylinkDC++…</String>
@@ -1016,6 +1021,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Next">Далее</String>
 		<String Name="Nick">Ник</String>
 		<String Name="NickTaken">Указанный ник уже занят, пожалуйста, измените на какой-нибудь другой!</String>
+		<String Name="HubFull">Хаб полон!</String>
 		<String Name="NickUnknown">(Ник неизвестен)</String>
 		<String Name="AddNickToChat">Добавить ник в чат</String>
 		<String Name="No">Нет</String>
@@ -1306,7 +1312,9 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SearchForFile">Поиск файла</String>
 		<String Name="SearchInResults">Поиск в результатах</String>
 		<String Name="SearchFilterItemFilepath">Файл &amp; Путь</String>
+		<String Name="SearchFilterLblExclude">И исключить совпадения</String>
 		<String Name="SearchOptions">Настройки поиска</String>
+		<String Name="SearchShowhidepanel">Показать/Скрыть панель Настроек</String>
 		<String Name="SearchSpamFrom">Поиск-спам обнаружен</String>
 		<String Name="SearchSpy">Поиск-шпион</String>
 		<String Name="SearchString">Строка поиска</String>
@@ -1465,6 +1473,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsFirewallPassive">Брандмауэр (Пассивный режим: для тех, кто не умеет пробрасывать порты)</String>
 		<String Name="SettingsFirewallPassiveForce">Принудительно перейти в пассивный режим (установить если ничего не качает и не ищет!)</String>
 		<String Name="SettingsFirewallAutoPassive">Автоматическое пассивное соединение (перерыв между попытками – 2 минуты)</String>
+		<String Name="SettingsFirewallBlockDownloadFromAvdbUsers">Блокировать загрузки с вирусных пользователей (AVDB)</String>
 		<String Name="SettingsFirewallUpnp">UPnP (для Wi-Fi роутеров)</String>
 		<String Name="SettingsFormat">Формат</String>
 		<String Name="SettingsGeneral">Общие</String>
@@ -1556,7 +1565,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsProviders">Ресурсы провайдера</String>
 		<String Name="SettingsProxy">Настройки прокси</String>
 		<String Name="SettingsPublicHubList">Список интернет-хабов</String>
-		<String Name="SettingsPublicHubListHttpProxy">HTTP-прокси для всех http(s)-соединений. Формат: «Сервер:Порт»</String>
 		<String Name="SettingsPublicHubListUrl">Настройка списков интернет-хабов</String>
 		<String Name="SettingsQueue">Очередь</String>
 		<String Name="SettingsRc">Удалённое управление</String>
@@ -1600,7 +1608,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsStatisticsSend">Разрешить программе сбор и отправку анонимной статистики разработчикам.</String>
 		<String Name="SettingsAntivirusAutobanForIp">Автобан антивирусом (по IP):</String>
 		<String Name="SettingsAntivirusAutobanForNick">Автобан антивирусом (по Нику):</String>
-		<String Name="SettingsAntivirusCommandIp">RAW команда (по умолчанию !banip):</String>
 		<String Name="SettingsStatusInChat">Показывать статусные сообщения в главном чате</String>
 		<String Name="SettingsStripTopic">Скрывать темы хабов (на вкладках и в заголовке окна)</String>
 		<String Name="SettingsTabs">Вкладки</String>
@@ -1734,7 +1741,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SuccessfullyGetTthStream">Получение TTH из потока NTFS завершено успешно:</String>
 		<String Name="SpeedSuperUser">Суперпользователь (ограничение не действует)</String>
 		<String Name="Supports">Поддержка</String>
-		<String Name="SupportsServerDesc">Хаб поддержки FlylinkDC++</String>
 		<String Name="SuppressFavChatAndPm">Отключить чат и личные сообщения</String>
 		<String Name="Suspend">Приостановить</String>
 		<String Name="SxmlEmptyTagName">Пустое имя тега не допускается</String>
@@ -1850,11 +1856,11 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="U">О:</String>
 		<String Name="UdRatio">Отдано/загружено</String>
 		<String Name="FlyServerUdpTestPortWait">Тест UDP-порта…</String>
-		<string name="FlyHubGender">Пол</string>
-		<string name="FlyGenderNone">Не скажу</string>
-		<string name="FlyGenderMale">Мужской</string>
-		<string name="FlyGenderFemale">Женский</string>
-		<string name="FlyGenderAsexual">Бесполый</string>
+		<String Name="FlyGender">Пол</String>
+		<String Name="FlyGenderNone">Не скажу</String>
+		<String Name="FlyGenderMale">Муж.</String>
+		<String Name="FlyGenderFemale">Жен.</String>
+		<String Name="FlyGenderAsexual">Бесполый</String>
 		<String Name="UnableToCreateThread">Невозможно создать поток</String>
 		<String Name="UnableToOpenFilelist">Невозможно открыть список:</String>
 		<String Name="UnableToOpenPort">Не могу открыть %s порт(ы). Вы должны настроить соединение вручную.</String>
@@ -1935,7 +1941,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="UserWentOffline">Пользователь ушёл</String>
 		<String Name="UserWentOnline">Пользователь пришёл</String>
 		<String Name="Use12HourFormat">Использовать 12-часовой формат</String>
-		<String Name="UseAutoMultiChatSwitch">Автоматическое переключение в режим мультистрочного ввода</String>
 		<String Name="UseBitrateFixForSpam">Костыль для правильного отображения спама от QMP-/QCD-плееров</String>
 		<String Name="UseCustomListBackground">Чередующийся стиль фона для списков</String>
 		<String Name="UseCustomMenu">Использовать меню провайдера</String>

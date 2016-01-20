@@ -18,7 +18,7 @@ class ClientListener
 		
 		typedef X<0> Connecting;
 		typedef X<1> Connected;
-		typedef X<3> UserUpdated;
+		typedef X<3> UserUpdatedMyINFO;
 		typedef X<4> UsersUpdated;
 		typedef X<5> UserRemoved;
 		typedef X<6> Redirect;
@@ -38,7 +38,9 @@ class ClientListener
 		typedef X<22> DDoSSearchDetect;
 		typedef X<23> FirstExtJSON;
 		typedef X<24> UserDescUpdated;
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 		typedef X<25> UserShareUpdated;
+#endif
 		
 		enum StatusFlags
 		{
@@ -48,9 +50,11 @@ class ClientListener
 		
 		virtual void on(Connecting, const Client*) noexcept { }
 		virtual void on(Connected, const Client*) noexcept { }
-		virtual void on(UserUpdated, const OnlineUserPtr&) noexcept { }
+		virtual void on(UserUpdatedMyINFO, const OnlineUserPtr&) noexcept { }
 		virtual void on(UserDescUpdated, const OnlineUserPtr&) noexcept { }
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 		virtual void on(UserShareUpdated, const OnlineUserPtr&) noexcept {}
+#endif
 		virtual void on(UsersUpdated, const Client*, const OnlineUserList&) noexcept { }
 		virtual void on(UserRemoved, const Client*, const OnlineUserPtr&) noexcept { }
 		virtual void on(Redirect, const Client*, const string&) noexcept { }

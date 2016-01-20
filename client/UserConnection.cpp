@@ -209,7 +209,9 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		if (SettingsManager::g_TestTCPLevel)
 		{
 			SettingsManager::set(SettingsManager::FORCE_PASSIVE_INCOMING_CONNECTIONS, 0);
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 			SettingsManager::set(SettingsManager::AUTO_PASSIVE_INCOMING_CONNECTIONS, 0);
+#endif
 		}
 	}
 	else if (cmd == "MyNick")

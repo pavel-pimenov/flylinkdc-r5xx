@@ -979,11 +979,11 @@ void SearchFrame::onEnter()
 		m_search_param.m_owner = this;
 		if (!boost::logic::indeterminate(g_isUDPTestOK))
 		{
-			m_search_param.m_is_force_passive = (g_isUDPTestOK == false); // || (SETTING(OUTGOING_CONNECTIONS) == SettingsManager::OUTGOING_SOCKS5);
+			m_search_param.m_is_force_passive_searh = (g_isUDPTestOK == false); // || (SETTING(OUTGOING_CONNECTIONS) == SettingsManager::OUTGOING_SOCKS5);
 		}
 		else
 		{
-			m_search_param.m_is_force_passive = false;
+			m_search_param.m_is_force_passive_searh = false;
 		}
 		
 		m_searchEndTime = m_searchStartTime + ClientManager::getInstance()->multi_search(m_search_param)
@@ -2031,7 +2031,7 @@ LRESULT SearchFrame::onDownloadWithPrio(WORD /*wNotifyCode*/, WORD wID, HWND /*h
 		while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 		{
 			const SearchInfo* si = ctrlResults.getItemData(i);
-			dir = Text::toT(FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(si->sr.getFileName())));
+			dir = Text::toT(FavoriteManager::getDownloadDirectory(Util::getFileExt(si->sr.getFileName())));
 			(SearchInfo::Download(dir, this, p))(si); //-V607
 		}
 	}
@@ -2090,9 +2090,8 @@ LRESULT SearchFrame::onDownload(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/
 		while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 		{
 			const SearchInfo* si = ctrlResults.getItemData(i);
-			const string t = FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(si->sr.getFileName()));
+			const string t = FavoriteManager::getDownloadDirectory(Util::getFileExt(si->sr.getFileName()));
 			(SearchInfo::Download(Text::toT(t), this, QueueItem::DEFAULT))(si);
-			// 2012-05-11_23-53-01_53K6HGTRVGQAKI74O3BI3ZHIJADWHTCMT6WQDTQ_4502E9D6_crash-stack-r502-beta26-build-9946.dmp
 		}
 	}
 	return 0;
@@ -2180,7 +2179,7 @@ LRESULT SearchFrame::onDoubleClickResults(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*
 		{
 			if (const SearchInfo* si = ctrlResults.getItemData(i))
 			{
-				const string t = FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(si->sr.getFileName()));
+				const string t = FavoriteManager::getDownloadDirectory(Util::getFileExt(si->sr.getFileName()));
 				(SearchInfo::Download(Text::toT(t), this, QueueItem::DEFAULT))(si);
 			}
 		}
@@ -2552,7 +2551,7 @@ void SearchFrame::runUserCommand(UserCommand & uc)
 		ucParams["tth"] = ucParams["fileTR"];
 		
 		StringMap tmp = ucParams;
-		ClientManager::getInstance()->userCommand(HintedUser(sr.getUser(), sr.getHubUrl()), uc, tmp, true);
+		ClientManager::userCommand(HintedUser(sr.getUser(), sr.getHubUrl()), uc, tmp, true);
 	}
 }
 
@@ -4078,7 +4077,7 @@ LRESULT SearchFrame::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 		if (iSelectedItemID != -1)
 		{
 			const SearchInfo* si = ctrlResults.getItemData(iSelectedItemID);
-			const string t = FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(si->sr.getFileName()));
+			const string t = FavoriteManager::getDownloadDirectory(Util::getFileExt(si->sr.getFileName()));
 			const bool isViewMedia = Util::isStreamingVideoFile(si->sr.getFileName());
 			(SearchInfo::Download(Text::toT(t), this, QueueItem::DEFAULT, isViewMedia ? QueueItem::FLAG_MEDIA_VIEW : 0))(si);
 		}

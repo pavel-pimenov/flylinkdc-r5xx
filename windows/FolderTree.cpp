@@ -1448,7 +1448,7 @@ LRESULT FolderTree::OnChecked(HTREEITEM hItem, BOOL &bHandled)
 			
 			tstring path = pItem->m_sFQPath;
 			AppendPathSeparator(path); //[+]PPA
-			virt.line = Text::toT(ShareManager::getInstance()->validateVirtual(
+			virt.line = Text::toT(ShareManager::validateVirtual(
 			                          Util::getLastDir(Text::fromT(path))));
 			                          
 			if (virt.DoModal() == IDOK)

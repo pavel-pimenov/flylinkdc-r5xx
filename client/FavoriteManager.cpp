@@ -43,6 +43,8 @@ RecentHubEntry::List FavoriteManager::g_recentHubs;
 FavoriteHubEntryList FavoriteManager::g_favoriteHubs;
 PreviewApplication::List FavoriteManager::g_previewApplications;
 uint16_t FavoriteManager::g_dontSave = 0;
+int FavoriteManager::g_lastId = 0;
+unsigned FavoriteManager::g_count_hub = 0;
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 boost::unordered_set<string> FavoriteManager::g_userCommandsHubUrl;
 #endif
@@ -50,6 +52,8 @@ std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csUsers = std::unique_
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csHubs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csDirs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csUserCommand = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+StringSet FavoriteManager::g_sync_hub_local;
+StringSet FavoriteManager::g_sync_hub_external;
 
 // [+] IRainman mimicry function
 const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
@@ -67,7 +71,7 @@ const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
 	FavoriteManager::mimicrytag(nullptr, nullptr),          // terminating, don't delete this
 };
 
-FavoriteManager::FavoriteManager() : m_lastId(0), m_count_hub(0)
+FavoriteManager::FavoriteManager()
 {
 	ClientManager::getInstance()->addListener(this);
 	
@@ -115,7 +119,7 @@ UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType f
 //	LogManager::message("FavoriteManager::addUserCommand g_count = " + Util::toString(++g_count)
 //	                                   +  " g_max_len = " + Util::toString(g_max_len) + " str =  " + l_all);
 #endif
-	const UserCommand uc(m_lastId++, type, ctx, flags, name, command, to, hub);
+	const UserCommand uc(g_lastId++, type, ctx, flags, name, command, to, hub);
 	{
 		// No dupes, add it...
 		CFlyWriteLock(*g_csUserCommand);
@@ -455,7 +459,7 @@ void FavoriteManager::getFavoriteUsersNamesL(StringSet& p_users, bool p_is_ban) 
 	{
 		const auto& l_nick = i->second.getNick();
 		dcassert(!l_nick.empty());
-		if (!l_nick.empty()) // Ќики могут дублировать и могут быть пустыми. https://www.box.com/shared/p4p0scdeh92wpxf9bohi
+		if (!l_nick.empty()) // Ќики могут дублировать и могут быть пустыми.
 		{
 			const bool l_is_ban = i->second.getUploadLimit() == FavoriteUser::UL_BAN;
 			if ((!p_is_ban && !l_is_ban) || (p_is_ban && l_is_ban))
@@ -648,7 +652,7 @@ bool FavoriteManager::updateFavoriteDir(const string& aName, const string& dir, 
 	return upd;
 }
 
-string FavoriteManager::getDownloadDirectory(const string& ext) const
+string FavoriteManager::getDownloadDirectory(const string& ext)
 {
 	if (ext.size() > 1)
 	{
@@ -966,7 +970,7 @@ bool FavoriteManager::load_from_url()
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 void FavoriteManager::load()
 {
-	m_count_hub = 0;
+	g_count_hub = 0;
 	// Add NMDC standard op commands
 	static const char g_kickstr[] = /*"$Kick %[userNI]|";*/
 	    "$To: %[userNI] From: %[myNI] $<%[myNI]> You are being kicked because: %[kickline:Reason]|<%[myNI]> is kicking %[userNI] because: %[kickline:Reason]|$Kick %[userNI]|";
@@ -1006,7 +1010,7 @@ void FavoriteManager::load()
 	}
 	
 #ifdef USE_SUPPORT_HUB
-	if (BOOLSETTING(CONNECT_TO_SUPPORT_HUB) || m_count_hub == 0) // [+] SSA
+	if (BOOLSETTING(CONNECT_TO_SUPPORT_HUB) || g_count_hub == 0) // [+] SSA
 	{
 		connectToFlySupportHub();
 	}
@@ -1042,14 +1046,16 @@ void FavoriteManager::load()
 	}
 	// [~] IRainman fix.
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
-	if (load_from_url() && !m_sync_hub_external.empty())
+	if (load_from_url() && !g_sync_hub_external.empty())
 	{
-		for (auto m = m_sync_hub_external.cbegin(); m != m_sync_hub_external.cend() && !m_sync_hub_local.empty(); ++m)
-			m_sync_hub_local.erase(*m);
-			
-		m_sync_hub_external.clear();
+		for (auto m = g_sync_hub_external.cbegin(); m != g_sync_hub_external.cend() && !g_sync_hub_local.empty(); ++m)
+		{
+			g_sync_hub_local.erase(*m);
+		}
 		
-		for (auto k = m_sync_hub_local.cbegin(); k != m_sync_hub_local.cend(); ++k)
+		g_sync_hub_external.clear();
+		
+		for (auto k = g_sync_hub_local.cbegin(); k != g_sync_hub_local.cend(); ++k)
 		{
 			FavoriteHubEntry* l_OldHubEntry = getFavoriteHubEntry(*k);
 			l_OldHubEntry->setGroup("ISP Recycled");
@@ -1117,7 +1123,7 @@ void FavoriteManager::load(SimpleXML& aXml
 #endif
                           )
 {
-	m_count_hub = 0;
+	g_count_hub = 0;
 	static bool g_is_ISPDisableFlylinkDCSupportHub = false;
 	bool l_is_needSave = false;
 	{
@@ -1183,7 +1189,7 @@ void FavoriteManager::load(SimpleXML& aXml
 				}
 				if (l_is_connect)
 				{
-					m_count_hub++;
+					g_count_hub++;
 				}
 				
 				e->setConnect(l_is_connect);
@@ -1232,7 +1238,9 @@ void FavoriteManager::load(SimpleXML& aXml
 				if (!p_is_url)
 				{
 					if (l_Group == "ISP")
-						m_sync_hub_local.insert(l_CurrentServerUrl);
+					{
+						g_sync_hub_local.insert(l_CurrentServerUrl);
+					}
 #endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 					auto l_nick = aXml.getChildAttrib("Nick");
 					const auto l_password = aXml.getChildAttrib("Password");
@@ -1311,7 +1319,7 @@ void FavoriteManager::load(SimpleXML& aXml
 				}
 				else
 				{
-					if (m_sync_hub_external.empty() && g_favHubGroups.empty())
+					if (g_sync_hub_external.empty() && g_favHubGroups.empty())
 					{
 						FavHubGroupProperties props = { aXml.getBoolChildAttrib("Public") };
 						
@@ -1320,7 +1328,7 @@ void FavoriteManager::load(SimpleXML& aXml
 						g_favHubGroups["ISP"] = props;
 						g_favHubGroups["ISP Recycled"] = props;
 					}
-					m_sync_hub_external.insert(l_CurrentServerUrl);
+					g_sync_hub_external.insert(l_CurrentServerUrl);
 				}
 				FavoriteHubEntry* l_HubEntry = getFavoriteHubEntry(l_CurrentServerUrl);
 				if (!l_HubEntry)
@@ -1407,7 +1415,7 @@ void FavoriteManager::load(SimpleXML& aXml
 			//
 			aXml.stepOut();
 		}
-		if (m_count_hub == 0 && g_is_ISPDisableFlylinkDCSupportHub == false)
+		if (g_count_hub == 0 && g_is_ISPDisableFlylinkDCSupportHub == false)
 		{
 			CFlyServerJSON::pushError(45, "Promo hub (First!):" + CFlyServerConfig::g_support_hub);
 			CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_autoAddFirstSupportHub, 1);
@@ -1516,15 +1524,11 @@ void FavoriteManager::userUpdated(const OnlineUser& info)
 {
 	if (!ClientManager::isShutdown() && isNotEmpty()) // [+]PPA
 	{
-		{
-			CFlyWriteLock(*g_csUsers);
-			auto i = g_fav_users_map.find(info.getUser()->getCID());
-			if (i == g_fav_users_map.end())
-				return;
-				
-			i->second.update(info);
-		}
-		// save(); http://code.google.com/p/flylinkdc/issues/detail?id=1409
+		CFlyWriteLock(*g_csUsers);
+		auto i = g_fav_users_map.find(info.getUser()->getCID());
+		if (i == g_fav_users_map.end())
+			return;
+		i->second.update(info);
 	}
 }
 

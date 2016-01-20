@@ -40,7 +40,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 			l_search_param.m_filter = p_tth;
 			// Для TTH не нужно этого. l_search_param.normalize_whitespace();
 			l_search_param.m_owner = nullptr;
-			l_search_param.m_is_force_passive = false;
+			l_search_param.m_is_force_passive_searh = false;
 			
 			dcassert(p_tth.size() == 39);
 			
@@ -77,7 +77,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		
 		void onRES(const AdcCommand& cmd, const UserPtr& from, const boost::asio::ip::address_v4& remoteIp);
 		void onPSR(const AdcCommand& cmd, UserPtr from, const boost::asio::ip::address_v4& remoteIp);
-		void toPSR(AdcCommand& cmd, bool wantResponse, const string& myNick, const string& hubIpPort, const string& tth, const vector<uint16_t>& partialInfo) const;
+		static void toPSR(AdcCommand& cmd, bool wantResponse, const string& myNick, const string& hubIpPort, const string& tth, const vector<uint16_t>& partialInfo);
 		
 	private:
 		class UdpQueue: public BASE_THREAD
@@ -102,7 +102,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 						m_resultList.push_back(make_pair(buf, p_ip4));
 					}
 					m_s.signal();
-				} // Venturi Firewall 2012-04-23_22-28-18_A6JRQEPFW5263A7S7ZOBOAJGFCMET3YJCUYOVCQ_34B61CDE_crash-stack-r501-build-9812.dmp
+				}
 				
 			private:
 				FastCriticalSection m_cs; // [!] IRainman opt: use spin lock here.
@@ -124,7 +124,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		~SearchManager();
 		void onData(const uint8_t* buf, size_t aLen, const boost::asio::ip::address_v4& address);
 		
-		string getPartsString(const PartsInfo& partsInfo) const;
+		static string getPartsString(const PartsInfo& partsInfo);
 };
 
 #endif // !defined(SEARCH_MANAGER_H)

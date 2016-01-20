@@ -748,9 +748,6 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 	try // [+] IRainman fix.
 	{
 		File inFile(l_tempTarget, File::READ, File::OPEN);
-		// [!] IRainman fix done: FileException! 2012-05-03_22-00-59_ASFM4NEIHGU4QDY7Y47A4QA54OSD25MOF4732FQ_4FBD35E8_crash-stack-r502-beta24-build-9900.dmp
-		// 2012-05-11_23-53-01_L6P3Z3TKLYYLIFJTSF2JIMBT67EAZEI6RYDTRSI_6363943D_crash-stack-r502-beta26-build-9946.dmp
-		
 		while (startPos < tempSize)
 		{
 			try
@@ -961,9 +958,9 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		try
 		{
 			AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
-			SearchManager::getInstance()->toPSR(cmd, true, param->myNick, param->hubIpPort, param->tth, param->parts);
-			Socket udp;
-			udp.writeTo(param->ip.to_string(), param->udpPort, cmd.toString(ClientManager::getMyCID()));
+			SearchManager::toPSR(cmd, true, param->myNick, param->hubIpPort, param->tth, param->parts);
+			Socket l_udp;
+			l_udp.writeTo(param->ip.to_string(), param->udpPort, cmd.toString(ClientManager::getMyCID()));
 			COMMAND_DEBUG("[Partial-Search]" + cmd.toString(ClientManager::getMyCID()), DebugTask::CLIENT_OUT, param->ip.to_string() + ':' + Util::toString(param->udpPort));
 			LogManager::psr_message(
 			    "[PartsInfoReq] Send UDP IP = " + param->ip.to_string() +
@@ -1093,7 +1090,7 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 		if (File::isAbsolute(aTarget))
 			l_target = aTarget;
 		else
-			l_target = FavoriteManager::getInstance()->getDownloadDirectory(Util::getFileExt(aTarget)) + aTarget;//[!] IRainman support download to specify extension dir.
+			l_target = FavoriteManager::getDownloadDirectory(Util::getFileExt(aTarget)) + aTarget;//[!] IRainman support download to specify extension dir.
 		//target = SETTING(DOWNLOAD_DIRECTORY) + aTarget;
 		//-SMT, BugMaster: ability to use absolute file path
 		l_target = checkTarget(l_target, -1); // [!] IRainman fix. FlylinkDC use Size on 2nd parametr!
@@ -1508,7 +1505,7 @@ void QueueManager::FileListQueue::execute(const DirectoryListInfoPtr& list) // [
 		{
 			dl->loadFile(list->file);
 			ADLSearchManager::getInstance()->matchListing(*dl);
-			ClientManager::getInstance()->checkCheating(list->m_hintedUser, dl.get());
+			ClientManager::checkCheating(list->m_hintedUser, dl.get());
 		}
 		catch (const Exception& e)
 		{

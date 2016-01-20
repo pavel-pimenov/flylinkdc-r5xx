@@ -206,6 +206,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 			COLUMN_ERRORS,
 			COLUMN_ADDED,
 			COLUMN_TTH,
+			COLUMN_SPEED,
 			COLUMN_LAST
 		};
 		enum Tasks

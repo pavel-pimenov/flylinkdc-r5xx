@@ -176,7 +176,7 @@ int MappingManager::run()
 			SettingsManager::g_upnpUDPDHTLevel = addRule(dht_port, Mapper::PROTOCOL_UDP, dht::NetworkName);
 		}
 #endif
-
+	
 		auto minutes = mapper.renewal();
 		if (minutes)
 		{
@@ -252,19 +252,19 @@ int MappingManager::run()
 	
 		g_mapperName.clear();
 		SettingsManager::upnpPortLevelInit();
-		const bool l_is_map_tcp = addRule(conn_port, Mapper::PROTOCOL_TCP, ("Transfer"));
+		const bool l_is_map_tcp = addRule(conn_port, Mapper::PROTOCOL_TCP, "Transfer");
 		bool l_is_map_tls = false;
 		if (CryptoManager::TLSOk())
 		{
-			l_is_map_tls = addRule(secure_port, Mapper::PROTOCOL_TCP, ("Encrypted transfer"));
+			l_is_map_tls = addRule(secure_port, Mapper::PROTOCOL_TCP, "Encrypted transfer");
 		}
-		const bool l_is_map_udp = addRule(search_port, Mapper::PROTOCOL_UDP, ("Search"));
+		const bool l_is_map_udp = addRule(search_port, Mapper::PROTOCOL_UDP, "Search");
 #ifdef STRONG_USE_DHT
 		bool l_is_map_dht = false;
 		if (BOOLSETTING(USE_DHT))
 		{
-			l_is_map_dht = addRule(dht_port, Mapper::PROTOCOL_UDP, (dht::NetworkName));
-
+			l_is_map_dht = addRule(dht_port, Mapper::PROTOCOL_UDP, dht::NetworkName);
+	
 			SettingsManager::g_upnpUDPDHTLevel = l_is_map_dht;
 		}
 #endif
@@ -274,15 +274,18 @@ int MappingManager::run()
 		{
 			SettingsManager::g_upnpTLSLevel = l_is_map_tls;
 		}
-
-		if (!(l_is_map_tcp &&
-		        l_is_map_tls &&
-		        l_is_map_udp
+	
+		if (!(l_is_map_tcp
+		        && l_is_map_udp
+		        && (l_is_map_tls || !CryptoManager::TLSOk())
 #ifdef STRONG_USE_DHT
-		        && l_is_map_dht
+		        && (l_is_map_dht || !BOOLSETTING(USE_DHT))
 #endif
 		     ))
+		{
+			dcassert(0);
 			continue;
+		}
 	
 		g_mapperName = mapper.getMapperName();
 		log_internal(STRING(UPNP_SUCCESSFULLY_CREATED_MAPPINGS));
@@ -336,7 +339,7 @@ void MappingManager::close(Mapper& mapper)
 		}
 		if (!ret)
 		{
-				log_internal(STRING(UPNP_FAILED_TO_REMOVE_MAPPINGS));
+			log_internal(STRING(UPNP_FAILED_TO_REMOVE_MAPPINGS));
 		}
 	}
 }

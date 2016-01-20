@@ -179,8 +179,8 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_TARGET_DIR, IDC_DOWNLOAD_TARGET_DIR + LastDir::get().size(), onDownloadTargetDir)
 		COMMAND_RANGE_HANDLER(IDC_PRIORITY_PAUSED, IDC_PRIORITY_HIGHEST, onDownloadWithPrio)
 		COMMAND_RANGE_HANDLER(IDC_PRIORITY_PAUSED + 90, IDC_PRIORITY_HIGHEST + 90, onDownloadDirWithPrio)
-		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_FAVORITE_DIRS, IDC_DOWNLOAD_FAVORITE_DIRS + FavoriteManager::getInstance()->getFavoriteDirsCount(), onDownloadFavoriteDirs)
-		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS, IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + FavoriteManager::getInstance()->getFavoriteDirsCount(), onDownloadWholeFavoriteDirs)
+		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_FAVORITE_DIRS, IDC_DOWNLOAD_FAVORITE_DIRS + FavoriteManager::getFavoriteDirsCount(), onDownloadFavoriteDirs)
+		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS, IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + FavoriteManager::getFavoriteDirsCount(), onDownloadWholeFavoriteDirs)
 		CHAIN_COMMANDS(isBase) // [+] IRainamn fix.
 		CHAIN_COMMANDS(prevBase) // [+] IRainamn fix.
 		// BUG-MENU CHAIN_COMMANDS(uiBase) // [+] IRainamn fix.

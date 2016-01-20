@@ -356,7 +356,7 @@ int Socket::getSocketOptInt(int p_option) const
 #ifdef FLYLINKDC_HE
 	int l_val;
 #else
-	int l_val = 0; //[!] 2012-04-23_22-28-18_L4N2H5DQSWJDZVGEWQRLCAQCSP3HVHJ3ZRWM73Q_05553A64_crash-stack-r501-build-9812.dmp
+	int l_val = 0; 
 #endif
 	socklen_t l_len = sizeof(l_val);
 	check(::getsockopt(m_sock, SOL_SOCKET, p_option, (char*)&l_val, &l_len)); // [2] https://www.box.net/shared/3ad49dfa7f44028a7467
@@ -412,7 +412,7 @@ int Socket::read(void* aBuffer, int aBufLen)
 			if (m_sock == INVALID_SOCKET)// [+]IRainman
 				break;
 				
-			len = ::recv(m_sock, (char*)aBuffer, aBufLen, 0); // 2012-06-09_18-19-42_SQVQZUUAHG43VEDR2S7ZTUWUU4RK7JYLXQ3CQSY_EDA69E51_crash-stack-r501-x64-build-10294.dmp
+			len = ::recv(m_sock, (char*)aBuffer, aBufLen, 0);
 			
 #ifdef RIP_USE_LOG_PROTOCOL
 			if (len > 0 && BOOLSETTING(LOG_PROTOCOL))
@@ -470,7 +470,7 @@ int Socket::read(void* aBuffer, int aBufLen, sockaddr_in &remote)
 		if (m_sock == INVALID_SOCKET)// [+]IRainman
 			break;
 			
-		len = ::recvfrom(m_sock, (char*)aBuffer, aBufLen, 0, (struct sockaddr*) & remote_addr, &addr_length); // 2012-05-03_22-00-59_BXMHFQ4XUPHO3PGC3R7LOLCOCEBV57NUA63QOVA_AE6E2832_crash-stack-r502-beta24-build-9900.dmp
+		len = ::recvfrom(m_sock, (char*)aBuffer, aBufLen, 0, (struct sockaddr*) & remote_addr, &addr_length); 
 #ifdef RIP_USE_LOG_PROTOCOL
 		if (len > 0 && BOOLSETTING(LOG_PROTOCOL))
 		{
@@ -569,8 +569,6 @@ int Socket::write(const void* aBuffer, int aLen)
 		// adguard.dll //[3] https://www.box.net/shared/cb7ec34c8cfac4b0b4a7
 		// dng.dll
 		// NetchartFilter.dll!100168ab() //[2] https://www.box.net/shared/007b54beb27139189267
-		// 2012-04-27_18-43-09_UKBMIC5I554PHF57WL3PWXMD3XELARMMJ3JU3VA_FA08FF69_crash-stack-r502-beta22-build-9854.dmp
-		// 2012-05-11_23-53-01_PIMG3OHBO7FMRNG7474ZB43CSELXW3U4A4G6LZI_2D14CD0B_crash-stack-r502-beta26-build-9946.dmp
 	}
 	while (sent < 0 && getLastError() == EINTR);
 	
@@ -593,22 +591,39 @@ int Socket::write(const void* aBuffer, int aLen)
 */
 int Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, int aLen, bool proxy)
 {
+#ifdef _DEBUG
+#endif
 	if (aLen <= 0)
+	{
+		dcassert(0);
 		return 0;
-		
+	}
+	
 	uint8_t* buf = (uint8_t*)aBuffer;
 	if (m_sock == INVALID_SOCKET)
 	{
 		create(TYPE_UDP);
 		setSocketOpt(SO_SNDTIMEO, 250);
+#ifdef _DEBUG
+		LogManager::message("Create UDP socket! aAddr = " + aAddr + " aPort = " + Util::toString(aPort) + " aLen = " + Util::toString(aLen) + " Value:" + string((const char*)aBuffer, aLen));
+#endif
 	}
-	
+#ifdef _DEBUG
+	else
+	{
+		if (m_type == TYPE_UDP)
+		{
+			LogManager::message("Reuse UDP socket! aAddr = " + aAddr + " aPort = " + Util::toString(aPort) + " aLen = " + Util::toString(aLen) + " Value:" + string((const char*)aBuffer, aLen));
+		}
+	}
+#endif
 	dcassert(m_type == TYPE_UDP);
 	
 	sockaddr_in serv_addr  = { { 0 } };
 	
 	if (aAddr.empty() || aPort == 0)
 	{
+		dcassert(0);
 		throw SocketException(EADDRNOTAVAIL);
 	}
 	

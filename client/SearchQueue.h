@@ -47,10 +47,10 @@ struct Search
 		TYPE_BOOK,
 		TYPE_LAST_MODE
 	};
-	Search() : m_is_force_passive(false), m_sizeMode(SIZE_DONTCARE), m_size(0), m_fileTypes_bitmap(0), m_token(0)
+	Search() : m_is_force_passive_searh(false), m_sizeMode(SIZE_DONTCARE), m_size(0), m_fileTypes_bitmap(0), m_token(0)
 	{
 	}
-	bool      m_is_force_passive;
+	bool      m_is_force_passive_searh;
 	SizeModes m_sizeMode;
 	int64_t   m_size;
 	uint16_t  m_fileTypes_bitmap;
@@ -126,10 +126,10 @@ class SearchParamTokenClass
 {
 	public:
 		uint32_t    m_token;
-		bool        m_is_force_passive;
+		bool        m_is_force_passive_searh;
 		void*       m_owner;
 		StringList  m_ext_list;
-		SearchParamTokenClass() : m_token(0), m_is_force_passive(false), m_owner(nullptr)
+		SearchParamTokenClass() : m_token(0), m_is_force_passive_searh(false), m_owner(nullptr)
 		{
 		}
 };

@@ -339,7 +339,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		__int64 add_treeL(const TigerTree& p_tt);
 		__int64 get_path_idL(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path);
 		__int64 find_path_id(const string& p_path);
-		__int64 create_path_id(const string& p_path, bool p_is_skip_dup_val_index);
+		__int64 create_path_idL(const string& p_path, bool p_is_skip_dup_val_index);
 	public:
 		CFlyGlobalRatioItem  m_global_ratio;
 		double get_ratio() const;
@@ -364,7 +364,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		__int64 get_path_id(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path);
 		void add_tree(const TigerTree& p_tt);
 	private:
-		void prepare_scan_folderL(const tstring& p_path);
+		void prepare_scan_folder(const tstring& p_path);
 		bool merge_mediainfoL(const __int64 p_tth_id, const __int64 p_path_id, const string& p_file_name, const CFlyMediaInfo& p_media);
 		__int64 merge_fileL(const string& p_path, const string& p_file_name, const int64_t p_time_stamp,
 		                    const TigerTree& p_tt, bool p_case_convet,

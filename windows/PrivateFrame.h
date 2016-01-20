@@ -46,7 +46,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		
 		enum
 		{
-			USER_UPDATED
+			PM_USER_UPDATED
 		};
 		
 		DECLARE_FRAME_WND_CLASS_EX(_T("PrivateFrame"), IDR_PRIVATE, 0, COLOR_3DFACE);
@@ -194,7 +194,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		{
 			if (aUser == m_replyTo.user)
 			{
-				PostMessage(WM_SPEAKER, USER_UPDATED);
+				PostMessage(WM_SPEAKER, PM_USER_UPDATED);
 			}
 		}
 		void on(SettingsManagerListener::Repaint) override;

@@ -294,7 +294,7 @@ void File::copyFile(const tstring & source, const tstring & target)
 {
 	if (!::CopyFile(formatPath(source).c_str(), formatPath(target).c_str(), FALSE))
 	{
-		throw FileException(Util::translateError()); // 2012-05-03_22-05-14_LZE57W5HZ7NI3VC773UG4DNJ4QIKP7Q7AEBLWOA_AA236F48_crash-stack-r502-beta24-x64-build-9900.dmp
+		throw FileException(Util::translateError()); 
 	}
 }
 #ifndef _CONSOLE
@@ -585,7 +585,7 @@ FileFindIter& FileFindIter::operator++()
 	{
 		if (::FindNextFile(m_handle, &m_data) == FALSE)
 		{
-			FindClose(m_handle); // 2012-06-18_22-41-13_32LXRE65BDS4MW565YGIC2C5SIUWRTVATKY6SZQ_2051D746_crash-stack-r502-beta37-build-10387.dmp
+			FindClose(m_handle);
 			m_handle = INVALID_HANDLE_VALUE;
 		}
 	}

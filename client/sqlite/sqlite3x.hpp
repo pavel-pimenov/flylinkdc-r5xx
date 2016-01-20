@@ -147,6 +147,19 @@ namespace sqlite3x {
 		void bind(int index);
 		void bind(int index, int data);
 		void bind(int index, long long data);
+		void bind(int index, unsigned long long data)
+		{
+			bind(index, (long long) data); // TODO
+		}
+		void bind(int index, unsigned long data)
+		{
+			bind(index, (long long)data);
+		}
+		void bind(int index, unsigned int data)
+		{
+			bind(index, (long long)data);
+		}
+		
 		bool is_no_data_found() const//[+]PPA
 		{
 			return m_no_data_found;

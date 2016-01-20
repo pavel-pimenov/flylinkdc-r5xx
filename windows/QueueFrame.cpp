@@ -30,17 +30,18 @@
 int QueueFrame::columnIndexes[] = { COLUMN_TARGET, COLUMN_TYPE, COLUMN_STATUS, COLUMN_SEGMENTS, COLUMN_SIZE, COLUMN_PROGRESS, COLUMN_DOWNLOADED, COLUMN_PRIORITY,
                                     COLUMN_USERS, COLUMN_PATH,
                                     COLUMN_LOCAL_PATH, // http://code.google.com/p/flylinkdc/issues/detail?id=1261
-                                    COLUMN_EXACT_SIZE, COLUMN_ERRORS, COLUMN_ADDED, COLUMN_TTH
+                                    COLUMN_EXACT_SIZE, COLUMN_ERRORS, COLUMN_ADDED, COLUMN_TTH, COLUMN_SPEED
                                   };
 
-int QueueFrame::columnSizes[] = { 200, 20, 300, 70, 75, 100, 120, 75, 200, 200, 200, 75, 200, 100, 125 };
+int QueueFrame::columnSizes[] = { 200, 20, 300, 70, 75, 100, 120, 75, 200, 200, 200, 75, 200, 100, 125, 50 };
 
 static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, ResourceManager::TYPE, ResourceManager::STATUS, ResourceManager::SEGMENTS, ResourceManager::SIZE,
                                                   ResourceManager::DOWNLOADED_PARTS, ResourceManager::DOWNLOADED,
                                                   ResourceManager::PRIORITY, ResourceManager::USERS, ResourceManager::PATH,
                                                   ResourceManager::LOCAL_PATH,
                                                   ResourceManager::EXACT_SIZE, ResourceManager::ERRORS,
-                                                  ResourceManager::ADDED, ResourceManager::TTH_ROOT
+                                                  ResourceManager::ADDED, ResourceManager::TTH_ROOT,
+                                                  ResourceManager::SPEED
                                                 };
 
 QueueFrame::QueueFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), menuItems(0), queueSize(0), queueItems(0), m_dirty(false),
@@ -157,7 +158,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 			{
 				return TSTRING(DOWNLOAD_FINISHED_IDLE);
 			}
-			const size_t l_online = QueueManager::countOnlineUsersL(m_qi); // [!] IRainman fix done 2012-04-29_13-46-19_NRAIMLXLGO4PGYESCVW76KIYPJCSLGLGP2LS2WY_712318D1_crash-stack-r501-x64-build-9869.dmp
+			const size_t l_online = QueueManager::countOnlineUsersL(m_qi); 
 			const size_t l_count_source = m_qi->getSourcesCountL();
 			if (isWaitingL())
 			{
@@ -305,6 +306,10 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 		case COLUMN_EXACT_SIZE:
 		{
 			return getSize() == -1 ? TSTRING(UNKNOWN) : Util::formatExactSize(getSize());
+		}
+		case COLUMN_SPEED:
+		{
+			return  Text::toT(Util::formatBytes(m_qi->getAverageSpeed()) + '/' + STRING(S));
 		}
 		case COLUMN_ERRORS:
 		{
@@ -531,7 +536,6 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 				if (j == string::npos)
 					break;
 				if (strnicmp(dir.c_str() + i, rootStr->c_str() + i, j - i + 1) != 0)
-					// 2012-05-11_23-53-01_XA3TUVCW2JPX7NO3B5TJFLW6GOBCKCTGIOZANCY_A2F488A4_crash-stack-r502-beta26-build-9946.dmp
 					break;
 				i = j + 1;
 			}
@@ -856,6 +860,7 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 								ctrlQueue.updateItem(pos, COLUMN_ERRORS);
 								ctrlQueue.updateItem(pos, COLUMN_STATUS);
 								ctrlQueue.updateItem(pos, COLUMN_DOWNLOADED);
+								ctrlQueue.updateItem(pos, COLUMN_SPEED);
 							}
 						}
 					}

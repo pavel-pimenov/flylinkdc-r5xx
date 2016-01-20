@@ -723,7 +723,7 @@ void File_MpegTs::Streams_Update_Programs_PerStream(size_t StreamID)
         //By the descriptors
         if (StreamKind_Last==Stream_Max && Complete_Stream->transport_stream_id_IsValid && !Temp->program_numbers.empty() && !Complete_Stream->Transport_Streams[Complete_Stream->transport_stream_id].Programs.empty())
         {
-            int32u format_identifier=Complete_Stream->Transport_Streams[Complete_Stream->transport_stream_id].Programs[Temp->program_numbers[0]].registration_format_identifier; // 2012-05-03_22-00-59_Y2577HXWPTRKFMIKQFFIWZACQZ7SL7WCXWKKVPQ_580F5A02_crash-stack-r502-beta24-build-9900.dmp
+            int32u format_identifier=Complete_Stream->Transport_Streams[Complete_Stream->transport_stream_id].Programs[Temp->program_numbers[0]].registration_format_identifier; 
             if (Temp->IsRegistered
              && Mpeg_Descriptors_registration_format_identifier_StreamKind(format_identifier)!=Stream_Max)
             {

@@ -79,7 +79,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 #endif
 		MESSAGE_HANDLER(WM_SETFOCUS, onSetFocus)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
-		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu) // 2012-04-29_13-46-19_6YBC2BUJRYPCJLE2L63SZAFLWGMNBOSFJB64BTI_5FE1A0BF_crash-stack-r501-x64-build-9869.dmp
+		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu) 
 		MESSAGE_HANDLER(WM_CTLCOLORSTATIC, onCtlColor)
 		MESSAGE_HANDLER(WM_CTLCOLOREDIT, onHubFrmCtlColor)
 		MESSAGE_HANDLER(FTM_CONTEXTMENU, onTabContextMenu)
@@ -435,8 +435,10 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void on(ClientListener::Connecting, const Client*) noexcept override;
 		void on(ClientListener::Connected, const Client*) noexcept override;
 		void on(ClientListener::UserDescUpdated, const OnlineUserPtr&) noexcept override;
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 		void on(ClientListener::UserShareUpdated, const OnlineUserPtr&) noexcept override;
-		void on(ClientListener::UserUpdated, const OnlineUserPtr&) noexcept override; // !SMT!-fix
+#endif
+		void on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr&) noexcept override; // !SMT!-fix
 		void on(ClientListener::UsersUpdated, const Client*, const OnlineUserList&) noexcept override;
 		void on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr&) noexcept override;
 		void on(ClientListener::Redirect, const Client*, const string&) noexcept override;

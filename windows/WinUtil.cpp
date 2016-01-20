@@ -109,7 +109,9 @@ HIconWrapper WinUtil::g_hMedicalIcon(IDR_ICON_MEDICAL_BAG);
 HIconWrapper WinUtil::g_hThermometerIcon(IDR_ICON_THERMOMETR_BAG);
 //HIconWrapper WinUtil::g_hCrutchIcon(IDR_ICON_CRUTCH);
 HIconWrapper WinUtil::g_hFirewallIcon(IDR_ICON_FIREWALL);
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 HIconWrapper WinUtil::g_hClockIcon(IDR_ICON_CLOCK);
+#endif
 
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOnIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOffIcon;

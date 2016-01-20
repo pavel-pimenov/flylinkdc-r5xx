@@ -175,7 +175,7 @@ void fire(T0 && type, T1 && p1, T2 && p2) noexcept
 			if (!is_listener_zombie(*i))
 			{
 #endif // IRAINMAN_USE_SIMPLE_SPEAKER
-		(*i)->on(std::forward<T0>(type), std::forward<T1>(p1), std::forward<T2>(p2)); // Venturi Firewall 2012-04-23_22-28-18_A6JRQEPFW5263A7S7ZOBOAJGFCMET3YJCUYOVCQ_0E0D7D71_crash-stack-r501-build-9812.dmp.bz2
+		(*i)->on(std::forward<T0>(type), std::forward<T1>(p1), std::forward<T2>(p2)); 
 #ifndef IRAINMAN_USE_SIMPLE_SPEAKER
 }
 }

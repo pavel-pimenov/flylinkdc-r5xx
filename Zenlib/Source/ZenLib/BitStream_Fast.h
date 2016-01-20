@@ -233,9 +233,6 @@ public:
 
         Buffer+=(HowMany-(Buffer_Size%8)-1)>>3;
         LastByte=*Buffer;
-		// 2012-05-14_22-56-10_74JANNOP6OMNY57NZ27HKNG6H6WXSVHHFGH65ZI_E3EDE446_crash-stack-r409-beta1-build-9974.dmp
-		// 2012-05-14_23-00-41_AVOUQ4O75O2FEQDOY7QJOIB5IEUAPRQQQHJQ73Y_75B75A13_crash-stack-r409-beta1-x64-build-9974.dmp
-		// 2012-05-27_11-43-51_X4N7SVVBK2PA5ALVSFV3SPPL457SCXYWTBZN3UY_F0B28A2B_crash-stack-r409-build-10123.dmp
         Buffer++;
         Buffer_Size-=HowMany;
     }

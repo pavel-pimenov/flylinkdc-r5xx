@@ -613,9 +613,6 @@ bool File__Tags_Helper::DetectBeginOfEndTags_Test()
             if (CC8(Base->Buffer+((size_t)((Base->File_Size-File_EndTagSize-15+6)-Base->File_Offset)))==CC8("LYRICS20"))
             {
                 Lyrics3v2_Size=Ztring((const char*)(Base->Buffer+((size_t)((Base->File_Size-File_EndTagSize-15)-Base->File_Offset))), 6).To_int32u()+15;
-				// 2012-04-23_22-28-18_OYZXBZGKCBQ4YEU6HTMUS6ZTJIF7OS7TF76MVTA_B99AB32D_crash-stack-r501-build-9812.dmp
-				// 2012-05-03_22-05-14_OP4U5LUT644F5XNBE5OBT3WNGY6BFYCRTQY4H4A_7A6283FF_crash-stack-r502-beta24-x64-build-9900.dmp
-				// 2012-05-27_11-49-06_WFMF5OMZ64W6IT7B4F4VZZAYVNIVYVS6VLZZIMA_24498924_crash-stack-r409-x64-build-10123.dmp
                 File_EndTagSize+=Lyrics3v2_Size;
                 Lyrics3v2_Offset=Base->File_Size-File_EndTagSize;
                 TagSizeIsFinal=false;

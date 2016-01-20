@@ -119,7 +119,6 @@ Are you sure to run another copy of program?</String>
 		<String Name="AutoupdateDownloadUpdateonexit">They will be installed on application exit</String>
 		<String Name="AutoupdateEmopacks">Emoticon packs</String>
 		<String Name="AutoupdateEnable">Enable Autoupdate</String>
-		<String Name="AutoupdateError">FlylinkDC++ update error</String>
 		<String Name="AutoupdateErrorStartFlyupdateFailed">The FlyUpdate utility does not start. Error:</String>
 		<String Name="AutoupdateErrorUpdateFile">Error on updating file:</String>
 		<String Name="AutoupdateErrorVerif">Verification error - (Please send email ppa74@ya.ru)</String>
@@ -307,7 +306,7 @@ Hub Menu: Hub tab (at the bottom of the screen) right-click menu
 Chat Menu: User right-click menu in chat and PM tab menu
 Search Menu: Search right-click menu
 Parameters:
-Name: Name (use '\' to create submenus)
+Name: Name (use '' to create submenus)
 Command: Command text (may contain parameters)
 Hub: Hub IP as typed when connecting (empty = all hubs, "op" = hubs where you're op)
 To: PM recipient
@@ -348,6 +347,7 @@ In the parameters, you can use %[xxx] variables and date/time specifiers (%Y, %m
 		<String Name="ConnectAll">Connect to all users</String>
 		<String Name="ConnectFavuserHub">Connect to hub</String>
 		<String Name="ConnectToSupportHub">Connect to support hub on each startup</String>
+		<String Name="DisableAutoremoveVirusHub">Disable auto-remove virus-hubs</String>
 		<String Name="ContactListMenu">Contact list</String>
 		<String Name="ContinueSearch">Continue</String>
 		<String Name="Copy">Copy</String>
@@ -611,6 +611,14 @@ If possible, send the file for analysis to ppa74@ya.ru</String>
 		<String Name="FlyHubCountry">Country</String>
 		<String Name="FlyHubCity">City</String>
 		<String Name="FlyHubIsp">ISP</String>
+		<String Name="FlyHubCountFiles">Files</String>
+		<String Name="FlyHubLastShareDate">Last Share</String>
+		<String Name="FlyHubRam">RAM</String>
+		<String Name="FlyHubSqliteDbSize">SQLite DB size</String>
+		<String Name="FlyHubQueue">Queue</String>
+		<String Name="FlyHubTimes">Times</String>
+		<String Name="FlyHubGender">Gender</String>
+		<String Name="FlyHubSupportInfo">Support info</String>
 		<String Name="Flyupdate">FlylinkDC++ Updater</String>
 		<String Name="FlyupdateCannotupdate">FlylinkDC++ automatic update failed. Please download latest install of FlylinkDC++ and run it manually</String>
 		<String Name="FlyupdateCheckupdatebase">Checking FlylinkDC++ update…</String>
@@ -1014,6 +1022,7 @@ Empty = Default String -&gt; +me playing: %[title] (Media Player Classic)</Strin
 		<String Name="NeedUserFilesMenu">Queued downloads from user</String>
 		<String Name="NetlimiterWarning">NetLimiter was detected in your computer. It is frequently responsible for FlylinkDC++ crash, upload disconnecting and slow download speed. Please uninstall it and use an alternate product, or built-in limiter.</String>
 		<String Name="NetworkStatistics">Network Statistics</String>
+		<String Name="NetworkTraffic">Network traffic</String>
 		<String Name="New">&amp;New…</String>
 		<String Name="NewsBlog">The News Blog</String>
 		<String Name="NewBeta">New beta released</String>
@@ -1023,6 +1032,7 @@ Empty = Default String -&gt; +me playing: %[title] (Media Player Classic)</Strin
 		<String Name="Next">Next</String>
 		<String Name="Nick">Nick</String>
 		<String Name="NickTaken">Your nick is already taken, please change to something else!</String>
+		<String Name="HubFull">Hub Full!</String>
 		<String Name="NickUnknown">(Nick unknown)</String>
 		<String Name="AddNickToChat">Add nick to chat</String>
 		<String Name="No">No</String>
@@ -1301,6 +1311,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="Saved">Save…</String>
 		<String Name="SavePassword">Save password</String>
 		<String Name="SaveSearchSettingsText">Save Search settings</String>
+		<String Name="UseSearchGroupTreeSettingsText">Use group tree</String>
 		<String Name="SaveSearchSettingsTooltip">This option involves maintaining search parameters: size, type, method, and so on.</String>
 		<String Name="Search">Search</String>
 		<String Name="SearchDetectTth">Automatically switch search type to TTH when one is found in search string</String>
@@ -1315,6 +1326,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SearchFilterItemFilepath">File &amp; Path</String>
 		<String Name="SearchFilterLblExclude">And exclude match</String>
 		<String Name="SearchOptions">Search options</String>
+		<String Name="SearchShowhidepanel">Show/Hide Settings Panel</String>
 		<String Name="SearchSpamFrom">Search spam detected from</String>
 		<String Name="SearchSpy">Search Spy</String>
 		<String Name="SearchString">Search String</String>
@@ -1473,6 +1485,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SettingsFirewallPassive">Firewall (passive, the worst case)</String>
 		<String Name="SettingsFirewallPassiveForce">Force firewall mode (passive!)</String>
 		<String Name="SettingsFirewallAutoPassive">Automatic passive connection (timeout at 2 minutes)</String>
+		<String Name="SettingsFirewallBlockDownloadFromAvdbUsers">Block download from virus-users (AVDB)</String>
 		<String Name="SettingsFirewallUpnp">UPnP (for WiFi router)</String>
 		<String Name="SettingsFormat">Format</String>
 		<String Name="SettingsGeneral">General</String>
@@ -1564,7 +1577,6 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SettingsProviders">Providers resources</String>
 		<String Name="SettingsProxy">Proxy settings</String>
 		<String Name="SettingsPublicHubList">Internet Hubs-list</String>
-		<String Name="SettingsPublicHubListHttpProxy">HTTP Proxy for all http(s) connections. Format: "Server:Port"</String>
 		<String Name="SettingsPublicHubListUrl">Internet Hubs-list URL</String>
 		<String Name="SettingsQueue">Queue</String>
 		<String Name="SettingsRc">Remote control</String>
@@ -1608,7 +1620,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SettingsStatisticsSend">Allow the program to collect and send anonymous usage statistics to developers.</String>
 		<String Name="SettingsAntivirusAutobanForIp">Antivirus autoban (IP):</String>
 		<String Name="SettingsAntivirusAutobanForNick">Antivirus autoban (Nick):</String>
-		<String Name="SettingsAntivirusCommandIp">RAW command (default !banip):</String>
+		<String Name="SettingsAntivirusCommandIp">Chat command (default !banip):</String>
 		<String Name="SettingsStatusInChat">View status messages in main chat</String>
 		<String Name="SettingsStripTopic">Hide hub topics</String>
 		<String Name="SettingsTabs">Tabs</String>
@@ -1742,7 +1754,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SuccessfullyGetTthStream">Successfully get TTH from NTFS stream:</String>
 		<String Name="SpeedSuperUser">Can bypass limiter</String>
 		<String Name="Supports">Supports</String>
-		<String Name="SupportsServerDesc">FlylinkDC++ Support/help hub</String>
+		<String Name="SupportsServerDesc">FlylinkDC++ Support hub</String>
 		<String Name="SuppressFavChatAndPm">Suppress chat and private messages</String>
 		<String Name="Suspend">Suspend</String>
 		<String Name="SxmlEmptyTagName">Empty tag names not allowed</String>
@@ -1859,6 +1871,11 @@ Default: %H:%M:%S</String>
 		<String Name="U">U:</String>
 		<String Name="UdRatio">Upload/Download</String>
 		<String Name="FlyServerUdpTestPortWait">UDP port test…</String>
+		<String Name="FlyGender">Gender</String>
+		<String Name="FlyGenderNone">Don't say</String>
+		<String Name="FlyGenderMale">Male</String>
+		<String Name="FlyGenderFemale">Female</String>
+		<String Name="FlyGenderAsexual">Asexual</String>
 		<String Name="UnableToCreateThread">Unable to create thread</String>
 		<String Name="UnableToOpenFilelist">Unable to open File-list:</String>
 		<String Name="UnableToOpenPort">Unable to open %s port(s). You must set up your connection manually</String>
@@ -1939,7 +1956,6 @@ Either you're not connected to the Internet or you have configured the connectio
 		<String Name="UserWentOffline">User went offline</String>
 		<String Name="UserWentOnline">User went online</String>
 		<String Name="Use12HourFormat">Use 12 hour format</String>
-		<String Name="UseAutoMultiChatSwitch">Use automatic switch to Multiline chat</String>
 		<String Name="UseBitrateFixForSpam">Use Bitrate/Sample fix for QCD/QMP players</String>
 		<String Name="UseCustomListBackground">Use custom list background style</String>
 		<String Name="UseCustomMenu">Use custom menus</String>

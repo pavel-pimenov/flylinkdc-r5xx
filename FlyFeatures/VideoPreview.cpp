@@ -85,7 +85,7 @@ bool VideoPreview::checkEvents()
 		pair<Tasks, TaskData*> p;
 		p.second = 0;
 		{
-			CFlyLock(cs); 
+			CFlyLock(cs);
 			dcassert(!m_tasks.empty());
 			if (m_tasks.empty())
 				return false;
@@ -256,7 +256,7 @@ void VideoPreview::_StopServer()
 	{
 		safe_delete(_serverPreview);
 		_serverStarted = false;
-		LogManager::message("Stopped PreviewServer"); // 2012-04-27_18-47-20_DPP42GQ5GG7Y5Q45X5O6LX6QUQMJRZ7XQPGYBZA_609C4718_crash-stack-r502-beta22-x64-build-9854.dmp
+		LogManager::message("Stopped PreviewServer"); 
 #ifdef _DEBUG
 		VideoPreview::getInstance()->AddLogInfo("Stopped PreviewServer"); // [20] https://www.box.net/shared/qzotdk8odzsct74kxzgg
 #endif

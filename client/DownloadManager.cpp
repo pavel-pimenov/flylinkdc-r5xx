@@ -202,7 +202,9 @@ void DownloadManager::addConnection(UserConnection* p_conn)
 	if (!p_conn->isSet(UserConnection::FLAG_SUPPORTS_TTHF) || !p_conn->isSet(UserConnection::FLAG_SUPPORTS_ADCGET))
 	{
 		// Can't download from these...
-		ClientManager::getInstance()->setClientStatus(p_conn->getUser(), STRING(SOURCE_TOO_OLD), -1, true);
+#ifdef IRAINMAN_INCLUDE_USER_CHECK
+		ClientManager::setClientStatus(p_conn->getUser(), STRING(SOURCE_TOO_OLD), -1, true);
+#endif
 		QueueManager::getInstance()->removeSource(p_conn->getUser(), QueueItem::Source::FLAG_NO_TTHF);
 		p_conn->disconnect();
 		return;
@@ -448,7 +450,7 @@ void DownloadManager::on(UserConnectionListener::Data, UserConnection* aSource, 
 	dcassert(d);
 	try
 	{
-		d->addPos(d->getDownloadFile()->write(aData, aLen), aLen); // TODO // r502-sp2 2012-04-23_22-28-18_ETFY7EDN5BIPZZSIMVUUBOZFZOGWBZY3F4D2HUA_2C747F0D_crash-stack-r501-build-9812.dmp // 2012-05-03_22-00-59_WNNHCEA5ALKEWJ3V6JCDBFS75243SQ455Y6NG7Q_059D0ACA_crash-stack-r502-beta24-build-9900.dmp
+		d->addPos(d->getDownloadFile()->write(aData, aLen), aLen);
 		// [-] d->tick(aSource->getLastActivity()); [-]IRainman refactoring transfer mechanism
 		
 		if (d->getDownloadFile()->eof())
@@ -603,11 +605,11 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 		{
 			if (reason == STRING(DISCONNECTED))
 			{
-				ClientManager::getInstance()->fileListDisconnected(aSource->getUser());
+				ClientManager::fileListDisconnected(aSource->getUser());
 			}
 			else
 			{
-				ClientManager::getInstance()->setClientStatus(aSource->getUser(), reason, -1, false);
+				ClientManager::setClientStatus(aSource->getUser(), reason, -1, false);
 			}
 		}
 #endif
@@ -746,7 +748,7 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource)
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 	if (d->isSet(Download::FLAG_USER_CHECK))
 	{
-		ClientManager::getInstance()->setClientStatus(aSource->getUser(), "Filelist Not Available", SETTING(FILELIST_UNAVAILABLE), false);
+		ClientManager::setClientStatus(aSource->getUser(), "Filelist Not Available", SETTING(FILELIST_UNAVAILABLE), false);
 	}
 #endif
 	

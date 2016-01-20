@@ -76,7 +76,7 @@ void PrivateFrame::addMesageLogParams(StringMap& params, const Identity& from, c
 LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	BaseChatFrame::OnCreate(m_hWnd, rcDefault);
-	PostMessage(WM_SPEAKER, USER_UPDATED);
+	PostMessage(WM_SPEAKER, PM_USER_UPDATED);
 	m_created = true;
 	ClientManager::getInstance()->addListener(this);
 	SettingsManager::getInstance()->addListener(this);
@@ -416,7 +416,7 @@ void PrivateFrame::runUserCommand(UserCommand& uc)
 	if (!WinUtil::getUCParams(m_hWnd, uc, ucLineParams))
 		return;
 	StringMap ucParams = ucLineParams;
-	ClientManager::getInstance()->userCommand(HintedUser(m_replyTo, getHubHint()), uc, ucParams, true);
+	ClientManager::userCommand(HintedUser(m_replyTo, getHubHint()), uc, ucParams, true);
 	// TODO тут ucParams не используется позже
 }
 
@@ -488,7 +488,10 @@ void PrivateFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 }
 void PrivateFrame::updateTitle()
 {
-	if (m_closed)
+	dcassert(!ClientManager::isShutdown());
+	if (ClientManager::isShutdown())
+		return;
+	if (isClosedOrShutdown())
 		return;
 	if (!m_replyTo.user)
 		return;
@@ -522,7 +525,6 @@ void PrivateFrame::updateTitle()
 		{
 			addStatus(TSTRING(USER_WENT_ONLINE) + _T(" [") + m_replyToRealName + _T(" - ") + hubs.first + _T("]"));
 		}
-		
 		m_isoffline = false;
 	}
 	else

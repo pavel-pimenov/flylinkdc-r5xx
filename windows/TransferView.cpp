@@ -178,6 +178,7 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	m_PassiveModeButton.SetIcon(WinUtil::g_hFirewallIcon);
 	m_PassiveModeButton.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 	m_AutoPassiveModeButton.Create(m_hWnd,
 	                               rcDefault,
 	                               NULL,
@@ -187,7 +188,7 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	                               IDC_AUTO_PASSIVE_MODE);
 	m_AutoPassiveModeButton.SetIcon(WinUtil::g_hClockIcon);
 	m_AutoPassiveModeButton.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
-	
+#endif
 	
 	m_AVDB_BlockButton.Create(m_hWnd,
 	                          rcDefault,
@@ -284,8 +285,10 @@ void TransferView::setButtonState()
 	m_PassiveModeButton.SetCheck(BOOLSETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS) ? BST_CHECKED : BST_UNCHECKED);
 	m_force_passive_tooltip.AddTool(m_PassiveModeButton, ResourceManager::SETTINGS_FIREWALL_PASSIVE_FORCE);
 	
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 	m_AutoPassiveModeButton.SetCheck(BOOLSETTING(AUTO_PASSIVE_INCOMING_CONNECTIONS) ? BST_CHECKED : BST_UNCHECKED);
 	m_active_passive_tooltip.AddTool(m_AutoPassiveModeButton, ResourceManager::SETTINGS_FIREWALL_AUTO_PASSIVE);
+#endif
 	
 	m_AVDB_BlockButton.SetCheck(BOOLSETTING(AVDB_BLOCK_CONNECTIONS) ? BST_CHECKED : BST_UNCHECKED);
 	m_avdb_block_tooltip.AddTool(m_AVDB_BlockButton, ResourceManager::SETTINGS_FIREWALL_BLOCK_DOWNLOAD_FROM_AVDB_USERS);
@@ -324,6 +327,7 @@ LRESULT TransferView::onAVDBBlockConnections(WORD /*wNotifyCode*/, WORD /*wID*/,
 	setButtonState();
 	return 0;
 }
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 LRESULT TransferView::onForceAutoPassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	if (m_AutoPassiveModeButton.GetCheck() == BST_CHECKED)
@@ -337,6 +341,7 @@ LRESULT TransferView::onForceAutoPassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/,
 	setButtonState();
 	return 0;
 }
+#endif
 
 LRESULT TransferView::onForcePassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
@@ -358,9 +363,11 @@ void TransferView::UpdateLayout()
 	GetClientRect(&rc);
 	if (BOOLSETTING(SHOW_TRANSFERVIEW_TOOLBAR))
 	{
-		m_AutoPassiveModeButton.MoveWindow(2, 26, 45, 24);
-		m_PassiveModeButton.MoveWindow(2, 2,  45, 24);
-		m_AVDB_BlockButton.MoveWindow(2, 48, 45, 24);
+		m_PassiveModeButton.MoveWindow(2, 2, 45, 24);
+		m_AVDB_BlockButton.MoveWindow(2, 26, 45, 24);
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
+		m_AutoPassiveModeButton.MoveWindow(2, 48, 45, 24);
+#endif
 		rc.left += 45;
 	}
 	ctrlTransfers.MoveWindow(&rc);
@@ -587,7 +594,7 @@ void TransferView::runUserCommand(UserCommand& uc)
 			// compatibility with 0.674 and earlier
 			ucParams["file"] = ucParams["fileFN"];
 			
-			ClientManager::getInstance()->userCommand(itemI->m_hintedUser, uc, tmp, true);
+			ClientManager::userCommand(itemI->m_hintedUser, uc, tmp, true);
 		}
 	}
 }
@@ -1602,7 +1609,9 @@ void TransferView::updateItem(int ii, uint32_t updateMask)
 TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const ConnectionQueueItem* aCqi) // [+] IRainman fix.
 {
 	UpdateInfo* ui = new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload());
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 	ui->setForcePassive(aCqi->m_is_force_passive);
+#endif
 	if (ui->download)
 	{
 		string l_target;
@@ -1626,7 +1635,9 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const Conn
 	
 	ui->setStatus(ItemInfo::STATUS_WAITING);
 	string l_status = STRING(CONNECTING);
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 	aCqi->addAutoPassiveStatus(l_status);
+#endif
 	ui->setStatusString(Text::toT(l_status));
 	return ui;
 }
@@ -1686,7 +1697,9 @@ void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueIt
 #endif
 		{
 			string l_status = aReason;
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 			aCqi->addAutoPassiveStatus(l_status);
+#endif
 			ui->setStatusString(Text::toT(l_status));
 		}
 		
@@ -1822,32 +1835,34 @@ void TransferView::on(DownloadManagerListener::Starting, const DownloadPtr& aDow
 }
 void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownload, const string& aReason) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true, true); // [!] IRainman fix. https://code.google.com/p/flylinkdc/issues/detail?id=1291
-	ui->setStatus(ItemInfo::STATUS_WAITING);
-	ui->setSize(aDownload->getSize());
-	ui->setTarget(aDownload->getPath());
-	ui->setType(aDownload->getType());
-	// [-] ui->setIP(aDownload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
-	
-	tstring tmpReason = Text::toT(aReason);
-	if (aDownload->isSet(Download::FLAG_SLOWUSER))
+	if (!ClientManager::isShutdown())
 	{
-		tmpReason += _T(": ") + TSTRING(SLOW_USER);
+		UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true, true); // [!] IRainman fix. https://code.google.com/p/flylinkdc/issues/detail?id=1291
+		ui->setStatus(ItemInfo::STATUS_WAITING);
+		ui->setSize(aDownload->getSize());
+		ui->setTarget(aDownload->getPath());
+		ui->setType(aDownload->getType());
+		// [-] ui->setIP(aDownload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
+
+		tstring tmpReason = Text::toT(aReason);
+		if (aDownload->isSet(Download::FLAG_SLOWUSER))
+		{
+			tmpReason += _T(": ") + TSTRING(SLOW_USER);
+		}
+		else if (aDownload->getOverlapped() && !aDownload->isSet(Download::FLAG_OVERLAP))
+		{
+			tmpReason += _T(": ") + TSTRING(OVERLAPPED_SLOW_SEGMENT);
+		}
+
+		ui->setStatusString(tmpReason);
+
+		SHOW_POPUPF(POPUP_DOWNLOAD_FAILED,
+			TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target) + _T('\n') +
+			TSTRING(USER) + _T(": ") + WinUtil::getNicks(ui->m_hintedUser) + _T('\n') +
+			TSTRING(REASON) + _T(": ") + tmpReason, TSTRING(DOWNLOAD_FAILED) + _T(' '), NIIF_WARNING);
+
+		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 	}
-	else if (aDownload->getOverlapped() && !aDownload->isSet(Download::FLAG_OVERLAP))
-	{
-		tmpReason += _T(": ") + TSTRING(OVERLAPPED_SLOW_SEGMENT);
-	}
-	
-	ui->setStatusString(tmpReason);
-	
-	SHOW_POPUPF(POPUP_DOWNLOAD_FAILED,
-	TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target) + _T('\n') +
-	TSTRING(USER) + _T(": ") + WinUtil::getNicks(ui->m_hintedUser) + _T('\n') +
-	TSTRING(REASON) + _T(": ") + tmpReason, TSTRING(DOWNLOAD_FAILED) + _T(' '), NIIF_WARNING);
-	
-	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
 void TransferView::on(DownloadManagerListener::Status, const UserConnection* p_conn, const string& aReason) noexcept

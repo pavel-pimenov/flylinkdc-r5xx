@@ -153,7 +153,6 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		
 		static Search::TypeModes getFType(const string& p_fileName, bool p_include_flylinkdc_ext = false) noexcept;
 		static string validateVirtual(const string& aVirt) noexcept;
-		static bool hasVirtual(const string& name);
 		
 		static void incHits()
 		{
@@ -369,10 +368,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 				friend void intrusive_ptr_release(intrusive_ptr_base<Directory>*);
 				
 				Directory(const string& aName, const Ptr& aParent);
-				~Directory() { } // [3] https://www.box.net/shared/fa054c428ddf0a88fb0e
-				// 2012-04-29_06-52-32_7DCSOGEGBL7SCFPXL7QNF2EUVF3XY22Y6PVKEWQ_4F9F3ED2_crash-stack-r502-beta23-build-9860.dmp
-				// 2012-05-11_23-53-01_A2IPHZCLMTKWDAQMIBJIHD4HBRRH5LUIVPTZYSA_F48E1EF7_crash-stack-r502-beta26-build-9946.dmp
-				
+				~Directory() { }
 				/** Set of flags that say which Search::TYPE_* a directory contains */
 				uint16_t m_fileTypes_bitmap;
 		};
@@ -429,11 +425,12 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csTTHIndex;
 		static FastCriticalSection g_csBloom;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShare;
+		static CriticalSection g_csDirList;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareNotExists;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareCache;
 		
 		// List of root directory items
-		typedef std::list<Directory::Ptr> DirList;
+		typedef std::list<Directory::Ptr> DirList; // тольок list - vector нельзя!
 		static DirList g_list_directories;
 		
 		/** Map real name to virtual name - multiple real names may be mapped to a single virtual one */
@@ -459,7 +456,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		static int g_RebuildIndexes;
 		//[~]IRainman
 		
-		BloomFilter<5> m_bloom;
+		static BloomFilter<5> g_bloom;
 		
 		Directory::ShareFile::Set::const_iterator findFileL(const string& virtualFile) const;
 		
@@ -488,7 +485,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		pair<Directory::Ptr, string> splitVirtualL(const string& virtualPath) const;
 		static string findRealRootL(const string& virtualRoot, const string& virtualLeaf);
 		
-		Directory::Ptr getDirectoryL(const string& fname) const;
+		static Directory::Ptr getDirectoryL(const string& fname);
 		
 		int run();
 	public:
@@ -510,13 +507,13 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		{
 			g_ignoreFileSizeHFS = true;
 		}
-		bool isFileInSharedDirectoryL(const string& p_fname) const
+		static bool isFileInSharedDirectoryL(const string& p_fname)
 		{
 			return getDirectoryL(p_fname) != NULL;
 		}
 		static void load(SimpleXML& aXml);
 		static void save(SimpleXML& aXml);
-
+		
 	private:
 		// QueueManagerListener
 		void on(QueueManagerListener::FileMoved, const string& n) noexcept override;

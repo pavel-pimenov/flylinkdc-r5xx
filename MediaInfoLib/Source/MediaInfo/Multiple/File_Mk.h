@@ -306,6 +306,7 @@ private :
     int64u   TrackType;
 
     //Temp
+    int8u   InvalidByteMax;
     int64u  Format_Version;
     int64u  TimecodeScale;
     float64 Duration;
@@ -326,6 +327,7 @@ private :
     struct crc32
     {
         int64u  Pos;
+        int64u  From;
         int64u  UpTo;
         int32u  Computed;
         int32u  Expected;

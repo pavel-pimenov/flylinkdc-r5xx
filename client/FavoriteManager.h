@@ -254,13 +254,12 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		};
 		typedef vector<FavoriteDirectory> FavDirList;
 		
-		bool addFavoriteDir(string aDirectory, const string& aName, const string& aExt);
+		static bool addFavoriteDir(string aDirectory, const string& aName, const string& aExt);
 		static bool removeFavoriteDir(const string& aName);
-		bool renameFavoriteDir(const string& aName, const string& anotherName);
-		bool updateFavoriteDir(const string& aName, const string& dir, const string& ext); // [!] IRainman opt.
-		bool moveFavoriteDir(int cid, int pos); // [+] InfinitySky.
-		string getDownloadDirectory(const string& ext) const;
-		size_t getFavoriteDirsCount() const
+		static bool renameFavoriteDir(const string& aName, const string& anotherName);
+		static bool updateFavoriteDir(const string& aName, const string& dir, const string& ext); // [!] IRainman opt.
+		static string getDownloadDirectory(const string& ext);
+		static size_t getFavoriteDirsCount()
 		{
 			//FastSharedLock l(csDirs); no needs. TODO
 			return g_favoriteDirs.size();
@@ -299,7 +298,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		static void removeallRecent();
 		
 // User Commands
-		UserCommand addUserCommand(int type, int ctx, Flags::MaskType flags, const string& name, const string& command, const string& to, const string& p_Hub);
+		static UserCommand addUserCommand(int type, int ctx, Flags::MaskType flags, const string& name, const string& command, const string& to, const string& p_Hub);
 		static bool getUserCommand(int cid, UserCommand& uc);
 		static int findUserCommand(const string& aName, const string& p_Hub);
 		static bool moveUserCommand(int cid, int pos);
@@ -307,7 +306,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		static void removeUserCommandCID(int cid);
 		static void removeUserCommand(const string& p_Hub);
 		static size_t countUserCommand(const string& p_Hub);
-		void removeHubUserCommands(int ctx, const string& hub);
+		static void removeHubUserCommands(int ctx, const string& hub);
 		
 		static UserCommand::List getUserCommands()
 		{
@@ -316,12 +315,12 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		}
 		UserCommand::List getUserCommands(int ctx, const StringList& hub/* [-] IRainman fix, bool& op*/) const;
 		
-		void load();
+		static void load();
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
-		bool load_from_url();
+		static bool load_from_url();
 #endif
 		static void save();
-		void recentsave();
+		static void recentsave();
 		static size_t getCountFavsUsers();
 	private:
 		static void getFavoriteUsersNamesL(StringSet& p_users, bool p_is_ban);
@@ -335,8 +334,8 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		}
 		static FavoriteHubEntryList g_favoriteHubs;
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
-		StringSet m_sync_hub_local;
-		StringSet m_sync_hub_external;
+		static StringSet g_sync_hub_local;
+		static StringSet g_sync_hub_external;
 #endif
 		static FavDirList g_favoriteDirs; // [~] InfinitySky. Code from Apex.
 		static FavHubGroups g_favHubGroups;
@@ -351,7 +350,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 			return g_userCommandsHubUrl.find(p_Hub) != g_userCommandsHubUrl.end();
 		}
 #endif
-		int m_lastId;
+		static int g_lastId;
 		
 		// [!] Fasts response if contact list empty.
 		static bool g_isNotEmpty;
@@ -371,16 +370,16 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csUserCommand;
 		
 		static uint16_t g_dontSave;
-		unsigned m_count_hub;
+		static unsigned g_count_hub;
 	public:
 		void prepareClose();
 		void shutdown();
 		static void connectToFlySupportHub();
-
+		
 		static void recentload(SimpleXML& aXml);
 		static void previewload(SimpleXML& aXml);
 		static void previewsave(SimpleXML& aXml);
-
+		
 	private:
 		/** Used during loading to prevent saving. */
 		
@@ -396,12 +395,12 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		void on(UserConnected, const UserPtr& user) noexcept override;
 		void on(UserDisconnected, const UserPtr& user) noexcept override;
 		
-		void load(SimpleXML& aXml
+		static void load(SimpleXML& aXml
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
-		          , bool p_is_url = false
+		                 , bool p_is_url = false
 #endif
-		         );
-		
+		                );
+		                
 		static string getConfigFavoriteFile()
 		{
 			return Util::getConfigPath() + "Favorites.xml";
@@ -414,7 +413,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		
 		static bool g_SupportsHubExist;
 		static std::unordered_set<std::string> g_AllHubUrls;
-		bool replaceDeadHub();
+		static bool replaceDeadHub();
 	public:
 		static std::string g_DefaultHubUrl;
 		

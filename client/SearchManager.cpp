@@ -608,7 +608,7 @@ void SearchManager::onPSR(const AdcCommand& p_cmd, UserPtr from, const boost::as
 		{
 			AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
 			toPSR(cmd, false, ps.getMyNick(), hubIpPort, tth, outPartialInfo);
-			ClientManager::getInstance()->send(cmd, from->getCID());
+			ClientManager::send(cmd, from->getCID());
 			LogManager::psr_message(
 			    "[SearchManager::respond] hubIpPort = " + hubIpPort +
 			    " ps.getMyNick() = " + ps.getMyNick() +
@@ -657,7 +657,7 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 		{
 			AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
 			toPSR(cmd, true, Util::emptyString, hubIpPort, tth, partialInfo);
-			ClientManager::getInstance()->send(cmd, from);
+			ClientManager::send(cmd, from);
 			l_sr = ClientManagerListener::SEARCH_PARTIAL_HIT; // [+] IRainman
 			LogManager::psr_message(
 			    "[SearchManager::respond] hubIpPort = " + hubIpPort +
@@ -673,8 +673,10 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 			AdcCommand cmd(AdcCommand::CMD_RES, AdcCommand::TYPE_UDP);
 			i->toRES(cmd, AdcCommand::TYPE_UDP);
 			if (!token.empty())
+			{
 				cmd.addParam("TO", token);
-			ClientManager::getInstance()->send(cmd, from);
+			}
+			ClientManager::send(cmd, from);
 		}
 		l_sr = ClientManagerListener::SEARCH_HIT; // [+] IRainman
 	}
@@ -699,7 +701,7 @@ string SearchManager::clean(const string& aSearchString)
     return tmp;
 }
 */
-string SearchManager::getPartsString(const PartsInfo& partsInfo) const
+string SearchManager::getPartsString(const PartsInfo& partsInfo)
 {
 	string ret;
 	
@@ -712,7 +714,7 @@ string SearchManager::getPartsString(const PartsInfo& partsInfo) const
 }
 
 
-void SearchManager::toPSR(AdcCommand& cmd, bool wantResponse, const string& myNick, const string& hubIpPort, const string& tth, const vector<uint16_t>& partialInfo) const
+void SearchManager::toPSR(AdcCommand& cmd, bool wantResponse, const string& myNick, const string& hubIpPort, const string& tth, const vector<uint16_t>& partialInfo)
 {
 	cmd.getParameters().reserve(6);
 	if (!myNick.empty())

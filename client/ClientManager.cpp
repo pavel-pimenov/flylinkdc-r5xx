@@ -45,6 +45,10 @@ bool g_isShutdown = false;
 bool g_isStartupProcess = true;
 bool ClientManager::g_isSpyFrame = false;
 ClientManager::ClientList ClientManager::g_clients;
+#ifdef FLYLINKDC_USE_ASYN_USER_UPDATE
+OnlineUserList ClientManager::g_UserUpdateQueue;
+std::unique_ptr<webrtc::RWLockWrapper> ClientManager::g_csOnlineUsersUpdateQueue = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+#endif
 
 std::unique_ptr<webrtc::RWLockWrapper> ClientManager::g_csClients = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ClientManager::g_csOnlineUsers = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
@@ -55,6 +59,20 @@ ClientManager::UserMap ClientManager::g_users;
 #ifdef IRAINMAN_USE_NICKS_IN_CM
 ClientManager::NickMap ClientManager::g_nicks;
 #endif
+
+ClientManager::ClientManager()
+{
+	TimerManager::getInstance()->addListener(this);
+	createMe(SETTING(PRIVATE_ID), SETTING(NICK)); // [+] IRainman fix.
+}
+
+ClientManager::~ClientManager()
+{
+	dcassert(isShutdown());
+#ifdef FLYLINKDC_USE_ASYN_USER_UPDATE
+	dcassert(g_UserUpdateQueue.empty());
+#endif
+}
 
 Client* ClientManager::getClient(const string& p_HubURL, bool p_is_auto_connect)
 {
@@ -123,6 +141,12 @@ void ClientManager::shutdown()
 {
 	dcassert(!isShutdown());
 	::g_isShutdown = true;
+#ifdef FLYLINKDC_USE_ASYN_USER_UPDATE
+	{
+		CFlyWriteLock(*g_csOnlineUsersUpdateQueue);
+		g_UserUpdateQueue.clear();
+	}
+#endif
 	TimerManager::getInstance()->removeListener(this);
 }
 
@@ -719,7 +743,7 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) no
 			CFlyWriteLock(*g_csOnlineUsers); // [2]  https://www.box.net/shared/7b796492a460fe528961
 			OnlinePair op = g_onlineUsers.equal_range(ou->getUser()->getCID()); // Ищется по одном - научиться убивать сразу массив.
 			// [-] dcassert(op.first != op.second); [!] L: this is normal and means that the user is offline.
-			for (OnlineIter i = op.first; i != op.second; ++i) // 2012-04-29_13-38-26_VJ7NL3IIKFGQ5D34D4RJGIBVWITPBAX7UKSF6RI_3258847B_crash-stack-r501-build-9869.dmp
+			for (OnlineIter i = op.first; i != op.second; ++i) 
 			{
 				OnlineUser* ou2 = i->second;
 				if (ou.get() == ou2)
@@ -746,7 +770,7 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) no
 		}
 		else if (diff > 1 && !ClientManager::isShutdown())
 		{
-			fly_fire1(ClientManagerListener::UserUpdated(), ou);
+			addAsyncOnlineUserUpdated(ou);
 		}
 	}
 }
@@ -896,8 +920,8 @@ void ClientManager::send(AdcCommand& cmd, const CID& cid)
 		{
 			try
 			{
-				Socket udp;
-				udp.writeTo(u.getIdentity().getIpAsString(), u.getIdentity().getUdpPort(), cmd.toString(getMyCID())); // [!] IRainman fix.
+				Socket l_udp;
+				l_udp.writeTo(u.getIdentity().getIpAsString(), u.getIdentity().getUdpPort(), cmd.toString(getMyCID())); // [!] IRainman fix.
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 				const string l_sr = cmd.toString(getMyCID());
 				string l_tth;
@@ -1019,7 +1043,7 @@ void ClientManager::search(const SearchParamOwner& p_search_param)
 		{
 			SearchParamToken l_search_param_token;
 			l_search_param_token.m_token = p_search_param.m_token;
-			l_search_param_token.m_is_force_passive = p_search_param.m_is_force_passive;
+			l_search_param_token.m_is_force_passive_searh = p_search_param.m_is_force_passive_searh;
 			l_search_param_token.m_size_mode = p_search_param.m_size_mode;
 			l_search_param_token.m_size = p_search_param.m_size;
 			l_search_param_token.m_file_type = p_search_param.m_file_type;
@@ -1079,6 +1103,35 @@ void ClientManager::getOnlineClients(StringSet& p_onlineClients)
 			p_onlineClients.insert(i->second->getHubUrl());
 	}
 }
+void ClientManager::addAsyncOnlineUserUpdated(const OnlineUserPtr& p_ou)
+{
+	if (!isShutdown())
+	{
+#ifdef FLYLINKDC_USE_ASYN_USER_UPDATE
+		CFlyWriteLock(*g_csOnlineUsersUpdateQueue);
+		g_UserUpdateQueue.push_back(p_ou);
+#else
+		fly_fire1(ClientManagerListener::UserUpdated(), p_ou);
+#endif
+	}
+}
+
+#ifdef FLYLINKDC_USE_ASYN_USER_UPDATE
+void ClientManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
+{
+	dcassert(!isShutdown());
+	if (!isShutdown())
+	{
+		CFlyReadLock(*g_csOnlineUsersUpdateQueue);
+		for (auto i = g_UserUpdateQueue.cbegin(); i != g_UserUpdateQueue.cend(); ++i)
+		{
+			fly_fire1(ClientManagerListener::UserUpdated(), *i);
+		}
+	}
+	CFlyWriteLock(*g_csOnlineUsersUpdateQueue);
+	g_UserUpdateQueue.clear();
+}
+#endif
 
 void ClientManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcept
 {
@@ -1097,7 +1150,7 @@ void ClientManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcep
 #ifdef IRAINMAN_USE_NICKS_IN_CM
 				const auto n = g_nicks.find(i->second->getCID());
 				if (n != g_nicks.end())
-					g_nicks.erase(n); // TODO 2012-04-18_11-27-14_NZXC23Y2UPQCJZTZP57ZL56NFBSPCWUY42OHBHA_8926815E_crash-stack-r502-beta18-x64-build-9768.dmp
+					g_nicks.erase(n); 
 #endif
 				g_users.erase(i++);
 			}
@@ -1349,18 +1402,15 @@ void ClientManager::on(Connected, const Client* c) noexcept
 	fly_fire1(ClientManagerListener::ClientConnected(), c);
 }
 
-void ClientManager::on(UserUpdated, const OnlineUserPtr& user) noexcept
+void ClientManager::on(UserUpdatedMyINFO, const OnlineUserPtr& p_ou) noexcept
 {
-	if (!isShutdown())
-	{
-		fly_fire1(ClientManagerListener::UserUpdated(), user);
-	}
+	addAsyncOnlineUserUpdated(p_ou);
 }
 
 void ClientManager::on(UsersUpdated, const Client* client, const OnlineUserList& l) noexcept
 {
 	dcassert(!isShutdown());
-	for (auto i = l.cbegin(), iend = l.cend(); i != iend; ++i)
+	for (auto i = l.cbegin(); i != l.cend(); ++i)
 	{
 		updateNick(*i); // TODO проверить что меняется именно ник - иначе не звать. или разбить UsersUpdated на UsersUpdated + UsersUpdatedNick
 #ifdef _DEBUG
@@ -1372,9 +1422,9 @@ void ClientManager::on(UsersUpdated, const Client* client, const OnlineUserList&
 
 void ClientManager::updateNick(const OnlineUserPtr& p_online_user)
 {
-	const string& l_nick_from_identity = p_online_user->getIdentity().getNick();
 	if (p_online_user->getUser()->getLastNick().empty())
 	{
+		const string& l_nick_from_identity = p_online_user->getIdentity().getNick();
 		p_online_user->getUser()->setLastNick(l_nick_from_identity);
 		dcassert(p_online_user->getUser()->getLastNick() != l_nick_from_identity); // TODO поймать когда это бывает?
 	}
@@ -1382,8 +1432,9 @@ void ClientManager::updateNick(const OnlineUserPtr& p_online_user)
 	{
 #ifdef _DEBUG
 		//dcassert(0);
-//			LogManager::message("[DUP] updateNick(const OnlineUserPtr& p_online_user) ! nick==nick == "
-//				+ l_nick_from_identity + " p_online_user->getUser()->getLastNick() = " + p_online_user->getUser()->getLastNick());
+		const string& l_nick_from_identity = p_online_user->getIdentity().getNick();
+		LogManager::message("[DUP] updateNick(const OnlineUserPtr& p_online_user) ! nick==nick == "
+		                    + l_nick_from_identity + " p_online_user->getUser()->getLastNick() = " + p_online_user->getUser()->getLastNick());
 #endif
 	}
 }
@@ -1413,11 +1464,11 @@ void ClientManager::on(HubUserCommand, const Client* client, int aType, int ctx,
 		}
 		else if (aType == UserCommand::TYPE_CLEAR)
 		{
-			FavoriteManager::getInstance()->removeHubUserCommands(ctx, client->getHubUrl());
+			FavoriteManager::removeHubUserCommands(ctx, client->getHubUrl());
 		}
 		else
 		{
-			FavoriteManager::getInstance()->addUserCommand(aType, ctx, UserCommand::FLAG_NOSAVE, name, command, "", client->getHubUrl());
+			FavoriteManager::addUserCommand(aType, ctx, UserCommand::FLAG_NOSAVE, name, command, "", client->getHubUrl());
 		}
 	}
 }
@@ -1429,7 +1480,7 @@ void ClientManager::on(HubUserCommand, const Client* client, int aType, int ctx,
 
 void ClientManager::sendRawCommand(const OnlineUser& ou, const int aRawCommand)
 {
-	string rawCommand = ou.getClient().getRawCommand(aRawCommand);
+	const string rawCommand = ou.getClient().getRawCommand(aRawCommand);
 	if (!rawCommand.empty())
 	{
 		StringMap ucParams;
@@ -1455,6 +1506,7 @@ void ClientManager::cheatMessage(Client* p_client, const string& p_report)
 		p_client->cheatMessage(p_report);
 	}
 }
+#ifdef IRAINMAN_INCLUDE_USER_CHECK
 void ClientManager::fileListDisconnected(const UserPtr& p)
 {
 	string report;
@@ -1476,12 +1528,13 @@ void ClientManager::fileListDisconnected(const UserPtr& p)
 			{
 				c = &ou->getClient();
 				report = id.setCheat(ou->getClientBase(), "Disconnected file list " + Util::toString(fileListDisconnects) + " times", false);
-				getInstance()->sendRawCommand(*ou, SETTING(DISCONNECT_RAW));
+				sendRawCommand(*ou, SETTING(DISCONNECT_RAW));
 			}
 		}
 	}
 	cheatMessage(c, report);
 }
+#endif // IRAINMAN_INCLUDE_USER_CHECK
 
 void ClientManager::connectionTimeout(const UserPtr& p)
 {
@@ -1575,7 +1628,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl)
 		
 		client = &(ou->getClient());
 	}
-	client->updated(ou);
+	//client->updatedMyINFO(ou); // тут тоже не нужна нотификация всем подписчикам
 	cheatMessage(client, report);
 }
 
@@ -1597,11 +1650,13 @@ void ClientManager::setClientStatus(const UserPtr& p, const string& aCheatString
 			report += ou->getIdentity().setCheat(ou->getClientBase(), aCheatString, aBadClient);
 		}
 		if (aRawCommand != -1)
+		{
 			sendRawCommand(*ou.get(), aRawCommand);
-			
+		}
+		
 		client = &(ou->getClient());
 	}
-	client->updated(ou);
+	//client->updatedMyINFO(ou); // Не шлем обновку подписчикам!
 	cheatMessage(client, report);
 }
 

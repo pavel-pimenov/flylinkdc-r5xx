@@ -2228,13 +2228,7 @@ void File_Riff::AVI__idx1()
     //Interleaved
     size_t Pos0=0;
     size_t Pos1=0;
-// r502-beta56-build-11159
-// TTH = AWYFT4WLM32FDKQHVMKG3WHKT233FBV2L32PC6A
-// File size = 733769728
-// https://www.box.net/shared/nekt4espg38mw85dtoex
     for (std::map<int64u, stream_structure>::iterator Temp=Stream_Structure.begin(); Temp!=Stream_Structure.end(); ++Temp) 
-		// 2012-04-29_06-52-32_SGH2EQR6D43M3AFQ65KE46WE3T7MGAS5NFOIY5Q_1A684C55_crash-stack-r502-beta23-build-9860.dmp
-		// 2012-05-27_11-49-06_GQBCCK4HYBSVBDZS5S2QQWCVGNWAMEXQZNAEJPI_5D2B17C8_crash-stack-r409-x64-build-10123.dmp
     {
         switch (Temp->second.Name)
         {

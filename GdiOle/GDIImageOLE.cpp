@@ -37,8 +37,7 @@ void CGDIImageOle::FinalRelease()
 			m_bRegistered = false;
 		}
 		m_pImage->DeleteBackDC(m_hBackDC);
-		safe_release(m_pImage); // 2012-04-29_06-52-32_BTPAS5FP5NHF35MEDXSJLAP2FMPZZUNVZPP7OHI_C82D3EC7_crash-stack-r502-beta23-build-9860.dmp
-		// 2012-04-29_13-38-26_N2EWLJOVS7WSSPFKP47PAXNR67YFEMML2ZWULSI_6D8B134B_crash-stack-r501-build-9869.dmp
+		safe_release(m_pImage); 
 	}
 	
 	//DeleteCriticalSection(&m_csAdviseSink);
@@ -65,7 +64,7 @@ static DefinedTestRectValue TestRectInRect(RECT *pRect1, RECT *pRect2)
 HRESULT CGDIImageOle::FireViewChangeEx(BOOL bEraseBackground)
 {
 	dcassert(!CGDIImage::isShutdown());
-	HRESULT Res = S_OK;	
+	HRESULT Res = S_OK;
 	if (m_bInPlaceActive)
 	{
 		// Active
@@ -99,12 +98,12 @@ HRESULT CGDIImageOle::FireViewChangeEx(BOOL bEraseBackground)
 			m_spClientSite->QueryInterface(__uuidof(IOleInPlaceSite), (void **)&spInPlaceSite);
 			
 			HWND hwndParent = NULL;
-
-			if (spInPlaceSite && 
-				spInPlaceSite->GetWindow(&hwndParent) == S_OK && 
-				hwndParent && // http://code.google.com/p/flylinkdc/issues/detail?id=1266
-				::GetParent(hwndParent) == g_ActiveMDIWindow) // Чуток быстрее и проще добраться чем MDIGetActive()
-                                
+			
+			if (spInPlaceSite &&
+			        spInPlaceSite->GetWindow(&hwndParent) == S_OK &&
+			        hwndParent && // http://code.google.com/p/flylinkdc/issues/detail?id=1266
+			        ::GetParent(hwndParent) == g_ActiveMDIWindow) // Чуток быстрее и проще добраться чем MDIGetActive()
+			        
 			{
 				OLEINPLACEFRAMEINFO frameInfo;
 				IOleInPlaceFrame *pInPlaceFrame = nullptr;
@@ -171,7 +170,7 @@ HRESULT CGDIImageOle::FireViewChangeEx(BOOL bEraseBackground)
 
 STDMETHODIMP CGDIImageOle::put_SetImage(CGDIImage *pImage, COLORREF clrBack, HWND hCallbackWnd, DWORD dwUpdateMsg)
 {
-        dcassert(!CGDIImage::isShutdown());
+	dcassert(!CGDIImage::isShutdown());
 	if (m_pImage)
 		return S_FALSE;
 		
@@ -206,7 +205,7 @@ STDMETHODIMP CGDIImageOle::put_SetImage(CGDIImage *pImage, COLORREF clrBack, HWN
 
 bool CGDIImageOle::OnFrameChanged(CGDIImage *pImage, LPARAM lParam)
 {
-        dcassert(!CGDIImage::isShutdown());
+	dcassert(!CGDIImage::isShutdown());
 	CGDIImageOle *pGDIImage = (CGDIImageOle *)lParam;
 	return pGDIImage->FireViewChangeEx(FALSE) == S_OK;
 }

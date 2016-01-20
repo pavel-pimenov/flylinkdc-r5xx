@@ -847,15 +847,8 @@ void QueueItem::getPartialInfoL(PartsInfo& p_partialInfo, uint64_t p_blockSize) 
         {
             case 0:
                 if (downloads.size())
-                    p_segments.reserve(downloads.size()); // 2012-05-03_22-05-14_U4TZSIYHFC32XEVTFRRT6A5T746QRL3VBVRZ6OY_6B53F172_crash-stack-r502-beta24-x64-build-9900.dmp
+                    p_segments.reserve(downloads.size()); 
                 for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
-                    // 2012-04-23_22-36-14_X3Q2BSS4NNE6QDKD5RNWCORZL2KFQOXQL4VXCRI_049FD0A1_crash-stack-r501-x64-build-9812.dmp
-                    // 2012-05-03_22-00-59_NAYCMEFHSDE42EDMGZCWHXJC4A4OGLBHWPGV2PQ_BB76317B_crash-stack-r502-beta24-build-9900.dmp
-                    // _Xlength_error 2012-04-29_13-46-19_NIYJPY3EGH5A52BBBL7EXAFJSHKQMHNCLAGJXFI_3B603F6D_crash-stack-r501-x64-build-9869.dmp
-                    // no_mem  2012-04-29_13-46-19_DSYQLU4LP7CX6GDDAJ2UFRPXE3X3PHVA4OOCMGQ_F85B2675_crash-stack-r501-x64-build-9869.dmp
-                    // 2012-05-11_23-57-17_U4TZSIYHFC32XEVTFRRT6A5T746QRL3VBVRZ6OY_07BE60FA_crash-stack-r502-beta26-x64-build-9946.dmp
-                    // 2012-05-11_23-53-01_PODAVNOJYU3ELXDKZYXRGXDKKYFAE5Z6JB4FQMY_A49C5274_crash-stack-r502-beta26-build-9946.dmp
-                    // 2012-06-09_18-19-42_WXKSUZGUF5NOB2HT6HGGWK5OJNXJNY77A4Q2KHY_27F77588_crash-stack-r501-x64-build-10294.dmp
                 {
                     p_segments.push_back((*i)->getSegment());
                 }

@@ -1355,7 +1355,7 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 				{
 					PROFILE_THREAD_SCOPED_DESC("HubFrame::updateUser-update")
 					m_needsResort |= ui->is_update(m_ctrlUsers->getSortColumn());
-					const int pos = m_ctrlUsers->findItem(ui); // TODO 2012-04-18_11-17-28_X543EFD4NB3G3HWBA6SW4KHRQKUBPK5V5S7ZMGY_803AF4F1_crash-stack-r502-beta18-build-9768.dmp
+					const int pos = m_ctrlUsers->findItem(ui); 
 					if (pos != -1)
 					{
 					
@@ -1768,6 +1768,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					m_needsUpdateStats |= updateUser(u.m_ou, COLUMN_DESCRIPTION);
 				}
 				break;
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 				case UPADTE_COLUMN_SHARE:
 				{
 					const OnlineUserTask& u = static_cast<OnlineUserTask&>(*i->second);
@@ -1775,6 +1776,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					m_needsUpdateStats |= updateUser(u.m_ou, COLUMN_SHARED); // TODO  передать второй параметр
 				}
 				break;
+#endif
 				case UPDATE_COLUMN_MESSAGE:
 				{
 					const OnlineUserTask& u = static_cast<OnlineUserTask&>(*i->second);
@@ -2416,7 +2418,7 @@ void HubFrame::storeColumsInfo()
 			CFlyLock(g_frames_cs);
 			if (g_frames.size() == 1 || ClientManager::isStartup() == false) // —охран€ем только на последней итерации, или когда не закрываем приложение.
 			{
-				FavoriteManager::getInstance()->save();
+				FavoriteManager::save();
 			}
 		}
 	}
@@ -3157,7 +3159,7 @@ LRESULT HubFrame::onEnterUsers(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*bHand
 	{
 		try
 		{
-			QueueManager::getInstance()->addList(HintedUser((m_ctrlUsers->getItemData(item))->getUser(), getHubHint()), QueueItem::FLAG_CLIENT_VIEW); // TODO 2012-04-18_11-27-14_HBPJ2TOADS52IGWM7DSZBKMA5DX2ISVTKV3WYNI_E341CD83_crash-stack-r502-beta18-x64-build-9768.dmp
+			QueueManager::getInstance()->addList(HintedUser((m_ctrlUsers->getItemData(item))->getUser(), getHubHint()), QueueItem::FLAG_CLIENT_VIEW);
 		}
 		catch (const Exception& e)
 		{
@@ -3444,6 +3446,7 @@ void HubFrame::on(ClientListener::UserDescUpdated, const OnlineUserPtr& user) no
 		speak(UPADTE_COLUMN_DESC, user);
 	}
 }
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 void HubFrame::on(ClientListener::UserShareUpdated, const OnlineUserPtr& user) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
@@ -3452,8 +3455,9 @@ void HubFrame::on(ClientListener::UserShareUpdated, const OnlineUserPtr& user) n
 		speak(UPADTE_COLUMN_SHARE, user);
 	}
 }
+#endif
 
-void HubFrame::on(ClientListener::UserUpdated, const OnlineUserPtr& user) noexcept   // !SMT!-fix
+void HubFrame::on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr& user) noexcept   // !SMT!-fix
 {
 	// TODO - добавить команду первого входа юзера
 	// dcassert(!ClientManager::isShutdown());
@@ -3470,7 +3474,7 @@ void HubFrame::on(ClientListener::UserUpdated, const OnlineUserPtr& user) noexce
 		speak(UPDATE_USER_JOIN, user);
 #endif
 #ifdef _DEBUG
-//		LogManager::message("[single OnlineUserPtr] void HubFrame::on(ClientListener::UserUpdated nick = " + user->getUser()->getLastNick() + " this = " + Util::toString(__int64(this)));
+//		LogManager::message("[single OnlineUserPtr] void HubFrame::on(ClientListener::UserUpdatedMyINFO nick = " + user->getUser()->getLastNick() + " this = " + Util::toString(__int64(this)));
 #endif
 #ifdef FLYLINKDC_USE_CHAT_BOT
 		ChatBot::getInstance()->onUserAction(BotInit::RECV_UPDATE, user->getUser());

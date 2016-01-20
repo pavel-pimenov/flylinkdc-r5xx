@@ -396,6 +396,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 						{
 							cqi->setState(ConnectionQueueItem::CONNECTING);
 							
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 							if (BOOLSETTING(AUTO_PASSIVE_INCOMING_CONNECTIONS))
 							{
 								cqi->m_count_waiting++;
@@ -405,11 +406,15 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 							{
 								cqi->m_is_force_passive = false;
 							}
-							
+#endif
 							
 							ClientManager::getInstance()->connect(cqi->getHintedUser(),
 							                                      cqi->getConnectionQueueToken(),
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 							                                      cqi->m_is_force_passive,
+#else
+							                                      false,
+#endif
 							                                      cqi->m_is_active_client // <- Out param!
 							                                     );
 							fly_fire1(ConnectionManagerListener::ConnectionStatusChanged(), cqi);
@@ -417,14 +422,18 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 						}
 						else
 						{
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 							cqi->m_count_waiting = 0;
+#endif
 							cqi->setState(ConnectionQueueItem::NO_DOWNLOAD_SLOTS);
 							fly_fire2(ConnectionManagerListener::Failed(), cqi, STRING(ALL_DOWNLOAD_SLOTS_TAKEN));
 						}
 					}
 					else if (cqi->getState() == ConnectionQueueItem::NO_DOWNLOAD_SLOTS && startDown)
 					{
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 						cqi->m_count_waiting = 0;
+#endif
 						cqi->setState(ConnectionQueueItem::WAITING);
 					}
 				}
@@ -433,6 +442,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 					ClientManager::getInstance()->connectionTimeout(cqi->getUser());
 					
 					cqi->setErrors(cqi->getErrors() + 1);
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 					if (cqi->m_count_waiting > 2)
 					{
 						fly_fire2(ConnectionManagerListener::Failed(), cqi, STRING(CONNECTION_TIMEOUT)); // CONNECTION_DID_NOT_WORK
@@ -441,6 +451,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 						// l_removed.push_back(cqi);
 					}
 					else
+#endif
 					{
 						fly_fire2(ConnectionManagerListener::Failed(), cqi, STRING(CONNECTION_TIMEOUT));
 						cqi->setState(ConnectionQueueItem::WAITING);

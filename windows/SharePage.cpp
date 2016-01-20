@@ -334,7 +334,7 @@ void SharePage::addDirectory(const tstring& aPath)
 		LineDlg virt;
 		virt.title = TSTRING(VIRTUAL_NAME);
 		virt.description = TSTRING(VIRTUAL_NAME_LONG);
-		virt.line = Text::toT(ShareManager::getInstance()->validateVirtual(
+		virt.line = Text::toT(ShareManager::validateVirtual(
 		                          Util::getLastDir(Text::fromT(path))));
 		if (virt.DoModal(m_hWnd) == IDOK)
 		{

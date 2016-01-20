@@ -66,8 +66,10 @@ class ConnectionQueueItem
 		ConnectionQueueItem(const HintedUser& aHintedUser, bool aDownload, const string& aToken) :
 			m_connection_queue_token(aToken),
 			lastAttempt(0),
-			errors(0), state(WAITING), m_is_download(aDownload), m_hinted_user(aHintedUser),
-			m_count_waiting(0), m_is_active_client(false), m_is_force_passive(false)
+			errors(0), state(WAITING), m_is_download(aDownload), m_hinted_user(aHintedUser), m_is_active_client(false)
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
+			, m_count_waiting(0), m_is_force_passive(false)
+#endif
 		{
 		}
 		const string& getConnectionQueueToken() const
@@ -78,9 +80,11 @@ class ConnectionQueueItem
 		GETSET(int, errors, Errors); // Number of connection errors, or -1 after a protocol error
 		GETSET(State, state, State);
 		//GETSET(string, hubUrl, HubUrl); // TODO - пока не доконца работает и не везде прокидывается
-		unsigned short m_count_waiting;
 		bool m_is_active_client;
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
+		unsigned short m_count_waiting;
 		bool m_is_force_passive;
+#endif
 		bool isDownload() const
 		{
 			return m_is_download;
@@ -93,6 +97,7 @@ class ConnectionQueueItem
 		{
 			return m_hinted_user;
 		}
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 		void addAutoPassiveStatus(string& p_status) const
 		{
 			if (m_count_waiting > 1)
@@ -100,6 +105,7 @@ class ConnectionQueueItem
 				p_status += " (count: " + Util::toString(m_count_waiting) + ")";
 			}
 		}
+#endif
 		
 	private:
 		const string m_connection_queue_token;

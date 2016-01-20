@@ -325,7 +325,7 @@ void DirectoryListingFrame::updateTree(DirectoryListing::Directory* aTree, HTREE
 				throw AbortException(STRING(ABORT_EM));
 			}
 			
-			tstring name = Text::toT((*i)->getName()); // 2012-04-29_06-52-32_N3Q2H3UJNJDFO5S756HDN37HCS7EYEXQEHWMJKA_B3975CEC_crash-stack-r502-beta23-build-9860.dmp
+			tstring name = Text::toT((*i)->getName()); 
 			
 			// Определяем иконку для папки
 			const auto typeDirectory = GetTypeDirectory(*i);
@@ -818,7 +818,7 @@ void DirectoryListingFrame::downloadList(const tstring& aTarget, bool view /* = 
 	{
 		const ItemInfo* ii = ctrlList.getItemData(i);
 		
-		const tstring& target = aTarget.empty() ? Text::toT(FavoriteManager::getInstance()->getDownloadDirectory(Text::fromT(Util::getFileExt(ii->getText(COLUMN_FILENAME))))) : aTarget;
+		const tstring& target = aTarget.empty() ? Text::toT(FavoriteManager::getDownloadDirectory(Text::fromT(Util::getFileExt(ii->getText(COLUMN_FILENAME))))) : aTarget;
 		
 		try
 		{
@@ -1822,7 +1822,7 @@ void DirectoryListingFrame::runUserCommand(UserCommand& uc)
 		
 		StringMap tmp = ucParams;
 		const UserPtr tmpPtr = dl->getUser();
-		ClientManager::getInstance()->userCommand(dl->getHintedUser(), uc, tmp, true);
+		ClientManager::userCommand(dl->getHintedUser(), uc, tmp, true);
 	}
 }
 

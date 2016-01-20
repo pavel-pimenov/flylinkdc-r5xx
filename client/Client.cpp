@@ -575,6 +575,11 @@ void Client::disconnect(bool p_graceLess)
 	}
 }
 
+void Client::updatedMyINFO(const OnlineUserPtr& aUser)
+{
+	fly_fire1(ClientListener::UserUpdatedMyINFO(), aUser);
+}
+
 string Client::getLocalIp() const
 {
 	// [!] IRainman fix:
@@ -625,7 +630,7 @@ uint64_t Client::search_internal(const SearchParamToken& p_search_param)
 	if (m_searchQueue.m_interval)
 	{
 		Search s;
-		s.m_is_force_passive = p_search_param.m_is_force_passive;
+		s.m_is_force_passive_searh = p_search_param.m_is_force_passive_searh;
 		s.m_fileTypes_bitmap = p_search_param.m_file_type; // TODO - проверить что тут все ок?
 		s.m_size     = p_search_param.m_size;
 		s.m_query    = p_search_param.m_filter;
@@ -647,7 +652,7 @@ uint64_t Client::search_internal(const SearchParamToken& p_search_param)
 	l_search_param_token.m_file_type = p_search_param.m_file_type;
 	l_search_param_token.m_size = p_search_param.m_size;
 	l_search_param_token.m_filter = p_search_param.m_filter;
-	l_search_param_token.m_is_force_passive = p_search_param.m_is_force_passive;
+	l_search_param_token.m_is_force_passive_searh = p_search_param.m_is_force_passive_searh;
 	l_search_param_token.m_ext_list = p_search_param.m_ext_list;
 	l_search_param_token.m_owner = p_search_param.m_owner; // Раньше тут его не было.
 	search_token(l_search_param_token);
@@ -706,7 +711,7 @@ void Client::on(Second, uint64_t aTick) noexcept
 			l_search_param_token.m_file_type = Search::TypeModes(s.m_fileTypes_bitmap);
 			l_search_param_token.m_size = s.m_size;
 			l_search_param_token.m_filter = s.m_query;
-			l_search_param_token.m_is_force_passive = s.m_is_force_passive;
+			l_search_param_token.m_is_force_passive_searh = s.m_is_force_passive_searh;
 			l_search_param_token.m_ext_list = s.m_ext_list;
 			l_search_param_token.m_owner = nullptr;
 			search_token(l_search_param_token);
@@ -1022,9 +1027,9 @@ bool Client::NmdcPartialSearch(const SearchParam& p_search_param)
 			try
 			{
 				AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
-				SearchManager::getInstance()->toPSR(cmd, true, getMyNick(), getIpPort(), aTTH.toBase32(), partialInfo);
-				Socket udp;
-				udp.writeTo(Socket::resolve(l_ip), l_port, cmd.toString(ClientManager::getMyCID())); // TODO - зачем тут resolve кроме IP может быть что-то другое?
+				SearchManager::toPSR(cmd, true, getMyNick(), getIpPort(), aTTH.toBase32(), partialInfo);
+				Socket l_udp;
+				l_udp.writeTo(Socket::resolve(l_ip), l_port, cmd.toString(ClientManager::getMyCID())); // TODO - зачем тут resolve кроме IP может быть что-то другое?
 				
 				COMMAND_DEBUG("[NmdcPartialSearch]" + cmd.toString(ClientManager::getMyCID()), DebugTask::CLIENT_OUT,  l_ip + ':' + Util::toString(l_port));
 				

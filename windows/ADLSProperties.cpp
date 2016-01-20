@@ -41,15 +41,10 @@ LRESULT ADLSProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	
 	cRaw.Attach(GetDlgItem(IDC_ADLSEARCH_RAW_ACTION));
 	cRaw.AddString(CTSTRING(NO_ACTION));
-	\
 	cRaw.AddString(Text::toT(SETTING(RAW1_TEXT)).c_str());
-	\
 	cRaw.AddString(Text::toT(SETTING(RAW2_TEXT)).c_str());
-	\
 	cRaw.AddString(Text::toT(SETTING(RAW3_TEXT)).c_str());
-	\
 	cRaw.AddString(Text::toT(SETTING(RAW4_TEXT)).c_str());
-	\
 	cRaw.AddString(Text::toT(SETTING(RAW5_TEXT)).c_str());
 	cRaw.SetCurSel(search->raw);
 	

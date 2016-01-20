@@ -1202,8 +1202,6 @@ bool Identity::isFantomIP() const
 	return false;
 }
 
-
-
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 User::DefinedAutoBanFlags User::hasAutoBan(Client *p_Client, const bool p_is_favorite)
 {

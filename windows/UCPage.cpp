@@ -76,8 +76,8 @@ LRESULT UCPage::onAddMenu(WORD , WORD , HWND , BOOL&)
 	
 	if (dlg.DoModal() == IDOK)
 	{
-		addEntry(FavoriteManager::getInstance()->addUserCommand(dlg.type, dlg.ctx,
-		                                                        0, Text::fromT(dlg.name), Text::fromT(dlg.command), "", Text::fromT(dlg.hub)), ctrlCommands.GetItemCount());
+		addEntry(FavoriteManager::addUserCommand(dlg.type, dlg.ctx,
+		                                         0, Text::fromT(dlg.name), Text::fromT(dlg.command), "", Text::fromT(dlg.hub)), ctrlCommands.GetItemCount());
 	}
 	return 0;
 }

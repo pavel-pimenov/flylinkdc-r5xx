@@ -58,6 +58,7 @@ void CFlyDHThttpChecker::execute(const string& p_url)
 	CFlyHTTPDownloader l_http_downloader;
 	// TODO if (SettingsManager::g_TestUDPDHTLevel == true)
 	l_http_downloader.getBinaryDataFromInet(p_url, l_data, 1000);
+	LogManager::message("CFlyDHThttpChecker::execute - result byte: " + Util::toString(l_data.size()) + " URl = " + p_url);
 }
 
 void BootstrapManager::dht_live_check(const char* p_operation, const string& p_param)
@@ -129,14 +130,18 @@ string BootstrapManager::create_url_for_dht_server()
 }
 bool BootstrapManager::bootstrap()
 {
+	string l_url;
 	if (g_user_agent.empty())
 	{
-		create_url_for_dht_server();
+		l_url = create_url_for_dht_server();
 	}
 	if (g_bootstrapNodes.empty())
 	{
 		CFlyLog l_dht_log("[DHT]");
-		const string l_url = create_url_for_dht_server();
+		if (l_url.empty())
+		{
+			l_url = create_url_for_dht_server();
+		}
 		auto& l_check_spam = g_dht_bootstrap_count[l_url];
 		const auto l_tick = GET_TICK();
 		if (l_check_spam.second.m_tick)

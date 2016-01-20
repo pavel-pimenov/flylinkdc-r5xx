@@ -395,7 +395,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 				for (auto i  = cur->directories.cbegin(); i != cur->directories.cend(); ++i)
 				{
 					/// @todo comparisons should be case-insensitive but it takes too long - add a cache
-					if ((*i)->getName() == l_file_name) // 2012-05-03_22-00-59_4VI7DMJ7TF5ACPEQLDFERQRFILMVMSHBJBEWDNI_D84240F5_crash-stack-r502-beta24-build-9900.dmp
+					if ((*i)->getName() == l_file_name) 
 					{
 						d = *i;
 						if (!d->getComplete())

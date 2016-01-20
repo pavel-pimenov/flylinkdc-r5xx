@@ -17,7 +17,6 @@
 		<String Name="Add2">Дадаць</String>
 		<String Name="Added">Дадалі</String>
 		<String Name="AddingMagnetLink">Дадаць маґніт-спасылку</String>
-		<String Name="AddressForUpdateError">хібны (ці пусты) адрас абнаўленьняў.</String>
 		<String Name="AddAsSource">Дадаць як крыніцу</String>
 		<String Name="AddLimit">Абмежаваньне хуткасьці</String>
 		<String Name="AddSlots">Колькасьць шчылінаў</String>
@@ -35,43 +34,6 @@
 		<String Name="AdlsSizeMin">Найменшы,</String>
 		<String Name="AdlsType">Від крыніцы</String>
 		<String Name="AdlsUnits">памер; адзінкі:</String>
-		<String Name="AdlBrief">Самарушны пошук дазваляе хутка шукаць у пераліках каталёґаў, што спампоўваюцца з карыстальнікаў. 
-Стварыце новы самарушны пошук: упішыце, напрыклад, «.avi» як радок, які трэба шукаць. 
-Калі вы спампуеце пералік каталёґаў, усе файлы «AVI», каб іх было хутчэй знайсьці, 
-адлюструюцца ў каталёґу з назваю &lt;&lt;&lt;ADLSearch&gt;&gt;&gt;. Гэта прыкладна тое самае, што 
-звычайным чынам некалькі разоў шукаць у каталёґах. 
-
-Адмысловыя можнасьці: 
-1. Птушачка «Дзейнічае» паказвае, ці выкарыстоўваецца гэты пошук. 
-2. «Від крыніцы» можа быць наступным: 
-     «Назва файла» — шукаем у назвах файлаў,
-
-    «Каталёґ» — шукаем у назвах каталёґаў (у сьпісе адлюструецца ўвесь каталёг з падкаталёгамі), 
-     «Поўны шлях» — шукаем у назвах і файлаў, і каталёґаў. 
-3. «Прызначаны каталёґ» вызначае каталёґ на вынікі пошуку. Можа быць некалькі каталёґаў 
- з рознымі назвамі. 
-4. «Найменшы, найбольшы памер» абмяжоўвае памеры файлаў. Не ўплывае, калі шукаем каталёґі. 
-5. «Вышэй» і «Ніжэй» можна выкарыстоўваць, каб ладзіць сьпіс пошукаў. 
-
-У выплыўным мэню (выклікаецца правым пстрыкам) зьявілася новая можнасьць:   
-«Перайсьці ў каталёґ». Гэта можна выкарыстоўваць, каб пераскокваць у першапачатковае разьмешчаньне файла ці каталёґа. 
-
-Дадатковыя магчымасьці:
-
-1. «%y.%m.%d», упісанае ў поле пошуку, будзе замяняцца на сёньняшнюю дату.   
-Каб зьмяніць падмену, можна ўпісаць y/m/d, — ці пакінуць частку пустою.  
-«%[nick]» будзе замяняцца на мянушку карыстальніка, зь якога спампавалі пералік каталёґаў. 
-
-2. Калі назваць каталёґ «discard», ён ня будзе паказвацца ў агульным выніку. 
-Гэта карысна з магчымасьцю № 3, каб пазбаўляцца нецікавых вынікаў. 
-
-3. Калі паглядзець у «Налады» → «Адмысловыя», можна ўбачыць птушачку «Спыняць
-
-самарушна шукаць па першым супадзеньні», якая робіць так, каб спыняліся шукаць адразу, 
-як знайшлі вызначаны файл ці каталёґ. 
-Таму важна сачыць за пасьлядоўнасьцю ў вакне самарушнага пошуку. Да прыкладу, 
-можна дадаць наверх сьпісу пошук з радком=«xxx» і прызначэньнем=«discard».   
-Такім чынам зловяцца непрыстойныя файлы, якія ня будуць улучацца ані ў які з пошукаў.</String>
 		<String Name="AdlSearch">Самарушна шукаць у пераліках каталёґаў</String>
 		<String Name="AdlTitle">Апісаньне самарушнага пошуку</String>
 		<String Name="Ago">таму</String>
@@ -84,8 +46,6 @@
 		<String Name="AllFileSlotsTaken">Усе шчыліны файлаў занятыя</String>
 		<String Name="AllUsersOffline">Усе (%d) карыстальнікі ня ў сетцы</String>
 		<String Name="AlreadyIgnored">Карыстальнік ужо ў сьпісе тых, каго не заўважаць!</String>
-		<String Name="AlreadyRunning">FlylinkDC++ ужо працуе ці яшчэ зачыняецца…
-Ці ўпэўненыя вы, што хочаце запусьціць яшчэ адзін асобнік праґрамы?</String>
 		<String Name="AlternatesSend">Шукаюцца крыніцы па скаротах для:</String>
 		<String Name="AlwaysAsk">Заўсёды спраўджаць гэта</String>
 		<String Name="Any">Па ўсіх</String>
@@ -102,7 +62,6 @@
 		<String Name="Audio">Гук</String>
 		<String Name="Auto">самарушна</String>
 		<String Name="AutobanHint">* Каб не выганяць, усё мусіць быць = 0</String>
-		<String Name="Automatic">самарушна</String>
 		<String Name="AutomaticSetupActivModeFailed">Не ўдалося самарушна наладзіць злучэньне дзейным спосабам. Мажліва, вы захочаце наладзіць злучэньне самастойна для лепшае сувязі</String>
 		<String Name="Autoupdate">Абнаўленьне:</String>
 		<String Name="AutoupdateCancel">Скасаваў карыстальнік</String>
@@ -121,7 +80,6 @@
 		<String Name="AutoupdateDownloadUpdateonexit">Яны ўсталююцца па выхадзе з праґрамы.</String>
 		<String Name="AutoupdateEmopacks">Наборы пачуцьцезнакаў</String>
 		<String Name="AutoupdateEnable">Абнаўляць самарушна</String>
-		<String Name="AutoupdateError">Не ўдалося абнавіць «FlylinkDC++»</String>
 		<String Name="AutoupdateErrorStartFlyupdateFailed">Прылада «FlyUpdate» не запусьцілася. Памылка:</String>
 		<String Name="AutoupdateErrorUpdateFile">Далі хібу, калі абнаўлялі файл:</String>
 		<String Name="AutoupdateExe">Выканальныя файлы</String>
@@ -147,7 +105,6 @@
 		<String Name="AutoupdateUpdateChatbot">Пакункі ботаў гутаркі</String>
 		<String Name="AutoupdateUpdateIgnoreButton">Чакаць наступнага</String>
 		<String Name="AutoupdateUpdateNowButton">Абнавіць зараз</String>
-		<String Name="AutoupdateUpdateUnknown">Абнаўляць невядомыя складнікі</String>
 		<String Name="AutoupdateUrlLabel">Паслужнік абнаўленьняў</String>
 		<String Name="AutoupdateUseCustomUrl">Ужываць іншы паслужнік абнаўленьняў</String>
 		<String Name="AutoupdateUtilities">Прылады</String>
@@ -159,7 +116,6 @@
 		<String Name="AutoGrantNick">Даваць шчыліну / Мянушка</String>
 		<String Name="AutoGrant">Дадаваць шчыліну</String>
 		<String Name="AverageUpload">Хуткасьць запампоўваць</String>
-		<String Name="AvCheckThisFile">Спраўджаны супрацьвірусам</String>
 		<String Name="Away">Адсутнічаю</String>
 		<String Name="AwayModeOff">Выйшлі са стану «адсутнічаю»</String>
 		<String Name="AwayModeOn">Перайшлі ў стан «адсутнічаю»:</String>
@@ -178,8 +134,6 @@
 		<String Name="BanStealth">Выганяць цішком</String>
 		<String Name="BanUser">Выгнаць карыстальніка</String>
 		<String Name="BbcodePanelBold">Тлусты</String>
-		<String Name="BbcodePanelEmoticons">Пачуцьцезнакі
-(Правая кнопка абірае пакунак усьмешак)</String>
 		<String Name="BbcodePanelItalic">Нахілены</String>
 		<String Name="BbcodePanelMessagepanelsize">Шматрадковае поле ўводу</String>
 		<String Name="BbcodePanelSendmessage">Даслаць паведамленьне</String>
@@ -188,7 +142,6 @@
 		<String Name="BbcodePanelUnderline">Падкрэсьлены</String>
 		<String Name="BbcodePanelColor">Колер</String>
 		<String Name="Bitrate">Бітаў за сэкунду</String>
-		<String Name="BitziLookup">Bitzi-пошук</String>
 		<String Name="BlendOfflineSearch">Зьмешваць вынікі пошуку ў адлучаных</String>
 		<String Name="BlockedIncomingConn">Забаранілі ўваходнае злучэньне з </String>
 		<String Name="BothUsersOffline">Абодва карыстальнікі ня ў сетцы</String>
@@ -222,12 +175,9 @@
 		<String Name="ChatRefferingToNick">Ставіць пасьля звароту да мянушкі коску</String>
 		<String Name="CheatingDescription">Апісаньне ашуканства</String>
 		<String Name="CheatingUser">Знайшлі ашуканца</String>
-		<String Name="Checked">Дзейнічае</String>
 		<String Name="Check0byteShare">спраўджаць памер нулявога абагуленага</String>
 		<String Name="CheckFilelist">Спраўдзіць сьпіс файлаў</String>
 		<String Name="CheckForbidden">Абагуліў забаронены файл: %s</String>
-		<String Name="CheckForbiddenDir">Спроба абагуліць забаронены каталёґ: %s.
-Не абагуляйце каталёґ «%s».</String>
 		<String Name="CheckInflated">сьпіс файлаў надзьмуўся ў %s раз(ы,оў)</String>
 		<String Name="CheckMismatchedShareSize">Неадпаведны памер абагуленага</String>
 		<String Name="CheckOnConnect">Спраўджаць карыстальнікаў на ўваходзе</String>
@@ -244,7 +194,6 @@
 		<String Name="ClientProfileNowUpdated">Абнавілі профілі кліентаў.</String>
 		<String Name="Close">Зачыніць</String>
 		<String Name="CloseConnection">Скончыць злучэньне</String>
-		<String Name="CloseHot">Зачыніць	Ctrl+W</String>
 		<String Name="CmdAwayMsg">Задзейнічаць стан «адсутнічаю» з канкрэтным (паведамленьнем) ці не</String>
 		<String Name="CmdClearChat">Ачысьціць вакно гутаркі</String>
 		<String Name="CmdCloseWnd">Зачыніць дзейнае вакно</String>
@@ -268,10 +217,8 @@
 		<String Name="CmdFavHub">Дадаць асяродак (або карыстальніка, калі ў асабістай размове) да ўлюбёных</String>
 		<String Name="CmdFavJoins">Паказваць, калі ўваходзяць або выходзяць улюбёнцы, ці не</String>
 		<String Name="CmdFavUser">Дадаць (карыстальніка) да ўлюбёнцаў</String>
-		<String Name="CmdFirstLine">					 ДАПАМОГА 								</String>
 		<String Name="CmdFlylinkdc">Надрукаваць у гутарцы вэрсію праґрамы</String>
 		<String Name="CmdGetlist">Атрымаць сьпіс файлаў карыстальніка «user»</String>
-		<String Name="CmdHelpInfo">		Каб даведацца болей, завітайце на форумы «FlylinkDC++» («Дапамога» → «Форумы»)</String>
 		<String Name="CmdIgnorelist">Паказваць у гутарцы сьпіс незаўважа́ных</String>
 		<String Name="CmdJoinHub">Увайсьці на асяродак з адрасам #</String>
 		<String Name="CmdMe">Сказаць ад трэцяе асобы</String>
@@ -300,34 +247,6 @@
 		<String Name="ColorOp">Апэратар</String>
 		<String Name="ColorPasive">Нядзейны карыстальнік</String>
 		<String Name="ColorServer">Карыстальнік з паслужніком</String>
-		<String Name="CommandDescription">Віды загадаў:
- Аддзяляльнік: дадае аддзяляльнік да мэню
- Наўпроставы: дасылае наўпроставы загад асяродку (толькі для знаўцаў; загад мусіць канчацца знакам «|»)
- Гутарка: дасылае загад так, быццам бы вы набралі яго ў гутарцы
- Паведамленьне: дасылае загад як асабістае паведамленьне
-Дзе загад можа ўжывацца (дзе ён паказваецца):
- Мэню асяродку: выплыўное мэню (правы пстрык) карткі асяродку (ўнізе экрану)
- Мэню карыстальніка: выплыўное мэню гутаркі (правы пстрык па мянушцы карыстальніка) ці карткі асабістага паведамленьня
- Мэню пошуку: выплыўное мэню знойдзенага файла
-Парамэтры:
- Назва: назва (знак «\» стварае падмэню)
- Загад: тэкст загаду (можа зьмяшчаць парамэтры)
- Асяродак: IP асяродку, дзе будзе ўжывацца (пуста = усе асяродкі, «op» — там, дзе вы апэратар)
- Каму: атрымальнік асабістага паведамленьня
- Адзін раз на кожную мянушку: дасылаць кожнаму карыстальніку са сьпісу толькі аднойчы
-У парамэтрах можна ўжываць вызначальнікі даты й часу (%Y, %m, …) і такія зьменныя:
- %[myNI]: вашая мянушка
- %[userNI]: мянушка карыстальніка *
- %[userTAG]: бірка карыстальніка *
- %[userDE]: апісаньне карыстальніка *
- %[userEM]: эл. пошта карыстальніка *
- %[userSS]: колькі байтаў (дакладна) абагуліў карыстальнік *
- %[userSSshort]: колькі абагуліў карыстальнік (прыкладна) *
- %[userI4]: IP карыстальніка (калі асяродак гэта падтрымвае)
- %[fileFN]: назва файла (толькі ў пошуку)
- %[line:тлумачэньне]: паказвае вакно, якое запытваецца ўвесьці «тлумачэньне»
-
-* Толькі ў пошуку ды для мянушкі ў гутарцы</String>
 		<String Name="CommandTooLong">Загад задаўгі</String>
 		<String Name="CommaNotFound">не знайшлі коску</String>
 		<String Name="Comment">Заўвага</String>
@@ -348,7 +267,7 @@
 		<String Name="ConnectionDetection">Самастойна выяўляць спосаб уваходных злучэньняў</String>
 		<String Name="ConnectionTimeout">Выйшаў час злучэньня</String>
 		<String Name="Connectivity">Злучэньне:</String>
-		<String Name="ConnectivityError">Памылка злучэньня:</String>
+		<String Name="ConnectivityError">Памылка злучэньня: </String>
 		<String Name="ConnectivityRestored">Злучэньне аднавілі</String>
 		<String Name="ConnectAll">Злучыцца з усімі карыстальнікамі</String>
 		<String Name="ConnectFavuserHub">Злучыцца з асяродкам</String>
@@ -390,14 +309,6 @@
 		<String Name="CustDesc">Настаўленьні апісаньня</String>
 		<String Name="CzdcRatiomsg">Шаблён паведамленьня суадносінаў</String>
 		<String Name="D">С:</String>
-		<String Name="DataBaseErrorString">
-Не ўдалося атрымаць доступ да базы зьвестак.
-Вышліце распрацоўцам (ppa74@ya.ru) тэкст памылкі або здымак экрана з памылкаю</String>
-		<String Name="DataBaseLockedString">
-Не ўдалося атрымаць доступ да базы зьвестак: файл базы «FlylinkDC_*.sqlite» замкнёны!
-Вызваліце базу зьвестак або вышліце распрацоўцам (ppa74@ya.ru) тэкст памылкі або здымак экрана з памылкаю
-
-Каб паспрабаваць яшчэ раз (тэрмін —5 сэк.), націсьніце «Добра»</String>
 		<String Name="Day">суткі</String>
 		<String Name="Days">сут.</String>
 		<String Name="DclstgenInfoborder">Зьвесткі файла DCLST</String>
@@ -427,7 +338,6 @@
 		<String Name="DefPasswordHint">Карыстальнік вырашыў не атрымваць асабістыя паведамленьні. Калі маеце пільную патрэбу, скарыстайце пароль «%[pm_pass]». Ня злоўжывайце: тых, хто будзе прасіць шчылінаў, павыганяюць, і яны застануцца навек у сьпісе незаўважаных і ня здолеюць нічога спампаваць, хоць бы й будуць стаяць у чарзе.</String>
 		<String Name="DefPasswordOkHint">Слушны пароль. Доступ адкрылі.</String>
 		<String Name="DeleteChecked">Сьціраць спраўджаныя сьпісы файлаў</String>
-		<String Name="DeleteFromFlyHashBlock">Выкрасьліць з Fly_hash_block…</String>
 		<String Name="DenyAll">Забараняць усё</String>
 		<String Name="DepthStr">Глыбіня:</String>
 		<String Name="Description">Апісаньне</String>
@@ -441,9 +351,6 @@
 		<String Name="DhtEnabled">DHT зноўку задзейнічалі</String>
 		<String Name="DhtFirewalledUdp">Стан: UDP празь сетказаслону</String>
 		<String Name="DhtOurUpdPortOpend">Падобна, што порт UDP ўжо адчынены</String>
-		<String Name="DhtWarning">Гэтая магчымасьць дазваляе спампоўваць з вонкавае сеткі і запампоўваць у вонкавую сетку. Карыстайцеся гэтым толькі тады, калі вы разумееце, што робіце.
-
-Ці задзейнічаць DHT?</String>
 		<String Name="Directory">Каталёґ</String>
 		<String Name="DirectoryAddError">Такі каталёґ (або назва каталёґа) ўжо існуе</String>
 		<String Name="DirectoryIsHidden">Схаваны каталёґ</String>
@@ -519,9 +426,6 @@
 		<String Name="ErrorGeneratingCertificate">Не ўдалося стварыць пасьведчаньне</String>
 		<String Name="ErrorGetTthStream">Не знайшлі скароту ў струмені NTFS, таму ён створыцца нанова:</String>
 		<String Name="ErrorHashing">Не ўдалося стварыць скарот: </String>
-		<String Name="ErrorMediainfoScan">Далі хібу, калі аглядалі файл «%s» бібліятэцы «MediaInfoLib»:
-с
-Калі магчыма, дашліце файл на аналіз па адрасе ppa74@ya.ru.</String>
 		<String Name="ErrorOnIpAutoUpdate">Не ўдалося самарушна абнавіць IP:</String>
 		<String Name="ErrorParse">Не ўдалося разабраць</String>
 		<String Name="ErrorString">Памылка</String>
@@ -574,7 +478,6 @@
 		<String Name="FilelistUnavailable">Сьпіс файлаў недаступны</String>
 		<String Name="Filename">Назва файла</String>
 		<String Name="Files">Файлы</String>
-		<String Name="Files2">файлаў</String>
 		<String Name="FileshareBorder">Абагуленыя файлы</String>
 		<String Name="FileshareIncFilelist">Далучыць адмысловае абагуленае ў сьпіс файлаў</String>
 		<String Name="FileshareReindex">Сварыць паказьнік</String>
@@ -602,9 +505,10 @@
 		<String Name="FinishedDownloads">Спампаванае</String>
 		<String Name="FinishedUpload">Запампавалі: %s да %s</String>
 		<String Name="FinishedUploads">Запампаванае</String>
-		<String Name="FlyServerRating">Ацэнка</String>
 		<String Name="FlyServerInform">Зьвесткі мэдыя</String>
 		<String Name="FlyServerInformView">Зірнуць звьесткі мэдыя</String>
+		<String Name="FlyHubCountry">Краіна</String>
+		<String Name="FlyHubCity">Горад</String>
 		<String Name="Flyupdate">Абнаўляльнік «FlylinkDC++»</String>
 		<String Name="FlyupdateCannotupdate">Не ўдалося самарушна абнавіць «FlylinkDC++». Спампуйце апошні пакунак усталяваньня праґрамы «FlylinkDC++» і запусьціце яго самастойна</String>
 		<String Name="FlyupdateCheckupdatebase">Запытваемся на абнаўленьні…</String>
@@ -627,14 +531,10 @@
 		<String Name="FreePmAccess">Вольны доступ да асабістых паведамленьняў</String>
 		<String Name="FtpSendHeader">Адпраўнік звалу стосу</String>
 		<String Name="FtpSendLink">Падрабязьней пра «звал»</String>
-		<String Name="FtpSendQuestion">Апошнім разам кліент аварыйна скончыў працаваць. Каб дапамагчы аўтарам знайсьці прычыну гэтага, раіцца даслаць сьціснуты файл.
-Гэты файл зьмяшчае толькі звал стосу («стэку») ды апісаньне памылкі.
-У файле няма ніякіх таемных зьвестак накшталт пароляў, адрасоў эл. пошты ці нумароў банкаўскіх картак.</String>
 		<String Name="FtpSendQuestion2">Ці сапраўды даслаць аварыйны звал стосу распрацоўцам?</String>
 		<String Name="FullFilelistNfo">Паказваць поўныя зьвесткі пра сьпісы файлаў у чарзе спампоўванага</String>
 		<String Name="Gb">ҐіБ</String>
 		<String Name="Gbps">ҐіБ/с</String>
-		<String Name="GdiPlusTabs">Аздабляць карткі як у GDI+</String>
 		<String Name="GenerateCertificates">Стварыць пасьведчаньні</String>
 		<String Name="GetFileList">Атрымаць сьпіс файлаў</String>
 		<String Name="GetIp">Паспрабаваць порт і атрымаць адрас IP</String>
@@ -660,11 +560,6 @@
 		<String Name="GroupsPrivateCheckbox">Пазначыць усе асяродкі гэтае суполкі адасобленымі</String>
 		<String Name="GroupsPropertiesField">Уласьцівасьці суполкі</String>
 		<String Name="GroupsRemovegroup">Выкрасьліць суполку</String>
-		<String Name="GroupsRemovenotify">асяродкі; ці выкрасьліць усе асяродкі таксама?
-
-Калі абраць «Так», усе гэтыя асяродкі выдаляцца!
-
-Калі абраць «Не», гэтыя асяродкі толькі перасунуцца ў пачатковую галоўную суполку.</String>
 		<String Name="GroupCustommenu">Іншае месца дадатковага мэню</String>
 		<String Name="H">А:</String>
 		<String Name="HashingFailed">Не ўдалося стварыць скароты:</String>
@@ -700,9 +595,6 @@
 		<String Name="HubListDownloaded">Спампавалі сьпіс асяродкаў…</String>
 		<String Name="HubListEdit">Рэдаґаваць сьпіс асяродкаў</String>
 		<String Name="HubListLoadedFromCache">Сьпіс асяродкаў прачыталі са сховішча…</String>
-		<String Name="HubListWarning">Калі вы адчыняеце вакно «Асяродкі сеціва», вы мусіце ведаць, што гэта можа змусіць перадаваць дадзеныя вонкі (у сеціва). Калі ваш тарыф абмяжоўвае ўваходнае перадаванае, гэта можа запаволіць доступ да вонкавых крыніцаў з прычыны абмежаванага парогу хуткасьці, або істотна павялічыць выдаткі на сеціва.
-
-Ці паказаць сьпіс асяродкаў?</String>
 		<String Name="HubName">Назва</String>
 		<String Name="HubSegments">Асяродак / часткі</String>
 		<String Name="HubTopic">Тэма асяродку: </String>
@@ -718,8 +610,6 @@
 		<String Name="AddToFavIgnorePm">Не зважаць на паведамленьні ад карыстальніка</String>
 		<String Name="IgnoreUserByName">Не заўважаць карыстальніка па імені</String>
 		<String Name="Incoming">уваходны</String>
-		<String Name="IncompatibleSoftwareFound">Знайшлі несумяшчальную праґраму: %s
-Кліент можа працаваць няўстойліва. Ці паказаць падрабязнасьці?</String>
 		<String Name="IncompleteFavHub">Адрас асяродку ня можа быць пустым.</String>
 		<String Name="IntegrationIfaceBtnAutostartAdd">Запускаць «FlylinkDC++» па запуску сыстэмы</String>
 		<String Name="IntegrationIfaceBtnAutostartRemove">Не запускаць «FlylinkDC++» па запуску сыстэмы</String>
@@ -753,53 +643,15 @@
 		<String Name="Ipguard">Вартавы IP (IPGuard)</String>
 		<String Name="IpguardDefaultPolicy">Што рабіць:</String>
 		<String Name="IpguardEnable">Вартаваць IP</String>
-		<String Name="IpguardIntro">Вартавы IP (IPGuard) забараняе толькі зламысныя прамежкі IP: ён ня можа замяніць сетказаслону ці іншыя праґрамныя сродкі бясьпекі сеціва!
-
-Перасьцярога: вартавы IP дзейнічае на ўсе злучэньні ў «FlylinkDC++»</String>
 		<String Name="IpAutoUpdate">IP абнаўляўся:</String>
 		<String Name="IpBare">Адрас IP</String>
 		<String Name="IpInChat">Спрабаваць паказваць IP карыстальнікаў у гутарцы</String>
 		<String Name="Items">Пунктаў</String>
 		<String Name="ItemExist">Пункт ужо існуе!</String>
-		<String Name="ItunesHelp">/itunes — каб спавяшчаць зьвесткі iTunes
-   %[version] — нумар вэрсіі (пр., 10.0.1.22)
-   %[album] — назва альбому песьні, якая грае
-   %[artist] — імя выканаўцы песьні
-   %[title] — назва таго, што зараз грае
-   %[genre] — жанр песьні
-   %[elapsed] — колькі часу мінула (хвіліны:сэкунды)
-   %[percent] — колькі часу мінула ў адсотках ад агульнай працягласьці
-   %[bar] — радок поступу (у ASCII), даўжыня — 10 знакаў бяз дужак (пр., [----|-----])
-   %[length] — поўная працягласьць дарожкі
-   %[bitrate] — колькасьць бітаў за сэкунду ў файле (кб/с)
-   %[frequency] — чашчыня файла (кГц)
-   %[year] — год, калі выпусьцілі ці запісалі дарожку
-   %[size] — памер файла, які граецца
-   %[state] — стан «iTunes» (грае ці спынены)
-
-Пуста = звычайны радок:
-
-+me listens %[artist] - %[title] • listened to %[percent] (%[length], %[bitrate], iTunes %[version])</String>
 		<String Name="ItunesHelpDesc">Дапамога па «iTunes»</String>
 		<String Name="ItunesNotPlay">У iTunes нічога не прайграецца</String>
 		<String Name="ItunesNotRun">Не запушчаная вэрсія iTunes, якая можа падтрымвацца</String>
 		<String Name="IDownloadedThisFile">Файл спампоўваўся</String>
-		<String Name="JaHelp">/ja — каб спавяшчаць зьвесткі JetAudio
-
-   %[filepath] — назва файла, што зараз грае
-   %[title] — назва таго, што зараз грае (без пашырэньня файла)
-   %[artist] — імя выканаўцы
-   %[state] — стан «JetAudio» (грае, прыпынены  ці спынены)
-   %[elapsed] — колькі часу мінула (хвіліны:сэкунды)
-   %[percent] — колькі часу мінула ў адсотках ад агульнай працягласьці
-   %[bar] — радок поступу (у ASCII), даўжыня — 10 знакаў бяз дужак (пр., [----|-----])
-   %[length] — поўная працягласьць файла
-   %[version] — вэрсія JetAudio
-   %[magnet] — маґніт-спасылка да файла (або назва файла, калі файл не абагулілі)
-
-Пуста = звычайны радок:
-
-+me listens %[artist] - %[title] * listened to %[percent], JetAudio %[version]</String>
 		<String Name="JaHelpDesc">Дапамога па «JetAudio»</String>
 		<String Name="JaNotRun">Не запушчаная вэрсія JetAudio, якая можа падтрымвацца</String>
 		<String Name="Joins">Уваходзіць:</String>
@@ -842,7 +694,6 @@
 		<String Name="LockToolbars">Замкнуць паліцы прыладаў</String>
 		<String Name="LoggingNotEnabledSystem">У справаздачу сыстэмы нічога не занатоўваецца.</String>
 		<String Name="LoggingNotEnabledWebserver">У справаздачу паслужніку сеціва нічога не занатоўваецца.</String>
-		<String Name="LogChat">Занатоўваць гутарку</String>
 		<String Name="LogIfSuppressPms">Асабістыя паведамленьні прыпыненыя, таму паведамленьне карыстальніка %s з асяродку %s (%s) прапусьцілі…</String>
 		<String Name="LogIn">Увайсьці</String>
 		<String Name="LogOff">скончыць сэанс</String>
@@ -869,8 +720,6 @@
 		<String Name="MagnetHandlerDesc">Спампаваць файлы зь сеткі «Direct Connect»</String>
 		<String Name="MagnetShellDesc">Упішыце маґніт-спасылку</String>
 		<String Name="MagnetStartView">Прагледзець</String>
-		<String Name="MainWindowCreationFailed">Не ўдалося стварыць галоўнае вакно!
-</String>
 		<String Name="Manage">Кіраваць</String>
 		<String Name="ManageGroups">Кіраваць суполкамі</String>
 		<String Name="MarkAsDownloaded">Пазначыць, што спампавалі</String>
@@ -900,34 +749,21 @@
 		<String Name="MediaXY">Разрозьненьне</String>
 		<String Name="Menubar">Паліца мэню</String>
 		<String Name="MenuAbout">Пра праґраму</String>
-		<String Name="MenuAddMagnet">Дадаць &amp;маґніт-спасылку…	Ctrl+M</String>
-		<String Name="MenuAdlSearch">Самарушна шукаць	Ctrl+Shift+S</String>
 		<String Name="MenuArrange">Упарадкаваць значкі</String>
 		<String Name="MenuCascade">Шматроўнева</String>
 		<String Name="MenuCdmdebugMessages">Наладка CDM</String>
 		<String Name="MenuCloseAllDirList">Зачыніць усе сьпісы файлаў</String>
 		<String Name="MenuCloseAllHubs">Зачыніць усе асяродкі</String>
-		<String Name="MenuCloseAllOfflinePm">Зачыніць паведамленьні ад адлучаных	Alt+P</String>
 		<String Name="MenuCloseAllPm">Зачыніць усе паведамленьні</String>
-		<String Name="MenuCloseAllSearchframe">Зачыніць усе пошукі</String>
-		<String Name="MenuCloseDisconnected">Зачыніць адлучаныя	Alt+D</String>
 		<String Name="MenuCloseHubsBelow">Зачыніць асяродкі, дзе мала карыстальнікаў</String>
 		<String Name="MenuCloseHubsEmpty">Зачыніць асяродкі, дзе няма карыстальнікаў</String>
 		<String Name="MenuConnectToHub">Злучыцца з асяродкам падтрымкі FlylinkDC++</String>
 		<String Name="MenuDiscuss">Форумы</String>
 		<String Name="MenuDonate">Ахвяраваць</String>
-		<String Name="MenuDownloadQueue">&amp;Чарга спампоўванага	Ctrl+D</String>
 		<String Name="MenuExit">&amp;Выйсьці</String>
 		<String Name="MenuFaq">Пытаньні й адказы</String>
-		<String Name="MenuFavoriteHubs">Улюбёныя &amp;асяродкі	Ctrl+F</String>
-		<String Name="MenuFavoriteUsers">&amp;Улюбёнцы	Ctrl+Shift+F</String>
 		<String Name="MenuFile">&amp;Файл</String>
 		<String Name="MenuFileRecentHubs">&amp;Нядаўнія асяродкі</String>
-		<String Name="MenuFinishedDownloads">Спампаванае	Ctrl+Shift+D</String>
-		<String Name="MenuFinishedUploads">Запампаванае	Ctrl+Shift+U</String>
-		<String Name="MenuFollowRedirect">Перана&amp;кіравацца	Ctrl+T</String>
-		<String Name="MenuHashProgress">Поступ стварэньня паказальніку	Ctrl+H</String>
-		<String Name="MenuHelp">&amp;Дапамога…	F1</String>
 		<String Name="MenuHelpGeoipfile">Дапоўніць базу «GeoIP»</String>
 		<String Name="MenuHlp">Дапамога</String>
 		<String Name="MenuHomepage">Хатняя бачына</String>
@@ -935,40 +771,23 @@
 		<String Name="MenuJoinTeam">Выточны код «FlylinkDC++»…</String>
 		<String Name="MenuMinimizeAll">Най&amp;меншыць усё</String>
 		<String Name="MenuNetworkStatistics">Статыстыка сеткі</String>
-		<String Name="MenuNotepad">&amp;Нататнік	Ctrl+N</String>
 		<String Name="MenuOpenDownloadsDir">Адчыніць каталёґ спампаванага</String>
-		<String Name="MenuOpenFileList">Адчыніць сьпіс файлаў…	Ctrl+L</String>
 		<String Name="MenuOpenMatchAll">Параўнаць спампаваныя сьпісы</String>
-		<String Name="MenuOpenOwnList">Адчыніць уласны сьпіс файлаў	F8</String>
 		<String Name="MenuOpenSqlexplorer">Адчыніць аглядальнік базы SQLExplorer</String>
 		<String Name="MenuPreviewLogDlg">Занатоўваць дыялёґ «Пампаваць-праглядаць»</String>
-		<String Name="MenuPublicHubs">Асяродкі &amp;сеціва	Ctrl+I</String>
-		<String Name="MenuQuickConnect">&amp;Хутка злучыцца…	F2</String>
-		<String Name="MenuReconnect">Нанова &amp;злучыцца	F5</String>
-		<String Name="MenuReconnectDisconnected">Нанова злучыцца з адлучанымі	Ctrl+Shift+R</String>
-		<String Name="MenuRefreshFileList">Абнавіць сьпіс файлаў	F9</String>
 		<String Name="MenuRefreshFileListPurge">Вычысьціць базу скаротаў (TTH)</String>
 		<String Name="MenuRefreshMediainfo">Абнавіць зьвесткі мэдыя (толькі для выпрабоўцаў! займае шмат часу, поступ не паказваецца)</String>
 		<String Name="MenuConvertTthHistoryIntoLeveldb">Ператварыць гісторыю скаротаў SQLite у LevelDB</String>
 		<String Name="MenuRestoreAll">Аднавіць усё</String>
-		<String Name="MenuRssNews">Стужка навінаў	Ctrl+Shift+N</String>
-		<String Name="MenuSearch">&amp;Шукаць	Ctrl+S</String>
 		<String Name="MenuSearchSpy">Шпегаваць па шуканым</String>
-		<String Name="MenuSettings">Налады…	F12</String>
-		<String Name="MenuSettingsWizard">Памочнік у наладах…	Ctrl+Shift+W</String>
 		<String Name="MenuShow">Паказаць «FlylinkDC++»</String>
 		<String Name="MenuSites">Спасылкі ды сувязі</String>
 		<String Name="MenuSitesGuide">Даведнік карыстальніка</String>
 		<String Name="MenuSitesGuides">Даведнікі «FlylinkDC++»</String>
-		<String Name="MenuStatusBar">Паліца &amp;стану	Ctrl+2</String>
-		<String Name="MenuToolbar">&amp;Паліца прыладаў	Ctrl+1</String>
-		<String Name="MenuTopmost">Заўжды па-над усімі вокнамі	Alt+W</String>
 		<String Name="MenuTransfers">&amp;Перадаецца</String>
-		<String Name="MenuTransferView">П&amp;ерадаецца	Ctrl+3</String>
 		<String Name="MenuTth">Атрымаць TTH і MD5 файла…</String>
 		<String Name="MenuVerticalTile">Разьмеркаваць зь&amp;лева направа</String>
 		<String Name="MenuView">&amp;Выгляд</String>
-		<String Name="MenuWaitingUsers">Чарга карыстальнікаў	Ctrl+U</String>
 		<String Name="MenuWindow">В&amp;окны</String>
 		<String Name="Midnight">поўначы</String>
 		<String Name="Min">хв.</String>
@@ -983,19 +802,6 @@
 		<String Name="Move">Перасунуць</String>
 		<String Name="MoveDown">&amp;Ніжэй</String>
 		<String Name="MoveUp">&amp;Вышэй</String>
-		<String Name="MpcHelp">/mpc — каб спавяшчаць зьвесткі Media Player Classic
-   %[filename] — назва файла, што зараз грае
-   %[title] — назва таго, што зараз грае (без пашырэньня файла)
-   %[size] — памер файла, які граецца
-   %[state] — стан «Media Player Classic» (грае, прыпынены ці спынены)
-   %[elapsed] — колькі часу мінула (хвіліны:сэкунды)
-   %[percent] — колькі часу мінула ў адсотках ад агульнай працягласьці
-   %[bar] — радок поступу (у ASCII), даўжыня — 10 знакаў бяз дужак (пр., [----|-----])
-   %[length] — поўная працягласьць файла
-
-Пуста = звычайны радок:
-
-+me playing: %[title] (Media Player Classic)</String>
 		<String Name="MpcHelpDesc">Дапамога па «Media Player Classic»</String>
 		<String Name="MpcNotRun">Не запушчаная вэрсія Media Player Classic, якая можа падтрымвацца</String>
 		<String Name="MultilineChatInput">Шматрадковае поле ўводу вакна гутаркі</String>
@@ -1026,7 +832,6 @@
 		<String Name="Normal">Звычайнае</String>
 		<String Name="NormalPriority">Звычайнае</String>
 		<String Name="Notepad">Нататнік</String>
-		<String Name="NotChecked">Ня спраўдзілі</String>
 		<String Name="NotListening">Ня чую злучэньняў — запусьціце «FlylinkDC++» нанова</String>
 		<String Name="NoAction">Няма дзеяньня</String>
 		<String Name="NoAdls">Не шукаць самарушна на гэтым асяродку</String>
@@ -1062,7 +867,6 @@
 		<String Name="OnDownloadAutorename">Самарушна даць новую назву</String>
 		<String Name="OnDownloadReplace">Замяніць стары (калі «пакідаем скончаныя файлы», будзе = «Запытацца карыстальніка»)</String>
 		<String Name="OnDownloadSkip">Прапускаць такія файлы</String>
-		<String Name="Opchat">Імёны ў гутарцы апэратараў (падтрымваюцца маскі)</String>
 		<String Name="Open">Адчыніць</String>
 		<String Name="OpenFolder">Адчыніць каталёґ</String>
 		<String Name="OpenHubLog">Адчыніць справаздачу асяродку</String>
@@ -1087,8 +891,6 @@
 		<String Name="Picture">Малюнак</String>
 		<String Name="Pk">Радок PK</String>
 		<String Name="Play">Граць</String>
-		<String Name="PleaseGetNewVersion">
-Атрымайце новую вэрсію</String>
 		<String Name="PleaseWait">Чакайце</String>
 		<String Name="PmPreview">Праглядаць паведамленьні ў вынырцах</String>
 		<String Name="PopupsInprogram">Падказкі ў інтэрфэйсе</String>
@@ -1138,9 +940,6 @@
 		<String Name="PrivateKeyFileNotChosen">Не абралі файл асабістага ключа</String>
 		<String Name="PrivateMessage">Асабістае паведамленьне</String>
 		<String Name="PrivateMessageFrom">Асабістае паведамленьне ад </String>
-		<String Name="PrivatePasswordHelp">Можна ўжываць:
-
- %[pm_pass] — пароль</String>
 		<String Name="PrivatePasswordHelpDesc">Дапамога па шаблёне паролю</String>
 		<String Name="ProcessedFileList">Сьпіс файлаў апрацавалі за</String>
 		<String Name="ProcessingFileList">Апрацоўваецца сьпіс файлаў (гэта можа заняць пэўны час)…</String>
@@ -1183,41 +982,17 @@
 		<String Name="PrvDlgVideoStatusExist">Прагляд відэа ўжо існуе на дыску</String>
 		<String Name="PsrDelay">Пасылаць $PSR з затрымкаю (у сэкундах)</String>
 		<String Name="PublicHubs">Асяродкі сеціва</String>
-		<String Name="PublicHubsWarning">Увага: Калі злучацца адначасова зь вялікаю колькасьцю асяродкаў, гэта карыстацьме шмат працэсару ды часу, асабліва на слабых кампутарах.
-Ці ўпэўненыя вы, што хочаце злучыцца?</String>
 		<String Name="PublicIpDetected">Выявілі публічны адрас IP; абіраем дзейны спосаб простага злучэньня</String>
 		<String Name="PurgeTthDatabase">Вычышчаецца база зьвестак скаротаў…</String>
 		<String Name="PvsStudioUrl">Якасьць коду C++ абараняе студыя «PVS»</String>
 		<String Name="QcdqmpNotRunning">Не запушчаная вэрсія «QCD» або «QMP», якая можа падтрымвацца</String>
-		<String Name="QcdqmpHelp">/w, /w, /qcd — каб спавяшчаць зьвесткі прайгравальнікаў «Quinnware»
-
-   %[filepath] — назва файла, што зараз грае
-   %[title] — назва таго, што зараз грае (без пашырэньня файла)
-   %[artist] — імя выканаўцы
-   %[state] — стан «QCD» або «QMP» (грае, прыпынены  ці спынены)
-   %[elapsed] — колькі часу мінула (хвіліны:сэкунды)
-   %[percent] — колькі часу мінула ў адсотках ад агульнай працягласьці
-   %[bar] — радок поступу (у ASCII), даўжыня — 10 знакаў бяз дужак (пр., [----|-----])
-   %[length] — поўная працягласьць файла
-   %[version] — вэрсія «QCD» або «QMP»
-   %[magnet] — маґніт-спасылка да файла (або назва файла, калі файл не абагулілі)
-
-Пуста = звычайны радок:
-
-+me listen in 'QCD/QMP %[version]': '%[title]' (%[bitrate],%[sample]) (%[elapsed] %[bar] %[length]) %[magnet]</String>
 		<String Name="QcdqmpHelpDesc">Дапамога па прайгравальніках «Quinnware»</String>
 		<String Name="QsearchStr">Хутка шукаць…</String>
 		<String Name="Queued">У чарзе:</String>
 		<String Name="QueueSaved">Чаргу захавалі.</String>
-		<String Name="QueueUpdating">Абнаўляць чаргу безупынна (на вялікай чарзе карыстае болей працэсару!)</String>
 		<String Name="QuickConnect">Хутка злучыцца</String>
 		<String Name="Rating">Ацэнка</String>
 		<String Name="Ratio">Суадносіны</String>
-		<String Name="RatioMsgHelp">Можна ўжываць:
-
- %[ratio]	 суадносіны запампавалі/спампавалі
- %[up]	 запампавалі
- %[down]	 спампавалі</String>
 		<String Name="RatioMsgHelpDesc">Дапамога па шаблёне суадносінаў</String>
 		<String Name="RawSet">Наўпроставыя загады</String>
 		<String Name="RawTexts">Назвы загадаў (ня ўпісвайце тут самі наўпроставыя загады)</String>
@@ -1296,13 +1071,10 @@
 		<String Name="SaveSearchSettingsText">Захаваць налады пошуку</String>
 		<String Name="SaveSearchSettingsTooltip">Гэта дазваляе захаваць такія налады, як від файла, памер, спосаб шукаць і г. д.</String>
 		<String Name="Search">Шукаць</String>
-		<String Name="SearchPassive">Пошук (нядзейны)</String>
-		<String Name="SearchUdpPortTest">Выпрабаваць порт UDP</String>
 		<String Name="SearchDetectTth">Калі ў полі пошуку выявілі скарот (TTH), пачынаць шукаць па скаротах</String>
 		<String Name="SearchDisaled">Шукаць забаронена</String>
 		<String Name="SearchEnabled">Зноўку можна шукаць</String>
 		<String Name="SearchFileInGoogle">Шукаць праз «Google»</String>
-		<String Name="SearchFileInNigma">Шукаць празь Nigma</String>
 		<String Name="SearchFileInYandex">Шукаць празь «Яндэкс»</String>
 		<String Name="SearchFor">Шукаць</String>
 		<String Name="SearchForAlternates">Шукаць іншыя крыніцы</String>
@@ -1404,10 +1176,7 @@
 		<String Name="SettingsBindAddress">Прызначыць адрас</String>
 		<String Name="SettingsBindAddressHelp">Сеткавы інтэрфэйс на ўсе злучэньні</String>
 		<String Name="SettingsBoldOptions">Тлусты шрыфт загалоўку карткі, калі зьмянілася зьмесьціва</String>
-		<String Name="SettingsBtHelp">Да прыкладу, упішыце:
-«C:\Program Files (x86)\uTorrent\uTorrent.exe» — каб зьвязаць са звычайным шляхам да «uTorrent» на 64-бітнае машыне;
-«C:\Program Files\uTorrent\uTorrent.exe» — каб зьвязаць са звычайным шляхам да «uTorrent» на 32-бітнае машыне.</String>
-		<String Name="BittorrentProgramm">Праґрама «BitTorrent» на маґніт-спасылкі:</String>
+		<String Name="SettingsBittorrentProgramm">Праґрама «BitTorrent» на маґніт-спасылкі:</String>
 		<String Name="SettingsCertificates">Бясьпека</String>
 		<String Name="SettingsChange">&amp;Зьмяніць</String>
 		<String Name="SettingsClearSearch">Ачышчаць кожнага разу поле пошуку</String>
@@ -1430,7 +1199,6 @@
 		<String Name="SettingsConfirmHubgroupRemoval">Калі сьціраем суполку асяродкаў</String>
 		<String Name="SettingsConfirmHubRemoval">Калі прыбіраем улюбёны асяродак</String>
 		<String Name="SettingsConfirmItemRemoval">Калі выкрасьляем пункт чаргі спампоўванага</String>
-		<String Name="SettingsConfirmOpenInetHubs">Калі адчыняем асяродак сеціва</String>
 		<String Name="SettingsConnectionAutodetect">Працаваць нядзейным спосабам, калі вызначаны дзейны спосаб недаступны (выяўляецца самарушна)</String>
 		<String Name="SettingsCzdcExtraDownloads">Дадатковыя шчыліны, калі спампоўваецца з высокім пяршынствам</String>
 		<String Name="SettingsDclsPage">Падтрымка DCLST</String>
@@ -1451,7 +1219,6 @@
 		<String Name="SettingsDupeColor">Сьпіс файлаў — ужо абагуленыя</String>
 		<String Name="SettingsEnd">Канец</String>
 		<String Name="SettingsExtensions">Пашырэньні</String>
-		<String Name="SettingsExternalIp">Вонкавы / WAN IP</String>
 		<String Name="SettingsFakedetect">Самарушна выганяць</String>
 		<String Name="SettingsFakeSet">Выкрываць падробленае абагуленае</String>
 		<String Name="SettingsFavoriteDirs">Улюбёныя каталёґі на спампоўванае</String>
@@ -1464,7 +1231,6 @@
 		<String Name="SettingsFilterMessages">Не паказваць паведамленьні наладкі (і як даюць высьпятка таксама)</String>
 		<String Name="SettingsFirewallNat">Сетказаслона з ручным перасыланьнем портаў</String>
 		<String Name="SettingsFirewallPassive">Сетказаслона (нядзейны спосаб, найгоршы)</String>
-		<String Name="SettingsFirewallUpnp">UPnP (толькі для злучара ці маршрутавальніка)</String>
 		<String Name="SettingsFormat">Выгляд</String>
 		<String Name="SettingsGeneral">Агульныя</String>
 		<String Name="SettingsGetFavoriteDir">Абярыце каталёґ:</String>
@@ -1550,7 +1316,6 @@
 		<String Name="SettingsProviders">Крыніцы пастаўніка</String>
 		<String Name="SettingsProxy">Налады пасродку</String>
 		<String Name="SettingsPublicHubList">Сьпіс асяродкаў сеціва</String>
-		<String Name="SettingsPublicHubListHttpProxy">Пасродак HTTP на ўсе злучэньні http(s). Выгляд: «паслужнік:порт»</String>
 		<String Name="SettingsPublicHubListUrl">Спасылка на сьпіс асяродкаў сеціва</String>
 		<String Name="SettingsQueue">Чарга</String>
 		<String Name="SettingsRc">Адлегла кіраваць</String>
@@ -1573,7 +1338,6 @@
 		<String Name="SettingsShareSystem">Абагуліць сыстэмныя файлы</String>
 		<String Name="SettingsShareVirtual">Абагуліць уяўныя файлы (спасылкі ў АС ці файлы на ўяўных прыладах, у тым ліку АЗП)</String>
 		<String Name="SettingsShowFullHubInfoOnTab">Паказваць на картцы ўсё пра асяродак</String>
-		<String Name="SettingsNotboldFontOnActivityTab">Не вылучаць тоўстым тэкст укладак пры дзейнасьці</String>
 		<String Name="SettingsShowInfoTips">Паказваць падказкі ў сьпісах</String>
 		<String Name="SettingsShowJoins">Звычайна паказваць у гутарцы, калі хто ўваходзіць ці выходзіць</String>
 		<String Name="SettingsShowProgressBars">Паказваць паліцу поступу перадаваньня (крыху карыстае працэсар)</String>
@@ -1706,8 +1470,6 @@
 		<String Name="Speed">Хуткасьць</String>
 		<String Name="SpeedLimit">Абмежаваньне хуткасьці</String>
 		<String Name="SpeedLimitManual">Вызначыць граніцу запампоўваньня</String>
-		<String Name="SplashBeta">Бэта-вэрсія. Чытаецца…</String>
-		<String Name="SplashRelease">Чытаецца…</String>
 		<String Name="SqliteUseExclusiveLockMode">Замыкаць базу зьвестак SQLite ад іншых. Гэта палепшыць выніковасьць.</String>
 		<String Name="SqliteUseJournalMemory">Трымаць файл справаздачы SQLite у памяці. База зьвестак можа пашкодзіцца, калі сыстэма ці праґрама дадуць хібу.</String>
 		<String Name="SslError">Памылка SSL</String>
@@ -1727,7 +1489,6 @@
 		<String Name="SuccessfullyGetTthStream">Атрымалі зьвесткі скаротаў са струменю NTFS:</String>
 		<String Name="SpeedSuperUser">Дазволіць абмінаць абмежаваньні</String>
 		<String Name="Supports">Падтрымвае</String>
-		<String Name="SupportsServerDesc">Асяродак падтрымкі ды дапамогі па FlylinkDC++</String>
 		<String Name="Suspend">прыпыніць</String>
 		<String Name="SxmlEmptyTagName">Не дазваляецца пакідаць назвы бірак пустымі</String>
 		<String Name="SxmlInvalidFile">Хібны файл XML: каранёвая бірка адсутнічае, або іх некалькі</String>
@@ -1735,7 +1496,6 @@
 		<String Name="SxmlOnleOneRoot">Дазваляецца мець толькі адну каранёвую бірку</String>
 		<String Name="TabsBottom">ўнізе</String>
 		<String Name="TabsClosebuttons">Кнопка «зачыніць» на картках</String>
-		<String Name="TabsClosebuttonsAlt">Іншы выгляд кнопак</String>
 		<String Name="TabsLeft">леваруч</String>
 		<String Name="TabsPosition">Разьмяшчаць карткі</String>
 		<String Name="TabsRight">праваруч</String>
@@ -1757,15 +1517,6 @@
 		<String Name="Techsupport">Падтрымка FlylinkDC++</String>
 		<String Name="TextFakepercent">Адсотак неадпаведнасьці</String>
 		<String Name="TextManual">Самастойна вызначыць колькасьць частак</String>
-		<String Name="TextStatRequest">Каб удасканаліць сваю працу, праґрама «FlylinkDC++» зьбірае безыменную статыстыку
-выкарыстаньня праґрамы і перадае яе распрацоўцам 
-Законы шмат якіх краін патрабуюць, каб вы далі праґраме «FlylinkDC++»
-дазвол на гэта.
-Ці дазволіць праґраме зьбіраць і высылаць распрацоўцам безыменную статыстыку выкарыстаньня праґрамы?</String>
-		<String Name="TextStatInfo">Каб удасканаліць сваю працу, праґрама «FlylinkDC++» зьбірае безыменную статыстыку
-выкарыстаньня праґрамы і перадае яе распрацоўцам 
-Законы шмат якіх краін патрабуюць, каб праґрама «FlylinkDC++»
-паведаміла пра гэта.</String>
 		<String Name="TextStr">Тэкст</String>
 		<String Name="FavEnemyUser">Варожы карыстальнік, забарона хуткасьці</String>
 		<String Name="FavUser">Улюбёнец</String>
@@ -1796,38 +1547,11 @@
 		<String Name="TimeoutRaw">Часаспын загадам</String>
 		<String Name="TimestampsDisabled">Не выкарыстоўваем часадзнакі</String>
 		<String Name="TimestampsEnabled">Задзейнічалі часадзнакі</String>
-		<String Name="TimestampHelp">
-%a — скарочаная назва дня тыдня
-%A — поўная назва дня тыдня
-%b — скарочаная назва месяца
-%B — поўная назва месяца
-%c — паказаць дату й час адпаведна мясцовасьці
-%d — дзень месяца дзесятковым лікам (01–31)
-%H — гадзіна ў 24-гадзінным выглядзе (00–23)
-%I — гадзіна ў 12-гадзінным выглядзе (01–12)
-%j — нумар дня году дзесятковым лікам (001–366)
-%m — месяц дзесятковым лікам (01–12)
-%M — хвіліна дзесятковым лікам (00–59)
-%p — паказальнік A.M. ці P.M. для 12-гадзіннага выгляду
-%S — сэкунда дзесятковым лікам (00–59)
-%U — тыдзень году дзесятковым лікам; нядзеля лічыцца за першы дзень у тыдні (00–53)
-%w — дзень тыдня (0–6; нядзелі адпавядае 0)
-%W — тыдзень году дзесятковым лікам; панядзелак лічыцца за першы дзень у тыдні (00–53)
-%x — паказаць дату адпаведна дзейнае мясцовасьці
-%X — паказаць час адпаведна дзейнай мясцовасьці
-%y — год без стагодзьдзя дзесятковым лікам (00–99)
-%Y — год са стагодзьдзем дзесятковым лікам
-%z, %Z — або назва часавага пасу, або ягонае скарачэньне — залежыць ад наладаў рэестру; калі невядома, які пас, нічога ня пішацца
-%% — знак адсотку
-
-Звычайна: %H:%M:%S</String>
 		<String Name="TimestampHelpDesc">Дапамога па часадзнаках</String>
 		<String Name="TimeLeft">Засталося часу</String>
 		<String Name="TitleIpfilter">Сіта IP</String>
 		<String Name="TlsError">Памылка TLS</String>
 		<String Name="To">да</String>
-		<String Name="ToggleQsearch">Хутка шукаць	Ctrl+5</String>
-		<String Name="ToggleToolbar">Паліца прайгравальніка	Ctrl+4</String>
 		<String Name="TooMuchData">Даслалі зьвестак болей за тое, колькі чакалі</String>
 		<String Name="Total">Разам:</String>
 		<String Name="Transferlistdblclickaction">у сьпісе перадаванага</String>
@@ -1855,15 +1579,11 @@
 		<String Name="Unknown">Невядома</String>
 		<String Name="UnknownCommand">Невядомы загад:</String>
 		<String Name="UnknownError">Невядомая памылка: 0x%x</String>
-		<String Name="UnknownModeNotice">Невядомы від злучэньня.
-Або не злучыліся зь сецівам, або кепска наставілі злучэньне, або няма доступу да паслужніка асяродка.</String>
 		<String Name="UnnamedMagnetLink">Маґніт-спасылка бяз назвы</String>
 		<String Name="Up">Зап.:</String>
 		<String Name="Update">Абнавіць</String>
 		<String Name="UpdateCheck">Паглядзець абнаўленьні</String>
 		<String Name="UpdateIp">Абнаўляць IP па запуску</String>
-		<String Name="UpdateIpInterval">Прамежак між абнаўленьнямі IP (хв.)
-(0 = абнаўляць толькі па запуску)</String>
 		<String Name="Upload">Запампавалі</String>
 		<String Name="Uploaded">Зацягнулі</String>
 		<String Name="UploadedBytes">Запампавалі %s (%.01f%%) за %s</String>
@@ -1923,8 +1643,6 @@
 		<String Name="UserWentOffline">Карыстальнік ня ў сетцы</String>
 		<String Name="UserWentOnline">Карыстальнік у сетцы</String>
 		<String Name="Use12HourFormat">12-гадзінны выгляд</String>
-		<String Name="UseAntivir">Спраўджаць спампаванае на вірусы</String>
-		<String Name="UseAutoMultiChatSwitch">Самарушна пераходзіць да шматрадковае гутаркі</String>
 		<String Name="UseBitrateFixForSpam">Выпраўляць зьвесткі (бітаў за сэкунду, чашчыня) ад прайгравальнікаў QCD ці QMP</String>
 		<String Name="UseCustomListBackground">Ужываць карыстальніцкі выгляд тла сьпісу</String>
 		<String Name="UseCustomMenu">Ужываць дадатковыя мэню</String>
@@ -1949,13 +1667,8 @@
 		<String Name="WaitingUserOnline">Чакаем (карыстальнік далучаны)</String>
 		<String Name="Warning">Перасьцярога</String>
 		<String Name="WarningParse">Разбор: перасьцярога</String>
-		<String Name="WarningValueAutoAdjusted">Значэньні зьмененых наладаў самарушна зьмяніліся</String>
 		<String Name="Webserver">Паслужнік сеціва</String>
 		<String Name="WebserverAddMagnetLink">Дадаць маґніт-спасылку</String>
-		<String Name="WebserverAllowChangeDownloadDir">Дазволіць зьмяняць каталёґ спампоўванага.
-Перасьцярога: гэта можа быць небясьпечным!</String>
-		<String Name="WebserverAllowUpnp">Дазволіць адлюстроўваць порты празь UPnP.
-Перасьцярога: гэта можа быць небясьпечным!</String>
 		<String Name="WebserverBindInterface">Сеткавы інтэрфэйс:</String>
 		<String Name="WebserverFullUser">Спраўнік.</String>
 		<String Name="WebserverGeneratedInMessage">Створана:</String>
@@ -1975,29 +1688,6 @@
 		<String Name="WhoIs">Кім ёсьць </String>
 		<String Name="Width">Шырыня</String>
 		<String Name="WinampBack">Назад</String>
-		<String Name="WinampHelp">/winamp — працуе з Winamp 1.x, 2.x, 5.x (Winamp 3 не падтрымваецца)
-
-   %[version] — нумар вэрсіі (пр., 5.58)
-   %[state] — стан прайграваньня (пр., спынены, прыпынены ці грае)
-   %[title] — загаловак вакна Winamp. Зьмяніць яго для файлаў .mp3 можна ў вакне Winamp → «Pref» → «Input» → «MPEG» → «Title»
-   %[rawtitle] — загаловак вакна Winamp (калі %[title] не працуе як належыць)
-   %[percent] — адсотак (пр., 40%)
-   %[length] — працягласьць (пр., 09:00)
-   %[elapsed] — мінула часу (пр., 07:51)
-   %[bar] — радок поступу (у ASCII), даўжыня — 10 знакаў бяз дужак (пр., [----|-----])
-   %[bitrate] — бітаў за сэкунду (пр., 707 кб/с)
-   %[sample] — чашчыня (пр., 44 кГц)
-   %[channels] — колькасьць каналаў (пр., стэрэа ці мона)
-
-   %[magnet] — маґніт-спасылка да файла (або назва файла, калі файл не абагулілі)
-
-Пуста = звычайны радок:
-+me listen: %[artist] - %[elapsed] %[track] - %[title] • listened to %[percent] (%[length], %[bitrate], Winamp %[version])
-
-Заўвагі да KMPlayer:
-З «KMPlayer» можна выкарыстоўваць большасьць магчымасьцяў, што прапануюцца загадам «/winamp» і ўсе магчымасьці паліцы прайгравальніка.
-Вось парамэтры, што не працуюць (ці вяртаюць памылковыя значэньні): %[version], %[bitrate], %[sample] і %[channels].
-Бадай што вам таксама давядзецца ўжываць %[rawtitle] заміж %[title], каб атрымаць слушны вынік.</String>
 		<String Name="WinampHelpDesc">Дапамога па «Winamp»</String>
 		<String Name="WinampNext">Наперад</String>
 		<String Name="WinampNotRunning">Не запушчаная вэрсія Winamp, якая можа падтрымвацца</String>
@@ -2010,8 +1700,6 @@
 		<String Name="WinampVolUp">Гучней</String>
 		<String Name="WindowsStyleUrl">Спасылкі выглядаюць як звычайна ў Windows</String>
 		<String Name="WizardDownloaddirStatic">Даведка: на дысках, большых за 10 ҐБ, раіцца ўжываць не сыстэмныя каталёґі…</String>
-		<String Name="WizardFinishLabel1">Скончылі ўладкоўваць</String>
-		<String Name="WizardFinishLabel2">Цяпер можна пачынаць карыстацца праґрамаю «FlylinkDC++»!</String>
 		<String Name="WizardNetaBtnCheckupnp">Выпрабаваць UPnP</String>
 		<String Name="WizardNetaBtnSetuprouter">Уладкаваць маршрутавальнік</String>
 		<String Name="WizardNetaBtnTest">Выпрабаваць сеткавыя злучэньні FlylinkDC++</String>
@@ -2039,40 +1727,10 @@
 		<String Name="WizardNickStatic2">0123456789 абвгґдеёжзійклмнопрстуўфхцчш’ыьэюя АБВГҐДЕЁЖЗІЙКЛМПНОПРСТУЎФХЦЧШ'ЫЬЭЮЯ abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ ()+-=[]^_{})</String>
 		<String Name="WizardShareAlreadyin">Гэты каталёґ ужо абагулілі</String>
 		<String Name="WizardShareAlreadyindesc">Такое апісаньне ўжо існуе</String>
-		<String Name="WizardShareDeletefolderquestion">
-Ці хочаце выкрасьліць гэты каталёґ?</String>
-		<String Name="WizardShareStatic">Можна дадаць каталёґі, якія абагуляцца для іншых карыстальнікаў. Карыстальнікі далучаных асяродкаў змогуць спампоўваць зь іх усе ўкладзеныя каталёґі ды файлы.
-Не абагуляйце сыстэмныя файлы!</String>
 		<String Name="WizardShareToSmall">Вы замала абагулілі. Абагуліце болей файлаў.</String>
 		<String Name="WizardStartupTxt1">Памочнік у наладах «FlylinkDC++» вітае вас!</String>
-		<String Name="WizardStartupTxt2">Гэты сродак дапаможа вам наладзіць у кліенце FlylinkDC++: 
- 1. Мянушку.
- 2. Каталёґ на спампоўванае ды на часовыя файлы. 
- 3. Абагуліць файлы, каб карыстальнікі сеткі DC++ маглі спампоўваць іх. 
- 4. Уладкаваць кліент згодна з настаўленьнямі сеткі. 
- 5. Дадаць улюбёныя асяродкі.</String>
 		<String Name="WizardStartupTxt3">Каб працягваць, націсьніце «Далей»…</String>
 		<String Name="WizardTitle">Памочнік у наладах FlylinkDC++</String>
-		<String Name="WmpHelp">/wmp — Працуе з Windows Media Player 9+
-   %[version] — вэрсія Windows Media Player
-   %[fullversion] — поўная вэрсія Windows Media Player
-   %[status] — радок стану з Windows Media Player
-   %[title] — назва таго, што зараз грае
-   %[elapsed] — колькі часу мінула (ГГ:)ХХ:СС
-   %[percent] — колькі часу мінула ў адсотках ад агульнай працягласьці
-   %[bar] — радок поступу (у ASCII), даўжыня — 10 знакаў бяз дужак (пр., [----|-----])
-   %[length] — поўная працягласьць файла (ГГ:)ХХ:СС
-   %[artist] — імя выканаўцы таго, што зараз грае
-   %[album] — назва альбому песьні, якая зараз грае
-   %[genre] — жанр песьні
-   %[bitrate] — колькасьць бітаў за сэкунду ў файле
-   %[year] — год, калі выпусьцілі альбом (не падтрымваецца ў WMP9)
-   %[size] — памер файла, які граецца
-   %[rating] — адзнака, паказваецца разам з *'s (калі даступна)
-
-Пуста = звычайны радок:
-
-+me %[title] at %[bitrate] &lt;Windows Media Player %[version]&gt;</String>
 		<String Name="WmpHelpDesc">Дапамога па «Windows Media Player»</String>
 		<String Name="WmpNotPlay">У Windows Media Player нічога не прайграецца</String>
 		<String Name="WmpNotRun">Не запушчаная вэрсія Windows Media Player, якая можа падтрымвацца</String>

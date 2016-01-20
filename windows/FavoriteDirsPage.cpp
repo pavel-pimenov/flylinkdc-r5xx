@@ -185,7 +185,7 @@ LRESULT FavoriteDirsPage::onClickedRename(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 		virt.line = tstring(buf.data());
 		if (virt.DoModal(m_hWnd) == IDOK)
 		{
-			if (FavoriteManager::getInstance()->renameFavoriteDir(Text::fromT(buf.data()), Text::fromT(virt.line)))
+			if (FavoriteManager::renameFavoriteDir(Text::fromT(buf.data()), Text::fromT(virt.line)))
 			{
 				ctrlDirectories.SetItemText(i, 0, virt.line.c_str());
 			}
@@ -228,12 +228,12 @@ LRESULT FavoriteDirsPage::onClickedChange(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 			AppendPathSeparator(dlg.dir);
 			if (l_lastname != dlg.name)
 			{
-				if (FavoriteManager::getInstance()->renameFavoriteDir(Text::fromT(l_lastname), Text::fromT(dlg.name)))
+				if (FavoriteManager::renameFavoriteDir(Text::fromT(l_lastname), Text::fromT(dlg.name)))
 				{
 					ctrlDirectories.SetItemText(i, 0, dlg.name.c_str());
 				}
 			}
-			if (FavoriteManager::getInstance()->updateFavoriteDir(Text::fromT(dlg.name), Text::fromT(dlg.dir), Text::fromT(dlg.extensions)))
+			if (FavoriteManager::updateFavoriteDir(Text::fromT(dlg.name), Text::fromT(dlg.dir), Text::fromT(dlg.extensions)))
 			{
 				//  ctrlDirectories.SetItemText(i, 0, dlg.name.c_str());
 				ctrlDirectories.SetItemText(i, 1, dlg.dir.c_str());
@@ -263,7 +263,7 @@ void FavoriteDirsPage::addDirectory(const tstring& aPath /*= Util::emptyStringT*
 		tstring tdir = dlg.dir;
 		AppendPathSeparator(tdir);
 		
-		if (FavoriteManager::getInstance()->addFavoriteDir(Text::fromT(tdir), Text::fromT(dlg.name), Text::fromT(dlg.extensions)))
+		if (FavoriteManager::addFavoriteDir(Text::fromT(tdir), Text::fromT(dlg.name), Text::fromT(dlg.extensions)))
 		{
 			int j = ctrlDirectories.insert(ctrlDirectories.GetItemCount(), dlg.name);
 			ctrlDirectories.SetItemText(j, 1, tdir.c_str());

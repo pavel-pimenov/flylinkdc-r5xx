@@ -367,6 +367,7 @@ File_Mk::File_Mk()
     DataMustAlwaysBeComplete=false;
 
     //Temp
+    InvalidByteMax=(1<<(8-4))-1; //Default is max size of 4 bytes
     Format_Version=0;
     TimecodeScale=1000000; //Default value
     Duration=0;
@@ -845,14 +846,14 @@ void File_Mk::Header_Parse()
     //Test of zero padding
     int8u Null;
     Peek_B1(Null);
-    if (Null==0x00)
+    if (Null<=InvalidByteMax)
     {
         if (Buffer_Offset_Temp==0)
             Buffer_Offset_Temp=Buffer_Offset+1;
 
         while (Buffer_Offset_Temp<Buffer_Size)
         {
-            if (Buffer[Buffer_Offset_Temp])
+            if (Buffer[Buffer_Offset_Temp]>InvalidByteMax)
                 break;
             Buffer_Offset_Temp++;
         }
@@ -1366,7 +1367,7 @@ void File_Mk::Data_Parse()
         ATOM_END_MK
     DATA_END
 
-    if (Element_Code!=Elements::CRC32 && !CRC32Compute.empty())
+    if (!CRC32Compute.empty())
         CRC32_Check();
 }
 
@@ -1377,9 +1378,9 @@ void File_Mk::Data_Parse()
 //---------------------------------------------------------------------------
 void File_Mk::Zero()
 {
-    Element_Name("ZeroPadding");
+    Element_Name("Junk");
 
-    Skip_XX(Element_Size,                                       "Padding");
+    Skip_XX(Element_Size,                                       "Junk");
 }
 
 //---------------------------------------------------------------------------
@@ -1406,6 +1407,7 @@ void File_Mk::CRC32()
 #endif
             CRC32Compute[Element_Level-1].Computed=0xFFFFFFFF;
             CRC32Compute[Element_Level-1].Pos = File_Offset + Buffer_Offset;
+            CRC32Compute[Element_Level-1].From = File_Offset + Buffer_Offset + Element_Size;
             CRC32Compute[Element_Level-1].UpTo = File_Offset + Buffer_Offset + Element_TotalSize_Get(1);
         }
     }
@@ -1459,7 +1461,18 @@ void File_Mk::Ebml_MaxSizeLength()
     Element_Name("EBMLMaxSizeLength");
 
     //Parsing
-    UInteger_Info();
+    int64u Value = UInteger_Get();
+
+    //Filling
+    FILLING_BEGIN();
+        if (Value > 8)
+        {
+            //Not expected, rejecting the file
+            Reject();
+            return;
+        }
+        InvalidByteMax = (int8u)((1 << (8-Value))-1);
+    FILLING_END();
 }
 
 //---------------------------------------------------------------------------
@@ -4240,7 +4253,7 @@ void File_Mk::TestMultipleInstances (size_t* Instances)
 void File_Mk::CRC32_Check ()
 {
     for (size_t i = 0; i<CRC32Compute.size(); i++)
-        if (CRC32Compute[i].UpTo)
+        if (CRC32Compute[i].UpTo && File_Offset + Buffer_Offset - (size_t)Header_Size >= CRC32Compute[i].From)
         {
             CRC32_Compute(CRC32Compute[i].Computed, Buffer + Buffer_Offset - (size_t)Header_Size, Buffer + Buffer_Offset + (size_t)(Element_WantNextLevel?Element_Offset:Element_Size));
             if (File_Offset + Buffer_Offset + (Element_WantNextLevel?Element_Offset:Element_Size) >= CRC32Compute[i].UpTo)

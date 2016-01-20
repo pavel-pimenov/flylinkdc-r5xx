@@ -1009,7 +1009,7 @@ void WebServerManager::search(string p_search_str, Search::TypeModes p_search_ty
 		l_search_param.m_file_type = p_search_type;
 		l_search_param.m_size = 0;
 		l_search_param.m_owner = this;
-		l_search_param.m_is_force_passive = false;
+		l_search_param.m_is_force_passive_searh = false;
 		
 		const uint64_t l_searchInterval = ClientManager::getInstance()->multi_search(l_search_param);
 		search_delay = Util::toString(l_searchInterval / 1000 + 15);

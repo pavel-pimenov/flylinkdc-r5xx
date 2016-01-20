@@ -433,7 +433,7 @@ void AutoUpdate::startUpdateThisThread()
 				if (needToUpdate)
 				{
 					// Start file Uploading
-					InetDownloadReporter::getInstance()->ReportResultWait(l_totalSize); // 2012-06-05_21-53-06_UYEYEPCLMNGQEQACGNE4IXHF5KUQEUBR7PERSKA_D1DE0AA9_crash-stack-r502-beta27-x64-build-10242.dmp
+					InetDownloadReporter::getInstance()->ReportResultWait(l_totalSize); 
 					string l_errorFileName;
 					
 					// Update Settings file at first

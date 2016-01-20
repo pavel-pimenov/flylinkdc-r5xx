@@ -335,7 +335,7 @@ DCLSTGenDlg::onShareThis(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, B
 	if (!_strMagnet.empty() && !_tth == NULL)
 	{
 		const string strPath = _mNameDCLST;
-		if (ShareManager::getInstance()->isFileInSharedDirectoryL(strPath))
+		if (ShareManager::isFileInSharedDirectoryL(strPath))
 		{
 			HashManager::getInstance()->addTree(strPath, File::getTimeStamp(strPath), *(_tth.get()), -1);
 			if (ShareManager::isTTHShared(_tth.get()->getRoot()))

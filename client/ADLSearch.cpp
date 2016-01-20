@@ -471,15 +471,18 @@ void ADLSearchManager::matchesFile(DestDirList& destDirVector, DirectoryListing:
 		{
 			DirectoryListing::File *copyFile = new DirectoryListing::File(*currentFile, true);
 			copyFile->setFlags(currentFile->getFlags()); // [+] NightOrion to issues http://code.google.com/p/flylinkdc/issues/detail?id=31
+#ifdef IRAINMAN_INCLUDE_USER_CHECK
 			if (is->isForbidden && !getSentRaw())
 			{
 				AutoArray<char> buf(FULL_MAX_PATH);
 				_snprintf(buf, FULL_MAX_PATH, CSTRING(CHECK_FORBIDDEN), currentFile->getName().c_str());
 				
-				ClientManager::getInstance()->setClientStatus(user, buf.data(), is->raw, false);
+				ClientManager::setClientStatus(user, buf.data(), is->raw, false);
 				
 				setSentRaw(true);
 			}
+#endif
+			
 			destDirVector[is->ddIndex].dir->files.push_back(copyFile);
 			destDirVector[is->ddIndex].fileAdded = true;
 			

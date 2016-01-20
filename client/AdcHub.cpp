@@ -458,7 +458,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 		setAutoReconnect(true);
 		// [-] setMyIdentity(ou->getIdentity()); [-] IRainman fix.
 		updateCounts(false);
-		fly_fire1(ClientListener::UserUpdated(), ou); // fix https://code.google.com/p/flylinkdc/issues/detail?id=1537
+		updatedMyINFO(ou); // fix https://code.google.com/p/flylinkdc/issues/detail?id=1537
 	}
 	else if (ou->getIdentity().isHub())
 	{
@@ -471,7 +471,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 	}
 	else
 	{
-		fly_fire1(ClientListener::UserUpdated(), ou);
+		updatedMyINFO(ou);
 	}
 }
 

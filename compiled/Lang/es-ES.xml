@@ -17,7 +17,6 @@
 		<String Name="Add2">Añadir</String>
 		<String Name="Added">Añadido el día</String>
 		<String Name="AddingMagnetLink">Añadir un enlace</String>
-		<String Name="AddressForUpdateError">la dirección para las actualizaciones está en blanco o no es válida</String>
 		<String Name="AddAsSource">Añadir como fuente</String>
 		<String Name="AddLimit">Límite de velocidad</String>
 		<String Name="AddSlots">Cantidad de slots</String>
@@ -35,39 +34,6 @@
 		<String Name="AdlsSizeMin">Min. Tamaño</String>
 		<String Name="AdlsType">Tipo de búsqueda</String>
 		<String Name="AdlsUnits">Tamaño Tipo</String>
-		<String Name="AdlBrief">ADLSearch is a tool for fast searching of directory listings downloaded from users. 
-Create a new ADLSearch entering 'avi' as search string for example. When you 
-download a directory listing from a user, all AVI-files will be placed in a special folder 
-called &lt;&lt;&lt;ADLSearch&gt;&gt;&gt; for easy finding. It is almost the same as using the standard 
-'Find' multiple times in a directory listing. 
-
-Opciones especiales: 
-- 'Active' check box selects if the search is used or not. 
-- 'Source Type' can be the following options; 'Filename' matches search against filename, 
-   'Directory' matches against current subdirectory and places the whole structure in the 
-   special folder, 'Full Path' matches against whole directory + filename. 
-- 'Destination Directory' selects the special output folder for a search. Multiple folders 
-   with different names can exist simultaneously. 
-- 'Min/Max Size' sets file size limits. This is not used for 'Directory' type searches. 
-- 'Move Up'/'Move Down' can be used to organize the list of searches. 
-
-There is a new option in the context menu (right-click) for directory listings. It is called 
-'Go to directory' and can be used to jump to the original location of the file or directory. 
-
-Características adicionales:
-
-1) If you use %y.%m.%d in a search string it will be replaced by today's date. Switch 
-place on y/m/d, or leave any of them out to alter the substitution. If you use %[nick] 
-it will be replaced by the nick of the user you download the directory listing from. 
-
-2) If you name a destination directory 'discard', it will not be shown in the total result. 
-Useful with the extra feature 3) below to remove uninteresting results. 
-
-3) There is a switch called 'Break on first ADLSearch match' in Settings-&gt;Advanced'.  
-If enabled, ADLSearch will stop after the first match for a specific file/directory. 
-The order in the ADLSearch windows is therefore important. Example: Add a search 
-item at the top of the list with string='xxx' and destination='discard'. It will catch 
-many pornographic files and they will not be included in any following search results.</String>
 		<String Name="AdlSearch">Búsqueda automática en lista de carpetas</String>
 		<String Name="AdlTitle">ADL búsqueda automática</String>
 		<String Name="Ago">hace</String>
@@ -80,8 +46,6 @@ many pornographic files and they will not be included in any following search re
 		<String Name="AllFileSlotsTaken">Sobrepasado el límite de archivos simultáneos</String>
 		<String Name="AllUsersOffline">Los %d usuarios están desconectados</String>
 		<String Name="AlreadyIgnored">Este usuario ya está en la lista de usuarios ignorados!</String>
-		<String Name="AlreadyRunning">FlylinkDC++ se está ejecutando, o se está cerrando…
-¿Estás seguro de que deseas ejecutar otra copia del programa?</String>
 		<String Name="AlternatesSend">Buscando TTH alternativo para:</String>
 		<String Name="AlwaysAsk">Preguntar siempre</String>
 		<String Name="Any">Cualquiera</String>
@@ -98,7 +62,6 @@ many pornographic files and they will not be included in any following search re
 		<String Name="Audio">Audio</String>
 		<String Name="Auto">Auto</String>
 		<String Name="AutobanHint">* Poner los valores = 0 para desactivar Auto Baneo</String>
-		<String Name="Automatic">Automático</String>
 		<String Name="AutomaticSetupActivModeFailed">Ha fallado la configuración automática a modo activo. Es posible que desee configurar la conexión manualmente para una mejor conectividad</String>
 		<String Name="Autoupdate">Actualización automática:</String>
 		<String Name="AutoupdateCancel">Cancelado por el usuario</String>
@@ -118,7 +81,6 @@ many pornographic files and they will not be included in any following search re
 		<String Name="AutoupdateDownloadUpdateonexit">Serán instalados al salir de la aplicación</String>
 		<String Name="AutoupdateEmopacks">Pack de emoticonos</String>
 		<String Name="AutoupdateEnable">Activar la actualización automática</String>
-		<String Name="AutoupdateError">Error de actualización de FlylinkDC++</String>
 		<String Name="AutoupdateErrorStartFlyupdateFailed">La utilidad de actualización de FlylinkDC no se inicia. Error:</String>
 		<String Name="AutoupdateErrorUpdateFile">Error en la actualización del archivo:</String>
 		<String Name="AutoupdateErrorVerif">Error de verificación - (por favor enviar email ppa74@ya.ru)</String>
@@ -145,7 +107,6 @@ many pornographic files and they will not be included in any following search re
 		<String Name="AutoupdateUpdateChatbot">Paquetes de ChatBot</String>
 		<String Name="AutoupdateUpdateIgnoreButton">Ignorar</String>
 		<String Name="AutoupdateUpdateNowButton">Actualizar ahora</String>
-		<String Name="AutoupdateUpdateUnknown">Actualización de componentes desconocidos</String>
 		<String Name="AutoupdateUrlLabel">Servidor de actualización</String>
 		<String Name="AutoupdateUseCustomUrl">Utilizar la URL personalizada del servidor de actualizaciones</String>
 		<String Name="AutoupdateUtilities">Utilidades</String>
@@ -157,7 +118,6 @@ many pornographic files and they will not be included in any following search re
 		<String Name="AutoGrantNick">Auto slot / Usuario</String>
 		<String Name="AutoGrant">Auto slot</String>
 		<String Name="AverageUpload">Vel. subida</String>
-		<String Name="AvCheckThisFile">Antivirus comprobando el archivo</String>
 		<String Name="Away">Ausente</String>
 		<String Name="AwayModeOff">Modo ausente desactivado</String>
 		<String Name="AwayModeOn">Modo ausente activado:</String>
@@ -176,8 +136,6 @@ many pornographic files and they will not be included in any following search re
 		<String Name="BanStealth">Baneo invisible</String>
 		<String Name="BanUser">Banear al usuario</String>
 		<String Name="BbcodePanelBold">Fuente negrita</String>
-		<String Name="BbcodePanelEmoticons">Smileys
-(Clic botón derecho - seleccionar SmilePack)</String>
 		<String Name="BbcodePanelItalic">Fuente itálica</String>
 		<String Name="BbcodePanelMessagepanelsize">On-Off  Entrada multilínea</String>
 		<String Name="BbcodePanelSendmessage">Enviar mensaje</String>
@@ -186,7 +144,6 @@ many pornographic files and they will not be included in any following search re
 		<String Name="BbcodePanelUnderline">Fuente subrayada</String>
 		<String Name="BbcodePanelColor">Color</String>
 		<String Name="Bitrate">Tasa de bits</String>
-		<String Name="BitziLookup">Búsqueda en Bitzi.com</String>
 		<String Name="BlendOfflineSearch">Mezcla de resultados de búsqueda en línea</String>
 		<String Name="BlockedIncomingConn">Conexción entrante bloqueada a</String>
 		<String Name="BothUsersOffline">Ambos usuarios desconectados</String>
@@ -218,12 +175,9 @@ many pornographic files and they will not be included in any following search re
 		<String Name="ChatRefferingToNick">Usar ',' al referirse al Nick en el chat</String>
 		<String Name="CheatingDescription">Descripción de la trampa</String>
 		<String Name="CheatingUser">Encontrado usuario tramposo</String>
-		<String Name="Checked">Comprobado</String>
 		<String Name="Check0byteShare">Tamaño real "cero" bytes</String>
 		<String Name="CheckFilelist">Comprobar la lista de archivos</String>
 		<String Name="CheckForbidden">Compartido : %s archivos prohibidos</String>
-		<String Name="CheckForbiddenDir">Carpeta compartida de archivos prohibidos: %s.
-Por favor no comparta la carpeta %s.</String>
 		<String Name="CheckInflated">La lista de archivos fue inflada %s veces</String>
 		<String Name="CheckMismatchedShareSize">Tamañ compartido no coincide</String>
 		<String Name="CheckOnConnect">Comprobar usuario al conectar</String>
@@ -240,7 +194,6 @@ Por favor no comparta la carpeta %s.</String>
 		<String Name="ClientProfileNowUpdated">Preferencias actualizadas.</String>
 		<String Name="Close">Cerrar</String>
 		<String Name="CloseConnection">Cerrar conexión</String>
-		<String Name="CloseHot">Cerrar pestaña  Ctrl+W</String>
 		<String Name="CmdAwayMsg">On/Off especificar modo ausente (mensaje)</String>
 		<String Name="CmdClearChat">Limpiar chat</String>
 		<String Name="CmdCloseWnd">Cerrar ventana actual</String>
@@ -264,10 +217,8 @@ Por favor no comparta la carpeta %s.</String>
 		<String Name="CmdFavHub">Añadir a Hub favoritos (en PM añade el usuario a amigos)</String>
 		<String Name="CmdFavJoins">On/Off mostrar entra / sale de usuarios favoritos</String>
 		<String Name="CmdFavUser">Añadir (usuario) a favoritos</String>
-		<String Name="CmdFirstLine">					 Ayuda 								</String>
 		<String Name="CmdFlylinkdc">Mostrar versión de FlylinkDC++ en el chat</String>
 		<String Name="CmdGetlist">Obtener lista de archivos (usuario)</String>
-		<String Name="CmdHelpInfo">		Para más ayuda por favor visita los foros FlylinkDC++  (Foros -&gt; de ayuda)</String>
 		<String Name="CmdIgnorelist">Mostrar lista ignorada en el chat</String>
 		<String Name="CmdJoinHub">Dirección del Hub #</String>
 		<String Name="CmdMe">Hablar de una tercera persona</String>
@@ -296,32 +247,6 @@ Por favor no comparta la carpeta %s.</String>
 		<String Name="ColorOp">El usuario es OP</String>
 		<String Name="ColorPasive">Usuario pasivo</String>
 		<String Name="ColorServer">Usuario en modo servidor</String>
-		<String Name="CommandDescription">**** Tipos de comandos:
-Separador: Añade un separador al menú
-Raw: Sends raw command to the hub (experts only, end it with '|'!)
-Chat: Sends command as if you were typing it in the chat
-PM: Sends command as if you sent it by pm
-**** Contexts determine where the command is shown:
-Menú del Hub: Hub tab (at the bottom of the screen) right-click menu
-Menú del chat: User right-click menu in chat and PM tab menu
-Menú de búsquedas: Search right-click menu
-**** Parámetros:
-Nombre: Name (use '\' to create submenus)
-Comando: Command text (may contain parameters)
-Hub: Hub IP as typed when connecting (empty = all hubs, "op" = hubs where you're op)
-A: PM recipient
-Sólo una vez: Send only once per user from search frame
-**** En los parámetros, puedes usar variables %[xxx] y especificar fecha/hora (%Y, %m, …). Los siguientes parámetros están disponibles:
-%[myNI]: tu propio nick
-%[userNI]: nick del usuario (user &amp;&amp; search context only)
-%[userTAG]: tag del usuario (user &amp;&amp; search context only)
-%[userDE]: descripción del usuario (user &amp;&amp; search context only)
-%[userEM]: correo electrónico del usuario (user &amp;&amp; search context only)
-%[userSS]: tamaño compartido del usuario (exacto) (user &amp;&amp; search context only)
-%[userSSshort]: tamaño compartido del usuario (formateado) (user &amp;&amp; search context only)
-%[userI4]: IP del usuario (si está soportado por el hub)
-%[fileFN]: nombre del archivo (search context only)
-%[line:reason]: opens up a window asking for "reason"</String>
 		<String Name="CommandTooLong">Se ha excedido la longitud máxima para un comando</String>
 		<String Name="CommaNotFound">no se encuentra la coma</String>
 		<String Name="Comment">Comentario</String>
@@ -381,9 +306,6 @@ Sólo una vez: Send only once per user from search frame
 		<String Name="CustDesc">Personalizar descripción</String>
 		<String Name="CzdcRatiomsg">Plantilla de mensaje de ratio</String>
 		<String Name="D">D:</String>
-		<String Name="DataBaseErrorString">
-Hubo un error al acceder a la base de datos.
-Por favor enviar un texto o una captura de pantalla del error a los desarrolladores ppa74@ya.ru</String>
 		<String Name="Day">día</String>
 		<String Name="Days">días</String>
 		<String Name="DclstgenInfoborder">Información de metarchivo DCLST</String>
@@ -413,7 +335,6 @@ Por favor enviar un texto o una captura de pantalla del error a los desarrollado
 		<String Name="DefPasswordHint">El usuario ha desactivado la recepción de mensajes privados. En caso de urgencia, usar la contraseña '%[pm_pass]'. No abusar: Si se pregunta por slot será baneado e ignorado permanentemente incluso para descargar.</String>
 		<String Name="DefPasswordOkHint">Contraseña correcta. Acceso concedido</String>
 		<String Name="DeleteChecked">Borrar listas comprobadas</String>
-		<String Name="DeleteFromFlyHashBlock">Eliminar Fly_hash_block…</String>
 		<String Name="DenyAll">Negar todo</String>
 		<String Name="DepthStr">Profundidad</String>
 		<String Name="Description">Descripción</String>
@@ -427,9 +348,6 @@ Por favor enviar un texto o una captura de pantalla del error a los desarrollado
 		<String Name="DhtEnabled">DHT nuevamente activado</String>
 		<String Name="DhtFirewalledUdp">Con firewall UDP estado conjunto</String>
 		<String Name="DhtOurUpdPortOpend">Nuestro puerto UDP parece abrirse</String>
-		<String Name="DhtWarning">Al activar esta opción puede suceder que envíe y reciba desde una red externa al DC. Utilice esta opción sólo si entiende lo que está haciendo.
-
-Activar la opción DHT?</String>
 		<String Name="Directory">Carpeta</String>
 		<String Name="DirectoryAddError">La carpeta o el nombre de la carpeta ya existe</String>
 		<String Name="DirectoryIsHidden">Carpeta oculta</String>
@@ -555,7 +473,6 @@ Activar la opción DHT?</String>
 		<String Name="FilelistUnavailable">Lista no disponible</String>
 		<String Name="Filename">Nombre del archivo</String>
 		<String Name="Files">Archivos</String>
-		<String Name="Files2">Archivos</String>
 		<String Name="FileshareBorder">Archivos compartidos</String>
 		<String Name="FileshareIncFilelist">En las listas incluir recurso compartido de archivos avanzado</String>
 		<String Name="FileshareReindex">Reindexado</String>
@@ -583,9 +500,10 @@ Activar la opción DHT?</String>
 		<String Name="FinishedDownloads">Descargas finalizadas</String>
 		<String Name="FinishedUpload">Envío finalizado: %s    para --&gt;    %s</String>
 		<String Name="FinishedUploads">Envíos finalizados</String>
-		<String Name="FlyServerRating">Ratio</String>
 		<String Name="FlyServerInform">Información multimedia</String>
 		<String Name="FlyServerInformView">Ver información de medios</String>
+		<String Name="FlyHubCountry">País</String>
+		<String Name="FlyHubCity">Ciudad</String>
 		<String Name="Flyupdate">Descargar FlylinkDC++</String>
 		<String Name="FlyupdateCannotupdate">Error en la actualización automática. Por favor, descargue manualmente la última actualización de FlylinkDC++ y ejecutela manualmente.</String>
 		<String Name="FlyupdateCheckupdatebase">Comprobando actualización de FlylinkDC++…</String>
@@ -608,14 +526,10 @@ Activar la opción DHT?</String>
 		<String Name="FreePmAccess">Libre acceso a mensajes privados</String>
 		<String Name="FtpSendHeader">Enviando volcado de pila</String>
 		<String Name="FtpSendLink">Más información sobre 'dump'</String>
-		<String Name="FtpSendQuestion">El inicio del programa ha causado un error grave. Para ayudar a los autores a encontrar la causa, se recomienda permitir el envío de archivos comprimidos.
-Sólo contiene el volcado de pila y la descripción del error.
-No contiene ninguna información confidencial como contraseñas, direcciones de correo electrónico o números de tarjetas de crédito.</String>
 		<String Name="FtpSendQuestion2">Desea enviar el volcado de pila a los desarrolladores?</String>
 		<String Name="FullFilelistNfo">Información completa de las listas de archivos en la cola de descarga</String>
 		<String Name="Gb">GiB</String>
 		<String Name="Gbps">GiB/s</String>
-		<String Name="GdiPlusTabs">Usar estilo de pestañas GDI+</String>
 		<String Name="GenerateCertificates">Crear certificado</String>
 		<String Name="GetFileList">Descargar la lista de archivos</String>
 		<String Name="GetUserResponses">Obtener IP</String>
@@ -639,11 +553,6 @@ No contiene ninguna información confidencial como contraseñas, direcciones de 
 		<String Name="GroupsPrivateCheckbox">Marcar todos los hubs de este grupo como privados</String>
 		<String Name="GroupsPropertiesField">Propiedades del grupo</String>
 		<String Name="GroupsRemovegroup">Eliminar grupo</String>
-		<String Name="GroupsRemovenotify"> hubs; desea eliminar todos los hubs?
-
-Si seleccionas 'Si', todos estos hubs serán eliminados!
-
-Si seleccionas 'No', todos estos hubs sólo se moverán al grupo principal predeterminado.</String>
 		<String Name="GroupCustommenu">Ubicación alternativa del 'Menú personalizado'</String>
 		<String Name="H">H:</String>
 		<String Name="HashingFailed">Error de Indexado:</String>
@@ -678,9 +587,6 @@ Si seleccionas 'No', todos estos hubs sólo se moverán al grupo principal prede
 		<String Name="HubListDownloaded">Descargada la lista de Hubs…</String>
 		<String Name="HubListEdit">Editar la lista de Hubs</String>
 		<String Name="HubListLoadedFromCache">Se ha cargado la lista de Hubs desde la caché…</String>
-		<String Name="HubListWarning">Debe tener en cuenta que abrir la ventana "Hubs de internet" dará lugar a un tráfico externo (Internet). Si dispone de una cantidad limitada de tráfico de entrada, las visitas a estos hubs puede llevar a los recursos externos a una bajada de velocidad debido al exceso del límite o a un aumento sustancial de la factura de Internet.
-
-Mostrar la lista de hubs?</String>
 		<String Name="HubName">Nombre</String>
 		<String Name="HubSegments">Hub / Segmentos</String>
 		<String Name="HubTopic">Info del Hub:</String>
@@ -694,8 +600,6 @@ Mostrar la lista de hubs?</String>
 		<String Name="IgnoreTthSearches">Ignorar las busquedas TTH</String>
 		<String Name="IgnoreUserByName">Ignorar usuario por nombre</String>
 		<String Name="Incoming">entrante</String>
-		<String Name="IncompatibleSoftwareFound">Encontrado programa incompatible: %s
-El programa puede ser inestable. Mostrar detalles?</String>
 		<String Name="IncompleteFavHub">La dirección del Hub no puede estar vacía.</String>
 		<String Name="IntegrationIfaceBtnAutostartAdd">Añadir FlylinkDC++ al inicio del sistema</String>
 		<String Name="IntegrationIfaceBtnAutostartRemove">Eliminar FlylinkDC++ del inicio del sistema</String>
@@ -729,49 +633,15 @@ El programa puede ser inestable. Mostrar detalles?</String>
 		<String Name="Ipguard">IPGuard</String>
 		<String Name="IpguardDefaultPolicy">Política por defecto</String>
 		<String Name="IpguardEnable">Activar IPGuard</String>
-		<String Name="IpguardIntro">IPGuard debe ser utilizado para bloquear rangos de IP maliciosas solamente, y no es de ningún modo un sustituto del cortafuegos u otro software de seguridad de Internet !
-
-Advertencia: IPGuard afecta a todas las conexiones en FlylinkDC++</String>
 		<String Name="IpAutoUpdate">Actualización de IP:</String>
 		<String Name="IpBare">País / IP</String>
 		<String Name="IpInChat">Mostrar IP de usuarios en el chat</String>
 		<String Name="Items">Elemento(s)</String>
 		<String Name="ItemExist">Elemento ya existe!</String>
-		<String Name="ItunesHelp">/itunes - For iTunes media spamming
-- %[version] - Número de versión (ejemplo: 10.0.1.22)
-- %[album] - Nombre del album perteneciente a la pista que estás reproduciendo
-- %[artist] - Nombre del artista de la pista que estás reproduciendo
-- %[title] - Nombre del archivo que estás reproduciendo
-- %[genre] - Género de la pista actual
-- %[elapsed] - Tiempo transcurrido en minutos:segundos
-- %[percent] - Porcentaje reproducido del total
-- %[bar] - Barra de progreso ASCII, 10 caracteres indicando la posición actual (ejemplo: [----|-----])
-- %[length] - Longitud de la pista en minutos:segundos
-- %[bitrate] - Bitrate de la pista actual (kbps)
-- %[frequency] - Frecuencia de la pista que estás reproduciendo (kHz)
-- %[year] - Año de publicación/grabación de la pista actual
-- %[size] - Tamaño del archivo que estás reproduciendo
-- %[state] - Estado de reproducción de iTunes (ejemplo: reproduciendo/parado)
-
-En blanco = Por defecto Cadena -&gt; +me reproduciendo: %[artist] - %[title] • Escuchado %[percent] (%[length], %[bitrate], iTunes %[version])</String>
 		<String Name="ItunesHelpDesc">Ayuda iTunes</String>
 		<String Name="ItunesNotPlay">No está reproduciendo contenidos multimedia en iTunes</String>
 		<String Name="ItunesNotRun">No se está ejecutando la versión compatible de iTunes</String>
 		<String Name="IDownloadedThisFile">Ya estás descargando este archivo</String>
-		<String Name="JaHelp">/ja - For JetAudio spamming
-
-- %[filepath] - name of the file currently playing
-- %[title] - Nombre del archivo que está reproduciendo (sin extensión)
-- %[artist] - Nombre del artista de la pista que estás reproduciendo
-- %[state] - Estado de reproducción de JetAudio (ejemplo: reproduciendo/parado)
-- %[elapsed] - Tiempo transcurrido en minutos:segundos
-- %[percent] - Porcentaje reproducido del total
-- %[bar] - Barra de progreso ASCII, 10 caracteres indicando la posición actual (ejemplo: [----|-----])
-- %[length] - Longitud de la pista
-- %[version] - Versión de JetAudio
-- %[magnet] - Enlace al archivo actual (si no se comparte - mostrar sólo el archivo)
-
-En blanco = Por defecto Cadena -&gt; +me reproduciendo: %[artist] - %[title] * Escuchado %[percent], JetAudio %[version]</String>
 		<String Name="JaHelpDesc">Ayuda JetAudio</String>
 		<String Name="JaNotRun">No se está ejecutando la versión compatible de JetAudio</String>
 		<String Name="Joins">Entra:</String>
@@ -814,7 +684,6 @@ En blanco = Por defecto Cadena -&gt; +me reproduciendo: %[artist] - %[title] * E
 		<String Name="LockToolbars">Bloquear barra de herramientas</String>
 		<String Name="LoggingNotEnabledSystem">Inhabilitado el registro de log del sistema.</String>
 		<String Name="LoggingNotEnabledWebserver">Inhabilitado el registro de log de WebServer.</String>
-		<String Name="LogChat">Log del chat</String>
 		<String Name="LogIfSuppressPms">PM está suprimido! PM de %s Hub %s (%s) se ha reducido…</String>
 		<String Name="LogIn">Iniciar sesión</String>
 		<String Name="LogOff">Cerrar sesión</String>
@@ -841,8 +710,6 @@ En blanco = Por defecto Cadena -&gt; +me reproduciendo: %[artist] - %[title] * E
 		<String Name="MagnetHandlerDesc">Descargar archivos desde la red Direct Connect</String>
 		<String Name="MagnetShellDesc">Introduzca un enlace</String>
 		<String Name="MagnetStartView">Inicio de vista previa Multimedia</String>
-		<String Name="MainWindowCreationFailed">Imposible crear ventana principal!
-</String>
 		<String Name="Manage">Administrar</String>
 		<String Name="ManageGroups">Administrar Grupos</String>
 		<String Name="MarkAsDownloaded">Marcar para descargar</String>
@@ -872,34 +739,21 @@ En blanco = Por defecto Cadena -&gt; +me reproduciendo: %[artist] - %[title] * E
 		<String Name="MediaXY">Resolución</String>
 		<String Name="Menubar">Barra de Menú</String>
 		<String Name="MenuAbout">Acerca de…</String>
-		<String Name="MenuAddMagnet">&amp;Añadir un enlace	 Ctrl+M</String>
-		<String Name="MenuAdlSearch">Búsqueda automática ADL	 Ctrl+Shift+S</String>
 		<String Name="MenuArrange">Organizar iconos</String>
 		<String Name="MenuCascade">Cascada</String>
 		<String Name="MenuCdmdebugMessages">Mensajes de depuración CDM</String>
 		<String Name="MenuCloseAllDirList">Cierra todas las ventanas de listas de archivos</String>
 		<String Name="MenuCloseAllHubs">Cierra todas las ventanas de Hubs</String>
-		<String Name="MenuCloseAllOfflinePm">Cierra todos los mensajes privados de usuarios desconectados	Alt+P</String>
 		<String Name="MenuCloseAllPm">Cierra todas las ventanas de mensajes privados</String>
-		<String Name="MenuCloseAllSearchframe">Cierra todas las ventanas de búsqueda</String>
-		<String Name="MenuCloseDisconnected">Cierra Hubs desconectados	Alt+D</String>
 		<String Name="MenuCloseHubsBelow">Cierra Hubs con usuarios por debajo del umbral seleccionado</String>
 		<String Name="MenuCloseHubsEmpty">Cierra Hubs sin usuarios (vacíos)</String>
 		<String Name="MenuConnectToHub">Conectar al soporte del Hub de FlylinkDC++</String>
 		<String Name="MenuDiscuss">Foro de discusión FlylinkDC++</String>
 		<String Name="MenuDonate">Realizar una donación</String>
-		<String Name="MenuDownloadQueue">Cola de &amp;descargas  Ctrl+D</String>
 		<String Name="MenuExit">S&amp;alir</String>
 		<String Name="MenuFaq">Preguntas frecuentes</String>
-		<String Name="MenuFavoriteHubs">Hubs &amp;Favoritos  Ctrl+F</String>
-		<String Name="MenuFavoriteUsers">Usuarios &amp;Favoritos 	Ctrl+Shift+F</String>
 		<String Name="MenuFile">&amp;Archivo</String>
 		<String Name="MenuFileRecentHubs">Hubs &amp;Recientes</String>
-		<String Name="MenuFinishedDownloads">Descargas finalizadas	Ctrl+Shift+D</String>
-		<String Name="MenuFinishedUploads">Envíos finalizados	Ctrl+Shift+U</String>
-		<String Name="MenuFollowRedirect">Seguir úl&amp;tima redirección 	Ctrl+T</String>
-		<String Name="MenuHashProgress">Progreso de indexado 	Ctrl+H</String>
-		<String Name="MenuHelp">&amp;Ayuda…	F1</String>
 		<String Name="MenuHelpGeoipfile">Actualizar la base de datos GeoIP</String>
 		<String Name="MenuHlp">Ayuda</String>
 		<String Name="MenuHomepage">Página principal FlylinkDC++</String>
@@ -907,39 +761,22 @@ En blanco = Por defecto Cadena -&gt; +me reproduciendo: %[artist] - %[title] * E
 		<String Name="MenuJoinTeam">Código fuente FlylinkDC++…</String>
 		<String Name="MenuMinimizeAll">Minimiz&amp;ar todos</String>
 		<String Name="MenuNetworkStatistics">Estadísticas de la red</String>
-		<String Name="MenuNotepad">Block de &amp;Notas 	Ctrl+N</String>
 		<String Name="MenuOpenDownloadsDir">Abrir la carpeta de descargas</String>
-		<String Name="MenuOpenFileList">Abrir la carpeta de listas descargadas…	 Ctrl+L</String>
 		<String Name="MenuOpenMatchAll">Abrir la lista de descargas</String>
-		<String Name="MenuOpenOwnList">Ver mi lista de archivos 	F8</String>
 		<String Name="MenuOpenSqlexplorer">Abrir SQLExplorer</String>
 		<String Name="MenuPreviewLogDlg">Descargar visor de registros</String>
-		<String Name="MenuPublicHubs">Hubs Públ&amp;icos 	Ctrl+I</String>
-		<String Name="MenuQuickConnect">&amp;Conexión rápida…	F2</String>
-		<String Name="MenuReconnect">&amp;Reconectar	 F5</String>
-		<String Name="MenuReconnectDisconnected">Reconectar a Hubs desconectados	Ctrl+Shift+R</String>
-		<String Name="MenuRefreshFileList">Refrescar mi lista de compartidos 	F9</String>
 		<String Name="MenuRefreshFileListPurge">Limpiar la base de datos TTH</String>
 		<String Name="MenuRefreshMediainfo">Actualización mediainfo (sólo para beta-testers! proceso largo sin barra de progreso)</String>
 		<String Name="MenuRestoreAll">Restaurar todos</String>
-		<String Name="MenuRssNews">RSS News	Ctrl+Shift+N</String>
-		<String Name="MenuSearch">Bu&amp;scar 	Ctrl+S</String>
 		<String Name="MenuSearchSpy">Espiar búsquedas</String>
-		<String Name="MenuSettings">Ajustes…	 F12</String>
-		<String Name="MenuSettingsWizard">Asistente de configuración	Ctrl+Shift+W</String>
 		<String Name="MenuShow">Ocultar/Mostrar FlylinkDC++</String>
 		<String Name="MenuSites">Enlaces/Afiliados</String>
 		<String Name="MenuSitesGuide">FAQ's y Guías hechas por usuarios</String>
 		<String Name="MenuSitesGuides">FlylinkDC++ Guías</String>
-		<String Name="MenuStatusBar">&amp;Barra de estado 	Ctrl+2</String>
-		<String Name="MenuToolbar">&amp;Barra de herramientas	Ctrl+1</String>
-		<String Name="MenuTopmost">Siempre delante	Alt+W</String>
 		<String Name="MenuTransfers">T&amp;ransferencias</String>
-		<String Name="MenuTransferView">&amp;Ventana de transferencias 	Ctrl+3</String>
 		<String Name="MenuTth">Obtener TTH + MD5 de un archivo…</String>
 		<String Name="MenuVerticalTile">Mosaico vertical</String>
 		<String Name="MenuView">&amp;Ver</String>
-		<String Name="MenuWaitingUsers">Usuarios en cola de espera	Ctrl+U</String>
 		<String Name="MenuWindow">&amp;Ventana</String>
 		<String Name="Midnight">00:00</String>
 		<String Name="Min">minutos</String>
@@ -954,17 +791,6 @@ En blanco = Por defecto Cadena -&gt; +me reproduciendo: %[artist] - %[title] * E
 		<String Name="Move">Mover/Renombrar</String>
 		<String Name="MoveDown">Mover &amp;Abajo</String>
 		<String Name="MoveUp">Mover &amp;Arriba</String>
-		<String Name="MpcHelp">/mpc - For Media Player Classic media spamming
-- %[filename] - Nombre del archivo que se está reproduciendo
-- %[title] - Nombre del archivo que está reproduciendo (sin extensión del archivo)
-- %[size] - Tamaño del archivo que está reproduciendo
-- %[state] - Estado de reproducción del Media Player Classic (ejemplo: reproduciendo/pausado/parado)
-- %[elapsed] - Tiempo transcurrido en minutos:segundos (ejemplo: 03:51)
-- %[percent] - Porcentaje reproducido del total (ejemplo: 40%)
-- %[bar] - Barra de progreso ASCII, 10 caracteres indicando la posición actual (ejemplo: [----|-----])
-- %[length] - Longitud de la pista en minutos:segundos (ejemplo: 04:09)
-
-En blanco = Por defecto Cadena -&gt; +me reproduciendo: %[title] (Media Player Classic)</String>
 		<String Name="MpcHelpDesc">Ayuda de Media Player Classic</String>
 		<String Name="MpcNotRun">No se está ejecutando la versión compatible de Media Player Classic</String>
 		<String Name="MultilineChatInput">Varias líneas para campo de entrada en la ventana del chat</String>
@@ -995,7 +821,6 @@ En blanco = Por defecto Cadena -&gt; +me reproduciendo: %[title] (Media Player C
 		<String Name="Normal">Normal</String>
 		<String Name="NormalPriority">Prioridad normal</String>
 		<String Name="Notepad">Bloc de notas</String>
-		<String Name="NotChecked">Sin comprobar</String>
 		<String Name="NotListening">Imposible establecer conexiones  - por favor reinicie FlylinkDC++</String>
 		<String Name="NoAction">Sin acciones</String>
 		<String Name="NoAdls">No realizar ADLSearch en este Hub</String>
@@ -1030,7 +855,6 @@ En blanco = Por defecto Cadena -&gt; +me reproduciendo: %[title] (Media Player C
 		<String Name="OnDownloadAutorename">Renombrar automáticamente</String>
 		<String Name="OnDownloadReplace">Reemplazarlo - para mantener los archivos, preguntar al usuario</String>
 		<String Name="OnDownloadSkip">Ignorar estos archivos</String>
-		<String Name="Opchat">Chat OP (comodines soportados)</String>
 		<String Name="Open">Abrir</String>
 		<String Name="OpenFolder">Abrir carpeta</String>
 		<String Name="OpenHubLog">Abrir registro del Hub</String>
@@ -1054,8 +878,6 @@ En blanco = Por defecto Cadena -&gt; +me reproduciendo: %[title] (Media Player C
 		<String Name="Picture">Imagen</String>
 		<String Name="Pk">PK String</String>
 		<String Name="Play">Reproducir</String>
-		<String Name="PleaseGetNewVersion">
-Por favor, descarga la nueva versión</String>
 		<String Name="PleaseWait">Por favor, espera</String>
 		<String Name="PmPreview">Mostrar ventana emergente de mensaje privado</String>
 		<String Name="PopupsInprogram">Mostrar avisos del programa</String>
@@ -1105,9 +927,6 @@ Por favor, descarga la nueva versión</String>
 		<String Name="PrivateKeyFileNotChosen">El archivo de clave privada no está generado</String>
 		<String Name="PrivateMessage">Mensaje privado recibido</String>
 		<String Name="PrivateMessageFrom">Mensaje privado recibido de</String>
-		<String Name="PrivatePasswordHelp">Puedes usar:
-
- %[pm_pass] - contraseña</String>
 		<String Name="PrivatePasswordHelpDesc">Plantilla de ayuda para contraseña PM</String>
 		<String Name="ProcessedFileList">Lista de archivos procesados en</String>
 		<String Name="ProcessingFileList">Lista de archivos de procesamiento, puede tomar algún tiempo…</String>
@@ -1150,39 +969,17 @@ Por favor, descarga la nueva versión</String>
 		<String Name="PrvDlgVideoStatusExist">Ya existe en el disco la vista previa del vídeo</String>
 		<String Name="PsrDelay">Retrasar envío de $PSR (en segundos)</String>
 		<String Name="PublicHubs">Hubs públicos</String>
-		<String Name="PublicHubsWarning">¡Atención! La conexión simultánea a un gran número de hubs conlleva una carga excesiva de la CPU y puede tomar mucho tiempo, especialmente en máquinas más lentas.
-¿Seguro que desea continuar conectando?</String>
 		<String Name="PublicIpDetected">IP pública detectada, seleccionar modo activo con conexión directa</String>
 		<String Name="PurgeTthDatabase">Purgar la base de datos TTH…</String>
 		<String Name="PvsStudioUrl">Calidad de código C++ protege PVS-Studio</String>
 		<String Name="QcdqmpNotRunning">La versión compatible de QCD / QMP no se está ejecutando</String>
-		<String Name="QcdqmpHelp">/w, /q, /qcd - Para reproductores Quinnware spamming
-
-- %[filepath] - nombre del archivo actualmente reproducido
-- %[title] - nombre del elemento que se está reproduciendo (sin extensión de archivo)
-- %[artist] - nombre del artista
-- %[state] - estado actual de QCD/QMP (reproduciendo/pausado/parado)
-- %[elapsed] - tiempo transcurrido en minutos:segundos
-- %[percent] - tiempo transcurrido representado como porcentaje de la longitud total
-- %[bar] - barra de progreso ASCII, 10 caracteres indicando la posición actual (ejemplo: [----|-----])
-- %[length] - longitud total de la pista actual
-- %[version] - versión de QCD/QMP
-- %[magnet] - Enlace al archivo actual (si no se comparte - mostrar sólo el archivo)
-
-En blanco = Por defecto cadena -&gt; +me reproduciendo en 'QCD/QMP %[version]': '%[title]' (%[bitrate],%[sample]) (%[elapsed] %[bar] %[length]) %[magnet]</String>
 		<String Name="QcdqmpHelpDesc">Ayuda reproductor Quinnware</String>
 		<String Name="QsearchStr">Búsqueda rápida…</String>
 		<String Name="Queued">Posición en la Cola:</String>
 		<String Name="QueueSaved">Cola guardada.</String>
-		<String Name="QueueUpdating">Habilitar la actualización de la cola en tiempo real (usa más CPU con colas grandes !)</String>
 		<String Name="QuickConnect">Conexión rápida</String>
 		<String Name="Rating">Ratio</String>
 		<String Name="Ratio">Ratio</String>
-		<String Name="RatioMsgHelp">Puedes utilizar:
-
- %[ratio]	   enviado/recibido ratio
- %[up]	   datos enviados
- %[down]   datos recibidos</String>
 		<String Name="RatioMsgHelpDesc">Ayuda para la plantilla de mensaje de Ratio</String>
 		<String Name="RawSet">Comandos Raw</String>
 		<String Name="RawTexts">Textos Raw (no introducir aquí tus comandos raw)</String>
@@ -1264,7 +1061,6 @@ En blanco = Por defecto cadena -&gt; +me reproduciendo en 'QCD/QMP %[version]': 
 		<String Name="SearchDisaled">Búsqueda desactivada</String>
 		<String Name="SearchEnabled">Búsqueda nuevamente activada</String>
 		<String Name="SearchFileInGoogle">Buscar en Google</String>
-		<String Name="SearchFileInNigma">Buscar en Nigma</String>
 		<String Name="SearchFileInYandex">Buscar en Yandex</String>
 		<String Name="SearchFor">Buscar por</String>
 		<String Name="SearchForAlternates">Buscar usuarios alternativos</String>
@@ -1363,10 +1159,7 @@ En blanco = Por defecto cadena -&gt; +me reproduciendo en 'QCD/QMP %[version]': 
 		<String Name="SettingsBindAddress">Dirección de enlace</String>
 		<String Name="SettingsBindAddressHelp">Interfaz de red para todas las conexiones</String>
 		<String Name="SettingsBoldOptions">Pestaña en negrita cuando cambia el contenido</String>
-		<String Name="SettingsBtHelp">Introducir como ejemplo:
-"C:\Program Files (x86)\uTorrent\uTorrent.exe" - asociado a la ruta de uTorrent en la plataforma de 64 bit
-"C:\Program Files\uTorrent\uTorrent.exe" - asociado a la ruta de uTorrent en la plataforma de 32 bit</String>
-		<String Name="BittorrentProgramm">Enlaces para programas BitTorrent:</String>
+		<String Name="SettingsBittorrentProgramm">Enlaces para programas BitTorrent:</String>
 		<String Name="SettingsCertificates">Certificados de seguridad</String>
 		<String Name="SettingsChange">&amp;Modificar</String>
 		<String Name="SettingsClearSearch">Limpiar la pantalla de búsqueda al buscar de nuevo</String>
@@ -1389,7 +1182,6 @@ En blanco = Por defecto cadena -&gt; +me reproduciendo en 'QCD/QMP %[version]': 
 		<String Name="SettingsConfirmHubgroupRemoval">Pedir confirmación al eliminar un grupo de Hub</String>
 		<String Name="SettingsConfirmHubRemoval">Pedir confirmación al eliminar un Hub favorito</String>
 		<String Name="SettingsConfirmItemRemoval">Pedir confirmación al eliminar un archivo de la cola de descarga</String>
-		<String Name="SettingsConfirmOpenInetHubs">Pedir confirmación para abrir Hubs de Internet</String>
 		<String Name="SettingsConnectionAutodetect">Trabajar en modo pasivo si se especifica que no está disponible el modo activo (auto-detección)</String>
 		<String Name="SettingsCzdcExtraDownloads">Slots extras para descargas con Prioridad Máxima</String>
 		<String Name="SettingsDclsPage">Soporte DCLST</String>
@@ -1410,7 +1202,6 @@ En blanco = Por defecto cadena -&gt; +me reproduciendo en 'QCD/QMP %[version]': 
 		<String Name="SettingsDupeColor">Compartido preparado</String>
 		<String Name="SettingsEnd">Fin</String>
 		<String Name="SettingsExtensions">Extensiones</String>
-		<String Name="SettingsExternalIp">IP externa / WAN IP</String>
 		<String Name="SettingsFakedetect">Auto Baneo</String>
 		<String Name="SettingsFakeSet">Detector de compartidos falsos</String>
 		<String Name="SettingsFavoriteDirs">Carpetas de descargas favoritas</String>
@@ -1423,7 +1214,6 @@ En blanco = Por defecto cadena -&gt; +me reproduciendo en 'QCD/QMP %[version]': 
 		<String Name="SettingsFilterMessages">Filtrar mensajes de expulsión y de depuración del NMDC</String>
 		<String Name="SettingsFirewallNat">Cortafuegos con mapeo manual de puertos</String>
 		<String Name="SettingsFirewallPassive">Cortafuegos (pasivo, en el peor de los casos)</String>
-		<String Name="SettingsFirewallUpnp">UPnP (sólo para módem/router)</String>
 		<String Name="SettingsFormat">Formato</String>
 		<String Name="SettingsGeneral">General</String>
 		<String Name="SettingsGetFavoriteDir">Elegir carpeta:</String>
@@ -1507,7 +1297,6 @@ En blanco = Por defecto cadena -&gt; +me reproduciendo en 'QCD/QMP %[version]': 
 		<String Name="SettingsProviders">Proveedores de recursos</String>
 		<String Name="SettingsProxy">Proxy</String>
 		<String Name="SettingsPublicHubList">Lista de Hubs de internet</String>
-		<String Name="SettingsPublicHubListHttpProxy">HTTP Proxy para todas las conexiones http(s). Formato: "Server:Port"</String>
 		<String Name="SettingsPublicHubListUrl">Dirección URL de la lista de Hubs</String>
 		<String Name="SettingsQueue">Cola de descargas</String>
 		<String Name="SettingsRc">Control remoto</String>
@@ -1660,8 +1449,6 @@ En blanco = Por defecto cadena -&gt; +me reproduciendo en 'QCD/QMP %[version]': 
 		<String Name="Speed">Velocidad</String>
 		<String Name="SpeedLimit">Límite de velocidad</String>
 		<String Name="SpeedLimitManual">Establecer manualmente el límite de subida</String>
-		<String Name="SplashBeta">Versión Beta. Cargando…</String>
-		<String Name="SplashRelease">Cargando…</String>
 		<String Name="SqliteUseExclusiveLockMode">Usar el bloqueo de modo exclusivo en la base de datos SQLite. Esta opción mejora el rendimiento.</String>
 		<String Name="SqliteUseJournalMemory">Mantener el archivo de registro de datos SQLite en la memoria, puede causar la corrupción de la base de datos por fallos en el programa o sistema.</String>
 		<String Name="SslError">Error SSL</String>
@@ -1681,7 +1468,6 @@ En blanco = Por defecto cadena -&gt; +me reproduciendo en 'QCD/QMP %[version]': 
 		<String Name="SuccessfullyGetTthStream">TTH obtenido con éxito de NTFS stream:</String>
 		<String Name="SpeedSuperUser">Eludir el limitador</String>
 		<String Name="Supports">Soportes</String>
-		<String Name="SupportsServerDesc">FlylinkDC++ soporte/ayuda hub</String>
 		<String Name="Suspend">Suspender</String>
 		<String Name="SxmlEmptyTagName">Los nombres de etiqueta (tag) vacios no estás permitidos</String>
 		<String Name="SxmlInvalidFile">Archivo XML no válido, falta o hay varias etiquetas (tags)</String>
@@ -1689,7 +1475,6 @@ En blanco = Por defecto cadena -&gt; +me reproduciendo en 'QCD/QMP %[version]': 
 		<String Name="SxmlOnleOneRoot">Sólo permitida una etiqueta (tag)</String>
 		<String Name="TabsBottom">Abajo</String>
 		<String Name="TabsClosebuttons">Visualizar botón de cerrar en las pestañas</String>
-		<String Name="TabsClosebuttonsAlt">Alternar tipo de botones</String>
 		<String Name="TabsLeft">A la izquierda</String>
 		<String Name="TabsPosition">Posición de las pestañas</String>
 		<String Name="TabsRight">A la derecha</String>
@@ -1736,38 +1521,11 @@ En blanco = Por defecto cadena -&gt; +me reproduciendo en 'QCD/QMP %[version]': 
 		<String Name="TimeoutRaw">Tiempo de espera</String>
 		<String Name="TimestampsDisabled">Visualización de la hora desactivada</String>
 		<String Name="TimestampsEnabled">Visualización de la hora activada</String>
-		<String Name="TimestampHelp">
-- %a - Nombre abreviado del día de la semana
-- %A - Nombre completo del día de la semana
-- %b - Nombre abreviado del mes
-- %B - Nombre completo del mes
-- %c - Representación de fecha y hora apropiadas para cada localización
-- %d - Día del mes en números decimales (01 a 31)
-- %H - Hora en formato de 24 horas (00 a 23)
-- %I - Hora en formato de 12 horas (01 a 12)
-- %j - Día del año en números decimales (001 a 366)
-- %m - Mes en números decimales (01 a 12)
-- %M - Minutos en números decimales (00 a 59)
-- %p - Indicador A.M./P.M. de la localización actual para reloj de 12 horas
-- %S - Segundos en números decimales (00 a 59)
-- %U - Día del año en números decimales, con Domingo como primer día de la semana (00 a 53)
-- %w - Día de la semana en números decimales (0 a 6; Domingo es 0)
-- %W - Día del año en números decimales, con Lunes como primer día de la semana (00 a 53)
-- %x - Representación de fecha para localización actual
-- %X - Representación de hora para localización actual
-- %y - Año sin siglo, en números decimales (00 a 99)
-- %Y - Año y siglo, en números decimales
-- %z, %Z - Nombre de zona horaria completo o abreviado, dependiendo de la configuración del registro; no se mostrará nada si es desconocida
-- %% - Signo de porcentaje
-
-Por defecto: %H:%M:%S</String>
 		<String Name="TimestampHelpDesc">Ayuda (visualizar tiempo)</String>
 		<String Name="TimeLeft">Tiempo resta.</String>
 		<String Name="TitleIpfilter">Filtro IP</String>
 		<String Name="TlsError">error TLS</String>
 		<String Name="To">a</String>
-		<String Name="ToggleQsearch">Búsqueda rápida de archivos	Ctrl+5</String>
-		<String Name="ToggleToolbar">Barra de herramientas multimedia  Ctrl+4</String>
 		<String Name="TooMuchData">Se han enviado más datos de los esperados</String>
 		<String Name="Total">Total:</String>
 		<String Name="Transferlistdblclickaction">En la lista de transferencias</String>
@@ -1793,15 +1551,11 @@ Por defecto: %H:%M:%S</String>
 		<String Name="Unknown">Desconocido</String>
 		<String Name="UnknownCommand">Comando desconocido:</String>
 		<String Name="UnknownError">Error desconocido: 0x%x</String>
-		<String Name="UnknownModeNotice">El tipo de conexión es desconocida.
- Ya sea que usted no está conectado a Internet o que haya configurado la conexión incorrecta, o en el servidor concentrador no está disponible.</String>
 		<String Name="UnnamedMagnetLink">Enlace sin nombre</String>
 		<String Name="Up">Up:</String>
 		<String Name="Update">Actualizar</String>
 		<String Name="UpdateCheck">Comprobar actualización</String>
 		<String Name="UpdateIp">Actualizar IP al arrancar</String>
-		<String Name="UpdateIpInterval">Intervalo en minutos para actualizar IP
-(0 = actualiza sólo al arrancar)</String>
 		<String Name="Upload">Enviado</String>
 		<String Name="Uploaded">Subido</String>
 		<String Name="UploadedBytes">Enviados %s (%.01f%%)  en  %s h.</String>
@@ -1861,8 +1615,6 @@ Por defecto: %H:%M:%S</String>
 		<String Name="UserWentOffline">El usuario se ha desconectado</String>
 		<String Name="UserWentOnline">El usuario está conectado</String>
 		<String Name="Use12HourFormat">Usar formato de 12 horas</String>
-		<String Name="UseAntivir">Revise los archivos terminados en busca de virus</String>
-		<String Name="UseAutoMultiChatSwitch">Usar la conmutación automáticamente a chat multilínea</String>
 		<String Name="UseBitrateFixForSpam">Utilice Bitrate/Ejemplo solución para reproductores QCD/QMP</String>
 		<String Name="UseCustomListBackground">Usar estilo personalizado para el fondo de las listas</String>
 		<String Name="UseCustomMenu">Usar menús personalizados</String>
@@ -1887,13 +1639,8 @@ Por defecto: %H:%M:%S</String>
 		<String Name="WaitingUserOnline">Esperando… (usuario en línea)</String>
 		<String Name="Warning">Atención!</String>
 		<String Name="WarningParse">Análisis de advertencia</String>
-		<String Name="WarningValueAutoAdjusted">Los cambios en la configuración se ajustan automáticamente</String>
 		<String Name="Webserver">Servidor web</String>
 		<String Name="WebserverAddMagnetLink">Añadir enlace</String>
-		<String Name="WebserverAllowChangeDownloadDir">Permitir cambiar la carpeta de descarga.
-Advertencia: esta opción es potencialmente insegura!</String>
-		<String Name="WebserverAllowUpnp">Permitir mapeado de puertos con UPnP.
-Advertencia: esta opción es potencialmente insegura!</String>
 		<String Name="WebserverBindInterface">Interfaz de red:</String>
 		<String Name="WebserverFullUser">Administrador</String>
 		<String Name="WebserverGeneratedInMessage">Generado en:</String>
@@ -1913,29 +1660,6 @@ Advertencia: esta opción es potencialmente insegura!</String>
 		<String Name="WhoIs">Whois</String>
 		<String Name="Width">Ancho</String>
 		<String Name="WinampBack">Atras</String>
-		<String Name="WinampHelp">/winamp - Funciona con versiones 1.x, 2.x, 5.x (Winamp 3 no está soportado). Los parámetros válidos son los siguientes:
-
-- %[version] - Número de versión (ejemplo: 5.58)
-- %[state] - Estado de reproducción (ejemplo: parado/pausado/reproduciendo)
-- %[title] - Título de la ventana Winamp - Si quieres cambiar la visualización: Winamp &gt; Pref &gt; Input &gt; MPEG &gt; Title
-- %[rawtitle] - Nombre del archivo Winamp en curso (si %[title] no funciona correctamente)
-- %[percent] - Porcentaje reproducido (ejemplo: 40%)
-- %[length] - Longitud de la pista en minutos:segundos (ejemplo: 04:09)
-- %[elapsed] - Tiempo transcurrido en minutos:segundos (ejemplo: 03:51)
-- %[bar] - Barra de progreso ASCII, 10 caracteres indicando la posición actual (ejemplo: [----|-----])
-- %[bitrate] - Bitrate (ejemplo: 707kbps)
-- %[sample] - Frecuencia de sampleo (ejemplo: 44kHz)
-- %[channels] - Número de canales (ejemplo: estéreo / mono)
-
-- %[magnet] - enlace al archivo actual ( si no se comparte - mostrar sólo el nombre del archivo )
-
-En blanco = Por defecto:
-+me escuchar: %[artist] - %[elapsed] %[track] - %[title] • Escuchado %[percent] (%[length], %[bitrate], Winamp %[version])
-
-Nota sobre The KMPlayer:
-Puedes utilizar también con The KMPlayer, la mayoría de las opciones ofrecidas por los comandos de WinAmp y todas las características de la barra de herramientas multimedia.
-Los parámetros que no funcionan (o devuelven valores incorrectos) son %[version], %[bitrate], %[sample] y %[channels].
-Es muy probable que tengas que usar %[rawtitle] en lugar de %[title] para obtener una salida correcta.</String>
 		<String Name="WinampHelpDesc">Ayuda Winamp</String>
 		<String Name="WinampNext">Siguiente</String>
 		<String Name="WinampNotRunning">No se está ejecutando la versión compatible de Winamp</String>
@@ -1948,8 +1672,6 @@ Es muy probable que tengas que usar %[rawtitle] en lugar de %[title] para obtene
 		<String Name="WinampVolUp">Volumen +</String>
 		<String Name="WindowsStyleUrl">Usar el estilo de windows para las direcciones URL</String>
 		<String Name="WizardDownloaddirStatic">Ayuda: Usar carpetas (no del disco del sistema) con más de 10 GB libres (recomendado)…</String>
-		<String Name="WizardFinishLabel1">Terminado el asistente de configuración</String>
-		<String Name="WizardFinishLabel2">Ahora puedes comenzar a usar FlylinkDC++ !</String>
 		<String Name="WizardNetaBtnCheckupnp">Comprobación UPnP</String>
 		<String Name="WizardNetaBtnSetuprouter">Ajustes del Router</String>
 		<String Name="WizardNetaBtnTest">Prueba de conexiones de red en FlylinkDC++</String>
@@ -1977,39 +1699,10 @@ Es muy probable que tengas que usar %[rawtitle] en lugar de %[title] para obtene
 		<String Name="WizardNickStatic2">0123456789 abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ ()+-=[]^_{})</String>
 		<String Name="WizardShareAlreadyin">Esta carpeta ya está compartida</String>
 		<String Name="WizardShareAlreadyindesc">Ya existe una carpeta con esa descripción</String>
-		<String Name="WizardShareDeletefolderquestion">
-Deseas eliminar esta carpeta?</String>
-		<String Name="WizardShareStatic">Puedes añadir las carpetas que quieras compartir con otros usuarios. Todas las subcarpetas y archivos de las carpetas seleccionadas, podrán ser descargadas por los usuarios de los hubs conectados.
-Por favor, no compartir carpetas con archivos del sistema!</String>
 		<String Name="WizardShareToSmall">Tus compartidos son muy pocos. Comparte más archivos.</String>
 		<String Name="WizardStartupTxt1">Bienvenido al asistente de configuración de FlylinkDC++ !</String>
-		<String Name="WizardStartupTxt2">Este asistente de configuración del cliente FlylinkDC++ te ayudará a: 
- 1. Introducir tu Nick
- 2. Seleccionar las carpetas de descarga y temporal 
- 3. Compartir tus archivos para que los usuarios de DC++ los descarguen 
- 4. Configurar los ajustes de red 
- 5. Añadir hubs favoritos</String>
 		<String Name="WizardStartupTxt3">Presionar siguiente para continuar…</String>
 		<String Name="WizardTitle">Asistente de configuración de FlylinkDC++</String>
-		<String Name="WmpHelp">/wmp - Funciona con versiones de Windows Media Player 9+
-- %[version] - Versión de Windows Media Player
-- %[fullversion] - Versión completa de Windows Media Player
-- %[status] - pre-formatted status string from Windows Media Player
-- %[title] - Nombre del archivo que estás reproduciendo
-- %[elapsed] - Tiempo transcurrido en (HH:)MM:SS
-- %[percent] - Porcentaje reproducido del total
-- %[bar] - Barra de progreso ASCII, 10 caracteres indicando la posición actual no incluyendo los corchetes (ex. [----|-----])
-- %[length] - Longitud de la pista en (HH:)MM:SS
-- %[artist] - Nombre del artista de la pista que estás reproduciendo
-- %[album] - Nombre del album perteneciente a la pista que estás reproduciendo
-- %[genre] - Género de la pista actual
-- %[bitrate] - Bitrate de la pista actual
-- %[year] - Año de publicación del album (no soportado en WMP9)
-- %[size] - Tamaño del archivo que estás reproduciendo
-- %[rating] - Clasificación de los usuarios, representado con *'s (si está disponible)
-
-En blanco = Por defecto: 
-Cadena -&gt; +me %[title] at %[bitrate] &lt;Windows Media Player %[version]&gt;</String>
 		<String Name="WmpHelpDesc">Ayuda de Windows Media Player</String>
 		<String Name="WmpNotPlay">No está reproduciendo contenidos multimedia en Windows Media Player</String>
 		<String Name="WmpNotRun">No se está ejecutando la versión compatible de Windows Media Player</String>

@@ -124,7 +124,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			m_availableBytes -= l_old;
 			m_isChangeAvailableBytes = l_old != 0;
 		}
-		void changeBytesSharedL(Identity& p_id, const int64_t p_bytes)
+		bool changeBytesSharedL(Identity& p_id, const int64_t p_bytes)
 		{
 			// https://code.google.com/p/flylinkdc/issues/detail?id=1231
 			dcassert(p_bytes >= 0);
@@ -132,10 +132,14 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			//dcassert(l_oldSum >= 0);
 			const auto l_old = p_id.getBytesShared();
 			m_isChangeAvailableBytes = p_bytes != l_old;
-			//dcassert(l_old >= 0);
-			m_availableBytes -= l_old;
-			p_id.setBytesShared(p_bytes);
-			m_availableBytes += p_bytes;
+			if (m_isChangeAvailableBytes)
+			{
+				//dcassert(l_old >= 0);
+				m_availableBytes -= l_old;
+				p_id.setBytesShared(p_bytes);
+				m_availableBytes += p_bytes;
+			}
+			return m_isChangeAvailableBytes;
 		}
 	public:
 		bool isChangeAvailableBytes() const
@@ -285,11 +289,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		}
 		string getLocalIp() const;
 		
-		void updated(const OnlineUserPtr& aUser)
-		{
-			fly_fire1(ClientListener::UserUpdated(), aUser);    // !SMT!-fix
-		}
-		
+		void updatedMyINFO(const OnlineUserPtr& aUser);
 		static int getTotalCounts()
 		{
 			return g_counts[COUNT_NORMAL] + g_counts[COUNT_REGISTERED] + g_counts[COUNT_OP];
@@ -616,6 +616,10 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		bool m_isAutobanAntivirusIP;
 		bool m_isAutobanAntivirusNick;
 		boost::unordered_set<string> m_virus_nick;
+#ifdef _DEBUG
+		boost::unordered_set<string> m_virus_nick_checked;
+		boost::unordered_map<string, string> m_check_myinfo_dup;
+#endif
 		string m_AntivirusCommandIP;
 	private:
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO

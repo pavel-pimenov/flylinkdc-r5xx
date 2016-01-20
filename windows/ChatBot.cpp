@@ -139,7 +139,7 @@ void ChatBot::onUserAction(BotInit::CODES c, const UserPtr& aUser)
 	{
 		try
 		{
-			m_init.RecvMessage2(c, Text::toT(aUser->getCID().toBase32()).c_str(), nullptr, 0); // https://www.box.com/shared/c0b34dc7f52b7775a44b
+			m_init.RecvMessage2(c, Text::toT(aUser->getCID().toBase32()).c_str(), nullptr, 0); 
 		}
 		catch (const Exception&)
 		{

@@ -298,12 +298,12 @@ class ClientManager : public Speaker<ClientManagerListener>,
 	public:
 		// [~] IRainman fix.
 		
-		void send(AdcCommand& c, const CID& to);
+		static void send(AdcCommand& c, const CID& to);
 		static void upnp_error_force_passive();
 		static void resend_ext_json();
 		void connect(const HintedUser& user, const string& p_token, bool p_is_force_passive, bool& p_is_active_client);
 		static void privateMessage(const HintedUser& user, const string& msg, bool thirdPerson);
-		void userCommand(const HintedUser& user, const UserCommand& uc, StringMap& params, bool compatibility);
+		static void userCommand(const HintedUser& user, const UserCommand& uc, StringMap& params, bool compatibility);
 		
 		static int getMode(const FavoriteHubEntry* p_hub
 #ifdef RIP_USE_CONNECTION_AUTODETECT
@@ -329,12 +329,14 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		 * It has been divided but shouldn't be used anywhere else.
 		 */
 		
-		void sendRawCommand(const OnlineUser& ou, const int aRawCommand);
+		static void sendRawCommand(const OnlineUser& ou, const int aRawCommand);
 		void setListLength(const UserPtr& p, const string& listLen);
-		void fileListDisconnected(const UserPtr& p);
+#ifdef IRAINMAN_INCLUDE_USER_CHECK
+		static void fileListDisconnected(const UserPtr& p);
+#endif
 		void connectionTimeout(const UserPtr& p);
-		void checkCheating(const UserPtr& p, DirectoryListing* dl);
-		void setClientStatus(const UserPtr& p, const string& aCheatString, const int aRawCommand, bool aBadClient);
+		static void checkCheating(const UserPtr& p, DirectoryListing* dl);
+		static void setClientStatus(const UserPtr& p, const string& aCheatString, const int aRawCommand, bool aBadClient);
 		
 // [!] IRainamn fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
 		void setSupports(const UserPtr& p, StringList& aSupports, const uint8_t knownUcSupports);
@@ -400,7 +402,13 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		static OnlineMap g_onlineUsers;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csOnlineUsers; // [+] IRainman opt.
-		// =================================================
+#ifdef FLYLINKDC_USE_ASYN_USER_UPDATE
+		static OnlineUserList g_UserUpdateQueue;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csOnlineUsersUpdateQueue;
+		void on(TimerManagerListener::Second, uint64_t aTick) noexcept override;
+#endif
+		//static
+		void addAsyncOnlineUserUpdated(const OnlineUserPtr& p_ou);
 		static UserPtr g_me; // [!] IRainman fix: this is static object.
 		static UserPtr g_uflylinkdc; // [+] IRainman fix.
 		static Identity g_iflylinkdc; // [+] IRainman fix.
@@ -409,16 +417,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		friend class Singleton<ClientManager>;
 		friend class NmdcHub;
 		
-		ClientManager()
-		{
-			TimerManager::getInstance()->addListener(this);
-			createMe(SETTING(PRIVATE_ID), SETTING(NICK)); // [+] IRainman fix.
-		}
-		
-		~ClientManager()
-		{
-			dcassert(isShutdown());
-		}
+		ClientManager();
+		~ClientManager();
 		
 		static void updateNick(const OnlineUserPtr& p_online_user);
 		
@@ -438,7 +438,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		void fireIncomingSearch(const string&, const string&, ClientManagerListener::SearchReply);
 		// ClientListener
 		void on(Connected, const Client* c) noexcept override;
-		void on(UserUpdated, const OnlineUserPtr& user) noexcept override;
+		void on(UserUpdatedMyINFO, const OnlineUserPtr& user) noexcept override;
 		void on(UsersUpdated, const Client* c, const OnlineUserList&) noexcept override;
 		void on(Failed, const Client*, const string&) noexcept override;
 		void on(HubUpdated, const Client* c) noexcept override;

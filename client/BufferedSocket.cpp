@@ -304,9 +304,9 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 				l_marker_tth -= 4;
 				const string l_tth_str = l_line_item.substr(l_marker_tth + 13, 39);
 				const TTHValue l_tth(l_tth_str);
-				if (!ShareManager::isUnknownTTH(l_tth))
+				if (ShareManager::isUnknownTTH(l_tth) == false)
 				{
-					const CFlySearchItemTTH l_item(TTHValue(l_line_item.substr(l_marker_tth + 13, 39)), l_line_item.substr(8, l_marker_tth - 8));
+					const CFlySearchItemTTH l_item(l_tth, l_line_item.substr(8, l_marker_tth - 8));
 					dcassert(l_item.m_search.find('|') == string::npos && l_item.m_search.find('$') == string::npos);
 					p_tth_search.push_back(l_item);
 				}
@@ -487,15 +487,18 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 #endif
 
 */
-void BufferedSocket::parseMyINfoAndSearch(
-    StringList& p_all_myInfo,
-    CFlySearchArrayTTH& p_tth_search,
-    CFlySearchArrayFile& p_file_search)
+void BufferedSocket::parseMyINfo(
+    StringList& p_all_myInfo)
 {
 	if (!p_all_myInfo.empty())
 	{
 		fly_fire1(BufferedSocketListener::MyInfoArray(), p_all_myInfo);
 	}
+}
+void BufferedSocket::parseSearch(
+    CFlySearchArrayTTH& p_tth_search,
+    CFlySearchArrayFile& p_file_search)
+{
 	if (!p_tth_search.empty())
 	{
 		fly_fire1(BufferedSocketListener::SearchArrayTTH(), p_tth_search);
@@ -585,7 +588,8 @@ void BufferedSocket::threadRead()
 						}
 						l.erase(0, l_zpos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
 					}
-					parseMyINfoAndSearch(l_all_myInfo, l_tth_search, l_file_search);
+					parseMyINfo(l_all_myInfo);
+					parseSearch(l_tth_search, l_file_search);
 #else
 				// process all lines
 				while ((pos = l.find(m_separator)) != string::npos)
@@ -679,7 +683,8 @@ void BufferedSocket::threadRead()
 							break;
 						}
 					}
-					parseMyINfoAndSearch(l_all_myInfo, l_tth_search, l_file_search);
+					parseMyINfo(l_all_myInfo);
+					parseSearch(l_tth_search, l_file_search);
 				}
 				else
 				{

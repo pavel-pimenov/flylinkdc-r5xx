@@ -102,7 +102,7 @@ ChatCtrl::~ChatCtrl()
 #ifdef IRAINMAN_INCLUDE_SMILE
 	safe_release(m_pStorage);
 	safe_release(m_lpLockBytes);
-	safe_release(m_pRichEditOle); // 2012-05-03_22-00-59_BTPAS5FP5NHF35MEDXSJLAP2FMPZZUNVZPP7OHI_42F4C9FB_crash-stack-r502-beta24-build-9900.dmp
+	safe_release(m_pRichEditOle); 
 #endif // IRAINMAN_INCLUDE_SMILE
 }
 
@@ -1256,7 +1256,7 @@ LRESULT ChatCtrl::OnRButtonDown(POINT pt, const UserPtr& user /*= nullptr*/)
 			if (!HitNick(pt, g_sSelectedUserName, iBegin, iEnd, user))
 				HitText(g_sSelectedText, lSelBegin, lSelEnd);
 				
-		return 1; // 2012-06-09_18-15-11_DRYNVE2SCLWPDGO7YSIGD5TBFKAR66RUAFWJ36A_B1E71795_crash-stack-r501-build-10294.dmp
+		return 1; 
 	}
 	
 	// hightlight IP or nick when clicking on it
