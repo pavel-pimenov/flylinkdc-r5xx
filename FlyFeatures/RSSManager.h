@@ -24,7 +24,6 @@
 #include "../client/Util.h"
 #include "../client/Singleton.h"
 #include "../client/Speaker.h"
-#include "../client/Semaphore.h"
 #include "../client/TimerManager.h"
 #include "../client/SettingsManager.h"
 #include "../client/LogManager.h"
@@ -168,7 +167,7 @@ class RSSManager :
 		
 		static const string getCodeing(const size_t i);
 		static size_t GetCodeingByString(const string& codeing);
-
+		
 	private:
 	
 		static StringList g_codeingList;
@@ -193,7 +192,7 @@ class RSSManager :
 		// TimerManagerListener
 		virtual void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
 		unsigned int m_minuteCounter;
-public:
+	public:
 		static void load(SimpleXML& aXml);
 		static void save(SimpleXML& aXml);
 };

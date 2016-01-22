@@ -21,23 +21,23 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 		if (l_tick_delta > l_item.second)
 			l_item.second = l_tick_delta;
 	}
-	if ((l_tick_delta > 0 &&
-	        (m_function && 
-			 (
-			  strstr(m_function, "ShareManager::") != 0 ||
-			  strstr(m_function, "CFlylinkDBManager::") != 0
-			 )
-			)
-			|| p_recursion_count > 1
-			)
-			&&
-			(m_function &&
-			(
-			strstr(m_function, "::addListener") == 0 &&
-			strstr(m_function, "::removeListener") == 0 &&
-			strstr(m_function, "LogManager::") == 0
-			)
-			)
+	if ((l_tick_delta > 50 &&
+	        (m_function &&
+	         (
+	             strstr(m_function, "ShareManager::") != 0 ||
+	             strstr(m_function, "CFlylinkDBManager::") != 0
+	         )
+	        )
+	        || p_recursion_count > 1
+	    )
+	        &&
+	        (m_function &&
+	         (
+	             strstr(m_function, "::addListener") == 0 &&
+	             strstr(m_function, "::removeListener") == 0 &&
+	             strstr(m_function, "LogManager::") == 0
+	         )
+	        )
 	   )
 	{
 		string l_path = p_path;

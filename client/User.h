@@ -224,6 +224,7 @@ class User : public Flags
 		GETSET(uint8_t, m_slots, Slots);
 		string m_nick;
 		boost::asio::ip::address_v4 m_last_ip_sql;
+		bool m_is_sql_not_found;
 		//[~]PPA
 		
 		bool isOnline() const
@@ -253,7 +254,7 @@ class User : public Flags
 		void AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void incMessagesCount();
-		void flushRatio();
+		bool flushRatio();
 		tstring getUDratio();
 		tstring getUpload();
 		tstring getDownload();

@@ -93,7 +93,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 				void shutdown()
 				{
 					m_is_stop = true;
-					m_s.signal();
+					m_search_semaphore.signal();
 				}
 				void addResult(const string& buf, const boost::asio::ip::address_v4& p_ip4)
 				{
@@ -101,12 +101,12 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 						CFlyFastLock(m_cs);
 						m_resultList.push_back(make_pair(buf, p_ip4));
 					}
-					m_s.signal();
+					m_search_semaphore.signal();
 				}
 				
 			private:
 				FastCriticalSection m_cs; // [!] IRainman opt: use spin lock here.
-				Semaphore m_s;
+				Semaphore m_search_semaphore;
 				deque<pair<string, boost::asio::ip::address_v4>> m_resultList;
 				volatile bool m_is_stop; // [!] IRainman fix: this variable is volatile.
 		} m_queue_thread;

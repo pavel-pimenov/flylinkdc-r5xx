@@ -668,6 +668,7 @@
 ;Россия;Нарьян-Мар;НКЭС;;dcncec.ru
 ;Россия;Находка;ДальСвязь;;dsvzona.myvnc.com
 ;Россия;Невинномысск;Мобайл Тренд;;10.0.0.6
+;Россия;Невинномысск;Мобайл Тренд;;10.0.0.6
 ;Россия;Невинномысск;Ростелеком;;dchub://172.16.12.42,dchub://172.16.244.29,dchub://172.16.0.7,dchub://172.16.13.188,dchub://172.16.161.10,dchub://172.16.4.94
 ;Россия;Нерюнгри;NOIP;;dc.neryungri.ru,dchub://10.99.1.2,dc.neryungri.ru:5555
 ;Россия;Нерюнгри;Rostelecom;;dc.nerungri.net:7777,10.222.70.226:9999,begimotov.net
@@ -1194,7 +1195,6 @@
 ;Россия;Ярославль;ТТК;;dc.yar-net.ru,dc.tiera.ru,dc.spammerws.net
 ;Россия;Ярцево;Интернет67;;dc-dor.internet67.ru,dc-yar.internet67.ru
 ;Россия;Ясногорск;TTK;;dc.ttk-chita.ru
-;Росссия;Невинномысск;Мобайл Тренд;;10.0.0.6
 ;Узбекистан;Nukus;Uzonline;;hi.uz
 ;Узбекистан;Андижон;Uzonline;;allavtovo.ru,dc.unionbest.org:4111,dc.mside.net,dc.cifracom.ru,dc.filimania.com,dc.dcmagnets.ru,piknik-dc.ru,artcool.org,dc.tiera.ru,spb-hub.ru,prime-hub.ru,godc.ru,dc.fly-server.ru
 ;Узбекистан;Зарафшан;TuronNET;;172.6.18.6,10.254.1.54,10.254.1.58

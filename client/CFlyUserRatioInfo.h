@@ -141,7 +141,7 @@ struct CFlyUserRatioInfo : public CFlyRatioItem
 		void addUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void addDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void incMessagesCount();
-		void flushRatioL();
+		bool flushRatioL();
 	private:
 		CFlyUploadDownloadMap* m_ip_map_ptr;
 		User*  m_user;

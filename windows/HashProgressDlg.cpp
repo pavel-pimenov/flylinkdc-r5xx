@@ -106,12 +106,12 @@ void HashProgressDlg::updateStats()
 		::EnableWindow(GetDlgItem(IDC_BTN_REFRESH_FILELIST), TRUE);
 	}
 	const int64_t diff = tick - HashManager::getInstance()->GetStartTime();
-	const bool paused = HashManager::getInstance()->isHashingPaused();
-	if (diff < 1000 || files == 0 || bytes == 0 || paused)
+	const bool l_paused = HashManager::getInstance()->isHashingPaused();
+	if (diff < 1000 || files == 0 || bytes == 0 || l_paused)
 	{
 		SetDlgItemText(IDC_FILES_PER_HOUR, (_T("-.-- ") + TSTRING(FILES_PER_HOUR) + _T(", ") + Util::toStringW(files) + _T(' ') + TSTRING(FILES_LEFT)).c_str());
 		SetDlgItemText(IDC_HASH_SPEED, (_T("-.-- ") + TSTRING(B) + _T('/') + TSTRING(S) + _T(", ") + Util::formatBytesW(bytes) + _T(' ') + TSTRING(LEFT)).c_str());
-		if (paused)
+		if (l_paused)
 		{
 			SetDlgItemText(IDC_TIME_LEFT, (_T("( ") + TSTRING(PAUSED) + _T(" )")).c_str());
 		}
@@ -179,7 +179,7 @@ void HashProgressDlg::updateStats()
 	}
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER    
 	progress.SetPos(HashManager::getInstance()->GetProgressValue());
-	SetDlgItemText(IDC_PAUSE, paused ? CTSTRING(RESUME) : CTSTRING(PAUSED)); // KUL - hash progress dialog patch
+	SetDlgItemText(IDC_PAUSE, l_paused ? CTSTRING(RESUME) : CTSTRING(PAUSED)); // KUL - hash progress dialog patch
 }
 
 LRESULT HashProgressDlg::onSlideChangeMaxHashSpeed(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)

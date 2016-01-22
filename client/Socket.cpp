@@ -356,7 +356,7 @@ int Socket::getSocketOptInt(int p_option) const
 #ifdef FLYLINKDC_HE
 	int l_val;
 #else
-	int l_val = 0; 
+	int l_val = 0;
 #endif
 	socklen_t l_len = sizeof(l_val);
 	check(::getsockopt(m_sock, SOL_SOCKET, p_option, (char*)&l_val, &l_len)); // [2] https://www.box.net/shared/3ad49dfa7f44028a7467
@@ -470,7 +470,7 @@ int Socket::read(void* aBuffer, int aBufLen, sockaddr_in &remote)
 		if (m_sock == INVALID_SOCKET)// [+]IRainman
 			break;
 			
-		len = ::recvfrom(m_sock, (char*)aBuffer, aBufLen, 0, (struct sockaddr*) & remote_addr, &addr_length); 
+		len = ::recvfrom(m_sock, (char*)aBuffer, aBufLen, 0, (struct sockaddr*) & remote_addr, &addr_length);
 #ifdef RIP_USE_LOG_PROTOCOL
 		if (len > 0 && BOOLSETTING(LOG_PROTOCOL))
 		{
@@ -605,7 +605,7 @@ int Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, in
 		create(TYPE_UDP);
 		setSocketOpt(SO_SNDTIMEO, 250);
 #ifdef _DEBUG
-		LogManager::message("Create UDP socket! aAddr = " + aAddr + " aPort = " + Util::toString(aPort) + " aLen = " + Util::toString(aLen) + " Value:" + string((const char*)aBuffer, aLen));
+		//LogManager::message("Create UDP socket! aAddr = " + aAddr + " aPort = " + Util::toString(aPort) + " aLen = " + Util::toString(aLen) + " Value:" + string((const char*)aBuffer, aLen));
 #endif
 	}
 #ifdef _DEBUG
@@ -613,7 +613,7 @@ int Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, in
 	{
 		if (m_type == TYPE_UDP)
 		{
-			LogManager::message("Reuse UDP socket! aAddr = " + aAddr + " aPort = " + Util::toString(aPort) + " aLen = " + Util::toString(aLen) + " Value:" + string((const char*)aBuffer, aLen));
+			//LogManager::message("Reuse UDP socket! aAddr = " + aAddr + " aPort = " + Util::toString(aPort) + " aLen = " + Util::toString(aLen) + " Value:" + string((const char*)aBuffer, aLen));
 		}
 	}
 #endif

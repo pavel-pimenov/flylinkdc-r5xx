@@ -37,17 +37,20 @@ void CFlyUserRatioInfo::addDownload(const boost::asio::ip::address_v4& p_ip, uin
 	find_ip_map(p_ip).add_download(p_size);
 }
 
-void CFlyUserRatioInfo::flushRatioL()
+bool CFlyUserRatioInfo::flushRatioL()
 {
 	if (is_dirty() && m_user->getHubID() && !m_user->m_nick.empty()
 	        && CFlylinkDBManager::isValidInstance()) // fix https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=86337
 	{
 		CFlylinkDBManager::getInstance()->store_all_ratio_and_last_ip(m_user->getHubID(), m_user->m_nick, m_ip_map_ptr, get_message_count(), m_user->getLastIPfromRAM(),
-		                                                              is_message_dirty() || m_user->is_last_ip_dirty());
+		                                                              is_message_dirty() || m_user->is_last_ip_dirty(),
+		                                                              m_user->m_is_sql_not_found);
 		set_dirty(false);
 		reset_message_dirty();
 		m_user->m_is_last_ip_dirty = false;
+		return true;
 	}
+	return false;
 }
 bool CFlyUserRatioInfo::tryLoadRatio(const boost::asio::ip::address_v4& p_last_ip_from_sql)
 {

@@ -247,21 +247,6 @@ template<typename T> struct TypeTraits
 	private: const type name; \
 	public: TypeTraits<type>::ParameterType get##name2() const { return name; }
 
-/** Evaluates op(pair<T1, T2>.first, compareTo) */
-template < class T1, class T2, class op = std::equal_to<T1> >
-class CompareFirst
-{
-	public:
-		explicit CompareFirst(const T1& compareTo) : a(compareTo) { }
-		bool operator()(const std::pair<T1, T2>& p)
-		{
-			return op()(p.first, a);
-		}
-	private:
-		CompareFirst& operator=(const CompareFirst&);
-		const T1& a;
-};
-
 /** Evaluates op(pair<T1, T2>.second, compareTo) */
 #if 0
 template < class T1, class T2, class op = equal_to<T2> >

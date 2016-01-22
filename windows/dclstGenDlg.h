@@ -20,7 +20,6 @@
 #define DCLST_GEN_DLG_H
 
 #include "../client/DirectoryListing.h"
-#include "../client/Semaphore.h"
 #include "../client/Util.h"
 #include "ResourceLoader.h"
 

@@ -80,7 +80,7 @@ VideoPreview::run()
 
 bool VideoPreview::checkEvents()
 {
-	while (m_taskSem.wait())
+	while (m_video_task_semaphore.wait())
 	{
 		pair<Tasks, TaskData*> p;
 		p.second = 0;
@@ -256,7 +256,7 @@ void VideoPreview::_StopServer()
 	{
 		safe_delete(_serverPreview);
 		_serverStarted = false;
-		LogManager::message("Stopped PreviewServer"); 
+		LogManager::message("Stopped PreviewServer");
 #ifdef _DEBUG
 		VideoPreview::getInstance()->AddLogInfo("Stopped PreviewServer"); // [20] https://www.box.net/shared/qzotdk8odzsct74kxzgg
 #endif

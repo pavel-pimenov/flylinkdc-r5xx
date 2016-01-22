@@ -148,6 +148,19 @@ void ClientManager::shutdown()
 	}
 #endif
 	TimerManager::getInstance()->removeListener(this);
+	/*
+	{
+	        CFlyLog l_log("[Store last IP]");
+	        CFlyReadLock(*g_csUsers);
+	        UserMap::const_iterator i = g_users.begin();
+	        while (i != g_users.end())
+	        {
+	            i->second->flushRatio();
+	            ++i;
+	        }
+	    }
+	*/
+	
 }
 
 void ClientManager::clear()
@@ -743,7 +756,7 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) no
 			CFlyWriteLock(*g_csOnlineUsers); // [2]  https://www.box.net/shared/7b796492a460fe528961
 			OnlinePair op = g_onlineUsers.equal_range(ou->getUser()->getCID()); // Ищется по одном - научиться убивать сразу массив.
 			// [-] dcassert(op.first != op.second); [!] L: this is normal and means that the user is offline.
-			for (OnlineIter i = op.first; i != op.second; ++i) 
+			for (OnlineIter i = op.first; i != op.second; ++i)
 			{
 				OnlineUser* ou2 = i->second;
 				if (ou.get() == ou2)
@@ -1142,15 +1155,20 @@ void ClientManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcep
 #ifdef _DEBUG
 		// CFlyLog l_log("[ClientManager::Minute GC]");
 #endif
+		int l_max_count_flush = 200;
 		UserMap::const_iterator i = g_users.begin();
-		while (i != g_users.end())
+		while (i != g_users.end() && !isShutdown())
 		{
+			if (l_max_count_flush > 0 && i->second->flushRatio())
+			{
+				l_max_count_flush--;
+			}
 			if (i->second.unique()) // [3] https://www.box.net/shared/e9e7f84166facfeaacc8
 			{
 #ifdef IRAINMAN_USE_NICKS_IN_CM
 				const auto n = g_nicks.find(i->second->getCID());
 				if (n != g_nicks.end())
-					g_nicks.erase(n); 
+					g_nicks.erase(n);
 #endif
 				g_users.erase(i++);
 			}
@@ -1410,13 +1428,16 @@ void ClientManager::on(UserUpdatedMyINFO, const OnlineUserPtr& p_ou) noexcept
 void ClientManager::on(UsersUpdated, const Client* client, const OnlineUserList& l) noexcept
 {
 	dcassert(!isShutdown());
-	for (auto i = l.cbegin(); i != l.cend(); ++i)
+	if (!ClientManager::isShutdown())
 	{
-		updateNick(*i); // TODO проверить что меняется именно ник - иначе не звать. или разбить UsersUpdated на UsersUpdated + UsersUpdatedNick
+		for (auto i = l.cbegin(); i != l.cend(); ++i)
+		{
+			updateNick(*i); // TODO проверить что меняется именно ник - иначе не звать. или разбить UsersUpdated на UsersUpdated + UsersUpdatedNick
 #ifdef _DEBUG
-//		LogManager::message("ClientManager::on(UsersUpdated nick = " + (*i)->getUser()->getLastNick());
+			//      LogManager::message("ClientManager::on(UsersUpdated nick = " + (*i)->getUser()->getLastNick());
 #endif
-		// [-] fly_fire1(ClientManagerListener::UserUpdated(), *i); [-] IRainman fix: No needs to update user twice.
+			// [-] fly_fire1(ClientManagerListener::UserUpdated(), *i); [-] IRainman fix: No needs to update user twice.
+		}
 	}
 }
 

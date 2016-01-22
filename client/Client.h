@@ -103,44 +103,10 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 {
 	protected:
 		std::unique_ptr<webrtc::RWLockWrapper> m_cs;
-		void fire_user_updated(const OnlineUserList& p_list)
-		{
-			if (!p_list.empty())
-			{
-				fly_fire2(ClientListener::UsersUpdated(), this, p_list);
-			}
-		}
-		void clearAvailableBytesL()
-		{
-			m_isChangeAvailableBytes = true;
-			m_availableBytes = 0;
-		}
-		void decBytesSharedL(Identity& p_id)
-		{
-			//dcdrun(const auto l_oldSum = m_availableBytes);
-			//dcassert(l_oldSum >= 0);
-			const auto l_old = p_id.getBytesShared();
-			//dcassert(l_old >= 0);
-			m_availableBytes -= l_old;
-			m_isChangeAvailableBytes = l_old != 0;
-		}
-		bool changeBytesSharedL(Identity& p_id, const int64_t p_bytes)
-		{
-			// https://code.google.com/p/flylinkdc/issues/detail?id=1231
-			dcassert(p_bytes >= 0);
-			//dcdrun(const auto l_oldSum = m_availableBytes);
-			//dcassert(l_oldSum >= 0);
-			const auto l_old = p_id.getBytesShared();
-			m_isChangeAvailableBytes = p_bytes != l_old;
-			if (m_isChangeAvailableBytes)
-			{
-				//dcassert(l_old >= 0);
-				m_availableBytes -= l_old;
-				p_id.setBytesShared(p_bytes);
-				m_availableBytes += p_bytes;
-			}
-			return m_isChangeAvailableBytes;
-		}
+		void fire_user_updated(const OnlineUserList& p_list);
+		void clearAvailableBytesL();
+		void decBytesSharedL(Identity& p_id);
+		bool changeBytesSharedL(Identity& p_id, const int64_t p_bytes);
 	public:
 		bool isChangeAvailableBytes() const
 		{
@@ -191,7 +157,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		virtual void resetAntivirusInfo() = 0;
 		virtual void connect();
 		virtual void disconnect(bool graceless);
-		
 		virtual void connect(const OnlineUser& p_user, const string& p_token, bool p_is_force_passive) = 0;
 		virtual void hubMessage(const string& aMessage, bool thirdPerson = false) = 0;
 		virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0; // !SMT!-S
@@ -202,7 +167,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			m_searchQueue.cancelSearch(aOwner);
 		}
-		
 		virtual void password(const string& pwd) = 0;
 		virtual void info(bool p_force) = 0;
 		
@@ -218,12 +182,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		bool isConnected() const
 		{
 			return state != STATE_DISCONNECTED;
-			// [!]IRainman to see other fixes, look:
-			// void Client::connect()
-			// void Client::on(Failed, const string& aLine)
-			// void Client::disconnect(bool p_graceLess)
-			// CFlyFastLock(lock(csSock); // [+] brain-ripper
-			// return sock && sock->isConnected();
 		}
 		
 		bool isReady() const
@@ -238,7 +196,9 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		void set_all_my_info_loaded()
 		{
 			if (m_client_sock)
+			{
 				m_client_sock->set_all_my_info_loaded();
+			}
 		}
 		
 		bool isSecure() const;

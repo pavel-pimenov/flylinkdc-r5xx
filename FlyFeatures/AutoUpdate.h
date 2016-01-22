@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "../client/Semaphore.h"
 #include "../client/SettingsManager.h"
 #include "../client/TimerManager.h"
 #include "../XMLParser/xmlParser.h"
@@ -99,7 +98,7 @@ class AutoUpdateGUIMethod
 class AutoUpdate :
 	public Singleton<AutoUpdate>,
 	public BackgroundTaskExecuter<AutoUpdateTasks, Thread::IDLE, 10000>,
-private TimerManagerListener
+	private TimerManagerListener
 {
 		friend class AutoUpdateObject;
 	public:

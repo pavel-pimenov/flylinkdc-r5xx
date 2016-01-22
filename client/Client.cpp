@@ -90,7 +90,8 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 		"nsk154hub.ru",
 		"prostoigra24.ru",
 		"eva-hub.ru",
-		"aab-new-adrenalin.ru"
+		"aab-new-adrenalin.ru",
+		"titankaluga.ru"
 	};
 	if (l_lower_url.find("dc.fly-server.ru") != string::npos ||
 	        l_lower_url.find("adcs.flylinkdc.com") != string::npos ||
@@ -572,6 +573,46 @@ void Client::disconnect(bool p_graceLess)
 			m_countType = COUNT_NORMAL;
 		}
 		++g_counts[m_countType];
+	}
+}
+
+void Client::clearAvailableBytesL()
+{
+	m_isChangeAvailableBytes = true;
+	m_availableBytes = 0;
+}
+void Client::decBytesSharedL(Identity& p_id)
+{
+	//dcdrun(const auto l_oldSum = m_availableBytes);
+	//dcassert(l_oldSum >= 0);
+	const auto l_old = p_id.getBytesShared();
+	//dcassert(l_old >= 0);
+	m_availableBytes -= l_old;
+	m_isChangeAvailableBytes = l_old != 0;
+}
+bool Client::changeBytesSharedL(Identity& p_id, const int64_t p_bytes)
+{
+	// https://code.google.com/p/flylinkdc/issues/detail?id=1231
+	dcassert(p_bytes >= 0);
+	//dcdrun(const auto l_oldSum = m_availableBytes);
+	//dcassert(l_oldSum >= 0);
+	const auto l_old = p_id.getBytesShared();
+	m_isChangeAvailableBytes = p_bytes != l_old;
+	if (m_isChangeAvailableBytes)
+	{
+		//dcassert(l_old >= 0);
+		m_availableBytes -= l_old;
+		p_id.setBytesShared(p_bytes);
+		m_availableBytes += p_bytes;
+	}
+	return m_isChangeAvailableBytes;
+}
+
+void Client::fire_user_updated(const OnlineUserList& p_list)
+{
+	if (!p_list.empty() && !ClientManager::isShutdown())
+	{
+		fly_fire2(ClientListener::UsersUpdated(), this, p_list);
 	}
 }
 

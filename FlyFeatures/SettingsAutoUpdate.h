@@ -24,7 +24,6 @@
 #ifdef FLYLINKDC_USE_SETTINGS_AUTO_UPDATE
 
 #include "../client/Singleton.h"
-#include "../client/Semaphore.h"
 #include "../client/SettingsManager.h"
 
 class SettingsAutoUpdateListener

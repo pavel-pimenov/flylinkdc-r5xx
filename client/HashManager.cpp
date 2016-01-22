@@ -22,6 +22,7 @@
 #include "SimpleXML.h"
 #include "LogManager.h"
 #include "CFlylinkDBManager.h"
+#include "ClientManager.h"
 #include "CompatibilityManager.h" // [+] IRainman
 #include "../FlyFeatures/flyServer.h"
 
@@ -294,10 +295,10 @@ void HashManager::Hasher::hashFile(__int64 p_path_id, const string& fileName, in
 	if (w.insert(make_pair(fileName, l_task_item)). second)
 	{
 		m_CurrentBytesLeft += size;// [+]IRainman
-		if (paused > 0)
-			paused++;
+		if (m_paused > 0)
+			m_paused++;
 		else
-			m_s.signal();
+			m_hash_semaphore.signal();
 			
 		int64_t bytesLeft;
 		size_t filesLeft;
@@ -314,22 +315,22 @@ void HashManager::Hasher::hashFile(__int64 p_path_id, const string& fileName, in
 bool HashManager::Hasher::pause()
 {
 	CFlyFastLock(cs);
-	return paused++ > 0;
+	return m_paused++ > 0;
 }
 
 void HashManager::Hasher::resume()
 {
 	CFlyFastLock(cs);
-	while (--paused > 0)
+	while (--m_paused > 0)
 	{
-		m_s.signal();
+		m_hash_semaphore.signal();
 	}
 }
 
 bool HashManager::Hasher::isPaused() const
 {
 	CFlyFastLock(cs);
-	return paused > 0;
+	return m_paused > 0;
 }
 
 void HashManager::Hasher::stopHashing(const string& baseDir)
@@ -372,15 +373,15 @@ void HashManager::Hasher::instantPause()
 	bool wait = false;
 	{
 		CFlyFastLock(cs);
-		if (paused > 0)
+		if (m_paused > 0)
 		{
-			paused++;
+			m_paused++;
 			wait = true;
 		}
 	}
 	if (wait)
 	{
-		m_s.wait();
+		m_hash_semaphore.wait();
 	}
 }
 
@@ -581,8 +582,8 @@ int HashManager::Hasher::run()
 	bool l_is_last = false;
 	for (;;)
 	{
-		m_s.wait();
-		if (m_stop)
+		m_hash_semaphore.wait();
+		if (m_stop || ClientManager::isShutdown())
 			break;
 		if (m_rebuild)
 		{

@@ -23,7 +23,7 @@
 
 #include <queue>
 #include "../client/Singleton.h"
-#include "../client/Semaphore.h"
+#include "../client/Util.h"
 
 #define WM_IDR_TOTALRESULT_WAIT WM_USER+0x15
 #define WM_IDR_RESULT_RECEIVED WM_USER+0x16

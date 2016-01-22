@@ -975,7 +975,7 @@ void AdcHub::handle(AdcCommand::GET, const AdcCommand& c) noexcept
 		}
 		if (m > 0)  //[+] http://bazaar.launchpad.net/~dcplusplus-team/dcplusplus/trunk/revision/2282
 		{
-			ShareManager::getInstance()->getBloom(v, k, m, h);
+			ShareManager::getBloom(v, k, m, h);
 		}
 		AdcCommand cmd(AdcCommand::CMD_SND, AdcCommand::TYPE_HUB);
 		cmd.addParam(c.getParam(0));

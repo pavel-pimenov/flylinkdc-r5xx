@@ -214,7 +214,7 @@ int SearchManager::UdpQueue::run()
 	
 	while (true)
 	{
-		m_s.wait();
+		m_search_semaphore.wait();
 		if (m_is_stop)
 			break;
 			
@@ -637,7 +637,7 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 		return ClientManagerListener::SEARCH_MISS; // [!] IRainman
 		
 	SearchResultList results;
-	ShareManager::getInstance()->search(results, adc.getParameters(), isUdpActive ? 10 : 5, reguest); // [!] IRainman
+	ShareManager::getInstance()->search_max_result(results, adc.getParameters(), isUdpActive ? 10 : 5, reguest); // [!] IRainman
 	
 	string token;
 	

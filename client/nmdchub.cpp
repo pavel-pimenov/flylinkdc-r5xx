@@ -224,7 +224,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 		OnlineUser* newUser = new OnlineUser(p, *this, 0);
 		{
 			CFlyWriteLock(*m_cs);
-			ou = m_users.insert(make_pair(aNick, newUser)).first->second; 
+			ou = m_users.insert(make_pair(aNick, newUser)).first->second;
 			ou->inc();
 		}
 		ou->getIdentity().setNick(aNick);
@@ -252,7 +252,7 @@ OnlineUserPtr NmdcHub::findUser(const string& aNick) const
 #ifdef FLYLINKDC_USE_PROFILER_CS
 	l_lock.m_add_log_info = " User = " + aNick;
 #endif
-	return i == m_users.end() ? nullptr : i->second; 
+	return i == m_users.end() ? nullptr : i->second;
 }
 
 void NmdcHub::putUser(const string& aNick)
@@ -1224,7 +1224,7 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 {
 	if (!p_ip_list.empty())
 	{
-		OnlineUserList v;
+		//OnlineUserList v;
 		const StringTokenizer<string> t(p_ip_list, "$$", p_ip_list.size() / 30);
 		const StringList& sl = t.getTokens();
 		{
@@ -1240,7 +1240,7 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 			// changed in other thread
 			
 			// CFlyLock(cs); [-] IRainman fix.
-			for (auto it = sl.cbegin(); it != sl.cend(); ++it)
+			for (auto it = sl.cbegin(); it != sl.cend() && !ClientManager::isShutdown(); ++it)
 			{
 				string::size_type j = 0;
 				if ((j = it->find(' ')) == string::npos)
@@ -1281,11 +1281,11 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 						const auto l_check_nick = m_virus_nick_checked.insert(l_user);
 						if (l_check_nick.second == false)
 						{
-							LogManager::message("Dup virus check [1]! Nick = " + l_user + " Hub = " + getHubUrl());
+							//LogManager::message("Dup virus check [1]! Nick = " + l_user + " Hub = " + getHubUrl());
 						}
 						else
 						{
-							LogManager::message("IP virus check [0]! Nick = " + l_user + " Hub = " + getHubUrl());
+							//LogManager::message("IP virus check [0]! Nick = " + l_user + " Hub = " + getHubUrl());
 						}
 #endif
 						if (m_virus_nick.find(l_user) == m_virus_nick.end())
@@ -1384,10 +1384,14 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 						LogManager::virus_message(l_ban_command);
 					}
 				}
-				v.push_back(ou);
+				//v.push_back(ou);
 			}
 		}
-		fire_user_updated(v); // TODO - слать сообщения о смене только IP
+		// TODO - слать сообщения о смене только IP
+		// fire_user_updated(v);
+		
+		
+		
 		/*
 		if (getMyNick() == "FlylinkDC-dev" && getHubUrl().find("dc.fly-server.ru") != string::npos)
 		{
@@ -1487,7 +1491,7 @@ void NmdcHub::opListParse(const string& param)
 {
 	if (!param.empty())
 	{
-		OnlineUserList v;
+		//OnlineUserList v;
 		const StringTokenizer<string> t(param, "$$");
 		const StringList& sl = t.getTokens();
 		{
@@ -1513,11 +1517,11 @@ void NmdcHub::opListParse(const string& param)
 				if (ou)
 				{
 					ou->getIdentity().setOp(true);
-					v.push_back(ou);
+					//v.push_back(ou);
 				}
 			}
 		}
-		fire_user_updated(v);
+		//fire_user_updated(v);
 		updateCounts(false);
 		
 		// Special...to avoid op's complaining that their count is not correctly
@@ -1580,14 +1584,6 @@ void NmdcHub::toParse(const string& param)
 	if (rtNick.empty())
 		return;
 		
-	const auto l_user_for_message = findUser(rtNick);
-	
-	if (l_user_for_message == nullptr)
-	{
-		LogManager::flood_message("NmdcHub::toParse $To: invalid user: rtNick = " + rtNick + " param = " + param + " Hub = " + getHubUrl());
-		return; // todo: here we dont get private message from unknown user
-	}
-	
 	pos_a = pos_b + 3;
 	pos_b = param.find("> ", pos_a);
 	
@@ -1621,6 +1617,16 @@ void NmdcHub::toParse(const string& param)
 		dcassert(0);
 		return;
 	}
+	const auto l_user_for_message = findUser(rtNick);
+	
+	if (l_user_for_message == nullptr)
+	{
+#ifdef FLYLINKDC_BETA
+		LogManager::message("NmdcHub::toParse $To: invalid user: rtNick = " + rtNick + " param = " + param + " Hub = " + getHubUrl());
+#endif
+		// return; // todo: here we dont get private message from unknown user
+	}
+	
 	
 	unique_ptr<ChatMessage> message(new ChatMessage(unescape(msgText), findUser(fromNick), nullptr, l_user_for_message));
 	

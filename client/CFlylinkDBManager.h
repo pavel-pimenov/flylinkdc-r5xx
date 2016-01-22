@@ -322,7 +322,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		                                 CFlyUploadDownloadMap* p_upload_download_stats,
 		                                 const uint32_t p_message_count,
 		                                 const boost::asio::ip::address_v4& p_last_ip,
-		                                 bool p_is_last_ip_or_message_count_dirty);
+		                                 bool p_is_last_ip_or_message_count_dirty,
+		                                 bool& p_is_sql_not_found
+		                                );
 		uint32_t get_dic_hub_id(const string& p_hub);
 		void load_global_ratio();
 		void load_all_hub_into_cacheL();
@@ -331,9 +333,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif
 		CFlyRatioItem load_ratio(uint32_t p_hub_id, const string& p_nick, CFlyUserRatioInfo& p_ratio_info, const  boost::asio::ip::address_v4& p_last_ip);
 		bool load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, uint32_t& p_message_count, boost::asio::ip::address_v4& p_last_ip);
-		void update_last_ip(uint32_t p_hub_id, const string& p_nick, const boost::asio::ip::address_v4& p_last_ip);
+		void update_last_ip(uint32_t p_hub_id, const string& p_nick, const boost::asio::ip::address_v4& p_last_ip, bool& p_is_sql_not_found);
 	private:
-		void update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, boost::asio::ip::address_v4 p_last_ip);
+		void update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, boost::asio::ip::address_v4 p_last_ip, bool& p_is_sql_not_found);
 		void flush_all_last_ip_and_message_count();
 		void add_tree_internal_bind_and_executeL(sqlite3_command* p_sql, const TigerTree& p_tt);
 		__int64 add_treeL(const TigerTree& p_tt);
@@ -619,6 +621,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		FastCriticalSection m_last_ip_cs;
 #else
 		CFlySQLCommand m_select_last_ip_and_message_count;
+		CFlySQLCommand m_select_last_ip;
 		CFlySQLCommand m_insert_last_ip_and_message_count;
 		CFlySQLCommand m_update_last_ip_and_message_count;
 		CFlySQLCommand m_insert_last_ip;

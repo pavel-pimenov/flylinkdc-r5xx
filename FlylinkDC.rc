@@ -2998,6 +2998,7 @@ IDR_VIP_ICO_NSK154      ICON                    "res\\vip_nsk154hub.ico"
 IDR_VIP_ICO_PROSTOIGRA  ICON                    "res\\vip_prostoigra24.ico"
 IDR_VIP_ICO_EVAHUB      ICON                    "res\\vip_eva.ico"
 IDR_VIP_ICO_ADRENALIN   ICON                    "res\\vip_adrenalin.ico"
+IDR_VIP_ICO_TITANKALUGA ICON                    "res\\vip_titankaluga.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3013,7 +3014,7 @@ IDR_TOOLBAR_HL          PNG                     "res\\Toolbar-highlight.png"
 IDR_TOOLBAR_MINI        PNG                     "res\\Toolbar-mini.png"
 IDR_PLAYERS_CONTROL     PNG                     "res\\PlayersControl.png"
 IDR_PLAYERS_CONTROL_HL  PNG                     "res\\PlayersControl-highlight.png"
-IDR_PLAYERS_CONTROL_MINI PNG                     "res\\PlayersControl-mini.png"
+IDR_PLAYERS_CONTROL_MINI PNG                    "res\\PlayersControl-mini.png"
 IDR_SETTINGS_ICONS      PNG                     "res\\Settings-icons.png"
 IDR_USERS               PNG                     "res\\Users.png"
 IDR_STATE_USERS         PNG                     "res\\StateUsers.png"

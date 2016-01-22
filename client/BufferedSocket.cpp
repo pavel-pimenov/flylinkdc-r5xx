@@ -211,8 +211,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 #ifndef FLYLINKDC_HE
 				if (ClientManager::isShutdown())
 				{
-					//dcassert(0);
-					return;
+					throw SocketException(STRING(COMMAND_SHUTDOWN_IN_PROGRESS));
 				}
 #endif
 				if (sock->waitConnected(POLL_TIMEOUT))
@@ -600,14 +599,14 @@ void BufferedSocket::threadRead()
 				}
 #endif
 				}
-#ifdef _DEBUG
 				else
 				{
+#ifdef _DEBUG
 					const string l_log = "Skip MODE_LINE [after ZLIB] - FlylinkDC++ Destroy... l = " + l;
 					LogManager::message(l_log);
-					
-				}
 #endif
+					throw SocketException(STRING(COMMAND_SHUTDOWN_IN_PROGRESS));
+				}
 				// store remainder
 				m_line = l;
 				
@@ -658,6 +657,11 @@ void BufferedSocket::threadRead()
 							LogManager::message(l_log);
 						}
 #endif
+						if (ClientManager::isShutdown())
+						{
+							m_line.clear();
+							throw SocketException(STRING(COMMAND_SHUTDOWN_IN_PROGRESS));
+						}
 						if (l_pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
 						{
 							if (all_search_parser(l_pos, l, l_tth_search, l_file_search) == false)
@@ -696,6 +700,8 @@ void BufferedSocket::threadRead()
 					l_bufpos = l_total - l_left;
 					l_left = 0;
 					l_pos = string::npos;
+					m_line.clear();
+					throw SocketException(STRING(COMMAND_SHUTDOWN_IN_PROGRESS));
 				}
 				
 				if (l_pos == string::npos)
@@ -945,14 +951,17 @@ void BufferedSocket::threadSendFile(InputStream* file)
 
 void BufferedSocket::write(const char* aBuf, size_t aLen)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (ClientManager::isShutdown())
-	{
-#ifdef _DEBUG
-		LogManager::message("[ClientManager::isShutdown()]Skip BufferedSocket::write! Data = " + string(aBuf, aLen));
-#endif
-		return;
-	}
+	/*
+	   //dcassert(!ClientManager::isShutdown());
+	    if (ClientManager::isShutdown())
+	    {
+	#ifdef _DEBUG
+	        LogManager::message("[ClientManager::isShutdown()]Skip BufferedSocket::write! Data = " + string(aBuf, aLen));
+	#endif
+	        return;
+	    }
+	*/
+	
 	if (!hasSocket())
 		return;
 	CFlyFastLock(cs);
@@ -1021,8 +1030,7 @@ void BufferedSocket::threadSendData()
 
 bool BufferedSocket::checkEvents()
 {
-	// [!] application hangs http://www.flickr.com/photos/96019675@N02/9605525265/ http://code.google.com/p/flylinkdc/issues/detail?id=1245
-	while (m_state == RUNNING ? m_taskSem.wait(0) : m_taskSem.wait())
+	while (m_state == RUNNING ? m_socket_semaphore.wait(0) : m_socket_semaphore.wait())
 	{
 		pair<Tasks, std::unique_ptr<TaskData>> p;
 		{
@@ -1226,7 +1234,7 @@ void BufferedSocket::addTaskL(Tasks p_task, TaskData* p_data)
 {
 	dcassert(p_task == DISCONNECT || p_task == SHUTDOWN || p_task == UPDATED || sock.get());
 	m_tasks.push_back(make_pair(p_task, unique_ptr<TaskData>(p_data)));
-	m_taskSem.signal();
+	m_socket_semaphore.signal();
 }
 
 /**

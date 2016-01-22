@@ -104,7 +104,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		bool   search_tth(const TTHValue& p_tth, SearchResultList& aResults, bool p_is_check_parent);
 	public:
 		void   search(SearchResultList& aResults, const SearchParam& p_search_param) noexcept;
-		void   search(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept; // [!] IRainman add StringSearch::List& reguest
+		void   search_max_result(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept;
 		
 		bool findByRealPathName(const string& realPathname, TTHValue* outTTHPtr, string* outfilenamePtr = NULL, int64_t* outSizePtr = NULL); // [+] SSA
 		
@@ -149,7 +149,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 			return Util::toString(getShareSize(aDir));
 		}
 		
-		void getBloom(ByteVector& v, size_t k, size_t m, size_t h) const;
+		static void getBloom(ByteVector& v, size_t k, size_t m, size_t h);
 		
 		static Search::TypeModes getFType(const string& p_fileName, bool p_include_flylinkdc_ext = false) noexcept;
 		static string validateVirtual(const string& aVirt) noexcept;
@@ -425,12 +425,12 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csTTHIndex;
 		static FastCriticalSection g_csBloom;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShare;
-		static CriticalSection g_csDirList;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csDirList;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareNotExists;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareCache;
 		
 		// List of root directory items
-		typedef std::list<Directory::Ptr> DirList; // тольок list - vector нельзя!
+		typedef std::list<Directory::Ptr> DirList; // только list - vector нельзя!
 		static DirList g_list_directories;
 		
 		/** Map real name to virtual name - multiple real names may be mapped to a single virtual one */
@@ -474,9 +474,9 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		void rebuildIndicesL();
 		
 		bool updateIndicesDirL(Directory& aDirectory);
-		bool updateIndicesL(Directory& dir, const Directory::ShareFile::Set::iterator& i);
+		bool updateIndicesFileL(Directory& dir, const Directory::ShareFile::Set::iterator& i);
 		
-		Directory::Ptr mergeL(const Directory::Ptr& directory);
+		Directory::Ptr get_mergeL(const Directory::Ptr& directory);
 		
 		void generateXmlList();
 		static StringList g_notShared;

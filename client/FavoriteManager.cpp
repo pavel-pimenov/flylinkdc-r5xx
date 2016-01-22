@@ -281,13 +281,20 @@ void FavoriteManager::removeUserCommand(const string& p_Hub)
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 		bool hubWithoutCommands = true; // [+] IRainman fix: cleanup.
 #endif
+//		if (ClientManager::isShutdown())
+		{
+#ifdef _DEBUG
+//			LogManager::message("FavoriteManager::removeUserCommand with shutdown);
+#endif
+		}
+		
 		for (auto i = g_userCommands.cbegin(); i != g_userCommands.cend();)
 		{
 			const bool matchHub = i->getHub() == p_Hub;
 			if (i->isSet(UserCommand::FLAG_NOSAVE) && matchHub) // [!] IRainman opt: reordering conditions.
 			{
 #ifdef _DEBUG
-				LogManager::message("FavoriteManager::removeUserCommand srv = " + p_Hub + " g_userCommands.erase()! g_userCommands.size() = " + Util::toString(g_userCommands.size()));
+				// LogManager::message("FavoriteManager::removeUserCommand srv = " + p_Hub + " g_userCommands.erase()! g_userCommands.size() = " + Util::toString(g_userCommands.size()));
 #endif
 				i = g_userCommands.erase(i);
 			}
@@ -1754,8 +1761,6 @@ void FavoriteManager::on(UserUpdated, const OnlineUserPtr& user) noexcept
 
 void FavoriteManager::on(UserDisconnected, const UserPtr& aUser) noexcept
 {
-	dcassert(!ClientManager::isShutdown()); // TODO: it's normal situation https://code.google.com/p/flylinkdc/issues/detail?id=1317
-	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
 		if (isNotEmpty()) // [+]PPA
@@ -1767,7 +1772,10 @@ void FavoriteManager::on(UserDisconnected, const UserPtr& aUser) noexcept
 					return;
 				i->second.setLastSeen(GET_TIME()); // TODO: if ClientManager::isShutdown() this data is not update :( https://code.google.com/p/flylinkdc/issues/detail?id=1317
 			}
-			fly_fire1(FavoriteManagerListener::StatusChanged(), aUser);
+			if (!ClientManager::isShutdown())
+			{
+				fly_fire1(FavoriteManagerListener::StatusChanged(), aUser);
+			}
 			// save(); http://code.google.com/p/flylinkdc/issues/detail?id=1409
 		}
 	}
@@ -1775,7 +1783,6 @@ void FavoriteManager::on(UserDisconnected, const UserPtr& aUser) noexcept
 
 void FavoriteManager::on(UserConnected, const UserPtr& aUser) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
 		if (isNotEmpty()) // [+]PPA
@@ -1785,7 +1792,10 @@ void FavoriteManager::on(UserConnected, const UserPtr& aUser) noexcept
 				if (!isUserExistL(aUser))
 					return;
 			}
-			fly_fire1(FavoriteManagerListener::StatusChanged(), aUser);
+			if (!ClientManager::isShutdown())
+			{
+				fly_fire1(FavoriteManagerListener::StatusChanged(), aUser);
+			}
 		}
 	}
 }

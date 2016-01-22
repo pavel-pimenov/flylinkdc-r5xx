@@ -3255,7 +3255,8 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
                                                     CFlyUploadDownloadMap* p_upload_download_stats,
                                                     const uint32_t p_message_count,
                                                     const boost::asio::ip::address_v4& p_last_ip,
-                                                    bool p_is_last_ip_or_message_count_dirty)
+                                                    bool p_is_last_ip_or_message_count_dirty,
+                                                    bool& p_is_sql_not_found)
 {
 	CFlyLock(m_cs);
 	try
@@ -3320,7 +3321,7 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
 		// Иначе фиксируем только последний IP и cчетчик мессаг
 		if (p_is_last_ip_or_message_count_dirty)
 		{
-			update_last_ip_deferredL(p_hub_id, p_nick, p_message_count, p_last_ip);
+			update_last_ip_deferredL(p_hub_id, p_nick, p_message_count, p_last_ip, p_is_sql_not_found);
 		}
 	}
 	catch (const database_error& e)
@@ -3329,7 +3330,7 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
 	}
 }
 //========================================================================================================
-void CFlylinkDBManager::update_last_ip(uint32_t p_hub_id, const string& p_nick, const boost::asio::ip::address_v4& p_last_ip)
+void CFlylinkDBManager::update_last_ip(uint32_t p_hub_id, const string& p_nick, const boost::asio::ip::address_v4& p_last_ip, bool& p_is_sql_not_found)
 {
 	//dcassert(!p_last_ip.is_unspecified());
 #ifndef FLYLINKDC_USE_LASTIP_CACHE
@@ -3338,7 +3339,7 @@ void CFlylinkDBManager::update_last_ip(uint32_t p_hub_id, const string& p_nick, 
 	try
 	{
 		const uint32_t l_message_count = 0; // счетчик мессаг не зануляем
-		update_last_ip_deferredL(p_hub_id, p_nick, l_message_count, p_last_ip);
+		update_last_ip_deferredL(p_hub_id, p_nick, l_message_count, p_last_ip, p_is_sql_not_found);
 	}
 	catch (const database_error& e)
 	{
@@ -3422,7 +3423,7 @@ void CFlylinkDBManager::flush_all_last_ip_and_message_count()
 #endif // FLYLINKDC_USE_LASTIP_CACHE
 }
 //========================================================================================================
-void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, boost::asio::ip::address_v4 p_last_ip)
+void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, boost::asio::ip::address_v4 p_last_ip, bool& p_is_sql_not_found)
 {
 	dcassert(p_hub_id);
 	dcassert(!p_nick.empty());
@@ -3521,14 +3522,17 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 	
 	if (!p_last_ip.is_unspecified() && p_message_count)
 	{
-		m_update_last_ip_and_message_count.init(m_flySQLiteDB,
-		                                        "update user_db.user_info set last_ip=?,message_count=? where dic_hub=? and nick=?");
-		m_update_last_ip_and_message_count->bind(1, p_last_ip.to_ulong());
-		m_update_last_ip_and_message_count->bind(2, p_message_count);
-		m_update_last_ip_and_message_count->bind(3, p_hub_id);
-		m_update_last_ip_and_message_count->bind(4, p_nick, SQLITE_STATIC);
-		m_update_last_ip_and_message_count->executenonquery();
-		if (m_update_last_ip_and_message_count.sqlite3_changes() == 0)
+		if (p_is_sql_not_found == false)
+		{
+			m_update_last_ip_and_message_count.init(m_flySQLiteDB,
+			                                        "update user_db.user_info set last_ip=?,message_count=? where dic_hub=? and nick=?");
+			m_update_last_ip_and_message_count->bind(1, p_last_ip.to_ulong());
+			m_update_last_ip_and_message_count->bind(2, p_message_count);
+			m_update_last_ip_and_message_count->bind(3, p_hub_id);
+			m_update_last_ip_and_message_count->bind(4, p_nick, SQLITE_STATIC);
+			m_update_last_ip_and_message_count->executenonquery();
+		}
+		if (p_is_sql_not_found == true || m_update_last_ip_and_message_count.sqlite3_changes() == 0)
 		{
 			m_insert_last_ip_and_message_count.init(m_flySQLiteDB,
 			                                        "insert or replace into user_db.user_info(nick,dic_hub,last_ip,message_count) values(?,?,?,?)");
@@ -3538,36 +3542,62 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 			m_insert_last_ip_and_message_count->bind(4, p_message_count);
 			m_insert_last_ip_and_message_count->executenonquery();
 		}
+		p_is_sql_not_found = false;
 	}
 	else
 	{
 		if (!p_last_ip.is_unspecified())
 		{
-			m_update_last_ip.init(m_flySQLiteDB,
-			                      "update user_db.user_info set last_ip=? where dic_hub=? and nick=?");
-			m_update_last_ip->bind(1, p_last_ip.to_ulong());
-			m_update_last_ip->bind(2, p_hub_id);
-			m_update_last_ip->bind(3, p_nick, SQLITE_STATIC);
-			m_update_last_ip->executenonquery();
-			if (m_update_last_ip.sqlite3_changes() == 0)
+			//LogManager::message("Update lastip p_nick = " + p_nick);
+			if (p_is_sql_not_found == false)
 			{
-				m_insert_last_ip.init(m_flySQLiteDB,
-				                      "insert or replace into user_db.user_info(nick,dic_hub,last_ip) values(?,?,?)");
-				m_insert_last_ip->bind(1, p_nick, SQLITE_STATIC);
-				m_insert_last_ip->bind(2, p_hub_id);
-				m_insert_last_ip->bind(3, p_last_ip.to_ulong());
-				m_insert_last_ip->executenonquery();
+				m_update_last_ip.init(m_flySQLiteDB,
+				                      "update user_db.user_info set last_ip=? where dic_hub=? and nick=?");
+				m_update_last_ip->bind(1, p_last_ip.to_ulong());
+				m_update_last_ip->bind(2, p_hub_id);
+				m_update_last_ip->bind(3, p_nick, SQLITE_STATIC);
+				m_update_last_ip->executenonquery();
+			}
+			if (p_is_sql_not_found == true || m_update_last_ip.sqlite3_changes() == 0)
+			{
+				boost::asio::ip::address_v4 l_ip_from_db;
+				// Проверим наличие в базе записи
+				{
+					m_select_last_ip.init(m_flySQLiteDB,
+					                      "select last_ip from user_db.user_info where nick=? and dic_hub=?");
+					m_select_last_ip->bind(1, p_nick, SQLITE_STATIC);
+					m_select_last_ip->bind(2, p_hub_id);
+					sqlite3_reader l_q = m_select_last_ip->executereader();
+					if (l_q.read())
+					{
+						l_ip_from_db = boost::asio::ip::address_v4((unsigned long)l_q.getint64(0));
+						p_is_sql_not_found = false;
+					}
+				}
+				if (p_last_ip != l_ip_from_db)
+				{
+					m_insert_last_ip.init(m_flySQLiteDB,
+					                      "insert or replace into user_db.user_info(nick,dic_hub,last_ip) values(?,?,?)");
+					m_insert_last_ip->bind(1, p_nick, SQLITE_STATIC);
+					m_insert_last_ip->bind(2, p_hub_id);
+					m_insert_last_ip->bind(3, p_last_ip.to_ulong());
+					m_insert_last_ip->executenonquery();
+				}
+				p_is_sql_not_found = false;
 			}
 		}
 		else if (p_message_count)
 		{
-			m_update_message_count.init(m_flySQLiteDB,
-			                            "update user_db.user_info set message_count=? where dic_hub=? and nick=?");
-			m_update_message_count->bind(1, p_message_count);
-			m_update_message_count->bind(2, p_hub_id);
-			m_update_message_count->bind(3, p_nick, SQLITE_STATIC);
-			m_update_message_count->executenonquery();
-			if (m_update_message_count.sqlite3_changes() == 0)
+			if (p_is_sql_not_found == false)
+			{
+				m_update_message_count.init(m_flySQLiteDB,
+				                            "update user_db.user_info set message_count=? where dic_hub=? and nick=?");
+				m_update_message_count->bind(1, p_message_count);
+				m_update_message_count->bind(2, p_hub_id);
+				m_update_message_count->bind(3, p_nick, SQLITE_STATIC);
+				m_update_message_count->executenonquery();
+			}
+			if (p_is_sql_not_found == true || m_update_message_count.sqlite3_changes() == 0)
 			{
 				m_insert_message_count.init(m_flySQLiteDB,
 				                            "insert or replace into user_db.user_info(nick,dic_hub,message_count) values(?,?,?)");
@@ -3576,6 +3606,7 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 				m_insert_message_count->bind(3, p_message_count);
 				m_insert_message_count->executenonquery();
 			}
+			p_is_sql_not_found = false;
 		}
 		else
 		{

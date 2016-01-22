@@ -1843,7 +1843,7 @@ void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownl
 		ui->setTarget(aDownload->getPath());
 		ui->setType(aDownload->getType());
 		// [-] ui->setIP(aDownload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
-
+		
 		tstring tmpReason = Text::toT(aReason);
 		if (aDownload->isSet(Download::FLAG_SLOWUSER))
 		{
@@ -1853,14 +1853,14 @@ void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownl
 		{
 			tmpReason += _T(": ") + TSTRING(OVERLAPPED_SLOW_SEGMENT);
 		}
-
+		
 		ui->setStatusString(tmpReason);
-
+		
 		SHOW_POPUPF(POPUP_DOWNLOAD_FAILED,
-			TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target) + _T('\n') +
-			TSTRING(USER) + _T(": ") + WinUtil::getNicks(ui->m_hintedUser) + _T('\n') +
-			TSTRING(REASON) + _T(": ") + tmpReason, TSTRING(DOWNLOAD_FAILED) + _T(' '), NIIF_WARNING);
-
+		            TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target) + _T('\n') +
+		            TSTRING(USER) + _T(": ") + WinUtil::getNicks(ui->m_hintedUser) + _T('\n') +
+		            TSTRING(REASON) + _T(": ") + tmpReason, TSTRING(DOWNLOAD_FAILED) + _T(' '), NIIF_WARNING);
+		            
 		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 	}
 }
@@ -2159,7 +2159,7 @@ void TransferView::parseQueueItemUpdateInfoL(UpdateInfo* ui, const QueueItemPtr&
 	{
 		double ratio = 0;
 		bool partial = false, trusted = false, untrusted = false, tthcheck = false, zdownload = false, chunked = false;
-		const int64_t totalSpeed = qi->getAverageSpeed(); // [!] IRainman opt.
+		const int64_t totalSpeed = qi->getAverageSpeed(); // TODO https://drdump.com/DumpGroup.aspx?DumpGroupID=432133
 		const int16_t segs = qi->calcTransferFlagL(partial, trusted, untrusted, tthcheck, zdownload, chunked, ratio);
 		ui->setRunning(segs);
 		if (segs > 0)

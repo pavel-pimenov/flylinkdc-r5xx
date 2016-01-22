@@ -3517,9 +3517,7 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 							boost::system::error_code ec;
 							const auto l_ip = boost::asio::ip::address_v4::from_string(l_str_ip, ec);
 							dcassert(!ec);
-							CFlylinkDBManager::getInstance()->update_last_ip(si->getUser()->getHubID(),
-							                                                 si->getUser()->getLastNick(),
-							                                                 l_ip);
+							si->getUser()->setIP(l_ip, true);
 						}
 #endif
 					}

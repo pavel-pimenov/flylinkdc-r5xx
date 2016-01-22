@@ -244,7 +244,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		
 		FastCriticalSection cs; // [!] IRainman opt: use spinlock here!
 		
-		Semaphore m_taskSem;
+		Semaphore m_socket_semaphore;
 		deque<pair<Tasks, std::unique_ptr<TaskData>> > m_tasks;
 		volatile DWORD m_threadId; // [+] IRainman fix.
 		ByteVector m_inbuf;

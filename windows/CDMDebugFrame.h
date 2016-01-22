@@ -124,7 +124,7 @@ class CDMDebugFrame : private DebugManagerListener, public BASE_THREAD,
 		
 		volatile bool m_stop; // [!] IRainman fix: this variable is volatile.
 		FastCriticalSection m_cs; // [!] IRainman opt: use spin lock here.
-		Semaphore m_sem;
+		Semaphore m_semaphore;
 		deque<DebugTask> m_cmdList;
 		
 		int run();
@@ -135,7 +135,7 @@ class CDMDebugFrame : private DebugManagerListener, public BASE_THREAD,
 				CFlyFastLock(m_cs);
 				m_cmdList.push_back(task);
 			}
-			m_sem.signal();
+			m_semaphore.signal();
 		}
 		
 		CEdit ctrlCMDPad;

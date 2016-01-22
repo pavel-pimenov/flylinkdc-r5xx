@@ -116,7 +116,7 @@ LRESULT CDMDebugFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 		DebugManager::deleteInstance(); // [+] IRainman opt.
 		
 		m_stop = true;
-		m_sem.signal();
+		m_semaphore.signal();
 		
 		PostMessage(WM_CLOSE);
 	}
@@ -292,7 +292,7 @@ int CDMDebugFrame::run()
 	
 	while (true)
 	{
-		m_sem.wait();
+		m_semaphore.wait();
 		if (m_stop || ClientManager::isShutdown())
 		{
 			break;

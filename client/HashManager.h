@@ -247,7 +247,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		class Hasher : public Thread
 		{
 			public:
-				Hasher() : m_stop(false), m_running(false), paused(0), m_rebuild(false), m_currentSize(0), m_path_id(0),
+				Hasher() : m_stop(false), m_running(false), m_paused(0), m_rebuild(false), m_currentSize(0), m_path_id(0),
 					m_CurrentBytesLeft(0), //[+]IRainman
 					m_ForceMaxHashSpeed(0), dwMaxFiles(0), iMaxBytes(0), uiStartTime(0) { }
 					
@@ -271,11 +271,11 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				
 				void signal()
 				{
-					if (paused)
+					if (m_paused)
 					{
-						m_s.signal(); // TODO тут точно нужен такой двойной сигнал?
+						m_hash_semaphore.signal(); // TODO тут точно нужен такой двойной сигнал?
 					}
-					m_s.signal();
+					m_hash_semaphore.signal();
 				}
 				void shutdown()
 				{
@@ -377,11 +377,11 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				
 				WorkMap w;
 				mutable FastCriticalSection cs; // [!] IRainman opt: use only spinlock here!
-				Semaphore m_s;
+				Semaphore m_hash_semaphore;
 				
 				volatile bool m_stop; // [!] IRainman fix: this variable is volatile.
 				volatile bool m_running; // [!] IRainman fix: this variable is volatile.
-				int64_t paused; //[!] PPA -> int
+				int64_t m_paused; //[!] PPA -> int
 				volatile bool m_rebuild; // [!] IRainman fix: this variable is volatile.
 				//string currentFile;// [-]IRainman
 				int64_t m_currentSize;
