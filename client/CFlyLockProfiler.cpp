@@ -21,16 +21,21 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 		if (l_tick_delta > l_item.second)
 			l_item.second = l_tick_delta;
 	}
-	if ((l_tick_delta > 50 &&
+	if (
+//#define FLYLINKDC_USE_PROFILE_SELECTED_CLASS
+#ifdef FLYLINKDC_USE_PROFILE_SELECTED_CLASS
+		(l_tick_delta >= 0 &&
 	        (m_function &&
 	         (
-	             strstr(m_function, "ShareManager::") != 0 ||
-	             strstr(m_function, "CFlylinkDBManager::") != 0
+	             strstr(m_function, "dht::") != 0 
+				 || strstr(m_function, "CFlyServerConfig") != 0
+
 	         )
 	        )
 	        || p_recursion_count > 1
 	    )
 	        &&
+#endif
 	        (m_function &&
 	         (
 	             strstr(m_function, "::addListener") == 0 &&

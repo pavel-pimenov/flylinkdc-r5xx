@@ -215,7 +215,8 @@ LRESULT PublicHubsFrame::onSelChangedISPTree(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 				std::vector<byte> l_data;
 				l_log.step("URL = " + l_url);
 				CFlyHTTPDownloader l_http_downloader;
-				l_http_downloader.setInetFlag(INTERNET_FLAG_RESYNCHRONIZE);
+				//l_http_downloader.setInetFlag(INTERNET_FLAG_RESYNCHRONIZE);
+				l_http_downloader.m_is_use_cache = true;
 				if (l_http_downloader.getBinaryDataFromInet(l_url, l_data, 1000))
 				{
 					const string ext = Util::getFileExt(l_url);
@@ -318,7 +319,7 @@ void PublicHubsFrame::loadISPHubs()
 	{
 		const string l_url_config_file = "http://etc.fly-server.ru/etc/isp-hub-list.txt";
 		l_log.step("Download:" + l_url_config_file);
-		if (Util::getDataFromInet(l_url_config_file, m_isp_raw_data, 0) == 0)
+		if (Util::getDataFromInet(true, l_url_config_file, m_isp_raw_data, 0) == 0)
 		{
 			l_log.step("Error download! Config will be loaded from internal resources");
 			LPCSTR l_res_data;

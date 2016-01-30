@@ -62,7 +62,9 @@ void AutoUpdate::initialize(HWND p_mainFrameHWND, AutoUpdateGUIMethod* p_guiDele
 #ifndef AUTOUPDATE_NOT_DISABLE
 	if (BOOLSETTING(AUTOUPDATE_ENABLE) && BOOLSETTING(AUTOUPDATE_RUNONSTARTUP))
 #endif
+	{
 		addTask(START_UPDATE);
+	}
 }
 void AutoUpdate::shutdownAndUpdate()
 {
@@ -170,7 +172,7 @@ string AutoUpdate::getUpdateFilesList(const string& p_componentName,
 	const string l_serverUpdateFile = p_serverUrl + p_file;
 	const string l_log_url_info = " (" + p_componentName + ')' + " ( URL:" + l_serverUpdateFile + ')';
 	// 60 sec - http://code.google.com/p/flylinkdc/issues/detail?id=1403
-	size_t l_dataSize =  Util::getDataFromInet(l_serverUpdateFile, p_autoUpdateObject->m_update_xml, 60000);
+	size_t l_dataSize =  Util::getDataFromInet(false, l_serverUpdateFile, p_autoUpdateObject->m_update_xml, 60000);
 	if (l_dataSize)
 	{
 		message(STRING(AUTOUPDATE_DOWNLOAD_SUCCESS) + l_log_url_info);
@@ -241,6 +243,8 @@ bool AutoUpdateObject::checkSignXML(const string& p_url_sign) const
 }
 void AutoUpdate::startUpdateThisThread()
 {
+	if (ClientManager::isShutdown())
+		return;
 	CFlySafeGuard<int> l_satrt(m_isUpdateStarted);
 	InetDownloadReporter::getInstance()->ReportResultWait(0);
 	unique_ptr<AutoUpdateObject> autoUpdateObject(new AutoUpdateObject());
@@ -380,7 +384,7 @@ void AutoUpdate::startUpdateThisThread()
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
 						//string basesRtfData;
 #endif
-						size_t l_dataRTFSize = Util::getDataFromInet(programUpdateDescription, programRtfData);
+						size_t l_dataRTFSize = Util::getDataFromInet(true, programUpdateDescription, programRtfData);
 						// l_programRtfData.resize(dataRTFSize); // TODO - зачем это?
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
 						//dataRTFSize = Util::getDataFromInet(basesUpdateDescription, basesRtfData);
@@ -397,7 +401,11 @@ void AutoUpdate::startUpdateThisThread()
 					}
 					else
 					{
-						UINT iResult = ::MessageBox(m_mainFrameHWND, Text::toT(l_message).c_str(), T_APPNAME_WITH_VERSION, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1);
+						UINT iResult = UPDATE_IGNORE;
+						if (!ClientManager::isShutdown())
+						{
+							iResult = ::MessageBox(m_mainFrameHWND, Text::toT(l_message).c_str(), T_APPNAME_WITH_VERSION, MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1);
+						}
 						switch (iResult)
 						{
 							case IDYES:
@@ -433,7 +441,7 @@ void AutoUpdate::startUpdateThisThread()
 				if (needToUpdate)
 				{
 					// Start file Uploading
-					InetDownloadReporter::getInstance()->ReportResultWait(l_totalSize); 
+					InetDownloadReporter::getInstance()->ReportResultWait(l_totalSize);
 					string l_errorFileName;
 					
 					// Update Settings file at first
@@ -523,7 +531,10 @@ void AutoUpdate::startUpdateThisThread()
 								{
 									const tstring l_message = TSTRING(AUTOUPDATE_DOWNLOAD_FAILED) + _T("\r\n") + TSTRING(FAILED_TO_LOAD) + _T("\r\n") + Text::toT(l_errorFileName);
 									CFlyServerJSON::pushError(58, Text::fromT(l_message));
-									::MessageBox(m_mainFrameHWND, l_message.c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
+									if (!ClientManager::isShutdown())
+									{
+										::MessageBox(m_mainFrameHWND, l_message.c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
+									}
 								}
 								else
 									message(STRING(AUTOUPDATE_ERROR_UPDATE_FILE) + ' ' + l_errorFileName);
@@ -534,7 +545,7 @@ void AutoUpdate::startUpdateThisThread()
 			{
 				m_isUpdate = true;
 				message(STRING(YOU_HAVE_THE_LATEST_VERSION));
-				if (m_manualUpdate)
+				if (m_manualUpdate && !ClientManager::isShutdown())
 				{
 					::MessageBox(m_mainFrameHWND, CWSTRING(YOU_HAVE_THE_LATEST_VERSION), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONINFORMATION);
 				}

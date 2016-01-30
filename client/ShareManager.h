@@ -413,7 +413,8 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		bool forceXmlRefresh; /// bypass the 15-minutes guard
 		bool refreshDirs;
 		bool update;
-		bool m_is_initial;
+		friend BufferedSocket;
+		static bool g_is_initial;
 		
 		unsigned m_listN;
 		
@@ -423,7 +424,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		uint64_t m_lastFullUpdate;
 		
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csTTHIndex;
-		static FastCriticalSection g_csBloom;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csBloom;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShare;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDirList;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareNotExists;

@@ -289,6 +289,13 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 {
 	if (p_line.compare(0, 8, "$Search ", 8) == 0)
 	{
+		if (ShareManager::g_is_initial == true)
+		{
+#ifdef _DEBUG
+			LogManager::message("[ShareManager::g_is_initial] BufferedSocket::all_search_parser p_line = " + p_line);
+#endif
+			return true;
+		}
 		if (m_is_hide_share == false && ClientManager::isStartup() == false)
 		{
 #ifndef _DEBUG

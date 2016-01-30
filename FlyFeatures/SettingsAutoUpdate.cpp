@@ -41,9 +41,9 @@ void SettingsAutoUpdate::execute(const pair<SettingsAutoUpdateTasks, SettingsAut
 	{
 		case START_UPDATE_FILE:
 			_StartFileUpdateThisThread(p_task.second->_localPath, p_task.second->_urlPath);
-		break;
+			break;
 	}
-			
+	
 	delete p_task.second;
 }
 
@@ -63,7 +63,7 @@ void SettingsAutoUpdate::_StartFileUpdateThisThread(const string& localPath, con
 	try
 	{
 		File temp(tempPath, File::WRITE, File::CREATE | File::TRUNCATE);
-		if (Util::getDataFromInet(urlPath, temp))
+		if (Util::getDataFromInet(true, urlPath, temp))
 		{
 			if (temp.isOpen())
 				temp.close();
@@ -83,7 +83,7 @@ void SettingsAutoUpdate::_StartFileUpdateThisThread(const string& localPath, con
 	catch (const Exception& e)
 	{
 		fail(e.getError());
-	}	
+	}
 }
 
 #endif // FLYLINKDC_USE_SETTINGS_AUTO_UPDATE

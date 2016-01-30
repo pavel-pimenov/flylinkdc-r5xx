@@ -152,7 +152,7 @@ RSSFeed::UpdateFeedOldParser(const string& data)
 size_t
 RSSFeed::GetRSSData(const string& url, string& data)
 {
-	return Util::getDataFromInet(url, data, 1000);
+	return Util::getDataFromInet(true, url, data, 1000);
 }
 
 

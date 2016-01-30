@@ -102,8 +102,8 @@ int CFlyServerJSON::g_count_dup_error_string = 0;
 CFlyServerJSON::CFlyTestPortResult CFlyServerJSON::g_test_port_map;
 FastCriticalSection CFlyServerJSON::g_cs_test_port;
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
-FastCriticalSection CFlyServerConfig::g_cs_block_ip;
 
+std::unique_ptr<webrtc::RWLockWrapper> CFlyServerConfig::g_cs_block_ip = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 uint16_t CFlyServerConfig::g_min_interval_dth_connect = 60; //   DHT обращаемс€ не чаще раз в 60 секунд (найти причину почему это происходит)
 uint16_t CFlyServerConfig::g_max_ddos_connect_to_me = 10; // Ќе более 10 коннектов на один IP в течении минуты
 uint16_t CFlyServerConfig::g_ban_ddos_connect_to_me = 10; // Ѕлокируем подключени€ к этому IP в течении 10 минут
@@ -187,7 +187,7 @@ void CFlyServerConfig::addBlockIP(const string& p_ip)
 	dcassert(!p_ip.empty())
 	if (!p_ip.empty())
 	{
-		CFlyFastLock(g_cs_block_ip);
+		CFlyWriteLock(*g_cs_block_ip);
 		CFlyServerConfig::g_block_ip_str.insert(p_ip);
 	}
 }
@@ -197,7 +197,7 @@ bool CFlyServerConfig::isBlockIP(const string& p_ip)
 	dcassert(!p_ip.empty())
 	if (!p_ip.empty())
 	{
-		CFlyFastLock(g_cs_block_ip);
+		CFlyReadLock(*g_cs_block_ip);
 		if (CFlyServerConfig::g_block_ip_str.find(p_ip) != CFlyServerConfig::g_block_ip_str.end())
 			return true;
 		else
@@ -385,7 +385,7 @@ void CFlyServerConfig::loadConfig()
 #endif
 		l_fly_server_log.step("Download:" + l_url_config_file);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-		if (Util::getDataFromInet(l_url_config_file, l_data, 0) == 0)
+		if (Util::getDataFromInet(true, l_url_config_file, l_data, 0) == 0)
 		{
 			l_fly_server_log.step("Error download! Config will be loaded from internal resources");
 #endif //FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -546,7 +546,7 @@ void CFlyServerConfig::loadConfig()
 						//g_block_ip.clear();
 						string l_block_ip_str;
 						{
-							CFlyFastLock(g_cs_block_ip);
+							CFlyWriteLock(*g_cs_block_ip);
 							g_block_ip_str.clear();
 							l_block_ip_str = l_xml.getChildAttribSplit("block_ip", g_block_ip_str, [&](const string & n)
 							{

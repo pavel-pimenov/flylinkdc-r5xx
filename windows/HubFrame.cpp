@@ -243,6 +243,9 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	, m_needsUpdateStats(false)
 	//, m_is_op_chat_opened(false)
 	, m_needsResort(false)
+	, m_is_init_load_list_view(false)
+	, m_count_init_insert_list_view(0)
+	, m_last_count_resort(0)
 	, m_showUsersContainer(nullptr)
 	, m_ctrlFilterContainer(nullptr)
 	, m_ctrlChatContainer(nullptr)
@@ -1355,7 +1358,7 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 				{
 					PROFILE_THREAD_SCOPED_DESC("HubFrame::updateUser-update")
 					m_needsResort |= ui->is_update(m_ctrlUsers->getSortColumn());
-					const int pos = m_ctrlUsers->findItem(ui); 
+					const int pos = m_ctrlUsers->findItem(ui);
 					if (pos != -1)
 					{
 					
@@ -1799,31 +1802,35 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 						if (updateUser(u.m_ou, -1))
 						{
 							const Identity& id = u.m_ou->getIdentity();
-							const UserPtr& user = u.m_ou->getUser();
-							dcassert(!id.getNickT().empty());
-							const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
-							if (isFavorite)
+							if (m_client->is_all_my_info_loaded())
 							{
-								PLAY_SOUND(SOUND_FAVUSER);
-								SHOW_POPUP(POPUP_FAVORITE_CONNECTED, id.getNickT() + _T(" - ") + Text::toT(m_client->getHubName()), TSTRING(FAVUSER_ONLINE));
-							}
-							
-							if (!id.isBotOrHub()) // [+] IRainman fix: no show has come/gone for bots, and a hub.
-							{
-								if (m_showJoins || (m_favShowJoins && isFavorite))
+								dcassert(!id.getNickT().empty());
+								const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(u.m_ou->getUser()); // [!] TODO: в ядро!
+								if (isFavorite)
 								{
-									BaseChatFrame::addLine(_T("*** ") + TSTRING(JOINS) + _T(' ') + id.getNickT(), Colors::g_ChatTextSystem);
-								}
+									PLAY_SOUND(SOUND_FAVUSER);
+									SHOW_POPUP(POPUP_FAVORITE_CONNECTED, id.getNickT() + _T(" - ") + Text::toT(m_client->getHubName()), TSTRING(FAVUSER_ONLINE));
+								}								
+								if (!id.isBotOrHub()) // [+] IRainman fix: no show has come/gone for bots, and a hub.
+								{
+									if (m_showJoins || (m_favShowJoins && isFavorite))
+									{
+										BaseChatFrame::addLine(_T("*** ") + TSTRING(JOINS) + _T(' ') + id.getNickT(), Colors::g_ChatTextSystem);
+									}
+								}								
+								m_needsUpdateStats = true;
+							}
+							else
+							{
+								m_needsUpdateStats = false;
 							}
 							// Automatically open "op chat"
 							//if (!m_is_op_chat_opened)
-							if (m_client->isInOperatorList(id.getNick()) && !PrivateFrame::isOpen(user))
+							if (m_client->isInOperatorList(id.getNick()) && !PrivateFrame::isOpen(u.m_ou->getUser()))
 							{
-								PrivateFrame::openWindow(u.m_ou, HintedUser(user, m_client->getHubUrl()), m_client->getMyNick());
+								PrivateFrame::openWindow(u.m_ou, HintedUser(u.m_ou->getUser(), m_client->getHubUrl()), m_client->getMyNick());
 								//m_is_op_chat_opened = true;
 							}
-							
-							m_needsUpdateStats = true; // [+] IRainman fix.
 						}
 						else
 						{
@@ -1927,17 +1934,25 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 						//              PROFILE_THREAD_SCOPED_DESC("STATS")
 						const int64_t l_availableBytes = m_client->getAvailableBytes();
 						const size_t l_allUsers = m_client->getUserCount();
-						const size_t l_shownUsers = m_ctrlUsers ? m_ctrlUsers->GetItemCount() : l_allUsers;
+						const size_t l_count_item = m_ctrlUsers ? m_ctrlUsers->GetItemCount() : 0;
+						const size_t l_shownUsers = m_ctrlUsers ? l_count_item : l_allUsers;
 						const size_t l_diff = l_allUsers - l_shownUsers;
 						setStatusText(2, (Util::toStringW(l_shownUsers) + (l_diff ? (_T('/') + Util::toStringW(l_allUsers)) : Util::emptyStringT) + _T(' ') + TSTRING(HUB_USERS)));
 						setStatusText(3, Util::formatBytesW(l_availableBytes));
 						setStatusText(4, l_allUsers ? (Util::formatBytesW(l_availableBytes / l_allUsers) + _T('/') + TSTRING(USER)) : Util::emptyStringT);
-						if (m_needsResort && m_ctrlUsers && m_ctrlStatus && !MainFrame::isAppMinimized())
+#ifdef _DEBUG
+						if (l_count_item <= m_last_count_resort)
 						{
+							//LogManager::message("Skip resort! Hub = " + m_client->getHubUrl() + " count = " + Util::toString(l_count_item));
+						}
+#endif
+						if (m_needsResort && m_ctrlUsers && m_ctrlStatus && l_count_item > m_last_count_resort && !MainFrame::isAppMinimized())
+						{
+							m_last_count_resort = l_count_item;
 							m_needsResort = false;
 							m_ctrlUsers->resort(); // убран ресорт если окно не активное!
 #ifdef _DEBUG
-							//LogManager::message("Resort! Hub = " + m_client->getHubUrl() + " count = " + Util::toString(m_ctrlUsers ? m_ctrlUsers->GetItemCount() : 0));
+							//LogManager::message("Resort! Hub = " + m_client->getHubUrl() + " count = " + Util::toString(m_ctrlUsers ? l_count_item : 0));
 #endif
 						}
 					}
@@ -2498,6 +2513,7 @@ void HubFrame::clearUserList()
 		}
 		m_userMap.clear();
 	}
+	m_last_count_resort = 0;
 }
 
 void HubFrame::clearTaskList()
@@ -2998,7 +3014,7 @@ LRESULT HubFrame::OnSpeakerFirstUserJoin(UINT uMsg, WPARAM wParam, LPARAM lParam
 	}
 	return 0;
 }
-void HubFrame::usermap2ListrView()
+unsigned HubFrame::usermap2ListrView()
 {
 	dcassert(m_ctrlUsers->GetItemCount() == 0);
 	//CFlyReadLock(*m_userMapCS);
@@ -3026,18 +3042,22 @@ void HubFrame::firstLoadAllUsers()
 	m_needsResort = false;
 	//CLockRedraw<> l_lock_draw(ctrlUsers);
 	m_userMapInitThread.process_init_user_list(this);
-	//usermap2ListrView();
-	m_ctrlUsers->resort();
+	if (usermap2ListrView())
+	{
+		// m_ctrlUsers->resort();
+	}
 	m_needsResort = false;
 }
 
 #endif
 
-void HubFrame::usermap2ListrView()
+unsigned HubFrame::usermap2ListrView()
 {
 	CFlyReadLock(*m_userMapCS);
 	//CFlyLock(m_userMapCS);
-	for (auto i = m_userMap.cbegin(); i != m_userMap.cend(); ++i)
+	m_count_init_insert_list_view = m_ctrlUsers->GetItemCount();
+	CFlyBusyBool l_busy(m_is_init_load_list_view);
+	for (auto i = m_userMap.cbegin(); i != m_userMap.cend(); ++i, ++m_count_init_insert_list_view)
 	{
 		const UserInfo* ui = i->second;
 #ifdef IRAINMAN_USE_HIDDEN_USERS
@@ -3045,14 +3065,17 @@ void HubFrame::usermap2ListrView()
 #endif
 		InsertItemInternal(ui);
 	}
+	return m_userMap.size();
 }
 void HubFrame::firstLoadAllUsers()
 {
 	CWaitCursor l_cursor_wait; //-V808
 	m_needsResort = false;
 	CLockRedraw<> l_lock_draw(*m_ctrlUsers);
-	usermap2ListrView();
-	m_ctrlUsers->resort();
+	if (usermap2ListrView())
+	{
+		//m_ctrlUsers->resort();
+	}
 	m_needsResort = false;
 }
 
@@ -3096,9 +3119,8 @@ LRESULT HubFrame::onShowUsers(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, B
 		{
 			setShowUsers(false);
 			m_needsResort = false;
-			// [!] IRainman Speed optimization and support for the full menu on selected nick in chat when user list is hided.
 			m_ctrlUsers->DeleteAllItems();
-			// [~] IRainman
+			m_last_count_resort = 0;
 		}
 		UpdateLayout(FALSE);
 		m_needsUpdateStats = true;
@@ -3370,7 +3392,7 @@ void HubFrame::on(Connecting, const Client*) noexcept
 	{
 		if (bWantAutodetect)
 		{
-			BaseChatFrame::addLine(_T("[!]FlylinkDC++ Detecting connection type: work in passive mode until direct mode is detected"), Colors::g_ChatTextSystem);
+			// BaseChatFrame::addLine(_T("[!]FlylinkDC++ Detecting connection type: work in passive mode until direct mode is detected"), Colors::g_ChatTextSystem);
 		}
 	}
 #endif
@@ -3883,12 +3905,18 @@ void HubFrame::InsertItemInternal(const UserInfo* ui)
 		}
 		else
 		{
-			m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
+			if (m_is_init_load_list_view)
+				m_ctrlUsers->insertItemLast(ui, I_IMAGECALLBACK, m_count_init_insert_list_view);
+			else
+				m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
 		}
 	}
 	else
 	{
-		m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
+		if (m_is_init_load_list_view)
+			m_ctrlUsers->insertItemLast(ui, I_IMAGECALLBACK, m_count_init_insert_list_view);
+		else
+			m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
 	}
 }
 void HubFrame::InsertUserList(UserInfo* ui) // [!] IRainman opt.
@@ -3938,6 +3966,7 @@ void HubFrame::updateUserList() // [!] IRainman opt.
 {
 	CLockRedraw<> l_lock_draw(*m_ctrlUsers);
 	m_ctrlUsers->DeleteAllItems();
+	m_last_count_resort = 0;
 	if (m_filter.empty())
 	{
 		usermap2ListrView();

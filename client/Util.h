@@ -92,7 +92,8 @@ class CFlyHTTPDownloader
 		string m_error_message;
 	public:
 		bool m_is_add_url;
-		CFlyHTTPDownloader() : m_flag(0), m_is_add_url(true)
+		bool m_is_use_cache;
+		CFlyHTTPDownloader() : m_flag(0), m_is_add_url(true), m_is_use_cache(false)
 		{
 		}
 		std::vector<string> m_get_http_header_item;
@@ -1146,7 +1147,7 @@ class Util
 		
 		static string getWANIP(const string& p_url, LONG p_timeOut = 500);
 		
-		static size_t getDataFromInet(const string& url, string& data, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
+		static size_t getDataFromInet(bool p_is_use_cache, const string& url, string& data, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
 		
 		
 		// static string formatMessage(const string& message);[-] IRainman fix

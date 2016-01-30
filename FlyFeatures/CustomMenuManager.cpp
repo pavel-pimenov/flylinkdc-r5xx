@@ -132,10 +132,9 @@ CustomMenuManager::ProcessXMLSubMenu(SimpleXML& xml, int& i)
 		}
 	}
 }
-size_t
-CustomMenuManager::GetData(const string& url, string& data) const
+size_t CustomMenuManager::GetData(const string& url, string& data)
 {
-	return Util::getDataFromInet(url, data, 0);
+	return Util::getDataFromInet(true, url, data, 1000);
 }
 
 const string& CustomMenuManager::GetUrlByID(int id)

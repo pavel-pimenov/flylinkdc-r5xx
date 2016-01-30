@@ -226,9 +226,9 @@ MainFrame::~MainFrame()
 unsigned int WINAPI MainFrame::stopper(void* p)
 {
 	MainFrame* mf = (MainFrame*)p;
-	HWND wnd = NULL;
-	HWND wnd2 = NULL;
-	
+	HWND wnd = nullptr;
+	HWND wnd2 = nullptr;
+	boost::unordered_set<HWND> l_wm_close_message;
 	while ((wnd =::GetWindow(mf->m_hWndMDIClient, GW_CHILD)) != NULL)
 	{
 		if (wnd == wnd2)
@@ -240,7 +240,18 @@ unsigned int WINAPI MainFrame::stopper(void* p)
 		}
 		else
 		{
-			::PostMessage(wnd, WM_CLOSE, 0, 0);
+			auto l_result = l_wm_close_message.insert(wnd);
+			if (l_result.second == false)
+			{
+				LogManager::message("MainFrame::stopper duplicate ::PostMessage wnd = " + Util::toString(int(wnd)));
+				dcassert(0);
+			}
+			const auto l_post_result = ::PostMessage(wnd, WM_CLOSE, 0, 0);
+			if (l_post_result == 0)
+			{
+				dcassert(0);
+				LogManager::message("MainFrame::stopper ::PostMessage(wnd, WM_CLOSE, 0, 0) == 0[!] wnd = " + Util::toString(int(wnd)));
+			}
 #ifdef _DEBUG
 			LogManager::message("MainFrame::stopper ::PostMessage(wnd, WM_CLOSE, 0, 0) wnd = " + Util::toString(int(wnd)));
 #endif

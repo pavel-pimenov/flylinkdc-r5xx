@@ -947,7 +947,7 @@ bool FavoriteManager::load_from_url()
 			l_url += "ISP_favorites.xml";
 			string l_data;
 			const string l_log_message = "Download: " + l_url;
-			const size_t l_size = Util::getDataFromInet(l_url, l_data);
+			const size_t l_size = Util::getDataFromInet(true, l_url, l_data);
 			if (l_size == 0)
 			{
 				LogManager::message("[ISPFavorite] " + l_log_message + " [Error]");

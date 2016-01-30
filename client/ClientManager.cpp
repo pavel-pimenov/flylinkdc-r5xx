@@ -1453,9 +1453,9 @@ void ClientManager::updateNick(const OnlineUserPtr& p_online_user)
 	{
 #ifdef _DEBUG
 		//dcassert(0);
-		const string& l_nick_from_identity = p_online_user->getIdentity().getNick();
-		LogManager::message("[DUP] updateNick(const OnlineUserPtr& p_online_user) ! nick==nick == "
-		                    + l_nick_from_identity + " p_online_user->getUser()->getLastNick() = " + p_online_user->getUser()->getLastNick());
+		//const string& l_nick_from_identity = p_online_user->getIdentity().getNick();
+		//LogManager::message("[DUP] updateNick(const OnlineUserPtr& p_online_user) ! nick==nick == "
+		//                    + l_nick_from_identity + " p_online_user->getUser()->getLastNick() = " + p_online_user->getUser()->getLastNick());
 #endif
 	}
 }

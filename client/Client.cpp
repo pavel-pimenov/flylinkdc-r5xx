@@ -127,7 +127,7 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 #ifdef _DEBUG
 	else
 	{
-		LogManager::message("hubURL = " + getHubUrl() + " query.empty()");
+		//LogManager::message("hubURL = " + getHubUrl() + " query.empty()");
 	}
 #endif
 	TimerManager::getInstance()->addListener(this);

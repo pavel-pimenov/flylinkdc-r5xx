@@ -278,7 +278,7 @@ class CFlyServerConfig
 		static std::vector<std::string> g_mapping_hubs;
 		//static std::unordered_set<unsigned long> g_block_ip;
 		static std::unordered_set<std::string> g_block_ip_str;
-		static FastCriticalSection g_cs_block_ip;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_cs_block_ip;
 		
 		static std::unordered_set<std::string> g_block_hubs;
 		static string g_regex_find_ip;

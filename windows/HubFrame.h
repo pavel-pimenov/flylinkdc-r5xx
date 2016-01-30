@@ -79,7 +79,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 #endif
 		MESSAGE_HANDLER(WM_SETFOCUS, onSetFocus)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
-		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu) 
+		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		MESSAGE_HANDLER(WM_CTLCOLORSTATIC, onCtlColor)
 		MESSAGE_HANDLER(WM_CTLCOLOREDIT, onHubFrmCtlColor)
 		MESSAGE_HANDLER(FTM_CONTEXTMENU, onTabContextMenu)
@@ -353,7 +353,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 			return m_client && m_client->isSupressChatAndPM();
 		}
 		void firstLoadAllUsers();
-		void usermap2ListrView();
+		unsigned usermap2ListrView();
 		
 #if 0
 		class CFlyUserMap : public Thread
@@ -395,6 +395,9 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		bool m_needsUpdateStats;
 		// bool m_is_op_chat_opened;
 		bool m_needsResort;
+		bool m_is_init_load_list_view;
+		int m_count_init_insert_list_view;
+		unsigned m_last_count_resort;
 		unsigned m_count_speak;
 		
 		static int g_columnIndexes[COLUMN_LAST];

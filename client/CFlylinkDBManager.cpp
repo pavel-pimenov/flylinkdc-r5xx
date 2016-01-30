@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//(c) 2007-2015 pavel.pimenov@gmail.com
+//(c) 2007-2016 pavel.pimenov@gmail.com
 //-----------------------------------------------------------------------------
 #include "stdinc.h"
 #include <Shellapi.h>
@@ -1765,12 +1765,15 @@ void CFlylinkDBManager::save_geoip(const CFlyLocationIPArray& p_geo_ip)
 //========================================================================================================
 bool CFlylinkDBManager::is_virus_bot(const string& p_nick, int64_t p_share, const boost::asio::ip::address_v4& p_ip4)
 {
-	CFlyReadLock(*m_virus_cs);
-	const bool l_is_share = p_share && m_virus_share.find(p_share) != m_virus_share.end();
-	if (l_is_share && m_virus_user.find(p_nick) != m_virus_user.end() ||
-	        l_is_share && !p_ip4.is_unspecified() && m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end())
+	if (p_share)
 	{
-		return true;
+		CFlyReadLock(*m_virus_cs);
+		const bool l_is_share = p_share && m_virus_share.find(p_share) != m_virus_share.end();
+		if (l_is_share && m_virus_user.find(p_nick) != m_virus_user.end() ||
+			l_is_share && !p_ip4.is_unspecified() && m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end())
+		{
+			return true;
+		}
 	}
 	return false;
 }
@@ -1906,13 +1909,12 @@ int CFlylinkDBManager::sync_antivirus_db(const string& p_antivirus_db, const uin
 		try
 		{
 			sqlite3_transaction l_trans(m_flySQLiteDB);
-			auto_ptr<sqlite3_command> l_merge_antivirus_db(new sqlite3_command(m_flySQLiteDB,
-			                                                                   "insert or replace into antivirus_db.fly_suspect_user(nick,share,ip4,virus_path) values(?,?,?,?)"));
+			m_update_antivirus_db.init(m_flySQLiteDB,
+				"update antivirus_db.fly_suspect_user set share=?,virus_path=? where nick=? and ip4=?");
 			int l_pos = 0;
 			int l_nick_pos = 0;
 			int l_nick_len = 0;
 			string l_ip4;
-			auto l_sql = l_merge_antivirus_db.get();
 			while (true)
 			{
 				l_nick_pos = l_pos;
@@ -1951,10 +1953,21 @@ int CFlylinkDBManager::sync_antivirus_db(const string& p_antivirus_db, const uin
 					}
 				}
 				l_pos = l_sep_pos + 1;
-				l_sql->bind(1, l_nick, SQLITE_STATIC);
-				l_sql->bind(2, l_share);
-				l_sql->bind(3, int64_t(l_boost_ip4.to_ulong()));
-				l_sql->bind(4, l_virus_path, SQLITE_STATIC);
+				m_update_antivirus_db->bind(1, l_share);
+				m_update_antivirus_db->bind(2, l_virus_path, SQLITE_STATIC);
+				m_update_antivirus_db->bind(3, l_nick, SQLITE_STATIC);
+				m_update_antivirus_db->bind(4, l_boost_ip4.to_ulong());
+				m_update_antivirus_db->executenonquery();
+				if (m_update_antivirus_db.sqlite3_changes() == 0)
+				{
+					m_insert_antivirus_db.init(m_flySQLiteDB,
+						"insert or replace into antivirus_db.fly_suspect_user(share,virus_path,nick,ip4) values(?,?,?,?)");
+					m_insert_antivirus_db->bind(1, l_share);
+					m_insert_antivirus_db->bind(2, l_virus_path, SQLITE_STATIC);
+					m_insert_antivirus_db->bind(3, l_nick, SQLITE_STATIC);
+					m_insert_antivirus_db->bind(4, l_boost_ip4.to_ulong());
+					m_insert_antivirus_db->executenonquery();
+				}
 #ifdef _DEBUG
 				const auto l_key = l_nick + " + " + l_boost_ip4.to_string();
 				const auto l_res = l_dup_nick_ip.insert(l_key);
@@ -1964,7 +1977,6 @@ int CFlylinkDBManager::sync_antivirus_db(const string& p_antivirus_db, const uin
 					LogManager::message("antivirus_db.fly_suspect_user duplicate user:" + l_key);
 				}
 #endif
-				l_sql->executenonquery();
 				{
 					CFlyWriteLock(*m_virus_cs);
 					m_virus_user.insert(l_nick);
@@ -2810,8 +2822,7 @@ void CFlylinkDBManager::merge_queue_sub_itemsL(QueueItemPtr& p_QueueItem, __int6
 	try
 	{
 		const auto &l_sources = p_QueueItem->getSourcesL();
-		const int  l_count_total_source = l_sources.size();
-		if (l_count_total_source > 1)
+		if (l_sources.size())
 		{
 			m_insert_fly_queue_source.init(m_flySQLiteDB, "insert into fly_queue_source(fly_queue_id,CID,Nick) values(?,?,?)");
 			// Урл хаба не используем...

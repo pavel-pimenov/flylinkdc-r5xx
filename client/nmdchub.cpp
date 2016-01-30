@@ -2805,7 +2805,7 @@ void NmdcHub::myInfoParse(const string& param)
 			{
 				if (!l_new_my_info.empty())
 				{
-					LogManager::message("Change MyINFO [2]! Nick = " + l_nick + " Hub = " + getHubUrl() + " New MyINFO = " + param + " Old MyINFO = " + l_new_my_info);
+					//LogManager::message("Change MyINFO [2]! Nick = " + l_nick + " Hub = " + getHubUrl() + " New MyINFO = " + param + " Old MyINFO = " + l_new_my_info);
 				}
 				l_new_my_info = param;
 			}

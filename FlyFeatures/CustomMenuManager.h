@@ -47,7 +47,7 @@ class CustomMenuManager
 	
 		typedef vector<CustomMenuItem*> MenuList;
 		typedef std::map<int, string> URLList;
-	
+		
 		
 		CustomMenuManager(void);
 		~CustomMenuManager(void);
@@ -66,7 +66,7 @@ class CustomMenuManager
 		
 	private:
 	
-		size_t GetData(const string& url, string& data) const;
+		static size_t GetData(const string& url, string& data);
 		void clearList();
 		
 		MenuList m_menuList;

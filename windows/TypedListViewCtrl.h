@@ -394,6 +394,10 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		{
 			return insertItem(getSortPos(item), item, image);
 		}
+		int insertItemLast(const T* item, int image, int p_position)
+		{
+			return insertItem(p_position, item, image);
+		}
 		int insertItem(int i, const T* item, int image)
 		{
 			return InsertItem(LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE, i,

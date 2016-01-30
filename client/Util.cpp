@@ -2595,7 +2595,7 @@ string Util::getWANIP(const string& p_url, LONG p_timeOut /* = 500 */)
 {
 	CFlyLog l_log("[GetIP]");
 	string l_downBuf;
-	getDataFromInet(p_url, l_downBuf, p_timeOut);
+	getDataFromInet(false, p_url, l_downBuf, p_timeOut);
 	if (!l_downBuf.empty())
 	{
 		SimpleXML xml;
@@ -2630,10 +2630,11 @@ string Util::getWANIP(const string& p_url, LONG p_timeOut /* = 500 */)
 	return Util::emptyString;
 }
 //[+] SSA
-size_t Util::getDataFromInet(const string& url, string& data, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
+size_t Util::getDataFromInet(bool p_is_use_cache, const string& url, string& data, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
 {
 	std::vector<byte> l_bin_data;
 	CFlyHTTPDownloader l_http_downloader;
+	l_http_downloader.m_is_use_cache = p_is_use_cache;
 	const size_t l_bin_size = l_http_downloader.getBinaryDataFromInet(url, l_bin_data, timeOut, reporter);
 	if (l_bin_size)
 	{
@@ -2705,16 +2706,20 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 	// Проверить а конфиг файл действительно менятеся.
 	// INTERNET_FLAG_NO_CACHE_WRITE - использовать если файл большой
 	// INTERNET_FLAG_RESYNCHRONIZE - использовать для xml и rtf  + конфиг
-	DWORD l_cache_flag = INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD;
-	if (url.size() > 6)
+	DWORD l_cache_flag = 0;
+	if (!m_is_use_cache)
 	{
-		const auto l_ext3 = url.c_str() + url.size() - 4;
-		const auto l_ext4 = url.c_str() + url.size() - 5;
-		if (strcmp(l_ext3, ".xml") == 0 || // TODO - Унести в конфиг
-		        strcmp(l_ext3, ".rtf") == 0 ||
-		        strcmp(l_ext4, ".sign") == 0)
+		l_cache_flag = INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD;
+		if (url.size() > 6)
 		{
-			l_cache_flag = INTERNET_FLAG_RESYNCHRONIZE;
+			const auto l_ext3 = url.c_str() + url.size() - 4;
+			const auto l_ext4 = url.c_str() + url.size() - 5;
+			if (strcmp(l_ext3, ".xml") == 0 || // TODO - Унести в конфиг
+			        strcmp(l_ext3, ".rtf") == 0 ||
+			        strcmp(l_ext4, ".sign") == 0)
+			{
+				l_cache_flag = INTERNET_FLAG_RESYNCHRONIZE;
+			}
 		}
 	}
 	CInternetHandle hURL(InternetOpenUrlA(hInternet, url.c_str(), NULL, 0, m_flag ? m_flag : l_cache_flag , 0));
@@ -2915,7 +2920,7 @@ void Util::BackupSettings()
 		{
 			try
 			{
-				File::copyFile(sourcepath + g_configFileLists[i], bkpath + g_configFileLists[i]); 
+				File::copyFile(sourcepath + g_configFileLists[i], bkpath + g_configFileLists[i]);
 			}
 			catch (FileException &)
 			{

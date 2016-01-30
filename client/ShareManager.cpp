@@ -56,7 +56,7 @@
 bool ShareManager::g_ignoreFileSizeHFS = false; // http://www.flylinkdc.ru/2015/01/hfs-mac-windows.html
 size_t ShareManager::g_hits = 0;
 int ShareManager::g_RebuildIndexes = 0;
-FastCriticalSection ShareManager::g_csBloom;
+std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csBloom = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csDirList = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csTTHIndex = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShare = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
@@ -72,11 +72,12 @@ size_t ShareManager::g_lastSharedFiles = 0;
 StringList ShareManager::g_notShared;
 bool ShareManager::g_isNeedsUpdateShareSize;
 int64_t ShareManager::g_CurrentShareSize = -1;
+bool ShareManager::g_is_initial = true;
 ShareManager::DirList ShareManager::g_list_directories;
 BloomFilter<5> ShareManager::g_bloom(1 << 20);
 
 ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
-	xmlDirty(true), forceXmlRefresh(false), refreshDirs(false), update(false), m_is_initial(true), m_listN(0), m_count_sec(0),
+	xmlDirty(true), forceXmlRefresh(false), refreshDirs(false), update(false), m_listN(0), m_count_sec(0),
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 	m_sweep_guard(false),
 #endif
@@ -1412,8 +1413,9 @@ bool ShareManager::updateIndicesDirL(Directory& dir)
 	if (!ClientManager::isShutdown())
 	{
 		{
-			CFlyFastLock(g_csBloom);
-			g_bloom.add(Text::toLower(dir.getName())); // TODO сохранить имя в нижнем?
+			CFlyWriteLock(*g_csBloom);
+			dcassert(Text::toLower(dir.getName()) == dir.getLowName());
+			g_bloom.add(dir.getLowName());
 		}
 		
 		for (auto i = dir.m_directories.cbegin(); i != dir.m_directories.cend(); ++i)
@@ -1425,7 +1427,7 @@ bool ShareManager::updateIndicesDirL(Directory& dir)
 		}
 		
 		dir.size = 0;
-		
+		CFlyWriteLock(*g_csBloom);
 		for (auto i = dir.m_files.cbegin(); i != dir.m_files.cend();)
 		{
 			if (updateIndicesFileL(dir, i++) == false)
@@ -1448,7 +1450,7 @@ void ShareManager::rebuildIndicesL()
 			g_tthIndex.clear();
 		}
 		{
-			CFlyFastLock(g_csBloom);
+			CFlyWriteLock(*g_csBloom);
 			g_bloom.clear();
 		}
 		{
@@ -1485,15 +1487,11 @@ bool ShareManager::updateIndicesFileL(Directory& dir, const Directory::ShareFile
 			dir.addType(f.getFType());
 		}
 		dcassert(Text::toLower(f.getName()) == f.getLowName());
-		{
-			CFlyFastLock(g_csBloom);
-			g_bloom.add(Text::toLower(f.getName())); // TODO - тут заюзать  f.getLowName()
-		}
-		
+		g_bloom.add(f.getLowName());
 #ifdef STRONG_USE_DHT
 		if (!ClientManager::isShutdown())
 		{
-			if (m_is_initial == false && dht::IndexManager::isTimeForPublishing() && BOOLSETTING(USE_DHT))
+			if (g_is_initial == false && dht::IndexManager::isTimeForPublishing() && BOOLSETTING(USE_DHT))
 			{
 				dht::IndexManager::publishFile(f.getTTH(), f.getSize());
 			}
@@ -1519,15 +1517,15 @@ void ShareManager::refresh(bool dirs /* = false */, bool aUpdate /* = true */, b
 	update = aUpdate;
 	refreshDirs = dirs;
 	join();
-	bool cached;
-	if (m_is_initial)
+	bool l_is_cached;
+	if (g_is_initial)
 	{
-		cached = loadCache();
-		m_is_initial = false;
+		l_is_cached = loadCache();
+		g_is_initial = false;
 	}
 	else
 	{
-		cached = false;
+		l_is_cached = false;
 	}
 	
 	dht::IndexManager::setTimeForPublishing();
@@ -1535,7 +1533,7 @@ void ShareManager::refresh(bool dirs /* = false */, bool aUpdate /* = true */, b
 	try
 	{
 		start(0);
-		if (block && !cached)
+		if (block && !l_is_cached)
 		{
 			join();
 		}
@@ -2484,7 +2482,7 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 	{
 		bool l_is_bloom;
 		{
-			CFlyFastLock(g_csBloom);
+			CFlyReadLock(*g_csBloom);
 			l_is_bloom = g_bloom.match(sl);
 		}
 		if (!l_is_bloom)
@@ -2720,7 +2718,7 @@ void ShareManager::search_max_result(SearchResultList& results, const StringList
 	}
 	
 	{
-		CFlyFastLock(g_csBloom);
+		CFlyReadLock(*g_csBloom);
 		for (auto i = srch.m_includeX.cbegin(); i != srch.m_includeX.cend(); ++i)
 		{
 			if (!g_bloom.match(i->getPattern()))
@@ -2840,8 +2838,9 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 				}
 				else
 				{
-					const int64_t size = File::getSize(fname);
-					auto it = d->m_files.insert(Directory::ShareFile(l_file_name, size, d, root, 0, uint32_t(aTimeStamp), getFType(l_file_name)));
+					const int64_t l_size = File::getSize(fname);
+					dcassert(p_size == l_size);
+					auto it = d->m_files.insert(Directory::ShareFile(l_file_name, l_size, d, root, 0, uint32_t(aTimeStamp), getFType(l_file_name)));
 					dcassert(it.second);
 					if (it.second)
 					{
@@ -2852,7 +2851,10 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 					}
 					{
 						CFlyWriteLock(*g_csTTHIndex);
-						updateIndicesFileL(*d, it.first);
+						{
+							CFlyWriteLock(*g_csBloom);
+							updateIndicesFileL(*d, it.first);
+						}
 					}
 				}
 				setDirty();

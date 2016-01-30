@@ -225,7 +225,7 @@ static void LoadExternalPortalBrowserXML()
 	                                     )) + _T("PortalBrowser\\PortalBrowser.xml");
 	string l_data;
 	const string l_log_message = STRING(DOWNLOAD) + ": " + l_url;
-	int l_size = Util::getDataFromInet(l_url, l_data, 0);
+	int l_size = Util::getDataFromInet(true, l_url, l_data, 1000);
 	if (l_size == 0)
 	{
 		LogManager::message(l_log_message + " [" + STRING(ERROR_STRING) + ']');

@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//(c) 2007-2015 pavel.pimenov@gmail.com
+//(c) 2007-2016 pavel.pimenov@gmail.com
 //-----------------------------------------------------------------------------
 #ifndef CFlylinkDBManager_H
 #define CFlylinkDBManager_H
@@ -631,6 +631,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif // FLYLINKDC_USE_LASTIP_CACHE
 		
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+		CFlySQLCommand m_insert_antivirus_db;
+		CFlySQLCommand m_update_antivirus_db;
 		CFlySQLCommand m_find_virus_nick_and_share;
 		CFlySQLCommand m_find_virus_nick_and_share_and_ip4;
 		
