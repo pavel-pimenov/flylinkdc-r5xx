@@ -37,7 +37,7 @@ class CFlyCrashReportMarker
 class CFlyCrashReportMarker
 {
 	public:
-		CFlyCrashReportMarker(const TCHAR * p_value)
+		explicit CFlyCrashReportMarker(const TCHAR * p_value)
 		{
 		}
 		~CFlyCrashReportMarker()

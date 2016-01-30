@@ -1018,12 +1018,12 @@ void ConnectionManager::on(AdcCommand::SUP, UserConnection* aSource, const AdcCo
 	}
 	
 	bool baseOk = false;
-	bool tigrOk = false;
 	
 	for (auto i = cmd.getParameters().cbegin(); i != cmd.getParameters().cend(); ++i)
 	{
 		if (i->compare(0, 2, "AD", 2) == 0)
 		{
+	     bool tigrOk = false;
 			string feat = i->substr(2);
 			if (feat == UserConnection::FEATURE_ADC_BASE || feat == UserConnection::FEATURE_ADC_BAS0)
 			{

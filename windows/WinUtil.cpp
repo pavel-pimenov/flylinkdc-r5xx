@@ -4334,7 +4334,7 @@ tstring WinUtil::getAddresses(CComboBox& BindCombo) // [<-] IRainman moved from 
 				}
 				else
 				{
-					dcassert(0);
+					//dcassert(0);
 				}
 				pIpList = pIpList->Next;
 			}
