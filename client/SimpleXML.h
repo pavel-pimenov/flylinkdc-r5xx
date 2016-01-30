@@ -137,12 +137,12 @@ class SimpleXML
 			const auto l_value = getIntChildAttrib(p_name);
 			if (l_value > p_max)
 			{
-				p_is_fix_value |= true;
+				p_is_fix_value = true;
 				return p_max;
 			}
 			if (l_value < p_min)
 			{
-				p_is_fix_value |= true;
+				p_is_fix_value = true;
 				return p_min;
 			}
 			return l_value;

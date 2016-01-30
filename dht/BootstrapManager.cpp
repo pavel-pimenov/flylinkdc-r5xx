@@ -69,7 +69,6 @@ void BootstrapManager::dht_live_check(const char* p_operation, const string& p_p
 		CFlyLog l_dht_log(p_operation);
 		for (auto i = g_dht_bootstrap_count.cbegin(); i != g_dht_bootstrap_count.cend(); ++i)
 		{
-			std::vector<byte> l_data;
 			const string l_url = p_param.empty() ? i->second.second.m_full_url : i->first + p_param;
 			l_dht_log.step("Bootstrap count = " + Util::toString(i->second.first) + ", URL: " + l_url);
 			g_http_checker.addTask(l_url, false);

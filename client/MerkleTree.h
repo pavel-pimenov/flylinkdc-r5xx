@@ -51,7 +51,7 @@ class MerkleTree
 		typedef std::vector<MerkleValue> MerkleList;
 		
 		MerkleTree() : fileSize(0), blockSize(BASE_BLOCK_SIZE) { }
-		MerkleTree(int64_t aBlockSize) : fileSize(0), blockSize(aBlockSize) { }
+		explicit MerkleTree(int64_t aBlockSize) : fileSize(0), blockSize(aBlockSize) { }
 		
 		/**
 		 * Loads a set of leaf hashes, calculating the root

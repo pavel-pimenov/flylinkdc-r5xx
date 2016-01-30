@@ -82,7 +82,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	
 	if (xRes.error == XMLParser::eXMLErrorNone && !xStubRootNode.isEmpty())
 	{
-		for (std::vector<LPCWSTR>::const_iterator i = strUpdateNodeList.begin(); i != strUpdateNodeList.end(); i++)
+		for (std::vector<LPCWSTR>::const_iterator i = strUpdateNodeList.begin(); i != strUpdateNodeList.end(); ++i)
 		{
 			XMLParser::XMLNode xUpdateNode = XMLParser::XMLNode::parseFile(*i, L"Portal", &xRes);
 			
