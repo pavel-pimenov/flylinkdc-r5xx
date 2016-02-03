@@ -1,3 +1,6 @@
+
+#pragma once
+
 #ifndef PGLOADER_H
 #define PGLOADER_H
 

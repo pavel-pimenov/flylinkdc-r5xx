@@ -395,7 +395,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 				for (auto i  = cur->directories.cbegin(); i != cur->directories.cend(); ++i)
 				{
 					/// @todo comparisons should be case-insensitive but it takes too long - add a cache
-					if ((*i)->getName() == l_file_name) 
+					if ((*i)->getName() == l_file_name)
 					{
 						d = *i;
 						if (!d->getComplete())
@@ -679,7 +679,12 @@ bool DirectoryListing::CFlyVirusDetector::is_virus_file(const string& p_file, in
 	if (l_len >= 4 && p_size && p_size < 1024 * 1024 * 30) // TODO config
 	{
 		// const auto l_Text::toLower(Util::getFileExt(name));
-		const char l_ext[4] = { tolower(p_file[l_len - 4]), tolower(p_file[l_len - 3]), tolower(p_file[l_len - 2]), p_file[l_len - 1] };
+		unsigned char l_ext[4];
+		l_ext[0] = tolower(p_file[l_len - 4]);
+		l_ext[1] = tolower(p_file[l_len - 3]);
+		l_ext[2] = tolower(p_file[l_len - 2]);
+		l_ext[3] = p_file[l_len - 1];
+		
 		if (l_ext[0] == '.' &&
 		        (l_ext[1] == 'e' && l_ext[2] == 'x' && l_ext[3] == 'e') ||
 		        (l_ext[1] == 'z' && l_ext[2] == 'i' && l_ext[3] == 'p') ||

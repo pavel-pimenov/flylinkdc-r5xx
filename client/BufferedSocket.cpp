@@ -368,7 +368,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 					}
 					else
 					{
-#ifdef _DEBUG
+#if 0
 						int l_count_dup = 0;
 						std::map<string, int> l_stat_map;
 						{

@@ -1,7 +1,7 @@
+#pragma once
+
 #ifndef DCPLUSPLUS_DCPP_W_FLYLINKDC_H
 #define DCPLUSPLUS_DCPP_W_FLYLINKDC_H
-
-#pragma once
 
 #include "version.h"
 

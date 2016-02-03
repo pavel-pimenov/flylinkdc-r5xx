@@ -5,6 +5,9 @@
  * http://www.nicemice.net/amc/
  */
 
+
+#pragma once
+
 #ifndef _PUNYCODE_H
 #define _PUNYCODE_H
 

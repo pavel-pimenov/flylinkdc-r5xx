@@ -1,3 +1,6 @@
+
+#pragma once
+
 #ifndef _IDNA_H
 #define _IDNA_H
 

@@ -277,12 +277,12 @@ const string& wideToAcp(const wstring& str, string& tgt, const string& toCharset
 //[+]PPA    dcdebug("wideToAcp: %s\n", tmp.c_str());
 	return tgt;
 }
-bool validateUtf8(const string& p_str, int p_pos /* = 0 */) noexcept
+bool validateUtf8(const string& p_str, size_t p_pos /* = 0 */) noexcept
 {
 	while (p_pos < p_str.length())
 	{
-		wchar_t dummy = 0;
-		const int j = utf8ToWc(&p_str[p_pos], dummy);
+		wchar_t l_dummy = 0;
+		const int j = utf8ToWc(&p_str[p_pos], l_dummy);
 		if (j < 0)
 			return false;
 		p_pos += j;

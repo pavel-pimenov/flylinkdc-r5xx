@@ -1,5 +1,8 @@
 // MD5Calc.h: interface for the MD5Calc class.
 
+#pragma once
+
+
 #if !defined(DCPLUSPLUS_DCPP_MD5CALC_H_)
 #define DCPLUSPLUS_DCPP_MD5CALC_H_
 

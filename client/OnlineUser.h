@@ -19,6 +19,8 @@
 #ifndef DCPLUSPLUS_DCPP_ONLINEUSER_H_
 #define DCPLUSPLUS_DCPP_ONLINEUSER_H_
 
+#pragma once
+
 #include <boost/unordered/unordered_map.hpp>
 #include "StringPool.h"
 #include "User.h"
@@ -119,6 +121,7 @@ class Identity
 			memzero(&m_bits_info, sizeof(m_bits_info));
 			m_is_p2p_guard_calc = false;
 			m_is_real_user_ip_from_hub = false;
+			m_is_ext_json = false;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			m_virus_type = 0;
 #endif
@@ -128,6 +131,7 @@ class Identity
 			memzero(&m_bits_info, sizeof(m_bits_info));
 			m_is_p2p_guard_calc = false;
 			m_is_real_user_ip_from_hub = false;
+			m_is_ext_json = false;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			m_virus_type = 0;
 #endif
@@ -164,6 +168,7 @@ class Identity
 #endif
 			m_is_p2p_guard_calc = rhs.m_is_p2p_guard_calc;
 			m_is_real_user_ip_from_hub = rhs.m_is_real_user_ip_from_hub;
+			m_is_ext_json = rhs.m_is_ext_json;
 			
 			memcpy(&m_bits_info, &rhs.m_bits_info, sizeof(m_bits_info));
 			return *this;
@@ -536,7 +541,6 @@ class Identity
 		}
 		
 		GSUINTC(32, DownloadSpeed, CHANGES_CONNECTION); // "DS", "CO" (unofficial)
-		
 		GSUINT(32, SharedFiles); // "SF"
 		
 		GSUINT(32, ExtJSONRAMWorkingSet);
@@ -619,25 +623,28 @@ class Identity
 		tstring getHubs() const;
 		
 #ifdef FLYLINKDC_USE_EXT_JSON
+	private:
+		bool m_is_ext_json;
+	public:
 		string getFlyHubCountry() const
 		{
-			return getStringParam("F1");
+			return getStringParamExtJSON("F1");
 		}
 		string getFlyHubCity() const
 		{
-			return getStringParam("F2");
+			return getStringParamExtJSON("F2");
 		}
 		string getFlyHubISP() const
 		{
-			return getStringParam("F3");
+			return getStringParamExtJSON("F3");
 		}
 		int getGenderType() const
 		{
-			return Util::toInt(getStringParam("F4"));
+			return Util::toInt(getStringParamExtJSON("F4"));
 		}
 		tstring getGenderTypeAsString() const
 		{
-			return  getGenderTypeAsString(getGenderType());
+			return getGenderTypeAsString(getGenderType());
 		}
 		tstring getGenderTypeAsString(int p_index) const
 		{
@@ -656,7 +663,7 @@ class Identity
 		}
 		string getExtJSONSupportInfo() const
 		{
-			return getStringParam("F5");
+			return getStringParamExtJSON("F5");
 		}
 		void setExtJSONSupportInfo(const string& p_value)
 		{
@@ -665,31 +672,34 @@ class Identity
 		string getExtJSONHubRamAsText() const
 		{
 			string l_res;
-			if (getExtJSONRAMWorkingSet())
+			if (m_is_ext_json)
 			{
-				l_res = Util::formatBytes(int64_t(getExtJSONRAMWorkingSet() * 1024 * 1024));
-			}
-			if (getExtJSONRAMPeakWorkingSet() != getExtJSONRAMWorkingSet())
-			{
-				l_res += " [Max: " + Util::formatBytes(int64_t(getExtJSONRAMPeakWorkingSet() * 1024 * 1024)) + "]";
-			}
-			if (getExtJSONRAMFree())
-			{
-				l_res += " [Free: " + Util::formatBytes(int64_t(getExtJSONRAMFree() * 1024 * 1024)) + "]";
+				if (getExtJSONRAMWorkingSet())
+				{
+					l_res = Util::formatBytes(int64_t(getExtJSONRAMWorkingSet() * 1024 * 1024));
+				}
+				if (getExtJSONRAMPeakWorkingSet() != getExtJSONRAMWorkingSet())
+				{
+					l_res += " [Max: " + Util::formatBytes(int64_t(getExtJSONRAMPeakWorkingSet() * 1024 * 1024)) + "]";
+				}
+				if (getExtJSONRAMFree())
+				{
+					l_res += " [Free: " + Util::formatBytes(int64_t(getExtJSONRAMFree() * 1024 * 1024)) + "]";
+				}
 			}
 			return l_res;
 		}
 		
 		string getExtJSONCountFilesAsText() const
 		{
-			if (getExtJSONCountFiles())
+			if (m_is_ext_json && getExtJSONCountFiles())
 				return Util::toString(getExtJSONCountFiles());
 			else
 				return Util::emptyString;
 		}
 		string getExtJSONLastSharedDateAsText() const
 		{
-			if (getExtJSONLastSharedDate())
+			if (m_is_ext_json && getExtJSONLastSharedDate())
 				return Util::formatDigitalClock(getExtJSONLastSharedDate());
 			else
 				return Util::emptyString;
@@ -698,49 +708,58 @@ class Identity
 		string getExtJSONSQLiteDBSizeAsText() const
 		{
 			string l_res;
-			if (getExtJSONSQLiteDBSize())
+			if (m_is_ext_json)
 			{
-				l_res = Util::formatBytes(int64_t(getExtJSONSQLiteDBSize()) * 1024 * 1024);
-			}
-			if (getExtJSONSQLiteDBSizeFree())
-			{
-				l_res += " [Free: " + Util::formatBytes(int64_t(getExtJSONSQLiteDBSizeFree()) * 1024 * 1024) + "]";
-			}
-			if (getExtJSONlevelDBHistSize())
-			{
-				l_res += " [LevelDB: " + Util::formatBytes(int64_t(getExtJSONlevelDBHistSize()) * 1024 * 1024) + "]";
+				if (getExtJSONSQLiteDBSize())
+				{
+					l_res = Util::formatBytes(int64_t(getExtJSONSQLiteDBSize()) * 1024 * 1024);
+				}
+				if (getExtJSONSQLiteDBSizeFree())
+				{
+					l_res += " [Free: " + Util::formatBytes(int64_t(getExtJSONSQLiteDBSizeFree()) * 1024 * 1024) + "]";
+				}
+				if (getExtJSONlevelDBHistSize())
+				{
+					l_res += " [LevelDB: " + Util::formatBytes(int64_t(getExtJSONlevelDBHistSize()) * 1024 * 1024) + "]";
+				}
 			}
 			return l_res;
 		}
 		string getExtJSONQueueFilesText() const
 		{
 			string l_res;
-			if (getExtJSONQueueFiles())
+			if (m_is_ext_json)
 			{
-				l_res = "[Files: " + Util::toString(getExtJSONQueueFiles()) + "]";
-			}
-			if (getExtJSONQueueSrc())
-			{
-				l_res += " [Sources: " + Util::toString(getExtJSONQueueSrc()) + "]";
+				if (getExtJSONQueueFiles())
+				{
+					l_res = "[Files: " + Util::toString(getExtJSONQueueFiles()) + "]";
+				}
+				if (getExtJSONQueueSrc())
+				{
+					l_res += " [Sources: " + Util::toString(getExtJSONQueueSrc()) + "]";
+				}
 			}
 			return l_res;
 		}
 		string getExtJSONTimesStartCoreText() const
 		{
 			string l_res;
-			if (getExtJSONTimesStartCore())
+			if (m_is_ext_json)
 			{
-				l_res = "[Start core: " + Util::toString(getExtJSONTimesStartCore()) + "]";
-			}
-			if (getExtJSONTimesStartGUI())
-			{
-				l_res += " [Start GUI: " + Util::toString(getExtJSONTimesStartGUI()) + "]";
+				if (getExtJSONTimesStartCore())
+				{
+					l_res = "[Start core: " + Util::toString(getExtJSONTimesStartCore()) + "]";
+				}
+				if (getExtJSONTimesStartGUI())
+				{
+					l_res += " [Start GUI: " + Util::toString(getExtJSONTimesStartGUI()) + "]";
+				}
 			}
 			return l_res;
 		}
 		
 		
-#endif
+#endif // EXT_JSON
 		
 		// [+] IRainman
 		static string formatShareBytes(uint64_t p_bytes);
@@ -755,6 +774,13 @@ class Identity
 		
 		// [!] IRainman fix.
 		string getStringParam(const char* name) const;
+		string getStringParamExtJSON(const char* name) const
+		{
+			if (m_is_ext_json)
+				return getStringParam(name);
+			else
+				return Util::emptyString;
+		}
 		void setStringParam(const char* p_name, const string& p_val);
 		bool isAppNameExists() const
 		{
@@ -781,6 +807,14 @@ class Identity
 			return user;
 		}
 		GETSET(UserPtr, user, User);
+		bool isExtJSON() const
+		{
+			return m_is_ext_json;
+		}
+		void setExtJSON()
+		{
+			m_is_ext_json = true;
+		}
 		
 		typedef boost::unordered_map<short, string> InfMap;
 		
@@ -793,7 +827,10 @@ class Identity
 		static StringDictionaryReductionPointers g_infoDic;
 		static StringDictionaryIndex g_infoDicIndex;
 		
-		static uint32_t mergeDicId(const string& p_val);
+#ifndef _DEBUG
+		static
+#endif
+		uint32_t mergeDicId(const string& p_val);
 		static string getDicVal(uint16_t p_index);
 		
 #pragma pack(push,1)
@@ -946,7 +983,16 @@ class OnlineUser :
 	private:
 		Identity m_identity;
 		ClientBase& m_client;
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_TAG
+		string m_tag;
+#endif
 		bool m_is_first_find;
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_TAG
+	public:
+		bool isTagUpdate(const string& p_tag, bool& p_is_version_change);
+		string m_tag_old;
+#endif
+		
 };
 
 // http://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key

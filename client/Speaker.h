@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#pragma once
+
+
 #ifndef DCPLUSPLUS_DCPP_SPEAKER_H
 #define DCPLUSPLUS_DCPP_SPEAKER_H
 
@@ -175,7 +178,7 @@ void fire(T0 && type, T1 && p1, T2 && p2) noexcept
 			if (!is_listener_zombie(*i))
 			{
 #endif // IRAINMAN_USE_SIMPLE_SPEAKER
-		(*i)->on(std::forward<T0>(type), std::forward<T1>(p1), std::forward<T2>(p2)); 
+		(*i)->on(std::forward<T0>(type), std::forward<T1>(p1), std::forward<T2>(p2));
 #ifndef IRAINMAN_USE_SIMPLE_SPEAKER
 }
 }

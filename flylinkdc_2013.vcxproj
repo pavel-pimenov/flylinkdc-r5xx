@@ -162,7 +162,6 @@
       <ProgramDatabaseFile>$(SolutionDir)compiled\FlylinkDC_Debug.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
-      <Profile>true</Profile>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>res\FlylinkDC.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -221,7 +220,6 @@
       <ProgramDatabaseFile>$(SolutionDir)compiled\FlylinkDC_Debug_x64.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
-      <Profile>true</Profile>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>res\FlylinkDC.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>

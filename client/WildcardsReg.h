@@ -6,6 +6,9 @@
  */
 // revision sha1: 2bc1073f9953
 
+
+#pragma once
+
 #ifndef WILDCARDS_VERSIONS_ESSENTIAL_ALGORITHM_ESS__H
 #define WILDCARDS_VERSIONS_ESSENTIAL_ALGORITHM_ESS__H
 

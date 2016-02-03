@@ -119,8 +119,13 @@ void CompatibilityManager::detectOsSupports()
 #define CURRENT_VER_SP(current_major_version, current_minor_version, current_sp_version) \
 	(getOsMajor() == current_major_version && getOsMinor() == current_minor_version && getOsSpMajor() == current_sp_version)
 		
+	if (FUTURE_VER(8) || // future version
+	        FUTURE_MINOR_VER(10, 1) || // Windows 10 and newer
+	        CURRENT_VER(10, 0)) // Windows 10
+		set(OS_WINDOWS10_PLUS);
+		
 	if (FUTURE_VER(7) || // future version
-	        FUTURE_MINOR_VER(6, 3) || // future version
+	        FUTURE_MINOR_VER(6, 3) || // Windows 8.1
 	        CURRENT_VER(6, 2)) // Windows 8
 		set(OS_WINDOWS8_PLUS);
 		
@@ -311,6 +316,18 @@ string CompatibilityManager::getWindowsVersionName()
 //	}
 
 	// Test for the specific product.
+	// https://msdn.microsoft.com/ru-ru/library/windows/desktop/ms724833(v=vs.85).aspx
+	if (getOsMajor() == 10)
+	{
+		if (getOsMinor() == 0)
+		{
+			if (getOsType() == VER_NT_WORKSTATION)
+				l_OS += "10";
+			else
+				l_OS += "Windows Server 2016 Technical Preview";
+		}
+		// check type for Win10: Desktop, Mobile, etc...
+	}
 	if (getOsMajor() == 6)
 	{
 		if (getOsMinor() == 0)
@@ -519,14 +536,15 @@ void CompatibilityManager::generateSystemInfoForApp()
 	if (runningIsWow64())
 	{
 		g_startupInfo += "Windows WOW64 ";
-		g_startupInfo += "\r\n\r\nFor maximal performance needs to update your FlylinkDC to x64 version!";
+		g_startupInfo += "\r\n\r\n\tFor maximal performance needs to update your FlylinkDC to x64 version!";
 	}
 	else
 #endif
 		g_startupInfo += "Windows native ";
 		
-	g_startupInfo += "\r\n\r\nOS: ";
+	g_startupInfo += "\r\n\t";
 	g_startupInfo += getWindowsVersionName();   //getFormatedOsVersion();
+	g_startupInfo += "  (" + CompatibilityManager::getFormatedOsVersion() + ")";
 	
 #ifdef FLYLINKDC_USE_CHECK_OLD_OS
 	if (runningAnOldOS())
@@ -536,7 +554,7 @@ void CompatibilityManager::generateSystemInfoForApp()
 	{
 		g_startupInfo += "Router model: " + CompatibilityManager::g_upnp_router_model;
 	}
-	g_startupInfo += ").\r\n\r\n";
+	g_startupInfo += "\r\n\r\n";
 	
 	g_startupInfo.shrink_to_fit();
 }

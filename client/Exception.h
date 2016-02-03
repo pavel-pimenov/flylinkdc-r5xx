@@ -16,6 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#pragma once
+
+
 #ifndef DCPLUSPLUS_DCPP_EXCEPTION_H
 #define DCPLUSPLUS_DCPP_EXCEPTION_H
 
@@ -29,7 +32,7 @@ using std::string;
 
 class Exception : public std::exception
 #ifdef _DEBUG
-	//, boost::noncopyable 
+	//, boost::noncopyable
 #endif
 {
 	public:

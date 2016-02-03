@@ -716,6 +716,18 @@ uint32_t Identity::mergeDicId(const string& p_val)
 {
 	if (p_val.empty())
 		return 0;
+	{
+		CFlyReadLock(*g_rw_cs);
+#ifdef FLYLINKDC_USE_PROFILER_CS
+		l_lock.m_add_log_info = "p_val = ";
+		l_lock.m_add_log_info += p_val + " Nick = " + getNick();
+#endif
+		auto l_find_ro = g_infoDicIndex.find(p_val);
+		if (l_find_ro != g_infoDicIndex.end())
+		{
+			return l_find_ro->second;
+		}
+	}
 	CFlyWriteLock(*g_rw_cs);
 	auto l_find = g_infoDicIndex.insert(make_pair(p_val, uint16_t(g_infoDic.size() + 1)));
 	if (l_find.second == true) // Новое значение в справочнике?
@@ -1277,6 +1289,43 @@ bool OnlineUser::isDHT() const
 {
 	return m_client.isDHT();
 }
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_TAG
+bool OnlineUser::isTagUpdate(const string& p_tag, bool& p_is_version_change)
+{
+	p_is_version_change = false;
+	if (p_tag != m_tag)
+	{
+		if (!m_tag.empty())
+		{
+			auto l_find_sep = p_tag.find(',');
+			if (l_find_sep != string::npos)
+			{
+				if (m_tag.size() > l_find_sep && m_tag[l_find_sep] == ',')
+				{
+					// Сравним приложение и версию - если не изменились - упростим парсинг тэга позже
+					if (m_tag.compare(0, l_find_sep, p_tag, 0, l_find_sep) == 0)
+						p_is_version_change = false;
+					else
+						p_is_version_change = true;
+				}
+			}
+		}
+		else
+		{
+			p_is_version_change = true; // Первый раз
+		}
+		m_tag = p_tag;
+		return true;
+	}
+	else
+	{
+#ifdef _DEBUG
+		LogManager::message("OnlineUser::isTagUpdate - duplicate tag = " + p_tag + " Hub =" + getClient().getHubUrl() + " user = " + getUser()->getLastNick());
+#endif
+		return false;
+	}
+}
+#endif // FLYLINKDC_USE_CHECK_CHANGE_TAG
 
 
 //[~]FlylinkDC

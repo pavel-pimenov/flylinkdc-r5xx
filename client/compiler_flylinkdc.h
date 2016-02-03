@@ -75,6 +75,9 @@
 # pragma warning(disable: 4267) // conversion from 'xxx' to 'yyy', possible loss of data
 #endif
 
+// VC++2015
+# pragma warning(disable: 4091) // 'typedef ': ignored on left of 'tagDTI_ADTIWUI' when no variable is declared
+
 //[+]PPA
 typedef signed __int8 int8_t;
 typedef signed __int16 int16_t;

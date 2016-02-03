@@ -20,6 +20,9 @@
  *
  */
 
+#pragma once
+
+
 #ifndef IPLIST_H
 #define IPLIST_H
 

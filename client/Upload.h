@@ -1,3 +1,6 @@
+
+#pragma once
+
 #ifndef UPLOAD_H_
 #define UPLOAD_H_
 

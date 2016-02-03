@@ -16,6 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#pragma once
+
+
 #ifndef DCPLUSPLUS_DCPP_TEXT_H
 #define DCPLUSPLUS_DCPP_TEXT_H
 
@@ -143,8 +146,7 @@ inline string fromT(const tstring& str) noexcept
 #endif
 bool isAscii(const string& p_str) noexcept; // [+] IRainman fix
 bool isAscii(const char* str) noexcept;
-bool validateUtf8(const string& p_str, int p_pos = 0) noexcept;
-
+bool validateUtf8(const string& p_str, size_t p_pos = 0) noexcept;
 
 inline char asciiToLower(uint8_t p_c)
 {

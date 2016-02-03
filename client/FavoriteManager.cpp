@@ -112,7 +112,7 @@ UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType f
 {
 #ifdef _DEBUG
 	static int g_count;
-	static int g_max_len;
+	static size_t g_max_len;
 	string l_all = name + command + to + hub;
 	if (l_all.length() > g_max_len)
 		g_max_len = l_all.length();

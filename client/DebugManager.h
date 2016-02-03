@@ -1,3 +1,6 @@
+
+#pragma once
+
 #if !defined __DEBUGMANAGER_H
 #define __DEBUGMANAGER_H
 

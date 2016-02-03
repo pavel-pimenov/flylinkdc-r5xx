@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#pragma once
+
 #ifndef DCPLUSPLUS_CLIENT_SETTINGS_MANAGER_H
 #define DCPLUSPLUS_CLIENT_SETTINGS_MANAGER_H
 

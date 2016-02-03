@@ -36,6 +36,9 @@
  * Adapted for Win32, 03 April 2003, G.Vanem <giva@bgnett.no>
  */
 
+#pragma once
+
+
 #ifndef _WIN32_SYSLOG_H
 #define _WIN32_SYSLOG_H
 

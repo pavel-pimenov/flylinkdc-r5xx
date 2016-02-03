@@ -16,6 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#pragma once
+
+
 #ifndef DCPLUSPLUS_DCPP_CLIENT_H
 #define DCPLUSPLUS_DCPP_CLIENT_H
 
@@ -314,6 +317,10 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		string getHubDescription() const
 		{
 			return getHubIdentity().getDescription();
+		}
+		virtual size_t getMaxLenNick() const
+		{
+			return 0;
 		}
 		
 		virtual const string& getHubUrl() const // Зачем тут виртуальность?

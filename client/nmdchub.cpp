@@ -332,7 +332,7 @@ void NmdcHub::clearUsers()
 	}
 }
 //==========================================================================================
-void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman opt.
+void NmdcHub::updateFromTag(Identity& id, const string & tag, bool p_is_version_change) // [!] IRainman opt.
 {
 	const StringTokenizer<string> tok(tag, ',', 4); // TODO - убрать разбор токенов. сделать простое сканирование в цикле в поиске зап€тых
 	string::size_type j;
@@ -388,9 +388,14 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman op
 		        )
 		{
 			//dcassert(j > 1);
-			if (j > 1)
-				id.setStringParam("AP", i->substr(0, j - 1));
-			id.setStringParam("VE", i->substr(j + 2));
+			if (p_is_version_change)
+			{
+				if (j > 1)
+				{
+					id.setStringParam("AP", i->substr(0, j - 1));
+				}
+				id.setStringParam("VE", i->substr(j + 2));
+			}
 		}
 		else if ((j = i->find("L:")) != string::npos)
 		{
@@ -400,13 +405,21 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag) // [!] IRainman op
 		else if ((j = i->find(' ')) != string::npos)
 		{
 			//dcassert(j > 1);
-			if (j > 1)
-				id.setStringParam("AP", i->substr(0, j - 1));
-			id.setStringParam("VE", i->substr(j + 1));
+			if (p_is_version_change)
+			{
+				if (j > 1)
+				{
+					id.setStringParam("AP", i->substr(0, j - 1));
+				}
+				id.setStringParam("VE", i->substr(j + 1));
+			}
 		}
 		else if ((j = i->find("++")) != string::npos)
 		{
-			id.setStringParam("AP", *i);
+			if (p_is_version_change)
+			{
+				id.setStringParam("AP", *i);
+			}
 		}
 		// [+] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=1234
 		else if (i->compare(0, 2, "O:", 2) == 0)
@@ -1901,16 +1914,19 @@ void NmdcHub::onLine(const string& aLine)
 		if (m_client_sock)
 			m_client_sock->disconnect(false);
 		{
-			auto l_nick = getMyNick();
-			m_nick_rule.convert_nick(l_nick);
-			setMyNick(l_nick);
+			if (m_nick_rule)
+			{
+				auto l_nick = getMyNick();
+				m_nick_rule->convert_nick(l_nick);
+				setMyNick(l_nick);
+			}
 		}
 		fly_fire1(ClientListener::NickTaken(), this);
 		//m_count_validate_denide++;
 	}
 	else if (cmd == "NickRule")
 	{
-		m_nick_rule = CFlyNickRule();
+		m_nick_rule = std::unique_ptr<CFlyNickRule>(new CFlyNickRule);
 		const StringTokenizer<string> l_nick_rule(param, "$$", 4);
 		const StringList& sl = l_nick_rule.getTokens();
 		for (auto it = sl.cbegin(); it != sl.cend(); ++it)
@@ -1921,11 +1937,11 @@ void NmdcHub::onLine(const string& aLine)
 				const string l_key = it->substr(0, l_pos);
 				if (l_key == "Min")
 				{
-					m_nick_rule.m_nick_rule_min = Util::toInt(it->substr(l_pos + 1));
+					m_nick_rule->m_nick_rule_min = Util::toInt(it->substr(l_pos + 1));
 				}
 				else if (l_key == "Max")
 				{
-					m_nick_rule.m_nick_rule_max = Util::toInt(it->substr(l_pos + 1));
+					m_nick_rule->m_nick_rule_max = Util::toInt(it->substr(l_pos + 1));
 				}
 				else if (l_key == "Char")
 				{
@@ -1935,9 +1951,9 @@ void NmdcHub::onLine(const string& aLine)
 					{
 						if (!j->empty())
 						{
-							m_nick_rule.m_invalid_char.push_back(uint8_t(Util::toInt(*j)));
+							m_nick_rule->m_invalid_char.push_back(uint8_t(Util::toInt(*j)));
+						}
 					}
-				}
 				}
 				else if (l_key == "Pref")
 				{
@@ -1947,8 +1963,7 @@ void NmdcHub::onLine(const string& aLine)
 					{
 						if (!j->empty())
 						{
-							m_nick_rule.m_prefix.push_back(*j);
-							break; // TODO - зачем клиенту знать список разрешенных префиксов?
+							m_nick_rule->m_prefix.push_back(*j);
 						}
 					}
 				}
@@ -1960,12 +1975,16 @@ void NmdcHub::onLine(const string& aLine)
 		}
 		if ((m_supportFlags & SUPPORTS_NICKRULE))
 		{
-			auto l_nick = getMyNick();
-			m_nick_rule.convert_nick(l_nick);
-			setMyNick(l_nick);
-			// “ут пока не пашет.
-			//OnlineUserPtr ou = getUser(l_nick, false, true);
-			//sendValidateNick(ou->getIdentity().getNick());
+			if (m_nick_rule)
+			{
+				auto l_nick = getMyNick();
+				m_nick_rule->convert_nick(l_nick);
+				setMyNick(l_nick);
+				
+				// “ут пока не пашет.
+				//OnlineUserPtr ou = getUser(l_nick, false, true);
+				//sendValidateNick(ou->getIdentity().getNick());
+			}
 		}
 	}
 	else if (cmd == "GetHubURL")
@@ -1996,10 +2015,20 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	processAutodetect(bMyInfoCommand);
 }
+size_t NmdcHub::getMaxLenNick() const
+{
+	size_t l_max_len = 0;
+	if (m_nick_rule)
+	{
+		l_max_len = m_nick_rule->m_nick_rule_max;
+	}
+	return l_max_len;
+}
+
 string NmdcHub::get_all_unknown_command()
 {
-	CFlyFastLock(g_unknown_cs);
 	string l_message;
+	CFlyFastLock(g_unknown_cs);
 	for (auto i = g_unknown_command_array.cbegin(); i != g_unknown_command_array.cend(); ++i)
 	{
 		l_message += "Hub: " + i->first + " Invalid command: ";
@@ -2592,6 +2621,7 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 		else
 		{
 			OnlineUserPtr ou = getUser(l_nick, false, false);
+			ou->getIdentity().setExtJSON();
 			ou->getIdentity().setStringParam("F1", l_root["Country"].asString());
 			ou->getIdentity().setStringParam("F2", l_root["City"].asString());
 			ou->getIdentity().setStringParam("F3", l_root["ISP"].asString());
@@ -2712,7 +2742,16 @@ void NmdcHub::myInfoParse(const string& param)
 			if (tmpDesc.length()  > x + 2 && l_is_only_desc_change == false)
 			{
 				const string l_tag = tmpDesc.substr(x + 1, tmpDesc.length() - x - 2);
-				updateFromTag(ou->getIdentity(), l_tag); // т€жела€ операци€ с токенами. TODO - оптимизнуть
+				bool l_is_version_change = true;
+#ifdef FLYLINKDC_USE_CHECK_CHANGE_TAG
+				if (ou->isTagUpdate(l_tag, l_is_version_change))
+#endif
+				{
+					updateFromTag(ou->getIdentity(), l_tag, l_is_version_change); // т€жела€ операци€ с токенами. TODO - оптимизнуть
+					//if (!ou->m_tag_old.empty())
+					//  ou->m_tag_old = l_tag;
+				}
+				//ou->m_tag_old = l_tag;
 			}
 			ou->getIdentity().setDescription(tmpDesc.erase(x));
 		}

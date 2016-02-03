@@ -16,6 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+
+#pragma once
+
 #ifndef DCPLUSPLUS_DCPP_USER_MANAGER_H
 #define DCPLUSPLUS_DCPP_USER_MANAGER_H
 
@@ -87,7 +90,7 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		static bool isInIgnoreList(const string& nick);
 		static void setIgnoreList(const IgnoreMap& newlist);
 		static void reloadProtUsers();
-
+		
 		static bool protectedUserListEmpty()
 		{
 			return g_protectedUsersLower.empty();

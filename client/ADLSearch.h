@@ -20,6 +20,7 @@
  * Automatic Directory Listing Search
  * Henrik Engstr�m, henrikengstrom at home se
  */
+#pragma once
 
 #if !defined(ADL_SEARCH_H)
 #define ADL_SEARCH_H

@@ -1,3 +1,7 @@
+
+#pragma once
+
+
 #ifndef __PRINTK_H
 #define __PRINTK_H
 

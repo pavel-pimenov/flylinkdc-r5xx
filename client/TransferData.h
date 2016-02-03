@@ -1,4 +1,7 @@
 
+#pragma once
+
+
 #ifndef DCPLUSPLUS_DCPP_TRANSFER_DATA_H_
 #define DCPLUSPLUS_DCPP_TRANSFER_DATA_H_
 

@@ -37,6 +37,9 @@
 
 */
 
+#pragma once
+
+
 #ifndef _zip12_H
 #define _zip12_H
 

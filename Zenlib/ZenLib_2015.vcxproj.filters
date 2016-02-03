@@ -41,6 +41,9 @@
     <ClCompile Include="Source\ZenLib\OS_Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ZenLib\Thread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Source\ZenLib\Translation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,9 +66,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\ZenLib\PreComp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ZenLib\Thread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -106,6 +106,9 @@
     <ClInclude Include="Source\ZenLib\OS_Utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\ZenLib\Thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Source\ZenLib\Trace.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -137,9 +140,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\ZenLib\BitStream_Fast.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ZenLib\Thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

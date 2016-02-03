@@ -819,35 +819,50 @@
     </CustomBuildStep>
   </ItemGroup>
   <ItemGroup>
+    <Xml Include="compiled\Settings\flylinkdc-config-r5xx.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="boost-regex_2015.vcxproj">
+      <Project>{d1095e8a-63a5-4592-ae93-2d638f20f66a}</Project>
+    </ProjectReference>
+    <ProjectReference Include="bzip2_2015.vcxproj">
+      <Project>{8b162f1b-5d6c-41c1-8a80-858b379de07d}</Project>
+    </ProjectReference>
     <ProjectReference Include="client_2015.vcxproj">
       <Project>{f8d0e5fe-babd-4fc8-b3fe-b48978d23feb}</Project>
-      <Private>true</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <ProjectReference Include="dht\dht_2015.vcxproj">
+      <Project>{47ab24a7-9fab-4f6f-b411-01c9ff54e22d}</Project>
     </ProjectReference>
     <ProjectReference Include="FlyFeatures_2015.vcxproj">
       <Project>{2c060b35-3af9-4a70-8052-8699911b9322}</Project>
     </ProjectReference>
     <ProjectReference Include="GdiOle\GdiOle_2015.vcxproj">
       <Project>{22c938c3-474a-4bf5-9b28-482683f98ea1}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="MediaInfoLib\MediaInfoLib_2015.vcxproj">
+      <Project>{20e0f8d6-213c-460b-b361-9c725cb375c7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="miniupnpc\miniupnpc_2015.vcxproj">
+      <Project>{51015502-c27c-43cf-9fa4-12ab9db5d36e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="natpmp\natpmp_2015.vcxproj">
+      <Project>{bfa63dd8-95fc-7a39-5d84-d995b2863fe8}</Project>
     </ProjectReference>
     <ProjectReference Include="openssl\openssl_2015.vcxproj">
       <Project>{b9f644c2-f9de-4648-b613-43755d81ea3b}</Project>
     </ProjectReference>
     <ProjectReference Include="XMLParser\XMLParser_2015.vcxproj">
       <Project>{e2c19239-c1b8-40ab-9714-36342a013d66}</Project>
-      <Private>true</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="compiled\Settings\flylinkdc-config-r5xx.xml" />
+    <ProjectReference Include="zenlib\ZenLib_2015.vcxproj">
+      <Project>{0da1da7d-f393-4e7c-a7ce-cb5c6a67bc94}</Project>
+    </ProjectReference>
+    <ProjectReference Include="zlib_2015.vcxproj">
+      <Project>{dfbbe42a-45f4-4188-89c2-17f5dfe50673}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

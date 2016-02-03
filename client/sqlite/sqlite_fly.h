@@ -1,3 +1,6 @@
+
+#pragma once
+
 /*
 #define SQLITE_OMIT_COMPOUND_SELECT
 #define SQLITE_OMIT_CONFLICT_CLAUSE

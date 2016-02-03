@@ -16,6 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#pragma once
+
+
 #ifndef COMPATIBILITY_MANGER_H
 #define COMPATIBILITY_MANGER_H
 
@@ -62,6 +65,10 @@ class CompatibilityManager
 		static bool isWin8Plus()
 		{
 			return isSet(OS_WINDOWS8_PLUS);
+		}
+		static bool isWin10Plus()
+		{
+			return isSet(OS_WINDOWS10_PLUS);
 		}
 		static void setWine(bool p_wine)
 		{
@@ -172,6 +179,7 @@ class CompatibilityManager
 			OS_WINDOWS7_PLUS,
 #endif
 			OS_WINDOWS8_PLUS,
+			OS_WINDOWS10_PLUS,
 			RUNNING_IS_WOW64,
 #ifdef FLYLINKDC_USE_CHECK_OLD_OS
 			RUNNING_AN_UNSUPPORTED_OS,

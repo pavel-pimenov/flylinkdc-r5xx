@@ -1,3 +1,6 @@
+
+#pragma once
+
 #ifndef __CFLYPROFILER_H__
 #define __CFLYPROFILER_H__
 

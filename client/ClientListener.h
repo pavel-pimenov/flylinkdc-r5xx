@@ -1,3 +1,6 @@
+
+#pragma once
+
 #ifndef CLIENTLISTENER_H_
 #define CLIENTLISTENER_H_
 

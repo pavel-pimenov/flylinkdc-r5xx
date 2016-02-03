@@ -9,6 +9,9 @@
 // Thanks to the E.S.O. - ACS project that has done this C++ interface
 // to the wildcards pttern matching algorithm
 
+
+#pragma once
+
 #ifndef WILDCARD_H
 #define WILDCARD_H
 

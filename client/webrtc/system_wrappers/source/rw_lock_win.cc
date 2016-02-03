@@ -9,7 +9,6 @@
  */
 
 #include "stdinc.h" // [+]FlylinkDC++
-#include "CompatibilityManager.h" // [+]FlylinkDC++
 
 #include "webrtc/system_wrappers/source/rw_lock_win.h"
 
@@ -67,13 +66,6 @@ bool RWLockWin::LoadModule() {
     return native_rw_locks_supported;
   }
   module_load_attempted = true;
-  if (CompatibilityManager::isWine()) // [+]FlylinkDC++
-  {
-	  return false;
-  }
-#ifdef _DEBUG // [+]FlylinkDC++
-	  return false;
-#endif
   // Use native implementation if supported (i.e Vista+)
   library = LoadLibrary(TEXT("Kernel32.dll"));
   if (!library) {

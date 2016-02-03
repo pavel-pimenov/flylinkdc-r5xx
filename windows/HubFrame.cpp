@@ -1810,14 +1810,14 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 								{
 									PLAY_SOUND(SOUND_FAVUSER);
 									SHOW_POPUP(POPUP_FAVORITE_CONNECTED, id.getNickT() + _T(" - ") + Text::toT(m_client->getHubName()), TSTRING(FAVUSER_ONLINE));
-								}								
+								}
 								if (!id.isBotOrHub()) // [+] IRainman fix: no show has come/gone for bots, and a hub.
 								{
 									if (m_showJoins || (m_favShowJoins && isFavorite))
 									{
 										BaseChatFrame::addLine(_T("*** ") + TSTRING(JOINS) + _T(' ') + id.getNickT(), Colors::g_ChatTextSystem);
 									}
-								}								
+								}
 								m_needsUpdateStats = true;
 							}
 							else
@@ -3711,11 +3711,14 @@ void HubFrame::on(ClientListener::NickTaken, const Client*) noexcept
 	{
 		if (l_fe->getPassword().empty())
 		{
-			string l_nick = l_fe->getNick();
-			string l_fly_user = l_fe->getNick() + "_R" + Util::toString(Util::rand()).substr(0, 3);
-			if (l_fly_user.length() > 15)
+			const string l_nick = l_my_nick;
+			string l_fly_user = l_nick + "_R" + Util::toString(Util::rand()).substr(0, 3);
+			auto l_max_len = m_client->getMaxLenNick();
+			if (l_max_len == 0)
+				l_max_len = 15;
+			if (l_fly_user.length() > l_max_len)
 			{
-				l_fly_user = l_nick.substr(0, 12);
+				l_fly_user = l_nick.substr(0, l_max_len - 5);
 				l_fly_user += "_R" + Util::toString(Util::rand()).substr(0, 3);
 			}
 			m_client->setMyNick(l_fly_user);

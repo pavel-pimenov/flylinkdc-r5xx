@@ -1,3 +1,7 @@
+
+#pragma once
+
+
 #ifndef SSL_H_
 #define SSL_H_
 

@@ -16,6 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#pragma once
+
+
 #ifndef DCPLUSPLUS_DCPP_NMDC_HUB_H
 #define DCPLUSPLUS_DCPP_NMDC_HUB_H
 
@@ -136,6 +139,7 @@ class NmdcHub : public Client, private Flags
 		static void log_all_unknown_command();
 		static string get_all_unknown_command();
 	private:
+		virtual size_t getMaxLenNick() const;
 		void processAutodetect(bool p_is_myinfo);
 		
 		DefinedMeyInfoState m_bLastMyInfoCommand; // [+] FlylinkDC
@@ -157,8 +161,15 @@ class NmdcHub : public Client, private Flags
 				}
 				if (!m_prefix.empty())
 				{
-					const auto l_pref_pos = p_nick.find(m_prefix[0]);
-					if (l_pref_pos != 0 && l_pref_pos == string::npos)
+					bool l_is_prefix_exists = false;
+					for (auto j = m_prefix.cbegin(); j != m_prefix.cend(); ++j)
+					{
+						const auto l_pref_pos = p_nick.find(*j);
+						l_is_prefix_exists = l_pref_pos == 0;
+						if (l_is_prefix_exists)
+							break;
+					}
+					if (l_is_prefix_exists == false)
 					{
 						p_nick = m_prefix[0] + p_nick;
 					}
@@ -178,7 +189,7 @@ class NmdcHub : public Client, private Flags
 				}
 			}
 		};
-		CFlyNickRule m_nick_rule;
+		std::unique_ptr<CFlyNickRule> m_nick_rule;
 		NmdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect);
 		~NmdcHub();
 		
@@ -299,7 +310,7 @@ class NmdcHub : public Client, private Flags
 		void toParse(const string& param);
 		void chatMessageParse(const string& aLine);
 		void supports(const StringList& feat);
-		void updateFromTag(Identity& id, const string & tag);
+		void updateFromTag(Identity& id, const string& tag, bool p_is_version_change);
 		
 		virtual void checkNick(string& p_nick);
 		

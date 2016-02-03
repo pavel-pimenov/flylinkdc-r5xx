@@ -16,6 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#pragma once
+
+
 #if !defined(CONNECTION_MANAGER_LISTENER_H)
 #define CONNECTION_MANAGER_LISTENER_H
 
