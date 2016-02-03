@@ -21,8 +21,12 @@
  * Henrik Engström, henrikengstrom on home point se
  */
 
+
 #if !defined(ADL_SEARCH_FRAME_H)
 #define ADL_SEARCH_FRAME_H
+
+
+#pragma once
 
 
 #include "FlatTabCtrl.h"

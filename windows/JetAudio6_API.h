@@ -1,6 +1,9 @@
 #ifndef __jetaudio6_api_h
 #define __jetaudio6_api_h
 
+#pragma once
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // How to get JetAudio window handle

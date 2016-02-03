@@ -19,6 +19,9 @@
 #if !defined(USERS_FRAME_H)
 #define USERS_FRAME_H
 
+#pragma once
+
+
 #include "FlatTabCtrl.h"
 #include "TypedListViewCtrl.h"
 #include "WinUtil.h"

@@ -7,6 +7,9 @@
 #ifndef PROPERTY_GRID_WRAPPER__H
 #define PROPERTY_GRID_WRAPPER__H
 
+#pragma once
+
+
 #include "CGridItem.h"
 
 namespace net { namespace r_eg { namespace ui {

@@ -1,6 +1,8 @@
-
 #ifndef LimitPAGE_H
 #define LimitPAGE_H
+
+#pragma once
+
 
 #include <atlcrack.h>
 #include "PropPage.h"

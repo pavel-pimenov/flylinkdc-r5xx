@@ -19,6 +19,9 @@
 //
 // returns version of player (see opGetPlayerVersion for return values)
 
+#pragma once
+
+
 #define WM_QCD_GETVERSION           (WM_USER+1000)  // get player version
 
 

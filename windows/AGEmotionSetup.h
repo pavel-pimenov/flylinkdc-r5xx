@@ -19,6 +19,9 @@
 #if !defined(AGEMOTIONSETUP_H__)
 #define AGEMOTIONSETUP_H__
 
+#pragma once
+
+
 #ifdef IRAINMAN_INCLUDE_SMILE
 
 #include "../client/Util.h"

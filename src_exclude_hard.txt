@@ -1,6 +1,7 @@
 .svn
 .git
 .hg
+.vs
 developer.key
 CustomLocations.7z
 Customlocations-5.rar
@@ -13,6 +14,7 @@ vc1?0.pdb
 vc10
 vc12
 vc13
+vc15
 FlylinkDCShellExt*.pdb
 FlylinkDC_Debug*.pdb
 compiled/Settings/common/*.*

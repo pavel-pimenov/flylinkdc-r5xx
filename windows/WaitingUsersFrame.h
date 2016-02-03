@@ -20,6 +20,9 @@
 #if !defined(WAITING_QUEUE_FRAME_H)
 #define WAITING_QUEUE_FRAME_H
 
+#pragma once
+
+
 #include "FlatTabCtrl.h"
 #include "TypedListViewCtrl.h"
 #include "WinUtil.h"

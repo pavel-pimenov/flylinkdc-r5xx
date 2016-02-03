@@ -646,7 +646,7 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 	if (!neededParts.empty())
 	{
 		// select random chunk for download
-		dcdebug("Found partial chunks: %d\n", neededParts.size());
+		dcdebug("Found partial chunks: %d\n", int(neededParts.size()));
 		
 		Segment& selected = neededParts[Util::rand(0, static_cast<uint32_t>(neededParts.size()))];
 		selected.setSize(std::min(selected.getSize(), targetSize)); // request only wanted size
@@ -847,7 +847,7 @@ void QueueItem::getPartialInfoL(PartsInfo& p_partialInfo, uint64_t p_blockSize) 
         {
             case 0:
                 if (downloads.size())
-                    p_segments.reserve(downloads.size()); 
+                    p_segments.reserve(downloads.size());
                 for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
                 {
                     p_segments.push_back((*i)->getSegment());

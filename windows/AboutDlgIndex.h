@@ -4,6 +4,11 @@
 
 #if !defined(ABOUT_DLG_INDEX_H)
 #define ABOUT_DLG_INDEX_H
+
+
+#pragma once
+
+
 #include "AboutDlg.h"
 #include "AboutCmdsDlg.h"
 #include "AboutLogDlg.h"
@@ -45,10 +50,20 @@ class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 		
 		LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
+			int ab = 0;
+			if (_MSC_VER >= 1600)
+				ab = 2010;
+			if (_MSC_VER >= 1700)
+				ab = 2012;
+			if (_MSC_VER >= 1800) // 1800: MSVC 2013 (yearly release cycle)
+				ab = 2013;
+			if (_MSC_VER >= 1900)
+				ab = 2015;
 			char l_full_version[64];
-			_snprintf(l_full_version, _countof(l_full_version), "%d", _MSC_FULL_VER);
+			_snprintf(l_full_version, _countof(l_full_version), "%d (%d)", ab, _MSC_FULL_VER);
+
 			SetDlgItemText(IDC_COMPT, (TSTRING(COMPILED_ON) + _T(' ') + Util::getCompileDate() + _T(' ') + Util::getCompileTime(_T("%H:%M:%S"))
-			                           + _T(",  Visual C++ version: ") + Text::toT(l_full_version)).c_str());
+			                           + _T(",  Visual C++ ") + Text::toT(l_full_version)).c_str());
 			SetWindowText(CTSTRING(MENU_ABOUT));
 			m_ctrTab.Attach(GetDlgItem(IDC_ABOUTTAB));
 			TCITEM tcItem;

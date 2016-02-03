@@ -1,9 +1,8 @@
 #include "stdinc.h"
 #include "CFlyLockProfiler.h"
-#include "ClientManager.h"
-
 #ifdef FLYLINKDC_USE_PROFILER_CS
 
+#include "ClientManager.h"
 
 BoostFastCriticalSection CFlyLockProfiler::g_cs_stat_map;
 std::map<string, std::pair<DWORD, DWORD> > CFlyLockProfiler::g_lock_map;
@@ -22,13 +21,13 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 			l_item.second = l_tick_delta;
 	}
 	if (
-//#define FLYLINKDC_USE_PROFILE_SELECTED_CLASS
+#define FLYLINKDC_USE_PROFILE_SELECTED_CLASS
 #ifdef FLYLINKDC_USE_PROFILE_SELECTED_CLASS
 		(l_tick_delta >= 0 &&
 	        (m_function &&
 	         (
-	             strstr(m_function, "dht::") != 0 
-				 || strstr(m_function, "CFlyServerConfig") != 0
+	             strstr(m_function, "Identity") != 0 
+				 //|| strstr(m_function, "CFlyServerConfig") != 0
 
 	         )
 	        )
@@ -38,6 +37,8 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 #endif
 	        (m_function &&
 	         (
+			 strstr(m_function, "DebugManager::") == 0 &&
+		 
 	             strstr(m_function, "::addListener") == 0 &&
 	             strstr(m_function, "::removeListener") == 0 &&
 	             strstr(m_function, "LogManager::") == 0

@@ -19,6 +19,9 @@
 #ifndef __OMENU_H
 #define __OMENU_H
 
+#pragma once
+
+
 #include <atlapp.h>
 #include <atluser.h>
 class OMenu;

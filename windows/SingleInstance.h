@@ -19,6 +19,9 @@
 #if !defined(SINGLE_INSTANCE_H)
 #define SINGLE_INSTANCE_H
 
+#pragma once
+
+
 #define WMU_WHERE_ARE_YOU_MSG _T("WMU_WHERE_ARE_YOU-{885D4B75-6606-4add-A8DE-EEEDC04181F1}")
 const UINT WMU_WHERE_ARE_YOU = ::RegisterWindowMessage(_T("WMU_WHERE_ARE_YOU_MSG"));
 

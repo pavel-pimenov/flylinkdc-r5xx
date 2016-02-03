@@ -1,5 +1,8 @@
 #ifndef _WAFE_H_
 #define _WAFE_H_
+
+#pragma once
+
 /*
 ** Winamp frontend/plug-in control API documentation v1.1.
 ** By Justin Frankel. Updates by Christophe Thibault.

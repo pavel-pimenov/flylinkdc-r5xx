@@ -20,6 +20,9 @@
 #define FAV_HUB_PROPERTIES_H
 
 
+#pragma once
+
+
 #include <atlcrack.h>
 
 class FavoriteHubEntry;

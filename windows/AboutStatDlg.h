@@ -4,6 +4,12 @@
 
 #if !defined(ABOUT_STAT_DLG_H)
 #define ABOUT_STAT_DLG_H
+
+
+#pragma once
+
+
+
 #include "wtl_flylinkdc.h"
 #include "../client/NmdcHub.h"
 

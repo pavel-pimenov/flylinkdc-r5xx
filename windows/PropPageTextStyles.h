@@ -1,6 +1,10 @@
 #ifndef _PROP_PAGE_TEXT_STYLES_H_
 #define _PROP_PAGE_TEXT_STYLES_H_
 
+
+#pragma once
+
+
 #include <atlcrack.h>
 #include "PropPage.h"
 #include "../client/ConnectionManager.h"

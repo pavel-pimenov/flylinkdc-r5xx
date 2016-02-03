@@ -116,7 +116,7 @@ public:
       case PACT_CLICK:
       case PACT_DBLCLICK:
          // Send AddItem notification to parent of control
-         NMPROPERTYITEM nmh = { m_hWndOwner, ::GetDlgCtrlID(m_hWndOwner), PIN_ADDITEM, NULL };
+         NMPROPERTYITEM nmh = { m_hWndOwner, (UINT_PTR)::GetDlgCtrlID(m_hWndOwner), PIN_ADDITEM, NULL };
          ::SendMessage(::GetParent(m_hWndOwner), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM) &nmh);
          break;
       }
@@ -160,7 +160,7 @@ public:
       case PACT_CLICK:
       case PACT_DBLCLICK:
          // Send AddItem notification to parent of control
-         NMPROPERTYITEM nmh = { m_hWndOwner, ::GetDlgCtrlID(m_hWndOwner), PIN_BROWSE, NULL };
+         NMPROPERTYITEM nmh = { m_hWndOwner, (UINT_PTR)::GetDlgCtrlID(m_hWndOwner), PIN_BROWSE, NULL };
          ::SendMessage(::GetParent(m_hWndOwner), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM) &nmh);
          break;
       }
@@ -712,7 +712,7 @@ public:
          if( prop == NULL ) return 0;
 
          // Ask owner first
-         NMPROPERTYITEM nmh = { m_hWnd, GetDlgCtrlID(), PIN_CLICK, prop };
+         NMPROPERTYITEM nmh = { m_hWnd, (UINT_PTR)GetDlgCtrlID(), PIN_CLICK, prop };
          if( ::SendMessage(GetParent(), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM) &nmh) == 0 ) {
 
             // Property is allowed to react on click event
@@ -728,7 +728,7 @@ public:
                // Generate selection change notification on pure horizontal moves
                if( (iOldRow == m_iSelectedRow) && (iOldColumn != m_iSelectedCol) ) {
                   // Let owner know
-                  NMPROPERTYITEM nmh = { m_hWnd, GetDlgCtrlID(), PIN_SELCHANGED, prop };
+                  NMPROPERTYITEM nmh = { m_hWnd, (UINT_PTR)GetDlgCtrlID(), PIN_SELCHANGED, prop };
                   ::SendMessage(GetParent(), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM) &nmh);
                }
 
@@ -759,7 +759,7 @@ public:
          _InvalidateItem(m_iSelectedRow, m_iSelectedCol);
          m_iSelectedRow = m_iSelectedCol = -1;
          // Let owner know
-         NMPROPERTYITEM nmh = { m_hWnd, GetDlgCtrlID(), PIN_SELCHANGED, NULL };
+         NMPROPERTYITEM nmh = { m_hWnd, (UINT_PTR)GetDlgCtrlID(), PIN_SELCHANGED, NULL };
          ::SendMessage(GetParent(), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM) &nmh);
       }
       return lRes;
@@ -892,7 +892,7 @@ public:
          // Let owner know
          IProperty* prop = GetProperty(m_iSelectedRow, m_iSelectedCol);
          ATLASSERT(prop);
-         NMPROPERTYITEM nmh = { m_hWnd, GetDlgCtrlID(), PIN_SELCHANGED, prop };
+         NMPROPERTYITEM nmh = { m_hWnd, (UINT_PTR)GetDlgCtrlID(), PIN_SELCHANGED, prop };
          ::SendMessage(GetParent(), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM) &nmh);
       }
       bHandled = FALSE;
@@ -932,7 +932,7 @@ public:
             // Let owner know
             IProperty* prop = GetProperty(m_iSelectedRow, m_iSelectedCol);
             ATLASSERT(prop);
-            NMPROPERTYITEM nmh = { m_hWnd, GetDlgCtrlID(), PIN_SELCHANGED, prop };
+            NMPROPERTYITEM nmh = { m_hWnd, (UINT_PTR)GetDlgCtrlID(), PIN_SELCHANGED, prop };
             ::SendMessage(GetParent(), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM) &nmh);
             // Repaint new and old item
             _InvalidateItem(m_iSelectedRow, m_iSelectedCol + 1);
@@ -948,7 +948,7 @@ public:
             // Let owner know
             IProperty* prop = GetProperty(m_iSelectedRow, m_iSelectedCol);
             ATLASSERT(prop);
-            NMPROPERTYITEM nmh = { m_hWnd, GetDlgCtrlID(), PIN_SELCHANGED, prop };
+            NMPROPERTYITEM nmh = { m_hWnd, (UINT_PTR)GetDlgCtrlID(), PIN_SELCHANGED, prop };
             ::SendMessage(GetParent(), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM) &nmh);
             // Repaint new and old item
             _InvalidateItem(m_iSelectedRow, m_iSelectedCol - 1);
@@ -978,7 +978,7 @@ public:
       IProperty* prop = GetProperty(m_iInplaceRow, m_iInplaceCol);
       if( prop == NULL ) return 0;
       // Ask owner about change
-      NMPROPERTYITEM nmh = { m_hWnd, GetDlgCtrlID(), PIN_ITEMCHANGING, prop };
+      NMPROPERTYITEM nmh = { m_hWnd, (UINT_PTR)GetDlgCtrlID(), PIN_ITEMCHANGING, prop };
       if( ::SendMessage(GetParent(), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM) &nmh) == 0 ) {
          // Commit change
          if( !prop->SetValue(hWnd) ) {
@@ -1030,7 +1030,7 @@ public:
       ATLASSERT(prop && pVariant);
       if( prop == NULL || pVariant == NULL ) return 0;
       // Ask owner about change
-      NMPROPERTYITEM nmh = { m_hWnd, GetDlgCtrlID(), PIN_ITEMCHANGING, prop };
+      NMPROPERTYITEM nmh = { m_hWnd, (UINT_PTR)GetDlgCtrlID(), PIN_ITEMCHANGING, prop };
       if( ::SendMessage(GetParent(), WM_NOTIFY, nmh.hdr.idFrom, (LPARAM) &nmh) == 0 ) {
          // Set new value.
          // NOTE: Do not call this from IProperty::SetValue(VARIANT*) = endless loop

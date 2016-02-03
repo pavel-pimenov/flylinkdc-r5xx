@@ -1,6 +1,9 @@
 #ifndef UserListColours_H
 #define UserListColours_H
 
+#pragma once
+
+
 #include "PropPage.h"
 
 class UserListColours : public CPropertyPage<IDD_USERLIST_COLOURS_PAGE>, public PropPage

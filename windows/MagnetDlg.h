@@ -19,6 +19,9 @@
 #if !defined(MAGNET_DLG_H)
 #define MAGNET_DLG_H
 
+#pragma once
+
+
 #include "../client/QueueManager.h"
 #include "ResourceLoader.h"
 

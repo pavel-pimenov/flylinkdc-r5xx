@@ -698,10 +698,14 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 	{
 		CFlyFastLock(m_si_fcs);
 		const auto i = m_stringInfo.find(*(short*)name);
+#ifdef FLYLINKDC_USE_PROFILER_CS
+		l_lock.m_add_log_info = "[get] name = ";
+		l_lock.m_add_log_info += string(name) + string(i == m_stringInfo.end() ? " [ not_found! ]" : "[ " + i->second + " ]" + " Nick = " + getNick());
+#endif
 		if (i != m_stringInfo.end())
 		{
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
-			CFlylinkDBManager::getInstance()->identity_get(name, i->second);
+			CFlylinkDBManager::getInstance()->identity_get(name, iNickRule->second);
 #endif
 			return i->second;
 		}
@@ -815,6 +819,10 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 		if (l_is_skip_string_map == false)
 		{
 			CFlyFastLock(m_si_fcs);
+#ifdef FLYLINKDC_USE_PROFILER_CS
+			l_lock.m_add_log_info = "[set] name = ";
+			l_lock.m_add_log_info += string(name) + string(val.empty() ? " val.empty()" : val);
+#endif
 			if (val.empty())
 			{
 				m_stringInfo.erase(*(short*)name);

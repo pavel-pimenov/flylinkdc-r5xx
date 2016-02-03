@@ -19,6 +19,9 @@
 #if !defined(LIST_VIEW_ARROWS_H)
 #define LIST_VIEW_ARROWS_H
 
+#pragma once
+
+
 #include "WinUtil.h"
 
 template<class T>

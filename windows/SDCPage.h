@@ -19,6 +19,9 @@
 #ifndef SDCPage_H
 #define SDCPage_H
 
+#pragma once
+
+
 #include "PropPage.h"
 
 

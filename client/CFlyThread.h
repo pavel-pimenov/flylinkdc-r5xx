@@ -21,6 +21,7 @@
 
 #pragma once
 
+#pragma warning(disable:4456)
 
 #ifdef FLYLINKDC_USE_BOOST_LOCK
 #include <boost/utility.hpp>
@@ -372,9 +373,11 @@ class CriticalSection
 				l_fs.open(_T("flylinkdc-critical-section.log"), std::ifstream::out | std::ifstream::app);
 				if (l_fs.good())
 				{
-					l_fs << "[this = " << this << "][" << formatDigitalClock("time =", time(nullptr)) << "] cs.RecursionCount = "
-					     << cs.RecursionCount << " p_add_info: " << p_add_info
-					     << std::endl;
+					l_fs << "[this = " << this << "][" << formatDigitalClock("time =", time(nullptr));
+					if (cs.RecursionCount > 1)
+						l_fs << "] cs.RecursionCount = " << cs.RecursionCount;
+					if (!string(p_add_info).empty())
+						l_fs << " p_add_info: " << p_add_info << std::endl;
 				}
 			}
 #endif
@@ -546,7 +549,7 @@ typedef CriticalSection FastCriticalSection;
 
 template<class T>  class LockBase
 #ifdef FLYLINKDC_USE_PROFILER_CS
-	: protected CFlyLockProfiler
+	: public CFlyLockProfiler
 #endif
 {
 	public:

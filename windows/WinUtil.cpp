@@ -50,7 +50,6 @@
 #include "iTunesCOMInterface.h"
 #include "QCDCtrlMsgs.h"
 #include <control.h>
-#include <../windows/ddraw.h>
 #include <strmif.h> // error with missing ddraw.h, get it from MS DirectX SDK
 #include "BarShader.h"
 #include "../FlyFeatures/CustomMenuManager.h" //[+] //SSA

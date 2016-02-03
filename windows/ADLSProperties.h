@@ -19,6 +19,9 @@
 #if !defined(ADLS_PROPERTIES_H)
 #define ADLS_PROPERTIES_H
 
+#pragma once
+
+
 class ADLSearch;
 
 ///////////////////////////////////////////////////////////////////////////////

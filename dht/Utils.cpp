@@ -141,7 +141,7 @@ bool Utils::checkFlood(const string& ip, const AdcCommand& cmd)
 	
 	if (packetsPerIp.count(cmd.getCommand()) > maxAllowedPacketsPerMinute)
 	{
-		dcdebug("Request flood detected (%d) from %s. Packet dropped.\n", packetsPerIp.count(cmd.getCommand()), ip.c_str());
+		dcdebug("Request flood detected (%d) from %s. Packet dropped.\n", int(packetsPerIp.count(cmd.getCommand())), ip.c_str());
 		return false;
 	}
 	

@@ -20,6 +20,9 @@
 #define COMMAND_DLG_H
 
 
+#pragma once
+
+
 #include "WinUtil.h"
 
 class CommandDlg : public CDialogImpl<CommandDlg>

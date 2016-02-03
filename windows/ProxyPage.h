@@ -19,7 +19,9 @@
 #ifndef PROXY_PAGE_H
 #define PROXY_PAGE_H
 
-//#include <atlcrack.h>
+
+#pragma once
+
 #include "PropPage.h"
 
 class ProxyPage : public CPropertyPage<IDD_PROXY_PAGE>, public PropPage

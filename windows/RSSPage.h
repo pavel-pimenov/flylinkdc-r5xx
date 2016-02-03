@@ -19,6 +19,9 @@
 #if !defined(RSS_PAGE_H)
 #define RSS_PAGE_H
 
+#pragma once
+
+
 #ifdef IRAINMAN_INCLUDE_RSS
 
 #include <atlcrack.h>

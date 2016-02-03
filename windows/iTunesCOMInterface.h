@@ -16,6 +16,9 @@
 #define __REQUIRED_RPCNDR_H_VERSION__ 440
 #endif
 
+#pragma once
+
+
 #include "rpc.h"
 #include "rpcndr.h"
 

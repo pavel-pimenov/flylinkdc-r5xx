@@ -19,6 +19,9 @@
 #if !defined(__RECENTS_FRAME_H__)
 #define __RECENTS_FRAME_H__
 
+#pragma once
+
+
 #include "FlatTabCtrl.h"
 #include "ExListViewCtrl.h"
 #include "../client/FavoriteManager.h"

@@ -19,6 +19,9 @@
 #if !defined(PROP_PAGE_H)
 #define PROP_PAGE_H
 
+#pragma once
+
+
 #include "DimEdit.h"
 #include "resource.h"
 #ifdef SCALOLAZ_PROPPAGE_COLOR

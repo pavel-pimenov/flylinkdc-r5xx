@@ -4,6 +4,11 @@
 
 #if !defined(ABOUT_LOG_DLG_H)
 #define ABOUT_LOG_DLG_H
+
+
+#pragma once
+
+
 #include "wtl_flylinkdc.h"
 #include "ExListViewCtrl.h"
 

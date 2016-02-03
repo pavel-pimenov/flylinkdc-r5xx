@@ -1008,7 +1008,7 @@ int SSL_shutdown(SSL *s)
      * (see ssl3_shutdown).
      */
 
-    if ( s && s->handshake_func == 0) {
+    if (s->handshake_func == 0) {
         SSLerr(SSL_F_SSL_SHUTDOWN, SSL_R_UNINITIALIZED);
         return -1;
     }

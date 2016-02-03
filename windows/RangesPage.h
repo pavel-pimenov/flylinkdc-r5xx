@@ -1,6 +1,8 @@
-
 #ifndef RANGES_PAGE_H
 #define RANGES_PAGE_H
+
+
+#pragma once
 
 
 #include <atlcrack.h>

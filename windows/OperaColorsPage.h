@@ -19,6 +19,9 @@
 #ifndef OperaColorsPage_H
 #define OperaColorsPage_H
 
+#pragma once
+
+
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
 #include "PropPageTextStyles.h"

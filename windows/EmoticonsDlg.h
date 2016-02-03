@@ -1,6 +1,10 @@
 #ifndef __EMOTICONS_DLG
 #define __EMOTICONS_DLG
 
+
+#pragma once
+
+
 #ifdef IRAINMAN_INCLUDE_SMILE
 
 #include "../GdiOle/GDIImage.h"
@@ -22,7 +26,7 @@ class CAnimatedButton: public CWindowImpl<CAnimatedButton, CButton>
 		HDC m_hBackDC;
 		
 		static bool __cdecl OnFrameChanged(CGDIImage *pImage, LPARAM lParam);
-
+		
     CAnimatedButton() {}
 	public:
 		BEGIN_MSG_MAP(CAnimatedButton)

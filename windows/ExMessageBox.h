@@ -19,6 +19,9 @@
 #ifndef EX_MESSAGE_BOX
 #define EX_MESSAGE_BOX
 
+#pragma once
+
+
 #ifdef PPA_INCLUDE_APEX_EX_MESSAGE_BOX
 class ExMessageBox
 {

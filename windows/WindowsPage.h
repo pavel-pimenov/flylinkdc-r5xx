@@ -19,6 +19,9 @@
 #if !defined(WINDOWS_PAGE_H)
 #define WINDOWS_PAGE_H
 
+#pragma once
+
+
 #include <atlcrack.h>
 #include "PropPage.h"
 #include "ExListViewCtrl.h" // [+] IRainman

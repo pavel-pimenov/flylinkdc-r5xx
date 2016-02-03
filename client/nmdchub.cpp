@@ -250,7 +250,7 @@ OnlineUserPtr NmdcHub::findUser(const string& aNick) const
 	CFlyReadLock(*m_cs);
 	const auto& i = m_users.find(aNick);
 #ifdef FLYLINKDC_USE_PROFILER_CS
-	l_lock.m_add_log_info = " User = " + aNick;
+	//l_lock.m_add_log_info = " User = " + aNick;
 #endif
 	return i == m_users.end() ? nullptr : i->second;
 }
@@ -1934,8 +1934,10 @@ void NmdcHub::onLine(const string& aLine)
 					for (auto j = l.cbegin(); j != l.cend(); ++j)
 					{
 						if (!j->empty())
+						{
 							m_nick_rule.m_invalid_char.push_back(uint8_t(Util::toInt(*j)));
 					}
+				}
 				}
 				else if (l_key == "Pref")
 				{

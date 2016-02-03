@@ -17,6 +17,10 @@
 #ifndef CZDCPage_H
 #define CZDCPage_H
 
+
+#pragma once
+
+
 #include <atlcrack.h>
 #include "PropPage.h"
 #include "../client/ConnectionManager.h"

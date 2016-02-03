@@ -19,6 +19,9 @@
 #if !defined(NETWORK_PAGE_H)
 #define NETWORK_PAGE_H
 
+
+#pragma once
+
 #include <atlcrack.h>
 #include "PropPage.h"
 #include "wtl_flylinkdc.h"

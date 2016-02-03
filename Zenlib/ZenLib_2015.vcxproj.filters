@@ -65,6 +65,9 @@
     <ClCompile Include="Source\ZenLib\PreComp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ZenLib\Thread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\ZenLib\BitStream.h">
@@ -134,6 +137,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\ZenLib\BitStream_Fast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ZenLib\Thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -19,6 +19,9 @@
 #if !defined(MAIN_FRM_H)
 #define MAIN_FRM_H
 
+
+#pragma once
+
 #include "HubFrame.h"
 #include "../client/FavoriteManager.h"
 #include "../client/LogManager.h"

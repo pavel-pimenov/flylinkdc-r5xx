@@ -19,6 +19,9 @@
 #if !defined(LOG_PAGE_H)
 #define LOG_PAGE_H
 
+#pragma once
+
+
 #include <atlcrack.h>
 #include "PropPage.h"
 #include "ExListViewCtrl.h"

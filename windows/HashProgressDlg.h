@@ -19,6 +19,9 @@
 #if !defined(HASH_PROGRESS_DLG_H)
 #define HASH_PROGESS_DLG_H
 
+#pragma once
+
+
 #include "../client/HashManager.h"
 #ifdef SCALOLAZ_HASH_HELPLINK
 #include "wtl_flylinkdc.h"

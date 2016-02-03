@@ -19,6 +19,9 @@
 #if !defined(FAVORITE_HUBS_FRM_H)
 #define FAVORITE_HUBS_FRM_H
 
+#pragma once
+
+
 #include "FlatTabCtrl.h"
 #include "ExListViewCtrl.h"
 

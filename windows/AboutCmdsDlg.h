@@ -4,6 +4,9 @@
 
 #if !defined(ABOUT_CMDS_DLG_H)
 #define ABOUT_CMDS_DLG_H
+
+#pragma once
+
 #include "wtl_flylinkdc.h"
 
 class AboutCmdsDlg : public CDialogImpl<AboutCmdsDlg>

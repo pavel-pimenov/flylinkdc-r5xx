@@ -1122,6 +1122,23 @@
     <Image Include="res\mode_offline.ico" />
     <Image Include="res\offline.ico" />
     <Image Include="res\online.ico" />
+    <Image Include="res\Gender.png" />
+    <Image Include="res\skull.ico" />
+    <Image Include="res\skull2.ico" />
+    <Image Include="res\skull2_red.ico" />
+    <Image Include="res\skull_red.ico" />
+    <Image Include="res\vip_adrenalin.ico" />
+    <Image Include="res\vip_allavtovo.ico" />
+    <Image Include="res\vip_eva.ico" />
+    <Image Include="res\vip_keepclear_org.ico" />
+    <Image Include="res\vip_korobka.ico" />
+    <Image Include="res\vip_milenahub.ico" />
+    <Image Include="res\vip_nsk154hub.ico" />
+    <Image Include="res\vip_perseus.ico" />
+    <Image Include="res\vip_prime.ico" />
+    <Image Include="res\vip_prostoigra24.ico" />
+    <Image Include="res\vip_scalolaz.ico" />
+    <Image Include="res\vip_stealthhub.ico" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

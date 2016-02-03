@@ -1,6 +1,9 @@
 #ifndef WebServerPage_H
 #define WebServerPage_H
 
+
+#pragma once
+
 #include "PropPage.h"
 
 class WebServerPage : public CPropertyPage<IDD_WEBSERVER_PAGE>, public PropPage

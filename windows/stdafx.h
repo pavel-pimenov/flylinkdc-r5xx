@@ -20,6 +20,9 @@
 #if !defined(DCPLUSPLUS_WIN32_STDAFX_H)
 #define DCPLUSPLUS_WIN32_STDAFX_H
 
+
+#pragma once
+
 #include "../client/stdinc.h"
 #include "../client/ResourceManager.h"
 

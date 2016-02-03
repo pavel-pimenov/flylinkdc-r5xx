@@ -19,6 +19,9 @@
 #if !defined(PROPERTIES_DLG_H)
 #define PROPERTIES_DLG_H
 
+#pragma once
+
+
 #include "PropPage.h"
 #include "TreePropertySheet.h"
 class NetworkPage;

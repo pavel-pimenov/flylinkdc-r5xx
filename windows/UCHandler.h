@@ -19,6 +19,9 @@
 #if !defined(UC_HANDLER_H)
 #define UC_HANDLER_H
 
+
+#pragma once
+
 #include "../client/FavoriteManager.h"
 #include "../client/ClientManager.h"
 #include "OMenu.h"

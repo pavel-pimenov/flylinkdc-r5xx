@@ -44,7 +44,7 @@ class SettingsManagerListener
 		typedef X<1> Repaint;
 		
 		virtual void on(Load, SimpleXML&) { }
-		virtual void on(Repaint) noexcept { }
+		virtual void on(Repaint) { }
 };
 
 class SettingsManager : public Singleton<SettingsManager>, public Speaker<SettingsManagerListener>
@@ -59,7 +59,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		static boost::logic::tribool g_TestUDPDHTLevel;
 		static boost::logic::tribool g_TestTCPLevel;
 		static boost::logic::tribool g_TestTLSLevel;
-
+		
 		static boost::logic::tribool g_upnpUDPSearchLevel;
 		static boost::logic::tribool g_upnpUDPDHTLevel;
 		static boost::logic::tribool g_upnpTCPLevel;
@@ -72,7 +72,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 			g_upnpTCPLevel = boost::logic::indeterminate;
 			g_upnpTLSLevel = boost::logic::indeterminate;
 		}
-
+		
 		static void testPortLevelInit()
 		{
 			g_TestUDPSearchLevel = boost::logic::indeterminate;
@@ -172,7 +172,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                };
 		                
 		enum IntSetting { INT_FIRST = STR_LAST + 1,
-		                  INCOMING_CONNECTIONS = INT_FIRST, AVDB_BLOCK_CONNECTIONS , AUTO_PASSIVE_INCOMING_CONNECTIONS, FORCE_PASSIVE_INCOMING_CONNECTIONS, TCP_PORT, SLOTS, AUTO_FOLLOW, CLEAR_SEARCH,
+		                  INCOMING_CONNECTIONS = INT_FIRST, AVDB_BLOCK_CONNECTIONS, AUTO_PASSIVE_INCOMING_CONNECTIONS, FORCE_PASSIVE_INCOMING_CONNECTIONS, TCP_PORT, SLOTS, AUTO_FOLLOW, CLEAR_SEARCH,
 		                  BACKGROUND_COLOR, TEXT_COLOR, SHARE_HIDDEN,
 		                  SHARE_VIRTUAL, SHARE_SYSTEM, // [+]IRainman
 		                  FILTER_MESSAGES, MINIMIZE_TRAY,

@@ -1,6 +1,9 @@
 #ifndef _PLAYERS_H_
 #define _PLAYERS_H_
 
+
+#pragma once
+
 /* Some window messsages for Windows Media Player 9+, but in theory these could work for anything above WMP7
                     Reference: http://www.autohotkey.com/forum/topic8566.html                               */
 

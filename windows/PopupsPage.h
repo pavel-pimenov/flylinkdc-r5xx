@@ -19,6 +19,9 @@
 #ifndef Popups_H
 #define Popups_H
 
+#pragma once
+
+
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
 

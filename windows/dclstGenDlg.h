@@ -19,6 +19,10 @@
 #if !defined(DCLST_GEN_DLG_H)
 #define DCLST_GEN_DLG_H
 
+
+#pragma once
+
+
 #include "../client/DirectoryListing.h"
 #include "../client/Util.h"
 #include "ResourceLoader.h"

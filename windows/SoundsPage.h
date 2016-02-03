@@ -19,6 +19,9 @@
 #ifndef Sounds_H
 #define Sounds_H
 
+#pragma once
+
+
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
 

@@ -19,6 +19,9 @@
 #if !defined(TEXT_FRAME_H)
 #define TEXT_FRAME_H
 
+#pragma once
+
+
 #include "FlatTabCtrl.h"
 #include "WinUtil.h"
 

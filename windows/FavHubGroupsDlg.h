@@ -19,6 +19,9 @@
 #ifndef STRONGDCPLUSPLUS_FAV_HUB_GROUPS_DLG
 #define STRONGDCPLUSPLUS_FAV_HUB_GROUPS_DLG
 
+#pragma once
+
+
 #include "resource.h"
 #include "ExListViewCtrl.h" // [+] IRainman
 

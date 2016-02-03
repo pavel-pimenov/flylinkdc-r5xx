@@ -2,6 +2,8 @@
 #define _REMOTE_API_H_
 
 
+#pragma once
+
 #include "../windows/wmp.h" // WMPSDK file...
 
 class WMPlayerRemoteApi : public CComObjectRootEx<CComSingleThreadModel>, public IServiceProvider,

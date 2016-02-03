@@ -209,7 +209,7 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	BOOST_STATIC_ASSERT(_countof(columnSizes) == COLUMN_LAST);
 	BOOST_STATIC_ASSERT(_countof(columnNames) == COLUMN_LAST);
 	
-	for (size_t j = 0; j < COLUMN_LAST; j++) //-V104
+	for (uint8_t j = 0; j < COLUMN_LAST; j++) //-V104
 	{
 		const int fmt = ((j == COLUMN_SIZE) || (j == COLUMN_EXACTSIZE) || (j == COLUMN_TYPE) || (j == COLUMN_HIT)) ? LVCFMT_RIGHT : LVCFMT_LEFT; //-V104
 		ctrlList.InsertColumn(j, TSTRING_I(columnNames[j]), fmt, columnSizes[j], j); //-V107
@@ -325,7 +325,7 @@ void DirectoryListingFrame::updateTree(DirectoryListing::Directory* aTree, HTREE
 				throw AbortException(STRING(ABORT_EM));
 			}
 			
-			tstring name = Text::toT((*i)->getName()); 
+			tstring name = Text::toT((*i)->getName());
 			
 			// Определяем иконку для папки
 			const auto typeDirectory = GetTypeDirectory(*i);

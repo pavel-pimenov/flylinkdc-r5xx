@@ -24,6 +24,9 @@
 #ifndef DCPLUSPLUS_WIN32_SHELL_CONTEXT_MENU_H
 #define DCPLUSPLUS_WIN32_SHELL_CONTEXT_MENU_H
 
+#pragma once
+
+
 class CShellContextMenu
 {
 		static IContextMenu2* g_IContext2;

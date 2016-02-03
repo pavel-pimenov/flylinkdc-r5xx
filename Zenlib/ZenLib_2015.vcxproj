@@ -88,7 +88,7 @@
     <RunCodeAnalysis Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(UniversalCRT_IncludePath);</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -216,6 +216,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Source\ZenLib\Thread.cpp" />
     <ClCompile Include="Source\ZenLib\Translation.cpp" />
     <ClCompile Include="Source\ZenLib\Utils.cpp" />
     <ClCompile Include="Source\ZenLib\Ztring.cpp" />
@@ -240,6 +241,7 @@
     <ClInclude Include="Source\ZenLib\MemoryDebug.h" />
     <ClInclude Include="Source\ZenLib\OS_Utils.h" />
     <ClInclude Include="Source\ZenLib\PreComp.h" />
+    <ClInclude Include="Source\ZenLib\Thread.h" />
     <ClInclude Include="Source\ZenLib\Trace.h" />
     <ClInclude Include="Source\ZenLib\Translation.h" />
     <ClInclude Include="Source\ZenLib\Utils.h" />

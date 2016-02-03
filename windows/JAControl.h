@@ -20,6 +20,9 @@
 #ifndef _JA_CONTROL_H_
 #define _JA_CONTROL_H_
 
+
+#pragma once
+
 #include <string>
 #include <sstream>
 #include "JetAudio6_API.h"

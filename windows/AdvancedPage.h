@@ -20,6 +20,9 @@
 #define ADVANCED_PAGE_H
 
 
+#pragma once
+
+
 #include <atlcrack.h>
 #include "ExListViewCtrl.h" // [+] IRainman
 #include "PropPage.h"

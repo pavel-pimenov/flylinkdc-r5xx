@@ -1666,7 +1666,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 		dcassert(ClientManager::isStartup() == false);
 		if (m_closing)
 		{
-			dcdebug("MainFrame::onSpeaker and m_closing  wParam = %d\r\n", wParam);
+			dcdebug("MainFrame::onSpeaker and m_closing  wParam = %d\r\n", int(wParam));
 			return 0; // Выходим если уже закрываемся (иначе проскакивет спик от REMOVE_POPUP)
 		}
 	}

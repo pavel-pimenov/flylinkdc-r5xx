@@ -19,6 +19,9 @@
 #if !defined(TREE_PROPERTY_SHEET_H)
 #define TREE_PROPERTY_SHEET_H
 
+#pragma once
+
+
 #include "resource.h"
 #include "../client/SettingsManager.h"
 

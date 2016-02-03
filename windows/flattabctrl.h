@@ -19,6 +19,9 @@
 #if !defined(FLAT_TAB_CTRL_H)
 #define FLAT_TAB_CTRL_H
 
+#pragma once
+
+
 #include "wtl_flylinkdc.h"
 #include "atlgdiraii.h"
 #ifdef IRAINMAN_INCLUDE_GDI_INIT

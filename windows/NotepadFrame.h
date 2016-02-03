@@ -19,6 +19,9 @@
 #if !defined(NOTEPAD_FRAME_H)
 #define NOTEPAD_FRAME_H
 
+
+#pragma once
+
 #include "FlatTabCtrl.h"
 #include "WinUtil.h"
 

@@ -1715,9 +1715,6 @@
     <Filter Include="Source Files\syslog">
       <UniqueIdentifier>{dffc505f-b950-4afe-b0c9-fc5b67a232a0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\zmq">
-      <UniqueIdentifier>{07697d83-3156-4b1d-ae62-adc77606fe06}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="client\StringDefs.h">

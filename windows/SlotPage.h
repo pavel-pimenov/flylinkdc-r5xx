@@ -1,6 +1,9 @@
 #if !defined(SLOT_PAGE_H)
 #define SLOT_PAGE_H
 
+#pragma once
+
+
 #include <atlcrack.h>
 #include "PropPage.h"
 #include "WinUtil.h"

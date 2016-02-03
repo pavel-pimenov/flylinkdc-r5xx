@@ -19,6 +19,9 @@
 #if !defined(ABOUT_DLG_H)
 #define ABOUT_DLG_H
 
+#pragma once
+
+
 #include <boost/version.hpp>
 #include "../bzip2/bzlib_private.h"
 #include "../miniupnpc/miniupnpc.h"

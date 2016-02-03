@@ -21,6 +21,9 @@
 #if !defined(RSSSETFEED_DLG_H)
 #define RSSSETFEED_DLG_H
 
+#pragma once
+
+
 #include "WinUtil.h"
 
 

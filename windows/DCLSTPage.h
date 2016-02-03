@@ -19,6 +19,10 @@
 #if !defined(_DCLSHT_PAGE_H_)
 #define _DCLSHT_PAGE_H_
 
+
+#pragma once
+
+
 #include <atlcrack.h>
 #include "PropPage.h"
 

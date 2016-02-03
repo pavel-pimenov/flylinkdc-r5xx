@@ -343,7 +343,7 @@ static char *convert_to_ACE (const char *name)
   out_buf[i] = '\0';
 #ifdef IDNA_DEBUG_ENABLED
   IDNA_DEBUG ("punycode_encode: status %d, out_len %d, out_buf '%s'\n",
-              status, out_len, out_buf);
+              int(status), int(out_len), out_buf);
 #endif
   if (status == punycode_success && i == (int)out_len)   /* encoding and ASCII conversion okay */
      return (out_buf);
@@ -392,7 +392,7 @@ static char *convert_from_ACE (const char *name)
   out_buf[j] = '\0';
 #ifdef IDNA_DEBUG_ENABLED
   IDNA_DEBUG ("punycode_decode: status %d, out_len %d, out_buf '%s'\n",
-              status, ucs_len, out_buf);
+              int(status), int(ucs_len), out_buf);
 #endif
  return (status == punycode_success ? out_buf : NULL);
 }

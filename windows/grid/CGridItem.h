@@ -7,6 +7,9 @@
 #ifndef PROPERTY_GRID_WRAPPER_ITEM__H
 #define PROPERTY_GRID_WRAPPER_ITEM__H
 
+#pragma once
+
+
 #include "PropertyGrid.h"
 #include <vector>
 

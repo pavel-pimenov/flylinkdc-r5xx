@@ -7,7 +7,7 @@
 #include <unordered_set>
 #include <set>
 #include <memory>
-#include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
+#include "../client/webrtc/system_wrappers/interface/rw_lock_wrapper.h"
 
 
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
@@ -20,7 +20,7 @@ class CGDIImage
 	: public boost::noncopyable // [+] IRainman fix.
 #endif
 {
-	    friend class MainFrame;
+		friend class MainFrame;
 		typedef bool (__cdecl *ONFRAMECHANGED)(CGDIImage *pImage, LPARAM lParam);
 		
 		Gdiplus::Image *m_pImage;
@@ -73,7 +73,7 @@ class CGDIImage
 				g_AnimationCountMax = g_AnimationCount;
 			}
 		}
-
+		
 		static bool isGDIImageLive(CGDIImage* p_image)
 		{
 			if (isShutdown())
@@ -94,7 +94,7 @@ class CGDIImage
 			CFlyWriteLock(*g_GDIcs);
 			const auto l_size = g_GDIImageSet.size();
 			g_GDIImageSet.erase(p_image);
-			dcassert(g_GDIImageSet.size() == l_size-1);
+			dcassert(g_GDIImageSet.size() == l_size - 1);
 		}
 #endif // FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
 		
@@ -114,7 +114,7 @@ class CGDIImage
 		}
 		void cleanup()
 		{
-			delete [](char*) m_pItem;  
+			delete [](char*) m_pItem;
 			m_pItem = 0;
 		}
 		
@@ -146,7 +146,7 @@ class CGDIImage
 			{
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
 				GDIImageDeath(this);
-#endif 
+#endif
 				delete this; // [39] https://www.box.net/shared/05cc9b528dc37cc78229
 			}
 			

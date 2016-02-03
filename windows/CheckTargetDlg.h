@@ -20,6 +20,9 @@
 #define _CHECK_TARGET_DLG_
 
 
+#pragma once
+
+
 #include "../client/QueueManager.h"
 
 class CheckTargetDlg : public CDialogImpl< CheckTargetDlg >

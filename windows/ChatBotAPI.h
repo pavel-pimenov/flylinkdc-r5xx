@@ -1,5 +1,9 @@
 #ifndef CHAT_BOT_API_H
 #define CHAT_BOT_API_H
+
+#pragma once
+
+
 struct BotInit
 {
 	typedef bool (__stdcall * tInit)(struct BotInit *);

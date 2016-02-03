@@ -19,6 +19,9 @@
 #if !defined(UC_PAGE_H)
 #define UC_PAGE_H
 
+#pragma once
+
+
 #include <atlcrack.h>
 #include "PropPage.h"
 #include "ExListViewCtrl.h"

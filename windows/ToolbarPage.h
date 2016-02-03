@@ -16,9 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
 #ifndef TOOLBARPAGE_H
 #define TOOLBARPAGE_H
+
+#pragma once
+
 
 #include "PropPage.h"
 #include "ExListViewCtrl.h" // [+] IRainman

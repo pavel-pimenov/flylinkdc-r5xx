@@ -19,6 +19,9 @@
 #if !defined(PRIVATE_FRAME_H)
 #define PRIVATE_FRAME_H
 
+#pragma once
+
+
 #include "../client/ClientManagerListener.h"
 #include "../client/ResourceManager.h"
 
