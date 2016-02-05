@@ -192,7 +192,7 @@ void TigerHash::update(const void* data, size_t length)
 	}
 	
 	// So, now either tmp is empty or all data has been consumed...
-	dcassert(length == 0 || tmppos == 0); 
+	dcassert(length == 0 || tmppos == 0);
 	
 	// Process the bulk of data
 	while (length >= BLOCK_SIZE)

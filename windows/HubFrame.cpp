@@ -3643,20 +3643,22 @@ void HubFrame::onTimerHubUpdated()
 		
 		fullHubName += m_client->getHubName();
 		
-		if (!m_client->getName().empty())
-		{
-			const auto l_name = Text::toT(m_client->getName());
-			setShortHubName(l_name);
-		}
-		else
-		{
-			setShortHubName(Text::toT(fullHubName));
-		}
 		if (!m_client->getHubDescription().empty())
 		{
 			fullHubName += " - " + m_client->getHubDescription();
 		}
 		fullHubName += " (" + m_client->getHubUrl() + ')';
+
+		setShortHubName(Text::toT(fullHubName));
+
+		if (!BOOLSETTING(SHOW_FULL_HUB_INFO_ON_TAB)) // Не показываем инфу с хаба 
+		{
+			if (!m_client->getName().empty()) 
+			{
+				const auto l_name = Text::toT(m_client->getName());
+				setShortHubName(l_name);
+			}
+		}	
 		
 		dcassert(!fullHubName.empty());
 		setWindowTitle(fullHubName);
@@ -3743,10 +3745,12 @@ void HubFrame::on(ClientListener::UserReport, const Client*, const string& repor
 	const auto l_message_ptr = new string(report);
 	PostMessage(WM_SPEAKER_USER_REPORT, WPARAM(l_message_ptr));
 }
+#ifdef FLYLINKDC_SUPPORT_HUBTOPIC
 void HubFrame::on(ClientListener::HubTopic, const Client*, const string& line) noexcept
 {
-	speak(ADD_STATUS_LINE, STRING(HUB_TOPIC) + "\t" + line, true);
+	speak(ADD_STATUS_LINE, STRING(HUB_TOPIC) + " " + line, true);
 }
+#endif
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 void HubFrame::on(OpenTCPPortDetected, const string& strHubUrl)  noexcept
 {

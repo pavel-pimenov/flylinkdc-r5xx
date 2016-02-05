@@ -158,7 +158,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 			{
 				return TSTRING(DOWNLOAD_FINISHED_IDLE);
 			}
-			const size_t l_online = QueueManager::countOnlineUsersL(m_qi); 
+			const size_t l_online = QueueManager::countOnlineUsersL(m_qi);
 			const size_t l_count_source = m_qi->getSourcesCountL();
 			if (isWaitingL())
 			{

@@ -107,7 +107,7 @@ void SearchManager::findNode(const CID& cid)
 	if (isAlreadySearchingFor(cid.toBase32()))
 		return;
 		
-	Search* s = new Search(Search::TYPE_NODE,cid.toBase32(),Util::rand());
+	Search* s = new Search(Search::TYPE_NODE, cid.toBase32(), Util::rand());
 	
 	search(*s);
 }
@@ -145,7 +145,7 @@ void SearchManager::findFile(const string& tth, uint32_t p_token)
 	//  return;
 	//}
 	
-	Search* s = new Search(Search::TYPE_FILE,tth,p_token);
+	Search* s = new Search(Search::TYPE_FILE, tth, p_token);
 	
 	search(*s);
 	
@@ -164,7 +164,7 @@ void SearchManager::findStore(const string& tth, int64_t size, bool partial)
 		return;
 	}
 	
-	Search* s = new Search(Search::TYPE_STOREFILE,tth,Util::rand());
+	Search* s = new Search(Search::TYPE_STOREFILE, tth, Util::rand());
 	s->m_filesize = size;
 	s->partial    = partial;
 	
@@ -281,25 +281,25 @@ void SearchManager::processSearchRequest(const string& ip, uint16_t port, const 
 			
 			// get nodes closest to requested ID
 			Node::Map nodes;
-			if(term.size() != 39)
+			if (term.size() != 39)
 			{
 				LogManager::dht_message("DHT - SearchManager::processSearchRequest Error term.size() != 39. term = " + term);
 			}
 			else
 			{
-			const CID l_CID_term(term);
-			DHT::getInstance()->getClosestNodes(l_CID_term, nodes, count, 2);
-			
-			// add nodelist in XML format
-			for (auto i = nodes.cbegin(); i != nodes.cend(); ++i)
-			{
-				xml.addTag("Node");
-				xml.addChildAttrib("CID", i->second->getUser()->getCID().toBase32());
-				xml.addChildAttrib("I4", i->second->getIdentity().getIpAsString());
-				xml.addChildAttrib("U4", i->second->getIdentity().getUdpPort());
+				const CID l_CID_term(term);
+				DHT::getInstance()->getClosestNodes(l_CID_term, nodes, count, 2);
 				
-				empty = false;
-			}
+				// add nodelist in XML format
+				for (auto i = nodes.cbegin(); i != nodes.cend(); ++i)
+				{
+					xml.addTag("Node");
+					xml.addChildAttrib("CID", i->second->getUser()->getCID().toBase32());
+					xml.addChildAttrib("I4", i->second->getIdentity().getIpAsString());
+					xml.addChildAttrib("U4", i->second->getIdentity().getUdpPort());
+					
+					empty = false;
+				}
 			}
 			break;
 		}
@@ -327,12 +327,12 @@ void SearchManager::processSearchRequest(const string& ip, uint16_t port, const 
 void SearchManager::processSearchResult(const AdcCommand& cmd)
 {
 	dcassert(BOOLSETTING(USE_DHT));
-  string l_token_str;
+	string l_token_str;
 	if (!cmd.getParam("TO", 1, l_token_str))
 		return; // missing search token?
-  uint32_t l_token = Util::toUInt32(l_token_str);
-  dcassert(l_token);
-		
+	uint32_t l_token = Util::toUInt32(l_token_str);
+	dcassert(l_token);
+	
 	string nodes;
 	if (!cmd.getParam("NX", 1, nodes))
 		return; // missing search token?
@@ -403,19 +403,19 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 					dcassert(!l_ec);
 					if (!l_ec)
 					{
-					const SearchResult sr(source->getUser(), SearchResult::TYPE_FILE, !source->isOnline() ? 0 : source->getIdentity().getSlots(), 0, size, s->m_term, DHT::getInstance()->getHubName(), DHT::getInstance()->getHubUrl(), l_ip4, TTHValue(s->m_term), l_token);
-					if (!source->isOnline())
-					{
-						// node is not online, try to contact him if we didn't contact him recently
-						if (m_searchResults.find(source->getUser()->getCID()) != m_searchResults.end())
-							DHT::getInstance()->info(i4, u4, DHT::PING | DHT::CONNECTION, cid, source->getUdpKey());
-							
-						m_searchResults.insert(std::make_pair(source->getUser()->getCID(), std::make_pair(GET_TICK(), sr)));
-					}
-					else
-					{
-						::SearchManager::getInstance()->fly_fire1(::SearchManagerListener::SR(), sr);
-					}
+						const SearchResult sr(source->getUser(), SearchResult::TYPE_FILE, !source->isOnline() ? 0 : source->getIdentity().getSlots(), 0, size, s->m_term, DHT::getInstance()->getHubName(), DHT::getInstance()->getHubUrl(), l_ip4, TTHValue(s->m_term), l_token);
+						if (!source->isOnline())
+						{
+							// node is not online, try to contact him if we didn't contact him recently
+							if (m_searchResults.find(source->getUser()->getCID()) != m_searchResults.end())
+								DHT::getInstance()->info(i4, u4, DHT::PING | DHT::CONNECTION, cid, source->getUdpKey());
+								
+							m_searchResults.insert(std::make_pair(source->getUser()->getCID(), std::make_pair(GET_TICK(), sr)));
+						}
+						else
+						{
+							::SearchManager::getInstance()->fly_fire1(::SearchManagerListener::SR(), sr);
+						}
 					}
 					else
 					{
@@ -464,7 +464,7 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 				// update our list of possible nodes
 				s->possibleNodes[distance] = node;
 			}
-		}		
+		}
 		xml.stepOut();
 	}
 	catch (const SimpleXMLException&)

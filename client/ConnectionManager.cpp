@@ -1023,7 +1023,7 @@ void ConnectionManager::on(AdcCommand::SUP, UserConnection* aSource, const AdcCo
 	{
 		if (i->compare(0, 2, "AD", 2) == 0)
 		{
-	     bool tigrOk = false;
+			bool tigrOk = false;
 			string feat = i->substr(2);
 			if (feat == UserConnection::FEATURE_ADC_BASE || feat == UserConnection::FEATURE_ADC_BAS0)
 			{

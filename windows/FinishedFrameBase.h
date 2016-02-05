@@ -262,7 +262,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
 			SetSplitterPanes(m_ctrlTree.m_hWnd, ctrlList.m_hWnd);
 			m_nProportionalPos = 2000; //SETTING(FLYSERVER_HUBLIST_SPLIT);
-
+			
 			m_RootItem = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
 			                                   m_transfer_type == e_TransferDownload ? _T("Download") : _T("Upload"),
 			                                   0, // g_ISPImage.m_flagImageCount + 14, // nImage

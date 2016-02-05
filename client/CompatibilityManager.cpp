@@ -317,47 +317,51 @@ string CompatibilityManager::getWindowsVersionName()
 
 	// Test for the specific product.
 	// https://msdn.microsoft.com/ru-ru/library/windows/desktop/ms724833(v=vs.85).aspx
-	if (getOsMajor() == 10)
+	if (getOsMajor() == 6 || getOsMajor() == 10)
 	{
-		if (getOsMinor() == 0)
+		if (getOsMajor() == 10)
 		{
-			if (getOsType() == VER_NT_WORKSTATION)
-				l_OS += "10";
-			else
-				l_OS += "Windows Server 2016 Technical Preview";
+			if (getOsMinor() == 0)
+			{
+				if (getOsType() == VER_NT_WORKSTATION)
+					l_OS += "10 ";
+				else
+					l_OS += "Windows Server 2016 Technical Preview ";
+			}
+			// check type for Win10: Desktop, Mobile, etc...
 		}
-		// check type for Win10: Desktop, Mobile, etc...
-	}
-	if (getOsMajor() == 6)
-	{
-		if (getOsMinor() == 0)
+		if (getOsMajor() == 6)
 		{
-			if (getOsType() == VER_NT_WORKSTATION)
-				l_OS += "Vista ";
-			else
-				l_OS += "Server 2008 ";
+			if (getOsMinor() == 0)
+			{
+				if (getOsType() == VER_NT_WORKSTATION)
+					l_OS += "Vista ";
+				else
+					l_OS += "Server 2008 ";
+			}
+			if (getOsMinor() == 1)
+			{
+				if (getOsType() == VER_NT_WORKSTATION)
+					l_OS += "7 ";
+				else
+					l_OS += "Server 2008 R2 ";
+			}
+			if (getOsMinor() == 2)
+			{
+				if (getOsType() == VER_NT_WORKSTATION)
+					l_OS += "8 ";
+				else
+					l_OS += "Server 2012 ";
+			}
+			if (getOsMinor() == 3)
+			{
+				if (getOsType() == VER_NT_WORKSTATION)
+					l_OS += "8.1 ";
+				else
+					l_OS += "Server 2012 R2 ";
+			}
 		}
-		if (getOsMinor() == 1)
-		{
-			if (getOsType() == VER_NT_WORKSTATION)
-				l_OS += "7 ";
-			else
-				l_OS += "Server 2008 R2 ";
-		}
-		if (getOsMinor() == 2)
-		{
-			if (getOsType() == VER_NT_WORKSTATION)
-				l_OS += "8 ";
-			else
-				l_OS += "Server 2012 ";
-		}
-		if (getOsMinor() == 3)
-		{
-			if (getOsType() == VER_NT_WORKSTATION)
-				l_OS += "8.1 ";
-			else
-				l_OS += "Server 2012 R2";
-		}
+		// Product Info  https://msdn.microsoft.com/en-us/library/windows/desktop/ms724358(v=vs.85).aspx
 		typedef BOOL(WINAPI * PGPI)(DWORD, DWORD, DWORD, DWORD, PDWORD);
 		PGPI pGPI = (PGPI)GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")), "GetProductInfo");
 		if (pGPI)
@@ -370,6 +374,9 @@ string CompatibilityManager::getWindowsVersionName()
 					break;
 				case PRODUCT_PROFESSIONAL:
 					l_OS += "Professional";
+					break;
+				case PRODUCT_PROFESSIONAL_N:
+					l_OS += "Professional N";
 					break;
 				case PRODUCT_HOME_PREMIUM:
 					l_OS += "Home Premium Edition";
@@ -419,6 +426,37 @@ string CompatibilityManager::getWindowsVersionName()
 				case PRODUCT_WEB_SERVER:
 					l_OS += "Web Server Edition";
 					break;
+				case PRODUCT_UNLICENSED:
+					l_OS += "Unlicensed";
+					break;
+					// Only Windows 10 support:
+					// VC 2015 not supported these defines :(
+					/*
+					case PRODUCT_MOBILE_CORE:
+					l_OS += "Mobile";
+					break;
+					case PRODUCT_MOBILE_ENTERPRISE:
+					l_OS += "Mobile Enterprise";
+					break;
+					case PRODUCT_IOTUAP:
+					l_OS += "IoT Core";
+					break;
+					case PRODUCT_IOTUAPCOMMERCIAL:
+					l_OS += "IoT Core Commercial";
+					break;
+					case PRODUCT_EDUCATION:
+					l_OS += "Education";
+					break;
+					case PRODUCT_ENTERPRISE_S:
+					l_OS += "Enterprise 2015 LTSB";
+					break;
+					case PRODUCT_CORE:
+					l_OS += "Home";
+					break;
+					case PRODUCT_CORE_SINGLELANGUAGE:
+					l_OS += "Home Single Language";
+					break;
+					*/
 			}
 		}
 	}

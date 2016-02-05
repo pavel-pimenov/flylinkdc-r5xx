@@ -334,7 +334,7 @@ CAnimatedButton::CAnimatedButton(CGDIImage *pImage):
 	m_wSrc = 0;
 	m_hSrc = 0;
 	m_h = m_w = 0;
-
+	
 	if (m_pImage)
 	{
 		m_pImage->AddRef();

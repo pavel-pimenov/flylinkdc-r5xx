@@ -162,16 +162,16 @@ Node::Ptr RoutingTable::addOrUpdate(const UserPtr& u, const string& ip, uint16_t
 				break;
 			}
 		}
-#if 0		
+#if 0
 		if (node == nullptr && u->isOnline())
 		{
 			// try to get node from ClientManager (user can be online but not in our routing table)
 			// [-]PPA Отключил опасное преобразование типа OnlineUser нельзя расширить до наследника Node*
-            // node = (Node*)ClientManager::findDHTNode(u->getCID()).get();
+			// node = (Node*)ClientManager::findDHTNode(u->getCID()).get();
 			// LogManager::message("RoutingTable::addOrUpdate error node == nullptr && u->isOnline() - send email ppa74@ya.ru");
 			// dcassert(0);
 		}
-#endif		
+#endif
 		if (node != nullptr)
 		{
 			// fine, node found, update it and return it
@@ -282,8 +282,8 @@ void RoutingTable::getClosestNodes(const CID& cid, Node::Map& closest, unsigned 
 			Node::Ptr node = *it;
 			// TODO dcassert(!node->getUser()->isSet(User::NMDC_FILES_PASSIVE));
 			if (node->getType() <= maxType && node->isIpVerified() &&
-				!node->getUser()->isSet(User::NMDC_FILES_PASSIVE) 
-				)
+			        !node->getUser()->isSet(User::NMDC_FILES_PASSIVE)
+			   )
 			{
 				const CID distance = Utils::getDistance(cid, node->getUser()->getCID());
 				
@@ -323,15 +323,15 @@ void RoutingTable::getClosestNodes(const CID& cid, Node::Map& closest, unsigned 
  */
 void RoutingTable::loadNodes(SimpleXML& xml)
 {
-	std::vector<dht::BootstrapNode> l_dht_nodes; 
-	if(CFlylinkDBManager::getInstance()->load_dht_nodes(l_dht_nodes))
+	std::vector<dht::BootstrapNode> l_dht_nodes;
+	if (CFlylinkDBManager::getInstance()->load_dht_nodes(l_dht_nodes))
 	{
 		for (auto k = l_dht_nodes.cbegin(); k != l_dht_nodes.cend(); ++k)
 		{
 			const BootstrapNode& l_node = *k;
-			if (Utils::isGoodIPPort(l_node.m_ip,l_node.m_udpPort))
+			if (Utils::isGoodIPPort(l_node.m_ip, l_node.m_udpPort))
 			{
-				if (!l_node.m_udpKey.m_ip.empty() && !l_node.m_udpKey.m_key.isZero() )
+				if (!l_node.m_udpKey.m_ip.empty() && !l_node.m_udpKey.m_key.isZero())
 				{
 					if (DHT::getLastExternalIP() == "0.0.0.0")
 					{
@@ -354,28 +354,28 @@ void RoutingTable::loadNodes(SimpleXML& xml)
 				const string& i4   = xml.getChildAttrib("I4");
 				const uint16_t u4 = static_cast<uint16_t>(xml.getIntChildAttrib("U4"));
 				dcassert(u4);
-			
+				
 				if (Utils::isGoodIPPort(i4, u4))
 				{
 					UDPKey udpKey;
 					const string& key      = xml.getChildAttrib("key");
 					const string& keyIp    = xml.getChildAttrib("keyIP");
-				
+					
 					if (!key.empty() && !keyIp.empty())
 					{
 						udpKey.m_key = CID(key);
 						udpKey.m_ip = keyIp;
-					
+						
 						// since we don't know our IP yet, we can use stored one
 						if (DHT::getLastExternalIP() == "0.0.0.0")
 						{
 							DHT::setLastExternalIP(keyIp);
 						}
 					}
-				
+					
 					//UserPtr u = ClientManager::getUser(cid);
 					//addOrUpdate(u, i4, u4, udpKey, false, true);
-				
+					
 					BootstrapManager::addBootstrapNode(i4, u4, cid, udpKey);
 				}
 			}
@@ -410,8 +410,8 @@ void RoutingTable::saveNodes()
 		}
 		l_dht_nodes.push_back(l_node);
 	}
-	if(!l_dht_nodes.empty())
-	  CFlylinkDBManager::getInstance()->save_dht_nodes(l_dht_nodes);
+	if (!l_dht_nodes.empty())
+		CFlylinkDBManager::getInstance()->save_dht_nodes(l_dht_nodes);
 }
 
 void RoutingTable::checkExpiration(uint64_t aTick)

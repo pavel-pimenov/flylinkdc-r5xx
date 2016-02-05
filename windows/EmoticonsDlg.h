@@ -27,7 +27,7 @@ class CAnimatedButton: public CWindowImpl<CAnimatedButton, CButton>
 		
 		static bool __cdecl OnFrameChanged(CGDIImage *pImage, LPARAM lParam);
 		
-    CAnimatedButton() {}
+		CAnimatedButton() {}
 	public:
 		BEGIN_MSG_MAP(CAnimatedButton)
 		MESSAGE_HANDLER(WM_PAINT, onPaint)

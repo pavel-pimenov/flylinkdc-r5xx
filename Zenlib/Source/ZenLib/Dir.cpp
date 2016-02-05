@@ -389,8 +389,8 @@ public:
         WIN32_FIND_DATA FindFileData;
     #endif //UNICODE
 
-    GetAllFileNames_Private()
-        : hFind(INVALID_HANDLE_VALUE)
+		GetAllFileNames_Private()
+			: hFind(INVALID_HANDLE_VALUE)
     {
     }
 };

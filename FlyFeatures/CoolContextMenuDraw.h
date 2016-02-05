@@ -21,12 +21,12 @@ typedef DWORD HLSCOLOR;
 #define HLS_S(hls) ((BYTE)((hls)>>16))
 
 ///////////////////////////////////////////////////////////////////////////////
-HLSCOLOR RGB2HLS (COLORREF rgb);
-COLORREF HLS2RGB (HLSCOLOR hls);
+HLSCOLOR RGB2HLS(COLORREF rgb);
+COLORREF HLS2RGB(HLSCOLOR hls);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Performs some modifications on the specified color : luminance and saturation
-COLORREF HLS_TRANSFORM (COLORREF rgb, int percent_L, int percent_S);
+COLORREF HLS_TRANSFORM(COLORREF rgb, int percent_L, int percent_S);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Usefull macros
@@ -38,15 +38,15 @@ COLORREF HLS_TRANSFORM (COLORREF rgb, int percent_L, int percent_S);
 ///////////////////////////////////////////////////////////////////////////////
 class CClientRect : public CRect
 {
-public:
-    CClientRect (HWND hWnd)
-    {
-        ::GetClientRect (hWnd, this);
-    };
-    CClientRect (const CWindow* pWnd)
-    {
-        ::GetClientRect (pWnd->m_hWnd, this);
-    };
+	public:
+		CClientRect(HWND hWnd)
+		{
+			::GetClientRect(hWnd, this);
+		};
+		CClientRect(const CWindow* pWnd)
+		{
+			::GetClientRect(pWnd->m_hWnd, this);
+		};
 };
 
 
@@ -54,28 +54,28 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CWindowRect : public CRect
 {
-public:
-    CWindowRect (HWND hWnd)
-    {
-        ::GetWindowRect (hWnd, this);
-    };
-    CWindowRect (const CWindow* pWnd)
-    {
-        ::GetWindowRect (pWnd->m_hWnd, this);
-    };
+	public:
+		CWindowRect(HWND hWnd)
+		{
+			::GetWindowRect(hWnd, this);
+		};
+		CWindowRect(const CWindow* pWnd)
+		{
+			::GetWindowRect(pWnd->m_hWnd, this);
+		};
 };
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-class CBufferDC : public CDCHandle 
+class CBufferDC : public CDCHandle
 {
-    HDC     m_hDestDC;
-    CBitmap m_bitmap;     // Bitmap in Memory DC
-    CRect   m_rect;
-    HGDIOBJ m_hOldBitmap; // Previous Bitmap
-
-public:
-    CBufferDC (HDC hDestDC, const CRect& rcPaint = CRect(0,0,0,0));
-   ~CBufferDC ();
+		HDC     m_hDestDC;
+		CBitmap m_bitmap;     // Bitmap in Memory DC
+		CRect   m_rect;
+		HGDIOBJ m_hOldBitmap; // Previous Bitmap
+		
+	public:
+		CBufferDC(HDC hDestDC, const CRect& rcPaint = CRect(0, 0, 0, 0));
+		~CBufferDC();
 };
 
 
@@ -83,17 +83,17 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CPenDC
 {
-protected:
-    CPen m_pen;
-    HDC m_hDC;
-    HPEN m_hOldPen;
-
-public:
-    CPenDC (HDC hDC, COLORREF crColor = CLR_NONE);
-   ~CPenDC ();
-
-    void Color (COLORREF crColor);
-    COLORREF Color () const;
+	protected:
+		CPen m_pen;
+		HDC m_hDC;
+		HPEN m_hOldPen;
+		
+	public:
+		CPenDC(HDC hDC, COLORREF crColor = CLR_NONE);
+		~CPenDC();
+		
+		void Color(COLORREF crColor);
+		COLORREF Color() const;
 };
 
 
@@ -101,17 +101,17 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CBrushDC
 {
-protected:
-    CBrush m_brush;
-    HDC m_hDC;
-    HBRUSH m_hOldBrush;
-
-public:
-    CBrushDC (HDC hDC, COLORREF crColor = CLR_NONE);
-   ~CBrushDC ();
-
-    void Color (COLORREF crColor);
-    COLORREF Color () const;
+	protected:
+		CBrush m_brush;
+		HDC m_hDC;
+		HBRUSH m_hOldBrush;
+		
+	public:
+		CBrushDC(HDC hDC, COLORREF crColor = CLR_NONE);
+		~CBrushDC();
+		
+		void Color(COLORREF crColor);
+		COLORREF Color() const;
 };
 
 
@@ -119,12 +119,12 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CBoldDC
 {
-protected:
-    CFont m_fontBold;
-    HDC m_hDC;
-    HFONT m_hDefFont;
-
-public:
-    CBoldDC (HDC hDC, bool bBold);
-   ~CBoldDC ();
+	protected:
+		CFont m_fontBold;
+		HDC m_hDC;
+		HFONT m_hDefFont;
+		
+	public:
+		CBoldDC(HDC hDC, bool bBold);
+		~CBoldDC();
 };

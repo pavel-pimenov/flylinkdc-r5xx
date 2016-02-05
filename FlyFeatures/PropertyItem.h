@@ -10,9 +10,9 @@
 // Copyright (c) 2001-2003 Bjarke Viksoe.
 //
 // This code may be used in compiled form in any way you desire. This
-// source file may be redistributed by any means PROVIDING it is 
-// not sold for profit without the authors written consent, and 
-// providing that this notice and the authors name is included. 
+// source file may be redistributed by any means PROVIDING it is
+// not sold for profit without the authors written consent, and
+// providing that this notice and the authors name is included.
 //
 // This file is provided "as is" with no expressed or implied warranty.
 // The author accepts no liability if it causes any damage to you or your
@@ -62,23 +62,23 @@
 // Draw structure
 typedef struct
 {
-   HDC hDC;
-   RECT rcItem;
-   UINT state;
-   //
-   HFONT TextFont;
-   HFONT CategoryFont;
-   HPEN Border;
-   COLORREF clrText;
-   COLORREF clrBack;
-   COLORREF clrSelText;
-   COLORREF clrSelBack;
-   COLORREF clrBorder;
-   COLORREF clrDisabled;
-   COLORREF clrDisabledBack;
-   //
-   TEXTMETRIC tmText;
-   DWORD dwExtStyle;
+	HDC hDC;
+	RECT rcItem;
+	UINT state;
+	//
+	HFONT TextFont;
+	HFONT CategoryFont;
+	HPEN Border;
+	COLORREF clrText;
+	COLORREF clrBack;
+	COLORREF clrSelText;
+	COLORREF clrSelBack;
+	COLORREF clrBorder;
+	COLORREF clrDisabled;
+	COLORREF clrDisabledBack;
+	//
+	TEXTMETRIC tmText;
+	DWORD dwExtStyle;
 } PROPERTYDRAWINFO;
 
 // Custom control messages
@@ -98,33 +98,33 @@ typedef struct
 
 class IProperty
 {
-public:
-   virtual ~IProperty() { };
-   virtual BYTE GetKind() const = 0;
-   virtual void SetOwner(HWND hWnd, LPVOID pData) = 0;
-   virtual LPCTSTR GetName() const = 0;
-   virtual void SetEnabled(BOOL bEnable) = 0;
-   virtual BOOL IsEnabled() const = 0;
-   virtual void SetItemData(LPARAM lParam) = 0;
-   virtual LPARAM GetItemData() const = 0;
-   virtual void DrawName(PROPERTYDRAWINFO& di) = 0;
-   virtual void DrawValue(PROPERTYDRAWINFO& di) = 0;
-   virtual HWND CreateInplaceControl(HWND hWnd, const RECT& rc) = 0;
-   virtual BOOL Activate(UINT action, LPARAM lParam) = 0;
-   virtual BOOL GetDisplayValue(LPTSTR pstr, UINT cchMax) const = 0;
-   virtual UINT GetDisplayValueLength() const = 0;
-   virtual BOOL GetValue(VARIANT* pValue) const = 0;
-   virtual BOOL SetValue(const VARIANT& value) = 0;
-   virtual BOOL SetValue(HWND hWnd) = 0;
+	public:
+		virtual ~IProperty() { };
+		virtual BYTE GetKind() const = 0;
+		virtual void SetOwner(HWND hWnd, LPVOID pData) = 0;
+		virtual LPCTSTR GetName() const = 0;
+		virtual void SetEnabled(BOOL bEnable) = 0;
+		virtual BOOL IsEnabled() const = 0;
+		virtual void SetItemData(LPARAM lParam) = 0;
+		virtual LPARAM GetItemData() const = 0;
+		virtual void DrawName(PROPERTYDRAWINFO& di) = 0;
+		virtual void DrawValue(PROPERTYDRAWINFO& di) = 0;
+		virtual HWND CreateInplaceControl(HWND hWnd, const RECT& rc) = 0;
+		virtual BOOL Activate(UINT action, LPARAM lParam) = 0;
+		virtual BOOL GetDisplayValue(LPTSTR pstr, UINT cchMax) const = 0;
+		virtual UINT GetDisplayValueLength() const = 0;
+		virtual BOOL GetValue(VARIANT* pValue) const = 0;
+		virtual BOOL SetValue(const VARIANT& value) = 0;
+		virtual BOOL SetValue(HWND hWnd) = 0;
 };
 typedef IProperty* HPROPERTY;
 
 
 // Property control notification structure
-typedef struct tagNMPROPERTYITEM 
+typedef struct tagNMPROPERTYITEM
 {
-   NMHDR hdr;
-   HPROPERTY prop;
+	NMHDR hdr;
+	HPROPERTY prop;
 } NMPROPERTYITEM, *LPNMPROPERTYITEM;
 
 

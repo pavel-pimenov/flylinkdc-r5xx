@@ -76,7 +76,7 @@ int ThrottleManager::read(Socket* sock, void* buffer, size_t len)
 	}
 	
 	// no tokens, wait for them
-	downCond.timed_wait(lock, boost::posix_time::millisec(CONDWAIT_TIMEOUT)); 
+	downCond.timed_wait(lock, boost::posix_time::millisec(CONDWAIT_TIMEOUT));
 	return -1;  // from BufferedSocket: -1 = retry, 0 = connection close
 }
 

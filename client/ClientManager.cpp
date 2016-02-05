@@ -1285,7 +1285,7 @@ void ClientManager::updateNick_internal(const UserPtr& p_user, const string& p_n
 }
 #endif // IRAINMAN_USE_NICKS_IN_CM
 
-const string& ClientManager::findMyNick(const string& hubUrl)
+const string ClientManager::findMyNick(const string& hubUrl)
 {
 #ifdef IRAINMAN_CORRRECT_CALL_FOR_CLIENT_MANAGER_DEBUG
 	dcassert(!hubUrl.empty());

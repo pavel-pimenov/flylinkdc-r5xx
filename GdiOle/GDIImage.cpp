@@ -77,18 +77,18 @@ CGDIImage::~CGDIImage()
 	_ASSERTE(m_Callbacks.empty());
 	if (m_hTimer)
 	{
-			EnterCriticalSection(&m_csCallback);
-			m_allowCreateTimer = false;
-			if (!DeleteTimerQueueTimer(NULL, m_hTimer, INVALID_HANDLE_VALUE))
+		EnterCriticalSection(&m_csCallback);
+		m_allowCreateTimer = false;
+		if (!DeleteTimerQueueTimer(NULL, m_hTimer, INVALID_HANDLE_VALUE))
+		{
+			auto l_code = GetLastError();
+			if (l_code != ERROR_IO_PENDING)
 			{
-				auto l_code = GetLastError();
-				if (l_code != ERROR_IO_PENDING)
-				{
-					dcassert(0);
-				}
+				dcassert(0);
 			}
-			m_hTimer = NULL;
-			LeaveCriticalSection(&m_csCallback);
+		}
+		m_hTimer = NULL;
+		LeaveCriticalSection(&m_csCallback);
 	}
 	safe_delete(m_pImage);
 	cleanup();
@@ -137,16 +137,16 @@ bool CGDIImage::SelectActiveFrame(DWORD dwFrame)
 	dcassert(!isShutdown());
 	if (!isShutdown())
 	{
-			static const GUID g_Guid = Gdiplus::FrameDimensionTime;
-			if (m_pImage) // crash https://drdump.com/DumpGroup.aspx?DumpGroupID=230505&Login=guest
-				m_pImage->SelectActiveFrame(&g_Guid, dwFrame); // [1] https://www.box.net/shared/x4tgntvw818gzd274nek
-			return true;
-			/* [!]TODO
-			if(m_pImage)
-			return m_pImage->SelectActiveFrame(&g_Guid, dwFrame) == Ok;
-			else
-			return false;
-			*/
+		static const GUID g_Guid = Gdiplus::FrameDimensionTime;
+		if (m_pImage) // crash https://drdump.com/DumpGroup.aspx?DumpGroupID=230505&Login=guest
+			m_pImage->SelectActiveFrame(&g_Guid, dwFrame); // [1] https://www.box.net/shared/x4tgntvw818gzd274nek
+		return true;
+		/* [!]TODO
+		if(m_pImage)
+		return m_pImage->SelectActiveFrame(&g_Guid, dwFrame) == Ok;
+		else
+		return false;
+		*/
 	}
 	else
 	{
@@ -187,17 +187,17 @@ DWORD CGDIImage::GetHeight()
 void CGDIImage::DrawFrame()
 {
 	dcassert(!isShutdown());
-
+	
 	EnterCriticalSection(&m_csCallback); // crash-full-r501-build-9869.dmp
 	static int g_count = 0;
 	for (auto i = m_Callbacks.cbegin(); i != m_Callbacks.cend(); ++i)
 	{
-/*        dcdebug("CGDIImage::DrawFrame  this = %p m_Callbacks.size() = %d m_Callbacks i = %p g_count = %d\r\n",
-			this, 
-			m_Callbacks.size(), 
-			i->lParam,
-			++g_count);
-*/
+		/*        dcdebug("CGDIImage::DrawFrame  this = %p m_Callbacks.size() = %d m_Callbacks i = %p g_count = %d\r\n",
+		            this,
+		            m_Callbacks.size(),
+		            i->lParam,
+		            ++g_count);
+		*/
 		if (!i->pOnFrameChangedProc(this, i->lParam))
 		{
 			i = m_Callbacks.erase(i);
@@ -213,7 +213,7 @@ void CGDIImage::destroyTimer(CGDIImage *pGDIImage, HANDLE p_CompletionEvent)
 	if (pGDIImage->m_hTimer)
 	{
 		pGDIImage->m_allowCreateTimer = false;
-		if(!DeleteTimerQueueTimer(NULL, pGDIImage->m_hTimer, p_CompletionEvent))
+		if (!DeleteTimerQueueTimer(NULL, pGDIImage->m_hTimer, p_CompletionEvent))
 		{
 			auto l_code = GetLastError();
 			if (l_code != ERROR_IO_PENDING)
@@ -223,82 +223,82 @@ void CGDIImage::destroyTimer(CGDIImage *pGDIImage, HANDLE p_CompletionEvent)
 		}
 		pGDIImage->m_hTimer = NULL;
 	}
-	LeaveCriticalSection(&pGDIImage->m_csCallback); // 
+	LeaveCriticalSection(&pGDIImage->m_csCallback); //
 }
 VOID CALLBACK CGDIImage::OnTimer(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
 {
 	CGDIImage *pGDIImage = (CGDIImage *)lpParameter;
 	if (pGDIImage)
 	{
-		if(isShutdown())
+		if (isShutdown())
 		{
-			destroyTimer(pGDIImage,NULL);
+			destroyTimer(pGDIImage, NULL);
 			return;
 		}
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-			if(isGDIImageLive(pGDIImage)) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1255
-			{
-#endif
-		if (pGDIImage->SelectActiveFrame(pGDIImage->m_dwCurrentFrame)) //Change Active frame
+		if (isGDIImageLive(pGDIImage)) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1255
 		{
-			DWORD dwDelay = pGDIImage->GetFrameDelay(pGDIImage->m_dwCurrentFrame);
-			if (dwDelay == 0)
-				dwDelay++;
-			destroyTimer(pGDIImage,NULL);
-			if (pGDIImage->m_hCallbackWnd)
-			{
-				// We should call DrawFrame in context of window thread
-				SendMessage(pGDIImage->m_hCallbackWnd, pGDIImage->m_dwCallbackMsg, 0, (LPARAM)pGDIImage);
-			}
-			else
-			{
-					pGDIImage->DrawFrame();
-			}
-#ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-			if(isGDIImageLive(pGDIImage)) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1255
-			{
 #endif
-			EnterCriticalSection(&pGDIImage->m_csCallback); 
-			// [!] IRainman fix.
-			// [-] pGDIImage->m_hTimer = NULL;
-			pGDIImage->m_allowCreateTimer = true;
-			// [~] IRainman fix.
-			if (!pGDIImage->m_Callbacks.empty())
+			if (pGDIImage->SelectActiveFrame(pGDIImage->m_dwCurrentFrame)) //Change Active frame
 			{
-				dcassert(!isShutdown());
-				if (!isShutdown())
+				DWORD dwDelay = pGDIImage->GetFrameDelay(pGDIImage->m_dwCurrentFrame);
+				if (dwDelay == 0)
+					dwDelay++;
+				destroyTimer(pGDIImage, NULL);
+				if (pGDIImage->m_hCallbackWnd)
 				{
-					CreateTimerQueueTimer(&pGDIImage->m_hTimer, NULL, OnTimer, pGDIImage, dwDelay, 0, WT_EXECUTEDEFAULT); // TODO - разрушать все таймера при стопе
+					// We should call DrawFrame in context of window thread
+					SendMessage(pGDIImage->m_hCallbackWnd, pGDIImage->m_dwCallbackMsg, 0, (LPARAM)pGDIImage);
 				}
-			}
-			LeaveCriticalSection(&pGDIImage->m_csCallback);
-			// Move to the next frame
-			if (pGDIImage->m_dwFramesCount)
-			{
-				pGDIImage->m_dwCurrentFrame++;
-				pGDIImage->m_dwCurrentFrame %= pGDIImage->m_dwFramesCount;
+				else
+				{
+					pGDIImage->DrawFrame();
+				}
+#ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
+				if (isGDIImageLive(pGDIImage)) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1255
+				{
+#endif
+					EnterCriticalSection(&pGDIImage->m_csCallback);
+					// [!] IRainman fix.
+					// [-] pGDIImage->m_hTimer = NULL;
+					pGDIImage->m_allowCreateTimer = true;
+					// [~] IRainman fix.
+					if (!pGDIImage->m_Callbacks.empty())
+					{
+						dcassert(!isShutdown());
+						if (!isShutdown())
+						{
+							CreateTimerQueueTimer(&pGDIImage->m_hTimer, NULL, OnTimer, pGDIImage, dwDelay, 0, WT_EXECUTEDEFAULT); // TODO - разрушать все таймера при стопе
+						}
+					}
+					LeaveCriticalSection(&pGDIImage->m_csCallback);
+					// Move to the next frame
+					if (pGDIImage->m_dwFramesCount)
+					{
+						pGDIImage->m_dwCurrentFrame++;
+						pGDIImage->m_dwCurrentFrame %= pGDIImage->m_dwFramesCount;
+					}
+#ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
+				}
+#endif
 			}
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
 		}
 #endif
-}
-#ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-}
-#endif
-}
+	}
 }
 
 void CGDIImage::RegisterCallback(ONFRAMECHANGED pOnFrameChangedProc, LPARAM lParam)
 {
 	dcassert(!isShutdown());
-
+	
 	if (GetFrameCount() > 1)
 	{
 		EnterCriticalSection(&m_csCallback);
 		m_Callbacks.insert(CALLBACK_STRUCT(pOnFrameChangedProc, lParam));
-		if (!m_hTimer && m_allowCreateTimer ) // [+] IRainman fix.
+		if (!m_hTimer && m_allowCreateTimer)  // [+] IRainman fix.
 		{
-				CreateTimerQueueTimer(&m_hTimer, NULL, OnTimer, this, 0, 0, WT_EXECUTEDEFAULT); // TODO - разрушать все таймера при стопе
+			CreateTimerQueueTimer(&m_hTimer, NULL, OnTimer, this, 0, 0, WT_EXECUTEDEFAULT); // TODO - разрушать все таймера при стопе
 		}
 		calcStatisticsL();
 		LeaveCriticalSection(&m_csCallback);
@@ -307,7 +307,7 @@ void CGDIImage::RegisterCallback(ONFRAMECHANGED pOnFrameChangedProc, LPARAM lPar
 
 void CGDIImage::UnregisterCallback(ONFRAMECHANGED pOnFrameChangedProc, LPARAM lParam)
 {
-	if(isShutdown())
+	if (isShutdown())
 	{
 		EnterCriticalSection(&m_csCallback);
 		m_Callbacks.clear(); // TODO - часто зовется на пустой коллекции при наличии нескольки смайлов в чатах.
@@ -315,16 +315,16 @@ void CGDIImage::UnregisterCallback(ONFRAMECHANGED pOnFrameChangedProc, LPARAM lP
 	}
 	else
 	{
-	if (GetFrameCount() > 1)
-	{
-		EnterCriticalSection(&m_csCallback);
-		tCALLBACK::iterator i = m_Callbacks.find(CALLBACK_STRUCT(pOnFrameChangedProc, lParam));
-		if (i != m_Callbacks.end())
+		if (GetFrameCount() > 1)
+		{
+			EnterCriticalSection(&m_csCallback);
+			tCALLBACK::iterator i = m_Callbacks.find(CALLBACK_STRUCT(pOnFrameChangedProc, lParam));
+			if (i != m_Callbacks.end())
 			{
 				m_Callbacks.erase(i);
 				calcStatisticsL();
 			}
-		LeaveCriticalSection(&m_csCallback);
+			LeaveCriticalSection(&m_csCallback);
 		}
 	}
 }

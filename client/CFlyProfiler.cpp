@@ -320,7 +320,7 @@ ColorRamp for HTML
 
 struct ColorF
 {
-	ColorF():r(0), g(0), b(0) {}
+	ColorF(): r(0), g(0), b(0) {}
 	ColorF(f32 r_, f32 g_, f32 b_) : r(r_), g(g_), b(b_) {}
 	f32 r, g, b;
 };
@@ -329,7 +329,7 @@ struct ColorRamp
 {
 	struct Marker
 	{
-		Marker() :value(0) {}
+		Marker() : value(0) {}
 		Marker(const ColorF &color_, f32 value_) : color(color_), value(value_) {}
 		ColorF color;
 		f32 value;

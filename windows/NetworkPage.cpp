@@ -311,12 +311,12 @@ void NetworkPage::fixControls()
 		}
 		return false;
 	};
-
+	
 	calcUPnPIconsIndex(IDC_NETWORK_TEST_PORT_TCP_ICO_UPNP, SettingsManager::g_upnpTCPLevel);
 	calcUPnPIconsIndex(IDC_NETWORK_TEST_PORT_UDP_ICO_UPNP, SettingsManager::g_upnpUDPSearchLevel);
 	calcUPnPIconsIndex(IDC_NETWORK_TEST_PORT_TLS_TCP_ICO_UPNP, SettingsManager::g_upnpTLSLevel);
 	calcUPnPIconsIndex(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO_UPNP, SettingsManager::g_upnpUDPDHTLevel);
-
+	
 }
 
 LRESULT NetworkPage::onClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

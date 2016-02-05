@@ -139,7 +139,7 @@ void ChatBot::onUserAction(BotInit::CODES c, const UserPtr& aUser)
 	{
 		try
 		{
-			m_init.RecvMessage2(c, Text::toT(aUser->getCID().toBase32()).c_str(), nullptr, 0); 
+			m_init.RecvMessage2(c, Text::toT(aUser->getCID().toBase32()).c_str(), nullptr, 0);
 		}
 		catch (const Exception&)
 		{

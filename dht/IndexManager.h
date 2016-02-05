@@ -96,7 +96,7 @@ class IndexManager :
 		static void setTimeForPublishing()
 		{
 			g_isRepublishTime = GET_TICK() >= g_nextRepublishTime;
-		}		 
+		}
 		
 	private:
 	
@@ -113,7 +113,7 @@ class IndexManager :
 		
 		/** Time when our sharelist should be republished */
 		static uint64_t g_nextRepublishTime;
-
+		
 		static bool g_isRepublishTime;
 		
 		/** Synchronizes access to tthList */

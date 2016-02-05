@@ -595,7 +595,10 @@ void SearchManager::onPSR(const AdcCommand& p_cmd, UserPtr from, const boost::as
 		// what to do now ? just ignore partial search result :-/
 		return;
 	}
-	
+	if (!from)
+	{
+		return;
+	}
 	PartsInfo outPartialInfo;
 	QueueItem::PartialSource ps(from->isNMDC() ? ClientManager::findMyNick(url) : Util::emptyString, hubIpPort, remoteIp, udpPort);
 	ps.setPartialInfo(partialInfo);

@@ -933,7 +933,7 @@ void OPENSSL_showfatal(const char *fmta, ...)
         HANDLE hEventLog = RegisterEventSource(NULL, _T("OpenSSL"));
 
         if (hEventLog != NULL) {
-        const TCHAR *pmsg = buf;
+            const TCHAR *pmsg = buf;
 
             if (!ReportEvent(hEventLog, EVENTLOG_ERROR_TYPE, 0, 0, NULL,
                              1, 0, &pmsg, NULL)) {

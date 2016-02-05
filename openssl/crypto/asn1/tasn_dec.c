@@ -503,7 +503,7 @@ int ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
     ASN1err(ASN1_F_ASN1_ITEM_EX_D2I, ASN1_R_AUX_ERROR);
  err:
     if (combine == 0)
-    ASN1_item_ex_free(pval, it);
+        ASN1_item_ex_free(pval, it);
     if (errtt)
         ERR_add_error_data(4, "Field=", errtt->field_name,
                            ", Type=", it->sname);

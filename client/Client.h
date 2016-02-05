@@ -94,8 +94,8 @@ class ClientBase
 #endif
 		}
 		
-		virtual const string& getHubUrl() const = 0;
-		virtual const string& getHubName() const = 0; // [!] IRainman opt.
+		virtual const string getHubUrl() const = 0;
+		virtual const string getHubName() const = 0; // [!] IRainman opt.
 		virtual bool isOp() const = 0;
 		virtual void connect(const OnlineUser& user, const string& p_token, bool p_is_force_passive) = 0;
 		virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0;
@@ -305,13 +305,13 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			getMyIdentity().setNick(p_nick);
 		}
-		const string& getMyNick() const // [!] IRainman opt.
+		const string getMyNick() const // [!] IRainman opt.
 		{
 			return getMyIdentity().getNick();
 		}
-		const string& getHubName() const // [!] IRainman opt.
+		const string getHubName() const // [!] IRainman opt.
 		{
-			const string& ni = getHubIdentity().getNick();
+			const string ni = getHubIdentity().getNick();
 			return ni.empty() ? getHubUrl() : ni;
 		}
 		string getHubDescription() const
@@ -323,7 +323,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			return 0;
 		}
 		
-		virtual const string& getHubUrl() const // Зачем тут виртуальность?
+		virtual const string getHubUrl() const
 		{
 			return m_HubURL;
 		}
@@ -336,22 +336,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			return m_HubID;
 		}
 #endif
-//[+]FlylinkDC
-		/* [-] IRainman what is it?
-		bool WaitForInitialization(DWORD dwTimeout) const
-		{
-		    return WaitForSingleObject(m_hEventClientInitialized, dwTimeout) == WAIT_OBJECT_0;
-		}
-		*/
-//[~]FlylinkDC
-		/* [!] IRainman fix
-		[-] GETSET(Identity, myIdentity, MyIdentity);
-		[-] GETSET(Identity, hubIdentity, HubIdentity);
-		[-] Identity& getHubIdentity()
-		[-] {
-		[-]     return hubIdentity;
-		[-] }
-		*/
 	private:
 		uint32_t m_message_count;
 		bool m_is_fly_support_hub;
@@ -583,7 +567,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		bool m_isAutobanAntivirusIP;
 		bool m_isAutobanAntivirusNick;
 		boost::unordered_set<string> m_virus_nick;
-#ifdef _DEBUG
+#ifdef FLYLINKDC_USE_VIRUS_CHECK_DEBUG
 		boost::unordered_set<string> m_virus_nick_checked;
 		boost::unordered_map<string, string> m_check_myinfo_dup;
 #endif

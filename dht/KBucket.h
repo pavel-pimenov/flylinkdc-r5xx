@@ -91,7 +91,7 @@ class RoutingTable
 		~RoutingTable(void);
 		
 		typedef std::deque<Node::Ptr> NodeList;
-
+		
 		/** Creates new (or update existing) node which is NOT added to our routing table */
 		//Node::Ptr createNode(const UserPtr& u, const string& ip, uint16_t port, bool update, bool isUdpKeyValid);
 		

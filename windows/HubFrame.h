@@ -455,7 +455,9 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void on(FirstExtJSON, const Client*) noexcept override;
 		void on(ClientListener::CheatMessage, const string&) noexcept override;
 		void on(ClientListener::UserReport, const Client*, const string&) noexcept override; // [+] IRainman
+#ifdef FLYLINKDC_SUPPORT_HUBTOPIC
 		void on(ClientListener::HubTopic, const Client*, const string&) noexcept override;
+#endif
 		void on(ClientListener::StatusMessage, const Client*, const string& line, int statusFlags) noexcept override;
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		void on(ConnectionManagerListener::OpenTCPPortDetected, const string&) noexcept override;

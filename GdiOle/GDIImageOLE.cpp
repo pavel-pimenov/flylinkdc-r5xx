@@ -37,7 +37,7 @@ void CGDIImageOle::FinalRelease()
 			m_bRegistered = false;
 		}
 		m_pImage->DeleteBackDC(m_hBackDC);
-		safe_release(m_pImage); 
+		safe_release(m_pImage);
 	}
 	
 	//DeleteCriticalSection(&m_csAdviseSink);

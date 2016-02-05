@@ -1770,7 +1770,7 @@ bool CFlylinkDBManager::is_virus_bot(const string& p_nick, int64_t p_share, cons
 		CFlyReadLock(*m_virus_cs);
 		const bool l_is_share = p_share && m_virus_share.find(p_share) != m_virus_share.end();
 		if (l_is_share && m_virus_user.find(p_nick) != m_virus_user.end() ||
-			l_is_share && !p_ip4.is_unspecified() && m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end())
+		        l_is_share && !p_ip4.is_unspecified() && m_virus_ip4.find(p_ip4.to_ulong()) != m_virus_ip4.end())
 		{
 			return true;
 		}
@@ -1910,7 +1910,7 @@ int CFlylinkDBManager::sync_antivirus_db(const string& p_antivirus_db, const uin
 		{
 			sqlite3_transaction l_trans(m_flySQLiteDB);
 			m_update_antivirus_db.init(m_flySQLiteDB,
-				"update antivirus_db.fly_suspect_user set share=?,virus_path=? where nick=? and ip4=?");
+			                           "update antivirus_db.fly_suspect_user set share=?,virus_path=? where nick=? and ip4=?");
 			int l_pos = 0;
 			int l_nick_pos = 0;
 			int l_nick_len = 0;
@@ -1961,7 +1961,7 @@ int CFlylinkDBManager::sync_antivirus_db(const string& p_antivirus_db, const uin
 				if (m_update_antivirus_db.sqlite3_changes() == 0)
 				{
 					m_insert_antivirus_db.init(m_flySQLiteDB,
-						"insert or replace into antivirus_db.fly_suspect_user(share,virus_path,nick,ip4) values(?,?,?,?)");
+					                           "insert or replace into antivirus_db.fly_suspect_user(share,virus_path,nick,ip4) values(?,?,?,?)");
 					m_insert_antivirus_db->bind(1, l_share);
 					m_insert_antivirus_db->bind(2, l_virus_path, SQLITE_STATIC);
 					m_insert_antivirus_db->bind(3, l_nick, SQLITE_STATIC);

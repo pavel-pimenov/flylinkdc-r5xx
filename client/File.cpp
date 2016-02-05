@@ -294,7 +294,7 @@ void File::copyFile(const tstring & source, const tstring & target)
 {
 	if (!::CopyFile(formatPath(source).c_str(), formatPath(target).c_str(), FALSE))
 	{
-		throw FileException(Util::translateError()); 
+		throw FileException(Util::translateError());
 	}
 }
 #ifndef _CONSOLE

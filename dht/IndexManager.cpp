@@ -65,37 +65,37 @@ void IndexManager::addSource(const TTHValue& p_tth, const CID& p_cid, const stri
 	l_DHTFile.reserve(1);
 	l_DHTFile.push_back(l_source);
 	CFlylinkDBManager::getInstance()->save_dht_files(l_DHTFile);
-/*
-	CFlyLock(cs);
+	/*
+	    CFlyLock(cs);
 	
-	TTHMap::iterator i = tthList.find(p_tth);
-	if (i != tthList.end())
-	{
-		// no user duplicites
-		SourceList& sources = i->second;
-		for (auto s = sources.cbegin(); s != sources.cend(); ++s)
-		{
-			if (p_cid == *s->getCID())
-			{
-				// delete old item
-				sources.erase(s);
-				break;
-			}
-		}
-		
-		// old items in front, new items in back
-		sources.push_back(source);
-		
-		// if maximum sources reached, remove the oldest one
-		if (sources.size() > MAX_SEARCH_RESULTS)
-			sources.pop_front();
-	}
-	else
-	{
-		// new file
-		tthList.insert(std::make_pair(p_tth, SourceList(1, source)));
-	}
-*/	
+	    TTHMap::iterator i = tthList.find(p_tth);
+	    if (i != tthList.end())
+	    {
+	        // no user duplicites
+	        SourceList& sources = i->second;
+	        for (auto s = sources.cbegin(); s != sources.cend(); ++s)
+	        {
+	            if (p_cid == *s->getCID())
+	            {
+	                // delete old item
+	                sources.erase(s);
+	                break;
+	            }
+	        }
+	
+	        // old items in front, new items in back
+	        sources.push_back(source);
+	
+	        // if maximum sources reached, remove the oldest one
+	        if (sources.size() > MAX_SEARCH_RESULTS)
+	            sources.pop_front();
+	    }
+	    else
+	    {
+	        // new file
+	        tthList.insert(std::make_pair(p_tth, SourceList(1, source)));
+	    }
+	*/
 }
 
 /*
@@ -106,28 +106,28 @@ bool IndexManager::findResult(const TTHValue& p_tth, SourceList& p_sources) cons
 	dcassert(BOOLSETTING(USE_DHT));
 #ifdef _DEBUG
 	static FastCriticalSection cs_tth_dup;
-	static boost::unordered_map<string,int> g_tth_dup;
-
+	static boost::unordered_map<string, int> g_tth_dup;
+	
 	CFlyFastLock(cs_tth_dup);
-	if(g_tth_dup[p_tth.toBase32()]++ > 1)
+	if (g_tth_dup[p_tth.toBase32()]++ > 1)
 	{
-		LogManager::message("[dht] IndexManager::findResult dup = " + p_tth.toBase32() + 
-			" count = " + Util::toString(g_tth_dup[p_tth.toBase32()]) + " size_map = " + Util::toString(g_tth_dup.size()));
+		LogManager::message("[dht] IndexManager::findResult dup = " + p_tth.toBase32() +
+		                    " count = " + Util::toString(g_tth_dup[p_tth.toBase32()]) + " size_map = " + Util::toString(g_tth_dup.size()));
 	}
 #endif
-	return CFlylinkDBManager::getInstance()->find_dht_files(p_tth,p_sources) > 0;
-/*
-// TODO: does file exist in my own sharelist?
-	CFlyFastLock(cs);
-	TTHMap::const_iterator i = tthList.find(tth);
-	if (i != tthList.end())
-	{
-		sources = i->second;
-		return true;
-	}
+	return CFlylinkDBManager::getInstance()->find_dht_files(p_tth, p_sources) > 0;
+	/*
+	// TODO: does file exist in my own sharelist?
+	    CFlyFastLock(cs);
+	    TTHMap::const_iterator i = tthList.find(tth);
+	    if (i != tthList.end())
+	    {
+	        sources = i->second;
+	        return true;
+	    }
 	
-	return false;
-*/
+	    return false;
+	*/
 }
 
 /*
@@ -176,13 +176,13 @@ void IndexManager::loadIndexes(SimpleXML& xml)
 				l_source_item.setUdpPort(static_cast<uint16_t>(xml.getIntChildAttrib("U4")));
 				l_source_item.setSize(xml.getLongLongChildAttrib("SI"));
 //				l_source_item.setExpires(xml.getLongLongChildAttrib("EX"));
-				l_source_item.setPartial(false);			
+				l_source_item.setPartial(false);
 				l_tthList.push_back(l_source_item);
-			}			
+			}
 			xml.stepOut();
 		}
 		xml.stepOut();
-	 }
+	}
 	if (!l_tthList.empty())
 	{
 		CFlylinkDBManager::getInstance()->save_dht_files(l_tthList);
@@ -228,35 +228,35 @@ void IndexManager::checkExpiration(uint64_t p_Tick)
 		CFlylinkDBManager::getInstance()->check_expiration_dht_files(p_Tick);
 		m_hour_count = 0;
 	}
-/*	
-	bool dirty = false;
-	CFlyFastLock(cs);	
-	auto i = tthList.begin();
-	while (i != tthList.end())
-	{
-		auto j = i->second.begin();
-		while (j != i->second.end())
-		{
-			const Source& source = *j; // https://www.box.net/shared/109810fe782a6f5300e7
-			if (source.getExpires() <= aTick)
-			{
-				dirty = true;
-				j = i->second.erase(j);
-			}
-			else
-				break;  // list is sorted, so finding first non-expired can stop iteration
-				
-		}
-		
-		if (i->second.empty())
-			tthList.erase(i++);
-		else
-			++i;
-	}
+	/*
+	    bool dirty = false;
+	    CFlyFastLock(cs);
+	    auto i = tthList.begin();
+	    while (i != tthList.end())
+	    {
+	        auto j = i->second.begin();
+	        while (j != i->second.end())
+	        {
+	            const Source& source = *j; // https://www.box.net/shared/109810fe782a6f5300e7
+	            if (source.getExpires() <= aTick)
+	            {
+	                dirty = true;
+	                j = i->second.erase(j);
+	            }
+	            else
+	                break;  // list is sorted, so finding first non-expired can stop iteration
 	
-	if (dirty)
-		DHT::getInstance()->setDirty();
-*/
+	        }
+	
+	        if (i->second.empty())
+	            tthList.erase(i++);
+	        else
+	            ++i;
+	    }
+	
+	    if (dirty)
+	        DHT::getInstance()->setDirty();
+	*/
 }
 
 /** Publishes shared file */

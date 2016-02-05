@@ -33,7 +33,7 @@ namespace dht
 
 struct Packet
 #ifdef _DEBUG
-	: boost::noncopyable
+		: boost::noncopyable
 #endif
 {
 	/** Public constructor */

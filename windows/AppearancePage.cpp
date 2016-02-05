@@ -59,8 +59,7 @@ PropPage::ListItem AppearancePage::listItems[] =
 	{ SettingsManager::USE_EXPLORER_THEME, ResourceManager::USE_EXPLORER_THEME },
 	{ SettingsManager::USE_12_HOUR_FORMAT, ResourceManager::USE_12_HOUR_FORMAT }, // [+] InfinitySky.
 	{ SettingsManager::SHOW_CUSTOM_MINI_ICON_ON_TASKBAR, ResourceManager::SHOW_CUSTOM_MINI_ICON_ON_TASKBAR }, // [+] InfinitySky.
-//	{ SettingsManager::SHOW_FULL_HUB_INFO_ON_TAB, ResourceManager::SETTINGS_SHOW_FULL_HUB_INFO_ON_TAB }, // [+] NightOrion.
-
+	
 #ifdef SCALOLAZ_HUB_MODE
 	{ SettingsManager::ENABLE_HUBMODE_PIC, ResourceManager::ENABLE_HUBMODE_PIC },
 #endif

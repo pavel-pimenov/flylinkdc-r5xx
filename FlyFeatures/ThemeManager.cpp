@@ -52,7 +52,7 @@ void ThemeManager::loadResourceLib()
 	if (!themeDllName.empty())
 	{
 		const auto themeFullPath = Util::getThemesPath() + themeDllName;
-
+		
 		setResourceLibInstance(::LoadLibrary(Text::toT(themeFullPath).c_str()));
 #ifdef IRAINMAN_THEME_MANAGER_LISTENER_ENABLE
 		if (isResourceLibLoaded())

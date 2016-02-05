@@ -40,11 +40,11 @@ class DHT :
 		enum InfType { NONE = 0, PING = 1, CONNECTION = 2 };
 		
 		/** ClientBase derived functions */
-		const string& getHubUrl() const
+		const string getHubUrl() const
 		{
 			return NetworkName;
 		}
-		const string& getHubName() const // [!] IRainman opt.
+		const string getHubName() const // [!] IRainman opt.
 		{
 			return NetworkName;
 		}
@@ -68,10 +68,10 @@ class DHT :
 		
 		/** Sends command to ip and port */
 		bool send(AdcCommand& cmd, const string& ip, uint16_t port, const CID& targetCID, const UDPKey& udpKey);
-
+		
 		/** Creates new (or update existing) node which is NOT added to our routing table */
 		//Node::Ptr createNode(const CID& cid, const string& ip, uint16_t port, bool update, bool isUdpKeyValid);
-
+		
 		/** Adds node to routing table */
 		Node::Ptr addDHTNode(const CID& cid, const string& ip, uint16_t port, const UDPKey& udpKey, bool update, bool isUdpKeyValid);
 		
@@ -102,7 +102,7 @@ class DHT :
 			return m_lastPacket && (GET_TICK() - m_lastPacket < CONNECTED_TIMEOUT);
 		}
 		
-	
+		
 		/** Saves network information to XML file */
 		void saveData();
 		
@@ -184,7 +184,7 @@ class DHT :
 		
 		/** Loads network information from XML file */
 		void loadData();
-
+		
 		bool resendMyINFO(bool p_always_send, bool p_is_force_passive)
 		{
 			dcassert(0);

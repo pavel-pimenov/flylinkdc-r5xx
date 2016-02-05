@@ -43,7 +43,7 @@ bool Mapper::close_all_rules()
 	{
 		ret &= remove(i->first, i->second);
 	}
-		
+	
 	m_rules.clear();
 	
 	return ret;

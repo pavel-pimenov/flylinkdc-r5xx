@@ -50,7 +50,7 @@ class TaskManager :
 			zones.erase(remove(zones.begin(), zones.end(), zone), zones.end());
 		}
 #ifdef _DEBUG
-		bool isDebugTimerExecute() const 
+		bool isDebugTimerExecute() const
 		{
 			return m_debugIsTimerExecute != 0;
 		}
@@ -73,7 +73,7 @@ class TaskManager :
 		uint64_t lastBootstrap;
 		uint64_t m_lastDownloadDHTError;
 		dcdrun(volatile long m_debugIsTimerExecute;) // [+] FlylinkDC++ test.
-
+		
 		
 		std::vector<RoutingTable*> zones;
 		FastCriticalSection cs; // [!] IRainman opt: use spin lock here.

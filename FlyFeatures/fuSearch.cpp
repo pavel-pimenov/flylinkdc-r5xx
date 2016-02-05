@@ -37,16 +37,16 @@ bool FileUpdateSearch::Scan()
 // !!! Folder should always ends with "\" !!!
 bool FileUpdateSearch::ProcessFolder(const wstring& folder)
 {
-	WIN32_FIND_DATA ffd;	
+	WIN32_FIND_DATA ffd;
 	wstring searchPattern = folder;
 	searchPattern += L'*';
 	
-	HANDLE hFind = FindFirstFileEx(searchPattern.c_str(), 
-								   FindExInfoStandard, // CompatibilityManager::g_find_file_level,
-								   &ffd, 
-	                               FindExSearchNameMatch, 
-								   NULL, 
-								   0);
+	HANDLE hFind = FindFirstFileEx(searchPattern.c_str(),
+	                               FindExInfoStandard, // CompatibilityManager::g_find_file_level,
+	                               &ffd,
+	                               FindExSearchNameMatch,
+	                               NULL,
+	                               0);
 	if (hFind == INVALID_HANDLE_VALUE)
 		return false;
 	do
@@ -84,8 +84,8 @@ DWORD
 FileUpdateSearch::CopyFileWithFolders(size_t i, const wstring& destination)
 {
 	const wstring sourceName = _fileArray[i];
-
-	// TODO! 
+	
+	// TODO!
 	//File::ensureDirectory(destination);
 	
 	// Parse destination on folders and create'em
@@ -103,23 +103,23 @@ FileUpdateSearch::CopyFileWithFolders(size_t i, const wstring& destination)
 
 void FileUpdateSearch::DeleteAll()
 {
-		const size_t fileUpdateCount = GetFilesCount();
-		for (int i = fileUpdateCount - 1 ; i >= 0 ; i--)
-		{
-			::DeleteFile(GetAbsoluteFilename(i).c_str());
-		}
-		const size_t folderCounts = GetFoldersCount();
-		for (int i = folderCounts - 1; i >= 0 ; i--)
-		{
-			::RemoveDirectory(GetAbsoluteFoldername(i).c_str());
-		}
+	const size_t fileUpdateCount = GetFilesCount();
+	for (int i = fileUpdateCount - 1 ; i >= 0 ; i--)
+	{
+		::DeleteFile(GetAbsoluteFilename(i).c_str());
+	}
+	const size_t folderCounts = GetFoldersCount();
+	for (int i = folderCounts - 1; i >= 0 ; i--)
+	{
+		::RemoveDirectory(GetAbsoluteFoldername(i).c_str());
+	}
 }
 
 // [!] Needs for FlyUpdate utility!
 const wstring FileUpdateSearch::GetRelativeFilename(size_t i)
 {
 	wstring retValue;
-
+	
 	wstring relativeName = _fileArray[i];
 	// Remove _folderForUpdate with "\\";
 	wstring folderUpdate = _folderForUpdate;
@@ -129,14 +129,14 @@ const wstring FileUpdateSearch::GetRelativeFilename(size_t i)
 	{
 		retValue = relativeName.substr(folderUpdate.length());
 	}
-
+	
 	return retValue;
 }
 
 const wstring FileUpdateSearch::GetRelativeFoldername(size_t i)
 {
 	wstring retValue;
-
+	
 	wstring relativeName = _folderArray[i];
 	// Remove _folderForUpdate with "\\";
 	wstring folderUpdate = _folderForUpdate;
@@ -146,7 +146,7 @@ const wstring FileUpdateSearch::GetRelativeFoldername(size_t i)
 	{
 		retValue = relativeName.substr(folderUpdate.length());
 	}
-
+	
 	return retValue;
 }
 // [~] Needs for FlyUpdate utility!

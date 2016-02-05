@@ -3289,6 +3289,8 @@ void SearchFrame::onHubChanged(HubInfo* info)
 
 void SearchFrame::onHubRemoved(HubInfo* info)
 {
+	if (isClosedOrShutdown())
+		return;
 	if (!CompatibilityManager::isWine())
 	{
 		int nItem = 0;
@@ -4061,8 +4063,11 @@ LRESULT SearchFrame::onMarkAsDownloaded(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 }
 void SearchFrame::speak(Speakers s, const Client* aClient)
 {
-	HubInfo * hubInfo = new HubInfo(Text::toT(aClient->getHubUrl()), Text::toT(aClient->getHubName()), aClient->getMyIdentity().isOp());
-	safe_post_message(*this, s, hubInfo);
+	if (!isClosedOrShutdown())
+	{
+		HubInfo * hubInfo = new HubInfo(Text::toT(aClient->getHubUrl()), Text::toT(aClient->getHubName()), aClient->getMyIdentity().isOp());
+		safe_post_message(*this, s, hubInfo);
+	}
 }
 
 #ifdef SSA_VIDEO_PREVIEW_FEATURE

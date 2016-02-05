@@ -456,17 +456,15 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 	{
 		state = STATE_NORMAL;
 		setAutoReconnect(true);
-		// [-] setMyIdentity(ou->getIdentity()); [-] IRainman fix.
 		updateCounts(false);
 		updatedMyINFO(ou); // fix https://code.google.com/p/flylinkdc/issues/detail?id=1537
 	}
 	else if (ou->getIdentity().isHub())
 	{
-		// [-] setHubIdentity(ou->getIdentity()); // [-] IRainman fix.
-		// [+] FlylinkDC++
-		if (SETTING(STRIP_TOPIC))
+		if (BOOLSETTING(STRIP_TOPIC))
+		{
 			ou->getIdentity().setDescription(Util::emptyString);
-		// [~] FlylinkDC++
+		}
 		fly_fire1(ClientListener::HubUpdated(), this);
 	}
 	else

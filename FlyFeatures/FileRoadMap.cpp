@@ -33,16 +33,16 @@ void FileRoadMap::AddSegment(int64_t pos, int64_t size)
 	const auto l_is_insertable = GetInsertableSizeAndPos(newPos, newSize);
 //	LogManager::message("[FileRoadMap::AddSegment] pos = " + Util::toString(pos) + " size = " + Util::toString(size) +
 //										" newPos = " + Util::toString(newPos) + " newSize = " + Util::toString(newSize));
-	if(l_is_insertable)
+	if (l_is_insertable)
 	{
-			return;
+		return;
 	}
 	const FileRoadMapItem item(newPos, newSize);
 	CFlyFastLock(cs);
 	const auto l_res = m_map.insert(item);
 	dcassert(l_res.second == true);
-	//LogManager::message("[FileRoadMap::AddSegment] newPos = " + Util::toString(newPos) + " newSize = "  + 
-	//	                                Util::toString(newSize) + " l_res.second = " + Util::toString(l_res.second));
+	//LogManager::message("[FileRoadMap::AddSegment] newPos = " + Util::toString(newPos) + " newSize = "  +
+	//                                  Util::toString(newSize) + " l_res.second = " + Util::toString(l_res.second));
 }
 
 bool FileRoadMap::IsAvaiable(int64_t pos, int64_t size)
@@ -61,7 +61,7 @@ bool FileRoadMap::GetInsertableSizeAndPos(int64_t& pos, int64_t& size)
 {
 
 	//LogManager::message("[FileRoadMap::GetInsertableSizeAndPos] pos = " + Util::toString(pos) + " size = " + Util::toString(size));
-
+	
 	if (pos + size > m_totalSize)
 		size = m_totalSize - pos;
 		

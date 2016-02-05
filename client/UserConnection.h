@@ -338,7 +338,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		void updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64_t ticks);
 		
 		// [!] IRainman add HintedUser
-		void setHubUrl(const string& p_HubUrl) // [+]
+		void setHubUrl(const string& p_HubUrl)
 		{
 #ifdef _DEBUG
 			if (p_HubUrl != "DHT")
@@ -346,7 +346,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 #endif
 			m_hintedUser.hint = p_HubUrl;
 		}
-		const string& getHubUrl() // [+]
+		const string& getHubUrl()
 		{
 			return m_hintedUser.hint;
 		}

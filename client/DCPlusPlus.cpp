@@ -319,7 +319,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		}
 		ADLSearchManager::deleteInstance();
 		FinishedManager::deleteInstance();
-		ShareManager::deleteInstance(); 
+		ShareManager::deleteInstance();
 #ifdef STRONG_USE_DHT
 		dht::DHT::deleteInstance();
 #endif

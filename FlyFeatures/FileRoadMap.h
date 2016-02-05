@@ -36,7 +36,7 @@ class FileRoadMapItem
 			return pos + size;
 		}
 		
-		friend bool operator < (const FileRoadMapItem &left, const FileRoadMapItem &right) 
+		friend bool operator < (const FileRoadMapItem &left, const FileRoadMapItem &right)
 		{
 			return left.getPosition() < right.getPosition();
 		}

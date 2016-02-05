@@ -47,12 +47,12 @@ struct File
 
 struct Source
 {
-  Source():size(0),udpPort(0),partial(false)
-  {
-  }
+	Source(): size(0), udpPort(0), partial(false)
+	{
+	}
 	GETSET(CID, cid, CID);
 	GETSET(string, ip, Ip);
-//[-]	GETSET(uint64_t, expires, Expires);
+//[-]   GETSET(uint64_t, expires, Expires);
 	GETSET(uint64_t, size, Size);
 	GETSET(uint16_t, udpPort, UdpPort);
 	GETSET(bool, partial, Partial);
@@ -78,7 +78,7 @@ struct UDPKey
 
 struct BootstrapNode
 {
-	// int			m_id;
+	// int          m_id;
 	string      m_ip;
 	uint16_t    m_udpPort;
 	CID         m_cid;

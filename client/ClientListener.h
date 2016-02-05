@@ -35,7 +35,9 @@ class ClientListener
 		typedef X<15> NickTaken;
 		typedef X<18> AdcSearch;
 		typedef X<19> CheatMessage;
+#ifdef FLYLINKDC_SUPPORT_HUBTOPIC
 		typedef X<20> HubTopic;
+#endif
 		typedef X<21> UserReport;
 		// typedef X<22> TTHSearch; // [+]FlylinkDC++
 		typedef X<22> DDoSSearchDetect;
@@ -71,7 +73,9 @@ class ClientListener
 		virtual void on(NickTaken, const Client*) noexcept { }
 		virtual void on(AdcSearch, const Client*, const AdcCommand&, const CID&) noexcept { }
 		virtual void on(CheatMessage, const string&) noexcept { }
+#ifdef FLYLINKDC_SUPPORT_HUBTOPIC
 		virtual void on(HubTopic, const Client*, const string&) noexcept { }
+#endif
 		virtual void on(UserReport, const Client*, const string&) noexcept { } // [!] IRainman fix
 		virtual void on(DDoSSearchDetect, const string&) noexcept { }
 		virtual void on(FirstExtJSON, const Client*) noexcept {}

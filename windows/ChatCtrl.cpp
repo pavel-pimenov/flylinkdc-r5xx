@@ -102,7 +102,7 @@ ChatCtrl::~ChatCtrl()
 #ifdef IRAINMAN_INCLUDE_SMILE
 	safe_release(m_pStorage);
 	safe_release(m_lpLockBytes);
-	safe_release(m_pRichEditOle); 
+	safe_release(m_pRichEditOle);
 #endif // IRAINMAN_INCLUDE_SMILE
 }
 
@@ -1256,7 +1256,7 @@ LRESULT ChatCtrl::OnRButtonDown(POINT pt, const UserPtr& user /*= nullptr*/)
 			if (!HitNick(pt, g_sSelectedUserName, iBegin, iEnd, user))
 				HitText(g_sSelectedText, lSelBegin, lSelEnd);
 				
-		return 1; 
+		return 1;
 	}
 	
 	// hightlight IP or nick when clicking on it

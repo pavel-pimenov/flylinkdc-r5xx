@@ -99,7 +99,7 @@ void WinFirewall::WindowFirewallSetAppAuthorization(const TCHAR* in_pAuthorizedD
 			pFwAuthorizedApplicationPtr->put_Enabled(VARIANT_TRUE);
 		else
 			pFwAuthorizedApplicationPtr->put_Enabled(VARIANT_FALSE);
-
+			
 		hr = pFwAuthorizedApplicationsPtr->Add(pFwAuthorizedApplicationPtr);
 		if (FAILED(hr)) throw E_UNEXPECTED;
 	}

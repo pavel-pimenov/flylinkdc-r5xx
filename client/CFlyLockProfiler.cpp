@@ -23,28 +23,28 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 	if (
 #define FLYLINKDC_USE_PROFILE_SELECTED_CLASS
 #ifdef FLYLINKDC_USE_PROFILE_SELECTED_CLASS
-		(l_tick_delta >= 0 &&
-	        (m_function &&
-	         (
-	             strstr(m_function, "Identity") != 0 
-				 //|| strstr(m_function, "CFlyServerConfig") != 0
-
-	         )
-	        )
-	        || p_recursion_count > 1
+	    (l_tick_delta > 16 &&
+	     (m_function &&
+	      (
+	          true // strstr(m_function, "Identity") != 0
+	          //|| strstr(m_function, "CFlyServerConfig") != 0
+	          
+	      )
+	     )
+	     || p_recursion_count > 1
 	    )
-	        &&
+	    &&
 #endif
-	        (m_function &&
-	         (
-			 strstr(m_function, "DebugManager::") == 0 &&
-		 
-	             strstr(m_function, "::addListener") == 0 &&
-	             strstr(m_function, "::removeListener") == 0 &&
-	             strstr(m_function, "LogManager::") == 0
-	         )
-	        )
-	   )
+	    (m_function &&
+	     (
+	         strstr(m_function, "DebugManager::") == 0 &&
+	         
+	         strstr(m_function, "::addListener") == 0 &&
+	         strstr(m_function, "::removeListener") == 0 &&
+	         strstr(m_function, "LogManager::") == 0
+	     )
+	    )
+	)
 	{
 		string l_path = p_path;
 		if (ClientManager::isShutdown())

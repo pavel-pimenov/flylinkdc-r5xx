@@ -196,7 +196,6 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	}
 	
 	// [+] IRainman fix.
-	auto cm = ClientManager::getInstance();
 	if (p_hub)
 	{
 		{
@@ -215,12 +214,12 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	// [~] IRainman fix.
 	else
 	{
-		UserPtr p = cm->getUser(aNick, getHubUrl()
+		UserPtr p = ClientManager::getUser(aNick, getHubUrl()
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-		                        , getHubID()
+		                                   , getHubID()
 #endif
-		                        , p_first_load
-		                       );
+		                                   , p_first_load
+		                                  );
 		OnlineUser* newUser = new OnlineUser(p, *this, 0);
 		{
 			CFlyWriteLock(*m_cs);
@@ -232,7 +231,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	
 	if (!ou->getUser()->getCID().isZero()) // [+] IRainman fix.
 	{
-		cm->putOnline(ou, is_all_my_info_loaded());
+		ClientManager::getInstance()->putOnline(ou, is_all_my_info_loaded());
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 		UserManager::checkUser(ou);
 #endif
@@ -1010,33 +1009,37 @@ void NmdcHub::chatMessageParse(const string& p_line)
 //==========================================================================================
 void NmdcHub::hubNameParse(const string& p_param)
 {
-	// Workaround replace newlines in topic with spaces, to avoid funny window titles
-	// If " - " found, the first part goes to hub name, rest to description
-	// If no " - " found, first word goes to hub name, rest to description
 	string l_param = p_param;
-	string::size_type i;
 	boost::replace_all(l_param, "\r\n", " ");
 	std::replace(l_param.begin(), l_param.end(), '\n', ' ');
-	
-	i = l_param.find(" - ");
-	if (i == string::npos)
 	{
-		i = l_param.find(' ');
+		// Workaround replace newlines in topic with spaces, to avoid funny window titles
+		// If " - " found, the first part goes to hub name, rest to description
+		// If no " - " found, first word goes to hub name, rest to description
+		string::size_type i = l_param.find(" - ");
 		if (i == string::npos)
 		{
-			getHubIdentity().setNick(unescape(l_param));
-			getHubIdentity().setDescription(Util::emptyString);
+			i = l_param.find(' ');
+			if (i == string::npos)
+			{
+				getHubIdentity().setNick(unescape(l_param));
+				getHubIdentity().setDescription(Util::emptyString);
+			}
+			else
+			{
+				getHubIdentity().setNick(unescape(l_param.substr(0, i)));
+				getHubIdentity().setDescription(unescape(l_param.substr(i + 1)));
+			}
 		}
 		else
 		{
 			getHubIdentity().setNick(unescape(l_param.substr(0, i)));
-			getHubIdentity().setDescription(unescape(l_param.substr(i + 1)));
+			getHubIdentity().setDescription(unescape(l_param.substr(i + 3)));
 		}
 	}
-	else
+	if (BOOLSETTING(STRIP_TOPIC))
 	{
-		getHubIdentity().setNick(unescape(l_param.substr(0, i)));
-		getHubIdentity().setDescription(unescape(l_param.substr(i + 3)));
+		getHubIdentity().setDescription(Util::emptyString);
 	}
 	fly_fire1(ClientListener::HubUpdated(), this);
 }
@@ -1169,6 +1172,10 @@ void NmdcHub::lockParse(const string& aLine)
 #endif
 			feat.push_back("HubURL");
 			feat.push_back("NickRule");
+#ifdef FLYLINKDC_SUPPORT_HUBTOPIC
+			// http://nmdc.sourceforge.net/NMDC.html#_hubtopic
+			feat.push_back("HubTopic");
+#endif
 			
 			if (CryptoManager::TLSOk())
 			{
@@ -1290,7 +1297,7 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 					ou->getIdentity().m_is_real_user_ip_from_hub = true;
 					{
 						CFlyFastLock(m_cs_virus);
-#ifdef _DEBUG
+#ifdef FLYLINKDC_USE_VIRUS_CHECK_DEBUG
 						const auto l_check_nick = m_virus_nick_checked.insert(l_user);
 						if (l_check_nick.second == false)
 						{
@@ -1504,7 +1511,7 @@ void NmdcHub::opListParse(const string& param)
 {
 	if (!param.empty())
 	{
-		//OnlineUserList v;
+		OnlineUserList v;
 		const StringTokenizer<string> t(param, "$$");
 		const StringList& sl = t.getTokens();
 		{
@@ -1530,11 +1537,11 @@ void NmdcHub::opListParse(const string& param)
 				if (ou)
 				{
 					ou->getIdentity().setOp(true);
-					//v.push_back(ou);
+					v.push_back(ou);
 				}
 			}
 		}
-		//fire_user_updated(v);
+		fire_user_updated(v); // не убирать - через эту команду шлют "часы"
 		updateCounts(false);
 		
 		// Special...to avoid op's complaining that their count is not correctly
@@ -1883,7 +1890,9 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	else if (cmd == "HubTopic")
 	{
+#ifdef FLYLINKDC_SUPPORT_HUBTOPIC
 		fly_fire2(ClientListener::HubTopic(), this, param);
+#endif
 	}
 	// [+] IRainman.
 	else if (cmd == "LogedIn")
@@ -2837,7 +2846,7 @@ void NmdcHub::myInfoParse(const string& param)
 	if (changeBytesSharedL(ou->getIdentity(), l_share_size) && l_share_size)
 	{
 		CFlyFastLock(m_cs_virus);
-#ifdef _DEBUG
+#ifdef FLYLINKDC_USE_VIRUS_CHECK_DEBUG
 		const auto l_check_nick = m_virus_nick_checked.insert(l_nick);
 		if (l_check_nick.second == false)
 		{

@@ -62,7 +62,7 @@ class ThemeManager :
 		}
 	private:
 		void loadResourceLib();
-	
+		
 		static void unloadResourceLib();
 		
 		static void setResourceLibInstance(HMODULE p_instance)

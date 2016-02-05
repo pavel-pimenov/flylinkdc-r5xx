@@ -163,7 +163,7 @@ EVP_PKEY *d2i_AutoPrivateKey(EVP_PKEY **a, const unsigned char **pp,
         PKCS8_PRIV_KEY_INFO_free(p8);
         if (ret == NULL)
             return NULL;
-            *pp = p;
+        *pp = p;
         if (a) {
             *a = ret;
         }

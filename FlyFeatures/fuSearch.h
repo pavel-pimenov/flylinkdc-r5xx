@@ -45,7 +45,7 @@ class FileUpdateSearch
 		DWORD CopyFileWithFolders(size_t i, const wstring& destination);
 		void DeleteAll();
 		
-		size_t GetFoldersCount() const 
+		size_t GetFoldersCount() const
 		{
 			return _folderArray.size();
 		}
