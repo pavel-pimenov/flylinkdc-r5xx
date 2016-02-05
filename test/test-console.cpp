@@ -611,6 +611,21 @@ uint8_t TestFunc2(const uint8_t ui8NickLen, const bool bFromPM)
 }
 int _tmain(int argc, _TCHAR* argv[])
 {
+
+	std::cout << "Timing boost::unordered_map<int,int>" << std::endl;
+	timemap<boost::unordered_map<int, int> >();
+	std::cout << std::endl;
+
+	std::cout << "Timing std::unordered_map<int,int>" << std::endl;
+	timemap<std::unordered_map<int, int> >();
+	std::cout << std::endl;
+
+	std::cout << "Timing std::map<int,int>" << std::endl;
+	timemap<std::map<int, int> >();
+	std::cout << std::endl;
+
+	return 0;
+
 	Process_Files("Y:\\dc-test-issue-956", true);  // boost::filesystem::current_path()
 	std::cout << std::endl << "g_hash_byte = " << g_hash_byte <<   " g_sum_byte = " << g_sum_byte <<  std::endl;
 	return 0;
@@ -735,20 +750,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	//boost::unordered_map<boost::asio::ip::address_v4, int> tmp;
 	boost::asio::ip::address_v4 ip = boost::asio::ip::address_v4::from_string("010.010.010.010");
 	//tmp[ip] = 1;
-	
-	std::cout << "Timing boost::unordered_map<int,int>" << std::endl;
-	timemap<boost::unordered_map<int, int> >();
-	std::cout << std::endl;
-	
-	std::cout << "Timing std::unordered_map<int,int>" << std::endl;
-	timemap<std::unordered_map<int, int> >();
-	std::cout << std::endl;
-	
-	std::cout << "Timing std::map<int,int>" << std::endl;
-	timemap<std::map<int, int> >();
-	std::cout << std::endl;
-	
-	return 0;
 	
 	// [+] IRainman fix.
 	::SetProcessPriorityBoost(::GetCurrentProcess(), FALSE); // Запрещаем системе изменять приоритет процесса.

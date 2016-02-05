@@ -184,7 +184,7 @@ class QueueManager : public Singleton<QueueManager>,
 		                  
 		int matchListing(const DirectoryListing& dl) noexcept;
 	private:
-		typedef std::unordered_map<TTHValue, const DirectoryListing::File*> TTHMap; // TODO boost
+		typedef boost::unordered_map<TTHValue, const DirectoryListing::File*> TTHMap; 
 		static void buildMap(const DirectoryListing::Directory* dir, TTHMap& tthMap) noexcept;
 		void fire_remove_internal(const QueueItemPtr& p_qi, bool p_is_remove_item, bool p_is_force_remove_item = false);
 	public:
@@ -373,7 +373,7 @@ class QueueManager : public Singleton<QueueManager>,
 #endif
 			private:
 				static QueueItem::QIStringMap g_queue;
-				static std::unordered_map<TTHValue, int> g_queue_tth_map;
+				static boost::unordered_map<TTHValue, int> g_queue_tth_map;
 				static void remove_internal(const QueueItemPtr& qi);
 				
 		};
@@ -395,8 +395,8 @@ class QueueManager : public Singleton<QueueManager>,
 				void removeUserL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_remove_running, bool p_is_find_sources = true); // [!] IRainman fix.
 				void setQIPriority(const QueueItemPtr& qi, QueueItem::Priority p); // [!] IRainman fix.
 				// [+] IRainman fix.
-				typedef std::unordered_map<UserPtr, QueueItemList, User::Hash> UserQueueMap; // TODO - set ?
-				typedef std::unordered_map<UserPtr, QueueItemPtr, User::Hash> RunningMap;
+				typedef boost::unordered_map<UserPtr, QueueItemList, User::Hash> UserQueueMap; // TODO - set ?
+				typedef boost::unordered_map<UserPtr, QueueItemPtr, User::Hash> RunningMap;
 				// [~] IRainman fix.
 #ifdef IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 				const UserQueueMap& getListL(size_t i) const
@@ -438,7 +438,7 @@ class QueueManager : public Singleton<QueueManager>,
 		/** QueueItems by user */
 		static UserQueue g_userQueue;
 		/** Directories queued for downloading */
-		std::unordered_multimap<UserPtr, DirectoryItemPtr, User::Hash> m_directories;
+		boost::unordered_multimap<UserPtr, DirectoryItemPtr, User::Hash> m_directories;
 		/** Recent searches list, to avoid searching for the same thing too often */
 		deque<string> m_recent;
 		/** The queue needs to be saved */

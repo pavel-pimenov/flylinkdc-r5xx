@@ -888,11 +888,9 @@ class OnlineUser :
 		{
 			size_t operator()(const OnlineUserPtr& x) const
 			{
+				// return ((size_t)(&(*x))) / sizeof(OnlineUser);
 				size_t cidHash = 0;
 				boost::hash_combine(cidHash, x);
-				//return boost::hash<OnlineUserPtr>(x);
-				// TODO - check x->getUser()
-				//memcpy(&cidHash, &x->getUser()->getCID(), sizeof(size_t)); //-V512
 				return cidHash;
 			}
 		};
@@ -996,6 +994,7 @@ class OnlineUser :
 };
 
 // http://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key
+/*
 namespace std
 {
 template <>
@@ -1007,5 +1006,7 @@ struct hash<OnlineUserPtr>
 	}
 };
 }
+*/
+
 
 #endif /* ONLINEUSER_H_ */

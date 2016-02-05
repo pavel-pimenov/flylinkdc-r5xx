@@ -585,7 +585,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		void updateTitle(); // [+] InfinitySky. Изменять заголовок окна.
 #endif // USE_OFFLINE_ICON_FOR_FILELIST
 		
-		typedef std::unordered_map<UserPtr, DirectoryListingFrame*, User::Hash> UserMap;
+		typedef boost::unordered_map<UserPtr, DirectoryListingFrame*, User::Hash> UserMap;
 		typedef pair<UserPtr, DirectoryListingFrame*> UserPair;
 		
 		static UserMap g_usersMap;
@@ -603,7 +603,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		void mergeFlyServerInfo();
 		bool scan_list_view_from_merge();
-		typedef std::unordered_map<TTHValue, ItemInfo*> CFlyMergeItem;
+		typedef boost::unordered_map<TTHValue, ItemInfo*> CFlyMergeItem;
 		CFlyMergeItem m_merge_item_map; // TODO - организовать кэш для медиаинфы, чтобы лишний раз не ходить на флай-сервер c get-запросами
 		void update_column_after_merge(std::vector<int> p_update_index);
 #endif

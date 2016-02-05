@@ -378,14 +378,14 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		// =================================================
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
 # ifdef IRAINMAN_USE_NICKS_IN_CM
-		typedef std::unordered_map<const CID*, std::string&> NickMap;
+		typedef boost::unordered_map<const CID*, std::string&> NickMap;
 # endif
-		typedef std::unordered_map<const CID*, const UserPtr> UserMap;
+		typedef boost::unordered_map<const CID*, const UserPtr> UserMap;
 #else
 # ifdef IRAINMAN_USE_NICKS_IN_CM
-		typedef std::unordered_map<CID, std::string> NickMap; // TODO boost
+		typedef boost::unordered_map<CID, std::string> NickMap;
 # endif
-		typedef std::unordered_map<CID, UserPtr> UserMap; // TODO boost
+		typedef boost::unordered_map<CID, UserPtr> UserMap;
 #endif
 		static UserMap g_users;
 #ifdef IRAINMAN_USE_NICKS_IN_CM
@@ -394,9 +394,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csUsers; // [+] IRainman opt.
 		// =================================================
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
-		typedef std::unordered_multimap<const CID*, OnlineUser*> OnlineMap; // TODO: not allow to replace UserPtr in Identity.
+		typedef boost::unordered_multimap<const CID*, OnlineUser*> OnlineMap; // TODO: not allow to replace UserPtr in Identity.
 #else
-		typedef std::unordered_multimap<CID, OnlineUser*> OnlineMap;
+		typedef boost::unordered_multimap<CID, OnlineUser*> OnlineMap;
 #endif
 		typedef OnlineMap::iterator OnlineIter;
 		typedef OnlineMap::const_iterator OnlineIterC;

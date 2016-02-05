@@ -25,9 +25,10 @@
 ZFilter::ZFilter() : totalIn(0), totalOut(0), compressing(true)
 {
 	memzero(&zs, sizeof(zs));
-	if (deflateInit(&zs, SETTING(MAX_COMPRESSION)) != Z_OK)
+	const auto l_result = deflateInit(&zs, SETTING(MAX_COMPRESSION));
+	if (l_result != Z_OK)
 	{
-		throw Exception(STRING(COMPRESSION_ERROR));
+		throw Exception(STRING(COMPRESSION_ERROR) + " Error code deflateInit = " + Util::toString(l_result));
 	}
 }
 

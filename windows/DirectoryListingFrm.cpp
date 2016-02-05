@@ -1783,7 +1783,7 @@ void DirectoryListingFrame::runUserCommand(UserCommand& uc)
 		
 	StringMap ucParams = ucLineParams;
 	
-	std::unordered_set<UserPtr, User::Hash> l_nicks;
+	boost::unordered_set<UserPtr, User::Hash> l_nicks;
 	
 	int sel = -1;
 	while ((sel = ctrlList.GetNextItem(sel, LVNI_SELECTED)) != -1)

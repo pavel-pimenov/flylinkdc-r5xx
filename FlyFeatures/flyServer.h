@@ -425,8 +425,8 @@ class CFlyServerAdapter
 	protected:
 		CFlyServerKeyArray  m_GetFlyServerArray;    // «апросы на получени€ медиаинформации. TODO - сократить размер структуры дл€ запроса.
 		CFlyServerKeyArray  m_SetFlyServerArray;    // «апросы на передачу медиаинформации если она у нас есть в базе и ее ниразу не слали.
-		std::unordered_map<TTHValue, uint64_t> m_tth_media_file_map;
-		static std::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > g_fly_server_cache;
+		boost::unordered_map<TTHValue, uint64_t> m_tth_media_file_map;
+		static boost::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > g_fly_server_cache;
 		static ::CriticalSection g_cs_fly_server;
 		void prepare_mediainfo_to_fly_serverL();
 		void push_mediainfo_to_fly_server();

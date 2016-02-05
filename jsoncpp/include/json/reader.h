@@ -40,7 +40,7 @@ namespace Json {
       /** \brief Constructs a Reader allowing the specified feature set
        * for parsing.
        */
-      Reader( const Features &features );
+      explicit Reader( const Features &features );
 
       /** \brief Read a Value from a <a HREF="http://www.json.org">JSON</a> document.
        * \param document UTF-8 encoded string containing the document to read.

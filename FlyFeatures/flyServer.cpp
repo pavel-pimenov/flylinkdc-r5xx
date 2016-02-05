@@ -92,7 +92,7 @@ uint16_t CFlyServerConfig::g_winet_min_response_time_for_log = 200;
 DWORD CFlyServerConfig::g_winet_receive_timeout = 1000;
 DWORD CFlyServerConfig::g_winet_send_timeout    = 1000;
 
-std::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > CFlyServerAdapter::g_fly_server_cache;
+boost::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > CFlyServerAdapter::g_fly_server_cache;
 ::CriticalSection CFlyServerAdapter::g_cs_fly_server;
 ::CriticalSection CFlyServerJSON::g_cs_error_report;
 ::CriticalSection CFlyServerJSON::g_cs_download_counter;
@@ -1387,7 +1387,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 58 (36 - устарел)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 59 (36 - устарел)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;

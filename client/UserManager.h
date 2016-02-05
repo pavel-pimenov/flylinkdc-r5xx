@@ -103,8 +103,8 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		static IgnoreMap g_ignoreList;
 		dcdrun(static bool g_ignoreListLoaded);
 		
-		typedef std::unordered_set<UserPtr, User::Hash> CheckedUserSet;
-		typedef std::unordered_map<UserPtr, bool, User::Hash> WaitingUserMap;
+		typedef boost::unordered_set<UserPtr, User::Hash> CheckedUserSet;
+		typedef boost::unordered_map<UserPtr, bool, User::Hash> WaitingUserMap;
 		
 		static CheckedUserSet checkedPasswordUsers;
 		static WaitingUserMap waitingPasswordUsers;

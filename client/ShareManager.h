@@ -446,7 +446,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		friend class ::dht::IndexManager;
 #endif
 		
-		typedef std::unordered_map<TTHValue, Directory::ShareFile::Set::const_iterator> HashFileMap; // TODO - boost
+		typedef boost::unordered_map<TTHValue, Directory::ShareFile::Set::const_iterator> HashFileMap; 
 		
 		static HashFileMap g_tthIndex;
 		static size_t g_lastSharedFiles;

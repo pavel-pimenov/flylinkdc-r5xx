@@ -75,7 +75,14 @@ struct HashValue
 	{
 		return Encoder::toBase32(data, BYTES, tmp);
 	}
-	
+	size_t toHash() const
+	{
+		// RVO should handle this as efficiently as reinterpret_cast version
+		size_t hvHash;
+		memcpy(&hvHash, data, sizeof(size_t)); //-V512
+		return hvHash;
+	}
+
 	uint8_t data[BYTES];
 };
 
@@ -83,6 +90,16 @@ class TigerHash;
 template<class Hasher> struct HashValue;
 typedef HashValue<TigerHash> TTHValue;
 
+namespace boost {
+template<typename T>
+struct hash<HashValue<T>> 
+{
+		size_t operator()(const HashValue<T>& rhs) const
+		{
+			return rhs.toHash();
+		}
+};
+}
 namespace std
 {
 template<typename T>
@@ -90,10 +107,7 @@ struct hash<HashValue<T> >
 {
 	size_t operator()(const HashValue<T>& rhs) const
 	{
-		// RVO should handle this as efficiently as reinterpret_cast version
-		size_t hvHash;
-		memcpy(&hvHash, rhs.data, sizeof(size_t)); //-V512
-		return hvHash;
+		return rhs.toHash();
 	}
 };
 

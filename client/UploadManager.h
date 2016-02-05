@@ -29,7 +29,7 @@
 #include "UserConnection.h"
 
 typedef pair<UserPtr, unsigned int> CurrentConnectionPair;
-typedef std::unordered_map<UserPtr, unsigned int, User::Hash> CurrentConnectionMap;
+typedef boost::unordered_map<UserPtr, unsigned int, User::Hash> CurrentConnectionMap;
 typedef std::vector<UploadPtr> UploadList;
 
 class UploadQueueItem :
@@ -236,7 +236,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		
 		int m_lastFreeSlots; /// amount of free slots at the previous minute
 		
-		typedef std::unordered_map<UserPtr, uint64_t, User::Hash> SlotMap;
+		typedef boost::unordered_map<UserPtr, uint64_t, User::Hash> SlotMap;
 		
 		static SlotMap g_reservedSlots;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csReservedSlots;

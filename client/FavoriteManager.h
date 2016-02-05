@@ -85,7 +85,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		// [~] IRainman mimicry function
 		
 // Favorite Users
-		typedef std::unordered_map<CID, FavoriteUser> FavoriteMap; // TODO boost
+		typedef boost::unordered_map<CID, FavoriteUser> FavoriteMap;
 		class LockInstanceUsers
 		{
 			public:

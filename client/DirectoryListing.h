@@ -119,7 +119,7 @@ class DirectoryListing : public UserInfoBase
 				};
 				typedef vector<Ptr> List;
 				
-				typedef std::unordered_set<TTHValue> TTHSet;
+				typedef boost::unordered_set<TTHValue> TTHSet;
 				
 				List directories;
 				

@@ -169,7 +169,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		virtual void doDestroyFrame();
 		
 		bool m_created; // TODO: fix me please.
-		typedef std::unordered_map<UserPtr, PrivateFrame*, User::Hash> FrameMap;
+		typedef boost::unordered_map<UserPtr, PrivateFrame*, User::Hash> FrameMap;
 		static FrameMap g_pm_frames;
 		static std::unordered_map<string, unsigned> g_count_pm;
 		

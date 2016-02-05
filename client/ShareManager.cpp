@@ -640,14 +640,17 @@ struct ShareLoader : public SimpleXMLReader::CallBack
 				const string& fname = getAttrib(p_attribs, g_SName, 0);
 				const string& size = getAttrib(p_attribs, g_SSize, 1);
 				const string& root = getAttrib(p_attribs, g_STTH, 2);
-				if (fname.empty() || size.empty() || (root.size() != 39))
+				// Ёто атрибуты фла€
+				const auto l_time_stamp = atoi(getAttrib(p_attribs, g_STS, 3).c_str());
+				const auto l_hit_count = getAttrib(p_attribs, g_SHit, 3);
+				if (fname.empty() || size.empty() || root.size() != 39)
 				{
 					dcdebug("Invalid file found: %s\n", fname.c_str());
 					return;
 				}
 				auto it = cur->m_files.insert(ShareManager::Directory::ShareFile(fname, Util::toInt64(size), cur, TTHValue(root),
-				                                                                 atoi(getAttrib(p_attribs, g_SHit, 3).c_str()),
-				                                                                 atoi(getAttrib(p_attribs, g_STS, 3).c_str()),
+				                                                                 atoi(l_hit_count.c_str()),
+					                                                             l_time_stamp,
 				                                                                 ShareManager::getFType(fname)
 				                                                                )
 				                             );
@@ -1562,6 +1565,12 @@ void ShareManager::getDirectories(CFlyDirItemArray& p_dirs)
 
 int ShareManager::run()
 {
+	for (int i = 0; i < 60*10; i++) // ∆дем 60 сек
+	{
+		::Sleep(100);
+		if (ClientManager::isShutdown())
+			return 0;
+	}
 	setThreadPriority(Thread::LOW); // [+] IRainman fix.
 	
 	CFlyDirItemArray directories;
@@ -1642,7 +1651,7 @@ int ShareManager::run()
 
 void ShareManager::getBloom(ByteVector& v, size_t k, size_t m, size_t h)
 {
-	dcdebug("Creating bloom filter, k=%u, m=%u, h=%u\n", k, m, h);
+	dcdebug("Creating bloom filter, k=%u, m=%u, h=%u\n", unsigned(k), unsigned(m), unsigned(h));
 	HashBloom bloom;
 	bloom.reset(k, m, h);
 	{

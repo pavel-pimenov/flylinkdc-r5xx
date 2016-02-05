@@ -86,7 +86,7 @@ namespace Json {
    class JSON_API StyledWriter: public Writer
    {
    public:
-	   StyledWriter(bool p_use_end_line);
+	   explicit StyledWriter(bool p_use_end_line);
       virtual ~StyledWriter(){}
 
    public: // overridden from Writer
@@ -144,7 +144,7 @@ namespace Json {
    class JSON_API StyledStreamWriter
    {
    public:
-      StyledStreamWriter( std::string indentation="\t" );
+      explicit StyledStreamWriter( std::string indentation="\t" );
       ~StyledStreamWriter(){}
 
    public:

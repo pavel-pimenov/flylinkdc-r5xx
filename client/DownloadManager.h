@@ -37,7 +37,7 @@
  * Singleton. Use its listener interface to update the download list
  * in the user interface.
  */
-typedef std::unordered_map<UserPtr, UserConnection*, User::Hash> IdlersMap;
+typedef boost::unordered_map<UserPtr, UserConnection*, User::Hash> IdlersMap;
 
 class DownloadManager : public Speaker<DownloadManagerListener>,
 	private UserConnectionListener, private TimerManagerListener,

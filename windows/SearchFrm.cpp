@@ -50,8 +50,8 @@ HIconWrapper SearchFrame::g_UDPOkIcon(IDR_ICON_SUCCESS_ICON);
 HIconWrapper SearchFrame::g_UDPWaitIcon(IDR_ICON_WARN_ICON);
 tstring SearchFrame::g_UDPTestText;
 boost::logic::tribool SearchFrame::g_isUDPTestOK = boost::logic::indeterminate;
-std::unordered_map<TTHValue, uint8_t> SearchFrame::g_virus_level_tth_map;
-std::unordered_set<string> SearchFrame::g_virus_file_set;
+boost::unordered_map<TTHValue, uint8_t> SearchFrame::g_virus_level_tth_map;
+boost::unordered_set<string> SearchFrame::g_virus_file_set;
 FastCriticalSection SearchFrame::g_cs_virus_level;
 
 int SearchFrame::columnIndexes[] =
@@ -2519,7 +2519,7 @@ void SearchFrame::runUserCommand(UserCommand & uc)
 		
 	StringMap ucParams = m_ucLineParams;
 	
-	std::set<CID> users;
+	std::set<CID> l_users;
 	
 	int sel = -1;
 	while ((sel = ctrlResults.GetNextItem(sel, LVNI_SELECTED)) != -1)
@@ -2531,9 +2531,9 @@ void SearchFrame::runUserCommand(UserCommand & uc)
 			
 		if (uc.getType() == UserCommand::TYPE_RAW_ONCE)
 		{
-			if (users.find(sr.getUser()->getCID()) != users.end())
+			if (l_users.find(sr.getUser()->getCID()) != l_users.end())
 				continue;
-			users.insert(sr.getUser()->getCID());
+			l_users.insert(sr.getUser()->getCID());
 		}
 		
 		ucParams["fileFN"] = sr.getFile();

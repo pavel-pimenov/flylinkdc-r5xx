@@ -1314,7 +1314,6 @@ void CFlylinkDBManager::flush_lost_json_statistic(bool& p_is_error)
 	p_is_error = false;
 	if (BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND)) // Отсылка статистики разрешена?
 	{
-		CFlyLock(m_cs);
 		try
 		{
 			std::vector<__int64> l_json_array_id;
@@ -1345,6 +1344,7 @@ void CFlylinkDBManager::flush_lost_json_statistic(bool& p_is_error)
 				m_count_json_stat = 1; // Записи еще возможно есть - через минуту пробуем снова.
 			if (!l_json_array_id.empty())
 			{
+				CFlyLock(m_cs);
 				// Отметим факт пересылки статистики на сервер
 				m_delete_statistic_json.init(m_flySQLiteDB, "delete from stat_db.fly_statistic where id=?");
 				sqlite3_transaction l_trans(m_flySQLiteDB, l_json_array_id.size() > 1);

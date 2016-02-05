@@ -831,8 +831,8 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		typedef  std::pair<TTHValue, string> CFlyAntivirusKey;
 		std::map<CFlyAntivirusKey, std::unordered_set<string>> m_virus_detector;
 		size_t check_antivirus_level(const CFlyAntivirusKey& p_key, const SearchResult &p_result, uint8_t p_level);
-		static std::unordered_map<TTHValue, uint8_t> g_virus_level_tth_map;
-		static std::unordered_set<string> g_virus_file_set;
+		static boost::unordered_map<TTHValue, uint8_t> g_virus_level_tth_map;
+		static boost::unordered_set<string> g_virus_file_set;
 		static FastCriticalSection g_cs_virus_level;
 		static bool isVirusTTH(const TTHValue& p_tth);
 		static bool isVirusFileNameCheck(const string& p_file, const TTHValue& p_tth);
@@ -884,7 +884,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		void mergeFlyServerInfo();
 		void runTestPort();
 		bool scan_list_view_from_merge();
-		typedef std::unordered_map<TTHValue, std::pair<SearchInfo*, CFlyServerCache> > CFlyMergeItem;
+		typedef boost::unordered_map<TTHValue, std::pair<SearchInfo*, CFlyServerCache> > CFlyMergeItem;
 		CFlyMergeItem m_merge_item_map; // TODO - организовать кэш для медиаинфы, чтобы лишний раз не ходить на флай-сервер c get-запросами
 		void update_column_after_merge(std::vector<int> p_update_index);
 		

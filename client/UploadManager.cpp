@@ -935,12 +935,25 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 			l_ext = Util::getFileExtWithoutDot(l_name);
 		}
 		if (!g_fly_server_config.isCompressExt(Text::toLower(l_ext)))
+		{
 			if (c.hasFlag("ZL", 4))
 			{
-				u->setReadStream(new FilteredInputStream<ZFilter, true>(u->getReadStream()));
-				u->setFlag(Upload::FLAG_ZUPLOAD);
-				cmd.addParam("ZL1");
+				try
+				{
+					u->setReadStream(new FilteredInputStream<ZFilter, true>(u->getReadStream()));
+					u->setFlag(Upload::FLAG_ZUPLOAD);
+					cmd.addParam("ZL1");
+				}
+				catch (Exception& e)
+				{
+					const string l_message = "Error UploadManager::on(AdcCommand::GET) -" + e.getError();
+					CFlyServerJSON::pushError(59, l_message);
+					LogManager::message(l_message);
+					fly_fire2(UploadManagerListener::Failed(), u, l_message);
+					return;
+				}
 			}
+		}
 			
 		aSource->send(cmd);
 		

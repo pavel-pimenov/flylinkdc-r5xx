@@ -790,6 +790,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		size_t  m_count_json_stat;
 		static int32_t g_count_queue_source;
 		static int32_t g_count_queue_files;
-		std::unordered_map<TTHValue, TigerTree> m_tiger_tree_cache; // http://code.google.com/p/flylinkdc/issues/detail?id=1418
+		boost::unordered_map<TTHValue, TigerTree> m_tiger_tree_cache; // http://code.google.com/p/flylinkdc/issues/detail?id=1418
 };
 #endif

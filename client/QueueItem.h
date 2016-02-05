@@ -28,7 +28,7 @@
 #include "Download.h"
 #include "CFlyThread.h"
 
-typedef std::unordered_map<UserPtr, DownloadPtr, User::Hash> DownloadMap;
+typedef boost::unordered_map<UserPtr, DownloadPtr, User::Hash> DownloadMap;
 
 
 extern const string g_dc_temp_extension;
@@ -172,7 +172,7 @@ class QueueItem : public Flags
 				GETSET(PartialSource::Ptr, partialSource, PartialSource);
 		};
 		
-		typedef std::unordered_map<UserPtr, Source, User::Hash> SourceMap;
+		typedef boost::unordered_map<UserPtr, Source, User::Hash> SourceMap;
 		typedef SourceMap::iterator SourceIter;
 		typedef SourceMap::const_iterator SourceConstIter;
 		typedef std::multimap<time_t, pair<SourceConstIter, const QueueItemPtr> > SourceListBuffer;

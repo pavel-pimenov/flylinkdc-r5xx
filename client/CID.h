@@ -24,6 +24,7 @@
 
 #include "Encoder.h"
 #include "debug.h"
+#include <boost/functional/hash.hpp>
 
 class CID
 #ifdef _DEBUG
@@ -75,7 +76,7 @@ class CID
 		{
 			return Encoder::toBase32(cid, sizeof(cid), tmp);
 		}
-		
+
 		size_t toHash() const
 		{
 			// RVO should handle this as efficiently as reinterpret_cast version
@@ -83,6 +84,7 @@ class CID
 			memcpy(&cidHash, cid, sizeof(size_t)); //-V512
 			return cidHash;
 		}
+
 		const uint8_t* data() const
 		{
 			return cid;
@@ -106,16 +108,38 @@ class CID
 		uint8_t cid[SIZE];
 };
 
+#ifdef FLYLINKDC_USE_STD_HASHMAP_FOR_CID
 namespace std
 {
-template<>
-struct hash<CID>
-{
-	size_t operator()(const CID& rhs) const
+	template<>
+	struct hash<CID>
 	{
-		return rhs.toHash(); // [!] IRainman fix.
-	}
+		size_t operator()(const CID& rhs) const
+		{
+			return rhs.toHash(); // [!] IRainman fix.
+		}
+	};
+}
+#endif
+/*
+http://www.boost.org/doc/libs/1_60_0/doc/html/boost/hash.html
+template<typename T>
+struct hash : public std::unary_function<T, std::size_t> {
+std::size_t operator()(T const&) const;
 };
+*/
+namespace boost
+{
+	template<>
+	struct hash<CID>
+	{
+		size_t operator()(const CID& rhs) const
+		{
+			return rhs.toHash();
+		}
+	};
+}
+
 
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
 template<>
@@ -136,7 +160,6 @@ struct equal_to<const CID*> // [!] IRainman fix.
 	}
 };
 #endif // IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
-}
 
 #endif // !defined(CID_H)
 
