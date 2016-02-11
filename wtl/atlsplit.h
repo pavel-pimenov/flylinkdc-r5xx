@@ -163,7 +163,7 @@ public:
 		// Set new position and update if requested
 		bool bRet = (m_xySplitterPos != xyPos);
 		m_xySplitterPos = xyPos;
-		//Set the splitterPosNew to be the same as splitter pos, its left -1 initially.
+		//Set the splitterPosNew to be the same as m_xySplitterPos, its left -1 initially.
 		m_xySplitterPosNew = xyPos;
                 // [merge] https://github.com/airdcpp/airgit/commit/070d243f8f3dfaeaa704936a75d737bcf4fc9439
 

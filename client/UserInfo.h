@@ -50,6 +50,8 @@ enum Tasks
 	UPDATE_USER,
 	UPDATE_COLUMN_MESSAGE,
 	UPADTE_COLUMN_DESC,
+	CHEATING_USER,
+	USER_REPORT,
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 	UPADTE_COLUMN_SHARE,
 #endif
@@ -131,7 +133,7 @@ class UserInfo : public UserInfoBase
 			m_location = p_location;
 		}
 		// [~] IRainman opt.
-		const string& getNick() const
+		string getNick() const
 		{
 			return m_ou->getIdentity().getNick();
 		}

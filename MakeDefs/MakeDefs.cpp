@@ -72,7 +72,7 @@ int __cdecl main(int argc, char* argv[])
 		ex.addChildAttrib("Revision", string("1"));
 		ex.stepIn();
 */
-		ex.addTag("recources");
+		ex.addTag("resources");
 		ex.stepIn();
 		string name;
 		string def;

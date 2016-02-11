@@ -82,7 +82,7 @@ struct HashValue
 		memcpy(&hvHash, data, sizeof(size_t)); //-V512
 		return hvHash;
 	}
-
+	
 	uint8_t data[BYTES];
 };
 
@@ -90,14 +90,15 @@ class TigerHash;
 template<class Hasher> struct HashValue;
 typedef HashValue<TigerHash> TTHValue;
 
-namespace boost {
-template<typename T>
-struct hash<HashValue<T>> 
+namespace boost
 {
-		size_t operator()(const HashValue<T>& rhs) const
-		{
-			return rhs.toHash();
-		}
+template<typename T>
+struct hash<HashValue<T>>
+{
+	size_t operator()(const HashValue<T>& rhs) const
+	{
+		return rhs.toHash();
+	}
 };
 }
 namespace std

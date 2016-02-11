@@ -774,7 +774,7 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) no
 			u->unsetFlag(User::ONLINE);
 			if (p_is_disconnect)
 			{
-				ConnectionManager::getInstance()->disconnect(u);
+				ConnectionManager::disconnect(u);
 			}
 			if (!ClientManager::isShutdown())
 			{

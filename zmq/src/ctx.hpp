@@ -1,17 +1,27 @@
 /*
-    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
 
-    This file is part of 0MQ.
+    This file is part of libzmq, the ZeroMQ core engine in C++.
 
-    0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
+    libzmq is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License (LGPL) as published
+    by the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
-    0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    As a special exception, the Contributors give you permission to link
+    this library with independent modules to produce an executable,
+    regardless of the license terms of these independent modules, and to
+    copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the
+    terms and conditions of the license of that module. An independent
+    module is a module which is not derived from or based on this library.
+    If you modify this library, you must extend this exception to your
+    version of the library.
+
+    libzmq is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -32,6 +42,7 @@
 #include "stdint.hpp"
 #include "options.hpp"
 #include "atomic_counter.hpp"
+#include "thread.hpp"
 
 namespace zmq
 {
@@ -49,13 +60,6 @@ namespace zmq
     {
         socket_base_t *socket;
         options_t options;
-    };
-
-    struct pending_connection_t
-    {
-        endpoint_t endpoint;
-        pipe_t* connect_pipe;
-        pipe_t* bind_pipe;
     };
 
     //  Context object encapsulates all the global state associated with
@@ -82,7 +86,7 @@ namespace zmq
         // (except zmq_close).
         // This function is non-blocking.
         // terminate must still be called afterwards.
-        // This function is optional, terminate will unblock any current 
+        // This function is optional, terminate will unblock any current
         // operations as well.
         int shutdown();
 
@@ -93,6 +97,9 @@ namespace zmq
         //  Create and destroy a socket.
         zmq::socket_base_t *create_socket (int type_);
         void destroy_socket (zmq::socket_base_t *socket_);
+
+		//  Start a new thread with proper scheduling parameters.
+        void start_thread (thread_t &thread_, thread_fn *tfn_, void *arg_) const;
 
         //  Send command to the destination thread.
         void send_command (uint32_t tid_, const command_t &command_);
@@ -106,10 +113,12 @@ namespace zmq
         zmq::object_t *get_reaper ();
 
         //  Management of inproc endpoints.
-        int register_endpoint (const char *addr_, endpoint_t &endpoint_);
+        int register_endpoint (const char *addr_, const endpoint_t &endpoint_);
+        int unregister_endpoint (const std::string &addr_, socket_base_t *socket_);
         void unregister_endpoints (zmq::socket_base_t *socket_);
         endpoint_t find_endpoint (const char *addr_);
-        void pend_connection (const char *addr_, pending_connection_t &pending_connection_);
+        void pend_connection (const std::string &addr_,
+                const endpoint_t &endpoint_, pipe_t **pipes_);
         void connect_pending (const char *addr_, zmq::socket_base_t *bind_socket_);
 
         enum {
@@ -121,6 +130,12 @@ namespace zmq
 
     private:
 
+        struct pending_connection_t
+        {
+            endpoint_t endpoint;
+            pipe_t* connect_pipe;
+            pipe_t* bind_pipe;
+        };
 
         //  Used to check whether the object is a context.
         uint32_t tag;
@@ -185,6 +200,10 @@ namespace zmq
         //  Is IPv6 enabled on this context?
         bool ipv6;
 
+		//  Thread scheduling parameters.
+        int thread_priority;
+        int thread_sched_policy;
+
         //  Synchronisation of access to context options.
         mutex_t opt_sync;
 
@@ -196,7 +215,7 @@ namespace zmq
         pid_t pid;
 #endif
         enum side { connect_side, bind_side };
-        void connect_inproc_sockets(zmq::socket_base_t *bind_socket_, options_t& bind_options, pending_connection_t &pending_connection_, side side_);
+        void connect_inproc_sockets(zmq::socket_base_t *bind_socket_, options_t& bind_options, const pending_connection_t &pending_connection_, side side_);
     };
 
 }

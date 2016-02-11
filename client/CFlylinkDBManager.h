@@ -477,7 +477,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		string is_p2p_guard(const uint32_t& p_ip);
 		bool is_avdb_guard(const string& p_nick, int64_t p_share, const uint32_t& p_ip4);
 #ifdef FLYLINKDC_USE_GEO_IP
-		void get_country_and_location(uint32_t p_ip, uint16_t& p_country_index, uint32_t& p_location_index);
+		void get_country_and_location(uint32_t p_ip, uint16_t& p_country_index, uint32_t& p_location_index, bool p_is_use_only_cache);
 		uint16_t get_country_index_from_cache(int16_t p_index)
 		{
 			dcassert(p_index > 0);

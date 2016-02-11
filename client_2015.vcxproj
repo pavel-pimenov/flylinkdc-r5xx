@@ -878,8 +878,6 @@
     <ClInclude Include="client\stdinc.h" />
     <ClInclude Include="client\Streams.h" />
     <ClInclude Include="windows\RebuildMediainfoProgressDlg.h" />
-    <ClInclude Include="zmq\include\zmq.h" />
-    <ClInclude Include="zmq\include\zmq_utils.h" />
     <ClInclude Include="zmq\src\address.hpp" />
     <ClInclude Include="zmq\src\array.hpp" />
     <ClInclude Include="zmq\src\atomic_counter.hpp" />
@@ -901,6 +899,9 @@
     <ClInclude Include="zmq\src\err.hpp" />
     <ClInclude Include="zmq\src\fd.hpp" />
     <ClInclude Include="zmq\src\fq.hpp" />
+    <ClInclude Include="zmq\src\gssapi_client.hpp" />
+    <ClInclude Include="zmq\src\gssapi_mechanism_base.hpp" />
+    <ClInclude Include="zmq\src\gssapi_server.hpp" />
     <ClInclude Include="zmq\src\io_object.hpp" />
     <ClInclude Include="zmq\src\io_thread.hpp" />
     <ClInclude Include="zmq\src\ip.hpp" />
@@ -916,9 +917,11 @@
     <ClInclude Include="zmq\src\likely.hpp" />
     <ClInclude Include="zmq\src\mailbox.hpp" />
     <ClInclude Include="zmq\src\mechanism.hpp" />
+    <ClInclude Include="zmq\src\metadata.hpp" />
     <ClInclude Include="zmq\src\msg.hpp" />
     <ClInclude Include="zmq\src\mtrie.hpp" />
     <ClInclude Include="zmq\src\mutex.hpp" />
+    <ClInclude Include="zmq\src\norm_engine.hpp" />
     <ClInclude Include="zmq\src\null_mechanism.hpp" />
     <ClInclude Include="zmq\src\object.hpp" />
     <ClInclude Include="zmq\src\options.hpp" />
@@ -928,7 +931,8 @@
     <ClInclude Include="zmq\src\pgm_sender.hpp" />
     <ClInclude Include="zmq\src\pgm_socket.hpp" />
     <ClInclude Include="zmq\src\pipe.hpp" />
-    <ClInclude Include="zmq\src\plain_mechanism.hpp" />
+    <ClInclude Include="zmq\src\plain_client.hpp" />
+    <ClInclude Include="zmq\src\plain_server.hpp" />
     <ClInclude Include="zmq\src\platform.hpp" />
     <ClInclude Include="zmq\src\poll.hpp" />
     <ClInclude Include="zmq\src\poller.hpp" />
@@ -949,6 +953,8 @@
     <ClInclude Include="zmq\src\session_base.hpp" />
     <ClInclude Include="zmq\src\signaler.hpp" />
     <ClInclude Include="zmq\src\socket_base.hpp" />
+    <ClInclude Include="zmq\src\socks.hpp" />
+    <ClInclude Include="zmq\src\socks_connecter.hpp" />
     <ClInclude Include="zmq\src\stdint.hpp" />
     <ClInclude Include="zmq\src\stream.hpp" />
     <ClInclude Include="zmq\src\stream_engine.hpp" />
@@ -958,6 +964,9 @@
     <ClInclude Include="zmq\src\tcp_connecter.hpp" />
     <ClInclude Include="zmq\src\tcp_listener.hpp" />
     <ClInclude Include="zmq\src\thread.hpp" />
+    <ClInclude Include="zmq\src\tipc_address.hpp" />
+    <ClInclude Include="zmq\src\tipc_connecter.hpp" />
+    <ClInclude Include="zmq\src\tipc_listener.hpp" />
     <ClInclude Include="zmq\src\trie.hpp" />
     <ClInclude Include="zmq\src\v1_decoder.hpp" />
     <ClInclude Include="zmq\src\v1_encoder.hpp" />
@@ -1016,7 +1025,6 @@
     <None Include="jsoncpp\src\lib_json\json_internalarray.inl" />
     <None Include="jsoncpp\src\lib_json\json_internalmap.inl" />
     <None Include="jsoncpp\src\lib_json\json_valueiterator.inl" />
-    <None Include="zmq\src\platform.hpp.in" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

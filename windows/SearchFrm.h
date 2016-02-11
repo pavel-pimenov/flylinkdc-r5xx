@@ -620,11 +620,11 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				
 			const tstring& getText(int col) const
 			{
-				return (col == 0) ? name : Util::emptyStringT;
+				return col == 0 ? name : Util::emptyStringT;
 			}
 			static int compareItems(const HubInfo* a, const HubInfo* b, int col)
 			{
-				return (col == 0) ? Util::DefaultSort(a->name.c_str(), b->name.c_str()) : 0;
+				return col == 0 ? Util::DefaultSort(a->name.c_str(), b->name.c_str()) : 0;
 			}
 			static const int getImageIndex()
 			{

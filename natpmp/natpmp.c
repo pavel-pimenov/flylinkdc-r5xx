@@ -1,6 +1,6 @@
-/* $Id: natpmp.c,v 1.14 2011/07/15 08:30:11 nanard Exp $ */
+/* $Id: natpmp.c,v 1.17 2013/09/11 07:22:25 nanard Exp $ */
 /* libnatpmp
-Copyright (c) 2007-2011, Thomas BERNARD 
+Copyright (c) 2007-2013, Thomas BERNARD
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,16 +34,15 @@ POSSIBILITY OF SUCH DAMAGE.
 #if !defined(_MSC_VER)
 #include <sys/time.h>
 #endif
-#include <assert.h>
 #ifdef WIN32
-//[-]PPA exclude errno.h (fix conflict EWOULDBLOCK) 
-//#include <errno.h>
+#include <errno.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <io.h>
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #define ECONNREFUSED WSAECONNREFUSED
 #include "wingettimeofday.h"
+#define gettimeofday natpmp_gettimeofday
 #else
 #include <errno.h>
 #include <unistd.h>
@@ -54,6 +53,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include "natpmp.h"
 #include "getgateway.h"
+#include <stdio.h>
 
 LIBSPEC int initnatpmp(natpmp_t * p, int forcegw, in_addr_t forcedgw)
 {
@@ -99,13 +99,13 @@ LIBSPEC int initnatpmp(natpmp_t * p, int forcegw, in_addr_t forcedgw)
 
 LIBSPEC int closenatpmp(natpmp_t * p)
 {
-	assert(p);
+	//assert(p);
 	if(!p)
 		return NATPMP_ERR_INVALIDARGS;
-	assert(p->s);
+	//assert(p->s);
 	if(closesocket(p->s) < 0)
 		{
-			assert(0);
+			//assert(0);
 			return NATPMP_ERR_CLOSEERR;
 	    }
 	return 0;
@@ -203,9 +203,11 @@ LIBSPEC int readnatpmpresponse(natpmp_t * p, natpmpresp_t * response)
 	n = recvfrom(p->s, buf, sizeof(buf), 0,
 	             (struct sockaddr *)&addr, &addrlen);
 	if(n<0)
-	{
-		switch(WSAGetLastError()) 
-		{
+#ifdef WIN32
+		switch(WSAGetLastError()) {
+#else
+		switch(errno) {
+#endif
 		/*case EAGAIN:*/
 		case EWOULDBLOCK:
 			n = NATPMP_TRYAGAIN;
@@ -216,7 +218,6 @@ LIBSPEC int readnatpmpresponse(natpmp_t * p, natpmpresp_t * response)
 		default:
 			n = NATPMP_ERR_RECVFROM;
 		}
-	} 
 	/* check that addr is correct (= gateway) */
 	else if(addr.sin_addr.s_addr != p->gateway)
 		n = NATPMP_ERR_WRONGPACKETSOURCE;

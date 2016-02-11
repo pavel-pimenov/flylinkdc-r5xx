@@ -470,21 +470,24 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		void forEachSelected(void (T::*func)())
 		{
 			CLockRedraw<> l_lock_draw(m_hWnd); // [+] IRainman opt.
-			int n = GetItemCount();
+			CFlyLockWindowUpdate l_lockUpdate(m_hWnd);
+			//int n = GetItemCount();
 			int i = -1;
 			while ((i = GetNextItem(i, LVNI_SELECTED)) != -1)
 			{
 				T* item_data = getItemData(i);
-				// TODO: with code compiled by Intel Compiler - code always crashes... me sad :(
 				if (item_data) // [+] IRainman fix
-					(item_data->*func)(); //[9] https://www.box.net/shared/95775557fcc1825a65cf
-					
-				const int l_new_count = GetItemCount();
+				{
+					(item_data->*func)();
+				}
+				
+				/*const int l_new_count = GetItemCount();
 				if (n != l_new_count)
 				{
-					n = l_new_count;
-					--i;
+				    n = l_new_count;
+				    --i;
 				}
+				*/
 			}
 		}
 		template<class _Function>

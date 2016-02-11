@@ -1,6 +1,6 @@
-/* $Id: getgateway.h,v 1.5 2011/07/15 08:30:11 nanard Exp $ */
+/* $Id: getgateway.h,v 1.7 2013/09/10 20:09:04 nanard Exp $ */
 /* libnatpmp
-Copyright (c) 2007-2011, Thomas BERNARD 
+Copyright (c) 2007-2013, Thomas BERNARD
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,12 @@ POSSIBILITY OF SUCH DAMAGE.
 #define __GETGATEWAY_H__
 
 #ifdef WIN32
+#if !defined(_MSC_VER) || _MSC_VER >= 1600
 #include <stdint.h>
+#else
+typedef unsigned long uint32_t;
+typedef unsigned short uint16_t;
+#endif
 #define in_addr_t uint32_t
 #endif
 #include "declspec.h"

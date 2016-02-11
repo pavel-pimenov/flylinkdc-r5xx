@@ -164,7 +164,7 @@ class AutoUpdate :
 		static const string& UPDATE_FILEDOWNLOAD();
 		static const string& UPDATE_SIGNFILEDOWNLOAD();
 		static const string& UPDATE_DESCRIPTION();
-		static const string& getAUTOUPDATE_SERVER_URL();
+		static string getAUTOUPDATE_SERVER_URL();
 		static AutoUpdateFile parseNode(const XMLParser::XMLNode& Node);
 		int64_t checkFilesToNeedsUpdate(AutoUpdateFiles& p_files4Update,
 		                                AutoUpdateFiles& p_files4Description,

@@ -1,17 +1,27 @@
 /*
-    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
 
-    This file is part of 0MQ.
+    This file is part of libzmq, the ZeroMQ core engine in C++.
 
-    0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
+    libzmq is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License (LGPL) as published
+    by the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
-    0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    As a special exception, the Contributors give you permission to link
+    this library with independent modules to produce an executable,
+    regardless of the license terms of these independent modules, and to
+    copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the
+    terms and conditions of the license of that module. An independent
+    module is a module which is not derived from or based on this library.
+    If you modify this library, you must extend this exception to your
+    version of the library.
+
+    libzmq is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -30,6 +40,7 @@
 #include "options.hpp"
 #include "socket_base.hpp"
 #include "../include/zmq.h"
+#include "metadata.hpp"
 
 namespace zmq
 {
@@ -52,7 +63,13 @@ namespace zmq
     {
     public:
 
-        stream_engine_t (fd_t fd_, const options_t &options_, 
+        enum error_reason_t {
+            protocol_error,
+            connection_error,
+            timeout_error
+        };
+
+        stream_engine_t (fd_t fd_, const options_t &options_,
                          const std::string &endpoint);
         ~stream_engine_t ();
 
@@ -67,6 +84,7 @@ namespace zmq
         //  i_poll_events interface implementation.
         void in_event ();
         void out_event ();
+        void timer_event (int id_);
 
     private:
 
@@ -74,7 +92,7 @@ namespace zmq
         void unplug ();
 
         //  Function to handle network disconnections.
-        void error ();
+        void error (error_reason_t reason);
 
         //  Receives the greeting message from the peer.
         int receive_greeting ();
@@ -82,25 +100,18 @@ namespace zmq
         //  Detects the protocol used by the peer.
         bool handshake ();
 
-        //  Writes data to the socket. Returns the number of bytes actually
-        //  written (even zero is to be considered to be a success). In case
-        //  of error or orderly shutdown by the other peer -1 is returned.
-        int write (const void *data_, size_t size_);
-
-        //  Reads data from the socket (up to 'size' bytes).
-        //  Returns the number of bytes actually read or -1 on error.
-        //  Zero indicates the peer has closed the connection.
-        int read (void *data_, size_t size_);
-
-        int read_identity (msg_t *msg_);
-        int write_identity (msg_t *msg_);
+        int identity_msg (msg_t *msg_);
+        int process_identity_msg (msg_t *msg_);
 
         int next_handshake_command (msg_t *msg);
         int process_handshake_command (msg_t *msg);
 
+        int push_raw_msg_to_session (msg_t *msg);
+
         int pull_msg_from_session (msg_t *msg_);
         int push_msg_to_session (msg_t *msg);
 
+        int write_credential (msg_t *msg_);
         int pull_and_encode (msg_t *msg_);
         int decode_and_push (msg_t *msg_);
         int push_one_then_decode_and_push (msg_t *msg_);
@@ -111,6 +122,8 @@ namespace zmq
 
         size_t add_property (unsigned char *ptr,
             const char *name, const void *value, size_t value_len);
+
+        void set_handshake_timer();
 
         //  Underlying socket.
         fd_t s;
@@ -129,6 +142,9 @@ namespace zmq
         unsigned char *outpos;
         size_t outsize;
         i_encoder *encoder;
+
+        //  Metadata to be attached to received messages. May be NULL.
+        metadata_t *metadata;
 
         //  When true, we are still trying to determine whether
         //  the peer is using versioned protocol, and if so, which
@@ -162,11 +178,10 @@ namespace zmq
         std::string endpoint;
 
         bool plugged;
-        bool terminating;
 
-        int (stream_engine_t::*read_msg) (msg_t *msg_);
+        int (stream_engine_t::*next_msg) (msg_t *msg_);
 
-        int (stream_engine_t::*write_msg) (msg_t *msg_);
+        int (stream_engine_t::*process_msg) (msg_t *msg_);
 
         bool io_error;
 
@@ -182,6 +197,12 @@ namespace zmq
 
         //  True iff the engine doesn't have any message to encode.
         bool output_stopped;
+
+        //  ID of the handshake timer
+        enum {handshake_timer_id = 0x40};
+
+        //  True is linger timer is running.
+        bool has_handshake_timer;
 
         // Socket
         zmq::socket_base_t *socket;

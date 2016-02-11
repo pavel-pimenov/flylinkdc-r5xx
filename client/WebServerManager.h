@@ -268,9 +268,9 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 			PageIndex = num;
 		}
 		
-		static const string& getTemplatePath()
+		static string getTemplatePath()
 		{
-			static const string g = "FlylinkDC" PATH_SEPARATOR_STR "template" PATH_SEPARATOR_STR; // TODO: add settings
+			const string g = "FlylinkDC" PATH_SEPARATOR_STR "template" PATH_SEPARATOR_STR; // TODO: add settings
 			return g;
 		}
 		

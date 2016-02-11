@@ -109,7 +109,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		{
 			return hasSocket() ? sock->getCipherName() : Util::emptyString;
 		}
-		const string& getIp() const
+		string getIp() const
 		{
 			return hasSocket() ? sock->getIp() : Util::emptyString;
 		}

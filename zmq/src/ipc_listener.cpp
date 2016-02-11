@@ -1,17 +1,27 @@
 /*
-    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
 
-    This file is part of 0MQ.
+    This file is part of libzmq, the ZeroMQ core engine in C++.
 
-    0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
+    libzmq is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License (LGPL) as published
+    by the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
-    0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    As a special exception, the Contributors give you permission to link
+    this library with independent modules to produce an executable,
+    regardless of the license terms of these independent modules, and to
+    copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the
+    terms and conditions of the license of that module. An independent
+    module is a module which is not derived from or based on this library.
+    If you modify this library, you must extend this exception to your
+    version of the library.
+
+    libzmq is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -38,6 +48,17 @@
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <sys/un.h>
+
+#if defined ZMQ_HAVE_SO_PEERCRED || defined ZMQ_HAVE_LOCAL_PEERCRED
+#   include <sys/types.h>
+#endif
+#ifdef ZMQ_HAVE_SO_PEERCRED
+#   include <pwd.h>
+#   include <grp.h>
+#   if defined ZMQ_HAVE_OPENBSD
+#       define ucred sockpeercred
+#   endif
+#endif
 
 zmq::ipc_listener_t::ipc_listener_t (io_thread_t *io_thread_,
       socket_base_t *socket_, const options_t &options_) :
@@ -89,7 +110,7 @@ void zmq::ipc_listener_t::in_event ()
     io_thread_t *io_thread = choose_io_thread (options.affinity);
     zmq_assert (io_thread);
 
-    //  Create and launch a session object. 
+    //  Create and launch a session object.
     session_base_t *session = session_base_t::create (io_thread, false, socket,
         options, NULL);
     errno_assert (session);
@@ -123,10 +144,13 @@ int zmq::ipc_listener_t::set_address (const char *addr_)
     std::string addr (addr_);
 
     //  Allow wildcard file
-    if (addr[0] == '*') {
-        char *tmpstr = tempnam (NULL, NULL);
-        addr.assign (tmpstr);
-        free (tmpstr);
+    if (addr [0] == '*') {
+        char buffer [12] = "2134XXXXXX";
+        int fd = mkstemp (buffer);
+        if (fd == -1)
+            return -1;
+        addr.assign (buffer);
+        ::close (fd);
     }
 
     //  Get rid of the file associated with the UNIX domain socket that
@@ -192,6 +216,69 @@ int zmq::ipc_listener_t::close ()
     return 0;
 }
 
+#if defined ZMQ_HAVE_SO_PEERCRED
+
+bool zmq::ipc_listener_t::filter (fd_t sock)
+{
+    if (options.ipc_uid_accept_filters.empty () &&
+        options.ipc_pid_accept_filters.empty () &&
+        options.ipc_gid_accept_filters.empty ())
+        return true;
+
+    struct ucred cred;
+    socklen_t size = sizeof (cred);
+
+    if (getsockopt (sock, SOL_SOCKET, SO_PEERCRED, &cred, &size))
+        return false;
+    if (options.ipc_uid_accept_filters.find (cred.uid) != options.ipc_uid_accept_filters.end () ||
+            options.ipc_gid_accept_filters.find (cred.gid) != options.ipc_gid_accept_filters.end () ||
+            options.ipc_pid_accept_filters.find (cred.pid) != options.ipc_pid_accept_filters.end ())
+        return true;
+
+    struct passwd *pw;
+    struct group *gr;
+
+    if (!(pw = getpwuid (cred.uid)))
+        return false;
+    for (options_t::ipc_gid_accept_filters_t::const_iterator it = options.ipc_gid_accept_filters.begin ();
+            it != options.ipc_gid_accept_filters.end (); it++) {
+        if (!(gr = getgrgid (*it)))
+            continue;
+        for (char **mem = gr->gr_mem; *mem; mem++) {
+            if (!strcmp (*mem, pw->pw_name))
+                return true;
+        }
+    }
+    return false;
+}
+
+#elif defined ZMQ_HAVE_LOCAL_PEERCRED
+
+bool zmq::ipc_listener_t::filter (fd_t sock)
+{
+    if (options.ipc_uid_accept_filters.empty () &&
+        options.ipc_gid_accept_filters.empty ())
+        return true;
+
+    struct xucred cred;
+    socklen_t size = sizeof (cred);
+
+    if (getsockopt (sock, 0, LOCAL_PEERCRED, &cred, &size))
+        return false;
+    if (cred.cr_version != XUCRED_VERSION)
+        return false;
+    if (options.ipc_uid_accept_filters.find (cred.cr_uid) != options.ipc_uid_accept_filters.end ())
+        return true;
+    for (int i = 0; i < cred.cr_ngroups; i++) {
+        if (options.ipc_gid_accept_filters.find (cred.cr_groups[i]) != options.ipc_gid_accept_filters.end ())
+            return true;
+    }
+
+    return false;
+}
+
+#endif
+
 zmq::fd_t zmq::ipc_listener_t::accept ()
 {
     //  Accept one connection and deal with different failure modes.
@@ -205,6 +292,23 @@ zmq::fd_t zmq::ipc_listener_t::accept ()
             errno == ENFILE);
         return retired_fd;
     }
+
+    //  Race condition can cause socket not to be closed (if fork happens
+    //  between accept and this point).
+#ifdef FD_CLOEXEC
+    int rc = fcntl (sock, F_SETFD, FD_CLOEXEC);
+    errno_assert (rc != -1);
+#endif
+
+    // IPC accept() filters
+#if defined ZMQ_HAVE_SO_PEERCRED || defined ZMQ_HAVE_LOCAL_PEERCRED
+    if (!filter (sock)) {
+        int rc = ::close (sock);
+        errno_assert (rc == 0);
+        return retired_fd;
+    }
+#endif
+
     return sock;
 }
 

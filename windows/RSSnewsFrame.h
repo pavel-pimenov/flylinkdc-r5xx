@@ -121,10 +121,6 @@ class RSSNewsFrame : public MDITabChildWindowImpl < RSSNewsFrame, RGB(0, 0, 0), 
 				const tstring& getText(int p_col) const
 				{
 					dcassert(p_col >= 0 && p_col < COLUMN_LAST);
-					// [-] IRainman fix: It's not even funny. This is sad. :(
-					// [-] if (col >= COLUMN_LAST || col < 0)
-					// [-]  return Util::emptyStringT; // TODO Log
-					// [-] else
 					return m_columns[p_col];
 				}
 				

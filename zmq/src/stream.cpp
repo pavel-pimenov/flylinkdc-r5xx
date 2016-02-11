@@ -1,17 +1,27 @@
 /*
-    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
 
-    This file is part of 0MQ.
+    This file is part of libzmq, the ZeroMQ core engine in C++.
 
-    0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
+    libzmq is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License (LGPL) as published
+    by the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
-    0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    As a special exception, the Contributors give you permission to link
+    this library with independent modules to produce an executable,
+    regardless of the license terms of these independent modules, and to
+    copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the
+    terms and conditions of the license of that module. An independent
+    module is a module which is not derived from or based on this library.
+    If you modify this library, you must extend this exception to your
+    version of the library.
+
+    libzmq is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -30,7 +40,7 @@ zmq::stream_t::stream_t (class ctx_t *parent_, uint32_t tid_, int sid_) :
     identity_sent (false),
     current_out (NULL),
     more_out (false),
-    next_peer_id (generate_random ())
+    next_rid (generate_random ())
 {
     options.type = ZMQ_STREAM;
     options.raw_sock = true;
@@ -142,6 +152,8 @@ int zmq::stream_t::xsend (msg_t *msg_)
             current_out->terminate (false);
             int rc = msg_->close ();
             errno_assert (rc == 0);
+            rc = msg_->init ();
+            errno_assert (rc == 0);
             current_out = NULL;
             return 0;
         }
@@ -160,6 +172,23 @@ int zmq::stream_t::xsend (msg_t *msg_)
     errno_assert (rc == 0);
 
     return 0;
+}
+
+int zmq::stream_t::xsetsockopt (int option_, const void *optval_,
+    size_t optvallen_)
+{
+    switch (option_) {
+        case ZMQ_CONNECT_RID:
+            if (optval_ && optvallen_) {
+                connect_rid.assign ((char*) optval_, optvallen_);
+                return 0;
+            }
+            break;
+        default:
+            break;
+    }
+    errno = EINVAL;
+    return -1;
 }
 
 int zmq::stream_t::xrecv (msg_t *msg_)
@@ -192,6 +221,12 @@ int zmq::stream_t::xrecv (msg_t *msg_)
     blob_t identity = pipe->get_identity ();
     rc = msg_->init_size (identity.size ());
     errno_assert (rc == 0);
+
+    // forward metadata (if any)
+    metadata_t *metadata = prefetched_msg.metadata();
+    if (metadata)
+        msg_->set_metadata(metadata);
+
     memcpy (msg_->data (), identity.data (), identity.size ());
     msg_->set_flags (msg_t::more);
 
@@ -220,6 +255,12 @@ bool zmq::stream_t::xhas_in ()
     blob_t identity = pipe->get_identity ();
     rc = prefetched_id.init_size (identity.size ());
     errno_assert (rc == 0);
+
+    // forward metadata (if any)
+    metadata_t *metadata = prefetched_msg.metadata();
+    if (metadata)
+        prefetched_id.set_metadata(metadata);
+
     memcpy (prefetched_id.data (), identity.data (), identity.size ());
     prefetched_id.set_flags (msg_t::more);
 
@@ -242,12 +283,21 @@ void zmq::stream_t::identify_peer (pipe_t *pipe_)
     //  Always assign identity for raw-socket
     unsigned char buffer [5];
     buffer [0] = 0;
-    put_uint32 (buffer + 1, next_peer_id++);
-    blob_t identity = blob_t (buffer, sizeof buffer);
-
-    memcpy (options.identity, identity.data (), identity.size ());
-    options.identity_size = identity.size ();
-
+    blob_t identity;
+    if (connect_rid.length ()) {
+        identity = blob_t ((unsigned char*) connect_rid.c_str(),
+            connect_rid.length ());
+        connect_rid.clear ();
+        outpipes_t::iterator it = outpipes.find (identity);
+        if (it != outpipes.end ())
+            zmq_assert(false);
+    }
+    else {
+        put_uint32 (buffer + 1, next_rid++);
+        identity = blob_t (buffer, sizeof buffer);
+        memcpy (options.identity, identity.data (), identity.size ());
+        options.identity_size = identity.size ();
+    }
     pipe_->set_identity (identity);
     //  Add the record into output pipes lookup table
     outpipe_t outpipe = {pipe_, true};

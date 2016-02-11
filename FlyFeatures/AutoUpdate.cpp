@@ -251,7 +251,7 @@ void AutoUpdate::startUpdateThisThread()
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
 	unique_ptr<AutoUpdateObject> autoUpdateObjectAU(new AutoUpdateObject());
 #endif
-	const string& serverURL = getAUTOUPDATE_SERVER_URL();
+	const string serverURL = getAUTOUPDATE_SERVER_URL();
 	string l_base_update_url;
 	string l_base_updateAU_url;
 	if (Util::isHttpLink(serverURL))
@@ -868,7 +868,7 @@ const string& AutoUpdate::UPDATE_DESCRIPTION()
 	return BOOLSETTING(AUTOUPDATE_TO_BETA) ? UPDATE_DESCRIPTION_B : UPDATE_DESCRIPTION_R;
 }
 
-const string& AutoUpdate::getAUTOUPDATE_SERVER_URL()
+string AutoUpdate::getAUTOUPDATE_SERVER_URL()
 {
 	// SSA - get custom URL if need
 	const string& l_customUpdateServerUrl = SETTING(AUTOUPDATE_SERVER_URL);

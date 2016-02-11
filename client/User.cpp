@@ -889,7 +889,7 @@ unsigned char Identity::calcVirusType(bool p_force /* = false */)
 		string l_virus_path;
 		if (const auto l_bs = getBytesShared())
 		{
-			l_virus_type = CFlylinkDBManager::getInstance()->calc_antivirus_flag(getNick(), getIp(), l_bs, l_virus_path);
+			l_virus_type = CFlylinkDBManager::getInstance()->calc_antivirus_flag(getNick(), getIpRAW(), l_bs, l_virus_path);
 		}
 		setVirusPath(l_virus_path);
 		setVirusType(l_virus_type | Identity::VT_CALC_AVDB);

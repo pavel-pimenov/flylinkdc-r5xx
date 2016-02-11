@@ -15,7 +15,7 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 	if (p_is_unlock && m_function)
 	{
 		BoostFastLock l(g_cs_stat_map);
-		auto& l_item = g_lock_map[m_function];
+		auto& l_item = g_lock_map[m_function + string(" Line:") + Util::toString(m_line)];
 		l_item.first++;
 		if (l_tick_delta > l_item.second)
 			l_item.second = l_tick_delta;
@@ -23,7 +23,7 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 	if (
 #define FLYLINKDC_USE_PROFILE_SELECTED_CLASS
 #ifdef FLYLINKDC_USE_PROFILE_SELECTED_CLASS
-	    (l_tick_delta > 16 &&
+	    (l_tick_delta >= 200 &&
 	     (m_function &&
 	      (
 	          true // strstr(m_function, "Identity") != 0
@@ -38,10 +38,13 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 	    (m_function &&
 	     (
 	         strstr(m_function, "DebugManager::") == 0 &&
-	         
+	         strstr(m_function, "ShareManager::") == 0 &&
 	         strstr(m_function, "::addListener") == 0 &&
 	         strstr(m_function, "::removeListener") == 0 &&
+	         strstr(m_function, "TaskQueue::add") == 0 &&
+	         strstr(m_function, "Identity::") == 0 &&
 	         strstr(m_function, "LogManager::") == 0
+	         
 	     )
 	    )
 	)
@@ -68,10 +71,11 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 			time(&now);
 			tm *now_tm = localtime(&now);
 			strftime(timeFormat, _countof(timeFormat), "%d.%m.%Y %H:%M:%S", now_tm);
-			fprintf(f, "[%6d][%s] %s tick_delta = %d RecursionCount = %d ext_info = %s\r\n",
+			fprintf(f, "[%6d][%s] %s [%d] tick_delta = %d RecursionCount = %d ext_info = %s\r\n",
 			        ::GetCurrentThreadId(),
 			        timeFormat,
 			        m_function ? m_function : "",
+			        m_line,
 			        //l_delta,
 			        l_tick_delta,
 			        p_recursion_count,

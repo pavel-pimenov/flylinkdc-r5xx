@@ -134,9 +134,11 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		
 		LRESULT onItemChangedQueue(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 		{
-			NMLISTVIEW* lv = (NMLISTVIEW*)pnmh;
+			const NMLISTVIEW* lv = (NMLISTVIEW*)pnmh;
 			if ((lv->uNewState & LVIS_SELECTED) != (lv->uOldState & LVIS_SELECTED))
-				updateStatus();
+			{
+				m_update_status++;
+			}
 			return 0;
 		}
 		
@@ -221,6 +223,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		
 		std::vector<std::pair<std::string, UserPtr> > m_remove_source_array;
 		void removeSources();
+		void doTimerTask();
 		
 		class QueueItemInfo;
 		friend class QueueItemInfo;
@@ -293,7 +296,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 					return (m_qi->getFlags() & aFlag) != 0;
 				}
 				
-				const string& getTarget() const
+				string getTarget() const
 				{
 					return m_qi->getTarget();
 				}
@@ -364,7 +367,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		CContainedWindow showTreeContainer;
 		bool showTree;
 		bool usingDirMenu;
-		
 		bool m_dirty;
 		unsigned m_last_count;
 		int64_t  m_last_total;
@@ -390,6 +392,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		
 		int64_t queueSize;
 		int queueItems;
+		int m_update_status;
 		
 		static int columnIndexes[COLUMN_LAST];
 		static int columnSizes[COLUMN_LAST];
@@ -401,8 +404,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		void removeDirectories(HTREEITEM ht);
 		
 		void updateQueue();
-		void updateStatus();
-		
+		void updateQueueStatus();
 		
 		bool isCurDir(const string& aDir) const
 		{
@@ -436,16 +438,19 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		void renameSelected();
 		void renameSelectedDir();
 		
-		const string& getSelectedDir() const
+		string getSelectedDir() const
 		{
 			HTREEITEM ht = ctrlDirs.GetSelectedItem();
 			return ht == NULL ? Util::emptyString : getDir(ctrlDirs.GetSelectedItem());
 		}
 		
-		const string& getDir(HTREEITEM ht) const
+		string getDir(HTREEITEM ht) const
 		{
 			dcassert(ht != NULL);
-			return *reinterpret_cast<string*>(ctrlDirs.GetItemData(ht));
+			if (ht)
+				return *reinterpret_cast<string*>(ctrlDirs.GetItemData(ht));
+			else
+				return Util::emptyString;
 		}
 		
 		void on(QueueManagerListener::Added, const QueueItemPtr& aQI) noexcept override;

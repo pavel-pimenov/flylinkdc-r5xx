@@ -1,17 +1,27 @@
 /*
-    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
 
-    This file is part of 0MQ.
+    This file is part of libzmq, the ZeroMQ core engine in C++.
 
-    0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
+    libzmq is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License (LGPL) as published
+    by the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
-    0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    As a special exception, the Contributors give you permission to link
+    this library with independent modules to produce an executable,
+    regardless of the license terms of these independent modules, and to
+    copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the
+    terms and conditions of the license of that module. An independent
+    module is a module which is not derived from or based on this library.
+    If you modify this library, you must extend this exception to your
+    version of the library.
+
+    libzmq is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -26,8 +36,9 @@
 
 zmq::xpub_t::xpub_t (class ctx_t *parent_, uint32_t tid_, int sid_) :
     socket_base_t (parent_, tid_, sid_),
-    verbose(false),
-    more (false)
+    verbose (false),
+    more (false),
+    lossy (true)
 {
     options.type = ZMQ_XPUB;
 }
@@ -90,15 +101,19 @@ void zmq::xpub_t::xwrite_activated (pipe_t *pipe_)
 int zmq::xpub_t::xsetsockopt (int option_, const void *optval_,
     size_t optvallen_)
 {
-    if (option_ != ZMQ_XPUB_VERBOSE) {
-        errno = EINVAL;
-        return -1;
-    }
     if (optvallen_ != sizeof (int) || *static_cast <const int*> (optval_) < 0) {
         errno = EINVAL;
         return -1;
     }
-    verbose = (*static_cast <const int*> (optval_) != 0);
+    if (option_ == ZMQ_XPUB_VERBOSE)
+        verbose = (*static_cast <const int*> (optval_) != 0);
+    else
+    if (option_ == ZMQ_XPUB_NODROP)
+        lossy = (*static_cast <const int*> (optval_) == 0);
+    else {
+        errno = EINVAL;
+        return -1;
+    }
     return 0;
 }
 
@@ -127,20 +142,20 @@ int zmq::xpub_t::xsend (msg_t *msg_)
         subscriptions.match ((unsigned char*) msg_->data (), msg_->size (),
             mark_as_matching, this);
 
-    //  Send the message to all the pipes that were marked as matching
-    //  in the previous step.
-    int rc = dist.send_to_matching (msg_);
-    if (rc != 0)
-        return rc;
-
-    //  If we are at the end of multi-part message we can mark all the pipes
-    //  as non-matching.
-    if (!msg_more)
-        dist.unmatch ();
-
-    more = msg_more;
-
-    return 0;
+    int rc = -1;            //  Assume we fail
+    if (lossy || dist.check_hwm ()) {
+        if (dist.send_to_matching (msg_) == 0) {
+            //  If we are at the end of multi-part message we can mark
+            //  all the pipes as non-matching.
+            if (!msg_more)
+                dist.unmatch ();
+            more = msg_more;
+            rc = 0;         //  Yay, sent successfully
+        }
+    }
+    else
+        errno = EAGAIN;
+    return rc;
 }
 
 bool zmq::xpub_t::xhas_out ()
@@ -150,7 +165,7 @@ bool zmq::xpub_t::xhas_out ()
 
 int zmq::xpub_t::xrecv (msg_t *msg_)
 {
-    //  If there is at least one 
+    //  If there is at least one
     if (pending_data.empty ()) {
         errno = EAGAIN;
         return -1;
@@ -184,7 +199,8 @@ void zmq::xpub_t::send_unsubscription (unsigned char *data_, size_t size_,
         //  to be retrived by the user later on.
         blob_t unsub (size_ + 1, 0);
         unsub [0] = 0;
-        memcpy (&unsub [1], data_, size_);
+        if (size_ > 0)
+            memcpy (&unsub [1], data_, size_);
         self->pending_data.push_back (unsub);
         self->pending_flags.push_back (0);
     }

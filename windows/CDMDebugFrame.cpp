@@ -199,16 +199,21 @@ void CDMDebugFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 
 void CDMDebugFrame::addLine(const DebugTask& task)
 {
-	dcassert(!isClosedOrShutdown());
 	if (!isClosedOrShutdown() && !m_stop)
 	{
 		if (ctrlCMDPad.GetWindowTextLength() > MAX_TEXT_LEN)
 		{
 			CLockRedraw<> l_lock_draw(ctrlCMDPad);
+			if (m_stop)
+				return; // Костыль-1
 			ctrlCMDPad.SetSel(0, ctrlCMDPad.LineIndex(ctrlCMDPad.LineFromChar(2000)));
+			if (m_stop)
+				return; // Костыль-1
 			ctrlCMDPad.ReplaceSel(_T(""));
 		}
 		BOOL noscroll = TRUE;
+		if (m_stop)
+			return; // Костыль-1
 		POINT p = ctrlCMDPad.PosFromChar(ctrlCMDPad.GetWindowTextLength() - 1);
 		CRect r;
 		if (m_stop)

@@ -1,17 +1,27 @@
 /*
-    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
 
-    This file is part of 0MQ.
+    This file is part of libzmq, the ZeroMQ core engine in C++.
 
-    0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
+    libzmq is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License (LGPL) as published
+    by the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
-    0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    As a special exception, the Contributors give you permission to link
+    this library with independent modules to produce an executable,
+    regardless of the license terms of these independent modules, and to
+    copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the
+    terms and conditions of the license of that module. An independent
+    module is a module which is not derived from or based on this library.
+    If you modify this library, you must extend this exception to your
+    version of the library.
+
+    libzmq is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -47,6 +57,19 @@ void zmq::mechanism_t::peer_identity (msg_t *msg_)
     msg_->set_flags (msg_t::identity);
 }
 
+void zmq::mechanism_t::set_user_id (const void *data_, size_t size_)
+{
+    user_id = blob_t (static_cast <const unsigned char*> (data_), size_);
+    zap_properties.insert (
+        metadata_t::dict_t::value_type (
+            "User-Id", std::string ((char *) data_, size_)));
+}
+
+zmq::blob_t zmq::mechanism_t::get_user_id () const
+{
+    return user_id;
+}
+
 const char *zmq::mechanism_t::socket_type_string (int socket_type) const
 {
     static const char *names [] = {"PAIR", "PUB", "SUB", "REQ", "REP",
@@ -73,7 +96,7 @@ size_t zmq::mechanism_t::add_property (unsigned char *ptr, const char *name,
 }
 
 int zmq::mechanism_t::parse_metadata (const unsigned char *ptr_,
-                                      size_t length_)
+                                      size_t length_, bool zap_flag)
 {
     size_t bytes_left = length_;
 
@@ -115,6 +138,14 @@ int zmq::mechanism_t::parse_metadata (const unsigned char *ptr_,
             if (rc == -1)
                 return -1;
         }
+        if (zap_flag)
+            zap_properties.insert (
+                metadata_t::dict_t::value_type (
+                    name, std::string ((char *) value, value_length)));
+        else
+            zmtp_properties.insert (
+                metadata_t::dict_t::value_type (
+                    name, std::string ((char *) value, value_length)));
     }
     if (bytes_left > 0) {
         errno = EPROTO;
@@ -123,15 +154,15 @@ int zmq::mechanism_t::parse_metadata (const unsigned char *ptr_,
     return 0;
 }
 
-int zmq::mechanism_t::property (const std::string name_,
-                                const void *value_, size_t length_)
+int zmq::mechanism_t::property (const std::string& /* name_ */,
+                                const void * /* value_ */, size_t /* length_ */)
 {
     //  Default implementation does not check
     //  property values and returns 0 to signal success.
     return 0;
 }
 
-bool zmq::mechanism_t::check_socket_type (const std::string type_) const
+bool zmq::mechanism_t::check_socket_type (const std::string& type_) const
 {
     switch (options.type) {
         case ZMQ_REQ:

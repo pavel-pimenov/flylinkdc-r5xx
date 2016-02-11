@@ -1,46 +1,41 @@
 /*
-    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
 
-    This file is part of 0MQ.
+    This file is part of libzmq, the ZeroMQ core engine in C++.
 
-    0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
+    libzmq is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License (LGPL) as published
+    by the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
-    0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    As a special exception, the Contributors give you permission to link
+    this library with independent modules to produce an executable,
+    regardless of the license terms of these independent modules, and to
+    copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the
+    terms and conditions of the license of that module. An independent
+    module is a module which is not derived from or based on this library.
+    If you modify this library, you must extend this exception to your
+    version of the library.
+
+    libzmq is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "platform.hpp"
-
-#if defined ZMQ_FORCE_SELECT
-#define ZMQ_SIGNALER_WAIT_BASED_ON_SELECT
-#elif defined ZMQ_FORCE_POLL
-#define ZMQ_SIGNALER_WAIT_BASED_ON_POLL
-#elif defined ZMQ_HAVE_LINUX || defined ZMQ_HAVE_FREEBSD ||\
-    defined ZMQ_HAVE_OPENBSD || defined ZMQ_HAVE_SOLARIS ||\
-    defined ZMQ_HAVE_OSX || defined ZMQ_HAVE_QNXNTO ||\
-    defined ZMQ_HAVE_HPUX || defined ZMQ_HAVE_AIX ||\
-    defined ZMQ_HAVE_NETBSD
-#define ZMQ_SIGNALER_WAIT_BASED_ON_POLL
-#elif defined ZMQ_HAVE_WINDOWS || defined ZMQ_HAVE_OPENVMS ||\
-	defined ZMQ_HAVE_CYGWIN
-#define ZMQ_SIGNALER_WAIT_BASED_ON_SELECT
-#endif
+#include "poller.hpp"
 
 //  On AIX, poll.h has to be included before zmq.h to get consistent
 //  definition of pollfd structure (AIX uses 'reqevents' and 'retnevents'
 //  instead of 'events' and 'revents' and defines macros to map from POSIX-y
 //  names to AIX-specific names).
-#if defined ZMQ_SIGNALER_WAIT_BASED_ON_POLL
+#if defined ZMQ_POLL_BASED_ON_POLL
 #include <poll.h>
-#elif defined ZMQ_SIGNALER_WAIT_BASED_ON_SELECT
+#elif defined ZMQ_POLL_BASED_ON_SELECT
 #if defined ZMQ_HAVE_WINDOWS
 #include "windows.hpp"
 #elif defined ZMQ_HAVE_HPUX
@@ -77,6 +72,55 @@
 #include <sys/socket.h>
 #endif
 
+#if !defined (ZMQ_HAVE_WINDOWS)
+// Helper to sleep for specific number of milliseconds (or until signal)
+//
+static int sleep_ms (unsigned int ms_)
+{
+    if (ms_ == 0)
+        return 0;
+#if defined ZMQ_HAVE_WINDOWS
+    Sleep (ms_ > 0 ? ms_ : INFINITE);
+    return 0;
+#elif defined ZMQ_HAVE_ANDROID
+    usleep (ms_ * 1000);
+    return 0;
+#else
+    return usleep (ms_ * 1000);
+#endif
+}
+
+// Helper to wait on close(), for non-blocking sockets, until it completes
+// If EAGAIN is received, will sleep briefly (1-100ms) then try again, until
+// the overall timeout is reached.
+//
+static int close_wait_ms (int fd_, unsigned int max_ms_ = 2000)
+{
+    unsigned int ms_so_far = 0;
+    unsigned int step_ms   = max_ms_ / 10;
+    if (step_ms < 1)
+        step_ms = 1;
+
+    if (step_ms > 100)
+        step_ms = 100;
+
+    int rc = 0;       // do not sleep on first attempt
+
+    do
+    {
+        if (rc == -1 && errno == EAGAIN)
+        {
+            sleep_ms (step_ms);
+            ms_so_far += step_ms;
+        }
+
+        rc = close (fd_);
+    } while (ms_so_far < max_ms_ && rc == -1 && errno == EAGAIN);
+
+    return rc;
+}
+#endif
+
 zmq::signaler_t::signaler_t ()
 {
     //  Create the socketpair for signaling.
@@ -85,41 +129,44 @@ zmq::signaler_t::signaler_t ()
         unblock_socket (r);
     }
 #ifdef HAVE_FORK
-    pid = getpid();
+    pid = getpid ();
 #endif
 }
 
 zmq::signaler_t::~signaler_t ()
 {
 #if defined ZMQ_HAVE_EVENTFD
-    int rc = close (r);
+    int rc = close_wait_ms (r);
     errno_assert (rc == 0);
 #elif defined ZMQ_HAVE_WINDOWS
-    struct linger so_linger = { 1, 0 };
+    const struct linger so_linger = { 1, 0 };
     int rc = setsockopt (w, SOL_SOCKET, SO_LINGER,
-        (char *)&so_linger, sizeof (so_linger));
-    wsa_assert (rc != SOCKET_ERROR);
-    rc = closesocket (w);
-    wsa_assert (rc != SOCKET_ERROR);
-    rc = closesocket (r);
-    wsa_assert (rc != SOCKET_ERROR);
+        (const char *) &so_linger, sizeof so_linger);
+    //  Only check shutdown if WSASTARTUP was previously done
+    if (rc == 0 || WSAGetLastError () != WSANOTINITIALISED) {
+        wsa_assert (rc != SOCKET_ERROR);
+        rc = closesocket (w);
+        wsa_assert (rc != SOCKET_ERROR);
+        rc = closesocket (r);
+        wsa_assert (rc != SOCKET_ERROR);
+    }
 #else
-    int rc = close (w);
+    int rc = close_wait_ms (w);
     errno_assert (rc == 0);
-    rc = close (r);
+    rc = close_wait_ms (r);
     errno_assert (rc == 0);
 #endif
 }
 
-zmq::fd_t zmq::signaler_t::get_fd ()
+zmq::fd_t zmq::signaler_t::get_fd () const
 {
     return r;
 }
 
 void zmq::signaler_t::send ()
 {
-#if HAVE_FORK
-    if (unlikely(pid != getpid())) {
+#if defined HAVE_FORK
+    if (unlikely (pid != getpid ())) {
         //printf("Child process %d signaler_t::send returning without sending #1\n", getpid());
         return; // do not send anything in forked child context
     }
@@ -139,14 +186,14 @@ void zmq::signaler_t::send ()
         ssize_t nbytes = ::send (w, &dummy, sizeof (dummy), 0);
         if (unlikely (nbytes == -1 && errno == EINTR))
             continue;
-#if HAVE_FORK
-        if (unlikely(pid != getpid())) {
+#if defined(HAVE_FORK)
+        if (unlikely (pid != getpid ())) {
             //printf("Child process %d signaler_t::send returning without sending #2\n", getpid());
             errno = EINTR;
             break;
         }
 #endif
-        zmq_assert (nbytes == sizeof (dummy));
+        zmq_assert (nbytes == sizeof dummy);
         break;
     }
 #endif
@@ -155,8 +202,7 @@ void zmq::signaler_t::send ()
 int zmq::signaler_t::wait (int timeout_)
 {
 #ifdef HAVE_FORK
-    if (unlikely(pid != getpid()))
-    {
+    if (unlikely (pid != getpid ())) {
         // we have forked and the file descriptor is closed. Emulate an interupt
         // response.
         //printf("Child process %d signaler_t::wait returning simulating interrupt #1\n", getpid());
@@ -165,8 +211,7 @@ int zmq::signaler_t::wait (int timeout_)
     }
 #endif
 
-#ifdef ZMQ_SIGNALER_WAIT_BASED_ON_POLL
-
+#ifdef ZMQ_POLL_BASED_ON_POLL
     struct pollfd pfd;
     pfd.fd = r;
     pfd.events = POLLIN;
@@ -181,7 +226,8 @@ int zmq::signaler_t::wait (int timeout_)
         return -1;
     }
 #ifdef HAVE_FORK
-    if (unlikely(pid != getpid())) {
+    else
+    if (unlikely (pid != getpid ())) {
         // we have forked and the file descriptor is closed. Emulate an interupt
         // response.
         //printf("Child process %d signaler_t::wait returning simulating interrupt #2\n", getpid());
@@ -193,7 +239,7 @@ int zmq::signaler_t::wait (int timeout_)
     zmq_assert (pfd.revents & POLLIN);
     return 0;
 
-#elif defined ZMQ_SIGNALER_WAIT_BASED_ON_SELECT
+#elif defined ZMQ_POLL_BASED_ON_SELECT
 
     fd_set fds;
     FD_ZERO (&fds);
@@ -260,7 +306,7 @@ void zmq::signaler_t::recv ()
 }
 
 #ifdef HAVE_FORK
-void zmq::signaler_t::forked()
+void zmq::signaler_t::forked ()
 {
     //  Close file descriptors created in the parent and create new pair
     close (r);
@@ -289,13 +335,13 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
     // Windows CE does not manage security attributes
     SECURITY_DESCRIPTOR sd;
     SECURITY_ATTRIBUTES sa;
-    memset (&sd, 0, sizeof (sd));
-    memset (&sa, 0, sizeof (sa));
+    memset (&sd, 0, sizeof sd);
+    memset (&sa, 0, sizeof sa);
 
-    InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION);
-    SetSecurityDescriptorDacl(&sd, TRUE, 0, FALSE);
+    InitializeSecurityDescriptor (&sd, SECURITY_DESCRIPTOR_REVISION);
+    SetSecurityDescriptorDacl (&sd, TRUE, 0, FALSE);
 
-    sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+    sa.nLength = sizeof (SECURITY_ATTRIBUTES);
     sa.lpSecurityDescriptor = &sd;
 #   endif
 
@@ -306,16 +352,44 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
     //  Note that if the event object already exists, the CreateEvent requests
     //  EVENT_ALL_ACCESS access right. If this fails, we try to open
     //  the event object asking for SYNCHRONIZE access only.
-#   if !defined _WIN32_WCE
-    HANDLE sync = CreateEvent (&sa, FALSE, TRUE, TEXT ("Global\\zmq-signaler-port-sync"));
-#   else
-    HANDLE sync = CreateEvent (NULL, FALSE, TRUE, TEXT ("Global\\zmq-signaler-port-sync"));
-#   endif
-    if (sync == NULL && GetLastError () == ERROR_ACCESS_DENIED)
-        sync = OpenEvent (SYNCHRONIZE | EVENT_MODIFY_STATE,
-                          FALSE, TEXT ("Global\\zmq-signaler-port-sync"));
+    HANDLE sync = NULL;
 
-    win_assert (sync != NULL);
+    //  Create critical section only if using fixed signaler port
+    //  Use problematic Event implementation for compatibility if using old port 5905.
+    //  Otherwise use Mutex implementation.
+    int event_signaler_port = 5905;
+
+    if (signaler_port == event_signaler_port) {
+#       if !defined _WIN32_WCE
+        sync = CreateEventW (&sa, FALSE, TRUE, L"Global\\zmq-signaler-port-sync");
+#       else
+        sync = CreateEventW (NULL, FALSE, TRUE, L"Global\\zmq-signaler-port-sync");
+#       endif
+        if (sync == NULL && GetLastError () == ERROR_ACCESS_DENIED)
+            sync = OpenEventW (SYNCHRONIZE | EVENT_MODIFY_STATE,
+                              FALSE, L"Global\\zmq-signaler-port-sync");
+
+        win_assert (sync != NULL);
+    }
+    else
+    if (signaler_port != 0) {
+        wchar_t mutex_name [MAX_PATH];
+#       ifdef __MINGW32__
+        _snwprintf (mutex_name, MAX_PATH, L"Global\\zmq-signaler-port-%d", signaler_port);
+#       else
+        swprintf (mutex_name, MAX_PATH, L"Global\\zmq-signaler-port-%d", signaler_port);
+#       endif
+
+#       if !defined _WIN32_WCE
+        sync = CreateMutexW (&sa, FALSE, mutex_name);
+#       else
+        sync = CreateMutexW (NULL, FALSE, mutex_name);
+#       endif
+        if (sync == NULL && GetLastError () == ERROR_ACCESS_DENIED)
+            sync = OpenMutexW (SYNCHRONIZE, FALSE, mutex_name);
+
+        win_assert (sync != NULL);
+    }
 
     //  Windows has no 'socketpair' function. CreatePipe is no good as pipe
     //  handles cannot be polled on. Here we create the socketpair by hand.
@@ -330,16 +404,16 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
     //  Set SO_REUSEADDR and TCP_NODELAY on listening socket.
     BOOL so_reuseaddr = 1;
     int rc = setsockopt (listener, SOL_SOCKET, SO_REUSEADDR,
-        (char *)&so_reuseaddr, sizeof (so_reuseaddr));
+        (char *)&so_reuseaddr, sizeof so_reuseaddr);
     wsa_assert (rc != SOCKET_ERROR);
     BOOL tcp_nodelay = 1;
     rc = setsockopt (listener, IPPROTO_TCP, TCP_NODELAY,
-        (char *)&tcp_nodelay, sizeof (tcp_nodelay));
+        (char *)&tcp_nodelay, sizeof tcp_nodelay);
     wsa_assert (rc != SOCKET_ERROR);
 
     //  Init sockaddr to signaler port.
     struct sockaddr_in addr;
-    memset (&addr, 0, sizeof (addr));
+    memset (&addr, 0, sizeof addr);
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl (INADDR_LOOPBACK);
     addr.sin_port = htons (signaler_port);
@@ -350,15 +424,23 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
 
     //  Set TCP_NODELAY on writer socket.
     rc = setsockopt (*w_, IPPROTO_TCP, TCP_NODELAY,
-        (char *)&tcp_nodelay, sizeof (tcp_nodelay));
+        (char *) &tcp_nodelay, sizeof tcp_nodelay);
     wsa_assert (rc != SOCKET_ERROR);
 
-    //  Enter the critical section.
-    DWORD dwrc = WaitForSingleObject (sync, INFINITE);
-    zmq_assert (dwrc == WAIT_OBJECT_0);
+    if (sync != NULL) {
+        //  Enter the critical section.
+        DWORD dwrc = WaitForSingleObject (sync, INFINITE);
+        zmq_assert (dwrc == WAIT_OBJECT_0 || dwrc == WAIT_ABANDONED);
+    }
 
     //  Bind listening socket to signaler port.
-    rc = bind (listener, (const struct sockaddr*) &addr, sizeof (addr));
+    rc = bind (listener, (const struct sockaddr*) &addr, sizeof addr);
+
+    if (rc != SOCKET_ERROR && signaler_port == 0) {
+        //  Retrieve ephemeral port number
+        int addrlen = sizeof addr;
+        rc = getsockname (listener, (struct sockaddr*) &addr, &addrlen);
+    }
 
     //  Listen for incoming connections.
     if (rc != SOCKET_ERROR)
@@ -366,7 +448,7 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
 
     //  Connect writer to the listener.
     if (rc != SOCKET_ERROR)
-        rc = connect (*w_, (struct sockaddr*) &addr, sizeof (addr));
+        rc = connect (*w_, (struct sockaddr*) &addr, sizeof addr);
 
     //  Accept connection from writer.
     if (rc != SOCKET_ERROR)
@@ -380,18 +462,24 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
     //  We don't need the listening socket anymore. Close it.
     closesocket (listener);
 
-    //  Exit the critical section.
-    BOOL brc = SetEvent (sync);
-    win_assert (brc != 0);
+    if (sync != NULL) {
+        //  Exit the critical section.
+        BOOL brc;
+        if (signaler_port == event_signaler_port)
+            brc = SetEvent (sync);
+        else
+            brc = ReleaseMutex (sync);
+        win_assert (brc != 0);
 
-    //  Release the kernel object
-    brc = CloseHandle (sync);
-    win_assert (brc != 0);
+        //  Release the kernel object
+        brc = CloseHandle (sync);
+        win_assert (brc != 0);
+    }
 
     if (*r_ != INVALID_SOCKET) {
 #   if !defined _WIN32_WCE
         //  On Windows, preventing sockets to be inherited by child processes.
-        brc = SetHandleInformation ((HANDLE) *r_, HANDLE_FLAG_INHERIT, 0);
+        BOOL brc = SetHandleInformation ((HANDLE) *r_, HANDLE_FLAG_INHERIT, 0);
         win_assert (brc);
 #   endif
         return 0;
@@ -417,7 +505,7 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
     //  The bug will be fixed in V5.6 ECO4 and beyond.  In the meantime, we'll
     //  create the socket pair manually.
     struct sockaddr_in lcladdr;
-    memset (&lcladdr, 0, sizeof (lcladdr));
+    memset (&lcladdr, 0, sizeof lcladdr);
     lcladdr.sin_family = AF_INET;
     lcladdr.sin_addr.s_addr = htonl (INADDR_LOOPBACK);
     lcladdr.sin_port = 0;
@@ -426,16 +514,16 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
     errno_assert (listener != -1);
 
     int on = 1;
-    int rc = setsockopt (listener, IPPROTO_TCP, TCP_NODELAY, &on, sizeof (on));
+    int rc = setsockopt (listener, IPPROTO_TCP, TCP_NODELAY, &on, sizeof on);
     errno_assert (rc != -1);
 
-    rc = setsockopt (listener, IPPROTO_TCP, TCP_NODELACK, &on, sizeof (on));
+    rc = setsockopt (listener, IPPROTO_TCP, TCP_NODELACK, &on, sizeof on);
     errno_assert (rc != -1);
 
-    rc = bind (listener, (struct sockaddr*) &lcladdr, sizeof (lcladdr));
+    rc = bind (listener, (struct sockaddr*) &lcladdr, sizeof lcladdr);
     errno_assert (rc != -1);
 
-    socklen_t lcladdr_len = sizeof (lcladdr);
+    socklen_t lcladdr_len = sizeof lcladdr;
 
     rc = getsockname (listener, (struct sockaddr*) &lcladdr, &lcladdr_len);
     errno_assert (rc != -1);
@@ -446,13 +534,13 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
     *w_ = open_socket (AF_INET, SOCK_STREAM, 0);
     errno_assert (*w_ != -1);
 
-    rc = setsockopt (*w_, IPPROTO_TCP, TCP_NODELAY, &on, sizeof (on));
+    rc = setsockopt (*w_, IPPROTO_TCP, TCP_NODELAY, &on, sizeof on);
     errno_assert (rc != -1);
 
-    rc = setsockopt (*w_, IPPROTO_TCP, TCP_NODELACK, &on, sizeof (on));
+    rc = setsockopt (*w_, IPPROTO_TCP, TCP_NODELACK, &on, sizeof on);
     errno_assert (rc != -1);
 
-    rc = connect (*w_, (struct sockaddr*) &lcladdr, sizeof (lcladdr));
+    rc = connect (*w_, (struct sockaddr*) &lcladdr, sizeof lcladdr);
     errno_assert (rc != -1);
 
     *r_ = accept (listener, NULL, NULL);
@@ -478,11 +566,3 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
     }
 #endif
 }
-
-#if defined ZMQ_SIGNALER_WAIT_BASED_ON_SELECT
-#undef ZMQ_SIGNALER_WAIT_BASED_ON_SELECT
-#endif
-#if defined ZMQ_SIGNALER_WAIT_BASED_ON_POLL
-#undef ZMQ_SIGNALER_WAIT_BASED_ON_POLL
-#endif
-

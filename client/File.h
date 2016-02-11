@@ -85,10 +85,7 @@ class File : public IOStream
 		{
 			renameFile(Text::toT(source), Text::toT(target));
 		}
-		static bool deleteFileT(const tstring& aFileName) noexcept
-		{
-			return ::DeleteFile(formatPath(aFileName).c_str()) != NULL;
-		}
+		static bool deleteFileT(const tstring& aFileName) noexcept;
 		static bool deleteFile(const string& aFileName) noexcept
 		{
 			return deleteFileT(Text::toT(aFileName));

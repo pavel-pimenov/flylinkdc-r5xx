@@ -2280,9 +2280,10 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 			}
 			else if (aDownload->getType() != Transfer::TYPE_TREE)
 			{
-				if (!aDownload->getTempTarget().empty() && (aDownload->getType() == Transfer::TYPE_FULL_LIST || aDownload->getTempTarget() != p_path))
+				const string l_tmp_target = aDownload->getTempTarget();
+				if (!l_tmp_target.empty() && (aDownload->getType() == Transfer::TYPE_FULL_LIST || l_tmp_target != p_path))
 				{
-					File::deleteFile(aDownload->getTempTarget());
+					File::deleteFile(l_tmp_target);
 				}
 			}
 		}
@@ -2405,8 +2406,12 @@ bool QueueManager::remove(const string& aTarget)
 			}
 		}
 		
-		// For partial-share
-		UploadManager::abortUpload(q->getTempTarget());
+		const auto l_temp_target = q->getTempTargetConst();
+		if (!l_temp_target.empty())
+		{
+			// For partial-share
+			UploadManager::abortUpload(l_temp_target);
+		}
 		
 		if (q->isRunningL())
 		{
@@ -2417,9 +2422,9 @@ bool QueueManager::remove(const string& aTarget)
 				x.push_back(i->first);
 			}
 		}
-		else if (!q->getTempTarget().empty() && q->getTempTarget() != q->getTarget())
+		else if (!l_temp_target.empty() && l_temp_target != q->getTarget())
 		{
-			File::deleteFile(q->getTempTarget());
+			File::deleteFile(l_temp_target);
 		}
 		
 		fire_remove_internal(q, true);
@@ -2428,7 +2433,7 @@ bool QueueManager::remove(const string& aTarget)
 	
 	for (auto i = x.cbegin(); i != x.cend(); ++i)
 	{
-		ConnectionManager::getInstance()->disconnect(*i, true);
+		ConnectionManager::disconnect(*i, true);
 	}
 	return true;
 }
@@ -2483,7 +2488,7 @@ void QueueManager::removeSource(const string& aTarget, const UserPtr& aUser, Fla
 	while (false);
 	if (isRunning && removeConn)
 	{
-		ConnectionManager::getInstance()->disconnect(aUser, true);
+		ConnectionManager::disconnect(aUser, true);
 	}
 	if (removeCompletely)
 	{
@@ -2546,7 +2551,7 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 	
 	if (isRunning)
 	{
-		ConnectionManager::getInstance()->disconnect(aUser, true);
+		ConnectionManager::disconnect(aUser, true);
 	}
 	if (!removeRunning.empty())
 	{

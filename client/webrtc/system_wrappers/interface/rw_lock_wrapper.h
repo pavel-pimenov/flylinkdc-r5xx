@@ -44,11 +44,12 @@ class SCOPED_LOCKABLE ReadLockScoped
   explicit ReadLockScoped(RWLockWrapper& rw_lock
 #ifdef FLYLINKDC_USE_PROFILER_CS
 	  , const char* p_function = nullptr
+	  , int p_line = 0
 #endif
 	  ) SHARED_LOCK_FUNCTION(rw_lock)
       : rw_lock_(rw_lock)
 #ifdef FLYLINKDC_USE_PROFILER_CS
-	  , CFlyLockProfiler(p_function)
+	  , CFlyLockProfiler(p_function, p_line)
 #endif
   {
     rw_lock_.AcquireLockShared();
@@ -77,11 +78,12 @@ class SCOPED_LOCKABLE WriteLockScoped
   explicit WriteLockScoped(RWLockWrapper& rw_lock
 #ifdef FLYLINKDC_USE_PROFILER_CS
 	  , const char* p_function = nullptr
+	  , int p_line = 0
 #endif
 	  ) EXCLUSIVE_LOCK_FUNCTION(rw_lock)
       : rw_lock_(rw_lock) 
 #ifdef FLYLINKDC_USE_PROFILER_CS
-	  , CFlyLockProfiler(p_function)
+	  , CFlyLockProfiler(p_function,p_line)
 #endif
   {
     rw_lock_.AcquireLockExclusive();
@@ -103,8 +105,8 @@ class SCOPED_LOCKABLE WriteLockScoped
 };
 
 #ifdef FLYLINKDC_USE_PROFILER_CS
-#define CFlyReadLock(cs) webrtc::ReadLockScoped l_lock(cs,__FUNCTION__);
-#define CFlyWriteLock(cs) webrtc::WriteLockScoped l_lock(cs,__FUNCTION__);
+#define CFlyReadLock(cs) webrtc::ReadLockScoped l_lock(cs,__FUNCTION__, __LINE__);
+#define CFlyWriteLock(cs) webrtc::WriteLockScoped l_lock(cs,__FUNCTION__, __LINE__);
 #else
 #define CFlyReadLock(cs) webrtc::ReadLockScoped l_lock(cs);
 #define CFlyWriteLock(cs) webrtc::WriteLockScoped l_lock(cs);

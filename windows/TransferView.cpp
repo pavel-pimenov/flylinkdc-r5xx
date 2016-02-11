@@ -1606,9 +1606,9 @@ void TransferView::updateItem(int ii, uint32_t updateMask)
 	}
 }
 
-TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const ConnectionQueueItem* aCqi) // [+] IRainman fix.
+TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const UserPtr& p_user, bool p_is_download)
 {
-	UpdateInfo* ui = new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload());
+	UpdateInfo* ui = new UpdateInfo(HintedUser(p_user, Util::emptyString), p_is_download);
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 	ui->setForcePassive(aCqi->m_is_force_passive);
 #endif
@@ -1617,7 +1617,7 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const Conn
 		string l_target;
 		int64_t l_size;
 		int l_flags;
-		if (QueueManager::getQueueInfo(aCqi->getUser(), l_target, l_size, l_flags))// deadlock
+		if (QueueManager::getQueueInfo(p_user, l_target, l_size, l_flags)) // deadlock
 		{
 			Transfer::Type l_type = Transfer::TYPE_FILE;
 			if (l_flags & QueueItem::FLAG_USER_LIST)
@@ -1642,34 +1642,34 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const Conn
 	return ui;
 }
 
-void TransferView::on(ConnectionManagerListener::Added, const ConnectionQueueItem* aCqi) noexcept
+void TransferView::on(ConnectionManagerListener::Added, const UserPtr& p_user, bool p_is_download) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	m_tasks.add(TRANSFER_ADD_ITEM, createUpdateInfoForAddedEvent(aCqi)); // [!] IRainman fix.
+	m_tasks.add(TRANSFER_ADD_ITEM, createUpdateInfoForAddedEvent(p_user, p_is_download));
 }
 
-void TransferView::on(ConnectionManagerListener::ConnectionStatusChanged, const ConnectionQueueItem* aCqi) noexcept
+void TransferView::on(ConnectionManagerListener::ConnectionStatusChanged, const UserPtr& p_user, bool p_is_download) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	m_tasks.add(TRANSFER_UPDATE_ITEM, createUpdateInfoForAddedEvent(aCqi)); // [!] IRainman fix.
+	m_tasks.add(TRANSFER_UPDATE_ITEM, createUpdateInfoForAddedEvent(p_user, p_is_download));
 }
 
-void TransferView::on(ConnectionManagerListener::UserUpdated, const ConnectionQueueItem* aCqi) noexcept
+void TransferView::on(ConnectionManagerListener::UserUpdated, const UserPtr& p_user, bool p_is_download) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	m_tasks.add(TRANSFER_UPDATE_ITEM, createUpdateInfoForAddedEvent(aCqi));
+	m_tasks.add(TRANSFER_UPDATE_ITEM, createUpdateInfoForAddedEvent(p_user, p_is_download));
 }
-void TransferView::on(ConnectionManagerListener::Removed, const ConnectionQueueItem* aCqi) noexcept
+void TransferView::on(ConnectionManagerListener::Removed, const UserPtr& p_user, bool p_is_download) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	m_tasks.add(TRANSFER_REMOVE_ITEM, new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload())); // [!] IRainman fix.
+	m_tasks.add(TRANSFER_REMOVE_ITEM, new UpdateInfo(HintedUser(p_user, Util::emptyString), p_is_download));
 }
 
-void TransferView::on(ConnectionManagerListener::Failed, const ConnectionQueueItem* aCqi, const string& aReason) noexcept
+void TransferView::on(ConnectionManagerListener::FailedDownload, const UserPtr& p_user, const string& aReason) noexcept
 {
 	if (!ClientManager::isShutdown())
 	{
-		UpdateInfo* ui = new UpdateInfo(aCqi->getHintedUser(), aCqi->isDownload()); // [!] IRainman fix.
+		UpdateInfo* ui = new UpdateInfo(HintedUser(p_user, Util::emptyString), true);
 #ifdef PPA_INCLUDE_IPFILTER
 		if (ui->m_hintedUser.user->isAnySet(User::PG_IPTRUST_BLOCK | User::PG_IPGUARD_BLOCK | User::PG_P2PGUARD_BLOCK | User::PG_AVDB_BLOCK))
 		{
@@ -1995,7 +1995,7 @@ void TransferView::ItemInfo::disconnectAndP2PGuard()
 
 void TransferView::ItemInfo::disconnect()
 {
-	ConnectionManager::getInstance()->disconnect(m_hintedUser.user, download);
+	ConnectionManager::disconnect(m_hintedUser.user, download);
 }
 
 LRESULT TransferView::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -2187,7 +2187,7 @@ void TransferView::parseQueueItemUpdateInfoL(UpdateInfo* ui, const QueueItemPtr&
 				{
 					const tstring pos = Util::formatBytesW(ui->pos);
 					double percent = double(ui->pos) * 100.0 / double(ui->size);
-					dcassert(percent <= 100);
+					//dcassert(percent <= 100);
 					if (percent > 100)
 					{
 						percent = 100;

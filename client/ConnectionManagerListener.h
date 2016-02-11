@@ -38,27 +38,31 @@ class ConnectionManagerListener
 		typedef X<1> Connected;
 #endif
 		typedef X<2> Removed;
-		typedef X<3> Failed;
+		typedef X<3> FailedDownload;
 		typedef X<4> ConnectionStatusChanged;
 		typedef X<5> UserUpdated;
+#ifdef FLYLINKDC_USE_FORCE_CONNECTION
 		typedef X<6> Forced;
+#endif
 		
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		typedef X<7> OpenTCPPortDetected; // [+] brain-ripper
 #endif
 		
-		virtual void on(Added, const ConnectionQueueItem*) noexcept { }
+		virtual void on(Added, const UserPtr& p_user, bool p_is_download) noexcept { }
 #ifdef FLYLINKDC_USE_CONNECTED_EVENT
 		virtual void on(Connected, const ConnectionQueueItem*) noexcept { }
 #endif
-		virtual void on(Removed, const ConnectionQueueItem*) noexcept { }
-		virtual void on(Failed, const ConnectionQueueItem*, const string&) noexcept { }
-		virtual void on(ConnectionStatusChanged, const ConnectionQueueItem*) noexcept { }
+		virtual void on(Removed, const UserPtr& p_user, bool p_is_download) noexcept { }
+		virtual void on(FailedDownload, const UserPtr& p_user, const string&) noexcept { }
+		virtual void on(ConnectionStatusChanged, const UserPtr& p_user, bool p_is_download) noexcept { }
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		virtual void on(OpenTCPPortDetected, const string&) noexcept {}
 #endif
-		virtual void on(UserUpdated, const ConnectionQueueItem*) noexcept { }
+		virtual void on(UserUpdated, const UserPtr& p_user, bool p_is_download) noexcept { }
+#ifdef FLYLINKDC_USE_FORCE_CONNECTION
 		virtual void on(Forced, const ConnectionQueueItem*) noexcept { }
+#endif
 		
 };
 

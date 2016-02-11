@@ -1284,8 +1284,8 @@ class Util
 				int32_t m_location_cache_index;
 		};
 		
-		static CustomNetworkIndex getIpCountry(uint32_t p_ip);
-		static CustomNetworkIndex getIpCountry(const string& p_ip);
+		static CustomNetworkIndex getIpCountry(uint32_t p_ip, bool p_is_use_only_cache = false);
+		static CustomNetworkIndex getIpCountry(const string& p_ip, bool p_is_use_only_cache = false);
 		
 	private:
 		// [~] IRainman opt.

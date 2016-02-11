@@ -1,4 +1,4 @@
-/* $Id: getgateway.c,v 1.22 2011/08/08 21:20:51 nanard Exp $ */
+/* $Id: getgateway.c,v 1.23 2012/03/05 19:38:37 nanard Exp $ */
 /* libnatpmp
 
 Copyright (c) 2007-2011, Thomas BERNARD 

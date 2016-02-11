@@ -555,11 +555,12 @@ template<class T>  class LockBase
 	public:
 		explicit LockBase(T& aCs
 #ifdef FLYLINKDC_USE_PROFILER_CS
-		                  , const char* p_function = nullptr
+		                  , const char* p_function
+		                  , int p_line
 #endif
 		                 ) : cs(aCs)
 #ifdef FLYLINKDC_USE_PROFILER_CS
-			, CFlyLockProfiler(p_function)
+			, CFlyLockProfiler(p_function, p_line)
 #endif
 		{
 			cs.lock();
@@ -579,8 +580,8 @@ template<class T>  class LockBase
 };
 typedef LockBase<CriticalSection> Lock;
 #ifdef FLYLINKDC_USE_PROFILER_CS
-#define CFlyLock(cs) Lock l_lock(cs,__FUNCTION__);
-#define CFlyLockLine(cs, line) Lock l_lock(cs,line);
+#define CFlyLock(cs) Lock l_lock(cs,__FUNCTION__, __LINE__);
+#define CFlyLockLine(cs, line) Lock l_lock(cs,line,0);
 #else
 #define CFlyLock(cs) Lock l_lock(cs);
 #endif
@@ -591,7 +592,7 @@ typedef Lock FastLock;
 #endif // IRAINMAN_USE_SPIN_LOCK
 
 #ifdef FLYLINKDC_USE_PROFILER_CS
-#define CFlyFastLock(cs) FastLock l_lock(cs,__FUNCTION__);
+#define CFlyFastLock(cs) FastLock l_lock(cs,__FUNCTION__,__LINE__);
 #else
 #define CFlyFastLock(cs) FastLock l_lock(cs);
 #endif

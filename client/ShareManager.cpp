@@ -650,7 +650,7 @@ struct ShareLoader : public SimpleXMLReader::CallBack
 				}
 				auto it = cur->m_files.insert(ShareManager::Directory::ShareFile(fname, Util::toInt64(size), cur, TTHValue(root),
 				                                                                 atoi(l_hit_count.c_str()),
-					                                                             l_time_stamp,
+				                                                                 l_time_stamp,
 				                                                                 ShareManager::getFType(fname)
 				                                                                )
 				                             );
@@ -724,6 +724,7 @@ bool ShareManager::loadCache() noexcept
 					}
 				}
 			}
+			internalClearCache(true);
 			l_cache_loader_log.step("update indices done");
 			//internalClearCache(true);
 			//l_cache_loader_log.step("internalClearCache");
@@ -745,6 +746,7 @@ bool ShareManager::loadCache() noexcept
 	}
 	catch (const Exception& e)
 	{
+		internalClearCache(true);
 		dcdebug("%s\n", e.getError().c_str());
 	}
 	return false;
@@ -1565,11 +1567,16 @@ void ShareManager::getDirectories(CFlyDirItemArray& p_dirs)
 
 int ShareManager::run()
 {
-	for (int i = 0; i < 60*10; i++) // ∆дем 60 сек
+	static bool g_is_first = false;
+	if (g_is_first == false)
 	{
-		::Sleep(100);
-		if (ClientManager::isShutdown())
-			return 0;
+		g_is_first = true;
+		for (int i = 0; i < 55 * 10; i++) // ∆дем 55 сек
+		{
+			::Sleep(100);
+			if (ClientManager::isShutdown())
+				return 0;
+		}
 	}
 	setThreadPriority(Thread::LOW); // [+] IRainman fix.
 	

@@ -1,17 +1,27 @@
 /*
-    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
 
-    This file is part of 0MQ.
+    This file is part of libzmq, the ZeroMQ core engine in C++.
 
-    0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
+    libzmq is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License (LGPL) as published
+    by the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
-    0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    As a special exception, the Contributors give you permission to link
+    this library with independent modules to produce an executable,
+    regardless of the license terms of these independent modules, and to
+    copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the
+    terms and conditions of the license of that module. An independent
+    module is a module which is not derived from or based on this library.
+    If you modify this library, you must extend this exception to your
+    version of the library.
+
+    libzmq is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -26,10 +36,12 @@
 
 #include "stdint.hpp"
 #include "likely.hpp"
+#include "metadata.hpp"
 #include "err.hpp"
 
 //  Check whether the sizes of public representation of the message (zmq_msg_t)
 //  and private representation of the message (zmq::msg_t) match.
+
 typedef char zmq_msg_size_check
     [2 * ((sizeof (zmq::msg_t) == sizeof (zmq_msg_t)) != 0) - 1];
 
@@ -40,20 +52,25 @@ bool zmq::msg_t::check ()
 
 int zmq::msg_t::init ()
 {
+    u.vsm.metadata = NULL;
     u.vsm.type = type_vsm;
     u.vsm.flags = 0;
     u.vsm.size = 0;
+    file_desc = -1;
     return 0;
 }
 
 int zmq::msg_t::init_size (size_t size_)
 {
+    file_desc = -1;
     if (size_ <= max_vsm_size) {
+        u.vsm.metadata = NULL;
         u.vsm.type = type_vsm;
         u.vsm.flags = 0;
         u.vsm.size = (unsigned char) size_;
     }
     else {
+        u.lmsg.metadata = NULL;
         u.lmsg.type = type_lmsg;
         u.lmsg.flags = 0;
         u.lmsg.content =
@@ -77,16 +94,20 @@ int zmq::msg_t::init_data (void *data_, size_t size_, msg_free_fn *ffn_,
 {
     //  If data is NULL and size is not 0, a segfault
     //  would occur once the data is accessed
-    assert (data_ != NULL || size_ == 0);
-    
+    zmq_assert (data_ != NULL || size_ == 0);
+
+    file_desc = -1;
+
     //  Initialize constant message if there's no need to deallocate
-    if(ffn_ == NULL) {
+    if (ffn_ == NULL) {
+        u.cmsg.metadata = NULL;
         u.cmsg.type = type_cmsg;
         u.cmsg.flags = 0;
         u.cmsg.data = data_;
         u.cmsg.size = size_;
     }
     else {
+        u.lmsg.metadata = NULL;
         u.lmsg.type = type_lmsg;
         u.lmsg.flags = 0;
         u.lmsg.content = (content_t*) malloc (sizeof (content_t));
@@ -107,6 +128,7 @@ int zmq::msg_t::init_data (void *data_, size_t size_, msg_free_fn *ffn_,
 
 int zmq::msg_t::init_delimiter ()
 {
+    u.delimiter.metadata = NULL;
     u.delimiter.type = type_delimiter;
     u.delimiter.flags = 0;
     return 0;
@@ -138,11 +160,14 @@ int zmq::msg_t::close ()
         }
     }
 
+    if (u.base.metadata != NULL)
+        if (u.base.metadata->drop_ref ())
+            delete u.base.metadata;
+
     //  Make the message invalid.
     u.base.type = 0;
 
     return 0;
-
 }
 
 int zmq::msg_t::move (msg_t &src_)
@@ -189,6 +214,9 @@ int zmq::msg_t::copy (msg_t &src_)
             src_.u.lmsg.content->refcnt.set (2);
         }
     }
+
+    if (src_.u.base.metadata != NULL)
+        src_.u.base.metadata->add_ref ();
 
     *this = src_;
 
@@ -247,12 +275,49 @@ void zmq::msg_t::reset_flags (unsigned char flags_)
     u.base.flags &= ~flags_;
 }
 
+int64_t zmq::msg_t::fd ()
+{
+    return file_desc;
+}
+
+void zmq::msg_t::set_fd (int64_t fd_)
+{
+    file_desc = fd_;
+}
+
+zmq::metadata_t *zmq::msg_t::metadata () const
+{
+    return u.base.metadata;
+}
+
+void zmq::msg_t::set_metadata (zmq::metadata_t *metadata_)
+{
+    assert (metadata_ != NULL);
+    assert (u.base.metadata == NULL);
+    metadata_->add_ref ();
+    u.base.metadata = metadata_;
+}
+
+void zmq::msg_t::reset_metadata ()
+{
+    if (u.base.metadata) {
+        if (u.base.metadata->drop_ref ())
+            delete u.base.metadata;
+        u.base.metadata = NULL;
+    }
+}
+
 bool zmq::msg_t::is_identity () const
 {
     return (u.base.flags & identity) == identity;
 }
 
-bool zmq::msg_t::is_delimiter ()
+bool zmq::msg_t::is_credential () const
+{
+    return (u.base.flags & credential) == credential;
+}
+
+bool zmq::msg_t::is_delimiter () const
 {
     return u.base.type == type_delimiter;
 }
@@ -270,6 +335,9 @@ bool zmq::msg_t::is_cmsg ()
 void zmq::msg_t::add_refs (int refs_)
 {
     zmq_assert (refs_ >= 0);
+
+    //  Operation not supported for messages with metadata.
+    zmq_assert (u.base.metadata == NULL);
 
     //  No copies required.
     if (!refs_)
@@ -290,6 +358,9 @@ void zmq::msg_t::add_refs (int refs_)
 bool zmq::msg_t::rm_refs (int refs_)
 {
     zmq_assert (refs_ >= 0);
+
+    //  Operation not supported for messages with metadata.
+    zmq_assert (u.base.metadata == NULL);
 
     //  No copies required.
     if (!refs_)
@@ -316,4 +387,3 @@ bool zmq::msg_t::rm_refs (int refs_)
 
     return true;
 }
-

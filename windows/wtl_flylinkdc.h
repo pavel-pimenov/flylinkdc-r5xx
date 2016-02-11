@@ -259,16 +259,21 @@ class CLockRedraw
 	explicit CLockRedraw(const HWND p_hWnd) noexcept :
 		m_hWnd(p_hWnd)
 		{
-			ATLASSERT(::IsWindow(m_hWnd));
-			::SendMessage(m_hWnd, WM_SETREDRAW, (WPARAM)FALSE, 0);
+			if (m_hWnd)
+			{
+				ATLASSERT(::IsWindow(m_hWnd));
+				::SendMessage(m_hWnd, WM_SETREDRAW, (WPARAM)FALSE, 0);
+			}
 		}
 		~CLockRedraw() noexcept
 		{
-			ATLASSERT(::IsWindow(m_hWnd));
-			::SendMessage(m_hWnd, WM_SETREDRAW, (WPARAM)TRUE, 0);
-			if (needsInvalidate)
+			if (m_hWnd)
 			{
-				::InvalidateRect(m_hWnd, nullptr, TRUE);
+				::SendMessage(m_hWnd, WM_SETREDRAW, (WPARAM)TRUE, 0);
+				if (needsInvalidate)
+				{
+					::InvalidateRect(m_hWnd, nullptr, TRUE);
+				}
 			}
 		}
 	private:

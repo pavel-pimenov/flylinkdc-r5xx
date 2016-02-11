@@ -41,7 +41,7 @@ class UserInfoSimple: public UserInfoBase
 		}
 		
 		void addSummaryMenu(); // !SMT!-UI
-		static const tstring& getBroadcastPrivateMessage(); // !SMT!-S
+		static tstring getBroadcastPrivateMessage(); // !SMT!-S
 		static uint64_t inputSlotTime(); // !SMT!-UI
 		
 		const UserPtr& getUser() const

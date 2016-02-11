@@ -60,7 +60,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 	public:
 		void createMessagePanel();
 		void destroyMessagePanel(bool p_is_shutdown);
-		const string& getHubHint() const // [!] IRainman fix.
+		string getHubHint() const
 		{
 			return ctrlClient.getHubHint();
 		}

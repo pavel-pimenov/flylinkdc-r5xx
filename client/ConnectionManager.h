@@ -225,13 +225,13 @@ class ConnectionManager :
 		static void test_tcp_port();
 		static bool g_is_test_tcp_port;
 		
-		void disconnect(const UserPtr& aUser);
-		void disconnect(const UserPtr& aUser, bool isDownload); // [!] IRainman fix.
+		static void disconnect(const UserPtr& aUser);
+		static void disconnect(const UserPtr& aUser, bool isDownload); // [!] IRainman fix.
 		
 		void shutdown();
 		bool isShuttingDown() const
 		{
-			return shuttingDown;
+			return m_shuttingDown;
 		}
 		
 		/** Find a suitable port to listen on, and start doing it */
@@ -354,7 +354,7 @@ class ConnectionManager :
 		Server* server;
 		Server* secureServer;
 		
-		bool shuttingDown;
+		bool m_shuttingDown;
 		
 		friend class Singleton<ConnectionManager>;
 		ConnectionManager();

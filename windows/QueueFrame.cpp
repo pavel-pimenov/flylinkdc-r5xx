@@ -47,7 +47,7 @@ static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, Res
 QueueFrame::QueueFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), menuItems(0), queueSize(0), queueItems(0), m_dirty(false),
 	usingDirMenu(false), readdItems(0), m_fileLists(nullptr), showTree(true)
 	, showTreeContainer(WC_BUTTON, this, SHOWTREE_MESSAGE_MAP),
-	m_last_count(0), m_last_total(0)
+	m_last_count(0), m_last_total(0), m_update_status(0)
 {
 	memzero(statusSizes, sizeof(statusSizes));
 }
@@ -137,7 +137,7 @@ LRESULT QueueFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	memzero(statusSizes, sizeof(statusSizes));
 	statusSizes[0] = 16;
 	ctrlStatus.SetParts(6, statusSizes);
-	updateStatus();// [!]IRainman optimize QueueFrame
+	m_update_status++;
 	create_timer(1000);
 	bHandled = FALSE;
 	return 1;
@@ -419,19 +419,16 @@ void QueueFrame::addQueueItem(QueueItemInfo* ii, bool noSort)
 QueueFrame::QueueItemInfo* QueueFrame::getItemInfo(const string& p_target, const string& p_path) const
 {
 	dcassert(m_closed == false);
-	DirectoryPairC items = m_directories.equal_range(p_path);
-	// https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=101839
-	// https://www.crash-server.com/Problem.aspx?ProblemID=43187
-	// https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=30936
-	for (DirectoryIterC i = items.first; i != items.second; ++i)
+	const auto i = m_directories.equal_range(p_path);
+	for (auto j = i.first; j != i.second; ++j)
 	{
 #ifdef _DEBUG
 		//static int g_count = 0;
 		//dcdebug("QueueFrame::getItemInfo  count = %d i->second->getTarget() = %s\n", ++g_count, i->second->getTarget().c_str());
 #endif
-		if (i->second->getTarget() == p_target) // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=112726
+		if (j->second->getTarget() == p_target)
 		{
-			return i->second;
+			return j->second;
 		}
 	}
 	return nullptr;
@@ -709,12 +706,20 @@ void QueueFrame::on(QueueManagerListener::Moved, const QueueItemPtr& aQI, const 
 	m_tasks.add(ADD_ITEM, new QueueItemInfoTask(new QueueItemInfo(aQI)));
 }
 
+void QueueFrame::doTimerTask()
+{
+	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown() && m_update_status)
+	{
+		m_tasks.add(UPDATE_STATUSBAR, nullptr);
+	}
+	CFlyTaskAdapter::doTimerTask();
+}
+
 void QueueFrame::on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept // [+] IRainman opt.
 {
 	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown() && !p_list.empty())
 	{
 		on(QueueManagerListener::StatusUpdatedList(), p_list);
-		m_tasks.add(UPDATE_STATUSBAR, nullptr); // [!]IRainman optimize QueueFrame
 	}
 }
 
@@ -830,7 +835,9 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 				delete ii;
 				
 				if (!queueItems)
-					updateStatus();// [!]IRainman optimize QueueFrame
+				{
+					m_update_status++;
+				}
 			}
 			break;
 			case UPDATE_ITEM:
@@ -873,10 +880,11 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 				ctrlStatus.SetText(1, Text::toT(status.m_str).c_str());
 			}
 			break;
-			case UPDATE_STATUSBAR://[+]IRainman optimize QueueFrame
+			case UPDATE_STATUSBAR:
 			{
-				updateStatus();
+				updateQueueStatus();
 				setCountMessages(ctrlQueue.GetItemCount());
+				m_update_status = 0;
 			}
 			break;
 			default:
@@ -1047,7 +1055,6 @@ void QueueFrame::renameSelectedDir()
 
 LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-
 	OMenu priorityMenu;
 	priorityMenu.CreatePopupMenu();
 #ifdef OLD_MENU_HEADER //[~]JhaoDa
@@ -1755,7 +1762,7 @@ void QueueFrame::setAutoPriority(HTREEITEM ht, const bool& ap)
 	}
 }
 
-void QueueFrame::updateStatus()
+void QueueFrame::updateQueueStatus()
 {
 	if (m_closed == false && ctrlStatus.IsWindow())
 	{
@@ -1794,11 +1801,20 @@ void QueueFrame::updateStatus()
 		}
 		else
 		{
-			int i = -1;
-			while ((i = ctrlQueue.GetNextItem(i, LVNI_SELECTED)) != -1)
+			if (m_last_count != cnt)
 			{
-				const QueueItemInfo* ii = ctrlQueue.getItemData(i);
-				total += ii->getSize();
+				int i = -1;
+				while ((i = ctrlQueue.GetNextItem(i, LVNI_SELECTED)) != -1)
+				{
+					const QueueItemInfo* ii = ctrlQueue.getItemData(i);
+					total += ii->getSize();
+				}
+				m_last_count = cnt;
+				m_last_total = total;
+			}
+			else
+			{
+				total = m_last_total;
 			}
 		}
 		

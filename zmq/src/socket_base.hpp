@@ -1,17 +1,27 @@
 /*
-    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
 
-    This file is part of 0MQ.
+    This file is part of libzmq, the ZeroMQ core engine in C++.
 
-    0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
+    libzmq is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License (LGPL) as published
+    by the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
-    0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    As a special exception, the Contributors give you permission to link
+    this library with independent modules to produce an executable,
+    regardless of the license terms of these independent modules, and to
+    copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the
+    terms and conditions of the license of that module. An independent
+    module is a module which is not derived from or based on this library.
+    If you modify this library, you must extend this exception to your
+    version of the library.
+
+    libzmq is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -26,6 +36,7 @@
 
 #include "own.hpp"
 #include "array.hpp"
+#include "blob.hpp"
 #include "stdint.hpp"
 #include "poller.hpp"
 #include "atomic_counter.hpp"
@@ -106,16 +117,19 @@ namespace zmq
 
         int monitor (const char *endpoint_, int events_);
 
-        void event_connected (std::string &addr_, int fd_);
-        void event_connect_delayed (std::string &addr_, int err_);
-        void event_connect_retried (std::string &addr_, int interval_);
-        void event_listening (std::string &addr_, int fd_);
-        void event_bind_failed (std::string &addr_, int err_);
-        void event_accepted (std::string &addr_, int fd_);
-        void event_accept_failed (std::string &addr_, int err_);
-        void event_closed (std::string &addr_, int fd_);        
-        void event_close_failed (std::string &addr_, int fd_);  
-        void event_disconnected (std::string &addr_, int fd_); 
+        void set_fd(fd_t fd_);
+        fd_t fd();
+
+        void event_connected (const std::string &addr_, int fd_);
+        void event_connect_delayed (const std::string &addr_, int err_);
+        void event_connect_retried (const std::string &addr_, int interval_);
+        void event_listening (const std::string &addr_, int fd_);
+        void event_bind_failed (const std::string &addr_, int err_);
+        void event_accepted (const std::string &addr_, int fd_);
+        void event_accept_failed (const std::string &addr_, int err_);
+        void event_closed (const std::string &addr_, int fd_);
+        void event_close_failed (const std::string &addr_, int fd_);
+        void event_disconnected (const std::string &addr_, int fd_);
 
     protected:
 
@@ -128,7 +142,7 @@ namespace zmq
             bool subscribe_to_all_ = false) = 0;
 
         //  The default implementation assumes there are no specific socket
-        //  options for the particular socket type. If not so, overload this
+        //  options for the particular socket type. If not so, override this
         //  method.
         virtual int xsetsockopt (int option_, const void *optval_,
             size_t optvallen_);
@@ -141,6 +155,11 @@ namespace zmq
         virtual bool xhas_in ();
         virtual int xrecv (zmq::msg_t *msg_);
 
+        //  Returns the credential for the peer from which we have received
+        //  the last message. If no message has been received yet,
+        //  the function returns empty credential.
+        virtual blob_t get_credential () const;
+
         //  i_pipe_events will be forwarded to these functions.
         virtual void xread_activated (pipe_t *pipe_);
         virtual void xwrite_activated (pipe_t *pipe_);
@@ -151,10 +170,13 @@ namespace zmq
         void process_destroy ();
 
         // Socket event data dispath
-        void monitor_event (zmq_event_t data_, const std::string& addr_);
+        void monitor_event (int event_, int value_, const std::string& addr_);
 
         // Monitor socket cleanup
-        void stop_monitor ();
+        void stop_monitor (bool send_monitor_stopped_event_ = true);
+
+        // Next assigned name on a zmq_connect() call used by ROUTER and STREAM socket types
+        std::string connect_rid;
 
     private:
         //  Creates new endpoint ID and adds the endpoint to the map.
@@ -229,6 +251,9 @@ namespace zmq
 
         //  True if the last message received had MORE flag set.
         bool rcvmore;
+
+        // File descriptor if applicable
+        fd_t file_desc;
 
         //  Improves efficiency of time measurement.
         clock_t clock;

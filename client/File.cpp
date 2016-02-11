@@ -279,6 +279,19 @@ size_t File::flush()
 #endif
 	return 0;
 }
+bool File::deleteFileT(const tstring& aFileName) noexcept
+{
+	const auto l_result_delete = ::DeleteFile(formatPath(aFileName).c_str()) != NULL;
+#ifdef _DEBUG
+	if (l_result_delete == false)
+	{
+		string l_error = Util::translateError();
+		l_error = "File::deleteFileT error = " + l_error + " file = " + Text::fromT(aFileName);
+		LogManager::message(l_error);
+	}
+#endif
+	return l_result_delete;
+}
 
 void File::renameFile(const tstring & source, const tstring & target)
 {

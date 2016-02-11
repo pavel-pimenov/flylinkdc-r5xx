@@ -12,7 +12,9 @@
 #define css_totals_row "<tr class=\"header\"><td class=\"left\">Function</td><td>Calls</td><td>Self MCycles</td><td class=\"right\">Self Avg</td></tr>\n"
 
 #if defined(_WIN32)
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 #define copystring _strdup
 #include <windows.h>
 #else

@@ -2153,13 +2153,13 @@ int16_t Util::CustomNetworkIndex::getCountryIndex() const
 }
 #endif
 //======================================================================================================================================
-Util::CustomNetworkIndex Util::getIpCountry(uint32_t p_ip)
+Util::CustomNetworkIndex Util::getIpCountry(uint32_t p_ip, bool p_is_use_only_cache)
 {
 	if (p_ip && p_ip != INADDR_NONE)
 	{
 		uint16_t l_country_index = 0;
 		uint32_t  l_location_index = -1;
-		CFlylinkDBManager::getInstance()->get_country_and_location(p_ip, l_country_index, l_location_index);
+		CFlylinkDBManager::getInstance()->get_country_and_location(p_ip, l_country_index, l_location_index, p_is_use_only_cache);
 		if (l_location_index > 0)
 		{
 			const CustomNetworkIndex l_index(l_location_index, l_country_index);
@@ -2189,10 +2189,10 @@ Util::CustomNetworkIndex Util::getIpCountry(uint32_t p_ip)
 	return g_unknownLocationIndex;
 }
 //======================================================================================================================================
-Util::CustomNetworkIndex Util::getIpCountry(const string& p_ip)
+Util::CustomNetworkIndex Util::getIpCountry(const string& p_ip, bool p_is_use_only_cache)
 {
 	const uint32_t l_ipNum = Socket::convertIP4(p_ip);
-	return getIpCountry(l_ipNum);
+	return getIpCountry(l_ipNum, p_is_use_only_cache);
 }
 //======================================================================================================================================
 string Util::toAdcFile(const string& file)

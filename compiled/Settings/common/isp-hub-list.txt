@@ -395,6 +395,7 @@
 ;Россия;Кандалакша;Tigernet;;10.32.252.130
 ;Россия;Кандалакша;Корвет-ру;;hub.korvetcity.ru
 ;Россия;Канск;KANCOM Networks;;www.kancom.org
+;Россия;Каспийск;Ellcom;;172.16.0.2
 ;Россия;Каспийск;KaspNet;;192.168.241.248,10.10.32.10,193.33.240.95,kaspnet.ru,192.168.0.98
 ;Россия;Каспийск;КаспийскТелеком;;10.10.143.244,10.11.54.31,10.10.185.167,10.10.132.191,10.11.128.100,10.10.32.10,10.5.10.190,10.1.90.90,10.11.54.37
 ;Россия;Каспийск;СуммаТелеком;;nub-sumtel.noip.org:408,10.5.80.110,192.168.241.248,193.33.241.248,10.5.24.118,10.5.112.145,10.5.105.19,10.5.129.100,10.5.81.124,10.5.49.153,10.5.8.5,10.5.10.190,10.5.25.244,10.5.16.3,10.5.81.29,10.5.112.153,10.5.24.151,192.168.3.4,10.0.0.1,10.5.81.124:777
@@ -1089,7 +1090,7 @@
 ;Россия;Хабаровск;Khabnet-ru;;dc.khabnet.ru
 ;Россия;Хабаровск;VTC;;212.16.203.28:4111,hub.hb27.ru
 ;Россия;Хабаровск;Wild Gorizont;;gorizont.hopto.org
-;Россия;Хабаровск;Билайн;;dc.corbina.net,10.75.17.17,188.134.4.88:1209,10.24.58.248,dc.spb.corbina.net,dc.ozerki.net,dc.mediakhv.ru,dc.khvzone.ru,dc.fttbkhv.ru,comedyhub.sytes.net,10.11.22.201,dc-net.fttbkhv.ru,khv.homeip.net,p2p.lankmv.ru,10.24.24.1,dc.chedarkul74.ru:4111,p2p.corbina.net,fttb.khv.ru,128.74.8.247,fttbkhv.ru,dc-net.mediakhv.ru,dckhabarovsk.pp.ru,allavtovo.ru,dc.cifracom.ru,hub.magnet.211.ru,p2p.khvzone.ru,128.74.38.214
+;Россия;Хабаровск;Билайн;;dc.corbina.net,10.75.17.17,188.134.4.88:1209,10.24.58.248,dc.spb.corbina.net,dc.ozerki.net,dc.mediakhv.ru,dc.khvzone.ru,dc.fttbkhv.ru,comedyhub.sytes.net,10.11.22.201,dc-net.fttbkhv.ru,khv.homeip.net,p2p.lankmv.ru,10.24.24.1,dc.chedarkul74.ru:4111,p2p.corbina.net,fttb.khv.ru,128.74.8.247,fttbkhv.ru,dc-net.mediakhv.ru,dckhabarovsk.pp.ru,allavtovo.ru,dc.cifracom.ru,hub.magnet.211.ru,p2p.khvzone.ru,128.74.38.214,dc.fly-server.ru
 ;Россия;Хабаровск;БилайнТТК;;dc.fttbkhv.ru,dc-net.fttbkhv.ru,dc-ttk.fttbkhv.ru
 ;Россия;Хабаровск;Востоктелеком;Hub VTC;dc.khv.vtc.ru,10.255.0.4,media.vth.ru
 ;Россия;Хабаровск;Дальсвязь;;eao.leninsk

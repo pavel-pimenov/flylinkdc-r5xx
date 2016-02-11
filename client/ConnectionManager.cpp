@@ -88,7 +88,7 @@ void TokenManager::removeToken(const string& aToken) noexcept
 
 ConnectionManager::ConnectionManager() : m_floodCounter(0), server(nullptr),
 	secureServer(nullptr),
-	shuttingDown(false)
+	m_shuttingDown(false)
 {
 	nmdcFeatures.reserve(5);
 	nmdcFeatures.push_back(UserConnection::FEATURE_MINISLOTS);
@@ -110,7 +110,7 @@ ConnectionManager::ConnectionManager() : m_floodCounter(0), server(nullptr),
 }
 ConnectionManager::~ConnectionManager()
 {
-	dcassert(shuttingDown == true);
+	dcassert(m_shuttingDown == true);
 	dcassert(g_userConnections.empty());
 	//shutdown();
 	
@@ -183,6 +183,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 {
 	dcassert(aUser);
 	dcassert(!ClientManager::isShutdown());
+	ConnectionQueueItem* l_cqi = nullptr;
 	if (!ClientManager::isShutdown())
 	{
 		{
@@ -190,9 +191,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 			const auto i = find(g_downloads.begin(), g_downloads.end(), aUser);
 			if (i == g_downloads.end())
 			{
-				getCQI_L(HintedUser(aUser, Util::emptyString), true, Util::emptyString); // http://code.google.com/p/flylinkdc/issues/detail?id=1037
-				// Не сохраняем указатель. а как и когда будем удалять ?
-				return;
+				l_cqi = getCQI_L(HintedUser(aUser, Util::emptyString), true, Util::emptyString); // http://code.google.com/p/flylinkdc/issues/detail?id=1037
 			}
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 			else
@@ -203,6 +202,10 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 				}
 			}
 #endif
+		}
+		if (l_cqi && !ClientManager::isShutdown())
+		{
+			fly_fire2(ConnectionManagerListener::Added(), aUser, true);
 		}
 #ifndef USING_IDLERS_IN_CONNECTION_MANAGER
 		DownloadManager::checkIdle(aUser);
@@ -224,16 +227,11 @@ ConnectionQueueItem* ConnectionManager::getCQI_L(const HintedUser& aHintedUser, 
 		g_uploads.push_back(cqi);
 	}
 	
-	fly_fire1(ConnectionManagerListener::Added(), cqi); // TODO - выбросить фаер без блокировки наружу
 	return cqi;
 }
 
 void ConnectionManager::putCQI_L(ConnectionQueueItem* cqi)
 {
-	if (!ClientManager::isShutdown())
-	{
-		fly_fire1(ConnectionManagerListener::Removed(), cqi); // TODO - зовется фаер под локом?
-	}
 	if (cqi->isDownload())
 	{
 		g_downloads.erase_and_check(cqi);
@@ -267,7 +265,7 @@ bool ConnectionManager::getCipherNameAndIP(UserConnection* p_conn, string& p_chi
 #endif
 UserConnection* ConnectionManager::getConnection(bool aNmdc, bool secure) noexcept
 {
-	dcassert(shuttingDown == false);
+	dcassert(m_shuttingDown == false);
 	UserConnection* uc = new UserConnection(secure);
 	uc->addListener(this);
 	{
@@ -304,6 +302,8 @@ void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 	//dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
+		bool l_is_download = false;
+		bool l_is_upload = false;
 		{
 			CFlyReadLock(*g_csDownloads);
 			for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
@@ -311,7 +311,8 @@ void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 				ConnectionQueueItem* cqi = *i;
 				if (cqi->getUser() == aUser)
 				{
-					fly_fire1(ConnectionManagerListener::UserUpdated(), cqi);
+					l_is_download = true;
+					break;
 				}
 			}
 		}
@@ -322,9 +323,18 @@ void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 				ConnectionQueueItem* cqi = *i;
 				if (cqi->getUser() == aUser)
 				{
-					fly_fire1(ConnectionManagerListener::UserUpdated(), cqi);
+					l_is_upload = true;
+					break;
 				}
 			}
+		}
+		if (l_is_download)
+		{
+			fly_fire2(ConnectionManagerListener::UserUpdated(), aUser, true);
+		}
+		if (l_is_upload)
+		{
+			fly_fire2(ConnectionManagerListener::UserUpdated(), aUser, false);
 		}
 	}
 }
@@ -345,6 +355,8 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 	UserList l_idlers;
 #endif
+	UserList l_StatusChanged;
+	std::vector< std::pair<UserPtr, std::string> > l_error_download;
 	{
 		CFlyReadLock(*g_csDownloads);
 		uint16_t attempts = 0;
@@ -417,7 +429,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 #endif
 							                                      cqi->m_is_active_client // <- Out param!
 							                                     );
-							fly_fire1(ConnectionManagerListener::ConnectionStatusChanged(), cqi);
+							l_StatusChanged.push_back(cqi->getUser());
 							attempts++;
 						}
 						else
@@ -426,7 +438,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 							cqi->m_count_waiting = 0;
 #endif
 							cqi->setState(ConnectionQueueItem::NO_DOWNLOAD_SLOTS);
-							fly_fire2(ConnectionManagerListener::Failed(), cqi, STRING(ALL_DOWNLOAD_SLOTS_TAKEN));
+							l_error_download.push_back(make_pair(cqi->getUser(), STRING(ALL_DOWNLOAD_SLOTS_TAKEN)));
 						}
 					}
 					else if (cqi->getState() == ConnectionQueueItem::NO_DOWNLOAD_SLOTS && startDown)
@@ -445,7 +457,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 					if (cqi->m_count_waiting > 2)
 					{
-						fly_fire2(ConnectionManagerListener::Failed(), cqi, STRING(CONNECTION_TIMEOUT)); // CONNECTION_DID_NOT_WORK
+						l_error_download.push_back(make_pair(cqi->getUser(), STRING(CONNECTION_TIMEOUT)));
 						cqi->setState(ConnectionQueueItem::WAITING);
 						// TODO - удаление пока не делаем - нужно потестировать лучше
 						// l_removed.push_back(cqi);
@@ -453,7 +465,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 					else
 #endif
 					{
-						fly_fire2(ConnectionManagerListener::Failed(), cqi, STRING(CONNECTION_TIMEOUT));
+						l_error_download.push_back(make_pair(cqi->getUser(), STRING(CONNECTION_TIMEOUT)));
 						cqi->setState(ConnectionQueueItem::WAITING);
 					}
 				}
@@ -466,14 +478,41 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 		{
 			if ((*m)->isDownload())
 			{
-				CFlyWriteLock(*g_csDownloads);
-				putCQI_L(*m);
+				if (!ClientManager::isShutdown())
+				{
+					fly_fire2(ConnectionManagerListener::Removed(), (*m)->getUser(), true);
+				}
+				{
+					CFlyWriteLock(*g_csDownloads);
+					putCQI_L(*m);
+				}
 			}
 			else
 			{
-				CFlyWriteLock(*g_csUploads);
-				putCQI_L(*m);
+				if (!ClientManager::isShutdown())
+				{
+					fly_fire2(ConnectionManagerListener::Removed(), (*m)->getUser(), false);
+				}
+				{
+					CFlyWriteLock(*g_csUploads);
+					putCQI_L(*m);
+				}
 			}
+		}
+	}
+	for (auto k = l_error_download.cbegin(); k != l_error_download.cend(); ++k)
+	{
+		if (!ClientManager::isShutdown())
+		{
+			fly_fire2(ConnectionManagerListener::FailedDownload(), k->first, k->second);
+		}
+	}
+	
+	for (auto j = l_StatusChanged.cbegin(); j != l_StatusChanged.cend(); ++j)
+	{
+		if (!ClientManager::isShutdown())
+		{
+			fly_fire2(ConnectionManagerListener::ConnectionStatusChanged(), *j, true);
 		}
 	}
 	
@@ -1379,7 +1418,7 @@ void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 	}
 #endif
 	
-	ConnectionQueueItem* cqi = nullptr;
+	ConnectionQueueItem* l_cqi = nullptr;
 	{
 		CFlyWriteLock(*g_csUploads);
 		
@@ -1387,19 +1426,23 @@ void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 		if (i == g_uploads.cend())
 		{
 			p_conn->setFlag(UserConnection::FLAG_ASSOCIATED);
-			cqi = getCQI_L(p_conn->getHintedUser(), false, p_conn->getUserConnectionToken());
-			cqi->setState(ConnectionQueueItem::ACTIVE);
+			l_cqi = getCQI_L(p_conn->getHintedUser(), false, p_conn->getUserConnectionToken());
+			l_cqi->setState(ConnectionQueueItem::ACTIVE);
 			
-#ifdef FLYLINKDC_USE_CONNECTED_EVENT
-			fly_fire1(ConnectionManagerListener::Connected(), cqi);
-#endif
 			dcdebug("ConnectionManager::addUploadConnection, leaving to uploadmanager\n");
 		}
 	}
-	if (cqi)
+	if (l_cqi)
 	{
+		if (l_cqi && !ClientManager::isShutdown())
+		{
+			fly_fire2(ConnectionManagerListener::Added(), l_cqi->getUser(), false);
+#ifdef FLYLINKDC_USE_CONNECTED_EVENT
+			fly_fire1(ConnectionManagerListener::Connected(), l_cqi);
+#endif
+		}
 		UploadManager::getInstance()->addConnection(p_conn);
-		setIP(p_conn, cqi); //[+]PPA
+		setIP(p_conn, l_cqi);
 	}
 	else
 	{
@@ -1554,7 +1597,10 @@ void ConnectionManager::force(const UserPtr& aUser)
 	const auto i = find(g_downloads.begin(), g_downloads.end(), aUser);
 	if (i != g_downloads.end())
 	{
+#ifdef FLYLINKDC_USE_FORCE_CONNECTION
+		// TODO унести из лока
 		fly_fire1(ConnectionManagerListener::Forced(), *i);
+#endif
 		(*i)->setLastAttempt(0);
 	}
 }
@@ -1601,7 +1647,10 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 
 	if (aSource->isSet(UserConnection::FLAG_ASSOCIATED))
 	{
-		if (aSource->isSet(UserConnection::FLAG_DOWNLOAD))
+		UserPtr l_user;
+		std::pair<UserPtr, std::string> l_error_download;
+		const bool l_is_download = aSource->isSet(UserConnection::FLAG_DOWNLOAD);
+		if (l_is_download)
 		{
 			CFlyWriteLock(*g_csDownloads); // TODO http://code.google.com/p/flylinkdc/issues/detail?id=1439
 			const auto i = find(g_downloads.begin(), g_downloads.end(), aSource->getUser());
@@ -1613,10 +1662,11 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 			else
 			{
 				ConnectionQueueItem* cqi = *i;
+				l_user = cqi->getUser();
 				cqi->setState(ConnectionQueueItem::WAITING);
 				cqi->setLastAttempt(GET_TICK());
 				cqi->setErrors(protocolError ? -1 : (cqi->getErrors() + 1));
-				fly_fire2(ConnectionManagerListener::Failed(), cqi, aError);
+				l_error_download = make_pair(cqi->getUser(), aError);
 				if (isShuttingDown()) // TODO
 				{
 					putCQI_L(cqi); // Удалять всегда нельзя - только при разрушении
@@ -1627,18 +1677,29 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 		}
 		else if (aSource->isSet(UserConnection::FLAG_UPLOAD))
 		{
-			CFlyWriteLock(*g_csUploads); // http://code.google.com/p/flylinkdc/issues/detail?id=1439
-			const auto i = find(g_uploads.begin(), g_uploads.end(), aSource->getUser());
-			dcassert(i != g_uploads.end());
-			if (i == g_uploads.end())
 			{
-				CFlyServerJSON::pushError(6, "ConnectionManager::failed (i == g_uploads.end()) aError = " + aError);
+				CFlyWriteLock(*g_csUploads); // http://code.google.com/p/flylinkdc/issues/detail?id=1439
+				const auto i = find(g_uploads.begin(), g_uploads.end(), aSource->getUser());
+				dcassert(i != g_uploads.end());
+				if (i == g_uploads.end())
+				{
+					CFlyServerJSON::pushError(6, "ConnectionManager::failed (i == g_uploads.end()) aError = " + aError);
+				}
+				else
+				{
+					ConnectionQueueItem* cqi = *i;
+					l_user = cqi->getUser();
+					putCQI_L(cqi);
+				}
 			}
-			else
-			{
-				ConnectionQueueItem* cqi = *i;
-				putCQI_L(cqi);
-			}
+		}
+		if (!ClientManager::isShutdown() && l_error_download.first)
+		{
+			fly_fire2(ConnectionManagerListener::FailedDownload(), l_error_download.first, l_error_download.second);
+		}
+		if (!ClientManager::isShutdown())
+		{
+			fly_fire2(ConnectionManagerListener::Removed(), l_user, l_is_download);
 		}
 	}
 	else
@@ -1697,8 +1758,8 @@ void ConnectionManager::disconnect(const UserPtr& aUser, bool isDownload) // [!]
 
 void ConnectionManager::shutdown()
 {
-	dcassert(shuttingDown == false);
-	shuttingDown = true;
+	dcassert(m_shuttingDown == false);
+	m_shuttingDown = true;
 	TimerManager::getInstance()->removeListener(this);
 	ClientManager::getInstance()->removeListener(this);
 	disconnect();

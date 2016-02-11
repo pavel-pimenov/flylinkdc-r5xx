@@ -542,7 +542,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				const auto l_new_value = Text::toT(aIP);
 				if (l_new_value != m_ip)
 				{
-					dcassert(!(!m_ip.empty() && aIP.empty())); // Ловим случай http://code.google.com/p/flylinkdc/issues/detail?id=1298
+					dcassert(!(!m_ip.empty() && aIP.empty()));
 					m_ip = l_new_value;
 #ifdef PPA_INCLUDE_DNS
 					dns = Text::toT(Socket::nslookup(aIP));
@@ -554,9 +554,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		};
 		void onSpeakerAddItem(const UpdateInfo& ui);
 		void parseQueueItemUpdateInfoL(UpdateInfo* p_ui, const QueueItemPtr& p_queueItem);
-		// [~] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
-		
-		UpdateInfo* createUpdateInfoForAddedEvent(const ConnectionQueueItem* aCqi); // [+] IRainman fix.
+		UpdateInfo* createUpdateInfoForAddedEvent(const UserPtr& p_hinted_user, bool p_is_download);
 		
 		ItemInfoList ctrlTransfers;
 		CButton m_PassiveModeButton;
@@ -591,11 +589,11 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		StringMap ucLineParams;
 		bool m_is_need_resort;
 		
-		void on(ConnectionManagerListener::Added, const ConnectionQueueItem* aCqi) noexcept override;
-		void on(ConnectionManagerListener::Failed, const ConnectionQueueItem* aCqi, const string& aReason) noexcept override;
-		void on(ConnectionManagerListener::Removed, const ConnectionQueueItem* aCqi) noexcept override;
-		void on(ConnectionManagerListener::UserUpdated, const ConnectionQueueItem* aCqi) noexcept override;
-		void on(ConnectionManagerListener::ConnectionStatusChanged, const ConnectionQueueItem* aCqi) noexcept override;
+		void on(ConnectionManagerListener::Added, const UserPtr& p_user, bool p_is_download) noexcept override;
+		void on(ConnectionManagerListener::FailedDownload, const UserPtr& p_user, const string& aReason) noexcept override;
+		void on(ConnectionManagerListener::Removed, const UserPtr& p_user, bool p_is_download) noexcept override;
+		void on(ConnectionManagerListener::UserUpdated, const UserPtr& p_user, bool p_is_download) noexcept override;
+		void on(ConnectionManagerListener::ConnectionStatusChanged, const UserPtr& p_user, bool p_is_download) noexcept override;
 		
 		void on(DownloadManagerListener::Requesting, const DownloadPtr& aDownload) noexcept override;
 		void on(DownloadManagerListener::Complete, const DownloadPtr& aDownload) noexcept override

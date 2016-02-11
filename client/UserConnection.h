@@ -265,7 +265,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 			return socket ? socket->getIp() + ':' + Util::toString(socket->getPort()) : Util::emptyString;
 		}
 		
-		const string& getRemoteIp() const
+		string getRemoteIp() const
 		{
 			dcassert(socket); // [+] IRainman fix.
 			return socket ? socket->getIp() : Util::emptyString;

@@ -1,17 +1,27 @@
 /*
-    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
 
-    This file is part of 0MQ.
+    This file is part of libzmq, the ZeroMQ core engine in C++.
 
-    0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
+    libzmq is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License (LGPL) as published
+    by the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
-    0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    As a special exception, the Contributors give you permission to link
+    this library with independent modules to produce an executable,
+    regardless of the license terms of these independent modules, and to
+    copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the
+    terms and conditions of the license of that module. An independent
+    module is a module which is not derived from or based on this library.
+    If you modify this library, you must extend this exception to your
+    version of the library.
+
+    libzmq is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -28,10 +38,15 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <fcntl.h>
+#if defined ZMQ_HAVE_OPENBSD
+#define ucred sockpeercred
+#endif
 #endif
 
 #include <string.h>
 #include <new>
+#include <sstream>
+#include <iostream>
 
 #include "stream_engine.hpp"
 #include "io_thread.hpp"
@@ -41,7 +56,10 @@
 #include "v2_encoder.hpp"
 #include "v2_decoder.hpp"
 #include "null_mechanism.hpp"
-#include "plain_mechanism.hpp"
+#include "plain_client.hpp"
+#include "plain_server.hpp"
+#include "gssapi_client.hpp"
+#include "gssapi_server.hpp"
 #include "curve_client.hpp"
 #include "curve_server.hpp"
 #include "raw_decoder.hpp"
@@ -49,10 +67,11 @@
 #include "config.hpp"
 #include "err.hpp"
 #include "ip.hpp"
+#include "tcp.hpp"
 #include "likely.hpp"
 #include "wire.hpp"
 
-zmq::stream_engine_t::stream_engine_t (fd_t fd_, const options_t &options_, 
+zmq::stream_engine_t::stream_engine_t (fd_t fd_, const options_t &options_,
                                        const std::string &endpoint_) :
     s (fd_),
     inpos (NULL),
@@ -61,6 +80,7 @@ zmq::stream_engine_t::stream_engine_t (fd_t fd_, const options_t &options_,
     outpos (NULL),
     outsize (0),
     encoder (NULL),
+    metadata (NULL),
     handshaking (true),
     greeting_size (v2_greeting_size),
     greeting_bytes_read (0),
@@ -68,24 +88,52 @@ zmq::stream_engine_t::stream_engine_t (fd_t fd_, const options_t &options_,
     options (options_),
     endpoint (endpoint_),
     plugged (false),
-    terminating (false),
-    read_msg (&stream_engine_t::read_identity),
-    write_msg (&stream_engine_t::write_identity),
+    next_msg (&stream_engine_t::identity_msg),
+    process_msg (&stream_engine_t::process_identity_msg),
     io_error (false),
     subscription_required (false),
     mechanism (NULL),
     input_stopped (false),
     output_stopped (false),
+    has_handshake_timer (false),
     socket (NULL)
 {
     int rc = tx_msg.init ();
     errno_assert (rc == 0);
-    
+
     //  Put the socket into non-blocking mode.
     unblock_socket (s);
 
-    if (!get_peer_ip_address (s, peer_address))
-        peer_address = "";
+    int family = get_peer_ip_address (s, peer_address);
+    if (family == 0)
+        peer_address.clear();
+#if defined ZMQ_HAVE_SO_PEERCRED
+    else
+    if (family == PF_UNIX) {
+        struct ucred cred;
+        socklen_t size = sizeof (cred);
+        if (!getsockopt (s, SOL_SOCKET, SO_PEERCRED, &cred, &size)) {
+            std::ostringstream buf;
+            buf << ":" << cred.uid << ":" << cred.gid << ":" << cred.pid;
+            peer_address += buf.str ();
+        }
+    }
+#elif defined ZMQ_HAVE_LOCAL_PEERCRED
+    else
+    if (family == PF_UNIX) {
+        struct xucred cred;
+        socklen_t size = sizeof (cred);
+        if (!getsockopt (s, 0, LOCAL_PEERCRED, &cred, &size)
+                && cred.cr_version == XUCRED_VERSION) {
+            std::ostringstream buf;
+            buf << ":" << cred.cr_uid << ":";
+            if (cred.cr_ngroups > 0)
+                buf << cred.cr_groups[0];
+            buf << ":";
+            peer_address += buf.str ();
+        }
+    }
+#endif
 
 #ifdef SO_NOSIGPIPE
     //  Make sure that SIGPIPE signal is not generated when writing to a
@@ -113,6 +161,12 @@ zmq::stream_engine_t::~stream_engine_t ()
 
     int rc = tx_msg.close ();
     errno_assert (rc == 0);
+
+    //  Drop reference to metadata and destroy it if we are
+    //  the only user.
+    if (metadata != NULL)
+        if (metadata->drop_ref ())
+            delete metadata;
 
     delete encoder;
     delete decoder;
@@ -147,10 +201,30 @@ void zmq::stream_engine_t::plug (io_thread_t *io_thread_,
         // disable handshaking for raw socket
         handshaking = false;
 
-        read_msg = &stream_engine_t::pull_msg_from_session;
-        write_msg = &stream_engine_t::push_msg_to_session;
+        next_msg = &stream_engine_t::pull_msg_from_session;
+        process_msg = &stream_engine_t::push_raw_msg_to_session;
+
+        if (!peer_address.empty()) {
+            //  Compile metadata.
+            typedef metadata_t::dict_t properties_t;
+            properties_t properties;
+            properties.insert(std::make_pair("Peer-Address", peer_address));
+            zmq_assert (metadata == NULL);
+            metadata = new (std::nothrow) metadata_t (properties);
+        }
+
+        //  For raw sockets, send an initial 0-length message to the
+        // application so that it knows a peer has connected.
+        msg_t connector;
+        connector.init();
+        push_raw_msg_to_session (&connector);
+        connector.close();
+        session->flush ();
     }
     else {
+        // start optional timer, to prevent handshake hanging on no input
+        set_handshake_timer ();
+
         //  Send the 'length' and 'flags' fields of the identity message.
         //  The 'length' field is encoded in the long format.
         outpos = greeting_send;
@@ -171,6 +245,12 @@ void zmq::stream_engine_t::unplug ()
     zmq_assert (plugged);
     plugged = false;
 
+    //  Cancel all timers.
+    if (has_handshake_timer) {
+        cancel_timer (handshake_timer_id);
+        has_handshake_timer = false;
+    }
+
     //  Cancel all fd subscriptions.
     if (!io_error)
         rm_fd (handle);
@@ -183,18 +263,13 @@ void zmq::stream_engine_t::unplug ()
 
 void zmq::stream_engine_t::terminate ()
 {
-    if (!terminating && encoder && encoder->has_data ()) {
-        //  Give io_thread a chance to send in the buffer
-        terminating = true;
-        return;
-    }
     unplug ();
     delete this;
 }
 
 void zmq::stream_engine_t::in_event ()
 {
-    assert (!io_error);
+    zmq_assert (!io_error);
 
     //  If still handshaking, receive and process the greeting message.
     if (unlikely (handshaking))
@@ -220,14 +295,14 @@ void zmq::stream_engine_t::in_event ()
         size_t bufsize = 0;
         decoder->get_buffer (&inpos, &bufsize);
 
-        int const rc = read (inpos, bufsize);
+        const int rc = tcp_read (s, inpos, bufsize);
         if (rc == 0) {
-            error ();
+            error (connection_error);
             return;
         }
         if (rc == -1) {
             if (errno != EAGAIN)
-                error ();
+                error (connection_error);
             return;
         }
 
@@ -245,7 +320,7 @@ void zmq::stream_engine_t::in_event ()
         insize -= processed;
         if (rc == 0 || rc == -1)
             break;
-        rc = (this->*write_msg) (decoder->msg ());
+        rc = (this->*process_msg) (decoder->msg ());
         if (rc == -1)
             break;
     }
@@ -254,7 +329,7 @@ void zmq::stream_engine_t::in_event ()
     //  or the session has rejected the message.
     if (rc == -1) {
         if (errno != EAGAIN) {
-            error ();
+            error (protocol_error);
             return;
         }
         input_stopped = true;
@@ -283,7 +358,7 @@ void zmq::stream_engine_t::out_event ()
         outsize = encoder->encode (&outpos, 0);
 
         while (outsize < out_batch_size) {
-            if ((this->*read_msg) (&tx_msg) == -1)
+            if ((this->*next_msg) (&tx_msg) == -1)
                 break;
             encoder->load_msg (&tx_msg);
             unsigned char *bufptr = outpos + outsize;
@@ -307,15 +382,13 @@ void zmq::stream_engine_t::out_event ()
     //  arbitrarily large. However, we assume that underlying TCP layer has
     //  limited transmission buffer and thus the actual number of bytes
     //  written should be reasonably modest.
-    int nbytes = write (outpos, outsize);
+    const int nbytes = tcp_write (s, outpos, outsize);
 
     //  IO error has occurred. We stop waiting for output events.
     //  The engine is not terminated until we detect input error;
     //  this is necessary to prevent losing incoming messages.
     if (nbytes == -1) {
         reset_pollout (handle);
-        if (unlikely (terminating))
-            terminate ();
         return;
     }
 
@@ -327,10 +400,6 @@ void zmq::stream_engine_t::out_event ()
     if (unlikely (handshaking))
         if (outsize == 0)
             reset_pollout (handle);
-
-    if (unlikely (terminating))
-        if (outsize == 0)
-            terminate ();
 }
 
 void zmq::stream_engine_t::restart_output ()
@@ -356,12 +425,12 @@ void zmq::stream_engine_t::restart_input ()
     zmq_assert (session != NULL);
     zmq_assert (decoder != NULL);
 
-    int rc = (this->*write_msg) (decoder->msg ());
+    int rc = (this->*process_msg) (decoder->msg ());
     if (rc == -1) {
         if (errno == EAGAIN)
             session->flush ();
         else
-            error ();
+            error (protocol_error);
         return;
     }
 
@@ -373,7 +442,7 @@ void zmq::stream_engine_t::restart_input ()
         insize -= processed;
         if (rc == 0 || rc == -1)
             break;
-        rc = (this->*write_msg) (decoder->msg ());
+        rc = (this->*process_msg) (decoder->msg ());
         if (rc == -1)
             break;
     }
@@ -381,8 +450,11 @@ void zmq::stream_engine_t::restart_input ()
     if (rc == -1 && errno == EAGAIN)
         session->flush ();
     else
-    if (rc == -1 || io_error)
-        error ();
+    if (io_error)
+        error (connection_error);
+    else
+    if (rc == -1)
+        error (protocol_error);
     else {
         input_stopped = false;
         set_pollin (handle);
@@ -399,15 +471,15 @@ bool zmq::stream_engine_t::handshake ()
     zmq_assert (greeting_bytes_read < greeting_size);
     //  Receive the greeting.
     while (greeting_bytes_read < greeting_size) {
-        const int n = read (greeting_recv + greeting_bytes_read,
-                            greeting_size - greeting_bytes_read);
+        const int n = tcp_read (s, greeting_recv + greeting_bytes_read,
+                                greeting_size - greeting_bytes_read);
         if (n == 0) {
-            error ();
+            error (connection_error);
             return false;
         }
         if (n == -1) {
             if (errno != EAGAIN)
-                error ();
+                error (connection_error);
             return false;
         }
 
@@ -452,7 +524,8 @@ bool zmq::stream_engine_t::handshake ()
 
                     zmq_assert (options.mechanism == ZMQ_NULL
                             ||  options.mechanism == ZMQ_PLAIN
-                            ||  options.mechanism == ZMQ_CURVE);
+                            ||  options.mechanism == ZMQ_CURVE
+                            ||  options.mechanism == ZMQ_GSSAPI);
 
                     if (options.mechanism == ZMQ_NULL)
                         memcpy (outpos + outsize, "NULL", 4);
@@ -460,6 +533,10 @@ bool zmq::stream_engine_t::handshake ()
                     if (options.mechanism == ZMQ_PLAIN)
                         memcpy (outpos + outsize, "PLAIN", 5);
                     else
+                    if (options.mechanism == ZMQ_GSSAPI)
+                        memcpy (outpos + outsize, "GSSAPI", 6);
+                    else
+                    if (options.mechanism == ZMQ_CURVE)
                         memcpy (outpos + outsize, "CURVE", 5);
                     outsize += 20;
                     memset (outpos + outsize, 0, 32);
@@ -476,6 +553,12 @@ bool zmq::stream_engine_t::handshake ()
     //  Is the peer using ZMTP/1.0 with no revision number?
     //  If so, we send and receive rest of identity message
     if (greeting_recv [0] != 0xff || !(greeting_recv [9] & 0x01)) {
+        if (session->zap_enabled ()) {
+           // reject ZMTP 1.0 connections if ZAP is enabled
+           error (protocol_error);
+           return false;
+        }
+
         encoder = new (std::nothrow) v1_encoder_t (out_batch_size);
         alloc_assert (encoder);
 
@@ -507,9 +590,22 @@ bool zmq::stream_engine_t::handshake ()
         //  message into the incoming message stream.
         if (options.type == ZMQ_PUB || options.type == ZMQ_XPUB)
             subscription_required = true;
+
+        //  We are sending our identity now and the next message
+        //  will come from the socket.
+        next_msg = &stream_engine_t::pull_msg_from_session;
+
+        //  We are expecting identity message.
+        process_msg = &stream_engine_t::process_identity_msg;
     }
     else
     if (greeting_recv [revision_pos] == ZMTP_1_0) {
+        if (session->zap_enabled ()) {
+           // reject ZMTP 1.0 connections if ZAP is enabled
+           error (protocol_error);
+           return false;
+        }
+
         encoder = new (std::nothrow) v1_encoder_t (
             out_batch_size);
         alloc_assert (encoder);
@@ -520,6 +616,12 @@ bool zmq::stream_engine_t::handshake ()
     }
     else
     if (greeting_recv [revision_pos] == ZMTP_2_0) {
+        if (session->zap_enabled ()) {
+           // reject ZMTP 2.0 connections if ZAP is enabled
+           error (protocol_error);
+           return false;
+        }
+
         encoder = new (std::nothrow) v2_encoder_t (out_batch_size);
         alloc_assert (encoder);
 
@@ -535,20 +637,27 @@ bool zmq::stream_engine_t::handshake ()
             in_batch_size, options.maxmsgsize);
         alloc_assert (decoder);
 
-        if (memcmp (greeting_recv + 12, "NULL\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20) == 0) {
+        if (options.mechanism == ZMQ_NULL
+        &&  memcmp (greeting_recv + 12, "NULL\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20) == 0) {
             mechanism = new (std::nothrow)
                 null_mechanism_t (session, peer_address, options);
             alloc_assert (mechanism);
         }
         else
-        if (memcmp (greeting_recv + 12, "PLAIN\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20) == 0) {
-            mechanism = new (std::nothrow)
-                plain_mechanism_t (session, peer_address, options);
+        if (options.mechanism == ZMQ_PLAIN
+        &&  memcmp (greeting_recv + 12, "PLAIN\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20) == 0) {
+            if (options.as_server)
+                mechanism = new (std::nothrow)
+                    plain_server_t (session, peer_address, options);
+            else
+                mechanism = new (std::nothrow)
+                    plain_client_t (options);
             alloc_assert (mechanism);
         }
 #ifdef HAVE_LIBSODIUM
         else
-        if (memcmp (greeting_recv + 12, "CURVE\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20) == 0) {
+        if (options.mechanism == ZMQ_CURVE
+        &&  memcmp (greeting_recv + 12, "CURVE\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20) == 0) {
             if (options.as_server)
                 mechanism = new (std::nothrow)
                     curve_server_t (session, peer_address, options);
@@ -557,12 +666,24 @@ bool zmq::stream_engine_t::handshake ()
             alloc_assert (mechanism);
         }
 #endif
+#ifdef HAVE_LIBGSSAPI_KRB5
+        else
+        if (options.mechanism == ZMQ_GSSAPI
+        &&  memcmp (greeting_recv + 12, "GSSAPI\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20) == 0) {
+            if (options.as_server)
+                mechanism = new (std::nothrow)
+                    gssapi_server_t (session, peer_address, options);
+            else
+                mechanism = new (std::nothrow) gssapi_client_t (options);
+            alloc_assert (mechanism);
+        }
+#endif
         else {
-            error ();
+            error (protocol_error);
             return false;
         }
-        read_msg = &stream_engine_t::next_handshake_command;
-        write_msg = &stream_engine_t::process_handshake_command;
+        next_msg = &stream_engine_t::next_handshake_command;
+        process_msg = &stream_engine_t::process_handshake_command;
     }
 
     // Start polling for output if necessary.
@@ -573,20 +694,25 @@ bool zmq::stream_engine_t::handshake ()
     //  Switch into the normal message flow.
     handshaking = false;
 
+    if (has_handshake_timer) {
+        cancel_timer (handshake_timer_id);
+        has_handshake_timer = false;
+    }
+
     return true;
 }
 
-int zmq::stream_engine_t::read_identity (msg_t *msg_)
+int zmq::stream_engine_t::identity_msg (msg_t *msg_)
 {
     int rc = msg_->init_size (options.identity_size);
     errno_assert (rc == 0);
     if (options.identity_size > 0)
         memcpy (msg_->data (), options.identity, options.identity_size);
-    read_msg = &stream_engine_t::pull_msg_from_session;
+    next_msg = &stream_engine_t::pull_msg_from_session;
     return 0;
 }
 
-int zmq::stream_engine_t::write_identity (msg_t *msg_)
+int zmq::stream_engine_t::process_identity_msg (msg_t *msg_)
 {
     if (options.recv_identity) {
         msg_->set_flags (msg_t::identity);
@@ -601,9 +727,9 @@ int zmq::stream_engine_t::write_identity (msg_t *msg_)
     }
 
     if (subscription_required)
-        write_msg = &stream_engine_t::write_subscription_msg;
+        process_msg = &stream_engine_t::write_subscription_msg;
     else
-        write_msg = &stream_engine_t::push_msg_to_session;
+        process_msg = &stream_engine_t::push_msg_to_session;
 
     return 0;
 }
@@ -612,14 +738,21 @@ int zmq::stream_engine_t::next_handshake_command (msg_t *msg_)
 {
     zmq_assert (mechanism != NULL);
 
-    const int rc = mechanism->next_handshake_command (msg_);
-    if (rc == 0) {
-        msg_->set_flags (msg_t::command);
-        if (mechanism->is_handshake_complete ())
-            mechanism_ready ();
+    if (mechanism->status () == mechanism_t::ready) {
+        mechanism_ready ();
+        return pull_and_encode (msg_);
     }
-
-    return rc;
+    else
+    if (mechanism->status () == mechanism_t::error) {
+        errno = EPROTO;
+        return -1;
+    }
+    else {
+        const int rc = mechanism->next_handshake_command (msg_);
+        if (rc == 0)
+            msg_->set_flags (msg_t::command);
+        return rc;
+    }
 }
 
 int zmq::stream_engine_t::process_handshake_command (msg_t *msg_)
@@ -627,8 +760,13 @@ int zmq::stream_engine_t::process_handshake_command (msg_t *msg_)
     zmq_assert (mechanism != NULL);
     const int rc = mechanism->process_handshake_command (msg_);
     if (rc == 0) {
-        if (mechanism->is_handshake_complete ())
+        if (mechanism->status () == mechanism_t::ready)
             mechanism_ready ();
+        else
+        if (mechanism->status () == mechanism_t::error) {
+            errno = EPROTO;
+            return -1;
+        }
         if (output_stopped)
             restart_output ();
     }
@@ -642,7 +780,7 @@ void zmq::stream_engine_t::zap_msg_available ()
 
     const int rc = mechanism->zap_msg_available ();
     if (rc == -1) {
-        error ();
+        error (protocol_error);
         return;
     }
     if (input_stopped)
@@ -667,8 +805,30 @@ void zmq::stream_engine_t::mechanism_ready ()
         session->flush ();
     }
 
-    read_msg = &stream_engine_t::pull_and_encode;
-    write_msg = &stream_engine_t::decode_and_push;
+    next_msg = &stream_engine_t::pull_and_encode;
+    process_msg = &stream_engine_t::write_credential;
+
+    //  Compile metadata.
+    typedef metadata_t::dict_t properties_t;
+    properties_t properties;
+    properties_t::const_iterator it;
+
+    //  If we have a peer_address, add it to metadata
+    if (!peer_address.empty()) {
+        properties.insert(std::make_pair("Peer-Address", peer_address));
+    }
+
+    //  Add ZAP properties.
+    const properties_t& zap_properties = mechanism->get_zap_properties ();
+    properties.insert(zap_properties.begin (), zap_properties.end ());
+
+    //  Add ZMTP properties.
+    const properties_t& zmtp_properties = mechanism->get_zmtp_properties ();
+    properties.insert(zmtp_properties.begin (), zmtp_properties.end ());
+
+    zmq_assert (metadata == NULL);
+    if (!properties.empty ())
+        metadata = new (std::nothrow) metadata_t (properties);
 }
 
 int zmq::stream_engine_t::pull_msg_from_session (msg_t *msg_)
@@ -679,6 +839,35 @@ int zmq::stream_engine_t::pull_msg_from_session (msg_t *msg_)
 int zmq::stream_engine_t::push_msg_to_session (msg_t *msg_)
 {
     return session->push_msg (msg_);
+}
+
+int zmq::stream_engine_t::push_raw_msg_to_session (msg_t *msg_) {
+    if (metadata && metadata != msg_->metadata())
+        msg_->set_metadata(metadata);
+    return push_msg_to_session(msg_);
+}
+
+int zmq::stream_engine_t::write_credential (msg_t *msg_)
+{
+    zmq_assert (mechanism != NULL);
+    zmq_assert (session != NULL);
+
+    const blob_t credential = mechanism->get_user_id ();
+    if (credential.size () > 0) {
+        msg_t msg;
+        int rc = msg.init_size (credential.size ());
+        zmq_assert (rc == 0);
+        memcpy (msg.data (), credential.data (), credential.size ());
+        msg.set_flags (msg_t::credential);
+        rc = session->push_msg (&msg);
+        if (rc == -1) {
+            rc = msg.close ();
+            errno_assert (rc == 0);
+            return -1;
+        }
+    }
+    process_msg = &stream_engine_t::decode_and_push;
+    return decode_and_push (msg_);
 }
 
 int zmq::stream_engine_t::pull_and_encode (msg_t *msg_)
@@ -698,9 +887,11 @@ int zmq::stream_engine_t::decode_and_push (msg_t *msg_)
 
     if (mechanism->decode (msg_) == -1)
         return -1;
+    if (metadata)
+        msg_->set_metadata (metadata);
     if (session->push_msg (msg_) == -1) {
         if (errno == EAGAIN)
-            write_msg = &stream_engine_t::push_one_then_decode_and_push;
+            process_msg = &stream_engine_t::push_one_then_decode_and_push;
         return -1;
     }
     return 0;
@@ -710,7 +901,7 @@ int zmq::stream_engine_t::push_one_then_decode_and_push (msg_t *msg_)
 {
     const int rc = session->push_msg (msg_);
     if (rc == 0)
-        write_msg = &stream_engine_t::decode_and_push;
+        process_msg = &stream_engine_t::decode_and_push;
     return rc;
 }
 
@@ -727,118 +918,43 @@ int zmq::stream_engine_t::write_subscription_msg (msg_t *msg_)
     if (rc == -1)
        return -1;
 
-    write_msg = &stream_engine_t::push_msg_to_session;
+    process_msg = &stream_engine_t::push_msg_to_session;
     return push_msg_to_session (msg_);
 }
 
-void zmq::stream_engine_t::error ()
+void zmq::stream_engine_t::error (error_reason_t reason)
 {
+    if (options.raw_sock) {
+        //  For raw sockets, send a final 0-length message to the application
+        //  so that it knows the peer has been disconnected.
+        msg_t terminator;
+        terminator.init();
+        (this->*process_msg) (&terminator);
+        terminator.close();
+    }
     zmq_assert (session);
     socket->event_disconnected (endpoint, s);
     session->flush ();
-    session->detach ();
+    session->engine_error (reason);
     unplug ();
     delete this;
 }
 
-int zmq::stream_engine_t::write (const void *data_, size_t size_)
+void zmq::stream_engine_t::set_handshake_timer ()
 {
-#ifdef ZMQ_HAVE_WINDOWS
+    zmq_assert (!has_handshake_timer);
 
-    int nbytes = send (s, (char*) data_, (int) size_, 0);
-
-    //  If not a single byte can be written to the socket in non-blocking mode
-    //  we'll get an error (this may happen during the speculative write).
-    if (nbytes == SOCKET_ERROR && WSAGetLastError () == WSAEWOULDBLOCK)
-        return 0;
-        
-    //  Signalise peer failure.
-    if (nbytes == SOCKET_ERROR && (
-          WSAGetLastError () == WSAENETDOWN ||
-          WSAGetLastError () == WSAENETRESET ||
-          WSAGetLastError () == WSAEHOSTUNREACH ||
-          WSAGetLastError () == WSAECONNABORTED ||
-          WSAGetLastError () == WSAETIMEDOUT ||
-          WSAGetLastError () == WSAECONNRESET))
-        return -1;
-
-    wsa_assert (nbytes != SOCKET_ERROR);
-    return nbytes;
-
-#else
-
-    ssize_t nbytes = send (s, data_, size_, 0);
-
-    //  Several errors are OK. When speculative write is being done we may not
-    //  be able to write a single byte from the socket. Also, SIGSTOP issued
-    //  by a debugging tool can result in EINTR error.
-    if (nbytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK ||
-          errno == EINTR))
-        return 0;
-
-    //  Signalise peer failure.
-    if (nbytes == -1) {
-        errno_assert (errno != EACCES
-                   && errno != EBADF
-                   && errno != EDESTADDRREQ
-                   && errno != EFAULT
-                   && errno != EINVAL
-                   && errno != EISCONN
-                   && errno != EMSGSIZE
-                   && errno != ENOMEM
-                   && errno != ENOTSOCK
-                   && errno != EOPNOTSUPP);
-        return -1;
+    if (!options.raw_sock && options.handshake_ivl > 0) {
+        add_timer (options.handshake_ivl, handshake_timer_id);
+        has_handshake_timer = true;
     }
-
-    return static_cast <int> (nbytes);
-
-#endif
 }
 
-int zmq::stream_engine_t::read (void *data_, size_t size_)
+void zmq::stream_engine_t::timer_event (int id_)
 {
-#ifdef ZMQ_HAVE_WINDOWS
+    zmq_assert (id_ == handshake_timer_id);
+    has_handshake_timer = false;
 
-    const int rc = recv (s, (char*) data_, (int) size_, 0);
-
-    //  If not a single byte can be read from the socket in non-blocking mode
-    //  we'll get an error (this may happen during the speculative read).
-    if (rc == SOCKET_ERROR) {
-        if (WSAGetLastError () == WSAEWOULDBLOCK)
-            errno = EAGAIN;
-        else {
-            wsa_assert (WSAGetLastError () == WSAENETDOWN
-                     || WSAGetLastError () == WSAENETRESET
-                     || WSAGetLastError () == WSAECONNABORTED
-                     || WSAGetLastError () == WSAETIMEDOUT
-                     || WSAGetLastError () == WSAECONNRESET
-                     || WSAGetLastError () == WSAECONNREFUSED
-                     || WSAGetLastError () == WSAENOTCONN);
-            errno = wsa_error_to_errno (WSAGetLastError ());
-        }
-    }
-
-    return rc == SOCKET_ERROR? -1: rc;
-
-#else
-
-    const ssize_t rc = recv (s, data_, size_, 0);
-
-    //  Several errors are OK. When speculative read is being done we may not
-    //  be able to read a single byte from the socket. Also, SIGSTOP issued
-    //  by a debugging tool can result in EINTR error.
-    if (rc == -1) {
-        errno_assert (errno != EBADF
-                   && errno != EFAULT
-                   && errno != EINVAL
-                   && errno != ENOMEM
-                   && errno != ENOTSOCK);
-        if (errno == EWOULDBLOCK || errno == EINTR)
-            errno = EAGAIN;
-    }
-
-    return static_cast <int> (rc);
-
-#endif
+    //  handshake timer expired before handshake completed, so engine fails
+    error (timeout_error);
 }

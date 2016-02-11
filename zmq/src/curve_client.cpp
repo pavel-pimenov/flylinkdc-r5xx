@@ -1,17 +1,27 @@
 /*
-    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
 
-    This file is part of 0MQ.
+    This file is part of libzmq, the ZeroMQ core engine in C++.
 
-    0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
+    libzmq is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License (LGPL) as published
+    by the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
-    0MQ is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    As a special exception, the Contributors give you permission to link
+    this library with independent modules to produce an executable,
+    regardless of the license terms of these independent modules, and to
+    copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the
+    terms and conditions of the license of that module. An independent
+    module is a module which is not derived from or based on this library.
+    If you modify this library, you must extend this exception to your
+    version of the library.
+
+    libzmq is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -20,8 +30,6 @@
 #include "platform.hpp"
 
 #ifdef HAVE_LIBSODIUM
-
-#include <sodium.h>
 
 #ifdef ZMQ_HAVE_WINDOWS
 #include "windows.hpp"
@@ -35,14 +43,27 @@
 
 zmq::curve_client_t::curve_client_t (const options_t &options_) :
     mechanism_t (options_),
-    state (send_hello)
+    state (send_hello),
+    cn_nonce(1),
+    cn_peer_nonce(1),
+    sync()
 {
+    int rc;
     memcpy (public_key, options_.curve_public_key, crypto_box_PUBLICKEYBYTES);
     memcpy (secret_key, options_.curve_secret_key, crypto_box_SECRETKEYBYTES);
     memcpy (server_key, options_.curve_server_key, crypto_box_PUBLICKEYBYTES);
+    scoped_lock_t lock (sync);
+#if defined(HAVE_TWEETNACL)
+    // allow opening of /dev/urandom
+    unsigned char tmpbytes[4];
+    randombytes(tmpbytes, 4);
+#else
+    rc = sodium_init ();
+    zmq_assert (rc != -1);
+#endif
 
     //  Generate short-term key pair
-    const int rc = crypto_box_keypair (cn_public, cn_secret);
+    rc = crypto_box_keypair (cn_public, cn_secret);
     zmq_assert (rc == 0);
 }
 
@@ -74,30 +95,31 @@ int zmq::curve_client_t::next_handshake_command (msg_t *msg_)
 
 int zmq::curve_client_t::process_handshake_command (msg_t *msg_)
 {
-    int rc = 0;
+    const unsigned char *msg_data =
+        static_cast <unsigned char *> (msg_->data ());
+    const size_t msg_size = msg_->size ();
 
-    switch (state) {
-        case expect_welcome:
-            rc = process_welcome (msg_);
-            if (rc == 0)
-                state = send_initiate;
-            break;
-        case expect_ready:
-            rc = process_ready (msg_);
-            if (rc == 0)
-                state = connected;
-            break;
-        default:
-            errno = EPROTO;
-            rc = -1;
-            break;
+    int rc = 0;
+    if (msg_size >= 8 && !memcmp (msg_data, "\7WELCOME", 8))
+        rc = process_welcome (msg_data, msg_size);
+    else
+    if (msg_size >= 6 && !memcmp (msg_data, "\5READY", 6))
+        rc = process_ready (msg_data, msg_size);
+    else
+    if (msg_size >= 6 && !memcmp (msg_data, "\5ERROR", 6))
+        rc = process_error (msg_data, msg_size);
+    else {
+        errno = EPROTO;
+        rc = -1;
     }
+
     if (rc == 0) {
         rc = msg_->close ();
         errno_assert (rc == 0);
         rc = msg_->init ();
         errno_assert (rc == 0);
     }
+
     return rc;
 }
 
@@ -111,7 +133,7 @@ int zmq::curve_client_t::encode (msg_t *msg_)
 
     uint8_t message_nonce [crypto_box_NONCEBYTES];
     memcpy (message_nonce, "CurveZMQMESSAGEC", 16);
-    memcpy (message_nonce + 16, &cn_nonce, 8);
+    put_uint64 (message_nonce + 16, cn_nonce);
 
     const size_t mlen = crypto_box_ZEROBYTES + 1 + msg_->size ();
 
@@ -139,7 +161,7 @@ int zmq::curve_client_t::encode (msg_t *msg_)
     uint8_t *message = static_cast <uint8_t *> (msg_->data ());
 
     memcpy (message, "\x07MESSAGE", 8);
-    memcpy (message + 8, &cn_nonce, 8);
+    memcpy (message + 8, message_nonce + 16, 8);
     memcpy (message + 16, message_box + crypto_box_BOXZEROBYTES,
             mlen - crypto_box_BOXZEROBYTES);
 
@@ -169,6 +191,13 @@ int zmq::curve_client_t::decode (msg_t *msg_)
     uint8_t message_nonce [crypto_box_NONCEBYTES];
     memcpy (message_nonce, "CurveZMQMESSAGES", 16);
     memcpy (message_nonce + 16, message + 8, 8);
+    uint64_t nonce = get_uint64(message + 8);
+    if (nonce <= cn_peer_nonce) {
+        errno = EPROTO;
+        return -1;
+    }
+    cn_peer_nonce = nonce;
+
 
     const size_t clen = crypto_box_BOXZEROBYTES + (msg_->size () - 16);
 
@@ -208,9 +237,15 @@ int zmq::curve_client_t::decode (msg_t *msg_)
     return rc;
 }
 
-bool zmq::curve_client_t::is_handshake_complete () const
+zmq::mechanism_t::status_t zmq::curve_client_t::status () const
 {
-    return state == connected;
+    if (state == connected)
+        return mechanism_t::ready;
+    else
+    if (state == error_received)
+        return mechanism_t::error;
+    else
+        return mechanism_t::handshaking;
 }
 
 int zmq::curve_client_t::produce_hello (msg_t *msg_)
@@ -221,7 +256,7 @@ int zmq::curve_client_t::produce_hello (msg_t *msg_)
 
     //  Prepare the full nonce
     memcpy (hello_nonce, "CurveZMQHELLO---", 16);
-    memcpy (hello_nonce + 16, &cn_nonce, 8);
+    put_uint64 (hello_nonce + 16, cn_nonce);
 
     //  Create Box [64 * %x0](C'->S)
     memset (hello_plaintext, 0, sizeof hello_plaintext);
@@ -252,15 +287,10 @@ int zmq::curve_client_t::produce_hello (msg_t *msg_)
     return 0;
 }
 
-int zmq::curve_client_t::process_welcome (msg_t *msg_)
+int zmq::curve_client_t::process_welcome (
+        const uint8_t *msg_data, size_t msg_size)
 {
-    if (msg_->size () != 168) {
-        errno = EPROTO;
-        return -1;
-    }
-
-    const uint8_t * welcome = static_cast <uint8_t *> (msg_->data ());
-    if (memcmp (welcome, "\x07WELCOME", 8)) {
+    if (msg_size != 168) {
         errno = EPROTO;
         return -1;
     }
@@ -271,10 +301,10 @@ int zmq::curve_client_t::process_welcome (msg_t *msg_)
 
     //  Open Box [S' + cookie](C'->S)
     memset (welcome_box, 0, crypto_box_BOXZEROBYTES);
-    memcpy (welcome_box + crypto_box_BOXZEROBYTES, welcome + 24, 144);
+    memcpy (welcome_box + crypto_box_BOXZEROBYTES, msg_data + 24, 144);
 
     memcpy (welcome_nonce, "WELCOME-", 8);
-    memcpy (welcome_nonce + 8, welcome + 8, 16);
+    memcpy (welcome_nonce + 8, msg_data + 8, 16);
 
     int rc = crypto_box_open (welcome_plaintext, welcome_box,
                               sizeof welcome_box,
@@ -290,6 +320,8 @@ int zmq::curve_client_t::process_welcome (msg_t *msg_)
     //  Message independent precomputation
     rc = crypto_box_beforenm (cn_precom, cn_server, cn_secret);
     zmq_assert (rc == 0);
+
+    state = send_initiate;
 
     return 0;
 }
@@ -320,7 +352,7 @@ int zmq::curve_client_t::produce_initiate (msg_t *msg_)
 
     //  Create Box [C + vouch + metadata](C'->S')
     memset (initiate_plaintext, 0, crypto_box_ZEROBYTES);
-    memcpy (initiate_plaintext + crypto_box_ZEROBYTES, 
+    memcpy (initiate_plaintext + crypto_box_ZEROBYTES,
             public_key, 32);
     memcpy (initiate_plaintext + crypto_box_ZEROBYTES + 32,
             vouch_nonce + 8, 16);
@@ -338,13 +370,12 @@ int zmq::curve_client_t::produce_initiate (msg_t *msg_)
     if (options.type == ZMQ_REQ
     ||  options.type == ZMQ_DEALER
     ||  options.type == ZMQ_ROUTER)
-        ptr += add_property (ptr, "Identity",
-                             options.identity, options.identity_size);
+        ptr += add_property (ptr, "Identity", options.identity, options.identity_size);
 
     const size_t mlen = ptr - initiate_plaintext;
 
     memcpy (initiate_nonce, "CurveZMQINITIATE", 16);
-    memcpy (initiate_nonce + 16, &cn_nonce, 8);
+    put_uint64 (initiate_nonce + 16, cn_nonce);
 
     rc = crypto_box (initiate_box, initiate_plaintext,
                      mlen, initiate_nonce, cn_server, cn_secret);
@@ -359,7 +390,7 @@ int zmq::curve_client_t::produce_initiate (msg_t *msg_)
     //  Cookie provided by the server in the WELCOME command
     memcpy (initiate + 9, cn_cookie, 96);
     //  Short nonce, prefixed by "CurveZMQINITIATE"
-    memcpy (initiate + 105, &cn_nonce, 8);
+    memcpy (initiate + 105, initiate_nonce + 16, 8);
     //  Box [C + vouch + metadata](C'->S')
     memcpy (initiate + 113, initiate_box + crypto_box_BOXZEROBYTES,
             mlen - crypto_box_BOXZEROBYTES);
@@ -368,20 +399,15 @@ int zmq::curve_client_t::produce_initiate (msg_t *msg_)
     return 0;
 }
 
-int zmq::curve_client_t::process_ready (msg_t *msg_)
+int zmq::curve_client_t::process_ready (
+        const uint8_t *msg_data, size_t msg_size)
 {
-    if (msg_->size () < 30) {
+    if (msg_size < 30) {
         errno = EPROTO;
         return -1;
     }
 
-    const uint8_t *ready = static_cast <uint8_t *> (msg_->data ());
-    if (memcmp (ready, "\x05READY", 6)) {
-        errno = EPROTO;
-        return -1;
-    }
-
-    const size_t clen = (msg_->size () - 14) + crypto_box_BOXZEROBYTES;
+    const size_t clen = (msg_size - 14) + crypto_box_BOXZEROBYTES;
 
     uint8_t ready_nonce [crypto_box_NONCEBYTES];
     uint8_t ready_plaintext [crypto_box_ZEROBYTES + 256];
@@ -389,10 +415,11 @@ int zmq::curve_client_t::process_ready (msg_t *msg_)
 
     memset (ready_box, 0, crypto_box_BOXZEROBYTES);
     memcpy (ready_box + crypto_box_BOXZEROBYTES,
-            ready + 14, clen - crypto_box_BOXZEROBYTES);
+            msg_data + 14, clen - crypto_box_BOXZEROBYTES);
 
     memcpy (ready_nonce, "CurveZMQREADY---", 16);
-    memcpy (ready_nonce + 16, ready + 6, 8);
+    memcpy (ready_nonce + 16, msg_data + 6, 8);
+    cn_peer_nonce = get_uint64(msg_data + 6);
 
     int rc = crypto_box_open_afternm (ready_plaintext, ready_box,
                                       clen, ready_nonce, cn_precom);
@@ -404,7 +431,30 @@ int zmq::curve_client_t::process_ready (msg_t *msg_)
 
     rc = parse_metadata (ready_plaintext + crypto_box_ZEROBYTES,
                          clen - crypto_box_ZEROBYTES);
+    if (rc == 0)
+        state = connected;
+
     return rc;
+}
+
+int zmq::curve_client_t::process_error (
+        const uint8_t *msg_data, size_t msg_size)
+{
+    if (state != expect_welcome && state != expect_ready) {
+        errno = EPROTO;
+        return -1;
+    }
+    if (msg_size < 7) {
+        errno = EPROTO;
+        return -1;
+    }
+    const size_t error_reason_len = static_cast <size_t> (msg_data [6]);
+    if (error_reason_len > msg_size - 7) {
+        errno = EPROTO;
+        return -1;
+    }
+    state = error_received;
+    return 0;
 }
 
 #endif

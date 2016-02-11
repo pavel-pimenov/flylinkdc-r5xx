@@ -25,7 +25,7 @@ class CFlyLockProfiler
 #endif
 {
 	public:
-		explicit CFlyLockProfiler(const char* p_function = nullptr) : m_function(p_function)
+		explicit CFlyLockProfiler(const char* p_function, int p_line) : m_function(p_function), m_line(p_line)
 		{
 			//QueryPerformanceCounter(&m_start);
 			m_start_tick = GetTickCount();
@@ -35,6 +35,7 @@ class CFlyLockProfiler
 		void log(const char* p_path, int p_recursion_count, bool p_is_unlock = false);
 	private:
 		const char* m_function;
+		int m_line;
 		//LARGE_INTEGER m_start;
 		DWORD m_start_tick;
 		static BoostFastCriticalSection g_cs_stat_map;

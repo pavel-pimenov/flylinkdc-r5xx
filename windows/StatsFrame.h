@@ -41,11 +41,11 @@ struct RatioInfo
 		
 	const tstring& getText(int col) const
 	{
-		return (col == 0) ? m_hub : Util::emptyStringT;
+		return col == 0 ? m_hub : Util::emptyStringT;
 	}
 	static int compareItems(const RatioInfo* a, const RatioInfo* b, int col)
 	{
-		return (col == 0) ? Util::DefaultSort(a->m_hub.c_str(), b->m_hub.c_str()) : 0;
+		return col == 0 ? Util::DefaultSort(a->m_hub.c_str(), b->m_hub.c_str()) : 0;
 	}
 	int getImageIndex()
 	{

@@ -28,6 +28,9 @@
 #include<winsock2.h>
 #include<Iphlpapi.h>
 #include<stdio.h>
+
+#include "zmq.h"
+
 #pragma comment(lib,"Iphlpapi.lib")
 
 int getmac();
@@ -609,23 +612,66 @@ uint8_t TestFunc2(const uint8_t ui8NickLen, const bool bFromPM)
 {
 	return bFromPM ? ui8NickLen : ui8NickLen + 1;
 }
+int zmq_test_client()
+{
+	void* context = zmq_ctx_new();
+	printf("Client Starting….\n");
+	int major = 0, minor = 0, patch = 0;
+	zmq_version(&major, &minor, &patch);
+	printf("ZeroMQ version: %d.%d.%d\n", major, minor, patch);
+	
+	void* request = zmq_socket(context, ZMQ_REQ);
+	int ipv6 = 1;
+	const auto l_result_opt = zmq_setsockopt(socket, ZMQ_IPV6, &ipv6, 4);
+	if (l_result_opt != 0)
+		printf("zmq_setsockopt = %d\n", errno);
+	// zmq_connect(request, "tcp://51.254.84.24:4040");
+	//auto l_result_connect = zmq_connect(request, "tcp://188.209.52.233:4040");
+	auto l_result_connect = zmq_connect(request, "tcp://[2001:41D0:000A:1A3B:0000:0000:0000:0012]:4040");
+	if (l_result_connect != 0)
+		printf("zmq_connect = %d\n", errno);
+		
+		
+	int count = 0;
+	
+	for (;;)
+	{
+		zmq_msg_t req;
+		zmq_msg_init_size(&req, strlen("hello"));
+		memcpy(zmq_msg_data(&req), "hello", 5);
+		printf("Sending: hello - %d\n", count);
+		zmq_msg_send(&req, request, 0);
+		zmq_msg_close(&req);
+		zmq_msg_t reply;
+		zmq_msg_init(&reply);
+		zmq_msg_recv(&reply, request, 0);
+		printf("Received: hello - %d\n", count);
+		zmq_msg_close(&reply);
+		count++;
+	}
+	// We never get here though.
+	zmq_close(request);
+	zmq_ctx_destroy(context);
+}
 int _tmain(int argc, _TCHAR* argv[])
 {
-
+	zmq_test_client();
+	
+	
 	std::cout << "Timing boost::unordered_map<int,int>" << std::endl;
 	timemap<boost::unordered_map<int, int> >();
 	std::cout << std::endl;
-
+	
 	std::cout << "Timing std::unordered_map<int,int>" << std::endl;
 	timemap<std::unordered_map<int, int> >();
 	std::cout << std::endl;
-
+	
 	std::cout << "Timing std::map<int,int>" << std::endl;
 	timemap<std::map<int, int> >();
 	std::cout << std::endl;
-
+	
 	return 0;
-
+	
 	Process_Files("Y:\\dc-test-issue-956", true);  // boost::filesystem::current_path()
 	std::cout << std::endl << "g_hash_byte = " << g_hash_byte <<   " g_sum_byte = " << g_sum_byte <<  std::endl;
 	return 0;

@@ -1542,7 +1542,7 @@ void HubFrame::doDisconnected()
 		m_needsUpdateStats = true;
 	}
 }
-
+#if 0 // Нельзя включит - мигают часы
 LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled */)
 {
 	if (ClientManager::isShutdown())
@@ -1702,35 +1702,6 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		}
 		break;
 #endif
-		case WM_SPEAKER_CHEATING_USER:
-		{
-			unique_ptr<string> l_ptr_msg(reinterpret_cast<string*>(wParam));
-			// TODO - делать один раз в winUtils?
-			CHARFORMAT2 cf;
-			memzero(&cf, sizeof(CHARFORMAT2));
-			cf.cbSize = sizeof(cf);
-			cf.dwMask = CFM_BACKCOLOR | CFM_COLOR | CFM_BOLD;
-			cf.crBackColor = SETTING(BACKGROUND_COLOR);
-			cf.crTextColor = SETTING(ERROR_COLOR);
-			const tstring msg = Text::toT(*l_ptr_msg);
-			if (msg.length() < 256)
-				SHOW_POPUP(POPUP_CHEATING_USER, msg, TSTRING(CHEATING_USER));
-			BaseChatFrame::addLine(msg, cf);
-		}
-		break;
-		case WM_SPEAKER_USER_REPORT:
-		{
-			unique_ptr<string> l_ptr_msg(reinterpret_cast<string*>(wParam));
-			BaseChatFrame::addLine(Text::toT(*l_ptr_msg), Colors::g_ChatTextSystem);
-			if (BOOLSETTING(LOG_MAIN_CHAT))
-			{
-				StringMap params;
-				params["message"] = *l_ptr_msg;
-				params["hubURL"]  = m_client->getHubUrl();
-				LOG(CHAT, params);
-			}
-		}
-		break;
 		
 		
 		default:
@@ -1741,6 +1712,8 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 	}
 	return 0;
 }
+#endif
+
 LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam */, BOOL& /*bHandled*/)
 {
 //	dcassert(ClientManager::isStartup() == false && !ClientManager::isShutdown());
@@ -1754,11 +1727,12 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 	//LogManager::message("LRESULT HubFrame::onSpeaker: m_tasks.size() = " + Util::toString(t.size()));
 #endif
 	CFlyBusyBool l_busy(m_spoken);
-	//unique_ptr<CLockRedraw < > > l_lock_redraw;
-	//if(m_ctrlUsers)
-	//{
-	//  l_lock_redraw = unique_ptr<CLockRedraw < > >(new CLockRedraw<> (*m_ctrlUsers));
-	//}
+	unique_ptr<CLockRedraw < > > l_lock_redraw;
+	if (m_ctrlUsers)
+	{
+		l_lock_redraw = unique_ptr<CLockRedraw < > >(new CLockRedraw<> (*m_ctrlUsers));
+	}
+	CLockRedraw<> l_lock_redraw_chat(ctrlClient);
 	for (auto i = t.cbegin(); i != t.cend(); ++i)
 	{
 		if (!ClientManager::isShutdown())
@@ -2041,6 +2015,36 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				}
 				break;
 #endif
+				
+				case CHEATING_USER:
+				{
+					const StatusTask& l_task = static_cast<StatusTask&>(*i->second);
+					CHARFORMAT2 cf;
+					memzero(&cf, sizeof(CHARFORMAT2));
+					cf.cbSize = sizeof(cf);
+					cf.dwMask = CFM_BACKCOLOR | CFM_COLOR | CFM_BOLD;
+					cf.crBackColor = SETTING(BACKGROUND_COLOR);
+					cf.crTextColor = SETTING(ERROR_COLOR);
+					const tstring msg = Text::toT(l_task.m_str);
+					if (msg.length() < 256)
+						SHOW_POPUP(POPUP_CHEATING_USER, msg, TSTRING(CHEATING_USER));
+					BaseChatFrame::addLine(msg, cf);
+				}
+				break;
+				case USER_REPORT:
+				{
+					const StatusTask& l_task = static_cast<StatusTask&>(*i->second);
+					BaseChatFrame::addLine(Text::toT(l_task.m_str), Colors::g_ChatTextSystem);
+					if (BOOLSETTING(LOG_MAIN_CHAT))
+					{
+						StringMap params;
+						params["message"] = l_task.m_str;
+						params["hubURL"] = m_client->getHubUrl();
+						LOG(CHAT, params);
+					}
+				}
+				break;
+				
 				
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 				case OPEN_TCP_PORT_DETECTED:
@@ -3648,17 +3652,17 @@ void HubFrame::onTimerHubUpdated()
 			fullHubName += " - " + m_client->getHubDescription();
 		}
 		fullHubName += " (" + m_client->getHubUrl() + ')';
-
+		
 		setShortHubName(Text::toT(fullHubName));
-
-		if (!BOOLSETTING(SHOW_FULL_HUB_INFO_ON_TAB)) // Не показываем инфу с хаба 
+		
+		if (!BOOLSETTING(SHOW_FULL_HUB_INFO_ON_TAB)) // Не показываем инфу с хаба
 		{
-			if (!m_client->getName().empty()) 
+			if (!m_client->getName().empty())
 			{
 				const auto l_name = Text::toT(m_client->getName());
 				setShortHubName(l_name);
 			}
-		}	
+		}
 		
 		dcassert(!fullHubName.empty());
 		setWindowTitle(fullHubName);
@@ -3704,6 +3708,15 @@ void HubFrame::on(ClientListener::HubFull, const Client*) noexcept
 {
 	speak(ADD_STATUS_LINE, STRING(HUB_FULL), true);
 }
+static string getRandomSuffix()
+{
+	string l_random = Util::toString(Util::rand()).substr(0, 3);
+	while (l_random.length() < 3)
+	{
+		l_random += '0';
+	}
+	return l_random;
+}
 void HubFrame::on(ClientListener::NickTaken, const Client*) noexcept
 {
 	const string l_my_nick = m_client->getMyNick();
@@ -3713,15 +3726,35 @@ void HubFrame::on(ClientListener::NickTaken, const Client*) noexcept
 	{
 		if (l_fe->getPassword().empty())
 		{
-			const string l_nick = l_my_nick;
-			string l_fly_user = l_nick + "_R" + Util::toString(Util::rand()).substr(0, 3);
+			string l_fly_user;
+			string l_nick = l_my_nick;
+			if (l_nick.length() >= 5) // "_R123"
+			{
+				int i = l_nick.length() - 5;
+				if (l_nick[i] == '_' && l_nick[i + 1] == 'R' && isdigit(l_nick[i + 2]) && isdigit(l_nick[i + 3]) && isdigit(l_nick[i + 4]))
+				{
+					const string l_new_number = getRandomSuffix();
+					l_nick[i + 2] = l_new_number[0];
+					l_nick[i + 3] = l_new_number[1];
+					l_nick[i + 4] = l_new_number[2];
+					l_fly_user = l_nick;
+				}
+				else
+				{
+					l_fly_user = l_nick + "_R" + getRandomSuffix();
+				}
+			}
+			else
+			{
+				l_fly_user = l_nick + "_R" + getRandomSuffix();
+			}
 			auto l_max_len = m_client->getMaxLenNick();
 			if (l_max_len == 0)
 				l_max_len = 15;
 			if (l_fly_user.length() > l_max_len)
 			{
 				l_fly_user = l_nick.substr(0, l_max_len - 5);
-				l_fly_user += "_R" + Util::toString(Util::rand()).substr(0, 3);
+				l_fly_user += "_R" + getRandomSuffix();
 			}
 			m_client->setMyNick(l_fly_user);
 			m_client->setRandomNick(l_fly_user);
@@ -3737,13 +3770,15 @@ void HubFrame::on(ClientListener::NickTaken, const Client*) noexcept
 }
 void HubFrame::on(ClientListener::CheatMessage, const string& line) noexcept
 {
-	const auto l_message_ptr = new string(line);
-	PostMessage(WM_SPEAKER_CHEATING_USER, WPARAM(l_message_ptr));
+	speak(CHEATING_USER, line, true);
+	//const auto l_message_ptr = new string(line);
+	//PostMessage(WM_SPEAKER_CHEATING_USER, WPARAM(l_message_ptr));
 }
 void HubFrame::on(ClientListener::UserReport, const Client*, const string& report) noexcept // [+] IRainman
 {
-	const auto l_message_ptr = new string(report);
-	PostMessage(WM_SPEAKER_USER_REPORT, WPARAM(l_message_ptr));
+	speak(USER_REPORT, report, true);
+	//const auto l_message_ptr = new string(report);
+	//PostMessage(WM_SPEAKER_USER_REPORT, WPARAM(l_message_ptr));
 }
 #ifdef FLYLINKDC_SUPPORT_HUBTOPIC
 void HubFrame::on(ClientListener::HubTopic, const Client*, const string& line) noexcept

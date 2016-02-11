@@ -305,11 +305,11 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			getMyIdentity().setNick(p_nick);
 		}
-		const string getMyNick() const // [!] IRainman opt.
+		const string getMyNick() const
 		{
 			return getMyIdentity().getNick();
 		}
-		const string getHubName() const // [!] IRainman opt.
+		const string getHubName() const
 		{
 			const string ni = getHubIdentity().getNick();
 			return ni.empty() ? getHubUrl() : ni;

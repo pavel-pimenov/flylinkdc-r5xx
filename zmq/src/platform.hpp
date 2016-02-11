@@ -28,5 +28,6 @@
 //  Place any MSVC-specific definitions here.
 
 #define ZMQ_HAVE_WINDOWS
+#define ZMQ_USE_SELECT
 
 #endif

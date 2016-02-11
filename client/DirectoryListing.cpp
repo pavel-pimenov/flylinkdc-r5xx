@@ -110,12 +110,13 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 	return u;
 }
 
-void DirectoryListing::loadFile(const string& name, bool p_own_list)
+void DirectoryListing::loadFile(const string& p_file, bool p_own_list)
 {
+	m_file = p_file;
 	// For now, we detect type by ending...
-	const string ext = Util::getFileExt(name);
+	const string ext = Util::getFileExt(p_file);
 	
-	::File ff(name, ::File::READ, ::File::OPEN);
+	::File ff(p_file, ::File::READ, ::File::OPEN);
 	if (stricmp(ext, ".bz2") == 0
 	        || stricmp(ext, ".dcls") == 0 // [+] IRainman dclst support
 	        || stricmp(ext, ".dclst") == 0 // [+] SSA dclst support
@@ -135,7 +136,7 @@ class ListLoader : public SimpleXMLReader::CallBack
 	public:
 		ListLoader(DirectoryListing* aList, DirectoryListing::Directory* root,
 		           bool aUpdating, const UserPtr& p_user, bool p_own_list)
-			: list(aList), cur(root), base("/"), m_is_in_listing(false),
+			: list(aList), cur(root), m_base("/"), m_is_in_listing(false),
 			  m_is_updating(aUpdating), user(p_user), m_is_own_list(p_own_list),
 			  m_is_mediainfo_list(false), m_is_first_check_mediainfo_list(false),
 			  m_empty_file_name_counter(0)
@@ -149,7 +150,7 @@ class ListLoader : public SimpleXMLReader::CallBack
 		
 		const string& getBase() const
 		{
-			return base;
+			return m_base;
 		}
 		bool isMediainfoList() const
 		{
@@ -161,7 +162,7 @@ class ListLoader : public SimpleXMLReader::CallBack
 		UserPtr user;
 		
 		StringMap params;
-		string base;
+		string m_base;
 		bool m_is_in_listing;
 		bool m_is_updating;
 		bool m_is_own_list;
@@ -180,9 +181,9 @@ string DirectoryListing::loadXML(InputStream& is, bool updating, bool p_is_own_l
 {
 	CFlyLog l_log("[loadXML]");
 	ListLoader ll(this, getRoot(), updating, getUser(), p_is_own_list);
-	l_log.step("start parse");
+	//l_log.step("start parse");
 	SimpleXMLReader(&ll).parse(is);
-	l_log.step("stop parse");
+	l_log.step("Stop parse file:" + m_file);
 	m_is_mediainfo = ll.isMediainfoList();
 	m_is_own_list = p_is_own_list;
 	return ll.getBase();
@@ -269,7 +270,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			
 			if (l_h.empty() || (m_is_own_list == false && l_h.compare(0, 39, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", 39) == 0))
 			{
-				dcassert(0);
+				//dcassert(0);
 				return;
 			}
 			const TTHValue l_tth(l_h); /// @todo verify validity?
@@ -423,11 +424,11 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 		const string& b = getAttrib(attribs, sBase, 2);
 		if (b.size() >= 1 && b[0] == '/' && b[b.size() - 1] == '/')
 		{
-			base = b;
+			m_base = b;
 		}
-		if (base.size() > 1) // [+]PPA fix for [4](("Version", "1"),("CID", "EDI7OWB6TZWH6X6L2D3INC6ORQSG6RQDJ6AJ5QY"),("Base", "/"),("Generator", "DC++ 0.785"))
+		if (m_base.size() > 1) // [+]PPA fix for [4](("Version", "1"),("CID", "EDI7OWB6TZWH6X6L2D3INC6ORQSG6RQDJ6AJ5QY"),("Base", "/"),("Generator", "DC++ 0.785"))
 		{
-			const StringTokenizer<string> sl(base.substr(1), '/');
+			const StringTokenizer<string> sl(m_base.substr(1), '/');
 			for (auto i = sl.getTokens().cbegin(); i != sl.getTokens().cend(); ++i)
 			{
 				DirectoryListing::Directory* d = nullptr;

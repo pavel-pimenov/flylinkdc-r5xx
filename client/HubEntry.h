@@ -70,7 +70,7 @@ class ConnectionStatus
 			return status;
 		}
 		
-		const tstring& getStatusText() const
+		tstring getStatusText() const
 		{
 			switch (status)
 			{

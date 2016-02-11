@@ -1532,15 +1532,18 @@ bool CFlylinkDBManager::find_cache_location(uint32_t p_ip, uint32_t& p_location_
 	return false;
 }
 //========================================================================================================
-void CFlylinkDBManager::get_country_and_location(uint32_t p_ip, uint16_t& p_country_index, uint32_t& p_location_index)
+void CFlylinkDBManager::get_country_and_location(uint32_t p_ip, uint16_t& p_country_index, uint32_t& p_location_index, bool p_is_use_only_cache)
 {
 	dcassert(p_ip);
 	uint16_t l_flag_location_index = 0; // TODO ?
 	const bool l_is_find_country   = Util::isPrivateIp(p_ip) || find_cache_country(p_ip, p_country_index);
 	const bool l_is_find_location = find_cache_location(p_ip, p_location_index, l_flag_location_index);
-	if (l_is_find_country == false || l_is_find_location == false)
+	if (p_is_use_only_cache == false)
 	{
-		load_country_locations_p2p_guard_from_db(p_ip, p_location_index, p_country_index);
+		if (l_is_find_country == false || l_is_find_location == false)
+		{
+			load_country_locations_p2p_guard_from_db(p_ip, p_location_index, p_country_index);
+		}
 	}
 }
 //========================================================================================================

@@ -954,7 +954,7 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 				}
 			}
 		}
-			
+		
 		aSource->send(cmd);
 		
 		// [!] IRainman refactoring transfer mechanism
@@ -978,7 +978,6 @@ void UploadManager::on(UserConnectionListener::BytesSent, UserConnection* aSourc
 
 void UploadManager::on(UserConnectionListener::Failed, UserConnection* aSource, const string& aError) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
 	auto u = aSource->getUpload();
 	
 	if (u)
@@ -1192,7 +1191,7 @@ void UploadManager::notifyQueuedUsers(int64_t p_tick)
 void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	UserList disconnects;
+	UserList l_disconnects;
 	{
 #ifdef PPA_INCLUDE_DOS_GUARD
 		{
@@ -1234,7 +1233,7 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 					
 					if (u->isSet(Upload::FLAG_PENDING_KICK))
 					{
-						disconnects.push_back(u->getUser());
+						l_disconnects.push_back(u->getUser());
 						continue;
 					}
 					bool l_is_ban = false;
@@ -1248,10 +1247,10 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		}
 	}
 	
-	for (auto i = disconnects.cbegin(); i != disconnects.cend(); ++i)
+	for (auto i = l_disconnects.cbegin(); i != l_disconnects.cend(); ++i)
 	{
 		LogManager::message(STRING(DISCONNECTED_USER) + ' ' + Util::toString(ClientManager::getNicks((*i)->getCID(), Util::emptyString)));
-		ConnectionManager::getInstance()->disconnect(*i, false);
+		ConnectionManager::disconnect(*i, false);
 	}
 	
 	const int l_freeSlots = getFreeSlots();

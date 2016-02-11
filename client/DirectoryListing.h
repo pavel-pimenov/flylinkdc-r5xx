@@ -228,6 +228,7 @@ class DirectoryListing : public UserInfoBase
 		Directory* root;
 		bool m_is_mediainfo;
 		bool m_is_own_list;
+		string m_file;
 		Directory* find(const string& aName, Directory* current);
 		
 };
