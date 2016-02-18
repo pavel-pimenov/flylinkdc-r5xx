@@ -184,10 +184,11 @@ class QueueManager : public Singleton<QueueManager>,
 		                  
 		int matchListing(const DirectoryListing& dl) noexcept;
 	private:
-		typedef boost::unordered_map<TTHValue, const DirectoryListing::File*> TTHMap; 
+		typedef boost::unordered_map<TTHValue, const DirectoryListing::File*> TTHMap;
 		static void buildMap(const DirectoryListing::Directory* dir, TTHMap& tthMap) noexcept;
-		void fire_remove_internal(const QueueItemPtr& p_qi, bool p_is_remove_item, bool p_is_force_remove_item = false);
+		void fire_remove_internal(const QueueItemPtr& p_qi, bool p_is_remove_item, bool p_is_force_remove_item, bool p_is_batch_remove);
 	public:
+		void fire_remove_batch();
 		static bool getTTH(const string& p_target, TTHValue& p_tth)
 		{
 			return QueueManager::FileQueue::getTTH(p_target, p_tth);
@@ -196,7 +197,7 @@ class QueueManager : public Singleton<QueueManager>,
 		/** Move the target location of a queued item. Running items are silently ignored */
 		void move(const string& aSource, const string& aTarget) noexcept;
 		
-		bool remove(const string& aTarget);
+		bool removeTarget(const string& aTarget, bool p_is_batch_remove);
 		
 		void removeAll();
 		void removeSource(const string& aTarget, const UserPtr& aUser, Flags::MaskType reason, bool removeConn = true) noexcept;
@@ -214,17 +215,12 @@ class QueueManager : public Singleton<QueueManager>,
 			return p_qi->isSourceValid(p_source_ptr);
 		}
 #endif
-		static size_t countOnlineUsersL(const QueueItemPtr& p_qi) //[+]FlylinkDC++ Team
+		static size_t countOnlineUsersL(const QueueItemPtr& p_qi)
 		{
-			// [!] IRainman fix done https://www.box.net/shared/ec264696b10d3fa873e7
 			return p_qi->countOnlineUsersL();
 		}
 		static void getChunksVisualisation(const QueueItemPtr& qi, vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) // [!] IRainman fix.
 		{
-			/* [-] IRainman fix.
-			   [-] CFlyLock(cs);
-			   [-] if (qi)
-			   [-] */
 			qi->getChunksVisualisation(p_runnigChunksAndDownloadBytes, p_doneChunks);
 		}
 		
@@ -272,6 +268,9 @@ class QueueManager : public Singleton<QueueManager>,
 		}
 		// [~] IRainman opt.
 		bool m_is_exists_queueFile;
+		
+		CriticalSection m_cs_target_array;
+		StringList m_remove_target_array;
 		
 		enum { MOVER_LIMIT = 10 * 1024 * 1024 };
 		class FileMover : public BackgroundTaskExecuter<pair<string, string>> // [!] IRainman core.
@@ -363,7 +362,8 @@ class QueueManager : public Singleton<QueueManager>,
 				static void calcPriorityAndGetRunningFilesL(QueueItem::PriorityArray& p_changedPriority, QueueItemList& p_runningFiles);
 				static size_t getRunningFileCount(const size_t p_stop_key);
 				void moveTarget(const QueueItemPtr& qi, const string& aTarget); // [!] IRainman fix.
-				void remove(const QueueItemPtr& qi); // [!] IRainman fix.
+				void removeDeferredDB(const QueueItemPtr& qi, bool p_is_batch_remove);
+				static void removeArray();
 				static void clearAll();
 				
 #ifdef FLYLINKDC_USE_RWLOCK
@@ -371,10 +371,12 @@ class QueueManager : public Singleton<QueueManager>,
 #else
 				static std::unique_ptr<CriticalSection> g_csFQ;
 #endif
+				static std::unique_ptr<webrtc::RWLockWrapper> g_cs_remove;
 			private:
 				static QueueItem::QIStringMap g_queue;
 				static boost::unordered_map<TTHValue, int> g_queue_tth_map;
 				static void remove_internal(const QueueItemPtr& qi);
+				static std::vector<int64_t> g_remove_id_array;
 				
 		};
 		
@@ -477,6 +479,7 @@ class QueueManager : public Singleton<QueueManager>,
 		void fire_status_updated(const QueueItemPtr& qi);
 		void fire_sources_updated(const QueueItemPtr& qi);
 		void fire_removed(const QueueItemPtr& qi);
+		void fire_removed_array(const StringList& p_target_array);
 	public:
 		static void get_download_connection(const UserPtr& aUser);
 };

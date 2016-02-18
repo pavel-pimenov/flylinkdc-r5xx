@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2016 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,22 +24,7 @@
 
 #include <boost/format.hpp>
 
-#ifdef BUILDING_DCPP
-
-#define PACKAGE "libdcpp"
-#define LOCALEDIR dcpp::Util::getPath(Util::PATH_LOCALE).c_str()
-#define _(String) dgettext(PACKAGE, String)
-#define gettext_noop(String) String
-#define N_(String) gettext_noop (String)
-#define F_(String) dcpp::dcpp_fmt(dgettext(PACKAGE, String))
-#define FN_(String1,String2, N) dcpp::dcpp_fmt(dngettext(PACKAGE, String1, String2, N))
-
-#else
-#define F_(String) dcpp::dcpp_fmt(String)
-#endif
-
-namespace dcpp
-{
+#define F_(String) dcpp_fmt(String)
 
 template<typename T>
 boost::basic_format<T> dcpp_fmt(const std::basic_string<T>& t)
@@ -54,8 +39,6 @@ template<typename T>
 boost::basic_format<T> dcpp_fmt(const T* t)
 {
 	return dcpp_fmt(std::basic_string<T>(t));
-}
-
 }
 
 using boost::str;

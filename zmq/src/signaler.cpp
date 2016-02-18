@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -100,20 +100,15 @@ static int close_wait_ms (int fd_, unsigned int max_ms_ = 2000)
     unsigned int step_ms   = max_ms_ / 10;
     if (step_ms < 1)
         step_ms = 1;
-
     if (step_ms > 100)
         step_ms = 100;
 
     int rc = 0;       // do not sleep on first attempt
-
-    do
-    {
-        if (rc == -1 && errno == EAGAIN)
-        {
+    do {
+        if (rc == -1 && errno == EAGAIN) {
             sleep_ms (step_ms);
             ms_so_far += step_ms;
         }
-
         rc = close (fd_);
     } while (ms_so_far < max_ms_ && rc == -1 && errno == EAGAIN);
 
@@ -133,28 +128,38 @@ zmq::signaler_t::signaler_t ()
 #endif
 }
 
+// This might get run after some part of construction failed, leaving one or
+// both of r and w retired_fd.
 zmq::signaler_t::~signaler_t ()
 {
 #if defined ZMQ_HAVE_EVENTFD
+    if (r == retired_fd) return;
     int rc = close_wait_ms (r);
     errno_assert (rc == 0);
 #elif defined ZMQ_HAVE_WINDOWS
-    const struct linger so_linger = { 1, 0 };
-    int rc = setsockopt (w, SOL_SOCKET, SO_LINGER,
-        (const char *) &so_linger, sizeof so_linger);
-    //  Only check shutdown if WSASTARTUP was previously done
-    if (rc == 0 || WSAGetLastError () != WSANOTINITIALISED) {
-        wsa_assert (rc != SOCKET_ERROR);
-        rc = closesocket (w);
-        wsa_assert (rc != SOCKET_ERROR);
-        rc = closesocket (r);
-        wsa_assert (rc != SOCKET_ERROR);
+    if (w != retired_fd) {
+        const struct linger so_linger = { 1, 0 };
+        int rc = setsockopt (w, SOL_SOCKET, SO_LINGER,
+            (const char *) &so_linger, sizeof so_linger);
+        //  Only check shutdown if WSASTARTUP was previously done
+        if (rc == 0 || WSAGetLastError () != WSANOTINITIALISED) {
+            wsa_assert (rc != SOCKET_ERROR);
+            rc = closesocket (w);
+            wsa_assert (rc != SOCKET_ERROR);
+            if (r == retired_fd) return;
+            rc = closesocket (r);
+            wsa_assert (rc != SOCKET_ERROR);
+        }
     }
 #else
-    int rc = close_wait_ms (w);
-    errno_assert (rc == 0);
-    rc = close_wait_ms (r);
-    errno_assert (rc == 0);
+    if (w != retired_fd) {
+        int rc = close_wait_ms (w);
+        errno_assert (rc == 0);
+    }
+    if (r != retired_fd) {
+        int rc = close_wait_ms (r);
+        errno_assert (rc == 0);
+    }
 #endif
 }
 
@@ -177,7 +182,7 @@ void zmq::signaler_t::send ()
     errno_assert (sz == sizeof (inc));
 #elif defined ZMQ_HAVE_WINDOWS
     unsigned char dummy = 0;
-    int nbytes = ::send (w, (char*) &dummy, sizeof (dummy), 0);
+    int nbytes = ::send (w, (char *) &dummy, sizeof (dummy), 0);
     wsa_assert (nbytes != SOCKET_ERROR);
     zmq_assert (nbytes == sizeof (dummy));
 #else
@@ -203,7 +208,7 @@ int zmq::signaler_t::wait (int timeout_)
 {
 #ifdef HAVE_FORK
     if (unlikely (pid != getpid ())) {
-        // we have forked and the file descriptor is closed. Emulate an interupt
+        // we have forked and the file descriptor is closed. Emulate an interrupt
         // response.
         //printf("Child process %d signaler_t::wait returning simulating interrupt #1\n", getpid());
         errno = EINTR;
@@ -228,7 +233,7 @@ int zmq::signaler_t::wait (int timeout_)
 #ifdef HAVE_FORK
     else
     if (unlikely (pid != getpid ())) {
-        // we have forked and the file descriptor is closed. Emulate an interupt
+        // we have forked and the file descriptor is closed. Emulate an interrupt
         // response.
         //printf("Child process %d signaler_t::wait returning simulating interrupt #2\n", getpid());
         errno = EINTR;
@@ -281,10 +286,10 @@ void zmq::signaler_t::recv ()
     ssize_t sz = read (r, &dummy, sizeof (dummy));
     errno_assert (sz == sizeof (dummy));
 
-    //  If we accidentally grabbed the next signal along with the current
+    //  If we accidentally grabbed the next signal(s) along with the current
     //  one, return it back to the eventfd object.
-    if (unlikely (dummy == 2)) {
-        const uint64_t inc = 1;
+    if (unlikely (dummy > 1)) {
+        const uint64_t inc = dummy - 1;
         ssize_t sz2 = write (w, &inc, sizeof (inc));
         errno_assert (sz2 == sizeof (inc));
         return;
@@ -294,7 +299,7 @@ void zmq::signaler_t::recv ()
 #else
     unsigned char dummy;
 #if defined ZMQ_HAVE_WINDOWS
-    int nbytes = ::recv (r, (char*) &dummy, sizeof (dummy), 0);
+    int nbytes = ::recv (r, (char *) &dummy, sizeof (dummy), 0);
     wsa_assert (nbytes != SOCKET_ERROR);
 #else
     ssize_t nbytes = ::recv (r, &dummy, sizeof (dummy), 0);
@@ -303,6 +308,58 @@ void zmq::signaler_t::recv ()
     zmq_assert (nbytes == sizeof (dummy));
     zmq_assert (dummy == 0);
 #endif
+}
+
+int zmq::signaler_t::recv_failable ()
+{
+    //  Attempt to read a signal.
+#if defined ZMQ_HAVE_EVENTFD
+    uint64_t dummy;
+    ssize_t sz = read (r, &dummy, sizeof (dummy));
+    if (sz == -1) {
+        errno_assert (errno == EAGAIN);
+        return -1;
+    }
+    else {
+        errno_assert (sz == sizeof (dummy));
+
+        //  If we accidentally grabbed the next signal(s) along with the current
+        //  one, return it back to the eventfd object.
+        if (unlikely (dummy > 1)) {
+            const uint64_t inc = dummy - 1;
+            ssize_t sz2 = write (w, &inc, sizeof (inc));
+            errno_assert (sz2 == sizeof (inc));
+            return 0;
+        }
+
+        zmq_assert (dummy == 1);
+    }
+#else
+    unsigned char dummy;
+#if defined ZMQ_HAVE_WINDOWS
+    int nbytes = ::recv (r, (char *) &dummy, sizeof (dummy), 0);
+    if (nbytes == SOCKET_ERROR) {
+		const int last_error = WSAGetLastError();
+		if (last_error == WSAEWOULDBLOCK) {
+			errno = EAGAIN;
+            return -1;
+		}
+        wsa_assert (last_error == WSAEWOULDBLOCK);
+    }
+#else
+    ssize_t nbytes = ::recv (r, &dummy, sizeof (dummy), 0);
+    if (nbytes == -1) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+            errno = EAGAIN;
+            return -1;
+        }
+        errno_assert (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR);
+    }
+#endif
+    zmq_assert (nbytes == sizeof (dummy));
+    zmq_assert (dummy == 0);
+#endif
+    return 0;
 }
 
 #ifdef HAVE_FORK
@@ -404,11 +461,11 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
     //  Set SO_REUSEADDR and TCP_NODELAY on listening socket.
     BOOL so_reuseaddr = 1;
     int rc = setsockopt (listener, SOL_SOCKET, SO_REUSEADDR,
-        (char *)&so_reuseaddr, sizeof so_reuseaddr);
+        (char *) &so_reuseaddr, sizeof so_reuseaddr);
     wsa_assert (rc != SOCKET_ERROR);
     BOOL tcp_nodelay = 1;
     rc = setsockopt (listener, IPPROTO_TCP, TCP_NODELAY,
-        (char *)&tcp_nodelay, sizeof tcp_nodelay);
+        (char *) &tcp_nodelay, sizeof tcp_nodelay);
     wsa_assert (rc != SOCKET_ERROR);
 
     //  Init sockaddr to signaler port.
@@ -434,12 +491,12 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
     }
 
     //  Bind listening socket to signaler port.
-    rc = bind (listener, (const struct sockaddr*) &addr, sizeof addr);
+    rc = bind (listener, (const struct sockaddr *) &addr, sizeof addr);
 
     if (rc != SOCKET_ERROR && signaler_port == 0) {
         //  Retrieve ephemeral port number
         int addrlen = sizeof addr;
-        rc = getsockname (listener, (struct sockaddr*) &addr, &addrlen);
+        rc = getsockname (listener, (struct sockaddr *) &addr, &addrlen);
     }
 
     //  Listen for incoming connections.
@@ -448,11 +505,32 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
 
     //  Connect writer to the listener.
     if (rc != SOCKET_ERROR)
-        rc = connect (*w_, (struct sockaddr*) &addr, sizeof addr);
+        rc = connect (*w_, (struct sockaddr *) &addr, sizeof addr);
 
     //  Accept connection from writer.
     if (rc != SOCKET_ERROR)
         *r_ = accept (listener, NULL, NULL);
+
+    //  Send/receive large chunk to work around TCP slow start
+    //  This code is a workaround for #1608
+    if (*r_ != INVALID_SOCKET) {
+        size_t dummy_size = 1024 * 1024;        //  1M to overload default receive buffer
+        unsigned char *dummy = (unsigned char *) malloc (dummy_size);
+        int still_to_send = (int) dummy_size;
+        int still_to_recv = (int) dummy_size;
+        while (still_to_send || still_to_recv) {
+            int nbytes;
+            if (still_to_send > 0) {
+                nbytes = ::send (*w_, (char *) (dummy + dummy_size - still_to_send), still_to_send, 0);
+                wsa_assert (nbytes != SOCKET_ERROR);
+                still_to_send -= nbytes;
+            }
+            nbytes = ::recv (*r_, (char *) (dummy + dummy_size - still_to_recv), still_to_recv, 0);
+            wsa_assert (nbytes != SOCKET_ERROR);
+            still_to_recv -= nbytes;
+        }
+        free (dummy);
+    }
 
     //  Save errno if error occurred in bind/listen/connect/accept.
     int saved_errno = 0;
@@ -520,12 +598,12 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
     rc = setsockopt (listener, IPPROTO_TCP, TCP_NODELACK, &on, sizeof on);
     errno_assert (rc != -1);
 
-    rc = bind (listener, (struct sockaddr*) &lcladdr, sizeof lcladdr);
+    rc = bind (listener, (struct sockaddr *) &lcladdr, sizeof lcladdr);
     errno_assert (rc != -1);
 
     socklen_t lcladdr_len = sizeof lcladdr;
 
-    rc = getsockname (listener, (struct sockaddr*) &lcladdr, &lcladdr_len);
+    rc = getsockname (listener, (struct sockaddr *) &lcladdr, &lcladdr_len);
     errno_assert (rc != -1);
 
     rc = listen (listener, 1);
@@ -540,7 +618,7 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
     rc = setsockopt (*w_, IPPROTO_TCP, TCP_NODELACK, &on, sizeof on);
     errno_assert (rc != -1);
 
-    rc = connect (*w_, (struct sockaddr*) &lcladdr, sizeof lcladdr);
+    rc = connect (*w_, (struct sockaddr *) &lcladdr, sizeof lcladdr);
     errno_assert (rc != -1);
 
     *r_ = accept (listener, NULL, NULL);

@@ -75,7 +75,13 @@ class User : public Flags
 			PG_P2PGUARD_BLOCK_BIT,
 #endif
 			PG_AVDB_BLOCK_BIT,
-			CHANGE_IP_BIT
+			CHANGE_IP_BIT,
+			MYINFO_BIT,
+			OPERATOR_BIT,
+			FIRST_INIT_RATIO_BIT,
+			LAST_IP_DIRTY_BIT,
+			SQL_NOT_FOUND_BIT,
+			LAST_BIT // for static_assert (32 bit)
 		};
 		
 		/** Each flag is set if it's true in at least one hub */
@@ -113,7 +119,12 @@ class User : public Flags
 			PG_P2PGUARD_BLOCK = 1 << PG_P2PGUARD_BLOCK_BIT,
 #endif
 			PG_AVDB_BLOCK = 1 << PG_AVDB_BLOCK_BIT,
-			CHANGE_IP = 1 << CHANGE_IP_BIT
+			CHANGE_IP = 1 << CHANGE_IP_BIT,
+			IS_MYINFO = 1 << MYINFO_BIT,
+			IS_OPERATOR = 1 << OPERATOR_BIT,
+			IS_FIRST_INIT_RATIO = 1 << FIRST_INIT_RATIO_BIT,
+			IS_LAST_IP_DIRTY   = 1 << LAST_IP_DIRTY_BIT,
+			IS_SQL_NOT_FOUND   = 1 << SQL_NOT_FOUND_BIT
 		};
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 		enum DefinedAutoBanFlags
@@ -213,15 +224,12 @@ class User : public Flags
 #endif
 			return Text::toT(getLastNick());
 		}
-		//[~]FlylinkDC
-		//[+]PPA
+		
 		GETSET(int64_t, m_bytesShared, BytesShared); // http://code.google.com/p/flylinkdc/issues/detail?id=1109 нужно для автобана и некоторых других мест
 		GETSET(uint32_t, m_limit, Limit);
 		GETSET(uint8_t, m_slots, Slots);
 		string m_nick;
 		boost::asio::ip::address_v4 m_last_ip_sql;
-		bool m_is_sql_not_found;
-		//[~]PPA
 		
 		bool isOnline() const
 		{
@@ -303,20 +311,13 @@ class User : public Flags
 		uint64_t getMessageCount();
 		void initRatio(bool p_force = false);
 		void initRatioL(const boost::asio::ip::address_v4& p_ip);
-		bool is_last_ip_dirty() const
-		{
-			return m_is_last_ip_dirty;
-		}
-		
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	private:
 		const CID m_cid; // [!] IRainman fix: this is const value!
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		CFlyUserRatioInfo* m_ratio_ptr;
 		uint32_t  m_hub_id;
-		bool      m_is_first_init_ratio;
 		friend struct CFlyUserRatioInfo;
-		bool      m_is_last_ip_dirty;
 		////static std::unique_ptr<webrtc::RWLockWrapper> g_ratio_cs;
 #ifdef FLYLINKDC_USE_RATIO_CS
 		mutable FastCriticalSection m_ratio_cs;

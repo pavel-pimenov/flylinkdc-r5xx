@@ -23,6 +23,7 @@
 #define DCPLUSPLUS_CLIENT_RESOURCE_MANAGER_H
 
 #include "Singleton.h"
+#include "format.h"
 
 #define STRING(x) ResourceManager::getString(ResourceManager::x) //-V:STRING:807 
 #define CSTRING(x) ResourceManager::getString(ResourceManager::x).c_str() //-V:CSTRING:807 
@@ -33,6 +34,11 @@
 #define CSTRING_I(x) ResourceManager::getString(x).c_str() //-V:CSTRING_I:807 
 #define WSTRING_I(x) ResourceManager::getStringW(x) //-V:WSTRING_I:807 
 #define CWSTRING_I(x) ResourceManager::getStringW(x).c_str() //-V:CWSTRING_I:807 
+
+#define STRING_F(x, args) (dcpp_fmt(ResourceManager::getString(ResourceManager::x)) % args).str()
+#define CSTRING_F(x, args) (dcpp_fmt(ResourceManager::getString(ResourceManager::x)) % args).str().c_str()
+#define WSTRING_F(x, args) (dcpp_fmt(ResourceManager::getStringW(ResourceManager::x)) % args).str()
+#define CWSTRING_F(x, args) (dcpp_fmt(ResourceManager::getStringW(ResourceManager::x)) % args).str().c_str()
 
 #ifdef UNICODE
 #define TSTRING WSTRING

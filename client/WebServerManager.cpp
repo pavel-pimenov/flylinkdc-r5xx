@@ -911,7 +911,7 @@ int WebServerSocket::run()
 						const string qfile = Util::encodeURI(m["qfile"], true);
 						if (dqueue == STRING(REMOVE2))
 						{
-							QueueManager::getInstance()->remove(qfile);
+							QueueManager::getInstance()->removeTarget(qfile, false);
 						}
 						if (dqueue == STRING(SET_PRIORITY))
 						{
@@ -935,13 +935,13 @@ int WebServerSocket::run()
 					if (!m["refresh"].empty())
 					{
 						ShareManager::getInstance()->setDirty();
-						ShareManager::getInstance()->refresh(true);
+						ShareManager::getInstance()->refresh_share(true);
 					}
 					if (!m["purgetth"].empty())
 					{
 						ShareManager::getInstance()->setDirty();
 						ShareManager::getInstance()->setPurgeTTH();
-						ShareManager::getInstance()->refresh(true);
+						ShareManager::getInstance()->refresh_share(true);
 						LogManager::message(STRING(PURGE_TTH_DATABASE)); //[!]NightOrion(translate)
 					}
 					if (!m["webss"].empty() && !m["websps"].empty() &&

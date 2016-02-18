@@ -50,21 +50,20 @@ class QueueManagerListener
 		typedef X<13> RecheckAlreadyFinished;
 		typedef X<14> RecheckDone;
 		typedef X<15> AddedArray;
-		
-		typedef X<15> FileMoved;
-		typedef X<16> TryAdding;
+		typedef X<16> FileMoved;
+		typedef X<17> TryAdding;
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-		typedef X<17> TryFileMoving;
+		typedef X<18> TryFileMoving;
 #endif
-		// [+] IRainman opt.
-		typedef X<18> Tick;
-		typedef X<19> StatusUpdatedList;
-		// [+] IRainman opt.
+		typedef X<19> Tick;
+		typedef X<20> StatusUpdatedList;
+		typedef X<21> RemovedArray;
 		
 		virtual void on(Added, const QueueItemPtr&) noexcept { }
 		virtual void on(AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept { }
 		virtual void on(Finished, const QueueItemPtr&, const string&, const DownloadPtr& p_download) noexcept { }
 		virtual void on(Removed, const QueueItemPtr&) noexcept { }
+		virtual void on(RemovedArray, const std::vector<string>& p_qi_array) noexcept { }
 		virtual void on(Moved, const QueueItemPtr&, const string&) noexcept { }
 		virtual void on(SourcesUpdated, const QueueItemPtr&) noexcept { }
 		virtual void on(StatusUpdated, const QueueItemPtr&) noexcept { }

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -43,7 +43,11 @@ namespace zmq
 
     //  This structure defines the commands that can be sent between threads.
 
+#ifdef _MSC_VER
+    __declspec(align(64)) struct command_t
+#else
     struct command_t
+#endif
     {
         //  Object to process the command.
         zmq::object_t *destination;
@@ -69,7 +73,8 @@ namespace zmq
             done
         } type;
 
-        union {
+        union args_t
+        {
 
             //  Sent to I/O thread to let it know that it should
             //  terminate itself.
@@ -156,8 +161,11 @@ namespace zmq
             } done;
 
         } args;
+#ifdef _MSC_VER
     };
-
+#else
+    } __attribute__((aligned(64)));
+#endif
 }
 
 #endif

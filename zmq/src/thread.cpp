@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -36,7 +36,7 @@
 extern "C"
 {
 #if defined _WIN32_WCE
-	static DWORD thread_routine (LPVOID arg_)
+    static DWORD thread_routine (LPVOID arg_)
 #else
     static unsigned int __stdcall thread_routine (void *arg_)
 #endif
@@ -77,6 +77,7 @@ void zmq::thread_t::setSchedulingParameters(int priority_, int schedulingPolicy_
 #else
 
 #include <signal.h>
+#include <unistd.h>
 
 extern "C"
 {
@@ -114,10 +115,15 @@ void zmq::thread_t::stop ()
 
 void zmq::thread_t::setSchedulingParameters(int priority_, int schedulingPolicy_)
 {
-#if !defined ZMQ_HAVE_ZOS
+#if defined _POSIX_THREAD_PRIORITY_SCHEDULING && _POSIX_THREAD_PRIORITY_SCHEDULING >= 0
     int policy = 0;
     struct sched_param param;
 
+#if _POSIX_THREAD_PRIORITY_SCHEDULING == 0 && defined _SC_THREAD_PRIORITY_SCHEDULING
+    if (sysconf(_SC_THREAD_PRIORITY_SCHEDULING) < 0) {
+        return;
+    }
+#endif
     int rc = pthread_getschedparam(descriptor, &policy, &param);
     posix_assert (rc);
 

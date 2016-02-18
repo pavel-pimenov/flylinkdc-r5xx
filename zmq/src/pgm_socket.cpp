@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -195,29 +195,29 @@ int zmq::pgm_socket_t::init (bool udp_encapsulation_, const char *network_)
     }
 
     {
-		const int rcvbuf = (int) options.rcvbuf;
-		if (rcvbuf) {
-		    if (!pgm_setsockopt (sock, SOL_SOCKET, SO_RCVBUF, &rcvbuf,
-		          sizeof (rcvbuf)))
-		        goto err_abort;
-		}
+        const int rcvbuf = (int) options.rcvbuf;
+        if (rcvbuf >= 0) {
+            if (!pgm_setsockopt (sock, SOL_SOCKET, SO_RCVBUF, &rcvbuf,
+                  sizeof (rcvbuf)))
+                goto err_abort;
+        }
 
-		const int sndbuf = (int) options.sndbuf;
-		if (sndbuf) {
-		    if (!pgm_setsockopt (sock, SOL_SOCKET, SO_SNDBUF, &sndbuf,
-		          sizeof (sndbuf)))
-		        goto err_abort;
-		}
+        const int sndbuf = (int) options.sndbuf;
+        if (sndbuf >= 0) {
+            if (!pgm_setsockopt (sock, SOL_SOCKET, SO_SNDBUF, &sndbuf,
+                  sizeof (sndbuf)))
+                goto err_abort;
+        }
 
-		const int max_tpdu = (int) pgm_max_tpdu;
-		if (!pgm_setsockopt (sock, IPPROTO_PGM, PGM_MTU, &max_tpdu,
-		      sizeof (max_tpdu)))
-		    goto err_abort;
+        const int max_tpdu = (int) options.multicast_maxtpdu;
+        if (!pgm_setsockopt (sock, IPPROTO_PGM, PGM_MTU, &max_tpdu,
+              sizeof (max_tpdu)))
+            goto err_abort;
     }
 
     if (receiver) {
         const int recv_only        = 1,
-                  rxw_max_tpdu     = (int) pgm_max_tpdu,
+                  rxw_max_tpdu     = (int) options.multicast_maxtpdu,
                   rxw_sqns         = compute_sqns (rxw_max_tpdu),
                   peer_expiry      = pgm_secs (300),
                   spmr_expiry      = pgm_msecs (25),
@@ -250,7 +250,7 @@ int zmq::pgm_socket_t::init (bool udp_encapsulation_, const char *network_)
     else {
         const int send_only        = 1,
                   max_rte      = (int) ((options.rate * 1000) / 8),
-                  txw_max_tpdu     = (int) pgm_max_tpdu,
+                  txw_max_tpdu     = (int) options.multicast_maxtpdu,
                   txw_sqns         = compute_sqns (txw_max_tpdu),
                   ambient_spm      = pgm_secs (30),
                   heartbeat_spm[]  = { pgm_msecs (100),
@@ -334,28 +334,28 @@ int zmq::pgm_socket_t::init (bool udp_encapsulation_, const char *network_)
 
     //  Set IP level parameters.
     {
-		// Multicast loopback disabled by default
-		const int multicast_loop = 0;
-		if (!pgm_setsockopt (sock, IPPROTO_PGM, PGM_MULTICAST_LOOP,
-		      &multicast_loop, sizeof (multicast_loop)))
-		    goto err_abort;
+        // Multicast loopback disabled by default
+        const int multicast_loop = 0;
+        if (!pgm_setsockopt (sock, IPPROTO_PGM, PGM_MULTICAST_LOOP,
+              &multicast_loop, sizeof (multicast_loop)))
+            goto err_abort;
 
-		const int multicast_hops = options.multicast_hops;
-		if (!pgm_setsockopt (sock, IPPROTO_PGM, PGM_MULTICAST_HOPS,
-		        &multicast_hops, sizeof (multicast_hops)))
-		    goto err_abort;
+        const int multicast_hops = options.multicast_hops;
+        if (!pgm_setsockopt (sock, IPPROTO_PGM, PGM_MULTICAST_HOPS,
+                &multicast_hops, sizeof (multicast_hops)))
+            goto err_abort;
 
-		//  Expedited Forwarding PHB for network elements, no ECN.
-		//  Ignore return value due to varied runtime support.
-		const int dscp = 0x2e << 2;
-		if (AF_INET6 != sa_family)
-		    pgm_setsockopt (sock, IPPROTO_PGM, PGM_TOS,
-		       &dscp, sizeof (dscp));
+        //  Expedited Forwarding PHB for network elements, no ECN.
+        //  Ignore return value due to varied runtime support.
+        const int dscp = 0x2e << 2;
+        if (AF_INET6 != sa_family)
+            pgm_setsockopt (sock, IPPROTO_PGM, PGM_TOS,
+               &dscp, sizeof (dscp));
 
-		const int nonblocking = 1;
-		if (!pgm_setsockopt (sock, IPPROTO_PGM, PGM_NOBLOCK,
-		      &nonblocking, sizeof (nonblocking)))
-		    goto err_abort;
+        const int nonblocking = 1;
+        if (!pgm_setsockopt (sock, IPPROTO_PGM, PGM_NOBLOCK,
+              &nonblocking, sizeof (nonblocking)))
+            goto err_abort;
     }
 
     //  Connect PGM transport to start state machine.

@@ -65,9 +65,9 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		static void waitShutdown();
 #endif
 		
-		uint16_t accept(const Socket& srv, bool secure, bool allowUntrusted);
-		void connect(const string& aAddress, uint16_t aPort, bool secure, bool allowUntrusted, bool proxy);
-		void connect(const string& aAddress, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool secure, bool allowUntrusted, bool proxy);
+		uint16_t accept(const Socket& srv, bool secure, bool allowUntrusted, const string& expKP = Util::emptyString);
+		void connect(const string& aAddress, uint16_t aPort, bool secure, bool allowUntrusted, bool proxy, const string& expKP = Util::emptyString);
+		void connect(const string& aAddress, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool secure, bool allowUntrusted, bool proxy, const string& expKP = Util::emptyString);
 		
 		/** Sets data mode for aBytes bytes. Must be called within onLine. */
 		void setDataMode(int64_t aBytes = -1)
@@ -306,7 +306,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		bool checkEvents();
 		void checkSocket();
 		
-		void setSocket(std::unique_ptr<Socket>& s); // [!] IRainman fix: add link
+		void setSocket(std::unique_ptr<Socket> && s);
 		void setOptions()
 		{
 			sock->setInBufSize();

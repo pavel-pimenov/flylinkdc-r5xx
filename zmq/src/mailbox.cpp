@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -77,14 +77,18 @@ int zmq::mailbox_t::recv (command_t *cmd_, int timeout_)
     }
 
     //  Wait for signal from the command sender.
-    const int rc = signaler.wait (timeout_);
+    int rc = signaler.wait (timeout_);
     if (rc == -1) {
         errno_assert (errno == EAGAIN || errno == EINTR);
         return -1;
     }
 
     //  Receive the signal.
-    signaler.recv ();
+    rc = signaler.recv_failable ();
+    if (rc == -1) {
+        errno_assert (errno == EAGAIN);
+        return -1;
+    }
 
     //  Switch into active state.
     active = true;

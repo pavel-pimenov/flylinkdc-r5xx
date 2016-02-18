@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -103,7 +103,7 @@ void zmq::ipc_connecter_t::process_term (int linger_)
 
 void zmq::ipc_connecter_t::in_event ()
 {
-    //  We are not polling for incomming data, so we are actually called
+    //  We are not polling for incoming data, so we are actually called
     //  because of error here. However, we can get error on out event as well
     //  on some platforms, so we'll simply handle both events in the same way.
     out_event ();
@@ -187,14 +187,14 @@ int zmq::ipc_connecter_t::get_new_reconnect_ivl ()
 
     //  Only change the current reconnect interval  if the maximum reconnect
     //  interval was set and if it's larger than the reconnect interval.
-    if (options.reconnect_ivl_max > 0 &&
+    if (options.reconnect_ivl_max > 0 && 
         options.reconnect_ivl_max > options.reconnect_ivl) {
 
         //  Calculate the next interval
         current_reconnect_ivl = current_reconnect_ivl * 2;
         if(current_reconnect_ivl >= options.reconnect_ivl_max) {
             current_reconnect_ivl = options.reconnect_ivl_max;
-        }
+        }   
     }
     return this_interval;
 }
@@ -216,10 +216,10 @@ int zmq::ipc_connecter_t::open ()
         s, addr->resolved.ipc_addr->addr (),
         addr->resolved.ipc_addr->addrlen ());
 
-    //  Connect was successfull immediately.
+    //  Connect was successful immediately.
     if (rc == 0)
         return 0;
-
+        
     //  Translate other error codes indicating asynchronous connect has been
     //  launched to a uniform EINPROGRESS.
     if (rc == -1 && errno == EINTR) {
@@ -252,8 +252,11 @@ zmq::fd_t zmq::ipc_connecter_t::connect ()
     socklen_t len = sizeof (err);
 #endif
     int rc = getsockopt (s, SOL_SOCKET, SO_ERROR, (char*) &err, &len);
-    if (rc == -1)
+    if (rc == -1) {
+        if (errno == ENOPROTOOPT)
+            errno = 0;
         err = errno;
+    }
     if (err != 0) {
 
         //  Assert if the error was caused by 0MQ bug.

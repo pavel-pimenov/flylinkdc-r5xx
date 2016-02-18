@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -70,7 +70,7 @@ namespace zmq
         {
             free (buf);
         }
-
+        
         //  The function returns a batch of binary data. The data
         //  are filled to a supplied buffer. If no buffer is supplied (data_
         //  points to NULL) decoder object will provide buffer of its own.

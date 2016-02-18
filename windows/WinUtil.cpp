@@ -1487,7 +1487,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		try
 		{
 			ShareManager::getInstance()->setDirty();
-			ShareManager::getInstance()->refresh(true);
+			ShareManager::getInstance()->refresh_share(true);
 		}
 		catch (const ShareException& e)
 		{
@@ -4201,24 +4201,34 @@ string WinUtil::getJASpam()
 			params["magnet"] = Util::getFileName(params["filepath"]);
 #endif
 	}
-	
 	return Util::formatParams(SETTING(JETAUDIO_FORMAT), params, false);
-	
 }
 
 tstring WinUtil::getNicks(const CID& cid, const string& hintUrl)
 {
-	return Text::toT(Util::toString(ClientManager::getNicks(cid, hintUrl)));
+	const auto l_nicks = ClientManager::getNicks(cid, hintUrl);
+	if (l_nicks.empty())
+		return Util::emptyStringT;
+	else
+		return Text::toT(Util::toString(l_nicks));
 }
 
 tstring WinUtil::getNicks(const UserPtr& u, const string& hintUrl)
 {
-	return getNicks(u->getCID(), hintUrl);
+	dcassert(u);
+	if (u)
+		return getNicks(u->getCID(), hintUrl);
+	else
+		return Util::emptyStringT;
 }
 
 tstring WinUtil::getNicks(const CID& cid, const string& hintUrl, bool priv)
 {
-	return Text::toT(Util::toString(ClientManager::getNicks(cid, hintUrl, priv)));
+	const auto l_nicks = ClientManager::getNicks(cid, hintUrl, priv);
+	if (l_nicks.empty())
+		return Util::emptyStringT;
+	else
+		return Text::toT(Util::toString(l_nicks));
 }
 
 tstring WinUtil::getNicks(const HintedUser& user)

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -45,10 +45,10 @@ namespace std
     {
       typedef unsigned char char_type;
       // Unsigned as wint_t in unsigned.
-      typedef unsigned long  	int_type;
-      typedef streampos 	pos_type;
-      typedef streamoff 	off_type;
-      typedef mbstate_t 	state_type;
+      typedef unsigned long int_type;
+      typedef streampos pos_type;
+      typedef streamoff off_type;
+      typedef mbstate_t state_type;
 
       static void
       assign(char_type& __c1, const char_type& __c2)

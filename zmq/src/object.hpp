@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -110,7 +110,7 @@ namespace zmq
         void send_reaped ();
         void send_done ();
 
-        //  These handlers can be overrided by the derived objects. They are
+        //  These handlers can be overridden by the derived objects. They are
         //  called when command arrives from another thread.
         virtual void process_stop ();
         virtual void process_plug ();

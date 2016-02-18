@@ -27,6 +27,13 @@ class Flags
 		{
 			flags &= ~aFlag;
 		}
+		void setFlag(MaskType aFlag, bool aValue)
+		{
+			if (aValue)
+				setFlag(aFlag);
+			else
+				unsetFlag(aFlag);
+		}
 		void setFlags(MaskType aFlags)
 		{
 			flags = aFlags;    // !SMT!

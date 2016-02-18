@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -27,13 +27,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "macros.hpp"
 #include "platform.hpp"
 
 #include "clock.hpp"
 #include "err.hpp"
 #include "thread.hpp"
+#include "atomic_counter.hpp"
+#include "atomic_ptr.hpp"
 #include <assert.h>
-#include "../include/zmq_utils.h"
 
 #if !defined ZMQ_HAVE_WINDOWS
 #include <unistd.h>
@@ -86,7 +88,7 @@ void zmq_threadclose(void* thread)
 {
     zmq::thread_t* pThread = static_cast<zmq::thread_t*>(thread);
     pThread->stop();
-    delete pThread;
+    LIBZMQ_DELETE(pThread);
 }
 
 //  Z85 codec, taken from 0MQ RFC project, implements RFC32 Z85 encoding
@@ -94,24 +96,24 @@ void zmq_threadclose(void* thread)
 //  Maps base 256 to base 85
 static char encoder [85 + 1] = {
     "0123456789" "abcdefghij" "klmnopqrst" "uvwxyzABCD"
-    "EFGHIJKLMN" "OPQRSTUVWX" "YZ.-:+=^!/" "*?&<>()[]{"
+    "EFGHIJKLMN" "OPQRSTUVWX" "YZ.-:+=^!/" "*?&<>()[]{" 
     "}@%$#"
 };
 
 //  Maps base 85 to base 256
 //  We chop off lower 32 and higher 128 ranges
 static uint8_t decoder [96] = {
-    0x00, 0x44, 0x00, 0x54, 0x53, 0x52, 0x48, 0x00,
-    0x4B, 0x4C, 0x46, 0x41, 0x00, 0x3F, 0x3E, 0x45,
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-    0x08, 0x09, 0x40, 0x00, 0x49, 0x42, 0x4A, 0x47,
-    0x51, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A,
-    0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32,
-    0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A,
-    0x3B, 0x3C, 0x3D, 0x4D, 0x00, 0x4E, 0x43, 0x00,
-    0x00, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10,
-    0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
-    0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20,
+    0x00, 0x44, 0x00, 0x54, 0x53, 0x52, 0x48, 0x00, 
+    0x4B, 0x4C, 0x46, 0x41, 0x00, 0x3F, 0x3E, 0x45, 
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 
+    0x08, 0x09, 0x40, 0x00, 0x49, 0x42, 0x4A, 0x47, 
+    0x51, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 
+    0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 
+    0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 
+    0x3B, 0x3C, 0x3D, 0x4D, 0x00, 0x4E, 0x43, 0x00, 
+    0x00, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 
+    0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 
+    0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 
     0x21, 0x22, 0x23, 0x4F, 0x00, 0x50, 0x00, 0x00
 };
 
@@ -151,7 +153,7 @@ char *zmq_z85_encode (char *dest, const uint8_t *data, size_t size)
 
 //  --------------------------------------------------------------------------
 //  Decode an encoded string into a binary frame; dest must be at least
-//  strlen (string) * 4 / 5 bytes long. Returns dest. strlen (string)
+//  strlen (string) * 4 / 5 bytes long. Returns dest. strlen (string) 
 //  must be a multiple of 5.
 //  Returns NULL and sets errno = EINVAL for invalid input.
 
@@ -163,7 +165,7 @@ uint8_t *zmq_z85_decode (uint8_t *dest, const char *string)
     }
     unsigned int byte_nbr = 0;
     unsigned int char_nbr = 0;
-    unsigned int string_len = strlen (string);
+    size_t string_len = strlen (string);
     uint32_t value = 0;
     while (char_nbr < string_len) {
         //  Accumulate value in base 85
@@ -213,4 +215,52 @@ int zmq_curve_keypair (char *z85_public_key, char *z85_secret_key)
     errno = ENOTSUP;
     return -1;
 #endif
+}
+
+
+//  --------------------------------------------------------------------------
+//  Initialize a new atomic counter, which is set to zero
+
+void *zmq_atomic_counter_new (void)
+{
+    zmq::atomic_counter_t *counter = new zmq::atomic_counter_t;
+    alloc_assert (counter);
+    return counter;
+}
+
+//  Se the value of the atomic counter
+
+void zmq_atomic_counter_set (void *counter_, int value_)
+{
+    ((zmq::atomic_counter_t *) counter_)->set (value_);
+}
+
+//  Increment the atomic counter, and return the old value
+
+int zmq_atomic_counter_inc (void *counter_)
+{
+    return ((zmq::atomic_counter_t *) counter_)->add (1);
+}
+
+//  Decrement the atomic counter and return 1 (if counter >= 1), or
+//  0 if counter hit zero.
+
+int zmq_atomic_counter_dec (void *counter_)
+{
+    return ((zmq::atomic_counter_t *) counter_)->sub (1)? 1: 0;
+}
+
+//  Return actual value of atomic counter
+
+int zmq_atomic_counter_value (void *counter_)
+{
+    return ((zmq::atomic_counter_t *) counter_)->get ();
+}
+
+//  Destroy atomic counter, and set reference to NULL
+
+void zmq_atomic_counter_destroy (void **counter_p_)
+{
+    delete ((zmq::atomic_counter_t *) *counter_p_);
+    *counter_p_ = NULL;
 }

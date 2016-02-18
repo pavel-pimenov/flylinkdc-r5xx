@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2016 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,69 +22,71 @@
 #ifndef DCPLUSPLUS_DCPP_SSLSOCKET_H
 #define DCPLUSPLUS_DCPP_SSLSOCKET_H
 
+
+#include "CryptoManager.h"
 #include "Socket.h"
 #include "Singleton.h"
-#include "ssl.h"
+
+#include "SSL.h"
 
 
-#ifndef SSL_SUCCESS
-#define SSL_SUCCESS 1
-#endif
+using std::unique_ptr;
+using std::string;
 
 class SSLSocketException : public SocketException
 {
 	public:
 #ifdef _DEBUG
-	explicit SSLSocketException(const string& aError) noexcept :
+	SSLSocketException(const string& aError) noexcept :
 		SocketException("SSLSocketException: " + aError) { }
 #else //_DEBUG
-	explicit SSLSocketException(const string& aError) noexcept :
+	SSLSocketException(const string& aError) noexcept :
 		SocketException(aError) { }
 #endif // _DEBUG
-	explicit SSLSocketException(DWORD aError) noexcept :
+	SSLSocketException(int aError) noexcept :
 		SocketException(aError) { }
+		virtual ~SSLSocketException() throw() { }
 };
-
-class CryptoManager;
 
 class SSLSocket : public Socket
 {
 	public:
-		~SSLSocket()
+		SSLSocket(CryptoManager::SSLContext context, bool allowUntrusted, const string& expKP);
+		/** Creates an SSL socket without any verification */
+		SSLSocket(CryptoManager::SSLContext context);
+		
+		virtual ~SSLSocket()
 		{
-			//[-] disconnect(); PPA fix: called in ~Socket()!
+			verifyData.reset();
 		}
 		
-		uint16_t accept(const Socket& listeningSocket);
-		void connect(const string& aIp, uint16_t aPort);
-		int read(void* aBuffer, int aBufLen);
-		int write(const void* aBuffer, int aLen);
-		int wait(uint64_t millis, int waitFor);
-		void shutdown() noexcept;
-		void close() noexcept;
+		virtual uint16_t accept(const Socket& listeningSocket) override;
+		virtual void connect(const string& aIp, uint16_t aPort) override;
+		virtual int read(void* aBuffer, int aBufLen) override;
+		virtual int write(const void* aBuffer, int aLen) override;
+		virtual int wait(uint64_t millis, int waitFor) override;
+		virtual void shutdown() noexcept override;
+		virtual void close() noexcept override;
 		
-		bool isSecure() const noexcept
+		virtual bool isSecure() const noexcept  override
 		{
 		    return true;
 		}
-		bool isTrusted() const noexcept;
-		string getCipherName() const noexcept;
-		vector<uint8_t> getKeyprint() const noexcept;
+		virtual bool isTrusted() const noexcept override;
+		virtual bool isKeyprintMatch() const noexcept override;
+		virtual string getEncryptionInfo() const noexcept override;
+		virtual ByteVector getKeyprint() const noexcept override;
+		virtual bool verifyKeyprint(const string& expKeyp, bool allowUntrusted) noexcept override;
 		
-		bool waitConnected(uint64_t millis);
-		bool waitAccepted(uint64_t millis);
+		virtual bool waitConnected(uint64_t millis)  override;
+		virtual bool waitAccepted(uint64_t millis)  override;
 		
 	private:
-		friend class CryptoManager;
-		
-		explicit SSLSocket(SSL_CTX* context);
-		
+	
 		SSL_CTX* ctx;
 		ssl::SSL ssl;
 		
-#ifndef HEADER_OPENSSLV_H
-		bool finished;
-#endif
+		unique_ptr<CryptoManager::SSLVerifyData> verifyData;    // application data used by CryptoManager::verify_callback(...)
 		
 		int checkSSL(int ret);
 		bool waitWant(int ret, uint64_t millis);

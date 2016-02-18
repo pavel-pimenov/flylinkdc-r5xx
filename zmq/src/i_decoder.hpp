@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -46,14 +46,17 @@ namespace zmq
 
         virtual void get_buffer (unsigned char **data_, size_t *size_) = 0;
 
+        virtual void resize_buffer(size_t) = 0;
         //  Decodes data pointed to by data_.
         //  When a message is decoded, 1 is returned.
-        //  When the decoder needs more data, 0 is returnd.
+        //  When the decoder needs more data, 0 is returned.
         //  On error, -1 is returned and errno is set accordingly.
         virtual int decode (const unsigned char *data_, size_t size_,
                             size_t &processed) = 0;
 
         virtual msg_t *msg () = 0;
+
+
     };
 
 }

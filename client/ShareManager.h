@@ -83,7 +83,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		             );
 		TTHValue getTTH(const string& virtualFile) const;
 		
-		void refresh(bool dirs = false, bool aUpdate = true, bool block = false) noexcept;
+		void refresh_share(bool dirs = false, bool aUpdate = true) noexcept;
 		void setDirty()
 		{
 			xmlDirty = true;
@@ -200,29 +200,40 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 				string m_name;
 				string m_low_name;
 			public:
-				CFlyLowerName()
+				CFlyLowerName(const string& p_name): m_name(p_name)
 				{
 				}
 				
-				CFlyLowerName(const string& p_name, const string& p_low_name):
-					m_name(p_name), m_low_name(p_low_name)
-				{
-				}
+				//CFlyLowerName(const string& p_name, const string& p_low_name):
+				//  m_name(p_name), m_low_name(p_low_name)
+				//{
+				//}
 				virtual ~CFlyLowerName()
 				{
+					if (!m_name.empty())
+					{
+						//dcassert(!m_low_name.empty());
+					}
 				}
 				const string& getName() const
 				{
 					return m_name;
 				}
-				const string& getLowName() const //[+]PPA http://flylinkdc.blogspot.com/2010/08/1.html
+				const string& getLowName() const // http://flylinkdc.blogspot.com/2010/08/1.html
 				{
+					dcassert(!m_low_name.empty());
 					return m_low_name;
 				}
-				void setName(const string& p_name)
+				void setNameAndLower(const string& p_name)
 				{
+					//dcassert(m_name.empty());
 					m_name = p_name;
-					m_low_name = Text::toLower(m_name); // TODO - если файлы одинаковые не помнить вторую копию?
+					initLowerName();
+				}
+				void initLowerName()
+				{
+					dcassert(!m_name.empty());
+					m_low_name = Text::toLower(m_name);
 				}
 				/*
 				protected:
@@ -280,16 +291,15 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 						
 						ShareFile(const string& aName, int64_t aSize, Directory::Ptr aParent, const TTHValue& aRoot, uint32_t aHit, uint32_t aTs,
 						          Search::TypeModes aftype) :
-							tth(aRoot), size(aSize), parent(aParent.get()), m_hit(aHit), ts(aTs), ftype(aftype), m_media_ptr(nullptr)
+							CFlyLowerName(aName), tth(aRoot), size(aSize), parent(aParent.get()), m_hit(aHit), ts(aTs), ftype(aftype), m_media_ptr(nullptr)
 						{
-							setName(aName);
 							dcassert(aName.find('\\') == string::npos);
 						}
 					public:
 						~ShareFile()
 						{
+							//dcdebug("~ShareFile() %s\n", getName().c_str() );
 						}
-					public:
 						string getADCPath() const
 						{
 							return parent->getADCPath() + getName();
@@ -308,6 +318,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 						GETC(uint32_t, m_hit, Hit);
 						GETSET(uint32_t, ts, TS);
 						std::shared_ptr<CFlyMediaInfo> m_media_ptr;
+						
 						void initMediainfo(std::shared_ptr<CFlyMediaInfo>& p_media_ptr)
 						{
 							dcassert(m_media_ptr == nullptr);
@@ -331,7 +342,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 				};
 				
 				DirectoryMap m_directories;
-				ShareFile::Set m_files;
+				ShareFile::Set m_share_files;
 				int64_t size;
 				
 				static Ptr create(const string& aName, const Ptr& aParent = Ptr())
@@ -359,7 +370,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 				
 				ShareFile::Set::const_iterator findFileIterL(const string& aFile) const
 				{
-					const auto l_res = std::find_if(m_files.begin(), m_files.end(), [&](const ShareFile & p_file) -> bool {return stricmp(p_file.getName(), aFile) == 0;});
+					const auto l_res = std::find_if(m_share_files.begin(), m_share_files.end(), [&](const ShareFile & p_file) -> bool {return stricmp(p_file.getName(), aFile) == 0;});
 					return l_res;
 					//Directory::ShareFile::StringComp(aFile));
 				}
@@ -446,7 +457,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		friend class ::dht::IndexManager;
 #endif
 		
-		typedef boost::unordered_map<TTHValue, Directory::ShareFile::Set::const_iterator> HashFileMap; 
+		typedef boost::unordered_map<TTHValue, Directory::ShareFile::Set::const_iterator> HashFileMap;
 		
 		static HashFileMap g_tthIndex;
 		static size_t g_lastSharedFiles;

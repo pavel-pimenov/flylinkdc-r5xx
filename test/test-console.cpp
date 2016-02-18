@@ -615,14 +615,14 @@ uint8_t TestFunc2(const uint8_t ui8NickLen, const bool bFromPM)
 int zmq_test_client()
 {
 	void* context = zmq_ctx_new();
-	printf("Client Starting….\n");
+	printf("Client Starting!\n");
 	int major = 0, minor = 0, patch = 0;
 	zmq_version(&major, &minor, &patch);
 	printf("ZeroMQ version: %d.%d.%d\n", major, minor, patch);
 	
 	void* request = zmq_socket(context, ZMQ_REQ);
 	int ipv6 = 1;
-	const auto l_result_opt = zmq_setsockopt(socket, ZMQ_IPV6, &ipv6, 4);
+	const auto l_result_opt = zmq_setsockopt(request, ZMQ_IPV6, &ipv6, 4);
 	if (l_result_opt != 0)
 		printf("zmq_setsockopt = %d\n", errno);
 	// zmq_connect(request, "tcp://51.254.84.24:4040");
@@ -633,12 +633,12 @@ int zmq_test_client()
 		
 		
 	int count = 0;
-	
+	int len_msg = strlen("hello-ppa-win-xp");
 	for (;;)
 	{
 		zmq_msg_t req;
-		zmq_msg_init_size(&req, strlen("hello"));
-		memcpy(zmq_msg_data(&req), "hello", 5);
+		zmq_msg_init_size(&req, len_msg);
+		memcpy(zmq_msg_data(&req), "hello-ppa-win-xp", len_msg);
 		printf("Sending: hello - %d\n", count);
 		zmq_msg_send(&req, request, 0);
 		zmq_msg_close(&req);
@@ -652,11 +652,46 @@ int zmq_test_client()
 	// We never get here though.
 	zmq_close(request);
 	zmq_ctx_destroy(context);
+	return 0;
 }
+class A
+{
+		string m_name;
+	public:
+		explicit A(const string& p_name)
+		{
+			m_name = p_name;
+			std::cout << "A(string) m_name = " << m_name << std::endl;
+		}
+		A(const A& p_a)
+		{
+			m_name = p_a.m_name;
+			std::cout << "A(const A& p_a) m_name = " << m_name << std::endl;
+		}
+		A& operator=(const A &p_a)
+		{
+			m_name = p_a.m_name;
+			std::cout << "A& operator=(const A &p_a) m_name = " << m_name << std::endl;
+		}
+		~A()
+		{
+			std::cout << "~A() m_name = " << m_name << std::endl;
+		}
+};
+
 int _tmain(int argc, _TCHAR* argv[])
 {
+	/*
+	//std::vector<unique_ptr<A>> l_set;
+	    std::vector<A> l_set;
+	    //l_set.push_back(unique_ptr<A>(new A("1")));
+	    l_set.push_back(A("1"));
+	    //l_set.emplace_back(A("2"));
+	    //l_set.emplace_back(A("3"));
+	    return 0;
+	    */
 	zmq_test_client();
-	
+	return 0;
 	
 	std::cout << "Timing boost::unordered_map<int,int>" << std::endl;
 	timemap<boost::unordered_map<int, int> >();

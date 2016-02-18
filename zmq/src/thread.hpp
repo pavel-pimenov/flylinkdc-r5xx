@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -73,7 +73,7 @@ namespace zmq
         //  they would not be accessible from the main C routine of the thread.
         thread_fn *tfn;
         void *arg;
-
+        
     private:
 
 #ifdef ZMQ_HAVE_WINDOWS

@@ -681,6 +681,13 @@ void QueueFrame::removeDirectories(HTREEITEM ht)
 	delete reinterpret_cast<string*>(ctrlDirs.GetItemData(ht));
 	ctrlDirs.DeleteItem(ht);
 }
+void QueueFrame::on(QueueManagerListener::RemovedArray, const std::vector<string>& p_qi_array) noexcept
+{
+	if (!ClientManager::isShutdown())
+	{
+		m_tasks.add(REMOVE_ITEM_ARRAY, new StringArrayTask(p_qi_array));
+	}
+}
 
 void QueueFrame::on(QueueManagerListener::Removed, const QueueItemPtr& aQI) noexcept
 {
@@ -751,7 +758,63 @@ void  QueueFrame::on(QueueManagerListener::StatusUpdatedList, const QueueItemLis
 		}
 	}
 }
-
+void QueueFrame::removeItem(const string& p_target)
+{
+	const auto l_path = Util::getFilePath(p_target);
+	const QueueItemInfo* ii = getItemInfo(p_target, l_path);
+	if (!ii)
+	{
+		// Item already delete.
+		return;
+	}
+	
+	if (!showTree || isCurDir(ii->getPath()))
+	{
+		dcassert(ctrlQueue.findItem(ii) != -1);
+		ctrlQueue.deleteItem(ii);
+	}
+	
+	if (!ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
+	{
+		queueSize -= ii->getSize();
+		dcassert(queueSize >= 0);
+	}
+	queueItems--;
+	dcassert(queueItems >= 0);
+	
+	dcassert(m_closed == false);
+	const auto& i = m_directories.equal_range(ii->getPath());
+	DirectoryIter j;
+	for (j = i.first; j != i.second; ++j)
+	{
+		if (j->second == ii)
+			break;
+	}
+	dcassert(j != i.second);
+	m_directories.erase(j);
+	if (m_directories.find(ii->getPath()) == m_directories.end()) // [!] IRainman opt.
+	{
+		removeDirectory(ii->getPath(), ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST));
+		if (isCurDir(ii->getPath()))
+			curDir.clear();
+	}
+	
+	/*
+	if (!ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP | QueueItem::FLAG_DCLST_LIST)
+	&& BOOLSETTING(BOLD_QUEUE))
+	{
+	//setCountMessages(ctrlQueue.GetItemCount());
+	}
+	*/
+	m_dirty = true;
+	
+	delete ii;
+	
+	if (!queueItems)
+	{
+		m_update_status++;
+	}
+}
 LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	TaskQueue::List t;
@@ -781,63 +844,20 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 				m_dirty = true;
 			}
 			break;
+			case REMOVE_ITEM_ARRAY:
+			{
+				const auto& l_target_array = static_cast<StringArrayTask&>(*ti->second);
+				CLockRedraw<> l_lock_draw(ctrlQueue);
+				for (auto i = l_target_array.m_str_array.cbegin(); i != l_target_array.m_str_array.cend(); ++i)
+				{
+					removeItem(*i);
+				}
+			}
+			break;
 			case REMOVE_ITEM:
 			{
-				const auto& target = static_cast<StringTask&>(*ti->second);
-				const auto l_path = Util::getFilePath(target.m_str);
-				const QueueItemInfo* ii = getItemInfo(target.m_str, l_path);
-				if (!ii)
-				{
-					// Item already delete.
-					break;
-				}
-				
-				if (!showTree || isCurDir(ii->getPath()))
-				{
-					dcassert(ctrlQueue.findItem(ii) != -1);
-					ctrlQueue.deleteItem(ii);
-				}
-				
-				if (!ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
-				{
-					queueSize -= ii->getSize();
-					dcassert(queueSize >= 0);
-				}
-				queueItems--;
-				dcassert(queueItems >= 0);
-				
-				dcassert(m_closed == false);
-				const auto& i = m_directories.equal_range(ii->getPath());
-				DirectoryIter j;
-				for (j = i.first; j != i.second; ++j)
-				{
-					if (j->second == ii)
-						break;
-				}
-				dcassert(j != i.second);
-				m_directories.erase(j);
-				if (m_directories.find(ii->getPath()) == m_directories.end()) // [!] IRainman opt.
-				{
-					removeDirectory(ii->getPath(), ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST));
-					if (isCurDir(ii->getPath()))
-						curDir.clear();
-				}
-				
-				/*
-				if (!ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP | QueueItem::FLAG_DCLST_LIST)
-				        && BOOLSETTING(BOLD_QUEUE))
-				{
-				    //setCountMessages(ctrlQueue.GetItemCount());
-				}
-				*/
-				m_dirty = true;
-				
-				delete ii;
-				
-				if (!queueItems)
-				{
-					m_update_status++;
-				}
+				const auto& l_target = static_cast<StringTask&>(*ti->second);
+				removeItem(l_target.m_str);
 			}
 			break;
 			case UPDATE_ITEM:
@@ -902,10 +922,13 @@ void QueueFrame::removeSelected()
 	UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
 	if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), T_APPNAME_WITH_VERSION, CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
 	{
-		ctrlQueue.forEachSelected(&QueueItemInfo::remove);
-		
+		CWaitCursor l_cursor_wait;
+		ctrlQueue.forEachSelected(&QueueItemInfo::removeBatch);
+		QueueManager::FileQueue::removeArray();
+		QueueManager::getInstance()->fire_remove_batch();
 		// Let's update the setting unchecked box means we bug user again...
 		SET_SETTING(CONFIRM_DELETE, checkState != BST_CHECKED); // [+] InfinitySky.
+		
 	}
 }
 void QueueFrame::removeAllDir()
@@ -928,13 +951,16 @@ void QueueFrame::removeSelectedDir()
 		UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
 		if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), T_APPNAME_WITH_VERSION, CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
 		{
+			CWaitCursor l_cursor_wait;
+			CLockRedraw<> l_lock_draw(ctrlQueue);
 			m_tmp_target_to_delete.clear();
 			removeDir(ctrlDirs.GetSelectedItem());
 			// [+] NightOrion bugfix deleting folder from queue
 			for (auto i = m_tmp_target_to_delete.cbegin(); i != m_tmp_target_to_delete.cend(); ++i)
 			{
-				QueueManager::getInstance()->remove(*i);
+				QueueManager::getInstance()->removeTarget(*i, true);
 			}
+			QueueManager::getInstance()->fire_remove_batch();
 			m_tmp_target_to_delete.clear();
 			// [+] NightOrion
 			

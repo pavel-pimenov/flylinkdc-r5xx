@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -95,7 +95,7 @@ namespace zmq
 #pragma message restore
 #endif
 
-        //  Pop an incomplete item from the pipe. Returns true is such
+        //  Pop an incomplete item from the pipe. Returns true if such
         //  item exists, false otherwise.
         inline bool unwrite (T *value_)
         {

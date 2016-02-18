@@ -267,6 +267,16 @@ class Socket
 		{
 		    return Util::emptyByteVector; // [!] IRainman opt.
 		}
+		virtual bool verifyKeyprint(const string&, bool) noexcept { return true; };
+		
+		virtual bool isKeyprintMatch() const noexcept
+		{
+		    return true;
+		}
+		virtual std::string getEncryptionInfo() const noexcept
+		{
+		    return Util::emptyString;
+		}
 		
 		/** When socks settings are updated, this has to be called... */
 		static void socksUpdated();
@@ -287,7 +297,8 @@ class Socket
 		//[~] IRainman SpeedLimiter
 		
 	protected:
-	
+		socket_t getSock() const;
+		
 		SocketType m_type;
 		bool connected;
 		
@@ -311,14 +322,15 @@ class Socket
 		static uint16_t g_udpPort;
 	public:
 		static Stats g_stats;
-	private:
-		void socksAuth(uint64_t timeout);
-		bool getLocalIPPort(uint16_t& p_port, string& p_ip, bool p_is_calc_ip) const;
-#ifdef _WIN32
+	protected:
 		static int getLastError()
 		{
 			return ::WSAGetLastError();
 		}
+	private:
+		void socksAuth(uint64_t timeout);
+		bool getLocalIPPort(uint16_t& p_port, string& p_ip, bool p_is_calc_ip) const;
+#ifdef _WIN32
 		static socket_t checksocket(socket_t ret)
 		{
 			if (ret == SOCKET_ERROR)

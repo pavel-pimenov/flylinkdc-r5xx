@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -62,8 +62,11 @@ int zmq::sub_t::xsetsockopt (int option_, const void *optval_,
     else
     if (option_ == ZMQ_UNSUBSCRIBE)
         *data = 0;
-    memcpy (data + 1, optval_, optvallen_);
-
+    //  We explicitly allow a NULL subscription with size zero
+    if (optvallen_) {
+        assert (optval_);
+        memcpy (data + 1, optval_, optvallen_);
+    }
     //  Pass it further on in the stack.
     int err = 0;
     rc = xsub_t::xsend (&msg);

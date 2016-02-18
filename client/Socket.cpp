@@ -76,6 +76,10 @@ string SocketException::errorToString(int aError) noexcept
 	
 	return msg;
 }
+socket_t Socket::getSock() const
+{
+	return m_sock;
+}
 
 void Socket::create(SocketType aType /* = TYPE_TCP */)
 {

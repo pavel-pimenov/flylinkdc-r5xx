@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -47,12 +47,10 @@ zmq::socks_greeting_t::socks_greeting_t (uint8_t method_) :
 }
 
 zmq::socks_greeting_t::socks_greeting_t (
-        uint8_t *methods_, size_t num_methods_)
+    uint8_t *methods_, uint8_t num_methods_)
     : num_methods (num_methods_)
 {
-    zmq_assert (num_methods_ <= 255);
-
-    for (size_t i = 0; i < num_methods_; i++)
+    for (uint8_t i = 0; i < num_methods_; i++)
         methods [i] = methods_ [i];
 }
 
@@ -65,8 +63,8 @@ void zmq::socks_greeting_encoder_t::encode (const socks_greeting_t &greeting_)
     uint8_t *ptr = buf;
 
     *ptr++ = 0x05;
-    *ptr++ = greeting_.num_methods;
-    for (size_t i = 0; i < greeting_.num_methods; i++)
+    *ptr++ = (uint8_t) greeting_.num_methods;
+    for (uint8_t i = 0; i < greeting_.num_methods; i++)
         *ptr++ = greeting_.methods [i];
 
     bytes_encoded = 2 + greeting_.num_methods;
@@ -128,10 +126,13 @@ void zmq::socks_choice_decoder_t::reset ()
     bytes_read = 0;
 }
 
+
 zmq::socks_request_t::socks_request_t (
         uint8_t command_, std::string hostname_, uint16_t port_)
     : command (command_), hostname (hostname_), port (port_)
-{}
+{
+    zmq_assert (hostname_.size () <= UINT8_MAX);
+}
 
 zmq::socks_request_encoder_t::socks_request_encoder_t ()
     : bytes_encoded (0), bytes_written (0)
@@ -139,6 +140,8 @@ zmq::socks_request_encoder_t::socks_request_encoder_t ()
 
 void zmq::socks_request_encoder_t::encode (const socks_request_t &req)
 {
+    zmq_assert (req.hostname.size() <= UINT8_MAX);
+
     unsigned char *ptr = buf;
     *ptr++ = 0x05;
     *ptr++ = req.command;
@@ -173,7 +176,7 @@ void zmq::socks_request_encoder_t::encode (const socks_request_t &req)
     }
     else {
         *ptr++ = 0x03;
-        *ptr++ = req.hostname.size ();
+        *ptr++ = (unsigned char) req.hostname.size ();
         memcpy (ptr, req.hostname.c_str (), req.hostname.size ());
         ptr += req.hostname.size ();
     }

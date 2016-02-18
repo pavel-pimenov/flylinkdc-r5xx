@@ -183,7 +183,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	
 	LOAD_STEP_L(HASH_DATABASE, HashManager::getInstance()->startup());
 	
-	LOAD_STEP_L(SHARED_FILES, ShareManager::getInstance()->refresh(true, false, true));
+	LOAD_STEP_L(SHARED_FILES, ShareManager::getInstance()->refresh_share(true, false));
 	
 	LOAD_STEP_L(DOWNLOAD_QUEUE, QueueManager::getInstance()->loadQueue());
 #ifdef IRAINMAN_USE_STRING_POOL

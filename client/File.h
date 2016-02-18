@@ -24,8 +24,6 @@
 
 #include "Streams.h"
 
-
-
 class File : public IOStream
 {
 	public:
@@ -236,6 +234,9 @@ class FileFindIter
 		void init(const tstring& path);
 		DirData m_data;
 };
+
+// on Windows, prefer _wfopen over fopen.
+FILE* dcpp_fopen(const char* filename, const char* mode);
 
 #endif // !defined(FILE_H)
 

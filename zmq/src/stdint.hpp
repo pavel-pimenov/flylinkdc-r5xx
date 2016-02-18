@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -67,6 +67,10 @@ typedef unsigned __int64 uint64_t;
 
 #include <stdint.h>
 
+#endif
+
+#ifndef UINT8_MAX
+#define UINT8_MAX 0xFF
 #endif
 
 #endif

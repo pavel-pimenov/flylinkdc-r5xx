@@ -22,29 +22,34 @@
     <ProjectGuid>{CCDA1293-53C0-499D-AE6D-FABE15D7047E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>testconsole</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -166,8 +171,10 @@
     <ClInclude Include="..\zmq\src\atomic_counter.hpp" />
     <ClInclude Include="..\zmq\src\atomic_ptr.hpp" />
     <ClInclude Include="..\zmq\src\blob.hpp" />
+    <ClInclude Include="..\zmq\src\client.hpp" />
     <ClInclude Include="..\zmq\src\clock.hpp" />
     <ClInclude Include="..\zmq\src\command.hpp" />
+    <ClInclude Include="..\zmq\src\condition_variable.hpp" />
     <ClInclude Include="..\zmq\src\config.hpp" />
     <ClInclude Include="..\zmq\src\ctx.hpp" />
     <ClInclude Include="..\zmq\src\curve_client.hpp" />
@@ -175,7 +182,9 @@
     <ClInclude Include="..\zmq\src\dbuffer.hpp" />
     <ClInclude Include="..\zmq\src\dealer.hpp" />
     <ClInclude Include="..\zmq\src\decoder.hpp" />
+    <ClInclude Include="..\zmq\src\decoder_allocators.hpp" />
     <ClInclude Include="..\zmq\src\devpoll.hpp" />
+    <ClInclude Include="..\zmq\src\dish.hpp" />
     <ClInclude Include="..\zmq\src\dist.hpp" />
     <ClInclude Include="..\zmq\src\encoder.hpp" />
     <ClInclude Include="..\zmq\src\epoll.hpp" />
@@ -194,11 +203,14 @@
     <ClInclude Include="..\zmq\src\i_decoder.hpp" />
     <ClInclude Include="..\zmq\src\i_encoder.hpp" />
     <ClInclude Include="..\zmq\src\i_engine.hpp" />
+    <ClInclude Include="..\zmq\src\i_mailbox.hpp" />
     <ClInclude Include="..\zmq\src\i_poll_events.hpp" />
     <ClInclude Include="..\zmq\src\kqueue.hpp" />
     <ClInclude Include="..\zmq\src\lb.hpp" />
     <ClInclude Include="..\zmq\src\likely.hpp" />
+    <ClInclude Include="..\zmq\src\macros.hpp" />
     <ClInclude Include="..\zmq\src\mailbox.hpp" />
+    <ClInclude Include="..\zmq\src\mailbox_safe.hpp" />
     <ClInclude Include="..\zmq\src\mechanism.hpp" />
     <ClInclude Include="..\zmq\src\metadata.hpp" />
     <ClInclude Include="..\zmq\src\msg.hpp" />
@@ -225,6 +237,7 @@
     <ClInclude Include="..\zmq\src\pub.hpp" />
     <ClInclude Include="..\zmq\src\pull.hpp" />
     <ClInclude Include="..\zmq\src\push.hpp" />
+    <ClInclude Include="..\zmq\src\radio.hpp" />
     <ClInclude Include="..\zmq\src\random.hpp" />
     <ClInclude Include="..\zmq\src\raw_decoder.hpp" />
     <ClInclude Include="..\zmq\src\raw_encoder.hpp" />
@@ -233,9 +246,11 @@
     <ClInclude Include="..\zmq\src\req.hpp" />
     <ClInclude Include="..\zmq\src\router.hpp" />
     <ClInclude Include="..\zmq\src\select.hpp" />
+    <ClInclude Include="..\zmq\src\server.hpp" />
     <ClInclude Include="..\zmq\src\session_base.hpp" />
     <ClInclude Include="..\zmq\src\signaler.hpp" />
     <ClInclude Include="..\zmq\src\socket_base.hpp" />
+    <ClInclude Include="..\zmq\src\socket_poller.hpp" />
     <ClInclude Include="..\zmq\src\socks.hpp" />
     <ClInclude Include="..\zmq\src\socks_connecter.hpp" />
     <ClInclude Include="..\zmq\src\stdint.hpp" />
@@ -247,15 +262,22 @@
     <ClInclude Include="..\zmq\src\tcp_connecter.hpp" />
     <ClInclude Include="..\zmq\src\tcp_listener.hpp" />
     <ClInclude Include="..\zmq\src\thread.hpp" />
+    <ClInclude Include="..\zmq\src\timers.hpp" />
     <ClInclude Include="..\zmq\src\tipc_address.hpp" />
     <ClInclude Include="..\zmq\src\tipc_connecter.hpp" />
     <ClInclude Include="..\zmq\src\tipc_listener.hpp" />
     <ClInclude Include="..\zmq\src\trie.hpp" />
+    <ClInclude Include="..\zmq\src\udp_address.hpp" />
+    <ClInclude Include="..\zmq\src\udp_engine.hpp" />
     <ClInclude Include="..\zmq\src\v1_decoder.hpp" />
     <ClInclude Include="..\zmq\src\v1_encoder.hpp" />
     <ClInclude Include="..\zmq\src\v2_decoder.hpp" />
     <ClInclude Include="..\zmq\src\v2_encoder.hpp" />
     <ClInclude Include="..\zmq\src\v2_protocol.hpp" />
+    <ClInclude Include="..\zmq\src\vmci.hpp" />
+    <ClInclude Include="..\zmq\src\vmci_address.hpp" />
+    <ClInclude Include="..\zmq\src\vmci_connecter.hpp" />
+    <ClInclude Include="..\zmq\src\vmci_listener.hpp" />
     <ClInclude Include="..\zmq\src\windows.hpp" />
     <ClInclude Include="..\zmq\src\wire.hpp" />
     <ClInclude Include="..\zmq\src\xpub.hpp" />
@@ -280,12 +302,15 @@
     <ClCompile Include="..\client\CFlyProfiler.cpp" />
     <ClCompile Include="..\client\CFlyThread.cpp" />
     <ClCompile Include="..\zmq\src\address.cpp" />
+    <ClCompile Include="..\zmq\src\client.cpp" />
     <ClCompile Include="..\zmq\src\clock.cpp" />
     <ClCompile Include="..\zmq\src\ctx.cpp" />
     <ClCompile Include="..\zmq\src\curve_client.cpp" />
     <ClCompile Include="..\zmq\src\curve_server.cpp" />
     <ClCompile Include="..\zmq\src\dealer.cpp" />
+    <ClCompile Include="..\zmq\src\decoder_allocators.cpp" />
     <ClCompile Include="..\zmq\src\devpoll.cpp" />
+    <ClCompile Include="..\zmq\src\dish.cpp" />
     <ClCompile Include="..\zmq\src\dist.cpp" />
     <ClCompile Include="..\zmq\src\epoll.cpp" />
     <ClCompile Include="..\zmq\src\err.cpp" />
@@ -302,6 +327,7 @@
     <ClCompile Include="..\zmq\src\kqueue.cpp" />
     <ClCompile Include="..\zmq\src\lb.cpp" />
     <ClCompile Include="..\zmq\src\mailbox.cpp" />
+    <ClCompile Include="..\zmq\src\mailbox_safe.cpp" />
     <ClCompile Include="..\zmq\src\mechanism.cpp" />
     <ClCompile Include="..\zmq\src\metadata.cpp" />
     <ClCompile Include="..\zmq\src\msg.cpp" />
@@ -325,6 +351,7 @@
     <ClCompile Include="..\zmq\src\pub.cpp" />
     <ClCompile Include="..\zmq\src\pull.cpp" />
     <ClCompile Include="..\zmq\src\push.cpp" />
+    <ClCompile Include="..\zmq\src\radio.cpp" />
     <ClCompile Include="..\zmq\src\random.cpp" />
     <ClCompile Include="..\zmq\src\raw_decoder.cpp" />
     <ClCompile Include="..\zmq\src\raw_encoder.cpp" />
@@ -333,9 +360,11 @@
     <ClCompile Include="..\zmq\src\req.cpp" />
     <ClCompile Include="..\zmq\src\router.cpp" />
     <ClCompile Include="..\zmq\src\select.cpp" />
+    <ClCompile Include="..\zmq\src\server.cpp" />
     <ClCompile Include="..\zmq\src\session_base.cpp" />
     <ClCompile Include="..\zmq\src\signaler.cpp" />
     <ClCompile Include="..\zmq\src\socket_base.cpp" />
+    <ClCompile Include="..\zmq\src\socket_poller.cpp" />
     <ClCompile Include="..\zmq\src\socks.cpp" />
     <ClCompile Include="..\zmq\src\socks_connecter.cpp" />
     <ClCompile Include="..\zmq\src\stream.cpp" />
@@ -346,14 +375,21 @@
     <ClCompile Include="..\zmq\src\tcp_connecter.cpp" />
     <ClCompile Include="..\zmq\src\tcp_listener.cpp" />
     <ClCompile Include="..\zmq\src\thread.cpp" />
+    <ClCompile Include="..\zmq\src\timers.cpp" />
     <ClCompile Include="..\zmq\src\tipc_address.cpp" />
     <ClCompile Include="..\zmq\src\tipc_connecter.cpp" />
     <ClCompile Include="..\zmq\src\tipc_listener.cpp" />
     <ClCompile Include="..\zmq\src\trie.cpp" />
+    <ClCompile Include="..\zmq\src\udp_address.cpp" />
+    <ClCompile Include="..\zmq\src\udp_engine.cpp" />
     <ClCompile Include="..\zmq\src\v1_decoder.cpp" />
     <ClCompile Include="..\zmq\src\v1_encoder.cpp" />
     <ClCompile Include="..\zmq\src\v2_decoder.cpp" />
     <ClCompile Include="..\zmq\src\v2_encoder.cpp" />
+    <ClCompile Include="..\zmq\src\vmci.cpp" />
+    <ClCompile Include="..\zmq\src\vmci_address.cpp" />
+    <ClCompile Include="..\zmq\src\vmci_connecter.cpp" />
+    <ClCompile Include="..\zmq\src\vmci_listener.cpp" />
     <ClCompile Include="..\zmq\src\xpub.cpp" />
     <ClCompile Include="..\zmq\src\xsub.cpp" />
     <ClCompile Include="..\zmq\src\zmq.cpp" />

@@ -191,7 +191,7 @@ LRESULT HashProgressDlg::onSlideChangeMaxHashSpeed(UINT /*uMsg*/, WPARAM wParam,
 LRESULT HashProgressDlg::onRefresh(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	ShareManager::getInstance()->setDirty();
-	ShareManager::getInstance()->refresh(true);
+	ShareManager::getInstance()->refresh_share(true);
 	return 0;
 }
 

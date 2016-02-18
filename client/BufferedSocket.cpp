@@ -32,6 +32,7 @@
 #include "Util.h"
 #include "ShareManager.h"
 #include "DebugManager.h"
+#include "SSLSocket.h"
 #include "../FlyFeatures/flyServer.h"
 
 // Polling is used for tasks...should be fixed...
@@ -101,7 +102,7 @@ void BufferedSocket::setMode(Modes aMode, size_t aRollback)
 	m_mode = aMode;
 }
 
-void BufferedSocket::setSocket(std::unique_ptr<Socket>& s) // [!] IRainman fix: add link
+void BufferedSocket::setSocket(std::unique_ptr<Socket> && s)
 {
 	if (sock.get())
 	{
@@ -140,15 +141,15 @@ void BufferedSocket::resizeInBuf()
 	while (l_is_bad_alloc == true);
 }
 #endif // FLYLINKDC_HE
-uint16_t BufferedSocket::accept(const Socket& srv, bool secure, bool allowUntrusted)
+uint16_t BufferedSocket::accept(const Socket& srv, bool secure, bool allowUntrusted, const string& expKP)
 {
 	dcdebug("BufferedSocket::accept() %p\n", (void*)this);
 	
-	std::unique_ptr<Socket> s(secure ? CryptoManager::getInstance()->getServerSocket(allowUntrusted) : new Socket);
+	unique_ptr<Socket> s(secure ? new SSLSocket(CryptoManager::SSL_SERVER, allowUntrusted, expKP) : new Socket(/*Socket::TYPE_TCP */));
 	
 	auto ret = s->accept(srv);
 	
-	setSocket(s);
+	setSocket(move(s));
 	setOptions();
 	
 	addTask(ACCEPTED, nullptr);
@@ -156,18 +157,18 @@ uint16_t BufferedSocket::accept(const Socket& srv, bool secure, bool allowUntrus
 	return ret;
 }
 
-void BufferedSocket::connect(const string& aAddress, uint16_t aPort, bool secure, bool allowUntrusted, bool proxy)
+void BufferedSocket::connect(const string& aAddress, uint16_t aPort, bool secure, bool allowUntrusted, bool proxy, const string& expKP /*= Util::emptyString*/)
 {
-	connect(aAddress, aPort, 0, NAT_NONE, secure, allowUntrusted, proxy);
+	connect(aAddress, aPort, 0, NAT_NONE, secure, allowUntrusted, proxy, expKP);
 }
 
-void BufferedSocket::connect(const string& aAddress, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool secure, bool allowUntrusted, bool proxy)
+void BufferedSocket::connect(const string& aAddress, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool secure, bool allowUntrusted, bool proxy, const string& expKP /*= Util::emptyString*/)
 {
 	dcdebug("BufferedSocket::connect() %p\n", (void*)this);
-	std::unique_ptr<Socket> s(secure ? (natRole == NAT_SERVER ? CryptoManager::getInstance()->getServerSocket(allowUntrusted) : CryptoManager::getInstance()->getClientSocket(allowUntrusted)) : new Socket);
-	s->create();
+	unique_ptr<Socket> s(secure ? new SSLSocket(natRole == NAT_SERVER ? CryptoManager::SSL_SERVER : CryptoManager::SSL_CLIENT, allowUntrusted, expKP) : new Socket(/*Socket::TYPE_TCP*/));
+	s->create(); // в AirDC++ нет такой херни... разобраться
 	
-	setSocket(s);
+	setSocket(move(s));
 	sock->bind(localPort, SETTING(BIND_ADDRESS));
 	
 	initMyINFOLoader();
@@ -1044,8 +1045,8 @@ bool BufferedSocket::checkEvents()
 			CFlyFastLock(cs);
 			if (!m_tasks.empty())
 			{
-				swap(p, m_tasks.front()); // [!] IRainman opt.
-				m_tasks.pop_front(); // [!] IRainman opt.
+				swap(p, m_tasks.front());
+				m_tasks.pop_front();
 			}
 			else
 			{
@@ -1053,15 +1054,6 @@ bool BufferedSocket::checkEvents()
 				return false;
 			}
 		}
-		
-		/* [-] IRainman fix.
-		if (p.first == SHUTDOWN)
-		{
-		    return false;
-		}
-		else
-		   [-] */
-		// [!]
 		if (m_state == RUNNING)
 		{
 			if (p.first == UPDATED)
@@ -1082,12 +1074,10 @@ bool BufferedSocket::checkEvents()
 			{
 				fail(STRING(DISCONNECTED));
 			}
-			// [+]
 			else if (p.first == SHUTDOWN)
 			{
 				return false;
 			}
-			// [~]
 			else
 			{
 				dcdebug("%d unexpected in RUNNING state\n", p.first);
@@ -1104,19 +1094,16 @@ bool BufferedSocket::checkEvents()
 			{
 				threadAccept();
 			}
-			// [+]
 			else if (p.first == SHUTDOWN)
 			{
 				return false;
 			}
-			// [~]
 			else
 			{
 				dcdebug("%d unexpected in STARTING state\n", p.first);
 			}
 		}
-		// [+]
-		else // FAILED
+		else
 		{
 			if (p.first == SHUTDOWN)
 			{
@@ -1127,8 +1114,6 @@ bool BufferedSocket::checkEvents()
 				dcdebug("%d unexpected in FAILED state\n", p.first);
 			}
 		}
-		// [~]
-		// [~] IRainman fix.
 	}
 	return true;
 }

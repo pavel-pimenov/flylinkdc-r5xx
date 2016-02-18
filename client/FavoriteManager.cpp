@@ -48,7 +48,7 @@ unsigned FavoriteManager::g_count_hub = 0;
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 boost::unordered_set<string> FavoriteManager::g_userCommandsHubUrl;
 #endif
-std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csUsers = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csFavUsers = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csHubs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csDirs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csUserCommand = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
@@ -90,7 +90,7 @@ FavoriteManager::~FavoriteManager()
 
 size_t FavoriteManager::getCountFavsUsers()
 {
-	CFlyReadLock(*g_csUsers);
+	CFlyReadLock(*g_csFavUsers);
 	return g_fav_users_map.size();
 }
 void FavoriteManager::splitClientId(const string& p_id, string& p_name, string& p_version)
@@ -391,7 +391,7 @@ bool FavoriteManager::getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskTy
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-		CFlyReadLock(*g_csUsers);
+		CFlyReadLock(*g_csFavUsers);
 		const auto l_user = g_fav_users_map.find(aUser->getCID());
 		if (l_user != g_fav_users_map.end())
 		{
@@ -408,7 +408,7 @@ bool FavoriteManager::isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser) // [+
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-		CFlyReadLock(*g_csUsers);
+		CFlyReadLock(*g_csFavUsers);
 		const auto l_user = g_fav_users_map.find(aUser->getCID());
 		return l_user == g_fav_users_map.end() || l_user->second.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE);
 	}
@@ -427,7 +427,7 @@ bool FavoriteManager::getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_fav
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-		CFlyReadLock(*g_csUsers);
+		CFlyReadLock(*g_csFavUsers);
 		const auto l_user = g_fav_users_map.find(p_user->getCID());
 		if (l_user != g_fav_users_map.end())
 		{
@@ -443,7 +443,7 @@ bool FavoriteManager::isFavoriteUser(const UserPtr& aUser, bool& p_is_ban)
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-		CFlyReadLock(*g_csUsers);
+		CFlyReadLock(*g_csFavUsers);
 		bool l_result;
 		const auto& l_find = g_fav_users_map.find(aUser->getCID());
 		if (l_find != g_fav_users_map.end())
@@ -481,7 +481,7 @@ void FavoriteManager::addFavoriteUser(const UserPtr& aUser)
 	// [!] SSA see _addUserIfnotExist function
 	{
 		FavoriteMap::iterator i;
-		CFlyWriteLock(*g_csUsers);
+		CFlyWriteLock(*g_csFavUsers);
 		if (!addUserL(aUser, i))
 			return;
 			
@@ -493,7 +493,7 @@ void FavoriteManager::addFavoriteUser(const UserPtr& aUser)
 void FavoriteManager::removeFavoriteUser(const UserPtr& aUser)
 {
 	{
-		CFlyWriteLock(*g_csUsers);
+		CFlyWriteLock(*g_csFavUsers);
 		const auto i = g_fav_users_map.find(aUser->getCID());
 		if (i == g_fav_users_map.end())
 			return;
@@ -509,7 +509,7 @@ string FavoriteManager::getUserUrl(const UserPtr& aUser)
 {
 	if (isNotEmpty()) // [+]PPA
 	{
-		CFlyReadLock(*g_csUsers);
+		CFlyReadLock(*g_csFavUsers);
 		const auto& i = g_fav_users_map.find(aUser->getCID());
 		if (i != g_fav_users_map.end())
 		{
@@ -813,7 +813,7 @@ void FavoriteManager::save()
 		xml.addTag("Users");
 		xml.stepIn();
 		{
-			CFlyReadLock(*g_csUsers);
+			CFlyReadLock(*g_csFavUsers);
 			for (auto i = g_fav_users_map.cbegin(), iend = g_fav_users_map.cend(); i != iend; ++i)
 			{
 				const auto &u = i->second; // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->second' expression repeatedly. favoritemanager.cpp 687
@@ -1472,7 +1472,7 @@ void FavoriteManager::load(SimpleXML& aXml
 						u = ClientManager::getUser(CID(cid), true);
 					}
 					
-					CFlyWriteLock(*g_csUsers);
+					CFlyWriteLock(*g_csFavUsers);
 					auto i = g_fav_users_map.insert(make_pair(u->getCID(), FavoriteUser(u, nick, hubUrl))).first;
 					
 					if (aXml.getBoolChildAttrib("IgnorePrivate")) // !SMT!-S
@@ -1531,7 +1531,7 @@ void FavoriteManager::userUpdated(const OnlineUser& info)
 {
 	if (!ClientManager::isShutdown() && isNotEmpty()) // [+]PPA
 	{
-		CFlyWriteLock(*g_csUsers);
+		CFlyWriteLock(*g_csFavUsers);
 		auto i = g_fav_users_map.find(info.getUser()->getCID());
 		if (i == g_fav_users_map.end())
 			return;
@@ -1610,7 +1610,7 @@ void FavoriteManager::setUploadLimit(const UserPtr& aUser, int lim, bool createU
 	ConnectionManager::setUploadLimit(aUser, lim);
 	{
 		FavoriteMap::iterator i;
-		CFlyWriteLock(*g_csUsers);
+		CFlyWriteLock(*g_csFavUsers);
 		const bool added = addUserL(aUser, i, createUser);
 		if (i == g_fav_users_map.end())
 			return;
@@ -1626,7 +1626,7 @@ bool FavoriteManager::getFlag(const UserPtr& aUser, FavoriteUser::Flags f)
 	dcassert(!ClientManager::isShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
-		CFlyReadLock(*g_csUsers);
+		CFlyReadLock(*g_csFavUsers);
 		const auto i = g_fav_users_map.find(aUser->getCID());
 		if (i != g_fav_users_map.end())
 		{
@@ -1641,7 +1641,7 @@ void FavoriteManager::setFlag(const UserPtr& aUser, FavoriteUser::Flags f, bool 
 	dcassert(!ClientManager::isShutdown());
 	{
 		FavoriteMap::iterator i;
-		CFlyWriteLock(*g_csUsers);
+		CFlyWriteLock(*g_csFavUsers);
 		const bool added = addUserL(aUser, i, createUser);
 		if (i == g_fav_users_map.end())
 			return;
@@ -1661,7 +1661,7 @@ void FavoriteManager::setUserDescription(const UserPtr& aUser, const string& aDe
 	if (isNotEmpty()) // [+]PPA
 	{
 		{
-			CFlyWriteLock(*g_csUsers);
+			CFlyWriteLock(*g_csFavUsers);
 			auto i = g_fav_users_map.find(aUser->getCID());
 			if (i == g_fav_users_map.end())
 				return;
@@ -1766,7 +1766,7 @@ void FavoriteManager::on(UserDisconnected, const UserPtr& aUser) noexcept
 		if (isNotEmpty()) // [+]PPA
 		{
 			{
-				CFlyWriteLock(*g_csUsers);
+				CFlyWriteLock(*g_csFavUsers);
 				auto i = g_fav_users_map.find(aUser->getCID());
 				if (i == g_fav_users_map.end())
 					return;
@@ -1788,7 +1788,7 @@ void FavoriteManager::on(UserConnected, const UserPtr& aUser) noexcept
 		if (isNotEmpty()) // [+]PPA
 		{
 			{
-				CFlyReadLock(*g_csUsers);
+				CFlyReadLock(*g_csFavUsers);
 				if (!isUserExistL(aUser))
 					return;
 			}

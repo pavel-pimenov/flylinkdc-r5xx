@@ -661,5 +661,7 @@ bool FileFindIter::DirData::isVirtual() const
 	return (dwFileAttributes & FILE_ATTRIBUTE_VIRTUAL) > 0;
 }
 
-// ~[+]IRainman
-
+FILE* dcpp_fopen(const char* filename, const char* mode)
+{
+	return _wfopen(Text::toT(filename).c_str(), Text::toT(mode).c_str());
+}

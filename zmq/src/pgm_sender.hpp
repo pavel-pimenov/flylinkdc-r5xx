@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -111,7 +111,7 @@ namespace zmq
 
         //  Output buffer from pgm_socket.
         unsigned char *out_buffer;
-
+        
         //  Output buffer size.
         size_t out_buffer_size;
 

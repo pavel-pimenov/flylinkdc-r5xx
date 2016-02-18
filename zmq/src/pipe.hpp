@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -84,6 +84,10 @@ namespace zmq
         //  Specifies the object to send events to.
         void set_event_sink (i_pipe_events *sink_);
 
+        //  Pipe endpoint can store an routing ID to be used by its clients.        
+        void set_routing_id (uint32_t routing_id_);
+        uint32_t get_routing_id ();
+
         //  Pipe endpoint can store an opaque ID to be used by its clients.
         void set_identity (const blob_t &identity_);
         blob_t get_identity ();
@@ -96,26 +100,28 @@ namespace zmq
         //  Reads a message to the underlying pipe.
         bool read (msg_t *msg_);
 
-        //  Checks whether messages can be written to the pipe. If writing
-        //  the message would cause high watermark the function returns false.
+        //  Checks whether messages can be written to the pipe. If the pipe is
+        //  closed or if writing the message would cause high watermark the
+        //  function returns false.
         bool check_write ();
 
         //  Writes a message to the underlying pipe. Returns false if the
-        //  message cannot be written because high watermark was reached.
+        //  message does not pass check_write. If false, the message object
+        //  retains ownership of its message buffer.
         bool write (msg_t *msg_);
 
         //  Remove unfinished parts of the outbound message from the pipe.
         void rollback ();
 
-        //  Flush the messages downsteam.
+        //  Flush the messages downstream.
         void flush ();
 
-        //  Temporaraily disconnects the inbound message stream and drops
+        //  Temporarily disconnects the inbound message stream and drops
         //  all the messages on the fly. Causes 'hiccuped' event to be generated
         //  in the peer.
         void hiccup ();
 
-        // Ensure the pipe wont block on receiving pipe_term.
+        //  Ensure the pipe won't block on receiving pipe_term.
         void set_nodelay ();
 
         //  Ask pipe to terminate. The termination will happen asynchronously
@@ -124,10 +130,13 @@ namespace zmq
         //  before actual shutdown.
         void terminate (bool delay_);
 
-        // set the high water marks.
+        //  Set the high water marks.
         void set_hwms (int inhwm_, int outhwm_);
 
-        // check HWM
+        //  Set the boost to high water marks, used by inproc sockets so total hwm are sum of connect and bind sockets watermarks
+        void set_hwms_boost(int inhwmboost_, int outhwmboost_);
+
+        //  Returns true if HWM is not reached
         bool check_hwm () const;
     private:
 
@@ -170,6 +179,10 @@ namespace zmq
         //  Low watermark for the inbound pipe.
         int lwm;
 
+        // boosts for high and low watermarks, used with inproc sockets so hwm are sum of send and recv hmws on each side of pipe
+        int inhwmboost;
+        int outhwmboost;
+
         //  Number of messages read and written so far.
         uint64_t msgs_read;
         uint64_t msgs_written;
@@ -188,7 +201,7 @@ namespace zmq
         //  active: common state before any termination begins,
         //  delimiter_received: delimiter was read from pipe before
         //      term command was received,
-        //  waiting_fo_delimiter: term command was already received
+        //  waiting_for_delimiter: term command was already received
         //      from the peer but there are still pending messages to read,
         //  term_ack_sent: all pending messages were already read and
         //      all we are waiting for is ack from the peer,
@@ -211,6 +224,9 @@ namespace zmq
 
         //  Identity of the writer. Used uniquely by the reader side.
         blob_t identity;
+
+        //  Identity of the writer. Used uniquely by the reader side.
+        int routing_id;
 
         //  Pipe's credential.
         blob_t credential;

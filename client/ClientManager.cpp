@@ -62,7 +62,7 @@ ClientManager::NickMap ClientManager::g_nicks;
 
 ClientManager::ClientManager()
 {
-	TimerManager::getInstance()->addListener(this);
+	//TimerManager::getInstance()->addListener(this);
 	createMe(SETTING(PRIVATE_ID), SETTING(NICK)); // [+] IRainman fix.
 }
 
@@ -147,7 +147,7 @@ void ClientManager::shutdown()
 		g_UserUpdateQueue.clear();
 	}
 #endif
-	TimerManager::getInstance()->removeListener(this);
+	//TimerManager::getInstance()->removeListener(this);
 	/*
 	{
 	        CFlyLog l_log("[Store last IP]");
@@ -296,22 +296,21 @@ void ClientManager::putClient(Client* p_client)
 
 StringList ClientManager::getHubs(const CID& cid, const string& hintUrl)
 {
-	return getHubs(cid, hintUrl, FavoriteManager::getInstance()->isPrivate(hintUrl));
+	return getHubs(cid, hintUrl, FavoriteManager::isPrivate(hintUrl));
 }
 
 StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl)
 {
-	return getHubNames(cid, hintUrl, FavoriteManager::getInstance()->isPrivate(hintUrl));
+	return getHubNames(cid, hintUrl, FavoriteManager::isPrivate(hintUrl));
 }
 
 StringList ClientManager::getNicks(const CID& cid, const string& hintUrl)
 {
-	return getNicks(cid, hintUrl, FavoriteManager::getInstance()->isPrivate(hintUrl));
+	return getNicks(cid, hintUrl, FavoriteManager::isPrivate(hintUrl));
 }
 
 StringList ClientManager::getHubs(const CID& cid, const string& hintUrl, bool priv)
 {
-	//CFlyLock(cs); [-] IRainman opt.
 	StringList lst;
 	if (!priv)
 	{
@@ -327,7 +326,9 @@ StringList ClientManager::getHubs(const CID& cid, const string& hintUrl, bool pr
 		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
 		OnlineUser* u = findOnlineUserHintL(cid, hintUrl);
 		if (u)
+		{
 			lst.push_back(u->getClientBase().getHubUrl());
+		}
 	}
 	return lst;
 }
@@ -366,7 +367,8 @@ StringList ClientManager::getAntivirusNicks(const CID& p_cid)
 	const OnlinePairC op = g_onlineUsers.equal_range(p_cid);
 	for (auto i = op.first; i != op.second; ++i)
 	{
-		if (i->second->getIdentity().calcVirusType() & ~Identity::VT_CALC_AVDB)
+		// ”брал обращение к базе данных - вешаемс€
+		//if (i->second->getIdentity().calcVirusType() & ~Identity::VT_CALC_AVDB)
 		{
 			ret.insert(i->second->getIdentity().getVirusDesc());
 		}
@@ -381,7 +383,6 @@ StringList ClientManager::getAntivirusNicks(const CID& p_cid)
 }
 StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool priv)
 {
-	//CFlyLock(cs); [-] IRainman opt.
 	StringSet ret;
 	if (!priv)
 	{
@@ -397,7 +398,9 @@ StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool
 		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
 		OnlineUser* u = findOnlineUserHintL(p_cid, hintUrl);
 		if (u)
+		{
 			ret.insert(u->getIdentity().getNick());
+		}
 	}
 	if (ret.empty())
 	{
@@ -415,7 +418,48 @@ StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool
 			ret.insert('{' + p_cid.toBase32() + '}');
 		}
 	}
-	return StringList(ret.begin(), ret.end());
+	if (ret.empty())
+		return StringList();
+	else
+		return StringList(ret.begin(), ret.end());
+}
+StringList ClientManager::getNicks(const HintedUser& user)
+{
+	dcassert(user.user);
+	return getNicks(user.user->getCID(), user.hint);
+}
+StringList ClientManager::getHubNames(const HintedUser& user)
+{
+	dcassert(user.user);
+	return getHubNames(user.user->getCID(), user.hint);
+}
+bool ClientManager::isConnected(const string& aUrl)
+{
+	CFlyReadLock(*g_csClients);
+	return g_clients.find(aUrl) != g_clients.end();
+}
+bool ClientManager::isOnline(const UserPtr& aUser)
+{
+	CFlyReadLock(*g_csOnlineUsers);
+	return g_onlineUsers.find(aUser->getCID()) != g_onlineUsers.end();
+}
+OnlineUser* ClientManager::findOnlineUserL(const CID& cid, const string& hintUrl, bool priv)
+{
+	// [!] IRainman: This function need to external lock.
+	OnlinePairC p;
+	OnlineUser* u = findOnlineUserHintL(cid, hintUrl, p);
+	if (u) // found an exact match (CID + hint).
+		return u;
+		
+	if (p.first == p.second) // no user found with the given CID.
+		return nullptr;
+		
+	// if the hint hub is private, don't allow connecting to the same user from another hub.
+	if (priv)
+		return nullptr;
+		
+	// ok, hub not private, return a random user that matches the given CID but not the hint.
+	return p.first->second;
 }
 
 string ClientManager::getStringField(const CID& cid, const string& hint, const char* field) // [!] IRainman fix.
@@ -848,7 +892,7 @@ void ClientManager::connect(const HintedUser& p_user, const string& p_token, boo
 	dcassert(!isShutdown());
 	if (!isShutdown())
 	{
-		const bool priv = FavoriteManager::getInstance()->isPrivate(p_user.hint);
+		const bool priv = FavoriteManager::isPrivate(p_user.hint);
 		
 		CFlyReadLock(*g_csOnlineUsers);
 		OnlineUser* u = findOnlineUserL(p_user, priv);
@@ -872,7 +916,7 @@ void ClientManager::connect(const HintedUser& p_user, const string& p_token, boo
 
 void ClientManager::privateMessage(const HintedUser& user, const string& msg, bool thirdPerson)
 {
-	const bool priv = FavoriteManager::getInstance()->isPrivate(user.hint);
+	const bool priv = FavoriteManager::isPrivate(user.hint);
 	OnlineUser* u = nullptr;
 	{
 		// # u->getClientBase().privateMessage Ќельз€ выполн€ть под локом - там внутри есть fire
@@ -1146,40 +1190,51 @@ void ClientManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 }
 #endif
 
-void ClientManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcept
+void ClientManager::flushRatio()
 {
-	//CFlyLock(cs); [-] IRainman opt.
+	CFlyLog l_log("[ClientManager::flushRatio]");
+	CFlyReadLock(*g_csUsers);
+	int l_max_count_flush = 500;
+	UserMap::const_iterator i = g_users.begin();
+	while (i != g_users.end() && !isShutdown())
 	{
-		CFlyWriteLock(*g_csUsers);
-		// Collect some garbage...
-#ifdef _DEBUG
-		// CFlyLog l_log("[ClientManager::Minute GC]");
-#endif
-		int l_max_count_flush = 200;
-		UserMap::const_iterator i = g_users.begin();
-		while (i != g_users.end() && !isShutdown())
+		if (l_max_count_flush > 0 && i->second->flushRatio())
 		{
-			if (l_max_count_flush > 0 && i->second->flushRatio())
-			{
-				l_max_count_flush--;
-			}
-			if (i->second.unique()) // [3] https://www.box.net/shared/e9e7f84166facfeaacc8
-			{
+			l_max_count_flush--;
+		}
+		++i;
+	}
+}
+void ClientManager::usersCleanup()
+{
+	CFlyWriteLock(*g_csUsers);
+	auto i = g_users.begin();
+	while (i != g_users.end() && !isShutdown())
+	{
+		if (i->second.unique())
+		{
 #ifdef IRAINMAN_USE_NICKS_IN_CM
-				const auto n = g_nicks.find(i->second->getCID());
-				if (n != g_nicks.end())
-					g_nicks.erase(n);
+			const auto n = g_nicks.find(i->second->getCID());
+			if (n != g_nicks.end())
+				g_nicks.erase(n);
 #endif
-				g_users.erase(i++);
-			}
-			else
-			{
-				++i;
-			}
+#ifdef _DEBUG
+			LogManager::message("g_users.erase(i++); - Nick = " + i->second->getLastNick());
+#endif
+			g_users.erase(i++);
+		}
+		else
+		{
+			++i;
 		}
 	}
-	//[-]PPA infoUpdated();
 }
+/*
+void ClientManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
+{
+    usersCleanup();
+}
+*/
 // [!] IRainman fix.
 void ClientManager::createMe(const string& cid, const string& nick)
 {
@@ -1713,7 +1768,7 @@ void ClientManager::setUnknownCommand(const UserPtr& p, const string& aUnknownCo
 
 void ClientManager::reportUser(const HintedUser& user)
 {
-	const bool priv = FavoriteManager::getInstance()->isPrivate(user.hint);
+	const bool priv = FavoriteManager::isPrivate(user.hint);
 	string report;// [+] FlylinkDC report
 	Client* client; // [+] IRainman fix
 	{

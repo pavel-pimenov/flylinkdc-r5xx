@@ -39,6 +39,12 @@ class StringTask : public Task
 		explicit StringTask(const string& p_str) : m_str(p_str) { }
 		string m_str;
 };
+class StringArrayTask : public Task
+{
+	public:
+		explicit StringArrayTask(const StringList& p_str) : m_str_array(p_str) { }
+		StringList m_str_array;
+};
 
 class TaskQueue
 #ifdef _DEBUG

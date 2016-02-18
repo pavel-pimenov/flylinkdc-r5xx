@@ -780,6 +780,10 @@ class Util
 		static string cleanPathChars(string aNick);
 		static void fixFileNameMaxPathLimit(string& p_File);
 		
+		static string addBrackets(const string& s)
+		{
+			return '<' + s + '>';
+		}
 		static string formatBytes(const string& aString)
 		{
 			return formatBytes(toInt64(aString));
@@ -1067,6 +1071,51 @@ class Util
 			}
 			return static_cast<char>(res);
 		}
+		template<typename T, class NameOperator>
+		static string listToStringT(const T& lst, bool forceBrackets, bool squareBrackets)
+		{
+			string tmp;
+			if (lst.empty()) //[+]FlylinkDC++
+				return tmp;
+			if (lst.size() == 1 && !forceBrackets)
+				return NameOperator()(*lst.begin());
+				
+			tmp.push_back(squareBrackets ? '[' : '(');
+			for (auto i = lst.begin(), iend = lst.end(); i != iend; ++i)
+			{
+				tmp += NameOperator()(*i);
+				tmp += ", ";
+			}
+			
+			if (tmp.length() == 1)
+			{
+				tmp.push_back(squareBrackets ? ']' : ')');
+			}
+			else
+			{
+				tmp.pop_back();
+				tmp[tmp.length() - 1] = squareBrackets ? ']' : ')';
+			}
+			return tmp;
+		}
+		struct StrChar
+		{
+			const char* operator()(const string& u)
+			{
+				dcassert(!u.empty()) // FlylinkDC++
+				if (!u.empty())
+					return u.c_str();
+				else
+					return "";
+			}
+		};
+		
+		template<typename ListT>
+		static string listToString(const ListT& lst)
+		{
+			return listToStringT<ListT, StrChar>(lst, false, true);
+		}
+		
 		
 #if 0
 		template<typename T>

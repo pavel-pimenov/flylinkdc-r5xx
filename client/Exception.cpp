@@ -19,10 +19,6 @@
 #include "stdinc.h"
 #include "Exception.h"
 
-namespace dcpp
-{
-
-} // namespace dcpp
 
 /**
  * @file

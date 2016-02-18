@@ -154,11 +154,12 @@ void ShareManager::shutdown()
 }
 
 ShareManager::Directory::Directory(const string& aName, const ShareManager::Directory::Ptr& aParent) :
+	CFlyLowerName(aName),
 	size(0),
 	parent(aParent.get()),
 	m_fileTypes_bitmap(1 << Search::TYPE_DIRECTORY)
 {
-	setName(aName);
+	initLowerName();
 }
 
 string ShareManager::Directory::getADCPath() const noexcept
@@ -463,11 +464,11 @@ ShareManager::Directory::ShareFile::Set::const_iterator ShareManager::findFileL(
 	}
 	
 	const auto v = splitVirtualL(virtualFile);
-	auto it = std::find_if(v.first->m_files.begin(), v.first->m_files.end(),
+	auto it = std::find_if(v.first->m_share_files.begin(), v.first->m_share_files.end(),
 	                       [&](const Directory::ShareFile & p_file) -> bool {return stricmp(p_file.getName(), v.second) == 0;}
 	                       //Directory::ShareFile::StringComp(v.second)
 	                      );
-	if (it == v.first->m_files.end())
+	if (it == v.first->m_share_files.end())
 	{
 		throw ShareException(UserConnection::g_FILE_NOT_AVAILABLE, virtualFile);
 	}
@@ -648,13 +649,15 @@ struct ShareLoader : public SimpleXMLReader::CallBack
 					dcdebug("Invalid file found: %s\n", fname.c_str());
 					return;
 				}
-				auto it = cur->m_files.insert(ShareManager::Directory::ShareFile(fname, Util::toInt64(size), cur, TTHValue(root),
-				                                                                 atoi(l_hit_count.c_str()),
-				                                                                 l_time_stamp,
-				                                                                 ShareManager::getFType(fname)
-				                                                                )
-				                             );
+				auto it = cur->m_share_files.insert(ShareManager::Directory::ShareFile(fname, Util::toInt64(size), cur, TTHValue(root),
+				                                                                       atoi(l_hit_count.c_str()),
+				                                                                       l_time_stamp,
+				                                                                       ShareManager::getFType(fname)
+				                                                                      )
+				                                   );
 				dcassert(it.second);
+				auto f = const_cast<ShareManager::Directory::ShareFile*>(&(*it.first));
+				f->initLowerName();
 				if (it.second && p_attribs.size() > 4) // Ёто уже наша шара. тут медиаинфа если больше 4-х.
 				{
 					const string& l_audio = getAttrib(p_attribs, g_SMAudio, 3);
@@ -666,7 +669,6 @@ struct ShareLoader : public SimpleXMLReader::CallBack
 						                                                                 l_audio,
 						                                                                 l_video));
 						l_media_ptr->calcEscape();
-						auto f = const_cast<ShareManager::Directory::ShareFile*>(&(*it.first));
 						f->initMediainfo(l_media_ptr);
 					}
 					else
@@ -890,7 +892,7 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 				Directory::Ptr dp = buildTreeL(l_path_id, realPath, Directory::Ptr(), p_is_job);
 				
 				const string vName = validateVirtual(virtualName);
-				dp->setName(vName);
+				dp->setNameAndLower(vName);
 				
 				g_shares.insert(std::make_pair(realPath, CFlyBaseDirItem(vName, l_path_id)));
 				{
@@ -939,7 +941,7 @@ void ShareManager::Directory::mergeL(const Directory::Ptr& source)
 		const auto& ti = m_directories.find(subSource->getName());
 		if (ti == m_directories.end())
 		{
-			if (findFileIterL(subSource->getName()) != m_files.end())
+			if (findFileIterL(subSource->getName()) != m_share_files.end())
 			{
 				dcdebug("File named the same as directory");
 			}
@@ -959,9 +961,9 @@ void ShareManager::Directory::mergeL(const Directory::Ptr& source)
 	// All subdirs either deleted or moved to target...
 	source->m_directories.clear();
 	
-	for (auto i = source->m_files.cbegin(); i != source->m_files.cend(); ++i)
+	for (auto i = source->m_share_files.cbegin(); i != source->m_share_files.cend(); ++i)
 	{
-		if (findFileIterL(i->getName()) == m_files.end())
+		if (findFileIterL(i->getName()) == m_share_files.end())
 		{
 			if (m_directories.find(i->getName()) != m_directories.end())
 			{
@@ -970,7 +972,7 @@ void ShareManager::Directory::mergeL(const Directory::Ptr& source)
 			else
 			{
 				//auto& added = files.insert(*i);
-				auto it = m_files.insert(*i);
+				auto it = m_share_files.insert(*i);
 				if (it.second)
 				{
 					const_cast<ShareFile&>(*it.first).setParent(this);
@@ -1023,7 +1025,7 @@ void ShareManager::removeDirectory(const string& realPath)
 			if (stricmp(i->second.m_synonym, l_Name) == 0 && checkAttributs(i->first))// [!]IRainman checkHidden(i->first)
 			{
 				Directory::Ptr dp = buildTreeL(i->second.m_path_id, i->first, Directory::Ptr(), true);
-				dp->setName(i->second.m_synonym);
+				dp->setNameAndLower(i->second.m_synonym);
 				{
 					CFlyWriteLock(*g_csDirList);
 					get_mergeL(dp);
@@ -1115,7 +1117,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 	}
 	Directory::Ptr dir = Directory::create(Util::getLastDir(aName), aParent);
 	
-	auto lastFileIter = dir->m_files.begin();
+	auto lastFileIter = dir->m_share_files.begin();
 	
 	CFlyDirMap l_dir_map;
 	if (p_path_id)
@@ -1241,21 +1243,22 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 					else
 					{
 						auto &l_dir_item_second = l_dir_item->second; // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'l_dir_item->second' expression repeatedly. sharemanager.cpp 1054
-						lastFileIter = dir->m_files.insert(lastFileIter,
-						                                   Directory::ShareFile(l_file_name,
-						                                                        l_dir_item_second.m_size,
-						                                                        dir,
-						                                                        l_dir_item_second.m_tth,
-						                                                        l_dir_item_second.m_hit,
-						                                                        uint32_t(l_dir_item_second.m_StampShare),
-						                                                        Search::TypeModes(l_dir_item_second.m_ftype)
-						                                                       )
-						                                  );
+						lastFileIter = dir->m_share_files.insert(lastFileIter,
+						                                         Directory::ShareFile(l_file_name,
+						                                                              l_dir_item_second.m_size,
+						                                                              dir,
+						                                                              l_dir_item_second.m_tth,
+						                                                              l_dir_item_second.m_hit,
+						                                                              uint32_t(l_dir_item_second.m_StampShare),
+						                                                              Search::TypeModes(l_dir_item_second.m_ftype)
+						                                                             )
+						                                        );
+						auto f = const_cast<ShareManager::Directory::ShareFile*>(&(*lastFileIter));
+						f->initLowerName();
 						if (l_dir_item_second.m_StampShare > g_lastSharedDate)
 						{
 							g_lastSharedDate = l_dir_item_second.m_StampShare;
 						}
-						auto f = const_cast<ShareManager::Directory::ShareFile*>(&(*lastFileIter));
 						f->initMediainfo(l_dir_item_second.m_media_ptr);
 						l_dir_item_second.m_media_ptr = nullptr;
 					}
@@ -1433,7 +1436,7 @@ bool ShareManager::updateIndicesDirL(Directory& dir)
 		
 		dir.size = 0;
 		CFlyWriteLock(*g_csBloom);
-		for (auto i = dir.m_files.cbegin(); i != dir.m_files.cend();)
+		for (auto i = dir.m_share_files.cbegin(); i != dir.m_share_files.cend();)
 		{
 			if (updateIndicesFileL(dir, i++) == false)
 			{
@@ -1511,7 +1514,7 @@ bool ShareManager::updateIndicesFileL(Directory& dir, const Directory::ShareFile
 	return false;
 }
 
-void ShareManager::refresh(bool dirs /* = false */, bool aUpdate /* = true */, bool block /* = false */) noexcept
+void ShareManager::refresh_share(bool p_dirs /* = false */, bool aUpdate /* = true */) noexcept
 {
 	if (m_is_refreshing.test_and_set())
 	{
@@ -1520,7 +1523,7 @@ void ShareManager::refresh(bool dirs /* = false */, bool aUpdate /* = true */, b
 	}
 	
 	update = aUpdate;
-	refreshDirs = dirs;
+	refreshDirs = p_dirs;
 	join();
 	bool l_is_cached;
 	if (g_is_initial)
@@ -1538,9 +1541,9 @@ void ShareManager::refresh(bool dirs /* = false */, bool aUpdate /* = true */, b
 	try
 	{
 		start(0);
-		if (block && !l_is_cached)
+		if (!l_is_cached)
 		{
-			join();
+			// - вешаемс€ join();
 		}
 		else
 		{
@@ -1571,9 +1574,9 @@ int ShareManager::run()
 	if (g_is_first == false)
 	{
 		g_is_first = true;
-		for (int i = 0; i < 55 * 10; i++) // ∆дем 55 сек
+		for (int i = 0; i < 50 * 10; i++) // ∆дем 5 сек
 		{
-			::Sleep(100);
+			::Sleep(10);
 			if (ClientManager::isShutdown())
 				return 0;
 		}
@@ -1603,7 +1606,7 @@ int ShareManager::run()
 				if (checkAttributs(i->m_path))
 				{
 					Directory::Ptr dp = buildTreeL(i->m_path_id, i->m_path, Directory::Ptr(), false);
-					dp->setName(i->m_synonym);
+					dp->setNameAndLower(i->m_synonym);
 					newDirs.push_back(dp);
 				}
 			}
@@ -1898,7 +1901,7 @@ void ShareManager::Directory::toXml(OutputStream& xmlFile, string& p_indent, str
 	}
 	else
 	{
-		if (m_directories.empty() && m_files.empty())
+		if (m_directories.empty() && m_share_files.empty())
 		{
 			xmlFile.write(LITERAL("\" />\r\n"));
 		}
@@ -1911,7 +1914,7 @@ void ShareManager::Directory::toXml(OutputStream& xmlFile, string& p_indent, str
 
 void ShareManager::Directory::filesToXml(OutputStream& xmlFile, string& indent, string& tmp2) const
 {
-	for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
+	for (auto i = m_share_files.cbegin(); i != m_share_files.cend(); ++i)
 	{
 		const auto& f = *i;
 		if (!indent.empty())
@@ -2307,7 +2310,7 @@ const SearchResult sr(SearchResult::TYPE_DIRECTORY, 0, getFullName(), TTHValue()
 
 if (p_search_param.m_file_type != Search::TYPE_DIRECTORY)
 {
-for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
+for (auto i = m_share_files.cbegin(); i != m_share_files.cend(); ++i)
 	{
 	
 #ifdef _DEBUG
@@ -2329,13 +2332,16 @@ for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
 #endif
 			continue;
 		}
-		StringSearch::List::const_iterator j = cur->begin();
-		for (; j != cur->end() && j->matchLower(i->getLowName()); ++j) // http://flylinkdc.blogspot.com/2010/08/1.html
-			;   // Empty
-			
+		auto j = cur->begin();
+		for (; j != cur->end() && j->matchLower(i->getLowName()); ++j)
+		{
+		}
+		
 		if (j != cur->end())
+		{
 			continue;
-			
+		}
+		
 		// Check file type...
 		if (checkType(i->getName(), p_search_param.m_file_type))
 		{
@@ -2678,7 +2684,7 @@ const SearchResult sr(SearchResult::TYPE_DIRECTORY, getSizeL(), getFullName(), T
 
 if (!aStrings.m_isDirectory)
 {
-for (auto i = m_files.cbegin(); i != m_files.cend() && !ClientManager::isShutdown(); ++i)
+for (auto i = m_share_files.cbegin(); i != m_share_files.cend() && !ClientManager::isShutdown(); ++i)
 	{
 	
 		if (!(i->getSize() >= aStrings.m_gt))
@@ -2827,7 +2833,7 @@ void ShareManager::on(QueueManagerListener::FileMoved, const string& n) noexcept
 	}
 #endif ///////////////////////////////////////////
 }
-void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const TTHValue& root,
+void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const TTHValue& p_root,
                       int64_t aTimeStamp, const CFlyMediaInfo& p_out_media, int64_t p_size) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
@@ -2840,14 +2846,16 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 			{
 				const string l_file_name = Util::getFileName(fname);
 				const auto i = d->findFileIterL(l_file_name);
-				if (i != d->m_files.end())
+				if (i != d->m_share_files.end())
 				{
 					CFlyWriteLock(*g_csTTHIndex);
-					if (root != i->getTTH())
+					if (p_root != i->getTTH())
+					{
 						g_tthIndex.erase(i->getTTH());
+					}
 					// Get rid of false constness...
 					Directory::ShareFile* f = const_cast<Directory::ShareFile*>(&(*i));
-					f->setTTH(root);
+					f->setTTH(p_root);
 					g_tthIndex.insert(make_pair(f->getTTH(), i));
 					// TODO g_lastSharedDate =
 					g_isNeedsUpdateShareSize = true;
@@ -2856,13 +2864,14 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 				{
 					const int64_t l_size = File::getSize(fname);
 					dcassert(p_size == l_size);
-					auto it = d->m_files.insert(Directory::ShareFile(l_file_name, l_size, d, root, 0, uint32_t(aTimeStamp), getFType(l_file_name)));
+					auto it = d->m_share_files.insert(Directory::ShareFile(l_file_name, l_size, d, p_root, 0, uint32_t(aTimeStamp), getFType(l_file_name)));
 					dcassert(it.second);
+					auto f = const_cast<Directory::ShareFile*>(&(*it.first));
+					f->initLowerName();
 					if (it.second)
 					{
 						auto l_media_ptr = std::make_shared<CFlyMediaInfo>(p_out_media);
 						l_media_ptr->calcEscape();
-						auto f = const_cast<Directory::ShareFile*>(&(*it.first));
 						f->initMediainfo(l_media_ptr);
 					}
 					{
@@ -2896,7 +2905,7 @@ void ShareManager::on(TimerManagerListener::Minute, uint64_t tick) noexcept
 	{
 		if (m_lastFullUpdate + SETTING(AUTO_REFRESH_TIME) * 60 * 1000 < tick)
 		{
-			refresh(true, true);
+			refresh_share(true, true);
 		}
 	}
 	internalCalcShareSize(); // [+]IRainman opt.
@@ -3068,7 +3077,7 @@ bool ShareManager::findByRealPathName(const string& realPathname, TTHValue* outT
 		// [~] IRainman fix.
 		
 		const auto iFile = d->findFileIterL(Util::getFileName(realPathname));
-		if (iFile != d->m_files.end())
+		if (iFile != d->m_share_files.end())
 		{
 			if (outTTHPtr)
 				*outTTHPtr = iFile->getTTH();

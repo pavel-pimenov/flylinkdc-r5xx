@@ -55,7 +55,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		{
 			ADD_ITEM,
 			REMOVE,
-			REMOVE_ITEM,
+			REMOVE_WAITING_ITEM,
 			UPDATE_ITEMS
 		};
 		
@@ -242,7 +242,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		}
 		void on(UploadManagerListener::QueueItemRemove, const UploadQueueItemPtr& aUQI) noexcept override
 		{
-			m_tasks.add(REMOVE_ITEM, new UploadQueueTask(aUQI));
+			m_tasks.add(REMOVE_WAITING_ITEM, new UploadQueueTask(aUQI));
 		}
 		void on(UploadManagerListener::QueueUpdate) noexcept override;
 		// SettingsManagerListener

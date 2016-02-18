@@ -41,6 +41,7 @@ sqlite3_transaction::sqlite3_transaction(sqlite3_connection &con, bool start /*=
 sqlite3_transaction::~sqlite3_transaction() {
 	if(intrans) {
 		try {
+			dcassert(0); // Чтобы не забывали коммиты
 			rollback();
 		}
 		catch(...) {

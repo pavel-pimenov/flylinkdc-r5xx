@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -48,6 +48,9 @@
 #include "poll.hpp"
 #elif defined ZMQ_USE_SELECT
 #include "select.hpp"
+#elif defined ZMQ_HAVE_GNU
+#define ZMQ_USE_POLL
+#include "poll.hpp"
 #else
 #error None of the ZMQ_USE_* macros defined
 #endif

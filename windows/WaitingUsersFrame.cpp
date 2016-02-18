@@ -521,7 +521,7 @@ LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	{
 		switch (j->first)
 		{
-			case REMOVE_ITEM:
+			case REMOVE_WAITING_ITEM:
 			{
 				RemoveFile(static_cast<UploadQueueTask&>(*j->second).getItem());
 			}

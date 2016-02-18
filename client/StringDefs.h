@@ -554,6 +554,7 @@ enum Strings   // @DontAdd
 	FLY_HUB_TIMES, // "Times"
 	FLY_HUB_GENDER, // "Gender"
 	FLY_HUB_SUPPORT_INFO, // "Support info"
+	FLY_VERIFY_CERT_FAILED, // "Verify sert failed!"
 	FLYUPDATE, // "FlylinkDC++ Updater"
 	FLYUPDATE_CANNOTUPDATE, // "FlylinkDC++ automatic update failed. Please download latest install of FlylinkDC++ and run it manually"
 	FLYUPDATE_CHECKUPDATEBASE, // "Checking FlylinkDC++ update…"

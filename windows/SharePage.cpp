@@ -124,11 +124,11 @@ void SharePage::write()
 	if (!BOOLSETTING(USE_OLD_SHARING_UI) && ft.IsDirty())
 	{
 		ShareManager::getInstance()->setDirty();
-		ShareManager::getInstance()->refresh(true);
+		ShareManager::getInstance()->refresh_share(true);
 	}
 	else
 	{
-		ShareManager::getInstance()->refresh();
+		ShareManager::getInstance()->refresh_share();
 	}
 }
 
@@ -314,7 +314,7 @@ LRESULT SharePage::onClickedShare(int item)
 	// Refresh the share. This is a blocking refresh. Might cause problems?
 	// Hopefully people won't click the checkbox enough for it to be an issue. :-)
 	ShareManager::getInstance()->setDirty();
-	ShareManager::getInstance()->refresh(true, false, false);
+	ShareManager::getInstance()->refresh_share(true, false);
 	directoryListInit();
 	return 0;
 }

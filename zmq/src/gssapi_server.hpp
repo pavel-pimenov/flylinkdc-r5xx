@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -85,8 +85,8 @@ namespace zmq
         void accept_context ();
         int produce_next_token (msg_t *msg_);
         int process_next_token (msg_t *msg_);
-	void send_zap_request ();
-	int receive_and_process_zap_reply();
+        void send_zap_request ();
+        int receive_and_process_zap_reply();
     };
 
 }

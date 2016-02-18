@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -65,7 +65,7 @@ namespace zmq
     private:
 
         //  If true, request was already sent and reply wasn't received yet or
-        //  was raceived partially.
+        //  was received partially.
         bool receiving_reply;
 
         //  If true, we are starting to send/recv a message. The first part

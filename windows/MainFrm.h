@@ -821,7 +821,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		// [+] SSA Share folder
 		void AddFolderShareFromShell(const tstring& folder);
 		
-#ifdef FLYLINKDC_USE_GATHER_STATISTICS
 		class StatisticSender : public BASE_THREAD
 		{
 			private:
@@ -829,6 +828,9 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 				unsigned m_MinuteElapsed;
 				int run()
 				{
+					ClientManager::flushRatio();
+					ClientManager::usersCleanup();
+#ifdef FLYLINKDC_USE_GATHER_STATISTICS
 					bool l_is_error = CFlyServerJSON::sendDownloadCounter(m_is_sync_run == true);
 					CFlyServerJSON::sendAntivirusCounter(m_is_sync_run == true || l_is_error);
 					if (CFlyServerJSON::pushStatistic(m_is_sync_run) == false)
@@ -839,6 +841,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 							CFlyServerConfig::SyncAntivirusDBSafe();
 						}
 					}
+#endif
 					return 0;
 				}
 			public:
@@ -871,7 +874,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 					}
 				}
 		} m_threadedStatisticSender;
-#endif // FLYLINKDC_USE_GATHER_STATISTICS
+		
 		
 #ifdef IRAINMAN_IP_AUTOUPDATE
 		class CFlyIPUpdater : public BASE_THREAD

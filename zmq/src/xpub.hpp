@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -68,7 +68,7 @@ namespace zmq
 
     private:
 
-        //  Function to be applied to the trie to send all the subsciptions
+        //  Function to be applied to the trie to send all the subscriptions
         //  upstream.
         static void send_unsubscription (unsigned char *data_, size_t size_,
             void *arg_);
@@ -84,7 +84,11 @@ namespace zmq
 
         // If true, send all subscription messages upstream, not just
         // unique ones
-        bool verbose;
+        bool verbose_subs;
+
+        // If true, send all unsubscription messages upstream, not just
+        // unique ones
+        bool verbose_unsubs;
 
         //  True if we are in the middle of sending a multi-part message.
         bool more;
@@ -92,10 +96,23 @@ namespace zmq
         //  Drop messages if HWM reached, otherwise return with EAGAIN
         bool lossy;
 
+        //  Subscriptions will not bed added automatically, only after calling set option with ZMQ_SUBSCRIBE or ZMQ_UNSUBSCRIBE
+        bool manual;
+
+        //  Last pipe that sent subscription message, only used if xpub is on manual
+        pipe_t *last_pipe;
+
+        // Pipes that sent subscriptions messages that have not yet been processed, only used if xpub is on manual
+        std::deque <pipe_t*> pending_pipes;
+
+        //  Welcome message to send to pipe when attached
+        msg_t welcome_msg;
+
         //  List of pending (un)subscriptions, ie. those that were already
         //  applied to the trie, but not yet received by the user.
         typedef std::basic_string <unsigned char> blob_t;
         std::deque <blob_t> pending_data;
+        std::deque <metadata_t*> pending_metadata;
         std::deque <unsigned char> pending_flags;
 
         xpub_t (const xpub_t&);

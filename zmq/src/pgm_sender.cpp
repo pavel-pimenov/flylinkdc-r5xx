@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -77,7 +77,7 @@ int zmq::pgm_sender_t::init (bool udp_encapsulation_, const char *network_)
 
 void zmq::pgm_sender_t::plug (io_thread_t *io_thread_, session_base_t *session_)
 {
-    //  Alocate 2 fds for PGM socket.
+    //  Allocate 2 fds for PGM socket.
     fd_t downlink_socket_fd = retired_fd;
     fd_t uplink_socket_fd = retired_fd;
     fd_t rdata_notify_fd = retired_fd;
@@ -95,7 +95,7 @@ void zmq::pgm_sender_t::plug (io_thread_t *io_thread_, session_base_t *session_)
     pending_notify_handle = add_fd (pending_notify_fd);
 
     //  Set POLLIN. We wont never want to stop polling for uplink = we never
-    //  want to stop porocess NAKs.
+    //  want to stop processing NAKs.
     set_pollin (uplink_handle);
     set_pollin (rdata_notify_handle);
     set_pollin (pending_notify_handle);
@@ -207,6 +207,7 @@ void zmq::pgm_sender_t::out_event ()
 
     if (has_tx_timer) {
         cancel_timer (tx_timer_id);
+        set_pollout (handle);
         has_tx_timer = false;
     }
 
@@ -220,8 +221,10 @@ void zmq::pgm_sender_t::out_event ()
         zmq_assert (nbytes == 0);
 
         if (errno == ENOMEM) {
+            // Stop polling handle and wait for tx timeout
             const long timeout = pgm_socket.get_tx_timeout ();
             add_timer (timeout, tx_timer_id);
+            reset_pollout (handle);
             has_tx_timer = true;
         }
         else
@@ -238,7 +241,9 @@ void zmq::pgm_sender_t::timer_event (int token)
     }
     else
     if (token == tx_timer_id) {
+        // Restart polling handle and retry sending
         has_tx_timer = false;
+        set_pollout (handle);
         out_event ();
     }
     else

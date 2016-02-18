@@ -25,6 +25,18 @@
 #include "Util.h"
 
 typedef std::unordered_map<string, string> CFlyMessagesBuffer;
+class LogMessage
+{
+	public:
+		enum Severity
+		{
+			SEV_NOTIFY, // Messages with this severity won't be saved to system log, only the event is fired
+			SEV_INFO,
+			SEV_WARNING,
+			SEV_ERROR,
+			SEV_LAST
+		};
+};
 class LogManager
 {
 	public:
@@ -54,6 +66,10 @@ class LogManager
 		static void psr_message(const string& params);
 		static void log(LogArea area, const StringMap& params, bool p_only_file = false) noexcept;
 		static void message(const string& msg, bool p_only_file = false);
+		static void message(const string& msg, LogMessage::Severity)
+		{
+			message(msg);
+		}
 		
 		static const string& getSetting(int area, int sel);
 		static void saveSetting(int area, int sel, const string& setting);

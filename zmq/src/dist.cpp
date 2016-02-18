@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -76,7 +76,23 @@ void zmq::dist_t::match (pipe_t *pipe_)
 
     //  Mark the pipe as matching.
     pipes.swap (pipes.index (pipe_), matching);
-    matching++;
+    matching++;    
+}
+
+void zmq::dist_t::reverse_match ()
+{
+    pipes_t::size_type prev_matching = matching;
+
+    // Reset matching to 0
+    unmatch();
+
+    // Mark all matching pipes as not matching and vice-versa.
+    // To do this, push all pipes that are eligible but not
+    // matched - i.e. between "matching" and "eligible" -
+    // to the beginning of the queue.
+    for (pipes_t::size_type i = prev_matching; i < eligible; ++i) {
+        pipes.swap(i, matching++);
+    }
 }
 
 void zmq::dist_t::unmatch ()
@@ -132,7 +148,7 @@ int zmq::dist_t::send_to_matching (msg_t *msg_)
     //  Push the message to matching pipes.
     distribute (msg_);
 
-    //  If mutlipart message is fully sent, activate all the eligible pipes.
+    //  If multipart message is fully sent, activate all the eligible pipes.
     if (!msg_more)
         active = eligible;
 

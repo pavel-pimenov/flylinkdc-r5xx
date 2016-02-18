@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -32,6 +32,7 @@
 #include <new>
 #include <algorithm>
 
+#include "macros.hpp"
 #include "platform.hpp"
 #if defined ZMQ_HAVE_WINDOWS
 #include "windows.hpp"
@@ -52,19 +53,17 @@ zmq::mtrie_t::mtrie_t () :
 zmq::mtrie_t::~mtrie_t ()
 {
     if (pipes) {
-        delete pipes;
-        pipes = 0;
+        LIBZMQ_DELETE(pipes);
     }
 
     if (count == 1) {
         zmq_assert (next.node);
-        delete next.node;
-        next.node = 0;
+        LIBZMQ_DELETE(next.node);
     }
-    else
-    if (count > 1) {
-        for (unsigned short i = 0; i != count; ++i)
-            delete next.table [i];
+    else if (count > 1) {
+        for (unsigned short i = 0; i != count; ++i) {
+            LIBZMQ_DELETE(next.table[i]);
+        }
         free (next.table);
     }
 }
@@ -92,7 +91,7 @@ bool zmq::mtrie_t::add_helper (unsigned char *prefix_, size_t size_,
     if (c < min || c >= min + count) {
 
         //  The character is out of range of currently handled
-        //  charcters. We have to extend the table.
+        //  characters. We have to extend the table.
         if (!count) {
             min = c;
             count = 1;
@@ -159,23 +158,27 @@ bool zmq::mtrie_t::add_helper (unsigned char *prefix_, size_t size_,
 
 void zmq::mtrie_t::rm (pipe_t *pipe_,
     void (*func_) (unsigned char *data_, size_t size_, void *arg_),
-    void *arg_)
+    void *arg_, bool call_on_uniq_)
 {
     unsigned char *buff = NULL;
-    rm_helper (pipe_, &buff, 0, 0, func_, arg_);
+    rm_helper (pipe_, &buff, 0, 0, func_, arg_, call_on_uniq_);
     free (buff);
 }
 
 void zmq::mtrie_t::rm_helper (pipe_t *pipe_, unsigned char **buff_,
     size_t buffsize_, size_t maxbuffsize_,
     void (*func_) (unsigned char *data_, size_t size_, void *arg_),
-    void *arg_)
+    void *arg_, bool call_on_uniq_)
 {
     //  Remove the subscription from this node.
-    if (pipes && pipes->erase (pipe_) && pipes->empty ()) {
-        func_ (*buff_, buffsize_, arg_);
-        delete pipes;
-        pipes = 0;
+    if (pipes && pipes->erase (pipe_)) {
+        if (!call_on_uniq_ || pipes->empty ()) {
+            func_ (*buff_, buffsize_, arg_);
+        }
+
+        if (pipes->empty ()) {
+            LIBZMQ_DELETE(pipes);
+        }
     }
 
     //  Adjust the buffer.
@@ -194,12 +197,11 @@ void zmq::mtrie_t::rm_helper (pipe_t *pipe_, unsigned char **buff_,
         (*buff_) [buffsize_] = min;
         buffsize_++;
         next.node->rm_helper (pipe_, buff_, buffsize_, maxbuffsize_,
-            func_, arg_);
+            func_, arg_, call_on_uniq_);
 
         //  Prune the node if it was made redundant by the removal
         if (next.node->is_redundant ()) {
-            delete next.node;
-            next.node = 0;
+            LIBZMQ_DELETE(next.node);
             count = 0;
             --live_nodes;
             zmq_assert (live_nodes == 0);
@@ -217,12 +219,11 @@ void zmq::mtrie_t::rm_helper (pipe_t *pipe_, unsigned char **buff_,
         (*buff_) [buffsize_] = min + c;
         if (next.table [c]) {
             next.table [c]->rm_helper (pipe_, buff_, buffsize_ + 1,
-                maxbuffsize_, func_, arg_);
+                maxbuffsize_, func_, arg_, call_on_uniq_);
 
             //  Prune redundant nodes from the mtrie
             if (next.table [c]->is_redundant ()) {
-                delete next.table [c];
-                next.table [c] = 0;
+                LIBZMQ_DELETE(next.table[c]);
 
                 zmq_assert (live_nodes > 0);
                 --live_nodes;
@@ -301,8 +302,7 @@ bool zmq::mtrie_t::rm_helper (unsigned char *prefix_, size_t size_,
             pipes_t::size_type erased = pipes->erase (pipe_);
             zmq_assert (erased == 1);
             if (pipes->empty ()) {
-                delete pipes;
-                pipes = 0;
+                LIBZMQ_DELETE(pipes);
             }
         }
         return !pipes;
@@ -321,7 +321,7 @@ bool zmq::mtrie_t::rm_helper (unsigned char *prefix_, size_t size_,
     bool ret = next_node->rm_helper (prefix_ + 1, size_ - 1, pipe_);
 
     if (next_node->is_redundant ()) {
-        delete next_node;
+        LIBZMQ_DELETE(next_node);
         zmq_assert (count > 0);
 
         if (count == 1) {
@@ -413,16 +413,16 @@ void zmq::mtrie_t::match (unsigned char *data_, size_t size_,
             break;
 
         //  If there's one subnode (optimisation).
-		if (current->count == 1) {
+        if (current->count == 1) {
             if (data_ [0] != current->min)
                 break;
             current = current->next.node;
             data_++;
             size_--;
-		    continue;
-		}
+            continue;
+        }
 
-		//  If there are multiple subnodes.
+        //  If there are multiple subnodes.
         if (data_ [0] < current->min || data_ [0] >=
               current->min + current->count)
             break;

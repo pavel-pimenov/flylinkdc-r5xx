@@ -1040,9 +1040,8 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 
 void MainFrame::onMinute(uint64_t aTick)
 {
-#ifdef FLYLINKDC_USE_GATHER_STATISTICS
 	m_threadedStatisticSender.tryStartThread(false);
-#endif
+	
 #ifdef IRAINMAN_IP_AUTOUPDATE
 	const auto interval = SETTING(IPUPDATE_INTERVAL);
 	if (BOOLSETTING(IPUPDATE) && interval != 0)
@@ -2759,8 +2758,9 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 					// TODO: possible small memory leak on shutdown, details here https://code.google.com/p/flylinkdc/source/detail?r=15141
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 					CFlyTickDelta l_delta(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_SHUTDOWN_GUI]);
-					m_threadedStatisticSender.tryStartThread(true); // Синхронно сохраним в базу слепок перед завершением.
 #endif
+					m_threadedStatisticSender.tryStartThread(true); // Синхронно сохраним в базу слепок перед завершением.
+					
 					shutdownFlyFeatures(); // Разрушаем и запускаем автоапдейт раньше
 					preparingCoreToShutdown(); // [!] IRainman fix.
 					
@@ -3119,7 +3119,7 @@ LRESULT MainFrame::onRefreshFileListPurge(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 {
 	ShareManager::getInstance()->setDirty();
 	ShareManager::getInstance()->setPurgeTTH();
-	ShareManager::getInstance()->refresh(true);
+	ShareManager::getInstance()->refresh_share(true);
 	LogManager::message(STRING(PURGE_TTH_DATABASE));
 	return 0;
 }
@@ -3127,7 +3127,7 @@ LRESULT MainFrame::onRefreshFileListPurge(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 LRESULT MainFrame::onRefreshFileList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	ShareManager::getInstance()->setDirty();
-	ShareManager::getInstance()->refresh(true);
+	ShareManager::getInstance()->refresh_share(true);
 	return 0;
 }
 
@@ -3909,7 +3909,7 @@ UINT MainFrame::ShowSetupWizard()
 		if (l_result == IDOK)
 		{
 			ShareManager::getInstance()->setDirty();
-			ShareManager::getInstance()->refresh(true);
+			ShareManager::getInstance()->refresh_share(true);
 		}
 		return l_result;
 	}

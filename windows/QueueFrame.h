@@ -215,6 +215,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		{
 			ADD_ITEM,
 			REMOVE_ITEM,
+			REMOVE_ITEM_ARRAY,
 			UPDATE_ITEM,
 			UPDATE_STATUSBAR,//[+]IRainman optimize QueueFrame
 			UPDATE_STATUS
@@ -243,9 +244,13 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				{
 				}
 				
-				void remove()
+				void removeBatch()
 				{
-					QueueManager::getInstance()->remove(getTarget());
+					removeTarget(true);
+				}
+				void removeTarget(bool p_is_batch_remove)
+				{
+					QueueManager::getInstance()->removeTarget(getTarget(), p_is_batch_remove);
 				}
 				
 				// TypedListViewCtrl functions
@@ -452,11 +457,12 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 			else
 				return Util::emptyString;
 		}
-		
+		void removeItem(const string& p_target);
 		void on(QueueManagerListener::Added, const QueueItemPtr& aQI) noexcept override;
 		void on(QueueManagerListener::AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept override;
 		void on(QueueManagerListener::Moved, const QueueItemPtr& aQI, const string& oldTarget) noexcept override;
 		void on(QueueManagerListener::Removed, const QueueItemPtr& aQI) noexcept override;
+		void on(QueueManagerListener::RemovedArray, const std::vector<string>& p_qi_array) noexcept override;
 		void on(QueueManagerListener::SourcesUpdated, const QueueItemPtr& aQI) noexcept override;
 		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI) noexcept override;
 		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.

@@ -91,11 +91,11 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 			public:
 				LockInstanceUsers()
 				{
-					FavoriteManager::getInstance()->g_csUsers->AcquireLockShared();
+					FavoriteManager::g_csFavUsers->AcquireLockShared();
 				}
 				~LockInstanceUsers()
 				{
-					FavoriteManager::getInstance()->g_csUsers->ReleaseLockShared();
+					FavoriteManager::g_csFavUsers->ReleaseLockShared();
 				}
 				const FavoriteMap& getFavoriteUsersL() const
 				{
@@ -209,7 +209,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		
 		static FavoriteHubEntry* getFavoriteHubEntry(const string& aServer);
 		
-		bool isPrivate(const string& p_url) const;
+		static bool isPrivate(const string& p_url);
 // Favorite hub groups
 		// [!] IRainman fix.
 		class LockInstanceHubs
@@ -367,7 +367,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		static FavoriteMap g_fav_users_map;
 		static StringSet   g_fav_users;
 		// [!] IRainman opt: replace one recursive mutex to multiply shared spin locks.
-		static std::unique_ptr<webrtc::RWLockWrapper> g_csUsers; // https://code.google.com/p/flylinkdc/issues/detail?id=1316
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csFavUsers;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csHubs; //
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDirs; //
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csUserCommand;

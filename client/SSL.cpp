@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2016 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,71 @@
  */
 
 #include "stdinc.h"
-#include "ssl.h"
+#include "SSL.h"
 
-#include "Util.h"
+#include "File.h"
 
-#ifdef HEADER_OPENSSLV_H
+#include <vector>
 
 namespace ssl
 {
 
-vector<uint8_t> X509_digest(::X509* x509, const ::EVP_MD* md)
+
+bool SSL_CTX_use_certificate_file(::SSL_CTX* ctx, const char* file, int /*type*/)
+{
+	auto x509 = getX509(file);
+	if (!x509)
+	{
+		return false;
+	}
+	return SSL_CTX_use_certificate(ctx, x509) == SSL_SUCCESS;
+}
+
+bool SSL_CTX_use_PrivateKey_file(::SSL_CTX* ctx, const char* file, int /*type*/)
+{
+	FILE* f = dcpp_fopen(file, "r");
+	if (!f)
+	{
+		return false;
+	}
+	
+	::EVP_PKEY* tmpKey = nullptr;
+	PEM_read_PrivateKey(f, &tmpKey, nullptr, nullptr);
+	fclose(f);
+	
+	if (!tmpKey)
+	{
+		return false;
+	}
+	EVP_PKEY key(tmpKey);
+	
+	return SSL_CTX_use_PrivateKey(ctx, key) == SSL_SUCCESS;
+}
+
+X509 getX509(const char* file)
+{
+	::X509* ret = nullptr;
+	FILE* f = dcpp_fopen(file, "r");
+	if (f)
+	{
+		PEM_read_X509(f, &ret, nullptr, nullptr);
+		fclose(f);
+	}
+	return X509(ret);
+}
+
+ByteVector X509_digest(::X509* x509, const ::EVP_MD* md)
 {
 	unsigned int n;
 	unsigned char buf[EVP_MAX_MD_SIZE];
 	
 	if (!X509_digest(x509, md, buf, &n))
 	{
-		return Util::emptyByteVector; // Throw instead? [!] IRainman opt.
+		return ByteVector(); // Throw instead?
 	}
 	
-	return vector<uint8_t>(buf, buf + n);
+	return ByteVector(buf, buf + n);
 }
 
-}
 
-#endif
+}

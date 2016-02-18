@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -50,6 +50,31 @@
 
 #if defined HAVE_CLOCK_GETTIME || defined HAVE_GETHRTIME
 #include <time.h>
+#endif
+
+#if defined ZMQ_HAVE_OSX
+#include <mach/clock.h>
+#include <mach/mach.h>
+#include <time.h>
+#include <sys/time.h>
+
+int clock_gettime (int clock_id, timespec *ts)
+{
+    // The clock_id specified is not supported on this system.
+    if (clock_id != CLOCK_REALTIME) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    clock_serv_t cclock;
+    mach_timespec_t mts;
+    host_get_clock_service (mach_host_self (), CALENDAR_CLOCK, &cclock);
+    clock_get_time (cclock, &mts);
+    mach_port_deallocate (mach_task_self (), cclock);
+    ts->tv_sec = mts.tv_sec;
+    ts->tv_nsec = mts.tv_nsec;
+    return 0;
+}
 #endif
 
 #ifdef ZMQ_HAVE_WINDOWS
@@ -124,16 +149,16 @@ uint64_t zmq::clock_t::now_us ()
     //  Use POSIX clock_gettime function to get precise monotonic time.
     struct timespec tv;
     int rc = clock_gettime (CLOCK_MONOTONIC, &tv);
-		// Fix case where system has clock_gettime but CLOCK_MONOTONIC is not supported.
-		// This should be a configuration check, but I looked into it and writing an
-		// AC_FUNC_CLOCK_MONOTONIC seems beyond my powers.
-		if( rc != 0) {
-			//  Use POSIX gettimeofday function to get precise time.
-			struct timeval tv;
-			int rc = gettimeofday (&tv, NULL);
-			errno_assert (rc == 0);
-			return (tv.tv_sec * (uint64_t) 1000000 + tv.tv_usec);
-		}
+    // Fix case where system has clock_gettime but CLOCK_MONOTONIC is not supported.
+    // This should be a configuration check, but I looked into it and writing an
+    // AC_FUNC_CLOCK_MONOTONIC seems beyond my powers.
+    if( rc != 0) {
+        //  Use POSIX gettimeofday function to get precise time.
+        struct timeval tv;
+        int rc = gettimeofday (&tv, NULL);
+        errno_assert (rc == 0);
+        return (tv.tv_sec * (uint64_t) 1000000 + tv.tv_usec);
+    }
     return (tv.tv_sec * (uint64_t) 1000000 + tv.tv_nsec / 1000);
 
 #elif defined HAVE_GETHRTIME

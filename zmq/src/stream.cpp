@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -27,6 +27,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "macros.hpp"
 #include "stream.hpp"
 #include "pipe.hpp"
 #include "wire.hpp"
@@ -43,7 +44,7 @@ zmq::stream_t::stream_t (class ctx_t *parent_, uint32_t tid_, int sid_) :
     next_rid (generate_random ())
 {
     options.type = ZMQ_STREAM;
-    options.raw_sock = true;
+    options.raw_socket = true;
 
     prefetched_id.init ();
     prefetched_msg.init ();
@@ -58,8 +59,7 @@ zmq::stream_t::~stream_t ()
 
 void zmq::stream_t::xattach_pipe (pipe_t *pipe_, bool subscribe_to_all_)
 {
-    // subscribe_to_all_ is unused
-    (void)subscribe_to_all_;
+	LIBZMQ_UNUSED(subscribe_to_all_);
 
     zmq_assert (pipe_);
 
@@ -177,6 +177,10 @@ int zmq::stream_t::xsend (msg_t *msg_)
 int zmq::stream_t::xsetsockopt (int option_, const void *optval_,
     size_t optvallen_)
 {
+    bool is_int = (optvallen_ == sizeof (int));
+    int value = 0;
+    if (is_int) memcpy(&value, optval_, sizeof (int));
+
     switch (option_) {
         case ZMQ_CONNECT_RID:
             if (optval_ && optvallen_) {
@@ -184,6 +188,14 @@ int zmq::stream_t::xsetsockopt (int option_, const void *optval_,
                 return 0;
             }
             break;
+
+        case ZMQ_STREAM_NOTIFY:
+            if (is_int && (value == 0 || value == 1)) {
+                options.raw_notify = (value != 0);
+                return 0;
+            }
+            break;
+
         default:
             break;
     }
@@ -216,9 +228,11 @@ int zmq::stream_t::xrecv (msg_t *msg_)
     zmq_assert ((prefetched_msg.flags () & msg_t::more) == 0);
 
     //  We have received a frame with TCP data.
-    //  Rather than sendig this frame, we keep it in prefetched
+    //  Rather than sending this frame, we keep it in prefetched
     //  buffer and send a frame with peer's ID.
     blob_t identity = pipe->get_identity ();
+    rc = msg_->close();
+    errno_assert (rc == 0);
     rc = msg_->init_size (identity.size ());
     errno_assert (rc == 0);
 
@@ -289,14 +303,13 @@ void zmq::stream_t::identify_peer (pipe_t *pipe_)
             connect_rid.length ());
         connect_rid.clear ();
         outpipes_t::iterator it = outpipes.find (identity);
-        if (it != outpipes.end ())
-            zmq_assert(false);
+        zmq_assert (it == outpipes.end ());
     }
     else {
         put_uint32 (buffer + 1, next_rid++);
         identity = blob_t (buffer, sizeof buffer);
         memcpy (options.identity, identity.data (), identity.size ());
-        options.identity_size = identity.size ();
+        options.identity_size = (unsigned char) identity.size ();
     }
     pipe_->set_identity (identity);
     //  Add the record into output pipes lookup table

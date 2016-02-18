@@ -470,8 +470,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		void forEachSelected(void (T::*func)())
 		{
 			CLockRedraw<> l_lock_draw(m_hWnd); // [+] IRainman opt.
-			CFlyLockWindowUpdate l_lockUpdate(m_hWnd);
-			//int n = GetItemCount();
+			//CFlyLockWindowUpdate l_lockUpdate(m_hWnd);
 			int i = -1;
 			while ((i = GetNextItem(i, LVNI_SELECTED)) != -1)
 			{
@@ -480,14 +479,6 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				{
 					(item_data->*func)();
 				}
-				
-				/*const int l_new_count = GetItemCount();
-				if (n != l_new_count)
-				{
-				    n = l_new_count;
-				    --i;
-				}
-				*/
 			}
 		}
 		template<class _Function>

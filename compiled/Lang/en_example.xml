@@ -549,6 +549,7 @@
 	<string name="FlyHubTimes">Times</string>
 	<string name="FlyHubGender">Gender</string>
 	<string name="FlyHubSupportInfo">Support info</string>
+	<string name="FlyVerifyCertFailed">Verify sert failed!</string>
 	<string name="Flyupdate">FlylinkDC++ Updater</string>
 	<string name="FlyupdateCannotupdate">FlylinkDC++ automatic update failed. Please download latest install of FlylinkDC++ and run it manually</string>
 	<string name="FlyupdateCheckupdatebase">Checking FlylinkDC++ update…</string>

@@ -640,7 +640,7 @@ void TransferView::ItemInfo::removeAll()
 	}
 	else
 	{
-		QueueManager::getInstance()->remove(Text::fromT(m_target));
+		QueueManager::getInstance()->removeTarget(Text::fromT(m_target), false);
 	}
 }
 
@@ -1297,7 +1297,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 		{
 			case TRANSFER_ADD_ITEM:
 			{
-				auto &ui = static_cast<UpdateInfo&>(*i->second);
+				const auto &ui = static_cast<UpdateInfo&>(*i->second);
 				onSpeakerAddItem(ui);
 			}
 			break;

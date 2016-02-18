@@ -30,8 +30,8 @@
 class UserCommand;
 
 class ClientManager : public Speaker<ClientManagerListener>,
-	private ClientListener, public Singleton<ClientManager>,
-	private TimerManagerListener
+	private ClientListener, public Singleton<ClientManager>
+	//,private TimerManagerListener
 {
 		friend class SpyFrame;
 	public:
@@ -62,40 +62,15 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static StringList getAntivirusNicks(const CID& cid);
 		static StringList getNicks(const CID& cid, const string& hintUrl, bool priv);
 		static string getStringField(const CID& cid, const string& hintUrl, const char* field); // [!] IRainman fix.
-		static StringList getNicks(const HintedUser& user)
-		{
-			// [!] IRainman fix: Calling this function with an empty by the user is not correct!
-			dcassert(user.user);
-			return getNicks(user.user->getCID(), user.hint);
-		}
-		static StringList getHubNames(const HintedUser& user)
-		{
-			// [!] IRainman fix: Calling this function with an empty by the user is not correct!
-			dcassert(user.user);
-			return getHubNames(user.user->getCID(), user.hint);
-		}
-		
-		// [-] string getConnection(const CID& cid) const; [-] IRainman: deprecated.
-		uint8_t getSlots(const CID& cid) const;
-		
-		static bool isConnected(const string& aUrl)
-		{
-			CFlyReadLock(*g_csClients);
-			return g_clients.find(aUrl) != g_clients.end();
-		}
+		static StringList getNicks(const HintedUser& user);
+		static StringList getHubNames(const HintedUser& user);
+		static bool isConnected(const string& aUrl);
 		Client* findClient(const string& p_Url) const;
-//[+] FlylinkDC
-		static bool isOnline(const UserPtr& aUser)
-		{
-			CFlyReadLock(*g_csOnlineUsers);
-			return g_onlineUsers.find(aUser->getCID()) != g_onlineUsers.end();
-		}
-//[~] FlylinkDC
+		static bool isOnline(const UserPtr& aUser);
+		uint8_t getSlots(const CID& cid) const;
 		void search(const SearchParamOwner& p_search_param);
 		uint64_t multi_search(const SearchParamTokenMultiClient& p_search_param);
-		
 		static void cancelSearch(void* aOwner);
-		
 		static void infoUpdated(bool p_is_force = false);
 		static void infoUpdated(Client* p_client);
 		
@@ -119,25 +94,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			// [!] IRainman: This function need to external lock.
 			return findOnlineUserL(user.user->getCID(), user.hint, priv);
 		}
-		static OnlineUser* findOnlineUserL(const CID& cid, const string& hintUrl, bool priv)
-		{
-			// [!] IRainman: This function need to external lock.
-			OnlinePairC p;
-			OnlineUser* u = findOnlineUserHintL(cid, hintUrl, p);
-			if (u) // found an exact match (CID + hint).
-				return u;
-				
-			if (p.first == p.second) // no user found with the given CID.
-				return nullptr;
-				
-			// if the hint hub is private, don't allow connecting to the same user from another hub.
-			if (priv)
-				return nullptr;
-				
-			// ok, hub not private, return a random user that matches the given CID but not the hint.
-			return p.first->second;
-		}
-		
+		static OnlineUser* findOnlineUserL(const CID& cid, const string& hintUrl, bool priv);
 		static UserPtr findUser(const string& aNick, const string& aHubUrl)
 		{
 			return findUser(makeCid(aNick, aHubUrl));
@@ -155,7 +112,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		void updateNick_internal(const UserPtr& user, const string& nick) noexcept; // [+] IRainman fix.
 	public:
 #endif
-		static const string findMyNick(const string& hubUrl); 
+		static const string findMyNick(const string& hubUrl);
 		
 		// [+] brain-ripper
 		// [+] IRainman fix.
@@ -244,20 +201,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 				
 			return i->second;
 		}
-		//[~]FlylinkDC
-		/* [-] IRainman fix: deprecated.
-		static int64_t getBytesShared(const UserPtr& p) //[+]PPA
-		{
-		    int64_t l_share = 0;
-		    {
-		        CFlyReadLock(*g_csOnlineUsers);
-		        OnlineIterC i = g_onlineUsers.find(p->getCID());
-		        if (i != g_onlineUsers.end())
-		            l_share = i->second->getIdentity().getBytesShared();
-		    }
-		    return l_share;
-		}
-		  [-] IRainman fix */
 		static bool isOp(const UserPtr& aUser, const string& aHubUrl);
 		/** Constructs a synthetic, hopefully unique CID */
 		static CID makeCid(const string& nick, const string& hubUrl);
@@ -341,12 +284,10 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static void checkCheating(const UserPtr& p, DirectoryListing* dl);
 		static void setClientStatus(const UserPtr& p, const string& aCheatString, const int aRawCommand, bool aBadClient);
 		
-// [!] IRainamn fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
 		void setSupports(const UserPtr& p, StringList& aSupports, const uint8_t knownUcSupports);
 		void setUnknownCommand(const UserPtr& p, const string& aUnknownCommand);
 		void reportUser(const HintedUser& user);
 		void setFakeList(const UserPtr& p, const string& aCheatString);
-		///////////////////////
 		
 #ifdef STRONG_USE_DHT
 		static OnlineUserPtr findDHTNode(const CID& cid);
@@ -368,14 +309,14 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			extern bool g_isStartupProcess;
 			g_isStartupProcess = false;
 		}
+		static void flushRatio();
+		static void usersCleanup();
 	private:
 	
-		//mutable CriticalSection cs; [-] IRainman opt.
-		// =================================================
 		typedef std::unordered_map<string, Client*, noCaseStringHash, noCaseStringEq> ClientList;
 		static ClientList g_clients;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csClients; // [+] IRainman opt.
-		// =================================================
+		
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
 # ifdef IRAINMAN_USE_NICKS_IN_CM
 		typedef boost::unordered_map<const CID*, std::string&> NickMap;
@@ -449,7 +390,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		// TODO void on(TTHSearch, Client* aClient, const string& aSeeker, const TTHValue& aTTH, bool isPassive) noexcept override;
 		void on(AdcSearch, const Client* c, const AdcCommand& adc, const CID& from) noexcept override;
 		// TimerManagerListener
-		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
+		// void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
 		
 		/** Indication that the application is being closed */
 		static bool g_isSpyFrame;

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -123,7 +123,7 @@ int zmq::gssapi_server_t::process_handshake_command (msg_t *msg_)
     }
 
     if (security_context_established) {
-     	//  Use ZAP protocol (RFC 27) to authenticate the user.
+        //  Use ZAP protocol (RFC 27) to authenticate the user.
         bool expecting_zap_reply = false;
         int rc = session->zap_connect ();
         if (rc == 0) {

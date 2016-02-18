@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -100,6 +100,7 @@ void zmq::tcp_listener_t::in_event ()
 
     tune_tcp_socket (fd);
     tune_tcp_keepalives (fd, options.tcp_keepalive, options.tcp_keepalive_cnt, options.tcp_keepalive_idle, options.tcp_keepalive_intvl);
+    tune_tcp_retransmit_timeout (fd, options.tcp_retransmit_timeout);
 
     // remember our fd for ZMQ_SRCFD in messages
     socket->set_fd(fd);
@@ -121,7 +122,7 @@ void zmq::tcp_listener_t::in_event ()
     session->inc_seqnum ();
     launch_child (session);
     send_attach (session, engine, false);
-    socket->event_accepted (endpoint, fd);
+    socket->event_accepted (endpoint, (int) fd);
 }
 
 void zmq::tcp_listener_t::close ()
@@ -134,7 +135,7 @@ void zmq::tcp_listener_t::close ()
     int rc = ::close (s);
     errno_assert (rc == 0);
 #endif
-    socket->event_closed (endpoint, s);
+    socket->event_closed (endpoint, (int) s);
     s = retired_fd;
 }
 
@@ -164,6 +165,14 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
     int rc = address.resolve (addr_, true, options.ipv6);
     if (rc != 0)
         return -1;
+
+    address.to_string (endpoint);
+
+    if (options.pre_allocated_fd != -1) {
+        s = options.pre_allocated_fd;
+        socket->event_listening (endpoint, (int) s);
+        return 0;
+    }
 
     //  Create a listening socket.
     s = open_socket (address.family (), SOCK_STREAM, IPPROTO_TCP);
@@ -207,9 +216,9 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
         set_ip_type_of_service (s, options.tos);
 
     //  Set the socket buffer limits for the underlying socket.
-    if (options.sndbuf != 0)
+    if (options.sndbuf >= 0)
         set_tcp_send_buffer (s, options.sndbuf);
-    if (options.rcvbuf != 0)
+    if (options.rcvbuf >= 0)
         set_tcp_receive_buffer (s, options.rcvbuf);
 
     //  Allow reusing of the address.
@@ -222,8 +231,6 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
     rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
     errno_assert (rc == 0);
 #endif
-
-    address.to_string (endpoint);
 
     //  Bind the socket to the network interface and port.
     rc = bind (s, address.addr (), address.addrlen ());
@@ -249,7 +256,7 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
         goto error;
 #endif
 
-    socket->event_listening (endpoint, s);
+    socket->event_listening (endpoint, (int) s);
     return 0;
 
 error:
@@ -277,10 +284,11 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
 
 #ifdef ZMQ_HAVE_WINDOWS
     if (sock == INVALID_SOCKET) {
-        wsa_assert (WSAGetLastError () == WSAEWOULDBLOCK ||
-            WSAGetLastError () == WSAECONNRESET ||
-            WSAGetLastError () == WSAEMFILE ||
-            WSAGetLastError () == WSAENOBUFS);
+		const int last_error = WSAGetLastError();
+        wsa_assert (last_error == WSAEWOULDBLOCK ||
+            last_error == WSAECONNRESET ||
+            last_error == WSAEMFILE ||
+            last_error == WSAENOBUFS);
         return retired_fd;
     }
 #if !defined _WIN32_WCE

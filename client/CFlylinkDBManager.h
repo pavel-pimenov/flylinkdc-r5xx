@@ -412,7 +412,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 		int32_t load_queue();
 		void add_sourceL(const QueueItemPtr& p_QueueItem, const CID& p_cid, const string& p_nick/*, const string& p_hub_hint*/);
-		bool merge_queue_item(QueueItemPtr& p_QueueItem);
+		bool merge_queue_itemL(QueueItemPtr& p_QueueItem);
 		void merge_queue_segmentL(const CFlySegment& p_QueueSegment);
 	private:
 		void merge_queue_sub_itemsL(QueueItemPtr& p_QueueItem, __int64 p_id);
@@ -422,7 +422,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 	public:
 		void merge_queue_all_items(std::vector<QueueItemPtr>& p_QueueItemArray);
 		void merge_queue_all_segments(const CFlySegmentArray& p_QueueSegmentArray);
-		void remove_queue_item(const __int64 p_id);
+		void remove_queue_item_array(std::vector<int64_t> p_id_array);
 		void remove_queue_all_items();
 		void load_ignore(StringSet& p_ignores);
 		void save_ignore(const StringSet& p_ignores);
@@ -790,6 +790,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		size_t  m_count_json_stat;
 		static int32_t g_count_queue_source;
 		static int32_t g_count_queue_files;
-		boost::unordered_map<TTHValue, TigerTree> m_tiger_tree_cache; // http://code.google.com/p/flylinkdc/issues/detail?id=1418
+		boost::unordered_map<TTHValue, TigerTree> m_tiger_tree_cache;
+		FastCriticalSection m_tth_cache_cs;
 };
 #endif

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -29,6 +29,7 @@
 
 #include <new>
 
+#include "macros.hpp"
 #include "io_thread.hpp"
 #include "platform.hpp"
 #include "err.hpp"
@@ -46,7 +47,7 @@ zmq::io_thread_t::io_thread_t (ctx_t *ctx_, uint32_t tid_) :
 
 zmq::io_thread_t::~io_thread_t ()
 {
-    delete poller;
+    LIBZMQ_DELETE(poller);
 }
 
 void zmq::io_thread_t::start ()

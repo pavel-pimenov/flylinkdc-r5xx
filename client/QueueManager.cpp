@@ -44,6 +44,8 @@
 #endif
 
 
+std::unique_ptr<webrtc::RWLockWrapper> QueueManager::FileQueue::g_cs_remove = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+std::vector<int64_t> QueueManager::FileQueue::g_remove_id_array;
 #ifdef FLYLINKDC_USE_RWLOCK
 std::unique_ptr<webrtc::RWLockWrapper> QueueManager::FileQueue::g_csFQ = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 #else
@@ -97,6 +99,7 @@ QueueManager::FileQueue::FileQueue()
 
 QueueManager::FileQueue::~FileQueue()
 {
+	dcassert(g_remove_id_array.empty());
 }
 
 QueueItemPtr QueueManager::FileQueue::add(int64_t p_FlyQueueID,
@@ -198,7 +201,7 @@ void QueueManager::FileQueue::remove_internal(const QueueItemPtr& qi)
 	{
 		if (l_count_tth->second == 1)
 		{
-			g_queue_tth_map.erase(qi->getTTH());
+			g_queue_tth_map.erase(l_count_tth);
 		}
 		else
 		{
@@ -212,14 +215,32 @@ void QueueManager::FileQueue::clearAll()
 	g_queue_tth_map.clear();
 	g_queue.clear();
 }
-
-void QueueManager::FileQueue::remove(const QueueItemPtr& qi) // [!] IRainman fix.
+void QueueManager::FileQueue::removeArray()
+{
+	std::vector<int64_t> l_remove_id_array;
+	{
+		CFlyReadLock(*g_cs_remove);
+		l_remove_id_array.swap(g_remove_id_array);
+	}
+	CFlylinkDBManager::getInstance()->remove_queue_item_array(l_remove_id_array);
+}
+void QueueManager::FileQueue::removeDeferredDB(const QueueItemPtr& qi, bool p_is_batch_remove)
 {
 	remove_internal(qi);
 	const auto l_id = qi->getFlyQueueID();
-	if (l_id) // [!] IRainman fix: FlyQueueID is not set for filelists.
+	if (l_id)
 	{
-		CFlylinkDBManager::getInstance()->remove_queue_item(l_id);
+		if (p_is_batch_remove)
+		{
+			CFlyWriteLock(*g_cs_remove);
+			g_remove_id_array.push_back(l_id);
+		}
+		else
+		{
+			std::vector<int64_t> l_remove_id_array;
+			l_remove_id_array.push_back(l_id);
+			CFlylinkDBManager::getInstance()->remove_queue_item_array(l_remove_id_array);
+		}
 	}
 }
 
@@ -831,6 +852,7 @@ QueueManager::QueueManager() :
 
 QueueManager::~QueueManager() noexcept
 {
+	dcassert(m_remove_target_array.empty());
 	SearchManager::getInstance()->removeListener(this);
 	TimerManager::getInstance()->removeListener(this);
 	ClientManager::getInstance()->removeListener(this);
@@ -1630,7 +1652,7 @@ void QueueManager::move(const string& aSource, const string& aTarget) noexcept
 				}
 			}
 			// [-] delSource = true;
-			remove(aSource); // [+]
+			removeTarget(aSource, false);
 			// [~]
 		}
 	}
@@ -1676,7 +1698,6 @@ void QueueManager::getTargets(const TTHValue& tth, StringList& sl)
 
 DownloadPtr QueueManager::getDownload(UserConnection* aSource, string& aMessage) noexcept
 {
-	// [-] CFlyLock(cs); [-] IRainman fix.
 	const auto l_ip = aSource->getRemoteIp();
 	const auto l_chiper_name = aSource->getCipherName();
 	const UserPtr u = aSource->getUser();
@@ -1684,18 +1705,17 @@ DownloadPtr QueueManager::getDownload(UserConnection* aSource, string& aMessage)
 	QueueItemPtr q;
 	DownloadPtr d;
 	{
-		WLock(*QueueItem::g_cs); // [+] IRainman fix. // TOOD Dead lock [3] https://code.google.com/p/flylinkdc/issues/detail?id=1028
-		//TODO- LOCK ?? QueueManager::LockFileQueueShared l_fileQueue; //[+]PPA
-		
+		WLock(*QueueItem::g_cs);
+
 		q = g_userQueue.getNextL(u, QueueItem::LOWEST, aSource->getChunkSize(), aSource->getSpeed(), true);
-		
+
 		if (!q)
 		{
 			aMessage = g_userQueue.getLastError();
 			dcdebug("none\n");
 			return d;
 		}
-		
+
 		// Check that the file we will be downloading to exists
 		if (q->calcAverageSpeedAndCalcAndGetDownloadedBytesL() > 0)
 		{
@@ -1705,11 +1725,16 @@ DownloadPtr QueueManager::getDownload(UserConnection* aSource, string& aMessage)
 				q->resetDownloaded();
 			}
 		}
-		
+		}
+
+	    // Ќельз€ звать	new Download под локом QueueItem::g_cs
 		d = DownloadPtr(new Download(aSource, q, l_ip, l_chiper_name));
 		aSource->setDownload(d);
-		g_userQueue.addDownloadL(q, d);
-	}
+
+		{
+			WLock(*QueueItem::g_cs);
+			g_userQueue.addDownloadL(q, d);
+		}
 	
 	fire_sources_updated(q);
 	dcdebug("found %s\n", q->getTarget().c_str());
@@ -1930,7 +1955,7 @@ void QueueManager::moveStuckFile(const QueueItemPtr& qi)
 	
 	if (!BOOLSETTING(KEEP_FINISHED_FILES_OPTION))
 	{
-		fire_remove_internal(qi, false);
+		fire_remove_internal(qi, false, false, false);
 	}
 	else
 	{
@@ -1953,7 +1978,13 @@ void QueueManager::fire_sources_updated(const QueueItemPtr& qi)
 		fly_fire1(QueueManagerListener::SourcesUpdated(), qi);
 	}
 }
-
+void QueueManager::fire_removed_array(const StringList& p_target_array)
+{
+	if (!ClientManager::isShutdown())
+	{
+		fly_fire1(QueueManagerListener::RemovedArray(), p_target_array);
+	}
+}
 void QueueManager::fire_removed(const QueueItemPtr& qi)
 {
 	if (!ClientManager::isShutdown())
@@ -2044,7 +2075,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 					flags = q->getFlags() & ~QueueItem::FLAG_PARTIAL_LIST;
 				}
 				
-				fire_remove_internal(q, true, true);
+				fire_remove_internal(q, true, true, false);
 			}
 		}
 		else
@@ -2197,7 +2228,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 							
 							if (!BOOLSETTING(KEEP_FINISHED_FILES_OPTION) || aDownload->getType() == Transfer::TYPE_FULL_LIST)
 							{
-								fire_remove_internal(q, false);
+								fire_remove_internal(q, false, false, false);
 							}
 							else
 							{
@@ -2374,9 +2405,25 @@ void QueueManager::removeAll()
 	g_fileQueue.clearAll();
 	CFlylinkDBManager::getInstance()->remove_queue_all_items();
 }
-void QueueManager::fire_remove_internal(const QueueItemPtr& p_qi, bool p_is_remove_item, bool p_is_force_remove_item)
+void QueueManager::fire_remove_batch()
 {
-	fire_removed(p_qi);
+	StringList l_targets;
+	{
+		CFlyLock(m_cs_target_array);
+		l_targets.swap(m_remove_target_array);
+	}
+	fire_removed_array(l_targets);
+}
+void QueueManager::fire_remove_internal(const QueueItemPtr& p_qi, bool p_is_remove_item, bool p_is_force_remove_item, bool p_is_batch_remove)
+{
+	if (p_is_batch_remove)
+	{
+		CFlyLock(m_cs_target_array);
+		m_remove_target_array.push_back(p_qi->getTarget());
+	}
+	else
+		fire_removed(p_qi);
+		
 	if (p_is_remove_item)
 	{
 		WLock(*QueueItem::g_cs);
@@ -2385,9 +2432,9 @@ void QueueManager::fire_remove_internal(const QueueItemPtr& p_qi, bool p_is_remo
 			g_userQueue.removeQueueItemL(p_qi);
 		}
 	}
-	g_fileQueue.remove(p_qi);
+	g_fileQueue.removeDeferredDB(p_qi, p_is_batch_remove);
 }
-bool QueueManager::remove(const string& aTarget)
+bool QueueManager::removeTarget(const string& aTarget, bool p_is_batch_remove)
 {
 	UserList x;
 	{
@@ -2427,7 +2474,7 @@ bool QueueManager::remove(const string& aTarget)
 			File::deleteFile(l_temp_target);
 		}
 		
-		fire_remove_internal(q, true);
+		fire_remove_internal(q, true, false, p_is_batch_remove);
 		setDirty();
 	}
 	
@@ -2492,7 +2539,7 @@ void QueueManager::removeSource(const string& aTarget, const UserPtr& aUser, Fla
 	}
 	if (removeCompletely)
 	{
-		remove(aTarget);
+		removeTarget(aTarget, false);
 	}
 }
 
@@ -2508,7 +2555,7 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 		{
 			if (qi->isSet(QueueItem::FLAG_USER_LIST))
 			{
-				bool l_is_found = remove(qi->getTarget());
+				bool l_is_found = removeTarget(qi->getTarget(), false);
 				if (l_is_found == false)
 				{
 					break;
@@ -2555,7 +2602,7 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 	}
 	if (!removeRunning.empty())
 	{
-		remove(removeRunning);
+		removeTarget(removeRunning, false);
 	}
 }
 
@@ -2639,53 +2686,50 @@ void QueueManager::saveQueue(bool force) noexcept
 		return;
 		
 	CFlySegmentArray l_segment_array;
+	std::vector<QueueItemPtr> l_items;
 	{
-		RLock(*QueueItem::g_cs); // TODO после исправлени€ дедлока - убрать данную блокировку. https://code.google.com/p/flylinkdc/issues/detail?id=1028
+		RLock(*QueueItem::g_cs);
 		{
+			{
 			RLock(*FileQueue::g_csFQ);
-			std::vector<QueueItemPtr> l_items;
-			l_items.reserve(g_fileQueue.getQueueL().size());
 			for (auto i = g_fileQueue.getQueueL().begin(); i != g_fileQueue.getQueueL().end(); ++i)
 			{
 				auto& qi = i->second;
 				if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 				{
 					if (qi->getFlyQueueID() &&
-					qi->isDirtySegment() == true &&
-					qi->isDirtyBase() == false &&
-					qi->isDirtySource() == false)
+						qi->isDirtySegment() == true &&
+						qi->isDirtyBase() == false &&
+						qi->isDirtySource() == false)
 					{
-					
+
 						const CFlySegment l_QueueSegment(qi);
 						l_segment_array.push_back(l_QueueSegment);
 						qi->setDirtySegment(false); // —читаем что обновление сегментов пройдет без ошибок.
 					}
 					else if (qi->isDirtyAll())
 					{
-#ifdef _DEBUG
-						const auto& l_first = i->first;
-						LogManager::message("merge_queue_item(qi) getFlyQueueID = " + Util::toString(qi->getFlyQueueID()) + " *l_first = " + l_first);
-#endif
 						l_items.push_back(qi);
 					}
 				}
 			}
-			if (!l_items.empty())
+			}
+		}
+		if (!l_items.empty())
+		{
+			if (l_items.size() > 50)
 			{
-				if (l_items.size() > 50)
-				{
-					CFlyLog l_log("[Save queue to SQLite]");
-					l_log.log("Store: " + Util::toString(l_items.size()) + " items...");
-					CFlylinkDBManager::getInstance()->merge_queue_all_items(l_items);
-				}
-				else
-				{
+				CFlyLog l_log("[Save queue to SQLite]");
+				l_log.log("Store: " + Util::toString(l_items.size()) + " items...");
+				CFlylinkDBManager::getInstance()->merge_queue_all_items(l_items);
+			}
+			else
+			{
 #ifdef _DEBUG
-					CFlyLog l_log("[Save small! queue to SQLite]");
-					l_log.log("Store small: " + Util::toString(l_items.size()) + " items...");
+				CFlyLog l_log("[Save small! queue to SQLite]");
+				l_log.log("Store small: " + Util::toString(l_items.size()) + " items...");
 #endif
-					CFlylinkDBManager::getInstance()->merge_queue_all_items(l_items);
-				}
+				CFlylinkDBManager::getInstance()->merge_queue_all_items(l_items);
 			}
 		}
 	}

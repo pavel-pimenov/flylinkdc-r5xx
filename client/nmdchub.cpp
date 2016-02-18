@@ -1536,6 +1536,7 @@ void NmdcHub::opListParse(const string& param)
 				OnlineUserPtr ou = getUser(*it, false, false);
 				if (ou)
 				{
+					ou->getUser()->setFlag(User::IS_OPERATOR);
 					ou->getIdentity().setOp(true);
 					v.push_back(ou);
 				}
@@ -2688,6 +2689,7 @@ void NmdcHub::myInfoParse(const string& param)
 	i = j + 1;
 	
 	OnlineUserPtr ou = getUser(l_nick, false, m_bLastMyInfoCommand == DIDNT_GET_YET_FIRST_MYINFO); // При первом коннекте исключаем поиск
+	ou->getUser()->setFlag(User::IS_MYINFO);
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 	string l_my_info_before_change;
 	if (ou->m_raw_myinfo != param)

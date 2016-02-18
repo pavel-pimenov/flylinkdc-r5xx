@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -39,11 +39,12 @@
 #include "command.hpp"
 #include "ypipe.hpp"
 #include "mutex.hpp"
+#include "i_mailbox.hpp"
 
 namespace zmq
 {
 
-    class mailbox_t
+    class mailbox_t : public i_mailbox
     {
     public:
 

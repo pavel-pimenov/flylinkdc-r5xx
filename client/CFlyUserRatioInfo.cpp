@@ -42,12 +42,13 @@ bool CFlyUserRatioInfo::flushRatioL()
 	if (is_dirty() && m_user->getHubID() && !m_user->m_nick.empty()
 	        && CFlylinkDBManager::isValidInstance()) // fix https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=86337
 	{
+		bool l_is_sql_not_found = m_user->isSet(User::IS_SQL_NOT_FOUND);
 		CFlylinkDBManager::getInstance()->store_all_ratio_and_last_ip(m_user->getHubID(), m_user->m_nick, m_ip_map_ptr, get_message_count(), m_user->getLastIPfromRAM(),
-		                                                              is_message_dirty() || m_user->is_last_ip_dirty(),
-		                                                              m_user->m_is_sql_not_found);
+		                                                              is_message_dirty() || m_user->isSet(User::IS_LAST_IP_DIRTY), l_is_sql_not_found);
+		m_user->setFlag(User::IS_SQL_NOT_FOUND, l_is_sql_not_found);
 		set_dirty(false);
 		reset_message_dirty();
-		m_user->m_is_last_ip_dirty = false;
+		m_user->unsetFlag(User::IS_LAST_IP_DIRTY);
 		return true;
 	}
 	return false;

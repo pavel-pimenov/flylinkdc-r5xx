@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
 
     This file is part of libzmq, the ZeroMQ core engine in C++.
 
@@ -51,15 +51,23 @@ namespace zmq
     //  T is the type of the object in the queue.
     //  N is granularity of the queue (how many pushes have to be done till
     //  actual memory allocation is required).
-
+#ifdef HAVE_POSIX_MEMALIGN
+    // ALIGN is the memory alignment size to use in the case where we have
+    // posix_memalign available. Default value is 64, this alignment will
+    // prevent two queue chunks from occupying the same CPU cache line on
+    // architectures where cache lines are <= 64 bytes (e.g. most things
+    // except POWER).
+    template <typename T, int N, size_t ALIGN = 64> class yqueue_t
+#else
     template <typename T, int N> class yqueue_t
+#endif
     {
     public:
 
         //  Create the queue.
         inline yqueue_t ()
         {
-             begin_chunk = (chunk_t*) malloc (sizeof (chunk_t));
+             begin_chunk = allocate_chunk();
              alloc_assert (begin_chunk);
              begin_pos = 0;
              back_chunk = NULL;
@@ -113,7 +121,7 @@ namespace zmq
                 end_chunk->next = sc;
                 sc->prev = end_chunk;
             } else {
-                end_chunk->next = (chunk_t*) malloc (sizeof (chunk_t));
+                end_chunk->next = allocate_chunk();
                 alloc_assert (end_chunk->next);
                 end_chunk->next->prev = end_chunk;
             }
@@ -178,6 +186,18 @@ namespace zmq
              chunk_t *prev;
              chunk_t *next;
         };
+
+        inline chunk_t *allocate_chunk ()
+        {
+#ifdef HAVE_POSIX_MEMALIGN
+                void *pv;
+                if (posix_memalign(&pv, ALIGN, sizeof (chunk_t)) == 0)
+                    return (chunk_t*) pv;
+                return NULL;
+#else
+                return (chunk_t*) malloc (sizeof (chunk_t));
+#endif
+        }
 
         //  Back position may point to invalid memory if the queue is empty,
         //  while begin & end positions are always valid. Begin position is
