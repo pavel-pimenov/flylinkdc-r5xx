@@ -664,10 +664,10 @@ struct ShareLoader : public SimpleXMLReader::CallBack
 					const string& l_video = getAttrib(p_attribs, g_SMVideo, 3);
 					if (!l_audio.empty() || !l_video.empty())
 					{
-						auto l_media_ptr = std::make_shared<CFlyMediaInfo>(CFlyMediaInfo(getAttrib(p_attribs, g_SWH, 3),
+						auto l_media_ptr = std::make_shared<CFlyMediaInfo>(getAttrib(p_attribs, g_SWH, 3),
 						                                                                 atoi(getAttrib(p_attribs, g_SBR, 4).c_str()),
 						                                                                 l_audio,
-						                                                                 l_video));
+						                                                                 l_video);
 						l_media_ptr->calcEscape();
 						f->initMediainfo(l_media_ptr);
 					}

@@ -41,8 +41,8 @@ boost::unordered_set<UserConnection*> ConnectionManager::g_userConnections;
 boost::unordered_map<string, ConnectionManager::CFlyTickTTH> ConnectionManager::g_duplicate_search_tth;
 boost::unordered_map<string, ConnectionManager::CFlyTickFile> ConnectionManager::g_duplicate_search_file;
 boost::unordered_set<string> ConnectionManager::g_ddos_ctm2hub;
-ConnectionQueueItem::List ConnectionManager::g_downloads;
-ConnectionQueueItem::List ConnectionManager::g_uploads;
+std::set<ConnectionQueueItemPtr> ConnectionManager::g_downloads; // TODO - сделать поиск по User?
+std::set<ConnectionQueueItemPtr> ConnectionManager::g_uploads; // TODO - сделать поиск по User?
 
 string TokenManager::makeToken() noexcept
 {
@@ -112,12 +112,8 @@ ConnectionManager::~ConnectionManager()
 {
 	dcassert(m_shuttingDown == true);
 	dcassert(g_userConnections.empty());
-	//shutdown();
-	
-	// [!] http://code.google.com/p/flylinkdc/issues/detail?id=1037
 	dcassert(g_downloads.empty());
 	dcassert(g_uploads.empty());
-	// [~]
 }
 
 void ConnectionManager::start_tcp_tls_listener()
@@ -183,7 +179,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 {
 	dcassert(aUser);
 	dcassert(!ClientManager::isShutdown());
-	ConnectionQueueItem* l_cqi = nullptr;
+	ConnectionQueueItemPtr l_cqi;
 	if (!ClientManager::isShutdown())
 	{
 		{
@@ -213,39 +209,38 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 	}
 }
 
-ConnectionQueueItem* ConnectionManager::getCQI_L(const HintedUser& aHintedUser, bool download, const string& aToken)
+ConnectionQueueItemPtr ConnectionManager::getCQI_L(const HintedUser& aHintedUser, bool download, const string& aToken)
 {
-	ConnectionQueueItem* cqi = new ConnectionQueueItem(aHintedUser, download, !aToken.empty() ? aToken : m_tokens.makeToken());
+	ConnectionQueueItemPtr cqi(new ConnectionQueueItem(aHintedUser, download, !aToken.empty() ? aToken : m_tokens.makeToken()));
 	if (download)
 	{
 		dcassert(find(g_downloads.begin(), g_downloads.end(), aHintedUser) == g_downloads.end());
-		g_downloads.push_back(cqi);
+		g_downloads.insert(cqi);
 	}
 	else
 	{
 		dcassert(find(g_uploads.begin(), g_uploads.end(), aHintedUser) == g_uploads.end());
-		g_uploads.push_back(cqi);
+		g_uploads.insert(cqi);
 	}
 	
 	return cqi;
 }
 
-void ConnectionManager::putCQI_L(ConnectionQueueItem* cqi)
+void ConnectionManager::putCQI_L(ConnectionQueueItemPtr cqi)
 {
 	if (cqi->isDownload())
 	{
-		g_downloads.erase_and_check(cqi);
+		g_downloads.erase(cqi);
 	}
 	else
 	{
 		UploadManager::removeDelayUpload(cqi->getUser());
-		g_uploads.erase_and_check(cqi);
+		g_uploads.erase(cqi);
 	}
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	cqi->getUser()->flushRatio(); //[+]PPA branches-dev/ppa/issue-1035
 #endif
 	m_tokens.removeToken(cqi->getConnectionQueueToken());
-	delete cqi;
 }
 
 #if 0
@@ -299,7 +294,6 @@ void ConnectionManager::on(ClientManagerListener::UserDisconnected, const UserPt
 
 void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 {
-	//dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
 		bool l_is_download = false;
@@ -308,8 +302,8 @@ void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 			CFlyReadLock(*g_csDownloads);
 			for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 			{
-				ConnectionQueueItem* cqi = *i;
-				if (cqi->getUser() == aUser)
+				ConnectionQueueItemPtr cqi = *i;
+				if ((*i)->getUser() == aUser)
 				{
 					l_is_download = true;
 					break;
@@ -320,7 +314,7 @@ void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 			CFlyReadLock(*g_csUploads);
 			for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 			{
-				ConnectionQueueItem* cqi = *i;
+				ConnectionQueueItemPtr cqi = *i;
 				if (cqi->getUser() == aUser)
 				{
 					l_is_upload = true;
@@ -351,7 +345,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 		cleanupDuplicateSearchFile(aTick);
 	}
 	
-	ConnectionQueueItem::List l_removed;
+	std::vector<ConnectionQueueItemPtr> l_removed;
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 	UserList l_idlers;
 #endif
@@ -365,7 +359,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 #endif
 		for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 		{
-			ConnectionQueueItem* cqi = *i;
+			ConnectionQueueItemPtr cqi = *i;
 			if (cqi->getState() != ConnectionQueueItem::ACTIVE) // crash - https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=44111
 			{
 				if (!cqi->getUser()->isOnline())
@@ -1232,7 +1226,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 		CFlyReadLock(*g_csDownloads);
 		for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 		{
-			ConnectionQueueItem* cqi = *i;
+			ConnectionQueueItemPtr cqi = *i;
 			cqi->setErrors(0);
 			if ((cqi->getState() == ConnectionQueueItem::CONNECTING || cqi->getState() == ConnectionQueueItem::WAITING) &&
 			        cqi->getUser()->getCID() == cid)
@@ -1346,33 +1340,18 @@ void ConnectionManager::on(UserConnectionListener::Direction, UserConnection* aS
 	aSource->setState(UserConnection::STATE_KEY);
 }
 
-void ConnectionManager::setIP(UserConnection* p_uc, ConnectionQueueItem* p_qi)
+void ConnectionManager::setIP(UserConnection* p_conn, const ConnectionQueueItemPtr& p_qi)
 {
-	dcassert(p_uc->getUser());
+	dcassert(p_conn->getUser());
 	dcassert(p_qi);
-	dcassert(p_uc);
-	/* [!] Неотображаются IP адреса у юзеров, подробнее спрашивать у Тёмы. Нужен рефакторинг!
-	#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-	if (!p_qi->getUser()->getLastNick().empty())
-	{
-	    // TODO Так бывает пока не понял как - срабатывает if (aLine[0] == 'C' && !isSet(FLAG_NMDC))
-	    // L: это нормальное состояние если юзер ушёл в оффлайн! Необходимо уже давно отвязать статистику от ника, и использовать CID!!!
-	    const string& l_ip = p_uc->getSocket()->getIp();
-	    p_uc->getUser()->setIP(l_ip);
-	}
-	#else // PPA_INCLUDE_LASTIP_AND_USER_RATIO
-	*/
-	
-	p_uc->getUser()->setIP(p_uc->getSocket()->getIp(), true);
-	
-	
-//#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+	dcassert(p_conn);
+	p_conn->getUser()->setIP(p_conn->getSocket()->getIp(), true);
 }
 
 void ConnectionManager::addDownloadConnection(UserConnection* p_conn)
 {
 	dcassert(p_conn->isSet(UserConnection::FLAG_DOWNLOAD));
-	ConnectionQueueItem* cqi = nullptr;
+	ConnectionQueueItemPtr cqi;
 	{
 		CFlyReadLock(*g_csDownloads);
 		
@@ -1418,7 +1397,7 @@ void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 	}
 #endif
 	
-	ConnectionQueueItem* l_cqi = nullptr;
+	ConnectionQueueItemPtr l_cqi;
 	{
 		CFlyWriteLock(*g_csUploads);
 		
@@ -1657,22 +1636,18 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 			dcassert(i != g_downloads.end());
 			if (i == g_downloads.end())
 			{
+				dcassert(0);
 				CFlyServerJSON::pushError(5, "ConnectionManager::failed (i == g_downloads.end()) aError = " + aError);
 			}
 			else
 			{
-				ConnectionQueueItem* cqi = *i;
+				ConnectionQueueItemPtr cqi = *i;
 				l_user = cqi->getUser();
 				cqi->setState(ConnectionQueueItem::WAITING);
 				cqi->setLastAttempt(GET_TICK());
 				cqi->setErrors(protocolError ? -1 : (cqi->getErrors() + 1));
 				l_error_download = make_pair(cqi->getUser(), aError);
-				if (isShuttingDown()) // TODO
-				{
-					putCQI_L(cqi); // Удалять всегда нельзя - только при разрушении
-					// (Closed issue 983) https://code.google.com/p/flylinkdc/issues/detail?id=983 Бесконечные подключения для скачки файл-листа
-					// TODO - Найти более другое решение бага
-				}
+				putCQI_L(cqi);
 			}
 		}
 		else if (aSource->isSet(UserConnection::FLAG_UPLOAD))
@@ -1687,7 +1662,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 				}
 				else
 				{
-					ConnectionQueueItem* cqi = *i;
+					ConnectionQueueItemPtr cqi = *i;
 					l_user = cqi->getUser();
 					putCQI_L(cqi);
 				}
@@ -1786,18 +1761,13 @@ void ConnectionManager::shutdown()
 		Thread::sleep(10);
 	}
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-	// TODO: please fix me: this code is not valid! downloads and uploads is empty!
-	// [!] http://code.google.com/p/flylinkdc/issues/detail?id=1037
-	//dcassert(downloads.empty());
-	//dcassert(uploads.empty());
-	// [~]
 	// Сбрасываем рейтинг в базу пока не нашли причину почему тут остаются записи.
 	{
 		{
 			CFlyReadLock(*g_csDownloads);
 			for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 			{
-				ConnectionQueueItem* cqi = *i;
+				ConnectionQueueItemPtr cqi = *i;
 				cqi->getUser()->flushRatio();
 			}
 		}
@@ -1805,12 +1775,14 @@ void ConnectionManager::shutdown()
 			CFlyReadLock(*g_csUploads);
 			for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 			{
-				ConnectionQueueItem* cqi = *i;
+				ConnectionQueueItemPtr cqi = *i;
 				cqi->getUser()->flushRatio();
 			}
 		}
 	}
 #endif
+	g_downloads.clear();
+	g_uploads.clear();
 }
 
 // UserConnectionListener

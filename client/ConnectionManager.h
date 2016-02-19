@@ -55,9 +55,7 @@ class ConnectionQueueItem
 #endif
 {
 	public:
-		typedef ConnectionQueueItem* Ptr;
-		typedef FlyLinkVector<Ptr> List;
-		
+	
 		enum State
 		{
 			CONNECTING,                 // Recently sent request to connect
@@ -115,6 +113,8 @@ class ConnectionQueueItem
 		const HintedUser m_hinted_user;
 		const bool m_is_download;
 };
+
+typedef std::shared_ptr<ConnectionQueueItem> ConnectionQueueItemPtr;
 
 class ExpectedMap
 {
@@ -185,7 +185,7 @@ class ExpectedMap
 };
 
 // Comparing with a user...
-inline bool operator==(const ConnectionQueueItem::Ptr ptr, const UserPtr& aUser)
+inline bool operator==(const ConnectionQueueItemPtr& ptr, const UserPtr& aUser)
 {
 	return ptr->getUser() == aUser;
 }
@@ -285,8 +285,8 @@ class ConnectionManager :
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csFileFilter;
 		
 		/** All ConnectionQueueItems */
-		static ConnectionQueueItem::List g_downloads;
-		static ConnectionQueueItem::List g_uploads;
+		static std::set<ConnectionQueueItemPtr> g_downloads;
+		static std::set<ConnectionQueueItemPtr> g_uploads;
 		
 		/** All active connections */
 		static boost::unordered_set<UserConnection*> g_userConnections;
@@ -361,7 +361,7 @@ class ConnectionManager :
 		
 		~ConnectionManager();
 		
-		static void setIP(UserConnection* p_conn, ConnectionQueueItem* p_qi); // [+]PPA
+		static void setIP(UserConnection* p_conn, const ConnectionQueueItemPtr& p_qi);
 		UserConnection* getConnection(bool aNmdc, bool secure) noexcept;
 		void putConnection(UserConnection* p_conn);
 		void deleteConnection(UserConnection* p_conn)
@@ -373,8 +373,8 @@ class ConnectionManager :
 		void addUploadConnection(UserConnection* p_conn);
 		void addDownloadConnection(UserConnection* p_conn);
 		
-		ConnectionQueueItem* getCQI_L(const HintedUser& aHintedUser, bool download, const string& aToken);
-		void putCQI_L(ConnectionQueueItem* cqi);
+		ConnectionQueueItemPtr getCQI_L(const HintedUser& aHintedUser, bool download, const string& aToken);
+		void putCQI_L(ConnectionQueueItemPtr cqi);
 		
 		void accept(const Socket& sock, bool secure, Server* p_server) noexcept;
 		

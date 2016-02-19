@@ -594,7 +594,7 @@ void CompatibilityManager::generateSystemInfoForApp()
 	}
 	g_startupInfo += "\r\n\r\n";
 	
-	g_startupInfo.shrink_to_fit();
+	// g_startupInfo.shrink_to_fit(); // странно падение https://drdump.com/DumpGroup.aspx?DumpGroupID=464486
 }
 
 LONG CompatibilityManager::getComCtlVersionFromOS()

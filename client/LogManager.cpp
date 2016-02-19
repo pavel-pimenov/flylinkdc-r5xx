@@ -82,10 +82,14 @@ void LogManager::init()
 	g_isInit = true;
 	
 	if (!CompatibilityManager::getStartupInfo().empty())
+	{
 		message(CompatibilityManager::getStartupInfo());
+	}
 		
-	if (CompatibilityManager::isIncompatibleSoftwareFound()) //[+]IRainman http://code.google.com/p/flylinkdc/issues/detail?id=574
+	if (CompatibilityManager::isIncompatibleSoftwareFound())
+	{
 		message(CompatibilityManager::getIncompatibleSoftwareMessage());
+	}
 }
 
 LogManager::LogManager()

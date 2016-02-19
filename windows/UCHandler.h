@@ -84,9 +84,7 @@ class UCHandler
 						}
 					if (l_is_add_responses)
 					{
-//#ifdef OLD_MENU_HEADER //[~]JhaoDa
 						menu.AppendMenu(MF_SEPARATOR);
-//#endif
 						menu.AppendMenu(MF_STRING, IDC_GET_USER_RESPONSES, CTSTRING(GET_USER_RESPONSES));
 						menu.AppendMenu(MF_STRING, IDC_REPORT, CTSTRING(REPORT));
 #ifdef IRAINMAN_INCLUDE_USER_CHECK

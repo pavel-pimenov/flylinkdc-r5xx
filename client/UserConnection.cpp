@@ -325,9 +325,9 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		if (getUser() && aLine.length() < 255)
 			ClientManager::getInstance()->setUnknownCommand(getUser(), aLine);
 			
-		dcdebug("Unknown NMDC command: %.50s\n", aLine.c_str());
+		dcdebug("UserConnection Unknown NMDC command: %.50s\n", aLine.c_str());
 #ifdef FLYLINKDC_BETA
-		string l_log = "Unknown NMDC command: = " + aLine + " hub = " + getHubUrl() + " remote IP = " + getRemoteIpPort();
+		string l_log = "UserConnection:: Unknown NMDC command: = " + aLine + " hub = " + getHubUrl() + " remote IP = " + getRemoteIpPort();
 		if (getHintedUser().user)
 		{
 			l_log += " Nick = " + getHintedUser().user->getLastNick();

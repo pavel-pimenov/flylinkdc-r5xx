@@ -31,7 +31,6 @@
 STANDARD_EXCEPTION(QueueException);
 
 class UserConnection;
-class ConnectionQueueItem;
 class QueueLoader;
 class DirectoryItem;
 typedef DirectoryItem* DirectoryItemPtr;

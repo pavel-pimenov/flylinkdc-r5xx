@@ -237,26 +237,13 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	
 	usercmdsMenu.CreatePopupMenu();
 	
-	/*
-	transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)previewMenu, CTSTRING(PREVIEW_MENU));
-	transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)usercmdsMenu, CTSTRING(SETTINGS_USER_COMMANDS));
-	transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyMenu, CTSTRING(COPY)); // !SMT!-UI
-	transferMenu.AppendMenu(MF_SEPARATOR);
-	#ifdef PPA_INCLUDE_DROP_SLOW
-	transferMenu.AppendMenu(MF_STRING, IDC_MENU_SLOWDISCONNECT, CTSTRING(SETCZDC_DISCONNECTING_ENABLE));
-	transferMenu.AppendMenu(MF_SEPARATOR);
-	#endif
-	transferMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(CLOSE_CONNECTION));
-	transferMenu.SetMenuDefaultItem(IDC_PRIVATEMESSAGE);
-	*/
-	
 	segmentedMenu.CreatePopupMenu();
 	segmentedMenu.AppendMenu(MF_STRING, IDC_SEARCH_ALTERNATES, CTSTRING(SEARCH_FOR_ALTERNATES));
 	appendPreviewItems(segmentedMenu);
 #ifdef PPA_INCLUDE_DROP_SLOW
 	segmentedMenu.AppendMenu(MF_STRING, IDC_MENU_SLOWDISCONNECT, CTSTRING(SETCZDC_DISCONNECTING_ENABLE));
 #endif
-	segmentedMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyMenu, CTSTRING(COPY)); // !SMT!-UI
+	segmentedMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyMenu, CTSTRING(COPY_USER_INFO)); // !SMT!-UI
 #ifdef PPA_INCLUDE_ASK_SLOT
 	segmentedMenu.AppendMenu(MF_STRING, IDC_ASK_SLOT, CTSTRING(ASK_SLOT)); // !SMT!-UI
 #endif
@@ -2335,7 +2322,7 @@ LRESULT TransferView::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
 				else
 					l_data += L"\r\n" + l_sdata;
 			}
-			//===============================================================================
+			else
 			if (columnId >= COLUMN_FIRST && columnId < COLUMN_LAST)
 			{
 				l_data += l_ii->getText(columnId);

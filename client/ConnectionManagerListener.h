@@ -22,8 +22,6 @@
 #if !defined(CONNECTION_MANAGER_LISTENER_H)
 #define CONNECTION_MANAGER_LISTENER_H
 
-class ConnectionQueueItem;
-
 class ConnectionManagerListener
 {
 	public:
@@ -51,7 +49,7 @@ class ConnectionManagerListener
 		
 		virtual void on(Added, const UserPtr& p_user, bool p_is_download) noexcept { }
 #ifdef FLYLINKDC_USE_CONNECTED_EVENT
-		virtual void on(Connected, const ConnectionQueueItem*) noexcept { }
+		virtual void on(Connected, const ConnectionQueueItemPtr&) noexcept { }
 #endif
 		virtual void on(Removed, const UserPtr& p_user, bool p_is_download) noexcept { }
 		virtual void on(FailedDownload, const UserPtr& p_user, const string&) noexcept { }
@@ -61,7 +59,7 @@ class ConnectionManagerListener
 #endif
 		virtual void on(UserUpdated, const UserPtr& p_user, bool p_is_download) noexcept { }
 #ifdef FLYLINKDC_USE_FORCE_CONNECTION
-		virtual void on(Forced, const ConnectionQueueItem*) noexcept { }
+		virtual void on(Forced, const ConnectionQueueItemPtr&) noexcept { }
 #endif
 		
 };

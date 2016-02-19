@@ -1248,7 +1248,7 @@ void ClientManager::createMe(const string& cid, const string& nick)
 	TigerHash l_tiger;
 	l_tiger.update(g_pid.data(), CID::SIZE);
 	const CID l_myCID = CID(l_tiger.finalize());
-	g_me = std::make_shared<User>(User(l_myCID));
+	g_me = std::make_shared<User>(l_myCID);
 	
 	
 #ifndef _DEBUG
@@ -1262,7 +1262,7 @@ void ClientManager::createMe(const string& cid, const string& nick)
 	}
 #endif
 	
-	g_uflylinkdc = std::make_shared<User>(User(g_pid));
+	g_uflylinkdc = std::make_shared<User>(g_pid);
 	
 	g_iflylinkdc.setSID(AdcCommand::HUB_SID);
 #ifdef IRAINMAN_USE_HIDDEN_USERS

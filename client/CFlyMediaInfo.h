@@ -26,6 +26,9 @@ struct CFlyServerCache
 };
 #endif
 class CFlyMediaInfo
+#ifdef _DEBUG
+	//: public boost::noncopyable
+#endif
 {
 	public:
 		struct ExtItem
@@ -65,6 +68,13 @@ class CFlyMediaInfo
 		{
 			init(p_WH, p_bitrate);
 		}
+#ifdef _DEBUG
+		~CFlyMediaInfo()
+		{
+			int a = 0;
+			a++;
+		}
+#endif
 		void calcEscape()
 		{
 			m_is_need_escape = SimpleXML::needsEscapeForce(m_audio) || SimpleXML::needsEscapeForce(m_video);

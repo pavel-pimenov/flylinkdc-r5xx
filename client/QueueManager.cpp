@@ -373,14 +373,16 @@ bool QueueManager::UserQueue::userIsDownloadedFiles(const UserPtr& aUser, QueueI
 #ifdef FLYLINKDC_USE_USER_QUEUE_CS
 	Lock CFlyReadLock(*g_userQueueMapCS);
 #endif
-	for (size_t i = 0; i < QueueItem::LAST; ++i)
+	for (size_t i = 0; i < QueueItem::LAST && !ClientManager::isShutdown(); ++i)
 	{
 		const auto j = g_userQueueMap[i].find(aUser);
 		if (j != g_userQueueMap[i].end())
 		{
 			p_status_update_array.insert(p_status_update_array.end(), j->second.cbegin(), j->second.cend()); // Без лока?
 			if (i != QueueItem::PAUSED)
+			{
 				hasDown = true;
+			}
 		}
 	}
 	return hasDown;
@@ -1706,16 +1708,16 @@ DownloadPtr QueueManager::getDownload(UserConnection* aSource, string& aMessage)
 	DownloadPtr d;
 	{
 		WLock(*QueueItem::g_cs);
-
+		
 		q = g_userQueue.getNextL(u, QueueItem::LOWEST, aSource->getChunkSize(), aSource->getSpeed(), true);
-
+		
 		if (!q)
 		{
 			aMessage = g_userQueue.getLastError();
 			dcdebug("none\n");
 			return d;
 		}
-
+		
 		// Check that the file we will be downloading to exists
 		if (q->calcAverageSpeedAndCalcAndGetDownloadedBytesL() > 0)
 		{
@@ -1725,16 +1727,16 @@ DownloadPtr QueueManager::getDownload(UserConnection* aSource, string& aMessage)
 				q->resetDownloaded();
 			}
 		}
-		}
-
-	    // Нельзя звать	new Download под локом QueueItem::g_cs
-		d = DownloadPtr(new Download(aSource, q, l_ip, l_chiper_name));
-		aSource->setDownload(d);
-
-		{
-			WLock(*QueueItem::g_cs);
-			g_userQueue.addDownloadL(q, d);
-		}
+	}
+	
+	// Нельзя звать new Download под локом QueueItem::g_cs
+	d = DownloadPtr(new Download(aSource, q, l_ip, l_chiper_name));
+	aSource->setDownload(d);
+	
+	{
+		WLock(*QueueItem::g_cs);
+		g_userQueue.addDownloadL(q, d);
+	}
 	
 	fire_sources_updated(q);
 	dcdebug("found %s\n", q->getTarget().c_str());
@@ -2691,28 +2693,28 @@ void QueueManager::saveQueue(bool force) noexcept
 		RLock(*QueueItem::g_cs);
 		{
 			{
-			RLock(*FileQueue::g_csFQ);
-			for (auto i = g_fileQueue.getQueueL().begin(); i != g_fileQueue.getQueueL().end(); ++i)
-			{
-				auto& qi = i->second;
-				if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
+				RLock(*FileQueue::g_csFQ);
+				for (auto i = g_fileQueue.getQueueL().begin(); i != g_fileQueue.getQueueL().end(); ++i)
 				{
-					if (qi->getFlyQueueID() &&
+					auto& qi = i->second;
+					if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
+					{
+						if (qi->getFlyQueueID() &&
 						qi->isDirtySegment() == true &&
 						qi->isDirtyBase() == false &&
 						qi->isDirtySource() == false)
-					{
-
-						const CFlySegment l_QueueSegment(qi);
-						l_segment_array.push_back(l_QueueSegment);
-						qi->setDirtySegment(false); // Считаем что обновление сегментов пройдет без ошибок.
-					}
-					else if (qi->isDirtyAll())
-					{
-						l_items.push_back(qi);
+						{
+						
+							const CFlySegment l_QueueSegment(qi);
+							l_segment_array.push_back(l_QueueSegment);
+							qi->setDirtySegment(false); // Считаем что обновление сегментов пройдет без ошибок.
+						}
+						else if (qi->isDirtyAll())
+						{
+							l_items.push_back(qi);
+						}
 					}
 				}
-			}
 			}
 		}
 		if (!l_items.empty())
@@ -3063,12 +3065,11 @@ void QueueManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aU
 		}
 	}
 #else
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	QueueItemList l_status_update_array;
+	g_userQueue.userIsDownloadedFiles(aUser, l_status_update_array);
+	if (!l_status_update_array.empty())
 	{
-		QueueItemList l_status_update_array;
-		g_userQueue.userIsDownloadedFiles(aUser, l_status_update_array);
-		if (!l_status_update_array.empty())
+		if (!ClientManager::isShutdown())
 		{
 			fly_fire1(QueueManagerListener::StatusUpdatedList(), l_status_update_array); // [!] IRainman opt.
 		}
@@ -3253,8 +3254,8 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 				si = qi->findSourceL(aUser);
 				si->second.setFlag(QueueItem::Source::FLAG_PARTIAL);
 				
-				const auto ps = std::make_shared<QueueItem::PartialSource>(QueueItem::PartialSource(partialSource.getMyNick(),
-				                                                           partialSource.getHubIpPort(), partialSource.getIp(), partialSource.getUdpPort()));
+				const auto ps = std::make_shared<QueueItem::PartialSource>(partialSource.getMyNick(),
+				                                                           partialSource.getHubIpPort(), partialSource.getIp(), partialSource.getUdpPort());
 				si->second.setPartialSource(ps);
 				
 				g_userQueue.addL(qi, aUser, false);

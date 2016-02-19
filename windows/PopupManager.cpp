@@ -27,7 +27,10 @@
 void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bool preview /*= false*/)
 {
 	dcassert(ClientManager::isStartup() == false);
-	if (ClientManager::isStartup() == true)
+	dcassert(ClientManager::isShutdown() == false);
+	if (ClientManager::isShutdown())
+		return;
+	if (ClientManager::isStartup())
 		return;
 		
 	if (!m_is_activated)
@@ -130,9 +133,9 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 
 void PopupManager::on(TimerManagerListener::Second /*type*/, uint64_t tick) noexcept
 {
-	// TODO - подписаться позже. dcassert(!ClientManager::isStartup());
 	dcassert(WinUtil::g_mainWnd);
-	if (WinUtil::g_mainWnd)
+	dcassert(ClientManager::isShutdown() == false);
+	if (WinUtil::g_mainWnd && !ClientManager::isShutdown())
 	{
 		::PostMessage(WinUtil::g_mainWnd, WM_SPEAKER, MainFrame::REMOVE_POPUP, (LPARAM)tick); // [!] IRainman opt.
 	}
@@ -194,15 +197,16 @@ void PopupManager::Remove(uint32_t pos)
 	//nothing to do
 	if (m_popups.empty())
 		return;
-		
-	CRect rc;
-	
-	//move down all windows
-	for (; i != m_popups.cend(); ++i)
+	if (!ClientManager::isShutdown())
 	{
-		(*i)->GetWindowRect(rc);
-		rc.top += height;
-		rc.bottom += height;
-		(*i)->MoveWindow(rc);
+		CRect rc;
+		//move down all windows
+		for (; i != m_popups.cend(); ++i)
+		{
+			(*i)->GetWindowRect(rc);
+			rc.top += height;
+			rc.bottom += height;
+			(*i)->MoveWindow(rc);
+		}
 	}
 }

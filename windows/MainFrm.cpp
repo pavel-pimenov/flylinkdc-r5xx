@@ -1591,7 +1591,9 @@ void MainFrame::updateQuickSearches(bool p_clean /*= false*/)
 		}
 	}
 	if (BOOLSETTING(CLEAR_SEARCH))
+	{
 		QuickSearchBox.SetWindowText(CTSTRING(QSEARCH_STR));
+	}
 }
 
 void MainFrame::getTaskbarState(int p_code /* = 0*/)    // MainFrm: The event handler TaskBar Button Color in ONE FUNCTION
@@ -1657,24 +1659,16 @@ LRESULT MainFrame::onSpeakerAutoConnect(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 
 LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
-	if (wParam != REMOVE_POPUP && wParam != PARSE_COMMAND_LINE && wParam != STATUS_MESSAGE)
-	{
-#ifdef IRAINMAN_INCLUDE_SMILE
-		dcassert(!CGDIImage::isShutdown());
-#endif
-		dcassert(ClientManager::isStartup() == false);
-		if (m_closing)
-		{
-			dcdebug("MainFrame::onSpeaker and m_closing  wParam = %d\r\n", int(wParam));
-			return 0; // Выходим если уже закрываемся (иначе проскакивет спик от REMOVE_POPUP)
-		}
-	}
 	if (wParam == MAIN_STATS)
 	{
 		auto_ptr<TStringList> pstr(reinterpret_cast<TStringList*>(lParam));
 		if (--g_CountSTATS)
 		{
 			return 0; // [+] PPA Исключем лишнее обновление статусной строки и таскбара.
+		}
+		if (ClientManager::isShutdown() || ClientManager::isStartup())
+		{
+			return 0;
 		}
 		getTaskbarState();
 		
@@ -1806,19 +1800,12 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 				m_count_status_change++;
 			}
 		}
-		
-#ifdef IRAINMAN_FAST_FLAT_TAB
-		if (!u)
-		{
-			// - не понял зачем оно нужно m_count_tab_change++;
-		}
-#endif
 	}
 	else if (wParam == STATUS_MESSAGE)
 	{
 		LogManager::g_isLogSpeakerEnabled = true;
-		string* msg = (string*)lParam; // [!] IRainman opt
-		if (!m_closing && m_ctrlStatus.IsWindow())
+		string* msg = (string*)lParam;
+		if (!ClientManager::isShutdown() && !m_closing && m_ctrlStatus.IsWindow())
 		{
 			const tstring line = Text::toT(Util::formatDigitalClock("[%H:%M:%S] ", GET_TIME(), false) + *msg);
 			m_ctrlStatus.SetText(STATUS_PART_MESSAGE, line.c_str());
@@ -1842,22 +1829,33 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	else if (wParam == DOWNLOAD_LISTING)
 	{
 		auto_ptr<QueueManager::DirectoryListInfo> i(reinterpret_cast<QueueManager::DirectoryListInfo*>(lParam));
-		DirectoryListingFrame::openWindow(Text::toT(i->file), Text::toT(i->dir), i->m_hintedUser, i->speed, i->isDCLST);
+		if (!ClientManager::isShutdown())
+		{
+			DirectoryListingFrame::openWindow(Text::toT(i->file), Text::toT(i->dir), i->m_hintedUser, i->speed, i->isDCLST);
+		}
 	}
 	else if (wParam == BROWSE_LISTING)
 	{
 		auto_ptr<DirectoryBrowseInfo> i(reinterpret_cast<DirectoryBrowseInfo*>(lParam));
-		DirectoryListingFrame::openWindow(i->m_hinted_user, i->text, 0);
+		if (!ClientManager::isShutdown())
+		{
+			DirectoryListingFrame::openWindow(i->m_hinted_user, i->text, 0);
+		}
 	}
 	else if (wParam == VIEW_FILE_AND_DELETE)
 	{
 		auto_ptr<tstring> file(reinterpret_cast<tstring*>(lParam));
-		if (BOOLSETTING(EXTERNAL_PREVIEW)) // !SMT!-UI
-			ShellExecute(NULL, NULL, file->c_str(), NULL, NULL, SW_SHOW); // !SMT!-UI
-		else
+		if (!ClientManager::isShutdown())
 		{
-			TextFrame::openWindow(*file);
-			File::deleteFileT(*file);
+			if (BOOLSETTING(EXTERNAL_PREVIEW)) // !SMT!-UI
+			{
+				ShellExecute(NULL, NULL, file->c_str(), NULL, NULL, SW_SHOW); // !SMT!-UI
+			}
+			else
+			{
+				TextFrame::openWindow(*file);
+				File::deleteFileT(*file);
+			}
 		}
 	}
 	else if (wParam == PARSE_COMMAND_LINE)
@@ -1867,10 +1865,13 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	else if (wParam == SHOW_POPUP_MESSAGE)
 	{
 		Popup* msg = (Popup*)lParam;
-		dcassert(PopupManager::isValidInstance());
-		if (PopupManager::isValidInstance())
+		if (!ClientManager::isShutdown())
 		{
-			PopupManager::getInstance()->Show(msg->Message, msg->Title, msg->Icon);
+			dcassert(PopupManager::isValidInstance());
+			if (PopupManager::isValidInstance())
+			{
+				PopupManager::getInstance()->Show(msg->Message, msg->Title, msg->Icon);
+			}
 		}
 		delete msg;
 	}
@@ -1884,15 +1885,18 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	}
 	else if (wParam == SET_PM_TRAY_ICON) // Установка иконки о получении сообщения.
 	{
-		if (m_bIsPM == false && (!WinUtil::g_isAppActive || g_bAppMinimized)) // [!] InfinitySky. Будет лучше менять иконку при получении сообщения всегда, если эта иконка не установлена и если окно не активно (как в Skype).
+		if (!ClientManager::isShutdown())
 		{
-			m_bIsPM = true; // Иконка о получении лички установлена.
-			
-			if (m_taskbarList) // [+] InfinitySky. Если есть поддержка системой taskbarList.
-				m_taskbarList->SetOverlayIcon(m_hWnd, *m_pmicon, NULL); // Устанавливается мини-иконка на панели задач о получении сообщения.
+			if (m_bIsPM == false && (!WinUtil::g_isAppActive || g_bAppMinimized)) // [!] InfinitySky. Будет лучше менять иконку при получении сообщения всегда, если эта иконка не установлена и если окно не активно (как в Skype).
+			{
+				m_bIsPM = true; // Иконка о получении лички установлена.
 				
-			if (m_bTrayIcon == true)
-				setIcon(*m_pmicon);
+				if (m_taskbarList) // [+] InfinitySky. Если есть поддержка системой taskbarList.
+					m_taskbarList->SetOverlayIcon(m_hWnd, *m_pmicon, NULL); // Устанавливается мини-иконка на панели задач о получении сообщения.
+					
+				if (m_bTrayIcon == true)
+					setIcon(*m_pmicon);
+			}
 		}
 	}
 	else if (wParam == WM_CLOSE)
@@ -1902,6 +1906,10 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 		{
 			PopupManager::getInstance()->Remove((int)lParam);
 		}
+	}
+	else
+	{
+		dcassert(0);
 	}
 	return 0;
 }
@@ -3300,9 +3308,9 @@ LRESULT MainFrame::onAppShow(WORD /*wNotifyCode*/, WORD /*wParam*/, HWND, BOOL& 
 void MainFrame::ShowBalloonTip(LPCTSTR szMsg, LPCTSTR szTitle, DWORD dwInfoFlags)
 {
 	dcassert(PopupManager::isValidInstance());
-	dcassert(!CGDIImage::isShutdown());
+	dcassert(!ClientManager::isShutdown());
 	dcassert(getMainFrame());
-	if (getMainFrame() && !CGDIImage::isShutdown() && PopupManager::isValidInstance())
+	if (getMainFrame() && !ClientManager::isShutdown() && PopupManager::isValidInstance())
 	{
 		Popup* p = new Popup;
 		p->Title = szTitle;
