@@ -491,9 +491,12 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 		{
 			if (next != m_fileLists)
 			{
-				string* stmp = reinterpret_cast<string*>(ctrlDirs.GetItemData(next));
-				if (strnicmp(*stmp, dir, 3) == 0)
-					break;
+				const string* stmp = reinterpret_cast<string*>(ctrlDirs.GetItemData(next));
+				if (stmp)
+				{
+					if (strnicmp(*stmp, dir, 3) == 0)
+						break;
+				}
 			}
 			next = ctrlDirs.GetNextSiblingItem(next);
 		}
@@ -523,7 +526,7 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 		
 		// Ok, next now points to x:\... find how much is common
 		
-		const string* rootStr = (string*)ctrlDirs.GetItemData(next);
+		const string* rootStr = reinterpret_cast<string*>(ctrlDirs.GetItemData(next));
 		
 		i = 0;
 		if (rootStr)
@@ -730,12 +733,15 @@ void QueueFrame::on(QueueManagerListener::Tick, const QueueItemList& p_list) noe
 	}
 }
 
-void QueueFrame::on(QueueManagerListener::SourcesUpdated, const QueueItemPtr& aQI) noexcept
+void QueueFrame::on(QueueManagerListener::TargetsUpdated, const StringList& p_targets) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		m_tasks.add(UPDATE_ITEM, new UpdateTask(aQI->getTarget()));
+		for (auto i = p_targets.cbegin(); i != p_targets.cend(); ++i)
+		{
+			m_tasks.add(UPDATE_ITEM, new UpdateTask(*i));
+		}
 	}
 }
 void QueueFrame::on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI) noexcept
@@ -783,7 +789,7 @@ void QueueFrame::removeItem(const string& p_target)
 	dcassert(queueItems >= 0);
 	
 	dcassert(m_closed == false);
-	const auto& i = m_directories.equal_range(ii->getPath());
+	const auto i = m_directories.equal_range(ii->getPath());
 	DirectoryIter j;
 	for (j = i.first; j != i.second; ++j)
 	{
@@ -960,8 +966,9 @@ void QueueFrame::removeSelectedDir()
 			{
 				QueueManager::getInstance()->removeTarget(*i, true);
 			}
-			QueueManager::getInstance()->fire_remove_batch();
 			m_tmp_target_to_delete.clear();
+			QueueManager::FileQueue::removeArray();
+			QueueManager::getInstance()->fire_remove_batch();
 			// [+] NightOrion
 			
 			// Let's update the setting unchecked box means we bug user again...
@@ -1034,13 +1041,20 @@ void QueueFrame::moveDir(HTREEITEM ht, const string& target)
 		next = ctrlDirs.GetNextSiblingItem(next);
 	}
 	
-	string* s = (string*)ctrlDirs.GetItemData(ht);
+	const string* s = reinterpret_cast<string*>(ctrlDirs.GetItemData(ht));
 	
-	DirectoryPairC p = m_directories.equal_range(*s);
-	
-	for (auto i = p.first; i != p.second; ++i)
+	if (s)
 	{
-		m_move_temp_array.push_back(TempMovePair(i->second, target));
+		const auto p = m_directories.equal_range(*s);
+		
+		for (auto i = p.first; i != p.second; ++i)
+		{
+			m_move_temp_array.push_back(TempMovePair(i->second, target));
+		}
+	}
+	else
+	{
+		dcassert(0);
 	}
 }
 
@@ -1689,7 +1703,7 @@ void QueueFrame::removeDir(HTREEITEM ht)
 		child = ctrlDirs.GetNextSiblingItem(child);
 	}
 	const string& name = getDir(ht);
-	DirectoryPairC dp = m_directories.equal_range(name);
+	const auto dp = m_directories.equal_range(name);
 //	StringList l_tmp_target; // [-] NightOrion bugfix deleting folder from queue
 	for (auto i = dp.first; i != dp.second; ++i)
 	{
@@ -1759,7 +1773,7 @@ void QueueFrame::setPriority(HTREEITEM ht, const QueueItem::Priority& p)
 		child = ctrlDirs.GetNextSiblingItem(child);
 	}
 	const string& name = getDir(ht);
-	DirectoryPairC dp = m_directories.equal_range(name);
+	const auto dp = m_directories.equal_range(name);
 	for (auto i = dp.first; i != dp.second; ++i)
 	{
 		// TODO - двойное обращение к менеджеру - склеить вместе
@@ -1781,7 +1795,7 @@ void QueueFrame::setAutoPriority(HTREEITEM ht, const bool& ap)
 		child = ctrlDirs.GetNextSiblingItem(child);
 	}
 	const string& name = getDir(ht);
-	DirectoryPairC dp = m_directories.equal_range(name);
+	const auto dp = m_directories.equal_range(name);
 	for (auto i = dp.first; i != dp.second; ++i)
 	{
 		QueueManager::getInstance()->setAutoPriority(i->second->getTarget(), ap);
@@ -2043,13 +2057,22 @@ void QueueFrame::updateQueue()
 
 void QueueFrame::clearTree(HTREEITEM item)
 {
-	HTREEITEM next = ctrlDirs.GetChildItem(item);
-	while (next != NULL)
+	dcassert(ctrlDirs.IsWindow());
+	if (ctrlDirs.IsWindow())
 	{
-		clearTree(next);
-		next = ctrlDirs.GetNextSiblingItem(next);
+		HTREEITEM next = ctrlDirs.GetChildItem(item);
+		while (next != NULL)
+		{
+			clearTree(next);
+			next = ctrlDirs.GetNextSiblingItem(next);
+		}
+		dcassert(ctrlDirs.IsWindow());
+		if (ctrlDirs.IsWindow())
+		{
+			delete reinterpret_cast<string*>(ctrlDirs.GetItemData(item));
+			ctrlDirs.SetItemData(item, NULL); // fix https://drdump.com/Problem.aspx?ProblemID=191000
+		}
 	}
-	delete reinterpret_cast<string*>(ctrlDirs.GetItemData(item));
 }
 
 // Put it here to avoid a copy for each recursion...

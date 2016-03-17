@@ -76,7 +76,7 @@ class CID
 		{
 			return Encoder::toBase32(cid, sizeof(cid), tmp);
 		}
-
+		
 		size_t toHash() const
 		{
 			// RVO should handle this as efficiently as reinterpret_cast version
@@ -84,7 +84,7 @@ class CID
 			memcpy(&cidHash, cid, sizeof(size_t)); //-V512
 			return cidHash;
 		}
-
+		
 		const uint8_t* data() const
 		{
 			return cid;
@@ -111,14 +111,14 @@ class CID
 #ifdef FLYLINKDC_USE_STD_HASHMAP_FOR_CID
 namespace std
 {
-	template<>
-	struct hash<CID>
+template<>
+struct hash<CID>
+{
+	size_t operator()(const CID& rhs) const
 	{
-		size_t operator()(const CID& rhs) const
-		{
-			return rhs.toHash(); // [!] IRainman fix.
-		}
-	};
+		return rhs.toHash(); // [!] IRainman fix.
+	}
+};
 }
 #endif
 /*
@@ -130,14 +130,14 @@ std::size_t operator()(T const&) const;
 */
 namespace boost
 {
-	template<>
-	struct hash<CID>
+template<>
+struct hash<CID>
+{
+	size_t operator()(const CID& rhs) const
 	{
-		size_t operator()(const CID& rhs) const
-		{
-			return rhs.toHash();
-		}
-	};
+		return rhs.toHash();
+	}
+};
 }
 
 

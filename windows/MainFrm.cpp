@@ -228,20 +228,27 @@ unsigned int WINAPI MainFrame::stopper(void* p)
 	MainFrame* mf = (MainFrame*)p;
 	HWND wnd = nullptr;
 	HWND wnd2 = nullptr;
-	boost::unordered_set<HWND> l_wm_close_message;
-	while ((wnd =::GetWindow(mf->m_hWndMDIClient, GW_CHILD)) != NULL)
+	boost::unordered_map<HWND, int> l_wm_close_message;
+	while (mf->m_hWndMDIClient && (wnd =::GetWindow(mf->m_hWndMDIClient, GW_CHILD)) != NULL)
 	{
+		auto& l_result = l_wm_close_message[wnd];
+		++l_result;
 		if (wnd == wnd2)
 		{
 #ifdef _DEBUG
-			// LogManager::message("MainFrame::stopper Sleep(10) wnd = " + Util::toString(int(wnd)));
+			LogManager::message("MainFrame::stopper Sleep(10) wnd = " + Util::toString(int(wnd)));
 #endif
 			Sleep(10);
+			if (l_result > 1000)
+			{
+				//dcassert(0);
+				LogManager::message("MainFrame::stopper Sleep(10) wnd = " + Util::toString(int(wnd)) + " count > 1000!");
+				//break;
+			}
 		}
 		else
 		{
-			auto l_result = l_wm_close_message.insert(wnd);
-			if (l_result.second == false)
+			if (l_result > 1)
 			{
 				LogManager::message("MainFrame::stopper duplicate ::PostMessage wnd = " + Util::toString(int(wnd)));
 				dcassert(0);
@@ -1804,7 +1811,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	else if (wParam == STATUS_MESSAGE)
 	{
 		LogManager::g_isLogSpeakerEnabled = true;
-		string* msg = (string*)lParam;
+		string* msg = reinterpret_cast<string*>(lParam);
 		if (!ClientManager::isShutdown() && !m_closing && m_ctrlStatus.IsWindow())
 		{
 			const tstring line = Text::toT(Util::formatDigitalClock("[%H:%M:%S] ", GET_TIME(), false) + *msg);

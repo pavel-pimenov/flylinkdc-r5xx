@@ -198,9 +198,10 @@ void AdcHub::putUser(const uint32_t aSID, bool p_is_disconnect)
 		const auto& i = m_users.find(aSID);
 		if (i == m_users.end())
 			return;
+		auto l_bytes_shared = i->second->getIdentity().getBytesShared();
 		ou = i->second;
 		m_users.erase(i);
-		decBytesSharedL(ou->getIdentity());
+		decBytesSharedL(l_bytes_shared);
 	}
 	
 	if (aSID != AdcCommand::HUB_SID)
@@ -282,6 +283,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 		else
 		{
 			ou = getUser(c.getFrom(), l_CID);
+			ou->getUser()->setFlag(User::IS_MYINFO);
 		}
 	}
 	else if (c.getFrom() == AdcCommand::HUB_SID)
@@ -293,6 +295,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 #ifdef IRAINMAN_USE_HIDDEN_USERS
 		ou->getIdentity().setHidden();
 #endif
+		ou->getUser()->setFlag(User::IS_MYINFO);
 	}
 	else
 	{
@@ -307,6 +310,8 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 	auto& id = ou->getIdentity();
 	auto& u = ou->getUser();
 	PROFILE_THREAD_SCOPED_DESC("getParameters")
+	string l_ip4;
+	string l_ip6;
 	for (auto i = c.getParameters().cbegin(); i != c.getParameters().cend(); ++i)
 	{
 		if (i->length() < 2)
@@ -345,9 +350,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 			}
 			case TAG('I', '4'):
 			{
-				const string l_ip4 = i->substr(2);
-				dcassert(!l_ip4.empty());
-				id.setIp(l_ip4);
+				l_ip4 = i->substr(2);
 				break;
 			}
 			case TAG('U', '4'):
@@ -357,8 +360,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 			}
 			case TAG('I', '6'):
 			{
-				id.setIP6(i->substr(2));
-				id.setUseIP6();
+				l_ip6 = i->substr(2);
 				break;
 			}
 			case TAG('U', '6'):
@@ -452,6 +454,16 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 			}
 		}
 	}
+	if (!l_ip4.empty())
+	{
+		id.setIp(l_ip4);
+	}
+	if (!l_ip6.empty())
+	{
+		id.setIP6(l_ip6);
+		id.setUseIP6();
+	}
+	
 	if (isMe(ou)) // [!] IRainman fix.
 	{
 		state = STATE_NORMAL;
@@ -787,7 +799,7 @@ void AdcHub::sendUDP(const AdcCommand& cmd) noexcept
 			dcdebug("AdcHub::sendUDP: invalid user\n");
 			return;
 		}
-		OnlineUser* ou = i->second; // [!] IRainman fix: add pointer
+		const OnlineUser* ou = i->second; // [!] IRainman fix: add pointer
 		if (!ou->getIdentity().isUdpActive())
 		{
 			return;

@@ -40,7 +40,7 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 	m_HubURL(p_HubURL),
 	m_port(0),
 	m_separator(p_separator),
-	m_secure(p_is_secure),
+	m_is_secure_connect(p_is_secure),
 	m_countType(COUNT_UNCOUNTED),
 	m_availableBytes(0),
 	m_isChangeAvailableBytes(false),
@@ -381,7 +381,7 @@ void Client::connect()
 		             m_client_sock->addListener(this);
 		             m_client_sock->connect(m_address,
 		                                    m_port,
-		                                    m_secure,
+		                                    m_is_secure_connect,
 		                                    BOOLSETTING(ALLOW_UNTRUSTED_HUBS),
 		                                    true);
 		             dcdebug("Client::connect() %p\n", (void*)this);
@@ -425,7 +425,7 @@ void Client::send(const char* aMessage, size_t aLen)
 	}
 	             if (!CompatibilityManager::isWine())
 	{
-		COMMAND_DEBUG(aMessage, DebugTask::HUB_OUT, getIpPort());
+		COMMAND_DEBUG(toUtf8(aMessage), DebugTask::HUB_OUT, getIpPort());
 	}
 }
 
@@ -581,12 +581,12 @@ void Client::clearAvailableBytesL()
 	m_isChangeAvailableBytes = true;
 	m_availableBytes = 0;
 }
-void Client::decBytesSharedL(Identity& p_id)
+void Client::decBytesSharedL(int64_t p_bytes_shared)
 {
 	//dcdrun(const auto l_oldSum = m_availableBytes);
 	//dcassert(l_oldSum >= 0);
-	const auto l_old = p_id.getBytesShared();
-	//dcassert(l_old >= 0);
+	const auto l_old = p_bytes_shared;
+	dcassert(l_old >= 0);
 	m_availableBytes -= l_old;
 	m_isChangeAvailableBytes = l_old != 0;
 }
@@ -600,7 +600,7 @@ bool Client::changeBytesSharedL(Identity& p_id, const int64_t p_bytes)
 	m_isChangeAvailableBytes = p_bytes != l_old;
 	if (m_isChangeAvailableBytes)
 	{
-		//dcassert(l_old >= 0);
+		dcassert(l_old >= 0);
 		m_availableBytes -= l_old;
 		p_id.setBytesShared(p_bytes);
 		m_availableBytes += p_bytes;

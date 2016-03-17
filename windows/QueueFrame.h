@@ -453,7 +453,16 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		{
 			dcassert(ht != NULL);
 			if (ht)
-				return *reinterpret_cast<string*>(ctrlDirs.GetItemData(ht));
+			{
+				const auto l_str = reinterpret_cast<string*>(ctrlDirs.GetItemData(ht));
+				if (l_str)
+					return *l_str;
+				else
+				{
+					dcassert(0);
+					return Util::emptyString;
+				}
+			}
 			else
 				return Util::emptyString;
 		}
@@ -463,7 +472,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		void on(QueueManagerListener::Moved, const QueueItemPtr& aQI, const string& oldTarget) noexcept override;
 		void on(QueueManagerListener::Removed, const QueueItemPtr& aQI) noexcept override;
 		void on(QueueManagerListener::RemovedArray, const std::vector<string>& p_qi_array) noexcept override;
-		void on(QueueManagerListener::SourcesUpdated, const QueueItemPtr& aQI) noexcept override;
+		void on(QueueManagerListener::TargetsUpdated, const StringList& p_targets) noexcept override;
 		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI) noexcept override;
 		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.
 		void on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.

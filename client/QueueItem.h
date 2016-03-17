@@ -330,7 +330,6 @@ class QueueItem : public Flags
 		bool removeDownloadL(const UserPtr& p_user);
 		size_t getDownloadsSegmentCount() const
 		{
-			// RLock(*QueueItem::g_cs);
 			return m_downloads.size();
 		}
 		
@@ -360,9 +359,18 @@ class QueueItem : public Flags
 		}
 		bool isWaitingL() const
 		{
-			// TODO https://code.google.com/p/flylinkdc/issues/detail?id=1081
 			return m_downloads.empty();
 		}
+		/*
+		        bool isFailed() const
+		        {
+		            return m_is_failed;
+		        }
+		        void setFailed(bool p_is_failed)
+		        {
+		            m_is_failed = p_is_failed;
+		        }
+		*/
 		
 		string getListName() const;
 		const string& getTempTarget();
@@ -378,6 +386,7 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		bool m_dirty;
 		bool m_dirty_source;
 		bool m_dirty_segment;
+//		bool m_is_failed;
 		uint64_t m_block_size;
 		void calcBlockSize();
 	public:

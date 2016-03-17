@@ -77,7 +77,7 @@ ShareManager::DirList ShareManager::g_list_directories;
 BloomFilter<5> ShareManager::g_bloom(1 << 20);
 
 ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
-	xmlDirty(true), forceXmlRefresh(false), refreshDirs(false), update(false), m_listN(0), m_count_sec(0),
+	xmlDirty(true), forceXmlRefresh(false), refreshDirs(false), update(false), m_listN(0), m_count_sec(11),
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 	m_sweep_guard(false),
 #endif
@@ -665,9 +665,9 @@ struct ShareLoader : public SimpleXMLReader::CallBack
 					if (!l_audio.empty() || !l_video.empty())
 					{
 						auto l_media_ptr = std::make_shared<CFlyMediaInfo>(getAttrib(p_attribs, g_SWH, 3),
-						                                                                 atoi(getAttrib(p_attribs, g_SBR, 4).c_str()),
-						                                                                 l_audio,
-						                                                                 l_video);
+						                                                   atoi(getAttrib(p_attribs, g_SBR, 4).c_str()),
+						                                                   l_audio,
+						                                                   l_video);
 						l_media_ptr->calcEscape();
 						f->initMediainfo(l_media_ptr);
 					}
@@ -2910,6 +2910,9 @@ void ShareManager::on(TimerManagerListener::Minute, uint64_t tick) noexcept
 	}
 	internalCalcShareSize(); // [+]IRainman opt.
 	internalClearCache(false);
+#ifdef _DEBUG
+	ClientManager::flushRatio(5000);
+#endif
 }
 
 void ShareManager::internalClearCache(bool p_is_force)

@@ -254,6 +254,9 @@ void ChatCtrl::restore_chat_cache()
 //================================================================================================================================
 void ChatCtrl::insertAndFormat(const tstring & text, CHARFORMAT2 cf, bool p_is_disable_style, LONG& p_begin, LONG& p_end)
 {
+	dcassert(!ClientManager::isShutdown());
+	if (ClientManager::isShutdown())
+		return;
 	dcassert(!text.empty());
 	if (!text.empty())
 	{
@@ -470,6 +473,8 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 {
 	// const tstring& sAuthor, const bool bMyMess, const bool bRealUser, const CHARFORMAT2& cf
 	dcassert(!ClientManager::isShutdown());
+	if (ClientManager::isShutdown())
+		return;
 	PARAFORMAT2 pf;
 	memzero(&pf, sizeof(PARAFORMAT2));
 	pf.dwMask = PFM_STARTINDENT;

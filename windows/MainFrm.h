@@ -828,7 +828,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 				unsigned m_MinuteElapsed;
 				int run()
 				{
-					ClientManager::flushRatio();
+					ClientManager::flushRatio(5000);
 					ClientManager::usersCleanup();
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 					bool l_is_error = CFlyServerJSON::sendDownloadCounter(m_is_sync_run == true);

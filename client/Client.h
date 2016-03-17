@@ -108,7 +108,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		std::unique_ptr<webrtc::RWLockWrapper> m_cs;
 		void fire_user_updated(const OnlineUserList& p_list);
 		void clearAvailableBytesL();
-		void decBytesSharedL(Identity& p_id);
+		void decBytesSharedL(int64_t p_bytes_shared);
 		bool changeBytesSharedL(Identity& p_id, const int64_t p_bytes);
 	public:
 		bool isChangeAvailableBytes() const
@@ -322,11 +322,64 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			return 0;
 		}
-		
 		virtual const string getHubUrl() const
 		{
 			return m_HubURL;
 		}
+		string toUtf8IfNeeded(const string& str) const
+		{
+			return Text::validateUtf8(str) ? str : Text::toUtf8(str, getEncoding());
+		}
+		// don't convert to UTF-8 if string is already in this encoding
+		string toUtf8IfNeededMyINFO(const string& str) const
+		{
+			/*$ALL */
+			return Text::validateUtf8(str, 4) ? str : Text::toUtf8(str, getEncoding());
+		}
+		string fromUtf8(const string& str) const
+		{
+			return Text::fromUtf8(str, getEncoding());
+		}
+#ifdef IRAINMAN_USE_UNICODE_IN_NMDC
+		string toUtf8(const string& str) const
+		{
+			string out;
+			string::size_type i = 0;
+			while (true)
+			{
+				auto f = str.find_first_of("\n\r" /* "\n\r\t:<>[] |" */, i);
+				if (f == string::npos)
+				{
+					out += toUtf8IfNeeded(str.substr(i));
+					break;
+				}
+				else
+				{
+					++f;
+					out += toUtf8IfNeeded(str.substr(i, f - i));
+					i = f;
+				}
+			};
+			return out;
+		}
+		const string& fromUtf8Chat(const string& str) const
+		{
+			return str;
+		}
+#else
+		string toUtf8(const string& str) const
+		{
+			return toUtf8IfNeeded(str);
+		}
+		string toUtf8MyINFO(const string& str) const
+		{
+			return toUtf8IfNeededMyINFO(str);
+		}
+		string fromUtf8Chat(const string& str) const
+		{
+			return fromUtf8(str);
+		}
+#endif
 		
 		bool NmdcPartialSearch(const SearchParam& p_search_param);
 		
@@ -589,10 +642,13 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		// [~] IRainman fix.
 		
 		const char m_separator;
-		bool m_secure;
+		bool m_is_secure_connect;
 		CountType m_countType;
 	public:
-	
+		bool isSecureConnect() const
+		{
+			return m_is_secure_connect;
+		}
 		bool isInOperatorList(const string& userName) const;
 		unsigned getVirusBotCount() const
 		{

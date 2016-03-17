@@ -100,6 +100,7 @@ QueueManager::FileQueue::FileQueue()
 QueueManager::FileQueue::~FileQueue()
 {
 	dcassert(g_remove_id_array.empty());
+	//dcassert(g_queue_tth_map.empty());
 }
 
 QueueItemPtr QueueManager::FileQueue::add(int64_t p_FlyQueueID,
@@ -550,7 +551,6 @@ size_t QueueManager::FileQueue::getRunningFileCount(const size_t p_stop_key)
 		// 2  при добавлении к g_queue +1 (если m_queue.download заполнена)
 		// 2. при добавлении в g_queue.download +1
 		// 3. при опустошении g_queue.download -1
-		
 	}
 	return l_cnt;
 }
@@ -572,7 +572,9 @@ void QueueManager::FileQueue::calcPriorityAndGetRunningFilesL(QueueItem::Priorit
 				{
 					const QueueItem::Priority p2 = q->calculateAutoPriority();
 					if (p1 != p2)
+					{
 						p_changedPriority.push_back(make_pair(q->getTarget(), p2));
+					}
 				}
 			}
 		}
@@ -854,6 +856,7 @@ QueueManager::QueueManager() :
 
 QueueManager::~QueueManager() noexcept
 {
+	dcassert(m_fire_src_array.empty());
 	dcassert(m_remove_target_array.empty());
 	SearchManager::getInstance()->removeListener(this);
 	TimerManager::getInstance()->removeListener(this);
@@ -1442,7 +1445,7 @@ void QueueManager::addDirectory(const string& aDir, const UserPtr& aUser, const 
 
 QueueItem::Priority QueueManager::hasDownload(const UserPtr& aUser)
 {
-	WLock(*QueueItem::g_cs); // [!] IRainman fix.
+	RLock(*QueueItem::g_cs);
 	QueueItemPtr qi = g_userQueue.getNextL(aUser, QueueItem::LOWEST);
 	if (!qi)
 	{
@@ -1487,7 +1490,7 @@ int QueueManager::matchListing(const DirectoryListing& dl) noexcept
 		{
 			WLock(*QueueItem::g_cs);
 			{
-				RLock(*g_fileQueue.g_csFQ);
+				RLock(*FileQueue::g_csFQ);
 				// [~] IRainman fix.
 				for (auto i = g_fileQueue.getQueueL().cbegin(); i != g_fileQueue.getQueueL().cend(); ++i)
 				{
@@ -1977,7 +1980,9 @@ void QueueManager::fire_sources_updated(const QueueItemPtr& qi)
 	//dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
 	{
-		fly_fire1(QueueManagerListener::SourcesUpdated(), qi);
+		CFlyLock(m_cs_fire_src);
+		m_fire_src_array.insert(qi->getTarget());
+		// TODO - посчитать сколько позиций экономим
 	}
 }
 void QueueManager::fire_removed_array(const StringList& p_target_array)
@@ -2032,8 +2037,6 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 	bool downloadList = false;
 	
 	{
-		// [-] WLock(*QueueItem::g_cs); // [-] IRainman fix.
-		
 		aDownload->reset_download_file();  // https://drdump.com/Problem.aspx?ProblemID=130529
 		
 		if (aDownload->getType() == Transfer::TYPE_PARTIAL_LIST)
@@ -2041,6 +2044,8 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 			QueueItemPtr q = QueueManager::FileQueue::find_target(p_path);
 			if (q)
 			{
+				//q->setFailed(!aDownload->m_reason.empty());
+				
 				if (!aDownload->getPFS().empty())
 				{
 					// [!] IRainman fix.
@@ -2404,7 +2409,7 @@ void QueueManager::recheck(const string& aTarget)
 
 void QueueManager::removeAll()
 {
-	g_fileQueue.clearAll();
+	QueueManager::FileQueue::clearAll();
 	CFlylinkDBManager::getInstance()->remove_queue_all_items();
 }
 void QueueManager::fire_remove_batch()
@@ -3100,6 +3105,7 @@ bool QueueManager::isChunkDownloaded(const TTHValue& tth, int64_t startPos, int6
 	
 	return qi->isChunkDownloadedL(startPos, bytes);
 }
+
 void QueueManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 {
 	if (g_dirty && ((g_lastSave + 30000) < aTick))
@@ -3114,16 +3120,32 @@ void QueueManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	
 	if (!ClientManager::isShutdown())
 	{
-		RLock(*QueueItem::g_cs);
+		QueueItemList l_runningItems;
 		{
-			RLock(*FileQueue::g_csFQ);
-			QueueItemList l_runningItems;
-			calcPriorityAndGetRunningFilesL(l_priorities, l_runningItems);
-			if (!l_runningItems.empty())
+			RLock(*QueueItem::g_cs);
 			{
-				// Внутри зовется
-				// int16_t QueueItem::calcTransferFlagL где нужен лок на  RLock(*QueueItem::g_cs);
-				fly_fire1(QueueManagerListener::Tick(), l_runningItems); // [!] IRainman opt.
+				RLock(*FileQueue::g_csFQ); // TODO - этот лок возможно тут не нужен
+				calcPriorityAndGetRunningFilesL(l_priorities, l_runningItems);
+			}
+		}
+		if (!l_runningItems.empty())
+		{
+			fly_fire1(QueueManagerListener::Tick(), l_runningItems); // Нельзя звать под локом
+		}
+		{
+			StringList l_fire_src_array;
+			{
+				CFlyLock(m_cs_fire_src);
+				l_fire_src_array.reserve(m_fire_src_array.size());
+				for (auto i = m_fire_src_array.cbegin(); i != m_fire_src_array.cend(); ++i)
+				{
+					l_fire_src_array.push_back(*i);
+				}
+				m_fire_src_array.clear();
+			}
+			if (!l_fire_src_array.empty())
+			{
+				fly_fire1(QueueManagerListener::TargetsUpdated(), l_fire_src_array);
 			}
 		}
 	}

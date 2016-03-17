@@ -1870,6 +1870,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 							l_user->incMessagesCount();
 							m_client->incMessagesCount();
 							speak(UPDATE_COLUMN_MESSAGE, msg->m_from);
+							// msg->m_from->getUser()->flushRatio();
 						}
 						else
 						{
@@ -3636,13 +3637,16 @@ void HubFrame::onTimerHubUpdated()
 	{
 		m_hub_name_update_count = 0;
 		string fullHubName;
-		if (m_client->isTrusted())
+		if (m_client->isSecureConnect())
 		{
-			fullHubName = "[S] ";
-		}
-		else if (m_client->isSecure())
-		{
-			fullHubName = "[U] ";
+			if (m_client->isTrusted()) // https://drdump.com/DumpGroup.aspx?DumpGroupID=489257
+			{
+				fullHubName = "[S] ";
+			}
+			else if (m_client->isSecure())
+			{
+				fullHubName = "[U] ";
+			}
 		}
 		
 		fullHubName += m_client->getHubName();

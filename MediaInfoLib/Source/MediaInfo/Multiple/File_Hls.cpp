@@ -142,6 +142,7 @@ bool File_Hls::FileHeader_Begin()
     sequence* Sequence=new sequence;
 
     bool IsGroup=false;
+    Ztring PreviousFile;
     for (size_t Line=0; Line<Lines.size(); Line++)
     {
         if (!Lines[Line].empty())
@@ -208,8 +209,11 @@ bool File_Hls::FileHeader_Begin()
                         StreamIDs_Width[0]=sizeof(size_t);
                     #endif //MEDIAINFO_EVENTS
                 }
-                else
+                else if (Lines[Line]!=PreviousFile)
+                {
+                    PreviousFile=Lines[Line];
                     Sequence->AddFileName(Lines[Line]);
+                }
             }
         }
     }
@@ -227,6 +231,7 @@ bool File_Hls::FileHeader_Begin()
     Element_Offset=File_Size;
 
     //All should be OK...
+    Config->File_TestContinuousFileNames_Set(false);
     return true;
 }
 

@@ -61,7 +61,7 @@ UploadManager::~UploadManager()
 	ClientManager::getInstance()->removeListener(this);
 	{
 		CFlyLock(m_csQueue); // [!] IRainman opt.
-		m_slotQueue.clear();
+		m_slotQueue.clear(); // TODO - унести зачистку раньше в метод shutdown
 	}
 	while (true)
 	{
@@ -659,7 +659,7 @@ ok: //[!] TODO убрать goto
 		clearUserFilesL(aSource->getUser());
 		
 		// remove user from notified list
-		const auto& cu = m_notifiedUsers.find(aSource->getUser());
+		const auto cu = m_notifiedUsers.find(aSource->getUser());
 		if (cu != m_notifiedUsers.end())
 		{
 			m_notifiedUsers.erase(cu);
@@ -1084,7 +1084,7 @@ void UploadManager::clearUserFilesL(const UserPtr& aUser)
 	if (it != m_slotQueue.end())
 	{
 		clearWaitingFilesL(*it);
-		if (g_count_WaitingUsersFrame)
+		if (g_count_WaitingUsersFrame && !ClientManager::isShutdown())
 		{
 			fly_fire1(UploadManagerListener::QueueRemove(), aUser);
 		}
@@ -1150,7 +1150,7 @@ void UploadManager::removeConnection(UserConnection* aSource, bool p_is_remove_l
 void UploadManager::notifyQueuedUsers(int64_t p_tick)
 {
 	dcassert(!ClientManager::isShutdown());
-	// Сверху лочится чере m_csQueue
+	// Сверху лочится через m_csQueue
 	if (m_slotQueue.empty())
 		return; //no users to notify
 	vector<WaitingUser> l_notifyList;
@@ -1307,94 +1307,95 @@ void UploadManager::on(AdcCommand::GFI, UserConnection* aSource, const AdcComman
 void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	UploadArray l_tickList;
 	{
-		int64_t l_currentSpeed = 0;//[+]IRainman refactoring transfer mechanism
+		UploadArray l_tickList;
 		{
-			CFlyWriteLock(*g_csUploadsDelay);
-			for (auto i = g_delayUploads.cbegin(); i != g_delayUploads.cend();)
+			int64_t l_currentSpeed = 0;//[+]IRainman refactoring transfer mechanism
 			{
-				if (auto u = *i)
-					if (++u->m_delayTime > 10)
-					{
-						logUpload(u);
-						///////delete u;
-						
-						g_delayUploads.erase(i);
-						i = g_delayUploads.cbegin();
-					}
-					else
-					{
-						++i;
-					}
+				CFlyWriteLock(*g_csUploadsDelay);
+				for (auto i = g_delayUploads.cbegin(); i != g_delayUploads.cend();)
+				{
+					if (auto u = *i)
+						if (++u->m_delayTime > 10)
+						{
+							logUpload(u);
+							///////delete u;
+							
+							g_delayUploads.erase(i);
+							i = g_delayUploads.cbegin();
+						}
+						else
+						{
+							++i;
+						}
+				}
 			}
-		}
-		static int g_count = 11;
-		if (++g_count % 10 == 0)
-		{
-			SharedFileStream::cleanup();
-		}
-		l_tickList.reserve(g_uploads.size());
-		CFlyReadLock(*g_csUploadsDelay);
-		for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
-		{
-			auto u = *i;
-			if (u->getPos() > 0)
+			static int g_count = 11;
+			if (++g_count % 10 == 0)
 			{
-				TransferData l_td;
-				l_td.m_hinted_user  = u->getHintedUser();
-				l_td.m_pos          = u->getStartPos() + u->getPos();
-				l_td.m_actual       = u->getStartPos() + u->getActual();
-				l_td.m_second_left  = u->getSecondsLeft(true);
-				l_td.m_running_average = u->getRunningAverage();
-				l_td.m_start = u->getStart();
-				l_td.m_size  = u->getType() == Transfer::TYPE_TREE ? u->getSize() : u->getFileSize();
-				l_td.m_type  = u->getType();
-				l_td.m_path = u->getPath();
-				l_td.calc_percent();
-				if (u->isSet(Upload::FLAG_UPLOAD_PARTIAL))
-				{
-					l_td.m_status_string += _T("[P]");
-				}
-				if (u->m_isSecure)
-				{
-					if (u->m_isTrusted)
-					{
-						l_td.m_status_string += _T("[S]");
-					}
-					else
-					{
-						l_td.m_status_string += _T("[U]");
-					}
-				}
-				if (u->isSet(Upload::FLAG_ZUPLOAD))
-				{
-					l_td.m_status_string += _T("[Z]");
-				}
-				if (u->isSet(Upload::FLAG_CHUNKED))
-				{
-					l_td.m_status_string += _T("[C]");
-				}
-				if (!l_td.m_status_string.empty())
-				{
-					l_td.m_status_string += _T(' ');
-				}
-				l_td.m_status_string += Text::tformat(TSTRING(UPLOADED_BYTES), Util::formatBytesW(l_td.m_pos).c_str(), l_td.m_percent, l_td.get_elapsed(aTick).c_str());
-				l_td.log_debug();
-				l_tickList.push_back(l_td);
-				u->tick(aTick);
+				SharedFileStream::cleanup();
 			}
-			u->getUserConnection()->getSocket()->updateSocketBucket(getUserConnectionAmountL(u->getUser()));// [+] IRainman SpeedLimiter
-			l_currentSpeed += u->getRunningAverage();//[+] IRainman refactoring transfer mechanism
+			l_tickList.reserve(g_uploads.size());
+			CFlyReadLock(*g_csUploadsDelay);
+			for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
+			{
+				auto u = *i;
+				if (u->getPos() > 0)
+				{
+					TransferData l_td;
+					l_td.m_hinted_user = u->getHintedUser();
+					l_td.m_pos = u->getStartPos() + u->getPos();
+					l_td.m_actual = u->getStartPos() + u->getActual();
+					l_td.m_second_left = u->getSecondsLeft(true);
+					l_td.m_running_average = u->getRunningAverage();
+					l_td.m_start = u->getStart();
+					l_td.m_size = u->getType() == Transfer::TYPE_TREE ? u->getSize() : u->getFileSize();
+					l_td.m_type = u->getType();
+					l_td.m_path = u->getPath();
+					l_td.calc_percent();
+					if (u->isSet(Upload::FLAG_UPLOAD_PARTIAL))
+					{
+						l_td.m_status_string += _T("[P]");
+					}
+					if (u->m_isSecure)
+					{
+						if (u->m_isTrusted)
+						{
+							l_td.m_status_string += _T("[S]");
+						}
+						else
+						{
+							l_td.m_status_string += _T("[U]");
+						}
+					}
+					if (u->isSet(Upload::FLAG_ZUPLOAD))
+					{
+						l_td.m_status_string += _T("[Z]");
+					}
+					if (u->isSet(Upload::FLAG_CHUNKED))
+					{
+						l_td.m_status_string += _T("[C]");
+					}
+					if (!l_td.m_status_string.empty())
+					{
+						l_td.m_status_string += _T(' ');
+					}
+					l_td.m_status_string += Text::tformat(TSTRING(UPLOADED_BYTES), Util::formatBytesW(l_td.m_pos).c_str(), l_td.m_percent, l_td.get_elapsed(aTick).c_str());
+					l_td.log_debug();
+					l_tickList.push_back(l_td);
+					u->tick(aTick);
+				}
+				u->getUserConnection()->getSocket()->updateSocketBucket(getUserConnectionAmountL(u->getUser()));// [+] IRainman SpeedLimiter
+				l_currentSpeed += u->getRunningAverage();//[+] IRainman refactoring transfer mechanism
+			}
+			g_runningAverage = l_currentSpeed; // [+] IRainman refactoring transfer mechanism
 		}
-		g_runningAverage = l_currentSpeed; // [+] IRainman refactoring transfer mechanism
+		if (!l_tickList.empty())
+		{
+			fly_fire1(UploadManagerListener::Tick(), l_tickList);
+			// TODO - Выполняем под локом
+		}
 	}
-	if (!l_tickList.empty())
-	{
-		fly_fire1(UploadManagerListener::Tick(), l_tickList);
-		// TODO - Выполняем под локом
-	}
-	
 	notifyQueuedUsers(aTick);
 	
 	if (g_count_WaitingUsersFrame)
@@ -1435,7 +1436,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 
 void UploadManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
+	//dcassert(!ClientManager::isShutdown());
 	if (!aUser->isOnline())
 	{
 		CFlyLock(m_csQueue);  // [+] IRainman opt.
@@ -1464,7 +1465,7 @@ void UploadManager::removeDelayUpload(const UserPtr& aUser)
  */
 void UploadManager::abortUpload(const string& aFile, bool waiting)
 {
-	dcassert(!ClientManager::isShutdown());
+	//dcassert(!ClientManager::isShutdown());
 	bool nowait = true;
 	{
 		CFlyReadLock(*g_csUploadsDelay);

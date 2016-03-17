@@ -37,7 +37,7 @@ class MerkleCheckOutputStream : public OutputStream
 			dcassert(start % l_blocksize == 0);
 			cur.setFileSize(start);
 			
-			size_t nBlocks = static_cast<size_t>(start / l_blocksize);
+			const size_t nBlocks = static_cast<size_t>(start / l_blocksize);
 			if (nBlocks > aTree.getLeaves().size())
 			{
 				dcdebug("Invalid tree / parameters");

@@ -121,6 +121,7 @@ class Identity
 			memzero(&m_bits_info, sizeof(m_bits_info));
 			m_is_p2p_guard_calc = false;
 			m_is_real_user_ip_from_hub = false;
+			m_bytes_shared = 0;
 			m_is_ext_json = false;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			m_virus_type = 0;
@@ -131,6 +132,7 @@ class Identity
 			memzero(&m_bits_info, sizeof(m_bits_info));
 			m_is_p2p_guard_calc = false;
 			m_is_real_user_ip_from_hub = false;
+			m_bytes_shared = 0;
 			m_is_ext_json = false;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			m_virus_type = 0;
@@ -168,6 +170,7 @@ class Identity
 #endif
 			m_is_p2p_guard_calc = rhs.m_is_p2p_guard_calc;
 			m_is_real_user_ip_from_hub = rhs.m_is_real_user_ip_from_hub;
+			m_bytes_shared = rsh.m_bytes_shared;
 			m_is_ext_json = rhs.m_is_ext_json;
 			
 			memcpy(&m_bits_info, &rhs.m_bits_info, sizeof(m_bits_info));
@@ -235,13 +238,15 @@ class Identity
 		{
 			// CFlyWriteLock(*g_rw_cs);
 			dcassert(bytes >= 0);
+			m_bytes_shared = bytes;
 			getUser()->setBytesShared(bytes);
 			change(CHANGES_SHARED | CHANGES_EXACT_SHARED);
 		}
 		const int64_t getBytesShared() const // "SS"
 		{
 			// CFlyReadLock(*g_rw_cs);
-			return getUser()->getBytesShared();
+			return m_bytes_shared;
+			//return getUser()->getBytesShared();
 		}
 		
 		void setIp(const string& p_ip);
@@ -264,6 +269,7 @@ class Identity
 		string getIpAsString() const;
 	private:
 		boost::asio::ip::address_v4 m_ip; // "I4" // [!] IRainman fix: needs here, details https://code.google.com/p/flylinkdc/issues/detail?id=1330
+		int64_t m_bytes_shared;
 	public:
 		bool m_is_real_user_ip_from_hub;
 		bool m_is_p2p_guard_calc;
@@ -1000,10 +1006,10 @@ namespace std
 template <>
 struct hash<OnlineUserPtr>
 {
-	size_t operator()(const OnlineUserPtr & x) const
-	{
-		return ((size_t)(&(*x))) / sizeof(OnlineUser);
-	}
+    size_t operator()(const OnlineUserPtr & x) const
+    {
+        return ((size_t)(&(*x))) / sizeof(OnlineUser);
+    }
 };
 }
 */

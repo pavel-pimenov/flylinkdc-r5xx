@@ -491,7 +491,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="EnableHubmodePic">Показывать «Иконку режима» для хабов</String>
 		<String Name="EnableCountryflag">Добавить флаг страны в «Расположение» списка пользователей</String>
 		<String Name="EnableLastIp">Сохранять IP в базе SQLite</String>
-		<String Name="EnableFlyServer">Искать в облаке</String>
+		<String Name="EnableFlyServer">Показывать MediaInfo</String>
 		<String Name="EnableHitFileList">Включить счётчик скачивания файла в списке файлов</String>
 		<String Name="EnableRatioUserList">Включить отображение скачанного/розданного в списке пользователей</String>
 		<String Name="EnableMultiSource">Включить сегментирование</String>

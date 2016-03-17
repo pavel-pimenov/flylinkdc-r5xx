@@ -2133,11 +2133,14 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItemPtr& q
 	if (qi->isUserList())
 		return;
 	auto l_ui = new UpdateInfo();
-	parseQueueItemUpdateInfoL(l_ui, qi);
-	m_tasks.add(TRANSFER_UPDATE_PARENT_WITH_PARSE, l_ui); // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
+	{
+		RLock(*QueueItem::g_cs); // fix https://drdump.com/Problem.aspx?ProblemID=190922
+		parseQueueItemUpdateInfoL(l_ui, qi);
+	}
+	m_tasks.add(TRANSFER_UPDATE_PARENT_WITH_PARSE, l_ui);
 }
 
-void TransferView::parseQueueItemUpdateInfoL(UpdateInfo* ui, const QueueItemPtr& qi) // [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1082
+void TransferView::parseQueueItemUpdateInfoL(UpdateInfo* ui, const QueueItemPtr& qi)
 {
 	ui->setTarget(qi->getTarget());
 	ui->setType(Transfer::TYPE_FILE);
@@ -2146,7 +2149,7 @@ void TransferView::parseQueueItemUpdateInfoL(UpdateInfo* ui, const QueueItemPtr&
 	{
 		double ratio = 0;
 		bool partial = false, trusted = false, untrusted = false, tthcheck = false, zdownload = false, chunked = false;
-		const int64_t totalSpeed = qi->getAverageSpeed(); // TODO https://drdump.com/DumpGroup.aspx?DumpGroupID=432133
+		const int64_t totalSpeed = qi->getAverageSpeed();
 		const int16_t segs = qi->calcTransferFlagL(partial, trusted, untrusted, tthcheck, zdownload, chunked, ratio);
 		ui->setRunning(segs);
 		if (segs > 0)
@@ -2322,8 +2325,7 @@ LRESULT TransferView::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
 				else
 					l_data += L"\r\n" + l_sdata;
 			}
-			else
-			if (columnId >= COLUMN_FIRST && columnId < COLUMN_LAST)
+			else if (columnId >= COLUMN_FIRST && columnId < COLUMN_LAST)
 			{
 				l_data += l_ii->getText(columnId);
 			}

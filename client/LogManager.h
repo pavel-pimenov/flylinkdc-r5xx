@@ -120,6 +120,7 @@ class CFlyLog
 		const uint64_t m_start;
 		uint64_t m_tc;
 		bool m_skip_start;
+		bool m_skip_stop;
 		bool m_only_file;
 		void log(const string& p_msg)
 		{

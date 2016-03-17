@@ -123,7 +123,6 @@ class User : public Flags
 			IS_MYINFO = 1 << MYINFO_BIT,
 			IS_OPERATOR = 1 << OPERATOR_BIT,
 			IS_FIRST_INIT_RATIO = 1 << FIRST_INIT_RATIO_BIT,
-			IS_LAST_IP_DIRTY   = 1 << LAST_IP_DIRTY_BIT,
 			IS_SQL_NOT_FOUND   = 1 << SQL_NOT_FOUND_BIT
 		};
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
@@ -229,7 +228,8 @@ class User : public Flags
 		GETSET(uint32_t, m_limit, Limit);
 		GETSET(uint8_t, m_slots, Slots);
 		string m_nick;
-		boost::asio::ip::address_v4 m_last_ip_sql;
+		CFlyDirtyValue<boost::asio::ip::address_v4> m_last_ip_sql;
+		CFlyDirtyValue<uint32_t> m_message_count;
 		
 		bool isOnline() const
 		{
@@ -265,7 +265,6 @@ class User : public Flags
 		
 		uint64_t getBytesUploadRAW() const
 		{
-			////////CFlyReadLock(*g_ratio_cs);
 #ifdef FLYLINKDC_USE_RATIO_CS
 			CFlyFastLock(m_ratio_cs);
 #endif
@@ -276,7 +275,6 @@ class User : public Flags
 		}
 		uint64_t getBytesDownloadRAW() const
 		{
-			/////////CFlyReadLock(*g_ratio_cs);
 #ifdef FLYLINKDC_USE_RATIO_CS
 			CFlyFastLock(m_ratio_cs);
 #endif
@@ -287,13 +285,12 @@ class User : public Flags
 		}
 		bool isLastIP() const
 		{
-			////////CFlyReadLock(*g_ratio_cs);
 #ifdef FLYLINKDC_USE_RATIO_CS
 			CFlyFastLock(m_ratio_cs);
 #endif
 			if (m_ratio_ptr)
 			{
-				return !m_last_ip_sql.is_unspecified();
+				return !m_last_ip_sql.get().is_unspecified();
 			}
 			else
 			{
@@ -303,13 +300,14 @@ class User : public Flags
 		boost::asio::ip::address_v4 getIP();
 		boost::asio::ip::address_v4 getLastIPfromRAM() const
 		{
-			return m_last_ip_sql;
+			return m_last_ip_sql.get();
 		}
 		string getIPAsString();
 		uint64_t getBytesUpload();
 		uint64_t getBytesDownload();
 		uint64_t getMessageCount();
 		void initRatio(bool p_force = false);
+		void initMesageCount();
 		void initRatioL(const boost::asio::ip::address_v4& p_ip);
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	private:

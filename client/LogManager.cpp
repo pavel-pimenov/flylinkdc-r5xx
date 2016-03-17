@@ -85,7 +85,7 @@ void LogManager::init()
 	{
 		message(CompatibilityManager::getStartupInfo());
 	}
-		
+	
 	if (CompatibilityManager::isIncompatibleSoftwareFound())
 	{
 		message(CompatibilityManager::getIncompatibleSoftwareMessage());
@@ -338,6 +338,7 @@ CFlyLog::CFlyLog(const string& p_message
 	m_message(p_message),
 	m_tc(m_start),
 	m_skip_start(p_skip_start), // TODO - может оно не нужно?
+	m_skip_stop(false),
 	m_only_file(p_only_file)
 {
 	if (!m_skip_start)
@@ -348,7 +349,7 @@ CFlyLog::CFlyLog(const string& p_message
 
 CFlyLog::~CFlyLog()
 {
-	//if(!m_skip_start_stop)
+	if (!m_skip_stop)
 	{
 		const uint64_t l_current = GET_TICK();
 		log("[Stop] " + m_message + " [" + Util::toString(l_current - m_tc) + " ms, Total: " + Util::toString(l_current - m_start) + " ms]");

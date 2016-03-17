@@ -45,7 +45,6 @@ Identity::StringDictionaryIndex Identity::g_infoDicIndex;
 
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 
-//////std::unique_ptr<webrtc::RWLockWrapper> User::g_ratio_cs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 User::User(const CID& aCID) : m_cid(aCID),
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 	m_support_slots(FLY_SUPPORT_SLOTS_FIRST),
@@ -58,6 +57,8 @@ User::User(const CID& aCID) : m_cid(aCID),
 	, m_ratio_ptr(nullptr)
 #endif
 {
+	m_message_count.set(0);
+	m_message_count.reset_dirty();
 	setFlag(User::IS_SQL_NOT_FOUND);
 	BOOST_STATIC_ASSERT(LAST_BIT < 32);
 #ifdef _DEBUG
@@ -81,7 +82,6 @@ User::~User()
 # endif
 #endif
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-	// Тут можно и не лочить - иначе падаем CFlyFastLock(g_ratio_cs);
 	safe_delete(m_ratio_ptr);
 #endif
 }
@@ -103,7 +103,6 @@ void User::setLastNick(const string& p_nick)
 				if (m_ratio_ptr)
 				{
 					{
-						////CFlyWriteLock(*g_ratio_cs);
 #ifdef FLYLINKDC_USE_RATIO_CS
 						CFlyFastLock(m_ratio_cs);
 #endif
@@ -118,7 +117,9 @@ void User::setLastNick(const string& p_nick)
 				m_nick = p_nick;
 			}
 			if (m_ratio_ptr)
+			{
 				m_ratio_ptr->set_dirty(true);
+			}
 		}
 		else
 		{
@@ -126,25 +127,6 @@ void User::setLastNick(const string& p_nick)
 		}
 	}
 }
-#if 0
-void User::storeIP(const string& p_ip)
-{
-	if (m_ratio_ptr)
-	{
-		setIP(p_ip);
-	}
-	else
-	{
-		unsetFlag(IS_FIRST_INIT_RATIO);
-		initRatio(true);
-		if (m_ratio_ptr)
-		{
-			m_ratio_ptr->m_last_ip_sql = p_ip;
-			m_ratio_ptr->setDirty(true);
-		}
-	}
-}
-#endif
 void User::setIP(const string& p_ip, bool p_is_set_only_ip)
 {
 	boost::system::error_code ec;
@@ -169,34 +151,29 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip, bool p_is_set_onl
 	if (m_ratio_ptr && p_is_set_only_ip == false)
 	{
 		dcassert(!p_last_ip.is_unspecified());
-		if (m_last_ip_sql != p_last_ip) // TODO подумать где лучше делать преобразование
+		if (m_last_ip_sql.get() != p_last_ip) // TODO подумать где лучше делать преобразование
 		{
 #ifdef _DEBUG
-			if (!m_last_ip_sql.is_unspecified() && p_last_ip.is_unspecified())
+			if (!m_last_ip_sql.get().is_unspecified() && p_last_ip.is_unspecified())
 			{
 				dcassert(0);
 			}
 #endif
-			const bool l_is_change_ip = !m_last_ip_sql.is_unspecified() && !p_last_ip.is_unspecified();
+			const bool l_is_change_ip = !m_last_ip_sql.get().is_unspecified() && !p_last_ip.is_unspecified();
 			if (l_is_change_ip)
 			{
 				if (m_ratio_ptr)
 				{
-					const auto l_message_count = m_ratio_ptr->get_message_count();
-					///CFlyWriteLock(*g_ratio_cs);
 #ifdef FLYLINKDC_USE_RATIO_CS
 					CFlyFastLock(m_ratio_cs);
 #endif
 					safe_delete(m_ratio_ptr);
 					initRatioL(p_last_ip);
-					if (m_ratio_ptr)
-					{
-						m_ratio_ptr->set_messages_count(l_message_count);
-					}
 				}
-				setFlag(IS_LAST_IP_DIRTY);
-				m_last_ip_sql = p_last_ip;
-				setFlag(CHANGE_IP);
+				if (m_last_ip_sql.set(p_last_ip))
+				{
+					setFlag(CHANGE_IP);
+				}
 			}
 		}
 		else
@@ -206,32 +183,43 @@ void User::setIP(const boost::asio::ip::address_v4& p_last_ip, bool p_is_set_onl
 	}
 	else
 	{
-		if (m_last_ip_sql != p_last_ip)
+#ifdef DEBUG
+		//if (getLastNick() == "BSOD2600")
+		//{
+		//  initMesageCount();
+		//}
+#endif // DEBUG
+		if (p_is_set_only_ip == false)
 		{
-			setFlag(IS_LAST_IP_DIRTY);
-			m_last_ip_sql = p_last_ip;
+			initMesageCount();
+		}
+		if (m_last_ip_sql.set(p_last_ip))
+		{
 			setFlag(CHANGE_IP);
 		}
 	}
 }
 boost::asio::ip::address_v4 User::getIP()
 {
-	initRatio();
-	if (!m_last_ip_sql.is_unspecified())
-		return m_last_ip_sql;
+	initMesageCount();
+	if (!m_last_ip_sql.get().is_unspecified())
+	{
+		return m_last_ip_sql.get();
+	}
 	return boost::asio::ip::address_v4();
 }
 string User::getIPAsString()
 {
-	const auto& l_ip = getIP();
+	const auto l_ip = getIP();
 	if (!l_ip.is_unspecified())
+	{
 		return l_ip.to_string();
+	}
 	return Util::emptyString;
 }
 uint64_t User::getBytesUpload()
 {
 	initRatio();
-	///CFlyReadLock(*g_ratio_cs);
 #ifdef FLYLINKDC_USE_RATIO_CS
 	CFlyFastLock(m_ratio_cs);
 #endif
@@ -247,23 +235,11 @@ uint64_t User::getBytesUpload()
 uint64_t User::getMessageCount()
 {
 	initRatio();
-	/////CFlyReadLock(*g_ratio_cs);
-#ifdef FLYLINKDC_USE_RATIO_CS
-	CFlyFastLock(m_ratio_cs);
-#endif
-	if (m_ratio_ptr)
-	{
-		return m_ratio_ptr->get_message_count();
-	}
-	else
-	{
-		return 0;
-	}
+	return m_message_count.get();
 }
 uint64_t User::getBytesDownload()
 {
 	initRatio();
-	/////CFlyReadLock(*g_ratio_cs);
 #ifdef FLYLINKDC_USE_RATIO_CS
 	CFlyFastLock(m_ratio_cs);
 #endif
@@ -278,34 +254,29 @@ uint64_t User::getBytesDownload()
 }
 void User::fixLastIP()
 {
-	initRatio();
-	if (!m_last_ip_sql.is_unspecified())
+	initMesageCount();
+	if (!m_last_ip_sql.get().is_unspecified())
 	{
-		setIP(m_last_ip_sql, true);
+		setIP(m_last_ip_sql.get(), true);
 	}
 }
 void User::incMessagesCount()
 {
-	if (m_ratio_ptr == nullptr)
-	{
-		initRatio(true);
-	}
-	if (m_ratio_ptr)
-		m_ratio_ptr->incMessagesCount();
+	m_message_count.set(m_message_count.get() + 1);
 }
 void User::AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
-	////CFlyWriteLock(*g_ratio_cs);
 #ifdef FLYLINKDC_USE_RATIO_CS
 	CFlyFastLock(m_ratio_cs);
 #endif
 	initRatioL(p_ip);
 	if (m_ratio_ptr)
+	{
 		m_ratio_ptr->addUpload(p_ip, p_size);
+	}
 }
 void User::AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
-	////CFlyWriteLock(*g_ratio_cs);
 #ifdef FLYLINKDC_USE_RATIO_CS
 	CFlyFastLock(m_ratio_cs);
 #endif
@@ -317,82 +288,79 @@ void User::AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_
 }
 bool User::flushRatio()
 {
-	///CFlyReadLock(*g_ratio_cs);
+	bool l_result = false;
 	{
 #ifdef FLYLINKDC_USE_RATIO_CS
 		CFlyFastLock(m_ratio_cs);
 #endif
 		if (m_ratio_ptr)
 		{
-			const auto l_result = m_ratio_ptr->flushRatioL();
-			unsetFlag(IS_LAST_IP_DIRTY);
+			l_result = m_ratio_ptr->flushRatioL();
 			return l_result;
 		}
 	}
-	if (isSet(IS_LAST_IP_DIRTY))
+	if ((m_last_ip_sql.is_dirty() && !m_last_ip_sql.get().is_unspecified()) ||
+	        m_message_count.is_dirty() && m_message_count.get())
 	{
 		// LogManager::message("User::flushRatio m_nick = " + m_nick);
-		unsetFlag(IS_LAST_IP_DIRTY);
-		dcassert(!m_last_ip_sql.is_unspecified());
-		if (getHubID() && !m_nick.empty() && CFlylinkDBManager::isValidInstance() && !m_last_ip_sql.is_unspecified())
+		if (getHubID() && !m_nick.empty() && CFlylinkDBManager::isValidInstance() && !m_last_ip_sql.get().is_unspecified())
 		{
 			bool l_is_sql_not_found = isSet(User::IS_SQL_NOT_FOUND);
-			CFlylinkDBManager::getInstance()->update_last_ip(getHubID(), m_nick, m_last_ip_sql, l_is_sql_not_found);
-			setFlag(User::IS_SQL_NOT_FOUND, l_is_sql_not_found);
-			return true;
+			CFlylinkDBManager::getInstance()->update_last_ip_and_message_count(getHubID(), m_nick, m_last_ip_sql.get(), m_message_count.get(), l_is_sql_not_found,
+			                                                                   m_last_ip_sql.is_dirty(),
+			                                                                   m_message_count.is_dirty()
+			                                                                  );
+			setFlag(User::IS_SQL_NOT_FOUND, false);
+			m_last_ip_sql.reset_dirty();
+			m_message_count.reset_dirty();
+			l_result = true;
 		}
 	}
-	return false;
+	return l_result;
 }
 void User::initRatioL(const boost::asio::ip::address_v4& p_ip)
 {
 	if (m_ratio_ptr == nullptr && !m_nick.empty() && m_hub_id)
 	{
 		m_ratio_ptr = new CFlyUserRatioInfo(this);
-		m_ratio_ptr->tryLoadRatio(p_ip);
+		if (m_ratio_ptr->tryLoadRatio(p_ip) == false)
+		{
+			// TODO - стереть m_ratio_ptr?
+		}
 	}
 }
-void User::initRatio(bool p_force /* = false */)
+void User::initMesageCount()
 {
-	if (!m_nick.empty() && m_hub_id && isSet(IS_MYINFO) && (!isSet(IS_FIRST_INIT_RATIO) || p_force))
+	if (!m_nick.empty() && m_hub_id && !isSet(IS_FIRST_INIT_RATIO)
+	        // Глючит когда шлется UserIP && isSet(IS_MYINFO)
+	   )
 	{
 		setFlag(IS_FIRST_INIT_RATIO);
-		unsetFlag(IS_LAST_IP_DIRTY);
+		m_last_ip_sql.reset_dirty();
+		m_message_count.reset_dirty();
 		// Узнаем, есть ли в базе last_ip или счетчик мессаг
 		uint32_t l_message_count = 0;
 		boost::asio::ip::address_v4 l_last_ip_from_sql;
 		const bool l_is_sql_not_found = !CFlylinkDBManager::getInstance()->load_last_ip_and_user_stat(m_hub_id, m_nick, l_message_count, l_last_ip_from_sql);
 		setFlag(IS_SQL_NOT_FOUND, l_is_sql_not_found);
-		if (!l_is_sql_not_found || p_force)
+		if (!l_is_sql_not_found)
 		{
-			m_last_ip_sql = l_last_ip_from_sql;
-			CFlyUserRatioInfo* l_try_ratio = nullptr;
-			if (l_message_count || !l_last_ip_from_sql.is_unspecified() || p_force)
+			m_message_count.set(l_message_count);
+			m_message_count.reset_dirty();
+			if (m_last_ip_sql.set(l_last_ip_from_sql))
 			{
-				l_try_ratio = new CFlyUserRatioInfo(this);
-				l_try_ratio->set_messages_count(l_message_count);
-				l_try_ratio->reset_message_dirty();
-				if (!l_last_ip_from_sql.is_unspecified())
-				{
-					l_try_ratio->tryLoadRatio(l_last_ip_from_sql);
-				}
-				{
-					///CFlyWriteLock(*g_ratio_cs);
-#ifdef FLYLINKDC_USE_RATIO_CS
-					CFlyFastLock(m_ratio_cs);
-#endif
-					if (m_ratio_ptr)
-					{
-						delete m_ratio_ptr;
-					}
-					m_ratio_ptr = l_try_ratio;
-				}
+				setFlag(CHANGE_IP);
 			}
+			m_last_ip_sql.reset_dirty();
 		}
-		if (!p_force)
-		{
-			unsetFlag(CHANGE_IP);
-		}
+	}
+}
+void User::initRatio(bool p_force /* = false */)
+{
+	initMesageCount();
+	if (!m_last_ip_sql.get().is_unspecified() || p_force)
+	{
+		initRatioL(m_last_ip_sql.get());
 	}
 }
 
@@ -416,7 +384,6 @@ tstring User::getUpload()
 
 tstring User::getUDratio()
 {
-	///CFlyReadLock(*g_ratio_cs);
 #ifdef FLYLINKDC_USE_RATIO_CS
 	CFlyFastLock(m_ratio_cs);
 #endif

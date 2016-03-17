@@ -325,7 +325,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		                                 CFlyUploadDownloadMap* p_upload_download_stats,
 		                                 const uint32_t p_message_count,
 		                                 const boost::asio::ip::address_v4& p_last_ip,
-		                                 bool p_is_last_ip_or_message_count_dirty,
+		                                 bool p_is_last_ip_dirty,
+		                                 bool p_is_message_count_dirty,
 		                                 bool& p_is_sql_not_found
 		                                );
 		uint32_t get_dic_hub_id(const string& p_hub);
@@ -336,9 +337,18 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif
 		CFlyRatioItem load_ratio(uint32_t p_hub_id, const string& p_nick, CFlyUserRatioInfo& p_ratio_info, const  boost::asio::ip::address_v4& p_last_ip);
 		bool load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, uint32_t& p_message_count, boost::asio::ip::address_v4& p_last_ip);
-		void update_last_ip(uint32_t p_hub_id, const string& p_nick, const boost::asio::ip::address_v4& p_last_ip, bool& p_is_sql_not_found);
+		void update_last_ip_and_message_count(uint32_t p_hub_id, const string& p_nick,
+		                                      const boost::asio::ip::address_v4& p_last_ip,
+		                                      const uint32_t p_message_count,
+		                                      bool& p_is_sql_not_found,
+		                                      bool p_is_last_ip_dirty,
+		                                      bool p_is_message_count_dirty
+		                                     );
 	private:
-		void update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, boost::asio::ip::address_v4 p_last_ip, bool& p_is_sql_not_found);
+		void update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, boost::asio::ip::address_v4 p_last_ip, bool& p_is_sql_not_found,
+		                              bool p_is_last_ip_dirty,
+		                              bool p_is_message_count_dirty
+		                             );
 		void flush_all_last_ip_and_message_count();
 		void add_tree_internal_bind_and_executeL(sqlite3_command* p_sql, const TigerTree& p_tt);
 		__int64 add_treeL(const TigerTree& p_tt);
@@ -418,23 +428,23 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void merge_queue_sub_itemsL(QueueItemPtr& p_QueueItem, __int64 p_id);
 		void remove_queue_itemL(const __int64 p_id);
 		void remove_queue_item_sourcesL(const __int64 p_id, const CID& p_cid);
-		void clean_registryL(int p_Segment, __int64 p_tick);
+		void clean_registryL(eTypeSegment p_Segment, __int64 p_tick);
 	public:
 		void merge_queue_all_items(std::vector<QueueItemPtr>& p_QueueItemArray);
 		void merge_queue_all_segments(const CFlySegmentArray& p_QueueSegmentArray);
-		void remove_queue_item_array(std::vector<int64_t> p_id_array);
+		void remove_queue_item_array(const std::vector<int64_t>& p_id_array);
 		void remove_queue_all_items();
 		void load_ignore(StringSet& p_ignores);
 		void save_ignore(const StringSet& p_ignores);
-		void load_registry(CFlyRegistryMap& p_values, int p_Segment);
-		void save_registry(const CFlyRegistryMap& p_values, int p_Segment, bool p_is_cleanup_old_value);
-		void clean_registry(int p_Segment, __int64 p_tick);
+		void load_registry(CFlyRegistryMap& p_values, eTypeSegment p_Segment);
+		void save_registry(const CFlyRegistryMap& p_values, eTypeSegment p_Segment, bool p_is_cleanup_old_value);
+		void clean_registry(eTypeSegment p_Segment, __int64 p_tick);
 		
 		void set_registry_variable_int64(eTypeSegment p_TypeSegment, __int64 p_value);
 		__int64 get_registry_variable_int64(eTypeSegment p_TypeSegment);
 		void set_registry_variable_string(eTypeSegment p_TypeSegment, const string& p_value);
 		string get_registry_variable_string(eTypeSegment p_TypeSegment);
-		template <class T> void load_registry(T& p_values, int p_Segment)
+		template <class T> void load_registry(T& p_values, eTypeSegment p_Segment)
 		{
 			p_values.clear();
 			CFlyRegistryMap l_values;
@@ -444,7 +454,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 				p_values.push_back(Text::toT(k->first));
 			}
 		}
-		template <class T>  void save_registry(const T& p_values, int p_Segment)
+		template <class T>  void save_registry(const T& p_values, eTypeSegment p_Segment)
 		{
 			CFlyRegistryMap l_values;
 			for (auto i = p_values.cbegin(); i != p_values.cend(); ++i)

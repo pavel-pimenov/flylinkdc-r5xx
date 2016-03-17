@@ -534,7 +534,6 @@ void DownloadManager::endData(UserConnection* aSource)
 	try
 	{
 		QueueManager::getInstance()->putDownload(d->getPath(), d, true, false);
-		
 	}
 	catch (const HashException& e)
 	{
@@ -589,7 +588,7 @@ void DownloadManager::onFailed(UserConnection* aSource, const string& aError)
 	failDownload(aSource, aError);
 }
 
-void DownloadManager::failDownload(UserConnection* aSource, const string& reason)
+void DownloadManager::failDownload(UserConnection* aSource, const string& p_reason)
 {
 	// TODO dcassert(!ClientManager::isShutdown());
 	auto d = aSource->getDownload();
@@ -598,7 +597,7 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 	{
 		const string l_path = d->getPath();
 		removeDownload(d);
-		fly_fire2(DownloadManagerListener::Failed(), d, reason);
+		fly_fire2(DownloadManagerListener::Failed(), d, p_reason);
 		
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 		if (d->isSet(Download::FLAG_USER_CHECK))
@@ -613,6 +612,7 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& reason
 			}
 		}
 #endif
+		//d->m_reason = p_reason;
 		QueueManager::getInstance()->putDownload(l_path, d, false);
 	}
 	
@@ -754,6 +754,7 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource)
 	
 	QueueManager::getInstance()->removeSource(d->getPath(), aSource->getUser(), (Flags::MaskType)(d->getType() == Transfer::TYPE_TREE ? QueueItem::Source::FLAG_NO_TREE : QueueItem::Source::FLAG_FILE_NOT_AVAILABLE), false);
 	
+	//d->m_reason = STRING(FILE_NOT_AVAILABLE);
 	QueueManager::getInstance()->putDownload(d->getPath(), d, false);
 	checkDownloads(aSource);
 }

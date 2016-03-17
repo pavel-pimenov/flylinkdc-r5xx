@@ -62,7 +62,6 @@ ClientManager::NickMap ClientManager::g_nicks;
 
 ClientManager::ClientManager()
 {
-	//TimerManager::getInstance()->addListener(this);
 	createMe(SETTING(PRIVATE_ID), SETTING(NICK)); // [+] IRainman fix.
 }
 
@@ -147,20 +146,6 @@ void ClientManager::shutdown()
 		g_UserUpdateQueue.clear();
 	}
 #endif
-	//TimerManager::getInstance()->removeListener(this);
-	/*
-	{
-	        CFlyLog l_log("[Store last IP]");
-	        CFlyReadLock(*g_csUsers);
-	        UserMap::const_iterator i = g_users.begin();
-	        while (i != g_users.end())
-	        {
-	            i->second->flushRatio();
-	            ++i;
-	        }
-	    }
-	*/
-	
 }
 
 void ClientManager::clear()
@@ -1190,23 +1175,53 @@ void ClientManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 }
 #endif
 
-void ClientManager::flushRatio()
+void ClientManager::flushRatio(int p_max_count_flush)
 {
-	CFlyLog l_log("[ClientManager::flushRatio]");
-	CFlyReadLock(*g_csUsers);
-	int l_max_count_flush = 500;
-	UserMap::const_iterator i = g_users.begin();
-	while (i != g_users.end() && !isShutdown())
+	static bool g_isBusy = false;
+	int l_count_flush = 0;
+	if (g_isBusy == false)
 	{
-		if (l_max_count_flush > 0 && i->second->flushRatio())
+		CFlyBusyBool l_busy(g_isBusy);
+#ifdef FLYLINKDC_BETA
+		CFlyLog l_log("[ClientManager::flushRatio]");
+#endif
+		CFlyReadLock(*g_csUsers);
+		auto i = g_users.cbegin();
+		while (i != g_users.cend() && !isShutdown())
 		{
-			l_max_count_flush--;
+			if (p_max_count_flush > 0 && i->second->flushRatio())
+			{
+				l_count_flush++;
+#ifdef FLYLINKDC_BETA
+#ifdef _DEBUG
+				l_log.log("Flush for user: " + i->second->getLastNick() + " Hub = " + Util::toString(i->second->getHubID()) +
+				          " ip = " + i->second->getIPAsString() + " CountMessages = " + Util::toString(i->second->getMessageCount()));
+#endif
+#endif
+				if (--p_max_count_flush == 0)
+				{
+					break;
+				}
+			}
+			++i;
 		}
-		++i;
+		if (l_count_flush)
+		{
+#ifdef FLYLINKDC_BETA
+//#ifdef _DEBUG
+			l_log.log("Flush for " + Util::toString(l_count_flush) + " users...");
+//#endif
+#endif
+		}
+		else
+		{
+			l_log.m_skip_stop = true;
+		}
 	}
 }
 void ClientManager::usersCleanup()
 {
+	//CFlyLog l_log("[ClientManager::usersCleanup]");
 	CFlyWriteLock(*g_csUsers);
 	auto i = g_users.begin();
 	while (i != g_users.end() && !isShutdown())
@@ -1219,7 +1234,7 @@ void ClientManager::usersCleanup()
 				g_nicks.erase(n);
 #endif
 #ifdef _DEBUG
-			LogManager::message("g_users.erase(i++); - Nick = " + i->second->getLastNick());
+			//LogManager::message("g_users.erase(i++); - Nick = " + i->second->getLastNick());
 #endif
 			g_users.erase(i++);
 		}

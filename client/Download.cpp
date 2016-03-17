@@ -68,45 +68,48 @@ Transfer(p_conn, p_item->getTarget(), p_item->getTTH(), p_ip, p_chiper_name),
 			m_qi->setBlockSize(l_block_size);
 		}
 	}
-	const bool l_is_check_tth = l_is_type_file && l_check_tth_sql;
-	// ~TODO
-	
-	const auto& l_source_it = m_qi->findSourceL(getUser()); // [+] IRainman fix.
-	const auto& l_src = l_source_it->second;
-	if (l_src.isSet(QueueItem::Source::FLAG_PARTIAL))
-		setFlag(FLAG_DOWNLOAD_PARTIAL);
-		
-	if (l_is_type_file)
 	{
-		if (l_is_check_tth)
-		{
-			setTreeValid(true);
-			setSegment(m_qi->getNextSegmentL(getTigerTree().getBlockSize(), p_conn->getChunkSize(), p_conn->getSpeed(), l_src.getPartialSource()));
-		}
-		else if (p_conn->isSet(UserConnection::FLAG_SUPPORTS_TTHL) && !l_src.isSet(QueueItem::Source::FLAG_NO_TREE) && m_qi->getSize() > MIN_BLOCK_SIZE) // [!] IRainman opt.
-		{
-			// Get the tree unless the file is small (for small files, we'd probably only get the root anyway)
-			setType(TYPE_TREE);
-			getTigerTree().setFileSize(m_qi->getSize());
-			setSegment(Segment(0, -1));
-		}
-		else
-		{
-			// Use the root as tree to get some sort of validation at least...
-			getTigerTree() = TigerTree(m_qi->getSize(), m_qi->getSize(), getTTH());
-			setTreeValid(true);
-			setSegment(m_qi->getNextSegmentL(getTigerTree().getBlockSize(), 0, 0, l_src.getPartialSource()));
-		}
+		RLock(*QueueItem::g_cs); // Fix https://drdump.com/DumpGroup.aspx?DumpGroupID=476822&Login=guest
+		const bool l_is_check_tth = l_is_type_file && l_check_tth_sql;
+		// ~TODO
 		
-		if ((getStartPos() + getSize()) != m_qi->getSize())
+		const auto& l_source_it = m_qi->findSourceL(getUser()); // [+] IRainman fix.
+		const auto& l_src = l_source_it->second;
+		if (l_src.isSet(QueueItem::Source::FLAG_PARTIAL))
+			setFlag(FLAG_DOWNLOAD_PARTIAL);
+			
+		if (l_is_type_file)
 		{
-			setFlag(FLAG_CHUNKED);
-		}
-		
-		if (getSegment().getOverlapped())
-		{
-			setFlag(FLAG_OVERLAP);
-			m_qi->setOverlappedL(getSegment(), true); // [!] IRainman fix.
+			if (l_is_check_tth)
+			{
+				setTreeValid(true);
+				setSegment(m_qi->getNextSegmentL(getTigerTree().getBlockSize(), p_conn->getChunkSize(), p_conn->getSpeed(), l_src.getPartialSource()));
+			}
+			else if (p_conn->isSet(UserConnection::FLAG_SUPPORTS_TTHL) && !l_src.isSet(QueueItem::Source::FLAG_NO_TREE) && m_qi->getSize() > MIN_BLOCK_SIZE) // [!] IRainman opt.
+			{
+				// Get the tree unless the file is small (for small files, we'd probably only get the root anyway)
+				setType(TYPE_TREE);
+				getTigerTree().setFileSize(m_qi->getSize());
+				setSegment(Segment(0, -1));
+			}
+			else
+			{
+				// Use the root as tree to get some sort of validation at least...
+				getTigerTree() = TigerTree(m_qi->getSize(), m_qi->getSize(), getTTH());
+				setTreeValid(true);
+				setSegment(m_qi->getNextSegmentL(getTigerTree().getBlockSize(), 0, 0, l_src.getPartialSource()));
+			}
+			
+			if ((getStartPos() + getSize()) != m_qi->getSize())
+			{
+				setFlag(FLAG_CHUNKED);
+			}
+			
+			if (getSegment().getOverlapped())
+			{
+				setFlag(FLAG_OVERLAP);
+				m_qi->setOverlappedL(getSegment(), true); // [!] IRainman fix.
+			}
 		}
 	}
 }

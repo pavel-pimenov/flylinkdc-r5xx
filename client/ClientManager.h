@@ -309,7 +309,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			extern bool g_isStartupProcess;
 			g_isStartupProcess = false;
 		}
-		static void flushRatio();
+		static void flushRatio(int p_max_count_flush);
 		static void usersCleanup();
 	private:
 	

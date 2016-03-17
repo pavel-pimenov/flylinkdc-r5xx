@@ -23,7 +23,7 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 	if (
 #define FLYLINKDC_USE_PROFILE_SELECTED_CLASS
 #ifdef FLYLINKDC_USE_PROFILE_SELECTED_CLASS
-	    (l_tick_delta >= 200 &&
+	    (l_tick_delta >= 300 &&
 	     (m_function &&
 	      (
 	          true // strstr(m_function, "Identity") != 0

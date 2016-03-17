@@ -76,23 +76,23 @@ class QueueManager : public Singleton<QueueManager>,
 				LockFileQueueShared()
 				{
 #ifdef FLYLINKDC_USE_RWLOCK
-					QueueManager::g_fileQueue.g_csFQ->AcquireLockShared();
+					QueueManager::FileQueue::g_csFQ->AcquireLockShared();
 #else
-					QueueManager::g_fileQueue.g_csFQ->lock();
+					QueueManager::FileQueue::g_csFQ->lock();
 #endif
 				}
 				~LockFileQueueShared()
 				{
 #ifdef FLYLINKDC_USE_RWLOCK
-					QueueManager::getInstance()->fileQueue.g_csFQ->ReleaseLockShared();
+					QueueManager::FileQueue::g_csFQ->ReleaseLockShared();
 #else
-					QueueManager::g_fileQueue.g_csFQ->unlock();
+					QueueManager::FileQueue::g_csFQ->unlock();
 #endif
 				}
 				// [~] IRainman fix.
 				const QueueItem::QIStringMap& getQueueL()
 				{
-					return QueueManager::g_fileQueue.getQueueL(); // “ÛÚ L?
+					return QueueManager::FileQueue::getQueueL();
 				}
 		};
 		
@@ -475,6 +475,8 @@ class QueueManager : public Singleton<QueueManager>,
 		//[+] SSA check if file exist
 		int m_curOnDownloadSettings;
 	private:
+		boost::unordered_set<string> m_fire_src_array;
+		CriticalSection m_cs_fire_src;
 		void fire_status_updated(const QueueItemPtr& qi);
 		void fire_sources_updated(const QueueItemPtr& qi);
 		void fire_removed(const QueueItemPtr& qi);

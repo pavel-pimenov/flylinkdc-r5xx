@@ -501,7 +501,7 @@ Turn DHT feature on?</String>
 		<String Name="EnableHubmodePic">Enable 'Mode Picture' for hubs</String>
 		<String Name="EnableCountryflag">Add Country flag into 'Location' in userlist</String>
 		<String Name="EnableLastIp">Store IP in a SQLite database</String>
-		<String Name="EnableFlyServer">Use fly-server cloud</String>
+		<String Name="EnableFlyServer">Show MediaInfo</String>
 		<String Name="EnableHitFileList">Enable file downloads counter in file list</String>
 		<String Name="EnableRatioUserList">Enable downloads/upload in user list</String>
 		<String Name="EnableMultiSource">Enable multi-source</String>

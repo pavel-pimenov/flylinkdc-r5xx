@@ -225,7 +225,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			TRANSFER_REMOVE_ITEM,
 			TRANSFER_UPDATE_ITEM,
 			TRANSFER_UPDATE_PARENT,
-			TRANSFER_UPDATE_PARENT_WITH_PARSE, // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1082
+			TRANSFER_UPDATE_PARENT_WITH_PARSE,
 			TRANSFER_REMOVE_DOWNLOAD_ITEM
 		};
 		
@@ -622,7 +622,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(SettingsManagerListener::Repaint) override;
 		
 		void onTransferComplete(const Transfer* aTransfer, const bool download, const string& aFileName); // [!] IRainman fix.
-		void starting(UpdateInfo* ui, const Transfer* t);
+		static void starting(UpdateInfo* ui, const Transfer* t);
 		
 		void CollapseAll();
 		void ExpandAll();

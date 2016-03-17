@@ -201,64 +201,10 @@ class NmdcHub : public Client, private Flags
 		OnlineUserPtr findUser(const string& aNick) const;
 		void putUser(const string& aNick);
 		
-		// don't convert to UTF-8 if string is already in this encoding
-		string toUtf8IfNeededMyINFO(const string& str) const
-		{
-			/*$ALL */
-			return Text::validateUtf8(str, 4) ? str : Text::toUtf8(str, getEncoding());
-		}
-		string toUtf8IfNeeded(const string& str) const
-		{
-			return Text::validateUtf8(str) ? str : Text::toUtf8(str, getEncoding());
-		}
-		string fromUtf8(const string& str) const
-		{
-			return Text::fromUtf8(str, getEncoding());
-		}
 		string getMyNickFromUtf8() const
 		{
 			return fromUtf8(getMyNick());
 		}
-#ifdef IRAINMAN_USE_UNICODE_IN_NMDC
-		string toUtf8(const string& str) const
-		{
-			string out;
-			string::size_type i = 0;
-			while (true)
-			{
-				auto f = str.find_first_of("\n\r" /* "\n\r\t:<>[] |" */ , i);
-				if (f == string::npos)
-				{
-					out += toUtf8IfNeeded(str.substr(i));
-					break;
-				}
-				else
-				{
-					++f;
-					out += toUtf8IfNeeded(str.substr(i, f - i));
-					i = f;
-				}
-			};
-			return out;
-		}
-		const string& fromUtf8Chat(const string& str) const
-		{
-			return str;
-		}
-#else
-		string toUtf8(const string& str) const
-		{
-			return toUtf8IfNeeded(str);
-		}
-		string toUtf8MyINFO(const string& str) const
-		{
-			return toUtf8IfNeededMyINFO(str);
-		}
-		string fromUtf8Chat(const string& str) const
-		{
-			return fromUtf8(str);
-		}
-#endif
 		void privateMessage(const string& nick, const string& aMessage, bool thirdPerson);
 		void sendValidateNick(const string& aNick)
 		{
@@ -290,10 +236,12 @@ class NmdcHub : public Client, private Flags
 		void myInfo(bool p_alwaysSend, bool p_is_force_passive = false);
 		void myInfoParse(const string& param);
 #ifdef FLYLINKDC_USE_EXT_JSON
+		
 		bool extJSONParse(const string& param, bool p_is_disable_fire = false);
-#ifdef _DEBUG
+// #define FLYLINKDC_USE_EXT_JSON_GUARD
+#ifdef FLYLINKDC_USE_EXT_JSON_GUARD
 		std::unordered_map<string, string> m_ext_json_deferred;
-#endif
+#endif // FLYLINKDC_USE_EXT_JSON_GUARD
 #endif
 		void searchParse(const string& param, bool p_is_passive);
 		void connectToMeParse(const string& param);

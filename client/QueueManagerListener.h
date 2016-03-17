@@ -39,7 +39,7 @@ class QueueManagerListener
 		typedef X<1> Finished;
 		typedef X<2> Removed;
 		typedef X<3> Moved;
-		typedef X<4> SourcesUpdated;
+		typedef X<4> TargetsUpdated;
 		typedef X<5> StatusUpdated;
 		typedef X<6> PartialList;
 		typedef X<8> RecheckStarted;
@@ -65,7 +65,7 @@ class QueueManagerListener
 		virtual void on(Removed, const QueueItemPtr&) noexcept { }
 		virtual void on(RemovedArray, const std::vector<string>& p_qi_array) noexcept { }
 		virtual void on(Moved, const QueueItemPtr&, const string&) noexcept { }
-		virtual void on(SourcesUpdated, const QueueItemPtr&) noexcept { }
+		virtual void on(TargetsUpdated, const StringList&) noexcept { }
 		virtual void on(StatusUpdated, const QueueItemPtr&) noexcept { }
 		virtual void on(Tick, const QueueItemList&) noexcept { } // [+] IRainman opt.
 		virtual void on(StatusUpdatedList, const QueueItemList&) noexcept { } // [+] IRainman opt.

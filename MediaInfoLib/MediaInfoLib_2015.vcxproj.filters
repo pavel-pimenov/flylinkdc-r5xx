@@ -749,6 +749,9 @@
     <ClCompile Include="Source\ThirdParty\sha2-gladman\sha2.c">
       <Filter>ThirdParty\sha2-gladman</Filter>
     </ClCompile>
+    <ClCompile Include="Source\MediaInfo\XmlUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\MediaInfo\File__Analyse_Automatic.h">
@@ -1404,6 +1407,9 @@
     </ClInclude>
     <ClInclude Include="Source\ThirdParty\sha2-gladman\sha2.h">
       <Filter>ThirdParty\sha2-gladman</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\XmlUtils.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

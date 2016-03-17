@@ -137,7 +137,7 @@ class ListLoader : public SimpleXMLReader::CallBack
 		ListLoader(DirectoryListing* aList, DirectoryListing::Directory* root,
 		           bool aUpdating, const UserPtr& p_user, bool p_own_list)
 			: list(aList), cur(root), m_base("/"), m_is_in_listing(false),
-			  m_is_updating(aUpdating), user(p_user), m_is_own_list(p_own_list),
+			  m_is_updating(aUpdating), m_user(p_user), m_is_own_list(p_own_list),
 			  m_is_mediainfo_list(false), m_is_first_check_mediainfo_list(false),
 			  m_empty_file_name_counter(0)
 		{
@@ -157,11 +157,14 @@ class ListLoader : public SimpleXMLReader::CallBack
 			return m_is_first_check_mediainfo_list ? m_is_mediainfo_list : true;
 		}
 	private:
+#ifdef _DEBUG
+		static CFlyCacheMediaInfo g_cache_mediainfo;
+#endif
 		DirectoryListing* list;
 		DirectoryListing::Directory* cur;
-		UserPtr user;
+		UserPtr m_user;
 		
-		StringMap params;
+		StringMap m_params;
 		string m_base;
 		bool m_is_in_listing;
 		bool m_is_updating;
@@ -170,6 +173,10 @@ class ListLoader : public SimpleXMLReader::CallBack
 		bool m_is_first_check_mediainfo_list;
 		int m_empty_file_name_counter;
 };
+
+#ifdef _DEBUG
+CFlyCacheMediaInfo ListLoader::g_cache_mediainfo;
+#endif
 
 string DirectoryListing::updateXML(const string& xml, bool p_own_list)
 {
@@ -329,6 +336,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 					{
 						l_i_ts = atoi(l_ts.c_str());
 					}
+					
 					if (attribs.size() > 4) // TODO - собрать комбинации всех случаев
 					{
 						l_hit = getAttrib(attribs, g_SHit, 3);
@@ -338,12 +346,49 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 						{
 							const string& l_br = getAttrib(attribs, g_SBR, 4);
 							l_mediaXY = std::make_shared<CFlyMediaInfo>(getAttrib(attribs, g_SWH, 3),
-							                                                          atoi(l_br.c_str()),
-							                                                          l_audio,
-							                                                          l_video
+							                                            atoi(l_br.c_str()),
+							                                            l_audio,
+							                                            l_video
 							                                           );
 						}
 					}
+					
+#if 0
+					if (attribs.size() > 4) // TODO - собрать комбинации всех случаев
+					{
+						CFlyMediainfoRAW l_media_item;
+						{
+							l_media_item.m_audio = getAttrib(attribs, g_SMAudio, 3);
+							const size_t l_pos = l_media_item.m_audio.find('|', 0);
+							if (l_pos != string::npos && l_pos)
+							{
+								if (l_pos + 2 < l_media_item.m_audio.length())
+								{
+									l_media_item.m_audio = l_media_item.m_audio.substr(l_pos + 2);
+								}
+							}
+						}
+						
+						l_media_item.m_video = getAttrib(attribs, g_SMVideo, 3);
+						l_hit = getAttrib(attribs, g_SHit, 3);
+						l_media_item.m_WH = getAttrib(attribs, g_SWH, 3);
+						if (!l_media_item.m_audio.empty() || !l_media_item.m_video.empty())
+						{
+							l_media_item.m_br = getAttrib(attribs, g_SBR, 4);
+							auto& l_find_mi = g_cache_mediainfo[l_media_item];
+							if (!l_find_mi)
+							{
+							
+								l_find_mi = std::make_shared<CFlyMediaInfo>(l_media_item.m_WH,
+								                                            atoi(l_media_item.m_br.c_str()),
+								                                            l_media_item.m_audio,
+								                                            l_media_item.m_video
+								                                           );
+								l_mediaXY = l_find_mi;
+							}
+						}
+					}
+#endif
 				}
 				l_i_hit = l_hit.empty() ? 0 : atoi(l_hit.c_str());
 			}
@@ -454,13 +499,13 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 		const string& l_cidStr = getAttrib(attribs, sCID, 2);
 		if (l_cidStr.size() == 39)
 		{
-			CID l_CID(l_cidStr);
+			const CID l_CID(l_cidStr);
 			if (!l_CID.isZero())
 			{
-				if (!user)
+				if (!m_user)
 				{
-					user = ClientManager::getUser(l_CID, true);
-					list->setHintedUser(HintedUser(user, Util::emptyString));
+					m_user = ClientManager::getUser(l_CID, true);
+					list->setHintedUser(HintedUser(m_user, Util::emptyString));
 				}
 			}
 		}

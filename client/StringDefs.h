@@ -439,7 +439,7 @@ enum Strings   // @DontAdd
 	ENABLE_HUBMODE_PIC, // "Enable 'Mode Picture' for hubs"
 	ENABLE_COUNTRYFLAG, // "Add Country flag into 'Location' in userlist"
 	ENABLE_LAST_IP, // "Store IP in a SQLite database"
-	ENABLE_FLY_SERVER,  // "Use fly-server cloud"
+	ENABLE_FLY_SERVER,  // "Show MediaInfo"
 	ENABLE_HIT_FILE_LIST,  // "Enable file downloads counter in file list"
 	ENABLE_RATIO_USER_LIST,  // "Enable downloads/upload in user list"
 	ENABLE_MULTI_SOURCE, // "Enable multi-source"

@@ -25,11 +25,6 @@ void CFlyUserRatioInfo::addUpload(const boost::asio::ip::address_v4& p_ip, uint6
 	add_upload(p_size);
 	find_ip_map(p_ip).add_upload(p_size);
 }
-void CFlyUserRatioInfo::incMessagesCount()
-{
-	CFlyRatioItem::inc_messages_count();
-	set_dirty(true);
-}
 void CFlyUserRatioInfo::addDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size)
 {
 	dcassert(p_size);
@@ -39,16 +34,22 @@ void CFlyUserRatioInfo::addDownload(const boost::asio::ip::address_v4& p_ip, uin
 
 bool CFlyUserRatioInfo::flushRatioL()
 {
-	if (is_dirty() && m_user->getHubID() && !m_user->m_nick.empty()
-	        && CFlylinkDBManager::isValidInstance()) // fix https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=86337
+	if ((is_dirty() ||
+	        m_user->m_message_count.is_dirty() ||
+	        m_user->m_last_ip_sql.is_dirty())
+	        && m_user->getHubID() && !m_user->m_nick.empty()
+	        && CFlylinkDBManager::isValidInstance())
 	{
 		bool l_is_sql_not_found = m_user->isSet(User::IS_SQL_NOT_FOUND);
-		CFlylinkDBManager::getInstance()->store_all_ratio_and_last_ip(m_user->getHubID(), m_user->m_nick, m_ip_map_ptr, get_message_count(), m_user->getLastIPfromRAM(),
-		                                                              is_message_dirty() || m_user->isSet(User::IS_LAST_IP_DIRTY), l_is_sql_not_found);
+		CFlylinkDBManager::getInstance()->store_all_ratio_and_last_ip(m_user->getHubID(), m_user->m_nick, m_ip_map_ptr, m_user->m_message_count.get(), m_user->getLastIPfromRAM(),
+		                                                              m_user->m_last_ip_sql.is_dirty(),
+		                                                              m_user->m_message_count.is_dirty(),
+		                                                              l_is_sql_not_found
+		                                                             );
 		m_user->setFlag(User::IS_SQL_NOT_FOUND, l_is_sql_not_found);
 		set_dirty(false);
-		reset_message_dirty();
-		m_user->unsetFlag(User::IS_LAST_IP_DIRTY);
+		m_user->m_last_ip_sql.reset_dirty();
+		m_user->m_message_count.reset_dirty();
 		return true;
 	}
 	return false;

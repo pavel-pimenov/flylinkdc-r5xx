@@ -46,6 +46,7 @@ QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, F
 	m_dirty(true),
 	m_dirty_source(false),
 	m_dirty_segment(false),
+//	m_is_failed(false),
 	m_block_size(0),
 	m_tthRoot(p_tth),
 	m_downloadedBytes(0),
@@ -875,11 +876,10 @@ void QueueItem::getChunksVisualisation(vector<pair<Segment, Segment>>& p_runnigC
 {
 	RLock(*QueueItem::g_cs); // [+] IRainman fix.
 	
-	p_runnigChunksAndDownloadBytes.reserve(m_downloads.size()); // [!] IRainman fix done: [9] https://www.box.net/shared/9ccc91535264c1609a1e
-	// m_downloads.size() для list - дорого!
+	p_runnigChunksAndDownloadBytes.reserve(m_downloads.size());
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
-		p_runnigChunksAndDownloadBytes.push_back(make_pair(i->second->getSegment(), Segment(i->second->getStartPos(), i->second->getPos()))); // https://www.box.net/shared/1004787fe85503e7d4d9
+		p_runnigChunksAndDownloadBytes.push_back(make_pair(i->second->getSegment(), Segment(i->second->getStartPos(), i->second->getPos())));
 	}
 	p_doneChunks.reserve(m_done_segment.size());
 	for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)

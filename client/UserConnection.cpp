@@ -152,7 +152,6 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	dcassert(!ClientManager::isShutdown())
 	if (aLine.length() < 2 || ClientManager::isShutdown())
 		return;
-		
 	COMMAND_DEBUG(aLine, DebugTask::CLIENT_IN, getRemoteIpPort());
 	
 	if (aLine[0] == 'C' && !isSet(FLAG_NMDC))

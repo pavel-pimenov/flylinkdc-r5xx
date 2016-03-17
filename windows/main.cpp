@@ -67,7 +67,7 @@ crash_rpt::ApplicationInfo* GetApplicationInfo()
 #ifdef FLYLINKDC_BETA
 	    "910F4B4D-C71C-45BC-A88D-F59FE022525B";
 #else
-	    "D7F972BA-ACF7-451E-88D5-FF0B98BD085D";
+	    "45A84685-77E6-4F01-BF10-C698B811087F";
 #endif
 #endif
 	    

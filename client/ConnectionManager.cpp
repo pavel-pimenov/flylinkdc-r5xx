@@ -624,9 +624,9 @@ void ConnectionManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcep
 static const uint64_t g_FLOOD_TRIGGER = 20000;
 static const uint64_t g_FLOOD_ADD = 2000;
 
-ConnectionManager::Server::Server(bool p_secure
+ConnectionManager::Server::Server(bool p_is_secure
                                   , uint16_t p_port, const string& p_server_ip /* = "0.0.0.0" */) :
-	m_secure(p_secure),
+	m_is_secure(p_is_secure),
 	m_die(false)
 {
 	m_sock.create();
@@ -650,7 +650,7 @@ int ConnectionManager::Server::run() noexcept
 				auto ret = m_sock.wait(POLL_TIMEOUT, Socket::WAIT_READ);
 				if (ret == Socket::WAIT_READ)
 				{
-					ConnectionManager::getInstance()->accept(m_sock, m_secure, this);
+					ConnectionManager::getInstance()->accept(m_sock, m_is_secure, this);
 				}
 			}
 		}
@@ -1232,9 +1232,6 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 			        cqi->getUser()->getCID() == cid)
 			{
 				aSource->setUser(cqi->getUser());
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-//				cqi->getUser()->initRatio(false);
-#endif
 				// Indicate that we're interested in this file...
 				aSource->setFlag(UserConnection::FLAG_DOWNLOAD);
 				break;
@@ -1413,7 +1410,7 @@ void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 	}
 	if (l_cqi)
 	{
-		if (l_cqi && !ClientManager::isShutdown())
+		if (!ClientManager::isShutdown())
 		{
 			fly_fire2(ConnectionManagerListener::Added(), l_cqi->getUser(), false);
 #ifdef FLYLINKDC_USE_CONNECTED_EVENT

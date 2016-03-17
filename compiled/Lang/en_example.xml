@@ -434,7 +434,7 @@
 	<string name="EnableHubmodePic">Enable 'Mode Picture' for hubs</string>
 	<string name="EnableCountryflag">Add Country flag into 'Location' in userlist</string>
 	<string name="EnableLastIp">Store IP in a SQLite database</string>
-	<string name="EnableFlyServer">Use fly-server cloud</string>
+	<string name="EnableFlyServer">Show MediaInfo</string>
 	<string name="EnableHitFileList">Enable file downloads counter in file list</string>
 	<string name="EnableRatioUserList">Enable downloads/upload in user list</string>
 	<string name="EnableMultiSource">Enable multi-source</string>

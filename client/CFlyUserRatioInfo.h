@@ -74,48 +74,51 @@ template <class T> class CFlyUploadDownloadPair
 		}
 		
 };
+template <class T> class CFlyDirtyValue
+#ifdef _DEBUG
+	: boost::noncopyable
+#endif
+{
+	private:
+		bool m_is_dirty;
+		T m_value;
+	public:
+		CFlyDirtyValue(const T& p_value = T()) : m_value(p_value), m_is_dirty(false)
+		{
+		}
+		const T& get() const
+		{
+			return m_value;
+		}
+		bool set(const T& p_value)
+		{
+			if (p_value != m_value)
+			{
+				m_value = p_value;
+				m_is_dirty = true;
+				return true;
+			}
+			return false;
+		}
+		bool is_dirty() const
+		{
+			return m_is_dirty;
+		}
+		void reset_dirty()
+		{
+			m_is_dirty = false;
+		}
+};
 typedef CFlyUploadDownloadPair<double> CFlyGlobalRatioItem;
 typedef boost::unordered_map<unsigned long, CFlyUploadDownloadPair<uint64_t> > CFlyUploadDownloadMap; // TODO кей boost::asio::ip::address_v4
 class CFlyRatioItem : public CFlyUploadDownloadPair<uint64_t>
 {
-		uint32_t m_message_count;
-		bool m_is_message_count_dirty;
 	public:
-		CFlyRatioItem() : m_message_count(0), m_is_message_count_dirty(false)
+		CFlyRatioItem()
 		{
 		}
 		~CFlyRatioItem()
 		{
-		}
-		uint32_t get_message_count() const
-		{
-			return m_message_count;
-		}
-		void inc_messages_count()
-		{
-			++m_message_count;
-			set_message_dirty();
-		}
-		void set_messages_count(uint32_t p_value)
-		{
-			//dcassert(p_value);
-			if (p_value != m_message_count && p_value)
-			{
-				m_message_count = p_value;
-				set_message_dirty();
-			}
-		}
-		void set_message_dirty()
-		{
-			m_is_message_count_dirty = true;
-		}
-		void reset_message_dirty()
-		{
-			m_is_message_count_dirty = false;
-		}
-		bool is_message_dirty() const
-		{
-			return m_is_message_count_dirty;
 		}
 };
 class User;
@@ -140,7 +143,6 @@ struct CFlyUserRatioInfo : public CFlyRatioItem
 		bool tryLoadRatio(const boost::asio::ip::address_v4& p_last_ip_from_sql);
 		void addUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void addDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
-		void incMessagesCount();
 		bool flushRatioL();
 	private:
 		CFlyUploadDownloadMap* m_ip_map_ptr;

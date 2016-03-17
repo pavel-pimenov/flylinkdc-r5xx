@@ -59,7 +59,7 @@ NmdcHub::NmdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect) :
 
 NmdcHub::~NmdcHub()
 {
-#ifdef FLYLINKDC_USE_EXT_JSON
+#ifdef FLYLINKDC_USE_EXT_JSON_GUARD
 	dcassert(m_ext_json_deferred.empty());
 #endif
 	clearUsers();
@@ -259,17 +259,16 @@ void NmdcHub::putUser(const string& aNick)
 	OnlineUserPtr ou;
 	{
 		CFlyWriteLock(*m_cs);
-#ifdef FLYLINKDC_USE_EXT_JSON
-#ifdef _DEBUG
+#ifdef FLYLINKDC_USE_EXT_JSON_GUARD
 		m_ext_json_deferred.erase(aNick);
-#endif
 #endif
 		const auto& i = m_users.find(aNick);
 		if (i == m_users.end())
 			return;
+		auto l_bytes_shared = i->second->getIdentity().getBytesShared();
 		ou = i->second;
 		m_users.erase(i);
-		decBytesSharedL(ou->getIdentity());
+		decBytesSharedL(l_bytes_shared);
 		{
 			CFlyFastLock(m_cs_virus);
 			m_virus_nick.erase(aNick);
@@ -290,10 +289,8 @@ void NmdcHub::clearUsers()
 	if (ClientManager::isShutdown())
 	{
 		CFlyWriteLock(*m_cs);
-#ifdef FLYLINKDC_USE_EXT_JSON
-#ifdef _DEBUG
+#ifdef FLYLINKDC_USE_EXT_JSON_GUARD
 		m_ext_json_deferred.clear();
-#endif
 #endif
 		for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
 		{
@@ -308,10 +305,8 @@ void NmdcHub::clearUsers()
 		{
 			CFlyWriteLock(*m_cs);
 			u2.swap(m_users);
-#ifdef FLYLINKDC_USE_EXT_JSON
-#ifdef _DEBUG
+#ifdef FLYLINKDC_USE_EXT_JSON_GUARD
 			m_ext_json_deferred.clear();
-#endif
 #endif
 			clearAvailableBytesL();
 		}
@@ -1295,6 +1290,7 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 					dcassert(!l_ip.empty());
 					ou->getIdentity().setIp(l_ip);
 					ou->getIdentity().m_is_real_user_ip_from_hub = true;
+					ou->getIdentity().getUser()->m_last_ip_sql.reset_dirty();
 					{
 						CFlyFastLock(m_cs_virus);
 #ifdef FLYLINKDC_USE_VIRUS_CHECK_DEBUG
@@ -1781,6 +1777,13 @@ void NmdcHub::onLine(const string& aLine)
 	{
 		bMyInfoCommand = true;
 		myInfoParse(param); // [+]PPA http://code.google.com/p/flylinkdc/issues/detail?id=1384
+#ifdef _DEBUG
+		const string l_admin = "Админ";
+		if (param.find(l_admin) != string::npos)
+		{
+			bMyInfoCommand = true;
+		}
+#endif
 	}
 #ifdef FLYLINKDC_USE_EXT_JSON
 	else if (cmd == "ExtJSON")
@@ -2585,6 +2588,13 @@ void NmdcHub::on(BufferedSocketListener::Connected) noexcept
 	m_lastBytesShared = 0;
 	m_lastUpdate = 0;
 	m_lastExtJSONInfo.clear();
+#ifdef FLYLINKDC_USE_EXT_JSON_GUARD
+	{
+		CFlyWriteLock(*m_cs);
+		dcassert(m_ext_json_deferred.empty());
+		m_ext_json_deferred.clear();
+	}
+#endif
 }
 #ifdef FLYLINKDC_USE_EXT_JSON
 bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false */)
@@ -2602,7 +2612,7 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 	}
 	if (p_is_disable_fire == false)
 	{
-#ifdef _DEBUG
+#ifdef FLYLINKDC_USE_EXT_JSON_GUARD
 		CFlyWriteLock(*m_cs);
 		if (m_ext_json_deferred.find(l_nick) == m_ext_json_deferred.end())
 		{
@@ -2613,7 +2623,7 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 	}
 	
 //#ifdef _DEBUG
-//	string l_json_result = "{ \"City\":[\"$ForceMove\", \"abc.com\", \"&#124; \"] } | ";
+//	string l_json_result = "{\"Gender\":1,\"RAM\":39,\"RAMFree\":1541,\"RAMPeak\":39,\"SQLFree\":35615,\"SQLSize\":19,\"StartCore\":4368,\"StartGUI\":1420,\"Support\":\"+Auto+UPnP(MiniUPnP)+Router+Public IP,TCP:55527(+)+IPv6\"}";
 //#else
 	const string l_json_result = unescape(param.substr(l_nick.size() + 1));
 //#endif
@@ -2889,8 +2899,7 @@ void NmdcHub::myInfoParse(const string& param)
 	
 	if (!ClientManager::isShutdown())
 	{
-#ifdef FLYLINKDC_USE_EXT_JSON
-#ifdef _DEBUG
+#ifdef FLYLINKDC_USE_EXT_JSON_GUARD
 		string l_ext_json_param;
 		{
 			CFlyReadLock(*m_cs);
@@ -2903,10 +2912,11 @@ void NmdcHub::myInfoParse(const string& param)
 		if (!l_ext_json_param.empty())
 		{
 			extJSONParse(l_ext_json_param, true); // true - не зовем ClientListener::UserUpdatedMyINFO
-			CFlyWriteLock(*m_cs);
-			m_ext_json_deferred.erase(l_nick);
+			{
+				CFlyWriteLock(*m_cs);
+				m_ext_json_deferred.erase(l_nick);
+			}
 		}
-#endif // _DEBUG        
 #endif // FLYLINKDC_USE_EXT_JSON
 		if (!ClientManager::isShutdown())
 		{
@@ -3021,7 +3031,7 @@ void NmdcHub::on(BufferedSocketListener::MyInfoArray, StringList& p_myInfoArray)
 	{
 		const auto l_utf_line = toUtf8MyINFO(*i);
 		myInfoParse(l_utf_line);
-		COMMAND_DEBUG("$MyINFO " + *i, DebugTask::HUB_IN, getIpPort());
+		COMMAND_DEBUG("$MyINFO " + l_utf_line, DebugTask::HUB_IN, getIpPort());
 	}
 	p_myInfoArray.clear();
 	processAutodetect(true);

@@ -253,7 +253,7 @@ class ConnectionManager :
 		class Server : public BASE_THREAD
 		{
 			public:
-				Server(bool p_secure, uint16_t p_port, const string& p_ip = "0.0.0.0");
+				Server(bool p_is_secure, uint16_t p_port, const string& p_ip = "0.0.0.0");
 				uint16_t getServerPort() const
 				{
 					dcassert(m_server_port);
@@ -270,7 +270,7 @@ class ConnectionManager :
 				Socket m_sock;
 				uint16_t m_server_port;
 				string m_server_ip; // TODO - в DC++ этого уже нет.
-				bool m_secure;
+				bool m_is_secure;
 				volatile bool m_die; // [!] IRainman fix: this variable is volatile.
 		};
 		

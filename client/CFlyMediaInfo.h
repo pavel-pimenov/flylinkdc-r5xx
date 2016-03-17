@@ -12,6 +12,8 @@
 #include "SimpleXML.h"
 
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+#include <boost/functional/hash.hpp>
+
 struct CFlyServerCache
 {
 	std::string m_ratio;
@@ -25,6 +27,40 @@ struct CFlyServerCache
 	}
 };
 #endif
+
+#ifdef _DEBUG
+class CFlyMediainfoRAW
+{
+	public:
+		string m_WH;
+		string m_br;
+		string m_audio;
+		string m_video;
+		bool operator==(const CFlyMediainfoRAW& p_val) const
+		{
+			return m_audio == p_val.m_audio
+			       && m_br == p_val.m_br
+			       && m_WH == p_val.m_WH
+			       && m_video == p_val.m_video;
+		}
+};
+struct CFlyMediainfoRAWHasher
+{
+	std::size_t operator()(const CFlyMediainfoRAW& p_val) const
+	{
+		using boost::hash_value;
+		using boost::hash_combine;
+		std::size_t seed = 0;
+		hash_combine(seed, hash_value(p_val.m_audio));
+		hash_combine(seed, hash_value(p_val.m_br));
+		hash_combine(seed, hash_value(p_val.m_WH));
+		hash_combine(seed, hash_value(p_val.m_video));
+		return seed;
+	}
+};
+
+#endif
+
 class CFlyMediaInfo
 #ifdef _DEBUG
 	//: public boost::noncopyable
@@ -151,6 +187,10 @@ class CFlyMediaInfo
 			}
 		}
 };
+
+#ifdef _DEBUG
+typedef std::unordered_map<CFlyMediainfoRAW, std::shared_ptr<CFlyMediaInfo>, CFlyMediainfoRAWHasher> CFlyCacheMediaInfo;
+#endif
 
 struct CFlyHashCacheItem
 {

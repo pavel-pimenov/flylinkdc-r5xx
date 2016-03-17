@@ -302,7 +302,7 @@ File_Vc3::File_Vc3()
     #if defined(MEDIAINFO_CDP_YES)
         Cdp_Parser=NULL;
     #endif //defined(MEDIAINFO_CDP_YES)
-    
+
     //Temp
     FFC_FirstFrame=(int8u)-1;
 }
@@ -340,7 +340,7 @@ void File_Vc3::Streams_Fill()
         Fill(Stream_Video, 0, Video_ScanType, Vc3_SST_FromCID(CID));
         Fill(Stream_Video, 0, Video_ColorSpace, Vc3_CLR_FromCID(CID));
         if (!strcmp(Vc3_CLR_FromCID(CID), "YUV")) // YUV
-        Fill(Stream_Video, 0, Video_ChromaSubsampling, Vc3_SSC_FromCID(CID));
+            Fill(Stream_Video, 0, Video_ChromaSubsampling, Vc3_SSC_FromCID(CID));
     }
     else
     {
