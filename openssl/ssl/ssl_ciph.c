@@ -449,6 +449,17 @@ static int sk_comp_cmp(const SSL_COMP *const *a, const SSL_COMP *const *b)
     return ((*a)->id - (*b)->id);
 }
 
+//[+]FlylinkDC++
+// http://stackoverflow.com/questions/29845527/how-to-properly-uninitialize-openssl
+void free_compressions(void)
+{
+	if (ssl_comp_methods != NULL)
+	{
+		sk_SSL_COMP_free(ssl_comp_methods);
+		ssl_comp_methods = NULL;
+	}
+}
+
 static void load_builtin_compressions(void)
 {
     int got_write_lock = 0;

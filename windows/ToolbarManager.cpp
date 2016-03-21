@@ -24,8 +24,14 @@ ToolbarManager::ToolbarManager()
 
 ToolbarManager::~ToolbarManager()
 {
+	dcassert(0);
+}
+
+void ToolbarManager::shutdown()
+{
 	CFlyLock(g_cs);
 	for_each(g_toolbarEntries.begin(), g_toolbarEntries.end(), DeleteFunction());
+	g_toolbarEntries.clear();
 }
 
 void ToolbarManager::load(SimpleXML& aXml)

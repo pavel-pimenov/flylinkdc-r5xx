@@ -198,8 +198,15 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		SettingsManager::g_TestTCPLevel = false;
 		if (ClientManager::getMyCID().toBase32() == l_magic)
 		{
-			LogManager::message("Test TCP port - OK!");
 			SettingsManager::g_TestTCPLevel = CFlyServerJSON::setTestPortOK(SETTING(TCP_PORT), "tcp");
+			if (SettingsManager::g_TestTCPLevel == false)
+			{
+				LogManager::message("Test TCP port - Failed!");
+			}
+			else
+			{
+				LogManager::message("Test TCP port - OK!");
+			}
 		}
 		else
 		{

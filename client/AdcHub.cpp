@@ -457,6 +457,8 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 	if (!l_ip4.empty())
 	{
 		id.setIp(l_ip4);
+		id.m_is_real_user_ip_from_hub = true;
+		id.getUser()->m_last_ip_sql.reset_dirty();
 	}
 	if (!l_ip6.empty())
 	{

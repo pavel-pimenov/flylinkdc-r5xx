@@ -1140,9 +1140,14 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 		{
 			if (isInSkipList(l_lower_name))
 			{
-				LogManager::message(STRING(USER_DENIED_SHARE_THIS_FILE) + ' ' + l_file_name
-				                    + " (" + STRING(SIZE) + ": " + Util::toString(i->getSize()) + ' '
-				                    + STRING(B) + ") (" + STRING(DIRECTORY) + ": \"" + aName + "\")");
+				const auto l_ext = Util::getFileExtWithoutDot(l_lower_name);
+				if (l_ext != "!ut") //  && l_ext != "crdownload"
+				{
+					// jc!, ob!, dmf, mta, dmfr, !ut, !bt, bc!, getright, antifrag, pusd, dusd, download, crdownload
+					LogManager::message(STRING(USER_DENIED_SHARE_THIS_FILE) + ' ' + l_file_name
+					                    + " (" + STRING(SIZE) + ": " + Util::toString(i->getSize()) + ' '
+					                    + STRING(B) + ") (" + STRING(DIRECTORY) + ": \"" + aName + "\")");
+				}
 				continue;
 			}
 		}

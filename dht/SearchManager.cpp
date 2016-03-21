@@ -45,6 +45,8 @@ Search::~Search()
 		case TYPE_STOREFILE:
 			IndexManager::decPublishing();
 			break;
+		default:
+			dcassert(0);
 	}
 }
 

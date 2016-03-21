@@ -343,13 +343,18 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	
 	BaseChatFrame::OnCreate(m_hWnd, rcDefault);
 	
-	
 	ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick()); // !SMT!-S
 	
 	// TODO - отложить создание контрола...
 // TODO - может колонки не создвать пока они не нужны?
 	bHandled = FALSE;
 	m_client->connect();
+	const FavoriteHubEntry* fe = FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl());
+	const auto l_is_favorite_active = ClientManager::isActive(fe);
+	LogManager::message("Connect: " + m_client->getHubUrl() + string(" Mode: ") +
+	                    (m_client->isActive() ? ("Active" + (l_is_favorite_active ? string("(favorites)") : string())) : "Passive") + string(" Support: ") +
+		                    MappingManager::getPortmapInfo(true, true));
+		                    
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	ConnectionManager::getInstance()->addListener(this);
 #endif
@@ -864,7 +869,7 @@ void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring
 	}
 	else if (stricmp(cmd.c_str(), _T("connection")) == 0 || stricmp(cmd.c_str(), _T("con")) == 0)
 	{
-		string l_desc = MappingManager::getPortmapInfo(true, true);
+		const string l_desc = MappingManager::getPortmapInfo(true, true);
 		tstring l_con = _T("\r\n-=[ ") + TSTRING(IP) + _T(' ') + Text::toT(m_client->getLocalIp()) + _T(" ]=-\r\n-=[ ") + Text::toT(l_desc) + _T(" ]=-");
 		
 		if (param == _T("pub"))

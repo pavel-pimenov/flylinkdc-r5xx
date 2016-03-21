@@ -202,7 +202,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		
 		void disconnect(bool graceless = false)
 		{
-			dcassert(socket); // [+] IRainman fix.
+			//dcassert(socket); // [+] IRainman fix.
 			if (socket)
 				socket->disconnect(graceless);
 		}

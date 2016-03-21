@@ -126,6 +126,9 @@ void CryptoManager::setContextOptions(SSL_CTX* aCtx, bool aServer)
 		}
 	}
 }
+extern "C" {
+	void free_compressions(void);
+}
 
 CryptoManager::~CryptoManager()
 {
@@ -150,7 +153,8 @@ CryptoManager::~CryptoManager()
 	ERR_free_strings();
 	EVP_cleanup();
 	CRYPTO_cleanup_all_ex_data();
-	
+	free_compressions();
+	//
 	CRYPTO_set_locking_callback(NULL);
 	delete[] cs;
 	cs = nullptr;

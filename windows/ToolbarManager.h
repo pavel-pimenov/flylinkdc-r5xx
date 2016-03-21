@@ -41,8 +41,8 @@ class ToolbarEntry
 
 class ToolbarManager
 {
-	public:
 		ToolbarManager();
+	public:
 		~ToolbarManager();
 		
 		// Get & Set toolbar positions
@@ -52,6 +52,7 @@ class ToolbarManager
 		// Save & load
 		static void load(SimpleXML& aXml);
 		static void save(SimpleXML& aXml);
+		static void shutdown();
 		
 	private:
 		// Get data by name

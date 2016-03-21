@@ -1232,10 +1232,8 @@ bool CFlyServerJSON::setTestPortOK(unsigned short p_port, const std::string& p_t
 	}
 	else
 	{
-		// TODO dcassert(0);
-#ifdef _DEBUG
+		dcassert(0);
 		LogManager::message("[CFlyServerJSON::setTestPortOK] Not found Test Port " + p_type + " = " + Util::toString(p_port));
-#endif
 	}
 	return false;
 }
@@ -1251,6 +1249,7 @@ bool CFlyServerJSON::isTestPortOK(unsigned short p_port, const std::string& p_ty
 	}
 	else
 	{
+		dcassert(0);
 #ifdef _DEBUG
 		LogManager::message("[CFlyServerJSON::isTestPortOK] Not found Test Port " + p_type + " = " + Util::toString(p_port));
 #endif
@@ -1327,28 +1326,29 @@ bool CFlyServerJSON::pushTestPort(
 	bool l_is_send = false;
 	bool l_is_error = false;
 	p_external_ip.clear();
+	// Регистрируем факт начала запроса на тест портов
+	const auto l_cur_time = GET_TICK();
+	{
+		CFlyFastLock(g_cs_test_port);
+		for (auto i = l_test_port_map.cbegin(); i != l_test_port_map.cend(); ++i)
+		{
+			auto& l_item = g_test_port_map[i->first];
+			l_item = i->second;
+			l_item.second = l_cur_time;
+			LogManager::message("[pushTestPort] Port " + Util::toString(i->first.first) + " = " + i->first.second +
+			                    " status = " + Util::toString(i->second.first) + " time= " + Util::toString(i->second.second));
+		}
+	}
 	const auto l_result = postQueryTestPort(l_log, l_post_query, l_is_send, l_is_error);
 	dcassert(!l_result.empty());
 	// TODO - приделать счетчик таймаута и передавать его в статистику или в след пакет?
 	if (!l_is_send)
 	{
 		l_log.step("Error POST query");
+		// TODO - почистить g_test_port_map ?
 	}
 	else
 	{
-		const auto l_cur_time = GET_TICK();
-		{
-			CFlyFastLock(g_cs_test_port);
-			for (auto i = l_test_port_map.cbegin(); i != l_test_port_map.cend(); ++i)
-			{
-				auto& l_item = g_test_port_map[i->first];
-				l_item = i->second;
-				l_item.second = l_cur_time;
-#ifdef _DEBUG
-				LogManager::message("[pushTestPort] Port " + Util::toString(i->first.first) + " = " + i->first.second);
-#endif
-			}
-		}
 		if (!l_result.empty())
 		{
 			Json::Value l_root;

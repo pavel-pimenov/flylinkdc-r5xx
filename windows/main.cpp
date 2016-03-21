@@ -523,6 +523,10 @@ static void crash_test_doctor_dump()
 #endif
 }
 #endif
+namespace leveldb
+{
+extern void LevelDBDestoyModule();
+}
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
@@ -754,6 +758,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	::CoUninitialize();
 	DestroySplash();
 	LogManager::flush_all_log();
+	leveldb::LevelDBDestoyModule();
 	return nRet;
 }
 

@@ -666,7 +666,7 @@ string Client::getLocalIp() const
 
 uint64_t Client::search_internal(const SearchParamToken& p_search_param)
 {
-	dcdebug("Queue search %s\n", p_search_param.m_filter.c_str());
+	//dcdebug("Queue search %s\n", p_search_param.m_filter.c_str());
 	
 	if (m_searchQueue.m_interval)
 	{

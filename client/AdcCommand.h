@@ -278,7 +278,7 @@ class CommandHandler
 		{
 			try
 			{
-				dcassert(!ClientManager::isShutdown());
+				//dcassert(!ClientManager::isShutdown());
 				if (ClientManager::isShutdown())
 				{
 					return;

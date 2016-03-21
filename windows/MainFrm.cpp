@@ -220,6 +220,7 @@ MainFrame::~MainFrame()
 #ifdef IRAINMAN_INCLUDE_SMILE
 	CAGEmotionSetup::destroyEmotionSetup();
 #endif
+	ToolbarManager::shutdown();
 	WinUtil::uninit();
 }
 

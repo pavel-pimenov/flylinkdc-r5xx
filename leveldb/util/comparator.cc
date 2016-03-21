@@ -69,6 +69,13 @@ class BytewiseComparatorImpl : public Comparator {
 static port::OnceType once = LEVELDB_ONCE_INIT;
 static const Comparator* bytewise;
 
+//[+]FlylinkDC++
+
+void LevelDBDestoyModule() {
+	delete bytewise;
+	bytewise = nullptr;
+}
+
 static void InitModule() {
   bytewise = new BytewiseComparatorImpl;
 }

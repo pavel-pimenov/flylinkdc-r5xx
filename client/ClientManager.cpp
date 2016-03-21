@@ -1182,9 +1182,7 @@ void ClientManager::flushRatio(int p_max_count_flush)
 	if (g_isBusy == false)
 	{
 		CFlyBusyBool l_busy(g_isBusy);
-#ifdef FLYLINKDC_BETA
 		CFlyLog l_log("[ClientManager::flushRatio]");
-#endif
 		CFlyReadLock(*g_csUsers);
 		auto i = g_users.cbegin();
 		while (i != g_users.cend() && !isShutdown())
@@ -1207,11 +1205,7 @@ void ClientManager::flushRatio(int p_max_count_flush)
 		}
 		if (l_count_flush)
 		{
-#ifdef FLYLINKDC_BETA
-//#ifdef _DEBUG
 			l_log.log("Flush for " + Util::toString(l_count_flush) + " users...");
-//#endif
-#endif
 		}
 		else
 		{
