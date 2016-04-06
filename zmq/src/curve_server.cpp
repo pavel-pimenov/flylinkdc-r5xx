@@ -27,9 +27,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "precompiled.hpp"
+#include "macros.hpp"
 #include "platform.hpp"
 
-#ifdef HAVE_LIBSODIUM
+#ifdef ZMQ_HAVE_CURVE
 
 #ifdef ZMQ_HAVE_WINDOWS
 #include "windows.hpp"
@@ -56,10 +58,10 @@ zmq::curve_server_t::curve_server_t (session_base_t *session_,
     //  Fetch our secret key from socket options
     memcpy (secret_key, options_.curve_secret_key, crypto_box_SECRETKEYBYTES);
     scoped_lock_t lock (sync);
-#if defined(HAVE_TWEETNACL)
+#if defined (ZMQ_USE_TWEETNACL)
     // allow opening of /dev/urandom
     unsigned char tmpbytes[4];
-    randombytes(tmpbytes, 4);
+    randombytes (tmpbytes, 4);
 #else
     rc = sodium_init ();
     zmq_assert (rc != -1);
@@ -380,7 +382,8 @@ int zmq::curve_server_t::produce_welcome (msg_t *msg_)
     rc = crypto_box (welcome_ciphertext, welcome_plaintext,
                      sizeof welcome_plaintext,
                      welcome_nonce, cn_client, secret_key);
-    zmq_assert (rc == 0);
+    if (rc == -1)
+        return -1;
 
     rc = msg_->init_size (168);
     errno_assert (rc == 0);

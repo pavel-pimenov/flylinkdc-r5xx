@@ -998,7 +998,7 @@ void QueueFrame::moveSelected()
 		for (auto i = l_movingItems.cbegin(); i != l_movingItems.end(); ++i)
 		{
 			const QueueItemInfo* ii = *i;
-			const auto& l_target = ii->getTarget();
+			const auto l_target = ii->getTarget();
 			QueueManager::getInstance()->move(l_target, l_toDir + Util::getFileName(l_target));
 		}
 		// [~] IRainman fix.
@@ -1231,7 +1231,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 					// ниже сохраняем адрес итератора
 					for (auto i = sources.cbegin(); i != sources.cend(); ++i)
 					{
-						const auto& user = i->first;
+						const auto user = i->first;
 						tstring nick = WinUtil::escapeMenu(WinUtil::getNicks(user, Util::emptyString));
 						// add hub hint to menu
 						const auto& hubs = ClientManager::getHubNames(user->getCID(), Util::emptyString);
@@ -1597,7 +1597,7 @@ LRESULT QueueFrame::onPM(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL&
 				// [!] IRainman: Open the window of PM with an empty address if the user NMDC,
 				// as soon as it appears on the hub of the network, the window immediately PM knows about it, and update the Old.
 				// If the user ADC, as soon as he appears on any of the ADC hubs at once a personal window to know.
-				const auto& hubs = ClientManager::getHubs((*s)->getCID(), Util::emptyString);
+				const auto hubs = ClientManager::getHubs((*s)->getCID(), Util::emptyString);
 				PrivateFrame::openWindow(nullptr, HintedUser(*s, !hubs.empty() ? hubs[0] : Util::emptyString));
 			}
 		}
@@ -1682,7 +1682,7 @@ LRESULT QueueFrame::onPriority(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 		while ((i = ctrlQueue.GetNextItem(i, LVNI_SELECTED)) != -1)
 		{
 			// TODO - двойное обращение к менеджеру - склеить вместе
-			const auto& l_target = ctrlQueue.getItemData(i)->getTarget();
+			const auto l_target = ctrlQueue.getItemData(i)->getTarget();
 			QueueManager::getInstance()->setAutoPriority(l_target, false);
 			QueueManager::getInstance()->setPriority(l_target, p);
 		}
@@ -1755,7 +1755,7 @@ void QueueFrame::changePriority(bool inc)
 				break;
 		}
 		// TODO - двойное обращение к менеджеру - склеить вместе
-		const auto& l_target = ctrlQueue.getItemData(i)->getTarget();
+		const auto l_target = ctrlQueue.getItemData(i)->getTarget();
 		QueueManager::getInstance()->setAutoPriority(l_target, false);
 		QueueManager::getInstance()->setPriority(l_target, p);
 	}

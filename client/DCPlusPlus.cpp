@@ -36,6 +36,7 @@
 #include "CFlylinkDBManager.h"
 #include "../FlyFeatures/flyServer.h"
 #include "syslog/syslog.h"
+#include "../windows/ToolbarManager.h"
 
 #include "IpGuard.h"
 #include "PGLoader.h"
@@ -46,6 +47,7 @@
 #ifdef STRONG_USE_DHT
 #include "../dht/DHT.h"
 #endif
+
 
 #ifdef USE_FLYLINKDC_VLD
 #include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h" // VLD качать тут http://vld.codeplex.com/
@@ -202,8 +204,9 @@ void preparingCoreToShutdown() // [+] IRainamn fix.
 		g_is_first = true;
 		CFlyLog l_log("[Core shutdown]");
 		TimerManager::getInstance()->shutdown();
-		dht::BootstrapManager::full_shutdown();
-		ClientManager::getInstance()->shutdown(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1374
+		ClientManager::shutdown();
+		dht::BootstrapManager::shutdown_http();
+		UploadManager::shutdown();
 		WebServerManager::getInstance()->shutdown();
 		HashManager::getInstance()->shutdown();
 		ClientManager::getInstance()->prepareClose();
@@ -349,6 +352,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		CFlylinkDBManager::shutdown_engine();
 		TimerManager::deleteInstance();
 		SettingsManager::deleteInstance();
+		ToolbarManager::shutdown();
 		extern SettingsManager* g_settings;
 		g_settings = nullptr;
 		

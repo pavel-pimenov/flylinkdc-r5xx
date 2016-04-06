@@ -292,6 +292,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <SetChecksum>true</SetChecksum>
       <TargetMachine>MachineX86</TargetMachine>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>res\FlylinkDC.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -368,7 +369,7 @@
       <SetChecksum>true</SetChecksum>
       <TargetMachine>MachineX64</TargetMachine>
       <ShowProgress>NotSet</ShowProgress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <Manifest>
       <OutputManifestFile>$(IntDir)$(TargetFileName).embed.manifest</OutputManifestFile>
@@ -708,6 +709,7 @@
     <Image Include="res\vip_prostoigra24.ico" />
     <Image Include="res\vip_scalolaz.ico" />
     <Image Include="res\vip_stealthhub.ico" />
+    <Image Include="res\vip_titankaluga.ico" />
     <Image Include="res\wifi-router.ico" />
     <Text Include="compiled\Settings\common\IPGrant.ini">
       <FileType>Document</FileType>

@@ -25,10 +25,15 @@ LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 //
 
 IDR_FLY_SERVER_CONFIG   RCDATA                  "compiled\\Settings\\flylinkdc-config-r5xx.xml"
+
 IDR_IPGRANT_EXAMPLE     RCDATA                  "compiled\\Settings\\common\\IPGrant.ini"
+
 IDR_IPGUARD_EXAMPLE     RCDATA                  "compiled\\Settings\\common\\IPGuard.ini"
+
 IDR_IPTRUST_EXAMPLE     RCDATA                  "compiled\\Settings\\common\\IPTrust.ini"
+
 IDR_ISP_HUB_LIST_EXAMPLE RCDATA                  "compiled\\Settings\\common\\isp-hub-list.txt"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -491,17 +496,17 @@ BEGIN
     COMBOBOX        IDC_BIND_ADDRESS,206,11,108,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Incoming Connection Settings (See help / FAQ if unsure)",IDC_SETTINGS_INCOMING,4,30,316,179,WS_GROUP
     CONTROL         "Enable automatic incoming connection type detection",IDC_CONNECTION_DETECTION,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,40,253,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,39,253,10
     CONTROL         "Direct connection",IDC_DIRECT,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,8,52,87,9
     CONTROL         "Firewall with manual port forwarding",IDC_FIREWALL_NAT,
                     "Button",BS_AUTORADIOBUTTON | BS_MULTILINE | WS_TABSTOP,8,65,148,26
     CONTROL         "UPnP (for WiFi router)",IDC_FIREWALL_UPNP,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,100,52,102,9
     CONTROL         "Firewall (passive mode, worst case)",IDC_FIREWALL_PASSIVE,
                     "Button",BS_AUTORADIOBUTTON | BS_MULTILINE | WS_TABSTOP,160,65,153,26
-    GROUPBOX        "External / WAN IP/ Default gateway",IDC_SETTINGS_IP,9,90,186,43,BS_CENTER
+    GROUPBOX        "External / WAN IP/ Default gateway",IDC_SETTINGS_IP,9,90,186,55,BS_CENTER
     EDITTEXT        IDC_EXTERNAL_IP,12,99,71,14,ES_AUTOHSCROLL
     PUSHBUTTON      "Test port and get IP address",IDC_GETIP,177,164,137,14
-    EDITTEXT        IDC_IP_GET_IP,12,114,180,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_IP_GET_IP,12,129,180,14,ES_AUTOHSCROLL
     GROUPBOX        "Ports",IDC_SETTINGS_PORTS,199,90,90,72,BS_CENTER
     LTEXT           "TCP",IDC_SETTINGS_PORT_TCP,221,100,15,8,NOT WS_GROUP
     EDITTEXT        IDC_PORT_TCP,240,98,30,14,ES_AUTOHSCROLL | ES_NUMBER
@@ -530,18 +535,18 @@ BEGIN
     ICON            "",IDC_NETWORK_TEST_PORT_UDP_ICO,274,114,20,20
     ICON            "",IDC_NETWORK_TEST_PORT_TLS_TCP_ICO,274,130,20,20
     ICON            "",IDC_NETWORK_TEST_PORT_DHT_UDP_ICO,274,145,20,20
-    ICON            "",IDC_NETWORK_WINFIREWALL_ICO,173,135,20,20
-    LTEXT           "Windows firewall for FlylinkDC++ status",IDC_NETWORK_WINFIREWALL_STATUS,15,136,156,8,NOT WS_GROUP
+    ICON            "",IDC_NETWORK_WINFIREWALL_ICO,173,144,21,20
     PUSHBUTTON      "Windows Firewall: FlylinkDC++ exception",IDC_ADD_FLYLINKDC_WINFIREWALL,10,147,160,14
     EDITTEXT        IDC_DEFAULT_GATEWAY_IP,121,99,70,14,ES_AUTOHSCROLL | ES_READONLY | WS_DISABLED
     LTEXT           "Gateway:",IDC_STATIC_GATEWAY,87,100,30,11,WS_DISABLED
-    ICON            "",IDC_WIFI_ROUTER_ICO,283,36,21,20
+    ICON            "",IDC_WIFI_ROUTER_ICO,283,36,20,20
     EDITTEXT        IDC_UPNP_EXTERNAL_IP,204,49,77,14,ES_AUTOHSCROLL | ES_READONLY | WS_DISABLED
     ICON            "",IDC_NETWORK_TEST_PORT_TCP_ICO_UPNP,298,99,20,20
     ICON            "",IDC_NETWORK_TEST_PORT_UDP_ICO_UPNP,298,114,20,20
     ICON            "",IDC_NETWORK_TEST_PORT_TLS_TCP_ICO_UPNP,298,130,20,20
     ICON            "",IDC_NETWORK_TEST_PORT_DHT_UDP_ICO_UPNP,298,145,20,20
     GROUPBOX        "UPnP",IDC_SETTINGS_PORTS_UPNP,293,90,22,72,BS_CENTER
+    CONTROL         "Manual WAN IP",IDC_WAN_IP_MANUAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,117,177,10
 END
 
 IDD_CERTIFICATES_PAGE DIALOGEX 0, 0, 325, 300
@@ -2924,81 +2929,157 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\FlylinkDC.ico"
+
 IDR_INTERNET_HUBS       ICON                    "res\\Internet-Hubs.ico"
+
 IDR_RECENT_HUBS         ICON                    "res\\Recent-Hubs.ico"
+
 IDR_FAVORITES           ICON                    "res\\Favorites.ico"
+
 IDR_FAVORITE_USERS      ICON                    "res\\Favorite-Users.ico"
+
 IDR_QUEUE               ICON                    "res\\Download-Queue.ico"
+
 IDR_FINISHED_DL         ICON                    "res\\Finished-Downloads.ico"
+
 IDR_UPLOAD_QUEUE        ICON                    "res\\Upload-Queue.ico"
+
 IDR_FINISHED_UL         ICON                    "res\\Finished-Uploads.ico"
+
 IDR_NETWORK_STATISTICS_ICON ICON                    "res\\Network-Statistics.ico"
+
 IDC_WIFI_ROUTER_ICO     ICON                    "res\\wifi-router.ico"
+
 IDR_SEARCH              ICON                    "res\\Search.ico"
+
 IDR_ADLSEARCH           ICON                    "res\\ADLSearch.ico"
+
 IDR_SPY                 ICON                    "res\\Search-Spy.ico"
+
 IDR_NOTEPAD             ICON                    "res\\Notepad.ico"
+
 IDR_RSS                 ICON                    "res\\RSS.ico"
+
 IDR_PORTAL_BROWSER      ICON                    "res\\Portal-Browser.ico"
+
 IDR_HUB                 ICON                    "res\\Hub.ico"
+
 IDR_HUB_OFF             ICON                    "res\\HubOff.ico"
+
 IDR_PRIVATE             ICON                    "res\\User.ico"
+
 IDR_PRIVATE_OFF         ICON                    "res\\UserOff.ico"
+
 IDR_BANNED_ONLINE       ICON                    "res\\UserBan.ico"
+
 IDR_BANNED_OFF          ICON                    "res\\UserBanOff.ico"
+
 IDR_FILE_LIST           ICON                    "res\\File-List.ico"
+
 IDR_CDM                 ICON                    "res\\CDM.ico"
+
 IDR_MAGNET              ICON                    "res\\Magnet.ico"
+
 IDR_ERROR               ICON                    "res\\Error.ico"
+
 IDR_SHUTDOWN            ICON                    "res\\Shutdown.ico"
+
 IDR_TUSER               ICON                    "res\\TranferUser.ico"
+
 IDR_TRAY_AND_TASKBAR_PM ICON                    "res\\PM.ico"
+
 IDR_TRAY_AND_TASKBAR_NO_PM ICON                    "res\\PM-None.ico"
+
 IDR_PURGE               ICON                    "res\\Purge.ico"
+
 IDR_PAUSE               ICON                    "res\\Pause.ico"
+
 IDR_SENDMESSAGES_ICON   ICON                    "res\\addMessage.ico"
+
 IDR_MULTI_CHAT_ICON     ICON                    "res\\MultiChat.ico"
+
 IDR_SWITCH_PANELS_ICON  ICON                    "res\\SwitchPanels.ico"
+
 IDR_SMILE_ICON          ICON                    "res\\Smile.ico"
+
 IDR_BOLD_ICON           ICON                    "res\\Bold.ico"
+
 IDR_ITALIC_ICON         ICON                    "res\\italic.ico"
+
 IDR_STRIKE_ICON         ICON                    "res\\strike.ico"
+
 IDR_TRANSCODE_ICON      ICON                    "res\\transcode.ico"
+
 IDR_UNDERLINE_ICON      ICON                    "res\\underline.ico"
+
 IDR_COLOR_ICON          ICON                    "res\\color.ico"
+
 IDR_AUTOUPDATE          ICON                    "res\\FlylinkDC_Update.ico"
+
 IDR_ICON_SUCCESS_ICON   ICON                    "res\\f_green_16.ico"
+
 IDR_ICON_FAIL_ICON      ICON                    "res\\f_red_16.ico"
+
 IDR_ICON_WARN_ICON      ICON                    "res\\f_yellow_16.ico"
+
 IDR_ICON_QUESTION_ICON  ICON                    "res\\f_question_16.ico"
+
 IDR_ICON_PAUSE_ICON     ICON                    "res\\f_grey_16.ico"
+
 IDR_ICON_MEDICAL_BAG    ICON                    "res\\medical_bag.ico"
+
 IDR_ICON_THERMOMETR_BAG ICON                    "res\\thermometer2.ico"
+
 IDR_SKULL_ICO           ICON                    "res\\skull.ico"
+
 IDR_SKULL_RED_ICO       ICON                    "res\\skull_red.ico"
+
 IDR_SKULL2_ICO          ICON                    "res\\skull2.ico"
+
 IDR_SKULL2_RED_ICO      ICON                    "res\\skull2_red.ico"
+
 IDR_ICON_FIREWALL       ICON                    "res\\firewall.ico"
+
 IDR_ICON_CLOCK          ICON                    "res\\clock.ico"
+
 IDR_ICON_CAMSHOOT_ICO   ICON                    "res\\Cam.ico"
+
 IDR_MODE_ACTIVE_ICO     ICON                    "res\\mode_active.ico"
+
 IDR_MODE_PASSIVE_ICO    ICON                    "res\\mode_passive.ico"
+
 IDR_MODE_OFFLINE_ICO    ICON                    "res\\mode_offline.ico"
+
 IDR_OFFLINE_ICO         ICON                    "res\\offline.ico"
+
 IDR_ONLINE_ICO          ICON                    "res\\online.ico"
+
 IDR_VIP_ICO_SCALOLAZ    ICON                    "res\\vip_scalolaz.ico"
+
 IDR_VIP_ICO_MILENAHUB   ICON                    "res\\vip_milenahub.ico"
+
 IDR_VIP_ICO_STEALTHHUB  ICON                    "res\\vip_stealthhub.ico"
+
 IDR_VIP_ICO_KEEPCLEAR   ICON                    "res\\vip_keepclear_org.ico"
+
 IDR_VIP_ICO_PRIME       ICON                    "res\\vip_prime.ico"
+
 IDR_VIP_ICO_PERSEUS     ICON                    "res\\vip_perseus.ico"
+
 IDR_VIP_ICO_ALLAVTOVO   ICON                    "res\\vip_allavtovo.ico"
+
 IDR_VIP_ICO_KOROBKA     ICON                    "res\\vip_korobka.ico"
+
 IDR_VIP_ICO_NSK154      ICON                    "res\\vip_nsk154hub.ico"
+
 IDR_VIP_ICO_PROSTOIGRA  ICON                    "res\\vip_prostoigra24.ico"
+
 IDR_VIP_ICO_EVAHUB      ICON                    "res\\vip_eva.ico"
+
 IDR_VIP_ICO_ADRENALIN   ICON                    "res\\vip_adrenalin.ico"
+
 IDR_VIP_ICO_TITANKALUGA ICON                    "res\\vip_titankaluga.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3006,42 +3087,90 @@ IDR_VIP_ICO_TITANKALUGA ICON                    "res\\vip_titankaluga.ico"
 //
 
 IDR_SPLASH              PNG                     "res\\Splash\\Splash.png"
+
 IDR_SPLASH_9MAY         PNG                     "res\\Splash\\Splash_9may.png"
+
 IDR_SPLASH_WINTER       PNG                     "res\\Splash\\Splash_winter.png"
+
 IDR_SPLASH_NY1          PNG                     "res\\Splash\\Splash_5xx_NY1.png"
+
 IDR_TOOLBAR             PNG                     "res\\Toolbar.png"
+
 IDR_TOOLBAR_HL          PNG                     "res\\Toolbar-highlight.png"
+
 IDR_TOOLBAR_MINI        PNG                     "res\\Toolbar-mini.png"
+
 IDR_PLAYERS_CONTROL     PNG                     "res\\PlayersControl.png"
+
 IDR_PLAYERS_CONTROL_HL  PNG                     "res\\PlayersControl-highlight.png"
-IDR_PLAYERS_CONTROL_MINI PNG                    "res\\PlayersControl-mini.png"
+
+IDR_PLAYERS_CONTROL_MINI PNG                     "res\\PlayersControl-mini.png"
+
 IDR_SETTINGS_ICONS      PNG                     "res\\Settings-icons.png"
+
 IDR_USERS               PNG                     "res\\Users.png"
+
 IDR_STATE_USERS         PNG                     "res\\StateUsers.png"
+
 IDR_GENDER_USERS        PNG                     "res\\Gender.png"
+
 IDR_FLAGS               PNG                     "res\\Flags.png"
+
 IDR_ARROWS              PNG                     "res\\Arrows.png"
+
 IDR_TSPEEDS             PNG                     "res\\TranferSpeeds.png"
+
 IDR_TSPEEDS_BW          PNG                     "res\\TransferSpeeds-BW.png"
+
 IDR_SPEEDS              PNG                     "res\\Speeds.png"
+
 IDR_FOLDERS             PNG                     "res\\Folders.png"
+
 IDR_MEDIAFILES          PNG                     "res\\Mediafiles.png"
+
 IDR_SEARCH_TYPES        PNG                     "res\\Search-Types.png"
+
 IDR_STATE               PNG                     "res\\State.png"
+
 IDR_FAV_USERS_STATES    PNG                     "res\\Fav-Users-States.png"
+
 IDR_SMILE               PNG                     "res\\Smile.png"
+
 IDR_SENDMESSAGE         PNG                     "res\\addMessage.png"
+
 IDR_BOLD                PNG                     "res\\bold.png"
+
 IDR_STRIKE              PNG                     "res\\strike.png"
+
 IDR_UNDERLINE           PNG                     "res\\underline.png"
+
 IDR_ITALIC              PNG                     "res\\italic.png"
+
 IDR_TRANSCODE           PNG                     "res\\transcode.png"
+
 IDR_CLOSE_PNG           PNG                     "res\\CloseIcon.png"
+
 IDR_DCLST               PNG                     "res\\dclst.png"
+
 IDR_FLYLINK_PNG         PNG                     "res\\FlyLink.png"
+
 IDR_MAGNET_PNG          PNG                     "res\\Magnet.png"
+
 IDR_ISP_HUBLIST         PNG                     "res\\ISPImages.png"
+
 IDR_ICON_CAMSHOOT_PNG   PNG                     "res\\Cam.png"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_NETWORK_PAGE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 #endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
 

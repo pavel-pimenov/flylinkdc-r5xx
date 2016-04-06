@@ -81,6 +81,9 @@ class InputStream
 		 *         actually read from the stream source in this call.
 		 */
 		virtual size_t read(void* buf, size_t& len) = 0;
+		virtual void clean_stream()
+		{
+		}
 };
 
 class MemoryInputStream : public InputStream
@@ -133,7 +136,10 @@ class LimitedInputStream : public InputStream
 		}
 		~LimitedInputStream() noexcept
 		{
-			if (managed) delete s;
+			if (managed)
+			{
+				delete s;
+			}
 		}
 		
 		size_t read(void* buf, size_t& len)
@@ -145,6 +151,10 @@ class LimitedInputStream : public InputStream
 			size_t x = s->read(buf, len);
 			maxBytes -= x;
 			return x;
+		}
+		void clean_stream() override
+		{
+			s = nullptr;
 		}
 		
 	private:

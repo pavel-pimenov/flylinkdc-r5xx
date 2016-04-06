@@ -205,6 +205,7 @@
       <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetMachine>MachineX86</TargetMachine>
+      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -252,6 +253,7 @@
       <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetMachine>MachineX64</TargetMachine>
+      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -878,109 +880,6 @@
     <ClInclude Include="client\stdinc.h" />
     <ClInclude Include="client\Streams.h" />
     <ClInclude Include="windows\RebuildMediainfoProgressDlg.h" />
-    <ClInclude Include="zmq\src\address.hpp" />
-    <ClInclude Include="zmq\src\array.hpp" />
-    <ClInclude Include="zmq\src\atomic_counter.hpp" />
-    <ClInclude Include="zmq\src\atomic_ptr.hpp" />
-    <ClInclude Include="zmq\src\blob.hpp" />
-    <ClInclude Include="zmq\src\clock.hpp" />
-    <ClInclude Include="zmq\src\command.hpp" />
-    <ClInclude Include="zmq\src\config.hpp" />
-    <ClInclude Include="zmq\src\ctx.hpp" />
-    <ClInclude Include="zmq\src\curve_client.hpp" />
-    <ClInclude Include="zmq\src\curve_server.hpp" />
-    <ClInclude Include="zmq\src\dbuffer.hpp" />
-    <ClInclude Include="zmq\src\dealer.hpp" />
-    <ClInclude Include="zmq\src\decoder.hpp" />
-    <ClInclude Include="zmq\src\devpoll.hpp" />
-    <ClInclude Include="zmq\src\dist.hpp" />
-    <ClInclude Include="zmq\src\encoder.hpp" />
-    <ClInclude Include="zmq\src\epoll.hpp" />
-    <ClInclude Include="zmq\src\err.hpp" />
-    <ClInclude Include="zmq\src\fd.hpp" />
-    <ClInclude Include="zmq\src\fq.hpp" />
-    <ClInclude Include="zmq\src\gssapi_client.hpp" />
-    <ClInclude Include="zmq\src\gssapi_mechanism_base.hpp" />
-    <ClInclude Include="zmq\src\gssapi_server.hpp" />
-    <ClInclude Include="zmq\src\io_object.hpp" />
-    <ClInclude Include="zmq\src\io_thread.hpp" />
-    <ClInclude Include="zmq\src\ip.hpp" />
-    <ClInclude Include="zmq\src\ipc_address.hpp" />
-    <ClInclude Include="zmq\src\ipc_connecter.hpp" />
-    <ClInclude Include="zmq\src\ipc_listener.hpp" />
-    <ClInclude Include="zmq\src\i_decoder.hpp" />
-    <ClInclude Include="zmq\src\i_encoder.hpp" />
-    <ClInclude Include="zmq\src\i_engine.hpp" />
-    <ClInclude Include="zmq\src\i_poll_events.hpp" />
-    <ClInclude Include="zmq\src\kqueue.hpp" />
-    <ClInclude Include="zmq\src\lb.hpp" />
-    <ClInclude Include="zmq\src\likely.hpp" />
-    <ClInclude Include="zmq\src\mailbox.hpp" />
-    <ClInclude Include="zmq\src\mechanism.hpp" />
-    <ClInclude Include="zmq\src\metadata.hpp" />
-    <ClInclude Include="zmq\src\msg.hpp" />
-    <ClInclude Include="zmq\src\mtrie.hpp" />
-    <ClInclude Include="zmq\src\mutex.hpp" />
-    <ClInclude Include="zmq\src\norm_engine.hpp" />
-    <ClInclude Include="zmq\src\null_mechanism.hpp" />
-    <ClInclude Include="zmq\src\object.hpp" />
-    <ClInclude Include="zmq\src\options.hpp" />
-    <ClInclude Include="zmq\src\own.hpp" />
-    <ClInclude Include="zmq\src\pair.hpp" />
-    <ClInclude Include="zmq\src\pgm_receiver.hpp" />
-    <ClInclude Include="zmq\src\pgm_sender.hpp" />
-    <ClInclude Include="zmq\src\pgm_socket.hpp" />
-    <ClInclude Include="zmq\src\pipe.hpp" />
-    <ClInclude Include="zmq\src\plain_client.hpp" />
-    <ClInclude Include="zmq\src\plain_server.hpp" />
-    <ClInclude Include="zmq\src\platform.hpp" />
-    <ClInclude Include="zmq\src\poll.hpp" />
-    <ClInclude Include="zmq\src\poller.hpp" />
-    <ClInclude Include="zmq\src\poller_base.hpp" />
-    <ClInclude Include="zmq\src\precompiled.hpp" />
-    <ClInclude Include="zmq\src\proxy.hpp" />
-    <ClInclude Include="zmq\src\pub.hpp" />
-    <ClInclude Include="zmq\src\pull.hpp" />
-    <ClInclude Include="zmq\src\push.hpp" />
-    <ClInclude Include="zmq\src\random.hpp" />
-    <ClInclude Include="zmq\src\raw_decoder.hpp" />
-    <ClInclude Include="zmq\src\raw_encoder.hpp" />
-    <ClInclude Include="zmq\src\reaper.hpp" />
-    <ClInclude Include="zmq\src\rep.hpp" />
-    <ClInclude Include="zmq\src\req.hpp" />
-    <ClInclude Include="zmq\src\router.hpp" />
-    <ClInclude Include="zmq\src\select.hpp" />
-    <ClInclude Include="zmq\src\session_base.hpp" />
-    <ClInclude Include="zmq\src\signaler.hpp" />
-    <ClInclude Include="zmq\src\socket_base.hpp" />
-    <ClInclude Include="zmq\src\socks.hpp" />
-    <ClInclude Include="zmq\src\socks_connecter.hpp" />
-    <ClInclude Include="zmq\src\stdint.hpp" />
-    <ClInclude Include="zmq\src\stream.hpp" />
-    <ClInclude Include="zmq\src\stream_engine.hpp" />
-    <ClInclude Include="zmq\src\sub.hpp" />
-    <ClInclude Include="zmq\src\tcp.hpp" />
-    <ClInclude Include="zmq\src\tcp_address.hpp" />
-    <ClInclude Include="zmq\src\tcp_connecter.hpp" />
-    <ClInclude Include="zmq\src\tcp_listener.hpp" />
-    <ClInclude Include="zmq\src\thread.hpp" />
-    <ClInclude Include="zmq\src\tipc_address.hpp" />
-    <ClInclude Include="zmq\src\tipc_connecter.hpp" />
-    <ClInclude Include="zmq\src\tipc_listener.hpp" />
-    <ClInclude Include="zmq\src\trie.hpp" />
-    <ClInclude Include="zmq\src\v1_decoder.hpp" />
-    <ClInclude Include="zmq\src\v1_encoder.hpp" />
-    <ClInclude Include="zmq\src\v2_decoder.hpp" />
-    <ClInclude Include="zmq\src\v2_encoder.hpp" />
-    <ClInclude Include="zmq\src\v2_protocol.hpp" />
-    <ClInclude Include="zmq\src\windows.hpp" />
-    <ClInclude Include="zmq\src\wire.hpp" />
-    <ClInclude Include="zmq\src\xpub.hpp" />
-    <ClInclude Include="zmq\src\xsub.hpp" />
-    <ClInclude Include="zmq\src\ypipe.hpp" />
-    <ClInclude Include="zmq\src\ypipe_base.hpp" />
-    <ClInclude Include="zmq\src\ypipe_conflate.hpp" />
-    <ClInclude Include="zmq\src\yqueue.hpp" />
     <CustomBuild Include="client\StringDefs.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building StringDefs.cpp and en_example.xml from StringDefs.h...</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)tools\MakeDefs.exe" .\client\StringDefs.h .\client\StringDefs.cpp .\compiled\Lang\en_example.xml</Command>

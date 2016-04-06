@@ -66,11 +66,10 @@ AdvancedPage::ListItem AdvancedPage::listItems[] =
 	{ SettingsManager::OPEN_LOGS_INTERNAL, ResourceManager::OPEN_LOGS_INTERNAL },
 	{ SettingsManager::EXTERNAL_PREVIEW, ResourceManager::EXTERNAL_PREVIEW },
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-	{ SettingsManager::ENABLE_LAST_IP, ResourceManager::ENABLE_LAST_IP },
+	{ SettingsManager::ENABLE_LAST_IP_AND_MESSAGE_COUNTER, ResourceManager::ENABLE_LAST_IP_AND_MESSAGE_COUNTER },
 #endif
 	{ SettingsManager::ENABLE_HIT_FILE_LIST, ResourceManager::ENABLE_HIT_FILE_LIST },
 	{ SettingsManager::ENABLE_RATIO_USER_LIST, ResourceManager::ENABLE_RATIO_USER_LIST },
-	// http://code.google.com/p/flylinkdc/issues/detail?id=1464
 	{ SettingsManager::REDUCE_PRIORITY_IF_MINIMIZED_TO_TRAY, ResourceManager::REDUCE_PRIORITY_IF_MINIMIZED },// [+] IRainman
 	{ SettingsManager::SQLITE_USE_JOURNAL_MEMORY, ResourceManager::SQLITE_USE_JOURNAL_MEMORY },// [+] IRainman
 #ifdef IRAINMAN_SQLITE_USE_EXCLUSIVE_LOCK_MODE

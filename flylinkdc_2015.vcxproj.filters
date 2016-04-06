@@ -1139,6 +1139,7 @@
     <Image Include="res\vip_prostoigra24.ico" />
     <Image Include="res\vip_eva.ico" />
     <Image Include="res\vip_adrenalin.ico" />
+    <Image Include="res\vip_titankaluga.ico" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

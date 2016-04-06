@@ -232,7 +232,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  DISCONNECTING_ENABLE, DISCONNECT_FILESIZE, UPLOADQUEUEFRAME_SHOW_TREE, UPLOADQUEUEFRAME_SPLIT,
 		                  SEGMENTS_MANUAL, NUMBER_OF_SEGMENTS, PERCENT_FAKE_SHARE_TOLERATED,
 		                  SEND_UNKNOWN_COMMANDS, REMOVE_SPEED,
-		                  IPUPDATE, IPUPDATE_INTERVAL,
+		                  IPUPDATE, WAN_IP_MANUAL, IPUPDATE_INTERVAL,
 		                  MAX_HASH_SPEED,
 		                  SAVE_TTH_IN_NTFS_FILESTREAM, // [+] IRainman
 		                  SET_MIN_LENGHT_TTH_IN_NTFS_FILESTREAM, // [+] NightOrion
@@ -315,7 +315,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  SHOW_QUICK_SEARCH, SEARCH_DETECT_TTH, FULL_FILELIST_NFO, TABS_CLOSEBUTTONS,
 		                  VIEW_GRIDCONTROLS, // [+] ZagZag
 		                  DUPE_EX1_COLOR, DUPE_EX2_COLOR, NSL_IGNORE_ME,// [+]NSL
-		                  ENABLE_LAST_IP,
+		                  ENABLE_LAST_IP_AND_MESSAGE_COUNTER,
 		                  ENABLE_FLY_SERVER,
 		                  ENABLE_HIT_FILE_LIST,
 		                  ENABLE_RATIO_USER_LIST,

@@ -92,6 +92,7 @@ LRESULT CDMDebugFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	DebugManager::g_isCMDDebug = false;
 	if (!m_closed)
 	{
+		m_stop = true;
 		m_closed = true;
 		{
 			CFlyRegistryMap l_values;
@@ -115,7 +116,6 @@ LRESULT CDMDebugFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 		DebugManager::getInstance()->removeListener(this);
 		DebugManager::deleteInstance(); // [+] IRainman opt.
 		
-		m_stop = true;
 		m_semaphore.signal();
 		
 		PostMessage(WM_CLOSE);
@@ -291,28 +291,24 @@ LRESULT CDMDebugFrame::onChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/
 }
 int CDMDebugFrame::run()
 {
-	setThreadPriority(Thread::LOW);
-	// [!] IRainman.
-	DebugTask task;
-	
-	while (true)
+	DebugTask l_task;
+	while (!ClientManager::isShutdown())
 	{
 		m_semaphore.wait();
-		if (m_stop || ClientManager::isShutdown())
+		if (ClientManager::isShutdown() || m_stop)
 		{
 			break;
 		}
 		{
 			CFlyFastLock(m_cs);
-			dcassert(!m_cmdList.empty()); // [~]
+			dcassert(!m_cmdList.empty());
 			
-			std::swap(task, m_cmdList.front()); // [!] opt: use swap.
+			std::swap(l_task, m_cmdList.front());
 			m_cmdList.pop_front();
 		}
 		
-		addLine(task);
+		addLine(l_task);
 	}
-	// [~] IRainman.
 	return 0;
 }
 void CDMDebugFrame::on(DebugManagerListener::DebugEvent, const DebugTask& task) noexcept

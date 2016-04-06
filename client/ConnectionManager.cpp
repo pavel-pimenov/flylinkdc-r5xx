@@ -32,7 +32,8 @@ uint16_t ConnectionManager::g_ConnToMeCount = 0;
 bool ConnectionManager::g_is_test_tcp_port = false;
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csConnection = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDownloads = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
-std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csUploads = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+//std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csUploads = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+CriticalSection ConnectionManager::g_csUploads;
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDdosCheck = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csTTHFilter = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csFileFilter = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
@@ -43,6 +44,9 @@ boost::unordered_map<string, ConnectionManager::CFlyTickFile> ConnectionManager:
 boost::unordered_set<string> ConnectionManager::g_ddos_ctm2hub;
 std::set<ConnectionQueueItemPtr> ConnectionManager::g_downloads; // TODO - сделать поиск по User?
 std::set<ConnectionQueueItemPtr> ConnectionManager::g_uploads; // TODO - сделать поиск по User?
+
+FastCriticalSection ConnectionManager::g_cs_update;
+UserList ConnectionManager::g_users_for_update;
 
 string TokenManager::makeToken() noexcept
 {
@@ -285,11 +289,13 @@ void ConnectionManager::putConnection(UserConnection* aConn)
 }
 void ConnectionManager::on(ClientManagerListener::UserConnected, const UserPtr& aUser) noexcept
 {
-	onUserUpdated(aUser);
+	CFlyFastLock(g_cs_update);
+	g_users_for_update.push_back(aUser);
 }
 void ConnectionManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept
 {
-	onUserUpdated(aUser);
+	CFlyFastLock(g_cs_update);
+	g_users_for_update.push_back(aUser);
 }
 
 void ConnectionManager::onUserUpdated(const UserPtr& aUser)
@@ -311,7 +317,8 @@ void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 			}
 		}
 		{
-			CFlyReadLock(*g_csUploads);
+			//CFlyReadLock(*g_csUploads);
+			CFlyLock(g_csUploads);
 			for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 			{
 				ConnectionQueueItemPtr cqi = *i;
@@ -344,7 +351,17 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 	{
 		cleanupDuplicateSearchFile(aTick);
 	}
-	
+	{
+		std::vector<UserPtr> l_users_for_update;
+		{
+			CFlyFastLock(g_cs_update);
+			l_users_for_update.swap(g_users_for_update);
+		}
+		for (auto i = l_users_for_update.cbegin(); i != l_users_for_update.cend(); ++i)
+		{
+			onUserUpdated(*i);
+		}
+	}
 	std::vector<ConnectionQueueItemPtr> l_removed;
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 	UserList l_idlers;
@@ -445,7 +462,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 				}
 				else if (cqi->getState() == ConnectionQueueItem::CONNECTING && cqi->getLastAttempt() + l_count_sec_connecting * 1000 < aTick)
 				{
-					ClientManager::getInstance()->connectionTimeout(cqi->getUser());
+					ClientManager::connectionTimeout(cqi->getUser());
 					
 					cqi->setErrors(cqi->getErrors() + 1);
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
@@ -488,7 +505,8 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 					fly_fire2(ConnectionManagerListener::Removed(), (*m)->getUser(), false);
 				}
 				{
-					CFlyWriteLock(*g_csUploads);
+					//CFlyWriteLock(*g_csUploads);
+					CFlyLock(g_csUploads);
 					putCQI_L(*m);
 				}
 			}
@@ -1187,7 +1205,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 			
 			// WARNING: only Nmdc hub requests for REASON_DETECT_CONNECTION.
 			// if another hub added, one must implement autodetection in base Client class
-			NmdcHub* hub = static_cast<NmdcHub*>(ClientManager::getInstance()->findClient(i.m_HubUrl));
+			NmdcHub* hub = static_cast<NmdcHub*>(ClientManager::findClient(i.m_HubUrl));
 			if (!hub)
 				dcdebug("REASON_DETECT_CONNECTION: can't find hub %s\n", i.m_HubUrl.c_str());
 			//dcassert(hub);
@@ -1396,8 +1414,8 @@ void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 	
 	ConnectionQueueItemPtr l_cqi;
 	{
-		CFlyWriteLock(*g_csUploads);
-		
+		//CFlyWriteLock(*g_csUploads);
+		CFlyLock(g_csUploads);
 		const auto i = find(g_uploads.begin(), g_uploads.end(), p_conn->getUser());
 		if (i == g_uploads.cend())
 		{
@@ -1650,7 +1668,8 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 		else if (aSource->isSet(UserConnection::FLAG_UPLOAD))
 		{
 			{
-				CFlyWriteLock(*g_csUploads); // http://code.google.com/p/flylinkdc/issues/detail?id=1439
+				//CFlyWriteLock(*g_csUploads); // http://code.google.com/p/flylinkdc/issues/detail?id=1439
+				CFlyLock(g_csUploads);
 				const auto i = find(g_uploads.begin(), g_uploads.end(), aSource->getUser());
 				dcassert(i != g_uploads.end());
 				if (i == g_uploads.end())
@@ -1734,6 +1753,11 @@ void ConnectionManager::shutdown()
 	m_shuttingDown = true;
 	TimerManager::getInstance()->removeListener(this);
 	ClientManager::getInstance()->removeListener(this);
+	{
+		CFlyFastLock(g_cs_update);
+		g_users_for_update.clear();
+	}
+	
 	disconnect();
 	{
 		CFlyReadLock(*g_csConnection);
@@ -1769,7 +1793,8 @@ void ConnectionManager::shutdown()
 			}
 		}
 		{
-			CFlyReadLock(*g_csUploads);
+			//CFlyReadLock(*g_csUploads);
+			CFlyLock(g_csUploads);
 			for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 			{
 				ConnectionQueueItemPtr cqi = *i;
@@ -1791,7 +1816,7 @@ void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* p_c
 	{
 		uint8_t knownUcSupports = 0;
 		auto unknownUcSupports = UcSupports::setSupports(p_conn, feat, knownUcSupports);
-		ClientManager::getInstance()->setSupports(p_conn->getUser(), unknownUcSupports, knownUcSupports);
+		ClientManager::setSupports(p_conn->getUser(), unknownUcSupports, knownUcSupports);
 	}
 	else
 	{

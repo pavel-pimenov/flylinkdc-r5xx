@@ -30,7 +30,9 @@
 #include "ShareManager.h"
 #include "../FlyFeatures/flyServer.h"
 
-
+#ifdef FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
+boost::unordered_map<string, unsigned> DirectoryListing::g_ext_stat;
+#endif
 DirectoryListing::DirectoryListing(const HintedUser& aUser) :
 	hintedUser(aUser), abort(false), root(new Directory(this, nullptr, Util::emptyString, false, false, true)),
 	includeSelf(false), m_is_mediainfo(false), m_is_own_list(false)
@@ -183,6 +185,20 @@ string DirectoryListing::updateXML(const string& xml, bool p_own_list)
 	MemoryInputStream mis(xml);
 	return loadXML(mis, true, p_own_list);
 }
+void DirectoryListing::print_stat()
+{
+#ifdef FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
+	std::multimap<unsigned, std::string> l_order_count;
+	for (auto j = g_ext_stat.cbegin(); j != g_ext_stat.cend(); ++j)
+	{
+		l_order_count.insert(std::make_pair(j->second, j->first));
+	}
+	for (auto i = l_order_count.cbegin(); i != l_order_count.cend(); ++i)
+	{
+		LogManager::message("Count files: " + Util::toString(i->first) + " ext: ." + i->second + string(CFlyServerConfig::isCompressExt(i->second) ? string("   [compress]") : string()));
+	}
+#endif // FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
+}
 
 string DirectoryListing::loadXML(InputStream& is, bool updating, bool p_is_own_list)
 {
@@ -198,7 +214,7 @@ string DirectoryListing::loadXML(InputStream& is, bool updating, bool p_is_own_l
 
 static const string sFileListing = "FileListing";
 static const string sBase = "Base";
-static const string sCID = "CID";// [+] IRainman Delayed loading (dclst support)
+static const string sCID = "CID"; // [+] IRainman Delayed loading (dclst support)
 static const string sGenerator = "Generator";
 static const string sIncludeSelf = "IncludeSelf"; // [+] SSA IncludeSelf attrib (dclst support)
 static const string sIncomplete = "Incomplete";
@@ -304,6 +320,9 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			uint32_t l_i_ts = 0;
 			int l_i_hit     = 0;
 			string l_hit;
+#ifdef FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
+			DirectoryListing::g_ext_stat[Util::getFileExtWithoutDot(Text::toLower(l_name))]++;
+#endif
 			if (attribs.size() >= 4) // 3 - стандартный DC++, 4 - GreyLinkDC++
 			{
 				if (attribs.size() == 4) // http://code.google.com/p/flylinkdc/issues/detail?id=1402

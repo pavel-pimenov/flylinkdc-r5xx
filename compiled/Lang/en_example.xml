@@ -433,7 +433,7 @@
 	<string name="EmptyLineSkiped">Empty line skipped</string>
 	<string name="EnableHubmodePic">Enable 'Mode Picture' for hubs</string>
 	<string name="EnableCountryflag">Add Country flag into 'Location' in userlist</string>
-	<string name="EnableLastIp">Store IP in a SQLite database</string>
+	<string name="EnableLastIpAndMessageCounter">Store Last IP and chat messages counter in a SQLite database</string>
 	<string name="EnableFlyServer">Show MediaInfo</string>
 	<string name="EnableHitFileList">Enable file downloads counter in file list</string>
 	<string name="EnableRatioUserList">Enable downloads/upload in user list</string>
@@ -1310,6 +1310,7 @@
 	<string name="SettingsConfirmHubRemoval">Confirm favorite hub removal</string>
 	<string name="SettingsConfirmItemRemoval">Confirm item removal in download queue</string>
 	<string name="SettingsConnectionAutodetect">Work in passive mode if specified active mode not available (auto detect)</string>
+	<string name="SettingsWanIpManual">Manual WAN IP</string>
 	<string name="SettingsCzdcExtraDownloads">Highest Priority Extra Download Slots</string>
 	<string name="SettingsDclsPage">DCLST support</string>
 	<string name="SettingsDefaultAwayMsg">Default Away-message</string>

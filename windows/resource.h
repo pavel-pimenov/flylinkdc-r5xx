@@ -695,6 +695,8 @@
 #define IDC_ODC_STYLE                   1478
 #define IDC_NO_IP_OVERRIDE              1479
 #define IDC_WINDOWS_STARTUP             1480
+#define IDC_NO_IP_OVERRIDE2             1480
+#define IDC_WAN_IP_MANUAL               1480
 #define IDC_SETTINGS_PORTS              1481
 #define IDC_SETTINGS_AUTO_OPEN          1482
 #define IDC_SETTINGS_PORTS_UPNP         1482
@@ -1665,7 +1667,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        307
+#define _APS_NEXT_RESOURCE_VALUE        308
 #define _APS_NEXT_COMMAND_VALUE         32812
 #define _APS_NEXT_CONTROL_VALUE         2515
 #define _APS_NEXT_SYMED_VALUE           2423

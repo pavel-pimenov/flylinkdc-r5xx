@@ -27,6 +27,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "precompiled.hpp"
 #include <new>
 
 #include <string>
@@ -64,6 +65,7 @@ zmq::tcp_listener_t::tcp_listener_t (io_thread_t *io_thread_,
     own_t (io_thread_, options_),
     io_object_t (io_thread_),
     s (retired_fd),
+    handle(NULL),
     socket (socket_)
 {
 }
@@ -100,7 +102,7 @@ void zmq::tcp_listener_t::in_event ()
 
     tune_tcp_socket (fd);
     tune_tcp_keepalives (fd, options.tcp_keepalive, options.tcp_keepalive_cnt, options.tcp_keepalive_idle, options.tcp_keepalive_intvl);
-    tune_tcp_retransmit_timeout (fd, options.tcp_retransmit_timeout);
+    tune_tcp_maxrt (fd, options.tcp_maxrt);
 
     // remember our fd for ZMQ_SRCFD in messages
     socket->set_fd(fd);
@@ -168,8 +170,8 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
 
     address.to_string (endpoint);
 
-    if (options.pre_allocated_fd != -1) {
-        s = options.pre_allocated_fd;
+    if (options.use_fd != -1) {
+        s = options.use_fd;
         socket->event_listening (endpoint, (int) s);
         return 0;
     }

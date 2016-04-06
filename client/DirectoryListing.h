@@ -177,6 +177,15 @@ class DirectoryListing : public UserInfoBase
 		string updateXML(const std::string&, bool p_own_list);
 		string loadXML(InputStream& xml, bool updating, bool p_own_list);
 		
+		static void print_stat();
+		
+#ifdef _DEBUG
+#define FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
+#endif
+#ifdef FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
+		static boost::unordered_map<string, unsigned> g_ext_stat;
+#endif
+		
 		void download(const string& aDir, const string& aTarget, bool highPrio, QueueItem::Priority prio = QueueItem::DEFAULT);
 		void download(Directory* aDir, const string& aTarget, bool highPrio, QueueItem::Priority prio, bool p_first_file = true);
 		void download(const File* aFile, const string& aTarget, bool view, bool highPrio, QueueItem::Priority prio = QueueItem::DEFAULT, bool p_isDCLST = false, bool p_first_file = true);

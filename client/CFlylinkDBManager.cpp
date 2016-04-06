@@ -18,6 +18,7 @@ using sqlite3x::database_error;
 using sqlite3x::sqlite3_transaction;
 using sqlite3x::sqlite3_reader;
 
+//bool g_DisableUserStat = false;
 bool g_DisableSQLJournal    = false;
 bool g_UseWALJournal        = false;
 bool g_EnableSQLtrace       = false; // http://www.sqlite.org/c3ref/profile.html
@@ -3135,6 +3136,7 @@ void CFlylinkDBManager::load_avdb()
 //========================================================================================================
 bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, uint32_t& p_message_count, boost::asio::ip::address_v4& p_last_ip)
 {
+	dcassert(BOOLSETTING(ENABLE_LAST_IP_AND_MESSAGE_COUNTER));
 	CFlyLock(m_cs); // Убирать пока нельзя - вешаемся почему-то
 	try
 	{
@@ -3193,6 +3195,7 @@ bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const stri
 //========================================================================================================
 CFlyRatioItem CFlylinkDBManager::load_ratio(uint32_t p_hub_id, const string& p_nick, CFlyUserRatioInfo& p_ratio_info, const boost::asio::ip::address_v4& p_last_ip)
 {
+	dcassert(BOOLSETTING(ENABLE_RATIO_USER_LIST));
 	dcassert(p_hub_id != 0);
 	dcassert(!p_nick.empty());
 	CFlyRatioItem l_ip_ratio_item;
@@ -3279,6 +3282,7 @@ void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
                                                     bool p_is_message_count_dirty,
                                                     bool& p_is_sql_not_found)
 {
+	dcassert(BOOLSETTING(ENABLE_RATIO_USER_LIST));
 	CFlyLock(m_cs);
 	try
 	{
@@ -3458,6 +3462,8 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
                                                  bool p_is_message_count_dirty
                                                 )
 {
+	dcassert(BOOLSETTING(ENABLE_LAST_IP_AND_MESSAGE_COUNTER));
+	
 	dcassert(p_hub_id);
 	dcassert(!p_nick.empty());
 #ifdef FLYLINKDC_USE_LASTIP_CACHE

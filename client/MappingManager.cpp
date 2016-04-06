@@ -195,7 +195,7 @@ int MappingManager::run()
 	}
 	
 	// move the preferred mapper to the top of the stack.
-	const auto& setting = SETTING(MAPPER);
+	const auto setting = SETTING(MAPPER);
 	for (auto i = m_mappers.cbegin(); i != m_mappers.cend(); ++i)
 	{
 		if (i->first == setting)

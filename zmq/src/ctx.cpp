@@ -27,6 +27,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "precompiled.hpp"
 #include "macros.hpp"
 #include "platform.hpp"
 #ifdef ZMQ_HAVE_WINDOWS
@@ -36,6 +37,7 @@
 #endif
 
 #include <limits>
+#include <climits>
 #include <new>
 #include <string.h>
 
@@ -47,12 +49,10 @@
 #include "err.hpp"
 #include "msg.hpp"
 
-#ifdef HAVE_LIBSODIUM
-#ifdef HAVE_TWEETNACL
-#include "randombytes.h"
-#else
-#include "sodium.h"
-#endif
+#if defined (ZMQ_USE_TWEETNACL)
+#   include "tweetnacl.h"
+#elif defined (HAVE_LIBSODIUM)
+#   include "sodium.h"
 #endif
 
 #ifdef ZMQ_HAVE_VMCI
@@ -62,7 +62,7 @@
 #define ZMQ_CTX_TAG_VALUE_GOOD 0xabadcafe
 #define ZMQ_CTX_TAG_VALUE_BAD  0xdeadbeef
 
-int clipped_maxsocket(int max_requested)
+int clipped_maxsocket (int max_requested)
 {
     if (max_requested >= zmq::poller_t::max_fds () && zmq::poller_t::max_fds () != -1)
         // -1 because we need room for the reaper mailbox.
@@ -79,6 +79,7 @@ zmq::ctx_t::ctx_t () :
     slot_count (0),
     slots (NULL),
     max_sockets (clipped_maxsocket (ZMQ_MAX_SOCKETS_DFLT)),
+    max_msgsz (INT_MAX),
     io_thread_count (ZMQ_IO_THREADS_DFLT),
     blocky (true),
     ipv6 (false),
@@ -125,8 +126,8 @@ zmq::ctx_t::~ctx_t ()
 
     //  If we've done any Curve encryption, we may have a file handle
     //  to /dev/urandom open that needs to be cleaned up.
-#ifdef HAVE_LIBSODIUM
-    randombytes_close();
+#ifdef ZMQ_HAVE_CURVE
+    randombytes_close ();
 #endif
 
     //  Remove the tag, so that the object is considered dead.
@@ -251,18 +252,24 @@ int zmq::ctx_t::set (int option_, int optval_)
     if (option_ == ZMQ_THREAD_PRIORITY && optval_ >= 0) {
         opt_sync.lock();
         thread_priority = optval_;
-        opt_sync.unlock();
+        opt_sync.unlock ();
     }
     else
     if (option_ == ZMQ_THREAD_SCHED_POLICY && optval_ >= 0) {
         opt_sync.lock();
         thread_sched_policy = optval_;
-        opt_sync.unlock();
+        opt_sync.unlock ();
     }
     else
     if (option_ == ZMQ_BLOCKY && optval_ >= 0) {
         opt_sync.lock ();
         blocky = (optval_ != 0);
+        opt_sync.unlock ();
+    }
+    else
+    if (option_ == ZMQ_MAX_MSGSZ && optval_ >= 0) {
+        opt_sync.lock ();
+        max_msgsz = optval_ < INT_MAX? optval_: INT_MAX;
         opt_sync.unlock ();
     }
     else {
@@ -289,6 +296,9 @@ int zmq::ctx_t::get (int option_)
     else
     if (option_ == ZMQ_BLOCKY)
         rc = blocky;
+    else
+    if (option_ == ZMQ_MAX_MSGSZ)
+        rc = max_msgsz;
     else {
         errno = EINVAL;
         rc = -1;

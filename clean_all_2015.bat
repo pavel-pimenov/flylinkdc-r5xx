@@ -1,7 +1,11 @@
+del *.sdf
+del *.suo
 del .\GdiOle\GdiOle_i.c
 del .\GdiOle\GdiOle_i.h
 del .\GdiOle\GdiOle_p.c
 del .\compiled\*.pdb
+del .\compiled\FlylinkDC.exe
+del .\compiled\FlylinkDC_x64.exe
 del /S /F /Q vc15
 del /S /F /Q vc13
 rmdir /S /Q .\compiled\Settings\BackUp

@@ -214,6 +214,8 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 		
 		static time_t getReservedSlotTime(const UserPtr& aUser);
+		static void shutdown();
+		
 	private:
 		bool isFireball;
 		bool isFileServer;
@@ -227,7 +229,6 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csUploadsDelay;
 		
 		void process_slot(UserConnection::SlotTypes p_slot_type, int p_delta);
-		
 		
 		static void increaseUserConnectionAmountL(const UserPtr& p_user);
 		static void decreaseUserConnectionAmountL(const UserPtr& p_user);

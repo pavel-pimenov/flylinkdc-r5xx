@@ -423,10 +423,8 @@ void Client::send(const char* aMessage, size_t aLen)
 #endif
 		             m_client_sock->write(aMessage, aLen);
 	}
-	             if (!CompatibilityManager::isWine())
-	{
-		COMMAND_DEBUG(toUtf8(aMessage), DebugTask::HUB_OUT, getIpPort());
-	}
+	
+	             COMMAND_DEBUG(toUtf8(string(aMessage, aLen)), DebugTask::HUB_OUT, getIpPort());
 }
 
 void Client::on(Connected) noexcept

@@ -24,11 +24,12 @@
 #include "HubFrame.h"
 #include "LineDlg.h"
 
-int RecentHubsFrame::columnIndexes[] = { COLUMN_NAME, COLUMN_DESCRIPTION, COLUMN_USERS, COLUMN_SHARED, COLUMN_SERVER, COLUMN_DATETIME };
-int RecentHubsFrame::columnSizes[] = { 200, 290, 50, 50, 100, 130 };
+int RecentHubsFrame::columnIndexes[] = { COLUMN_NAME, COLUMN_DESCRIPTION, COLUMN_USERS, COLUMN_SHARED, COLUMN_SERVER, COLUMN_LAST_SEEN, COLUMN_OPEN_TAB };
+int RecentHubsFrame::columnSizes[] = { 200, 290, 50, 50, 100, 130, 50 };
 static ResourceManager::Strings columnNames[] = { ResourceManager::HUB_NAME, ResourceManager::DESCRIPTION,
                                                   ResourceManager::USERS, ResourceManager::SHARED, ResourceManager::HUB_ADDRESS
                                                   , ResourceManager::LAST_SEEN
+                                                  , ResourceManager::OPEN
                                                 };
 
 LRESULT RecentHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -120,7 +121,7 @@ LRESULT RecentHubsFrame::onClickedConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 	int i = -1;
 	while ((i = ctrlHubs.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
-		RecentHubEntry* entry = (RecentHubEntry*)ctrlHubs.GetItemData(i);
+		const RecentHubEntry* entry = (RecentHubEntry*)ctrlHubs.GetItemData(i);
 		HubFrame::openWindow(false, entry->getServer());
 	}
 	return 0;
@@ -382,7 +383,8 @@ void RecentHubsFrame::on(RecentUpdated, const RecentHubEntry* entry) noexcept
 		ctrlHubs.SetItemText(i, COLUMN_USERS, Text::toT(entry->getUsers()).c_str());
 		ctrlHubs.SetItemText(i, COLUMN_SHARED, Text::toT(Util::formatBytes(entry->getShared())).c_str());
 		ctrlHubs.SetItemText(i, COLUMN_SERVER, Text::toT(entry->getServer()).c_str());
-		ctrlHubs.SetItemText(i, COLUMN_DATETIME, Text::toT(entry->getDateTime()).c_str());
+		ctrlHubs.SetItemText(i, COLUMN_LAST_SEEN, Text::toT(entry->getLastSeen()).c_str());
+		ctrlHubs.SetItemText(i, COLUMN_OPEN_TAB, Text::toT(entry->getOpenTab()).c_str());
 	}
 }
 
@@ -391,19 +393,22 @@ void RecentHubsFrame::updateList(const RecentHubEntry::List& fl)
 	CLockRedraw<true> l_lock_draw(ctrlHubs);
 	auto cnt = ctrlHubs.GetItemCount();
 	for (auto i = fl.cbegin(); i != fl.cend(); ++i)
+	{
 		addEntry(*i, cnt++);
+	}
 }
 
 void RecentHubsFrame::addEntry(const RecentHubEntry* entry, int pos)
 {
 	TStringList l;
-	l.reserve(6);
+	l.reserve(7);
 	l.push_back(Text::toT(entry->getName()));
 	l.push_back(Text::toT(entry->getDescription()));
 	l.push_back(Text::toT(entry->getUsers()));
 	l.push_back(Text::toT(Util::formatBytes(entry->getShared())));
 	l.push_back(Text::toT(entry->getServer()));
-	l.push_back(Text::toT(entry->getDateTime()));
+	l.push_back(Text::toT(entry->getLastSeen()));
+	l.push_back(Text::toT(entry->getOpenTab()));
 	
 	ctrlHubs.insert(pos, l, 0, (LPARAM)entry);
 }

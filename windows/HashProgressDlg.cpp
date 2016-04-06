@@ -50,7 +50,7 @@ LRESULT HashProgressDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	progress.SetRange(0, HashManager::GetMaxProgressValue());
 	updateStats();
 	
-	HashManager::getInstance()->setPriority(Thread::NORMAL);
+	HashManager::getInstance()->setThreadPriority(Thread::NORMAL);
 	
 	create_timer(1000);
 	return TRUE;
@@ -74,7 +74,7 @@ LRESULT HashProgressDlg::onPause(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 LRESULT HashProgressDlg::onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	safe_destroy_timer();
-	HashManager::getInstance()->setPriority(Thread::IDLE);
+	HashManager::getInstance()->setThreadPriority(Thread::IDLE);
 	HashManager::getInstance()->DisableForceMinHashSpeed();
 	progress.Detach();
 	m_Slider.Detach();

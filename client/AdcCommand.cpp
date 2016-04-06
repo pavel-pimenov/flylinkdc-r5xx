@@ -21,17 +21,29 @@
 
 #include "ClientManager.h"
 
-AdcCommand::AdcCommand(uint32_t aCmd, char aType /* = TYPE_CLIENT */) : m_cmdInt(aCmd), m_from(0), m_type(aType), m_to(0) {}
-AdcCommand::AdcCommand(uint32_t aCmd, const uint32_t aTarget, char aType) : m_cmdInt(aCmd), m_from(0), m_to(aTarget), m_type(aType) { }
+AdcCommand::AdcCommand(uint32_t aCmd, char aType /* = TYPE_CLIENT */) : m_cmdInt(aCmd), m_from(0), m_type(aType), m_to(0)
+{
+	dcassert(m_cmd[3] == 0);
+	m_cmd[3] = 0;
+}
+AdcCommand::AdcCommand(uint32_t aCmd, const uint32_t aTarget, char aType) : m_cmdInt(aCmd), m_from(0), m_to(aTarget), m_type(aType)
+{
+	dcassert(m_cmd[3] == 0);
+	m_cmd[3] = 0;
+}
 AdcCommand::AdcCommand(Severity sev, Error err, const string& desc, char aType /* = TYPE_CLIENT */) : m_cmdInt(CMD_STA), m_from(0), m_type(aType), m_to(0)
 {
 	addParam((sev == SEV_SUCCESS && err == SUCCESS) ? "000" : Util::toString(sev * 100 + err));
 	addParam(desc);
+	dcassert(m_cmd[3] == 0);
+	m_cmd[3] = 0;
 }
 
 AdcCommand::AdcCommand(const string& aLine, bool nmdc /* = false */) : m_cmdInt(0), m_type(TYPE_CLIENT)
 {
 	parse(aLine, nmdc);
+	dcassert(m_cmd[3] == 0);
+	m_cmd[3] = 0;
 }
 
 void AdcCommand::parse(const string& aLine, bool nmdc /* = false */)

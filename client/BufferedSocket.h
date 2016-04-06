@@ -114,7 +114,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 			return hasSocket() ? sock->getIp() : Util::emptyString;
 		}
 		boost::asio::ip::address_v4 getIp4() const;
-		const uint16_t getPort()
+		const uint16_t getPort() const
 		{
 			return hasSocket() ? sock->getPort() : 0;
 		}
@@ -194,6 +194,11 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 			m_is_hide_share = p_is_hide_share;
 		}
 	private:
+		string getServerAndPort() const
+		{
+			return getIp() + ':' + Util::toString(getPort());
+		}
+		
 		void all_myinfo_parser(const string::size_type p_pos_next_separator, const string& p_line, StringList& p_all_myInfo, bool p_is_zon);
 		bool all_search_parser(const string::size_type p_pos_next_separator, const string& p_line,
 		                       CFlySearchArrayTTH& p_tth_search,
@@ -237,8 +242,8 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		};
 		struct SendFileInfo : public TaskData
 		{
-			explicit SendFileInfo(InputStream* stream_) : stream(stream_) { }
-			InputStream* stream;
+			explicit SendFileInfo(InputStream* p_stream) : m_stream(p_stream) { }
+			InputStream* m_stream;
 		};
 		
 		explicit BufferedSocket(char aSeparator);

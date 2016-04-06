@@ -48,6 +48,7 @@ PropPage::TextItem NetworkPage::texts[] =
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	{ IDC_AUTODETECT, ResourceManager::SETTINGS_CONNECTION_AUTODETECT },
 #endif
+	{ IDC_WAN_IP_MANUAL, ResourceManager::SETTINGS_WAN_IP_MANUAL },
 	{ IDC_NO_IP_OVERRIDE, ResourceManager::SETTINGS_OVERRIDE },
 	{ IDC_SETTINGS_PORTS, ResourceManager::SETTINGS_PORTS },
 	{ IDC_SETTINGS_IP, ResourceManager::SETTINGS_EXTERNAL_IP },
@@ -84,6 +85,7 @@ PropPage::Item NetworkPage::items[] =
 	{ IDC_NO_IP_OVERRIDE, SettingsManager::NO_IP_OVERRIDE, PropPage::T_BOOL },
 	{ IDC_IP_GET_IP,        SettingsManager::URL_GET_IP,    PropPage::T_STR }, //[+]PPA
 	{ IDC_IPUPDATE,         SettingsManager::IPUPDATE,      PropPage::T_BOOL },
+	{ IDC_WAN_IP_MANUAL, SettingsManager::WAN_IP_MANUAL, PropPage::T_BOOL },
 	{ IDC_UPDATE_IP_INTERVAL, SettingsManager::IPUPDATE_INTERVAL, PropPage::T_INT },
 	{ IDC_BIND_ADDRESS,     SettingsManager::BIND_ADDRESS, PropPage::T_STR },
 	{ IDC_NATT,             SettingsManager::ALLOW_NAT_TRAVERSAL, PropPage::T_BOOL },
@@ -220,10 +222,7 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 		m_BindCombo.SetCurSel(m_BindCombo.FindString(0, l_bind.c_str()));
 	}
 	m_BindCombo.Detach();
-	if (!m_is_manual)
-	{
-		updateTestPortIcon(false);
-	}
+	updateTestPortIcon(false);
 	//::SendMessage(m_hWnd, TDM_SET_BUTTON_ELEVATION_REQUIRED_STATE, IDC_ADD_FLYLINKDC_WINFIREWALL, true);
 	//SetButtonElevationRequiredState(IDC_ADD_FLYLINKDC_WINFIREWALL,);
 	WinUtil::GetWindowText(m_original_test_port_caption, GetDlgItem(IDC_GETIP));
@@ -256,6 +255,9 @@ void NetworkPage::fixControls()
 #endif
 	const BOOL passive = IsDlgButtonChecked(IDC_FIREWALL_PASSIVE) == BST_CHECKED;
 	
+	const BOOL wan_ip_manual = IsDlgButtonChecked(IDC_WAN_IP_MANUAL) == BST_CHECKED;
+	
+	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), m_is_manual);
 	::EnableWindow(GetDlgItem(IDC_DIRECT), !auto_detect);
 	::EnableWindow(GetDlgItem(IDC_FIREWALL_UPNP), !auto_detect);
 	::EnableWindow(GetDlgItem(IDC_FIREWALL_NAT), !auto_detect);
@@ -268,11 +270,13 @@ void NetworkPage::fixControls()
 	
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_USE_DHT_NOTANSWER), dht);
 #endif
-	m_is_manual = !auto_detect && nat;
-	::EnableWindow(GetDlgItem(IDC_SETTINGS_IP), !auto_detect);
+	m_is_manual = wan_ip_manual;
 	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), m_is_manual);
+	
+	::EnableWindow(GetDlgItem(IDC_SETTINGS_IP), !auto_detect);
+	
 	// Вернул редакцию IP http://flylinkdc.com/forum/viewtopic.php?f=23&t=1294&p=5065#p5065
-	::EnableWindow(GetDlgItem(IDC_IP_GET_IP), !auto_detect && (upnp || nat)); //[+]PPA
+	::EnableWindow(GetDlgItem(IDC_IP_GET_IP), !auto_detect && (upnp || nat) && !m_is_manual); //[+]PPA
 	::EnableWindow(GetDlgItem(IDC_NO_IP_OVERRIDE), false); // !auto_detect && (direct || upnp || nat || nat_traversal));
 #ifdef IRAINMAN_IP_AUTOUPDATE
 	::EnableWindow(GetDlgItem(IDC_IPUPDATE), (upnp || nat));
@@ -318,7 +322,11 @@ void NetworkPage::fixControls()
 	calcUPnPIconsIndex(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO_UPNP, SettingsManager::g_upnpUDPDHTLevel);
 	
 }
-
+LRESULT NetworkPage::onWANIPManualClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	fixControls();
+	return 0;
+}
 LRESULT NetworkPage::onClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	fixControls();

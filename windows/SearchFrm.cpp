@@ -346,7 +346,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	m_ctrlStoreIP.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
 	m_ctrlStoreIP.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
-	m_storeIP = BOOLSETTING(ENABLE_LAST_IP);
+	m_storeIP = BOOLSETTING(ENABLE_LAST_IP_AND_MESSAGE_COUNTER);
 	m_ctrlStoreIP.SetCheck(m_storeIP);
 	m_ctrlStoreIP.SetFont(Fonts::g_systemFont, FALSE);
 	m_ctrlStoreIP.SetWindowText(CTSTRING(STORE_SEARCH_IP));
@@ -986,7 +986,7 @@ void SearchFrame::onEnter()
 			m_search_param.m_is_force_passive_searh = false;
 		}
 		
-		m_searchEndTime = m_searchStartTime + ClientManager::getInstance()->multi_search(m_search_param)
+		m_searchEndTime = m_searchStartTime + ClientManager::multi_search(m_search_param)
 #ifdef FLYLINKDC_HE
 		                  + 30000
 #else

@@ -87,7 +87,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		{
 			hasher.stopHashing(baseDir);
 		}
-		void setPriority(Thread::Priority p)
+		void setThreadPriority(Thread::Priority p)
 		{
 			hasher.setThreadPriority(p);
 		}

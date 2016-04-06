@@ -55,7 +55,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		static void resetAntivirusInfo();
 #endif
-		static size_t getTotalUsers(); // [+] IRainman.
+		static unsigned getTotalUsers(); // [+] IRainman.
 		static std::map<string, CFlyClientStatistic> getClientStat();
 		static StringList getHubs(const CID& cid, const string& hintUrl, bool priv);
 		static StringList getHubNames(const CID& cid, const string& hintUrl, bool priv);
@@ -65,11 +65,11 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static StringList getNicks(const HintedUser& user);
 		static StringList getHubNames(const HintedUser& user);
 		static bool isConnected(const string& aUrl);
-		Client* findClient(const string& p_Url) const;
+		static Client* findClient(const string& p_Url);
 		static bool isOnline(const UserPtr& aUser);
-		uint8_t getSlots(const CID& cid) const;
-		void search(const SearchParamOwner& p_search_param);
-		uint64_t multi_search(const SearchParamTokenMultiClient& p_search_param);
+		static uint8_t getSlots(const CID& cid);
+		static void search(const SearchParamOwner& p_search_param);
+		static uint64_t multi_search(const SearchParamTokenMultiClient& p_search_param);
 		static void cancelSearch(void* aOwner);
 		static void infoUpdated(bool p_is_force = false);
 		static void infoUpdated(Client* p_client);
@@ -267,7 +267,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			return g_clients;
 		}
 #endif
-		static const CID& getMyCID(); // [!] IRainman fix: add const link.
+		static const CID& getMyCID();
+		static void generateNewMyCID();
 		static const CID& getMyPID();
 		///////////////////////
 		/**
@@ -276,23 +277,23 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		 */
 		
 		static void sendRawCommand(const OnlineUser& ou, const int aRawCommand);
-		void setListLength(const UserPtr& p, const string& listLen);
+		static void setListLength(const UserPtr& p, const string& listLen);
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 		static void fileListDisconnected(const UserPtr& p);
 #endif
-		void connectionTimeout(const UserPtr& p);
+		static void connectionTimeout(const UserPtr& p);
 		static void checkCheating(const UserPtr& p, DirectoryListing* dl);
 		static void setClientStatus(const UserPtr& p, const string& aCheatString, const int aRawCommand, bool aBadClient);
 		
-		void setSupports(const UserPtr& p, StringList& aSupports, const uint8_t knownUcSupports);
-		void setUnknownCommand(const UserPtr& p, const string& aUnknownCommand);
-		void reportUser(const HintedUser& user);
-		void setFakeList(const UserPtr& p, const string& aCheatString);
+		static void setSupports(const UserPtr& p, StringList& aSupports, const uint8_t knownUcSupports);
+		static void setUnknownCommand(const UserPtr& p, const string& aUnknownCommand);
+		static void reportUser(const HintedUser& user);
+		//static void setFakeList(const UserPtr& p, const string& aCheatString);
 		
 #ifdef STRONG_USE_DHT
 		static OnlineUserPtr findDHTNode(const CID& cid);
 #endif
-		void shutdown();
+		static void shutdown();
 		static void clear();
 		static bool isShutdown()
 		{

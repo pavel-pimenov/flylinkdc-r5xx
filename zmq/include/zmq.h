@@ -38,7 +38,9 @@
 #ifndef __ZMQ_H_INCLUDED__
 #define __ZMQ_H_INCLUDED__
 
+#ifndef ZMQ_STATIC
 #define ZMQ_STATIC  // [+] FlylinkDC++
+#endif
 
 /*  Version macros for compile-time API version detection                     */
 #define ZMQ_VERSION_MAJOR 4
@@ -187,13 +189,13 @@ ZMQ_EXPORT void zmq_version (int *major, int *minor, int *patch);
 /*  0MQ infrastructure (a.k.a. context) initialisation & termination.         */
 /******************************************************************************/
 
-/*  New API                                                                   */
 /*  Context options                                                           */
 #define ZMQ_IO_THREADS  1
 #define ZMQ_MAX_SOCKETS 2
 #define ZMQ_SOCKET_LIMIT 3
 #define ZMQ_THREAD_PRIORITY 3
 #define ZMQ_THREAD_SCHED_POLICY 4
+#define ZMQ_MAX_MSGSZ 5
 
 /*  Default for new contexts                                                  */
 #define ZMQ_IO_THREADS_DFLT  1
@@ -203,7 +205,7 @@ ZMQ_EXPORT void zmq_version (int *major, int *minor, int *patch);
 
 ZMQ_EXPORT void *zmq_ctx_new (void);
 ZMQ_EXPORT int zmq_ctx_term (void *context);
-ZMQ_EXPORT int zmq_ctx_shutdown (void *ctx_);
+ZMQ_EXPORT int zmq_ctx_shutdown (void *context);
 ZMQ_EXPORT int zmq_ctx_set (void *context, int option, int optval);
 ZMQ_EXPORT int zmq_ctx_get (void *context, int option);
 
@@ -327,6 +329,8 @@ ZMQ_EXPORT const char *zmq_msg_group (zmq_msg_t *msg);
 #define ZMQ_HANDSHAKE_IVL 66
 #define ZMQ_SOCKS_PROXY 68
 #define ZMQ_XPUB_NODROP 69
+//  All options after this is for version 4.2 and still *draft*
+//  Subject to arbitrary change without notice
 #define ZMQ_BLOCKY 70
 #define ZMQ_XPUB_MANUAL 71
 #define ZMQ_XPUB_WELCOME_MSG 72
@@ -335,18 +339,16 @@ ZMQ_EXPORT const char *zmq_msg_group (zmq_msg_t *msg);
 #define ZMQ_HEARTBEAT_IVL 75
 #define ZMQ_HEARTBEAT_TTL 76
 #define ZMQ_HEARTBEAT_TIMEOUT 77
-#define ZMQ_XPUB_VERBOSE_UNSUBSCRIBE 78
+#define ZMQ_XPUB_VERBOSER 78
 #define ZMQ_CONNECT_TIMEOUT 79
-#define ZMQ_TCP_RETRANSMIT_TIMEOUT 80
+#define ZMQ_TCP_MAXRT 80
 #define ZMQ_THREAD_SAFE 81
-#define ZMQ_TCP_RECV_BUFFER 82
-#define ZMQ_TCP_SEND_BUFFER 83
 #define ZMQ_MULTICAST_MAXTPDU 84
 #define ZMQ_VMCI_BUFFER_SIZE 85
 #define ZMQ_VMCI_BUFFER_MIN_SIZE 86
 #define ZMQ_VMCI_BUFFER_MAX_SIZE 87
 #define ZMQ_VMCI_CONNECT_TIMEOUT 88
-#define ZMQ_PRE_ALLOCATED_FD 89
+#define ZMQ_USE_FD 89
 
 /*  Message options                                                           */
 #define ZMQ_MORE 1

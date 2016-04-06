@@ -173,6 +173,10 @@ class User : public Flags
 		{
 			return m_cid;
 		}
+		void generateNewMyCID()
+		{
+			return m_cid.regenerate();
+		}
 		//[+]FlylinkDC
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		const string& getLastNick() const
@@ -283,20 +287,6 @@ class User : public Flags
 			else
 				return 0;
 		}
-		bool isLastIP() const
-		{
-#ifdef FLYLINKDC_USE_RATIO_CS
-			CFlyFastLock(m_ratio_cs);
-#endif
-			if (m_ratio_ptr)
-			{
-				return !m_last_ip_sql.get().is_unspecified();
-			}
-			else
-			{
-				return false;
-			}
-		}
 		boost::asio::ip::address_v4 getIP();
 		boost::asio::ip::address_v4 getLastIPfromRAM() const
 		{
@@ -311,7 +301,7 @@ class User : public Flags
 		void initRatioL(const boost::asio::ip::address_v4& p_ip);
 #endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	private:
-		const CID m_cid; // [!] IRainman fix: this is const value!
+		CID m_cid;
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 		CFlyUserRatioInfo* m_ratio_ptr;
 		uint32_t  m_hub_id;

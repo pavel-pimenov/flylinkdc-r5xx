@@ -205,6 +205,7 @@ RadoX-Pack v.2.2
    <Emoticon PasteText=":>" Bitmap="SmilesMegaPack\drugs.bmp"/>
    <Emoticon PasteText=":отдых:" Bitmap="SmilesMegaPack\rest.bmp" Gif="AnimPack\rest.gif"/>
    <Emoticon PasteText=":дэнс:" Bitmap="SmilesMegaPack\dance.bmp" Gif="AnimPack\dance.gif"/>
+   <Emoticon PasteText=":hello:" Bitmap="SmilesMegaPack\hello.bmp" Gif="AnimPack\hello.gif"/>
    <Emoticon PasteText=":party:" Bitmap="SmilesMegaPack\party.bmp"/>
    <Emoticon PasteText=":пыво:" Bitmap="SmilesMegaPack\Beer.bmp" Gif="AnimPack\Beer.gif"/>
    <Emoticon PasteText=":бубльгум:" Bitmap="SmilesMegaPack\gum.bmp" Gif="AnimPack\gum.gif"/>

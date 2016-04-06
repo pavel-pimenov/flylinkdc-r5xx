@@ -319,7 +319,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 				}
 				else
 				{
-					COMMAND_DEBUG("[TTH][FastSkip] " + l_line_item, DebugTask::HUB_IN, getIp() + ':' + Util::toString(getPort()));
+					COMMAND_DEBUG("[TTH][FastSkip] " + l_line_item, DebugTask::HUB_IN, getServerAndPort());
 #ifdef _DEBUG
 					//  LogManager::message("BufferedSocket::all_search_parser Skip unknown TTH = " + l_tth.toBase32());
 #endif
@@ -340,7 +340,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 						}
 						m_count_search_ddos++;
 					}
-					COMMAND_DEBUG("[DDoS] " + l_line_item, DebugTask::HUB_IN, getIp() + ':' + Util::toString(getPort()));
+					COMMAND_DEBUG("[DDoS] " + l_line_item, DebugTask::HUB_IN, getServerAndPort());
 					return true;
 				}
 #if 0
@@ -362,7 +362,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 				{
 					if (ShareManager::isUnknownFile(l_item.getRAWQuery()))
 					{
-						COMMAND_DEBUG("[File][FastSkip][Unknown files] " + l_line_item, DebugTask::HUB_IN, getIp() + ':' + Util::toString(getPort()));
+						COMMAND_DEBUG("[File][FastSkip][Unknown files] " + l_line_item, DebugTask::HUB_IN, getServerAndPort());
 #ifdef _DEBUG
 //						LogManager::message("BufferedSocket::all_search_parser Skip unknown File = " + l_item.m_raw_search + " count_dup = " + Util::toString(l_count_dup));
 #endif
@@ -397,7 +397,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 								l_line_item.push_back(']');
 							}
 						}
-						COMMAND_DEBUG("[File][Valid][files] " + l_line_item, DebugTask::HUB_IN, getIp() + ':' + Util::toString(getPort()));
+						COMMAND_DEBUG("[File][Valid][files] " + l_line_item, DebugTask::HUB_IN, getServerAndPort());
 #endif
 						p_file_search.push_back(l_item);
 					}
@@ -813,14 +813,14 @@ void BufferedSocket::waitShutdown()
 }
 #endif
 
-void BufferedSocket::threadSendFile(InputStream* file)
+void BufferedSocket::threadSendFile(InputStream* p_file)
 {
 	if (m_state != RUNNING)
 		return;
 		
 	if (socketIsDisconecting()) // [!] IRainman fix
 		return;
-	dcassert(file != NULL);
+	dcassert(p_file != NULL);
 #if 0 // fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
 	const size_t sockSize = (size_t)sock->getSocketOptInt(SO_SNDBUF);
 	const size_t bufSize = max(sockSize, (size_t)MAX_SOCKET_BUFFER_SIZE);
@@ -848,7 +848,7 @@ void BufferedSocket::threadSendFile(InputStream* file)
 		{
 			// Fill read buffer
 			size_t bytesRead = l_readBuf.size() - readPos;
-			size_t actual = file->read(&l_readBuf[readPos], bytesRead); // TODO можно узнать что считали последний кусок в файл
+			size_t actual = p_file->read(&l_readBuf[readPos], bytesRead); // TODO можно узнать что считали последний кусок в файл
 			
 			if (bytesRead > 0)
 			{
@@ -921,7 +921,7 @@ void BufferedSocket::threadSendFile(InputStream* file)
 				{
 					// Read a little since we're blocking anyway...
 					size_t bytesRead = min(l_readBuf.size() - readPos, l_readBuf.size() / 2);
-					size_t actual = file->read(&l_readBuf[readPos], bytesRead);
+					size_t actual = p_file->read(&l_readBuf[readPos], bytesRead);
 					
 					if (bytesRead > 0)
 					{
@@ -1067,7 +1067,7 @@ bool BufferedSocket::checkEvents()
 			}
 			else if (p.first == SEND_FILE)
 			{
-				threadSendFile(static_cast<SendFileInfo*>(p.second.get())->stream);
+				threadSendFile(static_cast<SendFileInfo*>(p.second.get())->m_stream);
 				break;
 			}
 			else if (p.first == DISCONNECT)
@@ -1183,11 +1183,14 @@ void BufferedSocket::fail(const string& aError)
 	if (m_state == RUNNING)
 	{
 		m_state = FAILED;
-		//dcassert(!ClientManager::isShutdown());
+		// dcassert(!ClientManager::isShutdown());
 		// fix https://drdump.com/Problem.aspx?ProblemID=112938
 		// fix https://drdump.com/Problem.aspx?ProblemID=112262
 		// fix https://drdump.com/Problem.aspx?ProblemID=112195
-		fly_fire1(BufferedSocketListener::Failed(), aError);
+		// Ќельз€ - вешаемс€ if (!ClientManager::isShutdown())
+		{
+			fly_fire1(BufferedSocketListener::Failed(), aError);
+		}
 	}
 }
 

@@ -33,23 +33,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 	public:
 		static const char* getTypeStr(Search::TypeModes type);
 		
-		void search_auto(const string& p_tth)
-		{
-			SearchParamOwner l_search_param;
-			l_search_param.m_token = 0; /*"auto"*/
-			l_search_param.m_size_mode = Search::SIZE_DONTCARE;
-			l_search_param.m_file_type = Search::TYPE_TTH;
-			l_search_param.m_size = 0;
-			l_search_param.m_filter = p_tth;
-			// Для TTH не нужно этого. l_search_param.normalize_whitespace();
-			l_search_param.m_owner = nullptr;
-			l_search_param.m_is_force_passive_searh = false;
-			
-			dcassert(p_tth.size() == 39);
-			
-			//search(l_search_param);
-			ClientManager::getInstance()->search(l_search_param);
-		}
+		void search_auto(const string& p_tth);
 		
 		ClientManagerListener::SearchReply respond(const AdcCommand& cmd, const CID& cid, bool isUdpActive, const string& hubIpPort, StringSearch::List& reguest); // [!] IRainman add  StringSearch::List& reguest and return type
 		

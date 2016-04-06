@@ -59,8 +59,8 @@ class BaseThread
 		{
 			IDLE = THREAD_PRIORITY_IDLE,
 			LOW = THREAD_PRIORITY_BELOW_NORMAL,
-			NORMAL = THREAD_PRIORITY_NORMAL,
-			HIGH = THREAD_PRIORITY_ABOVE_NORMAL
+			NORMAL = THREAD_PRIORITY_NORMAL
+			//HIGH = THREAD_PRIORITY_ABOVE_NORMAL
 		};
 		static long safeInc(volatile long& v)
 		{
@@ -252,41 +252,14 @@ class Thread : public BaseThread
 		explicit Thread() : m_threadHandle(INVALID_HANDLE_VALUE) { }
 		virtual ~Thread()
 		{
-			if (m_threadHandle != INVALID_HANDLE_VALUE)
-			{
-				HANDLE l_thread = m_threadHandle;
-				m_threadHandle  = INVALID_HANDLE_VALUE;
-				CloseHandle(l_thread);
-			}
+			close_handle();
 		}
 		
 		void start(unsigned int p_stack_size, const char* p_name = nullptr);
-		void join(const DWORD dwMilliseconds = INFINITE)
-		{
-			if (m_threadHandle != INVALID_HANDLE_VALUE)
-			{
-				WaitForSingleObject(m_threadHandle, dwMilliseconds);
-				HANDLE l_thread = m_threadHandle;
-				m_threadHandle = INVALID_HANDLE_VALUE;
-				CloseHandle(l_thread);
-			}
-		}
+		void join(const DWORD dwMilliseconds = INFINITE);
+		bool is_active(int p_wait = 0) const;
 		static int getThreadsCount();
-		bool is_active(int p_wait = 0) const
-		{
-			if (m_threadHandle != INVALID_HANDLE_VALUE &&
-			        WaitForSingleObject(m_threadHandle, p_wait) == WAIT_TIMEOUT)
-			{
-				return true; // Поток еще работает. пропустим...
-			}
-			else
-			{
-				return false;
-			}
-		}
-		
 		void setThreadPriority(Priority p);
-		
 		static void sleep(DWORD p_millis)
 		{
 			::Sleep(p_millis);
@@ -302,15 +275,8 @@ class Thread : public BaseThread
 	private:
 	
 		HANDLE m_threadHandle;
-		static unsigned int  WINAPI starter(void* p)
-		{
-//#ifdef _DEBUG
-// [-] VLD      _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-//#endif
-			if (Thread* t = reinterpret_cast<Thread*>(p))
-				t->run();
-			return 0;
-		}
+		void close_handle();
+		static unsigned int  WINAPI starter(void* p);
 };
 
 #if defined(IRAINMAN_USE_SPIN_LOCK) || defined(IRAINMAN_USE_SHARED_SPIN_LOCK)

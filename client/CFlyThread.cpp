@@ -61,17 +61,61 @@ static void SetThreadName(DWORD dwThreadID, const char* threadName)
 }
 
 #endif // FLYLINKDC_USE_WIN_THREAD_NAME
+void Thread::join(const DWORD dwMilliseconds /*= INFINITE*/)
+{
+	if (m_threadHandle != INVALID_HANDLE_VALUE)
+	{
+		WaitForSingleObject(m_threadHandle, dwMilliseconds);
+		close_handle();
+	}
+}
+bool Thread::is_active(int p_wait /* = 0 */) const
+{
+	if (m_threadHandle != INVALID_HANDLE_VALUE &&
+	        WaitForSingleObject(m_threadHandle, p_wait) == WAIT_TIMEOUT)
+	{
+		return true; // Поток еще работает. пропустим...
+	}
+	else
+	{
+		return false;
+	}
+}
+
+unsigned int WINAPI Thread::starter(void* p)
+{
+	if (Thread* t = reinterpret_cast<Thread*>(p))
+		t->run();
+	return 0;
+}
+
+void Thread::close_handle()
+{
+	if (m_threadHandle != INVALID_HANDLE_VALUE)
+	{
+		HANDLE l_thread = m_threadHandle;
+		m_threadHandle = INVALID_HANDLE_VALUE;
+		CloseHandle(l_thread);
+	}
+}
 void Thread::setThreadPriority(Priority p)
 {
-	const BOOL l_res = ::SetThreadPriority(m_threadHandle, p);
-	dcassert(l_res);
-	if (!l_res)
+	if (m_threadHandle != INVALID_HANDLE_VALUE)
 	{
+		const BOOL l_res = ::SetThreadPriority(m_threadHandle, p);
+		dcassert(l_res);
+		if (!l_res)
+		{
 #if defined (_CONSOLE)
-		dcdebug("Error setThreadPriority = %s", GetLastError());
+			dcdebug("Error setThreadPriority = %s", GetLastError());
 #else
-		dcdebug("Error setThreadPriority = %s", Util::translateError().c_str());
+			dcdebug("Error setThreadPriority = %s", Util::translateError().c_str());
 #endif
+		}
+	}
+	else
+	{
+		dcassert(m_threadHandle != INVALID_HANDLE_VALUE);
 	}
 }
 

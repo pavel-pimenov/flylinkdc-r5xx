@@ -218,7 +218,7 @@ const string SettingsManager::g_settingTags[] =
 	"DisconnectingEnable", "MinFileSize", "UploadQueueFrameShowTree", "UploadQueueFrameSplit",
 	"SegmentsManual", "NumberOfSegments", "PercentFakeShareTolerated",
 	"SendUnknownCommands", "Disconnect",
-	"AutoUpdateIP", "AutoUpdateIPInterval",
+	"AutoUpdateIP", "WANIPManual", "AutoUpdateIPInterval",
 	"MaxHashSpeed",
 	"SaveTthInNtfsFilestream", "SetMinLenghtTthInNtfsFilestream", // [+] NightOrion
 	"UseAutoPriorityByDefault", "UseOldSharingUI",
@@ -1035,8 +1035,7 @@ void SettingsManager::setDefaults()
 	setDefault(SEND_BLOOM, TRUE);
 	setDefault(ENABLE_HUBMODE_PIC, TRUE);
 	setDefault(ENABLE_COUNTRYFLAG, TRUE);
-	setDefault(ENABLE_LAST_IP, TRUE);
-	
+	setDefault(ENABLE_LAST_IP_AND_MESSAGE_COUNTER, TRUE);
 	setDefault(ENABLE_FLY_SERVER, TRUE);
 	setDefault(ENABLE_HIT_FILE_LIST, TRUE);
 	setDefault(ENABLE_RATIO_USER_LIST, TRUE);
@@ -1878,7 +1877,7 @@ bool SettingsManager::set(IntSetting key, int value)
 		}
 		case SLOTS: //[+]PPA
 		{
-			VERIFI(1, 500);
+			VERIFI(0, 500);
 			break;
 		}
 		case EXTRA_SLOTS:

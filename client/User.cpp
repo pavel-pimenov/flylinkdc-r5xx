@@ -89,7 +89,7 @@ User::~User()
 void User::setLastNick(const string& p_nick)
 {
 	//dcassert(!p_nick.empty());
-	if (!m_ratio_ptr)
+	if (m_ratio_ptr == nullptr)
 	{
 		m_nick = p_nick;
 	}
@@ -299,59 +299,68 @@ bool User::flushRatio()
 			return l_result;
 		}
 	}
-	if ((m_last_ip_sql.is_dirty() && !m_last_ip_sql.get().is_unspecified()) ||
-	        m_message_count.is_dirty() && m_message_count.get())
+	if (BOOLSETTING(ENABLE_LAST_IP_AND_MESSAGE_COUNTER))
 	{
-		// LogManager::message("User::flushRatio m_nick = " + m_nick);
-		if (getHubID() && !m_nick.empty() && CFlylinkDBManager::isValidInstance() && !m_last_ip_sql.get().is_unspecified())
+		if ((m_last_ip_sql.is_dirty() && !m_last_ip_sql.get().is_unspecified()) ||
+		        m_message_count.is_dirty() && m_message_count.get())
 		{
-			bool l_is_sql_not_found = isSet(User::IS_SQL_NOT_FOUND);
-			CFlylinkDBManager::getInstance()->update_last_ip_and_message_count(getHubID(), m_nick, m_last_ip_sql.get(), m_message_count.get(), l_is_sql_not_found,
-			                                                                   m_last_ip_sql.is_dirty(),
-			                                                                   m_message_count.is_dirty()
-			                                                                  );
-			setFlag(User::IS_SQL_NOT_FOUND, false);
-			m_last_ip_sql.reset_dirty();
-			m_message_count.reset_dirty();
-			l_result = true;
+			// LogManager::message("User::flushRatio m_nick = " + m_nick);
+			if (getHubID() && !m_nick.empty() && CFlylinkDBManager::isValidInstance() && !m_last_ip_sql.get().is_unspecified())
+			{
+				bool l_is_sql_not_found = isSet(User::IS_SQL_NOT_FOUND);
+				CFlylinkDBManager::getInstance()->update_last_ip_and_message_count(getHubID(), m_nick, m_last_ip_sql.get(), m_message_count.get(), l_is_sql_not_found,
+				                                                                   m_last_ip_sql.is_dirty(),
+				                                                                   m_message_count.is_dirty()
+				                                                                  );
+				setFlag(User::IS_SQL_NOT_FOUND, false);
+				m_last_ip_sql.reset_dirty();
+				m_message_count.reset_dirty();
+				l_result = true;
+			}
 		}
 	}
 	return l_result;
 }
 void User::initRatioL(const boost::asio::ip::address_v4& p_ip)
 {
-	if (m_ratio_ptr == nullptr && !m_nick.empty() && m_hub_id)
+	if (BOOLSETTING(ENABLE_RATIO_USER_LIST))
 	{
-		m_ratio_ptr = new CFlyUserRatioInfo(this);
-		if (m_ratio_ptr->tryLoadRatio(p_ip) == false)
+		if (m_ratio_ptr == nullptr && !m_nick.empty() && m_hub_id)
 		{
-			// TODO - стереть m_ratio_ptr?
+			m_ratio_ptr = new CFlyUserRatioInfo(this);
+			if (m_ratio_ptr->tryLoadRatio(p_ip) == false)
+			{
+				// TODO - стереть m_ratio_ptr?
+			}
 		}
 	}
 }
 void User::initMesageCount()
 {
-	if (!m_nick.empty() && m_hub_id && !isSet(IS_FIRST_INIT_RATIO)
-	        // Глючит когда шлется UserIP && isSet(IS_MYINFO)
-	   )
+	if (BOOLSETTING(ENABLE_LAST_IP_AND_MESSAGE_COUNTER))
 	{
-		setFlag(IS_FIRST_INIT_RATIO);
-		m_last_ip_sql.reset_dirty();
-		m_message_count.reset_dirty();
-		// Узнаем, есть ли в базе last_ip или счетчик мессаг
-		uint32_t l_message_count = 0;
-		boost::asio::ip::address_v4 l_last_ip_from_sql;
-		const bool l_is_sql_not_found = !CFlylinkDBManager::getInstance()->load_last_ip_and_user_stat(m_hub_id, m_nick, l_message_count, l_last_ip_from_sql);
-		setFlag(IS_SQL_NOT_FOUND, l_is_sql_not_found);
-		if (!l_is_sql_not_found)
+		if (!m_nick.empty() && m_hub_id && !isSet(IS_FIRST_INIT_RATIO)
+		        // Глючит когда шлется UserIP && isSet(IS_MYINFO)
+		   )
 		{
-			m_message_count.set(l_message_count);
-			m_message_count.reset_dirty();
-			if (m_last_ip_sql.set(l_last_ip_from_sql))
-			{
-				setFlag(CHANGE_IP);
-			}
+			setFlag(IS_FIRST_INIT_RATIO);
 			m_last_ip_sql.reset_dirty();
+			m_message_count.reset_dirty();
+			// Узнаем, есть ли в базе last_ip или счетчик мессаг
+			uint32_t l_message_count = 0;
+			boost::asio::ip::address_v4 l_last_ip_from_sql;
+			const bool l_is_sql_not_found = !CFlylinkDBManager::getInstance()->load_last_ip_and_user_stat(m_hub_id, m_nick, l_message_count, l_last_ip_from_sql);
+			setFlag(IS_SQL_NOT_FOUND, l_is_sql_not_found);
+			if (!l_is_sql_not_found)
+			{
+				m_message_count.set(l_message_count);
+				m_message_count.reset_dirty();
+				if (m_last_ip_sql.set(l_last_ip_from_sql))
+				{
+					setFlag(CHANGE_IP);
+				}
+				m_last_ip_sql.reset_dirty();
+			}
 		}
 	}
 }
@@ -408,19 +417,7 @@ bool Identity::isTcpActive() const
 	}
 	// [~] IRainman fix.
 }
-/*
-bool Identity::isUdpActive(const Client* client) const // [+] IRainman fix.
-{
-    if (ClientManager::isMe(user))
-    {
-        return client->isActive(); // userlist should display our real mode
-    }
-    else
-    {
-        return isUdpActive();
-    }
-}
-*/
+
 bool Identity::isUdpActive() const
 {
 	// [!] IRainman fix.
@@ -433,6 +430,21 @@ bool Identity::isUdpActive() const
 		return user->isSet(User::UDP4);
 	}
 	// [~] IRainman fix.
+}
+void Identity::setExtJSON(const string& p_ExtJSON)
+{
+#ifdef _DEBUG
+	if (!m_lastExtJSON.empty())
+	{
+		if (m_lastExtJSON == p_ExtJSON)
+		{
+			LogManager::message("Duplicate ExtJSON = " + p_ExtJSON);
+			//dcassert(0);
+		}
+	}
+	m_lastExtJSON = p_ExtJSON;
+#endif
+	m_is_ext_json = true;
 }
 
 void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility, bool dht) const

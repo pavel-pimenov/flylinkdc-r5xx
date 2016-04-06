@@ -103,6 +103,11 @@ class CID
 		}
 		
 		static CID generate();
+		void regenerate()
+		{
+			const CID l_new_cid = generate();
+			memcpy(cid, l_new_cid.data(), sizeof(cid));
+		}
 		
 	private:
 		uint8_t cid[SIZE];

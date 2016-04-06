@@ -27,6 +27,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "precompiled.hpp"
 #include <new>
 #include <stddef.h>
 
@@ -91,6 +92,7 @@ zmq::pipe_t::pipe_t (object_t *parent_, upipe_t *inpipe_, upipe_t *outpipe_,
     sink (NULL),
     state (active),
     delay (true),
+    routing_id(0),
     conflate (conflate_)
 {
 }

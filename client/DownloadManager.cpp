@@ -672,7 +672,7 @@ void DownloadManager::abortDownload(const string& aTarget)
 void DownloadManager::on(UserConnectionListener::ListLength, UserConnection* aSource, const string& aListLength) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	ClientManager::getInstance()->setListLength(aSource->getUser(), aListLength);
+	ClientManager::setListLength(aSource->getUser(), aListLength);
 }
 
 void DownloadManager::on(UserConnectionListener::FileNotAvailable, UserConnection* aSource) noexcept

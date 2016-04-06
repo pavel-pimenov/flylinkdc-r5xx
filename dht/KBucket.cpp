@@ -440,7 +440,7 @@ void RoutingTable::checkExpiration(uint64_t aTick)
 			if (node->unique()) // is the only reference in this bucket?
 			{
 				// node is dead, remove it
-				const auto& ip   = node->getIdentity().getIpAsString();
+				const auto ip   = node->getIdentity().getIpAsString();
 				const auto port = node->getIdentity().getUdpPort();
 				g_ipMap.erase(ip + ':' + Util::toString(port));
 				

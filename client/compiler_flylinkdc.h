@@ -75,6 +75,19 @@
 # pragma warning(disable: 4267) // conversion from 'xxx' to 'yyy', possible loss of data
 #endif
 
+#if _MSC_VER == 1900
+#if _MSC_FULL_VER < 190023918
+#error Visual Studio 2015 Update 2 is required
+// https://www.visualstudio.com/en-us/news/vs2015-update2-vs.aspx
+#endif
+# pragma warning(disable: 4458) // C4458: declaration of 'nativeImage' hides class member
+# pragma warning(disable: 4592) // 'trustedKeyprint' : symbol will be dynamically initialized(implementation limitation)
+
+// https://connect.microsoft.com/VisualStudio/feedback/details/1892487/code-generated-by-msvc-doesnt-operate-atomically-on-std-atomic-t-object-when-sizeof-t-n-alignof-t-n-n-2-4-8
+// Enable a bugfix in VS2015 update 2, remove in the next version of VS2015
+#define _ENABLE_ATOMIC_ALIGNMENT_FIX
+#endif
+
 // VC++2015
 # pragma warning(disable: 4091) // 'typedef ': ignored on left of 'tagDTI_ADTIWUI' when no variable is declared
 

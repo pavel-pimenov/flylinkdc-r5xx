@@ -456,6 +456,23 @@ void SearchManager::onData(const uint8_t* buf, size_t aLen, const boost::asio::i
 	string x((char*)buf, aLen);
 	m_queue_thread.addResult(x, remoteIp);
 }
+void SearchManager::search_auto(const string& p_tth)
+{
+	SearchParamOwner l_search_param;
+	l_search_param.m_token = 0; /*"auto"*/
+	l_search_param.m_size_mode = Search::SIZE_DONTCARE;
+	l_search_param.m_file_type = Search::TYPE_TTH;
+	l_search_param.m_size = 0;
+	l_search_param.m_filter = p_tth;
+	// Для TTH не нужно этого. l_search_param.normalize_whitespace();
+	l_search_param.m_owner = nullptr;
+	l_search_param.m_is_force_passive_searh = false;
+	
+	dcassert(p_tth.size() == 39);
+	
+	//search(l_search_param);
+	ClientManager::search(l_search_param);
+}
 
 void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const boost::asio::ip::address_v4& p_remoteIp)
 {
@@ -504,7 +521,7 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const boos
 		if (type == SearchResult::TYPE_FILE && tth.empty())
 			return;
 			
-		const uint8_t slots = ClientManager::getInstance()->getSlots(from->getCID());
+		const uint8_t slots = ClientManager::getSlots(from->getCID());
 		const SearchResult sr(from, type, slots, (uint8_t)freeSlots, size, file, hubName, hub, p_remoteIp, TTHValue(tth), l_token);
 		fly_fire1(SearchManagerListener::SR(), sr);
 	}

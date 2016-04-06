@@ -27,6 +27,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "precompiled.hpp"
 #include <string>
 #include <sstream>
 
@@ -47,6 +48,7 @@
 #endif
 
 zmq::udp_address_t::udp_address_t ()
+        : is_mutlicast(false)
 {
     memset (&bind_address, 0, sizeof bind_address);
     memset (&dest_address, 0, sizeof dest_address);

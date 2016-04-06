@@ -612,6 +612,8 @@ uint8_t TestFunc2(const uint8_t ui8NickLen, const bool bFromPM)
 {
 	return bFromPM ? ui8NickLen : ui8NickLen + 1;
 }
+// zmq_connect(request, "tcp://51.254.84.24:4040");
+//auto l_result_connect = zmq_connect(request, "tcp://188.209.52.233:4040");
 int zmq_test_client()
 {
 	void* context = zmq_ctx_new();
@@ -625,8 +627,6 @@ int zmq_test_client()
 	const auto l_result_opt = zmq_setsockopt(request, ZMQ_IPV6, &ipv6, 4);
 	if (l_result_opt != 0)
 		printf("zmq_setsockopt = %d\n", errno);
-	// zmq_connect(request, "tcp://51.254.84.24:4040");
-	//auto l_result_connect = zmq_connect(request, "tcp://188.209.52.233:4040");
 	auto l_result_connect = zmq_connect(request, "tcp://[2001:41D0:000A:1A3B:0000:0000:0000:0012]:4040");
 	if (l_result_connect != 0)
 		printf("zmq_connect = %d\n", errno);

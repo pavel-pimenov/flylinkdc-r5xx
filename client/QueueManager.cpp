@@ -856,7 +856,7 @@ QueueManager::QueueManager() :
 
 QueueManager::~QueueManager() noexcept
 {
-	dcassert(m_fire_src_array.empty());
+	//dcassert(m_fire_src_array.empty());
 	dcassert(m_remove_target_array.empty());
 	SearchManager::getInstance()->removeListener(this);
 	TimerManager::getInstance()->removeListener(this);
@@ -2201,8 +2201,8 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 									if (CFlyServerConfig::isMediainfoExt(l_file_ext))
 									{
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-										CFlyTTHKey l_file(q->getTTH(), q->getSize());
-										CFlyServerJSON::addDownloadCounter(l_file);
+										const CFlyTTHKey l_file(q->getTTH(), q->getSize());
+										CFlyServerJSON::addDownloadCounter(l_file, Util::getFileName(p_path));
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 #ifdef _DEBUG
 										//CFlyServerJSON::sendDownloadCounter(false);

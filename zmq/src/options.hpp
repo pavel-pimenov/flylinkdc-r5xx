@@ -42,6 +42,9 @@
 #if defined ZMQ_HAVE_SO_PEERCRED || defined ZMQ_HAVE_LOCAL_PEERCRED
 #include <sys/types.h>
 #endif
+#ifdef ZMQ_HAVE_LOCAL_PEERCRED
+#include <sys/ucred.h>
+#endif
 
 //  Normal base 256 key is 32 bytes
 #define CURVE_KEYSIZE       32
@@ -104,7 +107,7 @@ namespace zmq
         //  Maximum interval in milliseconds beyond which TCP will timeout
         //  retransmitted packets.
         //  Default 0 (unused)
-        int tcp_retransmit_timeout;
+        int tcp_maxrt;
 
         //  Minimum interval between attempts to reconnect, in milliseconds.
         //  Default 100ms
@@ -159,10 +162,6 @@ namespace zmq
         // TCP accept() filters
         typedef std::vector <tcp_address_mask_t> tcp_accept_filters_t;
         tcp_accept_filters_t tcp_accept_filters;
-
-        // TCP buffer sizes
-        unsigned int tcp_recv_buffer_size;
-        unsigned int tcp_send_buffer_size;
 
         // IPC accept() filters
 #       if defined ZMQ_HAVE_SO_PEERCRED || defined ZMQ_HAVE_LOCAL_PEERCRED
@@ -235,7 +234,7 @@ namespace zmq
         //  When creating a new ZMQ socket, if this option is set the value
         //  will be used as the File Descriptor instead of allocating a new
         //  one via the socket () system call.
-        int pre_allocated_fd;
+        int use_fd;
     };
 }
 

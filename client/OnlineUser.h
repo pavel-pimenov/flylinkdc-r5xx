@@ -631,6 +631,9 @@ class Identity
 #ifdef FLYLINKDC_USE_EXT_JSON
 	private:
 		bool m_is_ext_json;
+#ifdef _DEBUG
+		string m_lastExtJSON;
+#endif
 	public:
 		string getFlyHubCountry() const
 		{
@@ -817,10 +820,7 @@ class Identity
 		{
 			return m_is_ext_json;
 		}
-		void setExtJSON()
-		{
-			m_is_ext_json = true;
-		}
+		void setExtJSON(const string& p_ExtJSON);
 		
 		typedef boost::unordered_map<short, string> InfMap;
 		

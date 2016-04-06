@@ -175,7 +175,7 @@ bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noC
 			// [!] IRainman fix.
 			msg.tick = TimerManager::getTick();
 			const auto pmMsgPeriod = SETTING(BANMSG_PERIOD);
-			const auto& key = user->getCID().toBase32();
+			const auto key = user->getCID().toBase32();
 			bool sendPm;
 			{
 				CFlyWriteLock(*g_csBans); // [+] IRainman opt.
@@ -216,12 +216,14 @@ bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noC
 bool UploadManager::isBanReply(const UserPtr& user)
 {
 	dcassert(!ClientManager::isShutdown());
-	const auto& key = user->getCID().toBase32();
+	const auto key = user->getCID().toBase32();
 	{
 		CFlyReadLock(*g_csBans); // [+] IRainman opt.
 		const auto t = g_lastBans.find(key);
 		if (t != g_lastBans.end())
+		{
 			return (TimerManager::getTick() - t->second.tick) < 2000;
+		}
 	}
 	return false;
 }
@@ -511,11 +513,16 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 						// [+]
 						try
 						{
+							is = nullptr;
 							is = new LimitedInputStream<true>(f, size); // [!]
 						}
 						catch (...)
 						{
 							delete f;
+							if (is)
+							{
+								is->clean_stream();
+							}
 							throw;
 						}
 					}
@@ -531,7 +538,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 				}
 				catch (const Exception&)
 				{
-					delete is;
+					safe_delete(is);
 				}
 			}
 		}
@@ -634,7 +641,7 @@ ok: //[!] TODO убрать goto
 			}
 			else
 			{
-				delete is;
+				safe_delete(is);
 				aSource->maxedOut(addFailedUpload(aSource, sourceFile, aStartPos, fileSize)); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=130703
 				aSource->disconnect();
 				return false;
@@ -752,26 +759,47 @@ bool UploadManager::getAutoSlot()
 	/** Grant if upload speed is less than the threshold speed */
 	return getRunningAverage() < (SETTING(MIN_UPLOAD_SPEED) * 1024);
 }
-
+void UploadManager::shutdown()
+{
+	{
+		CFlyWriteLock(*g_csUploadsDelay);
+		g_uploadsPerUser.clear();
+	}
+	{
+		CFlyWriteLock(*g_csReservedSlots);
+		g_reservedSlots.clear();
+	}
+}
 void UploadManager::increaseUserConnectionAmountL(const UserPtr& p_user)
 {
 	dcassert(!ClientManager::isShutdown());
-	const auto i = g_uploadsPerUser.find(p_user);
-	if (i != g_uploadsPerUser.end())
-		i->second++;
-	else
-		g_uploadsPerUser.insert(CurrentConnectionPair(p_user, 1));
+	if (!ClientManager::isShutdown())
+	{
+		const auto i = g_uploadsPerUser.find(p_user);
+		if (i != g_uploadsPerUser.end())
+		{
+			i->second++;
+		}
+		else
+		{
+			g_uploadsPerUser.insert(CurrentConnectionPair(p_user, 1));
+		}
+	}
 }
 void UploadManager::decreaseUserConnectionAmountL(const UserPtr& p_user)
 {
-	dcassert(!ClientManager::isShutdown());
-	const auto i = g_uploadsPerUser.find(p_user);
-	//dcassert(i != g_uploadsPerUser.end());
-	if (i != g_uploadsPerUser.end())
+	if (!ClientManager::isShutdown())
 	{
-		i->second--;
-		if (i->second == 0)
-			g_uploadsPerUser.erase(p_user);
+		const auto i = g_uploadsPerUser.find(p_user);
+		//dcassert(i != g_uploadsPerUser.end());
+		if (i != g_uploadsPerUser.end())
+		{
+			i->second--;
+			if (i->second == 0)
+			{
+				g_uploadsPerUser.erase(p_user);
+			}
+		}
 	}
 }
 unsigned int UploadManager::getUserConnectionAmountL(const UserPtr& p_user)
@@ -779,15 +807,17 @@ unsigned int UploadManager::getUserConnectionAmountL(const UserPtr& p_user)
 	dcassert(!ClientManager::isShutdown());
 	const auto i = g_uploadsPerUser.find(p_user);
 	if (i != g_uploadsPerUser.end())
+	{
 		return i->second;
-		
+	}
+	
 	dcassert(0);
 	return 1;
 }
 
 void UploadManager::removeUpload(UploadPtr& aUpload, bool delay)
 {
-	dcassert(!ClientManager::isShutdown());
+	//dcassert(!ClientManager::isShutdown());
 	CFlyWriteLock(*g_csUploadsDelay);
 	//dcassert(find(g_uploads.begin(), g_uploads.end(), aUpload) != g_uploads.end());
 	g_uploads.erase(remove(g_uploads.begin(), g_uploads.end(), aUpload), g_uploads.end());
@@ -926,35 +956,36 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 		cmd.addParam(type).addParam(fname)
 		.addParam(Util::toString(u->getStartPos()))
 		.addParam(Util::toString(u->getSize()));
-		
-		string l_name = Util::getFileName(u->getPath());
-		string l_ext = Util::getFileExtWithoutDot(l_name);
-		if (l_name.length() > 46 && l_ext == g_dc_temp_extension)  // 46 it one character first dot + 39 characters TTH + 6 characters .dctmp
+		if (SETTING(MAX_COMPRESSION))
 		{
-			l_name = l_name.erase(l_name.length() - 46);
-			l_ext = Util::getFileExtWithoutDot(l_name);
-		}
-		if (!g_fly_server_config.isCompressExt(Text::toLower(l_ext)))
-		{
-			if (c.hasFlag("ZL", 4))
+			string l_name = Util::getFileName(u->getPath());
+			string l_ext = Util::getFileExtWithoutDot(l_name);
+			if (l_name.length() > 46 && l_ext == g_dc_temp_extension)  // 46 it one character first dot + 39 characters TTH + 6 characters .dctmp
 			{
-				try
+				l_name = l_name.erase(l_name.length() - 46);
+				l_ext = Util::getFileExtWithoutDot(l_name);
+			}
+			if (!CFlyServerConfig::isCompressExt(Text::toLower(l_ext)))
+			{
+				if (c.hasFlag("ZL", 4))
 				{
-					u->setReadStream(new FilteredInputStream<ZFilter, true>(u->getReadStream()));
-					u->setFlag(Upload::FLAG_ZUPLOAD);
-					cmd.addParam("ZL1");
-				}
-				catch (Exception& e)
-				{
-					const string l_message = "Error UploadManager::on(AdcCommand::GET) -" + e.getError();
-					CFlyServerJSON::pushError(59, l_message);
-					LogManager::message(l_message);
-					fly_fire2(UploadManagerListener::Failed(), u, l_message);
-					return;
+					try
+					{
+						u->setReadStream(new FilteredInputStream<ZFilter, true>(u->getReadStream()));
+						u->setFlag(Upload::FLAG_ZUPLOAD);
+						cmd.addParam("ZL1");
+					}
+					catch (Exception& e)
+					{
+						const string l_message = "Error UploadManager::on(AdcCommand::GET) -" + e.getError();
+						CFlyServerJSON::pushError(59, l_message);
+						LogManager::message(l_message);
+						fly_fire2(UploadManagerListener::Failed(), u, l_message);
+						return;
+					}
 				}
 			}
 		}
-		
 		aSource->send(cmd);
 		
 		// [!] IRainman refactoring transfer mechanism
@@ -969,7 +1000,7 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 
 void UploadManager::on(UserConnectionListener::BytesSent, UserConnection* aSource, size_t aBytes, size_t aActual) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
+	//dcassert(!ClientManager::isShutdown());
 	dcassert(aSource->getState() == UserConnection::STATE_RUNNING);
 	auto u = aSource->getUpload();
 	dcassert(u != nullptr);
@@ -1137,7 +1168,7 @@ void UploadManager::process_slot(UserConnection::SlotTypes p_slot_type, int p_de
 }
 void UploadManager::removeConnection(UserConnection* aSource, bool p_is_remove_listener /*= true */)
 {
-	dcassert(!ClientManager::isShutdown());
+	//dcassert(!ClientManager::isShutdown());
 	//dcassert(aSource->getUpload() == nullptr);
 	if (p_is_remove_listener)
 	{

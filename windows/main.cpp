@@ -512,6 +512,7 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 #ifdef FLYLINKDC_USE_PROFILER_CS
 	CFlyLockProfiler::print_stat();
 #endif
+	DirectoryListing::print_stat();
 	return nRet;
 }
 
@@ -564,6 +565,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	extern bool g_UseSynchronousOff;
 	extern bool g_UseCSRecursionLog;
 	extern bool g_UseStrongDCTag;
+	extern bool g_DisableUserStat;
 	if (_tcsstr(lpstrCmdLine, _T("/nowal")) != NULL)
 		g_DisableSQLJournal = true;
 	if (_tcsstr(lpstrCmdLine, _T("/sqlite_use_memory")) != NULL)
@@ -574,7 +576,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		g_UseSynchronousOff = true;
 	if (_tcsstr(lpstrCmdLine, _T("/hfs_ignore_file_size")) != NULL)
 		ShareManager::setIgnoreFileSizeHFS();
-		
+	//if (_tcsstr(lpstrCmdLine, _T("/disable_users_stats")) != NULL)
+	//  g_DisableUserStat = true;
+	
 	const auto l_debug_fly_server_url = _tcsstr(lpstrCmdLine, _T("/debug_fly_server_url="));
 	if (l_debug_fly_server_url != NULL)
 	{

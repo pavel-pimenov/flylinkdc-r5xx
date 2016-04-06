@@ -154,7 +154,7 @@ RadoX-Pack v.2.5 International
    <Emoticon PasteText=":mm:" Bitmap="SmilesMegaPack\mm2.bmp" Gif="AnimPack\mm2.gif"/>
    <Emoticon PasteText=":listen:" Bitmap="SmilesMegaPack\sigh.bmp"/>
    <Emoticon PasteText=":telephone:" Bitmap="SmilesMegaPack\telephon.bmp"/>
-   <Emoticon PasteText=":hello:" Bitmap="SmilesMegaPack\hi.bmp"/>
+   <Emoticon PasteText=":hi:" Bitmap="SmilesMegaPack\hi.bmp"/>
    <Emoticon PasteText=":bb:" Bitmap="SmilesMegaPack\bye.bmp"Gif="AnimPack\bye.gif"/>
    <Emoticon PasteText=":1th:" Bitmap="SmilesMegaPack\1th.bmp"/>
    <Emoticon PasteText=":2th:" Bitmap="SmilesMegaPack\2nd.bmp"/>
@@ -205,6 +205,7 @@ RadoX-Pack v.2.5 International
    <Emoticon PasteText=":>" Bitmap="SmilesMegaPack\drugs.bmp"/>
    <Emoticon PasteText=":sunday:" Bitmap="SmilesMegaPack\rest.bmp" Gif="AnimPack\rest.gif"/>
    <Emoticon PasteText=":dance:" Bitmap="SmilesMegaPack\dance.bmp" Gif="AnimPack\dance.gif"/>
+   <Emoticon PasteText=":hello:" Bitmap="SmilesMegaPack\hello.bmp" Gif="AnimPack\hello.gif"/>
    <Emoticon PasteText=":party:" Bitmap="SmilesMegaPack\party.bmp"/>
    <Emoticon PasteText=":pivo:" Bitmap="SmilesMegaPack\Beer.bmp" Gif="AnimPack\Beer.gif"/>
    <Emoticon PasteText=":bublhum:" Bitmap="SmilesMegaPack\gum.bmp" Gif="AnimPack\gum.gif"/>

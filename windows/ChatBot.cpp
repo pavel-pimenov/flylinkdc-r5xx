@@ -69,7 +69,7 @@ bool ChatBot::botSendMessage2(int msgid, const WCHAR* objid, const void *param, 
 	{
 		case BotInit::SEND_CM:
 		{
-			Client* client = ClientManager::getInstance()->findClient(Text::fromT((WCHAR*)objid));
+			Client* client = ClientManager::findClient(Text::fromT((WCHAR*)objid));
 			if (client)
 			{
 				client->hubMessage(Text::fromT((WCHAR*)param));
@@ -214,7 +214,7 @@ WCHAR* ChatBot::onQueryUserByCid(const WCHAR* cid)
 
 WCHAR* ChatBot::onQueryHubByUrl(const WCHAR* huburl)
 {
-	Client* c = ClientManager::getInstance()->findClient(Text::fromT(huburl));
+	Client* c = ClientManager::findClient(Text::fromT(huburl));
 	if (c)
 	{
 		ParamSet ps;

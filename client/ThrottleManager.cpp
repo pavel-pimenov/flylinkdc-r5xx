@@ -111,7 +111,8 @@ int ThrottleManager::write(Socket* p_sock, const void* p_buffer, size_t& p_len)
 		const size_t ups = UploadManager::getUploadCount();
 		if (upLimit == 0 || ups == 0)
 		{
-			return p_sock->write(p_buffer, p_len);
+			const int sent = p_sock->write(p_buffer, p_len);
+			return sent;
 		}
 		
 		boost::unique_lock<boost::mutex> lock(upMutex);
@@ -151,48 +152,6 @@ void ThrottleManager::on(TimerManagerListener::Second, uint64_t /*aTick*/) noexc
 		upLimit = 0;
 		return;
 	}
-	/* [-] IRainman SpeedLimiter
-	// limiter restrictions: up_limit >= 5 * slots + 4, up_limit >= 7 * down_limit
-	if(upLimit < MIN_UPLOAD_SPEED_LIMIT)
-	{
-	  SET_SETTING(MAX_UPLOAD_SPEED_LIMIT, MIN_UPLOAD_SPEED_LIMIT);
-	}
-	
-	if((downLimit > MAX_LIMIT_RATIO * upLimit) || (downLimit == 0))
-	{
-	  SET_SETTING(MAX_DOWNLOAD_SPEED_LIMIT, MAX_LIMIT_RATIO * upLimit);
-	}
-	
-	if(SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME) < MIN_UPLOAD_SPEED_LIMIT)
-	{
-	  SET_SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME, MIN_UPLOAD_SPEED_LIMIT);
-	}
-	
-	if((SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME) > MAX_LIMIT_RATIO * SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME)) || (SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME) == 0))
-	{
-	  SET_SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME, MAX_LIMIT_RATIO * SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME));
-	}
-	
-	downLimit   = SETTING(MAX_DOWNLOAD_SPEED_LIMIT) * 1024;
-	upLimit     = SETTING(MAX_UPLOAD_SPEED_LIMIT) * 1024;
-	// alternative limiter
-	if(BOOLSETTING(TIME_DEPENDENT_THROTTLE))
-	{
-	  time_t currentTime;
-	  time(&currentTime);
-	  int currentHour = localtime(&currentTime)->tm_hour;
-	
-	  if( (SETTING(BANDWIDTH_LIMIT_START) < SETTING(BANDWIDTH_LIMIT_END) &&
-	      currentHour >= SETTING(BANDWIDTH_LIMIT_START) && currentHour < SETTING(BANDWIDTH_LIMIT_END)) ||
-	      (SETTING(BANDWIDTH_LIMIT_START) > SETTING(BANDWIDTH_LIMIT_END) &&
-	      (currentHour >= SETTING(BANDWIDTH_LIMIT_START) || currentHour < SETTING(BANDWIDTH_LIMIT_END))))
-	  {
-	      downLimit   = SETTING(MAX_DOWNLOAD_SPEED_LIMIT_TIME) * 1024;
-	      upLimit     = SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME) * 1024;
-	  }
-	}
-	*/
-	
 	// readd tokens
 	if (downLimit > 0)
 	{

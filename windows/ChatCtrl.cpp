@@ -1077,7 +1077,7 @@ bool ChatCtrl::HitNick(const POINT& p, tstring& sNick, int& iBegin, int& iEnd, c
 	}
 	else
 	{
-		const Client* l_client = ClientManager::getInstance()->findClient(getHubHint());
+		const Client* l_client = ClientManager::findClient(getHubHint());
 		if (!l_client) // [+] IRainman opt.
 			return false;
 			

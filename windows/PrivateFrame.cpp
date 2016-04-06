@@ -103,7 +103,10 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 			return true; // Типа все ок
 		}
 		if (notOpenNewWindow || g_pm_frames.size() > MAX_PM_FRAMES)
+		{
+			LogManager::message("Lock > 100 open private message windows! Hub: " + l_key + " Message: " + l_message);
 			return false; // !SMT!-S
+		}
 		/*
 		15:50:13 <HackFresse> есть возможность получить количество открытых личек с одного хаба?  а потом просто условие "если с хаба пришла личка, и открытых личек с этого хаба уже 20 --направляем личку
 		                      в чат хаба"
@@ -116,6 +119,7 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 		auto& l_count_pm = g_count_pm[l_key];
 		if (l_count_pm > 10)
 		{
+			LogManager::message("Lock > 10 private message for Hub: " + l_key + " Message: " + l_message);
 			return false;
 		}
 		++l_count_pm;
@@ -187,7 +191,7 @@ void PrivateFrame::openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo
 		}
 		else if (!replyTo.hint.empty())
 		{
-			auto client = ClientManager::getInstance()->findClient(replyTo.hint);
+			auto client = ClientManager::findClient(replyTo.hint);
 			myNick = client ? client->getMyNick() : SETTING(NICK);
 		}
 		else
@@ -202,8 +206,11 @@ void PrivateFrame::openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo
 	if (i == g_pm_frames.end())
 	{
 		if (g_pm_frames.size() > MAX_PM_FRAMES)
+		{
+			LogManager::message("Lock > 100 open private message windows! Hub+nick: " + replyTo.hint + " " + myNick + " Message: " + Text::fromT(msg));
 			return;
-			
+		}
+		
 		// [+] IRainman fix.
 		if (ou)
 		{
@@ -224,7 +231,9 @@ void PrivateFrame::openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo
 		p->MDIActivate(p->m_hWnd);
 	}
 	if (!msg.empty())
+	{
 		p->sendMessage(msg);
+	}
 }
 
 LRESULT PrivateFrame::onChar(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)

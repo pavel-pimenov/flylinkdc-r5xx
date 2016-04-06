@@ -45,7 +45,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		void resetAntivirusInfo();
 		size_t getUserCount() const
 		{
-			return m_users.size();
+			return m_adc_users.size();
 		}
 		string escape(const string& str) const
 		{
@@ -55,7 +55,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		
 		string getMySID() const
 		{
-			return AdcCommand::fromSID(sid);
+			return AdcCommand::fromSID(m_sid);
 		}
 		
 		static const vector<StringList>& getSearchExts();
@@ -84,13 +84,13 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		
 		bool m_oldPassword;
 		Socket m_udp;
-		SIDMap m_users;
+		SIDMap m_adc_users;
 		StringMap m_lastInfoMap;
 		FastCriticalSection m_info_cs;
 		void addParam(AdcCommand& p_c, const string& p_var, const string& p_value);
 		
 		string m_salt;
-		uint32_t sid;
+		uint32_t m_sid;
 		
 		boost::unordered_set<uint32_t> forbiddenCommands;
 		

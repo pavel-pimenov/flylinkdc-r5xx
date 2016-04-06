@@ -1187,7 +1187,14 @@ void NmdcHub::lockParse(const string& aLine)
 		
 		key(CryptoManager::getInstance()->makeKey(lock));
 		
-		const auto l_nick = getMyNick();
+		string l_nick = getMyNick();
+		const string l_fly_nick = getRandomNick();
+		if (!l_fly_nick.empty())
+		{
+			l_nick = l_fly_nick;
+			setMyNick(l_fly_nick);
+		}
+		
 		OnlineUserPtr ou = getUser(l_nick, false, true);
 		sendValidateNick(ou->getIdentity().getNick());
 		
@@ -1990,7 +1997,12 @@ void NmdcHub::onLine(const string& aLine)
 		{
 			if (m_nick_rule)
 			{
-				auto l_nick = getMyNick();
+				string l_nick = getMyNick();
+				const string l_fly_nick = getRandomNick();
+				if (!l_fly_nick.empty())
+				{
+					l_nick = l_fly_nick;
+				}
 				m_nick_rule->convert_nick(l_nick);
 				setMyNick(l_nick);
 				
@@ -2627,6 +2639,7 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 //#else
 	const string l_json_result = unescape(param.substr(l_nick.size() + 1));
 //#endif
+	OnlineUserPtr ou = getUser(l_nick, false, false);
 	try
 	{
 		Json::Value l_root;
@@ -2640,8 +2653,7 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 		}
 		else
 		{
-			OnlineUserPtr ou = getUser(l_nick, false, false);
-			ou->getIdentity().setExtJSON();
+			ou->getIdentity().setExtJSON(param);
 			ou->getIdentity().setStringParam("F1", l_root["Country"].asString());
 			ou->getIdentity().setStringParam("F2", l_root["City"].asString());
 			ou->getIdentity().setStringParam("F3", l_root["ISP"].asString());

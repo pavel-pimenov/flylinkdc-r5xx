@@ -103,7 +103,7 @@ void BootstrapManager::flush_live_check()
 		}
 	}
 }
-void BootstrapManager::full_shutdown()
+void BootstrapManager::shutdown_http()
 {
 	g_http_checker.forceStop();
 }

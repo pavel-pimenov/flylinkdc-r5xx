@@ -68,7 +68,7 @@ ShareManager::HashFileMap ShareManager::g_tthIndex;
 ShareManager::ShareMap ShareManager::g_shares;
 ShareManager::ShareMap ShareManager::g_lost_shares;
 int64_t ShareManager::g_lastSharedDate = 0;
-size_t ShareManager::g_lastSharedFiles = 0;
+unsigned ShareManager::g_lastSharedFiles = 0;
 StringList ShareManager::g_notShared;
 bool ShareManager::g_isNeedsUpdateShareSize;
 int64_t ShareManager::g_CurrentShareSize = -1;
@@ -77,7 +77,7 @@ ShareManager::DirList ShareManager::g_list_directories;
 BloomFilter<5> ShareManager::g_bloom(1 << 20);
 
 ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
-	xmlDirty(true), forceXmlRefresh(false), refreshDirs(false), update(false), m_listN(0), m_count_sec(11),
+	m_is_xmlDirty(true), m_is_forceXmlRefresh(false), m_is_refreshDirs(false), m_is_update(false), m_listN(0), m_count_sec(11),
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
 	m_sweep_guard(false),
 #endif
@@ -1100,7 +1100,7 @@ void ShareManager::internalCalcShareSize() // [!] IRainman opt.
 				{
 					l_CurrentShareSize += i->second->getSize();
 				}
-				g_lastSharedFiles = g_tthIndex.size();
+				g_lastSharedFiles = unsigned(g_tthIndex.size());
 			}
 			g_CurrentShareSize = l_CurrentShareSize;
 		}
@@ -1527,8 +1527,8 @@ void ShareManager::refresh_share(bool p_dirs /* = false */, bool aUpdate /* = tr
 		return;
 	}
 	
-	update = aUpdate;
-	refreshDirs = p_dirs;
+	m_is_update = aUpdate;
+	m_is_refreshDirs = p_dirs;
 	join();
 	bool l_is_cached;
 	if (g_is_initial)
@@ -1552,7 +1552,7 @@ void ShareManager::refresh_share(bool p_dirs /* = false */, bool aUpdate /* = tr
 		}
 		else
 		{
-			setThreadPriority(Thread::LOW);
+			//setThreadPriority(Thread::LOW);
 		}
 	}
 	catch (const ThreadException& e)
@@ -1586,15 +1586,15 @@ int ShareManager::run()
 				return 0;
 		}
 	}
-	setThreadPriority(Thread::LOW); // [+] IRainman fix.
-	
 	CFlyDirItemArray directories;
 	getDirectories(directories);
 	// Don't need to refresh if no directories are shared
 	if (directories.empty())
-		refreshDirs = false;
-		
-	if (refreshDirs)
+	{
+		m_is_refreshDirs = false;
+	}
+	
+	if (m_is_refreshDirs)
 	{
 		HashManager::HashPauser pauser;
 		
@@ -1640,13 +1640,13 @@ int ShareManager::run()
 			rebuildIndicesL();
 		}
 		internalCalcShareSize();
-		refreshDirs = false;
+		m_is_refreshDirs = false;
 		LogManager::message(STRING(FILE_LIST_REFRESH_FINISHED));
 	}
 	if (!ClientManager::isShutdown())
 	{
 	
-		if (update)
+		if (m_is_update)
 		{
 			ClientManager::infoUpdated();
 		}
@@ -1684,7 +1684,7 @@ void ShareManager::generateXmlList()
 	if (updateXmlListInProcess.test_and_set()) // [+] IRainman opt.
 		return;
 		
-	if (forceXmlRefresh || (xmlDirty && (m_lastXmlUpdate + 15 * 60 * 1000 < GET_TICK() || m_lastXmlUpdate <= m_lastFullUpdate)))
+	if (m_is_forceXmlRefresh || (m_is_xmlDirty && (m_lastXmlUpdate + 15 * 60 * 1000 < GET_TICK() || m_lastXmlUpdate <= m_lastFullUpdate)))
 	{
 		CFlyLog l_creation_log("[Share cache creator]");
 		m_listN++;
@@ -1758,8 +1758,8 @@ void ShareManager::generateXmlList()
 			// No new file lists...
 		}
 		
-		xmlDirty = false;
-		forceXmlRefresh = false;
+		m_is_xmlDirty = false;
+		m_is_forceXmlRefresh = false;
 		m_lastXmlUpdate = GET_TICK();
 		
 		// [+] IRainman cleaning old file cache
@@ -2888,7 +2888,7 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 					}
 				}
 				setDirty();
-				forceXmlRefresh = true;
+				m_is_forceXmlRefresh = true;
 			}
 		}
 	}
@@ -2953,6 +2953,7 @@ bool ShareManager::isShareFolder(const string& path, bool thoroughCheck /* = fal
 	if (thoroughCheck)  // check if it's part of the share before checking if it's in the exclusions
 	{
 		bool result = false;
+		// TODO - нет лока!
 		for (auto i = g_shares.cbegin(); i != g_shares.cend(); ++i)
 		{
 			const auto &l_shares = i->first; // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->first' expression repeatedly. sharemanager.cpp 2391

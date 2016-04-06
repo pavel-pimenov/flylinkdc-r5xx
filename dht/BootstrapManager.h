@@ -43,7 +43,7 @@ class BootstrapManager
 		static bool bootstrap();
 		static bool process();
 		static void shutdown();
-		static void full_shutdown();
+		static void shutdown_http();
 		static void live_check_process();
 		static void clear_live_check()
 		{

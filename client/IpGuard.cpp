@@ -124,7 +124,7 @@ bool IpGuard::check_ip_str(const string& aIP, string& reason)
 		return false;
 		
 #ifdef _DEBUG
-	dcdebug("IPGuard::check  count = %d\n", int(++g_count));
+	dcdebug("IPGuard::check  count = %d aIP = %s \n", int(++g_count), aIP.c_str());
 #endif
 	uint32_t l_ip4;
 	if (IpGuard::is_block_ip(aIP, l_ip4))
@@ -152,7 +152,7 @@ void IpGuard::check_ip_str(const string& aIP, Socket* socket /*= nullptr*/)
 		return;
 		
 #ifdef _DEBUG
-	dcdebug("IPGuard::check  count = %d\n", int(++g_count));
+	dcdebug("IPGuard::check  count = %d id = %s\n", int(++g_count), aIP.c_str());
 #endif
 	uint32_t l_ip4;
 	if (IpGuard::is_block_ip(aIP, l_ip4))

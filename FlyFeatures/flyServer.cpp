@@ -381,7 +381,7 @@ void CFlyServerConfig::loadConfig()
 		const string l_url_config_file = "file://C:/vc10/etc/flylinkdc-config-r5xx.xml";
 		g_debug_fly_server_url = "localhost";
 #else
-		const string l_url_config_file = "http://etc.fly-server.ru/etc/flylinkdc-config-r5xx.xml"; // TODO etc.fly-server.ru
+		const string l_url_config_file = "http://etc.fly-server.ru/etc/flylinkdc-config-r5xx.xml";
 #endif
 		l_fly_server_log.step("Download:" + l_url_config_file);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -941,7 +941,7 @@ string CFlyServerConfig::DBDelete()
 //}
 //======================================================================================================
 string CFlyServerJSON::g_fly_server_id;
-CFlyTTHKeyArray CFlyServerJSON::g_download_counter;
+CFlyTTHKeyDownloadArray CFlyServerJSON::g_download_counter;
 CFlyAntivirusTTHArray CFlyServerJSON::g_antivirus_counter;
 CFlyVirusFileListArray CFlyServerJSON::g_antivirus_file_list;
 //===================================================================================================================================
@@ -2061,10 +2061,10 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 	return l_is_error;
 }
 //======================================================================================================
-void CFlyServerJSON::addDownloadCounter(const CFlyTTHKey& p_file)
+void CFlyServerJSON::addDownloadCounter(const CFlyTTHKey& p_file, const string& p_file_name)
 {
 	CFlyLock(g_cs_download_counter);
-	g_download_counter.push_back(p_file);
+	g_download_counter.push_back(make_pair(p_file, p_file_name));
 }
 //======================================================================================================
 bool CFlyServerJSON::sendDownloadCounter(bool p_is_only_db_if_network_error)
@@ -2072,7 +2072,7 @@ bool CFlyServerJSON::sendDownloadCounter(bool p_is_only_db_if_network_error)
 	bool l_is_error = false;
 	if (!g_download_counter.empty())
 	{
-		CFlyTTHKeyArray l_copy_array;
+		CFlyTTHKeyDownloadArray l_copy_array;
 		{
 			CFlyLock(g_cs_download_counter);
 			l_copy_array.swap(g_download_counter);
@@ -2085,8 +2085,9 @@ bool CFlyServerJSON::sendDownloadCounter(bool p_is_only_db_if_network_error)
 		for (auto i = l_copy_array.cbegin(); i != l_copy_array.cend(); ++i)
 		{
 			Json::Value& l_array_item = l_arrays[l_count_tth++];
-			l_array_item["tth"]  = i->m_tth.toBase32();
-			l_array_item["size"] = Util::toString(i->m_file_size);
+			l_array_item["tth"]  = i->first.m_tth.toBase32();
+			l_array_item["size"] = Util::toString(i->first.m_file_size);
+			l_array_item["name"] = i->second;
 		}
 		l_post_query = l_root.toStyledString();
 		bool l_is_send = false;

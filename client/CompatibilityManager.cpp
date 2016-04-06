@@ -18,7 +18,7 @@
 
 #include "stdinc.h"
 
-#  if defined(_MSC_VER) && _MSC_VER >= 1800 && defined(_M_X64)
+#  if defined(_MSC_VER) && _MSC_VER >= 1800 && _MSC_VER < 1900 && defined(_M_X64)
 #    include <math.h> /* needed for _set_FMA3_enable */
 #  endif
 
@@ -74,7 +74,7 @@ void CompatibilityManager::init()
 	// FMA3 support in the 2013 CRT is broken on Vista and Windows 7 RTM (fixed in SP1). Just disable it.
 	// fix crash https://drdump.com/Problem.aspx?ProblemID=102616
 	//           https://drdump.com/Problem.aspx?ProblemID=102601
-#if _MSC_VER >= 1800
+#if _MSC_VER >= 1800 && _MSC_VER < 1900
 	_set_FMA3_enable(0);
 #endif
 #endif
@@ -775,17 +775,22 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 #endif
 				          "%s"
 				          ,
-				          A_VERSIONSTRING, Text::fromT(Util::getCompileDate()).c_str(),
+				          A_VERSIONSTRING,
+				          Text::fromT(Util::getCompileDate()).c_str(),
 				          CompatibilityManager::getWindowsVersionName().c_str(),
-				          //CompatibilityManager::getProcArchString().c_str(),
-				          CompatibilityManager::ProcSpeedCalc(), l_procs.c_str(), Util::formatBytes(g_TotalPhysMemory).c_str(), Util::formatBytes(g_FreePhysMemory).c_str(),
+				          CompatibilityManager::ProcSpeedCalc(),
+				          l_procs.c_str(),
+				          Util::formatBytes(g_TotalPhysMemory).c_str(),
+				          Util::formatBytes(g_FreePhysMemory).c_str(),
 				          Util::formatTime(
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
 				              GetTickCount()
 #else
 				              GetTickCount64()
 #endif
-				              / 1000).c_str(), Util::formatSeconds((kernelTime + userTime) / (10I64 * 1000I64 * 1000I64)).c_str(), Util::formatTime(Util::getUpTime()).c_str(),
+				              / 1000).c_str(),
+				          Util::formatSeconds((kernelTime + userTime) / (10I64 * 1000I64 * 1000I64)).c_str(),
+				          Util::formatTime(Util::getUpTime()).c_str(),
 				          Util::formatBytes(l_pmc.WorkingSetSize).c_str(),
 				          Util::formatBytes(l_pmc.PeakWorkingSetSize).c_str(),
 				          Util::formatBytes(l_pmc.PagefileUsage).c_str(),
@@ -799,7 +804,8 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          ClientManager::getTotalUsers(),
 				          Client::getTotalCounts(),
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-				          Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_download()).c_str(), Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_upload()).c_str(),
+				          Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_download()).c_str(),
+				          Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_upload()).c_str(),
 #endif
 				          generateNetworkStats().c_str()
 				         );

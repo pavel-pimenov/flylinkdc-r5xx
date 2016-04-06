@@ -80,8 +80,12 @@ void DHT::start()
 	
 	if (!m_bucket)
 	{
-		// if (BOOLSETTING(UPDATE_IP_DHT))
-		//  SET_SETTING(EXTERNAL_IP, Util::emptyString); //fix https://code.google.com/p/flylinkdc/issues/detail?id=1264
+		if (!BOOLSETTING(WAN_IP_MANUAL))
+		
+		{
+			// if (BOOLSETTING(UPDATE_IP_DHT))
+			//  SET_SETTING(EXTERNAL_IP, Util::emptyString); //fix https://code.google.com/p/flylinkdc/issues/detail?id=1264
+		}
 		
 		// [!] IRainman fix
 		SearchManager::newInstance();
@@ -753,9 +757,12 @@ void DHT::handle(AdcCommand::STA, const string& fromIP, uint16_t port, const UDP
 				}
 				
 				dcassert(!externalIP.empty())
-				if (BOOLSETTING(UPDATE_IP_DHT) && !externalIP.empty())
+				if (!BOOLSETTING(WAN_IP_MANUAL))
 				{
-					SET_SETTING(EXTERNAL_IP, externalIP);
+					if (BOOLSETTING(UPDATE_IP_DHT) && !externalIP.empty())
+					{
+						SET_SETTING(EXTERNAL_IP, externalIP);
+					}
 				}
 				
 				firewalledChecks.clear();

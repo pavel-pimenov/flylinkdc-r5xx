@@ -402,13 +402,13 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			/*
 			            // TODO https://code.google.com/p/flylinkdc/issues/detail?id=659
 			// !SMT!-S
-			const auto& su = getSelectedUser();
+			const auto su = getSelectedUser();
 			if (su)
 			{
 			    __if_exists(T2::getIdentity)
 			    {
-			        const auto& id = su->getIdentity();
-			        const auto& su = su->getUser();
+			        const auto id = su->getIdentity();
+			        const auto su = su->getUser();
 			    }
 			    __if_exists(T2::getLastNick)
 			    {
@@ -1771,7 +1771,7 @@ class WinUtil
 		static int getFlagIndexByName(const char* countryName);
 		
 		// [+] IRainman optimize.
-		static int& GetTabsPosition()
+		static int GetTabsPosition()
 		{
 			return g_tabPos;
 		}
@@ -1795,14 +1795,6 @@ class WinUtil
 		
 		static void SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID); // [+] SSA
 		static tstring getFilenameFromString(const tstring& filename);
-		
-		static time_t  filetime_to_timet(const FILETIME & ft)
-		{
-			ULARGE_INTEGER ull;
-			ull.LowPart = ft.dwLowDateTime;
-			ull.HighPart = ft.dwHighDateTime;
-			return ull.QuadPart / 10000000ULL - 11644473600ULL;
-		}
 		
 		static BOOL FillRichEditFromString(HWND hwndEditControl, const string& rtfFile);  // [+] SSA
 		

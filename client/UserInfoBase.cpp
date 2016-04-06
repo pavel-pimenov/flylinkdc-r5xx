@@ -61,7 +61,7 @@ void UserInfoBase::doReport(const string& hubHint)
 {
 	if (getUser())
 	{
-		ClientManager::getInstance()->reportUser(HintedUser(getUser(), hubHint));
+		ClientManager::reportUser(HintedUser(getUser(), hubHint));
 	}
 }
 

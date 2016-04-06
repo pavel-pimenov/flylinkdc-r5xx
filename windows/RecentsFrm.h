@@ -103,7 +103,8 @@ class RecentHubsFrame : public MDITabChildWindowImpl < RecentHubsFrame, RGB(0, 0
 			COLUMN_USERS,
 			COLUMN_SHARED,
 			COLUMN_SERVER,
-			COLUMN_DATETIME,
+			COLUMN_LAST_SEEN,
+			COLUMN_OPEN_TAB,
 			COLUMN_LAST
 		};
 		

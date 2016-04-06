@@ -88,18 +88,20 @@ class CFlySpeakerAdapter : public CFlyHandlerAdapter
 		}
 		BOOL async_speak()
 		{
-			extern bool g_isShutdown;
-			dcassert(!g_isShutdown);
 			BOOL l_res = false;
-			ATLASSERT(::IsWindow(m_win_handler));
-			if (!m_spoken)
+			extern bool g_isShutdown;
+			if (!g_isShutdown)
 			{
-				m_spoken = true;
-				l_res = PostMessage(m_win_handler, WM_SPEAKER, 0, 0);
-// TODO - LOG               dcassert(l_res);
-				if (l_res == 0)
+				ATLASSERT(::IsWindow(m_win_handler));
+				if (!m_spoken)
 				{
-					dcdebug("[async_speak] PostMessage error %d\n", GetLastError());
+					m_spoken = true;
+					l_res = PostMessage(m_win_handler, WM_SPEAKER, 0, 0);
+					// TODO - LOG               dcassert(l_res);
+					if (l_res == 0)
+					{
+						dcdebug("[async_speak] PostMessage error %d\n", GetLastError());
+					}
 				}
 			}
 			return l_res;

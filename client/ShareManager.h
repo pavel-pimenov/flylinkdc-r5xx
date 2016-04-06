@@ -86,7 +86,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		void refresh_share(bool dirs = false, bool aUpdate = true) noexcept;
 		void setDirty()
 		{
-			xmlDirty = true;
+			m_is_xmlDirty = true;
 			g_isNeedsUpdateShareSize = true;
 		}
 		void setPurgeTTH()
@@ -131,7 +131,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		// [~] IRainman opt.
 		static int64_t getShareSize(const string& realPath);
 		
-		static size_t getLastSharedFiles()
+		static unsigned getLastSharedFiles()
 		{
 			return g_lastSharedFiles;
 		}
@@ -236,12 +236,12 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 					m_low_name = Text::toLower(m_name);
 				}
 				/*
-				protected:
-				void init(const CFlyLowerName& p_n)
-				{
-				    m_name = p_n.m_name;
-				    m_low_name = p_n.m_low_name;
-				}
+				            protected:
+				                void init(const CFlyLowerName& p_n)
+				                {
+				                    m_name = p_n.m_name;
+				                    m_low_name = p_n.m_low_name;
+				                }
 				*/
 		};
 		
@@ -423,10 +423,10 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		TTHValue bzXmlRoot;
 		unique_ptr<File> bzXmlRef;
 		
-		bool xmlDirty;
-		bool forceXmlRefresh; /// bypass the 15-minutes guard
-		bool refreshDirs;
-		bool update;
+		bool m_is_xmlDirty;
+		bool m_is_forceXmlRefresh; /// bypass the 15-minutes guard
+		bool m_is_refreshDirs;
+		bool m_is_update;
 		friend BufferedSocket;
 		static bool g_is_initial;
 		
@@ -460,7 +460,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		typedef boost::unordered_map<TTHValue, Directory::ShareFile::Set::const_iterator> HashFileMap;
 		
 		static HashFileMap g_tthIndex;
-		static size_t g_lastSharedFiles;
+		static unsigned g_lastSharedFiles;
 		static QueryNotExistsSet g_file_not_exists_set;
 		static QueryCacheMap g_file_cache_map;
 		

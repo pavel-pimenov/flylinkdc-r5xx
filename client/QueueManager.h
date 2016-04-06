@@ -115,12 +115,12 @@ class QueueManager : public Singleton<QueueManager>,
 		
 	private:
 	
-		class ListMatcher : public BackgroundTaskExecuter<StringList, Thread::LOW, 15000> // [<-] IRainman fix: moved from MainFrame to core.
+		class ListMatcher : public BackgroundTaskExecuter<StringList, 15000> // [<-] IRainman fix: moved from MainFrame to core.
 		{
 				void execute(const StringList& list);
 		} m_listMatcher;
 		
-		class FileListQueue: public BackgroundTaskExecuter<DirectoryListInfoPtr, Thread::LOW, 15000> // [<-] IRainman fix: moved from MainFrame to core.
+		class FileListQueue: public BackgroundTaskExecuter<DirectoryListInfoPtr, 15000> // [<-] IRainman fix: moved from MainFrame to core.
 		{
 				void execute(const DirectoryListInfoPtr& list);
 		} m_listQueue;

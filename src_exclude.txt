@@ -107,3 +107,4 @@ GdiOle\GdiOle_p.c
 P2PGuard_flylink.ini
 compiled/update/*
 P2PGuard.ini
+UpgradeLog*.htm

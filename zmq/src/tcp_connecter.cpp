@@ -27,6 +27,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "precompiled.hpp"
 #include <new>
 #include <string>
 
@@ -66,6 +67,7 @@ zmq::tcp_connecter_t::tcp_connecter_t (class io_thread_t *io_thread_,
     io_object_t (io_thread_),
     addr (addr_),
     s (retired_fd),
+    handle(NULL),
     handle_valid (false),
     delayed_start (delayed_start_),
     connect_timer_started (false),
@@ -146,7 +148,7 @@ void zmq::tcp_connecter_t::out_event ()
 
     tune_tcp_socket (fd);
     tune_tcp_keepalives (fd, options.tcp_keepalive, options.tcp_keepalive_cnt, options.tcp_keepalive_idle, options.tcp_keepalive_intvl);
-    tune_tcp_retransmit_timeout (fd, options.tcp_retransmit_timeout);
+    tune_tcp_maxrt (fd, options.tcp_maxrt);
 
     // remember our fd for ZMQ_SRCFD in messages
     socket->set_fd (fd);

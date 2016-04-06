@@ -185,6 +185,7 @@
 ;Россия;Балезино;Blznet-ru;;dc.blznet.ru
 ;Россия;Барнаул;Интелека;;p2p.ealtai.ru:4111
 ;Россия;Барнаул;МТС;;p2p.local,hub.magnet.211.ru,peers.cn.ru
+;Россия;Барнаул;Ростелеком;;dc.unionbest.org
 ;Россия;Барнаул;ТТК;;pulse.myttk.ru
 ;Россия;Белая Калитва;DipNet;;10.0.2.1
 ;Россия;Белгород;Elf;;172.18.1.33
@@ -225,6 +226,7 @@
 ;Россия;Бодайбо;Витим-Телеком;;dc.vitim-telecom.ru
 ;Россия;Братск;Новая Сибирь Плюс;;10.17.4.211,10.37.1.111
 ;Россия;Братск;НС;;10.37.1.111,192.168.2.2
+;Россия;Братск;Ростелеком;;178.184.171.233
 ;Россия;Братск;Тарио;;192.168.135.134:411
 ;Россия;Братск;Телеос-1;;ds.teleos.ru,dc.vskyline.ixterm.ru,10.21.9.6,176.114.133.46,dc.teleos.ru
 ;Россия;Буйнакск;M-Line;;10.10.10.1,10.1.1.10,10.1.1.20,10.10.0.100,10.30.0.30,10.10.92.183,10.10.188.230,10.11.171.60
@@ -566,7 +568,7 @@
 ;Россия;Махачкала;Mtt_21;;dc.mycuk.net
 ;Россия;Махачкала;OTK;;10.5.131.81,10.107.8.120,10.5.113.72,10.1.193.193,10.5.112.145,10.1.192.192,10.10.188.230,10.10.0.100,10.30.0.30,10.11.185.185,10.11.171.60,10.10.131.84,10.10.131.179,10.10.132.23,10.10.92.183,10.1.164.3,10.115.14.14,10.108.3.20,10.1.160.20,10.1.1.20,10.215.9.2,10.5.80.110,10.5.99.34,10.5.129.100,10.5.81.29,10.5.105.19
 ;Россия;Махачкала;OTK Sumtel R-line;;dc.mycuk.net,10.10.0.100,10.10.188.230,10.5.131.81,10.107.8.120,10.10.1.4,10.5.81.13,10.5.24.118,10.5.80.110,10.5.16.3,dc.p2p-magnets.ru,dc.daggame.ru,1g-dagestan.ru,109.172.60.241,10.119.63.63,10.1.192.192,10.11.171.60,10.5.112.153,10.11.163.87,10.5.112.145,10.1.164.3,10.10.131.84,mekhti.ru,10.10.92.183,10.5.200.11,dc.r-line.ru,1g-team.ru,otk.1g-team.ru,sum.1g-team.ru,rline.1g-team.ru
-;Россия;Махачкала;R-line;;109.172.60.93,1g-dagestan.ru,dc.mycuk.net,10.1.120.7,10.125.9.99,10.10.1.4,91.205.128.6,10.102.30.44
+;Россия;Махачкала;R-line;;10.80.1.155,109.172.60.93,1g-dagestan.ru,dc.mycuk.net,10.1.120.7,10.125.9.99,10.10.1.4,91.205.128.6,10.102.30.44
 ;Россия;Махачкала;Skynet;;10.1.164.3,10.1.192.192,10.70.4.108,10.1.193.193,10.108.3.20,10.10.1.4,10.102.30.44,10.70.59.8
 ;Россия;Махачкала;SPORTLAN-NET;;sportlan.net,r.sportlan.net
 ;Россия;Махачкала;Wifidag;;172.16.0.2
@@ -630,6 +632,7 @@
 ;Россия;Москва;Ultranet;;dc.ultranet.ru
 ;Россия;Москва;Vernet-su;;dc.vernet.su
 ;Россия;Москва;Vidnoe-net;;prime-hub.ru,dc.vidnoe.net,prime-hub.ru:411,planet-dc.ru:411
+;Россия;Москва;Астейс-Телеком;;dc.asteis.net
 ;Россия;Москва;Билайн;Коллекция хабов;dc.corbina.net,dc.cifracom.ru,dc.filimania.com,dc.dcmagnets.ru,dc.net23.ru,10.216.0.2,hub.nov.ru,dc.kubnet.su,dc3.kubnet.su,10.57.2.120,port23.no-ip.info,mediazone34.no-ip.org,p2p.corbina.net,vvk.no-ip.org,favorit.corbina.ru,p2p.corbina.ru,dc.tiera.ru,verlihub.org:4111,prime-hub.ru,dc.pshub.net,dc.pashahub.ru,stealthhub.ru,dc.byxou.ru,allavtovo.ru,piknik-dc.ru,dc.x-filesreality.ru,klan-hub.ru,dc.spb.corbina.net,dc.swalker.org
 ;Россия;Москва;Билайн Череповец;;p2p.cherepovets.net,local.cheromg.ru,p2p.corbina.net
 ;Россия;Москва;Горком;;stealthhub.ru
@@ -663,11 +666,11 @@
 ;Россия;Надым;Интерсервис;;dchub://dc.home-nadym.ru
 ;Россия;Назарово;WebStream;;dc.nazarovo-tel.ru
 ;Россия;Нальчик;Зеленая Точка;;dc.ooonet.ru,naltel.ru,dc.naltel.ru
+;Россия;Наро-Фоминск;Линк-регион;;dc.kvidex.net
 ;Россия;Наро-Фоминский район;Дрим Лайн;;dc.dream-net.ru
 ;Россия;Нарьян-Мар;VIPLine;;viplinedc:411
 ;Россия;Нарьян-Мар;НКЭС;;dcncec.ru
 ;Россия;Находка;ДальСвязь;;dsvzona.myvnc.com
-;Россия;Невинномысск;Мобайл Тренд;;10.0.0.6
 ;Россия;Невинномысск;Мобайл Тренд;;10.0.0.6
 ;Россия;Невинномысск;Ростелеком;;dchub://172.16.12.42,dchub://172.16.244.29,dchub://172.16.0.7,dchub://172.16.13.188,dchub://172.16.161.10,dchub://172.16.4.94
 ;Россия;Нерюнгри;NOIP;;dc.neryungri.ru,dchub://10.99.1.2,dc.neryungri.ru:5555
@@ -1097,7 +1100,6 @@
 ;Россия;Хабаровск;ДАС-Телеком;;172.18.1.1:4111
 ;Россия;Хабаровск;Дата-Лайн;;datahub.int,10.0.151.174,dc.khvzone.ru,dc.ttkdv.ru,dc.mediakhv.ru,dc.fttbkhv.ru,dc.ttkdv.ru:411
 ;Россия;Хабаровск;Мегафон;;hive.serveftp.com,dcpp.lugalink.net
-;Россия;Хабаровск;Ростелеком;;95.70.110.213
 ;Россия;Хабаровск;Рэдком-Redcom;;redcom.ru,10.255.255.2,dc.sat-dv.ru,92.50.243.167
 ;Россия;Хабаровск;Стрела телеком;;dc.khd.ru,dc.fly-server.ru
 ;Россия;Хабаровск;ТК Востоктелеком;;media.vth.ru,vtelecom.ru
@@ -1199,6 +1201,7 @@
 ;Узбекистан;Андижон;Uzonline;;allavtovo.ru,dc.unionbest.org:4111,dc.mside.net,dc.cifracom.ru,dc.filimania.com,dc.dcmagnets.ru,piknik-dc.ru,artcool.org,dc.tiera.ru,spb-hub.ru,prime-hub.ru,godc.ru,dc.fly-server.ru
 ;Узбекистан;Зарафшан;TuronNET;;172.6.18.6,10.254.1.54,10.254.1.58
 ;Узбекистан;Навои;Hub-hi-uz;;hub.h.uz
+;Узбекистан;Наманган;UzOnline;;178.218.201.20
 ;Узбекистан;Самарканд;TPS;;jetfree.no-ip.info
 ;Узбекистан;Самарканд;UzOnline;;hi.uz
 ;Узбекистан;Ташкент;Comnet;;ar-hub.myftp.org,ar-hub2.myftp.org
@@ -1386,6 +1389,7 @@
 ;Украина;Харьков;Триолан;;nhz.org.ua,exkluziv.org,prioritynet.pp.ua,80.73.11.158,amber.zapto.org,hub.balunet.org,dc.housenet.org.ua,inethub.olvi.net.ua,dc.liberial.com,dc.playhard.org.ua,dc.globalnet.net.ua,womens-hub.no-ip.org,cs-langame.no-ip.org,alekseevka.no-ip.org:416,khartower.com,bazuka-hub.no-ip.org,7portal.com.ua,warez-net.com.ua,piknik-dc.ru,dc.triolan.ua,dc.sloboda.net,10.101.201.106:4012,urbania.sytes.net,dc.triolan-kharkov.org.ua,dc.deton.net.ua,triolan.dcworld.com.ua:4899,hub.net.ua,hub.solid-net.org.ua,hub.olvi.org.ua,109.87.84.155,comedy-club.zapto.org,ilya.pp.ua:666,crysis.myhub.pp.ua:666,mardox.com.ua,109.87.89.153,schastye.no-ip.org,dc.maxnet.ua,dc.cifracom.ru,77.120.144.196,hub.kharkov.ua:4111,nlight.org.ua,dc.triolan.in.ua:413,litedc.pp.ua:2011,goldnet.org.ua,mydc.pp.ua:420,pronet.in.ua,hub.sib-nk.ru:4111,10.5.10.99,hub.ua-lan.org.ua,dc.myhub.pp.ua:420,xbit.org.ua,triolan-hoodo.sytes.net,ilya.pp.ua,bdsm-p2p.zapto.org,khartower.com:1209,sex-stolica.no-ip.org,gigahub.sytes.net,prioritynet.pp.ua:1209,ukrainianpatriot.tk,109.87.249.185,109.87.22.150,xxxbestxxx.sytes.net,balunet.ru,globalnet.no-ip.org
 ;Украина;Херсон;CLUB54;;dchub://192.168.254.254
 ;Украина;Херсон;Norma-4;Norma-4-HUB;192.168.2.250
+;Украина;Херсон;Воля;;kherson.no-ip.biz
 ;Украина;Хмельницкий;X-City;;x-city.com.ua
 ;Украина;Хмельницкий;Виола;;dchub://voliacable.com,10.100.100.4
 ;Украина;Черкассы;K-LAN;;dchub://dc.klan.net.ua

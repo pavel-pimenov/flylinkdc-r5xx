@@ -1533,19 +1533,19 @@ template<int C> class ColumnBase
 };
 
 // [+] IRainman core: execute task with other thread.
-template<typename TASK_TYPE, const Thread::Priority PRIORITY = Thread::LOW, const unsigned int PAUSE_IN_MILLS_BEFORE_THREAD_DEADS = 1000, const unsigned int STEP_FOR_SLEEP = 250>
+template<typename TASK_TYPE, const unsigned int PAUSE_IN_MILLS_BEFORE_THREAD_DEADS = 1000>
 class BackgroundTaskExecuter : public BASE_THREAD
 {
 	public:
 		explicit BackgroundTaskExecuter() : m_stop(false), m_active(false)
 #ifdef _DEBUG
-			, m_runningThreadId(-1)
+			, m_runningThreadId(DWORD(-1))
 #endif
 		{
 		}
 		virtual ~BackgroundTaskExecuter()
 		{
-			dcassert(m_runningThreadId == -1);
+			dcassert(m_runningThreadId == DWORD(-1));
 			dcassert(!m_active);
 			dcassert(m_stop);
 			join();
@@ -1609,7 +1609,6 @@ class BackgroundTaskExecuter : public BASE_THREAD
 #ifdef _DEBUG
 			m_runningThreadId = ::GetCurrentThreadId();
 #endif
-			setThreadPriority(PRIORITY); // AppVerifier ругается иногда тут http://www.flickr.com/photos/96019675@N02/10669352575/
 			for (;;)
 			{
 				TASK_TYPE next;
@@ -1625,13 +1624,14 @@ class BackgroundTaskExecuter : public BASE_THREAD
 								{
 									m_active = false;
 #ifdef _DEBUG
-									m_runningThreadId = -1;
+									m_runningThreadId = DWORD(-1);
 #endif
 									return 0;
 								}
 							}
 							else
 							{
+								const int STEP_FOR_SLEEP = 250;
 								sleep(STEP_FOR_SLEEP);
 								lbefore += STEP_FOR_SLEEP;
 								continue;
@@ -1657,7 +1657,7 @@ class BackgroundTaskExecuter : public BASE_THREAD
 		TaskList m_tasks;
 		FastCriticalSection m_csTasks;
 #ifdef _DEBUG
-		int m_runningThreadId;
+		DWORD m_runningThreadId;
 #endif
 };
 // [~] IRainman core: execute task with other thread.

@@ -1,4 +1,8 @@
+del *.sdf
+del *.suo
 del .\compiled\*.pdb
+del .\compiled\FlylinkDC.exe
+del .\compiled\FlylinkDC_x64.exe
 del /S /F /Q vc10
 rmdir /S /Q .\compiled\Settings\BackUp
 rmdir /S /Q .\compiled\Settings\FileLists

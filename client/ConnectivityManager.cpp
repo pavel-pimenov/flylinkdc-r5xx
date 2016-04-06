@@ -65,7 +65,10 @@ void ConnectivityManager::detectConnection()
 	
 	const string l_old_bind = SETTING(BIND_ADDRESS);
 	// restore connectivity settings to their default value.
-	SettingsManager::unset(SettingsManager::EXTERNAL_IP);
+	if (!BOOLSETTING(WAN_IP_MANUAL))
+	{
+		SettingsManager::unset(SettingsManager::EXTERNAL_IP);
+	}
 	SettingsManager::unset(SettingsManager::BIND_ADDRESS);
 	if (MappingManager::getInstance()->getOpened())
 	{
@@ -140,7 +143,10 @@ void ConnectivityManager::test_all_ports()
 		{
 			if (!l_external_ip.empty())
 			{
-				SET_SETTING(EXTERNAL_IP, l_external_ip);
+				if (!BOOLSETTING(WAN_IP_MANUAL))
+				{
+					SET_SETTING(EXTERNAL_IP, l_external_ip);
+				}
 			}
 		}
 	}

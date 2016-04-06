@@ -92,8 +92,8 @@ int64_t Transfer::getSecondsLeft(const bool wholeFile) const
 
 void Transfer::getParams(const UserConnection* aSource, StringMap& params) const
 {
-	const auto& hint = aSource->getHintedUser().hint;
-	const auto& user = aSource->getUser();
+	const auto hint = aSource->getHintedUser().hint;
+	const auto user = aSource->getUser();
 	
 	params["userCID"] = user->getCID().toBase32();
 	params["userNI"] = !user->getLastNick().empty() ? user->getLastNick() : Util::toString(ClientManager::getNicks(user->getCID(), Util::emptyString, false));

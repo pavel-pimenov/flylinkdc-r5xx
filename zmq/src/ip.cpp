@@ -27,6 +27,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "precompiled.hpp"
 #include "ip.hpp"
 #include "err.hpp"
 #include "platform.hpp"
@@ -102,6 +103,8 @@ void zmq::unblock_socket (fd_t s_)
 void zmq::enable_ipv4_mapping (fd_t s_)
 {
   (void) s_;
+
+#undef IPV6_V6ONLY // [+] FlylinkDC++ fix for Win XP
 
 #ifdef IPV6_V6ONLY
 #ifdef ZMQ_HAVE_WINDOWS

@@ -97,7 +97,7 @@ class AutoUpdateGUIMethod
 
 class AutoUpdate :
 	public Singleton<AutoUpdate>,
-	public BackgroundTaskExecuter<AutoUpdateTasks, Thread::IDLE, 10000>,
+	public BackgroundTaskExecuter<AutoUpdateTasks, 10000>,
 	private TimerManagerListener
 {
 		friend class AutoUpdateObject;

@@ -268,7 +268,7 @@ class RecentHubEntry
 		typedef vector<Ptr> List;
 		typedef List::const_iterator Iter;
 		
-		explicit RecentHubEntry() : name("*"), description("*"), users("*"), shared("*"), datetime("*") {} // [+] IRainman: copy-past fix.
+		explicit RecentHubEntry() : name("*"), description("*"), users("*"), shared("*"), lastseen("*"), opentab("-"), autoopen(false) {} // [+] IRainman: copy-past fix.
 		~RecentHubEntry() { }
 		
 		GETSET(string, name, Name);
@@ -276,7 +276,9 @@ class RecentHubEntry
 		GETSET(string, description, Description);
 		GETSET(string, users, Users);
 		GETSET(string, shared, Shared);
-		GETSET(string, datetime, DateTime);
+		GETSET(string, lastseen, LastSeen);
+		GETSET(string, opentab, OpenTab);
+		GETSET(bool, autoopen, AutoOpen);
 };
 
 #endif /*HUBENTRY_H_*/

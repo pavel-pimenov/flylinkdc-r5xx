@@ -238,17 +238,7 @@ class AdcCommand
 		{
 			return string(reinterpret_cast<const char*>(&aSID), sizeof(aSID));
 		}
-		/*
-		bool isCIDexists() const
-		{
-		    return !m_CID.isZero();
-		}
-		const CID& getParamCID() const
-		{
-		    dcassert(!m_CID.isZero());
-		    return m_CID;
-		}
-		*/
+		
 		string getParamString(bool nmdc) const;
 		
 	private:

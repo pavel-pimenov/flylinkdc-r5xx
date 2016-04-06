@@ -1125,6 +1125,8 @@ XMLSTR fromXMLString(XMLCSTR s, int lo, XML *pXML)
 	}
 	
 	d = (XMLSTR)malloc((ll + 1) * sizeof(XMLCHAR));
+	if (!d)
+		return nullptr;
 	s = d;
 	while (ll-- > 0)
 	{
@@ -1459,22 +1461,25 @@ XMLNode::XMLNode(struct XMLNodeDataTag *p)
 XMLNode::XMLNode(XMLNodeData *pParent, XMLSTR lpszName, char isDeclaration)
 {
 	d = (XMLNodeData*)malloc(sizeof(XMLNodeData));
-	d->ref_count = 1;
-	
-	d->lpszName = NULL;
-	d->nChild = 0;
-	d->nText = 0;
-	d->nClear = 0;
-	d->nAttribute = 0;
-	
-	d->isDeclaration = isDeclaration;
-	
-	d->pParent = pParent;
-	d->pChild = NULL;
-	d->pText = NULL;
-	d->pClear = NULL;
-	d->pAttribute = NULL;
-	d->pOrder = NULL;
+	if (d)
+	{
+		d->ref_count = 1;
+		
+		d->lpszName = NULL;
+		d->nChild = 0;
+		d->nText = 0;
+		d->nClear = 0;
+		d->nAttribute = 0;
+		
+		d->isDeclaration = isDeclaration;
+		
+		d->pParent = pParent;
+		d->pChild = NULL;
+		d->pText = NULL;
+		d->pClear = NULL;
+		d->pAttribute = NULL;
+		d->pOrder = NULL;
+	}
 	
 	updateName_WOSD(lpszName);
 }
@@ -1570,10 +1575,17 @@ XMLNode XMLNode::addChild_priv(int memoryIncrease, XMLSTR lpszName, char isDecla
 {
 	if (!lpszName) return emptyXMLNode;
 	d->pChild = (XMLNode*)addToOrder(memoryIncrease, &pos, d->nChild, d->pChild, sizeof(XMLNode), eNodeChild);
-	d->pChild[pos].d = NULL;
-	d->pChild[pos] = XMLNode(d, lpszName, isDeclaration);
-	d->nChild++;
-	return d->pChild[pos];
+	if (d->pChild)
+	{
+		d->pChild[pos].d = NULL;
+		d->pChild[pos] = XMLNode(d, lpszName, isDeclaration);
+		d->nChild++;
+		return d->pChild[pos];
+	}
+	else
+	{
+		return XMLNode();
+	}
 }
 
 // Add an attribute to an element.
@@ -1588,11 +1600,18 @@ XMLAttribute *XMLNode::addAttribute_priv(int memoryIncrease, XMLSTR lpszName, XM
 	}
 	int nc = d->nAttribute;
 	d->pAttribute = (XMLAttribute*)myRealloc(d->pAttribute, (nc + 1), memoryIncrease, sizeof(XMLAttribute));
-	XMLAttribute *pAttr = d->pAttribute + nc;
-	pAttr->lpszName = lpszName;
-	pAttr->lpszValue = lpszValuev;
-	d->nAttribute++;
-	return pAttr;
+	if (d->pAttribute)
+	{
+		XMLAttribute *pAttr = d->pAttribute + nc;
+		pAttr->lpszName = lpszName;
+		pAttr->lpszValue = lpszValuev;
+		d->nAttribute++;
+		return pAttr;
+	}
+	else
+	{
+		return nullptr;
+	}
 }
 
 // Add text to the element.

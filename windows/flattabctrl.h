@@ -1681,6 +1681,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			
 			if (!tab->m_mini)
 		{
+				// TODO - CSelectFont l_half_font(dc, Fonts::g_halfFont); //-V808
+				// Рисовать текст сжатым если открыли хаб из памяти (не фавориты)
 				dc.TextOut(pos, ypos + height_plus, tab->name.data(), tab->m_len); // [~] Sergey Shuhskanov //-V107
 			}
 			

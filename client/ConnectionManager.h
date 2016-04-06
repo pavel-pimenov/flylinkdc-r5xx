@@ -279,7 +279,8 @@ class ConnectionManager :
 	private:
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csConnection;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDownloads;
-		static std::unique_ptr<webrtc::RWLockWrapper> g_csUploads;
+		//static std::unique_ptr<webrtc::RWLockWrapper> g_csUploads;
+		static CriticalSection g_csUploads;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDdosCheck;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csTTHFilter;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csFileFilter;
@@ -346,6 +347,9 @@ class ConnectionManager :
 		
 		StringList nmdcFeatures;
 		StringList adcFeatures;
+		
+		static FastCriticalSection g_cs_update;
+		static UserList g_users_for_update;
 		
 		ExpectedMap m_expectedConnections;
 		

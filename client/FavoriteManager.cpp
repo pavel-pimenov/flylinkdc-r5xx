@@ -67,7 +67,7 @@ const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
 	FavoriteManager::mimicrytag("PWDC++", "0.41"),          // 29th Dec 2005: Project discontinued
 	FavoriteManager::mimicrytag("IceDC++", "1.01a"),        // 17 jul 2009 http://sourceforge.net/projects/icedc/
 	FavoriteManager::mimicrytag("StrgDC++", "2.42"),        // latest public beta (project possible dead) http://strongdc.sourceforge.net/download.php?lang=eng
-	FavoriteManager::mimicrytag("OlympP2P", "4.0 RC3"),     // Project discontinued
+	FavoriteManager::mimicrytag("Lama", "500"),     // http://lamalama.tv
 	FavoriteManager::mimicrytag(nullptr, nullptr),          // terminating, don't delete this
 };
 
@@ -676,17 +676,18 @@ string FavoriteManager::getDownloadDirectory(const string& ext)
 	return SETTING(DOWNLOAD_DIRECTORY);
 }
 
-void FavoriteManager::addRecent(const RecentHubEntry& aEntry)
+RecentHubEntry* FavoriteManager::addRecent(const RecentHubEntry& aEntry)
 {
-	RecentHubEntry::Iter i = getRecentHub(aEntry.getServer());
+	auto i = getRecentHub(aEntry.getServer());
 	if (i != g_recentHubs.end())
 	{
-		return;
+		return *i;
 	}
 	RecentHubEntry* f = new RecentHubEntry(aEntry);
 	g_recentHubs.push_back(f);
 	g_recent_dirty = true;
 	fly_fire1(FavoriteManagerListener::RecentAdded(), f);
+	return f;
 }
 
 void FavoriteManager::removeRecent(const RecentHubEntry* entry)
@@ -705,12 +706,13 @@ void FavoriteManager::removeRecent(const RecentHubEntry* entry)
 
 void FavoriteManager::updateRecent(const RecentHubEntry* entry)
 {
-	dcassert(!ClientManager::isShutdown());
+	g_recent_dirty = true;
 	if (!ClientManager::isShutdown())
 	{
 		const auto i = find(g_recentHubs.begin(), g_recentHubs.end(), entry);
 		if (i == g_recentHubs.end())
 		{
+			dcassert(0);
 			return;
 		}
 		fly_fire1(FavoriteManagerListener::RecentUpdated(), entry);
@@ -925,7 +927,10 @@ void FavoriteManager::recentsave()
 			l_recentHubs_token += '\n';
 			l_recentHubs_token += (*i)->getServer();
 			l_recentHubs_token += '\n';
-			l_recentHubs_token += (*i)->getDateTime();
+			l_recentHubs_token += (*i)->getLastSeen();
+			l_recentHubs_token += '\n';
+			l_recentHubs_token += (*i)->getOpenTab();
+			l_recentHubs_token += '\n';
 			l_values[(*i)->getName()] = l_recentHubs_token;
 		}
 		CFlylinkDBManager::getInstance()->save_registry(l_values, e_RecentHub, true);
@@ -1040,7 +1045,11 @@ void FavoriteManager::load()
 			e->setServer(Util::formatDchubUrl(tok.getTokens()[3]));
 			if (tok.getTokens().size() > 4) //-V112
 			{
-				e->setDateTime(tok.getTokens()[4]);
+				e->setLastSeen(tok.getTokens()[4]);
+				if (tok.getTokens().size() > 5) //-V112
+				{
+					e->setOpenTab(tok.getTokens()[5]);
+				}
 			}
 		}
 		g_recentHubs.push_back(e);
@@ -1580,7 +1589,7 @@ FavoriteHubEntryList FavoriteManager::getFavoriteHubs(const string& group)
 	return ret;
 }
 
-bool FavoriteManager::isPrivate(const string& p_url) const
+bool FavoriteManager::isPrivate(const string& p_url)
 {
 //	dcassert(!p_url.empty());
 	if (!p_url.empty())
@@ -1685,7 +1694,7 @@ void FavoriteManager::recentload(SimpleXML& aXml)
 			e->setUsers(aXml.getChildAttrib("Users"));
 			e->setShared(aXml.getChildAttrib("Shared"));
 			e->setServer(Util::formatDchubUrl(aXml.getChildAttrib("Server")));
-			e->setDateTime(aXml.getChildAttrib("DateTime"));
+			e->setLastSeen(aXml.getChildAttrib("DateTime"));
 			g_recentHubs.push_back(e);
 			g_recent_dirty = true;
 		}

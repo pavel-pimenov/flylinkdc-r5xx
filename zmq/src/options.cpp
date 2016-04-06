@@ -27,6 +27,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "precompiled.hpp"
 #include <string.h>
 
 #include "options.hpp"
@@ -42,13 +43,13 @@ zmq::options_t::options_t () :
     recovery_ivl (10000),
     multicast_hops (1),
     multicast_maxtpdu (1500),
-    sndbuf (-1),
-    rcvbuf (-1),
+    sndbuf (8192),
+    rcvbuf (8192),
     tos (0),
     type (-1),
     linger (-1),
     connect_timeout (0),
-    tcp_retransmit_timeout (0),
+    tcp_maxrt (0),
     reconnect_ivl (100),
     reconnect_ivl_max (0),
     backlog (100),
@@ -66,8 +67,6 @@ zmq::options_t::options_t () :
     tcp_keepalive_cnt (-1),
     tcp_keepalive_idle (-1),
     tcp_keepalive_intvl (-1),
-    tcp_recv_buffer_size (8192),
-    tcp_send_buffer_size (8192),
     mechanism (ZMQ_NULL),
     as_server (0),
     gss_plaintext (false),
@@ -78,8 +77,11 @@ zmq::options_t::options_t () :
     heartbeat_ttl (0),
     heartbeat_interval (0),
     heartbeat_timeout (-1),
-    pre_allocated_fd (-1)
+    use_fd (-1)
 {
+    memset (curve_public_key, 0, CURVE_KEYSIZE);
+    memset (curve_secret_key, 0, CURVE_KEYSIZE);
+    memset (curve_server_key, 0, CURVE_KEYSIZE);
 #if defined ZMQ_HAVE_VMCI
     vmci_buffer_size = 0;
     vmci_buffer_min_size = 0;
@@ -178,9 +180,9 @@ int zmq::options_t::setsockopt (int option_, const void *optval_,
             }
             break;
 
-        case ZMQ_TCP_RETRANSMIT_TIMEOUT:
+        case ZMQ_TCP_MAXRT:
             if (is_int && value >= 0) {
-                tcp_retransmit_timeout = value;
+                tcp_maxrt = value;
                 return 0;
             }
             break;
@@ -298,20 +300,6 @@ int zmq::options_t::setsockopt (int option_, const void *optval_,
             }
             break;
 
-        case ZMQ_TCP_RECV_BUFFER:
-            if (is_int && (value > 0) ) {
-                tcp_recv_buffer_size = static_cast<unsigned int>(value);
-                return 0;
-            }
-            break;
-
-        case ZMQ_TCP_SEND_BUFFER:
-            if (is_int && (value > 0) ) {
-                tcp_send_buffer_size = static_cast<unsigned int>(value);
-                return 0;
-            }
-            break;
-
         case ZMQ_IMMEDIATE:
             if (is_int && (value == 0 || value == 1)) {
                 immediate = value;
@@ -336,7 +324,7 @@ int zmq::options_t::setsockopt (int option_, const void *optval_,
             }
             break;
 
-#       if defined ZMQ_HAVE_SO_PEERCRED || defined ZMQ_HAVE_LOCAL_PEERCRED
+#if defined ZMQ_HAVE_SO_PEERCRED || defined ZMQ_HAVE_LOCAL_PEERCRED
         case ZMQ_IPC_FILTER_UID:
             if (optvallen_ == 0 && optval_ == NULL) {
                 ipc_uid_accept_filters.clear ();
@@ -360,9 +348,9 @@ int zmq::options_t::setsockopt (int option_, const void *optval_,
                 return 0;
             }
             break;
-#       endif
+#endif
 
-#       if defined ZMQ_HAVE_SO_PEERCRED
+#if defined ZMQ_HAVE_SO_PEERCRED
         case ZMQ_IPC_FILTER_PID:
             if (optvallen_ == 0 && optval_ == NULL) {
                 ipc_pid_accept_filters.clear ();
@@ -374,7 +362,7 @@ int zmq::options_t::setsockopt (int option_, const void *optval_,
                 return 0;
             }
             break;
-#       endif
+#endif
 
         case ZMQ_PLAIN_SERVER:
             if (is_int && (value == 0 || value == 1)) {
@@ -419,8 +407,8 @@ int zmq::options_t::setsockopt (int option_, const void *optval_,
             }
             break;
 
-        //  If libsodium isn't installed, these options provoke EINVAL
-#       ifdef HAVE_LIBSODIUM
+        //  If curve encryption isn't built, these options provoke EINVAL
+#ifdef ZMQ_HAVE_CURVE
         case ZMQ_CURVE_SERVER:
             if (is_int && (value == 0 || value == 1)) {
                 as_server = value;
@@ -512,7 +500,7 @@ int zmq::options_t::setsockopt (int option_, const void *optval_,
                 }
             }
             break;
-#       endif
+#endif
 
         case ZMQ_CONFLATE:
             if (is_int && (value == 0 || value == 1)) {
@@ -522,7 +510,7 @@ int zmq::options_t::setsockopt (int option_, const void *optval_,
             break;
 
         //  If libgssapi isn't installed, these options provoke EINVAL
-#       ifdef HAVE_LIBGSSAPI_KRB5
+#ifdef HAVE_LIBGSSAPI_KRB5
         case ZMQ_GSSAPI_SERVER:
             if (is_int && (value == 0 || value == 1)) {
                 as_server = value;
@@ -554,7 +542,7 @@ int zmq::options_t::setsockopt (int option_, const void *optval_,
                 return 0;
             }
             break;
-#       endif
+#endif
 
         case ZMQ_HANDSHAKE_IVL:
             if (is_int && value >= 0) {
@@ -593,7 +581,7 @@ int zmq::options_t::setsockopt (int option_, const void *optval_,
             }
             break;
 
-#       ifdef ZMQ_HAVE_VMCI
+#ifdef ZMQ_HAVE_VMCI
         case ZMQ_VMCI_BUFFER_SIZE:
             if (optvallen_ == sizeof (uint64_t)) {
                 vmci_buffer_size = *((uint64_t*) optval_);
@@ -621,11 +609,11 @@ int zmq::options_t::setsockopt (int option_, const void *optval_,
                 return 0;
             }
             break;
-#       endif
+#endif
 
-        case ZMQ_PRE_ALLOCATED_FD:
+        case ZMQ_USE_FD:
             if (is_int && value >= -1) {
-                pre_allocated_fd = value;
+                use_fd = value;
                 return 0;
             }
             break;
@@ -745,9 +733,9 @@ int zmq::options_t::getsockopt (int option_, void *optval_, size_t *optvallen_) 
             }
             break;
 
-        case ZMQ_TCP_RETRANSMIT_TIMEOUT:
+        case ZMQ_TCP_MAXRT:
             if (is_int) {
-                *value = tcp_retransmit_timeout;
+                *value = tcp_maxrt;
                 return 0;
             }
             break;
@@ -866,20 +854,6 @@ int zmq::options_t::getsockopt (int option_, void *optval_, size_t *optvallen_) 
             }
             break;
 
-        case ZMQ_TCP_SEND_BUFFER:
-            if (is_int) {
-                *value = tcp_send_buffer_size;
-                return 0;
-            }
-            break;
-
-        case ZMQ_TCP_RECV_BUFFER:
-            if (is_int) {
-                *value = tcp_recv_buffer_size;
-                return 0;
-            }
-            break;
-
         case ZMQ_MECHANISM:
             if (is_int) {
                 *value = mechanism;
@@ -918,8 +892,8 @@ int zmq::options_t::getsockopt (int option_, void *optval_, size_t *optvallen_) 
             }
             break;
 
-        //  If libsodium isn't installed, these options provoke EINVAL
-#       ifdef HAVE_LIBSODIUM
+        //  If curve encryption isn't built, these options provoke EINVAL
+#ifdef ZMQ_HAVE_CURVE
         case ZMQ_CURVE_SERVER:
             if (is_int) {
                 *value = as_server && mechanism == ZMQ_CURVE;
@@ -962,7 +936,7 @@ int zmq::options_t::getsockopt (int option_, void *optval_, size_t *optvallen_) 
                 return 0;
             }
             break;
-#       endif
+#endif
 
         case ZMQ_CONFLATE:
             if (is_int) {
@@ -972,7 +946,7 @@ int zmq::options_t::getsockopt (int option_, void *optval_, size_t *optvallen_) 
             break;
 
         //  If libgssapi isn't installed, these options provoke EINVAL
-#       ifdef HAVE_LIBGSSAPI_KRB5
+#ifdef HAVE_LIBGSSAPI_KRB5
         case ZMQ_GSSAPI_SERVER:
             if (is_int) {
                 *value = as_server && mechanism == ZMQ_GSSAPI;
@@ -1040,9 +1014,9 @@ int zmq::options_t::getsockopt (int option_, void *optval_, size_t *optvallen_) 
             }
             break;
 
-        case ZMQ_PRE_ALLOCATED_FD:
+        case ZMQ_USE_FD:
             if (is_int) {
-                *value = pre_allocated_fd;
+                *value = use_fd;
                 return 0;
             }
             break;

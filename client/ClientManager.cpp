@@ -163,15 +163,15 @@ void ClientManager::clear()
 	}
 }
 
-size_t ClientManager::getTotalUsers()
+unsigned ClientManager::getTotalUsers()
 {
-	size_t users = 0;
+	unsigned l_users = 0;
 	CFlyReadLock(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
-		users += i->second->getUserCount();
+		l_users += i->second->getUserCount();
 	}
-	return users;
+	return l_users;
 }
 void ClientManager::setIPUser(const UserPtr& p_user, const string& p_ip, const uint16_t p_udpPort /* = 0 */)
 {
@@ -472,23 +472,8 @@ string ClientManager::getStringField(const CID& cid, const string& hint, const c
 	}
 	return Util::emptyString;
 }
-/* [-] IRainman: deprecated.
-string ClientManager::getConnection(const CID& cid) const
-{
-    CFlyReadLock(*g_csOnlineUsers);
-    OnlineIterC i = g_onlineUsers.find(cid);
-    if (i != g_onlineUsers.end())
-    {
-        const auto limit = i->second->getIdentity().getLimit();
-        if (limit != 0)
-            return Util::formatBytes(Util::toString(limit)) + '/' + STRING(S);
-        else
-            return Util::emptyString;
-    }
-    return STRING(OFFLINE);
-}
-*/
-uint8_t ClientManager::getSlots(const CID& cid) const
+
+uint8_t ClientManager::getSlots(const CID& cid)
 {
 	CFlyReadLock(*g_csOnlineUsers);
 	const OnlineIterC i = g_onlineUsers.find(cid);
@@ -498,22 +483,8 @@ uint8_t ClientManager::getSlots(const CID& cid) const
 	}
 	return 0;
 }
-/*
-// !SMT!-S
-Client* ClientManager::findClient(const string& aUrl) const
-{
-    CFlyReadLock(*g_csClients);
-    for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
-    {
-        if (i->second->getHubUrl() == aUrl)
-        {
-            return i->second;
-        }
-    }
-    return nullptr;
-}
-*/
-Client* ClientManager::findClient(const string& p_url) const
+
+Client* ClientManager::findClient(const string& p_url)
 {
 	dcassert(!p_url.empty());
 	CFlyReadLock(*g_csClients);
@@ -1245,14 +1216,14 @@ void ClientManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 }
 */
 // [!] IRainman fix.
-void ClientManager::createMe(const string& cid, const string& nick)
+void ClientManager::createMe(const string& p_cid, const string& p_nick)
 {
 	// [!] IRainman fix.
 	// [-] me = new User(getMyCID());
 	dcassert(!g_me); // [+] IRainman fix: please not init me twice!
 	dcassert(g_pid.isZero()); // [+] IRainman fix: please not init pid twice!
 	
-	g_pid = CID(cid);
+	g_pid = CID(p_cid);
 	
 	TigerHash l_tiger;
 	l_tiger.update(g_pid.data(), CID::SIZE);
@@ -1280,11 +1251,16 @@ void ClientManager::createMe(const string& cid, const string& nick)
 	g_iflylinkdc.setHub();
 	g_iflylinkdc.setUser(g_uflylinkdc);
 	// [~] IRainman fix.
-	g_me->setLastNick(nick);
+	g_me->setLastNick(p_nick);
 	{
 		CFlyWriteLock(*g_csUsers);
 		g_users.insert(make_pair(g_me->getCID(), g_me));
 	}
+}
+void ClientManager::generateNewMyCID()
+{
+	dcassert(g_me);
+	g_me->generateNewMyCID();
 }
 const CID& ClientManager::getMyCID()
 {
@@ -1795,17 +1771,18 @@ void ClientManager::reportUser(const HintedUser& user)
 	client->reportUser(report); // [+] IRainman fix
 }
 
-// [+] FlylinkDC
+/*
 void ClientManager::setFakeList(const UserPtr& p, const string& aCheatString)
 {
-	CFlyReadLock(*g_csOnlineUsers);
-	const OnlineIterC i = g_onlineUsers.find(p->getCID());
-	if (i != g_onlineUsers.end())
-	{
-		auto& id = i->second->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'i->second' expression repeatedly. cheatmanager.h 285
-		id.setCheat(i->second->getClient(), aCheatString, false);
-	}
+    CFlyReadLock(*g_csOnlineUsers);
+    const OnlineIterC i = g_onlineUsers.find(p->getCID());
+    if (i != g_onlineUsers.end())
+    {
+        auto& id = i->second->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'i->second' expression repeatedly. cheatmanager.h 285
+        id.setCheat(i->second->getClient(), aCheatString, false);
+    }
 }
+*/
 
 StringList ClientManager::getUserByIp(const string &p_ip) // TODO - boost
 {

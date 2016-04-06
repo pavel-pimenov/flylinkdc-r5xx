@@ -1155,11 +1155,11 @@ LRESULT HubFrame::onCopyHubInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/
 LRESULT HubFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	// !SMT!-S
-	const auto& su = getSelectedUser();
+	const auto su = getSelectedUser();
 	if (su)
 	{
 		const auto& id = su->getIdentity();
-		const auto& u = su->getUser();
+		const auto u = su->getUser();
 		string sCopy;
 		switch (wID)
 		{
@@ -2472,19 +2472,24 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 #endif
 		clear_and_destroy_task();
 		storeColumsInfo();
-		if (!ClientManager::isShutdown())
+		RecentHubEntry* r = FavoriteManager::getRecentHubEntry(l_server);
+		if (r) //  https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=9897
 		{
-			RecentHubEntry* r = FavoriteManager::getRecentHubEntry(l_server);
-			if (r) // hub has been removed by the user from a list of recent hubs at a time when it was opened. https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=9897
+			LocalArray<TCHAR, 256> buf;
+			GetWindowText(buf.data(), 255);
+			r->setName(Text::fromT(buf.data()));
+			r->setUsers(Util::toString(m_client->getUserCount()));
+			r->setShared(Util::toString(m_client->getAvailableBytes()));
+			r->setLastSeen(Util::formatDigitalClock(time(NULL)));
+			if (!ClientManager::isShutdown())
 			{
-				LocalArray<TCHAR, 256> buf;
-				GetWindowText(buf.data(), 255);
-				r->setName(Text::fromT(buf.data()));
-				r->setUsers(Util::toString(m_client->getUserCount()));
-				r->setShared(Util::toString(m_client->getAvailableBytes()));
-				r->setDateTime(Util::formatDigitalClock(time(NULL)));
-				FavoriteManager::getInstance()->updateRecent(r);
+				r->setOpenTab("-");
 			}
+			else
+			{
+				r->setOpenTab("+");
+			}
+			FavoriteManager::getInstance()->updateRecent(r);
 		}
 // TODO     ClientManager::getInstance()->addListener(this);
 #ifdef RIP_USE_CONNECTION_AUTODETECT
@@ -3374,9 +3379,9 @@ void HubFrame::timer_process_internal()
 		m_second_count = 60;
 		ClientManager::infoUpdated(m_client);
 	}
-	if (m_upnp_message_tick > 0)
+	if (m_upnp_message_tick > 0 && m_client && m_client->isConnected())
 	{
-		if (--m_upnp_message_tick == 0 && !ClientManager::isShutdown() && m_client && !m_client->isActive())
+		if (--m_upnp_message_tick == 0 && !ClientManager::isShutdown() && !m_client->isActive())
 		{
 			m_upnp_message_tick = -1;
 			BaseChatFrame::addLine(_T("[!] FlylinkDC++ ") + TSTRING(PASSIVE_NOTICE) + _T(" ") + Text::toT(CFlyServerConfig::g_support_upnp), Colors::g_ChatTextSystem);
@@ -3731,50 +3736,46 @@ void HubFrame::on(ClientListener::NickTaken, const Client*) noexcept
 	const string l_my_nick = m_client->getMyNick();
 	speak(ADD_STATUS_LINE, STRING(NICK_TAKEN) + " (Nick = " + l_my_nick + ")", true);
 	auto l_fe = FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl());
-	if (l_fe)
+	if (l_fe && !l_fe->getPassword().empty())
+		return;
+	string l_fly_user;
+	string l_nick = l_my_nick;
+	if (l_nick.length() >= 5) // "_R123"
 	{
-		if (l_fe->getPassword().empty())
+		int i = l_nick.length() - 5;
+		if (l_nick[i] == '_' && l_nick[i + 1] == 'R' && isdigit(l_nick[i + 2]) && isdigit(l_nick[i + 3]) && isdigit(l_nick[i + 4]))
 		{
-			string l_fly_user;
-			string l_nick = l_my_nick;
-			if (l_nick.length() >= 5) // "_R123"
-			{
-				int i = l_nick.length() - 5;
-				if (l_nick[i] == '_' && l_nick[i + 1] == 'R' && isdigit(l_nick[i + 2]) && isdigit(l_nick[i + 3]) && isdigit(l_nick[i + 4]))
-				{
-					const string l_new_number = getRandomSuffix();
-					l_nick[i + 2] = l_new_number[0];
-					l_nick[i + 3] = l_new_number[1];
-					l_nick[i + 4] = l_new_number[2];
-					l_fly_user = l_nick;
-				}
-				else
-				{
-					l_fly_user = l_nick + "_R" + getRandomSuffix();
-				}
-			}
-			else
-			{
-				l_fly_user = l_nick + "_R" + getRandomSuffix();
-			}
-			auto l_max_len = m_client->getMaxLenNick();
-			if (l_max_len == 0)
-				l_max_len = 15;
-			if (l_fly_user.length() > l_max_len)
-			{
-				l_fly_user = l_nick.substr(0, l_max_len - 5);
-				l_fly_user += "_R" + getRandomSuffix();
-			}
-			m_client->setMyNick(l_fly_user);
-			m_client->setRandomNick(l_fly_user);
-			ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick());
-			CFlyServerJSON::pushError(54, "Hub = " + m_client->getHubUrl() + " New random nick = " + l_fly_user);
-			if (m_reconnect_count < 3)
-			{
-				m_client->reconnect();
-				m_reconnect_count++;
-			}
+			const string l_new_number = getRandomSuffix();
+			l_nick[i + 2] = l_new_number[0];
+			l_nick[i + 3] = l_new_number[1];
+			l_nick[i + 4] = l_new_number[2];
+			l_fly_user = l_nick;
 		}
+		else
+		{
+			l_fly_user = l_nick + "_R" + getRandomSuffix();
+		}
+	}
+	else
+	{
+		l_fly_user = l_nick + "_R" + getRandomSuffix();
+	}
+	auto l_max_len = m_client->getMaxLenNick();
+	if (l_max_len == 0)
+		l_max_len = 15;
+	if (l_fly_user.length() > l_max_len)
+	{
+		l_fly_user = l_nick.substr(0, l_max_len - 5);
+		l_fly_user += "_R" + getRandomSuffix();
+	}
+	m_client->setMyNick(l_fly_user);
+	m_client->setRandomNick(l_fly_user);
+	ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick());
+	CFlyServerJSON::pushError(54, "Hub = " + m_client->getHubUrl() + " New random nick = " + l_fly_user);
+	if (m_reconnect_count < 3)
+	{
+		m_client->reconnect();
+		m_reconnect_count++;
 	}
 }
 void HubFrame::on(ClientListener::CheatMessage, const string& line) noexcept

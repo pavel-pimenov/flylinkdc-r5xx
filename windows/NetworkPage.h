@@ -66,6 +66,8 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		COMMAND_ID_HANDLER(IDC_AUTODETECT, onClickedActive)
 #endif
+		COMMAND_ID_HANDLER(IDC_WAN_IP_MANUAL, onWANIPManualClickedActive)
+		
 #ifdef STRONG_USE_DHT
 		COMMAND_ID_HANDLER(IDC_SETTINGS_USE_DHT, onCheckDHTStats)
 #endif
@@ -77,6 +79,7 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 		
 		LRESULT onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT onClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		LRESULT onWANIPManualClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */);
 		LRESULT onAddWinFirewallException(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */);
 		LRESULT OnEnKillfocusExternalIp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);

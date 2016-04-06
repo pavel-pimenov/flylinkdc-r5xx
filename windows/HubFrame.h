@@ -202,8 +202,8 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		                            int  p_windowposy = 0,
 		                            int  p_windowsizex = 0,
 		                            int  p_windowsizey = 0,
-		                            int  p_windowtype = 0,
-		                            int  p_ChatUserSplit = 0,
+		                            int  p_windowtype = 3, // SW_MAXIMIZE
+		                            int  p_ChatUserSplit = 5000,
 		                            bool p_UserListState = true,
 		                            bool p_SuppressChatAndPM = false
 		                                                       // bool p_ChatUserSplitState = true,

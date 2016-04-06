@@ -48,7 +48,7 @@ void ThemeManager::loadResourceLib()
 	g_debugResourceLibIsLoaded = true;
 	dcassert(!isResourceLibLoaded());
 #endif // _DEBUG
-	const auto& themeDllName = SETTING(THEME_MANAGER_THEME_DLL_NAME);
+	const auto themeDllName = SETTING(THEME_MANAGER_THEME_DLL_NAME);
 	if (!themeDllName.empty())
 	{
 		const auto themeFullPath = Util::getThemesPath() + themeDllName;

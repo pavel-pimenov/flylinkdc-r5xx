@@ -65,7 +65,7 @@ UserConnection::~UserConnection()
 {
 	// dcassert(!m_download);
 	// dcassert(!m_upload);
-	dcassert(socket);
+	// dcassert(socket);
 	if (socket)
 	{
 		socket->removeListeners();
@@ -172,7 +172,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	{
 		// We shouldn't be here?
 		if (getUser() && aLine.length() < 255)
-			ClientManager::getInstance()->setUnknownCommand(getUser(), aLine);
+			ClientManager::setUnknownCommand(getUser(), aLine);
 			
 		fly_fire2(UserConnectionListener::ProtocolError(), this, "Invalid data");
 		return;
@@ -329,7 +329,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	else
 	{
 		if (getUser() && aLine.length() < 255)
-			ClientManager::getInstance()->setUnknownCommand(getUser(), aLine);
+			ClientManager::setUnknownCommand(getUser(), aLine);
 			
 		dcdebug("UserConnection Unknown NMDC command: %.50s\n", aLine.c_str());
 #ifdef FLYLINKDC_BETA
@@ -414,7 +414,9 @@ void UserConnection::on(Data, uint8_t* p_data, size_t p_len) noexcept
 	setLastActivity();
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	if (p_len && BOOLSETTING(ENABLE_RATIO_USER_LIST))
+	{
 		getUser()->AddRatioDownload(getSocket()->getIp4(), p_len);
+	}
 #endif
 	fly_fire3(UserConnectionListener::Data(), this, p_data, p_len);
 }
@@ -424,7 +426,9 @@ void UserConnection::on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept
 	setLastActivity();
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
 	if (p_Actual && BOOLSETTING(ENABLE_RATIO_USER_LIST))
+	{
 		getUser()->AddRatioUpload(getSocket()->getIp4(), p_Actual);
+	}
 #endif
 	fly_fire3(UserConnectionListener::BytesSent(), this, p_Bytes, p_Actual);
 }

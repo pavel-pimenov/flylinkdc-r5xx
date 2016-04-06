@@ -290,7 +290,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 			return g_recentHubs;
 		}
 		
-		void addRecent(const RecentHubEntry& aEntry);
+		RecentHubEntry* addRecent(const RecentHubEntry& aEntry);
 		void removeRecent(const RecentHubEntry* entry);
 		void updateRecent(const RecentHubEntry* entry);
 		

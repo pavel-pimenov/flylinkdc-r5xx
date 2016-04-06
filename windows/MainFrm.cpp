@@ -220,7 +220,6 @@ MainFrame::~MainFrame()
 #ifdef IRAINMAN_INCLUDE_SMILE
 	CAGEmotionSetup::destroyEmotionSetup();
 #endif
-	ToolbarManager::shutdown();
 	WinUtil::uninit();
 }
 
@@ -2320,27 +2319,35 @@ void MainFrame::getIPupdate()
 	bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, SETTING(IPUPDATE_INTERVAL), "Get external IP");
 	if (l_is_udp_port_send && !l_external_ip.empty())
 	{
-		SET_SETTING(EXTERNAL_IP, l_external_ip);
-		LogManager::message(STRING(IP_AUTO_UPDATE) + ' ' + l_external_ip + " ");
+		if (!BOOLSETTING(WAN_IP_MANUAL))
+		{
+			SET_SETTING(EXTERNAL_IP, l_external_ip);
+			LogManager::message(STRING(IP_AUTO_UPDATE) + ' ' + l_external_ip + " ");
+		}
 	}
 	else
 #endif
 	{
-		const auto& l_url = SETTING(URL_GET_IP);
-		if (Util::isHttpLink(l_url))
+		if (!BOOLSETTING(WAN_IP_MANUAL))
 		{
-			l_external_ip = Util::getWANIP(l_url);
-			if (!l_external_ip.empty())
+			const auto& l_url = SETTING(URL_GET_IP);
+			if (Util::isHttpLink(l_url))
 			{
-				SET_SETTING(EXTERNAL_IP, l_external_ip);
-				LogManager::message(STRING(IP_AUTO_UPDATE) + ' ' + l_external_ip);
+				l_external_ip = Util::getWANIP(l_url);
+				if (!l_external_ip.empty())
+				{
+					SET_SETTING(EXTERNAL_IP, l_external_ip);
+					LogManager::message(STRING(IP_AUTO_UPDATE) + ' ' + l_external_ip);
+				}
+				else
+				{
+					LogManager::message("Error IP AutoUpdate from URL: " + l_url);
+				}
 			}
 			else
-				LogManager::message("Error IP AutoUpdate from URL: " + l_url);
-		}
-		else
-		{
-			LogManager::message("Error IP AutoUpdate. URL: " + l_url); // TODO translate
+			{
+				LogManager::message("Error IP AutoUpdate. URL: " + l_url); // TODO translate
+			}
 		}
 	}
 }
@@ -2450,7 +2457,7 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 		CFlyBusyBool l_busy_1(g_isStartupProcess);
 		for (auto i = fl.cbegin(); i != fl.cend(); ++i)
 		{
-			FavoriteHubEntry* entry = *i;
+			const FavoriteHubEntry* entry = *i;
 			if (entry->getConnect())
 			{
 				if (!entry->getNick().empty() || l_settingsNickExist)
@@ -2459,7 +2466,11 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 					r.setName(entry->getName());
 					r.setDescription(entry->getDescription());
 					r.setServer(entry->getServer());
-					FavoriteManager::getInstance()->addRecent(r);
+					auto l_resent_hub = FavoriteManager::getInstance()->addRecent(r);
+					if (l_resent_hub)
+					{
+						l_resent_hub->setAutoOpen(true);
+					}
 					frm = HubFrame::openWindow(true,
 					                           entry->getServer(),
 					                           entry->getName(),
@@ -2479,7 +2490,23 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 					                          );
 				}
 				else
+				{
 					missedAutoConnect = true;
+				}
+			}
+		}
+		// Откроем ранее открытые хабы но не помещенные в избранные
+		{
+			for (auto j = FavoriteManager::getRecentHubs().cbegin(); j != FavoriteManager::getRecentHubs().cend(); ++ j)
+			{
+				if ((*j)->getAutoOpen() == false && (*j)->getOpenTab() == "+")
+				{
+					frm = HubFrame::openWindow(true,
+					                           (*j)->getServer(),
+					                           (*j)->getName()
+					                          );
+					                          
+				}
 			}
 		}
 		// Создаем смайлы в конец
@@ -2868,7 +2895,6 @@ int MainFrame::run()
 	if (WinUtil::browseFile(file, m_hWnd, false, lastTTHdir) == IDOK)
 	{
 		WinUtil::g_mainMenu.EnableMenuItem(ID_GET_TTH, MF_GRAYED);
-		setThreadPriority(Thread::LOW);
 		lastTTHdir = Util::getFilePath(file);
 		const size_t c_size_buf = 1024 * 1024; // [!] IRainman fix.
 		unique_ptr<TigerTree> tth;
@@ -2921,7 +2947,6 @@ int MainFrame::run()
 		
 		        }
 		*/
-		setThreadPriority(Thread::NORMAL);
 		WinUtil::g_mainMenu.EnableMenuItem(ID_GET_TTH, MF_ENABLED);
 	}
 	return 0;

@@ -335,7 +335,8 @@ struct CFlyServerInfo
 };
 //=======================================================================
 typedef std::vector<CFlyServerKey> CFlyServerKeyArray;
-typedef std::vector<CFlyTTHKey> CFlyTTHKeyArray;
+typedef std::vector<std::pair<CFlyTTHKey, string> > CFlyTTHKeyDownloadArray;
+
 //=======================================================================
 struct CFlyVirusFileList
 {
@@ -511,8 +512,8 @@ class CFlyServerJSON
 		                         const string& p_name_test);
 		                         
 		static string g_fly_server_id;
-		static CFlyTTHKeyArray g_download_counter;
-		static void addDownloadCounter(const CFlyTTHKey& p_file);
+		static CFlyTTHKeyDownloadArray g_download_counter;
+		static void addDownloadCounter(const CFlyTTHKey& p_file, const string& p_file_name);
 		static bool sendDownloadCounter(bool p_is_only_db_if_network_error);
 		
 		static CFlyAntivirusTTHArray g_antivirus_counter;
