@@ -1642,6 +1642,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsUseSystemIcons">Использовать системные значки для файлов (немного замедляет просмотр)</String>
 		<String Name="SettingsUseTextForLogs">Использовать текстовые файлы</String>
 		<String Name="SettingsUseTls">Использовать TLS, когда удаленный клиент это поддерживает</String>
+		<String name="SettingsWanIpManual">Я знаю свой WAN IP</String>
 		<String Name="SettingsWebserver">Включить веб-сервер</String>
 		<String Name="SettingsWindows">Окна</String>
 		<String Name="SettingsWindowsOptions">Настройки окон</String>

@@ -81,13 +81,12 @@ RadoX-Pack v.2.2
    <Emoticon PasteText=";)" Bitmap="SmilesMegaPack\blink1.bmp"/>
    <Emoticon PasteText=";-)" Bitmap="SmilesMegaPack\blink2.bmp"/>
    <Emoticon PasteText="В-)" Bitmap="SmilesMegaPack\blink3.bmp"/>
-   <Emoticon PasteText="В-." Bitmap="SmilesMegaPack\cool1.bmp"/>
+   <Emoticon PasteText=":бубльгум:" Bitmap="SmilesMegaPack\gum.bmp" Gif="AnimPack\gum.gif"/>
    <Emoticon PasteText="ВD" Bitmap="SmilesMegaPack\cool2.bmp"/>
-   <Emoticon PasteText=":тьфу:" Bitmap="SmilesMegaPack\plevok.bmp"/>
    <Emoticon PasteText=":бе:" Bitmap="SmilesMegaPack\beee.bmp"/>
    <Emoticon PasteText=":}" Bitmap="SmilesMegaPack\beee1.bmp" Gif="AnimPack\beee1.gif"/>
    <Emoticon PasteText=":Р" Bitmap="SmilesMegaPack\beee2.bmp" Gif="AnimPack\beee2.gif"/>
-   <Emoticon PasteText=":Ь" Bitmap="SmilesMegaPack\beee3.bmp"/>
+   <Emoticon PasteText=":Ь" Bitmap="SmilesMegaPack\beee3.bmp" Gif="AnimPack\beee3.gif"/>
    <Emoticon PasteText="^_^" Bitmap="SmilesMegaPack\blush1.bmp"/>
    <Emoticon PasteText=":-." Bitmap="SmilesMegaPack\blush2.bmp" Gif="AnimPack\blush2.gif"/>
    <Emoticon PasteText=":ой:" Bitmap="SmilesMegaPack\blush6.bmp"/>
@@ -127,6 +126,7 @@ RadoX-Pack v.2.2
    <Emoticon PasteText="%D" Bitmap="SmilesMegaPack\crazy3.bmp" Gif="AnimPack\crazy3.gif"/>
    <Emoticon PasteText=">8D" Bitmap="SmilesMegaPack\crazy_mad.bmp"/>
    <Emoticon PasteText="}:-D>" Bitmap="SmilesMegaPack\diablo1.bmp"/>
+   <Emoticon PasteText=":fool:" Bitmap="SmilesMegaPack\fool.bmp" Gif="AnimPack\fool.gif"/>
    <Emoticon PasteText=">:(" Bitmap="SmilesMegaPack\cruel1.bmp" Gif="AnimPack\cruel1.gif"/>
    <Emoticon PasteText=">>:(" Bitmap="SmilesMegaPack\cruel2.bmp"/>
    <Emoticon PasteText=">8@" Bitmap="SmilesMegaPack\cruel3.bmp" Gif="AnimPack\cruel3.gif"/>
@@ -163,7 +163,8 @@ RadoX-Pack v.2.2
    <Emoticon PasteText=":кот:" Bitmap="SmilesMegaPack\a_cat.bmp" Gif="AnimPack\a_cat.gif"/>
    <Emoticon PasteText=":пёс:" Bitmap="SmilesMegaPack\a_dog.bmp" Gif="AnimPack\a_dog.gif"/>
    <Emoticon PasteText=":суслик:" Bitmap="SmilesMegaPack\suslik.bmp"/>
-   <Emoticon PasteText=":кролег:" Bitmap="SmilesMegaPack\kroleg.bmp"/>
+   <Emoticon PasteText=":кролег:" Bitmap="SmilesMegaPack\kroleg.bmp" Gif="AnimPack\kroleg.gif"/>
+   <Emoticon PasteText=":fox:" Bitmap="SmilesMegaPack\fox.bmp" Gif="AnimPack\fox.gif"/>
    <Emoticon PasteText=":колхознег:" Bitmap="SmilesMegaPack\kolhozneg.bmp"/>
    <Emoticon PasteText=":мужик:" Bitmap="SmilesMegaPack\russian.bmp"/>
    <Emoticon PasteText=":качаю:" Bitmap="SmilesMegaPack\download.bmp" Gif="AnimPack\download.gif"/>
@@ -208,7 +209,6 @@ RadoX-Pack v.2.2
    <Emoticon PasteText=":hello:" Bitmap="SmilesMegaPack\hello.bmp" Gif="AnimPack\hello.gif"/>
    <Emoticon PasteText=":party:" Bitmap="SmilesMegaPack\party.bmp"/>
    <Emoticon PasteText=":пыво:" Bitmap="SmilesMegaPack\Beer.bmp" Gif="AnimPack\Beer.gif"/>
-   <Emoticon PasteText=":бубльгум:" Bitmap="SmilesMegaPack\gum.bmp" Gif="AnimPack\gum.gif"/>
    <Emoticon PasteText=":в кино:" Bitmap="SmilesMegaPack\pop-corn.bmp"/>
    <Emoticon PasteText=":гитарист:" Bitmap="SmilesMegaPack\guitarist.bmp"/>
    <Emoticon PasteText=":gguit:" Bitmap="SmilesMegaPack\girl_guitar.bmp" Gif="AnimPack\girl_guitar.gif"/>
@@ -218,7 +218,7 @@ RadoX-Pack v.2.2
    <Emoticon PasteText=":хайер:" Bitmap="SmilesMegaPack\rockerhayer.bmp" Gif="AnimPack\rockerhayer.gif"/>
    <Emoticon PasteText=":панк:" Bitmap="SmilesMegaPack\punk1.bmp" Gif="AnimPack\punk1.gif"/>
    <Emoticon PasteText=":рэпер:" Bitmap="SmilesMegaPack\raper.bmp"/>
-   <Emoticon PasteText=":дитё:" Bitmap="SmilesMegaPack\Baby.bmp"/>
+   <Emoticon PasteText=":дитё:" Bitmap="SmilesMegaPack\Baby.bmp" Gif="AnimPack\Baby.gif"/>
    <Emoticon PasteText=":попа:" Bitmap="SmilesMegaPack\popa.bmp"/>
    <Emoticon PasteText=":bag:" Bitmap="SmilesMegaPack\bag.bmp" Gif="AnimPack\bag.gif"/>
    <Emoticon PasteText=":Гиви:" Bitmap="SmilesMegaPack\Givy.bmp"/>
@@ -258,7 +258,6 @@ RadoX-Pack v.2.2
    <Emoticon PasteText=":в носу:" Bitmap="SmilesMegaPack\v nosu.bmp" Gif="AnimPack\v nosu.gif"/>
    <Emoticon PasteText=":Х" Bitmap="SmilesMegaPack\dnt spk.bmp"/>
    <Emoticon PasteText=":секрет:" Bitmap="SmilesMegaPack\secret.bmp" Gif="AnimPack\secret.gif"/>
-   <Emoticon PasteText=":не шали:" Bitmap="SmilesMegaPack\nono.bmp"/>
    <Emoticon PasteText=":эй:" Bitmap="SmilesMegaPack\recall.bmp"/>
    <Emoticon PasteText=":победа:" Bitmap="SmilesMegaPack\victory.bmp" Gif="AnimPack\victory.gif"/>
    <Emoticon PasteText=":класс:" Bitmap="SmilesMegaPack\cool3.bmp" Gif="AnimPack\cool3.gif"/>

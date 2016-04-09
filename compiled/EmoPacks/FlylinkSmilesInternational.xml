@@ -81,13 +81,12 @@ RadoX-Pack v.2.5 International
    <Emoticon PasteText=";)" Bitmap="SmilesMegaPack\blink1.bmp"/>
    <Emoticon PasteText=";-)" Bitmap="SmilesMegaPack\blink2.bmp"/>
    <Emoticon PasteText="B-)" Bitmap="SmilesMegaPack\blink3.bmp"/>
-   <Emoticon PasteText="B-." Bitmap="SmilesMegaPack\cool1.bmp"/>
+   <Emoticon PasteText=":bublhum:" Bitmap="SmilesMegaPack\gum.bmp" Gif="AnimPack\gum.gif"/>
    <Emoticon PasteText="BD" Bitmap="SmilesMegaPack\cool2.bmp"/>
-   <Emoticon PasteText=":tfu:" Bitmap="SmilesMegaPack\plevok.bmp"/>
    <Emoticon PasteText=":fuuu:" Bitmap="SmilesMegaPack\beee.bmp"/>
    <Emoticon PasteText=":}" Bitmap="SmilesMegaPack\beee1.bmp" Gif="AnimPack\beee1.gif"/>
    <Emoticon PasteText=":P" Bitmap="SmilesMegaPack\beee2.bmp" Gif="AnimPack\beee2.gif"/>
-   <Emoticon PasteText=":fueeh:" Bitmap="SmilesMegaPack\beee3.bmp"/>
+   <Emoticon PasteText=":fueeh:" Bitmap="SmilesMegaPack\beee3.bmp" Gif="AnimPack\beee3.gif"/>
    <Emoticon PasteText="^_^" Bitmap="SmilesMegaPack\blush1.bmp"/>
    <Emoticon PasteText=":-." Bitmap="SmilesMegaPack\blush2.bmp" Gif="AnimPack\blush2.gif"/>
    <Emoticon PasteText=":oops:" Bitmap="SmilesMegaPack\blush6.bmp"/>
@@ -127,6 +126,7 @@ RadoX-Pack v.2.5 International
    <Emoticon PasteText="%D" Bitmap="SmilesMegaPack\crazy3.bmp" Gif="AnimPack\crazy3.gif"/>
    <Emoticon PasteText=">8D" Bitmap="SmilesMegaPack\crazy_mad.bmp"/>
    <Emoticon PasteText="}:-D>" Bitmap="SmilesMegaPack\diablo1.bmp"/>
+   <Emoticon PasteText=":fool:" Bitmap="SmilesMegaPack\fool.bmp" Gif="AnimPack\fool.gif"/>
    <Emoticon PasteText=">:(" Bitmap="SmilesMegaPack\cruel1.bmp" Gif="AnimPack\cruel1.gif"/>
    <Emoticon PasteText=">>:(" Bitmap="SmilesMegaPack\cruel2.bmp"/>
    <Emoticon PasteText=">8@" Bitmap="SmilesMegaPack\cruel3.bmp" Gif="AnimPack\cruel3.gif"/>
@@ -163,7 +163,8 @@ RadoX-Pack v.2.5 International
    <Emoticon PasteText=":cat:" Bitmap="SmilesMegaPack\a_cat.bmp" Gif="AnimPack\a_cat.gif"/>
    <Emoticon PasteText=":dog:" Bitmap="SmilesMegaPack\a_dog.bmp" Gif="AnimPack\a_dog.gif"/>
    <Emoticon PasteText=":suslik:" Bitmap="SmilesMegaPack\suslik.bmp"/>
-   <Emoticon PasteText=":rabbit:" Bitmap="SmilesMegaPack\kroleg.bmp"/>
+   <Emoticon PasteText=":rabbit:" Bitmap="SmilesMegaPack\kroleg.bmp" Gif="AnimPack\kroleg.gif"/>
+   <Emoticon PasteText=":fox:" Bitmap="SmilesMegaPack\fox.bmp" Gif="AnimPack\fox.gif"/>
    <Emoticon PasteText=":kolhozneg:" Bitmap="SmilesMegaPack\kolhozneg.bmp"/>
    <Emoticon PasteText=":man:" Bitmap="SmilesMegaPack\russian.bmp"/>
    <Emoticon PasteText=":loaded:" Bitmap="SmilesMegaPack\download.bmp" Gif="AnimPack\download.gif"/>
@@ -208,7 +209,6 @@ RadoX-Pack v.2.5 International
    <Emoticon PasteText=":hello:" Bitmap="SmilesMegaPack\hello.bmp" Gif="AnimPack\hello.gif"/>
    <Emoticon PasteText=":party:" Bitmap="SmilesMegaPack\party.bmp"/>
    <Emoticon PasteText=":pivo:" Bitmap="SmilesMegaPack\Beer.bmp" Gif="AnimPack\Beer.gif"/>
-   <Emoticon PasteText=":bublhum:" Bitmap="SmilesMegaPack\gum.bmp" Gif="AnimPack\gum.gif"/>
    <Emoticon PasteText=":moovie:" Bitmap="SmilesMegaPack\pop-corn.bmp"/>
    <Emoticon PasteText=":guitary:" Bitmap="SmilesMegaPack\guitarist.bmp"/>
    <Emoticon PasteText=":gguit:" Bitmap="SmilesMegaPack\girl_guitar.bmp" Gif="AnimPack\girl_guitar.gif"/>
@@ -218,7 +218,7 @@ RadoX-Pack v.2.5 International
    <Emoticon PasteText=":hayer:" Bitmap="SmilesMegaPack\rockerhayer.bmp" Gif="AnimPack\rockerhayer.gif"/>
    <Emoticon PasteText=":punk:" Bitmap="SmilesMegaPack\punk1.bmp" Gif="AnimPack\punk1.gif"/>
    <Emoticon PasteText=":rappy:" Bitmap="SmilesMegaPack\raper.bmp"/>
-   <Emoticon PasteText=":kind:" Bitmap="SmilesMegaPack\Baby.bmp"/>
+   <Emoticon PasteText=":kind:" Bitmap="SmilesMegaPack\Baby.bmp" Gif="AnimPack\Baby.gif"/>
    <Emoticon PasteText=":ass:" Bitmap="SmilesMegaPack\popa.bmp"/>
    <Emoticon PasteText=":bag:" Bitmap="SmilesMegaPack\bag.bmp" Gif="AnimPack\bag.gif"/>
    <Emoticon PasteText=":Givi:" Bitmap="SmilesMegaPack\Givy.bmp"/>
@@ -258,7 +258,6 @@ RadoX-Pack v.2.5 International
    <Emoticon PasteText=":in nose:" Bitmap="SmilesMegaPack\v nosu.bmp" Gif="AnimPack\v nosu.gif"/>
    <Emoticon PasteText=":X" Bitmap="SmilesMegaPack\dnt spk.bmp"/>
    <Emoticon PasteText=":secret:" Bitmap="SmilesMegaPack\secret.bmp" Gif="AnimPack\secret.gif"/>
-   <Emoticon PasteText=":notton:" Bitmap="SmilesMegaPack\nono.bmp"/>
    <Emoticon PasteText=":hey:" Bitmap="SmilesMegaPack\recall.bmp"/>
    <Emoticon PasteText=":victory:" Bitmap="SmilesMegaPack\victory.bmp" Gif="AnimPack\victory.gif"/>
    <Emoticon PasteText=":klass:" Bitmap="SmilesMegaPack\cool3.bmp" Gif="AnimPack\cool3.gif"/>

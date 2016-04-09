@@ -161,7 +161,7 @@ size_t SharedFileStream::read(void* buf, size_t& len)
 {
 	CFlyFastLock(m_sfh->m_cs);
 #ifdef _DEBUG
-	// LogManager::message("SharedFileStream::read buf = " + Util::toString(int(buf)) + " len " + Util::toString(len));
+	// LogManager::message("SharedFileStream::read buf = " + Util::toString(buf) + " len " + Util::toString(len));
 #endif
 	
 	m_sfh->m_file.setPos(m_pos);

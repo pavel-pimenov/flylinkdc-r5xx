@@ -566,12 +566,6 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 {
 
 	bHandled = FALSE;
-	
-	POINT p;
-	p.x = GET_X_LPARAM(lParam);
-	p.y = GET_Y_LPARAM(lParam);
-	::ScreenToClient(ctrlClient.m_hWnd, &p);
-	
 	POINT cpt;
 	GetCursorPos(&cpt);
 	
@@ -583,12 +577,24 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 		
 	if (reinterpret_cast<HWND>(wParam) == ctrlClient && ctrlClient.IsWindow())
 	{
-		ctrlClient.OnRButtonDown(pt, m_replyTo);
-		const int i = ctrlClient.CharFromPos(p);
+		if (pt.x == -1 && pt.y == -1)
+		{
+			CRect erc;
+			ctrlClient.GetRect(&erc);
+			pt.x = erc.Width() / 2;
+			pt.y = erc.Height() / 2;
+			//  ctrlClient.ClientToScreen(&pt);
+		}
+		//  POINT ptCl = pt;
+		ctrlClient.ScreenToClient(&pt);
+		ctrlClient.OnRButtonDown(pt);
+		
+		//  ctrlClient.OnRButtonDown(p, m_replyTo);
+		const int i = ctrlClient.CharFromPos(pt);
 		const int line = ctrlClient.LineFromChar(i);
 		const int c = LOWORD(i) - ctrlClient.LineIndex(line);
 		const int len = ctrlClient.LineLength(i) + 1;
-		if (len < 3)
+		if (len < 2)
 			return 0;
 			
 		tstring x;

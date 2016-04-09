@@ -3040,6 +3040,8 @@ IDR_SKULL2_RED_ICO      ICON                    "res\\skull2_red.ico"
 
 IDR_ICON_FIREWALL       ICON                    "res\\firewall.ico"
 
+IDR_ICON_XXX_BLOCK		ICON                    "res\\xxx.ico"
+
 IDR_ICON_CLOCK          ICON                    "res\\clock.ico"
 
 IDR_ICON_CAMSHOOT_ICO   ICON                    "res\\Cam.ico"
@@ -3088,11 +3090,9 @@ IDR_VIP_ICO_TITANKALUGA ICON                    "res\\vip_titankaluga.ico"
 
 IDR_SPLASH              PNG                     "res\\Splash\\Splash.png"
 
-IDR_SPLASH_9MAY         PNG                     "res\\Splash\\Splash_9may.png"
-
-IDR_SPLASH_WINTER       PNG                     "res\\Splash\\Splash_winter.png"
-
-IDR_SPLASH_NY1          PNG                     "res\\Splash\\Splash_5xx_NY1.png"
+//IDR_SPLASH_9MAY         PNG                     "res\\Splash\\Splash_9may.png"
+//IDR_SPLASH_WINTER       PNG                     "res\\Splash\\Splash_winter.png"
+//IDR_SPLASH_NY1          PNG                     "res\\Splash\\Splash_5xx_NY1.png"
 
 IDR_TOOLBAR             PNG                     "res\\Toolbar.png"
 

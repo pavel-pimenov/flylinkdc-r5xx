@@ -1003,6 +1003,11 @@ class Util
 			_snprintf(buf, _countof(buf), U64_FMT, val);
 			return buf;
 		}
+		static string toString(void* val)
+		{
+			return toString((unsigned long long) val);
+		}
+		
 		static string toString(double val)
 		{
 			char buf[24];

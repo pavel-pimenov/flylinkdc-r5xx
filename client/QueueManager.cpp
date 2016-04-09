@@ -2060,9 +2060,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 						}
 					}
 					if (fulldir)
-						// [~] IRainman fix.
 					{
-						dcassert(p_is_finished);
 						fileName = aDownload->getPFS();
 						flags = (q->isSet(QueueItem::FLAG_DIRECTORY_DOWNLOAD) ? QueueItem::FLAG_DIRECTORY_DOWNLOAD : 0)
 						        | (q->isSet(QueueItem::FLAG_MATCH_QUEUE) ? QueueItem::FLAG_MATCH_QUEUE : 0)
@@ -2197,8 +2195,9 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 								CFlylinkDBManager::getInstance()->push_download_tth(q->getTTH());
 								if (BOOLSETTING(ENABLE_FLY_SERVER))
 								{
-									const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(p_path));
-									if (CFlyServerConfig::isMediainfoExt(l_file_ext))
+									if (CFlyServerConfig::g_is_use_hit_media_files  == true && CFlyServerConfig::isMediainfoExt(Text::toLower(Util::getFileExtWithoutDot(p_path))) ||
+									        CFlyServerConfig::g_is_use_hit_binary_files == true
+									   )
 									{
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 										const CFlyTTHKey l_file(q->getTTH(), q->getSize());

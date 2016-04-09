@@ -688,6 +688,7 @@
     <ClInclude Include="client\compiler_flylinkdc.h" />
     <ClInclude Include="client\ConnectivityManager.h" />
     <ClInclude Include="client\cperformance.h" />
+    <ClInclude Include="client\dcformat.h" />
     <ClInclude Include="client\GPGPUManager.h" />
     <ClInclude Include="client\HintedUser.h" />
     <ClInclude Include="client\idna\idna.h" />

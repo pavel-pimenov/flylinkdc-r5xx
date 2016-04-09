@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2015 FlylinkDC++ Team http://flylinkdc.com
+ * Copyright (C) 2012-2016 FlylinkDC++ Team http://flylinkdc.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,7 +89,7 @@ class CFlySpeakerAdapter : public CFlyHandlerAdapter
 		BOOL async_speak()
 		{
 			BOOL l_res = false;
-			extern bool g_isShutdown;
+			extern volatile bool g_isShutdown;
 			if (!g_isShutdown)
 			{
 				ATLASSERT(::IsWindow(m_win_handler));
@@ -108,7 +108,7 @@ class CFlySpeakerAdapter : public CFlyHandlerAdapter
 		}
 		BOOL force_speak() const
 		{
-			extern bool g_isShutdown;
+			extern volatile bool g_isShutdown;
 			dcassert(!g_isShutdown);
 			ATLASSERT(::IsWindow(m_win_handler));
 			const auto l_res = PostMessage(m_win_handler, WM_SPEAKER, 0, 0);

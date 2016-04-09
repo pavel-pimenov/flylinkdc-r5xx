@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2011-2016 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -226,6 +226,7 @@ class CFlyServerConfig
 		static StringSet g_virus_ext;
 		static StringSet g_ignore_flood_command;
 		static StringSet g_block_share_ext;
+		static StringSet g_video_ext;
 		static StringSet g_custom_compress_ext;
 		static StringSet g_block_share_name;
 		static StringList g_block_share_mask;
@@ -236,6 +237,8 @@ class CFlyServerConfig
 		}
 		static bool SyncAntivirusDB(bool& p_is_need_reload);
 	public:
+		static bool SyncXXXBlockDB();
+		
 		void loadConfig();
 		static void SyncAntivirusDBSafe();
 		
@@ -248,7 +251,8 @@ class CFlyServerConfig
 		static bool isVirusExt(const string& p_ext);
 		static bool isIgnoreFloodCommand(const string& p_command);
 		static bool isCompressExt(const string& p_ext);
-		static bool isBlockShare(const string& p_name);
+		static bool isBlockShareExt(const string& p_name, const string& p_ext);
+		static bool isVideoShareExt(const string& p_ext);
 		static std::vector<StringPair> getDeadHub();
 		static int getAlternativeHub(string& p_url);
 		string DBDelete();
@@ -267,6 +271,8 @@ class CFlyServerConfig
 		static uint16_t g_unique_files_for_virus_detect;
 		static DWORD    g_max_size_for_virus_detect;
 		static bool     g_is_append_cid_error_log;
+		static bool     g_is_use_hit_media_files;
+		static bool     g_is_use_hit_binary_files;
 		
 #ifdef USE_SUPPORT_HUB
 		static string   g_support_hub;
@@ -283,6 +289,7 @@ class CFlyServerConfig
 		static std::unordered_set<std::string> g_block_hubs;
 		static string g_regex_find_ip;
 		static string g_faq_search_does_not_work;
+		static string   g_xxx_block_db_url;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		static string   g_antivirus_db_url;
 #endif

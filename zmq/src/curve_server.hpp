@@ -36,7 +36,7 @@
 
 #if defined (ZMQ_USE_TWEETNACL)
 #   include "tweetnacl.h"
-#elif defined (HAVE_LIBSODIUM)
+#elif defined (ZMQ_USE_LIBSODIUM)
 #   include "sodium.h"
 #endif
 
@@ -129,7 +129,6 @@ namespace zmq
 
         void send_zap_request (const uint8_t *key);
         int receive_and_process_zap_reply ();
-        mutex_t sync;
     };
 
 }

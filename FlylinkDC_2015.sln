@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "flylinkdc", "flylinkdc_2015.vcxproj", "{E82610AA-B6FD-4813-B5B9-E717CBD0F23B}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -48,6 +48,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "natpmp", "natpmp\natpmp_2015.vcxproj", "{BFA63DD8-95FC-7A39-5D84-D995B2863FE8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "openssl", "openssl\openssl_2015.vcxproj", "{B9F644C2-F9DE-4648-B613-43755D81EA3B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmq", "zmq\zmq_2015.vcxproj", "{17AB24A7-9FAB-4F6F-B411-01C9FF54E22D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -169,6 +171,14 @@ Global
 		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.Release|Win32.Build.0 = Release|Win32
 		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.Release|x64.ActiveCfg = Release|x64
 		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.Release|x64.Build.0 = Release|x64
+		{17AB24A7-9FAB-4F6F-B411-01C9FF54E22D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{17AB24A7-9FAB-4F6F-B411-01C9FF54E22D}.Debug|Win32.Build.0 = Debug|Win32
+		{17AB24A7-9FAB-4F6F-B411-01C9FF54E22D}.Debug|x64.ActiveCfg = Debug|x64
+		{17AB24A7-9FAB-4F6F-B411-01C9FF54E22D}.Debug|x64.Build.0 = Debug|x64
+		{17AB24A7-9FAB-4F6F-B411-01C9FF54E22D}.Release|Win32.ActiveCfg = Release|Win32
+		{17AB24A7-9FAB-4F6F-B411-01C9FF54E22D}.Release|Win32.Build.0 = Release|Win32
+		{17AB24A7-9FAB-4F6F-B411-01C9FF54E22D}.Release|x64.ActiveCfg = Release|x64
+		{17AB24A7-9FAB-4F6F-B411-01C9FF54E22D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

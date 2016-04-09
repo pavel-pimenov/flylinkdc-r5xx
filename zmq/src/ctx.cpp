@@ -51,7 +51,7 @@
 
 #if defined (ZMQ_USE_TWEETNACL)
 #   include "tweetnacl.h"
-#elif defined (HAVE_LIBSODIUM)
+#elif defined (ZMQ_USE_LIBSODIUM)
 #   include "sodium.h"
 #endif
 
@@ -93,6 +93,17 @@ zmq::ctx_t::ctx_t () :
     vmci_fd = -1;
     vmci_family = -1;
 #endif
+
+    crypto_sync.lock ();
+#if defined (ZMQ_USE_TWEETNACL)
+    // allow opening of /dev/urandom
+    unsigned char tmpbytes[4];
+    randombytes(tmpbytes, 4);
+#elif defined (ZMQ_USE_SODIUM)
+    int rc = sodium_init ();
+    zmq_assert (rc != -1);
+#endif
+    crypto_sync.unlock ();
 }
 
 bool zmq::ctx_t::check_tag ()

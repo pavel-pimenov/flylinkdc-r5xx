@@ -1350,6 +1350,7 @@ enum Strings   // @DontAdd
 	SETTINGS_FIREWALL_NAT, // "Firewall with manual port forwarding"
 	SETTINGS_FIREWALL_PASSIVE, // "Firewall (passive, the worst case)"
 	SETTINGS_FIREWALL_PASSIVE_FORCE, // "Force firewall mode (passive!)"
+	SETTINGS_XXX_BLOCK_SHARE, // "Block XXX file for Sharing!"
 	SETTINGS_FIREWALL_AUTO_PASSIVE, // "Automatic passive connection (timeout at 2 minutes)"
 	SETTINGS_FIREWALL_BLOCK_DOWNLOAD_FROM_AVDB_USERS, // "Block download from virus-users (AVDB)"
 	SETTINGS_FIREWALL_UPNP, // "UPnP (for WiFi router)"

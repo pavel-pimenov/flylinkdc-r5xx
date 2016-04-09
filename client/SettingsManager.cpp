@@ -170,7 +170,7 @@ const string SettingsManager::g_settingTags[] =
 	"IncomingConnections",
 	"AvdbBlcokConnections",
 	"AutoPassiveIncomingConnections",
-	"ForcePassiveIncomingConnections", "InPort", "Slots", "AutoFollow", "ClearSearch",
+	"XXXBlockShare", "ForcePassiveIncomingConnections", "InPort", "Slots", "AutoFollow", "ClearSearch",
 	"BackgroundColor", "TextColor", "ShareHidden",
 	"ShareVirtual", "ShareSystem", //[+] IRainman
 	"FilterMessages", "MinimizeToTray",
@@ -1296,6 +1296,7 @@ void SettingsManager::setDefaults()
 	setDefault(INT_PREVIEW_USE_VIDEO_SCROLL, TRUE);
 	setDefault(INT_PREVIEW_START_CLIENT, TRUE);
 	setDefault(AVDB_BLOCK_CONNECTIONS, TRUE);
+	setDefault(XXX_BLOCK_SHARE, TRUE);
 #ifdef NIGHTORION_USE_STATISTICS_REQUEST
 	setDefault(SETTINGS_STATISTICS_ASK, TRUE);
 #endif

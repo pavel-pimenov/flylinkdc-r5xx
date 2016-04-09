@@ -18,7 +18,6 @@
 
 #include "stdinc.h"
 #include "MappingManager.h"
-#include "format.h"
 #include "ConnectionManager.h"
 #include "ConnectivityManager.h"
 #include "CompatibilityManager.h"

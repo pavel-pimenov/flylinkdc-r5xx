@@ -3608,7 +3608,7 @@ void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 		speak(ADD_STATUS_LINE, STRING(PRESS_FOLLOW) + ' ' + line, true);
 	}
 }
-void HubFrame::on(ClientListener::Failed, const Client* c, const string& line) noexcept
+void HubFrame::on(ClientListener::ClientFailed, const Client* c, const string& line) noexcept
 {
 	if (!ClientManager::isShutdown())
 	{

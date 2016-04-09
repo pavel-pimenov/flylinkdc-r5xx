@@ -17,7 +17,6 @@
  */
 
 #include "stdinc.h"
-#include "format.h"
 #include "ConnectivityManager.h"
 #include "ClientManager.h"
 #include "ConnectionManager.h"

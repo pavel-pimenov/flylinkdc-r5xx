@@ -28,6 +28,7 @@ doctor-dump
 test
 leveldb
 snappy
+cppformat
 src_exclude.txt
 src_include.txt
 Doxyfile

@@ -2,11 +2,12 @@
 <Bootstraps>
 	<server url="http://dht.fly-server.ru/dcDHT.php"/>
 	<antispam url="support.dchublist.biz" />
+	<antispam url="http://linkstar.pro"/>
 	<antispam url="dchublist.biz/?do=hublist.xml.bz2"/>
 	<antispam url="tsdhub.info"/>
 	<antispam url="http://hublist.dchub.net"/>
-	<antispam url="dchub://sexy-hub.ru"/>
 	<antispam url="dchub://aab-new-adrenalin.ru"/>
+	<antispam url="dchub://sexy-hub.ru"/>
 	<antispam url="www.pribambasiki.ru"/>
 	<antispam url="new games ugadajjka"/>
 	<antispam url="hub.sovietred.ru:4111"/>
@@ -34,14 +35,17 @@
 		ban_flood_command="20"
 		exclude_error_syslog="9,5,16,10,4,17,26,29,25,24,36,39,43,40,46,44,41,48,47,55,54"
 		append_cid_error_log="1"
+		use_hit_media_files="0"
+		use_hit_binary_files="0"
 		regex_find_ip="(\d\d?\d?\.\d\d?\d?\.\d\d?\d?\.\d\d?\d?)"
 		exclude_error_log="9,5,16,10,4,17,26,29,25,24,36,39,43,40,48,47,46,55,54"
 		exclude_cid_error_log="35,38,45,32,34,49"
 		ignore_flood_command="Search,Quit,MyINFO,UserIP,RevConnectToMe,ConnectToMe,UserCommand,ExtJSON"
 		zlib_compress_level = "9"
-		scan ="avi,mkv,mp3,flac,ogg,mp4,mpg,divx,flv,mov,mpeg,wma,m2ts,exe,wv"
-		mediainfo_ext ="3gp,avi,divx,flv,m4v,mkv,dts,mov,mp4,mpg,mpeg,vob,wmv,bik,qt,rm,aac,ac3,ape,fla,flac,m4a,mp1,mp2,mp3,ogg,wma,wv,mka,vqf,lqt,ts,tp,mod,m2ts,webm"
-		virus_ext ="exe.exe,avi.exe,dvdrip.exe,flac.exe,mp4.exe,"
+		scan ="avi,mkv,mp3,flac,ogg,mp4,mpg,divx,flv,mov,mpeg,wma,m2ts,exe,wv,mpe"
+		mediainfo_ext ="3gp,avi,divx,flv,m4v,mkv,dts,mov,mp4,mpg,mpeg,vob,wmv,bik,qt,rm,aac,ac3,ape,fla,flac,m4a,mp1,mp2,mp3,ogg,wma,wv,mka,vqf,lqt,ts,tp,mod,m2ts,webm,mpe"
+		video_ext ="avi,divx,mkv,mov,flv,mp4,mpg,mpeg,wmv,mpe"
+		virus_ext ="exe.exe,avi.exe,dvdrip.exe,flac.exe,mp4.exe"
 		type= "http"
 		exclude_tag = "Format_Settings_Matrix_Data,Codec/Extensions,Format/Extensions,Cover,Cover_Type,Cover_Mime,StreamSize_Proportion,Cover_Data,Encoded_Library_Settings,CodecID/Url,Codec/Url,CompleteName,UniqueID,Unique ID,UniqueID/String,Encoded_Application,Format/Url,FolderName,File_Created_Date_Local,File_Modified_Date,File_Modified_Date_Local,FileName,FileSize,File_Created_Date,Tagged_Date,Album replay gain,Album replay gain peak,Comment,Copyright,Cover type,Cover MIME,GRACENOTEFILEID,GRACENOTEEXTDATA,Overall bit rate mode,Overall bit rate,NOTES,Alignment,Menu ID,Replay gain,Replay gain peak,Source,Forced,Encoded_Library/Date,Cover_Description,Encoded_Date,EncodedBy,Encoded_Library/Version,Encoded_Library,HeaderSize,ISRC,Mastered_Date,Menu_Codec_List,MenuCount,Mood,Original/Released_Date,Source_Duration_LastFrame,Source_StreamSize_Encoded,TimeCode_FirstFrame"
 		include_tag = ""
@@ -51,7 +55,7 @@
 		block_share_ext = "jc!,ob!,dmf,mta,dmfr,!ut,part,!bt,bc!,getright,antifrag,pusd,dusd,download,crdownload,gltth,kwm,pwm"
 		block_share_name = "thumbs.db,zbthumbnail.info"
 		block_share_mask = "~utorrentpartfile*,.~lock.*.*#"
-		custom_compress_ext = "msi,3gp,avi,divx,flv,m4v,mkv,mov,mp4,mpg,mpeg,vob,wmv,bik,qt,rm,dts,aac,ac3,ape,fla,flac,m4a,mp1,mp2,mp3,ogg,wma,wv,mka,vqf,lqt,tiff,tif,jpg,gif,djvu,djv,part1,part2,part3,part4,part5,part6,part7,part8,part9,part10,cab,cso,0,000,7z,a01,ace,ain,alz,apz,ar,arc,arh,ari,arj,ark,axx,bhx,bz,bz2,bzip,bzip2,c00,c01,c02,car,cb7,cbr,cbz,deb,dgc,dist,f,fdp,gca,gz,gzi,gzip,ha,hbc,hbc2,hbe,hki,hki2,hpk,hyp,ice,ipg,ipk,ish,j,jgz,jic,kgb,lbr,lha,lzh,lzma,lzo,lzx,pak,paq6,paq7,paq8,par,par2,pbi,pea,pf,pim,pit,piz,pkg,puz,qda,r00,r01,r02,r03,r04,r05,r06,r07,r08,r09,rar,rev,rk,rpm,rte,rzs,s00,s01,s02,sar,sdn,sea,sen,sfs,sfx,sh,shar,shr,sit,sitx,spt,sqx,sqz,tbz,tbz2,tg,tgz,tlz,tlzma,txz,tz,uha,wad,war,xef,xez,xmcdz,xpi,xz,y,z,z02,z04,zap,zip,zipx,zix,zoo,zpi,zz,png,jar,chm"
+		custom_compress_ext = "msi,3gp,avi,divx,flv,m4v,mkv,mov,mp4,mpg,mpeg,vob,wmv,bik,qt,rm,dts,aac,ac3,ape,fla,flac,m4a,mp1,mp2,mp3,ogg,wma,wv,mka,vqf,lqt,tiff,tif,jpg,gif,djvu,djv,part1,part2,part3,part4,part5,part6,part7,part8,part9,part10,cab,cso,0,000,7z,a01,ace,ain,alz,apz,ar,arc,arh,ari,arj,ark,axx,bhx,bz,bz2,bzip,bzip2,c00,c01,c02,car,cb7,cbr,cbz,deb,dgc,dist,f,fdp,gca,gz,gzi,gzip,ha,hbc,hbc2,hbe,hki,hki2,hpk,hyp,ice,ipg,ipk,ish,j,jgz,jic,kgb,lbr,lha,lzh,lzma,lzo,lzx,pak,paq6,paq7,paq8,par,par2,pbi,pea,pf,pim,pit,piz,pkg,puz,qda,r00,r01,r02,r03,r04,r05,r06,r07,r08,r09,rar,rev,rk,rpm,rte,rzs,s00,s01,s02,sar,sdn,sea,sen,sfs,sfx,sh,shar,shr,sit,sitx,spt,sqx,sqz,tbz,tbz2,tg,tgz,tlz,tlzma,txz,tz,uha,wad,war,xef,xez,xmcdz,xpi,xz,y,z,z02,z04,zap,zip,zipx,zix,zoo,zpi,zz,png,jar,chm,jpeg"
 		mapping_hubs = ""  
 		block_hubs = "adc://adchub.com:1687,dchub://mgland.ru,dchub://cinemann.ru,dchub://dc.mgland.ru,dchub://coolhub.ru,dchub://elitedc.ru"
 		block_ip ="206.123.249.115,208.103.122.166,66.212.143.106,217.118.79.44,80.95.0.130,217.118.79.39,208.103.122.165"

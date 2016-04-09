@@ -1345,6 +1345,7 @@
 	<string name="SettingsFirewallNat">Firewall with manual port forwarding</string>
 	<string name="SettingsFirewallPassive">Firewall (passive, the worst case)</string>
 	<string name="SettingsFirewallPassiveForce">Force firewall mode (passive!)</string>
+	<string name="SettingsXxxBlockShare">Block XXX file for Sharing!</string>
 	<string name="SettingsFirewallAutoPassive">Automatic passive connection (timeout at 2 minutes)</string>
 	<string name="SettingsFirewallBlockDownloadFromAvdbUsers">Block download from virus-users (AVDB)</string>
 	<string name="SettingsFirewallUpnp">UPnP (for WiFi router)</string>

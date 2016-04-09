@@ -69,7 +69,7 @@ class Speaker
 			CFlyLockLine(m_listenerCS, l_f.c_str());
 			ListenerList tmp = m_listeners;
 #ifdef _DEBUG
-			extern bool g_isShutdown;
+			extern volatile bool g_isShutdown;
 			if (g_isShutdown && !tmp.empty())
 			{
 				log_listener_list(tmp, "fire-destroy!");
@@ -101,7 +101,7 @@ class Speaker
 			CFlyLock(m_listenerCS);
 			ListenerList tmp = m_listeners;
 #ifdef _DEBUG
-			extern bool g_isShutdown;
+			extern volatile bool g_isShutdown;
 			if (g_isShutdown && !tmp.empty())
 			{
 				log_listener_list(tmp, "fire-destroy!");

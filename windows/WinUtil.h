@@ -1508,6 +1508,7 @@ class WinUtil
 		static HIconWrapper g_hThermometerIcon;
 		//static HIconWrapper g_hCrutchIcon;
 		static HIconWrapper g_hFirewallIcon;
+		static HIconWrapper g_hXXXBlockIcon;
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 		static HIconWrapper g_hClockIcon;
 #endif

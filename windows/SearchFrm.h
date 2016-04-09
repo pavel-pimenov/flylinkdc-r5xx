@@ -910,7 +910,10 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		}
 		void on(ClientDisconnected, const Client* c) noexcept override
 		{
-			speak(HUB_REMOVED, c);
+			if (!ClientManager::isShutdown())
+			{
+				speak(HUB_REMOVED, c);
+			}
 		}
 		void on(SettingsManagerListener::Repaint) override;
 		

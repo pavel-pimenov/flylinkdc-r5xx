@@ -22,7 +22,6 @@
 #include "LogManager.h"
 #include "SettingsManager.h"
 #include "ResourceManager.h"
-#include "format.h"
 #include "StringTokenizer.h"
 
 #include <openssl/err.h>
@@ -210,7 +209,7 @@ int SSLSocket::checkSSL(int ret)
 				{
 					if (ret == 0)
 					{
-						dcdebug("TLS error: call ret = %d, SSL_get_error = %d, ERR_get_error = " U64_FMT "\n", ret, err, sys_err);
+						dcdebug("TLS error: call ret = %d, SSL_get_error = %d, ERR_get_error = %lu\n", ret, err, sys_err);
 						throw SSLSocketException(STRING(CONNECTION_CLOSED));
 					}
 					sys_err = getLastError();

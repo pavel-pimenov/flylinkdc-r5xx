@@ -1638,7 +1638,7 @@ void NmdcHub::toParse(const string& param)
 #ifdef FLYLINKDC_BETA
 		LogManager::message("NmdcHub::toParse msgText.empty() param = " + param + " Hub = " + getHubUrl());
 #endif
-		dcassert(0);
+		//dcassert(0);
 		return;
 	}
 	const auto l_user_for_message = findUser(rtNick);

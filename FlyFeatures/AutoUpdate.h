@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2011-2016 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,9 +115,9 @@ class AutoUpdate :
 		}
 		void shutdownAndUpdate();
 		
-		bool getExitOnUpdate() const
+		static bool getExitOnUpdate()
 		{
-			return m_exitOnUpdate;
+			return g_exitOnUpdate;
 		}
 		
 		enum UpdateResult
@@ -133,12 +133,15 @@ class AutoUpdate :
 		HWND m_mainFrameHWND;
 		AutoUpdateGUIMethod* m_guiDelegate;
 		bool m_manualUpdate;
-		bool m_exitOnUpdate;
+		static bool g_exitOnUpdate;
 		tstring m_updateFolder;
 		
 		friend class Singleton<AutoUpdate>;
 		
-		explicit AutoUpdate() : m_isUpdateStarted(0), m_isUpdate(false), m_manualUpdate(false), m_exitOnUpdate(false), m_mainFrameHWND(nullptr), m_guiDelegate(nullptr) {}
+		explicit AutoUpdate() : m_isUpdateStarted(0), m_isUpdate(false), m_manualUpdate(false), m_mainFrameHWND(nullptr), m_guiDelegate(nullptr)
+		{
+			g_exitOnUpdate = false;
+		}
 		
 		virtual ~AutoUpdate()
 		{

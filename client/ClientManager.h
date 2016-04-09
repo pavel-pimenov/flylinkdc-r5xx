@@ -297,7 +297,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static void clear();
 		static bool isShutdown()
 		{
-			extern bool g_isShutdown;
+			extern volatile bool g_isShutdown;
 			return g_isShutdown;
 		}
 		static bool isStartup()
@@ -385,7 +385,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		void on(Connected, const Client* c) noexcept override;
 		void on(UserUpdatedMyINFO, const OnlineUserPtr& user) noexcept override;
 		void on(UsersUpdated, const Client* c, const OnlineUserList&) noexcept override;
-		void on(Failed, const Client*, const string&) noexcept override;
+		void on(ClientFailed, const Client*, const string&) noexcept override;
 		void on(HubUpdated, const Client* c) noexcept override;
 		void on(HubUserCommand, const Client*, int, int, const string&, const string&) noexcept override;
 		// TODO void on(TTHSearch, Client* aClient, const string& aSeeker, const TTHValue& aTTH, bool isPassive) noexcept override;

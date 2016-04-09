@@ -1979,7 +1979,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 		
 		LRESULT onMDIActivate(UINT /*uMsg*/, WPARAM /*wParam */, LPARAM lParam, BOOL& bHandled)
 		{
-			extern bool g_isShutdown;
+			extern volatile bool g_isShutdown;
 			//dcassert(!g_isShutdown);
 			if (!g_isShutdown)
 			{

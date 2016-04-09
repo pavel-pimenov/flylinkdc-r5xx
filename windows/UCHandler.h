@@ -107,7 +107,7 @@ class UCHandler
 					subMenu.CreatePopupMenu();
 					subMenu.InsertSeparatorLast(TSTRING(SETTINGS_USER_COMMANDS));
 					
-					menu.AppendMenu(MF_POPUP, (UINT)(HMENU)subMenu, CTSTRING(SETTINGS_USER_COMMANDS));
+					menu.AppendMenu(MF_POPUP, (HMENU)subMenu, CTSTRING(SETTINGS_USER_COMMANDS));
 				}
 				
 				CMenuHandle cur = BOOLSETTING(UC_SUBMENU) ? subMenu.m_hMenu : menu.m_hMenu;

@@ -183,7 +183,16 @@ class DirectoryListing : public UserInfoBase
 #define FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
 #endif
 #ifdef FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
-		static boost::unordered_map<string, unsigned> g_ext_stat;
+		struct CFlyStatExt
+		{
+			unsigned m_count;
+			uint64_t m_min_size;
+			uint64_t m_max_size;
+			CFlyStatExt() : m_count(0), m_min_size(std::numeric_limits<uint64_t>::max()), m_max_size(0)
+			{
+			}
+		};
+		static boost::unordered_map<string, CFlyStatExt> g_ext_stat;
 #endif
 		
 		void download(const string& aDir, const string& aTarget, bool highPrio, QueueItem::Priority prio = QueueItem::DEFAULT);

@@ -195,29 +195,32 @@ LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		OffsetRect(&rc, -rc.left, -rc.top);
 		RECT rc2 = rc;
 		RECT rc3 = rc;
-		rc2.top = 7;
+		rc2.top = 2;
 		rc2.right = rc2.right - 5;
 		::SetBkMode(dc, TRANSPARENT);
-		rc3.top = rc3.bottom - 20;
+		rc3.top = rc3.bottom - 15;
+		rc3.left = rc3.right - 120;
 		
-		HDC comp = CreateCompatibleDC(dc); // [+]
-		if (g_splash_png)
 		{
-			SelectObject(comp, *g_splash_png); // [+]
+			HDC l_comp = CreateCompatibleDC(dc); // [+]
+			if (g_splash_png)
+			{
+				SelectObject(l_comp, *g_splash_png); // [+]
+			}
+			
+			BitBlt(dc, 0, 0, g_splash_size_x, g_splash_size_y, l_comp, 0, 0, SRCCOPY);
+			DeleteDC(l_comp);
 		}
-		
-		BitBlt(dc, 0, 0 , g_splash_size_x, g_splash_size_y, comp, 0, 0, SRCCOPY);
-		DeleteDC(comp);
 		LOGFONT logFont = {0};
 		GetObject(GetStockObject(DEFAULT_GUI_FONT), sizeof(logFont), &logFont);
 		lstrcpy(logFont.lfFaceName, TEXT("Tahoma"));
-		logFont.lfHeight = 13;
+		logFont.lfHeight = 11;
 		const HFONT hFont = CreateFontIndirect(&logFont);
 		CSelectFont l_font(dc, hFont); //-V808
 		::SetTextColor(dc, RGB(179, 179, 179)); // [~] Sergey Shushkanov
 		const tstring l_progress = g_sSplashText;
 		::DrawText(dc, l_progress.c_str(), l_progress.length(), &rc2, DT_CENTER); //-V107
-		::SetTextColor(dc, RGB(120, 120, 120));
+		::SetTextColor(dc, RGB(50, 50, 50));
 		const tstring l_version = T_VERSIONSTRING;
 		::DrawText(dc, l_version.c_str(), l_version.length(), &rc3, DT_CENTER);
 		DeleteObject(hFont);
@@ -298,10 +301,9 @@ void CreateSplash()
 					g_splash_png->LoadFromResource(p_res, _T("PNG"), _Module.get_m_hInst());
 				};
 				
-				//  auto isDAY = [](int m, int d) -> bool
-				//  {
-				//      return  g_month == m && g_day == d;
-				//  };
+				bool is_found = false;
+				
+#ifdef FLYLINKDC_USE_WINTER_SPLASH
 				auto isDAYS = [](int m1, int d1, int m2, int d2) -> bool
 				{
 					if (m2 == 0 && d2 == 0)
@@ -326,7 +328,6 @@ void CreateSplash()
 					{1, 10, 2, 29,  IDR_SPLASH_WINTER},     // zima
 					{5, 8, 5, 10,   IDR_SPLASH_9MAY},       // 9 may
 				};
-				bool d_found = false;
 				for (int i = 0; i < n_day; i++)
 				{
 					if (isDAYS(g_dates[i].m_st, g_dates[i].d_st, g_dates[i].m_en, g_dates[i].d_en))
@@ -335,35 +336,15 @@ void CreateSplash()
 						d_found = true;
 					}
 				}
-				if (!d_found)
+#endif
+				if (!is_found)
+				{
 					load_splash(IDR_SPLASH);
-					
-				/*
-				if (isDAYS(5, 8, 10))
-				    load_splash(IDR_SPLASH_9MAY);
-				else if (isDAYS(12, 1, 30) ||
-				         isDAYS(1, 10, 31) ||
-				         isDAYS(2, 1, 28))
-				    load_splash(IDR_SPLASH_WINTER);
-				else if (isDAY(12, 31) || isDAYS(1, 1, 9))
-				    load_splash(IDR_SPLASH_NY1);
-				else
-				    load_splash(IDR_SPLASH);
-				*/
+				}
 			}
 		}
 		g_splash_size_x = g_splash_png->GetWidth();
 		g_splash_size_y = g_splash_png->GetHeight();
-		
-		// Check sizes there, and set standard splash if need  -> load_splash(IDR_SPLASH);
-		/*
-		if ((g_splash_size_x<200 && g_splash_size_x>500) || (g_splash_size_y<80 && g_splash_size_y>500))
-		{
-		    load_splash(IDR_SPLASH);
-		    g_splash_size_x = g_splash_png->GetWidth();
-		    g_splash_size_y = g_splash_png->GetHeight();
-		}
-		*/
 		
 		g_splash.SetFont((HFONT)GetStockObject(DEFAULT_GUI_FONT));
 		

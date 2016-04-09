@@ -1219,7 +1219,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 				}
 				else
 				{
-					singleMenu.EnableMenuItem((UINT)(HMENU)segmentsMenu, MFS_DISABLED);
+					singleMenu.EnableMenuItem((UINT_PTR)(HMENU)segmentsMenu, MFS_DISABLED);
 				}
 				
 				menuItems = 0;

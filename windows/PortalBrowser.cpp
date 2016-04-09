@@ -479,7 +479,7 @@ LRESULT PortalBrowserFrame::HandleFullScreen(UINT /*uMsg*/, WPARAM wParam, LPARA
 {
 	bool bActive = wParam != 0;
 	
-	extern bool g_isShutdown;
+	extern volatile bool g_isShutdown;
 	if (!g_isShutdown)
 	{
 		if (bActive && IsZoomed())

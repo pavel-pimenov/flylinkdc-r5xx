@@ -236,13 +236,13 @@ unsigned int WINAPI MainFrame::stopper(void* p)
 		if (wnd == wnd2)
 		{
 #ifdef _DEBUG
-			LogManager::message("MainFrame::stopper Sleep(10) wnd = " + Util::toString(int(wnd)));
+			LogManager::message("MainFrame::stopper Sleep(10) wnd = " + Util::toString(wnd));
 #endif
 			Sleep(10);
 			if (l_result > 1000)
 			{
 				//dcassert(0);
-				LogManager::message("MainFrame::stopper Sleep(10) wnd = " + Util::toString(int(wnd)) + " count > 1000!");
+				LogManager::message("MainFrame::stopper Sleep(10) wnd = " + Util::toString(wnd) + " count > 1000!");
 				//break;
 			}
 		}
@@ -250,17 +250,17 @@ unsigned int WINAPI MainFrame::stopper(void* p)
 		{
 			if (l_result > 1)
 			{
-				LogManager::message("MainFrame::stopper duplicate ::PostMessage wnd = " + Util::toString(int(wnd)));
+				LogManager::message("MainFrame::stopper duplicate ::PostMessage wnd = " + Util::toString(wnd));
 				dcassert(0);
 			}
 			const auto l_post_result = ::PostMessage(wnd, WM_CLOSE, 0, 0);
 			if (l_post_result == 0)
 			{
 				dcassert(0);
-				LogManager::message("MainFrame::stopper ::PostMessage(wnd, WM_CLOSE, 0, 0) == 0[!] wnd = " + Util::toString(int(wnd)));
+				LogManager::message("MainFrame::stopper ::PostMessage(wnd, WM_CLOSE, 0, 0) == 0[!] wnd = " + Util::toString(wnd));
 			}
 #ifdef _DEBUG
-			LogManager::message("MainFrame::stopper ::PostMessage(wnd, WM_CLOSE, 0, 0) wnd = " + Util::toString(int(wnd)));
+			LogManager::message("MainFrame::stopper ::PostMessage(wnd, WM_CLOSE, 0, 0) wnd = " + Util::toString(wnd));
 #endif
 			wnd2 = wnd;
 		}
@@ -513,8 +513,10 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 #endif // NIGHTORION_USE_STATISTICS_REQUEST
 	
 	if (AutoUpdate::getInstance()->startupUpdate()) // [+] SSA Auto update on startup.
+	{
 		return -1;
-		
+	}
+	
 	QueueManager::getInstance()->addListener(this);
 	WebServerManager::getInstance()->addListener(this);
 	UserManager::getInstance()->addListener(this); // [+] IRainman
@@ -2720,7 +2722,7 @@ LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	// [+] InfinitySky. Выбор между сворачиванием и закрытием.
-	if (!AutoUpdate::getInstance()->getExitOnUpdate() && BOOLSETTING(MINIMIZE_ON_CLOSE) && !m_menuclose) // [+] InfinitySky. Сворачивать при закрытии, если выбрана эта опция в настройках и закрытие не через меню.
+	if (!AutoUpdate::getExitOnUpdate() && BOOLSETTING(MINIMIZE_ON_CLOSE) && !m_menuclose) // [+] InfinitySky. Сворачивать при закрытии, если выбрана эта опция в настройках и закрытие не через меню.
 	{
 		ShowWindow(SW_MINIMIZE);
 	}
@@ -2761,8 +2763,10 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				if (HashManager::getInstance()->IsHashing())
 				{
 					bool bForceStopExit = false;
-					if (AutoUpdate::getInstance()->getExitOnUpdate())
+					if (AutoUpdate::getExitOnUpdate())
+					{
 						HashManager::getInstance()->stopHashing(Util::emptyString);
+					}
 					else
 					{
 						if (!HashProgressDlg::g_is_execute) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1126
@@ -2787,7 +2791,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				}
 			}
 			
-			UINT checkState = AutoUpdate::getInstance()->getExitOnUpdate() ? BST_UNCHECKED : (BOOLSETTING(CONFIRM_EXIT) ? BST_CHECKED : BST_UNCHECKED); // [+] FlylinkDC.
+			UINT checkState = AutoUpdate::getExitOnUpdate() ? BST_UNCHECKED : (BOOLSETTING(CONFIRM_EXIT) ? BST_CHECKED : BST_UNCHECKED); // [+] FlylinkDC.
 			
 			if ((m_oldshutdown || SETTING(PROTECT_CLOSE) || (checkState == BST_UNCHECKED) || (bForceNoWarning || ::MessageBox(m_hWnd, CTSTRING(REALLY_EXIT), T_APPNAME_WITH_VERSION, CTSTRING(ALWAYS_ASK), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)) && !m_stopexit) // [~] InfinitySky.
 			{
@@ -2835,8 +2839,10 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				m_menuclose = false; // [+] InfinitySky. Отключаем метку закрытия через меню, на случай, если в окне предупреждения о закрытии будет отмена закрытия.
 			}
 			// Let's update the setting checked box means we bug user again...
-			if (!AutoUpdate::getInstance()->getExitOnUpdate())
+			if (!AutoUpdate::getExitOnUpdate())
+			{
 				SET_SETTING(CONFIRM_EXIT, checkState != BST_UNCHECKED); // [+] InfinitySky.
+			}
 			bHandled = TRUE;
 		}
 		else

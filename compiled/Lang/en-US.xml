@@ -1382,6 +1382,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SetczdcTransferLimiting">Limit transfer speeds</String>
 		<String Name="SetczdcWinamp">What is your player?</String>
 		<String Name="Settings">Settings</String>
+		<string name="SettingsWanIpManual">Manual WAN IP</string>
 		<String Name="SettingsAdcDebug">Debug ADC protocol</String>
 		<String Name="SettingsAddFavoriteDirs">Add/Change Favorite directories</String>
 		<String Name="SettingsAddFolder">&amp;Add folder</String>

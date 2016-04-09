@@ -3785,12 +3785,12 @@ void CFlylinkDBManager::sweep_db()
 			}
 			l_trans.commit();
 		}
-		load_path_cache();
 		{
 			const char* l_clean_path = "delete from fly_path where not exists (select * from fly_file where dic_path=fly_path.id)";
 			CFlyLogFile l_log(l_clean_path);
 			m_flySQLiteDB.executenonquery(l_clean_path);
 		}
+		load_path_cache();
 		{
 			clean_fly_hash_blockL();
 			{
@@ -3817,41 +3817,45 @@ void CFlylinkDBManager::sweep_db()
 //========================================================================================================
 void CFlylinkDBManager::prepare_scan_folder(const tstring& p_path)
 {
-	WIN32_FIND_DATA fData;
-	dcassert(p_path[p_path.size() - 1] == L'\\');
-	HANDLE hFind = FindFirstFileEx(File::formatPath((p_path + _T('*'))).c_str(),
-	                               CompatibilityManager::g_find_file_level,
-	                               &fData,
-	                               FindExSearchLimitToDirectories, // Only Folder
-	                               NULL,
-	                               CompatibilityManager::g_find_file_flags);
-	                               
-	if (hFind != INVALID_HANDLE_VALUE)
+	dcassert(!ClientManager::isShutdown());
+	if (!ClientManager::isShutdown())
 	{
-		do
+		WIN32_FIND_DATA fData;
+		dcassert(p_path[p_path.size() - 1] == L'\\');
+		HANDLE hFind = FindFirstFileEx(File::formatPath((p_path + _T('*'))).c_str(),
+		                               CompatibilityManager::g_find_file_level,
+		                               &fData,
+		                               FindExSearchLimitToDirectories, // Only Folder
+		                               NULL,
+		                               CompatibilityManager::g_find_file_flags);
+		                               
+		if (hFind != INVALID_HANDLE_VALUE)
 		{
-			const tstring l_folder_name = fData.cFileName;
-			if ((fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
-			        (l_folder_name != Util::m_dotT) &&
-			        (l_folder_name != Util::m_dot_dotT))
+			do
 			{
-				const tstring l_lower_folder_nameT = p_path + l_folder_name + _T("\\");
-				const string l_lower_folder_name = Text::toLower(Text::fromT(l_lower_folder_nameT));
-				bool l_is_not_exists = false;
+				const tstring l_folder_name = fData.cFileName;
+				if ((fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
+				        (l_folder_name != Util::m_dotT) &&
+				        (l_folder_name != Util::m_dot_dotT))
 				{
-					CFlyFastLock(m_path_cache_cs);
-					l_is_not_exists = m_path_cache.find(l_lower_folder_name) == m_path_cache.end();
+					const tstring l_lower_folder_nameT = p_path + l_folder_name + _T("\\");
+					const string l_lower_folder_name = Text::toLower(Text::fromT(l_lower_folder_nameT));
+					bool l_is_not_exists = false;
+					{
+						CFlyFastLock(m_path_cache_cs);
+						l_is_not_exists = m_path_cache.find(l_lower_folder_name) == m_path_cache.end();
+					}
+					if (l_is_not_exists)
+					{
+						CFlyLock(m_cs);
+						create_path_idL(l_lower_folder_name, true);
+					}
+					prepare_scan_folder(l_lower_folder_nameT);
 				}
-				if (l_is_not_exists)
-				{
-					CFlyLock(m_cs);
-					create_path_idL(l_lower_folder_name, true);
-				}
-				prepare_scan_folder(l_lower_folder_nameT);
 			}
+			while (!ClientManager::isShutdown() && FindNextFile(hFind, &fData));
+			FindClose(hFind);
 		}
-		while (FindNextFile(hFind, &fData));
-		FindClose(hFind);
 	}
 }
 //========================================================================================================
@@ -3881,7 +3885,7 @@ void CFlylinkDBManager::scan_path(CFlyDirItemArray& p_directories)
 void CFlylinkDBManager::load_path_cache()
 {
 	CFlyLogFile log(STRING(RELOAD_DIR));
-	CFlyLock(m_cs); // пока падаем https://drdump.com/Problem.aspx?ProblemID=118720
+	// CFlyLock(m_cs); // попробуем еще раз отключить лок - хотя раньше тут падали https://drdump.com/Problem.aspx?ProblemID=118720
 	m_convert_ftype_stop_key = 0;
 	{
 		CFlyFastLock(m_path_cache_cs);
@@ -3897,6 +3901,9 @@ void CFlylinkDBManager::load_path_cache()
 		CFlyFastLock(m_path_cache_cs);
 		while (l_q.read())
 		{
+			dcassert(!ClientManager::isShutdown());
+			if (ClientManager::isShutdown())
+				break;
 			m_path_cache.insert(std::make_pair(l_q.getstring(1), CFlyPathItem(l_q.getint64(0), false, l_q.getint(2) == 0)));
 		}
 	}

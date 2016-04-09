@@ -33,13 +33,13 @@ struct OMenuItem
 {
 	typedef vector<OMenuItem*> List;
 	
-	OMenuItem() : ownerdrawn(true), parent(nullptr), m_data(nullptr)
+	OMenuItem() : m_is_ownerdrawn(true), m_parent(nullptr), m_data(nullptr)
 	{
 	}
-	tstring text;
-	OMenu*  parent;
+	tstring m_text;
+	OMenu*  m_parent;
 	void*   m_data;
-	bool    ownerdrawn;
+	bool    m_is_ownerdrawn;
 };
 
 

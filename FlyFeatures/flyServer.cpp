@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2011-2016 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -113,6 +113,8 @@ uint16_t CFlyServerConfig::g_max_flood_command = 100;       // Не более 100 один
 uint16_t CFlyServerConfig::g_ban_flood_command = 10;      // Блокируем на 10 секунд команды если попали в бан
 uint16_t CFlyServerConfig::g_unique_files_for_virus_detect = 2;
 bool     CFlyServerConfig::g_is_append_cid_error_log = true; // Добавлять ID к логу ошибок
+bool     CFlyServerConfig::g_is_use_hit_media_files = false;
+bool     CFlyServerConfig::g_is_use_hit_binary_files = false;
 
 DWORD CFlyServerConfig::g_max_size_for_virus_detect = 10 * 1024 * 1024; // Максимальный размер (10M)
 
@@ -133,12 +135,14 @@ string CFlyServerConfig::g_support_upnp = "http://www.flylinkdc.ru/2015/11/upnp.
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 string CFlyServerConfig::g_antivirus_db_url;
 #endif
+string CFlyServerConfig::g_xxx_block_db_url;
 string CFlyServerConfig::g_faq_search_does_not_work = "http://www.flylinkdc.ru/2014/01/flylinkdc.html";
 StringSet CFlyServerConfig::g_parasitic_files;
 StringSet CFlyServerConfig::g_mediainfo_ext;
 StringSet CFlyServerConfig::g_virus_ext;
 StringSet CFlyServerConfig::g_ignore_flood_command;
 StringSet CFlyServerConfig::g_block_share_ext;
+StringSet CFlyServerConfig::g_video_ext;
 StringSet CFlyServerConfig::g_custom_compress_ext;
 StringSet CFlyServerConfig::g_block_share_name;
 StringList CFlyServerConfig::g_block_share_mask;
@@ -384,9 +388,11 @@ void CFlyServerConfig::loadConfig()
 		const string l_url_config_file = "http://etc.fly-server.ru/etc/flylinkdc-config-r5xx.xml";
 #endif
 		l_fly_server_log.step("Download:" + l_url_config_file);
+		bool l_is_etc_config_online = true;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		if (Util::getDataFromInet(true, l_url_config_file, l_data, 0) == 0)
 		{
+			l_is_etc_config_online = false;
 			l_fly_server_log.step("Error download! Config will be loaded from internal resources");
 #endif //FLYLINKDC_USE_MEDIAINFO_SERVER
 			if (const auto l_size_res = Util::GetTextResource(IDR_FLY_SERVER_CONFIG, l_res_data))
@@ -399,6 +405,8 @@ void CFlyServerConfig::loadConfig()
 			}
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		}
+		
+		
 #endif //FLYLINKDC_USE_MEDIAINFO_SERVER
 		try
 		{
@@ -501,9 +509,15 @@ void CFlyServerConfig::loadConfig()
 					initDWORD("winet_receive_timeout", g_winet_receive_timeout);
 					initDWORD("winet_send_timeout", g_winet_send_timeout);
 					initUINT16("winet_min_response_time_for_log", g_winet_min_response_time_for_log, 50);
-					uint16_t l_is_append_cid_error_log = 0;
-					initUINT16("append_cid_error_log", l_is_append_cid_error_log, 1);
-					g_is_append_cid_error_log = l_is_append_cid_error_log != 0;
+					uint16_t l_int_flag = 0;
+					initUINT16("append_cid_error_log", l_int_flag, 1);
+					g_is_append_cid_error_log = l_int_flag != 0;
+					l_int_flag = 0;
+					initUINT16("use_hit_media_files", l_int_flag, 1);
+					g_is_use_hit_media_files = l_int_flag != 0;
+					l_int_flag = 0;
+					initUINT16("use_hit_binary_files", l_int_flag, 1);
+					g_is_use_hit_binary_files = l_int_flag != 0;
 					
 					m_min_file_size = Util::toInt64(l_xml.getChildAttrib("min_file_size")); // В конфиге min_size - переименовать
 					dcassert(m_min_file_size);
@@ -519,6 +533,7 @@ void CFlyServerConfig::loadConfig()
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 					initString("antivirus_db", g_antivirus_db_url);
 #endif
+					initString("xxx_block_db", g_xxx_block_db_url);
 					
 #ifdef USE_SUPPORT_HUB
 					initString("support_hub", g_support_hub);
@@ -652,6 +667,11 @@ void CFlyServerConfig::loadConfig()
 						g_block_share_ext.insert(n);
 					});
 					g_block_share_ext.insert(g_dc_temp_extension);
+					l_xml.getChildAttribSplit("video_ext", g_video_ext, [this](const string & n)
+					{
+						checkStrKey(n);
+						g_video_ext.insert(n);
+					});
 					l_xml.getChildAttribSplit("custom_compress_ext", g_custom_compress_ext, [this](const string & n)
 					{
 						checkStrKey(n);
@@ -680,6 +700,11 @@ void CFlyServerConfig::loadConfig()
 			dcdebug("CFlyServerConfig::loadConfig parseXML ::Problem: %s\n", e.what());
 			l_fly_server_log.step("parseXML Problem:" + e.getError());
 		}
+		if (l_is_etc_config_online)
+		{
+			// TODO   CFlyServerConfig::SyncXXXBlockDB();
+		}
+		
 		dcassert(!g_ignore_flood_command.empty());
 		if (g_ignore_flood_command.empty())
 		{
@@ -741,6 +766,33 @@ void CFlyServerConfig::SyncAntivirusDBSafe()
 	}
 }
 //======================================================================================================
+
+bool CFlyServerConfig::SyncXXXBlockDB()
+{
+	if (!g_xxx_block_db_url.empty())
+	{
+		//CFlyLog l_log("[Sync XXX Block DB]");
+		string l_buf;
+		std::vector<byte> l_binary_data;
+		CFlyHTTPDownloader l_http_downloader;
+		l_http_downloader.m_is_use_cache = true;
+		l_binary_data.clear();
+		auto l_result_size = l_http_downloader.getBinaryDataFromInet(g_xxx_block_db_url, l_binary_data, g_winet_connect_timeout / 2);
+		if (l_result_size == 0)
+		{
+			const string l_error = "XXX DB error download. URL = " + g_xxx_block_db_url + " Error: " + l_http_downloader.getErroMessage();
+			//l_log.step(l_error);
+			CFlyServerJSON::pushError(60, l_error);
+			return false;
+		}
+		if (l_result_size > 1)
+		{
+			l_buf = string((char*)l_binary_data.data(), l_result_size);
+			return true;
+		}
+	}
+	return false;
+}
 bool CFlyServerConfig::SyncAntivirusDB(bool& p_is_need_reload)
 {
 	p_is_need_reload = false;
@@ -900,11 +952,20 @@ bool CFlyServerConfig::isCompressExt(const string& p_ext)
 {
 	return isCheckName(g_custom_compress_ext, p_ext);
 }
-bool CFlyServerConfig::isBlockShare(const string& p_name)
+bool CFlyServerConfig::isVideoShareExt(const string& p_ext)
+{
+	dcassert(Text::toLower(p_ext) == p_ext);
+	if (isCheckName(g_video_ext, p_ext))
+	{
+		return true;
+	}
+	return false;
+}
+bool CFlyServerConfig::isBlockShareExt(const string& p_name, const string& p_ext)
 {
 	dcassert(Text::toLower(p_name) == p_name);
 	
-	if (isCheckName(g_block_share_ext, Util::getFileExtWithoutDot(p_name))) // Контроль по расширениям
+	if (isCheckName(g_block_share_ext, p_ext)) // Контроль по расширениям
 	{
 		return true;
 	}
@@ -1387,7 +1448,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 59 (36 - устарел)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 60 (36 - устарел)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;

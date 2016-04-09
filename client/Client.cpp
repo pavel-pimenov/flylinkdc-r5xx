@@ -389,7 +389,7 @@ void Client::connect()
 	             catch (const Exception& e)
 	{
 		state = STATE_DISCONNECTED;
-		fly_fire2(ClientListener::Failed(), this, e.getError());
+		fly_fire2(ClientListener::ClientFailed(), this, e.getError());
 	}
 	//m_isActivMode = ClientManager::isActive(fhe); // [+] IRainman opt.
 	updateActivity();
@@ -449,7 +449,7 @@ void Client::on(Connected) noexcept
 			{
 				state = STATE_DISCONNECTED;
 				m_client_sock->removeListener(this);
-				fly_fire2(ClientListener::Failed(), this, "Keyprint mismatch");
+				fly_fire2(ClientListener::ClientFailed(), this, "Keyprint mismatch");
 				return;
 			}
 		}
@@ -485,7 +485,7 @@ void Client::on(Failed, const string& aLine) noexcept
 		FavoriteManager::changeConnectionStatus(getHubUrl(), ConnectionStatus::CONNECTION_FAILURE);
 #endif
 	}
-	fly_fire2(ClientListener::Failed(), this, aLine);
+	fly_fire2(ClientListener::ClientFailed(), this, aLine);
 }
 
 void Client::disconnect(bool p_graceLess)

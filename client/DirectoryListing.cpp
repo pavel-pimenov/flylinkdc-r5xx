@@ -31,7 +31,7 @@
 #include "../FlyFeatures/flyServer.h"
 
 #ifdef FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
-boost::unordered_map<string, unsigned> DirectoryListing::g_ext_stat;
+boost::unordered_map<string, DirectoryListing::CFlyStatExt> DirectoryListing::g_ext_stat;
 #endif
 DirectoryListing::DirectoryListing(const HintedUser& aUser) :
 	hintedUser(aUser), abort(false), root(new Directory(this, nullptr, Util::emptyString, false, false, true)),
@@ -188,14 +188,18 @@ string DirectoryListing::updateXML(const string& xml, bool p_own_list)
 void DirectoryListing::print_stat()
 {
 #ifdef FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
-	std::multimap<unsigned, std::string> l_order_count;
+	std::multimap<unsigned, std::pair< std::string, CFlyStatExt> > l_order_count;
 	for (auto j = g_ext_stat.cbegin(); j != g_ext_stat.cend(); ++j)
 	{
-		l_order_count.insert(std::make_pair(j->second, j->first));
+		const auto& l_item = *j;
+		l_order_count.insert(std::make_pair(j->second.m_count, std::make_pair(j->first, j->second)));
 	}
 	for (auto i = l_order_count.cbegin(); i != l_order_count.cend(); ++i)
 	{
-		LogManager::message("Count files: " + Util::toString(i->first) + " ext: ." + i->second + string(CFlyServerConfig::isCompressExt(i->second) ? string("   [compress]") : string()));
+		LogManager::message("Count files: " + Util::toString(i->first) +
+		                    " max size = " + Util::toString(i->second.second.m_max_size) +
+		                    " min size = " + Util::toString(i->second.second.m_min_size) +
+		                    " ext: ." + i->second.first + string(CFlyServerConfig::isCompressExt(i->second.first) ? string("   [compress]") : string()));
 	}
 #endif // FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
 }
@@ -321,7 +325,13 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			int l_i_hit     = 0;
 			string l_hit;
 #ifdef FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
-			DirectoryListing::g_ext_stat[Util::getFileExtWithoutDot(Text::toLower(l_name))]++;
+			auto& l_item = DirectoryListing::g_ext_stat[Util::getFileExtWithoutDot(Text::toLower(l_name))];
+			l_item.m_count++;
+			if (l_size > l_item.m_max_size)
+				l_item.m_max_size = l_size;
+			if (l_size < l_item.m_min_size)
+				l_item.m_min_size = l_size;
+				
 #endif
 			if (attribs.size() >= 4) // 3 - стандартный DC++, 4 - GreyLinkDC++
 			{

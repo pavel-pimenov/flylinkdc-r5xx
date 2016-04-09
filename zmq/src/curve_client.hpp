@@ -33,11 +33,10 @@
 #ifdef ZMQ_HAVE_CURVE
 
 #include "platform.hpp"
-#include "mutex.hpp"
 
 #if defined (ZMQ_USE_TWEETNACL)
 #   include "tweetnacl.h"
-#elif defined (HAVE_LIBSODIUM)
+#elif defined (ZMQ_USE_LIBSODIUM)
 #   include "sodium.h"
 #endif
 
@@ -119,7 +118,6 @@ namespace zmq
         int produce_initiate (msg_t *msg_);
         int process_ready (const uint8_t *cmd_data, size_t data_size);
         int process_error (const uint8_t *cmd_data, size_t data_size);
-        mutex_t sync;
     };
 
 }

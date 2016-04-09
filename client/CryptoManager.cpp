@@ -763,7 +763,7 @@ string CryptoManager::formatError(X509_STORE_CTX *ctx, const string& message)
 		}
 		else
 		{
-			dcassert(0);
+			//dcassert(0);
 		}
 		
 		tmp = getNameEntryByNID(subject, NID_organizationName);

@@ -445,14 +445,14 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void on(ClientListener::UsersUpdated, const Client*, const OnlineUserList&) noexcept override;
 		void on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr&) noexcept override;
 		void on(ClientListener::Redirect, const Client*, const string&) noexcept override;
-		void on(ClientListener::Failed, const Client*, const string&) noexcept override;
+		void on(ClientListener::ClientFailed, const Client*, const string&) noexcept override;
 		void on(ClientListener::GetPassword, const Client*) noexcept override;
 		void on(ClientListener::HubUpdated, const Client*) noexcept override;
 		void on(ClientListener::Message, const Client*, std::unique_ptr<ChatMessage>&) noexcept override;
 		//void on(PrivateMessage, const Client*, const string &strFromUserName, const UserPtr&, const UserPtr&, const UserPtr&, const string&, bool = true) noexcept override; // !SMT!-S [-] IRainman fix.
-		void on(NickTaken, const Client*) noexcept override;
-		void on(HubFull, const Client*) noexcept override;
-		void on(FirstExtJSON, const Client*) noexcept override;
+		void on(ClientListener::NickTaken, const Client*) noexcept override;
+		void on(ClientListener::HubFull, const Client*) noexcept override;
+		void on(ClientListener::FirstExtJSON, const Client*) noexcept override;
 		void on(ClientListener::CheatMessage, const string&) noexcept override;
 		void on(ClientListener::UserReport, const Client*, const string&) noexcept override; // [+] IRainman
 #ifdef FLYLINKDC_SUPPORT_HUBTOPIC

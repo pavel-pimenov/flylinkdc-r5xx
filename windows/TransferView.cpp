@@ -177,6 +177,15 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	                           IDC_FORCE_PASSIVE_MODE);
 	m_PassiveModeButton.SetIcon(WinUtil::g_hFirewallIcon);
 	m_PassiveModeButton.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
+	m_XXXBlockButton.Create(m_hWnd,
+	                        rcDefault,
+	                        NULL,
+	                        //WS_CHILD| WS_VISIBLE | BS_ICON | BS_AUTOCHECKBOX| BS_PUSHLIKE | BS_FLAT
+	                        WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON | /*BS_AUTOCHECKBOX | */BS_FLAT
+	                        , 0,
+	                        IDC_XXX_BLOCK_MODE);
+	m_XXXBlockButton.SetIcon(WinUtil::g_hXXXBlockIcon);
+	m_XXXBlockButton.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 	m_AutoPassiveModeButton.Create(m_hWnd,
@@ -272,6 +281,9 @@ void TransferView::setButtonState()
 	m_PassiveModeButton.SetCheck(BOOLSETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS) ? BST_CHECKED : BST_UNCHECKED);
 	m_force_passive_tooltip.AddTool(m_PassiveModeButton, ResourceManager::SETTINGS_FIREWALL_PASSIVE_FORCE);
 	
+	m_XXXBlockButton.SetCheck(BOOLSETTING(XXX_BLOCK_SHARE) ? BST_CHECKED : BST_UNCHECKED);
+	m_force_passive_tooltip.AddTool(m_XXXBlockButton, ResourceManager::SETTINGS_XXX_BLOCK_SHARE);
+	
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 	m_AutoPassiveModeButton.SetCheck(BOOLSETTING(AUTO_PASSIVE_INCOMING_CONNECTIONS) ? BST_CHECKED : BST_UNCHECKED);
 	m_active_passive_tooltip.AddTool(m_AutoPassiveModeButton, ResourceManager::SETTINGS_FIREWALL_AUTO_PASSIVE);
@@ -330,6 +342,19 @@ LRESULT TransferView::onForceAutoPassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/,
 }
 #endif
 
+LRESULT TransferView::onXXXBlockMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	if (m_XXXBlockButton.GetCheck() == BST_CHECKED)
+	{
+		SettingsManager::set(SettingsManager::XXX_BLOCK_SHARE, 1);
+	}
+	else
+	{
+		SettingsManager::set(SettingsManager::XXX_BLOCK_SHARE, 0);
+	}
+	setButtonState();
+	return 0;
+}
 LRESULT TransferView::onForcePassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	if (m_PassiveModeButton.GetCheck() == BST_CHECKED)
@@ -352,6 +377,7 @@ void TransferView::UpdateLayout()
 	{
 		m_PassiveModeButton.MoveWindow(2, 2, 45, 24);
 		m_AVDB_BlockButton.MoveWindow(2, 26, 45, 24);
+		m_XXXBlockButton.MoveWindow(2, 48, 45, 24);
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 		m_AutoPassiveModeButton.MoveWindow(2, 48, 45, 24);
 #endif

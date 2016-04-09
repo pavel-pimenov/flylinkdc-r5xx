@@ -66,17 +66,17 @@ BOOL OMenu::CreatePopupMenu()
 void OMenu::InsertSeparator(UINT uItem, BOOL byPosition, const tstring& caption, bool accels /*= false*/)
 {
 	OMenuItem* mi = new OMenuItem();
-	mi->text = caption;
+	mi->m_text = caption;
 	if (!accels)
 	{
-		boost::replace_all(mi->text, _T("&"), Util::emptyStringT);
+		boost::replace_all(mi->m_text, _T("&"), Util::emptyStringT);
 	}
 	// !SMT!-UI
 	// if (mi->text.length() > 25)
 	// {
 	//     mi->text = mi->text.substr(0, 25) + _T("...");
 	// }
-	mi->parent = this;
+	mi->m_parent = this;
 	m_items.push_back(mi);
 	MENUITEMINFO mii = {0};
 	mii.cbSize = sizeof(MENUITEMINFO);
@@ -120,9 +120,9 @@ BOOL OMenu::InsertMenuItem(UINT uItem, BOOL bByPosition, LPMENUITEMINFO lpmii)
 			CopyMemory(&mii, lpmii, sizeof(MENUITEMINFO));
 			lpmii = &mii;
 			OMenuItem* omi = new OMenuItem();
-			omi->ownerdrawn = false;
+			omi->m_is_ownerdrawn = false;
 			omi->m_data = (void*)lpmii->dwItemData;
-			omi->parent = this;
+			omi->m_parent = this;
 			lpmii->dwItemData = (ULONG_PTR)omi;
 			// Do this later on? Then we're out of scope -> mii dead -> lpmii dead pointer
 			return CMenu::InsertMenuItem(uItem, bByPosition, lpmii);
@@ -147,7 +147,7 @@ LRESULT OMenu::onInitMenuPopup(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		if ((mii.fType &= MFT_OWNERDRAW) != MFT_OWNERDRAW && mii.dwItemData != NULL)
 		{
 			OMenuItem* omi = (OMenuItem*)mii.dwItemData;
-			if (omi->ownerdrawn)
+			if (omi->m_is_ownerdrawn)
 			{
 				mii.fType |= MFT_OWNERDRAW;
 				::SetMenuItemInfo(mnu, i, TRUE, &mii);
@@ -171,9 +171,8 @@ LRESULT OMenu::onMeasureItem(HWND /*hWnd*/, UINT /*uMsg*/, WPARAM wParam, LPARAM
 			if (mi)
 			{
 				bHandled = TRUE;
-				const tstring& text = mi->text;
 				SIZE size;
-				CalcTextSize(text, Fonts::g_boldFont, &size);
+				CalcTextSize(mi->m_text, Fonts::g_boldFont, &size);
 				mis->itemWidth = size.cx + 4;
 				mis->itemHeight = size.cy + 8;
 				return TRUE;
@@ -211,7 +210,7 @@ LRESULT OMenu::onDrawItem(HWND /*hWnd*/, UINT /*uMsg*/, WPARAM wParam, LPARAM lP
 				dc.SetTextColor(OperaColors::TextFromBackground(SETTING(MENUBAR_LEFT_COLOR)));
 				{
 					CSelectFont l_font(dc, Fonts::g_boldFont); //-V808
-					dc.DrawText(mi->text.c_str(), mi->text.length(), rc, DT_CENTER | DT_NOPREFIX | DT_SINGLELINE | DT_VCENTER);
+					dc.DrawText(mi->m_text.c_str(), mi->m_text.length(), rc, DT_CENTER | DT_NOPREFIX | DT_SINGLELINE | DT_VCENTER);
 				}
 				
 				{

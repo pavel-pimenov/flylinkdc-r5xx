@@ -41,6 +41,7 @@
 #ifndef ZMQ_STATIC
 #define ZMQ_STATIC  // [+] FlylinkDC++
 #endif
+#define ZMQ_HAVE_WINDOWS_TARGET_XP // [+] FlylinkDC++
 
 /*  Version macros for compile-time API version detection                     */
 #define ZMQ_VERSION_MAJOR 4

@@ -104,7 +104,7 @@ class CGDIImage
 	public:
 		static bool isShutdown()
 		{
-			extern bool g_isShutdown;
+			extern volatile bool g_isShutdown;
 			return g_isShutdown;
 		}
 		static CGDIImage *CreateInstance(LPCWSTR pszFileName, HWND hCallbackWnd, DWORD dwCallbackMsg);

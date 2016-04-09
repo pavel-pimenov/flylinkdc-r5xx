@@ -1136,21 +1136,6 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 		if (i->isVirtual() && !BOOLSETTING(SHARE_VIRTUAL))
 			continue;
 		const string l_lower_name = Text::toLower(l_file_name);
-		if (!isSkipListEmpty())
-		{
-			if (isInSkipList(l_lower_name))
-			{
-				const auto l_ext = Util::getFileExtWithoutDot(l_lower_name);
-				if (l_ext != "!ut") //  && l_ext != "crdownload"
-				{
-					// jc!, ob!, dmf, mta, dmfr, !ut, !bt, bc!, getright, antifrag, pusd, dusd, download, crdownload
-					LogManager::message(STRING(USER_DENIED_SHARE_THIS_FILE) + ' ' + l_file_name
-					                    + " (" + STRING(SIZE) + ": " + Util::toString(i->getSize()) + ' '
-					                    + STRING(B) + ") (" + STRING(DIRECTORY) + ": \"" + aName + "\")");
-				}
-				continue;
-			}
-		}
 		if (i->isDirectory())
 		{
 			const string newName = aName + l_file_name + PATH_SEPARATOR;
@@ -1187,8 +1172,45 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 		else
 		{
 			// Not a directory, assume it's a file...make sure we're not sharing the settings file...
-			if (!g_fly_server_config.isBlockShare(l_lower_name))
+			const auto l_ext = Util::getFileExtWithoutDot(l_lower_name);
+			if (BOOLSETTING(XXX_BLOCK_SHARE) && CFlyServerConfig::isVideoShareExt(l_ext))
 			{
+				bool l_is_xxx = false;
+				const auto l_find_xxx = l_lower_name.find("pthc");
+				if (l_find_xxx != string::npos)
+				{
+					if (l_find_xxx > 0 && (l_find_xxx + 5) < l_lower_name.size())
+					{
+						if (!isalpha(l_lower_name[l_find_xxx + 4]) &&
+						        !isalpha(l_lower_name[l_find_xxx - 1]))
+						{
+							l_is_xxx = true;
+						}
+					}
+					if (l_is_xxx)
+					{
+						LogManager::message(STRING(USER_DENIED_SHARE_THIS_FILE) + ' ' + aName + l_file_name + " (XXX - File!)");
+						continue;
+					}
+				}
+			}
+			if (!g_fly_server_config.isBlockShareExt(l_lower_name, l_ext))
+			{
+				if (!isSkipListEmpty())
+				{
+					if (isInSkipList(l_lower_name))
+					{
+						const auto l_ext = Util::getFileExtWithoutDot(l_lower_name);
+						if (l_ext != "!ut") //  && l_ext != "crdownload"
+						{
+							// jc!, ob!, dmf, mta, dmfr, !ut, !bt, bc!, getright, antifrag, pusd, dusd, download, crdownload
+							LogManager::message(STRING(USER_DENIED_SHARE_THIS_FILE) + ' ' + l_file_name
+							                    + " (" + STRING(SIZE) + ": " + Util::toString(i->getSize()) + ' '
+							                    + STRING(B) + ") (" + STRING(DIRECTORY) + ": \"" + aName + "\")");
+						}
+						continue;
+					}
+				}
 				const string l_PathAndFileName = aName + l_file_name;
 				if (stricmp(l_PathAndFileName, SETTING(TLS_PRIVATE_KEY_FILE)) == 0) // TODO - унести проверку в другое место.
 					continue;

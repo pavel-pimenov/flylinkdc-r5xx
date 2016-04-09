@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 FlylinkDC++ Team http://flylinkdc.com/
+ * Copyright (C) 2011-2016 FlylinkDC++ Team http://flylinkdc.com/
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,6 +54,7 @@ static const string UPDATE_SIGN_FILE = "UpdateAU.sign";
 static const string UPDATE_DESCRIPTION_FILE = "UpdateAU.rtf";
 #endif
 
+bool AutoUpdate::g_exitOnUpdate = false;
 void AutoUpdate::initialize(HWND p_mainFrameHWND, AutoUpdateGUIMethod* p_guiDelegate)
 {
 	m_mainFrameHWND = p_mainFrameHWND;
@@ -390,7 +391,7 @@ void AutoUpdate::startUpdateThisThread()
 						//dataRTFSize = Util::getDataFromInet(basesUpdateDescription, basesRtfData);
 						//basesRtfData.resize(dataRTFSize);
 #endif
-						if (!ClientManager::isShutdown())
+						if (m_guiDelegate && !ClientManager::isShutdown())
 						{
 							idResult = (UpdateResult)m_guiDelegate->ShowDialogUpdate(l_message, programRtfData, l_files4Description
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
@@ -493,7 +494,8 @@ void AutoUpdate::startUpdateThisThread()
 										message(STRING(AUTOUPDATE_STARTED));
 										if (BOOLSETTING(AUTOUPDATE_FORCE_RESTART))
 										{
-											m_exitOnUpdate = true;
+											g_exitOnUpdate = true;
+											ClientManager::shutdown();
 											PostMessage(m_mainFrameHWND, WM_CLOSE, 0, 0);
 										}
 									}
@@ -944,7 +946,7 @@ void AutoUpdate::runFlyUpdate()
 		
 		wstring parameters = L'\"' + flylinkDC + L"\" \"";
 		parameters += m_updateFolder;
-		parameters += m_exitOnUpdate ? L"\" 1" : L"\" 0";
+		parameters += g_exitOnUpdate ? L"\" 1" : L"\" 0";
 		
 		const uint64_t processID = ::GetCurrentProcessId(); // TODO DWORD
 		parameters += L' ' + Util::toStringW(processID); // TODO DWORD - please update function Util::toStringW
@@ -997,7 +999,8 @@ bool AutoUpdate::startupUpdate()
 				// Run Update and Exit
 				if (MessageBox(m_mainFrameHWND, CTSTRING(AUTOUPDATE_DOWNLOADED_REMOVE_OR_INSTALL), T_APPNAME_WITH_VERSION, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1) == IDYES)
 				{
-					m_exitOnUpdate = true;
+					g_exitOnUpdate = true;
+					ClientManager::shutdown();
 					return true;
 				}
 			}

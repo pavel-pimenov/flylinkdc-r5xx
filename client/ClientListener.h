@@ -25,7 +25,7 @@ class ClientListener
 		typedef X<4> UsersUpdated;
 		typedef X<5> UserRemoved;
 		typedef X<6> Redirect;
-		typedef X<7> Failed;
+		typedef X<7> ClientFailed;
 		typedef X<8> GetPassword;
 		typedef X<9> HubUpdated;
 		typedef X<11> Message;
@@ -63,7 +63,7 @@ class ClientListener
 		virtual void on(UsersUpdated, const Client*, const OnlineUserList&) noexcept { }
 		virtual void on(UserRemoved, const Client*, const OnlineUserPtr&) noexcept { }
 		virtual void on(Redirect, const Client*, const string&) noexcept { }
-		virtual void on(Failed, const Client*, const string&) noexcept { }
+		virtual void on(ClientFailed, const Client*, const string&) noexcept { }
 		virtual void on(GetPassword, const Client*) noexcept { }
 		virtual void on(HubUpdated, const Client*) noexcept { }
 		virtual void on(Message, const Client*, std::unique_ptr<ChatMessage>&) noexcept { }  // !SMT!-S

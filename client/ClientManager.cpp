@@ -27,6 +27,7 @@
 #include "QueueManager.h"
 #include "MappingManager.h"
 #include "../FlyFeatures/flyServer.h"
+#include "../FlyFeatures/AutoUpdate.h"
 
 #ifdef STRONG_USE_DHT
 #include "../dht/dht.h"
@@ -41,7 +42,7 @@ UserPtr ClientManager::g_uflylinkdc; // [+] IRainman fix: User for message from 
 Identity ClientManager::g_iflylinkdc; // [+] IRainman fix: Identity for User for message from client.
 UserPtr ClientManager::g_me; // [+] IRainman fix: this is static object.
 CID ClientManager::g_pid; // [+] IRainman fix: this is static object.
-bool g_isShutdown = false;
+volatile bool g_isShutdown = false;
 bool g_isStartupProcess = true;
 bool ClientManager::g_isSpyFrame = false;
 ClientManager::ClientList ClientManager::g_clients;
@@ -1156,7 +1157,7 @@ void ClientManager::flushRatio(int p_max_count_flush)
 		CFlyLog l_log("[ClientManager::flushRatio]");
 		CFlyReadLock(*g_csUsers);
 		auto i = g_users.cbegin();
-		while (i != g_users.cend() && !isShutdown())
+		while (i != g_users.cend() && !isShutdown() && !AutoUpdate::getExitOnUpdate())
 		{
 			if (p_max_count_flush > 0 && i->second->flushRatio())
 			{
@@ -1506,9 +1507,12 @@ void ClientManager::on(HubUpdated, const Client* c) noexcept
 	fly_fire1(ClientManagerListener::ClientUpdated(), c);
 }
 
-void ClientManager::on(Failed, const Client* client, const string&) noexcept
+void ClientManager::on(ClientFailed, const Client* client, const string&) noexcept
 {
-	fly_fire1(ClientManagerListener::ClientDisconnected(), client);
+	if (!ClientManager::isShutdown())
+	{
+		fly_fire1(ClientManagerListener::ClientDisconnected(), client);
+	}
 }
 
 void ClientManager::on(HubUserCommand, const Client* client, int aType, int ctx, const string& name, const string& command) noexcept

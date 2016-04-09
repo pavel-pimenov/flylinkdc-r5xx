@@ -213,6 +213,7 @@
 #define IDR_VIP_ICO_EVAHUB              323
 #define IDR_VIP_ICO_ADRENALIN           324
 #define IDR_VIP_ICO_TITANKALUGA         325
+#define IDR_ICON_XXX_BLOCK              999
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
 #define IDC_COPY_HUB                    1002
@@ -1603,6 +1604,8 @@
 #define IDC_AVDB_BLOCK_CONNECTIONS      2516
 #define IDC_CHAT_MESSAGE_EDIT           2517
 #define IDC_NETWORK_TRAFFIC             2518
+#define IDC_XXX_BLOCK_MODE              2519
+
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000

@@ -85,6 +85,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		COMMAND_ID_HANDLER(IDC_EXPAND_ALL, onExpandAll)
 		COMMAND_ID_HANDLER(IDC_MENU_SLOWDISCONNECT, onSlowDisconnect)
 		COMMAND_ID_HANDLER(IDC_FORCE_PASSIVE_MODE, onForcePassiveMode)
+		COMMAND_ID_HANDLER(IDC_XXX_BLOCK_MODE, onXXXBlockMode)
+		
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 		COMMAND_ID_HANDLER(IDC_AUTO_PASSIVE_MODE, onForceAutoPassiveMode)
 #endif
@@ -118,6 +120,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		LRESULT onDisconnectAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onForcePassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		LRESULT onXXXBlockMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 		LRESULT onForceAutoPassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #endif
@@ -558,6 +561,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		
 		ItemInfoList ctrlTransfers;
 		CButton m_PassiveModeButton;
+		CButton m_XXXBlockButton;
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 		CButton m_AutoPassiveModeButton;
 #endif
