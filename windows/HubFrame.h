@@ -514,12 +514,13 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 			dcassert(m_client);
 			return m_client && m_client->isFlySupportHub();
 		}
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		bool isFlyAntivirusHub() const
 		{
 			dcassert(m_client);
 			return m_client && m_client->isFlyAntivirusHub();
 		}
-		
+#endif
 		// [+] IRainman: copy-past fix.
 		void sendMessage(const tstring& msg, bool thirdperson = false)
 		{

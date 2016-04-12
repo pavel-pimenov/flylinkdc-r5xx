@@ -457,7 +457,9 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			COLUMN_LOCAL_PATH,
 			COLUMN_HITS,
 			COLUMN_NICK,
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			COLUMN_ANTIVIRUS,
+#endif
 			COLUMN_TYPE,
 			COLUMN_SIZE,
 			COLUMN_PATH,

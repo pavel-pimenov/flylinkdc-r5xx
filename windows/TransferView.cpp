@@ -47,7 +47,9 @@ HIconWrapper TransferView::g_user_icon(IDR_TUSER);
 int TransferView::columnIndexes[] =
 {
 	COLUMN_USER,
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	COLUMN_ANTIVIRUS,
+#endif
 	COLUMN_P2P_GUARD,
 	COLUMN_HUB,
 	COLUMN_STATUS,
@@ -68,7 +70,9 @@ int TransferView::columnIndexes[] =
 int TransferView::columnSizes[] =
 {
 	150, // COLUMN_USER
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	50,  // COLUMN_ANTIVIRUS
+#endif
 	150, // COLUMN_HUB
 	250, // COLUMN_STATUS
 	75,  // COLUMN_TIMELEFT
@@ -88,7 +92,9 @@ int TransferView::columnSizes[] =
 };
 
 static ResourceManager::Strings columnNames[] = { ResourceManager::USER,
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
                                                   ResourceManager::ANTIVIRUS,
+#endif
                                                   ResourceManager::HUB_SEGMENTS,
                                                   ResourceManager::STATUS,
                                                   ResourceManager::TIME_LEFT,
@@ -130,10 +136,11 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	m_active_passive_tooltip.SetDelayTime(TTDT_AUTOPOP, 15000);
 	dcassert(m_active_passive_tooltip.IsWindow());
 	
-	
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	m_avdb_block_tooltip.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
 	m_avdb_block_tooltip.SetDelayTime(TTDT_AUTOPOP, 15000);
 	dcassert(m_avdb_block_tooltip.IsWindow());
+#endif
 	
 	ResourceLoader::LoadImageList(IDR_ARROWS, m_arrows, 16, 16);
 	ResourceLoader::LoadImageList(IDR_TSPEEDS, m_speedImages, 16, 16);
@@ -156,7 +163,7 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	
 	ctrlTransfers.setColumnOrderArray(COLUMN_LAST, columnIndexes);
 	ctrlTransfers.setVisible(SETTING(MAINFRAME_VISIBLE));
-#ifndef FLYLINKDC_USE_ANTIVIRUS_DB
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	ctrlTransfers.SetColumnWidth(COLUMN_ANTIVIRUS, 0);
 #endif
 	
@@ -199,6 +206,7 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	m_AutoPassiveModeButton.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 #endif
 	
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	m_AVDB_BlockButton.Create(m_hWnd,
 	                          rcDefault,
 	                          NULL,
@@ -213,6 +221,7 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 #endif
 	m_AVDB_BlockButton.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	
+#endif
 	
 	//purgeContainer.SubclassWindow(ctrlPurge.m_hWnd);
 	setButtonState();
@@ -288,9 +297,10 @@ void TransferView::setButtonState()
 	m_AutoPassiveModeButton.SetCheck(BOOLSETTING(AUTO_PASSIVE_INCOMING_CONNECTIONS) ? BST_CHECKED : BST_UNCHECKED);
 	m_active_passive_tooltip.AddTool(m_AutoPassiveModeButton, ResourceManager::SETTINGS_FIREWALL_AUTO_PASSIVE);
 #endif
-	
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	m_AVDB_BlockButton.SetCheck(BOOLSETTING(AVDB_BLOCK_CONNECTIONS) ? BST_CHECKED : BST_UNCHECKED);
 	m_avdb_block_tooltip.AddTool(m_AVDB_BlockButton, ResourceManager::SETTINGS_FIREWALL_BLOCK_DOWNLOAD_FROM_AVDB_USERS);
+#endif
 	UpdateLayout();
 }
 void TransferView::prepareClose()
@@ -312,6 +322,7 @@ void TransferView::prepareClose()
 	//WinUtil::UnlinkStaticMenus(transferMenu); // !SMT!-UI
 }
 
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 
 LRESULT TransferView::onAVDBBlockConnections(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
@@ -326,6 +337,8 @@ LRESULT TransferView::onAVDBBlockConnections(WORD /*wNotifyCode*/, WORD /*wID*/,
 	setButtonState();
 	return 0;
 }
+#endif
+
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 LRESULT TransferView::onForceAutoPassiveMode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
@@ -376,10 +389,13 @@ void TransferView::UpdateLayout()
 	if (BOOLSETTING(SHOW_TRANSFERVIEW_TOOLBAR))
 	{
 		m_PassiveModeButton.MoveWindow(2, 2, 45, 24);
-		m_AVDB_BlockButton.MoveWindow(2, 26, 45, 24);
-		m_XXXBlockButton.MoveWindow(2, 48, 45, 24);
+		m_XXXBlockButton.MoveWindow(2, 26, 45, 24);
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+		
+		m_AVDB_BlockButton.MoveWindow(2, 48, 45, 24);
+#endif
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
-		m_AutoPassiveModeButton.MoveWindow(2, 48, 45, 24);
+		m_AutoPassiveModeButton.MoveWindow(2, 68, 45, 24);
 #endif
 		rc.left += 45;
 	}
@@ -1052,6 +1068,7 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (l_ii->download ? SETT
 				}
 				return CDRF_SKIPDEFAULT;
 			}
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			else if (colIndex == COLUMN_ANTIVIRUS)
 			{
 				ItemInfo* jj = (ItemInfo*)cd->nmcd.lItemlParam;
@@ -1071,6 +1088,7 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (l_ii->download ? SETT
 				}
 				return CDRF_SKIPDEFAULT;
 			}
+#endif
 			else if (colIndex == COLUMN_LOCATION)   // !SMT!-IP
 			{
 				ItemInfo* ii = (ItemInfo*)cd->nmcd.lItemlParam;
@@ -1684,7 +1702,11 @@ void TransferView::on(ConnectionManagerListener::FailedDownload, const UserPtr& 
 	{
 		UpdateInfo* ui = new UpdateInfo(HintedUser(p_user, Util::emptyString), true);
 #ifdef PPA_INCLUDE_IPFILTER
-		if (ui->m_hintedUser.user->isAnySet(User::PG_IPTRUST_BLOCK | User::PG_IPGUARD_BLOCK | User::PG_P2PGUARD_BLOCK | User::PG_AVDB_BLOCK))
+		if (ui->m_hintedUser.user->isAnySet(User::PG_IPTRUST_BLOCK | User::PG_IPGUARD_BLOCK | User::PG_P2PGUARD_BLOCK
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+		| User::PG_AVDB_BLOCK
+#endif
+		                                   ))
 		{
 			string l_status = STRING(CONNECTION_BLOCKED);
 			if (ui->m_hintedUser.user->isSet(User::PG_IPTRUST_BLOCK))
@@ -1699,11 +1721,12 @@ void TransferView::on(ConnectionManagerListener::FailedDownload, const UserPtr& 
 			{
 				l_status += " [P2PGuard.ini]";
 			}
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			if (ui->m_hintedUser.user->isSet(User::PG_AVDB_BLOCK))
 			{
 				l_status += " [Antivirus DB]";
 			}
-			
+#endif
 			ui->setStatusString(Text::toT(l_status + " [" + aReason + "]"));
 		}
 		else
@@ -1745,7 +1768,9 @@ void TransferView::ItemInfo::update_nicks()
 	{
 		m_nicks = WinUtil::getNicks(m_hintedUser);
 		m_hubs = WinUtil::getHubNames(m_hintedUser).first;
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		m_antivirus_text = Text::toT(Util::toString(ClientManager::getAntivirusNicks(m_hintedUser.user->getCID())));
+#endif
 	}
 }
 const tstring TransferView::ItemInfo::getText(uint8_t col) const
@@ -1786,8 +1811,10 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 			return m_hintedUser.user ? Util::toStringW(m_hintedUser.user->getSlots()) : Util::emptyStringT;
 		case COLUMN_P2P_GUARD:
 			return m_p2p_guard_text;
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		case COLUMN_ANTIVIRUS:
 			return m_antivirus_text;
+#endif
 		case COLUMN_LOCATION:
 		{
 			if (m_location.isKnown())

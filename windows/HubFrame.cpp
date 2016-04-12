@@ -61,7 +61,9 @@ HIconWrapper HubFrame::g_hModeNoneIco(IDR_MODE_OFFLINE_ICO);
 int HubFrame::g_columnSizes[] = { 100,    // COLUMN_NICK
                                   75,     // COLUMN_SHARED
                                   150,    // COLUMN_EXACT_SHARED
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
                                   50,     // COLUMN_ANTIVIRUS
+#endif
                                   150,    // COLUMN_DESCRIPTION
                                   150,    // COLUMN_APPLICATION
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
@@ -110,7 +112,9 @@ int HubFrame::g_columnSizes[] = { 100,    // COLUMN_NICK
 int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
                                     COLUMN_SHARED,
                                     COLUMN_EXACT_SHARED,
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
                                     COLUMN_ANTIVIRUS,
+#endif
                                     COLUMN_DESCRIPTION,
                                     COLUMN_APPLICATION,
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
@@ -158,7 +162,9 @@ int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
 static ResourceManager::Strings g_columnNames[] = { ResourceManager::NICK,            // COLUMN_NICK
                                                     ResourceManager::SHARED,          // COLUMN_SHARED
                                                     ResourceManager::EXACT_SHARED,    // COLUMN_EXACT_SHARED
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
                                                     ResourceManager::ANTIVIRUS,       // COLUMN_ANTIVIRUS
+#endif
                                                     ResourceManager::DESCRIPTION,     // COLUMN_DESCRIPTION
                                                     ResourceManager::APPLICATION,     // COLUMN_APPLICATION
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
@@ -382,7 +388,9 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_UPLOAD);
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_DOWNLOAD);
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_MESSAGES);
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_ANTIVIRUS);
+#endif
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_P2P_GUARD);
 #ifdef FLYLINKDC_USE_EXT_JSON
 		//m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_COUNTRY);
@@ -405,7 +413,7 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 		{
 			m_ctrlUsers->SetColumnWidth(j, g_columnSizes[j]);
 		}
-#ifndef FLYLINKDC_USE_ANTIVIRUS_DB
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		m_ctrlUsers->SetColumnWidth(COLUMN_ANTIVIRUS, 0);
 #endif
 		
@@ -765,10 +773,12 @@ void HubFrame::setCustomVIPIcon()
 		{
 			setCustomIcon(*WinUtil::g_HubFlylinkDCIcon.get());
 		}
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		else if (isFlyAntivirusHub())
 		{
 			setCustomIcon(*WinUtil::g_HubAntivirusIcon.get());
 		}
+#endif
 	}
 }
 void HubFrame::processFrameMessage(const tstring& fullMessageText, bool& resetInputMessageText)
@@ -4155,10 +4165,12 @@ bool HubFrame::matchFilter(UserInfo& ui, int sel, bool doSizeCompare, FilterMode
 				{
 					ui.calcLocation();
 				}
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 				else if (sel == COLUMN_ANTIVIRUS)
 				{
 					ui.calcVirusType();
 				}
+#endif
 				else if (sel == COLUMN_P2P_GUARD)
 				{
 					ui.calcP2PGuard();
@@ -4475,7 +4487,11 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			}
 			else
 #endif
-				if (l_column_id == COLUMN_UPLOAD || l_column_id == COLUMN_DOWNLOAD || l_column_id == COLUMN_MESSAGES || l_column_id == COLUMN_ANTIVIRUS || l_column_id == COLUMN_P2P_GUARD)
+				if (l_column_id == COLUMN_UPLOAD || l_column_id == COLUMN_DOWNLOAD || l_column_id == COLUMN_MESSAGES
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+				        || l_column_id == COLUMN_ANTIVIRUS
+#endif
+				        || l_column_id == COLUMN_P2P_GUARD)
 				{
 					m_ctrlUsers->GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 					m_ctrlUsers->SetItemFilled(cd, rc, cd->clrText, cd->clrText);
@@ -4483,6 +4499,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					if (!l_value.empty())
 					{
 						int l_step = 0;
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 						if (l_column_id == COLUMN_ANTIVIRUS)
 						{
 							LONG top = rc.top + (rc.Height() - 15) / 2;
@@ -4514,6 +4531,8 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							g_userStateImage.Draw(cd->nmcd.hdc, l_icon_index , ps);
 							l_step += 17;
 						}
+#endif //  FLYLINKDC_USE_ANTIVIRUS_DB   
+						
 						::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + l_step, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
 					}
 					return CDRF_SKIPDEFAULT;
@@ -4621,7 +4640,9 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			{
 //				PROFILE_THREAD_SCOPED_DESC("CDDS_ITEMPREPAINT");
 				ui->calcLocation();
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 				ui->calcVirusType();
+#endif
 				ui->calcP2PGuard();
 				Colors::getUserColor(m_client->isOp(), ui->getUser(), cd->clrText, cd->clrTextBk, ui->m_flag_mask, ui->getOnlineUser()); // !SMT!-UI
 			}

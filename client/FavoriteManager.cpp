@@ -52,8 +52,11 @@ std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csFavUsers = std::uniq
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csHubs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csDirs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csUserCommand = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 StringSet FavoriteManager::g_sync_hub_local;
 StringSet FavoriteManager::g_sync_hub_external;
+StringSet FavoriteManager::g_sync_hub_isp_delete;
+#endif
 
 // [+] IRainman mimicry function
 const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
@@ -1165,6 +1168,7 @@ void FavoriteManager::load(SimpleXML& aXml
 			}
 			aXml.resetCurrentChild();
 			g_AllHubUrls.clear();
+			g_sync_hub_isp_delete.clear();
 			bool l_is_fly_hub_exists = false;
 			unsigned l_count_active_ru_hub = 0;
 			const unsigned l_limit_russian_hub = 1;
@@ -1172,6 +1176,9 @@ void FavoriteManager::load(SimpleXML& aXml
 			{
 				const bool l_is_connect = aXml.getBoolChildAttrib("Connect");
 				const string l_CurrentServerUrl = Text::toLower(Util::formatDchubUrl(aXml.getChildAttrib("Server")));
+#ifdef _DEBUG
+				LogManager::message("Load favorites item: " + l_CurrentServerUrl);
+#endif
 				if (l_is_fly_hub_exists == false && l_CurrentServerUrl == CFlyServerConfig::g_support_hub)
 					l_is_fly_hub_exists = true;
 				if (l_CurrentServerUrl.find("kurskhub.ru") != string::npos || // http://dchublist.ru/forum/viewtopic.php?p=24102#p24102
@@ -1214,6 +1221,10 @@ void FavoriteManager::load(SimpleXML& aXml
 				g_is_ISPDisableFlylinkDCSupportHub |= l_is_ISPDisableFlylinkDCSupportHub;
 				e->setISPDisableFlylinkDCSupportHub(l_is_ISPDisableFlylinkDCSupportHub);
 				const bool l_ISPDelete = aXml.getBoolChildAttrib("ISPDelete");
+				if (l_ISPDelete)
+				{
+					g_sync_hub_isp_delete.insert(l_CurrentServerUrl);
+				}
 				const string& l_ISPMode = aXml.getChildAttrib("ISPMode");
 				if (!l_ISPMode.empty())
 				{

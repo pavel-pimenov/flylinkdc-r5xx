@@ -84,6 +84,8 @@ class Identity
 			CHANGES_UPLOAD = 1 << COLUMN_UPLOAD,
 			CHANGES_DOWNLOAD = 1 << COLUMN_DOWNLOAD,
 			CHANGES_MESSAGES = 1 << COLUMN_MESSAGES,
+#endif
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			CHANGES_ANTIVIRUS = 1 << COLUMN_ANTIVIRUS,
 #endif
 			CHANGES_P2P_GUARD = 1 << COLUMN_P2P_GUARD,
@@ -95,13 +97,15 @@ class Identity
 			CHANGES_TAG = 1 << COLUMN_TAG
 		};
 // [~] IRAINMAN_USE_NG_FAST_USER_INFO
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		enum VirusType
 		{
 			VT_NICK  = 0x01,
 			VT_SHARE = 0x02,
-			VT_IP    = 0x04,
-			VT_CALC_AVDB  = 0x80
+			VT_IP    = 0x04
+			, VT_CALC_AVDB  = 0x80
 		};
+#endif
 		enum ClientType
 		{
 			CT_BOT = 0x01,
@@ -193,10 +197,8 @@ class Identity
 		GSMC(IP6, "I6", CHANGES_IP) // ok
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		GSMC(VirusPath, "VP", CHANGES_DESCRIPTION)
-		GSMC(P2PGuard, "P2", CHANGES_DESCRIPTION)
 #endif
-		
-		
+		GSMC(P2PGuard, "P2", CHANGES_DESCRIPTION)
 		void setNick(const string& p_nick) // "NI"
 		{
 			// dcassert(!p_nick.empty());
@@ -288,18 +290,15 @@ class Identity
 			return m_virus_type & ~Identity::VT_CALC_AVDB;
 		}
 		unsigned char calcVirusType(bool p_force = false);
+		bool isVirusOnlySingleType(VirusType p_type) const
+		{
+			return (m_virus_type & ~Identity::VT_CALC_AVDB) == p_type;
+			return false;
+		}
+		string getVirusDesc() const;
 #endif
 		void calcP2PGuard();
 		
-		bool isVirusOnlySingleType(VirusType p_type) const
-		{
-#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
-			return (m_virus_type & ~Identity::VT_CALC_AVDB) == p_type;
-#else
-			return false;
-#endif
-		}
-		string getVirusDesc() const;
 // Нужна ли тут блокировка?
 // L: с одной стороны надо блокировать такие операции,
 // а с другой эти данные всегда изменяются в одном потоке,
@@ -865,7 +864,9 @@ class OnlineUser :
 			COLUMN_NICK = COLUMN_FIRST,
 			COLUMN_SHARED,
 			COLUMN_EXACT_SHARED,
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			COLUMN_ANTIVIRUS,
+#endif
 			COLUMN_P2P_GUARD,
 			COLUMN_DESCRIPTION,
 			COLUMN_CONNECTION,

@@ -59,7 +59,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static std::map<string, CFlyClientStatistic> getClientStat();
 		static StringList getHubs(const CID& cid, const string& hintUrl, bool priv);
 		static StringList getHubNames(const CID& cid, const string& hintUrl, bool priv);
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		static StringList getAntivirusNicks(const CID& cid);
+#endif
 		static StringList getNicks(const CID& cid, const string& hintUrl, bool priv);
 		static string getStringField(const CID& cid, const string& hintUrl, const char* field); // [!] IRainman fix.
 		static StringList getNicks(const HintedUser& user);

@@ -39,7 +39,9 @@ const char* g_db_file_names[] = {"FlylinkDC.sqlite",
                                  "FlylinkDC_dht.sqlite",
                                  "FlylinkDC_stat.sqlite",
                                  "FlylinkDC_locations.sqlite",
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
                                  "FlylinkDC_antivirus.sqlite",
+#endif
                                  "FlylinkDC_transfers.sqlite",
                                  "FlylinkDC_user.sqlite",
                                  "FlylinkDC_queue.sqlite"
@@ -313,7 +315,9 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 //========================================================================================================
 CFlylinkDBManager::CFlylinkDBManager()
 {
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	m_virus_cs = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+#endif
 	CFlyLock(m_cs);
 #ifdef _DEBUG
 	m_is_load_global_ratio = false;
@@ -1644,6 +1648,7 @@ string CFlylinkDBManager::load_country_locations_p2p_guard_from_db(uint32_t p_ip
 	}
 	return l_p2p_guard_text;
 }
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 //========================================================================================================
 bool CFlylinkDBManager::is_avdb_guard(const string& p_nick, int64_t p_share, const uint32_t& p_ip)
 {
@@ -1659,6 +1664,7 @@ bool CFlylinkDBManager::is_avdb_guard(const string& p_nick, int64_t p_share, con
 	}
 	return false;
 }
+#endif
 //========================================================================================================
 string CFlylinkDBManager::is_p2p_guard(const uint32_t& p_ip)
 {
@@ -3103,7 +3109,7 @@ void CFlylinkDBManager::clear_virus_cacheL()
 //========================================================================================================
 void CFlylinkDBManager::load_avdb()
 {
-	if (BOOLSETTING(AUTOUPDATE_ANTIVIRUS_DB))
+	if (BOOLSETTING(AUTOUPDATE_ANTIVIRUS_DB) && !CFlyServerConfig::g_antivirus_db_url.empty())
 	{
 		try
 		{

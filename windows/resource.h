@@ -1601,7 +1601,11 @@
 #define IDC_WHOIS_IP2                   2513
 #define IDC_WHOIS_URL                   2514
 #define IDC_ADD_P2P_GUARD               2515
+
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 #define IDC_AVDB_BLOCK_CONNECTIONS      2516
+#endif
+
 #define IDC_CHAT_MESSAGE_EDIT           2517
 #define IDC_NETWORK_TRAFFIC             2518
 #define IDC_XXX_BLOCK_MODE              2519

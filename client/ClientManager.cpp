@@ -345,9 +345,9 @@ StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, boo
 	return lst;
 }
 //[+]FlylinkDC
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 StringList ClientManager::getAntivirusNicks(const CID& p_cid)
 {
-#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	StringSet ret;
 	CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
 	const OnlinePairC op = g_onlineUsers.equal_range(p_cid);
@@ -363,10 +363,10 @@ StringList ClientManager::getAntivirusNicks(const CID& p_cid)
 		return StringList(ret.begin(), ret.end());
 	else
 		return StringList();
-#else
 	return StringList();
-#endif
 }
+#endif
+
 StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool priv)
 {
 	StringSet ret;

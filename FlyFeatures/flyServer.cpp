@@ -756,6 +756,7 @@ std::vector<StringPair> CFlyServerConfig::getDeadHub()
 	return l_dead_hubs;
 }
 //======================================================================================================
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 void CFlyServerConfig::SyncAntivirusDBSafe()
 {
 	bool l_is_need_reload;
@@ -765,6 +766,7 @@ void CFlyServerConfig::SyncAntivirusDBSafe()
 		SyncAntivirusDB(l_is_need_reload);
 	}
 }
+#endif
 //======================================================================================================
 
 bool CFlyServerConfig::SyncXXXBlockDB()
@@ -793,6 +795,7 @@ bool CFlyServerConfig::SyncXXXBlockDB()
 	}
 	return false;
 }
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 bool CFlyServerConfig::SyncAntivirusDB(bool& p_is_need_reload)
 {
 	p_is_need_reload = false;
@@ -935,6 +938,7 @@ bool CFlyServerConfig::SyncAntivirusDB(bool& p_is_need_reload)
 #endif
 	return true;
 }
+#endif
 //======================================================================================================
 bool CFlyServerConfig::isIgnoreFloodCommand(const string& p_command)
 {

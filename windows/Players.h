@@ -1,9 +1,24 @@
+/*
+ * Copyright (C) 2011-2013 AirDC++ Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
 #ifndef _PLAYERS_H_
 #define _PLAYERS_H_
-
-
 #pragma once
-
 /* Some window messsages for Windows Media Player 9+, but in theory these could work for anything above WMP7
                     Reference: http://www.autohotkey.com/forum/topic8566.html                               */
 
@@ -50,5 +65,31 @@
 
 #define MPC_OPEN 800            // Open "File Open" dialog
 #define MPC_OPT 886             // Open "Options" dialog
+
+/* Spotify */
+
+#define S_PLAY 0xd0000L         // Play
+#define S_PAUSE 0xd0000L        // Pause
+#define S_STOP 0xd0000L         // Stop 
+#define S_PREV 0xc0000L         // Previous
+#define S_NEXT 0xb0000L         // Next
+#define S_VOLUP 0xa0000L        // Volume: Up
+#define S_VOLDOWN 0x90000L      // Volume: Down
+#define S_MUTE 0x80000L         // Volume: Mute
+
+
+#include <string>
+
+class Players
+{
+	public:
+		static string getWMPSpam(HWND playerWnd = NULL, HWND g_mainWnd = NULL);
+//	static string getSpotifySpam(HWND playerWnd = NULL);
+		static string getItunesSpam(HWND playerWnd = NULL);
+		static string getMPCSpam();
+		static string getWinampSpam(HWND playerWnd = NULL, int playerType = 0);
+		static string getJASpam();
+};
+
 
 #endif

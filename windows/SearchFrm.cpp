@@ -60,7 +60,9 @@ int SearchFrame::columnIndexes[] =
 	COLUMN_LOCAL_PATH,
 	COLUMN_HITS,
 	COLUMN_NICK,
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	COLUMN_ANTIVIRUS,
+#endif
 	COLUMN_P2P_GUARD,
 	COLUMN_TYPE,
 	COLUMN_SIZE,
@@ -85,7 +87,11 @@ int SearchFrame::columnSizes[] =
 {
 	210,
 //70,
-	80, 100, 50, 50, 80, 100, 40,
+	80, 100, 50,
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+	50,
+#endif
+	80, 100, 40,
 // COLUMN_FLY_SERVER_RATING
 	50,
 	50, 100, 100, 100,
@@ -105,7 +111,9 @@ static ResourceManager::Strings columnNames[] = {ResourceManager::FILE,
                                                  ResourceManager::LOCAL_PATH,
                                                  ResourceManager::HIT_COUNT,
                                                  ResourceManager::USER,
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
                                                  ResourceManager::ANTIVIRUS,
+#endif
                                                  ResourceManager::TYPE,
                                                  ResourceManager::SIZE,
                                                  ResourceManager::PATH,
@@ -499,11 +507,11 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlResults.SetFont(Fonts::g_systemFont, FALSE); // use Util::font instead to obey Appearace settings
 	ctrlResults.setFlickerFree(Colors::g_bgBrush);
 	ctrlResults.setColumnOwnerDraw(COLUMN_LOCATION);
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	ctrlResults.setColumnOwnerDraw(COLUMN_ANTIVIRUS);
-	ctrlResults.setColumnOwnerDraw(COLUMN_P2P_GUARD);
-#ifndef FLYLINKDC_USE_ANTIVIRUS_DB
 	ctrlResults.SetColumnWidth(COLUMN_ANTIVIRUS, 0);
 #endif
+	ctrlResults.setColumnOwnerDraw(COLUMN_P2P_GUARD);
 	
 	ctrlHubs.InsertColumn(0, _T("Dummy"), LVCFMT_LEFT, LVSCW_AUTOSIZE, 0);
 	SET_LIST_COLOR(ctrlHubs);
@@ -1745,10 +1753,12 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			{
 				return Text::toT(sr.getFile());
 			}
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		case COLUMN_ANTIVIRUS:
 		{
 			return Text::toT(Util::toString(ClientManager::getAntivirusNicks(getUser()->getCID())));
 		}
+#endif
 		case COLUMN_LOCAL_PATH:
 		{
 			tstring l_result;
@@ -2137,7 +2147,9 @@ bool SearchFrame::showFlyServerProperty(const SearchInfo* p_item_info)
 		COLUMN_LOCAL_PATH,
 		COLUMN_HITS,
 		COLUMN_NICK,
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		COLUMN_ANTIVIRUS,
+#endif
 		COLUMN_P2P_GUARD,
 		COLUMN_TYPE,
 		COLUMN_SIZE,
@@ -3554,6 +3566,7 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 				}
 				return CDRF_SKIPDEFAULT;
 			}
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 			else if (l_column_id == COLUMN_ANTIVIRUS)
 			{
 				CRect rc;
@@ -3571,6 +3584,7 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 				}
 				return CDRF_SKIPDEFAULT;
 			}
+#endif
 			if (l_column_id == COLUMN_LOCATION)
 			{
 				CRect rc;

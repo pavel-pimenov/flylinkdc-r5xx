@@ -209,6 +209,14 @@ class CompatibilityManager
 		static bool getGlobalMemoryStatusFromOS(MEMORYSTATUSEX* MsEx);
 	public:
 		static void detectUncompatibleSoftware();
+		
+		// AirDC++ code
+		static string Speedinfo();
+		static string DiskSpaceInfo(bool onlyTotal = false);
+		static tstring diskInfo();
+		static TStringList FindVolumes();
+		static string CPUInfo();
+		static string getSysUptime();
 };
 
 #endif // _WIN32

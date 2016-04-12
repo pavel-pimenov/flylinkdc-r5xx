@@ -120,6 +120,7 @@
 	<string name="AutoConnectRemoved">Auto connect removed!</string>
 	<string name="AutoConnectStartOff">Disable auto connect on start</string>
 	<string name="AutoConnectStartOn">Enable auto connect on start</string>
+	<string name="AverageDownloadUpload">Average Download, Upload with files count</string>
 	<string name="AutoGrantNick">Auto grant slot / Nick</string>
 	<string name="AutoGrant">Auto grant slot</string>
 	<string name="AverageUpload">Upload speed</string>
@@ -319,6 +320,7 @@
 	<string name="Country">Country</string>
 	<string name="CountryInChat">Attempt to show User's country in chat</string>
 	<string name="IspInChat">Attempt to show User's ISP in chat</string>
+	<string name="CpuInfo">CPU Information</string>
 	<string name="CpuSpeed">CPU clock</string>
 	<string name="CrcChecked">TTH is Checked</string>
 	<string name="CreatingHash">Hashing</string>
@@ -390,6 +392,8 @@
 	<string name="DisconnectAll">Disconnect all users</string>
 	<string name="DisconnectRaw">Disconnect raw</string>
 	<string name="DisconnectUser">Disconnect user(s)</string>
+	<string name="DiskSpace">Disk Space (free, total)</string>
+	<string name="DisksInfo">Disks Info (local, network, removable)</string>
 	<string name="Dl">Dl:</string>
 	<string name="DnsBare">DNS</string>
 	<string name="Document">Document</string>
@@ -722,6 +726,7 @@
 	<string name="LastChange">Last recorded activity.</string>
 	<string name="LastHub">Hub (last seen on if offline)</string>
 	<string name="LastIp">Last IP</string>
+	<string name="LastRecentHubs">Last Opened Hubs</string>
 	<string name="LastSeen">Time last seen</string>
 	<string name="LastSuccesfullyConnected">Time last successfully connected</string>
 	<string name="LeafCorrupted">File was corrupted, re-downloading %s…</string>
@@ -1884,7 +1889,7 @@
 	<string name="WizardStartupTxt2">This Wizard can help you to setup FlylinkDC++ client: \r\n 1. Default Nick\r\n 2. Download and Temp folders \r\n 3. Share your files to allow DC++ users to download them \r\n</string>
 	<string name="WizardStartupTxt3">Press Next button to continue…</string>
 	<string name="WizardTitle">FlylinkDC++ Setup Wizard</string>
-	<string name="WmpHelp">/wmp - Works with Windows Media Player 9+\r\n- %[version] - version of Windows Media Player\r\n- %[fullversion] - full version of Windows Media Player\r\n- %[status] - pre-formatted status string from Windows Media Player\r\n- %[title] - name of the currently playing item\r\n- %[elapsed] - time elapsed in (HH:)MM:SS\r\n- %[percent] - time elapsed presented as percentage from total length\r\n- %[bar] - ASCII progress bar, 10 characters wide no including brackets (ex. [----|-----])\r\n- %[length] - full length of the current item in (HH:)MM:SS\r\n- %[artist] - name of the artist for the currently playing item\r\n- %[album] - name of the album the current song is from\r\n- %[genre] - genre of the current media\r\n- %[bitrate] - bitrate for the playing media\r\n- %[year] - year of album publication (no WMP9 support)\r\n- %[size] - size of the currently playing file\r\n- %[rating] - users rating, represented with *'s (if available)\r\n\r\nEmpty = Default String -&gt; +me %[title] at %[bitrate] &lt;Windows Media Player %[version]&gt;</string>
+	<string name="WmpHelpStr">/wmp - Works with Windows Media Player 9+\r\n- %[version] - version of Windows Media Player\r\n- %[fullversion] - full version of Windows Media Player\r\n- %[status] - pre-formatted status string from Windows Media Player\r\n- %[title] - name of the currently playing item\r\n- %[elapsed] - time elapsed in (HH:)MM:SS\r\n- %[percent] - time elapsed presented as percentage from total length\r\n- %[bar] - ASCII progress bar, 10 characters wide no including brackets (ex. [----|-----])\r\n- %[length] - full length of the current item in (HH:)MM:SS\r\n- %[artist] - name of the artist for the currently playing item\r\n- %[album] - name of the album the current song is from\r\n- %[genre] - genre of the current media\r\n- %[bitrate] - bitrate for the playing media\r\n- %[year] - year of album publication (no WMP9 support)\r\n- %[size] - size of the currently playing file\r\n- %[rating] - users rating, represented with *'s (if available)\r\n\r\nEmpty = Default String -&gt; +me %[title] at %[bitrate] &lt;Windows Media Player %[version]&gt;</string>
 	<string name="WmpHelpDesc">Windows Media Player Help</string>
 	<string name="WmpNotPlay">You have no media playing in Windows Media Player</string>
 	<string name="WmpNotRun">Supported version of Windows Media Player is not running</string>

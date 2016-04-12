@@ -269,10 +269,12 @@ void NmdcHub::putUser(const string& aNick)
 		ou = i->second;
 		m_users.erase(i);
 		decBytesSharedL(l_bytes_shared);
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		{
 			CFlyFastLock(m_cs_virus);
 			m_virus_nick.erase(aNick);
 		}
+#endif
 	}
 	
 	if (!ou->getUser()->getCID().isZero()) // [+] IRainman fix.
@@ -1299,6 +1301,7 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 					ou->getIdentity().m_is_real_user_ip_from_hub = true;
 					ou->getIdentity().getUser()->m_last_ip_sql.reset_dirty();
 					{
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 						CFlyFastLock(m_cs_virus);
 #ifdef FLYLINKDC_USE_VIRUS_CHECK_DEBUG
 						const auto l_check_nick = m_virus_nick_checked.insert(l_user);
@@ -1318,9 +1321,11 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 								m_virus_nick.insert(l_user);
 							}
 						}
+#endif // FLYLINKDC_USE_ANTIVIRUS_DB
 					}
+					
 				}
-				// "FlylinkDC-dev"
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 				if (m_isAutobanAntivirusIP || m_isAutobanAntivirusNick
 				        // && getHubUrl().find("dc.fly-server.ru") != string::npos
 				   )
@@ -1407,6 +1412,8 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 						LogManager::virus_message(l_ban_command);
 					}
 				}
+#endif // FLYLINKDC_USE_ANTIVIRUS_DB
+				
 				//v.push_back(ou);
 			}
 		}
@@ -2869,6 +2876,7 @@ void NmdcHub::myInfoParse(const string& param)
 	}
 	if (changeBytesSharedL(ou->getIdentity(), l_share_size) && l_share_size)
 	{
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		CFlyFastLock(m_cs_virus);
 #ifdef FLYLINKDC_USE_VIRUS_CHECK_DEBUG
 		const auto l_check_nick = m_virus_nick_checked.insert(l_nick);
@@ -2900,6 +2908,7 @@ void NmdcHub::myInfoParse(const string& param)
 				m_virus_nick.insert(l_nick);
 			}
 		}
+#endif // FLYLINKDC_USE_ANTIVIRUS_DB
 	}
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 	if (l_is_change_only_share && !ClientManager::isShutdown())

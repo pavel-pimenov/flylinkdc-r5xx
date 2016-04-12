@@ -35,11 +35,14 @@
 #endif
 #include "Util.h"
 #include "Socket.h"
+#include "DownloadManager.h"
+#include "UploadManager.h"
 #include "CompatibilityManager.h"
 #include "CFlylinkDBManager.h"
 #include "ShareManager.h"
 #include "../FlyFeatures/flyServer.h"
 #include <iphlpapi.h>
+#include <direct.h>
 
 #pragma comment(lib, "Imagehlp.lib")
 
@@ -696,11 +699,11 @@ string CompatibilityManager::generateNetworkStats()
 {
 	std::vector<char> l_buf(1024);
 	sprintf_s(l_buf.data(), l_buf.size(),
-	          "-=[ TCP: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          "-=[ UDP: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          "-=[ DHT: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          "-=[ SSL: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          "-=[ Router: %s ]=-",
+	          "\t-=[ TCP: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          "\t-=[ UDP: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          "\t-=[ DHT: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          "\t-=[ SSL: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          "\t-=[ Router: %s ]=-",
 	          Util::formatBytes(Socket::g_stats.m_tcp.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_tcp.totalUp).c_str(),
 	          Util::formatBytes(Socket::g_stats.m_udp.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_udp.totalUp).c_str(),
 	          Util::formatBytes(Socket::g_stats.m_dht.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_dht.totalUp).c_str(),
@@ -759,19 +762,20 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 					CFlylinkDBManager::getInstance()->load_global_ratio(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1363
 				}
 #endif
-				sprintf_s(l_buf.data(), l_buf.size(), "\r\n-=[ FlylinkDC++ %s " //-V111
+				sprintf_s(l_buf.data(), l_buf.size(),
+				          "\r\n\t-=[ FlylinkDC++ %s " //-V111
 #ifdef FLYLINKDC_HE
 				          "HE "
 #endif
 				          "Compiled on: %s ]=-\r\n"
-				          "-=[ OS: %s ]=-\r\n"
-				          "-=[ CPU Clock: %.1f MHz%s. Memory (free): %s (%s) ]=-\r\n"
-				          "-=[ System Uptime: %s. Cpu time: %s. Client Uptime: %s ]=-\r\n"
-				          "-=[ Memory usage (peak): %s (%s). Virtual (peak): %s (%s) ]=-\r\n"
-				          "-=[ GDI units (peak): %d (%d). Handle (peak): %d (%d) ]=-\r\n"
-				          "-=[ Public share: %s. Files in share: %u. Total users: %u on hubs: %u ]=-\r\n"
+				          "\t-=[ OS: %s ]=-\r\n"
+				          "\t-=[ CPU Clock: %.1f MHz%s. Memory (free): %s (%s) ]=-\r\n"
+				          "\t-=[ System Uptime: %s. Cpu time: %s. Client Uptime: %s ]=-\r\n"
+				          "\t-=[ Memory usage (peak): %s (%s). Virtual (peak): %s (%s) ]=-\r\n"
+				          "\t-=[ GDI units (peak): %d (%d). Handle (peak): %d (%d) ]=-\r\n"
+				          "\t-=[ Public share: %s. Files in share: %u. Total users: %u on hubs: %u ]=-\r\n"
 #ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-				          "-=[ Total download: %s. Total upload: %s ]=-\r\n"
+				          "\t-=[ Total download: %s. Total upload: %s ]=-\r\n"
 #endif
 				          "%s"
 				          ,
@@ -1067,4 +1071,185 @@ bool CompatibilityManager::checkTeredo()
 		FREE(pAddresses);
 	}
 	return l_result;
+}
+
+// AirDC++ code
+// ToDo:  Move all functions into Util
+string CompatibilityManager::Speedinfo()
+{
+	string result = "\r\n\t";
+	result += "-=[ ";
+	result += "Dn. speed: ";
+	result += Util::formatBytes(DownloadManager::getRunningAverage()) + "/s  (";
+	result += Util::toString(DownloadManager::getDownloadCount()) + " fls.)";
+	//result += " =- ";
+	//result += " -= ";
+	result += ". ";
+	result += "Upl. speed: ";
+	result += Util::formatBytes(UploadManager::getRunningAverage()) + "/s  (";
+	result += Util::toString(UploadManager::getUploadCount()) + " fls.)";
+	result += " ]=-";
+	return result;
+}
+
+string CompatibilityManager::DiskSpaceInfo(bool onlyTotal /* = false */)
+{
+	string ret = Util::emptyString;
+	int64_t free = 0, totalFree = 0, size = 0, totalSize = 0, netFree = 0, netSize = 0;
+	TStringList volumes = FindVolumes();
+	for (auto i = volumes.cbegin(); i != volumes.cend(); i++)
+	{
+		if (GetDriveType((*i).c_str()) == DRIVE_CDROM || GetDriveType((*i).c_str()) == DRIVE_REMOVABLE)
+			continue;
+		if (GetDiskFreeSpaceEx((*i).c_str(), NULL, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free))
+		{
+			totalFree += free;
+			totalSize += size;
+		}
+	}
+	
+	//check for mounted Network drives
+	ULONG drives = _getdrives();
+	TCHAR drive[3] = { _T('A'), _T(':'), _T('\0') };
+	while (drives != 0)
+	{
+		if (drives & 1 && (GetDriveType(drive) != DRIVE_CDROM && GetDriveType(drive) != DRIVE_REMOVABLE && GetDriveType(drive) == DRIVE_REMOTE))
+		{
+			if (GetDiskFreeSpaceEx(drive, NULL, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free))
+			{
+				netFree += free;
+				netSize += size;
+			}
+		}
+		++drive[0];
+		drives = (drives >> 1);
+	}
+	if (totalSize != 0)
+		if (!onlyTotal)
+		{
+			ret += "\r\n\t-=[ All HDD space (free/total): " + Util::formatBytes(totalFree) + "/" + Util::formatBytes(totalSize) + " ]=-";
+			if (netSize != 0)
+			{
+				ret += "\r\n\t-=[ Network HDD space (free/total): " + Util::formatBytes(netFree) + "/" + Util::formatBytes(netSize) + " ]=-";
+				ret += "\r\n\t-=[ Total HDD space (free/total): " + Util::formatBytes((netFree + totalFree)) + "/" + Util::formatBytes(netSize + totalSize) + " ]=-";
+			}
+		}
+		else
+			ret += Util::formatBytes(totalFree) + "/" + Util::formatBytes(totalSize);
+	return ret;
+}
+TStringList CompatibilityManager::FindVolumes()
+{
+	BOOL  found;
+	TCHAR   buf[MAX_PATH];
+	HANDLE  hVol;
+	TStringList volumes;
+	hVol = FindFirstVolume(buf, MAX_PATH);
+	if (hVol != INVALID_HANDLE_VALUE)
+	{
+		volumes.push_back(buf);
+		found = FindNextVolume(hVol, buf, MAX_PATH);
+		//while we find drive volumes.
+		while (found)
+		{
+			volumes.push_back(buf);
+			found = FindNextVolume(hVol, buf, MAX_PATH);
+		}
+		found = FindVolumeClose(hVol);
+	}
+	return volumes;
+}
+tstring CompatibilityManager::diskInfo()
+{
+	tstring result = Util::emptyStringT;
+	TCHAR   buf[MAX_PATH];
+	int64_t free = 0, size = 0, totalFree = 0, totalSize = 0;
+	int disk_count = 0;
+	std::vector<tstring> results; //add in vector for sorting, nicer to look at :)
+	// lookup drive volumes.
+	TStringList volumes = FindVolumes();
+	for (auto i = volumes.cbegin(); i != volumes.cend(); i++)
+	{
+		if (GetDriveType((*i).c_str()) == DRIVE_CDROM/* || GetDriveType((*i).c_str()) == DRIVE_REMOVABLE*/)
+			continue;
+		if ((GetVolumePathNamesForVolumeName((*i).c_str(), buf, 256, NULL) != 0) &&
+		        (GetDiskFreeSpaceEx((*i).c_str(), NULL, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free) != 0))
+		{
+			tstring mountpath = buf;
+			if (!mountpath.empty())
+			{
+				totalFree += free;
+				totalSize += size;
+				results.push_back((_T("\t-=[ Disk ") + mountpath + _T(" space (free/total): ") + Util::formatBytesW(free) + _T("/") + Util::formatBytesW(size) + _T(" ]=-")));
+			}
+		}
+	}
+	
+	// and a check for mounted Network drives, todo fix a better way for network space
+	ULONG drives = _getdrives();
+	TCHAR drive[3] = { _T('A'), _T(':'), _T('\0') };
+	
+	while (drives != 0)
+	{
+		if (drives & 1 && (GetDriveType(drive) != DRIVE_CDROM && GetDriveType(drive) != DRIVE_REMOVABLE && GetDriveType(drive) == DRIVE_REMOTE))
+		{
+			if (GetDiskFreeSpaceEx(drive, NULL, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free))
+			{
+				totalFree += free;
+				totalSize += size;
+				results.push_back((_T("\t-=[ Network ") + (tstring)drive + _T(" space (free/total): ") + Util::formatBytesW(free) + _T("/") + Util::formatBytesW(size) + _T(" ]=-")));
+			}
+		}
+		++drive[0];
+		drives = (drives >> 1);
+	}
+	
+	sort(results.begin(), results.end()); //sort it
+	for (std::vector<tstring>::iterator i = results.begin(); i != results.end(); ++i)
+	{
+		disk_count++;
+		result += _T("\r\n ") + *i;
+	}
+	result += _T("\r\n\r\n\t-=[ All HDD space (free/total): ") + Util::formatBytesW((totalFree)) + _T("/") + Util::formatBytesW(totalSize) + _T(" ]=-");
+	result += _T("\r\n\t-=[ Total Drives count: ") + Text::toT(Util::toString(disk_count)) + _T(" ]=-");
+	results.clear();
+	return result;
+}
+string CompatibilityManager::CPUInfo()
+{
+	tstring result = _T("");
+	CRegKey key;
+	ULONG len = 255;
+	if (key.Open(HKEY_LOCAL_MACHINE, _T("Hardware\\Description\\System\\CentralProcessor\\0"), KEY_READ) == ERROR_SUCCESS)
+	{
+		TCHAR buf[255];
+		if (key.QueryStringValue(_T("ProcessorNameString"), buf, &len) == ERROR_SUCCESS)
+		{
+			tstring tmp = buf;
+			result = tmp.substr(tmp.find_first_not_of(_T(" ")));
+		}
+		DWORD speed;
+		if (key.QueryDWORDValue(_T("~MHz"), speed) == ERROR_SUCCESS)
+		{
+			result += _T(" (");
+			result += Util::toStringW((uint32_t)speed);
+			result += _T(" MHz)");
+		}
+	}
+	return result.empty() ? "Unknown" : Text::fromT(result);
+}
+string CompatibilityManager::getSysUptime()
+{
+
+	static HINSTANCE kernel32lib = NULL;
+	if (!kernel32lib)
+		kernel32lib = LoadLibrary(_T("kernel32"));
+		
+	//apexdc
+	typedef ULONGLONG(CALLBACK * LPFUNC2)(void);
+	LPFUNC2 _GetTickCount64 = (LPFUNC2)GetProcAddress(kernel32lib, "GetTickCount64");
+	time_t sysUptime = (_GetTickCount64 ? _GetTickCount64() : GetTickCount()) / 1000;
+	
+	return Util::formatTime(sysUptime, false);
+	
 }

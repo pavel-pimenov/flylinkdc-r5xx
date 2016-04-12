@@ -458,6 +458,7 @@
     <ClCompile Include="windows\NotepadFrame.cpp" />
     <ClCompile Include="windows\OMenu.cpp" />
     <ClCompile Include="windows\OperaColorsPage.cpp" />
+    <ClCompile Include="windows\Players.cpp" />
     <ClCompile Include="windows\PopupManager.cpp" />
     <ClCompile Include="windows\PopupsPage.cpp" />
     <ClCompile Include="windows\PortalBrowser.cpp" />

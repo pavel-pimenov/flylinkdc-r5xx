@@ -906,7 +906,6 @@ string Identity::getVirusDesc() const
 		return l_result;
 	}
 }
-#else
 string Identity::getVirusDesc() const
 {
 	return Util::emptyString;
@@ -1128,7 +1127,9 @@ void Identity::getReport(string& p_report) const
 		appendIfValueNotEmpty("Client version", getStringParam("VE"));
 		
 		appendIfValueNotEmpty("P2P Guard", getP2PGuard());
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		appendIfValueNotEmpty("Antivirus database", getVirusDesc());
+#endif
 		appendIfValueNotEmpty("Support info", getExtJSONSupportInfo());
 		appendIfValueNotEmpty("Gender", Text::fromT(getGenderTypeAsString()));
 		

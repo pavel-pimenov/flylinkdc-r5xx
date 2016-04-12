@@ -50,9 +50,11 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 	m_is_override_name(false),
 	m_is_fly_support_hub(false),
 	m_vip_icon_index(0),
-	m_is_suppress_chat_and_pm(false),
-	m_isAutobanAntivirusIP(false),
+	m_is_suppress_chat_and_pm(false)
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+	, m_isAutobanAntivirusIP(false),
 	m_isAutobanAntivirusNick(false)
+#endif
 	//m_count_validate_denide(0)
 {
 	dcassert(p_HubURL == Text::toLower(p_HubURL));
@@ -314,9 +316,11 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		m_opChat = hub->getOpChat();
 		m_exclChecks = hub->getExclChecks();
 		// [~] IRainman fix.
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		m_isAutobanAntivirusIP = hub->getAutobanAntivirusIP();
 		m_isAutobanAntivirusNick = hub->getAutobanAntivirusNick();
 		m_AntivirusCommandIP = hub->getAntivirusCommandIP();
+#endif
 	}
 	else
 	{
@@ -343,9 +347,11 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		m_opChat.clear();
 		m_exclChecks = false;
 		// [~] IRainman fix.
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		m_isAutobanAntivirusIP = false;
 		m_isAutobanAntivirusNick = false;
 		m_AntivirusCommandIP.clear();
+#endif
 	}
 	/* [-] IRainman mimicry function
 	// !SMT!-S
@@ -490,10 +496,13 @@ void Client::on(Failed, const string& aLine) noexcept
 
 void Client::disconnect(bool p_graceLess)
 {
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	{
 		CFlyFastLock(m_cs_virus);
 		m_virus_nick.clear();
 	}
+#endif
+	
 	state = STATE_DISCONNECTED;//[!] IRainman fix
 	FavoriteManager::removeUserCommand(getHubUrl());
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET

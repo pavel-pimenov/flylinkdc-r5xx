@@ -325,6 +325,14 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		static void save();
 		static void recentsave();
 		static size_t getCountFavsUsers();
+		static bool isISPDelete(const string& p_server)
+		{
+			auto i = g_sync_hub_isp_delete.find(p_server);
+			if (i == g_sync_hub_isp_delete.end())
+				return false;
+			else
+				return true;
+		}
 	private:
 		static void getFavoriteUsersNamesL(StringSet& p_users, bool p_is_ban);
 		static bool isUserExistL(const UserPtr& aUser)
@@ -338,6 +346,7 @@ class FavoriteManager : public Speaker<FavoriteManagerListener>,
 		static FavoriteHubEntryList g_favoriteHubs;
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 		static StringSet g_sync_hub_local;
+		static StringSet g_sync_hub_isp_delete;
 		static StringSet g_sync_hub_external;
 #endif
 		static FavDirList g_favoriteDirs; // [~] InfinitySky. Code from Apex.

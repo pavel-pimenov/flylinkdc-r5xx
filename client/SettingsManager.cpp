@@ -256,7 +256,7 @@ const string SettingsManager::g_settingTags[] =
 	//"BadSoftDetections", "DetectBadSoft", [-]
 	//"AdvancedResume", // [-] merge
 	"AcceptedDisconnects", "AcceptedTimeouts",
-	"OpenPublic", "OpenFavoriteHubs", "OpenFavoriteUsers", "OpenQueue", "OpenFinishedDownloads",
+	"OpenRecentHubs", "OpenPublic", "OpenFavoriteHubs", "OpenFavoriteUsers", "OpenQueue", "OpenFinishedDownloads",
 	"OpenFinishedUploads", "OpenSearchSpy", "OpenNetworkStatistics", "OpenNotepad", "OutgoingConnections",
 	"NoIPOverride", "ForgetSearchRequest", "SaveSearchSettings", "UseSearchGroupTreeSettings", "SavedSearchType", "SavedSearchSizeMode", "SavedSearchMode", "BoldFinishedDownloads",
 	"BoldFinishedUploads", "BoldQueue",
@@ -455,6 +455,8 @@ const string SettingsManager::g_settingTags[] =
 	"ReportToUserIfOutdatedOsDetected20130523", // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1032
 	"UseGPUInTTHComputing",
 	"TTHGPUDevNum",
+	//"UsersTop", "UsersBottom", "UsersLeft", "UsersRight",
+	"FavUsersSplitterPos",
 	"SENTRY",
 };
 
@@ -669,6 +671,7 @@ void SettingsManager::setDefaults()
 	setDefault(PRIO_NORMAL_SIZE, 1024); // [~] InfinitySky.
 	setDefault(PRIO_LOW_SIZE, 2048); // [~] InfinitySky.
 	//setDefault(PRIO_LOWEST, false);
+	setDefault(OPEN_RECENT_HUBS, TRUE);
 	//setDefault(OPEN_PUBLIC, false);
 	//setDefault(OPEN_FAVORITE_HUBS, false);
 	//setDefault(OPEN_FAVORITE_USERS, false);
@@ -1126,6 +1129,8 @@ void SettingsManager::setDefaults()
 	//setDefault(SEND_SLOTGRANT_MSG, false);
 	//setDefault(FAVUSERLIST_DBLCLICK, false);
 	
+	setDefault(FAV_USERS_SPLITTER_POS, 8000);
+	
 	// !SMT!-PSW
 	//setDefault(PROTECT_PRIVATE, 0);
 	setDefault(PROTECT_PRIVATE_RND, 1);
@@ -1295,7 +1300,9 @@ void SettingsManager::setDefaults()
 	setDefault(INT_PREVIEW_CLIENT_PATH, "C:\\Program Files\\SMPlayer\\smplayer.exe");  // [+] SSA
 	setDefault(INT_PREVIEW_USE_VIDEO_SCROLL, TRUE);
 	setDefault(INT_PREVIEW_START_CLIENT, TRUE);
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	setDefault(AVDB_BLOCK_CONNECTIONS, TRUE);
+#endif
 	setDefault(XXX_BLOCK_SHARE, TRUE);
 #ifdef NIGHTORION_USE_STATISTICS_REQUEST
 	setDefault(SETTINGS_STATISTICS_ASK, TRUE);

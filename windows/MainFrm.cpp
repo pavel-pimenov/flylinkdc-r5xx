@@ -2498,16 +2498,23 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 			}
 		}
 		// Откроем ранее открытые хабы но не помещенные в избранные
+		if (BOOLSETTING(OPEN_RECENT_HUBS))
 		{
 			for (auto j = FavoriteManager::getRecentHubs().cbegin(); j != FavoriteManager::getRecentHubs().cend(); ++ j)
 			{
 				if ((*j)->getAutoOpen() == false && (*j)->getOpenTab() == "+")
 				{
-					frm = HubFrame::openWindow(true,
-					                           (*j)->getServer(),
-					                           (*j)->getName()
-					                          );
-					                          
+					if (FavoriteManager::isISPDelete((*j)->getServer()) == false)
+					{
+						frm = HubFrame::openWindow(true,
+						                           (*j)->getServer(),
+						                           (*j)->getName()
+						                          );
+					}
+					else
+					{
+						//dcassert(0);
+					}
 				}
 			}
 		}

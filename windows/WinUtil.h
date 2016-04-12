@@ -1505,7 +1505,6 @@ class WinUtil
 		static HIconWrapper g_banIconOnline; // !SMT!-UI
 		static HIconWrapper g_banIconOffline; // !SMT!-UI
 		static HIconWrapper g_hMedicalIcon;
-		static HIconWrapper g_hThermometerIcon;
 		//static HIconWrapper g_hCrutchIcon;
 		static HIconWrapper g_hFirewallIcon;
 		static HIconWrapper g_hXXXBlockIcon;
@@ -1517,7 +1516,10 @@ class WinUtil
 		static std::unique_ptr<HIconWrapper> g_HubOffIcon;
 		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIcon;
 		static std::unique_ptr<HIconWrapper> g_HubDDoSIcon;
+		static HIconWrapper g_hThermometerIcon;
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		static std::unique_ptr<HIconWrapper> g_HubAntivirusIcon;
+#endif
 #ifdef FLYLINKDC_USE_SKULL_TAB
 		static std::unique_ptr<HIconWrapper> g_HubVirusIcon[4];
 #else

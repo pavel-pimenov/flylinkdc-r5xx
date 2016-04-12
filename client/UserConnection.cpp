@@ -103,10 +103,11 @@ bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string, bool p_is_d
 			}
 		}
 	}
-	bool l_is_avdb_guard;
 	string l_avdb_guard;
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	if (BOOLSETTING(AVDB_BLOCK_CONNECTIONS))
 	{
+		bool l_is_avdb_guard;
 		const auto l_nick         = getUser()->getLastNick();
 		const auto l_bytes_shared = getUser()->getBytesShared();
 		l_is_avdb_guard = CFlylinkDBManager::getInstance()->is_avdb_guard(l_nick, l_bytes_shared, l_ip4);
@@ -121,6 +122,7 @@ bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string, bool p_is_d
 			CFlyServerJSON::pushError(43, "(" + getRemoteIp() + ')' + l_avdb_guard);
 		}
 	}
+#endif
 	if (l_is_ip_guard)
 	{
 		const auto l_block_message = l_p2p_guard + l_avdb_guard;
@@ -136,10 +138,12 @@ bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string, bool p_is_d
 		{
 			getUser()->setFlag(User::PG_P2PGUARD_BLOCK);
 		}
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		if (!l_avdb_guard.empty())
 		{
 			getUser()->setFlag(User::PG_AVDB_BLOCK);
 		}
+#endif
 		LogManager::message("IPFilter: " + ResourceManager::getString(p_id_string) + " (" + getRemoteIp() + ") " + l_block_message);
 		QueueManager::getInstance()->removeSource(getUser(), QueueItem::Source::FLAG_REMOVED);
 		return true;

@@ -235,12 +235,16 @@ class CFlyServerConfig
 		{
 			return p_StringList.find(p_name) != p_StringList.end();
 		}
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		static bool SyncAntivirusDB(bool& p_is_need_reload);
+#endif
 	public:
 		static bool SyncXXXBlockDB();
 		
 		void loadConfig();
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		static void SyncAntivirusDBSafe();
+#endif
 		
 		static string getAllMediainfoExt()
 		{

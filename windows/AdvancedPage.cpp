@@ -189,7 +189,7 @@ LRESULT AdvancedPage::onClickedWinampHelp(WORD /* wNotifyCode */, WORD /*wID*/, 
 			MessageBox(CTSTRING(WINAMP_HELP), CTSTRING(WINAMP_HELP_DESC), MB_OK | MB_ICONINFORMATION);
 			break;
 		case SettingsManager::WinMediaPlayer:
-			MessageBox(CTSTRING(WMP_HELP), CTSTRING(WMP_HELP_DESC), MB_OK | MB_ICONINFORMATION);
+			MessageBox(CTSTRING(WMP_HELP_STR), CTSTRING(WMP_HELP_DESC), MB_OK | MB_ICONINFORMATION);
 			break;
 		case SettingsManager::iTunes:
 			MessageBox(CTSTRING(ITUNES_HELP), CTSTRING(ITUNES_HELP_DESC), MB_OK | MB_ICONINFORMATION);

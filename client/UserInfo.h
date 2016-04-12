@@ -120,9 +120,10 @@ class UserInfo : public UserInfoBase
 			return UserInfoBase::getImage(*m_ou);
 		}
 		uint8_t getStateImageIndex() const;
-		void calcVirusType();
 		void calcP2PGuard();
-		// [+] IRainman opt.
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+		void calcVirusType();
+#endif
 		const Util::CustomNetworkIndex& getLocation() const
 		{
 			return m_location;
@@ -132,7 +133,6 @@ class UserInfo : public UserInfoBase
 		{
 			m_location = p_location;
 		}
-		// [~] IRainman opt.
 		string getNick() const
 		{
 			return m_ou->getIdentity().getNick();

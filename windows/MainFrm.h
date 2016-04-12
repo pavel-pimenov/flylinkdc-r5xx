@@ -836,10 +836,12 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 					if (CFlyServerJSON::pushStatistic(m_is_sync_run) == false)
 					{
 						// ≈сли нет ошибок и не закрываемс€ - обновим антивирусную базу
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 						if (m_is_sync_run == false) // ≈сли запущено в фоновом режиме - стартанем обновление AvDB и сброс счетчиков загрузок
 						{
 							CFlyServerConfig::SyncAntivirusDBSafe();
 						}
+#endif
 					}
 #endif
 					return 0;

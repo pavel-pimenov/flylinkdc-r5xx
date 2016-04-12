@@ -268,7 +268,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  //BADSOFT_DETECTIONS, DETECT_BADSOFT, [-]
 		                  //ADVANCED_RESUME, [-] merge
 		                  ACCEPTED_DISCONNECTS, ACCEPTED_TIMEOUTS,
-		                  OPEN_PUBLIC, OPEN_FAVORITE_HUBS, OPEN_FAVORITE_USERS, OPEN_QUEUE, OPEN_FINISHED_DOWNLOADS,
+		                  OPEN_RECENT_HUBS, OPEN_PUBLIC, OPEN_FAVORITE_HUBS, OPEN_FAVORITE_USERS, OPEN_QUEUE, OPEN_FINISHED_DOWNLOADS,
 		                  OPEN_FINISHED_UPLOADS, OPEN_SEARCH_SPY, OPEN_NETWORK_STATISTICS, OPEN_NOTEPAD, OUTGOING_CONNECTIONS,
 		                  NO_IP_OVERRIDE, FORGET_SEARCH_REQUEST, SAVE_SEARCH_SETTINGS, USE_SEARCH_GROUP_TREE_SETTINGS, SAVED_SEARCH_TYPE, SAVED_SEARCH_SIZEMODE, SAVED_SEARCH_MODE, BOLD_FINISHED_DOWNLOADS, BOLD_FINISHED_UPLOADS, BOLD_QUEUE,
 		                  BOLD_HUB, BOLD_PM, BOLD_SEARCH, BOLD_NEWRSS, TABS_POS,
@@ -463,6 +463,8 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  REPORT_TO_USER_IF_OUTDATED_OS_DETECTED, // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1032
 		                  USE_GPU_IN_TTH_COMPUTING,
 		                  TTH_GPU_DEV_NUM,
+		                  //  USERS_TOP, USERS_BOTTOM, USERS_LEFT, USERS_RIGHT,
+		                  FAV_USERS_SPLITTER_POS,
 		                  INT_LAST,
 		                  SETTINGS_LAST = INT_LAST
 		                };
