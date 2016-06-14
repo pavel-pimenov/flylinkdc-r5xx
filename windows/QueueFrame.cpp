@@ -153,14 +153,18 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 			return Text::toT(Util::getFileExtWithoutDot(getTarget()));
 		case COLUMN_STATUS:
 		{
-			RLock(*QueueItem::g_cs);
-			if (isFinishedL())
+			if (isFinished())
 			{
 				return TSTRING(DOWNLOAD_FINISHED_IDLE);
 			}
-			const size_t l_online = QueueManager::countOnlineUsersL(m_qi);
-			const size_t l_count_source = m_qi->getSourcesCountL();
-			if (isWaitingL())
+			size_t l_online;
+			size_t l_count_source;
+			{
+				RLock(*QueueItem::g_cs);
+				l_online = QueueManager::countOnlineUsersL(m_qi);
+			}
+			l_count_source = m_qi->getSourcesCount();
+			if (isWaiting())
 			{
 				if (l_online > 0)
 				{
@@ -926,7 +930,7 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 void QueueFrame::removeSelected()
 {
 	UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-	if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), T_APPNAME_WITH_VERSION, CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
+	if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
 	{
 		CWaitCursor l_cursor_wait;
 		ctrlQueue.forEachSelected(&QueueItemInfo::removeBatch);
@@ -942,7 +946,7 @@ void QueueFrame::removeAllDir()
 	if (ctrlDirs.GetSelectedItem())
 	{
 		UINT checkState = BST_CHECKED;
-		if (::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), T_APPNAME_WITH_VERSION, CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)
+		if (::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)
 		{
 			QueueManager::getInstance()->removeAll();
 			ctrlDirs.DeleteAllItems();
@@ -955,7 +959,7 @@ void QueueFrame::removeSelectedDir()
 	if (ctrlDirs.GetSelectedItem())
 	{
 		UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-		if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), T_APPNAME_WITH_VERSION, CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
+		if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
 		{
 			CWaitCursor l_cursor_wait;
 			CLockRedraw<> l_lock_draw(ctrlQueue);

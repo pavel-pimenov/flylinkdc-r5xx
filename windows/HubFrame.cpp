@@ -373,9 +373,9 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 {
 	if (!m_isUpdateColumnsInfoProcessed) // Апдейт колонок делаем только один раз при первой активации т.к. ListItem не разрушается
 	{
-		m_isUpdateColumnsInfoProcessed = true;
 		FavoriteManager::getInstance()->addListener(this);
 		SettingsManager::getInstance()->addListener(this);
+		m_isUpdateColumnsInfoProcessed = true;
 		BOOST_STATIC_ASSERT(_countof(g_columnSizes) == COLUMN_LAST);
 		BOOST_STATIC_ASSERT(_countof(g_columnNames) == COLUMN_LAST);
 		for (size_t j = 0; j < COLUMN_LAST; ++j)
@@ -490,99 +490,102 @@ void HubFrame::createMessagePanel()
 {
 	bool l_is_need_update = false;
 	dcassert(!ClientManager::isShutdown());
-	if (m_ctrlFilter == nullptr && ClientManager::isStartup() == false)
+	if (!isClosedOrShutdown())
 	{
-		++m_ActivateCounter;
-		createCtrlUsers();
-		BaseChatFrame::createMessageCtrl(this, EDIT_MESSAGE_MAP, isSupressChatAndPM());
-		dcassert(!m_ctrlFilterContainer);
-		m_ctrlFilterContainer    = new CContainedWindow(WC_EDIT, this, FILTER_MESSAGE_MAP);
-		m_ctrlFilter = new CEdit;
-		m_ctrlFilter->Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-		                     ES_AUTOHSCROLL, WS_EX_CLIENTEDGE);
-		m_ctrlFilterContainer->SubclassWindow(m_ctrlFilter->m_hWnd);
-		m_ctrlFilter->SetFont(Fonts::g_systemFont); // [~] Sergey Shushknaov
-		if (!m_filter.empty())
+		if (m_ctrlFilter == nullptr && ClientManager::isStartup() == false)
 		{
-			m_ctrlFilter->SetWindowTextW(m_filter.c_str());
-		}
-		
-		m_ctrlFilterSelContainer = new CContainedWindow(WC_COMBOBOX, this, FILTER_MESSAGE_MAP);
-		m_ctrlFilterSel = new CComboBox;
-		m_ctrlFilterSel->Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL |
-		                        WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE);
-		m_ctrlFilterSelContainer->SubclassWindow(m_ctrlFilterSel->m_hWnd);
-		m_ctrlFilterSel->SetFont(Fonts::g_systemFont); // [~] Sergey Shuhkanov
-		
-		for (size_t j = 0; j < COLUMN_LAST; ++j)
-		{
-			m_ctrlFilterSel->AddString(CTSTRING_I(g_columnNames[j]));
-		}
-		m_ctrlFilterSel->AddString(CTSTRING(ANY));
-		m_ctrlFilterSel->SetCurSel(m_FilterSelPos);
-		
-		m_tooltip_hubframe = new CFlyToolTipCtrl;
-		m_tooltip_hubframe->Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
-		m_tooltip_hubframe->SetDelayTime(TTDT_AUTOPOP, 10000);
-		dcassert(m_tooltip_hubframe->IsWindow());
-		m_tooltip_hubframe->SetMaxTipWidth(255);   //[+] SCALOlaz: activate tooltips
-		
-		CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
-		BaseChatFrame::createStatusCtrl(m_hWndStatusBar);
-		
-#ifdef SCALOLAZ_HUB_SWITCH_BTN
-		m_switchPanelsContainer = new CContainedWindow(WC_BUTTON, this, HUBSTATUS_MESSAGE_MAP),
-		m_ctrlSwitchPanels = new CButton;
-		m_ctrlSwitchPanels->Create(m_ctrlStatus->m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON | BS_CENTER | BS_PUSHBUTTON , 0, IDC_HUBS_SWITCHPANELS);
-		m_ctrlSwitchPanels->SetFont(Fonts::g_systemFont);
-		m_ctrlSwitchPanels->SetIcon(g_hSwitchPanelsIco);
-		m_switchPanelsContainer->SubclassWindow(m_ctrlSwitchPanels->m_hWnd);
-		m_tooltip_hubframe->AddTool(*m_ctrlSwitchPanels, ResourceManager::CMD_SWITCHPANELS);
-#endif
-		m_ctrlShowUsers = new CButton;
-		m_ctrlShowUsers->Create(m_ctrlStatus->m_hWnd, rcDefault, _T("+/-"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-		m_ctrlShowUsers->SetButtonStyle(BS_AUTOCHECKBOX, false);
-		m_ctrlShowUsers->SetFont(Fonts::g_systemFont);
-		setShowUsersCheck();
-		
-		m_showUsersContainer = new CContainedWindow(WC_BUTTON, this, EDIT_MESSAGE_MAP);
-		m_showUsersContainer->SubclassWindow(m_ctrlShowUsers->m_hWnd);
-		m_tooltip_hubframe->AddTool(*m_ctrlShowUsers, ResourceManager::CMD_USERLIST);
-#ifdef SCALOLAZ_HUB_MODE
-		m_ctrlShowMode = new CStatic;
-		m_ctrlShowMode->Create(m_ctrlStatus->m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | SS_ICON | BS_CENTER | BS_PUSHBUTTON , 0);
-		//  m_ctrlShowMode->SetIcon(g_hModeActiveIco);
-#endif
-		dcassert(m_client->getHubUrl() == m_server);
-		const FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(m_server);
-		createFavHubMenu(fhe);
-		updateColumnsInfo(fhe); // Настроим колонки списка юзеров
-		m_ctrlMessage->SetFocus();
-		if (m_ActivateCounter == 1)
-		{
-			m_showUsers = m_showUsersStore;
-			if (m_showUsers)
+			++m_ActivateCounter;
+			createCtrlUsers();
+			BaseChatFrame::createMessageCtrl(this, EDIT_MESSAGE_MAP, isSupressChatAndPM());
+			dcassert(!m_ctrlFilterContainer);
+			m_ctrlFilterContainer = new CContainedWindow(WC_EDIT, this, FILTER_MESSAGE_MAP);
+			m_ctrlFilter = new CEdit;
+			m_ctrlFilter->Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+			                     ES_AUTOHSCROLL, WS_EX_CLIENTEDGE);
+			m_ctrlFilterContainer->SubclassWindow(m_ctrlFilter->m_hWnd);
+			m_ctrlFilter->SetFont(Fonts::g_systemFont); // [~] Sergey Shushknaov
+			if (!m_filter.empty())
 			{
-				firstLoadAllUsers();
+				m_ctrlFilter->SetWindowTextW(m_filter.c_str());
 			}
-			updateSplitterPosition(fhe); // Обновим сплитер
-		}
-		l_is_need_update = true;
-	}
-	BaseChatFrame::createMessagePanel();
-	setCountMessages(0);
-	if (!m_ctrlChatContainer && ctrlClient.m_hWnd)
-	{
-		m_ctrlChatContainer     = new CContainedWindow(WC_EDIT, this, EDIT_MESSAGE_MAP);
-		m_ctrlChatContainer->SubclassWindow(ctrlClient.m_hWnd);
-	}
-	if (l_is_need_update)
-	{
-#ifdef SCALOLAZ_HUB_MODE
-		HubModeChange();
+			
+			m_ctrlFilterSelContainer = new CContainedWindow(WC_COMBOBOX, this, FILTER_MESSAGE_MAP);
+			m_ctrlFilterSel = new CComboBox;
+			m_ctrlFilterSel->Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL |
+			                        WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE);
+			m_ctrlFilterSelContainer->SubclassWindow(m_ctrlFilterSel->m_hWnd);
+			m_ctrlFilterSel->SetFont(Fonts::g_systemFont); // [~] Sergey Shuhkanov
+			
+			for (size_t j = 0; j < COLUMN_LAST; ++j)
+			{
+				m_ctrlFilterSel->AddString(CTSTRING_I(g_columnNames[j]));
+			}
+			m_ctrlFilterSel->AddString(CTSTRING(ANY));
+			m_ctrlFilterSel->SetCurSel(m_FilterSelPos);
+			
+			m_tooltip_hubframe = new CFlyToolTipCtrl;
+			m_tooltip_hubframe->Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
+			m_tooltip_hubframe->SetDelayTime(TTDT_AUTOPOP, 10000);
+			dcassert(m_tooltip_hubframe->IsWindow());
+			m_tooltip_hubframe->SetMaxTipWidth(255);   //[+] SCALOlaz: activate tooltips
+			
+			CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
+			BaseChatFrame::createStatusCtrl(m_hWndStatusBar);
+			
+#ifdef SCALOLAZ_HUB_SWITCH_BTN
+			m_switchPanelsContainer = new CContainedWindow(WC_BUTTON, this, HUBSTATUS_MESSAGE_MAP),
+			m_ctrlSwitchPanels = new CButton;
+			m_ctrlSwitchPanels->Create(m_ctrlStatus->m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON | BS_CENTER | BS_PUSHBUTTON, 0, IDC_HUBS_SWITCHPANELS);
+			m_ctrlSwitchPanels->SetFont(Fonts::g_systemFont);
+			m_ctrlSwitchPanels->SetIcon(g_hSwitchPanelsIco);
+			m_switchPanelsContainer->SubclassWindow(m_ctrlSwitchPanels->m_hWnd);
+			m_tooltip_hubframe->AddTool(*m_ctrlSwitchPanels, ResourceManager::CMD_SWITCHPANELS);
 #endif
-		UpdateLayout(TRUE); // TODO - сконструировать статус отдельным методом
-		restoreStatusFromCache(); // Восстанавливать статус нужно после UpdateLayout
+			m_ctrlShowUsers = new CButton;
+			m_ctrlShowUsers->Create(m_ctrlStatus->m_hWnd, rcDefault, _T("+/-"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+			m_ctrlShowUsers->SetButtonStyle(BS_AUTOCHECKBOX, false);
+			m_ctrlShowUsers->SetFont(Fonts::g_systemFont);
+			setShowUsersCheck();
+			
+			m_showUsersContainer = new CContainedWindow(WC_BUTTON, this, EDIT_MESSAGE_MAP);
+			m_showUsersContainer->SubclassWindow(m_ctrlShowUsers->m_hWnd);
+			m_tooltip_hubframe->AddTool(*m_ctrlShowUsers, ResourceManager::CMD_USERLIST);
+#ifdef SCALOLAZ_HUB_MODE
+			m_ctrlShowMode = new CStatic;
+			m_ctrlShowMode->Create(m_ctrlStatus->m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | SS_ICON | BS_CENTER | BS_PUSHBUTTON, 0);
+			//  m_ctrlShowMode->SetIcon(g_hModeActiveIco);
+#endif
+			dcassert(m_client->getHubUrl() == m_server);
+			const FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(m_server);
+			createFavHubMenu(fhe);
+			updateColumnsInfo(fhe); // Настроим колонки списка юзеров
+			m_ctrlMessage->SetFocus();
+			if (m_ActivateCounter == 1)
+			{
+				m_showUsers = m_showUsersStore;
+				if (m_showUsers)
+				{
+					firstLoadAllUsers();
+				}
+				updateSplitterPosition(fhe); // Обновим сплитер
+			}
+			l_is_need_update = true;
+		}
+		BaseChatFrame::createMessagePanel();
+		setCountMessages(0);
+		if (!m_ctrlChatContainer && ctrlClient.m_hWnd)
+		{
+			m_ctrlChatContainer = new CContainedWindow(WC_EDIT, this, EDIT_MESSAGE_MAP);
+			m_ctrlChatContainer->SubclassWindow(ctrlClient.m_hWnd);
+		}
+		if (l_is_need_update)
+		{
+#ifdef SCALOLAZ_HUB_MODE
+			HubModeChange();
+#endif
+			UpdateLayout(TRUE); // TODO - сконструировать статус отдельным методом
+			restoreStatusFromCache(); // Восстанавливать статус нужно после UpdateLayout
+		}
 	}
 }
 void HubFrame::destroyMessagePanel(bool p_is_destroy)
@@ -1874,7 +1877,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					if (!ClientManager::isShutdown())
 					{
 						MessageTask& l_task = static_cast<MessageTask&>(*i->second);
-						auto_ptr<ChatMessage> msg(l_task.m_message_ptr);
+						std::unique_ptr<ChatMessage> msg(l_task.m_message_ptr);
 						l_task.m_message_ptr = nullptr;
 						if (msg->m_from && !ClientManager::isShutdown())
 						{
@@ -2002,7 +2005,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				{
 					dcassert(!ClientManager::isShutdown());
 					MessageTask& l_task = static_cast<MessageTask&>(*i->second);
-					auto_ptr<ChatMessage> pm(l_task.m_message_ptr);
+					std::unique_ptr<ChatMessage> pm(l_task.m_message_ptr);
 					l_task.m_message_ptr = nullptr;
 					const Identity& from = pm->m_from->getIdentity();
 					const bool myPM = ClientManager::isMe(pm->m_replyTo);
@@ -2991,7 +2994,7 @@ LRESULT HubFrame::onFileReconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 	initShowJoins(fhe);
 	if ((!fhe || fhe->getNick().empty()) && SETTING(NICK).empty())
 	{
-		MessageBox(CTSTRING(ENTER_NICK), T_APPNAME_WITH_VERSION, MB_ICONSTOP | MB_OK);// TODO Добавить адрес хаба в сообщение
+		MessageBox(CTSTRING(ENTER_NICK), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_ICONSTOP | MB_OK);// TODO Добавить адрес хаба в сообщение
 		return 0;
 	}
 	m_client->reconnect();

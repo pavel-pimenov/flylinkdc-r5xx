@@ -164,9 +164,9 @@ class AutoUpdate :
 		static string getTempFolderForUpdate(const string &version);
 		static bool verifyUpdate(byte* signData, size_t signDataSize, const string& data, size_t dataSize);
 		
-		static const string& UPDATE_FILEDOWNLOAD();
-		static const string& UPDATE_SIGNFILEDOWNLOAD();
-		static const string& UPDATE_DESCRIPTION();
+		static const string UPDATE_FILE_DOWNLOAD();
+		static const string UPDATE_SIGN_FILE_DOWNLOAD();
+		static const string UPDATE_DESCRIPTION();
 		static string getAUTOUPDATE_SERVER_URL();
 		static AutoUpdateFile parseNode(const XMLParser::XMLNode& Node);
 		int64_t checkFilesToNeedsUpdate(AutoUpdateFiles& p_files4Update,

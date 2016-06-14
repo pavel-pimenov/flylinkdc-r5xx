@@ -65,7 +65,7 @@ crash_rpt::ApplicationInfo* GetApplicationInfo()
 	    "C9149EA6-612E-4038-A557-D62DF22755CD";
 #else
 #ifdef FLYLINKDC_BETA
-	    "910F4B4D-C71C-45BC-A88D-F59FE022525B";
+	    "9B9D2DBC-80E9-40FF-9801-52E1F52E5EC0";
 #else
 	    "45A84685-77E6-4F01-BF10-C698B811087F";
 #endif
@@ -255,7 +255,7 @@ void CreateSplash()
 		rc.right = GetSystemMetrics(SM_CXFULLSCREEN);
 		rc.left = rc.right / 2 - 85;
 		
-		g_dummy.Create(NULL, rc, T_APPNAME_WITH_VERSION, WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+		g_dummy.Create(NULL, rc, getFlylinkDCAppCaptionWithVersionT().c_str(), WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 		               ES_CENTER | ES_READONLY, WS_EX_STATICEDGE);
 		g_splash.Create(_T("Static"), GetDesktopWindow(), g_splash.rcDefault, NULL, WS_POPUP | WS_VISIBLE | SS_USERITEM | WS_EX_TOOLWINDOW);
 		/*
@@ -277,9 +277,10 @@ void CreateSplash()
 		if (!g_splash_png)
 		{
 			g_splash_png = new ExCImage;
-			if (File::isExist(_T("splash.png")))
+			const string l_custom_splash = Util::getModuleCustomFileName("splash.png");
+			if (File::isExist(l_custom_splash))
 			{
-				g_splash_png->Load(_T("splash.png"));
+				g_splash_png->Load(Text::toT(l_custom_splash).c_str());
 			}
 			else
 			{
@@ -658,7 +659,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		bool multiple = false;
 		if (l_is_multipleInstances == false && l_is_magnet == false && l_is_openfile == false && l_is_sharefolder == false)
 		{
-			if (MessageBox(NULL, CTSTRING(ALREADY_RUNNING), T_APPNAME_WITH_VERSION, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)   // [~] Drakon.
+			if (MessageBox(NULL, CTSTRING(ALREADY_RUNNING), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)   // [~] Drakon.
 			{
 				multiple = true;
 			}

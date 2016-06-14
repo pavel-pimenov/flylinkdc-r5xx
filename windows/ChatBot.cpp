@@ -17,11 +17,7 @@ HINSTANCE ChatBot::g_ChatBotDll = nullptr;
 ChatBot::ChatBot() : m_qrycount(0)
 {
 	m_init.apiVersion = 2;
-	m_init.appName = APPNAME
-#ifdef FLYLINKDC_HE
-	                 "HE"
-#endif
-	                 ;
+	m_init.appName = getFlylinkDCAppCaption();
 	m_init.appVersion = A_VERSIONSTRING;
 	m_init.appConfigPath = Util::getConfigPath().c_str(); // [+] IRainman
 	m_init.botId = nullptr;

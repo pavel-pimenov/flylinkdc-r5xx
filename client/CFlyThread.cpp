@@ -139,7 +139,7 @@ void Thread::start(unsigned int p_stack_size, const char* p_name /* = nullptr */
 			                       " Please send a text or a screenshot of the error to developers ppa74@ya.ru";
 			// https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=97752
 #ifdef _DEBUG
-			MessageBox(NULL, Text::toT(l_error).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR | MB_TOPMOST);
+			MessageBox(NULL, Text::toT(l_error).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR | MB_TOPMOST);
 #endif
 			throw ThreadException(l_error);
 #endif

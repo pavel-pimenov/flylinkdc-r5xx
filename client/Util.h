@@ -50,6 +50,10 @@
 #define PLAY_SOUND_BEEP(sound_key) { if (SOUND_BEEP_BOOLSETTING(sound_key)) Util::playSound(SOUND_SETTING(SOUND_BEEPFILE), true); }
 // [~] IRainman: copy-past fix.
 
+const string getFlylinkDCAppCaption();
+const tstring getFlylinkDCAppCaptionT();
+const string getFlylinkDCAppCaptionWithVersion();
+const tstring getFlylinkDCAppCaptionWithVersionT();
 
 class IDateReceiveReporter
 {
@@ -100,6 +104,7 @@ class CFlyHTTPDownloader
 		{
 		}
 		std::vector<string> m_get_http_header_item;
+		uint64_t getBinaryDataFromInetSafe(const string& p_url, std::vector<unsigned char>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
 		uint64_t getBinaryDataFromInet(const string& p_url, std::vector<unsigned char>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
 		void clear()
 		{
@@ -595,11 +600,15 @@ class Util
 		}
 #ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 		/** Path of icon */
-		static const string& getICOPath() //[+] NightOrion
+		static const string getICOPath() //[+] NightOrion
 		{
 			return getPath(PATH_EXTERNAL_ICO);
 		}
 #endif
+		static const string getExternalLogoPath()
+		{
+			return getPath(PATH_EXTERNAL_LOGO);
+		}
 		/** Path of local mode */
 		static const string& getLocalPath() //[+] NightOrion
 		{
@@ -823,14 +832,9 @@ class Util
 		static string formatParams(const string& msg, const StringMap& params, bool filter, const time_t p_t = time(NULL));
 		static string formatTime(const string& msg, const time_t p_t);
 		static string formatTime(uint64_t rest, const bool withSecond = true);
-		static string formatDigitalClockGMT(const time_t& p_t)
-		{
-			return formatDigitalClock("%Y-%m-%d %H:%M:%S", p_t, true);
-		}
-		static string formatDigitalClock(const time_t& p_t)
-		{
-			return formatDigitalClock("%Y-%m-%d %H:%M:%S", p_t, false);
-		}
+		static string formatDigitalClockGMT(const time_t& p_t);
+		static string formatDigitalClock(const time_t& p_t);
+		static string formatDigitalDate();
 		static string formatDigitalClock(const string &p_msg, const time_t& p_t, bool p_is_gmt); //[+]FlylinkDC++ Team
 		static string formatRegExp(const string& msg, const StringMap& params);
 		
@@ -1205,6 +1209,7 @@ class Util
 		static string getWANIP(const string& p_url, LONG p_timeOut = 500);
 		
 		static size_t getDataFromInet(bool p_is_use_cache, const string& url, string& data, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
+		static size_t getDataFromInetSafe(bool p_is_use_cache, const string& url, string& data, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
 		
 		
 		// static string formatMessage(const string& message);[-] IRainman fix
@@ -1279,6 +1284,7 @@ class Util
 			PATH_SOUNDS,    // [+] NightOrion
 			/** Files for GPGPU **/
 			PATH_GPGPU,
+			PATH_EXTERNAL_LOGO,
 			PATH_LAST
 		};
 	public:
@@ -1308,6 +1314,9 @@ class Util
 		
 		// [!] IRainman opt.
 	public:
+		static const tstring getModuleFileName();
+		static const string getModuleCustomFileName(const string& p_file_name);
+		
 		struct CustomNetworkIndex
 		{
 			public:
@@ -1345,20 +1354,23 @@ class Util
 		// [~] IRainman opt.
 		static void loadBootConfig();
 		/** Path of program configuration files */
-		static const string& getPath(Paths path)
+		static const string& getPath(Paths p_path)
 		{
-			return g_paths[path];
+			dcassert(!g_paths[p_path].empty());
+			return g_paths[p_path];
 		}
 	public:
 		/** Path of system folder */
-		static const string& getSysPath(SysPaths path) // [+] IRainman
+		static const string& getSysPath(SysPaths p_path) // [+] IRainman
 		{
-			return g_sysPaths[path];
+			dcassert(!g_sysPaths[p_path].empty());
+			return g_sysPaths[p_path];
 		}
-		static bool locatedInSysPath(SysPaths path, const string& currentPath);
+		static bool locatedInSysPath(SysPaths path, const string& p_path);
+		static bool checkForbidenFolders(const string& p_path);
 	private:
 		static void intiProfileConfig();
-		static void MoveSettings();
+		static void moveSettings();
 #ifdef _WIN32
 		
 		static string getDownloadPath(const string& def);

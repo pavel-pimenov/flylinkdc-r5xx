@@ -576,7 +576,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		
 		int statusSizes[STATUS_LAST];
 		
-		auto_ptr<DirectoryListing> dl;
+		std::unique_ptr<DirectoryListing> dl;
 		
 		StringMap ucLineParams;
 		
@@ -663,7 +663,7 @@ class ThreadedDirectoryListing : public BASE_THREAD
 				mWindow->m_error = Text::toT(ClientManager::getNicks(mWindow->dl->getUser()->getCID(),
 				                                                     mWindow->dl->getHintedUser().hint)[0] + ": " + e.getError());
 				const tstring l_email_message = Text::toT(string("\r\nSend the corrupted file '") + mFile + "' to e-mail ppa74@ya.ru for analyze and correct the error!");
-				::MessageBox(NULL, (mWindow->m_error + l_email_message).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
+				::MessageBox(NULL, (mWindow->m_error + l_email_message).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR);
 				mWindow->PostMessage(WM_SPEAKER, DirectoryListingFrame::ABORTED);
 			}
 			

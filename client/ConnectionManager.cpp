@@ -35,6 +35,7 @@ std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDownloads = std::u
 //std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csUploads = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 CriticalSection ConnectionManager::g_csUploads;
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDdosCheck = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDdosCTM2HUBCheck = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csTTHFilter = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csFileFilter = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 
@@ -42,11 +43,13 @@ boost::unordered_set<UserConnection*> ConnectionManager::g_userConnections;
 boost::unordered_map<string, ConnectionManager::CFlyTickTTH> ConnectionManager::g_duplicate_search_tth;
 boost::unordered_map<string, ConnectionManager::CFlyTickFile> ConnectionManager::g_duplicate_search_file;
 boost::unordered_set<string> ConnectionManager::g_ddos_ctm2hub;
+std::map<ConnectionManager::CFlyDDOSkey, ConnectionManager::CFlyDDoSTick> ConnectionManager::g_ddos_map;
 std::set<ConnectionQueueItemPtr> ConnectionManager::g_downloads; // TODO - сделать поиск по User?
 std::set<ConnectionQueueItemPtr> ConnectionManager::g_uploads; // TODO - сделать поиск по User?
 
 FastCriticalSection ConnectionManager::g_cs_update;
-UserList ConnectionManager::g_users_for_update;
+UserSet ConnectionManager::g_users_for_update;
+bool ConnectionManager::g_shuttingDown = false;
 
 string TokenManager::makeToken() noexcept
 {
@@ -91,8 +94,7 @@ void TokenManager::removeToken(const string& aToken) noexcept
 
 
 ConnectionManager::ConnectionManager() : m_floodCounter(0), server(nullptr),
-	secureServer(nullptr),
-	m_shuttingDown(false)
+	secureServer(nullptr)
 {
 	nmdcFeatures.reserve(5);
 	nmdcFeatures.push_back(UserConnection::FEATURE_MINISLOTS);
@@ -114,7 +116,7 @@ ConnectionManager::ConnectionManager() : m_floodCounter(0), server(nullptr),
 }
 ConnectionManager::~ConnectionManager()
 {
-	dcassert(m_shuttingDown == true);
+	dcassert(g_shuttingDown == true);
 	dcassert(g_userConnections.empty());
 	dcassert(g_downloads.empty());
 	dcassert(g_uploads.empty());
@@ -264,7 +266,7 @@ bool ConnectionManager::getCipherNameAndIP(UserConnection* p_conn, string& p_chi
 #endif
 UserConnection* ConnectionManager::getConnection(bool aNmdc, bool secure) noexcept
 {
-	dcassert(m_shuttingDown == false);
+	dcassert(g_shuttingDown == false);
 	UserConnection* uc = new UserConnection(secure);
 	uc->addListener(this);
 	{
@@ -287,15 +289,56 @@ void ConnectionManager::putConnection(UserConnection* aConn)
 	dcassert(g_userConnections.find(aConn) != g_userConnections.end());
 	g_userConnections.erase(aConn);
 }
+void ConnectionManager::flushOnUserUpdated()
+{
+	UserSet l_users_for_update;
+	{
+		CFlyFastLock(g_cs_update);
+		l_users_for_update.swap(g_users_for_update);
+	}
+	for (auto i = l_users_for_update.cbegin(); i != l_users_for_update.cend(); ++i)
+	{
+		onUserUpdated(*i);
+	}
+}
+void ConnectionManager::addOnUserUpdated(const UserPtr& aUser)
+{
+	try
+	{
+		size_t l_size = 0;
+		{
+			CFlyFastLock(g_cs_update);
+			const auto l_res_insert = g_users_for_update.insert(aUser);
+			l_size = g_users_for_update.size();
+			
+#ifdef _DEBUG
+			if (l_res_insert.second == false)
+			{
+				LogManager::message("Skip dup g_users_for_update.insert(aUser) " + aUser->getLastNick());
+			}
+#endif
+		}
+		if (l_size > 00)
+		{
+			flushOnUserUpdated();
+		}
+	}
+	catch (const std::bad_alloc&)
+	{
+		flushOnUserUpdated(); // fix https://drdump.com/DumpGroup.aspx?DumpGroupID=526008
+		{
+			CFlyFastLock(g_cs_update);
+			g_users_for_update.insert(aUser);
+		}
+	}
+}
 void ConnectionManager::on(ClientManagerListener::UserConnected, const UserPtr& aUser) noexcept
 {
-	CFlyFastLock(g_cs_update);
-	g_users_for_update.push_back(aUser);
+	addOnUserUpdated(aUser);
 }
 void ConnectionManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept
 {
-	CFlyFastLock(g_cs_update);
-	g_users_for_update.push_back(aUser);
+	addOnUserUpdated(aUser);
 }
 
 void ConnectionManager::onUserUpdated(const UserPtr& aUser)
@@ -351,17 +394,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 	{
 		cleanupDuplicateSearchFile(aTick);
 	}
-	{
-		std::vector<UserPtr> l_users_for_update;
-		{
-			CFlyFastLock(g_cs_update);
-			l_users_for_update.swap(g_users_for_update);
-		}
-		for (auto i = l_users_for_update.cbegin(); i != l_users_for_update.cend(); ++i)
-		{
-			onUserUpdated(*i);
-		}
-	}
+	flushOnUserUpdated();
 	std::vector<ConnectionQueueItemPtr> l_removed;
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 	UserList l_idlers;
@@ -539,7 +572,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 {
 	CFlyWriteLock(*g_csDdosCheck);
-	for (auto j = m_ddos_map.cbegin(); j != m_ddos_map.cend();)
+	for (auto j = g_ddos_map.cbegin(); j != g_ddos_map.cend();)
 	{
 		// Если коннектов совершено меньше чем предел в течении минуты - убираем адрес из таблицы - с ним все хорошо!
 		const auto l_tick_delta = p_tick - j->second.m_first_tick;
@@ -568,11 +601,11 @@ void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 				l_type = " IP-1:" + j->first.first + j->second.getPorts() + " IP-2: " + j->first.second.to_string();
 			}
 			LogManager::ddos_message("BlockID = " + Util::toString(j->second.m_block_id) + ", Removed DDoS lock " + j->second.m_type_block +
-			                         ", Count connect = " + Util::toString(j->second.m_count_connect) + l_type +
-			                         ", m_ddos_map.size() = " + Util::toString(m_ddos_map.size()));
+			                         ", Count connect = " + Util::toString(j->second.m_count_connect) + " " + l_type +
+			                         ", g_ddos_map.size() = " + Util::toString(g_ddos_map.size()));
 		}
 		if (l_is_ddos_ban_close || l_is_min_ban_close)
-			m_ddos_map.erase(j++);
+			g_ddos_map.erase(j++);
 		else
 			++j;
 	}
@@ -869,10 +902,10 @@ bool ConnectionManager::checkDuplicateSearchTTH(const string& p_search_command, 
 }
 void ConnectionManager::addCTM2HUB(const string& p_server_port, const HintedUser& p_hinted_user)
 {
-	const string l_cmt2hub = "CTM2HUB = " + p_server_port + " <<= DDoS block from: " + p_hinted_user.hint;;
+	const string l_cmt2hub = "[" + Util::formatDigitalDate() + "] CTM2HUB = " + p_server_port + " <<= DDoS block from: " + p_hinted_user.hint;;
 	bool l_is_duplicate;
 	{
-		CFlyWriteLock(*g_csDdosCheck);
+		CFlyWriteLock(*g_csDdosCTM2HUBCheck);
 		dcassert(p_hinted_user.user);
 		l_is_duplicate = g_ddos_ctm2hub.insert(Text::toLower(p_server_port)).second;
 	}
@@ -889,6 +922,17 @@ void ConnectionManager::addCTM2HUB(const string& p_server_port, const HintedUser
 }
 bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4& p_ip_hub, const string& p_userInfo, const string& p_HubInfo)
 {
+	if (CFlyServerConfig::isGuardTCPPort(aPort))
+	{
+		const string l_guard_port = "[" + Util::formatDigitalDate() + "] [TCP PortGuard] Block DDoS: " + aIPServer + ':' + Util::toString(aPort) + " HubInfo: " + p_HubInfo + " UserInfo: " + p_userInfo;
+		LogManager::ddos_message(l_guard_port);
+		static int g_is_first = 0;
+		if (++g_is_first < 10)
+		{
+			CFlyServerJSON::pushError(61, l_guard_port);
+		}
+		return true;
+	}
 	{
 		const auto l_tick = GET_TICK();
 		const string l_server_lower = Text::toLower(aIPServer);
@@ -897,8 +941,12 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		// const auto l_ip = boost::asio::ip::address_v4::from_string(aIPServer, ec);
 		const CFlyDDOSkey l_key(l_server_lower, p_ip_hub);
 		// dcassert(!ec); // TODO - тут бывает и Host
-		CFlyWriteLock(*g_csDdosCheck);
-		if (!g_ddos_ctm2hub.empty() && g_ddos_ctm2hub.find(l_server_lower + ':' + Util::toString(aPort)) != g_ddos_ctm2hub.end())
+		bool l_is_ctm2hub = false;
+		{
+			CFlyReadLock(*g_csDdosCTM2HUBCheck);
+			l_is_ctm2hub = !g_ddos_ctm2hub.empty() && g_ddos_ctm2hub.find(l_server_lower + ':' + Util::toString(aPort)) != g_ddos_ctm2hub.end();
+		}
+		if (l_is_ctm2hub)
 		{
 			const string l_cmt2hub = "Block CTM2HUB = " + aIPServer + ':' + Util::toString(aPort) + " HubInfo: " + p_HubInfo + " UserInfo: " + p_userInfo;
 #ifdef FLYLINKDC_BETA
@@ -910,7 +958,8 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		CFlyDDoSTick l_item;
 		l_item.m_first_tick = l_tick;
 		l_item.m_last_tick = l_tick;
-		auto l_result = m_ddos_map.insert(std::pair<CFlyDDOSkey, CFlyDDoSTick>(l_key, l_item));
+		CFlyWriteLock(*g_csDdosCheck);
+		auto l_result = g_ddos_map.insert(std::pair<CFlyDDOSkey, CFlyDDoSTick>(l_key, l_item));
 		auto& l_cur_value = l_result.first->second;
 		++l_cur_value.m_count_connect;
 		string l_debug_key;
@@ -1749,8 +1798,8 @@ void ConnectionManager::disconnect(const UserPtr& aUser, bool isDownload) // [!]
 
 void ConnectionManager::shutdown()
 {
-	dcassert(m_shuttingDown == false);
-	m_shuttingDown = true;
+	dcassert(g_shuttingDown == false);
+	g_shuttingDown = true;
 	TimerManager::getInstance()->removeListener(this);
 	ClientManager::getInstance()->removeListener(this);
 	{

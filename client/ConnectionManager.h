@@ -229,9 +229,9 @@ class ConnectionManager :
 		static void disconnect(const UserPtr& aUser, bool isDownload); // [!] IRainman fix.
 		
 		void shutdown();
-		bool isShuttingDown() const
+		static bool isShuttingDown()
 		{
-			return m_shuttingDown;
+			return g_shuttingDown;
 		}
 		
 		/** Find a suitable port to listen on, and start doing it */
@@ -282,6 +282,7 @@ class ConnectionManager :
 		//static std::unique_ptr<webrtc::RWLockWrapper> g_csUploads;
 		static CriticalSection g_csUploads;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDdosCheck;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csDdosCTM2HUBCheck;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csTTHFilter;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csFileFilter;
 		
@@ -332,7 +333,7 @@ class ConnectionManager :
 					return " Port: " + l_ports;
 				}
 		};
-		std::map<CFlyDDOSkey, CFlyDDoSTick> m_ddos_map;
+		static std::map<CFlyDDOSkey, CFlyDDoSTick> g_ddos_map;
 		static boost::unordered_set<string> g_ddos_ctm2hub; // $Error CTM2HUB
 	public:
 		static void addCTM2HUB(const string& p_server_port, const HintedUser& p_hinted_user);
@@ -349,7 +350,9 @@ class ConnectionManager :
 		StringList adcFeatures;
 		
 		static FastCriticalSection g_cs_update;
-		static UserList g_users_for_update;
+		static UserSet g_users_for_update;
+		void addOnUserUpdated(const UserPtr& aUser);
+		void flushOnUserUpdated();
 		
 		ExpectedMap m_expectedConnections;
 		
@@ -358,7 +361,7 @@ class ConnectionManager :
 		Server* server;
 		Server* secureServer;
 		
-		bool m_shuttingDown;
+		static bool g_shuttingDown;
 		
 		friend class Singleton<ConnectionManager>;
 		ConnectionManager();
@@ -396,7 +399,7 @@ class ConnectionManager :
 	
 		static void cleanupDuplicateSearchTTH(const uint64_t p_tick);
 		static void cleanupDuplicateSearchFile(const uint64_t p_tick);
-		void cleanupIpFlood(const uint64_t p_tick);
+		static void cleanupIpFlood(const uint64_t p_tick);
 		
 		// UserConnectionListener
 		void on(Connected, UserConnection*) noexcept override;

@@ -205,7 +205,7 @@ class QueueManager : public Singleton<QueueManager>,
 		void recheck(const string& aTarget);
 		
 		void setPriority(const string& aTarget, QueueItem::Priority p) noexcept;
-		void setAutoPriority(const string& aTarget, bool ap) noexcept;
+		void setAutoPriority(const string& aTarget, bool ap);
 		
 		static void getTargets(const TTHValue& tth, StringList& sl);
 #ifdef _DEBUG
@@ -390,8 +390,8 @@ class QueueManager : public Singleton<QueueManager>,
 				void addL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_first_load); // [!] IRainman fix.
 				QueueItemPtr getNextL(const UserPtr& aUser, QueueItem::Priority minPrio = QueueItem::LOWEST, int64_t wantedSize = 0, int64_t lastSpeed = 0, bool allowRemove = false); // [!] IRainman fix.
 				QueueItemPtr getRunningL(const UserPtr& aUser); // [!] IRainman fix.
-				void addDownloadL(const QueueItemPtr& qi, const DownloadPtr& d); // [!] IRainman fix: this function needs external lock.
-				bool removeDownloadL(const QueueItemPtr& qi, const UserPtr& d); // [!] IRainman fix: this function needs external lock.
+				void addDownload(const QueueItemPtr& qi, const DownloadPtr& d); // [!] IRainman fix: this function needs external lock.
+				bool removeDownload(const QueueItemPtr& qi, const UserPtr& d); // [!] IRainman fix: this function needs external lock.
 				void removeQueueItemL(const QueueItemPtr& qi, bool p_is_remove_running = true); // [!] IRainman fix.
 				void removeUserL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_remove_running, bool p_is_find_sources = true); // [!] IRainman fix.
 				void setQIPriority(const QueueItemPtr& qi, QueueItem::Priority p); // [!] IRainman fix.
@@ -422,6 +422,7 @@ class QueueManager : public Singleton<QueueManager>,
 #ifdef FLYLINKDC_USE_USER_QUEUE_CS
 				static std::unique_ptr<webrtc::RWLockWrapper> g_userQueueMapCS;
 #endif
+#define FLYLINKDC_USE_RUNNING_QUEUE_CS
 #ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
 				static std::unique_ptr<webrtc::RWLockWrapper> g_runningMapCS;
 #endif
@@ -466,7 +467,7 @@ class QueueManager : public Singleton<QueueManager>,
 		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
 		
 		// SearchManagerListener
-		void on(SearchManagerListener::SR, const SearchResult&) noexcept override;
+		void on(SearchManagerListener::SR, const std::unique_ptr<SearchResult>&) noexcept override;
 		
 		// ClientManagerListener
 		void on(ClientManagerListener::UserConnected, const UserPtr& aUser) noexcept override;

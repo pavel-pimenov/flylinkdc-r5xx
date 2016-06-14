@@ -207,7 +207,7 @@ LRESULT FavHubGroupsDlg::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 {
 	int pos = ctrlGroups.GetSelectedIndex();
 	UINT checkState = BOOLSETTING(CONFIRM_HUBGROUP_REMOVAL) ? BST_UNCHECKED : BST_CHECKED; // [+] NightOrion.
-	if (pos >= 0 && (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), T_APPNAME_WITH_VERSION, CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)) // [~] NightOrion.
+	if (pos >= 0 && (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)) // [~] NightOrion.
 	{
 		tstring name = getText(0, pos);
 		FavoriteHubEntryList l = FavoriteManager::getFavoriteHubs(Text::fromT(name));

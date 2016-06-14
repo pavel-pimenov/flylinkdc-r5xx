@@ -30,7 +30,6 @@
 
 #endif
 
-using std::auto_ptr;
 using sqlite3x::sqlite3_connection;
 using sqlite3x::sqlite3_command;
 using sqlite3x::sqlite3_reader;
@@ -407,11 +406,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		int get_antivirus_record_count();
 		void purge_antivirus_db(const uint64_t p_delete_counter, const uint64_t p_unixtime, bool p_is_clean_cache);
 #endif
-		size_t get_count_folders()
-		{
-			CFlyFastLock(m_path_cache_cs);
-			return m_path_cache.size();
-		}
+		size_t get_count_folders();
 		void sweep_db();
 		void load_dir(__int64 p_path_id, CFlyDirMap& p_dir_map, bool p_is_no_mediainfo);
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
@@ -484,6 +479,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void save_geoip(const CFlyLocationIPArray& p_geo_ip);
 		void save_p2p_guard(const CFlyP2PGuardArray& p_p2p_guard_ip, const string&  p_manual_marker, int p_type);
 		string load_manual_p2p_guard();
+		void remove_manual_p2p_guard(const string& p_ip);
 		string is_p2p_guard(const uint32_t& p_ip);
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		bool is_avdb_guard(const string& p_nick, int64_t p_share, const uint32_t& p_ip4);
@@ -681,7 +677,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_load_dir_sql;
 		CFlySQLCommand m_load_dir_sql_without_mediainfo;
 		CFlySQLCommand m_set_ftype;
-		CFlySQLCommand m_load_path_cache;
+		//CFlySQLCommand m_load_path_cache;
+		CFlySQLCommand m_load_path_cache_one_dir;
 		CFlySQLCommand m_sweep_dir_sql;
 		CFlySQLCommand m_sweep_path_file;
 		CFlySQLCommand m_get_path_id;
@@ -751,7 +748,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #ifdef _DEBUG
 		boost::unordered_map<uint32_t, unsigned> m_count_ip_sql_query_guard;
 #endif
-		CFlySQLCommand m_select_manual__p2p_guard;
+		CFlySQLCommand m_select_manual_p2p_guard;
+		CFlySQLCommand m_delete_manual_p2p_guard;
 		CFlySQLCommand m_delete_p2p_guard;
 		CFlySQLCommand m_insert_p2p_guard;
 		

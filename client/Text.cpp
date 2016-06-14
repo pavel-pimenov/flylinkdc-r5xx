@@ -204,7 +204,9 @@ const string& acpToUtf8(const string& str, string& tmp, const string& fromCharse
 const wstring& acpToWide(const string& str, wstring& tgt, const string& fromCharset) noexcept
 {
 	if (str.empty())
+	{
 		return Util::emptyStringW;
+	}
 	const int l_code_page = getCodePage(fromCharset); //[+]FlylinkDC++ Team
 	string::size_type size = 0;
 	tgt.resize(str.length() + 1);

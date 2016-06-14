@@ -45,8 +45,8 @@ Search::~Search()
 		case TYPE_STOREFILE:
 			IndexManager::decPublishing();
 			break;
-		default:
-			dcassert(0);
+			//default:
+			//  dcassert(0);
 	}
 }
 
@@ -405,14 +405,18 @@ void SearchManager::processSearchResult(const AdcCommand& cmd)
 					dcassert(!l_ec);
 					if (!l_ec)
 					{
-						const SearchResult sr(source->getUser(), SearchResult::TYPE_FILE, !source->isOnline() ? 0 : source->getIdentity().getSlots(), 0, size, s->m_term, DHT::getInstance()->getHubName(), DHT::getInstance()->getHubUrl(), l_ip4, TTHValue(s->m_term), l_token);
+						auto sr = std::make_unique<SearchResult>(source->getUser(), SearchResult::TYPE_FILE, !source->isOnline() ? 0 : source->getIdentity().getSlots(), 0, size, s->m_term, DHT::getInstance()->getHubName(), DHT::getInstance()->getHubUrl(), l_ip4, TTHValue(s->m_term), l_token);
 						if (!source->isOnline())
 						{
 							// node is not online, try to contact him if we didn't contact him recently
 							if (m_searchResults.find(source->getUser()->getCID()) != m_searchResults.end())
+							{
 								DHT::getInstance()->info(i4, u4, DHT::PING | DHT::CONNECTION, cid, source->getUdpKey());
-								
-							m_searchResults.insert(std::make_pair(source->getUser()->getCID(), std::make_pair(GET_TICK(), sr)));
+							}
+							std::pair<uint64_t, std::unique_ptr<SearchResult> > l_pair;
+							l_pair.first = GET_TICK();
+							l_pair.second = std::move(sr);
+							m_searchResults.insert(std::make_pair(source->getUser()->getCID(), std::move(l_pair)));
 						}
 						else
 						{
@@ -538,27 +542,26 @@ void SearchManager::processSearches()
 /*
  * Processes incoming search results
  */
-bool SearchManager::processSearchResults(const UserPtr& user, size_t slots)
+bool SearchManager::processSearchResults(const UserPtr& user, size_t p_slots)
 {
 	dcassert(BOOLSETTING(USE_DHT));
 	bool ok = false;
-	uint64_t tick = GET_TICK();
+	uint64_t l_tick = GET_TICK();
 	
-	ResultsMap::iterator it = m_searchResults.begin();
+	auto it = m_searchResults.begin();
 	while (it != m_searchResults.end())
 	{
 		if (it->first == user->getCID())
 		{
 			// user is online, process his result
-			SearchResult sr = it->second.second;
-			sr.setSlots(uint8_t(slots)); // slot count should be known now
+			it->second.second->setSlots(uint8_t(p_slots)); // slot count should be known now
 			
-			::SearchManager::getInstance()->fly_fire1(::SearchManagerListener::SR(), sr);
+			::SearchManager::getInstance()->fly_fire1(::SearchManagerListener::SR(), it->second.second);
 			m_searchResults.erase(it++);
 			
 			ok = true;
 		}
-		else if (it->second.first + 60 * 1000 <= tick)
+		else if (it->second.first + 60 * 1000 <= l_tick)
 		{
 			// delete result from possibly offline users
 			m_searchResults.erase(it++);

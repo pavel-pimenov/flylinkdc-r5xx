@@ -114,7 +114,6 @@ void PGLoader::load(const string& p_data /*= Util::emptyString*/)
 				l_IPTrust_log.step("IPTrust.ini restored from internal resources");
 			}
 		}
-		
 	}
 	else
 	{
@@ -159,18 +158,25 @@ bool PGLoader::check(uint32_t p_ip4)
 	static boost::atomic_int g_count(0);
 	dcdebug("PGLoader::check  count = %d\n", int(++g_count));
 #endif
-	CFlyFastLock(g_cs);
-	if (!g_ipTrustListBlock.empty())
+	if (BOOLSETTING(ENABLE_IPTRUST))
 	{
-		if (g_ipTrustListBlock.checkIp(p_ip4))
+		CFlyFastLock(g_cs);
+		if (!g_ipTrustListBlock.empty())
 		{
-			return true;
+			if (g_ipTrustListBlock.checkIp(p_ip4))
+			{
+				return true;
+			}
 		}
-	}
-	if (!g_ipTrustListAllow.empty())
-	{
-		const auto l_ipguard = g_ipTrustListAllow.checkIp(p_ip4);
-		return !l_ipguard;
+		if (!g_ipTrustListAllow.empty())
+		{
+			const auto l_ipguard = g_ipTrustListAllow.checkIp(p_ip4);
+			return !l_ipguard;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	else
 	{

@@ -837,7 +837,7 @@ void WinUtil::init(HWND hWnd)
 	Fonts::init();
 	
 	// [+] SSA Register application
-	Util::setRegistryValueString(_T("ApplicationPath"), getAppName());
+	Util::setRegistryValueString(_T("ApplicationPath"), Util::getModuleFileName());
 	// [+] SSA Register application
 	
 	
@@ -2008,7 +2008,7 @@ void WinUtil::registerDchubHandler()
 {
 	HKEY hk = nullptr;
 	LocalArray<TCHAR, 512> Buf;
-	tstring app = _T('\"') + getAppName() + _T("\" /magnet \"%1\"");
+	tstring app = _T('\"') + Util::getModuleFileName() + _T("\" /magnet \"%1\"");
 	Buf[0] = 0;
 	
 	if (::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\dchub\\Shell\\Open\\Command"), 0, KEY_WRITE | KEY_READ, &hk) == ERROR_SUCCESS)
@@ -2037,7 +2037,7 @@ void WinUtil::registerDchubHandler()
 		::RegCloseKey(hk);
 		
 		::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\dchub\\DefaultIcon"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
-		app = getAppName();
+		app = Util::getModuleFileName();
 		::RegSetValueEx(hk, _T(""), 0, REG_SZ, (LPBYTE)app.c_str(), sizeof(TCHAR) * (app.length() + 1));
 		::RegCloseKey(hk);
 	}
@@ -2052,7 +2052,7 @@ void WinUtil::registerNMDCSHandler()
 {
 	HKEY hk = nullptr;
 	LocalArray<TCHAR, 512> Buf;
-	tstring app = _T('\"') + getAppName() + _T("\" /magnet \"%1\"");
+	tstring app = _T('\"') + Util::getModuleFileName() + _T("\" /magnet \"%1\"");
 	Buf[0] = 0;
 	
 	if (::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\nmdcs\\Shell\\Open\\Command"), 0, KEY_WRITE | KEY_READ, &hk) == ERROR_SUCCESS)
@@ -2081,7 +2081,7 @@ void WinUtil::registerNMDCSHandler()
 		::RegCloseKey(hk);
 		
 		::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\nmdcs\\DefaultIcon"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
-		app = getAppName();
+		app = Util::getModuleFileName();
 		::RegSetValueEx(hk, _T(""), 0, REG_SZ, (LPBYTE)app.c_str(), sizeof(TCHAR) * (app.length() + 1));
 		::RegCloseKey(hk);
 	}
@@ -2096,7 +2096,7 @@ void WinUtil::registerADChubHandler()
 {
 	HKEY hk = nullptr;
 	LocalArray<TCHAR, 512> Buf;
-	tstring app = _T('\"') + getAppName() + _T("\" /magnet \"%1\"");
+	tstring app = _T('\"') + Util::getModuleFileName() + _T("\" /magnet \"%1\"");
 	if (::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\adc\\Shell\\Open\\Command"), 0, KEY_WRITE | KEY_READ, &hk) == ERROR_SUCCESS)
 	{
 		DWORD bufLen = Buf.size();
@@ -2123,7 +2123,7 @@ void WinUtil::registerADChubHandler()
 		::RegCloseKey(hk);
 		
 		::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\adc\\DefaultIcon"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
-		app = getAppName();
+		app = Util::getModuleFileName();
 		::RegSetValueEx(hk, _T(""), 0, REG_SZ, (LPBYTE)app.c_str(), sizeof(TCHAR) * (app.length() + 1));
 		::RegCloseKey(hk);
 	}
@@ -2138,7 +2138,7 @@ void WinUtil::registerADCShubHandler()
 {
 	HKEY hk = nullptr;
 	LocalArray<TCHAR, 512> Buf;
-	tstring app = _T('\"') + getAppName() + _T("\" /magnet \"%1\"");
+	tstring app = _T('\"') + Util::getModuleFileName() + _T("\" /magnet \"%1\"");
 	if (::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\adcs\\Shell\\Open\\Command"), 0, KEY_WRITE | KEY_READ, &hk) == ERROR_SUCCESS)
 	{
 		DWORD bufLen = Buf.size();
@@ -2165,7 +2165,7 @@ void WinUtil::registerADCShubHandler()
 		::RegCloseKey(hk);
 		
 		::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\adcs\\DefaultIcon"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
-		app = getAppName();
+		app = Util::getModuleFileName();
 		::RegSetValueEx(hk, _T(""), 0, REG_SZ, (LPBYTE)app.c_str(), sizeof(TCHAR) * (app.length() + 1));
 		::RegCloseKey(hk);
 	}
@@ -2181,7 +2181,7 @@ void WinUtil::registerMagnetHandler()
 	HKEY hk = nullptr;
 	LocalArray<TCHAR, 512> l_buf;
 	tstring openCmd;
-	tstring appName = getAppName();
+	tstring appName = Util::getModuleFileName();
 	l_buf[0] = 0;
 	
 	// what command is set up to handle magnets right now?
@@ -2247,7 +2247,7 @@ void WinUtil::registerDclstHandler()
 	HKEY hk = nullptr;
 	LocalArray<TCHAR, 512> l_buf;
 	tstring openCmd;
-	tstring appName = getAppName();
+	tstring appName = Util::getModuleFileName();
 	l_buf[0] = 0;
 	
 	// what command is set up to handle magnets right now?
@@ -2315,7 +2315,7 @@ void WinUtil::openBitTorrent(const tstring& p_magnetURI) // [+] IRainman http://
 	}
 	else
 	{
-		::MessageBox(nullptr, CTSTRING(SETTINGS_BITTORRENT_ERROR_CONFIG), T_APPNAME_WITH_VERSION , MB_OK | MB_ICONERROR);
+		::MessageBox(nullptr, CTSTRING(SETTINGS_BITTORRENT_ERROR_CONFIG), getFlylinkDCAppCaptionWithVersionT().c_str() , MB_OK | MB_ICONERROR);
 		// TODO support auto detect with "OpenWithProgids" key http://msdn.microsoft.com/en-us/library/bb166549(v=VS.100).aspx
 		/*HKEY hk;
 		LocalArray<TCHAR, MAX_PATH> openCmd;
@@ -4097,11 +4097,10 @@ bool WinUtil::AutoRunShortCut(bool bCreate)
 		// Create
 		if (!IsAutoRunShortCutExists())
 		{
-			LocalArray<TCHAR, MAX_PATH> buf;
-			::GetModuleFileName(NULL, buf.data(), buf.size());
-			std::wstring targetF = buf.data();
+			const std::wstring targetF = Util::getModuleFileName();
 			std::wstring pszCurdir =  Util::getFilePath(targetF);
-			std::wstring pszDescr = Text::toT(APPNAME) + L' ' + T_VERSIONSTRING;
+			std::wstring pszDescr = getFlylinkDCAppCaptionT();
+			pszDescr  += L' ' + T_VERSIONSTRING;
 			AppendPathSeparator(pszCurdir);
 			return CreateShortCut(targetF, L"", GetAutoRunShortCutName(), pszDescr, 0, pszCurdir, targetF, 0);
 		}
@@ -4133,7 +4132,7 @@ tstring WinUtil::GetAutoRunShortCutName()
 		
 	tstring autoRunShortCut = startupPath;
 	AppendPathSeparator(autoRunShortCut);
-	autoRunShortCut += Text::toT(APPNAME);
+	autoRunShortCut += getFlylinkDCAppCaptionT();
 #if defined(_WIN64)
 	autoRunShortCut += L"_x64";
 #endif

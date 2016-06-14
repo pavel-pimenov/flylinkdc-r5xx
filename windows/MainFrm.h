@@ -62,7 +62,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 	public:
 		MainFrame();
 		~MainFrame();
-		DECLARE_FRAME_WND_CLASS(_T(APPNAME), IDR_MAINFRAME)
+		DECLARE_FRAME_WND_CLASS(_T("FlylinkDC++"), IDR_MAINFRAME) // APPNAME
 		
 		CMDICommandBarCtrl m_CmdBar;
 		
@@ -619,6 +619,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		std::unique_ptr<HIconWrapper> m_normalicon;
 		std::unique_ptr<HIconWrapper> m_pmicon;
+		//std::unique_ptr<HIconWrapper> m_vip_icon;
 		std::unique_ptr<HIconWrapper> m_emptyicon;//[+]IRainman
 		
 		CReBarCtrl m_rebar;

@@ -319,7 +319,7 @@ void PublicHubsFrame::loadISPHubs()
 	{
 		const string l_url_config_file = "http://etc.fly-server.ru/etc/isp-hub-list.txt";
 		l_log.step("Download:" + l_url_config_file);
-		if (Util::getDataFromInet(true, l_url_config_file, m_isp_raw_data, 0) == 0)
+		if (Util::getDataFromInetSafe(true, l_url_config_file, m_isp_raw_data, 0) == 0)
 		{
 			l_log.step("Error download! Config will be loaded from internal resources");
 			LPCSTR l_res_data;
@@ -794,7 +794,7 @@ bool PublicHubsFrame::checkNick()
 {
 	if (SETTING(NICK).empty())
 	{
-		MessageBox(CTSTRING(ENTER_NICK), T_APPNAME_WITH_VERSION, MB_ICONSTOP | MB_OK);
+		MessageBox(CTSTRING(ENTER_NICK), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_ICONSTOP | MB_OK);
 		return false;
 	}
 	return true;

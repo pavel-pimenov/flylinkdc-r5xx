@@ -34,7 +34,7 @@ class SearchManagerListener
 		};
 		
 		typedef X<0> SR;
-		virtual void on(SR, const SearchResult&) noexcept = 0;
+		virtual void on(SR, const std::unique_ptr<SearchResult>&) noexcept = 0;
 };
 
 #endif // !defined(SEARCH_MANAGER_LISTENER_H)

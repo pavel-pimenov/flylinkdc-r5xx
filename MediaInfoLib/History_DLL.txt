@@ -8,7 +8,36 @@ bug reports and feature request are here:
 https://sourceforge.net/p/mediainfo/_list/tickets
 
 
-Version 0.7.84, 2016-
+Version 0.7.87
+--------------
+x XML output: revert to old versioning method (version is MediaInfo software version)
+
+Version 0.7.86, 2016-05-31
+--------------
++ FFV1 parsing optimization, avoiding by default a too verbose trace
++ Matroska: more elements support and typo fixes in the trace
++ #I172, Trace feature: provide the name of the main parser in the media element
++ Matroska: consider all values below 0x10 EBML names as 1-byte junk
++ --HTTPS=0 option for using HTTP in XML outputs
+x Matroska: better support (including speed improvement) of huge lossless frames (e.g. 20 MB FFV1 4K)
+x #I144, Python binding: Python 2 on Linux does not automatically provide the locale to the shared object
+x HTML output: don't escape carriage returns from the input file
+x FFV1: some streams were rejected despite the fact they are valid
+x Python binding: some errors during call of Get() API with Python3 on Linux/Mac
+
+Version 0.7.85, 2016-04-29
+--------------
++ FFV1: ScanType and ScanOrder
++ Detection of Omneon VBI and move of the VBI track from Video part to Others part
++ N19/STL: Support of etection of less standard frame rates (23.976 and 29.970)
++ Teletext in MPEG-TS: Teletext not subtitle moved to "Other" part
++ Teletext in MPEG-TS: display of CodecID and timestamp of first frame
+x Teletext in MXF: some IDs were wrong (when there are more than one Teletext service)
+x MPEG-4/MOV: default of raw audio to Signed in case of stsd atom version <2
+x MPEG Video: some CEA-608/708 captions were not correctly detected due to some packets discarded by the parser with interlaced content
+x MPEG-4/MOV: Dolby E with 2 or more audio services were not correctly reported
+
+Version 0.7.84, 2016-03-31
 --------------
 x #I122, MPEG-4/MOV: Crash if mdhd timescale is 0
 x MPEG-4/MOV: Infinite loop if malformed stsc / stsz (detected by fuzzing)

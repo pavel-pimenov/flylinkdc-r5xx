@@ -107,7 +107,7 @@ int gf_busy_handler(void *p_params, int p_tryes)
 		CFlyBusy l_busy(g_MessageBox);
 		if (g_MessageBox <= 1)
 		{
-			MessageBox(NULL, Text::toT(l_message).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR | MB_TOPMOST);
+			MessageBox(NULL, Text::toT(l_message).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR | MB_TOPMOST);
 		}
 	}
 	return 1;
@@ -291,7 +291,7 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 		CFlyBusy l_busy(g_MessageBox);
 		if (g_MessageBox <= 1)
 		{
-			MessageBox(NULL, (l_russian_error + Text::toT(l_message)).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR | MB_TOPMOST);
+			MessageBox(NULL, (l_russian_error + Text::toT(l_message)).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR | MB_TOPMOST);
 		}
 	}
 	bool l_is_send = CFlyServerJSON::pushError(16, l_error);
@@ -362,7 +362,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 						File::deleteFile("users.sqlite");
 						File::copyFile("users-orig.sqlite", "users.sqlite");
 						l_DB.open("users.sqlite");
-						auto_ptr<sqlite3_command> l_load_all(new sqlite3_command(l_DB, "select nick from userinfo"));
+						std::unique_ptr<sqlite3_command> l_load_all(new sqlite3_command(l_DB, "select nick from userinfo"));
 						sqlite3_reader l_q = l_load_all.get()->executereader();
 						std::vector<string> l_nick;
 						l_nick.reserve(160000);
@@ -831,13 +831,13 @@ CFlylinkDBManager::CFlylinkDBManager()
 		/*
 		{
 		    // Конвертим ip в бинарный формат
-		    auto_ptr<sqlite3_command> l_src_sql(new sqlite3_command(m_flySQLiteDB,
+		    std::unique_ptr<sqlite3_command> l_src_sql(new sqlite3_command(m_flySQLiteDB,
 		                                                                    "select nick,dic_hub,ip from fly_last_ip_nick_hub"));
 		    try
 		    {
 		        sqlite3_reader l_q = l_src_sql->executereader();
 		        sqlite3_transaction l_trans(m_flySQLiteDB);
-		        auto_ptr<sqlite3_command> l_trg_sql(new sqlite3_command(m_flySQLiteDB,
+		        std::unique_ptr<sqlite3_command> l_trg_sql(new sqlite3_command(m_flySQLiteDB,
 		                                                                        "insert or replace into user_db.user_info (nick,dic_hub,last_ip) values(?,?,?)"));
 		        while (l_q.read())
 		        {
@@ -878,8 +878,8 @@ CFlylinkDBManager::CFlylinkDBManager()
 //========================================================================================================
 void CFlylinkDBManager::load_all_hub_into_cacheL()
 {
-	auto_ptr<sqlite3_command> l_load_all_dic(new sqlite3_command(m_flySQLiteDB,
-	                                                             "select id,name from fly_dic where dic=1"));
+	std::unique_ptr<sqlite3_command> l_load_all_dic(new sqlite3_command(m_flySQLiteDB,
+	                                                                    "select id,name from fly_dic where dic=1"));
 	sqlite3_reader l_q = l_load_all_dic.get()->executereader();
 	while (l_q.read())
 	{
@@ -1686,14 +1686,35 @@ string CFlylinkDBManager::is_p2p_guard(const uint32_t& p_ip)
 	return l_p2p_guard_text;
 }
 //========================================================================================================
+void CFlylinkDBManager::remove_manual_p2p_guard(const string& p_ip)
+{
+	try
+	{
+		m_delete_manual_p2p_guard.init(m_flySQLiteDB,
+		                               "delete from location_db.fly_p2pguard_ip where note = 'Manual block IP' and start_ip=?");
+		boost::system::error_code ec;
+		const auto l_ip_boost = boost::asio::ip::address_v4::from_string(p_ip, ec);
+		if (!ec)
+		{
+		
+			m_delete_manual_p2p_guard->bind(1, l_ip_boost.to_ulong());
+			m_delete_manual_p2p_guard->executenonquery();
+		}
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - load_manual_p2p_guard: " + e.getError());
+	}
+}
+//========================================================================================================
 string CFlylinkDBManager::load_manual_p2p_guard()
 {
 	string l_result;
 	try
 	{
-		m_select_manual__p2p_guard.init(m_flySQLiteDB,
-		                                "select start_ip from location_db.fly_p2pguard_ip where note = 'Manual block IP'");
-		sqlite3_reader l_q = m_select_manual__p2p_guard->executereader();
+		m_select_manual_p2p_guard.init(m_flySQLiteDB,
+		                               "select distinct start_ip from location_db.fly_p2pguard_ip where note = 'Manual block IP'");
+		sqlite3_reader l_q = m_select_manual_p2p_guard->executereader();
 		while (l_q.read())
 		{
 			l_result += boost::asio::ip::address_v4(l_q.getint(0)).to_string() + "\r\n";
@@ -2975,8 +2996,8 @@ bool CFlylinkDBManager::merge_queue_itemL(QueueItemPtr& p_QueueItem)
 							l_item += "[ added old = " + Util::toString(l_added) + " new = " + Util::toString(p_QueueItem->getAdded()) + "]";
 						if (l_maxSegments != p_QueueItem->getMaxSegments())
 							l_item += "[ maxSegments old = " + Util::toString(l_maxSegments) + " new = " + Util::toString(p_QueueItem->getMaxSegments()) + "]";
-						if (l_sections != p_QueueItem->getSectionStringL())
-							l_item += "[ sections old = " + l_sections + " new = " + p_QueueItem->getSectionStringL() + "]";
+						if (l_sections != p_QueueItem->getSectionString())
+							l_item += "[ sections old = " + l_sections + " new = " + p_QueueItem->getSectionString() + "]";
 						const string l_new_tempTarget = p_QueueItem->getDownloadedBytes() > 0 ? p_QueueItem->getTempTargetConst() : Util::emptyString;
 						if (l_tempTarget != l_new_tempTarget)
 							l_item += "[ tempTarget old = " + l_tempTarget + " new = " + l_new_tempTarget + "]";
@@ -3008,7 +3029,7 @@ bool CFlylinkDBManager::merge_queue_itemL(QueueItemPtr& p_QueueItem)
 					p_sql->bind(1, p_qitem->getTarget(), SQLITE_TRANSIENT);
 					p_sql->bind(2, p_qitem->getSize());
 					p_sql->bind(3, int(p_qitem->getPriority()));
-					p_sql->bind(4, p_qitem->getSectionStringL(), SQLITE_TRANSIENT);
+					p_sql->bind(4, p_qitem->getSectionString(), SQLITE_TRANSIENT);
 					p_sql->bind(5, p_qitem->getAdded());
 					p_sql->bind(6, p_qitem->getTTH().data, 24, SQLITE_TRANSIENT);
 					p_sql->bind(7, p_qitem->getDownloadedBytes() > 0 ? p_qitem->getTempTargetConst() : Util::emptyString, SQLITE_TRANSIENT);
@@ -3078,7 +3099,7 @@ void CFlylinkDBManager::load_global_ratio()
 	try
 	{
 		CFlyLock(m_cs);
-		auto_ptr<sqlite3_command> l_select_global_ratio_load(new sqlite3_command(m_flySQLiteDB, "select total(upload),total(download) from fly_ratio"));
+		std::unique_ptr<sqlite3_command> l_select_global_ratio_load(new sqlite3_command(m_flySQLiteDB, "select total(upload),total(download) from fly_ratio"));
 		// http://www.sqlite.org/lang_aggfunc.html
 		// Sum() will throw an "integer overflow" exception if all inputs are integers or NULL and an integer overflow occurs at any point during the computation.
 		// Total() never throws an integer overflow.
@@ -3117,8 +3138,8 @@ void CFlylinkDBManager::load_avdb()
 			clear_virus_cacheL();
 			{
 				CFlyWriteLock(*m_virus_cs);
-				auto_ptr<sqlite3_command> l_select_antivirus_db(new sqlite3_command(m_flySQLiteDB,
-				                                                                    "select nick,ip4,share from antivirus_db.fly_suspect_user"));
+				std::unique_ptr<sqlite3_command> l_select_antivirus_db(new sqlite3_command(m_flySQLiteDB,
+				                                                                           "select nick,ip4,share from antivirus_db.fly_suspect_user"));
 				sqlite3_reader l_q = l_select_antivirus_db.get()->executereader();
 				while (l_q.read())
 				{
@@ -3765,36 +3786,49 @@ void CFlylinkDBManager::clean_fly_hash_blockL()
 	// TODO - Версия 2 delete from fly_hash_block where not exists (select 1 from fly_file ff where ff.tth_id = fly_hash_block.tth_id)
 }
 //========================================================================================================
+size_t CFlylinkDBManager::get_count_folders()
+{
+	CFlyFastLock(m_path_cache_cs);
+	return m_path_cache.size();
+}
+//========================================================================================================
 void CFlylinkDBManager::sweep_db()
 {
 	CFlyLock(m_cs);
 	try
 	{
 		{
+			/*
 			CFlyFastLock(m_path_cache_cs);
 			sqlite3_transaction l_trans(m_flySQLiteDB, m_path_cache.size() > 1);
 			for (auto i = m_path_cache.cbegin(); i != m_path_cache.cend(); ++i)
 			{
-				if (i->second.m_is_found == false)
-				{
-					m_sweep_path_file.init(m_flySQLiteDB,
-					                       "delete from fly_file where dic_path=?");
-					m_sweep_path_file->bind(1, i->second.m_path_id);
-					m_sweep_path_file->executenonquery();
-				}
+			if (i->second.m_is_found == false)
+			    {
+			    m_sweep_path_file.init(m_flySQLiteDB,
+			                           "delete from fly_file where dic_path=?");
+			    m_sweep_path_file->bind(1, i->second.m_path_id);
+			    m_sweep_path_file->executenonquery();
+			    }
 			}
+			l_trans.commit();
+			}
+			*/
 			// Зачищаем мусорок, который остался в файлах.
 			{
 				const char* l_clean_file = "delete from fly_file where not exists (select * from fly_hash_block fhb where fly_file.tth_id=fhb.tth_id)";
 				CFlyLogFile l_log(l_clean_file);
 				m_flySQLiteDB.executenonquery(l_clean_file);
 			}
-			l_trans.commit();
 		}
 		{
 			const char* l_clean_path = "delete from fly_path where not exists (select * from fly_file where dic_path=fly_path.id)";
 			CFlyLogFile l_log(l_clean_path);
 			m_flySQLiteDB.executenonquery(l_clean_path);
+			{
+				CFlyFastLock(m_path_cache_cs);
+				m_path_cache.clear();
+			}
 		}
 		load_path_cache();
 		{
@@ -3823,8 +3857,7 @@ void CFlylinkDBManager::sweep_db()
 //========================================================================================================
 void CFlylinkDBManager::prepare_scan_folder(const tstring& p_path)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		WIN32_FIND_DATA fData;
 		dcassert(p_path[p_path.size() - 1] == L'\\');
@@ -3833,8 +3866,7 @@ void CFlylinkDBManager::prepare_scan_folder(const tstring& p_path)
 		                               &fData,
 		                               FindExSearchLimitToDirectories, // Only Folder
 		                               NULL,
-		                               CompatibilityManager::g_find_file_flags);
-		                               
+		                               CompatibilityManager::g_find_file_flags);		                               
 		if (hFind != INVALID_HANDLE_VALUE)
 		{
 			do
@@ -3844,22 +3876,30 @@ void CFlylinkDBManager::prepare_scan_folder(const tstring& p_path)
 				        (l_folder_name != Util::m_dotT) &&
 				        (l_folder_name != Util::m_dot_dotT))
 				{
-					const tstring l_lower_folder_nameT = p_path + l_folder_name + _T("\\");
-					const string l_lower_folder_name = Text::toLower(Text::fromT(l_lower_folder_nameT));
-					bool l_is_not_exists = false;
+					const tstring l_full_pathT = p_path + l_folder_name + _T("\\");
+					const string l_full_path = Text::fromT(l_full_pathT);
+					if (Util::checkForbidenFolders(l_full_path) == false)
 					{
-						CFlyFastLock(m_path_cache_cs);
-						l_is_not_exists = m_path_cache.find(l_lower_folder_name) == m_path_cache.end();
+						const string l_lower_full_path = Text::toLower(l_full_path);
+						bool l_is_not_exists = false;
+						{
+							CFlyFastLock(m_path_cache_cs);
+							l_is_not_exists = m_path_cache.find(l_lower_full_path) == m_path_cache.end();
+						}
+						if (l_is_not_exists)
+						{
+							CFlyLock(m_cs);
+							create_path_idL(l_lower_full_path, true);
+						}
+						prepare_scan_folder(l_full_pathT);
 					}
-					if (l_is_not_exists)
+					else
 					{
-						CFlyLock(m_cs);
-						create_path_idL(l_lower_folder_name, true);
+						dcassert(0);
 					}
-					prepare_scan_folder(l_lower_folder_nameT);
 				}
 			}
-			while (!ClientManager::isShutdown() && FindNextFile(hFind, &fData));
+			while (!ClientManager::isBeforeShutdown() && FindNextFile(hFind, &fData));
 			FindClose(hFind);
 		}
 	}
@@ -3873,7 +3913,7 @@ void CFlylinkDBManager::scan_path(CFlyDirItemArray& p_directories)
 		CFlyLogFile log(STRING(SCAN_DIR));
 		try
 		{
-			// Тут транзакцию нелья - рабоатем без блокировки
+			// Тут транзакцию нелья - работаем без блокировки
 			// sqlite3_transaction l_trans(m_flySQLiteDB, p_directories.size() > 1);
 			for (auto j = p_directories.begin(); j != p_directories.end(); ++j)
 			{
@@ -3890,34 +3930,37 @@ void CFlylinkDBManager::scan_path(CFlyDirItemArray& p_directories)
 //========================================================================================================
 void CFlylinkDBManager::load_path_cache()
 {
-	CFlyLogFile log(STRING(RELOAD_DIR));
-	// CFlyLock(m_cs); // попробуем еще раз отключить лок - хотя раньше тут падали https://drdump.com/Problem.aspx?ProblemID=118720
 	m_convert_ftype_stop_key = 0;
-	{
-		CFlyFastLock(m_path_cache_cs);
-		m_path_cache.clear();
-	}
-	try
-	{
-		m_load_path_cache.init(m_flySQLiteDB,
-		                       "select id,name,(select count(*) from fly_file where dic_path = fly_path.id and (media_audio is not null or media_video is not null)) cnt_mediainfo from fly_path");
-		// Версия 2
-		// select id,name,(select 1 from fly_file where dic_path = fly_path.id and (media_audio is not null or media_video is not null) limit 1) cnt_mediainfo from fly_path
-		sqlite3_reader l_q = m_load_path_cache->executereader();
-		CFlyFastLock(m_path_cache_cs);
-		while (l_q.read())
-		{
-			dcassert(!ClientManager::isShutdown());
-			if (ClientManager::isShutdown())
-				break;
-			m_path_cache.insert(std::make_pair(l_q.getstring(1), CFlyPathItem(l_q.getint64(0), false, l_q.getint(2) == 0)));
-		}
-	}
-	catch (const database_error& e)
-	{
-		errorDB("SQLite - load_path_cache: " + e.getError());
-		return;
-	}
+	
+	/* Отрубаем загрузку всех каталогов пачкой - тупит на грязной базе
+	    CFlyLogFile log(STRING(RELOAD_DIR));
+	    // CFlyLock(m_cs); // попробуем еще раз отключить лок - хотя раньше тут падали https://drdump.com/Problem.aspx?ProblemID=118720
+	    {
+	        CFlyFastLock(m_path_cache_cs);
+	        m_path_cache.clear();
+	    }
+	    try
+	    {
+	        m_load_path_cache.init(m_flySQLiteDB,
+	                               "select id,name,(select count(*) from fly_file where dic_path = fly_path.id and (media_audio is not null or media_video is not null)) cnt_mediainfo from fly_path");
+	        // Версия 2
+	        // select id,name,(select 1 from fly_file where dic_path = fly_path.id and (media_audio is not null or media_video is not null) limit 1) cnt_mediainfo from fly_path
+	        sqlite3_reader l_q = m_load_path_cache->executereader();
+	        CFlyFastLock(m_path_cache_cs);
+	        while (l_q.read())
+	        {
+	            if (ClientManager::isBeforeShutdown())
+	                break;
+	            m_path_cache.insert(std::make_pair(l_q.getstring(1), CFlyPathItem(l_q.getint64(0), false, l_q.getint(2) == 0)));
+	        }
+	    }
+	    catch (const database_error& e)
+	    {
+	        errorDB("SQLite - load_path_cache: " + e.getError());
+	        return;
+	    }
+	*/
+	
 }
 //========================================================================================================
 __int64 CFlylinkDBManager::get_path_id(string p_path, bool p_create, bool p_case_convet, bool& p_is_no_mediainfo, bool p_sweep_path)
@@ -3930,10 +3973,24 @@ __int64 CFlylinkDBManager::create_path_idL(const string& p_path, bool p_is_skip_
 {
 	try
 	{
+		__int64 l_last_path_id = 0;
+		{
+			m_load_path_cache_one_dir.init(m_flySQLiteDB,
+			                               "select id,name,(select count(*) from fly_file where dic_path = fly_path.id and (media_audio is not null or media_video is not null)) cnt_mediainfo from fly_path where name=?");
+			m_load_path_cache_one_dir->bind(1, p_path, SQLITE_STATIC);
+			sqlite3_reader l_q = m_load_path_cache_one_dir->executereader();
+			while (l_q.read())
+			{
+				l_last_path_id = l_q.getint64(0);
+				CFlyFastLock(m_path_cache_cs);
+				m_path_cache.insert(std::make_pair(l_q.getstring(1), CFlyPathItem(l_q.getint64(0), false, l_q.getint(2) == 0)));
+				return l_last_path_id;
+			}
+		}
 		m_insert_fly_path.init(m_flySQLiteDB, "insert into fly_path (name) values(?)");
 		m_insert_fly_path->bind(1, p_path, SQLITE_STATIC);
 		m_insert_fly_path->executenonquery();
-		const __int64 l_last_path_id = m_flySQLiteDB.insertid();
+		l_last_path_id = m_flySQLiteDB.insertid();
 		{
 			CFlyFastLock(m_path_cache_cs);
 			m_path_cache.insert(std::make_pair(p_path, CFlyPathItem(l_last_path_id, true, false)));
@@ -3964,11 +4021,15 @@ __int64 CFlylinkDBManager::get_path_idL(string p_path, bool p_create, bool p_cas
 {
 	p_is_no_mediainfo = false;
 	if (m_last_path_id != 0 && m_last_path_id != -1 && p_path == m_last_path && p_sweep_path == false)
+	{
 		return m_last_path_id;
-		
+	}
+	
 	m_last_path = p_path;
 	if (p_case_convet)
+	{
 		p_path = Text::toLower(p_path);
+	}
 	try
 	{
 		{
@@ -4348,7 +4409,7 @@ void CFlylinkDBManager::add_file(__int64 p_path_id, const string& p_file_name, i
 {
 	dcassert(!p_file_name.empty());
 	dcassert(!Util::getFileName(p_file_name).empty());
-	dcassert(p_path_id);
+	//dcassert(p_path_id);
 	size_t l_size_cache = 0;
 	{
 		CFlyFastLock(m_cache_hash_files_cs);
@@ -4768,10 +4829,10 @@ __int64 CFlylinkDBManager::convert_tth_historyL()
 	{
 		m_flySQLiteDB.executenonquery("create table IF NOT EXISTS fly_tth(tth char(24) PRIMARY KEY NOT NULL);");
 		{
-			auto_ptr<sqlite3_command> l_sql(new sqlite3_command(m_flySQLiteDB,
-			                                                    "select tth, 2 as val from fly_hash_block group by tth "
-			                                                    "union all "
-			                                                    "select tth, 1 as val from fly_tth"));
+			std::unique_ptr<sqlite3_command> l_sql(new sqlite3_command(m_flySQLiteDB,
+			                                                           "select tth, 2 as val from fly_hash_block group by tth "
+			                                                           "union all "
+			                                                           "select tth, 1 as val from fly_tth"));
 			sqlite3_reader l_q = l_sql->executereader();
 			while (l_q.read())
 			{

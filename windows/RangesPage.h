@@ -11,6 +11,8 @@
 
 class RangesPage : public CPropertyPage<IDD_RANGES_PAGE>, public PropPage
 {
+		CListBox m_list_box;
+		void loadManualP2PGuard();
 	public:
 		explicit RangesPage() : PropPage(TSTRING(IPGUARD)), m_isEnabledIPGuard(false)
 		{
@@ -20,11 +22,14 @@ class RangesPage : public CPropertyPage<IDD_RANGES_PAGE>, public PropPage
 		~RangesPage()
 		{
 			ctrlPolicy.Detach();
+			m_list_box.Detach();
 		}
 		
 		BEGIN_MSG_MAP_EX(RangesPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
 		COMMAND_ID_HANDLER(IDC_ENABLE_IPGUARD, onFixControls)
+		COMMAND_ID_HANDLER(IDC_ENABLE_IPTRUST, onFixControls)
+		COMMAND_ID_HANDLER(IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST_REMOVE_BUTTON, onRemoveP2PManual)
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
 		
@@ -32,7 +37,7 @@ class RangesPage : public CPropertyPage<IDD_RANGES_PAGE>, public PropPage
 		
 		LRESULT onItemchangedDirectories(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
 		LRESULT onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled);
-		
+		LRESULT onRemoveP2PManual(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			fixControls();

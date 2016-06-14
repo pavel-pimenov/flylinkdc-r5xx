@@ -165,7 +165,7 @@ public:
 //		}
 		
 		bool useServer = true;
-		if (ConnectionManager::getInstance()->isValidInstance() && !ConnectionManager::getInstance()->isShuttingDown() && ConnectionManager::getInstance()->getPort() == tcp)
+		if (ConnectionManager::getInstance()->isValidInstance() && !ConnectionManager::isShuttingDown() && ConnectionManager::getInstance()->getPort() == tcp)
 		{
 			useServer = false;
 		}
@@ -231,10 +231,9 @@ public:
 		catch(...)
 		{
 		}
-		TCHAR in_pAuthorizedFilename[MAX_PATH] = { 0 };
-		::GetModuleFileName(NULL, in_pAuthorizedFilename, MAX_PATH);
+		const tstring in_pAuthorizedFilename = Util::getModuleFileName();
 		try{
-			if (WinFirewall::IsWindowsFirewallAppEnabled(in_pAuthorizedFilename))
+			if (WinFirewall::IsWindowsFirewallAppEnabled(in_pAuthorizedFilename.c_str()))
 			{
 				GetDlgItem(IDC_WIZARD_NETA_WINFIREWALL_BTN).EnableWindow(FALSE);
 				SetStage(IDC_WIZARD_NETA_WINFIREWALL_ICO, StageSuccess);
@@ -306,10 +305,9 @@ public:
 	}
 	LRESULT OnBnClickedWizardNetaWinFirewalOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 	{
-		TCHAR in_pAuthorizedFilename[MAX_PATH] = { 0 };
-		::GetModuleFileName(NULL, in_pAuthorizedFilename, MAX_PATH);
+		const tstring in_pAuthorizedFilename = Util::getModuleFileName();
 		try{
-			WinFirewall::WindowFirewallSetAppAuthorization(Text::toT(APPNAME).c_str(), in_pAuthorizedFilename);
+			WinFirewall::WindowFirewallSetAppAuthorization(getFlylinkDCAppCaptionT().c_str(), in_pAuthorizedFilename.c_str());
 		}
 		catch (...) {}
 		CheckFirewall();

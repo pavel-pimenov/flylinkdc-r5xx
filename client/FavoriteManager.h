@@ -59,11 +59,19 @@ class SimpleXML;
 /**
  * Public hub list, favorites (hub&user). Assumed to be called only by UI thread.
  */
-class FavoriteManager : public Speaker<FavoriteManagerListener>,
+class FavoriteManager : private Speaker<FavoriteManagerListener>,
 	public Singleton<FavoriteManager>,
 	private ClientManagerListener
 {
 	public:
+		void addListener(FavoriteManagerListener* aListener)
+		{
+			Speaker<FavoriteManagerListener>::addListener(aListener);
+		}
+		void removeListener(FavoriteManagerListener* aListener)
+		{
+			Speaker<FavoriteManagerListener>::removeListener(aListener);
+		}
 		// [+] IRainman mimicry function
 		struct mimicrytag
 		{

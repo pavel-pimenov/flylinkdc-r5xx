@@ -27,8 +27,6 @@
 #include "../client/ShareManager.h"
 #include "../client/Singleton.h"
 
-#include <boost/atomic.hpp>
-
 namespace dht
 {
 

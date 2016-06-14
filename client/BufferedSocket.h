@@ -253,8 +253,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		FastCriticalSection cs; // [!] IRainman opt: use spinlock here!
 		
 		Semaphore m_socket_semaphore;
-		deque<pair<Tasks, std::unique_ptr<TaskData>> > m_tasks;
-		volatile DWORD m_threadId; // [+] IRainman fix.
+		deque<pair<Tasks, std::unique_ptr<TaskData> > > m_tasks;
 		ByteVector m_inbuf;
 		size_t m_myInfoCount; // Счетчик MyInfo
 		bool   m_is_all_my_info_loaded;  // Флаг передачи команды отличной от MyInfo (стартовая загрузка списка закончилась)
@@ -305,9 +304,8 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		
 		void fail(const string& aError);
 #ifdef FLYLINKDC_USE_SOCKET_COUNTER
-		static volatile long g_sockets; // [!] IRainman opt: use simple variable here.
+		static boost::atomic<long> g_sockets;
 #endif
-		
 		bool checkEvents();
 		void checkSocket();
 		

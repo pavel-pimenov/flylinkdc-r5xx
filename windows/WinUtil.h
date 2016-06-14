@@ -1543,13 +1543,6 @@ class WinUtil
 		static void init(HWND hWnd);
 		static void uninit();
 		
-		static tstring getAppName()
-		{
-			LocalArray<TCHAR, MAX_PATH> buf;
-			const DWORD x = GetModuleFileName(NULL, buf.data(), MAX_PATH);
-			return tstring(buf.data(), x);
-		}
-		
 		static int GetMenuItemPosition(const CMenu &p_menu, UINT_PTR p_IDItem = 0); // [+] SCALOlaz
 		
 		/**

@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <Bootstraps>
 	<server url="http://dht.fly-server.ru/dcDHT.php"/>
-	<antispam url="support.dchublist.biz" />
 	<antispam url="http://linkstar.pro"/>
-	<antispam url="dchublist.biz/?do=hublist.xml.bz2"/>
-	<antispam url="tsdhub.info"/>
+	<antispam url="dchublist.biz"/>
 	<antispam url="http://hublist.dchub.net"/>
-	<antispam url="dchub://aab-new-adrenalin.ru"/>
 	<antispam url="dchub://sexy-hub.ru"/>
 	<antispam url="www.pribambasiki.ru"/>
 	<antispam url="new games ugadajjka"/>
 	<antispam url="hub.sovietred.ru:4111"/>
+	<antispam url="Stealth Group"/>
+	<antispam url="://dchublist.wordpress.com"/>
+	<antispam url="://hubliste.wordpress.com"/>
 	<fly-server 
 		ip ="media.fly-server.ru"
 		port ="37015"
@@ -33,6 +33,7 @@
 		interval_flood_command="5"
  		max_flood_command="100"
 		ban_flood_command="20"
+		guard_tcp_port = "80,443,22,21"
 		exclude_error_syslog="9,5,16,10,4,17,26,29,25,24,36,39,43,40,46,44,41,48,47,55,54"
 		append_cid_error_log="1"
 		use_hit_media_files="0"
@@ -52,7 +53,7 @@
 		exclude_tag_inform = "File size,Log eac,LOG EAC,METADATA_BLOCK_PICTURE,iTunMOVI,LOG,Part_ID,cuesheet,Cuesheet,COVERART,Duration,LOGFILE,Logfile,Unique ID,ID,Complete name,Encoding settings,Encoded date,Tagged date,Album replay gain,Album replay gain peak,Comment,Copyright,Cover,Cover type,Cover MIME,GRACENOTEFILEID,GRACENOTEEXTDATA,Overall bit rate mode,Overall bit rate,NOTES,Alignment,Forced,Menu ID,Replay gain,Replay gain peak,Source"
 		send_full_mediainfo = "0"
 		parasitic_file = "id.bdmv,mcmf.xml,contenthash000.tbl,anydvd.xrl,online.crl,00001.clpi,00000.clpi,contentrevocation.lst"
-		block_share_ext = "jc!,ob!,dmf,mta,dmfr,!ut,part,!bt,bc!,getright,antifrag,pusd,dusd,download,crdownload,gltth,kwm,pwm"
+		block_share_ext = "jc!,ob!,dmf,mta,dmfr,!ut,part,!bt,bc!,getright,antifrag,pusd,dusd,download,crdownload,gltth,kwm,pwm,partial"
 		block_share_name = "thumbs.db,zbthumbnail.info"
 		block_share_mask = "~utorrentpartfile*,.~lock.*.*#"
 		custom_compress_ext = "msi,3gp,avi,divx,flv,m4v,mkv,mov,mp4,mpg,mpeg,vob,wmv,bik,qt,rm,dts,aac,ac3,ape,fla,flac,m4a,mp1,mp2,mp3,ogg,wma,wv,mka,vqf,lqt,tiff,tif,jpg,gif,djvu,djv,part1,part2,part3,part4,part5,part6,part7,part8,part9,part10,cab,cso,0,000,7z,a01,ace,ain,alz,apz,ar,arc,arh,ari,arj,ark,axx,bhx,bz,bz2,bzip,bzip2,c00,c01,c02,car,cb7,cbr,cbz,deb,dgc,dist,f,fdp,gca,gz,gzi,gzip,ha,hbc,hbc2,hbe,hki,hki2,hpk,hyp,ice,ipg,ipk,ish,j,jgz,jic,kgb,lbr,lha,lzh,lzma,lzo,lzx,pak,paq6,paq7,paq8,par,par2,pbi,pea,pf,pim,pit,piz,pkg,puz,qda,r00,r01,r02,r03,r04,r05,r06,r07,r08,r09,rar,rev,rk,rpm,rte,rzs,s00,s01,s02,sar,sdn,sea,sen,sfs,sfx,sh,shar,shr,sit,sitx,spt,sqx,sqz,tbz,tbz2,tg,tgz,tlz,tlzma,txz,tz,uha,wad,war,xef,xez,xmcdz,xpi,xz,y,z,z02,z04,zap,zip,zipx,zix,zoo,zpi,zz,png,jar,chm,jpeg"

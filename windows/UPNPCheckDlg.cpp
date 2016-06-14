@@ -104,7 +104,7 @@ int
 UPNPCheckDlg::run()
 {
 
-	static const string description = APPNAME;
+	static const string description = getFlylinkDCAppCaption();
 	// description += "Transfer port ";
 	
 	if (!_needUPNP)
@@ -415,7 +415,7 @@ bool UPNPCheckDlg::StartPortListener(uint16_t tcp, uint16_t udp)
 	}
 	catch (Exception & e)
 	{
-		::MessageBox(NULL, Text::toT(e.getError()).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
+		::MessageBox(NULL, Text::toT(e.getError()).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR);
 		return false;
 	}
 	return true;

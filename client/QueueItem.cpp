@@ -17,8 +17,6 @@
  */
 
 #include "stdinc.h"
-#include <boost/atomic.hpp>
-
 #include "QueueItem.h"
 #include "LogManager.h"
 #include "HashManager.h"
@@ -26,6 +24,7 @@
 #include "File.h"
 #include "CFlylinkDBManager.h"
 #include "ClientManager.h"
+#include "UserConnection.h"
 #include "../FlyFeatures/flyServer.h"
 
 #ifdef FLYLINKDC_USE_RWLOCK
@@ -73,10 +72,10 @@ QueueItem::~QueueItem()
 #endif
 }
 //==========================================================================================
-int16_t QueueItem::calcTransferFlagL(bool& partial, bool& trusted, bool& untrusted, bool& tthcheck, bool& zdownload, bool& chunked, double& ratio) const
+int16_t QueueItem::calcTransferFlag(bool& partial, bool& trusted, bool& untrusted, bool& tthcheck, bool& zdownload, bool& chunked, double& ratio) const
 {
 	int16_t segs = 0;
-	// Пока убрал т.к. вешаемся. RLock(*QueueItem::g_cs);
+	CFlyFastLock(m_fcs_download);
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
 		const auto d = i->second;
@@ -238,13 +237,13 @@ void QueueItem::setSectionString(const string& p_section, bool p_is_first_load)
 		
 		if ((Sections.size() & 1) == 0)
 		{
-			WLock(*QueueItem::g_cs); // [+] IRainman fix.
+			CFlyFastLock(m_fcs_segment);
 			for (auto i = Sections.cbegin(); i < Sections.cend(); i += 2)
 			{
 				int64_t l_start = Util::toInt64(i->c_str());
 				int64_t l_size = Util::toInt64((i + 1)->c_str());
 				
-				addSegmentL(Segment(l_start, l_size), p_is_first_load);
+				addSegmentL(Segment(l_start, l_size), p_is_first_load); // TODO вынести лок выше наружу
 			}
 		}
 	}
@@ -293,12 +292,32 @@ void QueueItem::getPFSSourcesL(const QueueItemPtr& p_qi, SourceListBuffer& p_sou
 	addToList(true);
 }
 // [~] fix.
+void QueueItem::resetDownloaded()
+{
+	bool l_is_dirty = true;
+	{
+		CFlyFastLock(m_fcs_segment);
+		l_is_dirty = !m_done_segment.empty();
+		m_done_segment.clear();
+	}
+	setDirtySegment(l_is_dirty);
+}
 
-bool QueueItem::isChunkDownloadedL(int64_t startPos, int64_t& len) const
+bool QueueItem::isFinished() const
+{
+	if (m_done_segment.size() == 1)
+	{
+		CFlyFastLock(m_fcs_segment);
+		return m_done_segment.size() == 1 && *m_done_segment.begin() == Segment(0, getSize());
+	}
+	return false;
+}
+
+bool QueueItem::isChunkDownloaded(int64_t startPos, int64_t& len) const
 {
 	if (len <= 0)
 		return false;
-		
+	CFlyFastLock(m_fcs_segment);
 	for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
 	{
 		const int64_t& start = i->getStart();
@@ -437,16 +456,17 @@ bool QueueItem::isSourceValid(const QueueItem::Source* p_source_ptr)
 	return false;
 }
 #endif
-void QueueItem::addDownloadL(const DownloadPtr& p_download)
+void QueueItem::addDownload(const DownloadPtr& p_download)
 {
+	CFlyFastLock(m_fcs_download);
 	dcassert(p_download->getUser());
 	dcassert(m_downloads.find(p_download->getUser()) == m_downloads.end());
 	m_downloads.insert(std::make_pair(p_download->getUser(), p_download));
 }
 
-bool QueueItem::removeDownloadL(const UserPtr& p_user)
+bool QueueItem::removeDownload(const UserPtr& p_user)
 {
-	//dcassert(m_downloads.find(p_user) != m_downloads.end());
+	CFlyFastLock(m_fcs_download);
 	const auto l_size_before = m_downloads.size();
 	m_downloads.erase(p_user);
 	dcassert(l_size_before != m_downloads.size() || l_size_before == 0);
@@ -461,9 +481,12 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 	
 	if (!BOOLSETTING(ENABLE_MULTI_CHUNK))
 	{
-		if (!m_downloads.empty())
 		{
-			return Segment(-1, 0);
+			CFlyFastLock(m_fcs_download);
+			if (!m_downloads.empty())
+			{
+				return Segment(-1, 0);
+			}
 		}
 		
 		int64_t start = 0;
@@ -471,6 +494,7 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 		
 		if (!m_done_segment.empty())
 		{
+			CFlyFastLock(m_fcs_segment);
 			const Segment& first = *m_done_segment.begin();
 			
 			if (first.getStart() > 0)
@@ -480,23 +504,27 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 			else
 			{
 				start = Util::roundDown(first.getEnd(), blockSize);
-				
-				if (m_done_segment.size() > 1)
 				{
-					const Segment& second = *(++m_done_segment.begin());
-					end = Util::roundUp(second.getStart(), blockSize);
+					CFlyFastLock(m_fcs_segment);
+					if (m_done_segment.size() > 1)
+					{
+						const Segment& second = *(++m_done_segment.begin());
+						end = Util::roundUp(second.getStart(), blockSize);
+					}
 				}
 			}
 		}
 		
 		return Segment(start, std::min(getSize(), end) - start);
 	}
-	
-	if (m_downloads.size() >= maxSegments ||
-	        (BOOLSETTING(DONT_BEGIN_SEGMENT) && static_cast<size_t>(SETTING(DONT_BEGIN_SEGMENT_SPEED) * 1024) < getAverageSpeed()))
 	{
-		// no other segments if we have reached the speed or segment limit
-		return Segment(-1, 0);
+		CFlyFastLock(m_fcs_download);
+		if (m_downloads.size() >= maxSegments ||
+		        (BOOLSETTING(DONT_BEGIN_SEGMENT) && static_cast<size_t>(SETTING(DONT_BEGIN_SEGMENT_SPEED) * 1024) < getAverageSpeed()))
+		{
+			// no other segments if we have reached the speed or segment limit
+			return Segment(-1, 0);
+		}
 	}
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 	if (m_delegater != nullptr)
@@ -514,18 +542,22 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 				int64_t endPreviewPosition = startPreviewPosition + blockSize;
 				Segment block(startPreviewPosition, blockSize);
 				overlaps = false;
-				for (auto i = m_done_segment.cbegin(); !overlaps && i != m_done_segment.cend(); ++i)
 				{
-					const int64_t dstart = i->getStart();
-					const int64_t dend = i->getEnd();
-					// We accept partial overlaps, only consider the block done if it is fully consumed by the done block
-					if (dstart <= startPreviewPosition && dend >= endPreviewPosition)
+					CFlyFastLock(m_fcs_segment);
+					for (auto i = m_done_segment.cbegin(); !overlaps && i != m_done_segment.cend(); ++i)
 					{
-						overlaps = true;
+						const int64_t dstart = i->getStart();
+						const int64_t dend = i->getEnd();
+						// We accept partial overlaps, only consider the block done if it is fully consumed by the done block
+						if (dstart <= startPreviewPosition && dend >= endPreviewPosition)
+						{
+							overlaps = true;
+						}
 					}
 				}
 				if (!overlaps)
 				{
+					CFlyFastLock(m_fcs_download);
 					for (auto i = m_downloads.cbegin(); !overlaps && i != m_downloads.cend(); ++i)
 					{
 						overlaps = block.overlaps(i->second->getSegment());
@@ -556,7 +588,9 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 		
 		// Convert block index to file position
 		for (auto i = partialSource->getPartialInfo().cbegin(); i != partialSource->getPartialInfo().cend(); ++i)
+		{
 			posArray.push_back(min(getSize(), (int64_t)(*i) * blockSize));
+		}
 	}
 	
 	/***************************/
@@ -578,71 +612,81 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 	
 	int64_t start = 0;
 	int64_t curSize = targetSize;
-	
-	while (start < getSize())
 	{
-		int64_t end = std::min(getSize(), start + curSize);
-		Segment block(start, end - start);
-		bool overlaps = false;
-		for (auto i = m_done_segment.cbegin(); !overlaps && i != m_done_segment.cend(); ++i)
+		CFlyFastLock(m_fcs_download);
 		{
-			if (curSize <= blockSize)
+			CFlyFastLock(m_fcs_segment);
+			while (start < getSize())
 			{
-				int64_t dstart = i->getStart();
-				int64_t dend = i->getEnd();
-				// We accept partial overlaps, only consider the block done if it is fully consumed by the done block
-				if (dstart <= start && dend >= end)
+				int64_t end = std::min(getSize(), start + curSize);
+				Segment block(start, end - start);
+				bool overlaps = false;
 				{
-					overlaps = true;
-				}
-			}
-			else
-			{
-				overlaps = block.overlaps(*i);
-			}
-		}
-		
-		for (auto i = m_downloads.cbegin(); !overlaps && i != m_downloads.cend(); ++i)
-		{
-			overlaps = block.overlaps(i->second->getSegment());
-		}
-		
-		if (!overlaps)
-		{
-			if (partialSource)
-			{
-				// store all chunks we could need
-				for (auto j = posArray.cbegin(); j < posArray.cend(); j += 2)
-				{
-					if ((*j <= start && start < * (j + 1)) || (start <= *j && *j < end))
+					for (auto i = m_done_segment.cbegin(); !overlaps && i != m_done_segment.cend(); ++i)
 					{
-						int64_t b = max(start, *j);
-						int64_t e = min(end, *(j + 1));
-						
-						// segment must be blockSize aligned
-						dcassert(b % blockSize == 0);
-						dcassert(e % blockSize == 0 || e == getSize());
-						
-						neededParts.push_back(Segment(b, e - b));
+						if (curSize <= blockSize)
+						{
+							int64_t dstart = i->getStart();
+							int64_t dend = i->getEnd();
+							// We accept partial overlaps, only consider the block done if it is fully consumed by the done block
+							if (dstart <= start && dend >= end)
+							{
+								overlaps = true;
+							}
+						}
+						else
+						{
+							overlaps = block.overlaps(*i);
+						}
 					}
 				}
+				if (!overlaps)
+				{
+					// TODO CFlyFastLock(m_fcs_download);
+					for (auto i = m_downloads.cbegin(); !overlaps && i != m_downloads.cend(); ++i)
+					{
+						overlaps = block.overlaps(i->second->getSegment());
+					}
+				}
+				
+				if (!overlaps)
+				{
+					if (partialSource)
+					{
+						// store all chunks we could need
+						for (auto j = posArray.cbegin(); j < posArray.cend(); j += 2)
+						{
+							if ((*j <= start && start < * (j + 1)) || (start <= *j && *j < end))
+							{
+								int64_t b = max(start, *j);
+								int64_t e = min(end, *(j + 1));
+								
+								// segment must be blockSize aligned
+								dcassert(b % blockSize == 0);
+								dcassert(e % blockSize == 0 || e == getSize());
+								
+								neededParts.push_back(Segment(b, e - b));
+							}
+						}
+					}
+					else
+					{
+						return block;
+					}
+				}
+				
+				if (overlaps && (curSize > blockSize))
+				{
+					curSize -= blockSize;
+				}
+				else
+				{
+					start = end;
+					curSize = targetSize;
+				}
 			}
-			else
-			{
-				return block;
-			}
 		}
-		
-		if (overlaps && (curSize > blockSize))
-		{
-			curSize -= blockSize;
-		}
-		else
-		{
-			start = end;
-			curSize = targetSize;
-		}
-	}
+	} // end lock
 	
 	if (!neededParts.empty())
 	{
@@ -660,6 +704,7 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 		// overlap slow running chunk
 		
 		const uint64_t l_CurrentTick = GET_TICK();//[+]IRainman refactoring transfer mechanism
+		CFlyFastLock(m_fcs_download);
 		for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 		{
 			const auto d = i->second;
@@ -693,9 +738,10 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 	return Segment(0, 0);
 }
 
-void QueueItem::setOverlappedL(const Segment& p_segment, const bool p_isOverlapped) // [!] IRainman fix.
+void QueueItem::setOverlapped(const Segment& p_segment, const bool p_isOverlapped)
 {
 	// set overlapped flag to original segment
+	CFlyFastLock(m_fcs_download);
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
 		auto d = i->second;
@@ -707,16 +753,19 @@ void QueueItem::setOverlappedL(const Segment& p_segment, const bool p_isOverlapp
 	}
 }
 
-string QueueItem::getSectionStringL()
+string QueueItem::getSectionString() const
 {
 	string l_strSections;
-	l_strSections.reserve(m_done_segment.size() * 10);
-	for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
 	{
-		char buf[48];
-		buf[0] = 0;
-		_snprintf(buf, _countof(buf), "%I64d %I64d ", i->getStart(), i->getSize());
-		l_strSections += buf;
+		CFlyFastLock(m_fcs_segment);
+		l_strSections.reserve(m_done_segment.size() * 10);
+		for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
+		{
+			char buf[48];
+			buf[0] = 0;
+			_snprintf(buf, _countof(buf), "%I64d %I64d ", i->getStart(), i->getSize());
+			l_strSections += buf;
+		}
 	}
 	if (!l_strSections.empty())
 	{
@@ -724,8 +773,9 @@ string QueueItem::getSectionStringL()
 	}
 	return l_strSections;
 }
-void QueueItem::calcDownloadedBytesL() const
+void QueueItem::calcDownloadedBytes() const
 {
+	CFlyFastLock(m_fcs_segment);
 	uint64_t l_totalDownloaded = 0;
 	for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
 	{
@@ -737,8 +787,9 @@ void QueueItem::calcDownloadedBytesL() const
 uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const // [!] IRainman opt.
 {
 	uint64_t l_totalSpeed = 0; // Скорость 64 битная нужна?
-	calcDownloadedBytesL();
+	calcDownloadedBytes();
 	// count running segments
+	CFlyFastLock(m_fcs_download);
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
 		const auto d = i->second;
@@ -747,7 +798,7 @@ uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const // [!]
 	}
 	/*
 	#ifdef _DEBUG
-	static boost::atomic_uint l_count(0);
+	static boost::atomic_uint l_count = 0;
 	dcdebug("QueueItem::calcAverageSpeedAndDownloadedBytes() total_download = %I64u, totalSpeed = %I64u [count = %d] [done.size() = %u] [downloads.size() = %u]\n",
 	        l_totalDownloaded, l_totalSpeed,
 	        int(++l_count), done.size(), m_downloads.size());
@@ -756,19 +807,23 @@ uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const // [!]
 	m_averageSpeed    = l_totalSpeed;
 	return m_downloadedBytes;
 }
-
-void QueueItem::addSegmentL(const Segment& segment, bool p_is_first_load)
+void QueueItem::addSegment(const Segment& p_segment, bool p_is_first_load /*= false */)
+{
+	CFlyFastLock(m_fcs_segment);
+	addSegmentL(p_segment, p_is_first_load);
+}
+void QueueItem::addSegmentL(const Segment& p_segment, bool p_is_first_load)
 {
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-	if (m_delegater != nullptr && segment.getSize() > 0)
+	if (m_delegater != nullptr && p_segment.getSize() > 0)
 	{
-		m_delegater->addSegment(segment.getStart(), segment.getSize());
+		m_delegater->addSegment(p_segment.getStart(), p_segment.getSize());
 	}
 #endif
-	dcassert(segment.getOverlapped() == false);
-	m_done_segment.insert(segment);
+	dcassert(p_segment.getOverlapped() == false);
+	m_done_segment.insert(p_segment);
 #ifdef _DEBUG
-//  LogManager::message("QueueItem::addSegmentL, setDirty = true! id = " +
+//  LogManager::message("QueueItem::addSegment, setDirty = true! id = " +
 //                      Util::toString(this->getFlyQueueID()) + " target = " + this->getTarget()
 //	                    + " TempTarget = " + this->getTempTarget()
 //	                    + " segment.getSize() = " + Util::toString(segment.getSize())
@@ -804,10 +859,10 @@ void QueueItem::addSegmentL(const Segment& segment, bool p_is_first_load)
 	}
 }
 
-bool QueueItem::isNeededPartL(const PartsInfo& partsInfo, int64_t p_blockSize) const
+bool QueueItem::isNeededPart(const PartsInfo& partsInfo, int64_t p_blockSize) const
 {
 	dcassert(partsInfo.size() % 2 == 0);
-	
+	CFlyFastLock(m_fcs_segment);
 	auto i = m_done_segment.begin();
 	for (auto j = partsInfo.cbegin(); j != partsInfo.cend(); j += 2)
 	{
@@ -821,12 +876,13 @@ bool QueueItem::isNeededPartL(const PartsInfo& partsInfo, int64_t p_blockSize) c
 	return false;
 }
 
-void QueueItem::getPartialInfoL(PartsInfo& p_partialInfo, uint64_t p_blockSize) const
+void QueueItem::getPartialInfo(PartsInfo& p_partialInfo, uint64_t p_blockSize) const
 {
 	dcassert(p_blockSize);
 	if (p_blockSize == 0) // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=31115
 		return;
 		
+	CFlyFastLock(m_fcs_segment);
 	const size_t maxSize = min(m_done_segment.size() * 2, (size_t)510);
 	p_partialInfo.reserve(maxSize);
 	
@@ -840,52 +896,98 @@ void QueueItem::getPartialInfoL(PartsInfo& p_partialInfo, uint64_t p_blockSize) 
 		p_partialInfo.push_back(e);
 	}
 }
-/* [-] IRainman fix.
-    void QueueItem::getChunksVisualisation(const int type, vector<Segment>& p_segments) const   // type: 0 - downloaded bytes, 1 - running chunks, 2 - done chunks
-    {
-        p_segments.clear();
-        switch (type)
-        {
-            case 0:
-                if (downloads.size())
-                    p_segments.reserve(downloads.size());
-                for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
-                {
-                    p_segments.push_back((*i)->getSegment());
-                }
-                break;
-            case 1:
-                p_segments.reserve(downloads.size());
-                for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
-                {
-                    p_segments.push_back(Segment((*i)->getStartPos(), (*i)->getPos()));
-                }
-                break;
-            case 2:
-                p_segments.reserve(done.size());
-                for (auto i = done.cbegin(); i != done.cend(); ++i)
-                {
-                    p_segments.push_back(*i);
-                }
-                break;
-        }
-    }
-*/
-// [+] IRainman fix.
 void QueueItem::getChunksVisualisation(vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) const
 {
-	RLock(*QueueItem::g_cs); // [+] IRainman fix.
-	
-	p_runnigChunksAndDownloadBytes.reserve(m_downloads.size());
-	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
-		p_runnigChunksAndDownloadBytes.push_back(make_pair(i->second->getSegment(), Segment(i->second->getStartPos(), i->second->getPos())));
+		CFlyFastLock(m_fcs_download);
+		p_runnigChunksAndDownloadBytes.reserve(m_downloads.size());
+		for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
+		{
+			p_runnigChunksAndDownloadBytes.push_back(make_pair(i->second->getSegment(), Segment(i->second->getStartPos(), i->second->getPos())));
+		}
 	}
 	p_doneChunks.reserve(m_done_segment.size());
-	for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
 	{
-		p_doneChunks.push_back(*i);
+		CFlyFastLock(m_fcs_segment);
+		for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
+		{
+			p_doneChunks.push_back(*i);
+		}
 	}
 }
-
-// [~] IRainman fix.
+uint8_t QueueItem::calcActiveSegments()
+{
+	uint8_t activeSegments = 0;
+	CFlyFastLock(m_fcs_download);
+	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
+	{
+		if (i->second->getStart() > 0)
+		{
+			activeSegments++;
+		}
+		// more segments won't change anything
+		if (activeSegments > 1)
+			break;
+	}
+	return activeSegments;
+}
+UserPtr QueueItem::getFirstUser()
+{
+	CFlyFastLock(m_fcs_download);
+	if (!m_downloads.empty())
+		return m_downloads.begin()->first;
+	else
+		return UserPtr();
+}
+bool QueueItem::isDownloadTree()
+{
+	CFlyFastLock(m_fcs_download);
+	if (!m_downloads.empty())
+		return m_downloads.begin()->second->getType() == Transfer::TYPE_TREE;
+	else
+		return false;
+}
+void QueueItem::getAllDownloadUser(UserList& p_users)
+{
+	CFlyFastLock(m_fcs_download);
+	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
+	{
+		p_users.push_back(i->first);
+	}
+}
+void QueueItem::disconectedAllPosible(const DownloadPtr& aDownload)
+{
+	CFlyFastLock(m_fcs_download);
+	// Disconnect all possible overlapped downloads
+	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
+	{
+		if (i->second != aDownload)
+		{
+			i->second->getUserConnection()->disconnect();
+		}
+	}
+}
+bool QueueItem::disconectedSlow(const DownloadPtr& aDownload)
+{
+	bool found = false;
+	// ok, we got a fast slot, so it's possible to disconnect original user now
+	CFlyFastLock(m_fcs_download);
+	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
+	{
+		const auto& j = i->second;
+		if (j != aDownload && j->getSegment().contains(aDownload->getSegment()))
+		{
+		
+			// overlapping has no sense if segment is going to finish
+			if (j->getSecondsLeft() < 10)
+				break;
+				
+			found = true;
+			
+			// disconnect slow chunk
+			j->getUserConnection()->disconnect();
+			break;
+		}
+	}
+	return found;
+}

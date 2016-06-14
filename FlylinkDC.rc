@@ -1258,14 +1258,16 @@ BEGIN
     LTEXT           "except specified",IDC_DEFAULT_POLICY_EXCEPT_STR,202,68,112,8
     EDITTEXT        IDC_FLYLINK_GUARD_IP,10,81,304,41,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
     GROUPBOX        "IPTrust.ini (download-upload)",IDC_FLYLINK_TRUST_IP_BOX,4,126,316,82
-    EDITTEXT        IDC_FLYLINK_TRUST_IP,10,136,304,51,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
+    EDITTEXT        IDC_FLYLINK_TRUST_IP,10,149,304,38,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
     LTEXT           "IPTrust.ini URL:",IDC_FLYLINK_TRUST_IP_URL_STR,11,191,264,8
     EDITTEXT        IDC_FLYLINK_TRUST_IP_URL,10,191,304,14,ES_AUTOHSCROLL
     CONTROL         "Enable P2P Guard",IDC_ENABLE_P2P_GUARD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,217,134,8
     GROUPBOX        "IP Guard",IDC_STATIC,4,2,316,125
     LTEXT           "Lock of parasitic traffic based on the 'black list' ( ipfilter.zip from http://emule-security.org )",IDC_ENABLE_P2P_GUARD_STR,10,227,303,8
     GROUPBOX        "Manual P2P Guard",IDC_FLYLINK_MANUAL_P2P_GUARD,11,235,103,60
-    EDITTEXT        IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST,15,247,95,46,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | ES_WANTRETURN | WS_VSCROLL
+    PUSHBUTTON      "Remove",IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST_REMOVE_BUTTON,119,243,69,16
+    LISTBOX         IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST_BOX,15,245,95,48,LBS_SORT | LBS_MULTIPLESEL | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Enable IPTrust.ini",IDC_ENABLE_IPTRUST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,136,134,8
 END
 
 IDD_SLOT_PAGE DIALOGEX 0, 0, 325, 300
@@ -3040,7 +3042,7 @@ IDR_SKULL2_RED_ICO      ICON                    "res\\skull2_red.ico"
 
 IDR_ICON_FIREWALL       ICON                    "res\\firewall.ico"
 
-IDR_ICON_XXX_BLOCK		ICON                    "res\\xxx.ico"
+IDR_ICON_XXX_BLOCK      ICON                    "res\\xxx.ico"
 
 IDR_ICON_CLOCK          ICON                    "res\\clock.ico"
 
@@ -3089,10 +3091,6 @@ IDR_VIP_ICO_TITANKALUGA ICON                    "res\\vip_titankaluga.ico"
 //
 
 IDR_SPLASH              PNG                     "res\\Splash\\Splash.png"
-
-//IDR_SPLASH_9MAY         PNG                     "res\\Splash\\Splash_9may.png"
-//IDR_SPLASH_WINTER       PNG                     "res\\Splash\\Splash_winter.png"
-//IDR_SPLASH_NY1          PNG                     "res\\Splash\\Splash_5xx_NY1.png"
 
 IDR_TOOLBAR             PNG                     "res\\Toolbar.png"
 
@@ -3167,6 +3165,11 @@ IDR_ICON_CAMSHOOT_PNG   PNG                     "res\\Cam.png"
 //
 
 IDD_NETWORK_PAGE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_RANGES_PAGE AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

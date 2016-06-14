@@ -190,7 +190,7 @@ class SearchResult : public SearchResultBaseTTH
 		bool m_is_virus;
 		bool m_is_tth_remembrance;
 		mutable uint8_t m_virus_level;
-		const string&  getP2PGuard() const
+		const string& getP2PGuard() const
 		{
 			return m_p2p_guard_text;
 		}

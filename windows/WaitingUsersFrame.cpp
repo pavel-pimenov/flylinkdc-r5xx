@@ -550,6 +550,7 @@ LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 						auto ii = m_ctrlList.getItemData(i);
 						if (ii)
 						{
+							// https://drdump.com/DumpGroup.aspx?DumpGroupID=491521
 							ii->setText(UploadQueueItem::COLUMN_TRANSFERRED, Util::formatBytesW(ii->getPos()) + _T(" (") + Util::toStringW((double)ii->getPos() * 100.0 / (double)ii->getSize()) + _T("%)"));
 							ii->setText(UploadQueueItem::COLUMN_WAITING, Util::formatSecondsW(itime - ii->getTime()));
 							m_ctrlList.updateItem(i, UploadQueueItem::COLUMN_TRANSFERRED);

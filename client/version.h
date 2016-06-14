@@ -45,7 +45,6 @@
 #endif // FLYLINKDC_HE
 
 #define APPNAME "FlylinkDC++"
-#define PPA_INCLUDE_SVN_REVISION
 
 // Macros utils
 #define VER_STRINGIZE1(a) #a
@@ -83,10 +82,7 @@
 # define T_VERSIONSTRING A_VERSIONSTRING
 # define T_REVISION_NUM_STR A_REVISION_NUM_STR
 #endif
-// [+] IRainman: copy-past fix.
-#define T_APPNAME_WITH_VERSION _T(APPNAME) _T(" ") T_VERSIONSTRING
-#define A_APPNAME_WITH_VERSION APPNAME " " A_VERSIONSTRING
-// [~] IRainman: copy-past fix.
+//#define getFlylinkDCAppCaptionWithVersionT().c_str() _T(APPNAME) _T(" ") T_VERSIONSTRING
 
 #define DCVERSIONSTRING "0.785"
 

@@ -485,7 +485,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		{
 			CFlylinkDBManager::getInstance()->set_registry_variable_string(e_IncopatibleSoftwareList, CompatibilityManager::getIncompatibleSoftwareList());
 			CFlyServerJSON::pushError(4, "CompatibilityManager::detectUncompatibleSoftware = " + CompatibilityManager::getIncompatibleSoftwareList());
-			if (MessageBox(Text::toT(CompatibilityManager::getIncompatibleSoftwareMessage()).c_str(), T_APPNAME_WITH_VERSION, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)
+			if (MessageBox(Text::toT(CompatibilityManager::getIncompatibleSoftwareMessage()).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)
 			{
 				WinUtil::openLink(WinUtil::GetWikiLink() + _T("incompatiblesoftware"));
 			}
@@ -495,7 +495,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	if (BOOLSETTING(REPORT_TO_USER_IF_OUTDATED_OS_DETECTED) && CompatibilityManager::runningAnOldOS()) // https://code.google.com/p/flylinkdc/issues/detail?id=1032
 	{
 		SET_SETTING(REPORT_TO_USER_IF_OUTDATED_OS_DETECTED, false);
-		if (MessageBox(CTSTRING(OUTDATED_OS_DETECTED), T_APPNAME_WITH_VERSION, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)
+		if (MessageBox(CTSTRING(OUTDATED_OS_DETECTED), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)
 		{
 			WinUtil::openLink(WinUtil::GetWikiLink() + _T("outdatedoperatingsystem"));
 		}
@@ -506,7 +506,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 #ifdef NIGHTORION_USE_STATISTICS_REQUEST
 	if (BOOLSETTING(SETTINGS_STATISTICS_ASK))
 	{
-		MessageBox(CTSTRING(TEXT_STAT_INFO), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_TOPMOST);
+		MessageBox(CTSTRING(TEXT_STAT_INFO), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_TOPMOST);
 		SET_SETTING(USE_FLY_SERVER_STATICTICS_SEND, true);
 		SET_SETTING(SETTINGS_STATISTICS_ASK, false);
 	}
@@ -544,7 +544,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		}
 		catch (const Exception& e)
 		{
-			MessageBox(Text::toT(e.getError()).c_str(), T_APPNAME_WITH_VERSION, MB_ICONSTOP | MB_OK);
+			MessageBox(Text::toT(e.getError()).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_ICONSTOP | MB_OK);
 		}
 	}
 	
@@ -584,7 +584,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	}
 	
 	TimerManager::getInstance()->start(0, "TimerManager");
-	SetWindowText(T_APPNAME_WITH_VERSION);
+	SetWindowText(getFlylinkDCAppCaptionWithVersionT().c_str());
 	createMainMenu();
 	
 	// [!] TODO убрать флажки нафиг! Достаточно валидность указателя проверять, я уже молчу про то, что этот флажёк не гарнтирует вообще ничего.
@@ -772,17 +772,17 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		// [+] InfinitySky. From ApexDC++.
 		// Different app icons for different instances
 		const tstring l_ExtIcoPath = Text::toT(Util::getICOPath());//[+]IRainman
-		HICON appIcon = (HICON)::LoadImage(NULL, l_ExtIcoPath.c_str(), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR | LR_LOADFROMFILE); //-V112
+		HICON l_appIcon = (HICON)::LoadImage(NULL, l_ExtIcoPath.c_str(), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR | LR_LOADFROMFILE); //-V112
 		l_trayIcon = (HICON)::LoadImage(NULL, l_ExtIcoPath.c_str(), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_LOADFROMFILE);
 		
 		m_custom_app_icon_exist = true; // [+] InfinitySky.
 		
-#ifdef FLYLINKDC_SUPPORT_WIN_VISTA
-		if (!CompatibilityManager::isWin7Plus())
-#endif
-			DestroyIcon((HICON)SetClassLongPtr(m_hWnd, GCLP_HICON, (LONG_PTR)appIcon));
-			
-		DestroyIcon((HICON)SetClassLongPtr(m_hWnd, GCLP_HICONSM, (LONG_PTR)l_trayIcon));
+		SetClassLongPtr(m_hWnd, GCLP_HICON, (LONG_PTR)l_appIcon);
+		//DestroyIcon(l_appIcon);
+		SetClassLongPtr(m_hWnd, GCLP_HICONSM, (LONG_PTR)l_trayIcon);
+		
+		SendMessage(m_hWnd, WM_SETICON, ICON_BIG, (LPARAM)l_appIcon);
+		SendMessage(m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)l_appIcon);
 	}
 	else
 	{
@@ -975,7 +975,9 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 					          int(CompatibilityManager::getFreePhysMemory() / 1024 / 1024),
 					          int(g_GDI_count));
 				}
-				const tstring* l_temp = new tstring(tstring(T_APPNAME_WITH_VERSION) + Text::toT(l_buf));
+				tstring* l_temp = new tstring;
+				*l_temp += getFlylinkDCAppCaptionWithVersionT();
+				*l_temp += Text::toT(l_buf);
 				if (!PostMessage(IDC_UPDATE_WINDOW_TITLE, (LPARAM)l_temp))
 				{
 					delete l_temp;
@@ -989,7 +991,8 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		// [+] InfinitySky. Текущая скорость в заголовке.
 		if (BOOLSETTING(SHOW_CURRENT_SPEED_IN_TITLE)) // TODO похерить. нигде не видел в прогах чтобы скорость была в заголовке. L: нечего херить! Флай в первую очередь программа для файло обмена, торрент так же делать умеет.
 		{
-			const tstring* l_temp = new tstring(TSTRING(DL) + _T(' ') + (l_dlstr) + _T(" / ") + TSTRING(UP) + _T(' ') + (l_ulstr) + _T("  -  ") T_APPNAME_WITH_VERSION);
+			const tstring* l_temp = new tstring(TSTRING(DL) + _T(' ') + (l_dlstr) + _T(" / ") + TSTRING(UP) + _T(' ') + (l_ulstr) + _T("  -  "));
+			*l_temp += getFlylinkDCAppCaptionWithVersionT();
 			if (!PostMessage(IDC_UPDATE_WINDOW_TITLE, (LPARAM)l_temp))
 			{
 				delete l_temp;
@@ -1670,7 +1673,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 {
 	if (wParam == MAIN_STATS)
 	{
-		auto_ptr<TStringList> pstr(reinterpret_cast<TStringList*>(lParam));
+		std::unique_ptr<TStringList> pstr(reinterpret_cast<TStringList*>(lParam));
 		if (--g_CountSTATS)
 		{
 			return 0; // [+] PPA Исключем лишнее обновление статусной строки и таскбара.
@@ -1837,7 +1840,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	}
 	else if (wParam == DOWNLOAD_LISTING)
 	{
-		auto_ptr<QueueManager::DirectoryListInfo> i(reinterpret_cast<QueueManager::DirectoryListInfo*>(lParam));
+		std::unique_ptr<QueueManager::DirectoryListInfo> i(reinterpret_cast<QueueManager::DirectoryListInfo*>(lParam));
 		if (!ClientManager::isShutdown())
 		{
 			DirectoryListingFrame::openWindow(Text::toT(i->file), Text::toT(i->dir), i->m_hintedUser, i->speed, i->isDCLST);
@@ -1845,7 +1848,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	}
 	else if (wParam == BROWSE_LISTING)
 	{
-		auto_ptr<DirectoryBrowseInfo> i(reinterpret_cast<DirectoryBrowseInfo*>(lParam));
+		std::unique_ptr<DirectoryBrowseInfo> i(reinterpret_cast<DirectoryBrowseInfo*>(lParam));
 		if (!ClientManager::isShutdown())
 		{
 			DirectoryListingFrame::openWindow(i->m_hinted_user, i->text, 0);
@@ -1853,7 +1856,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	}
 	else if (wParam == VIEW_FILE_AND_DELETE)
 	{
-		auto_ptr<tstring> file(reinterpret_cast<tstring*>(lParam));
+		std::unique_ptr<tstring> file(reinterpret_cast<tstring*>(lParam));
 		if (!ClientManager::isShutdown())
 		{
 			if (BOOLSETTING(EXTERNAL_PREVIEW)) // !SMT!-UI
@@ -2016,7 +2019,7 @@ LRESULT MainFrame::onCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, B
 			ShowWindow(SW_RESTORE);
 		}
 	}
-	parseCommandLine(WinUtil::getAppName() + L' ' + cmdLine);
+	parseCommandLine(Util::getModuleFileName() + L' ' + cmdLine);
 	return true;
 }
 
@@ -2287,7 +2290,7 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			// [+] InfinitySky. При отключении показа текущей скорости в заголовке.
 			if (!BOOLSETTING(SHOW_CURRENT_SPEED_IN_TITLE))
 			{
-				SetWindowText(T_APPNAME_WITH_VERSION); // Устанавливаем новый заголовок.
+				SetWindowText(getFlylinkDCAppCaptionWithVersionT().c_str()); // Устанавливаем новый заголовок.
 			}
 			
 			// TODO move this call to kernel.
@@ -2555,7 +2558,7 @@ void MainFrame::updateTray(bool add /* = true */)
 				nid.uFlags = NIF_ICON | NIF_TIP | NIF_MESSAGE;
 				nid.uCallbackMessage = WM_APP + 242;// TODO отрефакторить! это источник потенциальных ошибок!
 				nid.hIcon = *m_normalicon;
-				_tcsncpy(nid.szTip, _T(APPNAME), 64);
+				_tcsncpy(nid.szTip, getFlylinkDCAppCaptionT().c_str(), 64);
 				nid.szTip[63] = '\0';
 				m_lastMove = GET_TICK() - 1000;
 				m_bTrayIcon = ::Shell_NotifyIcon(NIM_ADD, &nid) != FALSE;// [~] InfinitySky. Code from Apex 1.3.8.
@@ -2579,7 +2582,7 @@ void MainFrame::SetOverlayIcon()
 	if (m_taskbarList) // Если есть поддержка системой taskbarList.
 	{
 #ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
-		if (m_custom_app_icon_exist && BOOLSETTING(SHOW_CUSTOM_MINI_ICON_ON_TASKBAR)) // [+] InfinitySky. Если есть иконка и включена опция.
+		if (m_custom_app_icon_exist) // [+] InfinitySky. Если есть иконка и включена опция.
 		{
 			m_taskbarList->SetOverlayIcon(m_hWnd, *m_normalicon, NULL); // [+] InfinitySky. Мини-иконка.
 		}
@@ -2800,9 +2803,10 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			
 			UINT checkState = AutoUpdate::getExitOnUpdate() ? BST_UNCHECKED : (BOOLSETTING(CONFIRM_EXIT) ? BST_CHECKED : BST_UNCHECKED); // [+] FlylinkDC.
 			
-			if ((m_oldshutdown || SETTING(PROTECT_CLOSE) || (checkState == BST_UNCHECKED) || (bForceNoWarning || ::MessageBox(m_hWnd, CTSTRING(REALLY_EXIT), T_APPNAME_WITH_VERSION, CTSTRING(ALWAYS_ASK), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)) && !m_stopexit) // [~] InfinitySky.
+			if ((m_oldshutdown || SETTING(PROTECT_CLOSE) || (checkState == BST_UNCHECKED) || (bForceNoWarning || ::MessageBox(m_hWnd, CTSTRING(REALLY_EXIT), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(ALWAYS_ASK), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)) && !m_stopexit) // [~] InfinitySky.
 			{
 				{
+					ClientManager::before_shutdown();
 					CFlyCrashReportMarker l_crash(_T("StopGUI"));
 					LogManager::g_mainWnd = nullptr;
 					m_closing = true;
@@ -3105,7 +3109,7 @@ LRESULT MainFrame::onOpenFileList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 		//{
 		//  // [!] IRainman Support broken file lists and non-standard formats like that dcls
 		//  //if (
-		//  MessageBox(CTSTRING(INVALID_LISTNAME), T_APPNAME_WITH_VERSION);
+		//  MessageBox(CTSTRING(INVALID_LISTNAME), getFlylinkDCAppCaptionWithVersionT().c_str());
 		//}
 	}
 	return 0;
@@ -3516,7 +3520,7 @@ LRESULT MainFrame::onQuickConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 	{
 		if (SETTING(NICK).empty())
 		{
-			MessageBox(CTSTRING(ENTER_NICK), T_APPNAME_WITH_VERSION, MB_ICONSTOP | MB_OK);
+			MessageBox(CTSTRING(ENTER_NICK), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_ICONSTOP | MB_OK);
 			return 0;
 		}
 		
@@ -3969,7 +3973,7 @@ UINT MainFrame::ShowSetupWizard()
 	}
 	catch (Exception & e)
 	{
-		::MessageBox(NULL, Text::toT(e.getError()).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR); // [1] https://www.box.net/shared/tsdgrjdhgdfjrsz168r7
+		::MessageBox(NULL, Text::toT(e.getError()).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR); // [1] https://www.box.net/shared/tsdgrjdhgdfjrsz168r7
 		return IDCLOSE;
 	}
 }
@@ -4101,7 +4105,7 @@ void MainFrame::AddFolderShareFromShell(const tstring& infolder)
 			tstring question = folder;
 			question += L"\r\n";
 			question += TSTRING(SECURITY_SHARE_FROM_SHELL_QUESTION);
-			shareFolder = (MessageBox(question.c_str(), T_APPNAME_WITH_VERSION, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES);
+			shareFolder = (MessageBox(question.c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES);
 		}
 		if (shareFolder)
 		{

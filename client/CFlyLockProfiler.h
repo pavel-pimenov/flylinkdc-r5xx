@@ -5,7 +5,7 @@
 
 #ifdef _DEBUG
 #if _MSC_VER > 1600 // VC++ 2010
-#define FLYLINKDC_USE_PROFILER_CS
+ // #define FLYLINKDC_USE_PROFILER_CS
 #endif
 #endif
 

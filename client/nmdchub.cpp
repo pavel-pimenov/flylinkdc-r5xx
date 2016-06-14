@@ -448,7 +448,7 @@ void NmdcHub::NmdcSearch(const SearchParam& p_search_param)
 	SearchResultList l;
 	dcassert(p_search_param.m_max_results > 0);
 	dcassert(p_search_param.m_client);
-	if (ClientManager::isShutdown())
+	if (ClientManager::isBeforeShutdown())
 		return;
 #ifdef PPA_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG
 	ShareManager::getInstance()->search(l, p_search_param);
@@ -2701,7 +2701,7 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 
 void NmdcHub::myInfoParse(const string& param)
 {
-	if (ClientManager::isShutdown())
+	if (ClientManager::isBeforeShutdown())
 		return;
 	string::size_type i = 5;
 	string::size_type j = param.find(' ', i);
@@ -2872,7 +2872,7 @@ void NmdcHub::myInfoParse(const string& param)
 	{
 		dcassert(l_share_size >= 0);
 		l_share_size = 0;
-		LogManager::message("ShareSize < 0 !, param = " + param);
+		LogManager::message("ShareSize < 0 !, param = " + param + " hub = " + getHubUrl());
 	}
 	if (changeBytesSharedL(ou->getIdentity(), l_share_size) && l_share_size)
 	{
@@ -2948,7 +2948,7 @@ void NmdcHub::myInfoParse(const string& param)
 
 void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_search_array) noexcept
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		string l_ip;
 		if (isActive())
@@ -3024,7 +3024,7 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_s
 
 void NmdcHub::on(BufferedSocketListener::SearchArrayFile, const CFlySearchArrayFile& p_search_array) noexcept
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		for (auto i = p_search_array.cbegin(); i != p_search_array.end(); ++i)
 		{
@@ -3060,7 +3060,7 @@ void NmdcHub::on(BufferedSocketListener::MyInfoArray, StringList& p_myInfoArray)
 
 void NmdcHub::on(BufferedSocketListener::Line, const string& aLine) noexcept
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		Client::on(Line(), aLine); // TODO skip Start
 #ifdef IRAINMAN_INCLUDE_PROTO_DEBUG_FUNCTION

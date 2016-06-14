@@ -38,7 +38,7 @@
 // Polling is used for tasks...should be fixed...
 static const uint64_t POLL_TIMEOUT = 250;
 #ifdef FLYLINKDC_USE_SOCKET_COUNTER
-volatile long BufferedSocket::g_sockets = 0;
+boost::atomic<long> BufferedSocket::g_sockets(0);
 #endif
 
 BufferedSocket::BufferedSocket(char aSeparator) :
@@ -52,21 +52,22 @@ BufferedSocket::BufferedSocket(char aSeparator) :
 // should be rewritten using ThrottleManager
 //sleep(0), // !SMT!-S
 	m_is_disconnecting(false),
-	m_threadId(DWORD(-1)),
 	m_myInfoCount(0),
 	m_is_all_my_info_loaded(false),
 	m_is_hide_share(false)
 {
 	start(64, "BufferedSocket");
 #ifdef FLYLINKDC_USE_SOCKET_COUNTER
-	Thread::safeInc(g_sockets); // [!] IRainman opt.
+	++g_sockets;
 #endif
 }
 
 BufferedSocket::~BufferedSocket()
 {
+	int l_dummy = 0;
+	l_dummy++;
 #ifdef FLYLINKDC_USE_SOCKET_COUNTER
-	Thread::safeDec(g_sockets); // [!] IRainman opt.
+	--g_sockets;
 #endif
 }
 
@@ -88,7 +89,7 @@ void BufferedSocket::setMode(Modes aMode, size_t aRollback)
 	{
 		case MODE_LINE:
 			m_rollback = aRollback;
-			//dcassert(!ClientManager::isShutdown());
+			//dcassert(!ClientManager::isBeforeShutdown());
 #ifdef _DEBUG
 			//LogManager::message("BufferedSocket:: = MODE_LINE [2] - m_rollback = aRollback");
 #endif;
@@ -210,7 +211,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 			while (true)
 			{
 #ifndef FLYLINKDC_HE
-				if (ClientManager::isShutdown())
+				if (ClientManager::isBeforeShutdown())
 				{
 					throw SocketException(STRING(COMMAND_SHUTDOWN_IN_PROGRESS));
 				}
@@ -331,7 +332,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 				{
 					if (!m_count_search_ddos)
 					{
-						const string l_error = "BufferedSocket::all_search_parser DDoS $Search command: " + l_line_item + " Hub IP = " + getIp();
+						const string l_error = "[" + Util::formatDigitalDate() + "] BufferedSocket::all_search_parser DDoS $Search command: " + l_line_item + " Hub IP = " + getIp();
 						CFlyServerJSON::pushError(20, l_error);
 						LogManager::message(l_error);
 						if (!m_count_search_ddos)
@@ -448,7 +449,7 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 			{
 				// dcassert(isascii(*i));
 			}
-			if (l_line_item.length() && ClientManager::isShutdown())
+			if (l_line_item.length() && ClientManager::isBeforeShutdown())
 			{
 				if (!(l_line_item[0] == '<' || l_line_item[0] == '$' || l_line_item[l_line_item.length() - 1] == '|'))
 				{
@@ -456,7 +457,7 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 				}
 			}
 #endif
-			if (!ClientManager::isShutdown())
+			if (!ClientManager::isBeforeShutdown())
 			{
 				fly_fire1(BufferedSocketListener::Line(), l_line_item); // TODO - отказатьс€ от временной переменной l и скользить по окну inbuf
 			}
@@ -579,7 +580,7 @@ void BufferedSocket::threadRead()
 				// LogManager::message("BufferedSocket::threadRead[MODE_ZPIPE] = " + l);
 #endif
 				//
-				if (!ClientManager::isShutdown())
+				if (!ClientManager::isBeforeShutdown())
 				{
 					StringList l_all_myInfo;
 					CFlySearchArrayTTH l_tth_search;
@@ -650,7 +651,7 @@ void BufferedSocket::threadRead()
 				//LogManager::message("MODE_LINE . m_line = " + m_line);
 				//LogManager::message("MODE_LINE = " + l);
 #endif
-				if (!ClientManager::isShutdown())
+				if (!ClientManager::isBeforeShutdown())
 				{
 					StringList l_all_myInfo;
 					CFlySearchArrayTTH l_tth_search;
@@ -665,7 +666,7 @@ void BufferedSocket::threadRead()
 							LogManager::message(l_log);
 						}
 #endif
-						if (ClientManager::isShutdown())
+						if (ClientManager::isBeforeShutdown())
 						{
 							m_line.clear();
 							throw SocketException(STRING(COMMAND_SHUTDOWN_IN_PROGRESS));
@@ -804,11 +805,9 @@ void BufferedSocket::putBufferedSocket(BufferedSocket*& p_sock, bool p_delete /*
 #ifdef FLYLINKDC_USE_SOCKET_COUNTER
 void BufferedSocket::waitShutdown()
 {
-	int l_max_count = 500;
-	while (g_sockets > 0 && --l_max_count)
+	while (g_sockets > 0)
 	{
-		sleep(10); // TODO - ≈сли слишком долго ждем. спросить диалогом и если ответ€т "да" - закрытьс€
-		// TODO - случай зависани€ передать на флай-сервер.
+		sleep(10);
 	}
 }
 #endif
@@ -960,11 +959,11 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 void BufferedSocket::write(const char* aBuf, size_t aLen)
 {
 	/*
-	   //dcassert(!ClientManager::isShutdown());
-	    if (ClientManager::isShutdown())
+	   //dcassert(!ClientManager::isBeforeShutdown());
+	    if (ClientManager::isBeforeShutdown())
 	    {
 	#ifdef _DEBUG
-	        LogManager::message("[ClientManager::isShutdown()]Skip BufferedSocket::write! Data = " + string(aBuf, aLen));
+	        LogManager::message("[ClientManager::isBeforeShutdown()]Skip BufferedSocket::write! Data = " + string(aBuf, aLen));
 	#endif
 	        return;
 	    }
@@ -1005,10 +1004,10 @@ void BufferedSocket::threadSendData()
 	size_t done = 0;
 	while (left > 0)
 	{
-		if (ClientManager::isShutdown())
+		if (ClientManager::isBeforeShutdown())
 		{
 #ifdef _DEBUG
-			LogManager::message("[ClientManager::isShutdown()]Skip BufferedSocket::threadSendData Data = " + string((const char*)&l_sendBuf[0], l_sendBuf.size()));
+			LogManager::message("[ClientManager::isBeforeShutdown()]Skip BufferedSocket::threadSendData Data = " + string((const char*)&l_sendBuf[0], l_sendBuf.size()));
 #endif
 		}
 		if (socketIsDisconecting()) // [!] IRainman fix
@@ -1139,7 +1138,6 @@ void BufferedSocket::checkSocket()
  */
 int BufferedSocket::run()
 {
-	m_threadId = ::GetCurrentThreadId(); // [+] IRainman fix.
 	dcdebug("BufferedSocket::run() start %p\n", (void*)this);
 	while (true)
 	{
@@ -1161,15 +1159,7 @@ int BufferedSocket::run()
 		}
 	}
 	dcdebug("BufferedSocket::run() end %p\n", (void*)this);
-	if (m_threadId == 0) // [!] IRainman fix: You can not explicitly delete this when you inherit from Thread, which has a virtual destructor. Cleaning of this is performed in BufferedSocket::shutdown
-	{
-		dcdebug("BufferedSocket delayed cleanup %p\n", (void*)this);
-		delete this;
-	}
-	else
-	{
-		m_threadId = 0; // [!] IRainman fix. [!] https://code.google.com/p/flylinkdc/issues/detail?id=1245 , https://code.google.com/p/flylinkdc/issues/detail?id=1246
-	}
+	delete this;
 	return 0;
 }
 
@@ -1183,11 +1173,11 @@ void BufferedSocket::fail(const string& aError)
 	if (m_state == RUNNING)
 	{
 		m_state = FAILED;
-		// dcassert(!ClientManager::isShutdown());
+		// dcassert(!ClientManager::isBeforeShutdown());
 		// fix https://drdump.com/Problem.aspx?ProblemID=112938
 		// fix https://drdump.com/Problem.aspx?ProblemID=112262
 		// fix https://drdump.com/Problem.aspx?ProblemID=112195
-		// Ќельз€ - вешаемс€ if (!ClientManager::isShutdown())
+		// Ќельз€ - вешаемс€ if (!ClientManager::isBeforeShutdown())
 		{
 			fly_fire1(BufferedSocketListener::Failed(), aError);
 		}
@@ -1197,27 +1187,7 @@ void BufferedSocket::fail(const string& aError)
 void BufferedSocket::shutdown()
 {
 	m_is_disconnecting = true;
-	// [!] IRainman fix: turning off the socket in the asynchronous mode is prohibited because
-	// the listeners of its events will have been destroyed by the time of processing the shutdown event.
-	{
-		// [!] fix http://code.google.com/p/flylinkdc/issues/detail?id=1280
-		addTask(SHUTDOWN, nullptr);
-	}
-	// [+]
-	if (m_threadId == ::GetCurrentThreadId()) // shutdown called from the thread socket.
-	{
-		m_threadId = 0; // Set to delayed cleanup.
-	}
-	else
-	{
-		while (m_threadId) // [!] https://code.google.com/p/flylinkdc/issues/detail?id=1245 , https://code.google.com/p/flylinkdc/issues/detail?id=1246
-		{
-			sleep(1); // [+] We are waiting for the full processing of the events.
-		}
-		dcdebug("BufferedSocket instantly cleanup %p\n", (void*)this);
-		delete this;
-	}
-	// [~] IRainman fix.
+	addTask(SHUTDOWN, nullptr);
 }
 
 void BufferedSocket::addTask(Tasks p_task, TaskData* p_data)
@@ -1228,7 +1198,7 @@ void BufferedSocket::addTask(Tasks p_task, TaskData* p_data)
 void BufferedSocket::addTaskL(Tasks p_task, TaskData* p_data)
 {
 	dcassert(p_task == DISCONNECT || p_task == SHUTDOWN || p_task == UPDATED || sock.get());
-	m_tasks.push_back(make_pair(p_task, unique_ptr<TaskData>(p_data)));
+	m_tasks.push_back(std::make_pair(p_task, std::unique_ptr<TaskData>(p_data)));
 	m_socket_semaphore.signal();
 }
 

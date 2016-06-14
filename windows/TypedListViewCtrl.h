@@ -877,7 +877,9 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				order  += l_separator + Util::toString(i->m_pos);
 				widths += l_separator + Util::toString(i->m_width);
 				if (l_separator.empty())
-					l_separator  = ",";
+				{
+					l_separator = ",";
+				}
 			}
 		}
 		
@@ -896,11 +898,10 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 					removeColumn(*j);
 				}
 			}
-			
 			updateColumnIndexes();
 		}
 		
-		void setColumnOrderArray(size_t iCount, int* columns)
+		void setColumnOrderArray(size_t iCount, const int* columns)
 		{
 			LVCOLUMN lvc = {0};
 			lvc.mask = LVCF_ORDER;

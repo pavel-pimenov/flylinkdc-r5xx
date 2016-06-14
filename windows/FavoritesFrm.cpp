@@ -293,7 +293,7 @@ LRESULT FavoriteHubsFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam
 {
 	if (wParam == HUB_CONNECTED)
 	{
-		auto_ptr<string> hub(reinterpret_cast<string*>(lParam));
+		std::unique_ptr<string> hub(reinterpret_cast<string*>(lParam));
 		m_onlineHubs.insert(*hub);
 		for (int i = 0; i < ctrlHubs.GetItemCount(); ++i)
 		{
@@ -309,7 +309,7 @@ LRESULT FavoriteHubsFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam
 	
 	else if (wParam == HUB_DISCONNECTED)
 	{
-		auto_ptr<string> hub(reinterpret_cast<string*>(lParam));
+		std::unique_ptr<string> hub(reinterpret_cast<string*>(lParam));
 		m_onlineHubs.erase(*hub);
 		
 		for (int i = 0; i < ctrlHubs.GetItemCount(); ++i)
@@ -417,7 +417,7 @@ LRESULT FavoriteHubsFrame::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 	{
 		int i = -1;
 		UINT checkState = BOOLSETTING(CONFIRM_HUB_REMOVAL) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-		if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), T_APPNAME_WITH_VERSION, CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
+		if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
 		{
 			while ((i = ctrlHubs.GetNextItem(-1, LVNI_SELECTED)) != -1)
 			{
@@ -481,7 +481,7 @@ bool FavoriteHubsFrame::checkNick()
 {
 	if (SETTING(NICK).empty())
 	{
-		MessageBox(CTSTRING(ENTER_NICK), T_APPNAME_WITH_VERSION, MB_ICONSTOP | MB_OK);
+		MessageBox(CTSTRING(ENTER_NICK), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_ICONSTOP | MB_OK);
 		return false;
 	}
 	return true;

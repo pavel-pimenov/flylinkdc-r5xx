@@ -131,11 +131,7 @@ void HttpConnection::on(BufferedSocketListener::Connected) noexcept
 		
 	m_http_socket->write("GET " + file + " HTTP/1.0\r\n"); // [!] FlylinkDC++ used HTTP 1.0, details here: https://code.google.com/p/flylinkdc/issues/detail?id=900
 	// [!] FlylinkDC DHT hack.
-	static const string g_flyUserAgent = "User-Agent: FlylinkDC++ " A_VERSIONSTRING
-#ifdef FLYLINKDC_HE
-	"HE"
-#endif
-	"\r\n";
+	static const string g_flyUserAgent = "User-Agent: " + getFlylinkDCAppCaptionWithVersion() + "\r\n";
 	
 	if (!m_userAgent.empty())
 		m_http_socket->write("User-Agent:" + m_userAgent + " \r\n");

@@ -43,6 +43,7 @@ Identity ClientManager::g_iflylinkdc; // [+] IRainman fix: Identity for User for
 UserPtr ClientManager::g_me; // [+] IRainman fix: this is static object.
 CID ClientManager::g_pid; // [+] IRainman fix: this is static object.
 volatile bool g_isShutdown = false;
+volatile bool g_isBeforeShutdown = false;
 bool g_isStartupProcess = true;
 bool ClientManager::g_isSpyFrame = false;
 ClientManager::ClientList ClientManager::g_clients;
@@ -141,12 +142,18 @@ void ClientManager::shutdown()
 {
 	dcassert(!isShutdown());
 	::g_isShutdown = true;
+	::g_isBeforeShutdown = true; // Для надежности
 #ifdef FLYLINKDC_USE_ASYN_USER_UPDATE
 	{
 		CFlyWriteLock(*g_csOnlineUsersUpdateQueue);
 		g_UserUpdateQueue.clear();
 	}
 #endif
+}
+void ClientManager::before_shutdown()
+{
+	dcassert(!isBeforeShutdown());
+	::g_isBeforeShutdown = true;
 }
 
 void ClientManager::clear()
@@ -340,7 +347,9 @@ StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, boo
 		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
 		OnlineUser* u = findOnlineUserHintL(cid, hintUrl);
 		if (u)
+		{
 			lst.push_back(u->getClientBase().getHubName());
+		}
 	}
 	return lst;
 }
@@ -723,7 +732,7 @@ void ClientManager::putOnline(const OnlineUserPtr& ou, bool p_is_fire_online) no
 	if (!isShutdown()) // Вернул проверку на всякий случай.
 	{
 		// [!] IRainman fix: don't put any hub to online or offline! Any hubs as user is always offline!
-		const auto &user = ou->getUser();// [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'ou->getUser()' expression repeatedly. clientmanager.cpp 464
+		const auto user = ou->getUser();// Ссылку нельзя - падаем под wine https://drdump.com/DumpGroup.aspx?DumpGroupID=522953&Login=guest
 		dcassert(ou->getIdentity().getSID() != AdcCommand::HUB_SID);
 		dcassert(!user->getCID().isZero());
 		// [~] IRainman fix.
@@ -1731,20 +1740,11 @@ void ClientManager::setSupports(const UserPtr& p, StringList & aSupports, const 
 	OnlineIterC i = g_onlineUsers.find(p->getCID());
 	if (i != g_onlineUsers.end())
 	{
-		// [!] IRainman fix.
 		auto& id = i->second->getIdentity();
 		id.setKnownUcSupports(knownUcSupports);
-		/*
-		if (p->isNMDC())
-		{
-		    NmdcSupports::setSupports(id, move(aSupports));
-		}
-		else
-		*/
 		{
 			AdcSupports::setSupports(id, aSupports);
 		}
-		// [~] IRainman fix.
 	}
 }
 void ClientManager::setUnknownCommand(const UserPtr& p, const string& aUnknownCommand)
@@ -1758,35 +1758,20 @@ void ClientManager::setUnknownCommand(const UserPtr& p, const string& aUnknownCo
 void ClientManager::reportUser(const HintedUser& user)
 {
 	const bool priv = FavoriteManager::isPrivate(user.hint);
-	string report;// [+] FlylinkDC report
-	Client* client; // [+] IRainman fix
+	string report;
+	Client* client;
 	{
 		CFlyReadLock(*g_csOnlineUsers);
 		OnlineUser* ou = findOnlineUserL(user.user->getCID(), user.hint, priv);
 		if (!ou || ou->isDHT())
 			return;
 			
-		ou->getIdentity().getReport(report);// [+] FlylinkDC report
-		client = &(ou->getClient()); // [!] IRainman fix
+		ou->getIdentity().getReport(report);
+		client = &(ou->getClient());
 		
-		// [-] IRainman fix
-		// ou->getClient().reportUser(ou->getIdentity());
 	}
-	client->reportUser(report); // [+] IRainman fix
+	client->reportUser(report);
 }
-
-/*
-void ClientManager::setFakeList(const UserPtr& p, const string& aCheatString)
-{
-    CFlyReadLock(*g_csOnlineUsers);
-    const OnlineIterC i = g_onlineUsers.find(p->getCID());
-    if (i != g_onlineUsers.end())
-    {
-        auto& id = i->second->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'i->second' expression repeatedly. cheatmanager.h 285
-        id.setCheat(i->second->getClient(), aCheatString, false);
-    }
-}
-*/
 
 StringList ClientManager::getUserByIp(const string &p_ip) // TODO - boost
 {

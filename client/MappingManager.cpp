@@ -51,6 +51,7 @@ boost::logic::tribool MappingManager::g_is_wifi_router = boost::logic::indetermi
 
 MappingManager::MappingManager() : m_renewal(0), m_listeners_count(0)
 {
+	//m_busy = false;
 	g_defaultGatewayIP = Socket::getDefaultGateWay(g_is_wifi_router);
 	addMapper<Mapper_MiniUPnPc>();
 	addMapper<Mapper_NATPMP>();
@@ -157,7 +158,7 @@ int MappingManager::run()
 			// just launch renewal requests - don't bother with possible failures.
 			if (port)
 			{
-				return mapper.open(port, protocol, APPNAME + description + " port (" + Util::toString(port) + ' ' + Mapper::protocols[protocol] + ")");
+				return mapper.open(port, protocol, getFlylinkDCAppCaption() + description + " port (" + Util::toString(port) + ' ' + Mapper::protocols[protocol] + ")");
 			}
 			return false;
 		};
@@ -227,7 +228,7 @@ int MappingManager::run()
 			{
 				string l_info;
 				string l_info_port = description + " port (" + Util::toString(port) + ' ' + Mapper::protocols[protocol] + ')';
-				if (!mapper.open(port, protocol, APPNAME + l_info_port))
+				if (!mapper.open(port, protocol, getFlylinkDCAppCaption() + l_info_port))
 				{
 					l_info = "Failed to map the ";
 					// не скидываем все пробросы! mapper.close();

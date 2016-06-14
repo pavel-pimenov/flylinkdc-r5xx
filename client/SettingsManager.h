@@ -86,7 +86,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		
 		enum StrSetting { STR_FIRST,
 		                  NICK = STR_FIRST, UPLOAD_SPEED, DESCRIPTION, DOWNLOAD_DIRECTORY, EMAIL, EXTERNAL_IP,
-		                  TEXT_FONT, MAINFRAME_ORDER, MAINFRAME_WIDTHS, HUBFRAME_ORDER, HUBFRAME_WIDTHS,
+		                  TEXT_FONT, TRANSFER_FRAME_ORDER, TRANSFER_FRAME_WIDTHS, HUBFRAME_ORDER, HUBFRAME_WIDTHS,
 		                  
 		                  DEFAULT_CODEPAGE, LANGUAGE_FILE, SEARCHFRAME_ORDER, SEARCHFRAME_WIDTHS, FAVORITESFRAME_ORDER, FAVORITESFRAME_WIDTHS, FAVORITESFRAME_VISIBLE,
 		                  HUBLIST_SERVERS, QUEUEFRAME_ORDER, QUEUEFRAME_WIDTHS, PUBLICHUBSFRAME_ORDER, PUBLICHUBSFRAME_WIDTHS, PUBLICHUBSFRAME_VISIBLE,
@@ -125,7 +125,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  LOG_FILE_FLOOD_TRACE,
 		                  
 		                  DIRECTORYLISTINGFRAME_ORDER, DIRECTORYLISTINGFRAME_WIDTHS,
-		                  MAINFRAME_VISIBLE, SEARCHFRAME_VISIBLE, QUEUEFRAME_VISIBLE, HUBFRAME_VISIBLE, UPLOADQUEUEFRAME_VISIBLE,
+		                  TRANSFER_FRAME_VISIBLE, SEARCHFRAME_VISIBLE, QUEUEFRAME_VISIBLE, HUBFRAME_VISIBLE, UPLOADQUEUEFRAME_VISIBLE,
 		                  EMOTICONS_FILE,
 		                  TLS_PRIVATE_KEY_FILE, TLS_CERTIFICATE_FILE, TLS_TRUSTED_CERTIFICATES_PATH,
 		                  FINISHED_VISIBLE, FINISHED_UL_VISIBLE, BETAUSR, BETAPASS, PASSWORD, SKIPLIST_SHARE, DIRECTORYLISTINGFRAME_VISIBLE,
@@ -243,7 +243,6 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  POPUPS_MESSAGEPANEL_ENABLED,
 		                  USE_12_HOUR_FORMAT, // [+] InfinitySky.
 		                  MINIMIZE_ON_CLOSE, // [+] InfinitySky.
-		                  SHOW_CUSTOM_MINI_ICON_ON_TASKBAR, // [+] InfinitySky.
 		                  SHOW_CURRENT_SPEED_IN_TITLE, // [+] InfinitySky.
 		                  SHOW_FULL_HUB_INFO_ON_TAB, // [+] NightOrion.
 		                  REPORT_ALTERNATES, CHECK_NEW_USERS, GARBAGE_COMMAND_INCOMING, GARBAGE_COMMAND_OUTGOING,
@@ -323,7 +322,9 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  MAX_RESIZE_LINES,
 		                  USE_CUSTOM_LIST_BACKGROUND,
 		                  ENABLE_P2P_GUARD,
-		                  ENABLE_IPGUARD, IP_GUARD_IS_DENY_ALL,
+		                  ENABLE_IPGUARD,
+		                  ENABLE_IPTRUST,
+		                  IP_GUARD_IS_DENY_ALL,
 #ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 		                  FLY_TEXT_LOG, FLY_SQLITE_LOG,
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE

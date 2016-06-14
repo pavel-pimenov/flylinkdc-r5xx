@@ -4112,6 +4112,15 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx()
         Fill(Stream_Video, StreamPos_Last, "WrongSubType", "Yes");
     }
 
+    //Test of VBI
+    if (StreamKind_Last == Stream_Video && Element_Code == 0x4F766269) //"Ovbi"
+    {
+        Stream_Erase(Stream_Video, StreamPos_Last);
+        Stream_Prepare(Stream_Other);
+        Streams[moov_trak_tkhd_TrackID].StreamKind = StreamKind_Last;
+        Streams[moov_trak_tkhd_TrackID].StreamPos = StreamPos_Last;
+    }
+
     FILLING_BEGIN()
         if (StreamKind_Last==Stream_Max)
         {
@@ -4299,6 +4308,8 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxxSound()
             //Filling
             Finish(&MI);
             Merge(MI, StreamKind_Last, 0, StreamPos_Last);
+
+            Streams[moov_trak_tkhd_TrackID].IsPcm=true;
         }
         #endif
         #if defined(MEDIAINFO_PCM_YES)
@@ -4358,6 +4369,7 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxxSound()
             Parser->Channels=(int8u)Channels;
             Parser->SamplingRate=(int32u)SampleRate;
             Parser->BitDepth=(int8u)SampleSize;
+            Parser->Sign='S'; //Default is "Signed" with QuickTime (to be confirmed), may be changed by flags
             #if MEDIAINFO_DEMUX
                 if (Config->Demux_Unpacketize_Get())
                 {

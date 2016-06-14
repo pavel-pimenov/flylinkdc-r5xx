@@ -29,6 +29,6 @@ typedef void (*GUIINITPROC)(void* pParam);
 
 void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, GUIINITPROC pGuiInitProc, void *pGuiParam);
 void preparingCoreToShutdown(); // [+] IRainamn fix.
-void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp = false);
+void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam);
 
 #endif // !defined(DCPLUSPLUS_DCPP_DCPLUSPLUS_H)

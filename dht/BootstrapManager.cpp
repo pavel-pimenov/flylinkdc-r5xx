@@ -119,7 +119,9 @@ string BootstrapManager::create_url_for_dht_server()
 	const DHTServer& l_server = CFlyServerConfig::getRandomDHTServer();
 	g_user_agent = l_server.getAgent();
 	if (g_user_agent.empty()) // TODO - убить агента
-		g_user_agent = APPNAME " " A_VERSIONSTRING;
+	{
+		g_user_agent = getFlylinkDCAppCaptionWithVersion();
+	}
 	string l_url = l_server.getUrl() + "?cid=" + ClientManager::getMyCID().toBase32() + "&encryption=1";
 	auto& l_dht_url = g_dht_bootstrap_count[l_url];
 	l_url += calc_live_url();

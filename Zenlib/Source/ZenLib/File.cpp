@@ -358,7 +358,7 @@ bool File::Create (const Ztring &File_Name_, bool OverWrite)
             ios_base::openmode access;
 
             if (!OverWrite && Exists(File_Name))
-                                        return false;
+                return false;
 
             access=ios_base::binary|ios_base::in|ios_base::out|ios_base::trunc;
 
@@ -972,7 +972,7 @@ bool File::Exists(const Ztring &File_Name)
         #ifdef ZENLIB_STANDARD
             #if defined WINDOWS
                 if (File_Name.find(__T('*'))!=std::string::npos || (File_Name.find(__T("\\\\?\\"))!=0 && File_Name.find(__T('?'))!=std::string::npos) || (File_Name.find(__T("\\\\?\\"))==0 && File_Name.find(__T('?'), 4)!=std::string::npos))
-                return false;
+                    return false;
             #endif //defined WINDOWS
             struct stat buffer;
             int         status;

@@ -210,7 +210,7 @@ class QueueItem : public Flags
 #ifdef _DEBUG
 		bool isSourceValid(const QueueItem::Source* p_source_ptr);
 #endif
-		size_t getSourcesCountL() const
+		size_t getSourcesCount() const
 		{
 			return m_sources.size();
 		}
@@ -242,24 +242,24 @@ class QueueItem : public Flags
 			return false;
 		}
 		void getChunksVisualisation(vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) const; // [!] IRainman fix.
-		bool isChunkDownloadedL(int64_t startPos, int64_t& len) const;
-		void setOverlappedL(const Segment& p_segment, const bool p_isOverlapped); // [!] IRainman fix.
+		bool isChunkDownloaded(int64_t startPos, int64_t& len) const;
+		void setOverlapped(const Segment& p_segment, const bool p_isOverlapped);
 		/**
 		 * Is specified parts needed by this download?
 		 */
-		bool isNeededPartL(const PartsInfo& partsInfo, int64_t p_blockSize) const;
+		bool isNeededPart(const PartsInfo& partsInfo, int64_t p_blockSize) const;
 		
 		/**
 		 * Get shared parts info, max 255 parts range pairs
 		 */
-		void getPartialInfoL(PartsInfo& p_partialInfo, uint64_t p_blockSize) const;
+		void getPartialInfo(PartsInfo& p_partialInfo, uint64_t p_blockSize) const;
 		
 		uint64_t getDownloadedBytes() const // [+] IRainman opt.
 		{
 			return m_downloadedBytes;
 		}
 		uint64_t calcAverageSpeedAndCalcAndGetDownloadedBytesL() const; // [!] IRainman opt.
-		void calcDownloadedBytesL() const;
+		void calcDownloadedBytes() const;
 		// TODO - попробовать переписать функцию на +/- убрав постоянные итерации по коллекции
 		// на больших очередях будет тормозить?
 		/* [-] IRainman no needs! Please lock fully consciously!
@@ -322,56 +322,38 @@ class QueueItem : public Flags
 #endif
 			m_dirty_segment = p_dirty;
 		}
-		const DownloadMap& getDownloadsL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
-		{
-			return m_downloads;
-		}
-		void addDownloadL(const DownloadPtr& p_download);
-		bool removeDownloadL(const UserPtr& p_user);
+		mutable FastCriticalSection m_fcs_download;
+		mutable FastCriticalSection m_fcs_segment;
+		void addDownload(const DownloadPtr& p_download);
+		bool removeDownload(const UserPtr& p_user);
 		size_t getDownloadsSegmentCount() const
 		{
 			return m_downloads.size();
 		}
-		
+		bool disconectedSlow(const DownloadPtr& d);
+		void disconectedAllPosible(const DownloadPtr& d);
+		uint8_t calcActiveSegments();
+		void getAllDownloadUser(UserList& p_users);
+		bool isDownloadTree();
+		UserPtr getFirstUser();
 		/** Next segment that is not done and not being downloaded, zero-sized segment returned if there is none is found */
 		Segment getNextSegmentL(const int64_t blockSize, const int64_t wantedSize, const int64_t lastSpeed, const PartialSource::Ptr &partialSource) const; // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 		
+		void addSegment(const Segment& segment, bool p_is_first_load = false);
 		void addSegmentL(const Segment& segment, bool p_is_first_load = false);
-		void resetDownloaded()
-		{
-			bool l_is_dirty = true;
-			{
-				WLock(*g_cs);
-				l_is_dirty = !m_done_segment.empty();
-				m_done_segment.clear();
-			}
-			setDirtySegment(l_is_dirty);
-		}
+		void resetDownloaded();
 		
-		bool isFinishedL() const
-		{
-			return m_done_segment.size() == 1 && *m_done_segment.begin() == Segment(0, getSize());
-		}
+		bool isFinished() const;
 		
-		bool isRunningL() const
+		bool isRunning() const
 		{
-			return !isWaitingL();
+			return !isWaiting();
 		}
-		bool isWaitingL() const
+		bool isWaiting() const
 		{
+			// fix lock - не включать! CFlyFastLock(m_fcs_download);
 			return m_downloads.empty();
 		}
-		/*
-		        bool isFailed() const
-		        {
-		            return m_is_failed;
-		        }
-		        void setFailed(bool p_is_failed)
-		        {
-		            m_is_failed = p_is_failed;
-		        }
-		*/
-		
 		string getListName() const;
 		const string& getTempTarget();
 		const string& getTempTargetConst() const;
@@ -411,10 +393,11 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		DownloadMap m_downloads;
 		
 		SegmentSet m_done_segment;
-		string getSectionStringL();
+		string getSectionString() const;
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-		const SegmentSet& getDoneL() const
+		SegmentSet getDone() const
 		{
+			CFlyFastLock(m_fcs_segment);
 			return m_done_segment;
 		}
 #endif
@@ -435,7 +418,7 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 			return m_priority;
 		}
 		void setPriority(Priority p_priority);
-		int16_t calcTransferFlagL(bool& partial, bool& trusted, bool& untrusted, bool& tthcheck, bool& zdownload, bool& chunked, double& ratio) const;
+		int16_t calcTransferFlag(bool& partial, bool& trusted, bool& untrusted, bool& tthcheck, bool& zdownload, bool& chunked, double& ratio) const;
 		QueueItem::Priority calculateAutoPriority() const;
 		
 		bool isAutoDrop() const // [+] IRainman fix.
@@ -493,7 +476,7 @@ class CFlySegment
 		explicit CFlySegment(const QueueItemPtr& p_QueueItem)
 		{
 			m_priority = int(p_QueueItem->getPriority());
-			m_segment = p_QueueItem->getSectionStringL();
+			m_segment = p_QueueItem->getSectionString();
 			m_id = p_QueueItem->getFlyQueueID();
 			dcassert(m_id);
 		}

@@ -256,6 +256,10 @@ void DHT::dispatch(const string& aLine, const string& ip, uint16_t port, bool is
 bool DHT::send(AdcCommand& cmd, const string& ip, uint16_t port, const CID& targetCID, const UDPKey& udpKey)
 {
 	dcassert(BOOLSETTING(USE_DHT));
+	if (!BOOLSETTING(USE_DHT))
+	{
+		return true;
+	}
 	if (1) // SettingsManager::g_TestUDPDHTLevel == true)
 	{
 		{
@@ -361,12 +365,8 @@ void DHT::info(const string& ip, uint16_t port, uint32_t type, const CID& target
 #endif
 	
 	cmd.addParam("TY", Util::toString(type));
-	cmd.addParam("AP", "FlylinkDC++"
-#ifdef FLYLINKDC_HE
-	             "HE"
-#endif
-	            );
-	            
+	cmd.addParam("AP", getFlylinkDCAppCaption());
+	
 	cmd.addParam("VE", A_VERSIONSTRING);
 	cmd.addParam("NI", SETTING(NICK));
 	cmd.addParam("SL", Util::toString(UploadManager::getSlots()));

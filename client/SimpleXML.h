@@ -185,8 +185,10 @@ class SimpleXML
 				{
 					auto l_item = *i;
 					l_dup_check.insert(l_item);
+#ifdef _DEBUG
 					boost::replace_all(l_item, "\r", "");
 					boost::replace_all(l_item, "\n", "");
+#endif
 					dcassert(l_item == *i);
 				}
 				dcassert(l_dup_check.size() == tokens.size());

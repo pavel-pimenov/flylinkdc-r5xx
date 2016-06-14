@@ -60,6 +60,7 @@ typedef std::shared_ptr<UploadQueueItem> UploadQueueItemPtr;
 class User;
 typedef std::shared_ptr<User> UserPtr;
 typedef std::vector<UserPtr> UserList;
+typedef std::unordered_set<UserPtr> UserSet;
 
 class UserCommand;
 class UserConnection;

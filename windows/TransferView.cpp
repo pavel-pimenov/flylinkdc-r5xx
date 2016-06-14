@@ -44,7 +44,7 @@
 tstring TransferView::g_sSelectedIP;
 
 HIconWrapper TransferView::g_user_icon(IDR_TUSER);
-int TransferView::columnIndexes[] =
+int TransferView::g_columnIndexes[] =
 {
 	COLUMN_USER,
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -67,7 +67,7 @@ int TransferView::columnIndexes[] =
 	COLUMN_SHARE, //[+]PPA
 	COLUMN_SLOTS //[+]PPA
 };
-int TransferView::columnSizes[] =
+int TransferView::g_columnSizes[] =
 {
 	150, // COLUMN_USER
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -91,27 +91,27 @@ int TransferView::columnSizes[] =
 	40  // COLUMN_P2P_GUARD
 };
 
-static ResourceManager::Strings columnNames[] = { ResourceManager::USER,
+static ResourceManager::Strings g_columnNames[] = { ResourceManager::USER,
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
-                                                  ResourceManager::ANTIVIRUS,
+                                                    ResourceManager::ANTIVIRUS,
 #endif
-                                                  ResourceManager::HUB_SEGMENTS,
-                                                  ResourceManager::STATUS,
-                                                  ResourceManager::TIME_LEFT,
-                                                  ResourceManager::SPEED,
-                                                  ResourceManager::FILENAME,
-                                                  ResourceManager::SIZE,
-                                                  ResourceManager::PATH,
-                                                  ResourceManager::CIPHER,
-                                                  ResourceManager::LOCATION_BARE,
-                                                  ResourceManager::IP_BARE
+                                                    ResourceManager::HUB_SEGMENTS,
+                                                    ResourceManager::STATUS,
+                                                    ResourceManager::TIME_LEFT,
+                                                    ResourceManager::SPEED,
+                                                    ResourceManager::FILENAME,
+                                                    ResourceManager::SIZE,
+                                                    ResourceManager::PATH,
+                                                    ResourceManager::CIPHER,
+                                                    ResourceManager::LOCATION_BARE,
+                                                    ResourceManager::IP_BARE
 #ifdef PPA_INCLUDE_COLUMN_RATIO
-                                                  , ResourceManager::RATIO
+                                                    , ResourceManager::RATIO
 #endif
-                                                  , ResourceManager::SHARED, //[+]PPA
-                                                  ResourceManager::SLOTS, //[+]PPA
-                                                  ResourceManager::P2P_GUARD       // COLUMN_P2P_GUARD
-                                                };
+                                                    , ResourceManager::SHARED, //[+]PPA
+                                                    ResourceManager::SLOTS, //[+]PPA
+                                                    ResourceManager::P2P_GUARD       // COLUMN_P2P_GUARD
+                                                  };
 
 TransferView::TransferView() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), m_is_need_resort(false)
 {
@@ -149,20 +149,20 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	                     WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_STATICEDGE, IDC_TRANSFERS);
 	SET_EXTENDENT_LIST_VIEW_STYLE(ctrlTransfers);
 	
-	WinUtil::splitTokens(columnIndexes, SETTING(MAINFRAME_ORDER), COLUMN_LAST);
-	WinUtil::splitTokensWidth(columnSizes, SETTING(MAINFRAME_WIDTHS), COLUMN_LAST);
+	WinUtil::splitTokens(g_columnIndexes, SETTING(TRANSFER_FRAME_ORDER), COLUMN_LAST);
+	WinUtil::splitTokensWidth(g_columnSizes, SETTING(TRANSFER_FRAME_WIDTHS), COLUMN_LAST);
 	
-	BOOST_STATIC_ASSERT(_countof(columnSizes) == COLUMN_LAST);
-	BOOST_STATIC_ASSERT(_countof(columnNames) == COLUMN_LAST);
+	BOOST_STATIC_ASSERT(_countof(g_columnSizes) == COLUMN_LAST);
+	BOOST_STATIC_ASSERT(_countof(g_columnNames) == COLUMN_LAST);
 	
 	for (uint8_t j = 0; j < COLUMN_LAST; j++)
 	{
 		const int fmt = (j == COLUMN_SIZE || j == COLUMN_TIMELEFT || j == COLUMN_SPEED) ? LVCFMT_RIGHT : LVCFMT_LEFT;
-		ctrlTransfers.InsertColumn(j, TSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
+		ctrlTransfers.InsertColumn(j, TSTRING_I(g_columnNames[j]), fmt, g_columnSizes[j], j);
 	}
 	
-	ctrlTransfers.setColumnOrderArray(COLUMN_LAST, columnIndexes);
-	ctrlTransfers.setVisible(SETTING(MAINFRAME_VISIBLE));
+	ctrlTransfers.setColumnOrderArray(COLUMN_LAST, g_columnIndexes);
+	ctrlTransfers.setVisible(SETTING(TRANSFER_FRAME_VISIBLE));
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	ctrlTransfers.SetColumnWidth(COLUMN_ANTIVIRUS, 0);
 #endif
@@ -247,7 +247,9 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	copyMenu.InsertSeparatorFirst(TSTRING(COPY));
 #endif
 	for (size_t i = 0; i < COLUMN_LAST; ++i)
-		copyMenu.AppendMenu(MF_STRING, IDC_COPY + i, CTSTRING_I(columnNames[i]));
+	{
+		copyMenu.AppendMenu(MF_STRING, IDC_COPY + i, CTSTRING_I(g_columnNames[i]));
+	}
 	copyMenu.AppendMenu(MF_SEPARATOR);
 	copyMenu.AppendMenu(MF_STRING, IDC_COPY_TTH, CTSTRING(COPY_TTH));
 	copyMenu.AppendMenu(MF_STRING, IDC_COPY_LINK, CTSTRING(COPY_MAGNET_LINK));
@@ -307,8 +309,8 @@ void TransferView::prepareClose()
 {
 	safe_destroy_timer();
 	clear_and_destroy_task();
-	ctrlTransfers.saveHeaderOrder(SettingsManager::MAINFRAME_ORDER, SettingsManager::MAINFRAME_WIDTHS,
-	                              SettingsManager::MAINFRAME_VISIBLE);
+	ctrlTransfers.saveHeaderOrder(SettingsManager::TRANSFER_FRAME_ORDER, SettingsManager::TRANSFER_FRAME_WIDTHS,
+	                              SettingsManager::TRANSFER_FRAME_VISIBLE);
 	                              
 	SET_SETTING(TRANSFERS_COLUMNS_SORT, ctrlTransfers.getSortColumn());
 	SET_SETTING(TRANSFERS_COLUMNS_SORT_ASC, ctrlTransfers.isAscending());
@@ -2186,24 +2188,21 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItemPtr& q
 	if (qi->isUserList())
 		return;
 	auto l_ui = new UpdateInfo();
-	{
-		RLock(*QueueItem::g_cs); // fix https://drdump.com/Problem.aspx?ProblemID=190922
-		parseQueueItemUpdateInfoL(l_ui, qi);
-	}
+	parseQueueItemUpdateInfo(l_ui, qi);
 	m_tasks.add(TRANSFER_UPDATE_PARENT_WITH_PARSE, l_ui);
 }
 
-void TransferView::parseQueueItemUpdateInfoL(UpdateInfo* ui, const QueueItemPtr& qi)
+void TransferView::parseQueueItemUpdateInfo(UpdateInfo* ui, const QueueItemPtr& qi)
 {
 	ui->setTarget(qi->getTarget());
 	ui->setType(Transfer::TYPE_FILE);
 	
-	if (qi->isRunningL())
+	if (qi->isRunning())
 	{
 		double ratio = 0;
 		bool partial = false, trusted = false, untrusted = false, tthcheck = false, zdownload = false, chunked = false;
 		const int64_t totalSpeed = qi->getAverageSpeed();
-		const int16_t segs = qi->calcTransferFlagL(partial, trusted, untrusted, tthcheck, zdownload, chunked, ratio);
+		const int16_t segs = qi->calcTransferFlag(partial, trusted, untrusted, tthcheck, zdownload, chunked, ratio);
 		ui->setRunning(segs);
 		if (segs > 0)
 		{

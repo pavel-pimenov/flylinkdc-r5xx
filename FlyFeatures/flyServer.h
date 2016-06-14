@@ -23,7 +23,6 @@
 
 #include <string>
 
-#include <boost/atomic.hpp>
 #include <boost/asio/ip/address_v4.hpp>
 
 #include "../client/CFlyThread.h"
@@ -149,6 +148,7 @@ class CFlyServerConfig
 		bool isSupportFile(const string& p_file_ext, uint64_t p_size) const;
 		static bool isSupportTag(const string& p_tag);
 		static bool isErrorLog(unsigned p_error_code);
+		static bool isGuardTCPPort(uint16_t p_port);
 		static bool isExcludeCIDfromErrorLog(unsigned p_error_code);
 		static bool isErrorSysLog(unsigned p_error_code);
 		static bool isBlockIP(const string& p_ip);
@@ -157,6 +157,8 @@ class CFlyServerConfig
 	private:
 		static StringSet g_include_tag;
 		static StringSet g_exclude_tag;
+		static std::unordered_set<uint16_t> g_guard_tcp_port;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_cs_guard_tcp_port;
 		static std::unordered_set<unsigned> g_exclude_error_log;
 		static std::unordered_set<unsigned> g_exclude_cid_error_log;
 		static std::unordered_set<unsigned> g_exclude_error_syslog;
@@ -512,7 +514,7 @@ class CFlyServerJSON
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 		static bool pushStatistic(const bool p_is_sync_run);
 #endif
-		static bool pushError(unsigned p_error_code, string p_error);
+		static bool pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info = false);
 		static void pushSyslogError(const string& p_error);
 		static bool setTestPortOK(unsigned short p_port, const std::string& p_type);
 		static bool isTestPortOK(unsigned short p_port, const std::string& p_type, bool p_is_assert = false);
@@ -565,7 +567,7 @@ class CFlyServerAdapter
 {
 		class  CFlyServerJSON
 		{
-				static bool pushError(unsigned p_error_code, string p_error)
+				static bool pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info = true)
 				{
 					return false;
 				}

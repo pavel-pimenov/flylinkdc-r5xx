@@ -33,7 +33,7 @@
 #include "../FlyFeatures/flyServer.h"
 
 #ifdef _DEBUG
-boost::atomic_int UploadQueueItem::g_upload_queue_item_count;
+boost::atomic_int UploadQueueItem::g_upload_queue_item_count(0);
 #endif
 uint32_t UploadManager::g_count_WaitingUsersFrame = 0;
 UploadManager::SlotMap UploadManager::g_reservedSlots;
@@ -288,7 +288,6 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 {
 	dcassert(!ClientManager::isShutdown());
 	dcdebug("Preparing %s %s " I64_FMT " " I64_FMT " %d\n", aType.c_str(), aFile.c_str(), aStartPos, aBytes, listRecursive);
-	dcassert(!ClientManager::isShutdown());
 	if (ClientManager::isShutdown())
 	{
 		return false;
@@ -695,7 +694,6 @@ ok: //[!] TODO убрать goto
 			}
 		}
 	}
-	SharedFileStream::cleanup();
 	UploadPtr u(new Upload(aSource, l_tth, sourceFile, l_ip, l_chiper_name));
 	u->setReadStream(is);
 	u->setSegment(Segment(start, size));
@@ -1020,7 +1018,6 @@ void UploadManager::on(UserConnectionListener::Failed, UserConnection* aSource, 
 	}
 	
 	removeConnection(aSource);
-	SharedFileStream::cleanup();
 }
 
 void UploadManager::on(UserConnectionListener::TransmitDone, UserConnection* aSource) noexcept
@@ -1041,7 +1038,6 @@ void UploadManager::on(UserConnectionListener::TransmitDone, UserConnection* aSo
 	{
 		removeUpload(u, true);
 	}
-	SharedFileStream::cleanup();
 }
 
 void UploadManager::logUpload(const UploadPtr& aUpload)

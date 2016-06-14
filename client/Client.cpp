@@ -239,7 +239,7 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 				speedDescription += "[L:" + Util::toString(ThrottleManager::getInstance()->getUploadLimitInKBytes()) + "KB]";
 		}
 #endif
-		m_clientName =  APPNAME;
+		m_clientName = getFlylinkDCAppCaption();
 		m_clientVersion = A_SHORT_VERSIONSTRING;
 		if (CompatibilityManager::isWine())
 		{
@@ -372,7 +372,8 @@ void Client::connect()
 	clearAvailableBytesL();
 	setAutoReconnect(true);
 	setReconnDelay(120 + Util::rand(0, 60));
-	const FavoriteHubEntry* fhe = reloadSettings(true);
+	//const FavoriteHubEntry* l_fhe =
+	reloadSettings(true);
 	resetRegistered();
 	resetOp();
 	
@@ -419,7 +420,7 @@ void Client::send(const char* aMessage, size_t aLen)
 	if (!isReady())
 	{
 		dcdebug("Send message failed, hub is disconnected!");//[+] IRainman
-		dcassert(isReady()); // ѕод отладкой падаем тут. найти причину.
+		//dcassert(isReady()); // ѕод отладкой падаем тут. найти причину.
 		return;
 	}
 	updateActivity();
@@ -625,7 +626,10 @@ void Client::fire_user_updated(const OnlineUserList& p_list)
 
 void Client::updatedMyINFO(const OnlineUserPtr& aUser)
 {
-	fly_fire1(ClientListener::UserUpdatedMyINFO(), aUser);
+	if (!ClientManager::isBeforeShutdown())
+	{
+		fly_fire1(ClientListener::UserUpdatedMyINFO(), aUser);
+	}
 }
 
 string Client::getLocalIp() const

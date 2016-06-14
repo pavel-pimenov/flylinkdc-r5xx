@@ -170,7 +170,8 @@ class SearchQueue
 		bool pop(Search& s, uint64_t now); // [!] IRainman opt
 		bool empty()
 		{
-			CFlyFastLock(m_cs);
+			// CFlyFastLock(m_cs);
+			// Тут лок не критичны и зовется не часто
 			return m_searchQueue.empty();
 		}
 		void clear()

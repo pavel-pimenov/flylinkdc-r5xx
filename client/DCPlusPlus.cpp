@@ -219,7 +219,7 @@ void preparingCoreToShutdown() // [+] IRainamn fix.
 	}
 }
 
-void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
+void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 {
 	// Сохраним маркеры времени завершения
 #ifndef _DEBUG
@@ -304,10 +304,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam, bool p_exp /*= false*/)
 		Socket::dnsCache.waitShutdown(); // !SMT!-IP
 #endif
 #ifdef FLYLINKDC_USE_SOCKET_COUNTER
-		if (!p_exp)
-		{
-			BufferedSocket::waitShutdown();
-		}
+		BufferedSocket::waitShutdown();
 #endif
 		
 #ifdef IRAINMAN_USE_STRING_POOL

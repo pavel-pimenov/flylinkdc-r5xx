@@ -825,7 +825,7 @@
 ;Россия;Петропавловск;Dsl;;172.25.1.3
 ;Россия;Петропавловск-Камчатский;CraZyNeT-КамтелеКом;;dc.crazynet.ru
 ;Россия;Петропавловск-Камчатский;Multinex-Kamtelecom;;dc.crazynet.ru
-;Россия;Петропавловск-Камчатский;КФ ОАО Ростелеком;;dc.kamchatka.ru
+;Россия;Петропавловск-Камчатский;КФ ОАО Ростелеком;;dc.r41.ru,dc.kamchatka.ru,dc.soft41.ru
 ;Россия;Петропавловск-Камчатский;МТС;;dc.kira41.ru,172.31.31.5
 ;Россия;Петропавловск-Камчатский;Ростелеком;;dc.kamchatka.ru
 ;Россия;Петропавловск-Камчатский;СКТВ;;allavtovo.ru,172.25.1.3,dc.tiera.ru,dc.maxnet.ua,dc.mside.net,dc.dcmagnets.ru,172.25.1.2,172.25.53.7,piknik-dc.ru,favorite-hub.ru,172.25.75.8,dc.cifracom.ru,dc.filimania.com,172.25.5.23,dc.kamtv.lan

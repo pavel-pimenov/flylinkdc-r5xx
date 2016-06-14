@@ -125,7 +125,7 @@ LRESULT NetworkPage::OnEnKillfocusExternalIp(WORD /*wNotifyCode*/, WORD /*wID*/,
 		if (ec)
 		{
 			const auto l_last_ip = SETTING(EXTERNAL_IP);
-			::MessageBox(NULL, Text::toT("Error IP = " + l_externalIP + ", restore last valid IP = " + l_last_ip).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
+			::MessageBox(NULL, Text::toT("Error IP = " + l_externalIP + ", restore last valid IP = " + l_last_ip).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR);
 			::SetWindowText(GetDlgItem(IDC_EXTERNAL_IP), Text::toT(SETTING(EXTERNAL_IP)).c_str());
 		}
 	}
@@ -397,13 +397,11 @@ void NetworkPage::updateTestPortIcon(bool p_is_wait)
 }
 LRESULT NetworkPage::onAddWinFirewallException(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */)
 {
-	TCHAR l_app_path[MAX_PATH];
-	l_app_path[0] = 0;
-	::GetModuleFileName(NULL, l_app_path, MAX_PATH);
+	const tstring l_app_path = Util::getModuleFileName();
 #ifdef FLYLINKDC_USE_SSA_WINFIREWALL
 	try
 	{
-		WinFirewall::WindowFirewallSetAppAuthorization(Text::toT(APPNAME).c_str(), l_app_path);
+		WinFirewall::WindowFirewallSetAppAuthorization(getFlylinkDCAppCaptionT().c_str(), l_app_path.c_str());
 	}
 	catch (...)
 	{
@@ -417,11 +415,11 @@ LRESULT NetworkPage::onAddWinFirewallException(WORD /* wNotifyCode */, WORD /*wI
 	fw.Initialize(&hr);
 	// TODO - try
 	// https://github.com/zhaozongzhe/gmDev/blob/70a1a871bb350860bdfff46c91913815184badd6/gmSetup/fwCtl.cpp
-	const auto l_res = fw.AddApplicationW(l_app_path, Text::toT(APPNAME).c_str(), authorized, &hr_auth);
+	const auto l_res = fw.AddApplicationW(l_app_path.c_str(), getFlylinkDCAppCaptionT().c_str(), authorized, &hr_auth);
 	// "C:\\vc10\\r5xx\\compiled\\FlylinkDC_Debug.exe"
 	if (l_res)
 	{
-		::MessageBox(NULL, Text::toT("[Windows Firewall] FlylinkDC.exe - OK").c_str(), T_APPNAME_WITH_VERSION , MB_OK | MB_ICONINFORMATION);
+		::MessageBox(NULL, Text::toT("[Windows Firewall] FlylinkDC.exe - OK").c_str(), getFlylinkDCAppCaptionWithVersionT().c_str() , MB_OK | MB_ICONINFORMATION);
 	}
 	else
 	{
@@ -430,7 +428,7 @@ LRESULT NetworkPage::onAddWinFirewallException(WORD /* wNotifyCode */, WORD /*wI
 		l_message += l_app_path;
 		l_message += Text::toT("\r\nError code = " + Util::toString(hr_auth) +
 		                       "\r\nError text = ") + l_error_message.ErrorMessage();
-		::MessageBox(NULL, l_message.c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
+		::MessageBox(NULL, l_message.c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR);
 	}
 #endif
 	TestWinFirewall();
@@ -438,14 +436,13 @@ LRESULT NetworkPage::onAddWinFirewallException(WORD /* wNotifyCode */, WORD /*wI
 }
 void NetworkPage::TestWinFirewall()
 {
-	TCHAR l_app_path[MAX_PATH];
-	l_app_path[0] = 0;
-	::GetModuleFileName(NULL, l_app_path, MAX_PATH);
+	const tstring l_app_path = Util::getModuleFileName();
+	
 #ifdef FLYLINKDC_USE_SSA_WINFIREWALL
 	bool l_res = false;
 	try
 	{
-		l_res = WinFirewall::IsWindowsFirewallAppEnabled(l_app_path) != FALSE;
+		l_res = WinFirewall::IsWindowsFirewallAppEnabled(l_app_path.c_str()) != FALSE;
 	}
 	catch (...)
 	{
@@ -456,7 +453,7 @@ void NetworkPage::TestWinFirewall()
 	HRESULT hr = {0};
 	bool authorized;
 	fw.Initialize(&hr);
-	const auto l_res = fw.QueryAuthorizedW(l_app_path, &authorized);
+	const auto l_res = fw.QueryAuthorizedW(l_app_path.c_str(), &authorized);
 #endif
 	if (l_res)
 	{
@@ -532,12 +529,12 @@ LRESULT NetworkPage::onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndC
 				catch (Exception & e)
 				{
 					// TODO - сюда никогда не попадаем?
-					::MessageBox(NULL, Text::toT(e.getError() + " (SetIP Error!)").c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
+					::MessageBox(NULL, Text::toT(e.getError() + " (SetIP Error!)").c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR);
 				}
 			}
 			else
 			{
-				::MessageBox(NULL, Text::toT(l_url + " (http:// URL Error !)").c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
+				::MessageBox(NULL, Text::toT(l_url + " (http:// URL Error !)").c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR);
 			}
 		}
 	}

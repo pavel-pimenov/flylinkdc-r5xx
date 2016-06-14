@@ -296,11 +296,17 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static OnlineUserPtr findDHTNode(const CID& cid);
 #endif
 		static void shutdown();
+		static void before_shutdown();
 		static void clear();
 		static bool isShutdown()
 		{
 			extern volatile bool g_isShutdown;
 			return g_isShutdown;
+		}
+		static bool isBeforeShutdown()
+		{
+			extern volatile bool g_isBeforeShutdown;
+			return g_isBeforeShutdown;
 		}
 		static bool isStartup()
 		{
@@ -338,9 +344,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csUsers; // [+] IRainman opt.
 		// =================================================
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
-		typedef boost::unordered_multimap<const CID*, OnlineUser*> OnlineMap; // TODO: not allow to replace UserPtr in Identity.
+		typedef std::unordered_multimap<const CID*, OnlineUser*> OnlineMap; // TODO: not allow to replace UserPtr in Identity.
 #else
-		typedef boost::unordered_multimap<CID, OnlineUser*> OnlineMap;
+		typedef std::unordered_multimap<CID, OnlineUser*> OnlineMap;
 #endif
 		typedef OnlineMap::iterator OnlineIter;
 		typedef OnlineMap::const_iterator OnlineIterC;

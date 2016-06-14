@@ -327,13 +327,13 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				{
 					return m_qi->getPriority();
 				}
-				bool isWaitingL() const
+				bool isWaiting() const
 				{
-					return m_qi->isWaitingL();
+					return m_qi->isWaiting();
 				}
-				bool isFinishedL() const
+				bool isFinished() const
 				{
-					return m_qi->isFinishedL();
+					return m_qi->isFinished();
 				}
 				
 				bool getAutoPriority() const

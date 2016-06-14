@@ -368,7 +368,7 @@ int SearchManager::UdpQueue::run()
 			}
 			
 			const TTHValue l_tth_value(tth);
-			const SearchResult sr(user, type, slots, freeSlots, size, file, Util::emptyString, url, remoteIp, l_tth_value, -1 /*0 == auto*/);
+			auto sr = std::make_unique<SearchResult>(user, type, slots, freeSlots, size, file, Util::emptyString, url, remoteIp, l_tth_value, -1 /*0 == auto*/);
 			SearchManager::getInstance()->fly_fire1(SearchManagerListener::SR(), sr);
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 			CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "$SR", x, remoteIp, "", url, tth);
@@ -512,17 +512,17 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const boos
 	{
 	
 		/// @todo get the hub this was sent from, to be passed as a hint? (eg by using the token?)
-		const StringList& names = ClientManager::getHubNames(from->getCID(), Util::emptyString);
-		const string& hubName = names.empty() ? STRING(OFFLINE) : Util::toString(names);
-		const StringList& hubs = ClientManager::getHubs(from->getCID(), Util::emptyString);
-		const string& hub = hubs.empty() ? STRING(OFFLINE) : Util::toString(hubs);
+		const StringList names = ClientManager::getHubNames(from->getCID(), Util::emptyString);
+		const string hubName = names.empty() ? STRING(OFFLINE) : Util::toString(names);
+		const StringList hubs = ClientManager::getHubs(from->getCID(), Util::emptyString);
+		const string hub = hubs.empty() ? STRING(OFFLINE) : Util::toString(hubs);
 		
 		const SearchResult::Types type = (file[file.length() - 1] == '\\' ? SearchResult::TYPE_DIRECTORY : SearchResult::TYPE_FILE);
 		if (type == SearchResult::TYPE_FILE && tth.empty())
 			return;
 			
 		const uint8_t slots = ClientManager::getSlots(from->getCID());
-		const SearchResult sr(from, type, slots, (uint8_t)freeSlots, size, file, hubName, hub, p_remoteIp, TTHValue(tth), l_token);
+		auto sr = std::make_unique<SearchResult>(from, type, slots, (uint8_t)freeSlots, size, file, hubName, hub, p_remoteIp, TTHValue(tth), l_token);
 		fly_fire1(SearchManagerListener::SR(), sr);
 	}
 }
@@ -650,12 +650,16 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 {
 	// Filter own searches
 	if (from == ClientManager::getMyCID()) // [!] IRainman fix.
+	{
 		return ClientManagerListener::SEARCH_MISS; // [!] IRainman
-		
+	}
+	
 	UserPtr p = ClientManager::findUser(from);
 	if (!p)
+	{
 		return ClientManagerListener::SEARCH_MISS; // [!] IRainman
-		
+	}
+	
 	SearchResultList results;
 	ShareManager::getInstance()->search_max_result(results, adc.getParameters(), isUdpActive ? 10 : 5, reguest); // [!] IRainman
 	

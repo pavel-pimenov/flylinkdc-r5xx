@@ -470,7 +470,7 @@ BOOL IDNA_convert_to_ACE (
   *name = '\0';
   *size = len;
 #ifdef IDNA_DEBUG_ENABLED
-  IDNA_DEBUG ("IDNA_convert_to_ACE: '%s', %d bytes\n", in_name, len);
+  IDNA_DEBUG ("IDNA_convert_to_ACE: '%s', %d bytes\n", in_name, int(len));
 #endif
   rc = TRUE;
 quit:

@@ -23,10 +23,11 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 	if (
 #define FLYLINKDC_USE_PROFILE_SELECTED_CLASS
 #ifdef FLYLINKDC_USE_PROFILE_SELECTED_CLASS
-	    (l_tick_delta >= 300 &&
+	    (l_tick_delta >= 50 &&
 	     (m_function &&
 	      (
-	          true // strstr(m_function, "Identity") != 0
+	          // true
+	          strstr(m_function, "Queue") != 0
 	          //|| strstr(m_function, "CFlyServerConfig") != 0
 	          
 	      )

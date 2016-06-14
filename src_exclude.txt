@@ -106,5 +106,11 @@ GdiOle\GdiOle_i.h
 GdiOle\GdiOle_p.c
 P2PGuard_flylink.ini
 compiled/update/*
+compiled/EmoPacks/*
 P2PGuard.ini
 UpgradeLog*.htm
+changelog-flylinkdc-r5xx-svn.txt
+Doxyfile
+commit_update.bat
+FlyUpdate.exe
+*.dctheme

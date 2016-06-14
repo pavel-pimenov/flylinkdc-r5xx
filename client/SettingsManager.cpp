@@ -70,7 +70,7 @@ const string SettingsManager::g_settingTags[] =
 	
 	"Nick", "UploadSpeed", "Description", "DownloadDirectory", "EMail", "ExternalIp",
 	
-	"TextFont", "MainFrameOrder", "MainFrameWidths", "HubFrameOrder", "HubFrameWidths",
+	"TextFont", "TransferFrameOrder", "TransferFrameWidths", "HubFrameOrder", "HubFrameWidths",
 	"DefaultCodepage", "LanguageFile", "SearchFrameOrder", "SearchFrameWidths", "FavoritesFrameOrder", "FavoritesFrameWidths", "FavoritesFrameVisible",
 	"HublistServers", "QueueFrameOrder", "QueueFrameWidths", "PublicHubsFrameOrder", "PublicHubsFrameWidths", "PublicHubsFrameVisible",
 	"UsersFrameOrder", "UsersFrameWidths", "UsersFrameVisible", "LogDir", "LogFormatPostDownload",
@@ -116,7 +116,7 @@ const string SettingsManager::g_settingTags[] =
 	"LogFileFloodTrace",
 	
 	"DirectoryListingFrameOrder", "DirectoryListingFrameWidths",
-	"MainFrameVisible", "SearchFrameVisible", "QueueFrameVisible", "HubFrameVisible", "UploadQueueFrameVisible",
+	"TransferFrameVisible", "SearchFrameVisible", "QueueFrameVisible", "HubFrameVisible", "UploadQueueFrameVisible",
 	"EmoticonsFileFlylinkDC",
 	"TLSPrivateKeyFile", "TLSCertificateFile", "TLSTrustedCertificatesPath",
 	"FinishedVisible", "FinishedULVisible", "BetaUser", "BetaPass", "AuthPass", "SkiplistShare", "DirectoryListingFrameVisible",
@@ -228,7 +228,6 @@ const string SettingsManager::g_settingTags[] =
 	"PopupsMessagepanelEnabled",
 	"Use12HourFormat", // [+] InfinitySky.
 	"MinimizeOnClose", // [+] InfinitySky.
-	"ShowCustomMiniIconOnTaskbar", // [+] InfinitySky.
 	"ShowCurrentSpeedInTitle", // [+] InfinitySky.
 	"ShowFullHubInfoOnTab", // [+] NightOrion
 	"ReportFoundAlternates", "CheckNewUsers", "GarbageIn", "GarbageOut",
@@ -312,7 +311,9 @@ const string SettingsManager::g_settingTags[] =
 	"NonHubsFront", "BlendOffline", "MaxResizeLines",
 	"UseCustomListBackground",
 	"EnableP2PGuard",
-	"EnableIpGuard", "DefaultPolicy",
+	"EnableIpGuard",
+	"EnableIpTrust",
+	"DefaultPolicy",
 #ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
 	"FlyTextLog", "UseSQLiteLog",
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE
@@ -876,7 +877,6 @@ void SettingsManager::setDefaults()
 	
 	//setDefault(USE_12_HOUR_FORMAT, false); // [+] InfinitySky.
 	setDefault(MINIMIZE_ON_CLOSE, TRUE); // [+] InfinitySky.
-	setDefault(SHOW_CUSTOM_MINI_ICON_ON_TASKBAR, TRUE); // [+] InfinitySky.
 	//setDefault(SHOW_CURRENT_SPEED_IN_TITLE, false); // [+] InfinitySky.
 	//setDefault(CHECK_NEW_USERS, false);
 	setDefault(UPLOADQUEUEFRAME_SHOW_TREE, TRUE);
@@ -1283,6 +1283,8 @@ void SettingsManager::setDefaults()
 	setDefault(FILESHARE_REINDEX_ON_START, TRUE); // [+] SSA
 	//setDefault(SQLITE_USE_JOURNAL_MEMORY, false); // [+] IRainman
 	
+	setDefault(ENABLE_IPTRUST, TRUE);
+	
 	// IRAINMAN_SQLITE_USE_EXCLUSIVE_LOCK_MODE
 	// Dear developers after the funeral FlylinkDiscover of users using an external editor base is extremely small. And who manages to use it are able to remove this check.
 	setDefault(SQLITE_USE_EXCLUSIVE_LOCK_MODE, TRUE);
@@ -1293,6 +1295,7 @@ void SettingsManager::setDefaults()
 	setDefault(MAX_FINISHED_DOWNLOADS, 1000); // [+] IRainman
 	setDefault(DB_LOG_FINISHED_UPLOADS, 365);
 	setDefault(DB_LOG_FINISHED_DOWNLOADS, 365);
+	
 	// Preview
 	setDefault(INT_PREVIEW_SERVER_PORT, 550); // [+] SSA
 	setDefault(INT_PREVIEW_SERVER_SPEED, 500); // [+] SSA
@@ -1492,13 +1495,16 @@ void SettingsManager::load(const string& aFileName)
 		// [!] IRainman:
 		// The latest revision of the old names of the localization files http://code.google.com/p/flylinkdc/source/detail?r=7589
 		HKEY hk = nullptr;
-		if (::RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\") _T(APPNAME)
+		wstring l_key_path = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\");
+		l_key_path += _T("FlylinkDC++");// _T(APPNAME); // Тут не меняем имя на вип
 #ifdef _WIN64
-		                   _T(" x64_is1")
+		l_key_path += _T(" x64_is1");
 #else
-		                   _T("_is1")
+		l_key_path += _T("_is1");
 #endif
-		                   , 0, KEY_READ, &hk) == ERROR_SUCCESS)
+		
+		if (::RegOpenKeyEx(HKEY_LOCAL_MACHINE, l_key_path.c_str(),
+		                   0, KEY_READ, &hk) == ERROR_SUCCESS)
 		{
 			TCHAR l_buf[32];
 			l_buf[0] = 0;

@@ -24,7 +24,6 @@
 
 #include <ShlObj.h>
 
-#include <boost/atomic.hpp>
 #include "SearchManager.h"
 #include "LogManager.h"
 #include "HashManager.h"
@@ -341,9 +340,9 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 						Search::TypeModes ftype;
 				};
 				
-				DirectoryMap m_directories;
+				DirectoryMap m_share_directories;
 				ShareFile::Set m_share_files;
-				int64_t size;
+				int64_t m_size;
 				
 				static Ptr create(const string& aName, const Ptr& aParent = Ptr())
 				{
@@ -360,7 +359,11 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 				string getFullName() const noexcept;
 				string getRealPath(const std::string& path) const;
 				
-				int64_t getSizeL() const noexcept;
+				int64_t getDirSizeL() const noexcept;
+				int64_t getDirSizeFast() const noexcept
+				{
+				    return m_size;
+				}
 				
 				void search(SearchResultList& aResults, StringSearch::List& aStrings, const SearchParamBase& p_search_param) const noexcept;
 				void search(SearchResultList& aResults, AdcSearch& aStrings, StringList::size_type maxResults) const noexcept;
@@ -415,7 +418,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 			bool m_isDirectory;
 		};
 		
-		boost::atomic_flag updateXmlListInProcess; // [+] IRainman opt.
+		boost::atomic_flag m_updateXmlListInProcess; // [+] IRainman opt.
 		
 		int64_t xmlListLen;
 		TTHValue xmlRoot;
@@ -473,7 +476,8 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		
 		static BloomFilter<5> g_bloom;
 		
-		Directory::ShareFile::Set::const_iterator findFileL(const string& virtualFile) const;
+		string findFileAndRealPath(const string& virtualFile, TTHValue& p_tth) const;
+		void checkShutdown(const string& virtualFile) const;
 		
 		Directory::Ptr buildTreeL(__int64& p_path_id, const string& p_path, const Directory::Ptr& p_parent, bool p_is_job);
 #ifdef PPA_INCLUDE_ONLINE_SWEEP_DB

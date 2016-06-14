@@ -442,6 +442,8 @@ typedef unsigned __int64 uint64_t;
 
 #define FLYLINKDC_USE_EXT_JSON
 #define FLYLINKDC_USE_XXX_ICON
+#define FLYLINKDC_USE_EXTERNAL_MAIN_ICON
+#define FLYLINKDC_USE_SOCKET_COUNTER
 
 // Make sure we're using the templates from algorithm...
 #ifdef min

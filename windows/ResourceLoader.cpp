@@ -1,6 +1,8 @@
 #include "stdafx.h"
 
 #include "ResourceLoader.h"
+#include "resource.h"
+#include "File.h"
 
 void ExCImage::Destroy() noexcept
 {
@@ -17,8 +19,16 @@ bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType, HMODULE hInst
                                 // [-], bool useDefaultHINST [-] IRainman
                                ) noexcept
 {
+	HRESULT res = E_FAIL;
 	dcassert(m_hBuffer == nullptr);
-	
+	if (id == IDR_FLYLINK_PNG)
+	{
+		if (File::isExist(Util::getExternalLogoPath()))
+		{
+			res = Load(Text::toT(Util::getExternalLogoPath()).c_str());
+			return res == S_OK;
+		}
+	}
 	HRSRC hResource = ::FindResource(hInst, MAKEINTRESOURCE(id), pType);
 	//dcassert(hResource);
 	if (!hResource)
@@ -47,7 +57,6 @@ bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType, HMODULE hInst
 	if (!pResourceData)
 		return false;
 		
-	HRESULT res = E_FAIL;
 	m_hBuffer  = ::GlobalAlloc(GMEM_MOVEABLE, static_cast<size_t>(imageSize));
 	dcassert(m_hBuffer);
 	if (m_hBuffer)
@@ -71,7 +80,7 @@ bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType, HMODULE hInst
 		::GlobalFree(m_hBuffer);
 		m_hBuffer = nullptr;
 	}
-	return (res == S_OK);
+	return res == S_OK;
 }
 
 int ResourceLoader::LoadImageList(LPCTSTR pszFileName, CImageList& aImgLst, int cx, int cy)

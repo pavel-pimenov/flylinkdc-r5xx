@@ -107,10 +107,7 @@ LRESULT IntegrationPage::OnClickedShellIntegrate(WORD /*wNotifyCode*/, WORD /*wI
 #endif
 		   )
 		{
-			//  runas uac
-			LocalArray<TCHAR, MAX_PATH> buf;
-			::GetModuleFileName(NULL, buf.data(), buf.size());
-			WinUtil::runElevated(NULL, buf.data(), _isShellIntegration ? _T("/uninstallShellExt") : _T("/installShellExt"));
+			WinUtil::runElevated(NULL, Util::getModuleFileName().c_str(), _isShellIntegration ? _T("/uninstallShellExt") : _T("/installShellExt"));
 		}
 	}
 	CheckShellIntegration();
@@ -145,9 +142,7 @@ LRESULT IntegrationPage::OnClickedMakeStartup(WORD /*wNotifyCode*/, WORD /*wID*/
 		   )
 		{
 			//  runas uac
-			LocalArray<TCHAR, MAX_PATH> buf;
-			::GetModuleFileName(NULL, buf.data(), MAX_PATH);
-			WinUtil::runElevated(NULL, buf.data(), _isShellIntegration ? _T("/uninstallStartup") : _T("/installStartup"));
+			WinUtil::runElevated(NULL, Util::getModuleFileName().c_str(), _isShellIntegration ? _T("/uninstallStartup") : _T("/installStartup"));
 		}
 	}
 	CheckStartupIntegration();

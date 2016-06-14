@@ -511,16 +511,16 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				typedef SearchInfo* Ptr;
 				typedef vector<Ptr> Array;
 				
-				SearchInfo(const SearchResult &aSR) : sr(aSR), collapsed(true), parent(nullptr), m_hits(0), m_icon_index(-1), m_is_flush_ip_to_sqlite(false)
+				SearchInfo(const SearchResult &aSR) : m_sr(aSR), collapsed(true), parent(nullptr), m_hits(0), m_icon_index(-1), m_is_flush_ip_to_sqlite(false)
 				{
 				}
 				~SearchInfo()
 				{
 				}
 				
-				const UserPtr& getUser() const
+				const UserPtr& getUser() const override
 				{
-					return sr.getUser();
+				    return m_sr.getUser();
 				}
 				
 				bool collapsed;
@@ -534,24 +534,24 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				void view();
 				struct Download
 				{
-					Download(const tstring& aTarget, SearchFrame* aSf, QueueItem::Priority aPrio, QueueItem::MaskType aMask = 0) : tgt(aTarget), sf(aSf), prio(aPrio), mask(aMask) { }
+					Download(const tstring& aTarget, SearchFrame* aSf, QueueItem::Priority aPrio, QueueItem::MaskType aMask = 0) : m_tgt(aTarget), sf(aSf), prio(aPrio), mask(aMask) { }
 					void operator()(const SearchInfo* si);
-					const tstring& tgt;
+					const tstring m_tgt;
 					SearchFrame* sf;
 					QueueItem::Priority prio;
 					QueueItem::MaskType mask;
 				};
 				struct DownloadWhole
 				{
-					DownloadWhole(const tstring& aTarget) : tgt(aTarget) { }
+					DownloadWhole(const tstring& aTarget) : m_tgt(aTarget) { }
 					void operator()(const SearchInfo* si);
-					const tstring& tgt;
+					const tstring m_tgt;
 				};
 				struct DownloadTarget
 				{
-					DownloadTarget(const tstring& aTarget) : tgt(aTarget) { }
+					DownloadTarget(const tstring& aTarget) : m_tgt(aTarget) { }
 					void operator()(const SearchInfo* si);
-					const tstring& tgt;
+					const tstring m_tgt;
 				};
 				struct CheckTTH
 				{
@@ -602,11 +602,11 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				
 				Util::CustomNetworkIndex m_location;
 				bool m_is_flush_ip_to_sqlite;
-				SearchResult sr;
+				SearchResult m_sr;
 				tstring columns[COLUMN_LAST];
 				const TTHValue& getGroupCond() const
 				{
-					return sr.getTTH();
+					return m_sr.getTTH();
 				}
 		};
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -897,7 +897,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		void onTab(bool shift);
 		void download(SearchResult* aSR, const tstring& aDir, bool view);
 		
-		void on(SearchManagerListener::SR, const SearchResult &aResult) noexcept override;
+		void on(SearchManagerListener::SR, const std::unique_ptr<SearchResult>& aResult) noexcept override;
 		
 		//void on(SearchManagerListener::Searching, SearchQueueItem* aSearch) noexcept override;
 		

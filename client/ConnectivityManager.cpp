@@ -211,8 +211,7 @@ string ConnectivityManager::getInformation() const
 		case SettingsManager::INCOMING_FIREWALL_UPNP:
 		{
 			const auto l_status = MappingManager::getInstance()->getStatus();
-			mode = str(F_("Active mode behind a router that %1% can configure; port mapping status: %2%") %
-			           APPNAME % l_status);
+			mode = str(F_("Active mode behind a router can configure; port mapping status: %2%") % l_status);
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 			g_fly_server_stat.m_upnp_router_name = MappingManager::getInstance()->getDeviceString();
 			g_fly_server_stat.m_upnp_status = l_status;
@@ -324,7 +323,7 @@ void ConnectivityManager::listen() // TODO - fix copy-paste
 			l_exceptions += " * TCP/TLS listen TCP Port = " + Util::toString(SETTING(TCP_PORT)) + " error = " + e.getError() + "\r\n";
 			if (l_is_manual_connection)
 			{
-				::MessageBox(nullptr, Text::toT(l_exceptions).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
+				::MessageBox(nullptr, Text::toT(l_exceptions).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR);
 			}
 		}
 		break;
@@ -355,7 +354,7 @@ void ConnectivityManager::listen() // TODO - fix copy-paste
 			l_exceptions += " * UDP listen UDP Port = " + Util::toString(SETTING(UDP_PORT))  + " error = " + e.getError() + "\r\n";
 			if (l_is_manual_connection)
 			{
-				::MessageBox(nullptr, Text::toT(l_exceptions).c_str(), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
+				::MessageBox(nullptr, Text::toT(l_exceptions).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR);
 			}
 		}
 		catch (const Exception& e)

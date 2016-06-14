@@ -955,7 +955,7 @@ bool FavoriteManager::load_from_url()
 			l_url += "ISP_favorites.xml";
 			string l_data;
 			const string l_log_message = "Download: " + l_url;
-			const size_t l_size = Util::getDataFromInet(true, l_url, l_data);
+			const size_t l_size = Util::getDataFromInet(false, l_url, l_data);
 			if (l_size == 0)
 			{
 				LogManager::message("[ISPFavorite] " + l_log_message + " [Error]");
@@ -1372,6 +1372,15 @@ void FavoriteManager::load(SimpleXML& aXml
 						{
 							e->setGroup("ISP");
 							e->setConnect(true);
+							e->setName(l_Name);
+							e->setDescription(l_Description);
+							e->setSearchInterval(l_SearchInterval);
+							e->setUserListState(l_UserListState);
+							e->setSuppressChatAndPM(l_SuppressChatAndPM);
+							e->setClientName(l_clientName);
+							e->setClientVersion(l_clientVersion);
+							e->setOverrideId(l_isOverrideId);
+							
 							l_is_needSave = true;
 						}
 					}

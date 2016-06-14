@@ -166,7 +166,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		// SettingsManagerListener
 		void on(SettingsManagerListener::Repaint) override;
 		// SearchManagerListener
-		void on(SearchManagerListener::SR, const SearchResult& aResult) noexcept override;
+		void on(SearchManagerListener::SR, const std::unique_ptr<SearchResult>& aResult) noexcept override;
 		
 		void Start() noexcept;
 		void shutdown()

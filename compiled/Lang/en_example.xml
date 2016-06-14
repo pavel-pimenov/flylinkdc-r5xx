@@ -57,8 +57,6 @@
 	<string name="Ask">Ask</string>
 	<string name="AskSlot">Ask for slot</string>
 	<string name="AskSlotTemplate">Hello, %[nick]. Please give me a slot for %[filename].</string>
-	<string name="AttemptToUseSpamMessageCm">Someone (%s) is trying to use your client to spam %s:%d, please urge hub owner to fix this</string>
-	<string name="AttemptToUseSpamMessageS">Someone is trying to use your client to spam %s, please urge hub owner to fix this</string>
 	<string name="AtHubYouHaveRightOperator">You have an operator rights at hub %s</string>
 	<string name="AtLeast">At least</string>
 	<string name="AtMost">At most</string>
@@ -1540,7 +1538,6 @@
 	<string name="ShareNewFolderMessage">New folder shared. Now Users can download its content</string>
 	<string name="ShowBbcodePanel">Show BBCode panel</string>
 	<string name="ShowCurrentSpeedInTitle">Show current speed in the title bar</string>
-	<string name="ShowCustomMiniIconOnTaskbar">Show the mini-icon on the taskbar when using a custom program icon</string>
 	<string name="ShowEmotionsBtn">Show emotion button</string>
 	<string name="ShowJoins">Show joins</string>
 	<string name="ShowMultiChatBtn">Show multi chat button</string>

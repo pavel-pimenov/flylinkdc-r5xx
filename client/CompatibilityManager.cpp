@@ -555,17 +555,18 @@ string CompatibilityManager::getWindowsVersionName()
 }
 void CompatibilityManager::generateSystemInfoForApp()
 {
-	g_startupInfo =
-	    A_APPNAME_WITH_VERSION " "
+	g_startupInfo = getFlylinkDCAppCaptionWithVersion();
+	
+	g_startupInfo += " "
 #ifdef FLYLINKDC_HE
-	    "HE "
+	                 "HE "
 #endif
-	    "startup on machine with:\r\n"
-	    "\tNumber of processors: " + Util::toString(getProcessorsCount()) + ".\r\n" +
+	                 "startup on machine with:\r\n"
+	                 "\tNumber of processors: " + Util::toString(getProcessorsCount()) + ".\r\n" +
 #ifdef FLYLINKDC_HE
-	    + "\tPage size: " + Util::toString(getPageSize()) + " Bytes.\r\n" +
+	                 + "\tPage size: " + Util::toString(getPageSize()) + " Bytes.\r\n" +
 #endif
-	    + "\tProcessor type: ";
+	                 + "\tProcessor type: ";
 	g_startupInfo += getProcArchString();
 	g_startupInfo += ".\r\n";
 	
@@ -763,10 +764,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				}
 #endif
 				sprintf_s(l_buf.data(), l_buf.size(),
-				          "\r\n\t-=[ FlylinkDC++ %s " //-V111
-#ifdef FLYLINKDC_HE
-				          "HE "
-#endif
+				          "\r\n\t-=[ %s " //-V111
 				          "Compiled on: %s ]=-\r\n"
 				          "\t-=[ OS: %s ]=-\r\n"
 				          "\t-=[ CPU Clock: %.1f MHz%s. Memory (free): %s (%s) ]=-\r\n"
@@ -779,7 +777,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 #endif
 				          "%s"
 				          ,
-				          A_VERSIONSTRING,
+				          getFlylinkDCAppCaptionWithVersion().c_str(),
 				          Text::fromT(Util::getCompileDate()).c_str(),
 				          CompatibilityManager::getWindowsVersionName().c_str(),
 				          CompatibilityManager::ProcSpeedCalc(),

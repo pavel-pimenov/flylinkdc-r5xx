@@ -259,19 +259,6 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, size_t Paramete
     if (!Status[IsAccepted] || StreamKind>Stream_Max || Parameter==(size_t)-1)
         return;
 
-    //Handling values with \r\n inside
-    if (Value.find(__T('\r'))!=string::npos || Value.find(__T('\n'))!=string::npos)
-    {
-        Ztring NewValue=Value;
-        NewValue.FindAndReplace(__T("\r\n"), __T(" / "), 0, Ztring_Recursive);
-        NewValue.FindAndReplace(__T("\r"), __T(" / "), 0, Ztring_Recursive);
-        NewValue.FindAndReplace(__T("\n"), __T(" / "), 0, Ztring_Recursive);
-        if (NewValue.size()>=3 && NewValue.rfind(__T(" / "))==NewValue.size()-3)
-            NewValue.resize(NewValue.size()-3);
-        Fill(StreamKind, StreamPos, Parameter, NewValue, Replace);
-        return;
-    }
-
     //Handle Value before StreamKind
     if (StreamKind==Stream_Max || StreamPos>=(*Stream)[StreamKind].size())
     {
@@ -583,6 +570,21 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, size_t Paramete
                     if (Pos<(*Stream)[Stream_Text][StreamPos].size())
                         (*Stream)[Stream_Text][StreamPos][Pos].clear();
         }
+        if (StreamKind==Stream_Other && Parameter==Other_Delay && Count_Get(Stream_Video) && !Retrieve(Stream_Other, StreamPos, Other_Delay).empty() && !Retrieve(Stream_Video, 0, Video_Delay).empty())
+        {
+            if (Replace)
+                Clear(Stream_Other, StreamPos, Other_Video_Delay);
+            ZtringList OtherDelay; OtherDelay.Separator_Set(0, __T(" / ")); OtherDelay.Write(Retrieve(Stream_Other, StreamPos, Other_Delay));
+            ZtringList VideoDelay; VideoDelay.Separator_Set(0, __T(" / ")); VideoDelay.Write(Retrieve(Stream_Video, 0, Video_Delay));
+            if (!OtherDelay.empty() && !VideoDelay.empty() && OtherDelay.size() <= VideoDelay.size())
+            {
+                Fill(Stream_Other, StreamPos, Other_Video_Delay, OtherDelay(OtherDelay.size()-1).To_int64s()-VideoDelay(VideoDelay.size()-1).To_int64s(), 10);
+                if (VideoDelay.size()==1 && Retrieve(Stream_Other, StreamPos, Other_Video_Delay).To_int64u()==0)
+                    for (size_t Pos=Other_Video_Delay+1; Pos<=Other_Video_Delay+4; Pos++)
+                        if (Pos<(*Stream)[Stream_Other][StreamPos].size())
+                            (*Stream)[Stream_Other][StreamPos][Pos].clear();
+            }
+        }
 
         //Delay/Video0
         if (StreamKind==Stream_Video && StreamPos==0 && Parameter==Video_Delay)
@@ -633,6 +635,19 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, size_t Paramete
                 for (size_t Pos=Text_Video0_Delay+1; Pos<=Text_Video0_Delay+4; Pos++)
                     if (Pos<(*Stream)[Stream_Text][StreamPos].size())
                         (*Stream)[Stream_Text][StreamPos][Pos].clear();
+        }
+        if (StreamKind==Stream_Other && Parameter==Text_Delay && Count_Get(Stream_Video) && !Retrieve(Stream_Other, StreamPos, Text_Delay).empty() && !Retrieve(Stream_Video, 0, Video_Delay).empty())
+        {
+            Ztring MuxingMode_MoreInfo=Get(Stream_Other, StreamPos, "MuxingMode_MoreInfo");
+            Ztring StreamID=MuxingMode_MoreInfo.SubString(__T("Muxed in Video #"), Ztring());
+            size_t StreamID_Int=(size_t)StreamID.To_int64u();
+            if (StreamID_Int)
+                StreamID_Int--;
+            Fill(Stream_Other, StreamPos, Text_Video0_Delay, Value.To_int64s()-Retrieve(Stream_Video, StreamID_Int, Video_Delay).To_int64s(), 10, true);
+            if (Retrieve(Stream_Other, StreamPos, Text_Video0_Delay).To_int64u()==0)
+                for (size_t Pos=Text_Video0_Delay+1; Pos<=Text_Video0_Delay+4; Pos++)
+                    if (Pos<(*Stream)[Stream_Other][StreamPos].size())
+                        (*Stream)[Stream_Other][StreamPos][Pos].clear();
         }
 
         //Language
@@ -848,19 +863,6 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, const char* Par
     if (!Status[IsAccepted] || StreamKind>Stream_Max || Parameter==NULL || Parameter[0]=='\0')
         return;
 
-    //Handling values with \r\n inside
-    if (Value.find(__T('\r'))!=string::npos || Value.find(__T('\n'))!=string::npos)
-    {
-        Ztring NewValue=Value;
-        NewValue.FindAndReplace(__T("\r\n"), __T(" / "), 0, Ztring_Recursive);
-        NewValue.FindAndReplace(__T("\r"), __T(" / "), 0, Ztring_Recursive);
-        NewValue.FindAndReplace(__T("\n"), __T(" / "), 0, Ztring_Recursive);
-        if (NewValue.size()>=3 && NewValue.rfind(__T(" / "))==NewValue.size()-3)
-            NewValue.resize(NewValue.size()-3);
-        Fill(StreamKind, StreamPos, Parameter, NewValue, Replace);
-        return;
-    }
-
     //Handle Value before StreamKind
     if (StreamKind==Stream_Max || StreamPos>=(*Stream)[StreamKind].size())
     {
@@ -887,6 +889,9 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, const char* Par
         return;
     }
 
+    if (StreamKind==Stream_Other && !strcmp(Parameter, "Codec"))
+        return; // "Codec" does not exist in "Other"
+    
     //Handling of unknown parameters
     if (Value.empty())
     {
@@ -2722,6 +2727,32 @@ size_t File__Analyze::Fill_Parameter(stream_t StreamKind, generic StreamPos)
                                     case Generic_Duration_String5 : return Other_Duration_String5;
                                     case Generic_FrameRate : return Other_FrameRate;
                                     case Generic_FrameCount : return Other_FrameCount;
+                                    case Generic_Delay : return Other_Delay;
+                                    case Generic_Delay_String : return Other_Delay_String;
+                                    case Generic_Delay_String1 : return Other_Delay_String1;
+                                    case Generic_Delay_String2 : return Other_Delay_String2;
+                                    case Generic_Delay_String3 : return Other_Delay_String3;
+                                    case Generic_Delay_String4 : return Other_Delay_String4;
+                                    case Generic_Delay_String5 : return Other_Delay_String5;
+                                    case Generic_Delay_Settings : return Other_Delay_Settings;
+                                    case Generic_Delay_DropFrame : return Other_Delay_DropFrame;
+                                    case Generic_Delay_Source : return Other_Delay_Source;
+                                    case Generic_Delay_Source_String : return Other_Delay_Source_String;
+                                    case Generic_Delay_Original : return Other_Delay_Original;
+                                    case Generic_Delay_Original_String : return Other_Delay_Original_String;
+                                    case Generic_Delay_Original_String1 : return Other_Delay_Original_String1;
+                                    case Generic_Delay_Original_String2 : return Other_Delay_Original_String2;
+                                    case Generic_Delay_Original_String3 : return Other_Delay_Original_String3;
+                                    case Generic_Delay_Original_String4 : return Other_Delay_Original_String4;
+                                    case Generic_Delay_Original_Settings : return Other_Delay_Original_Settings;
+                                    case Generic_Delay_Original_DropFrame : return Other_Delay_Original_DropFrame;
+                                    case Generic_Delay_Original_Source : return Other_Delay_Original_Source;
+                                    case Generic_Video_Delay : return Other_Video_Delay;
+                                    case Generic_Video_Delay_String : return Other_Video_Delay_String;
+                                    case Generic_Video_Delay_String1 : return Other_Video_Delay_String1;
+                                    case Generic_Video_Delay_String2 : return Other_Video_Delay_String2;
+                                    case Generic_Video_Delay_String3 : return Other_Video_Delay_String3;
+                                    case Generic_Video_Delay_String4 : return Other_Video_Delay_String4;
                                     case Generic_Language : return Other_Language;
                                     default: return (size_t)-1;
                                 }

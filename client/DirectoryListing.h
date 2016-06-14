@@ -180,7 +180,7 @@ class DirectoryListing : public UserInfoBase
 		static void print_stat();
 		
 #ifdef _DEBUG
-#define FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
+// #define FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
 #endif
 #ifdef FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
 		struct CFlyStatExt

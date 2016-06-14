@@ -113,6 +113,7 @@ class CID
 		uint8_t cid[SIZE];
 };
 
+#define FLYLINKDC_USE_STD_HASHMAP_FOR_CID
 #ifdef FLYLINKDC_USE_STD_HASHMAP_FOR_CID
 namespace std
 {

@@ -18,12 +18,14 @@ PropPage::TextItem RangesPage::texts[] =
 	{ IDC_ENABLE_P2P_GUARD_STR, ResourceManager::P2P_GUARD_ENABLE_STR },
 	{ IDC_INTRO_IPGUARD, ResourceManager::IPGUARD_INTRO },
 	{ IDC_FLYLINK_TRUST_IP_BOX, ResourceManager::SETTINGS_IPBLOCK },
-	{ IDC_FLYLINK_TRUST_IP_URL_STR, ResourceManager::SETTINGS_IPBLOCK_DOWNLOAD_URL_STR }, //[+]PPA
+	{ IDC_FLYLINK_TRUST_IP_URL_STR, ResourceManager::SETTINGS_IPBLOCK_DOWNLOAD_URL_STR },
+	{ IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST_REMOVE_BUTTON, ResourceManager::REMOVE2 },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
 PropPage::Item RangesPage::items[] =
 {
+	{ IDC_ENABLE_IPTRUST, SettingsManager::ENABLE_IPTRUST, PropPage::T_BOOL },
 	{ IDC_ENABLE_IPGUARD, SettingsManager::ENABLE_IPGUARD, PropPage::T_BOOL },
 	{ IDC_ENABLE_P2P_GUARD, SettingsManager::ENABLE_P2P_GUARD, PropPage::T_BOOL },
 	{ IDC_FLYLINK_TRUST_IP_URL, SettingsManager::URL_IPTRUST, PropPage::T_STR }, //[+]PPA
@@ -59,10 +61,10 @@ LRESULT RangesPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	{
 		m_IPFilterPATH = PGLoader::getConfigFileName();
 		m_IPFilter = File(m_IPFilterPATH, File::READ, File::OPEN).read();
-		m_ManualP2PGuard = CFlylinkDBManager::getInstance()->load_manual_p2p_guard();
 		SetDlgItemText(IDC_FLYLINK_TRUST_IP, Text::toT(m_IPFilter).c_str());
 		SetDlgItemText(IDC_FLYLINK_PATH, Text::toT(m_IPFilterPATH).c_str());
-		SetDlgItemText(IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST, Text::toT(m_ManualP2PGuard).c_str());
+		m_list_box.Attach(GetDlgItem(IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST_BOX));
+		loadManualP2PGuard();
 	}
 	
 	catch (const FileException&)
@@ -72,6 +74,41 @@ LRESULT RangesPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	
 	// Do specialized reading here
 	return TRUE;
+}
+
+void  RangesPage::loadManualP2PGuard()
+{
+	m_ManualP2PGuard = CFlylinkDBManager::getInstance()->load_manual_p2p_guard();
+	StringTokenizer<string> l_lines(m_ManualP2PGuard, "\r\n");
+	for (auto i = 0; i < l_lines.getTokens().size(); ++i)
+	{
+		m_list_box.AddString(Text::toT(l_lines.getTokens()[i]).c_str());
+	}
+	
+}
+LRESULT RangesPage::onRemoveP2PManual(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	int n = m_list_box.GetSelCount();
+	if (n)
+	{
+		std::vector<int> aiSel;
+		aiSel.resize(n);
+		m_list_box.GetSelItems(n, aiSel.data());
+		for (int i = 0; i < n; ++i)
+		{
+			int nLen = m_list_box.GetTextLen(aiSel[i]);
+			if (nLen > 0)
+			{
+				tstring l_str;
+				l_str.resize(nLen + 2);
+				m_list_box.GetText(aiSel[i], &l_str[0]);
+				CFlylinkDBManager::getInstance()->remove_manual_p2p_guard(Text::fromT(l_str));
+			}
+		}
+	}
+	m_list_box.ResetContent();
+	loadManualP2PGuard();
+	return 0;
 }
 
 LRESULT RangesPage::onItemchangedDirectories(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
@@ -149,10 +186,6 @@ void RangesPage::write()
 			return;
 		}
 	}
-	// TODO - запись
-	tstring l_ManualP2PGuard;
-	GET_TEXT(IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST, l_ManualP2PGuard);
-	//const string l_new = Text::fromT(l_ManualP2PGuard);
 }
 
 void RangesPage::fixControls()
@@ -163,5 +196,8 @@ void RangesPage::fixControls()
 	::EnableWindow(GetDlgItem(IDC_DEFAULT_POLICY), state);
 	::EnableWindow(GetDlgItem(IDC_DEFAULT_POLICY_EXCEPT_STR), state);
 	::EnableWindow(GetDlgItem(IDC_FLYLINK_GUARD_IP), state);
+	const bool state_ip_trust = (IsDlgButtonChecked(IDC_ENABLE_IPTRUST) != 0);
+	::EnableWindow(GetDlgItem(IDC_FLYLINK_TRUST_IP), state_ip_trust);
+	::EnableWindow(GetDlgItem(IDC_FLYLINK_TRUST_IP_URL), state_ip_trust);
 }
 

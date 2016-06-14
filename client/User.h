@@ -184,7 +184,7 @@ class User : public Flags
 		const string& getLastNick() const
 		{
 #ifdef _DEBUG
-//			static boost::atomic_int g_call_counts;
+//			static boost::atomic_int g_call_counts = 0;
 //			if (++g_call_counts % 1000 == 0)
 //				dcdebug("User::getLastNick() called %d\n", int(++g_call_counts));
 #endif
@@ -223,7 +223,7 @@ class User : public Flags
 		tstring getLastNickT() const
 		{
 #ifdef _DEBUG
-			//static boost::atomic_int g_call_counts;
+			//static boost::atomic_int g_call_counts = 0;
 			//if (++g_call_counts % 1000 == 0)
 			//  dcdebug("User::getLastNickT() called %d\n", g_call_counts); //-V510
 #endif

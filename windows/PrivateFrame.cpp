@@ -705,7 +705,6 @@ void PrivateFrame::onAfterActiveTab(HWND aWnd)
 {
 	if (!ClientManager::isShutdown())
 	{
-		dcassert(!ClientManager::isShutdown());
 		createMessagePanel();
 		if (m_ctrlStatus)
 		{
@@ -719,18 +718,21 @@ void PrivateFrame::onInvalidateAfterActiveTab(HWND aWnd)
 void PrivateFrame::createMessagePanel()
 {
 	dcassert(!ClientManager::isShutdown());
-	if (m_ctrlStatus == nullptr && ClientManager::isStartup() == false)
+	if (!isClosedOrShutdown())
 	{
-		BaseChatFrame::createMessageCtrl(this, PM_MESSAGE_MAP, false); // TODO - проверить hub
-		if (!m_ctrlChatContainer.IsWindow())
-			m_ctrlChatContainer.SubclassWindow(ctrlClient.m_hWnd);
-		CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
-		BaseChatFrame::createStatusCtrl(m_hWndStatusBar);
-		restoreStatusFromCache(); // ¬осстанавливать статус нужно после UpdateLayout
-		m_ctrlMessage->SetFocus();
+		if (m_ctrlStatus == nullptr && ClientManager::isStartup() == false)
+		{
+			BaseChatFrame::createMessageCtrl(this, PM_MESSAGE_MAP, false); // TODO - проверить hub
+			if (!m_ctrlChatContainer.IsWindow())
+				m_ctrlChatContainer.SubclassWindow(ctrlClient.m_hWnd);
+			CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
+			BaseChatFrame::createStatusCtrl(m_hWndStatusBar);
+			restoreStatusFromCache(); // ¬осстанавливать статус нужно после UpdateLayout
+			m_ctrlMessage->SetFocus();
+		}
+		BaseChatFrame::createMessagePanel();
+		setCountMessages(0);
 	}
-	BaseChatFrame::createMessagePanel();
-	setCountMessages(0);
 }
 void PrivateFrame::destroyMessagePanel(bool p_is_destroy)
 {

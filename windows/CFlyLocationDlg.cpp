@@ -48,7 +48,7 @@ LRESULT CFlyLocationDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
 		WinUtil::GetWindowText(m_Provider, m_ctrlProvider);
 		if (isEmpty())
 		{
-			::MessageBox(m_hWnd, _T("Fill all fields"), T_APPNAME_WITH_VERSION, MB_OK | MB_ICONERROR);
+			::MessageBox(m_hWnd, _T("Fill all fields"), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR);
 			bHandled = FALSE;
 			return 0;
 		}

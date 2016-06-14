@@ -23,7 +23,6 @@
 #define DCPLUSPLUS_DCPP_W_H_
 
 #include "compiler.h"
-#include <boost/atomic.hpp>
 
 #include "w_flylinkdc.h"
 

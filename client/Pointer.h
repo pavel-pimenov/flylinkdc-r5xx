@@ -41,35 +41,35 @@ class intrusive_ptr_base
 			intrusive_ptr_release(this);
 		}
 		
-		bool unique(int val = 1) const noexcept
+		bool unique(int p_val = 1) const noexcept
 		{
-		    return (ref <= val);
+		    return m_ref <= p_val;
 		}
 		
 		int getRefs() const noexcept
 		{
-		    return ref;
+		    return m_ref;
 		}
 		
 	protected:
 	intrusive_ptr_base() noexcept :
-		ref(0) { }
+		m_ref(0) { }
 		virtual ~intrusive_ptr_base() { }
 		
 	private:
 		friend void intrusive_ptr_add_ref(intrusive_ptr_base* p)
 		{
-			++p->ref;
+			++p->m_ref;
 		}
 		friend void intrusive_ptr_release(intrusive_ptr_base* p)
 		{
-			if (--p->ref == 0)
+			if (--p->m_ref == 0)
 			{
 				delete static_cast<T*>(p); // [2] https://www.box.net/shared/307aa981b9cef05fc096
 			}
 		}
 		
-		boost::detail::atomic_count ref;
+		boost::detail::atomic_count m_ref;
 };
 
 

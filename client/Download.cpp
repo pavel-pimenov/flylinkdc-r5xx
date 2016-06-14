@@ -108,7 +108,7 @@ Transfer(p_conn, p_item->getTarget(), p_item->getTTH(), p_ip, p_chiper_name),
 			if (getSegment().getOverlapped())
 			{
 				setFlag(FLAG_OVERLAP);
-				m_qi->setOverlappedL(getSegment(), true); // [!] IRainman fix.
+				m_qi->setOverlapped(getSegment(), true);
 			}
 		}
 	}

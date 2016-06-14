@@ -1,13 +1,13 @@
 /*
-(c) 2014 Glen Joseph Fernandes
+(c) 2015 Glen Joseph Fernandes
 <glenjofe -at- gmail.com>
 
 Distributed under the Boost Software
 License, Version 1.0.
 http://boost.org/LICENSE_1_0.txt
 */
-#ifndef BOOST_ALIGN_DETAIL_REMOVE_TRAITS_HPP
-#define BOOST_ALIGN_DETAIL_REMOVE_TRAITS_HPP
+#ifndef BOOST_ALIGN_DETAIL_ELEMENT_TYPE_HPP
+#define BOOST_ALIGN_DETAIL_ELEMENT_TYPE_HPP
 
 #include <boost/config.hpp>
 
@@ -22,9 +22,14 @@ namespace alignment {
 namespace detail {
 
 #if !defined(BOOST_NO_CXX11_HDR_TYPE_TRAITS)
-using std::remove_reference;
-using std::remove_all_extents;
-using std::remove_cv;
+template<class T>
+struct element_type {
+    typedef typename
+        std::remove_cv<typename
+        std::remove_all_extents<typename
+        std::remove_reference<T>::
+        type>::type>::type type;
+};
 #else
 template<class T>
 struct remove_reference {
@@ -82,6 +87,15 @@ template<class T>
 struct remove_cv {
     typedef typename remove_volatile<typename
         remove_const<T>::type>::type type;
+};
+
+template<class T>
+struct element_type {
+    typedef typename
+        remove_cv<typename
+        remove_all_extents<typename
+        remove_reference<T>::
+        type>::type>::type type;
 };
 #endif
 

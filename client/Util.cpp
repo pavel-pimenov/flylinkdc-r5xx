@@ -67,15 +67,57 @@ NUMBERFMT Util::g_nf = { 0 };
 // [~] IRainman opt.
 bool Util::g_localMode = true;
 
-tstring g_full_user_agent = Text::toT(string(APPNAME
-#ifdef FLYLINKDC_HE
-                                             "HE"
-#endif
-                                             " " A_VERSIONSTRING
+static string g_caption = "FlylinkDC++";
+static tstring g_captionT = _T("FlylinkDC++");
+static bool g_is_load_name = false;
+const string getFlylinkDCAppCaption()
+{
+	if (g_is_load_name == false)
+	{
+		g_is_load_name = true;
+		const auto l_path_local_test_file = Text::toT(Util::getModuleCustomFileName("fly-caption.config"));
+		if (File::isExist(l_path_local_test_file))
+		{
+			string l_caption = File(l_path_local_test_file, File::READ, File::OPEN).read();
+			if (l_caption.length() < 30 && l_caption.length() > 2)
+			{
+				boost::replace_all(l_caption, "\r", "");
+				boost::replace_all(l_caption, "\n", "");
+				boost::replace_all(l_caption, "\t", "");
+				boost::replace_all(l_caption, " ", "");
+				boost::trim(l_caption);
+				Text::acpToWide(l_caption, g_captionT, Text::g_code1251);
+				g_caption = Text::fromT(g_captionT);
+			}
+		}
+	}
+	return g_caption;
+}
+
+const tstring getFlylinkDCAppCaptionT()
+{
+	if (g_is_load_name == false)
+	{
+		getFlylinkDCAppCaption();
+	}
+	return g_captionT;
+}
+
+const string getFlylinkDCAppCaptionWithVersion()
+{
+	return getFlylinkDCAppCaption() + " " + A_VERSIONSTRING;
+}
+const tstring getFlylinkDCAppCaptionWithVersionT()
+{
+	return Text::toT(getFlylinkDCAppCaptionWithVersion());
+}
+
+
+tstring g_full_user_agent = Text::toT(string(getFlylinkDCAppCaptionWithVersion()
 #ifdef _DEBUG
-                                             " DEBUG"
+                                             + " DEBUG"
 #else
-                                             ""
+                                             + ""
 #endif
                                             ));
 
@@ -85,6 +127,7 @@ static void sgenrand(unsigned long seed);
 extern "C" void bz_internal_error(int errcode)
 {
 	dcdebug("bzip2 internal error: %d\n", errcode);
+	// TODO - логирование?
 }
 
 #if (_MSC_VER >= 1400 )
@@ -93,7 +136,18 @@ void WINAPI invalidParameterHandler(const wchar_t*, const wchar_t*, const wchar_
 	//do nothing, this exist because vs2k5 crt needs it not to crash on errors.
 }
 #endif
-
+bool Util::checkForbidenFolders(const string& p_path)
+{
+	// don't share Windows directory
+	if (Util::locatedInSysPath(Util::WINDOWS, p_path) ||
+		Util::locatedInSysPath(Util::APPDATA, p_path) ||
+		Util::locatedInSysPath(Util::LOCAL_APPDATA, p_path) ||
+		Util::locatedInSysPath(Util::PROGRAM_FILES, p_path) ||
+		Util::locatedInSysPath(Util::PROGRAM_FILESX86, p_path))
+		return true;
+	else
+		return false;
+}
 bool Util::locatedInSysPath(Util::SysPaths path, const string& currentPath) // [+] IRainman
 {
 	const string& l_path = g_sysPaths[path];
@@ -119,7 +173,7 @@ static const string g_configFileLists[] =
 #endif
 	"IPGuard.ini"
 };
-void Util::MoveSettings()
+void Util::moveSettings()
 {
 	const string bkpath = g_paths[PATH_USER_CONFIG];
 	const string sourcepath = g_paths[PATH_EXE] + "Settings" PATH_SEPARATOR_STR;
@@ -134,7 +188,7 @@ void Util::MoveSettings()
 			}
 			catch (const FileException & e)
 			{
-				const string l_error = "Error [Util::MoveSettings] File::copyFile = sourcepath + FileList[i] = " + sourcepath + g_configFileLists[i]
+				const string l_error = "Error [Util::moveSettings] File::copyFile = sourcepath + FileList[i] = " + sourcepath + g_configFileLists[i]
 				                       + " , bkpath + FileList[i] = " + bkpath + g_configFileLists[i] + " error = " + e.getError();
 				LogManager::message(l_error);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -143,6 +197,23 @@ void Util::MoveSettings()
 			}
 		}
 	}
+}
+const string Util::getModuleCustomFileName(const string& p_file_name)
+{
+	string l_path = Util::getFilePath(Text::fromT(Util::getModuleFileName()));
+	l_path += p_file_name;
+	return l_path;
+}
+const tstring Util::getModuleFileName()
+{
+	static tstring g_module_file_name;
+	if (g_module_file_name.empty())
+	{
+		LocalArray<TCHAR, MAX_PATH> l_buf;
+		const DWORD x = GetModuleFileName(NULL, l_buf.data(), MAX_PATH);
+		g_module_file_name = tstring(l_buf.data(), x);
+	}
+	return g_module_file_name;
 }
 
 void Util::initialize()
@@ -164,17 +235,22 @@ void Util::initialize()
 	g_nf.lpThousandSep = g_Dummy;
 	// [~] IRainman opt.
 	
-	LocalArray<TCHAR, MAX_PATH> buf;
-	::GetModuleFileName(NULL, buf.data(), MAX_PATH);
-	g_paths[PATH_EXE] = Util::getFilePath(Text::fromT(buf.data()));
-	
+	g_paths[PATH_EXE] = Util::getModuleCustomFileName("");
 	// [+] IRainman: FlylinkDC system path init.
+	LocalArray<TCHAR, MAX_PATH> l_buf;
 #define SYS_WIN_PATH_INIT(path) \
-	if(::SHGetFolderPath(NULL, CSIDL_##path, NULL, SHGFP_TYPE_CURRENT, buf.data()) == S_OK) \
-		g_sysPaths[path] = Text::fromT(buf.data()) + PATH_SEPARATOR; \
+	if(::SHGetFolderPath(NULL, CSIDL_##path, NULL, SHGFP_TYPE_CURRENT, l_buf.data()) == S_OK) \
+		{ \
+	      g_sysPaths[path] = Text::fromT(l_buf.data()) + PATH_SEPARATOR; \
+        } \
 	else \
-		dcassert(0);
+	{ \
+		dcassert(0); \
+	} 
 	
+	//LogManager::message("Sysytem Path: " + g_sysPaths[path]); 		
+	//LogManager::message("Error SHGetFolderPath: GetLastError() = " + Util::toString(GetLastError())); 
+
 	SYS_WIN_PATH_INIT(WINDOWS);
 	SYS_WIN_PATH_INIT(PROGRAM_FILESX86);
 	SYS_WIN_PATH_INIT(PROGRAM_FILES);
@@ -183,7 +259,9 @@ void Util::initialize()
 		// [!] Correct PF path on 64 bit system with run 32 bit programm.
 		const char* l_PFW6432 = getenv("ProgramW6432");
 		if (l_PFW6432)
+		{
 			g_sysPaths[PROGRAM_FILES] = string(l_PFW6432) + PATH_SEPARATOR;
+		}
 	}
 	SYS_WIN_PATH_INIT(APPDATA);
 	SYS_WIN_PATH_INIT(LOCAL_APPDATA);
@@ -225,7 +303,7 @@ void Util::initialize()
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 				intiProfileConfig();
 				// Если возможно уносим настройки в профиль (если их тамеще нет)
-				MoveSettings();
+				moveSettings();
 			}
 		}
 # ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
@@ -244,6 +322,7 @@ void Util::initialize()
 #ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 	g_paths[PATH_EXTERNAL_ICO] = g_paths[PATH_GLOBAL_CONFIG] + "FlylinkDC.ico";//[+] IRainman
 #endif
+	g_paths[PATH_EXTERNAL_LOGO] = g_paths[PATH_GLOBAL_CONFIG] + "FlylinkDC.png";
 	
 	g_paths[PATH_THEMES] = g_paths[PATH_GLOBAL_CONFIG] + "Themes" PATH_SEPARATOR_STR;
 	
@@ -2630,21 +2709,36 @@ string Util::getWANIP(const string& p_url, LONG p_timeOut /* = 500 */)
 	return Util::emptyString;
 }
 //[+] SSA
-size_t Util::getDataFromInet(bool p_is_use_cache, const string& url, string& data, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
+size_t Util::getDataFromInetSafe(bool p_is_use_cache, const string& p_url, string& p_data, LONG p_time_out /* = 0 */ , IDateReceiveReporter* p_reporter /*= NULL */)
 {
 	std::vector<byte> l_bin_data;
 	CFlyHTTPDownloader l_http_downloader;
 	l_http_downloader.m_is_use_cache = p_is_use_cache;
-	const size_t l_bin_size = l_http_downloader.getBinaryDataFromInet(url, l_bin_data, timeOut, reporter);
+	const size_t l_bin_size = l_http_downloader.getBinaryDataFromInetSafe(p_url, l_bin_data, p_time_out, p_reporter);
 	if (l_bin_size)
 	{
-		data = string((char*)l_bin_data.data(), l_bin_size);
+		p_data = string((char*)l_bin_data.data(), l_bin_size);
 	}
 	else
 	{
-		data.clear();
+		p_data.clear();
 	}
-	
+	return l_bin_size;
+}
+size_t Util::getDataFromInet(bool p_is_use_cache, const string& p_url, string& p_data, LONG p_time_out /*=0*/, IDateReceiveReporter* p_reporter /* = NULL */)
+{
+	std::vector<byte> l_bin_data;
+	CFlyHTTPDownloader l_http_downloader;
+	l_http_downloader.m_is_use_cache = p_is_use_cache;
+	const size_t l_bin_size = l_http_downloader.getBinaryDataFromInet(p_url, l_bin_data, p_time_out, p_reporter);
+	if (l_bin_size)
+	{
+		p_data = string((char*)l_bin_data.data(), l_bin_size);
+	}
+	else
+	{
+		p_data.clear();
+	}
 	return l_bin_size;
 }
 #if 0
@@ -2680,26 +2774,61 @@ void CFlyHTTPDownloader::create_error_message(const char* p_type, const string& 
 		m_error_message += " [ " + p_url + "] ";
 	m_error_message += " error = " + Util::translateError();
 }
-uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vector<unsigned char>& p_dataOut, LONG timeOut /*=0*/, IDateReceiveReporter* reporter /* = NULL */)
+
+uint64_t CFlyHTTPDownloader::getBinaryDataFromInetSafe(const string& p_url, std::vector<unsigned char>& p_data_out, LONG p_time_out /*=0*/, IDateReceiveReporter* p_reporter /* = NULL */)
+{
+	size_t l_length = 0;
+	string l_url = p_url;
+	for (auto i = 2; i < 4; ++i)
+	{
+		l_length = getBinaryDataFromInet(l_url, p_data_out, p_time_out, p_reporter); // Проверить что есть ошибка.
+#ifdef _DEBUG
+		if (i == 2)
+		{
+			//l_length = 0; // Эмуляция ошибки
+		}
+#endif
+		if (l_length > 0)
+		{
+			break;
+		}
+		else
+		{
+			if (p_url.find("://etc.fly-server.ru/etc/") != string::npos ||
+			        p_url.find("://update.fly-server.ru/update/") != string::npos
+			   )
+			{
+				l_url = p_url;
+				const char* p_base_url = ".fly-server.ru/";
+				boost::replace_all(l_url, p_base_url, Util::toString(i) + p_base_url);
+				continue;
+			}
+			break;
+		}
+	}
+	return l_length;
+}
+
+uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vector<unsigned char>& p_data_out, LONG p_time_out /*=0*/, IDateReceiveReporter* p_reporter /* = NULL */)
 {
 	const DWORD frameBufferSize = 4096;
 	dcassert(frameBufferSize);
-	dcassert(!url.empty());
+	dcassert(!p_url.empty());
 	// FlylinkDC++ Team TODO: http://code.google.com/p/flylinkdc/issues/detail?id=632
-	if (url.empty())
+	if (p_url.empty())
 		return 0;
-		
+	p_data_out.clear();
 	CInternetHandle hInternet(InternetOpen(g_full_user_agent.c_str(), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
 	if (!hInternet)
 	{
-		create_error_message("InternetOpen", url);
+		create_error_message("InternetOpen", p_url);
 		LogManager::message(m_error_message);
 		dcassert(0);
 		return 0;
 	}
-	if (timeOut)
+	if (p_time_out)
 	{
-		InternetSetOption(hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &timeOut, sizeof(timeOut));
+		InternetSetOption(hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &p_time_out, sizeof(p_time_out));
 	}
 	// https://github.com/ak48disk/simulationcraft/blob/392937fde95bdc4f13ccd3681e2fa61813856bb6/engine/interfaces/sc_http.cpp
 	// http://msdn.microsoft.com/en-us/library/ms906346.aspx
@@ -2710,10 +2839,10 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 	if (!m_is_use_cache)
 	{
 		l_cache_flag = INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD;
-		if (url.size() > 6)
+		if (p_url.size() > 6)
 		{
-			const auto l_ext3 = url.c_str() + url.size() - 4;
-			const auto l_ext4 = url.c_str() + url.size() - 5;
+			const auto l_ext3 = p_url.c_str() + p_url.size() - 4;
+			const auto l_ext4 = p_url.c_str() + p_url.size() - 5;
 			if (strcmp(l_ext3, ".xml") == 0 || // TODO - Унести в конфиг
 			        strcmp(l_ext3, ".rtf") == 0 ||
 			        strcmp(l_ext4, ".sign") == 0)
@@ -2722,11 +2851,11 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 			}
 		}
 	}
-	CInternetHandle hURL(InternetOpenUrlA(hInternet, url.c_str(), NULL, 0, m_flag ? m_flag : l_cache_flag , 0));
+	CInternetHandle hURL(InternetOpenUrlA(hInternet, p_url.c_str(), NULL, 0, m_flag ? m_flag : l_cache_flag , 0));
 	if (!hURL)
 	{
 		dcassert(0);
-		create_error_message("InternetOpenUrlA", url);
+		create_error_message("InternetOpenUrlA", p_url);
 		LogManager::message(m_error_message);
 		// TODO - залогировать коды ошибок для статы
 		return 0;
@@ -2736,11 +2865,11 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 	for (;;)
 	{
 		DWORD l_BytesRead = 0;
-		p_dataOut.resize(totalBytesRead + frameBufferSize);
-		if (!InternetReadFile(hURL, &p_dataOut[totalBytesRead], frameBufferSize, &l_BytesRead))
+		p_data_out.resize(totalBytesRead + frameBufferSize);
+		if (!InternetReadFile(hURL, &p_data_out[totalBytesRead], frameBufferSize, &l_BytesRead))
 		{
 			dcassert(0);
-			create_error_message("InternetReadFile", url);
+			create_error_message("InternetReadFile", p_url);
 			LogManager::message(m_error_message);
 			//// TODO - залогировать коды ошибок для статы
 			return 0;
@@ -2752,9 +2881,9 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 		else
 		{
 			totalBytesRead += l_BytesRead;
-			if (reporter)
+			if (p_reporter)
 			{
-				if (!reporter->ReportResultReceive(l_BytesRead))
+				if (!p_reporter->ReportResultReceive(l_BytesRead))
 				{
 					isUserCancel = true;
 					m_error_message = "isUserCancel!";
@@ -2796,10 +2925,10 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& url, std::vecto
 	}
 	if (isUserCancel)
 	{
-		p_dataOut.clear();
+		p_data_out.clear();
 		totalBytesRead = 0;
 	}
-	p_dataOut.resize(totalBytesRead);
+	p_data_out.resize(totalBytesRead);
 	return totalBytesRead;
 }
 
@@ -3177,6 +3306,19 @@ void Util::WriteTextResourceToFile(const int p_res, const tstring& p_file)
 	}
 	dcassert(0);
 }
+string Util::formatDigitalClockGMT(const time_t& p_t)
+{
+	return formatDigitalClock("%Y-%m-%d %H:%M:%S", p_t, true);
+}
+string Util::formatDigitalClock(const time_t& p_t)
+{
+	return formatDigitalClock("%Y-%m-%d %H:%M:%S", p_t, false);
+}
+string Util::formatDigitalDate()
+{
+	return formatDigitalClock("%Y-%m-%d", GET_TIME(), false);
+}
+
 
 /**
  * @file

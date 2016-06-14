@@ -109,7 +109,9 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 		if (l_is_new_path)
 		{
 			if (g_pathCache.size() > 250)
+			{
 				g_pathCache.clear();
+			}
 				
 			l_area = Util::validateFileName(p_area);
 #ifdef _DEBUG

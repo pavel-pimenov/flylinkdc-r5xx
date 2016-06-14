@@ -80,6 +80,8 @@ StringSet CFlyServerConfig::g_include_tag;
 StringSet CFlyServerConfig::g_exclude_tag;
 std::vector<std::string> CFlyServerConfig::g_exclude_tag_inform;
 std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_log;
+std::unordered_set<uint16_t> CFlyServerConfig::g_guard_tcp_port;
+std::unique_ptr<webrtc::RWLockWrapper> CFlyServerConfig::g_cs_guard_tcp_port  = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unordered_set<unsigned> CFlyServerConfig::g_exclude_cid_error_log;
 std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_syslog;
 std::vector<CServerItem> CFlyServerConfig::g_mirror_read_only_servers;
@@ -213,6 +215,12 @@ bool CFlyServerConfig::isBlockIP(const string& p_ip)
 bool CFlyServerConfig::isErrorSysLog(unsigned p_error_code)
 {
 	return g_exclude_error_syslog.find(p_error_code) == g_exclude_error_syslog.end();
+}
+//======================================================================================================
+bool CFlyServerConfig::isGuardTCPPort(uint16_t p_port)
+{
+	CFlyReadLock(*g_cs_guard_tcp_port);
+	return g_guard_tcp_port.find(p_port) != g_guard_tcp_port.end();
 }
 //======================================================================================================
 bool CFlyServerConfig::isErrorLog(unsigned p_error_code)
@@ -383,14 +391,16 @@ void CFlyServerConfig::loadConfig()
 		}
 #ifdef USE_FLYSERVER_LOCAL_FILE
 		const string l_url_config_file = "file://C:/vc10/etc/flylinkdc-config-r5xx.xml";
-		g_debug_fly_server_url = "localhost";
+		//g_debug_fly_server_url = "localhost";
+		g_debug_fly_server_url = "192.168.1.234";
+		
 #else
 		const string l_url_config_file = "http://etc.fly-server.ru/etc/flylinkdc-config-r5xx.xml";
 #endif
 		l_fly_server_log.step("Download:" + l_url_config_file);
 		bool l_is_etc_config_online = true;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-		if (Util::getDataFromInet(true, l_url_config_file, l_data, 0) == 0)
+		if (Util::getDataFromInetSafe(true, l_url_config_file, l_data, 0) == 0)
 		{
 			l_is_etc_config_online = false;
 			l_fly_server_log.step("Error download! Config will be loaded from internal resources");
@@ -437,7 +447,7 @@ void CFlyServerConfig::loadConfig()
 						const string& l_url = l_xml.getChildAttrib("url");
 						if (!l_url.empty())
 						{
-							dcassert(Text::toLower(l_url) == l_url);
+							//dcassert(Text::toLower(l_url) == l_url);
 							g_spam_urls.push_back(Text::toLower(l_url));
 						}
 					}
@@ -605,6 +615,13 @@ void CFlyServerConfig::loadConfig()
 					{
 						g_exclude_error_log.insert(Util::toInt(n));
 					});
+					{
+						CFlyWriteLock(*g_cs_guard_tcp_port);
+						l_xml.getChildAttribSplit("guard_tcp_port", g_guard_tcp_port, [this](const string & n)
+						{
+							g_guard_tcp_port.insert(uint16_t(Util::toInt(n)));
+						});
+					}
 					l_xml.getChildAttribSplit("exclude_cid_error_log", g_exclude_cid_error_log, [this](const string & n)
 					{
 						g_exclude_cid_error_log.insert(Util::toInt(n));
@@ -713,7 +730,7 @@ void CFlyServerConfig::loadConfig()
 			g_ignore_flood_command.insert("Quit");
 			g_ignore_flood_command.insert("MyINFO");
 #ifdef FLYLINKDC_USE_EXT_JSON
-			g_ignore_flood_command.insert("ExtJSON2");
+			g_ignore_flood_command.insert("ExtJSON");
 #endif
 			g_ignore_flood_command.insert("ConnectToMe");
 			g_ignore_flood_command.insert("UserIP");
@@ -1109,11 +1126,8 @@ void CFlyServerAdapter::prepare_mediainfo_to_fly_serverL()
 //======================================================================================================
 static void initCIDPID(Json::Value& p_info)
 {
-	if (ClientManager::isValidInstance())
-	{
-		p_info["CID"] = ClientManager::getMyCID().toBase32();
-		p_info["PID"] = ClientManager::getMyPID().toBase32();
-	}
+	p_info["CID"] = ClientManager::getMyCID().toBase32();
+	p_info["PID"] = ClientManager::getMyPID().toBase32();
 	p_info["Client"] = Text::fromT(g_full_user_agent);
 }
 //======================================================================================================
@@ -1452,7 +1466,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Code = 60 (36 - устарел)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 63 (36,58,44 - устарели)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;
@@ -1484,10 +1498,22 @@ bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error) // Last Co
 				{
 					l_info["error"] = p_error + "[DUP COUNT=" + Util::toString(g_count_dup_error_string) + " [" + g_last_error_string + "]";
 				}
-				l_info["ID"] = g_fly_server_id;
-				l_info["Threads"] = Thread::getThreadsCount();
+				if (!g_fly_server_id.empty())
+				{
+					l_info["ID"] = g_fly_server_id;
+				}
 				l_info["Current"] = Util::formatDigitalClock(time(nullptr));
-				getDiskAndMemoryStat(l_info);
+				if (p_is_include_disk_info)
+				{
+					l_info["Threads"] = Thread::getThreadsCount();
+					getDiskAndMemoryStat(l_info);
+				}
+				else
+				{
+					l_info["CID"] = ClientManager::getMyCID().toBase32();
+					l_info["Client"] = Text::fromT(g_full_user_agent);
+				}
+				
 				const std::string l_post_query = l_info.toStyledString();
 				postQuery(true, true, false, false, "fly-error-sql", l_post_query, l_is_send, l_is_error, 2000);
 				if (!l_is_send)
@@ -1841,6 +1867,15 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 				                     l_is_zlib ? reinterpret_cast<LPVOID>(l_post_compress_query.data()) : LPVOID(p_body.data()),
 				                     l_is_zlib ? l_post_compress_query.size() : p_body.size()))
 				{
+#ifdef MT_DEBUG
+					if (l_post_compress_query.size() && string(p_query).find("fly-zget") != string::npos)
+					{
+						std::ofstream l_fs;
+						static int g_id_file;
+						l_fs.open("flylinkdc-extjson-zlib-file-" + Util::toString(++g_id_file) + ".json.zlib", std::ifstream::out | std::ifstream::binary);
+						l_fs.write((const char*)l_post_compress_query.data(), l_post_compress_query.size());
+					}
+#endif
 					DWORD l_dwBytesAvailable = 0;
 					std::vector<char> l_zlib_blob;
 					std::vector<unsigned char> l_MessageBody;
@@ -2792,7 +2827,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 		char l_buf[4000];
 		l_buf[0] = 0;
 		sprintf_s(l_buf, _countof(l_buf), CSTRING(ERROR_MEDIAINFO_SCAN), p_name.c_str(), e.what());
-		::MessageBox(0, Text::toT(l_buf).c_str(), T_APPNAME_WITH_VERSION, MB_ICONERROR);
+		::MessageBox(nullptr, Text::toT(l_buf).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_ICONERROR);
 		return false;
 	}
 	catch (...)

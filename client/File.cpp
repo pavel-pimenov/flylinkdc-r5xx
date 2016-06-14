@@ -464,7 +464,7 @@ void File::ensureDirectory(tstring aFile)
 			{
 				const string l_error = "Error File::ensureDirectory: " +  Text::fromT(aFile) + " error = " + Util::translateError(l_last_error_code);
 				const tstring l_email_message = Text::toT(l_error + "\r\nSend screenshot (or text - press ctrl+c for copy to clipboard) e-mail ppa74@ya.ru for diagnostic error!");
-				// ::MessageBox(NULL, l_email_message.c_str() , T_APPNAME_WITH_VERSION  , MB_OK | MB_ICONERROR);
+				// ::MessageBox(NULL, l_email_message.c_str() , getFlylinkDCAppCaptionWithVersionT().c_str()  , MB_OK | MB_ICONERROR);
 				// Отрубил месаагу - глючит сетевом диске
 				// Error File::ensureDirectory: \\FLYLINKDC-SERV\video\Metallica_-_Sad_But_True.mpg.KMTY5VOGVN7YESAWLKR7FKJPXQT5J5B2PYEFDGY.dctmp error = Синтаксическая ошибка в имени файла, имени папки или метке тома.[error: 123]
 				if (LogManager::isValidInstance())

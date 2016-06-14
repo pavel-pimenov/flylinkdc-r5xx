@@ -247,13 +247,13 @@ LRESULT SharePage::onClickedRename(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 				}
 				else
 				{
-					MessageBox(CTSTRING(SKIP_RENAME), T_APPNAME_WITH_VERSION, MB_ICONINFORMATION | MB_OK);
+					MessageBox(CTSTRING(SKIP_RENAME), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_ICONINFORMATION | MB_OK);
 				}
 			}
 		}
 		catch (const ShareException& e)
 		{
-			MessageBox(Text::toT(e.getError()).c_str(), T_APPNAME_WITH_VERSION, MB_ICONSTOP | MB_OK);
+			MessageBox(Text::toT(e.getError()).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_ICONSTOP | MB_OK);
 		}
 	}
 	
@@ -348,7 +348,7 @@ void SharePage::addDirectory(const tstring& aPath)
 	}
 	catch (const ShareException& e)
 	{
-		MessageBox(Text::toT(e.getError()).c_str(), T_APPNAME_WITH_VERSION, MB_ICONSTOP | MB_OK);
+		MessageBox(Text::toT(e.getError()).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_ICONSTOP | MB_OK);
 	}
 }
 

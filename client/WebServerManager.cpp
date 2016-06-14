@@ -127,10 +127,10 @@ void WebServerManager::getLoginPage(string& p_out)
 	string pagehtml = GetTplFile("header.html");
 	pagehtml += GetTplFile("login.html");
 	pagehtml += GetTplFile("footer.html");
-	TplSetParam(pagehtml, "TITLE", APPNAME " " + l_webserver + " - " + STRING(WEBSERVER_LOGIN_PAGE_NAME));
+	TplSetParam(pagehtml, "TITLE", getFlylinkDCAppCaption() + " " + l_webserver + " - " + STRING(WEBSERVER_LOGIN_PAGE_NAME));
 	TplSetParam(pagehtml, "THEME_PATH", "FlylinkDC");
 	TplSetParam(pagehtml, "META", "");
-	TplSetParam(pagehtml, "APPNAME", APPNAME " " + l_webserver);
+	TplSetParam(pagehtml, "APPNAME", getFlylinkDCAppCaption() + " " + l_webserver);
 	TplSetParam(pagehtml, "LANG_USERNAME", STRING(SETTINGS_SOCKS5_USERNAME));
 	TplSetParam(pagehtml, "LANG_PASSWORD", STRING(PASSWORD));
 	TplSetParam(pagehtml, "LANG_LOGIN", STRING(LOG_IN));
@@ -174,10 +174,10 @@ void WebServerManager::getPage(string& p_InOut, const string& IP, UserStatus Cur
 		TplSetParam(pagehtml, "META", "<meta http-equiv=\"Refresh\" content=\"" + search_delay + ";URL=search.htm?stop=true\"/>");
 	}
 	
-	TplSetParam(pagehtml, "TITLE", APPNAME " " + l_webserver + " - " + STRING(WEBSERVER_LOGIN_PAGE_NAME));
+	TplSetParam(pagehtml, "TITLE", getFlylinkDCAppCaption() + " " + l_webserver + " - " + STRING(WEBSERVER_LOGIN_PAGE_NAME));
 	TplSetParam(pagehtml, "META", "");
 	string str_tpl = GetTplFile("pages.html");
-	TplSetParam(str_tpl, "APPNAME", APPNAME " " + l_webserver);
+	TplSetParam(str_tpl, "APPNAME", getFlylinkDCAppCaption() + " " + l_webserver);
 	TplSetParam(str_tpl, "MENU_INDEX", "<a href='index.htm'>" + STRING(SETTINGS_GENERAL) + "</a>");
 	TplSetParam(str_tpl, "MENU_SEARCH", "<a href='search.htm'>" + STRING(WEBSERVER_SEARCH_PAGE_NAME) + "</a>");
 	TplSetParam(str_tpl, "MENU_LOGOUT", "<a href='logout.htm'>" + STRING(LOG_OUT) + "</a>");
@@ -561,7 +561,6 @@ string WebServerManager::getDLQueue()
 	                                         
 	// [!] IRainman fix. TODO.
 	string ret_select;
-	RLock(*QueueItem::g_cs);
 	QueueManager::LockFileQueueShared l_fileQueue;
 	const auto& li = l_fileQueue.getQueueL();
 	for (auto j = li.cbegin(); j != li.cend(); ++j)
@@ -617,7 +616,7 @@ string WebServerManager::getDLQueue()
 		}
 		
 		ret_select += "<td>" + Util::formatBytes(downloaded) + ' ' + percent + "</td>\n";
-		ret_select += "<td>" + (qi->isRunningL() ? Util::formatBytes(qi->getAverageSpeed()) + '/' + STRING(S) : (qi->isWaitingL() ? STRING(WAITING) : "Not runing")) + "</td>\n"; // [!]TODO translate
+		ret_select += "<td>" + (qi->isRunning() ? Util::formatBytes(qi->getAverageSpeed()) + '/' + STRING(S) : (qi->isWaiting() ? STRING(WAITING) : "Not runing")) + "</td>\n"; // [!]TODO translate
 		ret_select += "<td>" + Util::toString((int)qi->countOnlineUsersL()) + '/' + Util::toString(qi->getMaxSegments()) + "</td>\n";
 #ifdef _DEBUG_WEB_SERVER_
 		ret_select += "<td><form method=get onsubmit=\"if(confirm('﻿Точно Точно?? CRAZY MS OS ^^')){this.submit}else{return false;}\" action='dlqueue.htm'>";
@@ -664,7 +663,7 @@ string WebServerManager::getIndexPage()
 	TplSetParam(ret, "PAGENAME", STRING(WELCOME));
 	TplSetParam(ret, "LANG_WELCOME", STRING(WELCOME));
 	TplSetParam(ret, "LANG_TO", STRING(TO));
-	TplSetParam(ret, "APPNAME", APPNAME);
+	TplSetParam(ret, "APPNAME", getFlylinkDCAppCaption());
 	TplSetParam(ret, "LANG_WEBSERVER", STRING(WEBSERVER));
 	return ret;
 }
@@ -1021,29 +1020,29 @@ void WebServerManager::search(string p_search_str, Search::TypeModes p_search_ty
 	}
 }
 
-void WebServerManager::on(SearchManagerListener::SR, const SearchResult& aResult) noexcept
+void WebServerManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchResult>& aResult) noexcept
 {
 	{
 		CFlyFastLock(cs);
-		if (!aResult.getToken() && m_search_token != aResult.getToken())
+		if (!aResult->getToken() && m_search_token != aResult->getToken())
 			return;
 			
 		if (row < static_cast<size_t>(SETTING(WEBSERVER_SEARCHSIZE)))
 		{
 			const string Row = Util::toString(row);
-			const string User = aResult.getUser()->getLastNick();
+			const string User = aResult->getUser()->getLastNick();
 //          string User = ClientManager::getNick(aResult->getUser()->getCID());
 //          string User = ClientManager::getNicks(HintedUser(aResult->getUser(), aResult->getHubUrl()))[0];
-			const string& File = aResult.getFile();
-			const string FileName = aResult.getFileName();
+			const string File = aResult->getFile();
+			const string FileName = aResult->getFileName();
 			results += "<form method=get name='form" + Row + "' action='search.htm'>\n";
 			results += "<tr class=search onclick='set_download_dir(\"form" + Row + "\")'>\n";
-			switch (aResult.getType())
+			switch (aResult->getType())
 			{
 				case SearchResult::TYPE_FILE:
 				{
-					const string TTH = aResult.getTTH().toBase32();
-					const int64_t Size = aResult.getSize();
+					const string TTH = aResult->getTTH().toBase32();
+					const int64_t Size = aResult->getSize();
 #ifdef _DEBUG_WEB_SERVER_
 					results += "<td>" + Row + "</td>\n";
 #endif
@@ -1060,14 +1059,14 @@ void WebServerManager::on(SearchManagerListener::SR, const SearchResult& aResult
 #endif
 					results += "<td>" + User + "</td>\n<td>" + FileName + "</td>\n<td>" + STRING(DIRECTORY) + "</td>\n<td>" + File + "</td>\n</tr>\n";
 					results += "<input type=hidden name=number value='" + Row + "'/>\n";
-					AddSearchResult(row, aResult.getUser(), aResult.getHubUrl());
+					AddSearchResult(row, aResult->getUser(), aResult->getHubUrl());
 					break;
 				}
 			}
 			results += "<input type=hidden name=dir/>";
 			results += "<input type=hidden name=file value='" + File + "'/>";
 			results += "<input type=hidden name=name value='" + FileName + "'/>";
-			results += "<input type=hidden name=type value='" + Util::toString(aResult.getType()) + "'/>\n";
+			results += "<input type=hidden name=type value='" + Util::toString(aResult->getType()) + "'/>\n";
 			results += "</form>\n";
 			
 			PageIndex = 1;

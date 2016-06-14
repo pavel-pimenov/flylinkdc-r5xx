@@ -74,7 +74,9 @@ class TaskQueue
 		}
 		bool empty()
 		{
-			CFlyFastLock(m_csTaskQueue);
+			// CFlyFastLock(m_csTaskQueue);
+			// Убрал лок - т.к. даже если пропустим задачу след раз поймаем
+			// с ней слишком много блокировок бегает в клиенте
 			return m_tasks.empty();
 		}
 #if 0

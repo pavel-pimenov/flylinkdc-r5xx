@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "WMPlayerRemoteApi.h"
+#include "../client/util.h"
 
 WMPlayerRemoteApi::WMPlayerRemoteApi() { }
 WMPlayerRemoteApi::~WMPlayerRemoteApi() { }
@@ -25,7 +26,7 @@ HRESULT WMPlayerRemoteApi::GetApplicationName(BSTR * bstrName)
 	HRESULT hresult = E_POINTER;
 	if (bstrName)
 	{
-		CComBSTR bstrApplicationName = _T(APPNAME);
+		CComBSTR bstrApplicationName = getFlylinkDCAppCaptionT().c_str();
 		*bstrName = bstrApplicationName.Detach();
 		hresult = *bstrName ? S_OK : E_POINTER;
 	}
