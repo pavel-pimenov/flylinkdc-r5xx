@@ -29,6 +29,7 @@
 #include "../client/QueueManager.h"
 #include "../client/ShareManager.h"
 #include "../client/Util.h"
+// #include "../client/idna/idna.h"
 #ifdef STRONG_USE_DHT
 #include "../dht/DHT.h"
 #endif
@@ -3424,7 +3425,21 @@ void HubFrame::on(Connecting, const Client*) noexcept
 		}
 	}
 #endif
-	const auto l_url_hub = m_client->getHubUrl();
+	string l_url_hub = m_client->getHubUrl();
+// TODO
+	/*
+	    if (l_url_hub.find("xn--") != string::npos)
+	    {
+	        CIDNA_convert l_convert;
+	        const char* l_new_url = l_convert.convert_from_ACE(l_url_hub.c_str());
+	        if (l_new_url)
+	        {
+	            l_url_hub = l_new_url;
+	            l_url_hub = Text::acpToUtf8(l_url_hub);
+	        }
+	    }
+	*/
+	
 	// speak(ADD_STATUS_LINE, STRING(CONNECTING_TO) + ' ' + l_url_hub + " ...");
 	// force_speak();
 	addStatus(Text::toT(STRING(CONNECTING_TO) + ' ' + l_url_hub + " ..."));

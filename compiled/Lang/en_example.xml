@@ -1192,7 +1192,6 @@
 	<string name="SearchFilterLblExclude">And exclude match</string>
 	<string name="SearchOptions">Search options</string>
 	<string name="SearchShowhidepanel">Show/Hide Settings Panel</string>
-	<string name="SearchSpamFrom">Search spam detected from</string>
 	<string name="SearchSpy">Search Spy</string>
 	<string name="SearchString">Search String</string>
 	<string name="SearchDoesNotWork">Search does not work?</string>

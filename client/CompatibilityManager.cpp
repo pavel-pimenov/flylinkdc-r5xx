@@ -1092,12 +1092,13 @@ string CompatibilityManager::Speedinfo()
 
 string CompatibilityManager::DiskSpaceInfo(bool onlyTotal /* = false */)
 {
-	string ret = Util::emptyString;
+	string ret;
 	int64_t free = 0, totalFree = 0, size = 0, totalSize = 0, netFree = 0, netSize = 0;
 	TStringList volumes = FindVolumes();
-	for (auto i = volumes.cbegin(); i != volumes.cend(); i++)
+	for (auto i = volumes.cbegin(); i != volumes.cend(); ++i)
 	{
-		if (GetDriveType((*i).c_str()) == DRIVE_CDROM || GetDriveType((*i).c_str()) == DRIVE_REMOVABLE)
+		const auto l_drive_type = GetDriveType((*i).c_str());
+		if (l_drive_type == DRIVE_CDROM || l_drive_type == DRIVE_REMOVABLE) // Not score USB flash, SD, SDMC, DVD, CD
 			continue;
 		if (GetDiskFreeSpaceEx((*i).c_str(), NULL, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free))
 		{
@@ -1108,16 +1109,18 @@ string CompatibilityManager::DiskSpaceInfo(bool onlyTotal /* = false */)
 	
 	//check for mounted Network drives
 	ULONG drives = _getdrives();
-	TCHAR drive[3] = { _T('A'), _T(':'), _T('\0') };
+	TCHAR drive[3] = { _T('A'), _T(':'), _T('\0') }; // TODO фиксануть copy-paste
 	while (drives != 0)
 	{
-		if (drives & 1 && (GetDriveType(drive) != DRIVE_CDROM && GetDriveType(drive) != DRIVE_REMOVABLE && GetDriveType(drive) == DRIVE_REMOTE))
+		const auto l_drive_type = GetDriveType(drive);
+		if (drives & 1 && (l_drive_type != DRIVE_CDROM && l_drive_type != DRIVE_REMOVABLE && l_drive_type == DRIVE_REMOTE)) // only real drives, partitions
 		{
 			if (GetDiskFreeSpaceEx(drive, NULL, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free))
 			{
 				netFree += free;
 				netSize += size;
 			}
+			
 		}
 		++drive[0];
 		drives = (drives >> 1);
@@ -1128,25 +1131,26 @@ string CompatibilityManager::DiskSpaceInfo(bool onlyTotal /* = false */)
 			ret += "\r\n\t-=[ All HDD space (free/total): " + Util::formatBytes(totalFree) + "/" + Util::formatBytes(totalSize) + " ]=-";
 			if (netSize != 0)
 			{
-				ret += "\r\n\t-=[ Network HDD space (free/total): " + Util::formatBytes(netFree) + "/" + Util::formatBytes(netSize) + " ]=-";
-				ret += "\r\n\t-=[ Total HDD space (free/total): " + Util::formatBytes((netFree + totalFree)) + "/" + Util::formatBytes(netSize + totalSize) + " ]=-";
+				ret += "\r\n\t-=[ Network space (free/total): " + Util::formatBytes(netFree) + "/" + Util::formatBytes(netSize) + " ]=-";
+				ret += "\r\n\t-=[ Network + HDD space (free/total): " + Util::formatBytes((netFree + totalFree)) + "/" + Util::formatBytes(netSize + totalSize) + " ]=-";
 			}
 		}
 		else
+		{
 			ret += Util::formatBytes(totalFree) + "/" + Util::formatBytes(totalSize);
+		}
 	return ret;
 }
 TStringList CompatibilityManager::FindVolumes()
 {
-	BOOL  found;
 	TCHAR   buf[MAX_PATH];
-	HANDLE  hVol;
+	buf[0] = 0;
 	TStringList volumes;
-	hVol = FindFirstVolume(buf, MAX_PATH);
+	HANDLE hVol = FindFirstVolume(buf, MAX_PATH);
 	if (hVol != INVALID_HANDLE_VALUE)
 	{
 		volumes.push_back(buf);
-		found = FindNextVolume(hVol, buf, MAX_PATH);
+		BOOL found = FindNextVolume(hVol, buf, MAX_PATH);
 		//while we find drive volumes.
 		while (found)
 		{
@@ -1159,21 +1163,24 @@ TStringList CompatibilityManager::FindVolumes()
 }
 tstring CompatibilityManager::diskInfo()
 {
-	tstring result = Util::emptyStringT;
-	TCHAR   buf[MAX_PATH];
+	tstring result;
 	int64_t free = 0, size = 0, totalFree = 0, totalSize = 0;
 	int disk_count = 0;
 	std::vector<tstring> results; //add in vector for sorting, nicer to look at :)
 	// lookup drive volumes.
 	TStringList volumes = FindVolumes();
-	for (auto i = volumes.cbegin(); i != volumes.cend(); i++)
+	for (auto i = volumes.cbegin(); i != volumes.cend(); ++i)
 	{
-		if (GetDriveType((*i).c_str()) == DRIVE_CDROM/* || GetDriveType((*i).c_str()) == DRIVE_REMOVABLE*/)
+		const auto l_drive_type = GetDriveType((*i).c_str());
+		if (l_drive_type == DRIVE_CDROM || l_drive_type == DRIVE_REMOVABLE) // Not score USB flash, SD, SDMC, DVD, CD
 			continue;
+			
+		TCHAR   buf[MAX_PATH];
+		buf[0] = 0;
 		if ((GetVolumePathNamesForVolumeName((*i).c_str(), buf, 256, NULL) != 0) &&
 		        (GetDiskFreeSpaceEx((*i).c_str(), NULL, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free) != 0))
 		{
-			tstring mountpath = buf;
+			const tstring mountpath = buf;
 			if (!mountpath.empty())
 			{
 				totalFree += free;
@@ -1181,6 +1188,7 @@ tstring CompatibilityManager::diskInfo()
 				results.push_back((_T("\t-=[ Disk ") + mountpath + _T(" space (free/total): ") + Util::formatBytesW(free) + _T("/") + Util::formatBytesW(size) + _T(" ]=-")));
 			}
 		}
+		
 	}
 	
 	// and a check for mounted Network drives, todo fix a better way for network space
@@ -1189,7 +1197,8 @@ tstring CompatibilityManager::diskInfo()
 	
 	while (drives != 0)
 	{
-		if (drives & 1 && (GetDriveType(drive) != DRIVE_CDROM && GetDriveType(drive) != DRIVE_REMOVABLE && GetDriveType(drive) == DRIVE_REMOTE))
+		const auto l_drive_type = GetDriveType(drive);
+		if (drives & 1 && (l_drive_type != DRIVE_CDROM && l_drive_type != DRIVE_REMOVABLE && l_drive_type == DRIVE_REMOTE)) // TODO фиксануть copy-paste
 		{
 			if (GetDiskFreeSpaceEx(drive, NULL, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free))
 			{
@@ -1203,7 +1212,7 @@ tstring CompatibilityManager::diskInfo()
 	}
 	
 	sort(results.begin(), results.end()); //sort it
-	for (std::vector<tstring>::iterator i = results.begin(); i != results.end(); ++i)
+	for (auto i = results.cbegin(); i != results.end(); ++i)
 	{
 		disk_count++;
 		result += _T("\r\n ") + *i;
@@ -1213,14 +1222,16 @@ tstring CompatibilityManager::diskInfo()
 	results.clear();
 	return result;
 }
+
 string CompatibilityManager::CPUInfo()
 {
-	tstring result = _T("");
+	tstring result;
 	CRegKey key;
 	ULONG len = 255;
 	if (key.Open(HKEY_LOCAL_MACHINE, _T("Hardware\\Description\\System\\CentralProcessor\\0"), KEY_READ) == ERROR_SUCCESS)
 	{
 		TCHAR buf[255];
+		buf[0] = 0;
 		if (key.QueryStringValue(_T("ProcessorNameString"), buf, &len) == ERROR_SUCCESS)
 		{
 			tstring tmp = buf;

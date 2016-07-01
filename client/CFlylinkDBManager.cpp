@@ -256,7 +256,7 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 	{
 		l_message += l_rnrn;
 		l_message += l_rnrn;
-		l_message += "Try backup and delete all database files!";
+		l_message += "Try backup and delete all database files! (del FlylinkDC*.sqlite)";
 		l_message += l_rnrn;
 		l_message += l_rnrn;
 		l_russian_error +=
@@ -3866,7 +3866,7 @@ void CFlylinkDBManager::prepare_scan_folder(const tstring& p_path)
 		                               &fData,
 		                               FindExSearchLimitToDirectories, // Only Folder
 		                               NULL,
-		                               CompatibilityManager::g_find_file_flags);		                               
+		                               CompatibilityManager::g_find_file_flags);
 		if (hFind != INVALID_HANDLE_VALUE)
 		{
 			do

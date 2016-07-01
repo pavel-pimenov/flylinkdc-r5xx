@@ -50,6 +50,60 @@ BOOL IDNA_convert_from_ACE (char *name, size_t *size);
 
 #ifdef __cplusplus
 
+//  typedef int (*MS_CDECL IDNA_debug_func) (const char *fmt, ...);
+
+  class CIDNA_convert
+  {
+    public:
+      CIDNA_convert (WORD code_page = 0)
+      {
+        IDNA_init (code_page);
+        m_buf[0] = '\0';
+      }
+
+      inline const char *convert_to_ACE (const char *name, int *error = NULL)
+      {
+	strncpy (m_buf, name, sizeof(m_buf)-1);
+	m_buf [sizeof(m_buf)-1] = '\0';
+
+        size_t size = sizeof (m_buf);
+        BOOL   rc   = IDNA_convert_to_ACE (m_buf, &size);
+
+        if (error)
+           *error = _idna_errno;
+        return (rc ? m_buf : NULL);
+      }
+
+      inline const char *convert_from_ACE (const char *name, int *error = NULL)
+      {
+	strncpy (m_buf, name, sizeof(m_buf)-1);
+	m_buf [sizeof(m_buf)-1] = '\0';
+
+        size_t size = strlen (m_buf);
+        BOOL   rc   = IDNA_convert_from_ACE (m_buf, &size);
+
+        if (error)
+           *error = _idna_errno;
+        return (rc ? m_buf : NULL);
+      }
+
+      inline BOOL is_ACE (void)
+      {
+        return (strstr(m_buf,"xn--") ? TRUE : FALSE);
+      }
+
+
+    private:
+      char m_buf [2*MAX_HOST_LEN];  /* A conservative estimate */
+  };
+
+  class CIDNA_resolver : public CIDNA_convert
+  {
+    public:
+      CIDNA_resolver (WORD code_page = 0) : CIDNA_convert (code_page)  {}
+      struct hostent *gethostbyname (const char *name);
+      struct hostent *gethostbyaddress (const char *addr_name, int size, int af);
+  };
 }
 #endif  /* __cplusplus */
 #endif  /* _IDNA_H */

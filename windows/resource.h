@@ -1599,15 +1599,15 @@
 #define IDC_ENABLE_P2P_GUARD            2511
 #define IDC_ENABLE_P2P_GUARD_STR        2512
 #define IDC_WHOIS_IP2                   2513
-#define IDC_ENABLE_IPTRUST              2520
 #define IDC_WHOIS_URL                   2514
 #define IDC_ADD_P2P_GUARD               2515
-#define IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST_REMOVE_BUTTON 2515
-#define IDC_FLYLINK_MANUAL_P2P_GUARD_IP_IDC_LIST 2516
-#define IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST_BOX 2516
-#define IDC_CHAT_MESSAGE_EDIT           2517
-#define IDC_NETWORK_TRAFFIC             2518
-#define IDC_XXX_BLOCK_MODE              2519
+#define IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST_REMOVE_BUTTON 2516
+#define IDC_FLYLINK_MANUAL_P2P_GUARD_IP_IDC_LIST 2517
+#define IDC_FLYLINK_MANUAL_P2P_GUARD_IP_LIST_BOX 2518
+#define IDC_CHAT_MESSAGE_EDIT           2519
+#define IDC_NETWORK_TRAFFIC             2520
+#define IDC_XXX_BLOCK_MODE              2521
+#define IDC_ENABLE_IPTRUST              2522
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000
@@ -1674,7 +1674,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        309
 #define _APS_NEXT_COMMAND_VALUE         32812
-#define _APS_NEXT_CONTROL_VALUE         2517
+#define _APS_NEXT_CONTROL_VALUE         2523
 #define _APS_NEXT_SYMED_VALUE           2423
 #endif
 #endif

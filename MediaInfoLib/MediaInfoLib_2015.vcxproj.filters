@@ -752,6 +752,9 @@
     <ClCompile Include="Source\MediaInfo\XmlUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\MediaInfo\File__Analyze_Element.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\MediaInfo\File__Analyse_Automatic.h">
@@ -1409,6 +1412,9 @@
       <Filter>ThirdParty\sha2-gladman</Filter>
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\XmlUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\File__Analyze_Element.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -999,7 +999,9 @@ LRESULT DirectoryListingFrame::onSearchByTTH(WORD /*wNotifyCode*/, WORD /*wID*/,
 LRESULT DirectoryListingFrame::onAddToFavorites(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	if (const UserPtr& pUser = dl->getUser())
+	{
 		FavoriteManager::getInstance()->addFavoriteUser(pUser);
+	}
 	return 0;
 }
 

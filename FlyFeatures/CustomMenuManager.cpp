@@ -39,10 +39,6 @@ CustomMenuManager::~CustomMenuManager(void)
 void
 CustomMenuManager::clearList()
 {
-	for (auto i = m_menuList.cbegin(); i != m_menuList.cend(); ++i)
-	{
-		delete *i;
-	}
 	m_menuList.clear();
 	m_urlList.clear();
 }
@@ -108,26 +104,22 @@ CustomMenuManager::ProcessXMLSubMenu(SimpleXML& xml, int& i)
 			{
 				const string& url = xml.getChildAttrib("link");
 				const string& title = xml.getChildData();
-				CustomMenuItem* item = new CustomMenuItem(1, i, title);
 				m_urlList[i++] = url;
-				m_menuList.push_back(item);
+				m_menuList.push_back(CustomMenuItem(1, i, title));
 			}
 			else if (type == "separator")
 			{
-				CustomMenuItem* item = new CustomMenuItem(0, 0, Util::emptyString);
-				m_menuList.push_back(item);
+				m_menuList.push_back(CustomMenuItem(0, 0));
 			}
 			else if (type == "submenu")
 			{
 				const string& title = xml.getChildAttrib("name");
-				CustomMenuItem* item = new CustomMenuItem(2, 0, Util::emptyString); // Start Submenu
-				m_menuList.push_back(item);
+				m_menuList.push_back(CustomMenuItem(2, 0));
 				// Send TO iterations and get items inside.
 				xml.stepIn();
 				ProcessXMLSubMenu(xml, i);
 				xml.stepOut();
-				item = new CustomMenuItem(3, 0, title); // End Submenu
-				m_menuList.push_back(item);
+				m_menuList.push_back(CustomMenuItem(3, 0, title));
 			}
 		}
 	}

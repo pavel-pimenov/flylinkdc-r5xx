@@ -112,7 +112,7 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 			{
 				g_pathCache.clear();
 			}
-				
+			
 			l_area = Util::validateFileName(p_area);
 #ifdef _DEBUG
 			g_debugMissed++;

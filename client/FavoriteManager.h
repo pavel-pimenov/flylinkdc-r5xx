@@ -429,7 +429,7 @@ class FavoriteManager : private Speaker<FavoriteManagerListener>,
 		// [+] SSA addUser
 		bool addUserL(const UserPtr& aUser, FavoriteMap::iterator& iUser, bool create = true);
 		
-		void speakUserUpdate(const bool added, FavoriteMap::iterator& i); // [+] IRainman
+		void speakUserUpdate(const bool added, const FavoriteUser& p_fav_user);
 		
 		static bool g_SupportsHubExist;
 		static std::unordered_set<std::string> g_AllHubUrls;

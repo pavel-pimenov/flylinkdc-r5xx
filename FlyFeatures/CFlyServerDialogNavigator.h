@@ -20,7 +20,8 @@ class CFlyServerDialogNavigator :
 	public CWinDataExchange<CFlyServerDialogNavigator>,
 	public IDispEventImpl<IDC_FLY_SERVER_EXPLORER, CFlyServerDialogNavigator>
 #else
-	public CDialogImpl<CFlyServerDialogNavigator>
+	public CDialogImpl<CFlyServerDialogNavigator>,
+	public CDialogResize<CFlyServerDialogNavigator>
 #endif
 {
 	public:
@@ -57,9 +58,16 @@ class CFlyServerDialogNavigator :
 		COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
 		REFLECT_NOTIFICATIONS()
-		
+		CHAIN_MSG_MAP(CDialogResize<CFlyServerDialogNavigator>)
 		END_MSG_MAP()
 		
+		BEGIN_DLGRESIZE_MAP(CFlyServerDialogNavigator)
+		DLGRESIZE_CONTROL(IDC_FLY_SERVER_LISTBOX, DLSZ_SIZE_X)
+		DLGRESIZE_CONTROL(IDC_MEDIAINFORM_STATIC, DLSZ_SIZE_X | DLSZ_SIZE_Y)
+		DLGRESIZE_CONTROL(IDCANCEL, DLSZ_MOVE_X | DLSZ_MOVE_Y)
+		DLGRESIZE_CONTROL(IDOK, DLSZ_MOVE_X | DLSZ_MOVE_Y)
+		
+		END_DLGRESIZE_MAP()
 	private:
 	
 #ifdef USE_FLY_SERVER_USE_IE_EXPLORER
@@ -154,6 +162,7 @@ class CFlyServerDialogNavigator :
 			// Отправляемся на стартовую страницу.
 			m_pWebBrowser->GoHome();
 #endif
+			DlgResize_Init();
 			return 0;
 		}
 		

@@ -100,13 +100,16 @@ class CryptoManager : public Singleton<CryptoManager>
 		static CriticalSection g_cs;
 		void sslRandCheck();
 		
-		int getKeyLength(TLSTmpKeys key);
-		DH* getTmpDH(int keyLen);
-		RSA* getTmpRSA(int keyLen);
+		static int getKeyLength(TLSTmpKeys key);
+		static DH* getTmpDH(int keyLen);
+		static RSA* getTmpRSA(int keyLen);
 		
 		static bool certsLoaded;
 		
-		static void* tmpKeysMap[KEY_LAST];
+		static void* g_tmpKeysMap[KEY_LAST];
+		static bool g_is_init_tmp_key_map;
+		static void initTmpKeyMaps();
+		static void freeTmpKeyMaps();
 		static CriticalSection* cs;
 		static char idxVerifyDataName[];
 		static SSLVerifyData trustedKeyprint;

@@ -290,7 +290,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 						
 						ShareFile(const string& aName, int64_t aSize, Directory::Ptr aParent, const TTHValue& aRoot, uint32_t aHit, uint32_t aTs,
 						          Search::TypeModes aftype) :
-							CFlyLowerName(aName), tth(aRoot), size(aSize), parent(aParent.get()), m_hit(aHit), ts(aTs), ftype(aftype), m_media_ptr(nullptr)
+							CFlyLowerName(aName), m_tth(aRoot), size(aSize), parent(aParent.get()), m_hit(aHit), ts(aTs), ftype(aftype), m_media_ptr(nullptr)
 						{
 							dcassert(aName.find('\\') == string::npos);
 						}
@@ -325,18 +325,18 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 						}
 						const TTHValue& getTTH() const
 						{
-							return tth;
+							return m_tth;
 						}
 						void setTTH(const TTHValue& p_tth)
 						{
-							tth = p_tth;
+							m_tth = p_tth;
 						}
 						Search::TypeModes getFType() const
 						{
 							return ftype;
 						}
 					private:
-						TTHValue tth;
+						TTHValue m_tth;
 						Search::TypeModes ftype;
 				};
 				
@@ -476,7 +476,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		
 		static BloomFilter<5> g_bloom;
 		
-		string findFileAndRealPath(const string& virtualFile, TTHValue& p_tth) const;
+		string findFileAndRealPath(const string& virtualFile, TTHValue& p_tth, bool p_is_fetch_tth) const;
 		void checkShutdown(const string& virtualFile) const;
 		
 		Directory::Ptr buildTreeL(__int64& p_path_id, const string& p_path, const Directory::Ptr& p_parent, bool p_is_job);

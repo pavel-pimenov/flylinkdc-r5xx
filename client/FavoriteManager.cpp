@@ -484,11 +484,14 @@ void FavoriteManager::addFavoriteUser(const UserPtr& aUser)
 	// [!] SSA see _addUserIfnotExist function
 	{
 		FavoriteMap::iterator i;
-		CFlyWriteLock(*g_csFavUsers);
-		if (!addUserL(aUser, i))
-			return;
-			
-		fly_fire1(FavoriteManagerListener::UserAdded(), i->second);
+		FavoriteUser l_fav_user;
+		{
+			CFlyWriteLock(*g_csFavUsers);
+			if (!addUserL(aUser, i))
+				return;
+			l_fav_user = i->second;
+		}
+		fly_fire1(FavoriteManagerListener::UserAdded(), l_fav_user);
 	}
 	save();
 }
@@ -496,14 +499,17 @@ void FavoriteManager::addFavoriteUser(const UserPtr& aUser)
 void FavoriteManager::removeFavoriteUser(const UserPtr& aUser)
 {
 	{
-		CFlyWriteLock(*g_csFavUsers);
-		const auto i = g_fav_users_map.find(aUser->getCID());
-		if (i == g_fav_users_map.end())
-			return;
-			
-		fly_fire1(FavoriteManagerListener::UserRemoved(), i->second);
-		g_fav_users_map.erase(i);
-		updateEmptyStateL();
+		FavoriteUser l_fav_user;
+		{
+			CFlyWriteLock(*g_csFavUsers);
+			const auto i = g_fav_users_map.find(aUser->getCID());
+			if (i == g_fav_users_map.end())
+				return;
+			l_fav_user = i->second;
+			g_fav_users_map.erase(i);
+			updateEmptyStateL();
+		}
+		fly_fire1(FavoriteManagerListener::UserRemoved(), l_fav_user);
 	}
 	save();
 }
@@ -1560,7 +1566,7 @@ void FavoriteManager::userUpdated(const OnlineUser& info)
 {
 	if (!ClientManager::isShutdown() && isNotEmpty()) // [+]PPA
 	{
-		CFlyWriteLock(*g_csFavUsers);
+		CFlyReadLock(*g_csFavUsers);
 		auto i = g_fav_users_map.find(info.getUser()->getCID());
 		if (i == g_fav_users_map.end())
 			return;
@@ -1639,13 +1645,17 @@ void FavoriteManager::setUploadLimit(const UserPtr& aUser, int lim, bool createU
 	ConnectionManager::setUploadLimit(aUser, lim);
 	{
 		FavoriteMap::iterator i;
-		CFlyWriteLock(*g_csFavUsers);
-		const bool added = addUserL(aUser, i, createUser);
-		if (i == g_fav_users_map.end())
-			return;
-			
-		i->second.setUploadLimit(FavoriteUser::UPLOAD_LIMIT(lim));
-		speakUserUpdate(added, i);
+		FavoriteUser l_fav_user;
+		bool l_is_added = false;
+		{
+			CFlyWriteLock(*g_csFavUsers);
+			l_is_added = addUserL(aUser, i, createUser);
+			if (i == g_fav_users_map.end())
+				return;
+			l_fav_user = i->second;
+		}
+		l_fav_user.setUploadLimit(FavoriteUser::UPLOAD_LIMIT(lim));
+		speakUserUpdate(l_is_added, l_fav_user);
 	}
 	save();
 }
@@ -1670,17 +1680,21 @@ void FavoriteManager::setFlag(const UserPtr& aUser, FavoriteUser::Flags f, bool 
 	dcassert(!ClientManager::isShutdown());
 	{
 		FavoriteMap::iterator i;
-		CFlyWriteLock(*g_csFavUsers);
-		const bool added = addUserL(aUser, i, createUser);
-		if (i == g_fav_users_map.end())
-			return;
-			
+		FavoriteUser l_fav_user;
+		bool l_is_added = false;
+		{
+			CFlyWriteLock(*g_csFavUsers);
+			l_is_added = addUserL(aUser, i, createUser);
+			if (i == g_fav_users_map.end())
+				return;
+			l_fav_user = i->second;
+		}
 		if (value)
-			i->second.setFlag(f);
+			l_fav_user.setFlag(f);
 		else
-			i->second.unsetFlag(f);
+			l_fav_user.unsetFlag(f);
 			
-		speakUserUpdate(added, i);
+		speakUserUpdate(l_is_added, l_fav_user);
 	}
 	save();
 }
@@ -1690,7 +1704,7 @@ void FavoriteManager::setUserDescription(const UserPtr& aUser, const string& aDe
 	if (isNotEmpty()) // [+]PPA
 	{
 		{
-			CFlyWriteLock(*g_csFavUsers);
+			CFlyReadLock(*g_csFavUsers);
 			auto i = g_fav_users_map.find(aUser->getCID());
 			if (i == g_fav_users_map.end())
 				return;
@@ -1795,7 +1809,7 @@ void FavoriteManager::on(UserDisconnected, const UserPtr& aUser) noexcept
 		if (isNotEmpty()) // [+]PPA
 		{
 			{
-				CFlyWriteLock(*g_csFavUsers);
+				CFlyReadLock(*g_csFavUsers);
 				auto i = g_fav_users_map.find(aUser->getCID());
 				if (i == g_fav_users_map.end())
 					return;
@@ -1871,7 +1885,7 @@ void FavoriteManager::changeConnectionStatus(const string& hubUrl, ConnectionSta
 	}
 }
 #endif
-void FavoriteManager::speakUserUpdate(const bool added, FavoriteMap::iterator& i) // [+] IRainman
+void FavoriteManager::speakUserUpdate(const bool added, const FavoriteUser& p_fav_user)
 {
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isShutdown())
@@ -1879,11 +1893,11 @@ void FavoriteManager::speakUserUpdate(const bool added, FavoriteMap::iterator& i
 		{
 			if (added)
 			{
-				fly_fire1(FavoriteManagerListener::UserAdded(), i->second);
+				fly_fire1(FavoriteManagerListener::UserAdded(), p_fav_user);
 			}
 			else
 			{
-				fly_fire1(FavoriteManagerListener::StatusChanged(), i->second.getUser());
+				fly_fire1(FavoriteManagerListener::StatusChanged(), p_fav_user.getUser());
 			}
 		}
 	}

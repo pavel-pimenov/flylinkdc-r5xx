@@ -1534,7 +1534,7 @@ void SettingsManager::load(const string& aFileName)
 	}
 #ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
 	{
-		if (SETTING(USE_CUSTOM_MENU) == false && SETTING(CUSTOM_MENU_PATH) == "file://./Settings/custom_menu.xml")
+		if (SETTING(CUSTOM_MENU_PATH) == "file://./Settings/custom_menu.xml" || SETTING(CUSTOM_MENU_PATH).empty())
 		{
 			if (Text::g_systemCharset == Text::g_code1251)
 			{

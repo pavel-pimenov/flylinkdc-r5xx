@@ -95,12 +95,12 @@ class CInternetHandle
 
 class CFlyHTTPDownloader
 {
-		DWORD m_flag;
+		DWORD m_inet_flag;
 		string m_error_message;
 	public:
 		bool m_is_add_url;
 		bool m_is_use_cache;
-		CFlyHTTPDownloader() : m_flag(0), m_is_add_url(true), m_is_use_cache(false)
+		CFlyHTTPDownloader() : m_inet_flag(0), m_is_add_url(true), m_is_use_cache(false)
 		{
 		}
 		std::vector<string> m_get_http_header_item;
@@ -110,9 +110,9 @@ class CFlyHTTPDownloader
 		{
 			m_get_http_header_item.clear();
 		}
-		void setInetFlag(DWORD p_flag)
+		void setInetFlag(DWORD p_inet_flag)
 		{
-			m_flag = p_flag;
+			m_inet_flag = p_inet_flag;
 		}
 		const string& getErroMessage() const
 		{

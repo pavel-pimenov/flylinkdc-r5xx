@@ -1,4 +1,3 @@
-zmq
 MakeDefs
 client
 wtl
@@ -39,7 +38,6 @@ FlyUpdate.rc
 *.sln
 *.vcxproj
 *.vcxproj.filters
-UpdateRevision.bat
 revision.h
 FlylinkDCExt.h
 version.h
@@ -56,12 +54,18 @@ compiled\Settings\common\IPGuard.ini
 compiled\Settings\common\IPTrust.ini
 compiled\Settings\common\P2PGuard.ini
 compiled\Settings\common\isp-hub-list.txt
+compiled\Settings\get_geo_ip.bat
 compiled\EmoPacks\*
 compiled\Lang\*
 compiled\Skin\*
 compiled\Sounds\*
 compiled\Themes\*
 compiled\WEBserver\*
+compiled\readme_changelog_full.rtf
+compiled\readme_changelog_lite.rtf
 GdiOle\GdiOle_i.c
 GdiOle\GdiOle_i.h
 GdiOle\GdiOle_p.c
+src_backup_7z.bat
+src_gen_filename.bat
+UpdateGeoIP.bat

@@ -937,21 +937,21 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 		return;
 	}
 	
-	const string& type = c.getParam(0);
-	const string& fname = c.getParam(1);
+	const string l_type = c.getParam(0);
+	const string l_fname = c.getParam(1);
 	int64_t aStartPos = Util::toInt64(c.getParam(2));
 	int64_t aBytes = Util::toInt64(c.getParam(3));
 #ifdef _DEBUG
 //	LogManager::message("on(AdcCommand::GET aStartPos = " + Util::toString(aStartPos) + " aBytes = " + Util::toString(aBytes));
 #endif
 
-	if (prepareFile(aSource, type, fname, aStartPos, aBytes, c.hasFlag("RE", 4)))
+	if (prepareFile(aSource, l_type, l_fname, aStartPos, aBytes, c.hasFlag("RE", 4)))
 	{
 		auto u = aSource->getUpload();
 		dcassert(u != nullptr);
 		// [-] if (!u) return; [-] IRainman fix: please don't problem maskerate.
 		AdcCommand cmd(AdcCommand::CMD_SND);
-		cmd.addParam(type).addParam(fname)
+		cmd.addParam(l_type).addParam(l_fname)
 		.addParam(Util::toString(u->getStartPos()))
 		.addParam(Util::toString(u->getSize()));
 		if (SETTING(MAX_COMPRESSION))

@@ -444,7 +444,7 @@ void ADLSearchManager::matchesFile(DestDirList& destDirVector, DirectoryListing:
 	{
 		if (id->subdir != NULL)
 		{
-			DirectoryListing::File *copyFile = new DirectoryListing::File(*currentFile, true);
+			auto copyFile = new DirectoryListing::File(*currentFile, true);
 			copyFile->setFlags(currentFile->getFlags()); // [+] NightOrion to issues http://code.google.com/p/flylinkdc/issues/detail?id=31
 			dcassert(id->subdir->getAdls());
 			
@@ -469,7 +469,7 @@ void ADLSearchManager::matchesFile(DestDirList& destDirVector, DirectoryListing:
 		}
 		if (is->matchesFile(currentFile->getName(), filePath, currentFile->getSize()))
 		{
-			DirectoryListing::File *copyFile = new DirectoryListing::File(*currentFile, true);
+			auto copyFile = new DirectoryListing::File(*currentFile, true);
 			copyFile->setFlags(currentFile->getFlags()); // [+] NightOrion to issues http://code.google.com/p/flylinkdc/issues/detail?id=31
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 			if (is->isForbidden && !getSentRaw())

@@ -197,6 +197,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FlyFeatures\AutoUpdate.h" />
+    <ClInclude Include="FlyFeatures\CFlyServerDialogNavigator.h" />
     <ClInclude Include="FlyFeatures\CProgressDlg.h" />
     <ClInclude Include="FlyFeatures\CustomMenuManager.h" />
     <ClInclude Include="FlyFeatures\FileRoadMap.h" />

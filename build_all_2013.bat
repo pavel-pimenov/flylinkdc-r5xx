@@ -1,5 +1,5 @@
 call clean_all_2013.bat
-call UpdateGeoIP.bat
+call update_geo_ip.bat
 call build_flylinkdc_2013.bat
 call build_flylinkdc_x64_2013.bat
 

@@ -94,5 +94,8 @@
     <ClInclude Include="FlyFeatures\CProgressDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FlyFeatures\CFlyServerDialogNavigator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

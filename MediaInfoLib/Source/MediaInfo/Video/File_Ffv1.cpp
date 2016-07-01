@@ -348,7 +348,7 @@ File_Ffv1::File_Ffv1()
 :File__Analyze()
 {
     //Configuration
-    ParserName=__T("FFV1");
+    ParserName="FFV1";
     #if MEDIAINFO_TRACE
         Trace_Layers_Update(8); //Stream
     #endif //MEDIAINFO_TRACE
@@ -755,7 +755,7 @@ void File_Ffv1::FrameHeader()
         if (coder_type && context_count[i]>plane_states_maxsizes[i])
         {
             states_context_plane plane_state_old = plane_states[i];
-            plane_states[i] = new int8u* [context_count[i]];
+            plane_states[i] = new int8u*[context_count[i]];
             if (plane_state_old)
             {
                 memcpy(plane_states[i], plane_state_old, plane_states_maxsizes[i] * sizeof(int8u*));
@@ -1525,7 +1525,7 @@ void File_Ffv1::copy_plane_states_to_slice(int8u plane_count)
         int32u idx = quant_table_index[i];
         if (!current_slice->plane_states[i])
         {
-            current_slice->plane_states[i] = new int8u* [context_count[idx] + 1];
+            current_slice->plane_states[i] = new int8u*[context_count[idx] + 1];
             current_slice->plane_states_maxsizes[i] = context_count[idx] + 1;
             memset(current_slice->plane_states[i], 0, (context_count[idx] + 1) * sizeof(int8u*));
         }

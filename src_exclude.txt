@@ -114,3 +114,7 @@ Doxyfile
 commit_update.bat
 FlyUpdate.exe
 *.dctheme
+AStyle.exe
+msxsl.exe
+XMLMerge.exe
+xmlValid.exe

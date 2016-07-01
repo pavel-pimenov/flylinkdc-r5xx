@@ -281,15 +281,18 @@ bool ShareManager::isTTHShared(const TTHValue& tth)
 }
 string ShareManager::toRealPath(const TTHValue& tth)
 {
-	CFlyReadLock(*g_csTTHIndex);
-	const auto& i = g_tthIndex.find(tth);
-	if (i != g_tthIndex.end())
+	CFlyReadLock(*g_csShare);
 	{
-		try
+		CFlyReadLock(*g_csTTHIndex);
+		const auto i = g_tthIndex.find(tth);
+		if (i != g_tthIndex.end())
 		{
-			return i->second->getRealPath();
+			try
+			{
+				return i->second->getRealPath();
+			}
+			catch (const ShareException&) {}
 		}
-		catch (const ShareException&) {}
 	}
 	return Util::emptyString;
 }
@@ -305,6 +308,7 @@ string ShareManager::toVirtual(const TTHValue& tth)
 	{
 		return Transfer::g_user_list_name;
 	}
+	CFlyReadLock(*g_csShare);
 	{
 		CFlyReadLock(*g_csTTHIndex);
 		const auto& i = g_tthIndex.find(tth);
@@ -342,7 +346,7 @@ string ShareManager::toReal(const string& virtualFile
 		}
 	}
 	TTHValue l_tth;
-	const auto l_real_path = findFileAndRealPath(virtualFile, l_tth);
+	const auto l_real_path = findFileAndRealPath(virtualFile, l_tth, false);
 	return l_real_path;
 }
 
@@ -357,7 +361,7 @@ TTHValue ShareManager::getTTH(const string& virtualFile) const
 		return xmlRoot;
 	}
 	TTHValue l_tth;
-	findFileAndRealPath(virtualFile, l_tth);
+	findFileAndRealPath(virtualFile, l_tth, true);
 	return l_tth;
 }
 
@@ -466,22 +470,25 @@ void ShareManager::checkShutdown(const string& virtualFile) const
 		throw ShareException("FlylinkDC++ shutdown in progress", virtualFile);
 	}
 }
-string ShareManager::findFileAndRealPath(const string& virtualFile, TTHValue& p_tth) const
+string ShareManager::findFileAndRealPath(const string& virtualFile, TTHValue& p_tth, bool p_is_fetch_tth) const
 {
+	CFlyReadLock(*g_csShare);
 	if (virtualFile.compare(0, 4, "TTH/", 4) == 0)
 	{
 		CFlyReadLock(*g_csTTHIndex);
-		const auto& i = g_tthIndex.find(TTHValue(virtualFile.substr(4)));
+		const auto i = g_tthIndex.find(TTHValue(virtualFile.substr(4)));
 		if (i == g_tthIndex.end())
 		{
 			throw ShareException(UserConnection::g_FILE_NOT_AVAILABLE, virtualFile);
 		}
 		checkShutdown(virtualFile);
-		p_tth = i->second->getTTH();
+		if (p_is_fetch_tth)
+		{
+			p_tth = i->second->getTTH(); // https://drdump.com/DumpGroup.aspx?DumpGroupID=555791&Login=guest
+		}
 		return i->second->getRealPath();
 	}
 	
-	CFlyReadLock(*g_csShare);
 	const auto v = splitVirtualL(virtualFile);
 	const auto it = std::find_if(v.first->m_share_files.begin(), v.first->m_share_files.end(),
 	                             [&](const Directory::ShareFile & p_file) -> bool {return stricmp(p_file.getName(), v.second) == 0;}
@@ -492,7 +499,10 @@ string ShareManager::findFileAndRealPath(const string& virtualFile, TTHValue& p_
 		throw ShareException(UserConnection::g_FILE_NOT_AVAILABLE, virtualFile);
 	}
 	checkShutdown(virtualFile);
-	p_tth = it->getTTH();
+	if (p_is_fetch_tth)
+	{
+		p_tth = it->getTTH();
+	}
 	return it->getRealPath();
 }
 
@@ -1166,7 +1176,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 			
 			if (Util::checkForbidenFolders(newName))
 				continue;
-
+				
 			if (stricmp(newName, SETTING(TEMP_DOWNLOAD_DIRECTORY)) != 0
 			        && stricmp(newName, Util::getConfigPath())  != 0//[+]IRainman
 			        && stricmp(newName, SETTING(LOG_DIRECTORY)) != 0//[+]IRainman
@@ -2511,7 +2521,7 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 				"",
 				"",
 				p_search_param.m_client->getHubUrlAndIP(),
-				tth.toBase32());
+				m_tth.toBase32());
 			}
 #endif
 		}

@@ -138,7 +138,7 @@ class ListLoader : public SimpleXMLReader::CallBack
 	public:
 		ListLoader(DirectoryListing* aList, DirectoryListing::Directory* root,
 		           bool aUpdating, const UserPtr& p_user, bool p_own_list)
-			: list(aList), cur(root), m_base("/"), m_is_in_listing(false),
+			: m_list(aList), m_cur(root), m_base("/"), m_is_in_listing(false),
 			  m_is_updating(aUpdating), m_user(p_user), m_is_own_list(p_own_list),
 			  m_is_mediainfo_list(false), m_is_first_check_mediainfo_list(false),
 			  m_empty_file_name_counter(0)
@@ -162,8 +162,8 @@ class ListLoader : public SimpleXMLReader::CallBack
 #ifdef _DEBUG
 		static CFlyCacheMediaInfo g_cache_mediainfo;
 #endif
-		DirectoryListing* list;
-		DirectoryListing::Directory* cur;
+		DirectoryListing* m_list;
+		DirectoryListing::Directory* m_cur;
 		UserPtr m_user;
 		
 		StringMap m_params;
@@ -267,7 +267,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 	{
 		throw AbortException("ListLoader::startTag - ClientManager::isShutdown()");
 	}
-	if (list->getAbort())
+	if (m_list->getAbort())
 	{
 		throw AbortException("ListLoader::startTag - " + STRING(ABORT_EM));
 	}
@@ -306,7 +306,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			if (m_is_updating)
 			{
 				// just update the current file if it is already there.
-				for (auto i = cur->files.cbegin(), iend = cur->files.cend(); i != iend; ++i)
+				for (auto i = m_cur->files.cbegin(), iend = m_cur->files.cend(); i != iend; ++i)
 				{
 					auto& file = **i;
 					/// @todo comparisons should be case-insensitive but it takes too long - add a cache
@@ -421,9 +421,9 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 				}
 				l_i_hit = l_hit.empty() ? 0 : atoi(l_hit.c_str());
 			}
-			DirectoryListing::File* f = new DirectoryListing::File(cur, l_name, l_size, l_tth, l_i_hit, l_i_ts, l_mediaXY);
-			cur->m_virus_detect.add(l_name, l_size);
-			cur->files.push_back(f);
+			auto f = new DirectoryListing::File(m_cur, l_name, l_size, l_tth, l_i_hit, l_i_ts, l_mediaXY);
+			m_cur->m_virus_detect.add(l_name, l_size);
+			m_cur->files.push_back(f);
 			if (l_size) // http://code.google.com/p/flylinkdc/issues/detail?id=1098
 			{
 				if (m_is_own_list)//[+] FlylinkDC++
@@ -467,24 +467,26 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			DirectoryListing::Directory* d = nullptr;
 			if (m_is_updating)
 			{
-				for (auto i  = cur->directories.cbegin(); i != cur->directories.cend(); ++i)
+				for (auto i  = m_cur->directories.cbegin(); i != m_cur->directories.cend(); ++i)
 				{
 					/// @todo comparisons should be case-insensitive but it takes too long - add a cache
 					if ((*i)->getName() == l_file_name)
 					{
 						d = *i;
 						if (!d->getComplete())
+						{
 							d->setComplete(!incomp);
+						}
 						break;
 					}
 				}
 			}
 			if (d == nullptr)
 			{
-				d = new DirectoryListing::Directory(list, cur, l_file_name, false, !incomp, isMediainfoList());
-				cur->directories.push_back(d);
+				d = new DirectoryListing::Directory(m_list, m_cur, l_file_name, false, !incomp, isMediainfoList());
+				m_cur->directories.push_back(d);
 			}
-			cur = d;
+			m_cur = d;
 			
 			if (simple)
 			{
@@ -506,7 +508,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			for (auto i = sl.getTokens().cbegin(); i != sl.getTokens().cend(); ++i)
 			{
 				DirectoryListing::Directory* d = nullptr;
-				for (auto j = cur->directories.cbegin(); j != cur->directories.cend(); ++j)
+				for (auto j = m_cur->directories.cbegin(); j != m_cur->directories.cend(); ++j)
 				{
 					if ((*j)->getName() == *i)
 					{
@@ -516,13 +518,13 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 				}
 				if (d == nullptr)
 				{
-					d = new DirectoryListing::Directory(list, cur, *i, false, false, isMediainfoList());
-					cur->directories.push_back(d);
+					d = new DirectoryListing::Directory(m_list, m_cur, *i, false, false, isMediainfoList());
+					m_cur->directories.push_back(d);
 				}
-				cur = d;
+				m_cur = d;
 			}
 		}
-		cur->setComplete(true);
+		m_cur->setComplete(true);
 		
 		// [+] IRainman Delayed loading (dclst support)
 		const string& l_cidStr = getAttrib(attribs, sCID, 2);
@@ -534,12 +536,12 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 				if (!m_user)
 				{
 					m_user = ClientManager::getUser(l_CID, true);
-					list->setHintedUser(HintedUser(m_user, Util::emptyString));
+					m_list->setHintedUser(HintedUser(m_user, Util::emptyString));
 				}
 			}
 		}
 		const string& l_getIncludeSelf = getAttrib(attribs, sIncludeSelf, 2);
-		list->setIncludeSelf(l_getIncludeSelf == "1");
+		m_list->setIncludeSelf(l_getIncludeSelf == "1");
 		// [~] IRainman Delayed loading (dclst support)
 		
 		m_is_in_listing = true;
@@ -558,7 +560,7 @@ void ListLoader::endTag(const string& name, const string&)
 	{
 		if (name == g_SDirectory)
 		{
-			cur = cur->getParent();
+			m_cur = m_cur->getParent();
 		}
 		else if (name == sFileListing)
 		{

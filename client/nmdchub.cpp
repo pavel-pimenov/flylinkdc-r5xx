@@ -2365,11 +2365,11 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			}
 			if (g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_GUI])
 			{
-				l_json_info["StartGUI"] = unsigned(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_GUI]);
+				l_json_info["StartGUI"] = uint32_t(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_GUI]);
 			}
 			if (g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_CORE])
 			{
-				l_json_info["StartCore"] = unsigned(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_CORE]);
+				l_json_info["StartCore"] = uint32_t(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_CORE]);
 			}
 			if (CFlylinkDBManager::getCountQueueFiles())
 			{
@@ -2677,8 +2677,8 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 			ou->getIdentity().setExtJSONSQLiteDBSizeFree(l_root["SQLFree"].asInt());
 			ou->getIdentity().setExtJSONQueueFiles(l_root["QueueFiles"].asInt());
 			ou->getIdentity().setExtJSONQueueSrc(l_root["QueueSrc"].asInt64()); //TODO - временны баг - тут 32 бита
-			ou->getIdentity().setExtJSONTimesStartCore(l_root["StartCore"].asInt());
-			ou->getIdentity().setExtJSONTimesStartGUI(l_root["StartGUI"].asInt());
+			ou->getIdentity().setExtJSONTimesStartCore(l_root["StartCore"].asInt64());  //TODO тут тоже 32 бита
+			ou->getIdentity().setExtJSONTimesStartGUI(l_root["StartGUI"].asInt64()); //TODO тут тоже 32 бита
 			
 			if (!ClientManager::isShutdown())
 			{

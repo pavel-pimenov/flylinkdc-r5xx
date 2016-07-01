@@ -2,7 +2,7 @@ echo Use VC+2013
 goto :builderror
 
 call clean_all_2010.bat
-call UpdateGeoIP.bat
+call update_geo_ip.bat
 call build_flylinkdc_2010.bat
 call build_flylinkdc_x64_2010.bat
 

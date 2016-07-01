@@ -166,7 +166,7 @@ struct CFlyLocationIP : public CFlyIPRange
 {
 	uint16_t m_flag_index;
 	string m_location;
-	CFlyLocationIP()
+	CFlyLocationIP() // : m_flag_index(0)
 	{
 	}
 	CFlyLocationIP(const std::string& p_location, uint32_t p_start_ip, uint32_t p_stop_ip, uint16_t p_flag_index) :

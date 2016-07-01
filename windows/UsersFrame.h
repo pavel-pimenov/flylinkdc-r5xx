@@ -24,6 +24,7 @@
 
 #include "FlatTabCtrl.h"
 #include "TypedListViewCtrl.h"
+#include "ExListViewCtrl.h"
 #include "WinUtil.h"
 #include "../client/UserInfoBase.h"
 
@@ -31,8 +32,12 @@
 #include "../client/File.h"
 #include "../client/OnlineUser.h"
 
-class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_FAVORITE_USERS > , public StaticFrame<UsersFrame, ResourceManager::FAVORITE_USERS, IDC_FAVUSERS>,
-	private FavoriteManagerListener, public UserInfoBaseHandler<UsersFrame, UserInfoGuiTraits::INLINE_CONTACT_LIST>, private SettingsManagerListener
+class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_FAVORITE_USERS >,
+	public StaticFrame<UsersFrame, ResourceManager::FAVORITE_USERS, IDC_FAVUSERS>,
+	public CSplitterImpl<UsersFrame>,
+	private FavoriteManagerListener,
+	public UserInfoBaseHandler<UsersFrame, UserInfoGuiTraits::INLINE_CONTACT_LIST>,
+	private SettingsManagerListener
 #ifdef _DEBUG
 	, boost::noncopyable // [+] IRainman fix.
 #endif
@@ -48,6 +53,7 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 		DECLARE_FRAME_WND_CLASS_EX(_T("UsersFrame"), IDR_FAVORITE_USERS, 0, COLOR_3DFACE);
 		
 		typedef MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_FAVORITE_USERS > baseClass;
+		typedef CSplitterImpl<UsersFrame> splitBase;
 		typedef UserInfoBaseHandler<UsersFrame, UserInfoGuiTraits::INLINE_CONTACT_LIST> uibBase;
 		
 		BEGIN_MSG_MAP(UsersFrame)
@@ -59,6 +65,11 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 		NOTIFY_HANDLER(IDC_USERS, LVN_ITEMCHANGED, onItemChanged)
 		NOTIFY_HANDLER(IDC_USERS, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(IDC_USERS, NM_DBLCLK, onDoubleClick)
+		NOTIFY_HANDLER(IDC_IGNORELIST, NM_CUSTOMDRAW, ctrlBadUsers.onCustomDraw)
+		NOTIFY_HANDLER(IDC_IGNORELIST, LVN_ITEMCHANGED, onBadItemChanged)
+		COMMAND_ID_HANDLER(IDC_IGNORE_ADD, onIgnoreAdd)
+		COMMAND_ID_HANDLER(IDC_IGNORE_REMOVE, onIgnoreRemove)
+		COMMAND_ID_HANDLER(IDC_IGNORE_CLEAR, onIgnoreClear)
 		MESSAGE_HANDLER(WM_CREATE, onCreate)
 		MESSAGE_HANDLER(WM_CLOSE, onClose)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
@@ -68,7 +79,7 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 		COMMAND_ID_HANDLER(IDC_EDIT, onEdit)
 		COMMAND_ID_HANDLER(IDC_CONNECT, onConnect)
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
-		
+		CHAIN_MSG_MAP(splitBase)
 		CHAIN_MSG_MAP(uibBase)
 		CHAIN_MSG_MAP(baseClass)
 		END_MSG_MAP()
@@ -99,12 +110,18 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 		
 		LRESULT onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/);
 		
-		LRESULT onSetFocus(UINT /* uMsg */, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+		LRESULT onSetFocus(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
 			ctrlUsers.SetFocus();
 			return 0;
 		}
-		
+		void fillBad();
+		void updateBad();
+		void saveBad();
+		LRESULT onBadItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
+		LRESULT onIgnoreAdd(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */);
+		LRESULT onIgnoreRemove(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */);
+		LRESULT onIgnoreClear(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */);
 	private:
 		class UserInfo;
 	public:
@@ -128,7 +145,6 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 			COLUMN_CID,
 			COLUMN_LAST
 		};
-		
 		enum
 		{
 			USER_UPDATED
@@ -194,6 +210,17 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 		void updateUser(const UserPtr& aUser);
 		void updateUser(const int i, UserInfo* p_ui, const FavoriteUser& favUser); // [+] IRainman fix.
 		void removeUser(const FavoriteUser& aUser);
+		
+	public:
+		ExListViewCtrl ctrlBadUsers;
+		StringSet m_BadUsers;
+		CButton ctrlBadAdd;
+		CEdit ctrlBadFilter;
+		CButton ctrlBadRemove;
+#ifdef FLYLINKDC_USE_ALL_CLEAR_FOR_IGNORE_USER
+		CButton ctrlBadClear;
+#endif
+		bool m_ignoreListCnange;
 };
 
 #endif // !defined(USERS_FRAME_H)

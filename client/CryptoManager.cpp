@@ -33,7 +33,8 @@
 #include <bzlib.h>
 
 
-void* CryptoManager::tmpKeysMap[KEY_LAST] = { NULL, NULL, NULL };
+void* CryptoManager::g_tmpKeysMap[KEY_LAST] = { NULL, NULL, NULL };
+bool CryptoManager::g_is_init_tmp_key_map = false;
 CriticalSection* CryptoManager::cs = NULL;
 int CryptoManager::idxVerifyData = 0;
 char CryptoManager::idxVerifyDataName[] = "FlylinkDC.VerifyData";
@@ -66,14 +67,6 @@ CryptoManager::CryptoManager()
 		// Check that openssl rng has been seeded with enough data
 		sslRandCheck();
 		
-		// Init temp data for DH keys
-		for (int i = KEY_FIRST; i != KEY_RSA_2048; ++i)
-			tmpKeysMap[i] = getTmpDH(getKeyLength(static_cast<TLSTmpKeys>(i)));
-			
-		// and same for RSA keys
-		for (int i = KEY_RSA_2048; i != KEY_LAST; ++i)
-			tmpKeysMap[i] = getTmpRSA(getKeyLength(static_cast<TLSTmpKeys>(i)));
-			
 		SSL_CTX_set_options(clientContext, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
 		SSL_CTX_set_options(serverContext, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
 		
@@ -84,6 +77,47 @@ CryptoManager::CryptoManager()
 		SSL_CTX_set_tmp_rsa_callback(serverContext, CryptoManager::tmp_rsa_cb);
 		SSL_CTX_set_verify(clientContext, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback);
 		SSL_CTX_set_verify(serverContext, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback);
+	}
+}
+void CryptoManager::initTmpKeyMaps()
+{
+	static bool g_is_init_tmp_key_map;
+	if (!g_is_init_tmp_key_map)
+	{
+		g_is_init_tmp_key_map = true;
+		// Init temp data for DH keys
+		for (int i = KEY_FIRST; i != KEY_RSA_2048; ++i)
+			if (!g_tmpKeysMap[i])
+			{
+				g_tmpKeysMap[i] = getTmpDH(getKeyLength(static_cast<TLSTmpKeys>(i)));
+			}
+			
+		// and same for RSA keys
+		for (int i = KEY_RSA_2048; i != KEY_LAST; ++i)
+		{
+			if (!g_tmpKeysMap[i])
+			{
+				g_tmpKeysMap[i] = getTmpRSA(getKeyLength(static_cast<TLSTmpKeys>(i)));
+			}
+		}
+	}
+}
+void CryptoManager::freeTmpKeyMaps()
+{
+	for (int i = KEY_FIRST; i != KEY_RSA_2048; ++i)
+	{
+		if (g_tmpKeysMap[i])
+		{
+			DH_free((DH*)g_tmpKeysMap[i]);
+		}
+	}
+	
+	for (int i = KEY_RSA_2048; i != KEY_LAST; ++i)
+	{
+		if (g_tmpKeysMap[i])
+		{
+			RSA_free((RSA*)g_tmpKeysMap[i]);
+		}
 	}
 }
 
@@ -139,15 +173,7 @@ CryptoManager::~CryptoManager()
 	clientContext.reset();
 	serverContext.reset();
 	
-	for (int i = KEY_FIRST; i != KEY_RSA_2048; ++i)
-	{
-		if (tmpKeysMap[i]) DH_free((DH*)tmpKeysMap[i]);
-	}
-	
-	for (int i = KEY_RSA_2048; i != KEY_LAST; ++i)
-	{
-		if (tmpKeysMap[i]) RSA_free((RSA*)tmpKeysMap[i]);
-	}
+	freeTmpKeyMaps();
 	
 	/* global application exit cleanup (after all SSL activity is shutdown) */
 	ERR_free_strings();
@@ -560,37 +586,39 @@ void CryptoManager::locking_function(int mode, int n, const char* /*file*/, int 
 
 DH* CryptoManager::tmp_dh_cb(SSL* /*ssl*/, int /*is_export*/, int keylength)
 {
+	initTmpKeyMaps();
 	if (keylength < 2048)
-		return (DH*)tmpKeysMap[KEY_DH_2048];
+		return (DH*)g_tmpKeysMap[KEY_DH_2048];
 		
 	void* tmpDH = NULL;
 	switch (keylength)
 	{
 		case 2048:
-			tmpDH = tmpKeysMap[KEY_DH_2048];
+			tmpDH = g_tmpKeysMap[KEY_DH_2048];
 			break;
 		case 4096:
-			tmpDH = tmpKeysMap[KEY_DH_4096];
+			tmpDH = g_tmpKeysMap[KEY_DH_4096];
 			break;
 	}
 	
-	return (DH*)(tmpDH ? tmpDH : tmpKeysMap[KEY_DH_2048]);
+	return (DH*)(tmpDH ? tmpDH : g_tmpKeysMap[KEY_DH_2048]);
 }
 
 RSA* CryptoManager::tmp_rsa_cb(SSL* /*ssl*/, int /*is_export*/, int keylength)
 {
+	initTmpKeyMaps();
 	if (keylength < 2048)
-		return (RSA*)tmpKeysMap[KEY_RSA_2048];
+		return (RSA*)g_tmpKeysMap[KEY_RSA_2048];
 		
 	void* tmpRSA = NULL;
 	switch (keylength)
 	{
 		case 2048:
-			tmpRSA = tmpKeysMap[KEY_RSA_2048];
+			tmpRSA = g_tmpKeysMap[KEY_RSA_2048];
 			break;
 	}
 	
-	return (RSA*)(tmpRSA ? tmpRSA : tmpKeysMap[KEY_RSA_2048]);
+	return (RSA*)(tmpRSA ? tmpRSA : g_tmpKeysMap[KEY_RSA_2048]);
 }
 
 

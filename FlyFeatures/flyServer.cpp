@@ -2313,20 +2313,32 @@ string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p
 					Json::Value* l_ptr_mediaInfo_ext_general = nullptr;
 					Json::Value* l_ptr_mediaInfo_ext_audio   = nullptr;
 					Json::Value* l_ptr_mediaInfo_ext_video   = nullptr;
+					Json::Value* l_ptr_mediaInfo_ext_text = nullptr;
 					int l_count_audio_channel = 0;
-					int l_last_channel = 0;
+					int l_count_text_channel = 0;
+					int l_last_audio_channel = 0;
+					int l_last_text_channel = 0;
 					for (auto j = i->m_media.m_ext_array.cbegin(); j != i->m_media.m_ext_array.cend(); ++j)
 					{
 						if (j->m_stream_type == MediaInfoLib::Stream_Audio)
 						{
-							if (j->m_channel != l_last_channel)
+							if (j->m_channel != l_last_audio_channel)
 							{
-								l_last_channel = j->m_channel;
+								l_last_audio_channel = j->m_channel;
 								++l_count_audio_channel;
 							}
 						}
+						if (j->m_stream_type == MediaInfoLib::Stream_Text)
+						{
+							if (j->m_channel != l_last_text_channel)
+							{
+								l_last_text_channel = j->m_channel;
+								++l_count_text_channel;
+							}
+						}
 					}
-					std::unordered_map<int, Json::Value*> l_cache_channel;
+					std::unordered_map<int, Json::Value*> l_cache_audio_channel;
+					std::unordered_map<int, Json::Value*> l_cache_text_channel;
 					for (auto j = i->m_media.m_ext_array.cbegin(); j != i->m_media.m_ext_array.cend(); ++j)
 					{
 						if (CFlyServerConfig::isSupportTag(j->m_param))
@@ -2351,7 +2363,7 @@ string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p
 								break;
 								case MediaInfoLib::Stream_Audio:
 								{
-									if (!l_ptr_mediaInfo_ext_audio)
+									if (l_ptr_mediaInfo_ext_audio == nullptr)
 										l_ptr_mediaInfo_ext_audio = &l_mediaInfo_ext["audio"];
 									Json::Value& l_info = *l_ptr_mediaInfo_ext_audio;
 									if (l_count_audio_channel == 0)
@@ -2362,13 +2374,13 @@ string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p
 									{
 										// Определяем, в какую секцию канала должна попасть информация.
 										uint8_t l_channel_num = j->m_channel;
-										const auto l_ch_item = l_cache_channel.find(l_channel_num);
+										const auto l_ch_item = l_cache_audio_channel.find(l_channel_num);
 										Json::Value* l_channel_info = 0;
-										if (l_ch_item == l_cache_channel.end())
+										if (l_ch_item == l_cache_audio_channel.end())
 										{
 											const string l_channel_id = "channel-" + (l_channel_num != CFlyMediaInfo::ExtItem::channel_all ? Util::toString(l_channel_num) : string("all"));
 											l_channel_info = &l_info[l_channel_id];
-											l_cache_channel[l_channel_num] =  l_channel_info;
+											l_cache_audio_channel[l_channel_num] =  l_channel_info;
 										}
 										else
 										{
@@ -2378,6 +2390,36 @@ string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p
 									}
 								}
 								break;
+								case MediaInfoLib::Stream_Text:
+								{
+									if (l_ptr_mediaInfo_ext_text == nullptr)
+										l_ptr_mediaInfo_ext_text = &l_mediaInfo_ext["text"];
+									Json::Value& l_info = *l_ptr_mediaInfo_ext_text;
+									if (l_count_text_channel == 0)
+									{
+										l_info[j->m_param] = j->m_value;
+									}
+									else
+									{
+										// Определяем, в какую секцию канала должна попасть информация.
+										uint8_t l_channel_num = j->m_channel;
+										const auto l_ch_item = l_cache_text_channel.find(l_channel_num);
+										Json::Value* l_channel_info = 0;
+										if (l_ch_item == l_cache_text_channel.end())
+										{
+											const string l_channel_id = "channel-" + (l_channel_num != CFlyMediaInfo::ExtItem::channel_all ? Util::toString(l_channel_num) : string("all"));
+											l_channel_info = &l_info[l_channel_id];
+											l_cache_text_channel[l_channel_num] = l_channel_info;
+										}
+										else
+										{
+											l_channel_info = l_ch_item->second;
+										}
+										(*l_channel_info)[j->m_param] = j->m_value;
+									}
+								}
+								break;
+								
 							}
 						}
 					}
@@ -2446,6 +2488,31 @@ string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p
 	return l_result_query;
 }
 //======================================================================================================
+static bool getEnumChannelKeyAndNames(string& p_inform, const Json::Value& p_item, const string& p_caption, const string& p_channel_name)
+{
+	// Соберем общий контент для каналов - TODO - фикс копипасты
+	const Json::Value& l_attrs_channel = p_item["channel-" + p_channel_name];
+	const auto l_keys = l_attrs_channel.getMemberNames();
+	if (!l_keys.empty())
+	{
+		p_inform += "\r\n=================================================";
+		p_inform += "\r\n" + p_caption + ":";
+		for (auto i = l_keys.begin(); i != l_keys.end(); ++i)
+		{
+			string l_value = l_attrs_channel[*i].asString();
+			boost::replace_all(l_value, "\r", " ");
+			boost::replace_all(l_value, "\n", " ");
+			boost::replace_all(l_value, "  ", " ");
+			if (!l_value.empty())
+			{
+				p_inform += "\r\n";
+				p_inform += *i + ": " + l_value;
+			}
+		}
+	}
+	return !l_keys.empty();
+}
+//======================================================================================================
 string CFlyServerInfo::getMediaInfoAsText(const TTHValue& p_tth, int64_t p_file_size)
 {
 	CFlyServerKeyArray l_get_array;
@@ -2453,6 +2520,12 @@ string CFlyServerInfo::getMediaInfoAsText(const TTHValue& p_tth, int64_t p_file_
 	l_info.m_only_ext_info = true; // Запросим с сервера только расширенную.
 	l_get_array.push_back(l_info);
 	const string l_json_result = CFlyServerJSON::connect(l_get_array, false, true);
+#if _DEBUG
+	{
+		std::ofstream l_file_out("D:\\last-fly-server.json");
+		l_file_out.write(l_json_result.c_str(), l_json_result.size());
+	}
+#endif
 	string l_Infrom;
 	Json::Value l_root;
 	Json::Reader l_reader(Json::Features::strictMode());
@@ -2477,31 +2550,39 @@ string CFlyServerInfo::getMediaInfoAsText(const TTHValue& p_tth, int64_t p_file_
 			l_Infrom += "\r\nVideo ";
 			l_Infrom += l_attrs_video["Inform"].asString();
 		}
-		const Json::Value& l_attrs_audio   = l_attrs_media_ext["audio"];
-		int i = 0;
-		for (;; ++i)
 		{
-			const string l_channel_id = "channel-" + Util::toString(i);
-			const Json::Value& l_attrs_channel   = l_attrs_audio[l_channel_id];
-			const string& l_channel_value = l_attrs_channel["Inform"].asString();
-			if (l_channel_value.empty())
-				break;
-			else
+			const Json::Value& l_attrs_audio = l_attrs_media_ext["audio"];
+			getEnumChannelKeyAndNames(l_Infrom, l_attrs_audio, "Common audio property for all channel:", "all");
+			int i = 0;
+			for (; getEnumChannelKeyAndNames(l_Infrom, l_attrs_audio, "Audio property fro channel " + Util::toString(i) , Util::toString(i)); ++i)
 			{
-				if (!l_channel_value.empty())
+			}
+			if (i == 0) // Каналов нет?
+			{
+				const string l_audio = l_attrs_audio["Inform"].asString();
+				if (!l_audio.empty())
 				{
 					l_Infrom += "\r\nAudio ";
-					l_Infrom += l_channel_value + ":\r\n";
+					l_Infrom += l_audio;
 				}
 			}
 		}
-		if (i == 0) // Каналов нет?
+		//
 		{
-			const string l_audio = l_attrs_audio["Inform"].asString();
-			if (!l_audio.empty())
+			const Json::Value& l_attrs_text = l_attrs_media_ext["text"];
+			getEnumChannelKeyAndNames(l_Infrom, l_attrs_text, "Common text property for all channel:", "all");
+			int i = 0;
+			for (; getEnumChannelKeyAndNames(l_Infrom, l_attrs_text, "Text property for channel " + Util::toString(i), Util::toString(i)); ++i)
 			{
-				l_Infrom += "\r\nAudio ";
-				l_Infrom += l_audio;
+			}
+			if (i == 0) // Каналов нет?
+			{
+				const string l_text = l_attrs_text["Inform"].asString();
+				if (!l_text.empty())
+				{
+					l_Infrom += "\r\nText ";
+					l_Infrom += l_text;
+				}
 			}
 		}
 	}
@@ -2521,7 +2602,11 @@ static void getExtMediaInfo(const string& p_file_ext_wo_dot,
 	const ZtringListList l_info = MediaInfoLib::Config.Info_Get(p_stream_type);
 	if (const size_t l_count = p_media_info_dll.Count_Get(p_stream_type))
 	{
-		int l_count_audio_channel = p_stream_type == MediaInfoLib::Stream_Audio ? l_count : 0; // Число каналов считаем только для Audio
+		int l_count_audio_channel = 0;
+		if (p_stream_type == MediaInfoLib::Stream_Audio  || MediaInfoLib::Stream_Text) // Число каналов считаем только для Audio и Text
+		{
+			l_count_audio_channel = l_count;
+		}
 		for (auto i = l_info.cbegin() ; i != l_info.cend(); ++i)
 		{
 			const auto l_param_name = i->Read(0);
@@ -2548,7 +2633,7 @@ static void getExtMediaInfo(const string& p_file_ext_wo_dot,
 				}
 			}
 		}
-		if (p_compress_channel_attr && l_count_audio_channel) // Если аудио-каналов несколько. дополнительно обработаем массив
+		if (p_compress_channel_attr && l_count_audio_channel > 1) // Если аудио-каналов несколько. дополнительно обработаем массив
 		{
 			// Упакуем массив каналов если их несколько и значения признаков одинаковое для всех.
 			// Пока алгоритм обработки двух-проходный
@@ -2560,8 +2645,7 @@ static void getExtMediaInfo(const string& p_file_ext_wo_dot,
 				// TODO [!] этот проход можно поместить внуть основного алгоритма заполнения.
 				// ведь нам известно заранее что на Audio - несколько каналов будет
 			{
-				dcassert(j->m_stream_type == MediaInfoLib::Stream_Audio);
-				if (j->m_stream_type == MediaInfoLib::Stream_Audio)
+				if (j->m_stream_type == p_stream_type)
 				{
 					auto& l_value = l_channel_dup_filter[j->m_param];
 					if (l_value.first != j->m_value)
@@ -2578,8 +2662,7 @@ static void getExtMediaInfo(const string& p_file_ext_wo_dot,
 			// Отметим дубликатные записи флажком для последующего игнора при записи в базу данных.
 			for (auto k = p_media.m_ext_array.begin(); k != p_media.m_ext_array.end(); ++k)
 			{
-				dcassert(k->m_stream_type == MediaInfoLib::Stream_Audio);
-				if (k->m_stream_type == MediaInfoLib::Stream_Audio)
+				if (k->m_stream_type == p_stream_type)
 				{
 					auto l_channel_filter = l_channel_dup_filter.find(k->m_param);
 					dcassert(l_channel_filter != l_channel_dup_filter.end());
@@ -2653,11 +2736,11 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 				getExtMediaInfo(l_file_ext, p_size, g_media_info_lib, MediaInfoLib::Stream_Audio, p_media, true); // Сожмем дубликаты в каналах
 				getExtMediaInfo(l_file_ext, p_size, g_media_info_lib, MediaInfoLib::Stream_General, p_media, false);
 				getExtMediaInfo(l_file_ext, p_size, g_media_info_lib, MediaInfoLib::Stream_Video, p_media, false);
-// Это пока лишнее
-//          getExtMediaInfo(l_file_ext, p_size, g_media_info_lib,MediaInfoLib::Stream_Text,p_media);
-//			getExtMediaInfo(l_file_ext, p_size, g_media_info_lib,MediaInfoLib::Stream_Chapters,p_media);
+				getExtMediaInfo(l_file_ext, p_size, g_media_info_lib, MediaInfoLib::Stream_Text, p_media, true);
+				getExtMediaInfo(l_file_ext, p_size, g_media_info_lib, MediaInfoLib::Stream_Menu, p_media, false);
+				// Это пока лишнее
+				//          getExtMediaInfo(l_file_ext, p_size, g_media_info_lib,MediaInfoLib::Stream_Chapters,p_media);
 //			getExtMediaInfo(l_file_ext, p_size, g_media_info_lib,MediaInfoLib::Stream_Image,p_media);
-//			getExtMediaInfo(l_file_ext, p_size, g_media_info_lib,MediaInfoLib::Stream_Menu,p_media);
 			}
 			const size_t audioCount = g_media_info_lib.Count_Get(MediaInfoLib::Stream_Audio);
 			p_media.m_bitrate  = 0;

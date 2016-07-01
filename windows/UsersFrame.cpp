@@ -18,14 +18,14 @@
 
 #include "stdafx.h"
 
-#include "Resource.h"
-
+#include "resource.h"
 #include "UsersFrame.h"
+#include "MainFrm.h"
 #include "LineDlg.h"
 #include "HubFrame.h"
 #include "TextFrame.h"
 #include "ResourceLoader.h" // [+] InfinitySky. PNG Support from Apex 1.3.8.
-#include "ExMessageBox.h"
+#include "WinUtil.h"
 
 int UsersFrame::columnIndexes[] = { COLUMN_NICK, COLUMN_HUB, COLUMN_SEEN, COLUMN_DESCRIPTION, COLUMN_SPEED_LIMIT, COLUMN_IGNORE, COLUMN_USER_SLOTS, COLUMN_CID }; // !SMT!-S
 int UsersFrame::columnSizes[] = { 200, 300, 150, 200, 100, 100, 100, 300 }; // !SMT!-S
@@ -95,8 +95,50 @@ LRESULT UsersFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 			addUser(i->second);
 		}
 	}
+	
+	ctrlBadUsers.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_TABSTOP | WS_HSCROLL | WS_VSCROLL |
+	                    LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | /*LVS_NOCOLUMNHEADER |*/ LVS_NOSORTHEADER | LVS_SHAREIMAGELISTS, WS_EX_CLIENTEDGE, IDC_IGNORELIST);
+	SET_EXTENDENT_LIST_VIEW_STYLE_WITH_CHECK(ctrlBadUsers);
+	ctrlBadUsers.SetImageList(images, LVSIL_SMALL);
+	SET_LIST_COLOR(ctrlBadUsers);
+	ctrlBadUsers.SetBkColor(Colors::g_bgColor);
+	ctrlBadUsers.SetTextColor(Colors::g_textColor);
+	
+	m_nProportionalPos = 8500;  // SETTING(FAV_USERS_SPLITTER_POS);     // Хуячим разделитель. По дефолту - вертикальный.
+	SetSplitterPanes(ctrlUsers.m_hWnd, ctrlBadUsers.m_hWnd, false);     // Слева Друзья, справа Враги сука.
+	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
+	
+	
+	CRect rc;
+	ctrlBadUsers.GetClientRect(rc);         // Маркитаним правую часть фрейма - Врагов.
+	ctrlBadUsers.InsertColumn(0, CTSTRING(IGNORED_USERS) /*_T("Dummy")*/, LVCFMT_LEFT, 180 /*rc.Width()*/, 0);
+	SET_EXTENDENT_LIST_VIEW_STYLE(ctrlBadUsers);
+	// кнопка Добавить ник
+	ctrlBadAdd.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_PUSHBUTTON, 0, IDC_IGNORE_ADD);
+	ctrlBadAdd.SetWindowText(_T("+"));
+	ctrlBadAdd.SetFont(Fonts::g_systemFont);
+	// поле ввода ника для добавления
+	ctrlBadFilter.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | ES_NOHIDESEL | ES_AUTOHSCROLL, WS_EX_CLIENTEDGE, IDC_IGNORELIST_EDIT);
+	ctrlBadFilter.SetLimitText(32); // для IP+Port
+	ctrlBadFilter.SetFont(Fonts::g_font);
+	//m_filterContainer.SubclassWindow(ctrlBadFilter.m_hWnd);
+	//ctrlBadFilter.SetFont(Fonts::g_systemFont);
+	
+	ctrlBadRemove.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_PUSHBUTTON, 0, IDC_IGNORE_REMOVE);
+	ctrlBadRemove.SetWindowText(_T("—"));
+	ctrlBadRemove.SetFont(Fonts::g_systemFont);
+	::EnableWindow(ctrlBadRemove, FALSE);
+	
+#ifdef FLYLINKDC_USE_ALL_CLEAR_FOR_IGNORE_USER
+	ctrlBadClear.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_PUSHBUTTON, 0, IDC_IGNORE_CLEAR);
+	ctrlBadClear.SetWindowText(_T("X"));
+	ctrlBadClear.SetFont(Fonts::g_systemFont);
+#endif
+	fillBad();
+	
 	startup = false;
 	bHandled = FALSE;
+	UpdateLayout(); // Именно в таком порядке! Здесь второму фрейму координаты записываются.
 	return TRUE;
 }
 
@@ -157,13 +199,61 @@ void UsersFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 {
 	if (isClosedOrShutdown())
 		return;
-	RECT rect;
+	int l_barHigh = 28;
+	RECT rect, rect2;
 	GetClientRect(&rect);
-	// position bars and offset their dimensions
-	UpdateBarsPosition(rect, bResizeBars);
+	rect2 = rect;
+	rect2.bottom = rect.bottom - l_barHigh;
 	
-	CRect rc = rect;
-	ctrlUsers.MoveWindow(rc);
+	// position bars and offset their dimensions
+	UpdateBarsPosition(rect2, bResizeBars);
+	
+	// Друзья
+	CRect rc_l, rc_r;
+	ctrlUsers.GetClientRect(rc_l);
+	rc_l.bottom = rect2.bottom;
+	ctrlUsers.MoveWindow(rc_l);
+	
+	// Игнор
+	ctrlBadUsers.GetClientRect(rc_r);
+	rc_r.bottom = rect2.bottom;
+	ctrlBadUsers.MoveWindow(rc_r);
+	// Шевелим кнопки Игнора
+	CRect rc_b = rect;
+	rc_b.top = rect.bottom - 24;
+	rc_b.right -= 4;
+	
+	rc_b.left = rc_b.right - 22;
+	rc_b.bottom = rc_b.top + 22;
+#ifdef FLYLINKDC_USE_ALL_CLEAR_FOR_IGNORE_USER
+	ctrlBadClear.MoveWindow(rc_b);
+#endif
+	
+	rc_b.right = rc_b.left - 6;
+	rc_b.left = rc_b.right - 22;
+	ctrlBadRemove.MoveWindow(rc_b);
+	
+	rc_b.right = rc_b.left - 6;
+	rc_b.left = rc_b.right - 22;
+	ctrlBadAdd.MoveWindow(rc_b);
+	
+	rc_b.right = rc_b.left - 2;
+	rc_b.left = rc_b.right - 150;
+	ctrlBadFilter.MoveWindow(rc_b);
+	
+	
+	
+	// Сплиттер
+	CRect rc = rect2;
+	SetSplitterRect(rc);
+	/*
+	#ifdef FLYLINKDC_USE_ALL_CLEAR_FOR_IGNORE_USER
+	if (ctrlBadUsers.GetItemCount()==0)
+	        ::EnableWindow(ctrlBadClear, FALSE);
+	    else
+	        ::EnableWindow(ctrlBadClear, TRUE);
+	#endif
+	*/
 }
 
 LRESULT UsersFrame::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -366,6 +456,9 @@ LRESULT UsersFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		SET_SETTING(USERS_COLUMNS_SORT_ASC, ctrlUsers.isAscending());
 		ctrlUsers.DeleteAndCleanAllItems();
 		
+		//if (m_nProportionalPos < 8000 || m_nProportionalPos > 9000)
+		//  m_nProportionalPos = 8500;
+		//SET_SETTING(FAV_USERS_SPLITTER_POS, m_nProportionalPos); // Пока НЕ сохраняем положение сплиттера. Неясно какие габариты правильные
 		bHandled = FALSE;
 		return 0;
 	}
@@ -429,9 +522,7 @@ LRESULT UsersFrame::onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 }
 void UsersFrame::on(UserAdded, const FavoriteUser& aUser) noexcept
 {
-	dcassert(0);
 	dcassert(!ClientManager::isShutdown());
-//	if (!ClientManager::isShutdown())
 	{
 #ifdef IRAINMAN_USE_NON_RECURSIVE_BEHAVIOR
 		PostMessage(WM_CLOSE);
@@ -519,6 +610,85 @@ LRESULT UsersFrame::onSetUserLimit(WORD /* wNotifyCode */, WORD wID, HWND /*hWnd
 	return 0;
 }
 
+LRESULT UsersFrame::onBadItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
+{
+	NMITEMACTIVATE* l = (NMITEMACTIVATE*)pnmh;
+	if (l->iItem != -1)
+	{
+		const auto l_enabled = ctrlBadUsers.GetItemState(l->iItem, LVIS_SELECTED);
+		::EnableWindow(ctrlBadRemove /*GetDlgItem(IDC_CONNECT)*/, l_enabled);
+	}
+	return 0;
+}
+void UsersFrame::fillBad()
+{
+	tstring l_Nick;
+	UserManager::getIgnoreList(m_BadUsers); // Забираем список игнора в виде таблицы ников.
+	auto cnt = ctrlBadUsers.GetItemCount();
+	for (auto i = m_BadUsers.cbegin(); i != m_BadUsers.cend(); ++i)
+	{
+		l_Nick = Text::toT(*i);
+		ctrlBadUsers.insert(cnt++, l_Nick);
+	}
+}
+void UsersFrame::updateBad()
+{
+	ctrlBadUsers.DeleteAllItems();
+	fillBad();
+}
+LRESULT UsersFrame::onIgnoreAdd(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */)
+{
+	m_ignoreListCnange = true;
+	tstring buf;
+	GET_TEXT(IDC_IGNORELIST_EDIT, buf);
+	if (!buf.empty())
+	{
+		const auto& p = m_BadUsers.insert(Text::fromT(buf));
+		if (p.second)
+		{
+			ctrlBadUsers.insert(ctrlBadUsers.GetItemCount(), buf);
+			saveBad();
+		}
+		else
+		{
+			MessageBox(CTSTRING(ALREADY_IGNORED), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK);
+		}
+	}
+	SetDlgItemText(IDC_IGNORELIST_EDIT, _T(""));
+	return 0;
+}
+
+LRESULT UsersFrame::onIgnoreRemove(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */)
+{
+	m_ignoreListCnange = true;
+	int i = -1;
+	
+	while ((i = ctrlBadUsers.GetNextItem(-1, LVNI_SELECTED)) != -1)
+	{
+		m_BadUsers.erase(ctrlBadUsers.ExGetItemText(i, 0));
+		ctrlBadUsers.DeleteItem(i);
+	}
+	saveBad();
+	return 0;
+}
+
+LRESULT UsersFrame::onIgnoreClear(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */)
+{
+	m_ignoreListCnange = true;
+	ctrlBadUsers.DeleteAllItems();
+	m_BadUsers.clear();
+	saveBad();
+	return 0;
+}
+
+void UsersFrame::saveBad()
+{
+	if (m_ignoreListCnange)
+	{
+		UserManager::setIgnoreList(m_BadUsers);
+		m_ignoreListCnange = false;
+	}
+}
 /**
  * @file
  * $Id: UsersFrame.cpp,v 1.37 2006/08/13 19:03:50 bigmuscle Exp $

@@ -3459,12 +3459,12 @@ bool WinUtil::FillCustomMenu(CMenuHandle &menu, string& menuName) //[+] SSA: Cus
 	const size_t l_count = l_MenuList.size();
 	for (size_t i = 0; i < l_count; i++)
 	{
-		const CustomMenuItem* item = l_MenuList[i];
-		switch (item->getType())
+		const CustomMenuItem& item = l_MenuList[i];
+		switch (item.getType())
 		{
 			case 1: // Add Item to current menu;
 			{
-				bRet |= currentMenu.AppendMenu(MF_STRING, IDC_CUSTOM_MENU + item->getID(), Text::toT(item->getTitle()).c_str());
+				bRet |= currentMenu.AppendMenu(MF_STRING, IDC_CUSTOM_MENU + item.getID(), Text::toT(item.getTitle()).c_str());
 			}
 			break;
 			case 0: // Add Separator
@@ -3484,7 +3484,7 @@ bool WinUtil::FillCustomMenu(CMenuHandle &menu, string& menuName) //[+] SSA: Cus
 			{
 				CMenuHandle lastParent = menuHandels.back();
 				menuHandels.pop_back();
-				lastParent.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)currentMenu, Text::toT(item->getTitle()).c_str());
+				lastParent.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)currentMenu, Text::toT(item.getTitle()).c_str());
 				currentMenu = lastParent;
 			}
 			break;

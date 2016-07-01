@@ -140,10 +140,10 @@ bool Util::checkForbidenFolders(const string& p_path)
 {
 	// don't share Windows directory
 	if (Util::locatedInSysPath(Util::WINDOWS, p_path) ||
-		Util::locatedInSysPath(Util::APPDATA, p_path) ||
-		Util::locatedInSysPath(Util::LOCAL_APPDATA, p_path) ||
-		Util::locatedInSysPath(Util::PROGRAM_FILES, p_path) ||
-		Util::locatedInSysPath(Util::PROGRAM_FILESX86, p_path))
+	        Util::locatedInSysPath(Util::APPDATA, p_path) ||
+	        Util::locatedInSysPath(Util::LOCAL_APPDATA, p_path) ||
+	        Util::locatedInSysPath(Util::PROGRAM_FILES, p_path) ||
+	        Util::locatedInSysPath(Util::PROGRAM_FILESX86, p_path))
 		return true;
 	else
 		return false;
@@ -240,17 +240,17 @@ void Util::initialize()
 	LocalArray<TCHAR, MAX_PATH> l_buf;
 #define SYS_WIN_PATH_INIT(path) \
 	if(::SHGetFolderPath(NULL, CSIDL_##path, NULL, SHGFP_TYPE_CURRENT, l_buf.data()) == S_OK) \
-		{ \
-	      g_sysPaths[path] = Text::fromT(l_buf.data()) + PATH_SEPARATOR; \
-        } \
+	{ \
+		g_sysPaths[path] = Text::fromT(l_buf.data()) + PATH_SEPARATOR; \
+	} \
 	else \
 	{ \
 		dcassert(0); \
-	} 
+	}
 	
-	//LogManager::message("Sysytem Path: " + g_sysPaths[path]); 		
-	//LogManager::message("Error SHGetFolderPath: GetLastError() = " + Util::toString(GetLastError())); 
-
+	//LogManager::message("Sysytem Path: " + g_sysPaths[path]);
+	//LogManager::message("Error SHGetFolderPath: GetLastError() = " + Util::toString(GetLastError()));
+	
 	SYS_WIN_PATH_INIT(WINDOWS);
 	SYS_WIN_PATH_INIT(PROGRAM_FILESX86);
 	SYS_WIN_PATH_INIT(PROGRAM_FILES);
@@ -2835,10 +2835,11 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 	// Проверить а конфиг файл действительно менятеся.
 	// INTERNET_FLAG_NO_CACHE_WRITE - использовать если файл большой
 	// INTERNET_FLAG_RESYNCHRONIZE - использовать для xml и rtf  + конфиг
-	DWORD l_cache_flag = 0;
+	DWORD l_cache_flag = INTERNET_FLAG_NO_UI | INTERNET_FLAG_NO_COOKIES; // | INTERNET_FLAG_CACHE_IF_NET_FAIL;
+#ifdef FLYLINKDC_USE_CACHE_WININET
 	if (!m_is_use_cache)
 	{
-		l_cache_flag = INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_RELOAD;
+		//l_cache_flag |= INTERNET_FLAG_PRAGMA_NOCACHE;
 		if (p_url.size() > 6)
 		{
 			const auto l_ext3 = p_url.c_str() + p_url.size() - 4;
@@ -2847,11 +2848,12 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 			        strcmp(l_ext3, ".rtf") == 0 ||
 			        strcmp(l_ext4, ".sign") == 0)
 			{
-				l_cache_flag = INTERNET_FLAG_RESYNCHRONIZE;
+				//l_cache_flag |= INTERNET_FLAG_RELOAD; // INTERNET_FLAG_RESYNCHRONIZE;
 			}
 		}
 	}
-	CInternetHandle hURL(InternetOpenUrlA(hInternet, p_url.c_str(), NULL, 0, m_flag ? m_flag : l_cache_flag , 0));
+#endif
+	CInternetHandle hURL(InternetOpenUrlA(hInternet, p_url.c_str(), NULL, 0, m_inet_flag | l_cache_flag , 0));
 	if (!hURL)
 	{
 		dcassert(0);

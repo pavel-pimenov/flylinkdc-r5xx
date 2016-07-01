@@ -8,3 +8,5 @@ compiled/WEBserver/*.*
 compiled/crashrpt-x86.dll
 compiled/dbghelp-x86.dll
 compiled/sendrpt-x86.exe
+compiled/readme_changelog_full.rtf
+compiled/readme_changelog_lite.rtf

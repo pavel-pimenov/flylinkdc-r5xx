@@ -27,17 +27,14 @@
 
 class CustomMenuItem
 {
-		typedef CustomMenuItem* Ptr;
 	public:
 		CustomMenuItem(
-		    int p_type, int p_id, const string& p_title
+		    int p_type, int p_id, const string& p_title = Util::emptyString
 		): m_type(p_type), m_id(p_id), m_title(p_title) {}
-		CustomMenuItem(const CustomMenuItem* p_src):
-			m_id(p_src->getID()), m_title(p_src->getTitle()),  m_type(p_src->getType()) { }
 	public:
 		GETSET(int, m_id, ID);
-		GETSET(string, m_title, Title);
 		GETSET(int, m_type, Type);
+		GETSET(string, m_title, Title);
 };
 
 class CustomMenuManager
@@ -45,9 +42,8 @@ class CustomMenuManager
 {
 	public:
 	
-		typedef vector<CustomMenuItem*> MenuList;
+		typedef vector<CustomMenuItem> MenuList;
 		typedef std::map<int, string> URLList;
-		
 		
 		CustomMenuManager(void);
 		~CustomMenuManager(void);
@@ -58,12 +54,8 @@ class CustomMenuManager
 		}
 		
 		void load();
-		
 		const string& GetUrlByID(int id);
-		
 		GETSET(string, _title, Title);
-		
-		
 	private:
 	
 		static size_t GetData(const string& url, string& data);
@@ -71,7 +63,6 @@ class CustomMenuManager
 		
 		MenuList m_menuList;
 		URLList m_urlList;
-		
 		
 		void ProcessXMLSubMenu(SimpleXML& xml, int& i);
 };
