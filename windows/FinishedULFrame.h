@@ -46,7 +46,7 @@ class FinishedULFrame : public FinishedFrameBase<FinishedULFrame, ResourceManage
 			PostMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)new FinishedItemPtr(p_entry));
 		}
 		
-		void on(RemovedUl, const FinishedItemPtr& p_entry) noexcept override// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
+		void on(RemovedUl, const FinishedItemPtr& p_entry) noexcept override
 		{
 			PostMessage(WM_SPEAKER, SPEAK_REMOVE_LINE, (WPARAM)new FinishedItemPtr(p_entry));
 		}

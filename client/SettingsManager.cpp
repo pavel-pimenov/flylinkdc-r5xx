@@ -453,7 +453,7 @@ const string SettingsManager::g_settingTags[] =
 	"SettingsStatisticsAsk",
 #endif
 	"UseStatiscitcsSend",
-	"ReportToUserIfOutdatedOsDetected20130523", // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1032
+	"ReportToUserIfOutdatedOsDetected20130523",
 	"UseGPUInTTHComputing",
 	"TTHGPUDevNum",
 	//"UsersTop", "UsersBottom", "UsersLeft", "UsersRight",
@@ -508,7 +508,7 @@ void SettingsManager::setDefaults()
 	g_connectionSpeeds.push_back("100");
 	g_connectionSpeeds.push_back("1000");
 	dcassert(g_connectionSpeeds.size() == g_connectionSpeeds.capacity());
-#ifdef PPA_INCLUDE_OLD_INNOSETUP_WIZARD
+#ifdef FLYLINKDC_USE_OLD_INNOSETUP_WIZARD
 	const string l_dir = Util::getRegistryValueString("DownloadDir", true);
 	if (!l_dir.empty())
 		setDefault(DOWNLOAD_DIRECTORY, l_dir);
@@ -529,7 +529,7 @@ void SettingsManager::setDefaults()
 	setDefault(OUTGOING_CONNECTIONS, OUTGOING_DIRECT);
 	//setDefault(INCOMING_AUTODETECT_FLAG, false);// [!] IRainman require special algorithm for choosing a random user can add additional checks.
 //      setDefault(BAN_FEW_HUB, false); // [+] necros
-#ifdef PPA_INCLUDE_AUTO_FOLLOW
+#ifdef FLYLINKDC_USE_AUTO_FOLLOW
 	setDefault(AUTO_FOLLOW, TRUE);
 #endif
 	setDefault(CLEAR_SEARCH, TRUE);
@@ -1080,7 +1080,7 @@ void SettingsManager::setDefaults()
 	//setDefault(POPUP_IMAGE, 0);
 	setDefault(OPEN_LOGS_INTERNAL, TRUE); //[+]PPA
 	// ApexDC++
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 	setDefault(NSLOOKUP_MODE, Socket::DNSCache::NSLOOKUP_DELAYED); // !SMT!-IP
 	setDefault(NSLOOKUP_DELAY, 100); // !SMT!-IP
 #endif
@@ -1312,7 +1312,7 @@ void SettingsManager::setDefaults()
 #endif
 	setDefault(USE_FLY_SERVER_STATICTICS_SEND, TRUE);
 #ifdef FLYLINKDC_USE_CHECK_OLD_OS
-	setDefault(REPORT_TO_USER_IF_OUTDATED_OS_DETECTED, TRUE); // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1032
+	setDefault(REPORT_TO_USER_IF_OUTDATED_OS_DETECTED, TRUE);
 #endif
 #ifdef FLYLINKDC_HE
 	setDefault(AUTOUPDATE_USE_CUSTOM_URL, TRUE);
@@ -1328,7 +1328,6 @@ void SettingsManager::setDefaults()
 	
 	setSearchTypeDefaults();
 	// TODO - грузить это из сети и отложенно когда понадобится.
-	// http://code.google.com/p/flylinkdc/issues/detail?id=1279
 	Util::shrink_to_fit(&strDefaults[STR_FIRST], &strDefaults[STR_LAST]); // [+] IRainman opt.
 }
 
@@ -1492,8 +1491,6 @@ void SettingsManager::load(const string& aFileName)
 				return g_default_lang_file_name;
 			}
 		};
-		// [!] IRainman:
-		// The latest revision of the old names of the localization files http://code.google.com/p/flylinkdc/source/detail?r=7589
 		HKEY hk = nullptr;
 		wstring l_key_path = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\");
 		l_key_path += _T("FlylinkDC++");// _T(APPNAME); // Тут не меняем имя на вип

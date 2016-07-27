@@ -898,7 +898,7 @@ void FavoriteManager::save()
 		// Проверим валидность XML
 		try
 		{
-			SimpleXML xml_check; // http://code.google.com/p/flylinkdc/issues/detail?id=1409
+			SimpleXML xml_check;
 			xml_check.fromXML(File(l_tmp_file, File::READ, File::OPEN).read());
 			File::deleteFile(fname);
 			File::renameFile(l_tmp_file, fname);
@@ -1486,7 +1486,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					const string hubUrl = Util::formatDchubUrl(aXml.getChildAttrib("URL")); // [!] IRainman fix: toLower already called in formatDchubUrl ( decodeUrl )
 					
 					const string cid = Util::isAdcHub(hubUrl) ? aXml.getChildAttrib("CID") : ClientManager::makeCid(nick, hubUrl).toBase32();
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 					const uint32_t l_hub_id = CFlylinkDBManager::getInstance()->get_dic_hub_id(hubUrl);
 #endif
 					// [~] FlylinkDC
@@ -1496,7 +1496,7 @@ void FavoriteManager::load(SimpleXML& aXml
 						if (nick.empty() || hubUrl.empty())
 							continue;
 						u = ClientManager::getUser(nick, hubUrl
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 						                           , l_hub_id
 #endif
 						                           , false
@@ -1652,9 +1652,9 @@ void FavoriteManager::setUploadLimit(const UserPtr& aUser, int lim, bool createU
 			l_is_added = addUserL(aUser, i, createUser);
 			if (i == g_fav_users_map.end())
 				return;
+			i->second.setUploadLimit(FavoriteUser::UPLOAD_LIMIT(lim));
 			l_fav_user = i->second;
 		}
-		l_fav_user.setUploadLimit(FavoriteUser::UPLOAD_LIMIT(lim));
 		speakUserUpdate(l_is_added, l_fav_user);
 	}
 	save();
@@ -1687,13 +1687,13 @@ void FavoriteManager::setFlag(const UserPtr& aUser, FavoriteUser::Flags f, bool 
 			l_is_added = addUserL(aUser, i, createUser);
 			if (i == g_fav_users_map.end())
 				return;
+			if (value)
+				i->second.setFlag(f);
+			else
+				i->second.unsetFlag(f);
 			l_fav_user = i->second;
 		}
-		if (value)
-			l_fav_user.setFlag(f);
-		else
-			l_fav_user.unsetFlag(f);
-			
+		
 		speakUserUpdate(l_is_added, l_fav_user);
 	}
 	save();
@@ -1813,13 +1813,12 @@ void FavoriteManager::on(UserDisconnected, const UserPtr& aUser) noexcept
 				auto i = g_fav_users_map.find(aUser->getCID());
 				if (i == g_fav_users_map.end())
 					return;
-				i->second.setLastSeen(GET_TIME()); // TODO: if ClientManager::isShutdown() this data is not update :( https://code.google.com/p/flylinkdc/issues/detail?id=1317
+				i->second.setLastSeen(GET_TIME()); // TODO: if ClientManager::isShutdown() this data is not update :(
 			}
 			if (!ClientManager::isShutdown())
 			{
 				fly_fire1(FavoriteManagerListener::StatusChanged(), aUser);
 			}
-			// save(); http://code.google.com/p/flylinkdc/issues/detail?id=1409
 		}
 	}
 }

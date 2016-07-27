@@ -892,7 +892,7 @@ int WebServerSocket::run()
 								string DownloadName = Link["dn"];
 								if (!DownloadName.empty())
 								{
-									DownloadName = Util::encodeURI(DownloadName, true); // fix https://code.google.com/p/flylinkdc/issues/detail?id=1496
+									DownloadName = Util::encodeURI(DownloadName, true);
 									if (!dir.empty())
 									{
 										File::addTrailingSlash(dir);

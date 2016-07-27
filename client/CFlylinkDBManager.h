@@ -17,7 +17,7 @@
 #include "CFlyMediaInfo.h"
 #include "LogManager.h"
 
-#define FLYLINKDC_USE_LEVELDB // https://code.google.com/p/flylinkdc/issues/detail?id=1097
+#define FLYLINKDC_USE_LEVELDB
 
 #ifdef FLYLINKDC_USE_LEVELDB
 
@@ -79,7 +79,7 @@ class CFlyLevelDB
 		~CFlyLevelDB();
 		static void shutdown();
 		
-		bool open_level_db(const string& p_db_name);
+		bool open_level_db(const string& p_db_name, bool& p_is_destroy);
 		bool get_value(const void* p_key, size_t p_key_len, string& p_result);
 		bool set_value(const void* p_key, size_t p_key_len, const void* p_val, size_t p_val_len);
 		bool get_value(const TTHValue& p_tth, string& p_result)
@@ -218,7 +218,7 @@ struct CFlyFileInfo
 	uint32_t m_hit;
 	int64_t m_StampShare;
 	std::shared_ptr<CFlyMediaInfo> m_media_ptr;
-#ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
+#ifdef FLYLINKDC_USE_ONLINE_SWEEP_DB
 	bool     m_found;
 #endif
 	bool     m_recalc_ftype;
@@ -249,7 +249,7 @@ enum eTypeSegment
 	e_CMDDebugFilterState = 6,
 	e_TimeStampGeoIP = 7,
 	e_TimeStampCustomLocation = 8,
-	e_IsTTHLevelDBConvert = 9,
+	// e_IsTTHLevelDBConvert = 9,
 	e_IncopatibleSoftwareList = 10,
 	// 11, - не занимать
 	e_DeleteCounterAntivirusDB = 12,
@@ -318,7 +318,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void push_add_share_tth(const TTHValue& p_tth);
 		void push_add_virus_database_tth(const TTHValue& p_tth);
 		static string get_db_size_info();
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		void store_all_ratio_and_last_ip(uint32_t p_hub_id,
 		                                 const string& p_nick,
 		                                 CFlyUploadDownloadMap* p_upload_download_stats,
@@ -358,7 +358,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlyGlobalRatioItem  m_global_ratio;
 		double get_ratio() const;
 		tstring get_ratioW() const;
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		
 		bool is_table_exists(const string& p_table_name);
 		
@@ -409,7 +409,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		size_t get_count_folders();
 		void sweep_db();
 		void load_dir(__int64 p_path_id, CFlyDirMap& p_dir_map, bool p_is_no_mediainfo);
-#ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
+#ifdef FLYLINKDC_USE_ONLINE_SWEEP_DB
 		void sweep_files(__int64 p_path_id, const CFlyDirMap& p_sweep_files);
 #endif
 #ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
@@ -546,7 +546,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void flush_lost_json_statistic(bool& p_is_error);
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 		__int64 convert_tth_history();
-		__int64 convert_tth_historyL();
 		static int32_t getCountQueueFiles()
 		{
 			return g_count_queue_files;
@@ -556,6 +555,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 			return g_count_queue_source;
 		}
 	private:
+		__int64 convert_tth_historyL();
 		void delete_queue_sourcesL(const __int64 p_id);
 		void convert_fly_hash_block_crate_unicque_tthL(CFlyLogFile& p_convert_log);
 		void convert_fly_hash_blockL();
@@ -781,6 +781,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_select_transfer;
 		CFlySQLCommand m_select_transfer_tth;
 		CFlySQLCommand m_select_transfer_histrogram;
+		CFlySQLCommand m_select_transfer_convert_leveldb;
 		CFlySQLCommand m_insert_transfer;
 		CFlySQLCommand m_delete_transfer;
 		

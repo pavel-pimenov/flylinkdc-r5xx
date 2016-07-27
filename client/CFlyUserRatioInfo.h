@@ -7,7 +7,7 @@
 #include <boost/asio/ip/address_v4.hpp>
 #include "CFlyThread.h"
 
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 template <class T> class CFlyUploadDownloadPair
 {
 	private:
@@ -148,7 +148,7 @@ struct CFlyUserRatioInfo : public CFlyRatioItem
 		CFlyUploadDownloadMap* m_ip_map_ptr;
 		User*  m_user;
 };
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 
 
 #endif

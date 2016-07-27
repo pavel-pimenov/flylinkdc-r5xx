@@ -36,7 +36,6 @@ static const TCHAR g_GoodBorderNickSymbol[] = { _T(' '), _T('\"'), _T('<'), _T('
                                                 _T('*'), _T(':'),  _T(';'), _T('%'), _T('+'), _T('-')/*,
                                                 _T('_')*/
                                               };
-// http://code.google.com/p/flylinkdc/issues/detail?id=175
 
 static const Tags g_AllLinks[] =
 {
@@ -230,17 +229,18 @@ void ChatCtrl::restore_chat_cache()
 #endif
 		if (m_is_cache_chat_empty == false)
 		{
+			CLockRedraw<true> l_lock_redraw(*this);
 			m_is_cache_chat_empty = true;
 			int l_count = m_chat_cache.size();
 			for (auto i = m_chat_cache.begin(); i != m_chat_cache.end(); ++i)
 			{
 			
-				if (l_count-- > 100) // Отрубаем смайлы и стиль на старых записях
+				if (l_count-- > 40) // Отрубаем смайлы и стиль на старых записях
 				{
 					i->m_bUseEmo = false;
 					i->m_is_disable_style = true;
 				}
-				AppendText(*i);
+				AppendText(*i, false);
 			}
 		}
 		{
@@ -262,14 +262,14 @@ void ChatCtrl::insertAndFormat(const tstring & text, CHARFORMAT2 cf, bool p_is_d
 	{
 		p_begin = p_end = GetTextLengthEx(GTL_NUMCHARS);
 		SetSel(p_end, p_end);
-		ReplaceSel(text.c_str()); // http://www.flickr.com/photos/96019675@N02/11524414653/ http://code.google.com/p/flylinkdc/issues/detail?id=1428
+		ReplaceSel(text.c_str());
 		p_end = GetTextLengthEx(GTL_NUMCHARS);
 		SetSel(p_begin, p_end);
 		SetSelectionCharFormat(cf);
 	}
 }
 //================================================================================================================================
-void ChatCtrl::AppendText(const CFlyChatCache& p_message)
+void ChatCtrl::AppendText(const CFlyChatCache& p_message, bool p_is_lock_redraw)
 //    const Identity& p_id, const bool bMyMess, const bool bThirdPerson, const tstring& sExtra, const tstring& sMsg, const CHARFORMAT2& cf
 //, bool bUseEmo/* = true*/
 {
@@ -290,7 +290,11 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message)
 			return;
 		}
 	}
-	CLockRedraw<true> l_lock_draw(m_hWnd);
+	unique_ptr<CLockRedraw<true>> l_ptr_lock_draw;
+	if (p_is_lock_redraw)
+	{
+		l_ptr_lock_draw = std::make_unique<CLockRedraw<true> >(m_hWnd);
+	}
 	LONG lSelBeginSaved, lSelEndSaved;
 	GetSel(lSelBeginSaved, lSelEndSaved);
 	POINT l_cr;
@@ -337,9 +341,11 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message)
 	}
 	else
 	{
+		static const tstring g_open = _T("<");
+		static const tstring g_close = _T("> ");
 		if (p_message.m_is_disable_style)
 		{
-			insertAndFormat(_T("<") + p_message.m_Nick + _T(">"), p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
+			insertAndFormat(g_open + p_message.m_Nick + g_close, p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
 		}
 		else
 		{
@@ -349,9 +355,17 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message)
 				    p_message.m_is_op ? Colors::g_TextStyleOPs :
 				    BOOLSETTING(BOLD_AUTHOR_MESS) ? Colors::g_TextStyleBold :
 				    p_message.m_cf;
-			insertAndFormat(_T("<"), p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
-			insertAndFormat(p_message.m_Nick, currentCF, p_message.m_is_disable_style, lSelBegin, lSelEnd);
-			insertAndFormat(_T("> "), p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
+			//dcassert(sizeof(currentCF) == sizeof(p_message.m_cf));
+			//if (memcmp(&currentCF, &p_message.m_cf,sizeof(currentCF)) == 0)
+			//{
+			//  insertAndFormat(g_open + p_message.m_Nick + g_close, p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
+			//}
+			//else
+		{
+				insertAndFormat(g_open, p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
+				insertAndFormat(p_message.m_Nick, currentCF, p_message.m_is_disable_style, lSelBegin, lSelEnd);
+				insertAndFormat(g_close, p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
+			}
 		}
 	}
 	
@@ -361,7 +375,7 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message)
 	extern DWORD g_GDI_count;
 	bool bUseEmo = p_message.m_bUseEmo && m_is_out_of_memory_for_smile == false && g_GDI_count < 8000;
 	if (g_GDI_count >= 8000)
-{
+	{
 		LogManager::message("[!] GDI count >= 8000 - disable smiles!");
 	}
 	if (bUseEmo)
@@ -492,7 +506,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 	sMsgLower.MakeLower();
 	
 	//[!]IRainman optimize
-	lSelEnd = GetTextLengthEx(GTL_NUMCHARS); // Часто встречается GetTextLengthEx(GTL_NUMCHARS) http://code.google.com/p/flylinkdc/issues/detail?id=1428
+	lSelEnd = GetTextLengthEx(GTL_NUMCHARS); // Часто встречается GetTextLengthEx(GTL_NUMCHARS)
 	SetSel(lSelBegin, lSelEnd);
 	auto cfTemp = p_message.m_bMyMess ? Colors::g_ChatTextMyOwn : p_message.m_cf;
 	SetSelectionCharFormat(cfTemp);
@@ -604,7 +618,6 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 				lMyNickStart = sMsgLower.Find(sNick, lSearchFrom);
 				if (lMyNickStart < 0)
 					break; // TODO не понятно зачем грузить список ников из фаворитов чтобы при первом ошибочном поиске выйти из цикла!
-				// http://code.google.com/p/flylinkdc/issues/detail?id=1416
 				// [!] SSA - get Previous symbol.
 				if (lMyNickStart > 0 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickStart - 1)))
 					break;
@@ -657,7 +670,7 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 			}
 			ls.resize(linkEnd - linkStart); //-V106
 			SetSel(lSelBegin + linkStart, lSelBegin + linkEnd);
-			GetTextRange(lSelBegin + linkStart, lSelBegin + linkEnd, &ls[0]); // TODO проверить результат? http://code.google.com/p/flylinkdc/issues/detail?id=1428
+			GetTextRange(lSelBegin + linkStart, lSelBegin + linkEnd, &ls[0]); // TODO проверить результат?
 			tstring originalLink = ls;
 			tstring l_weblink;
 			tstring l_webdesc;
@@ -665,7 +678,6 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 			{
 				ls = ls.erase(0, 8); // opt: delete "magnet:?" for fasts search.
 				
-				// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=642
 				// Cruth for stupid magnet-link generators.
 				// see http://en.wikipedia.org/wiki/Magnet_URI_scheme for details about paramethers.
 				{
@@ -721,11 +733,9 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 						originalLink = temp;
 					}
 				}
-				// [~] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=642
 				
-				//[!]IRainman detect BT magnet
 				tstring sFileName = ls;
-				const bool l_isTorrentLink = Util::isTorrentLink(sFileName); // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=223
+				const bool l_isTorrentLink = Util::isTorrentLink(sFileName);
 				
 				auto getParamether = [](const tstring & p_param, tstring & p_strInOut) -> bool
 				{
@@ -762,7 +772,7 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 				}
 				
 				if (l_isTorrentLink)
-					ls = sFileName + _T(" (") + TSTRING(BT_LINK) + _T(')');//[+]IRainman http://code.google.com/p/flylinkdc/issues/detail?id=223
+					ls = sFileName + _T(" (") + TSTRING(BT_LINK) + _T(')');
 				else
 				{
 					tstring sFileSize = ls;

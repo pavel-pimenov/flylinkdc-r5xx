@@ -26,7 +26,7 @@
 #include "Speaker.h"
 #include "Singleton.h"
 
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 class ConnectivityManagerListener
 {
 	public:
@@ -46,10 +46,10 @@ class ConnectivityManagerListener
 		virtual void on(Finished) noexcept { }
 		virtual void on(SettingChanged) noexcept { }
 };
-#endif // PPA_INCLUDE_DEAD_CODE
+#endif // FLYLINKDC_USE_DEAD_CODE
 
 class ConnectivityManager : public Singleton<ConnectivityManager>
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 	, public Speaker<ConnectivityManagerListener>
 #endif
 {

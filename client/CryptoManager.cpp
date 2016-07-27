@@ -34,7 +34,6 @@
 
 
 void* CryptoManager::g_tmpKeysMap[KEY_LAST] = { NULL, NULL, NULL };
-bool CryptoManager::g_is_init_tmp_key_map = false;
 CriticalSection* CryptoManager::cs = NULL;
 int CryptoManager::idxVerifyData = 0;
 char CryptoManager::idxVerifyDataName[] = "FlylinkDC.VerifyData";
@@ -67,6 +66,9 @@ CryptoManager::CryptoManager()
 		// Check that openssl rng has been seeded with enough data
 		sslRandCheck();
 		
+		// http://www.flylinkdc.ru/2016/06/openssl.html
+		// initTmpKeyMaps();
+		
 		SSL_CTX_set_options(clientContext, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
 		SSL_CTX_set_options(serverContext, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
 		
@@ -81,8 +83,8 @@ CryptoManager::CryptoManager()
 }
 void CryptoManager::initTmpKeyMaps()
 {
-	static bool g_is_init_tmp_key_map;
-	if (!g_is_init_tmp_key_map)
+	static bool g_is_init_tmp_key_map = false;
+	if (g_is_init_tmp_key_map == false)
 	{
 		g_is_init_tmp_key_map = true;
 		// Init temp data for DH keys

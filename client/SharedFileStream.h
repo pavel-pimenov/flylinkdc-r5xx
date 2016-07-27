@@ -28,12 +28,13 @@
 struct SharedFileHandle
 {
 	SharedFileHandle(const string& aPath, int aAccess, int aMode) :
-		m_ref_cnt(1), m_path(aPath), m_mode(aMode), m_access(aAccess)
+		m_ref_cnt(1), m_path(aPath), m_mode(aMode), m_access(aAccess), m_last_file_size(0)
 	{
 	}
 	void init()
 	{
 		m_file.init(Text::toT(m_path), m_access, m_mode, true);
+		m_last_file_size = m_file.getSize();
 	}
 	FastCriticalSection m_cs;
 	File  m_file;
@@ -41,6 +42,8 @@ struct SharedFileHandle
 	int m_ref_cnt;
 	int m_mode;
 	int m_access;
+	int64_t m_last_file_size;
+	
 };
 
 class SharedFileStream : public IOStream
@@ -55,7 +58,8 @@ class SharedFileStream : public IOStream
 		size_t write(const void* buf, size_t len);
 		size_t read(void* buf, size_t& len);
 		
-		int64_t getSize() const;
+		//int64_t getFileSize();
+		int64_t getFastFileSize();
 		void setSize(int64_t newSize);
 		
 		size_t flush();

@@ -970,7 +970,6 @@ void File_Riff::Header_Parse()
             Buffer_DataToParse_End=File_Size; //Found one file with 0 as size of data part
         Size_Complete=0;
     }
-     // http://code.google.com/p/flylinkdc/issues/detail?id=720
      // [+]FlylinkDC++ Team
      if(Buffer_DataToParse_End > movi_Size)   
  	Buffer_DataToParse_End = movi_Size; 

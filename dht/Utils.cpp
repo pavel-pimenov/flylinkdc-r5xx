@@ -64,7 +64,7 @@ bool Utils::isGoodIPPort(const string& ip, uint16_t port)
 	if (Util::isPrivateIp(ip))
 		return false;
 		
-	// [+] SSA - http://code.google.com/p/flylinkdc/issues/detail?id=254 Блокировать входящие соединения через DHT из заблокированного IPGuard-ом диапазона адресов.
+	// [+] SSA  Блокировать входящие соединения через DHT из заблокированного IPGuard-ом диапазона адресов.
 	string l_reason;
 	if (IpGuard::check_ip_str(ip, l_reason))
 	{

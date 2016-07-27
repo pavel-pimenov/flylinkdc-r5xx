@@ -178,7 +178,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 			return 0;
 		}
 #endif
-		void onBeforeActiveTab(HWND aWnd); // http://code.google.com/p/flylinkdc/issues/detail?id=1242
+		void onBeforeActiveTab(HWND aWnd);
 		void onAfterActiveTab(HWND aWnd);
 		void onInvalidateAfterActiveTab(HWND aWnd);
 		
@@ -543,7 +543,6 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		// [~] IRainman: copy-past fix.
 	private:
 		// GDI создаются динамически
-		// http://code.google.com/p/flylinkdc/issues/detail?id=1242
 		CEdit* m_ctrlFilter;
 		CComboBox* m_ctrlFilterSel;
 		int m_FilterSelPos;
@@ -561,6 +560,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		tstring m_filter;
 		string m_window_text;
 		uint8_t m_is_window_text_update;
+		//bool m_is_delete_all_items;
 		void setWindowTitle(const string& p_text);
 		void updateWindowText();
 		CContainedWindow* m_ctrlFilterContainer;

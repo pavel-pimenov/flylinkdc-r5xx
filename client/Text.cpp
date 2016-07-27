@@ -390,7 +390,7 @@ const string& fromUtf8(const string& str, const string& toCharset, string& tmp) 
 	return utf8ToAcp(str, tmp, toCharset);
 }
 
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 const string& convert(const string& str, string& tmp, const string& fromCharset, const string& toCharset) noexcept
 {
 	if (str.empty())
@@ -407,7 +407,7 @@ const string& convert(const string& str, string& tmp, const string& fromCharset,
 	dcdebug("Unknown conversion from %s to %s\n", fromCharset.c_str(), toCharset.c_str());
 	return str;
 }
-#endif // PPA_INCLUDE_DEAD_CODE
+#endif // FLYLINKDC_USE_DEAD_CODE
 
 string toDOS(string tmp)
 {

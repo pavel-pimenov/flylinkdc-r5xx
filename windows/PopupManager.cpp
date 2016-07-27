@@ -134,8 +134,9 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 void PopupManager::on(TimerManagerListener::Second /*type*/, uint64_t tick) noexcept
 {
 	dcassert(WinUtil::g_mainWnd);
-	dcassert(ClientManager::isShutdown() == false);
-	if (WinUtil::g_mainWnd && !ClientManager::isShutdown())
+	if (ClientManager::isBeforeShutdown())
+		return;
+	if (WinUtil::g_mainWnd)
 	{
 		::PostMessage(WinUtil::g_mainWnd, WM_SPEAKER, MainFrame::REMOVE_POPUP, (LPARAM)tick); // [!] IRainman opt.
 	}

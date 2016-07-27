@@ -1,4 +1,4 @@
-/* $Id: upnperrors.c,v 1.8 2014/06/10 09:41:48 nanard Exp $ */
+/* $Id: upnperrors.c,v 1.5 2011/04/10 11:19:36 nanard Exp $ */
 /* Project : miniupnp
  * Author : Thomas BERNARD
  * copyright (c) 2007 Thomas Bernard

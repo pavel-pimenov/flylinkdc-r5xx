@@ -200,7 +200,7 @@ static const DllInfo g_IncompatibleDll[] =
 	_T("nvappfilter.dll"), "NVIDIA ActiveArmor (NVIDIA Firewall)",
 	_T("nvlsp.dll"), "NVIDIA Application Filter",
 	_T("nvlsp64.dll"), "NVIDIA Application Filter",
-	_T("adguard.dll"), "Adguard", // Latest verion 5.1 not bad. TODO: http://code.google.com/p/flylinkdc/issues/detail?id=606
+	_T("adguard.dll"), "Adguard", // Latest verion 5.1 not bad.
 	_T("NetchartFilter.dll"), "NetchartFilter",
 	_T("vlsp.dll"), "Venturi Wireless Software",
 	_T("radhslib.dll"), "Naomi web filter",
@@ -230,7 +230,7 @@ static const DllInfo g_IncompatibleDll[] =
 void CompatibilityManager::detectUncompatibleSoftware()
 {
 	const DllInfo* currentDllInfo = g_IncompatibleDll;
-	// TODO http://code.google.com/p/flylinkdc/issues/detail?id=606 http://stackoverflow.com/questions/420185/how-to-get-the-version-info-of-a-dll-in-c
+	// TODO http://stackoverflow.com/questions/420185/how-to-get-the-version-info-of-a-dll-in-c
 	for (; currentDllInfo->dllName; ++currentDllInfo)
 	{
 		const HMODULE hIncompatibleDll = GetModuleHandle(currentDllInfo->dllName);
@@ -700,11 +700,11 @@ string CompatibilityManager::generateNetworkStats()
 {
 	std::vector<char> l_buf(1024);
 	sprintf_s(l_buf.data(), l_buf.size(),
-	          "\t-=[ TCP: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          "\t-=[ UDP: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          "\t-=[ DHT: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          "\t-=[ SSL: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          "\t-=[ Router: %s ]=-",
+	          " -=[ TCP: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          " -=[ UDP: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          " -=[ DHT: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          " -=[ SSL: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          " -=[ Router: %s ]=-",
 	          Util::formatBytes(Socket::g_stats.m_tcp.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_tcp.totalUp).c_str(),
 	          Util::formatBytes(Socket::g_stats.m_udp.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_udp.totalUp).c_str(),
 	          Util::formatBytes(Socket::g_stats.m_dht.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_dht.totalUp).c_str(),
@@ -756,11 +756,11 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				const int digit_procs = getProcessorsCount();
 				if (digit_procs > 1)
 					l_procs = " x" + Util::toString(getProcessorsCount()) + " core(s)";
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 				dcassert(CFlylinkDBManager::isValidInstance());
 				if (CFlylinkDBManager::isValidInstance())
 				{
-					CFlylinkDBManager::getInstance()->load_global_ratio(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1363
+					CFlylinkDBManager::getInstance()->load_global_ratio();
 				}
 #endif
 				sprintf_s(l_buf.data(), l_buf.size(),
@@ -772,7 +772,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          "\t-=[ Memory usage (peak): %s (%s). Virtual (peak): %s (%s) ]=-\r\n"
 				          "\t-=[ GDI units (peak): %d (%d). Handle (peak): %d (%d) ]=-\r\n"
 				          "\t-=[ Public share: %s. Files in share: %u. Total users: %u on hubs: %u ]=-\r\n"
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 				          "\t-=[ Total download: %s. Total upload: %s ]=-\r\n"
 #endif
 				          "%s"
@@ -805,7 +805,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          ShareManager::getLastSharedFiles(),
 				          ClientManager::getTotalUsers(),
 				          Client::getTotalCounts(),
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 				          Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_download()).c_str(),
 				          Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_upload()).c_str(),
 #endif

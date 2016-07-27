@@ -107,7 +107,6 @@ class CryptoManager : public Singleton<CryptoManager>
 		static bool certsLoaded;
 		
 		static void* g_tmpKeysMap[KEY_LAST];
-		static bool g_is_init_tmp_key_map;
 		static void initTmpKeyMaps();
 		static void freeTmpKeyMaps();
 		static CriticalSection* cs;

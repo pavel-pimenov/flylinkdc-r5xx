@@ -130,7 +130,6 @@ public:
 			tstring l_router_name = Text::toT(l_device_name);
 			SetDlgItemText(IDC_WIZARD_NETA_BTN_SETUPROUTER, l_router_name.c_str());
 		}
-		// [!] TODO fix me please. http://code.google.com/p/flylinkdc/issues/detail?id=635
 		/*
 		loop iterates over multiple ports to open. 
 		if (test_ports() == ok)

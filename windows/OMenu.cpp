@@ -100,10 +100,7 @@ void OMenu::CheckOwnerDrawn(UINT uItem, BOOL byPosition)
 		{
 			auto i = find(m_items.begin(), m_items.end(), mi);
 			dcassert(i != m_items.end());
-			// [-] if (i != m_items.end()) [-] IRainman fix: this is not possible https://code.google.com/p/flylinkdc/source/detail?r=15190 .
-			{
-				m_items.erase(i);
-			}
+			m_items.erase(i);
 		}
 		delete mi;
 	}

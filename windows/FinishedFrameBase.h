@@ -421,7 +421,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					updateStatus();
 				}
 				break;
-				case SPEAK_REMOVE_LINE: // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
+				case SPEAK_REMOVE_LINE:
 				{
 					if (m_is_crrent_tree_node)
 					{

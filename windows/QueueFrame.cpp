@@ -29,7 +29,7 @@
 
 int QueueFrame::columnIndexes[] = { COLUMN_TARGET, COLUMN_TYPE, COLUMN_STATUS, COLUMN_SEGMENTS, COLUMN_SIZE, COLUMN_PROGRESS, COLUMN_DOWNLOADED, COLUMN_PRIORITY,
                                     COLUMN_USERS, COLUMN_PATH,
-                                    COLUMN_LOCAL_PATH, // http://code.google.com/p/flylinkdc/issues/detail?id=1261
+                                    COLUMN_LOCAL_PATH,
                                     COLUMN_EXACT_SIZE, COLUMN_ERRORS, COLUMN_ADDED, COLUMN_TTH, COLUMN_SPEED
                                   };
 
@@ -606,8 +606,16 @@ HTREEITEM QueueFrame::addDirectory(const string& dir, bool isFileList /* = false
 		{
 			// We didn't find it, add...
 			j = dir.find('\\', i);
-			dcassert(j != string::npos);
-			tstring name = Text::toT(dir.substr(i, j - i));
+			// dcassert(j != string::npos);
+			tstring name;
+			if (j != string::npos)
+			{
+				name = Text::toT(dir.substr(i, j - i));
+			}
+			else
+			{
+				name = Text::toT(dir.substr(i));
+			}
 			tvi.hParent = parent;
 			tvi.item.pszText = const_cast<TCHAR*>(name.c_str());
 			tvi.item.lParam = (LPARAM) new string(dir.substr(0, j + 1));
@@ -990,7 +998,6 @@ void QueueFrame::moveSelected()
 	
 	if (WinUtil::browseDirectory(name, m_hWnd))
 	{
-		// [!] IRainman fix http://code.google.com/p/flylinkdc/issues/detail?id=82
 		vector<const QueueItemInfo*> l_movingItems;
 		int j = -1;
 		while ((j = ctrlQueue.GetNextItem(j, LVNI_SELECTED)) != -1)
@@ -1231,7 +1238,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 				//
 				{
 					RLock(*QueueItem::g_cs);
-					const auto& sources = ii->getQueueItem()->getSourcesL(); // Делать копию нельзя - http://code.google.com/p/flylinkdc/issues/detail?id=1270
+					const auto& sources = ii->getQueueItem()->getSourcesL(); // Делать копию нельзя
 					// ниже сохраняем адрес итератора
 					for (auto i = sources.cbegin(); i != sources.cend(); ++i)
 					{
@@ -1245,7 +1252,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 						mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
 						mi.fType = MFT_STRING;
 						mi.dwTypeData = (LPTSTR)nick.c_str();
-						mi.dwItemData = (ULONG_PTR) & i->first; // http://code.google.com/p/flylinkdc/issues/detail?id=1270
+						mi.dwItemData = (ULONG_PTR) & i->first;
 						mi.wID = IDC_BROWSELIST + menuItems;
 						browseMenu.InsertMenuItem(menuItems, TRUE, &mi);
 						mi.wID = IDC_REMOVE_SOURCE + 1 + menuItems; // "All" is before sources
@@ -1261,7 +1268,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 						menuItems++;
 					}
 					readdItems = 0;
-					const auto& badSources = ii->getQueueItem()->getBadSourcesL(); // Делать копию нельзя - http://code.google.com/p/flylinkdc/issues/detail?id=1270
+					const auto& badSources = ii->getQueueItem()->getBadSourcesL(); // Делать копию нельзя
 					// ниже сохраняем адрес итератора
 					for (auto i = badSources.cbegin(); i != badSources.cend(); ++i)
 					{
@@ -1303,7 +1310,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 						mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
 						mi.fType = MFT_STRING;
 						mi.dwTypeData = (LPTSTR)nick.c_str();
-						mi.dwItemData = (ULONG_PTR) & (*i); // http://code.google.com/p/flylinkdc/issues/detail?id=1270
+						mi.dwItemData = (ULONG_PTR) & (*i);
 						mi.wID = IDC_READD + 1 + readdItems;  // "All" is before sources
 						readdMenu.InsertMenuItem(readdItems + 2, TRUE, &mi);  // "All" and separator come first
 						readdItems++;
@@ -1478,7 +1485,6 @@ LRESULT QueueFrame::onBrowseList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 		{
 			UserPtr* s   = (UserPtr*)omi->m_data;
 			// dcassert(getSelectedQueueItem() && QueueManager::getInstance()->isSourceValid(getSelectedQueueItem()->getQueueItem(), s));
-			// охранник бага http://code.google.com/p/flylinkdc/issues/detail?id=1270
 			try
 			{
 				const auto& hubs = ClientManager::getHubNames((*s)->getCID(), Util::emptyString);

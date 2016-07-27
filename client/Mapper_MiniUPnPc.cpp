@@ -42,12 +42,13 @@ bool Mapper_MiniUPnPc::init()
 		return true;
 	}
 	l_log.step("BIND_ADDRESS = " + SETTING(BIND_ADDRESS));
+	int l_error = 0;
 	UPNPDev* devices = upnpDiscover(2000,
 	                                SettingsManager::isDefault(SettingsManager::BIND_ADDRESS) ? nullptr : SETTING(BIND_ADDRESS).c_str(),
-	                                0, 0, 0, 0);
+	                                nullptr, 0, 0, 2, &l_error);
 	if (!devices)
 	{
-		l_log.step("upnpDiscover == null");
+		l_log.step("upnpDiscover == null error = " + Util::toString(l_error));
 		return false;
 	}
 	
@@ -104,7 +105,7 @@ bool Mapper_MiniUPnPc::add(const unsigned short port, const Protocol protocol, c
 	const string l_port = Util::toString(port);
 	const string l_bind_addres = Util::getLocalOrBindIp(true);
 	const auto l_upnp_res = UPNP_AddPortMapping(m_url.c_str(), m_service.c_str(), l_port.c_str(), l_port.c_str(),
-	                                            l_bind_addres.c_str(), // http://code.google.com/p/flylinkdc/issues/detail?id=1359
+	                                            l_bind_addres.c_str(),
 	                                            description.c_str(), protocols[protocol], 0, 0);
 	if (l_upnp_res == UPNPCOMMAND_SUCCESS)
 	{

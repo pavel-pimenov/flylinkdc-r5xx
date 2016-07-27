@@ -293,7 +293,18 @@ class ConnectionManager :
 		/** All active connections */
 		static boost::unordered_set<UserConnection*> g_userConnections;
 		
-		typedef std::pair<std::string, boost::asio::ip::address_v4> CFlyDDOSkey; // uint32_t boost::asio::ip::address_v4 в  ключе тупит
+		struct CFlyDDOSkey
+		{
+			std::string m_server;
+			boost::asio::ip::address_v4 m_ip;
+			CFlyDDOSkey(const std::string& p_server, boost::asio::ip::address_v4 p_ip) : m_server(p_server), m_ip(p_ip)
+			{
+			}
+			bool operator < (const CFlyDDOSkey& p_val) const
+			{
+				return (m_ip < p_val.m_ip) || (m_ip == p_val.m_ip && m_server < p_val.m_server);
+			}
+		};
 		class CFlyTickDetect
 		{
 			public:
@@ -381,7 +392,7 @@ class ConnectionManager :
 		void addDownloadConnection(UserConnection* p_conn);
 		
 		ConnectionQueueItemPtr getCQI_L(const HintedUser& aHintedUser, bool download, const string& aToken);
-		void putCQI_L(ConnectionQueueItemPtr cqi);
+		void putCQI_L(ConnectionQueueItemPtr& cqi);
 		
 		void accept(const Socket& sock, bool secure, Server* p_server) noexcept;
 		

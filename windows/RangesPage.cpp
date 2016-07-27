@@ -177,7 +177,7 @@ void RangesPage::write()
 			File fout(m_IPFilterPATH, File::WRITE, File::CREATE | File::TRUNCATE);
 			fout.write(l_newT);
 			fout.close();
-#ifdef PPA_INCLUDE_IPFILTER
+#ifdef FLYLINKDC_USE_IPFILTER
 			PGLoader::load(l_newT);
 #endif
 		}

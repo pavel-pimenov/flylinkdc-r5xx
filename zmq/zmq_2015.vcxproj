@@ -252,6 +252,7 @@
     <ClInclude Include="src\decoder.hpp" />
     <ClInclude Include="src\decoder_allocators.hpp" />
     <ClInclude Include="src\devpoll.hpp" />
+    <ClInclude Include="src\dgram.hpp" />
     <ClInclude Include="src\dish.hpp" />
     <ClInclude Include="src\dist.hpp" />
     <ClInclude Include="src\encoder.hpp" />
@@ -259,6 +260,7 @@
     <ClInclude Include="src\err.hpp" />
     <ClInclude Include="src\fd.hpp" />
     <ClInclude Include="src\fq.hpp" />
+    <ClInclude Include="src\gather.hpp" />
     <ClInclude Include="src\gssapi_client.hpp" />
     <ClInclude Include="src\gssapi_mechanism_base.hpp" />
     <ClInclude Include="src\gssapi_server.hpp" />
@@ -313,6 +315,7 @@
     <ClInclude Include="src\rep.hpp" />
     <ClInclude Include="src\req.hpp" />
     <ClInclude Include="src\router.hpp" />
+    <ClInclude Include="src\scatter.hpp" />
     <ClInclude Include="src\select.hpp" />
     <ClInclude Include="src\server.hpp" />
     <ClInclude Include="src\session_base.hpp" />
@@ -355,6 +358,7 @@
     <ClInclude Include="src\ypipe_base.hpp" />
     <ClInclude Include="src\ypipe_conflate.hpp" />
     <ClInclude Include="src\yqueue.hpp" />
+    <ClInclude Include="src\zmq_draft.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\address.cpp" />
@@ -366,11 +370,13 @@
     <ClCompile Include="src\dealer.cpp" />
     <ClCompile Include="src\decoder_allocators.cpp" />
     <ClCompile Include="src\devpoll.cpp" />
+    <ClCompile Include="src\dgram.cpp" />
     <ClCompile Include="src\dish.cpp" />
     <ClCompile Include="src\dist.cpp" />
     <ClCompile Include="src\epoll.cpp" />
     <ClCompile Include="src\err.cpp" />
     <ClCompile Include="src\fq.cpp" />
+    <ClCompile Include="src\gather.cpp" />
     <ClCompile Include="src\gssapi_client.cpp" />
     <ClCompile Include="src\gssapi_mechanism_base.cpp" />
     <ClCompile Include="src\gssapi_server.cpp" />
@@ -415,6 +421,7 @@
     <ClCompile Include="src\rep.cpp" />
     <ClCompile Include="src\req.cpp" />
     <ClCompile Include="src\router.cpp" />
+    <ClCompile Include="src\scatter.cpp" />
     <ClCompile Include="src\select.cpp" />
     <ClCompile Include="src\server.cpp" />
     <ClCompile Include="src\session_base.cpp" />

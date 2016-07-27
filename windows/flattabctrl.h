@@ -1606,7 +1606,6 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 
 			dc.SetBkMode(TRANSPARENT);
 			
-			// [!] SSA http://code.google.com/p/flylinkdc/issues/detail?id=394 - проблема в случае с Лог файлом. Почему нет иконки??
 			HICON l_hIcon = tab->m_hCustomIcon;
 			if (l_hIcon == nullptr)
 			{
@@ -2149,7 +2148,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 		bool m_before_close;
 		bool isClosedOrShutdown() const
 		{
-			return m_closed || m_before_close || ClientManager::isShutdown();
+			return m_closed || m_before_close || ClientManager::isBeforeShutdown();
 		}
 };
 

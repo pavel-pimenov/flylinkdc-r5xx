@@ -193,7 +193,7 @@ class AdcCommand
 			parameters.push_back(str);
 			return *this;
 		}
-		const string& getParam(size_t n) const
+		const string getParam(size_t n) const // Убрал ссылку - опасное место.
 		{
 			dcassert(getParameters().size() > n);
 			return getParameters().size() > n ? getParameters()[n] : Util::emptyString;

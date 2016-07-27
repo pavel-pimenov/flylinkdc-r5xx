@@ -91,7 +91,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;BOOST_ALL_NO_LIB;USE_FLY_CONSOLE_TEST;PPA_USE_FAST_ALLOC;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ShowIncludes>false</ShowIncludes>
-      <AdditionalIncludeDirectories>..\zmq\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\libtorrent\include;..\zmq\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -310,11 +310,13 @@
     <ClCompile Include="..\zmq\src\dealer.cpp" />
     <ClCompile Include="..\zmq\src\decoder_allocators.cpp" />
     <ClCompile Include="..\zmq\src\devpoll.cpp" />
+    <ClCompile Include="..\zmq\src\dgram.cpp" />
     <ClCompile Include="..\zmq\src\dish.cpp" />
     <ClCompile Include="..\zmq\src\dist.cpp" />
     <ClCompile Include="..\zmq\src\epoll.cpp" />
     <ClCompile Include="..\zmq\src\err.cpp" />
     <ClCompile Include="..\zmq\src\fq.cpp" />
+    <ClCompile Include="..\zmq\src\gather.cpp" />
     <ClCompile Include="..\zmq\src\gssapi_client.cpp" />
     <ClCompile Include="..\zmq\src\gssapi_mechanism_base.cpp" />
     <ClCompile Include="..\zmq\src\gssapi_server.cpp" />
@@ -359,6 +361,7 @@
     <ClCompile Include="..\zmq\src\rep.cpp" />
     <ClCompile Include="..\zmq\src\req.cpp" />
     <ClCompile Include="..\zmq\src\router.cpp" />
+    <ClCompile Include="..\zmq\src\scatter.cpp" />
     <ClCompile Include="..\zmq\src\select.cpp" />
     <ClCompile Include="..\zmq\src\server.cpp" />
     <ClCompile Include="..\zmq\src\session_base.cpp" />

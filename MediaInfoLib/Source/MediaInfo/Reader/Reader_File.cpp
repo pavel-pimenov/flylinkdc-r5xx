@@ -377,14 +377,6 @@ size_t Reader_File::Format_Test_PerParser_Continue (MediaInfo_Internal* MI)
 
     if (ShouldContinue)
     {
-//Test the format with buffer
-//[+]PPA x64 build - endless loop
-//[+]PPA x86 build - ok 
-// file:
-// magnet:?xt=urn:tree:tiger:XAFMGPKDYWOZJI622NRMGADQXLRNMMEAB2UA36A&xl=2344984576&dn=Fatal+Attraction+(%D0%A0%D0%BE%D0%BA%D0%BE%D0%B2%D0%BE%D0%B5+%D0%92%D0%BB%D0%B5%D1%87%D0%B5%D0%BD%D0%B8%D0%B5)+(1987.BDRip.Rus.Eng).avi
-// magnet:?xt=urn:tree:tiger:ZPMFRTEEOAZ5HBE7MHRDA4BO7QK4FQQ3NJO3APA&xl=1469753344&dn=Virgin+Suicides+(%D0%94%D0%B5%D0%B2%D1%81%D1%82%D0%B2%D0%B5%D0%BD%D0%BD%D0%B8%D1%86%D1%8B-%D1%81%D0%B0%D0%BC%D0%BE%D1%83%D0%B1%D0%B8%D0%B9%D1%86%D1%8B)+(DVDRip.Rus.Eng).avi
-// file:
-// http://code.google.com/p/flylinkdc/issues/detail?id=582
 	int l_fly_stop_count = 0; //[+]PPA fix endless loop
         while (!(Status[File__Analyze::IsFinished] || (StopAfterFilled && Status[File__Analyze::IsFilled])))
         {

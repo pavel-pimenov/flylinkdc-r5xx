@@ -82,13 +82,13 @@ int HubFrame::g_columnSizes[] = { 100,    // COLUMN_NICK
 #endif
                                   100,    // COLUMN_IP
                                   100,    // COLUMN_GEO_LOCATION
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
                                   50,     // COLUMN_UPLOAD
                                   50,     // COLUMN_DOWNLOAD
                                   10,     // COLUMN_MESSAGES
 #endif
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
                                   100,    // COLUMN_DNS
 #endif
 #endif
@@ -133,12 +133,12 @@ int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
 #endif
                                     COLUMN_IP,
                                     COLUMN_GEO_LOCATION,
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
                                     COLUMN_UPLOAD,
                                     COLUMN_DOWNLOAD,
                                     COLUMN_MESSAGES,
 #endif
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
                                     COLUMN_DNS, // !SMT!-IP
 #endif
 //[-]PPA        COLUMN_PK
@@ -183,12 +183,12 @@ static ResourceManager::Strings g_columnNames[] = { ResourceManager::NICK,      
 #endif
                                                     ResourceManager::IP_BARE,         // COLUMN_IP
                                                     ResourceManager::LOCATION_BARE,   // COLUMN_GEO_LOCATION
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
                                                     ResourceManager::UPLOADED,         // COLUMN_UPLOAD
                                                     ResourceManager::DOWNLOADED,         // COLUMN_DOWNLOAD
                                                     ResourceManager::MESSAGES_COUNT,    // COLUMN_MESSAGES
 #endif
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
                                                     ResourceManager::DNS_BARE,        // COLUMN_DNS // !SMT!-IP
 #endif
 //[-]PPA  ResourceManager::PK
@@ -286,6 +286,7 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	, m_is_ddos_detect(false)
 	, m_is_ext_json_hub(false)
 	, m_count_speak(0)
+	//, m_is_delete_all_items(false)
 {
 	m_userMapCS = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 	m_ctrlStatusCache.resize(5);
@@ -490,7 +491,7 @@ void HubFrame::updateSplitterPosition(const FavoriteHubEntry *p_fhe)
 void HubFrame::createMessagePanel()
 {
 	bool l_is_need_update = false;
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	if (!isClosedOrShutdown())
 	{
 		if (m_ctrlFilter == nullptr && ClientManager::isStartup() == false)
@@ -591,7 +592,7 @@ void HubFrame::createMessagePanel()
 }
 void HubFrame::destroyMessagePanel(bool p_is_destroy)
 {
-	const bool l_is_shutdown = p_is_destroy || ClientManager::isShutdown();
+	const bool l_is_shutdown = p_is_destroy || ClientManager::isBeforeShutdown();
 	if (m_ctrlFilter)
 	{
 		if (!l_is_shutdown && m_closed == false && m_before_close == false)
@@ -665,7 +666,7 @@ void HubFrame::onBeforeActiveTab(HWND aWnd)
 
 void HubFrame::onAfterActiveTab(HWND aWnd)
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		dcassert(m_hWnd);
 		createMessagePanel();
@@ -673,7 +674,7 @@ void HubFrame::onAfterActiveTab(HWND aWnd)
 }
 void HubFrame::onInvalidateAfterActiveTab(HWND aWnd)
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		if (ClientManager::isStartup() == false)
 		{
@@ -827,10 +828,10 @@ void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring
 	{
 		if (!param.empty())
 		{
-			m_redirect = Util::formatDchubUrl(Text::fromT(param)); // [!] IRainman fix http://code.google.com/p/flylinkdc/issues/detail?id=1237
+			m_redirect = Util::formatDchubUrl(Text::fromT(param));
 			if (BOOLSETTING(JOIN_OPEN_NEW_WINDOW))
 			{
-				openWindow(false, m_redirect); // [!] IRainman fix http://code.google.com/p/flylinkdc/issues/detail?id=1237
+				openWindow(false, m_redirect);
 			}
 			else
 			{
@@ -1284,7 +1285,7 @@ LRESULT HubFrame::onDoubleClickUsers(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 					break;
 				case 1:
 				{
-					m_lastUserName = Text::toT(l_ui->getNick()); // SSA_SAVE_LAST_NICK_MACROS
+					m_lastUserName = l_ui->getNickT(); // SSA_SAVE_LAST_NICK_MACROS
 					appendNickToChat(m_lastUserName);
 					break;
 				}
@@ -1310,9 +1311,8 @@ LRESULT HubFrame::onDoubleClickUsers(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 
 bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 {
-	if (ClientManager::isShutdown() && m_client && m_client->isConnected())
+	if (ClientManager::isBeforeShutdown() && m_client && m_client->isConnected())
 	{
-		dcassert(!ClientManager::isShutdown());
 		return false;
 	}
 	dcassert(!m_is_process_disconnected);
@@ -1321,7 +1321,7 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 	{
 #ifdef IRAINMAN_USE_HIDDEN_USERS
 		if (!p_ou->isHidden()
-		        && !p_ou->isHub()) // https://code.google.com/p/flylinkdc/issues/detail?id=1535
+		        && !p_ou->isHub())
 		{
 #endif
 			PROFILE_THREAD_SCOPED_DESC("HubFrame::updateUser-NEW_USER")
@@ -1516,7 +1516,7 @@ void HubFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, co
 void HubFrame::doConnected()
 {
 	m_is_process_disconnected = false;
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	addStatus(TSTRING(CONNECTED), true, true, Colors::g_ChatTextServer);
 	setTabColor(RGB(10, 10, 10));
 	unsetIconState();
@@ -1544,12 +1544,12 @@ void HubFrame::clearTaskAndUserList()
 
 void HubFrame::doDisconnected()
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 #ifdef FLYLINKDC_USE_SKULL_TAB
 	m_virus_icon_index = 0;
 #endif
 	clearTaskAndUserList();
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		setTabColor(RGB(128, 0, 0));
 		setIconState();
@@ -1564,7 +1564,7 @@ void HubFrame::doDisconnected()
 #if 0 // Нельзя включит - мигают часы
 LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled */)
 {
-	if (ClientManager::isShutdown())
+	if (ClientManager::isBeforeShutdown())
 	{
 		return 0;
 	}
@@ -1574,7 +1574,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		case WM_SPEAKER_UPDATE_USER_JOIN:
 		{
 			unique_ptr<OnlineUserPtr> l_ou(reinterpret_cast<OnlineUserPtr*>(wParam));
-			if (!ClientManager::isShutdown())
+			if (!ClientManager::isBeforeShutdown())
 			{
 				if (updateUser(*l_ou))
 				{
@@ -1604,8 +1604,8 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		case WM_SPEAKER_REMOVE_USER:
 		{
 			unique_ptr<OnlineUserPtr> l_ou(reinterpret_cast<OnlineUserPtr*>(wParam));
-			dcassert(!ClientManager::isShutdown());
-			if (!ClientManager::isShutdown())
+			dcassert(!ClientManager::isBeforeShutdown());
+			if (!ClientManager::isBeforeShutdown())
 			{
 				const UserPtr& user = (*l_ou)->getUser();
 				const Identity& id = (*l_ou)->getIdentity();
@@ -1637,7 +1637,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 #ifdef FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
 		case WM_SPEAKER_ADD_CHAT_LINE:
 		{
-			dcassert(!ClientManager::isShutdown());
+			dcassert(!ClientManager::isBeforeShutdown());
 			unique_ptr<ChatMessage> msg(reinterpret_cast<ChatMessage*>(wParam));
 			if (msg->m_from)
 			{
@@ -1670,7 +1670,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 #ifdef FLYLINKDC_PRIVATE_MESSAGE_USE_WIN_MESSAGES_Q
 		case WM_SPEAKER_PRIVATE_MESSAGE:
 		{
-			dcassert(!ClientManager::isShutdown());
+			dcassert(!ClientManager::isBeforeShutdown());
 			unique_ptr<ChatMessage> pm(reinterpret_cast<ChatMessage*>(wParam));
 			// [-] if (pm.m_fromId.isOp() && !client->isOp()) !SMT!-S
 			{
@@ -1735,7 +1735,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 
 LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam */, BOOL& /*bHandled*/)
 {
-//	dcassert(ClientManager::isStartup() == false && !ClientManager::isShutdown());
+//	dcassert(ClientManager::isStartup() == false && !ClientManager::isBeforeShutdown());
 	//PROFILE_THREAD_SCOPED()
 	TaskQueue::List t;
 	m_tasks.get(t);
@@ -1754,7 +1754,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 	CLockRedraw<> l_lock_redraw_chat(ctrlClient);
 	for (auto i = t.cbegin(); i != t.cend(); ++i)
 	{
-		if (!ClientManager::isShutdown())
+		if (!ClientManager::isBeforeShutdown())
 		{
 			switch (i->first)
 			{
@@ -1789,7 +1789,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 #ifndef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
 				case UPDATE_USER_JOIN:
 				{
-					if (!ClientManager::isShutdown() && m_client && m_client->isConnected())
+					if (!ClientManager::isBeforeShutdown() && m_client && m_client->isConnected())
 					{
 						const OnlineUserTask& u = static_cast<OnlineUserTask&>(*i->second);
 						if (updateUser(u.m_ou, -1))
@@ -1838,11 +1838,11 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				case REMOVE_USER:
 				{
 					const OnlineUserTask& u = static_cast<const OnlineUserTask&>(*i->second);
-					//dcassert(!ClientManager::isShutdown());
+					//dcassert(!ClientManager::isBeforeShutdown());
 					dcassert(m_is_process_disconnected == false);
 					if (m_is_process_disconnected == false)
 					{
-						if (!ClientManager::isShutdown())
+						if (!ClientManager::isBeforeShutdown())
 						{
 							const UserPtr& user = u.m_ou->getUser();
 							const Identity& id = u.m_ou->getIdentity();
@@ -1874,13 +1874,13 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 #ifndef FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
 				case ADD_CHAT_LINE:
 				{
-					dcassert(!ClientManager::isShutdown());
-					if (!ClientManager::isShutdown())
+					dcassert(!ClientManager::isBeforeShutdown());
+					if (!ClientManager::isBeforeShutdown())
 					{
 						MessageTask& l_task = static_cast<MessageTask&>(*i->second);
 						std::unique_ptr<ChatMessage> msg(l_task.m_message_ptr);
 						l_task.m_message_ptr = nullptr;
-						if (msg->m_from && !ClientManager::isShutdown())
+						if (msg->m_from && !ClientManager::isBeforeShutdown())
 						{
 							const Identity& from = msg->m_from->getIdentity();
 							const bool myMess = ClientManager::isMe(msg->m_from);
@@ -1911,8 +1911,8 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				break;
 				case ADD_STATUS_LINE:
 				{
-					dcassert(!ClientManager::isShutdown());
-					if (!ClientManager::isShutdown())
+					dcassert(!ClientManager::isBeforeShutdown());
+					if (!ClientManager::isBeforeShutdown())
 					{
 						//              PROFILE_THREAD_SCOPED_DESC("ADD_STATUS_LINE")
 						const StatusTask& status = static_cast<StatusTask&>(*i->second);
@@ -1922,7 +1922,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				break;
 				case STATS:
 				{
-					dcassert(!ClientManager::isShutdown());
+					dcassert(!ClientManager::isBeforeShutdown());
 					if (m_client && m_client->is_all_my_info_loaded() == true)
 					{
 						//              PROFILE_THREAD_SCOPED_DESC("STATS")
@@ -2004,7 +2004,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 #ifndef FLYLINKDC_PRIVATE_MESSAGE_USE_WIN_MESSAGES_Q
 				case PRIVATE_MESSAGE:
 				{
-					dcassert(!ClientManager::isShutdown());
+					dcassert(!ClientManager::isBeforeShutdown());
 					MessageTask& l_task = static_cast<MessageTask&>(*i->second);
 					std::unique_ptr<ChatMessage> pm(l_task.m_message_ptr);
 					l_task.m_message_ptr = nullptr;
@@ -2099,7 +2099,7 @@ void HubFrame::updateWindowText()
 			m_is_window_text_update = 0;
 			if (m_client->is_all_my_info_loaded())
 			{
-				SetMDIFrameMenu(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1386
+				SetMDIFrameMenu();
 			}
 		}
 	}
@@ -2107,7 +2107,7 @@ void HubFrame::updateWindowText()
 
 void HubFrame::setWindowTitle(const string& p_text)
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	if (m_window_text != p_text || m_is_window_text_update == 0)
 	{
 		m_window_text = p_text;
@@ -2124,9 +2124,8 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 	{
 		return;
 	}
-	if (ClientManager::isShutdown())
+	if (ClientManager::isBeforeShutdown())
 	{
-		dcassert(!ClientManager::isShutdown());
 		return;
 	}
 	if (m_tooltip_hubframe)
@@ -2495,7 +2494,7 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 			r->setUsers(Util::toString(m_client->getUserCount()));
 			r->setShared(Util::toString(m_client->getAvailableBytes()));
 			r->setLastSeen(Util::formatDigitalClock(time(NULL)));
-			if (!ClientManager::isShutdown())
+			if (!ClientManager::isBeforeShutdown())
 			{
 				r->setOpenTab("-");
 			}
@@ -2528,6 +2527,7 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 }
 void HubFrame::clearUserList()
 {
+	//CFlyBusyBool l_busy(m_is_delete_all_items);
 	if (m_ctrlUsers)
 	{
 		CLockRedraw<> l_lock_draw(*m_ctrlUsers); // TODO это нужно или опустить ниже?
@@ -2745,7 +2745,7 @@ LRESULT HubFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 			i = m_ctrlUsers->GetNextItem(i, LVNI_SELECTED);
 			if (i >= 0)
 			{
-				reinitUserMenu((m_ctrlUsers->getItemData(i))->getOnlineUser(), getHubHint()); // !SMT!-S // [!] IRainman fix.
+				reinitUserMenu(m_ctrlUsers->getItemData(i)->getOnlineUser(), getHubHint()); // !SMT!-S // [!] IRainman fix.
 			}
 		}
 		
@@ -2844,7 +2844,7 @@ void HubFrame::runUserCommand(UserCommand& uc)
 		if (getSelectedUser())
 		{
 			// !SMT!-S
-			UserInfo* u = findUser(getSelectedUser());
+			const UserInfo* u = findUser(getSelectedUser());
 			if (u && u->getUser()->isOnline())
 			{
 				StringMap tmp = ucParams;
@@ -2858,7 +2858,7 @@ void HubFrame::runUserCommand(UserCommand& uc)
 			int sel = -1;
 			while ((sel = m_ctrlUsers->GetNextItem(sel, LVNI_SELECTED)) != -1)
 			{
-				UserInfo *u = m_ctrlUsers->getItemData(sel);
+				const UserInfo *u = m_ctrlUsers->getItemData(sel);
 				if (u->getUser()->isOnline())
 				{
 					StringMap tmp = ucParams;
@@ -3148,6 +3148,7 @@ LRESULT HubFrame::onShowUsers(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, B
 		{
 			setShowUsers(false);
 			m_needsResort = false;
+			CLockRedraw<> l_lock_draw(*m_ctrlUsers);
 			m_ctrlUsers->DeleteAllItems();
 			m_last_count_resort = 0;
 		}
@@ -3273,7 +3274,6 @@ void HubFrame::closeAll(size_t thershold)
 		// Ускорим закрытие всех хабов
 		FavoriteManager::getInstance()->prepareClose();
 		ClientManager::getInstance()->prepareClose();
-		// TODO http://code.google.com/p/flylinkdc/issues/detail?id=1368
 		// ClientManager::getInstance()->prepareClose(); // Отпишемся от подписок клиента
 		// SearchManager::getInstance()->prepareClose(); // Отпишемся от подписок поиска
 	}
@@ -3370,7 +3370,7 @@ void HubFrame::timer_process_internal()
 #endif
 				
 				//dcdebug("HubFrame::timer_process_internal() [2] m_needsUpdateStats Hub = %s\n", this->getHubHint().c_str());
-				dcassert(!ClientManager::isShutdown());
+				dcassert(!ClientManager::isBeforeShutdown());
 				speak(STATS);
 				m_needsUpdateStats = false;
 #if 0
@@ -3382,7 +3382,7 @@ void HubFrame::timer_process_internal()
 #endif
 			}
 		}
-		if (!m_tasks.empty() && !ClientManager::isShutdown())
+		if (!m_tasks.empty() && !ClientManager::isBeforeShutdown())
 		{
 			//dcdebug("HubFrame::timer_process_internal() [3] force_speak Hub = %s\n", this->getHubHint().c_str());
 			force_speak();
@@ -3395,7 +3395,7 @@ void HubFrame::timer_process_internal()
 	}
 	if (m_upnp_message_tick > 0 && m_client && m_client->isConnected())
 	{
-		if (--m_upnp_message_tick == 0 && !ClientManager::isShutdown() && !m_client->isActive())
+		if (--m_upnp_message_tick == 0 && !ClientManager::isBeforeShutdown() && !m_client->isActive())
 		{
 			m_upnp_message_tick = -1;
 			BaseChatFrame::addLine(_T("[!] FlylinkDC++ ") + TSTRING(PASSIVE_NOTICE) + _T(" ") + Text::toT(CFlyServerConfig::g_support_upnp), Colors::g_ChatTextSystem);
@@ -3405,7 +3405,7 @@ void HubFrame::timer_process_internal()
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 LRESULT HubFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		timer_process_internal();
 	}
@@ -3444,7 +3444,6 @@ void HubFrame::on(Connecting, const Client*) noexcept
 	// force_speak();
 	addStatus(Text::toT(STRING(CONNECTING_TO) + ' ' + l_url_hub + " ..."));
 	// Явно звать addStatus нельзя - вешаемся почему-то
-	// http://code.google.com/p/flylinkdc/issues/detail?id=1428
 	++m_hub_name_update_count;
 }
 void HubFrame::on(ClientListener::Connected, const Client* c) noexcept
@@ -3474,8 +3473,8 @@ void HubFrame::on(ClientListener::Connected, const Client* c) noexcept
 
 void HubFrame::on(ClientListener::DDoSSearchDetect, const string&) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	if (m_is_ddos_detect == false && !ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (m_is_ddos_detect == false && !ClientManager::isBeforeShutdown())
 	{
 		setCustomIcon(*WinUtil::g_HubDDoSIcon.get());
 		m_is_ddos_detect = true;
@@ -3484,7 +3483,7 @@ void HubFrame::on(ClientListener::DDoSSearchDetect, const string&) noexcept
 void HubFrame::flickerVirusIcon()
 {
 #ifdef FLYLINKDC_USE_SKULL_TAB
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	if (!isClosedOrShutdown())
 	{
 		if (m_is_ddos_detect == false)
@@ -3505,7 +3504,7 @@ void HubFrame::flickerVirusIcon()
 }
 void HubFrame::on(ClientListener::UserDescUpdated, const OnlineUserPtr& user) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	if (!isClosedOrShutdown())
 	{
 		speak(UPADTE_COLUMN_DESC, user);
@@ -3514,7 +3513,7 @@ void HubFrame::on(ClientListener::UserDescUpdated, const OnlineUserPtr& user) no
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 void HubFrame::on(ClientListener::UserShareUpdated, const OnlineUserPtr& user) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	if (!isClosedOrShutdown())
 	{
 		speak(UPADTE_COLUMN_SHARE, user);
@@ -3525,7 +3524,7 @@ void HubFrame::on(ClientListener::UserShareUpdated, const OnlineUserPtr& user) n
 void HubFrame::on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr& user) noexcept   // !SMT!-fix
 {
 	// TODO - добавить команду первого входа юзера
-	// dcassert(!ClientManager::isShutdown());
+	// dcassert(!ClientManager::isBeforeShutdown());
 	if (!isClosedOrShutdown())
 	{
 #ifdef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
@@ -3580,7 +3579,7 @@ void HubFrame::on(ClientListener::UserRemoved, const Client*, const OnlineUserPt
 
 void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 {
-	string redirAdr = Util::formatDchubUrl(line); // [+] IRainman fix http://code.google.com/p/flylinkdc/issues/detail?id=1237
+	string redirAdr = Util::formatDchubUrl(line);
 	const int l_code = CFlyServerConfig::getAlternativeHub(redirAdr);
 	bool l_is_double_redir = false;
 	//const string l_reserve_server = "dchub://dc.livedc.ru";
@@ -3625,7 +3624,7 @@ void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 			CFlyServerJSON::pushError(l_loop_message.empty() ? l_code : 51, m_last_redirect);
 		}
 	}
-#ifdef PPA_INCLUDE_AUTO_FOLLOW
+#ifdef FLYLINKDC_USE_AUTO_FOLLOW
 	if (BOOLSETTING(AUTO_FOLLOW) || l_is_double_redir == true)
 	{
 		PostMessage(WM_COMMAND, IDC_FOLLOW, 0);
@@ -3638,7 +3637,7 @@ void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 }
 void HubFrame::on(ClientListener::ClientFailed, const Client* c, const string& line) noexcept
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		speak(ADD_STATUS_LINE, "[Hub = " + c->getHubUrl() + "] " + line);
 		// speak(WM_SPEAKER_DISCONNECTED, nullptr);
@@ -3740,7 +3739,7 @@ void HubFrame::on(ClientListener::Message, const Client*,  std::unique_ptr<ChatM
 	else
 	{
 #ifndef FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
-		speak(ADD_CHAT_LINE, l_message_ptr); // fix ? http://code.google.com/p/flylinkdc/issues/detail?id=1438
+		speak(ADD_CHAT_LINE, l_message_ptr);
 #else
 		PostMessage(WM_SPEAKER_ADD_CHAT_LINE, WPARAM(l_message_ptr));
 #endif
@@ -3976,6 +3975,7 @@ bool HubFrame::parseFilter(FilterModes& mode, int64_t& size)
 }
 void HubFrame::InsertItemInternal(const UserInfo* ui)
 {
+	//dcassert(m_is_delete_all_items == false);
 	if (m_is_ext_json_hub)
 	{
 		const auto l_gender = ui->getIdentity().getGenderType();
@@ -4073,7 +4073,7 @@ void HubFrame::updateUserList() // [!] IRainman opt.
 			}
 		}
 	}
-	m_needsUpdateStats = true; // [+] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=811
+	m_needsUpdateStats = true;
 }
 
 void HubFrame::handleTab(bool reverse)
@@ -4179,7 +4179,7 @@ bool HubFrame::matchFilter(UserInfo& ui, int sel, bool doSizeCompare, FilterMode
 			}
 			else
 			{
-				if (sel == COLUMN_GEO_LOCATION) // http://code.google.com/p/flylinkdc/issues/detail?id=1319
+				if (sel == COLUMN_GEO_LOCATION)
 				{
 					ui.calcLocation();
 				}
@@ -4311,7 +4311,7 @@ LRESULT HubFrame::onSelectUser(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 				m_ctrlUsers->SetItemState(i, i == pos ? LVIS_SELECTED | LVIS_FOCUSED : 0, LVIS_SELECTED | LVIS_FOCUSED);
 			}
 			m_ctrlUsers->EnsureVisible(pos, FALSE);
-			const auto l_last_pos = pos + l_count_per_page / 2; // fix https://code.google.com/p/flylinkdc/issues/detail?id=1476
+			const auto l_last_pos = pos + l_count_per_page / 2;
 			if (!m_ctrlUsers->EnsureVisible(l_last_pos, FALSE))
 			{
 				m_ctrlUsers->EnsureVisible(pos, FALSE);
@@ -4339,7 +4339,7 @@ LRESULT HubFrame::onAddNickToChat(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			if (!m_lastUserName.empty())// SSA_SAVE_LAST_NICK_MACROS
 				m_lastUserName += _T(", ");// SSA_SAVE_LAST_NICK_MACROS
 				
-			m_lastUserName += Text::toT((m_ctrlUsers->getItemData(i))->getNick());// SSA_SAVE_LAST_NICK_MACROS
+			m_lastUserName += m_ctrlUsers->getItemData(i)->getNickT();// SSA_SAVE_LAST_NICK_MACROS
 		}
 	}
 	appendNickToChat(m_lastUserName); // SSA_SAVE_LAST_NICK_MACROS
@@ -4427,8 +4427,8 @@ LRESULT HubFrame::onStyleChanged(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
 void HubFrame::on(SettingsManagerListener::Repaint)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (m_ctrlUsers && !ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (m_ctrlUsers && !ClientManager::isBeforeShutdown())
 	{
 		m_ctrlUsers->SetImageList(g_userImage.getIconList(), LVSIL_SMALL);
 		//!!!!m_ctrlUsers->SetImageList(g_userStateImage.getIconList(), LVSIL_STATE);
@@ -4463,7 +4463,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 	{
 		return CDRF_DODEFAULT;
 	}
-	if (ClientManager::isShutdown() == true)
+	if (ClientManager::isBeforeShutdown() == true)
 	{
 		return CDRF_DODEFAULT;
 	}
@@ -4573,7 +4573,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							SetTextColor(cd->nmcd.hdc, cd->clrText);
 						}
 						::ExtTextOut(cd->nmcd.hdc, rc.left + 6, rc.top + 2, ETO_CLIPPED, rc, l_ip.c_str(), l_ip.length(), NULL);
-						if (l_is_fantom_ip) // fix https://code.google.com/p/flylinkdc/issues/detail?id=1477
+						if (l_is_fantom_ip)
 						{
 							cd->clrText =  l_old_color;
 							//SetTextColor(cd->nmcd.hdc, cd->clrText);

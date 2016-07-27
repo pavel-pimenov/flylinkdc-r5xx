@@ -300,7 +300,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 	const auto l_ip = aSource->getRemoteIp();
 	const auto l_chiper_name = aSource->getCipherName();
 	const bool l_is_TypeTree = aType == Transfer::g_type_names[Transfer::TYPE_TREE];
-#ifdef PPA_INCLUDE_DOS_GUARD
+#ifdef FLYLINKDC_USE_DOS_GUARD
 	if (l_is_TypeTree) // && aFile == "TTH/HDWK5FVECXJDLTECQ6TY435WWEE7RU25RSQYYWY"
 	{
 		const HintedUser& l_User = aSource->getHintedUser();
@@ -351,7 +351,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 			*/
 		}
 	}
-#endif // PPA_INCLUDE_DOS_GUARD
+#endif // FLYLINKDC_USE_DOS_GUARD
 	InputStream* is = nullptr;
 	int64_t start = 0;
 	int64_t size = 0;
@@ -493,7 +493,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 					auto f = new SharedFileStream(sourceFile, File::READ, File::OPEN | File::SHARED | File::NO_CACHE_HINT);
 					
 					start = aStartPos;
-					fileSize = f->getSize();
+					fileSize = f->getFastFileSize();
 					size = (aBytes == -1) ? fileSize - start : aBytes;
 					
 					if ((start + size) > fileSize)
@@ -1022,11 +1022,12 @@ void UploadManager::on(UserConnectionListener::Failed, UserConnection* aSource, 
 
 void UploadManager::on(UserConnectionListener::TransmitDone, UserConnection* aSource) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
+	//dcassert(!ClientManager::isShutdown());
 	dcassert(aSource->getState() == UserConnection::STATE_RUNNING);
 	auto u = aSource->getUpload();
 	dcassert(u != nullptr);
 	u->tick(aSource->getLastActivity()); // [!] IRainman refactoring transfer mechanism
+	
 	aSource->setState(UserConnection::STATE_GET);
 	
 	if (!u->isSet(Upload::FLAG_CHUNKED))
@@ -1042,14 +1043,16 @@ void UploadManager::on(UserConnectionListener::TransmitDone, UserConnection* aSo
 
 void UploadManager::logUpload(const UploadPtr& aUpload)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (BOOLSETTING(LOG_UPLOADS) && aUpload->getType() != Transfer::TYPE_TREE && (BOOLSETTING(LOG_FILELIST_TRANSFERS) || aUpload->getType() != Transfer::TYPE_FULL_LIST))
+	if (!ClientManager::isBeforeShutdown())
 	{
-		StringMap params;
-		aUpload->getParams(params);
-		LOG(UPLOAD, params);
+		if (BOOLSETTING(LOG_UPLOADS) && aUpload->getType() != Transfer::TYPE_TREE && (BOOLSETTING(LOG_FILELIST_TRANSFERS) || aUpload->getType() != Transfer::TYPE_FULL_LIST))
+		{
+			StringMap params;
+			aUpload->getParams(params);
+			LOG(UPLOAD, params);
+		}
+		fly_fire1(UploadManagerListener::Complete(), aUpload);
 	}
-	fly_fire1(UploadManagerListener::Complete(), aUpload);
 }
 
 size_t UploadManager::addFailedUpload(const UserConnection* aSource, const string& file, int64_t pos, int64_t size)
@@ -1217,10 +1220,11 @@ void UploadManager::notifyQueuedUsers(int64_t p_tick)
 
 void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
+	if (ClientManager::isBeforeShutdown())
+		return;
 	UserList l_disconnects;
 	{
-#ifdef PPA_INCLUDE_DOS_GUARD
+#ifdef FLYLINKDC_USE_DOS_GUARD
 		{
 			CFlyFastLock(csDos);
 			m_dos_map.clear();
@@ -1333,7 +1337,8 @@ void UploadManager::on(AdcCommand::GFI, UserConnection* aSource, const AdcComman
 // TimerManagerListener
 void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
+	if (ClientManager::isBeforeShutdown())
+		return;
 	{
 		UploadArray l_tickList;
 		{
@@ -1598,11 +1603,8 @@ int UploadQueueItem::compareItems(const UploadQueueItem* a, const UploadQueueIte
 			return compare(Socket::convertIP4(Text::fromT(a->getText(col))), Socket::convertIP4(Text::fromT(b->getText(col))));
 	}
 	return stricmp(a->getText(col), b->getText(col));
-	//-BugMaster: small optimization; fix; correct IP sorting
-	//return 0; [-] IRainman.
 }
 
-// http://code.google.com/p/flylinkdc/issues/detail?id=1413
 void UploadQueueItem::update()
 {
 	dcassert(!ClientManager::isShutdown());
@@ -1628,7 +1630,7 @@ void UploadQueueItem::update()
 	{
 		setText(COLUMN_LOCATION, m_location.getDescription());
 	}
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 	// [!] IRainman opt.
 	if (m_dns.empty())
 	{

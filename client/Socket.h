@@ -219,7 +219,7 @@ class Socket
 		}
 #endif
 		
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 		string getLocalIp() const;
 #endif
 		static string getDefaultGateWay(boost::logic::tribool& p_is_wifi_router);

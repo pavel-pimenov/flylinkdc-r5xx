@@ -313,6 +313,15 @@
     <ClCompile Include="..\zmq\src\address.cpp">
       <Filter>zmq\cpp</Filter>
     </ClCompile>
+    <ClCompile Include="..\zmq\src\dgram.cpp">
+      <Filter>zmq\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zmq\src\scatter.cpp">
+      <Filter>zmq\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zmq\src\gather.cpp">
+      <Filter>zmq\cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />

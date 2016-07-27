@@ -236,7 +236,7 @@ VOID CALLBACK CGDIImage::OnTimer(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
 			return;
 		}
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-		if (isGDIImageLive(pGDIImage)) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1255
+		if (isGDIImageLive(pGDIImage))
 		{
 #endif
 			if (pGDIImage->SelectActiveFrame(pGDIImage->m_dwCurrentFrame)) //Change Active frame
@@ -255,7 +255,7 @@ VOID CALLBACK CGDIImage::OnTimer(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
 					pGDIImage->DrawFrame();
 				}
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-				if (isGDIImageLive(pGDIImage)) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1255
+				if (isGDIImageLive(pGDIImage))
 				{
 #endif
 					EnterCriticalSection(&pGDIImage->m_csCallback);

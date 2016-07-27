@@ -461,7 +461,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  SETTINGS_STATISTICS_ASK,
 #endif
 		                  USE_FLY_SERVER_STATICTICS_SEND,
-		                  REPORT_TO_USER_IF_OUTDATED_OS_DETECTED, // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=1032
+		                  REPORT_TO_USER_IF_OUTDATED_OS_DETECTED,
 		                  USE_GPU_IN_TTH_COMPUTING,
 		                  TTH_GPU_DEV_NUM,
 		                  //  USERS_TOP, USERS_BOTTOM, USERS_LEFT, USERS_RIGHT,

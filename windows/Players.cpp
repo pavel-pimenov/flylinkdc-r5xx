@@ -235,7 +235,7 @@ string Players::getMPCSpam()
 		if (SUCCEEDED(CreateBindCtx(0, &pBindCtx)))
 			for (CComPtr<IMoniker> pMoniker; SUCCEEDED(pEM->Next(1, &pMoniker, NULL)); pMoniker = NULL)
 			{
-				if (!pMoniker) //[+] FlylinkDC++ Team http://code.google.com/p/flylinkdc/source/detail?r=8764
+				if (!pMoniker)
 					break;
 				LPOLESTR pDispName = NULL;
 				if (!SUCCEEDED(pMoniker->GetDisplayName(pBindCtx, NULL, &pDispName)))
@@ -909,9 +909,9 @@ string Players::getWinampSpam(HWND playerWnd, int playerType)
 		    waBitRate = SendMessage(playerWnd, WM_USER, 1, IPC_GETINFO),
 		    waChannels = SendMessage(playerWnd, WM_USER, 2, IPC_GETINFO);
 		//[!] SSA fix for QCD
-		if (playerType == 1 || BOOLSETTING(USE_BITRATE_FIX_FOR_SPAM))   // http://code.google.com/p/flylinkdc/issues/detail?id=662
+		if (playerType == 1 || BOOLSETTING(USE_BITRATE_FIX_FOR_SPAM))
 		{
-			if (waSampleRate > 100) // if in Herz // http://code.google.com/p/flylinkdc/issues/detail?id=662
+			if (waSampleRate > 100) // if in Herz
 			{
 				waSampleRate = waSampleRate / 1000.0;
 			}

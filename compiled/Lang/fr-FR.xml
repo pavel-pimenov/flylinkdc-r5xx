@@ -329,7 +329,7 @@
 		<String Name="DecompressionError">Erreur durant la décompression</String>
 		<String Name="Default">Défaut</String>
 		<String Name="DefaultAwayMessage">Bonjour, %[userNI]! J'étais sans doute pas là ou je fais quelque chose avec %H:%M %d-%m-%Y. Être libre, je vais répondre plus tard. Bonne chance!</String>
-		<String Name="DefPasswordHint">L'utilisateur a désactivé la réception de messages privés. En cas d'urgence, utilisez le mot de passe '%[pm_pass]', mais n'oubliez pas que les demandeurs des fentes peuvent être bannis+ignorés. Ainsi, ne pouvone pas télécjarger même dans une file d'attente et envoyer des messages, même avec un bon mot de passe.</String>
+		<String Name="DefPasswordHint">L'utilisateur a désactivé la réception de messages privés. En cas d'urgence, utilisez le mot de passe '%[pm_pass]'</String>
 		<String Name="DefPasswordOkHint">Mot de passe est bon. L'utilisateur pourra recevoir vos messages privés.</String>
 		<String Name="DeleteChecked">Supprimer listes de fichiers sélectionnés</String>
 		<String Name="DenyAll">Refuser tout</String>

@@ -70,7 +70,7 @@ class MerkleTree
 			dcassert(l_n >= 1);
 			if (p_DataSize != l_n * Hasher::BYTES) // [!] IRainman fix: strongly check!
 			{
-				dcassert(0); // TODO: please refactoring MerkleTree to calculate three for this data. https://code.google.com/p/flylinkdc/issues/detail?id=1047
+				dcassert(0); // TODO: please refactoring MerkleTree to calculate three for this data.
 				LogManager::message("MerkleTree create error with p_FileSize=" + Util::toString(p_FileSize) + ", p_BlockSize=" + Util::toString(p_BlockSize) + ", p_DataSize=" + Util::toString(p_DataSize));
 				return; // http://www.flylinkdc.ru/2012/05/strongdc-sqlite-r9957.html
 			}
@@ -259,21 +259,21 @@ class MerkleTree
 			root = getHash(0, fileSize);
 		}
 		
-		ByteVector getLeafData()
+		void getLeafData(ByteVector& buf)
 		{
 			const auto l_size = getLeaves().size();
 			if (l_size > 0)
 			{
-				ByteVector buf(l_size * BYTES);
+				buf.resize(l_size * BYTES);
 				auto p = &buf[0];
 				for (size_t i = 0; i < l_size; ++i, p += BYTES)
 				{
 					memcpy(p, &getLeaves()[i], BYTES);
 				}
 				dcassert(static_cast<ptrdiff_t>(buf.size()) == p - &buf[0]);
-				return buf;
+				return;
 			}
-			return ByteVector();
+			buf.clear();
 		}
 		
 	protected:

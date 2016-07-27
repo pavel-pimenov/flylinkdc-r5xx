@@ -1296,73 +1296,73 @@
     <ClInclude Include="client\CFlyUserRatioInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\common_types.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\common_types.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_posix.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_posix.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_wrapper.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_wrapper.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\critical_section_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\critical_section_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\critical_section_wrapper.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\critical_section_wrapper.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\event_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\event_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\event_wrapper.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\event_wrapper.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\file_impl.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\file_impl.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\file_wrapper.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\file_wrapper.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\fix_interlocked_exchange_pointer_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\fix_interlocked_exchange_pointer_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_generic.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_generic.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_wrapper.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_wrapper.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\set_thread_name_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\set_thread_name_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\sleep.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\sleep.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\static_instance.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\static_instance.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\thread_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\thread_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\thread_wrapper.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\thread_wrapper.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\trace.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\trace.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\trace_impl.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\trace_impl.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\trace_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\trace_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\typedefs.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\typedefs.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
     <ClInclude Include="zmq\src\address.hpp">

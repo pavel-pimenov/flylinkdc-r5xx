@@ -332,7 +332,7 @@
 		<String Name="DecompressionError">Error durante la descompresión</String>
 		<String Name="Default">Por defecto</String>
 		<String Name="DefaultAwayMessage">Hola %[userNI] ahora no estoy, déjame un mensaje ( FlylinkDC++ traducido por Xcell )</String>
-		<String Name="DefPasswordHint">El usuario ha desactivado la recepción de mensajes privados. En caso de urgencia, usar la contraseña '%[pm_pass]'. No abusar: Si se pregunta por slot será baneado e ignorado permanentemente incluso para descargar.</String>
+		<String Name="DefPasswordHint">El usuario ha desactivado la recepción de mensajes privados. En caso de urgencia, usar la contraseña '%[pm_pass]'</String>
 		<String Name="DefPasswordOkHint">Contraseña correcta. Acceso concedido</String>
 		<String Name="DeleteChecked">Borrar listas comprobadas</String>
 		<String Name="DenyAll">Negar todo</String>

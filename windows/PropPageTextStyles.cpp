@@ -289,14 +289,16 @@ LRESULT PropPageTextStyles::onEditTextStyle(WORD /*wNotifyCode*/, WORD /*wID*/, 
 		if ((TextStyles[ iNdx ].dwEffects & CFE_BOLD) == CFE_BOLD)
 			m_Font.lfWeight = FW_BOLD;
 	}
-	
-	for (int i = 0; i < TS_LAST; i++)
 	{
-		_tcscpy(TextStyles[ iNdx ].szFaceName, m_Font.lfFaceName);
-		TextStyles[ i ].bCharSet = m_Font.lfCharSet;
-		TextStyles[ i ].yHeight = m_Font.lfHeight;
-		const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, _T("12:34 "), Text::toT(TextStyles[i].m_sPreviewText), TextStyles[i], true);
-		m_Preview.AppendText(l_message);
+		CLockRedraw<true> l_lock_redraw(m_Preview);
+		for (int i = 0; i < TS_LAST; i++)
+		{
+			_tcscpy(TextStyles[iNdx].szFaceName, m_Font.lfFaceName);
+			TextStyles[i].bCharSet = m_Font.lfCharSet;
+			TextStyles[i].yHeight = m_Font.lfHeight;
+			const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, _T("12:34 "), Text::toT(TextStyles[i].m_sPreviewText), TextStyles[i], true);
+			m_Preview.AppendText(l_message, false);
+		}
 	}
 	
 	RefreshPreview();
@@ -313,11 +315,13 @@ void PropPageTextStyles::RefreshPreview()
 	Colors::g_TextStyleTimestamp = TextStyles[ TS_TIMESTAMP ];
 	m_Preview.SetWindowText(_T(""));
 	
-	//[-] PVS-Studio V808 string sText;
-	for (int i = 0; i < TS_LAST; i++)
 	{
-		const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, _T("12:34 "), Text::toT(TextStyles[i].m_sPreviewText).c_str(), TextStyles[i], false);
-		m_Preview.AppendText(l_message);
+		CLockRedraw<false> l_lock_redraw(m_Preview);
+		for (int i = 0; i < TS_LAST; i++)
+		{
+			const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, _T("12:34 "), Text::toT(TextStyles[i].m_sPreviewText).c_str(), TextStyles[i], false);
+			m_Preview.AppendText(l_message, false);
+		}
 	}
 	m_Preview.InvalidateRect(NULL);
 	m_Preview.SetTextStyleMyNick(old);
@@ -540,7 +544,7 @@ LRESULT PropPageTextStyles::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 
 LRESULT PropPageTextStyles::onImport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	ctrlTheme.Attach(GetDlgItem(IDC_THEME_COMBO2)); // [~] SCALOlaz: https://code.google.com/p/flylinkdc/issues/detail?id=455
+	ctrlTheme.Attach(GetDlgItem(IDC_THEME_COMBO2));
 	const tstring file = Text::toT(WinUtil::getDataFromMap(ctrlTheme.GetCurSel(), m_ThemeList));
 	ctrlTheme.Detach();
 	if (!m_maincolor_changed)

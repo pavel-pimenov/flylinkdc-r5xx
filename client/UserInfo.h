@@ -133,9 +133,13 @@ class UserInfo : public UserInfoBase
 		{
 			m_location = p_location;
 		}
-		string getNick() const
+		const string& getNick() const
 		{
 			return m_ou->getIdentity().getNick();
+		}
+		const tstring& getNickT() const
+		{
+			return m_ou->getIdentity().getNickT();
 		}
 #ifdef IRAINMAN_USE_HIDDEN_USERS
 		bool isHidden() const

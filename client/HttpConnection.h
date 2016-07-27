@@ -25,8 +25,6 @@
 #if 0
 #include "BufferedSocket.h"
 
-// FlylinkDC++ Team TODO: http://code.google.com/p/flylinkdc/issues/detail?id=632 https://code.google.com/p/flylinkdc/issues/detail?id=900
-
 class HttpConnection;
 
 class HttpConnectionListener

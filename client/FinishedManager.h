@@ -135,9 +135,9 @@ class FinishedItem
 		int getImageIndex() const;
 		GETC(string, target, Target);
 		GETC(TTHValue, tth, TTH);
-		GETC(string, ip, IP); // [+] PPA
+		GETC(string, ip, IP);
 		GETC(string, nick, Nick);
-		GETC(string, hubs, Hubs); // [+] http://code.google.com/p/flylinkdc/issues/detail?id=981
+		GETC(string, hubs, Hubs);
 		GETC(string, hub, Hub);
 		GETC(CID, cid, CID);
 		GETC(int64_t, size, Size);

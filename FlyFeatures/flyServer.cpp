@@ -1419,7 +1419,7 @@ bool CFlyServerJSON::pushTestPort(
 		}
 	}
 	const auto l_result = postQueryTestPort(l_log, l_post_query, l_is_send, l_is_error);
-	dcassert(!l_result.empty());
+	//dcassert(!l_result.empty());
 	// TODO - приделать счетчик таймаута и передавать его в статистику или в след пакет?
 	if (!l_is_send)
 	{
@@ -2603,7 +2603,7 @@ static void getExtMediaInfo(const string& p_file_ext_wo_dot,
 	if (const size_t l_count = p_media_info_dll.Count_Get(p_stream_type))
 	{
 		int l_count_audio_channel = 0;
-		if (p_stream_type == MediaInfoLib::Stream_Audio  || MediaInfoLib::Stream_Text) // Число каналов считаем только для Audio и Text
+		if (p_stream_type == MediaInfoLib::Stream_Audio  || p_stream_type ==  MediaInfoLib::Stream_Text) // Число каналов считаем только для Audio и Text
 		{
 			l_count_audio_channel = l_count;
 		}

@@ -97,7 +97,7 @@ bool HashManager::StreamStore::loadTree(const string& p_filePath, TigerTree& p_T
 	}
 	catch (const Exception& /*e*/)
 	{
-		// Отключил спам http://code.google.com/p/flylinkdc/issues/detail?id=1415
+		// Отключил спам
 		// LogManager::message(STRING(ERROR_GET_TTH_STREAM) + ' ' + p_filePath + " Error = " + e.getError());// [+]IRainman
 		return false;
 	}
@@ -762,7 +762,7 @@ int HashManager::Hasher::run()
 						const auto l_path = Text::toLower(Util::getFilePath(l_fname));
 						dcassert(!l_path.empty());
 						bool l_is_no_mediainfo;
-						m_path_id = CFlylinkDBManager::getInstance()->get_path_id(l_path, false, false, l_is_no_mediainfo, false);
+						m_path_id = CFlylinkDBManager::getInstance()->get_path_id(l_path, true, false, l_is_no_mediainfo, false);
 						dcassert(m_path_id);
 					}
 #ifdef IRAINMAN_NTFS_STREAM_TTH

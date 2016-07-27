@@ -29,7 +29,7 @@
 int WaitingUsersFrame::columnSizes[] = { 250, 20, 100, 75, 75, 75, 75, 100, 100, 100, 100, 150, 75 }; // !SMT!-UI
 int WaitingUsersFrame::columnIndexes[] = { UploadQueueItem::COLUMN_FILE, UploadQueueItem::COLUMN_TYPE, UploadQueueItem::COLUMN_PATH, UploadQueueItem::COLUMN_NICK, UploadQueueItem::COLUMN_HUB, UploadQueueItem::COLUMN_TRANSFERRED, UploadQueueItem::COLUMN_SIZE, UploadQueueItem::COLUMN_ADDED, UploadQueueItem::COLUMN_WAITING,
                                            UploadQueueItem::COLUMN_LOCATION, UploadQueueItem::COLUMN_IP, // !SMT!-IP
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
                                            UploadQueueItem::COLUMN_DNS, // !SMT!-IP
 #endif
                                            UploadQueueItem::COLUMN_SLOTS, UploadQueueItem::COLUMN_SHARE // !SMT!-UI
@@ -37,7 +37,7 @@ int WaitingUsersFrame::columnIndexes[] = { UploadQueueItem::COLUMN_FILE, UploadQ
 static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, ResourceManager::TYPE, ResourceManager::PATH, ResourceManager::NICK,
                                                   ResourceManager::HUB, ResourceManager::TRANSFERRED, ResourceManager::SIZE, ResourceManager::ADDED, ResourceManager::WAITING_TIME,
                                                   ResourceManager::LOCATION_BARE, ResourceManager::IP_BARE,
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
                                                   ResourceManager::DNS_BARE, // !SMT!-IP
 #endif
                                                   ResourceManager::SLOTS, ResourceManager::SHARED // !SMT!-UI
@@ -674,7 +674,6 @@ LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHan
 				return CDRF_SKIPDEFAULT;
 			}
 			
-			// [!] TODO https://code.google.com/p/flylinkdc/issues/detail?id=1115
 			// [!] Colors::getUserColor(ii->getUser(), cd->clrText, cd->clrTextBk); // [!] IRainman fix todo [1] https://www.box.net/shared/f7c509838c3a1125842b , https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=59082
 			// !SMT!-IP
 			if (m_ctrlList.findColumn(cd->iSubItem) == UploadQueueItem::COLUMN_LOCATION)

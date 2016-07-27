@@ -24,7 +24,7 @@
 
 #include "Segment.h"
 #include "HintedUser.h"
-#include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
+#include "webrtc/system_wrappers/include/rw_lock_wrapper.h"
 #include "Download.h"
 #include "CFlyThread.h"
 
@@ -177,7 +177,6 @@ class QueueItem : public Flags
 		typedef SourceMap::const_iterator SourceConstIter;
 		typedef std::multimap<time_t, pair<SourceConstIter, const QueueItemPtr> > SourceListBuffer;
 		
-		// [+] fix ? http://code.google.com/p/flylinkdc/issues/detail?id=1236 .
 		static void getPFSSourcesL(const QueueItemPtr& p_qi, SourceListBuffer& p_sourceList, uint64_t p_now);
 		
 		typedef std::set<Segment> SegmentSet;
@@ -260,15 +259,6 @@ class QueueItem : public Flags
 		}
 		uint64_t calcAverageSpeedAndCalcAndGetDownloadedBytesL() const; // [!] IRainman opt.
 		void calcDownloadedBytes() const;
-		// TODO - попробовать переписать функцию на +/- убрав постоянные итерации по коллекции
-		// на больших очередях будет тормозить?
-		/* [-] IRainman no needs! Please lock fully consciously!
-		uint64_t calcAverageSpeedAndDownloadedBytes() const
-		{
-		RLock(*QueueItem::g_cs);
-		return calcAverageSpeedAndDownloadedBytesL();
-		}
-		[-] */
 		bool isDirtyBase() const
 		{
 			return m_dirty;
@@ -405,6 +395,7 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 		GETSET(uint64_t, timeFileBegin, TimeFileBegin);
 		GETSET(uint64_t, nextPublishingTime, NextPublishingTime);
 		GETSET_DIRTY(int64_t, size, Size);
+		GETSET(int64_t, lastsize, LastSize);
 		GETSET(time_t, added, Added);
 		GETSET_DIRTY(uint8_t, maxSegments, MaxSegments);
 		GETSET_DIRTY(bool, autoPriority, AutoPriority);

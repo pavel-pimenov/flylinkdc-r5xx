@@ -43,7 +43,7 @@ boost::atomic_int OnlineUser::g_online_user_counts(0);
 Identity::StringDictionaryReductionPointers Identity::g_infoDic;
 Identity::StringDictionaryIndex Identity::g_infoDicIndex;
 
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 
 User::User(const CID& aCID) : m_cid(aCID),
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
@@ -52,7 +52,7 @@ User::User(const CID& aCID) : m_cid(aCID),
 	m_slots(0),
 	m_bytesShared(0),
 	m_limit(0)
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	, m_hub_id(0)
 	, m_ratio_ptr(nullptr)
 #endif
@@ -81,7 +81,7 @@ User::~User()
 	dcdebug(" [!!!!!!]   [!!!!!!]  User::~User() this = %p, g_user_counts = %d\n", this, g_user_counts);
 # endif
 #endif
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	safe_delete(m_ratio_ptr);
 #endif
 }
@@ -402,7 +402,7 @@ tstring User::getUDratio()
 	else
 		return Util::emptyStringT;
 }
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 
 bool Identity::isTcpActive() const
 {
@@ -453,7 +453,7 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 	if (!dht)
 	{
 #define APPEND(cmd, val) sm[prefix + cmd] = val;
-#define SKIP_EMPTY(cmd, val) { if (!val.empty()) APPEND(cmd, val); }
+#define SKIP_EMPTY(cmd, val) { if (!val.empty()) { APPEND(cmd, val); } }
 	
 		APPEND("NI", getNick());
 		SKIP_EMPTY("SID", getSIDString());
@@ -500,7 +500,6 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 		}
 	}
 }
-// Вернул тэг - http://code.google.com/p/flylinkdc/source/detail?r=14812
 string Identity::getTag() const
 {
 	if (isAppNameExists())
@@ -549,8 +548,8 @@ string Identity::getApplication() const
 
 #ifdef _DEBUG
 
-// #define PPA_INCLUDE_TEST
-#ifdef PPA_INCLUDE_TEST
+// #define FLYLINKDC_USE_TEST
+#ifdef FLYLINKDC_USE_TEST
 FastCriticalSection csTest;
 #endif
 
@@ -604,7 +603,7 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 {
 	CHECK_GET_SET_COMMAND();
 	
-#ifdef PPA_INCLUDE_TEST
+#ifdef FLYLINKDC_USE_TEST
 	{
 		static std::map<short, int> g_cnt;
 		CFlyFastLock(ll(csTest);
@@ -618,7 +617,7 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 	}
 #endif
 	
-	switch (*(short*)name) // http://code.google.com/p/flylinkdc/issues/detail?id=1314
+	switch (*(short*)name)
 	{
 		case TAG('A', 'P'):
 		{
@@ -736,7 +735,7 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 {
 	CHECK_GET_SET_COMMAND();
 	
-#ifdef PPA_INCLUDE_TEST
+#ifdef FLYLINKDC_USE_TEST
 	{
 		static std::map<short, int> g_cnt;
 		CFlyFastLock(csTest);
@@ -761,7 +760,7 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 	CFlylinkDBManager::getInstance()->identity_set(name, val);
 #endif
 	bool l_is_processing_stringInfo_map = true;
-	if (val.empty()) //  http://code.google.com/p/flylinkdc/issues/detail?id=1314
+	if (val.empty())
 	{
 		switch (*(short*)name) // TODO: move to instantly method
 		{
@@ -797,12 +796,12 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 					l_is_skip_string_map = true;
 					break;
 				}
-				case TAG('E', 'M'): //  http://code.google.com/p/flylinkdc/issues/detail?id=1314
+				case TAG('E', 'M'):
 				{
 					setNotEmptyStringBit(EM, !val.empty());
 					break;
 				}
-				case TAG('D', 'E'): //  http://code.google.com/p/flylinkdc/issues/detail?id=1314
+				case TAG('D', 'E'):
 				{
 					setNotEmptyStringBit(DE, !val.empty());
 					break;
@@ -835,7 +834,6 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 
 Identity::~Identity()
 {
-	// TODO fix me https://code.google.com/p/flylinkdc/issues/detail?id=1244
 }
 
 void FavoriteUser::update(const OnlineUser& info) // !SMT!-fix
@@ -843,7 +841,7 @@ void FavoriteUser::update(const OnlineUser& info) // !SMT!-fix
 	// [!] FlylinkDC Team: please let me know if the assertions fail. IRainman.
 	dcassert(!info.getIdentity().getNick().empty() || info.getClient().getHubUrl().empty());
 	
-	setNick(info.getIdentity().getNick()); // [!] IRainman fix http://code.google.com/p/flylinkdc/issues/detail?id=487
+	setNick(info.getIdentity().getNick());
 	setUrl(info.getClient().getHubUrl());
 }
 
@@ -1222,7 +1220,7 @@ User::DefinedAutoBanFlags User::hasAutoBan(Client *p_Client, const bool p_is_fav
 	int iBan = BAN_NONE;
 	if (!bForceAllow)
 	{
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		if (getHubID() != 0) // Value HubID is zero for himself, do not check your user.
 #endif
 		{

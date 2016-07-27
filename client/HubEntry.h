@@ -126,7 +126,7 @@ class HubEntry
 			users(Util::toInt(aUsers)), minSlots(Util::toInt(aMinSlots)), maxHubs(Util::toInt(aMaxHubs)), maxUsers(Util::toInt(aMaxUsers))
 		{
 		}
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 	HubEntry(const string& aName, const string& aServer, const string& aDescription, const string& aUsers) noexcept :
 		name(aName), server(aServer), description(aDescription),
 		reliability(0.0), shared(0), minShare(0), users(Util::toInt(aUsers)), minSlots(0), maxHubs(0), maxUsers(0) { }

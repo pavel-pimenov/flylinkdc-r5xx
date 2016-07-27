@@ -26,7 +26,7 @@
 #include "User.h"
 #include "UserInfoBase.h"
 #include "UserInfoColumns.h"
-#include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
+#include "webrtc/system_wrappers/include/rw_lock_wrapper.h"
 
 class ClientBase;
 class NmdcHub;
@@ -80,7 +80,7 @@ class Identity
 #endif
 			CHANGES_IP = 1 << COLUMN_IP, // done
 			CHANGES_GEO_LOCATION = 1 << COLUMN_GEO_LOCATION, // done
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 			CHANGES_UPLOAD = 1 << COLUMN_UPLOAD,
 			CHANGES_DOWNLOAD = 1 << COLUMN_DOWNLOAD,
 			CHANGES_MESSAGES = 1 << COLUMN_MESSAGES,
@@ -89,7 +89,7 @@ class Identity
 			CHANGES_ANTIVIRUS = 1 << COLUMN_ANTIVIRUS,
 #endif
 			CHANGES_P2P_GUARD = 1 << COLUMN_P2P_GUARD,
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 			CHANGES_DNS = 1 << COLUMN_DNS, // !SMT!-IP
 #endif
 			//[-]PPA        CHANGES_PK = 1 << COLUMN_PK,
@@ -202,19 +202,30 @@ class Identity
 		void setNick(const string& p_nick) // "NI"
 		{
 			// dcassert(!p_nick.empty());
-			m_nick = p_nick;
+			m_user_nick = p_nick;
+			m_user_nickT = Text::toT(p_nick);
 			getUser()->setLastNick(p_nick);
 			change(CHANGES_NICK);
 		}
+#if 0
 		void setNickFast(const string& p_nick) // Используется при первой инициализации
 		{
 			dcassert(!p_nick.empty());
-			m_nick = p_nick;
+			m_user_nick = p_nick;
+			m_user_nickT = Text::toT(p_nick);
 		}
-		GETM(string, m_nick, Nick); // "NI"
-		const tstring getNickT() const
+#endif
+		const string& getNick() const
 		{
-			return Text::toT(m_nick);
+			static int g_count = 0;
+			//dcdebug("[1]const string getNick %s count = %d\r\n", m_user_nick.c_str(), ++g_count);
+			return m_user_nick;
+		}
+		const tstring& getNickT() const
+		{
+			static int g_count = 0;
+			//dcdebug("[2]const tstring getNickT %s count = %d\r\n", m_user_nick.c_str(), ++g_count);
+			return m_user_nickT;
 		}
 	public:
 		string getSupports() const; // "SU"
@@ -270,7 +281,9 @@ class Identity
 		}
 		string getIpAsString() const;
 	private:
-		boost::asio::ip::address_v4 m_ip; // "I4" // [!] IRainman fix: needs here, details https://code.google.com/p/flylinkdc/issues/detail?id=1330
+		string m_user_nick;
+		tstring m_user_nickT;
+		boost::asio::ip::address_v4 m_ip; // "I4"
 		int64_t m_bytes_shared;
 	public:
 		bool m_is_real_user_ip_from_hub;
@@ -873,7 +886,7 @@ class OnlineUser :
 			COLUMN_IP,
 			//[+]PPA
 			COLUMN_LAST_IP,
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 			COLUMN_UPLOAD,
 			COLUMN_DOWNLOAD,
 			COLUMN_MESSAGES,

@@ -75,7 +75,7 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 	{
 		// return UserPtr();
 		return ClientManager::getUser(name, "Unknown Hub"
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		                              , 0
 #endif
 		                              , false
@@ -88,7 +88,7 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 	{
 		// return UserPtr();
 		return ClientManager::getUser(name, "Unknown Hub"
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		                              , 0
 #endif
 		                              , false
@@ -100,7 +100,7 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 	{
 		// return UserPtr();
 		return ClientManager::getUser(name, "Unknown Hub"
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		                              , 0
 #endif
 		                              , false
@@ -335,7 +335,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 #endif
 			if (attribs.size() >= 4) // 3 - стандартный DC++, 4 - GreyLinkDC++
 			{
-				if (attribs.size() == 4) // http://code.google.com/p/flylinkdc/issues/detail?id=1402
+				if (attribs.size() == 4)
 				{
 					const string l_sharedGL = getAttrib(attribs, sShared, 4);
 					if (!l_sharedGL.empty())
@@ -424,7 +424,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			auto f = new DirectoryListing::File(m_cur, l_name, l_size, l_tth, l_i_hit, l_i_ts, l_mediaXY);
 			m_cur->m_virus_detect.add(l_name, l_size);
 			m_cur->files.push_back(f);
-			if (l_size) // http://code.google.com/p/flylinkdc/issues/detail?id=1098
+			if (l_size)
 			{
 				if (m_is_own_list)//[+] FlylinkDC++
 				{
@@ -460,7 +460,6 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			if (l_file_name.empty())
 			{
 				//  throw SimpleXMLException("Directory missing name attribute");
-				// http://code.google.com/p/flylinkdc/issues/detail?id=1101
 				l_file_name = "empty_file_name_" + Util::toString(++m_empty_file_name_counter);
 			}
 			const bool incomp = getAttrib(attribs, sIncomplete, 1) == "1";

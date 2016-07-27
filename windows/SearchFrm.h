@@ -209,7 +209,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			showUIContainer(WC_COMBOBOX, this, SHOWUI_MESSAGE_MAP),
 			//slotsContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			//collapsedContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 			//storeIPContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
 			m_storeIP(false),
 #endif
@@ -475,7 +475,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			COLUMN_EXACT_SIZE,
 			COLUMN_LOCATION, // !SMT!-IP
 			COLUMN_IP,
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 			COLUMN_DNS, // !SMT!-IP
 #endif
 			COLUMN_TTH,
@@ -704,7 +704,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CContainedWindow fileTypeContainer;
 		//CContainedWindow slotsContainer;
 		//CContainedWindow collapsedContainer;
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		//CContainedWindow storeIPContainer;
 		CButton m_ctrlStoreIP;
 		bool m_storeIP;
@@ -931,6 +931,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #endif
 		
 		void addSearchResult(SearchInfo* si);
+		bool isSkipSearchResult(SearchInfo*& si);
 		
 		LRESULT onItemChangedHub(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 		

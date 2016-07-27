@@ -52,7 +52,7 @@ class UserInfoSimple: public UserInfoBase
 		const HintedUser m_hintedUser;
 };
 
-#if 0 // http://code.google.com/p/flylinkdc/issues/detail?id=1413
+#if 0
 class UploadQueueItemInfo : public UserInfoBase // [<-] IRainman fix: moved from kernel and cleanup.
 	, public ColumnBase< 13 >
 {
@@ -64,7 +64,7 @@ class UploadQueueItemInfo : public UserInfoBase // [<-] IRainman fix: moved from
 				int dummy_param_limit;
 				if (ClientManager::getUserParams(getQi()->getHintedUser(), m_share, m_slots, dummy_param_limit, m_ip)) // [!] IRainman opt.
 				{
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 					// [-] dns = Socket::nslookup(ip); [-] IRainman opt.
 #endif
 					// [-] location = Util::getIpCountry(ip); [-] IRainman opt.
@@ -74,7 +74,7 @@ class UploadQueueItemInfo : public UserInfoBase // [<-] IRainman fix: moved from
 					m_share = 0;
 					m_slots = 0;
 					// [-] ip = Util::emptyString; [-] IRainman opt.
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 					// [-] dns = Util::emptyString; [-] IRainman opt.
 #endif
 				}
@@ -133,7 +133,7 @@ class UploadQueueItemInfo : public UserInfoBase // [<-] IRainman fix: moved from
 			COLUMN_WAITING,
 			COLUMN_LOCATION, // !SMT!-IP
 			COLUMN_IP, // !SMT!-IP
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 			COLUMN_DNS, // !SMT!-IP
 #endif
 			COLUMN_SLOTS, // !SMT!-UI
@@ -155,7 +155,7 @@ class UploadQueueItemInfo : public UserInfoBase // [<-] IRainman fix: moved from
 		
 		mutable Util::CustomNetworkIndex m_location; // [!] IRainman opt !SMT!-IP
 		GETM(string, m_ip, Ip);
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 		GETM(string, m_dns, Dns);
 #endif
 		GETM(UploadQueueItemPtr, m_queueItem, Qi);

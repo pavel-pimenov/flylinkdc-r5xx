@@ -64,9 +64,6 @@
     <ClCompile Include="client\HashManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\HttpConnection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="client\IpGuard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -397,25 +394,10 @@
     <ClCompile Include="client\CFlyUserRatioInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\critical_section.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\critical_section_win.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\event.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\event_win.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
     <ClCompile Include="client\webrtc\system_wrappers\source\file_impl.cc">
       <Filter>Source Files\webrtc</Filter>
     </ClCompile>
     <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock_generic.cc">
       <Filter>Source Files\webrtc</Filter>
     </ClCompile>
     <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock_win.cc">
@@ -424,25 +406,13 @@
     <ClCompile Include="client\webrtc\system_wrappers\source\sleep.cc">
       <Filter>Source Files\webrtc</Filter>
     </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\thread_win.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
     <ClCompile Include="client\webrtc\system_wrappers\source\trace_impl.cc">
       <Filter>Source Files\webrtc</Filter>
     </ClCompile>
     <ClCompile Include="client\webrtc\system_wrappers\source\trace_win.cc">
       <Filter>Source Files\webrtc</Filter>
     </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\flylinkdc_thread.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
     <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable_event_win.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable_native_win.cc">
       <Filter>Source Files\webrtc</Filter>
     </ClCompile>
     <ClCompile Include="client\TaskQueue.cpp">
@@ -480,6 +450,21 @@
     </ClCompile>
     <ClCompile Include="client\CFlyLockProfiler.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\base\criticalsection.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\base\checks.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock_winxp_win.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\base\platform_thread.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\base\thread_checker_impl.cc">
+      <Filter>Source Files\webrtc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -601,9 +586,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="client\HashValue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="client\HttpConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="client\HubEntry.h">
@@ -1071,356 +1053,71 @@
     <ClInclude Include="client\CFlyUserRatioInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\common_types.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\common_types.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_posix.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_posix.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_wrapper.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_wrapper.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\critical_section_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\critical_section_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\critical_section_wrapper.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\critical_section_wrapper.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\event_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\event_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\event_wrapper.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\event_wrapper.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\file_impl.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\file_impl.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\file_wrapper.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\file_wrapper.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\fix_interlocked_exchange_pointer_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\fix_interlocked_exchange_pointer_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_generic.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_wrapper.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_wrapper.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\set_thread_name_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\set_thread_name_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\sleep.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\sleep.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\static_instance.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\static_instance.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\thread_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\thread_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\thread_wrapper.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\thread_wrapper.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\trace.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\trace.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\trace_impl.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\trace_impl.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\trace_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\trace_win.h">
+    <ClInclude Include="client\webrtc\system_wrappers\include\typedefs.h">
       <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\interface\typedefs.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\address.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\array.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\atomic_counter.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\atomic_ptr.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\blob.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\clock.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\command.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\config.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\ctx.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\curve_client.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\curve_server.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\dbuffer.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\dealer.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\decoder.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\devpoll.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\dist.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\encoder.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\epoll.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\err.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\fd.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\fq.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\i_decoder.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\i_encoder.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\i_engine.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\i_poll_events.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\io_object.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\io_thread.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\ip.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\ipc_address.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\ipc_connecter.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\ipc_listener.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\kqueue.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\lb.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\likely.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\mailbox.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\mechanism.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\msg.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\mtrie.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\mutex.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\null_mechanism.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\object.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\options.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\own.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\pair.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\pgm_receiver.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\pgm_sender.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\pgm_socket.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\pipe.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\plain_mechanism.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\platform.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\poll.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\poller.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\poller_base.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\precompiled.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\proxy.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\pub.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\pull.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\push.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\random.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\raw_decoder.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\raw_encoder.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\reaper.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\rep.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\req.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\router.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\select.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\session_base.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\signaler.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\socket_base.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\stdint.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\stream.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\stream_engine.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\sub.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\tcp.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\tcp_address.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\tcp_connecter.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\tcp_listener.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\thread.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\trie.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\v1_decoder.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\v1_encoder.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\v2_decoder.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\v2_encoder.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\v2_protocol.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\windows.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\wire.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\xpub.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\xsub.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\ypipe.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\ypipe_base.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\ypipe_conflate.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\src\yqueue.hpp">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\include\zmq.h">
-      <Filter>Header Files\zmq</Filter>
-    </ClInclude>
-    <ClInclude Include="zmq\include\zmq_utils.h">
-      <Filter>Header Files\zmq</Filter>
     </ClInclude>
     <ClInclude Include="leveldb\port\win\leveldb_stdint.h">
       <Filter>Header Files\leveldb</Filter>
@@ -1442,6 +1139,24 @@
     </ClInclude>
     <ClInclude Include="client\CFlyLockProfiler.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\dcformat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\base\criticalsection.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\source\rw_lock_winxp_win.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\base\platform_thread.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\base\thread_checker.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\base\thread_checker_impl.h">
+      <Filter>Source Files\webrtc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1487,9 +1202,6 @@
     <Filter Include="Source Files\webrtc">
       <UniqueIdentifier>{634734c1-c671-4cbd-877a-3a51a43bf950}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\zmq">
-      <UniqueIdentifier>{b04d2be1-0557-4bb9-b270-2e1ab116c62b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\webrtc\talk">
       <UniqueIdentifier>{b7f6ee81-2431-4ce9-805e-d9aa59c8a651}</UniqueIdentifier>
     </Filter>
@@ -1511,9 +1223,6 @@
     </None>
     <None Include="jsoncpp\src\lib_json\json_internalmap.inl">
       <Filter>Source Files\jsoncpp</Filter>
-    </None>
-    <None Include="zmq\src\platform.hpp.in">
-      <Filter>Header Files\zmq</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -54,24 +54,27 @@ Transfer::Transfer(UserConnection* p_conn, const string& p_path, const TTHValue&
 */
 void Transfer::tick(uint64_t p_CurrentTick)
 {
-	//[!]IRainman refactoring transfer mechanism
-	CFlyFastLock(m_cs);
-	setLastTick(p_CurrentTick);
-	dcassert(!m_samples.empty());
-	if (!m_samples.empty()) // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=57070
+	if (!ClientManager::isBeforeShutdown())
 	{
-		if (m_actual && m_samples.back().second == m_actual)
-			m_samples.back().first = m_lastTick; // Position hasn't changed, just update the time
-		else
-			m_samples.push_back(Sample(m_lastTick, m_actual));
-			
-		const uint64_t ticks = m_lastTick - m_samples.front().first;
-		const int64_t bytes = m_actual - m_samples.front().second;
-		m_runningAverage = bytes * 1000I64 / (ticks ? ticks : 1I64);
-		
-		if (ticks > SPEED_APPROXIMATION_INTERVAL_S * 1000 && m_samples.size() > SPEED_APPROXIMATION_INTERVAL_S)
+
+		CFlyFastLock(m_cs);
+		setLastTick(p_CurrentTick);
+		dcassert(!m_samples.empty());
+		if (!m_samples.empty()) // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=57070
 		{
-			m_samples.pop_front();
+			if (m_actual && m_samples.back().second == m_actual)
+				m_samples.back().first = m_lastTick; // Position hasn't changed, just update the time
+			else
+				m_samples.push_back(Sample(m_lastTick, m_actual));
+
+			const uint64_t ticks = m_lastTick - m_samples.front().first;
+			const int64_t bytes = m_actual - m_samples.front().second;
+			m_runningAverage = bytes * 1000I64 / (ticks ? ticks : 1I64);
+
+			if (ticks > SPEED_APPROXIMATION_INTERVAL_S * 1000 && m_samples.size() > SPEED_APPROXIMATION_INTERVAL_S)
+			{
+				m_samples.pop_front();
+			}
 		}
 	}
 }

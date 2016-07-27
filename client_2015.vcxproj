@@ -107,7 +107,7 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>ZMQ_STATIC;OS_WIN;LEVELDB_PLATFORM_WINDOWS;OPENSSL_SYSNAME_WIN32;HAVE_NATUPNP_H;_UNICODE;BOOST_ALL_NO_LIB;UNICODE;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WEBRTC_WIN;ZMQ_STATIC;OS_WIN;LEVELDB_PLATFORM_WINDOWS;OPENSSL_SYSNAME_WIN32;HAVE_NATUPNP_H;_UNICODE;BOOST_ALL_NO_LIB;UNICODE;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
@@ -149,7 +149,7 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>ZMQ_STATIC;OS_WIN;LEVELDB_PLATFORM_WINDOWS;OPENSSL_SYSNAME_WIN32;HAVE_NATUPNP_H;_UNICODE;BOOST_ALL_NO_LIB;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WEBRTC_WIN;ZMQ_STATIC;OS_WIN;LEVELDB_PLATFORM_WINDOWS;OPENSSL_SYSNAME_WIN32;HAVE_NATUPNP_H;_UNICODE;BOOST_ALL_NO_LIB;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -192,7 +192,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>ZMQ_STATIC;OS_WIN;LEVELDB_PLATFORM_WINDOWS;OPENSSL_SYSNAME_WIN32;NDEBUG;HAVE_NATUPNP_H;_UNICODE;BOOST_ALL_NO_LIB;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WEBRTC_WIN;ZMQ_STATIC;OS_WIN;LEVELDB_PLATFORM_WINDOWS;OPENSSL_SYSNAME_WIN32;NDEBUG;HAVE_NATUPNP_H;_UNICODE;BOOST_ALL_NO_LIB;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <OptimizeForWindowsApplication>true</OptimizeForWindowsApplication>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
@@ -240,7 +240,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>ZMQ_STATIC;OS_WIN;LEVELDB_PLATFORM_WINDOWS;OPENSSL_SYSNAME_WIN32;NDEBUG;HAVE_NATUPNP_H;_UNICODE;BOOST_ALL_NO_LIB;UNICODE;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WEBRTC_WIN;ZMQ_STATIC;OS_WIN;LEVELDB_PLATFORM_WINDOWS;OPENSSL_SYSNAME_WIN32;NDEBUG;HAVE_NATUPNP_H;_UNICODE;BOOST_ALL_NO_LIB;UNICODE;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <OptimizeForWindowsApplication>true</OptimizeForWindowsApplication>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
@@ -288,7 +288,6 @@
     <ClCompile Include="client\GPGPUManager.cpp" />
     <ClCompile Include="client\HashBloom.cpp" />
     <ClCompile Include="client\HashManager.cpp" />
-    <ClCompile Include="client\HttpConnection.cpp" />
     <ClCompile Include="client\LogManager.cpp" />
     <ClCompile Include="client\Mapper.cpp" />
     <ClCompile Include="client\Mapper_MiniUPnPc.cpp" />
@@ -395,20 +394,16 @@
     <ClCompile Include="client\UserInfoBase.cpp" />
     <ClCompile Include="client\UserManager.cpp" />
     <ClCompile Include="client\Util.cpp" />
-    <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable.cc" />
+    <ClCompile Include="client\webrtc\base\checks.cc" />
+    <ClCompile Include="client\webrtc\base\criticalsection.cc" />
+    <ClCompile Include="client\webrtc\base\platform_thread.cc" />
+    <ClCompile Include="client\webrtc\base\thread_checker_impl.cc" />
     <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable_event_win.cc" />
-    <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable_native_win.cc" />
-    <ClCompile Include="client\webrtc\system_wrappers\source\critical_section.cc" />
-    <ClCompile Include="client\webrtc\system_wrappers\source\critical_section_win.cc" />
-    <ClCompile Include="client\webrtc\system_wrappers\source\event.cc" />
-    <ClCompile Include="client\webrtc\system_wrappers\source\event_win.cc" />
     <ClCompile Include="client\webrtc\system_wrappers\source\file_impl.cc" />
-    <ClCompile Include="client\webrtc\system_wrappers\source\flylinkdc_thread.cc" />
     <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock.cc" />
-    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock_generic.cc" />
     <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock_win.cc" />
+    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock_winxp_win.cc" />
     <ClCompile Include="client\webrtc\system_wrappers\source\sleep.cc" />
-    <ClCompile Include="client\webrtc\system_wrappers\source\thread_win.cc" />
     <ClCompile Include="client\webrtc\system_wrappers\source\trace_impl.cc" />
     <ClCompile Include="client\webrtc\system_wrappers\source\trace_win.cc" />
     <ClCompile Include="client\webrtc\talk\base\logging.cc" />
@@ -750,7 +745,6 @@
     <ClInclude Include="client\HashBloom.h" />
     <ClInclude Include="client\HashManager.h" />
     <ClInclude Include="client\HashValue.h" />
-    <ClInclude Include="client\HttpConnection.h" />
     <ClInclude Include="client\HubEntry.h" />
     <ClInclude Include="client\IpGuard.h" />
     <ClInclude Include="client\LogManager.h" />
@@ -776,29 +770,33 @@
     <ClInclude Include="client\UserInfoColumns.h" />
     <ClInclude Include="client\UserManager.h" />
     <ClInclude Include="client\util_flylinkdc.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\common_types.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_posix.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_win.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\condition_variable_wrapper.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\critical_section_win.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\critical_section_wrapper.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\event_win.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\event_wrapper.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\file_impl.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\file_wrapper.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\fix_interlocked_exchange_pointer_win.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_generic.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_win.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\rw_lock_wrapper.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\set_thread_name_win.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\sleep.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\static_instance.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\thread_win.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\thread_wrapper.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\trace.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\trace_impl.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\trace_win.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\interface\typedefs.h" />
+    <ClInclude Include="client\webrtc\base\criticalsection.h" />
+    <ClInclude Include="client\webrtc\base\platform_thread.h" />
+    <ClInclude Include="client\webrtc\base\thread_checker.h" />
+    <ClInclude Include="client\webrtc\base\thread_checker_impl.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\common_types.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_posix.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_wrapper.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\critical_section_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\critical_section_wrapper.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\event_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\event_wrapper.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\file_impl.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\file_wrapper.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\fix_interlocked_exchange_pointer_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_wrapper.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\set_thread_name_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\sleep.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\static_instance.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\thread_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\thread_wrapper.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\trace.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\trace_impl.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\trace_win.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\typedefs.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\source\rw_lock_winxp_win.h" />
     <ClInclude Include="client\WildcardsReg.h" />
     <ClInclude Include="client\w_flylinkdc.h" />
     <ClInclude Include="client\ZipFile.h" />

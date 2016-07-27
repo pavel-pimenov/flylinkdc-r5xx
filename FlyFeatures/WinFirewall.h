@@ -31,7 +31,7 @@ class WinFirewall
 		static void WindowFirewallSetAppAuthorization(const TCHAR* in_pAuthorizedDisplayname, const TCHAR* in_pAuthorizedFilename, bool bEnableService = true);
 		static BOOL IsWindowsFirewallIsOn();
 		static BOOL IsWindowsFirewallPortEnabled(long in_lPort, NET_FW_IP_PROTOCOL in_protocol);
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 		static void TurnWindowsFirewall(bool bTurnOn = true);
 		static void WindowsFirewallPortAdd(TCHAR* in_sportName, long in_portNumber, bool bEnable = true, NET_FW_IP_PROTOCOL in_protocol = NET_FW_IP_PROTOCOL_TCP);
 #endif

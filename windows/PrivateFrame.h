@@ -32,7 +32,7 @@
 
 class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 255), IDR_PRIVATE, IDR_PRIVATE_OFF > ,
 	private ClientManagerListener, public UCHandler<PrivateFrame>,
-	public UserInfoBaseHandler < PrivateFrame, UserInfoGuiTraits::NO_SEND_PM | UserInfoGuiTraits::USER_LOG > , // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=621
+	public UserInfoBaseHandler < PrivateFrame, UserInfoGuiTraits::NO_SEND_PM | UserInfoGuiTraits::USER_LOG > ,
 	private SettingsManagerListener
 	, private BaseChatFrame // [+] IRainman copy-past fix.
 {
@@ -56,7 +56,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		
 		typedef MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 255), IDR_PRIVATE, IDR_PRIVATE_OFF > baseClass;
 		typedef UCHandler<PrivateFrame> ucBase;
-		typedef UserInfoBaseHandler < PrivateFrame, UserInfoGuiTraits::NO_SEND_PM | UserInfoGuiTraits::USER_LOG > uiBase; // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=621
+		typedef UserInfoBaseHandler < PrivateFrame, UserInfoGuiTraits::NO_SEND_PM | UserInfoGuiTraits::USER_LOG > uiBase;
 		
 		BEGIN_MSG_MAP(PrivateFrame)
 		MESSAGE_HANDLER(WM_SETFOCUS, onFocus)
@@ -73,8 +73,8 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		COMMAND_ID_HANDLER(IDC_CLOSE_ALL_PM, onCloseAll) // [+] InfinitySky.
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		COMMAND_ID_HANDLER(IDC_OPEN_USER_LOG, onOpenUserLog)
-		CHAIN_COMMANDS(ucBase) // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=621
-		CHAIN_COMMANDS(uiBase) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1406
+		CHAIN_COMMANDS(ucBase)
+		CHAIN_COMMANDS(uiBase)
 		CHAIN_MSG_MAP(baseClass)
 		ALT_MSG_MAP(PM_MESSAGE_MAP)
 		MESSAGE_HANDLER(WM_CHAR, onChar)
@@ -94,7 +94,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		}
 		LRESULT onLButton(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled); // !Decker!
 		
-		void onBeforeActiveTab(HWND aWnd); // http://code.google.com/p/flylinkdc/issues/detail?id=1242
+		void onBeforeActiveTab(HWND aWnd);
 		void onAfterActiveTab(HWND aWnd);
 		void onInvalidateAfterActiveTab(HWND aWnd);
 		

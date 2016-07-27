@@ -116,7 +116,7 @@ void BufferedSocket::setSocket(std::unique_ptr<Socket> && s)
 void BufferedSocket::resizeInBuf()
 {
 	bool l_is_bad_alloc;
-#if 0 // fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
+#if 0
 	int l_size = sock->getSocketOptInt(SO_RCVBUF);
 #else
 	int l_size = MAX_SOCKET_BUFFER_SIZE;
@@ -423,8 +423,12 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 	{
 		if (l_is_MyINFO)
 		{
-			++m_myInfoCount;
-			p_all_myInfo.push_back(l_line_item);
+			dcassert(l_line_item.compare(0, 5, "$ALL ", 5) == 0);
+			if (!l_line_item.empty())
+			{
+				++m_myInfoCount;
+				p_all_myInfo.push_back(l_line_item);
+			}
 		}
 		else if (m_myInfoCount)
 		{
@@ -820,7 +824,7 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 	if (socketIsDisconecting()) // [!] IRainman fix
 		return;
 	dcassert(p_file != NULL);
-#if 0 // fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
+#if 0
 	const size_t sockSize = (size_t)sock->getSocketOptInt(SO_SNDBUF);
 	const size_t bufSize = max(sockSize, (size_t)MAX_SOCKET_BUFFER_SIZE);
 #else

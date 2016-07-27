@@ -195,7 +195,7 @@ void IndexManager::loadIndexes(SimpleXML& xml)
 void IndexManager::processPublishSourceRequest(const string& ip, uint16_t port, const UDPKey& udpKey, const AdcCommand& cmd)
 {
 	dcassert(BOOLSETTING(USE_DHT));
-	const CID cid = CID(cmd.getParam(0));
+	const CID cid(cmd.getParam(0));
 	
 	string tth;
 	if (!cmd.getParam("TR", 1, tth))

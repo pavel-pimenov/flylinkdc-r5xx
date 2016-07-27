@@ -156,41 +156,41 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 //[+]PPA
-// #define PPA_INCLUDE_DEAD_CODE
-// #define PPA_INCLUDE_DNS
-#define PPA_INCLUDE_AUTO_FOLLOW
-#define PPA_INCLUDE_DROP_SLOW
-#define PPA_INCLUDE_STATS_FRAME
-#define PPA_INCLUDE_SQLITE
-//#define PPA_INCLUDE_NETLIMITER
-//#define PPA_INCLUDE_ASK_SLOT // отключаем автопопрошайку
-#define PPA_INCLUDE_USE_UNORDERED_SET_SHAREMANAGER
-//#define PPA_INCLUDE_ONLINE_SWEEP_DB // Удалять файлы из базы данных если они пропали из каталога.
-//#define PPA_USE_VACUUM
+// #define FLYLINKDC_USE_DEAD_CODE
+// #define FLYLINKDC_USE_DNS
+#define FLYLINKDC_USE_AUTO_FOLLOW
+#define FLYLINKDC_USE_DROP_SLOW
+#define FLYLINKDC_USE_STATS_FRAME
+#define FLYLINKDC_USE_SQLITE
+//#define FLYLINKDC_USE_NETLIMITER
+//#define FLYLINKDC_USE_ASK_SLOT // отключаем автопопрошайку
+#define FLYLINKDC_USE_USE_UNORDERED_SET_SHAREMANAGER
+//#define FLYLINKDC_USE_ONLINE_SWEEP_DB // Удалять файлы из базы данных если они пропали из каталога.
+//#define FLYLINKDC_USE_VACUUM
 
-#define PPA_INCLUDE_DOS_GUARD // Включаем защиту от DoS атаки старых версий - http://www.flylinkdc.ru/2011/01/flylinkdc-dos.html
-//#define PPA_INCLUDE_OLD_INNOSETUP_WIZARD
+#define FLYLINKDC_USE_DOS_GUARD // Включаем защиту от DoS атаки старых версий - http://www.flylinkdc.ru/2011/01/flylinkdc-dos.html
+//#define FLYLINKDC_USE_OLD_INNOSETUP_WIZARD
 #ifdef FLYLINKDC_HE // деваться некуда, без галки в боксе очень тяжко жить, хрен с ним - пускай падает :(
-# define PPA_INCLUDE_APEX_EX_MESSAGE_BOX // TODO: глючит - много дампов по переполнению стека, необходимо найти альтернативу.
+# define FLYLINKDC_USE_APEX_EX_MESSAGE_BOX // TODO: глючит - много дампов по переполнению стека, необходимо найти альтернативу.
 #endif
 #define PPA_USER_COMMANDS_HUBS_SET
-#define PPA_INCLUDE_IPFILTER
+#define FLYLINKDC_USE_IPFILTER
 #ifndef FLYLINKDC_HE
-# define PPA_INCLUDE_LASTIP_AND_USER_RATIO
-# ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
-#  define PPA_INCLUDE_COLUMN_RATIO
-//#  define PPA_INCLUDE_SHOW_UD_RATIO
-# endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+# define FLYLINKDC_USE_LASTIP_AND_USER_RATIO
+# ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
+#  define FLYLINKDC_USE_COLUMN_RATIO
+//#  define FLYLINKDC_USE_SHOW_UD_RATIO
+# endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 #endif // FLYLINKDC_HE
 #ifdef _DEBUG
-//# define PPA_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG // Отдаем на поиск больше данных - в релизе никогда не включать
+//# define FLYLINKDC_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG // Отдаем на поиск больше данных - в релизе никогда не включать
 #endif
 
 #define IRAINMAN_NTFS_STREAM_TTH
 #define IRAINMAN_IP_AUTOUPDATE
 //#define IRAINMAN_SEARCH_OPTIONS // TODO
 #ifdef FLYLINKDC_HE
-# define IRAINMAN_LOAD_LOG_FOR_HUBS // TODO, please fix encoding  https://code.google.com/p/flylinkdc/issues/detail?id=1116
+# define IRAINMAN_LOAD_LOG_FOR_HUBS // TODO, please fix encoding  
 #endif
 #define IRAINMAN_ENABLE_WHOIS
 #define IRAINMAN_ENABLE_MORE_CLIENT_COMMAND
@@ -203,7 +203,7 @@ typedef unsigned __int64 uint64_t;
 #  endif
 # endif
 #endif
-//#define IRAINMAN_USE_STRING_POOL // TODO: fix identity destroying to use pool http://code.google.com/p/flylinkdc/issues/detail?id=1244
+//#define IRAINMAN_USE_STRING_POOL
 #define IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 //#define IRAINMAN_SPEED_LIMITER_5S4_10 // Включает ограничение: скорость отдачи = 5 * количество слотов + 4, скорость загрузки = 10 * скорость отдачи
 //#define IRAINMAN_INCLUDE_USER_CHECK // - Не понял нахрена оно нужно. если юзеров 100 тыщ то что будет?
@@ -235,18 +235,16 @@ typedef unsigned __int64 uint64_t;
 //#ifndef FLYLINKDC_HE
 #define IRAINMAN_USE_GDI_PLUS_TAB 1 // if disable - used old-school tab.
 //#endif // FLYLINKDC_HE
-//#define IRAINMAN_DISALLOWED_BAN_MSG // TODO: enable this. Added Jun 23, 2012 https://code.google.com/p/flylinkdc/source/detail?r=10466
+//#define IRAINMAN_DISALLOWED_BAN_MSG
 #ifndef IRAINMAN_DISALLOWED_BAN_MSG
 // #define SMT_ENABLE_FEATURE_BAN_MSG // please DON'T enable this!
 #endif
 #ifdef FLYLINKDC_HE
 //# define IRAINMAN_NEW_EXTERNAL_PREVIEW
 #endif
-#define USE_SETTINGS_PATH_TO_UPDATA_DATA // http://code.google.com/p/flylinkdc/issues/detail?id=816
+#define USE_SETTINGS_PATH_TO_UPDATA_DATA
 //#ifdef FLYLINKDC_HE
 #define IRAINMAN_USE_HIDDEN_USERS // http://adc.sourceforge.net/ADC-EXT.html#_hidden_status_for_client_type
-// http://code.google.com/p/flylinkdc/issues/detail?id=916
-// http://code.google.com/p/flylinkdc/issues/detail?id=944
 //#endif
 //#define IRAINMAN_ENABLE_TTH_GET_FLAG // This code is off. All clients support ADC teams have this flag is always set. Our version 4xx also do not use it. He is unlikely to ever need. Leave only to simplify merge.
 //#define IRAINMAN_CONNECTION_MANAGER_TOKENS_DEBUG // TODO: must correct work with tokens in the ConnectionManager. This error runs either with Strong, or even from a very long time. After confirming correct downloads, I'll probably fix the problem.
@@ -254,7 +252,7 @@ typedef unsigned __int64 uint64_t;
 #define IRAINMAN_USE_NG_CORE
 #ifdef IRAINMAN_USE_NG_CORE
 # define IRAINMAN_ALLOW_ALL_CLIENT_FEATURES_ON_NMDC // TODO: use new ADC features.
-# define IRAINMAN_USE_NG_FAST_USER_INFO 1 // optimizing the use of memory and CPU resources. https://code.google.com/p/flylinkdc/issues/detail?id=939
+# define IRAINMAN_USE_NG_FAST_USER_INFO 1 // optimizing the use of memory and CPU resources. 
 # ifndef IRAINMAN_USE_NG_FAST_USER_INFO
 //#  define IRAINMAN_USE_OLD_CODE_IN_USER_INFO_ONLY_FOR_TEST 1
 # endif // IRAINMAN_USE_NG_FAST_USER_INFO
@@ -294,18 +292,15 @@ typedef unsigned __int64 uint64_t;
 //# define IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER // TODO: This code locates problem https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=12550 , as well as allow to save memory in the future.
 #endif
 #ifdef FLYLINKDC_HE
-# define IRAINMAN_SQLITE_USE_EXCLUSIVE_LOCK_MODE // TODO: please correct the launch of two clients with the same configuration https://code.google.com/p/flylinkdc/source/detail?r=13240
+# define IRAINMAN_SQLITE_USE_EXCLUSIVE_LOCK_MODE // TODO: please correct the launch of two clients with the same configuration 
 #endif
-// [!] Fix for https://code.google.com/p/flylinkdc/issues/detail?id=849
 #ifdef FLYLINKDC_HE
 // # define IRAINMAN_SAVE_BAD_SOURCE // Potentially all the bad sources only temporarily poor. So they can be added through the back through the gui, it is necessary to keep them together with good, or to create a separate record, or do not save at all?
 # define IRAINMAN_SAVE_ALL_VALID_SOURCE // Each partial source will eventually become full, you can not lose them. All DHT sources contain the real CID, and as soon as the node for this CID is loaded with it immediately starts downloading.
 #endif
-// [~] Fix for https://code.google.com/p/flylinkdc/issues/detail?id=849
-// [-] #define IRAINMAN_USE_NICKS_IN_CM // [-] IRainman opt https://code.google.com/p/flylinkdc/issues/detail?id=1238
-#define IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL // [-] IRainman fix. https://code.google.com/p/flylinkdc/source/detail?r=4612 Проблема не повторяется.
+#define IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
 #ifdef FLYLINKDC_HE
-# define IRAINMAN_USE_REAL_LOCALISATION_IN_SETTINGS // Details: https://code.google.com/p/flylinkdc/source/detail?r=15356
+# define IRAINMAN_USE_REAL_LOCALISATION_IN_SETTINGS
 #endif
 
 // [+] BRAIN_RIPPER
@@ -365,11 +360,6 @@ typedef unsigned __int64 uint64_t;
 #endif
 // TODO
 //#define SSA_SHELL_INTEGRATION
-// Steps:
-// 1 - https://code.google.com/p/flylinkdc/issues/detail?id=971
-// 2 - https://code.google.com/p/flylinkdc/issues/detail?id=972
-// 3 - https://code.google.com/p/flylinkdc/issues/detail?id=973
-// 4 - https://code.google.com/p/flylinkdc/issues/detail?id=966
 
 #ifndef FLYLINKDC_HE
 # define SCALOLAZ_PROPPAGE_TRANSPARENCY   //[+] SCALOlaz: Transparency of a Settings window
@@ -427,7 +417,7 @@ typedef unsigned __int64 uint64_t;
 //#define FLYLINKDC_USE_LIST_VIEW_MATTRESS   // Отключаем полосатые листвью (бестолковая трата ресурсов)
 
 
-#define FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE // http://code.google.com/p/flylinkdc/issues/detail?id=1255
+#define FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
 #ifdef _DEBUG
 // #define FLYLINKDC_USE_COLLECT_STAT  // Собираем статистику команд коннектов и поиска для блокировки DDoS атак http://dchublist.ru/forum/viewtopic.php?f=6&t=1028&hilit=Ddos
 // #define FLYLINKDC_USE_LOG_FOR_DUPLICATE_TTH_SEARCH

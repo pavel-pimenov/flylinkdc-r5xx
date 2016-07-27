@@ -213,7 +213,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		bool isOp() const
 		{
-			return getMyIdentity().isOp(); // [!] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=923
+			return getMyIdentity().isOp();
 		}
 		
 		bool isRegistered() const // [+] IRainman fix.
@@ -268,7 +268,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		bool allowChatMessagefromUser(const ChatMessage& message, const string& p_nick);
 		
 		void processingPassword();
-		StringMap& escapeParams(StringMap& sm);
+		void escapeParams(StringMap& sm) const;
 		void setSearchInterval(uint32_t aInterval);
 		
 		uint32_t getSearchInterval() const
@@ -286,7 +286,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		    fly_fire2(ClientListener::UserReport(), this, i);
 		}
 		*/
-		void reportUser(const string& report) // TODO: use onlineuser here?
+		void reportUser(const string& report)
 		{
 			fly_fire2(ClientListener::UserReport(), this, report);
 		}
@@ -307,7 +307,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			getMyIdentity().setNick(p_nick);
 		}
-		const string getMyNick() const
+		const string& getMyNick() const
 		{
 			return getMyIdentity().getNick();
 		}
@@ -385,7 +385,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		bool NmdcPartialSearch(const SearchParam& p_search_param);
 		
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		uint32_t getHubID() const
 		{
 			return m_HubID;
@@ -555,7 +555,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			COUNT_UNCOUNTED,
 		};
 		
-		static uint16_t g_counts[COUNT_UNCOUNTED];
+		static unsigned g_counts[COUNT_UNCOUNTED];
 		
 		enum States
 		{
@@ -632,7 +632,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		boost::unordered_map<string, string> m_check_myinfo_dup;
 #endif
 	private:
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		uint32_t m_HubID;
 #endif
 		const string m_HubURL; // [!] IRainman fix: this is const member.

@@ -424,6 +424,7 @@
     <ClCompile Include="windows\FolderTree.cpp" />
     <ClCompile Include="windows\GeneralPage.cpp" />
     <ClCompile Include="windows\HashProgressDlg.cpp" />
+    <ClCompile Include="windows\HIconWrapper.cpp" />
     <ClCompile Include="windows\HubFrame.cpp" />
     <ClCompile Include="windows\ImageDataObject.cpp" />
     <ClCompile Include="windows\InputBox.cpp" />
@@ -455,6 +456,7 @@
     <ClCompile Include="windows\NotepadFrame.cpp" />
     <ClCompile Include="windows\OMenu.cpp" />
     <ClCompile Include="windows\OperaColorsPage.cpp" />
+    <ClCompile Include="windows\Players.cpp" />
     <ClCompile Include="windows\PopupManager.cpp" />
     <ClCompile Include="windows\PopupsPage.cpp" />
     <ClCompile Include="windows\PortalBrowser.cpp" />
@@ -614,6 +616,31 @@
     <ClInclude Include="windows\wmp.h" />
     <ClInclude Include="windows\WMPlayerRemoteApi.h" />
     <ClInclude Include="windows\wtl_flylinkdc.h" />
+    <ClInclude Include="wtl\atlapp.h" />
+    <ClInclude Include="wtl\atlcrack.h" />
+    <ClInclude Include="wtl\atlctrls.h" />
+    <ClInclude Include="wtl\atlctrlw.h" />
+    <ClInclude Include="wtl\atlctrlx.h" />
+    <ClInclude Include="wtl\atlddx.h" />
+    <ClInclude Include="wtl\atldlgs.h" />
+    <ClInclude Include="wtl\atldwm.h" />
+    <ClInclude Include="wtl\atlfind.h" />
+    <ClInclude Include="wtl\atlframe.h" />
+    <ClInclude Include="wtl\atlgdi.h" />
+    <ClInclude Include="wtl\atlgdiraii.h" />
+    <ClInclude Include="wtl\atlgdix.h" />
+    <ClInclude Include="wtl\atlmisc.h" />
+    <ClInclude Include="wtl\atlprint.h" />
+    <ClInclude Include="wtl\atlres.h" />
+    <ClInclude Include="wtl\atlresce.h" />
+    <ClInclude Include="wtl\atlribbon.h" />
+    <ClInclude Include="wtl\atlscrl.h" />
+    <ClInclude Include="wtl\atlsplit.h" />
+    <ClInclude Include="wtl\atltheme.h" />
+    <ClInclude Include="wtl\atluser.h" />
+    <ClInclude Include="wtl\atlwince.h" />
+    <ClInclude Include="wtl\atlwinmisc.h" />
+    <ClInclude Include="wtl\atlwinx.h" />
     <CustomBuildStep Include="windows\PortalBrowser.h" />
     <ClInclude Include="windows\PreviewDlg.h" />
     <ClInclude Include="windows\PreviewLogDlg.h" />
@@ -706,7 +733,9 @@
     <Image Include="res\vip_prostoigra24.ico" />
     <Image Include="res\vip_scalolaz.ico" />
     <Image Include="res\vip_stealthhub.ico" />
+    <Image Include="res\vip_titankaluga.ico" />
     <Image Include="res\wifi-router.ico" />
+    <Image Include="res\xxx.ico" />
     <Text Include="compiled\Settings\common\IPGrant.ini">
       <FileType>Document</FileType>
     </Text>

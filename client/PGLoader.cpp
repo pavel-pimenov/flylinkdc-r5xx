@@ -27,7 +27,7 @@
 #include <boost/algorithm/string.hpp>
 //#include <boost/asio/ip/address_v4.hpp>
 
-#ifdef PPA_INCLUDE_IPFILTER
+#ifdef FLYLINKDC_USE_IPFILTER
 
 FastCriticalSection PGLoader::g_cs;
 IPList  PGLoader::g_ipTrustListAllow;
@@ -204,4 +204,4 @@ void PGLoader::addLine(string& p_Line, CFlyLog& p_log)
 	}
 }
 
-#endif // PPA_INCLUDE_IPFILTER
+#endif // FLYLINKDC_USE_IPFILTER

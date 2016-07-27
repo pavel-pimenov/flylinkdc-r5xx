@@ -39,7 +39,7 @@ string DebugTask::format(const DebugTask& task)
 			dcassert(0);
 #endif
 	}
-	out += !Text::validateUtf8(task.m_message) ? Text::toUtf8(task.m_message) : task.m_message; // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=617
+	out += !Text::validateUtf8(task.m_message) ? Text::toUtf8(task.m_message) : task.m_message;
 	return out;
 }
 

@@ -427,7 +427,8 @@ CFlylinkDBManager::CFlylinkDBManager()
 #ifdef FLYLINKDC_USE_LEVELDB
 				// “ут об€зательно полный путь. иначе при смене рабочего каталога levelDB не сомжет открыть базу.
 				string l_full_path_level_db = Util::getConfigPath() + "tth-history.leveldb";
-				m_TTHLevelDB.open_level_db(l_full_path_level_db);
+				bool l_is_destroy = false;
+				m_TTHLevelDB.open_level_db(l_full_path_level_db, l_is_destroy);
 				g_TTHLevelDBSize = File::calcFilesSize(l_full_path_level_db, "\\*.*");
 #ifdef FLYLINKDC_USE_IPCACHE_LEVELDB
 				l_full_path_level_db = Util::getConfigPath() + "ip-history.leveldb";
@@ -436,6 +437,10 @@ CFlylinkDBManager::CFlylinkDBManager()
 #endif
 #endif // FLYLINKDC_USE_LEVELDB
 				SetCurrentDirectory(l_dir_buffer);
+				if (l_is_destroy)
+				{
+					convert_tth_history();
+				}
 			}
 			else
 			{
@@ -563,7 +568,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 		    "dic_ip integer not null,dic_nick integer not null, dic_hub integer not null,\n"
 		    "upload int64 default 0,download int64 default 0);");
 		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_ratio ON fly_ratio(dic_nick,dic_hub,dic_ip);");
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		m_flySQLiteDB.executenonquery("CREATE VIEW IF NOT EXISTS v_fly_ratio AS\n"
 		                              "SELECT fly_ratio.id id, fly_ratio.upload upload,\n"
 		                              "fly_ratio.download download,\n"
@@ -586,7 +591,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 		                              "FROM fly_ratio\n"
 		                              "INNER JOIN fly_dic nick ON fly_ratio.dic_nick = nick.id\n"
 		                              "INNER JOIN fly_dic hub ON fly_ratio.dic_hub = hub.id");
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		m_flySQLiteDB.executenonquery("CREATE VIEW IF NOT EXISTS v_fly_dup_file AS\n"
 		                              "SELECT tth_id,count(*) cnt_dup,\n"
 		                              "max((select name from fly_path where id = dic_path)) path_1,\n"
@@ -1116,7 +1121,6 @@ void CFlylinkDBManager::convert_fly_hash_blockL()
 		}
 		convert_fly_hash_block_crate_unicque_tthL(l_convert_log);
 		convert_tth_historyL();
-		set_registry_variable_int64(e_IsTTHLevelDBConvert, 1);
 		l_convert_log.step(m_flySQLiteDB.executenonquery("drop table fly_hash"));
 #ifdef FLYLINKDC_USE_FAST_CONVERT
 		if (!g_UseSynchronousOff)
@@ -2182,17 +2186,17 @@ void CFlylinkDBManager::load_transfer_history(eTypeTransfer p_type, int p_day)
 		sqlite3_reader l_q = m_select_transfer->executereader();
 		while (l_q.read())
 		{
-			std::shared_ptr<FinishedItem> item(new FinishedItem(l_q.getstring(0),
-			                                                    l_q.getstring(1),
-			                                                    l_q.getstring(2),
-			                                                    l_q.getint64(3),
-			                                                    l_q.getint64(4),
-			                                                    l_q.getint64(5),
-			                                                    TTHValue(l_q.getstring(7)),
-			                                                    l_q.getstring(6),
-			                                                    l_q.getint64(8),
-			                                                    l_q.getint64(9)
-			                                                   ));
+			auto item = std::make_shared<FinishedItem> (l_q.getstring(0),
+			                                            l_q.getstring(1),
+			                                            l_q.getstring(2),
+			                                            l_q.getint64(3),
+			                                            l_q.getint64(4),
+			                                            l_q.getint64(5),
+			                                            TTHValue(l_q.getstring(7)),
+			                                            l_q.getstring(6),
+			                                            l_q.getint64(8),
+			                                            l_q.getint64(9)
+			                                           );
 			FinishedManager::getInstance()->pushHistoryFinishedItem(item, p_type);
 		}
 		FinishedManager::getInstance()->updateStatus();
@@ -2644,11 +2648,10 @@ int32_t CFlylinkDBManager::load_queue()
 					}
 					// [+] brain-ripper
 					qi->setSectionString(l_q.getstring(4), true);
-					// [!] IRainman fix: do not lose sources with nick is empty: https://code.google.com/p/flylinkdc/issues/detail?id=849
 					const auto l_source_items = l_sources_map.find(l_ID);
 					if (l_source_items != l_sources_map.end())
 					{
-						// TODO - возможно по€вление дублей https://code.google.com/p/flylinkdc/issues/detail?id=931
+						// TODO - возможно по€вление дублей
 						for (auto i = l_source_items->second.cbegin(); i != l_source_items->second.cend(); ++i)
 						{
 							add_sourceL(qi, i->first, i->second); //
@@ -2924,7 +2927,7 @@ bool CFlylinkDBManager::merge_queue_itemL(QueueItemPtr& p_QueueItem)
 		{
 			if (p_QueueItem->isDirtySource())
 			{
-				// »сточники писали в базу - есть что удал€ть? https://code.google.com/p/flylinkdc/issues/detail?id=933
+				// »сточники писали в базу - есть что удал€ть?
 #ifdef _DEBUG
 //				LogManager::message("delete_queue_sourcesL(l_id) l_id = " + Util::toString(l_id),true);
 #endif
@@ -3018,7 +3021,7 @@ bool CFlylinkDBManager::merge_queue_itemL(QueueItemPtr& p_QueueItem)
 				}
 				else
 				{
-					dcassert(0);
+					//dcassert(0);
 				}
 			}
 #endif // FLYLINKDC_BETA
@@ -3093,7 +3096,7 @@ bool CFlylinkDBManager::merge_queue_itemL(QueueItemPtr& p_QueueItem)
 	return false;
 }
 //========================================================================================================
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 void CFlylinkDBManager::load_global_ratio()
 {
 	try
@@ -3273,7 +3276,7 @@ uint32_t CFlylinkDBManager::get_dic_hub_id(const string& p_hub)
 	return get_dic_idL(p_hub, e_DIC_HUB, true);
 }
 //========================================================================================================
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 __int64 CFlylinkDBManager::get_dic_location_id(const string& p_location)
 {
 	CFlyLock(m_cs);
@@ -3298,7 +3301,7 @@ void CFlylinkDBManager::clear_dic_cache(const eTypeDIC p_DIC)
 }
 #endif
 //========================================================================================================
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 //========================================================================================================
 void CFlylinkDBManager::store_all_ratio_and_last_ip(uint32_t p_hub_id,
                                                     const string& p_nick,
@@ -3687,7 +3690,7 @@ void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string
 #endif // FLYLINKDC_USE_LASTIP_CACHE
 	
 }
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 //========================================================================================================
 bool CFlylinkDBManager::is_table_exists(const string& p_table_name)
 {
@@ -3843,7 +3846,7 @@ void CFlylinkDBManager::sweep_db()
 			CFlyLogFile l_log(l_clean_sql_media);
 			m_flySQLiteDB.executenonquery(l_clean_sql_media);
 		}
-#ifdef PPA_USE_VACUUM
+#ifdef FLYLINKDC_USE_VACUUM
 		LogManager::message("start vacuum", true);
 		m_flySQLiteDB.executenonquery("VACUUM;");
 		LogManager::message("stop vacuum", true);
@@ -3979,7 +3982,7 @@ __int64 CFlylinkDBManager::create_path_idL(const string& p_path, bool p_is_skip_
 			                               "select id,name,(select count(*) from fly_file where dic_path = fly_path.id and (media_audio is not null or media_video is not null)) cnt_mediainfo from fly_path where name=?");
 			m_load_path_cache_one_dir->bind(1, p_path, SQLITE_STATIC);
 			sqlite3_reader l_q = m_load_path_cache_one_dir->executereader();
-			while (l_q.read())
+			if (l_q.read())
 			{
 				l_last_path_id = l_q.getint64(0);
 				CFlyFastLock(m_path_cache_cs);
@@ -4061,7 +4064,7 @@ __int64 CFlylinkDBManager::get_path_idL(string p_path, bool p_create, bool p_cas
 	return 0;
 }
 //========================================================================================================
-#ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
+#ifdef FLYLINKDC_USE_ONLINE_SWEEP_DB
 void CFlylinkDBManager::sweep_files(__int64 p_path_id, const CFlyDirMap& p_sweep_files)
 {
 	CFlyLock(m_cs);
@@ -4116,7 +4119,7 @@ void CFlylinkDBManager::load_dir(__int64 p_path_id, CFlyDirMap& p_dir_map, bool 
 		{
 			const string l_name = l_q.getstring(3);
 			CFlyFileInfo& l_info = p_dir_map[l_name];
-#ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
+#ifdef FLYLINKDC_USE_ONLINE_SWEEP_DB
 			l_info.m_is_found = false;
 #endif
 			l_info.m_recalc_ftype = false;
@@ -4531,7 +4534,6 @@ __int64 CFlylinkDBManager::merge_fileL(const string& p_Path, const string& p_fil
 		bool p_is_no_mediainfo;
 		if (p_path_id == 0)
 		{
-			dcassert(0);
 			p_path_id = get_path_idL(p_Path, true, p_case_convet, p_is_no_mediainfo, false);
 		}
 		dcassert(p_path_id);
@@ -4715,7 +4717,7 @@ CFlylinkDBManager::~CFlylinkDBManager()
 #endif // _DEBUG
 }
 //========================================================================================================
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 double CFlylinkDBManager::get_ratio() const
 {
 	dcassert(m_is_load_global_ratio);
@@ -4733,7 +4735,7 @@ tstring CFlylinkDBManager::get_ratioW() const
 	}
 	return Util::emptyStringT;
 }
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 
 //========================================================================================================
 void CFlylinkDBManager::push_add_virus_database_tth(const TTHValue& p_tth)
@@ -4832,7 +4834,8 @@ __int64 CFlylinkDBManager::convert_tth_historyL()
 			std::unique_ptr<sqlite3_command> l_sql(new sqlite3_command(m_flySQLiteDB,
 			                                                           "select tth, 2 as val from fly_hash_block group by tth "
 			                                                           "union all "
-			                                                           "select tth, 1 as val from fly_tth"));
+			                                                           "select tth, 1 as val from fly_tth"
+			                                                          ));
 			sqlite3_reader l_q = l_sql->executereader();
 			while (l_q.read())
 			{
@@ -4847,6 +4850,32 @@ __int64 CFlylinkDBManager::convert_tth_historyL()
 			}
 		}
 		m_flySQLiteDB.executenonquery("DROP TABLE fly_tth");
+		{
+			try
+			{
+				m_select_transfer_convert_leveldb.init(m_flySQLiteDB,
+				                                       "select distinct tth,type from transfer_db.fly_transfer_file");
+				sqlite3_reader l_q = m_select_transfer_convert_leveldb->executereader();
+				while (l_q.read())
+				{
+					const TTHValue l_tth(l_q.getstring(0));
+					int l_type = l_q.getint(1); // 0 - download, 1 - upload
+					if (l_type == 0)
+					{
+						push_download_tth(l_tth);
+					}
+					else if (l_type == 1)
+					{
+						push_add_share_tth(l_tth);
+					}
+				}
+			}
+			catch (const database_error& e)
+			{
+				dcassert(0);
+				//errorDB("SQLite - convert_tth_historyL: " + e.getError());
+			}
+		}
 		return l_count;
 	}
 	catch (const database_error& e)
@@ -4860,11 +4889,11 @@ __int64 CFlylinkDBManager::convert_tth_history()
 {
 #ifdef FLYLINKDC_USE_LEVELDB
 	__int64 l_count = 0;
-	if (get_registry_variable_int64(e_IsTTHLevelDBConvert) == 0)
+	//if (get_registry_variable_int64(e_IsTTHLevelDBConvert) == 0)
 	{
-		CFlyLock(m_cs);
+		//CFlyLock(m_cs);
 		l_count = convert_tth_historyL();
-		set_registry_variable_int64(e_IsTTHLevelDBConvert, 1);
+		//set_registry_variable_int64(e_IsTTHLevelDBConvert, 1);
 	}
 	return l_count;
 #endif // FLYLINKDC_USE_LEVELDB
@@ -4900,18 +4929,19 @@ CFlyLevelDB::~CFlyLevelDB()
 	// TODO - leak delete m_options.comparator;
 }
 //========================================================================================================
-bool CFlyLevelDB::open_level_db(const string& p_db_name)
+bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 {
+	p_is_destroy = false;
 	auto l_status = leveldb::DB::Open(m_options, p_db_name, &m_db);
 	if (!l_status.ok())
 	{
 		const auto l_result_error = l_status.ToString();
 		Util::setRegistryValueString(FLYLINKDC_REGISTRY_LEVELDB_ERROR , Text::toT(l_result_error));
-		if (l_status.IsIOError())
+		if (l_status.IsIOError() || l_status.IsCorruption())
 		{
-			LogManager::message("[CFlyLevelDB::open_level_db] l_status.IsIOError() = " + l_result_error, true);
+			LogManager::message("[CFlyLevelDB::open_level_db] l_status.IsIOError() || l_status.IsCorruption() = " + l_result_error, true);
 			//dcassert(0);
-			StringList l_delete_file = File::findFiles(p_db_name + '\\', "*.*");
+			const StringList l_delete_file = File::findFiles(p_db_name + '\\', "*.*");
 			unsigned l_count_delete_error = 0;
 			for (auto i = l_delete_file.cbegin(); i != l_delete_file.cend(); ++i)
 			{
@@ -4936,6 +4966,7 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name)
 				if (l_status.ok())
 				{
 					LogManager::message("[CFlyLevelDB::open_level_db] OK Create new leveldb database: " + p_db_name, true);
+					p_is_destroy = true;
 				}
 			}
 			// most likely there's another instance running or the permissions are wrong

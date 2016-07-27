@@ -365,7 +365,7 @@
 		<String Name="DecompressionError">Помилка при розпаковуванні</String>
 		<String Name="Default">За умовчанням</String>
 		<String Name="DefaultAwayMessage">Здрастуй, %[userNI]! Мене, швидше за все, немає поруч або я чимось займаюся з %H:%M %d-%m-%Y. Звільнюся, відповім пізніше. Усього Доброго!</String>
-		<String Name="DefPasswordHint">Користувач відключив прийом повідомлень. В разі екстреної необхідності скористайтеся паролем '%[pm_pass]', але пам'ятайте, що жебраки слотів можуть бути занесені в бан/ігнор-листи. Таким чином, не зможуть качати навіть в порядку черги і посилати повідомлення навіть з паролем.</String>
+		<String Name="DefPasswordHint">Користувач відключив прийом повідомлень. В разі екстреної необхідності скористайтеся паролем '%[pm_pass]'</String>
 		<String Name="DefPasswordOkHint">Пароль вірний. Користувач зможе отримувати ваші повідомлення.</String>
 		<String Name="DeleteChecked">Видалити вибрані файл-листи</String>
 		<String Name="DeleteFromFlyHashBlock">Видалення з Fly_Hash_Block…</String>

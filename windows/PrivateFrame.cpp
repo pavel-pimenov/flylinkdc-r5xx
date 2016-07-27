@@ -312,12 +312,12 @@ void PrivateFrame::processFrameCommand(const tstring& fullMessageText, const tst
 	{
 		PostMessage(WM_CLOSE);
 	}
-	else if ((stricmp(cmd.c_str(), _T("favorite")) == 0) || (stricmp(cmd.c_str(), _T("fav")) == 0))
+	else if (stricmp(cmd.c_str(), _T("favorite")) == 0 || stricmp(cmd.c_str(), _T("fav")) == 0)
 	{
 		FavoriteManager::getInstance()->addFavoriteUser(getUser());
 		addStatus(TSTRING(FAVORITE_USER_ADDED));
 	}
-	else if ((stricmp(cmd.c_str(), _T("getlist")) == 0) || (stricmp(cmd.c_str(), _T("gl")) == 0))
+	else if (stricmp(cmd.c_str(), _T("getlist")) == 0 || stricmp(cmd.c_str(), _T("gl")) == 0)
 	{
 		BOOL bTmp;
 		clearUserMenu();
@@ -403,7 +403,7 @@ LRESULT PrivateFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 	tabMenu.InsertSeparatorFirst(m_replyToRealName);
 	//#endif
 	reinitUserMenu(m_replyTo, getHubHint()); // [!] IRainman fix.
-	appendAndActivateUserItems(tabMenu); // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=621
+	appendAndActivateUserItems(tabMenu);
 	appendUcMenu(tabMenu, UserCommand::CONTEXT_USER, ClientManager::getHubs(m_replyTo.user->getCID(), getHubHint()));
 	if (!(tabMenu.GetMenuState(tabMenu.GetMenuItemCount() - 1, MF_BYPOSITION) & MF_SEPARATOR))
 	{
@@ -497,9 +497,7 @@ void PrivateFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 }
 void PrivateFrame::updateTitle()
 {
-	dcassert(!ClientManager::isShutdown());
-	if (ClientManager::isShutdown())
-		return;
+	dcassert(!isClosedOrShutdown());
 	if (isClosedOrShutdown())
 		return;
 	if (!m_replyTo.user)
@@ -553,13 +551,13 @@ void PrivateFrame::updateTitle()
 		
 		setTabColor(RGB(255, 0, 0));
 		
-		addStatus(TSTRING(USER_WENT_OFFLINE) + _T(" [") + m_replyToRealName + _T(" - ") + Text::toT(getHubHint()) + _T("]")); // [!] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=491
+		addStatus(TSTRING(USER_WENT_OFFLINE) + _T(" [") + m_replyToRealName + _T(" - ") + Text::toT(getHubHint()) + _T("]"));
 		// [-] IRainman fix
 		//m_isoffline = true;
 		//ctrlClient.setClient(NULL);
 		// [~] IRainman fix
 	}
-	SetWindowText((m_replyToRealName + _T(" - ") + (hubs.second ? hubs.first : Text::toT(getHubHint()))).c_str()); // [!] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=491
+	SetWindowText((m_replyToRealName + _T(" - ") + (hubs.second ? hubs.first : Text::toT(getHubHint()))).c_str());
 }
 
 LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)

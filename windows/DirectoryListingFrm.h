@@ -47,7 +47,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 	, public CFlyServerAdapter
 #endif
 	, private CFlyTimerAdapter
-	// BUG-MENU , public UserInfoBaseHandler < DirectoryListingFrame, UserInfoGuiTraits::NO_FILE_LIST | UserInfoGuiTraits::NO_COPY > // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=777
+	// BUG-MENU , public UserInfoBaseHandler < DirectoryListingFrame, UserInfoGuiTraits::NO_FILE_LIST | UserInfoGuiTraits::NO_COPY >
 	, public InternetSearchBaseHandler<DirectoryListingFrame> // [+] IRainman fix.
 	, public PreviewBaseHandler<DirectoryListingFrame> // [+] IRainman fix.
 #ifdef _DEBUG
@@ -66,7 +66,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		> baseClass;
 		typedef UCHandler<DirectoryListingFrame> ucBase;
 		typedef InternetSearchBaseHandler<DirectoryListingFrame> isBase; // [+] IRainman fix.
-		// BUG-MENU  typedef UserInfoBaseHandler < DirectoryListingFrame, UserInfoGuiTraits::NO_FILE_LIST | UserInfoGuiTraits::NO_COPY > uiBase; // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=777
+		// BUG-MENU  typedef UserInfoBaseHandler < DirectoryListingFrame, UserInfoGuiTraits::NO_FILE_LIST | UserInfoGuiTraits::NO_COPY > uiBase;
 		typedef PreviewBaseHandler<DirectoryListingFrame> prevBase; // [+] IRainamn fix.
 		
 		enum

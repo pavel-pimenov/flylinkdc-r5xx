@@ -180,7 +180,7 @@ WCHAR* ChatBot::onQueryUserByCid(const WCHAR* cid)
 		const string& ip = id.getIpAsString();
 		
 		ps.addVariable(L"IP", Text::toT(ip).c_str());
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 		ps.addVariable(L"DNS", Text::toT(Socket::nslookup(ip)).c_str());
 #endif
 		ps.addVariable(L"DESC", Text::toT(id.getDescription()).c_str());
@@ -412,7 +412,7 @@ void ChatBot::onMessageV1(const Identity& myId, const Identity& msgFrom, const t
 	
 	const auto& ip = msgFrom.getIpAsString();
 	ps.addVariable(L"IP", Text::toT(ip).c_str());
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 	ps.addVariable(L"DNS", Text::toT(Socket::nslookup(ip)).c_str());
 #endif
 	ps.addVariable(L"DESC", Text::toT(msgFrom.getDescription()).c_str());

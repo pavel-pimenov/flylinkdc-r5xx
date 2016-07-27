@@ -23,7 +23,7 @@
 #define DCPLUSPLUS_DCPP_USER_H
 
 #include <boost/asio/ip/address_v4.hpp>
-#include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
+#include "webrtc/system_wrappers/include/rw_lock_wrapper.h"
 
 #include "Pointer.h"
 #include "Util.h"
@@ -69,7 +69,7 @@ class User : public Flags
 			NO_ADCS_0_10_PROTOCOL_BIT,
 			DHT_BIT,
 			NAT_BIT,
-#ifdef PPA_INCLUDE_IPFILTER
+#ifdef FLYLINKDC_USE_IPFILTER
 			PG_IPGUARD_BLOCK_BIT,
 			PG_IPTRUST_BLOCK_BIT,
 			PG_P2PGUARD_BLOCK_BIT,
@@ -113,7 +113,7 @@ class User : public Flags
 			DHT0 = 1 << DHT_BIT,
 			NAT0 = 1 << NAT_BIT,
 			
-#ifdef PPA_INCLUDE_IPFILTER
+#ifdef FLYLINKDC_USE_IPFILTER
 			PG_IPGUARD_BLOCK = 1 << PG_IPGUARD_BLOCK_BIT,
 			PG_IPTRUST_BLOCK = 1 << PG_IPTRUST_BLOCK_BIT,
 			PG_P2PGUARD_BLOCK = 1 << PG_P2PGUARD_BLOCK_BIT,
@@ -168,7 +168,7 @@ class User : public Flags
 		virtual ~User();
 		
 #ifdef _DEBUG
-		static boost::atomic_int g_user_counts; // [!] IRainman fix: Issue 1037 Иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
+		static boost::atomic_int g_user_counts;
 #endif
 		
 		const CID& getCID() const
@@ -180,7 +180,7 @@ class User : public Flags
 			return m_cid.regenerate();
 		}
 		//[+]FlylinkDC
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		const string& getLastNick() const
 		{
 #ifdef _DEBUG
@@ -219,7 +219,7 @@ class User : public Flags
 		}
 		GETSET(string, m_lastNick, LastNick);
 		GETM(string, m_ip, IP);
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		tstring getLastNickT() const
 		{
 #ifdef _DEBUG
@@ -230,7 +230,7 @@ class User : public Flags
 			return Text::toT(getLastNick());
 		}
 		
-		GETSET(int64_t, m_bytesShared, BytesShared); // http://code.google.com/p/flylinkdc/issues/detail?id=1109 нужно для автобана и некоторых других мест
+		GETSET(int64_t, m_bytesShared, BytesShared);
 		GETSET(uint32_t, m_limit, Limit);
 		GETSET(uint8_t, m_slots, Slots);
 		string m_nick;
@@ -259,7 +259,7 @@ class User : public Flags
 			return isSet(AWAY);
 		}
 		// [~] IRainman fix.
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		void fixLastIP();
 		void AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
@@ -301,10 +301,10 @@ class User : public Flags
 		void initRatio(bool p_force = false);
 		void initMesageCount();
 		void initRatioL(const boost::asio::ip::address_v4& p_ip);
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	private:
 		CID m_cid;
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		CFlyUserRatioInfo* m_ratio_ptr;
 		uint32_t  m_hub_id;
 		friend struct CFlyUserRatioInfo;

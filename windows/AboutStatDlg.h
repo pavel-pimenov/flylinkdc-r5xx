@@ -33,7 +33,7 @@ class AboutStatDlg : public CDialogImpl<AboutStatDlg>
 			SetDlgItemText(IDC_STATISTICS_STATIC, (TSTRING(ABOUT_STATISTICS) + L':').c_str());
 			SetDlgItemText(IDC_LATEST, CTSTRING(DOWNLOADING)); // what is it?
 			
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 			CFlylinkDBManager::getInstance()->load_global_ratio();
 			SetDlgItemText(IDC_TOTAL_UPLOAD, (TSTRING(UPLOADED) + _T(": ") +
 			                                  Text::toT(Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_upload()))).c_str());

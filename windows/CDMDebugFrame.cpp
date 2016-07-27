@@ -55,7 +55,7 @@ LRESULT CDMDebugFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	ctrlFilterIp.SetFont(Fonts::g_systemFont);
 	ctrlFilterIp.SetCheck(m_bFilterIp ? BST_CHECKED : BST_UNCHECKED);
 	cFilterContainer.SubclassWindow(ctrlFilterIp.m_hWnd);
-	// add ES_AUTOHSCROLL - fix http://code.google.com/p/flylinkdc/issues/detail?id=1249
+	// add ES_AUTOHSCROLL - fix
 	ctrlIPFilter.Create(ctrlStatus.m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | ES_NOHIDESEL | ES_AUTOHSCROLL, WS_EX_STATICEDGE, IDC_DEBUG_IP_FILTER_TEXT);
 	ctrlIPFilter.SetLimitText(22); // для IP+Port
 	ctrlIPFilter.SetFont(Fonts::g_font);
@@ -339,7 +339,6 @@ void CDMDebugFrame::on(DebugManagerListener::DebugEvent, const DebugTask& task) 
 			return;
 #endif
 	}
-	// http://code.google.com/p/flylinkdc/issues/detail?id=419
 	if (m_bFilterIp && !m_sFilterInclude.empty())
 	{
 		if (m_IncludeTokens.is_find2(task.m_ip_and_port, task.m_message) == false)

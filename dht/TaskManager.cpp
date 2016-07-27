@@ -62,6 +62,9 @@ void TaskManager::start()
 // TimerManagerListener
 void TaskManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 {
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (ClientManager::isBeforeShutdown())
+		return;
 	dcdrun(Thread::ConditionLocker b(m_debugIsTimerExecute);)
 	if (ClientManager::isStartup())
 		return;
@@ -138,6 +141,9 @@ void TaskManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 
 void TaskManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 {
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (ClientManager::isBeforeShutdown())
+		return;
 	dcdrun(Thread::ConditionLocker b(m_debugIsTimerExecute);)
 	Utils::cleanFlood();
 	

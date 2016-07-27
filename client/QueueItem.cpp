@@ -49,6 +49,7 @@ QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, F
 	m_block_size(0),
 	m_tthRoot(p_tth),
 	m_downloadedBytes(0),
+	lastsize(0),
 	m_averageSpeed(0)
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 	, m_delegater(nullptr)
@@ -58,7 +59,7 @@ QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, F
 	//LogManager::message("QueueItem::QueueItem aTarget = " + aTarget + " this = " + Util::toString(__int64(this)));
 #endif
 	setFlags(aFlag);
-#ifdef PPA_INCLUDE_DROP_SLOW
+#ifdef FLYLINKDC_USE_DROP_SLOW
 	if (BOOLSETTING(DISCONNECTING_ENABLE))
 	{
 		setFlag(FLAG_AUTODROP);
@@ -79,7 +80,7 @@ int16_t QueueItem::calcTransferFlag(bool& partial, bool& trusted, bool& untruste
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
 		const auto d = i->second;
-		if (d->getStart() > 0) // crash http://code.google.com/p/flylinkdc/issues/detail?id=1361
+		if (d->getStart() > 0)
 		{
 			segs++;
 			
@@ -272,7 +273,6 @@ void QueueItem::addSourceL(const UserPtr& aUser, bool p_is_first_load)
 	}
 	
 }
-// [+] fix ? http://code.google.com/p/flylinkdc/issues/detail?id=1236 .
 void QueueItem::getPFSSourcesL(const QueueItemPtr& p_qi, SourceListBuffer& p_sourceList, uint64_t p_now)
 {
 	auto addToList = [&](const bool isBadSourses) -> void
@@ -308,7 +308,7 @@ bool QueueItem::isFinished() const
 	if (m_done_segment.size() == 1)
 	{
 		CFlyFastLock(m_fcs_segment);
-		return m_done_segment.size() == 1 && *m_done_segment.begin() == Segment(0, getSize());
+		return m_done_segment.size() == 1 && m_done_segment.begin()->isSizeEqu(getSize());
 	}
 	return false;
 }
@@ -468,8 +468,11 @@ bool QueueItem::removeDownload(const UserPtr& p_user)
 {
 	CFlyFastLock(m_fcs_download);
 	const auto l_size_before = m_downloads.size();
-	m_downloads.erase(p_user);
-	dcassert(l_size_before != m_downloads.size() || l_size_before == 0);
+	if (l_size_before)
+	{
+		m_downloads.erase(p_user);
+		//dcassert(l_size_before != m_downloads.size());
+	}
 	return l_size_before != m_downloads.size();
 }
 Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wantedSize, const int64_t lastSpeed, const PartialSource::Ptr &partialSource) const

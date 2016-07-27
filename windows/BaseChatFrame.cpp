@@ -700,12 +700,12 @@ void BaseChatFrame::addLine(const tstring& aLine, CHARFORMAT2& cf /*= Colors::g_
 	if (m_bTimeStamps)
 	{
 		const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, _T('[') + Text::toT(Util::getShortTimeString()) + _T("] "), aLine, cf, false);
-		ctrlClient.AppendText(l_message);
+		ctrlClient.AppendText(l_message, true);
 	}
 	else
 	{
 		const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, Util::emptyStringT, aLine, cf, false);
-		ctrlClient.AppendText(l_message);
+		ctrlClient.AppendText(l_message, true);
 	}
 }
 
@@ -729,12 +729,12 @@ void BaseChatFrame::addLine(const Identity& from, const bool bMyMess, const bool
 	if (m_bTimeStamps)
 	{
 		const ChatCtrl::CFlyChatCache l_message(from, bMyMess, bThirdPerson, _T('[') + Text::toT(Util::getShortTimeString()) + extra + _T("] "), aLine, cf, true);
-		ctrlClient.AppendText(l_message);
+		ctrlClient.AppendText(l_message, true);
 	}
 	else
 	{
 		const ChatCtrl::CFlyChatCache l_message(from, bMyMess, bThirdPerson, !extra.empty() ? _T('[') + extra + _T("] ") : Util::emptyStringT, aLine, cf, true);
-		ctrlClient.AppendText(l_message);
+		ctrlClient.AppendText(l_message, true);
 	}
 }
 
@@ -887,13 +887,16 @@ void BaseChatFrame::appendLogToChat(const string& path , const size_t linesCount
 		// LogManager::message("BaseChatFrame::appendLogToChat, Error load = " + path + " Error = " + e.getError());
 	}
 	const bool l_is_utf = buf.compare(0, 3, "\xef\xbb\xbf", 3) == 0;
-	StringTokenizer<string> l_lines(l_is_utf ? buf.substr(3) : buf, "\r\n");
+	const StringTokenizer<string> l_lines(l_is_utf ? buf.substr(3) : buf, "\r\n");
 	size_t i = l_lines.getTokens().size() > (linesCount + 1) ? l_lines.getTokens().size() - linesCount : 0;
 	ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, Util::emptyStringT, Util::emptyStringT, Colors::g_ChatTextLog, true, false);
-	for (; i < l_lines.getTokens().size(); ++i)
 	{
-		l_message.m_Msg = Text::toT(l_lines.getTokens()[i] + '\n');
-		ctrlClient.AppendText(l_message);
+		CLockRedraw<true> l_lock_redraw(ctrlClient);
+		for (; i < l_lines.getTokens().size(); ++i)
+		{
+			l_message.m_Msg = Text::toT(l_lines.getTokens()[i] + '\n');
+			ctrlClient.AppendText(l_message, false);
+		}
 	}
 }
 bool BaseChatFrame::isMultiChat(int& p_h, int & p_chat_columns) const

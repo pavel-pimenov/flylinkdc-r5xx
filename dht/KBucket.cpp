@@ -100,7 +100,7 @@ RoutingTable::~RoutingTable(void)
 	{
 		TaskManager::getInstance()->removeZone(this);
 		
-#ifdef FLYLINKDC_HE // [+] IRainman fix. https://code.google.com/p/flylinkdc/source/detail?r=15176
+#ifdef FLYLINKDC_HE
 		if (ClientManager::isShutdown())
 		{
 			for (auto i = m_bucket->cbegin(); i != m_bucket->cend(); ++i)

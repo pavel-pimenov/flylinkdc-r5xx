@@ -7,7 +7,6 @@ del .\compiled\*.pdb
 del .\compiled\FlylinkDC.exe
 del .\compiled\FlylinkDC_x64.exe
 del /S /F /Q vc15
-del /S /F /Q vc13
 rmdir /S /Q .\compiled\Settings\BackUp
 rmdir /S /Q .\compiled\Settings\FileLists
 rmdir /S /Q .\compiled\Settings\Logs

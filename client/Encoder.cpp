@@ -130,7 +130,7 @@ bool Encoder::isBase32(const char* src)
 	
 	return true;
 }
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 uint8_t decode16(char c)
 {
 	if (c >= '0' && c <= '9')

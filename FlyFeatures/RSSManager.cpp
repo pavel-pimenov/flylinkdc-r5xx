@@ -143,8 +143,9 @@ RSSFeed::UpdateFeedOldParser(const string& data)
 		}
 		
 	}
-	catch (SimpleXMLException& /*ex*/)
+	catch (SimpleXMLException& ex)
 	{
+		LogManager::message("Error RSSFeed::UpdateFeedOldParser " + ex.getError());
 	}
 	return false;
 }
@@ -195,7 +196,7 @@ time_t RSSFeed::convertPubDate(const string& p_str_date) // move Util::
 	{
 		SYSTEMTIME pTime = {0};
 		
-		if (!InternetTimeToSystemTimeA(p_str_date.c_str(), &pTime, 0) && !InternetTimeToSystemTimeA(("Mon, " + p_str_date).c_str(), &pTime, 0))  // http://code.google.com/p/flylinkdc/issues/detail?id=1061
+		if (!InternetTimeToSystemTimeA(p_str_date.c_str(), &pTime, 0) && !InternetTimeToSystemTimeA(("Mon, " + p_str_date).c_str(), &pTime, 0))
 		{
 			LogManager::message("Error InternetTimeToSystemTime p_str_date = " + p_str_date + " error = " + Util::translateError());
 		}

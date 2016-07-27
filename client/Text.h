@@ -198,7 +198,7 @@ inline bool isUTF8(const string& p_Charset, string& p_LowerCharset)
 	else
 		return false;
 }
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 const string& convert(const string& str, string& tmp, const string& fromCharset, const string& toCharset) noexcept;
 inline string convert(const string& str, const string& fromCharset, const string& toCharset) noexcept
 {
@@ -266,7 +266,6 @@ inline tstring tformat(const tstring& src, T t, T2 t2, T3 t3)
 
 bool safe_strftime_translate(string& p_value);
 
-// http://code.google.com/p/flylinkdc/source/detail?r=14844
 inline bool isEqualsSubstringIgnoreCase(const string& p_sub_string, const string& p_str)
 {
 	dcassert(!p_sub_string.empty());

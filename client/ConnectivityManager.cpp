@@ -60,7 +60,7 @@ void ConnectivityManager::detectConnection()
 	running = true;
 	
 	m_status.clear();
-	// PPA_INCLUDE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Started());
+	// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Started());
 	
 	const string l_old_bind = SETTING(BIND_ADDRESS);
 	// restore connectivity settings to their default value.
@@ -94,7 +94,7 @@ void ConnectivityManager::detectConnection()
 		AutoArray<char> buf(512);
 		_snprintf(buf.data(), 512, CSTRING(UNABLE_TO_OPEN_PORT), e.getError().c_str());
 		log(buf.data());
-		// PPA_INCLUDE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
+		// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
 		running = false;
 		return;
 	}
@@ -106,7 +106,7 @@ void ConnectivityManager::detectConnection()
 	{
 		log("WiFi router detected IP = " + l_ip_gateway);
 		SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_UPNP);
-		// PPA_INCLUDE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
+		// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
 	}
 	else
 	{
@@ -115,7 +115,7 @@ void ConnectivityManager::detectConnection()
 		{
 			SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_DIRECT); // Вот тут сомнительно
 			log(STRING(PUBLIC_IP_DETECTED) + " IP = " + l_ip);
-			// PPA_INCLUDE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
+			// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
 			running = false;
 			return;
 		}
@@ -279,7 +279,7 @@ void ConnectivityManager::mappingFinished(const string& p_mapper)
 			}
 		}
 #endif
-		// PPA_INCLUDE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
+		// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
 	}
 	if (!ClientManager::isShutdown())
 	{
@@ -399,7 +399,7 @@ void ConnectivityManager::log(const string& message)
 	{
 		m_status = message;
 		LogManager::message(STRING(CONNECTIVITY) + ' ' + m_status);
-		// PPA_INCLUDE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Message(), m_status);
+		// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Message(), m_status);
 	}
 	else
 	{

@@ -78,7 +78,7 @@ int SearchFrame::columnIndexes[] =
 	COLUMN_EXACT_SIZE,
 	COLUMN_LOCATION,
 	COLUMN_IP,
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 	COLUMN_DNS, // !SMT!-IP
 #endif
 	COLUMN_TTH
@@ -100,7 +100,7 @@ int SearchFrame::columnSizes[] =
 	150, 80, 80,
 	100,
 	100,
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 	100,
 #endif
 	150,
@@ -130,7 +130,7 @@ static ResourceManager::Strings columnNames[] = {ResourceManager::FILE,
 //[-]PPA        ResourceManager::AVERAGE_UPLOAD,
                                                  ResourceManager::LOCATION_BARE,
                                                  ResourceManager::IP_BARE,
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
                                                  ResourceManager::DNS_BARE, // !SMT!-IP
 #endif
                                                  ResourceManager::TTH_ROOT,
@@ -351,7 +351,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlCollapsed.SetFont(Fonts::g_systemFont, FALSE);
 	ctrlCollapsed.SetWindowText(CTSTRING(EXPANDED_RESULTS));
 	//collapsedContainer.SubclassWindow(ctrlCollapsed.m_hWnd);
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	m_ctrlStoreIP.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
 	m_ctrlStoreIP.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	m_storeIP = BOOLSETTING(ENABLE_LAST_IP_AND_MESSAGE_COUNTER);
@@ -1007,14 +1007,6 @@ void SearchFrame::onEnter()
 	
 	::EnableWindow(GetDlgItem(IDC_SEARCH_PAUSE), TRUE);
 	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE_SEARCH));
-	// [!] IRainman: http://code.google.com/p/flylinkdc/issues/detail?id=767
-	//m_statusLine = TSTRING(TIME_LEFT) + _T(' ') + Util::formatSecondsW((m_searchEndTime - m_searchStartTime) / 1000);
-	//PostMessage(WM_SPEAKER, QUEUE_STATS);
-	// [~] IRainman: http://code.google.com/p/flylinkdc/issues/detail?id=767
-	
-	//SearchManager::getInstance()->search(clients, Text::fromT(s), llsize,
-	//                                     (Search::TypeModes)ftype, m_sizeMode, "manual", (int*)this, fullSearch); // [-] merge
-	//searches++;
 }
 
 #if 0
@@ -1465,7 +1457,6 @@ void SearchFrame::update_column_after_merge(std::vector<int> p_update_index)
 {
 #if 0
 //			TODO - апдейты по колонкам не пашут иногда
-// http://code.google.com/p/flylinkdc/issues/detail?id=1113
 	const static int l_array[] =
 	{
 		COLUMN_BITRATE , COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO , COLUMN_MEDIA_AUDIO, COLUMN_DURATION, COLUMN_FLY_SERVER_RATING
@@ -1496,7 +1487,7 @@ void SearchFrame::update_column_after_merge(std::vector<int> p_update_index)
 LRESULT SearchFrame::onCollapsed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	m_expandSR = ctrlCollapsed.GetCheck() == 1;
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	m_storeIP = m_ctrlStoreIP.GetCheck() == 1;
 #endif
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -2408,7 +2399,7 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		rc.top += 17;       //21
 		rc.bottom += 17;
 		ctrlCollapsed.MoveWindow(rc);
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		rc.top += 17;
 		rc.bottom += 17;
 		m_ctrlStoreIP.MoveWindow(rc);
@@ -2452,7 +2443,7 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		
 		ctrlCollapsed.MoveWindow(rc);
 		ctrlSlots.MoveWindow(rc);
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		m_ctrlStoreIP.MoveWindow(rc);
 #endif
 		m_ctrlStoreSettings.MoveWindow(rc);
@@ -2573,7 +2564,7 @@ LRESULT SearchFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 	const HDC hDC = (HDC)wParam;
 	if (hWnd == searchLabel.m_hWnd || hWnd == sizeLabel.m_hWnd || hWnd == optionLabel.m_hWnd || hWnd == typeLabel.m_hWnd
 	        || hWnd == hubsLabel.m_hWnd || hWnd == ctrlSlots.m_hWnd ||
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	        hWnd == m_ctrlStoreIP.m_hWnd ||
 #endif
 	        hWnd == m_ctrlStoreSettings.m_hWnd ||
@@ -2633,7 +2624,7 @@ void SearchFrame::onTab(bool shift)
 	{
 		ctrlSearch.m_hWnd, ctrlPurge.m_hWnd, ctrlMode.m_hWnd, ctrlSize.m_hWnd, ctrlSizeMode.m_hWnd,
 		ctrlFiletype.m_hWnd, ctrlSlots.m_hWnd, ctrlCollapsed.m_hWnd,
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		m_ctrlStoreIP.m_hWnd,
 #endif
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -2746,24 +2737,28 @@ bool SearchFrame::is_filter_item(const SearchInfo* si)
 	}
 }
 #endif // FLYLINKDC_USE_TREE_SEARCH
-
-void SearchFrame::addSearchResult(SearchInfo* si)
+bool SearchFrame::isSkipSearchResult(SearchInfo*& si)
 {
 	dcassert(m_closed == false);
-	if (m_closed == true)
+	if (m_closed == true || m_is_before_search == true)
 	{
 		check_delete(si);
 		delete si;
-		return;
+		si = nullptr;
+		return true;
 	}
-	if (m_is_before_search == true)
+	else
 	{
-		dcassert(0);
-		delete si;
-		return;
+		return false;
 	}
+}
+
+void SearchFrame::addSearchResult(SearchInfo* si)
+{
+	if (isSkipSearchResult(si))
+		return;
 	const SearchResult& sr = si->m_sr;
-	const auto l_user        = sr.getUser();
+	const auto l_user      = sr.getUser();
 	if (!sr.getIP().is_unspecified())
 	{
 		l_user->setIP(sr.getIP(), true);
@@ -2783,7 +2778,8 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 			}
 			for (auto k = pp->children.cbegin(); k != pp->children.cend(); ++k)
 			{
-				// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62243
+				if (isSkipSearchResult(si))
+					return;
 				if (l_user->getCID() == (*k)->getUser()->getCID())
 				{
 					if (sr.getFile() == (*k)->m_sr.getFile())
@@ -2800,6 +2796,8 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 	{
 		for (auto s = ctrlResults.getParents().cbegin(); s != ctrlResults.getParents().cend(); ++s)
 		{
+			if (isSkipSearchResult(si))
+				return;
 			const SearchInfo* si2 = s->second.parent;
 			const auto& sr2 = si2->m_sr;
 			if (l_user->getCID() == sr2.getUser()->getCID())
@@ -2892,7 +2890,8 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 				if (l_is_filter_ok)
 #endif
 				{
-					dcassert(m_closed == false);
+					if (isSkipSearchResult(si))
+						return;
 					ctrlResults.insertGroupedItem(si, m_expandSR, false, true);
 				}
 				else
@@ -2900,17 +2899,22 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 					dcassert(m_closed == false);
 					if (pp == nullptr)
 					{
+						if (isSkipSearchResult(si))
+							return;
 						ctrlResults.getParents().insert(make_pair(const_cast<TTHValue*>(&sr.getTTH()), l_pp));
 					}
 					else
 					{
+						if (isSkipSearchResult(si))
+							return;
 						ctrlResults.insertChildNonVisual(si, pp, false, false, true);
 					}
 				}
 			}
 			else
 			{
-				dcassert(m_closed == false);
+				if (isSkipSearchResult(si))
+					return;
 #ifdef FLYLINKDC_USE_TREE_SEARCH
 				if (m_CurrentTreeItem == m_RootTreeItem || m_CurrentTreeItem == nullptr)
 #endif
@@ -2966,7 +2970,7 @@ LRESULT SearchFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL
 		{
 			const tstring* l_timeLapsBuf = reinterpret_cast<const tstring*>(lParam);
 			ctrlStatus.SetText(2, l_timeLapsBuf->c_str());
-			SetWindowText(m_statusLine.c_str());// [+] IRainman: http://code.google.com/p/flylinkdc/issues/detail?id=767
+			SetWindowText(m_statusLine.c_str());
 			::InvalidateRect(m_hWndStatusBar, NULL, TRUE);
 			delete l_timeLapsBuf;
 		}
@@ -3162,12 +3166,12 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 					n++;
 				}
 			}
-			// [+] SCALOlaz: prepare for swap Item text https://code.google.com/p/flylinkdc/issues/detail?id=887
+			// [+] SCALOlaz: prepare for swap Item text
 			const int l_ipos = WinUtil::GetMenuItemPosition(copyMenu, IDC_COPY_FILENAME);
 			
 			if (ctrlResults.GetSelectedCount() == 1 && sr.getType() == SearchResult::TYPE_FILE)
 			{
-				// [+] SCALOlaz: swap Item text https://code.google.com/p/flylinkdc/issues/detail?id=887
+				// [+] SCALOlaz: swap Item text
 				if (l_ipos != -1)
 					copyMenu.ModifyMenu(l_ipos, MF_BYPOSITION | MF_STRING, IDC_COPY_FILENAME, CTSTRING(FILENAME));
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -3178,7 +3182,7 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 			}
 			else if (ctrlResults.GetSelectedCount() == 1 && sr.getType() == SearchResult::TYPE_DIRECTORY)
 			{
-				// [+] SCALOlaz: swap Item text https://code.google.com/p/flylinkdc/issues/detail?id=887
+				// [+] SCALOlaz: swap Item text
 				if (l_ipos != -1)
 					copyMenu.ModifyMenu(l_ipos, MF_BYPOSITION | MF_STRING, IDC_COPY_FILENAME, CTSTRING(FOLDERNAME));
 			}
@@ -3524,7 +3528,7 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 					{
 						const string l_str_ip = Text::fromT(ip);
 						si->m_location = Util::getIpCountry(l_str_ip);
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 						if (si->m_is_flush_ip_to_sqlite == false && m_storeIP && si->getUser()->getHubID())
 						{
 							si->m_is_flush_ip_to_sqlite = true;
@@ -4009,7 +4013,6 @@ LRESULT SearchFrame::onEditChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 	}
 	else
 	{
-		// [+]FlylinkDC++ http://code.google.com/p/flylinkdc/issues/detail?id=155
 		WinUtil::GetWindowText(l_searchString, ctrlSearchBox);
 		if (!l_searchString.empty())
 		{

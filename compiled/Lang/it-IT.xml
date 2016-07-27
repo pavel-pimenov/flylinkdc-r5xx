@@ -447,7 +447,7 @@ Inserisci un nome diverso o seleziona un'altra cartella.</String>
 		<String Name="DecompressionError">Errore di decompressione</String>
 		<String Name="Default">Predefinito</String>
 		<String Name="DefaultAwayMessage">Hello, %[userNI]! I'm away. Be lucky!</String>
-		<String Name="DefPasswordHint">User has disabled receiving PMs. Use password '%[pm_pass]' in case of emergency. Don't abuse: slot-askers will be banned+ignored forever and will not download even in queue order.</String>
+		<String Name="DefPasswordHint">User has disabled receiving PMs. Use password '%[pm_pass]'</String>
 		<String Name="DefPasswordOkHint">Password correct. Access granted</String>
 		<String Name="DeleteChecked">Elimina liste controllate</String>
 		<String Name="DenyAll">rifiuta tutto</String>

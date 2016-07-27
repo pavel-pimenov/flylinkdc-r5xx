@@ -285,7 +285,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 #endif
 #ifdef _DEBUG
 		dcdebug("shutdown start - User::g_user_counts = %d OnlineUser::g_online_user_counts = %d\n", int(User::g_user_counts), int(OnlineUser::g_online_user_counts));
-		// [!] IRainman fix: Issue 1037 иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
 #endif
 #ifdef STRONG_USE_DHT
 		dht::DHT::getInstance()->stop(true); // [+] IRainman fix.
@@ -300,7 +299,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		
 		preparingCoreToShutdown(); // Зовем тут второй раз т.к. вероятно при автообновлении оно не зовется.
 		
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 		Socket::dnsCache.waitShutdown(); // !SMT!-IP
 #endif
 #ifdef FLYLINKDC_USE_SOCKET_COUNTER
@@ -345,7 +344,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		GPGPUTTHManager::deleteInstance();
 #endif // FLYLINKDC_USE_GPU_TTH
 		
-		CFlylinkDBManager::deleteInstance(); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1355
+		CFlylinkDBManager::deleteInstance();
 		CFlylinkDBManager::shutdown_engine();
 		TimerManager::deleteInstance();
 		SettingsManager::deleteInstance();
@@ -355,7 +354,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		
 		closelog();
 		::WSACleanup();
-		// [!] IRainman fix: Issue 1037 иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
 #ifdef _DEBUG
 		dcdebug("shutdown end - User::g_user_counts = %d OnlineUser::g_online_user_counts = %d\n", int(User::g_user_counts), int(OnlineUser::g_online_user_counts));
 		//dcassert(User::g_user_counts == 2); // ClientManager::g_uflylinkdc and ClientManager::g_me destroyed only with the full completion of the program, all the other user must be destroyed already by this time.

@@ -37,7 +37,7 @@ class Encoder
 		}
 		static void fromBase32(const char* src, uint8_t* dst, size_t len);
 		static bool isBase32(const char* src);
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 		static void fromBase16(const char* src, uint8_t *dst, size_t len);
 #endif
 	private:

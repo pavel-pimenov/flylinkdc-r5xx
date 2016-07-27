@@ -129,7 +129,7 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 	else // User
 	{
 		UserPtr u = ClientManager::getUser(aCID, true);
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		u->setHubID(getHubID());
 #endif
 		OnlineUser* newUser = new OnlineUser(u, *this, aSID);
@@ -271,7 +271,6 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 				{
 					nick = "[nick unknown]";
 				}
-				// fix http://code.google.com/p/flylinkdc/issues/detail?id=1435
 				const string l_message = ou->getIdentity().getNick() + " (" + ou->getIdentity().getSIDString() +
 				                         ") has same CID {" + l_cid + "} as " + nick + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.";
 				fly_fire3(ClientListener::StatusMessage(), this, l_message, ClientListener::FLAG_IS_SPAM);
@@ -471,7 +470,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 		state = STATE_NORMAL;
 		setAutoReconnect(true);
 		updateCounts(false);
-		updatedMyINFO(ou); // fix https://code.google.com/p/flylinkdc/issues/detail?id=1537
+		updatedMyINFO(ou);
 	}
 	else if (ou->getIdentity().isHub())
 	{
@@ -1587,7 +1586,11 @@ void AdcHub::info(bool p_force)
 	const FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(getHubUrl());
 	if (fhe && fhe->getExclusiveHub())
 	{
-		uint8_t l_normal, l_registered, l_op;
+		uint8_t l_normal = 0, l_registered = 0, l_op = 0;
+		if (l_normal + l_registered + l_op == 0)
+		{
+			l_normal = 1;
+		}
 		getCountsIndivid(l_normal, l_registered, l_op);
 		addParam(c, "HN", Util::toString(l_normal));
 		addParam(c, "HR", Util::toString(l_registered));
@@ -1595,6 +1598,10 @@ void AdcHub::info(bool p_force)
 	}
 	else
 	{
+		if (getTotalCounts() == 0)
+		{
+			g_counts[COUNT_NORMAL]++; // fix H:0/0/0
+		}
 		addParam(c, "HN", Util::toString(g_counts[COUNT_NORMAL]));
 		addParam(c, "HR", Util::toString(g_counts[COUNT_REGISTERED]));
 		addParam(c, "HO", Util::toString(g_counts[COUNT_OP]));

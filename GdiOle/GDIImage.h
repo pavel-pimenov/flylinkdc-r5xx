@@ -7,7 +7,7 @@
 #include <unordered_set>
 #include <set>
 #include <memory>
-#include "../client/webrtc/system_wrappers/interface/rw_lock_wrapper.h"
+#include "../client/webrtc/system_wrappers/include/rw_lock_wrapper.h"
 
 
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
@@ -105,7 +105,8 @@ class CGDIImage
 		static bool isShutdown()
 		{
 			extern volatile bool g_isShutdown;
-			return g_isShutdown;
+			extern volatile bool g_isBeforeShutdown;
+			return g_isBeforeShutdown || g_isShutdown;
 		}
 		static CGDIImage *CreateInstance(LPCWSTR pszFileName, HWND hCallbackWnd, DWORD dwCallbackMsg);
 		bool IsInited() const

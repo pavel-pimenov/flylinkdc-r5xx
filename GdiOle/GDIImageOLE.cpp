@@ -101,7 +101,7 @@ HRESULT CGDIImageOle::FireViewChangeEx(BOOL bEraseBackground)
 			
 			if (spInPlaceSite &&
 			        spInPlaceSite->GetWindow(&hwndParent) == S_OK &&
-			        hwndParent && // http://code.google.com/p/flylinkdc/issues/detail?id=1266
+			        hwndParent &&
 			        ::GetParent(hwndParent) == g_ActiveMDIWindow) // Чуток быстрее и проще добраться чем MDIGetActive()
 			        
 			{

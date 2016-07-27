@@ -45,7 +45,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 	public ListViewArrows<TypedListViewCtrl<T, ctrlId> >
 {
 	public:
-		TypedListViewCtrl() : sortColumn(-1), sortAscending(true), hBrBg(Colors::g_bgBrush), leftMargin(0)
+		TypedListViewCtrl() : sortColumn(-1), sortAscending(true), hBrBg(Colors::g_bgBrush), leftMargin(0), m_is_destroy_items(false)
 #ifndef IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
 			, m_count_update_info(0)
 #endif
@@ -153,6 +153,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 #endif
 		bool isRedraw()
 		{
+			dcassert(m_is_destroy_items == false);
 			bool refresh = false;
 			if (GetBkColor() != Colors::g_bgColor)
 			{
@@ -181,6 +182,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		}
 		void update_columns(const std::vector<int>& p_items, const std::vector<int>& p_columns)
 		{
+			dcassert(m_is_destroy_items == false);
 			if (!p_items.empty())
 			{
 				CLockRedraw<false> l_lock_draw(m_hWnd);
@@ -233,6 +235,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		
 		LRESULT onGetDispInfo(int /* idCtrl */, LPNMHDR pnmh, BOOL& /* bHandled */)
 		{
+			dcassert(m_is_destroy_items == false);
 			NMLVDISPINFO* di = (NMLVDISPINFO*)pnmh;
 			if (di && di->item.iSubItem >= 0)
 			{
@@ -301,6 +304,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		}
 		LRESULT onInfoTip(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 		{
+			dcassert(m_is_destroy_items == false);
 			if (BOOLSETTING(POPUPS_DISABLED) || !BOOLSETTING(SHOW_INFOTIPS)) return 0;
 			
 			NMLVGETINFOTIP* pInfoTip = (NMLVGETINFOTIP*) pnmh;
@@ -366,6 +370,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		}
 		void resort()
 		{
+			dcassert(m_is_destroy_items == false);
 			if (sortColumn != -1)
 			{
 				/*
@@ -568,7 +573,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		
 		void DeleteAndCleanAllItemsNoLock()
 		{
-			// dcassert(m_is_destroy_items == false);
+			dcassert(m_is_destroy_items == false);
 			//CFlyBusyBool l_busy(m_is_destroy_items);
 			const int l_cnt = GetItemCount();
 			for (int i = 0; i < l_cnt; ++i)
@@ -941,6 +946,13 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		{
 			m_columnList[p_col].m_is_owner_draw = true;
 		}
+		bool isDestroyItems() const
+		{
+			return m_is_destroy_items;
+		}
+	protected:
+		bool m_is_destroy_items;
+		
 	private:
 		int sortColumn;
 #ifndef IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
@@ -1076,7 +1088,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 {
 	public:
 	
-		TypedTreeListViewCtrl() : m_is_destroy_items(false), uniqueParent(false) // [cppcheck] Member variable 'TypedTreeListViewCtrl<T,ctrlId,K,hashFunc,equalKey>::uniqueParent' is not initialized in the constructor.
+		TypedTreeListViewCtrl() : uniqueParent(false) // [cppcheck] Member variable 'TypedTreeListViewCtrl<T,ctrlId,K,hashFunc,equalKey>::uniqueParent' is not initialized in the constructor.
 		{
 		}
 		~TypedTreeListViewCtrl()
@@ -1195,6 +1207,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 		
 		T* findParent(const K& groupCond) const
 		{
+			dcassert(m_is_destroy_items == false);
 			ParentMap::const_iterator i = parents.find(const_cast<K*>(&groupCond));
 			return i != parents.end() ? (*i).second.parent : NULL;
 		}
@@ -1202,6 +1215,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 		static const vector<T*> g_emptyVector;
 		const vector<T*>& findChildren(const K& groupCond) const
 		{
+			dcassert(m_is_destroy_items == false);
 			ParentMap::const_iterator i = parents.find(const_cast<K*>(&groupCond));
 			if (i != parents.end())
 			{
@@ -1228,6 +1242,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 		
 		int insertChildNonVisual(T* item, ParentPair* pp, bool p_auto_expand, bool p_use_visual, bool p_use_image_callback)
 		{
+			dcassert(m_is_destroy_items == false);
 			T* parent = nullptr;
 			int pos = -1;
 			if (pp->children.empty())
@@ -1313,6 +1328,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				parent = item;
 				
 				ParentPair newPP = { parent };
+				dcassert(m_is_destroy_items == false);
 				parents.insert(ParentMapPair(const_cast<K*>(&parent->getGroupCond()), newPP));
 				
 				parent->parent = nullptr; // ensure that parent of this item is really NULL
@@ -1409,27 +1425,29 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			CFlyBusyBool l_busy(m_is_destroy_items);
 			CLockRedraw<> l_lock_draw(m_hWnd); // [+] IRainman opt.
 			// HACK: ugly hack but at least it doesn't crash and there's no memory leak
+			DeleteAllItems();
 			for (auto i = parents.cbegin(); i != parents.cend(); ++i)
 			{
 				T* ti = i->second.parent;
 				for (auto j = i->second.children.cbegin(); j != i->second.children.cend(); ++j)
 				{
-					deleteItem(*j);
+					//deleteItem(*j);
 					delete *j;
 				}
-				deleteItem(ti);
+				//deleteItem(ti);
 				delete ti;
 			}
-			const int l_Count = GetItemCount();
-			//dcassert(l_Count == 0)
-			for (int i = 0; i < l_Count; i++)
-			{
-				T* si = getItemData(i);
-				delete si; // https://drdump.com/DumpGroup.aspx?DumpGroupID=358387
-			}
+			/*
+			            const int l_Count = GetItemCount();
+			            //dcassert(l_Count == 0)
+			            for (int i = 0; i < l_Count; i++)
+			            {
+			                T* si = getItemData(i);
+			                delete si; // https://drdump.com/DumpGroup.aspx?DumpGroupID=358387
+			            }
+			*/
 			
 			parents.clear();
-			DeleteAllItems();
 		}
 		
 		LRESULT onColumnClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
@@ -1525,12 +1543,6 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 		{
 			return parents;
 		}
-		bool isDestroyItems() const
-		{
-			return m_is_destroy_items;
-		}
-	protected:
-		bool m_is_destroy_items;
 	private:
 	
 		/** map of all parent items with their associated children */

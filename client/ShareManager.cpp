@@ -78,7 +78,7 @@ BloomFilter<5> ShareManager::g_bloom(1 << 20);
 
 ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
 	m_is_xmlDirty(true), m_is_forceXmlRefresh(false), m_is_refreshDirs(false), m_is_update(false), m_listN(0), m_count_sec(11),
-#ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
+#ifdef FLYLINKDC_USE_ONLINE_SWEEP_DB
 	m_sweep_guard(false),
 #endif
 	m_sweep_path(false)
@@ -387,7 +387,8 @@ MemoryInputStream* ShareManager::getTree(const string& virtualFile) const
 		}
 	}
 	
-	ByteVector buf = tree.getLeafData();
+	ByteVector buf;
+	tree.getLeafData(buf);
 	return new MemoryInputStream(&buf[0], buf.size());
 }
 
@@ -522,7 +523,7 @@ void ShareManager::load(SimpleXML& aXml)
 {
 	CFlyBusy l_busy(g_RebuildIndexes);
 	CFlyWriteLock(*g_csShare);
-#ifdef PPA_INCLUDE_OLD_INNOSETUP_WIZARD
+#ifdef FLYLINKDC_USE_OLD_INNOSETUP_WIZARD
 	int l_count_dir = 0;
 #endif
 	aXml.resetCurrentChild();
@@ -552,7 +553,7 @@ void ShareManager::load(SimpleXML& aXml)
 				if (getByVirtualL(vName) == g_list_directories.end())
 				{
 					g_list_directories.push_back(Directory::create(vName));
-#ifdef PPA_INCLUDE_OLD_INNOSETUP_WIZARD
+#ifdef FLYLINKDC_USE_OLD_INNOSETUP_WIZARD
 					l_count_dir++;
 #endif
 				}
@@ -601,7 +602,7 @@ void ShareManager::load(SimpleXML& aXml)
 		}
 		aXml.stepOut();
 	}
-#ifdef PPA_INCLUDE_OLD_INNOSETUP_WIZARD
+#ifdef FLYLINKDC_USE_OLD_INNOSETUP_WIZARD
 	if (l_count_dir == 0)
 	{
 		const string l_dir = Util::getRegistryValueString("DownloadDir", true);
@@ -761,7 +762,6 @@ bool ShareManager::loadCache() noexcept
 			l_cache_loader_log.step("update indices done");
 			//internalClearCache(true);
 			//l_cache_loader_log.step("internalClearCache");
-			// https://code.google.com/p/flylinkdc/issues/detail?id=1545
 			if (getShareSize() >= 0)
 			{
 				// Получили размер шары из кэша - не выполняем повторный обход в internalCalcShareSize();
@@ -1274,7 +1274,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 				{
 					// LogManager::message("[!!!!!!!!][2] bool l_is_new_file = l_dir_item == l_dir_map.end(); l_lower_name = " + l_lower_name + " name = " + l_file_name);
 				}
-#ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
+#ifdef FLYLINKDC_USE_ONLINE_SWEEP_DB
 				if (l_dir_item != l_dir_map.end())
 					l_dir_item_second.m_is_found = true;
 #endif
@@ -1313,7 +1313,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 			}
 		}
 	}
-#ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
+#ifdef FLYLINKDC_USE_ONLINE_SWEEP_DB
 	if (l_path_id && !m_sweep_guard)
 		CFlylinkDBManager::getInstance()->sweep_files(l_path_id, l_dir_map);
 #endif
@@ -1660,7 +1660,7 @@ int ShareManager::run()
 		if (m_sweep_path)
 		{
 			m_sweep_path = false;
-#ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
+#ifdef FLYLINKDC_USE_ONLINE_SWEEP_DB
 			m_sweep_guard = true;
 #endif
 			CFlylinkDBManager::getInstance()->sweep_db();
@@ -2849,7 +2849,7 @@ ShareManager::Directory::Ptr ShareManager::getDirectoryL(const string& fname)
 void ShareManager::on(QueueManagerListener::FileMoved, const string& n) noexcept
 {
 #if 0 ////////////////////////////////////////////////
-#ifdef PPA_INCLUDE_ADD_FINISHED_INSTANTLY
+#ifdef FLYLINKDC_USE_ADD_FINISHED_INSTANTLY
 	if (BOOLSETTING(ADD_FINISHED_INSTANTLY))
 #endif
 	{

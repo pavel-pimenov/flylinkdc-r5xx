@@ -22,7 +22,7 @@
 #pragma once
 
 
-#ifdef PPA_INCLUDE_APEX_EX_MESSAGE_BOX
+#ifdef FLYLINKDC_USE_APEX_EX_MESSAGE_BOX
 class ExMessageBox
 {
 	private:
@@ -114,13 +114,13 @@ class ExMessageBox
 int WINAPI MessageBox(HWND hWnd, LPCTSTR lpText, LPCTSTR lpCaption, UINT uType, WNDPROC wndProc);
 int WINAPI MessageBox(HWND hWnd, LPCTSTR lpText, LPCTSTR lpCaption, LPCTSTR lpQuestion, UINT uType, UINT& bCheck);
 
-#else  // PPA_INCLUDE_APEX_EX_MESSAGE_BOX
+#else  // FLYLINKDC_USE_APEX_EX_MESSAGE_BOX
 
 inline int WINAPI MessageBox(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, LPCWSTR lpQuestion, UINT uType, UINT& bCheck)
 {
 	return ::MessageBox(hWnd, lpText, lpCaption, uType);
 }
 
-#endif // PPA_INCLUDE_APEX_EX_MESSAGE_BOX
+#endif // FLYLINKDC_USE_APEX_EX_MESSAGE_BOX
 
 #endif // EX_MESSAGE_BOX

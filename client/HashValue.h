@@ -39,9 +39,7 @@ struct HashValue
 	
 	HashValue()
 	{
-#ifdef _DEBUG
 		memzero(&data, sizeof(data));
-#endif
 	}
 	explicit HashValue(const uint8_t* aData)
 	{
@@ -49,11 +47,8 @@ struct HashValue
 	}
 	explicit HashValue(const std::string& base32)
 	{
+		//dcassert(base32.length() == 39);
 		Encoder::fromBase32(base32.c_str(), data, BYTES);
-	}
-	explicit HashValue(const char* p_base32) //[+]FlylinkDC++
-	{
-		Encoder::fromBase32(p_base32, data, BYTES);
 	}
 	bool operator!=(const HashValue& rhs) const
 	{

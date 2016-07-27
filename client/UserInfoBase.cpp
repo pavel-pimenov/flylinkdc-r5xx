@@ -170,7 +170,7 @@ void UserInfoBase::pm(const string& hubHint)
 // !SMT!-S
 void UserInfoBase::pm_msg(const string& hubHint, const tstring& p_message)
 {
-	if (!p_message.empty()) // [~] SCALOlaz: support for abolition and prohibition to send a blank line https://code.google.com/p/flylinkdc/issues/detail?id=1034
+	if (!p_message.empty()) // [~] SCALOlaz: support for abolition and prohibition to send a blank line
 	{
 		UserManager::getInstance()->outgoingPrivateMessage(getUser(), hubHint, p_message);
 	}

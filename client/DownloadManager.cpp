@@ -60,7 +60,8 @@ DownloadManager::~DownloadManager()
 
 void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
+	if (ClientManager::isBeforeShutdown())
+		return;
 	typedef vector<pair<string, UserPtr> > TargetList;
 	TargetList dropTargets;
 	
@@ -124,7 +125,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 			}
 			const int64_t l_currentSingleSpeed = d->getRunningAverage();//[+]IRainman refactoring transfer mechanism
 			l_currentSpeed += l_currentSingleSpeed;//[+]IRainman refactoring transfer mechanism
-#ifdef PPA_INCLUDE_DROP_SLOW
+#ifdef FLYLINKDC_USE_DROP_SLOW
 			if (BOOLSETTING(DISCONNECTING_ENABLE))
 			{
 				if (d->getType() == Transfer::TYPE_FILE && d->getStart() > 0)
@@ -149,7 +150,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 					}
 				}
 			}
-#endif // PPA_INCLUDE_DROP_SLOW
+#endif // FLYLINKDC_USE_DROP_SLOW
 		}
 		g_runningAverage = l_currentSpeed; // [+] IRainman refactoring transfer mechanism
 	}
@@ -322,9 +323,9 @@ void DownloadManager::on(AdcCommand::SND, UserConnection* aSource, const AdcComm
 		return;
 	}
 	
-	const string& type = cmd.getParam(0);
-	int64_t start = Util::toInt64(cmd.getParam(2));
-	int64_t bytes = Util::toInt64(cmd.getParam(3));
+	const string type = cmd.getParam(0);
+	const int64_t start = Util::toInt64(cmd.getParam(2));
+	const int64_t bytes = Util::toInt64(cmd.getParam(3));
 	
 	if (type != Transfer::g_type_names[aSource->getDownload()->getType()])
 	{

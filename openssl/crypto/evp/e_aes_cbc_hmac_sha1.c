@@ -59,7 +59,7 @@
 # include <openssl/aes.h>
 # include <openssl/sha.h>
 # include "evp_locl.h"
-# include "../constant_time_locl.h"
+# include "../constant_time_locl.h" // [+] FlylinkDC++
 
 # ifndef EVP_CIPH_FLAG_AEAD_CIPHER
 #  define EVP_CIPH_FLAG_AEAD_CIPHER       0x200000

@@ -182,7 +182,7 @@ BOOL WinFirewall::IsWindowsFirewallPortEnabled(long in_lPort, NET_FW_IP_PROTOCOL
 	return bRet;
 }
 
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 void WinFirewall::TurnWindowsFirewall(bool bTurnOn /*= true*/)
 {
 	try

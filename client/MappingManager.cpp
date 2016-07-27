@@ -351,7 +351,6 @@ void MappingManager::log_internal(const string& message)
 
 string MappingManager::deviceString(const Mapper& p_mapper) const
 {
-	//TODO http://code.google.com/p/flylinkdc/issues/detail?id=1241
 	const auto l_dev_name = p_mapper.getDeviceName();
 	const auto l_model_desc = p_mapper.getModelDescription();
 	string l_name = l_dev_name;
@@ -374,6 +373,8 @@ string MappingManager::deviceString(const Mapper& p_mapper) const
 
 void MappingManager::on(TimerManagerListener::Minute, uint64_t tick) noexcept
 {
+	if (ClientManager::isBeforeShutdown())
+		return;
 	if (tick >= m_renewal && !m_busy.test_and_set())
 	{
 		start(64);

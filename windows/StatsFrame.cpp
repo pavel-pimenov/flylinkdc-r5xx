@@ -19,7 +19,7 @@
 #include "stdafx.h"
 
 
-#ifdef PPA_INCLUDE_STATS_FRAME
+#ifdef FLYLINKDC_USE_STATS_FRAME
 #include "Resource.h"
 
 #include "StatsFrame.h"
@@ -27,7 +27,7 @@
 int StatsFrame::g_width = 0;
 int StatsFrame::g_height = 0;
 
-#ifdef PPA_INCLUDE_SHOW_UD_RATIO
+#ifdef FLYLINKDC_USE_SHOW_UD_RATIO
 int StatsFrame::columnIndexes[] =
 {
 	COLUMN_HUB,
@@ -44,7 +44,7 @@ static ResourceManager::Strings columnNames[] = { ResourceManager::FILE, Resourc
 
 #endif
 StatsFrame::StatsFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), twidth(0), lastTick(MainFrame::getLastUpdateTick()), scrollTick(0),
-#ifdef PPA_INCLUDE_SHOW_UD_RATIO
+#ifdef FLYLINKDC_USE_SHOW_UD_RATIO
 	ratioContainer(WC_LISTVIEW, this, 0),
 #endif
 	m_max(1)
@@ -69,7 +69,7 @@ LRESULT StatsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	SetFont(Fonts::g_font);
 	
 	bHandled = FALSE;
-#ifdef PPA_INCLUDE_SHOW_UD_RATIO
+#ifdef FLYLINKDC_USE_SHOW_UD_RATIO
 	
 	ctrlRatio.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_CLIENTEDGE, IDC_UD_RATIO);
 	ratioContainer.SubclassWindow(ctrlRatio);

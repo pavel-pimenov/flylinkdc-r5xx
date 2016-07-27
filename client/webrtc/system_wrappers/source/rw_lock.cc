@@ -10,13 +10,13 @@
 
 #include "stdinc.h" // [+]FlylinkDC++
 
-#include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
+#include "webrtc/system_wrappers/include/rw_lock_wrapper.h"
 
 #include <assert.h>
 
 #if defined(_WIN32)
-#include "webrtc/system_wrappers/source/rw_lock_generic.h"
 #include "webrtc/system_wrappers/source/rw_lock_win.h"
+#include "webrtc/system_wrappers/source/rw_lock_winxp_win.h"
 #else
 #include "webrtc/system_wrappers/source/rw_lock_posix.h"
 #endif
@@ -30,7 +30,7 @@ RWLockWrapper* RWLockWrapper::CreateRWLock() {
   if (lock) {
     return lock;
   }
-  return new RWLockGeneric();
+  return new RWLockWinXP();
 #else
   return RWLockPosix::Create();
 #endif

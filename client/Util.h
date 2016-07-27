@@ -57,7 +57,6 @@ const tstring getFlylinkDCAppCaptionWithVersionT();
 
 class IDateReceiveReporter
 {
-		// FlylinkDC++ Team TODO: http://code.google.com/p/flylinkdc/issues/detail?id=632
 	public:
 		virtual bool ReportResultWait(DWORD totalDataWait) = 0;
 		virtual bool ReportResultReceive(DWORD currentDataReceive) = 0;
@@ -467,13 +466,11 @@ class Util
 			       && strnicmp(p_URL.c_str() + (p_URL.length() - 4), _T(".jpg"), 4) == 0; //-V112
 		}
 #endif
-		// [+] http://code.google.com/p/flylinkdc/issues/detail?id=223
 		static bool isTorrentLink(const tstring& sFileName)
 		{
 			return (sFileName.find(_T("xt=urn:btih:")) != tstring::npos &&
 			        sFileName.find(_T("xt=urn:tree:tiger:")) == tstring::npos);
 		}
-		// [~] http://code.google.com/p/flylinkdc/issues/detail?id=223
 		static bool isHttpLink(const tstring& p_url)
 		{
 			return _wcsnicmp(p_url.c_str(), L"http://", 7) == 0;
@@ -675,7 +672,7 @@ class Util
 		template<typename string_t>
 		static string_t getFileName(const string_t& path)
 		{
-			const auto i = path.rfind(PATH_SEPARATOR); // [!] IRainman fix done: [16] https://www.box.net/shared/qgziqx3ryy91dzu9cb8c https://www.box.net/shared/r76og6wrc75gjyc5gf1r
+			const auto i = path.rfind(PATH_SEPARATOR);
 			return (i != string_t::npos) ? path.substr(i + 1) : path;
 		}
 		static string getFileExtWithoutDot(const string& path)
@@ -697,16 +694,18 @@ class Util
 			}
 			return Util::emptyString;
 		}
+		/*
 		template <class T> static inline void check_path(const T& path)
-		{
-#ifdef _DEBUG
-			dcassert(!path.empty());
-			dcassert(path[path.size() - 1] != '/' && path[path.size() - 1] != '\\');
-#endif
-		}
+		        {
+		#ifdef _DEBUG
+		            dcassert(!path.empty());
+		            dcassert(path[path.size() - 1] != '/' && path[path.size() - 1] != '\\');
+		#endif
+		        }
+		        */
 		static wstring getFileExtWithoutDot(const wstring& path)
 		{
-			check_path(path);
+			//check_path(path);
 			const auto i = path.rfind('.');
 			if (i != wstring::npos)
 			{
@@ -718,7 +717,7 @@ class Util
 		}
 		static string getFileExt(const string& path)
 		{
-			check_path(path);
+			//check_path(path);
 			const auto i = path.rfind('.');
 			if (i != string::npos)
 			{
@@ -730,7 +729,7 @@ class Util
 		}
 		static wstring getFileExt(const wstring& path)
 		{
-			check_path(path);
+			//check_path(path);
 			const auto i = path.rfind(L'.');
 			if (i != string::npos)
 			{

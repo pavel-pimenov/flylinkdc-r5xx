@@ -231,7 +231,7 @@ class ATL_NO_VTABLE CGDIImageOle :
 		HRESULT FireViewChangeEx(BOOL bEraseBackground);
 		static bool __cdecl OnFrameChanged(CGDIImage *pImage, LPARAM lParam);
 	public:
-		static HWND g_ActiveMDIWindow; // http://code.google.com/p/flylinkdc/issues/detail?id=1266
+		static HWND g_ActiveMDIWindow;
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(GDIImage), CGDIImageOle)

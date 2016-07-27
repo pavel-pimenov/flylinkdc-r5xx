@@ -6,7 +6,7 @@
 
 #include "SettingsManager.h"
 
-#ifdef PPA_INCLUDE_IPFILTER
+#ifdef FLYLINKDC_USE_IPFILTER
 
 #include "iplist.h"
 
@@ -32,6 +32,6 @@ class PGLoader
 		static IPList  g_ipTrustListAllow;
 		static IPList  g_ipTrustListBlock;
 };
-#endif // PPA_INCLUDE_IPFILTER
+#endif // FLYLINKDC_USE_IPFILTER
 
 #endif // PGLOADER_H

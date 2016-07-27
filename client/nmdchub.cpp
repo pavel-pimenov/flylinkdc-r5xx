@@ -143,7 +143,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	{
 		l_is_CID_User = true;
 		UserPtr p = ClientManager::getUser(aNick, getHubUrl()
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		                                   , getHubID()
 #endif
 		                                   , p_first_load
@@ -215,7 +215,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	else
 	{
 		UserPtr p = ClientManager::getUser(aNick, getHubUrl()
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		                                   , getHubID()
 #endif
 		                                   , p_first_load
@@ -316,7 +316,7 @@ void NmdcHub::clearUsers()
 		{
 			if (!i->second->getUser()->getCID().isZero()) // [+] IRainman fix.
 			{
-				ClientManager::getInstance()->putOffline(i->second); // http://code.google.com/p/flylinkdc/issues/detail?id=1064
+				ClientManager::getInstance()->putOffline(i->second);
 			}
 			// Варианты
 			// - скармливать юзеров массивом
@@ -380,7 +380,7 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag, bool p_is_version_
 			}
 		}
 		else if ((j = i->find("V:")) != string::npos ||
-		         (j = i->find("v:")) != string::npos // [+] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=1234
+		         (j = i->find("v:")) != string::npos
 		        )
 		{
 			//dcassert(j > 1);
@@ -417,7 +417,6 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag, bool p_is_version_
 				id.setStringParam("AP", *i);
 			}
 		}
-		// [+] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=1234
 		else if (i->compare(0, 2, "O:", 2) == 0)
 		{
 			// [?] TODO http://nmdc.sourceforge.net/NMDC.html#_tag
@@ -450,7 +449,7 @@ void NmdcHub::NmdcSearch(const SearchParam& p_search_param)
 	dcassert(p_search_param.m_client);
 	if (ClientManager::isBeforeShutdown())
 		return;
-#ifdef PPA_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG
+#ifdef FLYLINKDC_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG
 	ShareManager::getInstance()->search(l, p_search_param);
 #else
 	ShareManager::getInstance()->search(l, p_search_param);
@@ -732,7 +731,6 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 		}
 		l_search_param.init(this, p_is_passive);
 		NmdcSearch(l_search_param);
-		// Dead lock 2 https://code.google.com/p/flylinkdc/issues/detail?id=1428
 	}
 	else
 	{
@@ -979,7 +977,7 @@ void NmdcHub::chatMessageParse(const string& p_line)
 	chatMessage->thirdPerson = bThirdPerson;
 	if (!l_user)
 	{
-		chatMessage->m_text = l_utf8_line; // fix http://code.google.com/p/flylinkdc/issues/detail?id=944
+		chatMessage->m_text = l_utf8_line;
 		// если юзер подставной - не создаем его в списке
 	}
 	// [~] IRainman fix.
@@ -1693,8 +1691,11 @@ void NmdcHub::toParse(const string& param)
 		return;
 	}
 	if (!allowPrivateMessagefromUser(*message)) // [+] IRainman fix.
+	{
+		LogManager::message("Ignore PM: from user: " + message->m_from->getUser()->getLastNick() + " on hub: " + getHubUrl() + " Message: " + message->m_text);
 		return;
-		
+	}
+	
 	fly_fire2(ClientListener::Message(), this, message); // [+]
 }
 //==========================================================================================
@@ -1790,7 +1791,7 @@ void NmdcHub::onLine(const string& aLine)
 	else if (cmd == "MyINFO")
 	{
 		bMyInfoCommand = true;
-		myInfoParse(param); // [+]PPA http://code.google.com/p/flylinkdc/issues/detail?id=1384
+		myInfoParse(param);
 #ifdef _DEBUG
 		const string l_admin = "Админ";
 		if (param.find(l_admin) != string::npos)
@@ -2176,7 +2177,7 @@ bool NmdcHub::resendMyINFO(bool p_always_send, bool p_is_force_passive)
 
 void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 {
-	const uint64_t l_limit = 2 * 60 * 1000; // http://code.google.com/p/flylinkdc/issues/detail?id=1370
+	const uint64_t l_limit = 2 * 60 * 1000;
 	const uint64_t currentTick = GET_TICK(); // [!] IRainman opt.
 	if (p_is_force_passive == false && p_always_send == false && m_lastUpdate + l_limit > currentTick)
 	{
@@ -2230,7 +2231,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	{
 		status |= NmdcSupports::TLS;
 	}
-	const string currentCounts = fhe && fhe->getExclusiveHub() ? getCountsIndivid() : getCounts();
+	const string l_currentCounts = fhe && fhe->getExclusiveHub() ? getCountsIndivid() : getCounts();
 	
 	// IRAINMAN_USE_UNICODE_IN_NMDC
 	string l_currentMyInfo;
@@ -2299,7 +2300,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	                                 fromUtf8Chat(escape(getCurrentDescription())).c_str(),
 	                                 l_version.c_str(), // [!] IRainman mimicry function.
 	                                 l_modeChar,
-	                                 currentCounts.c_str(),
+	                                 l_currentCounts.c_str(),
 	                                 UploadManager::getSlots(),
 	                                 uploadSpeed.c_str(), status,
 	                                 fromUtf8Chat(escape(getCurrentEmail())).c_str()));

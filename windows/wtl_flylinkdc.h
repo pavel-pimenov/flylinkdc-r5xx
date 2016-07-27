@@ -171,7 +171,7 @@ class CFlyTimerAdapter : public CFlyHandlerAdapter
 			m_timer_id_event = p_IDEvent;
 			ATLASSERT(::IsWindow(m_win_handler));
 			ATLASSERT(m_timer_id == NULL);
-			if (m_timer_id == NULL) // В стеке странный рекурсивный вызов SetTimer http://code.google.com/p/flylinkdc/issues/detail?id=1328
+			if (m_timer_id == NULL) // В стеке странный рекурсивный вызов SetTimer
 			{
 				m_timer_id = SetTimer(m_win_handler, p_IDEvent, p_Elapse, NULL);
 				ATLASSERT(m_timer_id != NULL);
@@ -201,7 +201,7 @@ class CFlyTimerAdapter : public CFlyHandlerAdapter
 				m_timer_id = 0;
 			}
 		}
-#if 0 // TODO: needs review, see details here https://code.google.com/p/flylinkdc/source/detail?r=15539
+#if 0 // TODO: needs review
 		void safe_destroy_timer_if_exists()
 		{
 			if (m_timer_id)

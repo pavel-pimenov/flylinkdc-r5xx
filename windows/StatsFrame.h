@@ -21,7 +21,7 @@
 
 #pragma once
 
-#ifdef PPA_INCLUDE_STATS_FRAME
+#ifdef FLYLINKDC_USE_STATS_FRAME
 
 // [+]IRainman
 #include "../client/UploadManager.h"
@@ -32,12 +32,12 @@
 #include "FlatTabCtrl.h"
 #include "WinUtil.h"
 
-#ifdef PPA_INCLUDE_SHOW_UD_RATIO
+#ifdef FLYLINKDC_USE_SHOW_UD_RATIO
 #include "TypedListViewCtrl.h"
 struct RatioInfo
 {
 	RatioInfo(const tstring& p_hub, const tstring& p_nick) :
-		m_hub(p_hub), m_nick(p_nick) { }
+		m_hub(p_hub), m_nickT(p_nick) { }
 		
 	const tstring& getText(int col) const
 	{
@@ -53,7 +53,7 @@ struct RatioInfo
 	}
 	
 	tstring m_hub;
-	tstring m_nick;
+	tstring m_nickT;
 };
 #endif
 
@@ -61,13 +61,13 @@ class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_
 	, virtual private CFlyTimerAdapter
 	, virtual private CFlyTaskAdapter
 {
-#ifdef PPA_INCLUDE_SHOW_UD_RATIO
+#ifdef FLYLINKDC_USE_SHOW_UD_RATIO
 		TypedListViewCtrl<RatioInfo, IDC_UD_RATIO> ctrlRatio;
 #endif
 	public:
 		StatsFrame();
 		~StatsFrame() { }
-#ifdef PPA_INCLUDE_SHOW_UD_RATIO
+#ifdef FLYLINKDC_USE_SHOW_UD_RATIO
 		enum
 		{
 			COLUMN_HUB,
@@ -104,7 +104,7 @@ class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_
 		MESSAGE_HANDLER(WM_PAINT, onPaint)
 		MESSAGE_HANDLER(WM_TIMER, onTimer)
 		MESSAGE_HANDLER(WM_SIZE, onSize)
-#ifdef PPA_INCLUDE_SHOW_UD_RATIO
+#ifdef FLYLINKDC_USE_SHOW_UD_RATIO
 		NOTIFY_HANDLER(IDC_UD_RATIO, NM_CUSTOMDRAW, ctrlRatio.onCustomDraw) // [+] IRainman
 #endif
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.

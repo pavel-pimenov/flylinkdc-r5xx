@@ -125,8 +125,8 @@ void ConnectionManager::revConnectToMe(const Node::Ptr& node, const AdcCommand& 
 	if (!ClientManager::isActive(nullptr))
 		return;
 		
-	const string& protocol = cmd.getParam(1);
-	const string& token = cmd.getParam(2);
+	const string protocol = cmd.getParam(1);
+	const string token = cmd.getParam(2);
 	
 	bool secure;
 	if (protocol == AdcSupports::CLIENT_PROTOCOL)

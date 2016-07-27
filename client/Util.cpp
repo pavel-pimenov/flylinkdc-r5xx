@@ -859,7 +859,7 @@ static const char badChars[] =
 #endif
 void Util::fixFileNameMaxPathLimit(string& p_File)
 {
-	const int l_limit = MAX_PATH - 46 - 10; // https://code.google.com/p/flylinkdc/issues/detail?id=1490
+	const int l_limit = MAX_PATH - 46 - 10;
 	if (p_File.length() >= l_limit) // 46 it one character first dot + 39 characters TTH + 6 characters .dctmp
 	{
 		const string l_orig_file = p_File;
@@ -1411,7 +1411,7 @@ static string findBindIP(const string& tmp, const string& p_gateway_mask, const 
 	{
 		memcpy(&dest.sin_addr, he->h_addr_list[i], he->h_length);
 		const string tmp2 = inet_ntoa(dest.sin_addr);
-		if (p_check_bind_address && tmp2 == SETTING(BIND_ADDRESS)) // http://code.google.com/p/flylinkdc/issues/detail?id=1359
+		if (p_check_bind_address && tmp2 == SETTING(BIND_ADDRESS))
 			return tmp2;
 		if (tmp2.find(p_gateway_mask) != string::npos)
 		{
@@ -1465,7 +1465,7 @@ string Util::getLocalOrBindIp(const bool p_check_bind_address)
 		// We take the first ip as default, but if we can find a better one, use it instead...
 		memcpy(&dest.sin_addr, he->h_addr_list[0], he->h_length);
 		tmp = inet_ntoa(dest.sin_addr);
-		if (p_check_bind_address && tmp == SETTING(BIND_ADDRESS)) // http://code.google.com/p/flylinkdc/issues/detail?id=1359
+		if (p_check_bind_address && tmp == SETTING(BIND_ADDRESS))
 		{
 			return tmp;
 		}
@@ -1756,7 +1756,7 @@ string Util::formatParams(const string& msg, const StringMap& params, bool filte
 	}
 	if (l_find_alcohol) // Не пытаемся искать %[ т.к. не нашли %
 	{
-		result = formatTime(result, t); // http://code.google.com/p/flylinkdc/issues/detail?id=1015
+		result = formatTime(result, t);
 		string::size_type i, j, k;
 		i = 0;
 		while ((j = result.find("%[", i)) != string::npos)
@@ -2380,7 +2380,6 @@ string Util::translateError(DWORD aError)
 					}
 				}
 			}
-			// http://code.google.com/p/flylinkdc/issues/detail?id=1077
 			// http://stackoverflow.com/questions/2159458/why-is-formatmessage-failing-to-find-a-message-for-wininet-errors/2159488#2159488
 			if (aError >= INTERNET_ERROR_BASE && aError < INTERNET_ERROR_LAST)
 			{
@@ -2814,7 +2813,6 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 	const DWORD frameBufferSize = 4096;
 	dcassert(frameBufferSize);
 	dcassert(!p_url.empty());
-	// FlylinkDC++ Team TODO: http://code.google.com/p/flylinkdc/issues/detail?id=632
 	if (p_url.empty())
 		return 0;
 	p_data_out.clear();
@@ -2856,7 +2854,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 	CInternetHandle hURL(InternetOpenUrlA(hInternet, p_url.c_str(), NULL, 0, m_inet_flag | l_cache_flag , 0));
 	if (!hURL)
 	{
-		dcassert(0);
+		//dcassert(0);
 		create_error_message("InternetOpenUrlA", p_url);
 		LogManager::message(m_error_message);
 		// TODO - залогировать коды ошибок для статы

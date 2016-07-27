@@ -74,7 +74,7 @@ class UploadQueueItem :
 			COLUMN_WAITING,
 			COLUMN_LOCATION, // !SMT!-IP
 			COLUMN_IP, // !SMT!-IP
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 			COLUMN_DNS, // !SMT!-IP
 #endif
 			COLUMN_SLOTS, // !SMT!-UI
@@ -118,7 +118,7 @@ class WaitingUser
 
 class UploadManager : private ClientManagerListener, private UserConnectionListener, public Speaker<UploadManagerListener>, private TimerManagerListener, public Singleton<UploadManager>
 {
-#ifdef PPA_INCLUDE_DOS_GUARD
+#ifdef FLYLINKDC_USE_DOS_GUARD
 		typedef boost::unordered_map<string, uint8_t> CFlyDoSCandidatMap;
 		CFlyDoSCandidatMap m_dos_map;
 		mutable FastCriticalSection csDos; // [+] IRainman opt.

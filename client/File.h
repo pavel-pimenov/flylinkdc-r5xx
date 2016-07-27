@@ -147,7 +147,6 @@ class File : public IOStream
 		// [+] IRainman FlylinkDC working with long paths
 		// http://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx#maxpath
 		// TODO сделать через шаблон
-		// fixed http://code.google.com/p/flylinkdc/issues/detail?id=1019
 		static string formatPath(const string& path);
 		static tstring formatPath(const tstring& path);
 		

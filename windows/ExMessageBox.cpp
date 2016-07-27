@@ -20,7 +20,7 @@
 
 #include "stdafx.h"
 
-#ifdef PPA_INCLUDE_APEX_EX_MESSAGE_BOX
+#ifdef FLYLINKDC_USE_APEX_EX_MESSAGE_BOX
 
 
 
@@ -251,4 +251,4 @@ int WINAPI MessageBox(HWND hWnd, LPCTSTR lpText, LPCTSTR lpCaption, LPCTSTR lpQu
 	return nRet;
 }
 
-#endif // PPA_INCLUDE_APEX_EX_MESSAGE_BOX
+#endif // FLYLINKDC_USE_APEX_EX_MESSAGE_BOX

@@ -19,3 +19,4 @@ FlylinkDCShellExt*.pdb
 FlylinkDC_Debug*.pdb
 compiled/Settings/common/*.*
 CustomCompressExt.txt
+libtorrent.pdb

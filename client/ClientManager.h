@@ -77,7 +77,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static void infoUpdated(Client* p_client);
 		
 		static UserPtr getUser(const string& p_Nick, const string& p_HubURL
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		                       , uint32_t p_HubID
 #endif
 		                       , bool p_first_load
@@ -102,18 +102,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			return findUser(makeCid(aNick, aHubUrl));
 		}
 		static UserPtr findUser(const CID& cid);
-		static UserPtr findLegacyUser(const string& aNick
-#ifndef IRAINMAN_USE_NICKS_IN_CM
-		                              , const string& aHubUrl
-#endif
-		                             );
+		static UserPtr findLegacyUser(const string& aNick, const string& aHubUrl);
 		                             
-#ifdef IRAINMAN_USE_NICKS_IN_CM
-		void updateNick(const UserPtr& user, const string& nick) noexcept;
-	private:
-		void updateNick_internal(const UserPtr& user, const string& nick) noexcept; // [+] IRainman fix.
-	public:
-#endif
 		static const string findMyNick(const string& hubUrl);
 		
 		// [+] brain-ripper
@@ -133,7 +123,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 				if (!m_ip.empty())
 				{
 					string dns;
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 					dns = Socket::nslookup(ip);
 					if (m_ip == dns)
 						dns = "no DNS"; // TODO translate
@@ -191,18 +181,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 				return Identity();
 		}
 #endif // IRAINMAN_IDENTITY_IS_NON_COPYABLE
-		static OnlineUser* getOnlineUserL(const UserPtr& p)
-		{
-			// CFlyLock(cs);  - getOnlineUser() return value should be guarded outside
-			if (p == nullptr)
-				return nullptr;
-				
-			OnlineIterC i = g_onlineUsers.find(p->getCID());
-			if (i == g_onlineUsers.end())
-				return nullptr;
-				
-			return i->second;
-		}
+		static OnlineUser* getOnlineUserL(const UserPtr& p);
 		static bool isOp(const UserPtr& aUser, const string& aHubUrl);
 		/** Constructs a synthetic, hopefully unique CID */
 		static CID makeCid(const string& nick, const string& hubUrl);
@@ -243,6 +222,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 	private:
 		void createMe(const string& cid, const string& nick);
 		static void cheatMessage(Client* p_client, const string& p_report);
+		static void userCommandL(const HintedUser& user, const UserCommand& uc, StringMap& params, bool compatibility);
+		static void sendRawCommandL(const OnlineUser& ou, const int aRawCommand);
 	public:
 		// [~] IRainman fix.
 		
@@ -278,7 +259,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		 * It has been divided but shouldn't be used anywhere else.
 		 */
 		
-		static void sendRawCommand(const OnlineUser& ou, const int aRawCommand);
 		static void setListLength(const UserPtr& p, const string& listLen);
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 		static void fileListDisconnected(const UserPtr& p);
@@ -327,20 +307,11 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csClients; // [+] IRainman opt.
 		
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
-# ifdef IRAINMAN_USE_NICKS_IN_CM
-		typedef boost::unordered_map<const CID*, std::string&> NickMap;
-# endif
 		typedef boost::unordered_map<const CID*, const UserPtr> UserMap;
 #else
-# ifdef IRAINMAN_USE_NICKS_IN_CM
-		typedef boost::unordered_map<CID, std::string> NickMap;
-# endif
 		typedef boost::unordered_map<CID, UserPtr> UserMap;
 #endif
 		static UserMap g_users;
-#ifdef IRAINMAN_USE_NICKS_IN_CM
-		static NickMap g_nicks;
-#endif
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csUsers; // [+] IRainman opt.
 		// =================================================
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER

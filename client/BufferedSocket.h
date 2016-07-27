@@ -162,7 +162,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		}
 		void disconnect(bool graceless = false);
 		
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 		string getLocalIp() const
 		{
 			return sock->getLocalIp();
@@ -261,7 +261,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 #ifdef FLYLINKDC_HE
 		void resizeInBuf()
 		{
-#if 0 // fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
+#if 0
 			inbuf.resize(MAX_SOCKET_BUFFER_SIZE);
 #else
 			const auto l_size = sock->getSocketOptInt(SO_RCVBUF);

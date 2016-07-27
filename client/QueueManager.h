@@ -239,7 +239,7 @@ class QueueManager : public Singleton<QueueManager>,
 		static bool handlePartialSearch(const TTHValue& tth, PartsInfo& _outPartsInfo);
 		bool handlePartialResult(const UserPtr& aUser, const TTHValue& tth, const QueueItem::PartialSource& partialSource, PartsInfo& outPartialInfo);
 		
-#ifdef PPA_INCLUDE_DROP_SLOW
+#ifdef FLYLINKDC_USE_DROP_SLOW
 		bool dropSource(const DownloadPtr& d);
 #endif
 	private:

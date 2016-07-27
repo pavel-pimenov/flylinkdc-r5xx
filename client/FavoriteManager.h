@@ -32,7 +32,7 @@
 #include "FavoriteManagerListener.h"
 #include "HubEntry.h"
 #include "FavHubGroup.h"
-#include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
+#include "webrtc/system_wrappers/include/rw_lock_wrapper.h"
 
 class PreviewApplication
 #ifdef _DEBUG
@@ -161,12 +161,14 @@ class FavoriteManager : private Speaker<FavoriteManagerListener>,
 		
 		// !SMT!-S
 		void setUploadLimit(const UserPtr& aUser, int lim, bool createUser = true);
+		/*
 		bool hasUploadBan(const UserPtr& aUser) const
-		{
-			int limit;
-			FavoriteUser::MaskType l_flags;
-			return getFavUserParam(aUser, l_flags, limit) ? limit == FavoriteUser::UL_BAN : false;
-		}
+		        {
+		            int limit;
+		            FavoriteUser::MaskType l_flags;
+		            return getFavUserParam(aUser, l_flags, limit) ? limit == FavoriteUser::UL_BAN : false;
+		        }
+		*/
 		void setUploadBan(const UserPtr& aUser, bool ban) // [+] IRainman fix.
 		{
 			setUploadLimit(aUser, ban ? FavoriteUser::UL_BAN : FavoriteUser::UL_NONE);
@@ -187,7 +189,7 @@ class FavoriteManager : private Speaker<FavoriteManagerListener>,
 		{
 			setFlag(aUser, FavoriteUser::FLAG_IGNORE_PRIVATE, ignorePrivate);
 		}
-		bool hasFreePM(const UserPtr& aUser) const
+		static bool hasFreePM(const UserPtr& aUser)
 		{
 			return getFlag(aUser, FavoriteUser::FLAG_FREE_PM_ACCESS);
 		}

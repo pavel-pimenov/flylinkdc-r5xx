@@ -481,7 +481,7 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 #ifdef FLYLINKDC_USE_CHAT_BOT
 	ChatBot::deleteInstance(); // !SMT!-CB
 #endif
-	shutdown(GuiUninit, NULL/*, true*/); // TODO http://code.google.com/p/flylinkdc/issues/detail?id=1245
+	shutdown(GuiUninit, NULL/*, true*/);
 #if defined(__PROFILER_ENABLED__)
 	Profiler::dumphtml();
 #endif
@@ -628,7 +628,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	}
 	//if (_tcsstr(lpstrCmdLine, _T("/restart")) != NULL) // [+] IRainman TODO
 	//{
-	//  // http://code.google.com/p/flylinkdc/issues/detail?id=211
 	//  // Система сама нас перезапустила со всеми параметрами прошлого запуска
 	//  // можем что нибудь при этом сделать
 	//  // Например спросить пользователя нужно ли нас запускать :)

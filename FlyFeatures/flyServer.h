@@ -101,7 +101,7 @@ class  CFlyServerStatistics
 			memset(&m_time_mark, 0, sizeof(m_time_mark));
 		}
 		DWORD m_time_mark[TIME_LAST];
-		string m_upnp_router_name; // http://code.google.com/p/flylinkdc/issues/detail?id=1241
+		string m_upnp_router_name;
 		string m_upnp_status;
 		
 		void startTick(TypeTimeMark p_id)
@@ -315,7 +315,7 @@ class CFlyTTHKey
 		}
 		bool operator < (const CFlyTTHKey& p_val) const
 		{
-			return m_tth < p_val.m_tth && m_file_size < p_val.m_file_size;
+			return (m_file_size < p_val.m_file_size) || (m_file_size == p_val.m_file_size && m_tth < p_val.m_tth);
 		}
 };
 //=======================================================================

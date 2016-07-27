@@ -72,7 +72,7 @@ class Download : public Transfer, public Flags
 		
 		string getTempTarget() const;
 		// [~] IRainman fix.
-#ifdef PPA_INCLUDE_DROP_SLOW
+#ifdef FLYLINKDC_USE_DROP_SLOW
 		GETSET(uint64_t, m_lastNormalSpeed, LastNormalSpeed);
 #endif
 		void setDownloadFile(OutputStream* p_file)

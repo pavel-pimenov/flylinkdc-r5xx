@@ -425,7 +425,6 @@ void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLOR
 #endif
 	dcassert(user);
 	// [!] IRainman fix todo: https://crash-server.com/SearchResult.aspx?ClientID=ppa&Stack=Colors::getUserColor , https://crash-server.com/SearchResult.aspx?ClientID=ppa&Stack=WinUtil::getUserColor
-	// [!] PPA fix: https://code.google.com/p/flylinkdc/issues/detail?id=961
 	if ((p_flag_mask & IS_IGNORED_USER) == IS_IGNORED_USER)
 	{
 		if (UserManager::g_isEmptyIgnoreList == false && UserManager::isInIgnoreList(onlineUser ? onlineUser->getIdentity().getNick() : user->getLastNick()))
@@ -456,7 +455,7 @@ void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLOR
 	if (p_flag_mask & IS_FAVORITE)
 	{
 		if (p_flag_mask & IS_BAN)
-			fg = SETTING(TEXT_ENEMY_FORE_COLOR); // http://code.google.com/p/flylinkdc/issues/detail?id=876
+			fg = SETTING(TEXT_ENEMY_FORE_COLOR);
 		else
 			fg = SETTING(FAVORITE_COLOR);
 	}
@@ -666,7 +665,7 @@ void WinUtil::init(HWND hWnd)
 #ifdef USE_REBUILD_MEDIAINFO
 	file.AppendMenu(MF_STRING, IDC_REFRESH_MEDIAINFO, CTSTRING(MENU_REFRESH_MEDIAINFO));
 #endif
-	if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_IsTTHLevelDBConvert) == 0)
+//	if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_IsTTHLevelDBConvert) == 0)
 	{
 		file.AppendMenu(MF_STRING, IDC_CONVERT_TTH_HISTORY, CTSTRING(MENU_CONVERT_TTH_HISTORY_INTO_LEVELDB));
 	}
@@ -781,7 +780,7 @@ void WinUtil::init(HWND hWnd)
 	
 	g_mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)window, CTSTRING(MENU_WINDOW));
 	
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 	CMenuHandle sites;
 	sites.CreatePopupMenu();
 	
@@ -795,7 +794,7 @@ void WinUtil::init(HWND hWnd)
 	help.AppendMenu(MF_SEPARATOR);
 	help.AppendMenu(MF_STRING, IDC_HELP_HOMEPAGE, CTSTRING(MENU_HOMEPAGE));
 	help.AppendMenu(MF_STRING, IDC_HELP_DISCUSS, CTSTRING(MENU_DISCUSS));
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 	help.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)sites, CTSTRING(MENU_SITES));
 	help.AppendMenu(MF_STRING, IDC_HELP_GEOIPFILE, CTSTRING(MENU_HELP_GEOIPFILE));
 #endif
@@ -962,7 +961,7 @@ void Fonts::init()
 	lf[1] = lf[0];
 	lf[1].lfHeight += 3;
 	lf[1].lfWeight = FW_NORMAL;
-	//lf[1].lfUnderline = 1; // https://code.google.com/p/flylinkdc/issues/detail?id=1477
+	//lf[1].lfUnderline = 1;
 	g_halfFont = ::CreateFontIndirect(&lf[1]);
 	
 	decodeFont(Text::toT(SETTING(TEXT_FONT)), lf[0]);
@@ -1461,7 +1460,6 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 // [+] Drakon
 	if (stricmp(cmd.c_str(), _T("help")) == 0  || stricmp(cmd.c_str(), _T("h")) == 0)
 	{
-		// TODO http://code.google.com/p/flylinkdc/issues/detail?id=206
 		local_message = getCommandsList();
 		//[+] SCALOlaz
 		//AboutDlgIndex dlg;    // Сделать что-то подобное, модальное окно со списком команд, чтобы не вешало чат
@@ -1635,7 +1633,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		}
 	}
 	// AirDC++
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	// Lee's /ratio support, why can't he always ask this kind of easy things.
 	else if (stricmp(cmd.c_str(), _T("ratio")) == 0 || stricmp(cmd.c_str(), _T("r")) == 0)
 	{
@@ -1649,7 +1647,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 // End of addition.
 		// limiter toggle
 	}
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	else if (stricmp(cmd.c_str(), _T("limit")) == 0)
 	{
 		MainFrame::getMainFrame()->onLimiter();
@@ -2042,10 +2040,18 @@ void WinUtil::registerDchubHandler()
 		::RegCloseKey(hk);
 	}
 }
-
+static void internalDeleteRegistryKey(const tstring& p_key)
+{
+	tstring l_key = _T("SOFTWARE\\Classes\\") + p_key;
+	if (SHDeleteKey(HKEY_CURRENT_USER, l_key.c_str()) != ERROR_SUCCESS)
+	{
+		LogManager::message("Erorr Delete key " + Text::fromT(l_key) + " " + Util::translateError());
+	}
+	
+}
 void WinUtil::unRegisterDchubHandler()
 {
-	SHDeleteKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\dchub"));
+	internalDeleteRegistryKey(_T("dchub"));
 }
 
 void WinUtil::registerNMDCSHandler()
@@ -2089,7 +2095,7 @@ void WinUtil::registerNMDCSHandler()
 
 void WinUtil::unRegisterNMDCSHandler()
 {
-	SHDeleteKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\nmdcs"));
+	internalDeleteRegistryKey(_T("nmdcs"));
 }
 
 void WinUtil::registerADChubHandler()
@@ -2131,7 +2137,7 @@ void WinUtil::registerADChubHandler()
 
 void WinUtil::unRegisterADChubHandler()
 {
-	SHDeleteKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\adc"));
+	internalDeleteRegistryKey(_T("adc"));
 }
 
 void WinUtil::registerADCShubHandler()
@@ -2173,139 +2179,157 @@ void WinUtil::registerADCShubHandler()
 
 void WinUtil::unRegisterADCShubHandler()
 {
-	SHDeleteKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\adcs"));
+	internalDeleteRegistryKey(_T("adcs"));
 }
 
 void WinUtil::registerMagnetHandler()
 {
 	HKEY hk = nullptr;
-	LocalArray<TCHAR, 512> l_buf;
 	tstring openCmd;
 	tstring appName = Util::getModuleFileName();
-	l_buf[0] = 0;
-	
-	// what command is set up to handle magnets right now?
-	if (::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet\\shell\\open\\command"), 0, KEY_READ, &hk) == ERROR_SUCCESS)
+	const auto l_comman_key_path = _T("SOFTWARE\\Classes\\magnet\\shell\\open\\command");
 	{
-		DWORD l_bufLen = sizeof(l_buf);
-		::RegQueryValueEx(hk, NULL, NULL, NULL, (LPBYTE)l_buf.data(), &l_bufLen);
-		::RegCloseKey(hk);
-	}
-	openCmd = l_buf.data();
-	l_buf[0] = 0;
-	
-	// (re)register the handler if magnet.exe isn't the default, or if DC++ is handling it
-	if (BOOLSETTING(MAGNET_REGISTER) && (strnicmp(openCmd, appName, appName.size()) != 0))
-	{
-		SHDeleteKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet"));
-		if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
+		LocalArray<TCHAR, 1024> l_buf;
+		l_buf[0] = 0;
+		
+		// what command is set up to handle magnets right now?
+		if (::RegOpenKeyEx(HKEY_CURRENT_USER, l_comman_key_path, 0, KEY_READ, &hk) == ERROR_SUCCESS)
 		{
-			LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_MAGNET));
-			return;
+			DWORD l_bufLen = l_buf.size();
+			::RegQueryValueEx(hk, NULL, NULL, NULL, (LPBYTE)l_buf.data(), &l_bufLen);
+			::RegCloseKey(hk);
 		}
-		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)CTSTRING(MAGNET_SHELL_DESC), sizeof(TCHAR) * (TSTRING(MAGNET_SHELL_DESC).length() + 1));
-		::RegSetValueEx(hk, _T("URL Protocol"), NULL, REG_SZ, NULL, NULL);
-		::RegCloseKey(hk);
-		::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet\\DefaultIcon"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
-		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)appName.c_str(), sizeof(TCHAR) * (appName.length() + 1));
-		::RegCloseKey(hk);
-		appName = _T('\"') + appName + _T("\" /magnet \"%1\"");
-		::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet\\shell\\open\\command"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
-		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)appName.c_str(), sizeof(TCHAR) * (appName.length() + 1));
-		::RegCloseKey(hk);
+		openCmd = l_buf.data();
+	}
+	
+	// (re)register the handler if FlylinkDC.exe isn't the default, or if DC++ is handling it
+	if (BOOLSETTING(MAGNET_REGISTER))
+	{
+		const tstring l_qAppName = _T('\"') + appName + _T("\"");
+		if (openCmd.empty() || strnicmp(openCmd, l_qAppName, l_qAppName.size()) != 0)
+		{
+			internalDeleteRegistryKey(_T("magnet"));
+			if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
+			{
+				LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_MAGNET));
+				return;
+			}
+			const tstring l_MagnetShellDesc = CTSTRING(MAGNET_SHELL_DESC);
+			if (!l_MagnetShellDesc.empty())
+			{
+				::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)l_MagnetShellDesc.c_str(), sizeof(TCHAR) * l_MagnetShellDesc.length() + 1);
+			}
+			::RegSetValueEx(hk, _T("URL Protocol"), NULL, REG_SZ, NULL, NULL);
+			::RegCloseKey(hk);
+			::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet\\DefaultIcon"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
+			::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)appName.c_str(), sizeof(TCHAR) * appName.length() + 1);
+			::RegCloseKey(hk);
+			appName = l_qAppName + _T(" /magnet \"%1\"");
+			::RegCreateKeyEx(HKEY_CURRENT_USER, l_comman_key_path, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
+			::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)appName.c_str(), sizeof(TCHAR) * appName.length() + 1);
+			::RegCloseKey(hk);
+		}
 	}
 }
 
 void WinUtil::unRegisterMagnetHandler()
 {
-	SHDeleteKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\magnet"));
+	internalDeleteRegistryKey(_T("magnet"));
 }
 
 void WinUtil::registerDclstHandler()
 {
-// [!] SSA - тут нужно добавить ссылку и открытие dclst файлов с диска
-
-// [HKEY_CURRENT_USER\Software\Classes\.dcls]
-// @="DCLST metafile"
-// [HKEY_CURRENT_USER\Software\Classes\.dclst]
-// @="DCLST metafile"
-
-// [HKEY_CURRENT_USER\Software\Classes\DCLST metafile]
-// @="DCLST metafile download shortcut"
-//
-// [HKEY_CURRENT_USER\Software\Classes\DCLST metafile\DefaultIcon]
-// @="\"C:\\Program Files\\FlylinkDC++\\FlylinkDC.exe\""
-//
-// [HKEY_CURRENT_USER\Software\Classes\DCLST metafile\Shell]
-//
-// [HKEY_CURRENT_USER\Software\Classes\DCLST metafile\Shell\Open]
-//
-// [HKEY_CURRENT_USER\Software\Classes\DCLST metafile\Shell\Open\Command]
-// @="\"C:\\Program Files\\FlylinkDC++\\FlylinkDC\" \"%1\""
-
-
+	// [!] SSA - тут нужно добавить ссылку и открытие dclst файлов с диска
+	
+	// [HKEY_CURRENT_USER\Software\Classes\.dcls]
+	// @="DCLST metafile"
+	// [HKEY_CURRENT_USER\Software\Classes\.dclst]
+	// @="DCLST metafile"
+	
+	// [HKEY_CURRENT_USER\Software\Classes\DCLST metafile]
+	// @="DCLST metafile download shortcut"
+	//
+	// [HKEY_CURRENT_USER\Software\Classes\DCLST metafile\DefaultIcon]
+	// @="\"C:\\Program Files\\FlylinkDC++\\FlylinkDC.exe\""
+	//
+	// [HKEY_CURRENT_USER\Software\Classes\DCLST metafile\Shell]
+	//
+	// [HKEY_CURRENT_USER\Software\Classes\DCLST metafile\Shell\Open]
+	//
+	// [HKEY_CURRENT_USER\Software\Classes\DCLST metafile\Shell\Open\Command]
+	// @="\"C:\\Program Files\\FlylinkDC++\\FlylinkDC\" \"%1\""
+	
+	
+	const tstring l_comman_key_path = _T("SOFTWARE\\Classes\\DCLST metafile\\shell\\open\\command");
+	
 	HKEY hk = nullptr;
-	LocalArray<TCHAR, 512> l_buf;
 	tstring openCmd;
 	tstring appName = Util::getModuleFileName();
-	l_buf[0] = 0;
 	
-	// what command is set up to handle magnets right now?
-	if (::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\DCLST metafile\\shell\\open\\command"), 0, KEY_READ, &hk) == ERROR_SUCCESS)
 	{
-		DWORD l_bufLen = sizeof(l_buf);
-		::RegQueryValueEx(hk, NULL, NULL, NULL, (LPBYTE)l_buf.data(), &l_bufLen);
-		::RegCloseKey(hk);
+		LocalArray<TCHAR, 1024> l_buf;
+		l_buf[0] = 0;
+		
+		// what command is set up to handle magnets right now?
+		if (::RegOpenKeyEx(HKEY_CURRENT_USER, l_comman_key_path.c_str(), 0, KEY_READ, &hk) == ERROR_SUCCESS)
+		{
+			DWORD l_bufLen = l_buf.size();
+			::RegQueryValueEx(hk, NULL, NULL, NULL, (LPBYTE)l_buf.data(), &l_bufLen);
+			::RegCloseKey(hk);
+		}
+		openCmd = l_buf.data();
 	}
-	openCmd = l_buf.data();
-	l_buf[0] = 0;
 	
 	// (re)register the handler if FlylinkDC.exe isn't the default, or if DC++ is handling it
-	if (BOOLSETTING(DCLST_REGISTER) && (strnicmp(openCmd, appName, appName.size()) != 0))
+	if (BOOLSETTING(DCLST_REGISTER))
 	{
-		// Add Class Ext
-		static const tstring dclstMetafile = _T("DCLST metafile");
-		if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\.dcls"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
+		const tstring l_qAppName = _T('\"') + appName + _T("\"");
+		if (openCmd.empty() || strnicmp(openCmd, l_qAppName, l_qAppName.size()) != 0)
 		{
-			LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_DCLST));
-			return;
+			// Add Class Ext
+			static const tstring dclstMetafile = _T("DCLST metafile");
+			if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\.dcls"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
+			{
+				LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_DCLST));
+				return;
+			}
+			::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)dclstMetafile.c_str(), sizeof(TCHAR) * (dclstMetafile.length() + 1));
+			::RegCloseKey(hk);
+			if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\.dclst"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
+			{
+				LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_DCLST));
+				return;
+			}
+			::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)dclstMetafile.c_str(), sizeof(TCHAR) * (dclstMetafile.length() + 1));
+			::RegCloseKey(hk);
+			
+			
+			internalDeleteRegistryKey(_T("DCLST metafile"));
+			
+			if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\DCLST metafile"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
+			{
+				LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_DCLST));
+				return;
+			}
+			::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)CTSTRING(DCLST_SHELL_DESC), sizeof(TCHAR) * TSTRING(MAGNET_SHELL_DESC).length() + 1);
+			::RegCloseKey(hk);
+			::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\DCLST metafile\\DefaultIcon"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
+			::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)appName.c_str(), sizeof(TCHAR) * appName.length() + 1);
+			::RegCloseKey(hk);
+			appName = l_qAppName + _T(" /open \"%1\"");
+			::RegCreateKeyEx(HKEY_CURRENT_USER, l_comman_key_path.c_str(), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
+			::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)appName.c_str(), sizeof(TCHAR) * appName.length() + 1);
+			::RegCloseKey(hk);
 		}
-		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)dclstMetafile.c_str(), sizeof(TCHAR) * (dclstMetafile.length() + 1));
-		::RegCloseKey(hk);
-		if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\.dclst"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
-		{
-			LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_DCLST));
-			return;
-		}
-		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)dclstMetafile.c_str(), sizeof(TCHAR) * (dclstMetafile.length() + 1));
-		::RegCloseKey(hk);
-		
-		
-		SHDeleteKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\DCLST metafile"));
-		
-		if (::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\DCLST metafile"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL))
-		{
-			LogManager::message(STRING(ERROR_CREATING_REGISTRY_KEY_DCLST));
-			return;
-		}
-		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)CTSTRING(DCLST_SHELL_DESC), sizeof(TCHAR) * (TSTRING(MAGNET_SHELL_DESC).length() + 1));
-		::RegCloseKey(hk);
-		::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\DCLST metafile\\DefaultIcon"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
-		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)appName.c_str(), sizeof(TCHAR) * (appName.length() + 1));
-		::RegCloseKey(hk);
-		appName = _T('\"') + appName + _T("\" /open \"%1\"");
-		::RegCreateKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\DCLST metafile\\shell\\open\\command"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hk, NULL);
-		::RegSetValueEx(hk, NULL, NULL, REG_SZ, (LPBYTE)appName.c_str(), sizeof(TCHAR) * (appName.length() + 1));
-		::RegCloseKey(hk);
 	}
 }
 
 void WinUtil::unRegisterDclstHandler()// [+] IRainman dclst support
 {
-	SHDeleteKey(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\DCLST metafile"));
+	internalDeleteRegistryKey(_T("DCLST metafile"));
 }
 
-void WinUtil::openBitTorrent(const tstring& p_magnetURI) // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=223
+void WinUtil::openBitTorrent(const tstring& p_magnetURI)
 {
 	string l_BtHandler = SETTING(BT_MAGNET_OPEN_CMD);
 	if (!l_BtHandler.empty() && File::isExist(Text::toT(l_BtHandler)))
@@ -2397,7 +2421,7 @@ void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Ex
 		x += _T("\\shell\\open\\command");
 	}
 	// [~] IRainman
-	if (url.find(_T("magnet:?xt=urn:btih")) != tstring::npos) // fix  https://code.google.com/p/flylinkdc/issues/detail?id=928 fix  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/17
+	if (url.find(_T("magnet:?xt=urn:btih")) != tstring::npos) // fix  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/17
 	{
 		CRegKey key;
 		LocalArray<TCHAR, MAX_PATH> regbuf;
@@ -2481,7 +2505,7 @@ bool WinUtil::parseDchubUrl(const tstring& aUrl)// [!] IRainman fix: stop copy-p
 		uint16_t port;
 		string proto, host, file, query, fragment;
 		const string l_Url = Util::formatDchubUrl(Text::fromT(aUrl)); // TODO - внутри лежит вложенный decodeUrl
-		Util::decodeUrl(l_Url, proto, host, port, file, query, fragment); // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=855
+		Util::decodeUrl(l_Url, proto, host, port, file, query, fragment);
 		const string l_url_rebuild = host + ":" + Util::toString(port);
 		if (!host.empty())
 		{
@@ -2497,7 +2521,6 @@ bool WinUtil::parseDchubUrl(const tstring& aUrl)// [!] IRainman fix: stop copy-p
 			if (file[0] == '/') // Remove any '/' in from of the file
 				file = file.substr(1);
 				
-			// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=100
 			string path;
 			string nick;
 			const string::size_type i = file.find('/', 0);
@@ -2509,17 +2532,13 @@ bool WinUtil::parseDchubUrl(const tstring& aUrl)// [!] IRainman fix: stop copy-p
 			// [~] IRainman
 			if (!nick.empty())
 			{
-				const UserPtr user = ClientManager::findLegacyUser(nick
-#ifndef IRAINMAN_USE_NICKS_IN_CM
-				                                                   , l_url_rebuild
-#endif
-				                                                  );
+				const UserPtr user = ClientManager::findLegacyUser(nick, l_url_rebuild);
 				if (user)
 				{
 					try
 					{
 						QueueManager::getInstance()->addList(user, QueueItem::FLAG_CLIENT_VIEW
-						                                     , path // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=100
+						                                     , path
 						                                    );
 					}
 					catch (const Exception&)
@@ -2549,7 +2568,6 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 	//  kt = text for search
 	if (Util::isMagnetLink(aUrl))
 	{
-		// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=223
 		if (Util::isTorrentLink(aUrl))
 		{
 			openBitTorrent(aUrl);

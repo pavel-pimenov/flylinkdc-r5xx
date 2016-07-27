@@ -400,7 +400,6 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			dcassert(0);
 			LogManager::message("Not implemented [virtual LRESULT onCopyUserInfo] ( ppa74@ya.ru)");
 			/*
-			            // TODO https://code.google.com/p/flylinkdc/issues/detail?id=659
 			// !SMT!-S
 			const auto su = getSelectedUser();
 			if (su)
@@ -660,7 +659,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 					if (((T*)this)->getUserList().getSelectedCount() > 1)
 					{
 						const tstring l_message = UserInfoSimple::getBroadcastPrivateMessage();
-						if (!l_message.empty()) // [+] SCALOlaz: support for abolition and prohibition to send a blank line https://code.google.com/p/flylinkdc/issues/detail?id=1034
+						if (!l_message.empty()) // [+] SCALOlaz: support for abolition and prohibition to send a blank line
 							((T*)this)->getUserList().forEachSelectedParam(&UserInfoBase::pm_msg, m_selectedHint, l_message);
 					}
 					else
@@ -926,7 +925,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		{
 			dcassert(m_selectedUser);
 			
-			//[?] if (DISABLE(options, NO_COPY)) // Try fix https://code.google.com/p/flylinkdc/issues/detail?id=1548
+			//[?] if (DISABLE(options, NO_COPY))
 			{
 				p_menu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyUserMenu, CTSTRING(COPY));
 				appendSeparator(p_menu);

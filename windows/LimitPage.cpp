@@ -127,7 +127,7 @@ void LimitPage::write()
 
 void LimitPage::fixControls()
 {
-#ifndef PPA_INCLUDE_DROP_SLOW
+#ifndef FLYLINKDC_USE_DROP_SLOW
 	::EnableWindow(GetDlgItem(IDC_DISCONNECTING_ENABLE), false);
 	::EnableWindow(GetDlgItem(IDC_SEGMENTED_ONLY), false);
 #endif

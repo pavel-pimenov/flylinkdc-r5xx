@@ -51,11 +51,16 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 	}
 	switch (col)
 	{
+		case COLUMN_NICK:
+		{
+			PROFILE_THREAD_SCOPED_DESC("COLUMN_NICK")
+			return compare(a->getIdentity().getNickT(), b->getIdentity().getNickT());
+		}
 		case COLUMN_SHARED:
 		case COLUMN_EXACT_SHARED:
 		{
 			PROFILE_THREAD_SCOPED_DESC("COLUMN_SHARED")
-			return compare(a->getIdentity().getBytesShared(), b->getIdentity().getBytesShared()); // https://www.box.net/shared/043aea731a61c46047fe
+			return compare(a->getIdentity().getBytesShared(), b->getIdentity().getBytesShared());
 		}
 		case COLUMN_SLOTS:
 		{
@@ -67,7 +72,7 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 			PROFILE_THREAD_SCOPED_DESC("COLUMN_HUBS")
 			return compare(a->getIdentity().getHubNormalRegOper(), b->getIdentity().getHubNormalRegOper());
 		}
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		case COLUMN_UPLOAD:
 		{
 			PROFILE_THREAD_SCOPED_DESC("COLUMN_UPLOAD")
@@ -188,7 +193,7 @@ tstring UserInfo::getText(int p_col) const
 			return getDownloadSpeed();
 		}
 #endif
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		case COLUMN_UPLOAD:
 		{
 			return getUser()->getUpload();
@@ -219,7 +224,7 @@ tstring UserInfo::getText(int p_col) const
 				return Util::emptyStringT;
 			}
 		}
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		case COLUMN_IP:
 		{
 			if (!getIdentity().isUseIP6())

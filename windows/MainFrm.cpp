@@ -35,7 +35,7 @@
 #include "ADLSearchFrame.h"
 #include "FinishedULFrame.h"
 #include "TextFrame.h"
-#ifdef PPA_INCLUDE_STATS_FRAME
+#ifdef FLYLINKDC_USE_STATS_FRAME
 # include "StatsFrame.h"
 #endif
 #include "WaitingUsersFrame.h"
@@ -370,7 +370,7 @@ void MainFrame::createMainMenu(void) // [+]Drakon. Enlighting functions.
 	int iImageInd = 0;
 #endif
 	
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 	// TODO
 	// вот этот цикл ниразу не выполняется. пока не понял зачем сделали там - даже в 4xx это есть
 	// в ToolbarButtons[0].image лежит всегда 0
@@ -478,7 +478,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	g_fly_server_stat.startTick(CFlyServerStatistics::TIME_START_GUI);
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 	
-	// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=574
 	if (CompatibilityManager::isIncompatibleSoftwareFound())
 	{
 		if (CFlylinkDBManager::getInstance()->get_registry_variable_string(e_IncopatibleSoftwareList) != CompatibilityManager::getIncompatibleSoftwareList())
@@ -492,7 +491,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		}
 	}
 #ifdef FLYLINKDC_USE_CHECK_OLD_OS
-	if (BOOLSETTING(REPORT_TO_USER_IF_OUTDATED_OS_DETECTED) && CompatibilityManager::runningAnOldOS()) // https://code.google.com/p/flylinkdc/issues/detail?id=1032
+	if (BOOLSETTING(REPORT_TO_USER_IF_OUTDATED_OS_DETECTED) && CompatibilityManager::runningAnOldOS())
 	{
 		SET_SETTING(REPORT_TO_USER_IF_OUTDATED_OS_DETECTED, false);
 		if (MessageBox(CTSTRING(OUTDATED_OS_DETECTED), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)
@@ -805,7 +804,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	
 	if (SETTING(NICK).empty())
 	{
-#ifdef PPA_INCLUDE_OLD_INNOSETUP_WIZARD
+#ifdef FLYLINKDC_USE_OLD_INNOSETUP_WIZARD
 		SET_SETTING(NICK, Util::getRegistryValueString("Nick"));
 		if (SETTING(NICK).empty())
 #endif
@@ -876,7 +875,7 @@ int MainFrame::tuneTransferSplit()
 	m_nProportionalPos = l_split_size;
 	if (m_nProportionalPos < 3000 || m_nProportionalPos > 9400)
 	{
-		m_nProportionalPos = 9100; // TODO - пофиксить http://code.google.com/p/flylinkdc/issues/detail?id=1398
+		m_nProportionalPos = 9100; // TODO - пофиксить
 	}
 	SET_SETTING(TRANSFER_SPLIT_SIZE, m_nProportionalPos);
 	SetSplitterPanes(m_hWndMDIClient, m_transferView.m_hWnd);
@@ -907,7 +906,7 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	if (m_Stats.size() > SPEED_APPROXIMATION_INTERVAL_S) // Averaging interval in seconds
 		m_Stats.pop_front();
 		
-	dcassert(m_diff > 0);
+	//dcassert(m_diff > 0);
 	m_Stats.push_back(Sample(m_diff, UpAndDown(l_CurrentUp - m_lastUp, l_CurrentDown - m_lastDown)));
 	g_updiff = 0;
 	g_downdiff = 0;
@@ -918,8 +917,8 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		g_downdiff += i->second.second;
 		period += i->first;
 	}
-	dcassert(period);
-	if (period) // fix https://crash-server.com/Problem.aspx?ProblemID=22552 https://code.google.com/p/flylinkdc/source/detail?r=13918
+	//dcassert(period);
+	if (period) // fix https://crash-server.com/Problem.aspx?ProblemID=22552
 	{
 		g_updiff *= 1000I64;
 		g_downdiff *= 1000I64;
@@ -1930,7 +1929,6 @@ void MainFrame::parseCommandLine(const tstring& cmdLine)
 {
 	const string::size_type i = 0;
 	string::size_type j;
-//[+] FlylinkDC fix http://code.google.com/p/flylinkdc/issues/detail?id=68&q=magnet
 	tstring l_cmdLine = cmdLine;
 	int l_e = cmdLine.size() - 1;
 	
@@ -2014,7 +2012,7 @@ LRESULT MainFrame::onCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, B
 	const tstring cmdLine = (LPCTSTR)(((COPYDATASTRUCT *)lParam)->lpData);
 	if (IsIconic())
 	{
-		if (!Util::isTorrentLink(cmdLine)) // fix https://code.google.com/p/flylinkdc/issues/detail?id=1469
+		if (!Util::isTorrentLink(cmdLine))
 		{
 			ShowWindow(SW_RESTORE);
 		}
@@ -2128,7 +2126,7 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				case IDC_FILE_ADL_SEARCH:
 					ADLSearchFrame::openWindow();
 					break;
-#ifdef PPA_INCLUDE_STATS_FRAME
+#ifdef FLYLINKDC_USE_STATS_FRAME
 				case IDC_NET_STATS:
 					StatsFrame::openWindow();
 					break;
@@ -2667,7 +2665,6 @@ LRESULT MainFrame::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL&
 //LRESULT MainFrame::onQueryEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)// [+]IRainman
 //{
 //	// http://msdn.microsoft.com/en-us/library/aa376890(VS.85).aspx
-//	// http://code.google.com/p/flylinkdc/issues/detail?id=211
 //	if (lParam & ENDSESSION_CLOSEAPP > 0)
 //	{
 //	  // TODO можем вернуть FALSE и тем самым проигнорировать просьбу системы нас закрыть,
@@ -2741,7 +2738,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		if (!m_closing)   // [+] SSA
 		{
 #ifdef _DEBUG
-			dcdebug("MainFrame::OnClose first - User::g_user_counts = %d\n", int(User::g_user_counts)); // [!] IRainman fix: Issue 1037 иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
+			dcdebug("MainFrame::OnClose first - User::g_user_counts = %d\n", int(User::g_user_counts)); // [!] IRainman fix: Issue 1037 иногда теряем объект User?
 #endif
 			m_stopexit = false;
 			if (SETTING(PROTECT_CLOSE) && !m_oldshutdown && SETTING(PASSWORD) != g_magic_password && !SETTING(PASSWORD).empty())
@@ -2779,7 +2776,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 					}
 					else
 					{
-						if (!HashProgressDlg::g_is_execute) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1126
+						if (!HashProgressDlg::g_is_execute)
 						{
 							bForceStopExit = HashProgressDlg(true, true).DoModal() != IDC_BTN_EXIT_ON_DONE;
 						}
@@ -2813,7 +2810,6 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 					safe_destroy_timer();
 					ClientManager::stopStartup();
 					NmdcHub::log_all_unknown_command();
-					// TODO: possible small memory leak on shutdown, details here https://code.google.com/p/flylinkdc/source/detail?r=15141
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 					CFlyTickDelta l_delta(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_SHUTDOWN_GUI]);
 #endif
@@ -2834,7 +2830,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 					ToolbarManager::getFrom(l_rebar, "MainToolBar"); // Для сохранения позиций тулбара (SCALOlаz)
 					
 					updateTray(false);
-					if (m_nProportionalPos > 300) // http://code.google.com/p/flylinkdc/issues/detail?id=1398
+					if (m_nProportionalPos > 300)
 					{
 						SET_SETTING(TRANSFER_SPLIT_SIZE, m_nProportionalPos);
 						Util::setRegistryValueInt(_T("TransferSplitSize"), m_nProportionalPos);
@@ -2859,7 +2855,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		else
 		{
 #ifdef _DEBUG
-			dcdebug("MainFrame::OnClose second - User::g_user_counts = %d\n", int(User::g_user_counts)); // [!] IRainman fix: Issue 1037 иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
+			dcdebug("MainFrame::OnClose second - User::g_user_counts = %d\n", int(User::g_user_counts));
 #endif
 			// This should end immediately, as it only should be the stopper that sends another WM_CLOSE
 			WaitForSingleObject(m_stopperThread, 60 * 1000);
@@ -2867,7 +2863,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			m_stopperThread = nullptr;
 			bHandled = FALSE;
 #ifdef _DEBUG
-			dcdebug("MainFrame::OnClose third - User::g_user_counts = %d\n", int(User::g_user_counts)); // [!] IRainman fix: Issue 1037 иногда теряем объект User? https://code.google.com/p/flylinkdc/issues/detail?id=1037
+			dcdebug("MainFrame::OnClose third - User::g_user_counts = %d\n", int(User::g_user_counts));
 #endif
 		}
 	}
@@ -3244,7 +3240,7 @@ LRESULT MainFrame::onTrayIcon(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, B
 	}
 	else if (lParam == WM_MOUSEMOVE && ((m_lastMove + 1000) < GET_TICK()))
 	{
-		NOTIFYICONDATA nid = {0}; // [fix] http://code.google.com/p/flylinkdc/issues/detail?id=150
+		NOTIFYICONDATA nid = {0};
 		nid.cbSize = sizeof(NOTIFYICONDATA);
 		nid.hWnd = m_hWnd;
 		nid.uFlags = NIF_TIP;
@@ -3876,7 +3872,7 @@ LRESULT MainFrame::OnAnimChangeFrame(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lP
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
 			const bool l_is_live_gdi = CGDIImage::isGDIImageLive(pImage);
 			dcassert(l_is_live_gdi);
-			if (l_is_live_gdi) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1255
+			if (l_is_live_gdi)
 			{
 				pImage->DrawFrame();
 			}
@@ -4002,7 +3998,6 @@ void MainFrame::onDHTPush()
 		}
 	}
 	SET_SETTING(USE_DHT, !l_currentDhtStateIsEnable); // TODO - не поддерживается смена номера порта
-	// TODO: please fix me http://code.google.com/p/flylinkdc/issues/detail?id=1003
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 	if (l_currentDhtStateIsEnable)
 	{
@@ -4015,7 +4010,6 @@ void MainFrame::onDHTPush()
 #else
 	ConnectivityManager::getInstance()->setup(true);
 #endif
-	// ~ TODO: please fix me http://code.google.com/p/flylinkdc/issues/detail?id=1003
 }
 #endif
 // [+] SSA

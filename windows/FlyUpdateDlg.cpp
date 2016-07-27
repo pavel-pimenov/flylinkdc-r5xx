@@ -70,7 +70,6 @@ LRESULT FlyUpdateDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	GetDlgItem(IDC_IGNOREUPDATE).SetWindowText(CTSTRING(AUTOUPDATE_UPDATE_IGNORE_BUTTON));
 	GetDlgItem(IDCANCEL).SetWindowText(CTSTRING(AUTOUPDATE_UPDATE_CANCEL_BUTTON));
 	// TODO падаем на XP
-	// http://code.google.com/p/flylinkdc/issues/detail?id=1253
 	WinUtil::FillRichEditFromString((HWND)GetDlgItem(IDC_RTFDESCRIPTION), m_rtfData);   // TODO please refactoring this to use unicode.
 	
 	m_UpdateIcon = (HICON)::LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_AUTOUPDATE), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR);

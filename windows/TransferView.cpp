@@ -61,7 +61,7 @@ int TransferView::g_columnIndexes[] =
 	COLUMN_CIPHER,
 	COLUMN_LOCATION,
 	COLUMN_IP,
-#ifdef PPA_INCLUDE_COLUMN_RATIO
+#ifdef FLYLINKDC_USE_COLUMN_RATIO
 	COLUMN_RATIO,
 #endif
 	COLUMN_SHARE, //[+]PPA
@@ -83,7 +83,7 @@ int TransferView::g_columnSizes[] =
 	100, // COLUMN_CIPHER
 	150,  // COLUMN_LOCATION
 	75, // COLUMN_IP
-#ifdef PPA_INCLUDE_COLUMN_RATIO
+#ifdef FLYLINKDC_USE_COLUMN_RATIO
 	50,  // COLUMN_RATIO
 #endif
 	100, // COLUMN_SHARE
@@ -105,7 +105,7 @@ static ResourceManager::Strings g_columnNames[] = { ResourceManager::USER,
                                                     ResourceManager::CIPHER,
                                                     ResourceManager::LOCATION_BARE,
                                                     ResourceManager::IP_BARE
-#ifdef PPA_INCLUDE_COLUMN_RATIO
+#ifdef FLYLINKDC_USE_COLUMN_RATIO
                                                     , ResourceManager::RATIO
 #endif
                                                     , ResourceManager::SHARED, //[+]PPA
@@ -260,11 +260,11 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	segmentedMenu.CreatePopupMenu();
 	segmentedMenu.AppendMenu(MF_STRING, IDC_SEARCH_ALTERNATES, CTSTRING(SEARCH_FOR_ALTERNATES));
 	appendPreviewItems(segmentedMenu);
-#ifdef PPA_INCLUDE_DROP_SLOW
+#ifdef FLYLINKDC_USE_DROP_SLOW
 	segmentedMenu.AppendMenu(MF_STRING, IDC_MENU_SLOWDISCONNECT, CTSTRING(SETCZDC_DISCONNECTING_ENABLE));
 #endif
 	segmentedMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyMenu, CTSTRING(COPY_USER_INFO)); // !SMT!-UI
-#ifdef PPA_INCLUDE_ASK_SLOT
+#ifdef FLYLINKDC_USE_ASK_SLOT
 	segmentedMenu.AppendMenu(MF_STRING, IDC_ASK_SLOT, CTSTRING(ASK_SLOT)); // !SMT!-UI
 #endif
 	segmentedMenu.AppendMenu(MF_SEPARATOR); //[+] Drakon
@@ -467,7 +467,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 			}
 			transferMenu.AppendMenu(MF_SEPARATOR);
 #endif  //SCALOLAZ_USE_TRANSFER_CONTROL
-#ifdef PPA_INCLUDE_DROP_SLOW
+#ifdef FLYLINKDC_USE_DROP_SLOW
 			transferMenu.AppendMenu(MF_STRING, IDC_MENU_SLOWDISCONNECT, CTSTRING(SETCZDC_DISCONNECTING_ENABLE));
 #endif
 			transferMenu.AppendMenu(MF_STRING, IDC_ADD_P2P_GUARD, CTSTRING(CLOSE_CONNECTION_AND_ADD_IP_GUARD));
@@ -494,21 +494,21 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 			
 			appendAndActivateUserItems(transferMenu);
 			
-#ifdef PPA_INCLUDE_DROP_SLOW
+#ifdef FLYLINKDC_USE_DROP_SLOW
 			segmentedMenu.CheckMenuItem(IDC_MENU_SLOWDISCONNECT, MF_BYCOMMAND | MF_UNCHECKED);
 			transferMenu.CheckMenuItem(IDC_MENU_SLOWDISCONNECT, MF_BYCOMMAND | MF_UNCHECKED);
 #endif
 			transferMenu.EnableMenuItem(IDC_SEARCH_ALTERNATES, MFS_ENABLED);
 			if (ii->download)
 			{
-#ifdef PPA_INCLUDE_DROP_SLOW
+#ifdef FLYLINKDC_USE_DROP_SLOW
 				transferMenu.EnableMenuItem(IDC_MENU_SLOWDISCONNECT, MFS_ENABLED);
 #endif
 				transferMenu.EnableMenuItem(IDC_PRIORITY_PAUSED, MFS_ENABLED); //[+] Drakon
 				if (!ii->m_target.empty())
 				{
 					const string l_target = Text::fromT(ii->m_target);
-#ifdef PPA_INCLUDE_DROP_SLOW
+#ifdef FLYLINKDC_USE_DROP_SLOW
 					bool slowDisconnect;
 					{
 						QueueManager::LockFileQueueShared l_fileQueue;
@@ -530,7 +530,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 			}
 			else
 			{
-#ifdef PPA_INCLUDE_DROP_SLOW
+#ifdef FLYLINKDC_USE_DROP_SLOW
 				transferMenu.EnableMenuItem(IDC_MENU_SLOWDISCONNECT, MFS_DISABLED);
 #endif
 				transferMenu.EnableMenuItem(IDC_PRIORITY_PAUSED, MFS_DISABLED); //[+] Drakon
@@ -664,7 +664,7 @@ LRESULT TransferView::onForce(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 
 void TransferView::ItemInfo::removeAll()
 {
-	// Не удаляются отдачи через контекстное меню https://code.google.com/p/flylinkdc/issues/detail?id=1335
+	// Не удаляются отдачи через контекстное меню
 	if (m_hits <= 1)
 	{
 		QueueManager::getInstance()->removeSource(m_hintedUser, QueueItem::Source::FLAG_REMOVED);
@@ -1252,7 +1252,7 @@ int TransferView::ItemInfo::compareItems(const ItemInfo* a, const ItemInfo* b, u
 			return compare(a->m_speed, b->m_speed);
 		case COLUMN_SIZE:
 			return compare(a->m_size, b->m_size);
-#ifdef PPA_INCLUDE_COLUMN_RATIO
+#ifdef FLYLINKDC_USE_COLUMN_RATIO
 			//case COLUMN_RATIO:
 			//  return compare(a->getRatio(), b->getRatio());
 #endif
@@ -1395,7 +1395,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 								ui.updateMask &= ~UpdateInfo::MASK_ACTUAL;
 								ui.updateMask &= ~UpdateInfo::MASK_SIZE;
 								ui.updateMask &= ~UpdateInfo::MASK_STATUS_STRING;
-								//ui.updateMask &= ~UpdateInfo::MASK_TIMELEFT;
+								ui.updateMask &= ~UpdateInfo::MASK_TIMELEFT;
 							}
 							else
 							{
@@ -1508,10 +1508,12 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	if (ui.type != Transfer::TYPE_LAST)
 		m_type = ui.type;
 		
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 	if (ui.updateMask & UpdateInfo::MASK_FORCE_PASSIVE)
 	{
 		m_is_force_passive = ui.m_is_force_passive;
 	}
+#endif
 	if (ui.updateMask & UpdateInfo::MASK_STATUS)
 	{
 		m_status = ui.status;
@@ -1552,8 +1554,7 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	}
 	if (ui.updateMask & UpdateInfo::MASK_IP)
 	{
-		dcassert(!ui.m_ip.empty()); // http://code.google.com/p/flylinkdc/issues/detail?id=1298
-		// dcassert(ip.empty()); TODO: fix me please.
+		dcassert(!ui.m_ip.empty());
 		if (m_transfer_ip.empty()) // [+] IRainman fix: if IP is set already, not try to set twice. IP can not change during a single connection.
 		{
 			m_transfer_ip = ui.m_ip;
@@ -1561,10 +1562,10 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 			{
 				m_p2p_guard_text = Text::toT(CFlylinkDBManager::getInstance()->is_p2p_guard(Socket::convertIP4(Text::fromT(m_transfer_ip))));
 			}
-#ifdef PPA_INCLUDE_COLUMN_RATIO
+#ifdef FLYLINKDC_USE_COLUMN_RATIO
 			m_ratio_as_text = ui.m_hintedUser.user->getUDratio();// [+] brain-ripper
 #endif
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 			columns[COLUMN_DNS] = ui.dns; // !SMT!-IP
 #endif
 		}
@@ -1592,12 +1593,15 @@ void TransferView::updateItem(int ii, uint32_t updateMask)
 	if (updateMask & UpdateInfo::MASK_STATUS ||
 	        updateMask & UpdateInfo::MASK_STATUS_STRING ||
 	        updateMask & UpdateInfo::MASK_POS ||
-	        updateMask & UpdateInfo::MASK_ACTUAL ||
-	        updateMask & UpdateInfo::MASK_FORCE_PASSIVE)
+	        updateMask & UpdateInfo::MASK_ACTUAL
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
+	        ||  updateMask & UpdateInfo::MASK_FORCE_PASSIVE
+#endif
+	   )
 	{
 		ctrlTransfers.updateItem(ii, COLUMN_STATUS);
 	}
-#ifdef PPA_INCLUDE_COLUMN_RATIO
+#ifdef FLYLINKDC_USE_COLUMN_RATIO
 	if (updateMask & UpdateInfo::MASK_POS || updateMask & UpdateInfo::MASK_ACTUAL)
 	{
 		ctrlTransfers.updateItem(ii, COLUMN_RATIO);
@@ -1703,7 +1707,7 @@ void TransferView::on(ConnectionManagerListener::FailedDownload, const UserPtr& 
 	if (!ClientManager::isShutdown())
 	{
 		UpdateInfo* ui = new UpdateInfo(HintedUser(p_user, Util::emptyString), true);
-#ifdef PPA_INCLUDE_IPFILTER
+#ifdef FLYLINKDC_USE_IPFILTER
 		if (ui->m_hintedUser.user->isAnySet(User::PG_IPTRUST_BLOCK | User::PG_IPGUARD_BLOCK | User::PG_P2PGUARD_BLOCK
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		| User::PG_AVDB_BLOCK
@@ -1796,10 +1800,12 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 		case COLUMN_SIZE:
 			return m_size >= 0 ? Util::formatBytesW(m_size) : Util::emptyStringT;
 		case COLUMN_PATH:
+		{
 			return Util::getFilePath(m_target); // TODO: opt me please.
+		}
 		case COLUMN_IP:
 			return m_transfer_ip;
-#ifdef PPA_INCLUDE_COLUMN_RATIO
+#ifdef FLYLINKDC_USE_COLUMN_RATIO
 			// [~] brain-ripper
 			//case COLUMN_RATIO: return (status == STATUS_RUNNING) ? Util::toStringW(ratio()) : Util::emptyStringT;
 		case COLUMN_RATIO:
@@ -1879,7 +1885,7 @@ void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownl
 {
 	if (!ClientManager::isShutdown())
 	{
-		UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true, true); // [!] IRainman fix. https://code.google.com/p/flylinkdc/issues/detail?id=1291
+		UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true, true);
 		ui->setStatus(ItemInfo::STATUS_WAITING);
 		ui->setSize(aDownload->getSize());
 		ui->setTarget(aDownload->getPath());
@@ -1965,27 +1971,29 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl) no
 // TODO - убрать тики для массива
 void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!MainFrame::isAppMinimized())// [+]IRainman opt
+	if (!ClientManager::isBeforeShutdown())
 	{
-		for (auto j = ul.cbegin(); j != ul.cend(); ++j)
+		if (!MainFrame::isAppMinimized())// [+]IRainman opt
 		{
-			if (j->m_pos == 0)
+			for (auto j = ul.cbegin(); j != ul.cend(); ++j)
 			{
-				dcassert(0);
-				continue;
+				if (j->m_pos == 0)
+				{
+					dcassert(0);
+					continue;
+				}
+				UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, false); // [!] IRainman fix.
+				ui->setStatus(ItemInfo::STATUS_RUNNING);
+				ui->setActual(j->m_actual);
+				ui->setPos(j->m_pos);
+				ui->setSize(j->m_size);
+				ui->setTimeLeft(j->m_second_left);
+				ui->setSpeed(j->m_running_average);
+				ui->setType(Transfer::Type(j->m_type)); // TODO
+				ui->setStatusString(j->m_status_string);
+				ui->setTarget(j->m_path);
+				m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 			}
-			UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, false); // [!] IRainman fix.
-			ui->setStatus(ItemInfo::STATUS_RUNNING);
-			ui->setActual(j->m_actual);
-			ui->setPos(j->m_pos);
-			ui->setSize(j->m_size);
-			ui->setTimeLeft(j->m_second_left);
-			ui->setSpeed(j->m_running_average);
-			ui->setType(Transfer::Type(j->m_type)); // TODO
-			ui->setStatusString(j->m_status_string);
-			ui->setTarget(j->m_path);
-			m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 		}
 	}
 }
@@ -2000,15 +2008,20 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, const bool down
 	
 	ui->setTarget(aTransfer->getPath());
 	ui->setStatus(ItemInfo::STATUS_WAITING);
-	if (aTransfer->getType() == Transfer::TYPE_FULL_LIST)
-	{
-		ui->setPos(aTransfer->getSize());
-		ui->setActual(aTransfer->getSize());
-	}
-	else
-	{
-		ui->setPos(0);
-	}
+	/*
+	    if (aTransfer->getType() == Transfer::TYPE_FULL_LIST)
+	    {
+	        ui->setPos(aTransfer->getSize());
+	    }
+	    else
+	    {
+	        ui->setPos(0);
+	    }
+	*/
+	ui->setPos(aTransfer->getFileSize());
+	ui->setActual(aTransfer->getFileSize());
+	ui->setSize(aTransfer->getFileSize());
+	ui->setTimeLeft(0);
 	ui->setRunning(0);
 	ui->setStatusString(download ? TSTRING(DOWNLOAD_FINISHED_IDLE) : TSTRING(UPLOAD_FINISHED_IDLE));
 	if (!download && aTransfer->getType() != Transfer::TYPE_TREE)

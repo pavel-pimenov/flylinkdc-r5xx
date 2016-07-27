@@ -76,7 +76,7 @@ bool Mapper_WinUPnP::add(const unsigned short port, const Protocol protocol, con
 	/// @todo use a BSTR wrapper
 	BSTR protocol_ = SysAllocString(Text::toT(protocols[protocol]).c_str());
 	BSTR description_ = SysAllocString(Text::toT(description).c_str());
-	BSTR localIP = SysAllocString(Text::toT(Util::getLocalOrBindIp(true)).c_str()); //  http://code.google.com/p/flylinkdc/issues/detail?id=1359
+	BSTR localIP = SysAllocString(Text::toT(Util::getLocalOrBindIp(true)).c_str());
 	
 	IStaticPortMapping* pSPM = 0;
 	HRESULT hr = pSPMC->Add(port, protocol_, port, localIP, VARIANT_TRUE, description_, &pSPM);

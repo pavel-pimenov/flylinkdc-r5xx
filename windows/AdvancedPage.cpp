@@ -43,7 +43,7 @@ PropPage::Item AdvancedPage::items[] =
 
 AdvancedPage::ListItem AdvancedPage::listItems[] =
 {
-#ifdef PPA_INCLUDE_AUTO_FOLLOW
+#ifdef FLYLINKDC_USE_AUTO_FOLLOW
 	{ SettingsManager::AUTO_FOLLOW, ResourceManager::SETTINGS_AUTO_FOLLOW },
 #endif
 //[+]Drakon
@@ -65,7 +65,7 @@ AdvancedPage::ListItem AdvancedPage::listItems[] =
 	{ SettingsManager::SHOW_SHELL_MENU, ResourceManager::SETTINGS_SHOW_SHELL_MENU },
 	{ SettingsManager::OPEN_LOGS_INTERNAL, ResourceManager::OPEN_LOGS_INTERNAL },
 	{ SettingsManager::EXTERNAL_PREVIEW, ResourceManager::EXTERNAL_PREVIEW },
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	{ SettingsManager::ENABLE_LAST_IP_AND_MESSAGE_COUNTER, ResourceManager::ENABLE_LAST_IP_AND_MESSAGE_COUNTER },
 #endif
 	{ SettingsManager::ENABLE_HIT_FILE_LIST, ResourceManager::ENABLE_HIT_FILE_LIST },

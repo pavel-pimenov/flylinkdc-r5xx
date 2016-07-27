@@ -26,7 +26,7 @@
 #ifndef IPLIST_H
 #define IPLIST_H
 
-#ifdef PPA_INCLUDE_IPFILTER
+#ifdef FLYLINKDC_USE_IPFILTER
 
 #include <vector>
 #include <map>
@@ -131,6 +131,6 @@ class IPList
 		void clear();
 };
 
-#endif // PPA_INCLUDE_IPFILTER
+#endif // FLYLINKDC_USE_IPFILTER
 
 #endif // IPLIST_H

@@ -151,7 +151,7 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 			}
 		};
 		
-		void AppendText(const CFlyChatCache& p_message);
+		void AppendText(const CFlyChatCache& p_message, bool p_is_lock_redraw);
 		void AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly& p_message);
 		void AppendTextParseBB(CAtlString& sMsgLower, const CFlyChatCacheTextOnly& p_message, const LONG& lSelBegin);
 		void AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheTextOnly& p_message, const LONG& lSelBegin);

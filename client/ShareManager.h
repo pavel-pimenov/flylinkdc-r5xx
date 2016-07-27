@@ -480,7 +480,7 @@ class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, privat
 		void checkShutdown(const string& virtualFile) const;
 		
 		Directory::Ptr buildTreeL(__int64& p_path_id, const string& p_path, const Directory::Ptr& p_parent, bool p_is_job);
-#ifdef PPA_INCLUDE_ONLINE_SWEEP_DB
+#ifdef FLYLINKDC_USE_ONLINE_SWEEP_DB
 		bool m_sweep_guard;
 #endif
 		bool m_sweep_path;

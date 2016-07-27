@@ -522,7 +522,6 @@ void DirectoryListingFrame::changeDir(DirectoryListing::Directory* p_dir)
 	CLockRedraw<> l_lock_draw(ctrlList);
 	{
 		CFlyBusyBool l_busy(m_updating);
-		// http://code.google.com/p/flylinkdc/issues/detail?id=1223
 		auto& l_prev_selected_file = m_selected_file_history[m_prev_directory];
 		string l_cur_selected_item_name = m_selected_file_history[p_dir];
 		if (const auto& l_cur_item = ctrlList.getSelectedItem())
@@ -1233,7 +1232,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 #endif
 		appendInternetSearchItems(fileMenu); // [!] IRainman fix.
 		
-		// [+] SCALOlaz: prepare for swap Item text https://code.google.com/p/flylinkdc/issues/detail?id=887
+		// [+] SCALOlaz: prepare for swap Item text
 		const int l_ipos = WinUtil::GetMenuItemPosition(copyMenu, IDC_COPY_FILENAME);
 		
 		if (ctrlList.GetSelectedCount() == 1 && ii->type == ItemInfo::FILE)
@@ -1284,7 +1283,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			{
 				fileMenu.AppendMenu(MF_STRING, IDC_GO_TO_DIRECTORY, CTSTRING(GO_TO_DIRECTORY));
 			}
-			// [+] SCALOlaz: swap Item text https://code.google.com/p/flylinkdc/issues/detail?id=887
+			// [+] SCALOlaz: swap Item text
 			if (l_ipos != -1)
 			{
 				copyMenu.ModifyMenu(l_ipos, MF_BYPOSITION | MF_STRING, IDC_COPY_FILENAME, CTSTRING(FILENAME));
@@ -1323,7 +1322,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			{
 				fileMenu.AppendMenu(MF_STRING, IDC_GO_TO_DIRECTORY, CTSTRING(GO_TO_DIRECTORY));
 			}
-			// [+] SCALOlaz: swap Item text https://code.google.com/p/flylinkdc/issues/detail?id=887
+			// [+] SCALOlaz: swap Item text
 			if (l_ipos != -1)
 			{
 				copyMenu.ModifyMenu(l_ipos, MF_BYPOSITION | MF_STRING, IDC_COPY_FILENAME, CTSTRING(FOLDERNAME));
@@ -1947,7 +1946,7 @@ LRESULT DirectoryListingFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/
 		tabMenu.InsertSeparatorFirst(user->getLastNickT());
 //#endif
 		// BUG-MENU reinitUserMenu(user, Util::emptyString); // [!] TODO: add hub hint.
-		// BUG-MENU appendAndActivateUserItems(tabMenu); // [+] IRainman https://code.google.com/p/flylinkdc/issues/detail?id=777
+		// BUG-MENU appendAndActivateUserItems(tabMenu);
 		// BUG-MENU appendCopyMenuForSingleUser(tabMenu);
 		tabMenu.AppendMenu(MF_SEPARATOR);
 		
@@ -1975,6 +1974,9 @@ void DirectoryListingFrame::on(SettingsManagerListener::Repaint)
 
 LRESULT DirectoryListingFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return 0;
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST
 	updateTitle(); // [+] InfinitySky. Изменять заголовок окна (иконку).
 #endif // USE_OFFLINE_ICON_FOR_FILELIST
@@ -2346,7 +2348,6 @@ void DirectoryListingFrame::update_column_after_merge(std::vector<int> p_update_
 {
 #if 0
 	// TODO - апдейты по колонкам не пашут иногда
-	// http://code.google.com/p/flylinkdc/issues/detail?id=1113
 	const static int l_array[] =
 	{
 		COLUMN_BITRATE , COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO , COLUMN_MEDIA_AUDIO, COLUMN_DURATION, COLUMN_FLY_SERVER_RATING

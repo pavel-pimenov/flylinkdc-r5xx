@@ -65,7 +65,6 @@ class Exception : public std::exception
 			explicit name(const string& aError) : Exception(#name ": " + aError) { } \
 	}
 
-// [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1318
 #define STANDARD_EXCEPTION_ADD_INFO(name) class name : public Exception { \
 		public:\
 			name(const string& aError, const string& aInfo) : Exception(#name ": " + aError + "\r\n [" + aInfo + "]" ) { } \
@@ -78,7 +77,6 @@ class Exception : public std::exception
 			explicit name(const string& aError) : Exception(aError) { } \
 	}
 
-// [!] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1318
 #define STANDARD_EXCEPTION_ADD_INFO(name) class name : public Exception { \
 		public:\
 			name(const string& aError, const string& aInfo) : Exception(aError + "\r\n [" + aInfo + "]" ) { } \

@@ -29,7 +29,7 @@ Transfer(p_conn, p_item->getTarget(), p_item->getTTH(), p_ip, p_chiper_name),
          m_qi(p_item),
          m_download_file(nullptr),
          treeValid(false)
-#ifdef PPA_INCLUDE_DROP_SLOW
+#ifdef FLYLINKDC_USE_DROP_SLOW
          , m_lastNormalSpeed(0)
 #endif
 {
@@ -55,9 +55,9 @@ Transfer(p_conn, p_item->getTarget(), p_item->getTTH(), p_ip, p_chiper_name),
 	if (m_qi->isSet(QueueItem::FLAG_USER_GET_IP))
 		setFlag(FLAG_USER_GET_IP);
 		
-	// TODO: убрать флажки после рефакторинга, ибо они всё равно бесполезны https://code.google.com/p/flylinkdc/issues/detail?id=1028
+	// TODO: убрать флажки после рефакторинга, ибо они всё равно бесполезны
 	const bool l_is_type_file = getType() == TYPE_FILE && m_qi->getSize() != -1;
-	// http://code.google.com/p/flylinkdc/issues/detail?id=1418
+	
 	bool l_check_tth_sql = false;
 	if (getTTH() != TTHValue()) // не зовем проверку на TTH = 0000000000000000000000000000000000 (файл-лист)
 	{
@@ -143,7 +143,7 @@ void Download::getCommand(AdcCommand& cmd, bool zlib) const
 	{
 		cmd.addParam("TTH/" + getTTH().toBase32());
 	}
-	
+	dcassert(getStartPos() >= 0);
 	cmd.addParam(Util::toString(getStartPos()));
 	cmd.addParam(Util::toString(getSize()));
 	

@@ -478,8 +478,6 @@ void OperaColors::FloodFill(CDC& hDC, int x1, int y1, int x2, int y2, const COLO
 	bih.biCompression = BI_RGB;
 	bih.biClrUsed = 32;
 	fci->m_bitmap = ::CreateDIBitmap(hDC.m_hDC, &bih, 0, NULL, NULL, DIB_RGB_COLORS);
-	// [merge from AirDC++]
-	// fix http://code.google.com/p/flylinkdc/issues/detail?id=1397
 	const auto l_old_bitmap = ::SelectObject(fci->hDC, fci->m_bitmap);
 	if (!::DeleteObject(l_old_bitmap))
 	{

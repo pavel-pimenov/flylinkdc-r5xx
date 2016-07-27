@@ -293,7 +293,7 @@ static QueueItemPtr findCandidateL(const QueueItem::QIStringMap::const_iterator&
 		if (q->isSet(QueueItem::FLAG_USER_LIST))
 			continue;
 		// No IP check
-		if (q->isSet(QueueItem::FLAG_USER_GET_IP)) // [+] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=1092
+		if (q->isSet(QueueItem::FLAG_USER_GET_IP))
 			continue;
 		// No paused downloads
 		if (q->getPriority() == QueueItem::PAUSED)
@@ -473,7 +473,7 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 						removeUserL(qi, aUser, true);
 						qi->removeSourceL(aUser, QueueItem::Source::FLAG_NO_NEED_PARTS); // https://drdump.com/Problem.aspx?ProblemID=129066
 						m_lastError = STRING(NO_NEEDED_PART);
-						return nullptr; // airDC++ http://code.google.com/p/flylinkdc/issues/detail?id=1365
+						return nullptr; // airDC++
 					}
 				}
 				if (qi->isWaiting())
@@ -562,7 +562,7 @@ void QueueManager::FileQueue::calcPriorityAndGetRunningFilesL(QueueItem::Priorit
 		{
 			p_runningFiles.push_back(q);
 			// TODO calcAverageSpeedAndDownloadedBytes - тяжелая операция зачем зовем так часто?
-			q->calcAverageSpeedAndCalcAndGetDownloadedBytesL(); // [+] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=992
+			q->calcAverageSpeedAndCalcAndGetDownloadedBytesL();
 			if (q->getAutoPriority())
 			{
 				const QueueItem::Priority p1 = q->getPriority();
@@ -650,7 +650,7 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 			const string l_error = "Error QueueManager::UserQueue::removeUserL [dcassert(j != ulm.cend())] aUser = " +
 			                       (aUser ? aUser->getLastNick() : string("null"));
 			CFlyServerJSON::pushError(55, l_error);
-			dcassert(j != ulm.cend());
+			//dcassert(j != ulm.cend());
 			return;
 		}
 		
@@ -905,7 +905,8 @@ struct PartsInfoReqParam
 
 void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 {
-
+	if (ClientManager::isBeforeShutdown())
+		return;
 	string searchString;
 	vector<const PartsInfoReqParam*> params;
 #ifdef STRONG_USE_DHT
@@ -914,7 +915,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	
 	{
 		PFSSourceList sl;
-		// RLock(*QueueItem::g_cs); // fix http://code.google.com/p/flylinkdc/issues/detail?id=1236
+		// RLock(*QueueItem::g_cs);
 		//find max 10 pfs sources to exchange parts
 		//the source basis interval is 5 minutes
 		g_fileQueue.findPFSSourcesL(sl);
@@ -1384,7 +1385,7 @@ bool QueueManager::addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flag
 		{
 			if (p_is_first_load == false)
 			{
-				if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP)) // http://code.google.com/p/flylinkdc/issues/detail?id=1088
+				if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 				{
 					PLAY_SOUND(SOUND_SOURCEFILE);
 				}
@@ -1561,7 +1562,7 @@ void QueueManager::QueueManagerWaiter::execute(const WaiterFile& p_currentFile) 
 	const QueueItem::Priority l_priority = p_currentFile.getPriority();
 	
 	auto qm = QueueManager::getInstance();
-	qm->setAutoPriority(l_source, false); // [+] IRainman fix https://code.google.com/p/flylinkdc/issues/detail?id=1030
+	qm->setAutoPriority(l_source, false);
 	qm->setPriority(l_source, QueueItem::PAUSED);
 	const QueueItemPtr qi = QueueManager::FileQueue::find_target(l_source);
 	dcassert(qi->getPriority() == QueueItem::PAUSED);
@@ -1823,9 +1824,21 @@ void QueueManager::setFile(const DownloadPtr& d)
 		auto f = new SharedFileStream(l_target, File::RW, File::OPEN | File::CREATE | File::SHARED | File::NO_CACHE_HINT);
 		
 		// Only use antifrag if we don't have a previous non-antifrag part
-		if (BOOLSETTING(ANTI_FRAG) && f->getSize() != qi->getSize())
+		if (BOOLSETTING(ANTI_FRAG))
 		{
-			f->setSize(d->getTigerTree().getFileSize());
+			if (qi->getSize() != qi->getLastSize())
+			{
+				if (f->getFastFileSize() != qi->getSize())
+				{
+					const auto l_size = d->getTigerTree().getFileSize();
+					f->setSize(l_size);
+					qi->setLastSize(l_size);
+				}
+			}
+			else
+			{
+				dcdebug("Skip for file %s qi->getSize() == qi->getLastSize()\r\n", l_target.c_str());
+			}
 		}
 		
 		f->setPos(d->getSegment().getStart());
@@ -2128,7 +2141,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 							// Check if we need to move the file
 							if (aDownload->getType() == Transfer::TYPE_FILE && !aDownload->getTempTarget().empty() && (stricmp(p_path.c_str(), aDownload->getTempTarget().c_str()) != 0))
 							{
-								if (!q->isSet(Download::FLAG_USER_GET_IP)) // fix  https://code.google.com/p/flylinkdc/issues/detail?id=1480
+								if (!q->isSet(Download::FLAG_USER_GET_IP))
 									// TODO !q->isSet(Download::FLAG_USER_CHECK)
 								{
 									moveFile(aDownload->getTempTarget(), p_path);
@@ -2318,7 +2331,6 @@ void QueueManager::processList(const string& name, const HintedUser& hintedUser,
 		return;
 	}
 	// [+] IRainman fix.
-	dcassert(dirList.getTotalFileCount());
 	if (!dirList.getTotalFileCount())
 	{
 		LogManager::message(STRING(UNABLE_TO_OPEN_FILELIST) + " (dirList.getTotalFileCount() == 0) " + name);
@@ -2842,7 +2854,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 			if (cid.length() != 39)
 			{
 				user = ClientManager::getUser(getAttrib(attribs, sNick, 1), getAttrib(attribs, sHubHint, 1)
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 				                              , 0
 #endif
 				                              , false
@@ -2909,14 +2921,14 @@ void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchRes
 		
 		if (!l_matches.empty()) // [+] IRainman opt.
 		{
-			WLock(*QueueItem::g_cs); // [!] http://code.google.com/p/flylinkdc/issues/detail?id=1082
+			WLock(*QueueItem::g_cs);
 			for (auto i = l_matches.cbegin(); i != l_matches.cend(); ++i)
 			{
 				const QueueItemPtr& qi = *i;
 				// Size compare to avoid popular spoof
 				if (qi->getSize() == sr->getSize())
 				{
-					if (!qi->isSourceL(sr->getUser())) // [!] IRainman fix: https://code.google.com/p/flylinkdc/issues/detail?id=1227
+					if (!qi->isSourceL(sr->getUser()))
 					{
 						if (qi->isFinished())
 							break;  // don't add sources to already finished files
@@ -3053,7 +3065,9 @@ void QueueManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 #endif
 		saveQueue();
 	}
-	
+	if (ClientManager::isBeforeShutdown())
+		return;
+		
 	QueueItem::PriorityArray l_priorities;
 	
 	if (!ClientManager::isShutdown())
@@ -3095,7 +3109,7 @@ void QueueManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	}
 }
 
-#ifdef PPA_INCLUDE_DROP_SLOW
+#ifdef FLYLINKDC_USE_DROP_SLOW
 bool QueueManager::dropSource(const DownloadPtr& aDownload)
 {
 	uint8_t activeSegments = 0;

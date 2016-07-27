@@ -23,7 +23,7 @@
 
 #include "stdinc.h"
 
-#ifdef PPA_INCLUDE_IPFILTER
+#ifdef FLYLINKDC_USE_IPFILTER
 #include "socket.h"
 #include <boost/algorithm/string.hpp>
 #include "iplist.h"
@@ -339,4 +339,4 @@ void IPList::clear()
 	m_usedList.clear();
 }
 
-#endif // PPA_INCLUDE_IPFILTER
+#endif // FLYLINKDC_USE_IPFILTER

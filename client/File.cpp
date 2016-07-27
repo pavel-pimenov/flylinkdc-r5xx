@@ -494,7 +494,7 @@ string File::read()
 {
 	setPos(0);
 	int64_t sz = getSize();
-	if (sz <= 0) // http://code.google.com/p/flylinkdc/issues/detail?id=571
+	if (sz <= 0)
 		return Util::emptyString;
 	return read((uint32_t)sz);
 }

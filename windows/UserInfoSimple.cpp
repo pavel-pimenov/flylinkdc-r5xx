@@ -203,7 +203,7 @@ uint64_t UserInfoSimple::inputSlotTime()
 
 // [+] FlylinkDC++ Team
 
-#if 0 // http://code.google.com/p/flylinkdc/issues/detail?id=1413
+#if 0
 int UploadQueueItemInfo::getImageIndex() const
 {
 	return g_fileImage.getIconIndex(getQi()->getFile());
@@ -232,7 +232,7 @@ void UploadQueueItemInfo::update()
 	{
 		setText(COLUMN_LOCATION, m_location.getDescription());
 	}
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 	// [!] IRainman opt.
 	if (m_dns.empty())
 	{
@@ -280,7 +280,7 @@ const tstring UploadQueueItemInfo::getText(uint8_t col) const
             }
             return m_location.isKnown() ? m_location.getDescription() : Util::emptyStringT;
         }
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
         case COLUMN_DNS:
         {
             if (m_dns.empty())

@@ -83,6 +83,7 @@ socket_t Socket::getSock() const
 
 void Socket::create(SocketType aType /* = TYPE_TCP */)
 {
+	//LogManager::message("[Create]");
 	if (m_sock != INVALID_SOCKET)
 		disconnect();
 		
@@ -103,6 +104,7 @@ void Socket::create(SocketType aType /* = TYPE_TCP */)
 
 uint16_t Socket::accept(const Socket& listeningSocket)
 {
+	//LogManager::message("[accept]");
 	if (m_sock != INVALID_SOCKET)
 	{
 		disconnect();
@@ -147,6 +149,7 @@ uint16_t Socket::accept(const Socket& listeningSocket)
 
 uint16_t Socket::bind(uint16_t aPort, const string& aIp /* = 0.0.0.0 */)
 {
+	//LogManager::message("[bind] aAddr = " + aIp + " port = " + Util::toString(aPort));
 	sockaddr_in sock_addr = { { 0 } };
 	
 	sock_addr.sin_family = AF_INET;
@@ -170,12 +173,14 @@ uint16_t Socket::bind(uint16_t aPort, const string& aIp /* = 0.0.0.0 */)
 
 void Socket::listen()
 {
+	//LogManager::message("[listen]");
 	check(::listen(m_sock, 20));
 	connected = true;
 }
 
 void Socket::connect(const string& aAddr, uint16_t aPort)
 {
+	//LogManager::message("[Connect] aAddr = " + aAddr + " port = " + Util::toString(aPort));
 	sockaddr_in  serv_addr = { { 0 } };
 	
 	if (m_sock == INVALID_SOCKET)
@@ -366,7 +371,7 @@ int Socket::getSocketOptInt(int p_option) const
 	check(::getsockopt(m_sock, SOL_SOCKET, p_option, (char*)&l_val, &l_len)); // [2] https://www.box.net/shared/3ad49dfa7f44028a7467
 	/* [-] IRainman fix:
 	Please read http://msdn.microsoft.com/en-us/library/windows/desktop/ms740532(v=vs.85).aspx
-	and explain on what basis to audit https://code.google.com/p/flylinkdc/source/detail?r=9835 has been added to the magic check l_val <= 0,
+	and explain on what basis to audit  has been added to the magic check l_val <= 0,
 	and the error in the log is sent to another condition l_val == 0.
 	Just ask them to explain on what basis we do not trust the system,
 	and why the system could restore us to waste in these places, but the api does not contain the test function of range.
@@ -529,7 +534,7 @@ int Socket::writeAll(const void* aBuffer, int aLen, uint64_t timeout)
 	const uint8_t* buf = (const uint8_t*)aBuffer;
 	int pos = 0;
 	// No use sending more than this at a time...
-#if 0 // fix http://code.google.com/p/flylinkdc/issues/detail?id=1333
+#if 0
 	const int sendSize = getSocketOptInt(SO_SNDBUF);
 #else
 	const int sendSize = MAX_SOCKET_BUFFER_SIZE;
@@ -627,7 +632,7 @@ int Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, in
 	
 	if (aAddr.empty() || aPort == 0)
 	{
-		dcassert(0);
+		//dcassert(0);
 		throw SocketException(EADDRNOTAVAIL);
 	}
 	
@@ -948,7 +953,7 @@ bool Socket::getLocalIPPort(uint16_t& p_port, string& p_ip, bool p_is_calc_ip) c
 	return false;
 }
 //============================================================================
-#ifdef PPA_INCLUDE_DEAD_CODE
+#ifdef FLYLINKDC_USE_DEAD_CODE
 string Socket::getLocalIp() const
 {
 	uint16_t p_port;

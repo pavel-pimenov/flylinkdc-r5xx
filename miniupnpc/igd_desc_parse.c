@@ -1,8 +1,8 @@
-/* $Id: igd_desc_parse.c,v 1.16 2014/11/17 17:19:13 nanard Exp $ */
+/* $Id: igd_desc_parse.c,v 1.17 2015/09/15 13:30:04 nanard Exp $ */
 /* Project : miniupnp
  * http://miniupnp.free.fr/
  * Author : Thomas Bernard
- * Copyright (c) 2005-2014 Thomas Bernard
+ * Copyright (c) 2005-2015 Thomas Bernard
  * This software is subject to the conditions detailed in the
  * LICENCE file provided in this distribution. */
 
@@ -15,6 +15,8 @@
 void IGDstartelt(void * d, const char * name, int l)
 {
 	struct IGDdatas * datas = (struct IGDdatas *)d;
+	if(l >= MINIUPNPC_URL_MAXSIZE)
+		l = MINIUPNPC_URL_MAXSIZE-1;
 	memcpy( datas->cureltname, name, l);
 	datas->cureltname[l] = '\0';
 	datas->level++;
@@ -79,9 +81,9 @@ void IGDdata(void * d, const char * data, int l)
 		dstmember = datas->tmp.scpdurl;
 /*	else if( !strcmp(datas->cureltname, "deviceType") )
 		dstmember = datas->devicetype_tmp;*/
-	else if( !strcmp(datas->cureltname, "friendlyName") )
+	else if( !strcmp(datas->cureltname, "friendlyName") ) // [+] FlylinkDC++
 		dstmember = datas->tmp.friendlyName;
-	else if( !strcmp(datas->cureltname, "modelDescription") ) // http://code.google.com/p/flylinkdc/issues/detail?id=1241
+	else if( !strcmp(datas->cureltname, "modelDescription") )  // [+] FlylinkDC++
 		dstmember = datas->tmp.modelDescription;
 	if(dstmember)
 	{

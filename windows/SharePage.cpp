@@ -179,7 +179,7 @@ LRESULT SharePage::onClickedAdd(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 	if (WinUtil::browseDirectory(target, m_hWnd))
 	{
 		addDirectory(target);
-		if (!HashProgressDlg::g_is_execute) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1126
+		if (!HashProgressDlg::g_is_execute)
 		{
 			HashProgressDlg(true).DoModal();
 		}

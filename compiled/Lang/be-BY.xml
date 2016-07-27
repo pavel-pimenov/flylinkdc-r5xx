@@ -335,7 +335,7 @@
 		<String Name="DecompressionError">Не ўдалося распакаваць</String>
 		<String Name="Default">Як звычайна</String>
 		<String Name="DefaultAwayMessage">Вітаю, %[userNI]! Я адсутнічаю. Шчасьліва!</String>
-		<String Name="DefPasswordHint">Карыстальнік вырашыў не атрымваць асабістыя паведамленьні. Калі маеце пільную патрэбу, скарыстайце пароль «%[pm_pass]». Ня злоўжывайце: тых, хто будзе прасіць шчылінаў, павыганяюць, і яны застануцца навек у сьпісе незаўважаных і ня здолеюць нічога спампаваць, хоць бы й будуць стаяць у чарзе.</String>
+		<String Name="DefPasswordHint">Карыстальнік вырашыў не атрымваць асабістыя паведамленьні. Калі маеце пільную патрэбу, скарыстайце пароль «%[pm_pass]».</String>
 		<String Name="DefPasswordOkHint">Слушны пароль. Доступ адкрылі.</String>
 		<String Name="DeleteChecked">Сьціраць спраўджаныя сьпісы файлаў</String>
 		<String Name="DenyAll">Забараняць усё</String>

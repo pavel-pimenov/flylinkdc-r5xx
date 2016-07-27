@@ -28,13 +28,20 @@
 #include "Util.h"
 
 class Segment
+#ifdef _DEBUG
+	// : boost::noncopyable
+#endif
 {
 	public:
 		Segment() : start(0), size(-1), overlapped(false) { }
-		Segment(int64_t start_, int64_t size_, bool overlapped_ = false) : start(start_), size(size_), overlapped(overlapped_) { }
+		Segment(int64_t start_, int64_t size_, bool overlapped_ = false) : start(start_), size(size_), overlapped(overlapped_)
+		{
+			dcassert(start_ >= 0);
+		}
 		
 		int64_t getStart() const
 		{
+			dcassert(start >= 0);
 			return start;
 		}
 		int64_t getSize() const
@@ -43,6 +50,7 @@ class Segment
 		}
 		int64_t getEnd() const
 		{
+			dcassert(start >= 0);
 			return start + size;
 		}
 		
@@ -55,8 +63,8 @@ class Segment
 		{
 			return getStart() < rhs.getEnd() && rhs.getStart() < getEnd();
 		}
-		
-		void trim(const Segment& rhs)
+#if 0
+		void trim_segment(const Segment& rhs)
 		{
 			if (!overlaps(rhs))
 			{
@@ -75,23 +83,29 @@ class Segment
 					size -= rend - start;
 					start = rend;
 				}
+				dcassert(start >= 0);
 				return;
 			}
+			dcassert(start >= 0);
 			size = rhs.getStart() - start;
 		}
 		
-		bool contains(const Segment& rhs) const
-		{
-			return getStart() <= rhs.getStart() && getEnd() == rhs.getEnd();
-		}
-		
-		bool operator==(const Segment& rhs) const
-		{
-			return getStart() == rhs.getStart() && getSize() == rhs.getSize();
-		}
+#endif
 		bool operator<(const Segment& rhs) const
 		{
 			return (getStart() < rhs.getStart()) || (getStart() == rhs.getStart() && getSize() < rhs.getSize());
+		}
+		//bool operator==(const Segment& rhs) const
+		//{
+		//  return getStart() == rhs.getStart() && getSize() == rhs.getSize();
+		//}
+		bool isSizeEqu(const int64_t& p_size) const
+		{
+			return getSize() == p_size && getStart() == 0;
+		}
+		bool contains(const Segment& rhs) const
+		{
+			return getStart() <= rhs.getStart() && getEnd() == rhs.getEnd();
 		}
 	private:
 		int64_t start;

@@ -79,7 +79,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		NOTIFY_HANDLER(IDC_DIRECTORIES, TVN_SELCHANGED, onItemChanged)
 		NOTIFY_HANDLER(IDC_DIRECTORIES, TVN_KEYDOWN, onKeyDownDirs)
 		
-		CHAIN_COMMANDS(uiBase) // fix http://code.google.com/p/flylinkdc/issues/detail?id=1406
+		CHAIN_COMMANDS(uiBase)
 		CHAIN_MSG_MAP(splitBase)
 		CHAIN_MSG_MAP(baseClass)
 		ALT_MSG_MAP(SHOWTREE_MESSAGE_MAP)

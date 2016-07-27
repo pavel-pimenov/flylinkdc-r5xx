@@ -188,12 +188,14 @@
     <ClCompile Include="connecthostport.c" />
     <ClCompile Include="igd_desc_parse.c" />
     <ClCompile Include="minisoap.c" />
+    <ClCompile Include="minissdpc.c" />
     <ClCompile Include="miniupnpc.c" />
     <ClCompile Include="miniwget.c" />
     <ClCompile Include="minixml.c" />
     <ClCompile Include="portlistingparse.c" />
     <ClCompile Include="receivedata.c" />
     <ClCompile Include="upnpcommands.c" />
+    <ClCompile Include="upnpdev.c" />
     <ClCompile Include="upnperrors.c" />
     <ClCompile Include="upnpreplyparse.c" />
   </ItemGroup>

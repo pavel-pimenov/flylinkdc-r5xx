@@ -82,7 +82,7 @@ bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string, bool p_is_d
 		return true;
 	}
 	bool l_is_ip_guard = false;
-#ifdef PPA_INCLUDE_IPFILTER
+#ifdef FLYLINKDC_USE_IPFILTER
 	l_is_ip_guard = PGLoader::check(l_ip4);
 	string l_p2p_guard;
 	if (BOOLSETTING(ENABLE_P2P_GUARD) && p_is_download_connection == false)
@@ -312,7 +312,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	{
 		if (!param.empty())
 		{
-			fly_fire2(UserConnectionListener::Supports(), this, StringTokenizer<string>(param, ' ').getTokensForWrite()); // [!] IRainman fix: http://code.google.com/p/flylinkdc/issues/detail?id=1112
+			fly_fire2(UserConnectionListener::Supports(), this, StringTokenizer<string>(param, ' ').getTokensForWrite());
 		}
 	}
 	else if (cmd.compare(0, 3, "ADC", 3) == 0)
@@ -416,7 +416,7 @@ void UserConnection::on(Connected) noexcept
 void UserConnection::on(Data, uint8_t* p_data, size_t p_len) noexcept
 {
 	setLastActivity();
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	if (p_len && BOOLSETTING(ENABLE_RATIO_USER_LIST))
 	{
 		getUser()->AddRatioDownload(getSocket()->getIp4(), p_len);
@@ -428,7 +428,7 @@ void UserConnection::on(Data, uint8_t* p_data, size_t p_len) noexcept
 void UserConnection::on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept
 {
 	setLastActivity();
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	if (p_Actual && BOOLSETTING(ENABLE_RATIO_USER_LIST))
 	{
 		getUser()->AddRatioUpload(getSocket()->getIp4(), p_Actual);

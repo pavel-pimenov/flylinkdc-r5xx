@@ -27,8 +27,8 @@
 #include "Wildcards.h"
 #include "../FlyFeatures/flyServer.h"
 
-uint16_t Client::g_counts[COUNT_UNCOUNTED];
-string Client::g_last_search_string;
+unsigned Client::g_counts[COUNT_UNCOUNTED];
+string   Client::g_last_search_string;
 Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool p_is_auto_connect) :
 	m_cs(std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock())),
 	m_reconnDelay(120), m_lastActivity(GET_TICK()),
@@ -60,7 +60,7 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 	dcassert(p_HubURL == Text::toLower(p_HubURL));
 	const auto l_my_user = new User(ClientManager::getMyCID());
 	const auto l_hub_user = new User(CID());
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	m_HubID = CFlylinkDBManager::getInstance()->get_dic_hub_id(m_HubURL);
 	dcassert(m_HubID != 0);
 	l_my_user->setHubID(m_HubID); // Для сохранения кол-ва мессаг по самому себе
@@ -150,17 +150,13 @@ Client::~Client()
 		// [-] TimerManager::getInstance()->removeListener(this); [-] IRainman fix: please see shutdown().
 		updateCounts(true);
 	}
-//[+]FlylinkDC
-	// [-] IRainman.
-	//if (m_hEventClientInitialized)
-	//  CloseHandle(m_hEventClientInitialized);
-//[~]FlylinkDC
+	
 }
 void Client::reset_socket()
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 	if (m_client_sock)
-		m_client_sock->removeListeners(); // http://code.google.com/p/flylinkdc/issues/detail?id=791
+		m_client_sock->removeListeners();
 	CFlyFastLock(lock(csSock); // [+] brain-ripper
 	             if (m_client_sock)
 	             BufferedSocket::putSocket(m_client_sock);
@@ -600,7 +596,6 @@ void Client::decBytesSharedL(int64_t p_bytes_shared)
 }
 bool Client::changeBytesSharedL(Identity& p_id, const int64_t p_bytes)
 {
-	// https://code.google.com/p/flylinkdc/issues/detail?id=1231
 	dcassert(p_bytes >= 0);
 	//dcdrun(const auto l_oldSum = m_availableBytes);
 	//dcassert(l_oldSum >= 0);
@@ -942,7 +937,7 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 			return true;
 		}
 	}
-	else if (BOOLSETTING(PROTECT_PRIVATE) && !FavoriteManager::getInstance()->hasFreePM(message.m_replyTo->getUser())) // !SMT!-PSW
+	else if (BOOLSETTING(PROTECT_PRIVATE) && !FavoriteManager::hasFreePM(message.m_replyTo->getUser())) // !SMT!-PSW
 	{
 		switch (UserManager::checkPrivateMessagePassword(message))
 		{
@@ -1003,7 +998,7 @@ bool Client::allowChatMessagefromUser(const ChatMessage& message, const string& 
 {
 	if (!message.m_from)
 	{
-		if (!p_nick.empty() && UserManager::isInIgnoreList(p_nick)) // http://code.google.com/p/flylinkdc/issues/detail?id=1432
+		if (!p_nick.empty() && UserManager::isInIgnoreList(p_nick))
 		{
 			return false;
 		}
@@ -1183,13 +1178,12 @@ void Client::processingPassword()
 	}
 }
 
-StringMap& Client::escapeParams(StringMap& sm)
+void Client::escapeParams(StringMap& sm) const
 {
 	for (auto i = sm.begin(); i != sm.end(); ++i)
 	{
 		i->second = escape(i->second);
 	}
-	return sm;
 }
 
 void Client::setSearchInterval(uint32_t aInterval)

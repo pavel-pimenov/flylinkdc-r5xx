@@ -6,7 +6,7 @@
 #include "CFlyUserRatioInfo.h"
 #include "CFlylinkDBManager.h"
 
-#ifdef PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 
 CFlyUserRatioInfo::CFlyUserRatioInfo(User* p_user):
 	m_ip_map_ptr(nullptr),
@@ -78,5 +78,5 @@ bool CFlyUserRatioInfo::tryLoadRatio(const boost::asio::ip::address_v4& p_last_i
 	}
 	return false;
 }
-#endif // PPA_INCLUDE_LASTIP_AND_USER_RATIO
+#endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 

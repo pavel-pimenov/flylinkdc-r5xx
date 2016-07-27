@@ -84,7 +84,7 @@ void DHT::start()
 		
 		{
 			// if (BOOLSETTING(UPDATE_IP_DHT))
-			//  SET_SETTING(EXTERNAL_IP, Util::emptyString); //fix https://code.google.com/p/flylinkdc/issues/detail?id=1264
+			//  SET_SETTING(EXTERNAL_IP, Util::emptyString);
 		}
 		
 		// [!] IRainman fix
@@ -139,7 +139,7 @@ void DHT::stop(bool exiting)
 		TaskManager::deleteInstance(); //[!] Разрушили хотя другой поток может еще выполняться
 		// Поймал assert в TaskManager::on(TimerManagerListener::Second
 		SearchManager::deleteInstance();
-		RoutingTable::resetNodesCount(); // http://code.google.com/p/flylinkdc/issues/detail?id=1003
+		RoutingTable::resetNodesCount();
 	}
 }
 

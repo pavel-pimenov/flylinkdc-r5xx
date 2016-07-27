@@ -29,7 +29,7 @@
 #include "CFlyThread.h"
 #include "noexcept.h"
 
-#include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"
+#include "webrtc/system_wrappers/include/rw_lock_wrapper.h"
 
 template<typename Listener>
 class Speaker
@@ -325,7 +325,7 @@ after_fire_process();
 		void removeListener(Listener* aListener)
 		{
 			CFlyLock(m_listenerCS);
-			if (!m_listeners.empty()) // Dead lock https://code.google.com/p/flylinkdc/issues/detail?id=1428 (TODO - сжать m_listeners)
+			if (!m_listeners.empty())
 			{
 				auto it = boost::range::find(m_listeners, aListener);
 				if (it != m_listeners.end())

@@ -49,7 +49,7 @@ class FinishedFrame :
 				PostMessage(WM_SPEAKER, SPEAK_ADD_LINE, (WPARAM)new FinishedItemPtr(p_entry));
 		}
 		
-		void on(RemovedDl, const FinishedItemPtr& p_entry) noexcept override // [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
+		void on(RemovedDl, const FinishedItemPtr& p_entry) noexcept override
 		{
 			SendMessage(WM_SPEAKER, SPEAK_REMOVE_LINE, (WPARAM)new FinishedItemPtr(p_entry));
 		}

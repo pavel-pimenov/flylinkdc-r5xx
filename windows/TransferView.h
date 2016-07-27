@@ -254,7 +254,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			COLUMN_CIPHER,
 			COLUMN_LOCATION,
 			COLUMN_IP,
-#ifdef PPA_INCLUDE_COLUMN_RATIO
+#ifdef FLYLINKDC_USE_COLUMN_RATIO
 			COLUMN_RATIO,
 #endif
 			COLUMN_SHARE, //[+]PPA
@@ -335,7 +335,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				tstring m_hubs;
 				mutable Util::CustomNetworkIndex m_location; // [+] IRainman opt.
 				
-#ifdef PPA_INCLUDE_COLUMN_RATIO
+#ifdef FLYLINKDC_USE_COLUMN_RATIO
 				tstring m_ratio_as_text; // [+] brain-ripper
 #endif
 				
@@ -392,8 +392,10 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				MASK_STATUS_STRING  = 0x100,
 				MASK_SEGMENT        = 0x200,
 				MASK_CIPHER         = 0x400,
-				MASK_USER           = 0x800,
-				MASK_FORCE_PASSIVE  = 0x1000
+				MASK_USER           = 0x800
+#ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
+				, MASK_FORCE_PASSIVE  = 0x1000
+#endif
 			};
 			
 			bool operator==(const ItemInfo& ii) const
@@ -556,7 +558,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				{
 					dcassert(!(!m_ip.empty() && aIP.empty()));
 					m_ip = l_new_value;
-#ifdef PPA_INCLUDE_DNS
+#ifdef FLYLINKDC_USE_DNS
 					dns = Text::toT(Socket::nslookup(aIP));
 #endif
 					updateMask |= MASK_IP;

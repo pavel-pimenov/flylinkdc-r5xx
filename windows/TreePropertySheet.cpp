@@ -344,7 +344,7 @@ void TreePropertySheet::addTree()
 	
 	CRect rc(SPACE_LEFT, rcPage.top, TREE_WIDTH, rcPage.bottom);
 	ctrlTree.Create(m_hWnd, rc, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_LAYERED |
-	                WS_TABSTOP | // [+] http://code.google.com/p/flylinkdc/issues/detail?id=821
+	                WS_TABSTOP |
 	                TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_PAGE);
 	                
 	WinUtil::SetWindowThemeExplorer(ctrlTree.m_hWnd);

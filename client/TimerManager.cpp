@@ -88,8 +88,7 @@ int TimerManager::run()
 		{
 			LogManager::flush_all_log();
 		}
-		dcassert(!ClientManager::isShutdown());
-		if (ClientManager::isShutdown() || ClientManager::isStartup()) // Когда закрываемся или запускаемся - не тикаем таймером
+		if (ClientManager::isBeforeShutdown() || ClientManager::isStartup()) // Когда закрываемся или запускаемся - не тикаем таймером
 		{
 			continue;
 		}
@@ -102,7 +101,10 @@ int TimerManager::run()
 #ifdef TIMER_MANAGER_DEBUG
 			dcdebug("TimerManagerListener::Minute() with tick=%u\n", t);
 #endif
-			fly_fire1(TimerManagerListener::Minute(), t);
+			if (!ClientManager::isBeforeShutdown())
+			{
+				fly_fire1(TimerManagerListener::Minute(), t);
+			}
 			// ======================================================
 			if (nextHour <= now)
 			{

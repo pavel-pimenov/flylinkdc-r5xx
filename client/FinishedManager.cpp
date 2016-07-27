@@ -72,7 +72,6 @@ void FinishedManager::rotation_items(const FinishedItemPtr& p_item, eType p_type
 {
 	// For fix - crash https://drdump.com/DumpGroup.aspx?DumpGroupID=301739
 	CFlyWriteLock(*g_cs[p_type]);
-	// [+] IRainman http://code.google.com/p/flylinkdc/issues/detail?id=601
 	auto& l_item_array = g_finished[p_type];
 #ifdef FLYLINKDC_USE_ROTATION_FINISHED_MANAGER
 	while (!l_item_array.empty()
@@ -105,8 +104,9 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 		}
 		if (isFile || (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST) && BOOLSETTING(LOG_FILELIST_TRANSFERS)))
 		{
-			std::shared_ptr<FinishedItem> item(new FinishedItem(qi->getTarget(), p_download->getHintedUser(),
-			                                                    qi->getSize(), p_download->getRunningAverage(), GET_TIME(), qi->getTTH(), p_download->getActual(), p_download->getUser()->getIPAsString()));
+			auto item = std::make_shared<FinishedItem>(qi->getTarget(), p_download->getHintedUser(),
+			                                           qi->getSize(), p_download->getRunningAverage(),
+			                                           GET_TIME(), qi->getTTH(), p_download->getActual(), p_download->getUser()->getIPAsString());
 			if (SETTING(DB_LOG_FINISHED_DOWNLOADS))
 			{
 				CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferDownload, item);
@@ -135,8 +135,8 @@ void FinishedManager::on(UploadManagerListener::Complete, const UploadPtr& u) no
 	{
 		PLAY_SOUND(SOUND_UPLOADFILE);
 		
-		std::shared_ptr<FinishedItem> item(new FinishedItem(u->getPath(), u->getHintedUser(),
-		u->getFileSize(), u->getRunningAverage(), GET_TIME(), u->getTTH(), u->getActual(), u->getUser()->getIPAsString()));
+		auto item = std::make_shared<FinishedItem>(u->getPath(), u->getHintedUser(),
+		u->getFileSize(), u->getRunningAverage(), GET_TIME(), u->getTTH(), u->getActual(), u->getUser()->getIPAsString());
 		if (SETTING(DB_LOG_FINISHED_UPLOADS))
 		{
 			CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferUpload, item);
