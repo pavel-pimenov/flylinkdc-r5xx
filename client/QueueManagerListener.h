@@ -58,11 +58,13 @@ class QueueManagerListener
 		typedef X<19> Tick;
 		typedef X<20> StatusUpdatedList;
 		typedef X<21> RemovedArray;
+		typedef X<22> RemovedTransfer;
 		
 		virtual void on(Added, const QueueItemPtr&) noexcept { }
 		virtual void on(AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept { }
 		virtual void on(Finished, const QueueItemPtr&, const string&, const DownloadPtr& p_download) noexcept { }
 		virtual void on(Removed, const QueueItemPtr&) noexcept { }
+		virtual void on(RemovedTransfer, const QueueItemPtr&) noexcept { }
 		virtual void on(RemovedArray, const std::vector<string>& p_qi_array) noexcept { }
 		virtual void on(Moved, const QueueItemPtr&, const string&) noexcept { }
 		virtual void on(TargetsUpdated, const StringList&) noexcept { }

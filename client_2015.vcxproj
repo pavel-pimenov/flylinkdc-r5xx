@@ -322,24 +322,6 @@
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="client\MerkleTree.cpp" />
-    <ClCompile Include="client\minizip\ioapi.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="client\minizip\unzip.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="client\minizip\zip.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="client\NmdcHub.cpp" />
     <ClCompile Include="client\PGLoader.cpp" />
     <ClCompile Include="client\QueueItem.cpp" />
@@ -365,18 +347,6 @@
     </ClCompile>
     <ClCompile Include="client\StringDefs.cpp" />
     <ClCompile Include="client\StringPool.cpp" />
-    <ClCompile Include="client\syslog\printk.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="client\syslog\syslog.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="client\TaskQueue.cpp" />
     <ClCompile Include="client\Text.cpp" />
     <ClCompile Include="client\CFlyThread.cpp" />
@@ -695,10 +665,6 @@
     <ClInclude Include="client\Mapper_WinUPnP.h" />
     <ClInclude Include="client\MD5Calc.h" />
     <ClInclude Include="client\CFlylinkDBManager.h" />
-    <ClInclude Include="client\minizip\crypt.h" />
-    <ClInclude Include="client\minizip\ioapi.h" />
-    <ClInclude Include="client\minizip\unzip.h" />
-    <ClInclude Include="client\minizip\zip.h" />
     <ClInclude Include="client\sqlite\sqlite3.h" />
     <ClInclude Include="client\sqlite\sqlite3ext.h" />
     <ClInclude Include="client\sqlite\sqlite3x.hpp" />
@@ -763,8 +729,6 @@
     <ClInclude Include="client\ResourceManager.h" />
     <ClInclude Include="client\ScopedFunctor.h" />
     <ClInclude Include="client\StringPool.h" />
-    <ClInclude Include="client\syslog\printk.h" />
-    <ClInclude Include="client\syslog\syslog.h" />
     <ClInclude Include="client\TransferData.h" />
     <ClInclude Include="client\UserInfo.h" />
     <ClInclude Include="client\UserInfoColumns.h" />

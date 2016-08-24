@@ -97,7 +97,7 @@ ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
 			emptyXmlFile.write(SimpleXML::utf8Header);
 			emptyXmlFile.write("<FileListing Version=\"1\" CID=\"" + ClientManager::getMyCID().toBase32() + "\" Base=\"/\" Generator=\"DC++ " DCVERSIONSTRING "\">\r\n"); // Hide Share Mod
 			emptyXmlFile.write("</FileListing>");
-			emptyXmlFile.flush();
+			emptyXmlFile.flushBuffers(true);
 		}
 		catch (const Exception& e) // fix https://crash-server.com/Problem.aspx?ProblemID=51912
 		{
@@ -148,7 +148,7 @@ ShareManager::~ShareManager()
 void ShareManager::shutdown()
 {
 	dcassert(CFlylinkDBManager::isValidInstance());
-	if (g_CurrentShareSize > 0 && CFlylinkDBManager::isValidInstance())
+	if (g_CurrentShareSize >= 0 && CFlylinkDBManager::isValidInstance())
 	{
 		CFlylinkDBManager::getInstance()->set_registry_variable_int64(e_LastShareSize, g_CurrentShareSize);
 	}
@@ -1580,7 +1580,9 @@ void ShareManager::refresh_share(bool p_dirs /* = false */, bool aUpdate /* = tr
 		l_is_cached = false;
 	}
 	
+#ifdef STRONG_USE_DHT
 	dht::IndexManager::setTimeForPublishing();
+#endif
 	
 	try
 	{
@@ -1760,7 +1762,7 @@ void ShareManager::generateXmlList()
 				}
 				l_creation_log.step("write dir. done");
 				newXmlFile.write("</FileListing>");
-				newXmlFile.flush();
+				newXmlFile.flushBuffers(true);
 				l_creation_log.step("close file");
 				
 				xmlListLen = count.getCount();

@@ -72,6 +72,7 @@ CServerItem CFlyServerConfig::g_stat_server;
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
 #ifdef STRONG_USE_DHT
 std::vector<DHTServer>    CFlyServerConfig::g_dht_servers;
+uint16_t CFlyServerConfig::g_min_interval_dth_connect = 60; // К DHT обращаемся не чаще раз в 60 секунд (найти причину почему это происходит)
 #endif // STRONG_USE_DHT
 std::vector<string>   CFlyServerConfig::g_spam_urls;
 DWORD CFlyServerConfig::g_winet_connect_timeout = 2000;
@@ -83,7 +84,9 @@ std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_log;
 std::unordered_set<uint16_t> CFlyServerConfig::g_guard_tcp_port;
 std::unique_ptr<webrtc::RWLockWrapper> CFlyServerConfig::g_cs_guard_tcp_port  = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unordered_set<unsigned> CFlyServerConfig::g_exclude_cid_error_log;
+#ifdef FLYLINKDC_USE_SYSLOG
 std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_syslog;
+#endif
 std::vector<CServerItem> CFlyServerConfig::g_mirror_read_only_servers;
 std::vector<CServerItem> CFlyServerConfig::g_mirror_test_port_servers;
 CServerItem CFlyServerConfig::g_local_test_server;
@@ -106,7 +109,6 @@ FastCriticalSection CFlyServerJSON::g_cs_test_port;
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 
 std::unique_ptr<webrtc::RWLockWrapper> CFlyServerConfig::g_cs_block_ip = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
-uint16_t CFlyServerConfig::g_min_interval_dth_connect = 60; // К DHT обращаемся не чаще раз в 60 секунд (найти причину почему это происходит)
 uint16_t CFlyServerConfig::g_max_ddos_connect_to_me = 10; // Не более 10 коннектов на один IP в течении минуты
 uint16_t CFlyServerConfig::g_ban_ddos_connect_to_me = 10; // Блокируем подключения к этому IP в течении 10 минут
 
@@ -212,10 +214,12 @@ bool CFlyServerConfig::isBlockIP(const string& p_ip)
 	return false;
 }
 //======================================================================================================
+#ifdef FLYLINKDC_USE_SYSLOG
 bool CFlyServerConfig::isErrorSysLog(unsigned p_error_code)
 {
 	return g_exclude_error_syslog.find(p_error_code) == g_exclude_error_syslog.end();
 }
+#endif
 //======================================================================================================
 bool CFlyServerConfig::isGuardTCPPort(uint16_t p_port)
 {
@@ -514,7 +518,9 @@ void CFlyServerConfig::loadConfig()
 					initUINT16("unique_files_for_virus_detect", g_unique_files_for_virus_detect, 2);
 					initDWORD("max_size_for_virus_detect", g_max_size_for_virus_detect);
 					
+#ifdef STRONG_USE_DHT
 					initUINT16("min_interval_dth_connect", g_min_interval_dth_connect, 60); // Пока нет в XML
+#endif
 					initDWORD("winet_connect_timeout", g_winet_connect_timeout);
 					initDWORD("winet_receive_timeout", g_winet_receive_timeout);
 					initDWORD("winet_send_timeout", g_winet_send_timeout);
@@ -626,11 +632,12 @@ void CFlyServerConfig::loadConfig()
 					{
 						g_exclude_cid_error_log.insert(Util::toInt(n));
 					});
-					
+#ifdef FLYLINKDC_USE_SYSLOG
 					l_xml.getChildAttribSplit("exclude_error_syslog", g_exclude_error_syslog, [this](const string & n)
 					{
 						g_exclude_error_syslog.insert(Util::toInt(n));
 					});
+#endif
 					// Достанем RO-зеркала
 					l_xml.getChildAttribSplit("mirror_read_only_server", g_mirror_read_only_servers, [this](const string & n)
 					{
@@ -1194,7 +1201,9 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 		};
 		const auto l_path = Text::toT(Util::getConfigPath());
 		l_disk_info["DBMain"] = getFileSize(l_path + _T("\\FlylinkDC.sqlite"));
+#ifdef STRONG_USE_DHT
 		l_disk_info["DBDHT"] = getFileSize(l_path + _T("\\FlylinkDC_dht.sqlite"));
+#endif
 		l_disk_info["DBMediainfo"] = getFileSize(l_path + _T("\\FlylinkDC_mediainfo.sqlite"));
 		l_disk_info["DBLog"] = getFileSize(l_path + _T("\\FlylinkDC_log.sqlite"));
 		l_disk_info["DBStat"] = getFileSize(l_path + _T("\\FlylinkDC_stat.sqlite"));
@@ -1450,6 +1459,7 @@ bool CFlyServerJSON::pushTestPort(
 	return l_is_send;
 }
 //======================================================================================================
+#ifdef FLYLINKDC_USE_SYSLOG
 void CFlyServerJSON::pushSyslogError(const string& p_error)
 {
 	string l_cid;
@@ -1465,8 +1475,9 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 	}
 	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
 }
+#endif
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 63 (36,58,44 - устарели)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 70 (36,58,44 - устарели)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;
@@ -1478,10 +1489,12 @@ bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_
 			l_cid = '[' + ClientManager::getMyCID().toBase32() + ']';
 		}
 		p_error = l_cid + "[" + A_REVISION_NUM_STR + "][BUG][" + Util::toString(p_error_code) + "] " + p_error;
+#ifdef FLYLINKDC_USE_SYSLOG
 		if (CFlyServerConfig::isErrorSysLog(p_error_code))
 		{
 			pushSyslogError(p_error);
 		}
+#endif
 		CFlyLock(g_cs_error_report);
 		if (CFlyServerConfig::isErrorLog(p_error_code))
 		{

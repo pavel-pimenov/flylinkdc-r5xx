@@ -872,7 +872,15 @@ int WebServerSocket::run()
 							case SearchResult::TYPE_FILE:
 								const string name = Util::encodeURI(m["name"], true);
 								const string DownloadName = !dir.empty() ? SETTING(DOWNLOAD_DIRECTORY) + name : name;
-								QueueManager::getInstance()->add(0, DownloadName, Util::toInt64(m["size"]), TTHValue(m["tth"]), HintedUser(toAdd.User, toAdd.HubURL));
+								try
+								{
+									QueueManager::getInstance()->add(0, DownloadName, Util::toInt64(m["size"]), TTHValue(m["tth"]), HintedUser(toAdd.User, toAdd.HubURL));
+								}
+								catch (const Exception& e)
+								{
+									LogManager::message("QueueManager::getInstance()->add Error = " + e.getError());
+								}
+								
 								break;
 						}
 					}

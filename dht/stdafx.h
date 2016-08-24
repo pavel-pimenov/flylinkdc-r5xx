@@ -5,8 +5,10 @@
 #ifndef _STDAFX_H
 #define _STDAFX_H
 
+#ifdef STRONG_USE_DHT
 #include "../client/stdinc.h"
 #include "../client/DCPlusPlus.h"
+#endif
 
 // TODO: reference additional headers your program requires here
 

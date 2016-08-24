@@ -36,9 +36,9 @@ class CountOutputStream : public OutputStream
 			if (managed) delete s;
 		}
 		
-		size_t flush()
+		size_t flushBuffers(bool aForce) override
 		{
-			size_t n = s->flush();
+			size_t n = s->flushBuffers(aForce);
 			dcassert(n);
 			count += n;
 			return n;
@@ -72,9 +72,9 @@ class CalcOutputStream : public OutputStream
 			if (managed) delete s;
 		}
 		
-		size_t flush()
+		size_t flushBuffers(bool aForce) override
 		{
-			return s->flush();
+			return s->flushBuffers(aForce);
 		}
 		
 		size_t write(const void* buf, size_t len)
@@ -149,7 +149,7 @@ class FilteredOutputStream : public OutputStream
 			if (manage) delete f;
 		}
 		
-		size_t flush()
+		size_t flushBuffers(bool aForce) override
 		{
 			if (flushed)
 				return 0;
@@ -168,7 +168,7 @@ class FilteredOutputStream : public OutputStream
 				if (!more)
 					break;
 			}
-			return written + f->flush();
+			return written + f->flushBuffers(aForce);
 		}
 		
 		size_t write(const void* wbuf, size_t len)

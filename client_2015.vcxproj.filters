@@ -379,15 +379,6 @@
     <ClCompile Include="client\ZipFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\minizip\ioapi.c">
-      <Filter>Source Files\minizip</Filter>
-    </ClCompile>
-    <ClCompile Include="client\minizip\unzip.c">
-      <Filter>Source Files\minizip</Filter>
-    </ClCompile>
-    <ClCompile Include="client\minizip\zip.c">
-      <Filter>Source Files\minizip</Filter>
-    </ClCompile>
     <ClCompile Include="client\AdcSupports.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -432,12 +423,6 @@
     </ClCompile>
     <ClCompile Include="client\webrtc\talk\base\stringutils.cc">
       <Filter>Source Files\webrtc\talk</Filter>
-    </ClCompile>
-    <ClCompile Include="client\syslog\printk.c">
-      <Filter>Source Files\syslog</Filter>
-    </ClCompile>
-    <ClCompile Include="client\syslog\syslog.c">
-      <Filter>Source Files\syslog</Filter>
     </ClCompile>
     <ClCompile Include="client\GPGPUManager.cpp">
       <Filter>Source Files</Filter>
@@ -1038,18 +1023,6 @@
     <ClInclude Include="client\ZipFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="client\minizip\crypt.h">
-      <Filter>Source Files\minizip</Filter>
-    </ClInclude>
-    <ClInclude Include="client\minizip\ioapi.h">
-      <Filter>Source Files\minizip</Filter>
-    </ClInclude>
-    <ClInclude Include="client\minizip\unzip.h">
-      <Filter>Source Files\minizip</Filter>
-    </ClInclude>
-    <ClInclude Include="client\minizip\zip.h">
-      <Filter>Source Files\minizip</Filter>
-    </ClInclude>
     <ClInclude Include="client\CFlyUserRatioInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1121,12 +1094,6 @@
     </ClInclude>
     <ClInclude Include="leveldb\port\win\leveldb_stdint.h">
       <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="client\syslog\printk.h">
-      <Filter>Source Files\syslog</Filter>
-    </ClInclude>
-    <ClInclude Include="client\syslog\syslog.h">
-      <Filter>Source Files\syslog</Filter>
     </ClInclude>
     <ClInclude Include="client\GPGPUManager.h">
       <Filter>Header Files</Filter>

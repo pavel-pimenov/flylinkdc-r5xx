@@ -27,6 +27,7 @@
 #include "QueueManagerListener.h"
 #include "SearchManagerListener.h"
 #include "LogManager.h"
+#include "SharedFileStream.h"
 
 STANDARD_EXCEPTION(QueueException);
 
@@ -96,6 +97,7 @@ class QueueManager : public Singleton<QueueManager>,
 				}
 		};
 		
+		
 		class DirectoryListInfo // [+] IRainman fix: moved from MainFrame to core.
 		{
 			public:
@@ -120,11 +122,12 @@ class QueueManager : public Singleton<QueueManager>,
 				void execute(const StringList& list);
 		} m_listMatcher;
 		
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 		class FileListQueue: public BackgroundTaskExecuter<DirectoryListInfoPtr, 15000> // [<-] IRainman fix: moved from MainFrame to core.
 		{
 				void execute(const DirectoryListInfoPtr& list);
 		} m_listQueue;
-		
+#endif
 		// [+] IRainman: auto pausing running downloads before moving.
 		struct WaiterFile
 		{
@@ -260,6 +263,9 @@ class QueueManager : public Singleton<QueueManager>,
 		static bool addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flags::MaskType addBad, bool p_is_first_load = false);
 	private:
 		static uint64_t g_lastSave;
+		static std::unordered_map<string, std::unique_ptr<SharedFileStream>> g_SharedDownloadFileCache;
+		static FastCriticalSection g_SharedDownloadFileCache_cs;
+		static void cleanSharedCache();
 	public:
 		static string getQueueFile()
 		{
@@ -299,7 +305,7 @@ class QueueManager : public Singleton<QueueManager>,
 					{
 						return n;
 					}
-					size_t flush()
+					size_t flushBuffers(bool aForce) override
 					{
 						return 0;
 					}

@@ -50,8 +50,10 @@ SystemImageList::SystemImageList()
 {
 	//Get the temp directory. This is used to then bring back the system image list
 	TCHAR pszTempDir[_MAX_PATH + 1];
+	pszTempDir[0] = 0;
 	GetTempPath(_MAX_PATH + 1, pszTempDir); // TODO - Util::getTempPath()
 	TCHAR pszDrive[_MAX_DRIVE + 1];
+	pszDrive[0] = 0;
 	_tsplitpath(pszTempDir, pszDrive, NULL, NULL, NULL);
 	const int nLen = _tcslen(pszDrive);
 	if (nLen >= 1)
@@ -69,8 +71,8 @@ SystemImageList::SystemImageList()
 
 SystemImageList* SystemImageList::getInstance()
 {
-	static SystemImageList instance;
-	return &instance;
+	static SystemImageList g_instance;
+	return &g_instance;
 }
 
 SystemImageList::~SystemImageList()

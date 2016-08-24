@@ -150,7 +150,9 @@ class CFlyServerConfig
 		static bool isErrorLog(unsigned p_error_code);
 		static bool isGuardTCPPort(uint16_t p_port);
 		static bool isExcludeCIDfromErrorLog(unsigned p_error_code);
+#ifdef FLYLINKDC_USE_SYSLOG
 		static bool isErrorSysLog(unsigned p_error_code);
+#endif
 		static bool isBlockIP(const string& p_ip);
 		static void addBlockIP(const string& p_ip);
 		void ConvertInform(string& p_inform) const;
@@ -161,7 +163,9 @@ class CFlyServerConfig
 		static std::unique_ptr<webrtc::RWLockWrapper> g_cs_guard_tcp_port;
 		static std::unordered_set<unsigned> g_exclude_error_log;
 		static std::unordered_set<unsigned> g_exclude_cid_error_log;
+#ifdef FLYLINKDC_USE_SYSLOG
 		static std::unordered_set<unsigned> g_exclude_error_syslog;
+#endif
 		static std::vector<std::string> g_exclude_tag_inform;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		bool     m_send_full_mediainfo; // Если = true на сервер шлем данные если есть полная информация о медиа-файле
@@ -187,7 +191,6 @@ class CFlyServerConfig
 		static const std::vector<CServerItem>& getMirrorTestPortServerArray();
 		
 		static const CServerItem& getRandomMirrorServer(bool p_is_set);
-//
 		bool isInit() const
 		{
 			return !m_scan.empty();
@@ -216,6 +219,7 @@ class CFlyServerConfig
 #ifdef STRONG_USE_DHT
 	private:
 		static std::vector<DHTServer> g_dht_servers;
+		static uint16_t g_min_interval_dth_connect;
 	public:
 		static const DHTServer& getRandomDHTServer();
 #endif // STRONG_USE_DHT
@@ -270,7 +274,6 @@ class CFlyServerConfig
 		static uint16_t g_max_unique_tth_search;
 		static uint16_t g_max_unique_file_search;
 		static uint16_t g_ban_ddos_connect_to_me;
-		static uint16_t g_min_interval_dth_connect;
 		static uint16_t g_interval_flood_command;
 		static uint16_t g_max_flood_command;
 		static uint16_t g_ban_flood_command;
@@ -515,7 +518,9 @@ class CFlyServerJSON
 		static bool pushStatistic(const bool p_is_sync_run);
 #endif
 		static bool pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info = false);
+#ifdef FLYLINKDC_USE_SYSLOG
 		static void pushSyslogError(const string& p_error);
+#endif
 		static bool setTestPortOK(unsigned short p_port, const std::string& p_type);
 		static bool isTestPortOK(unsigned short p_port, const std::string& p_type, bool p_is_assert = false);
 		static bool pushTestPort(const std::vector<unsigned short>& p_udp_port,

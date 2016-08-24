@@ -252,6 +252,8 @@ void NetworkPage::fixControls()
 	//const BOOL nat_traversal = IsDlgButtonChecked(IDC_NATT) == BST_CHECKED;
 #ifdef STRONG_USE_DHT
 	const BOOL dht = IsDlgButtonChecked(IDC_SETTINGS_USE_DHT) == BST_CHECKED;
+#else
+	const BOOL dht = FALSE;
 #endif
 	const BOOL passive = IsDlgButtonChecked(IDC_FIREWALL_PASSIVE) == BST_CHECKED;
 	
@@ -262,14 +264,15 @@ void NetworkPage::fixControls()
 	::EnableWindow(GetDlgItem(IDC_FIREWALL_UPNP), !auto_detect);
 	::EnableWindow(GetDlgItem(IDC_FIREWALL_NAT), !auto_detect);
 	::EnableWindow(GetDlgItem(IDC_FIREWALL_PASSIVE), !auto_detect);
-#ifdef STRONG_USE_DHT
+	
 	::EnableWindow(GetDlgItem(IDC_UPDATE_IP_DHT), dht); // [!] IRainman  if DHT is enable allow update IP from packets taked place firewall.
 	::EnableWindow(GetDlgItem(IDC_PORT_DHT), dht);
 	//SetStage(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO, dht ? StageWait : StageUnknown); // StageUnknown - не показывается
 	//::EnableWindow(GetDlgItem(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO),dht);
-	
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_USE_DHT_NOTANSWER), dht);
-#endif
+	::EnableWindow(GetDlgItem(IDC_SETTINGS_PORT_DHT), dht);
+	::EnableWindow(GetDlgItem(IDC_SETTINGS_USE_DHT), dht);
+	
 	m_is_manual = wan_ip_manual;
 	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), m_is_manual);
 	

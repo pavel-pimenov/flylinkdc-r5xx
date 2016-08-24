@@ -280,12 +280,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			fly_fire1(ClientListener::CheatMessage(), msg);
 		}
-		/* [!] IRainman fix
-		void reportUser(const Identity& i)
-		{
-		    fly_fire2(ClientListener::UserReport(), this, i);
-		}
-		*/
+		
 		void reportUser(const string& report)
 		{
 			fly_fire2(ClientListener::UserReport(), this, report);

@@ -103,7 +103,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		}
 		static UserPtr findUser(const CID& cid);
 		static UserPtr findLegacyUser(const string& aNick, const string& aHubUrl);
-		                             
+		
 		static const string findMyNick(const string& hubUrl);
 		
 		// [+] brain-ripper
@@ -264,7 +264,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static void fileListDisconnected(const UserPtr& p);
 #endif
 		static void connectionTimeout(const UserPtr& p);
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 		static void checkCheating(const UserPtr& p, DirectoryListing* dl);
+#endif
 		static void setClientStatus(const UserPtr& p, const string& aCheatString, const int aRawCommand, bool aBadClient);
 		
 		static void setSupports(const UserPtr& p, StringList& aSupports, const uint8_t knownUcSupports);

@@ -114,22 +114,27 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 
 void DirectoryListing::loadFile(const string& p_file, bool p_own_list)
 {
+#ifdef _DEBUG
+	LogManager::message("DirectoryListing::loadFile = " + p_file);
+#endif
 	m_file = p_file;
 	// For now, we detect type by ending...
 	const string ext = Util::getFileExt(p_file);
-	
-	::File ff(p_file, ::File::READ, ::File::OPEN);
-	if (stricmp(ext, ".bz2") == 0
-	        || stricmp(ext, ".dcls") == 0 // [+] IRainman dclst support
-	        || stricmp(ext, ".dclst") == 0 // [+] SSA dclst support
-	   )
+	if (!ClientManager::isBeforeShutdown())
 	{
-		FilteredInputStream<UnBZFilter, false> f(&ff);
-		loadXML(f, false, p_own_list);
-	}
-	else if (stricmp(ext, ".xml") == 0)
-	{
-		loadXML(ff, false, p_own_list);
+		::File ff(p_file, ::File::READ, ::File::OPEN);
+		if (stricmp(ext, ".bz2") == 0
+		        || stricmp(ext, ".dcls") == 0 // [+] IRainman dclst support
+		        || stricmp(ext, ".dclst") == 0 // [+] SSA dclst support
+		   )
+		{
+			FilteredInputStream<UnBZFilter, false> f(&ff);
+			loadXML(f, false, p_own_list);
+		}
+		else if (stricmp(ext, ".xml") == 0)
+		{
+			loadXML(ff, false, p_own_list);
+		}
 	}
 }
 
@@ -263,9 +268,9 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 		// dcdebug("ListLoader::startTag g_max_attribs_size = %d , attribs.capacity() = %d\n", g_max_attribs_size, attribs.capacity());
 	}
 #endif
-	if (ClientManager::isShutdown())
+	if (ClientManager::isBeforeShutdown())
 	{
-		throw AbortException("ListLoader::startTag - ClientManager::isShutdown()");
+		throw AbortException("ListLoader::startTag - ClientManager::isBeforeShutdown()");
 	}
 	if (m_list->getAbort())
 	{
@@ -438,17 +443,19 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 					}
 					else
 					{
-						if (!CFlyServerConfig::isParasitFile(f->getName())) // TODO - опимизнуть по расширениям
+						// TODO if(l_size >= 100 * 1024 *1024)
 						{
-							f->setFlag(DirectoryListing::FLAG_NOT_SHARED);
-							// TODO - копипаста
-							const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(f->getTTH()); // TODO - унести в отдельную нитку?
-							if (l_status_file & CFlylinkDBManager::PREVIOUSLY_DOWNLOADED)
-								f->setFlag(DirectoryListing::FLAG_DOWNLOAD);
-							if (l_status_file & CFlylinkDBManager::VIRUS_FILE_KNOWN)
-								f->setFlag(DirectoryListing::FLAG_VIRUS_FILE);
-							if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE)
-								f->setFlag(DirectoryListing::FLAG_OLD_TTH);
+							if (!CFlyServerConfig::isParasitFile(f->getName())) // TODO - опимизнуть по расширениям
+							{
+								f->setFlag(DirectoryListing::FLAG_NOT_SHARED);
+								const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(f->getTTH()); // TODO - унести в отдельную нитку?
+								if (l_status_file & CFlylinkDBManager::PREVIOUSLY_DOWNLOADED)
+									f->setFlag(DirectoryListing::FLAG_DOWNLOAD);
+								if (l_status_file & CFlylinkDBManager::VIRUS_FILE_KNOWN)
+									f->setFlag(DirectoryListing::FLAG_VIRUS_FILE);
+								if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE)
+									f->setFlag(DirectoryListing::FLAG_OLD_TTH);
+							}
 						}
 					}
 				}//[+] FlylinkDC++
@@ -646,11 +653,19 @@ void DirectoryListing::download(const string& aDir, const string& aTarget, bool 
 void DirectoryListing::download(const File* aFile, const string& aTarget, bool view, bool highPrio, QueueItem::Priority prio, bool p_isDCLST, bool p_first_file)
 {
 	const Flags::MaskType flags = (Flags::MaskType)(view ? ((p_isDCLST ? QueueItem::FLAG_DCLST_LIST : QueueItem::FLAG_TEXT) | QueueItem::FLAG_CLIENT_VIEW) : 0);
-	
-	QueueManager::getInstance()->add(0, aTarget, aFile->getSize(), aFile->getTTH(), getUser(), flags, true, p_first_file); // TODO
+	try
+	{
+		QueueManager::getInstance()->add(0, aTarget, aFile->getSize(), aFile->getTTH(), getUser(), flags, true, p_first_file); // TODO
+	}
+	catch (const Exception& e)
+	{
+		LogManager::message("QueueManager::getInstance()->add Error = " + e.getError());
+	}
 	
 	if (highPrio || (prio != QueueItem::DEFAULT))
+	{
 		QueueManager::getInstance()->setPriority(aTarget, highPrio ? QueueItem::HIGHEST : prio);
+	}
 }
 
 DirectoryListing::Directory* DirectoryListing::find(const string& aName, Directory* current)

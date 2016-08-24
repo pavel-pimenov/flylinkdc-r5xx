@@ -143,7 +143,7 @@ void Download::getCommand(AdcCommand& cmd, bool zlib) const
 	{
 		cmd.addParam("TTH/" + getTTH().toBase32());
 	}
-	dcassert(getStartPos() >= 0);
+	//dcassert(getStartPos() >= 0);
 	cmd.addParam(Util::toString(getStartPos()));
 	cmd.addParam(Util::toString(getSize()));
 	

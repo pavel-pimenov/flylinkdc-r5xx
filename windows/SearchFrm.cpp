@@ -1849,9 +1849,11 @@ void SearchFrame::SearchInfo::Download::operator()(const SearchInfo* si)
 						QueueManager::getInstance()->add(0, target, j->m_sr.getSize(), j->m_sr.getTTH(), j->m_sr.getHintedUser(), mask);
 					}
 				}
-				catch (const Exception&)
+				catch (const Exception& e)
 				{
+					LogManager::message("QueueManager::getInstance()->add Error = " + e.getError());
 				}
+				
 			}
 			if (prio != QueueItem::DEFAULT)
 				QueueManager::getInstance()->setPriority(target, prio);
@@ -1861,9 +1863,11 @@ void SearchFrame::SearchInfo::Download::operator()(const SearchInfo* si)
 			QueueManager::getInstance()->addDirectory(si->m_sr.getFile(), si->m_sr.getHintedUser(), Text::fromT(m_tgt), prio);
 		}
 	}
-	catch (const Exception&)
+	catch (const Exception& e)
 	{
+		LogManager::message("SearchInfo::Download Error = " + e.getError());
 	}
+	
 }
 
 void SearchFrame::SearchInfo::DownloadWhole::operator()(const SearchInfo* si)
@@ -1903,8 +1907,9 @@ void SearchFrame::SearchInfo::DownloadTarget::operator()(const SearchInfo* si)
 			                                          WinUtil::isShift() ? QueueItem::HIGHEST : QueueItem::DEFAULT);
 		}
 	}
-	catch (const Exception&)
+	catch (const Exception& e)
 	{
+		LogManager::message("SearchFrame::SearchInfo::DownloadTarget Error = " + e.getError());
 	}
 }
 

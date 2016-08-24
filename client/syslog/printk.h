@@ -1,6 +1,7 @@
 
 #pragma once
 
+#ifdef FLYLINKDC_USE_SYSLOG
 
 #ifndef __PRINTK_H
 #define __PRINTK_H
@@ -25,6 +26,8 @@ extern int snprintk (char *buf, int len, const char *fmt, ...)
   __attribute__((format(printf,3,4)))
 #endif
 ;
+
+#endif
 
 #endif  /* __PRINTK_H */
 

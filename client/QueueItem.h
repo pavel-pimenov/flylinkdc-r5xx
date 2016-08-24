@@ -190,7 +190,6 @@ class QueueItem : public Flags
 		bool countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const; // [+] FlylinkDC++ opt.
 		void getOnlineUsers(UserList& l) const;
 		
-		// [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
 #ifdef FLYLINKDC_USE_RWLOCK
 		static std::unique_ptr<webrtc::RWLockWrapper> g_cs;
 #else
@@ -198,11 +197,11 @@ class QueueItem : public Flags
 #endif
 		// [~]
 		
-		const SourceMap& getSourcesL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		const SourceMap& getSourcesL()
 		{
 			return m_sources;
 		}
-		const SourceMap& getBadSourcesL() // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		const SourceMap& getBadSourcesL()
 		{
 			return m_badSources;
 		}
@@ -217,11 +216,11 @@ class QueueItem : public Flags
 		{
 			return Util::getFileName(getTarget());
 		}
-		SourceIter findSourceL(const UserPtr& aUser) // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		SourceIter findSourceL(const UserPtr& aUser)
 		{
-			return m_sources.find(aUser); // [!] IRainman fix done: [6] https://www.box.net/shared/898c1974fa8c47f9614b
+			return m_sources.find(aUser);
 		}
-		SourceIter findBadSourceL(const UserPtr& aUser) // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		SourceIter findBadSourceL(const UserPtr& aUser)
 		{
 			return m_badSources.find(aUser);
 		}
@@ -237,7 +236,9 @@ class QueueItem : public Flags
 		{
 			const auto& i = m_badSources.find(aUser);
 			if (i != m_badSources.end())
+			{
 				return i->second.isAnySet((Flags::MaskType)(exceptions ^ Source::FLAG_MASK));
+			}
 			return false;
 		}
 		void getChunksVisualisation(vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) const; // [!] IRainman fix.
@@ -326,8 +327,9 @@ class QueueItem : public Flags
 		void getAllDownloadUser(UserList& p_users);
 		bool isDownloadTree();
 		UserPtr getFirstUser();
+		void getAllDownloadsUsers(UserList& p_users);
 		/** Next segment that is not done and not being downloaded, zero-sized segment returned if there is none is found */
-		Segment getNextSegmentL(const int64_t blockSize, const int64_t wantedSize, const int64_t lastSpeed, const PartialSource::Ptr &partialSource) const; // [!] IRainman fix: Please lock access to functions with postfix L with an external lock critical section in QueueItem, ie in this class.
+		Segment getNextSegmentL(const int64_t blockSize, const int64_t wantedSize, const int64_t lastSpeed, const PartialSource::Ptr &partialSource) const;
 		
 		void addSegment(const Segment& segment, bool p_is_first_load = false);
 		void addSegmentL(const Segment& segment, bool p_is_first_load = false);
@@ -461,7 +463,7 @@ class CFlySegment
 		int m_id;
 		int m_priority;
 		string m_segment;
-		CFlySegment() // :m_id(0), m_priority(0)
+		CFlySegment() : m_id(0), m_priority(QueueItem::NORMAL)
 		{
 		}
 		explicit CFlySegment(const QueueItemPtr& p_QueueItem)

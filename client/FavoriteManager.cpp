@@ -733,7 +733,6 @@ void FavoriteManager::save()
 	if (g_dontSave)
 		return;
 	CFlySafeGuard<uint16_t> l_satrt(g_dontSave);
-	// CFlyLock(cs); [-] IRainman opt.
 	try
 	{
 		SimpleXML xml;
@@ -893,7 +892,6 @@ void FavoriteManager::save()
 			File f(l_tmp_file, File::WRITE, File::CREATE | File::TRUNCATE);
 			f.write(SimpleXML::utf8Header);
 			f.write(xml.toXML());
-			f.close();
 		}
 		// Проверим валидность XML
 		try

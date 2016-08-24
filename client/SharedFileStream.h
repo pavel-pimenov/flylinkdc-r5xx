@@ -27,44 +27,44 @@
 
 struct SharedFileHandle
 {
-	SharedFileHandle(const string& aPath, int aAccess, int aMode) :
-		m_ref_cnt(1), m_path(aPath), m_mode(aMode), m_access(aAccess), m_last_file_size(0)
-	{
-	}
-	void init()
-	{
-		m_file.init(Text::toT(m_path), m_access, m_mode, true);
-		m_last_file_size = m_file.getSize();
-	}
-	FastCriticalSection m_cs;
-	File  m_file;
-	string m_path;
-	int m_ref_cnt;
-	int m_mode;
-	int m_access;
-	int64_t m_last_file_size;
-	
+		SharedFileHandle(const string& aPath, int aAccess, int aMode);
+		~SharedFileHandle();
+		void init(int64_t p_file_size);
+		
+		FastCriticalSection m_cs;
+		File  m_file;
+		string m_path;
+		int m_ref_cnt;
+		int m_mode;
+		int m_access;
+		int64_t m_last_file_size;
+		HANDLE m_map_file;
+		char* m_map_file_ptr;
+		bool m_is_map_file_error;
+	private:
+		void CloseMapFile();
 };
 
 class SharedFileStream : public IOStream
 {
 
 	public:
-		typedef std::unordered_map<std::string, std::unique_ptr<SharedFileHandle>, noCaseStringHash, noCaseStringEq> SharedFileHandleMap;
+		typedef std::unordered_map<std::string, std::shared_ptr<SharedFileHandle>, noCaseStringHash, noCaseStringEq> SharedFileHandleMap;
 		
-		SharedFileStream(const string& aFileName, int aAccess, int aMode);
+		SharedFileStream(const string& aFileName, int aAccess, int aMode, int64_t p_file_size);
 		~SharedFileStream();
 		
-		size_t write(const void* buf, size_t len);
-		size_t read(void* buf, size_t& len);
+		size_t write(const void* buf, size_t len) override;
+		size_t read(void* buf, size_t& len) override;
 		
 		//int64_t getFileSize();
 		int64_t getFastFileSize();
 		void setSize(int64_t newSize);
 		
-		size_t flush();
+		size_t flushBuffers(bool aForce) override;
 		
 		static FastCriticalSection g_shares_file_cs;
+		static std::set<char> g_error_map_file;
 #ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
 		static SharedFileHandleMap g_readpool;
 		static SharedFileHandleMap g_writepool;
@@ -74,9 +74,9 @@ class SharedFileStream : public IOStream
 		static std::unordered_set<std::string> g_shared_stream_errors;
 		static void cleanup();
 		static void check_before_destoy();
-		void setPos(int64_t aPos);
+		void setPos(int64_t aPos) override;
 	private:
-		SharedFileHandle* m_sfh;
+		std::shared_ptr<SharedFileHandle> m_sfh;
 		int64_t m_pos;
 };
 

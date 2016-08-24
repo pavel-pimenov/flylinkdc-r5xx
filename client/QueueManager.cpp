@@ -66,11 +66,11 @@ Lock std::unique_ptr<webrtc::RWLockWrapper> QueueManager::UserQueue::g_userQueue
 #ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
 std::unique_ptr<webrtc::RWLockWrapper> QueueManager::UserQueue::g_runningMapCS = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 #endif
-
+std::unordered_map<string, std::unique_ptr<SharedFileStream>> QueueManager::g_SharedDownloadFileCache;
+FastCriticalSection QueueManager::g_SharedDownloadFileCache_cs;
 
 using boost::adaptors::map_values;
 using boost::range::for_each;
-
 
 class DirectoryItem
 #ifdef _DEBUG
@@ -78,7 +78,9 @@ class DirectoryItem
 #endif
 {
 	public:
-		//DirectoryItem() : priority(QueueItem::DEFAULT) { }
+		DirectoryItem() : m_priority(QueueItem::DEFAULT)
+		{
+		}
 		DirectoryItem(const UserPtr& aUser, const string& aName, const string& aTarget,
 		              QueueItem::Priority p) : m_name(aName), m_target(aTarget), m_priority(p), m_user(aUser) { }
 		              
@@ -137,7 +139,7 @@ QueueItemPtr QueueManager::FileQueue::add(int64_t p_FlyQueueID,
 		}
 	}
 	
-	QueueItemPtr qi(new QueueItem(aTarget, aSize, p, aFlags, aAdded, root, p_maxSegments, p_FlyQueueID, aTempTarget));
+	auto qi = std::make_shared<QueueItem>(aTarget, aSize, p, aFlags, aAdded, root, p_maxSegments, p_FlyQueueID, aTempTarget);
 	
 	if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
 	{
@@ -146,7 +148,6 @@ QueueItemPtr QueueManager::FileQueue::add(int64_t p_FlyQueueID,
 	else
 	{
 		qi->setMaxSegments(getMaxSegments(qi->getSize()));
-		
 		if (p == QueueItem::DEFAULT)
 		{
 			if (BOOLSETTING(AUTO_PRIORITY_DEFAULT))
@@ -525,7 +526,13 @@ void QueueManager::UserQueue::addDownload(const QueueItemPtr& qi, const Download
 #ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
 		CFlyWriteLock(*g_runningMapCS);
 #endif
-		dcassert(g_runningMap.find(d->getUser()) == g_runningMap.end());
+#if _DEBUG
+		const auto l_item = g_runningMap.find(d->getUser());
+		if (l_item != g_runningMap.end())
+		{
+			//dcassert(g_runningMap.find(d->getUser()) == g_runningMap.end());
+		}
+#endif
 		g_runningMap[d->getUser()] = qi;
 	}
 }
@@ -792,7 +799,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 						throw Exception();
 					}
 				}
-				l_check.flush();
+				l_check.flushBuffers(true);
 				
 				l_sizes.push_back(make_pair(startPos, segmentSize));
 			}
@@ -854,6 +861,7 @@ QueueManager::QueueManager() :
 
 QueueManager::~QueueManager() noexcept
 {
+	cleanSharedCache();
 	//dcassert(m_fire_src_array.empty());
 	dcassert(m_remove_target_array.empty());
 	SearchManager::getInstance()->removeListener(this);
@@ -861,7 +869,9 @@ QueueManager::~QueueManager() noexcept
 	ClientManager::getInstance()->removeListener(this);
 	// [+] IRainman core.
 	m_listMatcher.waitShutdown();
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 	m_listQueue.waitShutdown();
+#endif
 	waiter.waitShutdown();
 	dclstLoader.waitShutdown();
 	m_mover.waitShutdown();
@@ -883,10 +893,20 @@ QueueManager::~QueueManager() noexcept
 	}
 	SharedFileStream::check_before_destoy();
 }
+void QueueManager::cleanSharedCache()
+{
+	CFlyFastLock(g_SharedDownloadFileCache_cs);
+	//dcassert(g_SharedDownloadFileCache.empty());
+	g_SharedDownloadFileCache.clear();
+}
+
 void QueueManager::shutdown() // [+] IRainman opt.
 {
+	cleanSharedCache();
 	m_listMatcher.forceStop();
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 	m_listQueue.forceStop();
+#endif
 	waiter.forceStop();
 	dclstLoader.forceStop();
 	m_mover.forceStop();
@@ -1051,7 +1071,7 @@ string QueueManager::getListPath(const UserPtr& user) const
 
 void QueueManager::get_download_connection(const UserPtr& aUser)
 {
-	if (!ClientManager::isShutdown() && ConnectionManager::isValidInstance())
+	if (!ClientManager::isBeforeShutdown() && ConnectionManager::isValidInstance())
 	{
 		ConnectionManager::getInstance()->getDownloadConnection(aUser);
 	}
@@ -1350,7 +1370,7 @@ bool QueueManager::addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flag
 		}
 		else
 		{
-			wantConnection = (qi->getPriority() != QueueItem::PAUSED)
+			wantConnection = qi->getPriority() != QueueItem::PAUSED
 			                 && !g_userQueue.getRunningL(aUser);
 		}
 		
@@ -1445,10 +1465,6 @@ QueueItem::Priority QueueManager::hasDownload(const UserPtr& aUser)
 	}
 	return qi->getPriority();
 }
-// *** WARNING ***
-// Lock(cs) makes sure that there's only one thread accessing this
-// [-] static TTHMap tthMap; [-] IRainman fix.
-
 void QueueManager::buildMap(const DirectoryListing::Directory* dir, TTHMap& tthMap) noexcept // [!] IRainman fix.
 {
 	for (auto j = dir->directories.cbegin(); j != dir->directories.cend(); ++j)
@@ -1515,6 +1531,7 @@ int QueueManager::matchListing(const DirectoryListing& dl) noexcept
 	return matches;
 }
 
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 void QueueManager::FileListQueue::execute(const DirectoryListInfoPtr& list) // [+] IRainman fix: moved form MainFrame to core.
 {
 	if (File::isExist(list->file))
@@ -1533,6 +1550,7 @@ void QueueManager::FileListQueue::execute(const DirectoryListInfoPtr& list) // [
 	}
 	delete list;
 }
+#endif
 
 void QueueManager::ListMatcher::execute(const StringList& list) // [+] IRainman fix: moved form MainFrame to core.
 {
@@ -1771,7 +1789,7 @@ class TreeOutputStream : public OutputStream
 			return len;
 		}
 		
-		size_t flush()
+		size_t flushBuffers(bool aForce) override
 		{
 			return 0;
 		}
@@ -1821,18 +1839,26 @@ void QueueManager::setFile(const DownloadPtr& d)
 		}
 		
 		// open stream for both writing and reading, because UploadManager can request reading from it
-		auto f = new SharedFileStream(l_target, File::RW, File::OPEN | File::CREATE | File::SHARED | File::NO_CACHE_HINT);
-		
+		const auto l_file_size = d->getTigerTree().getFileSize();
+		{
+			CFlyFastLock(g_SharedDownloadFileCache_cs);
+			auto& l_cache = g_SharedDownloadFileCache[l_target];
+			if (!l_cache.get())
+			{
+				l_cache = std::make_unique<SharedFileStream>(l_target, File::RW, File::OPEN | File::CREATE | File::SHARED | File::NO_CACHE_HINT, l_file_size);
+			}
+		}
+		auto f = new SharedFileStream(l_target, File::RW, File::OPEN | File::CREATE | File::SHARED | File::NO_CACHE_HINT, l_file_size);
 		// Only use antifrag if we don't have a previous non-antifrag part
-		if (BOOLSETTING(ANTI_FRAG))
+		// if (BOOLSETTING(ANTI_FRAG))
+		// Всегда юзаем антифрагментатор
 		{
 			if (qi->getSize() != qi->getLastSize())
 			{
 				if (f->getFastFileSize() != qi->getSize())
 				{
-					const auto l_size = d->getTigerTree().getFileSize();
-					f->setSize(l_size);
-					qi->setLastSize(l_size);
+					f->setSize(l_file_size);
+					qi->setLastSize(l_file_size);
 				}
 			}
 			else
@@ -1885,16 +1911,22 @@ void QueueManager::setFile(const DownloadPtr& d)
 	}
 }
 
-void QueueManager::moveFile(const string& source, const string& p_target)
+void QueueManager::moveFile(const string& p_source, const string& p_target)
 {
-	File::ensureDirectory(p_target);
-	if (File::getSize(source) > MOVER_LIMIT)
 	{
-		m_mover.moveFile(source, p_target);
+		CFlyFastLock(g_SharedDownloadFileCache_cs);
+		dcassert(g_SharedDownloadFileCache.find(p_source) != g_SharedDownloadFileCache.end());
+		g_SharedDownloadFileCache.erase(p_source);
+	}
+	// TODO - принудительно закрывать файл по имени в пуле.
+	File::ensureDirectory(p_target);
+	if (File::getSize(p_source) > MOVER_LIMIT)
+	{
+		m_mover.moveFile(p_source, p_target);
 	}
 	else
 	{
-		internalMoveFile(source, p_target);
+		internalMoveFile(p_source, p_target);
 	}
 }
 
@@ -1957,7 +1989,7 @@ void QueueManager::moveStuckFile(const QueueItemPtr& qi)
 void QueueManager::fire_sources_updated(const QueueItemPtr& qi)
 {
 	//dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		CFlyLock(m_cs_fire_src);
 		m_fire_src_array.insert(qi->getTarget());
@@ -1981,7 +2013,7 @@ void QueueManager::fire_removed(const QueueItemPtr& qi)
 void QueueManager::fire_status_updated(const QueueItemPtr& qi)
 {
 	//dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		fly_fire1(QueueManagerListener::StatusUpdated(), qi);
 	}
@@ -2005,7 +2037,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 		// return;
 	}
 #endif
-	UserList getConn;
+	UserList l_getConn;
 	string fileName;
 	const HintedUser l_hintedUser = aDownload->getHintedUser(); // crash https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=155631
 	UserPtr l_user = aDownload->getUser();
@@ -2139,7 +2171,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 							}
 							
 							// Check if we need to move the file
-							if (aDownload->getType() == Transfer::TYPE_FILE && !aDownload->getTempTarget().empty() && (stricmp(p_path.c_str(), aDownload->getTempTarget().c_str()) != 0))
+							if (aDownload->getType() == Transfer::TYPE_FILE && !aDownload->getTempTarget().empty() && stricmp(p_path.c_str(), aDownload->getTempTarget().c_str()) != 0)
 							{
 								if (!q->isSet(Download::FLAG_USER_GET_IP))
 									// TODO !q->isSet(Download::FLAG_USER_CHECK)
@@ -2182,6 +2214,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 							}
 							
 							{
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 								if (q->isSet(QueueItem::FLAG_USER_LIST))
 								{
 									const auto l_user = q->getFirstUser();
@@ -2190,6 +2223,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 										m_listQueue.addTask(new DirectoryListInfo(HintedUser(l_user, Util::emptyString), q->getListName(), dir, aDownload->getRunningAverage()));
 									}
 								}
+#endif
 								WLock(*QueueItem::g_cs);
 								g_userQueue.removeQueueItemL(q);
 							}
@@ -2261,7 +2295,16 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 					
 					if (q->getPriority() != QueueItem::PAUSED)
 					{
-						q->getOnlineUsers(getConn);
+						if (aDownload->m_reason.empty())
+						{
+							q->getOnlineUsers(l_getConn);
+						}
+						else
+						{
+#ifdef _DEBUG
+							LogManager::message("Skip get connection - reason = " + aDownload->m_reason);
+#endif
+						}
 					}
 					
 					g_userQueue.removeDownload(q, aDownload->getUser());
@@ -2287,7 +2330,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 		aDownload.reset();
 	}
 	
-	for (auto i = getConn.cbegin(); i != getConn.cend(); ++i)
+	for (auto i = l_getConn.cbegin(); i != l_getConn.cend(); ++i)
 	{
 		get_download_connection(*i);
 	}
@@ -2383,21 +2426,26 @@ void QueueManager::fire_remove_internal(const QueueItemPtr& p_qi, bool p_is_remo
 {
 	if (p_is_batch_remove)
 	{
-		CFlyLock(m_cs_target_array);
-		m_remove_target_array.push_back(p_qi->getTarget());
+		{
+			CFlyLock(m_cs_target_array);
+			m_remove_target_array.push_back(p_qi->getTarget());
+		}
 	}
 	else
+	{
 		fire_removed(p_qi);
-		
+	}
+	
 	if (p_is_remove_item)
 	{
 		if (p_is_force_remove_item || p_is_remove_item && !p_qi->isFinished())
 		{
 			WLock(*QueueItem::g_cs);
-			g_userQueue.removeQueueItemL(p_qi);
+			g_userQueue.removeQueueItemL(p_qi, false);
 		}
 	}
 	g_fileQueue.removeDeferredDB(p_qi, p_is_batch_remove);
+	fly_fire1(QueueManagerListener::RemovedTransfer(), p_qi);
 }
 bool QueueManager::removeTarget(const string& aTarget, bool p_is_batch_remove)
 {
@@ -2570,11 +2618,11 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 
 void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noexcept
 {
-	UserList getConn;
+	UserList l_getConn;
 	bool running = false;
 	
 	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		QueueItemPtr q = QueueManager::FileQueue::find_target(aTarget);
 		if (q != nullptr && q->getPriority() != p)
@@ -2590,7 +2638,7 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 				if (q->getPriority() == QueueItem::PAUSED || p == QueueItem::HIGHEST)
 				{
 					// Problem, we have to request connections to all these users...
-					q->getOnlineUsers(getConn);
+					q->getOnlineUsers(l_getConn);
 				}
 				g_userQueue.setQIPriority(q, p); // !!!!!!!!!!!!!!!!!! Удаляет и вставляет в массив каждую секунду
 #ifdef _DEBUG
@@ -2605,11 +2653,13 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 	if (p == QueueItem::PAUSED)
 	{
 		if (running)
+		{
 			DownloadManager::abortDownload(aTarget);
+		}
 	}
 	else
 	{
-		for (auto i = getConn.cbegin(); i != getConn.cend(); ++i)
+		for (auto i = l_getConn.cbegin(); i != l_getConn.cend(); ++i)
 		{
 			get_download_connection(*i);
 		}
@@ -2948,6 +2998,14 @@ void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchRes
 						}
 						break;
 					}
+					else
+					{
+						// Нашли источник но он не активный еще
+						if (qi->getPriority() != QueueItem::PAUSED && !g_userQueue.getRunningL(sr->getUser()))
+						{
+							wantConnection = true;
+						}
+					}
 				}
 			}
 		}
@@ -2968,10 +3026,10 @@ void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchRes
 				// ...
 			}
 		}
-		if (wantConnection && sr->getUser()->isOnline())
-		{
-			get_download_connection(sr->getUser());
-		}
+	}
+	if (wantConnection && sr->getUser()->isOnline())
+	{
+		get_download_connection(sr->getUser());
 	}
 }
 
@@ -3069,37 +3127,33 @@ void QueueManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		return;
 		
 	QueueItem::PriorityArray l_priorities;
-	
-	if (!ClientManager::isShutdown())
+	QueueItemList l_runningItems;
 	{
-		QueueItemList l_runningItems;
+		static int g_filter = 101;
+		if ((g_filter++ % 10) == 0) // Делаем расчет приоритетов реже
 		{
-			static int g_filter = 101;
-			if ((g_filter++ % 10) == 0) // Делаем расчет приоритетов реже
-			{
-				RLock(*FileQueue::g_csFQ);
-				calcPriorityAndGetRunningFilesL(l_priorities, l_runningItems);
-			}
+			RLock(*FileQueue::g_csFQ);
+			calcPriorityAndGetRunningFilesL(l_priorities, l_runningItems);
 		}
-		if (!l_runningItems.empty())
+	}
+	if (!l_runningItems.empty())
+	{
+		fly_fire1(QueueManagerListener::Tick(), l_runningItems); // Нельзя звать под локом
+	}
+	{
+		StringList l_fire_src_array;
 		{
-			fly_fire1(QueueManagerListener::Tick(), l_runningItems); // Нельзя звать под локом
+			CFlyLock(m_cs_fire_src);
+			l_fire_src_array.reserve(m_fire_src_array.size());
+			for (auto i = m_fire_src_array.cbegin(); i != m_fire_src_array.cend(); ++i)
+			{
+				l_fire_src_array.push_back(*i);
+			}
+			m_fire_src_array.clear();
 		}
+		if (!l_fire_src_array.empty())
 		{
-			StringList l_fire_src_array;
-			{
-				CFlyLock(m_cs_fire_src);
-				l_fire_src_array.reserve(m_fire_src_array.size());
-				for (auto i = m_fire_src_array.cbegin(); i != m_fire_src_array.cend(); ++i)
-				{
-					l_fire_src_array.push_back(*i);
-				}
-				m_fire_src_array.clear();
-			}
-			if (!l_fire_src_array.empty())
-			{
-				fly_fire1(QueueManagerListener::TargetsUpdated(), l_fire_src_array);
-			}
+			fly_fire1(QueueManagerListener::TargetsUpdated(), l_fire_src_array);
 		}
 	}
 	
@@ -3140,7 +3194,7 @@ bool QueueManager::dropSource(const DownloadPtr& aDownload)
 		{
 			const size_t iHighSpeed = SETTING(DISCONNECT_FILE_SPEED);
 			
-			if ((iHighSpeed == 0 || overallSpeed > iHighSpeed * 1024))
+			if (iHighSpeed == 0 || overallSpeed > iHighSpeed * 1024)
 			{
 				aDownload->setFlag(Download::FLAG_SLOWUSER);
 				

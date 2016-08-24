@@ -52,7 +52,9 @@ class DownloadManagerListener
 		
 		typedef X<0> Complete;
 		typedef X<1> Failed;
+#ifdef FLYLINKDC_USE_DOWNLOAD_STARTING_FIRE
 		typedef X<2> Starting;
+#endif
 		typedef X<3> Tick;
 		typedef X<4> Requesting;
 		typedef X<5> Status;
@@ -63,10 +65,12 @@ class DownloadManagerListener
 		 */
 		virtual void on(Requesting, const DownloadPtr& aDownload) noexcept { }
 		
+#ifdef FLYLINKDC_USE_DOWNLOAD_STARTING_FIRE
 		/**
 		 * This is the first message sent before a download starts.
 		 */
 		virtual void on(Starting, const DownloadPtr& aDownload) noexcept { }
+#endif
 		
 		/**
 		 * Sent once a second if something has actually been downloaded.

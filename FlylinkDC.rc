@@ -1738,7 +1738,7 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
 EXSTYLE WS_EX_TRANSPARENT | WS_EX_STATICEDGE
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    LTEXT           "This functionality is still under construction or disabled in that version.",IDC_FUNCTIONAL_IS_DISABLED,16,127,295,17
+    LTEXT           "This functionality disabled in that version.",IDC_FUNCTIONAL_IS_DISABLED,16,127,295,17
 END
 
 IDD_MESSAGES_CHAT_PAGE DIALOGEX 0, 0, 325, 300

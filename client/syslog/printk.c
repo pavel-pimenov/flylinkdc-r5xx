@@ -29,6 +29,8 @@
  *
  */
 
+#ifdef FLYLINKDC_USE_SYSLOG
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -548,3 +550,4 @@ static const char *str_error (DWORD err, BOOL sys_err)
   return rip (buf);
 }
 
+#endif // #ifdef FLYLINKDC_USE_SYSLOG

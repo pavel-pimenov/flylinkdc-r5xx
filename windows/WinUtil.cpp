@@ -382,8 +382,8 @@ COLORREF HLS_TRANSFORM(COLORREF rgb, int percent_L, int percent_S)
 // !SMT!-UI
 void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLORREF &bg, unsigned short& p_flag_mask, const OnlineUserPtr& onlineUser)
 {
-#ifdef IRAINMAN_ENABLE_AUTO_BAN
 	bool l_is_favorites = false;
+#ifdef IRAINMAN_ENABLE_AUTO_BAN
 	if (SETTING(ENABLE_AUTO_BAN))
 	{
 		if ((p_flag_mask & IS_AUTOBAN) == IS_AUTOBAN)
@@ -398,11 +398,15 @@ void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLOR
 				p_flag_mask = (p_flag_mask & ~IS_FAVORITE);
 		}
 		if (p_flag_mask & IS_AUTOBAN)
+		{
 			bg = SETTING(BAN_COLOR);
+		}
 	}
 #endif // IRAINMAN_ENABLE_AUTO_BAN
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 	if (p_is_op && onlineUser) // Возможно фикс https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=38000
 	{
+	
 		const auto fc = onlineUser->getIdentity().getFakeCard();
 		if (fc & Identity::BAD_CLIENT)
 		{
@@ -420,6 +424,7 @@ void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLOR
 			return;
 		}
 	}
+#endif // FLYLINKDC_USE_DETECT_CHEATING
 #ifdef _DEBUG
 	//LogManager::message("Colors::getUserColor, user = " + user->getLastNick() + " color = " + Util::toString(fg));
 #endif
@@ -2762,7 +2767,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 						}
 						catch (const Exception& e)
 						{
-							LogManager::message(e.getError());
+							LogManager::message("QueueManager::getInstance()->add Error = " + e.getError());
 						}
 						break;
 						
@@ -2778,8 +2783,9 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 						}
 						catch (const Exception& e)
 						{
-							LogManager::message(e.getError());
+							LogManager::message("QueueManager::getInstance()->add Error = " + e.getError());
 						}
+						
 					}
 					break;
 					case MA_ASK:
@@ -4177,11 +4183,13 @@ bool WinUtil::GetDlgItemText(HWND p_Dlg, int p_ID, tstring& p_str)
 	if (l_id == NULL)
 	{
 		dcassert(0);
-		throw Exception("GetDlgItemText error");
+		CFlyServerJSON::pushError(64, "error WinUtil::GetDlgItemText p_ID = " + Util::toString(p_ID));
+		return false; // fix https://drdump.com/Problem.aspx?ProblemID=226877
 	}
 	else
 	{
 		const int l_size = ::GetWindowTextLength(l_id);
+		p_str.clear();
 		if (l_size > 0)
 		{
 			p_str.resize(l_size + 1);
@@ -4190,11 +4198,6 @@ bool WinUtil::GetDlgItemText(HWND p_Dlg, int p_ID, tstring& p_str)
 			p_str.resize(l_size_text);
 			return true;
 		}
-		else
-		{
-			p_str.clear();
-		}
-		
 	}
 	return false;
 }

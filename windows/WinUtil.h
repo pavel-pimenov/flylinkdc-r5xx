@@ -1332,8 +1332,10 @@ struct Colors
 	}
 	enum Mask
 	{
+#ifdef IRAINMAN_ENABLE_AUTO_BAN
 		IS_AUTOBAN  = 0x0003,
 		IS_AUTOBAN_ON = 0x0001,
+#endif
 		IS_FAVORITE = 0x0003 << 2,
 		IS_FAVORITE_ON = 0x0001 << 2,
 		IS_BAN      = 0x0003 << 4,
@@ -1887,7 +1889,15 @@ class WinUtil
 		}
 		static CAtlString toAtlString(const tstring& str)
 		{
-			return CAtlString(str.c_str(), str.size());
+			dcassert(!str.empty());
+			if (!str.empty())
+			{
+				return CAtlString(str.c_str(), str.size());
+			}
+			else
+			{
+				return CAtlString();
+			}
 		}
 		static CAtlString toAtlString(const string& str)
 		{

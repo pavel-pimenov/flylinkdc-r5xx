@@ -1669,7 +1669,7 @@
 	<string name="ThemeChangeThemeInfo">Restart the program to change the theme</string>
 	<string name="ThemeDefaultName">FlylinkDC++ Default theme</string>
 	<string name="ThisFileWasInMyShare">This file was in my share</string>
-	<string name="ThisFunctionalIsDisabled">This functionality is still under construction or disabled in that version.</string>
+	<string name="ThisFunctionalIsDisabled">This functionality disabled in that version.</string>
 	<string name="ThisVersionReleased">This version released or there is a newer version</string>
 	<string name="Threshold">Threshold users</string>
 	<string name="TicksSpeedDown">5 ticks down speed:</string>

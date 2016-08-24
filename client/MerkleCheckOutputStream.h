@@ -55,7 +55,7 @@ class MerkleCheckOutputStream : public OutputStream
 			}
 		}
 		
-		size_t flush()
+		size_t flushBuffers(bool aForce) override
 		{
 			if (bufPos != 0)
 				cur.update(buf, bufPos);
@@ -71,7 +71,7 @@ class MerkleCheckOutputStream : public OutputStream
 			{
 				checkTrees();
 			}
-			return s->flush();
+			return s->flushBuffers(aForce);
 		}
 		
 		void commitBytes(const void* b, size_t len)

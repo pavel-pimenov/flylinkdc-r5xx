@@ -5,6 +5,7 @@
  *    by G. Vanem <giva@bgnett.no>  Jun-2003
  */
 
+#ifdef FLYLINKDC_USE_SYSLOG
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -429,3 +430,5 @@ const char *syslog_loghost (const char *host)
      return (NULL);
   return (logHostName);
 }
+
+#endif // FLYLINKDC_USE_SYSLOG

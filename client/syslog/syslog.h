@@ -38,6 +38,7 @@
 
 #pragma once
 
+#ifdef FLYLINKDC_USE_SYSLOG
 
 #ifndef _WIN32_SYSLOG_H
 #define _WIN32_SYSLOG_H
@@ -195,4 +196,5 @@ const char *syslog_strerror (void);
 };
 #endif
 
+#endif // FLYLINKDC_USE_SYSLOG
 #endif

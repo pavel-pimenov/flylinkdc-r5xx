@@ -441,6 +441,9 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message, bool p_is_lock_redraw)
 							else
 							{
 							}
+							safe_release(pObject);
+							safe_release(pOleClientSite);
+							safe_release(m_pRichEditOle);
 						}
 						else
 						{
@@ -1608,4 +1611,18 @@ COM_DECLSPEC_NOTHROW HRESULT STDMETHODCALLTYPE ChatCtrl::GetContextMenu(THIS_ WO
 	::DefWindowProc(m_hWnd, WM_CONTEXTMENU, (WPARAM)m_hWnd, GetMessagePos());
 	return S_OK;
 }
+void ChatCtrl::setHubParam(const string& sUrl, const string& sNick)
+{
+	if (!sNick.empty())
+	{
+		m_MyNickLower = WinUtil::toAtlString(sNick);
+		m_MyNickLower.MakeLower();
+	}
+	else
+	{
+		m_MyNickLower = _T("");
+	}
+	m_HubHint = sUrl;    // !SMT!-S
+}
+
 #endif // IRAINMAN_INCLUDE_SMILE

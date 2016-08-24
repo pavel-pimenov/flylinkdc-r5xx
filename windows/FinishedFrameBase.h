@@ -548,7 +548,15 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					if (ii->m_entry->getTTH() != TTHValue() && !File::isExist(ii->m_entry->getTarget()))
 					{
 						const UserPtr l_user = ClientManager::findLegacyUser(ii->m_entry->getNick(), ii->m_entry->getHub());
-						QueueManager::getInstance()->add(0, ii->m_entry->getTarget(), ii->m_entry->getSize(), ii->m_entry->getTTH(), l_user, 0, false, true);
+						try
+						{
+							QueueManager::getInstance()->add(0, ii->m_entry->getTarget(), ii->m_entry->getSize(), ii->m_entry->getTTH(), l_user, 0, false, true);
+						}
+						catch (const Exception& e)
+						{
+							//fix https://drdump.com/Problem.aspx?ProblemID=226879
+							LogManager::message("QueueManager::getInstance()->add Error = " + e.getError());
+						}
 					}
 				}
 			}

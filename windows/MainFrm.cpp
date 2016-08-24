@@ -1677,7 +1677,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 		{
 			return 0; // [+] PPA Исключем лишнее обновление статусной строки и таскбара.
 		}
-		if (ClientManager::isShutdown() || ClientManager::isStartup())
+		if (ClientManager::isBeforeShutdown() || ClientManager::isStartup())
 		{
 			return 0;
 		}
@@ -1840,7 +1840,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	else if (wParam == DOWNLOAD_LISTING)
 	{
 		std::unique_ptr<QueueManager::DirectoryListInfo> i(reinterpret_cast<QueueManager::DirectoryListInfo*>(lParam));
-		if (!ClientManager::isShutdown())
+		if (!ClientManager::isBeforeShutdown())
 		{
 			DirectoryListingFrame::openWindow(Text::toT(i->file), Text::toT(i->dir), i->m_hintedUser, i->speed, i->isDCLST);
 		}
@@ -2316,7 +2316,9 @@ void MainFrame::getIPupdate()
 			l_udp_port.push_back(SETTING(UDP_PORT));
 			l_tcp_port.push_back(SETTING(TCP_PORT));
 			l_tcp_port.push_back(SETTING(TLS_PORT));
+#ifdef STRONG_USE_DHT
 			l_udp_port.push_back(SETTING(DHT_PORT));
+#endif
 		}
 	}
 	bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, SETTING(IPUPDATE_INTERVAL), "Get external IP");

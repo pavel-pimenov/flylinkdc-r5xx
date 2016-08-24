@@ -135,10 +135,18 @@ void ConnectivityManager::test_all_ports()
 		string l_external_ip;
 		std::vector<unsigned short> l_udp_port, l_tcp_port;
 		l_udp_port.push_back(SETTING(UDP_PORT));
+#ifdef STRONG_USE_DHT
 		l_udp_port.push_back(SETTING(DHT_PORT));
+#endif
 		l_tcp_port.push_back(SETTING(TCP_PORT));
 		l_tcp_port.push_back(SETTING(TLS_PORT));
-		if (CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0, "UDP+DHT+TCP+TLS"))
+		if (CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0,
+#ifdef STRONG_USE_DHT
+		                                 "UDP+DHT+TCP+TLS"
+#else
+		                                 "UDP+TCP+TLS"
+#endif
+		                                ))
 		{
 			if (!l_external_ip.empty())
 			{

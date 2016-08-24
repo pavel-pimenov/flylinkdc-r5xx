@@ -934,6 +934,15 @@ uint8_t QueueItem::calcActiveSegments()
 	}
 	return activeSegments;
 }
+void QueueItem::getAllDownloadsUsers(UserList& p_users)
+{
+	p_users.clear();
+	CFlyFastLock(m_fcs_download);
+	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
+	{
+		p_users.push_back(i->first);
+	}
+}
 UserPtr QueueItem::getFirstUser()
 {
 	CFlyFastLock(m_fcs_download);

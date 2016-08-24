@@ -85,13 +85,13 @@ LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 }
 
 bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Identity& replyTo,
-                              const tstring& aMessage, const string& sHubHint, const bool bMyMess,
+                              const tstring& aMessage, const string& p_HubHint, const bool bMyMess,
                               const bool bThirdPerson, const bool notOpenNewWindow /*= false*/)   // !SMT!-S
 {
 	const auto& id = bMyMess ? to : replyTo;
 	const auto& myId = bMyMess ? replyTo : to; // [+] IRainman fix.
 	
-	const string l_key = id.getUser()->getLastNick() + " + " + sHubHint;
+	const string l_key = id.getUser()->getLastNick() + " + " + p_HubHint;
 	const string l_message = Text::fromT(aMessage);
 	const bool l_is_spam = CFlyServerConfig::isSpam(l_message);
 	const auto i = g_pm_frames.find(id.getUser());
@@ -124,7 +124,7 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 		}
 		++l_count_pm;
 		// TODO - Add antispam!
-		PrivateFrame* p = new PrivateFrame(HintedUser(id.getUser(), sHubHint), myId.getNick());
+		PrivateFrame* p = new PrivateFrame(HintedUser(id.getUser(), p_HubHint), myId.getNick());
 		g_pm_frames.insert(make_pair(id.getUser(), p));
 		p->addLine(from, bMyMess, bThirdPerson, aMessage);
 		// [!] TODO! и видимо в ядро!
@@ -133,7 +133,7 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 			if (/*!(BOOLSETTING(NO_AWAYMSG_TO_BOTS) && */ !replyTo.isBotOrHub()) // [!] IRainman fix.
 			{
 				// Again, is there better way for this?
-				const FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(Util::toString(ClientManager::getHubs(id.getUser()->getCID(), sHubHint)));
+				const FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(Util::toString(ClientManager::getHubs(id.getUser()->getCID(), p_HubHint)));
 				StringMap params;
 				from.getParams(params, "user", false);
 				
@@ -151,7 +151,7 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 			}
 		}
 		// [~] TODO! и видимо в ядро!
-		SHOW_POPUP_EXT(POPUP_NEW_PM, Text::toT(id.getNick() + " - " + sHubHint), PM_PREVIEW, aMessage, 250, TSTRING(PRIVATE_MESSAGE));
+		SHOW_POPUP_EXT(POPUP_NEW_PM, Text::toT(id.getNick() + " - " + p_HubHint), PM_PREVIEW, aMessage, 250, TSTRING(PRIVATE_MESSAGE));
 		PLAY_SOUND_BEEP(PRIVATE_MESSAGE_BEEP_OPEN);
 #ifdef FLYLINKDC_USE_CHAT_BOT
 		ChatBot::getInstance()->onMessage(myId, id, aMessage, true); // !SMT!-CB
@@ -167,7 +167,7 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 		{
 			if (!bMyMess)
 			{
-				SHOW_POPUP_EXT(POPUP_PM, Text::toT(id.getNick() + " - " + sHubHint), PM_PREVIEW, aMessage, 250, TSTRING(PRIVATE_MESSAGE));
+				SHOW_POPUP_EXT(POPUP_PM, Text::toT(id.getNick() + " - " + p_HubHint), PM_PREVIEW, aMessage, 250, TSTRING(PRIVATE_MESSAGE));
 				PLAY_SOUND_BEEP(PRIVATE_MESSAGE_BEEP);
 #ifdef FLYLINKDC_USE_CHAT_BOT
 				ChatBot::getInstance()->onMessage(myId, id, aMessage, false); // !SMT!-CB

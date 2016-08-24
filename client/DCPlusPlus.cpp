@@ -85,9 +85,10 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 			break;
 	}
 	while (i < 6);
-	
+#ifdef FLYLINKDC_USE_SYSLOG
 	syslog_loghost("syslog.fly-server.ru");
 	openlog("flylinkdc", 0 , LOG_USER | LOG_INFO);
+#endif
 	
 	CFlyLog l_StartUpLog("[StartUp]");
 	
@@ -205,7 +206,9 @@ void preparingCoreToShutdown() // [+] IRainamn fix.
 		CFlyLog l_log("[Core shutdown]");
 		TimerManager::getInstance()->shutdown();
 		ClientManager::shutdown();
+#ifdef STRONG_USE_DHT
 		dht::BootstrapManager::shutdown_http();
+#endif
 		UploadManager::shutdown();
 		WebServerManager::getInstance()->shutdown();
 		HashManager::getInstance()->shutdown();
@@ -352,7 +355,10 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		extern SettingsManager* g_settings;
 		g_settings = nullptr;
 		
+#ifdef FLYLINKDC_USE_SYSLOG
 		closelog();
+#endif
+		
 		::WSACleanup();
 #ifdef _DEBUG
 		dcdebug("shutdown end - User::g_user_counts = %d OnlineUser::g_online_user_counts = %d\n", int(User::g_user_counts), int(OnlineUser::g_online_user_counts));

@@ -77,14 +77,6 @@ class Wildcard
 		{
 			return wildcardfit(pattern.c_str(), text.c_str(), useSet) == 1;
 		}
-		template<class STR>
-		static bool patternMatch(const STR& text, const STR& pattern, const bool useSet = true)
-		{
-			const STR lowerText = Text::toLower(text);
-			const STR lowerPattern = Text::toLower(pattern);
-			return patternMatchLowerCase(lowerPattern, lowerText, useSet);
-		}
-		
 		// Checks whether a text matches any pattern in a patternlist
 		template<class STR, class LIST>
 		static bool patternMatchLowerCase(const STR& text, const LIST& patternlist, const bool useSet = true)

@@ -34,9 +34,8 @@ CShellContextMenu::~CShellContextMenu()
 void CShellContextMenu::SetPath(const tstring& strPath)
 {
 	// free all allocated datas
-	if (m_psfFolder && bDelete)
-		m_psfFolder->Release();
-	m_psfFolder = NULL;
+	if (bDelete)
+		safe_release(m_psfFolder);
 	FreePIDLArray(m_pidlArray);
 	m_pidlArray = NULL;
 	

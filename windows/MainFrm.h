@@ -827,6 +827,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 			private:
 				bool m_is_sync_run;
 				unsigned m_MinuteElapsed;
+				int m_count_run;
 				int run()
 				{
 					ClientManager::flushRatio(5000);
@@ -848,12 +849,19 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 					return 0;
 				}
 			public:
-				StatisticSender() : m_is_sync_run(false)
+				StatisticSender() : m_is_sync_run(false), m_count_run(0)
 					, m_MinuteElapsed(120 - 2) // Стартуем первый раз через 2 минуты
 				{
 				}
 				void tryStartThread(const bool p_is_sync_run)
 				{
+					dcassert(m_count_run == 0);
+					if (m_count_run)
+					{
+						LogManager::message("Skip stat thread...");
+						return;
+					}
+					CFlyBusy l(m_count_run);
 					m_is_sync_run = p_is_sync_run;
 					if (++m_MinuteElapsed % 30 == 0 || p_is_sync_run) // Передачу делаем раз в 30 минут. (TODO - вынести в настройку)
 					{

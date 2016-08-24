@@ -416,7 +416,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void log(const int p_area, const StringMap& p_params);
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 		int32_t load_queue();
-		void add_sourceL(const QueueItemPtr& p_QueueItem, const CID& p_cid, const string& p_nick/*, const string& p_hub_hint*/);
+		void add_sourceL(const QueueItemPtr& p_QueueItem, const CID& p_cid, const string& p_nick, int p_hub_id);
 		bool merge_queue_itemL(QueueItemPtr& p_QueueItem);
 		void merge_queue_segmentL(const CFlySegment& p_QueueSegment);
 	private:
@@ -554,6 +554,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		{
 			return g_count_queue_source;
 		}
+#ifdef FLYLINKDC_USE_CACHE_HUB_URLS
+		string get_hub_name(unsigned p_hub_id);
+#endif
 	private:
 		__int64 convert_tth_historyL();
 		void delete_queue_sourcesL(const __int64 p_id);
@@ -777,6 +780,12 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		}
 		typedef boost::unordered_map<string, __int64> CFlyCacheDIC;
 		std::vector<CFlyCacheDIC> m_DIC;
+#ifdef FLYLINKDC_USE_CACHE_HUB_URLS
+		typedef boost::unordered_map<unsigned, string> CFlyCacheDICName;
+		CFlyCacheDICName m_HubNameMap;
+		FastCriticalSection m_hub_dic_fcs;
+#endif
+		
 		
 		CFlySQLCommand m_select_transfer;
 		CFlySQLCommand m_select_transfer_tth;

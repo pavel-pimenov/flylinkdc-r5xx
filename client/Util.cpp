@@ -192,7 +192,7 @@ void Util::moveSettings()
 				                       + " , bkpath + FileList[i] = " + bkpath + g_configFileLists[i] + " error = " + e.getError();
 				LogManager::message(l_error);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-				CFlyServerJSON::pushSyslogError("[BUG][12]  + " + l_error);
+				//CFlyServerJSON::pushError(12, "Error = " + l_error);
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 			}
 		}
@@ -218,6 +218,9 @@ const tstring Util::getModuleFileName()
 
 void Util::initialize()
 {
+#ifdef _DEBUG
+//	CFlyServerJSON::pushError(11, "Test init!");
+#endif
 	Text::initialize();
 	
 	sgenrand((unsigned long)time(NULL));
@@ -299,7 +302,7 @@ void Util::initialize()
 			if (l_error == 5)
 			{
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-				CFlyServerJSON::pushSyslogError("[BUG][11] error create/write + " + l_marker_file);
+				//CFlyServerJSON::pushError(11, "Error create/write + " + l_marker_file);
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 				intiProfileConfig();
 				// Если возможно уносим настройки в профиль (если их тамеще нет)

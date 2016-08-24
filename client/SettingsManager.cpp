@@ -1618,7 +1618,9 @@ void SettingsManager::loadOtherSettings()
 		SimpleXML xml;
 		xml.fromXML(File(getConfigFile(), File::READ, File::OPEN).read());
 		xml.stepIn();
+#ifdef IRAINMAN_ENABLE_AUTO_BAN
 		UserManager::reloadProtUsers();
+#endif
 		RSSManager::load(xml);
 		ToolbarManager::load(xml);
 		ShareManager::load(xml);
@@ -2184,7 +2186,7 @@ void SettingsManager::save(const string& aFileName)
 		BufferedOutputStream<false> f(&out, 1024);
 		f.write(SimpleXML::utf8Header);
 		xml.toXML(&f);
-		f.flush();
+		f.flushBuffers(true);
 		out.close();
 		File::deleteFile(aFileName);
 		File::renameFile(aFileName + ".tmp", aFileName);
@@ -2604,7 +2606,7 @@ void SettingsManager::exportDctheme(const tstring& file)
 		BufferedOutputStream<false> f(&l_ff, 1024);
 		f.write(SimpleXML::utf8Header);
 		xml.toXML(&f);
-		f.flush();
+		f.flushBuffers(true);
 		l_ff.close();
 	}
 	catch (const FileException& e)

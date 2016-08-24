@@ -493,9 +493,9 @@ void ADLSearchManager::matchesFile(DestDirList& destDirVector, DirectoryListing:
 					QueueManager::getInstance()->add(0,/* [-] IRainman needs for support download to specify extension dir. SETTING(DOWNLOAD_DIRECTORY) + */currentFile->getName(),
 					                                 currentFile->getSize(), currentFile->getTTH(), getUser()/*, Util::emptyString*/);
 				}
-				catch (const Exception&)
+				catch (const Exception& e)
 				{
-					// ...
+					LogManager::message("QueueManager::getInstance()->add Error = " + e.getError());
 				}
 			}
 			
@@ -642,6 +642,8 @@ void ADLSearchManager::finalizeDestinationDirectories(DestDirList& destDirVector
 
 void ADLSearchManager::matchListing(DirectoryListing& aDirList) noexcept
 {
+	if (collection.empty())
+		return;
 	StringMap params;
 	if (aDirList.getUser())
 	{
@@ -655,7 +657,7 @@ void ADLSearchManager::matchListing(DirectoryListing& aDirList) noexcept
 	prepareDestinationDirectories(destDirs, aDirList.getRoot(), params);
 	setBreakOnFirst(BOOLSETTING(ADLS_BREAK_ON_FIRST));
 	
-	string path(aDirList.getRoot()->getName());
+	const string path(aDirList.getRoot()->getName());
 	matchRecurse(destDirs, aDirList.getRoot(), path);
 	
 	finalizeDestinationDirectories(destDirs, aDirList.getRoot());

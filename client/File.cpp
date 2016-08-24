@@ -254,10 +254,31 @@ void File::setEOF()
 		throw FileException(Util::translateError());
 	}
 }
+#ifdef _DEBUG
+/*
+string File::getRealPath() const {
+    TCHAR buf[MAX_PATH];
+    auto ret = GetFinalPathNameByHandle(h, buf, MAX_PATH, FILE_NAME_OPENED);
+    if (!ret) {
+        throw FileException(Util::translateError(GetLastError()));
+    }
 
-size_t File::flush()
+    return Text::fromT(buf);
+}
+*/
+#endif
+
+size_t File::flushBuffers(bool aForce)
 {
+	/* TODO
+	if (!aForce) {
+	        return 0;
+	    }
+	*/
 #ifndef _CONSOLE
+#ifdef _DEBUG
+	auto start = boost::posix_time::microsec_clock::universal_time();;
+#endif
 	if (isOpen() && !ClientManager::isShutdown())
 	{
 		//static int g_count = 0;
@@ -276,6 +297,9 @@ size_t File::flush()
 			}
 		}
 	}
+#endif
+#ifdef _DEBUG
+	dcdebug("File %s was flushed in " I64_FMT " ms\n", "File-x-todo"/*getRealPath().c_str() */, (boost::posix_time::microsec_clock::universal_time() - start).total_milliseconds());
 #endif
 	return 0;
 }
@@ -326,7 +350,7 @@ size_t File::bz2CompressFile(const wstring & p_file, const wstring & p_file_bz2)
 			unique_ptr<OutputStream> l_outFilePtr(new File(p_file_bz2, File::WRITE, File::TRUNCATE | File::CREATE, false));
 			FilteredOutputStream<BZFilter, false> l_outFile(l_outFilePtr.get());
 			l_outSize += l_outFile.write(l_inData.get(), l_size);
-			l_outSize += l_outFile.flush();
+			l_outSize += l_outFile.flushBuffers(true);
 		}
 	}
 	return l_outSize;

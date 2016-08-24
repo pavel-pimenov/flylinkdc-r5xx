@@ -212,6 +212,7 @@
 ;Россия;Бийск;БийскаяЦифроваяСеть;;81.1.206.252:411
 ;Россия;Бийск;Интелека;;10.32.27.35
 ;Россия;Бийск;МТС;;p2p.local,peers.cn.ru,hub.magnet.211.ru
+;Россия;Бикин;Rostelecom;;bikin-hab.ddns.net
 ;Россия;Бикин;Имана ДВ;;10.31.0.2
 ;Россия;Биробиджан;Дальсвязь;;eaop2p.dyndns.org
 ;Россия;Биробиджан;ТТК;;dc.dcmagnets.ru
@@ -452,6 +453,7 @@
 ;Россия;Коломна;ИНКО;;62.182.51.210,portal.inkotel.ru
 ;Россия;Комсомольск-на-Амуре;Kmsnet-ru;;dc.kmsnet.ru
 ;Россия;Комсомольск-на-Амуре;TD-Net;;dc.kms.ru
+;Россия;Комсомольск-на-Амуре;Группа компаний МТС Комстар-Регионы;;onamur.ru:412
 ;Россия;Комсомольск-на-Амуре;ДальТэк;;192.168.1.3,192.168.12.6,192.168.12.58
 ;Россия;Комсомольск-на-Амуре;Камтек;;dc.kms.multinex.ru
 ;Россия;Комсомольск-на-Амуре;Комстар-Регионы;;172.20.98.16,dc.kms.multinex.ru,172.20.91.12:412
@@ -941,6 +943,7 @@
 ;Россия;Санкт-Петербург;ТВ-ИКС;;dc.dcmagnets.ru,dc.smarthome.spb.ru,dc.ozerki.net,dc.filimania.com,dc.maxnet.ua,piknik-dc.ru,dc.tiera.ru,favorite-hub.ru,dcmagnets.ru
 ;Россия;Санкт-Петербург;Твоё ТВ;;dc.cifracom.ru,dc.filimania.com,dc.dcmagnets.ru,dc.mside.net,dc.maxnet.ua,piknik-dc.ru,allavtovo.ru,dc.tiera.ru
 ;Россия;Санкт-Петербург;ТСИ;;allavtovo.ru,starshub.ru,dc.cifracom.ru,piknik-dc.ru,superstorm.ru,dc.maxnet.ua,dc.langate.ua,animehub.ru
+;Россия;Санкт-Петербург;Эленет;;dc.sovietred.ru:411
 ;Россия;Санкт-Петербург;Эт Хоум;;allavtovo.ru,favorite-hub.ru,dc.dcmagnets.ru,dc.cifracom.ru,piknik-dc.ru,dc.tiera.ru,dc.filimania.com,superstorm.ru,dc2.unionbest.org,unformal.interzet.ru,dc.maxnet.ua,artcool.org,promusic.interzet.ru,vidnoe.no-ip.biz,dc.home-media.ru:411,dc.arbital.ru
 ;Россия;Саратов;All;;godc.ru:4111
 ;Россия;Саратов;Билайн;;nemesis.mydc.ru,dc.sarbest.ru,dc.saratov-style.net,okt.sarbest.ru,dc.ybnet.ru,dnevnoy.vfose.ru,viphab.sytes.net,dc.corbina.net,88.147.165.83,classico.sytes.net,dc.beoff.ru,be.godc.ru:4111,hub.renet.ru,oct.sarbest.ru,p2p.cobina.net,p2p.corbina.net,adc://godc.ru:4111,hub-engels.vfose.ru:411,web.aqproject.ru,zippo.vfose.ru,vbalakove.ru,okdc.ru

@@ -55,19 +55,28 @@ class File : public IOStream
 		}
 		void init(const tstring& aFileName, int access, int mode, bool isAbsolutePath); // [+] IRainman fix
 		bool isOpen() const noexcept;
+		HANDLE getHandle() const
+		{
+			return h;
+		}
 		void close() noexcept;
 		int64_t getSize() const noexcept;
 		void setSize(int64_t newSize);
 		
 		int64_t getPos() const noexcept;
-		void setPos(int64_t pos)  throw(FileException);
+		void setPos(int64_t pos) override;
 		int64_t setEndPos(int64_t pos)  throw(FileException);
 		void movePos(int64_t pos)  throw(FileException);
 		void setEOF();
 		
 		size_t read(void* buf, size_t& len);
 		size_t write(const void* buf, size_t len);
-		size_t flush();
+		// This has no effect if aForce is false
+		// Generally the operating system should decide when the buffered data is written on disk
+		size_t flushBuffers(bool aForce = true) override;
+#ifdef _DEBUG
+		string File::getRealPath() const;
+#endif
 		
 		int64_t getLastWriteTime()const noexcept; //[+]PPA
 //		uint32_t getLastModified() const noexcept;

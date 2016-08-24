@@ -46,12 +46,19 @@ class OutputStream
 		 */
 		virtual size_t write(const void* buf, size_t len) = 0;
 		/**
-		 * This must be called before destroying the object to make sure all data
-		 * is properly written (we don't want destructors that throw exceptions
-		 * and the last flush might actually throw). Note that some implementations
-		 * might not need it...
-		 */
-		virtual size_t flush() = 0;
+		* This must be called before destroying the object to make sure all data
+		* is properly written (we don't want destructors that throw exceptions
+		* and the last flush might actually throw). Note that some implementations
+		* might not need it...
+		*
+		* If aForce is false, only data that is subject to be deleted otherwise will be flushed.
+		* This applies especially for files for which the operating system should generally decide
+		* when the buffered data is flushed on disk.
+		*/
+		
+		virtual size_t flushBuffers(bool aForce) = 0;
+		/* This only works for file streams */
+		virtual void setPos(int64_t /*pos*/) { }
 		
 		/**
 		 * @return True if stream is at expected end
@@ -81,6 +88,9 @@ class InputStream
 		 *         actually read from the stream source in this call.
 		 */
 		virtual size_t read(void* buf, size_t& len) = 0;
+		/* This only works for file streams */
+		virtual void setPos(int64_t /*pos*/) { }
+		
 		virtual void clean_stream()
 		{
 		}
@@ -104,7 +114,7 @@ class MemoryInputStream : public InputStream
 			delete[] buf;
 		}
 		
-		size_t read(void* tgt, size_t& len)
+		size_t read(void* tgt, size_t& len) override
 		{
 			len = min(len, size - pos);
 			memcpy(tgt, buf + pos, len);
@@ -142,7 +152,7 @@ class LimitedInputStream : public InputStream
 			}
 		}
 		
-		size_t read(void* buf, size_t& len)
+		size_t read(void* buf, size_t& len) override
 		{
 			dcassert(maxBytes >= 0);
 			len = (size_t)min(maxBytes, (int64_t)len);
@@ -174,7 +184,7 @@ class LimitedOutputStream : public OutputStream
 			delete s;
 		}
 		
-		size_t write(const void* buf, size_t len)
+		size_t write(const void* buf, size_t len) override
 		{
 			//dcassert(len > 0);
 			if (maxBytes < len)
@@ -185,9 +195,9 @@ class LimitedOutputStream : public OutputStream
 			return s->write(buf, len);
 		}
 		
-		size_t flush()
+		size_t flushBuffers(bool aForce) override
 		{
-			return s->flush();
+			return s->flushBuffers(aForce);
 		}
 		
 		
@@ -217,7 +227,7 @@ class BufferedOutputStream : public OutputStream
 			{
 				// We must do this in order not to lose bytes when a download
 				// is disconnected prematurely
-				flush();
+				flushBuffers(true);
 			}
 			catch (const Exception&)
 			{
@@ -228,7 +238,7 @@ class BufferedOutputStream : public OutputStream
 			}
 		}
 		
-		size_t flush()
+		size_t flushBuffers(bool aForce) override
 		{
 			if (pos > 0)
 			{
@@ -239,13 +249,13 @@ class BufferedOutputStream : public OutputStream
 			// Делаем сброс пока всегда.
 			// if (m_is_flush == false)
 			{
-				s->flush();
+				s->flushBuffers(aForce);
 				//m_is_flush = true;
 			}
 			return 0;
 		}
 		
-		size_t write(const void* wbuf, size_t len)
+		size_t write(const void* wbuf, size_t len) override
 		{
 			uint8_t* b = (uint8_t*)wbuf;
 			size_t l2 = len;
@@ -289,11 +299,11 @@ class StringOutputStream : public OutputStream
 		explicit StringOutputStream(string& p_out) : m_str(p_out) { }
 		using OutputStream::write;
 		
-		size_t flush()
+		size_t flushBuffers(bool aForce) override
 		{
 			return 0;
 		}
-		size_t write(const void* buf, size_t len)
+		size_t write(const void* buf, size_t len) override
 		{
 			m_str.append((char*)buf, len);
 			return len;

@@ -431,20 +431,23 @@ bool Identity::isUdpActive() const
 	}
 	// [~] IRainman fix.
 }
-void Identity::setExtJSON(const string& p_ExtJSON)
+bool Identity::setExtJSON(const string& p_ExtJSON)
 {
-#ifdef _DEBUG
-	if (!m_lastExtJSON.empty())
+	bool l_result = true;
+	if (m_lastExtJSON == p_ExtJSON)
 	{
-		if (m_lastExtJSON == p_ExtJSON)
-		{
-			LogManager::message("Duplicate ExtJSON = " + p_ExtJSON);
-			//dcassert(0);
-		}
-	}
-	m_lastExtJSON = p_ExtJSON;
+		l_result = false;
+#ifdef _DEBUG
+		LogManager::message("Duplicate ExtJSON = " + p_ExtJSON);
+		//dcassert(0);
 #endif
+	}
+	else
+	{
+		m_lastExtJSON = p_ExtJSON;
+	}
 	m_is_ext_json = true;
+	return l_result;
 }
 
 void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility, bool dht) const
@@ -910,6 +913,7 @@ string Identity::getVirusDesc() const
 }
 #endif
 
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 string Identity::setCheat(const ClientBase& c, const string& aCheatDescription, bool aBadClient)
 {
 	if (!c.isOp() || isOp())
@@ -929,6 +933,7 @@ string Identity::setCheat(const ClientBase& c, const string& aCheatDescription, 
 	string report = "*** " + STRING(USER) + ' ' + getNick() + " - " + cheat;
 	return report;
 }
+#endif
 
 tstring Identity::getHubs() const
 {
@@ -1103,8 +1108,9 @@ void Identity::getReport(string& p_report) const
 #ifdef FLYLINKDC_USE_REALSHARED_IDENTITY
 		appendIfValueNotEmpty(STRING(SHARED) + " - real", formatShareBytes(getRealBytesShared()));
 #endif
-		
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 		appendIfValueSetInt("Fake check card", getFakeCard());
+#endif
 		appendIfValueSetInt("Connection Timeouts", getConnectionTimeouts());
 		appendIfValueSetInt("Filelist disconnects", getFileListDisconnects());
 		

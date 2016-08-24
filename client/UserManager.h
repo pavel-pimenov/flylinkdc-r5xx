@@ -89,13 +89,15 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		static void removeFromIgnoreList(const string& userName);
 		static bool isInIgnoreList(const string& nick);
 		static void setIgnoreList(const IgnoreMap& newlist);
-		static void reloadProtUsers();
 		
+#ifdef IRAINMAN_ENABLE_AUTO_BAN
+		static void reloadProtUsers();
 		static bool protectedUserListEmpty()
 		{
 			return g_protectedUsersLower.empty();
 		}
 		static bool isInProtectedUserList(const string& userName);
+#endif
 		
 		static bool g_isEmptyIgnoreList;
 	private:
@@ -117,8 +119,10 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 		UserManager();
 		~UserManager();
 		
+#ifdef IRAINMAN_ENABLE_AUTO_BAN
 		static StringList g_protectedUsersLower;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csProtectedUsers;
+#endif
 };
 
 #endif // !defined(DCPLUSPLUS_DCPP_USER_MANAGER_H)

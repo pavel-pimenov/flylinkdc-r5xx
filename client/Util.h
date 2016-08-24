@@ -988,6 +988,12 @@ class Util
 			_snprintf(buf, _countof(buf), "%ld", val);
 			return buf;
 		}
+		static string toHexString(long val)
+		{
+			char buf[24];
+			_snprintf(buf, _countof(buf), "%X", val);
+			return buf;
+		}
 		static string toString(unsigned long val)
 		{
 			char buf[24]; //-V112
@@ -1563,7 +1569,8 @@ class BackgroundTaskExecuter : public BASE_THREAD
 		{
 			dcassert(m_runningThreadId == DWORD(-1));
 			dcassert(!m_active);
-			dcassert(m_stop);
+			//dcassert(m_stop);
+			m_stop = true;
 			join();
 		}
 		
@@ -1571,7 +1578,7 @@ class BackgroundTaskExecuter : public BASE_THREAD
 		{
 			if (p_is_check_shutdown == true)
 			{
-				dcassert(!ClientManager::isShutdown());
+				dcassert(!ClientManager::isBeforeShutdown());
 				dcassert(!m_stop);
 			}
 			if (m_stop == false)

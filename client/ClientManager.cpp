@@ -322,7 +322,6 @@ StringList ClientManager::getHubs(const CID& cid, const string& hintUrl, bool pr
 
 StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, bool priv)
 {
-	//CFlyLock(cs); [-] IRainman opt.
 #ifdef _DEBUG
 	//LogManager::message("[!!!!!!!] ClientManager::getHubNames cid = " + cid.toBase32() + " hintUrl = " + hintUrl + " priv = " + Util::toString(priv));
 #endif
@@ -393,7 +392,7 @@ StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool
 	}
 	if (ret.empty())
 	{
-			ret.insert('{' + p_cid.toBase32() + '}');
+		ret.insert('{' + p_cid.toBase32() + '}');
 	}
 	if (ret.empty())
 		return StringList();
@@ -1040,7 +1039,6 @@ uint64_t ClientManager::multi_search(const SearchParamTokenMultiClient& p_search
 		dht::DHT::getInstance()->findFile(p_search_param.m_filter, p_search_param.m_token);
 	}
 #endif
-	//CFlyLock(cs); [-] IRainman opt.
 	uint64_t estimateSearchSpan = 0;
 	if (p_search_param.m_clients.empty())
 	{
@@ -1227,7 +1225,13 @@ void ClientManager::generateNewMyCID()
 const CID& ClientManager::getMyCID()
 {
 	dcassert(g_me);
-	return g_me->getCID();
+	if (g_me)
+		return g_me->getCID();
+	else
+	{
+		static CID g_CID;
+		return g_CID;
+	}
 }
 const CID& ClientManager::getMyPID()
 {
@@ -1542,25 +1546,20 @@ void ClientManager::connectionTimeout(const UserPtr& p)
 			if (connectionTimeouts == SETTING(ACCEPTED_TIMEOUTS))
 			{
 				c = &ou.getClient();
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 				report = id.setCheat(ou.getClientBase(), "Connection timeout " + Util::toString(connectionTimeouts) + " times", false);
+#else
+				report = "Connection timeout " + Util::toString(connectionTimeouts) + " times";
+#endif
 				remove = true;
 				sendRawCommandL(ou, SETTING(TIMEOUT_RAW));
 			}
 		}
 	}
-	if (remove)
-	{
-		/*try
-		{
-		    // TODO: remove user check
-		}
-		catch (...)
-		{
-		}*/
-	}
 	cheatMessage(c, report);
 }
 
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl)
 {
 	Client* client;
@@ -1616,7 +1615,8 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl)
 	//client->updatedMyINFO(ou); // тут тоже не нужна нотификация всем подписчикам
 	cheatMessage(client, report);
 }
-
+#endif // FLYLINKDC_USE_DETECT_CHEATING
+#ifdef IRAINMAN_INCLUDE_USER_CHECK
 void ClientManager::setClientStatus(const UserPtr& p, const string& aCheatString, const int aRawCommand, bool aBadClient)
 {
 	Client* client;
@@ -1644,7 +1644,7 @@ void ClientManager::setClientStatus(const UserPtr& p, const string& aCheatString
 	//client->updatedMyINFO(ou); // Не шлем обновку подписчикам!
 	cheatMessage(client, report);
 }
-
+#endif // IRAINMAN_INCLUDE_USER_CHECK
 void ClientManager::setSupports(const UserPtr& p, StringList & aSupports, const uint8_t knownUcSupports)
 {
 	CFlyReadLock(*g_csOnlineUsers);

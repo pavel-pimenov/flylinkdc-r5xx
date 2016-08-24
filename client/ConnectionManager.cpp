@@ -184,9 +184,9 @@ void ConnectionManager::test_tcp_port()
 void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 {
 	dcassert(aUser);
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	ConnectionQueueItemPtr l_cqi;
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		{
 			CFlyWriteLock(*g_csDownloads);
@@ -207,7 +207,8 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 		}
 		if (l_cqi && !ClientManager::isBeforeShutdown())
 		{
-			fly_fire2(ConnectionManagerListener::Added(), aUser, true);
+			fly_fire2(ConnectionManagerListener::Added(), HintedUser(aUser, Util::emptyString), true);
+			return;
 		}
 #ifndef USING_IDLERS_IN_CONNECTION_MANAGER
 		DownloadManager::checkIdle(aUser);
@@ -315,7 +316,7 @@ void ConnectionManager::addOnUserUpdated(const UserPtr& aUser)
 #ifdef _DEBUG
 			if (l_res_insert.second == false)
 			{
-				LogManager::message("Skip dup g_users_for_update.insert(aUser) " + aUser->getLastNick());
+				//LogManager::message("Skip dup g_users_for_update.insert(aUser) " + aUser->getLastNick());
 			}
 #endif
 		}
@@ -346,16 +347,15 @@ void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
-		bool l_is_download = false;
-		bool l_is_upload = false;
+		std::vector<HintedUser> l_download_users;
+		std::vector<HintedUser> l_upload_users;
 		{
 			CFlyReadLock(*g_csDownloads);
 			for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 			{
 				if ((*i)->getUser() == aUser) // todo - map
 				{
-					l_is_download = true;
-					break;
+					l_download_users.push_back((*i)->getHintedUser());
 				}
 			}
 		}
@@ -366,18 +366,17 @@ void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 			{
 				if ((*i)->getUser() == aUser)  // todo - map
 				{
-					l_is_upload = true;
-					break;
+					l_upload_users.push_back((*i)->getHintedUser());
 				}
 			}
 		}
-		if (l_is_download)
+		for (auto i = l_download_users.cbegin(); i != l_download_users.cend(); ++i)
 		{
-			fly_fire2(ConnectionManagerListener::UserUpdated(), aUser, true);
+			fly_fire2(ConnectionManagerListener::UserUpdated(), *i, true);
 		}
-		if (l_is_upload)
+		for (auto i = l_upload_users.cbegin(); i != l_upload_users.cend(); ++i)
 		{
-			fly_fire2(ConnectionManagerListener::UserUpdated(), aUser, false);
+			fly_fire2(ConnectionManagerListener::UserUpdated(), *i, false);
 		}
 	}
 }
@@ -399,11 +398,11 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 	UserList l_idlers;
 #endif
-	UserList l_status_changed;
-	std::vector< std::pair<UserPtr, std::string> > l_error_download;
+	std::vector< HintedUser > l_status_changed;
+	std::vector< std::pair<HintedUser, std::string> > l_error_download;
 	{
 		CFlyReadLock(*g_csDownloads);
-		uint16_t attempts = 0;
+		uint16_t l_attempts = 0;
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 		l_idlers.swap(m_checkIdle); // [!] IRainman opt: use swap.
 #endif
@@ -431,7 +430,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 				const unsigned l_count_sec = 60;
 				const unsigned l_count_sec_connecting = 50;
 #endif
-				if (cqi->getLastAttempt() == 0 || ((SETTING(DOWNCONN_PER_SEC) == 0 || attempts < SETTING(DOWNCONN_PER_SEC)) &&
+				if (cqi->getLastAttempt() == 0 || ((SETTING(DOWNCONN_PER_SEC) == 0 || l_attempts < SETTING(DOWNCONN_PER_SEC)) &&
 				                                   cqi->getLastAttempt() + l_count_sec * 1000 * max(1, cqi->getErrors()) < aTick))
 				{
 					cqi->setLastAttempt(aTick);
@@ -473,8 +472,8 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 #endif
 							                                      cqi->m_is_active_client // <- Out param!
 							                                     );
-							l_status_changed.push_back(cqi->getUser());
-							attempts++;
+							l_status_changed.push_back(cqi->getHintedUser());
+							l_attempts++;
 						}
 						else
 						{
@@ -482,7 +481,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 							cqi->m_count_waiting = 0;
 #endif
 							cqi->setState(ConnectionQueueItem::NO_DOWNLOAD_SLOTS);
-							l_error_download.push_back(make_pair(cqi->getUser(), STRING(ALL_DOWNLOAD_SLOTS_TAKEN)));
+							l_error_download.push_back(make_pair(cqi->getHintedUser(), STRING(ALL_DOWNLOAD_SLOTS_TAKEN)));
 						}
 					}
 					else if (cqi->getState() == ConnectionQueueItem::NO_DOWNLOAD_SLOTS && startDown)
@@ -509,7 +508,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 					else
 #endif
 					{
-						l_error_download.push_back(make_pair(cqi->getUser(), STRING(CONNECTION_TIMEOUT)));
+						l_error_download.push_back(make_pair(cqi->getHintedUser(), STRING(CONNECTION_TIMEOUT)));
 						cqi->setState(ConnectionQueueItem::WAITING);
 					}
 				}
@@ -520,40 +519,25 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 	{
 		for (auto m = l_removed.begin(); m != l_removed.end(); ++m)
 		{
-			if ((*m)->isDownload())
+			// const HintedUser l_hinted_user = (*m)->getHintedUser();
+			const bool l_is_download = (*m)->isDownload();
+			if (l_is_download)
 			{
-				if (!ClientManager::isBeforeShutdown())
-				{
-					fly_fire2(ConnectionManagerListener::Removed(), (*m)->getUser(), true);
-				}
-				{
-					CFlyWriteLock(*g_csDownloads);
-					putCQI_L(*m);
-				}
+				CFlyWriteLock(*g_csDownloads);
+				putCQI_L(*m);
 			}
 			else
 			{
-				if (!ClientManager::isBeforeShutdown())
-				{
-					fly_fire2(ConnectionManagerListener::Removed(), (*m)->getUser(), false);
-				}
-				{
-					//CFlyWriteLock(*g_csUploads);
-					CFlyLock(g_csUploads);
-					putCQI_L(*m);
-				}
+				CFlyLock(g_csUploads);
+				putCQI_L(*m);
+			}
+			if (!ClientManager::isBeforeShutdown())
+			{
+				// fly_fire2(ConnectionManagerListener::Removed(), l_hinted_user, l_is_download);
 			}
 		}
 		l_removed.clear();
 	}
-	for (auto k = l_error_download.cbegin(); k != l_error_download.cend(); ++k)
-	{
-		if (!ClientManager::isBeforeShutdown())
-		{
-			fly_fire2(ConnectionManagerListener::FailedDownload(), k->first, k->second);
-		}
-	}
-	l_error_download.clear();
 	
 	for (auto j = l_status_changed.cbegin(); j != l_status_changed.cend(); ++j)
 	{
@@ -563,6 +547,16 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 		}
 	}
 	l_status_changed.clear();
+	// TODO - не звать для тех у кого ошибка загрузки
+	for (auto k = l_error_download.cbegin(); k != l_error_download.cend(); ++k)
+	{
+		if (!ClientManager::isBeforeShutdown())
+		{
+			fly_fire2(ConnectionManagerListener::FailedDownload(), k->first, k->second);
+		}
+	}
+	l_error_download.clear();
+	
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 	for (auto i = l_idlers.cbegin(); i != l_idlers.cend(); ++i)
 	{
@@ -1222,6 +1216,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 	{
 		// Already got this once, ignore...
 		dcdebug("CM::onMyNick %p sent nick twice\n", (void*)aSource);
+		//LogManager::message("CM::onMyNick "+ aNick + " sent nick twice");
 		return;
 	}
 	
@@ -1487,7 +1482,7 @@ void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 	{
 		if (!ClientManager::isBeforeShutdown())
 		{
-			fly_fire2(ConnectionManagerListener::Added(), l_cqi->getUser(), false);
+			fly_fire2(ConnectionManagerListener::Added(), l_cqi->getHintedUser(), false);
 #ifdef FLYLINKDC_USE_CONNECTED_EVENT
 			fly_fire1(ConnectionManagerListener::Connected(), l_cqi);
 #endif
@@ -1695,11 +1690,10 @@ bool ConnectionManager::checkKeyprint(UserConnection *aSource)
 
 void ConnectionManager::failed(UserConnection* aSource, const string& aError, bool protocolError)
 {
-
 	if (aSource->isSet(UserConnection::FLAG_ASSOCIATED))
 	{
-		UserPtr l_user;
-		std::pair<UserPtr, std::string> l_error_download;
+		HintedUser l_user;
+		std::pair<HintedUser, std::string> l_error_download;
 		const bool l_is_download = aSource->isSet(UserConnection::FLAG_DOWNLOAD);
 		if (l_is_download)
 		{
@@ -1714,11 +1708,11 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 			else
 			{
 				ConnectionQueueItemPtr cqi = *i;
-				l_user = cqi->getUser();
+				l_user = cqi->getHintedUser();
 				cqi->setState(ConnectionQueueItem::WAITING);
 				cqi->setLastAttempt(GET_TICK());
 				cqi->setErrors(protocolError ? -1 : (cqi->getErrors() + 1));
-				l_error_download = make_pair(cqi->getUser(), aError);
+				l_error_download = make_pair(cqi->getHintedUser(), aError);
 				putCQI_L(cqi);
 			}
 		}
@@ -1736,18 +1730,19 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 				else
 				{
 					ConnectionQueueItemPtr cqi = *i;
-					l_user = cqi->getUser();
+					l_user = cqi->getHintedUser();
 					putCQI_L(cqi);
 				}
 			}
+			if (!ClientManager::isBeforeShutdown())
+			{
+				fly_fire2(ConnectionManagerListener::Removed(), aSource->getHintedUser(), l_is_download);
+			}
+			
 		}
-		if (!ClientManager::isBeforeShutdown() && l_error_download.first)
+		if (!ClientManager::isBeforeShutdown() && l_error_download.first.user)
 		{
 			fly_fire2(ConnectionManagerListener::FailedDownload(), l_error_download.first, l_error_download.second);
-		}
-		if (!ClientManager::isBeforeShutdown())
-		{
-			fly_fire2(ConnectionManagerListener::Removed(), l_user, l_is_download);
 		}
 	}
 	else

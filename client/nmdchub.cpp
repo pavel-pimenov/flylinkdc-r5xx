@@ -530,6 +530,9 @@ void NmdcHub::sendUDPSR(Socket& p_udp, const string& p_seeker, const string& p_s
 		string l_ip;
 		uint16_t l_port = 412;
 		Util::parseIpPort(p_seeker, l_ip, l_port);
+#ifdef _DEBUG
+//		LogManager::message("NmdcHub::sendUDPSR - p_seeker = " + p_seeker);
+#endif
 		//dcassert(l_ip == Socket::resolve(l_ip));
 		p_udp.writeTo(l_ip, l_port, p_sr);
 		COMMAND_DEBUG("[Active-Search]" + p_sr, DebugTask::CLIENT_OUT, l_ip + ':' + Util::toString(l_port));
@@ -2661,31 +2664,33 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 		}
 		else
 		{
-			ou->getIdentity().setExtJSON(param);
-			ou->getIdentity().setStringParam("F1", l_root["Country"].asString());
-			ou->getIdentity().setStringParam("F2", l_root["City"].asString());
-			ou->getIdentity().setStringParam("F3", l_root["ISP"].asString());
-			ou->getIdentity().setStringParam("F4", l_root["Gender"].asString());
-			ou->getIdentity().setExtJSONSupportInfo(l_root["Support"].asString());
-			ou->getIdentity().setExtJSONRAMWorkingSet(l_root["RAM"].asInt());
-			ou->getIdentity().setExtJSONRAMPeakWorkingSet(l_root["RAMPeak"].asInt());
-			ou->getIdentity().setExtJSONRAMFree(l_root["RAMFree"].asInt());
-			//ou->getIdentity().setExtJSONGDI(l_root["GDI"].asInt());
-			ou->getIdentity().setExtJSONCountFiles(l_root["Files"].asInt());
-			ou->getIdentity().setExtJSONLastSharedDate(l_root["LastDate"].asInt64());
-			ou->getIdentity().setExtJSONSQLiteDBSize(l_root["SQLSize"].asInt());
-			ou->getIdentity().setExtJSONlevelDBHistSize(l_root["LDBHistSize"].asInt());
-			ou->getIdentity().setExtJSONSQLiteDBSizeFree(l_root["SQLFree"].asInt());
-			ou->getIdentity().setExtJSONQueueFiles(l_root["QueueFiles"].asInt());
-			ou->getIdentity().setExtJSONQueueSrc(l_root["QueueSrc"].asInt64()); //TODO - временны баг - тут 32 бита
-			ou->getIdentity().setExtJSONTimesStartCore(l_root["StartCore"].asInt64());  //TODO тут тоже 32 бита
-			ou->getIdentity().setExtJSONTimesStartGUI(l_root["StartGUI"].asInt64()); //TODO тут тоже 32 бита
-			
-			if (!ClientManager::isShutdown())
+			if (ou->getIdentity().setExtJSON(param))
 			{
-				if (p_is_disable_fire == false)
+				ou->getIdentity().setStringParam("F1", l_root["Country"].asString());
+				ou->getIdentity().setStringParam("F2", l_root["City"].asString());
+				ou->getIdentity().setStringParam("F3", l_root["ISP"].asString());
+				ou->getIdentity().setStringParam("F4", l_root["Gender"].asString());
+				ou->getIdentity().setExtJSONSupportInfo(l_root["Support"].asString());
+				ou->getIdentity().setExtJSONRAMWorkingSet(l_root["RAM"].asInt());
+				ou->getIdentity().setExtJSONRAMPeakWorkingSet(l_root["RAMPeak"].asInt());
+				ou->getIdentity().setExtJSONRAMFree(l_root["RAMFree"].asInt());
+				//ou->getIdentity().setExtJSONGDI(l_root["GDI"].asInt());
+				ou->getIdentity().setExtJSONCountFiles(l_root["Files"].asInt());
+				ou->getIdentity().setExtJSONLastSharedDate(l_root["LastDate"].asInt64());
+				ou->getIdentity().setExtJSONSQLiteDBSize(l_root["SQLSize"].asInt());
+				ou->getIdentity().setExtJSONlevelDBHistSize(l_root["LDBHistSize"].asInt());
+				ou->getIdentity().setExtJSONSQLiteDBSizeFree(l_root["SQLFree"].asInt());
+				ou->getIdentity().setExtJSONQueueFiles(l_root["QueueFiles"].asInt());
+				ou->getIdentity().setExtJSONQueueSrc(l_root["QueueSrc"].asInt64()); //TODO - временны баг - тут 32 бита
+				ou->getIdentity().setExtJSONTimesStartCore(l_root["StartCore"].asInt64());  //TODO тут тоже 32 бита
+				ou->getIdentity().setExtJSONTimesStartGUI(l_root["StartGUI"].asInt64()); //TODO тут тоже 32 бита
+				
+				if (!ClientManager::isShutdown())
 				{
-					updatedMyINFO(ou); // TODO обновлять только JSON
+					if (p_is_disable_fire == false)
+					{
+						updatedMyINFO(ou); // TODO обновлять только JSON
+					}
 				}
 			}
 		}

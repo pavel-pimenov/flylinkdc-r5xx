@@ -1269,25 +1269,35 @@ int TransferView::ItemInfo::compareItems(const ItemInfo* a, const ItemInfo* b, u
 
 TransferView::ItemInfo* TransferView::findItem(const UpdateInfo& ui, int& pos) const
 {
-	for (int j = 0; j < ctrlTransfers.GetItemCount(); ++j)
+	ItemInfo* ii = nullptr;
+	int j = 0;
+	const auto l_count = ctrlTransfers.GetItemCount();
+	for (; j < l_count; ++j)
 	{
-		ItemInfo* ii = ctrlTransfers.getItemData(j);
-		if (ui == *ii)
+		ii = ctrlTransfers.getItemData(j);
+		if (ii)
 		{
-			pos = j;
-			return ii;
-		}
-		else if (ui.download == ii->download && !ii->parent) // [!] IRainman fix.
-		{
-			const auto& children = ctrlTransfers.findChildren(ii->getGroupCond()); // TODO - ссылка?
-			for (auto k = children.cbegin(); k != children.cend(); ++k)
+			if (ui == *ii)
 			{
-				ItemInfo* jj = *k;
-				if (ui == *jj)       // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=139847  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62292
+				pos = j;
+				return ii;
+			}
+			else if (ui.download == ii->download && !ii->parent) // [!] IRainman fix.
+			{
+				const auto& children = ctrlTransfers.findChildren(ii->getGroupCond()); // TODO - ссылка?
+				for (auto k = children.cbegin(); k != children.cend(); ++k)
 				{
-					return jj;
+					ItemInfo* jj = *k;
+					if (ui == *jj)       // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=139847  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62292
+					{
+						return jj;
+					}
 				}
 			}
+		}
+		else
+		{
+			dcassert(ii);
 		}
 	}
 	return nullptr;
@@ -1301,6 +1311,16 @@ void TransferView::doTimerTask()
 
 void TransferView::onSpeakerAddItem(const UpdateInfo& ui)
 {
+	int pos = -1;
+	ItemInfo* l_find_ii = findItem(ui, pos);
+	if (l_find_ii)
+	{
+#ifdef _DEBUG
+		LogManager::message("SKIP Dup TRANSFER_ADD_ITEM ErrorStatus: " + Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString));
+#endif
+		return;
+	}
+	
 	ItemInfo* ii = new ItemInfo(ui.m_hintedUser, ui.download);
 	ii->update(ui);
 	if (ii->download)
@@ -1340,11 +1360,23 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				for (int j = 0; j < ctrlTransfers.GetItemCount(); ++j)
 				{
 					ItemInfo* ii = ctrlTransfers.getItemData(j);
-					if (// ui.download &&
-					    ii->m_target == ui.m_target)
+					if (//ui.download &&
+					    ii->m_target == ui.m_target
+					    // && ii->m_hintedUser.user == ui.m_hintedUser.user
+					)
 					{
 						ctrlTransfers.removeGroupedItem(ii);
 						j = 0;
+#ifdef _DEBUG
+						LogManager::message("TRANSFER_REMOVE_DOWNLOAD_ITEM  ui.m_target = " + Text::fromT(ui.m_target));
+#endif
+					}
+					else
+					{
+#ifdef _DEBUG
+						LogManager::message("Skip TRANSFER_REMOVE_DOWNLOAD_ITEM  ii->m_target = " + Text::fromT(ui.m_target));
+#endif
+						
 					}
 				}
 			}
@@ -1357,6 +1389,9 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				ItemInfo* ii = findItem(ui, pos);
 				if (ii)
 				{
+#ifdef _DEBUG
+					LogManager::message("TRANSFER_REMOVE_ITEM User = " + ii->getUser()->getLastNick() + " ErrorStatus: " + Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString));
+#endif
 					if (ui.download)
 					{
 						ctrlTransfers.removeGroupedItem(ii);
@@ -1370,7 +1405,10 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				}
 				else
 				{
-					//  dcassert(0);
+#ifdef _DEBUG
+					LogManager::message("[!] TRANSFER_REMOVE_ITEM not found User = " + ii->getUser()->getLastNick() + " ErrorStatus: " + Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString));
+#endif
+					dcassert(0);
 				}
 			}
 			break;
@@ -1382,6 +1420,9 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				ItemInfo* ii = findItem(ui, pos);
 				if (ii)
 				{
+#ifdef _DEBUG
+					LogManager::message("TRANSFER_UPDATE_ITEM User = " + ii->getUser()->getLastNick() + " ErrorStatus: " + Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString));
+#endif
 					if (ui.download)
 					{
 						ItemInfo* parent = ii->parent ? ii->parent : ii;
@@ -1395,6 +1436,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 								ui.updateMask &= ~UpdateInfo::MASK_ACTUAL;
 								ui.updateMask &= ~UpdateInfo::MASK_SIZE;
 								ui.updateMask &= ~UpdateInfo::MASK_STATUS_STRING;
+								ui.updateMask &= ~UpdateInfo::MASK_ERROR_STATUS_STRING;
 								ui.updateMask &= ~UpdateInfo::MASK_TIMELEFT;
 							}
 							else
@@ -1429,6 +1471,11 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				}
 				else
 				{
+#ifdef _DEBUG
+					LogManager::message("[!] TRANSFER_UPDATE_ITEM not found error User = " + ui.m_hintedUser.user->getLastNick() + " status: " +
+					                    Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) +
+					                    " info = " + ui.m_hintedUser.user->getLastNick() + "is download = " + Util::toString(ui.download));
+#endif
 					// dcassert(0);
 					// onSpeakerAddItem(ui); // потеряли....
 				}
@@ -1461,7 +1508,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 					{
 						ii->m_status = ui.status;
 						ii->m_statusString = ui.statusString;
-						
+						ii->m_errorStatusString = ui.errorStatusString;
 						if (!pp->parent->collapsed)
 						{
 							updateItem(ctrlTransfers.findItem(ii), ui.updateMask);
@@ -1517,6 +1564,10 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	if (ui.updateMask & UpdateInfo::MASK_STATUS)
 	{
 		m_status = ui.status;
+	}
+	if (ui.updateMask & UpdateInfo::MASK_ERROR_STATUS_STRING)
+	{
+		m_errorStatusString = ui.errorStatusString;
 	}
 	if (ui.updateMask & UpdateInfo::MASK_STATUS_STRING)
 	{
@@ -1592,6 +1643,7 @@ void TransferView::updateItem(int ii, uint32_t updateMask)
 {
 	if (updateMask & UpdateInfo::MASK_STATUS ||
 	        updateMask & UpdateInfo::MASK_STATUS_STRING ||
+	        updateMask & UpdateInfo::MASK_ERROR_STATUS_STRING ||
 	        updateMask & UpdateInfo::MASK_POS ||
 	        updateMask & UpdateInfo::MASK_ACTUAL
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
@@ -1642,10 +1694,23 @@ void TransferView::updateItem(int ii, uint32_t updateMask)
 		ctrlTransfers.updateItem(ii, COLUMN_USER);
 	}
 }
-
-TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const UserPtr& p_user, bool p_is_download)
+// TODO - паблик
+/*
+static HintedUser getHintedUser(const UserPtr& p_user)
 {
-	UpdateInfo* ui = new UpdateInfo(HintedUser(p_user, Util::emptyString), p_is_download);
+    string l_hub_name;
+    if (p_user->getHubID())
+    {
+        l_hub_name = CFlylinkDBManager::getInstance()->get_hub_name(p_user->getHubID());
+    }
+    return HintedUser(p_user, l_hub_name);
+}
+
+*/
+
+TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const HintedUser& p_hinted_user, bool p_is_download)
+{
+	UpdateInfo* ui = new UpdateInfo(p_hinted_user, p_is_download);
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 	ui->setForcePassive(aCqi->m_is_force_passive);
 #endif
@@ -1654,7 +1719,7 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const User
 		string l_target;
 		int64_t l_size;
 		int l_flags;
-		if (QueueManager::getQueueInfo(p_user, l_target, l_size, l_flags)) // deadlock
+		if (QueueManager::getQueueInfo(p_hinted_user.user, l_target, l_size, l_flags)) // deadlock
 		{
 			Transfer::Type l_type = Transfer::TYPE_FILE;
 			if (l_flags & QueueItem::FLAG_USER_LIST)
@@ -1679,34 +1744,37 @@ TransferView::UpdateInfo* TransferView::createUpdateInfoForAddedEvent(const User
 	return ui;
 }
 
-void TransferView::on(ConnectionManagerListener::Added, const UserPtr& p_user, bool p_is_download) noexcept
+void TransferView::on(ConnectionManagerListener::Added, const HintedUser& p_hinted_user, bool p_is_download) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	m_tasks.add(TRANSFER_ADD_ITEM, createUpdateInfoForAddedEvent(p_user, p_is_download));
+	m_tasks.add(TRANSFER_ADD_ITEM, createUpdateInfoForAddedEvent(p_hinted_user, p_is_download));
 }
 
-void TransferView::on(ConnectionManagerListener::ConnectionStatusChanged, const UserPtr& p_user, bool p_is_download) noexcept
+void TransferView::on(ConnectionManagerListener::ConnectionStatusChanged, const HintedUser& p_hinted_user, bool p_is_download) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	m_tasks.add(TRANSFER_UPDATE_ITEM, createUpdateInfoForAddedEvent(p_user, p_is_download));
+	m_tasks.add(TRANSFER_UPDATE_ITEM, createUpdateInfoForAddedEvent(p_hinted_user, p_is_download));
 }
 
-void TransferView::on(ConnectionManagerListener::UserUpdated, const UserPtr& p_user, bool p_is_download) noexcept
+void TransferView::on(ConnectionManagerListener::UserUpdated, const HintedUser& p_hinted_user, bool p_is_download) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	m_tasks.add(TRANSFER_UPDATE_ITEM, createUpdateInfoForAddedEvent(p_user, p_is_download));
+	m_tasks.add(TRANSFER_UPDATE_ITEM, createUpdateInfoForAddedEvent(p_hinted_user, p_is_download));
 }
-void TransferView::on(ConnectionManagerListener::Removed, const UserPtr& p_user, bool p_is_download) noexcept
+void TransferView::on(ConnectionManagerListener::Removed, const HintedUser& p_hinted_user, bool p_is_download) noexcept
 {
 	dcassert(!ClientManager::isShutdown());
-	m_tasks.add(TRANSFER_REMOVE_ITEM, new UpdateInfo(HintedUser(p_user, Util::emptyString), p_is_download));
+	m_tasks.add(TRANSFER_REMOVE_ITEM, new UpdateInfo(p_hinted_user, p_is_download));
 }
 
-void TransferView::on(ConnectionManagerListener::FailedDownload, const UserPtr& p_user, const string& aReason) noexcept
+void TransferView::on(ConnectionManagerListener::FailedDownload, const HintedUser& p_hinted_user, const string& aReason) noexcept
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
-		UpdateInfo* ui = new UpdateInfo(HintedUser(p_user, Util::emptyString), true);
+#ifdef _DEBUG
+		LogManager::message("ConnectionManagerListener::FailedDownload user = " + p_hinted_user.user->getLastNick() + " Reason = " + aReason);
+#endif
+		UpdateInfo* ui = new UpdateInfo(p_hinted_user, true);
 #ifdef FLYLINKDC_USE_IPFILTER
 		if (ui->m_hintedUser.user->isAnySet(User::PG_IPTRUST_BLOCK | User::PG_IPGUARD_BLOCK | User::PG_P2PGUARD_BLOCK
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -1733,7 +1801,7 @@ void TransferView::on(ConnectionManagerListener::FailedDownload, const UserPtr& 
 				l_status += " [Antivirus DB]";
 			}
 #endif
-			ui->setStatusString(Text::toT(l_status + " [" + aReason + "]"));
+			ui->setErrorStatusString(Text::toT(l_status + " [" + aReason + "]"));
 		}
 		else
 #endif
@@ -1742,7 +1810,7 @@ void TransferView::on(ConnectionManagerListener::FailedDownload, const UserPtr& 
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 			aCqi->addAutoPassiveStatus(l_status);
 #endif
-			ui->setStatusString(Text::toT(l_status));
+			ui->setErrorStatusString(Text::toT(l_status));
 		}
 		
 		ui->setStatus(ItemInfo::STATUS_WAITING);
@@ -1781,7 +1849,7 @@ void TransferView::ItemInfo::update_nicks()
 }
 const tstring TransferView::ItemInfo::getText(uint8_t col) const
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	switch (col)
 	{
 		case COLUMN_USER:
@@ -1789,7 +1857,16 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 		case COLUMN_HUB:
 			return m_hits == -1 ? m_hubs : (Util::toStringW(running) + _T(' ') + TSTRING(NUMBER_OF_SEGMENTS));
 		case COLUMN_STATUS:
-			return m_statusString;
+		{
+			if (!m_errorStatusString.empty())
+			{
+				return m_statusString + _T(" [") + m_errorStatusString  + _T("]");
+			}
+			else
+			{
+				return m_statusString;
+			}
+		}
 		case COLUMN_TIMELEFT:
 			//dcassert(m_timeLeft >= 0);
 			return (m_status == STATUS_RUNNING && m_timeLeft > 0) ? Util::formatSecondsW(m_timeLeft) : Util::emptyStringT;
@@ -1812,7 +1889,7 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 			return m_ratio_as_text;
 #endif
 		case COLUMN_CIPHER:
-			return m_cipher; // + _T(" [Token: ") + Text::toT(this->m_transfer_item_token) + _T("]");
+			return m_cipher; // +_T(" [Token: ") + Text::toT(this->m_transfer_item_token) + _T("]");
 		case COLUMN_SHARE:
 			return m_hintedUser.user ? Util::formatBytesW(m_hintedUser.user->getBytesShared()) : Util::emptyStringT;
 		case COLUMN_SLOTS:
@@ -1868,22 +1945,27 @@ void TransferView::on(DownloadManagerListener::Requesting, const DownloadPtr& aD
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
+#ifdef FLYLINKDC_USE_DOWNLOAD_STARTING_FIRE
 void TransferView::on(DownloadManagerListener::Starting, const DownloadPtr& aDownload) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true); // [!] IRainman fix.
-	
-	ui->setStatus(ItemInfo::STATUS_RUNNING);
-	ui->setStatusString(TSTRING(DOWNLOAD_STARTING));
-	ui->setTarget(aDownload->getPath());
-	ui->setType(aDownload->getType());
-	// [-] ui->setIP(aDownload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
-	
-	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
+	if (!ClientManager::isBeforeShutdown())
+	{
+		UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true); // [!] IRainman fix.
+		
+		ui->setStatus(ItemInfo::STATUS_RUNNING);
+		ui->setStatusString(TSTRING(DOWNLOAD_STARTING));
+		ui->setTarget(aDownload->getPath());
+		ui->setType(aDownload->getType());
+		// [-] ui->setIP(aDownload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
+		
+		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
+	}
 }
+#endif // FLYLINKDC_USE_DOWNLOAD_STARTING_FIRE
+
 void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownload, const string& aReason) noexcept
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true, true);
 		ui->setStatus(ItemInfo::STATUS_WAITING);
@@ -1915,55 +1997,61 @@ void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownl
 
 void TransferView::on(DownloadManagerListener::Status, const UserConnection* p_conn, const string& aReason) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	// dcassert(const_cast<UserConnection*>(uc)->getDownload()); // TODO при окончании закачки это поле уже пустое https://www.box.net/shared/4cknwlue3njzksmciu63
-	UpdateInfo* ui = new UpdateInfo(p_conn->getHintedUser(), true); // [!] IRainman fix.
-	ui->setStatus(ItemInfo::STATUS_WAITING);
-	ui->setStatusString(Text::toT(aReason));
-	
-	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
+	if (!ClientManager::isBeforeShutdown())
+	{
+		// dcassert(const_cast<UserConnection*>(uc)->getDownload()); // TODO при окончании закачки это поле уже пустое https://www.box.net/shared/4cknwlue3njzksmciu63
+		UpdateInfo* ui = new UpdateInfo(p_conn->getHintedUser(), true); // [!] IRainman fix.
+		ui->setStatus(ItemInfo::STATUS_WAITING);
+		ui->setStatusString(Text::toT(aReason));
+		
+		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
+	}
 }
 
 void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	UpdateInfo* ui = new UpdateInfo(aUpload->getHintedUser(), false); // [!] IRainman fix.
-	
-	starting(ui, aUpload.get());
-	
-	ui->setStatus(ItemInfo::STATUS_RUNNING);
-	ui->setActual(aUpload->getStartPos() + aUpload->getActual());
-	ui->setSize(aUpload->getType() == Transfer::TYPE_TREE ? aUpload->getSize() : aUpload->getFileSize());
-	ui->setTarget(aUpload->getPath());
-	ui->setRunning(1);
-	// [-] ui->setIP(aUpload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
-	
-	if (!aUpload->isSet(Upload::FLAG_RESUMED))
+	if (!ClientManager::isBeforeShutdown())
 	{
-		ui->setStatusString(TSTRING(UPLOAD_STARTING));
+		UpdateInfo* ui = new UpdateInfo(aUpload->getHintedUser(), false); // [!] IRainman fix.
+		
+		starting(ui, aUpload.get());
+		
+		ui->setStatus(ItemInfo::STATUS_RUNNING);
+		ui->setActual(aUpload->getStartPos() + aUpload->getActual());
+		ui->setSize(aUpload->getType() == Transfer::TYPE_TREE ? aUpload->getSize() : aUpload->getFileSize());
+		ui->setTarget(aUpload->getPath());
+		ui->setRunning(1);
+		// [-] ui->setIP(aUpload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
+		
+		if (!aUpload->isSet(Upload::FLAG_RESUMED))
+		{
+			ui->setStatusString(TSTRING(UPLOAD_STARTING));
+		}
+		
+		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 	}
-	
-	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 // TODO - убрать тики для массива
 void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!MainFrame::isAppMinimized())// [+]IRainman opt
+	if (!ClientManager::isBeforeShutdown())
 	{
-		for (auto j = dl.cbegin(); j != dl.cend(); ++j)
+		if (!MainFrame::isAppMinimized())// [+]IRainman opt
 		{
-			UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, true); // [!] IRainman fix.
-			ui->setStatus(ItemInfo::STATUS_RUNNING);
-			ui->setActual(j->m_actual);
-			ui->setPos(j->m_pos);
-			ui->setSize(j->m_size);
-			ui->setTimeLeft(j->m_second_left);
-			ui->setSpeed(j->m_running_average);
-			ui->setType(Transfer::Type(j->m_type)); // TODO
-			ui->setStatusString(j->m_status_string);
-			ui->setTarget(j->m_path);
-			m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
+			for (auto j = dl.cbegin(); j != dl.cend(); ++j)
+			{
+				UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, true); // [!] IRainman fix.
+				ui->setStatus(ItemInfo::STATUS_RUNNING);
+				ui->setActual(j->m_actual);
+				ui->setPos(j->m_pos);
+				ui->setSize(j->m_size);
+				ui->setTimeLeft(j->m_second_left);
+				ui->setSpeed(j->m_running_average);
+				ui->setType(Transfer::Type(j->m_type)); // TODO
+				ui->setStatusString(j->m_status_string);
+				ui->setTarget(j->m_path);
+				m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
+			}
 		}
 	}
 }
@@ -2000,38 +2088,41 @@ void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul) noexce
 
 void TransferView::onTransferComplete(const Transfer* aTransfer, const bool download, const string& aFileName)
 {
-	dcassert(!ClientManager::isShutdown());
-#ifdef _DEBUG
-	LogManager::message("Transfer complete " + aTransfer->getUserConnectionToken());
-#endif
-	UpdateInfo* ui = new UpdateInfo(aTransfer->getHintedUser(), download); // [!] IRainman fix.
-	
-	ui->setTarget(aTransfer->getPath());
-	ui->setStatus(ItemInfo::STATUS_WAITING);
-	/*
-	    if (aTransfer->getType() == Transfer::TYPE_FULL_LIST)
-	    {
-	        ui->setPos(aTransfer->getSize());
-	    }
-	    else
-	    {
-	        ui->setPos(0);
-	    }
-	*/
-	ui->setPos(aTransfer->getFileSize());
-	ui->setActual(aTransfer->getFileSize());
-	ui->setSize(aTransfer->getFileSize());
-	ui->setTimeLeft(0);
-	ui->setRunning(0);
-	ui->setStatusString(download ? TSTRING(DOWNLOAD_FINISHED_IDLE) : TSTRING(UPLOAD_FINISHED_IDLE));
-	if (!download && aTransfer->getType() != Transfer::TYPE_TREE)
+	if (!ClientManager::isBeforeShutdown())
 	{
-		SHOW_POPUP(POPUP_UPLOAD_FINISHED,
-		           TSTRING(FILE) + _T(": ") + Text::toT(aFileName) + _T('\n') +
-		           TSTRING(USER) + _T(": ") + WinUtil::getNicks(aTransfer->getHintedUser()), TSTRING(UPLOAD_FINISHED_IDLE));
-	}
 	
-	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
+#ifdef _DEBUG
+		LogManager::message("Transfer complete " + aTransfer->getUserConnectionToken());
+#endif
+		UpdateInfo* ui = new UpdateInfo(aTransfer->getHintedUser(), download); // [!] IRainman fix.
+		
+		ui->setTarget(aTransfer->getPath());
+		ui->setStatus(ItemInfo::STATUS_WAITING);
+		/*
+		    if (aTransfer->getType() == Transfer::TYPE_FULL_LIST)
+		    {
+		        ui->setPos(aTransfer->getSize());
+		    }
+		    else
+		    {
+		        ui->setPos(0);
+		    }
+		*/
+		ui->setPos(aTransfer->getFileSize());
+		ui->setActual(aTransfer->getFileSize());
+		ui->setSize(aTransfer->getFileSize());
+		ui->setTimeLeft(0);
+		ui->setRunning(0);
+		ui->setStatusString(download ? TSTRING(DOWNLOAD_FINISHED_IDLE) : TSTRING(UPLOAD_FINISHED_IDLE));
+		if (!download && aTransfer->getType() != Transfer::TYPE_TREE)
+		{
+			SHOW_POPUP(POPUP_UPLOAD_FINISHED,
+			           TSTRING(FILE) + _T(": ") + Text::toT(aFileName) + _T('\n') +
+			           TSTRING(USER) + _T(": ") + WinUtil::getNicks(aTransfer->getHintedUser()), TSTRING(UPLOAD_FINISHED_IDLE));
+		}
+		
+		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
+	}
 }
 
 
@@ -2165,8 +2256,8 @@ LRESULT TransferView::onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 
 void TransferView::on(SettingsManagerListener::Repaint)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		if (ctrlTransfers.isRedraw())
 		{
@@ -2178,17 +2269,19 @@ void TransferView::on(SettingsManagerListener::Repaint)
 
 void TransferView::on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept // [+] IRainman opt.
 {
-	if (!MainFrame::isAppMinimized())
+	if (!ClientManager::isBeforeShutdown())
 	{
-		on(QueueManagerListener::StatusUpdatedList(), p_list);
+		if (!MainFrame::isAppMinimized())
+		{
+			on(QueueManagerListener::StatusUpdatedList(), p_list);
+		}
 	}
 }
 
 void TransferView::on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept // [+] IRainman opt.
 {
-	dcassert(!ClientManager::isShutdown());
 	dcassert(!p_list.empty());
-	if (!ClientManager::isShutdown() && !p_list.empty())
+	if (!ClientManager::isBeforeShutdown() && !p_list.empty())
 	{
 		for (auto i = p_list.cbegin(); i != p_list.cend(); ++i)
 		{
@@ -2278,6 +2371,7 @@ void TransferView::parseQueueItemUpdateInfo(UpdateInfo* ui, const QueueItemPtr& 
 						flag += _T(' ');
 					}
 					ui->setStatusString(flag + Text::tformat(TSTRING(DOWNLOADED_BYTES), pos.c_str(), percent, elapsed.c_str()));
+					ui->setErrorStatusString(Util::emptyStringT);
 				}
 			}
 		}
@@ -2293,8 +2387,8 @@ void TransferView::parseQueueItemUpdateInfo(UpdateInfo* ui, const QueueItemPtr& 
 
 void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string&, const DownloadPtr& p_download) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+
+	if (!ClientManager::isBeforeShutdown())
 	{
 		if (qi->isUserList())
 		{
@@ -2321,43 +2415,50 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 		
 		m_tasks.add(TRANSFER_UPDATE_PARENT, ui);  // [!] IRainman opt.
 		
-		/*
-		*/
-		
 	}
 }
 /*
 void TransferView::on(QueueManagerListener::AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept
 {
-    if (!ClientManager::isShutdown())
+    if (!ClientManager::isBeforeShutdown())
     {
     }
 }
 void TransferView::on(QueueManagerListener::Added, const QueueItemPtr& qi) noexcept
 {
-    if (!ClientManager::isShutdown())
+    if (!ClientManager::isBeforeShutdown())
     {
     }
 }
 */
-void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noexcept
+void TransferView::on(QueueManagerListener::RemovedTransfer, const QueueItemPtr& qi) noexcept
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
-		/*
-		if (qi->isUserList())
-		  return;
-		
-		UpdateInfo* ui = new UpdateInfo(); // [!] IRainman fix.
-		ui->setTarget(qi->getTarget());
-		ui->setStatusString(TSTRING(DISCONNECTED));
-		ui->setStatus(ItemInfo::STATUS_WAITING);
-		m_tasks.add(TRANSFER_UPDATE_PARENT, ui);
-		
-		UpdateInfo* ui = new UpdateInfo();
+		UpdateInfo* ui = new UpdateInfo(HintedUser(qi->getFirstUser(), Util::emptyString), true);
 		ui->setTarget(qi->getTarget());
 		m_tasks.add(TRANSFER_REMOVE_DOWNLOAD_ITEM, ui);
-		*/
+	}
+}
+void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noexcept
+{
+	if (!ClientManager::isBeforeShutdown())
+	{
+		UserList l_users;
+		qi->getAllDownloadsUsers(l_users);
+		for (auto i = l_users.cbegin(); i != l_users.cend(); ++i)
+		{
+			UpdateInfo* ui = new UpdateInfo(HintedUser(*i, Util::emptyString), true);
+			/*      ui->setTarget(qi->getTarget());
+			        ui->setStatusString(TSTRING(DISCONNECTED));
+			        ui->setStatus(ItemInfo::STATUS_WAITING);
+			        ui->setHintedUser(HintedUser(qi->getFirstUser(),Util::emptyString));
+			        m_tasks.add(TRANSFER_UPDATE_PARENT, ui);
+			        ui = new UpdateInfo();
+			*/
+			ui->setTarget(qi->getTarget());
+			m_tasks.add(TRANSFER_REMOVE_DOWNLOAD_ITEM, ui);
+		}
 	}
 }
 

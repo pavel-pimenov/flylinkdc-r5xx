@@ -8,8 +8,8 @@ call build_flylinkdc_x64_2010.bat
 
 if not exist .\compiled\FlylinkDC*.exe goto :builderror
 
-move *-src-*.7z "U:\webdav\src-bin-pdb\flylinkdc-r5xx"
-move *.7z "U:\webdav\src-bin-pdb\flylinkdc-r5xx"
+move *-src-*.7z "U:\webdav\src-bin-pdb\flylinkdc-r5xx\r503"
+move *.7z "U:\webdav\src-bin-pdb\flylinkdc-r5xx\r503"
 
 rem copy changelog-flylinkdc*.txt "U:\webdav\src-bin-pdb"
 

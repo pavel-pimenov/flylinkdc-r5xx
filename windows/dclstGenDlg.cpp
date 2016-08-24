@@ -306,7 +306,7 @@ size_t DCLSTGenDlg::PackAndSave()
 		unique_ptr<OutputStream> outFilePtr(new File(_mNameDCLST, File::WRITE, File::TRUNCATE | File::CREATE, false));
 		FilteredOutputStream<BZFilter, false> outFile(outFilePtr.get());
 		outSize += outFile.write(_xml.c_str(), _xml.size());
-		outSize += outFile.flush();
+		outSize += outFile.flushBuffers(true);
 	}
 	catch (const FileException& ex)
 	{

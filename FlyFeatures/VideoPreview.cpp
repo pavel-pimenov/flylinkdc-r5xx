@@ -578,7 +578,7 @@ int VideoPreviewSocketProcessor::run()
 				{
 					try
 					{
-						unique_ptr<SharedFileStream> openedFile(new SharedFileStream(VideoPreview::getInstance()->GetFilePreviewTempName(),  File::READ, File::OPEN | File::SHARED | File::CREATE | File::NO_CACHE_HINT));
+						unique_ptr<SharedFileStream> openedFile(new SharedFileStream(VideoPreview::getInstance()->GetFilePreviewTempName(),  File::READ, File::OPEN | File::SHARED | File::CREATE | File::NO_CACHE_HINT, 0));
 						if (openedFile.get() != NULL)
 						{
 							if (VideoPreview::getInstance()->IsAvailableData(filePosition, BlockSize))

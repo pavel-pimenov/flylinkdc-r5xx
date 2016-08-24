@@ -88,7 +88,7 @@ class Download : public Transfer, public Flags
 		{
 			safe_delete(m_download_file);
 		}
-		//string     m_reason;
+		string     m_reason;
 	private:
 		OutputStream* m_download_file;
 		const QueueItemPtr m_qi;

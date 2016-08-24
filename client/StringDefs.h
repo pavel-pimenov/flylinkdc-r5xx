@@ -1674,7 +1674,7 @@ enum Strings   // @DontAdd
 	THEME_CHANGE_THEME_INFO, // "Restart the program to change the theme"
 	THEME_DEFAULT_NAME, // "FlylinkDC++ Default theme"
 	THIS_FILE_WAS_IN_MY_SHARE, // "This file was in my share"
-	THIS_FUNCTIONAL_IS_DISABLED, // "This functionality is still under construction or disabled in that version."
+	THIS_FUNCTIONAL_IS_DISABLED, // "This functionality disabled in that version."
 	THIS_VERSION_RELEASED, // "This version released or there is a newer version"
 	THRESHOLD, // "Threshold users"
 	TICKS_SPEED_DOWN, // "5 ticks down speed:"

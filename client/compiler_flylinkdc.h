@@ -324,7 +324,7 @@ typedef unsigned __int64 uint64_t;
 
 //#define FLYLINKDC_USE_CS_CLIENT_SOCKET [-] IRainman fix.
 
-#define STRONG_USE_DHT
+//#define STRONG_USE_DHT
 
 //#define FLYLINKDC_USE_VIEW_AS_TEXT_OPTION
 

@@ -1551,7 +1551,7 @@ LRESULT QueueFrame::onRemoveSource(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
 		const QueueItemInfo* ii = ctrlQueue.getItemData(i);
 		if (wID == IDC_REMOVE_SOURCE)
 		{
-			WLock(*QueueItem::g_cs);
+			RLock(*QueueItem::g_cs);
 			const auto& sources = ii->getQueueItem()->getSourcesL();
 			for (auto si = sources.cbegin(); si != sources.cend(); ++si)
 			{
@@ -2258,7 +2258,7 @@ LRESULT QueueFrame::onRemoveOffline(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 	while ((j = ctrlQueue.GetNextItem(j, LVNI_SELECTED)) != -1)
 	{
 		const QueueItemInfo* ii = ctrlQueue.getItemData(j);
-		WLock(*QueueItem::g_cs);
+		RLock(*QueueItem::g_cs);
 		const auto& sources = ii->getQueueItem()->getSourcesL();
 		for (auto i =  sources.cbegin(); i != sources.cend(); ++i)  // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=111640
 		{

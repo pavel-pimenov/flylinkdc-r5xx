@@ -34,9 +34,10 @@ UserManager::WaitingUserMap UserManager::waitingPasswordUsers;
 
 FastCriticalSection UserManager::g_csPsw;
 std::unique_ptr<webrtc::RWLockWrapper> UserManager::g_csIgnoreList = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+#ifdef IRAINMAN_ENABLE_AUTO_BAN
 std::unique_ptr<webrtc::RWLockWrapper> UserManager::g_csProtectedUsers = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
-
 StringList UserManager::g_protectedUsersLower;
+#endif
 
 void UserManager::saveIgnoreList()
 {
@@ -164,12 +165,14 @@ void UserManager::setIgnoreList(const IgnoreMap& newlist)
 	saveIgnoreList();
 }
 
+#ifdef IRAINMAN_ENABLE_AUTO_BAN
 void UserManager::reloadProtUsers()
 {
 	auto protUsers = SPLIT_SETTING_AND_LOWER(PROT_USERS);
 	CFlyWriteLock(*g_csProtectedUsers);
 	swap(g_protectedUsersLower, protUsers);
 }
+#endif
 
 bool UserManager::expectPasswordFromUser(const UserPtr& user)
 {
@@ -210,8 +213,10 @@ void UserManager::openUserUrl(const UserPtr& aUser)
 		fly_fire1(UserManagerListener::OpenHub(), url);
 	}
 }
+#ifdef IRAINMAN_ENABLE_AUTO_BAN
 bool UserManager::isInProtectedUserList(const string& userName)
 {
 	CFlyReadLock(*g_csProtectedUsers);
 	return Wildcard::patternMatchLowerCase(Text::toLower(userName), g_protectedUsersLower, false);
 }
+#endif

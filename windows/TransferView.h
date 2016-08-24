@@ -329,6 +329,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				int64_t m_timeLeft;
 				tstring m_transfer_ip;
 				tstring m_statusString;
+				tstring m_errorStatusString;
 				tstring m_cipher;
 				tstring m_target;
 				tstring m_nicks;
@@ -369,6 +370,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 					ii->m_hits = 0;
 					ii->m_target = m_target;
 					ii->m_statusString = TSTRING(CONNECTING);
+					ii->m_errorStatusString = m_errorStatusString;
 					return ii;
 				}
 				const tstring& getGroupCond() const
@@ -396,6 +398,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 				, MASK_FORCE_PASSIVE  = 0x1000
 #endif
+				, MASK_ERROR_STATUS_STRING = 0x2000
 			};
 			
 			bool operator==(const ItemInfo& ii) const
@@ -458,13 +461,15 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				}
 			}
 			int16_t running;
-			void setStatus(ItemInfo::Status aStatus)
+			bool setStatus(ItemInfo::Status aStatus)
 			{
 				if (status != aStatus)
 				{
 					status = aStatus;
 					updateMask |= MASK_STATUS;
+					return true;
 				}
+				return false;
 			}
 			ItemInfo::Status status;
 			void setPos(int64_t aPos)
@@ -512,13 +517,26 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				}
 			}
 			int64_t timeLeft;
-			void setStatusString(const tstring& aStatusString)
+			bool setErrorStatusString(const tstring& aErrorStatusString)
+			{
+				if (errorStatusString != aErrorStatusString)
+				{
+					errorStatusString = aErrorStatusString;
+					updateMask |= MASK_ERROR_STATUS_STRING;
+					return true;
+				}
+				return false;
+			}
+			tstring errorStatusString;
+			bool setStatusString(const tstring& aStatusString)
 			{
 				if (statusString != aStatusString)
 				{
 					statusString = aStatusString;
 					updateMask |= MASK_STATUS_STRING;
+					return true;
 				}
+				return false;
 			}
 			tstring statusString;
 			void setTarget(const string& aTarget)
@@ -568,7 +586,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		};
 		void onSpeakerAddItem(const UpdateInfo& ui);
 		void parseQueueItemUpdateInfo(UpdateInfo* p_ui, const QueueItemPtr& p_queueItem);
-		UpdateInfo* createUpdateInfoForAddedEvent(const UserPtr& p_hinted_user, bool p_is_download);
+		UpdateInfo* createUpdateInfoForAddedEvent(const HintedUser& p_hinted_user, bool p_is_download);
 		
 		ItemInfoList ctrlTransfers;
 		CButton m_PassiveModeButton;
@@ -607,11 +625,11 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		StringMap ucLineParams;
 		bool m_is_need_resort;
 		
-		void on(ConnectionManagerListener::Added, const UserPtr& p_user, bool p_is_download) noexcept override;
-		void on(ConnectionManagerListener::FailedDownload, const UserPtr& p_user, const string& aReason) noexcept override;
-		void on(ConnectionManagerListener::Removed, const UserPtr& p_user, bool p_is_download) noexcept override;
-		void on(ConnectionManagerListener::UserUpdated, const UserPtr& p_user, bool p_is_download) noexcept override;
-		void on(ConnectionManagerListener::ConnectionStatusChanged, const UserPtr& p_user, bool p_is_download) noexcept override;
+		void on(ConnectionManagerListener::Added, const HintedUser& p_hinted_user, bool p_is_download) noexcept override;
+		void on(ConnectionManagerListener::FailedDownload, const HintedUser& p_hinted_user, const string& aReason) noexcept override;
+		void on(ConnectionManagerListener::Removed, const HintedUser& p_hinted_user, bool p_is_download) noexcept override;
+		void on(ConnectionManagerListener::UserUpdated, const HintedUser& p_hinted_user, bool p_is_download) noexcept override;
+		void on(ConnectionManagerListener::ConnectionStatusChanged, const HintedUser& p_hinted_user, bool p_is_download) noexcept override;
 		
 		void on(DownloadManagerListener::Requesting, const DownloadPtr& aDownload) noexcept override;
 		void on(DownloadManagerListener::Complete, const DownloadPtr& aDownload) noexcept override
@@ -619,7 +637,9 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			onTransferComplete(aDownload.get(), true, Util::getFileName(aDownload->getPath())); // [!] IRainman fix.
 		}
 		void on(DownloadManagerListener::Failed, const DownloadPtr& aDownload, const string& aReason) noexcept override;
+#ifdef FLYLINKDC_USE_DOWNLOAD_STARTING_FIRE
 		void on(DownloadManagerListener::Starting, const DownloadPtr& aDownload) noexcept override;
+#endif
 		void on(DownloadManagerListener::Tick, const DownloadArray& aDownload) noexcept override;
 		void on(DownloadManagerListener::Status, const UserConnection*, const string&) noexcept override;
 		
@@ -633,6 +653,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.
 		void on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.
 		void on(QueueManagerListener::Removed, const QueueItemPtr&) noexcept override;
+		void on(QueueManagerListener::RemovedTransfer, const QueueItemPtr&) noexcept override;
+		
 		// void on(QueueManagerListener::Added, const QueueItemPtr&) noexcept override;
 		// virtual void on(AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept;
 		void on(QueueManagerListener::Finished, const QueueItemPtr&, const string&, const DownloadPtr& aDownload) noexcept override;

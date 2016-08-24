@@ -83,7 +83,10 @@ void DownloadPage::write()
 {
 	PropPage::write((HWND)*this, items);
 	const tstring l_dir = Text::toT(SETTING(TEMP_DOWNLOAD_DIRECTORY));
-	File::ensureDirectory(l_dir);
+	if (!l_dir.empty())
+	{
+		File::ensureDirectory(l_dir);
+	}
 }
 
 LRESULT DownloadPage::onClickedBrowseDir(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

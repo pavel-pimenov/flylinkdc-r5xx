@@ -67,7 +67,7 @@ PropPage::ListItem QueuePage::optionItems[] =
 //[-]PPA может приводить к неполному скачиванию папки (например DVD - диска)
 // TODO необходим рефакторинг работы функционала! предоставление выбора скопировать файлы из уже имеющихся
 //	{ SettingsManager::DONT_DL_ALREADY_SHARED, ResourceManager::SETTINGS_DONT_DL_ALREADY_SHARED },
-	{ SettingsManager::ANTI_FRAG, ResourceManager::SETTINGS_ANTI_FRAG },
+//	{ SettingsManager::ANTI_FRAG, ResourceManager::SETTINGS_ANTI_FRAG },
 	// [-] merge
 	//{ SettingsManager::ADVANCED_RESUME, ResourceManager::SETTINGS_ADVANCED_RESUME },
 	//{ SettingsManager::ONLY_DL_TTH_FILES, ResourceManager::SETTINGS_ONLY_DL_TTH_FILES },

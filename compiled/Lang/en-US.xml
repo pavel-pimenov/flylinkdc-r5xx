@@ -1814,7 +1814,7 @@ obliged to inform about this fact.</String>
 		<String Name="ThemeChangeThemeInfo">Restart the program to change the theme</String>
 		<String Name="ThemeDefaultName">FlylinkDC++ Default theme</String>
 		<String Name="ThisFileWasInMyShare">This file was in my share</String>
-		<String Name="ThisFunctionalIsDisabled">This functionality is still under construction or disabled in that version.</String>
+		<String Name="ThisFunctionalIsDisabled">This functionality disabled in that version.</String>
 		<String Name="ThisVersionReleased">This version released or there is a newer version</String>
 		<String Name="Threshold">Threshold users</String>
 		<String Name="TicksSpeedDown">5 ticks down speed:</String>

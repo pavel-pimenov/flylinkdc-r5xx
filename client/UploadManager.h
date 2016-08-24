@@ -240,6 +240,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		typedef boost::unordered_map<UserPtr, uint64_t, User::Hash> SlotMap;
 		
 		static SlotMap g_reservedSlots;
+		static bool g_is_reservedSlotEmpty;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csReservedSlots;
 		
 		SlotMap m_notifiedUsers;

@@ -36,12 +36,12 @@ class Segment
 		Segment() : start(0), size(-1), overlapped(false) { }
 		Segment(int64_t start_, int64_t size_, bool overlapped_ = false) : start(start_), size(size_), overlapped(overlapped_)
 		{
-			dcassert(start_ >= 0);
+			//dcassert(start_ >= 0);
 		}
 		
 		int64_t getStart() const
 		{
-			dcassert(start >= 0);
+			// dcassert(start >= 0);
 			return start;
 		}
 		int64_t getSize() const
@@ -50,7 +50,7 @@ class Segment
 		}
 		int64_t getEnd() const
 		{
-			dcassert(start >= 0);
+			//dcassert(start >= 0);
 			return start + size;
 		}
 		

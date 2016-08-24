@@ -145,14 +145,16 @@ class Identity
 		}
 		
 		//enum Status // [!] IRainman: Only for parse the tag on NMDC hubs! moved to NmdcStatus class.
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 		
 		enum FakeCard // [!] IRainman: The internal feature to the protocols it has nothing to do!
 		{
 			NOT_CHECKED = 0x01,
 			CHECKED     = 0x02,
-			BAD_CLIENT  = 0x04, //-V112
-			BAD_LIST    = 0x08
+			BAD_CLIENT  = 0x04 //-V112
+			, BAD_LIST    = 0x08
 		};
+#endif
 		enum NotEmptyString
 		{
 			EM = 0x01,
@@ -391,7 +393,9 @@ class Identity
 		enum eTypeUint8Attr
 		{
 			e_ClientType, // 7 бит
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 			e_FakeCard,   // 6 бит
+#endif
 			e_ConnectionTimeouts,
 			e_FileListDisconnects,
 			e_FreeSlots,
@@ -473,8 +477,11 @@ class Identity
 			return getClientTypeBit(CT_HIDDEN);
 		}
 #endif
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 		GSUINT(8, FakeCard);
 		GSUINTBIT(8, FakeCard);
+#endif
+		
 		GSUINTBIT(8, NotEmptyString);
 		GSUINT(8, NotEmptyString);
 		
@@ -643,9 +650,7 @@ class Identity
 #ifdef FLYLINKDC_USE_EXT_JSON
 	private:
 		bool m_is_ext_json;
-#ifdef _DEBUG
 		string m_lastExtJSON;
-#endif
 	public:
 		string getFlyHubCountry() const
 		{
@@ -814,12 +819,16 @@ class Identity
 		}
 		// [~] IRainman fix.
 		
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 		string setCheat(const ClientBase& c, const string& aCheatDescription, bool aBadClient);
+#endif
 		void getReport(string& p_report) const;
 		void updateClientType(const OnlineUser& ou)
 		{
 			setStringParam("CS", Util::emptyString);
+#ifdef FLYLINKDC_USE_DETECT_CHEATING
 			setFakeCardBit(BAD_CLIENT , false);
+#endif
 		}
 		
 		void getParams(StringMap& map, const string& prefix, bool compatibility, bool dht = false) const;
@@ -832,7 +841,7 @@ class Identity
 		{
 			return m_is_ext_json;
 		}
-		void setExtJSON(const string& p_ExtJSON);
+		bool setExtJSON(const string& p_ExtJSON);
 		
 		typedef boost::unordered_map<short, string> InfMap;
 		

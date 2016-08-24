@@ -1974,9 +1974,6 @@ void DirectoryListingFrame::on(SettingsManagerListener::Repaint)
 
 LRESULT DirectoryListingFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	dcassert(!isClosedOrShutdown());
-	if (isClosedOrShutdown())
-		return 0;
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST
 	updateTitle(); // [+] InfinitySky. Изменять заголовок окна (иконку).
 #endif // USE_OFFLINE_ICON_FOR_FILELIST
@@ -1984,18 +1981,26 @@ LRESULT DirectoryListingFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*
 	{
 		case FINISHED:
 			m_loading = false;
-			initStatus();
-			ctrlStatus.SetFont(Fonts::g_systemFont);
-			ctrlStatus.SetText(0, (TSTRING(PROCESSED_FILE_LIST) + _T(' ') + Util::toStringW((GET_TICK() - m_FL_LoadSec) / 1000) + _T(' ') + TSTRING(S)).c_str());
-			ctrlTree.EnableWindow(TRUE);
-			
-			//notify the user that we've loaded the list
-			setDirty(0);
+			if (!isClosedOrShutdown())
+			{
+				initStatus();
+				ctrlStatus.SetFont(Fonts::g_systemFont);
+				ctrlStatus.SetText(0, (TSTRING(PROCESSED_FILE_LIST) + _T(' ') + Util::toStringW((GET_TICK() - m_FL_LoadSec) / 1000) + _T(' ') + TSTRING(S)).c_str());
+				ctrlTree.EnableWindow(TRUE);
+				//notify the user that we've loaded the list
+				setDirty(0);
+			}
+			else
+			{
+				PostMessage(WM_CLOSE, 0, 0);
+			}
 			break;
 		case ABORTED:
+		{
 			m_loading = false;
 			PostMessage(WM_CLOSE, 0, 0);
 			break;
+		}
 		default:
 			dcassert(0);
 			break;

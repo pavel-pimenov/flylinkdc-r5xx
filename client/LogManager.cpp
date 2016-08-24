@@ -100,6 +100,8 @@ LogManager::LogManager()
 void LogManager::log(const string& p_area, const string& p_msg) noexcept
 {
 	dcassert(g_isInit);
+	if (!g_isInit)
+		return;
 	string l_area;
 	bool l_is_new_path;
 	{

@@ -62,6 +62,7 @@ MappingManager::MappingManager() : m_renewal(0), m_listeners_count(0)
 StringList MappingManager::getMappers() const
 {
 	StringList ret;
+	ret.reserve(m_mappers.size());
 	for (auto i = m_mappers.cbegin(), iend = m_mappers.cend(); i != iend; ++i)
 	{
 		ret.push_back(i->first);

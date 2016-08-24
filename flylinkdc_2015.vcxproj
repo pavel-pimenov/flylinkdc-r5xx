@@ -863,9 +863,6 @@
     <ProjectReference Include="client_2015.vcxproj">
       <Project>{f8d0e5fe-babd-4fc8-b3fe-b48978d23feb}</Project>
     </ProjectReference>
-    <ProjectReference Include="dht\dht_2015.vcxproj">
-      <Project>{47ab24a7-9fab-4f6f-b411-01c9ff54e22d}</Project>
-    </ProjectReference>
     <ProjectReference Include="FlyFeatures_2015.vcxproj">
       <Project>{2c060b35-3af9-4a70-8052-8699911b9322}</Project>
     </ProjectReference>
