@@ -872,8 +872,7 @@ class Identity
 		
 		static std::unique_ptr<webrtc::RWLockWrapper> g_rw_cs;
 };
-class OnlineUser :
-	public intrusive_ptr_base<OnlineUser>, public UserInfoBase
+class OnlineUser :  public UserInfoBase
 {
 		friend class NmdcHub;
 	public:

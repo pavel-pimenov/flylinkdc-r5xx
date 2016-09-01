@@ -109,15 +109,13 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 	if (aCID.isZero())
 	{
 		CFlyWriteLock(*m_cs);
-		ou = m_adc_users.insert(make_pair(aSID, getHubOnlineUser().get())).first->second;
-		ou->inc();
+		ou = m_adc_users.insert(make_pair(aSID, getHubOnlineUser())).first->second;
 	}
 	else if (ClientManager::isMe(aCID))
 	{
 		{
 			CFlyWriteLock(*m_cs);
-			ou = m_adc_users.insert(make_pair(aSID, getMyOnlineUser().get())).first->second;
-			ou->inc();
+			ou = m_adc_users.insert(make_pair(aSID, getMyOnlineUser())).first->second;
 		}
 		ou->getIdentity().setSID(aSID);
 		if (ou->getIdentity().isOp())
@@ -132,10 +130,9 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		u->setHubID(getHubID());
 #endif
-		OnlineUser* newUser = new OnlineUser(u, *this, aSID);
+		OnlineUserPtr newUser = std::make_shared<OnlineUser>(u, *this, aSID);
 		CFlyWriteLock(*m_cs);
 		ou = m_adc_users.insert(make_pair(aSID, newUser)).first->second;
-		ou->inc();
 	}
 	
 	if (aSID != AdcCommand::HUB_SID)
@@ -171,7 +168,7 @@ OnlineUserPtr AdcHub::findUser(const uint32_t aSID) const// [!] IRainman fix ret
 #endif
 	CFlyReadLock(*m_cs);
 	const auto& i = m_adc_users.find(aSID);
-	return i == m_adc_users.end() ? nullptr : i->second;
+	return i == m_adc_users.end() ? OnlineUserPtr() : i->second;
 }
 
 OnlineUserPtr AdcHub::findUser(const CID& aCID) const// [!] IRainman fix return OnlineUserPtr
@@ -192,7 +189,7 @@ OnlineUserPtr AdcHub::findUser(const CID& aCID) const// [!] IRainman fix return 
 
 void AdcHub::putUser(const uint32_t aSID, bool p_is_disconnect)
 {
-	OnlineUserPtr ou = 0;
+	OnlineUserPtr ou;
 	{
 		CFlyWriteLock(*m_cs);
 		const auto& i = m_adc_users.find(aSID);
@@ -210,7 +207,6 @@ void AdcHub::putUser(const uint32_t aSID, bool p_is_disconnect)
 	}
 	
 	fly_fire2(ClientListener::UserRemoved(), this, ou);
-	ou->dec();
 }
 
 void AdcHub::clearUsers()
@@ -218,10 +214,6 @@ void AdcHub::clearUsers()
 	if (ClientManager::isShutdown())
 	{
 		CFlyWriteLock(*m_cs);
-		for (auto i = m_adc_users.cbegin(); i != m_adc_users.cend(); ++i)
-		{
-			i->second->dec();
-		}
 		m_adc_users.clear();
 		clearAvailableBytesL();
 	}
@@ -238,9 +230,8 @@ void AdcHub::clearUsers()
 		{
 			if (i->first != AdcCommand::HUB_SID)
 			{
-				ClientManager::getInstance()->putOffline(i->second); //TODO crash
+				ClientManager::getInstance()->putOffline(i->second); 
 			}
-			i->second->dec();
 		}
 	}
 }
@@ -800,7 +791,7 @@ void AdcHub::sendUDP(const AdcCommand& cmd) noexcept
 			dcdebug("AdcHub::sendUDP: invalid user\n");
 			return;
 		}
-		const OnlineUser* ou = i->second; // [!] IRainman fix: add pointer
+		const OnlineUserPtr ou = i->second; // [!] IRainman fix: add pointer
 		if (!ou->getIdentity().isUdpActive())
 		{
 			return;
@@ -898,7 +889,7 @@ void AdcHub::handle(AdcCommand::STA, const AdcCommand& c) noexcept
 	{
 		if (m_client_sock)
 			m_client_sock->disconnect(false);
-		fly_fire1(ClientListener::NickTaken(), this);
+		fly_fire1(ClientListener::NickTaken());
 	}
 }
 

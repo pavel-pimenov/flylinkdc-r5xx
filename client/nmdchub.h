@@ -107,7 +107,7 @@ class NmdcHub : public Client, private Flags
 		// Used to detect end of connection to hub sequence (after gettinf list of users)
 		enum DefinedMeyInfoState {DIDNT_GET_YET_FIRST_MYINFO, FIRST_MYINFO, ALREADY_GOT_MYINFO};
 		
-		typedef boost::unordered_map<string, OnlineUser*> NickMap;
+		typedef boost::unordered_map<string, OnlineUserPtr> NickMap;
 		
 		NickMap  m_users;
 		string   m_lastMyInfo;

@@ -355,9 +355,11 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		GETSET(string, m_user_connection_token, UserConnectionToken);
 		GETSET(int64_t, speed, Speed);
 		GETSET(uint64_t, lastActivity, LastActivity);
-		void setLastActivity()
+		uint64_t setLastActivity()
 		{
+			const auto l_tick = GET_TICK();
 			setLastActivity(GET_TICK());
+			return l_tick;
 		}
 	public:
 		GETSET(string, m_last_encoding, Encoding);
@@ -368,6 +370,9 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		{
 			return socket;
 		}
+		void fireBytesSent(size_t p_Bytes, size_t p_Actual);
+		void fireData(uint8_t* p_data, size_t p_len);
+		
 	private:
 		int64_t m_chunkSize;
 		BufferedSocket* socket;
@@ -389,8 +394,8 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		
 		void on(Connected) noexcept override;
 		void on(Line, const string&) noexcept override;
-		void on(Data, uint8_t* data, size_t p_len) noexcept override;
-		void on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept override;
+		//void on(Data, uint8_t* data, size_t p_len) noexcept override;
+		//void on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept override;
 #ifdef FLYLINKDC_USE_CROOKED_HTTP_CONNECTION
 		void on(ModeChange) noexcept override;
 #endif
@@ -402,7 +407,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 class UcSupports // [+] IRainman fix.
 {
 	public:
-		static StringList setSupports(UserConnection* p_conn, StringList& feat, uint8_t& knownUcSupports)
+		static StringList setSupports(UserConnection* p_conn, const StringList& feat, uint8_t& knownUcSupports)
 		{
 			StringList unknownSupports;
 			for (auto i = feat.cbegin(); i != feat.cend(); ++i)

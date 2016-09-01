@@ -445,7 +445,7 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 	}
 }
 
-void DownloadManager::on(UserConnectionListener::Data, UserConnection* aSource, const uint8_t* aData, size_t aLen) noexcept
+void DownloadManager::fireData(UserConnection* aSource, const uint8_t* aData, size_t aLen) noexcept
 {
 	// TODO dcassert(!ClientManager::isBeforeShutdown());
 	auto d = aSource->getDownload();
@@ -453,7 +453,6 @@ void DownloadManager::on(UserConnectionListener::Data, UserConnection* aSource, 
 	try
 	{
 		d->addPos(d->getDownloadFile()->write(aData, aLen), aLen);
-		// [-] d->tick(aSource->getLastActivity()); [-]IRainman refactoring transfer mechanism
 		
 		if (d->getDownloadFile()->eof())
 		{
@@ -468,6 +467,11 @@ void DownloadManager::on(UserConnectionListener::Data, UserConnection* aSource, 
 		// [~] IRainman fix: no needs.
 		failDownload(aSource, e.getError());
 	}
+	
+}
+void DownloadManager::on(UserConnectionListener::Data, UserConnection* aSource, const uint8_t* aData, size_t aLen) noexcept
+{
+	fireData(aSource, aData, aLen);
 }
 
 /** Download finished! */

@@ -18,7 +18,6 @@
 
 #pragma once
 
-
 #ifndef DCPLUSPLUS_DCPP_FORWARD_H_
 #define DCPLUSPLUS_DCPP_FORWARD_H_
 
@@ -26,7 +25,6 @@
  * This file contains forward declarations for the various DC++ classes
  */
 
-#include <boost/intrusive_ptr.hpp>
 
 class FavoriteHubEntry;
 typedef std::vector<FavoriteHubEntry*> FavoriteHubEntryList;
@@ -38,10 +36,9 @@ typedef std::deque<FinishedItemPtr> FinishedItemList;
 class HubEntry;
 typedef std::deque<HubEntry> HubEntryList; // [!] IRainman opt: change vector to deque
 
-//class Identity;
 
 class OnlineUser;
-typedef boost::intrusive_ptr<OnlineUser> OnlineUserPtr;
+typedef std::shared_ptr<OnlineUser> OnlineUserPtr;
 typedef std::vector<OnlineUserPtr> OnlineUserList;
 
 class QueueItem;

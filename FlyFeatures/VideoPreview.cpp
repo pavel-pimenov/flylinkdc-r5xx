@@ -28,9 +28,7 @@
 
 VideoPreview::~VideoPreview()
 {
-	/* [-] IRainman fix.
-	QueueManager::getInstance()->removeListener(this);
-	*/
+
 }
 
 void

@@ -31,7 +31,7 @@
 
 class UnZFilter;
 class InputStream;
-
+class UserConnection;
 class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THREAD
 {
 	public:
@@ -54,9 +54,10 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		 * @param sep Line separator
 		 * @return An unconnected socket
 		 */
-		static BufferedSocket* getBufferedSocket(char sep)
+		static BufferedSocket* getBufferedSocket(char sep, UserConnection* p_connection)
 		{
-			return new BufferedSocket(sep);
+			auto l_sock = new BufferedSocket(sep, p_connection);
+			return l_sock;
 		}
 		
 		static void putBufferedSocket(BufferedSocket*& p_sock, bool p_delete = false);
@@ -205,7 +206,8 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		                       CFlySearchArrayFile& p_file_search);
 		char m_separator;
 		unsigned m_count_search_ddos;
-	private:
+		UserConnection* m_connection;
+		
 		enum Tasks
 		{
 			CONNECT,
@@ -246,7 +248,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 			InputStream* m_stream;
 		};
 		
-		explicit BufferedSocket(char aSeparator);
+		explicit BufferedSocket(char aSeparator, UserConnection* p_connection);
 		
 		~BufferedSocket();
 		

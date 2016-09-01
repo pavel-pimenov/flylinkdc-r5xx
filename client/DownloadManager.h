@@ -67,7 +67,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		
 		bool isStartDownload(QueueItem::Priority prio);
 		static bool checkFileDownload(const UserPtr& aUser);
-		
+		void fireData(UserConnection*, const uint8_t*, size_t) noexcept;
 	private:
 	
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDownload;

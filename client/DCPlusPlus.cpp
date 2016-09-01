@@ -362,8 +362,9 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		::WSACleanup();
 #ifdef _DEBUG
 		dcdebug("shutdown end - User::g_user_counts = %d OnlineUser::g_online_user_counts = %d\n", int(User::g_user_counts), int(OnlineUser::g_online_user_counts));
-		//dcassert(User::g_user_counts == 2); // ClientManager::g_uflylinkdc and ClientManager::g_me destroyed only with the full completion of the program, all the other user must be destroyed already by this time.
-		//dcassert(OnlineUser::g_online_user_counts == 0);
+		dcassert(User::g_user_counts == 2);
+		// ClientManager::g_uflylinkdc and ClientManager::g_me destroyed only with the full completion of the program, all the other user must be destroyed already by this time.
+		dcassert(OnlineUser::g_online_user_counts == 0);
 		dcassert(UploadQueueItem::g_upload_queue_item_count == 0);
 		dcdebug("shutdown start - UploadQueueItem::g_upload_queue_item_count = %d \n", int(UploadQueueItem::g_upload_queue_item_count));
 #endif

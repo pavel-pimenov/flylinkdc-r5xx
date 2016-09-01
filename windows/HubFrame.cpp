@@ -277,6 +277,7 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	, m_tabMenu(nullptr)
 	, m_ActivateCounter(0)
 	, m_is_window_text_update(0)
+	, m_is_hub_param_update(0)
 	, m_Theme(nullptr)
 	, m_is_process_disconnected(false)
 #ifdef FLYLINKDC_USE_SKULL_TAB
@@ -351,7 +352,7 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	
 	BaseChatFrame::OnCreate(m_hWnd, rcDefault);
 	
-	ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick()); // !SMT!-S
+	setHubParam(); // !SMT!-S
 	
 	// TODO - отложить создание контрола...
 // TODO - может колонки не создвать пока они не нужны?
@@ -1521,7 +1522,7 @@ void HubFrame::doConnected()
 	setTabColor(RGB(10, 10, 10));
 	unsetIconState();
 	
-	ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick()); // [+] IRainman fix.
+	setHubParam();
 	
 	setStatusText(1, Text::toT(m_client->getCipherName()));
 	if (m_ctrlStatus)
@@ -1967,7 +1968,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 							if (m_client->getSuppressChatAndPM())
 							{
 								m_client->disconnect(false);
-								m_client->fly_fire1(ClientListener::NickTaken(), m_client);
+								m_client->fly_fire1(ClientListener::NickTaken());
 							}
 							else
 							{
@@ -1994,7 +1995,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 								else
 								{
 									m_client->disconnect(false);
-									m_client->fly_fire1(ClientListener::NickTaken(), m_client);
+									m_client->fly_fire1(ClientListener::NickTaken());
 								}
 							}
 						}
@@ -3670,6 +3671,11 @@ void HubFrame::setShortHubName(const tstring& p_name)
 }
 void HubFrame::onTimerHubUpdated()
 {
+	if (m_client && m_is_hub_param_update)
+	{
+		ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick());
+		m_is_hub_param_update = 0;
+	}
 	if (m_client && m_hub_name_update_count)
 	{
 		m_hub_name_update_count = 0;
@@ -3758,7 +3764,7 @@ static string getRandomSuffix()
 	}
 	return l_random;
 }
-void HubFrame::on(ClientListener::NickTaken, const Client*) noexcept
+void HubFrame::on(ClientListener::NickTaken) noexcept
 {
 	const string l_my_nick = m_client->getMyNick();
 	speak(ADD_STATUS_LINE, STRING(NICK_TAKEN) + " (Nick = " + l_my_nick + ")", true);
@@ -3797,7 +3803,7 @@ void HubFrame::on(ClientListener::NickTaken, const Client*) noexcept
 	}
 	m_client->setMyNick(l_fly_user);
 	m_client->setRandomNick(l_fly_user);
-	ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick());
+	setHubParam();
 	CFlyServerJSON::pushError(54, "Hub = " + m_client->getHubUrl() + " New random nick = " + l_fly_user);
 	if (m_reconnect_count < 3)
 	{

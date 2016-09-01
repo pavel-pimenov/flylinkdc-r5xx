@@ -129,15 +129,15 @@ void NmdcHub::refreshUserList(bool refreshOnly)
 OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_load)
 {
 	CFlyFastLock(cs);
-	OnlineUser * l_ou_ptr;
+	OnlineUserPtr l_ou_ptr;
 	bool l_is_CID_User = nullptr;
 	if (p_hub)
 	{
-		l_ou_ptr = getHubOnlineUser().get();
+		l_ou_ptr = getHubOnlineUser();
 	}
 	else if (p_first_load == false && aNick == getMyNick())
 	{
-		l_ou_ptr = getMyOnlineUser().get();
+		l_ou_ptr = getMyOnlineUser();
 	}
 	else
 	{
@@ -148,7 +148,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 #endif
 		                                   , p_first_load
 		                                  );
-		l_ou_ptr = new OnlineUser(p, *this, 0);
+		l_ou_ptr = std::make_shared<OnlineUser>(p, *this, 0);
 	}
 	auto l_find = m_users.insert(make_pair(aNick, l_ou_ptr));
 	if (l_find.second == false) // Не прошла вставка т.к. такой ник уже есть в мапе?
@@ -200,16 +200,14 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	{
 		{
 			CFlyWriteLock(*m_cs);
-			ou = m_users.insert(make_pair(aNick, getHubOnlineUser().get())).first->second;
-			ou->inc();
+			ou = m_users.insert(make_pair(aNick, getHubOnlineUser())).first->second;
 		}
 		ou->getIdentity().setNick(aNick);
 	}
 	else if (aNick == getMyNick())
 	{
 		CFlyWriteLock(*m_cs);
-		ou = m_users.insert(make_pair(aNick, getMyOnlineUser().get())).first->second;
-		ou->inc();
+		ou = m_users.insert(make_pair(aNick, getMyOnlineUser())).first->second;
 	}
 	// [~] IRainman fix.
 	else
@@ -220,11 +218,10 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 #endif
 		                                   , p_first_load
 		                                  );
-		OnlineUser* newUser = new OnlineUser(p, *this, 0);
+		OnlineUserPtr newUser = std::make_shared<OnlineUser>(p, *this, 0);
 		{
 			CFlyWriteLock(*m_cs);
 			ou = m_users.insert(make_pair(aNick, newUser)).first->second;
-			ou->inc();
 		}
 		ou->getIdentity().setNick(aNick);
 	}
@@ -251,7 +248,7 @@ OnlineUserPtr NmdcHub::findUser(const string& aNick) const
 #ifdef FLYLINKDC_USE_PROFILER_CS
 	//l_lock.m_add_log_info = " User = " + aNick;
 #endif
-	return i == m_users.end() ? nullptr : i->second;
+	return i == m_users.end() ? OnlineUserPtr() : i->second;
 }
 
 void NmdcHub::putUser(const string& aNick)
@@ -283,21 +280,16 @@ void NmdcHub::putUser(const string& aNick)
 	}
 	
 	fly_fire2(ClientListener::UserRemoved(), this, ou); // [+] IRainman fix.
-	ou->dec();// [!] IRainman fix memoryleak
 }
 
 void NmdcHub::clearUsers()
 {
-	if (ClientManager::isShutdown())
+	if (ClientManager::isBeforeShutdown())
 	{
 		CFlyWriteLock(*m_cs);
 #ifdef FLYLINKDC_USE_EXT_JSON_GUARD
 		m_ext_json_deferred.clear();
 #endif
-		for (auto i = m_users.cbegin(); i != m_users.cend(); ++i)
-		{
-			i->second->dec();
-		}
 		m_users.clear();
 		clearAvailableBytesL();
 	}
@@ -314,16 +306,19 @@ void NmdcHub::clearUsers()
 		}
 		for (auto i = u2.cbegin(); i != u2.cend(); ++i)
 		{
+			//i->second->getIdentity().setBytesShared(0);
 			if (!i->second->getUser()->getCID().isZero()) // [+] IRainman fix.
 			{
 				ClientManager::getInstance()->putOffline(i->second);
+			}
+			else
+			{
+				dcassert(0);
 			}
 			// Варианты
 			// - скармливать юзеров массивом
 			// - Держать юзеров в нескольких контейнерах для каждого хаба отдельно
 			// - проработать команду на убивание всей мапы сразу без поиска
-			i->second->getIdentity().setBytesShared(0);
-			i->second->dec();// [!] IRainman fix memoryleak
 		}
 	}
 }
@@ -1265,7 +1260,7 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 			// changed in other thread
 			
 			// CFlyLock(cs); [-] IRainman fix.
-			for (auto it = sl.cbegin(); it != sl.cend() && !ClientManager::isShutdown(); ++it)
+			for (auto it = sl.cbegin(); it != sl.cend() && !ClientManager::isBeforeShutdown(); ++it)
 			{
 				string::size_type j = 0;
 				if ((j = it->find(' ')) == string::npos)
@@ -1870,7 +1865,7 @@ void NmdcHub::onLine(const string& aLine)
 		dcassert(m_client_sock);
 		if (m_client_sock)
 			m_client_sock->disconnect(false);
-		fly_fire1(ClientListener::NickTaken(), this);
+		fly_fire1(ClientListener::NickTaken());
 		//m_count_validate_denide++;
 	}
 	else if (cmd == "UserIP")
@@ -1952,7 +1947,7 @@ void NmdcHub::onLine(const string& aLine)
 				setMyNick(l_nick);
 			}
 		}
-		fly_fire1(ClientListener::NickTaken(), this);
+		fly_fire1(ClientListener::NickTaken());
 		//m_count_validate_denide++;
 	}
 	else if (cmd == "NickRule")
@@ -2685,12 +2680,9 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 				ou->getIdentity().setExtJSONTimesStartCore(l_root["StartCore"].asInt64());  //TODO тут тоже 32 бита
 				ou->getIdentity().setExtJSONTimesStartGUI(l_root["StartGUI"].asInt64()); //TODO тут тоже 32 бита
 				
-				if (!ClientManager::isShutdown())
+				if (p_is_disable_fire == false)
 				{
-					if (p_is_disable_fire == false)
-					{
-						updatedMyINFO(ou); // TODO обновлять только JSON
-					}
+					updatedMyINFO(ou); // TODO обновлять только JSON
 				}
 			}
 		}
@@ -2713,7 +2705,7 @@ void NmdcHub::myInfoParse(const string& param)
 	string::size_type j = param.find(' ', i);
 	if (j == string::npos || j == i)
 		return;
-	string l_nick = param.substr(i, j - i);
+	const string l_nick = param.substr(i, j - i);
 	
 	dcassert(!l_nick.empty())
 	if (l_nick.empty())
@@ -2785,7 +2777,7 @@ void NmdcHub::myInfoParse(const string& param)
 		{
 			// Hm, we have something...disassemble it...
 			//dcassert(tmpDesc.length() > x + 2)
-			if (tmpDesc.length()  > x + 2 && l_is_only_desc_change == false)
+			if (tmpDesc.length() > x + 2 && l_is_only_desc_change == false)
 			{
 				const string l_tag = tmpDesc.substr(x + 1, tmpDesc.length() - x - 2);
 				bool l_is_version_change = true;
@@ -2807,7 +2799,7 @@ void NmdcHub::myInfoParse(const string& param)
 		ou->getIdentity().setDescription(tmpDesc); //
 	}
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
-	if (l_is_only_desc_change && !ClientManager::isShutdown())
+	if (l_is_only_desc_change && !ClientManager::isBeforeShutdown())
 	{
 		fly_fire1(ClientListener::UserDescUpdated(), ou);
 		return;
@@ -2851,7 +2843,7 @@ void NmdcHub::myInfoParse(const string& param)
 	if (j == string::npos)
 		return;
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
-// Проверим что меняетс только шара
+	// Проверим что меняетс только шара
 	bool l_is_change_only_share = false;
 	if (!l_my_info_before_change.empty())
 	{
@@ -2917,39 +2909,33 @@ void NmdcHub::myInfoParse(const string& param)
 #endif // FLYLINKDC_USE_ANTIVIRUS_DB
 	}
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
-	if (l_is_change_only_share && !ClientManager::isShutdown())
+	if (l_is_change_only_share && !ClientManager::isBeforeShutdown())
 	{
 		fly_fire1(ClientListener::UserShareUpdated(), ou);
 		return;
 	}
 #endif // FLYLINKDC_USE_CHECK_CHANGE_MYINFO 
 	
-	if (!ClientManager::isShutdown())
-	{
 #ifdef FLYLINKDC_USE_EXT_JSON_GUARD
-		string l_ext_json_param;
+	string l_ext_json_param;
+	{
+		CFlyReadLock(*m_cs);
+		const auto l_find_ext_json = m_ext_json_deferred.find(l_nick);
+		if (l_find_ext_json != m_ext_json_deferred.end())
 		{
-			CFlyReadLock(*m_cs);
-			const auto l_find_ext_json = m_ext_json_deferred.find(l_nick);
-			if (l_find_ext_json != m_ext_json_deferred.end())
-			{
-				l_ext_json_param = l_find_ext_json->second;
-			}
-		}
-		if (!l_ext_json_param.empty())
-		{
-			extJSONParse(l_ext_json_param, true); // true - не зовем ClientListener::UserUpdatedMyINFO
-			{
-				CFlyWriteLock(*m_cs);
-				m_ext_json_deferred.erase(l_nick);
-			}
-		}
-#endif // FLYLINKDC_USE_EXT_JSON
-		if (!ClientManager::isShutdown())
-		{
-			updatedMyINFO(ou);
+			l_ext_json_param = l_find_ext_json->second;
 		}
 	}
+	if (!l_ext_json_param.empty())
+	{
+		extJSONParse(l_ext_json_param, true); // true - не зовем ClientListener::UserUpdatedMyINFO
+		{
+			CFlyWriteLock(*m_cs);
+			m_ext_json_deferred.erase(l_nick);
+		}
+	}
+#endif // FLYLINKDC_USE_EXT_JSON
+	updatedMyINFO(ou);
 }
 
 void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_search_array) noexcept
@@ -3038,7 +3024,7 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayFile, const CFlySearchArrayF
 			// dcassert(i->find("?9?TTH:") == string::npos);
 			// TODO - научится обрабатывать - поиск по TTH с ограничениями по размеру
 			// "x.x.x.x:yyy T?F?57671680?9?TTH:A3VSWSWKCVC4N6EP2GX47OEMGT5ZL52BOS2LAHA"
-			if (!ClientManager::isShutdown())
+			if (!ClientManager::isBeforeShutdown())
 			{
 				searchParse(i->m_raw_search, i->m_is_passive); // TODO - у нас уже есть распарсенное
 				COMMAND_DEBUG("$Search " + i->m_raw_search, DebugTask::HUB_IN, getIpPort());
@@ -3054,7 +3040,7 @@ void NmdcHub::on(BufferedSocketListener::DDoSSearchDetect, const string& p_error
 
 void NmdcHub::on(BufferedSocketListener::MyInfoArray, StringList& p_myInfoArray) noexcept
 {
-	for (auto i = p_myInfoArray.cbegin(); i != p_myInfoArray.end() && !ClientManager::isShutdown(); ++i)
+	for (auto i = p_myInfoArray.cbegin(); i != p_myInfoArray.end() && !ClientManager::isBeforeShutdown(); ++i)
 	{
 		const auto l_utf_line = toUtf8MyINFO(*i);
 		myInfoParse(l_utf_line);

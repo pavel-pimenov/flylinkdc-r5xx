@@ -988,14 +988,16 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 	}
 }
 
-void UploadManager::on(UserConnectionListener::BytesSent, UserConnection* aSource, size_t aBytes, size_t aActual) noexcept
+/*
+void UploadManager::on(UserConnectionListener::UserBytesSent, UserConnection* aSource, size_t aBytes, size_t aActual) noexcept
 {
-	//dcassert(!ClientManager::isBeforeShutdown());
-	dcassert(aSource->getState() == UserConnection::STATE_RUNNING);
-	auto u = aSource->getUpload();
-	dcassert(u != nullptr);
-	u->addPos(aBytes, aActual);
+    //dcassert(!ClientManager::isBeforeShutdown());
+    dcassert(aSource->getState() == UserConnection::STATE_RUNNING);
+    auto u = aSource->getUpload();
+    dcassert(u != nullptr);
+    u->addPos(aBytes, aActual);
 }
+*/
 
 void UploadManager::on(UserConnectionListener::Failed, UserConnection* aSource, const string& aError) noexcept
 {

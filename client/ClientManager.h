@@ -91,12 +91,12 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		* @param priv discard any user that doesn't match the hint.
 		* @return OnlineUser* found by CID and hint; might be only by CID if priv is false.
 		*/
-		static OnlineUser* findOnlineUserL(const HintedUser& user, bool priv)
+		static OnlineUserPtr findOnlineUserL(const HintedUser& user, bool priv)
 		{
 			// [!] IRainman: This function need to external lock.
 			return findOnlineUserL(user.user->getCID(), user.hint, priv);
 		}
-		static OnlineUser* findOnlineUserL(const CID& cid, const string& hintUrl, bool priv);
+		static OnlineUserPtr findOnlineUserL(const CID& cid, const string& hintUrl, bool priv);
 		static UserPtr findUser(const string& aNick, const string& aHubUrl)
 		{
 			return findUser(makeCid(aNick, aHubUrl));
@@ -181,7 +181,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 				return Identity();
 		}
 #endif // IRAINMAN_IDENTITY_IS_NON_COPYABLE
-		static OnlineUser* getOnlineUserL(const UserPtr& p);
+		static OnlineUserPtr getOnlineUserL(const UserPtr& p);
 		static bool isOp(const UserPtr& aUser, const string& aHubUrl);
 		/** Constructs a synthetic, hopefully unique CID */
 		static CID makeCid(const string& nick, const string& hubUrl);
@@ -269,7 +269,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #endif
 		static void setClientStatus(const UserPtr& p, const string& aCheatString, const int aRawCommand, bool aBadClient);
 		
-		static void setSupports(const UserPtr& p, StringList& aSupports, const uint8_t knownUcSupports);
+		static void setSupports(const UserPtr& p, const StringList& aSupports, const uint8_t knownUcSupports);
 		static void setUnknownCommand(const UserPtr& p, const string& aUnknownCommand);
 		static void reportUser(const HintedUser& user);
 		//static void setFakeList(const UserPtr& p, const string& aCheatString);
@@ -317,9 +317,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csUsers; // [+] IRainman opt.
 		// =================================================
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
-		typedef std::unordered_multimap<const CID*, OnlineUser*> OnlineMap; // TODO: not allow to replace UserPtr in Identity.
+		typedef std::unordered_multimap<const CID*, OnlineUserPtr> OnlineMap; // TODO: not allow to replace UserPtr in Identity.
 #else
-		typedef std::unordered_multimap<CID, OnlineUser*> OnlineMap;
+		typedef std::unordered_multimap<CID, OnlineUserPtr> OnlineMap;
 #endif
 		typedef OnlineMap::iterator OnlineIter;
 		typedef OnlineMap::const_iterator OnlineIterC;
@@ -348,8 +348,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		static void updateNick(const OnlineUserPtr& p_online_user);
 		
-		/// @return OnlineUser* found by CID and hint; discard any user that doesn't match the hint.
-		static OnlineUser* findOnlineUserHintL(const CID& cid, const string& hintUrl)
+		/// @return OnlineUserPtr found by CID and hint; discard any user that doesn't match the hint.
+		static OnlineUserPtr findOnlineUserHintL(const CID& cid, const string& hintUrl)
 		{
 			// [!] IRainman: This function need to external lock.
 			OnlinePairC p;
@@ -357,9 +357,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		}
 		/**
 		* @param p OnlinePair of all the users found by CID, even those who don't match the hint.
-		* @return OnlineUser* found by CID and hint; discard any user that doesn't match the hint.
+		* @return OnlineUserPtr found by CID and hint; discard any user that doesn't match the hint.
 		*/
-		static OnlineUser* findOnlineUserHintL(const CID& cid, const string& hintUrl, OnlinePairC& p);
+		static OnlineUserPtr findOnlineUserHintL(const CID& cid, const string& hintUrl, OnlinePairC& p);
 		
 		void fireIncomingSearch(const string&, const string&, ClientManagerListener::SearchReply);
 		// ClientListener

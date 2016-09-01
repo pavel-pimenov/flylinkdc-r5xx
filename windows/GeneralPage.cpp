@@ -81,13 +81,18 @@ void GeneralPage::write()
 	ctrlLanguage.Attach(GetDlgItem(IDC_LANGUAGE));
 	const string l_filelang = WinUtil::getDataFromMap(ctrlLanguage.GetCurSel(), m_languagesList);
 	dcassert(!l_filelang.empty());
-	if (SETTING(LANGUAGE_FILE) != l_filelang)
+	if (!l_filelang.empty())
 	{
-		g_settings->set(SettingsManager::LANGUAGE_FILE, l_filelang);
-		SettingsManager::getInstance()->save();
-		ResourceManager::loadLanguage(Util::getLocalisationPath() + l_filelang);
-		if (m_languagesList.size() != 1)
-			MessageBox(CTSTRING(CHANGE_LANGUAGE_INFO), CTSTRING(CHANGE_LANGUAGE), MB_OK | MB_ICONEXCLAMATION);
+		if (SETTING(LANGUAGE_FILE) != l_filelang)
+		{
+			g_settings->set(SettingsManager::LANGUAGE_FILE, l_filelang);
+			SettingsManager::getInstance()->save();
+			ResourceManager::loadLanguage(Util::getLocalisationPath() + l_filelang);
+			if (m_languagesList.size() != 1)
+			{
+				MessageBox(CTSTRING(CHANGE_LANGUAGE_INFO), CTSTRING(CHANGE_LANGUAGE), MB_OK | MB_ICONEXCLAMATION);
+			}
+		}
 	}
 	ctrlLanguage.Detach();
 #ifdef FLYLINKDC_USE_XXX_ICON

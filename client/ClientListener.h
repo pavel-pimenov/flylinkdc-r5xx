@@ -70,7 +70,7 @@ class ClientListener
 		virtual void on(StatusMessage, const Client*, const string&, int = FLAG_NORMAL) noexcept { }
 		virtual void on(HubUserCommand, const Client*, int, int, const string&, const string&) noexcept { }
 		virtual void on(HubFull, const Client*) noexcept { }
-		virtual void on(NickTaken, const Client*) noexcept { }
+		virtual void on(NickTaken) noexcept { }
 		virtual void on(AdcSearch, const Client*, const AdcCommand&, const CID&) noexcept { }
 		virtual void on(CheatMessage, const string&) noexcept { }
 #ifdef FLYLINKDC_SUPPORT_HUBTOPIC

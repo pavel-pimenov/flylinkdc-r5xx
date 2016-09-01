@@ -241,7 +241,8 @@ bool AutoUpdateObject::checkSignXML(const string& p_url_sign) const
 {
 	std::vector<byte> l_signData;
 	CFlyHTTPDownloader l_http_downloader;
-	const size_t l_signDataSize = l_http_downloader.getBinaryDataFromInet(p_url_sign, l_signData); // update*.sign fize == 128
+	l_http_downloader.m_is_use_cache = false;
+	const size_t l_signDataSize = l_http_downloader.getBinaryDataFromInetSafe(p_url_sign, l_signData); // update*.sign fize == 128
 	return l_signDataSize != 0 && AutoUpdate::verifyUpdate(l_signData.data(), l_signDataSize, m_update_xml, m_update_xml.length());
 }
 void AutoUpdate::startUpdateThisThread()
@@ -334,7 +335,7 @@ void AutoUpdate::startUpdateThisThread()
 						bool l_check_result = l_autoUpdateObject->checkSignXML(l_check_file_url);
 						if (l_check_result == false)
 						{
-							l_check_message = STRING(AUTOUPDATE_ERROR_VERIF) + " url: " + l_check_file_url;
+							l_check_message = STRING(AUTOUPDATE_ERROR_VERIF) + "\r\n url: " + l_check_file_url;
 							l_is_invalid_sign_update = true;
 						}
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
@@ -343,12 +344,13 @@ void AutoUpdate::startUpdateThisThread()
 						if (l_check_result == false)
 						{
 							l_check_message += "\r\n";
-							l_check_message += STRING(AUTOUPDATE_ERROR_VERIF) + " url: " + l_check_file_url;
+							l_check_message += STRING(AUTOUPDATE_ERROR_VERIF) + "\r\n url: " + l_check_file_url;
 							l_is_invalid_sign_update = false;
 						}
 #endif
 						if (!l_check_message.empty())
 						{
+							CFlyHTTPDownloader::nextMirror();
 							m_isUpdate = false;
 							m_manualUpdate = false;
 							const string l_error = STRING(AUTOUPDATE_ERROR_VERIF) + l_check_message;
@@ -714,6 +716,7 @@ bool AutoUpdate::prepareFile(const AutoUpdateFile& file, const string& tempFolde
 	IDateReceiveReporter* reporter = InetDownloadReporter::getInstance();
 	// 60 sec
 	CFlyHTTPDownloader l_http_downloader;
+	l_http_downloader.m_is_use_cache = false;
 	int64_t sizeRead = l_http_downloader.getBinaryDataFromInetSafe(file.m_sDownloadURL, l_binary_data, 60000, reporter); // TODO - передать размер буфера сразу
 	if (sizeRead == file.m_packedSize)
 	{

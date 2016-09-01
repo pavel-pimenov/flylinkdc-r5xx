@@ -35,7 +35,7 @@ class UserConnectionListener
 			enum { TYPE = I };
 		};
 		
-		typedef X<0> BytesSent;
+		//typedef X<0> UserBytesSent;
 		typedef X<1> Connected;
 		typedef X<2> Data;
 		typedef X<3> Failed;
@@ -61,7 +61,7 @@ class UserConnectionListener
 		#endif*/
 		typedef X<23> CheckUserIP; // [+] SSA
 		
-		virtual void on(BytesSent, UserConnection*, size_t p_Bytes, size_t p_Actual) noexcept { }
+		//virtual void on(UserBytesSent, UserConnection*, size_t p_Bytes, size_t p_Actual) noexcept { }
 		virtual void on(Connected, UserConnection*) noexcept { }
 		virtual void on(Data, UserConnection*, const uint8_t*, size_t) noexcept { }
 		virtual void on(Failed, UserConnection*, const string&) noexcept { }

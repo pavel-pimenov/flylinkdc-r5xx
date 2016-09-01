@@ -50,7 +50,7 @@ class AdcSupports // [+] IRainman fix.
 		};
 		
 		static string getSupports(const Identity& id);
-		static void setSupports(Identity& id, StringList & su);
+		static void setSupports(Identity& id, const StringList & su);
 		static void setSupports(Identity& id, const string & su);
 		
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
@@ -76,7 +76,7 @@ class NmdcSupports // [+] IRainman fix.
 		static string getStatus(const Identity& id); // [<-] moved from Util and review.
 		static void setStatus(Identity& id, const char status, const string& connection = Util::emptyString);
 		static string getSupports(const Identity& id);
-		static void setSupports(Identity& id, StringList & su);
+		static void setSupports(Identity& id, const StringList & su);
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 		static FastCriticalSection g_debugCsUnknownNmdcConnection;
 		static boost::unordered_set<string> g_debugUnknownNmdcConnection;

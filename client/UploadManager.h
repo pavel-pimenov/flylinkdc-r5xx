@@ -269,7 +269,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		void on(Minute, uint64_t aTick) noexcept override;
 		
 		// UserConnectionListener
-		void on(BytesSent, UserConnection*, size_t p_Bytes, size_t p_Actual) noexcept override;
+		// void on(UserBytesSent, UserConnection*, size_t p_Bytes, size_t p_Actual) noexcept override;
 		void on(Failed, UserConnection*, const string&) noexcept override;
 		void on(Get, UserConnection*, const string&, int64_t) noexcept override;
 		void on(Send, UserConnection*) noexcept override;

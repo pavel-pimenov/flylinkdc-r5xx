@@ -55,11 +55,11 @@ string AdcSupports::getSupports(const Identity& id)
 	return tmp;
 }
 
-void AdcSupports::setSupports(Identity& id, StringList & su)
+void AdcSupports::setSupports(Identity& id, const StringList & su)
 {
 	uint8_t knownSupports = 0;
 	auto& u = id.getUser();
-	for (auto i = su.begin(); i != su.end(); ++i)
+	for (auto i = su.cbegin(); i != su.cend(); ++i)
 	{
 	
 #define CHECK_FEAT(feat) if (*i == feat##_FEATURE) { u->setFlag(User::feat); }

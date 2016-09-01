@@ -2776,33 +2776,72 @@ void CFlyHTTPDownloader::create_error_message(const char* p_type, const string& 
 		m_error_message += " [ " + p_url + "] ";
 	m_error_message += " error = " + Util::translateError();
 }
+bool CFlyHTTPDownloader::switchMirrorURL(string& p_url, int p_mirror)
+{
+	if (p_mirror == 2 || p_mirror == 3)
+	{
+		if (p_url.find("://etc.fly-server.ru/etc/") != string::npos ||
+		        p_url.find("://update.fly-server.ru/update/") != string::npos
+		   )
+		{
+			string l_url = p_url;
+			const char* l_base_url = ".fly-server.ru/";
+			boost::replace_all(l_url, l_base_url, Util::toString(p_mirror) + l_base_url);
+			LogManager::message("Use mirror: " + l_url);
+			p_url = l_url;
+			return true;
+		}
+	}
+	return false;
+}
+
+int CFlyHTTPDownloader::g_last_stable_mirror = 0;
+void CFlyHTTPDownloader::nextMirror()
+{
+	if (g_last_stable_mirror == 0)
+		g_last_stable_mirror = 1;
+	g_last_stable_mirror++;
+	if (g_last_stable_mirror == 4)
+		g_last_stable_mirror = 0;
+}
 
 uint64_t CFlyHTTPDownloader::getBinaryDataFromInetSafe(const string& p_url, std::vector<unsigned char>& p_data_out, LONG p_time_out /*=0*/, IDateReceiveReporter* p_reporter /* = NULL */)
 {
 	size_t l_length = 0;
 	string l_url = p_url;
-	for (auto i = 2; i < 4; ++i)
+	if (g_last_stable_mirror != 0 && g_last_stable_mirror != 2 && g_last_stable_mirror != 3)
 	{
-		l_length = getBinaryDataFromInet(l_url, p_data_out, p_time_out, p_reporter); // Проверить что есть ошибка.
+		g_last_stable_mirror = 0;
+	}
+	switchMirrorURL(l_url, g_last_stable_mirror);
+	for (int i = 2; i < 5; ++i)
+	{
 #ifdef _DEBUG
-		if (i == 2)
-		{
-			//l_length = 0; // Эмуляция ошибки
-		}
+		// boost::replace_all(l_url, "etc2.", "etc.");
 #endif
+		l_length = getBinaryDataFromInet(l_url, p_data_out, p_time_out, p_reporter);
+		
 		if (l_length > 0)
 		{
+			if (i >= 4) // Если на зеркале скачали - остаемся на нем
+			{
+				g_last_stable_mirror = i - 1; // Продолжим пытаться качать с зеркала для этой сессии.
+			}
 			break;
 		}
 		else
 		{
-			if (p_url.find("://etc.fly-server.ru/etc/") != string::npos ||
-			        p_url.find("://update.fly-server.ru/update/") != string::npos
-			   )
+			if (g_last_stable_mirror != 0)
 			{
-				l_url = p_url;
-				const char* p_base_url = ".fly-server.ru/";
-				boost::replace_all(l_url, p_base_url, Util::toString(i) + p_base_url);
+				g_last_stable_mirror = 0; // при ошибке на зеркале скидываемся обратно на главный хост
+				i = 2;
+				const char* l_base_url = ".fly-server.ru/";
+				boost::replace_all(l_url, "2.fly-server.ru/", l_base_url);
+				boost::replace_all(l_url, "3.fly-server.ru/", l_base_url);
+				continue;
+			}
+			if (switchMirrorURL(l_url, i))
+			{
 				continue;
 			}
 			break;
@@ -2835,8 +2874,9 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 	// http://msdn.microsoft.com/en-us/library/ms906346.aspx
 	// Проверить а конфиг файл действительно менятеся.
 	// INTERNET_FLAG_NO_CACHE_WRITE - использовать если файл большой
-	// INTERNET_FLAG_RESYNCHRONIZE - использовать для xml и rtf  + конфиг
+	// INTERNET_FLAG_RESYNCHRONIZE - использовать для xml  + конфиг
 	DWORD l_cache_flag = INTERNET_FLAG_NO_UI | INTERNET_FLAG_NO_COOKIES; // | INTERNET_FLAG_CACHE_IF_NET_FAIL;
+#define FLYLINKDC_USE_CACHE_WININET
 #ifdef FLYLINKDC_USE_CACHE_WININET
 	if (!m_is_use_cache)
 	{
@@ -2846,10 +2886,10 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 			const auto l_ext3 = p_url.c_str() + p_url.size() - 4;
 			const auto l_ext4 = p_url.c_str() + p_url.size() - 5;
 			if (strcmp(l_ext3, ".xml") == 0 || // TODO - Унести в конфиг
-			        strcmp(l_ext3, ".rtf") == 0 ||
+			        strcmp(l_ext3, ".bz2") == 0 ||
 			        strcmp(l_ext4, ".sign") == 0)
 			{
-				//l_cache_flag |= INTERNET_FLAG_RELOAD; // INTERNET_FLAG_RESYNCHRONIZE;
+				l_cache_flag |= INTERNET_FLAG_RELOAD; // INTERNET_FLAG_RESYNCHRONIZE;
 			}
 		}
 	}

@@ -355,7 +355,7 @@ typedef unsigned __int64 uint64_t;
 //#define SSA_INCLUDE_FILE_SHARE_PAGE // [!] SSA temporary removed. TODO ?
 #ifndef FLYLINKDC_HE
 # define SSA_IPGRANT_FEATURE // [+] SSA additional slots for special IP's
-# define SSA_VIDEO_PREVIEW_FEATURE
+// # define SSA_VIDEO_PREVIEW_FEATURE //
 # define SSA_WIZARD_FEATURE
 #endif
 // TODO

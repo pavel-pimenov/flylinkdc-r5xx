@@ -111,8 +111,8 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 		}
 	}
 	
-	m_myOnlineUser = new OnlineUser(UserPtr(l_my_user), *this, 0); // [+] IRainman fix.
-	m_hubOnlineUser = new OnlineUser(UserPtr(l_hub_user), *this, AdcCommand::HUB_SID); // [+] IRainman fix.
+	m_myOnlineUser = std::make_shared<OnlineUser> (UserPtr(l_my_user), *this, 0); // [+] IRainman fix.
+	m_hubOnlineUser = std::make_shared<OnlineUser>(UserPtr(l_hub_user), *this, AdcCommand::HUB_SID); // [+] IRainman fix.
 	
 	// [-] IRainman.
 	//m_hEventClientInitialized = CreateEvent(NULL, TRUE, FALSE, NULL);//[+]FlylinkDC
@@ -380,7 +380,7 @@ void Client::connect()
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 		CFlyFastLock(lock(csSock); // [+] brain-ripper
 #endif
-		             m_client_sock = BufferedSocket::getBufferedSocket(m_separator);
+		             m_client_sock = BufferedSocket::getBufferedSocket(m_separator, nullptr);
 		             m_client_sock->addListener(this);
 		             m_client_sock->connect(m_address,
 		                                    m_port,

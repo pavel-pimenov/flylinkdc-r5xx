@@ -333,6 +333,10 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		Client* m_client;
 		string m_server;
 		
+		void setHubParam()
+		{
+			++m_is_hub_param_update;
+		}
 		CContainedWindow ctrlClientContainer;
 		
 		CtrlUsers* m_ctrlUsers;
@@ -450,7 +454,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void on(ClientListener::HubUpdated, const Client*) noexcept override;
 		void on(ClientListener::Message, const Client*, std::unique_ptr<ChatMessage>&) noexcept override;
 		//void on(PrivateMessage, const Client*, const string &strFromUserName, const UserPtr&, const UserPtr&, const UserPtr&, const string&, bool = true) noexcept override; // !SMT!-S [-] IRainman fix.
-		void on(ClientListener::NickTaken, const Client*) noexcept override;
+		void on(ClientListener::NickTaken) noexcept override;
 		void on(ClientListener::HubFull, const Client*) noexcept override;
 		void on(ClientListener::FirstExtJSON, const Client*) noexcept override;
 		void on(ClientListener::CheatMessage, const string&) noexcept override;
@@ -560,6 +564,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		tstring m_filter;
 		string m_window_text;
 		uint8_t m_is_window_text_update;
+		uint8_t m_is_hub_param_update;
 		//bool m_is_delete_all_items;
 		void setWindowTitle(const string& p_text);
 		void updateWindowText();

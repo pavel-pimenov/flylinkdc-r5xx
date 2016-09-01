@@ -359,7 +359,6 @@ QueueItemPtr QueueManager::FileQueue::findAutoSearch(deque<string>& p_recent) co
 void QueueManager::FileQueue::moveTarget(const QueueItemPtr& qi, const string& aTarget)
 {
 	remove_internal(qi);
-	//[-]PPA qi->dec(); // [+] IRainman fix. // ??????
 	qi->setTarget(aTarget);
 	add(qi);
 }

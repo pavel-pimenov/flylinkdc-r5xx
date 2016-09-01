@@ -184,7 +184,7 @@ void ClientManager::setIPUser(const UserPtr& p_user, const string& p_ip, const u
 		return;
 		
 	CFlyWriteLock(*g_csOnlineUsers);
-	const OnlinePairC p = g_onlineUsers.equal_range(p_user->getCID());
+	const auto p = g_onlineUsers.equal_range(p_user->getCID());
 	for (auto i = p.first; i != p.second; ++i)
 	{
 #ifdef _DEBUG
@@ -205,7 +205,7 @@ void ClientManager::setIPUser(const UserPtr& p_user, const string& p_ip, const u
 bool ClientManager::getUserParams(const UserPtr& user, UserParams& p_params)
 {
 	CFlyReadLock(*g_csOnlineUsers);
-	const OnlineUser* u = getOnlineUserL(user);
+	const OnlineUserPtr u = getOnlineUserL(user);
 	if (u)
 	{
 		// [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'u->getIdentity()' expression repeatedly. clientmanager.h 160
@@ -302,7 +302,7 @@ StringList ClientManager::getHubs(const CID& cid, const string& hintUrl, bool pr
 	if (!priv)
 	{
 		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
-		const OnlinePairC op = g_onlineUsers.equal_range(cid);
+		const auto op = g_onlineUsers.equal_range(cid);
 		for (auto i = op.first; i != op.second; ++i)
 		{
 			lst.push_back(i->second->getClientBase().getHubUrl());
@@ -311,7 +311,7 @@ StringList ClientManager::getHubs(const CID& cid, const string& hintUrl, bool pr
 	else
 	{
 		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
-		const OnlineUser* u = findOnlineUserHintL(cid, hintUrl);
+		const OnlineUserPtr u = findOnlineUserHintL(cid, hintUrl);
 		if (u)
 		{
 			lst.push_back(u->getClientBase().getHubUrl());
@@ -329,7 +329,7 @@ StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, boo
 	if (!priv)
 	{
 		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
-		const OnlinePairC op = g_onlineUsers.equal_range(cid);
+		const auto op = g_onlineUsers.equal_range(cid);
 		for (auto i = op.first; i != op.second; ++i)
 		{
 			lst.push_back(i->second->getClientBase().getHubName()); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=114958
@@ -338,7 +338,7 @@ StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, boo
 	else
 	{
 		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
-		const OnlineUser* u = findOnlineUserHintL(cid, hintUrl);
+		const OnlineUserPtr u = findOnlineUserHintL(cid, hintUrl);
 		if (u)
 		{
 			lst.push_back(u->getClientBase().getHubName());
@@ -352,7 +352,7 @@ StringList ClientManager::getAntivirusNicks(const CID& p_cid)
 {
 	StringSet ret;
 	CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
-	const OnlinePairC op = g_onlineUsers.equal_range(p_cid);
+	const auto op = g_onlineUsers.equal_range(p_cid);
 	for (auto i = op.first; i != op.second; ++i)
 	{
 		// ”брал обращение к базе данных - вешаемс€
@@ -375,7 +375,7 @@ StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool
 	if (!priv)
 	{
 		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
-		const OnlinePairC op = g_onlineUsers.equal_range(p_cid);
+		const auto op = g_onlineUsers.equal_range(p_cid);
 		for (auto i = op.first; i != op.second; ++i)
 		{
 			ret.insert(i->second->getIdentity().getNick());
@@ -384,7 +384,7 @@ StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool
 	else
 	{
 		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
-		const OnlineUser* u = findOnlineUserHintL(p_cid, hintUrl);
+		const OnlineUserPtr u = findOnlineUserHintL(p_cid, hintUrl);
 		if (u)
 		{
 			ret.insert(u->getIdentity().getNick());
@@ -419,11 +419,11 @@ bool ClientManager::isOnline(const UserPtr& aUser)
 	CFlyReadLock(*g_csOnlineUsers);
 	return g_onlineUsers.find(aUser->getCID()) != g_onlineUsers.end();
 }
-OnlineUser* ClientManager::findOnlineUserL(const CID& cid, const string& hintUrl, bool priv)
+OnlineUserPtr ClientManager::findOnlineUserL(const CID& cid, const string& hintUrl, bool priv)
 {
 	// [!] IRainman: This function need to external lock.
 	OnlinePairC p;
-	OnlineUser* u = findOnlineUserHintL(cid, hintUrl, p);
+	OnlineUserPtr u = findOnlineUserHintL(cid, hintUrl, p);
 	if (u) // found an exact match (CID + hint).
 		return u;
 		
@@ -467,7 +467,7 @@ string ClientManager::getStringField(const CID& cid, const string& hint, const c
 uint8_t ClientManager::getSlots(const CID& cid)
 {
 	CFlyReadLock(*g_csOnlineUsers);
-	const OnlineIterC i = g_onlineUsers.find(cid);
+	const auto i = g_onlineUsers.find(cid);
 	if (i != g_onlineUsers.end())
 	{
 		return i->second->getIdentity().getSlots();
@@ -648,7 +648,7 @@ UserPtr ClientManager::findUser(const CID& cid)
 bool ClientManager::isOp(const UserPtr& user, const string& aHubUrl)
 {
 	CFlyReadLock(*g_csOnlineUsers);
-	const OnlinePairC p = g_onlineUsers.equal_range(user->getCID());
+	const auto p = g_onlineUsers.equal_range(user->getCID());
 	for (auto i = p.first; i != p.second; ++i)
 	{
 		const auto& l_hub = i->second->getClient().getHubUrl();
@@ -679,7 +679,8 @@ void ClientManager::putOnline(const OnlineUserPtr& ou, bool p_is_fire_online) no
 		// [~] IRainman fix.
 		{
 			CFlyWriteLock(*g_csOnlineUsers);
-			g_onlineUsers.insert(make_pair(user->getCID(), ou.get()));
+			const auto l_res = g_onlineUsers.insert(make_pair(user->getCID(), ou));
+			dcassert(l_res->second);
 		}
 		
 		if (!user->isOnline())
@@ -703,16 +704,15 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) no
 		// [~] IRainman fix.
 		OnlineIter::difference_type diff = 0;
 		{
-			CFlyWriteLock(*g_csOnlineUsers); // [2]  https://www.box.net/shared/7b796492a460fe528961
-			OnlinePair op = g_onlineUsers.equal_range(ou->getUser()->getCID()); // »щетс€ по одном - научитьс€ убивать сразу массив.
+			CFlyWriteLock(*g_csOnlineUsers); 
+			auto op = g_onlineUsers.equal_range(ou->getUser()->getCID()); // »щетс€ по одном - научитьс€ убивать сразу массив.
 			// [-] dcassert(op.first != op.second); [!] L: this is normal and means that the user is offline.
-			for (OnlineIter i = op.first; i != op.second; ++i)
+			for (auto i = op.first; i != op.second; ++i)
 			{
-				OnlineUser* ou2 = i->second;
-				if (ou.get() == ou2)
+				if (ou == i->second)
 				{
 					diff = distance(op.first, op.second);
-					g_onlineUsers.erase(i); //[1] https://www.box.net/shared/87529fffc02ca448431e
+					g_onlineUsers.erase(i); 
 					break;
 				}
 			}
@@ -738,7 +738,7 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) no
 	}
 }
 
-OnlineUser* ClientManager::findOnlineUserHintL(const CID& cid, const string& hintUrl, OnlinePairC& p)
+OnlineUserPtr ClientManager::findOnlineUserHintL(const CID& cid, const string& hintUrl, OnlinePairC& p)
 {
 	// [!] IRainman fix: This function need to external lock.
 	p = g_onlineUsers.equal_range(cid);
@@ -750,7 +750,7 @@ OnlineUser* ClientManager::findOnlineUserHintL(const CID& cid, const string& hin
 	{
 		for (auto i = p.first; i != p.second; ++i)
 		{
-			OnlineUser* u = i->second;
+			const OnlineUserPtr u = i->second;
 			if (u->getClientBase().getHubUrl() == hintUrl)
 			{
 				return u;
@@ -800,7 +800,7 @@ void ClientManager::connect(const HintedUser& p_user, const string& p_token, boo
 		const bool priv = FavoriteManager::isPrivate(p_user.hint);
 		
 		CFlyReadLock(*g_csOnlineUsers);
-		OnlineUser* u = findOnlineUserL(p_user, priv);
+		OnlineUserPtr u = findOnlineUserL(p_user, priv);
 		
 		if (u)
 		{
@@ -822,7 +822,7 @@ void ClientManager::connect(const HintedUser& p_user, const string& p_token, boo
 void ClientManager::privateMessage(const HintedUser& user, const string& msg, bool thirdPerson)
 {
 	const bool priv = FavoriteManager::isPrivate(user.hint);
-	OnlineUser* u = nullptr;
+	OnlineUserPtr u;
 	{
 		// # u->getClientBase().privateMessage Ќельз€ выполн€ть под локом - там внутри есть fire
 		// ≈сть дампы от Mikhail Korbakov где вешаемс€ в дедлоке.
@@ -848,7 +848,7 @@ void ClientManager::userCommandL(const HintedUser& hintedUser, const UserCommand
 	 * SearchManager::onRES(const AdcCommand& cmd, ...). when that is done, and SearchResults are
 	 * switched to storing only reliable HintedUsers (found with the token of the ADC command),
 	 * change this call to findOnlineUserHint. */
-	OnlineUser* ou = findOnlineUserL(hintedUser.user->getCID(), hintedUser.hint.empty() ? uc.getHub() : hintedUser.hint, false);
+	OnlineUserPtr ou = findOnlineUserL(hintedUser.user->getCID(), hintedUser.hint.empty() ? uc.getHub() : hintedUser.hint, false);
 	if (!ou || ou->isDHT())
 		return;
 		
@@ -870,27 +870,34 @@ void ClientManager::send(AdcCommand& cmd, const CID& cid)
 {
 	string l_ip;
 	uint16_t l_port = 0;
+	bool l_is_send = false;
+	OnlineUserPtr u;
 	{
 		CFlyReadLock(*g_csOnlineUsers);
-		OnlineIterC i = g_onlineUsers.find(cid);
+		const auto i = g_onlineUsers.find(cid);
 		if (i != g_onlineUsers.end())
 		{
-			OnlineUser& u = *i->second;
-			if (cmd.getType() == AdcCommand::TYPE_UDP && !u.getIdentity().isUdpActive())
+			u = i->second;
+			if (cmd.getType() == AdcCommand::TYPE_UDP && !u->getIdentity().isUdpActive())
 			{
-				if (u.getUser()->isNMDC() || u.isDHT())
+				if (u->getUser()->isNMDC() || u->isDHT())
 					return;
 					
 				cmd.setType(AdcCommand::TYPE_DIRECT);
-				cmd.setTo(u.getIdentity().getSID());
-				u.getClient().send(cmd);
+				cmd.setTo(u->getIdentity().getSID());
+				l_is_send = true;
 			}
 			else
 			{
-				l_ip = u.getIdentity().getIpAsString();
-				l_port = u.getIdentity().getUdpPort();
+				l_ip = u->getIdentity().getIpAsString();
+				l_port = u->getIdentity().getUdpPort();
 			}
 		}
+	}
+	if(l_is_send)
+	{
+	l_is_send = true;
+	u->getClient().send(cmd);
 	}
 	if (l_port && !l_ip.empty())
 	{
@@ -981,9 +988,8 @@ void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const 
 {
 	bool isUdpActive = false;
 	{
-		CFlyReadLock(*g_csOnlineUsers);
-		
-		OnlinePairC op = g_onlineUsers.equal_range((from));
+		CFlyReadLock(*g_csOnlineUsers);		
+		const auto op = g_onlineUsers.equal_range((from));
 		for (auto i = op.first; i != op.second; ++i)
 		{
 			const OnlineUserPtr& u = i->second;
@@ -1353,7 +1359,7 @@ OnlineUserPtr ClientManager::findDHTNode(const CID& cid)
 {
 	CFlyReadLock(*g_csOnlineUsers);
 	
-	OnlinePairC op = g_onlineUsers.equal_range(cid);
+	const auto op = g_onlineUsers.equal_range(cid);
 	for (auto i = op.first; i != op.second; ++i)
 	{
 		OnlineUser* ou = i->second;
@@ -1455,14 +1461,14 @@ void ClientManager::on(HubUserCommand, const Client* client, int aType, int ctx,
  * This file is a part of client manager.
  * It has been divided but shouldn't be used anywhere else.
  */
-OnlineUser* ClientManager::getOnlineUserL(const UserPtr& p)
+OnlineUserPtr ClientManager::getOnlineUserL(const UserPtr& p)
 {
 	if (p == nullptr)
 		return nullptr;
 		
-	OnlineIterC i = g_onlineUsers.find(p->getCID());
+	const auto i = g_onlineUsers.find(p->getCID());
 	if (i == g_onlineUsers.end())
-		return nullptr;
+		return OnlineUserPtr();
 		
 	return i->second;
 }
@@ -1481,8 +1487,8 @@ void ClientManager::sendRawCommandL(const OnlineUser& ou, const int aRawCommand)
 
 void ClientManager::setListLength(const UserPtr& p, const string& listLen)
 {
-	CFlyReadLock(*g_csOnlineUsers); // TODO Write
-	OnlineIterC i = g_onlineUsers.find(p->getCID());
+	CFlyWriteLock(*g_csOnlineUsers); // TODO Write
+	const auto i = g_onlineUsers.find(p->getCID());
 	if (i != g_onlineUsers.end())
 	{
 		i->second->getIdentity().setStringParam("LL", listLen);
@@ -1532,11 +1538,11 @@ void ClientManager::connectionTimeout(const UserPtr& p)
 	Client* c = nullptr;
 	{
 		CFlyReadLock(*g_csOnlineUsers);
-		OnlineIterC i = g_onlineUsers.find(p->getCID());
+		const auto i = g_onlineUsers.find(p->getCID());
 		if (i != g_onlineUsers.end()  && !i->second->isDHT())
 		{
-			OnlineUser& ou = *i->second;
-			auto& id = ou.getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'ou.getIdentity()' expression repeatedly. cheatmanager.h 80
+			OnlineUserPtr ou = i->second;
+			auto& id = ou->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'ou.getIdentity()' expression repeatedly. cheatmanager.h 80
 			
 			auto connectionTimeouts = id.incConnectionTimeouts(); // 8 бит не мало?
 			
@@ -1545,14 +1551,14 @@ void ClientManager::connectionTimeout(const UserPtr& p)
 				
 			if (connectionTimeouts == SETTING(ACCEPTED_TIMEOUTS))
 			{
-				c = &ou.getClient();
+				c = &ou->getClient();
 #ifdef FLYLINKDC_USE_DETECT_CHEATING
 				report = id.setCheat(ou.getClientBase(), "Connection timeout " + Util::toString(connectionTimeouts) + " times", false);
 #else
 				report = "Connection timeout " + Util::toString(connectionTimeouts) + " times";
 #endif
 				remove = true;
-				sendRawCommandL(ou, SETTING(TIMEOUT_RAW));
+				sendRawCommandL(*ou, SETTING(TIMEOUT_RAW));
 			}
 		}
 	}
@@ -1567,7 +1573,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl)
 	OnlineUserPtr ou;
 	{
 		CFlyReadLock(*g_csOnlineUsers);
-		OnlineIterC i = g_onlineUsers.find(p->getCID());
+		const auto i = g_onlineUsers.find(p->getCID());
 		if (i == g_onlineUsers.end() || i->second->isDHT())
 			return;
 			
@@ -1602,7 +1608,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl)
 			detectString += STRING(CHECK_SHOW_REAL_SHARE);
 			
 			report = id.setCheat(ou->getClientBase(), detectString, false);
-			sendRawCommandL(*ou.get(), SETTING(FAKESHARE_RAW));
+			sendRawCommandL(*ou, SETTING(FAKESHARE_RAW));
 		}
 		else
 		{
@@ -1624,7 +1630,7 @@ void ClientManager::setClientStatus(const UserPtr& p, const string& aCheatString
 	string report;
 	{
 		CFlyReadLock(*g_csOnlineUsers);
-		OnlineIterC i = g_onlineUsers.find(p->getCID());
+		const auto i = g_onlineUsers.find(p->getCID());
 		if (i == g_onlineUsers.end() || i->second->isDHT())
 			return;
 			
@@ -1636,7 +1642,7 @@ void ClientManager::setClientStatus(const UserPtr& p, const string& aCheatString
 		}
 		if (aRawCommand != -1)
 		{
-			sendRawCommandL(*ou.get(), aRawCommand);
+			sendRawCommandL(*ou, aRawCommand);
 		}
 		
 		client = &(ou->getClient());
@@ -1645,10 +1651,10 @@ void ClientManager::setClientStatus(const UserPtr& p, const string& aCheatString
 	cheatMessage(client, report);
 }
 #endif // IRAINMAN_INCLUDE_USER_CHECK
-void ClientManager::setSupports(const UserPtr& p, StringList & aSupports, const uint8_t knownUcSupports)
+void ClientManager::setSupports(const UserPtr& p, const StringList & aSupports, const uint8_t knownUcSupports)
 {
-	CFlyReadLock(*g_csOnlineUsers);
-	OnlineIterC i = g_onlineUsers.find(p->getCID());
+	CFlyWriteLock(*g_csOnlineUsers);
+	const auto i = g_onlineUsers.find(p->getCID());
 	if (i != g_onlineUsers.end())
 	{
 		auto& id = i->second->getIdentity();
@@ -1660,8 +1666,8 @@ void ClientManager::setSupports(const UserPtr& p, StringList & aSupports, const 
 }
 void ClientManager::setUnknownCommand(const UserPtr& p, const string& aUnknownCommand)
 {
-	CFlyReadLock(*g_csOnlineUsers);
-	OnlineIterC i = g_onlineUsers.find(p->getCID());
+	CFlyWriteLock(*g_csOnlineUsers);
+	const auto i = g_onlineUsers.find(p->getCID());
 	if (i != g_onlineUsers.end())
 	{
 		i->second->getIdentity().setStringParam("UC", aUnknownCommand);
@@ -1675,7 +1681,7 @@ void ClientManager::reportUser(const HintedUser& user)
 	Client* l_client = nullptr;
 	{
 		CFlyReadLock(*g_csOnlineUsers);
-		OnlineUser* ou = findOnlineUserL(user.user->getCID(), user.hint, priv);
+		OnlineUserPtr ou = findOnlineUserL(user.user->getCID(), user.hint, priv);
 		if (!ou || ou->isDHT())
 			return;
 			

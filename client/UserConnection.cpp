@@ -22,6 +22,7 @@
 #include "Download.h"
 #include "LogManager.h"
 #include "ConnectionManager.h"
+#include "DownloadManager.h"
 #include "QueueManager.h"
 #include "PGLoader.h"
 #include "IpGuard.h"
@@ -153,8 +154,8 @@ bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string, bool p_is_d
 }
 void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexcept
 {
-	dcassert(!ClientManager::isShutdown())
-	if (aLine.length() < 2 || ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown())
+	if (aLine.length() < 2 || ClientManager::isBeforeShutdown())
 		return;
 	COMMAND_DEBUG(aLine, DebugTask::CLIENT_IN, getRemoteIpPort());
 	
@@ -176,8 +177,10 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	{
 		// We shouldn't be here?
 		if (getUser() && aLine.length() < 255)
+		{
 			ClientManager::setUnknownCommand(getUser(), aLine);
-			
+		}
+		
 		fly_fire2(UserConnectionListener::ProtocolError(), this, "Invalid data");
 		return;
 	}
@@ -352,7 +355,7 @@ void UserConnection::connect(const string& aServer, uint16_t aPort, uint16_t loc
 {
 	dcassert(!socket);
 	
-	socket = BufferedSocket::getBufferedSocket(0);
+	socket = BufferedSocket::getBufferedSocket(0, this);
 	socket->addListener(this);
 	socket->connect(aServer, aPort, localPort, natRole, isSet(FLAG_SECURE), BOOLSETTING(ALLOW_UNTRUSTED_CLIENTS), true);
 }
@@ -360,7 +363,7 @@ void UserConnection::connect(const string& aServer, uint16_t aPort, uint16_t loc
 void UserConnection::accept(const Socket& aServer)
 {
 	dcassert(!socket);
-	socket = BufferedSocket::getBufferedSocket(0);
+	socket = BufferedSocket::getBufferedSocket(0, this);
 	socket->addListener(this);
 	const bool bAllowUntrusred = BOOLSETTING(ALLOW_UNTRUSTED_CLIENTS);
 	setPort(socket->accept(aServer, isSet(FLAG_SECURE), bAllowUntrusred));
@@ -413,7 +416,7 @@ void UserConnection::on(Connected) noexcept
 	setLastActivity();
 	fly_fire1(UserConnectionListener::Connected(), this);
 }
-void UserConnection::on(Data, uint8_t* p_data, size_t p_len) noexcept
+void UserConnection::fireData(uint8_t* p_data, size_t p_len)
 {
 	setLastActivity();
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
@@ -422,20 +425,46 @@ void UserConnection::on(Data, uint8_t* p_data, size_t p_len) noexcept
 		getUser()->AddRatioDownload(getSocket()->getIp4(), p_len);
 	}
 #endif
-	fly_fire3(UserConnectionListener::Data(), this, p_data, p_len);
+	//fly_fire3(UserConnectionListener::Data(), this, p_data, p_len);
+	DownloadManager::getInstance()->fireData(this, p_data, p_len);
 }
-
-void UserConnection::on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept
+/*
+void UserConnection::on(BufferedSocketListener::Data, uint8_t* p_data, size_t p_len) noexcept
 {
-	setLastActivity();
+    setLastActivity();
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
+    if (p_len && BOOLSETTING(ENABLE_RATIO_USER_LIST))
+    {
+        getUser()->AddRatioDownload(getSocket()->getIp4(), p_len);
+    }
+#endif
+    //fly_fire3(UserConnectionListener::Data(), this, p_data, p_len);
+    DownloadManager::getInstance()->fireData(this, p_data, p_len);
+}
+*/
+
+void UserConnection::fireBytesSent(size_t p_Bytes, size_t p_Actual)
+{
+	const auto l_tick = setLastActivity();
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	if (p_Actual && BOOLSETTING(ENABLE_RATIO_USER_LIST))
 	{
 		getUser()->AddRatioUpload(getSocket()->getIp4(), p_Actual);
 	}
 #endif
-	fly_fire3(UserConnectionListener::BytesSent(), this, p_Bytes, p_Actual);
+	dcassert(getState() == UserConnection::STATE_RUNNING);
+	getUpload()->addPos(p_Bytes, p_Actual);
+	// getUpload()->tick(l_tick); // - данные код есть в оригинале
+	//fly_fire3(UserConnectionListener::UserBytesSent(), this, p_Bytes, p_Actual);
 }
+
+/*
+void UserConnection::on(BytesSent, size_t p_Bytes, size_t p_Actual) noexcept
+{
+    dcassert(0);
+    fireBytesSent(p_Bytes, p_Actual);
+}
+*/
 
 #ifdef FLYLINKDC_USE_CROOKED_HTTP_CONNECTION
 void UserConnection::on(ModeChange) noexcept

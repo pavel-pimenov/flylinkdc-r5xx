@@ -96,7 +96,10 @@ class CFlyHTTPDownloader
 {
 		DWORD m_inet_flag;
 		string m_error_message;
+		bool switchMirrorURL(string& p_url, int p_mirror);
 	public:
+		static int g_last_stable_mirror;
+		static void nextMirror();
 		bool m_is_add_url;
 		bool m_is_use_cache;
 		CFlyHTTPDownloader() : m_inet_flag(0), m_is_add_url(true), m_is_use_cache(false)

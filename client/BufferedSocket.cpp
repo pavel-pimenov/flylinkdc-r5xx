@@ -33,6 +33,7 @@
 #include "ShareManager.h"
 #include "DebugManager.h"
 #include "SSLSocket.h"
+#include "UserConnection.h"
 #include "../FlyFeatures/flyServer.h"
 
 // Polling is used for tasks...should be fixed...
@@ -41,7 +42,8 @@ static const uint64_t POLL_TIMEOUT = 250;
 boost::atomic<long> BufferedSocket::g_sockets(0);
 #endif
 
-BufferedSocket::BufferedSocket(char aSeparator) :
+BufferedSocket::BufferedSocket(char aSeparator, UserConnection* p_connection) :
+	m_connection(p_connection),
 	m_separator(aSeparator),
 	m_mode(MODE_LINE),
 	m_dataBytes(0),
@@ -622,7 +624,6 @@ void BufferedSocket::threadRead()
 				}
 				// store remainder
 				m_line = l;
-				
 				break;
 			}
 			case MODE_LINE:
@@ -643,8 +644,6 @@ void BufferedSocket::threadRead()
 				// TODO - вставить быструю обработку поиска по TTH без вызова листенеров
 				// Если пасив - отвечаем в буфер сразу
 				// Если актив - кидаем отсылку UDP (тоже через очередь?)
-				
-				
 				//======================================================================
 				l = m_line + string((char*)& m_inbuf[l_bufpos], l_left);
 				//dcassert(isalnum(l[0]) || isalpha(l[0]) || isascii(l[0]));
@@ -682,7 +681,6 @@ void BufferedSocket::threadRead()
 								all_myinfo_parser(l_pos, l, l_all_myInfo, false);
 							}
 						}
-						
 						l.erase(0, l_pos + 1 /* separator char */);
 						// TODO - erase не эффективно.
 						if (l.length() < (size_t)l_left)
@@ -729,7 +727,12 @@ void BufferedSocket::threadRead()
 				{
 					if (m_dataBytes == -1)
 					{
-						fly_fire2(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], l_left);
+						// fly_fire2(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], l_left);
+						dcassert(m_connection);
+						if (m_connection)
+						{
+							m_connection->fireData(&m_inbuf[l_bufpos], l_left);
+						}
 						l_bufpos += (l_left - m_rollback);
 						l_left = m_rollback;
 						m_rollback = 0;
@@ -740,7 +743,12 @@ void BufferedSocket::threadRead()
 						//dcassert(high != 0);
 						if (high != 0) // [+] IRainman fix.
 						{
-							fly_fire2(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], high);
+							//fly_fire2(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], high);
+							dcassert(m_connection);
+							if (m_connection)
+							{
+								m_connection->fireData(&m_inbuf[l_bufpos], high);
+							}
 							l_bufpos += high;
 							l_left -= high;
 							
@@ -797,6 +805,7 @@ void BufferedSocket::putBufferedSocket(BufferedSocket*& p_sock, bool p_delete /*
 {
 	if (p_sock)
 	{
+		p_sock->m_connection = nullptr;
 		p_sock->shutdown();
 		if (p_delete)
 		{
@@ -855,8 +864,13 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 			
 			if (bytesRead > 0)
 			{
-				fly_fire2(BufferedSocketListener::BytesSent(), bytesRead, 0);
-				// Инфу о том что считали с диск не шлем фаером
+				//fly_fire2(BufferedSocketListener::BytesSent(), bytesRead, 0);
+				dcassert(m_connection);
+				if (m_connection)
+				{
+					m_connection->fireBytesSent(bytesRead, 0);
+				}
+				// Инфу о том, что считали с диска не шлем фаером
 			}
 			
 			if (actual == 0)
@@ -913,7 +927,12 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 			if (written > 0)
 			{
 				writePos += written;
-				fly_fire2(BufferedSocketListener::BytesSent(), 0, written);
+				//fly_fire2(BufferedSocketListener::BytesSent(), 0, written);
+				dcassert(m_connection);
+				if (m_connection)
+				{
+					m_connection->fireBytesSent(0, written);
+				}
 			}
 			else if (written == -1)
 			{
@@ -928,7 +947,12 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 					
 					if (bytesRead > 0)
 					{
-						fly_fire2(BufferedSocketListener::BytesSent(), bytesRead, 0);
+						//fly_fire2(BufferedSocketListener::BytesSent(), bytesRead, 0);
+						dcassert(m_connection);
+						if (m_connection)
+						{
+							m_connection->fireBytesSent(bytesRead, 0);
+						}
 					}
 					
 					if (actual == 0)
