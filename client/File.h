@@ -87,10 +87,10 @@ class File : public IOStream
 		{
 			copyFile(Text::toT(src), Text::toT(target));
 		}
-		static void renameFile(const tstring& source, const tstring& target);
-		static void renameFile(const string& source, const string& target) // [+] IRainman opt.
+		static bool renameFile(const tstring& source, const tstring& target);
+		static bool renameFile(const string& source, const string& target) // [+] IRainman opt.
 		{
-			renameFile(Text::toT(source), Text::toT(target));
+			return renameFile(Text::toT(source), Text::toT(target));
 		}
 		static bool deleteFileT(const tstring& aFileName) noexcept;
 		static bool deleteFile(const string& aFileName) noexcept

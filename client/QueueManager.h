@@ -335,6 +335,7 @@ class QueueManager : public Singleton<QueueManager>,
 				                        int64_t aSize,
 				                        Flags::MaskType aFlags,
 				                        QueueItem::Priority p,
+				                        bool aAutoPriority,
 				                        const string& aTempTarget,
 				                        time_t aAdded,
 				                        const TTHValue& root,
@@ -460,7 +461,7 @@ class QueueManager : public Singleton<QueueManager>,
 		
 		void load(const SimpleXML& aXml);
 		void moveFile(const string& source, const string& p_target);
-		static void internalMoveFile(const string& source, const string& p_target);
+		static bool internalMoveFile(const string& source, const string& p_target);
 		void moveStuckFile(const QueueItemPtr& qi); // [!] IRainman fix.
 		void rechecked(const QueueItemPtr& qi); // [!] IRainman fix.
 		

@@ -87,9 +87,9 @@ LRESULT CommandDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 		{
 			string::size_type i = command.find(_T(' '), 5);
 			dcassert(i != string::npos);
-			tstring to = command.substr(5, i - 5);
+			const tstring to = command.substr(5, i - 5);
 			string::size_type cmd_pos = command.find(_T('>'), 5) + 2;
-			tstring cmd = Text::toT(NmdcHub::validateMessage(Text::fromT(command.substr(cmd_pos, command.length() - cmd_pos - 1)), true));
+			const tstring cmd = Text::toT(NmdcHub::validateMessage(Text::fromT(command.substr(cmd_pos, command.length() - cmd_pos - 1)), true));
 			ctrlPM.SetCheck(BST_CHECKED);
 			ctrlNick.SetWindowText(to.c_str());
 			ctrlCommand.SetWindowText(cmd.c_str());

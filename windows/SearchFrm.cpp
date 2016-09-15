@@ -935,7 +935,7 @@ void SearchFrame::onEnter()
 	// Add new searches to the last-search dropdown list
 	if (!BOOLSETTING(FORGET_SEARCH_REQUEST))
 	{
-		g_lastSearches.remove(s.c_str());
+		g_lastSearches.remove(s);
 		const int i = max(SETTING(SEARCH_HISTORY) - 1, 0);
 		
 		while (g_lastSearches.size() > TStringList::size_type(i))
@@ -1379,8 +1379,9 @@ LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM
 			{
 				SearchInfo* l_si = l_si_find->second.first;
 				int l_cur_item = -1;
-				dcassert(!isClosedOrShutdown());
-				if (!isClosedOrShutdown() && !ctrlResults.isDestroyItems())
+				if (isClosedOrShutdown())
+					return 0;
+				if (!ctrlResults.isDestroyItems())
 					l_cur_item = ctrlResults.findItem(l_si);
 				else
 					return 0;

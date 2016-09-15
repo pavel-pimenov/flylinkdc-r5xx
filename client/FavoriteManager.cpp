@@ -284,7 +284,7 @@ void FavoriteManager::removeUserCommand(const string& p_Hub)
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 		bool hubWithoutCommands = true; // [+] IRainman fix: cleanup.
 #endif
-//		if (ClientManager::isShutdown())
+//		if (ClientManager::isBeforeShutdown())
 		{
 #ifdef _DEBUG
 //			LogManager::message("FavoriteManager::removeUserCommand with shutdown);
@@ -368,7 +368,7 @@ void FavoriteManager::updateEmptyStateL()
 // [+] SSA addUser (Unified)
 bool FavoriteManager::addUserL(const UserPtr& aUser, FavoriteMap::iterator& iUser, bool create /*= true*/)
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	// [!] always use external lock for this function.
 	iUser = g_fav_users_map.find(aUser->getCID());
 	if (iUser == g_fav_users_map.end() && create)
@@ -391,7 +391,7 @@ bool FavoriteManager::addUserL(const UserPtr& aUser, FavoriteMap::iterator& iUse
 
 bool FavoriteManager::getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskType& p_flags, int& p_uploadLimit) // [+] IRainman opt.
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
 		CFlyReadLock(*g_csFavUsers);
@@ -408,7 +408,7 @@ bool FavoriteManager::getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskTy
 
 bool FavoriteManager::isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser) // [+] IRainman opt.
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
 		CFlyReadLock(*g_csFavUsers);
@@ -427,7 +427,7 @@ bool FavoriteManager::isNoFavUserOrUserBanUpload(const UserPtr& aUser) // [+] IR
 
 bool FavoriteManager::getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_favuser) // [+] IRainman opt.
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
 		CFlyReadLock(*g_csFavUsers);
@@ -443,7 +443,7 @@ bool FavoriteManager::getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_fav
 
 bool FavoriteManager::isFavoriteUser(const UserPtr& aUser, bool& p_is_ban)
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
 		CFlyReadLock(*g_csFavUsers);
@@ -716,7 +716,7 @@ void FavoriteManager::removeRecent(const RecentHubEntry* entry)
 void FavoriteManager::updateRecent(const RecentHubEntry* entry)
 {
 	g_recent_dirty = true;
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		const auto i = find(g_recentHubs.begin(), g_recentHubs.end(), entry);
 		if (i == g_recentHubs.end())
@@ -1562,7 +1562,7 @@ void FavoriteManager::load(SimpleXML& aXml
 
 void FavoriteManager::userUpdated(const OnlineUser& info)
 {
-	if (!ClientManager::isShutdown() && isNotEmpty()) // [+]PPA
+	if (!ClientManager::isBeforeShutdown() && isNotEmpty()) // [+]PPA
 	{
 		CFlyReadLock(*g_csFavUsers);
 		auto i = g_fav_users_map.find(info.getUser()->getCID());
@@ -1660,7 +1660,7 @@ void FavoriteManager::setUploadLimit(const UserPtr& aUser, int lim, bool createU
 // !SMT!-S
 bool FavoriteManager::getFlag(const UserPtr& aUser, FavoriteUser::Flags f)
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	if (isNotEmpty()) // [+]PPA
 	{
 		CFlyReadLock(*g_csFavUsers);
@@ -1675,7 +1675,7 @@ bool FavoriteManager::getFlag(const UserPtr& aUser, FavoriteUser::Flags f)
 // !SMT!-S
 void FavoriteManager::setFlag(const UserPtr& aUser, FavoriteUser::Flags f, bool value, bool createUser /*= true*/)
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	{
 		FavoriteMap::iterator i;
 		FavoriteUser l_fav_user;
@@ -1802,7 +1802,7 @@ void FavoriteManager::on(UserUpdated, const OnlineUserPtr& user) noexcept
 
 void FavoriteManager::on(UserDisconnected, const UserPtr& aUser) noexcept
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		if (isNotEmpty()) // [+]PPA
 		{
@@ -1813,7 +1813,7 @@ void FavoriteManager::on(UserDisconnected, const UserPtr& aUser) noexcept
 					return;
 				i->second.setLastSeen(GET_TIME()); // TODO: if ClientManager::isShutdown() this data is not update :(
 			}
-			if (!ClientManager::isShutdown())
+			if (!ClientManager::isBeforeShutdown())
 			{
 				fly_fire1(FavoriteManagerListener::StatusChanged(), aUser);
 			}
@@ -1823,7 +1823,7 @@ void FavoriteManager::on(UserDisconnected, const UserPtr& aUser) noexcept
 
 void FavoriteManager::on(UserConnected, const UserPtr& aUser) noexcept
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		if (isNotEmpty()) // [+]PPA
 		{
@@ -1832,7 +1832,7 @@ void FavoriteManager::on(UserConnected, const UserPtr& aUser) noexcept
 				if (!isUserExistL(aUser))
 					return;
 			}
-			if (!ClientManager::isShutdown())
+			if (!ClientManager::isBeforeShutdown())
 			{
 				fly_fire1(FavoriteManagerListener::StatusChanged(), aUser);
 			}
@@ -1884,8 +1884,8 @@ void FavoriteManager::changeConnectionStatus(const string& hubUrl, ConnectionSta
 #endif
 void FavoriteManager::speakUserUpdate(const bool added, const FavoriteUser& p_fav_user)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		{
 			if (added)

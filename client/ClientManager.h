@@ -319,7 +319,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
 		typedef std::unordered_multimap<const CID*, OnlineUserPtr> OnlineMap; // TODO: not allow to replace UserPtr in Identity.
 #else
-		typedef std::unordered_multimap<CID, OnlineUserPtr> OnlineMap;
+		typedef std::multimap<CID, OnlineUserPtr> OnlineMap;
 #endif
 		typedef OnlineMap::iterator OnlineIter;
 		typedef OnlineMap::const_iterator OnlineIterC;

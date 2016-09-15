@@ -110,6 +110,7 @@ QueueItemPtr QueueManager::FileQueue::add(int64_t p_FlyQueueID,
                                           int64_t aSize,
                                           Flags::MaskType aFlags,
                                           QueueItem::Priority p,
+                                          bool aAutoPriority,
                                           const string& aTempTarget,
                                           time_t aAdded,
                                           const TTHValue& root,
@@ -138,8 +139,12 @@ QueueItemPtr QueueManager::FileQueue::add(int64_t p_FlyQueueID,
 			p = QueueItem::LOWEST;
 		}
 	}
-	
-	auto qi = std::make_shared<QueueItem>(aTarget, aSize, p, aFlags, aAdded, root, p_maxSegments, p_FlyQueueID, aTempTarget);
+	const auto l_max_segment = getMaxSegments(aSize);
+	if (p_maxSegments != l_max_segment)
+	{
+		p_maxSegments = l_max_segment;
+	}
+	auto qi = std::make_shared<QueueItem>(aTarget, aSize, p, aAutoPriority, aFlags, aAdded, root, p_maxSegments, p_FlyQueueID, aTempTarget);
 	
 	if (qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
 	{
@@ -147,12 +152,11 @@ QueueItemPtr QueueManager::FileQueue::add(int64_t p_FlyQueueID,
 	}
 	else
 	{
-		qi->setMaxSegments(getMaxSegments(qi->getSize()));
+		//qi->setMaxSegments(getMaxSegments(qi->getSize()));
 		if (p == QueueItem::DEFAULT)
 		{
 			if (BOOLSETTING(AUTO_PRIORITY_DEFAULT))
 			{
-				qi->setAutoPriority(true);
 				qi->setPriority(QueueItem::LOW);
 			}
 			else
@@ -459,7 +463,7 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 			dcassert(!i->second.empty());
 			for (auto j = i->second.cbegin(); j != i->second.cend(); ++j)
 			{
-				const QueueItemPtr& qi = *j;
+				const QueueItemPtr qi = *j;
 				const auto l_source = qi->findSourceL(aUser); // [!] IRainman fix done: [10] https://www.box.net/shared/6ea561f898012606519a
 				if (l_source == qi->m_sources.end()) //[+]PPA
 					continue;
@@ -1220,7 +1224,7 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 				}
 			}
 			// [~] SSA - check file exist
-			q = g_fileQueue.add(p_FlyQueueID, l_target, aSize, aFlags, QueueItem::DEFAULT, l_tempTarget, GET_TIME(), aRoot, 1);
+			q = g_fileQueue.add(p_FlyQueueID, l_target, aSize, aFlags, QueueItem::DEFAULT, BOOLSETTING(AUTO_PRIORITY_DEFAULT), l_tempTarget, GET_TIME(), aRoot, 1);
 			if (q)
 			{
 				fly_fire1(QueueManagerListener::Added(), q);
@@ -1917,7 +1921,7 @@ void QueueManager::moveFile(const string& p_source, const string& p_target)
 		dcassert(g_SharedDownloadFileCache.find(p_source) != g_SharedDownloadFileCache.end());
 		g_SharedDownloadFileCache.erase(p_source);
 	}
-	// TODO - принудительно закрывать файл по имени в пуле.
+	// TODO - принудительно закрывать файл по имени в пуле
 	File::ensureDirectory(p_target);
 	if (File::getSize(p_source) > MOVER_LIMIT)
 	{
@@ -1929,30 +1933,42 @@ void QueueManager::moveFile(const string& p_source, const string& p_target)
 	}
 }
 
-void QueueManager::internalMoveFile(const string& source, const string& p_target)
+bool QueueManager::internalMoveFile(const string& p_source, const string& p_target)
 {
+	CFlyLog l_log("[MoveFile]");
 	try
 	{
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 		getInstance()->fly_fire1(QueueManagerListener::TryFileMoving(), p_target);
 #endif
-		File::renameFile(source, p_target);
+		l_log.log(p_source + ' ' + STRING(RENAMED_TO) + ' ' + p_target);
+		if (!File::renameFile(p_source, p_target))
+		{
+			SharedFileStream::delete_file(p_source);
+		}
 		getInstance()->fly_fire1(QueueManagerListener::FileMoved(), p_target);
+		return true;
 	}
-	catch (const FileException& /*e1*/)
+	catch (const FileException& e)
 	{
-		// Try to just rename it to the correct name at least
-		const string newTarget = Util::getFilePath(source) + Util::getFileName(p_target);
+		l_log.log("Error " + e.getError());
+		const string newTarget = Util::getFilePath(p_source) + Util::getFileName(p_target);
 		try
 		{
-			File::renameFile(source, newTarget);
-			LogManager::message(source + ' ' + STRING(RENAMED_TO) + ' ' + newTarget);
+			l_log.log("Step 2: " + p_source + ' ' + STRING(RENAMED_TO) + ' ' + newTarget);
+			if (!File::renameFile(p_source, newTarget))
+			{
+				SharedFileStream::delete_file(p_source);
+				return false;
+			}
+			return true;
 		}
 		catch (const FileException& e2)
 		{
-			LogManager::message(STRING(UNABLE_TO_RENAME) + ' ' + source + " -> NewTarget: " + newTarget + " Error = " + e2.getError());
+			l_log.log(STRING(UNABLE_TO_RENAME) + ' ' + p_source + " -> NewTarget: " + newTarget + " Error = " + e2.getError());
 		}
 	}
+	return false;
 }
 
 void QueueManager::moveStuckFile(const QueueItemPtr& qi)
@@ -1975,19 +1991,16 @@ void QueueManager::moveStuckFile(const QueueItemPtr& qi)
 	}
 	else
 	{
-		{
-			qi->addSegment(Segment(0, qi->getSize()));
-		}
+		qi->addSegment(Segment(0, qi->getSize()));
 		fire_status_updated(qi);
 	}
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		fly_fire1(QueueManagerListener::RecheckAlreadyFinished(), l_target);
 	}
 }
 void QueueManager::fire_sources_updated(const QueueItemPtr& qi)
 {
-	//dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isBeforeShutdown())
 	{
 		CFlyLock(m_cs_fire_src);
@@ -2263,10 +2276,11 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 							RLock(*QueueItem::g_cs); // [+] IRainman fix.
 							isEmpty = q->calcAverageSpeedAndCalcAndGetDownloadedBytesL() == 0;
 						}
-						if (isEmpty)
-						{
-							q->setTempTarget(Util::emptyString);
-						}
+						// Не затираем путь к временному файлу
+						//if (isEmpty)
+						//{
+						//  q->setTempTarget(Util::emptyString);
+						//}
 						if (q->isSet(QueueItem::FLAG_USER_LIST))
 						{
 							// Blah...no use keeping an unfinished file list...
@@ -2322,7 +2336,13 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 				const string l_tmp_target = aDownload->getTempTarget();
 				if (!l_tmp_target.empty() && (aDownload->getType() == Transfer::TYPE_FULL_LIST || l_tmp_target != p_path))
 				{
-					File::deleteFile(l_tmp_target);
+					if (File::isExist(l_tmp_target))
+					{
+						if (!File::deleteFile(l_tmp_target))
+						{
+							SharedFileStream::delete_file(l_tmp_target);
+						}
+					}
 				}
 			}
 		}
@@ -2479,7 +2499,10 @@ bool QueueManager::removeTarget(const string& aTarget, bool p_is_batch_remove)
 		}
 		else if (!l_temp_target.empty() && l_temp_target != q->getTarget())
 		{
-			File::deleteFile(l_temp_target);
+			if (!File::deleteFile(l_temp_target))
+			{
+				SharedFileStream::delete_file(l_temp_target);
+			}
 		}
 		
 		fire_remove_internal(q, true, false, p_is_batch_remove);
@@ -2618,7 +2641,7 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noexcept
 {
 	UserList l_getConn;
-	bool running = false;
+	bool l_is_running = false;
 	
 	dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isBeforeShutdown())
@@ -2626,13 +2649,10 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 		QueueItemPtr q = QueueManager::FileQueue::find_target(aTarget);
 		if (q != nullptr && q->getPriority() != p)
 		{
-			bool isFinished;
-			{
-				isFinished = q->isFinished();
-			}
+			bool isFinished = q->isFinished();
 			if (!isFinished)
 			{
-				running = q->isRunning();
+				l_is_running = q->isRunning();
 				
 				if (q->getPriority() == QueueItem::PAUSED || p == QueueItem::HIGHEST)
 				{
@@ -2651,7 +2671,7 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 	
 	if (p == QueueItem::PAUSED)
 	{
-		if (running)
+		if (l_is_running)
 		{
 			DownloadManager::abortDownload(aTarget);
 		}
@@ -2866,7 +2886,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 			
 			if (qi == NULL)
 			{
-				qi = QueueManager::g_fileQueue.add(0, m_target, size, 0, p, l_tempTarget, added, TTHValue(tthRoot), max((uint8_t)1, maxSegments));
+				qi = QueueManager::g_fileQueue.add(0, m_target, size, 0, p, true, l_tempTarget, added, TTHValue(tthRoot), max((uint8_t)1, maxSegments));
 				if (downloaded > 0)
 				{
 					{

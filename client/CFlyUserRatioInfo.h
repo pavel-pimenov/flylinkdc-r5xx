@@ -11,9 +11,9 @@
 template <class T> class CFlyUploadDownloadPair
 {
 	private:
-		bool m_is_dirty;
 		T  m_upload;
 		T  m_download;
+		bool m_is_dirty;
 	public:
 		CFlyUploadDownloadPair() : m_upload(0), m_download(0), m_is_dirty(false)
 		{
@@ -29,33 +29,33 @@ template <class T> class CFlyUploadDownloadPair
 		{
 			m_is_dirty = p_value;
 		}
-		T get_upload() const
+		const T& get_upload() const
 		{
 			return m_upload;
 		}
-		T get_download() const
+		const T& get_download() const
 		{
 			return m_download;
 		}
-		void add_upload(T p_size)
+		void add_upload(const T& p_size)
 		{
 			m_upload += p_size;
 			if (p_size)
 				m_is_dirty = true;
 		}
-		void add_download(T p_size)
+		void add_download(const T& p_size)
 		{
 			m_download += p_size;
 			if (p_size)
 				m_is_dirty = true;
 		}
-		void set_upload(T p_size)
+		void set_upload(const T& p_size)
 		{
 			if (m_upload != p_size)
 				m_is_dirty = true;
 			m_upload = p_size;
 		}
-		void set_download(T p_size)
+		void set_download(const T& p_size)
 		{
 			if (m_download != p_size)
 				m_is_dirty = true;
@@ -141,9 +141,59 @@ struct CFlyUserRatioInfo : public CFlyRatioItem
 		~CFlyUserRatioInfo();
 		
 		bool tryLoadRatio(const boost::asio::ip::address_v4& p_last_ip_from_sql);
-		void addUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
-		void addDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
+		void addUpload(const boost::asio::ip::address_v4& p_ip, const uint64_t& p_size)
+		{
+			if (p_size)
+			{
+				add_upload(p_size);
+				if (!m_ip.is_unspecified())
+				{
+					if (m_ip != p_ip)
+					{
+						find_ip_map(p_ip).add_upload(p_size);
+					}
+				}
+				else
+				{
+					m_ip = p_ip;
+				}
+			}
+		}
+		void addDownload(const boost::asio::ip::address_v4& p_ip, const uint64_t& p_size)
+		{
+			if (p_size)
+			{
+				add_download(p_size);
+				if (!m_ip.is_unspecified())
+				{
+					if (m_ip != p_ip)
+					{
+						find_ip_map(p_ip).add_download(p_size);
+					}
+				}
+				else
+				{
+					m_ip = p_ip;
+				}
+			}
+		}
+		void resetDirty()
+		{
+			reset_dirty();
+			if (m_ip_map_ptr)
+			{
+				for (auto i = m_ip_map_ptr->begin(); i != m_ip_map_ptr->end(); ++i)
+				{
+					i->second.reset_dirty();
+				}
+			}
+		}
 		bool flushRatioL();
+		CFlyUploadDownloadMap* getUploadDownloadMap() const
+		{
+			return m_ip_map_ptr;
+		}
+		boost::asio::ip::address_v4 m_ip;
 	private:
 		CFlyUploadDownloadMap* m_ip_map_ptr;
 		User*  m_user;

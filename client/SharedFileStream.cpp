@@ -25,6 +25,7 @@
 
 FastCriticalSection SharedFileStream::g_shares_file_cs;
 std::set<char> SharedFileStream::g_error_map_file;
+std::map<std::string, unsigned > SharedFileStream::g_delete_files;
 #ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
 SharedFileStream::SharedFileHandleMap SharedFileStream::g_readpool;
 SharedFileStream::SharedFileHandleMap SharedFileStream::g_writepool;
@@ -101,7 +102,10 @@ void SharedFileHandle::init(int64_t p_file_size)
 					{
 						SharedFileStream::g_error_map_file.insert(m_path[0]);
 					}
-					LogManager::message("Error mapped file " + m_path + " ErrorCode = " + Util::toString(l_error));
+					else
+					{
+						LogManager::message("Error mapped file " + m_path + " ErrorCode = " + Util::toString(l_error));
+					}
 					m_is_map_file_error = true;
 				}
 			}
@@ -176,7 +180,12 @@ void SharedFileStream::check_before_destoy()
 	}
 	cleanup();
 }
-// TODO - убрать
+void SharedFileStream::delete_file(const std::string& p_file)
+{
+	CFlyFastLock(g_shares_file_cs);
+	const auto l_res = g_delete_files.insert(std::make_pair(p_file, 0));
+	dcassert(l_res.second == true);
+}
 void SharedFileStream::cleanup()
 {
 	CFlyFastLock(g_shares_file_cs);
@@ -200,6 +209,34 @@ void SharedFileStream::cleanup()
 		{
 			++i;
 		}
+	}
+	for (auto j = g_delete_files.begin(); j != g_delete_files.end();)
+	{
+		if (File::isExist(j->first))
+		{
+			if (File::deleteFile(j->first))
+			{
+				g_delete_files.erase(j++);
+				continue;
+			}
+			else
+			{
+				j->second++;
+#ifdef FLYLINKDC_BETA
+				if (j->second > 1)
+				{
+					const string l_error = "Error delete file SharedFileStream::cleanup (try: " + Util::toString(j->second) + ") " + j->first + " Error " + Util::translateError();
+					CFlyServerJSON::pushError(71, l_error);
+				}
+#endif
+			}
+		}
+		else
+		{
+			g_delete_files.erase(j++);
+			continue;
+		}
+		++j;
 	}
 }
 SharedFileStream::~SharedFileStream()
@@ -228,6 +265,17 @@ size_t SharedFileStream::write(const void* p_buf, size_t p_len)
 	//LogManager::message("SharedFileStream::write buf = " + Util::toString(int(buf)) + " len " + Util::toString(len));
 #endif
 	CFlyFastLock(m_sfh->m_cs);
+#ifdef _DEBUG
+	{
+		/*
+		static uint64_t g_count;
+		        File fy(m_sfh->m_path + "-" +  Util::toString(++g_count) +
+		            " - [" + Util::toString(m_pos) + " - " + Util::toString(p_len) + "]." + Util::toString(GetCurrentThreadId()), File::WRITE, File::OPEN | File::CREATE);
+		        fy.write(p_buf, p_len);
+		        fy.close();
+		*/
+	}
+#endif
 	if (m_sfh->m_map_file_ptr)
 	{
 		memcpy(m_sfh->m_map_file_ptr + m_pos, p_buf, p_len);

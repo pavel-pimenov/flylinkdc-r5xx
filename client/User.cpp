@@ -1184,22 +1184,36 @@ string Identity::getIpAsString() const
 }
 void Identity::setIp(const string& p_ip) // "I4"
 {
-	boost::system::error_code ec;
-	m_ip = boost::asio::ip::address_v4::from_string(p_ip, ec);
-	dcassert(!ec);
-	if (!ec)
+	if (!p_ip.empty())
 	{
-		getUser()->setIP(m_ip, true);
-	}
-	else
-	{
+		boost::system::error_code ec;
+		if (p_ip[0] == ' ' || p_ip[p_ip.size() - 1] == ' ')
+		{
+			dcassert(0);
+			string l_ip = p_ip;
+			boost::algorithm::trim(l_ip);
+			m_ip = boost::asio::ip::address_v4::from_string(l_ip, ec);
+		}
+		else
+		{
+			m_ip = boost::asio::ip::address_v4::from_string(p_ip, ec);
+		}
+		dcassert(!ec);
+		if (!ec)
+		{
+			getUser()->setIP(m_ip, true);
+		}
+		else
+		{
 #ifdef FLYLINKDC_BETA
-		const string l_message = "Identity::setIP Error IP = " + p_ip;
-		LogManager::message(l_message);
-		CFlyServerJSON::pushError(27, l_message);
+			const string l_message = "Identity::setIP Error IP = [" + p_ip + "] user = " + getNick();
+			LogManager::message(l_message);
+			CFlyServerJSON::pushError(27, l_message);
 #endif
+			return;
+		}
+		change(CHANGES_IP | CHANGES_GEO_LOCATION);
 	}
-	change(CHANGES_IP | CHANGES_GEO_LOCATION);
 }
 bool Identity::isFantomIP() const
 {

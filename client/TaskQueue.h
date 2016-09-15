@@ -96,6 +96,14 @@ class TaskQueue
 			return l_tmp;
 		}
 #endif
+		bool add_safe(uint8_t type, Task* data)
+		{
+			if (data)
+			{
+				return add(type, data);
+			}
+			return false;
+		}
 		bool add(uint8_t type, Task* data)
 		{
 			CFlyFastLock(m_csTaskQueue);

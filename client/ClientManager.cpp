@@ -672,11 +672,9 @@ void ClientManager::putOnline(const OnlineUserPtr& ou, bool p_is_fire_online) no
 {
 	if (!isBeforeShutdown())
 	{
-		// [!] IRainman fix: don't put any hub to online or offline! Any hubs as user is always offline!
-		const auto user = ou->getUser();// —сылку нельз€ - падаем под wine https://drdump.com/DumpGroup.aspx?DumpGroupID=522953&Login=guest
+		const auto& user = ou->getUser();
 		dcassert(ou->getIdentity().getSID() != AdcCommand::HUB_SID);
 		dcassert(!user->getCID().isZero());
-		// [~] IRainman fix.
 		{
 			CFlyWriteLock(*g_csOnlineUsers);
 			const auto l_res = g_onlineUsers.insert(make_pair(user->getCID(), ou));
@@ -704,7 +702,7 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) no
 		// [~] IRainman fix.
 		OnlineIter::difference_type diff = 0;
 		{
-			CFlyWriteLock(*g_csOnlineUsers); 
+			CFlyWriteLock(*g_csOnlineUsers);
 			auto op = g_onlineUsers.equal_range(ou->getUser()->getCID()); // »щетс€ по одном - научитьс€ убивать сразу массив.
 			// [-] dcassert(op.first != op.second); [!] L: this is normal and means that the user is offline.
 			for (auto i = op.first; i != op.second; ++i)
@@ -712,7 +710,7 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) no
 				if (ou == i->second)
 				{
 					diff = distance(op.first, op.second);
-					g_onlineUsers.erase(i); 
+					g_onlineUsers.erase(i);
 					break;
 				}
 			}
@@ -894,10 +892,10 @@ void ClientManager::send(AdcCommand& cmd, const CID& cid)
 			}
 		}
 	}
-	if(l_is_send)
+	if (l_is_send)
 	{
-	l_is_send = true;
-	u->getClient().send(cmd);
+		l_is_send = true;
+		u->getClient().send(cmd);
 	}
 	if (l_port && !l_ip.empty())
 	{
@@ -988,7 +986,7 @@ void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const 
 {
 	bool isUdpActive = false;
 	{
-		CFlyReadLock(*g_csOnlineUsers);		
+		CFlyReadLock(*g_csOnlineUsers);
 		const auto op = g_onlineUsers.equal_range((from));
 		for (auto i = op.first; i != op.second; ++i)
 		{
@@ -1132,8 +1130,8 @@ void ClientManager::flushRatio(int p_max_count_flush)
 				l_count_flush++;
 #ifdef FLYLINKDC_BETA
 #ifdef _DEBUG
-				l_log.log("Flush for user: " + i->second->getLastNick() + " Hub = " + Util::toString(i->second->getHubID()) +
-				          " ip = " + i->second->getIPAsString() + " CountMessages = " + Util::toString(i->second->getMessageCount()));
+				//l_log.log("Flush for user: " + i->second->getLastNick() + " Hub = " + Util::toString(i->second->getHubID()) +
+				//          " ip = " + i->second->getIPAsString() + " CountMessages = " + Util::toString(i->second->getMessageCount()));
 #endif
 #endif
 				if (--p_max_count_flush == 0)
@@ -1508,7 +1506,7 @@ void ClientManager::fileListDisconnected(const UserPtr& p)
 	Client* c = nullptr;
 	{
 		CFlyReadLock(*g_csOnlineUsers);
-		OnlineIterC i = g_onlineUsers.find(p->getCID());
+		const auto i = g_onlineUsers.find(p->getCID());
 		if (i != g_onlineUsers.end()  && !i->second->isDHT())
 		{
 			OnlineUser* ou = i->second;

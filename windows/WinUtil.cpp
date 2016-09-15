@@ -2934,6 +2934,7 @@ int FileImage::getIconIndex(const string& aFileName)
 		return p_icon_index;
 	if (BOOLSETTING(USE_SYSTEM_ICONS))
 	{
+#ifndef _DEBUG // В отладке тупит
 		if (!x.empty())
 		{
 			//CFlyFastLock(m_cs);
@@ -2957,6 +2958,9 @@ int FileImage::getIconIndex(const string& aFileName)
 		{
 			return DIR_FILE;
 		}
+#else
+		return DIR_FILE;
+#endif
 	}
 	else
 	{

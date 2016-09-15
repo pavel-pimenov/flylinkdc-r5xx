@@ -16,11 +16,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#pragma once
+
 #if !defined(TRANSFER_VIEW_H)
 #define TRANSFER_VIEW_H
 #define SCALOLAZ_USE_TRANSFER_CONTROL
-#pragma once
 
+#ifdef _DEBUG
+//#define LYLINKDC_USE_DEBUG_TRANSFERS
+#endif
 #include "../client/DownloadManagerListener.h"
 #include "../client/UploadManagerListener.h"
 #include "../client/ConnectionManagerListener.h"
@@ -234,7 +238,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			TRANSFER_UPDATE_ITEM,
 			TRANSFER_UPDATE_PARENT,
 			TRANSFER_UPDATE_PARENT_WITH_PARSE,
-			TRANSFER_REMOVE_DOWNLOAD_ITEM
+			TRANSFER_REMOVE_DOWNLOAD_ITEM,
+			TRANSFER_REMOVE_TOKEN_ITEM
 		};
 		
 		enum
@@ -334,6 +339,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				tstring m_target;
 				tstring m_nicks;
 				tstring m_hubs;
+				string  m_token;
+				
 				mutable Util::CustomNetworkIndex m_location; // [+] IRainman opt.
 				
 #ifdef FLYLINKDC_USE_COLUMN_RATIO
@@ -371,6 +378,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 					ii->m_target = m_target;
 					ii->m_statusString = TSTRING(CONNECTING);
 					ii->m_errorStatusString = m_errorStatusString;
+					//ii->m_token = "Parent:" + m_token;
 					return ii;
 				}
 				const tstring& getGroupCond() const
@@ -399,6 +407,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				, MASK_FORCE_PASSIVE  = 0x1000
 #endif
 				, MASK_ERROR_STATUS_STRING = 0x2000
+				, MASK_TOKEN = 0x4000
 			};
 			
 			bool operator==(const ItemInfo& ii) const
@@ -499,6 +508,20 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				}
 			}
 			int64_t actual;
+			void setToken(const string& aToken)
+			{
+				dcassert(!aToken.empty());
+				if (token != aToken && !aToken.empty())
+				{
+#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
+					LogManager::message("setToken(const string& aToken) old_token = " + token + " new token = " + aToken);
+#endif
+					token = aToken;
+					updateMask |= MASK_TOKEN;
+				}
+			}
+			string token;
+			
 			void setSpeed(int64_t aSpeed)
 			{
 				if (speed != aSpeed)
@@ -586,7 +609,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		};
 		void onSpeakerAddItem(const UpdateInfo& ui);
 		void parseQueueItemUpdateInfo(UpdateInfo* p_ui, const QueueItemPtr& p_queueItem);
-		UpdateInfo* createUpdateInfoForAddedEvent(const HintedUser& p_hinted_user, bool p_is_download);
+		UpdateInfo* createUpdateInfoForAddedEvent(const HintedUser& p_hinted_user, bool p_is_download, const string& p_token);
 		
 		ItemInfoList ctrlTransfers;
 		CButton m_PassiveModeButton;
@@ -625,11 +648,12 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		StringMap ucLineParams;
 		bool m_is_need_resort;
 		
-		void on(ConnectionManagerListener::Added, const HintedUser& p_hinted_user, bool p_is_download) noexcept override;
-		void on(ConnectionManagerListener::FailedDownload, const HintedUser& p_hinted_user, const string& aReason) noexcept override;
-		void on(ConnectionManagerListener::Removed, const HintedUser& p_hinted_user, bool p_is_download) noexcept override;
-		void on(ConnectionManagerListener::UserUpdated, const HintedUser& p_hinted_user, bool p_is_download) noexcept override;
-		void on(ConnectionManagerListener::ConnectionStatusChanged, const HintedUser& p_hinted_user, bool p_is_download) noexcept override;
+		void on(ConnectionManagerListener::Added, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept override;
+		void on(ConnectionManagerListener::FailedDownload, const HintedUser& p_hinted_user, const string& aReason, const string& p_token) noexcept override;
+		void on(ConnectionManagerListener::Removed, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept override;
+		void on(ConnectionManagerListener::RemoveToken, const string& p_token) noexcept override;
+		void on(ConnectionManagerListener::UserUpdated, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept override;
+		void on(ConnectionManagerListener::ConnectionStatusChanged, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept override;
 		
 		void on(DownloadManagerListener::Requesting, const DownloadPtr& aDownload) noexcept override;
 		void on(DownloadManagerListener::Complete, const DownloadPtr& aDownload) noexcept override

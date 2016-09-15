@@ -230,7 +230,7 @@ void AdcHub::clearUsers()
 		{
 			if (i->first != AdcCommand::HUB_SID)
 			{
-				ClientManager::getInstance()->putOffline(i->second); 
+				ClientManager::getInstance()->putOffline(i->second);
 			}
 		}
 	}
@@ -1116,7 +1116,7 @@ void AdcHub::connect_secure(const OnlineUser& user, const string& token, bool se
 		}
 		proto = &AdcSupports::CLIENT_PROTOCOL;
 	}
-	// DC++ TODO ConnectionManager::getInstance()->m_tokens.addToken(token);
+	// DC++ TODO ConnectionManager::getInstance()->m_tokens_manager.addToken(token);
 	if (isActive())
 	{
 		uint16_t port = secure ? ConnectionManager::getInstance()->getSecurePort() : ConnectionManager::getInstance()->getPort();

@@ -1031,6 +1031,10 @@ class Util
 		static string toString(char p_sep, const StringList& p_lst);
 		static string toString(char p_sep, const StringSet& p_set);
 		static string toString(const StringList& p_lst);
+		static const string& toString(const string& p_str)
+		{
+			return p_str;
+		}
 		
 		static string toSupportsCommand(const StringList& p_feat)
 		{

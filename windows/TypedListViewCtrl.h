@@ -1373,7 +1373,13 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				T* parent = item->parent;
 				ParentPair* pp = findParentPair(parent->getGroupCond());
 				
-				deleteItem(item); // TODO - разобраться почему тут не удаляет.
+				const auto l_id = deleteItem(item); // TODO - разобраться почему тут не удаляет.
+#ifdef _DEBUG
+				if (l_id < 0)
+				{
+					LogManager::message("Error removeGroupedItem = " + Util::toString(item));
+				}
+#endif
 				
 				const auto n = find(pp->children.begin(), pp->children.end(), item);
 				if (n != pp->children.end())

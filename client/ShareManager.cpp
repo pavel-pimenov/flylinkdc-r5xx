@@ -1245,7 +1245,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 						string l_error = "Error share link file: " + l_PathAndFileName + " error = " + e.getError();
 						LogManager::message(l_error);
 						// https://msdn.microsoft.com/en-us/library/windows/desktop/ms681382%28v=vs.85%29.aspx
-						if (l_error_code != 1920 && l_error_code != 2 && l_error_code != 3)
+						if (l_error_code != 1920 && l_error_code != 2 && l_error_code != 3 && l_error_code != 21)
 						{
 							CFlyServerJSON::pushError(37, l_error);
 						}

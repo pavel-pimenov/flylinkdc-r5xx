@@ -995,7 +995,7 @@ void element_details::Element_Node::Set_Name(const string &Name_)
     delete[] Name;
 
 
-    size_t len = Name_.length();;
+    size_t len = Name_.length();
     if (!len)
     {
         Name = NULL;

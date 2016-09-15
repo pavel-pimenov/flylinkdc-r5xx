@@ -751,7 +751,6 @@
     <ClInclude Include="client\webrtc\system_wrappers\include\fix_interlocked_exchange_pointer_win.h" />
     <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_win.h" />
     <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_wrapper.h" />
-    <ClInclude Include="client\webrtc\system_wrappers\include\set_thread_name_win.h" />
     <ClInclude Include="client\webrtc\system_wrappers\include\sleep.h" />
     <ClInclude Include="client\webrtc\system_wrappers\include\static_instance.h" />
     <ClInclude Include="client\webrtc\system_wrappers\include\thread_win.h" />

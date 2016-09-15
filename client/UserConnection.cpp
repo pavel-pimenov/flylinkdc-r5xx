@@ -50,7 +50,7 @@ const string UserConnection::g_PLEASE_UPDATE_YOUR_CLIENT = "Please update your D
 UserConnection::UserConnection(bool p_secure) :
 	m_last_encoding(Text::g_systemCharset),
 	state(STATE_UNCONNECTED),
-	lastActivity(0),
+	m_count_activite(0),
 	speed(0),
 	m_chunkSize(0),
 	socket(nullptr),
@@ -60,6 +60,7 @@ UserConnection::UserConnection(bool p_secure) :
 	{
 		setFlag(FLAG_SECURE);
 	}
+	m_lastActivity = GET_TICK();
 }
 
 UserConnection::~UserConnection()
@@ -445,7 +446,8 @@ void UserConnection::on(BufferedSocketListener::Data, uint8_t* p_data, size_t p_
 
 void UserConnection::fireBytesSent(size_t p_Bytes, size_t p_Actual)
 {
-	const auto l_tick = setLastActivity();
+//	const auto l_tick =
+	setLastActivity();
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	if (p_Actual && BOOLSETTING(ENABLE_RATIO_USER_LIST))
 	{

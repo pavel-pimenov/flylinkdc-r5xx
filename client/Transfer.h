@@ -152,7 +152,8 @@ class Transfer
 		}
 		void setStart(uint64_t tick);
 		const uint64_t getLastActivity();
-		string getUserConnectionToken() const;
+		//string getUserConnectionToken() const;
+		//string getConnectionToken() const;
 		GETSET(uint64_t, m_lastTick, LastTick);
 		const bool m_isSecure;
 		const bool m_isTrusted;

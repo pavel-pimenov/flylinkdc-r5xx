@@ -270,7 +270,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 			dcassert(socket); // [+] IRainman fix.
 			return socket ? socket->getIp() : Util::emptyString;
 		}
-		DownloadPtr getDownload()
+		DownloadPtr& getDownload()
 		{
 			dcassert(isSet(FLAG_DOWNLOAD));
 			return m_download;
@@ -291,7 +291,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 			dcassert(isSet(FLAG_DOWNLOAD));
 			m_download = d;
 		}
-		UploadPtr getUpload()
+		UploadPtr& getUpload()
 		{
 			dcassert(isSet(FLAG_UPLOAD));
 			return m_upload;
@@ -353,13 +353,23 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		// [~] IRainman
 		
 		GETSET(string, m_user_connection_token, UserConnectionToken);
+		//GETSET(string, m_connection_token, ConnectionToken);
 		GETSET(int64_t, speed, Speed);
-		GETSET(uint64_t, lastActivity, LastActivity);
-		uint64_t setLastActivity()
+		
+		uint64_t m_lastActivity;
+		unsigned m_count_activite;
+		void setLastActivity()
 		{
-			const auto l_tick = GET_TICK();
-			setLastActivity(GET_TICK());
-			return l_tick;
+			m_count_activite++;
+		}
+		uint64_t getLastActivity()
+		{
+			if (m_count_activite)
+			{
+				m_lastActivity = GET_TICK();
+				m_count_activite = 0;
+			}
+			return m_lastActivity;
 		}
 	public:
 		GETSET(string, m_last_encoding, Encoding);

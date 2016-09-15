@@ -10,6 +10,8 @@
 
 #include "stdinc.h"
 
+#include "CompatibilityManager.h"
+
 #include "webrtc/system_wrappers/source/rw_lock_win.h"
 
 #include "webrtc/system_wrappers/include/trace.h"
@@ -91,7 +93,14 @@ bool RWLockWin::LoadModule() {
       release_srw_lock_exclusive && acquire_srw_lock_shared &&
       release_srw_lock_shared) {
     WEBRTC_TRACE(kTraceStateInfo, kTraceUtility, -1, "Loaded Native RW Lock");
-    native_rw_locks_supported = true;
+	if (CompatibilityManager::isWine())
+	{
+		native_rw_locks_supported = false;
+	}
+	else
+	{
+		native_rw_locks_supported = true;
+	}
   }
   return native_rw_locks_supported;
 }

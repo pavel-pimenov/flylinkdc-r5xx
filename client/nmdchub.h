@@ -61,9 +61,9 @@ class NmdcHub : public Client, private Flags
 			return m_users.size();
 		}
 		
-		string escape(const string& str) const
+		string escape(const string& str) const override
 		{
-			return validateMessage(str, false);
+		    return validateMessage(str, false);
 		}
 		static string unescape(const string& str)
 		{
@@ -143,6 +143,7 @@ class NmdcHub : public Client, private Flags
 		void processAutodetect(bool p_is_myinfo);
 		
 		DefinedMeyInfoState m_bLastMyInfoCommand; // [+] FlylinkDC
+		string m_cache_hub_url_flood;
 		string m_last_antivirus_detect_url;
 		struct CFlyNickRule
 		{

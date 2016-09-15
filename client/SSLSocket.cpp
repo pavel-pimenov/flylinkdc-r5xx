@@ -345,7 +345,7 @@ std::string SSLSocket::getEncryptionInfo() const noexcept
 								err = X509_V_ERR_UNSPECIFIED;
 								
 							// This is for people who don't restart their clients and have low expiration time on their cert
-							result = (err == X509_V_OK || err == X509_V_ERR_CERT_HAS_EXPIRED) || (allowUntrusted && err != X509_V_ERR_APPLICATION_VERIFICATION);;
+							result = (err == X509_V_OK || err == X509_V_ERR_CERT_HAS_EXPIRED) || (allowUntrusted && err != X509_V_ERR_APPLICATION_VERIFICATION);
 						}
 					}
 					

@@ -321,7 +321,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		void store_all_ratio_and_last_ip(uint32_t p_hub_id,
 		                                 const string& p_nick,
-		                                 CFlyUploadDownloadMap* p_upload_download_stats,
+		                                 CFlyUserRatioInfo& p_user_ratio,
 		                                 const uint32_t p_message_count,
 		                                 const boost::asio::ip::address_v4& p_last_ip,
 		                                 bool p_is_last_ip_dirty,
@@ -334,7 +334,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #ifdef _DEBUG
 		bool m_is_load_global_ratio;
 #endif
-		CFlyRatioItem load_ratio(uint32_t p_hub_id, const string& p_nick, CFlyUserRatioInfo& p_ratio_info, const  boost::asio::ip::address_v4& p_last_ip);
+		bool load_ratio(uint32_t p_hub_id, const string& p_nick, CFlyUserRatioInfo& p_ratio_info, const  boost::asio::ip::address_v4& p_last_ip);
 		bool load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, uint32_t& p_message_count, boost::asio::ip::address_v4& p_last_ip);
 		void update_last_ip_and_message_count(uint32_t p_hub_id, const string& p_nick,
 		                                      const boost::asio::ip::address_v4& p_last_ip,
@@ -344,6 +344,11 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		                                      bool p_is_message_count_dirty
 		                                     );
 	private:
+		void store_all_ratio_internal(uint32_t p_hub_id, const __int64& p_dic_nick,
+		                              const __int64& p_ip,
+		                              const uint64_t& p_upload,
+		                              const uint64_t& p_download
+		                             );
 		void update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, boost::asio::ip::address_v4 p_last_ip, bool& p_is_sql_not_found,
 		                              bool p_is_last_ip_dirty,
 		                              bool p_is_message_count_dirty

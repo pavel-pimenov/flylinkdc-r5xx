@@ -1317,43 +1317,44 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 		return false;
 	}
 	dcassert(!m_is_process_disconnected);
-	UserInfo* ui = findUser(p_ou); // TODO - часто ищем. связать в список?
-	if (!ui)
+	UserInfo* ui = nullptr;
+	bool l_is_insert = false;
+	if (!p_ou->isHidden() && !p_ou->isHub())
 	{
-#ifdef IRAINMAN_USE_HIDDEN_USERS
-		if (!p_ou->isHidden()
-		        && !p_ou->isHub())
+		CFlyWriteLock(*m_userMapCS);
+		dcassert(!m_is_process_disconnected);
+		auto l_item = m_userMap.insert(make_pair(p_ou, ui));
+		if (l_item.second == true)
 		{
-#endif
-			PROFILE_THREAD_SCOPED_DESC("HubFrame::updateUser-NEW_USER")
+			p_ou->isFirstFind();
 			ui = new UserInfo(p_ou);
-			{
-				CFlyWriteLock(*m_userMapCS);
-				//CFlyLock(m_userMapCS);
-				dcassert(!m_is_process_disconnected);
-				m_userMap.insert(make_pair(p_ou, ui));
-			}
-			if (m_showUsers)// [+] IRainman optimization
-			{
-				//dcassert(!client->is_all_my_info_loaded());
-				if (m_client->is_all_my_info_loaded())
-				{
-					m_needsResort |= ui->is_update(m_ctrlUsers->getSortColumn()); // [+] IRainman fix.
-				}
-				InsertUserList(ui); // [!] IRainman fix.
-			}
-			return true;
-#ifdef IRAINMAN_USE_HIDDEN_USERS
+			dcassert(l_item.first->second == nullptr);
+			l_item.first->second = ui;
+			l_is_insert = true;
 		}
 		else
 		{
-			return false;
+			ui = l_item.first->second;
 		}
-#endif
 	}
-	else
+	if (l_is_insert) // Новая запись
 	{
-#ifdef IRAINMAN_USE_HIDDEN_USERS
+		if (m_showUsers)
+		{
+			if (m_client->is_all_my_info_loaded())
+			{
+				m_needsResort |= ui->is_update(m_ctrlUsers->getSortColumn());
+			}
+			InsertUserList(ui);
+			return true;
+		}
+	}
+	if (ui == nullptr) // Юзер скрыт или хаб
+	{
+		return false;
+	}
+	else // Юзера нашли и нужно обновить
+	{
 		if (ui->isHidden())
 		{
 			if (m_showUsers)
@@ -1362,15 +1363,13 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 			}
 			{
 				CFlyWriteLock(*m_userMapCS);
-				//CFlyLock(m_userMapCS);
-				m_userMap.erase(ui->getOnlineUser());
+				m_userMap.erase(p_ou);
 			}
 			delete ui;
 			return true;
 		}
 		else
 		{
-#endif // IRAINMAN_USE_HIDDEN_USERS
 			if (m_showUsers)// [+] IRainman opt.
 			{
 				//dcassert(!client->is_all_my_info_loaded());
@@ -1381,8 +1380,6 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 					const int pos = m_ctrlUsers->findItem(ui);
 					if (pos != -1)
 					{
-					
-					
 						// Для невидимых юзеров тоже нужно апдейтить колонки (Шара/сообщения и т.д.
 						// if (pos >= l_top_index && pos <= l_top_index + m_ctrlUsers->GetCountPerPage()) // TODO m_ctrlUsers->GetCountPerPage() закешировать?
 						{
@@ -1431,33 +1428,26 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 					}
 				}
 			}
-			return false;
-#ifdef IRAINMAN_USE_HIDDEN_USERS
 		}
-#endif
 	}
+	return false;
 }
 
 void HubFrame::removeUser(const OnlineUserPtr& p_ou)
 {
 	dcassert(!m_is_process_disconnected);
-	UserInfo* ui = findUser(p_ou);
-	if (!ui)
-		return;
-		
-#ifdef IRAINMAN_USE_HIDDEN_USERS
-	dcassert(ui->isHidden() == false);
-#endif
-	if (m_showUsers)
+	CFlyWriteLock(*m_userMapCS);
+	const auto l_item = m_userMap.find(p_ou);
+	if (l_item != m_userMap.end())
 	{
-		m_ctrlUsers->deleteItem(ui);  // Lock - redraw при закрытии?
+		auto ui = l_item->second;
+		m_userMap.erase(l_item);
+		if (m_showUsers)
+		{
+			m_ctrlUsers->deleteItem(ui);
+		}
+		delete ui;
 	}
-	{
-		CFlyWriteLock(*m_userMapCS);
-		//CFlyLock(m_userMapCS);
-		m_userMap.erase(p_ou);
-	}
-	delete ui;
 }
 
 void HubFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, const bool bHistory /*= true*/, const CHARFORMAT2& cf /*= WinUtil::m_ChatTextSystem*/)
@@ -2455,7 +2445,8 @@ void HubFrame::storeColumsInfo()
 		}
 		{
 			CFlyLock(g_frames_cs);
-			if (g_frames.size() == 1 || ClientManager::isStartup() == false) // Сохраняем только на последней итерации, или когда не закрываем приложение.
+			if (g_frames.size() == 1 || (ClientManager::isStartup() == false && ClientManager::isBeforeShutdown() == false))
+				// Сохраняем только на последней итерации, или когда не закрываем/запускаем приложение.
 			{
 				FavoriteManager::save();
 			}
@@ -4814,7 +4805,6 @@ UserInfo* HubFrame::findUser(const tstring& p_nick)   // !SMT!-S
 		return nullptr;
 	}
 }
-
 /**
  * @file
  * $Id: HubFrame.cpp,v 1.132 2006/11/04 14:08:28 bigmuscle Exp $

@@ -36,6 +36,7 @@ class TokenManager
 		string getToken() noexcept;
 		string makeToken() noexcept;
 		bool addToken(const string& aToken) noexcept;
+		bool isToken(const string& aToken) noexcept;
 		void removeToken(const string& aToken) noexcept;
 		~TokenManager()
 		{
@@ -198,7 +199,7 @@ class ConnectionManager :
 	public Singleton<ConnectionManager>
 {
 	public:
-		TokenManager m_tokens;
+		TokenManager m_tokens_manager;
 		void nmdcExpect(const string& aNick, const string& aMyNick, const string& aHubUrl
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		                , ExpectedMap::DefinedExpectedReason reason = ExpectedMap::REASON_DEFAULT
@@ -391,7 +392,7 @@ class ConnectionManager :
 		void addUploadConnection(UserConnection* p_conn);
 		void addDownloadConnection(UserConnection* p_conn);
 		
-		ConnectionQueueItemPtr getCQI_L(const HintedUser& aHintedUser, bool download, const string& aToken);
+		ConnectionQueueItemPtr getCQI_L(const HintedUser& aHintedUser, bool download);
 		void putCQI_L(ConnectionQueueItemPtr& cqi);
 		
 		void accept(const Socket& sock, bool secure, Server* p_server) noexcept;

@@ -31,7 +31,8 @@ unsigned Client::g_counts[COUNT_UNCOUNTED];
 string   Client::g_last_search_string;
 Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool p_is_auto_connect) :
 	m_cs(std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock())),
-	m_reconnDelay(120), m_lastActivity(GET_TICK()),
+	m_reconnDelay(120),
+	m_lastActivity(GET_TICK()),
 //registered(false), [-] IRainman fix.
 	autoReconnect(false),
 	m_encoding(Text::g_systemCharset),

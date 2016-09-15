@@ -282,6 +282,7 @@ class CFlyServerConfig
 		static bool     g_is_append_cid_error_log;
 		static bool     g_is_use_hit_media_files;
 		static bool     g_is_use_hit_binary_files;
+		static bool     g_is_use_statistics;
 		
 #ifdef USE_SUPPORT_HUB
 		static string   g_support_hub;

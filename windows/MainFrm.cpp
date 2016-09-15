@@ -2351,7 +2351,7 @@ void MainFrame::getIPupdate()
 			}
 			else
 			{
-				LogManager::message("Error IP AutoUpdate. URL: " + l_url); // TODO translate
+				LogManager::message("Error IP AutoUpdate. Invalid URL: " + l_url); // TODO translate
 			}
 		}
 	}

@@ -58,6 +58,10 @@ void File::init(const tstring& aFileName, int access, int mode, bool isAbsoluteP
 			dcassert(0);
 		}
 	}
+//	if (Text::fromT(aFileName).find(".dctmp") != string::npos)
+//	{
+//		LogManager::message("File::init - dctmp: " + Text::fromT(aFileName));
+//	}
 	const DWORD shared = FILE_SHARE_READ | (mode & SHARED ? (FILE_SHARE_WRITE | FILE_SHARE_DELETE) : 0);
 	
 	const tstring outPath = isAbsolutePath ? formatPath(aFileName) : aFileName;
@@ -277,7 +281,7 @@ size_t File::flushBuffers(bool aForce)
 	*/
 #ifndef _CONSOLE
 #ifdef _DEBUG
-	auto start = boost::posix_time::microsec_clock::universal_time();;
+	auto start = boost::posix_time::microsec_clock::universal_time();
 #endif
 	if (isOpen() && !ClientManager::isShutdown())
 	{
@@ -306,25 +310,40 @@ size_t File::flushBuffers(bool aForce)
 bool File::deleteFileT(const tstring& aFileName) noexcept
 {
 	const auto l_result_delete = ::DeleteFile(formatPath(aFileName).c_str()) != NULL;
-#ifdef _DEBUG
 	if (l_result_delete == false)
 	{
-		string l_error = Util::translateError();
-		l_error = "File::deleteFileT error = " + l_error + " file = " + Text::fromT(aFileName);
+		const string l_error = "Error delete file: " + Text::fromT(aFileName) + " Error " + Util::translateError();
 		LogManager::message(l_error);
 	}
-#endif
 	return l_result_delete;
 }
 
-void File::renameFile(const tstring & source, const tstring & target)
+bool File::renameFile(const tstring& p_source, const tstring& p_target)
 {
-	if (!::MoveFile(formatPath(source).c_str(), formatPath(target).c_str()))
+	bool l_res = true;
+	CFlyLog l_log("[Rename]");
+	if (!::MoveFile(formatPath(p_source).c_str(), formatPath(p_target).c_str()))
 	{
-		// Can't move, try copy/delete...
-		copyFile(source, target);
-		deleteFileT(source);
+		l_log.log("Start copy file: " + Text::fromT(p_source) + " -> " + Text::fromT(p_target) + " code:" + Util::toString(GetLastError()));
+		try
+		{
+			copyFile(p_source, p_target);
+		}
+		catch (FileException & e)
+		{
+			l_log.log("Error copy file: " + e.getError());
+			throw;
+		}
+		if (!deleteFileT(p_source))
+		{
+			l_res = false;
+		}
 	}
+	else
+	{
+		l_log.log("MoveFile OK " + Text::fromT(p_source) + " -> " + Text::fromT(p_target));
+	}
+	return l_res;
 }
 
 void File::copyFile(const tstring & source, const tstring & target)

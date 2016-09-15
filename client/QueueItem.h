@@ -28,6 +28,10 @@
 #include "Download.h"
 #include "CFlyThread.h"
 
+#ifdef FLYLINKDC_USE_LOG_QUEUE_ITEM_DIRTY
+#include "LogManager.h"
+#endif
+
 typedef boost::unordered_map<UserPtr, DownloadPtr, User::Hash> DownloadMap;
 
 
@@ -181,7 +185,7 @@ class QueueItem : public Flags
 		
 		typedef std::set<Segment> SegmentSet;
 		
-		QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, Flags::MaskType aFlag,
+		QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, bool aAutoPriority, Flags::MaskType aFlag,
 		          time_t aAdded, const TTHValue& tth, uint8_t p_maxSegments, int64_t p_FlyQueueID, const string& aTempTarget);
 		          
 		~QueueItem();
@@ -262,27 +266,30 @@ class QueueItem : public Flags
 		void calcDownloadedBytes() const;
 		bool isDirtyBase() const
 		{
-			return m_dirty;
+			return m_dirty_base;
 		}
 		bool isDirtyAll() const
 		{
-			return m_dirty || m_dirty_segment || m_dirty_source;
+			return m_dirty_base || m_dirty_segment || m_dirty_source;
 		}
 		void setDirty(bool p_dirty)
 		{
 #ifdef _DEBUG
 			if (p_dirty)
 			{
-				m_dirty = p_dirty;
+				m_dirty_base = p_dirty;
 			}
 #endif
-			m_dirty = p_dirty;
+#ifdef FLYLINKDC_USE_LOG_QUEUE_ITEM_DIRTY
+			LogManager::message(__FUNCTION__ " p_dirty = " + Util::toString(p_dirty));
+#endif
+			m_dirty_base = p_dirty;
 		}
-		void setDirtyAll(bool p_dirty)
+		void resetDirtyAll()
 		{
-			setDirty(p_dirty);
-			setDirtySource(p_dirty);
-			setDirtySegment(p_dirty);
+			setDirty(false);
+			setDirtySource(false);
+			setDirtySegment(false);
 		}
 		
 		bool isDirtySource() const
@@ -348,16 +355,33 @@ class QueueItem : public Flags
 		}
 		string getListName() const;
 		const string& getTempTarget();
-		const string& getTempTargetConst() const;
-		void setTempTarget(const string& p_TempTarget);
+		const string& getTempTargetConst() const
+		{
+			return m_tempTarget;
+		}
 		
-#define GETSET_DIRTY(type, name, name2) \
-private: type name; \
-public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
-	void set##name2(TypeTraits<type>::ParameterType a##name2) { if(name != a##name2) {setDirty(true); name = a##name2;} }
+		
+		/*
+		#define GETSET_DIRTY(type, name, name2) \
+		private: type name; \
+		public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
+		    void set##name2(TypeTraits<type>::ParameterType a##name2) \
+		    { \
+		        if(name != a##name2) \
+		        { \
+		            LogManager::message("GETSET_DIRTY name = " __FUNCTION__ " old = " + Util::toString(get##name2()) + " new = " + Util::toString(a##name2)); \
+		            setDirty(true); \
+		            name = a##name2; \
+		        } \
+		        else \
+		        { \
+		        LogManager::message("[!]GETSET_DIRTY name = " __FUNCTION__ " old = new = " + Util::toString(a##name2)); \
+		        }\
+		    }
+		*/
 	private:
 		const TTHValue m_tthRoot;
-		bool m_dirty;
+		bool m_dirty_base;
 		bool m_dirty_source;
 		bool m_dirty_segment;
 //		bool m_is_failed;
@@ -393,24 +417,109 @@ public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 			return m_done_segment;
 		}
 #endif
-		GETSET_DIRTY(string, target, Target);
 		GETSET(uint64_t, timeFileBegin, TimeFileBegin);
 		GETSET(uint64_t, nextPublishingTime, NextPublishingTime);
-		GETSET_DIRTY(int64_t, size, Size);
 		GETSET(int64_t, lastsize, LastSize);
 		GETSET(time_t, added, Added);
-		GETSET_DIRTY(uint8_t, maxSegments, MaxSegments);
-		GETSET_DIRTY(bool, autoPriority, AutoPriority);
 		GETSET(int64_t, flyQueueID, FlyQueueID);
 		
 	private:
 		Priority m_priority;
+		string m_Target;
+		int64_t m_Size;
+		uint8_t m_maxSegments;
+		bool m_AutoPriority;
 	public:
+		bool getAutoPriority() const
+		{
+			return m_AutoPriority;
+		}
+		void setAutoPriority(bool p_value)
+		{
+			if (m_AutoPriority != p_value)
+			{
+				setDirty(true);
+#ifdef FLYLINKDC_USE_LOG_QUEUE_ITEM_DIRTY
+				LogManager::message(__FUNCTION__ " new = " + Util::toString(p_value));
+#endif
+				m_AutoPriority = p_value;
+			}
+		}
+		
+		uint8_t getMaxSegments() const
+		{
+			return m_maxSegments;
+		}
+		void setMaxSegments(uint8_t p_value)
+		{
+			if (m_maxSegments != p_value)
+			{
+				setDirty(true);
+#ifdef FLYLINKDC_USE_LOG_QUEUE_ITEM_DIRTY
+				LogManager::message(__FUNCTION__ " new = " + Util::toString(p_value));
+#endif
+				m_maxSegments = p_value;
+			}
+		}
+		const int64_t& getSize() const
+		{
+			return m_Size;
+		}
+		void setSize(const int64_t& p_value)
+		{
+			if (m_Size != p_value)
+			{
+				setDirty(true);
+#ifdef FLYLINKDC_USE_LOG_QUEUE_ITEM_DIRTY
+				LogManager::message(__FUNCTION__ " new = " + Util::toString(p_value));
+#endif
+				m_Size = p_value;
+			}
+		}
+		
+		const string& getTarget() const
+		{
+			return m_Target;
+		}
+		void setTarget(const string& p_value)
+		{
+			if (m_Target != p_value)
+			{
+				setDirty(true);
+#ifdef FLYLINKDC_USE_LOG_QUEUE_ITEM_DIRTY
+				LogManager::message(__FUNCTION__ " new = " + Util::toString(p_value));
+#endif
+				m_Target = p_value;
+			}
+		}
+		
 		Priority getPriority() const
 		{
 			return m_priority;
 		}
-		void setPriority(Priority p_priority);
+		void setPriority(Priority p_value)
+		{
+			if (m_priority != p_value)
+			{
+				setDirtySegment(true);
+#ifdef FLYLINKDC_USE_LOG_QUEUE_ITEM_DIRTY
+				LogManager::message(__FUNCTION__ " new = " + Util::toString(p_value));
+#endif
+				m_priority = p_value;
+			}
+		}
+		void setTempTarget(const string& p_value)
+		{
+			if (m_tempTarget != p_value)
+			{
+				setDirty(true);
+#ifdef FLYLINKDC_USE_LOG_QUEUE_ITEM_DIRTY
+				LogManager::message(__FUNCTION__ " new = " + Util::toString(p_value));
+#endif
+				m_tempTarget = p_value;
+			}
+		}
+		
 		int16_t calcTransferFlag(bool& partial, bool& trusted, bool& untrusted, bool& tthcheck, bool& zdownload, bool& chunked, double& ratio) const;
 		QueueItem::Priority calculateAutoPriority() const;
 		

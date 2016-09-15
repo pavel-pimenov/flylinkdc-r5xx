@@ -1065,9 +1065,6 @@
     <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_wrapper.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\set_thread_name_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
     <ClInclude Include="client\webrtc\system_wrappers\include\sleep.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>

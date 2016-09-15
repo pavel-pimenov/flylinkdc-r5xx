@@ -60,14 +60,24 @@ string TokenManager::makeToken() noexcept
 	}
 	while (m_tokens.find(l_token) != m_tokens.end());
 	m_tokens.insert(l_token);
+#ifdef _DEBUG
+	LogManager::message("TokenManager::makeToken token = " + l_token);
+#endif
 	return l_token;
 }
-
+bool TokenManager::isToken(const string& aToken) noexcept
+{
+	CFlyFastLock(m_cs);
+	return m_tokens.find(aToken) != m_tokens.end();
+}
 string TokenManager::getToken() noexcept
 {
 	CFlyFastLock(m_cs);
 	const string l_token = Util::toString(Util::rand());
 	m_tokens.insert(l_token);
+#ifdef _DEBUG
+	LogManager::message("TokenManager::getToken token = " + l_token);
+#endif
 	return l_token;
 }
 
@@ -77,19 +87,35 @@ bool TokenManager::addToken(const string& aToken) noexcept
 	if (m_tokens.find(aToken) == m_tokens.end())
 	{
 		m_tokens.insert(aToken);
+#ifdef _DEBUG
+		LogManager::message("TokenManager::addToken [+] token = " + aToken);
+#endif
 		return true;
 	}
+#ifdef _DEBUG
+	LogManager::message("TokenManager::addToken [-] token = " + aToken);
+#endif
 	return false;
 }
 
 void TokenManager::removeToken(const string& aToken) noexcept
 {
 	CFlyFastLock(m_cs);
-	auto p = m_tokens.find(aToken);
+	const auto p = m_tokens.find(aToken);
 	if (p != m_tokens.end())
+	{
+#ifdef _DEBUG
+		LogManager::message("TokenManager::removeToken [+] token = " + aToken);
+#endif
 		m_tokens.erase(p);
-	//else
-	//  dcassert(0);
+	}
+	else
+	{
+#ifdef _DEBUG
+		LogManager::message("TokenManager::removeToken [-] token = " + aToken);
+#endif
+//		dcassert(0);
+	}
 }
 
 
@@ -193,7 +219,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 			const auto i = find(g_downloads.begin(), g_downloads.end(), aUser);
 			if (i == g_downloads.end())
 			{
-				l_cqi = getCQI_L(HintedUser(aUser, Util::emptyString), true, Util::emptyString);
+				l_cqi = getCQI_L(HintedUser(aUser, Util::emptyString), true);
 			}
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 			else
@@ -207,7 +233,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 		}
 		if (l_cqi && !ClientManager::isBeforeShutdown())
 		{
-			fly_fire2(ConnectionManagerListener::Added(), HintedUser(aUser, Util::emptyString), true);
+			fly_fire2(ConnectionManagerListener::Added(), HintedUser(aUser, Util::emptyString), true, l_cqi->getConnectionQueueToken());
 			return;
 		}
 #ifndef USING_IDLERS_IN_CONNECTION_MANAGER
@@ -216,9 +242,9 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 	}
 }
 
-ConnectionQueueItemPtr ConnectionManager::getCQI_L(const HintedUser& aHintedUser, bool download, const string& aToken)
+ConnectionQueueItemPtr ConnectionManager::getCQI_L(const HintedUser& aHintedUser, bool download)
 {
-	auto cqi = std::make_shared<ConnectionQueueItem>(aHintedUser, download, !aToken.empty() ? aToken : m_tokens.makeToken());
+	auto cqi = std::make_shared<ConnectionQueueItem>(aHintedUser, download, m_tokens_manager.makeToken());
 	if (download)
 	{
 		dcassert(find(g_downloads.begin(), g_downloads.end(), aHintedUser) == g_downloads.end());
@@ -229,7 +255,6 @@ ConnectionQueueItemPtr ConnectionManager::getCQI_L(const HintedUser& aHintedUser
 		dcassert(find(g_uploads.begin(), g_uploads.end(), aHintedUser) == g_uploads.end());
 		g_uploads.insert(cqi);
 	}
-	
 	return cqi;
 }
 
@@ -247,7 +272,9 @@ void ConnectionManager::putCQI_L(ConnectionQueueItemPtr& cqi)
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	cqi->getUser()->flushRatio(); //[+]PPA branches-dev/ppa/issue-1035
 #endif
-	m_tokens.removeToken(cqi->getConnectionQueueToken());
+	const string l_token = cqi->getConnectionQueueToken();
+	m_tokens_manager.removeToken(l_token);
+	fly_fire1(ConnectionManagerListener::RemoveToken(), l_token);
 	cqi.reset();
 }
 
@@ -343,19 +370,41 @@ void ConnectionManager::on(ClientManagerListener::UserDisconnected, const UserPt
 	addOnUserUpdated(aUser);
 }
 
+struct CFlyTokenItem
+{
+	HintedUser m_hinted_user;
+	string m_token;
+	CFlyTokenItem()
+	{
+	}
+	CFlyTokenItem(const ConnectionQueueItemPtr& p_cqi) : m_hinted_user(p_cqi->getHintedUser()), m_token(p_cqi->getConnectionQueueToken())
+	{
+	}
+};
+struct CFlyReasonItem : public CFlyTokenItem
+{
+	string m_reason;
+	CFlyReasonItem()
+	{
+	}
+	CFlyReasonItem(const ConnectionQueueItemPtr& p_cqi, const string& p_reason) : CFlyTokenItem(p_cqi), m_reason(p_reason)
+	{
+	}
+};
+
 void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
-		std::vector<HintedUser> l_download_users;
-		std::vector<HintedUser> l_upload_users;
+		std::vector<CFlyTokenItem> l_download_users;
+		std::vector<CFlyTokenItem> l_upload_users;
 		{
 			CFlyReadLock(*g_csDownloads);
 			for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 			{
 				if ((*i)->getUser() == aUser) // todo - map
 				{
-					l_download_users.push_back((*i)->getHintedUser());
+					l_download_users.push_back(CFlyTokenItem(*i));
 				}
 			}
 		}
@@ -366,17 +415,17 @@ void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 			{
 				if ((*i)->getUser() == aUser)  // todo - map
 				{
-					l_upload_users.push_back((*i)->getHintedUser());
+					l_upload_users.push_back(CFlyTokenItem(*i));
 				}
 			}
 		}
 		for (auto i = l_download_users.cbegin(); i != l_download_users.cend(); ++i)
 		{
-			fly_fire2(ConnectionManagerListener::UserUpdated(), *i, true);
+			fly_fire2(ConnectionManagerListener::UserUpdated(), i->m_hinted_user, true, i->m_token);
 		}
 		for (auto i = l_upload_users.cbegin(); i != l_upload_users.cend(); ++i)
 		{
-			fly_fire2(ConnectionManagerListener::UserUpdated(), *i, false);
+			fly_fire2(ConnectionManagerListener::UserUpdated(), i->m_hinted_user, false, i->m_token);
 		}
 	}
 }
@@ -398,8 +447,8 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 	UserList l_idlers;
 #endif
-	std::vector< HintedUser > l_status_changed;
-	std::vector< std::pair<HintedUser, std::string> > l_error_download;
+	std::vector< CFlyTokenItem > l_status_changed;
+	std::vector< CFlyReasonItem > l_error_download;
 	{
 		CFlyReadLock(*g_csDownloads);
 		uint16_t l_attempts = 0;
@@ -472,7 +521,8 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 #endif
 							                                      cqi->m_is_active_client // <- Out param!
 							                                     );
-							l_status_changed.push_back(cqi->getHintedUser());
+							const CFlyTokenItem l_item(cqi);
+							l_status_changed.push_back(l_item);
 							l_attempts++;
 						}
 						else
@@ -481,7 +531,8 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 							cqi->m_count_waiting = 0;
 #endif
 							cqi->setState(ConnectionQueueItem::NO_DOWNLOAD_SLOTS);
-							l_error_download.push_back(make_pair(cqi->getHintedUser(), STRING(ALL_DOWNLOAD_SLOTS_TAKEN)));
+							const CFlyReasonItem l_item(cqi, STRING(ALL_DOWNLOAD_SLOTS_TAKEN));
+							l_error_download.push_back(l_item);
 						}
 					}
 					else if (cqi->getState() == ConnectionQueueItem::NO_DOWNLOAD_SLOTS && startDown)
@@ -508,7 +559,8 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 					else
 #endif
 					{
-						l_error_download.push_back(make_pair(cqi->getHintedUser(), STRING(CONNECTION_TIMEOUT)));
+						const CFlyReasonItem l_item(cqi, STRING(CONNECTION_TIMEOUT));
+						l_error_download.push_back(l_item);
 						cqi->setState(ConnectionQueueItem::WAITING);
 					}
 				}
@@ -543,7 +595,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 	{
 		if (!ClientManager::isBeforeShutdown())
 		{
-			fly_fire2(ConnectionManagerListener::ConnectionStatusChanged(), *j, true);
+			fly_fire2(ConnectionManagerListener::ConnectionStatusChanged(), j->m_hinted_user, true, j->m_token);
 		}
 	}
 	l_status_changed.clear();
@@ -552,7 +604,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 	{
 		if (!ClientManager::isBeforeShutdown())
 		{
-			fly_fire2(ConnectionManagerListener::FailedDownload(), k->first, k->second);
+			fly_fire2(ConnectionManagerListener::FailedDownload(), k->m_hinted_user, k->m_reason, k->m_token);
 		}
 	}
 	l_error_download.clear();
@@ -1472,7 +1524,7 @@ void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 		if (i == g_uploads.cend())
 		{
 			p_conn->setFlag(UserConnection::FLAG_ASSOCIATED);
-			l_cqi = getCQI_L(p_conn->getHintedUser(), false, p_conn->getUserConnectionToken());
+			l_cqi = getCQI_L(p_conn->getHintedUser(), false);
 			l_cqi->setState(ConnectionQueueItem::ACTIVE);
 			
 			dcdebug("ConnectionManager::addUploadConnection, leaving to uploadmanager\n");
@@ -1482,7 +1534,7 @@ void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 	{
 		if (!ClientManager::isBeforeShutdown())
 		{
-			fly_fire2(ConnectionManagerListener::Added(), l_cqi->getHintedUser(), false);
+			fly_fire2(ConnectionManagerListener::Added(), l_cqi->getHintedUser(), false, l_cqi->getConnectionQueueToken());
 #ifdef FLYLINKDC_USE_CONNECTED_EVENT
 			fly_fire1(ConnectionManagerListener::Connected(), l_cqi);
 #endif
@@ -1693,8 +1745,10 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 	if (aSource->isSet(UserConnection::FLAG_ASSOCIATED))
 	{
 		HintedUser l_user;
-		std::pair<HintedUser, std::string> l_error_download;
+		CFlyReasonItem l_error_download;
+		string l_token;
 		const bool l_is_download = aSource->isSet(UserConnection::FLAG_DOWNLOAD);
+		bool l_is_fire_faled = true;
 		if (l_is_download)
 		{
 			CFlyWriteLock(*g_csDownloads);
@@ -1709,10 +1763,13 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 			{
 				ConnectionQueueItemPtr cqi = *i;
 				l_user = cqi->getHintedUser();
+				l_token = cqi->getConnectionQueueToken();
 				cqi->setState(ConnectionQueueItem::WAITING);
 				cqi->setLastAttempt(GET_TICK());
 				cqi->setErrors(protocolError ? -1 : (cqi->getErrors() + 1));
-				l_error_download = make_pair(cqi->getHintedUser(), aError);
+				l_error_download.m_hinted_user = cqi->getHintedUser();
+				l_error_download.m_reason = aError;
+				//l_error_download.m_token = cqi->getConnectionQueueToken();
 				putCQI_L(cqi);
 			}
 		}
@@ -1731,18 +1788,19 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 				{
 					ConnectionQueueItemPtr cqi = *i;
 					l_user = cqi->getHintedUser();
+					l_token = cqi->getConnectionQueueToken();
 					putCQI_L(cqi);
 				}
 			}
 			if (!ClientManager::isBeforeShutdown())
 			{
-				fly_fire2(ConnectionManagerListener::Removed(), aSource->getHintedUser(), l_is_download);
+				fly_fire2(ConnectionManagerListener::Removed(), aSource->getHintedUser(), l_is_download, l_token);
+				l_is_fire_faled = false;
 			}
-			
 		}
-		if (!ClientManager::isBeforeShutdown() && l_error_download.first.user)
+		if (l_is_fire_faled && !ClientManager::isBeforeShutdown() && l_error_download.m_hinted_user.user)
 		{
-			fly_fire2(ConnectionManagerListener::FailedDownload(), l_error_download.first, l_error_download.second);
+			fly_fire2(ConnectionManagerListener::FailedDownload(), l_error_download.m_hinted_user, l_error_download.m_reason, l_token);
 		}
 	}
 	else

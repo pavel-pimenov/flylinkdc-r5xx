@@ -119,6 +119,7 @@ uint16_t CFlyServerConfig::g_unique_files_for_virus_detect = 2;
 bool     CFlyServerConfig::g_is_append_cid_error_log = true; // Добавлять ID к логу ошибок
 bool     CFlyServerConfig::g_is_use_hit_media_files = false;
 bool     CFlyServerConfig::g_is_use_hit_binary_files = false;
+bool     CFlyServerConfig::g_is_use_statistics = false;
 
 DWORD CFlyServerConfig::g_max_size_for_virus_detect = 10 * 1024 * 1024; // Максимальный размер (10M)
 
@@ -534,6 +535,9 @@ void CFlyServerConfig::loadConfig()
 					l_int_flag = 0;
 					initUINT16("use_hit_binary_files", l_int_flag, 1);
 					g_is_use_hit_binary_files = l_int_flag != 0;
+					l_int_flag = 0;
+					initUINT16("use_statistics", l_int_flag, 0);
+					g_is_use_statistics = l_int_flag != 0;
 					
 					m_min_file_size = Util::toInt64(l_xml.getChildAttrib("min_file_size")); // В конфиге min_size - переименовать
 					dcassert(m_min_file_size);
@@ -1477,7 +1481,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 }
 #endif
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 70 (36,58,44 - устарели)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 71 (36,58,44 - устарели)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;
@@ -1554,230 +1558,234 @@ bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 {
-	bool l_is_flush_error = login();
-	CFlyLog l_log("[fly-stat]");
-	Json::Value  l_info;
-	if (p_is_sync_run == false && l_is_flush_error == false) // При останове не делаем этого + если была ошибка логина - тоже скипаем
+	bool l_is_flush_error = false;
+	if (CFlyServerConfig::g_is_use_statistics)
 	{
-		// Сбросим 50 записей отложенной статистики если накопилась
-		CFlylinkDBManager::getInstance()->flush_lost_json_statistic(l_is_flush_error);
-	}
-	else
-	{
-		l_info["IsShutdown"] = "1"; // Поставим маркер останова флая
-	}
-	//dcassert(!g_fly_server_id.empty());
-	
-	getDiskAndMemoryStat(l_info);
-	
-	l_info["ID"]  = g_fly_server_id;
-	const string l_VID_Array = Util::getRegistryCommaSubkey(_T("VID"));
-	if (!l_VID_Array.empty())
-	{
-		l_info["VID"] = l_VID_Array;
-	}
+		l_is_flush_error = login();
+		CFlyLog l_log("[fly-stat]");
+		Json::Value  l_info;
+		if (p_is_sync_run == false && l_is_flush_error == false) // При останове не делаем этого + если была ошибка логина - тоже скипаем
+		{
+			// Сбросим 50 записей отложенной статистики если накопилась
+			CFlylinkDBManager::getInstance()->flush_lost_json_statistic(l_is_flush_error);
+		}
+		else
+		{
+			l_info["IsShutdown"] = "1"; // Поставим маркер останова флая
+		}
+		//dcassert(!g_fly_server_id.empty());
+		
+		getDiskAndMemoryStat(l_info);
+		
+		l_info["ID"] = g_fly_server_id;
+		const string l_VID_Array = Util::getRegistryCommaSubkey(_T("VID"));
+		if (!l_VID_Array.empty())
+		{
+			l_info["VID"] = l_VID_Array;
+		}
 #ifndef USE_STRONGDC_SQLITE
 #ifdef FLYLINKDC_USE_CHAT_BOT
-	if (ChatBot::isLoaded())
-	{
-		l_info["is_chat_bot"] = 1;
-	}
-#endif
-	if (SETTING(ENABLE_AUTO_BAN))
-	{
-		l_info["is_autoban"] = 1;
-	}
-#endif // USE_STRONGDC_SQLITE
-	extern bool g_DisableSQLJournal;
-	if (g_DisableSQLJournal || BOOLSETTING(SQLITE_USE_JOURNAL_MEMORY))
-	{
-		l_info["is_journal_memory"] = 1;
-	}
-	if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddSupportHub))
-	{
-		l_info["is_promo_fly_hub"] = 1;
-	}
-	if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddFirstSupportHub))
-	{
-		l_info["is_promo_fly_hub_first"] = 1;
-	}
-	extern bool g_UseWALJournal;
-	if (g_UseWALJournal)
-	{
-		l_info["is_journal_wal"] = 1;
-	}
-	extern bool g_UseSynchronousOff;
-	if (g_UseSynchronousOff)
-	{
-		l_info["is_synchronous_off"] = 1;
-	}
-	if (CompatibilityManager::g_is_teredo)
-	{
-		l_info["is_teredo"] = 1;
-	}
-	if (CompatibilityManager::g_is_ipv6_enabled)
-	{
-		l_info["is_ipv6"] = 1;
-	}
-	//
-	const auto l_ISP_URL = SETTING(ISP_RESOURCE_ROOT_URL);
-	if (!l_ISP_URL.empty())
-	{
-		l_info["ISP_URL"] = l_ISP_URL;
-	}
-	if (!SETTING(FLY_LOCATOR_COUNTRY).empty())
-	{
-		Json::Value& l_locator = l_info["Locator"];
-		l_locator["Country"] = SETTING(FLY_LOCATOR_COUNTRY);
-		l_locator["City"] = SETTING(FLY_LOCATOR_CITY);
-		l_locator["ISP"] = SETTING(FLY_LOCATOR_ISP);
-	}
-	// Агрегационные параметры
-	{
-		Json::Value& l_stat_info = l_info["Stat"];
-		l_stat_info["Files"] = Util::toString(ShareManager::getLastSharedFiles());
-		l_stat_info["Folders"] = Util::toString(CFlylinkDBManager::getInstance()->get_count_folders());
-		l_stat_info["Size"]  = ShareManager::getShareSizeString();
-		// TODO - эти параметры можно посчитать из массива Clients
-		l_stat_info["Users"] = Util::toString(ClientManager::getTotalUsers());
-		l_stat_info["Hubs"]  = Util::toString(Client::getTotalCounts());
+		if (ChatBot::isLoaded())
 		{
-			const auto l_stat = ClientManager::getClientStat();
-			if (!l_stat.empty())
+			l_info["is_chat_bot"] = 1;
+		}
+#endif
+		if (SETTING(ENABLE_AUTO_BAN))
+		{
+			l_info["is_autoban"] = 1;
+		}
+#endif // USE_STRONGDC_SQLITE
+		extern bool g_DisableSQLJournal;
+		if (g_DisableSQLJournal || BOOLSETTING(SQLITE_USE_JOURNAL_MEMORY))
+		{
+			l_info["is_journal_memory"] = 1;
+		}
+		if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddSupportHub))
+		{
+			l_info["is_promo_fly_hub"] = 1;
+		}
+		if (CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddFirstSupportHub))
+		{
+			l_info["is_promo_fly_hub_first"] = 1;
+		}
+		extern bool g_UseWALJournal;
+		if (g_UseWALJournal)
+		{
+			l_info["is_journal_wal"] = 1;
+		}
+		extern bool g_UseSynchronousOff;
+		if (g_UseSynchronousOff)
+		{
+			l_info["is_synchronous_off"] = 1;
+		}
+		if (CompatibilityManager::g_is_teredo)
+		{
+			l_info["is_teredo"] = 1;
+		}
+		if (CompatibilityManager::g_is_ipv6_enabled)
+		{
+			l_info["is_ipv6"] = 1;
+		}
+		//
+		const auto l_ISP_URL = SETTING(ISP_RESOURCE_ROOT_URL);
+		if (!l_ISP_URL.empty())
+		{
+			l_info["ISP_URL"] = l_ISP_URL;
+		}
+		if (!SETTING(FLY_LOCATOR_COUNTRY).empty())
+		{
+			Json::Value& l_locator = l_info["Locator"];
+			l_locator["Country"] = SETTING(FLY_LOCATOR_COUNTRY);
+			l_locator["City"] = SETTING(FLY_LOCATOR_CITY);
+			l_locator["ISP"] = SETTING(FLY_LOCATOR_ISP);
+		}
+		// Агрегационные параметры
+		{
+			Json::Value& l_stat_info = l_info["Stat"];
+			l_stat_info["Files"] = Util::toString(ShareManager::getLastSharedFiles());
+			l_stat_info["Folders"] = Util::toString(CFlylinkDBManager::getInstance()->get_count_folders());
+			l_stat_info["Size"] = ShareManager::getShareSizeString();
+			// TODO - эти параметры можно посчитать из массива Clients
+			l_stat_info["Users"] = Util::toString(ClientManager::getTotalUsers());
+			l_stat_info["Hubs"] = Util::toString(Client::getTotalCounts());
 			{
-				int j = 0;
-				for (auto i = l_stat.cbegin(); i != l_stat.cend(); ++i)
+				const auto l_stat = ClientManager::getClientStat();
+				if (!l_stat.empty())
 				{
-					auto& l_item = l_stat_info["Clients"][j++];
-					l_item["url"]   = i->first;
-					if (!i->second.empty())
+					int j = 0;
+					for (auto i = l_stat.cbegin(); i != l_stat.cend(); ++i)
 					{
-						l_item["Count"] = i->second.m_count_user;
-						l_item["Share"] = i->second.m_share_size;
-						l_item["Active"] = int(i->second.m_is_active);
-						if (i->second.m_message_count)
+						auto& l_item = l_stat_info["Clients"][j++];
+						l_item["url"] = i->first;
+						if (!i->second.empty())
 						{
-							l_item["Messages"] = i->second.m_message_count;
+							l_item["Count"] = i->second.m_count_user;
+							l_item["Share"] = i->second.m_share_size;
+							l_item["Active"] = int(i->second.m_is_active);
+							if (i->second.m_message_count)
+							{
+								l_item["Messages"] = i->second.m_message_count;
+							}
 						}
 					}
 				}
 			}
+			// TODO l_stat_info["MaxUsers"] =
+			l_stat_info["DBQueueSources"] = CFlylinkDBManager::getCountQueueSources();
+			l_stat_info["DBQueueFiles"] = CFlylinkDBManager::getCountQueueFiles();
+			l_stat_info["FavUsers"] = FavoriteManager::getCountFavsUsers();
+			l_stat_info["Threads"] = Thread::getThreadsCount();
 		}
-		// TODO l_stat_info["MaxUsers"] =
-		l_stat_info["DBQueueSources"] = CFlylinkDBManager::getCountQueueSources();
-		l_stat_info["DBQueueFiles"] = CFlylinkDBManager::getCountQueueFiles();
-		l_stat_info["FavUsers"]       = FavoriteManager::getCountFavsUsers();
-		l_stat_info["Threads"]        = Thread::getThreadsCount();
-	}
-	// Статистика по временым меткам
-	{
-		static string g_first_time = Util::formatDigitalClock(time(nullptr));
-		Json::Value& l_time_info   = l_info["Time"];
-		l_time_info["Start"]       = g_first_time;
-		l_time_info["Current"]     = Util::formatDigitalClock(time(nullptr));
-		static bool g_is_first = false;
+		// Статистика по временым меткам
+		{
+			static string g_first_time = Util::formatDigitalClock(time(nullptr));
+			Json::Value& l_time_info = l_info["Time"];
+			l_time_info["Start"] = g_first_time;
+			l_time_info["Current"] = Util::formatDigitalClock(time(nullptr));
+			static bool g_is_first = false;
 #ifndef _DEBUG
-		if (!g_is_first)
+			if (!g_is_first)
 #endif
-		{
-			g_is_first = true;
-			Json::Value l_error_info;
 			{
-				// Сохраним ошибки
-				auto appendError = [&l_error_info](const wchar_t * p_reg_value, const char * p_json_key)
+				g_is_first = true;
+				Json::Value l_error_info;
 				{
-					const string l_reg_value = Util::getRegistryValueString(p_reg_value);
-					if (!l_reg_value.empty())
+					// Сохраним ошибки
+					auto appendError = [&l_error_info](const wchar_t * p_reg_value, const char * p_json_key)
 					{
-						Util::deleteRegistryValue(p_reg_value); // TODO - удалять сразу после чтения пока открыт ключик
-						l_error_info[p_json_key] = l_reg_value;
-					}
-				};
-				appendError(FLYLINKDC_REGISTRY_MEDIAINFO_CRASH_KEY, "MediaCrash");
-				appendError(FLYLINKDC_REGISTRY_MEDIAINFO_FREEZE_KEY, "MediaFreeze");
-				appendError(FLYLINKDC_REGISTRY_SQLITE_ERROR, "SQLite");
-				appendError(FLYLINKDC_REGISTRY_LEVELDB_ERROR, "LevelDB");
-			}
-			if (!l_error_info.isNull())
-			{
-				l_info["Error"] = l_error_info;
-			}
-			// Статистику
-			l_time_info["StartGUI"]   = Util::toString(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_GUI]);
-			l_time_info["StartCore"]  = Util::toString(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_CORE]);
-			// Заберем предыдущие маркеры завершения
-			try
-			{
-				const string l_marker_file_name = Util::getConfigPath() + FLY_SHUTDOWN_FILE_MARKER_NAME;
-				{
-					File l_file(l_marker_file_name, File::READ, File::OPEN);
-					const StringTokenizer<string> l_markers(l_file.read(), ',');
-					dcassert(l_markers.getTokens().size() == 2);
-					const auto& l_token = l_markers.getTokens();
-					if (l_token.size() == 2)
-					{
-						l_time_info["PrevShutdownCore"] = l_token[0];
-						l_time_info["PrevShutdownGUI"]  = l_token[1];
-					}
+						const string l_reg_value = Util::getRegistryValueString(p_reg_value);
+						if (!l_reg_value.empty())
+						{
+							Util::deleteRegistryValue(p_reg_value); // TODO - удалять сразу после чтения пока открыт ключик
+							l_error_info[p_json_key] = l_reg_value;
+						}
+					};
+					appendError(FLYLINKDC_REGISTRY_MEDIAINFO_CRASH_KEY, "MediaCrash");
+					appendError(FLYLINKDC_REGISTRY_MEDIAINFO_FREEZE_KEY, "MediaFreeze");
+					appendError(FLYLINKDC_REGISTRY_SQLITE_ERROR, "SQLite");
+					appendError(FLYLINKDC_REGISTRY_LEVELDB_ERROR, "LevelDB");
 				}
-				File::deleteFile(l_marker_file_name);
-			}
-			catch (const FileException&)
-			{
+				if (!l_error_info.isNull())
+				{
+					l_info["Error"] = l_error_info;
+				}
+				// Статистику
+				l_time_info["StartGUI"] = Util::toString(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_GUI]);
+				l_time_info["StartCore"] = Util::toString(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_CORE]);
+				// Заберем предыдущие маркеры завершения
+				try
+				{
+					const string l_marker_file_name = Util::getConfigPath() + FLY_SHUTDOWN_FILE_MARKER_NAME;
+					{
+						File l_file(l_marker_file_name, File::READ, File::OPEN);
+						const StringTokenizer<string> l_markers(l_file.read(), ',');
+						dcassert(l_markers.getTokens().size() == 2);
+						const auto& l_token = l_markers.getTokens();
+						if (l_token.size() == 2)
+						{
+							l_time_info["PrevShutdownCore"] = l_token[0];
+							l_time_info["PrevShutdownGUI"] = l_token[1];
+						}
+					}
+					File::deleteFile(l_marker_file_name);
+				}
+				catch (const FileException&)
+				{
+				}
 			}
 		}
-	}
 #ifdef IRAINMAN_INCLUDE_GDI_OLE
-	if (CGDIImage::g_AnimationDeathDetectCount || CGDIImage::g_AnimationCount || CGDIImage::g_AnimationCountMax)
-	{
-		Json::Value& l_debug_info = l_info["Debug"];
-		if (CGDIImage::g_AnimationDeathDetectCount)
+		if (CGDIImage::g_AnimationDeathDetectCount || CGDIImage::g_AnimationCount || CGDIImage::g_AnimationCountMax)
 		{
-			l_debug_info["AnimationDeathDetectCount"] = Util::toString(CGDIImage::g_AnimationDeathDetectCount);
+			Json::Value& l_debug_info = l_info["Debug"];
+			if (CGDIImage::g_AnimationDeathDetectCount)
+			{
+				l_debug_info["AnimationDeathDetectCount"] = Util::toString(CGDIImage::g_AnimationDeathDetectCount);
+			}
+			if (CGDIImage::g_AnimationCount || CGDIImage::g_AnimationCountMax)
+			{
+				l_debug_info["AnimationCount"] = Util::toString(CGDIImage::g_AnimationCount);
+				l_debug_info["AnimationCountMax"] = Util::toString(CGDIImage::g_AnimationCountMax);
+			}
 		}
-		if (CGDIImage::g_AnimationCount || CGDIImage::g_AnimationCountMax)
-		{
-			l_debug_info["AnimationCount"] = Util::toString(CGDIImage::g_AnimationCount);
-			l_debug_info["AnimationCountMax"] = Util::toString(CGDIImage::g_AnimationCountMax);
-		}
-	}
 #endif // IRAINMAN_INCLUDE_GDI_OLE
-	// Сетевые настройки
-	{
-		Json::Value& l_net_info = l_info["Net"];
-		if (BOOLSETTING(AUTO_DETECT_CONNECTION))
+		// Сетевые настройки
 		{
-			l_net_info["AutoDetect"] = "1";
+			Json::Value& l_net_info = l_info["Net"];
+			if (BOOLSETTING(AUTO_DETECT_CONNECTION))
+			{
+				l_net_info["AutoDetect"] = "1";
+			}
+			l_net_info["TypeConnect"] = SETTING(INCOMING_CONNECTIONS);
+			if (!g_fly_server_stat.m_upnp_status.empty())
+			{
+				l_net_info["UPNPStatus"] = g_fly_server_stat.m_upnp_status;
+			}
+			if (!g_fly_server_stat.m_upnp_router_name.empty())
+			{
+				l_net_info["Router"] = g_fly_server_stat.m_upnp_router_name;
+			}
 		}
-		l_net_info["TypeConnect"] = SETTING(INCOMING_CONNECTIONS);
-		if (!g_fly_server_stat.m_upnp_status.empty())
+		const std::string l_post_query = l_info.toStyledString();
+		bool l_is_send = false;
+		bool l_is_error = false;
+		if (l_is_flush_error == false) // Если не удалось сбросить первый раз - нет инета.
 		{
-			l_net_info["UPNPStatus"]  = g_fly_server_stat.m_upnp_status;
+			if (BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND) && p_is_sync_run == false)
+			{
+				postQuery(true, true, false, false, "fly-stat", l_post_query, l_is_send, l_is_error, 500);
+			}
 		}
-		if (!g_fly_server_stat.m_upnp_router_name.empty())
+		else
 		{
-			l_net_info["Router"]      = g_fly_server_stat.m_upnp_router_name;
+			l_log.step("Skip stat-POST (internet error...)");
 		}
-	}
-	const std::string l_post_query = l_info.toStyledString();
-	bool l_is_send = false;
-	bool l_is_error = false;
-	if (l_is_flush_error == false) // Если не удалось сбросить первый раз - нет инета.
-	{
-		if (BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND) && p_is_sync_run == false)
+		if (!l_is_send || p_is_sync_run)
+			// Если не удалось отправить или отключено/отложено.
+			// собираем стату локально (чтобы в будущем построить аналитику на клиенте)
 		{
-			postQuery(true, true, false, false, "fly-stat", l_post_query, l_is_send, l_is_error, 500);
+			CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query, "fly-stat", true);
 		}
-	}
-	else
-	{
-		l_log.step("Skip stat-POST (internet error...)");
-	}
-	if (!l_is_send || p_is_sync_run)
-		// Если не удалось отправить или отключено/отложено.
-		// собираем стату локально (чтобы в будущем построить аналитику на клиенте)
-	{
-		CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query, "fly-stat", true);
 	}
 	return l_is_flush_error;
 }

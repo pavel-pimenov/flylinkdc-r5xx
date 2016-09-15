@@ -74,7 +74,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		for (auto i = g_download_map.cbegin(); i != g_download_map.cend(); ++i)
 		{
 			auto d = i->second;
-			if (d->getPos() > 0)
+			if (d->getPos() > 0) // https://drdump.com/DumpGroup.aspx?DumpGroupID=614035&Login=guest (Wine)
 			{
 				TransferData l_td;
 				l_td.m_hinted_user = d->getHintedUser();

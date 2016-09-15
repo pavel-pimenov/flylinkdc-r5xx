@@ -46,18 +46,20 @@ class ConnectionManagerListener
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		typedef X<7> OpenTCPPortDetected; // [+] brain-ripper
 #endif
+		typedef X<8> RemoveToken;
 		
-		virtual void on(Added, const HintedUser& p_hinted_user, bool p_is_download) noexcept { }
+		virtual void on(Added, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept { }
 #ifdef FLYLINKDC_USE_CONNECTED_EVENT
 		virtual void on(Connected, const ConnectionQueueItemPtr&) noexcept { }
 #endif
-		virtual void on(Removed, const HintedUser& p_hinted_user, bool p_is_download) noexcept { }
-		virtual void on(FailedDownload, const HintedUser& p_hinted_user, const string&) noexcept { }
-		virtual void on(ConnectionStatusChanged, const HintedUser& p_hinted_user, bool p_is_download) noexcept { }
+		virtual void on(RemoveToken, const string& p_token) noexcept { }
+		virtual void on(Removed, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept { }
+		virtual void on(FailedDownload, const HintedUser& p_hinted_user, const string& p_reason, const string& p_token) noexcept { }
+		virtual void on(ConnectionStatusChanged, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept { }
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		virtual void on(OpenTCPPortDetected, const string&) noexcept {}
 #endif
-		virtual void on(UserUpdated, const HintedUser& p_hinted_user, bool p_is_download) noexcept { }
+		virtual void on(UserUpdated, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept { }
 #ifdef FLYLINKDC_USE_FORCE_CONNECTION
 		virtual void on(Forced, const ConnectionQueueItemPtr&) noexcept { }
 #endif

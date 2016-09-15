@@ -35,14 +35,19 @@ std::unique_ptr<CriticalSection> QueueItem::g_cs = std::unique_ptr<CriticalSecti
 
 const string g_dc_temp_extension = "dctmp";
 
-QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, Flags::MaskType aFlag,
+QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, bool aAutoPriority, Flags::MaskType aFlag,
                      time_t aAdded, const TTHValue& p_tth, uint8_t p_maxSegments, int64_t p_FlyQueueID, const string& aTempTarget) :
-	target(aTarget),
+	m_Target(aTarget),
 	m_tempTarget(aTempTarget),
-	maxSegments(std::max(uint8_t(1), p_maxSegments)), timeFileBegin(0),
-	size(aSize), m_priority(aPriority), added(aAdded),
-	autoPriority(false), nextPublishingTime(0), flyQueueID(p_FlyQueueID),
-	m_dirty(true),
+	m_maxSegments(std::max(uint8_t(1), p_maxSegments)),
+	timeFileBegin(0),
+	m_Size(aSize),
+	m_priority(aPriority),
+	added(aAdded),
+	m_AutoPriority(aAutoPriority),
+	nextPublishingTime(0),
+	flyQueueID(p_FlyQueueID),
+	m_dirty_base(false),
 	m_dirty_source(false),
 	m_dirty_segment(false),
 //	m_is_failed(false),
@@ -55,6 +60,10 @@ QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, F
 	, m_delegater(nullptr)
 #endif
 {
+	if (p_FlyQueueID == 0)
+	{
+		m_dirty_base = true;
+	}
 #ifdef _DEBUG
 	//LogManager::message("QueueItem::QueueItem aTarget = " + aTarget + " this = " + Util::toString(__int64(this)));
 #endif
@@ -119,10 +128,10 @@ int16_t QueueItem::calcTransferFlag(bool& partial, bool& trusted, bool& untruste
 //==========================================================================================
 QueueItem::Priority QueueItem::calculateAutoPriority() const
 {
-	if (autoPriority)
+	if (getAutoPriority())
 	{
 		QueueItem::Priority p;
-		const int percent = static_cast<int>(getDownloadedBytes() * 10 / size);
+		const int percent = static_cast<int>(getDownloadedBytes() * 10 / getSize());
 		switch (percent)
 		{
 			case 0:
@@ -367,27 +376,7 @@ string QueueItem::getListName() const
 		return getTarget() + ".xml";
 	}
 }
-void QueueItem::setPriority(Priority p_priority)
-{
-	if (m_priority != p_priority)
-	{
-		setDirtySegment(true);
-		m_priority = p_priority;
-	}
-}
-void QueueItem::setTempTarget(const string& p_TempTarget)
-{
-	if (m_tempTarget != p_TempTarget)
-	{
-		setDirty(true);
-		m_tempTarget = p_TempTarget;
-	}
-}
 
-const string& QueueItem::getTempTargetConst() const
-{
-	return m_tempTarget;
-}
 const string& QueueItem::getTempTarget()
 {
 	if (!isSet(QueueItem::FLAG_USER_LIST) && m_tempTarget.empty())
@@ -396,8 +385,8 @@ const string& QueueItem::getTempTarget()
 		if (!SETTING(TEMP_DOWNLOAD_DIRECTORY).empty() && File::getSize(getTarget()) == -1)
 		{
 			::StringMap sm;
-			if (target.length() >= 3 && target[1] == ':' && target[2] == '\\')
-				sm["targetdrive"] = target.substr(0, 3);
+			if (m_Target.length() >= 3 && m_Target[1] == ':' && m_Target[2] == '\\')
+				sm["targetdrive"] = m_Target.substr(0, 3);
 			else
 				sm["targetdrive"] = Util::getLocalPath().substr(0, 3);
 				
@@ -439,7 +428,7 @@ const string& QueueItem::getTempTarget()
 		}
 		if (SETTING(TEMP_DOWNLOAD_DIRECTORY).empty())
 		{
-			setTempTarget(target.substr(0, target.length() - getTargetFileName().length()) + l_dc_temp_name);
+			setTempTarget(m_Target.substr(0, m_Target.length() - getTargetFileName().length()) + l_dc_temp_name);
 		}
 	}
 	return m_tempTarget;
@@ -522,7 +511,7 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 	}
 	{
 		CFlyFastLock(m_fcs_download);
-		if (m_downloads.size() >= maxSegments ||
+		if (m_downloads.size() >= getMaxSegments() ||
 		        (BOOLSETTING(DONT_BEGIN_SEGMENT) && static_cast<size_t>(SETTING(DONT_BEGIN_SEGMENT_SPEED) * 1024) < getAverageSpeed()))
 		{
 			// no other segments if we have reached the speed or segment limit

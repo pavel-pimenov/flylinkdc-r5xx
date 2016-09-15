@@ -73,6 +73,7 @@ void NmdcHub::disconnect(bool p_graceless)
 	Client::disconnect(p_graceless);
 	clearUsers();
 	m_delay_search.clear();
+	m_cache_hub_url_flood.clear();
 }
 
 void NmdcHub::connect(const OnlineUser& p_user, const string& p_token, bool p_is_force_passive)
@@ -183,50 +184,54 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 #endif
 OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_load)
 {
-
 	OnlineUserPtr ou;
-	//if (!p_first_load) пока возникают дубли - почему не пон€тно
-	// http://www.flickr.com/photos/96019675@N02/11474777653/
-	{
-		ou = findUser(aNick); // !SMT!-S
-		if (ou)
-		{
-			return ou; // !SMT!-S
-		}
-	}
-	
-	// [+] IRainman fix.
-	if (p_hub)
-	{
-		{
-			CFlyWriteLock(*m_cs);
-			ou = m_users.insert(make_pair(aNick, getHubOnlineUser())).first->second;
-		}
-		ou->getIdentity().setNick(aNick);
-	}
-	else if (aNick == getMyNick())
 	{
 		CFlyWriteLock(*m_cs);
-		ou = m_users.insert(make_pair(aNick, getMyOnlineUser())).first->second;
-	}
-	// [~] IRainman fix.
-	else
-	{
-		UserPtr p = ClientManager::getUser(aNick, getHubUrl()
-#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-		                                   , getHubID()
-#endif
-		                                   , p_first_load
-		                                  );
-		OnlineUserPtr newUser = std::make_shared<OnlineUser>(p, *this, 0);
+		if (p_hub)
 		{
-			CFlyWriteLock(*m_cs);
-			ou = m_users.insert(make_pair(aNick, newUser)).first->second;
+			dcassert(m_users.count(aNick) == 0);
+			ou = m_users.insert(make_pair(aNick, getHubOnlineUser())).first->second;
+			dcassert(ou->getIdentity().getNick() == aNick);
+			ou->getIdentity().setNick(aNick);
 		}
-		ou->getIdentity().setNick(aNick);
+		else if (aNick == getMyNick())
+		{
+//			dcassert(m_users.count(aNick) == 0);
+			auto l_item = m_users.insert(make_pair(aNick, getMyOnlineUser()));
+			if (l_item.second == false)
+			{
+				dcassert(l_item.first->second->getIdentity().getNick() == aNick);
+				return l_item.first->second;
+			}
+			else
+			{
+				ou = l_item.first->second;
+				dcassert(ou->getIdentity().getNick() == aNick);
+			}
+		}
+		else
+		{
+			auto l_item = m_users.insert(make_pair(aNick, OnlineUserPtr()));
+			if (l_item.second == true)
+			{
+				UserPtr p = ClientManager::getUser(aNick, getHubUrl()
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
+				                                   , getHubID()
+#endif
+				                                   , p_first_load
+				                                  );
+				ou = std::make_shared<OnlineUser>(p, *this, 0);
+				ou->getIdentity().setNick(aNick);
+				l_item.first->second = ou;
+			}
+			else
+			{
+				dcassert(l_item.first->second->getIdentity().getNick() == aNick);
+				return l_item.first->second;
+			}
+		}
 	}
-	
-	if (!ou->getUser()->getCID().isZero()) // [+] IRainman fix.
+	if (!ou->getUser()->getCID().isZero())
 	{
 		ClientManager::getInstance()->putOnline(ou, is_all_my_info_loaded());
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
@@ -606,7 +611,13 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 			const auto k = param.find("?9?TTH:", m); // ≈сли идет запрос по TTH - пропускаем без проверки
 			if (k == string::npos)
 			{
-				if (ConnectionManager::getInstance()->checkIpFlood(l_search_param.m_seeker.substr(0, m), Util::toInt(l_search_param.m_seeker.substr(m + 1)), getIp(), param, getHubUrlAndIP()))
+				if (m_cache_hub_url_flood.empty())
+				{
+					m_cache_hub_url_flood = getHubUrlAndIP();
+					
+				}
+				if (ConnectionManager::getInstance()->checkIpFlood(l_search_param.m_seeker.substr(0, m),
+				                                                   Util::toInt(l_search_param.m_seeker.substr(m + 1)), getIp(), param, m_cache_hub_url_flood))
 				{
 					return; // http://dchublist.ru/forum/viewtopic.php?f=6&t=1028&start=150
 				}
@@ -2487,46 +2498,53 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 string NmdcHub::validateMessage(string tmp, bool reverse)
 {
 	string::size_type i = 0;
-	
+	const auto j = tmp.find('&');
 	if (reverse)
 	{
-		while ((i = tmp.find("&#36;", i)) != string::npos)
+		if (j != string::npos)
 		{
-			tmp.replace(i, 5, "$");
-			i++;
-		}
-		i = 0;
-		while ((i = tmp.find("&#124;", i)) != string::npos)
-		{
-			tmp.replace(i, 6, "|");
-			i++;
-		}
-		i = 0;
-		while ((i = tmp.find("&amp;", i)) != string::npos)
-		{
-			tmp.replace(i, 5, "&");
-			i++;
+			i = j;
+			while ((i = tmp.find("&#36;", i)) != string::npos)
+			{
+				tmp.replace(i, 5, "$");
+				i++;
+			}
+			i = j;
+			while ((i = tmp.find("&#124;", i)) != string::npos)
+			{
+				tmp.replace(i, 6, "|");
+				i++;
+			}
+			i = j;
+			while ((i = tmp.find("&amp;", i)) != string::npos)
+			{
+				tmp.replace(i, 5, "&");
+				i++;
+			}
 		}
 	}
 	else
 	{
-		i = 0;
-		while ((i = tmp.find("&amp;", i)) != string::npos)
+		if (j != string::npos)
 		{
-			tmp.replace(i, 1, "&amp;");
-			i += 4;
-		}
-		i = 0;
-		while ((i = tmp.find("&#36;", i)) != string::npos)
-		{
-			tmp.replace(i, 1, "&amp;");
-			i += 4;
-		}
-		i = 0;
-		while ((i = tmp.find("&#124;", i)) != string::npos)
-		{
-			tmp.replace(i, 1, "&amp;");
-			i += 4;
+			i = j;
+			while ((i = tmp.find("&amp;", i)) != string::npos)
+			{
+				tmp.replace(i, 1, "&amp;");
+				i += 4;
+			}
+			i = j;
+			while ((i = tmp.find("&#36;", i)) != string::npos)
+			{
+				tmp.replace(i, 1, "&amp;");
+				i += 4;
+			}
+			i = j;
+			while ((i = tmp.find("&#124;", i)) != string::npos)
+			{
+				tmp.replace(i, 1, "&amp;");
+				i += 4;
+			}
 		}
 		i = 0;
 		while ((i = tmp.find('$', i)) != string::npos)
@@ -2868,9 +2886,10 @@ void NmdcHub::myInfoParse(const string& param)
 	auto l_share_size = Util::toInt64(param.c_str() + i); // »ногда шара бывает == -1 http://www.flickr.com/photos/96019675@N02/9732534452/
 	if (l_share_size < 0)
 	{
-		dcassert(l_share_size >= 0);
 		l_share_size = 0;
+#ifdef FLYLINKDC_BETA
 		LogManager::message("ShareSize < 0 !, param = " + param + " hub = " + getHubUrl());
+#endif
 	}
 	if (changeBytesSharedL(ou->getIdentity(), l_share_size) && l_share_size)
 	{
