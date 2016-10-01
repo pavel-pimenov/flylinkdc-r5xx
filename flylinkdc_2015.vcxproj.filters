@@ -1225,6 +1225,7 @@
     <Image Include="res\vip_adrenalin.ico" />
     <Image Include="res\vip_titankaluga.ico" />
     <Image Include="res\xxx.ico" />
+    <Image Include="res\torrent.png" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

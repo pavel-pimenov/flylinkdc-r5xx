@@ -302,6 +302,7 @@
     <ClInclude Include="src\poll.hpp" />
     <ClInclude Include="src\poller.hpp" />
     <ClInclude Include="src\poller_base.hpp" />
+    <ClInclude Include="src\pollset.hpp" />
     <ClInclude Include="src\precompiled.hpp" />
     <ClInclude Include="src\proxy.hpp" />
     <ClInclude Include="src\pub.hpp" />
@@ -408,6 +409,7 @@
     <ClCompile Include="src\plain_server.cpp" />
     <ClCompile Include="src\poll.cpp" />
     <ClCompile Include="src\poller_base.cpp" />
+    <ClCompile Include="src\pollset.cpp" />
     <ClCompile Include="src\precompiled.cpp" />
     <ClCompile Include="src\proxy.cpp" />
     <ClCompile Include="src\pub.cpp" />

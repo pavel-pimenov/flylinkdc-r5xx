@@ -56,7 +56,6 @@
 #include "AboutDlgIndex.h"
 #include "RSSnewsFrame.h" // [+] SSA
 #include "AddMagnet.h" // [+] NightOrion
-#include "ExMessageBox.h" // [+] InfinitySky. From Apex.
 #include "CheckTargetDlg.h" // [+] SSA
 #ifdef IRAINMAN_INCLUDE_SMILE
 # include "../GdiOle/GDIImage.h"
@@ -3083,8 +3082,19 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 
 LRESULT MainFrame::onOpenFileList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	tstring file;
-	
+	tstring l_file;
+#ifdef FLYLINKDC_USE_TORRENT
+	if (wID == IDC_OPEN_TORRENT_FILE)
+	{
+		static tstring g_last_torrent_file;
+		if (WinUtil::browseFile(l_file, m_hWnd, false, g_last_torrent_file, L"All torrent file\0*.torrent\0\0"))
+		{
+			g_last_torrent_file = Util::getFilePath(l_file);
+			DownloadManager::getInstance()->add_torrent_file(l_file, _T(""));
+		}
+		return 0;
+	}
+#endif
 	if (wID == IDC_OPEN_MY_LIST)
 	{
 		const string& l_own_list_file = ShareManager::getInstance()->getOwnListFile();
@@ -3095,9 +3105,9 @@ LRESULT MainFrame::onOpenFileList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 		return 0;
 	}
 	
-	if (WinUtil::browseFile(file, m_hWnd, false, Text::toT(Util::getListPath()), FILE_LIST_TYPE_T))//FILE_LIST_TYPE.c_str()))
+	if (WinUtil::browseFile(l_file, m_hWnd, false, Text::toT(Util::getListPath()), g_file_list_type))//FILE_LIST_TYPE.c_str()))
 	{
-		WinUtil::OpenFileList(file); // [!] SSA dclst support.
+		WinUtil::OpenFileList(l_file); // [!] SSA dclst support.
 		// UserPtr u = DirectoryListing::getUserFromFilename(Text::fromT(file));
 		//if (u)
 		//{

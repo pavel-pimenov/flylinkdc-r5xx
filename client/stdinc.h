@@ -22,6 +22,31 @@
 #ifndef DCPLUSPLUS_DCPP_STDINC_H
 #define DCPLUSPLUS_DCPP_STDINC_H
 
+#ifndef TORRENT_USE_BOOST_DATE_TIME
+#define TORRENT_USE_BOOST_DATE_TIME
+#endif
+#ifndef TORRENT_BUILDING_SHARED
+#define TORRENT_BUILDING_SHARED
+#endif
+#ifndef TORRENT_LINKING_SHARED
+#define TORRENT_LINKING_SHARED
+#endif
+#ifndef BOOST_ASIO_HEADER_ONLY
+#define BOOST_ASIO_HEADER_ONLY
+#endif
+#ifndef BOOST_ASIO_ENABLE_CANCELIO
+#define BOOST_ASIO_ENABLE_CANCELIO
+#endif
+#ifndef BOOST_ASIO_SEPARATE_COMPILATION
+#define BOOST_ASIO_SEPARATE_COMPILATION
+#endif
+#ifndef TORRENT_DISABLE_GEO_IP
+#define TORRENT_DISABLE_GEO_IP
+#endif
+#ifndef TORRENT_DISABLE_ENCRYPTION
+#define TORRENT_DISABLE_ENCRYPTION
+#endif
+
 // - Используем VLD http://vld.codeplex.com/
 // #define _CRTDBG_MAP_ALLOC
 // #include <crtdbg.h>
@@ -128,7 +153,7 @@ inline int strnicmp(const wchar_t* a, const wchar_t* b, size_t n)
 	return _wcsnicmp(a, b, n); // [+] IRainman opt
 }
 
-#endif // !defined(STDINC_H)
+#endif // !defined(DCPLUSPLUS_DCPP_STDINC_H)
 
 /**
  * @file

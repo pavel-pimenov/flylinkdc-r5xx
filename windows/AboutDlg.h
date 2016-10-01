@@ -30,18 +30,7 @@
 #include "HIconWrapper.h"
 #include "wtl_flylinkdc.h"
 #include "leveldb/db.h"
-//#include "MediaInfo/MediaInfo_Config.h"
-
-/*
-static const TCHAR g_donation[] =
-    _T("ίνδεκρ.Δενόγθ:\r\n")
-    _T(" 4100197690217\r\n")
-    _T("WebMoney:\r\n")
-    _T(" R324721262364\r\n")
-    _T(" Z187845045394\r\n")
-    _T(" U154459391462\r\n")
-    ;
-*/
+#include "libtorrent/version.hpp"
 
 class AboutDlg : public CDialogImpl<AboutDlg>
 #ifdef _DEBUG
@@ -68,9 +57,9 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			
 			static const TCHAR l_thanks[] =
 			    _T("Programming, patches:\r\n")
-			    _T("PPA <pavel.pimenov@gmail.com>\r\nBrain RIPper\r\nSergey Stolper\r\nIRainman\r\nNightOrion\r\nSCALOlaz\r\nreg <entry.reg@gmail.com>\r\nMikhail Korbakov <mike.korbakov@gmail.com>\r\n")
+			    _T("PPA <pavel.pimenov@gmail.com>\r\nBrain RIPper\r\nSergey Stolper\r\nIRainman\r\nNightOrion\r\nSCALOlaz\r\<entry.reg@gmail.com>\r\n<mike.korbakov@gmail.com>\r\n")
 			    
-			    _T("\r\nPortal Browser, crash-dump, x64 platform, GDI+ animation:\r\n")
+			    _T("\r\nPortal Browser,x64 platform, GDI+ animation:\r\n")
 			    _T("Brain RIPper\r\n")
 			    
 			    _T("\r\nFlylinkDC++ HE, DC++ core NG:\r\n")
@@ -114,6 +103,7 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			SetDlgItemText(IDC_LINKS_STATIC, (TSTRING(ABOUT_LINKS) + L':').c_str());
 			SetDlgItemText(IDC_SIDEPRO_STATIC, (TSTRING(ABOUT_SIDE_PROJECTS) + L':').c_str());
 			static const TCHAR l_Party_Software[] =
+			    _T("libtorrent ") _T(LIBTORRENT_VERSION) _T(" git-") _T(LIBTORRENT_REVISION) _T("\r\n")
 			    _T("sqlite ") _T(SQLITE_VERSION) _T("\r\n")
 			    _T("LevelDB ") _T(LEVELDB_VER) _T("\r\n")
 			    _T("boost ") _T(BOOST_LIB_VERSION) _T("\r\n")
@@ -124,7 +114,7 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    _T("ZenLib 0.4.32\r\n")
 			    _T(OPENSSL_VERSION_TEXT) _T("\r\n") //_T("OpenSSL 1.0.1k\r\n") //SSLeay_version(SSLEAY_VERSION)
 			    _T("MediaInfoLib 0.7.88\r\n")//MediaInfoLib::MediaInfo_Version _T("\r\n")
-			    _T("WTL 9.0\r\n")
+			    _T("WTL 9.1\r\n")
 			    _T("XMLParser 2.43\r\n") //XMLParser::XMLNode::getVersion()
 			    _T("InnoSetup 5.5.9");
 			CEdit ctrlPartySoftware(GetDlgItem(IDC_THIRD_PARTY_SOFTWARE));

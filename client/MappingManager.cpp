@@ -34,16 +34,7 @@
 #include "../dht/dht.h"
 #endif
 
-#ifdef _DEBUG
-//#define FLYLINKDC_USE_TORRENTLIB
-#endif
 
-#ifdef FLYLINKDC_USE_TORRENTLIB
-#include "libtorrent/session.hpp"
-#include "libtorrent/alert_types.hpp"
-
-//#pragma comment(lib, "Q:\\vc15\\r5xx\\Debug\\libtorrent.lib")
-#endif
 string MappingManager::g_externalIP;
 string MappingManager::g_defaultGatewayIP;
 string MappingManager::g_mapperName;
@@ -125,12 +116,6 @@ string MappingManager::getStatus() const
 
 int MappingManager::run()
 {
-#ifdef FLYLINKDC_USE_TORRENTLIB
-	using namespace libtorrent;
-	session s;
-	s.set_alert_mask(alert::port_mapping_notification);
-	return 0;
-#else
 	g_mapperName.clear();
 	ScopedFunctor([this] { m_busy.clear(); });
 	
@@ -145,7 +130,7 @@ int MappingManager::run()
 	        && getOpened()) //[+]FlylinkDC++ Team
 	{
 		Mapper& mapper = *m_working;
-	
+		
 		ScopedFunctor([&mapper] { mapper.uninit(); });
 		if (!mapper.init())
 		{
@@ -153,7 +138,7 @@ int MappingManager::run()
 			m_renewal = GET_TICK() + std::max(mapper.renewal(), 10u) * 60 * 1000;
 			return 0;
 		}
-	
+		
 		auto addRule = [this, &mapper](const unsigned short port, Mapper::Protocol protocol, const string & description) -> bool
 		{
 			// just launch renewal requests - don't bother with possible failures.
@@ -177,7 +162,7 @@ int MappingManager::run()
 			SettingsManager::g_upnpUDPDHTLevel = addRule(dht_port, Mapper::PROTOCOL_UDP, dht::NetworkName);
 		}
 #endif
-	
+		
 		auto minutes = mapper.renewal();
 		if (minutes)
 		{
@@ -191,7 +176,7 @@ int MappingManager::run()
 				--m_listeners_count;
 			}
 		}
-	
+		
 		return 0;
 	}
 	
@@ -215,7 +200,7 @@ int MappingManager::run()
 	{
 		unique_ptr<Mapper> pMapper(i->second());
 		Mapper& mapper = *pMapper;
-	
+		
 		ScopedFunctor([&mapper] { mapper.uninit(); });
 		if (!mapper.init())
 		{
@@ -250,7 +235,7 @@ int MappingManager::run()
 			}
 			return l_is_ok;
 		};
-	
+		
 		g_mapperName.clear();
 		SettingsManager::upnpPortLevelInit();
 		const bool l_is_map_tcp = addRule(conn_port, Mapper::PROTOCOL_TCP, "Transfer");
@@ -265,7 +250,7 @@ int MappingManager::run()
 		if (BOOLSETTING(USE_DHT))
 		{
 			l_is_map_dht = addRule(dht_port, Mapper::PROTOCOL_UDP, dht::NetworkName);
-	
+			
 			SettingsManager::g_upnpUDPDHTLevel = l_is_map_dht;
 		}
 #endif
@@ -275,7 +260,7 @@ int MappingManager::run()
 		{
 			SettingsManager::g_upnpTLSLevel = l_is_map_tls;
 		}
-	
+		
 		if (!(l_is_map_tcp
 		        && l_is_map_udp
 		        && (l_is_map_tls || !CryptoManager::TLSOk())
@@ -287,21 +272,21 @@ int MappingManager::run()
 			dcassert(0);
 			continue;
 		}
-	
+		
 		g_mapperName = mapper.getMapperName();
 		log_internal(STRING(UPNP_SUCCESSFULLY_CREATED_MAPPINGS));
-	
+		
 		m_working = move(pMapper); // [IntelC++ 2012 beta2] warning #734: "std::unique_ptr<_Ty, _Dx>::unique_ptr(const std::unique_ptr<_Ty, _Dx>::_Myt &) [with _Ty=Mapper, _Dx=std::default_delete<Mapper>]" (declared at line 2347 of "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\memory"), required for copy that was eliminated, is inaccessible
-	
+		
 		g_externalIP = mapper.getExternalIP();
 		if (g_externalIP.empty())
 		{
 			// no cleanup because the mappings work and hubs will likely provide the correct IP.
 			log_internal(STRING(UPNP_FAILED_TO_GET_EXTERNAL_IP));
 		}
-	
+		
 		ConnectivityManager::getInstance()->mappingFinished(mapper.getMapperName());
-	
+		
 		auto minutes = mapper.renewal();
 		if (minutes)
 		{
@@ -324,7 +309,6 @@ int MappingManager::run()
 	}
 	
 	return 0;
-#endif // FLYLINKDC_USE_TORRENTLIB
 }
 
 void MappingManager::close(Mapper& mapper)

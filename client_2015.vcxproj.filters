@@ -451,6 +451,9 @@
     <ClCompile Include="client\webrtc\base\thread_checker_impl.cc">
       <Filter>Source Files\webrtc</Filter>
     </ClCompile>
+    <ClCompile Include="client\TransferData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\AdcCommand.h">
@@ -1063,6 +1066,9 @@
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
     <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_wrapper.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\system_wrappers\include\set_thread_name_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
     <ClInclude Include="client\webrtc\system_wrappers\include\sleep.h">

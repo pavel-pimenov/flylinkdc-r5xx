@@ -56,7 +56,7 @@ public:
     void close();
     bool error() const { return error_; }
     mapmode flags() const { return params_.flags; }
-    std::size_t size() const { return size_; }
+    std::size_t size() const { return static_cast<std::size_t>(size_); }
     char* data() const { return data_; }
     void resize(stream_offset new_size);
     static int alignment();
@@ -321,7 +321,7 @@ void mapped_file_impl::try_map_file(param_type p)
             access,
             (DWORD) (p.offset >> 32),
             (DWORD) (p.offset & 0xffffffff),
-            size_ != max_length ? size_ : 0, 
+            (SIZE_T) (size_ != max_length ? size_ : 0), 
             (LPVOID) p.hint );
     if (!data)
         cleanup_and_throw("failed mapping view");

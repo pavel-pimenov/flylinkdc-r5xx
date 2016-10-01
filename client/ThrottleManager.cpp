@@ -108,18 +108,17 @@ int ThrottleManager::write(Socket* p_sock, const void* p_buffer, size_t& p_len)
 	else // general
 	{
 		//[~]IRainman SpeedLimiter
-		const size_t ups = UploadManager::getUploadCount();
-		if (upLimit == 0 || ups == 0)
+		if (upLimit == 0 || UploadManager::getUploadCount() == 0)
 		{
 			const int sent = p_sock->write(p_buffer, p_len);
 			return sent;
 		}
 		
 		boost::unique_lock<boost::mutex> lock(upMutex);
-		
 		if (upTokens > 0)
 		{
-			const size_t slice = getUploadLimitInBytes() / ups;//[!]IRainman SpeedLimiter
+			const size_t ups = UploadManager::getUploadCount();
+			const size_t slice = getUploadLimitInBytes() / (ups ? ups : 1);
 			p_len = min(slice, min(p_len, upTokens));
 			
 			// Pour buckets of the calculated number of bytes,

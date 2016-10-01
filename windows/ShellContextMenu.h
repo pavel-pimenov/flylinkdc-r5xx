@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include "typedefs.h"
 
 class CShellContextMenu
 {
@@ -39,7 +40,7 @@ class CShellContextMenu
 		
 		void SetPath(const tstring& strPath);
 		CMenu* GetMenu();
-		UINT ShowContextMenu(HWND hWnd, CPoint pt);
+		UINT ShowContextMenu(HWND hWnd, const CPoint& pt);
 		
 	private:
 		bool bDelete;

@@ -34,10 +34,8 @@
 #include "WinUtil.h"
 #include "TransferView.h"
 #include "MainFrm.h"
-#ifdef SCALOLAZ_USE_TRANSFER_CONTROL
 #include "QueueFrame.h"
 #include "WaitingUsersFrame.h"
-#endif
 #include "BarShader.h"
 #include "ResourceLoader.h" // [+] InfinitySky. PNG Support from Apex 1.3.8.
 
@@ -120,6 +118,7 @@ TransferView::TransferView() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd)
 TransferView::~TransferView()
 {
 	m_arrows.Destroy();
+	m_torrentImages.Destroy();
 	m_speedImagesBW.Destroy();
 	m_speedImages.Destroy();
 	OperaColors::ClearCache();
@@ -145,6 +144,8 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	ResourceLoader::LoadImageList(IDR_ARROWS, m_arrows, 16, 16);
 	ResourceLoader::LoadImageList(IDR_TSPEEDS, m_speedImages, 16, 16);
 	ResourceLoader::LoadImageList(IDR_TSPEEDS_BW, m_speedImagesBW, 16, 16);
+	ResourceLoader::LoadImageList(IDR_TORRENT_PNG, m_torrentImages, 16, 16);
+	
 	ctrlTransfers.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                     WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_STATICEDGE, IDC_TRANSFERS);
 	SET_EXTENDENT_LIST_VIEW_STYLE(ctrlTransfers);
@@ -242,18 +243,20 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	*/
 	
 	// !SMT!-UI
-	copyMenu.CreatePopupMenu();
+	m_copyMenu.CreatePopupMenu();
 #ifdef OLD_MENU_HEADER //[~]JhaoDa
-	copyMenu.InsertSeparatorFirst(TSTRING(COPY));
+	m_copyMenu.InsertSeparatorFirst(TSTRING(COPY));
 #endif
 	for (size_t i = 0; i < COLUMN_LAST; ++i)
 	{
-		copyMenu.AppendMenu(MF_STRING, IDC_COPY + i, CTSTRING_I(g_columnNames[i]));
+		m_copyMenu.AppendMenu(MF_STRING, IDC_COPY + i, CTSTRING_I(g_columnNames[i]));
 	}
-	copyMenu.AppendMenu(MF_SEPARATOR);
-	copyMenu.AppendMenu(MF_STRING, IDC_COPY_TTH, CTSTRING(COPY_TTH));
-	copyMenu.AppendMenu(MF_STRING, IDC_COPY_LINK, CTSTRING(COPY_MAGNET_LINK));
-	copyMenu.AppendMenu(MF_STRING, IDC_COPY_WMLINK, CTSTRING(COPY_MLINK_TEMPL));
+	m_copyMenu.AppendMenu(MF_SEPARATOR);
+	m_copyMenu.AppendMenu(MF_STRING, IDC_COPY_TTH, CTSTRING(COPY_TTH));
+	m_copyMenu.AppendMenu(MF_STRING, IDC_COPY_LINK, CTSTRING(COPY_MAGNET_LINK));
+	m_copyMenu.AppendMenu(MF_STRING, IDC_COPY_WMLINK, CTSTRING(COPY_MLINK_TEMPL));
+	
+	//m_copyTorrentMenu.CreatePopupMenu();
 	
 	usercmdsMenu.CreatePopupMenu();
 	
@@ -263,7 +266,7 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 #ifdef FLYLINKDC_USE_DROP_SLOW
 	segmentedMenu.AppendMenu(MF_STRING, IDC_MENU_SLOWDISCONNECT, CTSTRING(SETCZDC_DISCONNECTING_ENABLE));
 #endif
-	segmentedMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyMenu, CTSTRING(COPY_USER_INFO)); // !SMT!-UI
+	segmentedMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)m_copyMenu, CTSTRING(COPY_USER_INFO)); // !SMT!-UI
 #ifdef FLYLINKDC_USE_ASK_SLOT
 	segmentedMenu.AppendMenu(MF_STRING, IDC_ASK_SLOT, CTSTRING(ASK_SLOT)); // !SMT!-UI
 #endif
@@ -434,118 +437,124 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 				return FALSE;
 			}
 			
-			bool main = !ii->parent && ctrlTransfers.findChildren(ii->getGroupCond()).size() > 1;
+			const bool main = !ii->parent && ctrlTransfers.findChildren(ii->getGroupCond()).size() > 1;
 			
 			clearPreviewMenu();
-			clearUserMenu();
-			
-			// [+] brain-ripper
-			// Make menu dynamic, since its content depends of which
-			// user selected (for add/remove favorites item)
 			OMenu transferMenu;
-			
 			transferMenu.CreatePopupMenu();
-			transferMenu.AppendMenu(MF_STRING, IDC_FORCE, CTSTRING(FORCE_ATTEMPT));
-			transferMenu.AppendMenu(MF_STRING, IDC_PRIORITY_PAUSED, CTSTRING(PAUSED)); //[+] Drakon
-			transferMenu.AppendMenu(MF_STRING, IDC_SEARCH_ALTERNATES, CTSTRING(SEARCH_FOR_ALTERNATES));
-			transferMenu.AppendMenu(MF_SEPARATOR);
-			appendPreviewItems(transferMenu);
-			transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)usercmdsMenu, CTSTRING(SETTINGS_USER_COMMANDS));
-			transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyMenu, CTSTRING(COPY)); // !SMT!-UI
-			transferMenu.AppendMenu(MF_SEPARATOR);
-			
-#ifdef SCALOLAZ_USE_TRANSFER_CONTROL
-			if (!ii->download)
+			if (!ii->m_is_torrent)
 			{
-				transferMenu.AppendMenu(MF_STRING, IDC_UPLOAD_QUEUE, CTSTRING(OPEN_UPLOAD_QUEUE));
-				//transferMenu.SetMenuDefaultItem(IDC_UPLOAD_QUEUE);
-			}
-			else
-			{
-				transferMenu.AppendMenu(MF_STRING, IDC_QUEUE, CTSTRING(OPEN_DOWNLOAD_QUEUE));
-				//transferMenu.SetMenuDefaultItem(IDC_QUEUE);
-			}
-			transferMenu.AppendMenu(MF_SEPARATOR);
-#endif  //SCALOLAZ_USE_TRANSFER_CONTROL
-#ifdef FLYLINKDC_USE_DROP_SLOW
-			transferMenu.AppendMenu(MF_STRING, IDC_MENU_SLOWDISCONNECT, CTSTRING(SETCZDC_DISCONNECTING_ENABLE));
-#endif
-			transferMenu.AppendMenu(MF_STRING, IDC_ADD_P2P_GUARD, CTSTRING(CLOSE_CONNECTION_AND_ADD_IP_GUARD));
-			transferMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(CLOSE_CONNECTION));
-			transferMenu.AppendMenu(MF_SEPARATOR);
-			if (!main && (i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1)
-			{
-				const ItemInfo* itemI = ctrlTransfers.getItemData(i);
-				bCustomMenu = true;
+				clearUserMenu();
 				
+				// [+] brain-ripper
+				// Make menu dynamic, since its content depends of which
+				// user selected (for add/remove favorites item)
+				
+				transferMenu.AppendMenu(MF_STRING, IDC_FORCE, CTSTRING(FORCE_ATTEMPT));
+				transferMenu.AppendMenu(MF_STRING, IDC_PRIORITY_PAUSED, CTSTRING(PAUSED)); //[+] Drakon
+				transferMenu.AppendMenu(MF_STRING, IDC_SEARCH_ALTERNATES, CTSTRING(SEARCH_FOR_ALTERNATES));
+				transferMenu.AppendMenu(MF_SEPARATOR);
+				appendPreviewItems(transferMenu);
+				transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)usercmdsMenu, CTSTRING(SETTINGS_USER_COMMANDS));
+				transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)m_copyMenu, CTSTRING(COPY)); // !SMT!-UI
+				transferMenu.AppendMenu(MF_SEPARATOR);
+				
+				if (!ii->download)
+				{
+					transferMenu.AppendMenu(MF_STRING, IDC_UPLOAD_QUEUE, CTSTRING(OPEN_UPLOAD_QUEUE));
+				}
+				else
+				{
+					transferMenu.AppendMenu(MF_STRING, IDC_QUEUE, CTSTRING(OPEN_DOWNLOAD_QUEUE));
+				}
+				transferMenu.AppendMenu(MF_SEPARATOR);
+#ifdef FLYLINKDC_USE_DROP_SLOW
+				transferMenu.AppendMenu(MF_STRING, IDC_MENU_SLOWDISCONNECT, CTSTRING(SETCZDC_DISCONNECTING_ENABLE));
+#endif
+				transferMenu.AppendMenu(MF_STRING, IDC_ADD_P2P_GUARD, CTSTRING(CLOSE_CONNECTION_AND_ADD_IP_GUARD));
+				transferMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(CLOSE_CONNECTION));
+				transferMenu.AppendMenu(MF_SEPARATOR);
+				if (!main && (i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1)
+				{
+					const ItemInfo* itemI = ctrlTransfers.getItemData(i);
+					bCustomMenu = true;
+					
 #ifdef OLD_MENU_HEADER //[~]JhaoDa
-				usercmdsMenu.InsertSeparatorFirst(TSTRING(SETTINGS_USER_COMMANDS));
+					usercmdsMenu.InsertSeparatorFirst(TSTRING(SETTINGS_USER_COMMANDS));
+#endif
+					
+					// !SMT!-S
+					reinitUserMenu(itemI->m_hintedUser.user, itemI->m_hintedUser.hint);
+					
+					if (getSelectedUser())
+					{
+						appendUcMenu(usercmdsMenu, UserCommand::CONTEXT_USER, ClientManager::getHubs(getSelectedUser()->getCID(), getSelectedHint()));
+					}
+					// end !SMT!-S
+				}
+				
+				appendAndActivateUserItems(transferMenu);
+				
+#ifdef FLYLINKDC_USE_DROP_SLOW
+				segmentedMenu.CheckMenuItem(IDC_MENU_SLOWDISCONNECT, MF_BYCOMMAND | MF_UNCHECKED);
+				transferMenu.CheckMenuItem(IDC_MENU_SLOWDISCONNECT, MF_BYCOMMAND | MF_UNCHECKED);
+#endif
+				transferMenu.EnableMenuItem(IDC_SEARCH_ALTERNATES, MFS_ENABLED);
+				if (ii->download)
+				{
+#ifdef FLYLINKDC_USE_DROP_SLOW
+					transferMenu.EnableMenuItem(IDC_MENU_SLOWDISCONNECT, MFS_ENABLED);
+#endif
+					transferMenu.EnableMenuItem(IDC_PRIORITY_PAUSED, MFS_ENABLED); //[+] Drakon
+					if (!ii->m_target.empty())
+					{
+						const string l_target = Text::fromT(ii->m_target);
+#ifdef FLYLINKDC_USE_DROP_SLOW
+						bool slowDisconnect;
+						{
+							QueueManager::LockFileQueueShared l_fileQueue;
+							const auto& queue = l_fileQueue.getQueueL();
+							const auto qi = queue.find(l_target);
+							if (qi != queue.cend())
+								slowDisconnect = qi->second->isAutoDrop(); // [!]
+							else
+								slowDisconnect = false;
+						}
+						if (slowDisconnect)
+						{
+							segmentedMenu.CheckMenuItem(IDC_MENU_SLOWDISCONNECT, MF_BYCOMMAND | MF_CHECKED);
+							transferMenu.CheckMenuItem(IDC_MENU_SLOWDISCONNECT, MF_BYCOMMAND | MF_CHECKED);
+						}
+#endif
+						setupPreviewMenu(l_target);
+					}
+				}
+				else
+				{
+#ifdef FLYLINKDC_USE_DROP_SLOW
+					transferMenu.EnableMenuItem(IDC_MENU_SLOWDISCONNECT, MFS_DISABLED);
+#endif
+					transferMenu.EnableMenuItem(IDC_PRIORITY_PAUSED, MFS_DISABLED); //[+] Drakon
+				}
+				
+#ifdef IRAINMAN_ENABLE_WHOIS
+				if (!ii->m_transfer_ip.empty())
+				{
+					g_sSelectedIP = ii->m_transfer_ip;  // set tstring for 'openlink function'
+					WinUtil::AppendMenuOnWhoisIP(transferMenu, g_sSelectedIP, false);
+				}
 #endif
 				
-// !SMT!-S
-				reinitUserMenu(itemI->m_hintedUser.user, itemI->m_hintedUser.hint);
-				
-				if (getSelectedUser())
-				{
-					appendUcMenu(usercmdsMenu, UserCommand::CONTEXT_USER, ClientManager::getHubs(getSelectedUser()->getCID(), getSelectedHint()));
-				}
-				// end !SMT!-S
-			}
-			
-			appendAndActivateUserItems(transferMenu);
-			
-#ifdef FLYLINKDC_USE_DROP_SLOW
-			segmentedMenu.CheckMenuItem(IDC_MENU_SLOWDISCONNECT, MF_BYCOMMAND | MF_UNCHECKED);
-			transferMenu.CheckMenuItem(IDC_MENU_SLOWDISCONNECT, MF_BYCOMMAND | MF_UNCHECKED);
-#endif
-			transferMenu.EnableMenuItem(IDC_SEARCH_ALTERNATES, MFS_ENABLED);
-			if (ii->download)
-			{
-#ifdef FLYLINKDC_USE_DROP_SLOW
-				transferMenu.EnableMenuItem(IDC_MENU_SLOWDISCONNECT, MFS_ENABLED);
-#endif
-				transferMenu.EnableMenuItem(IDC_PRIORITY_PAUSED, MFS_ENABLED); //[+] Drakon
-				if (!ii->m_target.empty())
-				{
-					const string l_target = Text::fromT(ii->m_target);
-#ifdef FLYLINKDC_USE_DROP_SLOW
-					bool slowDisconnect;
-					{
-						QueueManager::LockFileQueueShared l_fileQueue;
-						const auto& queue = l_fileQueue.getQueueL();
-						const auto qi = queue.find(l_target);
-						if (qi != queue.cend())
-							slowDisconnect = qi->second->isAutoDrop(); // [!]
-						else
-							slowDisconnect = false;
-					}
-					if (slowDisconnect)
-					{
-						segmentedMenu.CheckMenuItem(IDC_MENU_SLOWDISCONNECT, MF_BYCOMMAND | MF_CHECKED);
-						transferMenu.CheckMenuItem(IDC_MENU_SLOWDISCONNECT, MF_BYCOMMAND | MF_CHECKED);
-					}
-#endif
-					setupPreviewMenu(l_target);
-				}
-			}
+				activatePreviewItems(transferMenu);
+				transferMenu.SetMenuDefaultItem(IDC_PRIVATE_MESSAGE);
+			} // Конец менюшка от DC++
 			else
 			{
-#ifdef FLYLINKDC_USE_DROP_SLOW
-				transferMenu.EnableMenuItem(IDC_MENU_SLOWDISCONNECT, MFS_DISABLED);
-#endif
-				transferMenu.EnableMenuItem(IDC_PRIORITY_PAUSED, MFS_DISABLED); //[+] Drakon
+				// Менюшка от торрента
+				transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)m_copyMenu, CTSTRING(COPY)); // TODO m_copyTorrentMenu
+				transferMenu.AppendMenu(MF_STRING, IDC_REMOVE_TORRENT, CTSTRING(REMOVE_TORRENT));
+				transferMenu.AppendMenu(MF_STRING, IDC_REMOVE_TORRENT_AND_FILE, CTSTRING(REMOVE_TORRENT_AND_FILE));
 			}
-			
-#ifdef IRAINMAN_ENABLE_WHOIS
-			if (!ii->m_transfer_ip.empty())
-			{
-				g_sSelectedIP = ii->m_transfer_ip;  // set tstring for 'openlink function'
-				WinUtil::AppendMenuOnWhoisIP(transferMenu, g_sSelectedIP, false);
-			}
-#endif
-			
-			activatePreviewItems(transferMenu);
-			transferMenu.SetMenuDefaultItem(IDC_PRIVATE_MESSAGE);
 			
 			if (!main)
 			{
@@ -588,7 +597,6 @@ LRESULT TransferView::onWhoisIP(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/
 	return 0;
 }
 #endif // IRAINMAN_ENABLE_WHOIS
-#ifdef SCALOLAZ_USE_TRANSFER_CONTROL
 LRESULT TransferView::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	switch (wID)
@@ -605,7 +613,6 @@ LRESULT TransferView::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
 	}
 	return 0;
 }
-#endif
 void TransferView::runUserCommand(UserCommand& uc)
 {
 	if (!WinUtil::getUCParams(m_hWnd, uc, ucLineParams))
@@ -707,7 +714,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				CRect rc3;
 				auto l_stat = l_ii->getText(COLUMN_STATUS);
 				int l_shift = 0;
-				if (l_ii->m_status == ItemInfo::STATUS_RUNNING)
+				if (l_ii->m_status == ItemInfo::STATUS_RUNNING || l_ii->m_is_torrent)
 				{
 					if (!BOOLSETTING(SHOW_PROGRESS_BARS))
 					{
@@ -746,7 +753,6 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					}
 					
 					/* Thanks & credits for Stealthy style go to phaedrus */
-					const bool useStealthyStyle = BOOLSETTING(STEALTHY_STYLE);
 					const bool useODCstyle = BOOLSETTING(PROGRESSBAR_ODC_STYLE);
 					// Real rc, the original one.
 					CRect real_rc = rc;
@@ -783,36 +789,23 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					
 					const COLORREF barPal[3] = { HLS_TRANSFORM(clr, -40, 50), clr, HLS_TRANSFORM(clr, 20, -30) };
 					const COLORREF barPal2[3] = { HLS_TRANSFORM(clr, -15, 0), clr, HLS_TRANSFORM(clr, 15, 0) };
-					COLORREF oldcol;
 					// The value throws off, usually with about 8-11 (usually negatively f.ex. in src use 190, the change might actually happen already at aprox 180)
 					const  HLSCOLOR hls = RGB2HLS(clr);
 					LONG top = rc2.top + (rc2.Height() - 15 /*WinUtil::getTextHeight(cd->nmcd.hdc)*/ - 1) / 2 + 1;
 					
 					const HFONT oldFont = (HFONT)SelectObject(dc, Fonts::g_systemFont); //font -> systemfont [~]Sergey Shushkanov
 					SetBkMode(dc, TRANSPARENT);
-					
-					// Get the color of this text bar - this way it ends up looking nice imo.
-					if (!useStealthyStyle)
-					{
-						oldcol = ::SetTextColor(dc, SETTING(PROGRESS_OVERRIDE_COLORS2) ?
-						                        (l_ii->download ? SETTING(PROGRESS_TEXT_COLOR_DOWN) : SETTING(PROGRESS_TEXT_COLOR_UP)) :
-							                        OperaColors::TextFromBackground(clr));
-					}
-					else
-				{
-						if (clr == RGB(255, 255, 255)) // see if user is using white as clr, rare but you may never know
-							oldcol = ::SetTextColor(dc, RGB(0, 0, 0));
-						else
-							oldcol = ::SetTextColor(dc, barPal2[1]);
-					}
-					
+					COLORREF oldcol = ::SetTextColor(dc, SETTING(PROGRESS_OVERRIDE_COLORS2) ?
+					                                 (l_ii->download ? SETTING(PROGRESS_TEXT_COLOR_DOWN) : SETTING(PROGRESS_TEXT_COLOR_UP)) :
+						                                 OperaColors::TextFromBackground(clr));
+						                                 
 					// Draw the background and border of the bar
 					if (l_ii->m_size == 0)
-					{
+				{
 						l_ii->m_size = 1;
 					}
 					
-					if (useODCstyle || useStealthyStyle)
+					if (useODCstyle)
 					{
 						// New style progressbar tweaks the current colors
 						const HLSTRIPLE hls_bk = OperaColors::RGB2HLS(cd->clrTextBk);
@@ -825,11 +818,8 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						HBRUSH hBrOldBg = CreateSolidBrush(cd->clrTextBk);
 						hBrOldBg = (HBRUSH)::SelectObject(dc, hBrOldBg);
 						
-						if (useStealthyStyle)
-							::Rectangle(dc, rc4.left, rc4.top, rc4.right, rc4.bottom);
-						else
-							::Rectangle(dc, rc.left, rc.top, rc.right, rc.bottom);
-							
+						::Rectangle(dc, rc.left, rc.top, rc.right, rc.bottom);
+						
 						DeleteObject(::SelectObject(dc, hBrOldBg));
 						
 						// Set the background color, by slightly changing it
@@ -837,92 +827,55 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						HGDIOBJ oldBg = ::SelectObject(dc, hBrDefBg);
 						
 						// Draw the outline AND the background using pen+brush
-						if (useStealthyStyle)
-							::Rectangle(dc, rc4.left, rc4.top, rc4.left + (LONG)(rc4.Width() * l_ii->getProgressPosition() + 0.5), rc4.bottom);
-						else
-							::Rectangle(dc, rc.left, rc.top, rc.left + (LONG)(rc.Width() * l_ii->getProgressPosition() + 0.5), rc.bottom);
-							
-						if (useStealthyStyle)
-						{
-							//const auto& l_stat = ii->getText(COLUMN_STATUS);
-							// Draw the text over entire item
-							//if (!l_stat.empty())
-							//{
-							// ::ExtTextOut(dc, rc3.left + ii->m_is_force_passive ? 16:0, top, ETO_CLIPPED, rc3, l_stat.c_str(), l_stat.length(), NULL);
-							//}
-							
-							rc.right = rc.left + (int)(((int64_t)rc.Width()) * l_ii->m_actual / l_ii->m_size);
-							
-							if (l_ii->m_pos != 0)
-								rc.bottom -= 1;
-								
-							rc.top += 1;
-							
-							//create bar pen
-							if (HLS_S(hls) <= 30) // good values would be 20-30
-								penBorder = ::CreatePen(PS_SOLID, 1, barPal2[0]);
-							else
-								penBorder = ::CreatePen(PS_SOLID, 1, barPal[0]);
-								
-							DeleteObject(::SelectObject(dc, penBorder));
-							
-							//create bar brush
-							hBrDefBg = CreateSolidBrush(barPal[1]);
-							
-							DeleteObject(::SelectObject(dc, hBrDefBg));
-							
-							//draw bar
-							::Rectangle(dc, rc.left, rc.top, rc.right, rc.bottom);
-							
-							//draw bar highlight
-							if (rc.Width() > 4)
-							{
-								DeleteObject(SelectObject(cdc, CreatePen(PS_SOLID, 1, barPal[2])));
-								rc.top += 2;
-								::MoveToEx(cdc, rc.left + 2, rc.top, (LPPOINT)NULL);
-								::LineTo(cdc, rc.right - 2, rc.top);
-							}
-						}
+						::Rectangle(dc, rc.left, rc.top, rc.left + (LONG)(rc.Width() * l_ii->getProgressPosition() + 0.5), rc.bottom);
 						// Reset pen
 						DeleteObject(::SelectObject(dc, pOldPen));
 						// Reset bg (brush)
 						DeleteObject(::SelectObject(dc, oldBg));
 					}
-					
-					// Draw the background and border of the bar
-					if (!useODCstyle && !useStealthyStyle)
+					if (l_ii->m_actual != l_ii->m_size)
 					{
-						CBarShader statusBar(rc.bottom - rc.top, rc.right - rc.left, SETTING(PROGRESS_BACK_COLOR), l_ii->m_size);
-						
-						rc.right = rc.left + (int)(rc.Width() * l_ii->m_pos / l_ii->m_size);
-						if (!l_ii->download)
+						// Draw the background and border of the bar
+						if (!useODCstyle)
 						{
-							statusBar.FillRange(0, l_ii->m_actual, HLS_TRANSFORM(clr, -20, 30));
-							statusBar.FillRange(l_ii->m_actual, l_ii->m_actual,  clr);
+							CBarShader statusBar(rc.bottom - rc.top, rc.right - rc.left, SETTING(PROGRESS_BACK_COLOR), l_ii->m_size);
+							
+							rc.right = rc.left + (int)(rc.Width() * l_ii->m_pos / l_ii->m_size);
+							if (!l_ii->download)
+							{
+								statusBar.FillRange(0, l_ii->m_actual, HLS_TRANSFORM(clr, -20, 30));
+								statusBar.FillRange(l_ii->m_actual, l_ii->m_actual, clr);
+							}
+							else
+							{
+								statusBar.FillRange(0, l_ii->m_actual, clr);
+								if (l_ii->parent)
+									statusBar.FillRange(l_ii->m_actual, l_ii->m_actual, SETTING(PROGRESS_SEGMENT_COLOR));
+							}
+							if (l_ii->m_pos > l_ii->m_actual)
+							{
+								statusBar.FillRange(l_ii->m_actual, l_ii->m_pos, SETTING(PROGRESS_COMPRESS_COLOR));
+							}
+							statusBar.Draw(cdc, rc.top, rc.left, SETTING(PROGRESS_3DDEPTH));
 						}
 						else
 						{
-							statusBar.FillRange(0, l_ii->m_actual, clr);
-							if (l_ii->parent)
-								statusBar.FillRange(l_ii->m_actual, l_ii->m_actual, SETTING(PROGRESS_SEGMENT_COLOR));
-						}
-						if (l_ii->m_pos > l_ii->m_actual)
-							statusBar.FillRange(l_ii->m_actual, l_ii->m_pos, SETTING(PROGRESS_COMPRESS_COLOR));
-							
-						statusBar.Draw(cdc, rc.top, rc.left, SETTING(PROGRESS_3DDEPTH));
-					}
-					else
-					{
-						if (!useStealthyStyle)
-						{
-							int right = rc.left + (int)((int64_t)rc.Width() * l_ii->m_actual / l_ii->m_size);
+							const int right = rc.left + (int)((int64_t)rc.Width() * l_ii->m_actual / l_ii->m_size);
 							COLORREF a, b;
 							OperaColors::EnlightenFlood(clr, a, b);
 							OperaColors::FloodFill(cdc, rc.left + 1, rc.top + 1, right, rc.bottom - 1, a, b, BOOLSETTING(PROGRESSBAR_ODC_BUMPED));
 						}
 					}
-					
-					if (BOOLSETTING(STEALTHY_STYLE_ICO) || l_ii->m_is_force_passive)
+					if (l_ii->m_is_torrent && l_ii->parent == nullptr)
+					{
+						RECT rc9 = rc2;
+						rc9.left -= 21 - l_shift; //[~] Sergey Shushkanov
+						rc9.top += 1; //[~] Sergey Shushkanov
+						rc9.right = rc9.left + 16;
+						rc9.bottom = rc9.top + 16; //[~] Sergey Shushkanov
+						m_torrentImages.DrawEx(0, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+					}
+					else if (BOOLSETTING(STEALTHY_STYLE_ICO) || l_ii->m_is_force_passive)
 					{
 						// Draw icon - Nasty way to do the filelist icon, but couldn't get other ways to work well,
 						// TODO: do separating filelists from other transfers the proper way...
@@ -960,31 +913,24 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (l_ii->download ? SETT
 									speedmark = ThrottleManager::getInstance()->getDownloadLimitInKBytes() / 5;
 								}
 							}
-							CImageList & l_images = HLS_S(hls > 30) || HLS_L(hls) < 70 ? m_speedImages : m_speedImagesBW;
-							
-							const int64_t speedkb = l_ii->m_speed / 1000;
-							if (speedkb >= speedmark * 4)
-								l_images.DrawEx(4, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-							else if (speedkb >= speedmark * 3)
-								l_images.DrawEx(3, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-							else if (speedkb >= speedmark * 2)
-								l_images.DrawEx(2, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-							else if (speedkb >= speedmark * 1.5)
-								l_images.DrawEx(1, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
-							else
-								l_images.DrawEx(0, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							if (!l_ii->m_is_torrent) // TODO - показывать скорость и для торрентов
+							{
+								CImageList & l_images = HLS_S(hls > 30) || HLS_L(hls) < 70 ? m_speedImages : m_speedImagesBW;
+								
+								const int64_t speedkb = l_ii->m_speed / 1000;
+								if (speedkb >= speedmark * 4)
+									l_images.DrawEx(4, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+								else if (speedkb >= speedmark * 3)
+									l_images.DrawEx(3, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+								else if (speedkb >= speedmark * 2)
+									l_images.DrawEx(2, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+								else if (speedkb >= speedmark * 1.5)
+									l_images.DrawEx(1, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+								else
+									l_images.DrawEx(0, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+							}
 						}
 					}
-					if (useStealthyStyle)
-					{
-						// use white to as many colors as possible (values might need some tweaking), I didn't like TextFromBackground...
-						if (((HLS_L(hls) > 190) && (HLS_S(hls) <= 30)) || (HLS_L(hls) > 211))
-							oldcol = ::SetTextColor(dc, HLS_TRANSFORM(clr, -40, 0));
-						else
-							oldcol = ::SetTextColor(dc, RGB(255, 255, 255));
-						rc2.right = rc.right;
-					}
-					
 					// Draw the text, the other stuff here was moved upwards due to stealthy style being added
 					//const auto& l_stat = ii->getText(COLUMN_STATUS);
 					if (!l_stat.empty())
@@ -994,7 +940,6 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (l_ii->download ? SETT
 					
 					SelectObject(dc, oldFont);
 					::SetTextColor(dc, oldcol);
-					
 					
 					// New way:
 					BitBlt(cd->nmcd.hdc, real_rc.left, real_rc.top, real_rc.Width(), real_rc.Height(), dc, 0, 0, SRCCOPY);
@@ -1035,10 +980,20 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (l_ii->download ? SETT
 					}
 					ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc3);
 					ctrlTransfers.SetItemFilled(cd, rc3, cd->clrText, cd->clrText);
+					if (l_ii->m_is_torrent && l_ii->parent == nullptr)
+					{
+						RECT rc9 = rc3;
+						//rc9.left -= 19 - l_shift; //[~] Sergey Shushkanov
+						rc9.top += 1; //[~] Sergey Shushkanov
+						rc9.right = rc9.left + 16;
+						rc9.bottom = rc9.top + 16; //[~] Sergey Shushkanov
+						m_torrentImages.DrawEx(0, cd->nmcd.hdc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+						l_shift += 16;
+					}
 					if (!l_stat.empty())
 					{
 						LONG top = rc3.top + (rc3.Height() - 15 /*WinUtil::getTextHeight(cd->nmcd.hdc)*/) / 2;
-						if (l_shift)
+						if (l_shift && l_ii->m_is_torrent == false)
 						{
 							if ((top - rc3.top) < 2)
 								top = rc3.top + 1;
@@ -1191,33 +1146,37 @@ LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 			
 		ItemInfo* i = ctrlTransfers.getItemData(item->iItem);
 		const vector<ItemInfo*>& children = ctrlTransfers.findChildren(i->getGroupCond());
-		if (i->parent != nullptr || children.size() <= 1)
+		if (!i->m_is_torrent)
 		{
-			switch (SETTING(TRANSFERLIST_DBLCLICK))
+			if (i->parent != nullptr || children.size() <= 1)
 			{
-				case 0:
-					i->pm(i->m_hintedUser.hint); // [!] IRainman fix.
-					break;
-				case 1:
-					i->getList(); // [!] IRainman fix.
-					break;
-				case 2:
-					i->matchQueue(); // [!] IRainman fix.
-				case 3:
-					i->grantSlotPeriod(i->m_hintedUser.hint, 600); // [!] IRainman fix.
-					break;
-				case 4:
-					i->addFav();
-					break;
-				case 5: // !SMT!-UI
-					i->m_statusString = TSTRING(CONNECTING_FORCED);
-					ctrlTransfers.updateItem(i);
-					bool l_is_active_client;
-					ClientManager::getInstance()->connect(i->m_hintedUser, Util::toString(Util::rand()), false, l_is_active_client); // [!] IRainman fix.
-					break;
-				case 6:
-					i->browseList(); // [!] IRainman fix.
-					break;
+				switch (SETTING(TRANSFERLIST_DBLCLICK))
+				{
+					case 0:
+						i->pm(i->m_hintedUser.hint); // [!] IRainman fix.
+						break;
+					case 1:
+						i->getList(); // [!] IRainman fix.
+						break;
+					case 2:
+						i->matchQueue(); // [!] IRainman fix.
+					case 3:
+						i->grantSlotPeriod(i->m_hintedUser.hint, 600); // [!] IRainman fix.
+						break;
+					case 4:
+						i->addFav();
+						break;
+					case 5: // !SMT!-UI
+					
+						i->m_statusString = TSTRING(CONNECTING_FORCED);
+						ctrlTransfers.updateItem(i);
+						bool l_is_active_client;
+						ClientManager::getInstance()->connect(i->m_hintedUser, Util::toString(Util::rand()), false, l_is_active_client); // [!] IRainman fix.
+						break;
+					case 6:
+						i->browseList(); // [!] IRainman fix.
+						break;
+				}
 			}
 		}
 	}
@@ -1320,13 +1279,30 @@ void TransferView::onSpeakerAddItem(const UpdateInfo& ui)
 #endif
 		return;
 	}
-	dcassert(!ui.token.empty());
-	if (!ConnectionManager::getInstance()->m_tokens_manager.isToken(ui.token))
+	dcassert(!ui.m_token.empty());
+#ifdef FLYLINKDC_USE_TORRENT
+	if (ui.m_is_torrent == false)
+#endif
 	{
-		return;
+		if (!ConnectionManager::getInstance()->m_tokens_manager.isToken(ui.m_token))
+		{
+			return;
+		}
 	}
-	
-	ItemInfo* ii = new ItemInfo(ui.m_hintedUser, ui.download);
+	/*
+	else
+	    {
+	        if (ConnectionManager::getInstance()->m_sha1_manager.isToken(ui.m_sha1.to_string()))
+	        {
+	            return;
+	        }
+	    }
+	*/
+	ItemInfo* ii = new ItemInfo(ui.m_hintedUser, ui.download, ui.m_is_torrent);
+#ifdef FLYLINKDC_USE_TORRENT
+	ii->m_torrent_file_path = ui.m_torrent_file_path;
+	ii->m_sha1 = ui.m_sha1;
+#endif
 #ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
 	if (ui.token.empty())
 	{
@@ -1377,7 +1353,12 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				for (int j = 0; j < ctrlTransfers.GetItemCount(); ++j)
 				{
 					ItemInfo* ii = ctrlTransfers.getItemData(j);
-					if (ii->m_token == ui.token)
+					bool l_is_find = false;
+					if (ui.m_is_torrent)
+						l_is_find = ii->m_sha1 == ui.m_sha1;
+					else
+						l_is_find = ii->m_token == ui.m_token;
+					if (l_is_find)
 					{
 						ctrlTransfers.removeGroupedItem(ii);
 						j = 0;
@@ -1486,13 +1467,16 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 							/* parent item must be updated with correct info about whole file */
 							if (ui.status == ItemInfo::STATUS_RUNNING && parent->m_status == ItemInfo::STATUS_RUNNING && parent->m_hits == -1)
 							{
-								ui.updateMask &= ~UpdateInfo::MASK_POS;
-								ui.updateMask &= ~UpdateInfo::MASK_ACTUAL;
 								// - пропадает из прогресса - не врубать
 								// TODO - ui.updateMask &= ~UpdateInfo::MASK_TOKEN;
 								ui.updateMask &= ~UpdateInfo::MASK_SIZE;
-								ui.updateMask &= ~UpdateInfo::MASK_STATUS_STRING;
-								ui.updateMask &= ~UpdateInfo::MASK_ERROR_STATUS_STRING;
+								if (ui.m_is_torrent == false)
+								{
+									ui.updateMask &= ~UpdateInfo::MASK_POS;
+									ui.updateMask &= ~UpdateInfo::MASK_ACTUAL;
+									ui.updateMask &= ~UpdateInfo::MASK_STATUS_STRING;
+									ui.updateMask &= ~UpdateInfo::MASK_ERROR_STATUS_STRING;
+								}
 								ui.updateMask &= ~UpdateInfo::MASK_TIMELEFT;
 							}
 							else
@@ -1502,7 +1486,11 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 						}
 						
 						/* if target has changed, regroup the item */
-						const bool changeParent = (ui.updateMask & UpdateInfo::MASK_FILE) && (ui.m_target != ii->m_target);
+						bool changeParent = false;
+						//if(ui.m_is_torrent)
+						//  changeParent = (ui.updateMask & UpdateInfo::MASK_FILE) && (ui.m_torrent_file_path != ii->m_torrent_file_path);
+						//else
+						changeParent = (ui.updateMask & UpdateInfo::MASK_FILE) && (ui.m_target != ii->m_target);
 						if (changeParent)
 						{
 							ctrlTransfers.removeGroupedItem(ii, false);
@@ -1535,7 +1523,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 					                    " info = " + ui.m_hintedUser.user->getLastNick() + "is download = " + Util::toString(ui.download) + " ui.token = " + ui.token);
 #endif
 					// dcassert(0);
-					if (!ui.token.empty())
+					if (!ui.m_token.empty())
 					{
 						onSpeakerAddItem(ui); // потеряли....
 					}
@@ -1543,25 +1531,14 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 			}
 			break;
 			case TRANSFER_UPDATE_PARENT:
-			case TRANSFER_UPDATE_PARENT_WITH_PARSE:
 			{
-#if 0 // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=152461
-				switch (i->first)
-				{
-					case TRANSFER_UPDATE_PARENT_WITH_PARSE:
-						// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62956
-						// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62749
-						parseQueueItemUpdateInfo(reinterpret_cast<QueueItemUpdateInfo*>(i->second));
-						break;
-				} //
-#endif
 				const auto& ui = static_cast<UpdateInfo&>(*i->second);
 				const ItemInfoList::ParentPair* pp = ctrlTransfers.findParentPair(ui.m_target);
 				
 				if (!pp)
 					break;
 					
-				if (ui.m_hintedUser.user)
+				if (ui.m_hintedUser.user || ui.m_is_torrent)
 				{
 					int pos = -1;
 					ItemInfo* ii = findItem(ui, pos);
@@ -1632,7 +1609,7 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	}
 	if (ui.updateMask & UpdateInfo::MASK_TOKEN)
 	{
-		m_token = ui.token;
+		m_token = ui.m_token;
 	}
 	if (ui.updateMask & UpdateInfo::MASK_STATUS_STRING)
 	{
@@ -1935,9 +1912,23 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 	switch (col)
 	{
 		case COLUMN_USER:
-			return m_hits == -1 ? m_nicks : (Util::toStringW(m_hits) + _T(' ') + TSTRING(USERS));
+			if (m_is_torrent)
+			{
+				return m_hits == -1 ? Util::emptyStringT : (Util::toStringW(m_hits) + _T(' ') + TSTRING(FILES));
+			}
+			else
+			{
+				return m_hits == -1 ? m_nicks : (Util::toStringW(m_hits) + _T(' ') + TSTRING(USERS));
+			}
 		case COLUMN_HUB:
-			return m_hits == -1 ? m_hubs : (Util::toStringW(running) + _T(' ') + TSTRING(NUMBER_OF_SEGMENTS));
+			if (m_is_torrent)
+			{
+				// TODO - показать тут трэккеры
+			}
+			else
+			{
+				return m_hits == -1 ? m_hubs : (Util::toStringW(running) + _T(' ') + TSTRING(NUMBER_OF_SEGMENTS));
+			}
 		case COLUMN_STATUS:
 		{
 #ifndef _DEBUG
@@ -1950,21 +1941,55 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 				return m_statusString;
 			}
 #else
-			return m_statusString + _T(" [") + m_errorStatusString + _T("] Token:") + Text::toT(m_token);
+			if (m_is_torrent)
+			{
+				if (!m_errorStatusString.empty())
+					return m_statusString + _T(" [") + m_errorStatusString + _T("]");
+				else
+					return m_statusString;
+			}
+			else
+			{
+				return m_statusString + _T(" [") + m_errorStatusString + _T("] Token:") + Text::toT(m_token);
+			}
 #endif
 		}
 		case COLUMN_TIMELEFT:
 			//dcassert(m_timeLeft >= 0);
 			return (m_status == STATUS_RUNNING && m_timeLeft > 0) ? Util::formatSecondsW(m_timeLeft) : Util::emptyStringT;
 		case COLUMN_SPEED:
-			return m_status == STATUS_RUNNING ? (Util::formatBytesW(m_speed) + _T('/') + WSTRING(S)) : Util::emptyStringT;
+			if (m_is_torrent)
+			{
+				if (m_hits == -1 && m_speed)
+				{
+					return Util::formatBytesW(m_speed) + _T('/') + WSTRING(S);
+				}
+				else
+				{
+					return Util::emptyStringT;
+				}
+			}
+			else
+			{
+				return m_status == STATUS_RUNNING ? (Util::formatBytesW(m_speed) + _T('/') + WSTRING(S)) : Util::emptyStringT;
+			}
 		case COLUMN_FILE:
-			return getFile(m_type, Util::getFileName(m_target)); // TODO: opt me please.
+			if (m_is_torrent)
+			{
+				return Text::toT(Util::getFileName(m_torrent_file_path));
+			}
+			else
+			{
+				return getFile(m_type, Util::getFileName(m_target));
+			}
 		case COLUMN_SIZE:
 			return m_size >= 0 ? Util::formatBytesW(m_size) : Util::emptyStringT;
 		case COLUMN_PATH:
 		{
-			return Util::getFilePath(m_target); // TODO: opt me please.
+			if (m_is_torrent)
+				return Text::toT(Util::getFilePath(m_torrent_file_path));
+			else
+				return Util::getFilePath(m_target);
 		}
 		case COLUMN_IP:
 			return m_transfer_ip;
@@ -2028,7 +2053,7 @@ void TransferView::on(DownloadManagerListener::Requesting, const DownloadPtr& aD
 	ui->setTarget(aDownload->getPath());
 	ui->updateMask &= ~UpdateInfo::MASK_STATUS; // hack to avoid changing item status
 	ui->setStatusString(TSTRING(REQUESTING) + _T(' ') + getFile(aDownload->getType(), Text::toT(Util::getFileName(aDownload->getPath()))) + _T("..."));
-	
+	// TODO ui->setToken(aDownload->getUserConnection()->getConnectionQueueToken());
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
@@ -2077,7 +2102,7 @@ void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownl
 		            TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target) + _T('\n') +
 		            TSTRING(USER) + _T(": ") + WinUtil::getNicks(ui->m_hintedUser) + _T('\n') +
 		            TSTRING(REASON) + _T(": ") + tmpReason, TSTRING(DOWNLOAD_FAILED) + _T(' '), NIIF_WARNING);
-		            
+		// TODO  ui->setToken(aDownload->getUserConnection()->getConnectionQueueToken());
 		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 	}
 }
@@ -2090,7 +2115,7 @@ void TransferView::on(DownloadManagerListener::Status, const UserConnection* p_c
 		UpdateInfo* ui = new UpdateInfo(p_conn->getHintedUser(), true); // [!] IRainman fix.
 		ui->setStatus(ItemInfo::STATUS_WAITING);
 		ui->setStatusString(Text::toT(aReason));
-		
+		// TODO ui->setToken(p_conn->getConnectionQueueToken());
 		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 	}
 }
@@ -2114,7 +2139,7 @@ void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload)
 		{
 			ui->setStatusString(TSTRING(UPLOAD_STARTING));
 		}
-		
+		// TODO ui->setToken(aUpload->getUserConnection()->getConnectionQueueToken());
 		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 	}
 }
@@ -2131,12 +2156,20 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl) no
 				ui->setStatus(ItemInfo::STATUS_RUNNING);
 				ui->setActual(j->m_actual);
 				ui->setPos(j->m_pos);
+				ui->m_is_torrent = j->m_is_torrent;
+				if (ui->m_is_torrent)
+				{
+					ui->m_sha1 = j->m_sha1;
+					ui->m_torrent_file_path = j->m_torrent_file_path;
+				}
+				ui->setSpeed(j->m_speed);
 				ui->setSize(j->m_size);
 				ui->setTimeLeft(j->m_second_left);
-				ui->setSpeed(j->m_running_average);
 				ui->setType(Transfer::Type(j->m_type)); // TODO
 				ui->setStatusString(j->m_status_string);
 				ui->setTarget(j->m_path);
+				ui->setToken(j->m_token);
+				dcassert(!j->m_token.empty());
 				m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 			}
 		}
@@ -2163,10 +2196,12 @@ void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul) noexce
 				ui->setPos(j->m_pos);
 				ui->setSize(j->m_size);
 				ui->setTimeLeft(j->m_second_left);
-				ui->setSpeed(j->m_running_average);
+				ui->setSpeed(j->m_speed);
 				ui->setType(Transfer::Type(j->m_type)); // TODO
 				ui->setStatusString(j->m_status_string);
 				ui->setTarget(j->m_path);
+				ui->setToken(j->m_token);
+				dcassert(!j->m_token.empty());
 				m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 			}
 		}
@@ -2202,6 +2237,7 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, const bool down
 		ui->setTimeLeft(0);
 		ui->setRunning(0);
 		ui->setStatusString(download ? TSTRING(DOWNLOAD_FINISHED_IDLE) : TSTRING(UPLOAD_FINISHED_IDLE));
+		// TODO  ui->setToken(aTransfer->getUserConnection()->getConnectionQueueToken());
 		if (!download && aTransfer->getType() != Transfer::TYPE_TREE)
 		{
 			SHOW_POPUP(POPUP_UPLOAD_FINISHED,
@@ -2213,6 +2249,14 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, const bool down
 	}
 }
 
+void TransferView::ItemInfo::removeTorrentAndFile()
+{
+	DownloadManager::getInstance()->remove_torrent_file(m_sha1, 1);
+}
+void TransferView::ItemInfo::removeTorrent()
+{
+	DownloadManager::getInstance()->remove_torrent_file(m_sha1, 0);
+}
 
 void TransferView::ItemInfo::disconnectAndP2PGuard()
 {
@@ -2383,7 +2427,7 @@ void TransferView::on(QueueManagerListener::StatusUpdated, const QueueItemPtr& q
 		return;
 	auto l_ui = new UpdateInfo();
 	parseQueueItemUpdateInfo(l_ui, qi);
-	m_tasks.add(TRANSFER_UPDATE_PARENT_WITH_PARSE, l_ui);
+	m_tasks.add(TRANSFER_UPDATE_PARENT, l_ui);
 }
 
 void TransferView::parseQueueItemUpdateInfo(UpdateInfo* ui, const QueueItemPtr& qi)
@@ -2489,20 +2533,14 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 		ui->setTarget(qi->getTarget());
 		ui->setStatus(ItemInfo::STATUS_WAITING);
 		ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
-		
 		m_tasks.add(TRANSFER_UPDATE_ITEM, ui); // [!] IRainman opt.
-		
 		// update file item
 		ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
-		
 		ui->setTarget(qi->getTarget());
 		ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
 		ui->setStatus(ItemInfo::STATUS_WAITING);
-		
 		SHOW_POPUP(POPUP_DOWNLOAD_FINISHED, TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target), TSTRING(DOWNLOAD_FINISHED_IDLE));
-		
 		m_tasks.add(TRANSFER_UPDATE_PARENT, ui);  // [!] IRainman opt.
-		
 	}
 }
 /*
@@ -2519,7 +2557,16 @@ void TransferView::on(QueueManagerListener::Added, const QueueItemPtr& qi) noexc
     }
 }
 */
-void TransferView::on(RemoveToken, const string& p_token) noexcept
+void TransferView::on(DownloadManagerListener::RemoveToken, const string& p_token) noexcept
+{
+	if (!ClientManager::isBeforeShutdown())
+	{
+		UpdateInfo* ui = new UpdateInfo(HintedUser(), true);
+		ui->setToken(p_token);
+		m_tasks.add(TRANSFER_REMOVE_TOKEN_ITEM, ui);
+	}
+}
+void TransferView::on(ConnectionManagerListener::RemoveToken, const string& p_token) noexcept
 {
 	if (!ClientManager::isBeforeShutdown())
 	{

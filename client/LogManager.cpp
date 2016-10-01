@@ -78,6 +78,8 @@ void LogManager::init()
 	g_logOptions[PSR_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_PSR_TRACE;
 	g_logOptions[FLOOD_TRACE][FILE]     = SettingsManager::LOG_FILE_FLOOD_TRACE;
 	g_logOptions[FLOOD_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_FLOOD_TRACE;
+	g_logOptions[TORRENT_TRACE][FILE] = SettingsManager::LOG_FILE_TORRENT_TRACE;
+	g_logOptions[TORRENT_TRACE][FORMAT] = SettingsManager::LOG_FORMAT_TORRENT_TRACE;
 	
 	g_isInit = true;
 	
@@ -298,6 +300,15 @@ void LogManager::psr_message(const string& p_message)
 	}
 }
 
+void LogManager::torrent_message(const string& p_message)
+{
+	if (BOOLSETTING(LOG_TORRENT_TRACE))
+	{
+		StringMap params;
+		params["message"] = p_message;
+		LOG(TORRENT_TRACE, params);
+	}
+}
 void LogManager::dht_message(const string& p_message)
 {
 	if (BOOLSETTING(LOG_DHT_TRACE))

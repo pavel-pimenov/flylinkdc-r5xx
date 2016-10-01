@@ -1136,6 +1136,11 @@ class Util
 		{
 			return listToStringT<ListT, StrChar>(lst, false, true);
 		}
+		template<typename T>
+		static tstring toStringT(const T& p_val)
+		{
+			return Text::toT(toString(p_val));
+		}
 		
 		
 #if 0

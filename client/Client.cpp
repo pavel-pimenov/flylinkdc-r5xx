@@ -59,14 +59,12 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 	//m_count_validate_denide(0)
 {
 	dcassert(p_HubURL == Text::toLower(p_HubURL));
-	const auto l_my_user = new User(ClientManager::getMyCID());
-	const auto l_hub_user = new User(CID());
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	m_HubID = CFlylinkDBManager::getInstance()->get_dic_hub_id(m_HubURL);
 	dcassert(m_HubID != 0);
-	l_my_user->setHubID(m_HubID); // Для сохранения кол-ва мессаг по самому себе
-	//l_hub_user->setHubID(m_HubID); // Для бота-хаба не сохраняем пока
 #endif
+	const auto l_my_user = std::make_shared<User>(ClientManager::getMyCID(), "", m_HubID);
+	const auto l_hub_user = std::make_shared<User>(CID(), "", m_HubID);
 	const auto l_lower_url = Text::toLower(m_HubURL);
 	if (!p_is_auto_connect && !Util::isAdcHub(l_lower_url))
 	{
@@ -112,8 +110,8 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 		}
 	}
 	
-	m_myOnlineUser = std::make_shared<OnlineUser> (UserPtr(l_my_user), *this, 0); // [+] IRainman fix.
-	m_hubOnlineUser = std::make_shared<OnlineUser>(UserPtr(l_hub_user), *this, AdcCommand::HUB_SID); // [+] IRainman fix.
+	m_myOnlineUser = std::make_shared<OnlineUser> (l_my_user, *this, 0); // [+] IRainman fix.
+	m_hubOnlineUser = std::make_shared<OnlineUser>(l_hub_user, *this, AdcCommand::HUB_SID); // [+] IRainman fix.
 	
 	// [-] IRainman.
 	//m_hEventClientInitialized = CreateEvent(NULL, TRUE, FALSE, NULL);//[+]FlylinkDC

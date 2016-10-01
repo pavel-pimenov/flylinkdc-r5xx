@@ -58,13 +58,14 @@ class DownloadManagerListener
 		typedef X<3> Tick;
 		typedef X<4> Requesting;
 		typedef X<5> Status;
+		typedef X<6> RemoveToken;
 		
 		/**
 		 * This is the first message sent before a download starts.
 		 * No other messages will be sent before this.
 		 */
 		virtual void on(Requesting, const DownloadPtr& aDownload) noexcept { }
-		
+		virtual void on(RemoveToken, const string& p_token) noexcept { }
 #ifdef FLYLINKDC_USE_DOWNLOAD_STARTING_FIRE
 		/**
 		 * This is the first message sent before a download starts.

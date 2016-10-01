@@ -91,7 +91,7 @@ zmq::ctx_t::ctx_t () :
     vmci_family = -1;
 #endif
 
-	scoped_lock_t locker(crypto_sync);
+    scoped_lock_t locker(crypto_sync);
 #if defined (ZMQ_USE_TWEETNACL)
     // allow opening of /dev/urandom
     unsigned char tmpbytes[4];
@@ -152,6 +152,8 @@ int zmq::ctx_t::terminate ()
     pending_connections_t copy = pending_connections;
     for (pending_connections_t::iterator p = copy.begin (); p != copy.end (); ++p) {
         zmq::socket_base_t *s = create_socket (ZMQ_PAIR);
+        // create_socket might fail eg: out of memory/sockets limit reached
+        zmq_assert (s);
         s->bind (p->first.c_str ());
         s->close ();
     }
@@ -510,13 +512,13 @@ void zmq::ctx_t::pend_connection (const std::string &addr_,
 
     endpoints_t::iterator it = endpoints.find (addr_);
     if (it == endpoints.end ()) {
-        // Still no bind.
+        //  Still no bind.
         endpoint_.socket->inc_seqnum ();
         pending_connections.insert (pending_connections_t::value_type (addr_, pending_connection));
     } else {
-		// Bind has happened in the mean time, connect directly
-		connect_inproc_sockets(it->second.socket, it->second.options, pending_connection, connect_side);
-	}
+        //  Bind has happened in the mean time, connect directly
+        connect_inproc_sockets(it->second.socket, it->second.options, pending_connection, connect_side);
+    }
 }
 
 void zmq::ctx_t::connect_pending (const char *addr_, zmq::socket_base_t *bind_socket_)
@@ -573,7 +575,13 @@ void zmq::ctx_t::connect_inproc_sockets (zmq::socket_base_t *bind_socket_,
     else
         pending_connection_.connect_pipe->send_bind (bind_socket_, pending_connection_.bind_pipe, false);
 
-    if (pending_connection_.endpoint.options.recv_identity) {
+    // When a ctx is terminated all pending inproc connection will be
+    // connected, but the socket will already be closed and the pipe will be
+    // in waiting_for_delimiter state, which means no more writes can be done
+    // and the identity write fails and causes an assert. Check if the socket
+    // is open before sending.
+    if (pending_connection_.endpoint.options.recv_identity &&
+            pending_connection_.endpoint.socket->check_tag ()) {
         msg_t id;
         const int rc = id.init_size (bind_options.identity_size);
         errno_assert (rc == 0);

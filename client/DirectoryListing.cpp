@@ -53,9 +53,8 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 	
 	if (ext == ".dcls" || ext == ".dclst")  // [+] IRainman dclst support
 	{
-		UserPtr aUser(new User(CID()));
-		aUser->setLastNick(name);
-		return aUser;
+		auto l_user = std::make_shared<User>(CID(), name, 0);
+		return l_user;
 	}
 	
 	// Strip off any extensions
@@ -73,42 +72,23 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 	string::size_type i = name.rfind('.');
 	if (i == string::npos)
 	{
-		// return UserPtr();
-		return ClientManager::getUser(name, "Unknown Hub"
-#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-		                              , 0
-#endif
-		                              , false
-		                             );
+		return ClientManager::getUser(name, "Unknown Hub", 0);
 	}
 	
 	size_t n = name.length() - (i + 1);
 	// CID's always 39 chars long...
 	if (n != 39)
 	{
-		// return UserPtr();
-		return ClientManager::getUser(name, "Unknown Hub"
-#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-		                              , 0
-#endif
-		                              , false
-		                             );
+		return ClientManager::getUser(name, "Unknown Hub", 0);
 	}
 	
 	const CID cid(name.substr(i + 1));
 	if (cid.isZero())
 	{
-		// return UserPtr();
-		return ClientManager::getUser(name, "Unknown Hub"
-#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-		                              , 0
-#endif
-		                              , false
-		                             );
+		return ClientManager::getUser(name, "Unknown Hub", 0);
 	}
 	
-	UserPtr u = ClientManager::getUser(cid, true);
-	u->initLastNick(name.substr(0, i)); // [!] IRainman fix.
+	UserPtr u = ClientManager::createUser(cid, name.substr(0, i), 0);
 	return u;
 }
 
@@ -541,7 +521,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			{
 				if (!m_user)
 				{
-					m_user = ClientManager::getUser(l_CID, true);
+					m_user = ClientManager::createUser(l_CID, "", 0);
 					m_list->setHintedUser(HintedUser(m_user, Util::emptyString));
 				}
 			}

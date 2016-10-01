@@ -1,5 +1,5 @@
 {\rtf1\ansi\ansicpg1251\deff0\deflang1049\deflangfe1049{\fonttbl{\f0\fswiss\fprq2\fcharset204{\*\fname Arial;}Arial CYR;}{\f1\fswiss\fprq2\fcharset0 Arial;}}
-{\colortbl ;\red247\green150\blue70;\red146\green208\blue80;\red255\green0\blue0;\red0\green0\blue255;}
+{\colortbl ;\red247\green150\blue70;\red146\green208\blue80;\red255\green0\blue0;\red0\green0\blue255;\red0\green176\blue80;}
 {\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\nowidctlpar\cf1\kerning1\b\f0\fs32 Flylink\cf2 DC++\cf3  \cf0\b0 r5\lang1033\f1 xx\lang1049\f0  \cf3\lang1033\b\f1\fs16 release + sp\lang1049\f0\par
 \pard\cf0\b0\fs18\'c5\'f1\'eb\'e8 \'ef\'ee\'f1\'eb\'e5 \'ee\'e1\'ed\'ee\'e2\'eb\'e5\'ed\'e8\'ff \'e2\'fb \'e7\'e0\'ec\'e5\'f2\'e8\'f2\'e5 \'f7\'f2\'ee-\'f2\'ee \'ed\'e5 \'f2\'e0\'ea - \'ed\'e5 \'f1\'f2\'e5\'f1\'ed\'ff\'e9\'f2\'e5\'f1\'fc, \'ef\'e8\'f8\'e8\'f2\'e5\par
 \'ec\'ed\'e5 \'ed\'e0 \'ef\'ee\'f7\'f2\'f3 {\field{\*\fldinst{HYPERLINK "mailto:pavel.pimenov@gmail.com"}}{\fldrslt{\ul\cf4 mailto:pavel.pimenov@gmail.com}}}\f0\fs18  \par
@@ -7,6 +7,35 @@
 \'d2\'e0\'ea\'e6\'e5 \'e0\'ed\'ee\'ed\'e8\'ec\'ed\'ee \'ec\'ee\'e6\'ed\'ee \'e2\'fb\'f1\'ea\'e0\'e7\'fb\'e2\'e0\'f2\'fc \'e7\'e0\'ec\'e5\'f7\'e0\'ed\'e8\'ff \'ee \'ef\'f0\'ee\'e3\'f0\'e0\'ec\'ec\'e5 \'ed\'e0 \'f5\'e0\'e1\'e5 \'ef\'ee\'e4\'e4\'e5\'e6\'ea\'e8\par
 dchub://dc.fly-server.ru\par
 \par
+\lang1033\b\f1\fs20 ===\lang1049\f0  \lang1033\f1 r503\lang1049\f0  \lang1033\f1 build 19935 ===\par
+\cf5\lang1049\b0\f0\fs16 * \'c4\'ee\'e1\'e0\'e2\'eb\'e5\'ed\'e0 \'ef\'ee\'e4\'e4\'e5\'f0\'e6\'ea\'e0 \'e7\'e0\'ea\'e0\'f7\'ea\'e8 \'f2\'ee\'f0\'f0\'e5\'ed\'f2-\'f4\'e0\'e9\'eb\'ee\'e2 (\'d4\'e0\'e9\'eb-\'ec\'e5\'ed\'fe-\'ee\'f2\'ea\'f0\'fb\'f2\'fc .torrent)\lang1033\f1   \lang1049\f0\par
+* \'c4\'ee\'e1\'e0\'e2\'eb\'e5\'ed\'e0 \'ee\'e1\'f0\'e0\'e1\'ee\'f2\'ea\'e0 \'ea\'eb\'e8\'ea\'e0 \'ef\'ee \'f1\'f1\'fb\'eb\'ea\'e5 \'f2\'e8\'ef\'e0 magnet:?xt=urn:btih\par
+\lang1033\f1    {\field{\*\fldinst{HYPERLINK "http://www.flylinkdc.ru/2016/10/flylinkdc-torrent.html"}}{\fldrslt{\ul\cf4 http://www.flylinkdc.ru/2016/10/flylinkdc-torrent.html}}}\cf0\lang1049\f0\fs16\par
+* \'cf\'ee\'f7\'e8\'ed\'e8\'eb \'f3\'e4\'e0\'eb\'e5\'ed\'e8\'e5 \'f2\'ee\'f0\'f0\'e5\'ed\'f2 \'e7\'e0\'ea\'e0\'f7\'ea\'e8 \'e8\'e7 \'ee\'ea\'ed\'e0 \'ef\'e5\'f0\'e5\'e4\'e0\'f7\'e8 \'f7\'e5\'f0\'e5\'e7 \'ea\'ee\'ed\'f2\'e5\'ea\'f1\'f2\'ed\'ee\'e5 \'ec\'e5\'ed\'fe. (\'f1\'ef\'e0\'f1\'e8\'e1\'ee Dimon83)\par
+* \'d3\'e1\'f0\'e0\'eb \'ee\'f0\'e0\'e1\'ee\'f2\'ea\'f3 \'f3\'f0\'eb\'e0 {\field{\*\fldinst{HYPERLINK "file://"}}{\fldrslt{\ul\cf4 file://}}}\f0\fs16  ({\field{\*\fldinst{HYPERLINK "http://kacperrybczynski.com/research/dcpp_851_arbitrary_code_execution/"}}{\fldrslt{\ul\cf4 http://kacperrybczynski.com/research/dcpp_851_arbitrary_code_execution/}}}\f0\fs16 )\par
+* openssl-1.0.1u\par
+* boost 1.62\par
+* libtorrent-git\par
+* mediainfo 0.7.89, 2016-09-30\par
+* natpmp\par
++ QuickTime: support of Panasonic AVC-Intra 50/100/200 without SPS/PPS ("aixx" and "AVin" CodecID)\par
++ More QuickTime/MP4/AVC/HEVC color descriptions based on future ISO 23001-8:201x/PDAM1\par
++ FFV1: handling 16+ bitdepth (YUV and RGB) while handling buggy version <= 3 YUV 16-bit streams\par
++ Improved growing file detection, option for forcing the growing file test\par
++ Matroska: support of video FieldOrder, MatrixCoefficients, BitsPerChannel, Range, TransferCharacteristics, Primaries\par
++ Acquisition Metadata: support of more elements (IrisTNumber, IrisRingPosition, FocusRingPosition, ZoomRingPosition, ColorMatrix)\par
++ Add stream counts to MIXML output\par
++ I242, AVI/Matroska: mapping of mjp2 to JPEG 2000 format name\par
++ MPEG-4 Visual: parsing of Studio profiles, providing width/height/frame rate...\par
++ MXF: reading MPEG-4 Visual profile from MXF sub-descriptor and/or EssenceCompression\par
++ MXF: reading Intra GOP info from descriptors\par
++ Sequence of images: detection of sequence even if the provided path separator is the Unix one (Windows only)\par
+x Acquisition Metadata: IrisFNumber, FocusPosition, LensZoom were not correctly reported\par
+x LXF: fixed crash in case of some malformed files\par
+x LXF: reject bad frames instead of displaying wrong duration and bit rate\par
+\lang1033\b\f1\fs20 ===\lang1049\f0  \lang1033\f1 r503\lang1049\f0  \lang1033\f1 build 19935 ===\par
+\lang1049\b0\f0\fs16 * sqlite 3.14.2\par
+\lang1033\f1 * Microsoft Visual Studio 2015 Update 3\lang1049\f0\par
 \lang1033\b\f1\fs20 ===\lang1049\f0  \lang1033\f1 r503\lang1049\f0  \lang1033\f1 build 19930 ===\par
 \lang1049\b0\f0\fs16 * \'d3\'e1\'f0\'e0\'eb \'e4\'e2\'ee\'e9\'ed\'f3\'fe \'e1\'eb\'ee\'ea\'e8\'f0\'ee\'e2\'ea\'f3 \'e8 \'ef\'ee\'e8\'f1\'ea \'ef\'ee unordered_map\par
   - OnlineUserPtr NmdcHub::getUser\par

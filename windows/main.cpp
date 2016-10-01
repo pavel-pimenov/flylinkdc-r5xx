@@ -44,11 +44,6 @@
 #include "../FlyFeatures/AutoUpdate.h" // [+] SSA
 #include "../FlyFeatures/flyfeatures.h" // [+] SSA
 
-/*
-#include "libtorrent/entry.hpp"
-#include "libtorrent/bencode.hpp"
-#include "libtorrent/session.hpp"
-*/
 
 #ifndef _DEBUG
 #include "DbgHelp.h"
@@ -249,42 +244,6 @@ bool g_DisableGDIPlus = false;
 #ifdef SSA_WIZARD_FEATURE
 bool g_ShowWizard = false;
 #endif
-
-/*
-int test_torrent()
-{
-    using namespace libtorrent;
-
-    session s;
-    error_code ec;
-    s.listen_on(std::make_pair(6881, 6889), ec);
-    if (ec)
-    {
-        fprintf(stderr, "failed to open listen socket: %s\n", ec.message().c_str());
-        return 1;
-    }
-    add_torrent_params p;
-    p.save_path = "./";
-    p.ti = new torrent_info("D:\\Stranger.Things.S01E01.1080p.rus.LostFilm.TV.mkv.torrent", ec);
-    if (ec)
-    {
-        fprintf(stderr, "%s\n", ec.message().c_str());
-        return 1;
-    }
-    s.add_torrent(p, ec);
-    if (ec)
-    {
-        fprintf(stderr, "%s\n", ec.message().c_str());
-        return 1;
-    }
-
-    // wait for the user to end
-    char a;
-    scanf("%c\n", &a);
-    return 0;
-}
-*/
-
 void CreateSplash()
 {
 	if (!g_DisableSplash)

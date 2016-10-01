@@ -393,6 +393,9 @@
     <ClInclude Include="src\scatter.hpp">
       <Filter>Header files</Filter>
     </ClInclude>
+    <ClInclude Include="src\pollset.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zmq_utils.cpp">
@@ -681,6 +684,9 @@
       <Filter>Source files</Filter>
     </ClCompile>
     <ClCompile Include="src\dgram.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pollset.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
   </ItemGroup>

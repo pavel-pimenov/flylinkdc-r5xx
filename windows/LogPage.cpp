@@ -75,6 +75,9 @@ PropPage::ListItem LogPage::listItems[] =
 	{ SettingsManager::LOG_DDOS_TRACE,          ResourceManager::SETTINGS_LOG_DDOS_TRACE },
 	{ SettingsManager::LOG_CMDDEBUG_TRACE,          ResourceManager::SETTINGS_LOG_CMDDEBUG_TRACE },
 	{ SettingsManager::LOG_DHT_TRACE,           ResourceManager::SETTINGS_LOG_DHT_TRACE },
+#ifdef FLYLINKDC_USE_TORRENT
+	{ SettingsManager::LOG_TORRENT_TRACE,           ResourceManager::SETTINGS_LOG_TORRENT_TRACE },
+#endif
 	{ SettingsManager::LOG_PSR_TRACE,           ResourceManager::SETTINGS_LOG_PSR_TRACE },
 	{ SettingsManager::LOG_FLOOD_TRACE,           ResourceManager::SETTINGS_LOG_FLOOD_TRACE },
 	{ SettingsManager::LOG_FILELIST_TRANSFERS,  ResourceManager::SETTINGS_LOG_FILELIST_TRANSFERS },

@@ -203,6 +203,8 @@
 	<string name="Close">Close</string>
 	<string name="CloseConnection">Close connection</string>
 	<string name="CloseConnectionAndAddIpGuard">Close Connection and add P2P Guard database</string>
+	<string name="RemoveTorrent">Remove torrent session</string>
+	<string name="RemoveTorrentAndFile">Remove torrent session and file</string>
 	<string name="CloseHot">Close\tCtrl+W</string>
 	<string name="CmdAwayMsg">On/Off away mode with specific (message)</string>
 	<string name="CmdClearChat">Clear chat window</string>
@@ -405,6 +407,7 @@
 	<string name="Download">Download</string>
 	<string name="Downloaded">Downloaded</string>
 	<string name="DownloadedBytes">Downloaded %s (%.01f%%) in %s</string>
+	<string name="CheckedBytes">Checked %s(%.01f%%)</string>
 	<string name="DownloadedFrom">downloaded from</string>
 	<string name="DownloadedParts">Downloaded parts</string>
 	<string name="Downloading">DownloadingвЂ¦</string>
@@ -848,6 +851,7 @@
 	<string name="MenuOpenLogsDir">Open logs directory</string>
 	<string name="MenuOpenConfigDir">Open config directory (!)</string>
 	<string name="MenuOpenFileList">Open file listвЂ¦\tCtrl+L</string>
+	<string name="MenuOpenTorrentFile">Open *.torrent file</string>
 	<string name="MenuOpenMatchAll">Match downloaded lists</string>
 	<string name="MenuOpenOwnList">Open own file list\tF8</string>
 	<string name="MenuOpenSqlexplorer">Open SQLExplorer</string>
@@ -1286,9 +1290,6 @@
 	<string name="SettingsBindAddress">Bind address</string>
 	<string name="SettingsBindAddressHelp">Network interface for all connections</string>
 	<string name="SettingsBoldOptions">Tab bolding on content change</string>
-	<string name="SettingsBtHelp">As example enter:\n\"C:\\\\Program Files (x86)\\uTorrent\\uTorrent.exe\" - to associate default uTorrent path on 64 bit platform\n\"C:\\\\Program Files\\uTorrent\\uTorrent.exe\" - to associate default uTorrent path on 32 bit platform</string>
-	<string name="SettingsBittorrentProgramm">BitTorrent program for magnets:</string>
-	<string name="SettingsBittorrentErrorConfig">FlylinkDC++ could not open the link because settings not specified a torrent client (Menu-&gt;File-&gt;Settings-&gt;Downloads-&gt;Path for bittorrent client)</string>
 	<string name="SettingsCertificates">Security</string>
 	<string name="SettingsChange">&amp;Change</string>
 	<string name="SettingsClearSearch">Clear search box after each search</string>
@@ -1317,7 +1318,7 @@
 	<string name="SettingsDclsPage">DCLST support</string>
 	<string name="SettingsDefaultAwayMsg">Default Away-message</string>
 	<string name="SettingsDefaultClick">Default click action</string>
-	<string name="SettingsDhtPort">DHT/UDP</string>
+	<string name="SettingsDhtPort">Torrent</string>
 	<string name="SettingsDirect">Direct connection</string>
 	<string name="SettingsDirectories">Directories</string>
 	<string name="SettingsDisplayCheatsInMainChat">Display cheats in main chat</string>
@@ -1375,6 +1376,7 @@
 	<string name="SettingsLogDdosTrace">Log DDoS detect</string>
 	<string name="SettingsLogVirusTrace">Log Virus detect</string>
 	<string name="SettingsLogDhtTrace">Log DHT</string>
+	<string name="SettingsLogTorrentTrace">Log torrent</string>
 	<string name="SettingsLogPsrTrace">Log PSR (partial search results)</string>
 	<string name="SettingsLogFloodTrace">Log Flood $Command detect</string>
 	<string name="SettingsLogCmddebugTrace">Log CMD Debug</string>

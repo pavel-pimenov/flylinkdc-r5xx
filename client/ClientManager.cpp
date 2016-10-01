@@ -574,12 +574,7 @@ UserPtr ClientManager::findLegacyUser(const string& aNick, const string& aHubUrl
 	return UserPtr();
 }
 
-UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
-#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-                               , uint32_t p_HubID
-#endif
-                               , bool p_first_load
-                              )
+UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL, uint32_t p_HubID)
 {
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	dcassert(p_HubID);
@@ -589,7 +584,7 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
 	
 	CFlyWriteLock(*g_csUsers);
 	//  dcassert(p_first_load == false || p_first_load == true && g_users.find(cid) == g_users.end())
-	const auto& l_result_insert = g_users.insert(make_pair(cid, nullptr));
+	const auto& l_result_insert = g_users.insert(make_pair(cid, std::make_shared<User>(cid, p_Nick, p_HubID)));
 	if (!l_result_insert.second)
 	{
 		const auto &l_user = l_result_insert.first->second;
@@ -605,32 +600,21 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL
 #endif
 		return l_user;
 	}
-	UserPtr p(new User(cid));
-	p->setFlag(User::NMDC); // TODO тут так можно? L: тут так обязательно нужно - этот метод только для nmdc протокола!
-#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-	p->setHubID(p_HubID);
-#endif
-	p->setLastNick(p_Nick);
-	l_result_insert.first->second = p;
-	return p;
+	l_result_insert.first->second->setFlag(User::NMDC);
+	return l_result_insert.first->second;
 }
 
-UserPtr ClientManager::getUser(const CID& cid, bool p_create)
+UserPtr ClientManager::createUser(const CID& p_cid, const string& p_nick, uint32_t p_hub_id)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	CFlyWriteLock(*g_csUsers);
-	const UserMap::const_iterator ui = g_users.find(cid);
-	if (ui != g_users.end())
+	auto l_item = g_users.insert(make_pair(p_cid, std::make_shared<User>(p_cid, p_nick, p_hub_id)));
+	if (l_item.second == false)
 	{
-		return ui->second;
+		dcassert(p_nick == l_item.first->second->getLastNick());
+		return l_item.first->second;
 	}
-	if (p_create)
-	{
-		UserPtr p(new User(cid));
-		g_users.insert(make_pair(p->getCID(), p)); // https://drdump.com/DumpGroup.aspx?DumpGroupID=239463&Login=guest
-		return p;
-	}
-	return UserPtr();
+	return l_item.first->second;
 }
 
 UserPtr ClientManager::findUser(const CID& cid)
@@ -1182,8 +1166,6 @@ void ClientManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 // [!] IRainman fix.
 void ClientManager::createMe(const string& p_cid, const string& p_nick)
 {
-	// [!] IRainman fix.
-	// [-] me = new User(getMyCID());
 	dcassert(!g_me); // [+] IRainman fix: please not init me twice!
 	dcassert(g_pid.isZero()); // [+] IRainman fix: please not init pid twice!
 	
@@ -1192,7 +1174,7 @@ void ClientManager::createMe(const string& p_cid, const string& p_nick)
 	TigerHash l_tiger;
 	l_tiger.update(g_pid.data(), CID::SIZE);
 	const CID l_myCID = CID(l_tiger.finalize());
-	g_me = std::make_shared<User>(l_myCID);
+	g_me = std::make_shared<User>(l_myCID, p_nick, 0);
 	
 	
 #ifndef _DEBUG
@@ -1206,7 +1188,7 @@ void ClientManager::createMe(const string& p_cid, const string& p_nick)
 	}
 #endif
 	
-	g_uflylinkdc = std::make_shared<User>(g_pid);
+	g_uflylinkdc = std::make_shared<User>(g_pid, p_nick, 0);
 	
 	g_iflylinkdc.setSID(AdcCommand::HUB_SID);
 #ifdef IRAINMAN_USE_HIDDEN_USERS
@@ -1215,7 +1197,6 @@ void ClientManager::createMe(const string& p_cid, const string& p_nick)
 	g_iflylinkdc.setHub();
 	g_iflylinkdc.setUser(g_uflylinkdc);
 	// [~] IRainman fix.
-	g_me->setLastNick(p_nick);
 	{
 		CFlyWriteLock(*g_csUsers);
 		g_users.insert(make_pair(g_me->getCID(), g_me));

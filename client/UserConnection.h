@@ -353,7 +353,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		// [~] IRainman
 		
 		GETSET(string, m_user_connection_token, UserConnectionToken);
-		//GETSET(string, m_connection_token, ConnectionToken);
+		GETSET(string, m_connection_queue_token, ConnectionQueueToken);
 		GETSET(int64_t, speed, Speed);
 		
 		uint64_t m_lastActivity;

@@ -24,6 +24,9 @@
 #include <boost/integer_traits.hpp>
 #include <boost/throw_exception.hpp>
 
+// Must come last.
+#include <boost/iostreams/detail/config/disable_warnings.hpp>
+
     // OS-specific headers for low-level i/o.
 
 #include <fcntl.h>       // file opening flags.
@@ -238,7 +241,7 @@ bool file_descriptor_impl::is_open() const
 
 void file_descriptor_impl::close()
 {
-    close_impl(flags_ & close_on_close, true);
+    close_impl((flags_ & close_on_close) != 0, true);
 }
 
 void file_descriptor_impl::close_impl(bool close_flag, bool throw_) {
@@ -597,5 +600,7 @@ void file_descriptor_sink::open(
         boost::throw_exception(BOOST_IOSTREAMS_FAILURE("invalid mode"));
     file_descriptor::open(path, mode, BOOST_IOS::out); 
 }
+
+#include <boost/iostreams/detail/config/enable_warnings.hpp>
 
 } } // End namespaces iostreams, boost.

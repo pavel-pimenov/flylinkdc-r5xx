@@ -2264,9 +2264,10 @@ void CFlylinkDBManager::save_transfer_history(eTypeTransfer p_type, const Finish
 		m_tiger_tree_cache.erase(p_item->getTTH());
 	}
 	CFlyLock(m_cs);
-	inc_hitL(l_path, l_name);
 	try
 	{
+		sqlite3_transaction l_trans(m_flySQLiteDB);
+		inc_hitL(l_path, l_name);
 		m_insert_transfer.init(m_flySQLiteDB,
 		                       "insert into transfer_db.fly_transfer_file (type,day,stamp,path,nick,hub,size,speed,ip,tth,actual) "
 		                       "values(?,strftime('%s','now','localtime')/60/60/24,strftime('%s','now','localtime'),?,?,?,?,?,?,?,?)");
@@ -2283,12 +2284,12 @@ void CFlylinkDBManager::save_transfer_history(eTypeTransfer p_type, const Finish
 			m_insert_transfer->bind(8);
 		m_insert_transfer->bind(9, p_item->getActual());
 		m_insert_transfer->executenonquery();
+		l_trans.commit();
 	}
 	catch (const database_error& e)
 	{
 		errorDB("SQLite - save_transfer_history: " + e.getError());
 	}
-	
 }
 //========================================================================================================
 #ifdef STRONG_USE_DHT
@@ -2744,16 +2745,7 @@ void CFlylinkDBManager::add_sourceL(const QueueItemPtr& p_QueueItem, const CID& 
 	dcassert(!p_cid.isZero());
 	if (!p_cid.isZero())
 	{
-		UserPtr l_user = ClientManager::getUser(p_cid, true); // Создаем юзера в любом случае - http://www.flylinkdc.ru/2012/09/flylinkdc-r502-beta59.html
-		
-		// [+] brain-ripper, merge:
-		// correctly show names of offline users in queue frame
-		l_user->initLastNick(p_nick);
-		if (p_hub_id)
-		{
-			l_user->setHubID(p_hub_id);
-		}
-		
+		UserPtr l_user = ClientManager::createUser(p_cid, p_nick, p_hub_id); // Создаем юзера в любом случае - http://www.flylinkdc.ru/2012/09/flylinkdc-r502-beta59.html
 		bool wantConnection = false;
 		try
 		{
@@ -4424,10 +4416,12 @@ bool CFlylinkDBManager::get_tree(const TTHValue& p_root, TigerTree& p_tt, __int6
 				m_tiger_tree_cache.insert(make_pair(p_root, p_tt));
 				dcassert(p_tt.getRoot() == p_root);
 				const auto l_result = p_tt.getRoot() == p_root;
+				/*
 				if (l_result)
 				{
-					m_tiger_tree_cache.insert(make_pair(p_root, p_tt));
+				    m_tiger_tree_cache.insert(make_pair(p_root, p_tt));
 				}
+				*/
 				return l_result;
 			}
 			vector<uint8_t> l_buf;

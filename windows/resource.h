@@ -213,6 +213,7 @@
 #define IDR_VIP_ICO_EVAHUB              323
 #define IDR_VIP_ICO_ADRENALIN           324
 #define IDR_VIP_ICO_TITANKALUGA         325
+#define IDR_TORRENT_PNG                 326
 #define IDR_ICON_XXX_BLOCK              999
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
@@ -374,7 +375,6 @@
 #define IDC_BT_MAGNET_HANDLER           1159
 #define IDC_REMOVEALL                   1160
 #define IDC_NATT                        1161
-#define IDC_BROWSE_BT_PROGRAMM          1162
 #define IDC_UPDATE_IP_DHT               1163
 #define IDC_SETTINGS_USE_DHT_NOTANSWER  1164
 #define IDC_SOCKS_SERVER                1165
@@ -457,7 +457,6 @@
 #define IDC_SETTINGS_SPEEDS_NOT_ACCURATE 1241
 #define IDC_SETTINGS_PUBLIC_HUB_LIST    1242
 #define IDC_SETTINGS_PUBLIC_HUB_LIST_URL 1243
-#define IDC_BITTORRENT_PROGRAMM         1245
 #define IDC_SETTINGS_SHARED_DIRECTORIES 1246
 #define IDC_SETTINGS_FILES_MAX          1247
 #define IDC_SETTINGS_SHARE_SIZE         1248
@@ -827,7 +826,6 @@
 #define IDC_FLINK                       1604
 #define IDC_CHECK1                      1605
 #define IDC_PROFILE_INFO                1606
-#define IDC_STEALTHY_STYLE              1607
 #define IDC_PROT_FAVS                   1608
 #define IDC_EXCL_CHECKS                 1609
 #define IDC_STEALTH_BAN                 1611
@@ -1067,7 +1065,6 @@
 #define IDC_STATUS_DHT_ON               1850
 #define IDC_STATUS_DHT_OFF              1851
 #define IDC_PREVIEW_APP_INT             1852
-#define IDC_BT_HELP                     1853
 #define IDC_CONNECT_TO_FLYSUPPORT_HUB   1854
 #define IDC_DISCONNECT_RAW              1855
 #define IDC_TIMEOUT_RAW                 1856
@@ -1608,6 +1605,10 @@
 #define IDC_NETWORK_TRAFFIC             2520
 #define IDC_XXX_BLOCK_MODE              2521
 #define IDC_ENABLE_IPTRUST              2522
+#define IDC_OPEN_TORRENT_FILE           2523
+#define IDC_REMOVE_TORRENT              2524
+#define IDC_REMOVE_TORRENT_AND_FILE     2525
+
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000

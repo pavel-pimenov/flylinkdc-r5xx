@@ -309,29 +309,28 @@ void zmq::select_t::loop ()
 
             //  Size is cached to avoid iteration through recently added descriptors.
             for (fd_entries_t::size_type i = 0, size = family_entry.fd_entries.size (); i < size && rc > 0; ++i) {
-                fd_entry_t fd_entry = family_entry.fd_entries [i];
 
-                if (fd_entry.fd == retired_fd)
+                if (family_entry.fd_entries[i].fd == retired_fd)
                     continue;
 
-                if (FD_ISSET (fd_entry.fd, &local_fds_set.read)) {
-                    fd_entry.events->in_event ();
+                if (FD_ISSET(family_entry.fd_entries[i].fd, &local_fds_set.read)) {
+                    family_entry.fd_entries[i].events->in_event();
                     --rc;
                 }
 
-                if (fd_entry.fd == retired_fd || rc == 0)
+                if (family_entry.fd_entries[i].fd == retired_fd || rc == 0)
                     continue;
 
-                if (FD_ISSET (fd_entry.fd, &local_fds_set.write)) {
-                    fd_entry.events->out_event ();
+                if (FD_ISSET(family_entry.fd_entries[i].fd, &local_fds_set.write)) {
+                    family_entry.fd_entries[i].events->out_event();
                     --rc;
                 }
 
-                if (fd_entry.fd == retired_fd || rc == 0)
+                if (family_entry.fd_entries[i].fd == retired_fd || rc == 0)
                     continue;
 
-                if (FD_ISSET (fd_entry.fd, &local_fds_set.error)) {
-                    fd_entry.events->in_event ();
+                if (FD_ISSET(family_entry.fd_entries[i].fd, &local_fds_set.error)) {
+                    family_entry.fd_entries[i].events->in_event();
                     --rc;
                 }
             }
@@ -354,29 +353,27 @@ void zmq::select_t::loop ()
 
         //  Size is cached to avoid iteration through just added descriptors.
         for (fd_entries_t::size_type i = 0, size = fd_entries.size (); i < size && rc > 0; ++i) {
-            fd_entry_t& fd_entry = fd_entries [i];
-
-            if (fd_entry.fd == retired_fd)
+            if (fd_entries [i].fd == retired_fd)
                 continue;
 
-            if (FD_ISSET (fd_entry.fd, &local_fds_set.read)) {
-                fd_entry.events->in_event ();
+            if (FD_ISSET (fd_entries [i].fd, &local_fds_set.read)) {
+                fd_entries [i].events->in_event ();
                 --rc;
             }
 
-            if (fd_entry.fd == retired_fd || rc == 0)
+            if (fd_entries [i].fd == retired_fd || rc == 0)
                 continue;
 
-            if (FD_ISSET (fd_entry.fd, &local_fds_set.write)) {
-                fd_entry.events->out_event ();
+            if (FD_ISSET (fd_entries [i].fd, &local_fds_set.write)) {
+                fd_entries [i].events->out_event ();
                 --rc;
             }
 
-            if (fd_entry.fd == retired_fd || rc == 0)
+            if (fd_entries [i].fd == retired_fd || rc == 0)
                 continue;
 
-            if (FD_ISSET (fd_entry.fd, &local_fds_set.error)) {
-                fd_entry.events->in_event ();
+            if (FD_ISSET (fd_entries [i].fd, &local_fds_set.error)) {
+                fd_entries [i].events->in_event ();
                 --rc;
             }
         }
@@ -432,9 +429,9 @@ bool zmq::select_t::is_retired_fd (const fd_entry_t &entry)
 #if defined ZMQ_HAVE_WINDOWS
 u_short zmq::select_t::get_fd_family (fd_t fd_)
 {
-	// Use sockaddr_storage instead of sockaddr to accomodate differect structure sizes
-	sockaddr_storage addr = { 0 };
-	int addr_size = sizeof addr;
+    //  Use sockaddr_storage instead of sockaddr to accomodate differect structure sizes
+    sockaddr_storage addr = { 0 };
+    int addr_size = sizeof addr;
 
     int type;
     int type_length = sizeof(int);

@@ -33,6 +33,14 @@
 #include "ZUtils.h"
 #include "FilteredFile.h"
 
+#ifdef FLYLINKDC_USE_TORRENT
+namespace libtorrent
+{
+class session;
+};
+#endif
+
+
 /**
  * Singleton. Use its listener interface to update the download list
  * in the user interface.
@@ -43,8 +51,16 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 	private UserConnectionListener, private TimerManagerListener,
 	public Singleton<DownloadManager>
 {
+#ifdef FLYLINKDC_USE_TORRENT
+		std::unique_ptr<libtorrent::session> m_torrent_session;
+		void init_torrent();
+		void onTimeTorrent(uint64_t aTick);
 	public:
-	
+		bool add_torrent_file(const tstring& p_torrent_path, const tstring& p_torrent_url);
+		bool remove_torrent_file(const libtorrent::sha1_hash& p_sha1, const int delete_options);
+#endif
+		
+	public:
 		/** @internal */
 		void addConnection(UserConnection* p_conn);
 		static void checkIdle(const UserPtr& user);

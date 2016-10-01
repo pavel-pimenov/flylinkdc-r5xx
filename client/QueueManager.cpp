@@ -2918,20 +2918,16 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 		}
 		else if (m_cur && name == sSource)
 		{
-			const string& cid = getAttrib(attribs, sCID, 0);
+			const string l_cid = getAttrib(attribs, sCID, 0);
 			UserPtr user;
-			if (cid.length() != 39)
+			const string l_nick = getAttrib(attribs, sNick, 1);
+			if (l_cid.length() != 39)
 			{
-				user = ClientManager::getUser(getAttrib(attribs, sNick, 1), getAttrib(attribs, sHubHint, 1)
-#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-				                              , 0
-#endif
-				                              , false
-				                             );
+				user = ClientManager::getUser(l_nick, getAttrib(attribs, sHubHint, 1), 0);
 			}
 			else
 			{
-				user = ClientManager::getUser(CID(cid), true);
+				user = ClientManager::createUser(CID(l_cid), l_nick, 0);
 			}
 			
 			bool wantConnection;

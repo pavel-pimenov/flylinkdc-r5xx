@@ -29,7 +29,6 @@
 PropPage::TextItem OperaColorsPage::texts[] =
 {
 	{ IDC_ODC_STYLE, ResourceManager::PROGRESSBAR_ODC_STYLE },
-	{ IDC_STEALTHY_STYLE, ResourceManager::PROGRESSBAR_STEALTHY_STYLE },
 	{ IDC_STEALTHY_STYLE_ICO, ResourceManager::PROGRESSBAR_STEALTHY_STYLE_ICO },
 	{ IDC_STEALTHY_STYLE_ICO_SPEEDIGNORE, ResourceManager::PROGRESSBAR_STEALTHY_STYLE_ICO_SPEEDIGNORE },
 	{ IDC_PROGRESS_BUMPED, ResourceManager::BUMPED },
@@ -66,7 +65,6 @@ LPCCHOOKPROC color_proc;
 PropPage::Item OperaColorsPage::items[] =
 {
 	{ IDC_ODC_STYLE, SettingsManager::PROGRESSBAR_ODC_STYLE, PropPage::T_BOOL },
-	{ IDC_STEALTHY_STYLE, SettingsManager::STEALTHY_STYLE, PropPage::T_BOOL },
 	{ IDC_STEALTHY_STYLE_ICO, SettingsManager::STEALTHY_STYLE_ICO, PropPage::T_BOOL },
 	{ IDC_STEALTHY_STYLE_ICO_SPEEDIGNORE, SettingsManager::STEALTHY_STYLE_ICO_SPEEDIGNORE, PropPage::T_BOOL },
 	{ IDC_PROGRESS_BUMPED, SettingsManager::PROGRESSBAR_ODC_BUMPED, PropPage::T_BOOL },
@@ -228,19 +226,7 @@ LRESULT OperaColorsPage::onDrawItem(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPa
 		{
 			COLORREF clr = getCheckbox(IDC_PROGRESS_OVERRIDE) ? ((dis->CtlID == IDC_PROGRESS_COLOR_DOWN_SHOW) ? crProgressDown : crProgressUp) : GetSysColor(COLOR_HIGHLIGHT);
 			int textcolor;
-			if (stealthyStyle)  // if one finds a better/cleaner/nicer way to do this, pleace tell me...
-			{
-				CDC cdc;
-				COLORREF barPal[3] = { HLS_TRANSFORM(clr, -40, 50), clr, HLS_TRANSFORM(clr, 20, -30) };
-				DeleteObject(::SelectObject(dc, CreateSolidBrush(barPal[1])));
-				::Rectangle(dc, rc.left, rc.top, rc.right, rc.bottom);
-				cdc.Attach(dis->hDC);
-				DeleteObject(SelectObject(cdc, CreatePen(PS_SOLID, 1, barPal[2])));
-				::MoveToEx(cdc, rc.left + 2, rc.top + 2, (LPPOINT)NULL);
-				::LineTo(cdc, rc.right - 2, rc.top + 2);
-				cdc.Detach();
-			}
-			else if (odcStyle)
+			if (odcStyle)
 			{
 				COLORREF a, b;
 				OperaColors::EnlightenFlood(clr, a, b);
@@ -253,20 +239,10 @@ LRESULT OperaColorsPage::onDrawItem(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPa
 				statusBar.FillRange(0, 16, clr);
 				statusBar.Draw(dc, rc.top, rc.left, hloubka);
 			}
-			if (stealthyStyle)
-			{
-				if (((HLS_L(RGB2HLS(clr)) > 190) && (HLS_S(RGB2HLS(clr)) < 30)) || (HLS_L(RGB2HLS(clr)) > 211))
-					textcolor = HLS_TRANSFORM(clr, -40, 0);
-				else
-					textcolor = RGB(255, 255, 255);
-			}
-			else
-			{
-				textcolor = getCheckbox(IDC_PROGRESS_OVERRIDE2) ? ((dis->CtlID == IDC_PROGRESS_COLOR_DOWN_SHOW) ? crProgressTextDown : crProgressTextUp) : OperaColors::TextFromBackground(clr);
-			}
+			textcolor = getCheckbox(IDC_PROGRESS_OVERRIDE2) ? ((dis->CtlID == IDC_PROGRESS_COLOR_DOWN_SHOW) ? crProgressTextDown : crProgressTextUp) : OperaColors::TextFromBackground(clr);
 			dc.SetTextColor(textcolor);
 		}
-		const wstring& l_text = TSTRING(SETTINGS_MENUHEADER_EXAMPLE);
+		const wstring l_text = TSTRING(SETTINGS_MENUHEADER_EXAMPLE);
 		dc.DrawText(l_text.c_str(), l_text.length(), rc, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 		dc.Detach();
 	} // if (dis->CtlType == ODT_STATIC) {
@@ -318,7 +294,6 @@ LRESULT OperaColorsPage::onMenubarClicked(WORD /*wNotifyCode*/, WORD wID, HWND /
 LRESULT OperaColorsPage::onClickedProgress(WORD /* wNotifyCode */, WORD wID, HWND /* hWndCtl */, BOOL& /* bHandled */)
 {
 	odcStyle = IsDlgButtonChecked(IDC_ODC_STYLE) == 1;
-	stealthyStyle = IsDlgButtonChecked(IDC_STEALTHY_STYLE) == 1;
 	stealthyStyleIco = IsDlgButtonChecked(IDC_STEALTHY_STYLE_ICO) == 1;
 	stealthyStyleIcoSpeedIgnore = IsDlgButtonChecked(IDC_STEALTHY_STYLE_ICO_SPEEDIGNORE) == 1;
 	updateProgress(false);

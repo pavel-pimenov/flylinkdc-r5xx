@@ -102,6 +102,7 @@ const string SettingsManager::g_settingTags[] =
 	"LogFormatDHTTrace",
 	"LogFormatPSRTrace",
 	"LogFormatFloodTrace",
+	"LogFormatTorrentTrace",
 	
 	"WebServerUser", "WebServerPass", "LogFileMainChat",
 	"LogFilePrivateChat", "LogFileStatus", "LogFileUpload", "LogFileDownload", "LogFileSystem", "LogFormatSystem",
@@ -114,6 +115,7 @@ const string SettingsManager::g_settingTags[] =
 	"LogFileDHTTrace",
 	"LogFilePSRTrace",
 	"LogFileFloodTrace",
+	"LogFileTorrentTrace",
 	
 	"DirectoryListingFrameOrder", "DirectoryListingFrameWidths",
 	"TransferFrameVisible", "SearchFrameVisible", "QueueFrameVisible", "HubFrameVisible", "UploadQueueFrameVisible",
@@ -146,8 +148,6 @@ const string SettingsManager::g_settingTags[] =
 	"Mapper",
 	"PortalBrowserUpdateURL",// [+] PPA
 	"ISPResourceRootURL",// [+] PPA
-	"BTMagnetOpenCMD",//[+]IRainman
-	//"UpdateChanel", // [+] IRainman TODO update chanels
 	"ThemeDLLName", // [+] SSA - ThemeDLLName, if emty - use standart resource
 	"ThemeManagerSoundsThemeName", // [+] SCALOlaz: Sounds Theme
 	"UpdateServerURL", // [+] SSA
@@ -192,7 +192,7 @@ const string SettingsManager::g_settingTags[] =
 	"SendBloom",
 	"AutoSearchAutoMatch", "DownloadBarColor", "UploadBarColor", "LogSystem",
 	"LogCustomLocation", // [+] IRainman
-	"LogSQLiteTrace", "LogVirusTrace", "LogDDOSTrace", "LogDHTTrace", "LogPSRTrace", "LogFloodTrace", "LogCMDDebugTrace",
+	"LogSQLiteTrace", "LogVirusTrace", "LogDDOSTrace", "LogDHTTrace", "LogPSRTrace", "LogFloodTrace", "LogTorrentTrace", "LogCMDDebugTrace",
 	"LogFilelistTransfers", "ShowStatusbar", "ShowToolbar", "ShowTransferview", "ShowTransferViewToolbar",
 	"SearchPassiveAlways", "SetMinislotSize", "ShutdownInterval",
 	//"CzertHiddenSettingA", "CzertHiddenSettingB",// [-] IRainman SpeedLimiter
@@ -607,6 +607,8 @@ void SettingsManager::setDefaults()
 	setDefault(LOG_FILE_FLOOD_TRACE, "flood.log");
 	setDefault(LOG_FORMAT_FLOOD_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
+	setDefault(LOG_FILE_TORRENT_TRACE, "torrent.log");
+	setDefault(LOG_FORMAT_TORRENT_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
 	setDefault(TIME_STAMPS_FORMAT, "%X"); // [!] IRainman fix: use system format time. "%H:%M:%S"
 //
@@ -1017,7 +1019,6 @@ void SettingsManager::setDefaults()
 	setDefault(PROGRESSBAR_ODC_BUMPED, TRUE);
 	setDefault(TOP_SPEED, 100);
 	setDefault(TOP_UP_SPEED, 50);
-	setDefault(STEALTHY_STYLE, TRUE);
 	setDefault(STEALTHY_STYLE_ICO, TRUE);
 	//setDefault(STEALTHY_STYLE_ICO_SPEEDIGNORE, false);
 	setDefault(PSR_DELAY, 30);
@@ -1694,6 +1695,7 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 		case LOG_FILE_VIRUS_TRACE:
 		case LOG_FILE_DDOS_TRACE:
 		case LOG_FILE_DHT_TRACE:
+		case LOG_FILE_TORRENT_TRACE:
 		case LOG_FILE_PSR_TRACE:
 		case LOG_FILE_FLOOD_TRACE:
 		case LOG_FILE_CMDDEBUG_TRACE:

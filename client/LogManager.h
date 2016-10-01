@@ -57,6 +57,7 @@ class LogManager
 		               DHT_TRACE,
 		               PSR_TRACE,
 		               FLOOD_TRACE,
+		               TORRENT_TRACE,
 		               LAST
 		             };
 		             
@@ -67,6 +68,7 @@ class LogManager
 		static void flood_message(const string& params);
 		static void cmd_debug_message(const string& params);
 		static void dht_message(const string& params);
+		static void torrent_message(const string& params);
 		static void psr_message(const string& params);
 		static void log(LogArea area, const StringMap& params, bool p_only_file = false) noexcept;
 		static void message(const string& msg, bool p_only_file = false);

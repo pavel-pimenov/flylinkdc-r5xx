@@ -80,9 +80,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		                       , uint32_t p_HubID
 #endif
-		                       , bool p_first_load
 		                      );
-		static UserPtr getUser(const CID& cid, bool p_create);
+		static UserPtr createUser(const CID& cid, const string& p_nick, uint32_t p_hub_id);
 		
 		static string findHub(const string& ipPort);
 		static string findHubEncoding(const string& aUrl);
@@ -93,7 +92,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		*/
 		static OnlineUserPtr findOnlineUserL(const HintedUser& user, bool priv)
 		{
-			// [!] IRainman: This function need to external lock.
 			return findOnlineUserL(user.user->getCID(), user.hint, priv);
 		}
 		static OnlineUserPtr findOnlineUserL(const CID& cid, const string& hintUrl, bool priv);
@@ -195,23 +193,18 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		}
 		static bool isMe(const UserPtr& p_user)
 		{
-			dcassert(p_user); // If there crashes: means forgotten somewhere above cause getFlylinkDCUser() or getFlylinkDCIdentity() ;)
+			dcassert(p_user);
 			return isMe(p_user->getCID());
 		}
 		static bool isMe(const OnlineUserPtr& p_user)
 		{
-			dcassert(p_user); // If there crashes: means forgotten somewhere above cause getFlylinkDCUser() or getFlylinkDCIdentity() ;)
+			dcassert(p_user);
 			return isMe(p_user->getUser());
 		}
 		static const UserPtr& getMe_UseOnlyForNonHubSpecifiedTasks() // [!] IRainman fix.
 		{
 			dcassert(g_me);
 			return g_me;
-		}
-		static const UserPtr& getFlylinkDCUser()
-		{
-			dcassert(g_uflylinkdc);
-			return g_uflylinkdc;
 		}
 		static const Identity& getFlylinkDCIdentity()
 		{

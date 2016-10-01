@@ -58,10 +58,12 @@ void File::init(const tstring& aFileName, int access, int mode, bool isAbsoluteP
 			dcassert(0);
 		}
 	}
-//	if (Text::fromT(aFileName).find(".dctmp") != string::npos)
-//	{
-//		LogManager::message("File::init - dctmp: " + Text::fromT(aFileName));
-//	}
+#ifdef _DEBUG
+	//if (Text::fromT(aFileName).find(".log") == string::npos)
+	//{
+	//  //LogManager::message("File::init - file: " + Text::fromT(aFileName));
+	//}
+#endif
 	const DWORD shared = FILE_SHARE_READ | (mode & SHARED ? (FILE_SHARE_WRITE | FILE_SHARE_DELETE) : 0);
 	
 	const tstring outPath = isAbsolutePath ? formatPath(aFileName) : aFileName;

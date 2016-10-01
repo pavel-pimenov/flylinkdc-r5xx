@@ -45,7 +45,7 @@ Identity::StringDictionaryIndex Identity::g_infoDicIndex;
 
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 
-User::User(const CID& aCID) : m_cid(aCID),
+User::User(const CID& p_CID, const string& p_nick, uint32_t p_hub_id) : m_cid(p_CID),
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 	m_support_slots(FLY_SUPPORT_SLOTS_FIRST),
 #endif
@@ -53,10 +53,11 @@ User::User(const CID& aCID) : m_cid(aCID),
 	m_bytesShared(0),
 	m_limit(0)
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-	, m_hub_id(0)
+	, m_hub_id(p_hub_id)
 	, m_ratio_ptr(nullptr)
 #endif
 {
+	setLastNick(p_nick);
 	m_message_count.set(0);
 	m_message_count.reset_dirty();
 	setFlag(User::IS_SQL_NOT_FOUND);

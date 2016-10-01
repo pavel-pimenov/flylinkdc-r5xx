@@ -27,7 +27,7 @@ doctor-dump
 test
 leveldb
 snappy
-cppformat
+libtorrent
 src_exclude.txt
 src_include.txt
 Doxyfile

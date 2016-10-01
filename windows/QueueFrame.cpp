@@ -24,7 +24,6 @@
 #include "../client/ShareManager.h"
 #include "../client/ClientManager.h"
 #include "BarShader.h"
-#include "ExMessageBox.h" // [+] InfinitySky. From Apex.
 #include "MainFrm.h"
 
 int QueueFrame::columnIndexes[] = { COLUMN_TARGET, COLUMN_TYPE, COLUMN_STATUS, COLUMN_SEGMENTS, COLUMN_SIZE, COLUMN_PROGRESS, COLUMN_DOWNLOADED, COLUMN_PRIORITY,

@@ -38,7 +38,6 @@ class OperaColorsPage : public CPropertyPage<IDD_OPERACOLORS_PAGE>, public PropP
 			bDoLeft = false;
 			bDoSegment = false;
 			odcStyle = false;
-			stealthyStyle = false;
 			stealthyStyleIco = false;
 			stealthyStyleIcoSpeedIgnore = false;
 		}
@@ -56,7 +55,6 @@ class OperaColorsPage : public CPropertyPage<IDD_OPERACOLORS_PAGE>, public PropP
 		COMMAND_HANDLER(IDC_PROGRESS_OVERRIDE2, BN_CLICKED, onClickedProgressOverride)
 		COMMAND_HANDLER(IDC_PROGRESS_SEGMENT_SHOW, BN_CLICKED, onClickedProgressOverride)
 		COMMAND_HANDLER(IDC_ODC_STYLE, BN_CLICKED, onClickedProgressOverride)
-		COMMAND_HANDLER(IDC_STEALTHY_STYLE, BN_CLICKED, onClickedProgressOverride)
 		COMMAND_HANDLER(IDC_STEALTHY_STYLE_ICO, BN_CLICKED, onClickedProgressOverride)
 		COMMAND_HANDLER(IDC_STEALTHY_STYLE_ICO_SPEEDIGNORE, BN_CLICKED, onClickedProgressOverride)
 		COMMAND_HANDLER(IDC_PROGRESS_BUMPED, BN_CLICKED, onClickedProgressOverride)
@@ -101,8 +99,6 @@ class OperaColorsPage : public CPropertyPage<IDD_OPERACOLORS_PAGE>, public PropP
 		
 		void updateProgress(bool bInvalidate = true)
 		{
-			stealthyStyle = (IsDlgButtonChecked(IDC_STEALTHY_STYLE) != 0);
-			::EnableWindow(::GetDlgItem(m_hWnd, IDC_ODC_STYLE), !stealthyStyle);
 			stealthyStyleIco = (IsDlgButtonChecked(IDC_STEALTHY_STYLE_ICO) != 0);
 			::EnableWindow(::GetDlgItem(m_hWnd, IDC_STEALTHY_STYLE_ICO_SPEEDIGNORE), stealthyStyleIco);
 			stealthyStyleIcoSpeedIgnore = stealthyStyleIco ? (IsDlgButtonChecked(IDC_STEALTHY_STYLE_ICO_SPEEDIGNORE) != 0) : 0;
@@ -113,25 +109,25 @@ class OperaColorsPage : public CPropertyPage<IDD_OPERACOLORS_PAGE>, public PropP
 			::EnableWindow(::GetDlgItem(m_hWnd, IDC_SPEED_UP_STR), stealthyStyleIcoSpeedIgnore);
 			::EnableWindow(::GetDlgItem(m_hWnd, IDC_KBPS2), stealthyStyleIcoSpeedIgnore);
 			
-			odcStyle = (IsDlgButtonChecked(IDC_ODC_STYLE) != 0 && !stealthyStyle);
+			odcStyle = IsDlgButtonChecked(IDC_ODC_STYLE) != 0;
 			::EnableWindow(::GetDlgItem(m_hWnd, IDC_PROGRESS_BUMPED), odcStyle);
 			
-			::EnableWindow(::GetDlgItem(m_hWnd, IDC_FLAT), !stealthyStyle && !odcStyle);
-			::EnableWindow(::GetDlgItem(m_hWnd, IDC_DEPTH_STR), !stealthyStyle && !odcStyle);
+			::EnableWindow(::GetDlgItem(m_hWnd, IDC_FLAT), !odcStyle);
+			::EnableWindow(::GetDlgItem(m_hWnd, IDC_DEPTH_STR), !odcStyle);
 			
 			bool state = (IsDlgButtonChecked(IDC_PROGRESS_OVERRIDE) != 0);
-			::EnableWindow(::GetDlgItem(m_hWnd, IDC_PROGRESS_OVERRIDE2), state && !stealthyStyle);
+			::EnableWindow(::GetDlgItem(m_hWnd, IDC_PROGRESS_OVERRIDE2), state);
 			::EnableWindow(::GetDlgItem(m_hWnd, IDC_SETTINGS_DOWNLOAD_BAR_COLOR), state);
 			::EnableWindow(::GetDlgItem(m_hWnd, IDC_SETTINGS_UPLOAD_BAR_COLOR), state);
 			
-			state = ((IsDlgButtonChecked(IDC_PROGRESS_OVERRIDE) != 0) && (IsDlgButtonChecked(IDC_PROGRESS_OVERRIDE2) != 0));
-			::EnableWindow(::GetDlgItem(m_hWnd, IDC_PROGRESS_TEXT_COLOR_DOWN), state && !stealthyStyle);
-			::EnableWindow(::GetDlgItem(m_hWnd, IDC_PROGRESS_TEXT_COLOR_UP), state && !stealthyStyle);
+			state = IsDlgButtonChecked(IDC_PROGRESS_OVERRIDE) != 0 && IsDlgButtonChecked(IDC_PROGRESS_OVERRIDE2) != 0;
+			::EnableWindow(::GetDlgItem(m_hWnd, IDC_PROGRESS_TEXT_COLOR_DOWN), state);
+			::EnableWindow(::GetDlgItem(m_hWnd, IDC_PROGRESS_TEXT_COLOR_UP), state);
 			if (bInvalidate)
 			{
-				if (ctrlProgressDownDrawer.m_hWnd > 0)
+				if (ctrlProgressDownDrawer.m_hWnd)
 					ctrlProgressDownDrawer.Invalidate();
-				if (ctrlProgressUpDrawer.m_hWnd > 0)
+				if (ctrlProgressUpDrawer.m_hWnd)
 					ctrlProgressUpDrawer.Invalidate();
 			}
 		}
@@ -159,7 +155,6 @@ class OperaColorsPage : public CPropertyPage<IDD_OPERACOLORS_PAGE>, public PropP
 		bool bDoLeft;
 		bool bDoSegment;
 		bool odcStyle;
-		bool stealthyStyle;
 		bool stealthyStyleIco;
 		bool stealthyStyleIcoSpeedIgnore;
 		

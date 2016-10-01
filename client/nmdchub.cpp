@@ -143,12 +143,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	else
 	{
 		l_is_CID_User = true;
-		UserPtr p = ClientManager::getUser(aNick, getHubUrl()
-#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-		                                   , getHubID()
-#endif
-		                                   , p_first_load
-		                                  );
+		UserPtr p = ClientManager::getUser(aNick, getHubUrl(), getHubID());
 		l_ou_ptr = std::make_shared<OnlineUser>(p, *this, 0);
 	}
 	auto l_find = m_users.insert(make_pair(aNick, l_ou_ptr));
@@ -214,12 +209,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 			auto l_item = m_users.insert(make_pair(aNick, OnlineUserPtr()));
 			if (l_item.second == true)
 			{
-				UserPtr p = ClientManager::getUser(aNick, getHubUrl()
-#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-				                                   , getHubID()
-#endif
-				                                   , p_first_load
-				                                  );
+				UserPtr p = ClientManager::getUser(aNick, getHubUrl(), getHubID());
 				ou = std::make_shared<OnlineUser>(p, *this, 0);
 				ou->getIdentity().setNick(aNick);
 				l_item.first->second = ou;

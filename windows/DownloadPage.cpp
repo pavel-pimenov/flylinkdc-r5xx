@@ -39,9 +39,6 @@ PropPage::TextItem DownloadPage::texts[] =
 	{ IDC_SETTINGS_PUBLIC_HUB_LIST, ResourceManager::SETTINGS_PUBLIC_HUB_LIST },
 	{ IDC_SETTINGS_PUBLIC_HUB_LIST_URL, ResourceManager::SETTINGS_PUBLIC_HUB_LIST_URL },
 	{ IDC_SETTINGS_LIST_CONFIG, ResourceManager::SETTINGS_CONFIGURE_HUB_LISTS },
-	{ IDC_BITTORRENT_PROGRAMM, ResourceManager::SETTINGS_BITTORRENT_PROGRAMM },
-	{ IDC_BT_HELP, ResourceManager::SETTINGS_BT_HELP },
-	//{ IDC_BROWSE_BT_PROGRAMM, ResourceManager::BROWSE }, //[+] IRainman: BitTorrent
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -53,7 +50,6 @@ PropPage::Item DownloadPage::items[] =
 	{ IDC_FILES, SettingsManager::FILE_SLOTS, PropPage::T_INT },
 	{ IDC_MAXSPEED, SettingsManager::MAX_DOWNLOAD_SPEED, PropPage::T_INT },
 	{ IDC_EXTRA_DOWN_SLOT, SettingsManager::EXTRA_DOWNLOAD_SLOTS, PropPage::T_INT },
-	{ IDC_BT_MAGNET_HANDLER, SettingsManager::BT_MAGNET_OPEN_CMD, PropPage::T_STR }, //[+] IRainman: BitTorrent
 	{ 0, 0, PropPage::T_END }
 };
 
@@ -107,21 +103,6 @@ LRESULT DownloadPage::onClickedBrowseTempDir(WORD /*wNotifyCode*/, WORD /*wID*/,
 	{
 		AppendPathSeparator(dir);
 		SetDlgItemText(IDC_TEMP_DOWNLOAD_DIRECTORY, dir.c_str());
-	}
-	return 0;
-}
-
-//[+] SCALOlaz: BitTorrent Browse.
-static const TCHAR types[] = _T("BitTorrent application\0*.exe\0\0"); // TODO translate
-static const TCHAR defExt[] = _T(".exe");
-
-LRESULT DownloadPage::onClickedBrowseBT(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-{
-	tstring xbt;
-	GET_TEXT(IDC_BT_MAGNET_HANDLER, xbt);
-	if (WinUtil::browseFile(xbt, m_hWnd, false, xbt, types, defExt) == IDOK)
-	{
-		SetDlgItemText(IDC_BT_MAGNET_HANDLER, xbt.c_str());
 	}
 	return 0;
 }

@@ -44,6 +44,7 @@
 #include "../client/UploadManager.h"
 #include "../client/HashManager.h"
 #include "../client/File.h"
+#include "../client/DownloadManager.h"
 #include "MagnetDlg.h"
 // AirDC++
 #include "winamp.h"
@@ -69,6 +70,8 @@ string UserInfoGuiTraits::g_hubHint;
 UserPtr UserInfoBaseHandlerTraitsUser<UserPtr>::g_user = nullptr;
 OnlineUserPtr UserInfoBaseHandlerTraitsUser<OnlineUserPtr>::g_user = nullptr;
 // [~] IRainman opt.
+
+const TCHAR* g_file_list_type = L"All Lists\0*.xml.bz2;*.dcls;*.dclst\0FileLists\0*.xml.bz2\0DCLST metafiles\0*.dcls;*.dclst\0All Files\0*.*\0\0";
 
 FileImage g_fileImage;
 UserImage g_userImage;
@@ -549,11 +552,6 @@ void WinUtil::unlinkStaticMenus(CMenu &menu)
 	}
 }
 
-// [+] SCALOlaz: Return nPosition for IDC in Menu
-// Example:
-// int l_pos = WinUtil::GetMenuItemPosition( copyMenu, IDC_COPY_FILENAME );
-//    if (l_pos!=-1)
-//       copyMenu.ModifyMenu( l_pos, MF_BYPOSITION|MF_STRING, IDC_COPY_FILENAME, CTSTRING(FOLDERNAME) );
 int WinUtil::GetMenuItemPosition(const CMenu &p_menu, UINT_PTR p_IDItem)
 {
 	for (int i = 0; i < p_menu.GetMenuItemCount(); ++i)
@@ -662,6 +660,9 @@ void WinUtil::init(HWND hWnd)
 	file.CreatePopupMenu();
 	
 	file.AppendMenu(MF_STRING, IDC_OPEN_FILE_LIST, CTSTRING(MENU_OPEN_FILE_LIST));
+#ifdef FLYLINKDC_USE_TORRENT
+	file.AppendMenu(MF_STRING, IDC_OPEN_TORRENT_FILE, CTSTRING(MENU_OPEN_TORRENT_FILE));
+#endif
 	file.AppendMenu(MF_STRING, IDC_OPEN_MY_LIST, CTSTRING(MENU_OPEN_OWN_LIST));
 	file.AppendMenu(MF_STRING, IDC_REFRESH_FILE_LIST, CTSTRING(MENU_REFRESH_FILE_LIST));// [~] changed position Sergey Shushkanov
 	file.AppendMenu(MF_STRING, IDC_MATCH_ALL, CTSTRING(MENU_OPEN_MATCH_ALL));
@@ -2334,36 +2335,6 @@ void WinUtil::unRegisterDclstHandler()// [+] IRainman dclst support
 	internalDeleteRegistryKey(_T("DCLST metafile"));
 }
 
-void WinUtil::openBitTorrent(const tstring& p_magnetURI)
-{
-	string l_BtHandler = SETTING(BT_MAGNET_OPEN_CMD);
-	if (!l_BtHandler.empty() && File::isExist(Text::toT(l_BtHandler)))
-	{
-		AppendQuotsToPath(l_BtHandler);
-		translateLinkToextProgramm(p_magnetURI, Util::emptyStringT, Text::toT(l_BtHandler));
-	}
-	else
-	{
-		::MessageBox(nullptr, CTSTRING(SETTINGS_BITTORRENT_ERROR_CONFIG), getFlylinkDCAppCaptionWithVersionT().c_str() , MB_OK | MB_ICONERROR);
-		// TODO support auto detect with "OpenWithProgids" key http://msdn.microsoft.com/en-us/library/bb166549(v=VS.100).aspx
-		/*HKEY hk;
-		LocalArray<TCHAR, MAX_PATH> openCmd;
-		// What command is set up to handle .torrent right now?
-		if (::RegOpenKeyEx(HKEY_CURRENT_USER, _T("SOFTWARE\\Classes\\.torrent\\OpenWithProgids"), 0, KEY_READ, &hk) == ERROR_SUCCESS)
-		{
-		  DWORD bufLen = openCmd.size_of();
-		  if (::RegQueryValueEx(hk, _T("progid"), NULL, NULL, (LPBYTE)openCmd.data(), &bufLen))
-		  {
-		        translateLinkToextProgramm(p_magnetURI, Util::emptyStringT, openCmd.data());
-		  }
-		  ::RegCloseKey(hk);
-		}
-		else
-		{
-		  translateLinkToextProgramm(p_magnetURI, _T(".torrent"));
-		}*/
-	}
-}
 void WinUtil::openFile(const tstring& file)
 {
 	openFile(file.c_str());
@@ -2426,77 +2397,9 @@ void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Ex
 		x += _T("\\shell\\open\\command");
 	}
 	// [~] IRainman
-	if (url.find(_T("magnet:?xt=urn:btih")) != tstring::npos) // fix  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/17
+	if (url.find(_T("magnet:?xt=urn:btih")) != tstring::npos)
 	{
-		CRegKey key;
-		LocalArray<TCHAR, MAX_PATH> regbuf;
-		ULONG len = MAX_PATH;
-		if (!p_openCmd.empty() || key.Open(HKEY_CLASSES_ROOT, x.c_str(), KEY_READ) == ERROR_SUCCESS) // [!] IRainman
-		{
-			if (!p_openCmd.empty() || key.QueryStringValue(NULL, regbuf.data(), &len) == ERROR_SUCCESS) // [!] IRainman
-			{
-				/*
-				 * Various values (for http handlers):
-				 *  C:\PROGRA~1\MOZILL~1\FIREFOX.EXE -url "%1"
-				 *  "C:\Program Files\Internet Explorer\iexplore.exe" -nohome
-				 *  "C:\Apps\Opera7\opera.exe"
-				 *  C:\PROGRAMY\MOZILLA\MOZILLA.EXE -url "%1"
-				 *  C:\PROGRA~1\NETSCAPE\NETSCAPE\NETSCP.EXE -url "%1"
-				 */
-				// [!] IRainman
-				tstring cmd;
-				if (!p_openCmd.empty())
-				{
-					cmd = p_openCmd;
-				}
-				else
-				{
-					cmd = regbuf.data(); // otherwise you consistently get two trailing nulls
-				}
-				// [~] IRainman
-				
-				if (cmd.length() > 1)
-				{
-					string::size_type start, end;
-					if (cmd[0] == '"')
-					{
-						start = 1;
-						end = cmd.find('"', 1);
-					}
-					else
-					{
-						start = 0;
-						end = cmd.find(' ', 1);
-					}
-					if (end == string::npos)
-						end = cmd.length();
-						
-					tstring cmdLine(cmd);
-					cmd = cmd.substr(start, end - start);
-					size_t arg_pos;
-					if ((arg_pos = cmdLine.find(_T("%1"))) != string::npos)
-					{
-						cmdLine.replace(arg_pos, 2, url);
-					}
-					else
-					{
-						cmdLine.append(_T(" \"") + url + _T('\"')); // Here assembled a command line + key (ex: C:\uTorrent\uTorrent.exe \magnet:urn... )
-					}
-					
-					STARTUPINFO si = { sizeof(si), 0 };
-					PROCESS_INFORMATION pi = { 0 };
-					const int iLen = cmdLine.length() + 1;
-					AutoArray<TCHAR> buf(iLen);
-					_tcscpy_s(buf, iLen, cmdLine.c_str());
-					if (::CreateProcess(cmd.c_str(), buf, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-					{
-						::CloseHandle(pi.hThread);
-						::CloseHandle(pi.hProcess);
-						return;
-					}
-				}
-			}
-		}
+		DownloadManager::getInstance()->add_torrent_file(_T(""), url);
 	}
 	
 	::ShellExecute(NULL, NULL, url.c_str(), NULL, NULL, SW_SHOWNORMAL);
@@ -2575,7 +2478,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 	{
 		if (Util::isTorrentLink(aUrl))
 		{
-			openBitTorrent(aUrl);
+			DownloadManager::getInstance()->add_torrent_file(_T(""), aUrl);
 		}
 		else
 			// [~] IRainman

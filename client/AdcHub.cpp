@@ -126,11 +126,8 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 	// [~] IRainman fix.
 	else // User
 	{
-		UserPtr u = ClientManager::getUser(aCID, true);
-#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-		u->setHubID(getHubID());
-#endif
-		OnlineUserPtr newUser = std::make_shared<OnlineUser>(u, *this, aSID);
+		UserPtr u = ClientManager::createUser(aCID, "", getHubID());
+		auto newUser = std::make_shared<OnlineUser>(u, *this, aSID);
 		CFlyWriteLock(*m_cs);
 		ou = m_adc_users.insert(make_pair(aSID, newUser)).first->second;
 	}

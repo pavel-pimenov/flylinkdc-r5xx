@@ -1479,13 +1479,15 @@ void FavoriteManager::load(SimpleXML& aXml
 				{
 					UserPtr u;
 					// [!] FlylinkDC
-					const string& nick = aXml.getChildAttrib("Nick");
+					const string nick = aXml.getChildAttrib("Nick");
 					
 					const string hubUrl = Util::formatDchubUrl(aXml.getChildAttrib("URL")); // [!] IRainman fix: toLower already called in formatDchubUrl ( decodeUrl )
 					
 					const string cid = Util::isAdcHub(hubUrl) ? aXml.getChildAttrib("CID") : ClientManager::makeCid(nick, hubUrl).toBase32();
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 					const uint32_t l_hub_id = CFlylinkDBManager::getInstance()->get_dic_hub_id(hubUrl);
+#else
+					const uint32_t l_hub_id = 0;
 #endif
 					// [~] FlylinkDC
 					
@@ -1493,16 +1495,11 @@ void FavoriteManager::load(SimpleXML& aXml
 					{
 						if (nick.empty() || hubUrl.empty())
 							continue;
-						u = ClientManager::getUser(nick, hubUrl
-#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-						                           , l_hub_id
-#endif
-						                           , false
-						                          );
+						u = ClientManager::getUser(nick, hubUrl, l_hub_id);
 					}
 					else
 					{
-						u = ClientManager::getUser(CID(cid), true);
+						u = ClientManager::createUser(CID(cid), nick, l_hub_id);
 					}
 					
 					CFlyWriteLock(*g_csFavUsers);

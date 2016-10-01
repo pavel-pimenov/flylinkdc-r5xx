@@ -88,7 +88,7 @@
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;$(SolutionDir)\client\webrtc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;$(SolutionDir)\client\webrtc;$(SolutionDir)\libtorrent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -129,7 +129,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;$(SolutionDir)\client\webrtc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;$(SolutionDir)\client\webrtc;$(SolutionDir)\libtorrent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -172,7 +172,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;$(SolutionDir)\client\webrtc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;$(SolutionDir)\client\webrtc;$(SolutionDir)\libtorrent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -219,7 +219,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;$(SolutionDir)\client\webrtc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\bzip2;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)\Zenlib\Source;$(SolutionDir)\leveldb;$(SolutionDir)\leveldb\include;$(SolutionDir)\leveldb\port\win;$(SolutionDir)\jsoncpp\include\;$(SolutionDir)\client;$(SolutionDir)\client\webrtc;$(SolutionDir)\libtorrent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -355,6 +355,7 @@
     <ClCompile Include="client\TimerManager.cpp" />
     <ClCompile Include="client\TraceManager.cpp" />
     <ClCompile Include="client\Transfer.cpp" />
+    <ClCompile Include="client\TransferData.cpp" />
     <ClCompile Include="client\Upload.cpp" />
     <ClCompile Include="client\UploadManager.cpp" />
     <ClCompile Include="client\User.cpp" />
@@ -751,6 +752,7 @@
     <ClInclude Include="client\webrtc\system_wrappers\include\fix_interlocked_exchange_pointer_win.h" />
     <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_win.h" />
     <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_wrapper.h" />
+    <ClInclude Include="client\webrtc\system_wrappers\include\set_thread_name_win.h" />
     <ClInclude Include="client\webrtc\system_wrappers\include\sleep.h" />
     <ClInclude Include="client\webrtc\system_wrappers\include\static_instance.h" />
     <ClInclude Include="client\webrtc\system_wrappers\include\thread_win.h" />

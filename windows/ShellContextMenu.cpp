@@ -95,7 +95,7 @@ CMenu* CShellContextMenu::GetMenu()
 	return m_Menu;
 }
 
-UINT CShellContextMenu::ShowContextMenu(HWND hWnd, CPoint pt)
+UINT CShellContextMenu::ShowContextMenu(HWND hWnd, const CPoint& pt)
 {
 	int iMenuType = 0;  // to know which version of IContextMenu is supported
 	LPCONTEXTMENU pContextMenu; // common pointer to IContextMenu and higher version interface

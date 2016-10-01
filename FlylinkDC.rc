@@ -132,9 +132,8 @@ FONT 8, "MS Shell Dlg", 400, 0, 0xEE
 BEGIN
     GROUPBOX        "Progressbar colors",IDC_SETTINGS_ODC_MENUBAR2,4,2,316,159
     CONTROL         "",IDC_OPERACOLORS_BOOLEANS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,10,13,304,43
-    CONTROL         "DCStealthy style",IDC_STEALTHY_STYLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,60,208,8
-    CONTROL         "oDC style",IDC_ODC_STYLE,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,72,256,8
-    CONTROL         "Bumped",IDC_PROGRESS_BUMPED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,84,255,8
+    CONTROL         "oDC style",IDC_ODC_STYLE,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,62,256,8
+    CONTROL         "Bumped",IDC_PROGRESS_BUMPED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,73,255,8
     GROUPBOX        "Progressbar Color",IDC_CZDC_PROGRESS_COLOR,10,98,111,58
     CONTROL         "Override colors",IDC_PROGRESS_OVERRIDE,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,15,109,99,8
     PUSHBUTTON      "Download",IDC_SETTINGS_DOWNLOAD_BAR_COLOR,14,120,102,14
@@ -514,7 +513,7 @@ BEGIN
     EDITTEXT        IDC_PORT_UDP,240,113,30,14,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "TLS/TCP",IDC_SETTINGS_PORT_TLS,207,131,28,8,0,WS_EX_RIGHT
     EDITTEXT        IDC_PORT_TLS,240,129,30,14,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "DHT/UDP",IDC_SETTINGS_PORT_DHT,205,146,30,8,0,WS_EX_RIGHT
+    LTEXT           "Torrent",IDC_SETTINGS_PORT_DHT,205,146,30,8,0,WS_EX_RIGHT
     EDITTEXT        IDC_PORT_DHT,240,145,30,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Don't allow hub/UPnP to override",IDC_NO_IP_OVERRIDE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,167,157,10
@@ -724,14 +723,14 @@ BEGIN
     RTEXT           "Current version:",IDC_UPDATE_VERSION_CURRENT_LBL,6,5,140,9
     EDITTEXT        IDC_VERSION,149,5,140,12,ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
     CTEXT           "Quality C++ code protects PVS-Studio",IDC_PVS_STUDIO,43,15,216,8
-    GROUPBOX        "Участники проекта:",IDC_THANKS_STATIC,1,27,185,147,BS_CENTER
-    EDITTEXT        IDC_THANKS,5,36,179,133,ES_CENTER | ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP
-    GROUPBOX        "Ссылки:",IDC_LINKS_STATIC,190,27,106,41,BS_CENTER
-    CTEXT           "Домашняя страница",IDC_LINK,193,36,100,8
-    CTEXT           "Обсуждение новых версий",IDC_LINK_BLOG,193,46,100,8
-    CTEXT           "pavel.pimenov@gmail.com",IDC_SUPPORT_MAIL,193,56,100,8
-    GROUPBOX        "Сторонние проекты:",IDC_SIDEPRO_STATIC,190,70,106,104,BS_CENTER
-    EDITTEXT        IDC_THIRD_PARTY_SOFTWARE,194,80,99,92,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP
+    GROUPBOX        "Участники проекта:",IDC_THANKS_STATIC,1,27,152,147,BS_CENTER
+    EDITTEXT        IDC_THANKS,5,36,141,133,ES_CENTER | ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP
+    GROUPBOX        "Ссылки:",IDC_LINKS_STATIC,162,27,125,41,BS_CENTER
+    CTEXT           "Домашняя страница",IDC_LINK,165,36,114,8
+    CTEXT           "Обсуждение новых версий",IDC_LINK_BLOG,165,46,115,8
+    CTEXT           "pavel.pimenov@gmail.com",IDC_SUPPORT_MAIL,165,56,115,8
+    GROUPBOX        "Сторонние проекты:",IDC_SIDEPRO_STATIC,159,70,130,104,BS_CENTER
+    EDITTEXT        IDC_THIRD_PARTY_SOFTWARE,163,77,124,92,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP
 END
 
 IDD_CLIENTS_PAGE DIALOGEX 0, 0, 325, 300
@@ -885,10 +884,6 @@ BEGIN
     GROUPBOX        "Public Hubs list",IDC_SETTINGS_PUBLIC_HUB_LIST,4,163,316,27
     LTEXT           "Public Hubs list URL",IDC_SETTINGS_PUBLIC_HUB_LIST_URL,10,174,163,8
     PUSHBUTTON      "idc_settings_list_config",IDC_SETTINGS_LIST_CONFIG,214,171,100,14
-    LTEXT           "BitTorrent programm for magnets",IDC_BITTORRENT_PROGRAMM,5,195,315,18
-    EDITTEXT        IDC_BT_MAGNET_HANDLER,4,214,286,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",IDC_BROWSE_BT_PROGRAMM,294,214,20,14
-    LTEXT           "As example enter:\n""C:\\\\Program Files (x86)\\uTorrent\\uTorrent.exe""  - to associate default uTorrent path on 64 bit platform\n""C:\\\\Program Files\\uTorrent\\uTorrent.exe""  - to associate default uTorrent path on 32 bit platform",IDC_BT_HELP,5,230,315,45
 END
 
 IDD_SHARE_PAGE DIALOGEX 0, 0, 325, 300
@@ -3120,6 +3115,8 @@ IDR_TSPEEDS             PNG                     "res\\TranferSpeeds.png"
 
 IDR_TSPEEDS_BW          PNG                     "res\\TransferSpeeds-BW.png"
 
+IDR_TORRENT_PNG         PNG                     "res\\torrent.png"
+
 IDR_SPEEDS              PNG                     "res\\Speeds.png"
 
 IDR_FOLDERS             PNG                     "res\\Folders.png"
@@ -3181,6 +3178,21 @@ BEGIN
     0, 0, 0, 0,
     0, 0, 100, 100,
     0, 0, 0, 0
+END
+
+IDD_OPERACOLORS_PAGE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DOWNLOAD_PAGE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_ABOUTBOX AFX_DIALOG_LAYOUT
+BEGIN
+    0
 END
 
 #endif    // Russian (Russia) resources

@@ -72,7 +72,7 @@ COLORREF HLS2RGB(HLSCOLOR hls);
 
 COLORREF HLS_TRANSFORM(COLORREF rgb, int percent_L, int percent_S);
 
-static const TCHAR FILE_LIST_TYPE_T[] = L"All Lists\0*.xml.bz2;*.dcls;*.dclst\0FileLists\0*.xml.bz2\0DCLST metafiles\0*.dcls;*.dclst\0All Files\0*.*\0\0"; // [+] SSA dclst support. TODO translate.
+extern const TCHAR* g_file_list_type;
 
 struct Tags// [+] IRainman struct for links and BB codes
 {
@@ -85,7 +85,6 @@ struct Tags// [+] IRainman struct for links and BB codes
 	Tags(_T("https://")), \
 	Tags(_T("ftp://")), \
 	Tags(_T("irc://")), \
-	Tags(_T("file://")), \
 	Tags(_T("skype:")), \
 	Tags(_T("ed2k://")), \
 	Tags(_T("mms://")), \
@@ -1660,7 +1659,6 @@ class WinUtil
 		static bool urlMagnetRegistered;
 		static bool DclstRegistered;
 		static int textUnderCursor(POINT p, CEdit& ctrl, tstring& x);
-		static void openBitTorrent(const tstring& p_magnetURI);//[+]IRainman
 		static void translateLinkToextProgramm(const tstring& url, const tstring& p_Extension = Util::emptyStringT, const tstring& p_openCmd = Util::emptyStringT);//[+]FlylinkDC
 		static bool openLink(const tstring& url); // [!] IRainman opt: return status.
 		static void openFile(const tstring& file);

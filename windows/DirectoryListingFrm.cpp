@@ -1051,7 +1051,7 @@ LRESULT DirectoryListingFrame::onMatchQueue(WORD /*wNotifyCode*/, WORD /*wID*/, 
 LRESULT DirectoryListingFrame::onListDiff(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	tstring file;
-	if (WinUtil::browseFile(file, m_hWnd, false, Text::toT(Util::getListPath()), FILE_LIST_TYPE_T))
+	if (WinUtil::browseFile(file, m_hWnd, false, Text::toT(Util::getListPath()), g_file_list_type))
 	{
 		DirectoryListing dirList(dl->getHintedUser());
 		try

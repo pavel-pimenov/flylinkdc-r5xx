@@ -164,7 +164,7 @@ class User : public Flags
 //		}
 //#define ENABLE_DEBUG_LOG_IN_USER_CLASS
 
-		explicit User(const CID& aCID);
+		explicit User(const CID& aCID, const string& p_nick, uint32_t p_hub_id);
 		virtual ~User();
 		
 #ifdef _DEBUG
@@ -189,13 +189,6 @@ class User : public Flags
 //				dcdebug("User::getLastNick() called %d\n", int(++g_call_counts));
 #endif
 			return m_nick;
-		}
-		void initLastNick(const string& p_nick)
-		{
-			if (getLastNick().empty())
-			{
-				setLastNick(p_nick);
-			}
 		}
 		void setLastNick(const string& p_nick);
 		void setIP(const string& p_ip, bool p_is_set_only_ip);

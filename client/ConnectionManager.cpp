@@ -1476,6 +1476,7 @@ void ConnectionManager::addDownloadConnection(UserConnection* p_conn)
 		{
 			cqi = *i;
 			l_is_active = true;
+			p_conn->setConnectionQueueToken(cqi->getConnectionQueueToken());
 			if (cqi->getState() == ConnectionQueueItem::WAITING || cqi->getState() == ConnectionQueueItem::CONNECTING)
 			{
 				cqi->setState(ConnectionQueueItem::ACTIVE);
@@ -1526,7 +1527,7 @@ void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 			p_conn->setFlag(UserConnection::FLAG_ASSOCIATED);
 			l_cqi = getCQI_L(p_conn->getHintedUser(), false);
 			l_cqi->setState(ConnectionQueueItem::ACTIVE);
-			
+			p_conn->setConnectionQueueToken(l_cqi->getConnectionQueueToken());
 			dcdebug("ConnectionManager::addUploadConnection, leaving to uploadmanager\n");
 		}
 	}
@@ -1556,8 +1557,6 @@ void ConnectionManager::on(UserConnectionListener::Key, UserConnection* aSource,
 		return;
 	}
 	dcassert(aSource->getUser());
-	// [-] IRainman fix: please don't problem maskerate.
-	// [-]if (aSource->getUser()) //[+]PPA
 	if (aSource->isSet(UserConnection::FLAG_DOWNLOAD))
 	{
 		addDownloadConnection(aSource);
@@ -1706,8 +1705,6 @@ void ConnectionManager::force(const UserPtr& aUser)
 bool ConnectionManager::checkKeyprint(UserConnection *aSource)
 {
 	dcassert(aSource->getUser());
-	// [-] IRainman fix: please don't problem maskerate.
-	// [-] if (!aSource->getUser()) return false; //[+]PPA
 	auto kp = aSource->getKeyprint();
 	if (kp.empty())
 	{
@@ -1920,7 +1917,7 @@ void ConnectionManager::shutdown()
 // UserConnectionListener
 void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* p_conn, StringList& feat) noexcept
 {
-	dcassert(p_conn->getUser()); // [!] IRainman fix: please don't problem maskerate.
+	dcassert(p_conn->getUser());
 	if (p_conn->getUser()) // 44 падения https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=48388
 	{
 		uint8_t knownUcSupports = 0;

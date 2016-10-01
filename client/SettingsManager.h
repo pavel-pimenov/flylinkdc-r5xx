@@ -111,7 +111,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  
 		                  WEBSERVER_POWER_USER, WEBSERVER_POWER_PASS, WEBSERVER_BIND_ADDRESS,// [+] IRainman
 		                  LOG_FORMAT_WEBSERVER, LOG_FORMAT_CUSTOM_LOCATION, LOG_FORMAT_TRACE_SQLITE, LOG_FORMAT_VIRUS_TRACE,
-		                  LOG_FORMAT_DDOS_TRACE, LOG_FORMAT_DHT_TRACE, LOG_FORMAT_PSR_TRACE, LOG_FORMAT_FLOOD_TRACE, LOG_FORMAT_CMDDEBUG_TRACE,
+		                  LOG_FORMAT_DDOS_TRACE, LOG_FORMAT_DHT_TRACE, LOG_FORMAT_PSR_TRACE, LOG_FORMAT_FLOOD_TRACE, LOG_FORMAT_TORRENT_TRACE, LOG_FORMAT_CMDDEBUG_TRACE,
 		                  WEBSERVER_USER, WEBSERVER_PASS, LOG_FILE_MAIN_CHAT,
 		                  LOG_FILE_PRIVATE_CHAT, LOG_FILE_STATUS, LOG_FILE_UPLOAD, LOG_FILE_DOWNLOAD, LOG_FILE_SYSTEM, LOG_FORMAT_SYSTEM,
 		                  LOG_FORMAT_STATUS, LOG_FILE_WEBSERVER, LOG_FILE_CUSTOM_LOCATION,
@@ -123,6 +123,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  LOG_FILE_DHT_TRACE,
 		                  LOG_FILE_PSR_TRACE,
 		                  LOG_FILE_FLOOD_TRACE,
+		                  LOG_FILE_TORRENT_TRACE,
 		                  
 		                  DIRECTORYLISTINGFRAME_ORDER, DIRECTORYLISTINGFRAME_WIDTHS,
 		                  TRANSFER_FRAME_VISIBLE, SEARCHFRAME_VISIBLE, QUEUEFRAME_VISIBLE, HUBFRAME_VISIBLE, UPLOADQUEUEFRAME_VISIBLE,
@@ -154,8 +155,6 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  MAPPER,
 		                  PORTAL_BROWSER_UPDATE_URL, // [+]PPA
 		                  ISP_RESOURCE_ROOT_URL, // [+]PPA
-		                  BT_MAGNET_OPEN_CMD, //[+]IRainman
-		                  //UPDATE_CHANEL, // [+] IRainman TODO update chanels
 		                  THEME_MANAGER_THEME_DLL_NAME, // [+] SSA
 		                  THEME_MANAGER_SOUNDS_THEME_NAME, // [+] SCALOlaz: Sound Themes
 		                  AUTOUPDATE_SERVER_URL, // [+] SSA
@@ -204,6 +203,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  LOG_DHT_TRACE,
 		                  LOG_PSR_TRACE,
 		                  LOG_FLOOD_TRACE,
+		                  LOG_TORRENT_TRACE,
 		                  
 		                  LOG_FILELIST_TRANSFERS, SHOW_STATUSBAR, SHOW_TOOLBAR, SHOW_TRANSFERVIEW, SHOW_TRANSFERVIEW_TOOLBAR,
 		                  SEARCH_PASSIVE, SET_MINISLOT_SIZE, SHUTDOWN_TIMEOUT,

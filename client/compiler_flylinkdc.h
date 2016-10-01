@@ -155,6 +155,8 @@ typedef unsigned __int64 uint64_t;
 # pragma warning(disable: 367)
 #endif
 
+#define FLYLINKDC_USE_TORRENT
+
 //[+]PPA
 // #define FLYLINKDC_USE_DEAD_CODE
 // #define FLYLINKDC_USE_DNS

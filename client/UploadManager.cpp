@@ -904,12 +904,7 @@ void UploadManager::on(UserConnectionListener::Send, UserConnection* aSource) no
 	
 	auto u = aSource->getUpload();
 	dcassert(u != nullptr);
-	// [-] if (!u) return; [-] IRainman fix: please don't problem maskerate.
-	
-	// [!] IRainman refactoring transfer mechanism
 	u->setStart(aSource->getLastActivity());
-	// [-] u->tick(GET_TICK());
-	// [~]
 	
 	aSource->setState(UserConnection::STATE_RUNNING);
 	aSource->transmitFile(u->getReadStream());
@@ -941,7 +936,6 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 	{
 		auto u = aSource->getUpload();
 		dcassert(u != nullptr);
-		// [-] if (!u) return; [-] IRainman fix: please don't problem maskerate.
 		AdcCommand cmd(AdcCommand::CMD_SND);
 		cmd.addParam(l_type).addParam(l_fname)
 		.addParam(Util::toString(u->getStartPos()))
@@ -1371,12 +1365,12 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 				auto u = *i;
 				if (u->getPos() > 0)
 				{
-					TransferData l_td;
+					TransferData l_td(u->getUserConnection()->getConnectionQueueToken());
 					l_td.m_hinted_user = u->getHintedUser();
 					l_td.m_pos = u->getStartPos() + u->getPos();
 					l_td.m_actual = u->getStartPos() + u->getActual();
 					l_td.m_second_left = u->getSecondsLeft(true);
-					l_td.m_running_average = u->getRunningAverage();
+					l_td.m_speed = u->getRunningAverage();
 					l_td.m_start = u->getStart();
 					l_td.m_size = u->getType() == Transfer::TYPE_TREE ? u->getSize() : u->getFileSize();
 					l_td.m_type = u->getType();
@@ -1568,7 +1562,7 @@ void UploadManager::load()
 	CFlylinkDBManager::getInstance()->load_registry(l_values, e_ExtraSlot);
 	for (auto k = l_values.cbegin(); k != l_values.cend(); ++k)
 	{
-		auto user = ClientManager::getUser(CID(k->first), true);
+		auto user = ClientManager::createUser(CID(k->first), "", 0);
 		CFlyWriteLock(*g_csReservedSlots); // [+] IRainman opt.
 		g_reservedSlots[user] = uint32_t(k->second.m_val_int64);
 		g_is_reservedSlotEmpty = g_reservedSlots.empty();

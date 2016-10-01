@@ -4,6 +4,7 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "flylinkdc", "flylinkdc_2015.vcxproj", "{E82610AA-B6FD-4813-B5B9-E717CBD0F23B}"
 	ProjectSection(ProjectDependencies) = postProject
+		{A2C26111-84F5-4CA3-85B8-BD80F1921238} = {A2C26111-84F5-4CA3-85B8-BD80F1921238}
 		{D1095E8A-63A5-4592-AE93-2D638F20F66A} = {D1095E8A-63A5-4592-AE93-2D638F20F66A}
 		{B9F644C2-F9DE-4648-B613-43755D81EA3B} = {B9F644C2-F9DE-4648-B613-43755D81EA3B}
 		{BFA63DD8-95FC-7A39-5D84-D995B2863FE8} = {BFA63DD8-95FC-7A39-5D84-D995B2863FE8}
@@ -45,6 +46,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "natpmp", "natpmp\natpmp_2015.vcxproj", "{BFA63DD8-95FC-7A39-5D84-D995B2863FE8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "openssl", "openssl\openssl_2015.vcxproj", "{B9F644C2-F9DE-4648-B613-43755D81EA3B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtorrent", "libtorrent\libtorrent_2015.vcxproj", "{A2C26111-84F5-4CA3-85B8-BD80F1921238}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -158,6 +161,14 @@ Global
 		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.Release|Win32.Build.0 = Release|Win32
 		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.Release|x64.ActiveCfg = Release|x64
 		{B9F644C2-F9DE-4648-B613-43755D81EA3B}.Release|x64.Build.0 = Release|x64
+		{A2C26111-84F5-4CA3-85B8-BD80F1921238}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A2C26111-84F5-4CA3-85B8-BD80F1921238}.Debug|Win32.Build.0 = Debug|Win32
+		{A2C26111-84F5-4CA3-85B8-BD80F1921238}.Debug|x64.ActiveCfg = Debug|x64
+		{A2C26111-84F5-4CA3-85B8-BD80F1921238}.Debug|x64.Build.0 = Debug|x64
+		{A2C26111-84F5-4CA3-85B8-BD80F1921238}.Release|Win32.ActiveCfg = Release|Win32
+		{A2C26111-84F5-4CA3-85B8-BD80F1921238}.Release|Win32.Build.0 = Release|Win32
+		{A2C26111-84F5-4CA3-85B8-BD80F1921238}.Release|x64.ActiveCfg = Release|x64
+		{A2C26111-84F5-4CA3-85B8-BD80F1921238}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

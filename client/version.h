@@ -82,7 +82,6 @@
 # define T_VERSIONSTRING A_VERSIONSTRING
 # define T_REVISION_NUM_STR A_REVISION_NUM_STR
 #endif
-//#define getFlylinkDCAppCaptionWithVersionT().c_str() _T(APPNAME) _T(" ") T_VERSIONSTRING
 
 #define DCVERSIONSTRING "0.785"
 

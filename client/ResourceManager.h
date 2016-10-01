@@ -22,7 +22,7 @@
 #ifndef DCPLUSPLUS_CLIENT_RESOURCE_MANAGER_H
 #define DCPLUSPLUS_CLIENT_RESOURCE_MANAGER_H
 
-#include "Singleton.h"
+#include "debug.h"
 #include "dcformat.h"
 
 #define STRING(x) ResourceManager::getString(ResourceManager::x) //-V:STRING:807 
@@ -52,7 +52,7 @@
 #define CTSTRING_I CSTRING_I
 #endif
 
-class ResourceManager /*: public Singleton<ResourceManager> [-] IRainman opt. */
+class ResourceManager
 {
 	public:
 	

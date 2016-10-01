@@ -1,6 +1,8 @@
+//-----------------------------------------------------------------------------
+//(c) 2007-2016 pavel.pimenov@gmail.com
+//-----------------------------------------------------------------------------
 
 #pragma once
-
 
 #ifndef DCPLUSPLUS_DCPP_TRANSFER_DATA_H_
 #define DCPLUSPLUS_DCPP_TRANSFER_DATA_H_
@@ -9,25 +11,44 @@
 #ifdef _DEBUG
 #include "LogManager.h"
 #endif
+#include "libtorrent/sha1_hash.hpp"
 
+namespace libtorrent
+{
+struct torrent_status;
+}
 class TransferData
 {
 	public:
-		TransferData(): m_actual(0), m_pos(0), m_start_pos(0), m_start(0), m_running_average(0), m_second_left(0), m_percent(0), m_type(0), m_size(0)
+		TransferData(const string& p_token): m_actual(0),
+			m_pos(0), m_start_pos(0), m_start(0),
+			m_second_left(0), m_percent(0),
+			m_type(0), m_size(0), m_token(p_token),
+			m_speed(0), m_num_seeds(0), m_num_peers(0), m_is_torrent(false)
 		{
 		}
+		void init(libtorrent::torrent_status const& s);
 		int64_t m_actual;
 		int64_t m_pos;
 		int64_t m_start_pos;
 		uint64_t m_start;
 		int64_t m_running_average;
 		int64_t m_second_left;
-		HintedUser m_hinted_user;
 		int64_t m_size;
 		uint8_t m_type;
+		int64_t m_speed;
+		
+		int m_num_seeds;
+		int m_num_peers;
+		bool m_is_torrent;
+		string m_torrent_file_path;
+		libtorrent::sha1_hash m_sha1;
+		
 		double m_percent;
 		tstring m_status_string;
 		string m_path;
+		string m_token;
+		HintedUser m_hinted_user;
 		
 		void calc_percent()
 		{
@@ -54,7 +75,7 @@ class TransferData
 			                    " m_pos = " + Util::toString(m_pos) +
 			                    " m_start_pos = " + Util::toString(m_start_pos) +
 			                    " m_start = " + Util::toString(m_start) +
-			                    " m_running_average = " + Util::toString(m_running_average) +
+			                    " m_speed = " + Util::toString(m_speed) +
 			                    " m_second_left = " + Util::toString(m_second_left) +
 			                    " m_size = " + Util::toString(m_size) +
 			                    " m_type = " + Util::toString(m_type) +

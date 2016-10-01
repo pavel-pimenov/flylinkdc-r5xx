@@ -20,10 +20,9 @@
 
 #if !defined(TRANSFER_VIEW_H)
 #define TRANSFER_VIEW_H
-#define SCALOLAZ_USE_TRANSFER_CONTROL
 
 #ifdef _DEBUG
-//#define LYLINKDC_USE_DEBUG_TRANSFERS
+// #define LYLINKDC_USE_DEBUG_TRANSFERS
 #endif
 #include "../client/DownloadManagerListener.h"
 #include "../client/UploadManagerListener.h"
@@ -82,6 +81,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		COMMAND_ID_HANDLER(IDC_FORCE, onForce)
 		COMMAND_ID_HANDLER(IDC_SEARCH_ALTERNATES, onSearchAlternates)
 		COMMAND_ID_HANDLER(IDC_ADD_P2P_GUARD, onAddP2PGuard)
+		COMMAND_ID_HANDLER(IDC_REMOVE_TORRENT, onRemoveTorrent);
+		COMMAND_ID_HANDLER(IDC_REMOVE_TORRENT_AND_FILE, onRemoveTorrentAndFile);
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
 		COMMAND_ID_HANDLER(IDC_REMOVEALL, onRemoveAll)
 		COMMAND_ID_HANDLER(IDC_DISCONNECT_ALL, onDisconnectAll)
@@ -102,10 +103,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		MESSAGE_HANDLER_HWND(WM_MEASUREITEM, OMenu::onMeasureItem)
 		MESSAGE_HANDLER_HWND(WM_DRAWITEM, OMenu::onDrawItem)
 		COMMAND_ID_HANDLER(IDC_PRIORITY_PAUSED, onPauseSelectedItem)
-#ifdef SCALOLAZ_USE_TRANSFER_CONTROL
 		COMMAND_ID_HANDLER(IDC_UPLOAD_QUEUE, onOpenWindows)
 		COMMAND_ID_HANDLER(IDC_QUEUE, onOpenWindows)
-#endif
 		COMMAND_ID_HANDLER(IDC_COPY_TTH, onCopy) // !JhaoDa
 		COMMAND_ID_HANDLER(IDC_COPY_LINK, onCopy) // !SMT!-UI
 		COMMAND_ID_HANDLER(IDC_COPY_WMLINK, onCopy) // !SMT!-UI
@@ -136,9 +135,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 #endif
 		
 		LRESULT onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-#ifdef SCALOLAZ_USE_TRANSFER_CONTROL
 		LRESULT onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-#endif
+		
 #ifdef IRAINMAN_ENABLE_WHOIS
 		LRESULT onWhoisIP(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #endif
@@ -170,6 +168,16 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		LRESULT onAddP2PGuard(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			ctrlTransfers.forEachSelected(&ItemInfo::disconnectAndP2PGuard);
+			return 0;
+		}
+		LRESULT onRemoveTorrent(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			ctrlTransfers.forEachSelected(&ItemInfo::removeTorrent);
+			return 0;
+		}
+		LRESULT onRemoveTorrentAndFile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			ctrlTransfers.forEachSelected(&ItemInfo::removeTorrentAndFile);
 			return 0;
 		}
 		
@@ -237,7 +245,6 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			TRANSFER_REMOVE_ITEM,
 			TRANSFER_UPDATE_ITEM,
 			TRANSFER_UPDATE_PARENT,
-			TRANSFER_UPDATE_PARENT_WITH_PARSE,
 			TRANSFER_REMOVE_DOWNLOAD_ITEM,
 			TRANSFER_REMOVE_TOKEN_ITEM
 		};
@@ -303,14 +310,19 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 					STATUS_WAITING
 				};
 				
-				ItemInfo(const HintedUser& u, const bool isDownload) : m_hintedUser(u), download(isDownload), transferFailed(false),
+				ItemInfo(const HintedUser& u, const bool p_is_sownload, const bool p_is_torrent) : m_hintedUser(u), m_is_torrent(p_is_torrent), download(p_is_sownload), transferFailed(false),
 					m_status(STATUS_WAITING), m_pos(0), m_size(0), m_actual(0), m_speed(0), m_timeLeft(0),
 					collapsed(true), parent(nullptr), m_hits(-1), running(0), m_type(Transfer::TYPE_FILE), m_is_force_passive(false)
 				{
 					update_nicks();
 				}
 				
-				const bool download; // [!] is const member.
+				const bool download;
+				bool m_is_torrent;
+				
+				string m_torrent_file_path;
+				libtorrent::sha1_hash m_sha1;
+				
 				bool transferFailed;
 				bool collapsed;
 				
@@ -356,6 +368,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				
 				void disconnect();
 				void disconnectAndP2PGuard();
+				void removeTorrent();
+				void removeTorrentAndFile();
 				void removeAll();
 				
 				double getProgressPosition() const
@@ -372,11 +386,24 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				ItemInfo* createParent()
 				{
 					dcassert(download);
-					ItemInfo* ii = new ItemInfo(HintedUser(nullptr, Util::emptyString), true);
+					ItemInfo* ii = new ItemInfo(HintedUser(nullptr, Util::emptyString), true, false); // TODO - torrent
 					ii->running = 0;
-					ii->m_hits = 0;
+					//ii->m_hits = 0;
+					if (m_is_torrent)
+					{
+						ii->m_is_torrent = m_is_torrent;
+						ii->m_pos = m_pos;
+						ii->m_size = m_size;
+						ii->m_actual = m_actual;
+						ii->m_speed = m_speed;
+						ii->m_statusString = m_target;
+					}
+					else
+					{
+						ii->m_statusString = TSTRING(CONNECTING);
+					}
+					//ii->m_percent = m_percent;
 					ii->m_target = m_target;
-					ii->m_statusString = TSTRING(CONNECTING);
 					ii->m_errorStatusString = m_errorStatusString;
 					//ii->m_token = "Parent:" + m_token;
 					return ii;
@@ -412,25 +439,32 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			
 			bool operator==(const ItemInfo& ii) const
 			{
-				return download == ii.download &&
-				       //(m_target == ii.m_target || m_target.empty() && ii.m_target.empty()) &&
-				       m_hintedUser.user == ii.m_hintedUser.user; // [!] IRainman fix.
+				if (m_is_torrent)
+				{
+					return download == ii.download &&
+					       m_torrent_file_path == ii.m_torrent_file_path;
+				}
+				else
+				{
+					return download == ii.download &&
+					       m_hintedUser.user == ii.m_hintedUser.user;
+				}
 			}
 #if 0
 			UpdateInfo(const HintedUser& aUser, const bool isDownload, const bool isTransferFailed = false) :
-				updateMask(0), m_hintedUser(aUser), download(isDownload), transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0)
+				updateMask(0), m_hintedUser(aUser), download(isDownload), transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0), m_is_torrent(false)
 			{
 			}
 #endif
 			UpdateInfo(const HintedUser& aHintedUser, const bool isDownload, const bool isTransferFailed = false) :
 				updateMask(0), download(isDownload), m_hintedUser(aHintedUser), // fix empty string
 				transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
-				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0)
+				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), m_is_torrent(false)
 			{
 			}
 			UpdateInfo() :
 				updateMask(0), download(true), transferFailed(false), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
-				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0)
+				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), m_is_torrent(false)
 			{
 			}
 			~UpdateInfo()
@@ -446,7 +480,10 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				m_hintedUser = aHitedUser;
 				updateMask |= MASK_USER;
 			}
-			const bool download; // [!] is const member.
+			const bool download;
+			bool m_is_torrent;
+			string m_torrent_file_path;
+			libtorrent::sha1_hash m_sha1;
 			const bool transferFailed; // [!] is const member.
 			// [~]
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
@@ -511,16 +548,16 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			void setToken(const string& aToken)
 			{
 				dcassert(!aToken.empty());
-				if (token != aToken && !aToken.empty())
+				if (m_token != aToken && !aToken.empty())
 				{
 #ifdef LYLINKDC_USE_DEBUG_TRANSFERS
 					LogManager::message("setToken(const string& aToken) old_token = " + token + " new token = " + aToken);
 #endif
-					token = aToken;
+					m_token = aToken;
 					updateMask |= MASK_TOKEN;
 				}
 			}
-			string token;
+			string m_token;
 			
 			void setSpeed(int64_t aSpeed)
 			{
@@ -636,6 +673,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		CImageList m_arrows;
 		CImageList m_speedImages;
 		CImageList m_speedImagesBW;
+		CImageList m_torrentImages;
 		
 		static HIconWrapper g_user_icon;
 		//static HIconWrapper g_fiwrewall_icon;
@@ -643,7 +681,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		//OMenu transferMenu;
 		OMenu segmentedMenu;
 		OMenu usercmdsMenu;
-		OMenu copyMenu; // !SMT!-UI
+		OMenu m_copyMenu;
+		//OMenu m_copyTorrentMenu;
 		
 		StringMap ucLineParams;
 		bool m_is_need_resort;
@@ -655,6 +694,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(ConnectionManagerListener::UserUpdated, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept override;
 		void on(ConnectionManagerListener::ConnectionStatusChanged, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept override;
 		
+		void on(DownloadManagerListener::RemoveToken, const string& p_token) noexcept override;
 		void on(DownloadManagerListener::Requesting, const DownloadPtr& aDownload) noexcept override;
 		void on(DownloadManagerListener::Complete, const DownloadPtr& aDownload) noexcept override
 		{
