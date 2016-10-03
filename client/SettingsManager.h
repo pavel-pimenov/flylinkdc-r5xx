@@ -58,19 +58,19 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		
 		static StringList g_connectionSpeeds;
 		static boost::logic::tribool g_TestUDPSearchLevel;
-		static boost::logic::tribool g_TestUDPDHTLevel;
+		static boost::logic::tribool g_TestTorrentLevel;
 		static boost::logic::tribool g_TestTCPLevel;
 		static boost::logic::tribool g_TestTLSLevel;
 		
 		static boost::logic::tribool g_upnpUDPSearchLevel;
-		static boost::logic::tribool g_upnpUDPDHTLevel;
+		static boost::logic::tribool g_upnpTorrentLevel;
 		static boost::logic::tribool g_upnpTCPLevel;
 		static boost::logic::tribool g_upnpTLSLevel;
 		
 		static void upnpPortLevelInit()
 		{
 			g_upnpUDPSearchLevel = boost::logic::indeterminate;
-			g_upnpUDPDHTLevel = boost::logic::indeterminate;
+			g_upnpTorrentLevel = boost::logic::indeterminate;
 			g_upnpTCPLevel = boost::logic::indeterminate;
 			g_upnpTLSLevel = boost::logic::indeterminate;
 		}
@@ -78,7 +78,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		static void testPortLevelInit()
 		{
 			g_TestUDPSearchLevel = boost::logic::indeterminate;
-			g_TestUDPDHTLevel = boost::logic::indeterminate;
+			g_TestTorrentLevel = boost::logic::indeterminate;
 			g_TestTCPLevel = boost::logic::indeterminate;
 			g_TestTLSLevel = boost::logic::indeterminate;
 		}
@@ -376,12 +376,8 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  OVERLAP_CHUNKS,
 		                  EXTRA_PARTIAL_SLOTS,
 		                  AUTO_SLOTS,
-#ifdef STRONG_USE_DHT
 		                  USE_DHT,
-		                  USE_DHT_NOTANSWER,    // [+] SCALOlaz: Answer for Use DHT
 		                  DHT_PORT,
-		                  UPDATE_IP_DHT, // [!] IRainman UPDATE_IP -> UPDATE_IP_DHT: Flylink contains two methods of IP update!
-#endif
 		                  KEEP_FINISHED_FILES_OPTION,
 		                  ALLOW_NAT_TRAVERSAL, USE_EXPLORER_THEME, UC_SUBMENU, AUTO_DETECT_CONNECTION,
 		                  // BETA_INFO, // [+] NightOrion [-]

@@ -13,7 +13,6 @@
 #include "Singleton.h"
 #include "CFlyThread.h"
 #include "sqlite/sqlite3x.hpp"
-#include "../dht/DHTType.h"
 #include "CFlyMediaInfo.h"
 #include "LogManager.h"
 

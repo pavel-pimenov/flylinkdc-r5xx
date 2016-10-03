@@ -71,6 +71,13 @@ namespace libtorrent
 #endif
 	}
 
+	void http_seed_connection::on_connected()
+	{
+		// this is always a seed
+		incoming_have_all();
+		web_connection_base::on_connected();
+	}
+
 	void http_seed_connection::disconnect(error_code const& ec
 		, operation_t op, int error)
 	{
@@ -279,7 +286,7 @@ namespace libtorrent
 							, error_msg);
 					}
 					received_bytes(0, int(bytes_transferred));
-					disconnect(error_code(m_parser.status_code(), get_http_category()), op_bittorrent, 1);
+					disconnect(error_code(m_parser.status_code(), http_category()), op_bittorrent, 1);
 					return;
 				}
 				if (!m_parser.header_finished())
@@ -414,7 +421,7 @@ namespace libtorrent
 				received_bytes(0, int(bytes_transferred));
 				// temporarily unavailable, retry later
 				t->retry_web_seed(this, retry_time);
-				disconnect(error_code(m_parser.status_code(), get_http_category()), op_bittorrent, 1);
+				disconnect(error_code(m_parser.status_code(), http_category()), op_bittorrent, 1);
 				return;
 			}
 

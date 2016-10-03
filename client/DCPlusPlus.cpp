@@ -295,6 +295,9 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		dcdebug("shutdown (after closing last hub (DHT::stop) - User::g_user_counts = %d OnlineUser::g_online_user_counts = %d\n", int(User::g_user_counts), int(OnlineUser::g_online_user_counts)); // [+] IRainman fix.
 #endif
 #endif
+#ifdef FLYLINKDC_USE_TORRENT
+		DownloadManager::getInstance()->shutdown_torrent();
+#endif
 		QueueManager::getInstance()->saveQueue(true);
 		SettingsManager::getInstance()->save();
 		ConnectionManager::getInstance()->shutdown();

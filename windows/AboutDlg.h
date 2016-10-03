@@ -57,9 +57,9 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			
 			static const TCHAR l_thanks[] =
 			    _T("Programming, patches:\r\n")
-			    _T("PPA <pavel.pimenov@gmail.com>\r\nBrain RIPper\r\nSergey Stolper\r\nIRainman\r\nNightOrion\r\nSCALOlaz\r\<entry.reg@gmail.com>\r\n<mike.korbakov@gmail.com>\r\n")
+			    _T("PPA <pavel.pimenov@gmail.com>\r\nBrain RIPper\r\nSergey Stolper\r\nIRainman\r\nNightOrion\r\nSCALOlaz\r\n<entry.reg@gmail.com>\r\n<mike.korbakov@gmail.com>\r\n")
 			    
-			    _T("\r\nPortal Browser,x64 platform, GDI+ animation:\r\n")
+			    _T("\r\nPortal Browser,x64, GDI+ animation:\r\n")
 			    _T("Brain RIPper\r\n")
 			    
 			    _T("\r\nFlylinkDC++ HE, DC++ core NG:\r\n")

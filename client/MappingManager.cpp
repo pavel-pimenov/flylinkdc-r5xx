@@ -30,11 +30,6 @@
 #include "ScopedFunctor.h"
 #include "../FlyFeatures/flyServer.h"
 
-#ifdef STRONG_USE_DHT
-#include "../dht/dht.h"
-#endif
-
-
 string MappingManager::g_externalIP;
 string MappingManager::g_defaultGatewayIP;
 string MappingManager::g_mapperName;
@@ -156,12 +151,6 @@ int MappingManager::run()
 			SettingsManager::g_upnpTLSLevel = addRule(secure_port, Mapper::PROTOCOL_TCP, ("Encrypted transfer"));
 		}
 		SettingsManager::g_upnpUDPSearchLevel = addRule(search_port, Mapper::PROTOCOL_UDP, ("Search"));
-#ifdef STRONG_USE_DHT
-		if (BOOLSETTING(USE_DHT))
-		{
-			SettingsManager::g_upnpUDPDHTLevel = addRule(dht_port, Mapper::PROTOCOL_UDP, dht::NetworkName);
-		}
-#endif
 		
 		auto minutes = mapper.renewal();
 		if (minutes)
@@ -245,15 +234,6 @@ int MappingManager::run()
 			l_is_map_tls = addRule(secure_port, Mapper::PROTOCOL_TCP, "Encrypted transfer");
 		}
 		const bool l_is_map_udp = addRule(search_port, Mapper::PROTOCOL_UDP, "Search");
-#ifdef STRONG_USE_DHT
-		bool l_is_map_dht = false;
-		if (BOOLSETTING(USE_DHT))
-		{
-			l_is_map_dht = addRule(dht_port, Mapper::PROTOCOL_UDP, dht::NetworkName);
-			
-			SettingsManager::g_upnpUDPDHTLevel = l_is_map_dht;
-		}
-#endif
 		SettingsManager::g_upnpUDPSearchLevel = l_is_map_udp;
 		SettingsManager::g_upnpTCPLevel = l_is_map_tcp;
 		if (CryptoManager::TLSOk())
@@ -440,15 +420,10 @@ string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public
 	{
 		l_description += calcTestPortInfo("TCP", SettingsManager::g_TestTCPLevel, SETTING(TCP_PORT));
 	}
-#ifdef STRONG_USE_DHT
-	if (dht::DHT::isValidInstance() && dht::DHT::getInstance()->getPort())
+	if (CFlyServerJSON::isTestPortOK(SETTING(DHT_PORT), "udp"))
 	{
-		if (CFlyServerJSON::isTestPortOK(SETTING(DHT_PORT), "udp"))
-		{
-			l_description += calcTestPortInfo("DHT", SettingsManager::g_TestUDPDHTLevel, SETTING(DHT_PORT));
-		}
+		l_description += calcTestPortInfo("Torrent", SettingsManager::g_TestTorrentLevel, SETTING(DHT_PORT));
 	}
-#endif
 	if (CryptoManager::TLSOk() && SETTING(TLS_PORT) > 1024)
 	{
 		l_description += calcTestPortInfo("TLS", SettingsManager::g_TestTLSLevel, SETTING(TLS_PORT));

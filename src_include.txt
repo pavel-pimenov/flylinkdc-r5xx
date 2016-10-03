@@ -5,7 +5,6 @@ windows
 boost
 wtl
 bzip2
-dht
 res
 zlib
 PortalBrowser

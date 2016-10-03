@@ -54,6 +54,10 @@ DownloadManager::DownloadManager()
 #endif
 	
 }
+void DownloadManager::shutdown_torrent()
+{
+	m_torrent_session.reset();
+}
 
 DownloadManager::~DownloadManager()
 {
@@ -953,22 +957,29 @@ void DownloadManager::onTimeTorrent(uint64_t aTick)
 for (lt::alert const * a : alerts)
 		{
 			//LogManager::torrent_message(".:::. TorrentAllert:" + a->message() + " info:" + std::string(a->what()));
+			if (const auto l_port = lt::alert_cast<lt::portmap_alert>(a))
+			{
+				LogManager::message("portmap_alert: " + a->message() + " info:" + std::string(a->what()));
+				SettingsManager::g_upnpTorrentLevel = true;
+			}
+			if (const auto l_port = lt::alert_cast<lt::portmap_error_alert>(a))
+			{
+				LogManager::message("portmap_error_alert: " + a->message() + " info:" + std::string(a->what()));
+				SettingsManager::g_upnpTorrentLevel = false;
+			}
 			if (const auto l_delete = lt::alert_cast<lt::torrent_removed_alert>(a))
 			{
 				LogManager::torrent_message("torrent_removed_alert: " + a->message());
-//				ConnectionManager::getInstance()->m_sha1_manager.removeToken(l_delete->info_hash.to_string());
 				fly_fire1(DownloadManagerListener::RemoveToken(), l_delete->info_hash.to_string());
 				
 			}
 			if (const auto l_delete = lt::alert_cast<lt::torrent_delete_failed_alert>(a))
 			{
 				LogManager::torrent_message("torrent_deleted_alert: " + a->message());
-//				ConnectionManager::getInstance()->m_sha1_manager.removeToken(l_delete->info_hash.to_string());
 			}
 			if (const auto l_delete = lt::alert_cast<lt::torrent_deleted_alert>(a))
 			{
 				LogManager::torrent_message("torrent_deleted_alert: " + a->message());
-//				ConnectionManager::getInstance()->m_sha1_manager.removeToken(l_delete->info_hash.to_string());
 				fly_fire1(DownloadManagerListener::RemoveToken(), l_delete->info_hash.to_string());
 				
 			}
@@ -1049,7 +1060,16 @@ for (const auto j : st->status)
 		}
 	}
 }
-bool DownloadManager::remove_torrent_file(const libtorrent::sha1_hash& p_sha1, const int delete_options)
+
+int DownloadManager::listen_torrent_port()
+{
+	if (m_torrent_session)
+	{
+		return m_torrent_session->listen_port();
+	}
+	return 0;
+}
+bool DownloadManager::remove_torrent_file(const libtorrent::sha1_hash& p_sha1, const int p_delete_options)
 {
 	if (m_torrent_session)
 	{
@@ -1057,8 +1077,7 @@ bool DownloadManager::remove_torrent_file(const libtorrent::sha1_hash& p_sha1, c
 		try
 		{
 			const auto l_h = m_torrent_session->find_torrent(p_sha1);
-//			ConnectionManager::getInstance()->m_sha1_manager.addToken(p_sha1.to_string());
-			m_torrent_session->remove_torrent(l_h, delete_options);
+			m_torrent_session->remove_torrent(l_h, p_delete_options);
 		}
 		catch (const std::runtime_error& e)
 		{
@@ -1105,85 +1124,90 @@ bool DownloadManager::add_torrent_file(const tstring& p_torrent_path, const tstr
 }
 void DownloadManager::init_torrent()
 {
-	lt::settings_pack l_sett;
-	l_sett.set_int(lt::settings_pack::alert_mask
-	               , lt::alert::error_notification
-	               | lt::alert::storage_notification
-	               | lt::alert::status_notification
-//////                  | lt::alert::all_categories
-	               //  | lt::alert::progress_notification
-	               //  | lt::alert::peer_notification
-	              );
-	l_sett.set_str(settings_pack::user_agent, "FlylinkDC++ build " A_REVISION_NUM_STR); // LIBTORRENT_VERSION //  A_VERSION_NUM_STR
-	l_sett.set_int(settings_pack::choking_algorithm, settings_pack::rate_based_choker);
-	l_sett.set_int(settings_pack::active_loaded_limit, 50); // TODO - конфиг
-	
-	m_torrent_session = std::make_unique<lt::session>(l_sett);
-	m_torrent_session->start_lsd();
-	m_torrent_session->start_upnp();
-	m_torrent_session->start_natpmp();
-	//m_torrent_session->set_load_function(&load_torrent);
-	//m_torrent_session->set_download_rate_limit(10000);
-	
-	l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:8999");
-	lt::dht_settings dht;
-	//dht.privacy_lookups = true;
-	m_torrent_session->set_dht_settings(dht);
-	
-	m_torrent_session->add_dht_router(std::make_pair(
-	                                      std::string("router.bittorrent.com"), 6881));
-	m_torrent_session->add_dht_router(std::make_pair(
-	                                      std::string("router.utorrent.com"), 6881));
-	m_torrent_session->add_dht_router(std::make_pair(
-	                                      std::string("dht.transmissionbt.com"), 6881));
-	m_torrent_session->add_dht_router(std::make_pair(
-	                                      std::string("router.bitcomet.com"), 6881));
-	                                      
-	m_torrent_session->start_dht();
-	
-	/*
+	try
 	{
-	        lt::error_code ec;
-	        std::vector<char> in;
-	        if (load_file(".ses_state", in, ec) == 0)
-	        {
-	            bdecode_node e;
-	            if (bdecode(&in[0], &in[0] + in.size(), e, ec) == 0)
-	                m_torrent_session->load_state(e, session::save_dht_state);
-	        }
-	    }
-	*/
+		lt::settings_pack l_sett;
+		l_sett.set_int(lt::settings_pack::alert_mask
+			, lt::alert::error_notification
+			| lt::alert::storage_notification
+			| lt::alert::status_notification
+			| lt::alert::port_mapping_notification
+			//////                  | lt::alert::all_categories
+							   //  | lt::alert::progress_notification
+							   //  | lt::alert::peer_notification
+		);
+		l_sett.set_str(settings_pack::user_agent, "FlylinkDC++ " A_REVISION_NUM_STR); // LIBTORRENT_VERSION //  A_VERSION_NUM_STR
+		l_sett.set_int(settings_pack::choking_algorithm, settings_pack::rate_based_choker);
+		l_sett.set_int(settings_pack::active_loaded_limit, 50); // TODO - конфиг
+
+		m_torrent_session = std::make_unique<lt::session>(l_sett);
+		m_torrent_session->start_lsd();
+		m_torrent_session->start_upnp();
+		m_torrent_session->start_natpmp();
+		//m_torrent_session->set_load_function(&load_torrent);
+		//m_torrent_session->set_download_rate_limit(10000);
+
+		l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:8999");
+		lt::dht_settings dht;
+		//dht.privacy_lookups = true;
+		m_torrent_session->set_dht_settings(dht);
+
+		m_torrent_session->add_dht_router(std::make_pair(
+			std::string("router.bittorrent.com"), 6881));
+		m_torrent_session->add_dht_router(std::make_pair(
+			std::string("router.utorrent.com"), 6881));
+		m_torrent_session->add_dht_router(std::make_pair(
+			std::string("dht.transmissionbt.com"), 6881));
+		m_torrent_session->add_dht_router(std::make_pair(
+			std::string("router.bitcomet.com"), 6881));
+
+		m_torrent_session->start_dht();
+
+		/*
+		{
+				lt::error_code ec;
+				std::vector<char> in;
+				if (load_file(".ses_state", in, ec) == 0)
+				{
+					bdecode_node e;
+					if (bdecode(&in[0], &in[0] + in.size(), e, ec) == 0)
+						m_torrent_session->load_state(e, session::save_dht_state);
+				}
+			}
+		*/
 #ifdef _DEBUG
-	lt::error_code ec;
-	lt::add_torrent_params p;
-	p.save_path = SETTING(DOWNLOAD_DIRECTORY); // "."
-	p.storage_mode = storage_mode_sparse; //
-	//p.ti = std::make_shared<torrent_info>(std::string("D:\\1.torrent"), std::ref(ec), 0); // Strain - 4 серии!
-	//p.url = "magnet:?xt=urn:btih:519b3ea00fe118a1cc0b2c6b90d62c6f5ff204c0&dn=rutor.info_%D0%98%D0%BB%D0%BB%D1%8E%D0%B7%D0%B8%D1%8F+%D0%BE%D0%B1%D0%BC%D0%B0%D0%BD%D0%B0+2+%2F+Now+You+See+Me+2+%282016%29+BDRip+%D0%BE%D1%82+GeneralFilm+%7C+RUS+Transfer+%7C+%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F&tr=udp://opentor.org:2710&tr=udp://opentor.org:2710&tr=http://retracker.local/announce";
-	//p.url = "magnet:?xt=urn:btih:519b3ea00fe118a1cc0b2c6b90d62c6f5ff204c0&dn=rutor.info_%D0%98%D0%BB%D0%BB%D1%8E%D0%B7%D0%B8%D1%8F+%D0%BE%D0%B1%D0%BC%D0%B0%D0%BD%D0%B0+2+%2F+Now+You+See+Me+2+%282016%29+BDRip+%D0%BE%D1%82+GeneralFilm+%7C+RUS+Transfer+%7C+%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F";
-	//p.url = "magnet:?xt=urn:btih:b71555ecfd11c82c12ff1f94c7ec1c095b6deb63&dn=rutor.info_Stand+Up+SATRip";
-	//p.url = "magnet:?xt=urn:btih:0099d4cbf3b027f8f6e0d9bac7c57a16a56f7458&dn=rutor.info_Lake+Of+Tears+-+By+The+Black+Sea+%282014%29+MP3&tr=udp://opentor.org:2710&tr=udp://opentor.org:2710&tr=http://retracker.local/announce";
-	//p.url = "magnet:?xt=urn:btih:9017152afa06f5964c88faad524a6d443fdea787";
-	// проблемный урл - двоится
-	// http://kino-tor.org/torrent/526186/devjataja-zhizn-lui-draksa_the-9th-life-of-louis-drax-2016-web-dlrip-itunes
-	p.url = "magnet:?xt=urn:btih:c5e31d0c60206be872f6d51cf7f0b64ff83806ff&dn=rutor.info_%D0%94%D0%B5%D0%B2%D1%8F%D1%82%D0%B0%D1%8F+%D0%B6%D0%B8%D0%B7%D0%BD%D1%8C+%D0%9B%D1%83%D0%B8+%D0%94%D1%80%D0%B0%D0%BA%D1%81%D0%B0+%2F+The+9th+Life+of+Louis+Drax+%282016%29+WEB-DLRip+%7C+iTunes&tr=udp://opentor.org:2710&tr=udp://opentor.org:2710&tr=http://retracker.local/announce";
-	
-	if (ec)
-	{
-		dcdebug("%s\n", ec.message().c_str());
-		dcassert(0);
-		//return 1;
-	}
-	m_torrent_session->add_torrent(p, ec);
-	if (ec)
-	{
-		dcdebug("%s\n", ec.message().c_str());
-		dcassert(0);
-		//return 1;
-	}
-	
+		lt::error_code ec;
+		lt::add_torrent_params p;
+		p.save_path = SETTING(DOWNLOAD_DIRECTORY); // "."
+		p.storage_mode = storage_mode_sparse; //
+		//p.ti = std::make_shared<torrent_info>(std::string("D:\\1.torrent"), std::ref(ec), 0); // Strain - 4 серии!
+		//p.url = "magnet:?xt=urn:btih:519b3ea00fe118a1cc0b2c6b90d62c6f5ff204c0&dn=rutor.info_%D0%98%D0%BB%D0%BB%D1%8E%D0%B7%D0%B8%D1%8F+%D0%BE%D0%B1%D0%BC%D0%B0%D0%BD%D0%B0+2+%2F+Now+You+See+Me+2+%282016%29+BDRip+%D0%BE%D1%82+GeneralFilm+%7C+RUS+Transfer+%7C+%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F&tr=udp://opentor.org:2710&tr=udp://opentor.org:2710&tr=http://retracker.local/announce";
+		//p.url = "magnet:?xt=urn:btih:519b3ea00fe118a1cc0b2c6b90d62c6f5ff204c0&dn=rutor.info_%D0%98%D0%BB%D0%BB%D1%8E%D0%B7%D0%B8%D1%8F+%D0%BE%D0%B1%D0%BC%D0%B0%D0%BD%D0%B0+2+%2F+Now+You+See+Me+2+%282016%29+BDRip+%D0%BE%D1%82+GeneralFilm+%7C+RUS+Transfer+%7C+%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F";
+		//p.url = "magnet:?xt=urn:btih:b71555ecfd11c82c12ff1f94c7ec1c095b6deb63&dn=rutor.info_Stand+Up+SATRip";
+		//p.url = "magnet:?xt=urn:btih:0099d4cbf3b027f8f6e0d9bac7c57a16a56f7458&dn=rutor.info_Lake+Of+Tears+-+By+The+Black+Sea+%282014%29+MP3&tr=udp://opentor.org:2710&tr=udp://opentor.org:2710&tr=http://retracker.local/announce";
+		//p.url = "magnet:?xt=urn:btih:9017152afa06f5964c88faad524a6d443fdea787";
+		// проблемный урл - двоится
+		// http://kino-tor.org/torrent/526186/devjataja-zhizn-lui-draksa_the-9th-life-of-louis-drax-2016-web-dlrip-itunes
+		p.url = "magnet:?xt=urn:btih:c5e31d0c60206be872f6d51cf7f0b64ff83806ff&dn=rutor.info_%D0%94%D0%B5%D0%B2%D1%8F%D1%82%D0%B0%D1%8F+%D0%B6%D0%B8%D0%B7%D0%BD%D1%8C+%D0%9B%D1%83%D0%B8+%D0%94%D1%80%D0%B0%D0%BA%D1%81%D0%B0+%2F+The+9th+Life+of+Louis+Drax+%282016%29+WEB-DLRip+%7C+iTunes&tr=udp://opentor.org:2710&tr=udp://opentor.org:2710&tr=http://retracker.local/announce";
+		if (ec)
+		{
+			dcdebug("%s\n", ec.message().c_str());
+			dcassert(0);
+			//return 1;
+		}
+		m_torrent_session->add_torrent(p, ec);
+		if (ec)
+		{
+			dcdebug("%s\n", ec.message().c_str());
+			dcassert(0);
+			//return 1;
+		}
 #endif
-	
+	}
+	catch (const std::exception& e)
+	{
+		CFlyServerJSON::pushError(72, "DownloadManager::init_torrent error: " + std::string(e.what())); 
+	}	
 }
 #endif
 

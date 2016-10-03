@@ -1173,7 +1173,7 @@
 		<String Name="SettingsDclsPage">DCLST support</String>
 		<String Name="SettingsDefaultAwayMsg">Message "gauche"</String>
 		<String Name="SettingsDefaultClick">Cliquez-team</String>
-		<String Name="SettingsDhtPort">DHT/UDP</String>
+		<String Name="SettingsDhtPort">Torrent</String>
 		<String Name="SettingsDirect">Connexion directe</String>
 		<String Name="SettingsDirectories">Dossiers</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Afficher des utilisateurs tricheurs dans le chat principal</String>

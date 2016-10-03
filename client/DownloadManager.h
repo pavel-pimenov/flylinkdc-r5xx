@@ -56,8 +56,10 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		void init_torrent();
 		void onTimeTorrent(uint64_t aTick);
 	public:
+		void shutdown_torrent();
 		bool add_torrent_file(const tstring& p_torrent_path, const tstring& p_torrent_url);
 		bool remove_torrent_file(const libtorrent::sha1_hash& p_sha1, const int delete_options);
+		int listen_torrent_port();
 #endif
 		
 	public:

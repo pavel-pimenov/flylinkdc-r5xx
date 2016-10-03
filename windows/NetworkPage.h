@@ -47,9 +47,6 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 			SetTitle(m_title.c_str());
 			m_psp.dwFlags |= PSP_RTLREADING;
 		}
-		~NetworkPage()
-		{
-		}
 		
 		BEGIN_MSG_MAP(NetworkPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
@@ -67,10 +64,6 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 		COMMAND_ID_HANDLER(IDC_AUTODETECT, onClickedActive)
 #endif
 		COMMAND_ID_HANDLER(IDC_WAN_IP_MANUAL, onWANIPManualClickedActive)
-		
-#ifdef STRONG_USE_DHT
-		COMMAND_ID_HANDLER(IDC_SETTINGS_USE_DHT, onCheckDHTStats)
-#endif
 		COMMAND_ID_HANDLER(IDC_GETIP, onGetIP)
 		COMMAND_ID_HANDLER(IDC_ADD_FLYLINKDC_WINFIREWALL, onAddWinFirewallException)
 		
@@ -83,9 +76,6 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 		LRESULT onGetIP(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */);
 		LRESULT onAddWinFirewallException(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */);
 		LRESULT OnEnKillfocusExternalIp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-#ifdef STRONG_USE_DHT
-		LRESULT onCheckDHTStats(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-#endif
 		LRESULT OnCtlColorDlg(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		
 		// Common PropPage interface

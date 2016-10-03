@@ -1187,7 +1187,7 @@
 		<String Name="SettingsDclsPage">Soporte DCLST</String>
 		<String Name="SettingsDefaultAwayMsg">Mensaje en modo ausente</String>
 		<String Name="SettingsDefaultClick">Acción por defecto</String>
-		<String Name="SettingsDhtPort">DHT/UDP</String>
+		<String Name="SettingsDhtPort">Torrent</String>
 		<String Name="SettingsDirect">Conexión directa</String>
 		<String Name="SettingsDirectories">Carpetas</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Mostrar usuarios tramposos en el chat principal</String>

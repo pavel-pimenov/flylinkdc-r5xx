@@ -282,26 +282,3 @@ LRESULT AdvancedPage::onSelChange(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* 
 	return 0;
 }
 
-// [+] brain-ripper
-// Display warning if DHT turned on
-// [-] IRainaman moved to NetworkPage
-//LRESULT AdvancedPage::onListItemChanged(int wParam, LPNMHDR lParam, BOOL& /* bHandled */)
-//{
-//	LPNMLISTVIEW plv = (LPNMLISTVIEW)(lParam);
-//
-//	if (
-//	    bInited &&
-//	    plv->iItem >= 0 && plv->iItem < _countof(listItems)      && // if parameter is sane
-//	    listItems[static_cast<size_t>(plv->iItem)].setting == SettingsManager::USE_DHT && // if this is DHT item
-//	    (plv->uChanged & LVIF_STATE)                              && // if state changed
-//	    (plv->uNewState & LVIS_STATEIMAGEMASK) == 0x2000             // and new state is "checked"
-//	)
-//	{
-//		if (MessageBox(m_hWnd, CTSTRING(DHT_WARNING), CTSTRING(WARNING), MB_ICONWARNING | MB_YESNO) != IDYES)
-//		{
-//			ListView_SetItemState(GetDlgItem(IDC_ADVANCED_BOOLEANS), plv->iItem, 0x1000, LVIS_STATEIMAGEMASK);
-//		}
-//	}
-//
-//	return 0;
-//}

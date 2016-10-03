@@ -73,9 +73,6 @@
 #include "../client/MappingManager.h"
 #include "../client/Text.h"
 #include "../client/NmdcHub.h"
-#ifdef STRONG_USE_DHT
-# include "../dht/dht.h"
-#endif
 #include "HIconWrapper.h"
 #include "FlyUpdateDlg.h"
 #include "../FlyFeatures/AutoUpdate.h"
@@ -4001,14 +3998,6 @@ LRESULT MainFrame::onCheckDHTStats(WORD /* wNotifyCode */, WORD /*wID*/, HWND /*
 }
 void MainFrame::onDHTPush()
 {
-	const bool l_currentDhtStateIsEnable = BOOLSETTING(USE_DHT);
-	if (!l_currentDhtStateIsEnable && !BOOLSETTING(USE_DHT_NOTANSWER))
-	{
-		if (MessageBox(CTSTRING(DHT_WARNING), CTSTRING(WARNING), MB_ICONWARNING | MB_YESNO | MB_DEFBUTTON1) != IDYES)
-		{
-			return/* TRUE*/;
-		}
-	}
 	SET_SETTING(USE_DHT, !l_currentDhtStateIsEnable); // TODO - не поддерживается смена номера порта
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 	if (l_currentDhtStateIsEnable)

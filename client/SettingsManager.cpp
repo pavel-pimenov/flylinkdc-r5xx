@@ -23,13 +23,8 @@
 #include "AdcHub.h"
 #include "CID.h"
 #include "StringTokenizer.h"
-#ifdef STRONG_USE_DHT
-#include "../dht/dht.h"
-#endif
-//[+]IRainman SpeedLimiter
 #include "UploadManager.h"
 #include "ThrottleManager.h"
-//[~]IRainman SpeedLimiter
 #include "ShareManager.h" // [+] NightOrion
 #include <boost/algorithm/string.hpp>
 #include "../FlyFeatures/AutoUpdate.h"
@@ -40,12 +35,12 @@
 
 StringList SettingsManager::g_connectionSpeeds;
 boost::logic::tribool SettingsManager::g_TestUDPSearchLevel = boost::logic::indeterminate;
-boost::logic::tribool SettingsManager::g_TestUDPDHTLevel = boost::logic::indeterminate;
+boost::logic::tribool SettingsManager::g_TestTorrentLevel = boost::logic::indeterminate;
 boost::logic::tribool SettingsManager::g_TestTCPLevel = boost::logic::indeterminate;
 boost::logic::tribool SettingsManager::g_TestTLSLevel = boost::logic::indeterminate;
 
 boost::logic::tribool SettingsManager::g_upnpUDPSearchLevel = boost::logic::indeterminate;
-boost::logic::tribool SettingsManager::g_upnpUDPDHTLevel = boost::logic::indeterminate;
+boost::logic::tribool SettingsManager::g_upnpTorrentLevel = boost::logic::indeterminate;
 boost::logic::tribool SettingsManager::g_upnpTCPLevel = boost::logic::indeterminate;
 boost::logic::tribool SettingsManager::g_upnpTLSLevel = boost::logic::indeterminate;
 
@@ -368,12 +363,8 @@ const string SettingsManager::g_settingTags[] =
 	"OverlapChunks",
 	"ExtraPartialSlots",
 	"AutoSlot",
-#ifdef STRONG_USE_DHT
 	"UseDHT",
-	"UseDHTNotAnswer",
 	"DHTPort",
-	"UpdateIPDHT",
-#endif
 	"KeepFinishedFilesOption",
 	"AllowNATTraversal", "UseExplorerTheme", "UcSubMenu", "AutoDetectIncomingConnection",
 	//"BetaInfo", //[+] NightOrion [-]
@@ -521,9 +512,7 @@ void SettingsManager::setDefaults()
 	setDefault(TCP_PORT, 0);
 	setDefault(TLS_PORT, 0);
 	setDefault(UDP_PORT, 0);
-#ifdef STRONG_USE_DHT
 	setDefault(DHT_PORT, 0);
-#endif
 	setDefault(AUTO_DETECT_CONNECTION, TRUE);// [!] IRainman default enable connection autodect
 	setDefault(INCOMING_CONNECTIONS, INCOMING_FIREWALL_UPNP); // [!] IRainman default passive -> incoming firewall upnp
 	setDefault(OUTGOING_CONNECTIONS, OUTGOING_DIRECT);
@@ -1226,7 +1215,6 @@ void SettingsManager::setDefaults()
 	//setDefault(USE_EXPLORER_THEME, false); // [~] IRainman set to disable default.
 #ifdef FLYLINKDC_HE
 	setDefault(USE_DHT, TRUE);
-	setDefault(USE_DHT_NOTANSWER, TRUE);
 #endif
 	setDefault(LANGUAGE_FILE, g_default_lang_file_name);
 	//setDefault(DEFAULT_CODEPAGE,"");
@@ -1426,9 +1414,7 @@ void SettingsManager::load(const string& aFileName)
 		set(TCP_PORT, getNewPortValue(get(WEBSERVER_PORT)));
 		set(TLS_PORT, getNewPortValue(get(TCP_PORT)));
 		set(UDP_PORT, get(TCP_PORT));
-#ifdef STRONG_USE_DHT
 		set(DHT_PORT, getNewPortValue(get(UDP_PORT)));
-#endif
 	}
 	
 	if (SETTING(PRIVATE_ID).length() != 39 || CID(SETTING(PRIVATE_ID)).isZero())
@@ -2070,19 +2056,15 @@ bool SettingsManager::set(IntSetting key, int value)
 		case UDP_PORT:
 		{
 			VERIFI(1024, 65535);
-#ifdef STRONG_USE_DHT
 			GET_NEW_PORT_VALUE_IF_CONFLICTS(DHT_PORT);
-#endif
 			break;
 		}
-#ifdef STRONG_USE_DHT
 		case DHT_PORT:
 		{
 			VERIFI(1024, 65535);
 			GET_NEW_PORT_VALUE_IF_CONFLICTS(UDP_PORT);
 			break;
 		}
-#endif
 		case AUTOUPDATE_TIME:
 		{
 #ifdef HOURLY_CHECK_UPDATE

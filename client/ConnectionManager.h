@@ -200,7 +200,6 @@ class ConnectionManager :
 {
 	public:
 		TokenManager m_tokens_manager;
-		//TokenManager m_sha1_manager;
 		void nmdcExpect(const string& aNick, const string& aMyNick, const string& aHubUrl
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		                , ExpectedMap::DefinedExpectedReason reason = ExpectedMap::REASON_DEFAULT

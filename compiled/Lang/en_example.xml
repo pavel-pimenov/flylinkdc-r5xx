@@ -376,7 +376,6 @@
 	<string name="DhtEnabled">DHT enabled again</string>
 	<string name="DhtFirewalledUdp">Firewalled UDP status set</string>
 	<string name="DhtOurUpdPortOpend">Our UDP port seems to be opened</string>
-	<string name="DhtWarning">Turning this feature on can cause to download from and upload to external network. Use this checkbox only if you understand what you are doing.\r\n\r\nTurn DHT feature on?</string>
 	<string name="Directory">Directory</string>
 	<string name="DirectoryAddError">Directory or directory name already exists</string>
 	<string name="DirectoryIsHidden">Directory is hidden</string>
@@ -1318,7 +1317,7 @@
 	<string name="SettingsDclsPage">DCLST support</string>
 	<string name="SettingsDefaultAwayMsg">Default Away-message</string>
 	<string name="SettingsDefaultClick">Default click action</string>
-	<string name="SettingsDhtPort">Torrent</string>
+	<string name="SettingsTorrentPort">Torrent</string>
 	<string name="SettingsDirect">Direct connection</string>
 	<string name="SettingsDirectories">Directories</string>
 	<string name="SettingsDisplayCheatsInMainChat">Display cheats in main chat</string>
@@ -1791,7 +1790,7 @@
 	<string name="UseBitrateFixForSpam">Use Bitrate/Sample fix for QCD/QMP players</string>
 	<string name="UseCustomListBackground">Use custom list background style</string>
 	<string name="UseCustomMenu">Use custom menus</string>
-	<string name="UseDht">Enable DHT. Publish shared files on DHT and use it for searching alternate sources</string>
+	<string name="UseDht">Enable Torrent DHT</string>
 	<string name="UseDhtNotanswer">Do not ask again</string>
 	<string name="UseExplorerTheme">Use Explorer theme in listviews and treeviews</string>
 	<string name="UcSubmenu">Place usercommands to submenu</string>

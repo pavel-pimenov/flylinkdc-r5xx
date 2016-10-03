@@ -439,9 +439,6 @@ Press Ok for the next attempt (timeout 5 seconds)</String>
 		<String Name="DhtEnabled">DHT enabled again</String>
 		<String Name="DhtFirewalledUdp">Firewalled UDP status set</String>
 		<String Name="DhtOurUpdPortOpend">Our UDP port seems to be opened</String>
-		<String Name="DhtWarning">Turning this feature on can cause to download from and upload to external network. Use this checkbox only if you understand what you are doing.
-
-Turn DHT feature on?</String>
 		<String Name="Directory">Directory</String>
 		<String Name="DirectoryAddError">Directory or directory name already exists</String>
 		<String Name="DirectoryIsHidden">Directory is hidden</String>
@@ -1455,7 +1452,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SettingsDclsPage">DCLST support</String>
 		<String Name="SettingsDefaultAwayMsg">Default Away-message</String>
 		<String Name="SettingsDefaultClick">Default click action</String>
-		<String Name="SettingsDhtPort">DHT/UDP</String>
+		<String Name="SettingsDhtPort">Torrent</String>
 		<String Name="SettingsDirect">Direct connection</String>
 		<String Name="SettingsDirectories">Directories</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Display cheats in main chat</String>

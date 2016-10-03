@@ -429,9 +429,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="DhtEnabled">DHT снова включен</String>
 		<String Name="DhtFirewalledUdp">Определён адрес файервола</String>
 		<String Name="DhtOurUpdPortOpend">UDP-порт уже открыт</String>
-		<String Name="DhtWarning">Включение DHT может привести к использованию внешнего трафика. Если вы используете клиент для работы в локальной сети, включайте эту функцию только если точно знаете, что делаете.
-
-Включить DHT?</String>
 		<String Name="Directory">Папка</String>
 		<String Name="DirectoryAddError">Папка уже существует</String>
 		<String Name="DirectoryIsHidden">Скрытая папка</String>
@@ -1442,7 +1439,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsDclsPage">Поддержка DCLST</String>
 		<String Name="SettingsDefaultAwayMsg">Сообщение «ушёл»</String>
 		<String Name="SettingsDefaultClick">Клик-команды</String>
-		<String Name="SettingsDhtPort">DHT/UDP</String>
+		<String Name="SettingsDhtPort">Torrent</String>
 		<String Name="SettingsDirect">Прямое соединение</String>
 		<String Name="SettingsDirectories">Папки</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Показывать обманщиков в главном чате</String>

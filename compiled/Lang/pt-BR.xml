@@ -439,9 +439,6 @@ Pressione Ok para tentar novamente (Esgota-se em 5 segundos)</String>
 		<String Name="DhtEnabled">DHT habilitado novamente</String>
 		<String Name="DhtFirewalledUdp">Status alterado para UDP Firewalled</String>
 		<String Name="DhtOurUpdPortOpend">Nossa porta UDP parece estar aberta</String>
-		<String Name="DhtWarning">Ativando este recurso pode causa o download ou upload para uma rede externa. Use esta opção apenas se você entende o que está fazendo.
-
-Ativar recurso DHT?</String>
 		<String Name="Directory">Diretório</String>
 		<String Name="DirectoryAddError">Diretório ou nome do diretório já existe</String>
 		<String Name="DirectoryIsHidden">Diretório está oculto</String>
@@ -1454,7 +1451,7 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="SettingsDclsPage">Suporte à DCLST</String>
 		<String Name="SettingsDefaultAwayMsg">Mensagem de Ausente padrão</String>
 		<String Name="SettingsDefaultClick">Ação do clique padrão</String>
-		<String Name="SettingsDhtPort">DHT/UDP</String>
+		<String Name="SettingsDhtPort">Torrent</String>
 		<String Name="SettingsDirect">Conexão direta</String>
 		<String Name="SettingsDirectories">Diretórios</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Exibir trapaças no bate-papo principal</String>

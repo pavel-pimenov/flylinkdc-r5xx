@@ -375,8 +375,6 @@
 #define IDC_BT_MAGNET_HANDLER           1159
 #define IDC_REMOVEALL                   1160
 #define IDC_NATT                        1161
-#define IDC_UPDATE_IP_DHT               1163
-#define IDC_SETTINGS_USE_DHT_NOTANSWER  1164
 #define IDC_SOCKS_SERVER                1165
 #define IDC_SOCKS_PORT                  1166
 #define IDC_SOCKS_USER                  1167
@@ -705,6 +703,7 @@
 #define IDC_ADLSEARCH_ACTION            1485
 #define IDC_PRIO_HIGHEST_SIZE           1486
 #define IDC_SETTINGS_DHT                1487
+#define IDC_SETTINGS_TORRENT            1487
 #define IDC_WINDOWS_OPTIONS             1488
 #define IDC_ADLSEARCH_RAW_ACTION        1489
 #define IDC_PRIO_HIGH_SIZE              1490
@@ -798,7 +797,7 @@
 #define IDC_ANTIVIRUS_AUTOBAN_FOR_NICK  1577
 #define IDC_PG_STATUS                   1578
 #define IDC_PG_DOWN                     1579
-#define IDC_SETTINGS_USE_DHT            1580
+#define IDC_SETTINGS_USE_TORRENT        1580
 #define IDC_PG_UP                       1581
 #define IDC_BACK                        1582
 #define IDC_PG_SEARCH                   1583
@@ -999,7 +998,7 @@
 #define IDC_MATCH_ALL                   1785
 #define IDC_RSSFEED_URL_LBL             1786
 #define IDC_RSSFEED_URL                 1787
-#define IDC_SETTINGS_PORT_DHT           1788
+#define IDC_SETTINGS_PORT_TORRENT       1788
 #define IDC_RSSFEED_NAME_LBL            1789
 #define IDC_PORT_DHT                    1790
 #define IDC_RSSFEED_NAME                1791
@@ -1608,7 +1607,6 @@
 #define IDC_OPEN_TORRENT_FILE           2523
 #define IDC_REMOVE_TORRENT              2524
 #define IDC_REMOVE_TORRENT_AND_FILE     2525
-
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000

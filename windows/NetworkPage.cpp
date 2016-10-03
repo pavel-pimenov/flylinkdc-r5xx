@@ -26,9 +26,7 @@
 #include "../FlyFeatures/flyServer.h"
 #include "../client/CryptoManager.h"
 #include "../client/MappingManager.h"
-#ifdef STRONG_USE_DHT
-# include "../dht/dht.h"
-#endif
+#include "../client/DownloadManager.h"
 
 //#define FLYLINKDC_USE_SSA_WINFIREWALL
 
@@ -55,18 +53,14 @@ PropPage::TextItem NetworkPage::texts[] =
 	{ IDC_SETTINGS_PORT_TCP, ResourceManager::SETTINGS_TCP_PORT },
 	{ IDC_SETTINGS_PORT_UDP, ResourceManager::SETTINGS_UDP_PORT },
 	{ IDC_SETTINGS_PORT_TLS, ResourceManager::SETTINGS_TLS_PORT },
-	{ IDC_SETTINGS_PORT_DHT, ResourceManager::SETTINGS_DHT_PORT },
+	{ IDC_SETTINGS_PORT_TORRENT, ResourceManager::SETTINGS_TORRENT_PORT },
 	{ IDC_SETTINGS_INCOMING, ResourceManager::SETTINGS_INCOMING },
 	{ IDC_SETTINGS_BIND_ADDRESS, ResourceManager::SETTINGS_BIND_ADDRESS },
 	{ IDC_SETTINGS_BIND_ADDRESS_HELP, ResourceManager::SETTINGS_BIND_ADDRESS_HELP },
 	{ IDC_NATT, ResourceManager::ALLOW_NAT_TRAVERSAL },
 	{ IDC_IPUPDATE, ResourceManager::UPDATE_IP },
 	{ IDC_SETTINGS_UPDATE_IP_INTERVAL, ResourceManager::UPDATE_IP_INTERVAL },
-#ifdef STRONG_USE_DHT
-	{ IDC_UPDATE_IP_DHT, ResourceManager::SETTINGS_UPDATE_IP },
-	{ IDC_SETTINGS_USE_DHT,  ResourceManager::USE_DHT },
-	{ IDC_SETTINGS_USE_DHT_NOTANSWER,  ResourceManager::USE_DHT_NOTANSWER },
-#endif
+	{ IDC_SETTINGS_USE_TORRENT,  ResourceManager::USE_DHT },
 	{ IDC_GETIP, ResourceManager::GET_IP },
 	{ IDC_ADD_FLYLINKDC_WINFIREWALL, ResourceManager::ADD_FLYLINKDC_WINFIREWALL },
 	{ IDC_STATIC_GATEWAY, ResourceManager::SETTINGS_GATEWAY },
@@ -89,12 +83,8 @@ PropPage::Item NetworkPage::items[] =
 	{ IDC_UPDATE_IP_INTERVAL, SettingsManager::IPUPDATE_INTERVAL, PropPage::T_INT },
 	{ IDC_BIND_ADDRESS,     SettingsManager::BIND_ADDRESS, PropPage::T_STR },
 	{ IDC_NATT,             SettingsManager::ALLOW_NAT_TRAVERSAL, PropPage::T_BOOL },
-#ifdef STRONG_USE_DHT
 	{ IDC_PORT_DHT,         SettingsManager::DHT_PORT,      PropPage::T_INT },
-	{ IDC_UPDATE_IP_DHT,    SettingsManager::UPDATE_IP_DHT,     PropPage::T_BOOL },
-	{ IDC_SETTINGS_USE_DHT, SettingsManager::USE_DHT, PropPage::T_BOOL },
-	{ IDC_SETTINGS_USE_DHT_NOTANSWER, SettingsManager::USE_DHT_NOTANSWER, PropPage::T_BOOL },
-#endif
+	{ IDC_SETTINGS_USE_TORRENT, SettingsManager::USE_DHT, PropPage::T_BOOL },
 	{ 0, 0, PropPage::T_END }
 };
 
@@ -163,6 +153,7 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 #ifndef IRAINMAN_IP_AUTOUPDATE
 	::EnableWindow(GetDlgItem(IDC_IPUPDATE), FALSE);
 #endif
+	SET_SETTING(DHT_PORT, DownloadManager::getInstance()->listen_torrent_port());
 	
 	switch (SETTING(INCOMING_CONNECTIONS))
 	{
@@ -250,11 +241,8 @@ void NetworkPage::fixControls()
 	const BOOL upnp = IsDlgButtonChecked(IDC_FIREWALL_UPNP) == BST_CHECKED;
 	const BOOL nat = IsDlgButtonChecked(IDC_FIREWALL_NAT) == BST_CHECKED;
 	//const BOOL nat_traversal = IsDlgButtonChecked(IDC_NATT) == BST_CHECKED;
-#ifdef STRONG_USE_DHT
-	const BOOL dht = IsDlgButtonChecked(IDC_SETTINGS_USE_DHT) == BST_CHECKED;
-#else
-	const BOOL dht = FALSE;
-#endif
+	const BOOL torrent = IsDlgButtonChecked(IDC_SETTINGS_USE_TORRENT) == BST_CHECKED;
+	
 	const BOOL passive = IsDlgButtonChecked(IDC_FIREWALL_PASSIVE) == BST_CHECKED;
 	
 	const BOOL wan_ip_manual = IsDlgButtonChecked(IDC_WAN_IP_MANUAL) == BST_CHECKED;
@@ -265,13 +253,9 @@ void NetworkPage::fixControls()
 	::EnableWindow(GetDlgItem(IDC_FIREWALL_NAT), !auto_detect);
 	::EnableWindow(GetDlgItem(IDC_FIREWALL_PASSIVE), !auto_detect);
 	
-	::EnableWindow(GetDlgItem(IDC_UPDATE_IP_DHT), dht); // [!] IRainman  if DHT is enable allow update IP from packets taked place firewall.
-	::EnableWindow(GetDlgItem(IDC_PORT_DHT), dht);
-	//SetStage(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO, dht ? StageWait : StageUnknown); // StageUnknown - не показывается
-	//::EnableWindow(GetDlgItem(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO),dht);
-	::EnableWindow(GetDlgItem(IDC_SETTINGS_USE_DHT_NOTANSWER), dht);
-	::EnableWindow(GetDlgItem(IDC_SETTINGS_PORT_DHT), dht);
-	::EnableWindow(GetDlgItem(IDC_SETTINGS_USE_DHT), dht);
+	::EnableWindow(GetDlgItem(IDC_PORT_DHT), torrent);
+	::EnableWindow(GetDlgItem(IDC_SETTINGS_PORT_TORRENT), torrent);
+	::EnableWindow(GetDlgItem(IDC_SETTINGS_USE_TORRENT), torrent);
 	
 	m_is_manual = wan_ip_manual;
 	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), m_is_manual);
@@ -322,7 +306,7 @@ void NetworkPage::fixControls()
 	calcUPnPIconsIndex(IDC_NETWORK_TEST_PORT_TCP_ICO_UPNP, SettingsManager::g_upnpTCPLevel);
 	calcUPnPIconsIndex(IDC_NETWORK_TEST_PORT_UDP_ICO_UPNP, SettingsManager::g_upnpUDPSearchLevel);
 	calcUPnPIconsIndex(IDC_NETWORK_TEST_PORT_TLS_TCP_ICO_UPNP, SettingsManager::g_upnpTLSLevel);
-	calcUPnPIconsIndex(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO_UPNP, SettingsManager::g_upnpUDPDHTLevel);
+	calcUPnPIconsIndex(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO_UPNP, SettingsManager::g_upnpTorrentLevel);
 	
 }
 LRESULT NetworkPage::onWANIPManualClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -387,10 +371,10 @@ void NetworkPage::updateTestPortIcon(bool p_is_wait)
 		{
 			SetStage(IDC_NETWORK_TEST_PORT_TLS_TCP_ICO, StageUnknown);
 		}
-		const BOOL dht = IsDlgButtonChecked(IDC_SETTINGS_USE_DHT) == BST_CHECKED;
-		if (dht)
+		const BOOL torrent = IsDlgButtonChecked(IDC_SETTINGS_USE_TORRENT) == BST_CHECKED;
+		if (torrent)
 		{
-			calcIconsIndex(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO, SettingsManager::g_TestUDPDHTLevel);
+			calcIconsIndex(IDC_NETWORK_TEST_PORT_DHT_UDP_ICO, SettingsManager::g_TestTorrentLevel);
 		}
 		else
 		{
@@ -584,19 +568,3 @@ void NetworkPage::SetStage(int ID, StagesIcon stage)
 	}
 }
 
-// [+] brain-ripper (rewriten by IRainman)
-// Display warning if DHT turned on
-#ifdef STRONG_USE_DHT
-LRESULT NetworkPage::onCheckDHTStats(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */)
-{
-	if (IsDlgButtonChecked(IDC_SETTINGS_USE_DHT) == BST_CHECKED && !BOOLSETTING(USE_DHT_NOTANSWER))
-	{
-		if (MessageBox(CTSTRING(DHT_WARNING), CTSTRING(WARNING), MB_ICONWARNING | MB_YESNO | MB_DEFBUTTON1) != IDYES)
-		{
-			CheckDlgButton(IDC_SETTINGS_USE_DHT, BST_UNCHECKED);
-		}
-	}
-	fixControls();
-	return 0;
-}
-#endif

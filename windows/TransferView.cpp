@@ -1289,15 +1289,6 @@ void TransferView::onSpeakerAddItem(const UpdateInfo& ui)
 			return;
 		}
 	}
-	/*
-	else
-	    {
-	        if (ConnectionManager::getInstance()->m_sha1_manager.isToken(ui.m_sha1.to_string()))
-	        {
-	            return;
-	        }
-	    }
-	*/
 	ItemInfo* ii = new ItemInfo(ui.m_hintedUser, ui.download, ui.m_is_torrent);
 #ifdef FLYLINKDC_USE_TORRENT
 	ii->m_torrent_file_path = ui.m_torrent_file_path;

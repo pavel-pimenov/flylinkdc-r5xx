@@ -463,13 +463,6 @@ Inserisci un nome diverso o seleziona un'altra cartella.</String>
 		<String Name="DhtEnabled">DHT riattivata</String>
 		<String Name="DhtFirewalledUdp">UDP impostata con firewall</String>
 		<String Name="DhtOurUpdPortOpend">OK!</String>
-		<String Name="DhtWarning">&gt;&gt;&gt; A T T E N Z I O N E &lt;&lt;&lt;
-
-L'attivazione di questa caratteristica può causare il trasferimento dati
-(sia in download che in upload) attraverso reti esterne.
-Usa l'opzione solo se sai quello che stai facendo.
-
-Attivare la rete DHT?</String>
 		<String Name="Directory">Cartella</String>
 		<String Name="DirectoryAddError">Cartella già esistente.</String>
 		<String Name="DirectoryIsHidden">Cartella nascosta</String>
@@ -1531,7 +1524,7 @@ extraslot per i download con priorità massima</String>
 		<String Name="SettingsDclsPage">Supporto DCLST</String>
 		<String Name="SettingsDefaultAwayMsg">Messaggio di assenza predefinito</String>
 		<String Name="SettingsDefaultClick">Mouse</String>
-		<String Name="SettingsDhtPort">DHT/UDP</String>
+		<String Name="SettingsDhtPort">Torrent</String>
 		<String Name="SettingsDirect">Connessione diretta</String>
 		<String Name="SettingsDirectories">Cartelle</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Visualizza utenti ingannevoli nella chat principale</String>

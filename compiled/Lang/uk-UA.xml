@@ -1215,7 +1215,7 @@
 		<String Name="SettingsDclsPage">DCLST підтримка</String>
 		<String Name="SettingsDefaultAwayMsg">Повідомлення "пішов"</String>
 		<String Name="SettingsDefaultClick">Клік-команди</String>
-		<String Name="SettingsDhtPort">DHT/UDP</String>
+		<String Name="SettingsDhtPort">Torrent</String>
 		<String Name="SettingsDirect">Пряме з'єднання</String>
 		<String Name="SettingsDirectories">Каталоги</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Показувати ошуканців в головному чаті</String>

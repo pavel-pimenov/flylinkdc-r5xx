@@ -29,9 +29,6 @@
 #include "../FlyFeatures/flyServer.h"
 #include "../FlyFeatures/AutoUpdate.h"
 
-#ifdef STRONG_USE_DHT
-#include "../dht/dht.h"
-#endif
 #ifndef _DEBUG
 #include "DbgHelp.h"
 #include "../doctor-dump/CrashRpt.h"

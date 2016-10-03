@@ -26,10 +26,6 @@
 #include "SettingsManager.h"
 #include "../FlyFeatures/flyServer.h"
 
-#ifdef STRONG_USE_DHT
-#include "../dht/dht.h"
-#endif
-
 ConnectivityManager::ConnectivityManager() :
 	autoDetected(false),
 	running(false)
