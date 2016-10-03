@@ -110,3 +110,5 @@ FlylinkDC-*.7z
 
 /openssl/openssl.vcxproj.user
 /compiled/*.dmp
+/*.opendb
+/*.db
