@@ -529,7 +529,7 @@ void QueueManager::UserQueue::addDownload(const QueueItemPtr& qi, const Download
 #ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
 		CFlyWriteLock(*g_runningMapCS);
 #endif
-#if _DEBUG
+#ifdef _DEBUG
 		const auto l_item = g_runningMap.find(d->getUser());
 		if (l_item != g_runningMap.end())
 		{

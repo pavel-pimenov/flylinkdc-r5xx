@@ -52,6 +52,8 @@
 
 #ifndef _DEBUG
 #include "../doctor-dump/CrashRpt.h"
+#else
+#include <fstream>
 #endif
 
 
@@ -2541,7 +2543,7 @@ string CFlyServerInfo::getMediaInfoAsText(const TTHValue& p_tth, int64_t p_file_
 	l_info.m_only_ext_info = true; // Запросим с сервера только расширенную.
 	l_get_array.push_back(l_info);
 	const string l_json_result = CFlyServerJSON::connect(l_get_array, false, true);
-#if _DEBUG
+#ifdef _DEBUG
 	{
 		std::ofstream l_file_out("D:\\last-fly-server.json");
 		l_file_out.write(l_json_result.c_str(), l_json_result.size());
