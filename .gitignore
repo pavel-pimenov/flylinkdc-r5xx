@@ -112,3 +112,4 @@ FlylinkDC-*.7z
 /compiled/*.dmp
 /*.opendb
 /*.db
+/compiled/*.exp
