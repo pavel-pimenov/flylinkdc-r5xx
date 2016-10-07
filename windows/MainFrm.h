@@ -32,13 +32,8 @@
 #include "../FlyFeatures/InetDownloaderReporter.h"
 #include "../FlyFeatures/VideoPreview.h"
 #include "../FlyFeatures/flyServer.h"
-
-#include "../client/UserManager.h" // [+] IRainman
+#include "../client/UserManager.h"
 #include "PortalBrowser.h"
-
-#include "SkinableCmdBar.h"
-#include "SkinManager.h"
-
 #include "SingleInstance.h"
 #include "TransferView.h"
 #include "LineDlg.h"
@@ -675,10 +670,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		CFlyToolBarCtrl ctrlToolbar;
 		CFlyToolBarCtrl ctrlWinampToolbar;
 		
-#ifdef RIP_USE_SKIN
-		CSkinableTab m_SkinableTabBar;
-		CSkinManager m_SkinManager;
-#endif
 		CFlyToolBarCtrl ctrlQuickSearchBar;
 		static CComboBox QuickSearchBox;
 		CEdit QuickSearchEdit;
@@ -823,7 +814,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		// [+] SSA Share folder
 		void AddFolderShareFromShell(const tstring& folder);
 		
-		class StatisticSender : public BASE_THREAD
+		class StatisticSender : public Thread
 		{
 			private:
 				bool m_is_sync_run;
@@ -889,7 +880,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		
 #ifdef IRAINMAN_IP_AUTOUPDATE
-		class CFlyIPUpdater : public BASE_THREAD
+		class CFlyIPUpdater : public Thread
 		{
 				bool m_is_running;
 				bool m_is_ip_update;

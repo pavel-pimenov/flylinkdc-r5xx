@@ -299,28 +299,21 @@ class ClientManager : public Speaker<ClientManagerListener>,
 	
 		typedef std::unordered_map<string, Client*, noCaseStringHash, noCaseStringEq> ClientList;
 		static ClientList g_clients;
-		static std::unique_ptr<webrtc::RWLockWrapper> g_csClients; // [+] IRainman opt.
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csClients;
 		
-#ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
-		typedef boost::unordered_map<const CID*, const UserPtr> UserMap;
-#else
 		typedef boost::unordered_map<CID, UserPtr> UserMap;
-#endif
+		
 		static UserMap g_users;
-		static std::unique_ptr<webrtc::RWLockWrapper> g_csUsers; // [+] IRainman opt.
-		// =================================================
-#ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
-		typedef std::unordered_multimap<const CID*, OnlineUserPtr> OnlineMap; // TODO: not allow to replace UserPtr in Identity.
-#else
+		
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csUsers;
 		typedef std::multimap<CID, OnlineUserPtr> OnlineMap;
-#endif
 		typedef OnlineMap::iterator OnlineIter;
 		typedef OnlineMap::const_iterator OnlineIterC;
 		typedef pair<OnlineIter, OnlineIter> OnlinePair;
 		typedef pair<OnlineIterC, OnlineIterC> OnlinePairC;
 		
 		static OnlineMap g_onlineUsers;
-		static std::unique_ptr<webrtc::RWLockWrapper> g_csOnlineUsers; // [+] IRainman opt.
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csOnlineUsers;
 #ifdef FLYLINKDC_USE_ASYN_USER_UPDATE
 		static OnlineUserList g_UserUpdateQueue;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csOnlineUsersUpdateQueue;

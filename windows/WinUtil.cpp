@@ -79,6 +79,7 @@ UserStateImage g_userStateImage;
 GenderImage g_genderImage;
 FlagImage g_flagImage;
 ISPImage  g_ISPImage;
+TransferTreeImage g_TransferTreeImage;
 #ifdef SCALOLAZ_MEDIAVIDEO_ICO
 VideoImage g_videoImage;
 #endif
@@ -138,11 +139,7 @@ std::unique_ptr<HIconWrapper> WinUtil::g_HubVirusIcon;
 TStringList LastDir::g_dirs;
 HWND WinUtil::g_mainWnd = nullptr;
 HWND WinUtil::g_mdiClient = nullptr;
-#ifdef RIP_USE_SKIN
-ITabCtrl* WinUtil::g_tabCtrl = nullptr;
-#else
 FlatTabCtrl* WinUtil::g_tabCtrl = nullptr;
-#endif
 HHOOK WinUtil::g_hook = nullptr;
 //[-]PPA tstring WinUtil::tth;
 //StringPairList WinUtil::initialDirs; [-] IRainman merge.
@@ -608,6 +605,16 @@ void VideoImage::init()
 	ResourceLoader::LoadImageList(IDR_MEDIAFILES, m_images, 16, 16);
 }
 
+void TransferTreeImage::init()
+{
+	if (m_flagImageCount == 0)
+	{
+		m_flagImageCount = ResourceLoader::LoadImageList(IDR_TRANSFER_TREE, m_images, 16, 16);
+		dcassert(m_flagImageCount);
+	}
+}
+
+
 void ISPImage::init()
 {
 	if (m_flagImageCount == 0)
@@ -624,7 +631,6 @@ void ISPImage::init()
 			}
 		}
 	}
-	// Добавляем флажки
 }
 void FlagImage::init()
 {
@@ -1119,6 +1125,7 @@ void WinUtil::uninit()
 	g_userStateImage.uninit();
 	g_genderImage.uninit();
 	g_ISPImage.uninit(); // TODO - позже
+	g_TransferTreeImage.uninit();
 	g_flagImage.uninit();
 #ifdef SCALOLAZ_MEDIAVIDEO_ICO
 	g_videoImage.uninit();

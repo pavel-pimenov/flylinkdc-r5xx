@@ -28,7 +28,7 @@
 #include "AdcCommand.h"
 #include "ClientManager.h"
 
-class SearchManager : public Speaker<SearchManagerListener>, public Singleton<SearchManager>, public BASE_THREAD
+class SearchManager : public Speaker<SearchManagerListener>, public Singleton<SearchManager>, public Thread
 {
 	public:
 		static const char* getTypeStr(Search::TypeModes type);
@@ -67,7 +67,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		static void toPSR(AdcCommand& cmd, bool wantResponse, const string& myNick, const string& hubIpPort, const string& tth, const vector<uint16_t>& partialInfo);
 		
 	private:
-		class UdpQueue: public BASE_THREAD
+		class UdpQueue: public Thread
 		{
 			public:
 				UdpQueue() : m_is_stop(false) {}

@@ -126,8 +126,7 @@ void Thread::start(unsigned int p_stack_size, const char* p_name /* = nullptr */
 	HANDLE h = reinterpret_cast<HANDLE>(_beginthreadex(nullptr, p_stack_size, &starter, this, 0, nullptr));
 	if (h == nullptr || h == INVALID_HANDLE_VALUE)
 	{
-		// [!] IRainman fix: try twice before generating an exception.
-		h = reinterpret_cast<HANDLE>(_beginthreadex(nullptr, p_stack_size ? p_stack_size / 2 : 64 * 1024, &starter, this, 0, nullptr)); // TODO убрать двойной вызов.
+		h = reinterpret_cast<HANDLE>(_beginthreadex(nullptr, p_stack_size ? p_stack_size / 2 : 64 * 1024, &starter, this, 0, nullptr));
 		if (h == nullptr || h == INVALID_HANDLE_VALUE)
 		{
 			const auto l_last_error = GetLastError();
@@ -182,33 +181,6 @@ int Thread::getThreadsCount()
 	}
 	return l_count;
 }
-
-#ifdef RIP_USE_THREAD_POOL
-
-ThreadPool::ThreadPool():
-	m_hDoneEvent(INVALID_HANDLE_VALUE)
-{
-}
-
-ThreadPool::~ThreadPool()
-{
-	if (m_hDoneEvent != INVALID_HANDLE_VALUE)
-		CloseHandle(m_hDoneEvent);
-}
-
-void ThreadPool::start(bool executeLongTime /*= false*/) throw(ThreadException)
-{
-	join();
-	
-	// http://msdn.microsoft.com/en-us/library/windows/desktop/ms684957(v=vs.85).aspx
-	
-	if (!QueueUserWorkItem(starter, this, executeLongTime ? WT_EXECUTELONGFUNCTION : 0))
-	{
-		throw ThreadException(STRING(UNABLE_TO_CREATE_THREAD));
-	}
-}
-
-#endif // RIP_USE_THREAD_POOL
 
 /**
  * @file

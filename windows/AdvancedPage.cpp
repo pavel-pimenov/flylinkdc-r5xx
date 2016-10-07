@@ -72,9 +72,6 @@ AdvancedPage::ListItem AdvancedPage::listItems[] =
 	{ SettingsManager::ENABLE_RATIO_USER_LIST, ResourceManager::ENABLE_RATIO_USER_LIST },
 	{ SettingsManager::REDUCE_PRIORITY_IF_MINIMIZED_TO_TRAY, ResourceManager::REDUCE_PRIORITY_IF_MINIMIZED },// [+] IRainman
 	{ SettingsManager::SQLITE_USE_JOURNAL_MEMORY, ResourceManager::SQLITE_USE_JOURNAL_MEMORY },// [+] IRainman
-#ifdef IRAINMAN_SQLITE_USE_EXCLUSIVE_LOCK_MODE
-	{ SettingsManager::SQLITE_USE_EXCLUSIVE_LOCK_MODE, ResourceManager::SQLITE_USE_EXCLUSIVE_LOCK_MODE },
-#endif
 	{ SettingsManager::USE_MAGNETS_IN_PLAYERS_SPAM, ResourceManager::USE_MAGNETS_IN_PLAYERS_SPAM }, // [+] SSA
 	{ SettingsManager::USE_BITRATE_FIX_FOR_SPAM, ResourceManager::USE_BITRATE_FIX_FOR_SPAM}, // [+] SSA
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }

@@ -214,6 +214,7 @@
 #define IDR_VIP_ICO_ADRENALIN           324
 #define IDR_VIP_ICO_TITANKALUGA         325
 #define IDR_TORRENT_PNG                 326
+#define IDR_TRANSFER_TREE               327
 #define IDR_ICON_XXX_BLOCK              999
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001

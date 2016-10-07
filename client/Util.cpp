@@ -845,7 +845,7 @@ void Util::loadBootConfig()
 }
 
 #ifdef _WIN32
-static const char badChars[] =
+static const char g_badChars[] =
 {
 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
 	17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
@@ -853,7 +853,7 @@ static const char badChars[] =
 };
 #else
 
-static const char badChars[] =
+static const char g_badChars[] =
 {
 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
 	17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
@@ -882,7 +882,7 @@ string Util::validateFileName(string tmp)
 	string::size_type i = 0;
 	
 	// First, eliminate forbidden chars
-	while ((i = tmp.find_first_of(badChars, i)) != string::npos)
+	while ((i = tmp.find_first_of(g_badChars, i)) != string::npos)
 	{
 		tmp[i] = '_';
 		i++;

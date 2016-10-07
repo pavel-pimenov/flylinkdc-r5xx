@@ -90,19 +90,31 @@ inline string wideToUtf8(const wstring& str) noexcept
 int utf8ToWc(const char* str, wchar_t& c);
 
 #ifdef UNICODE
-inline const tstring uppercase(tstring p_str) noexcept //[+]PPA //-V813
+/*
+inline const tstring uppercase(tstring p_str) noexcept
 {
-	transform(p_str.begin(), p_str.end(), p_str.begin(), towupper);
+    transform(p_str.begin(), p_str.end(), p_str.begin(), towupper);
+    return p_str;
+}
+inline const string uppercase(string p_str) noexcept
+{
+    transform(p_str.begin(), p_str.end(), p_str.begin(), toupper);
+    return p_str;
+}
+*/
+inline const tstring lowercase(tstring p_str) noexcept
+{
+	transform(p_str.begin(), p_str.end(), p_str.begin(), towlower);
 	return p_str;
 }
-inline const string uppercase(string p_str) noexcept //[+]PPA //-V813
+inline const string lowercase(string p_str) noexcept
 {
-	transform(p_str.begin(), p_str.end(), p_str.begin(), toupper);
+	transform(p_str.begin(), p_str.end(), p_str.begin(), tolower);
 	return p_str;
 }
-inline bool is_sub_tstring(const tstring& p_str1, const tstring& p_str2) //[+]PPA
+inline bool is_sub_tstring(const tstring& p_str1, const tstring& p_str2)
 {
-	return uppercase(p_str1).find(uppercase(p_str2)) != tstring::npos;
+	return lowercase(p_str1).find(lowercase(p_str2)) != tstring::npos;
 }
 inline const tstring& toT(const string& str, tstring& tmp) noexcept
 {

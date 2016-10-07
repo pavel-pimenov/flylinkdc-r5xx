@@ -1604,7 +1604,6 @@ enum Strings   // @DontAdd
 	SPEED, // "Speed"
 	SPEED_LIMIT, // "Speed limit"
 	SPEED_LIMIT_MANUAL, // "Manually set upload limit"
-	SQLITE_USE_EXCLUSIVE_LOCK_MODE, // "Use the exclusive lock on mode of SQLite database. This option improves performance."
 	SQLITE_USE_JOURNAL_MEMORY, // "Keeps a SQLite log file in a memory. It may cause database corruption due an error in the program or system."
 	SSL_ERROR, // "SSL error"
 	START_IP_EQUAL, // "Start IP and end IP equal. Range added as single IP."

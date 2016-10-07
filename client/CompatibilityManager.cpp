@@ -557,15 +557,8 @@ void CompatibilityManager::generateSystemInfoForApp()
 {
 	g_startupInfo = getFlylinkDCAppCaptionWithVersion();
 	
-	g_startupInfo += " "
-#ifdef FLYLINKDC_HE
-	                 "HE "
-#endif
-	                 "startup on machine with:\r\n"
+	g_startupInfo += " startup on machine with:\r\n"
 	                 "\tNumber of processors: " + Util::toString(getProcessorsCount()) + ".\r\n" +
-#ifdef FLYLINKDC_HE
-	                 + "\tPage size: " + Util::toString(getPageSize()) + " Bytes.\r\n" +
-#endif
 	                 + "\tProcessor type: ";
 	g_startupInfo += getProcArchString();
 	g_startupInfo += ".\r\n";

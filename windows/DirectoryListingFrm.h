@@ -610,7 +610,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		int m_count_item_changed;
 };
 
-class ThreadedDirectoryListing : public BASE_THREAD
+class ThreadedDirectoryListing : public Thread
 {
 	public:
 		ThreadedDirectoryListing(DirectoryListingFrame* pWindow,

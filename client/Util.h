@@ -1568,7 +1568,7 @@ template<int C> class ColumnBase
 
 // [+] IRainman core: execute task with other thread.
 template<typename TASK_TYPE, const unsigned int PAUSE_IN_MILLS_BEFORE_THREAD_DEADS = 1000>
-class BackgroundTaskExecuter : public BASE_THREAD
+class BackgroundTaskExecuter : public Thread
 {
 	public:
 		explicit BackgroundTaskExecuter() : m_stop(false), m_active(false)

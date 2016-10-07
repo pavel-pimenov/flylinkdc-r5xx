@@ -227,7 +227,7 @@ class VideoPreview :
 			if (::IsWindow(_logWnd)) ::PostMessage(_logWnd, WM_PREVIEW_SERVER_LOG, 0 , 0);
 		}
 		
-		class PreviewServer : public BASE_THREAD
+		class PreviewServer : public Thread
 		{
 			public:
 				PreviewServer(uint16_t port, const string& ip = "0.0.0.0");

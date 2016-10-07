@@ -251,7 +251,7 @@ class ConnectionManager :
 		static uint16_t g_ConnToMeCount;
 		// [-] SSA private:
 		
-		class Server : public BASE_THREAD
+		class Server : public Thread
 		{
 			public:
 				Server(bool p_is_secure, uint16_t p_port, const string& p_ip = "0.0.0.0");

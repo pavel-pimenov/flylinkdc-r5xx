@@ -123,13 +123,8 @@ template <class T> inline void safe_destroy_window(T* p)
 }
 
 
-#ifdef RIP_USE_SKIN
-class ITabCtrl;
-#else
 class FlatTabCtrl;
-#endif
 class UserCommand;
-
 
 class Preview // [+] IRainman fix.
 {
@@ -1285,6 +1280,17 @@ class ISPImage : public BaseImageList
 };
 extern ISPImage g_ISPImage;
 
+class TransferTreeImage : public BaseImageList
+{
+	public:
+		uint8_t m_flagImageCount;
+		TransferTreeImage() : m_flagImageCount(0)
+		{
+		}
+		void init();
+};
+extern TransferTreeImage g_TransferTreeImage;
+
 class FlagImage : public BaseImageList
 {
 	public:
@@ -1531,11 +1537,7 @@ class WinUtil
 		
 		static HWND g_mainWnd;
 		static HWND g_mdiClient;
-#ifdef RIP_USE_SKIN
-		static ITabCtrl* g_tabCtrl;
-#else
 		static FlatTabCtrl* g_tabCtrl;
-#endif
 		static HHOOK g_hook;
 		static bool g_isAppActive;
 		static bool mutesounds;

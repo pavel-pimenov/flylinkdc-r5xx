@@ -135,10 +135,6 @@ class CompatibilityManager
 		{
 			return g_sysInfo.wProcessorArchitecture;
 		}
-		static size_t getPageSize()
-		{
-			return max(g_sysInfo.dwPageSize, g_sysInfo.dwAllocationGranularity);
-		}
 		static DWORDLONG getTotalPhysMemory()
 		{
 			return g_TotalPhysMemory;

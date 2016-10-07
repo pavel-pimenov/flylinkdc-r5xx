@@ -31,7 +31,6 @@
 #include "../client/ResourceManager.h"
 #include "WinUtil.h"
 #include "resource.h"
-#include "TabCtrlSharedInterface.h"
 #include "HIconWrapper.h"
 #include "ResourceLoader.h"
 #ifdef IRAINMAN_INCLUDE_GDI_OLE
@@ -1714,9 +1713,6 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 };
 
 class FlatTabCtrl : public FlatTabCtrlImpl<FlatTabCtrl>
-#ifdef RIP_USE_SKIN
-	, public ITabCtrl
-#endif
 {
 		typedef FlatTabCtrlImpl<FlatTabCtrl> BASE_CLASS;
 	public:
@@ -1825,11 +1821,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 		MDITabChildWindowImpl() : m_closed(false), m_before_close(false)
 			//, m_title_id(0)
 		{}
-#ifdef RIP_USE_SKIN
-		ITabCtrl*
-#else
 		FlatTabCtrl*
-#endif
 		getTab()
 		{
 			return WinUtil::g_tabCtrl;

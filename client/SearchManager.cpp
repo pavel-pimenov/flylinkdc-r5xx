@@ -334,7 +334,7 @@ int SearchManager::UdpQueue::run()
 			{
 				// LogManager::message("Error ClientManager::findUser nick = " + nick + " url = " + url);
 				// Could happen if hub has multiple URLs / IPs
-				user = ClientManager::findLegacyUser(nick,url);
+				user = ClientManager::findLegacyUser(nick, url);
 				if (!user)
 				{
 					//LogManager::message("Error ClientManager::findLegacyUser nick = " + nick + " url = " + url);
@@ -578,7 +578,7 @@ void SearchManager::onPSR(const AdcCommand& p_cmd, UserPtr from, const boost::as
 		if (!from)
 		{
 			// Could happen if hub has multiple URLs / IPs
-			from = ClientManager::findLegacyUser(nick,url);
+			from = ClientManager::findLegacyUser(nick, url);
 			if (!from)
 			{
 				dcdebug("Search result from unknown user");
@@ -697,25 +697,6 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 	}
 	return l_sr; // [+] IRainman
 }
-/*
-string SearchManager::clean(const string& aSearchString)
-{
-    static const char* badChars = "$|.[]()-_+";
-    string::size_type i = aSearchString.find_first_of(badChars);
-    if (i == string::npos)
-        return aSearchString;
-
-    string tmp = aSearchString;
-    // Remove all strange characters from the search string
-    do
-    {
-        tmp[i] = ' ';
-    }
-    while ((i = tmp.find_first_of(badChars, i)) != string::npos);
-
-    return tmp;
-}
-*/
 string SearchManager::getPartsString(const PartsInfo& partsInfo)
 {
 	string ret;
@@ -727,7 +708,6 @@ string SearchManager::getPartsString(const PartsInfo& partsInfo)
 	
 	return ret.substr(0, ret.size() - 1);
 }
-
 
 void SearchManager::toPSR(AdcCommand& cmd, bool wantResponse, const string& myNick, const string& hubIpPort, const string& tth, const vector<uint16_t>& partialInfo)
 {

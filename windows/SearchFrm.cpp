@@ -256,7 +256,6 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	m_ctrlSearchFilterTree.SetBkColor(Colors::g_bgColor);
 	m_ctrlSearchFilterTree.SetTextColor(Colors::g_textColor);
 	WinUtil::SetWindowThemeExplorer(m_ctrlSearchFilterTree.m_hWnd);
-	//g_ISPImage.init();
 	m_ctrlSearchFilterTree.SetImageList(m_searchTypesImageList, TVSIL_NORMAL);
 	
 	//m_treeContainer.SubclassWindow(m_ctrlSearchFilterTree);
@@ -993,15 +992,7 @@ void SearchFrame::onEnter()
 		{
 			m_search_param.m_is_force_passive_searh = false;
 		}
-		
-		m_searchEndTime = m_searchStartTime + ClientManager::multi_search(m_search_param)
-#ifdef FLYLINKDC_HE
-		                  + 30000
-#else
-		                  + 10000
-#endif
-		                  ;
-		                  
+		m_searchEndTime = m_searchStartTime + ClientManager::multi_search(m_search_param) + 10000;
 		m_waitingResults = true;
 	}
 	
@@ -1107,7 +1098,7 @@ bool SearchFrame::registerVirusLevel(const string& p_file, const TTHValue& p_tth
 	CFlyFastLock(g_cs_virus_level);
 	dcassert(!p_file.empty());
 	const auto l_res_map = g_virus_level_tth_map.insert(make_pair(p_tth, p_level));
-	const auto l_res_set = g_virus_file_set.insert(Text::uppercase(p_file));
+	const auto l_res_set = g_virus_file_set.insert(Text::lowercase(p_file));
 	return l_res_map.second || l_res_set.second; // Если файлы повторяются - не шлем на базу
 }
 bool SearchFrame::registerVirusLevel(const SearchResult &p_result, int p_level)
@@ -1657,7 +1648,7 @@ void SearchFrame::SearchInfo::calcImageIndex()
 		is_virus_tth = isVirusTTH(m_sr.getTTH());
 		if (is_virus_tth == false)
 		{
-			const string l_file_name = Text::uppercase(m_sr.getFileName());
+			const string l_file_name = Text::lowercase(m_sr.getFileName());
 			is_virus_tth = isVirusFileNameCheck(l_file_name, m_sr.getTTH());
 		}
 	}
@@ -1808,7 +1799,6 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			}
 		}
 	}
-	// return Util::emptyStringT; // [IntelC++ 2012 beta2] warning #111: statement is unreachable
 }
 void SearchFrame::SearchInfo::view()
 {

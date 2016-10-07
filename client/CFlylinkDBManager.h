@@ -187,6 +187,9 @@ struct CFlyTransferHistogram
 	unsigned m_date_as_int;
 	uint64_t m_actual;
 	uint64_t m_file_size;
+	CFlyTransferHistogram() : m_count(0), m_date_as_int(0), m_actual(0), m_file_size(0)
+	{
+	}
 };
 typedef std::vector<CFlyTransferHistogram> CFlyTransferHistogramArray;
 
@@ -391,9 +394,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 	public:
 		void flush_hash();
 		
-		void load_transfer_history(eTypeTransfer p_type, int p_day);
-		void load_transfer_historgam(eTypeTransfer p_type, CFlyTransferHistogramArray& p_array);
-		void save_transfer_history(eTypeTransfer p_type, const FinishedItemPtr& p_item);
+		void load_transfer_history(bool p_is_torrent, eTypeTransfer p_type, int p_day);
+		void load_transfer_historgam(bool p_is_torrent, eTypeTransfer p_type, CFlyTransferHistogramArray& p_array);
+		void save_transfer_history(bool p_is_torrent, eTypeTransfer p_type, const FinishedItemPtr& p_item);
 		void delete_transfer_history(const vector<__int64>& p_id_array);
 		
 		bool merge_mediainfo(const __int64 p_tth_id, const __int64 p_path_id, const string& p_file_name, const CFlyMediaInfo& p_media);
@@ -791,11 +794,14 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif
 		
 		
-		CFlySQLCommand m_select_transfer;
+		CFlySQLCommand m_select_transfer_day;
+		CFlySQLCommand m_select_transfer_day_torrent;
 		CFlySQLCommand m_select_transfer_tth;
 		CFlySQLCommand m_select_transfer_histrogram;
+		CFlySQLCommand m_select_transfer_histrogram_torrent;
 		CFlySQLCommand m_select_transfer_convert_leveldb;
 		CFlySQLCommand m_insert_transfer;
+		CFlySQLCommand m_insert_transfer_torrent;
 		CFlySQLCommand m_delete_transfer;
 		
 		__int64 find_dic_idL(const string& p_name, const eTypeDIC p_DIC, bool p_cache_result);

@@ -49,10 +49,20 @@ class FinishedItem
 			COLUMN_LAST
 		};
 		
+		FinishedItem(const string& aTarget, const libtorrent::sha1_hash& p_sha1, int64_t aSize, int64_t aSpeed, time_t aTime, int64_t aActual) :
+			target(aTarget),
+			size(aSize),
+			avgSpeed(aSpeed),
+			time(aTime),
+			actual(aActual),
+			id(0),
+			m_sha1(p_sha1)
+		{
+		}
+		
 		FinishedItem(const string& aTarget, const string& aNick, const string& aHubUrl, int64_t aSize, int64_t aSpeed,
 		             const time_t aTime, const TTHValue& aTTH, const string& aIP, int64_t aID, int64_t aActual) :
 			target(aTarget),
-			// cid(aCID),
 			hub(aHubUrl),
 			hubs(aHubUrl),
 			size(aSize),
@@ -107,12 +117,19 @@ class FinishedItem
 					else
 						return Util::emptyStringT;
 				case COLUMN_SPEED:
-					return Util::formatBytesW(getAvgSpeed()) + _T('/') + WSTRING(S);
+					if (getAvgSpeed())
+						return Util::formatBytesW(getAvgSpeed()) + _T('/') + WSTRING(S);
+					else
+						return Util::emptyStringT;
 				case COLUMN_IP:
-					return Text::toT(getIP()); //[+]PPA
+					return Text::toT(getIP());
 				case COLUMN_TTH:
-					return Text::toT(getTTH().toBase32()); //[+]PPA
-					
+				{
+					if (getTTH() != TTHValue())
+						return Text::toT(getTTH().toBase32());
+					else
+						return Util::emptyStringT;
+				}
 				default:
 					return Util::emptyStringT;
 			}
@@ -145,6 +162,7 @@ class FinishedItem
 		GETC(time_t, time, Time);
 		GETC(int64_t, id, ID);
 		GETC(int64_t, actual, Actual); // Socket Bytes!
+		libtorrent::sha1_hash m_sha1;
 	private:
 		friend class FinishedManager;
 };
@@ -175,7 +193,6 @@ class FinishedManager : public Singleton<FinishedManager>,
 		{
 			fly_fire(FinishedManagerListener::UpdateStatus());
 		}
-		
 		
 	private:
 		friend class Singleton<FinishedManager>;

@@ -424,7 +424,6 @@ const string SettingsManager::g_settingTags[] =
 	"FileShareIncludeInFileList", // [+] SSA
 	"FileShareReindexOnStart", // [+] SSA
 	"SQLiteUseJournnalMemory", // [+] IRainman
-	"SQLiteUseExclusiveLockMode", // [+] IRAINMAN_SQLITE_USE_EXCLUSIVE_LOCK_MODE
 	"SecurityAskOnShareFromShell", // [+] SSA
 	"PopupNewFolderShare", // [+] SSA
 	"MaxFinishedUploads", "MaxFinishedDownloads", // [+] IRainman
@@ -621,9 +620,6 @@ void SettingsManager::setDefaults()
 	//setDefault(SKIP_ZERO_BYTE, false);
 	//setDefault(ADLS_BREAK_ON_FIRST, false);
 	setDefault(HUB_USER_COMMANDS, TRUE);
-#ifdef FLYLINKDC_HE
-	setDefault(AUTO_SEARCH_AUTO_MATCH, TRUE);
-#endif
 	//setDefault(LOG_FILELIST_TRANSFERS, false);
 	//setDefault(LOG_SYSTEM, false);
 	//setDefault(SEND_UNKNOWN_COMMANDS, false);
@@ -650,7 +646,7 @@ void SettingsManager::setDefaults()
 	setDefault(CONFIRM_HUBGROUP_REMOVAL, TRUE); // [+] NightOrion
 	setDefault(USE_CTRL_FOR_LINE_HISTORY, TRUE);
 	//setDefault(JOIN_OPEN_NEW_WINDOW, false);
-	setDefault(SHOW_LAST_LINES_LOG, 50); // [~] InfinitySky.
+	setDefault(SHOW_LAST_LINES_LOG, 50);
 	setDefault(CONFIRM_DELETE, TRUE);
 	//setDefault(ADVANCED_RESUME, TRUE); // [-] merge
 	//setDefault(ADC_DEBUG, false);
@@ -702,11 +698,7 @@ void SettingsManager::setDefaults()
 	setDefault(BOLD_SEARCH, TRUE);
 	setDefault(BOLD_NEWRSS, TRUE);
 	setDefault(BOLD_WAITING_USERS, TRUE);
-#ifdef FLYLINKDC_HE
-	setDefault(AUTO_REFRESH_TIME, 360);
-#else
 	setDefault(AUTO_REFRESH_TIME, 60);
-#endif
 	setDefault(AUTO_SEARCH_LIMIT, 15);
 	//setDefault(AUTO_KICK_NO_FAVS, false);
 	setDefault(PROMPT_PASSWORD, TRUE);
@@ -1213,18 +1205,14 @@ void SettingsManager::setDefaults()
 	setDefault(AUTO_SLOTS, 5);
 	setDefault(ALLOW_NAT_TRAVERSAL, TRUE);
 	//setDefault(USE_EXPLORER_THEME, false); // [~] IRainman set to disable default.
-#ifdef FLYLINKDC_HE
 	setDefault(USE_DHT, TRUE);
-#endif
 	setDefault(LANGUAGE_FILE, g_default_lang_file_name);
 	//setDefault(DEFAULT_CODEPAGE,"");
 	setDefault(MIN_MULTI_CHUNK_SIZE, 2); // [+] IRainman
 	setDefault(MIN_MEDIAINFO_SIZE, 1); // [+] PPA
 	setDefault(SHOW_SEEKERS_IN_SPY_FRAME, TRUE); // [+] IRainman
 	setDefault(LOG_SEEKERS_IN_SPY_FRAME, FALSE);
-#ifdef FLYLINKDC_HE
 	setDefault(REDUCE_PRIORITY_IF_MINIMIZED_TO_TRAY, TRUE); // [+] IRainman
-#endif
 	setDefault(ON_DOWNLOAD_SETTING, ON_DOWNLOAD_ASK); //[+] SSA
 	// [+] SSA - AutoUpdate
 	setDefault(AUTOUPDATE_EXE, TRUE); // [+] SSA
@@ -1262,11 +1250,9 @@ void SettingsManager::setDefaults()
 #if defined(FLYLINKDC_BETA)
 	setDefault(AUTOUPDATE_TO_BETA, TRUE);
 #else
-	setDefault(AUTOUPDATE_TO_BETA, false);
+	setDefault(AUTOUPDATE_TO_BETA, FALSE);
 #endif
-#ifdef FLYLINKDC_HE
-	setDefault(CONNECT_TO_SUPPORT_HUB, TRUE); // [+] SSA - maybe set to true in EU version?
-#endif
+	setDefault(CONNECT_TO_SUPPORT_HUB, TRUE);
 	setDefault(DISABLE_AUTOREMOVE_VIRUS_HUB, FALSE);
 	setDefault(FILESHARE_INC_FILELIST, TRUE); // [+] SSA
 	setDefault(FILESHARE_REINDEX_ON_START, TRUE); // [+] SSA
@@ -1274,10 +1260,6 @@ void SettingsManager::setDefaults()
 	
 	setDefault(ENABLE_IPTRUST, TRUE);
 	
-	// IRAINMAN_SQLITE_USE_EXCLUSIVE_LOCK_MODE
-	// Dear developers after the funeral FlylinkDiscover of users using an external editor base is extremely small. And who manages to use it are able to remove this check.
-	setDefault(SQLITE_USE_EXCLUSIVE_LOCK_MODE, TRUE);
-	// ~IRAINMAN_SQLITE_USE_EXCLUSIVE_LOCK_MODE
 	setDefault(SECURITY_ASK_ON_SHARE_FROM_SHELL, TRUE); // [+] SSA
 	setDefault(POPUP_NEW_FOLDERSHARE, TRUE); // [+] SSA
 	setDefault(MAX_FINISHED_UPLOADS, 1000); // [+] IRainman
@@ -1303,18 +1285,7 @@ void SettingsManager::setDefaults()
 #ifdef FLYLINKDC_USE_CHECK_OLD_OS
 	setDefault(REPORT_TO_USER_IF_OUTDATED_OS_DETECTED, TRUE);
 #endif
-#ifdef FLYLINKDC_HE
-	setDefault(AUTOUPDATE_USE_CUSTOM_URL, TRUE);
-	setDefault(AUTOUPDATE_SERVER_URL, "http://studia2000.sytes.net/flyupdate");
-	importDctheme(Text::toT(Util::getThemesPath()) + _T("Green_Orange.dctheme"), true);
-# ifdef _WIN64
-	setDefault(THEME_MANAGER_THEME_DLL_NAME, "resourceGO_x64.dll");
-# else
-	setDefault(THEME_MANAGER_THEME_DLL_NAME, "resourceGO.dll");
-# endif
-#endif // FLYLINKDC_HE
 	setDefault(TTH_GPU_DEV_NUM, -1);
-	
 	setSearchTypeDefaults();
 	// TODO - грузить это из сети и отложенно когда понадобится.
 	Util::shrink_to_fit(&strDefaults[STR_FIRST], &strDefaults[STR_LAST]); // [+] IRainman opt.

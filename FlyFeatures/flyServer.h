@@ -32,6 +32,7 @@
 #include "../client/SettingsManager.h"
 #include "../client/LogManager.h"
 #include "../zlib/zlib.h"
+#include "libtorrent/sha1_hash.hpp"
 
 class SearchResult;
 
@@ -312,9 +313,15 @@ class CFlyTTHKey
 {
 	public:
 		TTHValue m_tth;
+		std::shared_ptr<libtorrent::sha1_hash> m_sha1;
 		int64_t m_file_size;
+		bool m_is_sha1_for_file;
+		CFlyTTHKey(const libtorrent::sha1_hash& p_sha1, int64_t p_file_size, bool p_is_sha1_for_file) :
+			m_sha1(std::make_shared<libtorrent::sha1_hash>(p_sha1)), m_file_size(p_file_size), m_is_sha1_for_file(p_is_sha1_for_file)
+		{
+		}
 		CFlyTTHKey(const TTHValue& p_tth, int64_t p_file_size):
-			m_tth(p_tth), m_file_size(p_file_size)
+			m_tth(p_tth), m_file_size(p_file_size), m_is_sha1_for_file(false)
 		{
 		}
 		bool operator < (const CFlyTTHKey& p_val) const

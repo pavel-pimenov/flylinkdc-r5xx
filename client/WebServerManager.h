@@ -319,7 +319,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		// END HTML Templates injection
 };
 
-class WebServerSocket : public BASE_THREAD
+class WebServerSocket : public Thread
 {
 	public:
 		WebServerSocket() : m_www_sock(INVALID_SOCKET)

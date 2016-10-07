@@ -109,7 +109,7 @@ void FinishedManager::on(QueueManagerListener::Finished, const QueueItemPtr& qi,
 			                                           GET_TIME(), qi->getTTH(), p_download->getActual(), p_download->getUser()->getIPAsString());
 			if (SETTING(DB_LOG_FINISHED_DOWNLOADS))
 			{
-				CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferDownload, item);
+				CFlylinkDBManager::getInstance()->save_transfer_history(false, e_TransferDownload, item);
 			}
 			rotation_items(item, e_Download);
 			fly_fire2(FinishedManagerListener::AddedDl(), item, false);
@@ -139,7 +139,7 @@ void FinishedManager::on(UploadManagerListener::Complete, const UploadPtr& u) no
 		u->getFileSize(), u->getRunningAverage(), GET_TIME(), u->getTTH(), u->getActual(), u->getUser()->getIPAsString());
 		if (SETTING(DB_LOG_FINISHED_UPLOADS))
 		{
-			CFlylinkDBManager::getInstance()->save_transfer_history(e_TransferUpload, item);
+			CFlylinkDBManager::getInstance()->save_transfer_history(false, e_TransferUpload, item);
 		}
 		rotation_items(item, e_Upload);
 		fly_fire2(FinishedManagerListener::AddedUl(), item, false);

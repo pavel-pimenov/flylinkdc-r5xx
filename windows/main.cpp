@@ -61,14 +61,10 @@ crash_rpt::ApplicationInfo* GetApplicationInfo()
 	static crash_rpt::ApplicationInfo appInfo;
 	appInfo.ApplicationInfoSize = sizeof(appInfo);
 	appInfo.ApplicationGUID =
-#ifdef FLYLINKDC_HE
-	    "C9149EA6-612E-4038-A557-D62DF22755CD";
-#else
 #ifdef FLYLINKDC_BETA
 	    "9B9D2DBC-80E9-40FF-9801-52E1F52E5EC0";
 #else
 	    "45A84685-77E6-4F01-BF10-C698B811087F";
-#endif
 #endif
 	    
 #ifdef _WIN64

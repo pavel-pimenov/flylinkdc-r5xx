@@ -30,7 +30,7 @@
 #define WM_UPDATE_WINDOW WM_USER + 101
 #define WM_FINISHED  WM_USER+102
 
-class DCLSTGenDlg : public CDialogImpl< DCLSTGenDlg >, public BASE_THREAD
+class DCLSTGenDlg : public CDialogImpl< DCLSTGenDlg >, public Thread
 {
 	public:
 		enum { IDD = IDD_DCLS_GENERATOR };

@@ -256,7 +256,7 @@ int MappingManager::run()
 		g_mapperName = mapper.getMapperName();
 		log_internal(STRING(UPNP_SUCCESSFULLY_CREATED_MAPPINGS));
 		
-		m_working = move(pMapper); // [IntelC++ 2012 beta2] warning #734: "std::unique_ptr<_Ty, _Dx>::unique_ptr(const std::unique_ptr<_Ty, _Dx>::_Myt &) [with _Ty=Mapper, _Dx=std::default_delete<Mapper>]" (declared at line 2347 of "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\memory"), required for copy that was eliminated, is inaccessible
+		m_working = std::move(pMapper);
 		
 		g_externalIP = mapper.getExternalIP();
 		if (g_externalIP.empty())
@@ -420,10 +420,12 @@ string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public
 	{
 		l_description += calcTestPortInfo("TCP", SettingsManager::g_TestTCPLevel, SETTING(TCP_PORT));
 	}
+	/*
 	if (CFlyServerJSON::isTestPortOK(SETTING(DHT_PORT), "udp"))
-	{
-		l_description += calcTestPortInfo("Torrent", SettingsManager::g_TestTorrentLevel, SETTING(DHT_PORT));
-	}
+	    {
+	        l_description += calcTestPortInfo("Torrent", SettingsManager::g_TestTorrentLevel, SETTING(DHT_PORT));
+	    }
+	*/
 	if (CryptoManager::TLSOk() && SETTING(TLS_PORT) > 1024)
 	{
 		l_description += calcTestPortInfo("TLS", SettingsManager::g_TestTLSLevel, SETTING(TLS_PORT));

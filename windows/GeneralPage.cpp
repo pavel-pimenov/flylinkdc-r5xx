@@ -252,9 +252,7 @@ void GeneralPage::GetLangList()
 		for (auto i = l_files.cbegin(); i != l_files.cend(); ++i)
 		{
 			string l_langFileName = Util::getFileName(*i);
-#ifndef IRAINMAN_USE_REAL_LOCALISATION_IN_SETTINGS
 			if (!GetLangByFile(l_langFileName, m_languagesList))
-#endif
 			{
 				XMLParser::XMLResults xRes;
 				const XMLParser::XMLNode xRootNode = XMLParser::XMLNode::parseFile(Text::toT(*i).c_str(), 0, &xRes);
@@ -270,13 +268,11 @@ void GeneralPage::GetLangList()
 		}
 	}
 }
-#ifndef IRAINMAN_USE_REAL_LOCALISATION_IN_SETTINGS
 struct LangInfo
 {
-	WCHAR* Lang;
-	char* FileName;
+	const WCHAR* Lang;
+	const char* FileName;
 };
-
 
 bool GeneralPage::GetLangByFile(const string& p_FileName, LanguageMap& p_LanguagesList)
 {
@@ -300,7 +296,7 @@ bool GeneralPage::GetLangByFile(const string& p_FileName, LanguageMap& p_Languag
 	}
 	return false;
 }
-#endif // IRAINMAN_USE_REAL_LOCALISATION_IN_SETTINGS
+
 void GeneralPage::fixControls()
 {
 #ifdef IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION

@@ -61,13 +61,6 @@ class CID
 		{
 			return memcmp(cid, rhs.cid, sizeof(cid)) < 0;
 		}
-#ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
-		operator const CID*() const // [+] IRainman fix.
-		{
-			return this;
-		}
-#endif
-		
 		string toBase32() const
 		{
 			return Encoder::toBase32(cid, sizeof(cid));
@@ -145,27 +138,6 @@ struct hash<CID>
 	}
 };
 }
-
-
-#ifdef IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
-template<>
-struct hash<const CID*> // [!] IRainman fix.
-{
-	size_t operator()(const CID* rhs) const
-	{
-		return rhs->toHash(); // [!] IRainman fix.
-	}
-};
-
-template<>
-struct equal_to<const CID*> // [!] IRainman fix.
-{
-	bool operator()(const CID* lhs, const CID* rhs) const
-	{
-		return (*lhs) == (*rhs);
-	}
-};
-#endif // IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER
 
 #endif // !defined(CID_H)
 

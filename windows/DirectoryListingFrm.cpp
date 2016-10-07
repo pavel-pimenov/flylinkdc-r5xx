@@ -169,7 +169,16 @@ void DirectoryListingFrame::loadFile(const tstring& name, const tstring& dir)
 	//don't worry about cleanup, the object will delete itself once the thread has finished it's job
 	ThreadedDirectoryListing* tdl = new ThreadedDirectoryListing(this, Text::fromT(name), Util::emptyString, dir);
 	m_loading = true;
-	tdl->start(0);
+	try
+	{
+		tdl->start(0);
+	}
+	catch (const ThreadException& e)
+	{
+		delete tdl;
+		m_loading = false;
+		CFlyServerJSON::pushError(73, "DirectoryListingFrame::loadFile error: " + e.getError());
+	}
 }
 
 void DirectoryListingFrame::loadXML(const string& txt)
@@ -179,7 +188,16 @@ void DirectoryListingFrame::loadXML(const string& txt)
 	//don't worry about cleanup, the object will delete itself once the thread has finished it's job
 	ThreadedDirectoryListing* tdl = new ThreadedDirectoryListing(this, Util::emptyString, txt);
 	m_loading = true;
-	tdl->start(0);
+	try
+	{
+		tdl->start(0);
+	}
+	catch (const ThreadException& e)
+	{
+		delete tdl;
+		m_loading = false;
+		CFlyServerJSON::pushError(73, "DirectoryListingFrame::loadXML error: " + e.getError());
+	}
 }
 
 LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -2151,7 +2169,7 @@ void DirectoryListingFrame::ItemInfo::calcImageIndex()
 			is_virus_tth = SearchFrame::isVirusTTH(l_tth);
 			if (is_virus_tth == false)
 			{
-				is_virus_tth = SearchFrame::isVirusFileNameCheck(Text::uppercase(l_file_name), l_tth);
+				is_virus_tth = SearchFrame::isVirusFileNameCheck(Text::lowercase(l_file_name), l_tth);
 			}
 			if (is_virus_tth)
 			{

@@ -1599,7 +1599,6 @@
 	<string name="Speed">Speed</string>
 	<string name="SpeedLimit">Speed limit</string>
 	<string name="SpeedLimitManual">Manually set upload limit</string>
-	<string name="SqliteUseExclusiveLockMode">Use the exclusive lock on mode of SQLite database. This option improves performance.</string>
 	<string name="SqliteUseJournalMemory">Keeps a SQLite log file in a memory. It may cause database corruption due an error in the program or system.</string>
 	<string name="SslError">SSL error</string>
 	<string name="StartIpEqual">Start IP and end IP equal. Range added as single IP.</string>

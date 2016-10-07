@@ -26,6 +26,7 @@
 #include "HashManager.h"
 #include "MerkleCheckOutputStream.h"
 #include "UploadManager.h"
+#include "FinishedManager.h"
 #include "PGLoader.h"
 #include "../FlyFeatures/flyServer.h"
 
@@ -948,10 +949,7 @@ void DownloadManager::onTimeTorrent(uint64_t aTick)
 {
 	if (m_torrent_session)
 	{
-		m_torrent_session->post_torrent_updates();
-		m_torrent_session->post_session_stats();
-		m_torrent_session->post_dht_stats();
-		
+	
 		std::vector<lt::alert*> alerts;
 		m_torrent_session->pop_alerts(&alerts);
 for (lt::alert const * a : alerts)
@@ -995,15 +993,49 @@ for (lt::alert const * a : alerts)
 			{
 				LogManager::torrent_message("peer_error_alert: " + a->message());
 			}
-			if (lt::alert_cast<lt::torrent_finished_alert>(a))
+			
+			if (const auto l_a = lt::alert_cast<lt::file_completed_alert>(a))
 			{
-				LogManager::torrent_message("Torrent_finished_alert: " + a->message());
-				break;
+				auto l_files = l_a->handle.torrent_file()->files();
+				const auto l_hash_file = l_files.hash(l_a->index);
+				const auto l_size = l_files.file_size(l_a->index);
+				const auto l_name = l_files.file_name(l_a->index).to_string();
+				const torrent_handle h = l_a->handle;
+				libtorrent::sha1_hash l_sha1;
+				bool p_is_sha1_for_file = false;
+				if (!l_hash_file.is_all_zeros())
+				{
+					l_sha1 = l_hash_file;
+					p_is_sha1_for_file = true;
+				}
+				else
+				{
+					l_sha1 = l_a->handle.info_hash();
+				}
+				LogManager::torrent_message("file_completed_alert: " + a->message() + " name:" + l_name +
+				                            + " sha1:" + l_sha1.to_string());
+				auto l_item = std::make_shared<FinishedItem>(l_name, l_sha1, l_size, 0, GET_TIME(), 0);
+				CFlylinkDBManager::getInstance()->save_transfer_history(true, e_TransferDownload, l_item);
+				FinishedManager::getInstance()->pushHistoryFinishedItem(l_item, e_TransferDownload);
+				FinishedManager::getInstance()->updateStatus();
+				
+				const CFlyTTHKey l_file(l_sha1, l_size, p_is_sha1_for_file);
+				CFlyServerJSON::addDownloadCounter(l_file, l_name); // Util::getFileName(l_path)
+#ifdef _DEBUG
+				CFlyServerJSON::sendDownloadCounter(false);
+#endif
+			}
+			if (const auto l_a = lt::alert_cast<lt::torrent_finished_alert>(a))
+			{
+				LogManager::torrent_message("torrent_finished_alert: " + a->message());
+#ifdef _DEBUG
+				CFlyServerJSON::sendDownloadCounter(false);
+#endif
 			}
 			if (lt::alert_cast<lt::torrent_error_alert>(a))
 			{
-				LogManager::torrent_message("Torrent_error_alert: " + a->message());
-				break;
+				LogManager::torrent_message("torrent_error_alert: " + a->message());
+				//break;
 			}
 			if (auto st = lt::alert_cast<lt::state_update_alert>(a))
 			{
@@ -1058,6 +1090,9 @@ for (const auto j : st->status)
 				}
 			}
 		}
+		m_torrent_session->post_torrent_updates();
+		m_torrent_session->post_session_stats();
+		m_torrent_session->post_dht_stats();
 	}
 }
 
@@ -1128,52 +1163,52 @@ void DownloadManager::init_torrent()
 	{
 		lt::settings_pack l_sett;
 		l_sett.set_int(lt::settings_pack::alert_mask
-			, lt::alert::error_notification
-			| lt::alert::storage_notification
-			| lt::alert::status_notification
-			| lt::alert::port_mapping_notification
-			//////                  | lt::alert::all_categories
-							   //  | lt::alert::progress_notification
-							   //  | lt::alert::peer_notification
-		);
+		               , lt::alert::error_notification
+		               | lt::alert::storage_notification
+		               | lt::alert::status_notification
+		               | lt::alert::port_mapping_notification
+		               //////                  | lt::alert::all_categories
+		               | lt::alert::progress_notification
+		               //  | lt::alert::peer_notification
+		              );
 		l_sett.set_str(settings_pack::user_agent, "FlylinkDC++ " A_REVISION_NUM_STR); // LIBTORRENT_VERSION //  A_VERSION_NUM_STR
 		l_sett.set_int(settings_pack::choking_algorithm, settings_pack::rate_based_choker);
 		l_sett.set_int(settings_pack::active_loaded_limit, 50); // TODO - конфиг
-
+		l_sett.set_bool(settings_pack::enable_upnp, true);
+		l_sett.set_bool(settings_pack::enable_natpmp, true);
+		l_sett.set_bool(settings_pack::enable_lsd, true);
+		l_sett.set_bool(settings_pack::enable_dht, true);
+		
 		m_torrent_session = std::make_unique<lt::session>(l_sett);
-		m_torrent_session->start_lsd();
-		m_torrent_session->start_upnp();
-		m_torrent_session->start_natpmp();
 		//m_torrent_session->set_load_function(&load_torrent);
 		//m_torrent_session->set_download_rate_limit(10000);
-
+		
 		l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:8999");
 		lt::dht_settings dht;
 		//dht.privacy_lookups = true;
 		m_torrent_session->set_dht_settings(dht);
-
+		
 		m_torrent_session->add_dht_router(std::make_pair(
-			std::string("router.bittorrent.com"), 6881));
+		                                      std::string("router.bittorrent.com"), 6881));
 		m_torrent_session->add_dht_router(std::make_pair(
-			std::string("router.utorrent.com"), 6881));
+		                                      std::string("router.utorrent.com"), 6881));
 		m_torrent_session->add_dht_router(std::make_pair(
-			std::string("dht.transmissionbt.com"), 6881));
+		                                      std::string("dht.transmissionbt.com"), 6881));
 		m_torrent_session->add_dht_router(std::make_pair(
-			std::string("router.bitcomet.com"), 6881));
-
-		m_torrent_session->start_dht();
-
+		                                      std::string("router.bitcomet.com"), 6881));
+		                                      
+		                                      
 		/*
 		{
-				lt::error_code ec;
-				std::vector<char> in;
-				if (load_file(".ses_state", in, ec) == 0)
-				{
-					bdecode_node e;
-					if (bdecode(&in[0], &in[0] + in.size(), e, ec) == 0)
-						m_torrent_session->load_state(e, session::save_dht_state);
-				}
-			}
+		        lt::error_code ec;
+		        std::vector<char> in;
+		        if (load_file(".ses_state", in, ec) == 0)
+		        {
+		            bdecode_node e;
+		            if (bdecode(&in[0], &in[0] + in.size(), e, ec) == 0)
+		                m_torrent_session->load_state(e, session::save_dht_state);
+		        }
+		    }
 		*/
 #ifdef _DEBUG
 		lt::error_code ec;
@@ -1188,7 +1223,9 @@ void DownloadManager::init_torrent()
 		//p.url = "magnet:?xt=urn:btih:9017152afa06f5964c88faad524a6d443fdea787";
 		// проблемный урл - двоится
 		// http://kino-tor.org/torrent/526186/devjataja-zhizn-lui-draksa_the-9th-life-of-louis-drax-2016-web-dlrip-itunes
-		p.url = "magnet:?xt=urn:btih:c5e31d0c60206be872f6d51cf7f0b64ff83806ff&dn=rutor.info_%D0%94%D0%B5%D0%B2%D1%8F%D1%82%D0%B0%D1%8F+%D0%B6%D0%B8%D0%B7%D0%BD%D1%8C+%D0%9B%D1%83%D0%B8+%D0%94%D1%80%D0%B0%D0%BA%D1%81%D0%B0+%2F+The+9th+Life+of+Louis+Drax+%282016%29+WEB-DLRip+%7C+iTunes&tr=udp://opentor.org:2710&tr=udp://opentor.org:2710&tr=http://retracker.local/announce";
+		//p.url = "magnet:?xt=urn:btih:c5e31d0c60206be872f6d51cf7f0b64ff83806ff&dn=rutor.info_%D0%94%D0%B5%D0%B2%D1%8F%D1%82%D0%B0%D1%8F+%D0%B6%D0%B8%D0%B7%D0%BD%D1%8C+%D0%9B%D1%83%D0%B8+%D0%94%D1%80%D0%B0%D0%BA%D1%81%D0%B0+%2F+The+9th+Life+of+Louis+Drax+%282016%29+WEB-DLRip+%7C+iTunes&tr=udp://opentor.org:2710&tr=udp://opentor.org:2710&tr=http://retracker.local/announce";
+		// Урл размножается в передаче!
+		p.url = "magnet:?xt=urn:btih:a012fbbffb23df3b9f1bda4080c5ca9a09aad898&dn=rutor.info_%D0%A4%D0%BB%D1%8D%D1%88+%2F+The+Flash+%5B03%D1%8501+%D0%B8%D0%B7+23%5D+%282016%29+WEBRip+%7C+Sunshine+Studio&tr=udp://opentor.org:2710&tr=udp://opentor.org:2710&tr=http://retracker.local/announce";
 		if (ec)
 		{
 			dcdebug("%s\n", ec.message().c_str());
@@ -1206,8 +1243,8 @@ void DownloadManager::init_torrent()
 	}
 	catch (const std::exception& e)
 	{
-		CFlyServerJSON::pushError(72, "DownloadManager::init_torrent error: " + std::string(e.what())); 
-	}	
+		CFlyServerJSON::pushError(72, "DownloadManager::init_torrent error: " + std::string(e.what()));
+	}
 }
 #endif
 

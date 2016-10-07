@@ -35,7 +35,7 @@
 struct IUPnPNAT;
 struct IStaticPortMappingCollection;
 
-class UPNPCheckDlg : public CDialogImpl<UPNPCheckDlg>, public BASE_THREAD
+class UPNPCheckDlg : public CDialogImpl<UPNPCheckDlg>, public Thread
 {
 
 	public:

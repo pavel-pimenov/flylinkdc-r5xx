@@ -812,14 +812,6 @@ StringMap HubFrame::getFrameLogParams() const
 }
 void HubFrame::readFrameLog()
 {
-#ifdef IRAINMAN_LOAD_LOG_FOR_HUBS
-	const auto linesCount = SETTING(SHOW_LAST_LINES_LOG);
-	if (linesCount)
-	{
-		const string path = Util::validateFileName(SETTING(LOG_DIRECTORY) + Util::formatParams(SETTING(LOG_FILE_MAIN_CHAT), getFrameLogParams(), false));
-		appendLogToChat(path, linesCount);
-	}
-#endif
 	ctrlClient.GoToEnd(true);
 }
 

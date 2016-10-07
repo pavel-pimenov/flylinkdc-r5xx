@@ -172,9 +172,7 @@ typedef unsigned __int64 uint64_t;
 
 #define FLYLINKDC_USE_DOS_GUARD // ¬ключаем защиту от DoS атаки старых версий - http://www.flylinkdc.ru/2011/01/flylinkdc-dos.html
 //#define FLYLINKDC_USE_OLD_INNOSETUP_WIZARD
-#ifdef FLYLINKDC_HE // деватьс€ некуда, без галки в боксе очень т€жко жить, хрен с ним - пускай падает :(
-# define FLYLINKDC_USE_APEX_EX_MESSAGE_BOX // TODO: глючит - много дампов по переполнению стека, необходимо найти альтернативу.
-#endif
+//# define FLYLINKDC_USE_APEX_EX_MESSAGE_BOX // TODO: глючит - много дампов по переполнению стека, необходимо найти альтернативу.
 #define PPA_USER_COMMANDS_HUBS_SET
 #define FLYLINKDC_USE_IPFILTER
 #ifndef FLYLINKDC_HE
@@ -191,9 +189,6 @@ typedef unsigned __int64 uint64_t;
 #define IRAINMAN_NTFS_STREAM_TTH
 #define IRAINMAN_IP_AUTOUPDATE
 //#define IRAINMAN_SEARCH_OPTIONS // TODO
-#ifdef FLYLINKDC_HE
-# define IRAINMAN_LOAD_LOG_FOR_HUBS // TODO, please fix encoding  
-#endif
 #define IRAINMAN_ENABLE_WHOIS
 #define IRAINMAN_ENABLE_MORE_CLIENT_COMMAND
 //#define IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
@@ -241,11 +236,7 @@ typedef unsigned __int64 uint64_t;
 #ifndef IRAINMAN_DISALLOWED_BAN_MSG
 // #define SMT_ENABLE_FEATURE_BAN_MSG // please DON'T enable this!
 #endif
-#ifdef FLYLINKDC_HE
-//# define IRAINMAN_NEW_EXTERNAL_PREVIEW
-#endif
 #define USE_SETTINGS_PATH_TO_UPDATA_DATA
-//#ifdef FLYLINKDC_HE
 #define IRAINMAN_USE_HIDDEN_USERS // http://adc.sourceforge.net/ADC-EXT.html#_hidden_status_for_client_type
 //#endif
 //#define IRAINMAN_ENABLE_TTH_GET_FLAG // This code is off. All clients support ADC teams have this flag is always set. Our version 4xx also do not use it. He is unlikely to ever need. Leave only to simplify merge.
@@ -290,20 +281,7 @@ typedef unsigned __int64 uint64_t;
 #  define UPDATE_CON_STATUS_ON_FAV_HUBS_IN_REALTIME // TODO.
 # endif
 #endif
-#ifdef FLYLINKDC_HE
-//# define IRAINMAN_NON_COPYABLE_USER_DATA_IN_CLIENT_MANAGER // TODO: This code locates problem https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=12550 , as well as allow to save memory in the future.
-#endif
-#ifdef FLYLINKDC_HE
-# define IRAINMAN_SQLITE_USE_EXCLUSIVE_LOCK_MODE // TODO: please correct the launch of two clients with the same configuration 
-#endif
-#ifdef FLYLINKDC_HE
-// # define IRAINMAN_SAVE_BAD_SOURCE // Potentially all the bad sources only temporarily poor. So they can be added through the back through the gui, it is necessary to keep them together with good, or to create a separate record, or do not save at all?
-# define IRAINMAN_SAVE_ALL_VALID_SOURCE // Each partial source will eventually become full, you can not lose them. All DHT sources contain the real CID, and as soon as the node for this CID is loaded with it immediately starts downloading.
-#endif
 #define IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
-#ifdef FLYLINKDC_HE
-# define IRAINMAN_USE_REAL_LOCALISATION_IN_SETTINGS
-#endif
 
 // [+] BRAIN_RIPPER
 #ifdef IRAINMAN_NTFS_STREAM_TTH
@@ -313,12 +291,6 @@ typedef unsigned __int64 uint64_t;
 #define RIP_USE_CONNECTION_AUTODETECT
 
 #define RIP_USE_PORTAL_BROWSER
-//#define RIP_USE_SKIN    // not yet implemented, don't turn on
-#ifdef FLYLINKDC_HE
-# ifdef _WIN32
-//#  define RIP_USE_THREAD_POOL
-# endif
-#endif
 #ifdef _DEBUG
 // #define RIP_USE_LOG_PROTOCOL // выключил т.к. сильно грузит систему
 #endif

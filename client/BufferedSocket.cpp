@@ -97,7 +97,7 @@ void BufferedSocket::setMode(Modes aMode, size_t aRollback)
 #endif;
 			break;
 		case MODE_ZPIPE:
-			m_ZfilterIn = std::unique_ptr<UnZFilter>(new UnZFilter); // [IntelC++ 2012 beta2] warning #734: "std::unique_ptr<_Ty, _Dx>::unique_ptr(const std::unique_ptr<_Ty, _Dx>::_Myt &) [with _Ty=UnZFilter, _Dx=std::default_delete<UnZFilter>]" (declared at line 2347 of "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\memory"), required for copy that was eliminated, is inaccessible
+			m_ZfilterIn = std::make_unique<UnZFilter>();
 			break;
 		case MODE_DATA:
 			break;
@@ -1145,9 +1145,6 @@ bool BufferedSocket::checkEvents()
 	return true;
 }
 
-#ifdef FLYLINKDC_HE
-inline // [+] IRainman opt.
-#endif
 void BufferedSocket::checkSocket()
 {
 	if (hasSocket())

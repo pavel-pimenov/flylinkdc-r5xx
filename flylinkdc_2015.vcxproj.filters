@@ -172,12 +172,6 @@
     <ClCompile Include="windows\ShellContextMenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows\SkinableCmdBar.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="windows\SkinManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="windows\UCPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -194,9 +188,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="windows\stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="windows\TabCtrlSharedInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="windows\TabsPage.cpp">
@@ -546,12 +537,6 @@
     <ClInclude Include="windows\SingleInstance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="windows\SkinableCmdBar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\SkinManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="windows\SlotPage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -562,9 +547,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\TabCtrlSharedInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\TabsPage.h">
@@ -613,9 +595,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\WinUtil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\Wnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\ProxyPage.h">

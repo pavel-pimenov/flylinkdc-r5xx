@@ -41,12 +41,6 @@
 
 #include "CFlyLockProfiler.h"
 
-#ifdef RIP_USE_THREAD_POOL
-#define BASE_THREAD ThreadPool
-#else
-#define BASE_THREAD Thread
-#endif
-
 #define CRITICAL_SECTION_SPIN_COUNT 2000 // [+] IRainman opt. http://msdn.microsoft.com/en-us/library/windows/desktop/ms683476(v=vs.85).aspx You can improve performance significantly by choosing a small spin count for a critical section of short duration. For example, the heap manager uses a spin count of roughly 4,000 for its per-heap critical sections.
 
 STANDARD_EXCEPTION(ThreadException);
@@ -75,63 +69,6 @@ class BaseThread
 			return InterlockedExchange(&target, value);
 		}
 };
-
-// [+] brain-ripper
-// ThreadPool implementation
-#ifdef RIP_USE_THREAD_POOL
-class ThreadPool : public BaseThread
-#ifdef _DEBUG
-	, private boost::noncopyable
-#endif
-{
-		static DWORD WINAPI starter(LPVOID p)
-		{
-			ThreadPool* t = (ThreadPool*)p;
-			t->m_hDoneEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-			t->run();
-			SetEvent(t->m_hDoneEvent);
-			return 0;
-		}
-		
-		HANDLE m_hDoneEvent;
-		
-	protected:
-		virtual int run() = 0;
-		
-	public:
-		ThreadPool();
-		~ThreadPool();
-		
-		void start(bool executeLongTime = false) throw(ThreadException);
-		
-		void setThreadPriority(Priority /*p*/)
-		{
-			// TODO.
-		}
-		
-		static void sleep(uint64_t millis)
-		{
-			::SleepEx(static_cast<DWORD>(millis), TRUE);
-		}
-		static void yield()
-		{
-			::SleepEx(0, TRUE);
-		}
-		
-		void join() throw(ThreadException)
-		{
-			if (m_hDoneEvent == INVALID_HANDLE_VALUE)
-			{
-				return;
-			}
-			
-			WaitForSingleObject(m_hDoneEvent, INFINITE);
-			HANDLE l_thread = m_hDoneEvent;
-			m_hDoneEvent = INVALID_HANDLE_VALUE;
-			CloseHandle(l_thread);
-		}
-};
-#endif // RIP_USE_THREAD_POOL
 
 // [+] IRainman fix: detect long waits.
 #ifdef _DEBUG
@@ -290,13 +227,8 @@ class Thread : public BaseThread
 #ifdef FLYLINKDC_USE_BOOST_LOCK
 typedef boost::recursive_mutex  CriticalSection;
 typedef boost::lock_guard<boost::recursive_mutex> Lock;
-#ifdef FLYLINKDC_HE
-typedef boost::detail::spinlock FastCriticalSection;
-typedef boost::lock_guard<boost::detail::spinlock> FastLock;
-#else
 typedef CriticalSection FastCriticalSection;
 typedef Lock FastLock;
-#endif // FLYLINKDC_HE
 #else
 class CriticalSection
 #ifdef _DEBUG

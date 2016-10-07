@@ -361,12 +361,7 @@ void Socket::socksAuth(uint64_t timeout)
 
 int Socket::getSocketOptInt(int p_option) const
 {
-
-#ifdef FLYLINKDC_HE
-	int l_val;
-#else
 	int l_val = 0;
-#endif
 	socklen_t l_len = sizeof(l_val);
 	check(::getsockopt(m_sock, SOL_SOCKET, p_option, (char*)&l_val, &l_len)); // [2] https://www.box.net/shared/3ad49dfa7f44028a7467
 	/* [-] IRainman fix:

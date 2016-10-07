@@ -49,7 +49,9 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		{
 			e_Root = -1,
 			e_Current = -2,
-			e_History = -3
+			e_HistoryRoot = -3,
+			e_HistoryDC = -4,
+			e_HistoryTorrent = -5
 		};
 		
 		eTypeTransfer m_transfer_type;
@@ -262,62 +264,78 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
 			SetSplitterPanes(m_ctrlTree.m_hWnd, ctrlList.m_hWnd);
 			m_nProportionalPos = 2000; //SETTING(FLYSERVER_HUBLIST_SPLIT);
+			g_TransferTreeImage.init();
+			m_ctrlTree.SetImageList(g_TransferTreeImage.getIconList(), TVSIL_NORMAL);
 			
 			m_RootItem = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
 			                                   m_transfer_type == e_TransferDownload ? _T("Download") : _T("Upload"),
-			                                   0, // g_ISPImage.m_flagImageCount + 14, // nImage
-			                                   0, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
+			                                   2, // g_ISPImage.m_flagImageCount + 14, // nImage
+			                                   2, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
 			                                   0, // nState
 			                                   0, // nStateMask
 			                                   e_Root, // lParam
 			                                   0, // aParent,
 			                                   0  // hInsertAfter
 			                                  );
-			m_CurrentItem = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
-			                                      _T("Current session (RAM)"),
-			                                      0, // g_ISPImage.m_flagImageCount + 14, // nImage
-			                                      0, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
-			                                      0, // nState
-			                                      0, // nStateMask
-			                                      e_Current, // lParam
-			                                      m_RootItem, // aParent,
-			                                      0  // hInsertAfter
-			                                     );
-			m_HistoryItem = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
-			                                      _T("History (SQLite)"),
-			                                      0, // g_ISPImage.m_flagImageCount + 14, // nImage
-			                                      0, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
-			                                      0, // nState
-			                                      0, // nStateMask
-			                                      e_History, // lParam
-			                                      m_RootItem, // aParent,
-			                                      0  // hInsertAfter
-			                                     );
-			m_transfer_histogram.clear();
-			CFlylinkDBManager::getInstance()->load_transfer_historgam(m_transfer_type, m_transfer_histogram);
-			int l_index = 0;
-			for (auto i = m_transfer_histogram.cbegin(); i != m_transfer_histogram.cend(); ++i, ++l_index)
+			m_CurrentItem.createChild(m_RootItem, m_ctrlTree, e_Current, false);
+			m_HistoryItem.createChild(m_RootItem, m_ctrlTree, e_HistoryRoot, true);
 			{
-				string l_caption = i->m_date + " (" + Util::toString(i->m_count) + ")";
-				if (i->m_actual)
+				m_transfer_histogram.clear();
+				m_tree_dc.clear();
+				CFlylinkDBManager::getInstance()->load_transfer_historgam(false, m_transfer_type, m_transfer_histogram);
+				int l_index = 0;
+				for (auto i = m_transfer_histogram.cbegin(); i != m_transfer_histogram.cend(); ++i, ++l_index)
 				{
-					l_caption += " (" + Util::formatBytes(i->m_actual) + ")";
+					string l_caption = i->m_date + " (" + Util::toString(i->m_count) + ")";
+					if (i->m_actual)
+					{
+						l_caption += " (" + Util::formatBytes(i->m_actual) + ")";
+					}
+					
+					const auto l_tree_node = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+					                                               Text::toT(l_caption).c_str(),
+					                                               1, // g_ISPImage.m_flagImageCount + 14, // nImage
+					                                               1, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
+					                                               0, // nState
+					                                               0, // nStateMask
+					                                               l_index, // lParam
+					                                               m_HistoryItem.m_dc, // aParent,
+					                                               0  // hInsertAfter
+					                                              );
+					m_tree_dc[l_tree_node] = l_index;
 				}
-				m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
-				                      Text::toT(l_caption).c_str(),
-				                      0, // g_ISPImage.m_flagImageCount + 14, // nImage
-				                      0, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
-				                      0, // nState
-				                      0, // nStateMask
-				                      l_index, // lParam
-				                      m_HistoryItem, // aParent,
-				                      0  // hInsertAfter
-				                     );
+			}
+			{
+				m_transfer_histogram_torrent.clear();
+				m_tree_torrent.clear();
+				CFlylinkDBManager::getInstance()->load_transfer_historgam(true, m_transfer_type, m_transfer_histogram_torrent);
+				int l_index = 0;
+				for (auto i = m_transfer_histogram_torrent.cbegin(); i != m_transfer_histogram_torrent.cend(); ++i, ++l_index)
+				{
+					string l_caption = i->m_date + " (" + Util::toString(i->m_count) + ")";
+					if (i->m_file_size)
+					{
+						l_caption += " (" + Util::formatBytes(i->m_file_size) + ")";
+					}
+					const auto l_tree_node = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+					                                               Text::toT(l_caption).c_str(),
+					                                               0, // g_ISPImage.m_flagImageCount + 14, // nImage
+					                                               0, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
+					                                               0, // nState
+					                                               0, // nStateMask
+					                                               l_index, // lParam
+					                                               m_HistoryItem.m_torrent, // aParent,
+					                                               0  // hInsertAfter
+					                                              );
+					m_tree_torrent[l_tree_node] = l_index;
+				}
 			}
 			// TODO - развернуть историю по датам
 			m_ctrlTree.Expand(m_RootItem);
-			m_ctrlTree.Expand(m_HistoryItem);
-			m_ctrlTree.SelectItem(m_CurrentItem);
+			m_ctrlTree.Expand(m_HistoryItem.m_root);
+			m_ctrlTree.Expand(m_HistoryItem.m_dc);
+			m_ctrlTree.Expand(m_HistoryItem.m_torrent);
+			m_ctrlTree.SelectItem(m_CurrentItem.m_dc);
 			
 			SettingsManager::getInstance()->addListener(this);
 			FinishedManager::getInstance()->addListener(this);
@@ -346,10 +364,40 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				}
 				else
 				{
-					if (size_t(p->itemNew.lParam) < m_transfer_histogram.size())
+					const auto l_tree_node_dc = m_tree_dc.find(p->itemNew.hItem);
+					if (l_tree_node_dc != m_tree_dc.end())
 					{
-						CFlylinkDBManager::getInstance()->load_transfer_history(m_transfer_type, m_transfer_histogram[p->itemNew.lParam].m_date_as_int);
+						CFlylinkDBManager::getInstance()->load_transfer_history(false, m_transfer_type, m_transfer_histogram[l_tree_node_dc->second].m_date_as_int);
 					}
+					else
+					{
+						const auto l_tree_node_torrent = m_tree_torrent.find(p->itemNew.hItem);
+						if (l_tree_node_torrent != m_tree_torrent.end())
+						{
+							CFlylinkDBManager::getInstance()->load_transfer_history(true, m_transfer_type, m_transfer_histogram_torrent[l_tree_node_torrent->second].m_date_as_int);
+						}
+					}
+					/*
+					if (p->itemNew.lParam == e_HistoryDC)
+					                    {
+					                        if (size_t(p->itemNew.lParam) < m_transfer_histogram.size())
+					                        {
+					                            CFlylinkDBManager::getInstance()->load_transfer_history(false, m_transfer_type, m_transfer_histogram[p->itemNew.lParam].m_date_as_int);
+					                        }
+					                    }
+					                    else
+					                        if (p->itemNew.lParam == e_HistoryTorrent)
+					                        {
+					                            if (size_t(p->itemNew.lParam) < m_transfer_histogram_torrent.size())
+					                            {
+					                                CFlylinkDBManager::getInstance()->load_transfer_history(true, m_transfer_type, m_transfer_histogram_torrent[p->itemNew.lParam].m_date_as_int);
+					                            }
+					                        }
+					                        else
+					                        {
+					                            dcassert(0);
+					                        }
+					*/
 				}
 				ctrlList.resort();
 				updateStatus();
@@ -784,11 +832,60 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		CContainedWindow        m_listContainer;
 		
 		CFlyTransferHistogramArray m_transfer_histogram;
+		CFlyTransferHistogramArray m_transfer_histogram_torrent;
+		std::unordered_map<HTREEITEM, unsigned> m_tree_dc;
+		std::unordered_map<HTREEITEM, unsigned> m_tree_torrent;
 		CTreeViewCtrl           m_ctrlTree;
 		CContainedWindow        m_treeContainer;
 		HTREEITEM               m_RootItem;
-		HTREEITEM               m_CurrentItem;
-		HTREEITEM               m_HistoryItem;
+		class CFlyTreeItem
+		{
+			public:
+				HTREEITEM               m_root;
+				HTREEITEM               m_dc;
+				HTREEITEM               m_torrent;
+				CFlyTreeItem() : m_root(nullptr), m_dc(nullptr), m_torrent(nullptr)
+				{
+				}
+				void createChild(HTREEITEM p_root, CTreeViewCtrl& p_tree, CFlyTreeNodeType p_type_node, bool p_is_add_torrent)
+				{
+					m_root = p_tree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+					                           p_type_node == e_Current ? _T("Current session (RAM)") : _T("History (SQLite)"),
+					                           3, // g_ISPImage.m_flagImageCount + 14, // nImage
+					                           3, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
+					                           0, // nState
+					                           0, // nStateMask
+					                           p_type_node, // lParam
+					                           p_root, // aParent,
+					                           0  // hInsertAfter
+					                          );
+					m_dc = p_tree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+					                         _T("DC++"),
+					                         1, // g_ISPImage.m_flagImageCount + 14, // nImage
+					                         1, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
+					                         0, // nState
+					                         0, // nStateMask
+					                         p_type_node == e_HistoryRoot ? e_HistoryDC : p_type_node, // lParam
+					                         m_root, // aParent,
+					                         0  // hInsertAfter
+					                        );
+					if (p_is_add_torrent)
+					{
+						m_torrent = p_tree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+						                              _T("Torrent"),
+						                              0, // g_ISPImage.m_flagImageCount + 14, // nImage
+						                              0, // g_ISPImage.m_flagImageCount + 14, // nSelectedImage
+						                              0, // nState
+						                              0, // nStateMask
+						                              p_type_node == e_HistoryRoot ? e_HistoryTorrent : p_type_node, // lParam
+						                              m_root, // aParent,
+						                              0  // hInsertAfter
+						                             );
+					}
+				}
+		};
+		CFlyTreeItem            m_CurrentItem;
+		CFlyTreeItem            m_HistoryItem;
 		
 		int64_t m_totalBytes;
 		int64_t m_totalActual;

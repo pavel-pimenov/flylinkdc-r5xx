@@ -32,7 +32,7 @@
 class UnZFilter;
 class InputStream;
 class UserConnection;
-class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THREAD
+class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 {
 	public:
 		enum Modes
@@ -260,30 +260,8 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private BASE_THRE
 		size_t m_myInfoCount; // Счетчик MyInfo
 		bool   m_is_all_my_info_loaded;  // Флаг передачи команды отличной от MyInfo (стартовая загрузка списка закончилась)
 		bool   m_is_hide_share;
-#ifdef FLYLINKDC_HE
-		void resizeInBuf()
-		{
-#if 0
-			inbuf.resize(MAX_SOCKET_BUFFER_SIZE);
-#else
-			const auto l_size = sock->getSocketOptInt(SO_RCVBUF);
-			dcassert(l_size)
-			if (l_size)
-			{
-				inbuf.resize(l_size);
-			}
-			else
-			{
-				inbuf.resize(MAX_SOCKET_BUFFER_SIZE);
-			}
-#endif
-		}
-#else
 		void resizeInBuf();
-#endif
-		
 		ByteVector m_writeBuf;
-		
 		string m_line;
 		int64_t m_dataBytes;
 		size_t m_rollback;

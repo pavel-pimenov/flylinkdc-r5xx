@@ -30,19 +30,13 @@
 #define L_POSTFIX64 L""
 #endif
 
-//#define FLYLINKDC_HE 1 // Enable to use FlylinkDC-Hedgehog edition version of FlylinkDC (a.rainman on gmail pt com). When compiling the release you just need to use the configuration ReleaseHE.
-
 //#define NIGHT_BUILD 1 // Enable to use fail-save, and potential unstable features.
-
-#ifdef FLYLINKDC_HE
-
-#else // FLYLINKDC_HE
 
 # define FLYLINKDC_SUPPORT_WIN_VISTA 1
 # ifdef FLYLINKDC_SUPPORT_WIN_VISTA
 #  define FLYLINKDC_SUPPORT_WIN_XP 1
 # endif // FLYLINKDC_SUPPORT_WIN_VISTA
-#endif // FLYLINKDC_HE
+
 
 #define APPNAME "FlylinkDC++"
 

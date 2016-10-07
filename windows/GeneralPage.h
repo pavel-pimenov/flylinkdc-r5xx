@@ -83,9 +83,7 @@ class GeneralPage : public CPropertyPage<IDD_GENERAL_PAGE>, public PropPage
 		LanguageMap m_languagesList;
 		
 		void GetLangList();
-#ifndef IRAINMAN_USE_REAL_LOCALISATION_IN_SETTINGS
 		bool GetLangByFile(const string& p_FileName, LanguageMap& p_LanguagesList);
-#endif
 		
 		CComboBox ctrlConnection;
 		CEdit nick;

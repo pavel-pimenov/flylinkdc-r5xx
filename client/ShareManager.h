@@ -53,7 +53,7 @@ typedef std::vector<SearchResult> SearchResultList;
 typedef boost::unordered_set<std::string> QueryNotExistsSet;
 typedef boost::unordered_map<std::string, SearchResultList> QueryCacheMap;
 
-class ShareManager : public Singleton<ShareManager>, private BASE_THREAD, private TimerManagerListener,
+class ShareManager : public Singleton<ShareManager>, private Thread, private TimerManagerListener,
 	private HashManagerListener, private QueueManagerListener
 {
 	public:

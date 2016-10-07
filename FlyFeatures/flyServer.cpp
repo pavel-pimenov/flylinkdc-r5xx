@@ -55,7 +55,7 @@
 #else
 #include <fstream>
 #endif
-
+#include "libtorrent/hex.hpp"
 
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 #ifdef FLYLINKDC_SUPPORT_WIN_VISTA
@@ -398,8 +398,8 @@ void CFlyServerConfig::loadConfig()
 		}
 #ifdef USE_FLYSERVER_LOCAL_FILE
 		const string l_url_config_file = "file://C:/vc10/etc/flylinkdc-config-r5xx.xml";
-		//g_debug_fly_server_url = "localhost";
-		g_debug_fly_server_url = "192.168.1.234";
+		g_debug_fly_server_url = "localhost";
+		//g_debug_fly_server_url = "192.168.1.234";
 		
 #else
 		const string l_url_config_file = "http://etc.fly-server.ru/etc/flylinkdc-config-r5xx.xml";
@@ -1483,7 +1483,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 }
 #endif
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 72 (36,58,44 - устарели)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 73 (36,58,44 - устарели)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;
@@ -2201,27 +2201,88 @@ bool CFlyServerJSON::sendDownloadCounter(bool p_is_only_db_if_network_error)
 			l_copy_array.swap(g_download_counter);
 		}
 		l_is_error = login();
-		std::string l_post_query;
-		Json::Value  l_root;
-		Json::Value& l_arrays = l_root["array"];
-		int l_count_tth = 0;
-		for (auto i = l_copy_array.cbegin(); i != l_copy_array.cend(); ++i)
+		std::string l_post_query_torrent;
+		std::string l_post_query_dc;
 		{
-			Json::Value& l_array_item = l_arrays[l_count_tth++];
-			l_array_item["tth"]  = i->first.m_tth.toBase32();
-			l_array_item["size"] = Util::toString(i->first.m_file_size);
-			l_array_item["name"] = i->second;
-		}
-		l_post_query = l_root.toStyledString();
-		bool l_is_send = false;
-		if (l_is_error == false && p_is_only_db_if_network_error == false)
-		{
-			postQuery(true, false, false, true, "fly-download", l_post_query, l_is_send, l_is_error, 1000);
-			l_post_query.clear();
+			Json::Value  l_root_torrent;
+			Json::Value& l_arrays_torrent = l_root_torrent["array"];
+			int l_count_torrent = 0;
+			Json::Value  l_root_dc;
+			Json::Value& l_arrays_dc = l_root_dc["array"];
+			int l_count_tth = 0;
+			for (auto i = l_copy_array.cbegin(); i != l_copy_array.cend(); ++i)
+			{
+				if (i->first.m_tth != TTHValue())
+				{
+				Json::Value& l_array_item = l_arrays_dc[l_count_tth++];
+				l_array_item["tth"] = i->first.m_tth.toBase32();				
+				l_array_item["size"] = Util::toString(i->first.m_file_size);
+				l_array_item["name"] = i->second;
+				}
+				else
+				{
+					if (i->first.m_sha1)
+					{
+						Json::Value& l_array_item_torrent = l_arrays_torrent[l_count_torrent++];
+						if (!i->first.m_sha1->is_all_zeros())
+						{
+							if (i->first.m_is_sha1_for_file)
+								l_array_item_torrent["sha1_file"] = libtorrent::to_hex(i->first.m_sha1->to_string());
+							else
+								l_array_item_torrent["sha1_torrent"] = libtorrent::to_hex(i->first.m_sha1->to_string());
+						}
+						l_array_item_torrent["size"] = Util::toString(i->first.m_file_size);
+						l_array_item_torrent["name"] = i->second;
+					}
+				}
+			}
+			{
+				if (l_count_tth)
+				{
+					l_post_query_dc = l_root_dc.toStyledString();
+					bool l_is_send_dc = false;
+					if (l_is_error == false && p_is_only_db_if_network_error == false)
+					{
+						postQuery(true, false, false, true, "fly-download", l_post_query_dc, l_is_send_dc, l_is_error, 1000);
+						if (l_is_send_dc)
+						{
+							l_post_query_dc.clear();
+						}
+						else
+						{
+							l_is_error |= true;
+						}
+					}
+				}
+				if (l_count_torrent)
+				{
+					l_post_query_torrent = l_root_torrent.toStyledString();
+					bool l_is_send_torrent = false;
+					if (l_is_error == false && p_is_only_db_if_network_error == false)
+					{
+						postQuery(true, false, false, true, "fly-download-torrent", l_post_query_torrent, l_is_send_torrent, l_is_error, 1000);
+						if (l_is_send_torrent)
+						{
+							l_post_query_torrent.clear();
+						}
+						else
+						{
+							l_is_error |= true;
+						}
+					}
+				}
+			}
 		}
 		if (l_is_error || p_is_only_db_if_network_error == true)
 		{
-			CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query, "fly-download", false);
+			if (!l_post_query_dc.empty())
+			{
+				CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query_dc, "fly-download", false);
+			}
+			if (!l_post_query_torrent.empty())
+			{
+				CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query_torrent, "fly-download-torrent", false);
+			}
 		}
 	}
 	// TODO - словить исключение и если нужно сохранить l_copy_array в базе.

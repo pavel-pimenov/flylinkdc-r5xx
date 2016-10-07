@@ -436,7 +436,6 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  FILESHARE_INC_FILELIST, // [+] SSA
 		                  FILESHARE_REINDEX_ON_START, // [+] SSA
 		                  SQLITE_USE_JOURNAL_MEMORY, // [+] IRainman
-		                  SQLITE_USE_EXCLUSIVE_LOCK_MODE, // [+] IRAINMAN_SQLITE_USE_EXCLUSIVE_LOCK_MODE
 		                  SECURITY_ASK_ON_SHARE_FROM_SHELL, // [+] SSA
 		                  POPUP_NEW_FOLDERSHARE, // [+] SSA
 		                  MAX_FINISHED_UPLOADS, MAX_FINISHED_DOWNLOADS, // [+] IRainman

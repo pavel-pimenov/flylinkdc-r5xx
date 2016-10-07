@@ -97,7 +97,6 @@
 #include "resource.h"
 
 
-#ifndef FLYLINKDC_HE
 #define FLYLINKDC_CALC_MEMORY_USAGE // TODO: move to CompatibilityManager
 #  ifdef FLYLINKDC_CALC_MEMORY_USAGE
 #   ifdef FLYLINKDC_SUPPORT_WIN_VISTA
@@ -106,7 +105,7 @@
 #   include <psapi.h>
 #   pragma comment(lib, "psapi.lib")
 #endif // FLYLINKDC_CALC_MEMORY_USAGE
-#endif // FLYLINKDC_HE
+
 
 int HashProgressDlg::g_is_execute = 0;
 
@@ -652,30 +651,8 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	CreateMDIClient();
 	m_CmdBar.SetMDIClient(m_hWndMDIClient);
 	WinUtil::g_mdiClient = m_hWndMDIClient;
-	
-	/*
-	#ifdef RIP_USE_SKIN
-	    HBITMAP hArrowsBMP1 = (HBITMAP)LoadImage(NULL, L"d:\\Projects\\FlyLinkDC\\res\\Arrows!1.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	    HBITMAP hTemplate = (HBITMAP)LoadImage(NULL, L"d:\\Projects\\FlyLinkDC\\res\\tab.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	    m_SkinableTabBar.Create(m_hWnd, 0, 0, 100, CSkinableCmdBar::TYPE_HORIZONTAL, hArrowsBMP1, hTemplate, 0xff0000, 20);
-	#endif
-	*/
-	
-#ifdef RIP_USE_SKIN
-	if (!m_SkinManager.HaveTabbar())
-	{
-		ctrlTab.Create(m_hWnd, rcDefault);
-		WinUtil::g_tabCtrl = &m_ctrlTab;
-	}
-	else
-	{
-		WinUtil::g_tabCtrl = m_SkinManager.GetTabbarCtrl();
-	}
-#else
 	m_ctrlTab.Create(m_hWnd, rcDefault);
 	WinUtil::g_tabCtrl = &m_ctrlTab;
-#endif
-	// [-] IRainman tabPos = SETTING(TABS_POS);
 	
 	m_transferView.Create(m_hWnd);
 	ViewTransferView(BOOLSETTING(SHOW_TRANSFERVIEW));
@@ -1090,19 +1067,10 @@ HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
 			const int size = SETTING(TB_IMAGE_SIZE_HOT);
 			ResourceLoader::LoadImageList(Text::toT(SETTING(TOOLBARHOTIMAGE)).c_str(), largeImagesHot, size, size);
 		}
-#ifdef RIP_USE_SKIN
-		if (m_SkinManager.HaveToolbar())
-		{
-			ctrlToolbar.Attach(m_SkinManager.GetToolbarHandle());
-		}
-		else
-#endif
-		{
-			ctrlToolbar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS | TBSTYLE_LIST, 0, ATL_IDW_TOOLBAR); // [~]Drakon. Fix with toolbar.
-			ctrlToolbar.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS | TBSTYLE_EX_DRAWDDARROWS); // [+] PNG.
-			ctrlToolbar.SetImageList(largeImages);
-			ctrlToolbar.SetHotImageList(largeImagesHot);
-		}
+		ctrlToolbar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS | TBSTYLE_LIST, 0, ATL_IDW_TOOLBAR); // [~]Drakon. Fix with toolbar.
+		ctrlToolbar.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS | TBSTYLE_EX_DRAWDDARROWS); // [+] PNG.
+		ctrlToolbar.SetImageList(largeImages);
+		ctrlToolbar.SetHotImageList(largeImagesHot);
 		
 #ifdef RIP_USE_PORTAL_BROWSER
 		InitPortalBrowserToolbarImages(largeImages, largeImagesHot);
@@ -3069,10 +3037,6 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 			m_ctrlTab.SmartInvalidate();
 #endif
 		}
-		
-#ifdef RIP_USE_SKIN
-		m_SkinManager.OnSize(&rc2);
-#endif
 		SetSplitterRect(rc2);
 	}
 }
