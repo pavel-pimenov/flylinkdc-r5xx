@@ -448,7 +448,7 @@ void ADLSearchManager::matchesFile(DestDirList& destDirVector, DirectoryListing:
 			copyFile->setFlags(currentFile->getFlags());
 			dcassert(id->subdir->getAdls());
 			
-			id->subdir->files.push_back(copyFile);
+			id->subdir->m_files.push_back(copyFile);
 		}
 		id->fileAdded = false;  // Prepare for next stage
 	}
@@ -483,7 +483,7 @@ void ADLSearchManager::matchesFile(DestDirList& destDirVector, DirectoryListing:
 			}
 #endif
 			
-			destDirVector[is->ddIndex].dir->files.push_back(copyFile);
+			destDirVector[is->ddIndex].dir->m_files.push_back(copyFile);
 			destDirVector[is->ddIndex].fileAdded = true;
 			
 			if (is->isAutoQueue)
@@ -620,7 +620,7 @@ void ADLSearchManager::finalizeDestinationDirectories(DestDirList& destDirVector
 	// Add non-empty destination directories to the top level
 	for (auto id = destDirVector.begin(); id != destDirVector.end(); ++id)
 	{
-		if (id->dir->files.empty() && id->dir->directories.empty())
+		if (id->dir->m_files.empty() && id->dir->directories.empty())
 		{
 			safe_delete(id->dir);
 		}
@@ -671,7 +671,7 @@ void ADLSearchManager::matchRecurse(DestDirList &aDestList, DirectoryListing::Di
 		matchesDirectory(aDestList, *dirIt, tmpPath);
 		matchRecurse(aDestList, *dirIt, tmpPath);
 	}
-	for (auto fileIt = aDir->files.cbegin(); fileIt != aDir->files.cend(); ++fileIt)
+	for (auto fileIt = aDir->m_files.cbegin(); fileIt != aDir->m_files.cend(); ++fileIt)
 	{
 		matchesFile(aDestList, *fileIt, aPath);
 	}

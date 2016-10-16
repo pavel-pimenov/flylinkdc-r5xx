@@ -123,12 +123,12 @@ class DirectoryListing : public UserInfoBase
 				
 				List directories;
 				
-				File::List files;
+				File::List m_files;
 				CFlyVirusDetector m_virus_detect;
 				DirectoryListing* m_directory_list;
 				size_t getFileCount() const
 				{
-					return files.size();
+					return m_files.size();
 				}
 				
 				Directory(DirectoryListing* p_directory_list, Directory* aParent, const string& aName, bool _adls, bool aComplete, bool p_is_mediainfo)

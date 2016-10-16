@@ -1340,16 +1340,16 @@ namespace libtorrent
 			bdecode_node link = torrent_file.dict_find_string("magnet-uri");
 			if (link)
 			{
-				auto uri = link.string_value();
+				auto const uri = link.string_value();
 
 				add_torrent_params p;
 				parse_magnet_uri(uri.to_string(), p, ec);
 				if (ec) return false;
 
 				m_info_hash = p.info_hash;
-				for (std::vector<std::string>::iterator i = p.trackers.begin()
-					, end(p.trackers.end()); i != end; ++i)
-					m_urls.push_back(*i);
+				m_urls.reserve(m_urls.size() + p.trackers.size());
+				for (auto const& url : p.trackers)
+					m_urls.push_back(announce_entry(url));
 
 				return true;
 			}
@@ -1535,14 +1535,20 @@ namespace libtorrent
 
 	void torrent_info::add_tracker(std::string const& url, int tier)
 	{
-		announce_entry e(url);
-		e.tier = tier;
-		e.source = announce_entry::source_client;
-		m_urls.push_back(e);
+		auto i = std::find_if(m_urls.begin(), m_urls.end()
+			, [&url](announce_entry const& ae) { return ae.url == url; });
+		if (i == m_urls.end())
+		{
 
-		std::sort(m_urls.begin(), m_urls.end()
-			, [] (announce_entry const& lhs, announce_entry const& rhs)
+			announce_entry e(url);
+			e.tier = tier;
+			e.source = announce_entry::source_client;
+			m_urls.push_back(e);
+
+			std::sort(m_urls.begin(), m_urls.end()
+				, [](announce_entry const& lhs, announce_entry const& rhs)
 			{ return lhs.tier < rhs.tier; });
+		}
 	}
 
 #ifndef TORRENT_NO_DEPRECATE

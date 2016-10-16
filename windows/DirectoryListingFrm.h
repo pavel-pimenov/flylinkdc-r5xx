@@ -214,10 +214,10 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 #endif
 		LRESULT onSearchFileInInternet(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			ItemInfo* ii = ctrlList.getSelectedItem();
+			const auto ii = ctrlList.getSelectedItem();
 			if (ii && ii->type == ItemInfo::FILE)
 			{
-				searchFileInInternet(wID, ii->file->getName());
+				searchFileInInternet(wID, ii->m_file->getName());
 			}
 			return 0;
 		}
@@ -421,8 +421,8 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 				
 				union
 				{
-					DirectoryListing::File* file; //-V117
-					DirectoryListing::Directory* dir; //-V117
+					DirectoryListing::File* m_file; //-V117
+					DirectoryListing::Directory* m_dir; //-V117
 				};
 				
 				const tstring& getText(int col) const
@@ -436,7 +436,7 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 					TotalSize() : total(0) { }
 					void operator()(ItemInfo* a)
 					{
-						total += a->type == DIRECTORY ? a->dir->getTotalSize() : a->file->getSize();
+						total += a->type == DIRECTORY ? a->m_dir->getTotalSize() : a->m_file->getSize();
 					}
 					int64_t total;
 				};
@@ -454,13 +454,13 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 							switch (col)
 							{
 								case COLUMN_EXACTSIZE:
-									return compare(a->dir->getTotalSize(), b->dir->getTotalSize());
+									return compare(a->m_dir->getTotalSize(), b->m_dir->getTotalSize());
 								case COLUMN_SIZE:
-									return compare(a->dir->getTotalSize(), b->dir->getTotalSize());
+									return compare(a->m_dir->getTotalSize(), b->m_dir->getTotalSize());
 								case COLUMN_HIT:
-									return compare(a->dir->getTotalHit(), b->dir->getTotalHit());
+									return compare(a->m_dir->getTotalHit(), b->m_dir->getTotalHit());
 								case COLUMN_TS:
-									return compare(a->dir->getTotalTS(), b->dir->getTotalTS());
+									return compare(a->m_dir->getTotalTS(), b->m_dir->getTotalTS());
 								default:
 									return Util::DefaultSort(a->columns[col].c_str(), b->columns[col].c_str());
 							}
@@ -484,16 +484,16 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 								               b->columns[COLUMN_TYPE] + _T('~') + b->columns[COLUMN_FILENAME]);
 							}
 							case COLUMN_EXACTSIZE:
-								return compare(a->file->getSize(), b->file->getSize());
+								return compare(a->m_file->getSize(), b->m_file->getSize());
 							case COLUMN_SIZE:
-								return compare(a->file->getSize(), b->file->getSize());
+								return compare(a->m_file->getSize(), b->m_file->getSize());
 							case COLUMN_HIT:
-								return compare(a->file->getHit(), b->file->getHit());
+								return compare(a->m_file->getHit(), b->m_file->getHit());
 							case COLUMN_TS:
-								return compare(a->file->getTS(), b->file->getTS());
+								return compare(a->m_file->getTS(), b->m_file->getTS());
 							case COLUMN_BITRATE:
-								if (a->file->m_media && b->file->m_media)
-									return compare(a->file->m_media->m_bitrate, b->file->m_media->m_bitrate);
+								if (a->m_file->m_media && b->m_file->m_media)
+									return compare(a->m_file->m_media->m_bitrate, b->m_file->m_media->m_bitrate);
 								else
 									return 0;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -501,8 +501,8 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 								return compare(Util::toInt64(a->columns[col]), Util::toInt64(b->columns[col])); // TODO - распарсить x/y
 #endif
 							case COLUMN_MEDIA_XY:
-								if (a->file->m_media && b->file->m_media)
-									return compare(a->file->m_media->m_mediaX * 1000000 + a->file->m_media->m_mediaY, b->file->m_media->m_mediaX * 1000000 + b->file->m_media->m_mediaY);
+								if (a->m_file->m_media && b->m_file->m_media)
+									return compare(a->m_file->m_media->m_mediaX * 1000000 + a->m_file->m_media->m_mediaY, b->m_file->m_media->m_mediaX * 1000000 + b->m_file->m_media->m_mediaY);
 								else
 									return 0;
 							default:

@@ -181,12 +181,18 @@ class CFlyServerConfig
 //
 		static std::vector<CServerItem> g_mirror_read_only_servers;
 		static std::vector<CServerItem> g_mirror_test_port_servers;
+		static std::vector<CServerItem> g_torrent_dht_servers;
 		static CServerItem g_local_test_server;
 		static CServerItem g_main_server;
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 		static CServerItem g_stat_server;
 #endif
 	public:
+		static const std::vector<CServerItem>& getTorrentDHTServer()
+		{
+			dcassert(!g_torrent_dht_servers.empty());
+			return g_torrent_dht_servers;
+		}
 		static const CServerItem& getStatServer();
 		static const CServerItem& getTestPortServer();
 		static const std::vector<CServerItem>& getMirrorTestPortServerArray();
@@ -488,17 +494,24 @@ class CFlyServerAdapter
 				}
 				void processTask(uint64_t p_tick)
 				{
-					if (p_tick > m_previous_tick + g_minimal_interval_in_ms)
+					try
 					{
-						m_previous_tick = p_tick;
-						if (is_active())
+						if (p_tick > m_previous_tick + g_minimal_interval_in_ms)
 						{
-							return; // Поток еще работает. пропустим...
+							m_previous_tick = p_tick;
+							if (is_active())
+							{
+								return; // Поток еще работает. пропустим...
+							}
+							else
+							{
+								start(256);  // Запустим на обработку.
+							}
 						}
-						else
-						{
-							start(256);  // Запустим на обработку.
-						}
+					}
+					catch (const ThreadException& e)
+					{
+						LogManager::message("Error processTask: " + e.getError()); // fix https://drdump.com/Problem.aspx?ProblemID=240533
 					}
 				}
 				static void setMinimalIntervalInMilliSecond(uint16_t p_new_interval)

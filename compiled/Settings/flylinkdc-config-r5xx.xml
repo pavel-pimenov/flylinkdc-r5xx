@@ -9,9 +9,13 @@
 	<antispam url="www.pribambasiki.ru"/>
 	<antispam url="new games ugadajjka"/>
 	<antispam url="hub.sovietred.ru:4111"/>
+	<antispam url="csp.sovietland.ru"/>
+	<antispam url="dchub://tsdhub.info"/>
 	<antispam url="Stealth Group"/>
+	<antispam url=".sovietred.ru"/>
 	<antispam url="://dchublist.wordpress.com"/>
 	<antispam url="://hubliste.wordpress.com"/>
+	<antispam url=".dc-planet.ru"/>
 	<fly-server 
 		ip ="media.fly-server.ru"
 		port ="37015"
@@ -21,6 +25,7 @@
                 test_server_port = "37015"
 		mirror_read_only_server = ""
 		mirror_test_port_server = "test.fly-server.ru:37015,media.fly-server.ru:37015"
+		torrent_dht_server = "router.bittorrent.com:6881,router.utorrent.com:6881,dht.transmissionbt.com:6881,router.bitcomet.com:6881"
 		support_hub = "dchub://dc.fly-server.ru"
 		support_hub_en = "dchub://dc.fly-server.ru"
 		antivirus_db = ""

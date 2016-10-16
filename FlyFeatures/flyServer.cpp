@@ -91,6 +91,7 @@ std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_syslog;
 #endif
 std::vector<CServerItem> CFlyServerConfig::g_mirror_read_only_servers;
 std::vector<CServerItem> CFlyServerConfig::g_mirror_test_port_servers;
+std::vector<CServerItem> CFlyServerConfig::g_torrent_dht_servers;
 CServerItem CFlyServerConfig::g_local_test_server;
 CServerItem CFlyServerConfig::g_main_server;
 uint16_t CFlyServerAdapter::CFlyServerQueryThread::g_minimal_interval_in_ms  = 2000;
@@ -663,6 +664,15 @@ void CFlyServerConfig::loadConfig()
 							}
 						});
 					}
+					l_xml.getChildAttribSplit("torrent_dht_server", g_torrent_dht_servers, [this](const string & n)
+					{
+						CServerItem l_server;
+						if (l_server.init(n))
+						{
+							g_torrent_dht_servers.push_back(l_server);
+						}
+					});
+					
 					
 					
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -1048,14 +1058,14 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 	dcassert(::IsWindow(m_hMediaWnd));
 	if (::IsWindow(m_hMediaWnd) && !m_GetFlyServerArray.empty())
 	{
-		const string l_json_result = CFlyServerJSON::connect(m_GetFlyServerArray, false); // [crash] https://drdump.com/DumpGroup.aspx?DumpGroupID=296318
-		// TODO - сохранить m_GetFlyServerArray в другом месте?
-		dcassert(::IsWindow(m_hMediaWnd));
-		if (::IsWindow(m_hMediaWnd))
+		CFlyServerKeyArray l_copy_array;
 		{
 			CFlyLock(g_cs_fly_server);
-			m_GetFlyServerArray.clear(); // [crash][2] https://drdump.com/DumpGroup.aspx?DumpGroupID=296220
+			l_copy_array.swap(m_GetFlyServerArray);
 		}
+		const string l_json_result = CFlyServerJSON::connect(l_copy_array, false); 
+		// TODO - сохранить m_GetFlyServerArray в другом месте?
+		dcassert(::IsWindow(m_hMediaWnd));
 		if (!l_json_result.empty() && ::IsWindow(m_hMediaWnd))
 		{
 			Json::Value* l_root = new Json::Value;
@@ -1483,7 +1493,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 }
 #endif
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 73 (36,58,44 - устарели)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 74 (36,58,44,49 - устарели)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;

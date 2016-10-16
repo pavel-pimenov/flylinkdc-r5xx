@@ -37,6 +37,8 @@
 #include "libtorrent/alert_types.hpp"
 //#include "libtorrent/entry.hpp"
 #include "libtorrent/torrent_status.hpp"
+#include "libtorrent/create_torrent.hpp"
+#include "libtorrent/hex.hpp"
 #endif
 
 
@@ -57,6 +59,16 @@ DownloadManager::DownloadManager()
 }
 void DownloadManager::shutdown_torrent()
 {
+for (auto i: m_torrents)
+	{
+		i.save_resume_data(libtorrent::torrent_handle::save_info_dict | libtorrent::torrent_handle::only_if_modified);
+		++m_torrent_resume_count;
+	}
+	int l_count = 10; // TODO
+	while (m_torrent_resume_count == 0 && l_count-- > 0)
+	{
+	   Sleep(1000);
+	}
 	m_torrent_session.reset();
 }
 
@@ -284,7 +296,7 @@ void DownloadManager::checkDownloads(UserConnection* aConn)
 	
 	auto qm = QueueManager::getInstance();
 	
-	QueueItem::Priority prio = QueueManager::hasDownload(aConn->getUser());
+	const QueueItem::Priority prio = QueueManager::hasDownload(aConn->getUser());
 	if (!isStartDownload(prio))
 	{
 		removeConnection(aConn);
@@ -945,6 +957,20 @@ static std::string torrent_state(lt::torrent_status::state_t s)
 	}
 }
 
+static int save_file(std::string const& filename, std::vector<char>& v)
+{
+	FILE* f = std::fopen(filename.c_str(), "wb");
+	if (f == nullptr)
+		return -1;
+		
+	int w = int(std::fwrite(&v[0], 1, v.size(), f));
+	std::fclose(f);
+	
+	if (w < 0) return -1;
+	if (w != int(v.size())) return -3;
+	return 0;
+}
+
 void DownloadManager::onTimeTorrent(uint64_t aTick)
 {
 	if (m_torrent_session)
@@ -968,6 +994,28 @@ for (lt::alert const * a : alerts)
 			if (const auto l_delete = lt::alert_cast<lt::torrent_removed_alert>(a))
 			{
 				LogManager::torrent_message("torrent_removed_alert: " + a->message());
+				{
+					auto i = m_torrents.find(l_delete->handle);
+					if (i == m_torrents.end())
+					{
+						for (i = m_torrents.cbegin(); i != m_torrents.cend(); ++i)
+						{
+							if (!i->is_valid())
+								continue;
+							if (i->info_hash() == l_delete->info_hash)
+								break;
+						}
+						if (i == m_torrents.end())
+						{
+							break;
+						}
+					}
+					if (i != m_torrents.end())
+					{
+						m_torrents.erase(i);
+					}
+				}
+				CFlylinkDBManager::getInstance()->delete_torrent_resume(l_delete->info_hash);
 				fly_fire1(DownloadManagerListener::RemoveToken(), l_delete->info_hash.to_string());
 				
 			}
@@ -993,7 +1041,11 @@ for (lt::alert const * a : alerts)
 			{
 				LogManager::torrent_message("peer_error_alert: " + a->message());
 			}
-			
+			if (const auto l_metadata = lt::alert_cast<metadata_received_alert>(a))
+			{
+				l_metadata->handle.save_resume_data(torrent_handle::save_info_dict | torrent_handle::only_if_modified);
+				++m_torrent_resume_count;
+			}
 			if (const auto l_a = lt::alert_cast<lt::file_completed_alert>(a))
 			{
 				auto l_files = l_a->handle.torrent_file()->files();
@@ -1025,17 +1077,55 @@ for (lt::alert const * a : alerts)
 				CFlyServerJSON::sendDownloadCounter(false);
 #endif
 			}
+			if (const auto l_a = lt::alert_cast<lt::add_torrent_alert>(a))
+			{
+				auto l_name = l_a->handle.status(torrent_handle::query_name);
+				LogManager::message("Added torrent: " + l_name.name);
+				m_torrents.insert(l_a->handle);
+				if (l_name.has_metadata)
+				{
+					l_a->handle.save_resume_data(torrent_handle::save_info_dict | torrent_handle::only_if_modified);
+					++m_torrent_resume_count;
+				}
+			}
 			if (const auto l_a = lt::alert_cast<lt::torrent_finished_alert>(a))
 			{
 				LogManager::torrent_message("torrent_finished_alert: " + a->message());
 #ifdef _DEBUG
 				CFlyServerJSON::sendDownloadCounter(false);
 #endif
+				
+				//TODO
+				//l_a->handle.set_max_connections(max_connections / 2);
+				// TODO ?
+				l_a->handle.save_resume_data(torrent_handle::save_info_dict | torrent_handle::only_if_modified);
+				++m_torrent_resume_count;
 			}
+			
+			if (const auto l_a = lt::alert_cast<save_resume_data_failed_alert>(a))
+			{
+				dcassert(m_torrent_resume_count > 0);
+				--m_torrent_resume_count;
+				LogManager::torrent_message("save_resume_data_failed_alert: " + l_a->message());
+			}
+			if (const auto l_a = lt::alert_cast<save_resume_data_alert>(a))
+			{
+				torrent_handle h = l_a->handle;
+				TORRENT_ASSERT(l_a->resume_data);
+				if (l_a->resume_data)
+				{
+					--m_torrent_resume_count;
+					std::vector<char> l_resume;
+					bencode(std::back_inserter(l_resume), *l_a->resume_data);
+					torrent_status st = h.status(torrent_handle::query_save_path | torrent_handle::query_name);
+					CFlylinkDBManager::getInstance()->save_torrent_resume(st.info_hash, st.name, l_resume);
+					// TODO l_a->handle.set_pinned(false);
+				}
+			}
+			
 			if (lt::alert_cast<lt::torrent_error_alert>(a))
 			{
 				LogManager::torrent_message("torrent_error_alert: " + a->message());
-				//break;
 			}
 			if (auto st = lt::alert_cast<lt::state_update_alert>(a))
 			{
@@ -1043,10 +1133,8 @@ for (lt::alert const * a : alerts)
 				{
 					continue;
 				}
-				// we only have a single torrent, so we know which one
-				// the status is for
 				int l_pos = 1;
-for (const auto j : st->status)
+				for (const auto j : st->status)
 				{
 					lt::torrent_status const& s = j;
 					std::string l_log = "[" + Util::toString(l_pos) + "] Status: " + torrent_state(s.state) + " [ " + s.save_path + "\\" + s.name
@@ -1063,10 +1151,6 @@ for (const auto j : st->status)
 					l_pos++;
 					DownloadArray l_tickList;
 					{
-						//std::vector<std::int64_t> file_progress;
-						//s.handle.file_progress(file_progress);
-						//const auto ti = s.torrent_file.lock();
-						//const auto l_count_files = ti->num_files();
 						TransferData l_td("");
 						l_td.init(s);
 						l_tickList.push_back(l_td);
@@ -1135,7 +1219,6 @@ bool DownloadManager::add_torrent_file(const tstring& p_torrent_path, const tstr
 		}
 		else
 		{
-		
 			p.url = Text::fromT(p_torrent_url);
 		}
 		if (ec)
@@ -1161,6 +1244,7 @@ void DownloadManager::init_torrent()
 {
 	try
 	{
+		m_torrent_resume_count = 0;
 		lt::settings_pack l_sett;
 		l_sett.set_int(lt::settings_pack::alert_mask
 		               , lt::alert::error_notification
@@ -1188,16 +1272,12 @@ void DownloadManager::init_torrent()
 		//dht.privacy_lookups = true;
 		m_torrent_session->set_dht_settings(dht);
 		
-		m_torrent_session->add_dht_router(std::make_pair(
-		                                      std::string("router.bittorrent.com"), 6881));
-		m_torrent_session->add_dht_router(std::make_pair(
-		                                      std::string("router.utorrent.com"), 6881));
-		m_torrent_session->add_dht_router(std::make_pair(
-		                                      std::string("dht.transmissionbt.com"), 6881));
-		m_torrent_session->add_dht_router(std::make_pair(
-		                                      std::string("router.bitcomet.com"), 6881));
-		                                      
-		                                      
+for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
+		{
+			const auto l_boot_dht = j;
+			LogManager::message("Add torrent DHT router: " + l_boot_dht.getServerAndPort());
+			m_torrent_session->add_dht_router(std::make_pair(l_boot_dht.getIp(), l_boot_dht.getPort()));
+		}
 		/*
 		{
 		        lt::error_code ec;
@@ -1232,14 +1312,26 @@ void DownloadManager::init_torrent()
 			dcassert(0);
 			//return 1;
 		}
-		m_torrent_session->add_torrent(p, ec);
+		//m_torrent_session->add_torrent(p, ec);
 		if (ec)
 		{
 			dcdebug("%s\n", ec.message().c_str());
 			dcassert(0);
 			//return 1;
 		}
+		{
+			char const test_torrent[] = "d4:infod4:name6:foobar6:lengthi12345e12:piece lengthi65536e6:pieces20:ababababababababababee";
+			
+			lt::torrent_info info(test_torrent, sizeof(test_torrent) - 1);
+			
+			lt::create_torrent t(info);
+			t.add_tracker("http://3");
+			t.add_tracker("http://3");
+			t.add_tracker("http://3");
+			t.add_tracker("http://3");
+		}
 #endif
+		CFlylinkDBManager::getInstance()->load_torrent_resume(*m_torrent_session);
 	}
 	catch (const std::exception& e)
 	{

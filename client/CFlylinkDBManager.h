@@ -28,6 +28,7 @@
 #include "leveldb/filter_policy.h"
 
 #endif
+#include "libtorrent/session.hpp"
 
 using sqlite3x::sqlite3_connection;
 using sqlite3x::sqlite3_command;
@@ -398,6 +399,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void load_transfer_historgam(bool p_is_torrent, eTypeTransfer p_type, CFlyTransferHistogramArray& p_array);
 		void save_transfer_history(bool p_is_torrent, eTypeTransfer p_type, const FinishedItemPtr& p_item);
 		void delete_transfer_history(const vector<__int64>& p_id_array);
+		
+		void save_torrent_resume(const libtorrent::sha1_hash& p_sha1, const std::string& p_name, const std::vector<char>& p_resume);
+		void load_torrent_resume(libtorrent::session& p_session);
+		void delete_torrent_resume(const libtorrent::sha1_hash& p_sha1);
 		
 		bool merge_mediainfo(const __int64 p_tth_id, const __int64 p_path_id, const string& p_file_name, const CFlyMediaInfo& p_media);
 #ifdef USE_REBUILD_MEDIAINFO
@@ -803,6 +808,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_insert_transfer;
 		CFlySQLCommand m_insert_transfer_torrent;
 		CFlySQLCommand m_delete_transfer;
+		
+		CFlySQLCommand m_insert_resume_torrent;
+		CFlySQLCommand m_select_resume_torrent;
+		CFlySQLCommand m_delete_resume_torrent;
 		
 		__int64 find_dic_idL(const string& p_name, const eTypeDIC p_DIC, bool p_cache_result);
 		__int64 get_dic_idL(const string& p_name, const eTypeDIC p_DIC, bool p_create);

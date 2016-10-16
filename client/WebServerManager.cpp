@@ -617,7 +617,7 @@ string WebServerManager::getDLQueue()
 		
 		ret_select += "<td>" + Util::formatBytes(downloaded) + ' ' + percent + "</td>\n";
 		ret_select += "<td>" + (qi->isRunning() ? Util::formatBytes(qi->getAverageSpeed()) + '/' + STRING(S) : (qi->isWaiting() ? STRING(WAITING) : "Not runing")) + "</td>\n"; // [!]TODO translate
-		ret_select += "<td>" + Util::toString((int)qi->countOnlineUsersL()) + '/' + Util::toString(qi->getMaxSegments()) + "</td>\n";
+		ret_select += "<td>" + Util::toString((int)qi->getLastOnlineCount()) + '/' + Util::toString(qi->getMaxSegments()) + "</td>\n";
 #ifdef _DEBUG_WEB_SERVER_
 		ret_select += "<td><form method=get onsubmit=\"if(confirm('﻿Точно Точно?? CRAZY MS OS ^^')){this.submit}else{return false;}\" action='dlqueue.htm'>";
 #else

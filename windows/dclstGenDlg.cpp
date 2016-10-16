@@ -242,7 +242,7 @@ void DCLSTGenDlg::WriteFolder(DirectoryListing::Directory* dir)
 	
 	if (_isCanceled) return;
 	
-	for (auto iFileIter = dir->files.cbegin(); iFileIter != dir->files.cend(); ++iFileIter)
+	for (auto iFileIter = dir->m_files.cbegin(); iFileIter != dir->m_files.cend(); ++iFileIter)
 	{
 		if (*iFileIter)
 		{

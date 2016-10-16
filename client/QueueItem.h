@@ -190,7 +190,6 @@ class QueueItem : public Flags
 		          
 		~QueueItem();
 		
-		size_t countOnlineUsersL() const;
 		bool countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const; // [+] FlylinkDC++ opt.
 		void getOnlineUsers(UserList& l) const;
 		
@@ -236,15 +235,7 @@ class QueueItem : public Flags
 		{
 			return m_badSources.find(aUser) != m_badSources.end();
 		}
-		bool isBadSourceExceptL(const UserPtr& aUser, Flags::MaskType exceptions) const
-		{
-			const auto& i = m_badSources.find(aUser);
-			if (i != m_badSources.end())
-			{
-				return i->second.isAnySet((Flags::MaskType)(exceptions ^ Source::FLAG_MASK));
-			}
-			return false;
-		}
+		bool isBadSourceExceptL(const UserPtr& aUser, Flags::MaskType exceptions) const;
 		void getChunksVisualisation(vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) const; // [!] IRainman fix.
 		bool isChunkDownloaded(int64_t startPos, int64_t& len) const;
 		void setOverlapped(const Segment& p_segment, const bool p_isOverlapped);
@@ -544,10 +535,13 @@ class QueueItem : public Flags
 			return m_averageSpeed; // [+] IRainman opt.
 		}
 		void setSectionString(const string& p_section, bool p_is_first_load);
+		size_t getLastOnlineCount();
 	private:
 		mutable uint64_t m_averageSpeed; // [+] IRainman opt.
 		mutable uint64_t m_downloadedBytes; // [+] IRainman opt.
 		friend class QueueManager;
+		unsigned m_diry_sources;
+		size_t m_last_count_online_sources;
 		SourceMap m_sources;
 		SourceMap m_badSources;
 		string m_tempTarget;

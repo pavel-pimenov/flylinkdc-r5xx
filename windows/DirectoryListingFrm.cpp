@@ -522,7 +522,7 @@ FileImage::TypeDirectoryImages DirectoryListingFrame::GetTypeDirectory(const Dir
 	}
 	
 	// Проверяем все файлы в папке
-	for (auto i = dir->files.cbegin(); i != dir->files.cend(); ++i)
+	for (auto i = dir->m_files.cbegin(); i != dir->m_files.cend(); ++i)
 	{
 		const string& nameFile = (*i)->getName();
 		if (FileImage::isDvdFile(nameFile))
@@ -563,7 +563,7 @@ void DirectoryListingFrame::changeDir(DirectoryListing::Directory* p_dir)
 			}
 			ctrlList.insertItem(l_count++, ii, I_IMAGECALLBACK); // GetTypeDirectory(*i)
 		}
-		for (auto j = p_dir->files.cbegin(); j != p_dir->files.cend(); ++j)
+		for (auto j = p_dir->m_files.cbegin(); j != p_dir->m_files.cend(); ++j)
 		{
 			ItemInfo* ii = new ItemInfo(*j);
 			const auto& l_name = (*j)->getName();
@@ -646,7 +646,7 @@ LRESULT DirectoryListingFrame::onOpenFile(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 	{
 		const ItemInfo* ii = ctrlList.getItemData(i);
 		// !necros!
-		const string rp = ShareManager::toRealPath(ii->file->getTTH());
+		const string rp = ShareManager::toRealPath(ii->m_file->getTTH());
 		if (!rp.empty())
 		{
 			openFileFromList(Text::toT(rp));
@@ -663,7 +663,7 @@ LRESULT DirectoryListingFrame::onOpenFolder(WORD /*wNotifyCode*/, WORD /*wID*/, 
 		//[-] PVS-Studio V808 tstring l_param;
 		if (const ItemInfo *ii = ctrlList.getItemData(i))
 		{
-			WinUtil::openFolder(Text::toT(ShareManager::toRealPath(ii->file->getTTH())));
+			WinUtil::openFolder(Text::toT(ShareManager::toRealPath(ii->m_file->getTTH())));
 		}
 	}
 	return 0;
@@ -686,7 +686,7 @@ bool DirectoryListingFrame::showFlyServerProperty(const ItemInfo* p_item_info)
 	for (int i = 0; i < _countof(l_fileinfo_array); ++i)
 		l_dlg.m_FileInfo.push_back(make_pair(CTSTRING_I(columnNames[l_fileinfo_array[i]]), p_item_info->getText(l_fileinfo_array[i])));
 		
-	const string l_inform = CFlyServerInfo::getMediaInfoAsText(p_item_info->file->getTTH(), p_item_info->file->getSize());
+	const string l_inform = CFlyServerInfo::getMediaInfoAsText(p_item_info->m_file->getTTH(), p_item_info->m_file->getSize());
 	
 	l_dlg.m_MIInform.push_back(make_pair(_T("General"), Text::toT(l_inform)));
 	
@@ -704,7 +704,7 @@ LRESULT DirectoryListingFrame::onDoubleClickFiles(int /*idCtrl*/, LPNMHDR pnmh, 
 		if (ii->type == ItemInfo::FILE)
 		{
 			// !necros!
-			const string rp = ShareManager::toRealPath(ii->file->getTTH());
+			const string rp = ShareManager::toRealPath(ii->m_file->getTTH());
 			if (!rp.empty())
 			{
 				openFileFromList(Text::toT(rp));
@@ -712,10 +712,10 @@ LRESULT DirectoryListingFrame::onDoubleClickFiles(int /*idCtrl*/, LPNMHDR pnmh, 
 			else
 				try
 				{
-					if (Util::isDclstFile(ii->file->getName()))
-						dl->download(ii->file, Text::fromT(ii->getText(COLUMN_FILENAME)), true, WinUtil::isShift(), QueueItem::DEFAULT, true);
+					if (Util::isDclstFile(ii->m_file->getName()))
+						dl->download(ii->m_file, Text::fromT(ii->getText(COLUMN_FILENAME)), true, WinUtil::isShift(), QueueItem::DEFAULT, true);
 					else
-						dl->download(ii->file, Text::fromT(ii->getText(COLUMN_FILENAME)), false, WinUtil::isShift(), QueueItem::DEFAULT);
+						dl->download(ii->m_file, Text::fromT(ii->getText(COLUMN_FILENAME)), false, WinUtil::isShift(), QueueItem::DEFAULT);
 						
 				}
 				catch (const Exception& e)
@@ -728,7 +728,7 @@ LRESULT DirectoryListingFrame::onDoubleClickFiles(int /*idCtrl*/, LPNMHDR pnmh, 
 			HTREEITEM ht = ctrlTree.GetChildItem(t);
 			while (ht != NULL)
 			{
-				if ((DirectoryListing::Directory*)ctrlTree.GetItemData(ht) == ii->dir)
+				if ((DirectoryListing::Directory*)ctrlTree.GetItemData(ht) == ii->m_dir)
 				{
 					ctrlTree.SelectItem(ht);
 					break;
@@ -843,13 +843,13 @@ void DirectoryListingFrame::downloadList(const tstring& aTarget, bool view /* = 
 			{
 				if (view)
 				{
-					File::deleteFileT(target + Text::toT(Util::validateFileName(ii->file->getName())));
+					File::deleteFileT(target + Text::toT(Util::validateFileName(ii->m_file->getName())));
 				}
-				dl->download(ii->file, Text::fromT(target + ii->getText(COLUMN_FILENAME)), view, WinUtil::isShift() || view, prio);
+				dl->download(ii->m_file, Text::fromT(target + ii->getText(COLUMN_FILENAME)), view, WinUtil::isShift() || view, prio);
 			}
 			else if (!view)
 			{
-				dl->download(ii->dir, Text::fromT(target), WinUtil::isShift(), prio);
+				dl->download(ii->m_dir, Text::fromT(target), WinUtil::isShift(), prio);
 			}
 		}
 		catch (const Exception& e)
@@ -913,7 +913,7 @@ LRESULT DirectoryListingFrame::onDownloadTo(WORD /*wNotifyCode*/, WORD /*wID*/, 
 				if (WinUtil::browseFile(target, m_hWnd))
 				{
 					LastDir::add(Util::getFilePath(target));
-					dl->download(ii->file, Text::fromT(target), false, WinUtil::isShift(), QueueItem::DEFAULT);
+					dl->download(ii->m_file, Text::fromT(target), false, WinUtil::isShift(), QueueItem::DEFAULT);
 				}
 			}
 			else
@@ -922,7 +922,7 @@ LRESULT DirectoryListingFrame::onDownloadTo(WORD /*wNotifyCode*/, WORD /*wID*/, 
 				if (WinUtil::browseDirectory(target, m_hWnd))
 				{
 					LastDir::add(target);
-					dl->download(ii->dir, Text::fromT(target), WinUtil::isShift(), QueueItem::DEFAULT);
+					dl->download(ii->m_dir, Text::fromT(target), WinUtil::isShift(), QueueItem::DEFAULT);
 				}
 			}
 		}
@@ -960,7 +960,7 @@ LRESULT DirectoryListingFrame::onGetTTHMediainfoServer(WORD /*wNotifyCode*/, WOR
 		const ItemInfo* pItemInfo = ctrlList.getItemData(i);
 		if (pItemInfo->type == ItemInfo::FILE)
 		{
-			const DirectoryListing::File* pFile = pItemInfo->file;
+			const DirectoryListing::File* pFile = pItemInfo->m_file;
 			CFlyServerKey l_info(pFile->getTTH(), pFile->getSize()); // pFile->getName()
 			l_array.push_back(l_info);
 		}
@@ -981,7 +981,7 @@ LRESULT DirectoryListingFrame::onSetTTHMediainfoServer(WORD /*wNotifyCode*/, WOR
 		const ItemInfo* pItemInfo = ctrlList.getItemData(i);
 		if (pItemInfo->type == ItemInfo::FILE)
 		{
-			const DirectoryListing::File* pFile = pItemInfo->file;
+			const DirectoryListing::File* pFile = pItemInfo->m_file;
 			CFlyServerKey l_info(pFile->getTTH(), pFile->getSize()); // , pFile->getName()
 			if (pFile->m_media)
 			{
@@ -1008,7 +1008,7 @@ LRESULT DirectoryListingFrame::onSearchByTTH(WORD /*wNotifyCode*/, WORD /*wID*/,
 	ItemInfo* ii = ctrlList.getSelectedItem();
 	if (ii && ii->type == ItemInfo::FILE)
 	{
-		WinUtil::searchHash(ii->file->getTTH());
+		WinUtil::searchHash(ii->m_file->getTTH());
 	}
 	return 0;
 }
@@ -1031,7 +1031,7 @@ LRESULT DirectoryListingFrame::onMarkAsDownloaded(WORD /*wNotifyCode*/, WORD /*w
 		ItemInfo* pItemInfo = ctrlList.getItemData(i);
 		if (pItemInfo->type == ItemInfo::FILE)
 		{
-			DirectoryListing::File* pFile = pItemInfo->file;
+			DirectoryListing::File* pFile = pItemInfo->m_file;
 			CFlylinkDBManager::getInstance()->push_download_tth(pFile->getTTH());
 			pFile->setFlag(DirectoryListing::FLAG_DOWNLOAD);
 			pItemInfo->UpdatePathColumn(pFile);
@@ -1099,9 +1099,9 @@ LRESULT DirectoryListingFrame::onGoToDirectory(WORD /*wNotifyCode*/, WORD /*wID*
 	const ItemInfo* ii = ctrlList.getItemData(ctrlList.GetNextItem(-1, LVNI_SELECTED));
 	if (ii->type == ItemInfo::FILE)
 	{
-		if (!ii->file->getAdls())
+		if (!ii->m_file->getAdls())
 			return 0;
-		DirectoryListing::Directory* pd = ii->file->getParent();
+		DirectoryListing::Directory* pd = ii->m_file->getParent();
 		while (pd != NULL && pd != dl->getRoot())
 		{
 			fullPath = Text::toT(pd->getName()) + _T("\\") + fullPath;
@@ -1110,9 +1110,9 @@ LRESULT DirectoryListingFrame::onGoToDirectory(WORD /*wNotifyCode*/, WORD /*wID*
 	}
 	else if (ii->type == ItemInfo::DIRECTORY)
 	{
-		if (!(ii->dir->getAdls() && ii->dir->getParent() != dl->getRoot()))
+		if (!(ii->m_dir->getAdls() && ii->m_dir->getParent() != dl->getRoot()))
 			return 0;
-		fullPath = Text::toT(((DirectoryListing::AdlDirectory*)ii->dir)->getFullPath());
+		fullPath = Text::toT(((DirectoryListing::AdlDirectory*)ii->m_dir)->getFullPath());
 	}
 	
 	selectItem(fullPath);
@@ -1268,7 +1268,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			int n = 0;
 			targetMenu.AppendMenu(MF_STRING, IDC_DOWNLOADTO, CTSTRING(BROWSE));
 			targets.clear();
-			QueueManager::getTargets(ii->file->getTTH(), targets);
+			QueueManager::getTargets(ii->m_file->getTTH(), targets);
 			
 			if (!targets.empty())
 			{
@@ -1281,7 +1281,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			LastDir::appendItem(targetMenu, n);
 			
 			// !SMT!-UI
-			const auto existingFile = !ShareManager::toRealPath(ii->file->getTTH()).empty();
+			const auto existingFile = !ShareManager::toRealPath(ii->m_file->getTTH()).empty();
 			activatePreviewItems(fileMenu, existingFile);
 			if (existingFile)
 			{
@@ -1297,7 +1297,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			}
 			
 			
-			if (ii->file->getAdls())
+			if (ii->m_file->getAdls())
 			{
 				fileMenu.AppendMenu(MF_STRING, IDC_GO_TO_DIRECTORY, CTSTRING(GO_TO_DIRECTORY));
 			}
@@ -1310,7 +1310,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			//fileMenu.EnableMenuItem((UINT_PTR)(HMENU)copyMenu, MF_BYCOMMAND | MFS_ENABLED);
 			appendUcMenu(fileMenu, UserCommand::CONTEXT_FILELIST, ClientManager::getHubs(dl->getUser()->getCID(), dl->getHintedUser().hint));
 #ifdef OLD_MENU_HEADER //[~]JhaoDa
-			fileMenu.InsertSeparatorFirst(Text::CropStrLength(ii->file->getName()));
+			fileMenu.InsertSeparatorFirst(Text::CropStrLength(ii->m_file->getName()));
 #endif
 			fileMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 #ifdef OLD_MENU_HEADER //[~]JhaoDa
@@ -1336,7 +1336,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			targetMenu.AppendMenu(MF_STRING, IDC_DOWNLOADTO, CTSTRING(BROWSE));
 			LastDir::appendItem(targetMenu, n);
 			if (ii->type == ItemInfo::DIRECTORY &&
-			        ii->dir->getAdls() && ii->dir->getParent() != dl->getRoot())
+			        ii->m_dir->getAdls() && ii->m_dir->getParent() != dl->getRoot())
 			{
 				fileMenu.AppendMenu(MF_STRING, IDC_GO_TO_DIRECTORY, CTSTRING(GO_TO_DIRECTORY));
 			}
@@ -1348,7 +1348,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			
 			appendUcMenu(fileMenu, UserCommand::CONTEXT_FILELIST, ClientManager::getHubs(dl->getUser()->getCID(), dl->getHintedUser().hint));
 #ifdef OLD_MENU_HEADER //[~]JhaoDa
-			fileMenu.InsertSeparatorFirst(ctrlList.GetSelectedCount() == 1 ? (ii->type == ItemInfo::FILE ? Text::CropStrLength(ii->file->getName()) : Text::CropStrLength(ii->dir->getName())) : CTSTRING(FILES));
+			fileMenu.InsertSeparatorFirst(ctrlList.GetSelectedCount() == 1 ? (ii->type == ItemInfo::FILE ? Text::CropStrLength(ii->m_file->getName()) : Text::CropStrLength(ii->m_dir->getName())) : CTSTRING(FILES));
 #endif
 			fileMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 #ifdef OLD_MENU_HEADER //[~]JhaoDa          
@@ -1443,7 +1443,7 @@ LRESULT DirectoryListingFrame::onDownloadTarget(WORD /*wNotifyCode*/, WORD wID, 
 			{
 				try
 				{
-					dl->download(ii->file, targets[newId], false, WinUtil::isShift(), QueueItem::DEFAULT);
+					dl->download(ii->m_file, targets[newId], false, WinUtil::isShift(), QueueItem::DEFAULT);
 				}
 				catch (const Exception& e)
 				{
@@ -1509,7 +1509,7 @@ LRESULT DirectoryListingFrame::onDownloadFavoriteDirs(WORD /*wNotifyCode*/, WORD
 			{
 				try
 				{
-					dl->download(ii->file, targets[newId], false, WinUtil::isShift(), QueueItem::DEFAULT);
+					dl->download(ii->m_file, targets[newId], false, WinUtil::isShift(), QueueItem::DEFAULT);
 				}
 				catch (const Exception& e)
 				{
@@ -1589,7 +1589,7 @@ LRESULT DirectoryListingFrame::onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*b
 				HTREEITEM ht = ctrlTree.GetChildItem(ctrlTree.GetSelectedItem());
 				while (ht != NULL)
 				{
-					if ((DirectoryListing::Directory*)ctrlTree.GetItemData(ht) == ii->dir)
+					if ((DirectoryListing::Directory*)ctrlTree.GetItemData(ht) == ii->m_dir)
 					{
 						ctrlTree.SelectItem(ht);
 						break;
@@ -1678,7 +1678,7 @@ HTREEITEM DirectoryListingFrame::findFile(const StringSearch& str, HTREEITEM roo
 		const ItemInfo* ii = ctrlList.getItemData(i);
 		if (ii->type == ItemInfo::FILE)
 		{
-			if (str.match(ii->file->getName()))
+			if (str.match(ii->m_file->getName()))
 			{
 				if (skipHits == 0)
 				{
@@ -1820,17 +1820,17 @@ void DirectoryListingFrame::runUserCommand(UserCommand& uc)
 		if (ii->type == ItemInfo::FILE)
 		{
 			ucParams["type"] = "File";
-			ucParams["fileFN"] = dl->getPath(ii->file) + ii->file->getName();
-			ucParams["fileSI"] = Util::toString(ii->file->getSize());
-			ucParams["fileSIshort"] = Util::formatBytes(ii->file->getSize());
-			ucParams["fileTR"] = ii->file->getTTH().toBase32();
+			ucParams["fileFN"] = dl->getPath(ii->m_file) + ii->m_file->getName();
+			ucParams["fileSI"] = Util::toString(ii->m_file->getSize());
+			ucParams["fileSIshort"] = Util::formatBytes(ii->m_file->getSize());
+			ucParams["fileTR"] = ii->m_file->getTTH().toBase32();
 		}
 		else
 		{
 			ucParams["type"] = "Directory";
-			ucParams["fileFN"] = dl->getPath(ii->dir) + ii->dir->getName();
-			ucParams["fileSI"] = Util::toString(ii->dir->getTotalSize());
-			ucParams["fileSIshort"] = Util::formatBytes(ii->dir->getTotalSize());
+			ucParams["fileFN"] = dl->getPath(ii->m_dir) + ii->m_dir->getName();
+			ucParams["fileSI"] = Util::toString(ii->m_dir->getTotalSize());
+			ucParams["fileSIshort"] = Util::formatBytes(ii->m_dir->getTotalSize());
 		}
 		
 		// compatibility with 0.674 and earlier
@@ -1870,28 +1870,28 @@ LRESULT DirectoryListingFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 				sCopy = dl->getUser()->getLastNick();
 				break;
 			case IDC_COPY_FILENAME:
-				sCopy = Util::getFileName(ii->type == ItemInfo::FILE ? ii->file->getName() : ii->dir->getName()); // !SMT!-F
+				sCopy = Util::getFileName(ii->type == ItemInfo::FILE ? ii->m_file->getName() : ii->m_dir->getName()); // !SMT!-F
 				break;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 			case IDC_COPY_FLYSERVER_INFORM:
 				if (ii->type == ItemInfo::FILE)
-					sCopy = CFlyServerInfo::getMediaInfoAsText(ii->file->getTTH(), ii->file->getSize());
+					sCopy = CFlyServerInfo::getMediaInfoAsText(ii->m_file->getTTH(), ii->m_file->getSize());
 				break;
 #endif
 			case IDC_COPY_SIZE:
-				sCopy = Util::formatBytes(ii->type == ItemInfo::FILE ? ii->file->getSize() : ii->dir->getTotalSize()); // !SMT!-F
+				sCopy = Util::formatBytes(ii->type == ItemInfo::FILE ? ii->m_file->getSize() : ii->m_dir->getTotalSize()); // !SMT!-F
 				break;
 			case IDC_COPY_LINK:
 				if (ii->type == ItemInfo::FILE)
-					sCopy = Util::getMagnet(ii->file->getTTH(), ii->file->getName(), ii->file->getSize());
+					sCopy = Util::getMagnet(ii->m_file->getTTH(), ii->m_file->getName(), ii->m_file->getSize());
 				break;
 			case IDC_COPY_TTH:
 				if (ii->type == ItemInfo::FILE)
-					sCopy = ii->file->getTTH().toBase32();
+					sCopy = ii->m_file->getTTH().toBase32();
 				break;
 			case IDC_COPY_WMLINK://[+]necros
 				if (ii->type == ItemInfo::FILE)
-					sCopy = Util::getWebMagnet(ii->file->getTTH(), ii->file->getName(), ii->file->getSize());
+					sCopy = Util::getWebMagnet(ii->m_file->getTTH(), ii->m_file->getName(), ii->m_file->getSize());
 				break;
 			default:
 				dcdebug("DIRECTORYLISTINGFRAME DON'T GO HERE\n");
@@ -2064,9 +2064,9 @@ LRESULT DirectoryListingFrame::onCustomDrawList(int /*idCtrl*/, LPNMHDR pnmh, BO
 			ItemInfo *ii = reinterpret_cast<ItemInfo*>(plvcd->nmcd.lItemlParam);
 			ii->calcImageIndex();
 			if (ii->type == ItemInfo::FILE)
-				flags = ii->file->getFlags();
+				flags = ii->m_file->getFlags();
 			else if (ii->type == ItemInfo::DIRECTORY)
-				flags = ii->dir->getFlags();
+				flags = ii->m_dir->getFlags();
 			getItemColor(flags, plvcd->clrText, plvcd->clrTextBk);
 			if (!ii->columns[COLUMN_FLY_SERVER_RATING].empty())
 				plvcd->clrTextBk  = OperaColors::brightenColor(plvcd->clrTextBk, -0.02f);
@@ -2114,7 +2114,7 @@ LRESULT DirectoryListingFrame::onCustomDrawTree(int /*idCtrl*/, LPNMHDR pnmh, BO
 	return CDRF_DODEFAULT;
 }
 
-DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::File* f) : type(FILE), file(f), m_icon_index(-1)
+DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::File* f) : type(FILE), m_file(f), m_icon_index(-1)
 {
 	columns[COLUMN_FILENAME] = Text::toT(f->getName()); // https://www.box.net/shared/972al1nj5hngajrcgvnt
 	columns[COLUMN_TYPE] = Util::getFileExt(columns[COLUMN_FILENAME]);
@@ -2143,7 +2143,7 @@ DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::File* f) : type(FILE
 		CFlyMediaInfo::translateDuration(f->m_media->m_audio, columns[COLUMN_MEDIA_AUDIO], columns[COLUMN_DURATION]);
 	}
 }
-DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::Directory* d) : type(DIRECTORY), dir(d), m_icon_index(-1)
+DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::Directory* d) : type(DIRECTORY), m_dir(d), m_icon_index(-1)
 {
 	columns[COLUMN_FILENAME]  = Text::toT(d->getName());
 	columns[COLUMN_EXACTSIZE] = Util::formatExactSize(d->getTotalSize());
@@ -2216,7 +2216,7 @@ LRESULT DirectoryListingFrame::onGenerateDCLST(WORD /*wNotifyCode*/, WORD wID, H
 			const ItemInfo* ii = ctrlList.getItemData(i);
 			if (ii->type == ItemInfo::DIRECTORY)
 			{
-				dir = ii->dir;
+				dir = ii->m_dir;
 				break;
 			}
 		}
@@ -2265,11 +2265,11 @@ void DirectoryListingFrame::openFileFromList(const tstring& file)
 LRESULT DirectoryListingFrame::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	ItemInfo* li = ctrlList.getSelectedItem();
-	if (li != NULL && li->type == ItemInfo::FILE)
+	if (li && li->type == ItemInfo::FILE)
 	{
-		startMediaPreview(wID, li->file->getTTH()
+		startMediaPreview(wID, li->m_file->getTTH()
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-		                  , li->file->getSize()
+		                  , li->m_file->getSize()
 #endif
 		                 );
 	}
@@ -2411,13 +2411,13 @@ bool DirectoryListingFrame::scan_list_view_from_merge()
 			if (l_item_info == nullptr || l_item_info->m_already_processed || l_item_info->type != ItemInfo::FILE) // Уже не первый раз или это не файл?
 				continue;
 			l_item_info->m_already_processed = true;
-			const auto l_file_size = l_item_info->file->getSize();
+			const auto l_file_size = l_item_info->m_file->getSize();
 			if (l_file_size)
 			{
-				const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(l_item_info->file->getName())); // TODO - расширение есть в Columns но в T-формате
+				const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(l_item_info->m_file->getName())); // TODO - расширение есть в Columns но в T-формате
 				if (g_fly_server_config.isSupportFile(l_file_ext, l_file_size))
 				{
-					const TTHValue& l_tth = l_item_info->file->getTTH();
+					const TTHValue& l_tth = l_item_info->m_file->getTTH();
 					CFlyLock(g_cs_fly_server);
 					const auto l_find_ratio = g_fly_server_cache.find(l_tth);
 					if (l_find_ratio == g_fly_server_cache.end()) // Если значение рейтинга есть в кэше то не запрашиваем о нем инфу с сервера

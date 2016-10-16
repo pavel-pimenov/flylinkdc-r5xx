@@ -100,7 +100,8 @@ class NmdcHub : public Client, private Flags
 #ifdef FLYLINKDC_USE_EXT_JSON
 			SUPPORTS_EXTJSON2 = 0x08,
 #endif
-			SUPPORTS_NICKRULE = 0x10
+			SUPPORTS_NICKRULE = 0x10,
+			SUPPORTS_HUBURL = 0x20
 		};
 		
 		// MyInfo states.

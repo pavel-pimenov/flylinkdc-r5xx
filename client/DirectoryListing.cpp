@@ -291,7 +291,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			if (m_is_updating)
 			{
 				// just update the current file if it is already there.
-				for (auto i = m_cur->files.cbegin(), iend = m_cur->files.cend(); i != iend; ++i)
+				for (auto i = m_cur->m_files.cbegin(); i != m_cur->m_files.cend(); ++i)
 				{
 					auto& file = **i;
 					/// @todo comparisons should be case-insensitive but it takes too long - add a cache
@@ -408,7 +408,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			}
 			auto f = new DirectoryListing::File(m_cur, l_name, l_size, l_tth, l_i_hit, l_i_ts, l_mediaXY);
 			m_cur->m_virus_detect.add(l_name, l_size);
-			m_cur->files.push_back(f);
+			m_cur->m_files.push_back(f);
 			if (l_size)
 			{
 				if (m_is_own_list)//[+] FlylinkDC++
@@ -594,7 +594,7 @@ void DirectoryListing::download(Directory* aDir, const string& aTarget, bool hig
 			p_first_file = false;
 		}
 		// Then add the files
-		File::List& l = aDir->files;
+		const File::List& l = aDir->m_files;
 		//[!] sort(l.begin(), l.end(), File::FileSort());  //[-] FlylinkDC++ Team - сортировка файлов по алфавиту тормозит при кол-ва файлов > 10 тыс
 		for (auto i = l.cbegin(); i != l.cend(); ++i)
 		{
@@ -714,7 +714,7 @@ DirectoryListing::Directory::~Directory()
 		l_file_list.m_nick = m_directory_list->getUser()->getLastNick();
 		l_file_list.m_ip = m_directory_list->getUser()->getIPAsString();
 		l_file_list.m_time = GET_TIME();
-		for (auto j = files.begin(); j != files.end(); ++j)
+		for (auto j = m_files.begin(); j != m_files.end(); ++j)
 		{
 			if (CFlyVirusDetector::is_virus_file((*j)->getName(), (*j)->getSize()))
 			{
@@ -725,7 +725,7 @@ DirectoryListing::Directory::~Directory()
 		CFlyServerJSON::addAntivirusCounter(l_file_list);
 	}
 	for_each(directories.begin(), directories.end(), DeleteFunction());
-	for_each(files.begin(), files.end(), DeleteFunction());
+	for_each(m_files.begin(), m_files.end(), DeleteFunction());
 }
 
 bool DirectoryListing::CFlyVirusDetector::is_virus_dir() const
@@ -800,7 +800,7 @@ void DirectoryListing::Directory::filterList(DirectoryListing::Directory::TTHSet
 		(*i)->filterList(l);
 	}
 	directories.erase(std::remove_if(directories.begin(), directories.end(), DirectoryEmpty()), directories.end());
-	files.erase(std::remove_if(files.begin(), files.end(), HashContained(l)), files.end());
+	m_files.erase(std::remove_if(m_files.begin(), m_files.end(), HashContained(l)), m_files.end());
 }
 
 void DirectoryListing::Directory::getHashList(DirectoryListing::Directory::TTHSet& l)
@@ -809,7 +809,10 @@ void DirectoryListing::Directory::getHashList(DirectoryListing::Directory::TTHSe
 	{
 		(*i)->getHashList(l);
 	}
-	for (auto i = files.cbegin(); i != files.cend(); ++i) l.insert((*i)->getTTH());
+	for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
+	{
+		l.insert((*i)->getTTH());
+	}
 }
 
 int64_t DirectoryListing::Directory::getTotalTS() const
@@ -826,7 +829,7 @@ int64_t DirectoryListing::Directory::getTotalTS() const
 uint64_t DirectoryListing::Directory::getSumSize() const
 {
 	uint64_t x = 0;
-	for (auto i = files.cbegin(); i != files.cend(); ++i)
+	for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
 	{
 		x += (*i)->getSize();
 	}
@@ -837,7 +840,7 @@ uint64_t DirectoryListing::Directory::getSumHit() const
 	if (!m_is_mediainfo)
 		return 0;
 	uint64_t x = 0;
-	for (auto i = files.cbegin(); i != files.cend(); ++i)
+	for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
 	{
 		x += (*i)->getHit();
 	}
@@ -848,7 +851,7 @@ int64_t DirectoryListing::Directory::getMaxTS() const
 	if (!m_is_mediainfo)
 		return 0;
 	int64_t x = 0;
-	for (auto i = files.cbegin(); i != files.cend(); ++i)
+	for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
 	{
 		x = std::max((*i)->getTS(), x);
 	}
@@ -860,7 +863,7 @@ std::pair<uint32_t, uint32_t> DirectoryListing::Directory::getMinMaxBitrateFile(
 	if (!m_is_mediainfo)
 		return l_min_max;
 	l_min_max.first = static_cast<uint32_t>(-1);
-	for (auto i = files.cbegin(); i != files.cend(); ++i)
+	for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
 	{
 		if ((*i)->m_media)
 		{
@@ -961,11 +964,11 @@ void DirectoryListing::Directory::checkDupes(const DirectoryListing* lst)
 		result |= (*i)->getFlags() & (
 		              FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED | FLAG_NOT_SHARED);  // TODO | FLAG_VIRUS_FILE
 	}
-	if (files.size())
+	if (m_files.size())
 		result |= FLAG_DOWNLOAD_FOLDER;
-	for (auto i = files.cbegin(); i != files.cend(); ++i)
+	for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
 	{
-		//don't count 0 byte files since it'll give lots of partial dupes
+		//don't count 0 byte m_files since it'll give lots of partial dupes
 		//of no interest
 		if ((*i)->getSize() > 0)
 		{

@@ -1505,7 +1505,7 @@ void ShareManager::rebuildIndicesL()
 			g_bloom.clear();
 		}
 		{
-			CFlyReadLock(*g_csDirList); // Эта блокировка выше TTHINdex
+			CFlyReadLock(*g_csDirList); // Эта блокировка выше TTHIndex
 			{
 				CFlyReadLock(*g_csTTHIndex);
 				for (auto i = g_list_directories.cbegin(); i != g_list_directories.cend(); ++i)
@@ -2449,15 +2449,15 @@ bool ShareManager::searchTTHArray(CFlySearchArrayTTH& p_all_search_array, const 
 		{
 			dcassert(i->second->getParent());
 			const auto &l_fileMap = i->second;
-			SearchResultBaseTTH l_result(SearchResult::TYPE_FILE,
-			                             l_fileMap->getSize(),
-			                             l_fileMap->getParent()->getFullName() + l_fileMap->getName(),
-			                             l_fileMap->getTTH(),
-			                             UploadManager::getSlots(),
-			                             UploadManager::getFreeSlots()
-			                            );
+			const SearchResultBaseTTH l_result(SearchResult::TYPE_FILE,
+			                                   l_fileMap->getSize(),
+			                                   l_fileMap->getParent()->getFullName() + l_fileMap->getName(),
+			                                   l_fileMap->getTTH(),
+			                                   UploadManager::getSlots(),
+			                                   UploadManager::getFreeSlots()
+			                                  );
 			incHits();
-			j->m_toSRCommand = new string(l_result.toSR(*p_client));
+			j->m_toSRCommand = std::make_unique<string>(l_result.toSR(*p_client));
 			COMMAND_DEBUG("[TTH]$Search " + j->m_search + " TTH = " + j->m_tth.toBase32(), DebugTask::HUB_IN, p_client->getIpPort());
 		}
 		else
@@ -2532,9 +2532,9 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 #ifdef FLYLINKDC_BETA
 			if (p_search_param.m_client)
 			{
-				const string l_error = "Error TTH Search: " + p_search_param.m_filter + " Hub = " + p_search_param.m_client->getHubUrl() + " raw:" + p_search_param.getRAWQuery();
-				LogManager::message(l_error);
-				CFlyServerJSON::pushError(49, l_error);
+				//const string l_error = "Error TTH Search: " + p_search_param.m_filter + " Hub = " + p_search_param.m_client->getHubUrl() + " raw:" + p_search_param.getRAWQuery();
+				//LogManager::message(l_error);
+				//CFlyServerJSON::pushError(49, l_error);
 			}
 #endif
 		}

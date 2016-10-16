@@ -492,7 +492,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 						continue;
 					}
 					
-					const bool startDown = DownloadManager::getInstance()->isStartDownload(prio);
+					const bool startDown = DownloadManager::isStartDownload(prio);
 					
 					if (cqi->getState() == ConnectionQueueItem::WAITING)
 					{
@@ -956,7 +956,7 @@ void ConnectionManager::addCTM2HUB(const string& p_server_port, const HintedUser
 	bool l_is_duplicate;
 	{
 		CFlyWriteLock(*g_csDdosCTM2HUBCheck);
-		dcassert(p_hinted_user.user);
+		//dcassert(p_hinted_user.user);
 		l_is_duplicate = g_ddos_ctm2hub.insert(Text::toLower(p_server_port)).second;
 	}
 	CFlyServerJSON::pushError(18, l_cmt2hub);

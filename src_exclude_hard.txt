@@ -20,3 +20,5 @@ FlylinkDC_Debug*.pdb
 compiled/Settings/common/*.*
 CustomCompressExt.txt
 libtorrent.pdb
+CustomLocations.bmp
+CustomLocations.ini

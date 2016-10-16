@@ -73,7 +73,9 @@ namespace zmq
         int modify_fd (fd_t fd, short events);
         int remove_fd (fd_t fd);
 
-        int wait (event_t *event, long timeout);
+        int wait (event_t *event, int n_events, long timeout);
+
+        inline int size (void) { return items.size (); };
 
         //  Return false if object is not a socket.
         bool check_tag ();

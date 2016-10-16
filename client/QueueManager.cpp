@@ -1468,20 +1468,20 @@ QueueItem::Priority QueueManager::hasDownload(const UserPtr& aUser)
 	}
 	return qi->getPriority();
 }
-void QueueManager::buildMap(const DirectoryListing::Directory* dir, TTHMap& tthMap) noexcept // [!] IRainman fix.
+void QueueManager::buildMap(const DirectoryListing::Directory* dir, TTHMap& p_tthMap) noexcept // [!] IRainman fix.
 {
 	for (auto j = dir->directories.cbegin(); j != dir->directories.cend(); ++j)
 	{
 		if (!(*j)->getAdls()) // [1] https://www.box.net/shared/d511d114cb87f7fa5b8d
 		{
-			buildMap(*j, tthMap); // [!] IRainman fix.
+			buildMap(*j, p_tthMap); // [!] IRainman fix.
 		}
 	}
 	
-	for (auto i = dir->files.cbegin(); i != dir->files.cend(); ++i)
+	for (auto i = dir->m_files.cbegin(); i != dir->m_files.cend(); ++i)
 	{
 		const DirectoryListing::File* df = *i;
-		tthMap.insert(make_pair(df->getTTH(), df));
+		p_tthMap.insert(make_pair(df->getTTH(), df));
 	}
 }
 

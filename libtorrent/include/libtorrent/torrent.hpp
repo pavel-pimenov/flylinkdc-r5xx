@@ -126,7 +126,7 @@ namespace libtorrent
 	// this is the internal representation of web seeds
 	struct web_seed_t : web_seed_entry
 	{
-		web_seed_t(web_seed_entry const& wse);
+		explicit web_seed_t(web_seed_entry const& wse);
 		web_seed_t(std::string const& url_, web_seed_entry::type_t type_
 			, std::string const& auth_ = std::string()
 			, web_seed_entry::headers_t const& extra_headers_ = web_seed_entry::headers_t());
@@ -726,9 +726,7 @@ namespace libtorrent
 		void set_tracker_login(std::string const& name, std::string const& pw);
 #endif
 
-private:
 		announce_entry* find_tracker(std::string const& url);
-public:
 // --------------------------------------------
 		// PIECE MANAGEMENT
 

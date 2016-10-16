@@ -1358,7 +1358,7 @@ string Util::formatBytes(double aBytes) // TODO fix copy-paste
 
 wstring Util::formatBytesW(int64_t aBytes)
 {
-	wchar_t buf[64];
+	wchar_t buf[128];
 	if (aBytes < 1024)
 	{
 		_snwprintf(buf, _countof(buf), L"%d %s", (int)(aBytes & 0xffffffff), CWSTRING(B));
@@ -1388,7 +1388,7 @@ wstring Util::formatBytesW(int64_t aBytes)
 		_snwprintf(buf, _countof(buf), L"%.03f %s", (double)aBytes / (1152921504606846976.0), CWSTRING(EB)); //TODO Crash beta-16
 	}
 	
-	return buf;
+	return buf; // https://drdump.com/Problem.aspx?ProblemID=240683
 }
 
 wstring Util::formatExactSize(int64_t aBytes)

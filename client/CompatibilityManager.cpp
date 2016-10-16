@@ -1087,7 +1087,7 @@ string CompatibilityManager::DiskSpaceInfo(bool onlyTotal /* = false */)
 {
 	string ret;
 	int64_t free = 0, totalFree = 0, size = 0, totalSize = 0, netFree = 0, netSize = 0;
-	TStringList volumes = FindVolumes();
+	const TStringList volumes = FindVolumes();
 	for (auto i = volumes.cbegin(); i != volumes.cend(); ++i)
 	{
 		const auto l_drive_type = GetDriveType((*i).c_str());

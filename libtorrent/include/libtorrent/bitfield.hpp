@@ -35,7 +35,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/assert.hpp"
 #include "libtorrent/config.hpp"
-#include "libtorrent/buffer.hpp"
 #include "libtorrent/aux_/byteswap.hpp"
 #include "libtorrent/aux_/ffs.hpp"
 
@@ -58,7 +57,7 @@ namespace libtorrent
 		// from the specified buffer, and ``bits`` number of bits (rounded up to
 		// the nearest byte boundary).
 		bitfield() = default;
-		bitfield(int bits) { resize(bits); }
+		explicit bitfield(int bits) { resize(bits); }
 		bitfield(int bits, bool val) { resize(bits, val); }
 		bitfield(char const* b, int bits) { assign(b, bits); }
 		bitfield(bitfield const& rhs) { assign(rhs.data(), rhs.size()); }

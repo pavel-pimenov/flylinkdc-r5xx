@@ -30,9 +30,10 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_NO_DEPRECATE
 
 #include "libtorrent/config.hpp"
+#ifndef TORRENT_NO_DEPRECATE
+
 #include "libtorrent/lazy_entry.hpp"
 #include "libtorrent/bdecode.hpp" // for error codes
 #include <cstring>

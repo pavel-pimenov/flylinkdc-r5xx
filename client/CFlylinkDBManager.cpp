@@ -14,6 +14,8 @@
 #include <boost/algorithm/string.hpp>
 #include "FinishedManager.h"
 
+#include "libtorrent/read_resume_data.hpp"
+
 using sqlite3x::database_error;
 using sqlite3x::sqlite3_transaction;
 using sqlite3x::sqlite3_reader;
@@ -814,9 +816,12 @@ CFlylinkDBManager::CFlylinkDBManager()
 		
 		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS transfer_db.fly_transfer_file_torrent("
 		                              "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,type int not null,day int64 not null,stamp int64 not null,"
-		                              "sha1 char(160),path text,size int64 not null);");
+		                              "sha1 char(20),path text,size int64 not null);");
 		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS transfer_db.fly_transfer_file_torrentday_type ON fly_transfer_file_torrent(day,type);");
-		//m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS transfer_db.fly_transfer_file_torrent_sha1 ON fly_transfer_file_torrent(sha1);");
+		
+		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS queue_db.fly_queue_torrent("
+		                              "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,day int64 not null,stamp int64 not null,sha1 char(20) NOT NULL,resume blob, magnet string,name string);");
+		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS queue_db.iu_fly_queue_torrent_sha1 ON fly_queue_torrent(sha1);");
 		
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS antivirus_db.fly_suspect_user("
@@ -2290,6 +2295,86 @@ void CFlylinkDBManager::delete_transfer_history(const vector<__int64>& p_id_arra
 		{
 			errorDB("SQLite - delete_transfer_history: " + e.getError());
 		}
+	}
+}
+//========================================================================================================
+void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
+{
+	try
+	{
+		m_select_resume_torrent.init(m_flySQLiteDB,
+		                             "select resume,sha1 from queue_db.fly_queue_torrent");
+		sqlite3_reader l_q = m_select_resume_torrent->executereader();
+		while (l_q.read())
+		{
+			vector<uint8_t> l_resume;
+			l_q.getblob(0, l_resume);
+			dcassert(!l_resume.empty());
+			if (!l_resume.empty())
+			{
+				libtorrent::error_code ec;
+				libtorrent::add_torrent_params p = libtorrent::read_resume_data((const char*)l_resume.data(), int(l_resume.size()), ec);
+				p.save_path = SETTING(DOWNLOAD_DIRECTORY); // TODO - load from DB ?
+				libtorrent::sha1_hash l_sha1;
+				l_q.getblob(1, l_sha1.data(), l_sha1.size());
+				p.info_hash = l_sha1;
+				
+				//p.resume_data.assign(l_resume.data(), l_resume.data() + l_resume.size());
+#ifdef _DEBUG
+				ec.clear();
+				p_session.async_add_torrent(p); // TODO sync for debug
+				if (ec)
+				{
+					dcdebug("%s\n", ec.message().c_str());
+					dcassert(0);
+					LogManager::message("Error add_torrent_file:" + ec.message());
+				}
+#else
+				p_session.async_add_torrent(p);
+#endif
+			}
+		}
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - load_torrent_resume: " + e.getError());
+	}
+}
+//========================================================================================================
+void CFlylinkDBManager::delete_torrent_resume(const libtorrent::sha1_hash& p_sha1)
+
+{
+	CFlyLock(m_cs);
+	try
+	{
+		m_delete_resume_torrent.init(m_flySQLiteDB,
+		                             "delete from queue_db.fly_queue_torrent where sha1=?");
+		m_insert_resume_torrent->bind(1, p_sha1.data(), p_sha1.size(), SQLITE_STATIC);
+		m_insert_resume_torrent->executenonquery();
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - delete_torrent_resume: " + e.getError());
+	}
+}
+//========================================================================================================
+void CFlylinkDBManager::save_torrent_resume(const libtorrent::sha1_hash& p_sha1, const std::string& p_name, const std::vector<char>& p_resume)
+{
+	CFlyLock(m_cs);
+	try
+	{
+		// TODO - remove replace + double update
+		m_insert_resume_torrent.init(m_flySQLiteDB,
+		                             "insert or replace into queue_db.fly_queue_torrent (day,stamp,sha1,resume,name) "
+		                             "values(strftime('%s','now','localtime')/60/60/24,strftime('%s','now','localtime'),?,?,?)");
+		m_insert_resume_torrent->bind(1, p_sha1.data(), p_sha1.size(), SQLITE_STATIC);
+		m_insert_resume_torrent->bind(2, &p_resume[0], p_resume.size(), SQLITE_STATIC);
+		m_insert_resume_torrent->bind(3, p_name, SQLITE_STATIC);
+		m_insert_resume_torrent->executenonquery();
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - save_torrent_resume: " + e.getError());
 	}
 }
 //========================================================================================================
@@ -5032,7 +5117,7 @@ __int64 CFlylinkDBManager::convert_tth_historyL()
 					}
 				}
 			}
-			catch (const database_error& e)
+			catch (const database_error&)
 			{
 				dcassert(0);
 				//errorDB("SQLite - convert_tth_historyL: " + e.getError());

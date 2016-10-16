@@ -26,6 +26,15 @@
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+// "Tell them I was a writer.
+//  A maker of software.
+//  A humanist. A father.
+//  And many things.
+//  But above all, a writer.
+//  Thank You. :)"
+//  - Pieter Hintjens
+
 #include "precompiled.hpp"
 #define ZMQ_TYPE_UNSAFE
 
@@ -742,10 +751,120 @@ const char *zmq_msg_gets (zmq_msg_t *msg_, const char *property_)
 
 // Polling.
 
+#if defined ZMQ_HAVE_POLLER
+inline int zmq_poller_poll (zmq_pollitem_t *items_, int nitems_, long timeout_)
+{
+    // implement zmq_poll on top of zmq_poller
+    int rc;
+    zmq_poller_event_t *events;
+    events = new zmq_poller_event_t[nitems_];
+    alloc_assert(events);
+    void *poller = zmq_poller_new ();
+    alloc_assert(poller);
+
+    bool repeat_items = false;
+    //  Register sockets with poller
+    for (int i = 0; i < nitems_; i++) {
+        items_[i].revents = 0;
+
+        bool modify = false;
+        short e = items_[i].events;
+        if (items_[i].socket) {
+            //  Poll item is a 0MQ socket.
+            for (int j = 0; j < i; ++j) {
+                // Check for repeat entries
+                if (items_[j].socket == items_[i].socket) {
+                    repeat_items = true;
+                    modify = true;
+                    e |= items_[j].events;
+                }
+            }
+            if (modify) {
+                rc = zmq_poller_modify (poller, items_[i].socket, e);
+            } else {
+                rc = zmq_poller_add (poller, items_[i].socket, NULL, e);
+            }
+            if (rc < 0) {
+                zmq_poller_destroy (&poller);
+                delete [] events;
+                return rc;
+            }
+        } else {
+            //  Poll item is a raw file descriptor.
+            for (int j = 0; j < i; ++j) {
+                // Check for repeat entries
+                if (items_[j].fd == items_[i].fd) {
+                    repeat_items = true;
+                    modify = true;
+                    e |= items_[j].events;
+                }
+            }
+            if (modify) {
+                rc = zmq_poller_modify_fd (poller, items_[i].fd, e);
+            } else {
+                rc = zmq_poller_add_fd (poller, items_[i].fd, NULL, e);
+            }
+            if (rc < 0) {
+                zmq_poller_destroy (&poller);
+                delete [] events;
+                return rc;
+            }
+        }
+    }
+
+    //  Wait for events
+    rc = zmq_poller_wait_all (poller, events, nitems_, timeout_);
+    if (rc < 0) {
+        zmq_poller_destroy (&poller);
+        delete [] events;
+        if (zmq_errno() == ETIMEDOUT) {
+            return 0;
+        }
+        return rc;
+    }
+
+    //  Transform poller events into zmq_pollitem events.
+    //  items_ contains all items, while events only contains fired events.
+    //  If no sockets are repeated (likely), the two are still co-ordered, so the step through items
+    //  Checking for matches only on the first event.
+    //  If there are repeat items, they cannot be assumed to be co-ordered,
+    //  so each pollitem must check fired events from the beginning.
+    int j_start = 0, found_events = rc;
+    for (int i = 0; i < nitems_; i++) {
+        for (int j = j_start; j < found_events; ++j) {
+            if (
+                (items_[i].socket && items_[i].socket == events[j].socket) ||
+                (items_[i].fd && items_[i].fd == events[j].fd)
+            ) {
+                items_[i].revents = events[j].events & items_[i].events;
+                if (!repeat_items) {
+                    // no repeats, we can ignore events we've already seen
+                    j_start++;
+                }
+                break;
+            }
+            if (!repeat_items) {
+                // no repeats, never have to look at j > j_start
+                break;
+            }
+        }
+    }
+
+    //  Cleanup
+    zmq_poller_destroy (&poller);
+    delete [] events;
+    return rc;
+}
+#endif // ZMQ_HAVE_POLLER
+
 int zmq_poll (zmq_pollitem_t *items_, int nitems_, long timeout_)
 {
     //  TODO: the function implementation can just call zmq_pollfd_poll with
     //  pollfd as NULL, however pollfd is not yet stable.
+#if defined ZMQ_HAVE_POLLER
+    // if poller is present, use that.
+    return zmq_poller_poll(items_, nitems_, timeout_);
+#else
 #if defined ZMQ_POLL_BASED_ON_POLL
     if (unlikely (nitems_ < 0)) {
         errno = EINVAL;
@@ -1094,6 +1213,7 @@ int zmq_poll (zmq_pollitem_t *items_, int nitems_, long timeout_)
     errno = ENOTSUP;
     return -1;
 #endif
+#endif // ZMQ_HAVE_POLLER
 }
 
 //  The poller functionality
@@ -1222,15 +1342,29 @@ int zmq_poller_wait (void *poller_, zmq_poller_event_t *event, long timeout_)
 
     zmq_assert (event != NULL);
 
-    zmq::socket_poller_t::event_t e;
-    memset (&e, 0, sizeof (e));
+    int rc = zmq_poller_wait_all(poller_, event, 1, timeout_);
 
-    int rc = ((zmq::socket_poller_t*)poller_)->wait (&e, timeout_);
+    if (rc < 0) {
+        memset (event, 0, sizeof(zmq_poller_event_t));
+    }
+    // wait_all returns number of events, but we return 0 for any success
+    return rc >= 0 ? 0 : rc;
+}
 
-    event->socket = e.socket;
-    event->fd = e.fd;
-    event->user_data = e.user_data;
-    event->events = e.events;
+int zmq_poller_wait_all (void *poller_, zmq_poller_event_t *events, int n_events, long timeout_)
+{
+    if (!poller_ || !((zmq::socket_poller_t*)poller_)->check_tag ()) {
+        errno = EFAULT;
+        return -1;
+    }
+    if (n_events < 0) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    zmq_assert (events != NULL);
+
+    int rc = ((zmq::socket_poller_t*)poller_)->wait ((zmq::socket_poller_t::event_t *)events, n_events, timeout_);
 
     return rc;
 }

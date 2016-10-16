@@ -1925,7 +1925,7 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 #ifndef _DEBUG
 			if (!m_errorStatusString.empty())
 			{
-				return m_statusString + _T(" [") + m_errorStatusString  + _T("]");
+				return m_statusString + _T(" [") + m_errorStatusString  + _T("]"); // bad_alloc https://drdump.com/UploadedReport.aspx?DumpID=11192168
 			}
 			else
 			{

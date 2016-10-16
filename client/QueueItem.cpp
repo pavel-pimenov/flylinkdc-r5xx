@@ -55,7 +55,9 @@ QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, b
 	m_tthRoot(p_tth),
 	m_downloadedBytes(0),
 	lastsize(0),
-	m_averageSpeed(0)
+	m_averageSpeed(0),
+	m_diry_sources(0),
+	m_last_count_online_sources(0)
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 	, m_delegater(nullptr)
 #endif
@@ -178,16 +180,29 @@ void QueueItem::calcBlockSize()
 	dcdebug("QueueItem::getBlockSize() TTH = %s [count = %d]\n", getTTH().toBase32().c_str(), int(++g_count));
 #endif
 }
-
-size_t QueueItem::countOnlineUsersL() const
+size_t QueueItem::getLastOnlineCount()
 {
-	size_t l_count = 0;
-	for (auto i = m_sources.cbegin(); i != m_sources.cend(); ++i)
+	if (m_diry_sources)
 	{
-		if (i->first->isOnline()) // [!] IRainman fix done [3] https://www.box.net/shared/7b99196ed232f2aaa28c  https://www.box.net/shared/0006cf0ff4dcec643530
-			l_count++;
+		RLock(*QueueItem::g_cs);
+		m_last_count_online_sources = 0;
+		for (auto i = m_sources.cbegin(); i != m_sources.cend(); ++i)
+		{
+			if (i->first->isOnline())
+				++m_last_count_online_sources;
+		}
+		m_diry_sources = 0;
 	}
-	return l_count;
+	return m_last_count_online_sources;
+}
+bool QueueItem::isBadSourceExceptL(const UserPtr& aUser, Flags::MaskType exceptions) const
+{
+	const auto& i = m_badSources.find(aUser);
+	if (i != m_badSources.end())
+	{
+		return i->second.isAnySet((Flags::MaskType)(exceptions ^ Source::FLAG_MASK));
+	}
+	return false;
 }
 
 bool QueueItem::countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const // [+] FlylinkDC++ opt.
@@ -280,7 +295,7 @@ void QueueItem::addSourceL(const UserPtr& aUser, bool p_is_first_load)
 		}
 		setDirtySource(true);
 	}
-	
+	m_diry_sources++;
 }
 void QueueItem::getPFSSourcesL(const QueueItemPtr& p_qi, SourceListBuffer& p_sourceList, uint64_t p_now)
 {
@@ -349,6 +364,7 @@ void QueueItem::removeSourceL(const UserPtr& aUser, Flags::MaskType reason)
 		i->second.setFlag(reason);
 		m_badSources.insert(*i);
 		m_sources.erase(i);
+		m_diry_sources++;
 		setDirtySource(true);
 	}
 	else

@@ -217,10 +217,6 @@ class QueueManager : public Singleton<QueueManager>,
 			return p_qi->isSourceValid(p_source_ptr);
 		}
 #endif
-		static size_t countOnlineUsersL(const QueueItemPtr& p_qi)
-		{
-			return p_qi->countOnlineUsersL();
-		}
 		static void getChunksVisualisation(const QueueItemPtr& qi, vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) // [!] IRainman fix.
 		{
 			qi->getChunksVisualisation(p_runnigChunksAndDownloadBytes, p_doneChunks);

@@ -1060,6 +1060,10 @@ void NmdcHub::supportsParse(const string& param)
 		{
 			m_supportFlags |= SUPPORTS_NICKRULE;
 		}
+		else if (*i == "HubURL")
+		{
+			m_supportFlags |= SUPPORTS_HUBURL;
+		}
 		
 #ifdef FLYLINKDC_USE_EXT_JSON
 		else if (*i == "ExtJSON2")
@@ -2000,7 +2004,7 @@ void NmdcHub::onLine(const string& aLine)
 				dcassert(0);
 			}
 		}
-		if ((m_supportFlags & SUPPORTS_NICKRULE))
+		if (m_supportFlags & SUPPORTS_NICKRULE)
 		{
 			if (m_nick_rule)
 			{
@@ -2021,7 +2025,14 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	else if (cmd == "GetHubURL")
 	{
-		send("$MyHubURL " + getHubUrl() + "|");
+		if (m_supportFlags & SUPPORTS_HUBURL)
+		{
+			send("$MyHubURL " + getHubUrl() + "|");
+		}
+		else
+		{
+			LogManager::message("Fix support $GetHubURL and $MyHubURL hub = " + getHubUrl());
+		}
 	}
 	else
 	{
@@ -2956,19 +2967,31 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_s
 		{
 			l_ip = calcExternalIP();
 		}
-		for (auto k = m_delay_search.begin(); k != m_delay_search.end(); ++k)
+		try
 		{
-			k->m_is_skip = false;
-			p_search_array.push_back(*k);
+			for (auto k = m_delay_search.begin(); k != m_delay_search.end(); ++k)
+			{
+				k->m_is_skip = false;
+				p_search_array.push_back(std::move(*k));
+			}
+			m_delay_search.clear();
 		}
-		m_delay_search.clear();
+		catch (std::bad_alloc&)  // Fix https://drdump.com/Problem.aspx?ProblemID=240058
+		{
+			const auto l_size = p_search_array.size() + m_delay_search.size();
+			p_search_array.clear();
+			p_search_array.shrink_to_fit();
+			m_delay_search.clear();
+			m_delay_search.shrink_to_fit();
+			CFlyServerJSON::pushError(74, "Bad alloc (BufferedSocketListener::SearchArrayTTH) l_size = " + Util::toString(l_size));
+		}
 		if (ShareManager::searchTTHArray(p_search_array, this) == false)
 		{
 			for (auto j = p_search_array.begin(); j != p_search_array.end(); ++j)
 			{
 				if (j->m_is_skip)
 				{
-					m_delay_search.push_back(*j); // https://drdump.com/DumpGroup.aspx?DumpGroupID=264417
+					m_delay_search.push_back(std::move(*j)); // https://drdump.com/DumpGroup.aspx?DumpGroupID=264417
 				}
 			}
 			return;
@@ -3003,7 +3026,6 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_s
 						CFlylinkDBManager::getInstance()->push_event_statistic("search-a-skip-dup-tth-search", "TTH", param, getIpAsString(), "", getHubUrlAndIP(), l_tth);
 #endif
 						COMMAND_DEBUG("[~][" + Util::toString(g_id_search_array) + "]$SR [SkipUDP-TTH] " + *i->m_toSRCommand, DebugTask::HUB_IN, getIpPort());
-						safe_delete(i->m_toSRCommand);
 						continue;
 					}
 					if (!l_udp)
@@ -3012,7 +3034,6 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_s
 					}
 					sendUDPSR(*l_udp, i->m_search, *i->m_toSRCommand, this);
 				}
-				safe_delete(i->m_toSRCommand);
 				COMMAND_DEBUG("[+][" + Util::toString(g_id_search_array) + "]$Search " + i->m_search + " F?T?0?9?TTH:" + i->m_tth.toBase32(), DebugTask::HUB_IN, getIpPort());
 			}
 			else

@@ -45,6 +45,11 @@ struct HashValue
 	{
 		memcpy(data, aData, BYTES);
 	}
+	explicit HashValue(const char* p_base32, unsigned p_len)
+	{
+		dcassert(p_len == 39);
+		Encoder::fromBase32(p_base32, data, BYTES);
+	}
 	explicit HashValue(const std::string& base32)
 	{
 		//dcassert(base32.length() == 39);

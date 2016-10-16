@@ -34,6 +34,7 @@
 #include "FilteredFile.h"
 
 #ifdef FLYLINKDC_USE_TORRENT
+#include "libtorrent/torrent_handle.hpp"
 namespace libtorrent
 {
 class session;
@@ -55,10 +56,12 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		std::unique_ptr<libtorrent::session> m_torrent_session;
 		void init_torrent();
 		void onTimeTorrent(uint64_t aTick);
+		int m_torrent_resume_count;
+		std::unordered_set<libtorrent::torrent_handle> m_torrents;
 	public:
 		void shutdown_torrent();
 		bool add_torrent_file(const tstring& p_torrent_path, const tstring& p_torrent_url);
-		bool remove_torrent_file(const libtorrent::sha1_hash& p_sha1, const int delete_options);
+		bool remove_torrent_file(const libtorrent::sha1_hash& p_sha1, const int p_delete_options);
 		int listen_torrent_port();
 #endif
 		
@@ -83,7 +86,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 			return g_download_map.size();
 		}
 		
-		bool isStartDownload(QueueItem::Priority prio);
+		static bool isStartDownload(QueueItem::Priority prio);
 		static bool checkFileDownload(const UserPtr& aUser);
 		void fireData(UserConnection*, const uint8_t*, size_t) noexcept;
 	private:

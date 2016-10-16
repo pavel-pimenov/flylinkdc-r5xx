@@ -9,8 +9,6 @@ res
 zlib
 PortalBrowser
 XMLParser
-XMLMerge
-doc
 Tools
 Tools\*.exe
 GdiOle
@@ -23,13 +21,10 @@ natpmp
 flyupdate
 jsoncpp
 doctor-dump
-test
 leveldb
-snappy
 libtorrent
 src_exclude.txt
 src_include.txt
-Doxyfile
 src_backup.bat
 FlylinkDC.rc
 FlylinkDC_version.rc
