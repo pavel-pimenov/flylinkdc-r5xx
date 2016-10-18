@@ -294,6 +294,8 @@ namespace libtorrent
 		void add_similar_torrent(sha1_hash ih);
 		void add_collection(string_view c);
 
+		size_t trackers_count() const { return m_urls.size(); }
+
 	private:
 
 		file_storage& m_files;

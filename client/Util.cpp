@@ -3361,6 +3361,102 @@ string Util::formatDigitalDate()
 {
 	return formatDigitalClock("%Y-%m-%d", GET_TIME(), false);
 }
+string Util::getTempPath()
+{
+	LocalArray<TCHAR, MAX_PATH> buf;
+	DWORD x = GetTempPath(MAX_PATH, buf.data());
+	return Text::fromT(tstring(buf.data(), static_cast<size_t>(x))); // [!] PVS V106 Implicit type conversion second argument 'x' of function 'tstring' to memsize type. util.h 558
+}
+bool Util::isTorrentFile(const tstring& file)
+{
+	static const tstring l_torrent = _T(".torrent");
+	return isSameFileExt(file, l_torrent, false);
+}
+bool Util::isDclstFile(const tstring& file)
+{
+	return isDclstFile(Text::fromT(file));
+}
+bool Util::isDclstFile(const string& file)
+{
+	const string l_dcls = ".dcls";
+	const string l_dclst = ".dclst";
+	return isSameFileExt(file, l_dcls, false) || isSameFileExt(file, l_dclst, false);
+}
+bool Util::isNmdc(const tstring& p_HubURL)
+{
+	return _wcsnicmp(L"dchub://", p_HubURL.c_str(), 8) == 0;
+}
+bool Util::isNmdcS(const tstring& p_HubURL)
+{
+	return _wcsnicmp(L"nmdcs://", p_HubURL.c_str(), 8) == 0;
+}
+bool Util::isAdc(const tstring& p_HubURL)
+{
+	return _wcsnicmp(L"adc://", p_HubURL.c_str(), 6) == 0;
+}
+bool Util::isAdcS(const tstring& p_HubURL)
+{
+	return _wcsnicmp(L"adcs://", p_HubURL.c_str(), 7) == 0;
+}
+bool Util::isNmdc(const string& p_HubURL)
+{
+	return _strnicmp("dchub://", p_HubURL.c_str(), 8) == 0;
+}
+bool Util::isNmdcS(const string& p_HubURL)
+{
+	return _strnicmp("nmdcs://", p_HubURL.c_str(), 8) == 0;
+}
+bool Util::isAdc(const string& p_HubURL)
+{
+	return _strnicmp("adc://", p_HubURL.c_str(), 6) == 0;
+}
+bool Util::isAdcS(const string& p_HubURL)
+{
+	return _strnicmp("adcs://", p_HubURL.c_str(), 7) == 0;
+}
+bool Util::isMagnetLink(const char* p_URL)
+{
+	return _strnicmp(p_URL, "magnet:?", 8) == 0;
+}
+bool Util::isMagnetLink(const string& p_URL)
+{
+	return _strnicmp(p_URL.c_str(), "magnet:?", 8) == 0;
+}
+bool Util::isMagnetLink(const wchar_t* p_URL)
+{
+	return _wcsnicmp(p_URL, L"magnet:?", 8) == 0;
+}
+bool Util::isMagnetLink(const tstring& p_URL)
+{
+	return _wcsnicmp(p_URL.c_str(), L"magnet:?", 8) == 0;
+}
+bool Util::isTorrentLink(const tstring& sFileName)
+{
+	return (sFileName.find(_T("xt=urn:btih:")) != tstring::npos &&
+	        sFileName.find(_T("xt=urn:tree:tiger:")) == tstring::npos);
+}
+bool Util::isHttpLink(const tstring& p_url)
+{
+	return _wcsnicmp(p_url.c_str(), L"http://", 7) == 0;
+}
+bool Util::isHttpLink(const string& p_url)
+{
+	return strnicmp(p_url.c_str(), "http://", 7) == 0;
+}
+bool Util::isValidIP(const string& p_ip)
+{
+	uint32_t a[4] = { 0 };
+	const int l_Items = sscanf_s(p_ip.c_str(), "%u.%u.%u.%u", &a[0], &a[1], &a[2], &a[3]);
+	return  l_Items == 4 && a[0] < 256 && a[1] < 256 && a[2] < 256 && a[3] < 256; // TODO - boost
+}
+bool Util::isHttpsLink(const tstring& p_url)
+{
+	return _wcsnicmp(p_url.c_str(), L"https://", 8) == 0;
+}
+bool Util::isHttpsLink(const string& p_url)
+{
+	return strnicmp(p_url.c_str(), "https://", 8) == 0;
+}
 
 
 /**

@@ -1002,7 +1002,7 @@ Cosa devo fare?</String>
 		<String Name="MenuOpenDownloadsDir">Apri cartella di download</String>
 		<String Name="MenuOpenLogsDir">Apri cartella dei log</String>
 		<String Name="MenuOpenConfigDir">Apri cartella di configurazione (!)</String>
-		<String Name="MenuOpenFileList">Apri lista file...	Ctrl+L</String>
+		<String Name="MenuOpenFileList">Apri lista file or .torrent...	Ctrl+L</String>
 		<String Name="MenuOpenMatchAll">Confronta liste scaricate</String>
 		<String Name="MenuOpenOwnList">Apri lista di condivisione	F8</String>
 		<String Name="MenuOpenSqlexplorer">Apri SQLExplorer</String>

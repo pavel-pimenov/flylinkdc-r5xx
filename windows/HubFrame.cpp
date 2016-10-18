@@ -1500,23 +1500,27 @@ void HubFrame::doConnected()
 {
 	m_is_process_disconnected = false;
 	dcassert(!ClientManager::isBeforeShutdown());
-	addStatus(TSTRING(CONNECTED), true, true, Colors::g_ChatTextServer);
-	setTabColor(RGB(10, 10, 10));
-	unsetIconState();
-	
-	setHubParam();
-	
-	setStatusText(1, Text::toT(m_client->getCipherName()));
-	if (m_ctrlStatus)
+	clearTaskAndUserList();
+	if (!ClientManager::isBeforeShutdown())
 	{
-		UpdateLayout(false);
-	}
-	SHOW_POPUP(POPUP_HUB_CONNECTED, Text::toT(m_client->getHubUrl()), TSTRING(CONNECTED));
-	PLAY_SOUND(SOUND_HUBCON);
+		addStatus(TSTRING(CONNECTED), true, true, Colors::g_ChatTextServer);
+		setTabColor(RGB(10, 10, 10));
+		unsetIconState();
+		
+		setHubParam();
+		
+		setStatusText(1, Text::toT(m_client->getCipherName()));
+		if (m_ctrlStatus)
+		{
+			UpdateLayout(false);
+		}
+		SHOW_POPUP(POPUP_HUB_CONNECTED, Text::toT(m_client->getHubUrl()), TSTRING(CONNECTED));
+		PLAY_SOUND(SOUND_HUBCON);
 #ifdef SCALOLAZ_HUB_MODE
-	HubModeChange();
+		HubModeChange();
 #endif
-	m_needsUpdateStats = true;
+		m_needsUpdateStats = true;
+	}
 }
 void HubFrame::clearTaskAndUserList()
 {
@@ -2704,10 +2708,11 @@ LRESULT HubFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 	CRect rc;            // client area of window
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click
 	m_isTabMenuShown = false;
-	
+	if (m_ctrlUsers == nullptr)
+		return FALSE;
 	m_ctrlUsers->GetHeader().GetWindowRect(&rc);
 	
-	if (PtInRect(&rc, pt) && m_showUsers)
+	if (m_showUsers && PtInRect(&rc, pt))
 	{
 		m_ctrlUsers->showMenu(pt);
 		return TRUE;

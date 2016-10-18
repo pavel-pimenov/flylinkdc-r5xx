@@ -633,7 +633,7 @@ void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 			//                         " m_ddos_map.size() = " + Util::toString(m_ddos_map.size()));
 #endif
 		}
-		// ≈сли коннектов совершено много и IP находитс€ в бане, но уже прошло врем€ больше чем 10 ћинут(по умолчанию)
+		// ≈сли коннектов совершено много и IP находитс€ в бане, но уже прошло врем€ больше чем 5 ћинут(по умолчанию)
 		// “акже убираем запись из таблицы блокировки
 		const bool l_is_ddos_ban_close = j->second.m_count_connect > CFlyServerConfig::g_max_ddos_connect_to_me
 		                                 && l_tick_delta > CFlyServerConfig::g_ban_ddos_connect_to_me * 1000 * 60;

@@ -1128,6 +1128,12 @@
     <ClInclude Include="client\webrtc\base\thread_checker_impl.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
+    <ClInclude Include="client\webrtc\common_types.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\typedefs.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

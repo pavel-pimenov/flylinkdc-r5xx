@@ -1318,12 +1318,24 @@ for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
 			char const test_torrent[] = "d4:infod4:name6:foobar6:lengthi12345e12:piece lengthi65536e6:pieces20:ababababababababababee";
 			
 			lt::torrent_info info(test_torrent, sizeof(test_torrent) - 1);
+			info.add_tracker("http://3");
+			info.add_tracker("http://3");
+			
+			//const auto s = info.trackers().size();
+			//dcassert(s == 1);
+			
+			info.add_url_seed("http://test.com");
+			info.add_url_seed("http://test.com");
+			
 			
 			lt::create_torrent t(info);
 			t.add_tracker("http://3");
 			t.add_tracker("http://3");
 			t.add_tracker("http://3");
 			t.add_tracker("http://3");
+			
+			dcassert(t.trackers_count() == 1);
+			
 		}
 #endif
 		CFlylinkDBManager::getInstance()->load_torrent_resume(*m_torrent_session);

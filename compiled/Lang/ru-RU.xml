@@ -936,7 +936,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="MenuOpenDownloadsDir">Папка для скачивания</String>
 		<String Name="MenuOpenLogsDir">Открыть папку с журналами</String>
 		<String Name="MenuOpenConfigDir">Открыть папку с настройками (!)</String>
-		<String Name="MenuOpenFileList">Открыть список файлов…	Ctrl + L</String>
+		<String Name="MenuOpenFileList">Открыть список файлов или .torrent…	Ctrl + L</String>
 		<String Name="MenuOpenMatchAll">Сравнить скачанные списки</String>
 		<String Name="MenuOpenOwnList">Открыть собственный список файлов	F8</String>
 		<String Name="MenuOpenSqlexplorer">Открыть SQLExplorer</String>

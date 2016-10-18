@@ -740,6 +740,7 @@
     <ClInclude Include="client\webrtc\base\platform_thread.h" />
     <ClInclude Include="client\webrtc\base\thread_checker.h" />
     <ClInclude Include="client\webrtc\base\thread_checker_impl.h" />
+    <ClInclude Include="client\webrtc\common_types.h" />
     <ClInclude Include="client\webrtc\system_wrappers\include\common_types.h" />
     <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_posix.h" />
     <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_win.h" />
@@ -763,6 +764,7 @@
     <ClInclude Include="client\webrtc\system_wrappers\include\trace_win.h" />
     <ClInclude Include="client\webrtc\system_wrappers\include\typedefs.h" />
     <ClInclude Include="client\webrtc\system_wrappers\source\rw_lock_winxp_win.h" />
+    <ClInclude Include="client\webrtc\typedefs.h" />
     <ClInclude Include="client\WildcardsReg.h" />
     <ClInclude Include="client\w_flylinkdc.h" />
     <ClInclude Include="client\ZipFile.h" />

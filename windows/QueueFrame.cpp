@@ -1560,7 +1560,7 @@ LRESULT QueueFrame::onRemoveSource(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
 			OMenuItem* omi = (OMenuItem*)mi.dwItemData;
 			if (omi)
 			{
-				UserPtr* s = (UserPtr*)omi->m_data;
+				UserPtr* s = (UserPtr*)omi->m_data; // https://drdump.com/Problem.aspx?ProblemID=241344
 				m_remove_source_array.push_back(std::make_pair(ii->getTarget(), *s));
 			}
 		}

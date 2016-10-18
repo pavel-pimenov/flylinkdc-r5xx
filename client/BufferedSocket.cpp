@@ -315,7 +315,9 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 			        l_line_item.size() >= l_marker_tth + 9 + 39
 			   ) // Поправка на полную команду  F?T?0?9?TTH: или F?F?0?9?TTH: или T?T?0?9?TTH:
 			{
-				dcassert(l_line_item.size() == l_marker_tth + 9 + 39);
+				dcassert(l_line_item.size() == l_marker_tth + 9 + 39 ||
+				         l_line_item.size() == l_marker_tth + 9 + 40
+				        );
 				l_marker_tth -= 4;
 #ifdef _DEBUG
 				static FastCriticalSection g_stat_cs;

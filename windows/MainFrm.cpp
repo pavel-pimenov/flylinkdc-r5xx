@@ -3044,10 +3044,10 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 LRESULT MainFrame::onOpenFileList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	tstring l_file;
+	static tstring g_last_torrent_file;
 #ifdef FLYLINKDC_USE_TORRENT
 	if (wID == IDC_OPEN_TORRENT_FILE)
 	{
-		static tstring g_last_torrent_file;
 		if (WinUtil::browseFile(l_file, m_hWnd, false, g_last_torrent_file, L"All torrent file\0*.torrent\0\0"))
 		{
 			g_last_torrent_file = Util::getFilePath(l_file);
@@ -3068,18 +3068,26 @@ LRESULT MainFrame::onOpenFileList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 	
 	if (WinUtil::browseFile(l_file, m_hWnd, false, Text::toT(Util::getListPath()), g_file_list_type))//FILE_LIST_TYPE.c_str()))
 	{
-		WinUtil::OpenFileList(l_file); // [!] SSA dclst support.
-		// UserPtr u = DirectoryListing::getUserFromFilename(Text::fromT(file));
-		//if (u)
-		//{
-		//  DirectoryListingFrame::openWindow(file, HintedUser(u, Util::emptyString), 0, Util::isDclstFile(file));
-		//}
-		//else
-		//{
-		//  // [!] IRainman Support broken file lists and non-standard formats like that dcls
-		//  //if (
-		//  MessageBox(CTSTRING(INVALID_LISTNAME), getFlylinkDCAppCaptionWithVersionT().c_str());
-		//}
+		if (Util::isTorrentFile(l_file))
+		{
+			g_last_torrent_file = Util::getFilePath(l_file);
+			DownloadManager::getInstance()->add_torrent_file(l_file, _T(""));
+		}
+		else
+		{
+			WinUtil::OpenFileList(l_file); // [!] SSA dclst support.
+			// UserPtr u = DirectoryListing::getUserFromFilename(Text::fromT(file));
+			//if (u)
+			//{
+			//  DirectoryListingFrame::openWindow(file, HintedUser(u, Util::emptyString), 0, Util::isDclstFile(file));
+			//}
+			//else
+			//{
+			//  // [!] IRainman Support broken file lists and non-standard formats like that dcls
+			//  //if (
+			//  MessageBox(CTSTRING(INVALID_LISTNAME), getFlylinkDCAppCaptionWithVersionT().c_str());
+			//}
+		}
 	}
 	return 0;
 }

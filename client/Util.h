@@ -396,38 +396,14 @@ class Util
 		static void loadIBlockList();
 		
 		//[+] IRainman identify URI of DC protocols, magnet, or http links.
-		static bool isNmdc(const tstring& p_HubURL)
-		{
-			return _wcsnicmp(L"dchub://", p_HubURL.c_str(), 8) == 0;
-		}
-		static bool isNmdcS(const tstring& p_HubURL)
-		{
-			return _wcsnicmp(L"nmdcs://", p_HubURL.c_str(), 8) == 0;
-		}
-		static bool isAdc(const tstring& p_HubURL)
-		{
-			return _wcsnicmp(L"adc://", p_HubURL.c_str(), 6) == 0;
-		}
-		static bool isAdcS(const tstring& p_HubURL)
-		{
-			return _wcsnicmp(L"adcs://", p_HubURL.c_str(), 7) == 0;
-		}
-		static bool isNmdc(const string& p_HubURL)
-		{
-			return _strnicmp("dchub://", p_HubURL.c_str(), 8) == 0;
-		}
-		static bool isNmdcS(const string& p_HubURL)
-		{
-			return _strnicmp("nmdcs://", p_HubURL.c_str(), 8) == 0;
-		}
-		static bool isAdc(const string& p_HubURL)
-		{
-			return _strnicmp("adc://", p_HubURL.c_str(), 6) == 0;
-		}
-		static bool isAdcS(const string& p_HubURL)
-		{
-			return _strnicmp("adcs://", p_HubURL.c_str(), 7) == 0;
-		}
+		static bool isNmdc(const tstring& p_HubURL);
+		static bool isNmdcS(const tstring& p_HubURL);
+		static bool isAdc(const tstring& p_HubURL);
+		static bool isAdcS(const tstring& p_HubURL);
+		static bool isNmdc(const string& p_HubURL);
+		static bool isNmdcS(const string& p_HubURL);
+		static bool isAdc(const string& p_HubURL);
+		static bool isAdcS(const string& p_HubURL);
 		
 		template<typename string_t>
 		static bool isAdcHub(const string_t& p_HubURL)
@@ -444,24 +420,11 @@ class Util
 		{
 			return isNmdc(p_HubURL) || isAdcHub(p_HubURL);
 		}
-		
 		// Identify magnet links.
-		static bool isMagnetLink(const char* p_URL)
-		{
-			return _strnicmp(p_URL, "magnet:?", 8) == 0;
-		}
-		static bool isMagnetLink(const string& p_URL)
-		{
-			return _strnicmp(p_URL.c_str(), "magnet:?", 8) == 0;
-		}
-		static bool isMagnetLink(const wchar_t* p_URL)
-		{
-			return _wcsnicmp(p_URL, L"magnet:?", 8) == 0;
-		}
-		static bool isMagnetLink(const tstring& p_URL)
-		{
-			return _wcsnicmp(p_URL.c_str(), L"magnet:?", 8) == 0;
-		}
+		static bool isMagnetLink(const char* p_URL);
+		static bool isMagnetLink(const string& p_URL);
+		static bool isMagnetLink(const wchar_t* p_URL);
+		static bool isMagnetLink(const tstring& p_URL);
 #if 0
 		static bool isImageLink(const tstring& p_URL)
 		{
@@ -469,34 +432,12 @@ class Util
 			       && strnicmp(p_URL.c_str() + (p_URL.length() - 4), _T(".jpg"), 4) == 0; //-V112
 		}
 #endif
-		static bool isTorrentLink(const tstring& sFileName)
-		{
-			return (sFileName.find(_T("xt=urn:btih:")) != tstring::npos &&
-			        sFileName.find(_T("xt=urn:tree:tiger:")) == tstring::npos);
-		}
-		static bool isHttpLink(const tstring& p_url)
-		{
-			return _wcsnicmp(p_url.c_str(), L"http://", 7) == 0;
-		}
-		static bool isHttpLink(const string& p_url)
-		{
-			return strnicmp(p_url.c_str(), "http://", 7) == 0;
-		}
-		static bool isValidIP(const string& p_ip)
-		{
-			uint32_t a[4] = {0};
-			const int l_Items = sscanf_s(p_ip.c_str(), "%u.%u.%u.%u", &a[0], &a[1], &a[2], &a[3]);
-			return  l_Items == 4 && a[0] < 256 && a[1] < 256 && a[2] < 256 && a[3] < 256; // TODO - boost
-		}
-		
-		static bool isHttpsLink(const tstring& p_url)
-		{
-			return _wcsnicmp(p_url.c_str(), L"https://", 8) == 0;
-		}
-		static bool isHttpsLink(const string& p_url)
-		{
-			return strnicmp(p_url.c_str(), "https://", 8) == 0;
-		}
+		static bool isTorrentLink(const tstring& sFileName);
+		static bool isHttpLink(const tstring& p_url);
+		static bool isHttpLink(const string& p_url);
+		static bool isValidIP(const string& p_ip);
+		static bool isHttpsLink(const tstring& p_url);
+		static bool isHttpsLink(const string& p_url);
 		// [~] IRainman identify URI of DC protocols, magnet, or http links.
 		
 		// From RSSManager.h
@@ -524,37 +465,15 @@ class Util
 				return isSameFileExt(l_file, ext);
 			}
 		}
-		
-		// Identify DCLST metafile
-		static bool isDclstFile(const tstring& file, const bool lower = false)// [+] IRainman
-		{
-			static const tstring dcls = _T(".dcls");
-			static const tstring dclst = _T(".dclst");
-			
-			return isSameFileExt(file, dcls, lower) || isSameFileExt(file, dclst, lower);
-		}
-		static bool isDclstFile(const string& file, const bool lower = false)// [+] IRainman
-		{
-			static const string dcls = ".dcls";
-			static const string dclst = ".dclst";
-			
-			return isSameFileExt(file, dcls, lower) || isSameFileExt(file, dclst, lower);
-		}
+		static bool isTorrentFile(const tstring& file);
+		static bool isDclstFile(const tstring& file);
+		static bool isDclstFile(const string& file);
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 		static bool isStreamingVideoFile(const string& p_file); // [+] SSA
 #endif // SSA_VIDEO_PREVIEW_FEATURE
 		
 		/** Path of temporary storage */
-		static string getTempPath()
-		{
-#ifdef _WIN32
-			LocalArray<TCHAR, MAX_PATH> buf;
-			DWORD x = GetTempPath(MAX_PATH, buf.data());
-			return Text::fromT(tstring(buf.data(), static_cast<size_t>(x))); // [!] PVS V106 Implicit type conversion second argument 'x' of function 'tstring' to memsize type. util.h 558
-#else
-			return "/tmp/";
-#endif
-		}
+		static string getTempPath();
 		
 		/** Migrate from pre-localmode config location */
 		static void migrate(const string& file);

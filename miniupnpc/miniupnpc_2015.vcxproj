@@ -213,6 +213,7 @@
     <ClInclude Include="miniupnpc.h" />
     <ClInclude Include="miniupnpcstrings.h" />
     <ClInclude Include="miniupnpctypes.h" />
+    <ClInclude Include="miniupnpc_declspec.h" />
     <ClInclude Include="miniwget.h" />
     <ClInclude Include="minixml.h" />
     <ClInclude Include="portlistingparse.h" />
