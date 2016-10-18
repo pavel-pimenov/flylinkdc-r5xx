@@ -67,7 +67,7 @@ for (auto i: m_torrents)
 	int l_count = 10; // TODO
 	while (m_torrent_resume_count == 0 && l_count-- > 0)
 	{
-	   Sleep(1000);
+		Sleep(1000);
 	}
 	m_torrent_session.reset();
 }
@@ -1005,10 +1005,6 @@ for (lt::alert const * a : alerts)
 							if (i->info_hash() == l_delete->info_hash)
 								break;
 						}
-						if (i == m_torrents.end())
-						{
-							break;
-						}
 					}
 					if (i != m_torrents.end())
 					{
@@ -1017,7 +1013,6 @@ for (lt::alert const * a : alerts)
 				}
 				CFlylinkDBManager::getInstance()->delete_torrent_resume(l_delete->info_hash);
 				fly_fire1(DownloadManagerListener::RemoveToken(), l_delete->info_hash.to_string());
-				
 			}
 			if (const auto l_delete = lt::alert_cast<lt::torrent_delete_failed_alert>(a))
 			{
@@ -1134,7 +1129,7 @@ for (lt::alert const * a : alerts)
 					continue;
 				}
 				int l_pos = 1;
-				for (const auto j : st->status)
+for (const auto j : st->status)
 				{
 					lt::torrent_status const& s = j;
 					std::string l_log = "[" + Util::toString(l_pos) + "] Status: " + torrent_state(s.state) + " [ " + s.save_path + "\\" + s.name

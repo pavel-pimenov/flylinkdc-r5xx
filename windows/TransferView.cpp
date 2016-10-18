@@ -873,7 +873,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						rc9.top += 1; //[~] Sergey Shushkanov
 						rc9.right = rc9.left + 16;
 						rc9.bottom = rc9.top + 16; //[~] Sergey Shushkanov
-						m_torrentImages.DrawEx(0, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+						m_torrentImages.DrawEx(l_ii->m_is_seeding ? 1 : 0, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
 					}
 					else if (BOOLSETTING(STEALTHY_STYLE_ICO) || l_ii->m_is_force_passive)
 					{
@@ -987,7 +987,7 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (l_ii->download ? SETT
 						rc9.top += 1; //[~] Sergey Shushkanov
 						rc9.right = rc9.left + 16;
 						rc9.bottom = rc9.top + 16; //[~] Sergey Shushkanov
-						m_torrentImages.DrawEx(0, cd->nmcd.hdc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+						m_torrentImages.DrawEx(l_ii->m_is_seeding ? 1 : 0, cd->nmcd.hdc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
 						l_shift += 16;
 					}
 					if (!l_stat.empty())
@@ -1292,6 +1292,7 @@ void TransferView::onSpeakerAddItem(const UpdateInfo& ui)
 	ItemInfo* ii = new ItemInfo(ui.m_hintedUser, ui.download, ui.m_is_torrent);
 #ifdef FLYLINKDC_USE_TORRENT
 	ii->m_torrent_file_path = ui.m_torrent_file_path;
+	ii->m_is_seeding = ui.m_is_seeding;
 	ii->m_sha1 = ui.m_sha1;
 #endif
 #ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
@@ -1584,6 +1585,11 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	if (ui.type != Transfer::TYPE_LAST)
 		m_type = ui.type;
 		
+	m_is_torrent = ui.m_is_torrent;
+	m_is_seeding = ui.m_is_seeding;
+	m_torrent_file_path = ui.m_torrent_file_path;
+	m_sha1 = ui.m_sha1;
+	
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 	if (ui.updateMask & UpdateInfo::MASK_FORCE_PASSIVE)
 	{
@@ -2152,6 +2158,7 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl) no
 				{
 					ui->m_sha1 = j->m_sha1;
 					ui->m_torrent_file_path = j->m_torrent_file_path;
+					ui->m_is_seeding = j->m_is_seeding;
 				}
 				ui->setSpeed(j->m_speed);
 				ui->setSize(j->m_size);

@@ -24,7 +24,7 @@ class TransferData
 			m_pos(0), m_start_pos(0), m_start(0),
 			m_second_left(0), m_percent(0),
 			m_type(0), m_size(0), m_token(p_token),
-			m_speed(0), m_num_seeds(0), m_num_peers(0), m_is_torrent(false)
+			m_speed(0), m_num_seeds(0), m_num_peers(0), m_is_torrent(false), m_is_seeding(false)
 		{
 		}
 		void init(libtorrent::torrent_status const& s);
@@ -41,6 +41,7 @@ class TransferData
 		int m_num_seeds;
 		int m_num_peers;
 		bool m_is_torrent;
+		bool m_is_seeding;
 		string m_torrent_file_path;
 		libtorrent::sha1_hash m_sha1;
 		

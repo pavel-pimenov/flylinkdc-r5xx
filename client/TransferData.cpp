@@ -29,6 +29,7 @@ void TransferData::init(libtorrent::torrent_status const& s)
 	m_num_seeds = s.num_seeds;
 	m_num_peers = s.num_peers;
 	m_is_torrent = true;
+	m_is_seeding = s.state == libtorrent::torrent_status::seeding;
 	//calc_percent();
 	m_percent = s.progress_ppm / 10000;
 	///l_td.m_status_string += _T("[Torrent] Peers:") + Util::toStringT(s.num_peers) + _T(" Seeds:") + Util::toStringT(s.num_seeds) + _T(" ");

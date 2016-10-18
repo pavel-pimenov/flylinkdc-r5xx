@@ -131,12 +131,12 @@ class WildcardsEss
 		/** work with the pattern */
 		tstring _filter;
 		
-		inline tstring _lowercase(const tstring& str) throw()
+		tstring _lowercase(const tstring& str) noexcept
 		{
 			tstring res(str.length(), 0);
 			transform(str.begin(), str.end(), res.begin(), _totlower);
 			return res;
-		};
+		}
 };
 
 }

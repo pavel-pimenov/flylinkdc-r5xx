@@ -45,7 +45,7 @@ class SSLSocketException : public SocketException
 #endif // _DEBUG
 	SSLSocketException(int aError) noexcept :
 		SocketException(aError) { }
-		virtual ~SSLSocketException() throw() { }
+		virtual ~SSLSocketException() noexcept { }
 };
 
 class SSLSocket : public Socket

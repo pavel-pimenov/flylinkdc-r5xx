@@ -2349,8 +2349,8 @@ void CFlylinkDBManager::delete_torrent_resume(const libtorrent::sha1_hash& p_sha
 	{
 		m_delete_resume_torrent.init(m_flySQLiteDB,
 		                             "delete from queue_db.fly_queue_torrent where sha1=?");
-		m_insert_resume_torrent->bind(1, p_sha1.data(), p_sha1.size(), SQLITE_STATIC);
-		m_insert_resume_torrent->executenonquery();
+		m_delete_resume_torrent->bind(1, p_sha1.data(), p_sha1.size(), SQLITE_STATIC);
+		m_delete_resume_torrent->executenonquery();
 	}
 	catch (const database_error& e)
 	{

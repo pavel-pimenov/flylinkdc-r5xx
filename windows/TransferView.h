@@ -312,13 +312,14 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				
 				ItemInfo(const HintedUser& u, const bool p_is_sownload, const bool p_is_torrent) : m_hintedUser(u), m_is_torrent(p_is_torrent), download(p_is_sownload), transferFailed(false),
 					m_status(STATUS_WAITING), m_pos(0), m_size(0), m_actual(0), m_speed(0), m_timeLeft(0),
-					collapsed(true), parent(nullptr), m_hits(-1), running(0), m_type(Transfer::TYPE_FILE), m_is_force_passive(false)
+					collapsed(true), parent(nullptr), m_hits(-1), running(0), m_type(Transfer::TYPE_FILE), m_is_force_passive(false), m_is_seeding(false)
 				{
 					update_nicks();
 				}
 				
 				const bool download;
 				bool m_is_torrent;
+				bool m_is_seeding;
 				
 				string m_torrent_file_path;
 				libtorrent::sha1_hash m_sha1;
@@ -397,6 +398,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 						ii->m_actual = m_actual;
 						ii->m_speed = m_speed;
 						ii->m_statusString = m_target;
+						ii->m_is_seeding = m_is_seeding;
 					}
 					else
 					{
@@ -452,19 +454,19 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			}
 #if 0
 			UpdateInfo(const HintedUser& aUser, const bool isDownload, const bool isTransferFailed = false) :
-				updateMask(0), m_hintedUser(aUser), download(isDownload), transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0), m_is_torrent(false)
+				updateMask(0), m_hintedUser(aUser), download(isDownload), transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0), m_is_torrent(false), m_is_seeding(false)
 			{
 			}
 #endif
 			UpdateInfo(const HintedUser& aHintedUser, const bool isDownload, const bool isTransferFailed = false) :
 				updateMask(0), download(isDownload), m_hintedUser(aHintedUser), // fix empty string
 				transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
-				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), m_is_torrent(false)
+				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), m_is_torrent(false), m_is_seeding(false)
 			{
 			}
 			UpdateInfo() :
 				updateMask(0), download(true), transferFailed(false), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
-				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), m_is_torrent(false)
+				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), m_is_torrent(false), m_is_seeding(false)
 			{
 			}
 			~UpdateInfo()
@@ -482,6 +484,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			}
 			const bool download;
 			bool m_is_torrent;
+			bool m_is_seeding;
 			string m_torrent_file_path;
 			libtorrent::sha1_hash m_sha1;
 			const bool transferFailed; // [!] is const member.
