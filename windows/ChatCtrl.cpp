@@ -91,7 +91,6 @@ ChatCtrl::ChatCtrl() : m_boAutoScroll(true), m_is_cache_chat_empty(false), m_is_
 	, m_pRichEditOle(NULL), /*m_pOleClientSite(NULL),*/ m_pStorage(NULL), m_lpLockBytes(NULL), m_Ref(0)
 #endif
 {
-	//m_cs_chat_cache = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 	//m_hStandardCursor = LoadCursor(NULL, IDC_IBEAM);
 	//m_hHandCursor = LoadCursor(NULL, IDC_HAND);
 }
@@ -212,7 +211,6 @@ void ChatCtrl::restore_chat_cache()
 	CLockRedraw<true> l_lock_draw(m_hWnd);
 	CWaitCursor l_cursor_wait; //-V808
 	{
-		//CFlyReadLock(*m_cs_chat_cache);
 #if 0
 		for (int i = 0; i < 3000; ++i)
 		{
@@ -231,8 +229,13 @@ void ChatCtrl::restore_chat_cache()
 		{
 			CLockRedraw<true> l_lock_redraw(*this);
 			m_is_cache_chat_empty = true;
-			int l_count = m_chat_cache.size();
-			for (auto i = m_chat_cache.begin(); i != m_chat_cache.end(); ++i)
+			std::list<CFlyChatCache> l_chat_cache;
+			{
+				CFlyFastLock(m_fcs_chat_cache);
+				l_chat_cache.swap(m_chat_cache);
+			}
+			int l_count = l_chat_cache.size();
+			for (auto i = l_chat_cache.begin(); i != l_chat_cache.end(); ++i)
 			{
 			
 				if (l_count-- > 40) // Отрубаем смайлы и стиль на старых записях
@@ -244,7 +247,7 @@ void ChatCtrl::restore_chat_cache()
 			}
 		}
 		{
-			//CFlyWriteLock(*m_cs_chat_cache);
+			CFlyFastLock(m_fcs_chat_cache);
 			m_chat_cache.clear();
 			m_chat_cache_length = 0;
 		}
@@ -277,7 +280,7 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message, bool p_is_lock_redraw)
 	if (ClientManager::isShutdown())
 		return;
 	{
-		//CFlyWriteLock(*m_cs_chat_cache);
+		CFlyFastLock(m_fcs_chat_cache);
 		if (m_is_cache_chat_empty == false)
 		{
 			m_chat_cache.push_back(p_message);

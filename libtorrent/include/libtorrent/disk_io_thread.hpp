@@ -150,7 +150,7 @@ namespace libtorrent
 
 		// the total number of write operations performed since this
 		// session was started.
-		// 
+		//
 		// The ratio (``blocks_written`` - ``writes``) / ``blocks_written`` represents
 		// the number of saved write operations per total write operations. i.e. a kind
 		// of cache hit ratio for the write cahe.
@@ -279,12 +279,10 @@ namespace libtorrent
 	{
 		disk_io_thread(io_service& ios
 			, counters& cnt
-			, void* userdata
 			, int block_size = 16 * 1024);
 		~disk_io_thread();
 
 		void set_settings(settings_pack const* sett, alert_manager& alerts);
-		void set_num_threads(int i);
 
 		void abort(bool wait);
 
@@ -312,25 +310,13 @@ namespace libtorrent
 			, std::function<void(disk_io_job const*)> handler) override;
 		void async_stop_torrent(piece_manager* storage
 			, std::function<void(disk_io_job const*)> handler) override;
-#ifndef TORRENT_NO_DEPRECATE
-		void async_cache_piece(piece_manager* storage, int piece
-			, std::function<void(disk_io_job const*)> handler) override;
-		void async_finalize_file(piece_manager* storage, int file
-			, std::function<void(disk_io_job const*)> handler
-			= std::function<void(disk_io_job const*)>()) override;
-#endif
 		void async_flush_piece(piece_manager* storage, int piece
 			, std::function<void(disk_io_job const*)> handler
 			= std::function<void(disk_io_job const*)>()) override;
 		void async_set_file_priority(piece_manager* storage
 			, std::vector<std::uint8_t> const& prio
 			, std::function<void(disk_io_job const*)> handler) override;
-		void async_load_torrent(add_torrent_params* params
-			, std::function<void(disk_io_job const*)> handler) override;
-		void async_tick_torrent(piece_manager* storage
-			, std::function<void(disk_io_job const*)> handler) override;
 
-		void clear_read_cache(piece_manager* storage) override;
 		void async_clear_piece(piece_manager* storage, int index
 			, std::function<void(disk_io_job const*)> handler) override;
 		// this is not asynchronous and requires that the piece does not
@@ -341,7 +327,7 @@ namespace libtorrent
 		void clear_piece(piece_manager* storage, int index) override;
 
 		// implements buffer_allocator_interface
-		void reclaim_block(block_cache_reference ref) override;
+		void reclaim_blocks(span<block_cache_reference> ref) override;
 		void free_disk_buffer(char* buf) override { m_disk_cache.free_buffer(buf); }
 		disk_buffer_holder allocate_disk_buffer(char const* category) override
 		{
@@ -352,9 +338,6 @@ namespace libtorrent
 		void trigger_cache_trim();
 		disk_buffer_holder allocate_disk_buffer(bool& exceeded, std::shared_ptr<disk_observer> o
 			, char const* category) override;
-
-		bool exceeded_cache_use() const
-		{ return m_disk_cache.exceeded_max_size(); }
 
 		void update_stats_counters(counters& c) const override;
 		void get_cache_info(cache_status* ret, bool no_pieces = true
@@ -370,9 +353,10 @@ namespace libtorrent
 		{ return m_disk_cache.is_disk_buffer(buffer); }
 #endif
 
-		enum thread_type_t {
-			generic_thread,
-			hasher_thread
+		enum class thread_type_t : std::uint8_t
+		{
+			generic,
+			hasher
 		};
 
 		void thread_fun(thread_type_t type, io_service::work w);
@@ -405,21 +389,15 @@ namespace libtorrent
 		int do_rename_file(disk_io_job* j, jobqueue_t& completed_jobs);
 		int do_stop_torrent(disk_io_job* j, jobqueue_t& completed_jobs);
 		int do_read_and_hash(disk_io_job* j, jobqueue_t& completed_jobs);
-#ifndef TORRENT_NO_DEPRECATE
-		int do_cache_piece(disk_io_job* j, jobqueue_t& completed_jobs);
-		int do_finalize_file(disk_io_job* j, jobqueue_t& completed_jobs);
-#endif
 		int do_flush_piece(disk_io_job* j, jobqueue_t& completed_jobs);
 		int do_flush_hashed(disk_io_job* j, jobqueue_t& completed_jobs);
 		int do_flush_storage(disk_io_job* j, jobqueue_t& completed_jobs);
 		int do_trim_cache(disk_io_job* j, jobqueue_t& completed_jobs);
 		int do_file_priority(disk_io_job* j, jobqueue_t& completed_jobs);
-		int do_load_torrent(disk_io_job* j, jobqueue_t& completed_jobs);
 		int do_clear_piece(disk_io_job* j, jobqueue_t& completed_jobs);
-		int do_tick(disk_io_job* j, jobqueue_t& completed_jobs);
 		int do_resolve_links(disk_io_job* j, jobqueue_t& completed_jobs);
 
-		void call_job_handlers(void* userdata);
+		void call_job_handlers();
 
 	private:
 
@@ -463,7 +441,6 @@ namespace libtorrent
 		static bool wait_for_job(job_queue& jobq, disk_io_thread_pool& threads
 			, std::unique_lock<std::mutex>& l);
 
-		void add_completed_job(disk_io_job* j);
 		void add_completed_jobs(jobqueue_t& jobs);
 		void add_completed_jobs_impl(jobqueue_t& jobs
 			, jobqueue_t& completed_jobs);
@@ -488,8 +465,8 @@ namespace libtorrent
 
 		// low level flush operations, used by flush_range
 		int build_iovec(cached_piece_entry* pe, int start, int end
-			, file::iovec_t* iov, int* flushing, int block_base_index = 0);
-		void flush_iovec(cached_piece_entry* pe, file::iovec_t const* iov, int const* flushing
+			, span<file::iovec_t> iov, span<int> flushing, int block_base_index = 0);
+		void flush_iovec(cached_piece_entry* pe, span<file::iovec_t const> iov, span<int const> flushing
 			, int num_blocks, storage_error& error);
 		void iovec_flushed(cached_piece_entry* pe
 			, int* flushing, int num_blocks, int block_offset
@@ -524,9 +501,6 @@ namespace libtorrent
 		int try_flush_hashed(cached_piece_entry* p, int cont_blocks, jobqueue_t& completed_jobs, std::unique_lock<std::mutex>& l);
 
 		void try_flush_write_blocks(int num, jobqueue_t& completed_jobs, std::unique_lock<std::mutex>& l);
-
-		// used to batch reclaiming of blocks to once per cycle
-		void commit_reclaimed_blocks();
 
 		void maybe_flush_write_blocks();
 		void execute_job(disk_io_job* j);
@@ -618,15 +592,16 @@ namespace libtorrent
 		std::mutex m_completed_jobs_mutex;
 		jobqueue_t m_completed_jobs;
 
-		// these are blocks that have been returned by the main thread
-		// but they haven't been freed yet. This is used to batch
-		// reclaiming of blocks, to only need one std::mutex lock per cycle
-		std::vector<block_cache_reference> m_blocks_to_reclaim;
+		// storages that have had write activity recently and will get ticked
+		// soon, for deferred actions (say, flushing partfile metadata)
+		std::vector<std::pair<time_point, std::weak_ptr<piece_manager>>> m_need_tick;
 
-		// when this is true, there is an outstanding message in the
-		// message queue that will reclaim all blocks in
-		// m_blocks_to_reclaim, there's no need to send another one
-		bool m_outstanding_reclaim_message = false;
+		// this is protected by the completed_jobs_mutex. It's true whenever
+		// there's a call_job_handlers message in-flight to the network thread. We
+		// only ever keep one such message in flight at a time, and coalesce
+		// completion callbacks in m_completed jobs
+		bool m_job_completions_in_flight = false;
+
 #if TORRENT_USE_ASSERTS
 		int m_magic = 0x1337;
 		std::atomic<bool> m_jobs_aborted{false};

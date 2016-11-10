@@ -59,6 +59,7 @@ class DownloadManagerListener
 		typedef X<4> Requesting;
 		typedef X<5> Status;
 		typedef X<6> RemoveToken;
+		typedef X<7> TorrentEvent;
 		
 		/**
 		 * This is the first message sent before a download starts.
@@ -77,6 +78,8 @@ class DownloadManagerListener
 		 * Sent once a second if something has actually been downloaded.
 		 */
 		virtual void on(Tick, const DownloadArray&) noexcept { }
+		
+		virtual void on(TorrentEvent, const DownloadArray&) noexcept { }
 		
 		/**
 		 * This is the last message sent before a download is deleted.

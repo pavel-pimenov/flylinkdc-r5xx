@@ -56,16 +56,7 @@ class ConnectivityManager : public Singleton<ConnectivityManager>
 	public:
 		void detectConnection();
 		void setup_connections(bool settingsChanged);
-		void test_all_ports();
-		bool isRunning() const
-		{
-			return running;
-		}
-		const string& getStatus() const
-		{
-			return m_status;
-		}
-		string getInformation() const;
+		static void test_all_ports();
 		
 	private:
 		friend class Singleton<ConnectivityManager>;
@@ -74,17 +65,22 @@ class ConnectivityManager : public Singleton<ConnectivityManager>
 		ConnectivityManager();
 		virtual ~ConnectivityManager() { }
 		
-		void mappingFinished(const string& mapper);
-		void log(const string& msg);
+		static void mappingFinished(const string& mapper);
+		static void log(const string& msg);
 		
-		void startSocket();
+        static string getInformation();
+        static const string& getStatus()
+        {
+            return g_status;
+        }
+        void startSocket();
 		void listen();
 		void disconnect();
 		
 		bool autoDetected;
-		bool running;
+		static bool g_is_running;
 		
-		string m_status;
+		static string g_status;
 };
 
 #endif // !defined(CONNECTIVITY_MANAGER_H)

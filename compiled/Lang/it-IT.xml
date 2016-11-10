@@ -961,7 +961,7 @@ Cosa devo fare?</String>
 		<String Name="MediaXY">Risoluzione</String>
 		<String Name="Menubar">Barra menù contestuale</String>
 		<String Name="MenuAbout">Informazioni su FlylinkDC++</String>
-		<String Name="MenuAddMagnet">Aggiungi collegamento magnet...	Ctrl+M</String>
+		<String Name="MenuAddMagnet">Aggiungi collegamento magnet (DC++ / torrent)...	Ctrl+M</String>
 		<String Name="MenuAdlSearch">Ricerca automatica 	Ctrl+Shift+S</String>
 		<String Name="MenuArrange">Disponi icone</String>
 		<String Name="MenuCascade">Disponi a cascata</String>

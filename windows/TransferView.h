@@ -443,8 +443,10 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			{
 				if (m_is_torrent)
 				{
+					dcassert(!m_sha1.is_all_zeros());
+					dcassert(!ii.m_sha1.is_all_zeros());
 					return download == ii.download &&
-					       m_torrent_file_path == ii.m_torrent_file_path;
+					       m_sha1 == ii.m_sha1;
 				}
 				else
 				{
@@ -708,6 +710,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(DownloadManagerListener::Starting, const DownloadPtr& aDownload) noexcept override;
 #endif
 		void on(DownloadManagerListener::Tick, const DownloadArray& aDownload) noexcept override;
+		void on(DownloadManagerListener::TorrentEvent, const DownloadArray&) noexcept override;
 		void on(DownloadManagerListener::Status, const UserConnection*, const string&) noexcept override;
 		
 		void on(UploadManagerListener::Starting, const UploadPtr& aUpload) noexcept override;

@@ -133,7 +133,7 @@ private :
     //Helpers
     void CreateDummy (const String& Value); //Create dummy Information
     MediaInfo_Internal(const MediaInfo_Internal&); // Copy Constructor
-    MediaInfo_Internal &operator =(const MediaInfo_Internal &); // http://www.viva64.com/en/d/0326/print/
+    MediaInfo_Internal &operator =(const MediaInfo_Internal &);
 
     //Open Buffer
     bool Info_IsMultipleParsing;

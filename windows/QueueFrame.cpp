@@ -692,7 +692,7 @@ void QueueFrame::removeDirectories(HTREEITEM ht)
 }
 void QueueFrame::on(QueueManagerListener::RemovedArray, const std::vector<string>& p_qi_array) noexcept
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		m_tasks.add(REMOVE_ITEM_ARRAY, new StringArrayTask(p_qi_array));
 	}
@@ -700,7 +700,7 @@ void QueueFrame::on(QueueManagerListener::RemovedArray, const std::vector<string
 
 void QueueFrame::on(QueueManagerListener::Removed, const QueueItemPtr& aQI) noexcept
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		m_tasks.add(REMOVE_ITEM, new StringTask(aQI->getTarget()));
 	}
@@ -741,8 +741,8 @@ void QueueFrame::on(QueueManagerListener::Tick, const QueueItemList& p_list) noe
 
 void QueueFrame::on(QueueManagerListener::TargetsUpdated, const StringList& p_targets) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		for (auto i = p_targets.cbegin(); i != p_targets.cend(); ++i)
 		{
@@ -752,8 +752,8 @@ void QueueFrame::on(QueueManagerListener::TargetsUpdated, const StringList& p_ta
 }
 void QueueFrame::on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		m_tasks.add(UPDATE_ITEM, new UpdateTask(aQI->getTarget()));
 	}
@@ -761,8 +761,8 @@ void QueueFrame::on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI
 
 void  QueueFrame::on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept // [+] IRainman opt.
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		for (auto i = p_list.cbegin(); i != p_list.cend(); ++i)
 		{
@@ -2274,8 +2274,8 @@ void QueueFrame::removeSources()
 }
 void QueueFrame::on(SettingsManagerListener::Repaint)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		if (ctrlQueue.isRedraw())
 		{
@@ -2289,7 +2289,7 @@ void QueueFrame::on(SettingsManagerListener::Repaint)
 
 void QueueFrame::onRechecked(const string& target, const string& message)
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		string buf;
 		buf.resize(STRING(INTEGRITY_CHECK).length() + message.length() + target.length() + 16);
@@ -2372,6 +2372,29 @@ LRESULT QueueFrame::onKeyDownDirs(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 		onTab();
 	}
 	return 0;
+}
+string QueueFrame::getSelectedDir() const
+{
+    HTREEITEM ht = ctrlDirs.GetSelectedItem();
+    return ht == NULL ? Util::emptyString : getDir(ctrlDirs.GetSelectedItem());
+}
+
+string QueueFrame::getDir(HTREEITEM ht) const
+{
+    dcassert(ht != NULL);
+    if (ht)
+    {
+        const auto l_str = reinterpret_cast<string*>(ctrlDirs.GetItemData(ht));
+        if (l_str)
+            return *l_str;
+        else
+        {
+            dcassert(0);
+            return Util::emptyString;
+        }
+    }
+    else
+        return Util::emptyString;
 }
 
 /**

@@ -857,7 +857,7 @@ const char* Mpeg_Descriptors_MPEG_4_audio_profile_and_level(int8u MPEG_4_audio_p
 }
 
 //---------------------------------------------------------------------------
-extern const float64 Mpegv_frame_rate[]; //In Video/File_Mpegv.cpp
+extern const float64 Mpegv_frame_rate[16]; //In Video/File_Mpegv.cpp
 extern const char*  Mpegv_Colorimetry_format[]; //In Video/File_Mpegv.cpp
 extern const char*  Mpegv_profile_and_level_indication_profile[]; //In Video/File_Mpegv.cpp
 extern const char*  Mpegv_profile_and_level_indication_level[]; //In Video/File_Mpegv.cpp
@@ -876,7 +876,7 @@ extern const int8u  AC3_Channels[]; //In Audio/File_Ac3.cpp
 extern const char*  AC3_Mode[]; //In Audio/File_Ac3.cpp
 extern const char*  AC3_Surround[]; //In Audio/File_Ac3.cpp
 
-const char* Mpeg_Descriptors_AC3_Channels[]=
+static const char* Mpeg_Descriptors_AC3_Channels[]=
 {
     "1",
     "2",
@@ -888,7 +888,7 @@ const char* Mpeg_Descriptors_AC3_Channels[]=
     "",
 };
 
-const char* Mpeg_Descriptors_AC3_Priority[]=
+static const char* Mpeg_Descriptors_AC3_Priority[]=
 {
     "",
     "Primary Audio",
@@ -897,7 +897,7 @@ const char* Mpeg_Descriptors_AC3_Priority[]=
 };
 
 //---------------------------------------------------------------------------
-const char* Mpeg_Descriptors_bandwidth[]=
+static const char* Mpeg_Descriptors_bandwidth[]=
 {
     "8 MHz",
     "7 MHz",
@@ -910,7 +910,7 @@ const char* Mpeg_Descriptors_bandwidth[]=
 };
 
 //---------------------------------------------------------------------------
-const char* Mpeg_Descriptors_constellation[]=
+static const char* Mpeg_Descriptors_constellation[]=
 {
     "QPSK",
     "16-QAM",
@@ -919,7 +919,7 @@ const char* Mpeg_Descriptors_constellation[]=
 };
 
 //---------------------------------------------------------------------------
-const char* Mpeg_Descriptors_hierarchy_information[]=
+static const char* Mpeg_Descriptors_hierarchy_information[]=
 {
     "non-hierarchical, native interleaver",
     "1, native interleaver",
@@ -932,7 +932,7 @@ const char* Mpeg_Descriptors_hierarchy_information[]=
 };
 
 //---------------------------------------------------------------------------
-const char* Mpeg_Descriptors_code_rate[]=
+static const char* Mpeg_Descriptors_code_rate[]=
 {
     "1/2",
     "2/3",
@@ -945,7 +945,7 @@ const char* Mpeg_Descriptors_code_rate[]=
 };
 
 //---------------------------------------------------------------------------
-const char* Mpeg_Descriptors_guard_interval[]=
+static const char* Mpeg_Descriptors_guard_interval[]=
 {
     "1/32",
     "1/16",
@@ -954,7 +954,7 @@ const char* Mpeg_Descriptors_guard_interval[]=
 };
 
 //---------------------------------------------------------------------------
-const char* Mpeg_Descriptors_transmission_mode[]=
+static const char* Mpeg_Descriptors_transmission_mode[]=
 {
     "2k mode",
     "8k mode",
@@ -1172,7 +1172,7 @@ const char* Mpeg_Descriptors_CA_system_ID(int16u CA_system_ID)
 }
 
 //---------------------------------------------------------------------------
-bool Mpeg_Descriptors_CA_system_ID_MustSkipSlices(int16u CA_system_ID)
+static bool Mpeg_Descriptors_CA_system_ID_MustSkipSlices(int16u CA_system_ID)
 {
     switch (CA_system_ID)
     {
@@ -1635,13 +1635,14 @@ void File_Mpeg_Descriptors::Descriptor_05()
                         {
                             //Per PES
                             Complete_Stream->Streams[elementary_PID]->registration_format_identifier=format_identifier;
-                            Complete_Stream->Streams[elementary_PID]->Infos["format_identifier"]=Ztring().From_CC4(format_identifier);
-                            if (Complete_Stream->Streams[elementary_PID]->Infos["format_identifier"].size()!=4)
+                            Ztring& infosItem = Complete_Stream->Streams[elementary_PID]->Infos["format_identifier"];
+                            infosItem =Ztring().From_CC4(format_identifier);
+                            if (infosItem.size()!=4)
                             {
                                 Ztring Temp; Temp.From_Number(format_identifier, 16);
                                 if (Temp.size()<8)
                                     Temp.insert(0, 8-Temp.size(), __T('0'));
-                                Complete_Stream->Streams[elementary_PID]->Infos["format_identifier"]=__T("0x")+Temp;
+                                infosItem =__T("0x")+Temp;
                             }
                             Complete_Stream->Streams[elementary_PID]->Infos_Option["format_identifier"]=__T("N NT");
                             if (format_identifier==Elements::KLVA)
@@ -1652,7 +1653,9 @@ void File_Mpeg_Descriptors::Descriptor_05()
                             //Coherency
                             if (stream_type==0x81 && Complete_Stream->Streams[elementary_PID]->registration_format_identifier==Elements::BSSD)
                                 Complete_Stream->Streams[elementary_PID]->registration_format_identifier=0x00000000; //Reseting it, this combinaision is not possible but a stream has it
-                        } else {
+                        }
+                        else
+                        {
                             //Per program
                             Complete_Stream->Transport_Streams[Complete_Stream->transport_stream_id].Programs[table_id_extension].registration_format_identifier=format_identifier;
                         }
@@ -1904,7 +1907,8 @@ void File_Mpeg_Descriptors::Descriptor_1D()
     Get_B1 (IOD_label,                                          "IOD_label");
 
     #ifdef MEDIAINFO_MPEG4_YES
-        if (Complete_Stream->Transport_Streams[Complete_Stream->transport_stream_id].IOD_ESs.find(IOD_label)==Complete_Stream->Transport_Streams[Complete_Stream->transport_stream_id].IOD_ESs.end())
+        complete_stream::transport_stream & transportStream =  Complete_Stream->Transport_Streams[Complete_Stream->transport_stream_id];
+        if (transportStream.IOD_ESs.find(IOD_label)== transportStream.IOD_ESs.end())
         {
             File_Mpeg4_Descriptors MI;
             MI.Parser_DoNotFreeIt=true;
@@ -1912,8 +1916,8 @@ void File_Mpeg_Descriptors::Descriptor_1D()
             Open_Buffer_Init(&MI);
             Open_Buffer_Continue(&MI);
             Finish(&MI);
-            Complete_Stream->Transport_Streams[Complete_Stream->transport_stream_id].IOD_ESs[MI.ES_ID].Parser=MI.Parser;
-            Complete_Stream->Transport_Streams[Complete_Stream->transport_stream_id].IOD_ESs[MI.ES_ID].SLConfig=MI.SLConfig;
+            transportStream.IOD_ESs[MI.ES_ID].Parser=MI.Parser;
+            transportStream.IOD_ESs[MI.ES_ID].SLConfig=MI.SLConfig;
         }
     #else
         Skip_XX(Element_Size-Element_Offset,                    "MPEG-4 Descriptor");
@@ -2078,8 +2082,9 @@ void File_Mpeg_Descriptors::Descriptor_43()
     BS_End();
 
     FILLING_BEGIN();
-        Complete_Stream->Transport_Streams[transport_stream_id].Infos["Frequency"]=Frequency_DVB__BCD(frequency);
-        Complete_Stream->Transport_Streams[transport_stream_id].Infos["OrbitalPosition"]=OrbitalPosition_DVB__BCD(orbital_position)+(west_east_flag?__T('E'):__T('W'));
+        complete_stream::transport_stream& transportStream = Complete_Stream->Transport_Streams[transport_stream_id];
+        transportStream.Infos["Frequency"]=Frequency_DVB__BCD(frequency);
+        transportStream.Infos["OrbitalPosition"]=OrbitalPosition_DVB__BCD(orbital_position)+(west_east_flag?__T('E'):__T('W'));
     FILLING_END();
 }
 
@@ -2099,9 +2104,10 @@ void File_Mpeg_Descriptors::Descriptor_48()
     FILLING_BEGIN();
         if (program_number_IsValid)
         {
-            Complete_Stream->Transport_Streams[table_id_extension].Programs[program_number].Infos["ServiceName"]=service_name;
-            Complete_Stream->Transport_Streams[table_id_extension].Programs[program_number].Infos["ServiceProvider"]=service_provider_name;
-            Complete_Stream->Transport_Streams[table_id_extension].Programs[program_number].Infos["ServiceType"]=Mpeg_Descriptors_dvb_service_type(service_type);
+            complete_stream::transport_stream::program& progItem = Complete_Stream->Transport_Streams[table_id_extension].Programs[program_number];
+            progItem.Infos["ServiceName"]=service_name;
+            progItem.Infos["ServiceProvider"]=service_provider_name;
+            progItem.Infos["ServiceType"]=Mpeg_Descriptors_dvb_service_type(service_type);
         }
     FILLING_END();
 }
@@ -2139,9 +2145,11 @@ void File_Mpeg_Descriptors::Descriptor_4D()
             {
                 Ztring ISO_639_2; ISO_639_2.From_CC3(ISO_639_language_code);
                 const Ztring& ISO_639_1=MediaInfoLib::Config.Iso639_1_Get(ISO_639_2);
-                Complete_Stream->Transport_Streams[transport_stream_id].Programs[table_id_extension].DVB_EPG_Blocks[table_id].Events[event_id].short_event.event_name=(ISO_639_1.empty()?ISO_639_2:ISO_639_1)+__T(':')+event_name;
-                Complete_Stream->Transport_Streams[transport_stream_id].Programs[table_id_extension].DVB_EPG_Blocks[table_id].Events[event_id].short_event.text=(ISO_639_1.empty()?ISO_639_2:ISO_639_1)+__T(':')+text;
-                Complete_Stream->Transport_Streams[transport_stream_id].Programs[table_id_extension].DVB_EPG_Blocks_IsUpdated=true;
+                complete_stream::transport_stream::program& progItem = Complete_Stream->Transport_Streams[transport_stream_id].Programs[table_id_extension];
+                complete_stream::transport_stream::program::dvb_epg_block::event& eventItem = progItem.DVB_EPG_Blocks[table_id].Events[event_id];
+                eventItem.short_event.event_name=(ISO_639_1.empty()?ISO_639_2:ISO_639_1)+__T(':')+event_name;
+                eventItem.short_event.text=(ISO_639_1.empty()?ISO_639_2:ISO_639_1)+__T(':')+text;
+                progItem.DVB_EPG_Blocks_IsUpdated=true;
                 Complete_Stream->Programs_IsUpdated=true;
             }
         }
@@ -2203,8 +2211,9 @@ void File_Mpeg_Descriptors::Descriptor_54()
         FILLING_BEGIN();
             if (event_id_IsValid)
             {
-                Complete_Stream->Transport_Streams[transport_stream_id].Programs[table_id_extension].DVB_EPG_Blocks[table_id].Events[event_id].content=Ztring().From_UTF8(Mpeg_Descriptors_content_nibble_level_2(content_nibble_level_1, content_nibble_level_2))+__T(", ");
-                Complete_Stream->Transport_Streams[transport_stream_id].Programs[table_id_extension].DVB_EPG_Blocks_IsUpdated=true;
+                complete_stream::transport_stream::program& progItem = Complete_Stream->Transport_Streams[transport_stream_id].Programs[table_id_extension];
+                progItem.DVB_EPG_Blocks[table_id].Events[event_id].content=Ztring().From_UTF8(Mpeg_Descriptors_content_nibble_level_2(content_nibble_level_1, content_nibble_level_2))+__T(", ");
+                progItem.DVB_EPG_Blocks_IsUpdated=true;
                 Complete_Stream->Programs_IsUpdated=true;
             }
         FILLING_END();
@@ -2213,10 +2222,12 @@ void File_Mpeg_Descriptors::Descriptor_54()
     FILLING_BEGIN();
         if (event_id_IsValid)
         {
-            if (!Complete_Stream->Transport_Streams[transport_stream_id].Programs[table_id_extension].DVB_EPG_Blocks[table_id].Events[event_id].content.empty())
+            complete_stream::transport_stream::program& progItem = Complete_Stream->Transport_Streams[transport_stream_id].Programs[table_id_extension];
+            complete_stream::transport_stream::program::dvb_epg_block::event& eventItem = progItem.DVB_EPG_Blocks[table_id].Events[event_id];
+            if (!eventItem.content.empty())
             {
-                Complete_Stream->Transport_Streams[transport_stream_id].Programs[table_id_extension].DVB_EPG_Blocks[table_id].Events[event_id].content.resize(Complete_Stream->Transport_Streams[transport_stream_id].Programs[table_id_extension].DVB_EPG_Blocks[table_id].Events[event_id].content.size()-2);
-                Complete_Stream->Transport_Streams[transport_stream_id].Programs[table_id_extension].DVB_EPG_Blocks_IsUpdated=true;
+                eventItem.content.resize(Complete_Stream->Transport_Streams[transport_stream_id].Programs[table_id_extension].DVB_EPG_Blocks[table_id].Events[event_id].content.size()-2);
+                progItem.DVB_EPG_Blocks_IsUpdated=true;
                 Complete_Stream->Programs_IsUpdated=true;
             }
         }

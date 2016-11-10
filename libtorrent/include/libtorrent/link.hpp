@@ -52,7 +52,7 @@ namespace libtorrent
 		{
 			if (index == -1) return;
 			TORRENT_ASSERT(index >= 0 && index < int(list.size()));
-			int last = int(list.size()) - 1;
+			int const last = int(list.size()) - 1;
 			if (index < last)
 			{
 				list[last]->m_links[link_index].index = index;
@@ -67,8 +67,8 @@ namespace libtorrent
 		{
 			if (index >= 0) return;
 			TORRENT_ASSERT(index == -1);
-			index = int(list.size());
 			list.push_back(self);
+			index = int(list.size()) - 1;
 		}
 	};
 }

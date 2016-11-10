@@ -65,18 +65,7 @@ namespace libtorrent
 	const piece_block piece_block::invalid((std::numeric_limits<int>::max)(), (std::numeric_limits<int>::max)());
 
 	piece_picker::piece_picker()
-		: m_seeds(0)
-		, m_num_passed(0)
-		, m_priority_boundaries(1, int(m_pieces.size()))
-		, m_blocks_per_piece(0)
-		, m_blocks_in_last_piece(0)
-		, m_num_filtered(0)
-		, m_num_have_filtered(0)
-		, m_cursor(0)
-		, m_reverse_cursor(0)
-		, m_num_have(0)
-		, m_num_pad_files(0)
-		, m_dirty(false)
+		: m_priority_boundaries(1, int(m_pieces.size()))
 	{
 #ifdef TORRENT_PICKER_LOG
 		std::cerr << "[" << this << "] " << "new piece_picker" << std::endl;
@@ -1275,7 +1264,7 @@ namespace libtorrent
 		// pieces end up changing, instead of making
 		// the piece list dirty, just update those pieces
 		// instead
-		int* incremented = TORRENT_ALLOCA(int, size);
+		TORRENT_ALLOCA(incremented, int, size);
 		int num_inc = 0;
 
 		if (!m_dirty)
@@ -1372,7 +1361,7 @@ namespace libtorrent
 		// pieces end up changing, instead of making
 		// the piece list dirty, just update those pieces
 		// instead
-		int* decremented = TORRENT_ALLOCA(int, size);
+		TORRENT_ALLOCA(decremented, int, size);
 		int num_dec = 0;
 
 		if (!m_dirty)
@@ -1964,8 +1953,8 @@ namespace libtorrent
 			// lookups when finding a downloading_piece for a specific piece index.
 			// this is important and needs to stay sorted that way, that's why
 			// we're copying it here
-			downloading_piece const** ordered_partials = TORRENT_ALLOCA(
-				downloading_piece const*, m_downloads[piece_pos::piece_downloading].size());
+			TORRENT_ALLOCA(ordered_partials, downloading_piece const*
+				, m_downloads[piece_pos::piece_downloading].size());
 			int num_ordered_partials = 0;
 
 			// now, copy over the pointers. We also apply a filter here to not
@@ -2000,7 +1989,7 @@ namespace libtorrent
 				// chances are that we'll just need a single piece, and once we've
 				// picked from it we're done. Sorting the rest of the list in that
 				// case is a waste of time.
-				std::sort(ordered_partials, ordered_partials + num_ordered_partials
+				std::sort(ordered_partials.begin(), ordered_partials.begin() + num_ordered_partials
 					, std::bind(&piece_picker::partial_compare_rarest_first, this
 						, _1, _2));
 			}
@@ -2306,8 +2295,7 @@ get_out:
 			+ m_downloads[piece_pos::piece_full].size()));
 		if (partials_size == 0) return ret;
 
-		downloading_piece const** partials
-			= TORRENT_ALLOCA(downloading_piece const*, partials_size);
+		TORRENT_ALLOCA(partials, downloading_piece const*, partials_size);
 		int c = 0;
 
 #if TORRENT_USE_INVARIANT_CHECKS

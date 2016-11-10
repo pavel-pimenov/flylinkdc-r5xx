@@ -15,7 +15,8 @@
 void TransferData::init(libtorrent::torrent_status const& s)
 {
 	//l_td.m_hinted_user = d->getHintedUser();
-	m_token = s.info_hash.to_string();
+	//m_token = s.info_hash.to_string(); для токена используется m_sha1
+	
 	m_sha1 = s.info_hash;
 	m_pos = 1;
 	m_speed = s.download_payload_rate;

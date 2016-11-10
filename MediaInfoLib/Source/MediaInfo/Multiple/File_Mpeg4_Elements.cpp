@@ -118,7 +118,7 @@ namespace MediaInfoLib
 //***************************************************************************
 
 //---------------------------------------------------------------------------
-const char* Mpeg4_Meta_Kind(int32u Kind)
+static const char* Mpeg4_Meta_Kind(int32u Kind)
 {
     switch (Kind)
     {
@@ -135,7 +135,7 @@ const char* Mpeg4_Meta_Kind(int32u Kind)
 }
 
 //---------------------------------------------------------------------------
-const char* Mpeg4_TypeModifierName(int32u TypeModifierName)
+static const char* Mpeg4_TypeModifierName(int32u TypeModifierName)
 {
     switch (TypeModifierName)
     {
@@ -152,7 +152,7 @@ const char* Mpeg4_TypeModifierName(int32u TypeModifierName)
 }
 
 //---------------------------------------------------------------------------
-const char* Mpeg4_sample_depends_on[]=
+static const char* Mpeg4_sample_depends_on[]=
 {
     "",
     "this sample does depend on others (not an I picture)",
@@ -161,7 +161,7 @@ const char* Mpeg4_sample_depends_on[]=
 };
 
 //---------------------------------------------------------------------------
-const char* Mpeg4_sample_is_depended_on[]=
+static const char* Mpeg4_sample_is_depended_on[]=
 {
     "",
     "other samples depend on this one (not disposable)",
@@ -170,7 +170,7 @@ const char* Mpeg4_sample_is_depended_on[]=
 };
 
 //---------------------------------------------------------------------------
-const char* Mpeg4_sample_has_redundancy[]=
+static const char* Mpeg4_sample_has_redundancy[]=
 {
     "",
     "there is redundant coding in this sample",
@@ -179,7 +179,7 @@ const char* Mpeg4_sample_has_redundancy[]=
 };
 
 //---------------------------------------------------------------------------
-Ztring Mpeg4_Vendor(int32u Vendor)
+static Ztring Mpeg4_Vendor(int32u Vendor)
 {
     switch (Vendor)
     {
@@ -333,7 +333,7 @@ const char* Mpeg4_chan_Layout(int16u Ordering)
 }
 
 //---------------------------------------------------------------------------
-std::string Mpeg4_chan_ChannelDescription (int64u ChannelLabels)
+static std::string Mpeg4_chan_ChannelDescription (int64u ChannelLabels)
 {
     std::string Text;
     if ((ChannelLabels&0x000E)!=0x0000)
@@ -393,7 +393,7 @@ std::string Mpeg4_chan_ChannelDescription (int64u ChannelLabels)
 }
 
 //---------------------------------------------------------------------------
-const char* Mpeg4_chan_ChannelDescription_Layout (int32u ChannelLabel)
+static const char* Mpeg4_chan_ChannelDescription_Layout (int32u ChannelLabel)
 {
     switch(ChannelLabel)
     {
@@ -451,7 +451,7 @@ const char* Mpeg4_chan_ChannelDescription_Layout (int32u ChannelLabel)
 }
 
 //---------------------------------------------------------------------------
-std::string Mpeg4_chan_ChannelBitmap (int32u ChannelBitmap)
+static std::string Mpeg4_chan_ChannelBitmap (int32u ChannelBitmap)
 {
     std::string Text;
     if ((ChannelBitmap&0x0007)!=0x0000)
@@ -486,7 +486,7 @@ std::string Mpeg4_chan_ChannelBitmap (int32u ChannelBitmap)
 }
 
 //---------------------------------------------------------------------------
-const char* Mpeg4_chan_ChannelBitmap_Layout (int32u ChannelBitmap)
+static const char* Mpeg4_chan_ChannelBitmap_Layout (int32u ChannelBitmap)
 {
     switch(ChannelBitmap)
     {
@@ -513,7 +513,7 @@ const char* Mpeg4_chan_ChannelBitmap_Layout (int32u ChannelBitmap)
 }
 
 //---------------------------------------------------------------------------
-const char* Mpeg4_jp2h_METH(int8u METH)
+static const char* Mpeg4_jp2h_METH(int8u METH)
 {
     switch (METH)
     {
@@ -524,7 +524,7 @@ const char* Mpeg4_jp2h_METH(int8u METH)
 }
 
 //---------------------------------------------------------------------------
-const char* Mpeg4_jp2h_EnumCS(int32u EnumCS)
+static const char* Mpeg4_jp2h_EnumCS(int32u EnumCS)
 {
     switch (EnumCS)
     {
@@ -839,7 +839,7 @@ namespace Elements
 }
 
 //---------------------------------------------------------------------------
-const char* Mpeg4_Description(int32u Description)
+static const char* Mpeg4_Description(int32u Description)
 {
     switch (Description)
     {
@@ -1349,17 +1349,10 @@ void File_Mpeg4::free()
     Element_Name("Free space");
 
     //Parsing
-    #if MEDIAINFO_TRACE
-        if (Trace_Activated)
-            Param("Data", Ztring("(")+Ztring::ToZtring(Element_TotalSize_Get())+Ztring(" bytes)"));
-    #endif //MEDIAINFO_TRACE
+    Skip_XX(Element_TotalSize_Get(),                            "Data");
     #if MEDIAINFO_HASH
-        if (!Hash || (!IsSecondPass && FirstMdatPos<FirstMoovPos))
-    #endif //MEDIAINFO_HASH
-            GoTo(File_Offset+Buffer_Offset+Element_TotalSize_Get()); //Not using Skip_XX() because we want to skip data we don't have, and Skip_XX() does a test on size of buffer
-    #if MEDIAINFO_HASH
-        else
-            Element_Offset=Element_TotalSize_Get();
+        if (Hash && !IsSecondPass)
+            GoTo(File_Offset+Buffer_Offset+Element_TotalSize_Get()); //Hash will be done during second pass
     #endif //MEDIAINFO_HASH
 
     //ISM
@@ -1605,7 +1598,7 @@ void File_Mpeg4::mdat()
     {
         //Next piece of data
         mdat_Pos_Temp=&mdat_Pos[0];
-        IsParsing_mdat=true;
+        IsParsing_mdat_Set();
         mdat_StreamJump();
 
         return; //Only if have something in this mdat
@@ -1626,17 +1619,10 @@ void File_Mpeg4::mdat()
         LastMdatPos=File_Offset+Buffer_Offset+Element_TotalSize_Get();
 
     //Parsing
-    #if MEDIAINFO_TRACE
-        if (Trace_Activated)
-            Param("Data", Ztring("(")+Ztring::ToZtring(Element_TotalSize_Get())+Ztring(" bytes)"));
-    #endif //MEDIAINFO_TRACE
+    Skip_XX(Element_TotalSize_Get(),                            "Data");
     #if MEDIAINFO_HASH
-        if (!Hash || (!IsSecondPass && FirstMdatPos<FirstMoovPos))
-    #endif //MEDIAINFO_HASH
-            GoTo(File_Offset+Buffer_Offset+Element_TotalSize_Get()); //Not using Skip_XX() because we want to skip data we don't have, and Skip_XX() does a test on size of buffer
-    #if MEDIAINFO_HASH
-        else
-            Element_Offset=Element_TotalSize_Get();
+        if (Hash && !IsSecondPass)
+            GoTo(File_Offset+Buffer_Offset+Element_TotalSize_Get()); //Hash will be done during second pass
     #endif //MEDIAINFO_HASH
 
     //ISM
@@ -1728,7 +1714,6 @@ void File_Mpeg4::mdat_xxxx()
                 FrameInfo.DUR=(int64u)-1;
                 Stream_Temp.stts_FramePos++;
             }
-
 
             bool ShouldDemux=true;
             if (Stream_Temp.Demux_Level&(1<<7) && Element_Size-Stream_Temp.Demux_Offset)
@@ -1894,30 +1879,32 @@ void File_Mpeg4::mdat_xxxx()
 //---------------------------------------------------------------------------
 void File_Mpeg4::mdat_StreamJump()
 {
+    #if MEDIAINFO_DEMUX
+        if (Config->ParseSpeed==1 && !mdat_Pos.empty())
+        {
+            int64u ToJump=File_Offset+Buffer_Offset+Element_Size;
+            if (mdat_Pos_Temp!=mdat_Pos_Max)
+                ToJump=mdat_Pos_Temp->Offset;
+            std::map<int64u, int64u>::iterator StreamOffset_Jump_Temp=StreamOffset_Jump.find(ToJump);
+            if (StreamOffset_Jump_Temp!=StreamOffset_Jump.end())
+            {
+                ToJump=StreamOffset_Jump_Temp->second;
+                if (!mdat_Pos.empty())
+                {
+                    mdat_Pos_Temp=&mdat_Pos[0];
+                    while (mdat_Pos_Temp<mdat_Pos_Max && mdat_Pos_Temp->Offset!=ToJump)
+                        mdat_Pos_Temp++;
+                }
+                else
+                    mdat_Pos_Temp=NULL;
+            }
+        }
+    #endif // MEDIAINFO_DEMUX
+
     //Finding right file offset
     int64u ToJump=File_Size;
     if (!mdat_Pos.empty() && mdat_Pos_Temp!=mdat_Pos_Max)
-    {
         ToJump=mdat_Pos_Temp->Offset;
-        #if MEDIAINFO_DEMUX
-            if (Config->ParseSpeed==1)
-            {
-                std::map<int64u, int64u>::iterator StreamOffset_Jump_Temp=StreamOffset_Jump.find(ToJump);
-                if (StreamOffset_Jump_Temp!=StreamOffset_Jump.end())
-                {
-                    ToJump=StreamOffset_Jump_Temp->second;
-                    if (!mdat_Pos.empty())
-                    {
-                        mdat_Pos_Temp=&mdat_Pos[0];
-                        while (mdat_Pos_Temp<mdat_Pos_Max && mdat_Pos_Temp->Offset!=ToJump)
-                            mdat_Pos_Temp++;
-                    }
-                    else
-                        mdat_Pos_Temp=NULL;
-                }
-            }
-        #endif // MEDIAINFO_DEMUX
-    }
     if (ToJump>File_Size)
         ToJump=File_Size;
     if (ToJump!=File_Offset+Buffer_Offset+Element_Size)
@@ -1925,7 +1912,7 @@ void File_Mpeg4::mdat_StreamJump()
         if (!Status[IsAccepted])
             Data_Accept("MPEG-4");
         #if MEDIAINFO_HASH
-            if (Config->File_Hash_Get().to_ulong() && ((IsSecondPass && mdat_Pos_NormalParsing) || FirstMoovPos<FirstMdatPos))
+            if (Config->File_Hash_Get().to_ulong() && (IsSecondPass && mdat_Pos_NormalParsing))
                 Hash_ParseUpTo=ToJump;
             else
         #endif //MEDIAINFO_HASH
@@ -2005,17 +1992,10 @@ void File_Mpeg4::moof()
 
     if (IsSecondPass)
     {
-        #if MEDIAINFO_TRACE
-            if (Trace_Activated)
-                Param("Data", Ztring("(")+Ztring::ToZtring(Element_TotalSize_Get())+Ztring(" bytes)"));
-        #endif //MEDIAINFO_TRACE
+        Skip_XX(Element_TotalSize_Get(),                        "Data");
         #if MEDIAINFO_HASH
-            if (!Hash || (!IsSecondPass && FirstMdatPos<FirstMoovPos))
-        #endif //MEDIAINFO_HASH
-                GoTo(File_Offset+Buffer_Offset+Element_TotalSize_Get()); //Not using Skip_XX() because we want to skip data we don't have, and Skip_XX() does a test on size of buffer
-        #if MEDIAINFO_HASH
-            else
-                Element_Offset=Element_TotalSize_Get();
+            if (Hash && !IsSecondPass)
+                GoTo(File_Offset+Buffer_Offset+Element_TotalSize_Get()); //Hash will be done during second pass
         #endif //MEDIAINFO_HASH
         return;
     }
@@ -2186,17 +2166,10 @@ void File_Mpeg4::moov()
 
     if (IsSecondPass || FirstMoovPos!=(int64u)-1) //Currently, the 1 moov atom is used
     {
-        #if MEDIAINFO_TRACE
-            if (Trace_Activated)
-                Param("Data", Ztring("(")+Ztring::ToZtring(Element_TotalSize_Get())+Ztring(" bytes)"));
-        #endif //MEDIAINFO_TRACE
+        Skip_XX(Element_TotalSize_Get(),                        "Data");
         #if MEDIAINFO_HASH
-            if (!Hash || (!IsSecondPass && FirstMdatPos<FirstMoovPos))
-        #endif //MEDIAINFO_HASH
-                GoTo(File_Offset+Buffer_Offset+Element_TotalSize_Get()); //Not using Skip_XX() because we want to skip data we don't have, and Skip_XX() does a test on size of buffer
-        #if MEDIAINFO_HASH
-            else
-                Element_Offset=Element_TotalSize_Get();
+            if (Hash && !IsSecondPass)
+                GoTo(File_Offset+Buffer_Offset+Element_TotalSize_Get()); //Hash will be done during second pass
         #endif //MEDIAINFO_HASH
         return;
     }
@@ -3565,6 +3538,16 @@ void File_Mpeg4::moov_trak_mdia_minf_hmhd()
     Skip_B4(                                                    "maxbitrate");
     Skip_B4(                                                    "avgbitrate");
     Skip_B4(                                                    "reserved");
+
+    FILLING_BEGIN();
+        if (StreamKind_Last==Stream_Max) //Note: some files have both vmhd and hmhd, I don't know the meaning of such header, so skipping hmhd for the moment
+        {
+            Stream_Prepare(Stream_Other);
+            Fill(Stream_Other, StreamPos_Last, Other_Type, "Hint");
+            Streams[moov_trak_tkhd_TrackID].StreamKind=Stream_Other;
+            Streams[moov_trak_tkhd_TrackID].StreamPos=StreamPos_Last;
+        }
+    FILLING_END();
 }
 
 //---------------------------------------------------------------------------
@@ -4020,9 +4003,9 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_tmcd()
         Open_Buffer_Init(Parser);
         mdat_Pos_ToParseInPriority_StreamIDs.push_back(moov_trak_tkhd_TrackID);
         Streams[moov_trak_tkhd_TrackID].IsPriorityStream=true;
-        ((File_Mpeg4_TimeCode*)Parser)->NumberOfFrames=NumberOfFrames; //tc->FrameDuration?(((float64)tc->TimeScale)/tc->FrameDuration):0;
-        ((File_Mpeg4_TimeCode*)Parser)->DropFrame=tc->DropFrame;
-        ((File_Mpeg4_TimeCode*)Parser)->NegativeTimes=tc->NegativeTimes;
+        Parser->NumberOfFrames=NumberOfFrames; //tc->FrameDuration?(((float64)tc->TimeScale)/tc->FrameDuration):0;
+        Parser->DropFrame=tc->DropFrame;
+        Parser->NegativeTimes=tc->NegativeTimes;
         Streams[moov_trak_tkhd_TrackID].Parsers.push_back(Parser);
         mdat_MustParse=true; //Data is in MDAT
     FILLING_ELSE();
@@ -4061,6 +4044,7 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_tmcd_name()
 void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_tx3g()
 {
     Element_Name("Text");
+
     //Parsing
     bool tx3gallforced, tx3ghasforced;
     int32u Flags;
@@ -4118,6 +4102,7 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_tx3g()
         Streams[moov_trak_tkhd_TrackID].AllForcedSamples = tx3gallforced;
         Fill(StreamKind_Last, StreamPos_Last, Fill_Parameter(StreamKind_Last, Generic_Codec), "tx3g", Unlimited, true, true);
         Fill(StreamKind_Last, StreamPos_Last, Fill_Parameter(StreamKind_Last, Generic_Format), "Timed Text", Unlimited, true, true);
+
         #ifdef MEDIAINFO_TIMEDTEXT_YES
             File_TimedText* Parser=new File_TimedText;
             int64u Elemen_Code_Save=Element_Code;
@@ -4212,6 +4197,7 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx()
                                     default                                           : Skip_XX(Element_TotalSize_Get()-Element_Offset, "Unknown");
                                 }
         }
+
         if (Element_IsWaitingForMoreData())
             return;
 
@@ -4385,7 +4371,8 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxxSound()
             #endif // MEDIAINFO_DEMUX
 
             //Creating the parser
-            if ((Channels==1 && (StreamPos_Last%2)==0)
+            #if defined(MEDIAINFO_SMPTEST0337_YES)
+                if ((Channels==1 && (StreamPos_Last%2)==0)
              || (Streams.find(moov_trak_tkhd_TrackID-1)!=Streams.end() && Streams[moov_trak_tkhd_TrackID-1].IsPcmMono))
             {
                 File_ChannelGrouping* Parser=new File_ChannelGrouping;
@@ -4407,7 +4394,7 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxxSound()
 
                 Streams[moov_trak_tkhd_TrackID].Parsers.push_back(Parser);
             }
-
+            #endif // MEDIAINFO_SMPTEST0337_YES
             //Specific cases
             #if defined(MEDIAINFO_SMPTEST0337_YES)
             if (Channels==2 && SampleSize<=32 && SampleRate==48000) //Some SMPTE ST 337 streams are hidden in PCM stream
@@ -6001,7 +5988,9 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_wave_enda()
                     ((File_Pcm*)Streams[moov_trak_tkhd_TrackID].Parsers[0])->Endianness=Endianness?'L':'B';
                 if (Streams[moov_trak_tkhd_TrackID].Parsers.size()==2)
                 {
+#if defined(MEDIAINFO_SMPTEST0337_YES)
                     ((File_ChannelGrouping*)Streams[moov_trak_tkhd_TrackID].Parsers[0])->Endianness=Endianness?'L':'B';
+#endif // MEDIAINFO_SMPTEST0337_YES
                     ((File_Pcm*)Streams[moov_trak_tkhd_TrackID].Parsers[1])->Endianness=Endianness?'L':'B';
                 }
             }

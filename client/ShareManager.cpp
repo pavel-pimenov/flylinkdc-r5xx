@@ -2508,7 +2508,7 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 		return;
 	if (p_search_param.m_file_type == Search::TYPE_TTH)
 	{
-		dcassert(isTTHBase64(p_search_param.m_filter));
+		//dcassert(isTTHBase64(p_search_param.m_filter));
 		// Ветка пока работает!
 		if (isTTHBase64(p_search_param.m_filter)) //[+]FlylinkDC++ opt.
 		{

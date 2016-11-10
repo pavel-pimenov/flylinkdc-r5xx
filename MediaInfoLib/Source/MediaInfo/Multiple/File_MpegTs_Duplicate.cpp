@@ -83,7 +83,7 @@ void File_MpegTs::Option_Manage()
                 {
                     //Do we want this program?
                     bool Wanted=false;
-                    for (std::map<String, File__Duplicate_MpegTs*>::iterator Duplicate=Complete_Stream->Duplicates.begin(); Duplicate!=Complete_Stream->Duplicates.end(); ++Duplicate)
+                    for (std::map<const String, File__Duplicate_MpegTs*>::iterator Duplicate=Complete_Stream->Duplicates.begin(); Duplicate!=Complete_Stream->Duplicates.end(); ++Duplicate)
                     {
                         if (Duplicate->second->Wanted_program_numbers.find(Program->first)!=Duplicate->second->Wanted_program_numbers.end())
                             Wanted=true;
@@ -201,7 +201,7 @@ bool File_MpegTs::File__Duplicate_Set (const Ztring &Value)
     //For each target to remove
     for (std::vector<ZtringList::iterator>::iterator Target=Targets_ToRemove.begin(); Target<Targets_ToRemove.end(); ++Target)
     {
-        std::map<String, File__Duplicate_MpegTs*>::iterator Pointer=Complete_Stream->Duplicates.find(**Target);
+        std::map<const String, File__Duplicate_MpegTs*>::iterator Pointer=Complete_Stream->Duplicates.find(**Target);
         if (Pointer!=Complete_Stream->Duplicates.end())
         {
             //Duplicates_Speed
@@ -293,7 +293,7 @@ size_t File_MpegTs::Output_Buffer_Get (const String &Code)
 {
     if (Complete_Stream==NULL)
         return 0;
-    std::map<String, File__Duplicate_MpegTs*>::iterator Stream=Complete_Stream->Duplicates.find(Code);
+    std::map<const String, File__Duplicate_MpegTs*>::iterator Stream=Complete_Stream->Duplicates.find(Code);
     if (Stream==Complete_Stream->Duplicates.end())
         return 0;
 

@@ -195,11 +195,14 @@ ZtringList Dir::GetAllFileNames(const Ztring &Dir_Name_, dirlist_t Options)
             Ztring Path=FileName::Path_Get(Dir_Name);
             if (Path.empty())
             {
-                DWORD Path_Size=GetFullPathName(Dir_Name.c_str(), 0, NULL, NULL);
-                Char* PathTemp=new Char[Path_Size+1];
-                if (GetFullPathName(Dir_Name.c_str(), Path_Size+1, PathTemp, NULL))
-                    Path=FileName::Path_Get(PathTemp);
-                delete [] PathTemp;
+                const DWORD Path_Size=GetFullPathName(Dir_Name.c_str(), 0, NULL, NULL);
+                if (Path_Size)
+                {
+                    Char* PathTemp = new Char[Path_Size + 1];
+                    if (GetFullPathName(Dir_Name.c_str(), Path_Size + 1, PathTemp, NULL))
+                        Path = FileName::Path_Get(PathTemp);
+                    delete[] PathTemp;
+                }
             }
 
             #ifdef UNICODE
@@ -434,11 +437,14 @@ void GetAllFileNames::Start  (const Ztring &Dir_Name_, Dir::dirlist_t Options_)
         p->Path=FileName::Path_Get(p->Dir_Name);
         if (p->Path.empty())
         {
-            DWORD Path_Size=GetFullPathName(p->Dir_Name.c_str(), 0, NULL, NULL);
-            Char* PathTemp=new Char[Path_Size+1];
-            if (GetFullPathName(p->Dir_Name.c_str(), Path_Size+1, PathTemp, NULL))
-                p->Path=FileName::Path_Get(PathTemp);
-            delete [] PathTemp;
+            const DWORD Path_Size=GetFullPathName(p->Dir_Name.c_str(), 0, NULL, NULL);
+            if (Path_Size)
+            {
+                Char* PathTemp = new Char[Path_Size + 1];
+                if (GetFullPathName(p->Dir_Name.c_str(), Path_Size + 1, PathTemp, NULL))
+                    p->Path = FileName::Path_Get(PathTemp);
+                delete[] PathTemp;
+            }
         }
     #else //WINDOWS
     #endif

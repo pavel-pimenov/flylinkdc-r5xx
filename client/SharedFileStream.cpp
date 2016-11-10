@@ -223,7 +223,7 @@ void SharedFileStream::cleanup()
 			{
 				j->second++;
 #ifdef FLYLINKDC_BETA
-				if (j->second > 1)
+				if (j->second > 1 && j->second < 10)
 				{
 					const string l_error = "Error delete file SharedFileStream::cleanup (try: " + Util::toString(j->second) + ") " + j->first + " Error " + Util::translateError();
 					CFlyServerJSON::pushError(71, l_error);

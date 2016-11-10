@@ -667,6 +667,7 @@ void File_Jpeg::SIZ()
             if (((float)compSubsY)/compSubsX>SamplingFactors_Max)
                 SamplingFactors_Max=(int8u)((float)compSubsY)/compSubsX;
         }
+
         if (BitDepths.empty() || BitDepth!=BitDepths[0])
             BitDepths.push_back(BitDepth);
     }

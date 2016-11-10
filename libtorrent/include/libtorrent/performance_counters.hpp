@@ -44,6 +44,7 @@ namespace libtorrent
 {
 	struct TORRENT_EXTRA_EXPORT counters
 	{
+		// TODO: move this out of counters
 		enum stats_counter_t
 		{
 			// the number of peers that were disconnected this
@@ -130,7 +131,9 @@ namespace libtorrent
 			on_disk_queue_counter,
 			on_disk_counter,
 
+#ifndef TORRENT_NO_DEPRECATE
 			torrent_evicted_counter,
+#endif
 
 			// bittorrent message counters
 			// TODO: should keepalives be in here too?
@@ -381,7 +384,6 @@ namespace libtorrent
 			num_fenced_save_resume_data,
 			num_fenced_rename_file,
 			num_fenced_stop_torrent,
-			num_fenced_cache_piece,
 			num_fenced_flush_piece,
 			num_fenced_flush_hashed,
 			num_fenced_flush_storage,

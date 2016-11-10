@@ -616,7 +616,7 @@ namespace libtorrent
 		v.resize(std::size_t(s));
 		if (s == 0) return 0;
 		file::iovec_t b = {&v[0], size_t(s) };
-		std::int64_t read = f.readv(0, &b, 1, ec);
+		std::int64_t read = f.readv(0, b, ec);
 		if (read != s) return -3;
 		if (ec) return -3;
 		return 0;
@@ -818,7 +818,7 @@ namespace libtorrent
 	torrent_info::torrent_info(entry const& torrent_file)
 	{
 		std::vector<char> tmp;
-		std::back_insert_iterator<std::vector<char> > out(tmp);
+		std::back_insert_iterator<std::vector<char>> out(tmp);
 		bencode(out, torrent_file);
 
 		bdecode_node e;
@@ -1340,7 +1340,7 @@ namespace libtorrent
 			bdecode_node link = torrent_file.dict_find_string("magnet-uri");
 			if (link)
 			{
-				auto const uri = link.string_value();
+				auto uri = link.string_value();
 
 				add_torrent_params p;
 				parse_magnet_uri(uri.to_string(), p, ec);
@@ -1537,18 +1537,16 @@ namespace libtorrent
 	{
 		auto i = std::find_if(m_urls.begin(), m_urls.end()
 			, [&url](announce_entry const& ae) { return ae.url == url; });
-		if (i == m_urls.end())
-		{
+		if (i != m_urls.end()) return;
 
-			announce_entry e(url);
-			e.tier = tier;
-			e.source = announce_entry::source_client;
-			m_urls.push_back(e);
+		announce_entry e(url);
+		e.tier = tier;
+		e.source = announce_entry::source_client;
+		m_urls.push_back(e);
 
-			std::sort(m_urls.begin(), m_urls.end()
-				, [](announce_entry const& lhs, announce_entry const& rhs)
+		std::sort(m_urls.begin(), m_urls.end()
+			, [] (announce_entry const& lhs, announce_entry const& rhs)
 			{ return lhs.tier < rhs.tier; });
-		}
 	}
 
 #ifndef TORRENT_NO_DEPRECATE

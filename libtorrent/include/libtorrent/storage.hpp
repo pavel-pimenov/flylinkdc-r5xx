@@ -67,13 +67,13 @@ POSSIBILITY OF SUCH DAMAGE.
 // general conventions of bittorrent clients, mimicking the original file layout
 // when the torrent was created. The libtorrent user may define a custom
 // storage to store piece data in a different way.
-// 
+//
 // A custom storage implementation must derive from and implement the
 // storage_interface. You must also provide a function that constructs the
 // custom storage object and provide this function to the add_torrent() call
 // via add_torrent_params. Either passed in to the constructor or by setting
 // the add_torrent_params::storage field.
-// 
+//
 // This is an example storage implementation that stores all pieces in a
 // ``std::map``, i.e. in RAM. It's not necessarily very useful in practice, but
 // illustrates the basics of implementing a custom storage.
@@ -87,7 +87,7 @@ POSSIBILITY OF SUCH DAMAGE.
 //		virtual bool has_any_file() { return false; }
 //		virtual int read(char* buf, int piece, int offset, int size)
 //		{
-//			std::map<int, std::vector<char> >::const_iterator i = m_file_data.find(piece);
+//			std::map<int, std::vector<char>>::const_iterator i = m_file_data.find(piece);
 //			if (i == m_file_data.end()) return 0;
 //			int available = i->second.size() - offset;
 //			if (available <= 0) return 0;
@@ -128,8 +128,8 @@ POSSIBILITY OF SUCH DAMAGE.
 //		}
 //		virtual bool release_files() { return false; }
 //		virtual bool delete_files() { return false; }
-//	
-//		std::map<int, std::vector<char> > m_file_data;
+//
+//		std::map<int, std::vector<char>> m_file_data;
 //		file_storage m_files;
 //	};
 //
@@ -148,9 +148,9 @@ namespace libtorrent
 	struct cached_piece_entry;
 	struct add_torrent_params;
 
-	TORRENT_EXTRA_EXPORT int copy_bufs(file::iovec_t const* bufs, int bytes, file::iovec_t* target);
-	TORRENT_EXTRA_EXPORT void advance_bufs(file::iovec_t*& bufs, int bytes);
-	TORRENT_EXTRA_EXPORT void clear_bufs(file::iovec_t const* bufs, int num_bufs);
+	TORRENT_EXTRA_EXPORT int copy_bufs(span<file::iovec_t const> bufs, int bytes, span<file::iovec_t> target);
+	TORRENT_EXTRA_EXPORT span<file::iovec_t> advance_bufs(span<file::iovec_t> bufs, int bytes);
+	TORRENT_EXTRA_EXPORT void clear_bufs(span<file::iovec_t const> bufs);
 
 	// flags for async_move_storage
 	enum move_flags_t
@@ -181,16 +181,16 @@ namespace libtorrent
 	// data in RAM, or in some optimized order on disk (the order the pieces are
 	// received for instance), or saving multifile torrents in a single file in
 	// order to be able to take advantage of optimized disk-I/O.
-	// 
+	//
 	// It is also possible to write a thin class that uses the default storage
 	// but modifies some particular behavior, for instance encrypting the data
 	// before it's written to disk, and decrypting it when it's read again.
-	// 
+	//
 	// The storage interface is based on pieces. Avery read and write operation
 	// happens in the piece-space. Each piece fits 'piece_size' number
 	// of bytes. All access is done by writing and reading whole or partial
 	// pieces.
-	// 
+	//
 	// libtorrent comes with two built-in storage implementations;
 	// ``default_storage`` and ``disabled_storage``. Their constructor functions
 	// are called default_storage_constructor() and
@@ -232,12 +232,12 @@ namespace libtorrent
 		// allocated buffer can be assumed to fit a fully page aligned number of
 		// bytes though. This is useful when reading and writing the last piece
 		// of a file in unbuffered mode.
-		// 
+		//
 		// The ``offset`` is aligned to 16 kiB boundaries  *most of the time*, but
 		// there are rare exceptions when it's not. Specifically if the read
 		// cache is disabled/or full and a peer requests unaligned data. Most
 		// clients request aligned data.
-		// 
+		//
 		// The number of bytes read or written should be returned, or -1 on
 		// error. If there's an error, the ``storage_error`` must be filled out
 		// to represent the error that occurred.
@@ -250,7 +250,7 @@ namespace libtorrent
 		// storage for a torrent. It should return true if any of the files that
 		// is used in this storage exists on disk. If so, the storage will be
 		// checked for existing pieces before starting the download.
-		// 
+		//
 		// If an error occurs, ``storage_error`` should be set to reflect it.
 		virtual bool has_any_file(storage_error& ec) = 0;
 
@@ -263,12 +263,12 @@ namespace libtorrent
 		// This function should move all the files belonging to the storage to
 		// the new save_path. The default storage moves the single file or the
 		// directory of the torrent.
-		// 
+		//
 		// Before moving the files, any open file handles may have to be closed,
 		// like ``release_files()``.
 		//
 		//If an error occurs, ``storage_error`` should be set to reflect it.
-		// 
+		//
 		// returns one of:
 		// | no_error = 0
 		// | fatal_disk_error = -1
@@ -280,15 +280,15 @@ namespace libtorrent
 		// This function should verify the resume data ``rd`` with the files
 		// on disk. If the resume data seems to be up-to-date, return true. If
 		// not, set ``error`` to a description of what mismatched and return false.
-		// 
+		//
 		// The default storage may compare file sizes and time stamps of the files.
-		// 
+		//
 		// If an error occurs, ``storage_error`` should be set to reflect it.
-		// 
+		//
 		// This function should verify the resume data ``rd`` with the files
 		// on disk. If the resume data seems to be up-to-date, return true. If
 		// not, set ``error`` to a description of what mismatched and return false.
-		// 
+		//
 		// If the ``links`` pointer is non-empty, it has the same number
 		// of elements as there are files. Each element is either empty or contains
 		// the absolute path to a file identical to the corresponding file in this
@@ -301,15 +301,15 @@ namespace libtorrent
 		// This function should release all the file handles that it keeps open
 		// to files belonging to this storage. The default implementation just
 		// calls file_pool::release_files().
-		// 
+		//
 		// If an error occurs, ``storage_error`` should be set to reflect it.
-		// 
+		//
 		virtual void release_files(storage_error& ec) = 0;
 
 		// Rename file with index ``index`` to the name ``new_filename``.
-		// 
+		//
 		// If an error occurs, ``storage_error`` should be set to reflect it.
-		// 
+		//
 		virtual void rename_file(int index, std::string const& new_filename
 			, storage_error& ec) = 0;
 
@@ -317,12 +317,12 @@ namespace libtorrent
 		// The ``options`` parameter specifies whether to delete all files or just
 		// the partfile. ``options`` are set to the same value as the options
 		// passed to session::remove_torrent().
-		// 
+		//
 		// If an error occurs, ``storage_error`` should be set to reflect it.
-		// 
+		//
 		// The ``disk_buffer_pool`` is used to allocate and free disk buffers. It
 		// has the following members::
-		// 
+		//
 		//	struct disk_buffer_pool : boost::noncopyable
 		//	{
 		//		char* allocate_buffer(char const* category);
@@ -335,23 +335,8 @@ namespace libtorrent
 		//
 		//		void release_memory();
 		//	};
-		// 
-		virtual void delete_files(int options, storage_error& ec) = 0;
-
-#ifndef TORRENT_NO_DEPRECATE
-		// This function is called each time a file is completely downloaded. The
-		// storage implementation can perform last operations on a file. The file
-		// will not be opened for writing after this.
-		// 
-		// ``index`` is the index of the file that completed.
-		//	
-		//	On windows the default storage implementation clears the sparse file
-		//	flag on the specified file.
 		//
-		//	If an error occurs, ``storage_error`` should be set to reflect it.
-		//	
-		virtual void finalize_file(int, storage_error&) {}
-#endif
+		virtual void delete_files(int options, storage_error& ec) = 0;
 
 		// called periodically (useful for deferred flushing). When returning
 		// false, it means no more ticks are necessary. Any disk job submitted
@@ -393,9 +378,6 @@ namespace libtorrent
 		// hidden
 		~default_storage();
 
-#ifndef TORRENT_NO_DEPRECATE
-		void finalize_file(int file, storage_error& ec) override;
-#endif
 		virtual bool has_any_file(storage_error& ec) override;
 		virtual void set_file_priority(std::vector<std::uint8_t> const& prio
 			, storage_error& ec) override;
@@ -578,6 +560,19 @@ namespace libtorrent
 
 		storage_interface* get_storage_impl() { return m_storage.get(); }
 
+		bool set_need_tick()
+		{
+			bool const prev = m_need_tick;
+			m_need_tick = true;
+			return prev;
+		}
+
+		void tick()
+		{
+			m_need_tick = false;
+			m_storage->tick();
+		}
+
 	private:
 
 		// if error is set and return value is 'no_error' or 'need_full_check'
@@ -597,6 +592,8 @@ namespace libtorrent
 #endif
 		file_storage const& m_files;
 
+		bool m_need_tick = false;
+
 		std::unique_ptr<storage_interface> m_storage;
 
 		// the reason for this to be a void pointer
@@ -612,15 +609,15 @@ namespace libtorrent
 	// what to do when it's actually touching the file
 	struct fileop
 	{
-		virtual int file_op(int const file_index, std::int64_t const file_offset, int const size
-			, file::iovec_t const* bufs, storage_error& ec) = 0;
+		virtual int file_op(int const file_index, std::int64_t const file_offset
+			, span<file::iovec_t const> bufs, storage_error& ec) = 0;
 	};
 
 	// this function is responsible for turning read and write operations in the
 	// torrent space (pieces) into read and write operations in the filesystem
 	// space (files on disk).
 	TORRENT_EXTRA_EXPORT int readwritev(file_storage const& files
-		, file::iovec_t const* bufs, int piece, int offset, int num_bufs
+		, span<file::iovec_t const> bufs, int piece, int offset
 		, fileop& op, storage_error& ec);
 
 }

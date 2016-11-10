@@ -644,6 +644,12 @@
     <ClInclude Include="include\libtorrent\piece_block.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\ip_notifier.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\netlink.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ed25519\src\add_scalar.cpp">
@@ -1068,6 +1074,12 @@
     </ClCompile>
     <ClCompile Include="src\kademlia\dht_state.cpp">
       <Filter>Source Files\kadmelia</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fingerprint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ip_notifier.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

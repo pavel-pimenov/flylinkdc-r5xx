@@ -373,7 +373,7 @@ struct complete_stream
         bool                                        IsUpdated_IsRegistered;
         bool                                        IsUpdated_Info;
         bool                                        CA_system_ID_MustSkipSlices;
-        bool                                        EBP_IsPresent;
+        bool                                        EBP_Marker_Detected;
         size_t                                      Scrambled_Count;
         int16u                                      CA_system_ID;
         int16u                                      SubStream_pid;
@@ -444,7 +444,7 @@ struct complete_stream
             Scrambled_Count=0;
             CA_system_ID_MustSkipSlices=false;
             CA_system_ID=0x0000;
-            EBP_IsPresent=false;
+            EBP_Marker_Detected=false;
             SubStream_pid=0x0000;
             #if MEDIAINFO_IBIUSAGE
                 Ibi_SynchronizationOffset_BeginOfFrame=(int64u)-1;
@@ -604,7 +604,7 @@ struct complete_stream
     size_t                                              Config_File_Duplicate_Get_AlwaysNeeded_Count;
     std::vector<File__Duplicate_MpegTs*>                Duplicates_Speed;
     std::vector<std::vector<File__Duplicate_MpegTs*> >  Duplicates_Speed_FromPID;
-    std::map<String, File__Duplicate_MpegTs*>     Duplicates;
+    std::map<const String, File__Duplicate_MpegTs*>     Duplicates;
     bool File__Duplicate_Get_From_PID (int16u pid)
     {
         if (Duplicates_Speed_FromPID.empty())
@@ -641,7 +641,7 @@ struct complete_stream
         for (size_t StreamID=0; StreamID<Streams.size(); StreamID++)
             delete Streams[StreamID]; //Streams[StreamID]=NULL;
 
-        std::map<String, File__Duplicate_MpegTs*>::iterator Duplicates_Temp=Duplicates.begin();
+        std::map<const String, File__Duplicate_MpegTs*>::iterator Duplicates_Temp=Duplicates.begin();
         while (Duplicates_Temp!=Duplicates.end())
         {
             delete Duplicates_Temp->second; //Duplicates_Temp->second=NULL

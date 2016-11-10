@@ -105,8 +105,8 @@
         _TOAPPEND; \
         Debug_Close();
 #else // MEDIAINFO_DEBUG
-    #define MEDIAINFO_DEBUG1(_NAME,__TOAPPEND)
-    #define MEDIAINFO_DEBUG2(_NAME,__TOAPPEND)
+    #define MEDIAINFO_DEBUG1(_NAME,_TOAPPEND)
+    #define MEDIAINFO_DEBUG2(_NAME,_TOAPPEND)
 #endif // MEDIAINFO_DEBUG
 
 //---------------------------------------------------------------------------
@@ -125,7 +125,7 @@ namespace MediaInfoLib
 {
 
 //---------------------------------------------------------------------------
-const Char*  MediaInfo_Version=__T("MediaInfoLib - v0.7.89");
+const Char*  MediaInfo_Version=__T("MediaInfoLib - v0.7.90");
 const Char*  MediaInfo_Url=__T("http://MediaArea.net/MediaInfo");
       Ztring EmptyZtring;       //Use it when we can't return a reference to a true Ztring
 const Ztring EmptyZtring_Const; //Use it when we can't return a reference to a true Ztring, const version
@@ -242,6 +242,9 @@ void MediaInfo_Config::Init()
         Ssh_IgnoreSecurity=false;
         Ssl_IgnoreSecurity=false;
     #endif //defined(MEDIAINFO_LIBCURL_YES)
+    #if MEDIAINFO_FIXITY
+        TryToFix=false;
+    #endif //MEDIAINFO_FIXITY
 
     CS.Leave();
 
@@ -1004,6 +1007,15 @@ Ztring MediaInfo_Config::Option (const String &Option, const String &Value_Raw)
         #else // defined(MEDIAINFO_LIBCURL_YES)
             return __T("Libcurl support is disabled due to compilation options");
         #endif // defined(MEDIAINFO_LIBCURL_YES)
+    }
+    else if (Option_Lower==__T("trytofix"))
+    {
+        #if MEDIAINFO_FIXITY
+            TryToFix_Set(!(Value==__T("0") || Value.empty()));
+            return Ztring();
+        #else //MEDIAINFO_FIXITY
+            return __T("Fixity support is disabled due to compilation options");
+        #endif //MEDIAINFO_FIXITY
     }
     else
         return __T("Option not known");
@@ -2440,7 +2452,15 @@ void MediaInfo_Config::Event_Send (const int8u* Data_Content, size_t Data_Size)
     CriticalSectionLocker CSL(CS);
 
     if (Event_CallBackFunction)
+    {
+        MEDIAINFO_DEBUG1(   "Event",
+                            Debug+=", EventID=";Debug+=Ztring::ToZtring(LittleEndian2int32u(Data_Content), 16).To_UTF8();)
+
         Event_CallBackFunction ((unsigned char*)Data_Content, Data_Size, Event_UserHandler);
+
+        MEDIAINFO_DEBUG2(   "Event",
+                            )
+    }
 }
 #endif //MEDIAINFO_EVENTS
 
@@ -2634,7 +2654,22 @@ bool MediaInfo_Config::Ssl_IgnoreSecurity_Get ()
     CriticalSectionLocker CSL(CS);
     return Ssl_IgnoreSecurity;
 }
-
 #endif //defined(MEDIAINFO_LIBCURL_YES)
+
+
+#if MEDIAINFO_FIXITY
+//---------------------------------------------------------------------------
+void MediaInfo_Config::TryToFix_Set (bool NewValue)
+{
+    CriticalSectionLocker CSL(CS);
+    TryToFix=NewValue;
+}
+
+bool MediaInfo_Config::TryToFix_Get ()
+{
+    CriticalSectionLocker CSL(CS);
+    return TryToFix;
+}
+#endif //MEDIAINFO_FIXITY
 
 } //NameSpace

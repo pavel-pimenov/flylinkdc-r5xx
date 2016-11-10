@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2012-2016, Arvid Norberg
+Copyright (c) 2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,29 +30,35 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_UNCORK_INTERFACE_HPP
-#define TORRENT_UNCORK_INTERFACE_HPP
+#ifndef TORRENT_SCOPE_END_HPP_INCLUDED
+#define TORRENT_SCOPE_END_HPP_INCLUDED
 
-#include "libtorrent/export.hpp"
+#include <utility>
 
-namespace libtorrent
-{
-	// the uncork interface is used by the disk_io_thread
-	// to indicate that it has called all the disk job handlers
-	// in the current batch. The intention is for the peer
-	// connections to be able to not issue any sends on their
-	// sockets until they have received all the disk jobs
-	// that are ready first. This makes the networking more
-	// efficient since it can send larger buffers down to the
-	// kernel per system call.
-	// uncorking refers to releasing the "cork" in the peers
-	// preventing them to issue sends
-	struct TORRENT_EXTRA_EXPORT uncork_interface
+namespace libtorrent { namespace aux {
+
+	template <typename Fun>
+	struct scope_end_impl
 	{
-		virtual void do_delayed_uncork() = 0;
-	protected:
-		~uncork_interface() {}
+		explicit scope_end_impl(Fun f) : m_fun(std::move(f)) {}
+		~scope_end_impl() { if (m_armed) m_fun(); }
+
+		// movable
+		scope_end_impl(scope_end_impl&&) = default;
+		scope_end_impl& operator=(scope_end_impl&&) = default;
+
+		// non-copyable
+		scope_end_impl(scope_end_impl const&) = delete;
+		scope_end_impl& operator=(scope_end_impl const&) = delete;
+		void disarm() { m_armed = false; }
+	private:
+		Fun m_fun;
+		bool m_armed = true;
 	};
-}
+
+	template <typename Fun>
+	scope_end_impl<Fun> scope_end(Fun f) { return scope_end_impl<Fun>(std::move(f)); }
+}}
 
 #endif
+

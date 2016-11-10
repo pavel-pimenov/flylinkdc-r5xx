@@ -1841,7 +1841,7 @@ namespace libtorrent
 		// there should be a version too
 		// but where do we put that info?
 
-		int last_seen_complete = std::uint8_t(root.dict_find_int_value("complete_ago", -1));
+		int const last_seen_complete = root.dict_find_int_value("complete_ago", -1);
 		if (last_seen_complete >= 0) set_last_seen_complete(last_seen_complete);
 
 		auto client_info = root.dict_find_string_value("v");
@@ -2153,20 +2153,19 @@ namespace libtorrent
 
 		const int packet_size = (num_pieces + 7) / 8 + 5;
 
-		std::uint8_t* msg = TORRENT_ALLOCA(std::uint8_t, packet_size);
-		if (msg == nullptr) return; // out of memory
-		unsigned char* ptr = msg;
+		TORRENT_ALLOCA(msg, std::uint8_t, packet_size);
+		if (msg.data() == nullptr) return; // out of memory
+		auto ptr = msg.begin();
 
 		detail::write_int32(packet_size - 4, ptr);
 		detail::write_uint8(msg_bitfield, ptr);
 
 		if (t->is_seed())
 		{
-			std::memset(ptr, 0xff, packet_size - 5);
+			std::fill_n(ptr, packet_size - 5, 0xff);
 
 			// Clear trailing bits
-			unsigned char *p = msg + packet_size - 1;
-			*p = (0xff << ((8 - (num_pieces & 7)) & 7)) & 0xff;
+			msg.back() = (0xff << ((8 - (num_pieces & 7)) & 7)) & 0xff;
 		}
 		else
 		{
@@ -2206,7 +2205,7 @@ namespace libtorrent
 #endif
 		m_sent_bitfield = true;
 
-		send_buffer(reinterpret_cast<char const*>(msg), packet_size);
+		send_buffer(reinterpret_cast<char const*>(msg.data()), msg.size());
 
 		stats_counters().inc_stats_counter(counters::num_outgoing_bitfield);
 	}
@@ -2437,7 +2436,7 @@ namespace libtorrent
 		, block_cache_reference ref)
 	{
 		buffer_allocator_interface* buf = static_cast<buffer_allocator_interface*>(userdata);
-		buf->reclaim_block(ref);
+		buf->reclaim_blocks(ref);
 	}
 
 	void buffer_free_disk_buf(char* buffer, void* userdata
@@ -3382,8 +3381,7 @@ namespace libtorrent
 			}
 
 			m_client_version = identify_client(pid);
-			boost::optional<fingerprint> f = client_fingerprint(pid);
-			if (f && std::equal(f->name, f->name + 2, "BC"))
+			if (pid[0] == '-' && pid[1] == 'B' && pid[2] == 'C' && pid[7] == '-')
 			{
 				// if this is a bitcomet client, lower the request queue size limit
 				if (max_out_request_queue() > 50) max_out_request_queue(50);

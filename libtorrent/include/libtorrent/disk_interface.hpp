@@ -67,13 +67,6 @@ namespace libtorrent
 			, add_torrent_params const* resume_data
 			, std::vector<std::string>& links
 			, std::function<void(disk_io_job const*)> handler) = 0;
-#ifndef TORRENT_NO_DEPRECATE
-		virtual void async_cache_piece(piece_manager* storage, int piece
-			, std::function<void(disk_io_job const*)> handler) = 0;
-		virtual void async_finalize_file(piece_manager*, int file
-			, std::function<void(disk_io_job const*)> handler
-			= std::function<void(disk_io_job const*)>()) = 0;
-#endif
 		virtual void async_flush_piece(piece_manager* storage, int piece
 			, std::function<void(disk_io_job const*)> handler
 			= std::function<void(disk_io_job const*)>()) = 0;
@@ -86,12 +79,7 @@ namespace libtorrent
 		virtual void async_set_file_priority(piece_manager* storage
 			, std::vector<std::uint8_t> const& prio
 			, std::function<void(disk_io_job const*)> handler) = 0;
-		virtual void async_load_torrent(add_torrent_params* params
-			, std::function<void(disk_io_job const*)> handler) = 0;
-		virtual void async_tick_torrent(piece_manager* storage
-			, std::function<void(disk_io_job const*)> handler) = 0;
 
-		virtual void clear_read_cache(piece_manager* storage) = 0;
 		virtual void async_clear_piece(piece_manager* storage, int index
 			, std::function<void(disk_io_job const*)> handler) = 0;
 		virtual void clear_piece(piece_manager* storage, int index) = 0;

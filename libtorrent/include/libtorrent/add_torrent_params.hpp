@@ -39,7 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <functional>
 
 #include "libtorrent/storage_defs.hpp"
-#include "libtorrent/peer_id.hpp" // sha1_hash
+#include "libtorrent/sha1_hash.hpp"
 #include "libtorrent/version.hpp"
 #include "libtorrent/socket.hpp" // for tcp::endpoint
 #include "libtorrent/bitfield.hpp"
@@ -78,27 +78,7 @@ namespace libtorrent
 		// which determines the storage mechanism for the downloaded or seeding
 		// data for the torrent. For more information, see the ``storage`` field.
 		explicit add_torrent_params(storage_constructor_type sc = default_storage_constructor)
-			: version(LIBTORRENT_VERSION_NUM)
-			, storage_mode(storage_mode_sparse)
-			, storage(sc)
-			, userdata(0)
-			, flags(default_flags)
-			, max_uploads(-1)
-			, max_connections(-1)
-			, upload_limit(-1)
-			, download_limit(-1)
-			, total_uploaded(0)
-			, total_downloaded(0)
-			, active_time(0)
-			, finished_time(0)
-			, seeding_time(0)
-			, added_time(0)
-			, completed_time(0)
-			, last_seen_complete(0)
-			, num_complete(-1)
-			, num_incomplete(-1)
-			, num_downloaded(-1)
-		{}
+			: storage(sc) {}
 
 		// values for the ``flags`` field
 		enum flags_t : std::uint64_t
@@ -112,10 +92,10 @@ namespace libtorrent
 			// if a torrent is created and seeded, or if the user already know
 			// that the files are complete, this is a way to avoid the initial
 			// file checks, and significantly reduce the startup time.
-			// 
+			//
 			// Setting ``flag_seed_mode`` on a torrent without metadata (a
 			// .torrent file) is a no-op and will be ignored.
-			// 
+			//
 			// If resume data is passed in with this torrent, the seed mode saved
 			// in there will override the seed mode you set here.
 			flag_seed_mode = 0x001,
@@ -127,7 +107,7 @@ namespace libtorrent
 			// periodically. This mode can be used to avoid race conditions when
 			// adjusting priorities of pieces before allowing the torrent to start
 			// downloading.
-			// 
+			//
 			// If the torrent is auto-managed (``flag_auto_managed``), the torrent
 			// will eventually be taken out of upload-mode, regardless of how it
 			// got there. If it's important to manually control when the torrent
@@ -143,13 +123,13 @@ namespace libtorrent
 			// download anything. This mode is intended to be safe to add any
 			// number of torrents to, without manual screening, without the risk
 			// of downloading more than is uploaded.
-			// 
+			//
 			// A torrent in share mode sets the priority to all pieces to 0,
 			// except for the pieces that are downloaded, when pieces are decided
 			// to be downloaded. This affects the progress bar, which might be set
 			// to "100% finished" most of the time. Do not change file or piece
 			// priorities for torrents in share mode, it will make it not work.
-			// 
+			//
 			// The share mode has one setting, the share ratio target, see
 			// ``settings_pack::share_mode_target`` for more info.
 			flag_share_mode = 0x008,
@@ -172,13 +152,13 @@ namespace libtorrent
 			// may be resumed at any point, regardless of how it paused. If it's
 			// important to manually control when the torrent is paused and
 			// resumed, don't make it auto managed.
-			// 
+			//
 			// If ``flag_auto_managed`` is set, the torrent will be queued,
 			// started and seeded automatically by libtorrent. When this is set,
 			// the torrent should also be started as paused. The default queue
 			// order is the order the torrents were added. They are all downloaded
 			// in that order. For more details, see queuing_.
-			// 
+			//
 			// If you pass in resume data, the auto_managed state of the torrent
 			// when the resume data was saved will override the auto_managed state
 			// you pass in here. You can override this by setting
@@ -281,7 +261,7 @@ namespace libtorrent
 
 		// filled in by the constructor and should be left untouched. It is used
 		// for forward binary compatibility.
-		int version;
+		int version = LIBTORRENT_VERSION_NUM;
 
 		// torrent_info object with the torrent to add. Unless the url or
 		// info_hash is set, this is required to be initialized.
@@ -305,7 +285,7 @@ namespace libtorrent
 		std::string name;
 
 		// the path where the torrent is or will be stored.
-		// 
+		//
 		// .. note::
 		// 	On windows this path (and other paths) are interpreted as UNC
 		// 	paths. This means they must use backslashes as directory separators
@@ -314,7 +294,7 @@ namespace libtorrent
 
 		// One of the values from storage_mode_t. For more information, see
 		// storage-allocation_.
-		storage_mode_t storage_mode;
+		storage_mode_t storage_mode = storage_mode_sparse;
 
 		// can be used to customize how the data is stored. The default storage
 		// will simply write the data to the files it belongs to, but it could be
@@ -327,7 +307,7 @@ namespace libtorrent
 		// The ``userdata`` parameter is optional and will be passed on to the
 		// extension constructor functions, if any
 		// (see torrent_handle::add_extension()).
-		void* userdata;
+		void* userdata = nullptr;
 
 		// can be set to control the initial file priorities when adding a
 		// torrent. The semantics are the same as for
@@ -358,13 +338,13 @@ namespace libtorrent
 
 		// flags controlling aspects of this torrent and how it's added. See
 		// flags_t for details.
-		// 
+		//
 		// .. note::
 		// 	The ``flags`` field is initialized with default flags by the
 		// 	constructor. In order to preserve default behavior when clearing or
 		// 	setting other flags, make sure to bitwise OR or in a flag or bitwise
 		// 	AND the inverse of a flag to clear it.
-		std::uint64_t flags;
+		std::uint64_t flags = default_flags;
 
 		// set this to the info hash of the torrent to add in case the info-hash
 		// is the only known property of the torrent. i.e. you don't have a
@@ -377,37 +357,38 @@ namespace libtorrent
 		// ``set_download_limit()`` functions on torrent_handle. These values let
 		// you initialize these settings when the torrent is added, instead of
 		// calling these functions immediately following adding it.
-		// 
+		//
 		// -1 means unlimited on these settings just like their counterpart
 		// functions on torrent_handle
-		int max_uploads;
-		int max_connections;
-		int upload_limit;
-		int download_limit;
+		int max_uploads = -1;
+		int max_connections = -1;
+
+		int upload_limit = -1;
+		int download_limit = -1;
 
 		// the total number of bytes uploaded and downloaded by this torrent so
 		// far.
-		std::int64_t total_uploaded;
-		std::int64_t total_downloaded;
+		std::int64_t total_uploaded = 0;
+		std::int64_t total_downloaded = 0;
 
 		// the number of seconds this torrent has spent in started, finished and
 		// seeding state so far, respectively.
-		int active_time;
-		int finished_time;
-		int seeding_time;
+		int active_time = 0;
+		int finished_time = 0;
+		int seeding_time = 0;
 
 		// if set to a non-zero value, this is the posix time of when this torrent
 		// was first added, including previous runs/sessions. If set to zero, the
 		// internal added_time will be set to the time of when add_torrent() is
 		// called.
-		time_t added_time;
-		time_t completed_time;
+		time_t added_time = 0;
+		time_t completed_time = 0;
 
 		// if set to non-zero, initializes the time (expressed in posix time) when
 		// we last saw a seed or peers that together formed a complete copy of the
 		// torrent. If left set to zero, the internal counterpart to this field
 		// will be updated when we see a seed or a distributed copies >= 1.0.
-		time_t last_seen_complete;
+		time_t last_seen_complete = 0;
 
 		// these field can be used to initialize the torrent's cached scrape data.
 		// The scrape data is high level metadata about the current state of the
@@ -418,21 +399,22 @@ namespace libtorrent
 		// every piece. ``num_downloaded`` is the number of times the torrent has
 		// been downloaded (not initiated, but the number of times a download has
 		// completed).
-		// 
+		//
 		// Leaving any of these values set to -1 indicates we don't know, or we
 		// have not received any scrape data.
-		int num_complete;
-		int num_incomplete;
-		int num_downloaded;
+		int num_complete = -1;
+		int num_incomplete = -1;
+
+		int num_downloaded = -1;
 
 		// URLs can be added to these two lists to specify additional web
 		// seeds to be used by the torrent. If the ``flag_override_web_seeds``
 		// is set, these will be the _only_ ones to be used. i.e. any web seeds
 		// found in the .torrent file will be overridden.
-		// 
+		//
 		// http_seeds expects URLs to web servers implementing the original HTTP
 		// seed specification `BEP 17`_.
-		// 
+		//
 		// url_seeds expects URLs to regular web servers, aka "get right" style,
 		// specified in `BEP 19`_.
 		std::vector<std::string> http_seeds;
@@ -475,7 +457,7 @@ namespace libtorrent
 		std::map<int, std::string> renamed_files;
 
 #ifndef TORRENT_NO_DEPRECATE
-	// deprecated in 1.2
+		// deprecated in 1.2
 		// if ``uuid`` is specified, it is used to find duplicates. If another
 		// torrent is already running with the same UUID as the one being added,
 		// it will be considered a duplicate. This is mainly useful for RSS feed

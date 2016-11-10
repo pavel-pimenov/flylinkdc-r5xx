@@ -121,7 +121,7 @@ private :
 
     private:
         stream &operator=(const stream &v);
-        stream(const stream&); // http://www.viva64.com/en/d/0326/print/
+        stream(const stream&);
         stream();
     } stream;
     vector<stream*> Streams;

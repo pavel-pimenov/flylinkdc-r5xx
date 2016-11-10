@@ -27,7 +27,7 @@
 #include "ZenLib/FileName.h"
 #include "ZenLib/Format/Http/Http_Utils.h"
 #if MEDIAINFO_AES
-    #include "base64.h"
+    #include "ThirdParty/base64/base64.h"
 #endif //MEDIAINFO_AES
 #if MEDIAINFO_EVENTS
     #include "MediaInfo/MediaInfo_Events_Internal.h"
@@ -87,6 +87,17 @@ void resource::UpdateFileName(const Ztring& OldFileName, const Ztring& NewFileNa
         if (FileNames[Pos]==OldFileName)
             FileNames[Pos]=NewFileName;
 }
+
+//---------------------------------------------------------------------------
+#if MEDIAINFO_ADVANCED
+void resource::UpdateMetaDataFromSourceEncoding(const string& SourceEncoding, const string& Name, const string& Value)
+{
+    size_t SourceEncoding_Size=SourceEncodings.size();
+    for (size_t Pos=0; Pos<SourceEncoding_Size; Pos++)
+        if (SourceEncodings[Pos]==SourceEncoding)
+            MetadataFromPlaylist[Name]=Value;
+}
+#endif //MEDIAINFO_ADVANCED
 
 } //NameSpace
 

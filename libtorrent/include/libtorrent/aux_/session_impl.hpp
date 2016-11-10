@@ -36,7 +36,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/config.hpp"
 #include "libtorrent/aux_/session_settings.hpp"
 #include "libtorrent/aux_/session_interface.hpp"
-#include "libtorrent/uncork_interface.hpp"
 #include "libtorrent/linked_list.hpp"
 #include "libtorrent/torrent_peer.hpp"
 #include "libtorrent/torrent_peer_allocator.hpp"
@@ -55,6 +54,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/debug.hpp"
 #include "libtorrent/piece_block_progress.hpp"
 #include "libtorrent/ip_filter.hpp"
+#include "libtorrent/ip_notifier.hpp"
 #include "libtorrent/session_status.hpp"
 #include "libtorrent/add_torrent_params.hpp"
 #include "libtorrent/stat.hpp"
@@ -192,7 +192,6 @@ namespace libtorrent
 			, aux::portmap_callback
 			, aux::lsd_callback
 			, boost::noncopyable
-			, uncork_interface
 			, single_threaded
 			, aux::error_handler_interface
 		{
@@ -220,9 +219,6 @@ namespace libtorrent
 			virtual ~session_impl();
 
 			void start_session(settings_pack pack);
-
-			void set_load_function(user_load_function_t fun)
-			{ m_user_load_torrent = fun; }
 
 			void init_peer_class_filter(bool unlimited_local);
 
@@ -256,6 +252,7 @@ namespace libtorrent
 			void on_exception(std::exception const& e) override;
 			void on_error(error_code const& ec) override;
 
+			void on_ip_change(error_code const& ec);
 			void reopen_listen_sockets();
 
 			torrent_peer_allocator_interface* get_peer_allocator() override
@@ -295,6 +292,12 @@ namespace libtorrent
 			std::weak_ptr<torrent> find_torrent(sha1_hash const& info_hash) const override;
 #ifndef TORRENT_NO_DEPRECATE
 			//deprecated in 1.2
+
+			TORRENT_DEPRECATED
+			void set_load_function(user_load_function_t fun)
+			{ m_user_load_torrent = fun; }
+
+			TORRENT_DEPRECATED
 			std::weak_ptr<torrent> find_torrent(std::string const& uuid) const;
 #endif
 #ifndef TORRENT_DISABLE_MUTABLE_TORRENTS
@@ -308,6 +311,7 @@ namespace libtorrent
 				, std::string uuid) override;
 #ifndef TORRENT_NO_DEPRECATE
 			//deprecated in 1.2
+			TORRENT_DEPRECATED
 			void insert_uuid_torrent(std::string uuid, std::shared_ptr<torrent> const& t) override
 			{ m_uuids.insert(std::make_pair(uuid, t)); }
 #endif
@@ -368,7 +372,9 @@ namespace libtorrent
 				, void* userdata = nullptr);
 
 #ifndef TORRENT_NO_DEPRECATE
+			TORRENT_DEPRECATED
 			entry dht_state() const;
+			TORRENT_DEPRECATED
 			void start_dht_deprecated(entry const& startup_state);
 #endif
 			void on_dht_announce(error_code const& e);
@@ -445,7 +451,7 @@ namespace libtorrent
 			std::pair<std::shared_ptr<torrent>, bool>
 			add_torrent_impl(add_torrent_params& p, error_code& ec);
 			void async_add_torrent(add_torrent_params* params);
-			void on_async_load_torrent(disk_io_job const* j);
+			void on_async_load_torrent(add_torrent_params* params, error_code ec);
 
 			void remove_torrent(torrent_handle const& h, int options) override;
 			void remove_torrent_impl(std::shared_ptr<torrent> tptr, int options) override;
@@ -465,23 +471,23 @@ namespace libtorrent
 			alert* wait_for_alert(time_duration max_wait);
 
 #ifndef TORRENT_NO_DEPRECATE
-			void pop_alerts();
-			alert const* pop_alert();
-			size_t set_alert_queue_size_limit(size_t queue_size_limit_);
-			int upload_rate_limit_depr() const;
-			int download_rate_limit_depr() const;
-			int local_upload_rate_limit() const;
-			int local_download_rate_limit() const;
+			TORRENT_DEPRECATED void pop_alerts();
+			TORRENT_DEPRECATED alert const* pop_alert();
+			TORRENT_DEPRECATED size_t set_alert_queue_size_limit(size_t queue_size_limit_);
+			TORRENT_DEPRECATED int upload_rate_limit_depr() const;
+			TORRENT_DEPRECATED int download_rate_limit_depr() const;
+			TORRENT_DEPRECATED int local_upload_rate_limit() const;
+			TORRENT_DEPRECATED int local_download_rate_limit() const;
 
-			void set_local_download_rate_limit(int bytes_per_second);
-			void set_local_upload_rate_limit(int bytes_per_second);
-			void set_download_rate_limit_depr(int bytes_per_second);
-			void set_upload_rate_limit_depr(int bytes_per_second);
-			void set_max_connections(int limit);
-			void set_max_uploads(int limit);
+			TORRENT_DEPRECATED void set_local_download_rate_limit(int bytes_per_second);
+			TORRENT_DEPRECATED void set_local_upload_rate_limit(int bytes_per_second);
+			TORRENT_DEPRECATED void set_download_rate_limit_depr(int bytes_per_second);
+			TORRENT_DEPRECATED void set_upload_rate_limit_depr(int bytes_per_second);
+			TORRENT_DEPRECATED void set_max_connections(int limit);
+			TORRENT_DEPRECATED void set_max_uploads(int limit);
 
-			int max_connections() const;
-			int max_uploads() const;
+			TORRENT_DEPRECATED int max_connections() const;
+			TORRENT_DEPRECATED int max_uploads() const;
 #endif
 
 			bandwidth_manager* get_bandwidth_manager(int channel) override;
@@ -591,10 +597,8 @@ namespace libtorrent
 			disk_buffer_holder allocate_disk_buffer(bool& exceeded
 				, std::shared_ptr<disk_observer> o
 				, char const* category) override;
-			void reclaim_block(block_cache_reference ref) override;
-
-			bool exceeded_cache_use() const
-			{ return m_disk_thread.exceeded_cache_use(); }
+			void reclaim_blocks(span<block_cache_reference> refs) override;
+			void do_reclaim_blocks();
 
 			// implements dht_observer
 			virtual void set_external_address(address const& ip
@@ -631,14 +635,6 @@ namespace libtorrent
 			// calls to session_impl and torrent objects
 			mutable std::mutex mut;
 			mutable std::condition_variable cond;
-
-			// cork a peer and schedule a delayed uncork
-			// does nothing if the peer is already corked
-			void cork_burst(peer_connection* p) override;
-
-			// uncork all peers added to the delayed uncork queue
-			// implements uncork_interface
-			virtual void do_delayed_uncork() override;
 
 			// implements session_interface
 			virtual tcp::endpoint bind_outgoing_socket(socket_type& s, address
@@ -861,6 +857,9 @@ namespace libtorrent
 			// at startup
 			int m_key = 0;
 
+			// posts a notification when the set of local IPs changes
+			ip_change_notifier m_ip_notifier;
+
 			// the addresses or device names of the interfaces we are supposed to
 			// listen on. if empty, it means that we should let the os decide
 			// which interface to listen on
@@ -1061,6 +1060,26 @@ namespace libtorrent
 			std::shared_ptr<upnp> m_upnp;
 			std::shared_ptr<lsd> m_lsd;
 
+			struct work_thread_t
+			{
+				work_thread_t()
+					: work(new boost::asio::io_service::work(ios))
+					, thread([&] { ios.run(); })
+				{}
+				~work_thread_t()
+				{
+					work.reset();
+					thread.join();
+				}
+				work_thread_t(work_thread_t const&) = delete;
+				work_thread_t& operator=(work_thread_t const&) = delete;
+
+				boost::asio::io_service ios;
+				std::unique_ptr<boost::asio::io_service::work> work;
+				std::thread thread;
+			};
+			std::unique_ptr<work_thread_t> m_torrent_load_thread;
+
 			// mask is a bitmask of which protocols to remap on:
 			// 1: NAT-PMP
 			// 2: UPnP
@@ -1090,6 +1109,12 @@ namespace libtorrent
 			// within the LSD announce interval (which defaults to
 			// 5 minutes)
 			torrent_map::iterator m_next_lsd_torrent;
+
+			// we try to return disk buffers to the disk thread in batches, to
+			// avoid hammering its mutex. We accrue blocks here and defer returning
+			// them in a function we post to the io_service
+			std::vector<block_cache_reference> m_blocks_to_reclaim;
+			bool m_pending_block_reclaim = false;
 
 #ifndef TORRENT_DISABLE_DHT
 			// torrents are announced on the DHT in a
@@ -1173,9 +1198,11 @@ namespace libtorrent
 			std::array<std::vector<std::shared_ptr<plugin>>, 4> m_ses_extensions;
 #endif
 
+#ifndef TORRENT_NO_DEPRECATE
 			// if this function is set, it indicates that torrents are allowed
 			// to be unloaded. If it isn't, torrents will never be unloaded
 			user_load_function_t m_user_load_torrent;
+#endif
 
 			// this is true whenever we have posted a deferred-disk job
 			// it means we don't need to post another one
@@ -1202,14 +1229,6 @@ namespace libtorrent
 
 			// is true if the session is paused
 			bool m_paused = false;
-
-			// this is a list of peer connections who have been
-			// corked (i.e. their network socket) and needs to be
-			// uncorked at the end of the burst of events. This is
-			// here to coalesce the effects of bursts of events
-			// into fewer network writes, saving CPU and possibly
-			// ending up sending larger network packets
-			std::vector<peer_connection*> m_delayed_uncorks;
 		};
 
 #ifndef TORRENT_DISABLE_LOGGING

@@ -2771,10 +2771,11 @@ string Util::getExtInternetError()
 //[+] SSA
 void CFlyHTTPDownloader::create_error_message(const char* p_type, const string& p_url)
 {
+	m_last_error_code = GetLastError();
 	m_error_message = p_type;
 	if (m_is_add_url)
 		m_error_message += " [ " + p_url + "] ";
-	m_error_message += " error = " + Util::translateError();
+	m_error_message += " error = " + Util::translateError(m_last_error_code);
 }
 bool CFlyHTTPDownloader::switchMirrorURL(string& p_url, int p_mirror)
 {
@@ -2831,9 +2832,13 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInetSafe(const string& p_url, std:
 		}
 		else
 		{
+			if (l_length == 0 && getLastErrorCode() == 12007)
+			{
+				break; // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1650
+			}
 			if (g_last_stable_mirror != 0)
 			{
-				g_last_stable_mirror = 0; // при ошибке на зеркале скидываемся обратно на главный хост
+				g_last_stable_mirror = 0; // При ошибке на зеркале скидываемся обратно на главный хост
 				i = 2;
 				const char* l_base_url = ".fly-server.ru/";
 				boost::replace_all(l_url, "2.fly-server.ru/", l_base_url);
@@ -2852,6 +2857,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInetSafe(const string& p_url, std:
 
 uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vector<unsigned char>& p_data_out, LONG p_time_out /*=0*/, IDateReceiveReporter* p_reporter /* = NULL */)
 {
+	m_last_error_code = 0;
 	const DWORD frameBufferSize = 4096;
 	dcassert(frameBufferSize);
 	dcassert(!p_url.empty());
@@ -2872,7 +2878,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 	}
 	// https://github.com/ak48disk/simulationcraft/blob/392937fde95bdc4f13ccd3681e2fa61813856bb6/engine/interfaces/sc_http.cpp
 	// http://msdn.microsoft.com/en-us/library/ms906346.aspx
-	// Проверить а конфиг файл действительно менятеся.
+	// Проверить: конфиг файл действительно меняется?
 	// INTERNET_FLAG_NO_CACHE_WRITE - использовать если файл большой
 	// INTERNET_FLAG_RESYNCHRONIZE - использовать для xml  + конфиг
 	DWORD l_cache_flag = INTERNET_FLAG_NO_UI | INTERNET_FLAG_NO_COOKIES; // | INTERNET_FLAG_CACHE_IF_NET_FAIL;

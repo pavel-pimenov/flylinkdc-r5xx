@@ -35,7 +35,7 @@ namespace MediaInfoLib
 {
 
 //---------------------------------------------------------------------------
-const char*  Dv_sct[]=
+static const char*  Dv_sct[]=
 {
     "Header",
     "Subcode",
@@ -48,22 +48,7 @@ const char*  Dv_sct[]=
 };
 
 //---------------------------------------------------------------------------
-const char* Dv_Ssyb_Pc0(int8u Pc0)
-{
-    switch (Pc0)
-    {
-        case 0x13 : return "Timecode";
-        case 0x14 : return "Binary group";
-        case 0x50 :
-        case 0x60 : return "Source";
-        case 0x51 :
-        case 0x61 : return "Source control";
-        default   : return "";
-    }
-}
-
-//---------------------------------------------------------------------------
-const char*  Dv_Disp[]=
+static const char*  Dv_Disp[]=
 {
     "4/3",                              //S306M, S314M
     "16/9",                             //S306M
@@ -76,7 +61,7 @@ const char*  Dv_Disp[]=
 };
 
 //---------------------------------------------------------------------------
-const int32u  Dv_Audio_SamplingRate[]=
+static const int32u  Dv_Audio_SamplingRate[]=
 {
     48000,
     44100,
@@ -89,14 +74,14 @@ const int32u  Dv_Audio_SamplingRate[]=
 };
 
 //---------------------------------------------------------------------------
-const char*  Dv_StereoMode[]=
+static const char*  Dv_StereoMode[]=
 {
     "Multi-Stero",
     "Lumped",
 };
 
 //---------------------------------------------------------------------------
-const int32u  Dv_Audio_BitDepth[]=
+static const int32u  Dv_Audio_BitDepth[]=
 {
     16,
     12,
@@ -109,7 +94,7 @@ const int32u  Dv_Audio_BitDepth[]=
 };
 
 //---------------------------------------------------------------------------
-const int8u  Dv_ChannelsPerBlock[]= // [IntelC++ 2012 beta2] variable "MediaInfoLib::Dv_ChannelsPerBlock" of static storage duration was declared but never referenced
+static const int8u  Dv_ChannelsPerBlock[]=
 {
     1,
     2,
@@ -118,14 +103,14 @@ const int8u  Dv_ChannelsPerBlock[]= // [IntelC++ 2012 beta2] variable "MediaInfo
 };
 
 //---------------------------------------------------------------------------
-const char*  Dv_Pair[]=
+static const char*  Dv_Pair[]=
 {
     "One pair of channels",
     "Independent channels",
 };
 
 //---------------------------------------------------------------------------
-const char*  Dv_CopyGenerationManagementSystem[]=
+static const char*  Dv_CopyGenerationManagementSystem[]=
 {
     "Unrestricted",
     "Not used",
@@ -134,7 +119,7 @@ const char*  Dv_CopyGenerationManagementSystem[]=
 };
 
 //---------------------------------------------------------------------------
-const char*  Dv_InputType[]=
+static const char*  Dv_InputType[]=
 {
     "Analog",
     "Digital",
@@ -143,7 +128,7 @@ const char*  Dv_InputType[]=
 };
 
 //---------------------------------------------------------------------------
-const char*  Dv_CompressionTimes[]=
+static const char*  Dv_CompressionTimes[]=
 {
     "Once",
     "Twice",
@@ -152,7 +137,7 @@ const char*  Dv_CompressionTimes[]=
 };
 
 //---------------------------------------------------------------------------
-const char*  Dv_Emphasis[]=
+static const char*  Dv_Emphasis[]=
 {
     "Enphasis off",
     "Enphasis on",
@@ -161,7 +146,7 @@ const char*  Dv_Emphasis[]=
 };
 
 //---------------------------------------------------------------------------
-const char*  Dv_consumer_camera_1_ae_mode[]=
+static const char*  Dv_consumer_camera_1_ae_mode[]=
 {
     "full automatic",
     "gain priority mode",
@@ -182,7 +167,7 @@ const char*  Dv_consumer_camera_1_ae_mode[]=
 };
 
 //---------------------------------------------------------------------------
-const char*  Dv_consumer_camera_1_wb_mode[]=
+static const char*  Dv_consumer_camera_1_wb_mode[]=
 {
     "automatic",
     "hold",
@@ -211,7 +196,7 @@ const char* Dv_consumer_camera_1_white_balance(int8u white_balance)
 }
 
 //---------------------------------------------------------------------------
-const char*  Dv_consumer_camera_1_fcm[]=
+static const char*  Dv_consumer_camera_1_fcm[]=
 {
     "auto focus",
     "manual focus",

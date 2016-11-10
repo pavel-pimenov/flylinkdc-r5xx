@@ -84,8 +84,7 @@ const Char* Mpeg7_Type(MediaInfo_Internal &MI) //TO ADAPT
         return __T("Video");
     if (Format==__T("MPEG Audio") || Format==__T("Wave"))
         return __T("Audio");
-    if (Format==__T("BMP") || Format==__T("GIF") || Format==__T("JPEG") || Format==__T("JPEG 2000") /* || Format==__T("JPEG 2000") */ || Format==__T("PNG") || Format==__T("TIFF"))
-             //[!]PVS-Studio V501	There are identical sub-expressions 'Format == L"JPEG 2000"' to the left and to the right of the '||' operator.	MediaInfoLib	export_mpeg7.cpp	73	False	
+    if (Format==__T("BMP") || Format==__T("GIF") || Format==__T("JPEG") || Format==__T("JPEG 2000") || Format==__T("PNG") || Format==__T("TIFF"))
         return __T("Image");
     return __T("Multimedia");
 }
@@ -116,8 +115,7 @@ int32u Mpeg7_ContentCS_termID(MediaInfo_Internal &MI)
         return 40200;
     if (Format==__T("MPEG Audio") || Format==__T("Wave"))
         return 10000;
-    if (Format==__T("BMP") || Format==__T("GIF") || Format==__T("JPEG") || Format==__T("JPEG 2000") /*|| Format==__T("JPEG 2000") */ || Format==__T("PNG") || Format==__T("TIFF"))
-        //[!]PVS-Studio V501	There are identical sub-expressions 'Format == L"JPEG 2000"' to the left and to the right of the '||' operator.	MediaInfoLib	export_mpeg7.cpp	104	False	
+    if (Format==__T("BMP") || Format==__T("GIF") || Format==__T("JPEG") || Format==__T("JPEG 2000") || Format==__T("PNG") || Format==__T("TIFF"))
         return 40100;
     return 500000;
 }
@@ -175,7 +173,7 @@ int32u Mpeg7_FileFormatCS_termID(MediaInfo_Internal &MI)
         return 60000;
     if (Format==__T("JPEG"))
         return 10000;
-    if (Format==__T("JPEG 2000") /* || Format==__T("JPEG 2000") */ ) //[!]PVS-Studio V501	There are identical sub-expressions 'Format == L"JPEG 2000"' to the left and to the right of the '||' operator.	MediaInfoLib	export_mpeg7.cpp	162	False	
+    if (Format==__T("JPEG 2000"))
         return 20000;
     if (Format==__T("MPEG Audio"))
         return (MI.Get(Stream_Audio, 0, Audio_Format_Profile).find(__T("3"))!=string::npos)?40000:0;

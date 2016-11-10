@@ -852,8 +852,6 @@ void upnp::delete_port_mapping(rootdevice& d, int i)
 
 	char const* soap_action = "DeletePortMapping";
 
-	TORRENT_ASSERT(!d.service_namespace.empty());
-
 	char soap[2048];
 	error_code ec;
 	std::snprintf(soap, sizeof(soap), "<?xml version=\"1.0\"?>\n"
@@ -1079,8 +1077,6 @@ void upnp::get_ip_address(rootdevice& d)
 	}
 
 	char const* soap_action = "GetExternalIPAddress";
-
-	TORRENT_ASSERT(!d.service_namespace.empty());
 
 	char soap[2048];
 	error_code ec;

@@ -46,7 +46,7 @@ namespace MediaInfoLib
 //***************************************************************************
 
 //---------------------------------------------------------------------------
-const char* DtvccTransport_cc_type (int8u cc_type)
+static const char* DtvccTransport_cc_type (int8u cc_type)
 {
     switch (cc_type)
     {
@@ -111,6 +111,7 @@ void File_DtvccTransport::Streams_Update_PerStream(size_t Pos)
         return;
 
     Update(Streams[Pos]->Parser);
+
     if (Streams[Pos]->Parser)
     {
         for (size_t Pos2=0; Pos2<Streams[Pos]->Parser->Count_Get(Stream_Text); Pos2++)

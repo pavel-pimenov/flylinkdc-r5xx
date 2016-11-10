@@ -265,7 +265,7 @@ int MappingManager::run()
 			log_internal(STRING(UPNP_FAILED_TO_GET_EXTERNAL_IP));
 		}
 		
-		ConnectivityManager::getInstance()->mappingFinished(mapper.getMapperName());
+		ConnectivityManager::mappingFinished(mapper.getMapperName());
 		
 		auto minutes = mapper.renewal();
 		if (minutes)
@@ -284,7 +284,7 @@ int MappingManager::run()
 	if (!getOpened())
 	{
 		log_internal(STRING(UPNP_FAILED_TO_CREATE_MAPPINGS));
-		ConnectivityManager::getInstance()->mappingFinished(Util::emptyString);
+		ConnectivityManager::mappingFinished(Util::emptyString);
 		ClientManager::upnp_error_force_passive();
 	}
 	

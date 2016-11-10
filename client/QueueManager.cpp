@@ -3099,7 +3099,7 @@ void QueueManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aU
 	g_userQueue.userIsDownloadedFiles(aUser, l_status_update_array);
 	if (!l_status_update_array.empty())
 	{
-		if (!ClientManager::isShutdown())
+		if (!ClientManager::isBeforeShutdown())
 		{
 			fly_fire1(QueueManagerListener::StatusUpdatedList(), l_status_update_array); // [!] IRainman opt.
 		}

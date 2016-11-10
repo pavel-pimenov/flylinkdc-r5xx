@@ -443,29 +443,9 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		void renameSelected();
 		void renameSelectedDir();
 		
-		string getSelectedDir() const
-		{
-			HTREEITEM ht = ctrlDirs.GetSelectedItem();
-			return ht == NULL ? Util::emptyString : getDir(ctrlDirs.GetSelectedItem());
-		}
-		
-		string getDir(HTREEITEM ht) const
-		{
-			dcassert(ht != NULL);
-			if (ht)
-			{
-				const auto l_str = reinterpret_cast<string*>(ctrlDirs.GetItemData(ht));
-				if (l_str)
-					return *l_str;
-				else
-				{
-					dcassert(0);
-					return Util::emptyString;
-				}
-			}
-			else
-				return Util::emptyString;
-		}
+        string getSelectedDir() const;		
+        string getDir(HTREEITEM ht) const;
+
 		void removeItem(const string& p_target);
 		void on(QueueManagerListener::Added, const QueueItemPtr& aQI) noexcept override;
 		void on(QueueManagerListener::AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept override;

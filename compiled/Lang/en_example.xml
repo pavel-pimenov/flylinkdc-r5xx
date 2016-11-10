@@ -808,7 +808,7 @@
 	<string name="MediaXY">Resolution</string>
 	<string name="Menubar">Menu bar</string>
 	<string name="MenuAbout">About</string>
-	<string name="MenuAddMagnet">&amp;Add a magnet links...\tCtrl+M</string>
+	<string name="MenuAddMagnet">&amp;Add a magnet links (DC++ / torrent)...\tCtrl+M</string>
 	<string name="MenuAdlSearch">ADL Search\tCtrl+Shift+S</string>
 	<string name="MenuArrange">Arrange icons</string>
 	<string name="MenuCascade">Cascade</string>

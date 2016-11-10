@@ -230,10 +230,12 @@ namespace libtorrent
 		METRIC(ses, num_have_pieces)
 		METRIC(ses, num_total_pieces_added)
 
+#ifndef TORRENT_NO_DEPRECATE
 		// this counts the number of times a torrent has been
 		// evicted (only applies when `dynamic loading of torrent files`_
 		// is enabled).
 		METRIC(ses, torrent_evicted_counter)
+#endif
 
 		// the number of allowed unchoked peers
 		METRIC(ses, num_unchoke_slots)
@@ -382,7 +384,6 @@ namespace libtorrent
 		METRIC(disk, num_fenced_save_resume_data)
 		METRIC(disk, num_fenced_rename_file)
 		METRIC(disk, num_fenced_stop_torrent)
-		METRIC(disk, num_fenced_cache_piece)
 		METRIC(disk, num_fenced_flush_piece)
 		METRIC(disk, num_fenced_flush_hashed)
 		METRIC(disk, num_fenced_flush_storage)
@@ -419,7 +420,7 @@ namespace libtorrent
 
 		// the number of incoming DHT requests that were dropped. There are a few
 		// different reasons why incoming DHT packets may be dropped:
-		// 
+		//
 		// 1. there wasn't enough send quota to respond to them.
 		// 2. the Denial of service logic kicked in, blocking the peer
 		// 3. ignore_dark_internet is enabled, and the packet came from a

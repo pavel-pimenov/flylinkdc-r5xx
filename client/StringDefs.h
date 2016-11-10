@@ -813,7 +813,7 @@ enum Strings   // @DontAdd
 	MEDIA_X_Y, // "Resolution"
 	MENUBAR, // "Menu bar"
 	MENU_ABOUT, // "About"
-	MENU_ADD_MAGNET, // "&Add a magnet links...\tCtrl+M"
+	MENU_ADD_MAGNET, // "&Add a magnet links (DC++ / torrent)...\tCtrl+M"
 	MENU_ADL_SEARCH, // "ADL Search\tCtrl+Shift+S"
 	MENU_ARRANGE, // "Arrange icons"
 	MENU_CASCADE, // "Cascade"

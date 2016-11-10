@@ -68,17 +68,24 @@ NmdcHub::~NmdcHub()
 
 #define checkstate() if(state != STATE_NORMAL) return
 
+void NmdcHub::clear_delay_search()
+{
+	CFlySearchArrayTTH l_tmp;
+	m_delay_search.swap(l_tmp);
+	dcassert(m_delay_search.size() == 0);
+}
+
 void NmdcHub::disconnect(bool p_graceless)
 {
 	Client::disconnect(p_graceless);
 	clearUsers();
-	m_delay_search.clear();
+	clear_delay_search();
 	m_cache_hub_url_flood.clear();
 }
 
 void NmdcHub::connect(const OnlineUser& p_user, const string& p_token, bool p_is_force_passive)
 {
-	m_delay_search.clear();
+	clear_delay_search();
 	checkstate();
 	dcdebug("NmdcHub::connect %s\n", p_user.getIdentity().getNick().c_str());
 	if (p_is_force_passive == false && isActive())
@@ -2974,15 +2981,14 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_s
 				k->m_is_skip = false;
 				p_search_array.push_back(std::move(*k));
 			}
-			m_delay_search.clear();
+			clear_delay_search();
 		}
 		catch (std::bad_alloc&)  // Fix https://drdump.com/Problem.aspx?ProblemID=240058
 		{
 			const auto l_size = p_search_array.size() + m_delay_search.size();
 			p_search_array.clear();
 			p_search_array.shrink_to_fit();
-			m_delay_search.clear();
-			m_delay_search.shrink_to_fit();
+			clear_delay_search();
 			CFlyServerJSON::pushError(74, "Bad alloc (BufferedSocketListener::SearchArrayTTH) l_size = " + Util::toString(l_size));
 		}
 		if (ShareManager::searchTTHArray(p_search_array, this) == false)

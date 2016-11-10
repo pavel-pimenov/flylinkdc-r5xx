@@ -162,6 +162,7 @@ class CFlyServerConfig
 		static StringSet g_exclude_tag;
 		static std::unordered_set<uint16_t> g_guard_tcp_port;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_cs_guard_tcp_port;
+		static FastCriticalSection g_cs_mirror_test_port;
 		static std::unordered_set<unsigned> g_exclude_error_log;
 		static std::unordered_set<unsigned> g_exclude_cid_error_log;
 #ifdef FLYLINKDC_USE_SYSLOG
@@ -195,7 +196,7 @@ class CFlyServerConfig
 		}
 		static const CServerItem& getStatServer();
 		static const CServerItem& getTestPortServer();
-		static const std::vector<CServerItem>& getMirrorTestPortServerArray();
+		static const std::vector<CServerItem> getMirrorTestPortServerArray();
 		
 		static const CServerItem& getRandomMirrorServer(bool p_is_set);
 		bool isInit() const
@@ -582,6 +583,7 @@ class CFlyServerJSON
 		static FastCriticalSection g_cs_test_port;
 		static string g_last_error_string;
 		static int g_count_dup_error_string;
+		static DWORD g_last_error_code;
 		typedef std::map<std::pair<unsigned short, string>, std::pair<bool, uint64_t> > CFlyTestPortResult;
 		static CFlyTestPortResult g_test_port_map;
 };

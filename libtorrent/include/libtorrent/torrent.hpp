@@ -299,6 +299,21 @@ namespace libtorrent
 		// starts the announce timer
 		void start(add_torrent_params const& p);
 
+		void added()
+		{
+			TORRENT_ASSERT(m_added == false);
+			m_added = true;
+			update_gauge();
+		}
+
+		void removed()
+		{
+			TORRENT_ASSERT(m_added == true);
+			m_added = false;
+			// make sure we decrement the gauge counter for this torrent
+			update_gauge();
+		}
+
 		void start_download_url();
 
 		// returns which stats gauge this torrent currently
@@ -365,8 +380,6 @@ namespace libtorrent
 		void on_disk_write_complete(disk_io_job const* j
 			, peer_request p);
 		void on_disk_tick_done(disk_io_job const* j);
-
-		void schedule_storage_tick();
 
 		void set_progress_ppm(int p) { m_progress_ppm = p; }
 		struct read_piece_struct
@@ -435,6 +448,7 @@ namespace libtorrent
 		ip_filter const* get_ip_filter() { return m_ip_filter.get(); }
 
 		std::string resolve_filename(int file) const;
+		void handle_exception();
 		void handle_disk_error(disk_io_job const* j, peer_connection* c = 0);
 		void clear_error();
 
@@ -510,7 +524,7 @@ namespace libtorrent
 		int piece_priority(int index) const;
 
 		void prioritize_pieces(std::vector<int> const& pieces);
-		void prioritize_piece_list(std::vector<std::pair<int, int> > const& pieces);
+		void prioritize_piece_list(std::vector<std::pair<int, int>> const& pieces);
 		void piece_priorities(std::vector<int>*) const;
 
 		void set_file_priority(int index, int priority);
@@ -1083,6 +1097,8 @@ namespace libtorrent
 		}
 		void add_suggest_piece(int index);
 
+		enum { no_gauge_state = 0xf };
+
 	private:
 
 		void ip_filter_updated();
@@ -1403,6 +1419,10 @@ namespace libtorrent
 		// is is disabled while paused and checking files
 		bool m_announcing:1;
 
+		// this is true when the torrent has been added to the session. Before
+		// then, it isn't included in the counters (session_stats)
+		bool m_added:1;
+
 		// this is > 0 while the tracker deadline timer
 		// is in use. i.e. one or more trackers are waiting
 		// for a reannounce
@@ -1515,14 +1535,6 @@ namespace libtorrent
 		// the number of bytes of padding files
 		std::uint32_t m_padding:24;
 
-		// this is a second count-down to when we should tick the
-		// storage for this torrent. Ticking the storage is used
-		// to periodically flush the partfile metadata and possibly
-		// other deferred flushing. Any disk operation starts this
-		// counter (unless it's already counting down). 0 means no
-		// ticking is needed.
-		std::uint32_t m_storage_tick:8;
-
 // ----
 
 		// the scrape data from the tracker response, this
@@ -1580,7 +1592,6 @@ namespace libtorrent
 		// slots.
 		bool m_auto_managed:1;
 
-		enum { no_gauge_state = 0xf };
 		// the current stats gauge this torrent counts against
 		std::uint32_t m_current_gauge_state:4;
 

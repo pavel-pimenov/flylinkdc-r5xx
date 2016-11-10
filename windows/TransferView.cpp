@@ -39,6 +39,8 @@
 #include "BarShader.h"
 #include "ResourceLoader.h" // [+] InfinitySky. PNG Support from Apex 1.3.8.
 
+#include "libtorrent/hex.hpp"
+
 tstring TransferView::g_sSelectedIP;
 
 HIconWrapper TransferView::g_user_icon(IDR_TUSER);
@@ -1262,6 +1264,7 @@ TransferView::ItemInfo* TransferView::findItem(const UpdateInfo& ui, int& pos) c
 	return nullptr;
 }
 
+
 void TransferView::doTimerTask()
 {
 	m_is_need_resort = true;
@@ -1279,11 +1282,9 @@ void TransferView::onSpeakerAddItem(const UpdateInfo& ui)
 #endif
 		return;
 	}
-	dcassert(!ui.m_token.empty());
-#ifdef FLYLINKDC_USE_TORRENT
 	if (ui.m_is_torrent == false)
-#endif
 	{
+		dcassert(!ui.m_token.empty());
 		if (!ConnectionManager::getInstance()->m_tokens_manager.isToken(ui.m_token))
 		{
 			return;
@@ -1515,7 +1516,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 					                    " info = " + ui.m_hintedUser.user->getLastNick() + "is download = " + Util::toString(ui.download) + " ui.token = " + ui.token);
 #endif
 					// dcassert(0);
-					if (!ui.m_token.empty())
+					if (!ui.m_token.empty() || ui.m_is_torrent == true && !ui.m_sha1.is_all_zeros())
 					{
 						onSpeakerAddItem(ui); // потеряли....
 					}
@@ -1997,7 +1998,17 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 			return m_ratio_as_text;
 #endif
 		case COLUMN_CIPHER:
-			return m_cipher; // +_T(" [Token: ") + Text::toT(this->m_transfer_item_token) + _T("]");
+			if (m_is_torrent)
+			{
+#ifdef _DEBUG
+				const auto l_sha = libtorrent::to_hex(m_sha1.to_string());
+				return _T("SHA1: ") + Text::toT(l_sha);
+#endif
+			}
+			else
+			{
+				return m_cipher; // +_T(" [Token: ") + Text::toT(this->m_transfer_item_token) + _T("]");
+			}
 		case COLUMN_SHARE:
 			return m_hintedUser.user ? Util::formatBytesW(m_hintedUser.user->getBytesShared()) : Util::emptyStringT;
 		case COLUMN_SLOTS:
@@ -2140,6 +2151,33 @@ void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload)
 		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 	}
 }
+void TransferView::on(DownloadManagerListener::TorrentEvent, const DownloadArray& dl) noexcept
+{
+	if (!ClientManager::isBeforeShutdown())
+	{
+		for (auto j = dl.cbegin(); j != dl.cend(); ++j)
+		{
+			UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, true);
+			ui->setStatus(ItemInfo::STATUS_RUNNING);
+			ui->setActual(j->m_actual);
+			ui->setPos(j->m_pos);
+			dcassert(j->m_is_torrent);
+			ui->m_is_torrent = j->m_is_torrent;
+			ui->m_sha1 = j->m_sha1;
+			ui->m_torrent_file_path = j->m_torrent_file_path;
+			ui->m_is_seeding = j->m_is_seeding;
+			ui->setSpeed(j->m_speed);
+			ui->setSize(j->m_size);
+			ui->setTimeLeft(j->m_second_left);
+			ui->setType(Transfer::Type(j->m_type)); // TODO
+			ui->setStatusString(j->m_status_string);
+			ui->setTarget(j->m_path);
+			//ui->setToken(j->m_token);
+			//dcassert(!j->m_token.empty());
+			m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
+		}
+	}
+}
 // TODO - убрать тики для массива
 void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl) noexcept
 {
@@ -2149,17 +2187,12 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl) no
 		{
 			for (auto j = dl.cbegin(); j != dl.cend(); ++j)
 			{
+				dcassert(j->m_is_torrent == false);
 				UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, true); // [!] IRainman fix.
 				ui->setStatus(ItemInfo::STATUS_RUNNING);
 				ui->setActual(j->m_actual);
 				ui->setPos(j->m_pos);
 				ui->m_is_torrent = j->m_is_torrent;
-				if (ui->m_is_torrent)
-				{
-					ui->m_sha1 = j->m_sha1;
-					ui->m_torrent_file_path = j->m_torrent_file_path;
-					ui->m_is_seeding = j->m_is_seeding;
-				}
 				ui->setSpeed(j->m_speed);
 				ui->setSize(j->m_size);
 				ui->setTimeLeft(j->m_second_left);
@@ -2251,6 +2284,7 @@ void TransferView::ItemInfo::removeTorrentAndFile()
 {
 	DownloadManager::getInstance()->remove_torrent_file(m_sha1, 1);
 }
+
 void TransferView::ItemInfo::removeTorrent()
 {
 	DownloadManager::getInstance()->remove_torrent_file(m_sha1, 0);

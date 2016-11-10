@@ -810,6 +810,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	{
 		m_threadedUpdateIP.updateIP(BOOLSETTING(IPUPDATE));
 	}
+	DownloadManager::getInstance()->init_torrent();
 	return 0;
 }
 void MainFrame::openDefaultWindows()
@@ -837,7 +838,6 @@ void MainFrame::openDefaultWindows()
 #ifdef IRAINMAN_INCLUDE_RSS
 	if (BOOLSETTING(OPEN_RSS)) PostMessage(WM_COMMAND, IDC_RSS); // [+] SSA
 #endif
-	
 }
 
 int MainFrame::tuneTransferSplit()

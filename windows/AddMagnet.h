@@ -24,13 +24,13 @@
 class HIconWrapper;
 class AddMagnet : public CDialogImpl<AddMagnet>
 {
-		CEdit ctrlMagnet;
-		CStatic ctrlDescription;
+		CEdit m_ctrlMagnet;
+		CStatic m_ctrlDescription;
 		
 	public:
-		tstring MagnetLink;
-		tstring description;
-		tstring title;
+		tstring m_magnet;
+		tstring m_description;
+		tstring m_title;
 		
 		enum { IDD = IDD_ADD_MAGNET };
 		
@@ -41,15 +41,10 @@ class AddMagnet : public CDialogImpl<AddMagnet>
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
 		END_MSG_MAP()
 		
-		AddMagnet(const string& data = Util::emptyString) { }
+		AddMagnet() { }
 		~AddMagnet() { }
 		
-		LRESULT onFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-		{
-			ctrlMagnet.SetFocus();
-			return FALSE;
-		}
-		
+		LRESULT onFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		

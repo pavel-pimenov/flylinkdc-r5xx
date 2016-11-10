@@ -1091,9 +1091,7 @@ namespace libtorrent
 #ifndef TORRENT_DISABLE_EXTENSIONS
 		for (auto const& e : m_extensions)
 		{
-			TORRENT_TRY {
-				e->on_piece_pass(index);
-			} TORRENT_CATCH (std::exception const&) {}
+			e->on_piece_pass(index);
 		}
 #else
 		TORRENT_UNUSED(index);
@@ -1111,9 +1109,7 @@ namespace libtorrent
 #ifndef TORRENT_DISABLE_EXTENSIONS
 		for (auto const& e : m_extensions)
 		{
-			TORRENT_TRY {
-				e->on_piece_failed(index);
-			} TORRENT_CATCH (std::exception const&) {}
+			e->on_piece_failed(index);
 		}
 #else
 		TORRENT_UNUSED(index);
@@ -2990,10 +2986,6 @@ namespace libtorrent
 			m_channel_state[download_channel] &= ~peer_info::bw_disk;
 		}
 
-		// flush send buffer at the end of
-		// this burst of disk events
-//		m_ses.cork_burst(this);
-
 		INVARIANT_CHECK;
 
 		if (!t)
@@ -3001,8 +2993,6 @@ namespace libtorrent
 			disconnect(j->error.ec, op_file_write);
 			return;
 		}
-
-		t->schedule_storage_tick();
 
 		// in case the outstanding bytes just dropped down
 		// to allow to receive more data
@@ -5262,10 +5252,6 @@ namespace libtorrent
 
 		if (m_disconnecting) return;
 
-		// flush send buffer at the end of
-		// this burst of disk events
-//		m_ses.cork_burst(this);
-
 		if (!t)
 		{
 			disconnect(j->error.ec, op_file_read);
@@ -5373,18 +5359,18 @@ namespace libtorrent
 		int priority = get_priority(channel);
 
 		int max_channels = num_classes() + (t ? t->num_classes() : 0) + 2;
-		bandwidth_channel** channels = TORRENT_ALLOCA(bandwidth_channel*, max_channels);
+		TORRENT_ALLOCA(channels, bandwidth_channel*, max_channels);
 
 		// collect the pointers to all bandwidth channels
 		// that apply to this torrent
 		int c = 0;
 
 		c += m_ses.copy_pertinent_channels(*this, channel
-			, channels + c, max_channels - c);
+			, channels.subspan(c).data(), max_channels - c);
 		if (t)
 		{
 			c += m_ses.copy_pertinent_channels(*t, channel
-				, channels + c, max_channels - c);
+				, channels.subspan(c).data(), max_channels - c);
 		}
 
 #if TORRENT_USE_ASSERTS
@@ -5402,7 +5388,7 @@ namespace libtorrent
 		bandwidth_manager* manager = m_ses.get_bandwidth_manager(channel);
 
 		int ret = manager->request_bandwidth(self()
-			, bytes, priority, channels, c);
+			, bytes, priority, channels.data(), c);
 
 		if (ret == 0)
 		{
@@ -5427,14 +5413,6 @@ namespace libtorrent
 		return ret;
 	}
 
-	void peer_connection::uncork_socket()
-	{
-		TORRENT_ASSERT(is_single_thread());
-		if (!m_corked) return;
-		m_corked = false;
-		setup_send();
-	}
-
 	void peer_connection::setup_send()
 	{
 		TORRENT_ASSERT(is_single_thread());
@@ -5443,7 +5421,16 @@ namespace libtorrent
 		// we may want to request more quota at this point
 		request_bandwidth(upload_channel);
 
-		if (m_channel_state[upload_channel] & peer_info::bw_network) return;
+		// if we already have an outstanding send operation, don't issue another
+		// one, instead accrue more send buffer to coalesce for the next write
+		if (m_channel_state[upload_channel] & peer_info::bw_network)
+		{
+#ifndef TORRENT_DISABLE_LOGGING
+			peer_log(peer_log_alert::outgoing, "CORKED_WRITE", "bytes: %d"
+				, int(m_send_buffer.size()));
+#endif
+			return;
+		}
 
 		if (m_send_barrier == 0)
 		{
@@ -5474,7 +5461,6 @@ namespace libtorrent
 		}
 
 		int const quota_left = m_quota[upload_channel];
-
 		if (m_send_buffer.empty()
 			&& m_reading_bytes > 0
 			&& quota_left > 0)
@@ -5546,23 +5532,12 @@ namespace libtorrent
 			return;
 		}
 
-		// send the actual buffer
-		int amount_to_send = m_send_buffer.size();
-		if (amount_to_send > quota_left)
-			amount_to_send = quota_left;
-		if (amount_to_send > m_send_barrier)
-			amount_to_send = m_send_barrier;
+		int const amount_to_send = std::min({
+			int(m_send_buffer.size())
+			, quota_left
+			, m_send_barrier});
 
 		TORRENT_ASSERT(amount_to_send > 0);
-
-		if (m_corked)
-		{
-#ifndef TORRENT_DISABLE_LOGGING
-			peer_log(peer_log_alert::outgoing, "CORKED_WRITE", "bytes: %d"
-				, amount_to_send);
-#endif
-			return;
-		}
 
 		TORRENT_ASSERT((m_channel_state[upload_channel] & peer_info::bw_network) == 0);
 #ifndef TORRENT_DISABLE_LOGGING
@@ -5820,10 +5795,10 @@ namespace libtorrent
 		// to keep the object alive through the exit check
 		std::shared_ptr<peer_connection> me(self());
 
+		TORRENT_ASSERT(bytes_transferred > 0);
+
 		// flush the send buffer at the end of this function
 		cork _c(*this);
-
-		TORRENT_ASSERT(bytes_transferred > 0);
 
 		// if we received exactly as many bytes as we provided a receive buffer
 		// for. There most likely are more bytes to read, and we should grow our
@@ -6234,8 +6209,8 @@ namespace libtorrent
 		m_last_sent = now;
 
 #if TORRENT_USE_ASSERTS
-		std::int64_t cur_payload_ul = m_statistics.last_payload_uploaded();
-		std::int64_t cur_protocol_ul = m_statistics.last_protocol_uploaded();
+		std::int64_t const cur_payload_ul = m_statistics.last_payload_uploaded();
+		std::int64_t const cur_protocol_ul = m_statistics.last_protocol_uploaded();
 #endif
 		on_sent(error, bytes_transferred);
 #if TORRENT_USE_ASSERTS

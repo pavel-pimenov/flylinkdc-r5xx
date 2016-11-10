@@ -895,7 +895,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="MediaXY">Разрешение</String>
 		<String Name="Menubar">Меню</String>
 		<String Name="MenuAbout">О программе</String>
-		<String Name="MenuAddMagnet">Добавить магнет-ссылку…	Ctrl + M</String>
+		<String Name="MenuAddMagnet">Добавить магнет-ссылку (DC++ / torrent)…	Ctrl + M</String>
 		<String Name="MenuAdlSearch">Авто-поиск	Ctrl + Shift + S</String>
 		<String Name="MenuArrange">Упорядочить значки</String>
 		<String Name="MenuCascade">Каскадом</String>

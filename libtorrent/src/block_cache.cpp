@@ -32,12 +32,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/config.hpp"
 #include "libtorrent/block_cache.hpp"
-#include "libtorrent/disk_buffer_pool.hpp"
 #include "libtorrent/assert.hpp"
-#include "libtorrent/time.hpp"
 #include "libtorrent/disk_io_job.hpp"
 #include "libtorrent/storage.hpp"
-#include "libtorrent/io_service_fwd.hpp"
 #include "libtorrent/error.hpp"
 #include "libtorrent/disk_io_thread.hpp" // disk_operation_failed
 #include "libtorrent/invariant_check.hpp"
@@ -198,18 +195,12 @@ const char* const job_action_name[] =
 	"check_fastresume",
 	"rename_file",
 	"stop_torrent",
-#ifndef TORRENT_NO_DEPRECATE
-	"cache_piece",
-	"finalize_file",
-#endif
 	"flush_piece",
 	"flush_hashed",
 	"flush_storage",
 	"trim_cache",
 	"set_file_priority",
-	"load_torrent",
 	"clear_piece",
-	"tick_storage",
 	"resolve_links"
 };
 
@@ -282,7 +273,7 @@ static_assert(sizeof(job_action_name)/sizeof(job_action_name[0])
 				"hash_passed: %d\nread_jobs: %d\njobs: %d\n"
 				"piece_log:\n"
 				, int(pe->piece), pe->refcount, pe->piece_refcount, int(pe->num_blocks)
-				, int(pe->hashing), static_cast<void*>(pe->hash), pe->hash ? pe->hash->offset : -1
+				, int(pe->hashing), static_cast<void*>(pe->hash.get()), pe->hash ? pe->hash->offset : -1
 				, int(pe->cache_state)
 				, pe->cache_state < cached_piece_entry::num_lrus ? cache_state[pe->cache_state] : ""
 				, int(pe->outstanding_flush), int(pe->piece), int(pe->num_dirty)
@@ -307,12 +298,7 @@ static_assert(sizeof(job_action_name)/sizeof(job_action_name[0])
 #endif
 
 cached_piece_entry::cached_piece_entry()
-	: storage()
-	, hash(nullptr)
-	, last_requester(nullptr)
-	, blocks()
-	, expire(min_time())
-	, piece(0)
+	: piece(0)
 	, num_dirty(0)
 	, num_blocks(0)
 	, blocks_in_piece(0)
@@ -320,17 +306,10 @@ cached_piece_entry::cached_piece_entry()
 	, hashing_done(0)
 	, marked_for_deletion(false)
 	, need_readback(false)
-	, cache_state(read_lru1)
+	, cache_state(none)
 	, piece_refcount(0)
 	, outstanding_flush(0)
 	, outstanding_read(0)
-	, pinned(0)
-	, refcount(0)
-#if TORRENT_USE_ASSERTS
-	, hash_passes(0)
-	, in_storage(false)
-	, in_use(true)
-#endif
 {}
 
 cached_piece_entry::~cached_piece_entry()
@@ -339,17 +318,19 @@ cached_piece_entry::~cached_piece_entry()
 	TORRENT_ASSERT(jobs.size() == 0);
 	TORRENT_ASSERT(read_jobs.size() == 0);
 #if TORRENT_USE_ASSERTS
-	for (int i = 0; i < blocks_in_piece; ++i)
+	if (blocks)
 	{
-		TORRENT_ASSERT(blocks[i].buf == nullptr);
-		TORRENT_ASSERT(!blocks[i].pending);
-		TORRENT_ASSERT(blocks[i].refcount == 0);
-		TORRENT_ASSERT(blocks[i].hashing_count == 0);
-		TORRENT_ASSERT(blocks[i].flushing_count == 0);
+		for (int i = 0; i < blocks_in_piece; ++i)
+		{
+			TORRENT_ASSERT(blocks[i].buf == nullptr);
+			TORRENT_ASSERT(!blocks[i].pending);
+			TORRENT_ASSERT(blocks[i].refcount == 0);
+			TORRENT_ASSERT(blocks[i].hashing_count == 0);
+			TORRENT_ASSERT(blocks[i].flushing_count == 0);
+		}
 	}
 	in_use = false;
 #endif
-	delete hash;
 }
 
 block_cache::block_cache(int block_size, io_service& ios
@@ -374,15 +355,6 @@ int block_cache::try_read(disk_io_job* j, bool expect_no_fail)
 	INVARIANT_CHECK;
 
 	TORRENT_ASSERT(j->buffer.disk_block == nullptr);
-
-#if TORRENT_USE_ASSERTS
-	// we're not allowed to add dirty blocks
-	// for a deleted storage!
-	TORRENT_ASSERT(std::find(m_deleted_storages.begin(), m_deleted_storages.end()
-		, std::make_pair(j->storage->files()->name()
-			, reinterpret_cast<void const*>(j->storage->files())))
-		== m_deleted_storages.end());
-#endif
 
 	cached_piece_entry* p = find_piece(j);
 
@@ -512,7 +484,7 @@ void block_cache::update_cache_state(cached_piece_entry* p)
 {
 	int state = p->cache_state;
 	int desired_state = p->cache_state;
-	if (p->num_dirty > 0 || p->hash != nullptr)
+	if (p->num_dirty > 0 || p->hash)
 		desired_state = cached_piece_entry::write_lru;
 	else if (p->cache_state == cached_piece_entry::write_lru)
 		desired_state = cached_piece_entry::read_lru1;
@@ -579,7 +551,7 @@ void block_cache::try_evict_one_volatile()
 		// some blocks are pinned in this piece, skip it
 		if (pe->pinned > 0) continue;
 
-		char** to_delete = TORRENT_ALLOCA(char*, pe->blocks_in_piece);
+		TORRENT_ALLOCA(to_delete, char*, pe->blocks_in_piece);
 		int num_to_delete = 0;
 
 		// go through the blocks and evict the ones that are not dirty and not
@@ -617,12 +589,12 @@ void block_cache::try_evict_one_volatile()
 		DLOG(stderr, "[%p]    removed %d blocks\n", static_cast<void*>(this)
 			, num_to_delete);
 
-		free_multiple_buffers(to_delete, num_to_delete);
+		free_multiple_buffers(to_delete.first(num_to_delete));
 		return;
 	}
 }
 
-cached_piece_entry* block_cache::allocate_piece(disk_io_job const* j, int cache_state)
+cached_piece_entry* block_cache::allocate_piece(disk_io_job const* j, int const cache_state)
 {
 #ifdef TORRENT_EXPENSIVE_INVARIANT_CHECKS
 	INVARIANT_CHECK;
@@ -646,14 +618,14 @@ cached_piece_entry* block_cache::allocate_piece(disk_io_job const* j, int cache_
 		pe.storage = j->storage;
 		pe.expire = aux::time_now();
 		pe.blocks_in_piece = blocks_in_piece;
+
 		pe.blocks.reset(new (std::nothrow) cached_block_entry[blocks_in_piece]);
-		pe.cache_state = cache_state;
-		pe.last_requester = j->requester;
-		TORRENT_PIECE_ASSERT(pe.blocks, &pe);
 		if (!pe.blocks) return nullptr;
-		p = const_cast<cached_piece_entry*>(&*m_pieces.insert(pe).first);
+		pe.last_requester = j->requester;
+		p = const_cast<cached_piece_entry*>(&*m_pieces.insert(std::move(pe)).first);
 
 		j->storage->add_piece(p);
+		p->cache_state = cache_state;
 
 		TORRENT_PIECE_ASSERT(p->cache_state < cached_piece_entry::num_lrus, p);
 		linked_list<cached_piece_entry>* lru_list = &m_lru[p->cache_state];
@@ -732,16 +704,6 @@ cached_piece_entry* block_cache::allocate_piece(disk_io_job const* j, int cache_
 	return p;
 }
 
-#if TORRENT_USE_ASSERTS
-void block_cache::mark_deleted(file_storage const& fs)
-{
-	m_deleted_storages.push_back(std::make_pair(fs.name()
-		, reinterpret_cast<void const*>(&fs)));
-	if (m_deleted_storages.size() > 100)
-		m_deleted_storages.erase(m_deleted_storages.begin());
-}
-#endif
-
 cached_piece_entry* block_cache::add_dirty_block(disk_io_job* j)
 {
 #if !defined TORRENT_DISABLE_POOL_ALLOCATOR
@@ -749,15 +711,6 @@ cached_piece_entry* block_cache::add_dirty_block(disk_io_job* j)
 #endif
 #ifdef TORRENT_EXPENSIVE_INVARIANT_CHECKS
 	INVARIANT_CHECK;
-#endif
-
-#if TORRENT_USE_ASSERTS
-	// we're not allowed to add dirty blocks
-	// for a deleted storage!
-	TORRENT_ASSERT(std::find(m_deleted_storages.begin(), m_deleted_storages.end()
-		, std::make_pair(j->storage->files()->name()
-		, static_cast<void const*>(j->storage->files())))
-		== m_deleted_storages.end());
 #endif
 
 	TORRENT_ASSERT(j->buffer.disk_block);
@@ -815,8 +768,8 @@ cached_piece_entry* block_cache::add_dirty_block(disk_io_job* j)
 	TORRENT_PIECE_ASSERT(j->piece == pe->piece, pe);
 	pe->jobs.push_back(j);
 
-	if (block == 0 && pe->hash == nullptr && pe->hashing_done == false)
-		pe->hash = new partial_hash;
+	if (block == 0 && !pe->hash && pe->hashing_done == false)
+		pe->hash.reset(new partial_hash);
 
 	update_cache_state(pe);
 
@@ -905,7 +858,7 @@ bool block_cache::evict_piece(cached_piece_entry* pe, tailqueue<disk_io_job>& jo
 
 	TORRENT_PIECE_ASSERT(pe->in_use, pe);
 
-	char** to_delete = TORRENT_ALLOCA(char*, pe->blocks_in_piece);
+	TORRENT_ALLOCA(to_delete, char*, pe->blocks_in_piece);
 	int num_to_delete = 0;
 	for (int i = 0; i < pe->blocks_in_piece; ++i)
 	{
@@ -938,12 +891,11 @@ bool block_cache::evict_piece(cached_piece_entry* pe, tailqueue<disk_io_job>& jo
 		m_volatile_size -= num_to_delete;
 	}
 
-	if (num_to_delete) free_multiple_buffers(to_delete, num_to_delete);
+	if (num_to_delete) free_multiple_buffers(to_delete.first(num_to_delete));
 
 	if (pe->ok_to_evict(true))
 	{
-		delete pe->hash;
-		pe->hash = nullptr;
+		pe->hash.reset();
 
 		// append will move the items from pe->jobs onto the end of jobs
 		jobs.append(pe->jobs);
@@ -990,8 +942,7 @@ void block_cache::erase_piece(cached_piece_entry* pe)
 	if (pe->hash)
 	{
 		TORRENT_PIECE_ASSERT(pe->hash->offset == 0, pe);
-		delete pe->hash;
-		pe->hash = nullptr;
+		pe->hash.reset();
 	}
 	if (pe->cache_state != cached_piece_entry::read_lru1_ghost
 		&& pe->cache_state != cached_piece_entry::read_lru2_ghost)
@@ -1010,7 +961,7 @@ int block_cache::try_evict_blocks(int num, cached_piece_entry* ignore)
 
 	DLOG(stderr, "[%p] try_evict_blocks: %d\n", static_cast<void*>(this), num);
 
-	char** to_delete = TORRENT_ALLOCA(char*, num);
+	TORRENT_ALLOCA(to_delete, char*, num);
 	int num_to_delete = 0;
 
 	// There are two ends of the ARC cache we can evict from. There's L1 and L2.
@@ -1213,7 +1164,7 @@ int block_cache::try_evict_blocks(int num, cached_piece_entry* ignore)
 	DLOG(stderr, "[%p]    removed %d blocks\n", static_cast<void*>(this)
 		, num_to_delete);
 
-	free_multiple_buffers(to_delete, num_to_delete);
+	free_multiple_buffers(to_delete.first(num_to_delete));
 
 	return num;
 }
@@ -1242,7 +1193,7 @@ void block_cache::clear(tailqueue<disk_io_job>& jobs)
 		drain_piece_bufs(pe, bufs);
 	}
 
-	if (!bufs.empty()) free_multiple_buffers(&bufs[0], int(bufs.size()));
+	if (!bufs.empty()) free_multiple_buffers(bufs);
 
 	// clear lru lists
 	for (int i = 0; i < cached_piece_entry::num_lrus; ++i)
@@ -1277,7 +1228,7 @@ void block_cache::move_to_ghost(cached_piece_entry* pe)
 	linked_list<cached_piece_entry>* ghost_list = &m_lru[pe->cache_state + 1];
 	while (ghost_list->size() >= m_ghost_size)
 	{
-		cached_piece_entry* p = static_cast<cached_piece_entry*>(ghost_list->front());
+		cached_piece_entry* p = ghost_list->front();
 		TORRENT_PIECE_ASSERT(p != pe, p);
 		TORRENT_PIECE_ASSERT(p->num_blocks == 0, p);
 		TORRENT_PIECE_ASSERT(p->refcount == 0, p);
@@ -1306,8 +1257,8 @@ int block_cache::pad_job(disk_io_job const* j, int blocks_in_piece
 	return end - start;
 }
 
-void block_cache::insert_blocks(cached_piece_entry* pe, int block, file::iovec_t *iov
-	, int iov_len, disk_io_job* j, int flags)
+void block_cache::insert_blocks(cached_piece_entry* pe, int block, span<file::iovec_t const> iov
+	, disk_io_job* j, int flags)
 {
 #ifdef TORRENT_EXPENSIVE_INVARIANT_CHECKS
 	INVARIANT_CHECK;
@@ -1315,21 +1266,13 @@ void block_cache::insert_blocks(cached_piece_entry* pe, int block, file::iovec_t
 
 	TORRENT_ASSERT(pe);
 	TORRENT_ASSERT(pe->in_use);
-	TORRENT_PIECE_ASSERT(iov_len > 0, pe);
-
-#if TORRENT_USE_ASSERTS
-	// we're not allowed to add dirty blocks
-	// for a deleted storage!
-	TORRENT_ASSERT(std::find(m_deleted_storages.begin(), m_deleted_storages.end()
-		, std::make_pair(j->storage->files()->name(), static_cast<void const*>(j->storage->files())))
-		== m_deleted_storages.end());
-#endif
+	TORRENT_PIECE_ASSERT(iov.size() > 0, pe);
 
 	cache_hit(pe, j->requester, (j->flags & disk_io_job::volatile_read) != 0);
 
 	TORRENT_ASSERT(pe->in_use);
 
-	for (int i = 0; i < iov_len; ++i, ++block)
+	for (int i = 0; i < iov.size(); ++i, ++block)
 	{
 		// each iovec buffer has to be the size of a block (or the size of the last block)
 		TORRENT_PIECE_ASSERT(iov[i].iov_len == (std::min)(block_size()
@@ -1445,7 +1388,7 @@ void block_cache::abort_dirty(cached_piece_entry* pe)
 
 	TORRENT_PIECE_ASSERT(pe->in_use, pe);
 
-	char** to_delete = TORRENT_ALLOCA(char*, pe->blocks_in_piece);
+	TORRENT_ALLOCA(to_delete, char*, pe->blocks_in_piece);
 	int num_to_delete = 0;
 	for (int i = 0; i < pe->blocks_in_piece; ++i)
 	{
@@ -1465,7 +1408,7 @@ void block_cache::abort_dirty(cached_piece_entry* pe)
 		TORRENT_PIECE_ASSERT(pe->num_dirty > 0, pe);
 		--pe->num_dirty;
 	}
-	if (num_to_delete) free_multiple_buffers(to_delete, num_to_delete);
+	if (num_to_delete) free_multiple_buffers(to_delete.first(num_to_delete));
 
 	update_cache_state(pe);
 }
@@ -1484,7 +1427,7 @@ void block_cache::free_piece(cached_piece_entry* pe)
 
 	// build a vector of all the buffers we need to free
 	// and free them all in one go
-	char** to_delete = TORRENT_ALLOCA(char*, pe->blocks_in_piece);
+	TORRENT_ALLOCA(to_delete, char*, pe->blocks_in_piece);
 	int num_to_delete = 0;
 	int removed_clean = 0;
 	for (int i = 0; i < pe->blocks_in_piece; ++i)
@@ -1516,7 +1459,7 @@ void block_cache::free_piece(cached_piece_entry* pe)
 	{
 		m_volatile_size -= num_to_delete;
 	}
-	if (num_to_delete) free_multiple_buffers(to_delete, num_to_delete);
+	if (num_to_delete) free_multiple_buffers(to_delete.first(num_to_delete));
 	update_cache_state(pe);
 }
 
@@ -1667,7 +1610,7 @@ void block_cache::check_invariant() const
 	}
 
 	std::unordered_set<char*> buffers;
-	for (auto const& p :m_pieces)
+	for (auto const& p : m_pieces)
 	{
 		TORRENT_PIECE_ASSERT(p.blocks, &p);
 
@@ -1677,7 +1620,7 @@ void block_cache::check_invariant() const
 		int num_pending = 0;
 		int num_refcount = 0;
 
-		bool in_storage = p.storage->has_piece(&p);
+		bool const in_storage = p.storage->has_piece(&p);
 		switch (p.cache_state)
 		{
 			case cached_piece_entry::write_lru:

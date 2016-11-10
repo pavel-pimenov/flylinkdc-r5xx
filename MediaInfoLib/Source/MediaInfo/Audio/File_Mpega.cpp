@@ -581,7 +581,7 @@ bool File_Mpega::Synchronize()
             if (Buffer[Buffer_Offset  ]==0xFF
              && (Buffer[Buffer_Offset+1]&0xE0)==0xE0
              && (Buffer[Buffer_Offset+2]&0xF0)!=0xF0
-             && (Buffer[Buffer_Offset+2]&0x0C)!=0x0C) // [!] TODO FlylinkDC++ team crash
+             && (Buffer[Buffer_Offset+2]&0x0C)!=0x0C)
                 break; //while()
 
             //Tags

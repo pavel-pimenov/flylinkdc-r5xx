@@ -26,9 +26,11 @@
 #include "SettingsManager.h"
 #include "../FlyFeatures/flyServer.h"
 
+string ConnectivityManager::g_status;
+bool ConnectivityManager::g_is_running = false;
+
 ConnectivityManager::ConnectivityManager() :
-	autoDetected(false),
-	running(false)
+	autoDetected(false)
 {
 }
 
@@ -51,11 +53,11 @@ void ConnectivityManager::startSocket()
 
 void ConnectivityManager::detectConnection()
 {
-	if (running)
+	if (g_is_running)
 		return;
-	running = true;
+    g_is_running = true;
 	
-	m_status.clear();
+	g_status.clear();
 	// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Started());
 	
 	const string l_old_bind = SETTING(BIND_ADDRESS);
@@ -91,7 +93,7 @@ void ConnectivityManager::detectConnection()
 		_snprintf(buf.data(), 512, CSTRING(UNABLE_TO_OPEN_PORT), e.getError().c_str());
 		log(buf.data());
 		// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
-		running = false;
+        g_is_running = false;
 		return;
 	}
 	
@@ -112,7 +114,7 @@ void ConnectivityManager::detectConnection()
 			SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_DIRECT); // Вот тут сомнительно
 			log(STRING(PUBLIC_IP_DETECTED) + " IP = " + l_ip);
 			// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
-			running = false;
+            g_is_running = false;
 			return;
 		}
 	}
@@ -120,7 +122,7 @@ void ConnectivityManager::detectConnection()
 	
 	if (!MappingManager::getInstance()->open())
 	{
-		running = false;
+        g_is_running = false;
 	}
 }
 void ConnectivityManager::test_all_ports()
@@ -195,9 +197,9 @@ void ConnectivityManager::setup_connections(bool settingsChanged)
 	}
 }
 
-string ConnectivityManager::getInformation() const
+string ConnectivityManager::getInformation()
 {
-	if (running)
+	if (g_is_running)
 	{
 		return "Connectivity settings are being configured; try again later";
 	}
@@ -260,7 +262,7 @@ string ConnectivityManager::getInformation() const
 
 void ConnectivityManager::mappingFinished(const string& p_mapper)
 {
-	if (BOOLSETTING(AUTO_DETECT_CONNECTION))
+	if (!ClientManager::isBeforeShutdown() && BOOLSETTING(AUTO_DETECT_CONNECTION))
 	{
 		if (p_mapper.empty())
 		{
@@ -285,7 +287,7 @@ void ConnectivityManager::mappingFinished(const string& p_mapper)
 #endif
 		// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
 	}
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		log(getInformation());
 		SET_SETTING(MAPPER, p_mapper);
@@ -294,7 +296,7 @@ void ConnectivityManager::mappingFinished(const string& p_mapper)
 			test_all_ports();
 		}
 	}
-	running = false;
+    g_is_running = false;
 }
 
 void ConnectivityManager::listen() // TODO - fix copy-paste
@@ -397,16 +399,16 @@ void ConnectivityManager::disconnect()
 #endif
 }
 
-void ConnectivityManager::log(const string& message)
+void ConnectivityManager::log(const string& p_message)
 {
 	if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 	{
-		m_status = message;
-		LogManager::message(STRING(CONNECTIVITY) + ' ' + m_status);
+		g_status = p_message;
+		LogManager::message(STRING(CONNECTIVITY) + ' ' + g_status);
 		// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Message(), m_status);
 	}
 	else
 	{
-		LogManager::message(message);
+		LogManager::message(p_message);
 	}
 }

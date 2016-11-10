@@ -157,11 +157,11 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		void AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheTextOnly& p_message, const LONG& lSelBegin);
 		
 	private:
-		std::list<CFlyChatCache> m_chat_cache; // вектор нельзя - список пополняется (странно что в одной нитке)
+		std::list<CFlyChatCache> m_chat_cache; // вектор нельзя - список пополняется
 		size_t m_chat_cache_length;
 		bool m_is_cache_chat_empty;
 		bool m_is_out_of_memory_for_smile;
-		//std::unique_ptr<webrtc::RWLockWrapper> m_cs_chat_cache;
+		FastCriticalSection m_fcs_chat_cache;
 		void insertAndFormat(const tstring & text, CHARFORMAT2 cf, bool p_is_disable_style, LONG& p_begin, LONG& p_end);
 	public:
 		void disable_chat_cache()

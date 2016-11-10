@@ -94,7 +94,7 @@ namespace detail
 	}
 
 	inline std::uint16_t plus_one(std::uint16_t val) { return val + 1; }
-	
+
 	template<class Addr>
 	Addr minus_one(Addr const& a)
 	{
@@ -207,9 +207,9 @@ namespace detail
 		}
 
 		template <class ExternalAddressType>
-		std::vector<ip_range<ExternalAddressType> > export_filter() const
+		std::vector<ip_range<ExternalAddressType>> export_filter() const
 		{
-			std::vector<ip_range<ExternalAddressType> > ret;
+			std::vector<ip_range<ExternalAddressType>> ret;
 			ret.reserve(m_access_list.size());
 
 			for (typename range_t::const_iterator i = m_access_list.begin()
@@ -270,13 +270,13 @@ struct TORRENT_EXPORT ip_filter
 	// ip addresses that will be marked with the given flags. The ``flags``
 	// can currently be 0, which means allowed, or ``ip_filter::blocked``, which
 	// means disallowed.
-	// 
+	//
 	// precondition:
 	// ``first.is_v4() == last.is_v4() && first.is_v6() == last.is_v6()``
-	// 
+	//
 	// postcondition:
 	// ``access(x) == flags`` for every ``x`` in the range [``first``, ``last``]
-	// 
+	//
 	// This means that in a case of overlapping ranges, the last one applied takes
 	// precedence.
 	void add_rule(address first, address last, std::uint32_t flags);
@@ -288,10 +288,10 @@ struct TORRENT_EXPORT ip_filter
 	int access(address const& addr) const;
 
 #if TORRENT_USE_IPV6
-	using filter_tuple_t = std::tuple<std::vector<ip_range<address_v4> >
-		, std::vector<ip_range<address_v6> > >;
+	using filter_tuple_t = std::tuple<std::vector<ip_range<address_v4>>
+		, std::vector<ip_range<address_v6>>>;
 #else
-	using filter_tuple_t = std::vector<ip_range<address_v4> >;
+	using filter_tuple_t = std::vector<ip_range<address_v4>>;
 #endif
 
 	// This function will return the current state of the filter in the minimum number of
@@ -348,4 +348,3 @@ private:
 }
 
 #endif
-

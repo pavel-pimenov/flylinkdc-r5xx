@@ -121,3 +121,4 @@ XMLMerge.exe
 xmlValid.exe
 CustomLocations.bmp
 CustomLocations.ini
+XMLdocTemplate.xsl

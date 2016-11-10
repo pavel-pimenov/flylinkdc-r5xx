@@ -414,7 +414,7 @@ public :
         int64u Pos=Element_Offset+BS->OffsetBeforeLastCall_Get();
 
         element_details::Element_Node *node = new element_details::Element_Node;
-        node->Set_Name(Parameter.c_str());
+        node->Set_Name(Parameter);
         node->Pos = Pos==(int64u)-1 ? Pos : (File_Offset+Buffer_Offset+Pos);
         node->Value.set_Option(GenericOption);
         node->Value = Value;
@@ -1051,7 +1051,12 @@ public :
     #ifdef SIZE_T_IS_LONG
     inline void Fill (stream_t StreamKind, size_t StreamPos, const char* Parameter, size_t         Value, int8u Radix=10, bool Replace=false) {Fill(StreamKind, StreamPos, Parameter, Ztring::ToZtring(Value, Radix).MakeUpperCase(), Replace);}
     #endif //SIZE_T_IS_LONG
-    ZtringListList Fill_Temp;
+    struct fill_temp_item
+    {
+        Ztring Parameter;
+        Ztring Value;
+    };
+    vector<fill_temp_item> Fill_Temp[Stream_Max+1]; // +1 because Fill_Temp[Stream_Max] is used when StreamKind is unknown
     void Fill_Flush ();
     static size_t Fill_Parameter(stream_t StreamKind, generic StreamPos);
 
@@ -1115,6 +1120,10 @@ public :
     void CodecID_Fill           (const Ztring &Value, stream_t StreamKind, size_t StreamPos, infocodecid_format_t Format, stream_t StreamKind_CodecID=Stream_Max);
     void PixelAspectRatio_Fill  (const Ztring &Value, stream_t StreamKind, size_t StreamPos, size_t Parameter_Width, size_t Parameter_Height, size_t Parameter_PixelAspectRatio, size_t Parameter_DisplayAspectRatio);
     void DisplayAspectRatio_Fill(const Ztring &Value, stream_t StreamKind, size_t StreamPos, size_t Parameter_Width, size_t Parameter_Height, size_t Parameter_PixelAspectRatio, size_t Parameter_DisplayAspectRatio);
+    #if MEDIAINFO_EVENTS
+    static stream_t Streamkind_Get(int8u* ParserIDs, size_t StreamIDs_Size) {if ((ParserIDs[StreamIDs_Size-1]&0xF0)==0x80) return Stream_Video; if ((ParserIDs[StreamIDs_Size-1]&0xF0)==0xA0) return Stream_Audio; return Stream_Max;}
+    stream_t Streamkind_Get() {return Streamkind_Get(ParserIDs, StreamIDs_Size);}
+    #endif //MEDIAINFO_EVENTS
 
     //***************************************************************************
     // Finalize
@@ -1229,6 +1238,9 @@ protected :
     bool Synchronize_0x000001();
 public:
     void TestContinuousFileNames(size_t CountOfFiles=24, Ztring FileExtension=Ztring(), bool SkipComputeDelay=false);
+    #if MEDIAINFO_FIXITY
+    bool FixFile(int64u FileOffsetForWriting, const int8u* ToWrite, const size_t ToWrite_Size);
+    #endif// MEDIAINFO_FIXITY
 
 private :
 
@@ -1253,7 +1265,9 @@ protected :
     std::bitset<32> Trace_Layers;
     void Trace_Layers_Update (size_t Layer=(size_t)-1);
 private :
-
+#if MEDIAINFO_TRACE
+    void Trace_Details_Handling(File__Analyze* Sub);
+#endif // MEDIAINFO_TRACE
     //Elements
     size_t Element_Level_Base;      //From other parsers
     std::vector<element_details> Element;

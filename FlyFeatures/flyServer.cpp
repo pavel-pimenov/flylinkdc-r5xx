@@ -106,6 +106,7 @@ boost::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > CFl
 ::CriticalSection CFlyServerJSON::g_cs_download_counter;
 ::CriticalSection CFlyServerJSON::g_cs_antivirus_counter;
 string CFlyServerJSON::g_last_error_string;
+DWORD  CFlyServerJSON::g_last_error_code;
 int CFlyServerJSON::g_count_dup_error_string = 0;
 CFlyServerJSON::CFlyTestPortResult CFlyServerJSON::g_test_port_map;
 FastCriticalSection CFlyServerJSON::g_cs_test_port;
@@ -154,6 +155,7 @@ StringSet CFlyServerConfig::g_video_ext;
 StringSet CFlyServerConfig::g_custom_compress_ext;
 StringSet CFlyServerConfig::g_block_share_name;
 StringList CFlyServerConfig::g_block_share_mask;
+FastCriticalSection CFlyServerConfig::g_cs_mirror_test_port;
 
 extern ::tstring g_full_user_agent;
 
@@ -163,8 +165,9 @@ const CServerItem& CFlyServerConfig::getStatServer()
 	return g_stat_server;
 }
 //======================================================================================================
-const std::vector<CServerItem>& CFlyServerConfig::getMirrorTestPortServerArray()
+const std::vector<CServerItem> CFlyServerConfig::getMirrorTestPortServerArray()
 {
+	CFlyFastLock (g_cs_mirror_test_port);
 	dcassert(!g_mirror_test_port_servers.empty() || !g_local_test_server.getIp().empty());
 	if (g_mirror_test_port_servers.empty())
 	{
@@ -655,6 +658,7 @@ void CFlyServerConfig::loadConfig()
 					// Достанем зеркала серверов для тестов
 					if (g_local_test_server.getIp().empty()) // (если нет переопределения локального)
 					{
+						CFlyFastLock(g_cs_mirror_test_port);
 						l_xml.getChildAttribSplit("mirror_test_port_server", g_mirror_test_port_servers, [this](const string & n)
 						{
 							CServerItem l_server;
@@ -1056,7 +1060,8 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 	// TODO - эмулируем тормозной инет ::Sleep(10000);
 #endif
 	dcassert(::IsWindow(m_hMediaWnd));
-	if (::IsWindow(m_hMediaWnd) && !m_GetFlyServerArray.empty())
+    dcassert(!ClientManager::isBeforeShutdown());
+    if (!ClientManager::isBeforeShutdown() && ::IsWindow(m_hMediaWnd) && !m_GetFlyServerArray.empty())
 	{
 		CFlyServerKeyArray l_copy_array;
 		{
@@ -1066,12 +1071,13 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 		const string l_json_result = CFlyServerJSON::connect(l_copy_array, false); 
 		// TODO - сохранить m_GetFlyServerArray в другом месте?
 		dcassert(::IsWindow(m_hMediaWnd));
-		if (!l_json_result.empty() && ::IsWindow(m_hMediaWnd))
+        dcassert(!ClientManager::isBeforeShutdown());
+        if (!ClientManager::isBeforeShutdown() && !l_json_result.empty() && ::IsWindow(m_hMediaWnd))
 		{
 			Json::Value* l_root = new Json::Value;
 			Json::Reader l_reader(Json::Features::strictMode());
 			const bool l_parsingSuccessful = l_reader.parse(l_json_result, *l_root);
-			if (!l_parsingSuccessful && !l_json_result.empty())
+			if (!ClientManager::isBeforeShutdown() && !l_parsingSuccessful && !l_json_result.empty())
 			{
 				{
 					CFlyLock(g_cs_fly_server);
@@ -1083,7 +1089,8 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 			else
 			{
 				dcassert(::IsWindow(m_hMediaWnd));
-				if (::IsWindow(m_hMediaWnd))
+                dcassert(!ClientManager::isBeforeShutdown());
+                if (!ClientManager::isBeforeShutdown() && ::IsWindow(m_hMediaWnd))
 				{
 					PostMessage(m_hMediaWnd, WM_SPEAKER_MERGE_FLY_SERVER, WPARAM(l_root), LPARAM(NULL));
 				}
@@ -1096,7 +1103,8 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 		else
 		{
 			dcassert(::IsWindow(m_hMediaWnd));
-			if (::IsWindow(m_hMediaWnd))
+            dcassert(!ClientManager::isBeforeShutdown());
+            if (!ClientManager::isBeforeShutdown() && ::IsWindow(m_hMediaWnd))
 			{
 				CFlyLock(g_cs_fly_server);
 				m_tth_media_file_map.clear(); // Если возникла ошибка передачи запроса на чтение, запись не шлем.
@@ -1104,13 +1112,18 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 			}
 		}
 	}
-	push_mediainfo_to_fly_server(); // Сбросим на флай-сервер медиаинфу, что нашли у себя (там ее еще нет)
+    dcassert(!ClientManager::isBeforeShutdown());
+    if (!ClientManager::isBeforeShutdown())
+    {
+        push_mediainfo_to_fly_server(); // Сбросим на флай-сервер медиаинфу, что нашли у себя (там ее еще нет)
+    }
 }
 //===================================================================================================================================
 void CFlyServerAdapter::push_mediainfo_to_fly_server()
 {
 	dcassert(::IsWindow(m_hMediaWnd));
-	if (::IsWindow(m_hMediaWnd))
+    dcassert(!ClientManager::isBeforeShutdown());
+    if (!ClientManager::isBeforeShutdown() && ::IsWindow(m_hMediaWnd))
 	{
 		CFlyServerKeyArray l_copy_map;
 		{
@@ -1301,7 +1314,7 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 string CFlyServerJSON::postQueryTestPort(CFlyLog& p_log, const string& p_body, bool& p_is_send, bool& p_is_error)
 {
 	string l_result;
-	const auto& l_server_array = CFlyServerConfig::getMirrorTestPortServerArray();
+	const auto l_server_array = CFlyServerConfig::getMirrorTestPortServerArray();
 	for (auto i = l_server_array.cbegin(); i != l_server_array.cend() ; ++i)
 	{
 		const auto& l_test_server = *i;
@@ -1310,7 +1323,15 @@ string CFlyServerJSON::postQueryTestPort(CFlyLog& p_log, const string& p_body, b
 		{
 			break;
 		}
-		p_log.step("Use next server: " + l_test_server.getServerAndPort());
+		if (g_last_error_code == 12007) // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1650
+		{
+			p_log.step("Error DNS 12007! skip mirror server.");
+			break;
+		}
+		else
+		{
+			p_log.step("Use next mirror server: " + l_test_server.getServerAndPort());
+		}
 	}
 	return l_result;
 }
@@ -1814,6 +1835,7 @@ string CFlyServerJSON::postQuery(bool p_is_set,
                                  DWORD p_time_out /*= 0*/,
                                  const CServerItem* p_server /*= nullptr */)
 {
+	g_last_error_code = 0;
 	p_is_send = false;
 	p_is_error = false;
 	dcassert(!p_body.empty());
@@ -1832,9 +1854,6 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 		return Util::emptyString;
 	}
 	string l_result_query;
-	//static const char g_hdrs[]        = "Content-Type: application/x-www-form-urlencoded"; // TODO - оно нужно?
-	//static const size_t g_hdrs_len   = strlen(g_hdrs); // Можно заменить на (sizeof(g_hdrs)-1) ...
-	// static LPCSTR g_accept[2]    = {"*/*", NULL};
 	std::vector<uint8_t> l_post_compress_query;
 	string l_log_string;
 	if (g_fly_server_config.getZlibCompressLevel() > Z_NO_COMPRESSION) // Выполняем сжатие запроса?
@@ -1875,7 +1894,8 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 		l_timeOut = 1000;
 	if (!InternetSetOption(hSession, INTERNET_OPTION_CONNECT_TIMEOUT, &l_timeOut, sizeof(l_timeOut)))
 	{
-		l_fly_server_log.step("Error InternetSetOption INTERNET_OPTION_CONNECT_TIMEOUT: " + Util::translateError());
+		g_last_error_code = GetLastError();
+		l_fly_server_log.step("Error InternetSetOption INTERNET_OPTION_CONNECT_TIMEOUT: " + Util::translateError(g_last_error_code));
 		p_is_error = true;
 	}
 	InternetSetOption(hSession, INTERNET_OPTION_RECEIVE_TIMEOUT, &CFlyServerConfig::g_winet_receive_timeout, sizeof(CFlyServerConfig::g_winet_receive_timeout));
@@ -1924,7 +1944,8 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 						const BOOL bResult = InternetReadFile(hRequest, l_MessageBody.data(), l_dwBytesAvailable, &dwBytesRead);
 						if (!bResult)
 						{
-							l_fly_server_log.step("InternetReadFile error " + Util::translateError());
+							g_last_error_code = GetLastError();
+							l_fly_server_log.step("InternetReadFile error " + Util::translateError(g_last_error_code));
 							break;
 						}
 						if (dwBytesRead == 0)
@@ -1997,25 +2018,29 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 				}
 				else
 				{
-					l_fly_server_log.step("HttpSendRequest error " + Util::translateError());
+					g_last_error_code = GetLastError();
+					l_fly_server_log.step("HttpSendRequest error " + Util::translateError(g_last_error_code));
 					p_is_error = true;
 				}
 			}
 			else
 			{
-				l_fly_server_log.step("HttpOpenRequest error " + Util::translateError());
+				g_last_error_code = GetLastError();
+				l_fly_server_log.step("HttpOpenRequest error " + Util::translateError(g_last_error_code));
 				p_is_error = true;
 			}
 		}
 		else
 		{
-			l_fly_server_log.step("InternetConnect error " + Util::translateError());
+			g_last_error_code = GetLastError();
+			l_fly_server_log.step("InternetConnect error " + Util::translateError(g_last_error_code));
 			p_is_error = true;
 		}
 	}
 	else
 	{
-		l_fly_server_log.step("InternetOpen error " + Util::translateError());
+		g_last_error_code = GetLastError();
+		l_fly_server_log.step("InternetOpen error " + Util::translateError(g_last_error_code));
 		p_is_error = true;
 	}
 	l_Server.setTimeResponse(l_fly_server_log.calcSumTime());

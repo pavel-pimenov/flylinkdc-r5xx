@@ -35,9 +35,8 @@
   Version: 1.1
 */
 
-#include <memory>
 #include <cmath>
-#include <cstring>
+#include <memory>
 #if defined (__BORLANDC__) || defined (__SUNPRO_CC)
     #define fmodf fmod
 #endif
@@ -99,8 +98,8 @@ uint128::uint128 (const char * sz) throw ()
             ++i;
         };
     };
-	const size_t l_size_sz = strlen (sz); // V814 Decreased performance. Calls to the 'strlen' function have being made multiple times when a condition for the loop's continuation was calculated. int128u.cpp 102
-    for (; i < l_size_sz; ++i) {
+    const unsigned int len = strlen(sz);
+    for (; i < len; ++i) {
         unsigned int n = 0;
         if (sz [i] >= '0' && sz [i] <= (('0' + (int) radix) < '9'?('0' + (int) radix):'9')) //if (sz [i] >= '0' && sz [i] <= (('0' + (int) radix) <? '9'))
             n = sz [i] - '0';

@@ -118,6 +118,7 @@
     <ClInclude Include="include\libtorrent\io_service.hpp" />
     <ClInclude Include="include\libtorrent\io_service_fwd.hpp" />
     <ClInclude Include="include\libtorrent\ip_filter.hpp" />
+    <ClInclude Include="include\libtorrent\ip_notifier.hpp" />
     <ClInclude Include="include\libtorrent\ip_voter.hpp" />
     <ClInclude Include="include\libtorrent\kademlia\dht_observer.hpp" />
     <ClInclude Include="include\libtorrent\kademlia\dht_storage.hpp" />
@@ -146,6 +147,7 @@
     <ClInclude Include="include\libtorrent\lsd.hpp" />
     <ClInclude Include="include\libtorrent\magnet_uri.hpp" />
     <ClInclude Include="include\libtorrent\natpmp.hpp" />
+    <ClInclude Include="include\libtorrent\netlink.hpp" />
     <ClInclude Include="include\libtorrent\operations.hpp" />
     <ClInclude Include="include\libtorrent\packet_buffer.hpp" />
     <ClInclude Include="include\libtorrent\parse_url.hpp" />
@@ -269,6 +271,7 @@
     <ClCompile Include="src\file_pool.cpp" />
     <ClCompile Include="src\file_progress.cpp" />
     <ClCompile Include="src\file_storage.cpp" />
+    <ClCompile Include="src\fingerprint.cpp" />
     <ClCompile Include="src\gzip.cpp" />
     <ClCompile Include="src\hasher.cpp" />
     <ClCompile Include="src\hasher512.cpp" />
@@ -282,6 +285,7 @@
     <ClCompile Include="src\identify_client.cpp" />
     <ClCompile Include="src\instantiate_connection.cpp" />
     <ClCompile Include="src\ip_filter.cpp" />
+    <ClCompile Include="src\ip_notifier.cpp" />
     <ClCompile Include="src\ip_voter.cpp" />
     <ClCompile Include="src\kademlia\dht_state.cpp" />
     <ClCompile Include="src\kademlia\dht_storage.cpp" />

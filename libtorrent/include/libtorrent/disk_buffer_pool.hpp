@@ -54,6 +54,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/io_service_fwd.hpp"
 #include "libtorrent/file.hpp" // for iovec_t
+#include "libtorrent/span.hpp"
 
 namespace libtorrent
 {
@@ -77,10 +78,10 @@ namespace libtorrent
 		char* allocate_buffer(bool& exceeded, std::shared_ptr<disk_observer> o
 			, char const* category);
 		void free_buffer(char* buf);
-		void free_multiple_buffers(char** bufvec, int numbufs);
+		void free_multiple_buffers(span<char*> bufvec);
 
-		int allocate_iovec(file::iovec_t* iov, int iov_len);
-		void free_iovec(file::iovec_t* iov, int iov_len);
+		int allocate_iovec(span<file::iovec_t> iov);
+		void free_iovec(span<file::iovec_t const> iov);
 
 		int block_size() const { return m_block_size; }
 
@@ -92,7 +93,6 @@ namespace libtorrent
 			return m_in_use;
 		}
 		std::uint32_t num_to_evict(int num_needed = 0);
-		bool exceeded_max_size() const { return m_exceeded_max_size; }
 
 		void set_settings(aux::session_settings const& sett, error_code& ec);
 
@@ -136,12 +136,13 @@ namespace libtorrent
 	private:
 
 		void check_buffer_level(std::unique_lock<std::mutex>& l);
+		void remove_buffer_in_use(char* buf);
 
 		mutable std::mutex m_pool_mutex;
 
 		int m_cache_buffer_chunk_size;
 
-#if TORRENT_HAVE_MMAP
+#if TORRENT_HAVE_MMAP && !defined TORRENT_NO_DEPRECATE
 		// the file descriptor of the cache mmap file
 		int m_cache_fd;
 		// the pointer to the block of virtual address space

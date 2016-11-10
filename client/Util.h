@@ -95,6 +95,7 @@ class CInternetHandle
 class CFlyHTTPDownloader
 {
 		DWORD m_inet_flag;
+		DWORD m_last_error_code;
 		string m_error_message;
 		bool switchMirrorURL(string& p_url, int p_mirror);
 	public:
@@ -102,7 +103,7 @@ class CFlyHTTPDownloader
 		static void nextMirror();
 		bool m_is_add_url;
 		bool m_is_use_cache;
-		CFlyHTTPDownloader() : m_inet_flag(0), m_is_add_url(true), m_is_use_cache(false)
+		CFlyHTTPDownloader() : m_inet_flag(0), m_last_error_code(0), m_is_add_url(true), m_is_use_cache(false)
 		{
 		}
 		std::vector<string> m_get_http_header_item;
@@ -119,6 +120,10 @@ class CFlyHTTPDownloader
 		const string& getErroMessage() const
 		{
 			return m_error_message;
+		}
+		DWORD getLastErrorCode() const
+		{
+			return m_last_error_code;
 		}
 		void create_error_message(const char* p_type, const string& p_url);
 };

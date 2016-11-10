@@ -265,8 +265,7 @@ namespace libtorrent
 		// dummy torrent object pointer
 		std::shared_ptr<char> dummy;
 		counters cnt;
-		disk_io_thread disk_thread(ios, cnt, nullptr);
-		disk_thread.set_num_threads(1);
+		disk_io_thread disk_thread(ios, cnt);
 
 		storage_params params;
 		params.files = &t.files();
@@ -282,7 +281,7 @@ namespace libtorrent
 
 		settings_pack sett;
 		sett.set_int(settings_pack::cache_size, 0);
-		sett.set_int(settings_pack::aio_threads, 2);
+		sett.set_int(settings_pack::aio_threads, 1);
 
 		// TODO: this should probably be optional
 		alert_manager dummy2(0, 0);
@@ -666,14 +665,12 @@ namespace libtorrent
 	{
 		auto i = std::find_if(m_urls.begin(), m_urls.end()
 			, [&url](announce_entry const& ae) { return ae.first == url.to_string(); });
-		if (i == m_urls.end())
-		{
-			m_urls.push_back(announce_entry(url.to_string(), tier));
+		if (i != m_urls.end()) return;
+		m_urls.push_back(announce_entry(url.to_string(), tier));
 
-			std::sort(m_urls.begin(), m_urls.end()
-				, [](announce_entry const& lhs, announce_entry const& rhs)
-			{ return lhs.second < rhs.second; });
-		}
+		std::sort(m_urls.begin(), m_urls.end()
+			, [] (announce_entry const& lhs, announce_entry const& rhs)
+			{ return lhs.second < rhs.second; } );
 	}
 
 	void create_torrent::set_root_cert(string_view cert)

@@ -33,10 +33,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_BLOCK_CACHE
 #define TORRENT_BLOCK_CACHE
 
-#include "libtorrent/aux_/disable_warnings_push.hpp"
-#include <boost/shared_array.hpp>
-#include "libtorrent/aux_/disable_warnings_pop.hpp"
-
 #include <cstdint>
 #include <list>
 #include <vector>
@@ -47,7 +43,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/io_service_fwd.hpp"
 #include "libtorrent/hasher.hpp"
 #include "libtorrent/sliding_average.hpp"
-#include "libtorrent/time.hpp"
 #include "libtorrent/tailqueue.hpp"
 #include "libtorrent/linked_list.hpp"
 #include "libtorrent/disk_buffer_pool.hpp"
@@ -172,8 +167,8 @@ namespace libtorrent
 	{
 		cached_piece_entry();
 		~cached_piece_entry();
-		cached_piece_entry(cached_piece_entry const&) = default;
-		cached_piece_entry& operator=(cached_piece_entry const&) = default;
+		cached_piece_entry(cached_piece_entry&&) = default;
+		cached_piece_entry& operator=(cached_piece_entry&&) = default;
 
 		bool ok_to_evict(bool ignore_hash = false) const
 		{
@@ -205,21 +200,21 @@ namespace libtorrent
 		// if this is set, we'll be calculating the hash
 		// for this piece. This member stores the interim
 		// state while we're calculating the hash.
-		partial_hash* hash;
+		std::unique_ptr<partial_hash> hash;
 
 		// set to a unique identifier of a peer that last
 		// requested from this piece.
-		void* last_requester;
+		void* last_requester = nullptr;
 
 		// the pointers to the block data. If this is a ghost
 		// cache entry, there won't be any data here
-		boost::shared_array<cached_block_entry> blocks;
+		std::unique_ptr<cached_block_entry[]> blocks;
 
 		// the last time a block was written to this piece
 		// plus the minimum amount of time the block is guaranteed
 		// to stay in the cache
 		//TODO: make this 32 bits and to count seconds since the block cache was created
-		time_point expire;
+		time_point expire = min_time();
 
 		std::uint64_t piece:22;
 
@@ -238,25 +233,28 @@ namespace libtorrent
 		// while we have an outstanding async hash operation
 		// working on this piece, 'hashing' is set to 1
 		// When the operation returns, this is set to 0.
-		std::uint32_t hashing:1;
+		std::uint16_t hashing:1;
 
 		// if we've completed at least one hash job on this
 		// piece, and returned it. This is set to one
-		std::uint32_t hashing_done:1;
+		std::uint16_t hashing_done:1;
 
 		// if this is true, whenever refcount hits 0,
 		// this piece should be deleted
-		std::uint32_t marked_for_deletion:1;
+		std::uint16_t marked_for_deletion:1;
 
 		// this is set to true once we flush blocks past
 		// the hash cursor. Once this happens, there's
 		// no point in keeping cache blocks around for
 		// it in avoid_readback mode
-		std::uint32_t need_readback:1;
+		std::uint16_t need_readback:1;
 
 		// indicates which LRU list this piece is chained into
 		enum cache_state_t
 		{
+			// not added to the cache
+			none,
+
 			// this is the LRU list for pieces with dirty blocks
 			write_lru,
 
@@ -288,17 +286,17 @@ namespace libtorrent
 			num_lrus
 		};
 
-		std::uint32_t cache_state:3;
+		std::uint16_t cache_state:3;
 
 		// this is the number of threads that are currently holding
 		// a reference to this piece. A piece may not be removed from
 		// the cache while this is > 0
-		std::uint32_t piece_refcount:7;
+		std::uint16_t piece_refcount:7;
 
 		// if this is set to one, it means there is an outstanding
 		// flush_hashed job for this piece, and there's no need to
 		// issue another one.
-		std::uint32_t outstanding_flush:1;
+		std::uint16_t outstanding_flush:1;
 
 		// as long as there is a read operation outstanding on this
 		// piece, this is set to 1. Otherwise 0.
@@ -306,26 +304,26 @@ namespace libtorrent
 		// the same blocks at the same time. If a new read job is
 		// added when this is 1, that new job should be hung on the
 		// read job queue (read_jobs).
-		std::uint32_t outstanding_read:1;
+		std::uint16_t outstanding_read:1;
 
 		// the number of blocks that have >= 1 refcount
-		std::uint32_t pinned:16;
+		std::uint16_t pinned = 0;
 
 		// ---- 32 bit boundary ---
 
 		// the sum of all refcounts in all blocks
-		std::uint32_t refcount;
+		std::uint32_t refcount = 0;
 
 #if TORRENT_USE_ASSERTS
 		// the number of times this piece has finished hashing
-		int hash_passes;
+		int hash_passes = 0;
 
 		// this is a debug facility to keep a log
 		// of which operations have been run on this piece
 		std::vector<piece_log_t> piece_log;
 
-		bool in_storage;
-		bool in_use;
+		bool in_storage = false;
+		bool in_use = true;
 #endif
 	};
 
@@ -432,8 +430,8 @@ namespace libtorrent
 		cached_piece_entry* add_dirty_block(disk_io_job* j);
 
 		enum { blocks_inc_refcount = 1 };
-		void insert_blocks(cached_piece_entry* pe, int block, file::iovec_t *iov
-			, int iov_len, disk_io_job* j, int flags = 0);
+		void insert_blocks(cached_piece_entry* pe, int block, span<file::iovec_t const> iov
+			, disk_io_job* j, int flags = 0);
 
 #if TORRENT_USE_INVARIANT_CHECKS
 		void check_invariant() const;
@@ -443,7 +441,7 @@ namespace libtorrent
 		// pick the least recently used ones first
 		// return the number of blocks that was requested to be evicted
 		// that couldn't be
-		int try_evict_blocks(int num, cached_piece_entry* ignore = 0);
+		int try_evict_blocks(int num, cached_piece_entry* ignore = nullptr);
 
 		// try to evict a single volatile piece, if there is one.
 		void try_evict_one_volatile();
@@ -463,10 +461,6 @@ namespace libtorrent
 
 		int pinned_blocks() const { return m_pinned_blocks; }
 		int read_cache_size() const { return m_read_cache_size; }
-
-#if TORRENT_USE_ASSERTS
-		void mark_deleted(file_storage const& fs);
-#endif
 
 	private:
 
@@ -532,10 +526,6 @@ namespace libtorrent
 		// the number of blocks with a refcount > 0, i.e.
 		// they may not be evicted
 		int m_pinned_blocks;
-
-#if TORRENT_USE_ASSERTS
-		std::vector<std::pair<std::string, void const*>> m_deleted_storages;
-#endif
 	};
 
 }

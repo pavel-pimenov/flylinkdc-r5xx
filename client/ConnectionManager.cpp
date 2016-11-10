@@ -300,7 +300,6 @@ UserConnection* ConnectionManager::getConnection(bool aNmdc, bool secure) noexce
 	uc->addListener(this);
 	{
 		CFlyWriteLock(*g_csConnection);
-		dcassert(g_userConnections.find(uc) == g_userConnections.end());
 		g_userConnections.insert(uc);
 	}
 	if (aNmdc)
@@ -314,9 +313,11 @@ void ConnectionManager::putConnection(UserConnection* aConn)
 {
 	aConn->removeListener(this);
 	aConn->disconnect(true);
-	CFlyWriteLock(*g_csConnection);
-	dcassert(g_userConnections.find(aConn) != g_userConnections.end());
-	g_userConnections.erase(aConn);
+	{
+		CFlyWriteLock(*g_csConnection);
+		dcassert(g_userConnections.find(aConn) != g_userConnections.end());
+		g_userConnections.erase(aConn);
+	}
 }
 void ConnectionManager::flushOnUserUpdated()
 {
@@ -1055,26 +1056,24 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 			}
 		}
 	}
-	CFlyReadLock(*g_csConnection);
-	
-	// We don't want to be used as a flooding instrument
-	int count = 0;
-	for (auto j = g_userConnections.cbegin(); j != g_userConnections.cend(); ++j)
 	{
-	
-		const UserConnection& uc = **j;
-		
-		if (uc.socket == nullptr || !uc.socket->hasSocket())
-			continue;
-			
-		if (uc.getPort() == aPort && uc.getRemoteIp() == aIPServer) // TODO - не поддерживается DNS
+		CFlyReadLock(*g_csConnection);
+		// We don't want to be used as a flooding instrument
+		int count = 0;
+		for (auto j = g_userConnections.cbegin(); j != g_userConnections.cend(); ++j)
 		{
-			if (++count >= 5)
+			const UserConnection& uc = **j;
+			if (uc.socket == nullptr || !uc.socket->hasSocket())
+				continue;
+			if (uc.getPort() == aPort && uc.getRemoteIp() == aIPServer) // TODO - не поддерживается DNS
 			{
-				// More than 5 outbound connections to the same addr/port? Can't trust that..
-				// LogManager::message("ConnectionManager::connect Tried to connect more than 5 times to " + aIPServer + ":" + Util::toString(aPort));
-				dcdebug("ConnectionManager::connect Tried to connect more than 5 times to %s:%hu, connect dropped\n", aIPServer.c_str(), aPort);
-				return true;
+				if (++count >= 5)
+				{
+					// More than 5 outbound connections to the same addr/port? Can't trust that..
+					// LogManager::message("ConnectionManager::connect Tried to connect more than 5 times to " + aIPServer + ":" + Util::toString(aPort));
+					dcdebug("ConnectionManager::connect Tried to connect more than 5 times to %s:%hu, connect dropped\n", aIPServer.c_str(), aPort);
+					return true;
+				}
 			}
 		}
 	}
@@ -1826,11 +1825,6 @@ void ConnectionManager::disconnect(const UserPtr& aUser)
 		if (uc->getUser() == aUser)
 			uc->disconnect(true);
 	}
-	/*
-	    const auto & l_find = g_userConnections.find(aUser);
-	    if(l_find != g_userConnections.end())
-	        l_find->second->disconnect(true);
-	*/
 }
 
 void ConnectionManager::disconnect(const UserPtr& aUser, bool isDownload) // [!] IRainman fix.
@@ -1843,15 +1837,8 @@ void ConnectionManager::disconnect(const UserPtr& aUser, bool isDownload) // [!]
 		if (uc->getUser() == aUser && uc->isSet((Flags::MaskType)(isDownload ? UserConnection::FLAG_DOWNLOAD : UserConnection::FLAG_UPLOAD)))
 		{
 			uc->disconnect(true);
-			break;
 		}
 	}
-	/*
-	    const auto & l_find = g_userConnections.find(aUser);
-	    if(l_find != g_userConnections.end())
-	        if(l_find->second->isSet((Flags::MaskType)(isDownload ? UserConnection::FLAG_DOWNLOAD : UserConnection::FLAG_UPLOAD)))
-	            l_find->second->disconnect(true);
-	*/
 }
 
 void ConnectionManager::shutdown()
@@ -1941,11 +1928,6 @@ void ConnectionManager::setUploadLimit(const UserPtr& aUser, int lim)
 			(*i)->setUploadLimit(lim);
 		}
 	}
-	/*
-	    const auto & l_find = g_userConnections.find(aUser);
-	    if(l_find != g_userConnections.end() && l_find->second->isSet(UserConnection::FLAG_UPLOAD))
-	        l_find->second->setUploadLimit(lim);
-	*/
 }
 
 /**
