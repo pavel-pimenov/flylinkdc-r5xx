@@ -92,7 +92,7 @@ void SearchResultBaseTTH::toRES(AdcCommand& cmd, char p_type) const
 }
 
 SearchResult::SearchResult(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH, uint32_t aToken) :
-	SearchResultBaseTTH(aType, aSize, aFile, aTTH),
+	SearchResultCore(aType, aSize, aFile, aTTH),
 	m_user(ClientManager::getMe_UseOnlyForNonHubSpecifiedTasks()),
 	m_is_tth_remembrance(false),
 	m_is_tth_download(false),
@@ -109,7 +109,7 @@ SearchResult::SearchResult(Types aType, int64_t aSize, const string& aFile, cons
 SearchResult::SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, uint8_t aFreeSlots,
                            int64_t aSize, const string& aFile, const string& aHubName,
                            const string& aHubURL, const boost::asio::ip::address_v4& aIP4, const TTHValue& aTTH, uint32_t aToken) :
-	SearchResultBaseTTH(aType, aSize, aFile, aTTH, aSlots, aFreeSlots),
+	SearchResultCore(aType, aSize, aFile, aTTH, aSlots, aFreeSlots),
 	m_hubName(aHubName),
 	m_hubURL(aHubURL),
 	m_user(aUser),

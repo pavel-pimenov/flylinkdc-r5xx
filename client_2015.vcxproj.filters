@@ -1134,6 +1134,9 @@
     <ClInclude Include="client\webrtc\typedefs.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
+    <ClInclude Include="client\CFlySearchItemTTH.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

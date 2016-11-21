@@ -41,6 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/alloca.hpp"
 #include "libtorrent/performance_counters.hpp"
 #include "libtorrent/aux_/time.hpp"
+#include "libtorrent/aux_/block_cache_reference.hpp"
 
 /*
 
@@ -1558,7 +1559,7 @@ void block_cache::check_invariant() const
 	int cached_read_blocks = 0;
 	int num_pinned = 0;
 
-	std::set<piece_manager*> storages;
+	std::set<storage_interface*> storages;
 
 	for (int i = 0; i < cached_piece_entry::num_lrus; ++i)
 	{
@@ -1779,7 +1780,7 @@ int block_cache::copy_from_piece(cached_piece_entry* const pe
 	return j->d.io.buffer_size;
 }
 
-void block_cache::reclaim_block(block_cache_reference const& ref)
+void block_cache::reclaim_block(aux::block_cache_reference const& ref)
 {
 	cached_piece_entry* pe = find_piece(ref);
 	TORRENT_ASSERT(pe);
@@ -1817,9 +1818,9 @@ bool block_cache::maybe_free_piece(cached_piece_entry* pe)
 	return true;
 }
 
-cached_piece_entry* block_cache::find_piece(block_cache_reference const& ref)
+cached_piece_entry* block_cache::find_piece(aux::block_cache_reference const& ref)
 {
-	return find_piece(static_cast<piece_manager*>(ref.storage), ref.piece);
+	return find_piece(static_cast<storage_interface*>(ref.storage), ref.piece);
 }
 
 cached_piece_entry* block_cache::find_piece(disk_io_job const* j)
@@ -1827,7 +1828,7 @@ cached_piece_entry* block_cache::find_piece(disk_io_job const* j)
 	return find_piece(j->storage.get(), j->piece);
 }
 
-cached_piece_entry* block_cache::find_piece(piece_manager* st, int piece)
+cached_piece_entry* block_cache::find_piece(storage_interface* st, int piece)
 {
 	cached_piece_entry model;
 	model.storage = st->shared_from_this();

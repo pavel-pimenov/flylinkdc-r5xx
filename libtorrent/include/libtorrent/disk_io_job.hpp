@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/tailqueue.hpp"
+#include "libtorrent/aux_/block_cache_reference.hpp"
 
 #include <string>
 #include <vector>
@@ -43,17 +44,10 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent
 {
-	class piece_manager;
+	struct storage_interface;
 	struct cached_piece_entry;
 	class torrent_info;
 	struct add_torrent_params;
-
-	struct block_cache_reference
-	{
-		void* storage;
-		int piece;
-		int block;
-	};
 
 	// disk_io_jobs are allocated in a pool allocator in disk_io_thread
 	// they are always allocated from the network thread, posted
@@ -68,7 +62,6 @@ namespace libtorrent
 	// a lot of heap allocation churn of using general purpose
 	// containers.
 	struct TORRENT_EXTRA_EXPORT disk_io_job : tailqueue_node<disk_io_job>
-		, boost::noncopyable
 	{
 		disk_io_job();
 		~disk_io_job();
@@ -148,7 +141,7 @@ namespace libtorrent
 		} buffer;
 
 		// the disk storage this job applies to (if applicable)
-		std::shared_ptr<piece_manager> storage;
+		std::shared_ptr<storage_interface> storage;
 
 		// this is called when operation completes
 		std::function<void(disk_io_job const*)> callback;
@@ -179,7 +172,7 @@ namespace libtorrent
 			// is set in a response to a read, the buffer needs to
 			// be de-referenced by sending a reclaim_block message
 			// back to the disk thread
-			block_cache_reference ref;
+			aux::block_cache_reference ref;
 
 			// for read and write, the offset into the piece
 			// the read or write should start

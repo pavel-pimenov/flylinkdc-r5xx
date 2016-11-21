@@ -2336,7 +2336,7 @@ void ShareManager::Directory::search(SearchResultList& aResults, StringSearch::L
 			{
 				if (!newStr.get())
 				{
-					newStr = unique_ptr<StringSearch::List>(new StringSearch::List(aStrings));
+					newStr = std::make_unique<StringSearch::List>(aStrings);
 				}
 				newStr->erase(remove(newStr->begin(), newStr->end(), *k), newStr->end());
 			}
@@ -2357,8 +2357,8 @@ if ((cur->empty()) &&
         (((p_search_param.m_file_type == Search::TYPE_ANY) && sizeOk) || (p_search_param.m_file_type == Search::TYPE_DIRECTORY)))
 {
 // We satisfied all the search words! Add the directory...(NMDC searches don't support directory size)
-const SearchResult sr(SearchResult::TYPE_DIRECTORY, 0, getFullName(), TTHValue(), -1 /*token*/);
-	aResults.push_back(sr);
+const SearchResultCore l_sr(SearchResult::TYPE_DIRECTORY, 0, getFullName(), TTHValue(), -1 /*token*/);
+	aResults.push_back(l_sr);
 	ShareManager::incHits();
 }
 
@@ -2399,8 +2399,8 @@ for (auto i = m_share_files.cbegin(); i != m_share_files.cend(); ++i)
 		// Check file type...
 		if (checkType(i->getName(), p_search_param.m_file_type))
 		{
-			const SearchResult sr(SearchResult::TYPE_FILE, i->getSize(), getFullName() + i->getName(), i->getTTH(), -1  /*token*/);
-			aResults.push_back(sr);
+			const SearchResultCore l_sr(SearchResult::TYPE_FILE, i->getSize(), getFullName() + i->getName(), i->getTTH(), -1  /*token*/);
+			aResults.push_back(l_sr);
 			ShareManager::incHits();
 			if (aResults.size() >= p_search_param.m_max_results)
 			{
@@ -2427,7 +2427,7 @@ bool ShareManager::search_tth(const TTHValue& p_tth, SearchResultList& aResults,
 	{
 		const auto &l_fileMap = i->second;
 		// TODO - для TTH сильно толстый объект  SearchResult
-		const SearchResult sr(SearchResult::TYPE_FILE, l_fileMap->getSize(), l_fileMap->getParent()->getFullName() + l_fileMap->getName(), l_fileMap->getTTH(), -1/*token*/);
+		const SearchResultCore sr(SearchResult::TYPE_FILE, l_fileMap->getSize(), l_fileMap->getParent()->getFullName() + l_fileMap->getName(), l_fileMap->getTTH(), -1/*token*/);
 		incHits();
 		aResults.push_back(sr);
 		return true;
@@ -2701,7 +2701,7 @@ void ShareManager::Directory::search(SearchResultList& aResults, AdcSearch& aStr
     if (ClientManager::isBeforeShutdown())
     return;
     
-    StringSearch::List* cur = aStrings.m_includePtr;
+    const StringSearch::List* cur = aStrings.m_includePtr;
     StringSearch::List* old = aStrings.m_includePtr;
     
     unique_ptr<StringSearch::List> newStr;
@@ -2713,7 +2713,7 @@ void ShareManager::Directory::search(SearchResultList& aResults, AdcSearch& aStr
 		{
 			if (!newStr.get())
 			{
-				newStr = unique_ptr<StringSearch::List>(new StringSearch::List(*cur));
+				newStr = std::make_unique<StringSearch::List>(*cur);
 			}
 			newStr->erase(remove(newStr->begin(), newStr->end(), *k), newStr->end());
 		}
@@ -2728,8 +2728,8 @@ const bool sizeOk = (aStrings.m_gt == 0);
 if (cur->empty() && aStrings.m_exts.empty() && sizeOk)
 {
 // We satisfied all the search words! Add the directory...
-const SearchResult sr(SearchResult::TYPE_DIRECTORY, getDirSizeFast(), getFullName(), TTHValue(), -1  /*token*/);
-	aResults.push_back(sr);
+const SearchResultCore l_sr(SearchResult::TYPE_DIRECTORY, getDirSizeFast(), getFullName(), TTHValue(), -1  /*token*/);
+	aResults.push_back(l_sr);
 	ShareManager::incHits();
 }
 
@@ -2760,8 +2760,8 @@ for (auto i = m_share_files.cbegin(); i != m_share_files.cend() && !ClientManage
 		// Check file type...
 		if (aStrings.hasExt(i->getName()))
 		{
-			const SearchResult sr(SearchResult::TYPE_FILE, i->getSize(), getFullName() + i->getName(), i->getTTH(), -1  /*token*/);
-			aResults.push_back(sr);
+			const SearchResultCore l_sr(SearchResult::TYPE_FILE, i->getSize(), getFullName() + i->getName(), i->getTTH(), -1  /*token*/);
+			aResults.push_back(l_sr);
 			ShareManager::incHits();
 			if (aResults.size() >= maxResults)
 			{
@@ -2778,7 +2778,7 @@ l->second->search(aResults, aStrings, maxResults);
 aStrings.m_includePtr = old;
 }
 
-void ShareManager::search_max_result(SearchResultList& results, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept // [!] IRainman add StringSearch::List& reguest
+void ShareManager::search_max_result(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept // [!] IRainman add StringSearch::List& reguest
 {
 	if (ClientManager::isBeforeShutdown())
 		return;
@@ -2787,7 +2787,7 @@ void ShareManager::search_max_result(SearchResultList& results, const StringList
 	reguest = srch.m_includeX; // [+] IRainman
 	if (srch.m_hasRoot)
 	{
-		search_tth(srch.m_root, results, false);
+		search_tth(srch.m_root, aResults, false);
 	}
 	
 	{
@@ -2802,9 +2802,9 @@ void ShareManager::search_max_result(SearchResultList& results, const StringList
 	}
 	{
 		CFlyReadLock(*g_csDirList);
-		for (auto j = g_list_directories.cbegin(); j != g_list_directories.cend() && results.size() < maxResults && !ClientManager::isBeforeShutdown(); ++j)
+		for (auto j = g_list_directories.cbegin(); j != g_list_directories.cend() && aResults.size() < maxResults && !ClientManager::isBeforeShutdown(); ++j)
 		{
-			(*j)->search(results, srch, maxResults);
+			(*j)->search(aResults, srch, maxResults);
 		}
 	}
 }
@@ -2988,7 +2988,7 @@ void ShareManager::internalClearCache(bool p_is_force)
 	}
 	{
 		CFlyWriteLock(*g_csShareCache);
-		if (p_is_force || g_file_cache_map.size() > 1000)
+		if (p_is_force || g_file_cache_map.size() > 2000)
 		{
 			g_file_cache_map.clear();
 		}

@@ -124,8 +124,8 @@ void Thread::start(unsigned int p_stack_size, const char* p_name /* = nullptr */
 {
 	join();
 	p_stack_size *= 1024;
-    dcassert(!ClientManager::isBeforeShutdown());
-    HANDLE h = reinterpret_cast<HANDLE>(_beginthreadex(nullptr, p_stack_size, &starter, this, 0, nullptr));
+	dcassert(!ClientManager::isBeforeShutdown());
+	HANDLE h = reinterpret_cast<HANDLE>(_beginthreadex(nullptr, p_stack_size, &starter, this, 0, nullptr));
 	if (h == nullptr || h == INVALID_HANDLE_VALUE)
 	{
 		h = reinterpret_cast<HANDLE>(_beginthreadex(nullptr, p_stack_size ? p_stack_size / 2 : 64 * 1024, &starter, this, 0, nullptr));

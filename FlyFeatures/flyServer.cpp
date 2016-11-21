@@ -102,6 +102,15 @@ DWORD CFlyServerConfig::g_winet_send_timeout    = 1000;
 
 boost::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > CFlyServerAdapter::g_fly_server_cache;
 ::CriticalSection CFlyServerAdapter::g_cs_fly_server;
+::CriticalSection CFlyServerAdapter::g_cs_set_array_fly_server;
+CFlyServerKeyArray CFlyServerAdapter::g_SetFlyServerArray;
+
+::CriticalSection CFlyServerAdapter::g_cs_get_array_fly_server;
+CFlyServerKeyArray CFlyServerAdapter::g_GetFlyServerArray;
+
+::CriticalSection CFlyServerAdapter::g_cs_tth_media_map;
+boost::unordered_map<TTHValue, uint64_t> CFlyServerAdapter::g_tth_media_file_map;
+
 ::CriticalSection CFlyServerJSON::g_cs_error_report;
 ::CriticalSection CFlyServerJSON::g_cs_download_counter;
 ::CriticalSection CFlyServerJSON::g_cs_antivirus_counter;
@@ -1054,45 +1063,47 @@ CFlyTTHKeyDownloadArray CFlyServerJSON::g_download_counter;
 CFlyAntivirusTTHArray CFlyServerJSON::g_antivirus_counter;
 CFlyVirusFileListArray CFlyServerJSON::g_antivirus_file_list;
 //===================================================================================================================================
-void CFlyServerAdapter::post_message_for_update_mediainfo()
+void CFlyServerAdapter::clear_tth_media_map()
+{
+    CFlyLock(g_cs_tth_media_map);
+    g_tth_media_file_map.clear();
+}
+void CFlyServerAdapter::post_message_for_update_mediainfo(const HWND p_hMediaWnd)
 {
 #ifdef _DEBUG
 	// TODO - эмулируем тормозной инет ::Sleep(10000);
 #endif
-	dcassert(::IsWindow(m_hMediaWnd));
+	dcassert(::IsWindow(p_hMediaWnd));
     dcassert(!ClientManager::isBeforeShutdown());
-    if (!ClientManager::isBeforeShutdown() && ::IsWindow(m_hMediaWnd) && !m_GetFlyServerArray.empty())
+    if (!ClientManager::isBeforeShutdown() && ::IsWindow(p_hMediaWnd) && !g_GetFlyServerArray.empty())
 	{
 		CFlyServerKeyArray l_copy_array;
 		{
-			CFlyLock(g_cs_fly_server);
-			l_copy_array.swap(m_GetFlyServerArray);
+            CFlyLock(g_cs_get_array_fly_server);
+			l_copy_array.swap(g_GetFlyServerArray);
 		}
 		const string l_json_result = CFlyServerJSON::connect(l_copy_array, false); 
 		// TODO - сохранить m_GetFlyServerArray в другом месте?
-		dcassert(::IsWindow(m_hMediaWnd));
+		dcassert(::IsWindow(p_hMediaWnd));
         dcassert(!ClientManager::isBeforeShutdown());
-        if (!ClientManager::isBeforeShutdown() && !l_json_result.empty() && ::IsWindow(m_hMediaWnd))
+        if (!ClientManager::isBeforeShutdown() && !l_json_result.empty() && ::IsWindow(p_hMediaWnd))
 		{
 			Json::Value* l_root = new Json::Value;
 			Json::Reader l_reader(Json::Features::strictMode());
 			const bool l_parsingSuccessful = l_reader.parse(l_json_result, *l_root);
 			if (!ClientManager::isBeforeShutdown() && !l_parsingSuccessful && !l_json_result.empty())
 			{
-				{
-					CFlyLock(g_cs_fly_server);
-					m_tth_media_file_map.clear();  // Если возникла ошибка передачи запроса на чтение, запись не шлем.
-				}
+                clear_tth_media_map();
 				delete l_root;
 				LogManager::message("Failed to parse json configuration: l_json_result = " + l_json_result);
 			}
 			else
 			{
-				dcassert(::IsWindow(m_hMediaWnd));
+				dcassert(::IsWindow(p_hMediaWnd));
                 dcassert(!ClientManager::isBeforeShutdown());
-                if (!ClientManager::isBeforeShutdown() && ::IsWindow(m_hMediaWnd))
+                if (!ClientManager::isBeforeShutdown() && ::IsWindow(p_hMediaWnd))
 				{
-					PostMessage(m_hMediaWnd, WM_SPEAKER_MERGE_FLY_SERVER, WPARAM(l_root), LPARAM(NULL));
+					PostMessage(p_hMediaWnd, WM_SPEAKER_MERGE_FLY_SERVER, WPARAM(l_root), LPARAM(NULL));
 				}
 				else
 				{
@@ -1102,33 +1113,23 @@ void CFlyServerAdapter::post_message_for_update_mediainfo()
 		}
 		else
 		{
-			dcassert(::IsWindow(m_hMediaWnd));
+			dcassert(::IsWindow(p_hMediaWnd));
             dcassert(!ClientManager::isBeforeShutdown());
-            if (!ClientManager::isBeforeShutdown() && ::IsWindow(m_hMediaWnd))
-			{
-				CFlyLock(g_cs_fly_server);
-				m_tth_media_file_map.clear(); // Если возникла ошибка передачи запроса на чтение, запись не шлем.
-				// crash https://drdump.com/Problem.aspx?ProblemID=121494
-			}
+            clear_tth_media_map();
 		}
 	}
-    dcassert(!ClientManager::isBeforeShutdown());
-    if (!ClientManager::isBeforeShutdown())
-    {
-        push_mediainfo_to_fly_server(); // Сбросим на флай-сервер медиаинфу, что нашли у себя (там ее еще нет)
-    }
+    CFlyServerAdapter::push_mediainfo_to_fly_server(); // Сбросим на флай-сервер новую медиаинфу, которую нашли у себя
 }
 //===================================================================================================================================
 void CFlyServerAdapter::push_mediainfo_to_fly_server()
 {
-	dcassert(::IsWindow(m_hMediaWnd));
     dcassert(!ClientManager::isBeforeShutdown());
-    if (!ClientManager::isBeforeShutdown() && ::IsWindow(m_hMediaWnd))
+    if (!ClientManager::isBeforeShutdown())
 	{
 		CFlyServerKeyArray l_copy_map;
 		{
-			CFlyLock(g_cs_fly_server);
-			l_copy_map.swap(m_SetFlyServerArray);
+			CFlyLock(g_cs_set_array_fly_server);
+			l_copy_map.swap(g_SetFlyServerArray);
 		}
 		if (!l_copy_map.empty())
 		{
@@ -1141,7 +1142,12 @@ void CFlyServerAdapter::prepare_mediainfo_to_fly_serverL()
 {
 	// Обойдем кандидатов для предачи на сервер.
 	// Массив - есть у нас в базе, но нет на fly-server
-	for (auto i = m_tth_media_file_map.begin(); i != m_tth_media_file_map.end(); ++i)
+    boost::unordered_map<TTHValue, uint64_t> l_tth_map;
+    {
+        CFlyLock(g_cs_tth_media_map);
+        l_tth_map.swap(g_tth_media_file_map);
+    }
+	for (auto i = l_tth_map.begin(); i != l_tth_map.end(); ++i)
 	{
 		CFlyMediaInfo l_media_info;
 		if (CFlylinkDBManager::getInstance()->load_media_info(i->first, l_media_info, false))
@@ -1153,11 +1159,14 @@ void CFlyServerAdapter::prepare_mediainfo_to_fly_serverL()
 			{
 				CFlyServerKey l_info(i->first, i->second);
 				l_info.m_media = l_media_info; // Получили медиаинформацию с локальной базы
-				m_SetFlyServerArray.push_back(l_info);
+                {
+                    CFlyLock(g_cs_set_array_fly_server);
+                    g_SetFlyServerArray.push_back(l_info);
+                }
 			}
 		}
 	}
-	m_tth_media_file_map.clear();
+    clear_tth_media_map();
 }
 //======================================================================================================
 static void initCIDPID(Json::Value& p_info)
@@ -1514,7 +1523,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 }
 #endif
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 74 (36,58,44,49 - устарели)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 75 (36,58,44,49 - устарели)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;

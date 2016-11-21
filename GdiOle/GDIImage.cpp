@@ -98,7 +98,7 @@ CGDIImage::~CGDIImage()
 void CGDIImage::Draw(HDC hDC, int xDst, int yDst, int wDst, int hDst, int xSrc, int ySrc, HDC hBackDC, int xBk, int yBk, int wBk, int hBk)
 {
 	dcassert(!isShutdown());
-	if (hBackDC)
+	if (hBackDC && !isShutdown())
 	{
 		BitBlt(hBackDC, xBk, yBk, wBk, hBk, NULL, 0, 0, PATCOPY);
 		

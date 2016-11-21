@@ -64,9 +64,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/storage.hpp"
 #include "libtorrent/torrent.hpp"
-#include "libtorrent/hasher.hpp"
 #include "libtorrent/session.hpp"
-#include "libtorrent/peer_id.hpp"
 #include "libtorrent/file.hpp"
 #include "libtorrent/invariant_check.hpp"
 #include "libtorrent/file_pool.hpp"
@@ -214,7 +212,7 @@ namespace libtorrent
 
 	} // anonymous namespace
 
-	struct write_fileop : fileop
+	struct write_fileop final : fileop
 	{
 		write_fileop(default_storage& st, int flags)
 			: m_storage(st)
@@ -302,7 +300,7 @@ namespace libtorrent
 		int m_flags;
 	};
 
-	struct read_fileop : fileop
+	struct read_fileop final : fileop
 	{
 		read_fileop(default_storage& st, int const flags)
 			: m_storage(st)
@@ -927,7 +925,7 @@ namespace libtorrent
 	int default_storage::move_storage(std::string const& sp, int const flags
 		, storage_error& ec)
 	{
-		int ret = piece_manager::no_error;
+		int ret = disk_interface::no_error;
 		std::string const save_path = complete(sp);
 
 		// check to see if any of the files exist
@@ -952,7 +950,7 @@ namespace libtorrent
 						ec.ec = err;
 						ec.file = i;
 						ec.operation = storage_error::stat;
-						return piece_manager::file_exist;
+						return disk_interface::file_exist;
 					}
 				}
 			}
@@ -971,7 +969,7 @@ namespace libtorrent
 					ec.ec = err;
 					ec.file = -1;
 					ec.operation = storage_error::mkdir;
-					return piece_manager::fatal_disk_error;
+					return disk_interface::fatal_disk_error;
 				}
 			}
 			else if (err)
@@ -979,7 +977,7 @@ namespace libtorrent
 				ec.ec = err;
 				ec.file = -1;
 				ec.operation = storage_error::stat;
-				return piece_manager::fatal_disk_error;
+				return disk_interface::fatal_disk_error;
 			}
 		}
 
@@ -1001,7 +999,7 @@ namespace libtorrent
 
 			if (flags == dont_replace && exists(new_path))
 			{
-				if (ret == piece_manager::no_error) ret = piece_manager::need_full_check;
+				if (ret == disk_interface::no_error) ret = disk_interface::need_full_check;
 				continue;
 			}
 
@@ -1053,7 +1051,7 @@ namespace libtorrent
 				}
 			}
 
-			return piece_manager::fatal_disk_error;
+			return disk_interface::fatal_disk_error;
 		}
 
 		std::string const old_save_path = m_save_path;
@@ -1252,7 +1250,7 @@ namespace libtorrent
 			if (m_file_created[file] == false)
 			{
 				error_code e;
-				boost::int64_t const size = files().file_size(file);
+				std::int64_t const size = files().file_size(file);
 				h->set_size(size, e);
 				m_file_created.set_bit(file);
 				if (e)
@@ -1355,7 +1353,7 @@ namespace libtorrent
 		// of normal bittorrent operation, since it will just send garbage
 		// to peers and throw away all the data it downloads. It would end
 		// up being banned immediately
-		class disabled_storage final : public storage_interface, boost::noncopyable
+		class disabled_storage final : public storage_interface
 		{
 		public:
 			bool has_any_file(storage_error&) override { return false; }
@@ -1465,82 +1463,6 @@ namespace libtorrent
 #if TORRENT_USE_ASSERTS
 		p->in_storage = false;
 #endif
-	}
-
-	// -- piece_manager -----------------------------------------------------
-
-	piece_manager::piece_manager(
-		storage_interface* storage_impl
-		, std::shared_ptr<void> const& torrent
-		, file_storage* files)
-		: m_files(*files)
-		, m_storage(storage_impl)
-		, m_torrent(torrent)
-	{
-	}
-
-	piece_manager::~piece_manager() = default;
-
-	int piece_manager::check_no_fastresume(storage_error& ec)
-	{
-		if (!m_storage->settings().get_bool(settings_pack::no_recheck_incomplete_resume))
-		{
-			storage_error se;
-			bool const has_files = m_storage->has_any_file(se);
-
-			if (se)
-			{
-				ec = se;
-				return fatal_disk_error;
-			}
-
-			if (has_files)
-			{
-				// always initialize the storage
-				int ret = check_init_storage(ec);
-				return ret != no_error ? ret : need_full_check;
-			}
-		}
-
-		return check_init_storage(ec);
-	}
-
-	int piece_manager::check_init_storage(storage_error& ec)
-	{
-		storage_error se;
-		// initialize may clear the error we pass in and it's important to
-		// preserve the error code in ec, even when initialize() is successful
-		m_storage->initialize(se);
-		if (se)
-		{
-			ec = se;
-			return fatal_disk_error;
-		}
-		return no_error;
-	}
-
-	// check if the fastresume data is up to date
-	// if it is, use it and return true. If it
-	// isn't return false and the full check
-	// will be run. If the links pointer is non-empty, it has the same number
-	// of elements as there are files. Each element is either empty or contains
-	// the absolute path to a file identical to the corresponding file in this
-	// torrent. The storage must create hard links (or copy) those files. If
-	// any file does not exist or is inaccessible, the disk job must fail.
-	int piece_manager::check_fastresume(
-		add_torrent_params const& rd
-		, std::vector<std::string> const& links
-		, storage_error& ec)
-	{
-		TORRENT_ASSERT(m_files.piece_length() > 0);
-
-		// if we don't have any resume data, return
-		if (rd.have_pieces.empty()) return check_no_fastresume(ec);
-
-		if (!m_storage->verify_resume_data(rd, links, ec))
-			return check_no_fastresume(ec);
-
-		return check_init_storage(ec);
 	}
 
 	// ====== disk_job_fence implementation ========
@@ -1736,4 +1658,3 @@ namespace libtorrent
 		return m_has_fence > 1 ? fence_post_none : fence_post_flush;
 	}
 } // namespace libtorrent
-

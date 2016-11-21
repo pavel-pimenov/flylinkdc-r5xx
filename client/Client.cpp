@@ -176,8 +176,8 @@ void Client::reset_socket()
 
 void Client::shutdown()
 {
-	TimerManager::getInstance()->removeListener(this); // [+] IRainman fix.
 	state = STATE_DISCONNECTED;//[!] IRainman fix
+	TimerManager::getInstance()->removeListener(this); // [+] IRainman fix.
 	// [+] brain-ripper
 	// Ugly hack to avoid deadlock:
 	// this function captures csSock section

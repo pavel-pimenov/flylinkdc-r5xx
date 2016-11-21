@@ -30,8 +30,6 @@ void BaseChatFrame::destroyStatusbar(bool p_is_shutdown)
 {
 	safe_destroy_window(m_ctrlStatus);
 	safe_destroy_window(m_ctrlLastLinesToolTip);
-	safe_delete(m_ctrlStatus);
-	safe_delete(m_ctrlLastLinesToolTip);
 }
 
 void BaseChatFrame::createStatusCtrl(HWND p_hWndStatusBar)
@@ -118,7 +116,6 @@ void BaseChatFrame::destroyMessageCtrl(bool p_is_shutdown)
 		}
 		safe_destroy_window(m_ctrlMessage);
 	}
-	safe_delete(m_ctrlMessage);
 	safe_delete(m_ctrlMessageContainer);
 }
 void BaseChatFrame::createMessagePanel()

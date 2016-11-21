@@ -32,8 +32,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/create_torrent.hpp"
 #include "libtorrent/utf8.hpp"
-#include "libtorrent/file_pool.hpp"
-#include "libtorrent/storage.hpp"
 #include "libtorrent/aux_/escape_string.hpp" // for convert_to_wstring
 #include "libtorrent/disk_io_thread.hpp"
 #include "libtorrent/aux_/merkle.hpp" // for merkle_*()
@@ -112,7 +110,8 @@ namespace libtorrent
 		}
 
 		void add_files_impl(file_storage& fs, std::string const& p
-			, std::string const& l, std::function<bool(std::string)> pred, std::uint32_t flags)
+			, std::string const& l, std::function<bool(std::string)> pred
+			, std::uint32_t const flags)
 		{
 			std::string f = combine_path(p, l);
 			if (!pred(f)) return;
@@ -160,7 +159,7 @@ namespace libtorrent
 		}
 
 		void on_hash(disk_io_job const* j, create_torrent* t
-			, std::shared_ptr<piece_manager> storage, disk_io_thread* iothread
+			, std::shared_ptr<storage_interface> storage, disk_io_thread* iothread
 			, int* piece_counter, int* completed_piece
 			, std::function<void(int)> const* f, error_code* ec)
 		{
@@ -262,8 +261,6 @@ namespace libtorrent
 			return;
 		}
 
-		// dummy torrent object pointer
-		std::shared_ptr<char> dummy;
 		counters cnt;
 		disk_io_thread disk_thread(ios, cnt);
 
@@ -274,10 +271,9 @@ namespace libtorrent
 		params.pool = &disk_thread.files();
 		params.mode = storage_mode_sparse;
 
-		storage_interface* storage_impl = default_storage_constructor(params);
 
-		std::shared_ptr<piece_manager> storage = std::make_shared<piece_manager>(
-			storage_impl, dummy, const_cast<file_storage*>(&t.files()));
+		std::shared_ptr<storage_interface> storage(default_storage_constructor(params));
+		storage->set_files(&t.files());
 
 		settings_pack sett;
 		sett.set_int(settings_pack::cache_size, 0);
@@ -423,12 +419,11 @@ namespace libtorrent
 		{
 			entry& nodes = dict["nodes"];
 			entry::list_type& nodes_list = nodes.list();
-			for (nodes_t::const_iterator i = m_nodes.begin()
-				, end(m_nodes.end()); i != end; ++i)
+			for (auto const& n : m_nodes)
 			{
 				entry::list_type node;
-				node.push_back(entry(i->first));
-				node.push_back(entry(i->second));
+				node.push_back(entry(n.first));
+				node.push_back(entry(n.second));
 				nodes_list.push_back(entry(node));
 			}
 		}
@@ -438,16 +433,15 @@ namespace libtorrent
 			entry trackers(entry::list_t);
 			entry tier(entry::list_t);
 			int current_tier = m_urls.front().second;
-			for (std::vector<announce_entry>::const_iterator i = m_urls.begin();
-				i != m_urls.end(); ++i)
+			for (auto const& url : m_urls)
 			{
-				if (i->second != current_tier)
+				if (url.second != current_tier)
 				{
-					current_tier = i->second;
+					current_tier = url.second;
 					trackers.list().push_back(tier);
 					tier.list().clear();
 				}
-				tier.list().push_back(entry(i->first));
+				tier.list().push_back(entry(url.first));
 			}
 			trackers.list().push_back(tier);
 			dict["announce-list"] = trackers;
@@ -470,10 +464,9 @@ namespace libtorrent
 			else
 			{
 				entry& list = dict["url-list"];
-				for (std::vector<std::string>::const_iterator i
-					= m_url_seeds.begin(); i != m_url_seeds.end(); ++i)
+				for (auto const& url : m_url_seeds)
 				{
-					list.list().push_back(entry(*i));
+					list.list().push_back(entry(url));
 				}
 			}
 		}
@@ -487,10 +480,9 @@ namespace libtorrent
 			else
 			{
 				entry& list = dict["httpseeds"];
-				for (std::vector<std::string>::const_iterator i
-					= m_http_seeds.begin(); i != m_http_seeds.end(); ++i)
+				for (auto const& url : m_http_seeds)
 				{
-					list.list().push_back(entry(*i));
+					list.list().push_back(entry(url));
 				}
 			}
 		}
@@ -506,20 +498,18 @@ namespace libtorrent
 		if (!m_collections.empty())
 		{
 			entry& list = info["collections"];
-			for (std::vector<std::string>::const_iterator i
-				= m_collections.begin(); i != m_collections.end(); ++i)
+			for (auto const& c : m_collections)
 			{
-				list.list().push_back(entry(*i));
+				list.list().push_back(entry(c));
 			}
 		}
 
 		if (!m_similar.empty())
 		{
 			entry& list = info["similar"];
-			for (std::vector<sha1_hash>::const_iterator i
-				= m_similar.begin(); i != m_similar.end(); ++i)
+			for (auto const& ih : m_similar)
 			{
-				list.list().push_back(entry(i->to_string()));
+				list.list().push_back(entry(ih.to_string()));
 			}
 		}
 
@@ -585,7 +575,7 @@ namespace libtorrent
 							path_e.list().push_back(entry(e));
 					}
 
-					int flags = m_files.file_flags(i);
+					int const flags = m_files.file_flags(i);
 					if (flags != 0)
 					{
 						std::string& attr = file_e["attr"].string();
@@ -615,16 +605,15 @@ namespace libtorrent
 		info["piece length"] = m_files.piece_length();
 		if (m_merkle_torrent)
 		{
-			int num_leafs = merkle_num_leafs(m_files.num_pieces());
-			int num_nodes = merkle_num_nodes(num_leafs);
-			int first_leaf = num_nodes - num_leafs;
+			int const num_leafs = merkle_num_leafs(m_files.num_pieces());
+			int const num_nodes = merkle_num_nodes(num_leafs);
+			int const first_leaf = num_nodes - num_leafs;
 			m_merkle_tree.resize(num_nodes);
-			int num_pieces = int(m_piece_hash.size());
+			int const num_pieces = int(m_piece_hash.size());
 			for (int i = 0; i < num_pieces; ++i)
 				m_merkle_tree[first_leaf + i] = m_piece_hash[i];
-			sha1_hash filler(nullptr);
 			for (int i = num_pieces; i < num_leafs; ++i)
-				m_merkle_tree[first_leaf + i] = filler;
+				m_merkle_tree[first_leaf + i].clear();
 
 			// now that we have initialized all leaves, build
 			// each level bottom-up
@@ -637,7 +626,7 @@ namespace libtorrent
 				{
 					hasher h;
 					h.update(m_merkle_tree[i]);
-					h.update(m_merkle_tree[i+1]);
+					h.update(m_merkle_tree[i + 1]);
 					m_merkle_tree[parent] = h.final();
 				}
 				level_start = merkle_get_parent(level_start);
@@ -663,6 +652,7 @@ namespace libtorrent
 
 	void create_torrent::add_tracker(string_view url, int const tier)
 	{
+		using announce_entry = std::pair<std::string, int>;
 		auto i = std::find_if(m_urls.begin(), m_urls.end()
 			, [&url](announce_entry const& ae) { return ae.first == url.to_string(); });
 		if (i != m_urls.end()) return;

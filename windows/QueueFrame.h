@@ -443,9 +443,9 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		void renameSelected();
 		void renameSelectedDir();
 		
-        string getSelectedDir() const;		
-        string getDir(HTREEITEM ht) const;
-
+		string getSelectedDir() const;
+		string getDir(HTREEITEM ht) const;
+		
 		void removeItem(const string& p_target);
 		void on(QueueManagerListener::Added, const QueueItemPtr& aQI) noexcept override;
 		void on(QueueManagerListener::AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept override;

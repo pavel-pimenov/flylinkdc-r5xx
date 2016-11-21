@@ -68,12 +68,12 @@ class ConnectivityManager : public Singleton<ConnectivityManager>
 		static void mappingFinished(const string& mapper);
 		static void log(const string& msg);
 		
-        static string getInformation();
-        static const string& getStatus()
-        {
-            return g_status;
-        }
-        void startSocket();
+		static string getInformation();
+		static const string& getStatus()
+		{
+			return g_status;
+		}
+		void startSocket();
 		void listen();
 		void disconnect();
 		

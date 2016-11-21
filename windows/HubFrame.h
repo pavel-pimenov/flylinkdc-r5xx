@@ -244,20 +244,14 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		LRESULT onRefresh(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			dcassert(m_client);
-			if (m_client && m_client->isConnected())
+			if (isConnected())
 			{
 				clearUserList();
 				m_client->refreshUserList(false);
 			}
 			return 0;
 		}
-		// [-] IRainman opt
-		//LRESULT onItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
-		/*{
-		    updateStatusBar();
-		    return 0;
-		}
-		*/
+		
 		LRESULT onKeyDownUsers(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 		{
 			const NMLVKEYDOWN* l = (NMLVKEYDOWN*)pnmh;
@@ -336,6 +330,10 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void setHubParam()
 		{
 			++m_is_hub_param_update;
+		}
+		bool isConnected() const
+		{
+			return m_client && m_client->isConnected();
 		}
 		CContainedWindow ctrlClientContainer;
 		

@@ -2375,26 +2375,26 @@ LRESULT QueueFrame::onKeyDownDirs(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 }
 string QueueFrame::getSelectedDir() const
 {
-    HTREEITEM ht = ctrlDirs.GetSelectedItem();
-    return ht == NULL ? Util::emptyString : getDir(ctrlDirs.GetSelectedItem());
+	HTREEITEM ht = ctrlDirs.GetSelectedItem();
+	return ht == NULL ? Util::emptyString : getDir(ctrlDirs.GetSelectedItem());
 }
 
 string QueueFrame::getDir(HTREEITEM ht) const
 {
-    dcassert(ht != NULL);
-    if (ht)
-    {
-        const auto l_str = reinterpret_cast<string*>(ctrlDirs.GetItemData(ht));
-        if (l_str)
-            return *l_str;
-        else
-        {
-            dcassert(0);
-            return Util::emptyString;
-        }
-    }
-    else
-        return Util::emptyString;
+	dcassert(ht != NULL);
+	if (ht)
+	{
+		const auto l_str = reinterpret_cast<string*>(ctrlDirs.GetItemData(ht));
+		if (l_str)
+			return *l_str;
+		else
+		{
+			dcassert(0);
+			return Util::emptyString;
+		}
+	}
+	else
+		return Util::emptyString;
 }
 
 /**

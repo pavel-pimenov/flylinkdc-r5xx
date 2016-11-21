@@ -239,6 +239,17 @@ POSSIBILITY OF SUCH DAMAGE.
 // unless some other crypto library has been specified, default to the native
 // windows CryptoAPI
 #define TORRENT_USE_CRYPTOAPI 1
+
+#ifdef NTDDI_VERSION
+# if (NTDDI_VERSION > NTDDI_WINXPSP2)
+#  define TORRENT_USE_CRYPTOAPI_SHA_512 1
+# endif
+#else // NTDDI_VERSION not defined so use simple _WIN32_WINNT check
+# if _WIN32_WINNT >= 0x0600
+#  define TORRENT_USE_CRYPTOAPI_SHA_512 1
+# endif
+#endif
+
 #endif
 
 #define TORRENT_USE_GETADAPTERSADDRESSES 1
@@ -400,6 +411,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_USE_CRYPTOAPI 0
 #endif
 
+#ifndef TORRENT_USE_CRYPTOAPI_SHA_512
+#define TORRENT_USE_CRYPTOAPI_SHA_512 0
+#endif
+
 #ifndef TORRENT_HAVE_MMAP
 #define TORRENT_HAVE_MMAP 0
 #endif
@@ -531,7 +546,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define __has_builtin(x) 0  // for non-clang compilers
 #endif
 
-#if (TORRENT_HAS_SSE && __GNUC__)
+#if (TORRENT_HAS_SSE && defined __GNUC__)
 #	define TORRENT_HAS_BUILTIN_CLZ 1
 #elif (TORRENT_HAS_ARM && defined __GNUC__ && !defined __clang__)
 #	define TORRENT_HAS_BUILTIN_CLZ 1
@@ -541,7 +556,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #	define TORRENT_HAS_BUILTIN_CLZ 0
 #endif // TORRENT_HAS_BUILTIN_CLZ
 
-#if (TORRENT_HAS_SSE && __GNUC__)
+#if (TORRENT_HAS_SSE && defined __GNUC__)
 #	define TORRENT_HAS_BUILTIN_CTZ 1
 #elif (TORRENT_HAS_ARM && defined __GNUC__ && !defined __clang__)
 #	define TORRENT_HAS_BUILTIN_CTZ 1

@@ -206,6 +206,8 @@ STDMETHODIMP CGDIImageOle::put_SetImage(CGDIImage *pImage, COLORREF clrBack, HWN
 bool CGDIImageOle::OnFrameChanged(CGDIImage *pImage, LPARAM lParam)
 {
 	dcassert(!CGDIImage::isShutdown());
+	if (CGDIImage::isShutdown())
+		return true;
 	CGDIImageOle *pGDIImage = (CGDIImageOle *)lParam;
 	return pGDIImage->FireViewChangeEx(FALSE) == S_OK;
 }

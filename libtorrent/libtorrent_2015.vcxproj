@@ -35,6 +35,7 @@
     <ClInclude Include="include\libtorrent\assert.hpp" />
     <ClInclude Include="include\libtorrent\aux_\allocating_handler.hpp" />
     <ClInclude Include="include\libtorrent\aux_\bind_to_device.hpp" />
+    <ClInclude Include="include\libtorrent\aux_\block_cache_reference.hpp" />
     <ClInclude Include="include\libtorrent\aux_\byteswap.hpp" />
     <ClInclude Include="include\libtorrent\aux_\cppint_import_export.hpp" />
     <ClInclude Include="include\libtorrent\aux_\cpuid.hpp" />

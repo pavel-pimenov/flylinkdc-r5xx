@@ -106,19 +106,22 @@ template <class T> inline void safe_unsubclass_window(T* p)
 		p->UnsubclassWindow();
 	}
 }
-template <class T> inline void safe_destroy_window(T* p)
+template <class T> inline void safe_destroy_window(T*& p)
 {
 	if (p)
 	{
-		if (p->IsWindow())
+		T* p_copy = p;
+		p = nullptr;
+		if (p_copy->IsWindow())
 		{
-			p->DestroyWindow();
-			p->Detach();
+			p_copy->DestroyWindow();
+			p_copy->Detach();
 		}
 		else
 		{
 			dcassert(0);
 		}
+		delete p_copy;
 	}
 }
 

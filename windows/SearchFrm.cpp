@@ -204,7 +204,6 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	fixme:dbghelp:MiniDumpWriteDump NIY MiniDumpWithFullMemory
 	fixme:edit:EDIT_EM_FmtLines soft break enabled, not implemented
 	*/
-	init_fly_server_window(m_hWnd);
 	m_tooltip.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
 	m_tooltip.SetDelayTime(TTDT_AUTOPOP, 15000);
 	dcassert(m_tooltip.IsWindow());
@@ -1323,9 +1322,13 @@ bool SearchFrame::scan_list_view_from_merge()
 						m_merge_item_map.insert(make_pair(l_tth, make_pair(l_item_info, l_fly_server_cache)));
 						if (l_info.m_only_counter)
 						{
-							m_tth_media_file_map[l_tth] = l_file_size; // Регистрируем кандидата на передачу информации
+							CFlyLock(g_cs_tth_media_map);
+							g_tth_media_file_map[l_tth] = l_file_size; // Регистрируем кандидата на передачу информации
 						}
-						m_GetFlyServerArray.push_back(l_info);
+						{
+							CFlyLock(g_cs_get_array_fly_server);
+							g_GetFlyServerArray.push_back(l_info);
+						}
 					}
 					else
 					{
@@ -1349,7 +1352,7 @@ bool SearchFrame::scan_list_view_from_merge()
 		}
 		update_column_after_merge(l_update_index);
 	}
-	return m_GetFlyServerArray.size() || m_SetFlyServerArray.size();
+	return g_GetFlyServerArray.size() || g_SetFlyServerArray.size();
 }
 //===================================================================================================================================
 LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
@@ -1435,7 +1438,8 @@ LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM
 			}
 			if (l_is_know_tth) // Если сервер расказал об этом TTH с медиаинфой, то не шлем ему ничего
 			{
-				m_tth_media_file_map.erase(l_tth);
+				CFlyLock(g_cs_tth_media_map);
+				g_tth_media_file_map.erase(l_tth);
 			}
 		}
 	}
@@ -1534,7 +1538,7 @@ void SearchFrame::mergeFlyServerInfo()
 	dcassert(!isClosedOrShutdown());
 	if (!isClosedOrShutdown())
 	{
-		post_message_for_update_mediainfo();
+		post_message_for_update_mediainfo(m_hWnd);
 	}
 }
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER

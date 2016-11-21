@@ -2972,7 +2972,7 @@ void QueueManager::noDeleteFileList(const string& path)
 }
 
 // SearchManagerListener
-void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchResult>& sr) noexcept
+void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchResult>& p_sr) noexcept
 {
 	bool added = false;
 	bool wantConnection = false;
@@ -2982,7 +2982,7 @@ void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchRes
 		// CFlyLock(cs); [-] IRainman fix.
 		QueueItemList l_matches;
 		
-		g_fileQueue.find_tth(l_matches, sr->getTTH());
+		g_fileQueue.find_tth(l_matches, p_sr->getTTH());
 		
 		if (!l_matches.empty()) // [+] IRainman opt.
 		{
@@ -2991,9 +2991,9 @@ void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchRes
 			{
 				const QueueItemPtr& qi = *i;
 				// Size compare to avoid popular spoof
-				if (qi->getSize() == sr->getSize())
+				if (qi->getSize() == p_sr->getSize())
 				{
-					if (!qi->isSourceL(sr->getUser()))
+					if (!qi->isSourceL(p_sr->getUser()))
 					{
 						if (qi->isFinished())
 							break;  // don't add sources to already finished files
@@ -3003,7 +3003,7 @@ void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchRes
 							needsAutoMatch = !qi->countOnlineUsersGreatOrEqualThanL(SETTING(MAX_AUTO_MATCH_SOURCES));
 							
 							// [-] if (!BOOLSETTING(AUTO_SEARCH_AUTO_MATCH) || (l_count_online_users >= (size_t)SETTING(MAX_AUTO_MATCH_SOURCES))) [-] IRainman fix.
-							wantConnection = addSourceL(qi, HintedUser(sr->getUser(), sr->getHubUrl()), 0);
+							wantConnection = addSourceL(qi, p_sr->getHintedUser(), 0);
 							
 							added = true;
 						}
@@ -3016,7 +3016,7 @@ void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchRes
 					else
 					{
 						// Нашли источник но он не активный еще
-						if (qi->getPriority() != QueueItem::PAUSED && !g_userQueue.getRunningL(sr->getUser()))
+						if (qi->getPriority() != QueueItem::PAUSED && !g_userQueue.getRunningL(p_sr->getUser()))
 						{
 							wantConnection = true;
 						}
@@ -3032,9 +3032,9 @@ void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchRes
 		{
 			try
 			{
-				const string path = Util::getFilePath(sr->getFile());
+				const string path = Util::getFilePath(p_sr->getFile());
 				// [!] IRainman fix: please always match listing without hint! old code: sr->getHubUrl().
-				addList(sr->getUser(), QueueItem::FLAG_MATCH_QUEUE | (path.empty() ? 0 : QueueItem::FLAG_PARTIAL_LIST), path);
+				addList(p_sr->getUser(), QueueItem::FLAG_MATCH_QUEUE | (path.empty() ? 0 : QueueItem::FLAG_PARTIAL_LIST), path);
 			}
 			catch (const Exception&)
 			{
@@ -3042,9 +3042,9 @@ void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchRes
 			}
 		}
 	}
-	if (wantConnection && sr->getUser()->isOnline())
+	if (wantConnection && p_sr->getUser()->isOnline())
 	{
-		get_download_connection(sr->getUser());
+		get_download_connection(p_sr->getUser());
 	}
 }
 

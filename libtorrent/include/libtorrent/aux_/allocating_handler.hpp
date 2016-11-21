@@ -34,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_ALLOCATING_HANDLER_HPP_INCLUDED
 
 #include "libtorrent/config.hpp"
+#include "libtorrent/error_code.hpp"
 
 #include <type_traits>
 
@@ -61,10 +62,13 @@ namespace libtorrent { namespace aux
 		handler_storage(handler_storage const&);
 	};
 
-	struct error_handler_interface
+	struct TORRENT_EXTRA_EXPORT error_handler_interface
 	{
 		virtual void on_exception(std::exception const&) = 0;
 		virtual void on_error(error_code const&) = 0;
+
+	protected:
+		~error_handler_interface() {}
 	};
 
 	// this class is a wrapper for an asio handler object. Its main purpose

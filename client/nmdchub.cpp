@@ -441,17 +441,17 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag, bool p_is_version_
 void NmdcHub::NmdcSearch(const SearchParam& p_search_param)
 {
 	ClientManagerListener::SearchReply l_re = ClientManagerListener::SEARCH_MISS; // !SMT!-S
-	SearchResultList l;
+	SearchResultList l_search_results;
 	dcassert(p_search_param.m_max_results > 0);
 	dcassert(p_search_param.m_client);
 	if (ClientManager::isBeforeShutdown())
 		return;
 #ifdef FLYLINKDC_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG
-	ShareManager::getInstance()->search(l, p_search_param);
+	ShareManager::getInstance()->search(l_search_results, p_search_param);
 #else
-	ShareManager::getInstance()->search(l, p_search_param);
+	ShareManager::getInstance()->search(l_search_results, p_search_param);
 #endif
-	if (!l.empty())
+	if (!l_search_results.empty())
 	{
 		l_re = ClientManagerListener::SEARCH_HIT;
 		if (p_search_param.m_is_passive)
@@ -459,9 +459,9 @@ void NmdcHub::NmdcSearch(const SearchParam& p_search_param)
 			const string l_name = p_search_param.m_seeker.substr(4); //-V112
 			// Good, we have a passive seeker, those are easier...
 			string str;
-			for (auto i = l.cbegin(); i != l.cend(); ++i)
+			for (auto i = l_search_results.cbegin(); i != l_search_results.cend(); ++i)
 			{
-				const SearchResult& sr = *i;
+				const auto& sr = *i;
 				str += sr.toSR(*this);
 				str[str.length() - 1] = 5;
 //#ifdef IRAINMAN_USE_UNICODE_IN_NMDC
@@ -482,7 +482,7 @@ void NmdcHub::NmdcSearch(const SearchParam& p_search_param)
 			try
 			{
 				Socket udp;
-				for (auto i = l.cbegin(); i != l.cend(); ++i)
+				for (auto i = l_search_results.cbegin(); i != l_search_results.cend(); ++i)
 				{
 					const string l_sr = i->toSR(*this);
 					if (ConnectionManager::checkDuplicateSearchFile(l_sr))
@@ -2110,15 +2110,25 @@ void NmdcHub::processAutodetect(bool p_is_myinfo)
 {
 	if (!p_is_myinfo && m_bLastMyInfoCommand == FIRST_MYINFO)
 	{
+		if (!Util::isPrivateIp(getLocalIp()))
+		{
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-		// This is first command after $MyInfo.
-		// Do autodetection now, because at least VerliHub hag such a bug:
-		// when hub sends $myInfo for each user on handshake sequence, it may skip
-		// much connection requests (or may be also other commands), so it is better not to send
-		// anything to it when receiving $myInfos is in progress
-		RequestConnectionForAutodetect();
+			// This is first command after $MyInfo.
+			// Do autodetection now, because at least VerliHub hag such a bug:
+			// when hub sends $myInfo for each user on handshake sequence, it may skip
+			// much connection requests (or may be also other commands), so it is better not to send
+			// anything to it when receiving $myInfos is in progress
+			RequestConnectionForAutodetect();
 #endif
-		m_bLastMyInfoCommand = ALREADY_GOT_MYINFO;
+			m_bLastMyInfoCommand = ALREADY_GOT_MYINFO;
+		}
+		else
+		{
+#ifdef _DEBUG
+			LogManager::message("Skip NmdcHub::processAutodetect for privateIP = " + getLocalIp());
+#endif
+		}
+		
 	}
 	if (p_is_myinfo && m_bLastMyInfoCommand == DIDNT_GET_YET_FIRST_MYINFO)
 	{
@@ -2159,11 +2169,11 @@ void NmdcHub::connectToMe(const OnlineUser& aUser
 	if (port == 0)
 	{
 		dcassert(0);
-		LogManager::message("Error [2] $ConnectToMe port = 0 : ");
 		CFlyServerJSON::pushError(22, "Error [2] $ConnectToMe port = 0 :");
 	}
 	else
 	{
+		// dcassert(isActive());
 		send("$ConnectToMe " + nick + ' ' + getLocalIp() + ':' + Util::toString(port) + (secure ? "S|" : "|"));
 	}
 }
@@ -3014,13 +3024,17 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_s
 				// ClientManager::getInstance()->fireIncomingSearch(aSeeker, aString, ClientManagerListener::SEARCH_HIT);
 				if (i->m_is_passive)
 				{
-					// —формируем ответ на пассивный запрос
-					string l_nick = i->m_search.substr(4); //-V112
-					// Good, we have a passive seeker, those are easier...
-					str[str.length() - 1] = 5;
-					str += fromUtf8(l_nick);
-					str += '|';
-					send(str);
+					dcassert(i->m_search.size() > 4);
+					if (i->m_search.size() > 4)
+					{
+						// —формируем ответ на пассивный запрос
+						const string l_nick = i->m_search.substr(4); // https://drdump.com/DumpGroup.aspx?DumpGroupID=638194
+						// Good, we have a passive seeker, those are easier...
+						str[str.length() - 1] = 5;
+						str += fromUtf8(l_nick);
+						str += '|';
+						send(str);
+					}
 				}
 				else
 				{

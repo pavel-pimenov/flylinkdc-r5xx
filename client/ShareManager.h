@@ -49,7 +49,7 @@ class MemoryInputStream;
 class SearchResultBaseTTH;
 
 struct ShareLoader;
-typedef std::vector<SearchResult> SearchResultList;
+typedef std::vector<SearchResultCore> SearchResultList;
 typedef boost::unordered_set<std::string> QueryNotExistsSet;
 typedef boost::unordered_map<std::string, SearchResultList> QueryCacheMap;
 

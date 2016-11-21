@@ -651,17 +651,17 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 		return ClientManagerListener::SEARCH_MISS; // [!] IRainman
 	}
 	
-	SearchResultList results;
-	ShareManager::getInstance()->search_max_result(results, adc.getParameters(), isUdpActive ? 10 : 5, reguest); // [!] IRainman
+	SearchResultList l_search_results;
+	ShareManager::getInstance()->search_max_result(l_search_results, adc.getParameters(), isUdpActive ? 10 : 5, reguest); // [!] IRainman
 	
-	string token;
+	string l_token;
 	
-	adc.getParam("TO", 0, token);
+	adc.getParam("TO", 0, l_token);
 	
 	ClientManagerListener::SearchReply l_sr = ClientManagerListener::SEARCH_MISS; // [+] IRainman
 	
 	// TODO: don't send replies to passive users
-	if (results.empty())
+	if (l_search_results.empty())
 	{
 		string tth;
 		if (!adc.getParam("TR", 0, tth))
@@ -683,13 +683,13 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 	}
 	else
 	{
-		for (auto i = results.cbegin(); i != results.cend(); ++i)
+		for (auto i = l_search_results.cbegin(); i != l_search_results.cend(); ++i)
 		{
 			AdcCommand cmd(AdcCommand::CMD_RES, AdcCommand::TYPE_UDP);
 			i->toRES(cmd, AdcCommand::TYPE_UDP);
-			if (!token.empty())
+			if (!l_token.empty())
 			{
-				cmd.addParam("TO", token);
+				cmd.addParam("TO", l_token);
 			}
 			ClientManager::send(cmd, from);
 		}
@@ -697,6 +697,7 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 	}
 	return l_sr; // [+] IRainman
 }
+
 string SearchManager::getPartsString(const PartsInfo& partsInfo)
 {
 	string ret;

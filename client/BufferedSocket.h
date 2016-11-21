@@ -28,6 +28,7 @@
 #include "BufferedSocketListener.h"
 #include "Semaphore.h"
 #include "Socket.h"
+#include "CFlySearchItemTTH.h"
 
 class UnZFilter;
 class InputStream;

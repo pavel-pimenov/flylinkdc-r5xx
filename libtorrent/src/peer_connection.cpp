@@ -61,6 +61,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/ip_filter.hpp"
 #include "libtorrent/kademlia/node_id.hpp"
 #include "libtorrent/close_reason.hpp"
+#include "libtorrent/disk_io_job.hpp"
 #include "libtorrent/aux_/has_block.hpp"
 #include "libtorrent/aux_/time.hpp"
 
@@ -2998,12 +2999,47 @@ namespace libtorrent
 		// to allow to receive more data
 		setup_receive();
 
-		piece_block block_finished(p.piece, p.start / t->block_size());
+		piece_block const block_finished(p.piece, p.start / t->block_size());
 
 		if (j->ret < 0)
 		{
+			// we failed to write j->piece to disk tell the piece picker
+			// this will block any other peer from issuing requests
+			// to this piece, until we've cleared it.
+			if (j->error.ec == boost::asio::error::operation_aborted)
+			{
+				if (t->has_picker())
+					t->picker().mark_as_canceled(block_finished, nullptr);
+			}
+			else
+			{
+				// if any other peer has a busy request to this block, we need
+				// to cancel it too
+				t->cancel_block(block_finished);
+				if (t->has_picker())
+					t->picker().write_failed(block_finished);
+
+				if (t->has_storage())
+				{
+					// when this returns, all outstanding jobs to the
+					// piece are done, and we can restore it, allowing
+					// new requests to it
+					m_disk_thread.async_clear_piece(&t->storage(), j->piece
+						, std::bind(&torrent::on_piece_fail_sync, t, _1, block_finished));
+				}
+				else
+				{
+					// is m_abort true? if so, we should probably just
+					// exit this function early, no need to keep the picker
+					// state up-to-date, right?
+					disk_io_job sj;
+					sj.piece = j->piece;
+					t->on_piece_fail_sync(&sj, block_finished);
+				}
+			}
+			t->update_gauge();
 			// handle_disk_error may disconnect us
-			t->handle_disk_error(j, this);
+			t->handle_disk_error("write", j->error, this, torrent::disk_class::write);
 			return;
 		}
 
@@ -5146,7 +5182,7 @@ namespace libtorrent
 
 		if (j->error)
 		{
-			t->handle_disk_error(j, this);
+			t->handle_disk_error("hash", j->error, this);
 			t->leave_seed_mode(false);
 			return;
 		}
@@ -5239,7 +5275,7 @@ namespace libtorrent
 		// even if we're disconnecting, we need to free this block
 		// otherwise the disk thread will hang, waiting for the network
 		// thread to be done with it
-		disk_buffer_holder buffer(m_allocator, *j);
+		disk_buffer_holder buffer(m_allocator, j->d.io.ref, j->buffer.disk_block);
 
 		if (t && m_settings.get_int(settings_pack::suggest_mode)
 			== settings_pack::suggest_read_cache)
@@ -5261,7 +5297,7 @@ namespace libtorrent
 		if (j->ret != r.length)
 		{
 			// handle_disk_error may disconnect us
-			t->handle_disk_error(j, this);
+			t->handle_disk_error("read", j->error, this);
 			return;
 		}
 
@@ -5555,6 +5591,7 @@ namespace libtorrent
 			&peer_connection::on_send_data, self(), _1, _2)));
 
 		m_channel_state[upload_channel] |= peer_info::bw_network;
+		m_last_sent = aux::time_now();
 	}
 
 	void peer_connection::on_disk()
@@ -5641,7 +5678,7 @@ namespace libtorrent
 
 	void peer_connection::append_send_buffer(char* buffer, int size
 		, chained_buffer::free_buffer_fun destructor, void* userdata
-		, block_cache_reference ref)
+		, aux::block_cache_reference ref)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		m_send_buffer.append_buffer(buffer, size, size, destructor
@@ -5650,7 +5687,7 @@ namespace libtorrent
 
 	void peer_connection::append_const_send_buffer(char const* buffer, int size
 		, chained_buffer::free_buffer_fun destructor, void* userdata
-		, block_cache_reference ref)
+		, aux::block_cache_reference ref)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		m_send_buffer.append_buffer(const_cast<char*>(buffer), size, size, destructor
@@ -5667,7 +5704,7 @@ namespace libtorrent
 	}
 
 	namespace {
-		void session_free_buffer(char* buffer, void* userdata, block_cache_reference)
+		void session_free_buffer(char* buffer, void* userdata, aux::block_cache_reference)
 		{
 			aux::session_interface* ses = static_cast<aux::session_interface*>(userdata);
 			ses->free_buffer(buffer);
@@ -6518,7 +6555,6 @@ namespace libtorrent
 		peer_log(peer_log_alert::outgoing_message, "KEEPALIVE");
 #endif
 
-		m_last_sent = aux::time_now();
 		write_keepalive();
 	}
 

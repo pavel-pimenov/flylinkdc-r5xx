@@ -165,21 +165,23 @@ class ATL_NO_VTABLE CGDIImageOle :
 	public:
 		HRESULT OnDraw(ATL_DRAWINFO& di)
 		{
-			m_pImage->Draw(di.hdcDraw,
-			               di.prcBounds->left,
-			               di.prcBounds->top,
-			               std::min(m_dwW, DWORD(di.prcBounds->right - di.prcBounds->left)),
-			               std::min(m_dwH, DWORD(di.prcBounds->bottom - di.prcBounds->top)), 0, 0, m_hBackDC, 0, 0,
-			               std::min(m_dwW, DWORD(di.prcBounds->right - di.prcBounds->left)),
-			               std::min(m_dwH, DWORD(di.prcBounds->bottom - di.prcBounds->top)));
-			               
-			if (!m_bRegistered)
+			if (!CGDIImage::isShutdown())
 			{
-				// Object became visible
-				m_pImage->RegisterCallback(OnFrameChanged, (LPARAM)this);
-				m_bRegistered = true;
+				m_pImage->Draw(di.hdcDraw,
+				               di.prcBounds->left,
+				               di.prcBounds->top,
+				               std::min(m_dwW, DWORD(di.prcBounds->right - di.prcBounds->left)),
+				               std::min(m_dwH, DWORD(di.prcBounds->bottom - di.prcBounds->top)), 0, 0, m_hBackDC, 0, 0,
+				               std::min(m_dwW, DWORD(di.prcBounds->right - di.prcBounds->left)),
+				               std::min(m_dwH, DWORD(di.prcBounds->bottom - di.prcBounds->top)));
+				               
+				if (!m_bRegistered)
+				{
+					// Object became visible
+					m_pImage->RegisterCallback(OnFrameChanged, (LPARAM)this);
+					m_bRegistered = true;
+				}
 			}
-			
 			return S_OK;
 		}
 		
@@ -188,18 +190,6 @@ class ATL_NO_VTABLE CGDIImageOle :
 			m_bIsDeleting = true;
 		}
 		
-		/*
-		OLE_COLOR m_clrBackColor;
-		void OnBackColorChanged()
-		{
-		    ATLTRACE(_T("OnBackColorChanged\n"));
-		}
-		LONG m_nBackStyle;
-		void OnBackStyleChanged()
-		{
-		    ATLTRACE(_T("OnBackStyleChanged\n"));
-		}
-		*/
 		enum { IDD = 100 };
 		
 		DECLARE_PROTECT_FINAL_CONSTRUCT()

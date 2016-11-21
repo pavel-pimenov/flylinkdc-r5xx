@@ -55,7 +55,7 @@ void ConnectivityManager::detectConnection()
 {
 	if (g_is_running)
 		return;
-    g_is_running = true;
+	g_is_running = true;
 	
 	g_status.clear();
 	// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Started());
@@ -93,7 +93,7 @@ void ConnectivityManager::detectConnection()
 		_snprintf(buf.data(), 512, CSTRING(UNABLE_TO_OPEN_PORT), e.getError().c_str());
 		log(buf.data());
 		// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
-        g_is_running = false;
+		g_is_running = false;
 		return;
 	}
 	
@@ -114,7 +114,7 @@ void ConnectivityManager::detectConnection()
 			SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_DIRECT); // Вот тут сомнительно
 			log(STRING(PUBLIC_IP_DETECTED) + " IP = " + l_ip);
 			// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
-            g_is_running = false;
+			g_is_running = false;
 			return;
 		}
 	}
@@ -122,7 +122,7 @@ void ConnectivityManager::detectConnection()
 	
 	if (!MappingManager::getInstance()->open())
 	{
-        g_is_running = false;
+		g_is_running = false;
 	}
 }
 void ConnectivityManager::test_all_ports()
@@ -296,7 +296,7 @@ void ConnectivityManager::mappingFinished(const string& p_mapper)
 			test_all_ports();
 		}
 	}
-    g_is_running = false;
+	g_is_running = false;
 }
 
 void ConnectivityManager::listen() // TODO - fix copy-paste

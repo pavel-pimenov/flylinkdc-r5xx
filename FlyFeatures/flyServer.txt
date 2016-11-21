@@ -1,5 +1,5 @@
 Место хранения актуальной конфигурации:
-http://www.fly-server.ru/update/etc/flylinkdc-config.xml
+http://etc.fly-server.ru/update/etc/flylinkdc-config.xml
 
 1 ======================== Убираем лишние тэги Mediainfo =======================
   Данный массив описывается в конфигурационном поле exclude_tag

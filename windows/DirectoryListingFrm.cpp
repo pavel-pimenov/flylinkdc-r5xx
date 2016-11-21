@@ -202,7 +202,6 @@ void DirectoryListingFrame::loadXML(const string& txt)
 
 LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-	init_fly_server_window(m_hWnd);
 	CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
 	ctrlStatus.Attach(m_hWndStatusBar);
 	ctrlStatus.SetFont(Fonts::g_boldFont); // [~] Sergey Shuhskanov
@@ -2357,7 +2356,8 @@ LRESULT DirectoryListingFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wPar
 			}
 			if (l_is_know_tth) // Если сервер расказал об этом TTH с медиаинфой, то не шлем ему ничего
 			{
-				m_tth_media_file_map.erase(l_tth);
+				CFlyLock(g_cs_tth_media_map);
+				g_tth_media_file_map.erase(l_tth);
 			}
 		}
 	}
@@ -2427,10 +2427,14 @@ bool DirectoryListingFrame::scan_list_view_from_merge()
 						l_info.m_only_counter  = !l_item_info->columns[COLUMN_MEDIA_AUDIO].empty(); // Колонка базовой медиаинфы уже заполенна - запросим с сервера только рейтинги
 						if (l_info.m_only_counter) // TODO - определить точнее есть у нас инфа по файлу или нет?
 						{
-							m_tth_media_file_map[l_tth] = l_file_size; // Регистрируем кандидата на передачу информации
+							CFlyLock(g_cs_tth_media_map);
+							g_tth_media_file_map[l_tth] = l_file_size; // Регистрируем кандидата на передачу информации
 						}
 						// TODO - обратиться к локальной базе вдруг у нас уже инфа есть?
-						m_GetFlyServerArray.push_back(l_info);
+						{
+							CFlyLock(g_cs_get_array_fly_server);
+							g_GetFlyServerArray.push_back(l_info);
+						}
 					}
 					else
 					{
@@ -2454,7 +2458,7 @@ bool DirectoryListingFrame::scan_list_view_from_merge()
 		}
 		update_column_after_merge(l_update_index);
 	}
-	return m_GetFlyServerArray.size() || m_SetFlyServerArray.size();
+	return g_GetFlyServerArray.size() || g_SetFlyServerArray.size();
 }
 //===================================================================================================================================
 void DirectoryListingFrame::mergeFlyServerInfo()
@@ -2465,7 +2469,7 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 	dcassert(!isClosedOrShutdown());
 	if (!isClosedOrShutdown())
 	{
-		post_message_for_update_mediainfo(); // [crash][1] https://drdump.com/DumpGroup.aspx?DumpGroupID=296220
+		post_message_for_update_mediainfo(m_hWnd);
 	}
 }
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER

@@ -2137,10 +2137,10 @@ uint32_t Util::rand()
 string Util::getRandomNick()
 {
 	// Create RND nick
-	static const size_t iNickLength = 20;
-	static const char samples[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	static const char samples2[] = "_-";
-	static const string samples3[] =
+	const size_t iNickLength = 20;
+	const char  samples[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	const char  samples2[] = "_-";
+	const char* samples3[] =
 	{
 		"Admin",
 		"Bear", "Boy",
@@ -2159,14 +2159,19 @@ string Util::getRandomNick()
 		"Troll",    "True",
 		"User",
 		"Water",    "Women",
+		"Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel", "India", "Juliet",
+		"Kilo", "Lima", "Mike", "November", "Oscar", "Papa", "Quebec", "Romeo", "Sierra", "Tango",
+		"Uniform", "Victor", "Whiskey", "Xray", "Yankee", "Zulu"
 	};
 	
 	string name = samples3[Util::rand(_countof(samples3) - 1)];
 	name += samples2[Util::rand(_countof(samples2) - 1)];
 	
 	for (size_t i = Util::rand(3, 7); i; --i)
+	{
 		name += samples[Util::rand(_countof(samples) - 1)];
-		
+	}
+	
 	if (name.size() > iNickLength)
 		name.resize(iNickLength);
 		

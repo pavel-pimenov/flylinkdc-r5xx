@@ -47,19 +47,19 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/linked_list.hpp"
 #include "libtorrent/disk_buffer_pool.hpp"
 #include "libtorrent/file.hpp" // for iovec_t
-
-#if TORRENT_USE_ASSERTS || !defined TORRENT_DISABLE_LOGGING
 #include "libtorrent/disk_io_job.hpp"
-#endif
 
 namespace libtorrent
 {
 	struct disk_io_job;
-	class piece_manager;
+	struct storage_interface;
 	struct cache_status;
-	struct block_cache_reference;
 	struct counters;
-	namespace aux { struct session_settings; }
+	namespace aux
+	{
+		struct session_settings;
+		struct block_cache_reference;
+	}
 #if TORRENT_USE_ASSERTS
 	class file_storage;
 #endif
@@ -182,7 +182,7 @@ namespace libtorrent
 		}
 
 		// storage this piece belongs to
-		std::shared_ptr<piece_manager> storage;
+		std::shared_ptr<storage_interface> storage;
 
 		// write jobs hanging off of this piece
 		tailqueue<disk_io_job> jobs;
@@ -349,7 +349,7 @@ namespace libtorrent
 		int pad_job(disk_io_job const* j, int blocks_in_piece
 			, int read_ahead) const;
 
-		void reclaim_block(block_cache_reference const& ref);
+		void reclaim_block(aux::block_cache_reference const& ref);
 
 		// returns a range of all pieces. This might be a very
 		// long list, use carefully
@@ -411,9 +411,9 @@ namespace libtorrent
 
 		// looks for this piece in the cache. If it's there, returns a pointer
 		// to it, otherwise 0.
-		cached_piece_entry* find_piece(block_cache_reference const& ref);
+		cached_piece_entry* find_piece(aux::block_cache_reference const& ref);
 		cached_piece_entry* find_piece(disk_io_job const* j);
-		cached_piece_entry* find_piece(piece_manager* st, int piece);
+		cached_piece_entry* find_piece(storage_interface* st, int piece);
 
 		// clear free all buffers marked as dirty with
 		// refcount of 0.

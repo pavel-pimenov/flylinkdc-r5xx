@@ -598,36 +598,40 @@ void HubFrame::destroyMessagePanel(bool p_is_destroy)
 	{
 		if (!l_is_shutdown && m_closed == false && m_before_close == false)
 		{
-			WinUtil::GetWindowText(m_filter, *m_ctrlFilter);
-			m_FilterSelPos = m_ctrlFilterSel->GetCurSel();
+			// https://drdump.com/Bug.aspx?ProblemID=244390
+			// https://drdump.com/Problem.aspx?ProblemID=244836
+			// https://drdump.com/Problem.aspx?ProblemID=245570
+#ifdef _DEBUG
+			tstring l_filter;
+			WinUtil::GetWindowText(l_filter, *m_ctrlFilter);
+			dcassert(m_filter == l_filter)
+#endif
+			if (m_ctrlFilterSel)
+			{
+				m_FilterSelPos = m_ctrlFilterSel->GetCurSel();
+			}
 		}
 		safe_destroy_window(m_tooltip_hubframe); // использует m_ctrlSwitchPanels и m_ctrlShowUsers и m_ctrlShowMode
+		
 #ifdef SCALOLAZ_HUB_MODE
 		safe_destroy_window(m_ctrlShowMode);
 #endif
 		safe_destroy_window(m_ctrlShowUsers);
+		safe_delete(m_showUsersContainer);
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 		//safe_unsubclass_window(m_switchPanelsContainer);
 		safe_destroy_window(m_ctrlSwitchPanels);
+		safe_delete(m_switchPanelsContainer);
 #endif
 		//safe_unsubclass_window(m_ctrlFilterContainer);
 		safe_destroy_window(m_ctrlFilter);
+		safe_delete(m_ctrlFilterContainer);
+		
 		//safe_unsubclass_window(m_ctrlFilterSelContainer);
 		safe_destroy_window(m_ctrlFilterSel);
-		safe_delete(m_tooltip_hubframe); // использует m_ctrlSwitchPanels и m_ctrlShowUsers и m_ctrlShowMode
-#ifdef SCALOLAZ_HUB_MODE
-		safe_delete(m_ctrlShowMode);
-#endif
-		safe_delete(m_ctrlShowUsers);
-		safe_delete(m_showUsersContainer);
-#ifdef SCALOLAZ_HUB_SWITCH_BTN
-		safe_delete(m_ctrlSwitchPanels);
-		safe_delete(m_switchPanelsContainer);
-#endif
-		safe_delete(m_ctrlFilter);
-		safe_delete(m_ctrlFilterContainer);
 		safe_delete(m_ctrlFilterSel);
 		safe_delete(m_ctrlFilterSelContainer);
+		
 	}
 	BaseChatFrame::destroyStatusbar(l_is_shutdown);
 	BaseChatFrame::destroyMessagePanel(l_is_shutdown);
@@ -1304,7 +1308,7 @@ LRESULT HubFrame::onDoubleClickUsers(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 
 bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 {
-	if (ClientManager::isBeforeShutdown() && m_client && m_client->isConnected())
+	if (ClientManager::isBeforeShutdown() || !isConnected())
 	{
 		return false;
 	}
@@ -1449,7 +1453,7 @@ void HubFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, co
 		BaseChatFrame::addStatus(aLine, bInChat, bHistory, cf);
 	}
 	{
-		if (!m_client->isConnected() && !m_last_hub_message.empty())
+		if (!isConnected() && !m_last_hub_message.empty())
 		{
 			const auto l_ipT = Text::toT(m_client->getLocalIp());
 			const auto l_marker_current_ip = m_last_hub_message.find(l_ipT);
@@ -1776,7 +1780,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 #ifndef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
 				case UPDATE_USER_JOIN:
 				{
-					if (!ClientManager::isBeforeShutdown() && m_client && m_client->isConnected())
+					if (!ClientManager::isBeforeShutdown() && isConnected())
 					{
 						const OnlineUserTask& u = static_cast<OnlineUserTask&>(*i->second);
 						if (updateUser(u.m_ou, -1))
@@ -1942,7 +1946,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				case GET_PASSWORD:
 				{
 					//dcassert(m_ctrlMessage);
-					if (m_client->isConnected())
+					if (isConnected())
 					{
 						if (!BOOLSETTING(PROMPT_PASSWORD))
 						{
@@ -2349,7 +2353,7 @@ void HubFrame::HubModeChange()
 {
 	if (BOOLSETTING(ENABLE_HUBMODE_PIC))
 	{
-		if (m_client->isConnected())
+		if (isConnected())
 		{
 			if (m_client->isActive())
 			{
@@ -3103,21 +3107,8 @@ LRESULT HubFrame::onHubFrmCtlColor(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 	const HDC hDC = (HDC)wParam;
 	if (m_ctrlFilter && hWnd == m_ctrlFilter->m_hWnd)
 	{
-		/*
-		const auto l_length = m_ctrlFilter->GetWindowTextLength();
-		if (l_length > 0 && l_length < 2)   // HighLighting on control field only for 1 or 2 symbols !
-		{
-		    // Revert colors fore-back
-		    ::SetTextColor(hDC, SETTING(TEXT_SYSTEM_BACK_COLOR));
-		    ::SetBkColor(hDC, SETTING(TEXT_SYSTEM_FORE_COLOR));
-		}
-		else
-		*/
-		{
-			// Normal colors
-			::SetTextColor(hDC, SETTING(TEXT_SYSTEM_FORE_COLOR));
-			::SetBkColor(hDC, SETTING(TEXT_SYSTEM_BACK_COLOR));
-		}
+		::SetTextColor(hDC, SETTING(TEXT_SYSTEM_FORE_COLOR));
+		::SetBkColor(hDC, SETTING(TEXT_SYSTEM_BACK_COLOR));
 		return (LRESULT)Colors::g_bgBrush;
 	}
 	return BaseChatFrame::onCtlColor(uMsg, wParam, lParam, bHandled);
@@ -3382,7 +3373,7 @@ void HubFrame::timer_process_internal()
 		m_second_count = 60;
 		ClientManager::infoUpdated(m_client);
 	}
-	if (m_upnp_message_tick > 0 && m_client && m_client->isConnected())
+	if (m_upnp_message_tick > 0 && isConnected())
 	{
 		if (--m_upnp_message_tick == 0 && !ClientManager::isBeforeShutdown() && !m_client->isActive())
 		{
@@ -4004,7 +3995,7 @@ void HubFrame::InsertUserList(UserInfo* ui) // [!] IRainman opt.
 	if (m_filter.empty())
 	{
 		dcassert(m_ctrlUsers->findItem(ui) == -1);
-		if (m_client && m_client->isConnected())
+		if (isConnected())
 		{
 			InsertItemInternal(ui);
 		}
@@ -4019,7 +4010,7 @@ void HubFrame::InsertUserList(UserInfo* ui) // [!] IRainman opt.
 		if (matchFilter(*ui, sel, doSizeCompare, mode, size))
 		{
 			dcassert(m_ctrlUsers->findItem(ui) == -1);
-			if (m_client && m_client->isConnected())
+			if (isConnected())
 			{
 				InsertItemInternal(ui);
 			}
@@ -4028,7 +4019,7 @@ void HubFrame::InsertUserList(UserInfo* ui) // [!] IRainman opt.
 		{
 			//deleteItem checks to see that the item exists in the list
 			//unnecessary to do it twice.
-			if (m_client && m_client->isConnected())
+			if (isConnected())
 			{
 				m_ctrlUsers->deleteItem(ui);
 			}
@@ -4317,26 +4308,27 @@ LRESULT HubFrame::onSelectUser(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 
 LRESULT HubFrame::onAddNickToChat(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	if (!m_client->isConnected())
-		return 0;
-		
-	if (getSelectedUser())
+	if (isConnected())
 	{
-		m_lastUserName = getSelectedUser()->getIdentity().getNickT();// SSA_SAVE_LAST_NICK_MACROS
-	}
-	else
-	{
-		m_lastUserName.clear(); // SSA_SAVE_LAST_NICK_MACROS
-		int i = -1;
-		while ((i = m_ctrlUsers->GetNextItem(i, LVNI_SELECTED)) != -1)
+	
+		if (getSelectedUser())
 		{
-			if (!m_lastUserName.empty())// SSA_SAVE_LAST_NICK_MACROS
-				m_lastUserName += _T(", ");// SSA_SAVE_LAST_NICK_MACROS
-				
-			m_lastUserName += m_ctrlUsers->getItemData(i)->getNickT();// SSA_SAVE_LAST_NICK_MACROS
+			m_lastUserName = getSelectedUser()->getIdentity().getNickT();// SSA_SAVE_LAST_NICK_MACROS
 		}
+		else
+		{
+			m_lastUserName.clear(); // SSA_SAVE_LAST_NICK_MACROS
+			int i = -1;
+			while ((i = m_ctrlUsers->GetNextItem(i, LVNI_SELECTED)) != -1)
+			{
+				if (!m_lastUserName.empty())// SSA_SAVE_LAST_NICK_MACROS
+					m_lastUserName += _T(", ");// SSA_SAVE_LAST_NICK_MACROS
+					
+				m_lastUserName += m_ctrlUsers->getItemData(i)->getNickT();// SSA_SAVE_LAST_NICK_MACROS
+			}
+		}
+		appendNickToChat(m_lastUserName); // SSA_SAVE_LAST_NICK_MACROS
 	}
-	appendNickToChat(m_lastUserName); // SSA_SAVE_LAST_NICK_MACROS
 	return 0;
 }
 

@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2013-2016, Arvid Norberg
+Copyright (c) 2010-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,46 +30,21 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_PEER_CONNECTION_INTERFACE_HPP
-#define TORRENT_PEER_CONNECTION_INTERFACE_HPP
+#ifndef TORRENT_BLOCK_CACHE_REFERENCE_HPP
+#define TORRENT_BLOCK_CACHE_REFERENCE_HPP
 
-#include "libtorrent/socket.hpp"
-#include "libtorrent/error_code.hpp"
-#include "libtorrent/alert_types.hpp"
-#include "libtorrent/operations.hpp" // for operation_t enum
+namespace libtorrent {
+namespace aux {
 
-namespace libtorrent
-{
-	struct torrent_peer;
-	class stat;
-	struct peer_info;
-
-	// TODO: make this interface smaller!
-	struct TORRENT_EXTRA_EXPORT peer_connection_interface
+	struct block_cache_reference
 	{
-		virtual tcp::endpoint const& remote() const = 0;
-		virtual tcp::endpoint local_endpoint() const = 0;
-		virtual void disconnect(error_code const& ec
-			, operation_t op, int error = 0) = 0;
-		virtual peer_id const& pid() const = 0;
-		virtual void set_holepunch_mode() = 0;
-		virtual torrent_peer* peer_info_struct() const = 0;
-		virtual void set_peer_info(torrent_peer* pi) = 0;
-		virtual bool is_outgoing() const = 0;
-		virtual void add_stat(std::int64_t downloaded, std::int64_t uploaded) = 0;
-		virtual bool fast_reconnect() const = 0;
-		virtual bool is_choked() const = 0;
-		virtual bool failed() const = 0;
-		virtual stat const& statistics() const = 0;
-		virtual void get_peer_info(peer_info& p) const = 0;
-#ifndef TORRENT_DISABLE_LOGGING
-		virtual bool should_log(peer_log_alert::direction_t direction) const = 0;
-		virtual void peer_log(peer_log_alert::direction_t direction
-			, char const* event, char const* fmt = "", ...) const TORRENT_FORMAT(4,5) = 0;
-#endif
-	protected:
-		~peer_connection_interface() {}
+		void* storage;
+		int piece;
+		int block;
 	};
+
+}
 }
 
 #endif
+

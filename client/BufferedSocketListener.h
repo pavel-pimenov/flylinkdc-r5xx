@@ -24,7 +24,7 @@
 
 #include "noexcept.h"
 #include "typedefs.h"
-#include "SearchResult.h"
+#include "CFlySearchItemTTH.h"
 
 class BufferedSocketListener
 {

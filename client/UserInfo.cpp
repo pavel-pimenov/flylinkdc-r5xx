@@ -379,7 +379,7 @@ void UserInfo::calcVirusType()
 void UserInfo::calcLocation()
 {
 	const auto& l_location = getLocation();
-	if (l_location.isNew() || m_ou->getIdentity().is_ip_change_and_clear())
+	if (l_location.isNew() || m_ou->getIdentity().is_ip_change_and_clear()) // https://drdump.com/Problem.aspx?ProblemID=248526
 	{
 		const auto& l_ip = getIp();
 		if (!l_ip.is_unspecified())

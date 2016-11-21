@@ -408,7 +408,6 @@ class CFlyServerAdapter
 {
 	public:
 		explicit CFlyServerAdapter(const DWORD p_dwMilliseconds = INFINITE):
-			m_hMediaWnd(nullptr),
 			m_dwMilliseconds(p_dwMilliseconds)
 #ifdef _DEBUG
 			, m_debugWaits(false)
@@ -418,9 +417,9 @@ class CFlyServerAdapter
 		virtual ~CFlyServerAdapter()
 		{
 			dcassert(m_debugWaits);
-			dcassert(m_GetFlyServerArray.empty());
-			dcassert(m_SetFlyServerArray.empty());
-			dcassert(m_tth_media_file_map.empty());
+			dcassert(g_GetFlyServerArray.empty());
+			dcassert(g_SetFlyServerArray.empty());
+			dcassert(g_tth_media_file_map.empty());
 		}
 		virtual void mergeFlyServerInfo() = 0;
 		void waitForFlyServerStop()
@@ -448,28 +447,29 @@ class CFlyServerAdapter
 				m_query_thread->processTask(p_tick);
 			}
 		}
-		void clearFlyServerQueue()
+		static void clearFlyServerQueue()
 		{
-			CFlyLock(g_cs_fly_server);
-			m_GetFlyServerArray.clear();
-			m_SetFlyServerArray.clear();
+			CFlyLock(g_cs_get_array_fly_server);
+			g_GetFlyServerArray.clear();
 		}
 	protected:
-		CFlyServerKeyArray  m_GetFlyServerArray;    // «апросы на получени€ медиаинформации. TODO - сократить размер структуры дл€ запроса.
-		CFlyServerKeyArray  m_SetFlyServerArray;    // «апросы на передачу медиаинформации если она у нас есть в базе и ее ниразу не слали.
-		boost::unordered_map<TTHValue, uint64_t> m_tth_media_file_map;
+        static CFlyServerKeyArray  g_GetFlyServerArray;    // «апросы на получени€ медиаинформации. TODO - сократить размер структуры дл€ запроса.
+        static ::CriticalSection  g_cs_get_array_fly_server;
+        static CFlyServerKeyArray g_SetFlyServerArray;    // «апросы на передачу медиаинформации если она у нас есть в базе и ее ниразу не слали.
+        static ::CriticalSection  g_cs_set_array_fly_server;
+
+        static ::CriticalSection g_cs_tth_media_map;
+        static boost::unordered_map<TTHValue, uint64_t> g_tth_media_file_map;
+        static void clear_tth_media_map();
+
+
 		static boost::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > g_fly_server_cache;
 		static ::CriticalSection g_cs_fly_server;
 		void prepare_mediainfo_to_fly_serverL();
-		void push_mediainfo_to_fly_server();
-		void post_message_for_update_mediainfo();
-		void init_fly_server_window(HWND p_hMediaWnd)
-		{
-			m_hMediaWnd = p_hMediaWnd;
-		}
+		static void push_mediainfo_to_fly_server();
+		static void post_message_for_update_mediainfo(const HWND p_hMediaWnd);
 	private:
 		dcdrun(bool m_debugWaits;)
-		HWND m_hMediaWnd;
 		const DWORD m_dwMilliseconds;
 	public:
 		class CFlyServerQueryThread : public Thread

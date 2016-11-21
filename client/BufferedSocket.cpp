@@ -334,8 +334,16 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 				dcassert(l_tth == l_tth_orig);
 				if (ShareManager::isUnknownTTH(l_tth) == false)
 				{
-					p_tth_search.emplace_back(CFlySearchItemTTH(l_tth, l_line_item.substr(8, l_marker_tth - 8)));
-					dcassert(p_tth_search.back().m_search.find('|') == string::npos && p_tth_search.back().m_search.find('$') == string::npos);
+					const string l_search_str = l_line_item.substr(8, l_marker_tth - 8);
+					dcassert(l_search_str.size() > 4);
+					if (l_search_str.size() > 4)
+					{
+						p_tth_search.emplace_back(CFlySearchItemTTH(l_tth, l_search_str));
+						dcassert(p_tth_search.back().m_search.find('|') == string::npos && p_tth_search.back().m_search.find('$') == string::npos);
+					}
+					else
+					{
+					}
 				}
 				else
 				{
@@ -1034,7 +1042,10 @@ void BufferedSocket::write(const char* aBuf, size_t aLen)
 	*/
 	
 	if (!hasSocket())
+	{
+		dcassert(0);
 		return;
+	}
 	CFlyFastLock(cs);
 	if (m_writeBuf.empty())
 	{

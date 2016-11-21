@@ -83,7 +83,7 @@ namespace libtorrent
 {
 	class http_parser;
 
-	class piece_manager;
+	struct storage_interface;
 	struct torrent_plugin;
 	struct bitfield;
 	struct announce_entry;
@@ -92,6 +92,7 @@ namespace libtorrent
 	struct storage_interface;
 	class bt_peer_connection;
 	struct listen_socket_t;
+	struct disk_io_job;
 
 	enum class waste_reason
 	{
@@ -381,7 +382,7 @@ namespace libtorrent
 			, peer_request p);
 		void on_disk_tick_done(disk_io_job const* j);
 
-		void set_progress_ppm(int p) { m_progress_ppm = p; }
+		void set_progress_ppm(int p) { m_progress_ppm = std::uint32_t(p); }
 		struct read_piece_struct
 		{
 			boost::shared_array<char> piece_data;
@@ -449,7 +450,11 @@ namespace libtorrent
 
 		std::string resolve_filename(int file) const;
 		void handle_exception();
-		void handle_disk_error(disk_io_job const* j, peer_connection* c = 0);
+
+		enum class disk_class { none, write };
+		void handle_disk_error(string_view job_name
+			, storage_error const& error, peer_connection* c = nullptr
+			, disk_class rw = disk_class::none);
 		void clear_error();
 
 		void set_error(error_code const& ec, int file);
@@ -566,9 +571,9 @@ namespace libtorrent
 		peer_class_t peer_class() const { return peer_class_t(m_peer_class); }
 
 		void set_max_uploads(int limit, bool state_update = true);
-		int max_uploads() const { return m_max_uploads; }
+		int max_uploads() const { return int(m_max_uploads); }
 		void set_max_connections(int limit, bool state_update = true);
-		int max_connections() const { return m_max_connections; }
+		int max_connections() const { return int(m_max_connections); }
 
 // --------------------------------------------
 		// PEER MANAGEMENT
@@ -704,11 +709,6 @@ namespace libtorrent
 		void scrape_tracker(int idx, bool user_triggered);
 		void announce_with_tracker(std::uint8_t e
 			= tracker_request::none);
-		int seconds_since_last_scrape() const
-		{
-			return m_last_scrape == (std::numeric_limits<std::int16_t>::min)()
-				? -1 : int(m_ses.session_time() - m_last_scrape);
-		}
 
 #ifndef TORRENT_DISABLE_DHT
 		void dht_announce();
@@ -928,7 +928,7 @@ namespace libtorrent
 		int num_known_peers() const { return m_peer_list ? m_peer_list->num_peers() : 0; }
 		int num_connect_candidates() const { return m_peer_list ? m_peer_list->num_connect_candidates() : 0; }
 
-		piece_manager& storage();
+		storage_interface& storage();
 		bool has_storage() const { return m_storage.get() != nullptr; }
 
 		torrent_info const& torrent_file() const
@@ -1158,21 +1158,21 @@ namespace libtorrent
 		// if this pointer is 0, the torrent is in
 		// a state where the metadata hasn't been
 		// received yet, or during shutdown.
-		// the piece_manager keeps the torrent object
+		// the storage_interface keeps the torrent object
 		// alive by holding a shared_ptr to it and
 		// the torrent keeps the piece manager alive
 		// with this shared_ptr. This cycle is
 		// broken when torrent::abort() is called
-		// Then the torrent releases the piece_manager
-		// and when the piece_manager is complete with all
+		// Then the torrent releases the storage_interface
+		// and when the storage_interface is complete with all
 		// outstanding disk io jobs (that keeps
-		// the piece_manager alive) it will destruct
+		// the storage_interface alive) it will destruct
 		// and release the torrent file. The reason for
 		// this is that the torrent_info is used by
-		// the piece_manager, and stored in the
+		// the storage_interface, and stored in the
 		// torrent, so the torrent cannot destruct
-		// before the piece_manager.
-		std::shared_ptr<piece_manager> m_storage;
+		// before the storage_interface.
+		std::shared_ptr<storage_interface> m_storage;
 
 #ifdef TORRENT_USE_OPENSSL
 		std::shared_ptr<boost::asio::ssl::context> m_ssl_ctx;
@@ -1609,16 +1609,18 @@ namespace libtorrent
 		// is optional and may be 0xffffff
 		unsigned int m_downloaded:24;
 
+#ifndef TORRENT_NO_DEPRECATE
 		// the timestamp of the last scrape request to one of the trackers in
 		// this torrent specified in session_time. This is signed because it must
 		// be able to represent time before the session started
 		std::int16_t m_last_scrape = (std::numeric_limits<std::int16_t>::min)();
+#endif
 
 // ----
 
 		// progress parts per million (the number of
 		// millionths of completeness)
-		unsigned int m_progress_ppm:20;
+		std::uint32_t m_progress_ppm:20;
 
 #if TORRENT_USE_ASSERTS
 		// set to true when torrent is start()ed. It may only be started once

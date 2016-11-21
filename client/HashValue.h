@@ -22,6 +22,7 @@
 #ifndef DCPLUSPLUS_DCPP_HASH_VALUE_H
 #define DCPLUSPLUS_DCPP_HASH_VALUE_H
 
+#include "TigerHash.h"
 #include "Encoder.h"
 
 extern const string g_tth; // [+] IRainman opt.
