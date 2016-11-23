@@ -1,4 +1,4 @@
-version: r502-{build}
+version: r503-{build}
 build:
-  project: FlylinkDC_2013.sln
+  project: FlylinkDC_2015.sln
   verbosity: minimal
