@@ -66,7 +66,7 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 	const auto l_my_user = std::make_shared<User>(ClientManager::getMyCID(), "", m_HubID);
 	const auto l_hub_user = std::make_shared<User>(CID(), "", m_HubID);
 	const auto l_lower_url = Text::toLower(m_HubURL);
-	if (!p_is_auto_connect && !Util::isAdcHub(l_lower_url))
+	if (!Util::isAdcHub(l_lower_url))
 	{
 		const auto l_pos_ru = l_lower_url.rfind(".ru");
 		if (l_pos_ru != string::npos)

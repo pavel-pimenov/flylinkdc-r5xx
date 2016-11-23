@@ -59,7 +59,7 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 			fly_fire3(UserManagerListener::OutgoingPrivateMessage(), user, hubHint, message);
 		}
 		void openUserUrl(const UserPtr& user);
-		void collectSummaryInfo(const UserPtr& user, const string& hubHint)
+		void collectSummaryInfo(const UserPtr user, const string hubHint)
 		{
 			fly_fire2(UserManagerListener::CollectSummaryInfo(), user, hubHint);
 		}

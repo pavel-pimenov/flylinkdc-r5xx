@@ -127,6 +127,8 @@ class NmdcHub : public Client, private Flags
 		
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		bool m_bAutodetectionPending;
+		bool m_is_get_user_ip_from_hub;
+		
 		int m_iRequestCount;
 #endif
 		static CFlyUnknownCommand g_unknown_command;

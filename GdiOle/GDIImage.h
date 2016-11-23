@@ -2,7 +2,9 @@
 #ifdef IRAINMAN_INCLUDE_GDI_OLE
 #include <gdiplus.h>
 #include "../client/util_flylinkdc.h"
+#ifdef _DEBUG
 #include <boost/noncopyable.hpp>
+#endif
 #include <boost/atomic.hpp>
 #include <unordered_set>
 #include <set>

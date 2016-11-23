@@ -388,10 +388,10 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 #endif
 	private:
 		uint32_t m_message_count;
-		bool m_is_fly_support_hub;
 		uint8_t m_vip_icon_index;
-		bool m_is_suppress_chat_and_pm;
 		boost::logic::tribool m_is_local_hub;
+		bool m_is_fly_support_hub;
+		bool m_is_suppress_chat_and_pm;
 		
 		struct CFlyFloodCommand
 		{

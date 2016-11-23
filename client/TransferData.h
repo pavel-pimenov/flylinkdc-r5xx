@@ -42,7 +42,6 @@ class TransferData
 		int m_num_peers;
 		bool m_is_torrent;
 		bool m_is_seeding;
-		string m_torrent_file_path;
 		libtorrent::sha1_hash m_sha1;
 		
 		double m_percent;

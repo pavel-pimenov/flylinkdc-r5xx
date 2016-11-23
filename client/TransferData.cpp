@@ -26,7 +26,6 @@ void TransferData::init(libtorrent::torrent_status const& s)
 	m_size = s.total_wanted; // ti->files().file_size(i);
 	m_type = 0; // d->getType();
 	m_path = s.save_path + s.name; // - путь к корню торрент-файла
-	m_torrent_file_path = m_path; // s.save_path + l_file_path;
 	m_num_seeds = s.num_seeds;
 	m_num_peers = s.num_peers;
 	m_is_torrent = true;

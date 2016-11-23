@@ -22,7 +22,7 @@
 #define TRANSFER_VIEW_H
 
 #ifdef _DEBUG
-// #define LYLINKDC_USE_DEBUG_TRANSFERS
+#define FLYLINKDC_USE_DEBUG_TRANSFERS
 #endif
 #include "../client/DownloadManagerListener.h"
 #include "../client/UploadManagerListener.h"
@@ -310,7 +310,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 					STATUS_WAITING
 				};
 				
-				ItemInfo(const HintedUser& u, const bool p_is_sownload, const bool p_is_torrent) : m_hintedUser(u), m_is_torrent(p_is_torrent), download(p_is_sownload), transferFailed(false),
+				ItemInfo(const HintedUser& u, const bool p_is_download, const bool p_is_torrent) :
+					m_hintedUser(u), m_is_torrent(p_is_torrent), download(p_is_download), transferFailed(false),
 					m_status(STATUS_WAITING), m_pos(0), m_size(0), m_actual(0), m_speed(0), m_timeLeft(0),
 					collapsed(true), parent(nullptr), m_hits(-1), running(0), m_type(Transfer::TYPE_FILE), m_is_force_passive(false), m_is_seeding(false)
 				{
@@ -321,7 +322,6 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				bool m_is_torrent;
 				bool m_is_seeding;
 				
-				string m_torrent_file_path;
 				libtorrent::sha1_hash m_sha1;
 				
 				bool transferFailed;
@@ -387,18 +387,19 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				ItemInfo* createParent()
 				{
 					dcassert(download);
-					ItemInfo* ii = new ItemInfo(HintedUser(nullptr, Util::emptyString), true, false); // TODO - torrent
+					ItemInfo* ii = new ItemInfo(HintedUser(nullptr, Util::emptyString), true, false);
 					ii->running = 0;
 					//ii->m_hits = 0;
+					ii->m_is_torrent = m_is_torrent;
 					if (m_is_torrent)
 					{
-						ii->m_is_torrent = m_is_torrent;
 						ii->m_pos = m_pos;
 						ii->m_size = m_size;
 						ii->m_actual = m_actual;
 						ii->m_speed = m_speed;
 						ii->m_statusString = m_target;
 						ii->m_is_seeding = m_is_seeding;
+						ii->m_sha1 = m_sha1;
 					}
 					else
 					{
@@ -441,12 +442,11 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			
 			bool operator==(const ItemInfo& ii) const
 			{
-				if (m_is_torrent)
+				if (m_is_torrent && ii.m_is_torrent)
 				{
 					dcassert(!m_sha1.is_all_zeros());
 					dcassert(!ii.m_sha1.is_all_zeros());
-					return download == ii.download &&
-					       m_sha1 == ii.m_sha1;
+					return m_sha1 == ii.m_sha1;
 				}
 				else
 				{
@@ -487,7 +487,6 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			const bool download;
 			bool m_is_torrent;
 			bool m_is_seeding;
-			string m_torrent_file_path;
 			libtorrent::sha1_hash m_sha1;
 			const bool transferFailed; // [!] is const member.
 			// [~]
@@ -555,8 +554,12 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				dcassert(!aToken.empty());
 				if (m_token != aToken && !aToken.empty())
 				{
-#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
-					LogManager::message("setToken(const string& aToken) old_token = " + token + " new token = " + aToken);
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
+					if (!m_token.empty())
+					{
+						dcassert(0);
+						LogManager::message("setToken(const string& aToken) old_token = " + m_token + " new token = " + aToken);
+					}
 #endif
 					m_token = aToken;
 					updateMask |= MASK_TOKEN;

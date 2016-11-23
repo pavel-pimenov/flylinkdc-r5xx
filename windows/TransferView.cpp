@@ -1243,8 +1243,13 @@ TransferView::ItemInfo* TransferView::findItem(const UpdateInfo& ui, int& pos) c
 				pos = j;
 				return ii;
 			}
-			else if (ui.download == ii->download && !ii->parent) // [!] IRainman fix.
+			else if (ui.download == ii->download && !ii->parent
+			         && ii->m_is_torrent == false
+			         && ui.m_is_torrent == false
+			        )
 			{
+				dcassert(ii->m_sha1.is_all_zeros());
+				dcassert(ui.m_sha1.is_all_zeros());
 				const auto& children = ctrlTransfers.findChildren(ii->getGroupCond()); // TODO - ссылка?
 				for (auto k = children.cbegin(); k != children.cend(); ++k)
 				{
@@ -1277,8 +1282,8 @@ void TransferView::onSpeakerAddItem(const UpdateInfo& ui)
 	ItemInfo* l_find_ii = findItem(ui, pos);
 	if (l_find_ii)
 	{
-#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
-		LogManager::message("SKIP Dup TRANSFER_ADD_ITEM ErrorStatus: " + Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) + " ui.token = " + ui.token);
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
+		LogManager::message("SKIP Dup TRANSFER_ADD_ITEM ErrorStatus: " + Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) + " ui.token = " + ui.m_token);
 #endif
 		return;
 	}
@@ -1292,18 +1297,17 @@ void TransferView::onSpeakerAddItem(const UpdateInfo& ui)
 	}
 	ItemInfo* ii = new ItemInfo(ui.m_hintedUser, ui.download, ui.m_is_torrent);
 #ifdef FLYLINKDC_USE_TORRENT
-	ii->m_torrent_file_path = ui.m_torrent_file_path;
 	ii->m_is_seeding = ui.m_is_seeding;
 	ii->m_sha1 = ui.m_sha1;
 #endif
 #ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
-	if (ui.token.empty())
+	if (ui.m_token.empty())
 	{
 		LogManager::message("TRANSFER_ADD_ITEM ui.token.empty()");
 	}
 #endif
 	ii->update(ui);
-	if (ii->download)
+	if (ii->download && ii->m_is_torrent == false)
 	{
 		ctrlTransfers.insertGroupedItem(ii, false, false, true);
 	}
@@ -1311,8 +1315,8 @@ void TransferView::onSpeakerAddItem(const UpdateInfo& ui)
 	{
 		ctrlTransfers.insertItem(ii, IMAGE_UPLOAD);
 	}
-#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
-	LogManager::message("TRANSFER_ADD_ITEM ErrorStatus: " + Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) + " ui.token = " + ui.token);
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
+	LogManager::message("TRANSFER_ADD_ITEM ErrorStatus: " + Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) + " ui.token = " + ui.m_token);
 #endif
 }
 
@@ -1340,31 +1344,34 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 			case TRANSFER_REMOVE_TOKEN_ITEM:
 			{
 				const auto &ui = static_cast<UpdateInfo&>(*i->second);
-#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
 				unsigned l_count_remove = 0;
 #endif
 				for (int j = 0; j < ctrlTransfers.GetItemCount(); ++j)
 				{
 					ItemInfo* ii = ctrlTransfers.getItemData(j);
 					bool l_is_find = false;
-					if (ui.m_is_torrent)
+					if (ui.m_is_torrent == true && ii->m_is_torrent == true)
 						l_is_find = ii->m_sha1 == ui.m_sha1;
 					else
-						l_is_find = ii->m_token == ui.m_token;
+					{
+						if (ui.m_is_torrent == false && ii->m_is_torrent == false)
+							l_is_find = ii->m_token == ui.m_token;
+					}
 					if (l_is_find)
 					{
 						ctrlTransfers.removeGroupedItem(ii);
 						j = 0;
-#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
-						LogManager::message("TRANSFER_REMOVE_TOKEN_ITEM ui.token = " + ui.token);
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
+						LogManager::message("TRANSFER_REMOVE_TOKEN_ITEM ui.token = " + ui.m_token);
 						l_count_remove++;
 #endif
 					}
 				}
-#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
 				if (!l_count_remove)
 				{
-					LogManager::message("[!] Not found TRANSFER_REMOVE_TOKEN_ITEM ui.token = " + ui.token);
+					LogManager::message("[!] Not found TRANSFER_REMOVE_TOKEN_ITEM ui.token = " + ui.m_token);
 				}
 #endif
 			}
@@ -1373,9 +1380,10 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 			{
 				const auto &ui = static_cast<UpdateInfo&>(*i->second);
 				dcassert(!ui.m_target.empty());
-				if (!ui.m_target.empty())
+				dcassert(ui.m_is_torrent == false);
+				if (!ui.m_target.empty() && ui.m_is_torrent == false)
 				{
-#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
 					unsigned l_count_remove = 0;
 #endif
 					for (int j = 0; j < ctrlTransfers.GetItemCount(); ++j)
@@ -1387,16 +1395,16 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 						{
 							ctrlTransfers.removeGroupedItem(ii);
 							j = 0;
-#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
-							LogManager::message("TRANSFER_REMOVE_DOWNLOAD_ITEM ui.m_target = " + Text::fromT(ui.m_target) + " ui.token = " + ui.token);
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
+							LogManager::message("TRANSFER_REMOVE_DOWNLOAD_ITEM ui.m_target = " + Text::fromT(ui.m_target) + " ui.token = " + ui.m_token);
 							l_count_remove++;
 #endif
 						}
 					}
-#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
 					if (!l_count_remove)
 					{
-						LogManager::message("[!] Not found TRANSFER_REMOVE_DOWNLOAD_ITEM ii->m_target = " + Text::fromT(ui.m_target) + " ui.token = " + ui.token);
+						LogManager::message("[!] Not found TRANSFER_REMOVE_DOWNLOAD_ITEM ii->m_target = " + Text::fromT(ui.m_target) + " ui.token = " + ui.m_token);
 					}
 #endif
 				}
@@ -1410,8 +1418,9 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				ItemInfo* ii = findItem(ui, pos);
 				if (ii)
 				{
-#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
-					LogManager::message("TRANSFER_REMOVE_ITEM User = " + ii->getUser()->getLastNick() + " ErrorStatus: " + Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) + " ui.token = " + ui.token);
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
+					LogManager::message("TRANSFER_REMOVE_ITEM User = " + ii->getUser()->getLastNick() + " ErrorStatus: "
+					                    + Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) + " ui.token = " + ui.m_token);
 #endif
 					if (ui.download)
 					{
@@ -1422,10 +1431,10 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 						dcassert(pos != -1);
 						if (ctrlTransfers.DeleteItem(pos) == FALSE)
 						{
-#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
 							LogManager::message("Error delete pos = " + Util::toString(pos) +
 							                    "TRANSFER_REMOVE_ITEM User = " + ii->getUser()->getLastNick() + " ErrorStatus: " +
-							                    Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) + " ui.token = " + ui.token);
+							                    Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) + " ui.token = " + ui.m_token);
 #endif
 						}
 						delete ii;
@@ -1433,10 +1442,11 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				}
 				else
 				{
-#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
-					LogManager::message("[!] TRANSFER_REMOVE_ITEM not found ErrorStatus: " + Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) + " ui.token = " + ui.token);
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
+					LogManager::message("[!] TRANSFER_REMOVE_ITEM not found ErrorStatus: " + Text::fromT(ui.errorStatusString) +
+					                    " Status = " + Text::fromT(ui.statusString) + " ui.token = " + ui.m_token);
 #endif
-					dcassert(0);
+					//dcassert(0);
 				}
 			}
 			break;
@@ -1448,10 +1458,19 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				ItemInfo* ii = findItem(ui, pos);
 				if (ii)
 				{
-#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
-					LogManager::message("TRANSFER_UPDATE_ITEM User = " + ii->getUser()->getLastNick() + " ErrorStatus: " + Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) + " ui.token = " + ui.token);
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
+					if (ii->getUser())
+					{
+						LogManager::message("TRANSFER_UPDATE_ITEM User = " + ii->getUser()->getLastNick() + " ErrorStatus: " +
+						                    Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) + " ui.token = " + ui.m_token);
+					}
+					else
+					{
+						LogManager::message("TRANSFER_UPDATE_ITEM ErrorStatus: " +
+						                    Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) + " ui.token = " + ui.m_token);
+					}
 #endif
-					if (ui.download)
+					if (ui.download && ui.m_is_torrent == false)
 					{
 						ItemInfo* parent = ii->parent ? ii->parent : ii;
 						
@@ -1480,10 +1499,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 						
 						/* if target has changed, regroup the item */
 						bool changeParent = false;
-						//if(ui.m_is_torrent)
-						//  changeParent = (ui.updateMask & UpdateInfo::MASK_FILE) && (ui.m_torrent_file_path != ii->m_torrent_file_path);
-						//else
-						changeParent = (ui.updateMask & UpdateInfo::MASK_FILE) && (ui.m_target != ii->m_target);
+						changeParent = ui.m_is_torrent == false && ii->m_is_torrent == false && (ui.updateMask & UpdateInfo::MASK_FILE) && ui.m_target != ii->m_target;
 						if (changeParent)
 						{
 							ctrlTransfers.removeGroupedItem(ii, false);
@@ -1510,10 +1526,19 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				}
 				else
 				{
-#ifdef LYLINKDC_USE_DEBUG_TRANSFERS
-					LogManager::message("[!] TRANSFER_UPDATE_ITEM not found error User = " + ui.m_hintedUser.user->getLastNick() + " status: " +
-					                    Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) +
-					                    " info = " + ui.m_hintedUser.user->getLastNick() + "is download = " + Util::toString(ui.download) + " ui.token = " + ui.token);
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
+					if (ui.m_hintedUser.user)
+					{
+						LogManager::message("[!] TRANSFER_UPDATE_ITEM not found error User = " + ui.m_hintedUser.user->getLastNick() + " status: " +
+						                    Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) +
+						                    " info = " + ui.m_hintedUser.user->getLastNick() + "is download = " + Util::toString(ui.download) + " ui.token = " + ui.m_token);
+					}
+					else
+					{
+						LogManager::message("[!] TRANSFER_UPDATE_ITEM not found error status: " +
+						                    Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) +
+						                    "is download = " + Util::toString(ui.download) + " ui.token = " + ui.m_token);
+					}
 #endif
 					// dcassert(0);
 					if (!ui.m_token.empty() || ui.m_is_torrent == true && !ui.m_sha1.is_all_zeros())
@@ -1588,7 +1613,6 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 		
 	m_is_torrent = ui.m_is_torrent;
 	m_is_seeding = ui.m_is_seeding;
-	m_torrent_file_path = ui.m_torrent_file_path;
 	m_sha1 = ui.m_sha1;
 	
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
@@ -1974,7 +1998,7 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 		case COLUMN_FILE:
 			if (m_is_torrent)
 			{
-				return Text::toT(Util::getFileName(m_torrent_file_path));
+				return Util::getFileName(m_target);
 			}
 			else
 			{
@@ -1985,7 +2009,7 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 		case COLUMN_PATH:
 		{
 			if (m_is_torrent)
-				return Text::toT(Util::getFilePath(m_torrent_file_path));
+				return Util::getFilePath(m_target);
 			else
 				return Util::getFilePath(m_target);
 		}
@@ -2007,7 +2031,11 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 			}
 			else
 			{
+#ifdef _DEBUG
+				return m_cipher + _T(" [Token: ") + Text::toT(this->m_token) + _T("]");
+#else
 				return m_cipher; // +_T(" [Token: ") + Text::toT(this->m_transfer_item_token) + _T("]");
+#endif
 			}
 		case COLUMN_SHARE:
 			return m_hintedUser.user ? Util::formatBytesW(m_hintedUser.user->getBytesShared()) : Util::emptyStringT;
@@ -2164,7 +2192,6 @@ void TransferView::on(DownloadManagerListener::TorrentEvent, const DownloadArray
 			dcassert(j->m_is_torrent);
 			ui->m_is_torrent = j->m_is_torrent;
 			ui->m_sha1 = j->m_sha1;
-			ui->m_torrent_file_path = j->m_torrent_file_path;
 			ui->m_is_seeding = j->m_is_seeding;
 			ui->setSpeed(j->m_speed);
 			ui->setSize(j->m_size);
@@ -2632,13 +2659,6 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noe
 			if (!qi->getTarget().empty())
 			{
 				UpdateInfo* ui = new UpdateInfo(HintedUser(*i, Util::emptyString), true);
-				/*      ui->setTarget(qi->getTarget());
-				        ui->setStatusString(TSTRING(DISCONNECTED));
-				        ui->setStatus(ItemInfo::STATUS_WAITING);
-				        ui->setHintedUser(HintedUser(qi->getFirstUser(),Util::emptyString));
-				        m_tasks.add(TRANSFER_UPDATE_PARENT, ui);
-				        ui = new UpdateInfo();
-				*/
 				ui->setTarget(qi->getTarget());
 				m_tasks.add(TRANSFER_REMOVE_DOWNLOAD_ITEM, ui);
 			}

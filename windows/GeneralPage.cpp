@@ -180,7 +180,7 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	CComboBox combo;
 	combo.Attach(GetDlgItem(IDC_ENCODING));
 	combo.AddString(Text::toT(Text::g_code1251).c_str());
-	combo.AddString(_T("System default"));
+	combo.AddString(Text::toT(Text::g_systemCharset).c_str());
 	if (Text::g_systemCharset == Text::g_code1251)
 	{
 		combo.SetCurSel(0);

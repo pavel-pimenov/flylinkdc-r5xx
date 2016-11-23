@@ -1323,7 +1323,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				
 			int pos = -1;
 			
-			if (pp == NULL)
+			if (pp == nullptr)
 			{
 				parent = item;
 				

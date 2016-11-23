@@ -963,12 +963,12 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			p_menu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)grantMenu, CTSTRING(GRANT_SLOTS_MENU));
 		}
 		
-		string& m_selectedHint; // [!] IRainman opt.
-		T2& m_selectedUser; // [!] IRainman fix: use online user here!
+		string m_selectedHint;
+		T2 m_selectedUser;
 		
 	protected:
 	
-		void doAction(void (UserInfoBase::*func)(const int data), const int data) // [+] IRainman.
+		void doAction(void (UserInfoBase::*func)(const int data), const int data)
 		{
 			if (m_selectedUser)
 			{

@@ -39,7 +39,9 @@
 #include <memory>
 #include <utility>
 
+#ifdef _DEBUG
 #include <boost/noncopyable.hpp>
+#endif
 #ifdef STD_MAP_STD_UNIQUE_PTR_BUG
 #include <boost/shared_array.hpp>
 #endif

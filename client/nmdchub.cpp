@@ -48,7 +48,8 @@ NmdcHub::NmdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect) :
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 	m_hubSupportsSlots(false),
 #endif // IRAINMAN_ENABLE_AUTO_BAN
-	m_lastUpdate(0)
+	m_lastUpdate(0),
+	m_is_get_user_ip_from_hub(false)
 {
 	AutodetectInit();
 	// [+] IRainman fix.
@@ -77,6 +78,7 @@ void NmdcHub::clear_delay_search()
 
 void NmdcHub::disconnect(bool p_graceless)
 {
+	m_is_get_user_ip_from_hub = false;
 	Client::disconnect(p_graceless);
 	clearUsers();
 	clear_delay_search();
@@ -1286,6 +1288,7 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 				{
 					const bool l_is_private_ip = Util::isPrivateIp(l_ip);
 					setTypeHub(l_is_private_ip);
+					m_is_get_user_ip_from_hub = true;
 					if (l_is_private_ip)
 					{
 						LogManager::message("Detect local hub: " + getHubUrl() + " private UserIP = " + l_ip + " User = " + l_user);
@@ -2110,7 +2113,7 @@ void NmdcHub::processAutodetect(bool p_is_myinfo)
 {
 	if (!p_is_myinfo && m_bLastMyInfoCommand == FIRST_MYINFO)
 	{
-		if (!Util::isPrivateIp(getLocalIp()))
+		if (m_is_get_user_ip_from_hub || !Util::isPrivateIp(getLocalIp()))
 		{
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 			// This is first command after $MyInfo.
