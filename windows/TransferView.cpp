@@ -1254,7 +1254,7 @@ TransferView::ItemInfo* TransferView::findItem(const UpdateInfo& ui, int& pos) c
 				for (auto k = children.cbegin(); k != children.cend(); ++k)
 				{
 					ItemInfo* jj = *k;
-					if (ui == *jj)       // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=139847  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62292
+					if (ui == *jj)       // https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=139847  https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=62292
 					{
 						return jj;
 					}
@@ -2574,7 +2574,7 @@ void TransferView::parseQueueItemUpdateInfo(UpdateInfo* ui, const QueueItemPtr& 
 		ui->setStatus(ItemInfo::STATUS_WAITING);
 		ui->setRunning(0);
 	}
-} // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=152461
+} // https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=152461
 
 void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string&, const DownloadPtr& p_download) noexcept
 {

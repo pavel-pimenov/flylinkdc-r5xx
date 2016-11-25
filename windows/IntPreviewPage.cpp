@@ -60,7 +60,7 @@ LRESULT IntPreviewPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 {
 
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_INT_PREVIEW_LIST));
+	PropPage::read(*this, items, listItems, GetDlgItem(IDC_INT_PREVIEW_LIST));
 	ctrlPrevlist.Attach(GetDlgItem(IDC_INT_PREVIEW_LIST)); // [+] IRainman
 	return TRUE;
 }
@@ -68,7 +68,7 @@ LRESULT IntPreviewPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 
 void IntPreviewPage::write()
 {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_INT_PREVIEW_LIST));
+	PropPage::write(*this, items, listItems, GetDlgItem(IDC_INT_PREVIEW_LIST));
 }
 
 LRESULT IntPreviewPage::OnBrowseClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

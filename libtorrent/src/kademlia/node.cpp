@@ -826,7 +826,7 @@ void node::incoming_request(msg const& m, entry& e)
 		// we already have 't' and 'id' in the response
 		// no more left to add
 	}
-	else if (query == "get_peers")
+	else if (query == "get_peers") // https://drdump.com/Problem.aspx?ProblemID=240398&Login=Guest
 	{
 		key_desc_t const msg_desc[] = {
 			{"info_hash", bdecode_node::string_t, 20, 0},

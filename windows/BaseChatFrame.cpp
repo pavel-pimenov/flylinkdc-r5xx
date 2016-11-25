@@ -109,7 +109,7 @@ void BaseChatFrame::destroyMessageCtrl(bool p_is_shutdown)
 	//safe_unsubclass_window(m_ctrlMessageContainer);
 	if (m_ctrlMessage)
 	{
-		if (!p_is_shutdown && m_ctrlMessage->IsWindow()) // fix https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=36887
+		if (!p_is_shutdown && m_ctrlMessage->IsWindow()) // fix https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=36887
 		{
 			WinUtil::GetWindowText(m_LastMessage, *m_ctrlMessage);
 			m_LastSelPos = m_ctrlMessage->GetSel();
@@ -133,7 +133,7 @@ void BaseChatFrame::destroyMessagePanel(bool p_is_shutdown)
 {
 	if (m_msgPanel)
 	{
-		m_msgPanel->DestroyPanel(p_is_shutdown); // Тоже падаем при разрушении https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=36613
+		m_msgPanel->DestroyPanel(p_is_shutdown); // Тоже падаем при разрушении https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=36613
 		safe_delete(m_msgPanel);
 	}
 }

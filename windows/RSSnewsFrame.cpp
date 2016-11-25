@@ -205,7 +205,7 @@ RSSNewsFrame::on(RSSListener::NewRSS, const unsigned int newsCount) noexcept
 }
 
 void RSSNewsFrame::on(RSSListener::Added, const RSSItem* p_item) noexcept
-// 41 падение в этой области https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=23689
+// 41 падение в этой области https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=23689
 // http://i.imgur.com/Si4oqEI.png
 {
 	addRSSEntry(p_item);

@@ -96,8 +96,8 @@ LRESULT UpdatePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	::EnableWindow(GetDlgItem(IDC_AUTOUPDATE_AT), FALSE);
 #endif
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_AUTOUPDATE_LIST));
-	PropPage::read((HWND)*this, NULL, listComponents, GetDlgItem(IDC_AUTOUPDATE_COMPONENTS));
+	PropPage::read(*this, items, listItems, GetDlgItem(IDC_AUTOUPDATE_LIST));
+	PropPage::read(*this, NULL, listComponents, GetDlgItem(IDC_AUTOUPDATE_COMPONENTS));
 	
 	ctrlComponents.Attach(GetDlgItem(IDC_AUTOUPDATE_LIST)); // [+] IRainman
 	ctrlAutoupdates.Attach(GetDlgItem(IDC_AUTOUPDATE_COMPONENTS)); // [+] IRainman
@@ -124,8 +124,8 @@ LRESULT UpdatePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
 void UpdatePage::write()
 {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_AUTOUPDATE_LIST));
-	PropPage::write((HWND)*this, NULL, listComponents, GetDlgItem(IDC_AUTOUPDATE_COMPONENTS));
+	PropPage::write(*this, items, listItems, GetDlgItem(IDC_AUTOUPDATE_LIST));
+	PropPage::write(*this, NULL, listComponents, GetDlgItem(IDC_AUTOUPDATE_COMPONENTS));
 	ctrlTime.Attach(GetDlgItem(IDC_AUTOUPDATE_AT));
 	SET_SETTING(AUTOUPDATE_TIME, ctrlTime.GetCurSel());
 	ctrlTime.Detach();

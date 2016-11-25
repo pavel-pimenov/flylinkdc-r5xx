@@ -404,7 +404,7 @@ void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLOR
 	}
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 #ifdef FLYLINKDC_USE_DETECT_CHEATING
-	if (p_is_op && onlineUser) // Возможно фикс https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=38000
+	if (p_is_op && onlineUser) // Возможно фикс https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=38000
 	{
 	
 		const auto fc = onlineUser->getIdentity().getFakeCard();
@@ -429,7 +429,7 @@ void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLOR
 	//LogManager::message("Colors::getUserColor, user = " + user->getLastNick() + " color = " + Util::toString(fg));
 #endif
 	dcassert(user);
-	// [!] IRainman fix todo: https://crash-server.com/SearchResult.aspx?ClientID=ppa&Stack=Colors::getUserColor , https://crash-server.com/SearchResult.aspx?ClientID=ppa&Stack=WinUtil::getUserColor
+	// [!] IRainman fix todo: https://crash-server.com/SearchResult.aspx?ClientID=guest&Stack=Colors::getUserColor , https://crash-server.com/SearchResult.aspx?ClientID=guest&Stack=WinUtil::getUserColor
 	if ((p_flag_mask & IS_IGNORED_USER) == IS_IGNORED_USER)
 	{
 		if (UserManager::g_isEmptyIgnoreList == false && UserManager::isInIgnoreList(onlineUser ? onlineUser->getIdentity().getNick() : user->getLastNick()))
@@ -3655,7 +3655,7 @@ void WinUtil::SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID) // [+] SSA
 BOOL
 WinUtil::FillRichEditFromString(HWND hwndEditControl, const string& rtfFile)
 {
-	// https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=88785
+	// https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=88785
 	// Посомтреть дампы и починить
 	// TODO please refactoring this function to use unicode!
 	if (hwndEditControl == NULL)

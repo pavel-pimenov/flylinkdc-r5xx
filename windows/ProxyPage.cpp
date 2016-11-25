@@ -65,7 +65,7 @@ LRESULT ProxyPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 			break;
 	}
 	
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	fixControls();
 	
@@ -102,7 +102,7 @@ void ProxyPage::write()
 		
 	SetDlgItemText(IDC_SERVER, x.c_str());
 	
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 	
 	int ct = SettingsManager::OUTGOING_DIRECT;
 	

@@ -251,7 +251,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			// [+] SSA
 			if (getDownload()) // Не понятно почему падаю тут - https://drdump.com/Problem.aspx?ProblemID=96544
 			{
-				if (getDownload()->isSet(Download::FLAG_USER_GET_IP)) // Crash https://drdump.com/Problem.aspx?ClientID=ppa&ProblemID=90376
+				if (getDownload()->isSet(Download::FLAG_USER_GET_IP)) // Crash https://drdump.com/Problem.aspx?ClientID=guest&ProblemID=90376
 				{
 					fly_fire1(UserConnectionListener::CheckUserIP(), this);
 				}
@@ -489,7 +489,7 @@ void UserConnection::on(Updated) noexcept
 void UserConnection::on(Failed, const string& aLine) noexcept
 {
 	setState(STATE_UNCONNECTED);
-	if (getUser()) // fix crash https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=44660
+	if (getUser()) // fix crash https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=44660
 	{
 		getUser()->fixLastIP();
 	}

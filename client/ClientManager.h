@@ -227,16 +227,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static void privateMessage(const HintedUser& user, const string& msg, bool thirdPerson);
 		static void userCommand(const HintedUser& user, const UserCommand& uc, StringMap& params, bool compatibility);
 		
-		static int getMode(const FavoriteHubEntry* p_hub
-#ifdef RIP_USE_CONNECTION_AUTODETECT
-		                   , bool *pbWantAutodetect = NULL
-#endif
-		                  );
-		static bool isActive(const FavoriteHubEntry* p_hub
-#ifdef RIP_USE_CONNECTION_AUTODETECT
-		                     , bool *pbWantAutodetect = NULL
-#endif
-		                    );
+		static int getMode(const FavoriteHubEntry* p_hub, bool& pbWantAutodetect);
+		static bool isActive(const FavoriteHubEntry* p_hub, bool& pbWantAutodetect);
 #ifdef IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
 		const Client::List& getClientsL() const
 		{
@@ -246,11 +238,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static const CID& getMyCID();
 		static void generateNewMyCID();
 		static const CID& getMyPID();
-		///////////////////////
-		/**
-		 * This file is a part of client manager.
-		 * It has been divided but shouldn't be used anywhere else.
-		 */
 		
 		static void setListLength(const UserPtr& p, const string& listLen);
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
@@ -265,7 +252,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static void setSupports(const UserPtr& p, const StringList& aSupports, const uint8_t knownUcSupports);
 		static void setUnknownCommand(const UserPtr& p, const string& aUnknownCommand);
 		static void reportUser(const HintedUser& user);
-		//static void setFakeList(const UserPtr& p, const string& aCheatString);
 		
 #ifdef STRONG_USE_DHT
 		static OnlineUserPtr findDHTNode(const CID& cid);

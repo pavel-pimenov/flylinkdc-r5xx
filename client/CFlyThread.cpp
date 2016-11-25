@@ -124,7 +124,7 @@ void Thread::start(unsigned int p_stack_size, const char* p_name /* = nullptr */
 {
 	join();
 	p_stack_size *= 1024;
-	dcassert(!ClientManager::isBeforeShutdown());
+	//dcassert(!ClientManager::isBeforeShutdown());
 	HANDLE h = reinterpret_cast<HANDLE>(_beginthreadex(nullptr, p_stack_size, &starter, this, 0, nullptr));
 	if (h == nullptr || h == INVALID_HANDLE_VALUE)
 	{
@@ -138,7 +138,7 @@ void Thread::start(unsigned int p_stack_size, const char* p_name /* = nullptr */
 			const string l_error = "Unable to crate thread! errno = " + Util::toString(errno) +
 			                       " GetLastError() = " + Util::toString(l_last_error) +
 			                       " Please send a text or a screenshot of the error to developers ppa74@ya.ru";
-			// https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=97752
+			// https://www.crash-server.com/DumpGroup.aspx?ClientID=guest&Login=Guest&DumpGroupID=97752
 #ifdef _DEBUG
 			MessageBox(NULL, Text::toT(l_error).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR | MB_TOPMOST);
 #endif

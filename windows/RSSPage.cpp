@@ -55,7 +55,7 @@ LRESULT RSSPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	}
 	
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	CRect rc;
 	
@@ -90,7 +90,7 @@ LRESULT RSSPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 void RSSPage::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 }
 
 // При добавлении.

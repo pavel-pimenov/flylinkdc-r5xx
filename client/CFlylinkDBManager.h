@@ -798,7 +798,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		FastCriticalSection m_hub_dic_fcs;
 #endif
 		
-		
 		CFlySQLCommand m_select_transfer_day;
 		CFlySQLCommand m_select_transfer_day_torrent;
 		CFlySQLCommand m_select_transfer_tth;
@@ -830,7 +829,18 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		size_t  m_count_json_stat;
 		static int32_t g_count_queue_source;
 		static int32_t g_count_queue_files;
-		boost::unordered_map<TTHValue, TigerTree> m_tiger_tree_cache;
-		FastCriticalSection m_tth_cache_cs;
+		
+		static boost::unordered_map<TTHValue, TigerTree> g_tiger_tree_cache;
+		static FastCriticalSection g_tth_cache_cs;
+		static void clearTTHCache();
+		static unsigned g_tth_cache_limit;
+	public:
+		static void tryFixBadAlloc();
+		static unsigned get_tth_cache_size()
+		{
+			//CFlyFastLock(g_tth_cache_cs);
+			return g_tiger_tree_cache.size();
+		}
 };
 #endif
+

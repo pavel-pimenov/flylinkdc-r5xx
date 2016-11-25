@@ -340,6 +340,8 @@
     <ClCompile Include="windows\CFlyLocationDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="windows\HIconWrapper.cpp" />
+    <ClCompile Include="windows\Players.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="windows\AboutDlg.h">
@@ -813,6 +815,31 @@
     <ClInclude Include="windows\grid\PropertyItemImpl.h">
       <Filter>Source Files\grid</Filter>
     </ClInclude>
+    <ClInclude Include="wtl\atlapp.h" />
+    <ClInclude Include="wtl\atlcrack.h" />
+    <ClInclude Include="wtl\atlctrls.h" />
+    <ClInclude Include="wtl\atlctrlw.h" />
+    <ClInclude Include="wtl\atlctrlx.h" />
+    <ClInclude Include="wtl\atlddx.h" />
+    <ClInclude Include="wtl\atldlgs.h" />
+    <ClInclude Include="wtl\atldwm.h" />
+    <ClInclude Include="wtl\atlfind.h" />
+    <ClInclude Include="wtl\atlframe.h" />
+    <ClInclude Include="wtl\atlgdi.h" />
+    <ClInclude Include="wtl\atlgdiraii.h" />
+    <ClInclude Include="wtl\atlgdix.h" />
+    <ClInclude Include="wtl\atlmisc.h" />
+    <ClInclude Include="wtl\atlprint.h" />
+    <ClInclude Include="wtl\atlres.h" />
+    <ClInclude Include="wtl\atlresce.h" />
+    <ClInclude Include="wtl\atlribbon.h" />
+    <ClInclude Include="wtl\atlscrl.h" />
+    <ClInclude Include="wtl\atlsplit.h" />
+    <ClInclude Include="wtl\atltheme.h" />
+    <ClInclude Include="wtl\atluser.h" />
+    <ClInclude Include="wtl\atlwince.h" />
+    <ClInclude Include="wtl\atlwinmisc.h" />
+    <ClInclude Include="wtl\atlwinx.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -1139,6 +1166,8 @@
     <Image Include="res\vip_prostoigra24.ico" />
     <Image Include="res\vip_eva.ico" />
     <Image Include="res\vip_adrenalin.ico" />
+    <Image Include="res\vip_titankaluga.ico" />
+    <Image Include="res\xxx.ico" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

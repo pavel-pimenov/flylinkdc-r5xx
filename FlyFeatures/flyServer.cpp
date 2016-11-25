@@ -318,7 +318,7 @@ const DHTServer& CFlyServerConfig::getRandomDHTServer()
 	else
 	{
 		dcassert(0);
-		// fix https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=113332
+		// fix https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=113332
 		// TODO - Попытаться повторить.
 		g_dht_servers.push_back(DHTServer("http://dht.fly-server.ru/dcDHT.php", ""));
 		return g_dht_servers[0];
@@ -1686,6 +1686,9 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 			Json::Value& l_stat_info = l_info["Stat"];
 			l_stat_info["Files"] = Util::toString(ShareManager::getLastSharedFiles());
 			l_stat_info["Folders"] = Util::toString(CFlylinkDBManager::getInstance()->get_count_folders());
+            l_stat_info["SizeTTHCache"] = CFlylinkDBManager::get_tth_cache_size();
+            l_stat_info["SizeNotExistsCache"] = ShareManager::get_cache_size_file_not_exists_set();
+            l_stat_info["SizeSearchFileCache"] = ShareManager::get_cache_file_map();
 			l_stat_info["Size"] = ShareManager::getShareSizeString();
 			// TODO - эти параметры можно посчитать из массива Clients
 			l_stat_info["Users"] = Util::toString(ClientManager::getTotalUsers());

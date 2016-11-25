@@ -54,7 +54,7 @@ LRESULT SlotPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 {
 	PropPage::translate((HWND)(*this), texts);
 	
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	CUpDownCtrl updown;
 	updown.Attach(GetDlgItem(IDC_SLOTSPIN));
@@ -114,7 +114,7 @@ LRESULT SlotPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
 void SlotPage::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 #ifdef SSA_IPGRANT_FEATURE
 	tstring l_buf;
 	GET_TEXT(IDC_GRANTIP_INI, l_buf);

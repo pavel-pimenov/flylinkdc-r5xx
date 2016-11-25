@@ -674,7 +674,7 @@ LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHan
 				return CDRF_SKIPDEFAULT;
 			}
 			
-			// [!] Colors::getUserColor(ii->getUser(), cd->clrText, cd->clrTextBk); // [!] IRainman fix todo [1] https://www.box.net/shared/f7c509838c3a1125842b , https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=59082
+			// [!] Colors::getUserColor(ii->getUser(), cd->clrText, cd->clrTextBk); // [!] IRainman fix todo [1] https://www.box.net/shared/f7c509838c3a1125842b , https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=59082
 			// !SMT!-IP
 			if (m_ctrlList.findColumn(cd->iSubItem) == UploadQueueItem::COLUMN_LOCATION)
 			{

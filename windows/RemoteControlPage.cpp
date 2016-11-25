@@ -21,12 +21,12 @@ PropPage::Item RemoteControlPage::items[] =
 LRESULT RemoteControlPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	return TRUE;
 }
 
 void RemoteControlPage::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 }

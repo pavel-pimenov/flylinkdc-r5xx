@@ -22,6 +22,7 @@
 #include "UploadManager.h"
 #include "CryptoManager.h"
 #include "QueueManager.h"
+#include "ShareManager.h"
 
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 #include "nmdchub.h"
@@ -355,6 +356,7 @@ void ConnectionManager::addOnUserUpdated(const UserPtr& aUser)
 	}
 	catch (const std::bad_alloc&)
 	{
+		ShareManager::tryFixBadAlloc();
 		flushOnUserUpdated(); // fix https://drdump.com/DumpGroup.aspx?DumpGroupID=526008
 		{
 			CFlyFastLock(g_cs_update);
@@ -459,7 +461,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 		for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 		{
 			const ConnectionQueueItemPtr& cqi = *i;
-			if (cqi->getState() != ConnectionQueueItem::ACTIVE) // crash - https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=44111
+			if (cqi->getState() != ConnectionQueueItem::ACTIVE) // crash - https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=44111
 			{
 				if (!cqi->getUser()->isOnline())
 				{
@@ -1016,7 +1018,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		string l_debug_key;
 		if (BOOLSETTING(LOG_DDOS_TRACE))
 		{
-			l_debug_key = " Time: " + Util::getShortTimeString() + " Hub info = " + p_HubInfo; // https://drdump.com/Problem.aspx?ClientID=ppa&ProblemID=92733
+			l_debug_key = " Time: " + Util::getShortTimeString() + " Hub info = " + p_HubInfo; // https://drdump.com/Problem.aspx?ClientID=guest&ProblemID=92733
 			if (!p_userInfo.empty())
 			{
 				l_debug_key + " UserInfo = [" + p_userInfo + "]";
@@ -1316,6 +1318,8 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 				//     fhub->setMode(1);
 				
 				hub->AutodetectComplete();
+				
+				dcdebug("REASON_DETECT_CONNECTION: All OK %s Nick = %s\n", i.m_HubUrl.c_str(), aNick.c_str());
 				
 				// TODO: allow to disable through GUI saving of detected mode to
 				// favorite hub's settings
@@ -1905,7 +1909,7 @@ void ConnectionManager::shutdown()
 void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* p_conn, StringList& feat) noexcept
 {
 	dcassert(p_conn->getUser());
-	if (p_conn->getUser()) // 44 падения https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=48388
+	if (p_conn->getUser()) // 44 падения https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=48388
 	{
 		uint8_t knownUcSupports = 0;
 		auto unknownUcSupports = UcSupports::setSupports(p_conn, feat, knownUcSupports);

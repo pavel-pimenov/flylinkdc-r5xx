@@ -61,7 +61,7 @@ PropPage::Item PriorityPage::items[] =
 LRESULT PriorityPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items, 0, 0);
+	PropPage::read(*this, items, 0, 0);
 	
 	fixControls();
 	
@@ -71,7 +71,7 @@ LRESULT PriorityPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 
 void PriorityPage::write()
 {
-	PropPage::write((HWND)*this, items, 0, 0);
+	PropPage::write(*this, items, 0, 0);
 }
 
 // [+] InfinitySky. При отключении автоприоритета активируются указанные элементы.

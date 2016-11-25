@@ -456,7 +456,7 @@ LRESULT FavoriteHubsFrame::onNew(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 	
 	while (true)
 	{
-		if (dlg.DoModal((HWND)*this) == IDOK)
+		if (dlg.DoModal(*this) == IDOK)
 		{
 			if (FavoriteManager::getFavoriteHubEntry(e.getServer()))
 			{

@@ -64,7 +64,7 @@ PropPage::Item SDCPage::items[] =
 LRESULT SDCPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	CUpDownCtrl updown;
 	SET_MIN_MAX(IDC_BUFFER_SPIN, 0, 1024  * 1024);
@@ -105,7 +105,7 @@ void SDCPage::fixControls() // [+]NightOrion
 
 void SDCPage::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 	SET_SETTING(SHUTDOWN_ACTION, ctrlShutdownAction.GetCurSel());
 }
 

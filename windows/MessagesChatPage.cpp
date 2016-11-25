@@ -67,7 +67,7 @@ MessagesChatPage::ListItem MessagesChatPage::g_listItems_chat[] =
 
 LRESULT MessagesChatPage::onInitDialog_chat(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	PropPage::read((HWND)*this, g_items_chat, g_listItems_chat, GetDlgItem(IDC_MESSAGES_CHAT_BOOLEANS));
+	PropPage::read(*this, g_items_chat, g_listItems_chat, GetDlgItem(IDC_MESSAGES_CHAT_BOOLEANS));
 	
 	ctrlList_chat.Attach(GetDlgItem(IDC_MESSAGES_CHAT_BOOLEANS)); // [+] IRainman
 	
@@ -94,7 +94,7 @@ LRESULT MessagesChatPage::onInitDialog_chat(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 
 void MessagesChatPage::write()
 {
-	PropPage::write((HWND)*this, g_items_chat, g_listItems_chat, GetDlgItem(IDC_MESSAGES_CHAT_BOOLEANS));
+	PropPage::write(*this, g_items_chat, g_listItems_chat, GetDlgItem(IDC_MESSAGES_CHAT_BOOLEANS));
 	// Do specialized writing here
 }
 

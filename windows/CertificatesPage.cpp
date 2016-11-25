@@ -62,8 +62,8 @@ PropPage::ListItem CertificatesPage::securityItems[] =
 LRESULT CertificatesPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_TLS_OPTIONS));
-	PropPage::read((HWND)*this, NULL, securityItems, GetDlgItem(IDC_SECURITY_LIST));
+	PropPage::read(*this, items, listItems, GetDlgItem(IDC_TLS_OPTIONS));
+	PropPage::read(*this, NULL, securityItems, GetDlgItem(IDC_SECURITY_LIST));
 	ctrlList.Attach(GetDlgItem(IDC_TLS_OPTIONS)); // [+] IRainman
 	
 	// Do specialized reading here
@@ -72,8 +72,8 @@ LRESULT CertificatesPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 
 void CertificatesPage::write()
 {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_TLS_OPTIONS));
-	PropPage::write((HWND)*this, NULL, securityItems, GetDlgItem(IDC_SECURITY_LIST));
+	PropPage::write(*this, items, listItems, GetDlgItem(IDC_TLS_OPTIONS));
+	PropPage::write(*this, NULL, securityItems, GetDlgItem(IDC_SECURITY_LIST));
 }
 
 LRESULT CertificatesPage::onBrowsePrivateKey(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

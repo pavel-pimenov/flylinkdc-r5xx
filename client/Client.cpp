@@ -21,6 +21,7 @@
 #include "ThrottleManager.h"// [+] IRainman SpeedLimiter
 #include "LogManager.h"
 #include "CompatibilityManager.h" // [+] IRainman
+#include "ConnectionManager.h"
 #include "MappingManager.h"
 #include "QueueManager.h"
 #include "SearchManager.h"
@@ -405,7 +406,9 @@ bool ClientBase::isActive() const
 	else
 	{
 		const FavoriteHubEntry* fe = FavoriteManager::getFavoriteHubEntry(getHubUrl());
-		const auto l_res = ClientManager::isActive(fe) || isDetectActiveConnection();
+		bool l_bWantAutodetect = false;
+		const auto l_res = isDetectActiveConnection() || ClientManager::isActive(fe, l_bWantAutodetect); //
+		//|| (ConnectionManager::g_is_test_tcp_port == true && CFlyServerJSON::isTestPortOK(SETTING(TCP_PORT), "tcp") == true);
 		return l_res;
 	}
 }

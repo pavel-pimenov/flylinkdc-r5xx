@@ -37,14 +37,14 @@ class OutputStream
 {
 	public:
 		//OutputStream() { } [-] IRainman.
-		virtual ~OutputStream() noexcept {}
+		virtual ~OutputStream() {}
 		
 		/**
 		 * @return The actual number of bytes written. len bytes will always be
 		 *         consumed, but fewer or more bytes may actually be written,
 		 *         for example if the stream is being compressed.
 		 */
-		virtual size_t write(const void* buf, size_t len) = 0;
+		virtual size_t write(const void* p_buf, size_t p_len) = 0;
 		/**
 		* This must be called before destroying the object to make sure all data
 		* is properly written (we don't want destructors that throw exceptions
@@ -58,7 +58,7 @@ class OutputStream
 		
 		virtual size_t flushBuffers(bool aForce) = 0;
 		/* This only works for file streams */
-		virtual void setPos(int64_t /*pos*/) { }
+		virtual void setPos(int64_t /*p_pos*/) { }
 		
 		/**
 		 * @return True if stream is at expected end
@@ -81,15 +81,15 @@ class InputStream
 {
 	public:
 		//InputStream() { } [-] IRainman.
-		virtual ~InputStream() noexcept {}
+		virtual ~InputStream() {}
 		/**
 		 * Call this function until it returns 0 to get all bytes.
 		 * @return The number of bytes read. len reflects the number of bytes
 		 *         actually read from the stream source in this call.
 		 */
-		virtual size_t read(void* buf, size_t& len) = 0;
+		virtual size_t read(void* p_buf, size_t& p_len) = 0;
 		/* This only works for file streams */
-		virtual void setPos(int64_t /*pos*/) { }
+		virtual void setPos(int64_t /*p_pos*/) { }
 		
 		virtual void clean_stream()
 		{
@@ -99,38 +99,38 @@ class InputStream
 class MemoryInputStream : public InputStream
 {
 	public:
-		MemoryInputStream(const uint8_t* src, size_t len) : pos(0), size(len), buf(new uint8_t[len])
+		MemoryInputStream(const uint8_t* src, size_t len) : m_pos(0), m_buf_size(len), m_buf(new uint8_t[len])
 		{
-			memcpy(buf, src, len);
+			memcpy(m_buf, src, len);
 		}
-		explicit MemoryInputStream(const string& src) : pos(0), size(src.size()), buf(src.size() ? new uint8_t[src.size()] : nullptr)
+		explicit MemoryInputStream(const string& src) : m_pos(0), m_buf_size(src.size()), m_buf(src.size() ? new uint8_t[src.size()] : nullptr)
 		{
 			dcassert(src.size());
-			memcpy(buf, src.data(), src.size());
+			memcpy(m_buf, src.data(), src.size());
 		}
 		
-		~MemoryInputStream() noexcept
+		~MemoryInputStream()
 		{
-			delete[] buf;
+			delete[] m_buf;
 		}
 		
-		size_t read(void* tgt, size_t& len) override
+		size_t read(void* tgt, size_t& p_len) override
 		{
-			len = min(len, size - pos);
-			memcpy(tgt, buf + pos, len);
-			pos += len;
-			return len;
+			p_len = min(p_len, m_buf_size - m_pos);
+			memcpy(tgt, m_buf + m_pos, p_len);
+			m_pos += p_len;
+			return p_len;
 		}
 		
 		size_t getSize() const
 		{
-			return size;
+			return m_buf_size;
 		}
 		
 	private:
-		size_t pos;
-		size_t size;
-		uint8_t* buf;
+		size_t m_pos;
+		size_t m_buf_size;
+		uint8_t* m_buf;
 };
 
 class IOStream : public InputStream, public OutputStream
@@ -144,7 +144,7 @@ class LimitedInputStream : public InputStream
 		explicit LimitedInputStream(InputStream* is, int64_t aMaxBytes) : s(is), maxBytes(aMaxBytes)
 		{
 		}
-		~LimitedInputStream() noexcept
+		~LimitedInputStream()
 		{
 			if (managed)
 			{
@@ -179,7 +179,7 @@ class LimitedOutputStream : public OutputStream
 		explicit LimitedOutputStream(OutputStream* os, uint64_t aMaxBytes) : s(os), maxBytes(aMaxBytes)
 		{
 		}
-		~LimitedOutputStream() noexcept
+		~LimitedOutputStream()
 		{
 			delete s;
 		}
@@ -217,10 +217,11 @@ class BufferedOutputStream : public OutputStream
 	public:
 		using OutputStream::write;
 		
-		explicit BufferedOutputStream(OutputStream* aStream, size_t aBufSize) : s(aStream), pos(0), buf(aBufSize)//, m_is_flush(false)
+		explicit BufferedOutputStream(OutputStream* aStream, size_t aBufSize) : s(aStream),
+			m_pos(0), m_buf_size(aBufSize), m_buf(aBufSize ? new uint8_t[aBufSize] : nullptr) //, m_is_flush(false)
 		{
 		}
-		~BufferedOutputStream() noexcept
+		~BufferedOutputStream()
 		{
 			// https://drdump.com/UploadedReport.aspx?DumpID=3549421
 			try
@@ -236,16 +237,17 @@ class BufferedOutputStream : public OutputStream
 			{
 				delete s;
 			}
+			delete [] m_buf;
 		}
 		
 		size_t flushBuffers(bool aForce) override
 		{
-			if (pos > 0)
+			if (m_pos > 0)
 			{
-				s->write(&buf[0], pos);
+				s->write(&m_buf[0], m_pos);
 				//m_is_flush = false;
 			}
-			pos = 0;
+			m_pos = 0;
 			// Делаем сброс пока всегда.
 			// if (m_is_flush == false)
 			{
@@ -259,10 +261,9 @@ class BufferedOutputStream : public OutputStream
 		{
 			uint8_t* b = (uint8_t*)wbuf;
 			size_t l2 = len;
-			size_t bufSize = buf.size();
 			while (len > 0)
 			{
-				if (pos == 0 && len >= bufSize)
+				if (m_pos == 0 && len >= m_buf_size)
 				{
 					s->write(b, len);
 					//m_is_flush = false;
@@ -270,17 +271,17 @@ class BufferedOutputStream : public OutputStream
 				}
 				else
 				{
-					size_t n = min(bufSize - pos, len);
-					memcpy(&buf[pos], b, n);
+					size_t n = min(m_buf_size - m_pos, len);
+					memcpy(&m_buf[m_pos], b, n);
 					b += n;
-					pos += n; /// [1] ? https://www.box.net/shared/2a9b903842d575efa031
+					m_pos += n; /// [1] ? https://www.box.net/shared/2a9b903842d575efa031
 					len -= n;
-					dcassert(bufSize != 0);
-					if (pos == bufSize)
+					dcassert(m_buf_size != 0);
+					if (m_pos == m_buf_size)
 					{
-						s->write(&buf[0], bufSize);
-						//m_is_flush = false; // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=132490
-						pos = 0;
+						s->write(&m_buf[0], m_buf_size);
+						//m_is_flush = false; // https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=132490
+						m_pos = 0;
 					}
 				}
 			}
@@ -288,8 +289,9 @@ class BufferedOutputStream : public OutputStream
 		}
 	private:
 		OutputStream* s;
-		size_t pos;
-		ByteVector buf;
+		size_t m_pos;
+		size_t m_buf_size;
+		uint8_t* m_buf;
 		//  bool m_is_flush;
 };
 
@@ -303,10 +305,10 @@ class StringOutputStream : public OutputStream
 		{
 			return 0;
 		}
-		size_t write(const void* buf, size_t len) override
+		size_t write(const void* p_buf, size_t p_len) override
 		{
-			m_str.append((char*)buf, len);
-			return len;
+			m_str.append((char*)p_buf, p_len);
+			return p_len;
 		}
 	private:
 		string& m_str;

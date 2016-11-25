@@ -58,8 +58,8 @@ PropPage::ListItem IntegrationPage::listItems[] =
 LRESULT IntegrationPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_INTEGRATION_BOOLEANS));
+	PropPage::read(*this, items);
+	PropPage::read(*this, items, listItems, GetDlgItem(IDC_INTEGRATION_BOOLEANS));
 	
 	m_ctrlList.Attach(GetDlgItem(IDC_INTEGRATION_BOOLEANS));
 #ifdef SSA_SHELL_INTEGRATION
@@ -89,8 +89,8 @@ LRESULT IntegrationPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 
 void IntegrationPage::write()
 {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_INTEGRATION_BOOLEANS));
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items, listItems, GetDlgItem(IDC_INTEGRATION_BOOLEANS));
+	PropPage::write(*this, items);
 }
 #ifdef SSA_SHELL_INTEGRATION
 LRESULT IntegrationPage::OnClickedShellIntegrate(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) // TODO: please fix copy-past.

@@ -672,7 +672,7 @@ void DirectoryListing::logMatchedFiles(const UserPtr& p_user, int p_count) //[+]
 	string l_tmp;
 	l_tmp.resize(l_BUF_SIZE);
 	_snprintf(&l_tmp[0], l_tmp.size(), CSTRING(MATCHED_FILES), p_count);
-	// Util::toString(ClientManager::getNicks(p_user->getCID(), Util::emptyString)) падает https://www.crash-server.com/Problem.aspx?ClientID=ppa&Login=Guest&ProblemID=58736
+	// Util::toString(ClientManager::getNicks(p_user->getCID(), Util::emptyString)) падает https://www.crash-server.com/Problem.aspx?ClientID=guest&Login=Guest&ProblemID=58736
 	// падаем со слов пользователей при клике на магнит в чате и выборе "Добавить в очередь для скачивания"
 	const string l_last_nick = p_user->getLastNick();
 	LogManager::message(l_last_nick + string(": ") + l_tmp.c_str());

@@ -243,7 +243,7 @@ string ConnectivityManager::getInformation()
 	               "\tTransfer port: %3%\n"
 	               "\tEncrypted transfer port: %4%\n"
 	               "\tSearch port: %5%\n"
-	               "\tDHT port: %6%\n"
+	               "\tTorrent port: %6%\n"
 	               "\tStatus: %7%"
 	           ) %
 	           field(SETTING(EXTERNAL_IP)) %
@@ -251,11 +251,7 @@ string ConnectivityManager::getInformation()
 	           field(Util::toString(ConnectionManager::getInstance()->getPort())) %
 	           field(Util::toString(ConnectionManager::getInstance()->getSecurePort())) %
 	           field(SearchManager::getSearchPort()) %
-#ifdef STRONG_USE_DHT
-	           field(Util::toString(dht::DHT::getInstance()->getPort())) %
-#else
-	           field(" DHT Disable!") %
-#endif
+	           field(Util::toString(SETTING(DHT_PORT))) %
 	           field(getStatus())
 	          );
 }

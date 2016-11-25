@@ -55,14 +55,14 @@ LRESULT FileSharePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 {
 	PropPage::translate((HWND)(*this), texts);
 	
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_FILESHARE_BOOLEANS));
+	PropPage::read(*this, items, listItems, GetDlgItem(IDC_FILESHARE_BOOLEANS));
 	ctrlList.Attach(GetDlgItem(IDC_FILESHARE_BOOLEANS)); // [+] IRainman
 	
 	return TRUE;
 }
 void FileSharePage::write()
 {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_ADVANCED_BOOLEANS));
+	PropPage::write(*this, items, listItems, GetDlgItem(IDC_ADVANCED_BOOLEANS));
 }
 
 #endif // SSA_INCLUDE_FILE_SHARE_PAGE

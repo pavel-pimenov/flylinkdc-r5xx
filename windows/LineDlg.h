@@ -88,7 +88,7 @@ class LineDlg : public CDialogImpl<LineDlg>
 				::EnableWindow(GetDlgItem(IDCANCEL), false);
 				::ShowWindow(GetDlgItem(IDCANCEL), FALSE);
 				::MoveWindow(GetDlgItem(IDOK), 275, 29, 75, 24, false);
-				::SetForegroundWindow((HWND)*this);
+				::SetForegroundWindow(*this);
 			}
 			
 			CenterWindow(GetParent());

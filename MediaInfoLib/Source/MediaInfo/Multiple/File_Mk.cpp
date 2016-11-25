@@ -2058,6 +2058,10 @@ void File_Mk::Segment_Cluster()
 {
     Element_Name("Cluster");
 
+#if MEDIAINFO_TRACE
+    Element_Set_Remove_Children_IfNoErrors();
+#endif // MEDIAINFO_TRACE
+
     //For each stream
     std::map<int64u, stream>::iterator Temp=Stream.begin();
     if (!Segment_Cluster_Count)
@@ -2117,7 +2121,8 @@ void File_Mk::Segment_Cluster_BlockGroup()
 //---------------------------------------------------------------------------
 void File_Mk::Segment_Cluster_BlockGroup_Block()
 {
-    Element_Name(Element_Level==3?"SimpleBlock":"Block");
+    bool is_simple_block = Element_Level == 3;
+    Element_Name(is_simple_block?"SimpleBlock":"Block");
 
     //Parsing
     int64u TrackNumber;
@@ -2310,7 +2315,12 @@ void File_Mk::Segment_Cluster_BlockGroup_Block()
         }
     }
 
-    Element_Show(); //For debug
+    Element_Show();
+
+#if MEDIAINFO_TRACE
+    if (is_simple_block)
+        Element_Children_IfNoErrors();
+#endif // MEDIAINFO_TRACE
 }
 
 //---------------------------------------------------------------------------

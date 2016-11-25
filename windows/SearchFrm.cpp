@@ -1839,7 +1839,7 @@ void SearchFrame::SearchInfo::Download::operator()(const SearchInfo* si)
 				SearchInfo* j = *i;
 				try
 				{
-					if (j)  // crash https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=44625
+					if (j)  // crash https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=44625
 					{
 						QueueManager::getInstance()->add(0, target, j->m_sr.getSize(), j->m_sr.getTTH(), j->m_sr.getHintedUser(), mask);
 					}

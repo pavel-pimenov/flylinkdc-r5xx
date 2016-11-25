@@ -44,7 +44,7 @@ PropPage::TextItem DefaultClickPage::texts[] =
 LRESULT DefaultClickPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-//	PropPage::read((HWND)*this, items);
+//	PropPage::read(*this, items);
 
 	// Do specialized reading here
 	userlistaction.Attach(GetDlgItem(IDC_USERLIST_DBLCLICK));
@@ -119,7 +119,7 @@ LRESULT DefaultClickPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 
 void DefaultClickPage::write()
 {
-//	PropPage::write((HWND)*this, items);
+//	PropPage::write(*this, items);
 
 	userlistaction.Attach(GetDlgItem(IDC_USERLIST_DBLCLICK));
 	transferlistaction.Attach(GetDlgItem(IDC_TRANSFERLIST_DBLCLICK));

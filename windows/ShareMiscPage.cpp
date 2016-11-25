@@ -49,7 +49,7 @@ ShareMiscPage::ListItem ShareMiscPage::listItems[] =
 LRESULT ShareMiscPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	CUpDownCtrl updown;
 	SET_MIN_MAX(IDC_SET_MIN_LENGHT_TTH_STREAM_SPIN, 1, 1000);
@@ -108,7 +108,7 @@ LRESULT ShareMiscPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 
 void ShareMiscPage::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 #ifdef FLYLINKDC_USE_GPU_TTH
 	bool use_gpu = BOOLSETTING(USE_GPU_IN_TTH_COMPUTING);
 	

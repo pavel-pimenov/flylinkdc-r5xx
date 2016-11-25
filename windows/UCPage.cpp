@@ -40,7 +40,7 @@ PropPage::Item UCPage::items[] =
 LRESULT UCPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	CRect rc;
 	
@@ -221,7 +221,7 @@ void UCPage::addEntry(const UserCommand& uc, int pos)
 
 void UCPage::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 }
 
 /**

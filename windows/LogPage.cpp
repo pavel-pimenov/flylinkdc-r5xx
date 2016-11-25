@@ -89,7 +89,7 @@ PropPage::ListItem LogPage::listItems[] =
 LRESULT LogPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_LOG_OPTIONS));
+	PropPage::read(*this, items, listItems, GetDlgItem(IDC_LOG_OPTIONS));
 	
 	for (int i = 0; i < LogManager::LAST; ++i)
 	{
@@ -187,7 +187,7 @@ void LogPage::getValues()
 
 void LogPage::write()
 {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_LOG_OPTIONS));
+	PropPage::write(*this, items, listItems, GetDlgItem(IDC_LOG_OPTIONS));
 	
 	File::ensureDirectory(SETTING(LOG_DIRECTORY));
 	

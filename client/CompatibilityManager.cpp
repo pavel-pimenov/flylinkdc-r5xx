@@ -200,6 +200,7 @@ static const DllInfo g_IncompatibleDll[] =
 	_T("nvappfilter.dll"), "NVIDIA ActiveArmor (NVIDIA Firewall)",
 	_T("nvlsp.dll"), "NVIDIA Application Filter",
 	_T("nvlsp64.dll"), "NVIDIA Application Filter",
+	_T("chtbrkg.dll"), "Adskip or Internet Download Manager integration",
 	_T("adguard.dll"), "Adguard", // Latest verion 5.1 not bad.
 	_T("NetchartFilter.dll"), "NetchartFilter",
 	_T("vlsp.dll"), "Venturi Wireless Software",
@@ -246,7 +247,6 @@ void CompatibilityManager::detectUncompatibleSoftware()
 			}
 		}
 	}
-	
 	g_incopatibleSoftwareList.shrink_to_fit();
 }
 
@@ -693,14 +693,14 @@ string CompatibilityManager::generateNetworkStats()
 {
 	std::vector<char> l_buf(1024);
 	sprintf_s(l_buf.data(), l_buf.size(),
-	          " -=[ TCP: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          " -=[ UDP: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          " -=[ DHT: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          " -=[ SSL: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          " -=[ Router: %s ]=-",
+	          "-=[ TCP: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          "-=[ UDP: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          // TODO "-=[ Torrent: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          "-=[ SSL: Downloaded: %s. Uploaded: %s ]=-\r\n"
+	          "-=[ Router: %s ]=-",
 	          Util::formatBytes(Socket::g_stats.m_tcp.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_tcp.totalUp).c_str(),
 	          Util::formatBytes(Socket::g_stats.m_udp.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_udp.totalUp).c_str(),
-	          Util::formatBytes(Socket::g_stats.m_dht.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_dht.totalUp).c_str(),
+	          // TODO Util::formatBytes(Socket::g_stats.m_dht.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_dht.totalUp).c_str(),
 	          Util::formatBytes(Socket::g_stats.m_ssl.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_ssl.totalUp).c_str(),
 	          (!g_upnp_router_model.empty() ? g_upnp_router_model.c_str() : "undefined")
 	         );
@@ -721,7 +721,7 @@ void CompatibilityManager::caclPhysMemoryStat()
 }
 string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 {
-	std::vector<char> l_buf(2048);
+	std::vector<char> l_buf(1024 * 2);
 	{
 		const HINSTANCE hInstPsapi = LoadLibrary(_T("psapi"));
 		if (hInstPsapi)
@@ -761,10 +761,11 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          "Compiled on: %s ]=-\r\n"
 				          "\t-=[ OS: %s ]=-\r\n"
 				          "\t-=[ CPU Clock: %.1f MHz%s. Memory (free): %s (%s) ]=-\r\n"
-				          "\t-=[ System Uptime: %s. Cpu time: %s. Client Uptime: %s ]=-\r\n"
-				          "\t-=[ Memory usage (peak): %s (%s). Virtual (peak): %s (%s) ]=-\r\n"
+				          "\t-=[ Uptime: %s. Cpu time: %s. Client Uptime: %s ]=-\r\n"
+				          "\t-=[ RAM (peak): %s (%s). Virtual (peak): %s (%s) ]=-\r\n"
 				          "\t-=[ GDI units (peak): %d (%d). Handle (peak): %d (%d) ]=-\r\n"
 				          "\t-=[ Public share: %s. Files in share: %u. Total users: %u on hubs: %u ]=-\r\n"
+				          "\t-=[ TigerTree cache: %u Search not exists cache: %u Search exists cache: %u]=-\r\n"
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 				          "\t-=[ Total download: %s. Total upload: %s ]=-\r\n"
 #endif
@@ -798,6 +799,9 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          ShareManager::getLastSharedFiles(),
 				          ClientManager::getTotalUsers(),
 				          Client::getTotalCounts(),
+				          CFlylinkDBManager::get_tth_cache_size(),
+				          ShareManager::get_cache_size_file_not_exists_set(),
+				          ShareManager::get_cache_file_map(),
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 				          Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_download()).c_str(),
 				          Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_upload()).c_str(),

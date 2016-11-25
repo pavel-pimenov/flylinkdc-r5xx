@@ -83,7 +83,7 @@ Popups::ListItem Popups::listItems[] =
 LRESULT Popups::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_POPUPLIST));
+	PropPage::read(*this, items, listItems, GetDlgItem(IDC_POPUPLIST));
 	
 	ctrlPopups.Attach(GetDlgItem(IDC_POPUPLIST)); // [+] IRainman
 	
@@ -267,7 +267,7 @@ LRESULT Popups::onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 
 void Popups::write()
 {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_POPUPLIST));
+	PropPage::write(*this, items, listItems, GetDlgItem(IDC_POPUPLIST));
 	
 	SET_SETTING(POPUP_TYPE, ctrlPopupType.GetCurSel());
 	SET_SETTING(POPUPS_DISABLED, IsDlgButtonChecked(IDC_POPUP_ENABLE) == 1 ? false : true);

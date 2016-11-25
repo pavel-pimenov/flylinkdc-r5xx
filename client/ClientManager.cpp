@@ -329,7 +329,7 @@ StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, boo
 		const auto op = g_onlineUsers.equal_range(cid);
 		for (auto i = op.first; i != op.second; ++i)
 		{
-			lst.push_back(i->second->getClientBase().getHubName()); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=114958
+			lst.push_back(i->second->getClientBase().getHubName()); // https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=114958
 		}
 	}
 	else
@@ -1233,31 +1233,16 @@ const string ClientManager::findMyNick(const string& hubUrl)
 	return Util::emptyString;
 }
 
-int ClientManager::getMode(const FavoriteHubEntry* p_hub
-#ifdef RIP_USE_CONNECTION_AUTODETECT
-                           , bool *pbWantAutodetect
-#endif
-                          )
+int ClientManager::getMode(const FavoriteHubEntry* p_hub, bool& pbWantAutodetect)
 {
-#ifdef RIP_USE_CONNECTION_AUTODETECT
-	if (pbWantAutodetect)
-	{
-		*pbWantAutodetect = false;
-	}
-#endif
+	const bool l_is_tcp_port_firewall = ConnectionManager::g_is_test_tcp_port == true && CFlyServerJSON::isTestPortOK(SETTING(TCP_PORT), "tcp", true) == false;
+	pbWantAutodetect = l_is_tcp_port_firewall;
 	int l_mode = 0;
-	const bool l_is_tcp_port_firewall = CFlyServerJSON::isTestPortOK(SETTING(TCP_PORT), "tcp", true) == false;
 	const auto l_type = SETTING(INCOMING_CONNECTIONS);
 	if (!p_hub)
 	{
 		if (l_is_tcp_port_firewall || l_type == SettingsManager::INCOMING_FIREWALL_UPNP && MappingManager::getExternaIP().empty())
 		{
-#ifdef RIP_USE_CONNECTION_AUTODETECT
-			if (pbWantAutodetect)
-			{
-				*pbWantAutodetect = true;
-			}
-#endif
 			return SettingsManager::INCOMING_FIREWALL_PASSIVE;
 		}
 		return l_type;
@@ -1271,6 +1256,7 @@ int ClientManager::getMode(const FavoriteHubEntry* p_hub
 				break;
 			case 2 :
 				l_mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
+				pbWantAutodetect = false;
 				break;
 			default:
 			{
@@ -1278,43 +1264,15 @@ int ClientManager::getMode(const FavoriteHubEntry* p_hub
 				if (l_is_tcp_port_firewall == true)
 				{
 					l_mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
-					if (pbWantAutodetect)
-					{
-						*pbWantAutodetect = true;
-					}
 				}
-				/*
-				#ifdef RIP_USE_CONNECTION_AUTODETECT
-				                                // If autodetection turned on, use passive mode until
-				                                // active mode detected
-				                                if (l_mode != SettingsManager::INCOMING_FIREWALL_PASSIVE && SETTING(INCOMING_AUTODETECT_FLAG) &&
-				                                        !Util::isAdcHub(p_hub->getServer())
-				                                   )
-				                                {
-				                                    l_mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
-				                                    if (pbWantAutodetect)
-				                                    {
-				                                        *pbWantAutodetect = true;
-				                                    }
-				                                }
-				                #endif
-				*/
 			}
 		}
 	}
 	return l_mode;
 }
-bool ClientManager::isActive(const FavoriteHubEntry* p_hub
-#ifdef RIP_USE_CONNECTION_AUTODETECT
-                             , bool *pbWantAutodetect /* = NULL */
-#endif
-                            )
+bool ClientManager::isActive(const FavoriteHubEntry* p_hub, bool& pbWantAutodetect)
 {
-	const auto l_mode = getMode(p_hub
-#ifdef RIP_USE_CONNECTION_AUTODETECT
-	                            , pbWantAutodetect
-#endif
-	                           );
+	const auto l_mode = getMode(p_hub, pbWantAutodetect);
 	if (l_mode != SettingsManager::INCOMING_FIREWALL_PASSIVE)
 		return true;
 	else

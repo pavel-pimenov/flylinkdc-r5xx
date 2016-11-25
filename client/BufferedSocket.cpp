@@ -118,11 +118,7 @@ void BufferedSocket::setSocket(std::unique_ptr<Socket> && s)
 void BufferedSocket::resizeInBuf()
 {
 	bool l_is_bad_alloc;
-#if 0
-	int l_size = sock->getSocketOptInt(SO_RCVBUF);
-#else
 	int l_size = MAX_SOCKET_BUFFER_SIZE;
-#endif
 	do
 	{
 		try
@@ -133,6 +129,7 @@ void BufferedSocket::resizeInBuf()
 		}
 		catch (std::bad_alloc&)
 		{
+			ShareManager::tryFixBadAlloc();
 			l_size /= 2; // Заказываем в 2 раза меньше
 			l_is_bad_alloc = l_size > 128;
 			if (l_is_bad_alloc == false)
@@ -877,46 +874,51 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 	if (socketIsDisconecting()) // [!] IRainman fix
 		return;
 	dcassert(p_file != NULL);
-#if 0
-	const size_t sockSize = (size_t)sock->getSocketOptInt(SO_SNDBUF);
-	const size_t bufSize = max(sockSize, (size_t)MAX_SOCKET_BUFFER_SIZE);
-#else
-	const size_t sockSize = MAX_SOCKET_BUFFER_SIZE;
-	const size_t bufSize = MAX_SOCKET_BUFFER_SIZE;
-#endif
 	
-	// const size_t maxSegment = (size_t)sock->getSocketOptInt(TCP_MAXSEG);
-	ByteVector l_readBuf(bufSize); // https://www.box.net/shared/07ab0210ed0f83ab842e
-	ByteVector l_writeBuf(bufSize);
+	static size_t g_bufSize = MAX_SOCKET_BUFFER_SIZE;
+	
+	ByteVector l_readBuf; // TODO заменить на - не пишет буфера 0-ями std::unique_ptr<uint8_t[]> buf(new uint8_t[BUFSIZE]);
+	ByteVector l_writeBuf;
+	bool l_is_bad_alloc = false;
+	do
+	{
+		try
+		{
+			l_is_bad_alloc = false;
+			l_readBuf.resize(g_bufSize);
+			l_writeBuf.resize(g_bufSize);
+		}
+		catch (std::bad_alloc&)
+		{
+			ShareManager::tryFixBadAlloc(); // fix // https://www.box.net/shared/07ab0210ed0f83ab842e
+			g_bufSize /= 2;
+			l_is_bad_alloc = g_bufSize > 1024;
+			if (l_is_bad_alloc == false)
+			{
+				throw;
+			}
+		}
+	}
+	while (l_is_bad_alloc == true);
 	
 	size_t readPos = 0;
-	
 	bool readDone = false;
 	dcdebug("Starting threadSend\n");
 	while (!socketIsDisconecting()) // [!] IRainman fix
 	{
-	
-		// [-] brain-ripper
-		// should be rewritten using ThrottleManager
-		//int UserSleep = getSleep(); // !SMT!-S
-		
 		if (!readDone && l_readBuf.size() > readPos)
 		{
-			// Fill read buffer
 			size_t bytesRead = l_readBuf.size() - readPos;
 			size_t actual = p_file->read(&l_readBuf[readPos], bytesRead); // TODO можно узнать что считали последний кусок в файл
 			
 			if (bytesRead > 0)
 			{
-				//fly_fire2(BufferedSocketListener::BytesSent(), bytesRead, 0);
 				dcassert(m_connection);
 				if (m_connection)
 				{
 					m_connection->fireBytesSent(bytesRead, 0);
 				}
-				// Инфу о том, что считали с диска не шлем фаером
 			}
-			
 			if (actual == 0)
 			{
 				readDone = true;
@@ -925,26 +927,14 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 			{
 				readPos += actual;
 			}
-			
-			// [-] brain-ripper
-			// should be rewritten using ThrottleManager
-			/*
-			if (UserSleep > 0)
-			{
-			    Thread::sleep(UserSleep);    // !SMT!-S
-			    bytesRead = min(bytesRead, (size_t)1024);
-			}
-			*/
 		}
-		
 		if (readDone && readPos == 0)
 		{
 			fly_fire(BufferedSocketListener::TransmitDone());
 			return;
 		}
-		
 		l_readBuf.swap(l_writeBuf);
-		l_readBuf.resize(bufSize);
+		l_readBuf.resize(g_bufSize);
 		l_writeBuf.resize(readPos);
 		readPos = 0;
 		
@@ -964,14 +954,13 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 			}
 			else
 			{
-				size_t l_writeSize = min(sockSize / 2, l_writeBuf.size() - writePos);
+				size_t l_writeSize = min(g_bufSize / 2, l_writeBuf.size() - writePos);
 				written = ThrottleManager::getInstance()->write(sock.get(), &l_writeBuf[writePos], l_writeSize);
 			}
 			
 			if (written > 0)
 			{
 				writePos += written;
-				//fly_fire2(BufferedSocketListener::BytesSent(), 0, written);
 				dcassert(m_connection);
 				if (m_connection)
 				{
@@ -980,25 +969,18 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 			}
 			else if (written == -1)
 			{
-				// [-] brain-ripper
-				// should be rewritten using ThrottleManager
-				//if(!readDone && readPos < readBuf.size() && UserSleep <= 0)  // !SMT!-S
 				if (!readDone && readPos < l_readBuf.size())
 				{
-					// Read a little since we're blocking anyway...
 					size_t bytesRead = min(l_readBuf.size() - readPos, l_readBuf.size() / 2);
 					size_t actual = p_file->read(&l_readBuf[readPos], bytesRead);
-					
 					if (bytesRead > 0)
 					{
-						//fly_fire2(BufferedSocketListener::BytesSent(), bytesRead, 0);
 						dcassert(m_connection);
 						if (m_connection)
 						{
 							m_connection->fireBytesSent(bytesRead, 0);
 						}
 					}
-					
 					if (actual == 0)
 					{
 						readDone = true;
@@ -1057,6 +1039,14 @@ void BufferedSocket::write(const char* aBuf, size_t aLen)
 		dcassert(!(aBuf[aLen - 1] == '|' && aBuf[aLen - 2] == '|'));
 	}
 #endif
+	try
+	{
+		m_writeBuf.reserve(m_writeBuf.size() + aLen);
+	}
+	catch (std::bad_alloc&)
+	{
+		ShareManager::tryFixBadAlloc();
+	}
 	m_writeBuf.insert(m_writeBuf.end(), aBuf, aBuf + aLen); // [1] std::bad_alloc nomem https://www.box.net/shared/nmobw6wofukhcdr7lx4h
 }
 

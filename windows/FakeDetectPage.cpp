@@ -86,7 +86,7 @@ FakeDetect::ListItem FakeDetect::listItems[] =
 
 LRESULT FakeDetect::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_FAKE_BOOLEANS));
+	PropPage::read(*this, items, listItems, GetDlgItem(IDC_FAKE_BOOLEANS));
 	ctrlList.Attach(GetDlgItem(IDC_FAKE_BOOLEANS)); // [+] IRainman
 	CComboBox cRaw;
 	
@@ -141,7 +141,7 @@ LRESULT FakeDetect::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
 void FakeDetect::write()
 {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_FAKE_BOOLEANS));
+	PropPage::write(*this, items, listItems, GetDlgItem(IDC_FAKE_BOOLEANS));
 	
 	// Do specialized writing here
 	// settings->set(XX, YY);

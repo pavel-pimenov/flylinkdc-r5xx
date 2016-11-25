@@ -58,7 +58,7 @@ PropPage::Item LimitPage::items[] =
 LRESULT LimitPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	CUpDownCtrl spin;
 	spin.Attach(GetDlgItem(IDC_I_DOWN_SPEED_SPIN));
@@ -112,7 +112,7 @@ LRESULT LimitPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 
 void LimitPage::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 	
 	// Do specialized writing here
 	// settings->set(XX, YY);

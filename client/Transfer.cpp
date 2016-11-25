@@ -37,7 +37,7 @@ Transfer::Transfer(UserConnection* p_conn, const string& p_path, const TTHValue&
 	m_chiper_name(p_chiper_name),
 	m_ip(p_ip), // TODO - перевести на boost? падаем
 	m_fileSize(-1)
-	// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62265
+	// https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=62265
 {
 	// p_conn->getRemoteIp()
 	// p_conn->getCipherName()
@@ -60,7 +60,7 @@ void Transfer::tick(uint64_t p_CurrentTick)
 		CFlyFastLock(m_cs);
 		setLastTick(p_CurrentTick);
 		dcassert(!m_samples.empty());
-		if (!m_samples.empty()) // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=57070
+		if (!m_samples.empty()) // https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=57070
 		{
 			if (m_actual && m_samples.back().second == m_actual)
 				m_samples.back().first = m_lastTick; // Position hasn't changed, just update the time

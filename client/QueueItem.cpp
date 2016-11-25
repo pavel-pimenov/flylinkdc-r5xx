@@ -291,7 +291,7 @@ void QueueItem::addSourceL(const UserPtr& aUser, bool p_is_first_load)
 		}
 		else
 		{
-			m_sources.insert(std::make_pair(aUser, Source()));  // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=139307
+			m_sources.insert(std::make_pair(aUser, Source()));  // https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=139307
 		}
 		setDirtySource(true);
 	}
@@ -357,7 +357,7 @@ bool QueueItem::isChunkDownloaded(int64_t startPos, int64_t& len) const
 
 void QueueItem::removeSourceL(const UserPtr& aUser, Flags::MaskType reason)
 {
-	SourceIter i = findSourceL(aUser); // crash - https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=42877 && http://www.flickr.com/photos/96019675@N02/10488126423/
+	SourceIter i = findSourceL(aUser); // crash - https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=42877 && http://www.flickr.com/photos/96019675@N02/10488126423/
 	dcassert(i != m_sources.end());
 	if (i != m_sources.end()) // https://drdump.com/Problem.aspx?ProblemID=129066
 	{
@@ -887,7 +887,7 @@ bool QueueItem::isNeededPart(const PartsInfo& partsInfo, int64_t p_blockSize) co
 void QueueItem::getPartialInfo(PartsInfo& p_partialInfo, uint64_t p_blockSize) const
 {
 	dcassert(p_blockSize);
-	if (p_blockSize == 0) // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=31115
+	if (p_blockSize == 0) // https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=31115
 		return;
 		
 	CFlyFastLock(m_fcs_segment);

@@ -359,7 +359,8 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	bHandled = FALSE;
 	m_client->connect();
 	const FavoriteHubEntry* fe = FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl());
-	const auto l_is_favorite_active = ClientManager::isActive(fe);
+	bool bWantAutodetect = false;
+	const auto l_is_favorite_active = ClientManager::isActive(fe, bWantAutodetect);
 	LogManager::message("Connect: " + m_client->getHubUrl() + string(" Mode: ") +
 	                    (m_client->isActive() ? ("Active" + (l_is_favorite_active ? string("(favorites)") : string())) : "Passive") + string(" Support: ") +
 		                    MappingManager::getPortmapInfo(true, true));
@@ -1055,7 +1056,7 @@ FavoriteHubEntry* HubFrame::addAsFavorite(const FavoriteManager::AutoStartType p
 	}
 	// [~] IRainman
 	createFavHubMenu(existingHub);
-	dcassert(existingHub); // Функция возвращает иногда nullptr https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=39084
+	dcassert(existingHub); // Функция возвращает иногда nullptr https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=39084
 	return existingHub; // [+] IRainman fav options
 }
 
@@ -1135,7 +1136,7 @@ LRESULT HubFrame::onEditHubProp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 	if (editedHub)
 	{
 		FavHubProperties dlg(editedHub);
-		if (dlg.DoModal((HWND)*this) == IDOK)
+		if (dlg.DoModal(*this) == IDOK)
 		{
 			//  addStatus( _T("Open Hub Propertyes Dialog: "));
 		}
@@ -1962,7 +1963,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 							}
 							else
 							{
-								CFlySafeGuard<uint8_t> l_dlg_(m_password_do_modal); // fix Stack Overflow https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=103355
+								CFlySafeGuard<uint8_t> l_dlg_(m_password_do_modal); // fix Stack Overflow https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=103355
 								LineDlg linePwd;
 								linePwd.title = Text::toT(m_client->getHubName() + " (" + m_client->getHubUrl() + ')');
 								linePwd.description = TSTRING(ENTER_PASSWORD) + _T(" ") + TSTRING(NICK) + Text::toT(": " + m_client->getMyNick());
@@ -1976,7 +1977,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 									if (linePwd.checked)
 									{
 										auto fhe = addAsFavorite(); // [+] IRainman fav options
-										if (fhe) // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=39084
+										if (fhe) // https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=39084
 										{
 											fhe->setPassword(l_pwd);
 										}
@@ -2478,7 +2479,7 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 		clear_and_destroy_task();
 		storeColumsInfo();
 		RecentHubEntry* r = FavoriteManager::getRecentHubEntry(l_server);
-		if (r) //  https://crash-server.com/Bug.aspx?ClientID=ppa&ProblemID=9897
+		if (r) //  https://crash-server.com/Bug.aspx?ClientID=guest&ProblemID=9897
 		{
 			LocalArray<TCHAR, 256> buf;
 			GetWindowText(buf.data(), 255);
@@ -3397,7 +3398,7 @@ void HubFrame::on(Connecting, const Client*) noexcept
 {
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	bool bWantAutodetect = false;
-	if (!ClientManager::isActive(FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl()), &bWantAutodetect))
+	if (!ClientManager::isActive(FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl()), bWantAutodetect))
 	{
 		if (bWantAutodetect)
 		{
@@ -4664,7 +4665,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 void HubFrame::addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param)
 {
 	// Данная функция ломает меню - http://youtu.be/GaWw-S4ZYJA
-	// Причину пока не знаю - есть краши https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=27075
+	// Причину пока не знаю - есть краши https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=27075
 	// L: ретурн убрал, ведь не помогло же! return; // http://www.flylinkdc.ru/2013/07/flylinkdc-r502-beta92-build-14457.html
 	/*
 	r502-beta94-x64 build 14474
@@ -4681,7 +4682,7 @@ void HubFrame::addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param)
 				continue;
 			CFlyReadLock(*frame->m_userMapCS);
 			//CFlyLock(frame->m_userMapCS);
-			for (auto i = frame->m_userMap.cbegin(); i != frame->m_userMap.cend(); ++i) // TODO https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=28097
+			for (auto i = frame->m_userMap.cbegin(); i != frame->m_userMap.cend(); ++i) // TODO https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=28097
 			{
 				if (frame->isClosedOrShutdown())
 					continue;

@@ -56,7 +56,7 @@ string ToolbarPage::filter(string s)
 LRESULT ToolbarPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	m_ctrlCommands.Attach(GetDlgItem(IDC_TOOLBAR_POSSIBLE));
 	CRect rc;
@@ -117,7 +117,7 @@ LRESULT ToolbarPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 
 void ToolbarPage::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 	string toolbar;
 	for (int i = 0; i < m_ctrlToolbar.GetItemCount(); i++)
 	{

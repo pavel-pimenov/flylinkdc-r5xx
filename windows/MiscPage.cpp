@@ -56,7 +56,7 @@ PropPage::Item MiscPage::items[] =
 LRESULT MiscPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	CRect rc;
 	UserManager::getIgnoreList(m_ignoreList);
@@ -119,7 +119,7 @@ LRESULT MiscPage::onIgnoreClear(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hW
 
 void MiscPage::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 	
 	if (m_ignoreListCnange)
 	{

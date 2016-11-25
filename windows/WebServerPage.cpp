@@ -42,7 +42,7 @@ PropPage::Item WebServerPage::items[] =
 LRESULT WebServerPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	BindCombo.Attach(GetDlgItem(IDC_WEB_BIND_ADDRESS));
 	WinUtil::getAddresses(BindCombo);
@@ -60,5 +60,5 @@ LRESULT WebServerPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 
 void WebServerPage::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 }

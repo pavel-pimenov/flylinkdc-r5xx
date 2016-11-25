@@ -1520,7 +1520,7 @@ LRESULT QueueFrame::onReadd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 			OMenuItem* omi = (OMenuItem*)mi.dwItemData;
 			if (omi)
 			{
-				const UserPtr s = *(UserPtr*)omi->m_data; // TODO - https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62702
+				const UserPtr s = *(UserPtr*)omi->m_data; // TODO - https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=62702
 				// Ìונעגûי ‏חונ
 				try
 				{
@@ -1990,9 +1990,9 @@ LRESULT QueueFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		
 		SET_SETTING(QUEUEFRAME_SHOW_TREE, ctrlShowTree.GetCheck() == BST_CHECKED);
 		ctrlQueue.DeleteAllItems();
-		// try fix https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=101839
+		// try fix https://www.crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=101839
 		// https://www.crash-server.com/Problem.aspx?ProblemID=43187
-		// https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=30936
+		// https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=30936
 		for (auto i = m_directories.cbegin(); i != m_directories.cend(); ++i)
 		{
 			delete i->second;
@@ -2117,7 +2117,7 @@ LRESULT QueueFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 		{
 			if (// [!] IRainman fix: needs for test! Please report to me if crashing here.
 			    // [-] qii && qii->getQueueItem() &&
-			    !qii->getQueueItem()->getBadSourcesL().empty()) // TODO - ןאהאול https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=117848
+			    !qii->getQueueItem()->getBadSourcesL().empty()) // TODO - ןאהאול https://www.crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=117848
 			{
 				cd->clrText = SETTING(ERROR_COLOR);
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
@@ -2147,46 +2147,25 @@ LRESULT QueueFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				CRect rc;
 				ctrlQueue.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 				CBarShader statusBar(rc.Height(), rc.Width(), SETTING(PROGRESS_BACK_COLOR), qii->getSize());
-				
-				/* [-] IRainman fix.
-				    vector<Segment> v;
-				
-				    // running chunks
-				    QueueManager::getInstance()->getChunksVisualisation(qii->getQueueItem(), 0, v);
-				    for (auto i = v.cbegin(); i < v.cend(); ++i)
-				    {
-				        statusBar.FillRange((*i).getStart(), (*i).getEnd(), SETTING(COLOR_RUNNING));
-				    }
-				
-				    // downloaded bytes
-				    QueueManager::getInstance()->getChunksVisualisation(qii->getQueueItem(), 1, v);
-				    for (auto i = v.cbegin(); i < v.cend(); ++i)
-				    {
-				        statusBar.FillRange((*i).getStart(), (*i).getEnd(), SETTING(COLOR_DOWNLOADED));
-				    }
-				
-				    // done chunks
-				    QueueManager::getInstance()->getChunksVisualisation(qii->getQueueItem(), 2, v);
-				    for (auto i = v.cbegin(); i < v.cend(); ++i)
-				    {
-				        statusBar.FillRange((*i).getStart(), (*i).getEnd(), SETTING(COLOR_DOWNLOADED));
-				    }
-				 [-] IRainman fix. */
-				// [+] IRainman fix.
-				vector<pair<Segment, Segment>> l_runnigChunksAndDownloadBytes;
-				vector<Segment> l_doneChunks;
-				
-				QueueManager::getChunksVisualisation(qii->getQueueItem(), l_runnigChunksAndDownloadBytes, l_doneChunks);
-				for (auto i = l_runnigChunksAndDownloadBytes.cbegin(); i < l_runnigChunksAndDownloadBytes.cend(); ++i)
+				try
 				{
-					statusBar.FillRange((*i).first.getStart(), (*i).first.getEnd(), SETTING(COLOR_RUNNING));
-					statusBar.FillRange((*i).second.getStart(), (*i).second.getEnd(), SETTING(COLOR_DOWNLOADED));
+					vector<pair<Segment, Segment>> l_runnigChunksAndDownloadBytes;
+					vector<Segment> l_doneChunks;
+					QueueManager::getChunksVisualisation(qii->getQueueItem(), l_runnigChunksAndDownloadBytes, l_doneChunks);
+					for (auto i = l_runnigChunksAndDownloadBytes.cbegin(); i < l_runnigChunksAndDownloadBytes.cend(); ++i)
+					{
+						statusBar.FillRange((*i).first.getStart(), (*i).first.getEnd(), SETTING(COLOR_RUNNING));
+						statusBar.FillRange((*i).second.getStart(), (*i).second.getEnd(), SETTING(COLOR_DOWNLOADED));
+					}
+					for (auto i = l_doneChunks.cbegin(); i < l_doneChunks.cend(); ++i)
+					{
+						statusBar.FillRange((*i).getStart(), (*i).getEnd(), SETTING(COLOR_DOWNLOADED));
+					}
 				}
-				for (auto i = l_doneChunks.cbegin(); i < l_doneChunks.cend(); ++i)
+				catch (std::bad_alloc&)
 				{
-					statusBar.FillRange((*i).getStart(), (*i).getEnd(), SETTING(COLOR_DOWNLOADED));
+					ShareManager::tryFixBadAlloc(); // https://drdump.com/Problem.aspx?ProblemID=238815
 				}
-				// [~] IRainman fix.
 				
 				CDC cdc;
 				cdc.CreateCompatibleDC(cd->nmcd.hdc);
@@ -2254,7 +2233,7 @@ LRESULT QueueFrame::onRemoveOffline(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 		const QueueItemInfo* ii = ctrlQueue.getItemData(j);
 		RLock(*QueueItem::g_cs);
 		const auto& sources = ii->getQueueItem()->getSourcesL();
-		for (auto i =  sources.cbegin(); i != sources.cend(); ++i)  // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=111640
+		for (auto i =  sources.cbegin(); i != sources.cend(); ++i)  // https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=111640
 		{
 			if (!i->first->isOnline())
 			{

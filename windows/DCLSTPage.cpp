@@ -46,7 +46,7 @@ PropPage::Item DCLSTPage::items[] =
 LRESULT DCLSTPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	if (BOOLSETTING(DCLST_CREATE_IN_SAME_FOLDER))
 	{
@@ -82,7 +82,7 @@ LRESULT DCLSTPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 
 void DCLSTPage::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 	SET_SETTING(DCLST_CREATE_IN_SAME_FOLDER,    IsDlgButtonChecked(IDC_DCLS_CREATE_IN_FOLDER) == BST_CHECKED);
 	magnetClick.Attach(GetDlgItem(IDC_DCLST_CLICK));
 	g_settings->set(SettingsManager::DCLST_ACTION, magnetClick.GetCurSel());

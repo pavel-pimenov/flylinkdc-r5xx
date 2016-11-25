@@ -75,7 +75,7 @@ LRESULT SharePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	
 	ctrlTotal.Attach(GetDlgItem(IDC_TOTAL));
 	
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	if (BOOLSETTING(USE_OLD_SHARING_UI))
 	{
@@ -119,7 +119,7 @@ LRESULT SharePage::onDropFiles(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, 
 
 void SharePage::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 	
 	if (!BOOLSETTING(USE_OLD_SHARING_UI) && ft.IsDirty())
 	{

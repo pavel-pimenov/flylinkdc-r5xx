@@ -102,7 +102,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		COMMAND_ID_HANDLER(IDC_COPY_HUB_URL      , onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_SPEED      , onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_IP      , onCopy)
-		NOTIFY_HANDLER(id, LVN_GETDISPINFO, ctrlList.onGetDispInfo) // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47103 + http://www.flickr.com/photos/96019675@N02/11198858144/
+		NOTIFY_HANDLER(id, LVN_GETDISPINFO, ctrlList.onGetDispInfo) // https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=47103 + http://www.flickr.com/photos/96019675@N02/11198858144/
 		NOTIFY_HANDLER(id, LVN_COLUMNCLICK, ctrlList.onColumnClick)
 		NOTIFY_HANDLER(id, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(id, NM_DBLCLK, onDoubleClick)
@@ -454,10 +454,10 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		{
 			switch (wParam)
 			{
-				case SPEAK_ADD_LINE: //  https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=77059
+				case SPEAK_ADD_LINE: //  https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=77059
 				{
 					const FinishedItemPtr* l_entry = reinterpret_cast<FinishedItemPtr*>(lParam);
-					addFinishedEntry(*l_entry, m_is_crrent_tree_node); // https://drdump.com/UploadedReport.aspx?DumpID=3064705 https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=110193 + http://www.flickr.com/photos/96019675@N02/11199325634/
+					addFinishedEntry(*l_entry, m_is_crrent_tree_node); // https://drdump.com/UploadedReport.aspx?DumpID=3064705 https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=110193 + http://www.flickr.com/photos/96019675@N02/11199325634/
 					if ((*l_entry)->getID() == 0)
 					{
 						if (SettingsManager::get(boldFinished))
@@ -938,7 +938,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			m_totalActual += p_entry->getActual();
 			m_totalSpeed += p_entry->getAvgSpeed();
 			m_totalCount++;
-			const int loc = ctrlList.insertItem(ii, I_IMAGECALLBACK); // ii->getImageIndex() // fix I_IMAGECALLBACK https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=47103
+			const int loc = ctrlList.insertItem(ii, I_IMAGECALLBACK); // ii->getImageIndex() // fix I_IMAGECALLBACK https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=47103
 			if (p_ensure_visible)
 			{
 				ctrlList.EnsureVisible(loc, FALSE);

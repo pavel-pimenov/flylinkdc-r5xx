@@ -75,6 +75,7 @@ int64_t ShareManager::g_CurrentShareSize = -1;
 bool ShareManager::g_is_initial = true;
 ShareManager::DirList ShareManager::g_list_directories;
 BloomFilter<5> ShareManager::g_bloom(1 << 20);
+unsigned ShareManager::g_cache_limit = 1000;
 
 ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
 	m_is_xmlDirty(true), m_is_forceXmlRefresh(false), m_is_refreshDirs(false), m_is_update(false), m_listN(0), m_count_sec(11),
@@ -2967,7 +2968,17 @@ void ShareManager::on(TimerManagerListener::Minute, uint64_t tick) noexcept
 	ClientManager::flushRatio(5000);
 #endif
 }
-
+void ShareManager::tryFixBadAlloc()
+{
+	CFlylinkDBManager::tryFixBadAlloc();
+	g_cache_limit /= 2;
+	if (g_cache_limit < 10)
+	{
+		g_cache_limit = 10;
+	}
+	internalClearCache(true);
+	CFlyServerJSON::pushError(74, "std::bad_alloc ShareManager::tryFixBadAlloc");
+}
 void ShareManager::internalClearCache(bool p_is_force)
 {
 	{
@@ -2981,16 +2992,16 @@ void ShareManager::internalClearCache(bool p_is_force)
 			}
 		}
 #endif
-		if (p_is_force || g_file_not_exists_set.size() > 1000)
+		if (p_is_force || g_file_not_exists_set.size() > g_cache_limit)
 		{
-			g_file_not_exists_set.clear();
+			clear_and_reset_capacity(g_file_not_exists_set);
 		}
 	}
 	{
 		CFlyWriteLock(*g_csShareCache);
-		if (p_is_force || g_file_cache_map.size() > 2000)
+		if (p_is_force || g_file_cache_map.size() > g_cache_limit * 2)
 		{
-			g_file_cache_map.clear();
+			clear_and_reset_capacity(g_file_cache_map);
 		}
 	}
 }

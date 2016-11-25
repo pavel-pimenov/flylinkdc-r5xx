@@ -141,8 +141,8 @@ UINT_PTR CALLBACK MenuBarCommDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 LRESULT OperaColorsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_OPERACOLORS_BOOLEANS));
+	PropPage::read(*this, items);
+	PropPage::read(*this, items, listItems, GetDlgItem(IDC_OPERACOLORS_BOOLEANS));
 	
 	ctrlList.Attach(GetDlgItem(IDC_OPERACOLORS_BOOLEANS));
 	
@@ -180,8 +180,8 @@ LRESULT OperaColorsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 
 void OperaColorsPage::write()
 {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_OPERACOLORS_BOOLEANS));
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items, listItems, GetDlgItem(IDC_OPERACOLORS_BOOLEANS));
+	PropPage::write(*this, items);
 	
 	// Do specialized writing here
 	// settings->set(XX, YY);

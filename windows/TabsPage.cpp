@@ -70,8 +70,8 @@ PropPage::ListItem TabsPage::boldItems[] =
 LRESULT TabsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), textItem);
-	PropPage::read((HWND)*this, items, optionItems, GetDlgItem(IDC_TABS_OPTIONS));
-	PropPage::read((HWND)*this, items, boldItems, GetDlgItem(IDC_BOLD_BOOLEANS));
+	PropPage::read(*this, items, optionItems, GetDlgItem(IDC_TABS_OPTIONS));
+	PropPage::read(*this, items, boldItems, GetDlgItem(IDC_BOLD_BOOLEANS));
 	
 	ctrlOption.Attach(GetDlgItem(IDC_TABS_OPTIONS)); // [+] IRainman
 	ctrlBold.Attach(GetDlgItem(IDC_BOLD_BOOLEANS)); // [+] IRainman
@@ -97,8 +97,8 @@ LRESULT TabsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
 void TabsPage::write()
 {
-	PropPage::write((HWND)*this, items, optionItems, GetDlgItem(IDC_TABS_OPTIONS));
-	PropPage::write((HWND)*this, items, boldItems, GetDlgItem(IDC_BOLD_BOOLEANS));
+	PropPage::write(*this, items, optionItems, GetDlgItem(IDC_TABS_OPTIONS));
+	PropPage::write(*this, items, boldItems, GetDlgItem(IDC_BOLD_BOOLEANS));
 	
 	CComboBox tabsPosition;
 	tabsPosition.Attach(GetDlgItem(IDC_TABSCOMBO));

@@ -638,7 +638,7 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 	bool l_isSource = !p_is_find_sources;
 	if (!l_isSource)
 	{
-		l_isSource = qi->isSourceL(aUser); // crash https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=78346
+		l_isSource = qi->isSourceL(aUser); // crash https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=78346
 		if (!l_isSource)
 		{
 			const string l_error = "Error QueueManager::UserQueue::removeUserL [dcassert(isSource)] aUser = " +
@@ -1098,7 +1098,7 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
                        Flags::MaskType aFlags /* = 0 */, bool addBad /* = true */, bool p_first_file /*= true*/)
 {
 	// Check that we're not downloading from ourselves...
-	if (aUser && // [+] https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=18543
+	if (aUser && // [+] https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=18543
 	        ClientManager::isMe(aUser))
 	{
 		throw QueueException(STRING(NO_DOWNLOADS_FROM_SELF));
@@ -1284,7 +1284,7 @@ void QueueManager::readdAll(const QueueItemPtr& q)
 	QueueItem::SourceMap l_badSources;
 	{
 		WLock(*QueueItem::g_cs);
-		l_badSources = q->getBadSourcesL(); // fix https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=62702
+		l_badSources = q->getBadSourcesL(); // fix https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=62702
 	}
 	for (auto s = l_badSources.cbegin(); s != l_badSources.cend(); ++s)
 	{
@@ -2051,7 +2051,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 #endif
 	UserList l_getConn;
 	string fileName;
-	const HintedUser l_hintedUser = aDownload->getHintedUser(); // crash https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=155631
+	const HintedUser l_hintedUser = aDownload->getHintedUser(); // crash https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=155631
 	UserPtr l_user = aDownload->getUser();
 	
 	dcassert(l_user); // [!] IRainman fix: putDownload call with empty by the user can not because you can not even attempt to download with an empty user!

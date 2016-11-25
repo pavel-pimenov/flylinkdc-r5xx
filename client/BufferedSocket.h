@@ -123,7 +123,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		void setPort(uint16_t p_port)
 		{
 			if (hasSocket())
-				sock->setPort(p_port); // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=12555
+				sock->setPort(p_port); // https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=12555
 		}
 		vector<uint8_t> getKeyprint() const
 		{

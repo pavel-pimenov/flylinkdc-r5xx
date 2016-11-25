@@ -164,6 +164,11 @@ class CFlyBusy
 			--m_count;
 		}
 };
+template <class T> inline void clear_and_reset_capacity(T& p)
+{
+	T l_tmp;
+	p.swap(l_tmp);
+}
 
 template <class T> inline void safe_delete(T* & p)
 {

@@ -865,14 +865,6 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="dht\dht_2013.vcxproj">
-      <Project>{47ab24a7-9fab-4f6f-b411-01c9ff54e22d}</Project>
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
-    </ProjectReference>
     <ProjectReference Include="FlyFeatures_2013.vcxproj">
       <Project>{2c060b35-3af9-4a70-8052-8699911b9322}</Project>
       <Private>false</Private>

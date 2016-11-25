@@ -57,7 +57,7 @@ ProvidersPage::ListItem ProvidersPage::listItems[] =
 LRESULT ProvidersPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_PROVIDER_USE_LIST));
+	PropPage::read(*this, items, listItems, GetDlgItem(IDC_PROVIDER_USE_LIST));
 	m_url.init(GetDlgItem(IDC_ISP_MORE_INFO_LINK), _T(""));
 	
 	fixControls();
@@ -67,7 +67,7 @@ LRESULT ProvidersPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 
 void ProvidersPage::write()
 {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_PROVIDER_USE_LIST));
+	PropPage::write(*this, items, listItems, GetDlgItem(IDC_PROVIDER_USE_LIST));
 }
 
 LRESULT ProvidersPage::onClickedUse(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

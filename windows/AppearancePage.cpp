@@ -73,7 +73,7 @@ AppearancePage::~AppearancePage()
 
 void AppearancePage::write()
 {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_APPEARANCE_BOOLEANS));
+	PropPage::write(*this, items, listItems, GetDlgItem(IDC_APPEARANCE_BOOLEANS));
 	
 	ctrlTheme.Attach(GetDlgItem(IDC_THEME_COMBO));
 	const string l_filetheme = WinUtil::getDataFromMap(ctrlTheme.GetCurSel(), m_ThemeList);
@@ -91,7 +91,7 @@ LRESULT AppearancePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 {
 	PropPage::translate((HWND)(*this), texts);
 	
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_APPEARANCE_BOOLEANS));
+	PropPage::read(*this, items, listItems, GetDlgItem(IDC_APPEARANCE_BOOLEANS));
 	
 	ctrlList.Attach(GetDlgItem(IDC_APPEARANCE_BOOLEANS)); // [+] IRainman
 	

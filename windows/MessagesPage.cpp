@@ -63,7 +63,7 @@ MessagesPage::ListItem MessagesPage::listItems[] =
 
 LRESULT MessagesPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_MESSAGES_BOOLEANS));
+	PropPage::read(*this, items, listItems, GetDlgItem(IDC_MESSAGES_BOOLEANS));
 	
 	ctrlList.Attach(GetDlgItem(IDC_MESSAGES_BOOLEANS)); // [+] IRainman
 	
@@ -97,7 +97,7 @@ LRESULT MessagesPage::onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 
 void MessagesPage::write()
 {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_MESSAGES_BOOLEANS));
+	PropPage::write(*this, items, listItems, GetDlgItem(IDC_MESSAGES_BOOLEANS));
 	
 	// [+] InfinitySky. ¬ыбор времени из выпадающего списка.
 	timeCtrlBegin.Attach(GetDlgItem(IDC_AWAY_START_TIME));

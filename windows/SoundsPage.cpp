@@ -64,7 +64,7 @@ Sounds::snds Sounds::g_sounds[] =
 LRESULT Sounds::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	ctrlSNDTheme.Attach(GetDlgItem(IDC_SOUNDS_COMBO));
 	
 	GetSNDThemeList();
@@ -112,7 +112,7 @@ LRESULT Sounds::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
 void Sounds::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 	
 	for (int i = 0; i < _countof(g_sounds); i++)
 	{

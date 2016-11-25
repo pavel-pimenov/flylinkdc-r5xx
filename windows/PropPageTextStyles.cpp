@@ -111,7 +111,7 @@ LRESULT PropPageTextStyles::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
 	memset(&m_Font, 0, sizeof(m_Font));
 	m_Preview.disable_chat_cache();
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	m_maincolor_changed = false;
 	m_tempfile = Text::toT(Util::getThemesPath() + "temp.dctmp");
@@ -220,7 +220,7 @@ LRESULT PropPageTextStyles::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
 
 void PropPageTextStyles::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 	
 	tstring f = WinUtil::encodeFont(m_Font);
 	g_settings->set(SettingsManager::TEXT_FONT, Text::fromT(f));

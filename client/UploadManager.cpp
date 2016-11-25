@@ -644,7 +644,7 @@ ok: //[!] TODO убрать goto
 			else
 			{
 				safe_delete(is);
-				aSource->maxedOut(addFailedUpload(aSource, sourceFile, aStartPos, fileSize)); // https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=130703
+				aSource->maxedOut(addFailedUpload(aSource, sourceFile, aStartPos, fileSize)); // https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=130703
 				aSource->disconnect();
 				return false;
 			}
@@ -1054,8 +1054,8 @@ size_t UploadManager::addFailedUpload(const UserConnection* aSource, const strin
 	if (it != m_slotQueue.end())
 	{
 		it->setToken(aSource->getUserConnectionToken());
-		// https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=130703
-		for (auto i = it->m_waiting_files.cbegin(); i != it->m_waiting_files.cend(); ++i) //TODO https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128318
+		// https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=130703
+		for (auto i = it->m_waiting_files.cbegin(); i != it->m_waiting_files.cend(); ++i) //TODO https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=128318
 		{
 			if ((*i)->getFile() == file)
 			{
@@ -1074,7 +1074,7 @@ size_t UploadManager::addFailedUpload(const UserConnection* aSource, const strin
 	{
 		it->m_waiting_files.push_back(uqi);
 	}
-	// Crash https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=29270
+	// Crash https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=29270
 	if (g_count_WaitingUsersFrame)
 	{
 		fly_fire1(UploadManagerListener::QueueAdd(), uqi);
@@ -1185,8 +1185,8 @@ void UploadManager::notifyQueuedUsers(int64_t p_tick)
 			while (freeslots > 0 && !m_slotQueue.empty())
 			{
 				// let's keep him in the connectingList until he asks for a file
-				const WaitingUser& wu = m_slotQueue.front(); // TODO -  https://crash-server.com/DumpGroup.aspx?ClientID=ppa&DumpGroupID=128150
-				//         https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=56833
+				const WaitingUser& wu = m_slotQueue.front(); // TODO -  https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=128150
+				//         https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=56833
 				clearWaitingFilesL(wu);
 				if (g_count_WaitingUsersFrame)
 				{

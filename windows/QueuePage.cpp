@@ -82,8 +82,8 @@ PropPage::ListItem QueuePage::optionItems[] =
 LRESULT QueuePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items, 0, 0);
-	PropPage::read((HWND)*this, items, optionItems, GetDlgItem(IDC_OTHER_QUEUE_OPTIONS));
+	PropPage::read(*this, items, 0, 0);
+	PropPage::read(*this, items, optionItems, GetDlgItem(IDC_OTHER_QUEUE_OPTIONS));
 	
 	ctrlList.Attach(GetDlgItem(IDC_OTHER_QUEUE_OPTIONS)); // [+] IRainman
 	
@@ -156,8 +156,8 @@ void QueuePage::fixControls()
 
 void QueuePage::write()
 {
-	PropPage::write((HWND)*this, items, 0, 0);
-	PropPage::write((HWND)*this, items, optionItems, GetDlgItem(IDC_OTHER_QUEUE_OPTIONS));
+	PropPage::write(*this, items, 0, 0);
+	PropPage::write(*this, items, optionItems, GetDlgItem(IDC_OTHER_QUEUE_OPTIONS));
 	
 	int ct = SettingsManager::ON_DOWNLOAD_ASK;
 	/*

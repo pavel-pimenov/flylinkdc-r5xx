@@ -5,13 +5,11 @@
 #if !defined(ABOUT_STAT_DLG_H)
 #define ABOUT_STAT_DLG_H
 
-
 #pragma once
-
-
 
 #include "wtl_flylinkdc.h"
 #include "../client/NmdcHub.h"
+#include "boost/algorithm/string/replace.hpp"
 
 class AboutStatDlg : public CDialogImpl<AboutStatDlg>
 #ifdef _DEBUG
@@ -48,8 +46,10 @@ class AboutStatDlg : public CDialogImpl<AboutStatDlg>
 			
 			CEdit ctrlUDPStat(GetDlgItem(IDC_UDP_DHT_SSL_STAT));
 			//ctrlUDPStat.SetFont(Fonts::g_halfFont);
-			ctrlUDPStat.AppendText(Text::toT(CompatibilityManager::generateNetworkStats()).c_str(), FALSE);
 			ctrlUDPStat.AppendText(Text::toT(NmdcHub::get_all_unknown_command()).c_str());
+			auto l_stat = CompatibilityManager::generateProgramStats();
+			boost::replace_all(l_stat, "\t", "");
+			ctrlUDPStat.AppendText(Text::toT(l_stat).c_str());
 			ctrlUDPStat.Detach();
 			return TRUE;
 		}

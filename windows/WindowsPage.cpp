@@ -115,9 +115,9 @@ LRESULT WindowsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 #endif
 	
 	PropPage::translate((HWND)(*this), textItem);
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_WINDOWS_STARTUP));
-	PropPage::read((HWND)*this, items, optionItems, GetDlgItem(IDC_WINDOWS_OPTIONS));
-	PropPage::read((HWND)*this, items, confirmItems, GetDlgItem(IDC_CONFIRM_OPTIONS)); // [+] InfinitySky.
+	PropPage::read(*this, items, listItems, GetDlgItem(IDC_WINDOWS_STARTUP));
+	PropPage::read(*this, items, optionItems, GetDlgItem(IDC_WINDOWS_OPTIONS));
+	PropPage::read(*this, items, confirmItems, GetDlgItem(IDC_CONFIRM_OPTIONS)); // [+] InfinitySky.
 	
 	ctrlStartup.Attach(GetDlgItem(IDC_WINDOWS_STARTUP)); // [+] IRainman
 	ctrlOptions.Attach(GetDlgItem(IDC_WINDOWS_OPTIONS)); // [+] IRainman
@@ -128,7 +128,7 @@ LRESULT WindowsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 
 void WindowsPage::write()
 {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_WINDOWS_STARTUP));
-	PropPage::write((HWND)*this, items, optionItems, GetDlgItem(IDC_WINDOWS_OPTIONS));
-	PropPage::write((HWND)*this, items, confirmItems, GetDlgItem(IDC_CONFIRM_OPTIONS)); // [+] InfinitySky.
+	PropPage::write(*this, items, listItems, GetDlgItem(IDC_WINDOWS_STARTUP));
+	PropPage::write(*this, items, optionItems, GetDlgItem(IDC_WINDOWS_OPTIONS));
+	PropPage::write(*this, items, confirmItems, GetDlgItem(IDC_CONFIRM_OPTIONS)); // [+] InfinitySky.
 }

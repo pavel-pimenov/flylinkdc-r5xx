@@ -1616,7 +1616,7 @@ bool FavoriteManager::isPrivate(const string& p_url)
 	if (!p_url.empty())
 	{
 		// TODO Зовется без полного лока
-		FavoriteHubEntry* fav = getFavoriteHubEntry(p_url); // https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=23193
+		FavoriteHubEntry* fav = getFavoriteHubEntry(p_url); // https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=23193
 		if (fav)
 		{
 			const string& name = fav->getGroup();

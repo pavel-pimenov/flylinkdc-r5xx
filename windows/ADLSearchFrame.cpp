@@ -257,7 +257,7 @@ LRESULT ADLSearchFrame::onAdd(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 	// Invoke edit dialog with fresh search
 	ADLSearch search;
 	ADLSProperties dlg(&search);
-	if (dlg.DoModal((HWND)*this) == IDOK)
+	if (dlg.DoModal(*this) == IDOK)
 	{
 		// Add new search to the end or if selected, just before
 		ADLSearchManager::SearchCollection& collection = ADLSearchManager::getInstance()->collection;
@@ -305,7 +305,7 @@ LRESULT ADLSearchFrame::onEdit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 	
 	// Invoke dialog with selected search
 	ADLSProperties dlg(&search);
-	if (dlg.DoModal((HWND)*this) == IDOK)
+	if (dlg.DoModal(*this) == IDOK)
 	{
 		// Update search collection
 		collection[static_cast<size_t>(i)] = search;

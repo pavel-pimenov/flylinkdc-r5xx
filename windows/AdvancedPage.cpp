@@ -80,7 +80,7 @@ AdvancedPage::ListItem AdvancedPage::listItems[] =
 LRESULT AdvancedPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items, listItems, GetDlgItem(IDC_ADVANCED_BOOLEANS));
+	PropPage::read(*this, items, listItems, GetDlgItem(IDC_ADVANCED_BOOLEANS));
 	
 	CurSel = SETTING(MEDIA_PLAYER);
 	WMPlayerStr = Text::toT(SETTING(WMP_FORMAT));
@@ -138,7 +138,7 @@ LRESULT AdvancedPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 
 void AdvancedPage::write()
 {
-	PropPage::write((HWND)*this, items, listItems, GetDlgItem(IDC_ADVANCED_BOOLEANS));
+	PropPage::write(*this, items, listItems, GetDlgItem(IDC_ADVANCED_BOOLEANS));
 	
 	ctrlFormat.Attach(GetDlgItem(IDC_WINAMP));
 	

@@ -628,8 +628,8 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 	{
 		// [!] PPA fix
 		// seeker в начале может не содержать "Hub:" - падаем
-		// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=64297
-		// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=63507
+		// https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=64297
+		// https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=63507
 		const auto& myNick = getMyNick();
 		dcassert(l_search_param.m_seeker.size() > 4);
 		if (l_search_param.m_seeker.size() <= 4)
@@ -2113,7 +2113,8 @@ void NmdcHub::processAutodetect(bool p_is_myinfo)
 {
 	if (!p_is_myinfo && m_bLastMyInfoCommand == FIRST_MYINFO)
 	{
-		if (m_is_get_user_ip_from_hub || !Util::isPrivateIp(getLocalIp()))
+		if (m_is_get_user_ip_from_hub //|| !Util::isPrivateIp(getLocalIp())
+		   )
 		{
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 			// This is first command after $MyInfo.
@@ -2323,6 +2324,10 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 		{
 			l_ExtJSONSupport += "+IPv6";
 		}
+		l_ExtJSONSupport += "+Cache:"
+		                    + Util::toString(CFlylinkDBManager::get_tth_cache_size()) + "/"
+		                    + Util::toString(ShareManager::get_cache_size_file_not_exists_set()) + "/"
+		                    + Util::toString(ShareManager::get_cache_file_map());
 	}
 	l_currentMyInfo.resize(_snprintf(&l_currentMyInfo[0], l_currentMyInfo.size() - 1, "$MyINFO $ALL %s %s<%s,M:%c,H:%s,S:%d"
 	                                 ">$ $%s%c$%s$",
@@ -2998,11 +3003,12 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_s
 		}
 		catch (std::bad_alloc&)  // Fix https://drdump.com/Problem.aspx?ProblemID=240058
 		{
+			ShareManager::tryFixBadAlloc();
 			const auto l_size = p_search_array.size() + m_delay_search.size();
 			p_search_array.clear();
 			p_search_array.shrink_to_fit();
 			clear_delay_search();
-			CFlyServerJSON::pushError(74, "Bad alloc (BufferedSocketListener::SearchArrayTTH) l_size = " + Util::toString(l_size));
+			CFlyServerJSON::pushError(74, "std::bad_alloc (BufferedSocketListener::SearchArrayTTH) l_size = " + Util::toString(l_size));
 		}
 		if (ShareManager::searchTTHArray(p_search_array, this) == false)
 		{
@@ -3134,7 +3140,9 @@ void NmdcHub::RequestConnectionForAutodetect()
 	{
 		bool bWantAutodetect = false;
 		const auto l_fav = FavoriteManager::getFavoriteHubEntry(getHubUrl());
-		if (ClientManager::getMode(l_fav, &bWantAutodetect) == SettingsManager::INCOMING_FIREWALL_PASSIVE)
+		const auto l_mode = ClientManager::getMode(l_fav, bWantAutodetect);
+		//if (l_mode == SettingsManager::INCOMING_FIREWALL_PASSIVE ||
+		//    l_mode == SettingsManager::INCOMING_DIRECT)
 		{
 			if (bWantAutodetect)
 			{
@@ -3151,7 +3159,7 @@ void NmdcHub::RequestConnectionForAutodetect()
 					// request for connection from users with fastest connection, or operators
 					connectToMe(*i->second, ExpectedMap::REASON_DETECT_CONNECTION);
 #ifdef _DEBUG
-					dcdebug("[!!!!!!!!!!!!!!] AutoDetect connectToMe! Nick = %s Hub = %s", i->first.c_str(), + getHubUrl().c_str());
+					dcdebug("[!!!!!!!!!!!!!!] AutoDetect connectToMe! Nick = %s Hub = %s\r\n", i->first.c_str(), + getHubUrl().c_str());
 					LogManager::message("AutoDetect connectToMe - Nick = " + i->first + " Hub = " + getHubUrl());
 #endif
 					++m_iRequestCount;

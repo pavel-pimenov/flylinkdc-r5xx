@@ -270,6 +270,37 @@ namespace aux {
 	}
 #endif // TORRENT_DISABLE_DHT
 
+	std::list<listen_socket_t>::iterator partition_listen_sockets(
+		std::vector<listen_endpoint_t>& eps
+		, std::list<listen_socket_t>& sockets)
+	{
+		return std::partition(sockets.begin(), sockets.end()
+			, [&eps](listen_socket_t const& sock)
+		{
+			auto match = std::find_if(eps.begin(), eps.end()
+				, [&sock](listen_endpoint_t const& ep)
+			{
+				return ep.ssl == sock.ssl
+					&& ep.port == sock.original_port
+					&& ep.device == sock.device
+					&& ep.addr == sock.local_endpoint.address();
+			});
+
+			if (match != eps.end())
+			{
+				// remove the matched endpoint so that another socket can't match it
+				// this also signals to the caller that it doesn't need to create a
+				// socket for the endpoint
+				eps.erase(match);
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		});
+	}
+
 	void session_impl::init_peer_class_filter(bool unlimited_local)
 	{
 		// set the default peer_class_filter to use the local peer class
@@ -1384,6 +1415,7 @@ namespace aux {
 
 		listen_socket_t ret;
 		ret.ssl = (flags & open_ssl_socket) != 0;
+		ret.original_port = bind_ep.port();
 		int last_op = 0;
 		socket_type_t const sock_type
 			= (flags & open_ssl_socket)
@@ -1554,6 +1586,7 @@ namespace aux {
 				return ret;
 			}
 			ret.local_endpoint = ret.sock->local_endpoint(ec);
+			ret.device = device;
 			last_op = listen_failed_alert::get_socket_name;
 			if (ec)
 			{
@@ -1712,27 +1745,16 @@ namespace aux {
 		TORRENT_ASSERT(!m_abort);
 		int flags = m_settings.get_bool(settings_pack::listen_system_port_fallback)
 			? 0 : listen_no_system_port;
+
+		m_stats_counters.set_value(counters::has_incoming_connections, 0);
 		error_code ec;
 
-		// close the open listen sockets
-		// close the listen sockets
-#ifndef TORRENT_DISABLE_LOGGING
-		if (m_listen_sockets.empty())
-			session_log("no currently open sockets to close");
-		else
-			session_log("closing all listen sockets (%d)", int(m_listen_sockets.size()));
-#endif
-		for (auto const& s : m_listen_sockets)
-		{
-			if (s.sock) s.sock->close(ec);
-			if (s.udp_sock) s.udp_sock->close();
-		}
-
-		m_listen_sockets.clear();
-		m_stats_counters.set_value(counters::has_incoming_connections, 0);
-		ec.clear();
-
 		if (m_abort) return;
+
+		// first build a list of endpoints we should be listening on
+		// we need to remove any unneeded sockets first to avoid the posibility
+		// of a new socket failing to bind due to a conflict with a stale socket
+		std::vector<listen_endpoint_t> eps;
 
 		for (int i = 0; i < m_listen_interfaces.size(); ++i)
 		{
@@ -1768,13 +1790,7 @@ namespace aux {
 			address const adr = address::from_string(device.c_str(), err);
 			if (!err)
 			{
-				listen_socket_t const s = setup_listener("", tcp::endpoint(adr, port)
-					, flags | (ssl ? open_ssl_socket : 0), ec);
-
-				if (!ec && s.sock)
-				{
-					m_listen_sockets.push_back(s);
-				}
+				eps.emplace_back(adr, port, std::string(), ssl);
 			}
 			else
 			{
@@ -1807,16 +1823,38 @@ namespace aux {
 					// (which must be of the same family as the address we're
 					// connecting to)
 					if (device != ifs[k].name) continue;
-
-					listen_socket_t const s = setup_listener(device
-						, tcp::endpoint(ifs[k].interface_address, port)
-						, flags | (ssl ? open_ssl_socket : 0), ec);
-
-					if (!ec && s.sock)
-					{
-						m_listen_sockets.push_back(s);
-					}
+					eps.emplace_back(ifs[k].interface_address, port, device, ssl);
 				}
+			}
+		}
+
+		auto remove_iter = partition_listen_sockets(eps, m_listen_sockets);
+
+		while (remove_iter != m_listen_sockets.end())
+		{
+			// TODO notify interested parties of this socket's demise
+#ifndef TORRENT_DISABLE_LOGGING
+			session_log("Closing listen socket for %s on device \"%s\""
+				, print_endpoint(remove_iter->local_endpoint).c_str()
+				, remove_iter->device.c_str());
+#endif
+			if (remove_iter->sock) remove_iter->sock->close(ec);
+			if (remove_iter->udp_sock) remove_iter->udp_sock->close();
+			remove_iter = m_listen_sockets.erase(remove_iter);
+		}
+
+		// open new sockets on any endpoints that didn't match with
+		// an existing socket
+		for (auto const& ep : eps)
+		{
+			listen_socket_t const s = setup_listener(ep.device
+				, tcp::endpoint(ep.addr, ep.port)
+				, flags | (ep.ssl ? open_ssl_socket : 0), ec);
+
+			if (!ec && s.sock)
+			{
+				// TODO notify interested parties of this socket's creation
+				m_listen_sockets.push_back(s);
 			}
 		}
 
@@ -1830,6 +1868,7 @@ namespace aux {
 
 		// now, send out listen_succeeded_alert for the listen sockets we are
 		// listening on
+		// TODO only post alerts for new sockets?
 		if (m_alerts.should_post<listen_succeeded_alert>())
 		{
 			for (auto const& l : m_listen_sockets)

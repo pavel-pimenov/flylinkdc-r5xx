@@ -56,7 +56,7 @@ PropPage::Item DownloadPage::items[] =
 LRESULT DownloadPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	CUpDownCtrl spin;
 	spin.Attach(GetDlgItem(IDC_FILESPIN));
@@ -77,7 +77,7 @@ LRESULT DownloadPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 
 void DownloadPage::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 	const tstring l_dir = Text::toT(SETTING(TEMP_DOWNLOAD_DIRECTORY));
 	if (!l_dir.empty())
 	{

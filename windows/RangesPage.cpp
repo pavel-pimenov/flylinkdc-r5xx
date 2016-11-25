@@ -35,7 +35,7 @@ PropPage::Item RangesPage::items[] =
 LRESULT RangesPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	m_isEnabledIPGuard = BOOLSETTING(ENABLE_IPGUARD);
 	
 	ctrlPolicy.Attach(GetDlgItem(IDC_DEFAULT_POLICY));
@@ -138,7 +138,7 @@ LRESULT RangesPage::onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 
 void RangesPage::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 	g_settings->set(SettingsManager::IP_GUARD_IS_DENY_ALL, !ctrlPolicy.GetCurSel());
 	
 	if (BOOLSETTING(ENABLE_IPGUARD))

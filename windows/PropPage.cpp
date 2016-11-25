@@ -127,7 +127,7 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 				{
 					WinUtil::GetDlgItemText(page, i->itemID, buf);
 					l_showUserWarning |= g_settings->set(SettingsManager::StrSetting(i->setting), Text::fromT(buf));// [!] IRainman
-					// Crash https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=78416
+					// Crash https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=78416
 					break;
 				}
 				case T_INT:

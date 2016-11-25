@@ -126,7 +126,10 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 	private:
 		void internalCalcShareSize();
 		static void internalClearCache(bool p_is_force);
+		static unsigned g_cache_limit;
 	public:
+		static void tryFixBadAlloc();
+		
 		// [~] IRainman opt.
 		static int64_t getShareSize(const string& realPath);
 		
@@ -466,7 +469,16 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		static unsigned g_lastSharedFiles;
 		static QueryNotExistsSet g_file_not_exists_set;
 		static QueryCacheMap g_file_cache_map;
-		
+	public:
+		static unsigned get_cache_size_file_not_exists_set()
+		{
+			return g_file_not_exists_set.size();
+		}
+		static unsigned get_cache_file_map()
+		{
+			return g_file_cache_map.size();
+		}
+	private:
 		//[+]IRainman opt.
 		static bool g_isNeedsUpdateShareSize;
 		static int64_t g_CurrentShareSize;

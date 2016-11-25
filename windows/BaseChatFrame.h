@@ -38,7 +38,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		CHAIN_COMMANDS(isBase)
 		CHAIN_MSG_MAP_MEMBER(ctrlClient)
 		//CHAIN_MSG_MAP_MEMBER_PTR(m_msgPanel)
-		if (ClientManager::isStartup() == false) // try fix https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=38156
+		if (ClientManager::isStartup() == false) // try fix https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=38156
 		{
 			if (m_msgPanel && m_msgPanel->ProcessWindowMessage(hWnd, uMsg, wParam, lParam, lResult))
 			{

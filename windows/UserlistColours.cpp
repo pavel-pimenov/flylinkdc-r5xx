@@ -24,7 +24,7 @@ PropPage::Item UserListColours::items[] =
 LRESULT UserListColours::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
-	PropPage::read((HWND)*this, items);
+	PropPage::read(*this, items);
 	
 	normalColour = SETTING(NORMAL_COLOUR);
 	favoriteColour = SETTING(FAVORITE_COLOR);
@@ -235,7 +235,7 @@ void UserListColours::refreshPreview()
 
 void UserListColours::write()
 {
-	PropPage::write((HWND)*this, items);
+	PropPage::write(*this, items);
 	SET_SETTING(NORMAL_COLOUR, normalColour);
 	SET_SETTING(FAVORITE_COLOR, favoriteColour);
 	SET_SETTING(TEXT_ENEMY_FORE_COLOR, favEnemyColour);

@@ -24,6 +24,7 @@
 #include "CFlylinkDBManager.h"
 #include "ClientManager.h"
 #include "CompatibilityManager.h" // [+] IRainman
+#include "ShareManager.h"
 #include "../FlyFeatures/flyServer.h"
 
 #ifdef IRAINMAN_NTFS_STREAM_TTH
@@ -654,6 +655,7 @@ int HashManager::Hasher::run()
 					}
 					catch (std::bad_alloc&)
 					{
+						ShareManager::tryFixBadAlloc();
 						l_buf = nullptr;
 						g_HashBufferSize /= 2;
 						l_is_bad_alloc = g_HashBufferSize > 128;

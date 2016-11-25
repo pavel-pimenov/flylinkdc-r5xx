@@ -35,6 +35,12 @@ int64_t g_SQLiteDBSize = 0;
 
 int32_t CFlylinkDBManager::g_count_queue_source = 0;
 int32_t CFlylinkDBManager::g_count_queue_files = 0;
+
+boost::unordered_map<TTHValue, TigerTree> CFlylinkDBManager::g_tiger_tree_cache;
+FastCriticalSection CFlylinkDBManager::g_tth_cache_cs;
+unsigned CFlylinkDBManager::g_tth_cache_limit = 500;
+
+
 const char* g_db_file_names[] = {"FlylinkDC.sqlite",
                                  "FlylinkDC_log.sqlite",
                                  "FlylinkDC_mediainfo.sqlite",
@@ -319,7 +325,7 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 	if (!l_is_send)
 	{
 		// TODO - скинуть ошибку в файл и не грузить crash-server логическими ошибками
-		// https://www.crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=51924
+		// https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=51924
 		throw database_error(l_error.c_str());
 	}
 }
@@ -414,7 +420,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 				// TODO - sqlite3_busy_handler
 				// Пример реализации обработчика -
 				// https://github.com/iso9660/linux-sdk/blob/d819f98a72776fced31131b1bc22a4bcb4c492bb/SDKLinux/LFC/Data/sqlite3db.cpp
-				// https://crash-server.com/Problem.aspx?ClientID=ppa&ProblemID=17660
+				// https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=17660
 				if (BOOLSETTING(LOG_SQLITE_TRACE) || g_EnableSQLtrace)
 				{
 					sqlite3_trace(m_flySQLiteDB.get_db(), gf_trace_callback, NULL);
@@ -2388,8 +2394,8 @@ void CFlylinkDBManager::save_transfer_history(bool p_is_torrent, eTypeTransfer p
 		l_name = Text::toLower(Util::getFileName(p_item->getTarget()));
 		l_path = Text::toLower(Util::getFilePath(p_item->getTarget()));
 		{
-			CFlyFastLock(m_tth_cache_cs);
-			m_tiger_tree_cache.erase(p_item->getTTH());
+			CFlyFastLock(g_tth_cache_cs);
+			g_tiger_tree_cache.erase(p_item->getTTH());
 		}
 	}
 	CFlyLock(m_cs);
@@ -4081,10 +4087,7 @@ void CFlylinkDBManager::sweep_db()
 		load_path_cache();
 		{
 			clean_fly_hash_blockL();
-			{
-				CFlyFastLock(m_tth_cache_cs);
-				m_tiger_tree_cache.clear();
-			}
+			clearTTHCache();
 		}
 		{
 			const char* l_clean_sql_media = "delete from media_db.fly_media where tth_id not in(select tth_id from fly_file)";
@@ -4531,9 +4534,9 @@ bool CFlylinkDBManager::get_tree(const TTHValue& p_root, TigerTree& p_tt, __int6
 	try
 	{
 		{
-			CFlyFastLock(m_tth_cache_cs);
-			const auto& l_cache_tt = m_tiger_tree_cache.find(p_root);
-			if (l_cache_tt != m_tiger_tree_cache.end())
+			CFlyFastLock(g_tth_cache_cs);
+			const auto& l_cache_tt = g_tiger_tree_cache.find(p_root);
+			if (l_cache_tt != g_tiger_tree_cache.end())
 			{
 #ifdef _DEBUG
 				// LogManager::message("[!] Cache! bingo! CFlylinkDBManager::getTree TTH Root = " + p_root.toBase32());
@@ -4555,17 +4558,11 @@ bool CFlylinkDBManager::get_tree(const TTHValue& p_root, TigerTree& p_tt, __int6
 				
 			if (l_file_size <= MIN_BLOCK_SIZE) // TODO - тут возможно этого делать нельзя.
 			{
-				CFlyFastLock(m_tth_cache_cs);
+				CFlyFastLock(g_tth_cache_cs);
 				p_tt = TigerTree(l_file_size, p_block_size, p_root);
-				m_tiger_tree_cache.insert(make_pair(p_root, p_tt));
+				g_tiger_tree_cache.insert(make_pair(p_root, p_tt));
 				dcassert(p_tt.getRoot() == p_root);
 				const auto l_result = p_tt.getRoot() == p_root;
-				/*
-				if (l_result)
-				{
-				    m_tiger_tree_cache.insert(make_pair(p_root, p_tt));
-				}
-				*/
 				return l_result;
 			}
 			vector<uint8_t> l_buf;
@@ -4577,8 +4574,12 @@ bool CFlylinkDBManager::get_tree(const TTHValue& p_root, TigerTree& p_tt, __int6
 				const auto l_result = p_tt.getRoot() == p_root;
 				if (l_result)
 				{
-					CFlyFastLock(m_tth_cache_cs);
-					m_tiger_tree_cache.insert(make_pair(p_root, p_tt));
+					CFlyFastLock(g_tth_cache_cs);
+					if (g_tiger_tree_cache.size() > g_tth_cache_limit)
+					{
+						clear_and_reset_capacity(g_tiger_tree_cache);
+					}
+					g_tiger_tree_cache.insert(make_pair(p_root, p_tt));
 				}
 				return l_result;
 			}
@@ -4839,8 +4840,8 @@ void CFlylinkDBManager::add_tree_internal_bind_and_executeL(sqlite3_command* p_s
 __int64 CFlylinkDBManager::add_treeL(const TigerTree& p_tt)
 {
 	{
-		CFlyFastLock(m_tth_cache_cs);
-		m_tiger_tree_cache.erase(p_tt.getRoot()); // Сбросим кэш, чтобы случайно не достать старую карту.
+		CFlyFastLock(g_tth_cache_cs);
+		g_tiger_tree_cache.erase(p_tt.getRoot()); // Сбросим кэш, чтобы случайно не достать старую карту.
 	}
 	try
 	{
@@ -4884,12 +4885,26 @@ __int64 CFlylinkDBManager::add_treeL(const TigerTree& p_tt)
 	return 0;
 }
 //========================================================================================================
+void CFlylinkDBManager::clearTTHCache()
+{
+	CFlyFastLock(g_tth_cache_cs);
+	clear_and_reset_capacity(g_tiger_tree_cache);
+}
+//========================================================================================================
+void CFlylinkDBManager::tryFixBadAlloc()
+{
+	g_tth_cache_limit /= 2;
+	if (g_tth_cache_limit < 10)
+		g_tth_cache_limit = 10;
+	clearTTHCache();
+}
+//========================================================================================================
 /*
 __int64 CFlylinkDBManager::add_treeL(const TigerTree& p_tt)
 {
     {
-        CFlyFastLock(m_tth_cache_cs);
-        m_tiger_tree_cache.erase(p_tt.getRoot()); // Сбросим кэш, чтобы случайно не достать старую карту.
+        CFlyFastLock(g_tth_cache_cs);
+        g_tiger_tree_cache.erase(p_tt.getRoot()); // Сбросим кэш, чтобы случайно не достать старую карту.
     }
     try
     {
@@ -4953,12 +4968,10 @@ CFlylinkDBManager::~CFlylinkDBManager()
 	}
 #ifdef FLYLINKDC_USE_GEO_IP
 	{
-		CFlyFastLock(m_cache_location_cs);
 		dcdebug("CFlylinkDBManager::m_country_cache size = %d\n", m_country_cache.size());
 	}
 #endif
 	{
-		CFlyFastLock(m_cache_location_cs);
 		dcdebug("CFlylinkDBManager::m_location_cache_array size = %d\n", m_location_cache_array.size());
 	}
 #endif // _DEBUG

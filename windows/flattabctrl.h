@@ -239,7 +239,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		bool isActive(HWND aWnd) // [+] IRainman opt.
 		{
-			return m_active && // fix https://www.crash-server.com/DumpGroup.aspx?ClientID=ppa&Login=Guest&DumpGroupID=86322
+			return m_active && // fix https://www.crash-server.com/DumpGroup.aspx?ClientID=guest&Login=Guest&DumpGroupID=86322
 			       m_active->hWnd == aWnd;
 		}
 		
