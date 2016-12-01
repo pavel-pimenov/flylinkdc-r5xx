@@ -2130,7 +2130,14 @@ void CFlylinkDBManager::load_registry(CFlyRegistryMap& p_values, eTypeSegment p_
 void CFlylinkDBManager::clean_registry(eTypeSegment p_Segment, __int64 p_tick)
 {
 	CFlyLock(m_cs);
-	clean_registryL(p_Segment, p_tick);
+	try
+	{
+		clean_registryL(p_Segment, p_tick);
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - clean_registry: " + e.getError());
+	}
 }
 //========================================================================================================
 void CFlylinkDBManager::clean_registryL(eTypeSegment p_Segment, __int64 p_tick)
