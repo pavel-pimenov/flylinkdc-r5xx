@@ -39,59 +39,69 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent
 {
-	struct disk_io_job;
 	struct storage_interface;
 	struct peer_request;
 	struct disk_observer;
 	struct file_pool;
 	struct add_torrent_params;
 	struct cache_status;
+	struct disk_buffer_holder;
+	struct counters;
+
+	enum class status_t : std::uint8_t
+	{
+		// return values from check_fastresume, and move_storage
+		no_error,
+		fatal_disk_error,
+		need_full_check,
+		file_exist
+	};
 
 	struct TORRENT_EXTRA_EXPORT disk_interface
 	{
-		enum return_t
+		enum flags_t
 		{
-			// return values from check_fastresume, and move_storage
-			no_error = 0,
-			fatal_disk_error = -1,
-			need_full_check = -2,
-			disk_check_aborted = -3,
-			file_exist = -4
+			sequential_access = 0x1,
+
+			// this flag is set on a job when a read operation did
+			// not hit the disk, but found the data in the read cache.
+			cache_hit = 0x2,
+
+			// don't keep the read block in cache
+			volatile_read = 0x10,
 		};
 
 		virtual void async_read(storage_interface* storage, peer_request const& r
-			, std::function<void(disk_io_job const*)> handler, void* requester
-			, int flags = 0) = 0;
+			, std::function<void(aux::block_cache_reference ref, char* block
+				, int flags, storage_error const& se)> handler, void* requester, std::uint8_t flags = 0) = 0;
 		virtual void async_write(storage_interface* storage, peer_request const& r
 			, disk_buffer_holder buffer
-			, std::function<void(disk_io_job const*)> handler
-			, int flags = 0) = 0;
-		virtual void async_hash(storage_interface* storage, int piece, int flags
-			, std::function<void(disk_io_job const*)> handler, void* requester) = 0;
-		virtual void async_move_storage(storage_interface* storage, std::string const& p, int flags
-			, std::function<void(disk_io_job const*)> handler) = 0;
+			, std::function<void(storage_error const&)> handler
+			, std::uint8_t flags = 0) = 0;
+		virtual void async_hash(storage_interface* storage, int piece, std::uint8_t flags
+			, std::function<void(int, sha1_hash const&, storage_error const&)> handler, void* requester) = 0;
+		virtual void async_move_storage(storage_interface* storage, std::string const& p, std::uint8_t flags
+			, std::function<void(status_t, std::string const&, storage_error const&)> handler) = 0;
 		virtual void async_release_files(storage_interface* storage
-			, std::function<void(disk_io_job const*)> handler
-			= std::function<void(disk_io_job const*)>()) = 0;
+			, std::function<void()> handler = std::function<void()>()) = 0;
 		virtual void async_check_files(storage_interface* storage
 			, add_torrent_params const* resume_data
 			, std::vector<std::string>& links
-			, std::function<void(disk_io_job const*)> handler) = 0;
+			, std::function<void(status_t, storage_error const&)> handler) = 0;
 		virtual void async_flush_piece(storage_interface* storage, int piece
-			, std::function<void(disk_io_job const*)> handler
-			= std::function<void(disk_io_job const*)>()) = 0;
+			, std::function<void()> handler = std::function<void()>()) = 0;
 		virtual void async_stop_torrent(storage_interface* storage
-			, std::function<void(disk_io_job const*)> handler)= 0;
+			, std::function<void()> handler = std::function<void()>()) = 0;
 		virtual void async_rename_file(storage_interface* storage, int index, std::string const& name
-			, std::function<void(disk_io_job const*)> handler) = 0;
+			, std::function<void(std::string const&, int, storage_error const&)> handler) = 0;
 		virtual void async_delete_files(storage_interface* storage, int options
-			, std::function<void(disk_io_job const*)> handler) = 0;
+			, std::function<void(storage_error const&)> handler) = 0;
 		virtual void async_set_file_priority(storage_interface* storage
 			, std::vector<std::uint8_t> const& prio
-			, std::function<void(disk_io_job const*)> handler) = 0;
+			, std::function<void(storage_error const&)> handler) = 0;
 
 		virtual void async_clear_piece(storage_interface* storage, int index
-			, std::function<void(disk_io_job const*)> handler) = 0;
+			, std::function<void(int)> handler) = 0;
 		virtual void clear_piece(storage_interface* storage, int index) = 0;
 
 		virtual void update_stats_counters(counters& c) const = 0;

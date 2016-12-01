@@ -64,6 +64,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/span.hpp"
 #include "libtorrent/piece_block.hpp"
 #include "libtorrent/peer_info.hpp"
+#include "libtorrent/disk_interface.hpp"
 
 #include <ctime>
 #include <algorithm>
@@ -77,8 +78,6 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace libtorrent
 {
 	class torrent;
-	struct disk_io_job;
-	struct disk_interface;
 	struct torrent_peer;
 
 #ifndef TORRENT_DISABLE_EXTENSIONS
@@ -760,11 +759,13 @@ namespace libtorrent
 
 		void do_update_interest();
 		void fill_send_buffer();
-		void on_disk_read_complete(disk_io_job const* j, peer_request r
+		void on_disk_read_complete(aux::block_cache_reference ref
+			, char* disk_block, int flags, storage_error const& error, peer_request r
 			, time_point issue_time);
-		void on_disk_write_complete(disk_io_job const* j
+		void on_disk_write_complete(storage_error const& error
 			, peer_request r, std::shared_ptr<torrent> t);
-		void on_seed_mode_hashed(disk_io_job const* j);
+		void on_seed_mode_hashed(int piece
+			, sha1_hash const& piece_hash, storage_error const& error);
 		int request_timeout() const;
 		void check_graceful_pause();
 

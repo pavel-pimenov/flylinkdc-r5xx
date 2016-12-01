@@ -159,11 +159,12 @@ class AdcCommand
 			tmp[3] = m_cmd[2];
 			return tmp;
 		}
+
 		const string& getFeatures() const
 		{
 			return features;
-		}
-		
+		}	
+
 		AdcCommand& setFeatures(const string& feat)
 		{
 			features = feat;
@@ -229,7 +230,15 @@ class AdcCommand
 		{
 			m_from = sid;
 		}
-		
+		string getNick() const
+		{
+			string l_nick;
+			if (!getParam("NI", 0, l_nick))
+			{
+				l_nick = "[nick unknown]";
+			}
+			return l_nick;
+		}
 		static uint32_t toSID(const string& aSID)
 		{
 			return *reinterpret_cast<const uint32_t*>(aSID.data());

@@ -30,7 +30,7 @@ SSLSocket::SSLSocket(CryptoManager::SSLContext context, bool allowUntrusted, con
 {
 	verifyData.reset(new CryptoManager::SSLVerifyData(allowUntrusted, expKP));
 }
-SSLSocket::SSLSocket(CryptoManager::SSLContext context) : /*Socket(/*TYPE_TCP), */ctx(NULL), ssl(NULL), verifyData(nullptr)
+SSLSocket::SSLSocket(CryptoManager::SSLContext context) : /*Socket(/*TYPE_TCP), */ctx(NULL), ssl(NULL), verifyData(nullptr), m_is_trusted(false)
 {
 	ctx = CryptoManager::getInstance()->getSSLContext(context);
 }
@@ -254,29 +254,29 @@ int SSLSocket::wait(uint64_t millis, int waitFor)
 	return Socket::wait(millis, waitFor);
 }
 
-bool SSLSocket::isTrusted() const noexcept
+bool SSLSocket::isTrusted()
 {
     if (!ssl)
-{
-return false;
+	{
+	return false;
+	}
+	if (m_is_trusted)
+		return true;
+	if (SSL_get_verify_result(ssl) != X509_V_OK)
+	{
+		return false;
+	}
+
+	X509* cert = SSL_get_peer_certificate(ssl);
+	if (!cert)
+	{
+		return false;
+	}
+	X509_free(cert);
+	m_is_trusted = true;
+	return true;
 }
-
-if (SSL_get_verify_result(ssl) != X509_V_OK)
-{
-return false;
-}
-
-X509* cert = SSL_get_peer_certificate(ssl);
-if (!cert)
-{
-return false;
-}
-
-X509_free(cert);
-
-return true;
-}
-
+/*
 bool SSLSocket::isKeyprintMatch() const noexcept
 {
     if (ssl)
@@ -284,6 +284,7 @@ bool SSLSocket::isKeyprintMatch() const noexcept
     
     return true;
 }
+*/
 
 std::string SSLSocket::getEncryptionInfo() const noexcept
 	{
@@ -295,7 +296,7 @@ std::string SSLSocket::getEncryptionInfo() const noexcept
 	    return protocol + " / " + cipher;
 	}
 	
-	ByteVector SSLSocket::getKeyprint() const noexcept
+ByteVector SSLSocket::getKeyprint() const noexcept
 		{
 		    if (!ssl)
 		    return ByteVector();
@@ -310,7 +311,7 @@ std::string SSLSocket::getEncryptionInfo() const noexcept
 			    return res;
 			}
 			
-			bool SSLSocket::verifyKeyprint(const string& expKP, bool allowUntrusted) noexcept
+bool SSLSocket::verifyKeyprint(const string& expKP, bool allowUntrusted) noexcept
 			{
 				if (!ssl)
 					return true;
@@ -358,16 +359,18 @@ std::string SSLSocket::getEncryptionInfo() const noexcept
 				SSL_set_verify_result(ssl, err);
 				
 				return result;
-			}
+}
 
 void SSLSocket::shutdown() noexcept
 {
+	m_is_trusted = false;
 	if (ssl)
 		SSL_shutdown(ssl);
 }
 
 void SSLSocket::close() noexcept
 {
+	m_is_trusted = false;
 	if (ssl)
 	{
 		ssl.reset();

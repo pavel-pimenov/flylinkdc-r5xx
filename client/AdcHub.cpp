@@ -99,7 +99,7 @@ void AdcHub::resetAntivirusInfo()
 #endif
 }
 
-OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
+OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID, const string& p_nick)
 {
 	OnlineUserPtr ou = findUser(aSID);
 	if (ou)
@@ -126,7 +126,8 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID)
 	// [~] IRainman fix.
 	else // User
 	{
-		UserPtr u = ClientManager::createUser(aCID, "", getHubID());
+		UserPtr u = ClientManager::createUser(aCID, p_nick, getHubID());
+		u->setLastNick(p_nick);
 		auto newUser = std::make_shared<OnlineUser>(u, *this, aSID);
 		CFlyWriteLock(*m_cs);
 		ou = m_adc_users.insert(make_pair(aSID, newUser)).first->second;
@@ -254,13 +255,8 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 			if (ou->getIdentity().getSID() != c.getFrom())
 			{
 				// Same CID but different SID not allowed - buggy hub? [!] IRainman: yes - this is a bug in the hub - it must filter the users with the same cid not depending on the sid! This error is typically used to send spam, as it came from himself.
-				string nick;
-				if (!c.getParam("NI", 0, nick))
-				{
-					nick = "[nick unknown]";
-				}
 				const string l_message = ou->getIdentity().getNick() + " (" + ou->getIdentity().getSIDString() +
-				                         ") has same CID {" + l_cid + "} as " + nick + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.";
+				                         ") has same CID {" + l_cid + "} as " + c.getNick() + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.";
 				fly_fire3(ClientListener::StatusMessage(), this, l_message, ClientListener::FLAG_IS_SPAM);
 				
 				//LogManager::ddos_message("Magic spam message filtered on hub: " + getHubUrl() + " detail:" + l_message);
@@ -269,7 +265,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 		}
 		else
 		{
-			ou = getUser(c.getFrom(), l_CID);
+			ou = getUser(c.getFrom(), l_CID, c.getNick());
 			ou->getUser()->setFlag(User::IS_MYINFO);
 		}
 	}
@@ -278,7 +274,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 #ifdef _DEBUG
 		LogManager::message("CID [-1] Params = " + c.getParamString(false));
 #endif
-		ou = getUser(c.getFrom(), CID());
+		ou = getUser(c.getFrom(), CID(),c.getNick());
 #ifdef IRAINMAN_USE_HIDDEN_USERS
 		ou->getIdentity().setHidden();
 #endif
@@ -823,7 +819,15 @@ void AdcHub::handle(AdcCommand::STA, const AdcCommand& c) noexcept
 	if (c.getParameters().size() < 2)
 		return;
 		
-	OnlineUserPtr ou = c.getFrom() == AdcCommand::HUB_SID ? getUser(c.getFrom(), CID()) : findUser(c.getFrom());
+	OnlineUserPtr ou;
+	if(c.getFrom() == AdcCommand::HUB_SID)
+	{
+		ou = getUser(c.getFrom(), CID(), c.getNick());
+	}
+	else
+	{
+		ou = findUser(c.getFrom());
+	}
 	if (!ou)
 		return;
 		
@@ -1590,9 +1594,9 @@ void AdcHub::info(bool p_force)
 		{
 			g_counts[COUNT_NORMAL]++; // fix H:0/0/0
 		}
-		addParam(c, "HN", Util::toString(g_counts[COUNT_NORMAL]));
-		addParam(c, "HR", Util::toString(g_counts[COUNT_REGISTERED]));
-		addParam(c, "HO", Util::toString(g_counts[COUNT_OP]));
+		addParam(c, "HN", Util::toString(g_counts[COUNT_NORMAL].load()));
+		addParam(c, "HR", Util::toString(g_counts[COUNT_REGISTERED].load()));
+		addParam(c, "HO", Util::toString(g_counts[COUNT_OP].load()));
 	}
 	// [~] Flylink++ Exclusive hub mode
 	// [!] IRainman mimicry function

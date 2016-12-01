@@ -366,7 +366,7 @@ namespace libtorrent {
 		, msg(convert_from_native(e.message()))
 #endif
 		, error(e)
-		, m_msg_idx(-1)
+		, m_msg_idx()
 	{
 		TORRENT_ASSERT(!u.empty());
 	}
@@ -388,7 +388,7 @@ namespace libtorrent {
 #ifndef TORRENT_NO_DEPRECATE
 		return msg.c_str();
 #else
-		if (m_msg_idx == -1) return "";
+		if (m_msg_idx == aux::allocation_slot()) return "";
 		else return m_alloc.get().ptr(m_msg_idx);
 #endif
 	}
@@ -828,7 +828,7 @@ namespace libtorrent {
 		, address(listen_addr)
 		, port(listen_port)
 #ifndef TORRENT_NO_DEPRECATE
-		, endpoint(listen_addr, listen_port)
+		, endpoint(listen_addr, std::uint16_t(listen_port))
 		, sock_type(static_cast<socket_type_t>(sock_type_idx(t)))
 #endif
 		, m_alloc(alloc)
@@ -964,7 +964,7 @@ namespace libtorrent {
 		, port(listen_port)
 		, socket_type(t)
 #ifndef TORRENT_NO_DEPRECATE
-		, endpoint(listen_addr, listen_port)
+		, endpoint(listen_addr, std::uint16_t(listen_port))
 		, sock_type(static_cast<socket_type_t>(sock_type_idx(t)))
 #endif
 	{}
@@ -1778,13 +1778,12 @@ namespace libtorrent {
 		// this specific output is parsed by tools/parse_session_stats.py
 		// if this is changed, that parser should also be changed
 		char msg[50];
-		std::snprintf(msg, sizeof(msg), "session stats (%d values): "
-			, int(values.size()));
+		std::snprintf(msg, sizeof(msg), "session stats (%d values): " , int(values.size()));
 		std::string ret = msg;
 		bool first = true;
-		for (int i = 0; i < values.size(); ++i)
+		for (auto v : values)
 		{
-			std::snprintf(msg, sizeof(msg), first ? "%" PRIu64 : ", %" PRIu64, values[i]);
+			std::snprintf(msg, sizeof(msg), first ? "%" PRId64 : ", %" PRId64, v);
 			first = false;
 			ret += msg;
 		}
@@ -1817,7 +1816,7 @@ namespace libtorrent {
 #endif
 		, error(e)
 		, m_url_idx(alloc.copy_string(u))
-		, m_msg_idx(-1)
+		, m_msg_idx()
 	{}
 
 	url_seed_alert::url_seed_alert(aux::stack_allocator& alloc, torrent_handle const& h
@@ -1847,7 +1846,7 @@ namespace libtorrent {
 #ifndef TORRENT_NO_DEPRECATE
 		return msg.c_str();
 #else
-		if (m_msg_idx == -1) return "";
+		if (m_msg_idx == aux::allocation_slot()) return "";
 		return m_alloc.get().ptr(m_msg_idx);
 #endif
 	}
@@ -1981,7 +1980,7 @@ namespace libtorrent {
 			tcp::endpoint const& endp = peers[i];
 			std::size_t const size = endp.size();
 			TORRENT_ASSERT(size < 0x100);
-			detail::write_uint8(uint8_t(size), ptr);
+			detail::write_uint8(size, ptr);
 			std::memcpy(ptr, endp.data(), size);
 			ptr += size;
 		}
@@ -2042,7 +2041,8 @@ namespace libtorrent {
 		, addr(addr_)
 #endif
 		, m_alloc(alloc)
-		, m_response_idx(-1), m_response_size(0)
+		, m_response_idx()
+		, m_response_size(0)
 	{}
 
 	std::string dht_direct_response_alert::message() const

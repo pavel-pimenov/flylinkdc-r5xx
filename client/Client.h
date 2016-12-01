@@ -22,6 +22,7 @@
 #ifndef DCPLUSPLUS_DCPP_CLIENT_H
 #define DCPLUSPLUS_DCPP_CLIENT_H
 
+#include <atomic>
 #include "ClientListener.h"
 #include "DebugManager.h"
 #include "SearchQueue.h"
@@ -550,7 +551,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			COUNT_UNCOUNTED,
 		};
 		
-		static unsigned g_counts[COUNT_UNCOUNTED];
+		static std::atomic<std::uint32_t> g_counts[COUNT_UNCOUNTED];
 		
 		enum States
 		{

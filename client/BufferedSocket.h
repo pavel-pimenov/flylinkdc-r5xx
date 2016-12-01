@@ -103,7 +103,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		{
 			return hasSocket() && sock->isSecure();
 		}
-		bool isTrusted() const
+		bool isTrusted()
 		{
 			return hasSocket() && sock->isTrusted();
 		}

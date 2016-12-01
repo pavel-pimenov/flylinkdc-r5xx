@@ -605,12 +605,13 @@ UserPtr ClientManager::createUser(const CID& p_cid, const string& p_nick, uint32
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	CFlyWriteLock(*g_csUsers);
-	auto l_item = g_users.insert(make_pair(p_cid, std::make_shared<User>(p_cid, p_nick, p_hub_id)));
+	auto l_item = g_users.insert(make_pair(p_cid, UserPtr()));
 	if (l_item.second == false)
 	{
-		dcassert(p_nick == l_item.first->second->getLastNick());
+		//dcassert(p_nick == l_item.first->second->getLastNick());
 		return l_item.first->second;
 	}
+	l_item.first->second = std::make_shared<User>(p_cid, p_nick, p_hub_id);
 	return l_item.first->second;
 }
 

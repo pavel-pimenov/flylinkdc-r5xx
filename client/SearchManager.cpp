@@ -714,7 +714,9 @@ void SearchManager::toPSR(AdcCommand& cmd, bool wantResponse, const string& myNi
 {
 	cmd.getParameters().reserve(6);
 	if (!myNick.empty())
+	{
 		cmd.addParam("NI", Text::utf8ToAcp(myNick));
+	}
 		
 	cmd.addParam("HI", hubIpPort);
 	cmd.addParam("U4", Util::toString(wantResponse ? getSearchPortUint() : 0)); // —юда по ошибке подавс€ не урл к хабу. && ClientManager::isActive(hubIpPort)

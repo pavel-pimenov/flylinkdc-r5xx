@@ -18,12 +18,10 @@
 
 #include "stdafx.h"
 #include "Resource.h"
-#include "AddMagnet.h"
 #include "WinUtil.h"
-#include "HIconWrapper.h"
+#include "AddMagnet.h"
 
 
-tstring g_MagnetLink;
 LRESULT AddMagnet::onFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	m_ctrlMagnet.SetFocus();
@@ -57,10 +55,12 @@ LRESULT AddMagnet::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	CenterWindow(GetParent());
 	return FALSE;
 }
+
 /*
 magnet:?xt=urn:btih:c9fe2ce1f7f70cb9056206e62b2859fd6f11c04e&dn=rutor.info_Lady+Gaga+-+Joanne+%282016%29+MP3&tr=udp://opentor.org:2710&tr=udp://opentor.org:2710&tr=http://retracker.local/announce
 magnet:?xt=urn:btih:c1931558cad7d225aa8630743e3805b70bd839bd&dn=rutor.info_VA+-+20+%D0%9F%D0%B5%D1%81%D0%B5%D0%BD%2C+%D0%BA%D0%BE%D1%82%D0%BE%D1%80%D1%8B%D0%B5+%D0%B7%D0%B0%D1%81%D1%82%D0%B0%D0%B2%D0%BB%D1%8F%D1%8E%D1%82+%D1%81%D0%B5%D1%80%D0%B4%D1%86%D0%B5+%D0%B1%D0%B8%D1%82%D1%8C%D1%81%D1%8F+%D1%87%D0%B0%D1%89%D0%B5+%282016%29+MP3&tr=udp://opentor.org:2710&tr=udp://opentor.org:2710&tr=http://retracker.local/announce
 */
+
 LRESULT AddMagnet::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	if (wID == IDOK)

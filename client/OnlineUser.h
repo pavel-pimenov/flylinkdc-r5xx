@@ -597,26 +597,29 @@ class Identity
 		}
 		void setHubNormal(const char* p_val) // "HN"
 		{
-			setHubNormal(Util::toInt(p_val));
+			setHubNormal(Util::toUInt32(p_val));
 		}
 		void setHubRegister(const char* p_val) // "HR"
 		{
-			setHubRegister(Util::toInt(p_val));
+			setHubRegister(Util::toUInt32(p_val));
 		}
 		void setHubOperator(const char* p_val) // "HO"
 		{
-			setHubOperator(Util::toInt(p_val));
+			setHubOperator(Util::toUInt32(p_val));
 		}
-		void setHubNormal(int p_val) // "HN"
+		void setHubNormal(unsigned p_val) // "HN"
 		{
+			get_uint32(e_HubNormalRegOper) &= ~0x3FF00000;
 			get_uint32(e_HubNormalRegOper) |= uint32_t((p_val << 20) & 0x3FF00000); // 00111111111100000000000000000000
 		}
-		void setHubRegister(int p_val) // "HR"
+		void setHubRegister(unsigned p_val) // "HR"
 		{
+			get_uint32(e_HubNormalRegOper) &= ~0xFFC00;
 			get_uint32(e_HubNormalRegOper) |= uint32_t((p_val << 10) & 0xFFC00);    // 00000000000011111111110000000000
 		}
-		void setHubOperator(int p_val) // "HO"
+		void setHubOperator(unsigned p_val) // "HO"
 		{
+			get_uint32(e_HubNormalRegOper) &= ~0x3FF;
 			get_uint32(e_HubNormalRegOper) |= uint32_t(p_val & 0x3FF);              // 00000000000000000000001111111111
 		}
 		

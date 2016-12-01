@@ -279,37 +279,37 @@ namespace libtorrent
 			'4', '5', '6', '7', '8', '9', '+', '/'
 		};
 
-		unsigned char inbuf[3];
-		unsigned char outbuf[4];
+		std::array<std::uint8_t, 3> inbuf;
+		std::array<std::uint8_t, 4> outbuf;
 
 		std::string ret;
 		for (std::string::const_iterator i = s.begin(); i != s.end();)
 		{
 			// available input is 1,2 or 3 bytes
 			// since we read 3 bytes at a time at most
-			int available_input = (std::min)(3, int(s.end()-i));
+			int available_input = std::min(int(inbuf.size()), int(s.end() - i));
 
 			// clear input buffer
-			std::fill(inbuf, inbuf+3, 0);
+			inbuf.fill(0);
 
 			// read a chunk of input into inbuf
-			std::copy(i, i + available_input, inbuf);
+			std::copy(i, i + available_input, inbuf.begin());
 			i += available_input;
 
 			// encode inbuf to outbuf
 			outbuf[0] = (inbuf[0] & 0xfc) >> 2;
-			outbuf[1] = ((inbuf[0] & 0x03) << 4) | ((inbuf [1] & 0xf0) >> 4);
-			outbuf[2] = ((inbuf[1] & 0x0f) << 2) | ((inbuf [2] & 0xc0) >> 6);
+			outbuf[1] = (((inbuf[0] & 0x03) << 4) | ((inbuf [1] & 0xf0) >> 4)) & 0xff;
+			outbuf[2] = (((inbuf[1] & 0x0f) << 2) | ((inbuf [2] & 0xc0) >> 6)) & 0xff;
 			outbuf[3] = inbuf[2] & 0x3f;
 
 			// write output
-			for (int j = 0; j < available_input+1; ++j)
+			for (int j = 0; j < available_input + 1; ++j)
 			{
 				ret += base64_table[outbuf[j]];
 			}
 
 			// write pad
-			for (int j = 0; j < 3 - available_input; ++j)
+			for (int j = 0; j < int(inbuf.size()) - available_input; ++j)
 			{
 				ret += '=';
 			}
@@ -335,35 +335,35 @@ namespace libtorrent
 		};
 		char const *base32_table = 0 != (flags & string::lowercase) ? base32_table_lowercase : base32_table_canonical;
 
-		static int const input_output_mapping[] = {0, 2, 4, 5, 7, 8};
+		static std::array<int const, 6> input_output_mapping = {{0, 2, 4, 5, 7, 8}};
 
-		std::uint8_t inbuf[5];
-		std::uint8_t outbuf[8];
+		std::array<std::uint8_t, 5> inbuf;
+		std::array<std::uint8_t, 8> outbuf;
 
 		std::string ret;
 		for (std::string::const_iterator i = s.begin(); i != s.end();)
 		{
-			int available_input = (std::min)(5, int(s.end()-i));
+			int available_input = std::min(int(inbuf.size()), int(s.end()-i));
 
 			// clear input buffer
-			std::fill(inbuf, inbuf+5, 0);
+			inbuf.fill(0);
 
 			// read a chunk of input into inbuf
-			std::copy(i, i + available_input, inbuf);
+			std::copy(i, i + available_input, inbuf.begin());
 			i += available_input;
 
 			// encode inbuf to outbuf
 			outbuf[0] = (inbuf[0] & 0xf8) >> 3;
-			outbuf[1] = ((inbuf[0] & 0x07) << 2) | ((inbuf[1] & 0xc0) >> 6);
+			outbuf[1] = (((inbuf[0] & 0x07) << 2) | ((inbuf[1] & 0xc0) >> 6)) & 0xff;
 			outbuf[2] = ((inbuf[1] & 0x3e) >> 1);
-			outbuf[3] = ((inbuf[1] & 0x01) << 4) | ((inbuf[2] & 0xf0) >> 4);
-			outbuf[4] = ((inbuf[2] & 0x0f) << 1) | ((inbuf[3] & 0x80) >> 7);
+			outbuf[3] = (((inbuf[1] & 0x01) << 4) | ((inbuf[2] & 0xf0) >> 4)) & 0xff;
+			outbuf[4] = (((inbuf[2] & 0x0f) << 1) | ((inbuf[3] & 0x80) >> 7)) & 0xff;
 			outbuf[5] = ((inbuf[3] & 0x7c) >> 2);
-			outbuf[6] = ((inbuf[3] & 0x03) << 3) | ((inbuf[4] & 0xe0) >> 5);
+			outbuf[6] = (((inbuf[3] & 0x03) << 3) | ((inbuf[4] & 0xe0) >> 5)) & 0xff;
 			outbuf[7] = inbuf[4] & 0x1f;
 
 			// write output
-			int num_out = input_output_mapping[available_input];
+			int const num_out = input_output_mapping[available_input];
 			for (int j = 0; j < num_out; ++j)
 			{
 				ret += base32_table[outbuf[j]];
@@ -372,7 +372,7 @@ namespace libtorrent
 			if (0 == (flags & string::no_padding))
 			{
 				// write pad
-				for (int j = 0; j < 8 - num_out; ++j)
+				for (int j = 0; j < int(outbuf.size()) - num_out; ++j)
 				{
 					ret += '=';
 				}
@@ -383,22 +383,22 @@ namespace libtorrent
 
 	std::string base32decode(std::string const& s)
 	{
-		unsigned char inbuf[8];
-		unsigned char outbuf[5];
+		std::array<std::uint8_t, 8> inbuf;
+		std::array<std::uint8_t, 5> outbuf;
 
 		std::string ret;
 		for (std::string::const_iterator i = s.begin(); i != s.end();)
 		{
-			int available_input = (std::min)(8, int(s.end()-i));
+			int available_input = std::min(int(inbuf.size()), int(s.end() - i));
 
 			int pad_start = 0;
 			if (available_input < 8) pad_start = available_input;
 
 			// clear input buffer
-			std::fill(inbuf, inbuf+8, 0);
+			inbuf.fill(0);
 			for (int j = 0; j < available_input; ++j)
 			{
-				char in = std::toupper(*i++);
+				char const in = char(std::toupper(*i++));
 				if (in >= 'A' && in <= 'Z')
 					inbuf[j] = in - 'A';
 				else if (in >= '2' && in <= '7')
@@ -416,24 +416,24 @@ namespace libtorrent
 			}
 
 			// decode inbuf to outbuf
-			outbuf[0] = inbuf[0] << 3;
+			outbuf[0] = (inbuf[0] << 3) & 0xff;
 			outbuf[0] |= inbuf[1] >> 2;
-			outbuf[1] = (inbuf[1] & 0x3) << 6;
+			outbuf[1] = ((inbuf[1] & 0x3) << 6) & 0xff;
 			outbuf[1] |= inbuf[2] << 1;
 			outbuf[1] |= (inbuf[3] & 0x10) >> 4;
-			outbuf[2] = (inbuf[3] & 0x0f) << 4;
+			outbuf[2] = ((inbuf[3] & 0x0f) << 4) & 0xff;
 			outbuf[2] |= (inbuf[4] & 0x1e) >> 1;
-			outbuf[3] = (inbuf[4] & 0x01) << 7;
+			outbuf[3] = ((inbuf[4] & 0x01) << 7) & 0xff;
 			outbuf[3] |= (inbuf[5] & 0x1f) << 2;
 			outbuf[3] |= (inbuf[6] & 0x18) >> 3;
-			outbuf[4] = (inbuf[6] & 0x07) << 5;
+			outbuf[4] = ((inbuf[6] & 0x07) << 5) & 0xff;
 			outbuf[4] |= inbuf[7];
 
 			int input_output_mapping[] = {5, 1, 1, 2, 2, 3, 4, 4, 5};
 			int num_out = input_output_mapping[pad_start];
 
 			// write output
-			std::copy(outbuf, outbuf + num_out, std::back_inserter(ret));
+			std::copy(outbuf.begin(), outbuf.begin() + num_out, std::back_inserter(ret));
 		}
 		return ret;
 	}

@@ -1090,6 +1090,7 @@ string CompatibilityManager::Speedinfo()
 string CompatibilityManager::DiskSpaceInfo(bool onlyTotal /* = false */)
 {
 	string ret;
+#ifdef FLYLINKDC_USE_DISK_SPACE_INFO
 	int64_t free = 0, totalFree = 0, size = 0, totalSize = 0, netFree = 0, netSize = 0;
 	const TStringList volumes = FindVolumes();
 	for (auto i = volumes.cbegin(); i != volumes.cend(); ++i)
@@ -1136,6 +1137,7 @@ string CompatibilityManager::DiskSpaceInfo(bool onlyTotal /* = false */)
 		{
 			ret += Util::formatBytes(totalFree) + "/" + Util::formatBytes(totalSize);
 		}
+#endif // FLYLINKDC_USE_DISK_SPACE_INFO
 	return ret;
 }
 TStringList CompatibilityManager::FindVolumes()
@@ -1161,6 +1163,7 @@ TStringList CompatibilityManager::FindVolumes()
 tstring CompatibilityManager::diskInfo()
 {
 	tstring result;
+#ifdef FLYLINKDC_USE_DISK_SPACE_INFO
 	int64_t free = 0, size = 0, totalFree = 0, totalSize = 0;
 	int disk_count = 0;
 	std::vector<tstring> results; //add in vector for sorting, nicer to look at :)
@@ -1217,6 +1220,7 @@ tstring CompatibilityManager::diskInfo()
 	result += _T("\r\n\r\n\t-=[ All HDD space (free/total): ") + Util::formatBytesW((totalFree)) + _T("/") + Util::formatBytesW(totalSize) + _T(" ]=-");
 	result += _T("\r\n\t-=[ Total Drives count: ") + Text::toT(Util::toString(disk_count)) + _T(" ]=-");
 	results.clear();
+#endif // FLYLINKDC_USE_DISK_SPACE_INFO
 	return result;
 }
 

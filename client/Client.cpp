@@ -28,7 +28,7 @@
 #include "Wildcards.h"
 #include "../FlyFeatures/flyServer.h"
 
-unsigned Client::g_counts[COUNT_UNCOUNTED];
+std::atomic<std::uint32_t> Client::g_counts[COUNT_UNCOUNTED];
 string   Client::g_last_search_string;
 Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool p_is_auto_connect) :
 	m_cs(std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock())),
@@ -143,14 +143,11 @@ Client::~Client()
 		LogManager::message("[Error] Client::~Client() sock == nullptr");
 	}
 	FavoriteManager::removeUserCommand(getHubUrl());
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		dcassert(FavoriteManager::countUserCommand(getHubUrl()) == 0);
-		// In case we were deleted before we Failed
-		// [-] TimerManager::getInstance()->removeListener(this); [-] IRainman fix: please see shutdown().
-		updateCounts(true);
 	}
-	
+	updateCounts(true);
 }
 void Client::reset_socket()
 {
@@ -1108,9 +1105,28 @@ bool Client::NmdcPartialSearch(const SearchParam& p_search_param)
 
 string Client::getCounts()
 {
-	char buf[128];
+	char buf[64];
 	buf[0] = 0;
-	return string(buf, _snprintf(buf, _countof(buf), "%u/%u/%u", g_counts[COUNT_NORMAL], g_counts[COUNT_REGISTERED], g_counts[COUNT_OP]));
+	int l_norm = g_counts[COUNT_NORMAL].load();
+	if (l_norm < 0)
+	{
+		dcassert(0);
+		l_norm = 0;
+	}
+	int l_reg = g_counts[COUNT_REGISTERED].load();
+	if (l_reg < 0)
+	{
+		dcassert(0);
+		l_reg = 0;
+	}
+	int l_op = g_counts[COUNT_OP].load();
+	if (l_op < 0)
+	{
+		dcassert(0);
+		l_op = 0;
+	}
+	_snprintf(buf, _countof(buf), "%d/%d/%d", l_norm, l_reg, l_op);
+	return buf;
 }
 
 const string& Client::getCountsIndivid() const

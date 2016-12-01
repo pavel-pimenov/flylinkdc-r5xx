@@ -35,7 +35,14 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/tailqueue.hpp"
+#include "libtorrent/peer_request.hpp"
 #include "libtorrent/aux_/block_cache_reference.hpp"
+#include "libtorrent/sha1_hash.hpp"
+#include "libtorrent/disk_interface.hpp"
+
+#include "libtorrent/aux_/disable_warnings_push.hpp"
+#include <boost/variant/variant.hpp>
+#include "libtorrent/aux_/disable_warnings_pop.hpp"
 
 #include <string>
 #include <vector>
@@ -68,6 +75,8 @@ namespace libtorrent
 		disk_io_job(disk_io_job const&) = delete;
 		disk_io_job& operator=(disk_io_job const&) = delete;
 
+		void call_callback();
+
 		enum action_t
 		{
 			read
@@ -86,18 +95,11 @@ namespace libtorrent
 			, file_priority
 			, clear_piece
 			, resolve_links
-
 			, num_job_ids
 		};
 
 		enum flags_t
 		{
-			sequential_access = 0x1,
-
-			// this flag is set on a job when a read operation did
-			// not hit the disk, but found the data in the read cache.
-			cache_hit = 0x2,
-
 			// force making a copy of the cached block, rather
 			// than getting a reference to the block already in
 			// the cache.
@@ -108,9 +110,6 @@ namespace libtorrent
 			// storage will execute in parallel with this one. It's used
 			// to lower the fence when the job has completed
 			fence = 0x8,
-
-			// don't keep the read block in cache
-			volatile_read = 0x10,
 
 			// this job is currently being performed, or it's hanging
 			// on a cache piece that may be flushed soon
@@ -144,7 +143,25 @@ namespace libtorrent
 		std::shared_ptr<storage_interface> storage;
 
 		// this is called when operation completes
-		std::function<void(disk_io_job const*)> callback;
+
+		using read_handler = std::function<void(aux::block_cache_reference ref
+			, char* block, int flags, storage_error const& se)>;
+		using write_handler = std::function<void(storage_error const&)>;
+		using hash_handler = std::function<void(int, sha1_hash const&, storage_error const&)>;
+		using move_handler = std::function<void(status_t, std::string const&, storage_error const&)>;
+		using release_handler = std::function<void()>;
+		using check_handler = std::function<void(status_t, storage_error const&)>;
+		using rename_handler = std::function<void(std::string const&, int, storage_error const&)>;
+		using clear_piece_handler = std::function<void(int)>;
+
+		boost::variant<read_handler
+			, write_handler
+			, hash_handler
+			, move_handler
+			, release_handler
+			, check_handler
+			, rename_handler
+			, clear_piece_handler> callback;
 
 		// the error code from the file operation
 		// on error, this also contains the path of the
@@ -194,10 +211,8 @@ namespace libtorrent
 		// the type of job this is
 		std::uint32_t action:8;
 
-		enum { operation_failed = -1 };
-
 		// return value of operation
-		std::int32_t ret = 0;
+		status_t ret = status_t::no_error;
 
 		// flags controlling this job
 		std::uint8_t flags = 0;

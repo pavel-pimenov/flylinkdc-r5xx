@@ -599,14 +599,9 @@ void HubFrame::destroyMessagePanel(bool p_is_destroy)
 	{
 		if (!l_is_shutdown && m_closed == false && m_before_close == false)
 		{
-			// https://drdump.com/Bug.aspx?ProblemID=244390
-			// https://drdump.com/Problem.aspx?ProblemID=244836
-			// https://drdump.com/Problem.aspx?ProblemID=245570
-#ifdef _DEBUG
 			tstring l_filter;
 			WinUtil::GetWindowText(l_filter, *m_ctrlFilter);
-			dcassert(m_filter == l_filter)
-#endif
+			m_filter == l_filter;
 			if (m_ctrlFilterSel)
 			{
 				m_FilterSelPos = m_ctrlFilterSel->GetCurSel();
@@ -3662,7 +3657,9 @@ void HubFrame::onTimerHubUpdated()
 		string fullHubName;
 		if (m_client->isSecureConnect())
 		{
-			if (m_client->isTrusted()) // https://drdump.com/DumpGroup.aspx?DumpGroupID=489257
+			fullHubName = "[S] ";
+/*
+	if (m_client->isTrusted()) // https://drdump.com/DumpGroup.aspx?DumpGroupID=489257 + https://drdump.com/Problem.aspx?ProblemID=249971
 			{
 				fullHubName = "[S] ";
 			}
@@ -3670,6 +3667,7 @@ void HubFrame::onTimerHubUpdated()
 			{
 				fullHubName = "[U] ";
 			}
+*/
 		}
 		
 		fullHubName += m_client->getHubName();

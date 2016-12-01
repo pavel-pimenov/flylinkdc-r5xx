@@ -98,9 +98,9 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		
 		virtual void checkNick(string& nick);
 		
-		OnlineUserPtr getUser(const uint32_t aSID, const CID& aCID); // [!] IRainman fix return OnlineUserPtr [IntelC++ 2012 beta2] warning #1125: function "Client::getUser(const UserPtr &)" is hidden by "AdcHub::getUser" -- virtual function override intended?
-		OnlineUserPtr findUser(const uint32_t sid) const; // [!] IRainman fix return OnlineUserPtr
-		OnlineUserPtr findUser(const CID& cid) const; // [!] IRainman fix return OnlineUserPtr
+		OnlineUserPtr getUser(const uint32_t aSID, const CID& aCID, const string& p_nick);
+		OnlineUserPtr findUser(const uint32_t sid) const; 
+		OnlineUserPtr findUser(const CID& cid) const; 
 		
 		// just a workaround
 		OnlineUserPtr findUser(const string& aNick) const;

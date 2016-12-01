@@ -72,8 +72,8 @@ class SSLSocket : public Socket
 		{
 		    return true;
 		}
-		virtual bool isTrusted() const noexcept override;
-		virtual bool isKeyprintMatch() const noexcept override;
+		virtual bool isTrusted() override;
+		//virtual bool isKeyprintMatch() const noexcept override;
 		virtual string getEncryptionInfo() const noexcept override;
 		virtual ByteVector getKeyprint() const noexcept override;
 		virtual bool verifyKeyprint(const string& expKeyp, bool allowUntrusted) noexcept override;
@@ -85,6 +85,7 @@ class SSLSocket : public Socket
 	
 		SSL_CTX* ctx;
 		ssl::SSL ssl;
+		bool m_is_trusted;
 		
 		unique_ptr<CryptoManager::SSLVerifyData> verifyData;    // application data used by CryptoManager::verify_callback(...)
 		

@@ -243,7 +243,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 			dcassert(socket); // [+] IRainman fix.
 			return socket && socket->isSecure();
 		}
-		bool isTrusted() const
+		bool isTrusted() 
 		{
 			dcassert(socket); // [+] IRainman fix.
 			return socket && socket->isTrusted();

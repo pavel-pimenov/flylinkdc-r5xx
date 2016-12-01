@@ -243,7 +243,7 @@ class Socket
 		{
 		    return false;
 		}
-		virtual bool isTrusted() const noexcept
+		virtual bool isTrusted()
 		{
 		    return false;
 		}
@@ -257,10 +257,7 @@ class Socket
 		}
 		virtual bool verifyKeyprint(const string&, bool) noexcept { return true; };
 		
-		virtual bool isKeyprintMatch() const noexcept
-		{
-		    return true;
-		}
+		//virtual bool isKeyprintMatch() { return true;
 		virtual std::string getEncryptionInfo() const noexcept
 		{
 		    return Util::emptyString;

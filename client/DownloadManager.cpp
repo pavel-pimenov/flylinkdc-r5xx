@@ -1143,9 +1143,14 @@ for (const auto j : st->status)
 			}
 		});
 	}
+	catch (const system_error& e)
+	{
+		const std::string l_error = "[system_error] DownloadManager::onTorrentAlertNotify " + std::string(e.what());
+		CFlyServerJSON::pushError(75, l_error);
+	}
 	catch (const std::runtime_error& e)
 	{
-		const std::string l_error = "DownloadManager::onTorrentAlertNotify " + std::string(e.what());
+		const std::string l_error = "[runtime_error] DownloadManager::onTorrentAlertNotify " + std::string(e.what());
 		CFlyServerJSON::pushError(75, l_error);
 	}
 }

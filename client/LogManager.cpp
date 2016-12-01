@@ -132,7 +132,7 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 			g_debugTotal++;
 			if (++l_fine_it->second.second % 100 == 0)
 			{
-				dcdebug("log path cache: size=%i [%s] %i\n", g_pathCache.size(), p_area.c_str(), l_fine_it->second.second);
+				// dcdebug("log path cache: size=%i [%s] %i\n", g_pathCache.size(), p_area.c_str(), l_fine_it->second.second);
 			}
 			
 			l_area = l_fine_it->second.first;
