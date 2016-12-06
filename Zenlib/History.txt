@@ -1,3 +1,13 @@
+Version 0.4.34, 2016-11-30
+--------------
++ Minor performance optimizations and cleanup (Thanks to Pavel Pimenov)
++ Add PKGBUILD file for Arch Linux
++ CMake improvements (Thanks to evpobr)
++ Build scripts improvements
+x Fix for Ubuntu 16.10
+x Change lib name for Fedora and RHEL/CentOS to follow their guidelines
+x Update Visual Studio project files (support of 32-bit CPU without SSE)
+
 Version 0.4.33, 2016-02-29
 --------------
 x File::Open(): using now FILE_APPEND_DATA on windows when append mode is requested

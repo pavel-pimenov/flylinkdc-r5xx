@@ -1372,7 +1372,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				CFlyBusyBool l_busy(m_is_destroy_items);
 				T* parent = item->parent;
 				ParentPair* pp = findParentPair(parent->getGroupCond());
-				
+
 				const auto l_id = deleteItem(item); // TODO - разобраться почему тут не удаляет.
 #ifdef _DEBUG
 				if (l_id < 0)
@@ -1380,14 +1380,15 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 					LogManager::message("Error removeGroupedItem = " + Util::toString(item));
 				}
 #endif
-				
+				if(pp)
+				{
 				const auto n = find(pp->children.begin(), pp->children.end(), item);
 				if (n != pp->children.end())
 				{
 					pp->children.erase(n);
 					pp->parent->m_hits--;
 				}
-				
+
 				if (uniqueParent)
 				{
 					dcassert(!pp->children.empty());
@@ -1395,14 +1396,14 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 					{
 						const T* oldParent = parent;
 						parent = pp->children.front();
-						
+
 						deleteItem(oldParent);
 						parents.erase(const_cast<K*>(&oldParent->getGroupCond()));
 						delete oldParent;
-						
+
 						ParentPair newPP = { parent };
 						parents.insert(ParentMapPair(const_cast<K*>(&parent->getGroupCond()), newPP));
-						
+
 						parent->parent = nullptr; // ensure that parent of this item is really NULL
 						deleteItem(parent);
 						insertItem(getSortPos(parent), parent, parent->getImageIndex());
@@ -1415,7 +1416,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 						SetItemState(findItem(parent), INDEXTOSTATEIMAGEMASK(0), LVIS_STATEIMAGEMASK);
 					}
 				}
-				
+			}
 				updateItem(parent);
 			}
 			

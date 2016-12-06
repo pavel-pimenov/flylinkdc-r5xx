@@ -43,7 +43,7 @@ static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, Res
                                                   ResourceManager::SPEED
                                                 };
 
-QueueFrame::QueueFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), menuItems(0), queueSize(0), queueItems(0), m_dirty(false),
+QueueFrame::QueueFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), menuItems(0), m_queueSize(0), m_queueItems(0), m_dirty(false),
 	usingDirMenu(false), readdItems(0), m_fileLists(nullptr), showTree(true)
 	, showTreeContainer(WC_BUTTON, this, SHOWTREE_MESSAGE_MAP),
 	m_last_count(0), m_last_total(0), m_update_status(0)
@@ -387,9 +387,9 @@ void QueueFrame::addQueueItem(QueueItemInfo* ii, bool noSort)
 	if (!ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
 	{
 		dcassert(ii->getSize() >= 0);
-		queueSize += ii->getSize();
+		m_queueSize += ii->getSize();
 	}
-	queueItems++;
+	m_queueItems++;
 	m_dirty = true;
 	
 	const string& dir = ii->getPath();
@@ -788,11 +788,11 @@ void QueueFrame::removeItem(const string& p_target)
 	
 	if (!ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
 	{
-		queueSize -= ii->getSize();
-		dcassert(queueSize >= 0);
+		m_queueSize -= ii->getSize();
+		dcassert(m_queueSize >= 0);
 	}
-	queueItems--;
-	dcassert(queueItems >= 0);
+	m_queueItems--;
+	dcassert(m_queueItems >= 0);
 	
 	dcassert(m_closed == false);
 	const auto i = m_directories.equal_range(ii->getPath());
@@ -810,19 +810,10 @@ void QueueFrame::removeItem(const string& p_target)
 		if (isCurDir(ii->getPath()))
 			curDir.clear();
 	}
-	
-	/*
-	if (!ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP | QueueItem::FLAG_DCLST_LIST)
-	&& BOOLSETTING(BOLD_QUEUE))
-	{
-	//setCountMessages(ctrlQueue.GetItemCount());
-	}
-	*/
 	m_dirty = true;
-	
 	delete ii;
 	
-	if (!queueItems)
+	if (!m_queueItems)
 	{
 		m_update_status++;
 	}
@@ -846,13 +837,6 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 				
 				dcassert(ctrlQueue.findItem(iit.m_ii) == -1);
 				addQueueItem(iit.m_ii, false);
-				/*
-				if (!iit.m_ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP)
-				        && BOOLSETTING(BOLD_QUEUE))
-				{
-				setCountMessages(ctrlQueue.GetItemCount());
-				}
-				*/
 				m_dirty = true;
 			}
 			break;
@@ -1840,7 +1824,7 @@ void QueueFrame::updateQueueStatus()
 			}
 			else
 			{
-				total = queueSize;
+				total = m_queueSize;
 			}
 		}
 		else
@@ -1883,8 +1867,8 @@ void QueueFrame::updateQueueStatus()
 		
 		if (m_dirty)
 		{
-			tmp1 = TSTRING(FILES) + _T(": ") + Util::toStringW(queueItems);
-			tmp2 = TSTRING(SIZE) + _T(": ") + Util::formatBytesW(queueSize);
+			tmp1 = TSTRING(FILES) + _T(": ") + Util::toStringW(m_queueItems);
+			tmp2 = TSTRING(SIZE) + _T(": ") + Util::formatBytesW(m_queueSize);
 			
 			w = WinUtil::getTextWidth(tmp2, ctrlStatus.m_hWnd);
 			if (statusSizes[3] < w)

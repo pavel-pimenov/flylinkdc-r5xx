@@ -650,7 +650,6 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 				}
 				if (!overlaps)
 				{
-					// TODO CFlyFastLock(m_fcs_download);
 					for (auto i = m_downloads.cbegin(); !overlaps && i != m_downloads.cend(); ++i)
 					{
 						overlaps = block.overlaps(i->second->getSegment());
@@ -906,21 +905,29 @@ void QueueItem::getPartialInfo(PartsInfo& p_partialInfo, uint64_t p_blockSize) c
 }
 void QueueItem::getChunksVisualisation(vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) const
 {
+	try
 	{
-		CFlyFastLock(m_fcs_download);
-		p_runnigChunksAndDownloadBytes.reserve(m_downloads.size());
-		for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 		{
-			p_runnigChunksAndDownloadBytes.push_back(make_pair(i->second->getSegment(), Segment(i->second->getStartPos(), i->second->getPos())));
+			CFlyFastLock(m_fcs_download);
+			p_runnigChunksAndDownloadBytes.reserve(m_downloads.size());
+			for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
+			{
+				p_runnigChunksAndDownloadBytes.push_back(make_pair(i->second->getSegment(), Segment(i->second->getStartPos(), i->second->getPos())));
+			}
+		}
+		p_doneChunks.reserve(m_done_segment.size());
+		{
+			CFlyFastLock(m_fcs_segment);
+			for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
+			{
+				p_doneChunks.push_back(*i);
+			}
 		}
 	}
-	p_doneChunks.reserve(m_done_segment.size());
+	catch (const std::length_error&) // fix https://drdump.com/DumpGroup.aspx?DumpGroupID=672685
 	{
-		CFlyFastLock(m_fcs_segment);
-		for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend(); ++i)
-		{
-			p_doneChunks.push_back(*i);
-		}
+		p_runnigChunksAndDownloadBytes.clear();
+		p_doneChunks.clear();
 	}
 }
 uint8_t QueueItem::calcActiveSegments()

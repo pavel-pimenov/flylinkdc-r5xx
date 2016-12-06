@@ -49,13 +49,13 @@ class FinishedItem
 			COLUMN_LAST
 		};
 		
-		FinishedItem(const string& aTarget, const libtorrent::sha1_hash& p_sha1, int64_t aSize, int64_t aSpeed, time_t aTime, int64_t aActual) :
+		FinishedItem(const string& aTarget, const libtorrent::sha1_hash& p_sha1, int64_t aSize, int64_t aSpeed, time_t aTime, int64_t aActual, int64_t aID) :
 			target(aTarget),
 			size(aSize),
 			avgSpeed(aSpeed),
 			time(aTime),
 			actual(aActual),
-			id(0),
+			id(aID),
 			m_sha1(p_sha1)
 		{
 		}
@@ -163,6 +163,10 @@ class FinishedItem
 		GETC(int64_t, id, ID);
 		GETC(int64_t, actual, Actual); // Socket Bytes!
 		libtorrent::sha1_hash m_sha1;
+		bool is_torrent() const
+		{
+			return !m_sha1.is_all_zeros();
+		}
 	private:
 		friend class FinishedManager;
 };

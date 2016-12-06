@@ -512,7 +512,14 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 						{
 							vector<__int64> l_id;
 							l_id.push_back(ii->m_entry->getID());
-							CFlylinkDBManager::getInstance()->delete_transfer_history(l_id);
+							if (ii->m_entry->is_torrent())
+							{
+								CFlylinkDBManager::getInstance()->delete_transfer_history_torrent(l_id);
+							}
+							else
+							{
+								CFlylinkDBManager::getInstance()->delete_transfer_history(l_id);
+							}
 						}
 						else
 						{
@@ -536,12 +543,17 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					{
 						const int l_cnt = ctrlList.GetItemCount();
 						vector<__int64> l_id;
+						vector<__int64> l_id_torrent;
 						l_id.reserve(l_cnt);
 						for (int i = 0; i < l_cnt; ++i)
 						{
 							const auto ii = ctrlList.getItemData(i);
-							l_id.push_back(ii->m_entry->getID());
+							if(ii->m_entry->is_torrent())
+								l_id_torrent.push_back(ii->m_entry->getID());
+							else
+								l_id.push_back(ii->m_entry->getID());
 						}
+						CFlylinkDBManager::getInstance()->delete_transfer_history_torrent(l_id_torrent);
 						CFlylinkDBManager::getInstance()->delete_transfer_history(l_id);
 					}
 					else

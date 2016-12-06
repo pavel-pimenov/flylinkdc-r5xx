@@ -2258,7 +2258,7 @@ void CFlylinkDBManager::load_transfer_history(bool p_is_torrent, eTypeTransfer p
 			{
 				libtorrent::sha1_hash l_sha1;
 				l_q.getblob(1, l_sha1.data(), l_sha1.size());
-				auto item = std::make_shared<FinishedItem>(l_q.getstring(0), l_sha1, l_q.getint64(2), 0, l_q.getint64(3), 0);
+				auto item = std::make_shared<FinishedItem>(l_q.getstring(0), l_sha1, l_q.getint64(2), 0, l_q.getint64(3), 0, l_q.getint64(4));
 				FinishedManager::getInstance()->pushHistoryFinishedItem(item, p_type);
 			}
 			else
@@ -2285,9 +2285,33 @@ void CFlylinkDBManager::load_transfer_history(bool p_is_torrent, eTypeTransfer p
 	}
 }
 //========================================================================================================
+void CFlylinkDBManager::delete_transfer_history_torrent(const vector<__int64>& p_id_array)
+{
+	if (!p_id_array.empty())
+	{
+		try
+		{
+			CFlyLock(m_cs);
+			sqlite3_transaction l_trans(m_flySQLiteDB, p_id_array.size() > 1);
+			m_delete_transfer_torrent.init(m_flySQLiteDB,
+				"delete from transfer_db.fly_transfer_file_torrent where id=?");
+			for (auto i = p_id_array.cbegin(); i != p_id_array.cend(); ++i)
+			{
+				dcassert(*i);
+				m_delete_transfer_torrent->bind(1, *i);
+				m_delete_transfer_torrent->executenonquery();
+			}
+			l_trans.commit();
+		}
+		catch (const database_error& e)
+		{
+			errorDB("SQLite - delete_transfer_history_torrent: " + e.getError());
+		}
+	}
+}
+//========================================================================================================
 void CFlylinkDBManager::delete_transfer_history(const vector<__int64>& p_id_array)
 {
-	dcassert(!p_id_array.empty());
 	if (!p_id_array.empty())
 	{
 		try
@@ -2322,7 +2346,7 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 		{
 			vector<uint8_t> l_resume;
 			l_q.getblob(0, l_resume);
-			dcassert(!l_resume.empty());
+			//dcassert(!l_resume.empty());
 			if (!l_resume.empty())
 			{
 				libtorrent::error_code ec;
@@ -2340,11 +2364,16 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 				{
 					dcdebug("%s\n", ec.message().c_str());
 					dcassert(0);
-					LogManager::message("Error add_torrent_file:" + ec.message());
+					LogManager::message("Error add_torrent_file: " + ec.message());
 				}
 #else
 				p_session.async_add_torrent(p);
 #endif
+			}
+			else
+			{
+				LogManager::message("Error add_torrent_file: resume data is empty()");
+				// TODO delete_torrent_resume
 			}
 		}
 	}
@@ -2376,14 +2405,33 @@ void CFlylinkDBManager::save_torrent_resume(const libtorrent::sha1_hash& p_sha1,
 	CFlyLock(m_cs);
 	try
 	{
-		// TODO - remove replace + double update
-		m_insert_resume_torrent.init(m_flySQLiteDB,
-		                             "insert or replace into queue_db.fly_queue_torrent (day,stamp,sha1,resume,name) "
-		                             "values(strftime('%s','now','localtime')/60/60/24,strftime('%s','now','localtime'),?,?,?)");
-		m_insert_resume_torrent->bind(1, p_sha1.data(), p_sha1.size(), SQLITE_STATIC);
-		m_insert_resume_torrent->bind(2, &p_resume[0], p_resume.size(), SQLITE_STATIC);
-		m_insert_resume_torrent->bind(3, p_name, SQLITE_STATIC);
-		m_insert_resume_torrent->executenonquery();
+		m_check_resume_torrent.init(m_flySQLiteDB,
+			"select resume from queue_db.fly_queue_torrent where sha1=?");
+		m_check_resume_torrent->bind(1, p_sha1.data(), p_sha1.size(), SQLITE_STATIC);
+		bool l_is_need_update = true;
+		{
+			sqlite3_reader l_q_check = m_check_resume_torrent->executereader();
+			while (l_q_check.read())
+			{
+				vector<uint8_t> l_resume;
+				l_q_check.getblob(0, l_resume);
+				//dcassert(!l_resume.empty());
+				if (!l_resume.empty() && l_resume.size() == p_resume.size())
+				{
+					l_is_need_update = !memcmp(&p_resume[0], &l_resume[0], l_resume.size());
+				}
+			}
+		}
+		if (l_is_need_update)
+		{
+			m_insert_resume_torrent.init(m_flySQLiteDB,
+				"insert or replace into queue_db.fly_queue_torrent (day,stamp,sha1,resume,name) "
+				"values(strftime('%s','now','localtime')/60/60/24,strftime('%s','now','localtime'),?,?,?)");
+			m_insert_resume_torrent->bind(1, p_sha1.data(), p_sha1.size(), SQLITE_STATIC);
+			m_insert_resume_torrent->bind(2, &p_resume[0], p_resume.size(), SQLITE_STATIC);
+			m_insert_resume_torrent->bind(3, p_name, SQLITE_STATIC);
+			m_insert_resume_torrent->executenonquery();
+		}
 	}
 	catch (const database_error& e)
 	{

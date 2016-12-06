@@ -2616,6 +2616,14 @@ void TransferView::on(QueueManagerListener::Added, const QueueItemPtr& qi) noexc
     }
 }
 */
+void TransferView::on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept
+{
+	if (!ClientManager::isBeforeShutdown())
+	{
+		UpdateInfo* ui = new UpdateInfo(p_sha1);
+		m_tasks.add(TRANSFER_REMOVE_TOKEN_ITEM, ui);
+	}
+}
 void TransferView::on(DownloadManagerListener::RemoveToken, const string& p_token) noexcept
 {
 	if (!ClientManager::isBeforeShutdown())

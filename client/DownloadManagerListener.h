@@ -60,6 +60,7 @@ class DownloadManagerListener
 		typedef X<5> Status;
 		typedef X<6> RemoveToken;
 		typedef X<7> TorrentEvent;
+		typedef X<8> RemoveTorrent;
 		
 		/**
 		 * This is the first message sent before a download starts.
@@ -67,6 +68,8 @@ class DownloadManagerListener
 		 */
 		virtual void on(Requesting, const DownloadPtr& aDownload) noexcept { }
 		virtual void on(RemoveToken, const string& p_token) noexcept { }
+		virtual void on(RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept { }
+		
 #ifdef FLYLINKDC_USE_DOWNLOAD_STARTING_FIRE
 		/**
 		 * This is the first message sent before a download starts.

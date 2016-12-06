@@ -22,7 +22,7 @@
 #define TRANSFER_VIEW_H
 
 #ifdef _DEBUG
-#define FLYLINKDC_USE_DEBUG_TRANSFERS
+//#define FLYLINKDC_USE_DEBUG_TRANSFERS
 #endif
 #include "../client/DownloadManagerListener.h"
 #include "../client/UploadManagerListener.h"
@@ -460,6 +460,12 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			{
 			}
 #endif
+			UpdateInfo(const libtorrent::sha1_hash& p_sha1) :
+				m_sha1(p_sha1), updateMask(0), download(true),
+				transferFailed(false), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
+				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), m_is_torrent(true), m_is_seeding(false)
+			{
+			}
 			UpdateInfo(const HintedUser& aHintedUser, const bool isDownload, const bool isTransferFailed = false) :
 				updateMask(0), download(isDownload), m_hintedUser(aHintedUser), // fix empty string
 				transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
@@ -470,7 +476,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				updateMask(0), download(true), transferFailed(false), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
 				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), m_is_torrent(false), m_is_seeding(false)
 			{
-			}
+			}			
 			~UpdateInfo()
 			{
 			}
@@ -702,6 +708,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(ConnectionManagerListener::UserUpdated, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept override;
 		void on(ConnectionManagerListener::ConnectionStatusChanged, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept override;
 		
+		void on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept override;
 		void on(DownloadManagerListener::RemoveToken, const string& p_token) noexcept override;
 		void on(DownloadManagerListener::Requesting, const DownloadPtr& aDownload) noexcept override;
 		void on(DownloadManagerListener::Complete, const DownloadPtr& aDownload) noexcept override

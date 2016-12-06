@@ -328,7 +328,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 				}
 #endif
 				const TTHValue l_tth(l_line_item.c_str() + l_marker_tth + 13, 39);
-				dcassert(l_tth == l_tth_orig);
+				//dcassert(l_tth == l_tth_orig);
 				if (ShareManager::isUnknownTTH(l_tth) == false)
 				{
 					const string l_search_str = l_line_item.substr(8, l_marker_tth - 8);

@@ -395,8 +395,8 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		CStatusBarCtrl ctrlStatus;
 		int statusSizes[6]; // TODO: fix my size.
 		
-		int64_t queueSize;
-		int queueItems;
+		int64_t m_queueSize;
+		int m_queueItems;
 		int m_update_status;
 		
 		static int columnIndexes[COLUMN_LAST];
