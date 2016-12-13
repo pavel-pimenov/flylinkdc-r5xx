@@ -30,18 +30,10 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#include <vector>
 #include <cctype>
-#include <mutex>
 #include <functional>
-
-#include "libtorrent/aux_/disable_warnings_push.hpp"
-
 #include <tuple>
 
-#include "libtorrent/aux_/disable_warnings_pop.hpp"
-
-#include "libtorrent/tracker_manager.hpp"
 #include "libtorrent/parse_url.hpp"
 #include "libtorrent/udp_tracker_connection.hpp"
 #include "libtorrent/io.hpp"
@@ -54,6 +46,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/time.hpp"
 #include "libtorrent/aux_/io.hpp"
 #include "libtorrent/span.hpp"
+#include "libtorrent/peer.hpp"
 
 #ifndef TORRENT_DISABLE_LOGGING
 #include "libtorrent/socket_io.hpp"
@@ -329,8 +322,8 @@ namespace libtorrent
 
 	void udp_tracker_connection::close()
 	{
-		error_code ec;
-		tracker_connection::close();
+		cancel();
+		m_man.remove_request(this);
 	}
 
 	bool udp_tracker_connection::on_receive_hostname(char const* hostname
@@ -351,7 +344,7 @@ namespace libtorrent
 		std::shared_ptr<request_callback> cb = requester();
 #endif
 
-		// ignore resposes before we've sent any requests
+		// ignore responses before we've sent any requests
 		if (m_state == action_t::error)
 		{
 #ifndef TORRENT_DISABLE_LOGGING
@@ -454,10 +447,8 @@ namespace libtorrent
 
 	void udp_tracker_connection::update_transaction_id()
 	{
-		std::uint32_t new_tid;
-
-		// don't use 0, because that has special meaning (unintialized)
-		new_tid = random(0xfffffffe) + 1;
+		// don't use 0, because that has special meaning (uninitialized)
+		std::uint32_t const new_tid = random(0xfffffffe) + 1;
 
 		if (m_transaction_id != 0)
 			m_man.update_transaction_id(shared_from_this(), new_tid);
@@ -663,11 +654,9 @@ namespace libtorrent
 
 	bool udp_tracker_connection::on_scrape_response(span<char const> buf)
 	{
-		using namespace libtorrent::aux;
-
 		restart_read_timeout();
 		auto const action = static_cast<action_t>(aux::read_int32(buf));
-		std::uint32_t const transaction = read_uint32(buf);
+		std::uint32_t const transaction = aux::read_uint32(buf);
 
 		if (transaction != m_transaction_id)
 		{
@@ -749,7 +738,7 @@ namespace libtorrent
 			address ip = address::from_string(settings.get_str(settings_pack::announce_ip).c_str(), ec);
 			if (!ec && ip.is_v4()) announce_ip = ip.to_v4();
 		}
-		aux::write_uint32(announce_ip.to_ulong(), out);
+		aux::write_uint32(std::uint32_t(announce_ip.to_ulong()), out);
 		aux::write_int32(req.key, out); // key
 		aux::write_int32(req.num_want, out); // num_want
 		aux::write_uint16(req.listen_port, out); // port

@@ -824,20 +824,27 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 				{
 					ClientManager::flushRatio(5000);
 					ClientManager::usersCleanup();
-#ifdef FLYLINKDC_USE_GATHER_STATISTICS
-					bool l_is_error = CFlyServerJSON::sendDownloadCounter(m_is_sync_run == true);
-					CFlyServerJSON::sendAntivirusCounter(m_is_sync_run == true || l_is_error);
-					if (CFlyServerJSON::pushStatistic(m_is_sync_run) == false)
+					try
 					{
-						// ≈сли нет ошибок и не закрываемс€ - обновим антивирусную базу
-#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
-						if (m_is_sync_run == false) // ≈сли запущено в фоновом режиме - стартанем обновление AvDB и сброс счетчиков загрузок
+#ifdef FLYLINKDC_USE_GATHER_STATISTICS
+						bool l_is_error = CFlyServerJSON::sendDownloadCounter(m_is_sync_run == true);
+						CFlyServerJSON::sendAntivirusCounter(m_is_sync_run == true || l_is_error);
+						if (CFlyServerJSON::pushStatistic(m_is_sync_run) == false)
 						{
-							CFlyServerConfig::SyncAntivirusDBSafe();
+							// ≈сли нет ошибок и не закрываемс€ - обновим антивирусную базу
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+							if (m_is_sync_run == false) // ≈сли запущено в фоновом режиме - стартанем обновление AvDB и сброс счетчиков загрузок
+							{
+								CFlyServerConfig::SyncAntivirusDBSafe();
+							}
+#endif
 						}
 #endif
 					}
-#endif
+					catch (const std::bad_alloc&) // fix https://drdump.com/Problem.aspx?ProblemID=252321
+					{
+						ShareManager::tryFixBadAlloc();
+					}
 					return 0;
 				}
 			public:

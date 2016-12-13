@@ -68,10 +68,8 @@ namespace libtorrent
 	struct request_callback;
 	class tracker_manager;
 	struct timeout_handler;
-	struct tracker_connection;
 	class udp_tracker_connection;
 	class http_tracker_connection;
-	class  udp_socket;
 	struct resolver_interface;
 	struct counters;
 	struct ip_filter;
@@ -286,7 +284,6 @@ namespace libtorrent
 #endif
 	};
 
-	// TODO: 2 this class probably doesn't need to have virtual functions.
 	struct TORRENT_EXTRA_EXPORT tracker_connection
 		: timeout_handler
 	{
@@ -303,7 +300,7 @@ namespace libtorrent
 		void fail(error_code const& ec, int code = -1, char const* msg = ""
 			, int interval = 0, int min_interval = 0);
 		virtual void start() = 0;
-		virtual void close();
+		virtual void close() = 0;
 		address const& bind_interface() const { return m_req.bind_ip; }
 		void sent_bytes(int bytes);
 		void received_bytes(int bytes);
@@ -359,7 +356,8 @@ namespace libtorrent
 				= std::weak_ptr<request_callback>());
 		void abort_all_requests(bool all = false);
 
-		void remove_request(tracker_connection const*);
+		void remove_request(http_tracker_connection const* c);
+		void remove_request(udp_tracker_connection const* c);
 		bool empty() const;
 		int num_requests() const;
 
@@ -393,12 +391,9 @@ namespace libtorrent
 		// maps transactionid to the udp_tracker_connection
 		// These must use shared_ptr to avoid a dangling reference
 		// if a connection is erased while a timeout event is in the queue
-		using udp_conns_t = std::unordered_map<std::uint32_t
-			, std::shared_ptr<udp_tracker_connection>> ;
-		udp_conns_t m_udp_conns;
+		std::unordered_map<std::uint32_t, std::shared_ptr<udp_tracker_connection>> m_udp_conns;
 
-		using http_conns_t = std::vector<std::shared_ptr<http_tracker_connection>>;
-		http_conns_t m_http_conns;
+		std::vector<std::shared_ptr<http_tracker_connection>> m_http_conns;
 
 		send_fun_t m_send_fun;
 		send_fun_hostname_t m_send_fun_hostname;

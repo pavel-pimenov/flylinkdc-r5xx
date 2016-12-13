@@ -81,9 +81,15 @@ namespace zmq
 
 #else
 
+#ifdef ZMQ_HAVE_WINDOWS_TARGET_XP
+#include <condition_variable> 
+#include <mutex> 
+#endif
+
 namespace zmq
 {
 
+#ifndef ZMQ_HAVE_WINDOWS_TARGET_XP
     class condition_variable_t
     {
     public:
@@ -126,7 +132,54 @@ namespace zmq
         condition_variable_t (const condition_variable_t&);
         void operator = (const condition_variable_t&);
     };
+#else
+	class condition_variable_t
+	{
+	public:
+		inline condition_variable_t()
+		{
 
+		}
+
+		inline ~condition_variable_t()
+		{
+
+		}
+
+		inline int wait(mutex_t* mutex_, int timeout_)
+		{
+			std::unique_lock<std::mutex> lck(mtx);  // lock mtx
+			mutex_->unlock();                       // unlock mutex_ 
+			int res = 0;
+			if(timeout_ == -1) {
+				cv.wait(lck);                       // unlock mtx and wait cv.notify_all(), lock mtx after cv.notify_all()
+			} else if (cv.wait_for(lck, std::chrono::milliseconds(timeout_)) == std::cv_status::timeout) {
+				// time expired
+				errno = EAGAIN;
+				res = -1;
+			}
+			lck.unlock();                           // unlock mtx
+			mutex_->lock();                         // lock mutex_
+			return res;
+		}
+
+		inline void broadcast()
+		{
+			std::unique_lock<std::mutex> lck(mtx);  // lock mtx
+			cv.notify_all();
+		}
+
+	private:
+
+		std::condition_variable cv;
+		std::mutex mtx;
+
+		//  Disable copy construction and assignment.
+		condition_variable_t(const condition_variable_t&);
+		void operator = (const condition_variable_t&);
+	};
+
+#endif
 }
 
 #endif
@@ -159,7 +212,12 @@ namespace zmq
 
             if (timeout_ != -1) {
                 struct timespec timeout;
+
+#if defined ZMQ_HAVE_OSX && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200 // less than macOS 10.12
+                alt_clock_gettime(CLOCK_REALTIME, &timeout);
+#else
                 clock_gettime(CLOCK_REALTIME, &timeout);
+#endif
 
                 timeout.tv_sec += timeout_ / 1000;
                 timeout.tv_nsec += (timeout_ % 1000) * 1000000;

@@ -127,7 +127,7 @@ void ConnectivityManager::detectConnection()
 }
 void ConnectivityManager::test_all_ports()
 {
-	if (SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_FIREWALL_PASSIVE)
+	if (SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_FIREWALL_PASSIVE && !ClientManager::isBeforeShutdown())
 	{
 		// Test Port
 		string l_external_ip;
@@ -258,39 +258,39 @@ string ConnectivityManager::getInformation()
 
 void ConnectivityManager::mappingFinished(const string& p_mapper)
 {
-	if (!ClientManager::isBeforeShutdown() && BOOLSETTING(AUTO_DETECT_CONNECTION))
-	{
-		if (p_mapper.empty())
-		{
-			//StrongDC++: don't disconnect when mapping fails else DHT and active mode in favorite hubs won't work
-			//disconnect();
-			SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
-			SET_SETTING(ALLOW_NAT_TRAVERSAL, true);
-			log(STRING(AUTOMATIC_SETUP_ACTIV_MODE_FAILED));
-		}
-#ifdef FLYLINKDC_BETA
-		else
-		{
-			if (!MappingManager::getExternaIP().empty() && Util::isPrivateIp(MappingManager::getExternaIP()))
-			{
-				SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
-				SET_SETTING(ALLOW_NAT_TRAVERSAL, true);
-				const string l_error = "Auto passive mode: Private IP = " + MappingManager::getExternaIP();
-				log(l_error);
-				CFlyServerJSON::pushError(29, l_error);
-			}
-		}
-#endif
-		// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
-	}
 	if (!ClientManager::isBeforeShutdown())
 	{
-		log(getInformation());
-		SET_SETTING(MAPPER, p_mapper);
-		if (!p_mapper.empty())
+		if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 		{
-			test_all_ports();
+			if (p_mapper.empty())
+			{
+				//StrongDC++: don't disconnect when mapping fails else DHT and active mode in favorite hubs won't work
+				//disconnect();
+				SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
+				SET_SETTING(ALLOW_NAT_TRAVERSAL, true);
+				log(STRING(AUTOMATIC_SETUP_ACTIV_MODE_FAILED));
+			}
+#ifdef FLYLINKDC_BETA
+			else
+			{
+				if (!MappingManager::getExternaIP().empty() && Util::isPrivateIp(MappingManager::getExternaIP()))
+				{
+					SET_SETTING(INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
+					SET_SETTING(ALLOW_NAT_TRAVERSAL, true);
+					const string l_error = "Auto passive mode: Private IP = " + MappingManager::getExternaIP();
+					log(l_error);
+					CFlyServerJSON::pushError(29, l_error);
+				}
+			}
+#endif
+			// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
 		}
+			log(getInformation());
+			SET_SETTING(MAPPER, p_mapper);
+			if (!p_mapper.empty())
+			{
+				test_all_ports();
+			}
 	}
 	g_is_running = false;
 }

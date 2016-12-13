@@ -266,9 +266,8 @@ int MappingManager::run()
 		}
 		
 		ConnectivityManager::mappingFinished(mapper.getMapperName());
-		
 		auto minutes = mapper.renewal();
-		if (minutes)
+		if (minutes && !ClientManager::isBeforeShutdown())
 		{
 			m_renewal = GET_TICK() + std::max(minutes, 10u) * 60 * 1000;
 			if (m_listeners_count == 0)

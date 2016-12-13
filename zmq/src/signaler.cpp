@@ -27,15 +27,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "precompiled.hpp"
-#include "poller.hpp"
-
 //  On AIX, poll.h has to be included before zmq.h to get consistent
 //  definition of pollfd structure (AIX uses 'reqevents' and 'retnevents'
 //  instead of 'events' and 'revents' and defines macros to map from POSIX-y
 //  names to AIX-specific names).
+//  zmq.h must be included *after* poll.h for AIX to build properly.
+//  precompiled.hpp includes include/zmq.h
+#if defined ZMQ_POLL_BASED_ON_POLL && defined ZMQ_HAVE_AIX
+#include <poll.h>
+#endif
+
+#include "precompiled.hpp"
+#include "poller.hpp"
+
 #if defined ZMQ_POLL_BASED_ON_POLL
-#if !defined ZMQ_HAVE_WINDOWS
+#if !defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_AIX
 #include <poll.h>
 #endif
 #elif defined ZMQ_POLL_BASED_ON_SELECT
@@ -338,11 +344,11 @@ int zmq::signaler_t::recv_failable ()
 #if defined ZMQ_HAVE_WINDOWS
     int nbytes = ::recv (r, (char *) &dummy, sizeof (dummy), 0);
     if (nbytes == SOCKET_ERROR) {
-		const int last_error = WSAGetLastError();
-		if (last_error == WSAEWOULDBLOCK) {
-			errno = EAGAIN;
+        const int last_error = WSAGetLastError();
+        if (last_error == WSAEWOULDBLOCK) {
+            errno = EAGAIN;
             return -1;
-		}
+        }
         wsa_assert (last_error == WSAEWOULDBLOCK);
     }
 #else
@@ -388,7 +394,7 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
 
 #elif defined ZMQ_HAVE_WINDOWS
 #   if !defined _WIN32_WCE
-    // Windows CE does not manage security attributes
+    //  Windows CE does not manage security attributes
     SECURITY_DESCRIPTOR sd;
     SECURITY_ATTRIBUTES sa;
     memset (&sd, 0, sizeof sd);

@@ -203,19 +203,19 @@ namespace aux {
 
 		bdecode_node val;
 		val = e.dict_find_int("max_peers_reply");
-		if (val) sett.max_peers_reply = val.int_value();
+		if (val) sett.max_peers_reply = int(val.int_value());
 		val = e.dict_find_int("search_branching");
-		if (val) sett.search_branching = val.int_value();
+		if (val) sett.search_branching = int(val.int_value());
 		val = e.dict_find_int("max_fail_count");
-		if (val) sett.max_fail_count = val.int_value();
+		if (val) sett.max_fail_count = int(val.int_value());
 		val = e.dict_find_int("max_torrents");
-		if (val) sett.max_torrents = val.int_value();
+		if (val) sett.max_torrents = int(val.int_value());
 		val = e.dict_find_int("max_dht_items");
-		if (val) sett.max_dht_items = val.int_value();
+		if (val) sett.max_dht_items = int(val.int_value());
 		val = e.dict_find_int("max_peers");
-		if (val) sett.max_peers = val.int_value();
+		if (val) sett.max_peers = int(val.int_value());
 		val = e.dict_find_int("max_torrent_search_reply");
-		if (val) sett.max_torrent_search_reply = val.int_value();
+		if (val) sett.max_torrent_search_reply = int(val.int_value());
 		val = e.dict_find_int("restrict_routing_ips");
 		if (val) sett.restrict_routing_ips = (val.int_value() != 0);
 		val = e.dict_find_int("restrict_search_ips");
@@ -231,13 +231,13 @@ namespace aux {
 		val = e.dict_find_int("ignore_dark_internet");
 		if (val) sett.ignore_dark_internet = (val.int_value() != 0);
 		val = e.dict_find_int("block_timeout");
-		if (val) sett.block_timeout = val.int_value();
+		if (val) sett.block_timeout = int(val.int_value());
 		val = e.dict_find_int("block_ratelimit");
-		if (val) sett.block_ratelimit = val.int_value();
+		if (val) sett.block_ratelimit = int(val.int_value());
 		val = e.dict_find_int("read_only");
 		if (val) sett.read_only = (val.int_value() != 0);
 		val = e.dict_find_int("item_lifetime");
-		if (val) sett.item_lifetime = val.int_value();
+		if (val) sett.item_lifetime = int(val.int_value());
 
 		return sett;
 	}
@@ -750,9 +750,9 @@ namespace aux {
 			{
 				bdecode_node val;
 				val = settings.dict_find_int("port");
-				if (val) m_settings.set_int(settings_pack::proxy_port, val.int_value());
+				if (val) m_settings.set_int(settings_pack::proxy_port, int(val.int_value()));
 				val = settings.dict_find_int("type");
-				if (val) m_settings.set_int(settings_pack::proxy_type, val.int_value());
+				if (val) m_settings.set_int(settings_pack::proxy_type, int(val.int_value()));
 				val = settings.dict_find_int("proxy_hostnames");
 				if (val) m_settings.set_bool(settings_pack::proxy_hostnames, val.int_value() != 0);
 				val = settings.dict_find_int("proxy_peer_connections");
@@ -774,11 +774,11 @@ namespace aux {
 			val = settings.dict_find_int("prefer_rc4");
 			if (val) m_settings.set_bool(settings_pack::prefer_rc4, val.int_value() != 0);
 			val = settings.dict_find_int("out_enc_policy");
-			if (val) m_settings.set_int(settings_pack::out_enc_policy, val.int_value());
+			if (val) m_settings.set_int(settings_pack::out_enc_policy, int(val.int_value()));
 			val = settings.dict_find_int("in_enc_policy");
-			if (val) m_settings.set_int(settings_pack::in_enc_policy, val.int_value());
+			if (val) m_settings.set_int(settings_pack::in_enc_policy, int(val.int_value()));
 			val = settings.dict_find_int("allowed_enc_level");
-			if (val) m_settings.set_int(settings_pack::allowed_enc_level, val.int_value());
+			if (val) m_settings.set_int(settings_pack::allowed_enc_level, int(val.int_value()));
 		}
 #endif
 
@@ -1635,8 +1635,28 @@ namespace aux {
 			= (flags & open_ssl_socket)
 			? socket_type_t::utp_ssl
 			: socket_type_t::udp;
+		udp::endpoint const udp_bind_ep(bind_ep.address(), bind_ep.port());
 
 		ret.udp_sock = std::make_shared<udp_socket>(m_io_service);
+		ret.udp_sock->open(udp_bind_ep.protocol(), ec);
+		if (ec)
+		{
+#ifndef TORRENT_DISABLE_LOGGING
+			if (should_log())
+			{
+				session_log("failed to open UDP socket: %s: %s"
+					, device.c_str(), ec.message().c_str());
+			}
+#endif
+
+			last_op = listen_failed_alert::open;
+			if (m_alerts.should_post<listen_failed_alert>())
+				m_alerts.emplace_alert<listen_failed_alert>(device
+					, bind_ep, last_op, ec, udp_sock_type);
+
+			return ret;
+		}
+
 #if TORRENT_HAS_BINDTODEVICE
 		if (!device.empty())
 		{
@@ -1661,8 +1681,7 @@ namespace aux {
 			}
 		}
 #endif
-		ret.udp_sock->bind(udp::endpoint(bind_ep.address(), bind_ep.port())
-			, ec);
+		ret.udp_sock->bind(udp_bind_ep, ec);
 
 		last_op = listen_failed_alert::bind;
 		if (ec)
@@ -1670,7 +1689,7 @@ namespace aux {
 #ifndef TORRENT_DISABLE_LOGGING
 			if (should_log())
 			{
-				session_log("failed to open UDP socket: %s: %s"
+				session_log("failed to bind UDP socket: %s: %s"
 					, device.c_str(), ec.message().c_str());
 			}
 #endif
@@ -3843,7 +3862,7 @@ namespace aux {
 		// unchoked
 
 		int num_opt_unchoke = m_settings.get_int(settings_pack::num_optimistic_unchoke_slots);
-		int const allowed_unchoke_slots = m_stats_counters[counters::num_unchoke_slots];
+		int const allowed_unchoke_slots = int(m_stats_counters[counters::num_unchoke_slots]);
 		if (num_opt_unchoke == 0) num_opt_unchoke = (std::max)(1, allowed_unchoke_slots / 5);
 		if (num_opt_unchoke > int(opt_unchoke.size())) num_opt_unchoke =
 			int(opt_unchoke.size());
@@ -4146,7 +4165,7 @@ namespace aux {
 #endif
 
 		int const unchoked_counter_optimistic
-			= m_stats_counters[counters::num_peers_up_unchoked_optimistic];
+			= int(m_stats_counters[counters::num_peers_up_unchoked_optimistic]);
 		int const num_opt_unchoke = (unchoked_counter_optimistic == 0)
 			? (std::max)(1, allowed_upload_slots / 5) : unchoked_counter_optimistic;
 
@@ -4154,11 +4173,9 @@ namespace aux {
 
 		// go through all the peers and unchoke the first ones and choke
 		// all the other ones.
-		for (std::vector<peer_connection*>::iterator i = peers.begin()
-			, end(peers.end()); i != end; ++i)
+		for (auto p : peers)
 		{
-			peer_connection* p = *i;
-			TORRENT_ASSERT(p);
+			TORRENT_ASSERT(p != nullptr);
 			TORRENT_ASSERT(!p->ignore_unchoke_slots());
 
 			// this will update the m_uploaded_at_last_unchoke
@@ -5361,37 +5378,37 @@ namespace aux {
 		s.unchoke_counter = m_unchoke_time_scaler;
 		s.num_dead_peers = int(m_undead_peers.size());
 
-		s.num_peers = m_stats_counters[counters::num_peers_connected];
-		s.num_unchoked = m_stats_counters[counters::num_peers_up_unchoked_all];
-		s.allowed_upload_slots = m_stats_counters[counters::num_unchoke_slots];
+		s.num_peers = int(m_stats_counters[counters::num_peers_connected]);
+		s.num_unchoked = int(m_stats_counters[counters::num_peers_up_unchoked_all]);
+		s.allowed_upload_slots = int(m_stats_counters[counters::num_unchoke_slots]);
 
 		s.num_torrents
-			= m_stats_counters[counters::num_checking_torrents]
+			= int(m_stats_counters[counters::num_checking_torrents]
 			+ m_stats_counters[counters::num_stopped_torrents]
 			+ m_stats_counters[counters::num_queued_seeding_torrents]
 			+ m_stats_counters[counters::num_queued_download_torrents]
 			+ m_stats_counters[counters::num_upload_only_torrents]
 			+ m_stats_counters[counters::num_downloading_torrents]
 			+ m_stats_counters[counters::num_seeding_torrents]
-			+ m_stats_counters[counters::num_error_torrents];
+			+ m_stats_counters[counters::num_error_torrents]);
 
 		s.num_paused_torrents
-			= m_stats_counters[counters::num_stopped_torrents]
+			= int(m_stats_counters[counters::num_stopped_torrents]
 			+ m_stats_counters[counters::num_error_torrents]
 			+ m_stats_counters[counters::num_queued_seeding_torrents]
-			+ m_stats_counters[counters::num_queued_download_torrents];
+			+ m_stats_counters[counters::num_queued_download_torrents]);
 
 		s.total_redundant_bytes = m_stats_counters[counters::recv_redundant_bytes];
 		s.total_failed_bytes = m_stats_counters[counters::recv_failed_bytes];
 
-		s.up_bandwidth_queue = m_stats_counters[counters::limiter_up_queue];
-		s.down_bandwidth_queue = m_stats_counters[counters::limiter_down_queue];
+		s.up_bandwidth_queue = int(m_stats_counters[counters::limiter_up_queue]);
+		s.down_bandwidth_queue = int(m_stats_counters[counters::limiter_down_queue]);
 
-		s.up_bandwidth_bytes_queue = m_stats_counters[counters::limiter_up_bytes];
-		s.down_bandwidth_bytes_queue = m_stats_counters[counters::limiter_down_bytes];
+		s.up_bandwidth_bytes_queue = int(m_stats_counters[counters::limiter_up_bytes]);
+		s.down_bandwidth_bytes_queue = int(m_stats_counters[counters::limiter_down_bytes]);
 
-		s.disk_write_queue = m_stats_counters[counters::num_peers_down_disk];
-		s.disk_read_queue = m_stats_counters[counters::num_peers_up_disk];
+		s.disk_write_queue = int(m_stats_counters[counters::num_peers_down_disk]);
+		s.disk_read_queue = int(m_stats_counters[counters::num_peers_up_disk]);
 
 		s.has_incoming_connections = m_stats_counters[counters::has_incoming_connections] != 0;
 
@@ -5455,11 +5472,11 @@ namespace aux {
 		s.utp_stats.invalid_pkts_in = m_stats_counters[counters::utp_invalid_pkts_in];
 		s.utp_stats.redundant_pkts_in = m_stats_counters[counters::utp_redundant_pkts_in];
 
-		s.utp_stats.num_idle = m_stats_counters[counters::num_utp_idle];
-		s.utp_stats.num_syn_sent = m_stats_counters[counters::num_utp_syn_sent];
-		s.utp_stats.num_connected = m_stats_counters[counters::num_utp_connected];
-		s.utp_stats.num_fin_sent = m_stats_counters[counters::num_utp_fin_sent];
-		s.utp_stats.num_close_wait = m_stats_counters[counters::num_utp_close_wait];
+		s.utp_stats.num_idle = int(m_stats_counters[counters::num_utp_idle]);
+		s.utp_stats.num_syn_sent = int(m_stats_counters[counters::num_utp_syn_sent]);
+		s.utp_stats.num_connected = int(m_stats_counters[counters::num_utp_connected]);
+		s.utp_stats.num_fin_sent = int(m_stats_counters[counters::num_utp_fin_sent]);
+		s.utp_stats.num_close_wait = int(m_stats_counters[counters::num_utp_close_wait]);
 
 		// this loop is potentially expensive. It could be optimized by
 		// simply keeping a global counter
@@ -6840,10 +6857,10 @@ namespace aux {
 				settings_pack::num_optimistic_unchoke_slots));
 		}
 
-		int const unchoked_counter_all = m_stats_counters[counters::num_peers_up_unchoked_all];
-		int const unchoked_counter = m_stats_counters[counters::num_peers_up_unchoked];
+		int const unchoked_counter_all = int(m_stats_counters[counters::num_peers_up_unchoked_all]);
+		int const unchoked_counter = int(m_stats_counters[counters::num_peers_up_unchoked]);
 		int const unchoked_counter_optimistic
-			= m_stats_counters[counters::num_peers_up_unchoked_optimistic];
+			= int(m_stats_counters[counters::num_peers_up_unchoked_optimistic]);
 
 		TORRENT_ASSERT_VAL(unchoked_counter_all == unchokes_all, unchokes_all);
 		TORRENT_ASSERT_VAL(unchoked_counter == unchokes, unchokes);

@@ -1036,20 +1036,23 @@ void FavoriteManager::load()
 #endif // USE_SUPPORT_HUB
 	
 	const bool oldConfigExist = !g_recentHubs.empty(); // [+] IRainman fix: FlylinkDC stores recents hubs in the sqlite database, so you need to keep the values in the database after loading the file.
-	
+
+	std::vector<StringPair> l_dead_hubs = CFlyServerConfig::getDeadHub();
+
 	CFlyRegistryMap l_values;
 	CFlylinkDBManager::getInstance()->load_registry(l_values, e_RecentHub);
 	for (auto k = l_values.cbegin(); k != l_values.cend(); ++k)
 	{
 		const StringTokenizer<string> tok(k->second.m_val_str, '\n');
-		RecentHubEntry* e = new RecentHubEntry();
-		e->setName(k->first);
 		if (tok.getTokens().size() > 3)
 		{
+			RecentHubEntry* e = new RecentHubEntry();
+			e->setName(k->first);
 			e->setDescription(tok.getTokens()[0]);
 			e->setUsers(tok.getTokens()[1]);
 			e->setShared(tok.getTokens()[2]);
-			e->setServer(Util::formatDchubUrl(tok.getTokens()[3]));
+			const string l_server = Util::formatDchubUrl(tok.getTokens()[3]);
+			e->setServer(l_server);
 			if (tok.getTokens().size() > 4) //-V112
 			{
 				e->setLastSeen(tok.getTokens()[4]);
@@ -1058,9 +1061,18 @@ void FavoriteManager::load()
 					e->setOpenTab(tok.getTokens()[5]);
 				}
 			}
+			bool l_is_dead = false;
+			for (auto i = l_dead_hubs.cbegin(); i != l_dead_hubs.cend() && !l_is_dead; ++i)
+			{
+				if (i->first == l_server)
+					l_is_dead = true;
+			}
+			if (!l_is_dead)
+			{
+				g_recentHubs.push_back(e);
+				g_recent_dirty = true;
+			}
 		}
-		g_recentHubs.push_back(e);
-		g_recent_dirty = true;
 	}
 	// [+] IRainman fix: FlylinkDC stores recents hubs in the sqlite database, so you need to keep the values in the database after loading the file.
 	if (oldConfigExist)

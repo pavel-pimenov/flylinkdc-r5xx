@@ -518,7 +518,9 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 	SetSelectionCharFormat(cfTemp);
 	//[~]IRainman optimize
 	
-	if ((p_message.m_isRealUser || BOOLSETTING(FORMAT_BOT_MESSAGE)) && !p_message.m_Nick.empty())
+	if ((p_message.m_isRealUser || BOOLSETTING(FORMAT_BOT_MESSAGE)) 
+		// && !p_message.m_Nick.empty()
+		)
 	{
 #ifdef IRAINMAN_INCLUDE_TEXT_FORMATTING
 		// This is not 100% working, but most of the time it does the job decently enough
@@ -1093,7 +1095,7 @@ bool ChatCtrl::HitNick(const POINT& p, tstring& sNick, int& iBegin, int& iEnd, c
 	}
 	else
 	{
-		const Client* l_client = ClientManager::findClient(getHubHint());
+		const auto l_client = ClientManager::findClient(getHubHint());
 		if (!l_client) // [+] IRainman opt.
 			return false;
 			
@@ -1440,7 +1442,19 @@ LRESULT ChatCtrl::onWhoisIP(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 {
 	if (!g_sSelectedIP.empty())
 	{
-		WinUtil::CheckOnWhoisIP(wID, g_sSelectedIP);
+		if (wID == IDC_WHOIS_IP4_INFO)
+		{
+			const string l_report = "IPv4 Address" + Identity::formatIpString(Text::fromT(g_sSelectedIP));
+			const auto l_client = ClientManager::findClient(getHubHint());
+			if (l_client)
+			{
+				l_client->reportUser(l_report);
+			}
+		}
+		else
+		{
+			WinUtil::CheckOnWhoisIP(wID, g_sSelectedIP);
+		}
 	}
 	return 0;
 }

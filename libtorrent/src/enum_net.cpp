@@ -33,12 +33,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/config.hpp"
 #include "libtorrent/enum_net.hpp"
 #include "libtorrent/broadcast_socket.hpp"
-#include "libtorrent/error_code.hpp"
 #include "libtorrent/assert.hpp"
 #include "libtorrent/socket_type.hpp"
 
 #include <functional>
-#include <vector>
 #include <cstdlib> // for wcstombscstombs
 
 #include "libtorrent/aux_/disable_warnings_push.hpp"
@@ -152,7 +150,7 @@ namespace libtorrent { namespace
 
 #if TORRENT_USE_NETLINK
 
-	int read_nl_sock(int sock, char *buf, int bufsize, int seq, int pid)
+	int read_nl_sock(int sock, char *buf, int bufsize, int const seq, int const pid)
 	{
 		nlmsghdr* nl_hdr;
 
@@ -175,7 +173,7 @@ namespace libtorrent { namespace
 
 			if ((nl_hdr->nlmsg_flags & NLM_F_MULTI) == 0) break;
 
-		} while((nl_hdr->nlmsg_seq != seq) || (nl_hdr->nlmsg_pid != pid));
+		} while((int(nl_hdr->nlmsg_seq) != seq) || (int(nl_hdr->nlmsg_pid) != pid));
 		return msg_len;
 	}
 
@@ -232,8 +230,7 @@ namespace libtorrent { namespace
 #endif
 
 		if_indextoname(if_index, rt_info->name);
-		ifreq req;
-		memset(&req, 0, sizeof(req));
+		ifreq req = {};
 		if_indextoname(if_index, req.ifr_name);
 		ioctl(s, siocgifmtu, &req);
 		rt_info->mtu = req.ifr_mtu;
@@ -290,8 +287,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 		if_indextoname(rtm->rtm_index, rt_info->name);
 
 		// TODO: get the MTU (and other interesting metrics) from the rt_msghdr instead
-		ifreq req;
-		memset(&req, 0, sizeof(req));
+		ifreq req = {};
 		if_indextoname(rtm->rtm_index, req.ifr_name);
 
 		// ignore errors here. This is best-effort
@@ -478,8 +474,7 @@ namespace libtorrent
 				ip_interface iface;
 				if (iface_from_ifaddrs(ifa, iface))
 				{
-					ifreq req;
-					std::memset(&req, 0, sizeof(req));
+					ifreq req = {};
 					// -1 to leave a 0-terminator
 					std::strncpy(req.ifr_name, iface.name, IF_NAMESIZE - 1);
 
@@ -539,8 +534,7 @@ namespace libtorrent
 				iface.interface_address = sockaddr_to_address(&item.ifr_addr);
 				strcpy(iface.name, item.ifr_name);
 
-				ifreq req;
-				memset(&req, 0, sizeof(req));
+				ifreq req = {};
 				// -1 to leave a 0-terminator
 				strncpy(req.ifr_name, item.ifr_name, IF_NAMESIZE - 1);
 				if (ioctl(s, siocgifmtu, &req) < 0)
@@ -555,7 +549,7 @@ namespace libtorrent
 				iface.mtu = req.ifr_metric; // according to tcp/ip reference
 #endif
 
-				memset(&req, 0, sizeof(req));
+				std::memset(&req, 0, sizeof(req));
 				strncpy(req.ifr_name, item.ifr_name, IF_NAMESIZE - 1);
 				if (ioctl(s, SIOCGIFNETMASK, &req) < 0)
 				{
@@ -650,7 +644,7 @@ namespace libtorrent
 #endif
 
 		SOCKET s = socket(AF_INET, SOCK_DGRAM, 0);
-		if (s == SOCKET_ERROR)
+		if (int(s) == SOCKET_ERROR)
 		{
 			ec = error_code(WSAGetLastError(), system_category());
 			return ret;
@@ -1005,7 +999,7 @@ namespace libtorrent
 			int res = GetIpForwardTable2(AF_UNSPEC, &routes);
 			if (res == NO_ERROR)
 			{
-				for (int i = 0; i < routes->NumEntries; ++i)
+				for (int i = 0; i < int(routes->NumEntries); ++i)
 				{
 					ip_route r;
 					r.gateway = sockaddr_to_address((const sockaddr*)&routes->Table[i].NextHop);
@@ -1060,7 +1054,7 @@ namespace libtorrent
 
 		if (GetIpForwardTable(routes, &out_buf_size, FALSE) == NO_ERROR)
 		{
-			for (int i = 0; i < routes->dwNumEntries; ++i)
+			for (int i = 0; i < int(routes->dwNumEntries); ++i)
 			{
 				ip_route r;
 				r.destination = inaddr_to_address((in_addr const*)&routes->table[i].dwForwardDest);
@@ -1093,8 +1087,7 @@ namespace libtorrent
 
 		int seq = 0;
 
-		char msg[BUFSIZE];
-		memset(msg, 0, BUFSIZE);
+		char msg[BUFSIZE] = {};
 		nlmsghdr* nl_msg = reinterpret_cast<nlmsghdr*>(msg);
 
 		nl_msg->nlmsg_len = NLMSG_LENGTH(sizeof(rtmsg));
@@ -1149,8 +1142,8 @@ namespace libtorrent
 		std::vector<ip_interface> ifs = enum_net_interfaces(ios, ec);
 		if (ec) return false;
 
-		for (int i = 0; i < int(ifs.size()); ++i)
-			if (ifs[i].name == name) return true;
+		for (auto const& iface : ifs)
+			if (iface.name == name) return true;
 		return false;
 	}
 
@@ -1161,8 +1154,8 @@ namespace libtorrent
 		std::vector<ip_interface> ifs = enum_net_interfaces(ios, ec);
 		if (ec) return std::string();
 
-		for (int i = 0; i < int(ifs.size()); ++i)
-			if (ifs[i].interface_address == addr) return ifs[i].name;
+		for (auto const& iface : ifs)
+			if (iface.interface_address == addr) return iface.name;
 		return std::string();
 	}
 }

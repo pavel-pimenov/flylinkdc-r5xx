@@ -400,7 +400,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void save_transfer_history(bool p_is_torrent, eTypeTransfer p_type, const FinishedItemPtr& p_item);
 		void delete_transfer_history(const vector<__int64>& p_id_array);
 		void delete_transfer_history_torrent(const vector<__int64>& p_id_array);
-
+		
 		void save_torrent_resume(const libtorrent::sha1_hash& p_sha1, const std::string& p_name, const std::vector<char>& p_resume);
 		void load_torrent_resume(libtorrent::session& p_session);
 		void delete_torrent_resume(const libtorrent::sha1_hash& p_sha1);
@@ -809,9 +809,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_insert_transfer_torrent;
 		CFlySQLCommand m_delete_transfer;
 		CFlySQLCommand m_delete_transfer_torrent;
-
+		
 		
 		CFlySQLCommand m_insert_resume_torrent;
+		CFlySQLCommand m_update_resume_torrent;
 		CFlySQLCommand m_check_resume_torrent;
 		CFlySQLCommand m_select_resume_torrent;
 		CFlySQLCommand m_delete_resume_torrent;

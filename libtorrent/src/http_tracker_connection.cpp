@@ -56,7 +56,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/resolver_interface.hpp"
 #include "libtorrent/ip_filter.hpp"
 
-using namespace libtorrent;
 using namespace std::placeholders;
 
 namespace libtorrent
@@ -253,7 +252,8 @@ namespace libtorrent
 			m_tracker_connection->close();
 			m_tracker_connection.reset();
 		}
-		tracker_connection::close();
+		cancel();
+		m_man.remove_request(this);
 	}
 
 	// endpoints is an in-out parameter
@@ -393,7 +393,7 @@ namespace libtorrent
 
 		// extract ip
 		i = info.dict_find_string("ip");
-		if (i == 0)
+		if (!i)
 		{
 			ec = errors::invalid_tracker_response;
 			return false;
@@ -402,7 +402,7 @@ namespace libtorrent
 
 		// extract port
 		i = info.dict_find_int("port");
-		if (i == 0)
+		if (!i)
 		{
 			ec = errors::invalid_tracker_response;
 			return false;

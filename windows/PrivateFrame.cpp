@@ -191,8 +191,8 @@ void PrivateFrame::openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo
 		}
 		else if (!replyTo.hint.empty())
 		{
-			auto client = ClientManager::findClient(replyTo.hint);
-			myNick = client ? client->getMyNick() : SETTING(NICK);
+			const auto l_client = ClientManager::findClient(replyTo.hint);
+			myNick = l_client ? l_client->getMyNick() : SETTING(NICK);
 		}
 		else
 		{

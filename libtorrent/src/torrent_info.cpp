@@ -1097,7 +1097,7 @@ namespace libtorrent
 		ptrdiff_t const info_ptr_diff = m_info_section.get() - section.data();
 
 		// extract piece length
-		int piece_length = info.dict_find_int_value("piece length", -1);
+		int piece_length = int(info.dict_find_int_value("piece length", -1));
 		if (piece_length <= 0)
 		{
 			ec = errors::torrent_missing_piece_length;
@@ -1336,7 +1336,7 @@ namespace libtorrent
 		}
 
 		bdecode_node info = torrent_file.dict_find_dict("info");
-		if (info == 0)
+		if (!info)
 		{
 			bdecode_node link = torrent_file.dict_find_string("magnet-uri");
 			if (link)

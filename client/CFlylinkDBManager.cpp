@@ -2294,7 +2294,7 @@ void CFlylinkDBManager::delete_transfer_history_torrent(const vector<__int64>& p
 			CFlyLock(m_cs);
 			sqlite3_transaction l_trans(m_flySQLiteDB, p_id_array.size() > 1);
 			m_delete_transfer_torrent.init(m_flySQLiteDB,
-				"delete from transfer_db.fly_transfer_file_torrent where id=?");
+			                               "delete from transfer_db.fly_transfer_file_torrent where id=?");
 			for (auto i = p_id_array.cbegin(); i != p_id_array.cend(); ++i)
 			{
 				dcassert(*i);
@@ -2406,9 +2406,10 @@ void CFlylinkDBManager::save_torrent_resume(const libtorrent::sha1_hash& p_sha1,
 	try
 	{
 		m_check_resume_torrent.init(m_flySQLiteDB,
-			"select resume from queue_db.fly_queue_torrent where sha1=?");
+		                            "select resume,id from queue_db.fly_queue_torrent where sha1=?");
 		m_check_resume_torrent->bind(1, p_sha1.data(), p_sha1.size(), SQLITE_STATIC);
 		bool l_is_need_update = true;
+		__int64 l_ID = 0;
 		{
 			sqlite3_reader l_q_check = m_check_resume_torrent->executereader();
 			while (l_q_check.read())
@@ -2419,18 +2420,34 @@ void CFlylinkDBManager::save_torrent_resume(const libtorrent::sha1_hash& p_sha1,
 				if (!l_resume.empty() && l_resume.size() == p_resume.size())
 				{
 					l_is_need_update = !memcmp(&p_resume[0], &l_resume[0], l_resume.size());
+					l_ID = l_q_check.getint64(1);
 				}
 			}
 		}
 		if (l_is_need_update)
 		{
-			m_insert_resume_torrent.init(m_flySQLiteDB,
-				"insert or replace into queue_db.fly_queue_torrent (day,stamp,sha1,resume,name) "
-				"values(strftime('%s','now','localtime')/60/60/24,strftime('%s','now','localtime'),?,?,?)");
-			m_insert_resume_torrent->bind(1, p_sha1.data(), p_sha1.size(), SQLITE_STATIC);
-			m_insert_resume_torrent->bind(2, &p_resume[0], p_resume.size(), SQLITE_STATIC);
-			m_insert_resume_torrent->bind(3, p_name, SQLITE_STATIC);
-			m_insert_resume_torrent->executenonquery();
+			if (l_ID == 0)
+			{
+				m_insert_resume_torrent.init(m_flySQLiteDB,
+					"insert or replace into queue_db.fly_queue_torrent (day,stamp,sha1,resume,name) "
+					"values(strftime('%s','now','localtime')/60/60/24,strftime('%s','now','localtime'),?,?,?)");
+				m_insert_resume_torrent->bind(1, p_sha1.data(), p_sha1.size(), SQLITE_STATIC);
+				m_insert_resume_torrent->bind(2, &p_resume[0], p_resume.size(), SQLITE_STATIC);
+				m_insert_resume_torrent->bind(3, p_name, SQLITE_STATIC);
+				m_insert_resume_torrent->executenonquery();
+			}
+			else
+			{
+				m_update_resume_torrent.init(m_flySQLiteDB,
+					"update queue_db.fly_queue_torrent set day = strftime('%s','now','localtime')/60/60/24,\n"
+					"stamp = strftime('%s','now','localtime')\n"
+					"resume=?\n"
+					"name=? where id=?");
+				m_update_resume_torrent->bind(1, &p_resume[0], p_resume.size(), SQLITE_STATIC);
+				m_update_resume_torrent->bind(2, p_name, SQLITE_STATIC);
+				m_update_resume_torrent->bind(3, l_ID);
+				m_update_resume_torrent->executenonquery();
+			}
 		}
 	}
 	catch (const database_error& e)

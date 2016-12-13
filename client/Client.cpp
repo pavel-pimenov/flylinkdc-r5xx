@@ -92,12 +92,10 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 		"nsk154hub.ru",
 		"prostoigra24.ru",
 		"eva-hub.ru",
-		"aab-new-adrenalin.ru",
 		"titankaluga.ru"
 	};
 	if (l_lower_url.find("dc.fly-server.ru") != string::npos ||
-	        l_lower_url.find("adcs.flylinkdc.com") != string::npos ||
-	        l_lower_url.find("dc.livedc.ru") != string::npos)
+	        l_lower_url.find("adcs.flylinkdc.com") != string::npos)
 	{
 		m_is_fly_support_hub = true;
 	}

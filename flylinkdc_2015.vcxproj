@@ -720,7 +720,6 @@
     <Image Include="res\StateUsers.png" />
     <Image Include="res\thermometer2.ico" />
     <Image Include="res\torrent.png" />
-    <Image Include="res\vip_adrenalin.ico" />
     <Image Include="res\vip_allavtovo.ico" />
     <Image Include="res\vip_eva.ico" />
     <Image Include="res\vip_keepclear_org.ico" />

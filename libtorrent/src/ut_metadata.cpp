@@ -141,7 +141,7 @@ namespace libtorrent { namespace
 				metadata();
 		}
 
-		void metadata_size(int size)
+		void metadata_size(int const size)
 		{
 			if (m_metadata_size > 0 || size <= 0 || size > 4 * 1024 * 1024) return;
 			m_metadata_size = size;
@@ -211,11 +211,11 @@ namespace libtorrent { namespace
 			bdecode_node messages = h.dict_find_dict("m");
 			if (!messages) return false;
 
-			int index = messages.dict_find_int_value("ut_metadata", -1);
+			int index = int(messages.dict_find_int_value("ut_metadata", -1));
 			if (index == -1) return false;
 			m_message_index = index;
 
-			int metadata_size = h.dict_find_int_value("metadata_size");
+			int metadata_size = int(h.dict_find_int_value("metadata_size"));
 			if (metadata_size > 0)
 				m_tp.metadata_size(metadata_size);
 			else
@@ -225,7 +225,7 @@ namespace libtorrent { namespace
 			return true;
 		}
 
-		void write_metadata_packet(int type, int piece)
+		void write_metadata_packet(int const type, int const piece)
 		{
 			TORRENT_ASSERT(type >= 0 && type <= 2);
 			TORRENT_ASSERT(!m_pc.associated_torrent().expired());
@@ -272,9 +272,9 @@ namespace libtorrent { namespace
 			int len = bencode(p, e);
 			int total_size = 2 + len + metadata_piece_size;
 			namespace io = detail;
-			io::write_uint32(std::uint32_t(total_size), header);
+			io::write_uint32(total_size, header);
 			io::write_uint8(bt_peer_connection::msg_extended, header);
-			io::write_uint8(std::uint8_t(m_message_index), header);
+			io::write_uint8(m_message_index, header);
 
 			m_pc.send_buffer(msg, len + 6);
 			// TODO: we really need to increment the refcounter on the torrent
@@ -328,8 +328,8 @@ namespace libtorrent { namespace
 				m_pc.disconnect(errors::invalid_metadata_message, op_bittorrent, 2);
 				return true;
 			}
-			int type = type_ent->integer();
-			int piece = piece_ent->integer();
+			int type = int(type_ent->integer());
+			int piece = int(piece_ent->integer());
 
 #ifndef TORRENT_DISABLE_LOGGING
 			m_pc.peer_log(peer_log_alert::incoming_message, "UT_METADATA"
@@ -366,7 +366,7 @@ namespace libtorrent { namespace
 				break;
 				case metadata_piece:
 				{
-					std::vector<int>::iterator i = std::find(m_sent_requests.begin()
+					auto const i = std::find(m_sent_requests.begin()
 						, m_sent_requests.end(), piece);
 
 					// unwanted piece?
@@ -381,15 +381,15 @@ namespace libtorrent { namespace
 
 					m_sent_requests.erase(i);
 					entry const* total_size = msg.find_key("total_size");
-					m_tp.received_metadata(*this, body.begin() + len, int(body.size()) - len, piece
-						, (total_size && total_size->type() == entry::int_t) ? total_size->integer() : 0);
+					m_tp.received_metadata(*this, body.begin() + len, int(body.size() - len), piece
+						, (total_size && total_size->type() == entry::int_t) ? int(total_size->integer()) : 0);
 					maybe_send_request();
 				}
 				break;
 				case metadata_dont_have:
 				{
 					m_request_limit = (std::max)(aux::time_now() + minutes(1), m_request_limit);
-					std::vector<int>::iterator i = std::find(m_sent_requests.begin()
+					auto const i = std::find(m_sent_requests.begin()
 						, m_sent_requests.end(), piece);
 					// unwanted piece?
 					if (i == m_sent_requests.end()) return true;
@@ -486,7 +486,7 @@ namespace libtorrent { namespace
 	// has_metadata is false if the peer making the request has not announced
 	// that it has metadata. In this case, it shouldn't prevent other peers
 	// from requesting this block by setting a timeout on it.
-	int ut_metadata_plugin::metadata_request(bool has_metadata)
+	int ut_metadata_plugin::metadata_request(bool const has_metadata)
 	{
 		std::vector<metadata_piece>::iterator i = std::min_element(
 			m_requested_metadata.begin(), m_requested_metadata.end());
@@ -499,7 +499,7 @@ namespace libtorrent { namespace
 			i = m_requested_metadata.begin();
 		}
 
-		int piece = i - m_requested_metadata.begin();
+		int piece = int(i - m_requested_metadata.begin());
 
 		// don't request the same block more than once every 3 seconds
 		time_point now = aux::time_now();

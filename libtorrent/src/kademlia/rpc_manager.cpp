@@ -34,7 +34,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/io.hpp>
 #include <libtorrent/random.hpp>
 #include <libtorrent/invariant_check.hpp>
-#include <libtorrent/kademlia/node_id.hpp> // for generate_random_id
 #include <libtorrent/kademlia/rpc_manager.hpp>
 #include <libtorrent/kademlia/routing_table.hpp>
 #include <libtorrent/kademlia/find_data.hpp>
@@ -281,7 +280,7 @@ bool rpc_manager::incoming(msg const& m, node_id* id)
 		return false;
 	}
 
-	time_point now = clock_type::now();
+	time_point const now = clock_type::now();
 
 #ifndef TORRENT_DISABLE_LOGGING
 	if (m_log->should_log(dht_logger::rpc_manager))

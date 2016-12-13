@@ -211,10 +211,9 @@
 #define IDR_VIP_ICO_NSK154              321
 #define IDR_VIP_ICO_PROSTOIGRA          322
 #define IDR_VIP_ICO_EVAHUB              323
-#define IDR_VIP_ICO_ADRENALIN           324
-#define IDR_VIP_ICO_TITANKALUGA         325
-#define IDR_TORRENT_PNG                 326
-#define IDR_TRANSFER_TREE               327
+#define IDR_VIP_ICO_TITANKALUGA         324
+#define IDR_TORRENT_PNG                 325
+#define IDR_TRANSFER_TREE               326
 #define IDR_ICON_XXX_BLOCK              999
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
@@ -1608,6 +1607,7 @@
 #define IDC_OPEN_TORRENT_FILE           2523
 #define IDC_REMOVE_TORRENT              2524
 #define IDC_REMOVE_TORRENT_AND_FILE     2525
+#define IDC_WHOIS_IP4_INFO              2526
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000

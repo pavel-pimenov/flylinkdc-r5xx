@@ -53,6 +53,7 @@ namespace zmq
         inline thread_t ()
             : tfn(NULL)
             , arg(NULL)
+			, descriptor(NULL)
         {
         }
 

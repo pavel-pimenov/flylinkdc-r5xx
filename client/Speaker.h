@@ -28,7 +28,6 @@
 #include <vector>
 #include "CFlyThread.h"
 #include "noexcept.h"
-
 #include "webrtc/system_wrappers/include/rw_lock_wrapper.h"
 
 template<typename Listener>
@@ -101,6 +100,12 @@ class Speaker
 			CFlyLock(m_listenerCS);
 			ListenerList tmp = m_listeners;
 #ifdef _DEBUG
+			extern volatile bool g_isBeforeShutdown;
+			if (g_isBeforeShutdown && !tmp.empty())
+			{
+				log_listener_list(tmp, "fire-before-destroy!");
+			}
+
 			extern volatile bool g_isShutdown;
 			if (g_isShutdown && !tmp.empty())
 			{
@@ -305,6 +310,8 @@ after_fire_process();
 		
 		void addListener(Listener* aListener)
 		{
+			extern volatile bool g_isBeforeShutdown;
+			dcassert(!g_isBeforeShutdown);
 			CFlyLock(m_listenerCS);
 			if (boost::range::find(m_listeners, aListener) == m_listeners.end())
 			{

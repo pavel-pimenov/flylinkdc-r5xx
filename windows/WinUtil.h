@@ -1534,7 +1534,7 @@ class WinUtil
 #else
 		static std::unique_ptr<HIconWrapper> g_HubVirusIcon;
 #endif
-		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[13]; // VIP_ICON
+		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[12]; // VIP_ICON
 		
 		static void initThemeIcons();
 		
@@ -1543,7 +1543,6 @@ class WinUtil
 		static FlatTabCtrl* g_tabCtrl;
 		static HHOOK g_hook;
 		static bool g_isAppActive;
-		static bool mutesounds;
 		
 		static void init(HWND hWnd);
 		static void uninit();

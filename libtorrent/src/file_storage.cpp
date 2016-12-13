@@ -36,9 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/utf8.hpp"
 
 #include "libtorrent/aux_/disable_warnings_push.hpp"
-
 #include <boost/crc.hpp>
-
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 
 #include <cstdio>
@@ -127,7 +125,7 @@ namespace libtorrent
 			// split the string into the leaf filename
 			// and the branch path
 			branch_path = path.c_str();
-			branch_len = leaf - path.c_str();
+			branch_len = int(leaf - path.c_str());
 
 			// trim trailing slashes
 			if (branch_len > 0 && branch_path[branch_len - 1] == TORRENT_SEPARATOR)
@@ -176,7 +174,7 @@ namespace libtorrent
 		else
 		{
 			// yes we do. use it
-			e.path_index = p.base() - m_paths.begin() - 1;
+			e.path_index = int(p.base() - m_paths.begin() - 1);
 		}
 		if (set_name) e.set_name(leaf);
 	}
@@ -317,7 +315,7 @@ namespace libtorrent
 
 	string_view internal_file_entry::filename() const
 	{
-		if (name_len != name_is_owned) return { name, size_t(name_len) };
+		if (name_len != name_is_owned) return {name, std::size_t(name_len)};
 		return name ? string_view(name) : string_view();
 	}
 
@@ -415,7 +413,7 @@ namespace libtorrent
 
 		TORRENT_ASSERT(file_iter != m_files.begin());
 		--file_iter;
-		return file_iter - m_files.begin();
+		return int(file_iter - m_files.begin());
 	}
 
 	char const* file_storage::file_name_ptr(int index) const
@@ -446,7 +444,7 @@ namespace libtorrent
 
 		// in case the size is past the end, fix it up
 		if (std::int64_t(target.offset + size) > m_total_size)
-			size = m_total_size - target.offset;
+			size = int(m_total_size - target.offset);
 
 		auto file_iter = std::upper_bound(
 			m_files.begin(), m_files.end(), target, compare_file_offset);
@@ -461,7 +459,7 @@ namespace libtorrent
 			if (file_offset < std::int64_t(file_iter->size))
 			{
 				file_slice f;
-				f.file_index = file_iter - m_files.begin();
+				f.file_index = int(file_iter - m_files.begin());
 				f.offset = file_offset
 #ifndef TORRENT_NO_DEPRECATE
 					+ file_base_deprecated(f.file_index)
@@ -630,7 +628,7 @@ namespace libtorrent
 		return m_symlinks[fe.symlink_index];
 	}
 
-	time_t file_storage::mtime(int index) const
+	std::time_t file_storage::mtime(int index) const
 	{
 		if (index >= int(m_mtime.size())) return 0;
 		return m_mtime[index];
@@ -670,7 +668,7 @@ namespace libtorrent
 		if (!m_name.empty())
 		{
 			process_string_lowercase(crc, m_name);
-			TORRENT_ASSERT(m_name[m_name.size()-1] != TORRENT_SEPARATOR);
+			TORRENT_ASSERT(m_name[m_name.size() - 1] != TORRENT_SEPARATOR);
 			crc.process_byte(TORRENT_SEPARATOR);
 		}
 
@@ -700,7 +698,7 @@ namespace libtorrent
 			if (!save_path.empty())
 			{
 				process_string_lowercase(crc, save_path);
-				TORRENT_ASSERT(save_path[save_path.size()-1] != TORRENT_SEPARATOR);
+				TORRENT_ASSERT(save_path[save_path.size() - 1] != TORRENT_SEPARATOR);
 				crc.process_byte(TORRENT_SEPARATOR);
 			}
 			process_string_lowercase(crc, fe.filename());
@@ -710,14 +708,14 @@ namespace libtorrent
 			if (!save_path.empty())
 			{
 				process_string_lowercase(crc, save_path);
-				TORRENT_ASSERT(save_path[save_path.size()-1] != TORRENT_SEPARATOR);
+				TORRENT_ASSERT(save_path[save_path.size() - 1] != TORRENT_SEPARATOR);
 				crc.process_byte(TORRENT_SEPARATOR);
 			}
 			std::string const& p = m_paths[fe.path_index];
 			if (!p.empty())
 			{
 				process_string_lowercase(crc, p);
-				TORRENT_ASSERT(p[p.size()-1] != TORRENT_SEPARATOR);
+				TORRENT_ASSERT(p[p.size() - 1] != TORRENT_SEPARATOR);
 				crc.process_byte(TORRENT_SEPARATOR);
 			}
 			process_string_lowercase(crc, fe.filename());
@@ -727,12 +725,12 @@ namespace libtorrent
 			if (!save_path.empty())
 			{
 				process_string_lowercase(crc, save_path);
-				TORRENT_ASSERT(save_path[save_path.size()-1] != TORRENT_SEPARATOR);
+				TORRENT_ASSERT(save_path[save_path.size() - 1] != TORRENT_SEPARATOR);
 				crc.process_byte(TORRENT_SEPARATOR);
 			}
 			process_string_lowercase(crc, m_name);
 			TORRENT_ASSERT(m_name.size() > 0);
-			TORRENT_ASSERT(m_name[m_name.size()-1] != TORRENT_SEPARATOR);
+			TORRENT_ASSERT(m_name[m_name.size() - 1] != TORRENT_SEPARATOR);
 			crc.process_byte(TORRENT_SEPARATOR);
 
 			std::string const& p = m_paths[fe.path_index];
@@ -740,7 +738,7 @@ namespace libtorrent
 			{
 				process_string_lowercase(crc, p);
 				TORRENT_ASSERT(p.size() > 0);
-				TORRENT_ASSERT(p[p.size()-1] != TORRENT_SEPARATOR);
+				TORRENT_ASSERT(p[p.size() - 1] != TORRENT_SEPARATOR);
 				crc.process_byte(TORRENT_SEPARATOR);
 			}
 			process_string_lowercase(crc, fe.filename());
@@ -819,6 +817,7 @@ namespace libtorrent
 
 	int file_storage::file_flags(int index) const
 	{
+		TORRENT_ASSERT_PRECOND(index >= 0 && index < int(m_files.size()));
 		internal_file_entry const& fe = m_files[index];
 		return (fe.pad_file ? flag_pad_file : 0)
 			| (fe.hidden_attribute ? flag_hidden : 0)
@@ -828,6 +827,7 @@ namespace libtorrent
 
 	bool file_storage::file_absolute_path(int index) const
 	{
+		TORRENT_ASSERT_PRECOND(index >= 0 && index < int(m_files.size()));
 		internal_file_entry const& fe = m_files[index];
 		return fe.path_index == -2;
 	}
@@ -854,7 +854,7 @@ namespace libtorrent
 
 	sha1_hash file_storage::hash(internal_file_entry const& fe) const
 	{
-		int index = &fe - &m_files[0];
+		int index = int(&fe - &m_files[0]);
 		if (index >= int(m_file_hashes.size())) return sha1_hash(nullptr);
 		return sha1_hash(m_file_hashes[index]);
 	}
@@ -865,23 +865,23 @@ namespace libtorrent
 		return m_symlinks[fe.symlink_index];
 	}
 
-	time_t file_storage::mtime(internal_file_entry const& fe) const
+	std::time_t file_storage::mtime(internal_file_entry const& fe) const
 	{
-		int index = &fe - &m_files[0];
+		int index = int(&fe - &m_files[0]);
 		if (index >= int(m_mtime.size())) return 0;
 		return m_mtime[index];
 	}
 
 	int file_storage::file_index(internal_file_entry const& fe) const
 	{
-		int index = &fe - &m_files[0];
+		int index = int(&fe - &m_files[0]);
 		TORRENT_ASSERT_PRECOND(index >= 0 && index < int(m_files.size()));
 		return index;
 	}
 
 	void file_storage::set_file_base(internal_file_entry const& fe, std::int64_t off)
 	{
-		int index = &fe - &m_files[0];
+		int index = int(&fe - &m_files[0]);
 		TORRENT_ASSERT_PRECOND(index >= 0 && index < int(m_files.size()));
 		if (int(m_file_base.size()) <= index) m_file_base.resize(index + 1, 0);
 		m_file_base[index] = off;
@@ -889,7 +889,7 @@ namespace libtorrent
 
 	std::int64_t file_storage::file_base(internal_file_entry const& fe) const
 	{
-		int index = &fe - &m_files[0];
+		int index = int(&fe - &m_files[0]);
 		if (index >= int(m_file_base.size())) return 0;
 		return m_file_base[index];
 	}
@@ -897,7 +897,7 @@ namespace libtorrent
 	std::string file_storage::file_path(internal_file_entry const& fe
 		, std::string const& save_path) const
 	{
-		int const index = &fe - &m_files[0];
+		int const index = int(&fe - &m_files[0]);
 		return file_path(index, save_path);
 	}
 
@@ -922,7 +922,7 @@ namespace libtorrent
 	}
 
 	file_entry file_storage::at(file_storage::iterator i) const
-	{ return at_deprecated(i - m_files.begin()); }
+	{ return at_deprecated(int(i - m_files.begin())); }
 #endif // TORRENT_NO_DEPRECATE
 
 	void file_storage::reorder_file(int const index, int const dst)
@@ -990,8 +990,8 @@ namespace libtorrent
 
 				if (best_match != i)
 				{
-					int const index = best_match - m_files.begin();
-					int const cur_index = i - m_files.begin();
+					int const index = int(best_match - m_files.begin());
+					int const cur_index = int(i - m_files.begin());
 					reorder_file(index, cur_index);
 					i = m_files.begin() + cur_index;
 				}
@@ -1028,8 +1028,8 @@ namespace libtorrent
 						// look for files <= pad_size, which never is greater than
 						// alignment
 						TORRENT_ASSERT(best_match != i);
-						int index = best_match - m_files.begin();
-						int cur_index = i - m_files.begin();
+						int index = int(best_match - m_files.begin());
+						int cur_index = int(i - m_files.begin());
 						reorder_file(index, cur_index);
 						i = m_files.begin() + cur_index;
 						i->offset = off;
@@ -1081,7 +1081,7 @@ namespace libtorrent
 		, std::int64_t& offset
 		, int& pad_file_counter)
 	{
-		int const cur_index = i - m_files.begin();
+		int const cur_index = int(i - m_files.begin());
 		int const index = int(m_files.size());
 		m_files.push_back(internal_file_entry());
 		++m_num_files;
@@ -1113,7 +1113,7 @@ namespace libtorrent
 		std::vector<internal_file_entry>().swap(m_files);
 		std::vector<char const*>().swap(m_file_hashes);
 		std::vector<std::string>().swap(m_symlinks);
-		std::vector<time_t>().swap(m_mtime);
+		std::vector<std::time_t>().swap(m_mtime);
 #ifndef TORRENT_NO_DEPRECATE
 		std::vector<std::int64_t>().swap(m_file_base);
 #endif
@@ -1135,7 +1135,7 @@ namespace libtorrent
 		// contained within the last file.
 		int const end_piece = (file == fs.num_files() - 1)
 			? fs.num_pieces()
-			: (range.piece * piece_size + range.start + file_size + 1) / piece_size;
+			: int((range.piece * piece_size + range.start + file_size + 1) / piece_size);
 		return std::make_tuple(begin_piece, end_piece);
 	}
 

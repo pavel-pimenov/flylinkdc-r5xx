@@ -1459,8 +1459,8 @@ namespace libtorrent
 			names.append(torrent_name, name_length);
 #endif
 
-			if (strncmp(torrent_name, "*", name_length) == 0
-				|| strncmp(torrent_name, m_torrent_file->name().c_str(), name_length) == 0)
+			if (std::strncmp(torrent_name, "*", name_length) == 0
+				|| std::strncmp(torrent_name, m_torrent_file->name().c_str(), name_length) == 0)
 			{
 #ifdef TORRENT_DISABLE_LOGGING
 				return true;
@@ -1501,7 +1501,7 @@ namespace libtorrent
 
 		if (!ctx)
 		{
-			error_code ec(::ERR_get_error(),
+			error_code ec(int(::ERR_get_error()),
 				boost::asio::error::get_ssl_category());
 			set_error(ec, torrent_status::error_file_ssl_ctx);
 			pause();
@@ -1539,7 +1539,7 @@ namespace libtorrent
 		X509_STORE* cert_store = X509_STORE_new();
 		if (!cert_store)
 		{
-			ec.assign(::ERR_get_error(),
+			ec.assign(int(::ERR_get_error()),
 				boost::asio::error::get_ssl_category());
 			set_error(ec, torrent_status::error_file_ssl_ctx);
 			pause();
@@ -1559,7 +1559,7 @@ namespace libtorrent
 
 		if (!certificate)
 		{
-			ec.assign(::ERR_get_error(),
+			ec.assign(int(::ERR_get_error()),
 				boost::asio::error::get_ssl_category());
 			X509_STORE_free(cert_store);
 			set_error(ec, torrent_status::error_file_ssl_ctx);
@@ -1770,10 +1770,10 @@ namespace libtorrent
 			// maybe this whole section should move to need_picker()
 			need_picker();
 
-			peer_request pr = m_torrent_file->map_file(i, 0, fs.file_size(i));
-			int off = pr.start & (block_size()-1);
+			peer_request pr = m_torrent_file->map_file(i, 0, int(fs.file_size(i)));
+			int off = pr.start & (block_size() - 1);
 			if (off != 0) { pr.length -= block_size() - off; pr.start += block_size() - off; }
-			TORRENT_ASSERT((pr.start & (block_size()-1)) == 0);
+			TORRENT_ASSERT((pr.start & (block_size() - 1)) == 0);
 
 			int block = block_size();
 			int blocks_per_piece = m_torrent_file->piece_length() / block;
@@ -1786,7 +1786,7 @@ namespace libtorrent
 			// ugly edge case where padfiles are not used they way they're
 			// supposed to be. i.e. added back-to back or at the end
 			if (pb.block_index == blocks_per_piece) { pb.block_index = 0; ++pb.piece_index; }
-			if (pr.length > 0 && ((i+1 != fs.num_files() && fs.pad_file_at(i + 1))
+			if (pr.length > 0 && ((i + 1 != fs.num_files() && fs.pad_file_at(i + 1))
 				|| i + 1 == fs.num_files()))
 			{
 				m_picker->mark_as_finished(pb, nullptr);
@@ -2324,7 +2324,7 @@ namespace libtorrent
 			}
 		}
 
-		m_progress_ppm = std::int64_t(m_num_checked_pieces) * 1000000 / torrent_file().num_pieces();
+		m_progress_ppm = std::uint32_t(std::int64_t(m_num_checked_pieces) * 1000000 / torrent_file().num_pieces());
 
 		if (settings().get_bool(settings_pack::disable_hash_checks)
 			|| piece_hash == m_torrent_file->hash_for_piece(piece))
@@ -2567,7 +2567,7 @@ namespace libtorrent
 		if (m_ses.alerts().should_post<dht_reply_alert>())
 		{
 			m_ses.alerts().emplace_alert<dht_reply_alert>(
-				get_handle(), peers.size());
+				get_handle(), int(peers.size()));
 		}
 
 		if (torrent_file().priv() || (torrent_file().is_i2p()
@@ -2665,7 +2665,7 @@ namespace libtorrent
 		req.num_want = (req.event == tracker_request::stopped)
 			? 0 : settings().get_int(settings_pack::num_want);
 
-		time_point now = clock_type::now();
+		time_point const now = clock_type::now();
 
 		// the tier is kept as INT_MAX until we find the first
 		// tracker that works, then it's set to that tracker's
@@ -2770,7 +2770,7 @@ namespace libtorrent
 #endif
 			req.key = tracker_key();
 
-#ifdef TORRENT_USE_OPENSSL
+#if TORRENT_USE_I2P
 			if (is_i2p())
 			{
 				req.kind |= tracker_request::i2p;
@@ -2963,7 +2963,7 @@ namespace libtorrent
 			ae->fails = 0;
 			ae->next_announce = now + seconds(interval);
 			ae->min_announce = now + seconds(resp.min_interval);
-			int tracker_index = ae - &m_trackers[0];
+			int tracker_index = int(ae - &m_trackers[0]);
 			m_last_working_tracker = std::int8_t(prioritize_tracker(tracker_index));
 
 			if ((!resp.trackerid.empty()) && (ae->trackerid != resp.trackerid))
@@ -3099,9 +3099,9 @@ namespace libtorrent
 			|| r.triggered_manually)
 		{
 			m_ses.alerts().emplace_alert<tracker_reply_alert>(
-				get_handle(), resp.peers.size() + resp.peers4.size()
+				get_handle(), int(resp.peers.size() + resp.peers4.size())
 #if TORRENT_USE_IPV6
-				+ resp.peers6.size()
+				+ int(resp.peers6.size())
 #endif
 				, r.url);
 		}
@@ -3500,7 +3500,7 @@ namespace libtorrent
 			for (int i = 0; i < files.num_files(); ++i)
 			{
 				if (!files.pad_file_at(i)) continue;
-				peer_request p = files.map_file(i, 0, files.file_size(i));
+				peer_request p = files.map_file(i, 0, int(files.file_size(i)));
 				for (int j = p.piece; p.length > 0; ++j)
 				{
 					int deduction = (std::min)(p.length, piece_size - p.start);
@@ -4378,7 +4378,7 @@ namespace libtorrent
 		}
 
 		if (avail_vec.empty()) return -1;
-		return avail_vec[random(avail_vec.size() - 1)];
+		return avail_vec[random(std::uint32_t(avail_vec.size() - 1))];
 	}
 
 	void torrent::on_files_deleted(storage_error const& error) try
@@ -4648,7 +4648,7 @@ namespace libtorrent
 				{
 					// update the average download time and average
 					// download time deviation
-					int dl_time = total_milliseconds(aux::time_now() - i->first_requested);
+					int dl_time = int(total_milliseconds(aux::time_now() - i->first_requested));
 
 					if (m_average_piece_time == 0)
 					{
@@ -7799,7 +7799,7 @@ namespace libtorrent
 #if TORRENT_USE_INVARIANT_CHECKS
 	void torrent::check_invariant() const
 	{
-		TORRENT_ASSERT(current_stats_state() == m_current_gauge_state + counters::num_checking_torrents
+		TORRENT_ASSERT(current_stats_state() == int(m_current_gauge_state + counters::num_checking_torrents)
 			|| m_current_gauge_state == no_gauge_state);
 
 		for (std::vector<time_critical_piece>::const_iterator i = m_time_critical_pieces.begin()
@@ -9367,7 +9367,7 @@ namespace libtorrent
 			return;
 
 		// now, pick one of the rarest pieces to download
-		int const pick = random(rarest_pieces.size() - 1);
+		int const pick = random(std::uint32_t(rarest_pieces.size() - 1));
 		bool const was_finished = is_finished();
 		m_picker->set_piece_priority(rarest_pieces[pick], 1);
 		update_gauge();
@@ -9429,7 +9429,6 @@ namespace libtorrent
 	int peer_index(libtorrent::tcp::endpoint addr
 		, std::vector<libtorrent::peer_info> const& peers)
 	{
-		using namespace libtorrent;
 		std::vector<peer_info>::const_iterator i = std::find_if(peers.begin()
 			, peers.end(), std::bind(&peer_info::ip, _1) == addr);
 		if (i == peers.end()) return -1;
@@ -9441,9 +9440,7 @@ namespace libtorrent
 		, std::vector<libtorrent::peer_info> const& peers
 		, std::vector<time_critical_piece> const& time_critical)
 	{
-		using namespace libtorrent;
-
-		time_point now = clock_type::now();
+		time_point const now = clock_type::now();
 
 		float deadline = 0.f;
 		float last_request = 0.f;
@@ -9810,7 +9807,7 @@ namespace libtorrent
 		// piece is done
 		std::vector<peer_connection*> ignore_peers;
 
-		time_point now = clock_type::now();
+		time_point const now = clock_type::now();
 
 		// now, iterate over all time critical pieces, in order of importance, and
 		// request them from the peers, in order of responsiveness. i.e. request
@@ -9870,8 +9867,8 @@ namespace libtorrent
 				// of a piece since we requested the last block, allow
 				// one more request per block
 				if (m_average_piece_time > 0)
-					timed_out = total_milliseconds(now - i->last_requested)
-						/ (std::max)(int(m_average_piece_time + m_piece_time_deviation / 2), 1);
+					timed_out = int(total_milliseconds(now - i->last_requested)
+						/ (std::max)(int(m_average_piece_time + m_piece_time_deviation / 2), 1));
 
 #if TORRENT_DEBUG_STREAMING > 0
 				i->timed_out = timed_out;
@@ -10822,8 +10819,8 @@ namespace libtorrent
 		}
 		else
 		{
-			st->progress_ppm = st->total_wanted_done * 1000000
-				/ st->total_wanted;
+			st->progress_ppm = int(st->total_wanted_done * 1000000
+				/ st->total_wanted);
 #if !TORRENT_NO_FPU
 			st->progress = st->progress_ppm / 1000000.f;
 #endif
@@ -10929,7 +10926,7 @@ namespace libtorrent
 					, retry_interval);
 				ae->last_error = ec;
 				ae->message = msg;
-				int tracker_index = ae - &m_trackers[0];
+				int tracker_index = int(ae - &m_trackers[0]);
 #ifndef TORRENT_DISABLE_LOGGING
 				debug_log("*** increment tracker fail count [%d]", ae->fails);
 #endif

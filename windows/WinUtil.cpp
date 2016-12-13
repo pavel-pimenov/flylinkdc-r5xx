@@ -122,7 +122,7 @@ HIconWrapper WinUtil::g_hClockIcon(IDR_ICON_CLOCK);
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOnIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOffIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIcon;
-std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIconVIP[13]; // VIP_ICON
+std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIconVIP[12]; // VIP_ICON
 std::unique_ptr<HIconWrapper> WinUtil::g_HubDDoSIcon;
 HIconWrapper WinUtil::g_hThermometerIcon(IDR_ICON_THERMOMETR_BAG);
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -511,8 +511,7 @@ void WinUtil::initThemeIcons()
 	g_HubFlylinkDCIconVIP[8] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_NSK154));
 	g_HubFlylinkDCIconVIP[9] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_PROSTOIGRA));
 	g_HubFlylinkDCIconVIP[10] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_EVAHUB));
-	g_HubFlylinkDCIconVIP[11] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_ADRENALIN));
-	g_HubFlylinkDCIconVIP[12] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_TITANKALUGA));
+	g_HubFlylinkDCIconVIP[11] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_TITANKALUGA));
 	
 	g_HubDDoSIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_ICON_MEDICAL_BAG));
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -4210,7 +4209,8 @@ void WinUtil::AppendMenuOnWhoisIP(CMenu& p_menuname, const tstring& p_IP, bool p
 {
 	// ToDo::  if p_inSubmenu == true : create and append into SubMenu
 	p_menuname.AppendMenu(MF_STRING, IDC_WHOIS_IP, (TSTRING(WHO_IS) + _T(" Ripe.net  ") + p_IP).c_str());
-	p_menuname.AppendMenu(MF_STRING, IDC_WHOIS_IP2, (TSTRING(WHO_IS) + _T("  Bgp.He  ") + p_IP).c_str());
+	p_menuname.AppendMenu(MF_STRING, IDC_WHOIS_IP2, (TSTRING(WHO_IS) + _T(" Bgp.He  ") + p_IP).c_str());
+	p_menuname.AppendMenu(MF_STRING, IDC_WHOIS_IP4_INFO, tstring(_T(" IP v4 Info ") + p_IP).c_str());
 	//p_menu.AppendMenu(MF_SEPARATOR);
 }
 #endif

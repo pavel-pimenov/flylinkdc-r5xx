@@ -2698,7 +2698,7 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 		if (!l_parsingSuccessful && !l_json_result.empty())
 		{
 			dcassert(0);
-			LogManager::message("Failed to parse json ExtJSON:" + l_json_result);
+			LogManager::message("Failed to parse ExtJSON:" + param);
 			return false;
 		}
 		else

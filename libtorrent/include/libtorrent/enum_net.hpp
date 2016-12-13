@@ -37,8 +37,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/aux_/disable_warnings_push.hpp"
 
-#include <vector>
-
 #if TORRENT_USE_IFCONF || TORRENT_USE_NETLINK || TORRENT_USE_SYSCTL
 #include <sys/socket.h> // for SO_BINDTODEVICE
 #endif
@@ -50,6 +48,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/socket.hpp"
 #include "libtorrent/aux_/bind_to_device.hpp"
+
+#include <vector>
 
 namespace libtorrent
 {
@@ -140,16 +140,16 @@ namespace libtorrent
 
 			bool found = false;
 
-			for (int i = 0; i < int(ifs.size()); ++i)
+			for (auto const& iface : ifs)
 			{
 				// we're looking for a specific interface, and its address
 				// (which must be of the same family as the address we're
 				// connecting to)
-				if (strcmp(ifs[i].name, device_name) != 0) continue;
-				if (ifs[i].interface_address.is_v4() != (protocol == boost::asio::ip::tcp::v4()))
+				if (std::strcmp(iface.name, device_name) != 0) continue;
+				if (iface.interface_address.is_v4() != (protocol == boost::asio::ip::tcp::v4()))
 					continue;
 
-				bind_ep.address(ifs[i].interface_address);
+				bind_ep.address(iface.interface_address);
 				found = true;
 				break;
 			}

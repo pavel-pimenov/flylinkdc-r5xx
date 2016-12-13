@@ -3217,12 +3217,6 @@ void SearchFrame::initHubs()
 		
 		ctrlHubs.insertItem(new HubInfo(Util::emptyStringT, TSTRING(ONLY_WHERE_OP), false), 0);
 		ctrlHubs.SetCheckState(0, false);
-#ifdef IRAINMAN_SEARCH_OPTIONS
-		ctrlHubs.insertItem(new HubInfo(Util::emptyStringT, TSTRING(REMOVE_ALL_MARKS), false), 0);
-		ctrlHubs.SetCheckState(1, false);
-		ctrlHubs.insertItem(new HubInfo(Util::emptyStringT, TSTRING(INVERT_MARKS), false), 0);
-		ctrlHubs.SetCheckState(2, false);
-#endif
 		ClientManager::getInstance()->addListener(this);
 #ifdef IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
 		{
@@ -3258,14 +3252,7 @@ void SearchFrame::onHubAdded(HubInfo* info)
 		int nItem = ctrlHubs.insertItem(info, 0);
 		if (nItem >= 0)
 		{
-#ifdef IRAINMAN_SEARCH_OPTIONS
-			bool check = ctrlHubs.GetCheckState(0) ? info->op : true;
-			if (ctrlHubs.GetCheckState(1))
-				check = false;
-			ctrlHubs.SetCheckState(nItem, check);
-#else
 			ctrlHubs.SetCheckState(nItem, (ctrlHubs.GetCheckState(0) ? info->m_is_op : true));
-#endif
 			ctrlHubs.SetColumnWidth(0, LVSCW_AUTOSIZE);
 		}
 	}
@@ -3291,13 +3278,6 @@ void SearchFrame::onHubChanged(HubInfo* info)
 		
 		if (ctrlHubs.GetCheckState(0))
 			ctrlHubs.SetCheckState(nItem, info->m_is_op);
-#ifdef IRAINMAN_SEARCH_OPTIONS
-		if (ctrlHubs.GetCheckState(1))
-			ctrlHubs.SetCheckState(nItem, false);
-			
-		if (ctrlHubs.GetCheckState(2))
-			ctrlHubs.SetCheckState(nItem, !ctrlHubs.GetCheckState(nItem));
-#endif
 			
 		ctrlHubs.SetColumnWidth(0, LVSCW_AUTOSIZE);
 	}
@@ -3475,23 +3455,6 @@ LRESULT SearchFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 	}
 	return 0;
 }
-
-#ifdef IRAINMAN_SEARCH_OPTIONS
-LRESULT SearchFrame::onHubChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-{
-	if (!CompatibilityManager::isWine())
-	{
-		int nItem = 0;
-		const int n = ctrlHubs.GetItemCount();
-		for (; nItem < n; nItem++)
-		{
-			if (ctrlHubs.GetCheckState(2))
-				ctrlHubs.SetCheckState(nItem, !ctrlHubs.GetCheckState(nItem));
-		}
-	}
-	return 0;
-}
-#endif
 
 LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {

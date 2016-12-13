@@ -36,12 +36,12 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/socket.hpp"
 #include "libtorrent/io_service.hpp"
 #include "libtorrent/error_code.hpp"
-#include "libtorrent/session_settings.hpp"
-#include "libtorrent/buffer.hpp"
-#include "libtorrent/deadline_timer.hpp"
+#include "libtorrent/aux_/proxy_settings.hpp"
 #include "libtorrent/debug.hpp"
 #include "libtorrent/span.hpp"
-#include "libtorrent/aux_/allocating_handler.hpp"
+
+#include <array>
+#include <memory>
 
 namespace libtorrent
 {
@@ -89,6 +89,7 @@ namespace libtorrent
 
 		void send(udp::endpoint const& ep, span<char const> p
 			, error_code& ec, int flags = 0);
+		void open(udp const& protocol, error_code& ec);
 		void bind(udp::endpoint const& ep, error_code& ec);
 		void close();
 		int local_port() const { return m_bind_port; }

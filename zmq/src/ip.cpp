@@ -132,7 +132,7 @@ int zmq::get_peer_ip_address (fd_t sockfd_, std::string &ip_addr_)
     rc = getpeername (sockfd_, (struct sockaddr*) &ss, &addrlen);
 #ifdef ZMQ_HAVE_WINDOWS
     if (rc == SOCKET_ERROR) {
-		const int last_error = WSAGetLastError();
+        const int last_error = WSAGetLastError();
         wsa_assert (last_error != WSANOTINITIALISED &&
                     last_error != WSAEFAULT &&
                     last_error != WSAEINPROGRESS &&
@@ -173,5 +173,22 @@ void zmq::set_ip_type_of_service (fd_t s_, int iptos)
     wsa_assert (rc != SOCKET_ERROR);
 #else
     errno_assert (rc == 0);
+#endif
+
+    //  Windows does not support IPV6_TCLASS
+#ifndef ZMQ_HAVE_WINDOWS
+    rc = setsockopt(
+        s_,
+        IPPROTO_IPV6,
+        IPV6_TCLASS,
+        reinterpret_cast<const char*>(&iptos),
+        sizeof(iptos));
+
+    //  If IPv6 is not enabled ENOPROTOOPT will be returned on Linux and
+    //  EINVAL on OSX
+    if (rc == -1) {
+        errno_assert (errno == ENOPROTOOPT ||
+                      errno == EINVAL);
+    }
 #endif
 }
