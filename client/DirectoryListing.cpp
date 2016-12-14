@@ -236,7 +236,7 @@ const string g_SMVideo = "MV";
 const string g_SMAudio = "MA";
 
 
-static const string sShared = "Shared";
+const string g_SShared = "Shared";
 
 void ListLoader::startTag(const string& name, StringPairList& attribs, bool simple)
 {
@@ -320,9 +320,10 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 #endif
 			if (attribs.size() >= 4) // 3 - стандартный DC++, 4 - GreyLinkDC++
 			{
-				if (attribs.size() == 4)
+				if (attribs.size() == 4 ||
+				        attribs.size() >= 11)  // Хитрый расширенный формат от http://p2p.toom.su/fs/hms/FCYECUWQ7F5A2FABW32UTMCT6MEMI3GPXBZDQCQ/)
 				{
-					const string l_sharedGL = getAttrib(attribs, sShared, 4);
+					const string l_sharedGL = getAttrib(attribs, g_SShared, 4);
 					if (!l_sharedGL.empty())
 					{
 						const int64_t tmp_ts = _atoi64(l_sharedGL.c_str()) - 116444736000000000L ;

@@ -85,7 +85,9 @@ UnBZFilter::~UnBZFilter()
 bool UnBZFilter::operator()(const void* in, size_t& insize, void* out, size_t& outsize)
 {
 	if (outsize == 0)
-		return 0;
+		return false;
+	if (insize == 0)
+		return false;
 		
 	zs.avail_in = insize;
 	zs.next_in = (char*)in;
@@ -103,20 +105,15 @@ bool UnBZFilter::operator()(const void* in, size_t& insize, void* out, size_t& o
 	insize = insize - zs.avail_in;
 	if (err == BZ_STREAM_END)
 	{
-				int l_ret = BZ2_bzDecompressEnd(&zs);
-				dcassert(l_ret == BZ_OK);
-				l_ret = BZ2_bzDecompressInit(&zs, 0, 0);
-				dcassert(l_ret == BZ_OK);
-				if (insize == 0 || zs.avail_in == 0)
-				{
-					return false;
-				}
-				else
-				{
-					return true;
-				}
+		int l_ret = BZ2_bzDecompressEnd(&zs);
+		dcassert(l_ret == BZ_OK);
+		l_ret = BZ2_bzDecompressInit(&zs, 0, 0);
+		dcassert(l_ret == BZ_OK);
+		if (insize == 0)
+			return false;
+		else
+			return true;
 	}
-
 	return err == BZ_OK;
 }
 

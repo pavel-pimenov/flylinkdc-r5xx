@@ -2129,7 +2129,7 @@ void NmdcHub::processAutodetect(bool p_is_myinfo)
 		else
 		{
 #ifdef _DEBUG
-			LogManager::message("Skip NmdcHub::processAutodetect for privateIP = " + getLocalIp());
+			// LogManager::message("Skip NmdcHub::processAutodetect for privateIP = " + getLocalIp());
 #endif
 		}
 		
