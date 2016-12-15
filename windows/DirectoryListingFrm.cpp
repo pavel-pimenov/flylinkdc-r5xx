@@ -592,6 +592,7 @@ void DirectoryListingFrame::changeDir(DirectoryListing::Directory* p_dir)
 			}
 			catch (const QueueException& e)
 			{
+				dcassert(0);
 				ctrlStatus.SetText(STATUS_TEXT, Text::toT(e.getError()).c_str());
 			}
 		}

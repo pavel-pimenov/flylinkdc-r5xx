@@ -256,9 +256,9 @@ int SSLSocket::wait(uint64_t millis, int waitFor)
 
 bool SSLSocket::isTrusted()
 {
-    if (!ssl)
+	if (!ssl)
 	{
-	return false;
+		return false;
 	}
 	if (m_is_trusted)
 		return true;
@@ -266,7 +266,7 @@ bool SSLSocket::isTrusted()
 	{
 		return false;
 	}
-
+	
 	X509* cert = SSL_get_peer_certificate(ssl);
 	if (!cert)
 	{
@@ -281,85 +281,85 @@ bool SSLSocket::isKeyprintMatch() const noexcept
 {
     if (ssl)
     return SSL_get_verify_result(ssl) != X509_V_ERR_APPLICATION_VERIFICATION;
-    
+
     return true;
 }
 */
 
 std::string SSLSocket::getEncryptionInfo() const noexcept
+{
+    if (!ssl)
+    return Util::emptyString;
+    
+    string cipher = SSL_get_cipher_name(ssl);
+    string protocol = SSL_get_version(ssl);
+    return protocol + " / " + cipher;
+}
+
+ByteVector SSLSocket::getKeyprint() const noexcept
 	{
 	    if (!ssl)
-	    return Util::emptyString;
+	    return ByteVector();
+	    X509* x509 = SSL_get_peer_certificate(ssl);
 	    
-	    string cipher = SSL_get_cipher_name(ssl);
-	    string protocol = SSL_get_version(ssl);
-	    return protocol + " / " + cipher;
-	}
-	
-ByteVector SSLSocket::getKeyprint() const noexcept
-		{
-		    if (!ssl)
+	    if (!x509)
 		    return ByteVector();
-		    X509* x509 = SSL_get_peer_certificate(ssl);
 		    
-		    if (!x509)
-			    return ByteVector();
-			    
-			    ByteVector res = ssl::X509_digest(x509, EVP_sha256());
-			    
-			    X509_free(x509);
-			    return res;
-			}
-			
-bool SSLSocket::verifyKeyprint(const string& expKP, bool allowUntrusted) noexcept
-			{
-				if (!ssl)
-					return true;
-					
-				if (expKP.empty() || expKP.find("/") == string::npos)
-					return allowUntrusted;
-					
-				verifyData.reset(new CryptoManager::SSLVerifyData(allowUntrusted, expKP));
-				SSL_set_ex_data(ssl, CryptoManager::idxVerifyData, verifyData.get());
+		    ByteVector res = ssl::X509_digest(x509, EVP_sha256());
+		    
+		    X509_free(x509);
+		    return res;
+		}
+		
+		bool SSLSocket::verifyKeyprint(const string& expKP, bool allowUntrusted) noexcept
+		{
+			if (!ssl)
+				return true;
 				
-				SSL_CTX* ssl_ctx = SSL_get_SSL_CTX(ssl);
-				X509_STORE* store = X509_STORE_new();
-				bool result = false;
-				int err = SSL_get_verify_result(ssl);
-				if (ssl_ctx && store)
+			if (expKP.empty() || expKP.find("/") == string::npos)
+				return allowUntrusted;
+				
+			verifyData.reset(new CryptoManager::SSLVerifyData(allowUntrusted, expKP));
+			SSL_set_ex_data(ssl, CryptoManager::idxVerifyData, verifyData.get());
+			
+			SSL_CTX* ssl_ctx = SSL_get_SSL_CTX(ssl);
+			X509_STORE* store = X509_STORE_new();
+			bool result = false;
+			int err = SSL_get_verify_result(ssl);
+			if (ssl_ctx && store)
+			{
+				X509_STORE_CTX* vrfy_ctx = X509_STORE_CTX_new();
+				X509* cert = SSL_get_peer_certificate(ssl);
+				
+				if (vrfy_ctx && cert && X509_STORE_CTX_init(vrfy_ctx, store, cert, SSL_get_peer_cert_chain(ssl)))
 				{
-					X509_STORE_CTX* vrfy_ctx = X509_STORE_CTX_new();
-					X509* cert = SSL_get_peer_certificate(ssl);
+					X509_STORE_CTX_set_ex_data(vrfy_ctx, SSL_get_ex_data_X509_STORE_CTX_idx(), ssl);
+					X509_STORE_CTX_set_verify_cb(vrfy_ctx, SSL_CTX_get_verify_callback(ssl_ctx));
 					
-					if (vrfy_ctx && cert && X509_STORE_CTX_init(vrfy_ctx, store, cert, SSL_get_peer_cert_chain(ssl)))
+					int verify_result = 0;
+					if ((verify_result = X509_verify_cert(vrfy_ctx)) >= 0)
 					{
-						X509_STORE_CTX_set_ex_data(vrfy_ctx, SSL_get_ex_data_X509_STORE_CTX_idx(), ssl);
-						X509_STORE_CTX_set_verify_cb(vrfy_ctx, SSL_CTX_get_verify_callback(ssl_ctx));
+						err = X509_STORE_CTX_get_error(vrfy_ctx);
 						
-						int verify_result = 0;
-						if ((verify_result = X509_verify_cert(vrfy_ctx)) >= 0)
-						{
-							err = X509_STORE_CTX_get_error(vrfy_ctx);
+						// Watch out for weird library errors that might not set the context error code
+						if (err == X509_V_OK && verify_result <= 0)
+							err = X509_V_ERR_UNSPECIFIED;
 							
-							// Watch out for weird library errors that might not set the context error code
-							if (err == X509_V_OK && verify_result <= 0)
-								err = X509_V_ERR_UNSPECIFIED;
-								
-							// This is for people who don't restart their clients and have low expiration time on their cert
-							result = (err == X509_V_OK || err == X509_V_ERR_CERT_HAS_EXPIRED) || (allowUntrusted && err != X509_V_ERR_APPLICATION_VERIFICATION);
-						}
+						// This is for people who don't restart their clients and have low expiration time on their cert
+						result = (err == X509_V_OK || err == X509_V_ERR_CERT_HAS_EXPIRED) || (allowUntrusted && err != X509_V_ERR_APPLICATION_VERIFICATION);
 					}
-					
-					if (cert) X509_free(cert);
-					if (vrfy_ctx) X509_STORE_CTX_free(vrfy_ctx);
-					if (store) X509_STORE_free(store);
 				}
 				
-				// KeyPrint is a strong indicator of trust
-				SSL_set_verify_result(ssl, err);
-				
-				return result;
-}
+				if (cert) X509_free(cert);
+				if (vrfy_ctx) X509_STORE_CTX_free(vrfy_ctx);
+				if (store) X509_STORE_free(store);
+			}
+			
+			// KeyPrint is a strong indicator of trust
+			SSL_set_verify_result(ssl, err);
+			
+			return result;
+		}
 
 void SSLSocket::shutdown() noexcept
 {

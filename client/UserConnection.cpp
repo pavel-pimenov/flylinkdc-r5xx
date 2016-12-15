@@ -489,10 +489,10 @@ void UserConnection::on(Updated) noexcept
 void UserConnection::on(Failed, const string& aLine) noexcept
 {
 	setState(STATE_UNCONNECTED);
-	if (getUser()) // fix crash https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=44660
-	{
-		getUser()->fixLastIP();
-	}
+	//if (getUser()) // fix crash https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=44660
+	//{
+	//  getUser()->fixLastIP();
+	//}
 	fly_fire2(UserConnectionListener::Failed(), this, aLine);
 	delete this;
 }

@@ -1083,7 +1083,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 };
 
 // Copyright (C) 2005-2009 Big Muscle, StrongDC++
-template<class T, int ctrlId, class K, class hashFunc, class equalKey>
+template<class T, int ctrlId, class KValue>
 class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 {
 	public:
@@ -1096,7 +1096,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			states.Destroy();
 		}
 		
-		typedef TypedTreeListViewCtrl<T, ctrlId, K, hashFunc, equalKey> thisClass;
+		typedef TypedTreeListViewCtrl<T, ctrlId, KValue> thisClass;
 		typedef TypedListViewCtrl<T, ctrlId> baseClass;
 		
 		struct ParentPair
@@ -1105,8 +1105,8 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			vector<T*> children;
 		};
 		
-		typedef std::pair<K*, ParentPair> ParentMapPair;
-		typedef std::unordered_map<K*, ParentPair, hashFunc, equalKey> ParentMap;
+		typedef std::pair<KValue, ParentPair> ParentMapPair;
+		typedef std::unordered_map<KValue, ParentPair> ParentMap;
 		
 		BEGIN_MSG_MAP(thisClass)
 		MESSAGE_HANDLER(WM_CREATE, onCreate)
@@ -1205,18 +1205,12 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			InsertItem(&lvi);
 		}
 		
-		T* findParent(const K& groupCond) const
-		{
-			dcassert(m_is_destroy_items == false);
-			ParentMap::const_iterator i = parents.find(const_cast<K*>(&groupCond));
-			return i != parents.end() ? (*i).second.parent : NULL;
-		}
 		
 		static const vector<T*> g_emptyVector;
-		const vector<T*>& findChildren(const K& groupCond) const
+		const vector<T*>& findChildren(const KValue& groupCond) const
 		{
 			dcassert(m_is_destroy_items == false);
-			ParentMap::const_iterator i = parents.find(const_cast<K*>(&groupCond));
+			ParentMap::const_iterator i = parents.find(groupCond);
 			if (i != parents.end())
 			{
 				return  i->second.children;
@@ -1227,9 +1221,9 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			}
 		}
 		
-		ParentPair* findParentPair(const K& groupCond)
+		ParentPair* findParentPair(const KValue& groupCond)
 		{
-			ParentMap::iterator i = parents.find(const_cast<K*>(&groupCond));
+			ParentMap::iterator i = parents.find(groupCond);
 			if (i != parents.end())
 			{
 				return &i->second;
@@ -1252,11 +1246,11 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				if (parent != oldParent)
 				{
 					uniqueParent = true;
-					parents.erase(const_cast<K*>(&oldParent->getGroupCond()));
+					parents.erase(oldParent->getGroupCond());
 					deleteItem(oldParent);
 					
 					ParentPair newPP = { parent };
-					pp = &(parents.insert(ParentMapPair(const_cast<K*>(&parent->getGroupCond()), newPP)).first->second);
+					pp = &(parents.insert(ParentMapPair(parent->getGroupCond(), newPP)).first->second);
 					
 					parent->parent = nullptr; // ensure that parent of this item is really NULL
 					oldParent->parent = parent;
@@ -1329,7 +1323,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				
 				ParentPair newPP = { parent };
 				dcassert(m_is_destroy_items == false);
-				parents.insert(ParentMapPair(const_cast<K*>(&parent->getGroupCond()), newPP));
+				parents.insert(ParentMapPair(parent->getGroupCond(), newPP));
 				
 				parent->parent = nullptr; // ensure that parent of this item is really NULL
 				pos = insertItem(getSortPos(parent), parent, p_use_image_callback ? I_IMAGECALLBACK : parent->getImageIndex());
@@ -1355,7 +1349,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 					delete *i;
 				}
 				pp->children.clear();
-				parents.erase(const_cast<K*>(&parent->getGroupCond()));
+				parents.erase(parent->getGroupCond());
 			}
 			deleteItem(parent);
 		}
@@ -1372,7 +1366,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				CFlyBusyBool l_busy(m_is_destroy_items);
 				T* parent = item->parent;
 				ParentPair* pp = findParentPair(parent->getGroupCond());
-
+				
 				const auto l_id = deleteItem(item); // TODO - разобраться почему тут не удаляет.
 #ifdef _DEBUG
 				if (l_id < 0)
@@ -1380,43 +1374,43 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 					LogManager::message("Error removeGroupedItem = " + Util::toString(item));
 				}
 #endif
-				if(pp)
+				if (pp)
 				{
-				const auto n = find(pp->children.begin(), pp->children.end(), item);
-				if (n != pp->children.end())
-				{
-					pp->children.erase(n);
-					pp->parent->m_hits--;
-				}
-
-				if (uniqueParent)
-				{
-					dcassert(!pp->children.empty());
-					if (pp->children.size() == 1)
+					const auto n = find(pp->children.begin(), pp->children.end(), item);
+					if (n != pp->children.end())
 					{
-						const T* oldParent = parent;
-						parent = pp->children.front();
-
-						deleteItem(oldParent);
-						parents.erase(const_cast<K*>(&oldParent->getGroupCond()));
-						delete oldParent;
-
-						ParentPair newPP = { parent };
-						parents.insert(ParentMapPair(const_cast<K*>(&parent->getGroupCond()), newPP));
-
-						parent->parent = nullptr; // ensure that parent of this item is really NULL
-						deleteItem(parent);
-						insertItem(getSortPos(parent), parent, parent->getImageIndex());
+						pp->children.erase(n);
+						pp->parent->m_hits--;
+					}
+					
+					if (uniqueParent)
+					{
+						dcassert(!pp->children.empty());
+						if (pp->children.size() == 1)
+						{
+							const T* oldParent = parent;
+							parent = pp->children.front();
+							
+							deleteItem(oldParent);
+							parents.erase(oldParent->getGroupCond());
+							delete oldParent;
+							
+							ParentPair newPP = { parent };
+							parents.insert(ParentMapPair(parent->getGroupCond(), newPP));
+							
+							parent->parent = nullptr; // ensure that parent of this item is really NULL
+							deleteItem(parent);
+							insertItem(getSortPos(parent), parent, parent->getImageIndex());
+						}
+					}
+					else
+					{
+						if (pp->children.empty())
+						{
+							SetItemState(findItem(parent), INDEXTOSTATEIMAGEMASK(0), LVIS_STATEIMAGEMASK);
+						}
 					}
 				}
-				else
-				{
-					if (pp->children.empty())
-					{
-						SetItemState(findItem(parent), INDEXTOSTATEIMAGEMASK(0), LVIS_STATEIMAGEMASK);
-					}
-				}
-			}
 				updateItem(parent);
 			}
 			
@@ -1603,8 +1597,8 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 		}
 };
 
-template<class T, int ctrlId, class K, class hashFunc, class equalKey>
-const vector<T*> TypedTreeListViewCtrl<T, ctrlId, K, hashFunc, equalKey>::g_emptyVector;
+template<class T, int ctrlId, class KValue>
+const vector<T*> TypedTreeListViewCtrl<T, ctrlId, KValue>::g_emptyVector;
 
 #ifdef FLYLINKDC_USE_TREEE_LIST_VIEW_WITHOUT_POINTER
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1728,12 +1722,6 @@ class TypedTreeListViewCtrlSafe : public TypedListViewCtrl<T, ctrlId>
 			lvi.state = 0;
 			lvi.stateMask = 0;
 			InsertItem(&lvi);
-		}
-		
-		T* findParent(const KValue& groupCond) const
-		{
-			ParentMap::const_iterator i = parents.find(groupCond);
-			return i != parents.end() ? (*i).second.parent : NULL;
 		}
 		
 		static const vector<T*> g_emptyVector;
@@ -2161,8 +2149,8 @@ class MediainfoTypedListViewCtrl : public MediainfoCtrl<T, ctrlId, TypedListView
 {
 };
 
-template<class T, int ctrlId, class K, class hashFunc, class equalKey>
-class MediainfoTypedTreeListViewCtrl : public MediainfoCtrl<T, ctrlId, TypedTreeListViewCtrl<T, ctrlId, K, hashFunc, equalKey>>
+template<class T, int ctrlId, class KValue>
+class MediainfoTypedTreeListViewCtrl : public MediainfoCtrl<T, ctrlId, TypedTreeListViewCtrl<T, ctrlId, KValue>>
 {
 };
 

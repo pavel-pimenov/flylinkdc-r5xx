@@ -90,6 +90,7 @@ void UserInfoBase::browseList()
 		}
 		catch (const Exception& e)
 		{
+			dcassert(0);
 			LogManager::message(e.getError());
 		}
 	}

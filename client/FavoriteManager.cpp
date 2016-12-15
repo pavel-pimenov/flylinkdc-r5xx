@@ -1036,9 +1036,9 @@ void FavoriteManager::load()
 #endif // USE_SUPPORT_HUB
 	
 	const bool oldConfigExist = !g_recentHubs.empty(); // [+] IRainman fix: FlylinkDC stores recents hubs in the sqlite database, so you need to keep the values in the database after loading the file.
-
+	
 	std::vector<StringPair> l_dead_hubs = CFlyServerConfig::getDeadHub();
-
+	
 	CFlyRegistryMap l_values;
 	CFlylinkDBManager::getInstance()->load_registry(l_values, e_RecentHub);
 	for (auto k = l_values.cbegin(); k != l_values.cend(); ++k)

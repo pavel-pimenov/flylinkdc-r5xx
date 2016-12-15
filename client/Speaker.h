@@ -105,7 +105,7 @@ class Speaker
 			{
 				log_listener_list(tmp, "fire-before-destroy!");
 			}
-
+			
 			extern volatile bool g_isShutdown;
 			if (g_isShutdown && !tmp.empty())
 			{

@@ -99,8 +99,8 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		virtual void checkNick(string& nick);
 		
 		OnlineUserPtr getUser(const uint32_t aSID, const CID& aCID, const string& p_nick);
-		OnlineUserPtr findUser(const uint32_t sid) const; 
-		OnlineUserPtr findUser(const CID& cid) const; 
+		OnlineUserPtr findUser(const uint32_t sid) const;
+		OnlineUserPtr findUser(const CID& cid) const;
 		
 		// just a workaround
 		OnlineUserPtr findUser(const string& aNick) const;

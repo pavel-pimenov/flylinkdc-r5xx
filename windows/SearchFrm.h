@@ -396,7 +396,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		class SearchInfo;
 		
 	public:
-		typedef MediainfoTypedTreeListViewCtrl<SearchInfo, IDC_RESULTS, TTHValue, std::hash<TTHValue*>, std::equal_to<TTHValue*>> SearchInfoList;
+		typedef MediainfoTypedTreeListViewCtrl<SearchInfo, IDC_RESULTS, TTHValue > SearchInfoList;
 		SearchInfoList& getUserList()
 		{
 			return ctrlResults;

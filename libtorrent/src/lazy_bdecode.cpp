@@ -253,7 +253,7 @@ namespace libtorrent
 	lazy_entry* lazy_entry::dict_append(char const* name)
 	{
 		TORRENT_ASSERT(m_type == dict_t);
-		TORRENT_ASSERT(m_size <= this->capacity());
+		TORRENT_ASSERT(int(m_size) <= this->capacity());
 		if (m_data.dict == nullptr)
 		{
 			int capacity = lazy_entry_dict_init;
@@ -261,7 +261,7 @@ namespace libtorrent
 			if (m_data.dict == nullptr) return nullptr;
 			m_data.dict[0].val.m_len = capacity;
 		}
-		else if (m_size == this->capacity())
+		else if (int(m_size) == this->capacity())
 		{
 			int capacity = this->capacity() * lazy_entry_grow_factor / 100;
 			lazy_dict_entry* tmp = new (std::nothrow) lazy_dict_entry[capacity+1];
@@ -274,7 +274,7 @@ namespace libtorrent
 			m_data.dict[0].val.m_len = capacity;
 		}
 
-		TORRENT_ASSERT(m_size < this->capacity());
+		TORRENT_ASSERT(int(m_size) < this->capacity());
 		lazy_dict_entry& ret = m_data.dict[1+m_size++];
 		ret.name = name;
 		return &ret.val;
@@ -422,7 +422,7 @@ namespace libtorrent
 	lazy_entry* lazy_entry::list_append()
 	{
 		TORRENT_ASSERT(m_type == list_t);
-		TORRENT_ASSERT(m_size <= this->capacity());
+		TORRENT_ASSERT(int(m_size) <= this->capacity());
 		if (m_data.start == nullptr)
 		{
 			int capacity = lazy_entry_list_init;
@@ -430,7 +430,7 @@ namespace libtorrent
 			if (m_data.list == nullptr) return nullptr;
 			m_data.list[0].m_len = capacity;
 		}
-		else if (m_size == this->capacity())
+		else if (int(m_size) == this->capacity())
 		{
 			int capacity = this->capacity() * lazy_entry_grow_factor / 100;
 			lazy_entry* tmp = new (std::nothrow) lazy_entry[capacity+1];
@@ -443,7 +443,7 @@ namespace libtorrent
 			m_data.list[0].m_len = capacity;
 		}
 
-		TORRENT_ASSERT(m_size < this->capacity());
+		TORRENT_ASSERT(int(m_size) < this->capacity());
 		return &m_data.list[1 + (m_size++)];
 	}
 

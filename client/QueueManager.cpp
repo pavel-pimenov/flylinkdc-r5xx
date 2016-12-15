@@ -1453,6 +1453,7 @@ void QueueManager::addDirectory(const string& aDir, const UserPtr& aUser, const 
 		}
 		catch (const Exception&)
 		{
+			dcassert(0);
 			// Ignore, we don't really care...
 		}
 	}
@@ -3038,6 +3039,7 @@ void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchRes
 			}
 			catch (const Exception&)
 			{
+				dcassert(0);
 				// ...
 			}
 		}

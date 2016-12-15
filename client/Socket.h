@@ -245,7 +245,7 @@ class Socket
 		}
 		virtual bool isTrusted()
 		{
-		    return false;
+			return false;
 		}
 		virtual string getCipherName() const noexcept
 		{

@@ -518,9 +518,9 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 	SetSelectionCharFormat(cfTemp);
 	//[~]IRainman optimize
 	
-	if ((p_message.m_isRealUser || BOOLSETTING(FORMAT_BOT_MESSAGE)) 
-		// && !p_message.m_Nick.empty()
-		)
+	if ((p_message.m_isRealUser || BOOLSETTING(FORMAT_BOT_MESSAGE))
+	        // && !p_message.m_Nick.empty()
+	   )
 	{
 #ifdef IRAINMAN_INCLUDE_TEXT_FORMATTING
 		// This is not 100% working, but most of the time it does the job decently enough

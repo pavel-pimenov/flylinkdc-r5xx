@@ -2274,9 +2274,9 @@ bool CFlyServerJSON::sendDownloadCounter(bool p_is_only_db_if_network_error)
 						if (!i->first.m_sha1->is_all_zeros())
 						{
 							if (i->first.m_is_sha1_for_file)
-								l_array_item_torrent["sha1_file"] = libtorrent::to_hex(i->first.m_sha1->to_string());
+								l_array_item_torrent["sha1_file"] = libtorrent::aux::to_hex(*i->first.m_sha1);
 							else
-								l_array_item_torrent["sha1_torrent"] = libtorrent::to_hex(i->first.m_sha1->to_string());
+								l_array_item_torrent["sha1_torrent"] = libtorrent::aux::to_hex(*i->first.m_sha1);
 						}
 						l_array_item_torrent["size"] = Util::toString(i->first.m_file_size);
 						l_array_item_torrent["name"] = i->second;

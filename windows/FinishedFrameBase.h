@@ -548,7 +548,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 						for (int i = 0; i < l_cnt; ++i)
 						{
 							const auto ii = ctrlList.getItemData(i);
-							if(ii->m_entry->is_torrent())
+							if (ii->m_entry->is_torrent())
 								l_id_torrent.push_back(ii->m_entry->getID());
 							else
 								l_id.push_back(ii->m_entry->getID());

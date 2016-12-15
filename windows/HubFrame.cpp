@@ -3658,16 +3658,16 @@ void HubFrame::onTimerHubUpdated()
 		if (m_client->isSecureConnect())
 		{
 			fullHubName = "[S] ";
-/*
-	if (m_client->isTrusted()) // https://drdump.com/DumpGroup.aspx?DumpGroupID=489257 + https://drdump.com/Problem.aspx?ProblemID=249971
-			{
-				fullHubName = "[S] ";
-			}
-			else if (m_client->isSecure())
-			{
-				fullHubName = "[U] ";
-			}
-*/
+			/*
+			    if (m_client->isTrusted()) // https://drdump.com/DumpGroup.aspx?DumpGroupID=489257 + https://drdump.com/Problem.aspx?ProblemID=249971
+			            {
+			                fullHubName = "[S] ";
+			            }
+			            else if (m_client->isSecure())
+			            {
+			                fullHubName = "[U] ";
+			            }
+			*/
 		}
 		
 		fullHubName += m_client->getHubName();

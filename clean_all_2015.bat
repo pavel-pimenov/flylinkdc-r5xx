@@ -12,6 +12,8 @@ rmdir /S /Q .\compiled\Settings\FileLists
 rmdir /S /Q .\compiled\Settings\Logs
 rmdir /S /Q .\compiled\Settings\HubLists
 del /S /F /Q *.tmp
+del /S /F /Q *.obj
+del /S /F /Q *.lib
 del /S /F /Q *.tlog
 del /S /F /Q *.cpp.orig
 del /S /F /Q *.h.orig

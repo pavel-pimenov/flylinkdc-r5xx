@@ -253,14 +253,14 @@ uint64_t User::getBytesDownload()
 		return 0;
 	}
 }
-void User::fixLastIP()
-{
-	initMesageCount();
-	if (!m_last_ip_sql.get().is_unspecified())
-	{
-		setIP(m_last_ip_sql.get(), true);
-	}
-}
+//void User::fixLastIP()
+//{
+//	initMesageCount();
+//	if (!m_last_ip_sql.get().is_unspecified())
+//	{
+//		setIP(m_last_ip_sql.get(), true);
+//	}
+//}
 void User::incMessagesCount()
 {
 	m_message_count.set(m_message_count.get() + 1);

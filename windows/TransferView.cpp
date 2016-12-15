@@ -1243,10 +1243,7 @@ TransferView::ItemInfo* TransferView::findItem(const UpdateInfo& ui, int& pos) c
 				pos = j;
 				return ii;
 			}
-			else if (ui.download == ii->download && !ii->parent
-			         && ii->m_is_torrent == false
-			         && ui.m_is_torrent == false
-			        )
+			else if (ui.download == ii->download && !ii->parent && ii->m_is_torrent == ui.m_is_torrent)
 			{
 				dcassert(ii->m_sha1.is_all_zeros());
 				dcassert(ui.m_sha1.is_all_zeros());
@@ -1307,13 +1304,20 @@ void TransferView::onSpeakerAddItem(const UpdateInfo& ui)
 	}
 #endif
 	ii->update(ui);
-	if (ii->download && ii->m_is_torrent == false)
+	if (ii->m_is_torrent == false)
 	{
-		ctrlTransfers.insertGroupedItem(ii, false, false, true);
+		if (ii->download)
+		{
+			ctrlTransfers.insertGroupedItem(ii, false, false, true);
+		}
+		else
+		{
+			ctrlTransfers.insertItem(ii, IMAGE_UPLOAD);
+		}
 	}
 	else
 	{
-		ctrlTransfers.insertItem(ii, IMAGE_UPLOAD);
+		ctrlTransfers.insertItem(ii, IMAGE_DOWNLOAD);
 	}
 #ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
 	LogManager::message("TRANSFER_ADD_ITEM ErrorStatus: " + Text::fromT(ui.errorStatusString) + " Status = " + Text::fromT(ui.statusString) + " ui.token = " + ui.m_token);
@@ -2025,7 +2029,7 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 			if (m_is_torrent)
 			{
 #ifdef _DEBUG
-				const auto l_sha = libtorrent::to_hex(m_sha1.to_string());
+				const string l_sha = libtorrent::aux::to_hex(m_sha1);
 				return _T("SHA1: ") + Text::toT(l_sha);
 #endif
 			}

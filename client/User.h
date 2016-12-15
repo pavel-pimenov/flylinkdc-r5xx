@@ -253,7 +253,7 @@ class User : public Flags
 		}
 		// [~] IRainman fix.
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-		void fixLastIP();
+		//void fixLastIP();
 		void AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void incMessagesCount();

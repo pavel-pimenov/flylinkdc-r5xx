@@ -285,12 +285,12 @@ void ConnectivityManager::mappingFinished(const string& p_mapper)
 #endif
 			// FLYLINKDC_USE_DEAD_CODE fly_fire1(ConnectivityManagerListener::Finished());
 		}
-			log(getInformation());
-			SET_SETTING(MAPPER, p_mapper);
-			if (!p_mapper.empty())
-			{
-				test_all_ports();
-			}
+		log(getInformation());
+		SET_SETTING(MAPPER, p_mapper);
+		if (!p_mapper.empty())
+		{
+			test_all_ports();
+		}
 	}
 	g_is_running = false;
 }

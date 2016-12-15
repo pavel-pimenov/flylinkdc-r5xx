@@ -256,7 +256,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 			{
 				// Same CID but different SID not allowed - buggy hub? [!] IRainman: yes - this is a bug in the hub - it must filter the users with the same cid not depending on the sid! This error is typically used to send spam, as it came from himself.
 				const string l_message = ou->getIdentity().getNick() + " (" + ou->getIdentity().getSIDString() +
-				                         ") has same CID {" + l_cid + "} as " + c.getNick() + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.";
+				") has same CID {" + l_cid + "} as " + c.getNick() + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.";
 				fly_fire3(ClientListener::StatusMessage(), this, l_message, ClientListener::FLAG_IS_SPAM);
 				
 				//LogManager::ddos_message("Magic spam message filtered on hub: " + getHubUrl() + " detail:" + l_message);
@@ -274,7 +274,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 #ifdef _DEBUG
 		LogManager::message("CID [-1] Params = " + c.getParamString(false));
 #endif
-		ou = getUser(c.getFrom(), CID(),c.getNick());
+		ou = getUser(c.getFrom(), CID(), c.getNick());
 #ifdef IRAINMAN_USE_HIDDEN_USERS
 		ou->getIdentity().setHidden();
 #endif
@@ -820,7 +820,7 @@ void AdcHub::handle(AdcCommand::STA, const AdcCommand& c) noexcept
 		return;
 		
 	OnlineUserPtr ou;
-	if(c.getFrom() == AdcCommand::HUB_SID)
+	if (c.getFrom() == AdcCommand::HUB_SID)
 	{
 		ou = getUser(c.getFrom(), CID(), c.getNick());
 	}

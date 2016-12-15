@@ -853,7 +853,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 			p_torrent_sesion->post_dht_stats();
 			std::vector<lt::alert*> alerts;
 			p_torrent_sesion->pop_alerts(&alerts);
-			for (lt::alert const * a : alerts)
+for (lt::alert const * a : alerts)
 			{
 #ifdef _DEBUG
 				//LogManager::torrent_message(".:::. TorrentAllert:" + a->message() + " info:" + std::string(a->what()));
@@ -921,7 +921,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 				{
 					LogManager::torrent_message("torrent_paused_alert: " + a->message());
 					// TODO - тут разобрать файлы и показать что хочется качать
-				}				
+				}
 				if (const auto l_a = lt::alert_cast<lt::file_completed_alert>(a))
 				{
 					auto l_files = l_a->handle.torrent_file()->files();
@@ -943,7 +943,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 						l_sha1 = l_a->handle.info_hash();
 					}
 					LogManager::torrent_message("file_completed_alert: " + a->message() + " Path:" + l_file_path +
-					                            +" sha1:" + libtorrent::to_hex(l_sha1.to_string()));
+					                            +" sha1:" + aux::to_hex(l_sha1));
 					auto l_item = std::make_shared<FinishedItem>(l_file_path, l_sha1, l_size, 0, GET_TIME(), 0, 0);
 					CFlylinkDBManager::getInstance()->save_transfer_history(true, e_TransferDownload, l_item);
 					if (FinishedManager::isValidInstance())
@@ -1022,7 +1022,7 @@ for (const auto j : st->status)
 						                    + " ] Download: " + Util::toString(s.download_payload_rate / 1000) + " kB/s "
 						                    + " ] Upload: " + Util::toString(s.upload_payload_rate / 1000) + " kB/s "
 						                    + Util::toString(s.total_done / 1000) + " kB ("
-						                    + Util::toString(s.progress_ppm / 10000) + "%) downloaded sha1: " + lt::to_hex(s.info_hash.to_string());
+						                    + Util::toString(s.progress_ppm / 10000) + "%) downloaded sha1: " + aux::to_hex(s.info_hash);
 						static std::string g_last_log;
 						if (g_last_log != l_log)
 						{
@@ -1090,7 +1090,7 @@ bool DownloadManager::remove_torrent_file(const libtorrent::sha1_hash& p_sha1, c
 			}
 			//else
 			//{
-			//	LogManager::message("Error remove_torrent_file: sha1 = ");
+			//  LogManager::message("Error remove_torrent_file: sha1 = ");
 			//}
 		}
 		catch (const std::runtime_error& e)
@@ -1160,29 +1160,34 @@ void DownloadManager::init_torrent()
 		              );
 		l_sett.set_str(settings_pack::user_agent, "FlylinkDC++ " A_REVISION_NUM_STR); // LIBTORRENT_VERSION //  A_VERSION_NUM_STR
 		l_sett.set_int(settings_pack::choking_algorithm, settings_pack::rate_based_choker);
-		l_sett.set_int(settings_pack::active_loaded_limit, 50); // TODO - конфиг
+		// l_sett.set_int(settings_pack::active_loaded_limit, 50);
 		l_sett.set_bool(settings_pack::enable_upnp, true);
 		l_sett.set_bool(settings_pack::enable_natpmp, true);
 		l_sett.set_bool(settings_pack::enable_lsd, true);
 		l_sett.set_bool(settings_pack::enable_dht, true);
 		
-		m_torrent_session = std::make_unique<lt::session>(l_sett);
-		m_torrent_session->set_alert_notify(std::bind(&DownloadManager::onTorrentAlertNotify, this, m_torrent_session.get()));
 		
 		//m_torrent_session->set_load_function(&load_torrent);
 		//m_torrent_session->set_download_rate_limit(10000);
 		
 		l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:8999");
+		std::string l_dht_nodes;
+for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
+		{
+			if (!l_dht_nodes.empty())
+				l_dht_nodes += ",";
+			const auto l_boot_dht = j;
+			LogManager::message("Add torrent DHT router: " + l_boot_dht.getServerAndPort());
+			l_dht_nodes += l_boot_dht.getIp() + ':' + Util::toString(l_boot_dht.getPort());
+			//m_torrent_session->add_dht_router(std::make_pair(l_boot_dht.getIp(), l_boot_dht.getPort()));
+		}
+		l_sett.set_str(settings_pack::dht_bootstrap_nodes, l_dht_nodes);
+		
+		m_torrent_session = std::make_unique<lt::session>(l_sett);
+		m_torrent_session->set_alert_notify(std::bind(&DownloadManager::onTorrentAlertNotify, this, m_torrent_session.get()));
 		lt::dht_settings dht;
 		//dht.privacy_lookups = true;
 		m_torrent_session->set_dht_settings(dht);
-		
-for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
-		{
-			const auto l_boot_dht = j;
-			LogManager::message("Add torrent DHT router: " + l_boot_dht.getServerAndPort());
-			m_torrent_session->add_dht_router(std::make_pair(l_boot_dht.getIp(), l_boot_dht.getPort()));
-		}
 		/*
 		{
 		        lt::error_code ec;

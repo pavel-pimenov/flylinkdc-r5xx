@@ -332,11 +332,11 @@ namespace libtorrent
 	void bt_peer_connection::write_dht_port()
 	{
 #ifndef TORRENT_DISABLE_DHT
-        if (m_supports_dht_port && m_ses.has_dht())
-        {
-            int const port = m_ses.external_udp_port();
-            if (port >= 0) write_dht_port(port);
-        }
+		if (m_supports_dht_port && m_ses.has_dht())
+		{
+			int const port = m_ses.external_udp_port();
+			if (port >= 0) write_dht_port(port);
+		}
 #endif
 	}
 
@@ -843,12 +843,9 @@ namespace libtorrent
 #ifndef TORRENT_DISABLE_LOGGING
 		if (should_log(peer_log_alert::outgoing))
 		{
-			char hex_pid[41];
-			aux::to_hex(m_our_peer_id, hex_pid);
-			hex_pid[40] = 0;
 			peer_log(peer_log_alert::outgoing, "HANDSHAKE"
 				, "sent peer_id: %s client: %s"
-				, hex_pid, identify_client(m_our_peer_id).c_str());
+				, aux::to_hex(m_our_peer_id).c_str(), identify_client(m_our_peer_id).c_str());
 		}
 		if (should_log(peer_log_alert::outgoing_message))
 		{

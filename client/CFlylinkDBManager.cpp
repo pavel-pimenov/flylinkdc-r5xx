@@ -2108,7 +2108,7 @@ __int64 CFlylinkDBManager::get_registry_variable_int64(eTypeSegment p_TypeSegmen
 //========================================================================================================
 void CFlylinkDBManager::load_registry(CFlyRegistryMap& p_values, eTypeSegment p_Segment)
 {
-	CFlyLock(m_cs);
+	// CFlyLock(m_cs);
 	try
 	{
 		m_get_registry.init(m_flySQLiteDB, "select key,val_str,val_number from fly_registry where segment=? order by rowid")->bind(1, p_Segment);
@@ -2429,8 +2429,8 @@ void CFlylinkDBManager::save_torrent_resume(const libtorrent::sha1_hash& p_sha1,
 			if (l_ID == 0)
 			{
 				m_insert_resume_torrent.init(m_flySQLiteDB,
-					"insert or replace into queue_db.fly_queue_torrent (day,stamp,sha1,resume,name) "
-					"values(strftime('%s','now','localtime')/60/60/24,strftime('%s','now','localtime'),?,?,?)");
+				                             "insert or replace into queue_db.fly_queue_torrent (day,stamp,sha1,resume,name) "
+				                             "values(strftime('%s','now','localtime')/60/60/24,strftime('%s','now','localtime'),?,?,?)");
 				m_insert_resume_torrent->bind(1, p_sha1.data(), p_sha1.size(), SQLITE_STATIC);
 				m_insert_resume_torrent->bind(2, &p_resume[0], p_resume.size(), SQLITE_STATIC);
 				m_insert_resume_torrent->bind(3, p_name, SQLITE_STATIC);
@@ -2439,10 +2439,10 @@ void CFlylinkDBManager::save_torrent_resume(const libtorrent::sha1_hash& p_sha1,
 			else
 			{
 				m_update_resume_torrent.init(m_flySQLiteDB,
-					"update queue_db.fly_queue_torrent set day = strftime('%s','now','localtime')/60/60/24,\n"
-					"stamp = strftime('%s','now','localtime')\n"
-					"resume=?\n"
-					"name=? where id=?");
+				                             "update queue_db.fly_queue_torrent set day = strftime('%s','now','localtime')/60/60/24,\n"
+				                             "stamp = strftime('%s','now','localtime')\n"
+				                             "resume=?\n"
+				                             "name=? where id=?");
 				m_update_resume_torrent->bind(1, &p_resume[0], p_resume.size(), SQLITE_STATIC);
 				m_update_resume_torrent->bind(2, p_name, SQLITE_STATIC);
 				m_update_resume_torrent->bind(3, l_ID);
@@ -3418,7 +3418,7 @@ void CFlylinkDBManager::load_avdb()
 bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, uint32_t& p_message_count, boost::asio::ip::address_v4& p_last_ip)
 {
 	dcassert(BOOLSETTING(ENABLE_LAST_IP_AND_MESSAGE_COUNTER));
-	CFlyLock(m_cs); // Убирать пока нельзя - вешаемся почему-то
+	//CFlyLock(m_cs); // Убирать пока нельзя - вешаемся почему-то
 	try
 	{
 		p_message_count = 0;

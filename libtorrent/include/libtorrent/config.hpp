@@ -33,7 +33,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_CONFIG_HPP_INCLUDED
 #define TORRENT_CONFIG_HPP_INCLUDED
 
-//#define TORRENT_NO_DEPRECATE // [+]FlylinkDC++
+#ifndef TORRENT_NO_DEPRECATE
+#define TORRENT_NO_DEPRECATE // [+]FlylinkDC++
+#endif
 
 #include "libtorrent/aux_/disable_warnings_push.hpp"
 

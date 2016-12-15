@@ -229,7 +229,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 #ifdef FLYLINKDC_USE_TREEE_LIST_VIEW_WITHOUT_POINTER
 		typedef TypedTreeListViewCtrlSafe<ItemInfo, IDC_TRANSFERS, tstring> ItemInfoList;
 #else
-		typedef TypedTreeListViewCtrl<ItemInfo, IDC_TRANSFERS, tstring, noCaseStringHash, noCaseStringEq> ItemInfoList;
+		typedef TypedTreeListViewCtrl<ItemInfo, IDC_TRANSFERS, tstring> ItemInfoList;
 #endif
 		ItemInfoList& getUserList()
 		{
@@ -442,7 +442,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			
 			bool operator==(const ItemInfo& ii) const
 			{
-				if (m_is_torrent && ii.m_is_torrent)
+				if (m_is_torrent == true && ii.m_is_torrent == true)
 				{
 					dcassert(!m_sha1.is_all_zeros());
 					dcassert(!ii.m_sha1.is_all_zeros());
@@ -451,15 +451,11 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				else
 				{
 					return download == ii.download &&
+					       m_is_torrent == false &&
+					       ii.m_is_torrent == false &&
 					       m_hintedUser.user == ii.m_hintedUser.user;
 				}
 			}
-#if 0
-			UpdateInfo(const HintedUser& aUser, const bool isDownload, const bool isTransferFailed = false) :
-				updateMask(0), m_hintedUser(aUser), download(isDownload), transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0), m_is_torrent(false), m_is_seeding(false)
-			{
-			}
-#endif
 			UpdateInfo(const libtorrent::sha1_hash& p_sha1) :
 				m_sha1(p_sha1), updateMask(0), download(true),
 				transferFailed(false), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
@@ -476,7 +472,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				updateMask(0), download(true), transferFailed(false), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
 				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), m_is_torrent(false), m_is_seeding(false)
 			{
-			}			
+			}
 			~UpdateInfo()
 			{
 			}

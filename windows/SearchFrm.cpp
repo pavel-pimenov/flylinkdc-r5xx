@@ -1916,6 +1916,7 @@ void SearchFrame::SearchInfo::getList()
 	}
 	catch (const Exception&)
 	{
+		dcassert(0);
 		// Ignore for now...
 	}
 }
@@ -1928,6 +1929,7 @@ void SearchFrame::SearchInfo::browseList()
 	}
 	catch (const Exception&)
 	{
+		dcassert(0);
 		// Ignore for now...
 	}
 }
@@ -2901,7 +2903,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 					{
 						if (isSkipSearchResult(si))
 							return;
-						ctrlResults.getParents().insert(make_pair(const_cast<TTHValue*>(&sr.getTTH()), l_pp));
+						ctrlResults.getParents().insert(make_pair(sr.getTTH(), l_pp));
 					}
 					else
 					{
@@ -2921,7 +2923,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 				{
 					ctrlResults.insertItem(si, I_IMAGECALLBACK);
 				}
-				ctrlResults.getParents().insert(make_pair(const_cast<TTHValue*>(&sr.getTTH()), l_pp));
+				ctrlResults.getParents().insert(make_pair(sr.getTTH(), l_pp));
 			}
 		}
 		if (!m_filter.empty())

@@ -159,12 +159,12 @@ class AdcCommand
 			tmp[3] = m_cmd[2];
 			return tmp;
 		}
-
+		
 		const string& getFeatures() const
 		{
 			return features;
-		}	
-
+		}
+		
 		AdcCommand& setFeatures(const string& feat)
 		{
 			features = feat;

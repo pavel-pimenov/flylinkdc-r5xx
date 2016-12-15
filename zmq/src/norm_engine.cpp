@@ -11,14 +11,14 @@
 
 zmq::norm_engine_t::norm_engine_t(io_thread_t*     parent_,
                                   const options_t& options_)
- : io_object_t(parent_), zmq_session(NULL), options(options_),  
-   norm_instance(NORM_INSTANCE_INVALID), norm_session(NORM_SESSION_INVALID), 
+ : io_object_t(parent_), zmq_session(NULL), options(options_),
+   norm_instance(NORM_INSTANCE_INVALID), norm_session(NORM_SESSION_INVALID),
    is_sender(false), is_receiver(false),
-   zmq_encoder(0), norm_tx_stream(NORM_OBJECT_INVALID), 
-   tx_first_msg(true), tx_more_bit(false), 
-   zmq_output_ready(false), norm_tx_ready(false), 
+   zmq_encoder(0), norm_tx_stream(NORM_OBJECT_INVALID),
+   tx_first_msg(true), tx_more_bit(false),
+   zmq_output_ready(false), norm_tx_ready(false),
    tx_index(0), tx_len(0),
-   zmq_input_ready(false)  
+   zmq_input_ready(false)
 {
     int rc = tx_msg.init();
     errno_assert(0 == rc);
@@ -52,7 +52,7 @@ int zmq::norm_engine_t::init(const char* network_, bool send, bool recv)
     {
         ifacePtr = network_;
     }
-    
+
     // Second, look for optional multicast ifaceName
     char ifaceName[256];
     const char* addrPtr = strchr(ifacePtr, ';');
@@ -70,7 +70,7 @@ int zmq::norm_engine_t::init(const char* network_, bool send, bool recv)
         addrPtr = ifacePtr;
         ifacePtr = NULL;
     }
-    
+
     // Finally, parse IP address and port number
     const char* portPtr = strrchr(addrPtr, ':');
     if (NULL == portPtr)
@@ -78,7 +78,7 @@ int zmq::norm_engine_t::init(const char* network_, bool send, bool recv)
         errno = EINVAL;
         return -1;
     }
-    
+
     char addr[256];
     size_t addrLen = portPtr - addrPtr;
     if (addrLen > 255) addrLen = 255;
@@ -86,7 +86,7 @@ int zmq::norm_engine_t::init(const char* network_, bool send, bool recv)
     addr[addrLen] = '\0';
     portPtr++;
     unsigned short portNumber = atoi(portPtr);
-    
+
     if (NORM_INSTANCE_INVALID == norm_instance)
     {
         if (NORM_INSTANCE_INVALID == (norm_instance = NormCreateInstance()))
@@ -95,14 +95,14 @@ int zmq::norm_engine_t::init(const char* network_, bool send, bool recv)
             return -1;
         }
     }
-    
+
     // TBD - What do we use for our local NormNodeId?
     //       (for now we use automatic, IP addr based assignment or passed in 'id')
     //       a) Use ZMQ Identity somehow?
     //       b) Add function to use iface addr
     //       c) Randomize and implement a NORM session layer
     //          conflict detection/resolution protocol
-    
+
     norm_session = NormCreateSession(norm_instance, addr, portNumber, localId);
     if (NORM_SESSION_INVALID == norm_session)
     {
@@ -131,7 +131,7 @@ int zmq::norm_engine_t::init(const char* network_, bool send, bool recv)
             NormSetMulticastInterface(norm_session, ifacePtr);
         }
     }
-    
+
     if (recv)
     {
         // The alternative NORM_SYNC_CURRENT here would provide "instant"
@@ -150,7 +150,7 @@ int zmq::norm_engine_t::init(const char* network_, bool send, bool recv)
         }
         is_receiver = true;
     }
-    
+
     if (send)
     {
         // Pick a random sender instance id (aka norm sender session id)
@@ -165,10 +165,10 @@ int zmq::norm_engine_t::init(const char* network_, bool send, bool recv)
             norm_instance = NORM_INSTANCE_INVALID;
             errno = savedErrno;
             return -1;
-        }    
+        }
         NormSetCongestionControl(norm_session, true);
         norm_tx_ready = true;
-        is_sender = true;   
+        is_sender = true;
         if (NORM_OBJECT_INVALID == (norm_tx_stream = NormStreamOpen(norm_session, 2*1024*1024)))
         {
             // errno set by whatever failed
@@ -180,11 +180,11 @@ int zmq::norm_engine_t::init(const char* network_, bool send, bool recv)
             return -1;
         }
     }
-    
+
     //NormSetMessageTrace(norm_session, true);
     //NormSetDebugLevel(3);
     //NormOpenDebugLog(norm_instance, "normLog.txt");
-    
+
     return 0;  // no error
 }  // end zmq::norm_engine_t::init()
 
@@ -194,12 +194,12 @@ void zmq::norm_engine_t::shutdown()
     if (is_receiver)
     {
         NormStopReceiver(norm_session);
-        
+
         // delete any active NormRxStreamState
         rx_pending_list.Destroy();
         rx_ready_list.Destroy();
         msg_ready_list.Destroy();
-        
+
         is_receiver = false;
     }
     if (is_sender)
@@ -226,20 +226,20 @@ void zmq::norm_engine_t::plug (io_thread_t* io_thread_, session_base_t *session_
     zmq_session = session_;
     if (is_sender) zmq_output_ready = true;
     if (is_receiver) zmq_input_ready = true;
-    
+
     fd_t normDescriptor = NormGetDescriptor(norm_instance);
     norm_descriptor_handle = add_fd(normDescriptor);
     // Set POLLIN for notification of pending NormEvents
-    set_pollin(norm_descriptor_handle); 
-    
+    set_pollin(norm_descriptor_handle);
+
     if (is_sender) send_data();
-    
+
 }  // end zmq::norm_engine_t::init()
 
 void zmq::norm_engine_t::unplug()
 {
     rm_fd(norm_descriptor_handle);
-    
+
     zmq_session = NULL;
 }  // end zmq::norm_engine_t::unplug()
 
@@ -255,7 +255,7 @@ void zmq::norm_engine_t::restart_output()
     // There's new message data available from the session
     zmq_output_ready = true;
     if (norm_tx_ready) send_data();
-    
+
 }  // end zmq::norm_engine_t::restart_output()
 
 void zmq::norm_engine_t::send_data()
@@ -291,7 +291,7 @@ void zmq::norm_engine_t::send_data()
                 // Need to pull and load a new message to send
                 if (-1 == zmq_session->pull_msg(&tx_msg))
                 {
-                    // We need to wait for "restart_output()" to be called by ZMQ 
+                    // We need to wait for "restart_output()" to be called by ZMQ
                     zmq_output_ready = false;
                     break;
                 }
@@ -303,7 +303,7 @@ void zmq::norm_engine_t::send_data()
                 //      'syncs' mid-stream.  We key off the the state of the 'more_flag'
                 //      I.e.,If  more_flag _was_ false previously, this is the first
                 //      frame of a ZMQ message.
-                if (tx_more_bit) 
+                if (tx_more_bit)
                     tx_buffer[0] = (char)0xff;  // this is not first frame of message
                 else
                     tx_buffer[0] = 0x00;  // this is first frame of message
@@ -341,7 +341,7 @@ void zmq::norm_engine_t::in_event()
         zmq_assert(false);
         return;
     }
-    
+
     switch(event.type)
     {
         case NORM_TX_QUEUE_VACANCY:
@@ -352,13 +352,13 @@ void zmq::norm_engine_t::in_event()
                 send_data();
             }
             break;
-            
+
         case NORM_RX_OBJECT_NEW:
             //break;
         case NORM_RX_OBJECT_UPDATED:
             recv_data(event.object);
             break;
-            
+
         case NORM_RX_OBJECT_ABORTED:
         {
             NormRxStreamState* rxState = (NormRxStreamState*)NormObjectGetUserData(event.object);
@@ -372,7 +372,7 @@ void zmq::norm_engine_t::in_event()
             }
             delete rxState;
             break;
-        }           
+        }
         case NORM_REMOTE_SENDER_INACTIVE:
             // Here we free resources used for this formerly active sender.
             // Note w/ NORM_SYNC_STREAM, if sender reactivates, we may
@@ -382,11 +382,11 @@ void zmq::norm_engine_t::in_event()
             // user configurable timeout here to wait some amount of time
             // after this event to declare the remote sender truly dead
             // and delete its state???
-            NormNodeDelete(event.sender);  
+            NormNodeDelete(event.sender);
             break;
-            
+
         default:
-            // We ignore some NORM events 
+            // We ignore some NORM events
             break;
     }
 }  // zmq::norm_engine_t::in_event()
@@ -398,7 +398,7 @@ void zmq::norm_engine_t::restart_input()
     // Process any pending received messages
     if (!msg_ready_list.IsEmpty())
         recv_data(NORM_OBJECT_INVALID);
-    
+
 }  // end zmq::norm_engine_t::restart_input()
 
 void zmq::norm_engine_t::recv_data(NormObjectHandle object)
@@ -449,19 +449,19 @@ void zmq::norm_engine_t::recv_data(NormObjectHandle object)
         {
             switch(rxState->Decode())
             {
-                case 1:  // msg completed   
+                case 1:  // msg completed
                     // Complete message decoded, move this stream to msg_ready_list
-                    // to push the message up to the session below.  Note the stream 
+                    // to push the message up to the session below.  Note the stream
                     // will be returned to the "rx_ready_list" after that's done
                     rx_ready_list.Remove(*rxState);
                     msg_ready_list.Append(*rxState);
                     continue;
-                    
+
                 case -1: // decoding error (shouldn't happen w/ NORM, but ...)
                     // We need to re-sync this stream (decoder buffer was reset)
                     rxState->SetSync(false);
                     break;
-                    
+
                 default:  // 0 - need more data
                     break;
             }
@@ -526,12 +526,12 @@ void zmq::norm_engine_t::recv_data(NormObjectHandle object)
                 rx_pending_list.Append(*rxState);
             }
         }  // end while(NULL != (rxState = iterator.GetNextItem()))
-        
+
         if (zmq_input_ready)
         {
             // At this point, we've made a pass through the "rx_ready" stream list
-            // Now make a pass through the "msg_pending" list (if the zmq session 
-            // ready for more input).  This may possibly return streams back to 
+            // Now make a pass through the "msg_pending" list (if the zmq session
+            // ready for more input).  This may possibly return streams back to
             // the "rx ready" stream list after their pending message is handled
             NormRxStreamState::List::Iterator iterator(msg_ready_list);
             NormRxStreamState* rxState;
@@ -551,7 +551,7 @@ void zmq::norm_engine_t::recv_data(NormObjectHandle object)
                     {
                         // session rejected message?
                         // TBD - handle this better
-                        zmq_assert(false); 
+                        zmq_assert(false);
                     }
                 }
                 // else message was accepted.
@@ -563,15 +563,15 @@ void zmq::norm_engine_t::recv_data(NormObjectHandle object)
             }  // end while(NULL != (rxState = iterator.GetNextItem()))
         }  // end if (zmq_input_ready)
     }  // end while ((!rx_ready_list.empty() || (zmq_input_ready && !msg_ready_list.empty()))
-    
+
     // Alert zmq of the messages we have pushed up
     zmq_session->flush();
-    
+
 }  // end zmq::norm_engine_t::recv_data()
 
-zmq::norm_engine_t::NormRxStreamState::NormRxStreamState(NormObjectHandle normStream, 
+zmq::norm_engine_t::NormRxStreamState::NormRxStreamState(NormObjectHandle normStream,
                                                          int64_t          maxMsgSize)
- : norm_stream(normStream), max_msg_size(maxMsgSize), 
+ : norm_stream(normStream), max_msg_size(maxMsgSize),
    in_sync(false), rx_ready(false), zmq_decoder(NULL), skip_norm_sync(false),
    buffer_ptr(NULL), buffer_size(0), buffer_count(0),
    prev(NULL), next(NULL), list(NULL)
@@ -622,17 +622,17 @@ int zmq::norm_engine_t::NormRxStreamState::Decode()
     {
         // There's pending data for the decoder to decode
         size_t processed = 0;
-        
+
         // This a bit of a kludgy approach used to weed
         // out the NORM ZMQ message transport "syncFlag" byte
         // from the ZMQ message stream being decoded (but it works!)
-        if (skip_norm_sync) 
+        if (skip_norm_sync)
         {
             buffer_ptr++;
             buffer_count--;
             skip_norm_sync = false;
         }
-        
+
         int rc = zmq_decoder->decode(buffer_ptr, buffer_count, processed);
         buffer_ptr += processed;
         buffer_count -= processed;
@@ -653,7 +653,7 @@ int zmq::norm_engine_t::NormRxStreamState::Decode()
                 skip_norm_sync = false;  // will get consumed by norm sync check
                 Init();
                 break;
-                
+
             case 0:
                 // need more data, keep decoding until buffer exhausted
                 break;
@@ -664,7 +664,7 @@ int zmq::norm_engine_t::NormRxStreamState::Decode()
     buffer_size = 0;
     zmq_decoder->get_buffer(&buffer_ptr, &buffer_size);
     return 0;  //  need more data
-    
+
 }  // end zmq::norm_engine_t::NormRxStreamState::Decode()
 
 zmq::norm_engine_t::NormRxStreamState::List::List()
@@ -725,6 +725,6 @@ zmq::norm_engine_t::NormRxStreamState* zmq::norm_engine_t::NormRxStreamState::Li
     if (NULL != nextItem) next_item = nextItem->next;
     return nextItem;
 }  // end zmq::norm_engine_t::NormRxStreamState::List::Iterator::GetNextItem()
-    
+
 
 #endif // ZMQ_HAVE_NORM
