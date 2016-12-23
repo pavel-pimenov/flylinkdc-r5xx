@@ -396,7 +396,8 @@ namespace libtorrent
 
 #ifndef TORRENT_DISABLE_LOGGING
 		peer_log(peer_log_alert::outgoing_message, "REJECT_PIECE"
-			, "piece: %d | s: %d | l: %d", r.piece, r.start, r.length);
+			, "piece: %d | s: %d | l: %d", static_cast<int>(r.piece)
+			, r.start, r.length);
 #endif
 		TORRENT_ASSERT(m_sent_handshake);
 		TORRENT_ASSERT(m_sent_bitfield);
@@ -404,7 +405,7 @@ namespace libtorrent
 
 		char msg[] = {0,0,0,13, msg_reject_request,0,0,0,0, 0,0,0,0, 0,0,0,0};
 		char* ptr = msg + 5;
-		detail::write_int32(r.piece, ptr); // index
+		detail::write_int32(static_cast<int>(r.piece), ptr); // index
 		detail::write_int32(r.start, ptr); // begin
 		detail::write_int32(r.length, ptr); // length
 		send_buffer(msg, sizeof(msg));
@@ -412,14 +413,15 @@ namespace libtorrent
 		stats_counters().inc_stats_counter(counters::num_outgoing_reject);
 	}
 
-	void bt_peer_connection::write_allow_fast(int piece)
+	void bt_peer_connection::write_allow_fast(piece_index_t const piece)
 	{
 		INVARIANT_CHECK;
 
 		if (!m_supports_fast) return;
 
 #ifndef TORRENT_DISABLE_LOGGING
-		peer_log(peer_log_alert::outgoing_message, "ALLOWED_FAST", "%d", piece);
+		peer_log(peer_log_alert::outgoing_message, "ALLOWED_FAST", "%d"
+			, static_cast<int>(piece));
 #endif
 
 		TORRENT_ASSERT(m_sent_handshake);
@@ -428,13 +430,13 @@ namespace libtorrent
 
 		char msg[] = {0,0,0,5, msg_allowed_fast, 0, 0, 0, 0};
 		char* ptr = msg + 5;
-		detail::write_int32(piece, ptr);
+		detail::write_int32(static_cast<int>(piece), ptr);
 		send_buffer(msg, sizeof(msg));
 
 		stats_counters().inc_stats_counter(counters::num_outgoing_allowed_fast);
 	}
 
-	void bt_peer_connection::write_suggest(int piece)
+	void bt_peer_connection::write_suggest(piece_index_t const piece)
 	{
 		INVARIANT_CHECK;
 
@@ -451,14 +453,14 @@ namespace libtorrent
 		if (should_log(peer_log_alert::outgoing_message))
 		{
 			peer_log(peer_log_alert::outgoing_message, "SUGGEST"
-				, "piece: %d num_peers: %d", piece
+				, "piece: %d num_peers: %d", static_cast<int>(piece)
 				, t->has_picker() ? t->picker().get_availability(piece) : -1);
 		}
 #endif
 
 		char msg[] = {0,0,0,5, msg_suggest_piece, 0, 0, 0, 0};
 		char* ptr = msg + 5;
-		detail::write_int32(piece, ptr);
+		detail::write_int32(static_cast<int>(piece), ptr);
 		send_buffer(msg, sizeof(msg));
 
 		stats_counters().inc_stats_counter(counters::num_outgoing_suggest);
@@ -870,7 +872,7 @@ namespace libtorrent
 
 		const char* ptr = recv_buffer.begin() + 1;
 		peer_request r;
-		r.piece = detail::read_int32(ptr);
+		r.piece = piece_index_t(detail::read_int32(ptr));
 		r.start = detail::read_int32(ptr);
 		r.length = m_recv_buffer.packet_size() - 9;
 
@@ -945,7 +947,7 @@ namespace libtorrent
 				// exceed the end of the torrent. This is
 				// necessary in order to maintain a correct
 				// m_outstanding_bytes
-				if (r.piece == t->torrent_file().num_pieces() - 1)
+				if (r.piece == t->torrent_file().last_piece())
 				{
 					r.length = (std::min)(t->torrent_file().piece_size(
 						r.piece) - r.start, r.length);
@@ -1044,7 +1046,7 @@ namespace libtorrent
 		span<char const> recv_buffer = m_recv_buffer.get();
 
 		const char* ptr = recv_buffer.begin() + 1;
-		int const index = detail::read_int32(ptr);
+		piece_index_t const index(detail::read_int32(ptr));
 
 		incoming_have(index);
 	}
@@ -1076,7 +1078,7 @@ namespace libtorrent
 
 		span<char const> recv_buffer = m_recv_buffer.get();
 
-		bitfield bits;
+		typed_bitfield<piece_index_t> bits;
 		bits.assign(recv_buffer.begin() + 1
 			, t->valid_metadata()?get_bitfield().size():(m_recv_buffer.packet_size()-1)*8);
 
@@ -1104,7 +1106,7 @@ namespace libtorrent
 
 		peer_request r;
 		const char* ptr = recv_buffer.begin() + 1;
-		r.piece = detail::read_int32(ptr);
+		r.piece = piece_index_t(detail::read_int32(ptr));
 		r.start = detail::read_int32(ptr);
 		r.length = detail::read_int32(ptr);
 
@@ -1180,7 +1182,7 @@ namespace libtorrent
 		if (recv_pos >= header_size)
 		{
 			const char* ptr = recv_buffer.begin() + 1;
-			p.piece = detail::read_int32(ptr);
+			p.piece = piece_index_t(detail::read_int32(ptr));
 			p.start = detail::read_int32(ptr);
 
 			if (merkle)
@@ -1196,7 +1198,7 @@ namespace libtorrent
 		}
 		else
 		{
-			p.piece = 0;
+			p.piece = piece_index_t(0);
 			p.start = 0;
 			p.length = 0;
 		}
@@ -1246,7 +1248,7 @@ namespace libtorrent
 		{
 #ifndef TORRENT_DISABLE_LOGGING
 			peer_log(peer_log_alert::incoming_message, "HASHPIECE"
-				, "piece: %d list: %d", p.piece, list_size);
+				, "piece: %d list: %d", static_cast<int>(p.piece), list_size);
 #endif
 			bdecode_node hash_list;
 			error_code ec;
@@ -1309,7 +1311,7 @@ namespace libtorrent
 
 		peer_request r;
 		const char* ptr = recv_buffer.begin() + 1;
-		r.piece = detail::read_int32(ptr);
+		r.piece = piece_index_t(detail::read_int32(ptr));
 		r.start = detail::read_int32(ptr);
 		r.length = detail::read_int32(ptr);
 
@@ -1363,7 +1365,7 @@ namespace libtorrent
 		span<char const> recv_buffer = m_recv_buffer.get();
 
 		const char* ptr = recv_buffer.begin() + 1;
-		int const piece = detail::read_uint32(ptr);
+		piece_index_t const piece(detail::read_uint32(ptr));
 		incoming_suggest(piece);
 	}
 
@@ -1410,7 +1412,7 @@ namespace libtorrent
 
 		peer_request r;
 		const char* ptr = recv_buffer.begin() + 1;
-		r.piece = detail::read_int32(ptr);
+		r.piece = piece_index_t(detail::read_int32(ptr));
 		r.start = detail::read_int32(ptr);
 		r.length = detail::read_int32(ptr);
 
@@ -1431,7 +1433,7 @@ namespace libtorrent
 		if (!m_recv_buffer.packet_finished()) return;
 		span<char const> recv_buffer = m_recv_buffer.get();
 		const char* ptr = recv_buffer.begin() + 1;
-		int index = detail::read_int32(ptr);
+		piece_index_t index(detail::read_int32(ptr));
 
 		incoming_allowed_fast(index);
 	}
@@ -1754,7 +1756,7 @@ namespace libtorrent
 #endif
 				return;
 			}
-			int piece = aux::read_uint32(recv_buffer);
+			piece_index_t const piece(aux::read_uint32(recv_buffer));
 			incoming_dont_have(piece);
 			return;
 		}
@@ -2068,7 +2070,7 @@ namespace libtorrent
 
 		char msg[17] = {0,0,0,13, msg_cancel};
 		char* ptr = msg + 5;
-		detail::write_int32(r.piece, ptr); // index
+		detail::write_int32(static_cast<int>(r.piece), ptr); // index
 		detail::write_int32(r.start, ptr); // begin
 		detail::write_int32(r.length, ptr); // length
 		send_buffer(msg, sizeof(msg));
@@ -2090,7 +2092,7 @@ namespace libtorrent
 		char msg[17] = {0,0,0,13, msg_request};
 		char* ptr = msg + 5;
 
-		detail::write_int32(r.piece, ptr); // index
+		detail::write_int32(static_cast<int>(r.piece), ptr); // index
 		detail::write_int32(r.start, ptr); // begin
 		detail::write_int32(r.length, ptr); // length
 		send_buffer(msg, sizeof(msg), message_type_request);
@@ -2123,10 +2125,10 @@ namespace libtorrent
 			m_sent_bitfield = true;
 
 			// bootstrap superseeding by sending two have message
-			int piece = t->get_piece_to_super_seed(get_bitfield());
-			if (piece >= 0) superseed_piece(-1, piece);
+			piece_index_t piece = t->get_piece_to_super_seed(get_bitfield());
+			if (piece >= piece_index_t(0)) superseed_piece(piece_index_t(-1), piece);
 			piece = t->get_piece_to_super_seed(get_bitfield());
-			if (piece >= 0) superseed_piece(-1, piece);
+			if (piece >= piece_index_t(0)) superseed_piece(piece_index_t(-1), piece);
 			return;
 		}
 		else if (m_supports_fast && t->is_seed())
@@ -2173,7 +2175,7 @@ namespace libtorrent
 			std::memset(ptr, 0, packet_size - 5);
 			piece_picker const& p = t->picker();
 			int mask = 0x80;
-			for (int i = 0; i < num_pieces; ++i)
+			for (piece_index_t i(0); i < piece_index_t(num_pieces); ++i)
 			{
 				if (p.have_piece(i)) *ptr |= mask;
 				mask >>= 1;
@@ -2187,8 +2189,8 @@ namespace libtorrent
 
 		// add predictive pieces to the bitfield as well, since we won't
 		// announce them again
-		for (int p : t->predictive_pieces())
-			msg[5 + p / 8] |= (0x80 >> (p & 7));
+		for (piece_index_t p : t->predictive_pieces())
+			msg[5 + static_cast<int>(p) / 8] |= (0x80 >> (static_cast<int>(p) & 7));
 
 #ifndef TORRENT_DISABLE_LOGGING
 		if (should_log(peer_log_alert::outgoing_message))
@@ -2385,12 +2387,12 @@ namespace libtorrent
 		stats_counters().inc_stats_counter(counters::num_outgoing_not_interested);
 	}
 
-	void bt_peer_connection::write_have(int index)
+	void bt_peer_connection::write_have(piece_index_t index)
 	{
 		INVARIANT_CHECK;
 		TORRENT_ASSERT(associated_torrent().lock()->valid_metadata());
-		TORRENT_ASSERT(index >= 0);
-		TORRENT_ASSERT(index < associated_torrent().lock()->torrent_file().num_pieces());
+		TORRENT_ASSERT(index >= piece_index_t(0));
+		TORRENT_ASSERT(index < associated_torrent().lock()->torrent_file().end_piece());
 		TORRENT_ASSERT(m_sent_handshake);
 
 		// if we haven't sent the bitfield yet, this piece should be included in
@@ -2399,19 +2401,19 @@ namespace libtorrent
 
 		char msg[] = {0,0,0,5,msg_have,0,0,0,0};
 		char* ptr = msg + 5;
-		detail::write_int32(index, ptr);
+		detail::write_int32(static_cast<int>(index), ptr);
 		send_buffer(msg, sizeof(msg));
 
 		stats_counters().inc_stats_counter(counters::num_outgoing_have);
 	}
 
-	void bt_peer_connection::write_dont_have(int index)
+	void bt_peer_connection::write_dont_have(piece_index_t const index)
 	{
 #ifndef TORRENT_DISABLE_EXTENSIONS
 		INVARIANT_CHECK;
 		TORRENT_ASSERT(associated_torrent().lock()->valid_metadata());
-		TORRENT_ASSERT(index >= 0);
-		TORRENT_ASSERT(index < associated_torrent().lock()->torrent_file().num_pieces());
+		TORRENT_ASSERT(index >= piece_index_t(0));
+		TORRENT_ASSERT(index < associated_torrent().lock()->torrent_file().end_piece());
 
 		if (in_handshake()) return;
 
@@ -2422,7 +2424,7 @@ namespace libtorrent
 
 		char msg[] = {0,0,0,6,msg_extended,char(m_dont_have_id),0,0,0,0};
 		char* ptr = msg + 6;
-		detail::write_int32(index, ptr);
+		detail::write_int32(static_cast<int>(index), ptr);
 		send_buffer(msg, sizeof(msg));
 
 		stats_counters().inc_stats_counter(counters::num_outgoing_extended);
@@ -2475,7 +2477,7 @@ namespace libtorrent
 			detail::write_uint8(250, ptr);
 		else
 			detail::write_uint8(msg_piece, ptr);
-		detail::write_int32(r.piece, ptr);
+		detail::write_int32(static_cast<int>(r.piece), ptr);
 		detail::write_int32(r.start, ptr);
 
 		// if this is a merkle torrent and the start offset
@@ -2486,12 +2488,12 @@ namespace libtorrent
 			entry piece_list;
 			entry::list_type& l = piece_list.list();
 			std::map<int, sha1_hash> merkle_node_list = t->torrent_file().build_merkle_list(r.piece);
-			for (std::map<int, sha1_hash>::iterator i = merkle_node_list.begin()
-				, end(merkle_node_list.end()); i != end; ++i)
+			l.reserve(merkle_node_list.size());
+			for (auto const& i : merkle_node_list)
 			{
 				l.push_back(entry(entry::list_t));
-				l.back().list().push_back(i->first);
-				l.back().list().push_back(i->second.to_string());
+				l.back().list().push_back(i.first);
+				l.back().list().push_back(i.second.to_string());
 			}
 			bencode(std::back_inserter(piece_list_buf), piece_list);
 			detail::write_int32(int(piece_list_buf.size()), ptr);

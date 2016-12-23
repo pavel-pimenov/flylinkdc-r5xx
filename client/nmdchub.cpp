@@ -615,7 +615,7 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 					m_cache_hub_url_flood = getHubUrlAndIP();
 					
 				}
-				if (ConnectionManager::getInstance()->checkIpFlood(l_search_param.m_seeker.substr(0, m),
+				if (ConnectionManager::checkIpFlood(l_search_param.m_seeker.substr(0, m),
 				                                                   Util::toInt(l_search_param.m_seeker.substr(m + 1)), getIp(), param, m_cache_hub_url_flood))
 				{
 					return; // http://dchublist.ru/forum/viewtopic.php?f=6&t=1028&start=150
@@ -2209,13 +2209,13 @@ bool NmdcHub::resendMyINFO(bool p_always_send, bool p_is_force_passive)
 void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 {
 	const uint64_t l_limit = 2 * 60 * 1000;
-	const uint64_t currentTick = GET_TICK(); // [!] IRainman opt.
-	if (p_is_force_passive == false && p_always_send == false && m_lastUpdate + l_limit > currentTick)
+	const uint64_t l_currentTick = GET_TICK(); // [!] IRainman opt.
+	if (p_is_force_passive == false && p_always_send == false && m_lastUpdate + l_limit > l_currentTick)
 	{
 		return; // antispam
 	}
 	checkstate();
-	const FavoriteHubEntry *fhe = reloadSettings(false);
+	const FavoriteHubEntry *l_fhe = reloadSettings(false);
 	char l_modeChar;
 	if (p_is_force_passive)
 	{
@@ -2262,7 +2262,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	{
 		status |= NmdcSupports::TLS;
 	}
-	const string l_currentCounts = fhe && fhe->getExclusiveHub() ? getCountsIndivid() : getCounts();
+	const string l_currentCounts = l_fhe && l_fhe->getExclusiveHub() ? getCountsIndivid() : getCounts();
 	
 	// IRAINMAN_USE_UNICODE_IN_NMDC
 	string l_currentMyInfo;
@@ -2353,7 +2353,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 		LogManager::message("Duplicate send MyINFO = " + l_currentMyInfo + " hub: " + getHubUrl());
 	}
 #endif
-	const bool l_is_change_my_info = (l_currentBytesShared != m_lastBytesShared && m_lastUpdate + l_limit < currentTick) || l_currentMyInfo != m_lastMyInfo;
+	const bool l_is_change_my_info = (l_currentBytesShared != m_lastBytesShared && m_lastUpdate + l_limit < l_currentTick) || l_currentMyInfo != m_lastMyInfo;
 	const bool l_is_change_fly_info = g_version_fly_info != m_version_fly_info || m_lastExtJSONInfo.empty() || m_lastExtJSONSupport != l_ExtJSONSupport;
 	if (p_always_send || l_is_change_my_info || l_is_change_fly_info)
 	{
@@ -2362,7 +2362,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			m_lastMyInfo = l_currentMyInfo;
 			m_lastBytesShared = l_currentBytesShared;
 			send(m_lastMyInfo + Util::toString(l_currentBytesShared) + "$|");
-			m_lastUpdate = currentTick;
+			m_lastUpdate = l_currentTick;
 		}
 #ifdef FLYLINKDC_USE_EXT_JSON
 		if ((m_supportFlags & SUPPORTS_EXTJSON2) && l_is_change_fly_info)
@@ -2393,7 +2393,12 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			extern int g_RAM_WorkingSetSize;
 			if (g_RAM_WorkingSetSize)
 			{
-				l_json_info["RAM"] = g_RAM_WorkingSetSize;
+				static int g_LastRAM_WorkingSetSize;
+				if (std::abs(g_LastRAM_WorkingSetSize - g_RAM_WorkingSetSize) > 10)
+				{
+					l_json_info["RAM"] = g_RAM_WorkingSetSize;
+					g_LastRAM_WorkingSetSize = g_RAM_WorkingSetSize;
+				}
 			}
 			if (CompatibilityManager::getFreePhysMemory())
 			{
@@ -2458,7 +2463,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			{
 				m_lastExtJSONInfo = l_lastExtJSONInfo;
 				send(m_lastExtJSONInfo + "|");
-				m_lastUpdate = currentTick;
+				m_lastUpdate = l_currentTick;
 			}
 		}
 #endif // FLYLINKDC_USE_EXT_JSON
@@ -2647,6 +2652,7 @@ void NmdcHub::on(BufferedSocketListener::Connected) noexcept
 	m_modeChar = 0;
 	m_supportFlags = 0;
 	m_lastMyInfo.clear();
+	m_lastExtJSONSupport.clear();
 	m_lastBytesShared = 0;
 	m_lastUpdate = 0;
 	m_lastExtJSONInfo.clear();

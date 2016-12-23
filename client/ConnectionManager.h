@@ -404,7 +404,7 @@ class ConnectionManager :
 	public:
 		//static bool getCipherNameAndIP(UserConnection* p_conn, string& p_chiper_name, string& p_ip);
 		
-		bool checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4& p_ip_hub, const string& userInfo, const string& p_HubInfo);
+		static bool checkIpFlood(const string& aIPServer, uint16_t aPort, const boost::asio::ip::address_v4& p_ip_hub, const string& userInfo, const string& p_HubInfo);
 		static bool checkDuplicateSearchTTH(const string& p_search_command, const TTHValue& p_tth);
 		static bool checkDuplicateSearchFile(const string& p_search_command);
 	private:

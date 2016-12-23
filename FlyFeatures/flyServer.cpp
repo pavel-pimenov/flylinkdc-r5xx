@@ -1523,7 +1523,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 }
 #endif
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 75 (36,58,44,49 - устарели)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 76 (36,58,44,49 - устарели)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;
@@ -1753,6 +1753,7 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 				if (!l_error_info.isNull())
 				{
 					l_info["Error"] = l_error_info;
+					CFlyServerJSON::pushError(76, "Error from registry: " + l_error_info.toStyledString());
 				}
 				// Статистику
 				l_time_info["StartGUI"] = Util::toString(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_GUI]);
@@ -3034,7 +3035,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 	}
 	catch (std::exception& e)
 	{
-		const string l_error = g_cur_mediainfo_file + " TTH:" + p_tth.toBase32() + " error: " + string(e.what());
+		const string l_error = g_cur_mediainfo_file + " TTH:" + p_tth.toBase32() + " MediaInfo-error: " + string(e.what());
 		CFlyServerJSON::pushError(15, "error getmediainfo:" + l_error);
 		Util::setRegistryValueString(FLYLINKDC_REGISTRY_MEDIAINFO_CRASH_KEY, Text::toT(l_error));
 		LogManager::message("getMediaInfo: " + p_name + "TTH:" + p_tth.toBase32() + ' ' + STRING(ERROR_STRING) + ": " + string(e.what()));

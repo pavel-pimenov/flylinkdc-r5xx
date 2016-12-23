@@ -653,6 +653,15 @@
     <ClInclude Include="include\libtorrent\aux_\block_cache_reference.hpp">
       <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\units.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\io.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\vector.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ed25519\src\add_scalar.cpp">

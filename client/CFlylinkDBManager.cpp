@@ -289,6 +289,10 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 		l_russian_error += l_footer;
 		l_is_force_exit = true;
 	}
+	if (p_txt.find("out of memory") != string::npos)
+	{
+		ShareManager::tryFixBadAlloc();
+	}
 	if (p_txt.find(" database or disk is full") != string::npos)
 	{
 		l_message += l_rnrn;
@@ -2108,7 +2112,7 @@ __int64 CFlylinkDBManager::get_registry_variable_int64(eTypeSegment p_TypeSegmen
 //========================================================================================================
 void CFlylinkDBManager::load_registry(CFlyRegistryMap& p_values, eTypeSegment p_Segment)
 {
-	// CFlyLock(m_cs);
+	 CFlyLock(m_cs); // Убирать нельзя - падаем  SQLite - load_registry: library routine called out of sequence
 	try
 	{
 		m_get_registry.init(m_flySQLiteDB, "select key,val_str,val_number from fly_registry where segment=? order by rowid")->bind(1, p_Segment);

@@ -1959,7 +1959,7 @@ namespace aux {
 			map_handle = -1;
 
 			// only update this mapping if we actually have a socket listening
-			if (ep.address() != address())
+			if (ep != EndpointType())
 				map_handle = m.add_mapping(protocol, ep.port(), ep.port());
 		}
 	}
@@ -2002,8 +2002,12 @@ namespace aux {
 		ADD_OUTSTANDING_ASYNC("session_impl::on_socks_listen");
 		socks5_stream& s = *m_socks_listen_socket->get<socks5_stream>();
 
-		m_socks_listen_port = listen_port();
-		if (m_socks_listen_port == 0) m_socks_listen_port = std::uint16_t(2000 + random(60000));
+		// figure out which port to ask the socks5 proxy to open or us.
+		m_socks_listen_port = (m_listen_sockets.empty()
+			|| m_settings.get_bool(settings_pack::anonymous_mode))
+			? std::uint16_t(2000 + random(60000))
+			: std::uint16_t(m_listen_sockets.front().tcp_external_port);
+
 		s.async_listen(tcp::endpoint(address_v4::any(), m_socks_listen_port)
 			, std::bind(&session_impl::on_socks_listen, this
 				, m_socks_listen_socket, _1));
@@ -3741,7 +3745,9 @@ namespace aux {
 	}
 
 	namespace {
+#ifndef TORRENT_DISABLE_EXTENSIONS
 		uint64_t const priority_undetermined = std::numeric_limits<uint64_t>::max() - 1;
+#endif
 
 		struct opt_unchoke_candidate
 		{
@@ -6898,9 +6904,8 @@ namespace aux {
 
 			for (auto const& p : resp.peers)
 			{
-				debug_log("  %16s %5d %s %s", p.hostname.c_str(), p.port
-					, p.pid.is_all_zeros() ? "" : to_hex(p.pid).c_str()
-					, identify_client(p.pid).c_str());
+				debug_log("  %16s %5d %s", p.hostname.c_str(), p.port
+					, p.pid.is_all_zeros() ? "" : to_hex(p.pid).c_str());
 			}
 			for (auto const& p : resp.peers4)
 			{

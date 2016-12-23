@@ -2977,7 +2977,12 @@ void ShareManager::tryFixBadAlloc()
 		g_cache_limit = 10;
 	}
 	internalClearCache(true);
-	CFlyServerJSON::pushError(74, "std::bad_alloc ShareManager::tryFixBadAlloc");
+	static bool g_is_send_report = false;
+	if (!g_is_send_report)
+	{
+		CFlyServerJSON::pushError(74, "std::bad_alloc ShareManager::tryFixBadAlloc");
+		g_is_send_report = true;
+	}
 }
 void ShareManager::internalClearCache(bool p_is_force)
 {

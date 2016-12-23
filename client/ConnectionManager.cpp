@@ -1098,7 +1098,7 @@ void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, uin
 	if (isShuttingDown())
 		return;
 		
-	if (checkIpFlood(aIPServer, aPort, boost::asio::ip::address_v4(), "", "[Hub: " + hubUrl + "]"))
+	if (checkIpFlood(aIPServer, aPort, boost::asio::ip::address_v4(), "", "[nmdcConnect][Hub: " + hubUrl + "]"))
 		return;
 		
 	UserConnection* uc = getConnection(true, secure); // [!] IRainman fix SSL connection on NMDC(S) hubs.
@@ -1128,7 +1128,7 @@ void ConnectionManager::adcConnect(const OnlineUser& aUser, uint16_t aPort, uint
 	if (isShuttingDown())
 		return;
 		
-	if (checkIpFlood(aUser.getIdentity().getIpAsString(), aPort, boost::asio::ip::address_v4(), "", "[Hub: " + aUser.getClientBase().getHubName() + "]")) // "ADC Nick: " + aUser.getIdentity().getNick() +
+	if (checkIpFlood(aUser.getIdentity().getIpAsString(), aPort, boost::asio::ip::address_v4(), "", "[adcConnect][Hub: " + aUser.getClientBase().getHubName() + "]")) // "ADC Nick: " + aUser.getIdentity().getNick() +
 		return;
 		
 	UserConnection* uc = getConnection(false, secure);

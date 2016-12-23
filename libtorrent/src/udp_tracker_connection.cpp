@@ -36,7 +36,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/parse_url.hpp"
 #include "libtorrent/udp_tracker_connection.hpp"
-#include "libtorrent/io.hpp"
 #include "libtorrent/hex.hpp"
 #include "libtorrent/broadcast_socket.hpp" // for is_any
 #include "libtorrent/random.hpp"
@@ -45,14 +44,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/ip_filter.hpp"
 #include "libtorrent/aux_/time.hpp"
 #include "libtorrent/aux_/io.hpp"
-#include "libtorrent/span.hpp"
 #include "libtorrent/peer.hpp"
 
 #ifndef TORRENT_DISABLE_LOGGING
 #include "libtorrent/socket_io.hpp"
 #endif
-
-using namespace std::placeholders;
 
 namespace libtorrent
 {
@@ -84,8 +80,7 @@ namespace libtorrent
 		int port;
 		error_code ec;
 
-		using std::ignore;
-		std::tie(protocol, ignore, hostname, port, ignore)
+		std::tie(protocol, std::ignore, hostname, port, std::ignore)
 			= parse_url_components(tracker_req().url, ec);
 		if (port == -1) port = protocol == "http" ? 80 : 443;
 
@@ -107,6 +102,7 @@ namespace libtorrent
 		}
 		else
 		{
+			using namespace std::placeholders;
 			ADD_OUTSTANDING_ASYNC("udp_tracker_connection::name_lookup");
 			// when stopping, pass in the prefer cache flag, because we
 			// don't want to get stuck on DNS lookups when shutting down
@@ -135,7 +131,7 @@ namespace libtorrent
 		, char const* msg, int interval, int min_interval)
 	{
 		// m_target failed. remove it from the endpoint list
-		std::vector<tcp::endpoint>::iterator i = std::find(m_endpoints.begin()
+		auto const i = std::find(m_endpoints.begin()
 			, m_endpoints.end(), tcp::endpoint(m_target.address(), m_target.port()));
 
 		if (i != m_endpoints.end()) m_endpoints.erase(i);
@@ -204,15 +200,13 @@ namespace libtorrent
 		// we're listening on. To make sure the tracker get our
 		// correct listening address.
 
-		for (std::vector<address>::const_iterator i = addresses.begin()
-			, end(addresses.end()); i != end; ++i)
-			m_endpoints.push_back(tcp::endpoint(*i, std::uint16_t(port)));
+		for (auto const& addr : addresses)
+			m_endpoints.push_back(tcp::endpoint(addr, std::uint16_t(port)));
 
 		if (tracker_req().filter)
 		{
 			// remove endpoints that are filtered by the IP filter
-			for (std::vector<tcp::endpoint>::iterator k = m_endpoints.begin();
-				k != m_endpoints.end();)
+			for (auto k = m_endpoints.begin(); k != m_endpoints.end();)
 			{
 				if (tracker_req().filter->access(k->address()) == ip_filter::blocked)
 				{
@@ -283,8 +277,7 @@ namespace libtorrent
 	void udp_tracker_connection::start_announce()
 	{
 		std::unique_lock<std::mutex> l(m_cache_mutex);
-		std::map<address, connection_cache_entry>::iterator cc
-			= m_connection_cache.find(m_target.address());
+		auto const cc = m_connection_cache.find(m_target.address());
 		if (cc != m_connection_cache.end())
 		{
 			// we found a cached entry! Now, we can only
@@ -467,7 +460,7 @@ namespace libtorrent
 
 		// reset transaction
 		update_transaction_id();
-		std::uint64_t const connection_id = aux::read_int64(buf);
+		std::int64_t const connection_id = aux::read_int64(buf);
 
 		std::lock_guard<std::mutex> l(m_cache_mutex);
 		connection_cache_entry& cce = m_connection_cache[m_target.address()];
@@ -502,7 +495,7 @@ namespace libtorrent
 
 		aux::write_uint32(0x417, view);
 		aux::write_uint32(0x27101980, view); // connection_id
-		aux::write_int32(static_cast<int>(action_t::connect), view); // action (connect)
+		aux::write_int32(action_t::connect, view); // action (connect)
 		aux::write_int32(m_transaction_id, view); // transaction_id
 		TORRENT_ASSERT(view.size() == 0);
 
@@ -552,8 +545,7 @@ namespace libtorrent
 	{
 		if (m_abort) return;
 
-		std::map<address, connection_cache_entry>::iterator i
-			= m_connection_cache.find(m_target.address());
+		auto const i = m_connection_cache.find(m_target.address());
 		// this isn't really supposed to happen
 		TORRENT_ASSERT(i != m_connection_cache.end());
 		if (i == m_connection_cache.end()) return;
@@ -562,7 +554,7 @@ namespace libtorrent
 		span<char> view = buf;
 
 		aux::write_int64(i->second.connection_id, view); // connection_id
-		aux::write_int32(static_cast<int>(action_t::scrape), view); // action (scrape)
+		aux::write_int32(action_t::scrape, view); // action (scrape)
 		aux::write_int32(m_transaction_id, view); // transaction_id
 		// info_hash
 		std::copy(tracker_req().info_hash.begin(), tracker_req().info_hash.end()
@@ -630,17 +622,16 @@ namespace libtorrent
 		for (int i = 0; i < num_peers; ++i)
 		{
 			ipv4_peer_entry e;
-			memcpy(&e.ip[0], buf.data(), 4);
+			std::memcpy(e.ip.data(), buf.data(), 4);
 			buf = buf.subspan(4);
 			e.port = aux::read_uint16(buf);
 			resp.peers4.push_back(e);
 		}
 
 		std::list<address> ip_list;
-		for (std::vector<tcp::endpoint>::const_iterator i = m_endpoints.begin()
-			, end(m_endpoints.end()); i != end; ++i)
+		for (auto const& endp : m_endpoints)
 		{
-			ip_list.push_back(i->address());
+			ip_list.push_back(endp.address());
 		}
 
 		cb->tracker_response(tracker_req(), m_target.address(), ip_list
@@ -709,14 +700,13 @@ namespace libtorrent
 		tracker_request const& req = tracker_req();
 		aux::session_settings const& settings = m_man.settings();
 
-		std::map<address, connection_cache_entry>::iterator i
-			= m_connection_cache.find(m_target.address());
+		auto const i = m_connection_cache.find(m_target.address());
 		// this isn't really supposed to happen
 		TORRENT_ASSERT(i != m_connection_cache.end());
 		if (i == m_connection_cache.end()) return;
 
 		aux::write_int64(i->second.connection_id, out); // connection_id
-		aux::write_int32(static_cast<int>(action_t::announce), out); // action (announce)
+		aux::write_int32(action_t::announce, out); // action (announce)
 		aux::write_int32(m_transaction_id, out); // transaction_id
 		std::copy(req.info_hash.begin(), req.info_hash.end(), out.data()); // info_hash
 		out.subspan(20);
@@ -736,7 +726,7 @@ namespace libtorrent
 			address ip = address::from_string(settings.get_str(settings_pack::announce_ip).c_str(), ec);
 			if (!ec && ip.is_v4()) announce_ip = ip.to_v4();
 		}
-		aux::write_uint32(std::uint32_t(announce_ip.to_ulong()), out);
+		aux::write_uint32(announce_ip.to_ulong(), out);
 		aux::write_int32(req.key, out); // key
 		aux::write_int32(req.num_want, out); // num_want
 		aux::write_uint16(req.listen_port, out); // port
@@ -750,11 +740,11 @@ namespace libtorrent
 
 		if (!request_string.empty())
 		{
-			int str_len = (std::min)(int(request_string.size()), 255);
+			std::size_t str_len = std::min(request_string.size(), std::size_t(255));
 			request_string.resize(str_len);
 
 			aux::write_uint8(2, out);
-			aux::write_uint8(std::uint8_t(str_len), out);
+			aux::write_uint8(str_len, out);
 			aux::write_string(request_string, out);
 		}
 
@@ -769,14 +759,12 @@ namespace libtorrent
 		if (!m_hostname.empty())
 		{
 			m_man.send_hostname(m_hostname.c_str()
-				, m_target.port(), span<char const>(buf
-					, int(sizeof(buf) - out.size())), ec
+				, m_target.port(), {buf, std::size_t(sizeof(buf) - out.size())}, ec
 				, udp_socket::tracker_connection);
 		}
 		else
 		{
-			m_man.send(m_target, span<char const>(buf
-					, int(sizeof(buf) - out.size())), ec
+			m_man.send(m_target, {buf, std::size_t(sizeof(buf) - out.size())}, ec
 				, udp_socket::tracker_connection);
 		}
 		m_state = action_t::announce;
