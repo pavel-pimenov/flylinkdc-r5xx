@@ -160,14 +160,14 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 	private:
 		std::list<CFlyChatCache> m_chat_cache; // вектор нельзя - список пополняется
 		size_t m_chat_cache_length;
-		bool m_is_cache_chat_empty;
+		bool m_is_disable_chat_cache;
 		bool m_is_out_of_memory_for_smile;
 		FastCriticalSection m_fcs_chat_cache;
 		void insertAndFormat(const tstring & text, CHARFORMAT2 cf, bool p_is_disable_style, LONG& p_begin, LONG& p_end);
 	public:
 		void disable_chat_cache()
 		{
-			m_is_cache_chat_empty = true;
+			m_is_disable_chat_cache = true;
 		}
 		void restore_chat_cache();
 		

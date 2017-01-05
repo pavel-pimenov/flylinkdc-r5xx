@@ -57,6 +57,7 @@ StringSet FavoriteManager::g_sync_hub_local;
 StringSet FavoriteManager::g_sync_hub_external;
 StringSet FavoriteManager::g_sync_hub_isp_delete;
 #endif
+StringSet FavoriteManager::g_redirect_hubs;
 
 // [+] IRainman mimicry function
 const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
@@ -66,7 +67,7 @@ const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
 	FavoriteManager::mimicrytag("EiskaltDC++", "2.2.9"),    // 24 feb 2015 http://code.google.com/p/eiskaltdc/
 	FavoriteManager::mimicrytag("AirDC++", "2.91"),         // 21 feb 2015 http://www.airdcpp.net/
 	FavoriteManager::mimicrytag("RSX++", "1.21"),           // 14 apr 2011 http://rsxplusplus.sourceforge.net/
-	FavoriteManager::mimicrytag("ApexDC++", "1.6.0"),       // 20 aug 2014 http://www.apexdc.net/changes/ (http://forums.apexdc.net/topic/4670-apexdc-160-available-for-download/)
+	FavoriteManager::mimicrytag("ApexDC++", "1.6.2"),       // 20 aug 2014 http://www.apexdc.net/changes/ (http://forums.apexdc.net/topic/4670-apexdc-160-available-for-download/)
 	FavoriteManager::mimicrytag("PWDC++", "0.41"),          // 29th Dec 2005: Project discontinued
 	FavoriteManager::mimicrytag("IceDC++", "1.01a"),        // 17 jul 2009 http://sourceforge.net/projects/icedc/
 	FavoriteManager::mimicrytag("StrgDC++", "2.42"),        // latest public beta (project possible dead) http://strongdc.sourceforge.net/download.php?lang=eng
@@ -687,6 +688,10 @@ string FavoriteManager::getDownloadDirectory(const string& ext)
 
 RecentHubEntry* FavoriteManager::addRecent(const RecentHubEntry& aEntry)
 {
+	if (aEntry.getRedirect())
+	{
+		g_redirect_hubs.insert(aEntry.getServer());
+	}
 	auto i = getRecentHub(aEntry.getServer());
 	if (i != g_recentHubs.end())
 	{
@@ -706,7 +711,6 @@ void FavoriteManager::removeRecent(const RecentHubEntry* entry)
 	{
 		return;
 	}
-	
 	fly_fire1(FavoriteManagerListener::RecentRemoved(), entry);
 	g_recentHubs.erase(i);
 	g_recent_dirty = true;
@@ -925,6 +929,7 @@ void FavoriteManager::recentsave()
 		CFlyRegistryMap l_values;
 		for (auto i = g_recentHubs.cbegin(); i != g_recentHubs.cend(); ++i)
 		{
+		
 			string l_recentHubs_token;
 			l_recentHubs_token += (*i)->getDescription();
 			l_recentHubs_token += '\n';
@@ -936,7 +941,14 @@ void FavoriteManager::recentsave()
 			l_recentHubs_token += '\n';
 			l_recentHubs_token += (*i)->getLastSeen();
 			l_recentHubs_token += '\n';
-			l_recentHubs_token += (*i)->getOpenTab();
+			if ((*i)->getRedirect() == false)
+			{
+				l_recentHubs_token += (*i)->getOpenTab();
+			}
+			else
+			{
+				l_recentHubs_token += "-";
+			}
 			l_recentHubs_token += '\n';
 			l_values[(*i)->getName()] = l_recentHubs_token;
 		}
@@ -1140,13 +1152,17 @@ bool FavoriteManager::replaceDeadHub()
 					g_AllHubUrls.insert(i->second);
 					l_HubEntry->setConnect(true);
 					CFlyServerJSON::pushError(32, "Dead Hub replace: " + i->first + " -> " + i->second);
+					l_result = true;
 				}
 				else
 				{
-					l_HubEntry->setConnect(false);
-					CFlyServerJSON::pushError(34, "Dead Hub disable auto-connect: " + i->first);
+					if (l_HubEntry->getConnect() == true)
+					{
+						l_HubEntry->setConnect(false);
+						CFlyServerJSON::pushError(34, "Dead Hub disable auto-connect: " + i->first);
+						l_result = true;
+					}
 				}
-				l_result = true;
 			}
 		}
 	}

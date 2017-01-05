@@ -288,9 +288,6 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  CHATBUFFERSIZE, ENABLE_HUBMODE_PIC, ENABLE_COUNTRYFLAG, PG_LAST_UP,
 		                  DIRECTORYLISTINGFRAME_SPLIT,
 		                  FLYSERVER_HUBLIST_SPLIT,
-#ifdef IRAINMAN_INCLUDE_TEXT_FORMATTING
-		                  FORMAT_BIU,
-#endif
 		                  MEDIA_PLAYER, PROT_FAVS, MAX_MSG_LENGTH, POPUP_BACKCOLOR, POPUP_TEXTCOLOR, POPUP_TITLE_TEXTCOLOR, POPUP_IMAGE, POPUP_COLORS, SORT_FAVUSERS_FIRST, SHOW_SHELL_MENU, OPEN_LOGS_INTERNAL,
 		                  
 		                  NSLOOKUP_MODE, NSLOOKUP_DELAY, // !SMT!-IP
@@ -313,7 +310,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  KEEP_DL_HISTORY, KEEP_UL_HISTORY,
 		                  SHOW_QUICK_SEARCH, SEARCH_DETECT_TTH, FULL_FILELIST_NFO, TABS_CLOSEBUTTONS,
 		                  VIEW_GRIDCONTROLS, // [+] ZagZag
-		                  DUPE_EX1_COLOR, DUPE_EX2_COLOR, NSL_IGNORE_ME,// [+]NSL
+		                  DUPE_EX1_COLOR, DUPE_EX2_COLOR, DUPE_EX3_COLOR, NSL_IGNORE_ME,// [+]NSL
 		                  ENABLE_LAST_IP_AND_MESSAGE_COUNTER,
 		                  ENABLE_FLY_SERVER,
 		                  ENABLE_HIT_FILE_LIST,

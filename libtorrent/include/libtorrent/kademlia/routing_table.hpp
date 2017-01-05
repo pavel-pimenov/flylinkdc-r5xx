@@ -91,7 +91,7 @@ struct ipv6_hash
 struct ip_set
 {
 	void insert(address const& addr);
-	size_t count(address const& addr);
+	bool exists(address const& addr) const;
 	void erase(address const& addr);
 
 	void clear()
@@ -277,9 +277,11 @@ private:
 
 #ifndef TORRENT_DISABLE_LOGGING
 	dht_logger* m_log;
+	void log_node_failed(node_id const& nid, node_entry const& ne) const;
 #endif
 
 	table_t::iterator find_bucket(node_id const& id);
+	void remove_node_internal(node_entry* n, bucket_t& b);
 
 	void split_bucket();
 

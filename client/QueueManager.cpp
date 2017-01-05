@@ -186,6 +186,12 @@ QueueItemPtr QueueManager::FileQueue::add(int64_t p_FlyQueueID,
 	}
 	return qi;
 }
+bool QueueManager::FileQueue::is_queue_tth(const TTHValue& p_tth)
+{
+	WLock(*g_csFQ);
+	auto l_count_tth = g_queue_tth_map.find(p_tth);
+	return l_count_tth != g_queue_tth_map.end();
+}
 
 void QueueManager::FileQueue::add(const QueueItemPtr& qi) // [!] IRainman fix.
 {
@@ -1067,8 +1073,8 @@ string QueueManager::getListPath(const UserPtr& user) const
 {
 	dcassert(user); // [!] IRainman fix: Unable to load the file list with an empty user!
 	
-	StringList nicks = ClientManager::getNicks(user->getCID(), Util::emptyString);
-	string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
+	const StringList nicks = ClientManager::getNicks(user->getCID(), Util::emptyString);
+	const string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
 	return checkTarget(Util::getListPath() + nick + user->getCID().toBase32(), -1);// [!] IRainman fix. FlylinkDC use Size on 2nd parametr!
 }
 

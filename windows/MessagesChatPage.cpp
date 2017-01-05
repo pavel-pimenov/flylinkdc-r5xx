@@ -46,9 +46,6 @@ MessagesChatPage::ListItem MessagesChatPage::g_listItems_chat[] =
 	{ SettingsManager::SMILE_SELECT_WND_ANIM_SMILES, ResourceManager::SMILE_SELECT_WND_ANIM_SMILES },
 #endif
 	{ SettingsManager::SHOW_SEND_MESSAGE_BUTTON, ResourceManager::SHOW_SEND_MESSAGE_BUTTON}, // [+] SSA
-#ifdef IRAINMAN_INCLUDE_TEXT_FORMATTING
-	{ SettingsManager::FORMAT_BIU, ResourceManager::FORMAT_BIU }, // "Format bold, italics and underline in chat (may cause some display problems with MOTD's and ASCII pictures)"
-#endif
 #ifdef IRAINMAN_USE_BB_CODES
 	{ SettingsManager::FORMAT_BB_CODES, ResourceManager::FORMAT_BB_CODES },//[+]IRainman
 	{ SettingsManager::FORMAT_BB_CODES_COLORS, ResourceManager::FORMAT_BB_CODES_COLORS },//[+]SSA

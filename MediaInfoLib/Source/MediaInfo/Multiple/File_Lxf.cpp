@@ -641,7 +641,7 @@ void File_Lxf::Header_Parse()
     int64u BlockSize=0, TimeStamp=0, Duration=0;
     int32u HeaderSize, Type;
     int32u Size; //Video and Audio
-    int8u VideoFormat, GOP_M, PictureType; //Video
+    int8u VideoFormat=0, GOP_M=0, PictureType=0; //Video
     int8u Channels_Count=0; //Audio
     Skip_C8(                                                    "Signature");
     Get_L4 (Version,                                            "Version"); //0=start and duration are in field, 1=in 27 MHz values

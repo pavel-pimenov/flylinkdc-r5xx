@@ -561,11 +561,11 @@ void File_Mpeg4v::Streams_Fill()
     if (video_object_layer_start_IsParsed && shape!=2 && !complexity_estimation_disable)
     {
         Fill(Stream_Video, 0, "data_partitioned", data_partitioned?"Yes":"No");
-        (*Stream_More)[Stream_Video][0](Ztring().From_Local("data_partitioned"), Info_Options)=__T("N NT");
+        Fill_SetOptions(Stream_Video, 0 ,"data_partitioned", "N NT");
         if (data_partitioned)
         {
             Fill(Stream_Video, 0, "reversible_vlc", reversible_vlc?"Yes":"No");
-            (*Stream_More)[Stream_Video][0](Ztring().From_Local("reversible_vlc"), Info_Options)=__T("N NT");
+            Fill_SetOptions(Stream_Video, 0, "reversible_vlc", "N NT");
         }
     }
 
@@ -1564,7 +1564,7 @@ void File_Mpeg4v::vop_start()
     Element_Info1(Ztring(__T("Frame ")+Ztring::ToZtring(Frame_Count)));
 
     //Parsing
-    int32u vop_time_increment;
+    int32u vop_time_increment = 0;
     int8u vop_coding_type;
     bool  vop_coded;
     int8u modulo_time_base=0;

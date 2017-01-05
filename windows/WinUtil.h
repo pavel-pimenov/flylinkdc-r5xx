@@ -21,8 +21,9 @@
 
 #pragma once
 
+#include <functional>
+
 #include <Richedit.h>
-#include <boost/bind.hpp>
 #include <atlctrls.h>
 
 #include "resource.h"
@@ -657,11 +658,14 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 					{
 						const tstring l_message = UserInfoSimple::getBroadcastPrivateMessage();
 						if (!l_message.empty()) // [+] SCALOlaz: support for abolition and prohibition to send a blank line
+						{
 							((T*)this)->getUserList().forEachSelectedParam(&UserInfoBase::pm_msg, m_selectedHint, l_message);
+						}
 					}
 					else
 					{
-						((T*)this)->getUserList().forEachSelectedT(boost::bind(&UserInfoBase::pm, _1, m_selectedHint));
+						using std::placeholders::_1;
+						((T*)this)->getUserList().forEachSelectedT(std::bind(&UserInfoBase::pm, _1, m_selectedHint));
 					}
 					// !SMT!-S end
 				}
@@ -978,7 +982,8 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			{
 				__if_exists(T::getUserList)
 				{
-					((T*)this)->getUserList().forEachSelectedT(boost::bind(func, _1, data));
+					using std::placeholders::_1;
+					((T*)this)->getUserList().forEachSelectedT(std::bind(func, _1, data));
 				}
 			}
 		}
@@ -1023,13 +1028,14 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			{
 				__if_exists(T::getUserList)
 				{
+					using std::placeholders::_1;
 					if (p_is_only_first_user_info)
 					{
-						((T*)this)->getUserList().forFirstSelectedT(boost::bind(func, _1, hubHint));
+						((T*)this)->getUserList().forFirstSelectedT(std::bind(func, _1, hubHint));
 					}
 					else
 					{
-						((T*)this)->getUserList().forEachSelectedT(boost::bind(func, _1, hubHint));
+						((T*)this)->getUserList().forEachSelectedT(std::bind(func, _1, hubHint));
 					}
 				}
 			}

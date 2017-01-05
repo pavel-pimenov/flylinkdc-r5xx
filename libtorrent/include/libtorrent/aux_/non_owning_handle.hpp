@@ -30,38 +30,21 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_PIECE_BLOCK_HPP_INCLUDED
-#define TORRENT_PIECE_BLOCK_HPP_INCLUDED
+#ifndef TORRENT_NON_OWNING_HANDLE_HPP_INCLUDED
+#define TORRENT_NON_OWNING_HANDLE_HPP_INCLUDED
 
-#include "libtorrent/units.hpp"
+namespace libtorrent { namespace aux {
 
-namespace libtorrent
-{
-	struct TORRENT_EXTRA_EXPORT piece_block
+	// internal
+	struct non_owning_handle
 	{
-		static const piece_block invalid;
-
-		piece_block() = default;
-		piece_block(piece_index_t p_index, int b_index)
-			: piece_index(p_index)
-			, block_index(b_index)
-		{
-		}
-		piece_index_t piece_index {0};
-		int block_index = 0;
-
-		bool operator<(piece_block const& b) const
-		{
-			if (piece_index < b.piece_index) return true;
-			if (piece_index == b.piece_index) return block_index < b.block_index;
-			return false;
-		}
-
-		bool operator==(piece_block const& b) const
-		{ return piece_index == b.piece_index && block_index == b.block_index; }
-
-		bool operator!=(piece_block const& b) const
-		{ return piece_index != b.piece_index || block_index != b.block_index; }
+		explicit non_owning_handle(char* b) : m_buf(b) {}
+		char* get() const { return m_buf; }
+	private:
+		char* m_buf;
 	};
-}
+
+}}
+
 #endif
+

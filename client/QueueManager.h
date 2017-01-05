@@ -374,6 +374,7 @@ class QueueManager : public Singleton<QueueManager>,
 				static std::unique_ptr<CriticalSection> g_csFQ;
 #endif
 				static std::unique_ptr<webrtc::RWLockWrapper> g_cs_remove;
+				static bool is_queue_tth(const TTHValue& p_tth);
 			private:
 				static QueueItem::QIStringMap g_queue;
 				static boost::unordered_map<TTHValue, int> g_queue_tth_map;
@@ -381,7 +382,10 @@ class QueueManager : public Singleton<QueueManager>,
 				static std::vector<int64_t> g_remove_id_array;
 				
 		};
-		
+		static bool is_queue_tth(const TTHValue& p_tth)
+		{
+			return g_fileQueue.is_queue_tth(p_tth);
+		}
 		/** QueueItems by target */
 		static FileQueue g_fileQueue;
 		

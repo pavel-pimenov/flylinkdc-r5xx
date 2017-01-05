@@ -35,15 +35,19 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent
 {
+	struct buffer_allocator_interface;
+
 	namespace {
 		struct caller_visitor : boost::static_visitor<>
 		{
-			explicit caller_visitor(disk_io_job& j) : m_job(j) {}
+			explicit caller_visitor(buffer_allocator_interface& alloc, disk_io_job& j)
+				: m_job(j), m_alloc(alloc) {}
 
 			void operator()(disk_io_job::read_handler& h) const
 			{
 				if (!h) return;
-				h(m_job.d.io.ref, m_job.buffer.disk_block, m_job.flags, m_job.error);
+				disk_buffer_holder block(m_alloc, m_job.d.io.ref, m_job.buffer.disk_block);
+				h(std::move(block), m_job.flags, m_job.error);
 			}
 
 			void operator()(disk_io_job::write_handler& h) const
@@ -90,6 +94,7 @@ namespace libtorrent
 
 		private:
 			disk_io_job& m_job;
+			buffer_allocator_interface& m_alloc;
 		};
 	}
 
@@ -100,9 +105,8 @@ namespace libtorrent
 		buffer.disk_block = nullptr;
 		d.io.offset = 0;
 		d.io.buffer_size = 0;
-		d.io.ref.storage = nullptr;
-		d.io.ref.piece = piece_index_t{0};
-		d.io.ref.block = 0;
+		d.io.ref.storage = storage_index_t{0};
+		d.io.ref.cookie = aux::block_cache_reference::none;
 	}
 
 	disk_io_job::~disk_io_job()
@@ -111,9 +115,9 @@ namespace libtorrent
 			free(buffer.string);
 	}
 
-	void disk_io_job::call_callback()
+	void disk_io_job::call_callback(buffer_allocator_interface& alloc)
 	{
-		boost::apply_visitor(caller_visitor(*this), callback);
+		boost::apply_visitor(caller_visitor(alloc, *this), callback);
 	}
 
 	bool disk_io_job::completed(cached_piece_entry const* pe, int block_size)

@@ -195,19 +195,19 @@ class FavoriteHubEntry
 		GETSET(string, server, Server);
 		GETSET(string, description, Description);
 		GETSET(string, password, Password);
-		GETSET(string, headerOrder, HeaderOrder);
-		GETSET(string, headerWidths, HeaderWidths);
-		GETSET(string, headerVisible, HeaderVisible);
-		GETSET(int, headerSort, HeaderSort);
-		GETSET(bool, headerSortAsc, HeaderSortAsc);
+		GETSET_BOOL(string, headerOrder, HeaderOrder);
+		GETSET_BOOL(string, headerWidths, HeaderWidths);
+		GETSET_BOOL(string, headerVisible, HeaderVisible);
+		GETSET_BOOL(int, headerSort, HeaderSort);
+		GETSET_BOOL(bool, headerSortAsc, HeaderSortAsc);
 		GETSET(bool, connect, Connect);
-		GETSET(int, windowposx, WindowPosX);
-		GETSET(int, windowposy, WindowPosY);
-		GETSET(int, windowsizex, WindowSizeX);
-		GETSET(int, windowsizey, WindowSizeY);
-		GETSET(int, windowtype, WindowType);
-		GETSET(int, chatusersplit, ChatUserSplit);
-		GETSET(bool, userliststate, UserListState);
+		GETSET_BOOL(int, windowposx, WindowPosX);
+		GETSET_BOOL(int, windowposy, WindowPosY);
+		GETSET_BOOL(int, windowsizex, WindowSizeX);
+		GETSET_BOOL(int, windowsizey, WindowSizeY);
+		GETSET_BOOL(int, windowtype, WindowType);
+		GETSET_BOOL(int, chatusersplit, ChatUserSplit);
+		GETSET_BOOL(bool, userliststate, UserListState);
 		GETSET(bool, m_ISPDisableFlylinkDCSupportHub, ISPDisableFlylinkDCSupportHub);
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 		GETSET(bool, chatusersplitstate, ChatUserSplitState);
@@ -268,7 +268,14 @@ class RecentHubEntry
 		typedef vector<Ptr> List;
 		typedef List::const_iterator Iter;
 		
-		explicit RecentHubEntry() : name("*"), description("*"), users("*"), shared("*"), lastseen("*"), opentab("-"), autoopen(false) {} // [+] IRainman: copy-past fix.
+		explicit RecentHubEntry() : name("*"),
+			description("*"),
+			users("*"),
+			shared("*"),
+			lastseen("*"),
+			opentab("-"),
+			autoopen(false),
+			redirect(false) {}
 		~RecentHubEntry() { }
 		
 		GETSET(string, name, Name);
@@ -279,6 +286,7 @@ class RecentHubEntry
 		GETSET(string, lastseen, LastSeen);
 		GETSET(string, opentab, OpenTab);
 		GETSET(bool, autoopen, AutoOpen);
+		GETSET(bool, redirect, Redirect);
 };
 
 #endif /*HUBENTRY_H_*/

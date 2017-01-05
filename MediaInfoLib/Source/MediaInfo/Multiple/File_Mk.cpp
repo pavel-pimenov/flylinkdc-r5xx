@@ -1127,7 +1127,7 @@ void File_Mk::Header_Parse()
     }
 
     //Parsing
-    int64u Name, Size = 0;
+    int64u Name=0, Size = 0;
     bool NameIsValid=true;
     if (Element_Offset+1<Element_Size)
     {
@@ -3260,7 +3260,7 @@ void File_Mk::Segment_Tracks_TrackEntry_CodecPrivate__Parse()
                         std::string Data_Raw((const char*)(Buffer+Buffer_Offset), (size_t)Element_Size);
                         std::string Data_Base64(Base64::encode(Data_Raw));
                         Fill(StreamKind_Last, StreamPos_Last, "Demux_InitBytes", Data_Base64);
-                        (*Stream_More)[StreamKind_Last][StreamPos_Last](Ztring().From_Local("Demux_InitBytes"), Info_Options)=__T("N NT");
+                        Fill_SetOptions(StreamKind_Last, StreamPos_Last, "Demux_InitBytes", "N NT");
                         }
                         break;
             default :   ;

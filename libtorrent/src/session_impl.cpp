@@ -580,6 +580,7 @@ namespace aux {
 
 	void session_impl::init(std::shared_ptr<settings_pack> pack)
 	{
+		INVARIANT_CHECK;
 		// this is a debug facility
 		// see single_threaded in debug.hpp
 		thread_started();
@@ -826,7 +827,9 @@ namespace aux {
 
 	void session_impl::add_ses_extension(std::shared_ptr<plugin> ext)
 	{
-		TORRENT_ASSERT(is_single_thread());
+		// this is called during startup of the session, from the thread creating
+		// it, not its own thread
+//		TORRENT_ASSERT(is_single_thread());
 		TORRENT_ASSERT_VAL(ext, ext);
 
 		std::uint32_t const features = ext->implemented_features();
@@ -1313,6 +1316,7 @@ namespace aux {
 	// session_impl is responsible for deleting 'pack'
 	void session_impl::apply_settings_pack(std::shared_ptr<settings_pack> pack)
 	{
+		INVARIANT_CHECK;
 		apply_settings_pack_impl(*pack);
 	}
 
@@ -1358,7 +1362,7 @@ namespace aux {
 #endif
 
 		apply_pack(&pack, m_settings, this);
-		m_disk_thread.set_settings(&pack, m_alerts);
+		m_disk_thread.set_settings(&pack);
 
 		if (init && !reopen_listen_port)
 		{
@@ -2825,7 +2829,6 @@ namespace aux {
 		pack.ses = this;
 		pack.sett = &m_settings;
 		pack.stats_counters = &m_stats_counters;
-		pack.allocator = this;
 		pack.disk_thread = &m_disk_thread;
 		pack.ios = &m_io_service;
 		pack.tor = std::weak_ptr<torrent>();
@@ -3201,7 +3204,6 @@ namespace aux {
 		if (!m_paused) m_auto_manage_time_scaler--;
 		if (m_auto_manage_time_scaler < 0)
 		{
-			INVARIANT_CHECK;
 			m_auto_manage_time_scaler = settings().get_int(settings_pack::auto_manage_interval);
 			recalculate_auto_managed_torrents();
 		}
@@ -4870,7 +4872,6 @@ namespace aux {
 
 	void session_impl::update_outgoing_interfaces()
 	{
-		INVARIANT_CHECK;
 		std::string net_interfaces = m_settings.get_str(settings_pack::outgoing_interfaces);
 
 		// declared in string_util.hpp
@@ -5499,6 +5500,25 @@ namespace aux {
 	}
 #endif // TORRENT_NO_DEPRECATE
 
+	void session_impl::get_cache_info(torrent_handle h, cache_status* ret, int flags) const
+	{
+		storage_index_t st{0};
+		bool whole_session = true;
+		std::shared_ptr<torrent> t = h.m_torrent.lock();
+		if (t)
+		{
+			if (t->has_storage())
+			{
+				st = t->storage();
+				whole_session = false;
+			}
+			else
+				flags = session::disk_cache_no_pieces;
+		}
+		m_disk_thread.get_cache_info(ret, st
+			, flags & session::disk_cache_no_pieces, whole_session);
+	}
+
 #ifndef TORRENT_DISABLE_DHT
 
 	void session_impl::start_dht()
@@ -5842,6 +5862,7 @@ namespace aux {
 
 	void session_impl::set_local_download_rate_limit(int bytes_per_second)
 	{
+		INVARIANT_CHECK;
 		settings_pack p;
 		p.set_int(settings_pack::local_download_rate_limit, bytes_per_second);
 		apply_settings_pack_impl(p);
@@ -5849,6 +5870,7 @@ namespace aux {
 
 	void session_impl::set_local_upload_rate_limit(int bytes_per_second)
 	{
+		INVARIANT_CHECK;
 		settings_pack p;
 		p.set_int(settings_pack::local_upload_rate_limit, bytes_per_second);
 		apply_settings_pack_impl(p);
@@ -5856,6 +5878,7 @@ namespace aux {
 
 	void session_impl::set_download_rate_limit_depr(int bytes_per_second)
 	{
+		INVARIANT_CHECK;
 		settings_pack p;
 		p.set_int(settings_pack::download_rate_limit, bytes_per_second);
 		apply_settings_pack_impl(p);
@@ -5863,6 +5886,7 @@ namespace aux {
 
 	void session_impl::set_upload_rate_limit_depr(int bytes_per_second)
 	{
+		INVARIANT_CHECK;
 		settings_pack p;
 		p.set_int(settings_pack::upload_rate_limit, bytes_per_second);
 		apply_settings_pack_impl(p);
@@ -5870,6 +5894,7 @@ namespace aux {
 
 	void session_impl::set_max_connections(int limit)
 	{
+		INVARIANT_CHECK;
 		settings_pack p;
 		p.set_int(settings_pack::connections_limit, limit);
 		apply_settings_pack_impl(p);
@@ -5877,6 +5902,7 @@ namespace aux {
 
 	void session_impl::set_max_uploads(int limit)
 	{
+		INVARIANT_CHECK;
 		settings_pack p;
 		p.set_int(settings_pack::unchoke_slots_limit, limit);
 		apply_settings_pack_impl(p);
@@ -6664,51 +6690,15 @@ namespace aux {
 #endif
 	}
 
-	// decrement the refcount of the block in the disk cache
-	// since the network thread doesn't need it anymore
-	void session_impl::reclaim_blocks(span<block_cache_reference> refs)
-	{
-		m_blocks_to_reclaim.insert(m_blocks_to_reclaim.end(), refs.begin(), refs.end());
-		if (m_pending_block_reclaim) return;
-
-		m_io_service.post(std::bind(&session_impl::do_reclaim_blocks, this));
-		m_pending_block_reclaim = true;
-	}
-
-	void session_impl::do_reclaim_blocks()
-	{
-		TORRENT_ASSERT(m_pending_block_reclaim);
-		m_pending_block_reclaim = false;
-		m_disk_thread.reclaim_blocks(m_blocks_to_reclaim);
-		m_blocks_to_reclaim.clear();
-	}
-
-	disk_buffer_holder session_impl::allocate_disk_buffer(char const* category)
-	{
-		return m_disk_thread.allocate_disk_buffer(category);
-	}
-
-	void session_impl::free_disk_buffer(char* buf)
-	{
-		m_disk_thread.free_disk_buffer(buf);
-	}
-
-	disk_buffer_holder session_impl::allocate_disk_buffer(bool& exceeded
-		, std::shared_ptr<disk_observer> o
-		, char const* category)
-	{
-		return m_disk_thread.allocate_disk_buffer(exceeded, o, category);
-	}
-
-	char* session_impl::allocate_buffer()
+	ses_buffer_holder session_impl::allocate_buffer()
 	{
 		TORRENT_ASSERT(is_single_thread());
 
 #ifdef TORRENT_DISABLE_POOL_ALLOCATOR
 		int num_bytes = send_buffer_size();
-		return static_cast<char*>(malloc(num_bytes));
+		return ses_buffer_holder(*this, static_cast<char*>(malloc(num_bytes)));
 #else
-		return static_cast<char*>(m_send_buffers.malloc());
+		return ses_buffer_holder(*this, static_cast<char*>(m_send_buffers.malloc()));
 #endif
 	}
 

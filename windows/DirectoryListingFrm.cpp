@@ -2030,6 +2030,7 @@ LRESULT DirectoryListingFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*
 void DirectoryListingFrame::getItemColor(const Flags::MaskType flags, COLORREF &fg, COLORREF &bg)
 {
 	//[~]NSL
+	
 	if (flags & DirectoryListing::FLAG_SHARED)
 		bg = SETTING(DUPE_COLOR);
 	if (flags & DirectoryListing::FLAG_DOWNLOAD)
@@ -2046,7 +2047,10 @@ void DirectoryListingFrame::getItemColor(const Flags::MaskType flags, COLORREF &
 	{
 		bg = SETTING(DUPE_EX2_COLOR);
 	}
-	
+	if (flags & DirectoryListing::FLAG_QUEUE)
+	{
+		bg = SETTING(DUPE_EX3_COLOR);
+	}
 }
 
 // !fulDC!

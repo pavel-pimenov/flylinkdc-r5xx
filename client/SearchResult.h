@@ -124,7 +124,8 @@ class SearchResult : public SearchResultCore
 			m_token(uint32_t (-1)),
 			m_is_tth_check(false),
 			m_is_p2p_guard_calc(false),
-			m_virus_level(0)
+			m_virus_level(0),
+			m_is_tth_queue(false)
 		{
 		}
 		SearchResult(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH, uint32_t aToken);
@@ -174,6 +175,8 @@ class SearchResult : public SearchResultCore
 		bool m_is_tth_download;
 		bool m_is_virus;
 		bool m_is_tth_remembrance;
+		bool m_is_tth_queue;
+		
 		mutable uint8_t m_virus_level;
 		const string& getP2PGuard() const
 		{

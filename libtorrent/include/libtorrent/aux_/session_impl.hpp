@@ -121,10 +121,6 @@ namespace libtorrent
 	struct listen_socket_t
 	{
 		listen_socket_t()
-			: tcp_external_port(0)
-			, udp_external_port(0)
-			, ssl(false)
-			, udp_write_blocked(false)
 		{
 			tcp_port_mapping[0] = -1;
 			tcp_port_mapping[1] = -1;
@@ -146,7 +142,7 @@ namespace libtorrent
 		// this is the port that was originally specified to listen on
 		// it may be different from local_endpoint.port() if we could
 		// had to retry binding with a higher port
-		int original_port;
+		int original_port = 0;
 
 		// this is typically set to the same as the local
 		// listen port. In case a NAT port forward was
@@ -155,21 +151,21 @@ namespace libtorrent
 		// on the NAT box itself. This is the port that has
 		// to be published to peers, since this is the port
 		// the client is reachable through.
-		int tcp_external_port;
-		int udp_external_port;
+		int tcp_external_port = 0;
+		int udp_external_port = 0;
 
 		// 0 is natpmp 1 is upnp
 		int tcp_port_mapping[2];
 		int udp_port_mapping[2];
 
 		// set to true if this is an SSL listen socket
-		bool ssl;
+		bool ssl = false;
 
 		// this is true when the udp socket send() has failed with EAGAIN or
 		// EWOULDBLOCK. i.e. we're currently waiting for the socket to become
 		// writeable again. Once it is, we'll set it to false and notify the utp
 		// socket manager
-		bool udp_write_blocked;
+		bool udp_write_blocked = false;
 
 		// the actual sockets (TCP listen socket and UDP socket)
 		// An entry does not necessarily have a UDP or TCP socket. One of these
@@ -552,6 +548,8 @@ namespace libtorrent
 			session_status status() const;
 #endif
 
+			void get_cache_info(torrent_handle h, cache_status* ret, int flags) const;
+
 			void set_peer_id(peer_id const& id);
 			void set_key(int key);
 			std::uint16_t listen_port() const override;
@@ -613,21 +611,12 @@ namespace libtorrent
 
 			void deferred_submit_jobs() override;
 
-			char* allocate_buffer() override;
+			ses_buffer_holder allocate_buffer() override;
 			torrent_peer* allocate_peer_entry(int type);
 			void free_peer_entry(torrent_peer* p);
 
 			void free_buffer(char* buf) override;
 			int send_buffer_size() const override { return send_buffer_size_impl; }
-
-			// implements buffer_allocator_interface
-			void free_disk_buffer(char* buf) override;
-			disk_buffer_holder allocate_disk_buffer(char const* category) override;
-			disk_buffer_holder allocate_disk_buffer(bool& exceeded
-				, std::shared_ptr<disk_observer> o
-				, char const* category) override;
-			void reclaim_blocks(span<block_cache_reference> refs) override;
-			void do_reclaim_blocks();
 
 			// implements dht_observer
 			virtual void set_external_address(address const& ip
@@ -1143,12 +1132,6 @@ namespace libtorrent
 			// 5 minutes)
 			torrent_map::iterator m_next_lsd_torrent;
 
-			// we try to return disk buffers to the disk thread in batches, to
-			// avoid hammering its mutex. We accrue blocks here and defer returning
-			// them in a function we post to the io_service
-			std::vector<block_cache_reference> m_blocks_to_reclaim;
-			bool m_pending_block_reclaim = false;
-
 #ifndef TORRENT_DISABLE_DHT
 			// torrents are announced on the DHT in a
 			// round-robin fashion. All torrents are cycled through
@@ -1229,8 +1212,6 @@ namespace libtorrent
 #endif
 
 #ifndef TORRENT_NO_DEPRECATE
-			// if this function is set, it indicates that torrents are allowed
-			// to be unloaded. If it isn't, torrents will never be unloaded
 			user_load_function_t m_user_load_torrent;
 #endif
 

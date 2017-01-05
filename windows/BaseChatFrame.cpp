@@ -120,7 +120,7 @@ void BaseChatFrame::destroyMessageCtrl(bool p_is_shutdown)
 }
 void BaseChatFrame::createMessagePanel()
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	
 	if (!m_msgPanel && ClientManager::isStartup() == false)
 	{
@@ -140,7 +140,7 @@ void BaseChatFrame::destroyMessagePanel(bool p_is_shutdown)
 
 void BaseChatFrame::setStatusText(unsigned char p_index, const tstring& p_text)
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	dcassert(p_index < m_ctrlStatusCache.size());
 	if (p_index < m_ctrlStatusCache.size())
 	{
@@ -631,8 +631,8 @@ void BaseChatFrame::findText(const tstring& needle) noexcept
 
 void BaseChatFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, const bool bHistory /*= true*/, const CHARFORMAT2& cf /*= WinUtil::m_ChatTextSystem*/)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (ClientManager::isBeforeShutdown())
 		return;
 	tstring line = _T('[') + Text::toT(Util::getShortTimeString()) + _T("] ") + aLine;
 	if (line.size() > 512)
@@ -688,6 +688,8 @@ tstring BaseChatFrame::getIpCountry(const string& ip, bool ts, bool p_ipInChat, 
 
 void BaseChatFrame::addLine(const tstring& aLine, CHARFORMAT2& cf /*= Colors::g_ChatTextGeneral */)
 {
+	//TODO - RoLex - chat- LogManager::message("addLine Hub:" + getHubHint() + " Message: [" + Text::fromT(aLine) + "]");
+	
 #ifdef _DEBUG
 	if (aLine.find(_T("&#124")) != tstring::npos)
 	{

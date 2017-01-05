@@ -64,12 +64,6 @@ namespace libtorrent
 	TORRENT_EXPORT int setting_by_name(std::string const& name);
 	TORRENT_EXPORT char const* name_for_setting(int s);
 
-#ifndef TORRENT_NO_DEPRECATE
-	struct session_settings;
-	std::shared_ptr<settings_pack> load_pack_from_struct(aux::session_settings const& current, session_settings const& s);
-	void load_struct_from_settings(aux::session_settings const& current, session_settings& ret);
-#endif
-
 	// The ``settings_pack`` struct, contains the names of all settings as
 	// enum values. These values are passed in to the ``set_str()``,
 	// ``set_int()``, ``set_bool()`` functions, to specify the setting to
@@ -291,14 +285,15 @@ namespace libtorrent
 			use_read_cache,
 #ifndef TORRENT_NO_DEPRECATE
 			use_write_cache,
-#else
-			deprecated11,
-#endif
 
 			// this will make the disk cache never flush a write piece if it would
 			// cause is to have to re-read it once we want to calculate the piece
 			// hash
 			dont_flush_write_cache,
+#else
+			deprecated11,
+			deprecated22,
+#endif
 
 			// allocate separate, contiguous, buffers for read and write calls.
 			// Only used where writev/readv cannot be used will use more RAM but

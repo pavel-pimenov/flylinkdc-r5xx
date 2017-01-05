@@ -49,8 +49,8 @@ void get_peers_observer::reply(msg const& m)
 	if (!r)
 	{
 #ifndef TORRENT_DISABLE_LOGGING
-		get_observer()->log(dht_logger::traversal, "[%p] missing response dict"
-			, static_cast<void*>(algorithm()));
+		get_observer()->log(dht_logger::traversal, "[%u] missing response dict"
+			, algorithm()->id());
 #endif
 		timeout();
 		return;
@@ -69,23 +69,7 @@ void get_peers_observer::reply(msg const& m)
 			char const* end = peers + n.list_at(0).string_length();
 
 #ifndef TORRENT_DISABLE_LOGGING
-			auto logger = get_observer();
-			if (logger != nullptr && logger->should_log(dht_logger::traversal))
-			{
-				bdecode_node const id = r.dict_find_string("id");
-				if (id && id.string_length() == 20)
-				{
-					logger->log(dht_logger::traversal, "[%p] PEERS "
-						"invoke-count: %d branch-factor: %d addr: %s id: %s distance: %d p: %d"
-						, static_cast<void*>(algorithm())
-						, algorithm()->invoke_count()
-						, algorithm()->branch_factor()
-						, print_endpoint(m.addr).c_str()
-						, aux::to_hex({id.string_ptr(), size_t(id.string_length())}).c_str()
-						, distance_exp(algorithm()->target(), node_id(id.string_ptr()))
-						, int((end - peers) / 6));
-				}
-			}
+			log_peers(m, r, int((end - peers) / 6));
 #endif
 			while (end - peers >= 6)
 				peer_list.push_back(detail::read_v4_endpoint<tcp::endpoint>(peers));
@@ -95,23 +79,7 @@ void get_peers_observer::reply(msg const& m)
 			// assume it's uTorrent/libtorrent format
 			peer_list = detail::read_endpoint_list<tcp::endpoint>(n);
 #ifndef TORRENT_DISABLE_LOGGING
-			auto logger = get_observer();
-			if (logger != nullptr && logger->should_log(dht_logger::traversal))
-			{
-				bdecode_node const id = r.dict_find_string("id");
-				if (id && id.string_length() == 20)
-				{
-					logger->log(dht_logger::traversal, "[%p] PEERS "
-						"invoke-count: %d branch-factor: %d addr: %s id: %s distance: %d p: %d"
-						, static_cast<void*>(algorithm())
-						, algorithm()->invoke_count()
-						, algorithm()->branch_factor()
-						, print_endpoint(m.addr).c_str()
-						, aux::to_hex({id.string_ptr(), size_t(id.string_length())}).c_str()
-						, distance_exp(algorithm()->target(), node_id(id.string_ptr()))
-						, n.list_size());
-				}
-			}
+			log_peers(m, r, n.list_size());
 #endif
 		}
 		static_cast<get_peers*>(algorithm())->got_peers(peer_list);
@@ -119,7 +87,28 @@ void get_peers_observer::reply(msg const& m)
 
 	find_data_observer::reply(m);
 }
-
+#ifndef TORRENT_DISABLE_LOGGING
+void get_peers_observer::log_peers(msg const& m, bdecode_node const& r, int const size) const
+{
+			auto logger = get_observer();
+			if (logger != nullptr && logger->should_log(dht_logger::traversal))
+			{
+				bdecode_node const id = r.dict_find_string("id");
+				if (id && id.string_length() == 20)
+				{
+					logger->log(dht_logger::traversal, "[%u] PEERS "
+						"invoke-count: %d branch-factor: %d addr: %s id: %s distance: %d p: %d"
+						, algorithm()->id()
+						, algorithm()->invoke_count()
+						, algorithm()->branch_factor()
+						, print_endpoint(m.addr).c_str()
+						, aux::to_hex({id.string_ptr(), size_t(id.string_length())}).c_str()
+						, distance_exp(algorithm()->target(), node_id(id.string_ptr()))
+						, size);
+				}
+			}
+}
+#endif
 void get_peers::got_peers(std::vector<tcp::endpoint> const& peers)
 {
 	if (m_data_callback) m_data_callback(peers);
@@ -281,10 +270,9 @@ void obfuscated_get_peers::done()
 	m_nodes_callback = nullptr;
 
 #ifndef TORRENT_DISABLE_LOGGING
-		get_node().observer()->log(dht_logger::traversal, "[%p] obfuscated get_peers "
-			"phase 1 done, spawning get_peers [ %p ]"
-			, static_cast<void*>(this)
-			, static_cast<void*>(ta.get()));
+		get_node().observer()->log(dht_logger::traversal, "[%u] obfuscated get_peers "
+			"phase 1 done, spawning get_peers [ %u ]"
+			, id(), ta->id());
 #endif
 
 	int num_added = 0;
@@ -313,8 +301,8 @@ void obfuscated_get_peers_observer::reply(msg const& m)
 	if (!r)
 	{
 #ifndef TORRENT_DISABLE_LOGGING
-		get_observer()->log(dht_logger::traversal, "[%p] missing response dict"
-			, static_cast<void*>(algorithm()));
+		get_observer()->log(dht_logger::traversal, "[%u] missing response dict"
+			, algorithm()->id());
 #endif
 		timeout();
 		return;
@@ -324,8 +312,8 @@ void obfuscated_get_peers_observer::reply(msg const& m)
 	if (!id || id.string_length() != 20)
 	{
 #ifndef TORRENT_DISABLE_LOGGING
-		get_observer()->log(dht_logger::traversal, "[%p] invalid id in response"
-			, static_cast<void*>(algorithm()));
+		get_observer()->log(dht_logger::traversal, "[%u] invalid id in response"
+			, algorithm()->id());
 #endif
 		timeout();
 		return;

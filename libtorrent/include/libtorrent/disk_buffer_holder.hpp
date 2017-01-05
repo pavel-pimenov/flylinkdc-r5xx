@@ -50,10 +50,6 @@ namespace libtorrent
 	{
 		virtual void free_disk_buffer(char* b) = 0;
 		virtual void reclaim_blocks(span<aux::block_cache_reference> refs) = 0;
-		virtual disk_buffer_holder allocate_disk_buffer(char const* category) = 0;
-		virtual disk_buffer_holder allocate_disk_buffer(bool& exceeded
-			, std::shared_ptr<disk_observer> o
-			, char const* category) = 0;
 	protected:
 		~buffer_allocator_interface() {}
 	};
@@ -106,7 +102,8 @@ namespace libtorrent
 			std::swap(h.m_ref, m_ref);
 		}
 
-		aux::block_cache_reference ref() const noexcept { return m_ref; }
+		// if this returns true, the buffer may not be modified in place
+		bool is_mutable() const noexcept { return m_ref.cookie == aux::block_cache_reference::none; }
 
 		// implicitly convertible to true if the object is currently holding a
 		// buffer

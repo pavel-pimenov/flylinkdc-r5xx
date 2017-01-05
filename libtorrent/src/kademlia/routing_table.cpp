@@ -84,14 +84,14 @@ void ip_set::insert(address const& addr)
 		m_ip4s.insert(addr.to_v4().to_bytes());
 }
 
-size_t ip_set::count(address const& addr)
+bool ip_set::exists(address const& addr) const
 {
 #if TORRENT_USE_IPV6
 	if (addr.is_v6())
-		return m_ip6s.count(addr.to_v6().to_bytes());
+		return m_ip6s.find(addr.to_v6().to_bytes()) != m_ip6s.end();
 	else
 #endif
-		return m_ip4s.count(addr.to_v4().to_bytes());
+		return m_ip4s.find(addr.to_v4().to_bytes()) != m_ip4s.end();
 }
 
 void ip_set::erase(address const& addr)
@@ -387,30 +387,26 @@ void routing_table::fill_from_replacements(table_t::iterator bucket)
 	}
 }
 
+void routing_table::remove_node_internal(node_entry* n, bucket_t& b)
+{
+	if (!b.empty()
+		&& n >= &b[0]
+		&& n < &b[0] + b.size())
+	{
+		std::ptrdiff_t const idx = n - &b[0];
+		TORRENT_ASSERT(m_ips.exists(n->addr()));
+		m_ips.erase(n->addr());
+		b.erase(b.begin() + idx);
+	}
+	}
+
 void routing_table::remove_node(node_entry* n
 	, routing_table::table_t::iterator bucket)
-{
+	{
 	INVARIANT_CHECK;
 
-	if (!bucket->replacements.empty()
-		&& n >= &bucket->replacements[0]
-		&& n < &bucket->replacements[0] + bucket->replacements.size())
-	{
-		std::ptrdiff_t idx = n - &bucket->replacements[0];
-		TORRENT_ASSERT(m_ips.count(n->addr()) > 0);
-		m_ips.erase(n->addr());
-		bucket->replacements.erase(bucket->replacements.begin() + idx);
-	}
-
-	if (!bucket->live_nodes.empty()
-		&& n >= &bucket->live_nodes[0]
-		&& n < &bucket->live_nodes[0] + bucket->live_nodes.size())
-	{
-		std::ptrdiff_t idx = n - &bucket->live_nodes[0];
-		TORRENT_ASSERT(m_ips.count(n->addr()) > 0);
-		m_ips.erase(n->addr());
-		bucket->live_nodes.erase(bucket->live_nodes.begin() + idx);
-	}
+	remove_node_internal(n, bucket->replacements);
+	remove_node_internal(n, bucket->live_nodes);
 }
 
 bool routing_table::add_node(node_entry const& e)
@@ -465,7 +461,7 @@ routing_table::add_node_status_t routing_table::add_node_impl(node_entry e)
 		return failed_to_add;
 
 	// do we already have this IP in the table?
-	if (m_ips.count(e.addr()) > 0)
+	if (m_ips.exists(e.addr()))
 	{
 		// This exact IP already exists in the table. A node with the same IP and
 		// port but a different ID may be a sign of a malicious node. To be
@@ -1005,14 +1001,7 @@ void routing_table::node_failed(node_id const& nid, udp::endpoint const& ep)
 		j->timed_out();
 
 #ifndef TORRENT_DISABLE_LOGGING
-		if (m_log != nullptr && m_log->should_log(dht_logger::routing_table))
-		{
-			m_log->log(dht_logger::routing_table, "NODE FAILED id: %s ip: %s fails: %d pinged: %d up-time: %d"
-				, aux::to_hex(nid).c_str(), print_endpoint(j->ep()).c_str()
-				, j->fail_count()
-				, int(j->pinged())
-				, int(total_seconds(aux::time_now() - j->first_seen)));
-		}
+		log_node_failed(nid, *j);
 #endif
 		return;
 	}
@@ -1027,14 +1016,7 @@ void routing_table::node_failed(node_id const& nid, udp::endpoint const& ep)
 		j->timed_out();
 
 #ifndef TORRENT_DISABLE_LOGGING
-		if (m_log != nullptr && m_log->should_log(dht_logger::routing_table))
-		{
-			m_log->log(dht_logger::routing_table, "NODE FAILED id: %s ip: %s fails: %d pinged: %d up-time: %d"
-				, aux::to_hex(nid).c_str(), print_endpoint(j->ep()).c_str()
-				, j->fail_count()
-				, int(j->pinged())
-				, int(total_seconds(aux::time_now() - j->first_seen)));
-		}
+		log_node_failed(nid, *j);
 #endif
 
 		// if this node has failed too many times, or if this node
@@ -1197,5 +1179,19 @@ bool routing_table::is_full(int const bucket) const
 	return (int(i->live_nodes.size()) >= bucket_limit(bucket)
 		&& int(i->replacements.size()) >= m_bucket_size);
 }
+
+#ifndef TORRENT_DISABLE_LOGGING
+void routing_table::log_node_failed(node_id const& nid, node_entry const& ne) const
+{
+	if (m_log != nullptr && m_log->should_log(dht_logger::routing_table))
+	{
+		m_log->log(dht_logger::routing_table, "NODE FAILED id: %s ip: %s fails: %d pinged: %d up-time: %d"
+			, aux::to_hex(nid).c_str(), print_endpoint(ne.ep()).c_str()
+			, ne.fail_count()
+			, int(ne.pinged())
+			, int(total_seconds(aux::time_now() - ne.first_seen)));
+	}
+}
+#endif
 
 } } // namespace libtorrent::dht

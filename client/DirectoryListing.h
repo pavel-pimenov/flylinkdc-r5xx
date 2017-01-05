@@ -45,7 +45,8 @@ class DirectoryListing : public UserInfoBase
 			FLAG_DOWNLOAD_FOLDER    = 1 << 4, //[+]PPA
 			FLAG_SHARED_OWN         = 1 << 5, //[+]NightOrion TODO do flag at file-list, not in every file in this list
 			FLAG_VIRUS_FILE         = 1 << 6,
-			FLAG_VIRUS_FILE_FOLDER  = 1 << 7 // TODO
+			FLAG_VIRUS_FILE_FOLDER  = 1 << 7, // TODO
+			FLAG_QUEUE = 1 << 8,
 		};
 		
 		class File :

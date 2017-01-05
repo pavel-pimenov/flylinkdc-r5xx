@@ -422,7 +422,7 @@ namespace libtorrent
 	// root_dir is the name of the torrent, unless this is a single file
 	// torrent, in which case it's empty.
 	bool extract_single_file(bdecode_node const& dict, file_storage& files
-		, std::string const& root_dir, ptrdiff_t info_ptr_diff, bool top_level
+		, std::string const& root_dir, std::ptrdiff_t const info_ptr_diff, bool top_level
 		, int& pad_file_cnt, error_code& ec)
 	{
 		if (dict.type() != bdecode_node::dict_t) return false;
@@ -440,7 +440,7 @@ namespace libtorrent
 			return false;
 		}
 
-		std::int64_t const mtime = dict.dict_find_int_value("mtime", 0);
+		std::time_t const mtime = std::time_t(dict.dict_find_int_value("mtime", 0));
 
 		std::string path = root_dir;
 		char const* filename = nullptr;
@@ -469,7 +469,7 @@ namespace libtorrent
 
 			if (p && p.list_size() > 0)
 			{
-				size_t const preallocate = path.size() + path_length(p, ec);
+				std::size_t const preallocate = path.size() + path_length(p, ec);
 				if (ec) return false;
 				path.reserve(preallocate);
 
@@ -489,7 +489,7 @@ namespace libtorrent
 				// pad files don't need a path element, we'll just store them
 				// under the .pad directory
 				char cnt[10];
-				snprintf(cnt, sizeof(cnt), "%d", pad_file_cnt);
+				std::snprintf(cnt, sizeof(cnt), "%d", pad_file_cnt);
 				path = combine_path(".pad", cnt);
 				++pad_file_cnt;
 			}
@@ -545,7 +545,7 @@ namespace libtorrent
 
 	struct string_hash_no_case
 	{
-		size_t operator()(std::string const& s) const
+		std::size_t operator()(std::string const& s) const
 		{
 			char const* s1 = s.c_str();
 			size_t ret = 5381;
@@ -985,37 +985,6 @@ namespace libtorrent
 
 	torrent_info::~torrent_info() = default;
 
-	void torrent_info::load(char const* buffer, int size, error_code& ec)
-	{
-		bdecode_node e;
-		if (bdecode(buffer, buffer + size, e, ec) != 0)
-			return;
-
-		if (!parse_torrent_file(e, ec, 0))
-			return;
-	}
-
-	void torrent_info::unload()
-	{
-		TORRENT_ASSERT(m_info_section.unique());
-
-		m_info_section.reset();
-		m_info_section_size = 0;
-
-		// if we have orig_files, we have to keep
-		// m_files around, since it means we have
-		// remapped files, and we won't be able to
-		// restore that from just reloading the
-		// torrent file
-		if (m_orig_files) m_orig_files.reset();
-		else m_files.unload();
-
-		m_piece_hashes = nullptr;
-		std::vector<web_seed_entry>().swap(m_web_seeds);
-
-		TORRENT_ASSERT(!is_loaded());
-	}
-
 	sha1_hash torrent_info::hash_for_piece(piece_index_t const index) const
 	{ return sha1_hash(hash_for_piece_ptr(index)); }
 
@@ -1225,19 +1194,7 @@ namespace libtorrent
 
 		// now, commit the files structure we just parsed out
 		// into the torrent_info object.
-		// if we already have an m_files that's populated, it
-		// indicates that we unloaded this torrent_info ones
-		// and we had modifications to the files, so we unloaded
-		// the orig_files. In that case, the orig files is what
-		// needs to be restored
-		if (m_files.is_loaded()) {
-			m_orig_files.reset(new file_storage);
-			const_cast<file_storage&>(*m_orig_files).swap(files);
-		}
-		else
-		{
-			m_files.swap(files);
-		}
+		m_files.swap(files);
 		return true;
 	}
 

@@ -30,6 +30,7 @@ PropPage::TextItem PropPageTextStyles::texts[] =
 	{ IDC_DUPE_COLOR, ResourceManager::DUPE_COLOR_DLG }, // !necros!
 	{ IDC_DUPE_EX1, ResourceManager::DUPE_EX1 }, // [+]NSL
 	{ IDC_DUPE_EX2, ResourceManager::DUPE_EX2 }, // [+]NSL
+	{ IDC_DUPE_EX3, ResourceManager::DUPE_EX3 }, // [+]NSL
 	
 	{ IDC_MODCOLORS, ResourceManager::MOD_COLOR_DLG }, // !SMT!-UI
 	
@@ -62,10 +63,10 @@ PropPageTextStyles::clrs PropPageTextStyles::colours[] =
 	{ResourceManager::PROGRESS_RUNNING, SettingsManager::COLOR_RUNNING, 0},
 	{ResourceManager::PROGRESS_VERIFIED,    SettingsManager::COLOR_VERIFIED, 0},
 	{ResourceManager::PROGRESS_AVOIDING,    SettingsManager::COLOR_AVOIDING, 0},
-	
 	{ResourceManager::SETTINGS_DUPE_COLOR,    SettingsManager::DUPE_COLOR, 0},  //[+] SCALOlaz
 	{ResourceManager::DUPE_EX1,    SettingsManager::DUPE_EX1_COLOR, 0},         //[+]
 	{ResourceManager::DUPE_EX2,    SettingsManager::DUPE_EX2_COLOR, 0},         //[+]
+	{ResourceManager::DUPE_EX3,    SettingsManager::DUPE_EX3_COLOR, 0},        //[+]
 	{ResourceManager::BAN_COLOR_DLG,    SettingsManager::BAN_COLOR, 0},         //[+]
 	
 #ifdef SCALOLAZ_USE_COLOR_HUB_IN_FAV
@@ -91,6 +92,10 @@ LRESULT PropPageTextStyles::onSelectColor(WORD /*wNotifyCode*/, WORD wID, HWND /
 		case IDC_DUPE_EX2:
 			color = SETTING(DUPE_EX2_COLOR);
 			key = SettingsManager::DUPE_EX2_COLOR;
+			break;
+		case IDC_DUPE_EX3:
+			color = SETTING(DUPE_EX3_COLOR);
+			key = SettingsManager::DUPE_EX3_COLOR;
 			break;
 		case IDC_BAN_COLOR:
 			color = SETTING(BAN_COLOR);

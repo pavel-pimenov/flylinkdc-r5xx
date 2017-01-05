@@ -237,14 +237,6 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 					dcassert(!m_name.empty());
 					m_low_name = Text::toLower(m_name);
 				}
-				/*
-				            protected:
-				                void init(const CFlyLowerName& p_n)
-				                {
-				                    m_name = p_n.m_name;
-				                    m_low_name = p_n.m_low_name;
-				                }
-				*/
 		};
 		
 		class Directory : public intrusive_ptr_base<Directory>, public CFlyLowerName
@@ -260,24 +252,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 #ifdef _DEBUG
 						//, boost::noncopyable // TODO - сделать чтобы объект был не копируемым - boost::noncopyable
 #endif
-				{
-						/*
-						struct StringComp
-						#ifdef _DEBUG
-						    //: private boost::noncopyable
-						#endif
-						
-						{
-						        explicit StringComp(const string& s) : m_a(s) { }
-						        bool operator()(const ShareFile& b) const
-						        {
-						            return stricmp(m_a, b.getName()) == 0;
-						        }
-						    private:
-						        const string& m_a;
-						};
-						*/
-						
+				{						
 						struct FileTraits
 						{
 							size_t operator()(const ShareFile& a) const
@@ -293,7 +268,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 						
 						ShareFile(const string& aName, int64_t aSize, Directory::Ptr aParent, const TTHValue& aRoot, uint32_t aHit, uint32_t aTs,
 						          Search::TypeModes aftype) :
-							CFlyLowerName(aName), m_tth(aRoot), size(aSize), parent(aParent.get()), m_hit(aHit), ts(aTs), ftype(aftype), m_media_ptr(nullptr)
+							CFlyLowerName(aName), m_tth(aRoot), size(aSize), m_parent(aParent.get()), m_hit(aHit), ts(aTs), ftype(aftype), m_media_ptr(nullptr)
 						{
 							dcassert(aName.find('\\') == string::npos);
 						}
@@ -304,19 +279,19 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 						}
 						string getADCPath() const
 						{
-							return parent->getADCPath() + getName();
+							return m_parent->getADCPath() + getName();
 						}
 						string getFullName() const
 						{
-							return parent->getFullName() + getName();
+							return m_parent->getFullName() + getName();
 						}
 						string getRealPath() const
 						{
-							return parent->getRealPath(getName());
+							return m_parent->getRealPath(getName());
 						}
 						
 						GETSET(int64_t, size, Size);
-						GETSET(Directory*, parent, Parent);
+						GETSET(Directory*, m_parent, Parent);
 						GETC(uint32_t, m_hit, Hit);
 						GETSET(uint32_t, ts, TS);
 						std::shared_ptr<CFlyMediaInfo> m_media_ptr;
@@ -383,7 +358,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 				
 				void mergeL(const Ptr& source);
 				
-				GETSET(Directory*, parent, Parent);
+				GETSET(Directory*, m_parent, Parent);
 			private:
 				friend void intrusive_ptr_release(intrusive_ptr_base<Directory>*);
 				

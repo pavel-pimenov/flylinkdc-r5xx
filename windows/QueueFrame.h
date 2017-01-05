@@ -382,11 +382,11 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		HTREEITEM m_fileLists;
 		
 		typedef pair<string, QueueItemInfo*> DirectoryMapPair;
-		typedef std::unordered_multimap<string, QueueItemInfo*, noCaseStringHash, noCaseStringEq> DirectoryMap;
-		typedef DirectoryMap::iterator DirectoryIter;
-		typedef DirectoryMap::const_iterator DirectoryIterC;
-		typedef pair<DirectoryIterC, DirectoryIterC> DirectoryPairC;
-		DirectoryMap m_directories;
+		typedef std::unordered_multimap<string, QueueItemInfo*, noCaseStringHash, noCaseStringEq> QueueDirectoryMap;
+		typedef QueueDirectoryMap::iterator QueueDirectoryIter;
+		typedef QueueDirectoryMap::const_iterator QueueDirectoryIterC;
+		typedef pair<QueueDirectoryIterC, QueueDirectoryIterC> QueueDirectoryPairC;
+		QueueDirectoryMap m_directories;
 		string curDir;
 		
 		TypedListViewCtrl<QueueItemInfo, IDC_QUEUE> ctrlQueue;

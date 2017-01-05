@@ -17,6 +17,7 @@
 #include "LogManager.h"
 
 #define FLYLINKDC_USE_LEVELDB
+#define FLYLINKDC_USE_CACHE_HUB_URLS
 
 #ifdef FLYLINKDC_USE_LEVELDB
 

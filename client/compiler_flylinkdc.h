@@ -227,7 +227,6 @@ typedef unsigned __int64 uint64_t;
 //#define IRAINMAN_AUTOUPDATE_ARCH_DIFFERENCE 1 // TODO
 //#define IRAINMAN_THEME_MANAGER_LISTENER_ENABLE
 #define IRAINMAN_FAST_FLAT_TAB
-//#define IRAINMAN_INCLUDE_TEXT_FORMATTING // [-] cleanup user function.
 //#ifndef FLYLINKDC_HE
 #define IRAINMAN_USE_GDI_PLUS_TAB 1 // if disable - used old-school tab.
 //#endif // FLYLINKDC_HE

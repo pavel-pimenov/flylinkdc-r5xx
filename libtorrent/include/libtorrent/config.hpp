@@ -36,6 +36,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_NO_DEPRECATE
 #define TORRENT_NO_DEPRECATE // [+]FlylinkDC++
 #endif
+#ifndef TORRENT_DISABLE_LOGGING
+#define TORRENT_DISABLE_LOGGING // [+]FlylinkDC++
+#endif
 
 #include "libtorrent/aux_/disable_warnings_push.hpp"
 

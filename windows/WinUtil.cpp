@@ -3353,7 +3353,9 @@ tstring WinUtil::getNicks(const UserPtr& u, const string& hintUrl)
 {
 	dcassert(u);
 	if (u)
+	{
 		return getNicks(u->getCID(), hintUrl);
+	}
 	else
 		return Util::emptyStringT;
 }

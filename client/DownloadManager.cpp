@@ -55,17 +55,20 @@ DownloadManager::DownloadManager()
 }
 void DownloadManager::shutdown_torrent()
 {
-for (auto i: m_torrents)
+	if (m_torrent_session)
 	{
-		i.save_resume_data(libtorrent::torrent_handle::save_info_dict | libtorrent::torrent_handle::only_if_modified);
-		++m_torrent_resume_count;
+for (auto i : m_torrents)
+		{
+			i.save_resume_data(libtorrent::torrent_handle::save_info_dict | libtorrent::torrent_handle::only_if_modified);
+			++m_torrent_resume_count;
+		}
+		int l_count = 10; // TODO
+		while (m_torrent_resume_count == 0 && l_count-- > 0)
+		{
+			Sleep(1000);
+		}
+		m_torrent_session.reset();
 	}
-	int l_count = 10; // TODO
-	while (m_torrent_resume_count == 0 && l_count-- > 0)
-	{
-		Sleep(1000);
-	}
-	m_torrent_session.reset();
 }
 
 DownloadManager::~DownloadManager()
@@ -855,215 +858,229 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 			p_torrent_sesion->pop_alerts(&alerts);
 for (lt::alert const * a : alerts)
 			{
+				try
+				{
 #ifdef _DEBUG
-				//LogManager::torrent_message(".:::. TorrentAllert:" + a->message() + " info:" + std::string(a->what()));
+					//LogManager::torrent_message(".:::. TorrentAllert:" + a->message() + " info:" + std::string(a->what()));
 #endif
-				if (const auto l_port = lt::alert_cast<lt::portmap_alert>(a))
-				{
-					LogManager::message("portmap_alert: " + a->message() + " info:" + std::string(a->what()));
-					SettingsManager::g_upnpTorrentLevel = true;
-				}
-				if (const auto l_port = lt::alert_cast<lt::portmap_error_alert>(a))
-				{
-					LogManager::message("portmap_error_alert: " + a->message() + " info:" + std::string(a->what()));
-					SettingsManager::g_upnpTorrentLevel = false;
-				}
-				if (const auto l_delete = lt::alert_cast<lt::torrent_removed_alert>(a))
-				{
-					LogManager::torrent_message("torrent_removed_alert: " + a->message());
+					if (const auto l_port = lt::alert_cast<lt::portmap_alert>(a))
 					{
-						auto i = m_torrents.find(l_delete->handle);
-						if (i == m_torrents.end())
+						LogManager::message("portmap_alert: " + a->message() + " info:" + std::string(a->what()));
+						SettingsManager::g_upnpTorrentLevel = true;
+					}
+					if (const auto l_port = lt::alert_cast<lt::portmap_error_alert>(a))
+					{
+						LogManager::message("portmap_error_alert: " + a->message() + " info:" + std::string(a->what()));
+						SettingsManager::g_upnpTorrentLevel = false;
+					}
+					if (const auto l_delete = lt::alert_cast<lt::torrent_removed_alert>(a))
+					{
+						LogManager::torrent_message("torrent_removed_alert: " + a->message());
 						{
-							for (i = m_torrents.cbegin(); i != m_torrents.cend(); ++i)
+							auto i = m_torrents.find(l_delete->handle);
+							if (i == m_torrents.end())
 							{
-								if (!i->is_valid())
-									continue;
-								if (i->info_hash() == l_delete->info_hash)
-									break;
+								for (i = m_torrents.cbegin(); i != m_torrents.cend(); ++i)
+								{
+									if (!i->is_valid())
+										continue;
+									if (i->info_hash() == l_delete->info_hash)
+										break;
+								}
+							}
+							if (i != m_torrents.end())
+							{
+								m_torrents.erase(i);
 							}
 						}
-						if (i != m_torrents.end())
+						CFlylinkDBManager::getInstance()->delete_torrent_resume(l_delete->info_hash);
+						fly_fire1(DownloadManagerListener::RemoveTorrent(), l_delete->info_hash);
+					}
+					if (const auto l_delete = lt::alert_cast<lt::torrent_delete_failed_alert>(a))
+					{
+						LogManager::torrent_message("torrent_deleted_alert: " + a->message());
+					}
+					if (const auto l_delete = lt::alert_cast<lt::torrent_deleted_alert>(a))
+					{
+						LogManager::torrent_message("torrent_deleted_alert: " + a->message());
+						fly_fire1(DownloadManagerListener::RemoveTorrent(), l_delete->info_hash);
+					}
+					if (lt::alert_cast<lt::peer_connect_alert>(a))
+					{
+						LogManager::torrent_message("peer_connect_alert: " + a->message());
+					}
+					if (lt::alert_cast<lt::peer_disconnected_alert>(a))
+					{
+						LogManager::torrent_message("peer_disconnected_alert: " + a->message());
+					}
+					if (lt::alert_cast<lt::peer_error_alert>(a))
+					{
+						LogManager::torrent_message("peer_error_alert: " + a->message());
+					}
+					if (const auto l_metadata = lt::alert_cast<metadata_received_alert>(a))
+					{
+						l_metadata->handle.save_resume_data(torrent_handle::save_info_dict | torrent_handle::only_if_modified);
+						++m_torrent_resume_count;
+					}
+					if (const auto l_a = lt::alert_cast<torrent_paused_alert>(a))
+					{
+						LogManager::torrent_message("torrent_paused_alert: " + a->message());
+						// TODO - тут разобрать файлы и показать что хочется качать
+					}
+					if (const auto l_a = lt::alert_cast<lt::file_completed_alert>(a))
+					{
+						auto l_files = l_a->handle.torrent_file()->files();
+						const auto l_hash_file = l_files.hash(l_a->index);
+						const auto l_size = l_files.file_size(l_a->index);
+						const auto l_name = l_files.file_name(l_a->index).to_string();
+						const auto l_file_path = SETTING(DOWNLOAD_DIRECTORY) + l_files.file_path(l_a->index) + l_name;
+						// заменить SETTING(DOWNLOAD_DIRECTORY) на путь выбора когда научусь качать файлы в нужный каталог
+						// const torrent_handle h = l_a->handle;
+						libtorrent::sha1_hash l_sha1;
+						bool p_is_sha1_for_file = false;
+						if (!l_hash_file.is_all_zeros())
 						{
-							m_torrents.erase(i);
+							l_sha1 = l_hash_file;
+							p_is_sha1_for_file = true;
+						}
+						else
+						{
+							l_sha1 = l_a->handle.info_hash();
+						}
+						LogManager::torrent_message("file_completed_alert: " + a->message() + " Path:" + l_file_path +
+						                            +" sha1:" + aux::to_hex(l_sha1));
+						auto l_item = std::make_shared<FinishedItem>(l_file_path, l_sha1, l_size, 0, GET_TIME(), 0, 0);
+						CFlylinkDBManager::getInstance()->save_transfer_history(true, e_TransferDownload, l_item);
+						if (FinishedManager::isValidInstance())
+						{
+							FinishedManager::getInstance()->pushHistoryFinishedItem(l_item, e_TransferDownload);
+							FinishedManager::getInstance()->updateStatus();
+						}
+						
+						const CFlyTTHKey l_file(l_sha1, l_size, p_is_sha1_for_file);
+						CFlyServerJSON::addDownloadCounter(l_file, l_name); // Util::getFileName(l_path)
+#ifdef _DEBUG
+						CFlyServerJSON::sendDownloadCounter(false);
+#endif
+					}
+					if (const auto l_a = lt::alert_cast<lt::add_torrent_alert>(a))
+					{
+						auto l_name = l_a->handle.status(torrent_handle::query_name);
+						LogManager::message("Added torrent: " + l_name.name);
+						m_torrents.insert(l_a->handle);
+						if (l_name.has_metadata)
+						{
+							// TODO - не писать в базу если идет загрузка торрентов из базы
+							l_a->handle.save_resume_data(torrent_handle::save_info_dict | torrent_handle::only_if_modified);
+							++m_torrent_resume_count;
 						}
 					}
-					CFlylinkDBManager::getInstance()->delete_torrent_resume(l_delete->info_hash);
-					fly_fire1(DownloadManagerListener::RemoveTorrent(), l_delete->info_hash);
-				}
-				if (const auto l_delete = lt::alert_cast<lt::torrent_delete_failed_alert>(a))
-				{
-					LogManager::torrent_message("torrent_deleted_alert: " + a->message());
-				}
-				if (const auto l_delete = lt::alert_cast<lt::torrent_deleted_alert>(a))
-				{
-					LogManager::torrent_message("torrent_deleted_alert: " + a->message());
-					fly_fire1(DownloadManagerListener::RemoveTorrent(), l_delete->info_hash);
-				}
-				if (lt::alert_cast<lt::peer_connect_alert>(a))
-				{
-					LogManager::torrent_message("peer_connect_alert: " + a->message());
-				}
-				if (lt::alert_cast<lt::peer_disconnected_alert>(a))
-				{
-					LogManager::torrent_message("peer_disconnected_alert: " + a->message());
-				}
-				if (lt::alert_cast<lt::peer_error_alert>(a))
-				{
-					LogManager::torrent_message("peer_error_alert: " + a->message());
-				}
-				if (const auto l_metadata = lt::alert_cast<metadata_received_alert>(a))
-				{
-					l_metadata->handle.save_resume_data(torrent_handle::save_info_dict | torrent_handle::only_if_modified);
-					++m_torrent_resume_count;
-				}
-				if (const auto l_a = lt::alert_cast<torrent_paused_alert>(a))
-				{
-					LogManager::torrent_message("torrent_paused_alert: " + a->message());
-					// TODO - тут разобрать файлы и показать что хочется качать
-				}
-				if (const auto l_a = lt::alert_cast<lt::file_completed_alert>(a))
-				{
-					auto l_files = l_a->handle.torrent_file()->files();
-					const auto l_hash_file = l_files.hash(l_a->index);
-					const auto l_size = l_files.file_size(l_a->index);
-					const auto l_name = l_files.file_name(l_a->index).to_string();
-					const auto l_file_path = SETTING(DOWNLOAD_DIRECTORY) + l_files.file_path(l_a->index) + l_name;
-					// заменить SETTING(DOWNLOAD_DIRECTORY) на путь выбора когда научусь качать файлы в нужный каталог
-					// const torrent_handle h = l_a->handle;
-					libtorrent::sha1_hash l_sha1;
-					bool p_is_sha1_for_file = false;
-					if (!l_hash_file.is_all_zeros())
+					if (const auto l_a = lt::alert_cast<lt::torrent_finished_alert>(a))
 					{
-						l_sha1 = l_hash_file;
-						p_is_sha1_for_file = true;
-					}
-					else
-					{
-						l_sha1 = l_a->handle.info_hash();
-					}
-					LogManager::torrent_message("file_completed_alert: " + a->message() + " Path:" + l_file_path +
-					                            +" sha1:" + aux::to_hex(l_sha1));
-					auto l_item = std::make_shared<FinishedItem>(l_file_path, l_sha1, l_size, 0, GET_TIME(), 0, 0);
-					CFlylinkDBManager::getInstance()->save_transfer_history(true, e_TransferDownload, l_item);
-					if (FinishedManager::isValidInstance())
-					{
-						FinishedManager::getInstance()->pushHistoryFinishedItem(l_item, e_TransferDownload);
-						FinishedManager::getInstance()->updateStatus();
-					}
-					
-					const CFlyTTHKey l_file(l_sha1, l_size, p_is_sha1_for_file);
-					CFlyServerJSON::addDownloadCounter(l_file, l_name); // Util::getFileName(l_path)
+						LogManager::torrent_message("torrent_finished_alert: " + a->message());
 #ifdef _DEBUG
-					CFlyServerJSON::sendDownloadCounter(false);
+						CFlyServerJSON::sendDownloadCounter(false);
 #endif
-				}
-				if (const auto l_a = lt::alert_cast<lt::add_torrent_alert>(a))
-				{
-					auto l_name = l_a->handle.status(torrent_handle::query_name);
-					LogManager::message("Added torrent: " + l_name.name);
-					m_torrents.insert(l_a->handle);
-					if (l_name.has_metadata)
-					{
-						// TODO - не писать в базу если идет загрузка торрентов из базы
+						
+						//TODO
+						//l_a->handle.set_max_connections(max_connections / 2);
+						// TODO ?
 						l_a->handle.save_resume_data(torrent_handle::save_info_dict | torrent_handle::only_if_modified);
 						++m_torrent_resume_count;
 					}
-				}
-				if (const auto l_a = lt::alert_cast<lt::torrent_finished_alert>(a))
-				{
-					LogManager::torrent_message("torrent_finished_alert: " + a->message());
-#ifdef _DEBUG
-					CFlyServerJSON::sendDownloadCounter(false);
-#endif
 					
-					//TODO
-					//l_a->handle.set_max_connections(max_connections / 2);
-					// TODO ?
-					l_a->handle.save_resume_data(torrent_handle::save_info_dict | torrent_handle::only_if_modified);
-					++m_torrent_resume_count;
-				}
-				
-				if (const auto l_a = lt::alert_cast<save_resume_data_failed_alert>(a))
-				{
-					dcassert(m_torrent_resume_count > 0);
-					--m_torrent_resume_count;
-					LogManager::torrent_message("save_resume_data_failed_alert: " + l_a->message() + " info:" + std::string(a->what()));
-				}
-				if (const auto l_a = lt::alert_cast<save_resume_data_alert>(a))
-				{
-					torrent_handle h = l_a->handle;
-					TORRENT_ASSERT(l_a->resume_data);
-					if (l_a->resume_data)
+					if (const auto l_a = lt::alert_cast<save_resume_data_failed_alert>(a))
 					{
+						dcassert(m_torrent_resume_count > 0);
 						--m_torrent_resume_count;
-						std::vector<char> l_resume;
-						bencode(std::back_inserter(l_resume), *l_a->resume_data);
-						const torrent_status st = h.status(torrent_handle::query_save_path | torrent_handle::query_name);
-						CFlylinkDBManager::getInstance()->save_torrent_resume(st.info_hash, st.name, l_resume);
-						// TODO l_a->handle.set_pinned(false);
+						LogManager::torrent_message("save_resume_data_failed_alert: " + l_a->message() + " info:" + std::string(a->what()));
 					}
-				}
-				if (lt::alert_cast<lt::torrent_error_alert>(a))
-				{
-					LogManager::torrent_message("torrent_error_alert: " + a->message() + " info:" + std::string(a->what()));
-				}
-				if (auto st = lt::alert_cast<lt::state_update_alert>(a))
-				{
-					if (st->status.empty())
+					if (const auto l_a = lt::alert_cast<save_resume_data_alert>(a))
 					{
-						continue;
+						torrent_handle h = l_a->handle;
+						TORRENT_ASSERT(l_a->resume_data);
+						if (l_a->resume_data)
+						{
+							--m_torrent_resume_count;
+							std::vector<char> l_resume;
+							bencode(std::back_inserter(l_resume), *l_a->resume_data);
+							const torrent_status st = h.status(torrent_handle::query_save_path | torrent_handle::query_name);
+							CFlylinkDBManager::getInstance()->save_torrent_resume(st.info_hash, st.name, l_resume);
+							// TODO l_a->handle.set_pinned(false);
+						}
 					}
-					int l_pos = 1;
+					if (lt::alert_cast<lt::torrent_error_alert>(a))
+					{
+						LogManager::torrent_message("torrent_error_alert: " + a->message() + " info:" + std::string(a->what()));
+					}
+					if (auto st = lt::alert_cast<lt::state_update_alert>(a))
+					{
+						if (st->status.empty())
+						{
+							continue;
+						}
+						int l_pos = 1;
 for (const auto j : st->status)
-					{
-						lt::torrent_status const& s = j;
-						std::string l_log = "[" + Util::toString(l_pos) + "] Status: " + st->message() + " [ " + s.save_path + "\\" + s.name
-						                    + " ] Download: " + Util::toString(s.download_payload_rate / 1000) + " kB/s "
-						                    + " ] Upload: " + Util::toString(s.upload_payload_rate / 1000) + " kB/s "
-						                    + Util::toString(s.total_done / 1000) + " kB ("
-						                    + Util::toString(s.progress_ppm / 10000) + "%) downloaded sha1: " + aux::to_hex(s.info_hash);
-						static std::string g_last_log;
-						if (g_last_log != l_log)
 						{
-							g_last_log = l_log;
-						}
-						LogManager::torrent_message(l_log);
-						l_pos++;
-						DownloadArray l_tickList;
-						{
-							TransferData l_td("");
-							l_td.init(s);
-							l_tickList.push_back(l_td);
-							/*                      for (int i = 0; i < l_count_files; ++i)
+							lt::torrent_status const& s = j;
+							std::string l_log = "[" + Util::toString(l_pos) + "] Status: " + st->message() + " [ " + s.save_path + "\\" + s.name
+							                    + " ] Download: " + Util::toString(s.download_payload_rate / 1000) + " kB/s "
+							                    + " ] Upload: " + Util::toString(s.upload_payload_rate / 1000) + " kB/s "
+							                    + Util::toString(s.total_done / 1000) + " kB ("
+							                    + Util::toString(s.progress_ppm / 10000) + "%) downloaded sha1: " + aux::to_hex(s.info_hash);
+							static std::string g_last_log;
+							if (g_last_log != l_log)
 							{
-							const std::string l_file_name = ti->files().file_name(i).to_string();
-							const std::string l_file_path = ti->files().file_path(i);
-							TransferData l_td(");
-							l_td.init(s);
-							l_td.m_size = ti->files().file_size(i); // s.total_wanted; - это полный размер торрента
-							l_td.log_debug();
-							l_tickList.push_back(l_td);
+								g_last_log = l_log;
 							}
-							*/
-						}
-						if (!l_tickList.empty())
-						{
-							fly_fire1(DownloadManagerListener::TorrentEvent(), l_tickList);
+							LogManager::torrent_message(l_log);
+							l_pos++;
+							DownloadArray l_tickList;
+							{
+								TransferData l_td("");
+								l_td.init(s);
+								l_tickList.push_back(l_td);
+								/*                      for (int i = 0; i < l_count_files; ++i)
+								{
+								const std::string l_file_name = ti->files().file_name(i).to_string();
+								const std::string l_file_path = ti->files().file_path(i);
+								TransferData l_td(");
+								l_td.init(s);
+								l_td.m_size = ti->files().file_size(i); // s.total_wanted; - это полный размер торрента
+								l_td.log_debug();
+								l_tickList.push_back(l_td);
+								}
+								*/
+							}
+							if (!l_tickList.empty())
+							{
+								fly_fire1(DownloadManagerListener::TorrentEvent(), l_tickList);
+							}
 						}
 					}
+				}
+				catch (const system_error& e)
+				{
+					const std::string l_error = "[system_error-1] DownloadManager::onTorrentAlertNotify " + std::string(e.what());
+					CFlyServerJSON::pushError(75, l_error);
+				}
+				catch (const std::runtime_error& e)
+				{
+					const std::string l_error = "[runtime_error-1] DownloadManager::onTorrentAlertNotify " + std::string(e.what());
+					CFlyServerJSON::pushError(75, l_error);
 				}
 			}
-		});
+		}
+		                                       );
 	}
 	catch (const system_error& e)
 	{
-		const std::string l_error = "[system_error] DownloadManager::onTorrentAlertNotify " + std::string(e.what());
+		const std::string l_error = "[system_error-2] DownloadManager::onTorrentAlertNotify " + std::string(e.what());
 		CFlyServerJSON::pushError(75, l_error);
 	}
 	catch (const std::runtime_error& e)
 	{
-		const std::string l_error = "[runtime_error] DownloadManager::onTorrentAlertNotify " + std::string(e.what());
+		const std::string l_error = "[runtime_error-2] DownloadManager::onTorrentAlertNotify " + std::string(e.what());
 		CFlyServerJSON::pushError(75, l_error);
 	}
 }
@@ -1102,6 +1119,10 @@ bool DownloadManager::remove_torrent_file(const libtorrent::sha1_hash& p_sha1, c
 }
 bool DownloadManager::add_torrent_file(const tstring& p_torrent_path, const tstring& p_torrent_url)
 {
+	if (!m_torrent_session)
+	{
+		DownloadManager::getInstance()->init_torrent(true);
+	}
 	if (m_torrent_session)
 	{
 		lt::error_code ec;
@@ -1143,8 +1164,13 @@ bool DownloadManager::add_torrent_file(const tstring& p_torrent_path, const tstr
 	}
 	return false;
 }
-void DownloadManager::init_torrent()
+void DownloadManager::init_torrent(bool p_is_force)
 {
+	if (!BOOLSETTING(USE_DHT) && p_is_force == false)
+	{
+		LogManager::message("Disable torrent DHT...");
+		return;
+	}
 	try
 	{
 		m_torrent_resume_count = 0;
@@ -1165,11 +1191,6 @@ void DownloadManager::init_torrent()
 		l_sett.set_bool(settings_pack::enable_natpmp, true);
 		l_sett.set_bool(settings_pack::enable_lsd, true);
 		l_sett.set_bool(settings_pack::enable_dht, true);
-		
-		
-		//m_torrent_session->set_load_function(&load_torrent);
-		//m_torrent_session->set_download_rate_limit(10000);
-		
 		l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:8999");
 		std::string l_dht_nodes;
 for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
@@ -1179,27 +1200,14 @@ for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
 			const auto l_boot_dht = j;
 			LogManager::message("Add torrent DHT router: " + l_boot_dht.getServerAndPort());
 			l_dht_nodes += l_boot_dht.getIp() + ':' + Util::toString(l_boot_dht.getPort());
-			//m_torrent_session->add_dht_router(std::make_pair(l_boot_dht.getIp(), l_boot_dht.getPort()));
 		}
 		l_sett.set_str(settings_pack::dht_bootstrap_nodes, l_dht_nodes);
 		
 		m_torrent_session = std::make_unique<lt::session>(l_sett);
 		m_torrent_session->set_alert_notify(std::bind(&DownloadManager::onTorrentAlertNotify, this, m_torrent_session.get()));
 		lt::dht_settings dht;
-		//dht.privacy_lookups = true;
 		m_torrent_session->set_dht_settings(dht);
-		/*
-		{
-		        lt::error_code ec;
-		        std::vector<char> in;
-		        if (load_file(".ses_state", in, ec) == 0)
-		        {
-		            bdecode_node e;
-		            if (bdecode(&in[0], &in[0] + in.size(), e, ec) == 0)
-		                m_torrent_session->load_state(e, session::save_dht_state);
-		        }
-		    }
-		*/
+		
 #ifdef _DEBUG
 		lt::error_code ec;
 		lt::add_torrent_params p;
@@ -1218,6 +1226,8 @@ for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
 		//p.url = "magnet:?xt=urn:btih:a012fbbffb23df3b9f1bda4080c5ca9a09aad898&dn=rutor.info_%D0%A4%D0%BB%D1%8D%D1%88+%2F+The+Flash+%5B03%D1%8501+%D0%B8%D0%B7+23%5D+%282016%29+WEBRip+%7C+Sunshine+Studio&tr=udp://opentor.org:2710&tr=udp://opentor.org:2710&tr=http://retracker.local/announce";
 		//p.url = "magnet:?xt=urn:btih:cb1ca015295aa892e8408fdbacdbe7b0b490e0d4&dn=rutor.info_Kuedo+-+Slow+Knife+%282016%29+FLAC&tr=udp://opentor.org:2710&tr=udp://opentor.org:2710&tr=http://retracker.local/announce";
 		//p.url = "magnet:?xt=urn:btih:976774f4b1a6f20636a93df3c7d6a9e307381240&dn=rutor.info_%D0%A4%D0%BB%D1%8D%D1%88+%2F+The+Flash+%5B03%D1%8501-02+%D0%B8%D0%B7+23%5D+%282016%29+WEB-DLRip+%D0%BE%D1%82+qqss44+%7C+LostFilm&tr=udp://opentor.org:2710&tr=udp://opentor.org:2710&tr=http://retracker.local/announce";
+		
+		p.url = "magnet:?xt=urn:btih:a70a398daf1f3090b2a49aec3e7dde5cfcecd462";
 		if (ec)
 		{
 			dcdebug("%s\n", ec.message().c_str());
@@ -1225,9 +1235,9 @@ for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
 			//return 1;
 		}
 		// for magnet + load metadata
-		//p.flags &= ~lt::add_torrent_params::flag_paused;
-		//p.flags &= ~lt::add_torrent_params::flag_auto_managed;
-		//p.flags |= lt::add_torrent_params::flag_upload_mode;
+		p.flags &= ~lt::add_torrent_params::flag_paused;
+		p.flags &= ~lt::add_torrent_params::flag_auto_managed;
+		p.flags |= lt::add_torrent_params::flag_upload_mode;
 		
 		// for .torrent
 		//p.flags |= lt::add_torrent_params::flag_paused;
@@ -1239,7 +1249,7 @@ for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
 		        else
 		            p.flags &= ~lt::add_torrent_params::flag_seed_mode;
 		*/
-		//m_torrent_session->add_torrent(p, ec);
+		m_torrent_session->add_torrent(p, ec);
 		if (ec)
 		{
 			dcdebug("%s\n", ec.message().c_str());

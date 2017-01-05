@@ -606,7 +606,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 #ifdef SSA_WIZARD_FEATURE
 		void SetWizardMode()
 		{
-			m_wizard = true;
+			m_is_wizard = true;
 		}
 #endif
 	private:
@@ -774,8 +774,9 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		int  m_maxnumberOfReadBytes;
 		bool m_isOpenHubFrame;
 #ifdef SSA_WIZARD_FEATURE
-		bool m_wizard;
+		bool m_is_wizard;
 #endif
+		bool m_is_start_autoupdate;
 		
 		LRESULT onAppShow(WORD /*wNotifyCode*/, WORD /*wParam*/, HWND, BOOL& /*bHandled*/);
 		

@@ -156,7 +156,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 			{
 				return TSTRING(DOWNLOAD_FINISHED_IDLE);
 			}
-			const size_t l_online = m_qi->getLastOnlineCount();;
+			const size_t l_online = m_qi->getLastOnlineCount();
 			const size_t l_count_source = m_qi->getSourcesCount();
 			if (isWaiting())
 			{
@@ -265,8 +265,13 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 			{
 				if (!tmp.empty())
 					tmp += _T(", ");
-					
-				tmp += WinUtil::getNicks(j->first, Util::emptyString);
+				string l_hub_name;
+				if (j->first->getHubID())
+				{
+					l_hub_name = CFlylinkDBManager::getInstance()->get_hub_name(j->first->getHubID());
+				}
+				tmp += j->first->getLastNickT() + _T(" (") + Text::toT(l_hub_name) + _T(")");
+				//tmp += WinUtil::getNicks(j->first, Util::emptyString);
 			}
 			return tmp.empty() ? TSTRING(NO_USERS) : tmp;
 		}
@@ -320,7 +325,14 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 				{
 					if (!tmp.empty())
 						tmp += _T(", ");
-					tmp += WinUtil::getNicks(j->first, Util::emptyString);
+					string l_hub_name;
+					if (j->first->getHubID())
+					{
+						l_hub_name = CFlylinkDBManager::getInstance()->get_hub_name(j->first->getHubID());
+					}
+					tmp += j->first->getLastNickT() + _T(" (") + Text::toT(l_hub_name) + _T(")");
+					
+					//tmp += WinUtil::getNicks(j->first, Util::emptyString);
 					tmp += _T(" (");
 					if (j->second.isSet(QueueItem::Source::FLAG_FILE_NOT_AVAILABLE))
 					{
@@ -796,7 +808,7 @@ void QueueFrame::removeItem(const string& p_target)
 	
 	dcassert(m_closed == false);
 	const auto i = m_directories.equal_range(ii->getPath());
-	DirectoryIter j;
+	QueueDirectoryIterC j;
 	for (j = i.first; j != i.second; ++j)
 	{
 		if (j->second == ii)
@@ -1191,14 +1203,8 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 				singleMenu.SetMenuDefaultItem(IDC_SEARCH_ALTERNATES); // !SMT!-UI
 				
 				const QueueItemInfo* ii = getSelectedQueueItem();
-				// [-] if (!ii)
-				// [-]  return 0;
 				{
-					// [!] IRainman fix.
-					// [-] QueueManager::LockInstance l_instance;
-					// [-] const QueueItem* qi = QueueManager::getInstance()->fileQueue.find(ii->getTarget());
-					const QueueItemPtr& qi = ii->getQueueItem(); // [+]
-					// [~] IRainman fix.
+					const QueueItemPtr qi = ii->getQueueItem(); // [+]
 					segmentsMenu.CheckMenuItem(IDC_SEGMENTONE - 1 + qi->getMaxSegments(), MF_CHECKED);
 				}
 				if (!ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
@@ -1213,85 +1219,96 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 				
 				menuItems = 0;
 				int pmItems = 0;
-				//
+				if (ii)
 				{
 					RLock(*QueueItem::g_cs);
-					const auto& sources = ii->getQueueItem()->getSourcesL(); // ƒелать копию нельз€
-					// ниже сохран€ем адрес итератора
-					for (auto i = sources.cbegin(); i != sources.cend(); ++i)
+					const QueueItemPtr qi = ii->getQueueItem();
+					if (qi)
 					{
-						const auto user = i->first;
-						tstring nick = WinUtil::escapeMenu(WinUtil::getNicks(user, Util::emptyString));
-						// add hub hint to menu
-						const auto& hubs = ClientManager::getHubNames(user->getCID(), Util::emptyString);
-						if (!hubs.empty())
-							nick += _T(" (") + Text::toT(hubs[0]) + _T(")");
+						const auto& sources = ii->getQueueItem()->getSourcesL(); // ƒелать копию нельз€
+						// ниже сохран€ем адрес итератора
+						for (auto i = sources.cbegin(); i != sources.cend(); ++i)
+						{
+							const auto user = i->first;
+							string l_hub_name;
+							if (user->getHubID())
+							{
+								l_hub_name = CFlylinkDBManager::getInstance()->get_hub_name(user->getHubID());
+							}
+							tstring nick = WinUtil::escapeMenu(user->getLastNickT() + _T(" (") + Text::toT(l_hub_name) + _T(")"));
 							
-						mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
-						mi.fType = MFT_STRING;
-						mi.dwTypeData = (LPTSTR)nick.c_str();
-						mi.dwItemData = (ULONG_PTR) & i->first;
-						mi.wID = IDC_BROWSELIST + menuItems;
-						browseMenu.InsertMenuItem(menuItems, TRUE, &mi);
-						mi.wID = IDC_REMOVE_SOURCE + 1 + menuItems; // "All" is before sources
-						removeMenu.InsertMenuItem(menuItems + 2, TRUE, &mi); // "All" and separator come first
-						mi.wID = IDC_REMOVE_SOURCES + menuItems;
-						removeAllMenu.InsertMenuItem(menuItems, TRUE, &mi);
-						if (user->isOnline())
-						{
-							mi.wID = IDC_PM + menuItems;
-							pmMenu.InsertMenuItem(menuItems, TRUE, &mi);
-							pmItems++;
-						}
-						menuItems++;
-					}
-					readdItems = 0;
-					const auto& badSources = ii->getQueueItem()->getBadSourcesL(); // ƒелать копию нельз€
-					// ниже сохран€ем адрес итератора
-					for (auto i = badSources.cbegin(); i != badSources.cend(); ++i)
-					{
-						const auto& user = i->first;
-						tstring nick = WinUtil::getNicks(user, Util::emptyString);
-						if (i->second.isSet(QueueItem::Source::FLAG_FILE_NOT_AVAILABLE))
-						{
-							nick += _T(" (") + TSTRING(FILE_NOT_AVAILABLE) + _T(")");
-						}
-						else if (i->second.isSet(QueueItem::Source::FLAG_PASSIVE))
-						{
-							nick += _T(" (") + TSTRING(PASSIVE_USER) + _T(")");
-						}
-						else if (i->second.isSet(QueueItem::Source::FLAG_BAD_TREE))
-						{
-							nick += _T(" (") + TSTRING(INVALID_TREE) + _T(")");
-						}
-						else if (i->second.isSet(QueueItem::Source::FLAG_NO_NEED_PARTS))
-						{
-							nick += _T(" (") + TSTRING(NO_NEEDED_PART) + _T(")");
-						}
-						else if (i->second.isSet(QueueItem::Source::FLAG_NO_TTHF))
-						{
-							nick += _T(" (") + TSTRING(SOURCE_TOO_OLD) + _T(")");
-						}
-						else if (i->second.isSet(QueueItem::Source::FLAG_SLOW_SOURCE))
-						{
-							nick += _T(" (") + TSTRING(SLOW_USER) + _T(")");
-						}
-						else if (i->second.isSet(QueueItem::Source::FLAG_UNTRUSTED))
-						{
-							nick += _T(" (") + TSTRING(CERTIFICATE_NOT_TRUSTED) + _T(")");
-						}
-						// add hub hint to menu
-						const auto& hubs = ClientManager::getHubNames(user->getCID(), Util::emptyString);
-						if (!hubs.empty())
-							nick += _T(" (") + Text::toT(hubs[0]) + _T(")");
+							// tstring nick = WinUtil::escapeMenu(WinUtil::getNicks(user, Util::emptyString));
+							// add hub hint to menu
+							//const auto& hubs = ClientManager::getHubNames(user->getCID(), Util::emptyString);
+							//if (!hubs.empty())
+							//  nick += _T(" (") + Text::toT(hubs[0]) + _T(")");
 							
-						mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
-						mi.fType = MFT_STRING;
-						mi.dwTypeData = (LPTSTR)nick.c_str();
-						mi.dwItemData = (ULONG_PTR) & (*i);
-						mi.wID = IDC_READD + 1 + readdItems;  // "All" is before sources
-						readdMenu.InsertMenuItem(readdItems + 2, TRUE, &mi);  // "All" and separator come first
-						readdItems++;
+							mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
+							mi.fType = MFT_STRING;
+							mi.dwTypeData = (LPTSTR)nick.c_str();
+							mi.dwItemData = (ULONG_PTR)& i->first;
+							mi.wID = IDC_BROWSELIST + menuItems;
+							browseMenu.InsertMenuItem(menuItems, TRUE, &mi);
+							mi.wID = IDC_REMOVE_SOURCE + 1 + menuItems; // "All" is before sources
+							removeMenu.InsertMenuItem(menuItems + 2, TRUE, &mi); // "All" and separator come first
+							mi.wID = IDC_REMOVE_SOURCES + menuItems;
+							removeAllMenu.InsertMenuItem(menuItems, TRUE, &mi);
+							if (user->isOnline())
+							{
+								mi.wID = IDC_PM + menuItems;
+								pmMenu.InsertMenuItem(menuItems, TRUE, &mi);
+								pmItems++;
+							}
+							menuItems++;
+						}
+						readdItems = 0;
+						const auto& badSources = ii->getQueueItem()->getBadSourcesL(); // ƒелать копию нельз€
+						// ниже сохран€ем адрес итератора
+						for (auto i = badSources.cbegin(); i != badSources.cend(); ++i)
+						{
+							const auto& user = i->first;
+							tstring nick = WinUtil::getNicks(user, Util::emptyString);
+							if (i->second.isSet(QueueItem::Source::FLAG_FILE_NOT_AVAILABLE))
+							{
+								nick += _T(" (") + TSTRING(FILE_NOT_AVAILABLE) + _T(")");
+							}
+							else if (i->second.isSet(QueueItem::Source::FLAG_PASSIVE))
+							{
+								nick += _T(" (") + TSTRING(PASSIVE_USER) + _T(")");
+							}
+							else if (i->second.isSet(QueueItem::Source::FLAG_BAD_TREE))
+							{
+								nick += _T(" (") + TSTRING(INVALID_TREE) + _T(")");
+							}
+							else if (i->second.isSet(QueueItem::Source::FLAG_NO_NEED_PARTS))
+							{
+								nick += _T(" (") + TSTRING(NO_NEEDED_PART) + _T(")");
+							}
+							else if (i->second.isSet(QueueItem::Source::FLAG_NO_TTHF))
+							{
+								nick += _T(" (") + TSTRING(SOURCE_TOO_OLD) + _T(")");
+							}
+							else if (i->second.isSet(QueueItem::Source::FLAG_SLOW_SOURCE))
+							{
+								nick += _T(" (") + TSTRING(SLOW_USER) + _T(")");
+							}
+							else if (i->second.isSet(QueueItem::Source::FLAG_UNTRUSTED))
+							{
+								nick += _T(" (") + TSTRING(CERTIFICATE_NOT_TRUSTED) + _T(")");
+							}
+							// add hub hint to menu
+							const auto& hubs = ClientManager::getHubNames(user->getCID(), Util::emptyString);
+							if (!hubs.empty())
+								nick += _T(" (") + Text::toT(hubs[0]) + _T(")");
+								
+							mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
+							mi.fType = MFT_STRING;
+							mi.dwTypeData = (LPTSTR)nick.c_str();
+							mi.dwItemData = (ULONG_PTR) & (*i);
+							mi.wID = IDC_READD + 1 + readdItems;  // "All" is before sources
+							readdMenu.InsertMenuItem(readdItems + 2, TRUE, &mi);  // "All" and separator come first
+							readdItems++;
+						}
 					}
 				}
 				
@@ -2021,7 +2038,7 @@ void QueueFrame::updateQueue()
 	dcassert(m_closed == false);
 	CWaitCursor l_cursor_wait; //-V808
 	ctrlQueue.DeleteAllItems();
-	pair<DirectoryIter, DirectoryIter> i;
+	QueueDirectoryPairC i;
 	if (showTree)
 	{
 		i = m_directories.equal_range(getSelectedDir());

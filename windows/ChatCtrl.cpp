@@ -86,7 +86,7 @@ tstring ChatCtrl::g_sSelectedIP;
 tstring ChatCtrl::g_sSelectedUserName;
 tstring ChatCtrl::g_sSelectedURL;
 
-ChatCtrl::ChatCtrl() : m_boAutoScroll(true), m_is_cache_chat_empty(false), m_is_out_of_memory_for_smile(false), m_chat_cache_length(0) //, m_Client(nullptr)
+ChatCtrl::ChatCtrl() : m_boAutoScroll(true), m_is_disable_chat_cache(false), m_is_out_of_memory_for_smile(false), m_chat_cache_length(0) //, m_Client(nullptr)
 #ifdef IRAINMAN_INCLUDE_SMILE
 	, m_pRichEditOle(NULL), /*m_pOleClientSite(NULL),*/ m_pStorage(NULL), m_lpLockBytes(NULL), m_Ref(0)
 #endif
@@ -97,6 +97,7 @@ ChatCtrl::ChatCtrl() : m_boAutoScroll(true), m_is_cache_chat_empty(false), m_is_
 
 ChatCtrl::~ChatCtrl()
 {
+	dcassert(m_chat_cache.empty());
 #ifdef IRAINMAN_INCLUDE_SMILE
 	safe_release(m_pStorage);
 	safe_release(m_lpLockBytes);
@@ -162,8 +163,8 @@ ChatCtrl::CFlyChatCache::CFlyChatCache(const Identity& p_id, const bool bMyMess,
 	m_is_disable_style(false),
 	m_is_url(false)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		m_bUseEmo = bUseEmo || !ClientManager::isStartup(); // Пока запускаемся - аним-смайлы отрубаем
 		if (p_is_remove_rn)
@@ -208,7 +209,7 @@ ChatCtrl::CFlyChatCacheTextOnly::CFlyChatCacheTextOnly(const tstring& p_nick,
 //================================================================================================================================
 void ChatCtrl::restore_chat_cache()
 {
-	CLockRedraw<true> l_lock_draw(m_hWnd);
+	//CLockRedraw<true> l_lock_draw(m_hWnd);
 	CWaitCursor l_cursor_wait; //-V808
 	{
 #if 0
@@ -225,31 +226,27 @@ void ChatCtrl::restore_chat_cache()
 			m_chat_cache.push_back(l_message);
 		}
 #endif
-		if (m_is_cache_chat_empty == false)
-		{
-			CLockRedraw<true> l_lock_redraw(*this);
-			m_is_cache_chat_empty = true;
-			std::list<CFlyChatCache> l_chat_cache;
-			{
-				CFlyFastLock(m_fcs_chat_cache);
-				l_chat_cache.swap(m_chat_cache);
-			}
-			int l_count = l_chat_cache.size();
-			for (auto i = l_chat_cache.begin(); i != l_chat_cache.end(); ++i)
-			{
-			
-				if (l_count-- > 40) // Отрубаем смайлы и стиль на старых записях
-				{
-					i->m_bUseEmo = false;
-					i->m_is_disable_style = true;
-				}
-				AppendText(*i, false);
-			}
-		}
+		std::list<CFlyChatCache> l_chat_cache;
+		const bool l_is_disable_chat_cache = m_is_disable_chat_cache;
 		{
 			CFlyFastLock(m_fcs_chat_cache);
-			m_chat_cache.clear();
+			m_is_disable_chat_cache = true;
+			l_chat_cache.swap(m_chat_cache);
 			m_chat_cache_length = 0;
+		}
+		int l_count = l_chat_cache.size();
+		for (auto i = l_chat_cache.begin(); i != l_chat_cache.end(); ++i)
+		{
+		
+			if (l_count-- > 40) // Отрубаем смайлы и стиль на старых записях
+			{
+				i->m_bUseEmo = false;
+				i->m_is_disable_style = true;
+			}
+			if (l_is_disable_chat_cache == false)
+			{
+				AppendText(*i, false);
+			}
 		}
 	}
 	m_is_out_of_memory_for_smile = false; // Снова пытамся вставлять смайлы
@@ -257,8 +254,8 @@ void ChatCtrl::restore_chat_cache()
 //================================================================================================================================
 void ChatCtrl::insertAndFormat(const tstring & text, CHARFORMAT2 cf, bool p_is_disable_style, LONG& p_begin, LONG& p_end)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (ClientManager::isBeforeShutdown())
 		return;
 	dcassert(!text.empty());
 	if (!text.empty())
@@ -276,31 +273,33 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message, bool p_is_lock_redraw)
 //    const Identity& p_id, const bool bMyMess, const bool bThirdPerson, const tstring& sExtra, const tstring& sMsg, const CHARFORMAT2& cf
 //, bool bUseEmo/* = true*/
 {
-	dcassert(!ClientManager::isShutdown());
-	if (ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (ClientManager::isBeforeShutdown())
 		return;
 	{
 		CFlyFastLock(m_fcs_chat_cache);
-		if (m_is_cache_chat_empty == false)
+		if (m_is_disable_chat_cache == false)
 		{
 			m_chat_cache.push_back(p_message);
 			m_chat_cache_length += p_message.length();
 			if (m_chat_cache_length + 1000 > SETTING(CHATBUFFERSIZE))
 			{
 				m_chat_cache_length -= m_chat_cache.front().length();
+				// //TODO - RoLex - chat- LogManager::message("Remove message[max message]. Hub:" + getHubHint() + " Message: [" + Text::fromT(m_chat_cache.front().m_Msg) + "]");
 				m_chat_cache.pop_front();
 			}
+			// //TODO - RoLex - chat- LogManager::message("Remove message[m_is_disable_chat_cache == false]. Hub:" + getHubHint() + " Message: [" + Text::fromT(m_chat_cache.front().m_Msg) + "]");
 			return;
 		}
 	}
-	unique_ptr<CLockRedraw<true>> l_ptr_lock_draw;
-	if (p_is_lock_redraw)
-	{
-		l_ptr_lock_draw = std::make_unique<CLockRedraw<true> >(m_hWnd);
-	}
-	LONG lSelBeginSaved, lSelEndSaved;
+	//unique_ptr<CLockRedraw<true>> l_ptr_lock_draw;
+	//if (p_is_lock_redraw)
+	//{
+	//  l_ptr_lock_draw = std::make_unique<CLockRedraw<true> >(m_hWnd);
+	//}
+	LONG lSelBeginSaved = 0, lSelEndSaved = 0;
 	GetSel(lSelBeginSaved, lSelEndSaved);
-	POINT l_cr;
+	POINT l_cr = { 0 };
 	GetScrollPos(&l_cr);
 	
 	LONG lSelBegin = 0;
@@ -319,8 +318,6 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message, bool p_is_lock_redraw)
 	}
 	
 	tstring sText = p_message.m_Msg;
-	//const tstring& sAuthor = p_message.m_Nick;
-	//dcassert(!sAuthor.empty());
 	if (p_message.m_Nick.empty())
 	{
 		// TODO: Needs extra format for program message?
@@ -492,8 +489,8 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message, bool p_is_lock_redraw)
 void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly& p_message)
 {
 	// const tstring& sAuthor, const bool bMyMess, const bool bRealUser, const CHARFORMAT2& cf
-	dcassert(!ClientManager::isShutdown());
-	if (ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (ClientManager::isBeforeShutdown())
 		return;
 	PARAFORMAT2 pf;
 	memzero(&pf, sizeof(PARAFORMAT2));
@@ -519,59 +516,8 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 	//[~]IRainman optimize
 	
 	if ((p_message.m_isRealUser || BOOLSETTING(FORMAT_BOT_MESSAGE))
-	        // && !p_message.m_Nick.empty()
 	   )
 	{
-#ifdef IRAINMAN_INCLUDE_TEXT_FORMATTING
-		// This is not 100% working, but most of the time it does the job decently enough
-		// technically if problems happened to appear, they'd most likely appear in MOTD's,
-		// bot messages and ASCII pics - Crise
-		if (BOOLSETTING(FORMAT_BIU))
-		{
-			static const TCHAR rtf[] = { _T('*'), _T('_'), _T('/') };
-			for (size_t i = 0; i < _countof(rtf); i++)
-			{
-				LONG rtfStart = sMsgLower.Find(rtf[i], 0);
-				while (rtfStart != -1)
-				{
-					LONG rtfEnd;
-					LONG rtfEndTerminate = sMsgLower.Find(rtf[i], rtfStart + 1);
-					if (rtfEndTerminate > rtfStart)
-					{
-						rtfEnd = rtfEndTerminate;
-					}
-					else
-					{
-						rtfEnd = _tcslen(sMsgLower); //-V103
-					}
-					
-					// No closing, no formatting...
-					if (rtfEnd == rtfEndTerminate && (rtfEnd - rtfStart > 2))
-					{
-						CHARFORMAT2 temp = cf;
-						temp.dwMask = CFM_BOLD | CFM_UNDERLINE | CFM_ITALIC;
-						
-						switch (i)
-						{
-							case 0:// Bold
-								temp.dwEffects |= CFE_BOLD;
-								break;
-							case 1:// Underline
-								temp.dwEffects |= CFE_UNDERLINE;
-								break;
-							case 2:// Italic
-								temp.dwEffects |= CFE_ITALIC;
-								break;
-						}
-						// Set formatting to selection
-						SetSel(lSelBegin + rtfStart, lSelBegin + rtfEnd + 1);
-						SetSelectionCharFormat(temp);
-					}
-					rtfStart = sMsgLower.Find(rtf[i], rtfEnd + 1);
-				}
-			}
-		}
-#endif // IRAINMAN_INCLUDE_TEXT_FORMATTING
 		// BB codes support http://ru.wikipedia.org/wiki/BbCode
 		AppendTextParseBB(sMsgLower, p_message, lSelBegin);
 	}
@@ -579,8 +525,10 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 	AppendTextParseURL(sMsgLower, p_message, lSelBegin);
 	
 	if (p_message.m_Nick.empty()) // [+] IRainman fix.
+	{
 		return;
-		
+	}
+	
 	// Zvyrazneni vsech vyskytu vlastniho nicku
 	lSelEnd = GetTextLengthEx(GTL_NUMCHARS);
 	LONG lSearchFrom = 0;

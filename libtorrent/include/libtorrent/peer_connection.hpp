@@ -137,7 +137,6 @@ namespace libtorrent
 		aux::session_interface* ses;
 		aux::session_settings const* sett;
 		counters* stats_counters;
-		buffer_allocator_interface* allocator;
 		disk_interface* disk_thread;
 		io_service* ios;
 		std::weak_ptr<torrent> tor;
@@ -145,9 +144,6 @@ namespace libtorrent
 		tcp::endpoint endp;
 		torrent_peer* peerinfo;
 	};
-
-	// internal
-	inline void nop(char*, void*, aux::block_cache_reference) {}
 
 	struct TORRENT_EXTRA_EXPORT peer_connection_hot_members
 	{
@@ -550,7 +546,6 @@ namespace libtorrent
 		void incoming_dont_have(piece_index_t piece_index);
 		void incoming_bitfield(typed_bitfield<piece_index_t> const& bits);
 		void incoming_request(peer_request const& r);
-		void incoming_piece(peer_request const& p, disk_buffer_holder data);
 		void incoming_piece(peer_request const& p, char const* data);
 		void incoming_piece_fragment(int bytes);
 		void start_receive_piece(peer_request const& r);
@@ -627,15 +622,12 @@ namespace libtorrent
 		void send_buffer(char const* begin, int size, int flags = 0);
 		void setup_send();
 
-		void append_send_buffer(char* buffer, int size
-			, chained_buffer::free_buffer_fun destructor = &nop
-			, void* userdata = nullptr, aux::block_cache_reference ref
-			= aux::block_cache_reference());
-
-		virtual void append_const_send_buffer(char const* buffer, int size
-			, chained_buffer::free_buffer_fun destructor = &nop
-			, void* userdata = nullptr, aux::block_cache_reference ref
-			= aux::block_cache_reference());
+		template <typename Holder>
+		void append_send_buffer(Holder buffer, int size)
+		{
+			TORRENT_ASSERT(is_single_thread());
+			m_send_buffer.append_buffer(std::move(buffer), size, size);
+		}
 
 		int outstanding_bytes() const { return m_outstanding_bytes; }
 
@@ -759,9 +751,8 @@ namespace libtorrent
 
 		void do_update_interest();
 		void fill_send_buffer();
-		void on_disk_read_complete(aux::block_cache_reference ref
-			, char* disk_block, int flags, storage_error const& error, peer_request r
-			, time_point issue_time);
+		void on_disk_read_complete(disk_buffer_holder disk_block, int flags
+			, storage_error const& error, peer_request r, time_point issue_time);
 		void on_disk_write_complete(storage_error const& error
 			, peer_request r, std::shared_ptr<torrent> t);
 		void on_seed_mode_hashed(piece_index_t piece
@@ -832,10 +823,6 @@ namespace libtorrent
 
 		// the disk thread to use to issue disk jobs to
 		disk_interface& m_disk_thread;
-
-	public:
-		buffer_allocator_interface& m_allocator;
-	private:
 
 		// io service
 		io_service& m_ios;

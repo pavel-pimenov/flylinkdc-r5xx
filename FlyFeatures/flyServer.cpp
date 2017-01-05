@@ -597,7 +597,7 @@ void CFlyServerConfig::loadConfig()
 						string l_block_ip_str;
 						{
 							CFlyWriteLock(*g_cs_block_ip);
-							g_block_ip_str.clear();
+							g_block_ip_str.clear(); // https://drdump.com/DumpGroup.aspx?DumpGroupID=683946
 							l_block_ip_str = l_xml.getChildAttribSplit("block_ip", g_block_ip_str, [&](const string & n)
 							{
 								checkStrKey(n);

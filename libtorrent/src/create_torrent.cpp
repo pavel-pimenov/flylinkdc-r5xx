@@ -149,11 +149,11 @@ namespace libtorrent
 					&& (flags & create_torrent::symlinks))
 				{
 					std::string sym_path = get_symlink_path(f);
-					fs.add_file(l, 0, file_flags, s.mtime, sym_path);
+					fs.add_file(l, 0, file_flags, std::time_t(s.mtime), sym_path);
 				}
 				else
 				{
-					fs.add_file(l, s.file_size, file_flags, s.mtime);
+					fs.add_file(l, s.file_size, file_flags, std::time_t(s.mtime));
 				}
 			}
 		}
@@ -161,7 +161,7 @@ namespace libtorrent
 		struct hash_state
 		{
 			create_torrent& ct;
-			std::shared_ptr<storage_interface> storage;
+			storage_holder storage;
 			disk_io_thread& iothread;
 			piece_index_t piece_counter;
 			piece_index_t completed_piece;
@@ -184,7 +184,7 @@ namespace libtorrent
 			++st->completed_piece;
 			if (st->piece_counter < st->ct.files().end_piece())
 			{
-				st->iothread.async_hash(st->storage.get(), st->piece_counter
+				st->iothread.async_hash(st->storage, st->piece_counter
 					, disk_interface::sequential_access
 					, std::bind(&on_hash, _1, _2, _3, st), nullptr);
 				++st->piece_counter;
@@ -279,24 +279,22 @@ namespace libtorrent
 		params.pool = &disk_thread.files();
 		params.mode = storage_mode_sparse;
 
-
-		std::shared_ptr<storage_interface> storage(default_storage_constructor(params));
-		storage->set_files(&t.files());
+		std::unique_ptr<storage_interface> stor(default_storage_constructor(params));
+		stor->set_files(&t.files());
+		storage_holder storage = disk_thread.new_torrent(std::move(stor));
 
 		settings_pack sett;
 		sett.set_int(settings_pack::cache_size, 0);
 		sett.set_int(settings_pack::aio_threads, 1);
 
-		// TODO: this should probably be optional
-		alert_manager dummy2(0, 0);
-		disk_thread.set_settings(&sett, dummy2);
+		disk_thread.set_settings(&sett);
 
 		int const piece_read_ahead = std::max(1, 15 * 1024 * 1024 / t.piece_length());
 
-		hash_state st = { t, storage, disk_thread, piece_index_t(0), piece_index_t(0), f, ec };
+		hash_state st = { t, std::move(storage), disk_thread, piece_index_t(0), piece_index_t(0), f, ec };
 		for (piece_index_t i(0); i < piece_index_t(piece_read_ahead); ++i)
 		{
-			disk_thread.async_hash(storage.get(), i, disk_interface::sequential_access
+			disk_thread.async_hash(st.storage, i, disk_interface::sequential_access
 				, std::bind(&on_hash, _1, _2, _3, &st), nullptr);
 			++st.piece_counter;
 			if (st.piece_counter >= t.files().end_piece()) break;

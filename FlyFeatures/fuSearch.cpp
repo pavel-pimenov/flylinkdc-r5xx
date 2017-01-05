@@ -37,43 +37,43 @@ bool FileUpdateSearch::Scan()
 // !!! Folder should always ends with "\" !!!
 bool FileUpdateSearch::ProcessFolder(const wstring& folder)
 {
-	WIN32_FIND_DATA ffd;
+	auto ffd = std::make_unique<WIN32_FIND_DATA >();;
 	wstring searchPattern = folder;
-	searchPattern += L'*';
-	
+	searchPattern += L'*';	
 	HANDLE hFind = FindFirstFileEx(searchPattern.c_str(),
 	                               FindExInfoStandard, // CompatibilityManager::g_find_file_level,
-	                               &ffd,
+	                               &(*ffd),
 	                               FindExSearchNameMatch,
 	                               NULL,
 	                               0);
 	if (hFind == INVALID_HANDLE_VALUE)
+	{
 		return false;
+	}
 	do
 	{
-		if (ffd.cFileName[0] != 0 && ffd.cFileName[0] != L'.')
+		if (ffd->cFileName[0] != 0 && ffd->cFileName[0] != L'.')
 			// [!] PVS V805 Decreased performance. It is inefficient to identify an empty string by using 'wcslen(str) > 0' construct.
 			// A more efficient way is to check: str[0] != '\0'.    FlyFeatures fusearch.cpp    57  False
 		{
-			if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			if (ffd->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
 				wstring newSearchPattern = folder;
-				newSearchPattern += ffd.cFileName;
+				newSearchPattern += ffd->cFileName;
 				newSearchPattern += L"\\";
 				_folderArray.push_back(newSearchPattern);
-				ProcessFolder(newSearchPattern);
-				
+				ProcessFolder(newSearchPattern);				
 			}
 			else
 			{
 				// Add to vector
 				wstring toPush = folder;
-				toPush += ffd.cFileName;
+				toPush += ffd->cFileName;
 				_fileArray.push_back(toPush);
 			}
 		}
 	}
-	while (FindNextFile(hFind, &ffd));
+	while (FindNextFile(hFind, &(*ffd)));
 	
 	FindClose(hFind);
 	

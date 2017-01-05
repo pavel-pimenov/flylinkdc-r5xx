@@ -362,7 +362,7 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	bool bWantAutodetect = false;
 	const auto l_is_favorite_active = ClientManager::isActive(fe, bWantAutodetect);
 	LogManager::message("Connect: " + m_client->getHubUrl() + string(" Mode: ") +
-	                    (m_client->isActive() ? ("Active" + (l_is_favorite_active ? string("(favorites)") : string())) : "Passive") + string(" Support: ") +
+	                    (m_client->isActive() ? ("Active" + ((fe && l_is_favorite_active) ? string("(favorites)") : string())) : "Passive") + string(" Support: ") +
 		                    MappingManager::getPortmapInfo(true, true));
 		                    
 #ifdef RIP_USE_CONNECTION_AUTODETECT
@@ -1220,6 +1220,7 @@ LRESULT HubFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				         "\t" + STRING(NICK) + ": " + id.getNick() + "\r\n" +
 				         "\tLocation: " + Text::fromT(Util::getIpCountry(id.getIp().to_ulong()).getDescription()) + "\r\n" +
 				         "\tNicks: " + Util::toString(ClientManager::getNicks(u->getCID(), Util::emptyString)) + "\r\n" +
+				         "\tTag: " + id.getTag() + "\r\n" +
 				         "\t" + STRING(HUBS) + ": " + Util::toString(ClientManager::getHubs(u->getCID(), Util::emptyString)) + "\r\n" +
 				         "\t" + STRING(SHARED) + ": " + Identity::formatShareBytes(u->getBytesShared()) + (u->isNMDC() ? Util::emptyString : "(" + STRING(SHARED_FILES) +
 				                 ": " + Util::toString(id.getSharedFiles()) + ")") + "\r\n" +
@@ -1500,7 +1501,7 @@ void HubFrame::doConnected()
 {
 	m_is_process_disconnected = false;
 	dcassert(!ClientManager::isBeforeShutdown());
-	clearTaskAndUserList();
+	clearUserList();
 	if (!ClientManager::isBeforeShutdown())
 	{
 		addStatus(TSTRING(CONNECTED), true, true, Colors::g_ChatTextServer);
@@ -1738,7 +1739,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 	{
 		l_lock_redraw = unique_ptr<CLockRedraw < > >(new CLockRedraw<> (*m_ctrlUsers));
 	}
-	CLockRedraw<> l_lock_redraw_chat(ctrlClient);
+	//CLockRedraw<true> l_lock_redraw_chat(ctrlClient);
 	for (auto i = t.cbegin(); i != t.cend(); ++i)
 	{
 		if (!ClientManager::isBeforeShutdown())
@@ -1866,6 +1867,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					{
 						MessageTask& l_task = static_cast<MessageTask&>(*i->second);
 						std::unique_ptr<ChatMessage> msg(l_task.m_message_ptr);
+						////TODO - RoLex - chat- LogManager::message("ADD_CHAT_LINE. Hub:" + getHubHint() + " Message: [" + msg->m_text + "]");
 						l_task.m_message_ptr = nullptr;
 						if (msg->m_from && !ClientManager::isBeforeShutdown())
 						{
@@ -2404,6 +2406,7 @@ void HubFrame::storeColumsInfo()
 	FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(m_server);
 	if (fhe)
 	{
+		static bool g_is_change = false;
 		if (m_isUpdateColumnsInfoProcessed)
 		{
 			WINDOWPLACEMENT wp = {0};
@@ -2428,23 +2431,29 @@ void HubFrame::storeColumsInfo()
 			{
 				fhe->setWindowType(SW_SHOWMAXIMIZED);
 			}
-			fhe->setChatUserSplit(m_nProportionalPos);
+			g_is_change |= fhe->setChatUserSplit(m_nProportionalPos);
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 			fhe->setChatUserSplitState(m_isClientUsersSwitch);
 #endif
 			fhe->setUserListState(m_showUsersStore);
-			fhe->setHeaderOrder(l_order);
-			fhe->setHeaderWidths(l_width);
-			fhe->setHeaderVisible(l_visible);
-			fhe->setHeaderSort(m_ctrlUsers->getSortColumn());
-			fhe->setHeaderSortAsc(m_ctrlUsers->isAscending());
+			g_is_change |= fhe->setHeaderOrder(l_order);
+			g_is_change |= fhe->setHeaderWidths(l_width);
+			g_is_change |= fhe->setHeaderVisible(l_visible);
+			g_is_change |= fhe->setHeaderSort(m_ctrlUsers->getSortColumn());
+			g_is_change |= fhe->setHeaderSortAsc(m_ctrlUsers->isAscending());
 		}
 		{
 			CFlyLock(g_frames_cs);
-			if (g_frames.size() == 1 || (ClientManager::isStartup() == false && ClientManager::isBeforeShutdown() == false))
-				// Сохраняем только на последней итерации, или когда не закрываем/запускаем приложение.
+			if (g_frames.size() == 1 ||
+			        (ClientManager::isStartup() == false && ClientManager::isBeforeShutdown() == false) ||
+			        g_frames.size() == 0 && g_is_change == true
+			   )
+				// Сохраняем только на последней итерации,
+				// или когда не закрываем/запускаем приложение.
+				// или если поменялись размеры колонок
 			{
 				FavoriteManager::save();
+				g_is_change = false;
 			}
 		}
 	}
@@ -2482,13 +2491,20 @@ LRESULT HubFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 			r->setUsers(Util::toString(m_client->getUserCount()));
 			r->setShared(Util::toString(m_client->getAvailableBytes()));
 			r->setLastSeen(Util::formatDigitalClock(time(NULL)));
-			if (!ClientManager::isBeforeShutdown())
+			if (!ClientManager::isBeforeShutdown() || r->getRedirect() == true)
 			{
 				r->setOpenTab("-");
 			}
 			else
 			{
-				r->setOpenTab("+");
+				if (!FavoriteManager::isRedirectHub(l_server))
+				{
+					r->setOpenTab("+");
+				}
+				else
+				{
+					r->setOpenTab("-");
+				}
 			}
 			FavoriteManager::getInstance()->updateRecent(r);
 		}
@@ -3172,6 +3188,7 @@ LRESULT HubFrame::onFollow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/,
 		clearTaskAndUserList();
 		m_client = ClientManager::getInstance()->getClient(m_redirect, false);
 		RecentHubEntry r;
+		r.setRedirect(true);
 		r.setServer(m_redirect);
 		FavoriteManager::getInstance()->addRecent(r);
 		m_client->addListener(this);
@@ -3722,6 +3739,7 @@ void HubFrame::on(ClientListener::Message, const Client*,  std::unique_ptr<ChatM
 	}
 	else
 	{
+		// //TODO - RoLex - chat-   LogManager::message("on(ClientListener::Message. Hub:" + getHubHint() + " Message: [" + l_message_ptr->m_text + "]");
 #ifndef FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
 		speak(ADD_CHAT_LINE, l_message_ptr);
 #else

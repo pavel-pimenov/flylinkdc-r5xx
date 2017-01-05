@@ -521,35 +521,6 @@ namespace libtorrent
 		return sync_call_ret<bool>(false, &torrent::valid_metadata);
 	}
 
-	void torrent_handle::filter_piece(piece_index_t index, bool filter) const
-	{
-		async_call(&torrent::filter_piece, index, filter);
-	}
-
-	void torrent_handle::filter_pieces(std::vector<bool> const& pieces) const
-	{
-		async_call(&torrent::filter_pieces, pieces);
-	}
-
-	bool torrent_handle::is_piece_filtered(piece_index_t index) const
-	{
-		return sync_call_ret<bool>(false, &torrent::is_piece_filtered, index);
-	}
-
-	std::vector<bool> torrent_handle::filtered_pieces() const
-	{
-		std::vector<bool> ret;
-		auto retr = std::ref(ret);
-		sync_call(&torrent::filtered_pieces, retr);
-		return ret;
-	}
-
-	void torrent_handle::filter_files(std::vector<bool> const& files) const
-	{
-		auto filesr= std::ref(files);
-		async_call(&torrent::filter_files, filesr);
-	}
-
 	bool torrent_handle::super_seeding() const
 	{
 		return sync_call_ret<bool>(false, &torrent::super_seeding);
@@ -626,7 +597,7 @@ namespace libtorrent
 
 	storage_interface* torrent_handle::get_storage_impl() const
 	{
-		return sync_call_ret<storage_interface*>(nullptr, &torrent::get_storage);
+		return sync_call_ret<storage_interface*>(nullptr, &torrent::get_storage_impl);
 	}
 
 	bool torrent_handle::is_valid() const
@@ -698,7 +669,7 @@ namespace libtorrent
 		std::shared_ptr<torrent> t = m_torrent.lock();
 		if (!t || !t->has_storage()) return;
 		session_impl& ses = static_cast<session_impl&>(t->session());
-		status = ses.disk_thread().files().get_status(&t->storage());
+		status = ses.disk_thread().files().get_status(t->storage());
 	}
 #endif
 
@@ -719,7 +690,7 @@ namespace libtorrent
 		std::shared_ptr<torrent> t = m_torrent.lock();
 		if (!t || !t->has_storage()) return {};
 		session_impl& ses = static_cast<session_impl&>(t->session());
-		return ses.disk_thread().files().get_status(&t->storage());
+		return ses.disk_thread().files().get_status(t->storage());
 	}
 
 	void torrent_handle::scrape_tracker(int idx) const

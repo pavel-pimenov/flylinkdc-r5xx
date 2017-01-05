@@ -30,38 +30,56 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_PIECE_BLOCK_HPP_INCLUDED
-#define TORRENT_PIECE_BLOCK_HPP_INCLUDED
+#ifndef TORRENT_WIN_UTIL_HPP
+#define TORRENT_WIN_UTIL_HPP
 
-#include "libtorrent/units.hpp"
+#include "libtorrent/config.hpp"
 
-namespace libtorrent
+namespace libtorrent { namespace aux
 {
-	struct TORRENT_EXTRA_EXPORT piece_block
+	template <typename Library>
+	HMODULE get_library_handle()
 	{
-		static const piece_block invalid;
+		static bool handle_checked = false;
+		static HMODULE handle = 0;
 
-		piece_block() = default;
-		piece_block(piece_index_t p_index, int b_index)
-			: piece_index(p_index)
-			, block_index(b_index)
+		if (!handle_checked)
 		{
+			handle = LoadLibraryA(Library::library_name);
+			handle_checked = true;
 		}
-		piece_index_t piece_index {0};
-		int block_index = 0;
+		return handle;
+	}
 
-		bool operator<(piece_block const& b) const
+	template <typename Library, typename Signature>
+	Signature get_library_procedure(LPCSTR name)
+	{
+		static Signature proc = nullptr;
+		static bool failed_proc = false;
+
+		if ((proc == nullptr) && !failed_proc)
 		{
-			if (piece_index < b.piece_index) return true;
-			if (piece_index == b.piece_index) return block_index < b.block_index;
-			return false;
+			HMODULE const handle = get_library_handle<Library>();
+			if (handle) proc = (Signature)GetProcAddress(handle, name);
+			failed_proc = (proc == nullptr);
 		}
+		return proc;
+	}
 
-		bool operator==(piece_block const& b) const
-		{ return piece_index == b.piece_index && block_index == b.block_index; }
-
-		bool operator!=(piece_block const& b) const
-		{ return piece_index != b.piece_index || block_index != b.block_index; }
+	struct iphlpapi {
+		static constexpr char const* library_name = "iphlpapi.dll";
 	};
-}
+
+	struct kernel32 {
+		static constexpr char const* library_name = "kernel32.dll";
+	};
+
+	struct advapi32 {
+		static constexpr char const* library_name = "advapi32.dll";
+	};
+
+} // namespace aux
+} // namespace libtorrent
+
 #endif
+

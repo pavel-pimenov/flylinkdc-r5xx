@@ -916,6 +916,7 @@
 #define IDC_OPCHAT_STR                  1696
 #define IDC_ANTIVIRUS_NICK_STR          1697
 #define IDC_ANTIVIRUS_COMMAND_IP_STR    1698
+#define IDC_DUPE_EX3                    1699
 #define IDC_MAX_MSG_LENGTH              1700
 #define IDC_MAX_MSG_LENGTH_STR          1701
 #define IDC_POPUP_COLORS                1702

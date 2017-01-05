@@ -184,8 +184,9 @@ MainFrame::MainFrame() :
 	QuickSearchBoxContainer(WC_COMBOBOX, this, QUICK_SEARCH_MAP),
 	QuickSearchEditContainer(WC_EDIT , this, QUICK_SEARCH_MAP),
 #ifdef SSA_WIZARD_FEATURE
-	m_wizard(false),
+	m_is_wizard(false),
 #endif
+	m_is_start_autoupdate(false),
 	m_numberOfReadBytes(0),
 	m_maxnumberOfReadBytes(100),
 	statusContainer(STATUSCLASSNAME, this, STATUS_MESSAGE_MAP),
@@ -518,7 +519,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	// [+] SSA Wizard. Проверяем - есть ли ник
 	if (SETTING(NICK).empty()
 #ifdef SSA_WIZARD_FEATURE
-	        || m_wizard
+	        || m_is_wizard
 #endif
 	   )
 	{
@@ -2658,36 +2659,37 @@ LRESULT MainFrame::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL&
 //}
 void MainFrame::storeWindowsPos()
 {
-	WINDOWPLACEMENT wp = {0};
-	wp.length = sizeof(wp);
-	GetWindowPlacement(&wp);
-	
-	CRect rc;
-	GetWindowRect(rc);
-	
-//	if (wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWNORMAL)
+	if (m_is_start_autoupdate == false)
 	{
-		SET_SETTING(MAIN_WINDOW_POS_X, rc.left);
-		SET_SETTING(MAIN_WINDOW_POS_Y, rc.top);
-		SET_SETTING(MAIN_WINDOW_SIZE_X, rc.Width());
-		SET_SETTING(MAIN_WINDOW_SIZE_Y, rc.Height());
-	}
-	if (wp.showCmd == SW_SHOWNORMAL || wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWMAXIMIZED || wp.showCmd == SW_MAXIMIZE)
-	{
-		SET_SETTING(MAIN_WINDOW_STATE, (int)wp.showCmd);
-	}
-	else
-	{
-		dcassert(0);
+		WINDOWPLACEMENT wp = { 0 };
+		wp.length = sizeof(wp);
+		GetWindowPlacement(&wp);
+		
+		CRect rc;
+		GetWindowRect(rc);
+		
+		//  if (wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWNORMAL)
+		{
+			SET_SETTING(MAIN_WINDOW_POS_X, rc.left);
+			SET_SETTING(MAIN_WINDOW_POS_Y, rc.top);
+			SET_SETTING(MAIN_WINDOW_SIZE_X, rc.Width());
+			SET_SETTING(MAIN_WINDOW_SIZE_Y, rc.Height());
+		}
+		if (wp.showCmd == SW_SHOWNORMAL || wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWMAXIMIZED || wp.showCmd == SW_MAXIMIZE)
+		{
+			SET_SETTING(MAIN_WINDOW_STATE, (int)wp.showCmd);
+		}
+		else
+		{
+			dcassert(0);
+		}
 	}
 }
 
 LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	storeWindowsPos();
 	QueueManager::getInstance()->saveQueue();
 	SettingsManager::getInstance()->save();
-	
 	return 0;
 }
 
@@ -3920,16 +3922,24 @@ void MainFrame::NewVerisonEvent(const std::string& p_new_version)
 UINT MainFrame::ShowDialogUpdate(const std::string& message, const std::string& rtfMessage, const AutoUpdateFiles& fileList)
 {
 	FlyUpdateDlg dlg(message, rtfMessage, fileList);
-	INT_PTR iResult = dlg.DoModal(*this); // [!] PVS V103 Implicit type conversion from memsize to 32-bit type.
+	const INT_PTR iResult = dlg.DoModal(*this); // [!] PVS V103 Implicit type conversion from memsize to 32-bit type.
 	
 	switch (iResult)
 	{
 		case IDOK:
-			return (UINT) AutoUpdate::UPDATE_NOW;
+		{
+			storeWindowsPos();
+			m_is_start_autoupdate = true;
+			return (UINT)AutoUpdate::UPDATE_NOW;
+		}
 		case IDC_IGNOREUPDATE:
-			return (UINT) AutoUpdate::UPDATE_IGNORE;
+		{
+			return (UINT)AutoUpdate::UPDATE_IGNORE;
+		}
 		case IDCANCEL:
-			return (UINT) AutoUpdate::UPDATE_CANCEL;
+		{
+			return (UINT)AutoUpdate::UPDATE_CANCEL;
+		}
 	}
 	
 	return 0;

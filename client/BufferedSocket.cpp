@@ -568,252 +568,259 @@ void BufferedSocket::threadRead()
 {
 	if (m_state != RUNNING)
 		return;
-		
-	int l_left = (m_mode == MODE_DATA) ? ThrottleManager::getInstance()->read(sock.get(), &m_inbuf[0], (int)m_inbuf.size()) : sock->read(&m_inbuf[0], (int)m_inbuf.size());
-	if (l_left == -1)
+	try
 	{
-		// EWOULDBLOCK, no data received...
-		return;
-	}
-	else if (l_left == 0)
-	{
-		// This socket has been closed...
-		throw SocketException(STRING(CONNECTION_CLOSED));
-	}
-	
-	string::size_type l_pos = 0;
-	// always uncompressed data
-	string l;
-	int l_bufpos = 0;
-	int l_total = l_left;
-#ifdef _DEBUG
-	if (m_mode == MODE_LINE)
-	{
-		// LogManager::message("BufferedSocket::threadRead[MODE_LINE] = " + string((char*) & inbuf[0], l_left));
-	}
-#endif
-	
-	while (l_left > 0)
-	{
-		switch (m_mode)
+		int l_left = (m_mode == MODE_DATA) ? ThrottleManager::getInstance()->read(sock.get(), &m_inbuf[0], (int)m_inbuf.size()) : sock->read(&m_inbuf[0], (int)m_inbuf.size());
+		if (l_left == -1)
 		{
-			case MODE_ZPIPE:
+			// EWOULDBLOCK, no data received...
+			return;
+		}
+		else if (l_left == 0)
+		{
+			// This socket has been closed...
+			throw SocketException(STRING(CONNECTION_CLOSED));
+		}
+		
+		string::size_type l_pos = 0;
+		// always uncompressed data
+		string l;
+		int l_bufpos = 0;
+		int l_total = l_left;
+#ifdef _DEBUG
+		if (m_mode == MODE_LINE)
+		{
+			// LogManager::message("BufferedSocket::threadRead[MODE_LINE] = " + string((char*) & inbuf[0], l_left));
+		}
+#endif
+		
+		while (l_left > 0)
+		{
+			switch (m_mode)
 			{
-				const int BUF_SIZE = 1024;
-				// Special to autodetect nmdc connections...
-				string::size_type l_zpos = 0; //  warning C6246: Local declaration of 'pos' hides declaration of the same name in outer scope.
-				std::unique_ptr<char[]> buffer(new char[BUF_SIZE]);
-				l = m_line;
-				// decompress all input data and store in l.
-				while (l_left)
+				case MODE_ZPIPE:
 				{
-					size_t l_in = BUF_SIZE;
-					size_t l_used = l_left;
-					bool ret = (*m_ZfilterIn)(&m_inbuf[0] + l_total - l_left, l_used, &buffer[0], l_in);
-					l_left -= l_used;
-					l.append(&buffer[0], l_in);
-					// if the stream ends before the data runs out, keep remainder of data in inbuf
-					if (!ret)
+					const int BUF_SIZE = 1024;
+					// Special to autodetect nmdc connections...
+					string::size_type l_zpos = 0; //  warning C6246: Local declaration of 'pos' hides declaration of the same name in outer scope.
+					std::unique_ptr<char[]> buffer(new char[BUF_SIZE]);
+					l = m_line;
+					// decompress all input data and store in l.
+					while (l_left)
 					{
-						l_bufpos = l_total - l_left;
-						setMode(MODE_LINE, m_rollback);
-						break;
-					}
-				}
-				// process all lines
-#define USE_FLYLINKDC_MYINFO_ARRAY
-#ifdef USE_FLYLINKDC_MYINFO_ARRAY
-#ifdef _DEBUG
-				// LogManager::message("BufferedSocket::threadRead[MODE_ZPIPE] = " + l);
-#endif
-				//
-				if (!ClientManager::isBeforeShutdown())
-				{
-					StringList l_all_myInfo;
-					CFlySearchArrayTTH l_tth_search;
-					CFlySearchArrayFile l_file_search;
-					while ((l_zpos = l.find(m_separator)) != string::npos)
-					{
-						if (l_zpos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
+						size_t l_in = BUF_SIZE;
+						size_t l_used = l_left;
+						bool ret = (*m_ZfilterIn)(&m_inbuf[0] + l_total - l_left, l_used, &buffer[0], l_in);
+						l_left -= l_used;
+						l.append(&buffer[0], l_in);
+						// if the stream ends before the data runs out, keep remainder of data in inbuf
+						if (!ret)
 						{
-							if (all_search_parser(l_zpos, l, l_tth_search, l_file_search) == false)
-							{
-								all_myinfo_parser(l_zpos, l, l_all_myInfo, true);
-							}
-						}
-						l.erase(0, l_zpos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
-					}
-					parseMyINfo(l_all_myInfo);
-					parseSearch(l_tth_search, l_file_search);
-#else
-				// process all lines
-				while ((pos = l.find(m_separator)) != string::npos)
-				{
-					if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
-						fly_fire1(__FUNCTION__, BufferedSocketListener::Line(), l.substr(0, pos));
-					l.erase(0, pos + 1 /* separator char */); // TODO не эффективно
-				}
-#endif
-				}
-				else
-				{
-#ifdef _DEBUG
-					const string l_log = "Skip MODE_LINE [after ZLIB] - FlylinkDC++ Destroy... l = " + l;
-					LogManager::message(l_log);
-#endif
-					throw SocketException(STRING(COMMAND_SHUTDOWN_IN_PROGRESS));
-				}
-				// store remainder
-				m_line = l;
-				break;
-			}
-			case MODE_LINE:
-			{
-				// Special to autodetect nmdc connections...
-				if (m_separator == 0)
-				{
-					if (m_inbuf[0] == '$')
-					{
-						m_separator = '|';
-					}
-					else
-					{
-						m_separator = '\n';
-					}
-				}
-				//======================================================================
-				// TODO - вставить быструю обработку поиска по TTH без вызова листенеров
-				// Если пасив - отвечаем в буфер сразу
-				// Если актив - кидаем отсылку UDP (тоже через очередь?)
-				//======================================================================
-				l = m_line + string((char*)& m_inbuf[l_bufpos], l_left);
-				//dcassert(isalnum(l[0]) || isalpha(l[0]) || isascii(l[0]));
-#if 0
-				int l_count_separator = 0;
-#endif
-#ifdef _DEBUG
-				//LogManager::message("MODE_LINE . m_line = " + m_line);
-				//LogManager::message("MODE_LINE = " + l);
-#endif
-				if (!ClientManager::isBeforeShutdown())
-				{
-					StringList l_all_myInfo;
-					CFlySearchArrayTTH l_tth_search;
-					CFlySearchArrayFile l_file_search;
-					while ((l_pos = l.find(m_separator)) != string::npos)
-					{
-#if 0
-						if (l_count_separator++ && l.length() > 0 && BOOLSETTING(LOG_PROTOCOL))
-						{
-							StringMap params;
-							const string l_log = "MODE_LINE l_count_separator = " + Util::toString(l_count_separator) + " l_left = " + Util::toString(l_left) + " l.length()=" + Util::toString(l.length()) + " l = " + l;
-							LogManager::message(l_log);
-						}
-#endif
-						if (ClientManager::isBeforeShutdown())
-						{
-							m_line.clear();
-							throw SocketException(STRING(COMMAND_SHUTDOWN_IN_PROGRESS));
-						}
-						if (l_pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
-						{
-							if (all_search_parser(l_pos, l, l_tth_search, l_file_search) == false)
-							{
-								all_myinfo_parser(l_pos, l, l_all_myInfo, false);
-							}
-						}
-						l.erase(0, l_pos + 1 /* separator char */);
-						// TODO - erase не эффективно.
-						if (l.length() < (size_t)l_left)
-						{
-							l_left = l.length();
-						}
-						//dcassert(mode == MODE_LINE);
-						if (m_mode != MODE_LINE)
-						{
-							// dcassert(mode == MODE_LINE);
-							// TOOD ? m_myInfoStop = true;
-							// we changed mode; remainder of l is invalid.
-							l.clear();
 							l_bufpos = l_total - l_left;
+							setMode(MODE_LINE, m_rollback);
 							break;
 						}
 					}
-					parseMyINfo(l_all_myInfo);
-					parseSearch(l_tth_search, l_file_search);
-				}
-				else
-				{
+					// process all lines
+#define USE_FLYLINKDC_MYINFO_ARRAY
+#ifdef USE_FLYLINKDC_MYINFO_ARRAY
 #ifdef _DEBUG
-					const string l_log = "Skip MODE_LINE [normal] - FlylinkDC++ Destroy... l = " + l;
-					LogManager::message(l_log);
+					// LogManager::message("BufferedSocket::threadRead[MODE_ZPIPE] = " + l);
 #endif
-					l.clear();
-					l_bufpos = l_total - l_left;
-					l_left = 0;
-					l_pos = string::npos;
-					m_line.clear();
-					throw SocketException(STRING(COMMAND_SHUTDOWN_IN_PROGRESS));
-				}
-				
-				if (l_pos == string::npos)
-				{
-					l_left = 0;
-				}
-				m_line = l;
-				break;
-			}
-			case MODE_DATA:
-				while (l_left > 0)
-				{
-					if (m_dataBytes == -1)
+					//
+					if (!ClientManager::isBeforeShutdown())
 					{
-						// fly_fire2(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], l_left);
-						dcassert(m_connection);
-						if (m_connection)
+						StringList l_all_myInfo;
+						CFlySearchArrayTTH l_tth_search;
+						CFlySearchArrayFile l_file_search;
+						while ((l_zpos = l.find(m_separator)) != string::npos)
 						{
-							m_connection->fireData(&m_inbuf[l_bufpos], l_left);
+							if (l_zpos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
+							{
+								if (all_search_parser(l_zpos, l, l_tth_search, l_file_search) == false)
+								{
+									all_myinfo_parser(l_zpos, l, l_all_myInfo, true);
+								}
+							}
+							l.erase(0, l_zpos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
 						}
-						l_bufpos += (l_left - m_rollback);
-						l_left = m_rollback;
-						m_rollback = 0;
+						parseMyINfo(l_all_myInfo);
+						parseSearch(l_tth_search, l_file_search);
+#else
+					// process all lines
+					while ((pos = l.find(m_separator)) != string::npos)
+					{
+						if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
+							fly_fire1(__FUNCTION__, BufferedSocketListener::Line(), l.substr(0, pos));
+						l.erase(0, pos + 1 /* separator char */); // TODO не эффективно
+					}
+#endif
 					}
 					else
 					{
-						const int high = (int)min(m_dataBytes, (int64_t)l_left);
-						//dcassert(high != 0);
-						if (high != 0) // [+] IRainman fix.
+#ifdef _DEBUG
+						const string l_log = "Skip MODE_LINE [after ZLIB] - FlylinkDC++ Destroy... l = " + l;
+						LogManager::message(l_log);
+#endif
+						throw SocketException(STRING(COMMAND_SHUTDOWN_IN_PROGRESS));
+					}
+					// store remainder
+					m_line = l;
+					break;
+				}
+				case MODE_LINE:
+				{
+					// Special to autodetect nmdc connections...
+					if (m_separator == 0)
+					{
+						if (m_inbuf[0] == '$')
 						{
-							//fly_fire2(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], high);
+							m_separator = '|';
+						}
+						else
+						{
+							m_separator = '\n';
+						}
+					}
+					//======================================================================
+					// TODO - вставить быструю обработку поиска по TTH без вызова листенеров
+					// Если пасив - отвечаем в буфер сразу
+					// Если актив - кидаем отсылку UDP (тоже через очередь?)
+					//======================================================================
+					l = m_line + string((char*)& m_inbuf[l_bufpos], l_left);
+					//dcassert(isalnum(l[0]) || isalpha(l[0]) || isascii(l[0]));
+#if 0
+					int l_count_separator = 0;
+#endif
+#ifdef _DEBUG
+					//LogManager::message("MODE_LINE . m_line = " + m_line);
+					//LogManager::message("MODE_LINE = " + l);
+#endif
+					if (!ClientManager::isBeforeShutdown())
+					{
+						StringList l_all_myInfo;
+						CFlySearchArrayTTH l_tth_search;
+						CFlySearchArrayFile l_file_search;
+						while ((l_pos = l.find(m_separator)) != string::npos)
+						{
+#if 0
+							if (l_count_separator++ && l.length() > 0 && BOOLSETTING(LOG_PROTOCOL))
+							{
+								StringMap params;
+								const string l_log = "MODE_LINE l_count_separator = " + Util::toString(l_count_separator) + " l_left = " + Util::toString(l_left) + " l.length()=" + Util::toString(l.length()) + " l = " + l;
+								LogManager::message(l_log);
+							}
+#endif
+							if (ClientManager::isBeforeShutdown())
+							{
+								m_line.clear();
+								throw SocketException(STRING(COMMAND_SHUTDOWN_IN_PROGRESS));
+							}
+							if (l_pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
+							{
+								if (all_search_parser(l_pos, l, l_tth_search, l_file_search) == false)
+								{
+									all_myinfo_parser(l_pos, l, l_all_myInfo, false);
+								}
+							}
+							l.erase(0, l_pos + 1 /* separator char */);
+							// TODO - erase не эффективно.
+							if (l.length() < (size_t)l_left)
+							{
+								l_left = l.length();
+							}
+							//dcassert(mode == MODE_LINE);
+							if (m_mode != MODE_LINE)
+							{
+								// dcassert(mode == MODE_LINE);
+								// TOOD ? m_myInfoStop = true;
+								// we changed mode; remainder of l is invalid.
+								l.clear();
+								l_bufpos = l_total - l_left;
+								break;
+							}
+						}
+						parseMyINfo(l_all_myInfo);
+						parseSearch(l_tth_search, l_file_search);
+					}
+					else
+					{
+#ifdef _DEBUG
+						const string l_log = "Skip MODE_LINE [normal] - FlylinkDC++ Destroy... l = " + l;
+						LogManager::message(l_log);
+#endif
+						l.clear();
+						l_bufpos = l_total - l_left;
+						l_left = 0;
+						l_pos = string::npos;
+						m_line.clear();
+						throw SocketException(STRING(COMMAND_SHUTDOWN_IN_PROGRESS));
+					}
+					
+					if (l_pos == string::npos)
+					{
+						l_left = 0;
+					}
+					m_line = l;
+					break;
+				}
+				case MODE_DATA:
+					while (l_left > 0)
+					{
+						if (m_dataBytes == -1)
+						{
+							// fly_fire2(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], l_left);
 							dcassert(m_connection);
 							if (m_connection)
 							{
-								m_connection->fireData(&m_inbuf[l_bufpos], high);
+								m_connection->fireData(&m_inbuf[l_bufpos], l_left);
 							}
-							l_bufpos += high;
-							l_left -= high;
-							
-							m_dataBytes -= high;
+							l_bufpos += (l_left - m_rollback);
+							l_left = m_rollback;
+							m_rollback = 0;
 						}
-						if (m_dataBytes == 0)
+						else
 						{
-							m_mode = MODE_LINE;
+							const int high = (int)min(m_dataBytes, (int64_t)l_left);
+							//dcassert(high != 0);
+							if (high != 0) // [+] IRainman fix.
+							{
+								//fly_fire2(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], high);
+								dcassert(m_connection);
+								if (m_connection)
+								{
+									m_connection->fireData(&m_inbuf[l_bufpos], high);
+								}
+								l_bufpos += high;
+								l_left -= high;
+								
+								m_dataBytes -= high;
+							}
+							if (m_dataBytes == 0)
+							{
+								m_mode = MODE_LINE;
 #ifdef _DEBUG
-							LogManager::message("BufferedSocket:: = MODE_LINE [1]");
+								LogManager::message("BufferedSocket:: = MODE_LINE [1]");
 #endif;
 #ifdef FLYLINKDC_USE_CROOKED_HTTP_CONNECTION
-							fly_fire(BufferedSocketListener::ModeChange());
+								fly_fire(BufferedSocketListener::ModeChange());
 #endif
-							break; // [DC++] break loop, in case setDataMode is called with less than read buffer size
+								break; // [DC++] break loop, in case setDataMode is called with less than read buffer size
+							}
 						}
 					}
-				}
-				break;
+					break;
+			}
+		}
+		if (m_mode == MODE_LINE && m_line.size() > static_cast<size_t>(SETTING(MAX_COMMAND_LENGTH)))
+		{
+			throw SocketException(STRING(COMMAND_TOO_LONG));
 		}
 	}
-	if (m_mode == MODE_LINE && m_line.size() > static_cast<size_t>(SETTING(MAX_COMMAND_LENGTH)))
+	catch (const std::bad_alloc&) // fix https://drdump.com/Problem.aspx?ProblemID=254736
 	{
-		throw SocketException(STRING(COMMAND_TOO_LONG));
+		ShareManager::tryFixBadAlloc();
+		throw SocketException(STRING(BAD_ALLOC));
 	}
 }
 

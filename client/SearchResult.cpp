@@ -25,7 +25,7 @@
 #include "Client.h"
 #include "CFlylinkDBManager.h"
 #include "ShareManager.h"
-
+#include "QueueManager.h"
 
 SearchResultBaseTTH::SearchResultBaseTTH(Types aType, int64_t aSize, const string& aFile, const TTHValue& aTTH, uint8_t aSlots /* = 0 */, uint8_t aFreeSlots /* = 0 */):
 	m_file(aFile),
@@ -121,7 +121,8 @@ SearchResult::SearchResult(const UserPtr& aUser, Types aType, uint8_t aSlots, ui
 	m_is_virus(false),
 	m_is_tth_check(false),
 	m_is_p2p_guard_calc(false),
-	m_virus_level(0)
+	m_virus_level(0),
+	m_is_tth_queue(false)
 {
 }
 
@@ -161,6 +162,8 @@ void SearchResult::checkTTH()
 					m_is_virus = true;
 				if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE)
 					m_is_tth_remembrance = true;
+				if (QueueManager::is_queue_tth(getTTH()))
+					m_is_tth_queue = true;
 			}
 			else
 				m_is_tth_remembrance = true;

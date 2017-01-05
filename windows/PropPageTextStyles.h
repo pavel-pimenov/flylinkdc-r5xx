@@ -51,6 +51,7 @@ class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public Pro
 		COMMAND_ID_HANDLER(IDC_DUPE_COLOR, onSelectColor) // !necros! [~]NSl
 		COMMAND_ID_HANDLER(IDC_DUPE_EX1, onSelectColor)//[+]NSL
 		COMMAND_ID_HANDLER(IDC_DUPE_EX2, onSelectColor) //[+]NSL
+		COMMAND_ID_HANDLER(IDC_DUPE_EX3, onSelectColor) //[+]NSL
 		
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		CHAIN_MSG_MAP(PropPage)

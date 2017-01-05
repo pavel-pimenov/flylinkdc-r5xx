@@ -3483,6 +3483,9 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 					cd->clrTextBk = SETTING(DUPE_EX1_COLOR);
 				else if (si->m_sr.m_is_tth_remembrance)
 					cd->clrTextBk = SETTING(DUPE_EX2_COLOR);
+				if (si->m_sr.m_is_tth_queue)
+					cd->clrTextBk = SETTING(DUPE_EX3_COLOR);
+					
 				if (!si->columns[COLUMN_FLY_SERVER_RATING].empty())
 					cd->clrTextBk = OperaColors::brightenColor(cd->clrTextBk, -0.02f);
 				si->m_sr.calcHubName();
@@ -3638,7 +3641,7 @@ void SearchFrame::filtering(SearchInfo* si /*= nullptr */)
 	}
 	//CFlyLock(cs);
 	updatePrevTimeFilter();
-	//TODO boost::thread t(boost::bind(&SearchFrame::updateSearchListSafe, this, si));
+	//TODO boost::thread t(std::bind(&SearchFrame::updateSearchListSafe, this, si));
 }
 
 bool SearchFrame::doFilter(WPARAM wParam)

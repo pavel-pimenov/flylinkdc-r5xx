@@ -424,6 +424,10 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 					}
 					else
 					{
+						if (QueueManager::is_queue_tth(f->getTTH()))
+						{
+							f->setFlag(DirectoryListing::FLAG_QUEUE);
+						}
 						// TODO if(l_size >= 100 * 1024 *1024)
 						{
 							if (!CFlyServerConfig::isParasitFile(f->getName())) // TODO - опимизнуть по расширениям
@@ -963,7 +967,7 @@ void DirectoryListing::Directory::checkDupes(const DirectoryListing* lst)
 	{
 		(*i)->checkDupes(lst);
 		result |= (*i)->getFlags() & (
-		              FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED | FLAG_NOT_SHARED);  // TODO | FLAG_VIRUS_FILE
+		              FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED | FLAG_NOT_SHARED | FLAG_QUEUE);  // TODO | FLAG_VIRUS_FILE
 	}
 	if (m_files.size())
 		result |= FLAG_DOWNLOAD_FOLDER;
@@ -974,9 +978,11 @@ void DirectoryListing::Directory::checkDupes(const DirectoryListing* lst)
 		if ((*i)->getSize() > 0)
 		{
 			result |= (*i)->getFlags() & (
-			              FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED | FLAG_NOT_SHARED);
-			if (!(*i)->isAnySet(FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED))
+			              FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED | FLAG_NOT_SHARED | FLAG_QUEUE);
+			if (!(*i)->isAnySet(FLAG_OLD_TTH | FLAG_DOWNLOAD | FLAG_SHARED | FLAG_QUEUE))
+			{
 				result &= ~FLAG_DOWNLOAD_FOLDER;
+			}
 		}
 	}
 	setFlags(result);

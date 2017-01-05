@@ -1245,8 +1245,11 @@ TransferView::ItemInfo* TransferView::findItem(const UpdateInfo& ui, int& pos) c
 			}
 			else if (ui.download == ii->download && !ii->parent && ii->m_is_torrent == ui.m_is_torrent)
 			{
-				dcassert(ii->m_sha1.is_all_zeros());
-				dcassert(ui.m_sha1.is_all_zeros());
+				if (ii->m_is_torrent == false)
+				{
+					dcassert(ii->m_sha1.is_all_zeros());
+					dcassert(ui.m_sha1.is_all_zeros());
+				}
 				const auto& children = ctrlTransfers.findChildren(ii->getGroupCond()); // TODO - ссылка?
 				for (auto k = children.cbegin(); k != children.cend(); ++k)
 				{

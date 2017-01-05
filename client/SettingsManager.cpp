@@ -272,9 +272,6 @@ const string SettingsManager::g_settingTags[] =
 	"EnableCountryflag", "PgLastUp",
 	"DiredtorListingFrameSplit",
 	"FlyServerHubListSplit",
-#ifdef IRAINMAN_INCLUDE_TEXT_FORMATTING
-	"FormatBIU",
-#endif
 	"MediaPlayer", "ProtFavs", "MaxMsgLength", "PopupBackColor", "PopupTextColor", "PopupTitleTextColor", "PopupImage", "PopupColors", "SortFavUsersFirst",
 	"ShowShellMenu", "OpenLogsInternal",
 	// "NoEmotesLinks", [-] IRainman
@@ -298,7 +295,7 @@ const string SettingsManager::g_settingTags[] =
 	"KeepDLHistory", "KeepULHistory", "ShowQSearch",
 	"SearchDetectHash", "FullFileListNfo", "UseTabsCloseButton",
 	"ViewGridcontrols", // [+] ZagZag
-	"DupeEx1Color", "DupeEx2Color", "IgnoreMe",// [+] NSL
+	"DupeEx1Color", "DupeEx2Color", "DupeEx3Color", "IgnoreMe",// [+] NSL
 	"EnableLastIP", //[+]PPA
 	"EnableFlyServer", //[+]PPA
 	"EnableHitFileList", //[+]PPA
@@ -363,7 +360,7 @@ const string SettingsManager::g_settingTags[] =
 	"OverlapChunks",
 	"ExtraPartialSlots",
 	"AutoSlot",
-	"UseDHT",
+	"UseTorrentDHT",
 	"DHTPort",
 	"KeepFinishedFilesOption",
 	"AllowNATTraversal", "UseExplorerTheme", "UcSubMenu", "AutoDetectIncomingConnection",
@@ -1029,9 +1026,6 @@ void SettingsManager::setDefaults()
 	//setDefault(FLY_SQLITE_LOG, false); // [+] PPA
 	setDefault(FLY_TEXT_LOG, !BOOLSETTING(FLY_SQLITE_LOG)); // [+] PPA
 #endif //FLYLINKDC_LOG_IN_SQLITE_BASE
-#ifdef IRAINMAN_INCLUDE_TEXT_FORMATTING
-	//setDefault(FORMAT_BIU, false);
-#endif
 #ifdef IRAINMAN_USE_BB_CODES
 	setDefault(FORMAT_BB_CODES, TRUE);// [+] IRainman
 	setDefault(FORMAT_BB_CODES_COLORS, TRUE); // [+] SSA
@@ -1093,7 +1087,9 @@ void SettingsManager::setDefaults()
 	setDefault(DUPE_COLOR, RGB(115, 247, 230));
 	setDefault(VIRUS_COLOR, RGB(115, 0, 0));
 	setDefault(DUPE_EX1_COLOR, RGB(115, 247, 230));
-	setDefault(DUPE_EX2_COLOR, RGB(115, 247, 230));//NSL
+	setDefault(DUPE_EX2_COLOR, RGB(125, 147, 230));
+	setDefault(DUPE_EX3_COLOR, RGB(125, 227, 130));
+	
 	//setDefault(MULTILINE_CHAT_INPUT, false);
 	//setDefault(MULTILINE_CHAT_INPUT_BY_CTRL_ENTER, false);
 	setDefault(SHOW_SEND_MESSAGE_BUTTON, TRUE);
@@ -2399,6 +2395,7 @@ void SettingsManager::importDctheme(const tstring& file, const bool asDefault /*
 			importData("VirusColor", VIRUS_COLOR);
 			importData("DupeEx1Color", DUPE_EX1_COLOR);
 			importData("DupeEx2Color", DUPE_EX2_COLOR);
+			importData("DupeEx3Color", DUPE_EX3_COLOR);
 			// Popup Colors
 			importData("PopupMaxMsgLen", MAX_MSG_LENGTH);
 			importData("PopupFoneImage", POPUP_IMAGE);
@@ -2543,6 +2540,7 @@ void SettingsManager::exportDctheme(const tstring& file)
 	exportData("VirusColor", VIRUS_COLOR);
 	exportData("DupeEx1Color", DUPE_EX1_COLOR);
 	exportData("DupeEx2Color", DUPE_EX2_COLOR);
+	exportData("DupeEx3Color", DUPE_EX3_COLOR);
 	// Popup Colors
 	exportData("PopupMaxMsgLen", MAX_MSG_LENGTH);
 	exportData("PopupFoneImage", POPUP_IMAGE);

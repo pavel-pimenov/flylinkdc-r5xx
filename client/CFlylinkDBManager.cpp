@@ -330,7 +330,7 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 	{
 		// TODO - скинуть ошибку в файл и не грузить crash-server логическими ошибками
 		// https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=51924
-		throw database_error(l_error.c_str());
+		//throw database_error(l_error.c_str());
 	}
 }
 //========================================================================================================
@@ -2112,7 +2112,7 @@ __int64 CFlylinkDBManager::get_registry_variable_int64(eTypeSegment p_TypeSegmen
 //========================================================================================================
 void CFlylinkDBManager::load_registry(CFlyRegistryMap& p_values, eTypeSegment p_Segment)
 {
-	 CFlyLock(m_cs); // Убирать нельзя - падаем  SQLite - load_registry: library routine called out of sequence
+	CFlyLock(m_cs); // Убирать нельзя - падаем  SQLite - load_registry: library routine called out of sequence
 	try
 	{
 		m_get_registry.init(m_flySQLiteDB, "select key,val_str,val_number from fly_registry where segment=? order by rowid")->bind(1, p_Segment);
@@ -2388,7 +2388,6 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 }
 //========================================================================================================
 void CFlylinkDBManager::delete_torrent_resume(const libtorrent::sha1_hash& p_sha1)
-
 {
 	CFlyLock(m_cs);
 	try
@@ -4186,11 +4185,11 @@ void CFlylinkDBManager::prepare_scan_folder(const tstring& p_path)
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
-		WIN32_FIND_DATA fData;
+		auto fData = std::make_unique<WIN32_FIND_DATA >();
 		dcassert(p_path[p_path.size() - 1] == L'\\');
 		HANDLE hFind = FindFirstFileEx(File::formatPath((p_path + _T('*'))).c_str(),
 		                               CompatibilityManager::g_find_file_level,
-		                               &fData,
+		                               &(*fData),
 		                               FindExSearchLimitToDirectories, // Only Folder
 		                               NULL,
 		                               CompatibilityManager::g_find_file_flags);
@@ -4198,8 +4197,8 @@ void CFlylinkDBManager::prepare_scan_folder(const tstring& p_path)
 		{
 			do
 			{
-				const tstring l_folder_name = fData.cFileName;
-				if ((fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
+				const tstring l_folder_name = fData->cFileName;
+				if ((fData->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
 				        (l_folder_name != Util::m_dotT) &&
 				        (l_folder_name != Util::m_dot_dotT))
 				{
@@ -4226,7 +4225,7 @@ void CFlylinkDBManager::prepare_scan_folder(const tstring& p_path)
 					}
 				}
 			}
-			while (!ClientManager::isBeforeShutdown() && FindNextFile(hFind, &fData));
+			while (!ClientManager::isBeforeShutdown() && FindNextFile(hFind, &(*fData)));
 			FindClose(hFind);
 		}
 	}

@@ -35,6 +35,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/broadcast_socket.hpp"
 #include "libtorrent/assert.hpp"
 #include "libtorrent/socket_type.hpp"
+#ifdef TORRENT_WINDOWS
+#include "libtorrent/aux_/win_util.hpp"
+#endif
 
 #include <functional>
 #include <cstdlib> // for wcstombscstombs
@@ -590,22 +593,13 @@ namespace libtorrent
 #elif TORRENT_USE_GETADAPTERSADDRESSES
 
 #if _WIN32_WINNT >= 0x0501
-		// Load Iphlpapi library
-		HMODULE iphlp = LoadLibraryA("Iphlpapi.dll");
-		if (iphlp)
+		typedef ULONG (WINAPI *GetAdaptersAddresses_t)(ULONG,ULONG,PVOID,PIP_ADAPTER_ADDRESSES,PULONG);
+		// Get GetAdaptersAddresses() pointer
+		auto GetAdaptersAddresses =
+			aux::get_library_procedure<aux::iphlpapi, GetAdaptersAddresses_t>("GetAdaptersAddresses");
+
+		if (GetAdaptersAddresses != nullptr)
 		{
-			// Get GetAdaptersAddresses() pointer
-			typedef ULONG (WINAPI *GetAdaptersAddresses_t)(ULONG,ULONG,PVOID,PIP_ADAPTER_ADDRESSES,PULONG);
-			GetAdaptersAddresses_t GetAdaptersAddresses = (GetAdaptersAddresses_t)GetProcAddress(
-				iphlp, "GetAdaptersAddresses");
-
-			if (GetAdaptersAddresses == nullptr)
-			{
-				FreeLibrary(iphlp);
-				ec = error_code(boost::system::errc::not_supported, generic_category());
-				return std::vector<ip_interface>();
-			}
-
 			ULONG buf_size = 10000;
 			std::vector<char> buffer(buf_size);
 			PIP_ADAPTER_ADDRESSES adapter_addresses
@@ -622,7 +616,6 @@ namespace libtorrent
 			}
 			if (res != NO_ERROR)
 			{
-				FreeLibrary(iphlp);
 				ec = error_code(WSAGetLastError(), system_category());
 				return std::vector<ip_interface>();
 			}
@@ -645,8 +638,6 @@ namespace libtorrent
 				}
 			}
 
-			// Free memory
-			FreeLibrary(iphlp);
 			return ret;
 		}
 #endif
@@ -915,20 +906,11 @@ namespace libtorrent
 #elif TORRENT_USE_GETIPFORWARDTABLE
 /*
 	move this to enum_net_interfaces
-		// Load Iphlpapi library
-		HMODULE iphlp = LoadLibraryA("Iphlpapi.dll");
-		if (!iphlp)
-		{
-			ec = boost::asio::error::operation_not_supported;
-			return std::vector<ip_route>();
-		}
-
 		// Get GetAdaptersInfo() pointer
 		typedef DWORD (WINAPI *GetAdaptersInfo_t)(PIP_ADAPTER_INFO, PULONG);
-		GetAdaptersInfo_t GetAdaptersInfo = (GetAdaptersInfo_t)GetProcAddress(iphlp, "GetAdaptersInfo");
-		if (!GetAdaptersInfo)
+		GetAdaptersInfo_t GetAdaptersInfo = get_library_procedure<iphlpapi, GetAdaptersInfo_t>("GetAdaptersInfo");
+		if (GetAdaptersInfo == nullptr)
 		{
-			FreeLibrary(iphlp);
 			ec = boost::asio::error::operation_not_supported;
 			return std::vector<ip_route>();
 		}
@@ -937,7 +919,6 @@ namespace libtorrent
 		ULONG out_buf_size = 0;
 		if (GetAdaptersInfo(adapter_info, &out_buf_size) != ERROR_BUFFER_OVERFLOW)
 		{
-			FreeLibrary(iphlp);
 			ec = boost::asio::error::operation_not_supported;
 			return std::vector<ip_route>();
 		}
@@ -945,7 +926,6 @@ namespace libtorrent
 		adapter_info = (IP_ADAPTER_INFO*)malloc(out_buf_size);
 		if (!adapter_info)
 		{
-			FreeLibrary(iphlp);
 			ec = boost::asio::error::no_memory;
 			return std::vector<ip_route>();
 		}
@@ -973,20 +953,12 @@ namespace libtorrent
 
 		// Free memory
 		free(adapter_info);
-		FreeLibrary(iphlp);
 */
 
-		// Load Iphlpapi library
-		HMODULE iphlp = LoadLibraryA("Iphlpapi.dll");
-		if (!iphlp)
-		{
-			ec = boost::asio::error::operation_not_supported;
-			return std::vector<ip_route>();
-		}
-
 		typedef DWORD (WINAPI *GetIfEntry_t)(PMIB_IFROW pIfRow);
-		GetIfEntry_t GetIfEntry = (GetIfEntry_t)GetProcAddress(iphlp, "GetIfEntry");
-		if (!GetIfEntry)
+		auto GetIfEntry = aux::get_library_procedure<aux::iphlpapi, GetIfEntry_t>("GetIfEntry");
+
+		if (GetIfEntry == nullptr)
 		{
 			ec = boost::asio::error::operation_not_supported;
 			return std::vector<ip_route>();
@@ -997,11 +969,9 @@ namespace libtorrent
 			ADDRESS_FAMILY, PMIB_IPFORWARD_TABLE2*);
 		typedef void (WINAPI *FreeMibTable_t)(PVOID Memory);
 
-		GetIpForwardTable2_t GetIpForwardTable2 = (GetIpForwardTable2_t)GetProcAddress(
-			iphlp, "GetIpForwardTable2");
-		FreeMibTable_t FreeMibTable = (FreeMibTable_t)GetProcAddress(
-			iphlp, "FreeMibTable");
-		if (GetIpForwardTable2 && FreeMibTable)
+		auto GetIpForwardTable2 = aux::get_library_procedure<aux::iphlpapi, GetIpForwardTable2_t>("GetIpForwardTable2");
+		auto FreeMibTable = aux::get_library_procedure<aux::iphlpapi, FreeMibTable_t>("FreeMibTable");
+		if (GetIpForwardTable2 != nullptr && FreeMibTable != nullptr)
 		{
 			MIB_IPFORWARD_TABLE2* routes = nullptr;
 			int res = GetIpForwardTable2(AF_UNSPEC, &routes);
@@ -1026,7 +996,6 @@ namespace libtorrent
 				}
 			}
 			if (routes) FreeMibTable(routes);
-			FreeLibrary(iphlp);
 			return ret;
 		}
 #endif
@@ -1034,11 +1003,9 @@ namespace libtorrent
 		// Get GetIpForwardTable() pointer
 		typedef DWORD (WINAPI *GetIpForwardTable_t)(PMIB_IPFORWARDTABLE pIpForwardTable,PULONG pdwSize,BOOL bOrder);
 
-		GetIpForwardTable_t GetIpForwardTable = (GetIpForwardTable_t)GetProcAddress(
-			iphlp, "GetIpForwardTable");
-		if (!GetIpForwardTable)
+		auto GetIpForwardTable = aux::get_library_procedure<aux::iphlpapi, GetIpForwardTable_t>("GetIpForwardTable");
+		if (GetIpForwardTable == nullptr)
 		{
-			FreeLibrary(iphlp);
 			ec = boost::asio::error::operation_not_supported;
 			return std::vector<ip_route>();
 		}
@@ -1047,7 +1014,6 @@ namespace libtorrent
 		ULONG out_buf_size = 0;
 		if (GetIpForwardTable(routes, &out_buf_size, FALSE) != ERROR_INSUFFICIENT_BUFFER)
 		{
-			FreeLibrary(iphlp);
 			ec = boost::asio::error::operation_not_supported;
 			return std::vector<ip_route>();
 		}
@@ -1055,7 +1021,6 @@ namespace libtorrent
 		routes = (MIB_IPFORWARDTABLE*)malloc(out_buf_size);
 		if (!routes)
 		{
-			FreeLibrary(iphlp);
 			ec = boost::asio::error::no_memory;
 			return std::vector<ip_route>();
 		}
@@ -1082,7 +1047,6 @@ namespace libtorrent
 
 		// Free memory
 		free(routes);
-		FreeLibrary(iphlp);
 #elif TORRENT_USE_NETLINK
 		enum { BUFSIZE = 8192 };
 

@@ -159,7 +159,7 @@ void ShareManager::shutdown()
 ShareManager::Directory::Directory(const string& aName, const ShareManager::Directory::Ptr& aParent) :
 	CFlyLowerName(aName),
 	m_size(0),
-	parent(aParent.get()),
+	m_parent(aParent.get()),
 	m_fileTypes_bitmap(1 << Search::TYPE_DIRECTORY)
 {
 	initLowerName();
@@ -229,9 +229,9 @@ int64_t ShareManager::Directory::getDirSizeL() const noexcept
     dcassert(!ClientManager::isBeforeShutdown());
     int64_t l_tmp = m_size;
     for (auto i = m_share_directories.cbegin(); i != m_share_directories.cend(); ++i)
-{
-l_tmp += i->second->getDirSizeL();
-}
+		{
+		l_tmp += i->second->getDirSizeL();
+		}
 #ifdef _DEBUG
 LogManager::message("ShareManager::Directory::getDirSizeL = " + Util::toString(l_tmp) + " getRealPath = " + getFullName());
 #endif
@@ -458,7 +458,9 @@ pair<ShareManager::Directory::Ptr, string> ShareManager::splitVirtualL(const str
 		const auto& mi = d->m_share_directories.find(virtualPath.substr(j, i - j));
 		j = i + 1;
 		if (mi == d->m_share_directories.end())
+		{
 			throw ShareException(UserConnection::g_FILE_NOT_AVAILABLE, virtualPath);
+		}
 		d = mi->second;
 	}
 	
@@ -983,7 +985,7 @@ void ShareManager::Directory::mergeL(const Directory::Ptr& source)
 			else
 			{
 				m_share_directories.insert(std::make_pair(subSource->getName(), subSource));
-				subSource->parent = this;
+				subSource->m_parent = this;
 			}
 		}
 		else
@@ -2816,7 +2818,7 @@ ShareManager::Directory::Ptr ShareManager::getDirectoryL(const string& fname)
 	{
 		if (strnicmp(fname, mi->first, mi->first.length()) == 0)
 		{
-			Directory::Ptr d;
+			Directory::Ptr d = nullptr;
 			for (auto i = g_list_directories.cbegin(); i != g_list_directories.cend(); ++i)
 			{
 				if (stricmp((*i)->getName(), mi->second.m_synonym) == 0) // TODO - getLower
@@ -2828,7 +2830,7 @@ ShareManager::Directory::Ptr ShareManager::getDirectoryL(const string& fname)
 			
 			if (!d)
 			{
-				return Directory::Ptr();
+				return nullptr; // Directory::Ptr();
 			}
 			
 			string::size_type i;
@@ -2839,14 +2841,14 @@ ShareManager::Directory::Ptr ShareManager::getDirectoryL(const string& fname)
 				j = i + 1;
 				if (dmi == d->m_share_directories.end())
 				{
-					return Directory::Ptr();
+					return nullptr; // Directory::Ptr();
 				}
 				d = dmi->second;
 			}
 			return d;
 		}
 	}
-	return Directory::Ptr();
+	return nullptr; // Directory::Ptr();
 }
 
 void ShareManager::on(QueueManagerListener::FileMoved, const string& n) noexcept

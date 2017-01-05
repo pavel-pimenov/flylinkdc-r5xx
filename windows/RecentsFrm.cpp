@@ -408,8 +408,11 @@ void RecentHubsFrame::addEntry(const RecentHubEntry* entry, int pos)
 	l.push_back(Text::toT(Util::formatBytes(entry->getShared())));
 	l.push_back(Text::toT(entry->getServer()));
 	l.push_back(Text::toT(entry->getLastSeen()));
-	l.push_back(Text::toT(entry->getOpenTab()));
-	
+	if (entry->getRedirect())
+		l.push_back(_T("-"));
+	else
+		l.push_back(Text::toT(entry->getOpenTab()));
+		
 	ctrlHubs.insert(pos, l, 0, (LPARAM)entry);
 }
 

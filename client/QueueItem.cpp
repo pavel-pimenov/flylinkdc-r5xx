@@ -234,7 +234,7 @@ bool QueueItem::countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const /
 void QueueItem::getOnlineUsers(UserList& list) const
 {
 	//dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		RLock(*QueueItem::g_cs); // [+] IRainman fix.
 		for (auto i = m_sources.cbegin(); i != m_sources.cend(); ++i)
@@ -373,7 +373,6 @@ void QueueItem::removeSourceL(const UserPtr& aUser, Flags::MaskType reason)
 		                       aUser->getLastNick() + "] Please send a text or a screenshot of the error to developers ppa74@ya.ru";
 		LogManager::message(l_error);
 		CFlyServerJSON::pushError(31, l_error);
-		
 	}
 }
 string QueueItem::getListName() const

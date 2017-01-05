@@ -254,6 +254,10 @@ template<typename T> struct TypeTraits
 	private: type name; \
 	public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
 	void set##name2(TypeTraits<type>::ParameterType a##name2) { name = a##name2; }
+#define GETSET_BOOL(type, name, name2) \
+	private: type name; \
+	public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
+	bool set##name2(TypeTraits<type>::ParameterType a##name2) { if(name == a##name2) return false; name = a##name2; return true; }
 
 #define GETM(type, name, name2) \
 	private: type name; \

@@ -32,7 +32,6 @@ FlyUpdateDlg::FlyUpdateDlg(const string& data, const string& rtfData, const Auto
 		_RPT1(_CRT_WARN, "LoadLibrary for Msftedit.dll failed with: %d\n", ::GetLastError());
 		return;
 	}
-	
 }
 
 FlyUpdateDlg::~FlyUpdateDlg()

@@ -255,7 +255,6 @@ void NetworkPage::fixControls()
 	
 	::EnableWindow(GetDlgItem(IDC_PORT_DHT), torrent);
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_PORT_TORRENT), torrent);
-	::EnableWindow(GetDlgItem(IDC_SETTINGS_USE_TORRENT), torrent);
 	
 	m_is_manual = wan_ip_manual;
 	::EnableWindow(GetDlgItem(IDC_EXTERNAL_IP), m_is_manual);
@@ -438,7 +437,7 @@ void NetworkPage::TestWinFirewall()
 #else
 	talk_base::WinFirewall fw;
 	HRESULT hr = {0};
-	bool authorized;
+	bool authorized = false;
 	fw.Initialize(&hr);
 	const auto l_res = fw.QueryAuthorizedW(l_app_path.c_str(), &authorized);
 #endif

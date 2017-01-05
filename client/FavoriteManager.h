@@ -343,6 +343,15 @@ class FavoriteManager : private Speaker<FavoriteManagerListener>,
 			else
 				return true;
 		}
+		static bool isRedirectHub(const string& p_server)
+		{
+			auto i = g_redirect_hubs.find(p_server);
+			if (i == g_redirect_hubs.end())
+				return false;
+			else
+				return true;
+		}
+		
 	private:
 		static void getFavoriteUsersNamesL(StringSet& p_users, bool p_is_ban);
 		static bool isUserExistL(const UserPtr& aUser)
@@ -359,6 +368,7 @@ class FavoriteManager : private Speaker<FavoriteManagerListener>,
 		static StringSet g_sync_hub_isp_delete;
 		static StringSet g_sync_hub_external;
 #endif
+		static StringSet g_redirect_hubs;
 		static FavDirList g_favoriteDirs; // [~] InfinitySky. Code from Apex.
 		static FavHubGroups g_favHubGroups;
 		static RecentHubEntry::List g_recentHubs;

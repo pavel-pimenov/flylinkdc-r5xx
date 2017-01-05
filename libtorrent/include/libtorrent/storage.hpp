@@ -199,7 +199,7 @@ namespace libtorrent
 		// operations until all outstanding jobs have completed.
 		// at that point, the m_blocked_jobs are issued
 		// the count is the number of fence job currently in the queue
-		int m_has_fence;
+		int m_has_fence = 0;
 
 		// when there's a fence up, jobs are queued up in here
 		// until the fence is lowered
@@ -209,7 +209,7 @@ namespace libtorrent
 		// to this torrent, currently pending, hanging off of
 		// cached_piece_entry objects. This is used to determine
 		// when the fence can be lowered
-		std::atomic<int> m_outstanding_jobs;
+		std::atomic<int> m_outstanding_jobs{0};
 
 		// must be held when accessing m_has_fence and
 		// m_blocked_jobs
@@ -285,9 +285,6 @@ namespace libtorrent
 		, public storage_piece_set
 		, boost::noncopyable
 	{
-		// hidden
-		storage_interface(): m_settings(0) {}
-
 
 		// This function is called when the storage is to be initialized. The
 		// default storage will create directories and empty files at this point.
@@ -448,19 +445,34 @@ namespace libtorrent
 		virtual ~storage_interface() {}
 
 		// initialized in disk_io_thread::perform_async_job
-		aux::session_settings* m_settings;
+		aux::session_settings* m_settings = nullptr;
+
+		storage_index_t storage_index() const { return m_storage_index; }
+		void set_storage_index(storage_index_t st) { m_storage_index = st; }
+
+		int dec_refcount()
+		{
+			TORRENT_ASSERT(m_references > 0);
+			return m_references--;
+		}
+		void inc_refcount() { ++m_references; }
 	private:
 
 		bool m_need_tick = false;
-		file_storage const* m_files;
+		file_storage const* m_files = nullptr;
 
 		// the reason for this to be a void pointer
 		// is to avoid creating a dependency on the
 		// torrent. This shared_ptr is here only
 		// to keep the torrent object alive until
 		// the storage_interface destructs. This is because
-		// the torrent_info object is owned by the torrent.
+		// the file_storage object is owned by the torrent.
 		std::shared_ptr<void> m_torrent;
+
+		storage_index_t m_storage_index;
+
+		// the number of block_cache_reference objects referencing this storage
+		std::atomic<int> m_references{1};
 	};
 
 	// The default implementation of storage_interface. Behaves as a normal

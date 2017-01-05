@@ -58,7 +58,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		int m_torrent_resume_count;
 		std::unordered_set<libtorrent::torrent_handle> m_torrents;
 	public:
-		void init_torrent();
+		void init_torrent(bool p_is_force = false);
 		void shutdown_torrent();
 		bool add_torrent_file(const tstring& p_torrent_path, const tstring& p_torrent_url);
 		bool remove_torrent_file(const libtorrent::sha1_hash& p_sha1, const int p_delete_options);
