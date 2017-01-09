@@ -1630,7 +1630,7 @@
 		<String Name="UseBitrateFixForSpam">Правильне відображення спаму від QMP/QCD плееров плеєрів</String>
 		<String Name="UseCustomListBackground">Використовувати звичайний стиль фону для списку</String>
 		<String Name="UseCustomMenu">Використовувати меню провайдера</String>
-		<String Name="UseDht">Включити DHT. Публікувати розшарені файли на DHT і використовувати його для пошуку альтернативних джерел</String>
+		<String Name="UseDht">Включити torrent</String>
 		<String Name="UseDhtNotanswer">Не запитувати знову</String>
 		<String Name="UseExplorerTheme">Використовувати тему провідника в списках</String>
 		<String Name="UseMagnetsInPlayersSpam">Використовувати Magnet-посилання в повідомленнях плеєрів</String>

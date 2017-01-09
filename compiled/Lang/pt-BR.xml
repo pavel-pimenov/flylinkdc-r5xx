@@ -1956,7 +1956,7 @@ A não ser que não esteja conectado à Internet ou a conexão tiver configurada
 		<String Name="UseBitrateFixForSpam">Usar Bitrate/Sample fix para QCD/QMP Players</String>
 		<String Name="UseCustomListBackground">Usar estilo personalizados de listas de fundo</String>
 		<String Name="UseCustomMenu">Usar menus personalizados</String>
-		<String Name="UseDht">Habilitar DHT. Publicar arquivo compartilhados em DHT e usar isso para buscar fontes alternativas</String>
+		<String Name="UseDht">Habilitar torrent</String>
 		<String Name="UseDhtNotanswer">Não pergunte novamente</String>
 		<String Name="UseExplorerTheme">Usar Tema do Explorer na visualização das listas e árvores</String>
 		<String Name="UcSubmenu">Colocar comandosdeusuário em um submenu</String>

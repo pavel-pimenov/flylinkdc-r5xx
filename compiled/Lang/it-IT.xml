@@ -2032,8 +2032,7 @@ Connessione impostata completamente in modalità di configurazione automatica.</
 		<String Name="UseBitrateFixForSpam">Utilizza correzione Bitrate/Sample per i lettori QCD/QMP</String>
 		<String Name="UseCustomListBackground">Lista sfondi personalizzati</String>
 		<String Name="UseCustomMenu">Abilita</String>
-		<String Name="UseDht">Pubblica i file condivisi sulla rete DHT (Distributed Hash Tables)
-e utilizzala per la ricerca di sorgenti alternative</String>
+		<String Name="UseDht">Pubblica i file DHT (torrent)</String>
 		<String Name="UseDhtNotanswer">Tralascia conferme future</String>
 		<String Name="UseExplorerTheme">Utilizza tema di Esplora risorse nelle cartelle</String>
 		<String Name="UseMagnetsInPlayersSpam">Utilizza collegamenti nello spam del lettore</String>

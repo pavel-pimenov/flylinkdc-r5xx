@@ -1618,7 +1618,7 @@
 		<String Name="UseBitrateFixForSpam">Utilice Bitrate/Ejemplo solución para reproductores QCD/QMP</String>
 		<String Name="UseCustomListBackground">Usar estilo personalizado para el fondo de las listas</String>
 		<String Name="UseCustomMenu">Usar menús personalizados</String>
-		<String Name="UseDht">Activar DHT. Publicar los archivos compartidos en DHT y utilizarlo para la búsqueda de fuentes alternativas</String>
+		<String Name="UseDht">Activar torrent</String>
 		<String Name="UseDhtNotanswer">No volver a preguntar</String>
 		<String Name="UseExplorerTheme">Utilizar el explorador de tema en listviews y treeviews</String>
 		<String Name="UseMagnetsInPlayersSpam">Utilice enlaces en el spam de reproductores</String>

@@ -1,7 +1,7 @@
 /* $Id: connecthostport.c,v 1.15 2015/10/09 16:26:19 nanard Exp $ */
 /* Project : miniupnp
  * Author : Thomas Bernard
- * Copyright (c) 2010-2015 Thomas Bernard
+ * Copyright (c) 2010-2016 Thomas Bernard
  * This software is subject to the conditions detailed in the
  * LICENCE file provided in this distribution. */
 
@@ -18,10 +18,7 @@
 #include <ws2tcpip.h>
 #include <io.h>
 #define MAXHOSTNAMELEN 64
-//Windows - MSVC (before Visual Studio 2015)
-#if defined (_MSC_VER) && _MSC_VER < 1900
-  // #define snprintf _snprintf
-#endif
+#define snprintf _snprintf
 #define herror
 #define socklen_t int
 #else /* #ifdef _WIN32 */
@@ -103,13 +100,13 @@ int connecthostport(const char * host, unsigned short port,
 	timeout.tv_usec = 0;
 	if(setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(struct timeval)) < 0)
 	{
-		PRINT_SOCKET_ERROR("setsockopt");
+		PRINT_SOCKET_ERROR("setsockopt SO_RCVTIMEO");
 	}
 	timeout.tv_sec = 3;
 	timeout.tv_usec = 0;
 	if(setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(struct timeval)) < 0)
 	{
-		PRINT_SOCKET_ERROR("setsockopt");
+		PRINT_SOCKET_ERROR("setsockopt SO_SNDTIMEO");
 	}
 #endif /* #ifdef MINIUPNPC_SET_SOCKET_TIMEOUT */
 	dest.sin_family = AF_INET;
@@ -158,7 +155,7 @@ int connecthostport(const char * host, unsigned short port,
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_family = AF_UNSPEC; /* AF_INET, AF_INET6 or AF_UNSPEC */
 	/* hints.ai_protocol = IPPROTO_TCP; */
-	_snprintf(port_str, sizeof(port_str), "%hu", port);
+	snprintf(port_str, sizeof(port_str), "%hu", port);
 	if(host[0] == '[')
 	{
 		/* literal ip v6 address */

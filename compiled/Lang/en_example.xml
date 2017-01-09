@@ -128,6 +128,7 @@
 	<string name="AwayStatus">AWAY</string>
 	<string name="B">B</string>
 	<string name="Back">Back</string>
+	<string name="BadAlloc">Out of Memory!!!</string>
 	<string name="BalloonPopups">Balloon pop-ups</string>
 	<string name="BanmsgPeriod">Repeat PM period (0 - disable PM), min</string>
 	<string name="BanColorDlg">File-list - Ban Color</string>
@@ -426,6 +427,7 @@
 	<string name="DupeColorDlg">Shared Color</string>
 	<string name="DupeEx1">File-list - Download TTH</string>
 	<string name="DupeEx2">File-list - Old TTH</string>
+	<string name="DupeEx3">File-list - Queue TTH</string>
 	<string name="DuplicateExtensions">duplicate extension</string>
 	<string name="DuplicateRange">Duplicate range</string>
 	<string name="DuplicateSource">Duplicate source</string>
@@ -1789,7 +1791,7 @@
 	<string name="UseBitrateFixForSpam">Use Bitrate/Sample fix for QCD/QMP players</string>
 	<string name="UseCustomListBackground">Use custom list background style</string>
 	<string name="UseCustomMenu">Use custom menus</string>
-	<string name="UseDht">Enable Torrent DHT</string>
+	<string name="UseDht">Enable torrent</string>
 	<string name="UseDhtNotanswer">Do not ask again</string>
 	<string name="UseExplorerTheme">Use Explorer theme in listviews and treeviews</string>
 	<string name="UcSubmenu">Place usercommands to submenu</string>

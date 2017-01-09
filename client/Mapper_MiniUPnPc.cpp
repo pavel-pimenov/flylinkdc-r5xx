@@ -38,16 +38,18 @@ bool Mapper_MiniUPnPc::init()
 	CFlyLog l_log("[MiniUPnP]");
 	if (m_initialized)
 	{
+        dcassert(0);
 		l_log.step("m_initialized == true!");
 		return true;
 	}
 	l_log.step("BIND_ADDRESS = " + SETTING(BIND_ADDRESS));
-	int l_error = 0;
+	int l_error = UPNPDISCOVER_SUCCESS;
 	UPNPDev* devices = upnpDiscover(2000,
 	                                SettingsManager::isDefault(SettingsManager::BIND_ADDRESS) ? nullptr : SETTING(BIND_ADDRESS).c_str(),
-	                                nullptr, 0, 0, 2, &l_error);
-	if (!devices)
+	                                0,UPNP_LOCAL_PORT_ANY, false, 2, &l_error);
+	if(l_error != UPNPDISCOVER_SUCCESS || !devices)
 	{
+        dcassert(0);
 		l_log.step("upnpDiscover == null error = " + Util::toString(l_error));
 		return false;
 	}
@@ -78,6 +80,7 @@ bool Mapper_MiniUPnPc::init()
 	else
 	{
 		l_log.step("Error UPNP_GetValidIGD code = " + Util::toString(res));
+        dcassert(0);
 	}
 	
 	if (res)
@@ -85,6 +88,10 @@ bool Mapper_MiniUPnPc::init()
 		FreeUPNPUrls(&urls);
 		freeUPNPDevlist(devices);
 	}
+    else
+    {
+        dcassert(0);
+    }
 	
 	return m_initialized;
 }

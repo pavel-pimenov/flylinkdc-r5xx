@@ -108,29 +108,8 @@ private :
                 xxl &operator =(const xxl &);
                 xxl(const xxl &);
             };
-            struct bitstream_restriction_struct
-            {
-                int8u  max_num_reorder_frames;
-
-                bitstream_restriction_struct(int8u max_num_reorder_frames_)
-                    :
-                    max_num_reorder_frames(max_num_reorder_frames_)
-                {
-                }
-            private:
-                bitstream_restriction_struct &operator=(const bitstream_restriction_struct &b)
-                {
-                    max_num_reorder_frames=b.max_num_reorder_frames;
-
-                    return *this;
-                }
-
-                bitstream_restriction_struct();
-                bitstream_restriction_struct(const bitstream_restriction_struct&); // http://www.viva64.com/en/d/0326/print/
-            };
             xxl*    NAL;
             xxl*    VCL;
-            bitstream_restriction_struct* bitstream_restriction;
             int32u  num_units_in_tick;
             int32u  time_scale;
             int16u  sar_width;
@@ -148,11 +127,10 @@ private :
             bool    fixed_frame_rate_flag;
             bool    pic_struct_present_flag;
 
-            vui_parameters_struct(xxl* NAL_, xxl* VCL_, bitstream_restriction_struct* bitstream_restriction_, int32u num_units_in_tick_, int32u time_scale_, int16u  sar_width_, int16u  sar_height_, int8u aspect_ratio_idc_, int8u video_format_, int8u video_full_range_flag_, int8u colour_primaries_, int8u transfer_characteristics_, int8u matrix_coefficients_, bool aspect_ratio_info_present_flag_, bool video_signal_type_present_flag_, bool colour_description_present_flag_, bool timing_info_present_flag_, bool fixed_frame_rate_flag_, bool pic_struct_present_flag_)
+            vui_parameters_struct(xxl* NAL_, xxl* VCL_, int32u num_units_in_tick_, int32u time_scale_, int16u  sar_width_, int16u  sar_height_, int8u aspect_ratio_idc_, int8u video_format_, int8u video_full_range_flag_, int8u colour_primaries_, int8u transfer_characteristics_, int8u matrix_coefficients_, bool aspect_ratio_info_present_flag_, bool video_signal_type_present_flag_, bool colour_description_present_flag_, bool timing_info_present_flag_, bool fixed_frame_rate_flag_, bool pic_struct_present_flag_)
                 :
                 NAL(NAL_),
                 VCL(VCL_),
-                bitstream_restriction(bitstream_restriction_),
                 num_units_in_tick(num_units_in_tick_),
                 time_scale(time_scale_),
                 sar_width(sar_width_),
@@ -176,7 +154,6 @@ private :
             {
                 delete NAL; //NAL=NULL;
                 delete VCL; //VCL=NULL;
-                delete bitstream_restriction; //bitstream_restriction=NULL;
             }
 
         private:
@@ -486,6 +463,7 @@ private :
     };
     typedef vector<temporal_reference*> temporal_references;
     temporal_references                 TemporalReferences; //per pic_order_cnt_lsb
+    void Clean_Temp_References();
     temporal_reference*                 TemporalReferences_DelayedElement;
     size_t                              TemporalReferences_Min;
     size_t                              TemporalReferences_Max;
@@ -508,6 +486,7 @@ private :
     seq_parameter_set_structs           seq_parameter_sets;
     seq_parameter_set_structs           subset_seq_parameter_sets;
     pic_parameter_set_structs           pic_parameter_sets;
+    void Clean_Seq_Parameter();
 
     //File specific
     int8u                               SizeOfNALU_Minus1;

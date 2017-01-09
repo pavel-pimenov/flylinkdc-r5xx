@@ -15,10 +15,7 @@
 #include <ws2tcpip.h>
 #include <io.h>
 #define MAXHOSTNAMELEN 64
-#if defined (_MSC_VER) && _MSC_VER < 1900
-  //#define snprintf _snprintf
-#endif
-
+#define snprintf _snprintf
 #define socklen_t int
 #ifndef strncasecmp
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
@@ -86,8 +83,10 @@ getHTTPResponse(int s, int * size, int * status_code)
 	unsigned int content_buf_used = 0;
 	char chunksize_buf[32];
 	unsigned int chunksize_buf_index;
+#ifdef DEBUG
 	char * reason_phrase = NULL;
 	int reason_phrase_len = 0;
+#endif
 
 	if(status_code) *status_code = -1;
 	header_buf = malloc(header_buf_len);
@@ -184,8 +183,10 @@ getHTTPResponse(int s, int * size, int * status_code)
 									*status_code = atoi(header_buf + sp + 1);
 								else
 								{
+#ifdef DEBUG
 									reason_phrase = header_buf + sp + 1;
 									reason_phrase_len = i - sp - 1;
+#endif
 									break;
 								}
 							}
@@ -435,7 +436,7 @@ miniwget3(const char * host,
 #endif
 	}
 
-	len = _snprintf(buf, sizeof(buf),
+	len = snprintf(buf, sizeof(buf),
                  "GET %s HTTP/%s\r\n"
 			     "Host: %s:%d\r\n"
 				 "Connection: Close\r\n"

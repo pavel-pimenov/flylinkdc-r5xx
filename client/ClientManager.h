@@ -161,7 +161,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		// [!] IRainman opt.
 		CREATE_LOCK_INSTANCE_CM(g, Clients);
 		CREATE_LOCK_INSTANCE_CM(g, OnlineUsers);
-		CREATE_LOCK_INSTANCE_CM(g, Users);
+		//CREATE_LOCK_INSTANCE_CM(g, Users);
 		// [~] IRainman opt.
 #undef CREATE_LOCK_INSTANCE_CM
 		
@@ -291,7 +291,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		static UserMap g_users;
 		
-		static std::unique_ptr<webrtc::RWLockWrapper> g_csUsers;
+		static CriticalSection g_csUsers;
 		typedef std::multimap<CID, OnlineUserPtr> OnlineMap;
 		typedef OnlineMap::iterator OnlineIter;
 		typedef OnlineMap::const_iterator OnlineIterC;

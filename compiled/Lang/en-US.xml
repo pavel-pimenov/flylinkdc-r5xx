@@ -1957,7 +1957,7 @@ Either you're not connected to the Internet or you have configured the connectio
 		<String Name="UseBitrateFixForSpam">Use Bitrate/Sample fix for QCD/QMP players</String>
 		<String Name="UseCustomListBackground">Use custom list background style</String>
 		<String Name="UseCustomMenu">Use custom menus</String>
-		<String Name="UseDht">Enable DHT. Publish shared files on DHT and use it for searching alternate sources</String>
+		<String Name="UseDht">Enable torrent</String>
 		<String Name="UseDhtNotanswer">Do not ask again</String>
 		<String Name="UseExplorerTheme">Use Explorer theme in listviews and treeviews</String>
 		<String Name="UcSubmenu">Place usercommands to submenu</String>

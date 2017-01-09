@@ -1646,7 +1646,7 @@
 		<String Name="UseBitrateFixForSpam">Выпраўляць зьвесткі (бітаў за сэкунду, чашчыня) ад прайгравальнікаў QCD ці QMP</String>
 		<String Name="UseCustomListBackground">Ужываць карыстальніцкі выгляд тла сьпісу</String>
 		<String Name="UseCustomMenu">Ужываць дадатковыя мэню</String>
-		<String Name="UseDht">Задзейнічаць DHT. Публікаваць абагуленыя файлы на DHT і шукаць там дадатковыя крыніцы</String>
+		<String Name="UseDht">Задзейнічаць torrent.</String>
 		<String Name="UseDhtNotanswer">Болей не пытацца</String>
 		<String Name="UseExplorerTheme">Паказваць сьпісы ды дрэвы як у «Праглядніку» (анґ. «Explorer», рас. «Проводник»)</String>
 		<String Name="UseMagnetsInPlayersSpam">Маґніт-спасылкі ў зьвестках прайгравальнікаў</String>

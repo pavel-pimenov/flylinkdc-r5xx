@@ -587,10 +587,6 @@ namespace libtorrent
 
 		// close files that were opened in write mode
 		m_pool.release(storage_index());
-
-#if defined TORRENT_DEBUG_FILE_LEAKS
-		print_open_files("release files", m_files.name().c_str());
-#endif
 	}
 
 	bool default_storage::has_any_file(storage_error& ec)
@@ -651,10 +647,6 @@ namespace libtorrent
 		// valid.
 		if (exists(old_name, ec.ec))
 		{
-#if defined TORRENT_DEBUG_FILE_LEAKS
-			print_open_files("release files", m_files.name().c_str());
-#endif
-
 			std::string new_path;
 			if (is_complete(new_filename)) new_path = new_filename;
 			else new_path = combine_path(m_save_path, new_filename);
@@ -712,10 +704,6 @@ namespace libtorrent
 
 		// make sure we don't have the files open
 		m_pool.release(storage_index());
-
-#if defined TORRENT_DEBUG_FILE_LEAKS
-		print_open_files("release files", m_files.name().c_str());
-#endif
 	}
 
 	void default_storage::delete_one_file(std::string const& p, error_code& ec)
@@ -741,9 +729,6 @@ namespace libtorrent
 		// case
 		if (!m_pool.assert_idle_files(storage_index()))
 		{
-#if defined TORRENT_DEBUG_FILE_LEAKS
-			print_open_files("delete-files idle assert failed", m_files.name().c_str());
-#endif
 			TORRENT_ASSERT_FAIL();
 		}
 #endif
@@ -755,10 +740,6 @@ namespace libtorrent
 		// release the underlying part file. Otherwise we may not be able to
 		// delete it
 		if (m_part_file) m_part_file.reset();
-
-#if defined TORRENT_DEBUG_FILE_LEAKS
-		print_open_files("release files", m_files.name().c_str());
-#endif
 
 		if (options == session::delete_files)
 		{
@@ -823,10 +804,6 @@ namespace libtorrent
 
 		DFLOG(stderr, "[%p] delete_files result: %s\n", static_cast<void*>(this)
 			, ec.ec.message().c_str());
-
-#if defined TORRENT_DEBUG_FILE_LEAKS
-		print_open_files("delete-files done", m_files.name().c_str());
-#endif
 	}
 
 	bool default_storage::verify_resume_data(add_torrent_params const& rd
@@ -994,9 +971,9 @@ namespace libtorrent
 
 		m_pool.release(storage_index());
 
-#if defined TORRENT_DEBUG_FILE_LEAKS
-		print_open_files("release files", m_files.name().c_str());
-#endif
+		// indices of all files we ended up copying. These need to be deleted
+		// later
+		aux::vector<bool, file_index_t> copied_files(f.num_files(), false);
 
 		file_index_t i;
 		error_code e;
@@ -1018,10 +995,22 @@ namespace libtorrent
 			// volumes, the source should not be deleted until they've all been
 			// copied. That would let us rollback with higher confidence.
 			move_file(old_path, new_path, e);
+
 			// if the source file doesn't exist. That's not a problem
 			// we just ignore that file
 			if (e == boost::system::errc::no_such_file_or_directory)
 				e.clear();
+			else if (e
+				&& e != boost::system::errc::invalid_argument
+				&& e != boost::system::errc::permission_denied)
+			{
+				// moving the file failed
+				// on OSX, the error when trying to rename a file across different
+				// volumes is EXDEV, which will make it fall back to copying.
+				e.clear();
+				copy_file(old_path, new_path, e);
+				if (!e) copied_files[i] = true;
+			}
 
 			if (e)
 			{
@@ -1051,15 +1040,16 @@ namespace libtorrent
 				// files moved out to absolute paths are not moved
 				if (f.file_absolute_path(i)) continue;
 
+				// if we ended up copying the file, don't do anything during
+				// roll-back
+				if (copied_files[i]) continue;
+
 				std::string const old_path = combine_path(m_save_path, f.file_path(i));
 				std::string const new_path = combine_path(save_path, f.file_path(i));
 
-				if (!exists(old_path))
-				{
-					// ignore errors when rolling back
-					error_code ignore;
-					move_file(new_path, old_path, ignore);
-				}
+				// ignore errors when rolling back
+				error_code ignore;
+				move_file(new_path, old_path, ignore);
 			}
 
 			return status_t::fatal_disk_error;
@@ -1076,6 +1066,10 @@ namespace libtorrent
 
 			if (has_parent_path(f.file_path(i)))
 				subdirs.insert(parent_path(f.file_path(i)));
+
+			// if we ended up renaming the file instead of moving it, there's no
+			// need to delete the source.
+			if (copied_files[i] == false) continue;
 
 			std::string const old_path = combine_path(old_save_path, f.file_path(i));
 

@@ -351,7 +351,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 					{
 						l_line_item = "[count All = " + Util::toString(g_count_skip) + "] "
 						              + "[count TTH = " + Util::toString(l_count_tth) + "] "
-						              + "[szie_map = "   + Util::toString(g_tth_count.size()) + "] "
+						              + "[size_map = "   + Util::toString(g_tth_count.size()) + "] "
 						              + l_line_item;
 					}
 #endif

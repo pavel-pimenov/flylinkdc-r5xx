@@ -1584,7 +1584,7 @@
 		<String Name="UseBitrateFixForSpam">Béquille pour un bon affichage des mails à partir de lecteurs QMP / QCD</String>
 		<String Name="UseCustomListBackground">Utiliser le style de fond normale pour la liste</String>
 		<String Name="UseCustomMenu">Utiliser le menu du fournisseur</String>
-		<String Name="UseDht">Publier ses fichiers partagés sur DHT et l'utiliser pour trouver d'autres sources d'</String>
+		<String Name="UseDht">Publier DHT (torrent)</String>
 		<String Name="UseDhtNotanswer">Ne plus demander à nouveau</String>
 		<String Name="UseExplorerTheme">Utilisation soumise guide dresse la liste</String>
 		<String Name="UseMagnetsInPlayersSpam">Utiliser les magnets dans les messages des players</String>

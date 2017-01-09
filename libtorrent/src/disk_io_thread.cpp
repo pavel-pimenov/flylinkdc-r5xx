@@ -49,6 +49,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/alert_manager.hpp"
 #include "libtorrent/debug.hpp"
 #include "libtorrent/units.hpp"
+#include "libtorrent/hasher.hpp"
 
 #include <functional>
 
@@ -191,9 +192,9 @@ namespace libtorrent
 	disk_io_thread::disk_io_thread(io_service& ios
 		, counters& cnt
 		, int const block_size)
-		: m_generic_io_jobs(*this, thread_type_t::generic)
+		: m_generic_io_jobs(*this)
 		, m_generic_threads(m_generic_io_jobs, ios)
-		, m_hash_io_jobs(*this, thread_type_t::hasher)
+		, m_hash_io_jobs(*this)
 		, m_hash_threads(m_hash_io_jobs, ios)
 		, m_disk_cache(block_size, ios, std::bind(&disk_io_thread::trigger_cache_trim, this))
 		, m_stats_counters(cnt)
@@ -332,7 +333,7 @@ namespace libtorrent
 		if (end == 0 && !p->need_readback) return 0;
 
 		// the number of contiguous blocks we need to be allowed to flush
-		int block_limit = (std::min)(cont_block, int(p->blocks_in_piece));
+		int block_limit = std::min(cont_block, int(p->blocks_in_piece));
 
 		// if everything has been hashed, we might as well flush everything
 		// regardless of the contiguous block restriction
@@ -2867,12 +2868,6 @@ namespace libtorrent
 			return;
 		}
 
-		// in this case, we can't run the fence job right now, because there
-		// are other jobs outstanding on this storage. We need to trigger a
-		// flush of all those jobs now. Only write jobs linger, those are the
-		// jobs that needs to be kicked
-		TORRENT_ASSERT(j->blocked);
-
 		if (ret == disk_job_fence::fence_post_flush)
 		{
 			// now, we have to make sure that all outstanding jobs on this
@@ -3051,10 +3046,10 @@ namespace libtorrent
 		return false;
 	}
 
-	void disk_io_thread::thread_fun(thread_type_t type
-		, io_service::work w)
+	void disk_io_thread::thread_fun(job_queue& queue
+		, disk_io_thread_pool& pool)
 	{
-		std::thread::id thread_id = std::this_thread::get_id();
+		std::thread::id const thread_id = std::this_thread::get_id();
 #if DEBUG_DISK_THREAD
 		std::stringstream thread_id_str;
 		thread_id_str << thread_id;
@@ -3071,24 +3066,14 @@ namespace libtorrent
 		for (;;)
 		{
 			disk_io_job* j = nullptr;
-			if (type == thread_type_t::generic)
-			{
-				bool const should_exit = wait_for_job(m_generic_io_jobs, m_generic_threads, l);
-				if (should_exit) break;
-				j = m_generic_io_jobs.m_queued_jobs.pop_front();
-			}
-			else if (type == thread_type_t::hasher)
-			{
-				bool const should_exit = wait_for_job(m_hash_io_jobs, m_hash_threads, l);
-				if (should_exit) break;
-				j = m_hash_io_jobs.m_queued_jobs.pop_front();
-			}
-
+			bool const should_exit = wait_for_job(queue, pool, l);
+			if (should_exit) break;
+			j = queue.m_queued_jobs.pop_front();
 			l.unlock();
 
 			TORRENT_ASSERT((j->flags & disk_io_job::in_progress) || !j->storage);
 
-			if (thread_id == m_generic_threads.first_thread_id() && type == thread_type_t::generic)
+			if (&pool == &m_generic_threads && thread_id == pool.first_thread_id())
 			{
 				// there's no need for all threads to be doing this
 				maybe_flush_write_blocks();
@@ -3153,11 +3138,6 @@ namespace libtorrent
 		TORRENT_ASSERT(m_magic == 0x1337);
 
 		COMPLETE_ASYNC("disk_io_thread::work");
-
-		// w's dtor releases the io_service to allow the run() call to return
-		// we do this once we stop posting new callbacks to it.
-		// after the dtor has been called, the disk_io_thread object may be destructed
-		TORRENT_UNUSED(w);
 	}
 
 	void disk_io_thread::abort_jobs()

@@ -1279,100 +1279,6 @@ static const char* Mxf_CodingEquations(const int128u& CodingEquations)
 }
 
 //---------------------------------------------------------------------------
-static const char* Mxf_ChannelAssignment_ChannelPositions(const int128u& ChannelLayout, int32u ChannelsCount)
-{
-    //Sound Channel Labeling
-    if ((ChannelLayout.hi&0xFFFFFFFFFFFFFF00LL)!=0x060E2B3404010100LL && (ChannelLayout.lo&0xFFFFFFFF00000000LL)!=0x0402021000000000LL)
-        return "";
-
-    int8u Code5=(int8u)((ChannelLayout.lo&0x00000000FF000000LL)>>24);
-    int8u Code6=(int8u)((ChannelLayout.lo&0x0000000000FF0000LL)>>16);
-    int8u Code7=(int8u)((ChannelLayout.lo&0x000000000000FF00LL)>> 8);
-
-    switch (Code5)
-    {
-        case 0x03 : //SMPTE 429-2
-                    switch (Code6)
-                    {
-                        case 0x01 : //Sets
-                                    switch (Code7)
-                                    {
-                                        case 0x01 : //Config 1
-                                                    switch (ChannelsCount)
-                                                    {
-                                                        case  6 : return "Front: L C R, Side: L R, LFE";
-                                                        default : return "Front: L C R, Side: L R, LFE, HI, VI-N";
-                                                    }
-                                        case 0x02 : //Config 2
-                                                    switch (ChannelsCount)
-                                                    {
-                                                        case  6 : return "Front: L C R, Side: L R, LFE";
-                                                        case  8 : return "Front: L C R, Side: L R, Back: C, LFE";
-                                                        default : return "Front: L C R, Side: L R, Back: C, LFE, HI, VI-N";
-                                                    }
-                                        case 0x03 : //Config 3
-                                                    switch (ChannelsCount)
-                                                    {
-                                                        case  6 : return "Front: L C R, Side: L R, LFE";
-                                                        case  8 : return "Front: L C R, Side: L R, Back: L R, LFE";
-                                                        default : return "Front: L C R, Side: L R, Back: L R, LFE, HI, VI-N";
-                                                    }
-                                        default   : return "";
-                                    }
-                        default   : return "";
-                    }
-        default   : return "";
-    }
-}
-
-//---------------------------------------------------------------------------
-static const char* Mxf_ChannelAssignment_ChannelPositions2(const int128u& ChannelLayout, int32u ChannelsCount=(int32u)-1)
-{
-    //Sound Channel Labeling
-    if ((ChannelLayout.hi&0xFFFFFFFFFFFFFF00LL)!=0x060E2B3404010100LL && (ChannelLayout.lo&0xFFFFFFFF00000000LL)!=0x0402021000000000LL)
-        return "";
-
-    int8u Code5=(int8u)((ChannelLayout.lo&0x00000000FF000000LL)>>24);
-    int8u Code6=(int8u)((ChannelLayout.lo&0x0000000000FF0000LL)>>16);
-    int8u Code7=(int8u)((ChannelLayout.lo&0x000000000000FF00LL)>> 8);
-
-    switch (Code5)
-    {
-        case 0x03 : //SMPTE 429-2
-                    switch (Code6)
-                    {
-                        case 0x01 : //Sets
-                                    switch (Code7)
-                                    {
-                                        case 0x01 : //Config 1
-                                                    switch (ChannelsCount)
-                                                    {
-                                                        case  6 : return "3/2/0.1";
-                                                        default : return "3/2/0.1+2";
-                                                    }
-                                        case 0x02 : //Config 2
-                                                    switch (ChannelsCount)
-                                                    {
-                                                        case  6 : return "3/2/0.1";
-                                                        case  8 : return "3/2/1.1";
-                                                        default : return "3/2/1.1+2";
-                                                    }
-                                        case 0x03 : //Config 3
-                                                    switch (ChannelsCount)
-                                                    {
-                                                        case  6 : return "3/2/0.1";
-                                                        case  8 : return "3/2/2.1";
-                                                        default : return "3/2/2.1+2";
-                                                    }
-                                        default   : return "";
-                                    }
-                        default   : return "";
-                    }
-        default   : return "";
-    }
-}
-
-//---------------------------------------------------------------------------
 static const char* Mxf_ChannelAssignment_ChannelLayout(const int128u& ChannelLayout, int32u ChannelsCount=(int32u)-1)
 {
     //Sound Channel Labeling
@@ -4784,14 +4690,18 @@ size_t File_Mxf::Read_Buffer_Seek (size_t Method, int64u Value, int64u ID)
         if (SingleDescriptor!=Descriptors.end() && SingleDescriptor->second.StreamKind==Stream_Audio)
         {
             //Configuring bitrate is not available in descriptor
-            if (Descriptors.begin()->second.ByteRate==(int32u)-1 && Descriptors.begin()->second.Infos.find("SamplingRate")!=Descriptors.begin()->second.Infos.end())
+            if (Descriptors.begin()->second.ByteRate==(int32u)-1)
             {
-                int32u SamplingRate=Descriptors.begin()->second.Infos["SamplingRate"].To_int32u();
+                std::map<std::string, Ztring>::const_iterator i=Descriptors.begin()->second.Infos.find("SamplingRate");
+                if (i!=Descriptors.begin()->second.Infos.end())
+                {
+                    int32u SamplingRate=i->second.To_int32u();
 
-                if (Descriptors.begin()->second.BlockAlign!=(int16u)-1)
-                    Descriptors.begin()->second.ByteRate=SamplingRate*Descriptors.begin()->second.BlockAlign;
-                else if (Descriptors.begin()->second.QuantizationBits!=(int8u)-1)
-                    Descriptors.begin()->second.ByteRate=SamplingRate*Descriptors.begin()->second.QuantizationBits/8;
+                    if (Descriptors.begin()->second.BlockAlign!=(int16u)-1)
+                        Descriptors.begin()->second.ByteRate=SamplingRate*Descriptors.begin()->second.BlockAlign;
+                    else if (Descriptors.begin()->second.QuantizationBits!=(int8u)-1)
+                        Descriptors.begin()->second.ByteRate=SamplingRate*Descriptors.begin()->second.QuantizationBits / 8;
+                }
             }
         }
 
@@ -5809,14 +5719,18 @@ void File_Mxf::Data_Parse()
             if (SingleDescriptor!=Descriptors.end() && SingleDescriptor->second.StreamKind==Stream_Audio)
             {
                 //Configuring bitrate is not available in descriptor
-                if (SingleDescriptor->second.ByteRate==(int32u)-1 && SingleDescriptor->second.Infos.find("SamplingRate")!=SingleDescriptor->second.Infos.end())
+                if (SingleDescriptor->second.ByteRate==(int32u)-1)
                 {
-                    int32u SamplingRate=SingleDescriptor->second.Infos["SamplingRate"].To_int32u();
+                    std::map<std::string, Ztring>::const_iterator i=Descriptors.begin()->second.Infos.find("SamplingRate");
+                    if (i != SingleDescriptor->second.Infos.end())
+                    {
+                        int32u SamplingRate=i->second.To_int32u();
 
-                    if (SingleDescriptor->second.BlockAlign!=(int16u)-1)
-                        SingleDescriptor->second.ByteRate=SamplingRate*SingleDescriptor->second.BlockAlign;
-                    else if (SingleDescriptor->second.QuantizationBits!=(int8u)-1)
-                        SingleDescriptor->second.ByteRate=SamplingRate*SingleDescriptor->second.QuantizationBits/8;
+                        if (SingleDescriptor->second.BlockAlign != (int16u)-1)
+                            SingleDescriptor->second.ByteRate = SamplingRate*SingleDescriptor->second.BlockAlign;
+                        else if (SingleDescriptor->second.QuantizationBits != (int8u)-1)
+                            SingleDescriptor->second.ByteRate = SamplingRate*SingleDescriptor->second.QuantizationBits / 8;
+                    }
                 }
             }
 
@@ -5872,8 +5786,14 @@ void File_Mxf::Data_Parse()
                 }
 
             //Format_Settings_Wrapping
-            if (SingleDescriptor!=Descriptors.end() && (SingleDescriptor->second.Infos.find("Format_Settings_Wrapping")==SingleDescriptor->second.Infos.end() || SingleDescriptor->second.Infos["Format_Settings_Wrapping"].empty()) && (Buffer_End?(Buffer_End-Buffer_Begin):Element_Size)>File_Size/2) //Divided by 2 for testing if this is a big chunk = Clip based and not frames.
-                SingleDescriptor->second.Infos["Format_Settings_Wrapping"]=__T("Clip"); //By default, not sure about it, should be from descriptor
+            if (SingleDescriptor!=Descriptors.end())
+            {
+                std::map<std::string, Ztring>::iterator i=SingleDescriptor->second.Infos.find("Format_Settings_Wrapping");
+                if ((i==SingleDescriptor->second.Infos.end() || i->second.empty()) && (Buffer_End?(Buffer_End-Buffer_Begin):Element_Size)>File_Size/2) //Divided by 2 for testing if this is a big chunk = Clip based and not frames.
+                {
+                    i->second=__T("Clip"); //By default, not sure about it, should be from descriptor
+                }
+            }
 
             //Searching the corresponding Track (for TrackID)
             if (!Essence->second.TrackID_WasLookedFor)
@@ -5937,14 +5857,18 @@ void File_Mxf::Data_Parse()
 
                     Essence->second.StreamPos_Initial=Essence->second.StreamPos=Code_Compare4&0x000000FF;
 
-                    if (Descriptor->second.StreamKind==Stream_Audio && Descriptor->second.Infos.find("Format_Settings_Endianness")==Descriptor->second.Infos.end())
+                    if (Descriptor->second.StreamKind==Stream_Audio)
                     {
-                        Ztring Format;
-                        Format.From_Local(Mxf_EssenceCompression(Descriptor->second.EssenceCompression));
-                        if (Format.empty())
-                            Format.From_Local(Mxf_EssenceContainer(Descriptor->second.EssenceContainer));
-                        if (Format.find(__T("PCM"))==0)
-                            Descriptor->second.Infos["Format_Settings_Endianness"]=__T("Little");
+                        std::map<std::string, Ztring>::iterator i=Descriptor->second.Infos.find("Format_Settings_Endianness");
+                        if (i==Descriptor->second.Infos.end())
+                        {
+                            Ztring Format;
+                            Format.From_Local(Mxf_EssenceCompression(Descriptor->second.EssenceCompression));
+                            if (Format.empty())
+                                Format.From_Local(Mxf_EssenceContainer(Descriptor->second.EssenceContainer));
+                            if (Format.find(__T("PCM"))==0)
+                                i->second=__T("Little");
+                        }
                     }
 
                     ChooseParser(Essence, Descriptor); //Searching by the descriptor
@@ -9529,20 +9453,6 @@ void File_Mxf::GenericSoundEssenceDescriptor_ChannelCount()
     FILLING_BEGIN();
         Descriptors[InstanceUID].ChannelCount=Value;
         Descriptor_Fill("Channel(s)", Ztring().From_Number(Value));
-
-        //if (Descriptors[InstanceUID].ChannelAssignment.lo!=(int64u)-1)
-        //{
-            //Descriptors[InstanceUID].Infos["ChannelLayout"]=Mxf_ChannelAssignment_ChannelLayout(Descriptors[InstanceUID].ChannelAssignment, Value);
-            //Ztring ChannelLayoutID;
-            //ChannelLayoutID.From_Number(Descriptors[InstanceUID].ChannelAssignment.lo, 16);
-            //if (ChannelLayoutID.size()<16)
-            //    ChannelLayoutID.insert(0, 16-ChannelLayoutID.size(), __T('0'));
-            //Descriptors[InstanceUID].Infos["ChannelLayoutID"]=ChannelLayoutID;
-            //Descriptors[InstanceUID].Infos["ChannelPositions"]=Mxf_ChannelAssignment_ChannelPositions(Descriptors[InstanceUID].ChannelAssignment, Value);
-            //if (Descriptors[InstanceUID].Infos["ChannelPositions"].empty())
-            //    Descriptors[InstanceUID].Infos["ChannelPositions"]=ChannelLayoutID;
-            //Descriptors[InstanceUID].Infos["ChannelPositions/String2"]=Mxf_ChannelAssignment_ChannelPositions2(Descriptors[InstanceUID].ChannelAssignment, Value);
-        //}
     FILLING_END();
 }
 
@@ -16529,17 +16439,22 @@ void File_Mxf::ChooseParser_ChannelGrouping(const essences::iterator &Essence, c
         {
             Parser=new File_ChannelGrouping;
             Parser->Channel_Pos=0;
-            if (Descriptor!=Descriptors.end() && Descriptor->second.Infos.find("SamplingRate")!=Descriptor->second.Infos.end())
-                Parser->SamplingRate=Descriptor->second.Infos["SamplingRate"].To_int16u();
+            if (Descriptor!=Descriptors.end())
+            {
+                std::map<std::string, Ztring>::const_iterator i=Descriptor->second.Infos.find("SamplingRate");
+                if (i!=Descriptor->second.Infos.end())
+                    Parser->SamplingRate=i->second.To_int16u();
+            }
             Essence->second.IsChannelGrouping=true;
         }
         Parser->Channel_Total=2;
         if (Descriptor!=Descriptors.end())
         {
             Parser->BitDepth=(int8u)(Descriptor->second.BlockAlign<=4?(Descriptor->second.BlockAlign*8):(Descriptor->second.BlockAlign*4)); //In one file, BlockAlign is size of the aggregated channelgroup
-            if (Descriptor->second.Infos.find("Format_Settings_Endianness")!=Descriptor->second.Infos.end())
+            std::map<std::string, Ztring>::const_iterator i=Descriptor->second.Infos.find("Format_Settings_Endianness");
+            if (i!=Descriptor->second.Infos.end())
             {
-                if (Descriptor->second.Infos["Format_Settings_Endianness"]==__T("Big"))
+                if (i->second==__T("Big"))
                     Parser->Endianness='B';
                 else
                     Parser->Endianness='L';
@@ -16592,8 +16507,9 @@ void File_Mxf::ChooseParser_Pcm(const essences::iterator &Essence, const descrip
     int8u Channels=0;
     if (Descriptor!=Descriptors.end())
     {
-        if (Descriptor->second.Infos.find("Channel(s)")!=Descriptor->second.Infos.end())
-            Channels=Descriptor->second.Infos["Channel(s)"].To_int8u();
+        std::map<std::string, Ztring>::const_iterator i=Descriptor->second.Infos.find("Channel(s)");
+        if (i!=Descriptor->second.Infos.end())
+            Channels=i->second.To_int8u();
 
         //Handling some buggy cases
         if (Channels>1 && Descriptor->second.BlockAlign!=(int16u)-1 && Descriptor->second.QuantizationBits!=(int32u)-1)
@@ -16610,14 +16526,19 @@ void File_Mxf::ChooseParser_Pcm(const essences::iterator &Essence, const descrip
         {
             if (Channels)
                 Parser->Channels=Channels;
-            if (Descriptor->second.Infos.find("SamplingRate")!=Descriptor->second.Infos.end())
-                Parser->SamplingRate=Descriptor->second.Infos["SamplingRate"].To_int16u();
+            std::map<std::string, Ztring>::const_iterator i=Descriptor->second.Infos.find("SamplingRate");
+            if (i!=Descriptor->second.Infos.end())
+                Parser->SamplingRate=i->second.To_int16u();
             if (Parser->Channels && Descriptor->second.BlockAlign!=(int16u)-1)
                 Parser->BitDepth=(int8u)(Descriptor->second.BlockAlign*8/Parser->Channels);
             else if (Descriptor->second.QuantizationBits<256)
                 Parser->BitDepth=(int8u)Descriptor->second.QuantizationBits;
-            else if (Descriptor->second.Infos.find("BitDepth")!=Descriptor->second.Infos.end())
-                Parser->BitDepth=Descriptor->second.Infos["BitDepth"].To_int8u();
+            else
+            {
+                i=Descriptor->second.Infos.find("BitDepth");
+                if (i!=Descriptor->second.Infos.end())
+                    Parser->BitDepth=i->second.To_int8u();
+            }
             //Handling of quantization bits not being same as BlockAlign/Channels
             if (Channels && Descriptor->second.BlockAlign!=(int16u)-1 && Descriptor->second.QuantizationBits!=(int32u)-1)
             {
@@ -16631,9 +16552,10 @@ void File_Mxf::ChooseParser_Pcm(const essences::iterator &Essence, const descrip
                     Parser->BitDepth=((int8u)Descriptor->second.BlockAlign)*8/Channels;
                 }
             }
-            if (Descriptor->second.Infos.find("Format_Settings_Endianness")!=Descriptor->second.Infos.end())
+            i = Descriptor->second.Infos.find("Format_Settings_Endianness");
+            if (i!=Descriptor->second.Infos.end())
             {
-                if (Descriptor->second.Infos["Format_Settings_Endianness"]==__T("Big"))
+                if (i->second==__T("Big"))
                     Parser->Endianness='B';
                 else
                     Parser->Endianness='L';
@@ -16693,9 +16615,10 @@ void File_Mxf::ChooseParser_SmpteSt0337(const essences::iterator &Essence, const
                 Parser->Container_Bits=(int8u)(Descriptor->second.BlockAlign*4);
             else if (Descriptor->second.QuantizationBits!=(int32u)-1)
                 Parser->Container_Bits=(int8u)Descriptor->second.QuantizationBits;
-            if (Descriptor->second.Infos.find("Format_Settings_Endianness")!=Descriptor->second.Infos.end())
+            std::map<std::string, Ztring>::const_iterator i=Descriptor->second.Infos.find("Format_Settings_Endianness");
+            if (i!=Descriptor->second.Infos.end())
             {
-                if (Descriptor->second.Infos["Format_Settings_Endianness"]==__T("Big"))
+                if (i->second==__T("Big"))
                     Parser->Endianness='B';
                 else
                     Parser->Endianness='L';
