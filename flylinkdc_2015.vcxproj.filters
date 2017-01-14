@@ -504,9 +504,6 @@
     <ClInclude Include="windows\PropPageTextStyles.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="windows\PublicHubsListDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="windows\QueueFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1204,6 +1201,7 @@
     <Image Include="res\vip_titankaluga.ico" />
     <Image Include="res\xxx.ico" />
     <Image Include="res\torrent.png" />
+    <Image Include="res\TransferTree.png" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

@@ -314,8 +314,10 @@ bool File::deleteFileT(const tstring& aFileName) noexcept
 	const auto l_result_delete = ::DeleteFile(formatPath(aFileName).c_str()) != NULL;
 	if (l_result_delete == false)
 	{
+#ifndef _CONSOLE
 		const string l_error = "Error delete file: " + Text::fromT(aFileName) + " Error " + Util::translateError();
 		LogManager::message(l_error);
+#endif
 	}
 	return l_result_delete;
 }
@@ -323,17 +325,23 @@ bool File::deleteFileT(const tstring& aFileName) noexcept
 bool File::renameFile(const tstring& p_source, const tstring& p_target)
 {
 	bool l_res = true;
+#ifndef _CONSOLE
 	CFlyLog l_log("[Rename]");
+#endif
 	if (!::MoveFile(formatPath(p_source).c_str(), formatPath(p_target).c_str()))
 	{
+#ifndef _CONSOLE
 		l_log.log("Start copy file: " + Text::fromT(p_source) + " -> " + Text::fromT(p_target) + " code:" + Util::toString(GetLastError()));
+#endif
 		try
 		{
 			copyFile(p_source, p_target);
 		}
 		catch (FileException & e)
 		{
+#ifndef _CONSOLE
 			l_log.log("Error copy file: " + e.getError());
+#endif
 			throw;
 		}
 		if (!deleteFileT(p_source))
@@ -343,7 +351,9 @@ bool File::renameFile(const tstring& p_source, const tstring& p_target)
 	}
 	else
 	{
+#ifndef _CONSOLE
 		l_log.log("MoveFile OK " + Text::fromT(p_source) + " -> " + Text::fromT(p_target));
+#endif
 	}
 	return l_res;
 }

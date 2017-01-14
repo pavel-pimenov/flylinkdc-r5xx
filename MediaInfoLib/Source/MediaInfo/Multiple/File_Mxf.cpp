@@ -1616,8 +1616,8 @@ static const char* Mxf_AS11_AudioTrackLayout[Mxf_AS11_AudioTrackLayout_Count]=
 };
 struct mxf_as11_audiotracklayout_assignment
 {
-    size_t Count;
-    const char* Assign[16];
+    const size_t Count;
+    const char* const Assign[16];
 };
 static const mxf_as11_audiotracklayout_assignment Mxf_AS11_AudioTrackLayout_ChannelPositions[Mxf_AS11_AudioTrackLayout_Count]=
 {

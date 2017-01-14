@@ -54,6 +54,7 @@
     <ClInclude Include="include\libtorrent\aux_\session_impl.hpp" />
     <ClInclude Include="include\libtorrent\aux_\session_interface.hpp" />
     <ClInclude Include="include\libtorrent\aux_\session_settings.hpp" />
+    <ClInclude Include="include\libtorrent\aux_\storage_utils.hpp" />
     <ClInclude Include="include\libtorrent\aux_\suggest_piece.hpp" />
     <ClInclude Include="include\libtorrent\aux_\time.hpp" />
     <ClInclude Include="include\libtorrent\aux_\vector.hpp" />
@@ -352,6 +353,7 @@
     <ClCompile Include="src\stat.cpp" />
     <ClCompile Include="src\stat_cache.cpp" />
     <ClCompile Include="src\storage.cpp" />
+    <ClCompile Include="src\storage_utils.cpp" />
     <ClCompile Include="src\string_util.cpp" />
     <ClCompile Include="src\time.cpp" />
     <ClCompile Include="src\timestamp_history.cpp" />

@@ -21,9 +21,9 @@
 #include "PublicHubsFrm.h"
 #include "HubFrame.h"
 #include "WinUtil.h"
-#include "PublicHubsListDlg.h"
 #include "../client/BZUtils.h"
 #include <boost/algorithm/string.hpp>
+#include "../FlyFeatures/flyServer.h"
 
 int PublicHubsFrame::columnIndexes[] =
 {
@@ -113,11 +113,6 @@ LRESULT PublicHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL); // ѕри изменении размеров окна-контейнера размеры раздел€емых областей мен€ютс€ пропорционально.
 	SetSplitterPanes(m_ctrlTree.m_hWnd, m_ctrlHubs.m_hWnd);
 	m_nProportionalPos = SETTING(FLYSERVER_HUBLIST_SPLIT);
-	
-	ctrlConfigure.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                     BS_PUSHBUTTON , 0, IDC_PUB_LIST_CONFIG);
-	ctrlConfigure.SetWindowText(CTSTRING(CONFIGURE));
-	ctrlConfigure.SetFont(Fonts::g_systemFont);
 	
 	ctrlFilter.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                  ES_AUTOHSCROLL, WS_EX_CLIENTEDGE);
@@ -283,7 +278,7 @@ void PublicHubsFrame::loadPublicListHubs()
 	                                             0, // aParent,
 	                                             0  // hInsertAfter
 	                                            );
-	const StringList lists = SPLIT_SETTING_AND_LOWER(HUBLIST_SERVERS);
+	const StringList lists = CFlyServerConfig::getHubListUrl();
 	HTREEITEM p_first_item = nullptr;
 	for (auto i = lists.cbegin(); i != lists.cend(); ++i)
 	{
@@ -634,16 +629,6 @@ LRESULT PublicHubsFrame::onEnter(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*bHa
 	return 0;
 }
 
-LRESULT PublicHubsFrame::onClickedConfigure(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-{
-	PublicHubListDlg dlg;
-	if (dlg.DoModal(m_hWnd) == IDOK)
-	{
-		updateTree();
-	}
-	return 0;
-}
-
 LRESULT PublicHubsFrame::onClickedConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	if (!checkNick())
@@ -779,12 +764,6 @@ void PublicHubsFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 	rc.left += ((rc.right - rc.left + 8) / 3) * 2;
 	ctrlFilterSel.MoveWindow(rc);
 	
-	// Config
-	rc.left = rc.right + 10;
-	rc.right = rc.left + 160;
-	rc.bottom -= comboH;
-	
-	ctrlConfigure.MoveWindow(rc);
 	
 	rect.bottom -= 60;
 	SetSplitterRect(&rect);

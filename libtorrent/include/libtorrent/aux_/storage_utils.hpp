@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2011-2016, Arvid Norberg
+Copyright (c) 2003-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,49 +30,56 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_LINK_HPP_INCLUDED
-#define TORRENT_LINK_HPP_INCLUDED
+#ifndef TORRENT_STORAGE_UTILS_HPP_INCLUDE
+#define TORRENT_STORAGE_UTILS_HPP_INCLUDE
 
-#include "libtorrent/aux_/vector.hpp"
+#include <cstdint>
+
+#include "libtorrent/config.hpp"
+#include "libtorrent/span.hpp"
+#include "libtorrent/units.hpp"
+
+#ifndef TORRENT_WINDOWS
+#include <sys/uio.h> // for iovec
+#endif
 
 namespace libtorrent
 {
-	struct link
+	class file_storage;
+	struct storage_error;
+
+#ifdef TORRENT_WINDOWS
+	struct iovec_t
 	{
-		link() : index(-1) {}
-		// this is either -1 (not in the list)
-		// or the index of where in the list this
-		// element is found
-		int index;
-
-		bool in_list() const { return index >= 0; }
-
-		void clear() { index = -1; }
-
-		template <class T>
-		void unlink(aux::vector<T*>& list, int link_index)
-		{
-			if (index == -1) return;
-			TORRENT_ASSERT(index >= 0 && index < int(list.size()));
-			int const last = int(list.size()) - 1;
-			if (index < last)
-			{
-				list[last]->m_links[link_index].index = index;
-				list[index] = list[last];
-			}
-			list.resize(last);
-			index = -1;
-		}
-
-		template <class T>
-		void insert(aux::vector<T*>& list, T* self)
-		{
-			if (index >= 0) return;
-			TORRENT_ASSERT(index == -1);
-			list.push_back(self);
-			index = int(list.size()) - 1;
-		}
+		void* iov_base;
+		size_t iov_len;
 	};
+#else
+	using iovec_t = ::iovec;
+#endif
+
+	TORRENT_EXTRA_EXPORT int copy_bufs(span<iovec_t const> bufs, int bytes, span<iovec_t> target);
+	TORRENT_EXTRA_EXPORT span<iovec_t> advance_bufs(span<iovec_t> bufs, int bytes);
+
+	// this identifies a read or write operation so that readwritev() knows
+	// what to do when it's actually touching the file
+	struct fileop
+	{
+		virtual int file_op(file_index_t const file_index, std::int64_t const file_offset
+			, span<iovec_t const> bufs, storage_error& ec) = 0;
+
+	protected:
+		~fileop() {}
+	};
+
+
+	// this function is responsible for turning read and write operations in the
+	// torrent space (pieces) into read and write operations in the filesystem
+	// space (files on disk).
+	TORRENT_EXTRA_EXPORT int readwritev(file_storage const& files
+		, span<iovec_t const> bufs, piece_index_t piece, int offset
+		, fileop& op, storage_error& ec);
+
 }
 
 #endif

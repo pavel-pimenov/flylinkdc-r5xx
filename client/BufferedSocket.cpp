@@ -288,173 +288,207 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
                                        CFlySearchArrayTTH& p_tth_search,
                                        CFlySearchArrayFile& p_file_search)
 {
-	if (p_line.compare(0, 8, "$Search ", 8) == 0)
+	if (p_line.size() < 8)
+		return false;
+	if (p_line.compare(0, 2, "$S", 2) != 0)
+		return false;
+	if (ShareManager::g_is_initial == true)
 	{
-		if (ShareManager::g_is_initial == true)
-		{
 #ifdef _DEBUG
-			LogManager::message("[ShareManager::g_is_initial] BufferedSocket::all_search_parser p_line = " + p_line);
+		LogManager::message("[ShareManager::g_is_initial] BufferedSocket::all_search_parser p_line = " + p_line);
 #endif
-			return true;
-		}
-		if (m_is_hide_share == false && ClientManager::isStartup() == false)
-		{
+		return true;
+	}
+	if (m_is_hide_share == true || ClientManager::isStartup() == true)
+	{
+		return true;
+	}
+	if (p_line.compare(2, 6, "earch ", 6) == 0)
+	{
 #ifndef _DEBUG
-			const
+		const
 #endif
-			string l_line_item = p_line.substr(0, p_pos_next_separator);
-			auto l_marker_tth = l_line_item.find("?0?9?TTH:");
-			// TODO научиться обрабатывать лимит по размеру вида
-			// "x.x.x.x:yyy T?F?57671680?9?TTH:A3VSWSWKCVC4N6EP2GX47OEMGT5ZL52BOS2LAHA"
-			if (l_marker_tth != string::npos &&
-			        l_marker_tth > 5 &&
-			        l_line_item[l_marker_tth - 4] == ' ' &&
-			        l_line_item.size() >= l_marker_tth + 9 + 39
-			   ) // Поправка на полную команду  F?T?0?9?TTH: или F?F?0?9?TTH: или T?T?0?9?TTH:
-			{
-				dcassert(l_line_item.size() == l_marker_tth + 9 + 39 ||
-				         l_line_item.size() == l_marker_tth + 9 + 40
-				        );
-				l_marker_tth -= 4;
+		string l_line_item = p_line.substr(0, p_pos_next_separator);
+		auto l_marker_tth = l_line_item.find("?0?9?TTH:");
+		// TODO научиться обрабатывать лимит по размеру вида
+		// "x.x.x.x:yyy T?F?57671680?9?TTH:A3VSWSWKCVC4N6EP2GX47OEMGT5ZL52BOS2LAHA"
+		if (l_marker_tth != string::npos &&
+		        l_marker_tth > 5 &&
+		        l_line_item[l_marker_tth - 4] == ' ' &&
+		        l_line_item.size() >= l_marker_tth + 9 + 39
+		   ) // Поправка на полную команду  F?T?0?9?TTH: или F?F?0?9?TTH: или T?T?0?9?TTH:
+		{
+			dcassert(l_line_item.size() == l_marker_tth + 9 + 39 ||
+			         l_line_item.size() == l_marker_tth + 9 + 40
+			        );
+			l_marker_tth -= 4;
 #ifdef _DEBUG
-				static FastCriticalSection g_stat_cs;
-				static std::unordered_map<TTHValue, unsigned> g_tth_count;
-				const string l_tth_str = l_line_item.substr(l_marker_tth + 13, 39);
-				const TTHValue l_tth_orig(l_tth_str);
-				unsigned l_count_tth = 0;
+			static FastCriticalSection g_stat_cs;
+			static std::unordered_map<TTHValue, unsigned> g_tth_count;
+			const string l_tth_str = l_line_item.substr(l_marker_tth + 13, 39);
+			const TTHValue l_tth_orig(l_tth_str);
+			unsigned l_count_tth = 0;
+			{
+				CFlyFastLock(g_stat_cs);
+				l_count_tth = ++g_tth_count[l_tth_orig];
+			}
+#endif
+			const TTHValue l_tth(l_line_item.c_str() + l_marker_tth + 13, 39);
+			//dcassert(l_tth == l_tth_orig);
+			if (ShareManager::isUnknownTTH(l_tth) == false)
+			{
+				const string l_search_str = l_line_item.substr(8, l_marker_tth - 8);
+				dcassert(l_search_str.size() > 4);
+				if (l_search_str.size() > 4)
 				{
-					CFlyFastLock(g_stat_cs);
-					l_count_tth = ++g_tth_count[l_tth_orig];
+					p_tth_search.emplace_back(CFlySearchItemTTH(l_tth, l_search_str));
+					dcassert(p_tth_search.back().m_search.find('|') == string::npos && p_tth_search.back().m_search.find('$') == string::npos);
+				}
+			}
+			else
+			{
+#ifdef _DEBUG
+				static unsigned g_count_skip = 0;
+				++g_count_skip;
+				if (DebugManager::g_isCMDDebug)
+				{
+					l_line_item = "[count All = " + Util::toString(g_count_skip) + "] "
+					              + "[count TTH = " + Util::toString(l_count_tth) + "] "
+					              + "[size_map = "   + Util::toString(g_tth_count.size()) + "] "
+					              + l_line_item;
 				}
 #endif
-				const TTHValue l_tth(l_line_item.c_str() + l_marker_tth + 13, 39);
-				//dcassert(l_tth == l_tth_orig);
-				if (ShareManager::isUnknownTTH(l_tth) == false)
+				COMMAND_DEBUG("[TTH][FastSkip]" + l_line_item, DebugTask::HUB_IN, getServerAndPort());
+#ifdef _DEBUG
+				//  LogManager::message("BufferedSocket::all_search_parser Skip unknown TTH = " + l_tth.toBase32());
+#endif
+			}
+		}
+		else
+		{
+			if (Util::isValidSearch(l_line_item) == false)
+			{
+				if (!m_count_search_ddos)
 				{
-					const string l_search_str = l_line_item.substr(8, l_marker_tth - 8);
-					dcassert(l_search_str.size() > 4);
-					if (l_search_str.size() > 4)
+					const string l_error = "[" + Util::formatDigitalDate() + "] BufferedSocket::all_search_parser DDoS $Search command: " + l_line_item + " Hub IP = " + getIp();
+					CFlyServerJSON::pushError(20, l_error);
+					LogManager::message(l_error);
+					if (!m_count_search_ddos)
 					{
-						p_tth_search.emplace_back(CFlySearchItemTTH(l_tth, l_search_str));
-						dcassert(p_tth_search.back().m_search.find('|') == string::npos && p_tth_search.back().m_search.find('$') == string::npos);
+						fly_fire1(BufferedSocketListener::DDoSSearchDetect(), l_error);
 					}
-					else
-					{
-					}
+					m_count_search_ddos++;
 				}
-				else
+				COMMAND_DEBUG("[DDoS] " + l_line_item, DebugTask::HUB_IN, getServerAndPort());
+				return true;
+			}
+#if 0
+			auto l_marker_file = l_line_item.find(' ', 8);
+			if (l_marker_file == string::npos || l_line_item.size() <= 12)
+			{
+				const string l_error = "BufferedSocket::all_search_parser error format $Search command: " + l_line_item + " Hub IP = " + getIp();
+				CFlyServerJSON::pushError(19, l_error);
+				LogManager::message(l_error);
+				return true;
+			}
+#endif
+#ifdef _DEBUG
+//            LogManager::message("BufferedSocket::all_search_parser Skip unknown file = " + aString);
+#endif
+			CFlySearchItemFile l_item;
+			const bool l_is_valid_search = l_item.is_parse_nmdc_search(l_line_item.substr(8));
+			if (l_is_valid_search)
+			{
+				if (ShareManager::isUnknownFile(l_item.getRAWQuery()))
 				{
 #ifdef _DEBUG
 					static unsigned g_count_skip = 0;
 					++g_count_skip;
 					if (DebugManager::g_isCMDDebug)
 					{
-						l_line_item = "[count All = " + Util::toString(g_count_skip) + "] "
-						              + "[count TTH = " + Util::toString(l_count_tth) + "] "
-						              + "[size_map = "   + Util::toString(g_tth_count.size()) + "] "
-						              + l_line_item;
+						l_line_item = "[count = " + Util::toString(g_count_skip) + "] " + l_line_item;
 					}
 #endif
-					COMMAND_DEBUG("[TTH][FastSkip]" + l_line_item, DebugTask::HUB_IN, getServerAndPort());
+					COMMAND_DEBUG("[File][FastSkip][Unknown files]" + l_line_item, DebugTask::HUB_IN, getServerAndPort());
 #ifdef _DEBUG
-					//  LogManager::message("BufferedSocket::all_search_parser Skip unknown TTH = " + l_tth.toBase32());
+//						LogManager::message("BufferedSocket::all_search_parser Skip unknown File = " + l_item.m_raw_search + " count_dup = " + Util::toString(l_count_dup));
 #endif
+				}
+				else
+				{
+#if 0
+					int l_count_dup = 0;
+					std::map<string, int> l_stat_map;
+					{
+						static CriticalSection g_debug_cs;
+						static boost::unordered_map<string, std::pair<int, std::map<string, int> > > g_count_dup_ip_port;
+						if (!l_item.m_is_passive)
+						{
+							CFlyLock(g_debug_cs);
+							l_count_dup = g_count_dup_ip_port[l_item.m_seeker].first++;
+							g_count_dup_ip_port[l_item.m_seeker].second[l_item.m_filter]++;
+							l_stat_map = g_count_dup_ip_port[l_item.m_seeker].second;
+						}
+					}
+					if (l_count_dup > 1)
+					{
+						l_line_item += " count_dup = " + Util::toString(l_count_dup);
+						
+						if (!l_stat_map.empty())
+						{
+							l_line_item += " [";
+							for (auto i = l_stat_map.cbegin(), iend = l_stat_map.cend(); i != iend; ++i)
+							{
+								l_line_item += "'" + i->first + "' = " + Util::toString(i->second);
+							}
+							l_line_item.push_back(']');
+						}
+					}
+					COMMAND_DEBUG("[File][Valid][files] " + l_line_item, DebugTask::HUB_IN, getServerAndPort());
+#endif
+					p_file_search.push_back(l_item);
 				}
 			}
 			else
 			{
-				if (Util::isValidSearch(l_line_item) == false)
-				{
-					if (!m_count_search_ddos)
-					{
-						const string l_error = "[" + Util::formatDigitalDate() + "] BufferedSocket::all_search_parser DDoS $Search command: " + l_line_item + " Hub IP = " + getIp();
-						CFlyServerJSON::pushError(20, l_error);
-						LogManager::message(l_error);
-						if (!m_count_search_ddos)
-						{
-							fly_fire1(BufferedSocketListener::DDoSSearchDetect(), l_error);
-						}
-						m_count_search_ddos++;
-					}
-					COMMAND_DEBUG("[DDoS] " + l_line_item, DebugTask::HUB_IN, getServerAndPort());
-					return true;
-				}
-#if 0
-				auto l_marker_file = l_line_item.find(' ', 8);
-				if (l_marker_file == string::npos || l_line_item.size() <= 12)
-				{
-					const string l_error = "BufferedSocket::all_search_parser error format $Search command: " + l_line_item + " Hub IP = " + getIp();
-					CFlyServerJSON::pushError(19, l_error);
-					LogManager::message(l_error);
-					return true;
-				}
-#endif
 #ifdef _DEBUG
-//            LogManager::message("BufferedSocket::all_search_parser Skip unknown file = " + aString);
+				LogManager::message("BufferedSocket::all_search_parser error is_parse_nmdc_search = " + l_item.m_raw_search + " m_error_level = " + Util::toString(l_item.m_error_level));
 #endif
-				CFlySearchItemFile l_item;
-				const bool l_is_valid_search = l_item.is_parse_nmdc_search(l_line_item.substr(8));
-				if (l_is_valid_search)
-				{
-					if (ShareManager::isUnknownFile(l_item.getRAWQuery()))
-					{
-#ifdef _DEBUG
-						static unsigned g_count_skip = 0;
-						++g_count_skip;
-						if (DebugManager::g_isCMDDebug)
-						{
-							l_line_item = "[count = " + Util::toString(g_count_skip) + "] " + l_line_item;
-						}
-#endif
-						COMMAND_DEBUG("[File][FastSkip][Unknown files]" + l_line_item, DebugTask::HUB_IN, getServerAndPort());
-#ifdef _DEBUG
-//						LogManager::message("BufferedSocket::all_search_parser Skip unknown File = " + l_item.m_raw_search + " count_dup = " + Util::toString(l_count_dup));
-#endif
-					}
-					else
-					{
-#if 0
-						int l_count_dup = 0;
-						std::map<string, int> l_stat_map;
-						{
-							static CriticalSection g_debug_cs;
-							static boost::unordered_map<string, std::pair<int, std::map<string, int> > > g_count_dup_ip_port;
-							if (!l_item.m_is_passive)
-							{
-								CFlyLock(g_debug_cs);
-								l_count_dup = g_count_dup_ip_port[l_item.m_seeker].first++;
-								g_count_dup_ip_port[l_item.m_seeker].second[l_item.m_filter]++;
-								l_stat_map = g_count_dup_ip_port[l_item.m_seeker].second;
-							}
-						}
-						if (l_count_dup > 1)
-						{
-							l_line_item += " count_dup = " + Util::toString(l_count_dup);
-							
-							if (!l_stat_map.empty())
-							{
-								l_line_item += " [";
-								for (auto i = l_stat_map.cbegin(), iend = l_stat_map.cend(); i != iend; ++i)
-								{
-									l_line_item += "'" + i->first + "' = " + Util::toString(i->second);
-								}
-								l_line_item.push_back(']');
-							}
-						}
-						COMMAND_DEBUG("[File][Valid][files] " + l_line_item, DebugTask::HUB_IN, getServerAndPort());
-#endif
-						p_file_search.push_back(l_item);
-					}
-				}
-				else
-				{
-#ifdef _DEBUG
-					LogManager::message("BufferedSocket::all_search_parser error is_parse_nmdc_search = " + l_item.m_raw_search + " m_error_level = " + Util::toString(l_item.m_error_level));
-#endif
-				}
 			}
 		}
 		return true;
+	}
+	else
+	{
+		if (p_line.size() >= 45 && p_line[3] == ' ' && (p_line[2] == 'P' || p_line[2] == 'A') && p_line[43] == ' ')
+		{
+			const TTHValue l_tth(p_line.c_str() + 4, 39);
+			if (ShareManager::isUnknownTTH(l_tth) == false)
+			{
+				const auto l_end_cmd = p_line.find('|', 43);
+				if (l_end_cmd != string::npos)
+				{
+					string l_search_str = p_line.substr(44, l_end_cmd - 44);
+					if (p_line[2] == 'P')
+						l_search_str = "Hub:" + l_search_str;
+					dcassert(l_search_str.size() > 4);
+					if (l_search_str.size() > 4)
+					{
+						p_tth_search.emplace_back(CFlySearchItemTTH(l_tth, l_search_str));
+					}
+				}
+			}
+			else
+			{
+				string l_line_item = p_line.substr(0, p_pos_next_separator);
+				COMMAND_DEBUG("[TTHS][FastSkip]" + l_line_item, DebugTask::HUB_IN, getServerAndPort());
+#ifdef _DEBUG
+				//  LogManager::message("BufferedSocket::all_search_parser Skip unknown TTH = " + l_tth.toBase32());
+#endif
+			}
+			
+			return true;
+		}
 	}
 	return false;
 }

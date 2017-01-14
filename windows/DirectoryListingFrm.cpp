@@ -2376,11 +2376,11 @@ void DirectoryListingFrame::update_column_after_merge(std::vector<int> p_update_
 {
 #if 0
 	// TODO - апдейты по колонкам не пашут иногда
-	const static int l_array[] =
+	static const int l_array[] =
 	{
 		COLUMN_BITRATE , COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO , COLUMN_MEDIA_AUDIO, COLUMN_DURATION, COLUMN_FLY_SERVER_RATING
 	};
-	const static std::vector<int> l_columns(l_array, l_array + _countof(l_array));
+	static const std::vector<int> l_columns(l_array, l_array + _countof(l_array));
 	dcassert(!isClosedOrShutdown());
 	if (!isClosedOrShutdown())
 	{

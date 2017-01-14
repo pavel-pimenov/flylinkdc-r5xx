@@ -243,7 +243,7 @@ namespace
 		char const* name;
 	};
 	// non-standard names
-	static generic_map_entry generic_mappings[] =
+	static const generic_map_entry generic_mappings[] =
 	{
 		{0, "-MG", "Media Get" }
 		, {0, "Deadman Walking-", "Deadman"}
@@ -294,7 +294,7 @@ namespace
 		char identity[200];
 
 		const int size = sizeof(name_map)/sizeof(name_map[0]);
-		map_entry tmp = {f.name, ""};
+		map_entry const tmp = {f.name, ""};
 		map_entry* i =
 			std::lower_bound(name_map, name_map + size
 				, tmp, &compare_id);

@@ -97,7 +97,6 @@ ChatCtrl::ChatCtrl() : m_boAutoScroll(true), m_is_disable_chat_cache(false), m_i
 
 ChatCtrl::~ChatCtrl()
 {
-	dcassert(m_chat_cache.empty());
 #ifdef IRAINMAN_INCLUDE_SMILE
 	safe_release(m_pStorage);
 	safe_release(m_lpLockBytes);

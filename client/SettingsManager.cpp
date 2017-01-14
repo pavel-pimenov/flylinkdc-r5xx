@@ -59,7 +59,7 @@ bool SettingsManager::isSet[SETTINGS_LAST];
 SettingsManager::SearchTypes SettingsManager::g_searchTypes; // name, extlist
 // [!] IRainman opt: use this data as static.
 
-const string SettingsManager::g_settingTags[] =
+static const char* g_settingTags[] =
 {
 	// Strings //
 	
@@ -67,7 +67,7 @@ const string SettingsManager::g_settingTags[] =
 	
 	"TextFont", "TransferFrameOrder", "TransferFrameWidths", "HubFrameOrder", "HubFrameWidths",
 	"DefaultCodepage", "LanguageFile", "SearchFrameOrder", "SearchFrameWidths", "FavoritesFrameOrder", "FavoritesFrameWidths", "FavoritesFrameVisible",
-	"HublistServers", "QueueFrameOrder", "QueueFrameWidths", "PublicHubsFrameOrder", "PublicHubsFrameWidths", "PublicHubsFrameVisible",
+	"QueueFrameOrder", "QueueFrameWidths", "PublicHubsFrameOrder", "PublicHubsFrameWidths", "PublicHubsFrameVisible",
 	"UsersFrameOrder", "UsersFrameWidths", "UsersFrameVisible", "LogDir", "LogFormatPostDownload",
 	
 	"LogFormatPostUpload", "LogFormatMainChat", "LogFormatPrivateChat", "FinishedOrder", "FinishedWidths",
@@ -532,7 +532,6 @@ void SettingsManager::setDefaults()
 	//setDefault(IGNORE_HUB_PMS, false);
 	//setDefault(IGNORE_BOT_PMS, false);
 	setDefault(BUFFER_SIZE_FOR_DOWNLOADS, 1024);
-	setDefault(HUBLIST_SERVERS, "http://dchublist.ru/hublist.xml.bz2;http://www.te-home.net/?do=hublist&get=hublist-ru.xml.bz2;http://hublist.flexhub.org/hublist.xml.bz2");
 	//setDefault(DOWNLOAD_SLOTS, 0); // [+] PPA
 	//setDefault(MAX_DOWNLOAD_SPEED, 0);
 	setDefault(LOG_DIRECTORY, Util::getLocalPath() + "Logs" PATH_SEPARATOR_STR);

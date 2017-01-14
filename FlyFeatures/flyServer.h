@@ -183,7 +183,9 @@ class CFlyServerConfig
 		static std::vector<CServerItem> g_mirror_read_only_servers;
 		static std::vector<CServerItem> g_mirror_test_port_servers;
 		static std::vector<CServerItem> g_torrent_dht_servers;
-		static CServerItem g_local_test_server;
+        static std::vector<std::string> g_hublist_url;
+        static std::vector<std::string> g_promo_hub_url;
+        static CServerItem g_local_test_server;
 		static CServerItem g_main_server;
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 		static CServerItem g_stat_server;
@@ -194,6 +196,17 @@ class CFlyServerConfig
 			dcassert(!g_torrent_dht_servers.empty());
 			return g_torrent_dht_servers;
 		}
+        static const std::vector<std::string>& getHubListUrl()
+        {
+            dcassert(!g_hublist_url.empty());
+            return g_hublist_url;
+        }
+        static const std::vector<std::string>& getPromoHubUrl()
+        {
+            dcassert(!g_promo_hub_url.empty());
+            return g_promo_hub_url;
+        }
+        
 		static const CServerItem& getStatServer();
 		static const CServerItem& getTestPortServer();
 		static const std::vector<CServerItem> getMirrorTestPortServerArray();

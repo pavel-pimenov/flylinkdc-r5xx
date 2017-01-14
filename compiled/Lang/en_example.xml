@@ -1307,7 +1307,6 @@
 	<string name="SettingsColorReserved">Has reserved slot</string>
 	<string name="SettingsCommand">Command</string>
 	<string name="SettingsCompressTransfers">Enable safe and compressed transfers</string>
-	<string name="SettingsConfigureHubLists">Configure Internet hub lists</string>
 	<string name="SettingsConfirmDialogOptions">Confirm dialog options</string>
 	<string name="SettingsConfirmExit">Confirm application exit</string>
 	<string name="SettingsConfirmHubgroupRemoval">Confirm hub group removal</string>
@@ -1443,8 +1442,6 @@
 	<string name="SettingsProtectPrivateSay">Notify me of password guessing or trying PM</string>
 	<string name="SettingsProviders">Providers resources</string>
 	<string name="SettingsProxy">Proxy settings</string>
-	<string name="SettingsPublicHubList">Internet Hubs-list</string>
-	<string name="SettingsPublicHubListUrl">Internet Hubs-list URL</string>
 	<string name="SettingsQueue">Queue</string>
 	<string name="SettingsRc">Remote control</string>
 	<string name="SettingsRequiresRestart">Note: most of these options require that you restart FlylinkDC++</string>

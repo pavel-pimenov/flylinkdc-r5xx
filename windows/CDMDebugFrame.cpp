@@ -272,16 +272,19 @@ LRESULT CDMDebugFrame::onChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/
 			WinUtil::GetWindowText(tmp, ctrlIPFilter);
 			m_sFilterIp = Text::fromT(tmp);
 			m_IPTokens = StringTokenizer<string>(m_sFilterIp, ',');
+			clearCmd();
 			break;
 		case IDC_DEBUG_INCLUDE_FILTER_TEXT:
 			WinUtil::GetWindowText(tmp, m_ctrlIncludeFilter);
 			m_sFilterInclude = Text::fromT(tmp);
 			m_IncludeTokens = StringTokenizer<string>(m_sFilterInclude, ',');
+			clearCmd();
 			break;
 		case IDC_DEBUG_EXCLUDE_FILTER_TEXT:
 			WinUtil::GetWindowText(tmp, m_ctrlExcludeFilter);
 			m_sFilterExclude = Text::fromT(tmp);
 			m_ExcludeTokens = StringTokenizer<string>(m_sFilterExclude, ',');
+			clearCmd();
 			break;
 		default:
 			dcassert(0);
@@ -292,22 +295,25 @@ LRESULT CDMDebugFrame::onChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/
 int CDMDebugFrame::run()
 {
 	DebugTask l_task;
-	while (!ClientManager::isShutdown())
+	while (!ClientManager::isBeforeShutdown())
 	{
 		m_semaphore.wait();
-		if (ClientManager::isShutdown() || m_stop)
+		if (ClientManager::isBeforeShutdown() || m_stop)
 		{
 			break;
 		}
 		{
 			CFlyFastLock(m_cs);
-			dcassert(!m_cmdList.empty());
-			
-			std::swap(l_task, m_cmdList.front());
-			m_cmdList.pop_front();
+			if (!m_cmdList.empty())
+			{
+				std::swap(l_task, m_cmdList.front());
+				m_cmdList.pop_front();
+			}
 		}
-		
-		addLine(l_task);
+		if (l_task.m_type != DebugTask::LAST)
+		{
+			addLine(l_task);
+		}
 	}
 	return 0;
 }
@@ -350,6 +356,20 @@ void CDMDebugFrame::on(DebugManagerListener::DebugEvent, const DebugTask& task) 
 			return;
 	}
 	addCmd(task);
+}
+void CDMDebugFrame::clearCmd()
+{
+	CFlyFastLock(m_cs);
+	m_cmdList.clear();
+	m_semaphore.signal();
+}
+void CDMDebugFrame::addCmd(const DebugTask& task)
+{
+	{
+		CFlyFastLock(m_cs);
+		m_cmdList.push_back(task);
+	}
+	m_semaphore.signal();
 }
 
 #endif // IRAINMAN_INCLUDE_PROTO_DEBUG_FUNCTION

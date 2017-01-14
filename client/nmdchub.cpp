@@ -1073,7 +1073,6 @@ void NmdcHub::supportsParse(const string& param)
 		{
 			m_supportFlags |= SUPPORTS_HUBURL;
 		}
-		
 #ifdef FLYLINKDC_USE_EXT_JSON
 		else if (*i == "ExtJSON2")
 		{
@@ -1081,6 +1080,10 @@ void NmdcHub::supportsParse(const string& param)
 			fly_fire1(ClientListener::FirstExtJSON(), this);
 		}
 #endif
+		else if (*i == "TTHS")
+		{
+			m_supportFlags |= SUPPORTS_SEARCH_TTHS;
+		}
 	}
 	// if (!(m_supportFlags & SUPPORTS_NICKRULE))
 	/*
@@ -1183,7 +1186,7 @@ void NmdcHub::lockParse(const string& aLine)
 			// http://nmdc.sourceforge.net/NMDC.html#_hubtopic
 			feat.push_back("HubTopic");
 #endif
-			
+			feat.push_back("TTHS");
 			if (CryptoManager::TLSOk())
 			{
 				feat.push_back("TLS");
@@ -2474,15 +2477,28 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 void NmdcHub::search_token(const SearchParamToken& p_search_param)
 {
 	checkstate();
-	const char c1 = (p_search_param.m_size_mode == Search::SIZE_DONTCARE || p_search_param.m_size_mode == Search::SIZE_EXACT) ? 'F' : 'T';
-	const char c2 = p_search_param.m_size_mode == Search::SIZE_ATLEAST ? 'F' : 'T';
-	string tmp = p_search_param.m_file_type == Search::TYPE_TTH ? g_tth + p_search_param.m_filter : fromUtf8(escape(p_search_param.m_filter)); // [!] IRainman opt.
-	string::size_type i;
-	while ((i = tmp.find(' ')) != string::npos)
+	char c1, c2;
+	string tmp;
+	
+	int l_file_type = p_search_param.m_file_type;
+	if (l_file_type > Search::TYPE_TTH)
 	{
-		tmp[i] = '$';
+		l_file_type = 0;
 	}
-	string tmp2;
+	if (p_search_param.m_file_type == Search::TYPE_TTH)
+	{
+		c1 = 'F';
+		c2 = 'T';
+		tmp = g_tth + p_search_param.m_filter;
+	}
+	else
+	{
+		c1 = (p_search_param.m_size_mode == Search::SIZE_DONTCARE || p_search_param.m_size_mode == Search::SIZE_EXACT) ? 'F' : 'T';
+		c2 = p_search_param.m_size_mode == Search::SIZE_ATLEAST ? 'F' : 'T';
+		tmp = fromUtf8(escape(p_search_param.m_filter));
+	}
+	string::size_type i;
+	std::replace(tmp.begin(), tmp.end(), ' ', '$');
 	bool l_is_passive = p_search_param.m_is_force_passive_searh || BOOLSETTING(SEARCH_PASSIVE);
 	if (SearchManager::getSearchPortUint() == 0)
 	{
@@ -2491,15 +2507,34 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 		CFlyServerJSON::pushError(21, "Error search port = 0 :");
 	}
 	const bool l_is_active = isActive();
-	if (l_is_active && !l_is_passive)
+	string l_search_command;
+	string tmp2;
+	if ((m_supportFlags & SUPPORTS_SEARCH_TTHS) == SUPPORTS_SEARCH_TTHS && p_search_param.m_file_type == Search::TYPE_TTH)
 	{
-		tmp2 = calcExternalIP();
+		dcassert(p_search_param.m_filter == TTHValue(p_search_param.m_filter).toBase32());
+		if (l_is_active && !l_is_passive)
+		{
+			tmp2 = calcExternalIP();
+			l_search_command = "$SA " + p_search_param.m_filter + ' ' + tmp2 + '|';
+		}
+		else
+		{
+			tmp2 = getMyNickFromUtf8();
+			l_search_command = "$SP " + p_search_param.m_filter + ' ' + tmp2 + '|';
+		}
 	}
 	else
 	{
-		tmp2 = "Hub:" + getMyNickFromUtf8();
+		if (l_is_active && !l_is_passive)
+		{
+			tmp2 = calcExternalIP();
+		}
+		else
+		{
+			tmp2 = "Hub:" + getMyNickFromUtf8();
+		}
+		l_search_command = "$Search " + tmp2 + ' ' + c1 + '?' + c2 + '?' + Util::toString(p_search_param.m_size) + '?' + Util::toString(l_file_type + 1) + '?' + tmp + '|';
 	}
-	const string l_search_command = "$Search " + tmp2 + ' ' + c1 + '?' + c2 + '?' + Util::toString(p_search_param.m_size) + '?' + Util::toString(p_search_param.m_file_type + 1) + '?' + tmp + '|';
 #ifdef _DEBUG
 	const string l_debug_string = "[Search:" + l_search_command + "][" + (l_is_active ? string("Active") : string("Passive")) + " search][Client:" + getHubUrl() + "]";
 	dcdebug("[NmdcHub::search] %s \r\n", l_debug_string.c_str());
@@ -2521,6 +2556,9 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 		//if (m_isActivMode)
 		//  g_last_search_string += " [Client:ActiveFirst]";
 	}
+#ifdef FLYLINKDC_BETA
+	g_last_search_string += " (Raw command: " + l_search_command + ')';
+#endif
 	//LogManager::message(l_debug_string);
 	// TODO - check flood (BETA)
 	send(l_search_command);

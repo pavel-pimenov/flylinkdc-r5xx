@@ -129,14 +129,8 @@ class CDMDebugFrame : private DebugManagerListener, public Thread,
 		
 		int run();
 		
-		void addCmd(const DebugTask& task)
-		{
-			{
-				CFlyFastLock(m_cs);
-				m_cmdList.push_back(task);
-			}
-			m_semaphore.signal();
-		}
+		void addCmd(const DebugTask& task);
+		void clearCmd();
 		
 		CEdit ctrlCMDPad;
 		CEdit ctrlIPFilter;

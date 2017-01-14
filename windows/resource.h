@@ -61,7 +61,6 @@
 #define IDD_POPUPS_PAGE                 157
 #define IDD_SDC_PAGE                    158
 #define IDD_USERLIST_COLOURS_PAGE       159
-#define IDD_HUB_LIST                    160
 #define IDD_WINDOWS_PAGE                161
 #define IDD_EMOTICONS_DLG               162
 #define IDD_NETWORK_PAGE                163
@@ -214,6 +213,7 @@
 #define IDR_VIP_ICO_TITANKALUGA         324
 #define IDR_TORRENT_PNG                 325
 #define IDR_TRANSFER_TREE               326
+#define IDR_VIP_ICO_SIBFILES            327
 #define IDR_ICON_XXX_BLOCK              999
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
@@ -328,7 +328,6 @@
 #define IDC_HUBDESCR                    1111
 #define IDC_HUBADDR                     1112
 #define IDC_RAW_FOUR                    1113
-#define IDC_SETTINGS_LIST_CONFIG        1114
 #define IDC_FORCE                       1115
 #define IDC_RAW_FIVE                    1116
 #define IDC_BUFFERSIZE                  1117
@@ -453,8 +452,6 @@
 #define IDC_SETTINGS_DOWNLOADS_MAX      1239
 #define IDC_SETTINGS_DOWNLOADS_SPEED_PAUSE 1240
 #define IDC_SETTINGS_SPEEDS_NOT_ACCURATE 1241
-#define IDC_SETTINGS_PUBLIC_HUB_LIST    1242
-#define IDC_SETTINGS_PUBLIC_HUB_LIST_URL 1243
 #define IDC_SETTINGS_SHARED_DIRECTORIES 1246
 #define IDC_SETTINGS_FILES_MAX          1247
 #define IDC_SETTINGS_SHARE_SIZE         1248
@@ -689,7 +686,6 @@
 #define IDC_STATIC8                     1473
 #define IDC_REGEXP_TESTER_COMBO         1474
 #define IDC_LISTLEN                     1475
-#define IDC_PUB_LIST_CONFIG             1477
 #define IDC_ODC_STYLE                   1478
 #define IDC_NO_IP_OVERRIDE              1479
 #define IDC_WINDOWS_STARTUP             1480

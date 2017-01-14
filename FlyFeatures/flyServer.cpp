@@ -92,6 +92,9 @@ std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_syslog;
 std::vector<CServerItem> CFlyServerConfig::g_mirror_read_only_servers;
 std::vector<CServerItem> CFlyServerConfig::g_mirror_test_port_servers;
 std::vector<CServerItem> CFlyServerConfig::g_torrent_dht_servers;
+std::vector<std::string> CFlyServerConfig::g_hublist_url;
+std::vector<std::string> CFlyServerConfig::g_promo_hub_url;
+
 CServerItem CFlyServerConfig::g_local_test_server;
 CServerItem CFlyServerConfig::g_main_server;
 uint16_t CFlyServerAdapter::CFlyServerQueryThread::g_minimal_interval_in_ms  = 2000;
@@ -394,7 +397,7 @@ void CFlyServerConfig::loadConfig()
 		LPCSTR l_res_data;
 		std::string l_data;
 #ifdef _DEBUG
-		// #define USE_FLYSERVER_LOCAL_FILE
+		 //#define USE_FLYSERVER_LOCAL_FILE
 #endif
 		const auto l_path_local_test_file = Text::toT(Util::getExePath()) + _T("fly-server-getip.config");
 		if (File::isExist(l_path_local_test_file))
@@ -685,6 +688,15 @@ void CFlyServerConfig::loadConfig()
 							g_torrent_dht_servers.push_back(l_server);
 						}
 					});
+                    l_xml.getChildAttribSplit("hublist_url", g_hublist_url, [this](const string & n)
+                    {
+                         g_hublist_url.push_back(n);
+                    });
+                    l_xml.getChildAttribSplit("promo_hub_url", g_promo_hub_url, [this](const string & n)
+                    {
+                        g_promo_hub_url.push_back(n);
+                    });
+                    
 					
 					
 					
@@ -762,7 +774,9 @@ void CFlyServerConfig::loadConfig()
 		if (g_ignore_flood_command.empty())
 		{
 			g_ignore_flood_command.insert("Search");
-			g_ignore_flood_command.insert("UserCommand");
+            g_ignore_flood_command.insert("SA");
+            g_ignore_flood_command.insert("SP");
+            g_ignore_flood_command.insert("UserCommand");
 			g_ignore_flood_command.insert("Quit");
 			g_ignore_flood_command.insert("MyINFO");
 #ifdef FLYLINKDC_USE_EXT_JSON

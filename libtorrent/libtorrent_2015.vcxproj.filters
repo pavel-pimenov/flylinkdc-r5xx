@@ -662,6 +662,9 @@
     <ClInclude Include="include\libtorrent\aux_\vector.hpp">
       <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\storage_utils.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ed25519\src\add_scalar.cpp">
@@ -1091,6 +1094,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ip_notifier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\storage_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

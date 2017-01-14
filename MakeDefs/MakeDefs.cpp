@@ -8,8 +8,8 @@
 #include "../client/ResourceManager.h"
 
 
-string ResourceManager::strings[];
-wstring ResourceManager::wstrings[];
+string ResourceManager::g_strings[];
+wstring ResourceManager::g_wstrings[];
 int __cdecl main(int argc, char* argv[])
 {
 	if(argc < 3) {
@@ -31,14 +31,13 @@ int __cdecl main(int argc, char* argv[])
 
 		StringList l = StringTokenizer<string>(x, '\n').getTokens();
 
-		StringIter i;
 		string varStr;
 		string varName;
 		string start;
 
 		SimpleXML ex;
 
-		for(i = l.begin(); i != l.end(); ) {
+		for(auto i = l.begin(); i != l.end(); ) {
 			if( (k = i->find("// @Strings: ")) != string::npos) {
 				varStr = i->substr(k + 13);
 				i = l.erase(i);
@@ -78,7 +77,7 @@ int __cdecl main(int argc, char* argv[])
 		string def;
 		string xmldef;
 		string s;
-		for(i = l.begin(); i != l.end(); i++) {
+		for(auto i = l.begin(); i != l.end(); i++) {
 
 			name.clear();
 			s = *i;

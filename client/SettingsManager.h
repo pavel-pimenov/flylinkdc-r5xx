@@ -89,7 +89,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  TEXT_FONT, TRANSFER_FRAME_ORDER, TRANSFER_FRAME_WIDTHS, HUBFRAME_ORDER, HUBFRAME_WIDTHS,
 		                  
 		                  DEFAULT_CODEPAGE, LANGUAGE_FILE, SEARCHFRAME_ORDER, SEARCHFRAME_WIDTHS, FAVORITESFRAME_ORDER, FAVORITESFRAME_WIDTHS, FAVORITESFRAME_VISIBLE,
-		                  HUBLIST_SERVERS, QUEUEFRAME_ORDER, QUEUEFRAME_WIDTHS, PUBLICHUBSFRAME_ORDER, PUBLICHUBSFRAME_WIDTHS, PUBLICHUBSFRAME_VISIBLE,
+		                  QUEUEFRAME_ORDER, QUEUEFRAME_WIDTHS, PUBLICHUBSFRAME_ORDER, PUBLICHUBSFRAME_WIDTHS, PUBLICHUBSFRAME_VISIBLE,
 		                  USERSFRAME_ORDER, USERSFRAME_WIDTHS, USERSFRAME_VISIBLE, LOG_DIRECTORY, LOG_FORMAT_POST_DOWNLOAD,
 		                  
 		                  LOG_FORMAT_POST_UPLOAD, LOG_FORMAT_MAIN_CHAT, LOG_FORMAT_PRIVATE_CHAT, FINISHED_ORDER, FINISHED_WIDTHS,
@@ -579,8 +579,6 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		SettingsManager();
 		~SettingsManager() { }
 		
-		// [!] IRainman opt: use this data as static.
-		static const string g_settingTags[];
 		
 		static string strSettings[STR_LAST - STR_FIRST];
 		static int    intSettings[INT_LAST - INT_FIRST];

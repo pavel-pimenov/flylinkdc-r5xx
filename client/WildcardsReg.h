@@ -58,7 +58,7 @@ class WildcardsEss
 		 * default symbol for special case
 		 * regexp equivalent search is a [^/]* (EXT version: [^/\\]+)
 		 */
-		const static TCHAR ANYSP_CMP_DEFAULT = _T('/');
+		static const TCHAR ANYSP_CMP_DEFAULT = _T('/');
 		
 		/** entry for match cases */
 		bool search(const tstring& text, const tstring& filter, bool ignoreCase = true);

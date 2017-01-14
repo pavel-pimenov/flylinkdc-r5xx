@@ -428,24 +428,6 @@ BEGIN
     CTEXT           "wikilink",IDC_USERS_LINK,10,197,303,8
 END
 
-IDD_HUB_LIST DIALOGEX 0, 0, 303, 185
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "idd_hub_list"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    CONTROL         "",IDC_STATIC,"Static",SS_BITMAP,0,0,15,13
-    GROUPBOX        "idc_list_desc",IDC_LIST_DESC,4,50,293,130
-    EDITTEXT        IDC_LIST_EDIT_BOX,8,60,220,14,ES_AUTOHSCROLL | ES_WANTRETURN
-    CONTROL         "",IDC_LIST_LIST,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,8,77,220,99
-    PUSHBUTTON      "idc_list_add",IDC_LIST_ADD,233,59,60,14
-    PUSHBUTTON      "idc_list_up",IDC_LIST_UP,233,78,60,14
-    PUSHBUTTON      "idc_list_down",IDC_LIST_DOWN,233,94,60,14
-    PUSHBUTTON      "idc_list_edit",IDC_LIST_EDIT,233,110,60,14
-    PUSHBUTTON      "idc_list_remove",IDC_LIST_REMOVE,233,126,60,14
-    DEFPUSHBUTTON   "OK",IDOK,233,146,60,14
-    PUSHBUTTON      "Cancel",IDCANCEL,233,162,60,14
-END
-
 IDD_WINDOWS_PAGE DIALOGEX 0, 0, 325, 300
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
 EXSTYLE WS_EX_STATICEDGE
@@ -525,8 +507,7 @@ BEGIN
     LTEXT           "Update IP interval\r\n...",IDC_SETTINGS_UPDATE_IP_INTERVAL,9,223,231,16
     EDITTEXT        IDC_UPDATE_IP_INTERVAL,264,224,44,14,ES_AUTOHSCROLL | ES_NUMBER
     GROUPBOX        "Torrent",IDC_SETTINGS_TORRENT,4,242,317,27
-    CONTROL         "Enable torrent DHT",IDC_SETTINGS_USE_TORRENT,
-                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,249,303,17
+    CONTROL         "Enable torrent DHT",IDC_SETTINGS_USE_TORRENT,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,11,249,303,17
     ICON            "",IDC_NETWORK_TEST_PORT_TCP_ICO,274,99,21,20
     ICON            "",IDC_NETWORK_TEST_PORT_UDP_ICO,274,114,21,20
     ICON            "",IDC_NETWORK_TEST_PORT_TLS_TCP_ICO,274,130,21,20
@@ -878,9 +859,6 @@ BEGIN
     CONTROL         "Spin2",IDC_SPEEDSPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,43,132,11,14
     LTEXT           "No new downloads if speed exceeds (kB/s, 0 = disable)",IDC_SETTINGS_DOWNLOADS_SPEED_PAUSE,57,130,257,17
     LTEXT           "Note; because of changing download speeds, this is not 100% accurate...",IDC_SETTINGS_SPEEDS_NOT_ACCURATE,10,148,304,8
-    GROUPBOX        "Public Hubs list",IDC_SETTINGS_PUBLIC_HUB_LIST,4,163,316,27
-    LTEXT           "Public Hubs list URL",IDC_SETTINGS_PUBLIC_HUB_LIST_URL,10,174,163,8
-    PUSHBUTTON      "idc_settings_list_config",IDC_SETTINGS_LIST_CONFIG,214,171,100,14
 END
 
 IDD_SHARE_PAGE DIALOGEX 0, 0, 325, 300
@@ -1562,7 +1540,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
     CONTROL         "",IDC_WIZARD_STARTUP_PICT,"Static",SS_BITMAP | SS_REALSIZEIMAGE,0,0,15,13
     CTEXT           "You can add folders, which will be share with other users. All subfolders and files in selected folders can be download by users from connected hubs.\r\nDo not share folders with system files, please!",IDC_WIZARD_SHARE_STATIC,4,52,295,34
-    CONTROL         "",IDC_WIZARD_SHARE_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,4,89,295,94
+    CONTROL         "",IDC_WIZARD_SHARE_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,4,104,295,79
     PUSHBUTTON      "Add",IDC_WIZARD_SHARE_ADD,14,184,64,14
     PUSHBUTTON      "Remove",IDC_WIZARD_SHARE_REMOVE,84,184,64,14
     PUSHBUTTON      "Edit",IDC_WIZARD_SHARE_EDIT,154,184,64,14
@@ -2072,26 +2050,6 @@ BEGIN
         VERTGUIDE, 314
         TOPMARGIN, 7
         BOTTOMMARGIN, 293
-    END
-
-    IDD_HUB_LIST, DIALOG
-    BEGIN
-        RIGHTMARGIN, 299
-        VERTGUIDE, 4
-        VERTGUIDE, 8
-        VERTGUIDE, 228
-        VERTGUIDE, 233
-        VERTGUIDE, 293
-        VERTGUIDE, 297
-        TOPMARGIN, 3
-        BOTTOMMARGIN, 178
-        HORZGUIDE, 31
-        HORZGUIDE, 41
-        HORZGUIDE, 55
-        HORZGUIDE, 73
-        HORZGUIDE, 94
-        HORZGUIDE, 111
-        HORZGUIDE, 179
     END
 
     IDD_WINDOWS_PAGE, DIALOG
@@ -3074,6 +3032,7 @@ IDR_VIP_ICO_EVAHUB      ICON                    "res\\vip_eva.ico"
 
 IDR_VIP_ICO_TITANKALUGA ICON                    "res\\vip_titankaluga.ico"
 
+IDR_VIP_ICO_SIBFILES ICON                       "res\\vip_sibfiles.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3098,7 +3057,7 @@ IDR_SETTINGS_ICONS      PNG                     "res\\Settings-icons.png"
 
 IDR_USERS               PNG                     "res\\Users.png"
 
-IDR_TRANSFER_TREE         PNG                   "res\\TransferTree.png"
+IDR_TRANSFER_TREE       PNG                     "res\\TransferTree.png"
 
 IDR_STATE_USERS         PNG                     "res\\StateUsers.png"
 
@@ -3188,6 +3147,11 @@ BEGIN
 END
 
 IDD_ABOUTBOX AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_WIZARD_SHARE AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -3286,7 +3250,6 @@ END
 IDR_INTERNET_HUBS ACCELERATORS
 BEGIN
     "I",            IDC_FILTER_FOCUS,       VIRTKEY, ALT, NOINVERT
-    "C",            IDC_PUB_LIST_CONFIG,    VIRTKEY, ALT, NOINVERT
     VK_F5,          IDC_REFRESH_HUB_LIST,   VIRTKEY, ALT, NOINVERT
 END
 

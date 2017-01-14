@@ -38,6 +38,7 @@ bool ResourceManager::loadLanguage(const string& aFile)
 		
 		for (int i = 0; i < LAST; ++i)
 		{
+			g_names[i].shrink_to_fit();
 			l_handler[g_names[i]] = i;
 		}
 		

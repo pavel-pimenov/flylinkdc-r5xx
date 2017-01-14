@@ -653,7 +653,6 @@
     <ClInclude Include="windows\PropPageTextStyles.h" />
     <ClInclude Include="windows\ProvidersPage.h" />
     <ClInclude Include="windows\ProxyPage.h" />
-    <ClInclude Include="windows\PublicHubsListDlg.h" />
     <ClInclude Include="windows\QueueFrame.h" />
     <ClInclude Include="windows\QueuePage.h" />
     <ClInclude Include="windows\RangesPage.h" />
@@ -720,6 +719,7 @@
     <Image Include="res\StateUsers.png" />
     <Image Include="res\thermometer2.ico" />
     <Image Include="res\torrent.png" />
+    <Image Include="res\TransferTree.png" />
     <Image Include="res\vip_allavtovo.ico" />
     <Image Include="res\vip_eva.ico" />
     <Image Include="res\vip_keepclear_org.ico" />

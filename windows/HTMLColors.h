@@ -23,8 +23,8 @@
 
 struct HTMLColors // [+] SSA struct for BB colors codes
 {
-	HTMLColors(const tstring& p_tag, const COLORREF p_color) : tag(p_tag), color(p_color) { }
-	const tstring tag;
+	HTMLColors(const TCHAR* p_tag, const COLORREF p_color) : tag(p_tag), color(p_color) { }
+	const TCHAR* tag;
 	const COLORREF color;
 };
 
@@ -50,7 +50,6 @@ static const HTMLColors g_htmlColors[] =
 	HTMLColors(_T("maroon"),    RGBT(80, 00, 00)),
 	HTMLColors(_T("green"),     RGBT(00, 80, 00)),
 	HTMLColors(_T("olive"),     RGBT(80, 80, 00)),
-//	HTMLColors(_T(""),          RGBT(00,00,00) ),
 };
 
 #undef RGBT
