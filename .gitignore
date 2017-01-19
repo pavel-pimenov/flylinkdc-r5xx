@@ -113,3 +113,5 @@ FlylinkDC-*.7z
 /*.opendb
 /*.db
 /compiled/*.exp
+/compiled/Settings/Certificates/client.crt
+/compiled/Settings/Certificates/client.key
