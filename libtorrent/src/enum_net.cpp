@@ -104,22 +104,20 @@ namespace libtorrent { namespace
 {
 
 #if !defined TORRENT_BUILD_SIMULATOR
-	address_v4 inaddr_to_address(in_addr const* ina, int len = 4)
+	address_v4 inaddr_to_address(in_addr const* ina, int const len = 4)
 	{
-		typedef boost::asio::ip::address_v4::bytes_type bytes_t;
-		bytes_t b;
-		std::memset(&b[0], 0, b.size());
-		if (len > 0) std::memcpy(&b[0], ina, (std::min)(len, int(b.size())));
+		boost::asio::ip::address_v4::bytes_type b;
+		b.fill(0);
+		if (len > 0) std::memcpy(b.data(), ina, std::min(std::size_t(len), b.size()));
 		return address_v4(b);
 	}
 
 #if TORRENT_USE_IPV6
-	address_v6 inaddr6_to_address(in6_addr const* ina6, int len = 16)
+	address_v6 inaddr6_to_address(in6_addr const* ina6, int const len = 16)
 	{
-		typedef boost::asio::ip::address_v6::bytes_type bytes_t;
-		bytes_t b;
-		std::memset(&b[0], 0, b.size());
-		if (len > 0) std::memcpy(&b[0], ina6, (std::min)(len, int(b.size())));
+		boost::asio::ip::address_v6::bytes_type b;
+		b.fill(0);
+		if (len > 0) std::memcpy(b.data(), ina6, std::min(std::size_t(len), b.size()));
 		return address_v6(b);
 	}
 #endif
@@ -137,13 +135,13 @@ namespace libtorrent { namespace
 	{
 		if (sin->sa_family == AF_INET || assume_family == AF_INET)
 			return inaddr_to_address(&reinterpret_cast<sockaddr_in const*>(sin)->sin_addr
-				, sockaddr_len(sin) - offsetof(sockaddr, sa_data));
+				, sockaddr_len(sin) - int(offsetof(sockaddr, sa_data)));
 #if TORRENT_USE_IPV6
 		else if (sin->sa_family == AF_INET6 || assume_family == AF_INET6)
 		{
 			auto saddr = reinterpret_cast<sockaddr_in6 const*>(sin);
 			auto ret = inaddr6_to_address(&saddr->sin6_addr
-				, sockaddr_len(sin) - offsetof(sockaddr, sa_data));
+				, sockaddr_len(sin) - int(offsetof(sockaddr, sa_data)));
 			ret.scope_id(saddr->sin6_scope_id);
 			return ret;
 		}
@@ -358,12 +356,12 @@ namespace libtorrent
 			b1 = a1.to_v6().to_bytes();
 			b2 = a2.to_v6().to_bytes();
 			m = mask.to_v6().to_bytes();
-			for (int i = 0; i < int(b1.size()); ++i)
+			for (std::size_t i = 0; i < b1.size(); ++i)
 			{
 				b1[i] &= m[i];
 				b2[i] &= m[i];
 			}
-			return memcmp(&b1[0], &b2[0], b1.size()) == 0;
+			return std::memcmp(b1.data(), b2.data(), b1.size()) == 0;
 		}
 #endif
 		return (a1.to_v4().to_ulong() & mask.to_v4().to_ulong())
@@ -379,10 +377,9 @@ namespace libtorrent
 
 	bool in_local_network(std::vector<ip_interface> const& net, address const& addr)
 	{
-		for (std::vector<ip_interface>::const_iterator i = net.begin()
-			, end(net.end()); i != end; ++i)
+		for (auto const& i : net)
 		{
-			if (match_addr_mask(addr, i->interface_address, i->netmask))
+			if (match_addr_mask(addr, i.interface_address, i.netmask))
 				return true;
 		}
 		return false;
@@ -703,7 +700,7 @@ namespace libtorrent
 	address get_default_gateway(io_service& ios, error_code& ec)
 	{
 		std::vector<ip_route> ret = enum_routes(ios, ec);
-		std::vector<ip_route>::iterator i = std::find_if(ret.begin(), ret.end()
+		auto const i = std::find_if(ret.begin(), ret.end()
 			, [](ip_route const& r) { return r.destination == address(); });
 		if (i == ret.end()) return address();
 		return i->gateway;
@@ -845,9 +842,9 @@ namespace libtorrent
 		}
 		close(s);
 */
-	int mib[6] = { CTL_NET, PF_ROUTE, 0, AF_UNSPEC, NET_RT_DUMP, 0};
+	int mib[6] = {CTL_NET, PF_ROUTE, 0, AF_UNSPEC, NET_RT_DUMP, 0};
 
-	size_t needed = 0;
+	std::size_t needed = 0;
 #ifdef TORRENT_OS2
 	if (__libsocket_sysctl(mib, 6, 0, &needed, 0, 0) < 0)
 #else

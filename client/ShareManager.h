@@ -252,7 +252,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 #ifdef _DEBUG
 						//, boost::noncopyable // TODO - сделать чтобы объект был не копируемым - boost::noncopyable
 #endif
-				{						
+				{
 						struct FileTraits
 						{
 							size_t operator()(const ShareFile& a) const

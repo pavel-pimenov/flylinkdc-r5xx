@@ -1257,7 +1257,9 @@ int BufferedSocket::run()
 		}
 		catch (const Exception& e)
 		{
-			//LogManager::message("BufferedSocket::run(), error = " + e.getError());
+#ifdef _DEBUG
+			LogManager::message("BufferedSocket::run(), error = " + e.getError());
+#endif
 			fail(e.getError());
 		}
 	}

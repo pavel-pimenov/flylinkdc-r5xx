@@ -358,7 +358,9 @@ void UserConnection::connect(const string& aServer, uint16_t aPort, uint16_t loc
 	
 	socket = BufferedSocket::getBufferedSocket(0, this);
 	socket->addListener(this);
-	socket->connect(aServer, aPort, localPort, natRole, isSet(FLAG_SECURE), BOOLSETTING(ALLOW_UNTRUSTED_CLIENTS), true);
+	const bool l_is_AllowUntrusred = BOOLSETTING(ALLOW_UNTRUSTED_CLIENTS);
+	const bool l_is_secure = isSet(FLAG_SECURE);
+	socket->connect(aServer, aPort, localPort, natRole, l_is_secure, l_is_AllowUntrusred, true);
 }
 
 void UserConnection::accept(const Socket& aServer)
@@ -366,8 +368,9 @@ void UserConnection::accept(const Socket& aServer)
 	dcassert(!socket);
 	socket = BufferedSocket::getBufferedSocket(0, this);
 	socket->addListener(this);
-	const bool bAllowUntrusred = BOOLSETTING(ALLOW_UNTRUSTED_CLIENTS);
-	setPort(socket->accept(aServer, isSet(FLAG_SECURE), bAllowUntrusred));
+	const bool l_is_AllowUntrusred = BOOLSETTING(ALLOW_UNTRUSTED_CLIENTS);
+	const bool l_is_secure = isSet(FLAG_SECURE);
+	setPort(socket->accept(aServer, l_is_secure, l_is_AllowUntrusred));
 }
 
 void UserConnection::inf(bool withToken)

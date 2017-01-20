@@ -26,7 +26,6 @@
 #include "../bzip2/bzlib_private.h"
 #include "../miniupnpc/miniupnpc.h"
 #include "../openssl/include/openssl/opensslv.h"
-//#include "../XMLParser/XMLParser.h"
 #include "HIconWrapper.h"
 #include "wtl_flylinkdc.h"
 #include "leveldb/db.h"

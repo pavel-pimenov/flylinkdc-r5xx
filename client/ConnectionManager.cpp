@@ -1707,37 +1707,10 @@ void ConnectionManager::force(const UserPtr& aUser)
 
 bool ConnectionManager::checkKeyprint(UserConnection *aSource)
 {
-	dcassert(aSource->getUser());
-	auto kp = aSource->getKeyprint();
-	if (kp.empty())
-	{
+	if (!aSource->isSecure() || aSource->isTrusted())
 		return true;
-	}
-	
-	auto kp2 = ClientManager::getStringField(aSource->getUser()->getCID(), aSource->getHubUrl(), "KP");
-	if (kp2.empty())
-	{
-		// TODO false probably
-		return true;
-	}
-	
-	if (kp2.compare(0, 7, "SHA256/", 7) != 0)
-	{
-		// Unsupported hash
-		return true;
-	}
-	
-	dcdebug("Keyprint: %s vs %s\n", Encoder::toBase32(&kp[0], kp.size()).c_str(), kp2.c_str() + 7);
-	
-	vector<uint8_t> kp2v(kp.size());
-	Encoder::fromBase32(&kp2[7], &kp2v[0], kp2v.size());
-	if (!std::equal(kp.begin(), kp.end(), kp2v.begin()))
-	{
-		dcdebug("Not equal...\n");
-		return false;
-	}
-	
-	return true;
+	const string l_kp = ClientManager::getStringField(aSource->getUser()->getCID(), aSource->getHubUrl(), "KP");
+	return aSource->verifyKeyprint(l_kp, BOOLSETTING(ALLOW_UNTRUSTED_CLIENTS));
 }
 
 void ConnectionManager::failed(UserConnection* aSource, const string& aError, bool protocolError)

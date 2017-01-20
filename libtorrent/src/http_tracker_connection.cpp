@@ -101,7 +101,7 @@ namespace libtorrent
 		// if request-string already contains
 		// some parameters, append an ampersand instead
 		// of a question mark
-		size_t arguments_start = url.find('?');
+		std::size_t arguments_start = url.find('?');
 		if (arguments_start != std::string::npos)
 			url += "&";
 		else
@@ -264,8 +264,7 @@ namespace libtorrent
 		if (!tracker_req().filter) return;
 
 		// remove endpoints that are filtered by the IP filter
-		for (std::vector<tcp::endpoint>::iterator i = endpoints.begin();
-			i != endpoints.end();)
+		for (auto i = endpoints.begin(); i != endpoints.end();)
 		{
 			if (tracker_req().filter->access(i->address()) == ip_filter::blocked)
 				i = endpoints.erase(i);
@@ -412,8 +411,8 @@ namespace libtorrent
 		return true;
 	}
 
-	tracker_response parse_tracker_response(char const* data, int size, error_code& ec
-		, int flags, sha1_hash scrape_ih)
+	tracker_response parse_tracker_response(char const* data, int const size, error_code& ec
+		, int const flags, sha1_hash const& scrape_ih)
 	{
 		tracker_response resp;
 
@@ -488,7 +487,7 @@ namespace libtorrent
 		if (peers_ent && peers_ent.type() == bdecode_node::string_t)
 		{
 			char const* peers = peers_ent.string_ptr();
-			int len = peers_ent.string_length();
+			int const len = peers_ent.string_length();
 #if TORRENT_USE_I2P
 			if (0 != (flags & tracker_request::i2p))
 			{
@@ -505,7 +504,7 @@ namespace libtorrent
 			else
 #endif
 			{
-				resp.peers4.reserve(len / 6);
+				resp.peers4.reserve(std::size_t(len / 6));
 				for (int i = 0; i < len; i += 6)
 				{
 					if (len - i < 6) break;
@@ -547,8 +546,8 @@ namespace libtorrent
 		if (ipv6_peers)
 		{
 			char const* peers = ipv6_peers.string_ptr();
-			int len = ipv6_peers.string_length();
-			resp.peers6.reserve(len / 18);
+			int const len = ipv6_peers.string_length();
+			resp.peers6.reserve(std::size_t(len / 18));
 			for (int i = 0; i < len; i += 18)
 			{
 				if (len - i < 18) break;

@@ -454,6 +454,7 @@ namespace libtorrent
 		// the number of failed incoming DHT requests by kind of request
 		METRIC(dht, dht_invalid_announce)
 		METRIC(dht, dht_invalid_get_peers)
+		METRIC(dht, dht_invalid_find_node)
 		METRIC(dht, dht_invalid_put)
 		METRIC(dht, dht_invalid_get)
 
@@ -535,7 +536,7 @@ namespace libtorrent
 		std::vector<stats_metric> stats;
 		int const num = sizeof(metrics) / sizeof(metrics[0]);
 		stats.resize(num);
-		for (int i = 0; i < num; ++i)
+		for (std::size_t i = 0; i < num; ++i)
 		{
 			stats[i].name = metrics[i].name;
 			stats[i].value_index = metrics[i].value_index;

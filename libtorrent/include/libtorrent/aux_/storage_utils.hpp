@@ -38,6 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/config.hpp"
 #include "libtorrent/span.hpp"
 #include "libtorrent/units.hpp"
+#include "libtorrent/storage_defs.hpp" // for status_t
 
 #ifndef TORRENT_WINDOWS
 #include <sys/uio.h> // for iovec
@@ -46,6 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace libtorrent
 {
 	class file_storage;
+	struct part_file;
 	struct storage_error;
 
 #ifdef TORRENT_WINDOWS
@@ -72,13 +74,28 @@ namespace libtorrent
 		~fileop() {}
 	};
 
-
 	// this function is responsible for turning read and write operations in the
 	// torrent space (pieces) into read and write operations in the filesystem
 	// space (files on disk).
 	TORRENT_EXTRA_EXPORT int readwritev(file_storage const& files
 		, span<iovec_t const> bufs, piece_index_t piece, int offset
 		, fileop& op, storage_error& ec);
+
+	// moves the files in file_storage f from ``save_path`` to
+	// ``destination_save_path`` according to the rules defined by ``flags``.
+	// returns the status code and the new save_path.
+	TORRENT_EXTRA_EXPORT std::pair<status_t, std::string>
+	move_storage(file_storage const& f
+		, std::string const& save_path
+		, std::string const& destination_save_path
+		, part_file* pf
+		, int const flags, storage_error& ec);
+
+	// deletes the files on fs from save_path according to options. Options may
+	// opt to only delete the partfile
+	TORRENT_EXTRA_EXPORT void
+	delete_files(file_storage const& fs, std::string const& save_path
+		, std::string const& part_file_name, int const options, storage_error& ec);
 
 }
 

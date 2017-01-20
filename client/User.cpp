@@ -1179,7 +1179,13 @@ string Identity::getIpAsString() const
 		}
 		else
 		{
-			return getUser()->getIPAsString();
+			if (getUser())
+				return getUser()->getIPAsString();
+			else
+			{
+				dcassert(0);
+				return m_ip.to_string();
+			}
 		}
 	}
 }

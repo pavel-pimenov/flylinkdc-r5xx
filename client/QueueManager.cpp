@@ -470,8 +470,8 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 			for (auto j = i->second.cbegin(); j != i->second.cend(); ++j)
 			{
 				const QueueItemPtr qi = *j;
-				const auto l_source = qi->findSourceL(aUser); // [!] IRainman fix done: [10] https://www.box.net/shared/6ea561f898012606519a
-				if (l_source == qi->m_sources.end()) //[+]PPA
+				const auto l_source = qi->findSourceL(aUser);
+				if (l_source == qi->m_sources.end())
 					continue;
 				if (l_source->second.isSet(QueueItem::Source::FLAG_PARTIAL)) // TODO Crash
 				{
@@ -2533,26 +2533,25 @@ void QueueManager::removeSource(const string& aTarget, const UserPtr& aUser, Fla
 		QueueItemPtr q = QueueManager::FileQueue::find_target(aTarget);
 		if (!q)
 			return;
-			
-		if (!q->isSourceL(aUser))
-			return;
-			
-		if (q->isAnySet(QueueItem::FLAG_USER_LIST
-		| QueueItem::FLAG_USER_GET_IP // [+] IRainman fix: auto-remove.
-		               ))
-		{
-			removeCompletely = true;
-			break;
-		}
-		
-		if (reason == QueueItem::Source::FLAG_NO_TREE)
 		{
 			const auto& l_source = q->findSourceL(aUser);
 			if (l_source != q->m_sources.end())
 			{
-				l_source->second.setFlag(reason);
+				if (reason == QueueItem::Source::FLAG_NO_TREE)
+				{
+					l_source->second.setFlag(reason);
+				}
 			}
-			return;
+			else
+			{
+				return;
+			}
+		}
+		
+		if (q->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
+		{
+			removeCompletely = true;
+			break;
 		}
 		
 		if (q->isRunning() && g_userQueue.getRunningL(aUser) == q)
@@ -3292,7 +3291,7 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 			{
 				// add this user as partial file sharing source
 				qi->addSourceL(aUser, false);
-				si = qi->findSourceL(aUser);
+				si = qi->findSourceL(aUser); // TODO - повторный поиск?
 				si->second.setFlag(QueueItem::Source::FLAG_PARTIAL);
 				
 				const auto ps = std::make_shared<QueueItem::PartialSource>(partialSource.getMyNick(),

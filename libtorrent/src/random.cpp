@@ -41,6 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/win_crypto_provider.hpp"
 
 #elif defined TORRENT_USE_LIBCRYPTO
+
 extern "C" {
 #include <openssl/rand.h>
 #include <openssl/err.h>
@@ -49,6 +50,10 @@ extern "C" {
 #endif
 
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
+
+#if TORRENT_USE_DEV_RANDOM
+#include "libtorrent/aux_/dev_random.hpp"
+#endif
 
 namespace libtorrent
 {
@@ -68,28 +73,38 @@ namespace libtorrent
 
 		void random_bytes(span<char> buffer)
 		{
-#if TORRENT_USE_CRYPTOAPI
+#ifdef TORRENT_BUILD_SIMULATOR
+			// simulator
+
+			for (auto& b : buffer) b = char(random(0xff));
+
+#elif TORRENT_USE_CRYPTOAPI
+			// windows
+
 			aux::crypt_gen_random(buffer);
 
+#elif TORRENT_USE_DEV_RANDOM
+			// /dev/random
+
+			static dev_random dev;
+			dev.read(buffer);
+
 #elif defined TORRENT_USE_LIBCRYPTO
-#ifdef TORRENT_MACOS_DEPRECATED_LIBCRYPTO
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-#endif
+			// openssl
+
 			int r = RAND_bytes(reinterpret_cast<unsigned char*>(buffer.data())
 				, int(buffer.size()));
 			if (r != 1)
 			{
 #ifndef BOOST_NO_EXCEPTIONS
-				throw system_error(error_code(int(::ERR_get_error()), system_category()));
+				throw system_error(errors::no_entropy);
 #else
 				std::terminate();
 #endif
 			}
-#ifdef TORRENT_MACOS_DEPRECATED_LIBCRYPTO
-#pragma clang diagnostic pop
-#endif
 #else
+			// fallback
+
 			for (auto& b : buffer) b = char(random(0xff));
 #endif
 		}

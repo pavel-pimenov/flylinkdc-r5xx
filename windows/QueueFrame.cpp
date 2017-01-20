@@ -2116,9 +2116,8 @@ LRESULT QueueFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			return CDRF_NOTIFYITEMDRAW;
 		case CDDS_ITEMPREPAINT:
 		{
-			if (// [!] IRainman fix: needs for test! Please report to me if crashing here.
-			    // [-] qii && qii->getQueueItem() &&
-			    !qii->getQueueItem()->getBadSourcesL().empty()) // TODO - падаем https://www.crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=117848
+			if (qii && qii->getQueueItem() &&  // https://drdump.com/Problem.aspx?ProblemID=259662
+			        !qii->getQueueItem()->getBadSourcesL().empty()) // https://www.crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=117848
 			{
 				cd->clrText = SETTING(ERROR_COLOR);
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS

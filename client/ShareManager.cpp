@@ -229,9 +229,9 @@ int64_t ShareManager::Directory::getDirSizeL() const noexcept
     dcassert(!ClientManager::isBeforeShutdown());
     int64_t l_tmp = m_size;
     for (auto i = m_share_directories.cbegin(); i != m_share_directories.cend(); ++i)
-		{
-		l_tmp += i->second->getDirSizeL();
-		}
+{
+l_tmp += i->second->getDirSizeL();
+}
 #ifdef _DEBUG
 LogManager::message("ShareManager::Directory::getDirSizeL = " + Util::toString(l_tmp) + " getRealPath = " + getFullName());
 #endif

@@ -65,7 +65,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/storage.hpp"
 #include "libtorrent/torrent.hpp"
-#include "libtorrent/session.hpp"
 #include "libtorrent/file.hpp"
 #include "libtorrent/invariant_check.hpp"
 #include "libtorrent/file_pool.hpp"
@@ -597,17 +596,6 @@ namespace libtorrent
 		m_pool.release(storage_index());
 	}
 
-	void default_storage::delete_one_file(std::string const& p, error_code& ec)
-	{
-		remove(p, ec);
-
-		DFLOG(stderr, "[%p] delete_one_file: %s [%s]\n", static_cast<void*>(this)
-			, p.c_str(), ec.message().c_str());
-
-		if (ec == boost::system::errc::no_such_file_or_directory)
-			ec.clear();
-	}
-
 	void default_storage::delete_files(int const options, storage_error& ec)
 	{
 		DFLOG(stderr, "[%p] delete_files [%x]\n", static_cast<void*>(this)
@@ -632,66 +620,7 @@ namespace libtorrent
 		// delete it
 		if (m_part_file) m_part_file.reset();
 
-		if (options == session::delete_files)
-		{
-#if TORRENT_USE_ASSERTS
-			m_pool.mark_deleted(m_files);
-#endif
-			// delete the files from disk
-			std::set<std::string> directories;
-			using iter_t = std::set<std::string>::iterator;
-			file_storage const& fs = files();
-			for (file_index_t i(0); i < fs.end_file(); ++i)
-			{
-				std::string const fp = files().file_path(i);
-				bool const complete = files().file_absolute_path(i);
-				std::string const p = complete ? fp : combine_path(m_save_path, fp);
-				if (!complete)
-				{
-					std::string bp = parent_path(fp);
-					std::pair<iter_t, bool> ret;
-					ret.second = true;
-					while (ret.second && !bp.empty())
-					{
-						ret = directories.insert(combine_path(m_save_path, bp));
-						bp = parent_path(bp);
-					}
-				}
-				delete_one_file(p, ec.ec);
-				if (ec) { ec.file(i); ec.operation = storage_error::remove; }
-			}
-
-			// remove the directories. Reverse order to delete
-			// subdirectories first
-
-			for (auto i = directories.rbegin()
-				, end(directories.rend()); i != end; ++i)
-			{
-				error_code error;
-				delete_one_file(*i, error);
-				if (error && !ec)
-				{
-					ec.file(file_index_t(-1));
-					ec.ec = error;
-					ec.operation = storage_error::remove;
-				}
-			}
-		}
-
-		if (options == session::delete_files
-			|| options == session::delete_partfile)
-		{
-			error_code error;
-			remove(combine_path(m_save_path, m_part_file_name), error);
-			DFLOG(stderr, "[%p] delete partfile %s/%s [%s]\n", static_cast<void*>(this)
-				, m_save_path.c_str(), m_part_file_name.c_str(), error.message().c_str());
-			if (error && error != boost::system::errc::no_such_file_or_directory)
-			{
-				ec.file(file_index_t(-1));
-				ec.ec = error;
-				ec.operation = storage_error::remove;
-			}
-		}
+		libtorrent::delete_files(files(), m_save_path, m_part_file_name, options, ec);
 
 		DFLOG(stderr, "[%p] delete_files result: %s\n", static_cast<void*>(this)
 			, ec.ec.message().c_str());
@@ -804,185 +733,11 @@ namespace libtorrent
 	status_t default_storage::move_storage(std::string const& sp, int const flags
 		, storage_error& ec)
 	{
-		status_t ret = status_t::no_error;
-		std::string const save_path = complete(sp);
-
-		// check to see if any of the files exist
-		file_storage const& f = files();
-
-		if (flags == fail_if_exist)
-		{
-			file_status s;
-			error_code err;
-			stat_file(save_path, &s, err);
-			if (err != boost::system::errc::no_such_file_or_directory)
-			{
-				// the directory exists, check all the files
-				for (file_index_t i(0); i < f.end_file(); ++i)
-				{
-					// files moved out to absolute paths are ignored
-					if (f.file_absolute_path(i)) continue;
-
-					stat_file(f.file_path(i, save_path), &s, err);
-					if (err != boost::system::errc::no_such_file_or_directory)
-					{
-						ec.ec = err;
-						ec.file(i);
-						ec.operation = storage_error::stat;
-						return status_t::file_exist;
-					}
-				}
-			}
-		}
-
-		{
-			file_status s;
-			error_code err;
-			stat_file(save_path, &s, err);
-			if (err == boost::system::errc::no_such_file_or_directory)
-			{
-				err.clear();
-				create_directories(save_path, err);
-				if (err)
-				{
-					ec.ec = err;
-					ec.file(file_index_t(-1));
-					ec.operation = storage_error::mkdir;
-					return status_t::fatal_disk_error;
-				}
-			}
-			else if (err)
-			{
-				ec.ec = err;
-				ec.file(file_index_t(-1));
-				ec.operation = storage_error::stat;
-				return status_t::fatal_disk_error;
-			}
-		}
-
 		m_pool.release(storage_index());
 
-		// indices of all files we ended up copying. These need to be deleted
-		// later
-		aux::vector<bool, file_index_t> copied_files(f.num_files(), false);
-
-		file_index_t i;
-		error_code e;
-		for (i = file_index_t(0); i < f.end_file(); ++i)
-		{
-			// files moved out to absolute paths are not moved
-			if (f.file_absolute_path(i)) continue;
-
-			std::string const old_path = combine_path(m_save_path, f.file_path(i));
-			std::string const new_path = combine_path(save_path, f.file_path(i));
-
-			if (flags == dont_replace && exists(new_path))
-			{
-				if (ret == status_t::no_error) ret = status_t::need_full_check;
-				continue;
-			}
-
-			// TODO: ideally, if we end up copying files because of a move across
-			// volumes, the source should not be deleted until they've all been
-			// copied. That would let us rollback with higher confidence.
-			move_file(old_path, new_path, e);
-
-			// if the source file doesn't exist. That's not a problem
-			// we just ignore that file
-			if (e == boost::system::errc::no_such_file_or_directory)
-				e.clear();
-			else if (e
-				&& e != boost::system::errc::invalid_argument
-				&& e != boost::system::errc::permission_denied)
-			{
-				// moving the file failed
-				// on OSX, the error when trying to rename a file across different
-				// volumes is EXDEV, which will make it fall back to copying.
-				e.clear();
-				copy_file(old_path, new_path, e);
-				if (!e) copied_files[i] = true;
-			}
-
-			if (e)
-			{
-				ec.ec = e;
-				ec.file(i);
-				ec.operation = storage_error::rename;
-				break;
-			}
-		}
-
-		if (!e && m_part_file)
-		{
-			m_part_file->move_partfile(save_path, e);
-			if (e)
-			{
-				ec.ec = e;
-				ec.file(file_index_t(-1));
-				ec.operation = storage_error::partfile_move;
-			}
-		}
-
-		if (e)
-		{
-			// rollback
-			while (--i >= file_index_t(0))
-			{
-				// files moved out to absolute paths are not moved
-				if (f.file_absolute_path(i)) continue;
-
-				// if we ended up copying the file, don't do anything during
-				// roll-back
-				if (copied_files[i]) continue;
-
-				std::string const old_path = combine_path(m_save_path, f.file_path(i));
-				std::string const new_path = combine_path(save_path, f.file_path(i));
-
-				// ignore errors when rolling back
-				error_code ignore;
-				move_file(new_path, old_path, ignore);
-			}
-
-			return status_t::fatal_disk_error;
-		}
-
-		std::string const old_save_path = m_save_path;
-		m_save_path = save_path;
-
-		std::set<std::string> subdirs;
-		for (i = file_index_t(0); i < f.end_file(); ++i)
-		{
-			// files moved out to absolute paths are not moved
-			if (f.file_absolute_path(i)) continue;
-
-			if (has_parent_path(f.file_path(i)))
-				subdirs.insert(parent_path(f.file_path(i)));
-
-			// if we ended up renaming the file instead of moving it, there's no
-			// need to delete the source.
-			if (copied_files[i] == false) continue;
-
-			std::string const old_path = combine_path(old_save_path, f.file_path(i));
-
-			// we may still have some files in old old_save_path
-			// eg. if (flags == dont_replace && exists(new_path))
-			// ignore errors when removing
-			error_code ignore;
-			remove(old_path, ignore);
-		}
-
-		for (std::string const& s : subdirs)
-		{
-			error_code err;
-			std::string subdir = combine_path(old_save_path, s);
-
-			while (subdir != old_save_path && !err)
-			{
-				remove(subdir, err);
-				subdir = parent_path(subdir);
-			}
-		}
-
+		status_t ret;
+		std::tie(ret, m_save_path) = libtorrent::move_storage(files(), m_save_path, sp
+			, m_part_file.get(), flags, ec);
 		return ret;
 	}
 
@@ -1176,10 +931,10 @@ namespace libtorrent
 				, piece_index_t, int, int, storage_error&) override
 			{
 				int ret = 0;
-				for (int i = 0; i < int(bufs.size()); ++i)
+				for (auto const& b : bufs)
 				{
-					memset(bufs[i].iov_base, 0, bufs[i].iov_len);
-					ret += int(bufs[i].iov_len);
+					std::memset(b.iov_base, 0, b.iov_len);
+					ret += int(b.iov_len);
 				}
 				return 0;
 			}
@@ -1187,8 +942,8 @@ namespace libtorrent
 				, piece_index_t, int, int, storage_error&) override
 			{
 				int ret = 0;
-				for (int i = 0; i < int(bufs.size()); ++i)
-					ret += int(bufs[i].iov_len);
+				for (auto const& b : bufs)
+					ret += int(b.iov_len);
 				return 0;
 			}
 

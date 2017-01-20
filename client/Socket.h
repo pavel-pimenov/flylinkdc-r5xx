@@ -255,9 +255,8 @@ class Socket
 		{
 		    return Util::emptyByteVector; // [!] IRainman opt.
 		}
-		virtual bool verifyKeyprint(const string&, bool) noexcept { return true; };
+		virtual bool verifyKeyprint(const string&, bool /*allowUntrusted*/) noexcept { return true; }
 		
-		//virtual bool isKeyprintMatch() { return true;
 		virtual std::string getEncryptionInfo() const noexcept
 		{
 		    return Util::emptyString;

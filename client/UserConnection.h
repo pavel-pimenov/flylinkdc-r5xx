@@ -258,6 +258,10 @@ class UserConnection : public Speaker<UserConnectionListener>,
 			dcassert(socket); // [+] IRainman fix.
 			return socket ? socket->getKeyprint() : Util::emptyByteVector; // [!] IRainman opt.
 		}
+		bool verifyKeyprint(const string& expKeyp, bool allowUntrusted)  noexcept
+		{
+			return socket ? socket->verifyKeyprint(expKeyp, allowUntrusted) : true;
+		}
 		
 		string getRemoteIpPort() const
 		{

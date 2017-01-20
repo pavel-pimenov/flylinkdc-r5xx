@@ -39,6 +39,7 @@
     <ClInclude Include="include\libtorrent\aux_\byteswap.hpp" />
     <ClInclude Include="include\libtorrent\aux_\cppint_import_export.hpp" />
     <ClInclude Include="include\libtorrent\aux_\cpuid.hpp" />
+    <ClInclude Include="include\libtorrent\aux_\dev_random.hpp" />
     <ClInclude Include="include\libtorrent\aux_\disable_warnings_pop.hpp" />
     <ClInclude Include="include\libtorrent\aux_\disable_warnings_push.hpp" />
     <ClInclude Include="include\libtorrent\aux_\escape_string.hpp" />
@@ -440,7 +441,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_NO_RTTI;BOOST_ASIO_HEADER_ONLY;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_NO_RTTI;BOOST_ASIO_HEADER_ONLY;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;x_TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\libtorrent\include;$(SolutionDir)\openssl\include;..\boost;..\libtorrent\include;..\openssl\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
@@ -461,11 +462,12 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_ASIO_HEADER_ONLY;BOOST_NO_RTTI;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_ASIO_HEADER_ONLY;BOOST_NO_RTTI;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;x_TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\libtorrent\include;$(SolutionDir)\openssl\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <StringPooling>true</StringPooling>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -479,7 +481,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_NO_RTTI;BOOST_ASIO_HEADER_ONLY;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_NO_RTTI;BOOST_ASIO_HEADER_ONLY;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;x_TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\libtorrent\include;$(SolutionDir)\openssl\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <Optimization>Disabled</Optimization>
@@ -488,7 +490,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_ASIO_HEADER_ONLY;BOOST_NO_RTTI;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_ASIO_HEADER_ONLY;BOOST_NO_RTTI;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;x_TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\libtorrent\include;$(SolutionDir)\openssl\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <IntrinsicFunctions>true</IntrinsicFunctions>

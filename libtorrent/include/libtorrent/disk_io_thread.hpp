@@ -195,6 +195,7 @@ namespace libtorrent
 		// the total number of buffers currently in use.
 		// This includes the read/write disk cache as well as send and receive buffers
 		// used in peer connections.
+		// deprecated, use session_stats_metrics "disk.disk_blocks_in_use"
 		mutable int total_used_buffers;
 
 		// the number of microseconds an average disk I/O job
@@ -237,6 +238,7 @@ namespace libtorrent
 
 		// number of jobs waiting to be issued (m_to_issue)
 		// average over 30 seconds
+		// deprecated, use session_stats_metrics "disk.queued_disk_jobs"
 		int queued_jobs;
 
 		// largest ever seen number of queued jobs
@@ -472,7 +474,7 @@ namespace libtorrent
 			// used for asserts and only applies for fence jobs
 			flush_expect_clear = 8
 		};
-		void flush_cache(storage_interface* storage, std::uint32_t flags, jobqueue_t& completed_jobs, std::unique_lock<std::mutex>& l);
+		void flush_cache(storage_interface* storage, int flags, jobqueue_t& completed_jobs, std::unique_lock<std::mutex>& l);
 		void flush_expired_write_blocks(jobqueue_t& completed_jobs, std::unique_lock<std::mutex>& l);
 		void flush_piece(cached_piece_entry* pe, int flags, jobqueue_t& completed_jobs, std::unique_lock<std::mutex>& l);
 

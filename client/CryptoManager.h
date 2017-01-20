@@ -25,8 +25,12 @@
 
 #include "Exception.h"
 #include "Singleton.h"
-#include "SSL.h"
 
+#include "ssl.h"
+
+#ifndef SSL_SUCCESS
+#define SSL_SUCCESS 1
+#endif
 
 STANDARD_EXCEPTION(CryptoException);
 
@@ -51,11 +55,11 @@ class CryptoManager : public Singleton<CryptoManager>
 		};
 		
 		string makeKey(const string& aLock);
-		const string& getLock()
+		const string& getLock() const
 		{
 			return lock;
 		}
-		const string& getPk()
+		const string& getPk() const
 		{
 			return pk;
 		}
@@ -64,40 +68,33 @@ class CryptoManager : public Singleton<CryptoManager>
 			return strncmp(aLock.c_str(), "EXTENDEDPROTOCOL", 16) == 0;
 		}
 		
-		void decodeBZ2(const uint8_t* is, size_t sz, string& os);
+		void decodeBZ2(const uint8_t* is, unsigned int sz, string& os);
 		
 		SSL_CTX* getSSLContext(SSLContext wanted);
 		
 		void loadCertificates() noexcept;
 		void generateCertificate();
-		bool checkCertificate(int minValidityDays) noexcept;
-		static const ByteVector& getKeyprint();
+		bool checkCertificate() noexcept;
+		static const ByteVector& getKeyprint() noexcept;
 		
-		static bool TLSOk();
+		static bool TLSOk() noexcept;
 		
-		static void locking_function(int mode, int n, const char* /*file*/, int /*line*/);
+		static int verify_callback(int preverify_ok, X509_STORE_CTX *ctx);
 		static DH* tmp_dh_cb(SSL* /*ssl*/, int /*is_export*/, int keylength);
 		static RSA* tmp_rsa_cb(SSL* /*ssl*/, int /*is_export*/, int keylength);
-		static int verify_callback(int preverify_ok, X509_STORE_CTX *ctx);
-		
-		static void setCertPaths();
+		static void locking_function(int mode, int n, const char *file, int line);
 		
 		static int idxVerifyData;
 		
-		// Options that can also be shared with external contexts
-		static void setContextOptions(SSL_CTX* aSSL, bool aServer);
 	private:
-	
 		friend class Singleton<CryptoManager>;
 		
 		CryptoManager();
 		virtual ~CryptoManager();
 		
 		ssl::SSL_CTX clientContext;
-		ssl::SSL_CTX clientVerContext;
 		ssl::SSL_CTX serverContext;
-		ssl::SSL_CTX serverVerContext;
-		static CriticalSection g_cs;
+		
 		void sslRandCheck();
 		
 		static int getKeyLength(TLSTmpKeys key);
@@ -118,7 +115,7 @@ class CryptoManager : public Singleton<CryptoManager>
 		const string pk;
 		
 		string keySubst(const uint8_t* aKey, size_t len, size_t n);
-		bool isExtra(uint8_t b)
+		static bool isExtra(uint8_t b)
 		{
 			return (b == 0 || b == 5 || b == 124 || b == 96 || b == 126 || b == 36);
 		}

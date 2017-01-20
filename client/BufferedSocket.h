@@ -129,6 +129,8 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		{
 			return sock->getKeyprint();
 		}
+		bool verifyKeyprint(const string& expKP, bool allowUntrusted) noexcept { return sock->verifyKeyprint(expKP, allowUntrusted); }
+		
 		//[+]IRainman SpeedLimiter
 		void setMaxSpeed(int64_t maxSpeed)
 		{

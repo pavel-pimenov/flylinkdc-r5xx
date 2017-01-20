@@ -985,8 +985,10 @@ for (lt::alert const * a : alerts)
 						//TODO
 						//l_a->handle.set_max_connections(max_connections / 2);
 						// TODO ?
-						l_a->handle.save_resume_data(torrent_handle::save_info_dict | torrent_handle::only_if_modified);
-						++m_torrent_resume_count;
+						CFlylinkDBManager::getInstance()->delete_torrent_resume(l_a->handle.info_hash());
+						m_torrents.erase(l_a->handle);
+						//l_a->handle.save_resume_data(torrent_handle::save_info_dict | torrent_handle::only_if_modified);
+						//++m_torrent_resume_count;
 					}
 					
 					if (const auto l_a = lt::alert_cast<save_resume_data_failed_alert>(a))
@@ -1249,7 +1251,7 @@ for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
 		        else
 		            p.flags &= ~lt::add_torrent_params::flag_seed_mode;
 		*/
-		m_torrent_session->add_torrent(p, ec);
+		// m_torrent_session->add_torrent(p, ec);
 		if (ec)
 		{
 			dcdebug("%s\n", ec.message().c_str());

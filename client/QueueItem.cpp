@@ -180,6 +180,7 @@ void QueueItem::calcBlockSize()
 	dcdebug("QueueItem::getBlockSize() TTH = %s [count = %d]\n", getTTH().toBase32().c_str(), int(++g_count));
 #endif
 }
+//==========================================================================================
 size_t QueueItem::getLastOnlineCount()
 {
 	if (m_diry_sources)
@@ -195,6 +196,7 @@ size_t QueueItem::getLastOnlineCount()
 	}
 	return m_last_count_online_sources;
 }
+//==========================================================================================
 bool QueueItem::isBadSourceExceptL(const UserPtr& aUser, Flags::MaskType exceptions) const
 {
 	const auto& i = m_badSources.find(aUser);
@@ -233,10 +235,9 @@ bool QueueItem::countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const /
 
 void QueueItem::getOnlineUsers(UserList& list) const
 {
-	//dcassert(!ClientManager::isShutdown());
 	if (!ClientManager::isBeforeShutdown())
 	{
-		RLock(*QueueItem::g_cs); // [+] IRainman fix.
+		RLock(*QueueItem::g_cs);
 		for (auto i = m_sources.cbegin(); i != m_sources.cend(); ++i)
 		{
 			if (i->first->isOnline())

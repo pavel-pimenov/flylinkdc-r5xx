@@ -174,11 +174,22 @@ int SSLSocket::write(const void* aBuffer, int aLen)
 	{
 		return -1;
 	}
-	int ret = checkSSL(SSL_write(ssl, aBuffer, aLen));
-	if (ret > 0)
+	int ret = 0;
+	if (aLen)
 	{
-		g_stats.m_ssl.totalUp += ret;
-		//dcdebug("Out(s): %.*s\n", ret, (char*)aBuffer);
+		ret = checkSSL(SSL_write(ssl, aBuffer, aLen));
+		if (ret > 0)
+		{
+			g_stats.m_ssl.totalUp += ret;
+			//dcdebug("Out(s): %.*s\n", ret, (char*)aBuffer);
+		}
+	}
+	else
+	{
+		dcdebug("SSLSocket::write skip write aLen = 0\r\n");
+#ifdef _DEBUG
+		LogManager::message("SSLSocket::write skip write aLen = 0");
+#endif
 	}
 	return ret;
 }
@@ -196,8 +207,8 @@ int SSLSocket::checkSSL(int ret)
 		auto err = SSL_get_error(ssl, ret);
 		switch (err)
 		{
-			case SSL_ERROR_NONE:        // Fallthrough - YaSSL doesn't for example return an openssl compatible error on recv fail
-			case SSL_ERROR_WANT_READ:   // Fallthrough
+			case SSL_ERROR_NONE:
+			case SSL_ERROR_WANT_READ:
 			case SSL_ERROR_WANT_WRITE:
 				return -1;
 			case SSL_ERROR_ZERO_RETURN:
@@ -217,6 +228,7 @@ int SSLSocket::checkSSL(int ret)
 				throw SSLSocketException(sys_err);
 			}
 			default:
+			{
 				//display the cert errors as first choice, if the error is not the certs display the error from the ssl.
 				auto sys_err = ERR_get_error();
 				string _error;
@@ -233,8 +245,10 @@ int SSLSocket::checkSSL(int ret)
 				{
 					_error = ERR_error_string(sys_err, NULL);
 				}
+				ssl.reset();
 				//dcdebug("TLS error: call ret = %d, SSL_get_error = %d, ERR_get_error = " U64_FMT ",ERROR string: %s \n", ret, err, sys_err, ERR_error_string(sys_err, NULL));
 				throw SSLSocketException(STRING(TLS_ERROR) + (_error.empty() ? "" : + ": " + _error));
+			}
 		}
 	}
 	return ret;
@@ -242,7 +256,6 @@ int SSLSocket::checkSSL(int ret)
 
 int SSLSocket::wait(uint64_t millis, int waitFor)
 {
-#ifdef HEADER_OPENSSLV_H
 	if (ssl && (waitFor & Socket::WAIT_READ))
 	{
 		/** @todo Take writing into account as well if reading is possible? */
@@ -250,7 +263,6 @@ int SSLSocket::wait(uint64_t millis, int waitFor)
 		if (SSL_peek(ssl, &c, 1) > 0)
 			return WAIT_READ;
 	}
-#endif
 	return Socket::wait(millis, waitFor);
 }
 
@@ -260,8 +272,8 @@ bool SSLSocket::isTrusted()
 	{
 		return false;
 	}
-	if (m_is_trusted)
-		return true;
+	//if (m_is_trusted)
+	//  return true;
 	if (SSL_get_verify_result(ssl) != X509_V_OK)
 	{
 		return false;
@@ -273,7 +285,7 @@ bool SSLSocket::isTrusted()
 		return false;
 	}
 	X509_free(cert);
-	m_is_trusted = true;
+	//m_is_trusted = true;
 	return true;
 }
 /*
@@ -291,9 +303,10 @@ std::string SSLSocket::getEncryptionInfo() const noexcept
     if (!ssl)
     return Util::emptyString;
     
-    string cipher = SSL_get_cipher_name(ssl);
-    string protocol = SSL_get_version(ssl);
-    return protocol + " / " + cipher;
+    const string cipher = SSL_get_cipher_name(ssl);
+    //string protocol = SSL_get_version(ssl);
+    //return protocol + " / " + cipher;
+    return cipher;
 }
 
 ByteVector SSLSocket::getKeyprint() const noexcept
@@ -322,11 +335,11 @@ ByteVector SSLSocket::getKeyprint() const noexcept
 			verifyData.reset(new CryptoManager::SSLVerifyData(allowUntrusted, expKP));
 			SSL_set_ex_data(ssl, CryptoManager::idxVerifyData, verifyData.get());
 			
-			SSL_CTX* ssl_ctx = SSL_get_SSL_CTX(ssl);
 			X509_STORE* store = X509_STORE_new();
+			
 			bool result = false;
 			int err = SSL_get_verify_result(ssl);
-			if (ssl_ctx && store)
+			if (store)
 			{
 				X509_STORE_CTX* vrfy_ctx = X509_STORE_CTX_new();
 				X509* cert = SSL_get_peer_certificate(ssl);
@@ -334,7 +347,7 @@ ByteVector SSLSocket::getKeyprint() const noexcept
 				if (vrfy_ctx && cert && X509_STORE_CTX_init(vrfy_ctx, store, cert, SSL_get_peer_cert_chain(ssl)))
 				{
 					X509_STORE_CTX_set_ex_data(vrfy_ctx, SSL_get_ex_data_X509_STORE_CTX_idx(), ssl);
-					X509_STORE_CTX_set_verify_cb(vrfy_ctx, SSL_CTX_get_verify_callback(ssl_ctx));
+					X509_STORE_CTX_set_verify_cb(vrfy_ctx, SSL_get_verify_callback(ssl));
 					
 					int verify_result = 0;
 					if ((verify_result = X509_verify_cert(vrfy_ctx)) >= 0)
@@ -363,14 +376,14 @@ ByteVector SSLSocket::getKeyprint() const noexcept
 
 void SSLSocket::shutdown() noexcept
 {
-	m_is_trusted = false;
+	//m_is_trusted = false;
 	if (ssl)
 		SSL_shutdown(ssl);
 }
 
 void SSLSocket::close() noexcept
 {
-	m_is_trusted = false;
+	//m_is_trusted = false;
 	if (ssl)
 	{
 		ssl.reset();
