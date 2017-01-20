@@ -58,10 +58,11 @@ size_t ShareManager::g_hits = 0;
 int ShareManager::g_RebuildIndexes = 0;
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csBloom = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csDirList = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
-std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csTTHIndex = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShare = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShareNotExists = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShareCache = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+
+CriticalSection ShareManager::g_csTTHIndex;
 QueryNotExistsSet ShareManager::g_file_not_exists_set;
 QueryCacheMap ShareManager::g_file_cache_map;
 ShareManager::HashFileMap ShareManager::g_tthIndex;
@@ -254,7 +255,7 @@ bool ShareManager::destinationShared(const string& file_or_dir_name) // [+] IRai
 #if 0
 bool ShareManager::getRealPathAndSize(const TTHValue& tth, string& path, int64_t& size)
 {
-	CFlyReadLock(*g_csTTHIndex);
+	CFlyLock(g_csTTHIndex);
 	const auto& i = g_tthIndex.find(tth);
 	if (i != g_tthIndex.cend())
 	{
@@ -275,7 +276,7 @@ bool ShareManager::isTTHShared(const TTHValue& tth)
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
-		CFlyReadLock(*g_csTTHIndex);
+		CFlyLock(g_csTTHIndex);
 		return g_tthIndex.find(tth) != g_tthIndex.end();
 	}
 	return false;
@@ -284,7 +285,7 @@ string ShareManager::toRealPath(const TTHValue& tth)
 {
 	CFlyReadLock(*g_csShare);
 	{
-		CFlyReadLock(*g_csTTHIndex);
+		CFlyLock(g_csTTHIndex);
 		const auto i = g_tthIndex.find(tth);
 		if (i != g_tthIndex.end())
 		{
@@ -311,7 +312,7 @@ string ShareManager::toVirtual(const TTHValue& tth)
 	}
 	CFlyReadLock(*g_csShare);
 	{
-		CFlyReadLock(*g_csTTHIndex);
+		CFlyLock(g_csTTHIndex);
 		const auto& i = g_tthIndex.find(tth);
 		if (i != g_tthIndex.end())
 		{
@@ -418,7 +419,7 @@ void ShareManager::getFileInfo(AdcCommand& cmd, const string& aFile)
 		throw ShareException(UserConnection::g_FILE_NOT_AVAILABLE, aFile);
 		
 	TTHValue val(aFile.c_str() + 4); //[+]FlylinkDC++
-	CFlyReadLock(*g_csTTHIndex);
+	CFlyLock(g_csTTHIndex);
 	const auto& i = g_tthIndex.find(val);
 	if (i == g_tthIndex.end())
 	{
@@ -479,7 +480,7 @@ string ShareManager::findFileAndRealPath(const string& virtualFile, TTHValue& p_
 	CFlyReadLock(*g_csShare);
 	if (virtualFile.compare(0, 4, "TTH/", 4) == 0)
 	{
-		CFlyReadLock(*g_csTTHIndex);
+		CFlyLock(g_csTTHIndex);
 		const auto i = g_tthIndex.find(TTHValue(virtualFile.substr(4)));
 		if (i == g_tthIndex.end())
 		{
@@ -935,7 +936,7 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 				{
 					CFlyWriteLock(*g_csDirList); // Эта блокировка выше TTHINdex
 					{
-						CFlyWriteLock(*g_csTTHIndex);
+						CFlyLock(g_csTTHIndex);
 						updateIndicesDirL(*get_mergeL(dp));
 					}
 				}
@@ -1132,7 +1133,7 @@ void ShareManager::internalCalcShareSize() // [!] IRainman opt.
 			g_isNeedsUpdateShareSize = false;
 			int64_t l_CurrentShareSize = 0;
 			{
-				CFlyReadLock(*g_csTTHIndex);
+				CFlyLock(g_csTTHIndex);
 				for (auto i = g_tthIndex.cbegin(); i != g_tthIndex.cend(); ++i)
 				{
 					l_CurrentShareSize += i->second->getSize(); // https://drdump.com/DumpGroup.aspx?DumpGroupID=532748
@@ -1500,7 +1501,7 @@ void ShareManager::rebuildIndicesL()
 	if (!ClientManager::isBeforeShutdown())
 	{
 		{
-			CFlyWriteLock(*g_csTTHIndex);
+			CFlyLock(g_csTTHIndex);
 			g_tthIndex.clear();
 		}
 		{
@@ -1510,7 +1511,7 @@ void ShareManager::rebuildIndicesL()
 		{
 			CFlyReadLock(*g_csDirList); // Эта блокировка выше TTHIndex
 			{
-				CFlyReadLock(*g_csTTHIndex);
+				CFlyLock(g_csTTHIndex);
 				for (auto i = g_list_directories.cbegin(); i != g_list_directories.cend(); ++i)
 				{
 					if (updateIndicesDirL(**i) == false)
@@ -1715,7 +1716,7 @@ void ShareManager::getBloom(ByteVector& v, size_t k, size_t m, size_t h)
 	HashBloom bloom;
 	bloom.reset(k, m, h);
 	{
-		CFlyReadLock(*g_csTTHIndex);
+		CFlyLock(g_csTTHIndex);
 		for (auto i = g_tthIndex.cbegin(); i != g_tthIndex.cend(); ++i)
 		{
 			bloom.add(i->first);
@@ -2419,7 +2420,7 @@ l->second->search(aResults, *cur, p_search_param); //TODO - Hot point
 }
 bool ShareManager::search_tth(const TTHValue& p_tth, SearchResultList& aResults, bool p_is_check_parent)
 {
-	CFlyReadLock(*g_csTTHIndex);
+	CFlyLock(g_csTTHIndex);
 	const auto& i = g_tthIndex.find(p_tth);
 	if (i == g_tthIndex.end())
 		return false;
@@ -2440,7 +2441,7 @@ bool ShareManager::search_tth(const TTHValue& p_tth, SearchResultList& aResults,
 bool ShareManager::searchTTHArray(CFlySearchArrayTTH& p_all_search_array, const Client* p_client)
 {
 	bool l_result = true;
-	CFlyReadLock(*g_csTTHIndex);
+	CFlyLock(g_csTTHIndex);
 	for (auto j = p_all_search_array.begin(); j != p_all_search_array.end(); ++j)
 	{
 		const auto& i = g_tthIndex.find(j->m_tth);
@@ -2474,7 +2475,7 @@ bool ShareManager::searchTTHArray(CFlySearchArrayTTH& p_all_search_array, const 
 
 bool ShareManager::isUnknownTTH(const TTHValue& p_tth)
 {
-	CFlyReadLock(*g_csTTHIndex);
+	CFlyLock(g_csTTHIndex);
 	return g_tthIndex.find(p_tth) == g_tthIndex.end();
 }
 
@@ -2904,7 +2905,7 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 				const auto i = d->findFileIterL(l_file_name);
 				if (i != d->m_share_files.end())
 				{
-					CFlyWriteLock(*g_csTTHIndex);
+					CFlyLock(g_csTTHIndex);
 					if (p_root != i->getTTH())
 					{
 						g_tthIndex.erase(i->getTTH());
@@ -2931,7 +2932,7 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 						f->initMediainfo(l_media_ptr);
 					}
 					{
-						CFlyWriteLock(*g_csTTHIndex);
+						CFlyLock(g_csTTHIndex);
 						{
 							CFlyWriteLock(*g_csBloom);
 							updateIndicesFileL(*d, it.first);

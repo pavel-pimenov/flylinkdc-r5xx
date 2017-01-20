@@ -291,7 +291,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		static UserMap g_users;
 		
-		static CriticalSection g_csUsers;
+		static FastCriticalSection g_csUsers;
 		typedef std::multimap<CID, OnlineUserPtr> OnlineMap;
 		typedef OnlineMap::iterator OnlineIter;
 		typedef OnlineMap::const_iterator OnlineIterC;

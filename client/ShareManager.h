@@ -418,7 +418,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		uint64_t m_lastXmlUpdate;
 		uint64_t m_lastFullUpdate;
 		
-		static std::unique_ptr<webrtc::RWLockWrapper> g_csTTHIndex;
+		static CriticalSection g_csTTHIndex;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csBloom;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShare;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDirList;

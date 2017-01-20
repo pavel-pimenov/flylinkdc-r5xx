@@ -402,15 +402,17 @@ int SearchManager::UdpQueue::run()
 			if (cid.size() != 39)
 				continue;
 				
-			UserPtr user = ClientManager::findUser(CID(cid));
+			const UserPtr user = ClientManager::findUser(CID(cid));
 			// when user == NULL then it is probably NMDC user, check it later
 			
-			c.getParameters().erase(c.getParameters().begin());
-			
-			SearchManager::getInstance()->onPSR(c, user, remoteIp);
+			if (user)
+			{
+				c.getParameters().erase(c.getParameters().begin());
+				SearchManager::getInstance()->onPSR(c, user, remoteIp);
 #ifdef FLYLINKDC_USE_COLLECT_STAT
-			CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "PSR", x, remoteIp, "", "", "");
+				CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "PSR", x, remoteIp, "", "", "");
 #endif
+			}
 		}
 		else if (x.compare(0, 15, "$FLY-TEST-PORT ", 15) == 0)
 		{
@@ -645,7 +647,7 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 		return ClientManagerListener::SEARCH_MISS; // [!] IRainman
 	}
 	
-	UserPtr p = ClientManager::findUser(from);
+	const UserPtr p = ClientManager::findUser(from);
 	if (!p)
 	{
 		return ClientManagerListener::SEARCH_MISS; // [!] IRainman

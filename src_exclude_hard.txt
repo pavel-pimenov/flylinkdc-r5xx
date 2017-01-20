@@ -22,3 +22,6 @@ CustomCompressExt.txt
 libtorrent.pdb
 CustomLocations.bmp
 CustomLocations.ini
+sign-flylinkdc.bat
+merge-vendors.bat
+

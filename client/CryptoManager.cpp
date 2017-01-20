@@ -312,7 +312,7 @@ int CryptoManager::verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
 			// TODO: How to get this into HubFrame?
 			preverify_ok = 0;
 			err = X509_V_ERR_APPLICATION_VERIFICATION;
-#if NDEBUG
+#ifndef _DEBUG
 			error = "Supplied KeyPrint did not match any certificate.";
 #else
 			error = str(F_("Supplied KeyPrint %1% did not match %2%.") % keyp % expected_keyp);
