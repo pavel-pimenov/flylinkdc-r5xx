@@ -58,7 +58,7 @@ namespace aux {
 		strong_typedef() = default;
 #ifndef TORRENT_NO_DEPRECATE
 		constexpr strong_typedef(UnderlyingType val) : m_val(val) {}
-		operator UnderlyingType() const { return m_val; }
+		constexpr operator UnderlyingType() const { return m_val; }
 #else
 		constexpr explicit strong_typedef(UnderlyingType val) : m_val(val) {}
 		constexpr explicit operator UnderlyingType() const { return m_val; }
@@ -94,8 +94,16 @@ namespace aux {
 		UnderlyingType m_val;
 	};
 
-	struct piece_index_tag {};
-	struct file_index_tag {};
+	// meta function to return the underlying type of a strong_typedef, or the
+	// type itself if it isn't a strong_typedef
+	template <typename T>
+	struct underlying_index_t { using type = T; };
+
+	template <typename U, typename Tag>
+	struct underlying_index_t<aux::strong_typedef<U, Tag>> { using type = U; };
+
+	struct piece_index_tag;
+	struct file_index_tag;
 
 	template <typename T, typename Tag>
 	std::string to_string(strong_typedef<T, Tag> const t)
@@ -133,11 +141,11 @@ namespace std {
 		using type = libtorrent::aux::strong_typedef<UnderlyingType, Tag>;
 	public:
 
-		static constexpr type min()
-		{ return type(std::numeric_limits<UnderlyingType>::min()); }
+		static constexpr type (min)()
+		{ return type((std::numeric_limits<UnderlyingType>::min)()); }
 
-		static constexpr type max()
-		{ return type(std::numeric_limits<UnderlyingType>::max()); }
+		static constexpr type (max)()
+		{ return type((std::numeric_limits<UnderlyingType>::max)()); }
 	};
 
 	template<typename UnderlyingType, typename Tag>

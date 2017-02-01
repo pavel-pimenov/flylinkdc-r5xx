@@ -34,7 +34,9 @@ ZFilter::ZFilter() : totalIn(0), totalOut(0), compressing(true)
 
 ZFilter::~ZFilter()
 {
-	dcdebug("ZFilter end, %ld/%ld = %.04f\n", zs.total_out, zs.total_in, (float)zs.total_out / max((float)zs.total_in, float(1)));
+#ifdef ZLIB_DEBUG
+	dcdebug("ZFilter end, %ld/%ld = %.04f\n", zs.total_out, zs.total_in, (float)zs.total_out / max((float)zs.total_in, (float)1));
+#endif
 	deflateEnd(&zs);
 }
 
@@ -46,22 +48,40 @@ bool ZFilter::operator()(const void* in, size_t& insize, void* out, size_t& outs
 	zs.next_in = (Bytef*)in;
 	zs.next_out = (Bytef*)out;
 	
+#ifdef ZLIB_DEBUG
+	dcdebug("ZFilter: totalOut = %lld, totalIn = %lld, outsize = %d\n", totalOut, totalIn, outsize);
+#endif
+	
 	// Check if there's any use compressing; if not, save some cpu...
 	if (compressing && insize > 0 && outsize > 16 && (totalIn > (64 * 1024)) && ((static_cast<double>(totalOut) / totalIn) > 0.95))
 	{
 		zs.avail_in = 0;
 		zs.avail_out = outsize;
-		if (deflateParams(&zs, 0, Z_DEFAULT_STRATEGY) != Z_OK)
+		
+		// Starting with zlib 1.2.9, the deflateParams API has changed.
+		auto err = ::deflateParams(&zs, 0, Z_DEFAULT_STRATEGY);
+#if ZLIB_VERNUM >= 0x1290
+		if (err == Z_STREAM_ERROR)
 		{
+#else
+		if (err != Z_OK)
+		{
+#endif
 			throw Exception(STRING(COMPRESSION_ERROR));
 		}
+		
 		zs.avail_in = insize;
 		compressing = false;
-		dcdebug("Dynamically disabled compression");
+		dcdebug("ZFilter: Dynamically disabled compression\n");
 		
 		// Check if we ate all space already...
+#if ZLIB_VERNUM >= 0x1290
+		if (err == Z_BUF_ERROR)
+		{
+#else
 		if (zs.avail_out == 0)
 		{
+#endif
 			outsize = outsize - zs.avail_out;
 			insize = insize - zs.avail_in;
 			totalOut += outsize;
@@ -110,7 +130,9 @@ UnZFilter::UnZFilter()
 
 UnZFilter::~UnZFilter()
 {
-//[-]PPA    dcdebug("UnZFilter end, %ld/%ld = %.04f\n", zs.total_out, zs.total_in, (float)zs.total_out / max((float)zs.total_in, (float)1));
+#ifdef ZLIB_DEBUG
+	dcdebug("UnZFilter end, %ld/%ld = %.04f\n", zs.total_out, zs.total_in, (float)zs.total_out / max((float)zs.total_in, (float)1));
+#endif
 	inflateEnd(&zs);
 }
 

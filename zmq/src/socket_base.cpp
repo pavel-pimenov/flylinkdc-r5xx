@@ -1205,7 +1205,7 @@ int zmq::socket_base_t::recv (msg_t *msg_, int flags_)
 
     //  If the message cannot be fetched immediately, there are two scenarios.
     //  For non-blocking recv, commands are processed in case there's an
-    //  activate_reader command already waiting int a command pipe.
+    //  activate_reader command already waiting in a command pipe.
     //  If it's not, return EAGAIN.
     if (flags_ & ZMQ_DONTWAIT || options.rcvtimeo == 0) {
         if (unlikely (process_commands (0, false) != 0)) {
@@ -1414,6 +1414,7 @@ void zmq::socket_base_t::update_pipe_options(int option_)
         for (pipes_t::size_type i = 0; i != pipes.size(); ++i)
         {
             pipes[i]->set_hwms(options.rcvhwm, options.sndhwm);
+            pipes[i]->send_hwms_to_peer(options.sndhwm, options.rcvhwm);
         }
     }
 
@@ -1676,6 +1677,16 @@ void zmq::socket_base_t::event_close_failed (const std::string &addr_, int err_)
 void zmq::socket_base_t::event_disconnected (const std::string &addr_, zmq::fd_t fd_)
 {
     event(addr_, fd_, ZMQ_EVENT_DISCONNECTED);
+}
+
+void zmq::socket_base_t::event_handshake_failed(const std::string &addr_, int err_)
+{
+    event(addr_, err_, ZMQ_EVENT_HANDSHAKE_FAILED);
+}
+
+void zmq::socket_base_t::event_handshake_succeed(const std::string &addr_, int err_)
+{
+    event(addr_, err_, ZMQ_EVENT_HANDSHAKE_SUCCEED);
 }
 
 void zmq::socket_base_t::event(const std::string &addr_, intptr_t value_, int type_)

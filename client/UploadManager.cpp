@@ -1382,13 +1382,14 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 					}
 					if (u->m_isSecure)
 					{
+						l_td.m_status_string += _T("[SSL+");
 						if (u->m_isTrusted)
 						{
-							l_td.m_status_string += _T("[S]");
+							l_td.m_status_string += _T("T]");
 						}
 						else
 						{
-							l_td.m_status_string += _T("[U]");
+							l_td.m_status_string += _T("U]");
 						}
 					}
 					if (u->isSet(Upload::FLAG_ZUPLOAD))

@@ -38,10 +38,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/error.hpp"
 #include "libtorrent/disk_io_thread.hpp" // disk_operation_failed
 #include "libtorrent/invariant_check.hpp"
-#include "libtorrent/alloca.hpp"
+#include "libtorrent/aux_/alloca.hpp"
 #include "libtorrent/performance_counters.hpp"
 #include "libtorrent/aux_/time.hpp"
 #include "libtorrent/aux_/block_cache_reference.hpp"
+#include "libtorrent/aux_/numeric_cast.hpp"
 
 /*
 
@@ -554,7 +555,7 @@ void block_cache::try_evict_one_volatile()
 		// some blocks are pinned in this piece, skip it
 		if (pe->pinned > 0) continue;
 
-		TORRENT_ALLOCA(to_delete, char*, std::size_t(pe->blocks_in_piece));
+		TORRENT_ALLOCA(to_delete, char*, pe->blocks_in_piece);
 		int num_to_delete = 0;
 
 		// go through the blocks and evict the ones that are not dirty and not
@@ -620,7 +621,7 @@ cached_piece_entry* block_cache::allocate_piece(disk_io_job const* j, std::uint1
 		pe.piece = j->piece;
 		pe.storage = j->storage;
 		pe.expire = aux::time_now();
-		pe.blocks_in_piece = blocks_in_piece;
+		pe.blocks_in_piece = aux::numeric_cast<std::uint64_t>(blocks_in_piece);
 
 		pe.blocks.reset(new (std::nothrow) cached_block_entry[blocks_in_piece]);
 		if (!pe.blocks) return nullptr;
@@ -861,7 +862,7 @@ bool block_cache::evict_piece(cached_piece_entry* pe, tailqueue<disk_io_job>& jo
 
 	TORRENT_PIECE_ASSERT(pe->in_use, pe);
 
-	TORRENT_ALLOCA(to_delete, char*, std::size_t(pe->blocks_in_piece));
+	TORRENT_ALLOCA(to_delete, char*, pe->blocks_in_piece);
 	int num_to_delete = 0;
 	for (int i = 0; i < pe->blocks_in_piece; ++i)
 	{
@@ -1248,7 +1249,7 @@ void block_cache::move_to_ghost(cached_piece_entry* pe)
 int block_cache::pad_job(disk_io_job const* j, int blocks_in_piece
 	, int read_ahead) const
 {
-	int block_offset = j->d.io.offset & (block_size()-1);
+	int block_offset = j->d.io.offset & (block_size() - 1);
 	int start = j->d.io.offset / block_size();
 	int end = block_offset > 0 && (read_ahead > block_size() - block_offset) ? start + 2 : start + 1;
 
@@ -1393,7 +1394,7 @@ void block_cache::abort_dirty(cached_piece_entry* pe)
 
 	TORRENT_PIECE_ASSERT(pe->in_use, pe);
 
-	TORRENT_ALLOCA(to_delete, char*, std::size_t(pe->blocks_in_piece));
+	TORRENT_ALLOCA(to_delete, char*, pe->blocks_in_piece);
 	int num_to_delete = 0;
 	for (int i = 0; i < pe->blocks_in_piece; ++i)
 	{
@@ -1432,7 +1433,7 @@ void block_cache::free_piece(cached_piece_entry* pe)
 
 	// build a vector of all the buffers we need to free
 	// and free them all in one go
-	TORRENT_ALLOCA(to_delete, char*, std::size_t(pe->blocks_in_piece));
+	TORRENT_ALLOCA(to_delete, char*, pe->blocks_in_piece);
 	int num_to_delete = 0;
 	int removed_clean = 0;
 	for (int i = 0; i < pe->blocks_in_piece; ++i)
@@ -1707,7 +1708,7 @@ int block_cache::copy_from_piece(cached_piece_entry* const pe
 
 	// copy from the cache and update the last use timestamp
 	int block = j->d.io.offset / block_size();
-	int block_offset = j->d.io.offset & (block_size()-1);
+	int block_offset = j->d.io.offset & (block_size() - 1);
 	int buffer_offset = 0;
 	int size = j->d.io.buffer_size;
 	int const blocks_to_read = block_offset > 0 && (size > block_size() - block_offset) ? 2 : 1;
@@ -1747,7 +1748,7 @@ int block_cache::copy_from_piece(cached_piece_entry* const pe
 		int const blocks_per_piece = (j->storage->files()->piece_length() + block_size() - 1) / block_size();
 		j->d.io.ref.storage = j->storage->storage_index();
 		j->d.io.ref.cookie = static_cast<int>(pe->piece) * blocks_per_piece + start_block;
-		j->buffer.disk_block = bl.buf + (j->d.io.offset & (block_size()-1));
+		j->buffer.disk_block = bl.buf + (j->d.io.offset & (block_size() - 1));
 		j->storage->inc_refcount();
 
 		++m_send_buffer_blocks;
@@ -1772,7 +1773,7 @@ int block_cache::copy_from_piece(cached_piece_entry* const pe
 			- block_offset, size);
 		std::memcpy(j->buffer.disk_block + buffer_offset
 			, pe->blocks[block].buf + block_offset
-			, to_copy);
+			, aux::numeric_cast<std::size_t>(to_copy));
 		size -= to_copy;
 		block_offset = 0;
 		buffer_offset += to_copy;

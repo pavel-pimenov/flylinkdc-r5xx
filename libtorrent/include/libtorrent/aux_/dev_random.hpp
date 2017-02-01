@@ -35,6 +35,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/config.hpp"
 #include "libtorrent/span.hpp"
+#include "libtorrent/aux_/throw.hpp"
+
 #include <fcntl.h>
 
 namespace libtorrent { namespace aux {
@@ -46,11 +48,7 @@ namespace libtorrent { namespace aux {
 		{
 			if (m_fd < 0)
 			{
-#ifndef BOOST_NO_EXCEPTIONS
-				throw system_error(error_code(errno, system_category()));
-#else
-				std::terminate();
-#endif
+				throw_ex<system_error>(error_code(errno, system_category()));
 			}
 		}
 		dev_random(dev_random const&) = delete;
@@ -61,11 +59,7 @@ namespace libtorrent { namespace aux {
 			std::int64_t const ret = ::read(m_fd, buffer.data(), buffer.size());
 			if (ret != int(buffer.size()))
 			{
-#ifndef BOOST_NO_EXCEPTIONS
-				throw system_error(errors::no_entropy);
-#else
-				std::terminate();
-#endif
+				throw_ex<system_error>(errors::no_entropy);
 			}
 		}
 

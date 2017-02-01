@@ -181,7 +181,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		{
 			return sock.get() != nullptr;
 		}
-		bool socketIsDisconecting() const // [+] IRainman fix
+		bool socketIsDisconnecting() const 
 		{
 			return m_is_disconnecting || !hasSocket();
 		}

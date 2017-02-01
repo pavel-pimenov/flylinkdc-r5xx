@@ -86,7 +86,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/request_blocks.hpp"
 #include "libtorrent/performance_counters.hpp" // for counters
 #include "libtorrent/resolver_interface.hpp"
-#include "libtorrent/alloca.hpp"
+#include "libtorrent/aux_/alloca.hpp"
 #include "libtorrent/resolve_links.hpp"
 #include "libtorrent/aux_/file_progress.hpp"
 #include "libtorrent/aux_/has_block.hpp"
@@ -815,7 +815,7 @@ namespace libtorrent
 		// this means that the invariant check that this is called from the
 		// network thread cannot be maintained
 
-		TORRENT_ASSERT(m_peer_class == 0);
+		TORRENT_ASSERT(m_peer_class == peer_class_t{0});
 		TORRENT_ASSERT(m_connections.empty());
 		if (!m_connections.empty())
 			disconnect_all(errors::torrent_aborted, op_bittorrent);
@@ -4295,10 +4295,10 @@ namespace libtorrent
 		update_gauge();
 		stop_announcing();
 
-		if (m_peer_class > 0)
+		if (m_peer_class > peer_class_t{0})
 		{
 			m_ses.peer_classes().decref(m_peer_class);
-			m_peer_class = 0;
+			m_peer_class = peer_class_t{0};
 		}
 
 		error_code ec;
@@ -8029,9 +8029,9 @@ namespace libtorrent
 		TORRENT_ASSERT(limit >= -1);
 		if (limit <= 0) limit = 0;
 
-		if (m_peer_class == 0 && limit == 0) return;
+		if (m_peer_class == peer_class_t{0} && limit == 0) return;
 
-		if (m_peer_class == 0)
+		if (m_peer_class == peer_class_t{0})
 			setup_peer_class();
 
 		struct peer_class* tpc = m_ses.peer_classes().at(m_peer_class);
@@ -8043,7 +8043,7 @@ namespace libtorrent
 
 	void torrent::setup_peer_class()
 	{
-		TORRENT_ASSERT(m_peer_class == 0);
+		TORRENT_ASSERT(m_peer_class == peer_class_t{0});
 		m_peer_class = m_ses.peer_classes().new_peer_class(name());
 		add_class(m_ses.peer_classes(), m_peer_class);
 	}
@@ -8052,7 +8052,7 @@ namespace libtorrent
 	{
 		TORRENT_ASSERT(is_single_thread());
 
-		if (m_peer_class == 0) return -1;
+		if (m_peer_class == peer_class_t{0}) return -1;
 		int limit = m_ses.peer_classes().at(m_peer_class)->channel[channel].throttle();
 		if (limit == (std::numeric_limits<int>::max)()) limit = -1;
 		return limit;
@@ -8252,7 +8252,7 @@ namespace libtorrent
 		}
 		m_became_seed = clamped_subtract_u16(m_became_seed, seconds);
 
-		if (m_finished_time < seconds && is_finished())
+		if (m_became_finished < seconds && is_finished())
 		{
 			int const lost_seconds = seconds - m_became_finished;
 			m_finished_time += lost_seconds;
@@ -10174,6 +10174,7 @@ namespace libtorrent
 #endif
 	}
 
+#ifndef TORRENT_NO_DEPRECATE
 #if !TORRENT_NO_FPU
 	void torrent::file_progress_float(aux::vector<float, file_index_t>& fp)
 	{
@@ -10198,6 +10199,7 @@ namespace libtorrent
 		}
 	}
 #endif
+#endif // TORRENT_NO_DEPRECATE
 
 	void torrent::file_progress(aux::vector<std::int64_t, file_index_t>& fp, int const flags)
 	{

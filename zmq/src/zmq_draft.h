@@ -46,6 +46,13 @@
 #define ZMQ_SCATTER 17
 #define ZMQ_DGRAM 18
 
+/*  DRAFT 0MQ socket events and monitoring                                    */
+#define ZMQ_EVENT_HANDSHAKE_FAILED  0x0800
+#define ZMQ_EVENT_HANDSHAKE_SUCCEED 0x1000
+
+/*  DRAFT Context options                                                     */
+#define ZMQ_MSG_T_SIZE 6
+
 /*  DRAFT Socket methods.                                                     */
 int zmq_join (void *s, const char *group);
 int zmq_leave (void *s, const char *group);

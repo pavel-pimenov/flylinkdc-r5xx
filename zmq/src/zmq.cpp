@@ -834,7 +834,7 @@ inline int zmq_poller_poll (zmq_pollitem_t *items_, int nitems_, long timeout_)
         for (int j = j_start; j < found_events; ++j) {
             if (
                 (items_[i].socket && items_[i].socket == events[j].socket) ||
-                (!(items_[i].socket || items_[j].socket) && items_[i].fd == events[j].fd)
+                (!(items_[i].socket || events[j].socket) && items_[i].fd == events[j].fd)
             ) {
                 items_[i].revents = events[j].events & items_[i].events;
                 if (!repeat_items) {
@@ -1515,6 +1515,10 @@ int zmq_has (const char *capability)
 #endif
 #if defined (ZMQ_HAVE_VMCI)
     if (strcmp (capability, "vmci") == 0)
+        return true;
+#endif
+#if defined (ZMQ_BUILD_DRAFT_API)
+    if (strcmp (capability, "draft") == 0)
         return true;
 #endif
     //  Whatever the application asked for, we don't have

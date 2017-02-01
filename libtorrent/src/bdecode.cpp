@@ -31,7 +31,8 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "libtorrent/bdecode.hpp"
-#include "libtorrent/alloca.hpp"
+#include "libtorrent/aux_/alloca.hpp"
+#include "libtorrent/aux_/numeric_cast.hpp"
 #include <limits>
 #include <cstring> // for memset
 #include <cstdio> // for snprintf
@@ -101,7 +102,7 @@ namespace libtorrent
 
 	struct stack_frame
 	{
-		explicit stack_frame(int const t): token(t), state(0) {}
+		explicit stack_frame(int const t): token(std::uint32_t(t)), state(0) {}
 		// this is an index into m_tokens
 		std::uint32_t token:31;
 		// this is used for dictionaries to indicate whether we're
@@ -573,7 +574,8 @@ namespace libtorrent
 	{
 		TORRENT_ASSERT(type() == string_t);
 		bdecode_token const& t = m_root_tokens[m_token_idx];
-		std::size_t const size = m_root_tokens[m_token_idx + 1].offset - t.offset - t.start_offset();
+		std::size_t const size = m_root_tokens[m_token_idx + 1].offset - t.offset
+			- aux::numeric_cast<std::size_t>(t.start_offset());
 		TORRENT_ASSERT(t.type == bdecode_token::string);
 
 		return string_view(m_buffer + t.offset + t.start_offset(), size);
@@ -596,7 +598,7 @@ namespace libtorrent
 	}
 
 	void bdecode_node::reserve(int tokens)
-	{ m_tokens.reserve(tokens); }
+	{ m_tokens.reserve(aux::numeric_cast<std::size_t>(tokens)); }
 
 	void bdecode_node::swap(bdecode_node& n)
 	{
@@ -637,7 +639,7 @@ namespace libtorrent
 	} TORRENT_WHILE_0
 
 	int bdecode(char const* start, char const* end, bdecode_node& ret
-		, error_code& ec, int* error_pos, int depth_limit, int token_limit)
+		, error_code& ec, int* error_pos, int const depth_limit, int token_limit)
 	{
 		ec.clear();
 		ret.clear();
@@ -753,12 +755,13 @@ namespace libtorrent
 					int const top = stack[sp - 1].token;
 					// subtract the token's own index, since this is a relative
 					// offset
-					if (ret.m_tokens.size() - top > bdecode_token::max_next_item)
+					if (int(ret.m_tokens.size()) - top > bdecode_token::max_next_item)
 						TORRENT_FAIL_BDECODE(bdecode_errors::limit_exceeded);
 
-					ret.m_tokens[top].next_item = std::uint32_t(ret.m_tokens.size() - top);
+					ret.m_tokens[std::size_t(top)].next_item = std::uint32_t(int(ret.m_tokens.size()) - top);
 
 					// and pop it from the stack.
+					TORRENT_ASSERT(sp > 0);
 					--sp;
 					++start;
 					break;
@@ -832,8 +835,8 @@ done:
 			}
 
 			int const top = stack[sp].token;
-			TORRENT_ASSERT(ret.m_tokens.size() - top <= bdecode_token::max_next_item);
-			ret.m_tokens[top].next_item = std::uint32_t(ret.m_tokens.size() - top);
+			TORRENT_ASSERT(int(ret.m_tokens.size()) - top <= bdecode_token::max_next_item);
+			ret.m_tokens[std::size_t(top)].next_item = std::uint32_t(int(ret.m_tokens.size()) - top);
 			ret.m_tokens.push_back({start - orig_start, 1, bdecode_token::end});
 		}
 
@@ -922,7 +925,7 @@ done:
 		bool printable = true;
 		for (int i = 0; i < len; ++i)
 		{
-			char const c = str[i];
+			char const c = str[std::size_t(i)];
 			if (c >= 32 && c < 127) continue;
 			printable = false;
 			break;
@@ -937,7 +940,7 @@ done:
 				ret.append(str.data() + len - 14, 14);
 			}
 			else
-				ret.append(str.data(), len);
+				ret.append(str.data(), std::size_t(len));
 			ret += "'";
 			return;
 		}

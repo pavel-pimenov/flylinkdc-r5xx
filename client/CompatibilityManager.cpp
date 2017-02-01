@@ -761,7 +761,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          "Compiled on: %s ]=-\r\n"
 				          "\t-=[ OS: %s ]=-\r\n"
 				          "\t-=[ CPU Clock: %.1f MHz%s. Memory (free): %s (%s) ]=-\r\n"
-				          "\t-=[ Uptime: %s. Cpu time: %s. Client Uptime: %s ]=-\r\n"
+				          "\t-=[ Uptime: %s. CPU: %s. Client Uptime: %s ]=-\r\n"
 				          "\t-=[ RAM (peak): %s (%s). Virtual (peak): %s (%s) ]=-\r\n"
 				          "\t-=[ GDI units (peak): %d (%d). Handle (peak): %d (%d) ]=-\r\n"
 				          "\t-=[ Public share: %s. Files in share: %u. Total users: %u on hubs: %u ]=-\r\n"

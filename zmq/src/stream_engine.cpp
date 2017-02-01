@@ -132,13 +132,6 @@ zmq::stream_engine_t::stream_engine_t (fd_t fd_, const options_t &options_,
     }
 #endif
 
-#ifdef SO_NOSIGPIPE
-    //  Make sure that SIGPIPE signal is not generated when writing to a
-    //  connection that was already closed by the peer.
-    int set = 1;
-    rc = setsockopt (s, SOL_SOCKET, SO_NOSIGPIPE, &set, sizeof (int));
-    errno_assert (rc == 0);
-#endif
     if(options.heartbeat_interval > 0) {
         heartbeat_timeout = options.heartbeat_timeout;
         if(heartbeat_timeout == -1)
@@ -356,7 +349,7 @@ void zmq::stream_engine_t::in_event ()
     //  or the session has rejected the message.
     if (rc == -1) {
         if (errno != EAGAIN) {
-            error (protocol_error);
+            error(protocol_error);
             return;
         }
         input_stopped = true;
@@ -752,10 +745,19 @@ int zmq::stream_engine_t::process_identity_msg (msg_t *msg_)
         errno_assert (rc == 0);
     }
 
-    if (subscription_required)
-        process_msg = &stream_engine_t::write_subscription_msg;
-    else
-        process_msg = &stream_engine_t::push_msg_to_session;
+    if (subscription_required) {
+        msg_t subscription;
+
+        //  Inject the subscription message, so that also
+        //  ZMQ 2.x peers receive published messages.
+        int rc = subscription.init_size (1);
+        errno_assert (rc == 0);
+        *(unsigned char*) subscription.data () = 1;
+        rc = session->push_msg (&subscription);
+        errno_assert (rc == 0);
+    }
+
+    process_msg = &stream_engine_t::push_msg_to_session;
 
     return 0;
 }
@@ -775,8 +777,14 @@ int zmq::stream_engine_t::next_handshake_command (msg_t *msg_)
     }
     else {
         const int rc = mechanism->next_handshake_command (msg_);
+
         if (rc == 0)
             msg_->set_flags (msg_t::command);
+#ifdef ZMQ_BUILD_DRAFT_API
+        if(mechanism->status() == mechanism_t::error)
+            socket->event_handshake_failed(endpoint, 0);
+#endif
+
         return rc;
     }
 }
@@ -854,6 +862,10 @@ void zmq::stream_engine_t::mechanism_ready ()
     zmq_assert (metadata == NULL);
     if (!properties.empty ())
         metadata = new (std::nothrow) metadata_t (properties);
+
+#ifdef ZMQ_BUILD_DRAFT_API
+    socket->event_handshake_succeed(endpoint, 0);
+#endif
 }
 
 int zmq::stream_engine_t::pull_msg_from_session (msg_t *msg_)
@@ -947,23 +959,6 @@ int zmq::stream_engine_t::push_one_then_decode_and_push (msg_t *msg_)
     return rc;
 }
 
-int zmq::stream_engine_t::write_subscription_msg (msg_t *msg_)
-{
-    msg_t subscription;
-
-    //  Inject the subscription message, so that also
-    //  ZMQ 2.x peers receive published messages.
-    int rc = subscription.init_size (1);
-    errno_assert (rc == 0);
-    *(unsigned char*) subscription.data () = 1;
-    rc = session->push_msg (&subscription);
-    if (rc == -1)
-       return -1;
-
-    process_msg = &stream_engine_t::push_msg_to_session;
-    return push_msg_to_session (msg_);
-}
-
 void zmq::stream_engine_t::error (error_reason_t reason)
 {
     if (options.raw_socket && options.raw_notify) {
@@ -975,6 +970,10 @@ void zmq::stream_engine_t::error (error_reason_t reason)
         terminator.close();
     }
     zmq_assert (session);
+#ifdef ZMQ_BUILD_DRAFT_API
+    if(mechanism == NULL || mechanism->status() == mechanism_t::handshaking)
+        socket->event_handshake_failed(endpoint, (int) s);
+#endif
     socket->event_disconnected (endpoint, (int) s);
     session->flush ();
     session->engine_error (reason);

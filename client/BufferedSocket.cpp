@@ -189,7 +189,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 	m_state = RUNNING;
 	do // while (GET_TICK() < endTime) // [~] IRainman opt
 	{
-		if (socketIsDisconecting()) // [+] IRainman fix.
+		if (socketIsDisconnecting())
 			break;
 			
 		dcdebug("threadConnect attempt to addr \"%s\"\n", aAddr.c_str());
@@ -217,7 +217,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 #endif
 				if (sock->waitConnected(POLL_TIMEOUT))
 				{
-					if (!socketIsDisconecting())
+					if (!socketIsDisconnecting())
 					{
 						resizeInBuf();
 						fly_fire(BufferedSocketListener::Connected());
@@ -227,7 +227,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 				if (endTime <= GET_TICK())
 					break;
 					
-				if (socketIsDisconecting())
+				if (socketIsDisconnecting())
 					return;
 			}
 			/* [-] IRainman fix
@@ -274,7 +274,7 @@ void BufferedSocket::threadAccept()
 	const uint64_t startTime = GET_TICK();
 	while (!sock->waitAccepted(POLL_TIMEOUT))
 	{
-		if (socketIsDisconecting()) // [!] IRainman fix
+		if (socketIsDisconnecting())
 			return;
 			
 		if ((startTime + LONG_TIMEOUT) < GET_TICK())
@@ -912,11 +912,16 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 	if (m_state != RUNNING)
 		return;
 		
-	if (socketIsDisconecting()) // [!] IRainman fix
+	if (socketIsDisconnecting()) 
 		return;
 	dcassert(p_file != NULL);
 	
-	static size_t g_bufSize = MAX_SOCKET_BUFFER_SIZE;
+    const size_t l_sockSize = MAX_SOCKET_BUFFER_SIZE; // тормозит отдача size_t(sock->getSocketOptInt(SO_SNDBUF));
+	static size_t g_bufSize = 0;
+	if (g_bufSize == 0)
+	{
+		g_bufSize = std::max(l_sockSize, size_t(MAX_SOCKET_BUFFER_SIZE));
+	}
 	
 	ByteVector l_readBuf; // TODO заменить на - не пишет буфера 0-ями std::unique_ptr<uint8_t[]> buf(new uint8_t[BUFSIZE]);
 	ByteVector l_writeBuf;
@@ -931,7 +936,7 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 		}
 		catch (std::bad_alloc&)
 		{
-			ShareManager::tryFixBadAlloc(); // fix // https://www.box.net/shared/07ab0210ed0f83ab842e
+			ShareManager::tryFixBadAlloc();
 			g_bufSize /= 2;
 			l_is_bad_alloc = g_bufSize > 1024;
 			if (l_is_bad_alloc == false)
@@ -945,7 +950,7 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 	size_t readPos = 0;
 	bool readDone = false;
 	dcdebug("Starting threadSend\n");
-	while (!socketIsDisconecting()) // [!] IRainman fix
+	while (!socketIsDisconnecting())
 	{
 		if (!readDone && l_readBuf.size() > readPos)
 		{
@@ -979,24 +984,23 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 		l_writeBuf.resize(readPos);
 		readPos = 0;
 		
-		size_t writePos = 0;
+		size_t writePos = 0, writeSize = 0;
 		int written = 0;
 		
 		while (writePos < l_writeBuf.size())
 		{
-			if (socketIsDisconecting()) // [!] IRainman fix
+			if (socketIsDisconnecting())
 				return;
 				
 			if (written == -1)
 			{
 				// workaround for OpenSSL (crashes when previous write failed and now retrying with different writeSize)
-				size_t l_writeSize = 0;
-				written = sock->write(&l_writeBuf[writePos], l_writeSize);
+				written = sock->write(&l_writeBuf[writePos], writeSize);
 			}
 			else
 			{
-				size_t l_writeSize = min(g_bufSize / 2, l_writeBuf.size() - writePos);
-				written = ThrottleManager::getInstance()->write(sock.get(), &l_writeBuf[writePos], l_writeSize);
+				writeSize = std::min(l_sockSize / 2, l_writeBuf.size() - writePos);
+				written = ThrottleManager::getInstance()->write(sock.get(), &l_writeBuf[writePos], writeSize);
 			}
 			
 			if (written > 0)
@@ -1033,7 +1037,7 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 				}
 				else
 				{
-					while (!socketIsDisconecting()) // [!] IRainman fix
+					while (!socketIsDisconnecting())
 					{
 						const int w = sock->wait(POLL_TIMEOUT, Socket::WAIT_WRITE | Socket::WAIT_READ);
 						if (w & Socket::WAIT_READ)
@@ -1116,7 +1120,7 @@ void BufferedSocket::threadSendData()
 			LogManager::message("[ClientManager::isBeforeShutdown()]Skip BufferedSocket::threadSendData Data = " + string((const char*)&l_sendBuf[0], l_sendBuf.size()));
 #endif
 		}
-		if (socketIsDisconecting()) // [!] IRainman fix
+		if (socketIsDisconnecting())
 		{
 			return;
 		}

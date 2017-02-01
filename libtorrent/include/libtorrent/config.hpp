@@ -190,13 +190,12 @@ POSSIBILITY OF SUCH DAMAGE.
 
 // ===== ANDROID ===== (almost linux, sort of)
 #if defined __ANDROID__
-#define TORRENT_ANDROID 1
+#define TORRENT_ANDROID
 #define TORRENT_HAS_FALLOCATE 0
 #define TORRENT_USE_ICONV 0
 #define TORRENT_USE_IFADDRS 0
 #define TORRENT_USE_MEMALIGN 1
 #else // ANDROID
-#define TORRENT_ANDROID 0
 #define TORRENT_USE_IFADDRS 1
 #define TORRENT_USE_POSIX_MEMALIGN 1
 
@@ -334,6 +333,8 @@ POSSIBILITY OF SUCH DAMAGE.
 // that could be marked noreturn.
 #if defined __clang__ || defined __GNUC__
 #define TORRENT_NO_RETURN __attribute((noreturn))
+#elif _MSC_VER
+#define TORRENT_NO_RETURN __declspec(noreturn)
 #else
 #define TORRENT_NO_RETURN
 #endif

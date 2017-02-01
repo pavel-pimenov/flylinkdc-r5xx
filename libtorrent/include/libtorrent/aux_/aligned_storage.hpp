@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2008-2016, Arvid Norberg
+Copyright (c) 2017, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,32 +30,31 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_ALLOCA
+#ifndef TORRENT_ALIGNED_STORAGE_HPP_INCLUDE
+#define TORRENT_ALIGNED_STORAGE_HPP_INCLUDE
 
-#include "libtorrent/config.hpp"
-#include "libtorrent/span.hpp"
+#include <type_traits>
 
-#if defined TORRENT_WINDOWS || defined TORRENT_MINGW
+namespace libtorrent { namespace aux {
 
-#include <malloc.h>
-#define TORRENT_ALLOCA(v, t, n) ::libtorrent::span<t> v; { \
-	t* TORRENT_ALLOCA_tmp = static_cast<t*>(_alloca(sizeof(t) * (std::size_t(n)))); \
-	v = ::libtorrent::span<t>(TORRENT_ALLOCA_tmp, std::size_t(n)); }
+#if defined __GNUC__ && __GNUC__ < 5
 
-#elif defined TORRENT_BSD
-
-#include <stdlib.h>
-#define TORRENT_ALLOCA(v, t, n) ::libtorrent::span<t> v; { \
-	t* TORRENT_ALLOCA_tmp = static_cast<t*>(alloca(sizeof(t) * (std::size_t(n)))); \
-	v = ::libtorrent::span<t>(TORRENT_ALLOCA_tmp, std::size_t(n)); }
+// this is for backwards compatibility with not-quite C++11 compilers
+template <std::size_t Len, std::size_t Align = alignof(void*)>
+struct aligned_storage
+{
+	struct type
+	{
+		alignas(Align) char buffer[Len];
+	};
+};
 
 #else
 
-#include <alloca.h>
-#define TORRENT_ALLOCA(v, t, n) ::libtorrent::span<t> v; { \
-	t* TORRENT_ALLOCA_tmp = static_cast<t*>(alloca(sizeof(t) * (std::size_t(n)))); \
-	v = ::libtorrent::span<t>(TORRENT_ALLOCA_tmp, std::size_t(n)); }
+using std::aligned_storage;
 
 #endif
+
+}}
 
 #endif

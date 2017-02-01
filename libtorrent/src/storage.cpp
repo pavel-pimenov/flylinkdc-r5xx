@@ -75,41 +75,6 @@ POSSIBILITY OF SUCH DAMAGE.
 // for convert_to_wstring and convert_to_native
 #include "libtorrent/aux_/escape_string.hpp"
 
-//#define TORRENT_PARTIAL_HASH_LOG
-
-#define DEBUG_STORAGE 0
-#define DEBUG_DELETE_FILES 0
-
-#if __cplusplus >= 201103L || defined __clang__
-
-#if DEBUG_STORAGE
-#define DLOG(...) std::fprintf(__VA_ARGS__)
-#else
-#define DLOG(...) do {} while (false)
-#endif
-
-#if DEBUG_DELETE_FILES
-#define DFLOG(...) std::fprintf(__VA_ARGS__)
-#else
-#define DFLOG(...) do {} while (false)
-#endif
-
-#else
-
-#if DEBUG_STORAGE
-#define DLOG fprintf
-#else
-#define DLOG TORRENT_WHILE_0 fprintf
-#endif
-
-#if DEBUG_DELETE_FILES
-#define DFLOG fprintf
-#else
-#define DFLOG TORRENT_WHILE_0 fprintf
-#endif
-
-#endif // cplusplus
-
 namespace libtorrent
 {
 	void clear_bufs(span<iovec_t const> bufs)
@@ -594,13 +559,14 @@ namespace libtorrent
 
 		// make sure we don't have the files open
 		m_pool.release(storage_index());
+
+		// make sure we can pick up new files added to the download directory when
+		// we start the torrent again
+		m_stat_cache.clear();
 	}
 
 	void default_storage::delete_files(int const options, storage_error& ec)
 	{
-		DFLOG(stderr, "[%p] delete_files [%x]\n", static_cast<void*>(this)
-			, options);
-
 #if TORRENT_USE_ASSERTS
 		// this is a fence job, we expect no other
 		// threads to hold any references to any files
@@ -621,9 +587,6 @@ namespace libtorrent
 		if (m_part_file) m_part_file.reset();
 
 		aux::delete_files(files(), m_save_path, m_part_file_name, options, ec);
-
-		DFLOG(stderr, "[%p] delete_files result: %s\n", static_cast<void*>(this)
-			, ec.ec.message().c_str());
 	}
 
 	bool default_storage::verify_resume_data(add_torrent_params const& rd
@@ -642,6 +605,10 @@ namespace libtorrent
 		status_t ret;
 		std::tie(ret, m_save_path) = aux::move_storage(files(), m_save_path, sp
 			, m_part_file.get(), flags, ec);
+
+		// clear the stat cache in case the new location has new files
+		m_stat_cache.clear();
+
 		return ret;
 	}
 
@@ -872,219 +839,4 @@ namespace libtorrent
 		return new zero_storage;
 	}
 
-	void storage_piece_set::add_piece(cached_piece_entry* p)
-	{
-		TORRENT_ASSERT(p->in_storage == false);
-		TORRENT_ASSERT(p->storage.get() == this);
-		TORRENT_ASSERT(m_cached_pieces.count(p) == 0);
-		m_cached_pieces.insert(p);
-#if TORRENT_USE_ASSERTS
-		p->in_storage = true;
-#endif
-	}
-
-	bool storage_piece_set::has_piece(cached_piece_entry const* p) const
-	{
-		return m_cached_pieces.count(const_cast<cached_piece_entry*>(p)) > 0;
-	}
-
-	void storage_piece_set::remove_piece(cached_piece_entry* p)
-	{
-		TORRENT_ASSERT(p->in_storage == true);
-		TORRENT_ASSERT(m_cached_pieces.count(p) == 1);
-		m_cached_pieces.erase(p);
-#if TORRENT_USE_ASSERTS
-		p->in_storage = false;
-#endif
-	}
-
-	// ====== disk_job_fence implementation ========
-
-	disk_job_fence::disk_job_fence() {}
-
-	int disk_job_fence::job_complete(disk_io_job* j, tailqueue<disk_io_job>& jobs)
-	{
-		std::lock_guard<std::mutex> l(m_mutex);
-
-		TORRENT_ASSERT(j->flags & disk_io_job::in_progress);
-		j->flags &= ~disk_io_job::in_progress;
-
-		TORRENT_ASSERT(m_outstanding_jobs > 0);
-		--m_outstanding_jobs;
-		if (j->flags & disk_io_job::fence)
-		{
-			// a fence job just completed. Make sure the fence logic
-			// works by asserting m_outstanding_jobs is in fact 0 now
-			TORRENT_ASSERT(m_outstanding_jobs == 0);
-
-			// the fence can now be lowered
-			--m_has_fence;
-
-			// now we need to post all jobs that have been queued up
-			// while this fence was up. However, if there's another fence
-			// in the queue, stop there and raise the fence again
-			int ret = 0;
-			while (m_blocked_jobs.size())
-			{
-				disk_io_job *bj = static_cast<disk_io_job*>(m_blocked_jobs.pop_front());
-				if (bj->flags & disk_io_job::fence)
-				{
-					// we encountered another fence. We cannot post anymore
-					// jobs from the blocked jobs queue. We have to go back
-					// into a raised fence mode and wait for all current jobs
-					// to complete. The exception is that if there are no jobs
-					// executing currently, we should add the fence job.
-					if (m_outstanding_jobs == 0 && jobs.empty())
-					{
-						TORRENT_ASSERT((bj->flags & disk_io_job::in_progress) == 0);
-						bj->flags |= disk_io_job::in_progress;
-						++m_outstanding_jobs;
-						++ret;
-#if TORRENT_USE_ASSERTS
-						TORRENT_ASSERT(bj->blocked);
-						bj->blocked = false;
-#endif
-						jobs.push_back(bj);
-					}
-					else
-					{
-						// put the fence job back in the blocked queue
-						m_blocked_jobs.push_front(bj);
-					}
-					return ret;
-				}
-				TORRENT_ASSERT((bj->flags & disk_io_job::in_progress) == 0);
-				bj->flags |= disk_io_job::in_progress;
-
-				++m_outstanding_jobs;
-				++ret;
-#if TORRENT_USE_ASSERTS
-				TORRENT_ASSERT(bj->blocked);
-				bj->blocked = false;
-#endif
-				jobs.push_back(bj);
-			}
-			return ret;
-		}
-
-		// there are still outstanding jobs, even if we have a
-		// fence, it's not time to lower it yet
-		// also, if we don't have a fence, we're done
-		if (m_outstanding_jobs > 0 || m_has_fence == 0) return 0;
-
-		// there's a fence raised, and no outstanding operations.
-		// it means we can execute the fence job right now.
-		TORRENT_ASSERT(m_blocked_jobs.size() > 0);
-
-		// this is the fence job
-		disk_io_job *bj = static_cast<disk_io_job*>(m_blocked_jobs.pop_front());
-		TORRENT_ASSERT(bj->flags & disk_io_job::fence);
-
-		TORRENT_ASSERT((bj->flags & disk_io_job::in_progress) == 0);
-		bj->flags |= disk_io_job::in_progress;
-
-		++m_outstanding_jobs;
-#if TORRENT_USE_ASSERTS
-		TORRENT_ASSERT(bj->blocked);
-		bj->blocked = false;
-#endif
-		// prioritize fence jobs since they're blocking other jobs
-		jobs.push_front(bj);
-		return 1;
-	}
-
-	bool disk_job_fence::is_blocked(disk_io_job* j)
-	{
-		std::lock_guard<std::mutex> l(m_mutex);
-		DLOG(stderr, "[%p] is_blocked: fence: %d num_outstanding: %d\n"
-			, static_cast<void*>(this), m_has_fence, int(m_outstanding_jobs));
-
-		// if this is the job that raised the fence, don't block it
-		// ignore fence can only ignore one fence. If there are several,
-		// this job still needs to get queued up
-		if (m_has_fence == 0)
-		{
-			TORRENT_ASSERT((j->flags & disk_io_job::in_progress) == 0);
-			j->flags |= disk_io_job::in_progress;
-			++m_outstanding_jobs;
-			return false;
-		}
-
-		m_blocked_jobs.push_back(j);
-
-#if TORRENT_USE_ASSERTS
-		TORRENT_ASSERT(j->blocked == false);
-		j->blocked = true;
-#endif
-
-		return true;
-	}
-
-	bool disk_job_fence::has_fence() const
-	{
-		std::lock_guard<std::mutex> l(m_mutex);
-		return m_has_fence != 0;
-	}
-
-	int disk_job_fence::num_blocked() const
-	{
-		std::lock_guard<std::mutex> l(m_mutex);
-		return m_blocked_jobs.size();
-	}
-
-	// j is the fence job. It must have exclusive access to the storage
-	// fj is the flush job. If the job j is queued, we need to issue
-	// this job
-	int disk_job_fence::raise_fence(disk_io_job* j, disk_io_job* fj
-		, counters& cnt)
-	{
-		TORRENT_ASSERT((j->flags & disk_io_job::fence) == 0);
-		j->flags |= disk_io_job::fence;
-
-		std::lock_guard<std::mutex> l(m_mutex);
-
-		DLOG(stderr, "[%p] raise_fence: fence: %d num_outstanding: %d\n"
-			, static_cast<void*>(this), m_has_fence, int(m_outstanding_jobs));
-
-		if (m_has_fence == 0 && m_outstanding_jobs == 0)
-		{
-			++m_has_fence;
-			DLOG(stderr, "[%p] raise_fence: need posting\n"
-				, static_cast<void*>(this));
-
-			// the job j is expected to be put on the job queue
-			// after this, without being passed through is_blocked()
-			// that's why we're accounting for it here
-
-			// fj is expected to be discarded by the caller
-			j->flags |= disk_io_job::in_progress;
-			++m_outstanding_jobs;
-			return fence_post_fence;
-		}
-
-		++m_has_fence;
-		if (m_has_fence > 1)
-		{
-#if TORRENT_USE_ASSERTS
-			TORRENT_ASSERT(fj->blocked == false);
-			fj->blocked = true;
-#endif
-			m_blocked_jobs.push_back(fj);
-			cnt.inc_stats_counter(counters::blocked_disk_jobs);
-		}
-		else
-		{
-			// in this case, fj is expected to be put on the job queue
-			fj->flags |= disk_io_job::in_progress;
-			++m_outstanding_jobs;
-		}
-#if TORRENT_USE_ASSERTS
-		TORRENT_ASSERT(j->blocked == false);
-		j->blocked = true;
-#endif
-		m_blocked_jobs.push_back(j);
-		cnt.inc_stats_counter(counters::blocked_disk_jobs);
-
-		return m_has_fence > 1 ? fence_post_none : fence_post_flush;
-	}
 } // namespace libtorrent

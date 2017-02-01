@@ -2546,11 +2546,11 @@ void TransferView::parseQueueItemUpdateInfo(UpdateInfo* ui, const QueueItemPtr& 
 					}
 					if (trusted)
 					{
-						flag += _T("[S]");
+						flag += _T("[SSL+T]");
 					}
 					if (untrusted)
 					{
-						flag += _T("[U]");
+						flag += _T("[SSL+U]");
 					}
 					if (tthcheck)
 					{

@@ -5,6 +5,7 @@ call build_flylinkdc_x64_2013.bat
 
 if not exist .\compiled\FlylinkDC*.exe goto :builderror
 
+move *-debug-info-*.7z "U:\webdav\src-bin-pdb\flylinkdc-r5xx-pdb"
 move *-src-*.7z "U:\webdav\src-bin-pdb\flylinkdc-r5xx\r505"
 move *.7z "U:\webdav\src-bin-pdb\flylinkdc-r5xx\r505"
 

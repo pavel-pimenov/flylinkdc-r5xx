@@ -42,8 +42,12 @@ POSSIBILITY OF SUCH DAMAGE.
 // OVERVIEW
 //
 // You have some control over session configuration through the session::apply_settings()
-// member function. To change one or more configuration options, create a settings_pack.
+// member function. To change one or more configuration options, create a settings_pack
 // object and fill it with the settings to be set and pass it in to session::apply_settings().
+//
+// The settings_pack object is a collection of settings updates that are applied
+// to the session when passed to session::apply_settings(). It's empty when
+// constructed.
 //
 // You have control over proxy and authorization settings and also the user-agent
 // that will be sent to the tracker. The user-agent will also be used to identify the
@@ -87,7 +91,12 @@ namespace libtorrent
 		void set_int(int name, int val);
 		void set_bool(int name, bool val);
 		bool has_val(int name) const;
+
+		// clear the settings pack from all settings
 		void clear();
+
+		// clear a specific setting from the pack
+		void clear(int name);
 
 		std::string const& get_str(int name) const;
 		int get_int(int name) const;

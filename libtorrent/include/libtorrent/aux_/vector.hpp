@@ -41,12 +41,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent { namespace aux {
 
-	template <typename T>
-	struct underlying_index_t { using type = T; };
-
-	template <typename U, typename Tag>
-	struct underlying_index_t<aux::strong_typedef<U, Tag>> { using type = U; };
-
 	template <typename T, typename IndexType = int>
 	struct vector : std::vector<T>
 	{
@@ -118,30 +112,6 @@ namespace libtorrent { namespace aux {
 			this->base::reserve(s);
 		}
 	};
-
-	template <typename Iter>
-	struct iterator_range
-	{
-		Iter _begin, _end;
-		Iter begin() { return _begin; }
-		Iter end() { return _end; }
-	};
-
-	template <typename T, typename IndexType>
-	iterator_range<T*> range(vector<T, IndexType>& vec
-		, IndexType begin, IndexType end)
-	{
-		using type = typename underlying_index_t<IndexType>::type;
-		return {vec.data() + static_cast<type>(begin), vec.data() + static_cast<type>(end)};
-	}
-
-	template <typename T, typename IndexType>
-	iterator_range<T const*> range(vector<T, IndexType> const& vec
-		, IndexType begin, IndexType end)
-	{
-		using type = typename underlying_index_t<IndexType>::type;
-		return {vec.data() + static_cast<type>(begin), vec.data() + static_cast<type>(end)};
-	}
 
 }}
 

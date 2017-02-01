@@ -2245,7 +2245,7 @@ Util::CustomNetworkIndex Util::getIpCountry(uint32_t p_ip, bool p_is_use_only_ca
 	if (p_ip && p_ip != INADDR_NONE)
 	{
 		uint16_t l_country_index = 0;
-		uint32_t  l_location_index = -1;
+		uint32_t  l_location_index = uint32_t(-1);
 		CFlylinkDBManager::getInstance()->get_country_and_location(p_ip, l_country_index, l_location_index, p_is_use_only_cache);
 		if (l_location_index > 0)
 		{

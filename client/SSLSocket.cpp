@@ -58,7 +58,10 @@ bool SSLSocket::waitConnected(uint64_t millis)
 		{
 			SSL_set_verify(ssl, SSL_VERIFY_NONE, NULL);
 		}
-		else SSL_set_ex_data(ssl, CryptoManager::idxVerifyData, verifyData.get());
+		else
+		{
+			SSL_set_ex_data(ssl, CryptoManager::idxVerifyData, verifyData.get());
+		}
 		
 		checkSSL(SSL_set_fd(ssl, static_cast<int>(getSock())));
 	}
