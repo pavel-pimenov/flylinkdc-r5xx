@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2017 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -181,7 +181,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		{
 			return sock.get() != nullptr;
 		}
-		bool socketIsDisconnecting() const 
+		bool socketIsDisconnecting() const
 		{
 			return m_is_disconnecting || !hasSocket();
 		}

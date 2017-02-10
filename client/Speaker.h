@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2017 Jacek Sieka, arnetheduck on gmail point com
  * Copyright (C) 2011-2013 Alexey Solomin, a.rainman on gmail pt com
  *
  * This program is free software; you can redistribute it and/or modify

@@ -25,7 +25,6 @@ CGDIImage::CGDIImage(LPCWSTR pszFileName, HWND hCallbackWnd, DWORD dwCallbackMsg
 		safe_delete(m_pImage);
 	if (!m_pImage)
 		return;
-	m_pItem = 0;
 	if (UINT TotalBuffer = m_pImage->GetPropertyItemSize(PropertyTagFrameDelay))
 	{
 		m_pItem = (Gdiplus::PropertyItem*)new char[TotalBuffer]; //-V121
@@ -77,18 +76,8 @@ CGDIImage::~CGDIImage()
 	_ASSERTE(m_Callbacks.empty());
 	if (m_hTimer)
 	{
-		EnterCriticalSection(&m_csCallback);
-		m_allowCreateTimer = false;
-		if (!DeleteTimerQueueTimer(NULL, m_hTimer, INVALID_HANDLE_VALUE))
-		{
-			auto l_code = GetLastError();
-			if (l_code != ERROR_IO_PENDING)
-			{
-				dcassert(0);
-			}
-		}
-		m_hTimer = NULL;
-		LeaveCriticalSection(&m_csCallback);
+		destroyTimer(this, INVALID_HANDLE_VALUE);
+		// INVALID_HANDLE_VALUE - https://msdn.microsoft.com/en-us/library/windows/desktop/ms682569(v=vs.85).aspx
 	}
 	safe_delete(m_pImage);
 	cleanup();
@@ -174,16 +163,6 @@ DWORD CGDIImage::GetFrameCount()
 	return m_dwFramesCount;
 }
 
-DWORD CGDIImage::GetWidth()
-{
-	return m_dwWidth;
-}
-
-DWORD CGDIImage::GetHeight()
-{
-	return m_dwHeight;
-}
-
 void CGDIImage::DrawFrame()
 {
 	dcassert(!isShutdown());
@@ -233,6 +212,11 @@ VOID CALLBACK CGDIImage::OnTimer(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
 		if (isShutdown())
 		{
 			destroyTimer(pGDIImage, NULL);
+			return;
+		}
+		if (pGDIImage->m_allowCreateTimer == false)
+		{
+			dcassert(0);
 			return;
 		}
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE

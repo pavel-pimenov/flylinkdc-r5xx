@@ -36,6 +36,7 @@
     <ClInclude Include="include\libtorrent\aux_\aligned_union.hpp" />
     <ClInclude Include="include\libtorrent\aux_\alloca.hpp" />
     <ClInclude Include="include\libtorrent\aux_\allocating_handler.hpp" />
+    <ClInclude Include="include\libtorrent\aux_\array.hpp" />
     <ClInclude Include="include\libtorrent\aux_\bind_to_device.hpp" />
     <ClInclude Include="include\libtorrent\aux_\block_cache_reference.hpp" />
     <ClInclude Include="include\libtorrent\aux_\byteswap.hpp" />

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2017 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -461,7 +461,7 @@ void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility
 	
 		APPEND("NI", getNick());
 		SKIP_EMPTY("SID", getSIDString());
-		const auto& l_cid = user->getCID().toBase32();
+		const auto l_cid = user->getCID().toBase32();
 		APPEND("CID", l_cid);
 		APPEND("SSshort", Util::formatBytes(getBytesShared()));
 		SKIP_EMPTY("SU", getSupports());

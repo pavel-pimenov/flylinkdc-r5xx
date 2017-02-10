@@ -2519,7 +2519,8 @@ namespace aux {
 						i->second->disconnect_peers(1, e);
 					}
 
-					m_settings.set_int(settings_pack::connections_limit, int(m_connections.size()));
+					m_settings.set_int(settings_pack::connections_limit
+						, std::max(10, int(m_connections.size())));
 				}
 				// try again, but still alert the user of the problem
 				async_accept(listener, ssl);
@@ -2790,7 +2791,7 @@ namespace aux {
 				m_alerts.emplace_alert<peer_disconnected_alert>(torrent_handle(), endp, peer_id()
 						, op_bittorrent, s->type()
 						, error_code(errors::too_many_connections)
-						, close_no_reason);
+						, close_reason_t::none);
 			}
 #ifndef TORRENT_DISABLE_LOGGING
 			if (should_log())
@@ -2966,6 +2967,7 @@ namespace aux {
 		peer_class* pc = m_classes.at(c);
 		if (pc == nullptr) return;
 		if (limit <= 0) limit = 0;
+		else limit = std::min(limit, std::numeric_limits<int>::max() - 1);
 		pc->channel[channel].throttle(limit);
 	}
 
@@ -4022,8 +4024,9 @@ namespace aux {
 		// TODO: use a lower limit than m_settings.connections_limit
 		// to allocate the to 10% or so of connection slots for incoming
 		// connections
-		int limit = m_settings.get_int(settings_pack::connections_limit)
-			- num_connections();
+		// cap this at max - 1, since we may add one below
+		int const limit = std::min(m_settings.get_int(settings_pack::connections_limit)
+			- num_connections(), std::numeric_limits<int>::max() - 1);
 
 		// this logic is here to smooth out the number of new connection
 		// attempts over time, to prevent connecting a large number of
@@ -6288,11 +6291,7 @@ namespace aux {
 	{
 		int limit = m_settings.get_int(settings_pack::connections_limit);
 
-		if (limit <= 0)
-			limit = (std::numeric_limits<int>::max)();
-
-		limit = (std::max)(5, (std::min)(limit
-				, max_open_files() - 20 - m_settings.get_int(settings_pack::file_pool_size)));
+		if (limit <= 0) limit = max_open_files();
 
 		m_settings.set_int(settings_pack::connections_limit, limit);
 
@@ -6924,7 +6923,7 @@ namespace aux {
 				"external ip: %s\n"
 				"we connected to: %s\n"
 				"peers:"
-				, resp.interval
+				, resp.interval.count()
 				, print_address(resp.external_ip).c_str()
 				, print_address(tracker_ip).c_str());
 
@@ -6947,7 +6946,7 @@ namespace aux {
 
 		void tracker_logger::tracker_request_error(tracker_request const&
 			, int response_code, error_code const& ec, const std::string& str
-			, int retry_interval)
+			, seconds32 const retry_interval)
 		{
 			TORRENT_UNUSED(retry_interval);
 			debug_log("*** tracker error: %d: %s %s"

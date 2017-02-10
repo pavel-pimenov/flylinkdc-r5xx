@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2017 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2372,11 +2372,6 @@ void HubFrame::HubModeChange()
 					if (m_tooltip_hubframe)
 					{
 						m_tooltip_hubframe->AddTool(*m_ctrlShowMode, ResourceManager::PASSIVE_NOTICE);
-						if (BOOLSETTING(FORCE_PASSIVE_INCOMING_CONNECTIONS))
-						{
-							// пока не понял как добавить к подсказке ещё один текст...
-							//  BaseChatFrame::addLine(_T("[!] FlylinkDC++ You have enabled 'Force firewall mode (passive!)' (window transfer, left bottom checkbox with wall)") /*+ TSTRING(PASSIVE_FORCE_NOTICE) + _T(" ") */, Colors::g_ChatTextSystem);
-						}
 					}
 				}
 			}
@@ -3391,7 +3386,7 @@ void HubFrame::timer_process_internal()
 		if (--m_upnp_message_tick == 0 && !ClientManager::isBeforeShutdown() && !m_client->isActive())
 		{
 			m_upnp_message_tick = -1;
-			BaseChatFrame::addLine(_T("[!] FlylinkDC++ ") + TSTRING(PASSIVE_NOTICE) + _T(" ") + Text::toT(CFlyServerConfig::g_support_upnp), Colors::g_ChatTextSystem);
+			//BaseChatFrame::addLine(_T("[!] FlylinkDC++ ") + TSTRING(PASSIVE_NOTICE) + _T(" ") + Text::toT(CFlyServerConfig::g_support_upnp), Colors::g_ChatTextSystem);
 		}
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2017 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ Exception(errorToString(aError))
 
 Socket::Stats Socket::g_stats;
 
-static const uint64_t SOCKS_TIMEOUT = 30000;
+const uint64_t SOCKS_TIMEOUT = 30000;
 
 string SocketException::errorToString(int aError) noexcept
 {
@@ -1019,7 +1019,7 @@ void Socket::socksUpdated()
 
 void Socket::shutdown() noexcept
 {
-	dcassert(m_sock != INVALID_SOCKET); // Поймаем под отладкой двойной shutdown? L: нет не поймаем, INVALID_SOCKET это тоже нормальное состояние сокета, который мог стать не валидным в процессе работы в результате какой либо сетевой ошибки.
+	//dcassert(m_sock != INVALID_SOCKET);
 	if (m_sock != INVALID_SOCKET)
 	{
 		::shutdown(m_sock, SD_BOTH); // !DC++!
@@ -1028,7 +1028,7 @@ void Socket::shutdown() noexcept
 
 void Socket::close() noexcept
 {
-	dcassert(m_sock != INVALID_SOCKET); // Поймаем под отладкой двойное закрытие? L: нет не поймаем, INVALID_SOCKET это тоже нормальное состояние сокета, который мог стать не валидным в процессе работы в результате какой либо сетевой ошибки.
+	//dcassert(m_sock != INVALID_SOCKET);
 	if (m_sock != INVALID_SOCKET)
 	{
 #ifdef _WIN32
@@ -1041,7 +1041,7 @@ void Socket::close() noexcept
 	}
 }
 
-void Socket::disconnect()
+void Socket::disconnect() noexcept
 {
 	shutdown();
 	close();

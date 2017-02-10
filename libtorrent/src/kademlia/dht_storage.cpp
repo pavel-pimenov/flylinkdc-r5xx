@@ -45,6 +45,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/bloom_filter.hpp>
 #include <libtorrent/session_settings.hpp>
 #include <libtorrent/random.hpp>
+#include <libtorrent/aux_/vector.hpp>
+#include <libtorrent/aux_/numeric_cast.hpp>
 
 namespace libtorrent {
 namespace dht {
@@ -176,17 +178,11 @@ namespace
 
 	struct infohashes_sample
 	{
-		std::vector<sha1_hash> samples;
+		aux::vector<sha1_hash> samples;
 		time_point created = min_time();
 
 		int count() const { return int(samples.size()); }
 	};
-
-	int clamp(int v, int lo, int hi)
-	{
-		TORRENT_ASSERT(lo <= hi);
-		return (v < lo) ? lo : (hi < v) ? hi : v;
-	}
 
 	class dht_default_storage final : public dht_storage_interface, boost::noncopyable
 	{
@@ -472,13 +468,13 @@ namespace
 
 		int get_infohashes_sample(entry& item) override
 		{
-			item["interval"] = clamp(m_settings.sample_infohashes_interval
+			item["interval"] = aux::clamp(m_settings.sample_infohashes_interval
 				, 0, sample_infohashes_interval_max);
 			item["num"] = int(m_map.size());
 
 			refresh_infohashes_sample();
 
-			std::vector<sha1_hash> const& samples = m_infohashes_sample.samples;
+			aux::vector<sha1_hash> const& samples = m_infohashes_sample.samples;
 			item["samples"] = span<char const>(
 				reinterpret_cast<char const*>(samples.data()), samples.size() * 20);
 
@@ -570,10 +566,10 @@ namespace
 		void refresh_infohashes_sample()
 		{
 			time_point const now = aux::time_now();
-			int const interval = clamp(m_settings.sample_infohashes_interval
+			int const interval = aux::clamp(m_settings.sample_infohashes_interval
 				, 0, sample_infohashes_interval_max);
 
-			int const max_count = clamp(m_settings.max_infohashes_sample_count
+			int const max_count = aux::clamp(m_settings.max_infohashes_sample_count
 				, 0, infohashes_sample_count_max);
 			int const count = std::min(max_count, int(m_map.size()));
 
@@ -582,7 +578,7 @@ namespace
 				&& m_infohashes_sample.count() >= max_count)
 				return;
 
-			std::vector<sha1_hash>& samples = m_infohashes_sample.samples;
+			aux::vector<sha1_hash>& samples = m_infohashes_sample.samples;
 			samples.clear();
 			samples.reserve(count);
 

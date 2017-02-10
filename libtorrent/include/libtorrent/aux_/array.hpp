@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2015, Arvid Norberg
+Copyright (c) 2017, Arvid Norberg, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,21 +30,48 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_AUX_TIME_HPP
-#define TORRENT_AUX_TIME_HPP
+#ifndef TORRENT_ARRAY_HPP
+#define TORRENT_ARRAY_HPP
 
-#include "libtorrent/config.hpp"
-#include "libtorrent/time.hpp"
+#include <array>
 
-namespace libtorrent { namespace aux
-{
-	// returns the current time, as represented by time_point. The
-	// resolution of this timer is about 100 ms.
-	TORRENT_EXTRA_EXPORT time_point time_now();
-	TORRENT_EXTRA_EXPORT time_point32 time_now32();
+#include "libtorrent/units.hpp"
+#include "libtorrent/assert.hpp"
 
-	TORRENT_EXTRA_EXPORT void update_time_now();
+namespace libtorrent { namespace aux {
 
-} }
+	template <typename T, std::size_t Size, typename IndexType = int>
+	struct array : std::array<T, Size>
+	{
+		using base = std::array<T, Size>;
+		using underlying_index = typename underlying_index_t<IndexType>::type;
+
+		static_assert(Size <= std::size_t(std::numeric_limits<underlying_index>::max())
+			, "size is to big for index type");
+
+		array() = default;
+		explicit array(std::array<T, Size>&& arr) : base(arr) {}
+
+		auto operator[](IndexType idx) const -> decltype(this->base::operator[](underlying_index()))
+		{
+			TORRENT_ASSERT(idx >= IndexType(0));
+			TORRENT_ASSERT(idx < end_index());
+			return this->base::operator[](std::size_t(static_cast<underlying_index>(idx)));
+		}
+
+		auto operator[](IndexType idx) -> decltype(this->base::operator[](underlying_index()))
+		{
+			TORRENT_ASSERT(idx >= IndexType(0));
+			TORRENT_ASSERT(idx < end_index());
+			return this->base::operator[](std::size_t(static_cast<underlying_index>(idx)));
+		}
+
+		constexpr IndexType end_index() const
+		{
+			return IndexType(static_cast<underlying_index>(Size));
+		}
+	};
+
+}}
 
 #endif

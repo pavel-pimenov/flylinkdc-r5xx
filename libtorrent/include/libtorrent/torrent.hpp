@@ -95,6 +95,8 @@ namespace libtorrent
 	class bt_peer_connection;
 	struct listen_socket_t;
 
+	constexpr int default_piece_priority = 4;
+
 	enum class waste_reason
 	{
 		piece_timed_out, piece_cancelled, piece_unknown, piece_seed
@@ -134,7 +136,7 @@ namespace libtorrent
 			, web_seed_entry::headers_t const& extra_headers_ = web_seed_entry::headers_t());
 
 		// if this is > now, we can't reconnect yet
-		time_point retry = aux::time_now();
+		time_point32 retry = aux::time_now32();
 
 		// if the hostname of the web seed has been resolved,
 		// these are its IP addresses
@@ -478,14 +480,15 @@ namespace libtorrent
 
 		void stop_when_ready(bool b);
 
-		int started() const { return m_started; }
+		time_point32 started() const { return m_started; }
 		void step_session_time(int seconds);
 		void do_pause(bool clear_disk_cache = true);
 		void do_resume();
 
-		int finished_time() const;
-		int active_time() const;
-		int seeding_time() const;
+		seconds32 finished_time() const;
+		seconds32 active_time() const;
+		seconds32 seeding_time() const;
+		seconds32 upload_mode_time() const;
 
 		bool is_paused() const;
 		bool is_torrent_paused() const { return m_paused; }
@@ -496,7 +499,8 @@ namespace libtorrent
 		{
 			// save resume data every 15 minutes regardless, just to
 			// keep stats up to date
-			return m_need_save_resume_data || m_ses.session_time() - m_last_saved_resume > 15 * 60;
+			return m_need_save_resume_data ||
+				aux::time_now32() - m_last_saved_resume > minutes(15);
 		}
 
 		void set_need_save_resume()
@@ -669,7 +673,7 @@ namespace libtorrent
 			, struct tracker_response const& resp) override;
 		virtual void tracker_request_error(tracker_request const& r
 			, int response_code, error_code const& ec, const std::string& msg
-			, int retry_interval) override;
+			, seconds32 retry_interval) override;
 		virtual void tracker_warning(tracker_request const& req
 			, std::string const& msg) override;
 		virtual void tracker_scrape_response(tracker_request const& req
@@ -723,7 +727,7 @@ namespace libtorrent
 		bool super_seeding() const
 		{
 			// we're not super seeding if we're not a seed
-			return m_super_seeding && is_seed();
+			return m_super_seeding;
 		}
 
 		void set_super_seeding(bool on);
@@ -1034,7 +1038,7 @@ namespace libtorrent
 		// that are not private
 		void lsd_announce();
 
-		void update_last_upload() { m_last_upload = int16_t(m_ses.session_time()); }
+		void update_last_upload() { m_last_upload = aux::time_now32(); }
 
 		void set_apply_ip_filter(bool b);
 		bool apply_ip_filter() const { return m_apply_ip_filter; }
@@ -1052,12 +1056,26 @@ namespace libtorrent
 			m_links[aux::session_interface::torrent_state_updates].clear();
 		}
 
-		void inc_num_connecting()
-		{ ++m_num_connecting; }
-		void dec_num_connecting()
+		void inc_num_connecting(torrent_peer* pp)
+		{
+			++m_num_connecting;
+			TORRENT_ASSERT(m_num_connecting <= int(m_connections.size()));
+			if (pp->seed)
+			{
+				++m_num_connecting_seeds;
+				TORRENT_ASSERT(m_num_connecting_seeds <= int(m_connections.size()));
+			}
+		}
+		void dec_num_connecting(torrent_peer* pp)
 		{
 			TORRENT_ASSERT(m_num_connecting > 0);
 			--m_num_connecting;
+			if (pp->seed)
+			{
+				TORRENT_ASSERT(m_num_connecting_seeds > 0);
+				--m_num_connecting_seeds;
+			}
+			TORRENT_ASSERT(m_num_connecting <= int(m_connections.size()));
 		}
 
 		bool is_ssl_torrent() const { return m_ssl_torrent; }
@@ -1120,7 +1138,7 @@ namespace libtorrent
 		void update_peer_interest(bool was_finished);
 		void prioritize_udp_trackers();
 
-		void update_tracker_timer(time_point now);
+		void update_tracker_timer(time_point32 now);
 
 		void on_tracker_announce(error_code const& ec);
 
@@ -1269,7 +1287,7 @@ namespace libtorrent
 		// the posix time this torrent was added and when
 		// it was completed. If the torrent isn't yet
 		// completed, m_completed_time is 0
-		time_t m_added_time;
+		time_t m_added_time = time(nullptr);
 		time_t m_completed_time = 0;
 
 		// this was the last time _we_ saw a seed in this swarm
@@ -1300,9 +1318,7 @@ namespace libtorrent
 		// m_num_verified = m_verified.count()
 		std::uint32_t m_num_verified = 0;
 
-		// this timestamp is kept in session-time, to
-		// make it fit in 16 bits
-		std::uint16_t m_last_saved_resume;
+		time_point32 m_last_saved_resume = aux::time_now32();
 
 		// if this torrent is running, this was the time
 		// when it was started. This is used to have a
@@ -1312,15 +1328,15 @@ namespace libtorrent
 		// in session-time. see session_impl for details.
 		// the reference point is stepped forward every 4
 		// hours to keep the timestamps fit in 16 bits
-		std::uint16_t m_started;
+		time_point32 m_started = aux::time_now32();
 
 		// if we're a seed, this is the session time
 		// timestamp of when we became one
-		std::uint16_t m_became_seed = 0;
+		time_point32 m_became_seed = aux::time_now32();
 
 		// if we're finished, this is the session time
 		// timestamp of when we finished
-		std::uint16_t m_became_finished = 0;
+		time_point32 m_became_finished = aux::time_now32();
 
 		// when checking, this is the first piece we have not
 		// issued a hash job for
@@ -1369,7 +1385,7 @@ namespace libtorrent
 
 		// the session time timestamp of when we entered upload mode
 		// if we're currently in upload-mode
-		std::uint16_t m_upload_mode_time = 0;
+		time_point32 m_upload_mode_time = aux::time_now32();
 
 		// true when this torrent should announce to
 		// trackers
@@ -1411,7 +1427,7 @@ namespace libtorrent
 		// paused. specified in seconds. This only track time _before_ we started
 		// the torrent this last time. When the torrent is paused, this counter is
 		// incremented to include this current session.
-		unsigned int m_active_time:24;
+		seconds32 m_active_time{0};
 
 		// the index to the last tracker that worked
 		std::int8_t m_last_working_tracker = -1;
@@ -1420,7 +1436,7 @@ namespace libtorrent
 
 		// total time we've been finished with this torrent.
 		// does not count when the torrent is stopped or paused.
-		unsigned int m_finished_time:24;
+		seconds32 m_finished_time{0};
 
 		// in case the piece picker hasn't been constructed
 		// when this settings is set, this variable will keep
@@ -1460,7 +1476,7 @@ namespace libtorrent
 		// accounts for the time prior to the current start of the torrent. When
 		// the torrent is paused, this counter is incremented to account for the
 		// additional seeding time.
-		unsigned int m_seeding_time:24;
+		seconds32 m_seeding_time{0};
 
 // ----
 
@@ -1548,16 +1564,20 @@ namespace libtorrent
 		// the timestamp of the last piece passed for this torrent specified in
 		// session_time. This is signed because it must be able to represent time
 		// before the session started
-		std::int16_t m_last_download = (std::numeric_limits<std::int16_t>::min)();
+		time_point32 m_last_download = aux::time_now32();
 
 		// the number of peer connections to seeds. This should be the same as
 		// counting the peer connections that say true for is_seed()
 		std::uint16_t m_num_seeds = 0;
 
+		// this is the number of peers that are seeds, and count against
+		// m_num_seeds, but have not yet been connected
+		std::uint16_t m_num_connecting_seeds = 0;
+
 		// the timestamp of the last byte uploaded from this torrent specified in
 		// session_time. This is signed because it must be able to represent time
 		// before the session started.
-		std::int16_t m_last_upload = (std::numeric_limits<std::int16_t>::min)();
+		time_point32 m_last_upload = aux::time_now32();
 
 // ----
 

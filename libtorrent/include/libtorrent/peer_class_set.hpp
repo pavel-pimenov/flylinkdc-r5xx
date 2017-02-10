@@ -34,7 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_PEER_CLASS_SET_HPP_INCLUDED
 
 #include "libtorrent/peer_class.hpp"
-#include <array>
+#include "libtorrent/aux_/array.hpp"
 
 namespace libtorrent {
 
@@ -50,7 +50,7 @@ namespace libtorrent {
 		peer_class_t class_at(int i) const
 		{
 			TORRENT_ASSERT(i >= 0 && i < int(m_size));
-			return m_class[std::size_t(i)];
+			return m_class[i];
 		}
 
 	private:
@@ -62,7 +62,7 @@ namespace libtorrent {
 		// class IDs. Each ID refers to a an entry in m_ses.m_peer_classes which
 		// holds the metadata about the class. Classes affect bandwidth limits
 		// among other things
-		std::array<peer_class_t, 15> m_class;
+		aux::array<peer_class_t, 15> m_class;
 	};
 }
 

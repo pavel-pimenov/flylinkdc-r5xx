@@ -54,6 +54,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 
+#include "libtorrent/torrent.hpp"
 #include "libtorrent/torrent_handle.hpp"
 #include "libtorrent/announce_entry.hpp"
 #include "libtorrent/torrent_info.hpp"
@@ -102,6 +103,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 using namespace std::placeholders;
+using std::chrono::duration_cast;
+using std::chrono::seconds;
+using libtorrent::seconds32;
 
 namespace libtorrent
 {
@@ -121,8 +125,6 @@ namespace libtorrent
 		}
 		return ret;
 	}
-
-	constexpr int default_piece_priority = 4;
 
 	} // anonymous namespace
 
@@ -178,10 +180,7 @@ namespace libtorrent
 #endif
 		, m_stats_counters(ses.stats_counters())
 		, m_storage_constructor(p.storage)
-		, m_added_time(time(nullptr))
 		, m_info_hash(info_hash)
-		, m_last_saved_resume(ses.session_time())
-		, m_started(ses.session_time())
 		, m_error_file(torrent_status::error_file_none)
 		, m_sequence_number(seq)
 		, m_announce_to_trackers((p.flags & add_torrent_params::flag_paused) == 0)
@@ -191,15 +190,12 @@ namespace libtorrent
 		, m_storage_mode(p.storage_mode)
 		, m_announcing(false)
 		, m_added(false)
-		, m_active_time(0)
-		, m_finished_time(0)
 		, m_sequential_download(false)
 		, m_auto_sequential(false)
 		, m_seed_mode(false)
 		, m_super_seeding(false)
 		, m_stop_when_ready((p.flags & add_torrent_params::flag_stop_when_ready) != 0)
 		, m_need_save_resume_data((p.flags & add_torrent_params::flag_need_save_resume) != 0)
-		, m_seeding_time(0)
 		, m_max_uploads((1<<24)-1)
 		, m_num_uploads(0)
 		, m_need_connect_boost(true)
@@ -373,9 +369,9 @@ namespace libtorrent
 
 		// the number of seconds this torrent has spent in started, finished and
 		// seeding state so far, respectively.
-		m_active_time = p.active_time;
-		m_finished_time = p.finished_time;
-		m_seeding_time = p.seeding_time;
+		m_active_time = seconds(p.active_time);
+		m_finished_time = seconds(p.finished_time);
+		m_seeding_time = seconds(p.seeding_time);
 
 		m_added_time = p.added_time ? p.added_time : time(nullptr);
 		m_completed_time = p.completed_time;
@@ -670,8 +666,6 @@ namespace libtorrent
 
 		update_gauge();
 
-		m_file_progress.clear();
-
 		update_want_peers();
 		update_want_scrape();
 		update_want_tick();
@@ -963,7 +957,7 @@ namespace libtorrent
 				p->cancel_all_requests();
 			}
 			// this is used to try leaving upload only mode periodically
-			m_upload_mode_time = m_ses.session_time();
+			m_upload_mode_time = aux::time_now32();
 		}
 		else if (m_peer_list)
 		{
@@ -1496,7 +1490,7 @@ namespace libtorrent
 		// this is needed for openssl < 1.0 to decrypt keys created by openssl 1.0+
 		OpenSSL_add_all_algorithms();
 
-		std::uint64_t now = clock_type::now().time_since_epoch().count();
+		std::uint64_t const now = clock_type::now().time_since_epoch().count();
 		// assume 9 bits of entropy (i.e. about 1 millisecond)
 		RAND_add(&now, 8, 1.125);
 		RAND_add(&info_hash()[0], 20, 3);
@@ -2184,11 +2178,11 @@ namespace libtorrent
 			int const blocks_in_last_piece = ((m_torrent_file->total_size() % m_torrent_file->piece_length())
 				+ block_size() - 1) / block_size();
 			m_picker->init(blocks_per_piece, blocks_in_last_piece, m_torrent_file->num_pieces());
+
+			m_file_progress.clear();
+			m_file_progress.init(picker(), m_torrent_file->files());
 		}
 
-		// file progress is allocated lazily, the first time the client
-		// asks for it
-		m_file_progress.clear();
 
 		// assume that we don't have anything
 		m_files_checked = false;
@@ -2550,7 +2544,7 @@ namespace libtorrent
 
 #ifndef TORRENT_DISABLE_LOGGING
 		debug_log("START DHT announce");
-		m_dht_start_time = clock_type::now();
+		m_dht_start_time = aux::time_now();
 #endif
 
 		// if we're a seed, we tell the DHT for better scrape stats
@@ -2690,7 +2684,7 @@ namespace libtorrent
 		req.num_want = (req.event == tracker_request::stopped)
 			? 0 : settings().get_int(settings_pack::num_want);
 
-		time_point const now = clock_type::now();
+		time_point32 const now = aux::time_now32();
 
 		// the tier is kept as INT_MAX until we find the first
 		// tracker that works, then it's set to that tracker's
@@ -2760,7 +2754,7 @@ namespace libtorrent
 				if ((protocol == "http" || protocol == "https")
 					&& proxy_type == settings_pack::none)
 				{
-					ae.next_announce = now + minutes(10);
+					ae.next_announce = now + minutes32(10);
 					if (m_ses.alerts().should_post<anonymous_mode_alert>()
 						|| req.triggered_manually)
 					{
@@ -2778,7 +2772,7 @@ namespace libtorrent
 					&& proxy_type != settings_pack::socks5_pw
 					&& proxy_type != settings_pack::i2p_proxy)
 				{
-					ae.next_announce = now + minutes(10);
+					ae.next_announce = now + minutes32(10);
 					if (m_ses.alerts().should_post<anonymous_mode_alert>()
 						|| req.triggered_manually)
 					{
@@ -2822,8 +2816,8 @@ namespace libtorrent
 			}
 
 			ae.updating = true;
-			ae.next_announce = now + seconds(20);
-			ae.min_announce = now + seconds(10);
+			ae.next_announce = now + seconds32(20);
+			ae.min_announce = now + seconds32(10);
 
 			if (m_ses.alerts().should_post<tracker_announce_alert>())
 			{
@@ -2965,11 +2959,10 @@ namespace libtorrent
 			m_ses.set_external_address(resp.external_ip
 				, aux::session_interface::source_tracker, tracker_ip);
 
-		time_point now = aux::time_now();
+		time_point32 now = aux::time_now32();
 
-		int interval = resp.interval;
-		if (interval < settings().get_int(settings_pack::min_announce_interval))
-			interval = settings().get_int(settings_pack::min_announce_interval);
+		auto interval = std::max(resp.interval, seconds32(
+			settings().get_int(settings_pack::min_announce_interval)));
 
 		announce_entry* ae = find_tracker(r.url);
 		if (ae)
@@ -2984,8 +2977,8 @@ namespace libtorrent
 			ae->verified = true;
 			ae->updating = false;
 			ae->fails = 0;
-			ae->next_announce = now + seconds(interval);
-			ae->min_announce = now + seconds(resp.min_interval);
+			ae->next_announce = now + interval;
+			ae->min_announce = now + resp.min_interval;
 			int tracker_index = int(ae - &m_trackers[0]);
 			m_last_working_tracker = std::int8_t(prioritize_tracker(tracker_index));
 
@@ -3022,7 +3015,7 @@ namespace libtorrent
 					"resolved to: %s\n"
 					"we connected to: %s\n"
 					"peers:"
-				, interval
+				, interval.count()
 				, print_address(resp.external_ip).c_str()
 				, resolved_to.c_str()
 				, print_address(tracker_ip).c_str());
@@ -3187,7 +3180,7 @@ namespace libtorrent
 			return;
 		}
 
-		if (int(m_connections.size()) - m_num_connecting < 10)
+		if (int(m_connections.size() - m_num_connecting) < 10)
 		{
 			// there are too few peers. Be conservative and don't assume it's
 			// well seeded until we can connect to more peers
@@ -3198,8 +3191,8 @@ namespace libtorrent
 		// if there are at least 10 seeds, and there are 10 times more
 		// seeds than downloaders, enter sequential download mode
 		// (for performance)
-		int downloaders = num_downloaders();
-		int seeds = num_seeds();
+		int const downloaders = num_downloaders();
+		int const seeds = num_seeds();
 		m_auto_sequential = downloaders * 10 <= seeds
 			&& seeds > 9;
 	}
@@ -3283,7 +3276,8 @@ namespace libtorrent
 		{
 			for (auto& e : m_trackers)
 			{
-				e.next_announce = std::max(t, e.min_announce) + seconds(1);
+				e.next_announce = std::max(time_point_cast<seconds32>(t)
+					, e.min_announce) + seconds(1);
 				e.triggered_manually = true;
 			}
 		}
@@ -3292,10 +3286,11 @@ namespace libtorrent
 			if (tracker_idx < 0 || tracker_idx >= int(m_trackers.size()))
 				return;
 			announce_entry& e = m_trackers[tracker_idx];
-			e.next_announce = std::max(t, e.min_announce) + seconds(1);
+			e.next_announce = std::max(time_point_cast<seconds32>(t)
+				, e.min_announce) + seconds32(1);
 			e.triggered_manually = true;
 		}
-		update_tracker_timer(clock_type::now());
+		update_tracker_timer(aux::time_now32());
 	}
 
 #ifndef TORRENT_NO_DEPRECATE
@@ -3851,7 +3846,7 @@ namespace libtorrent
 			// is deallocated by the torrent once it starts seeding
 		}
 
-		m_last_download = m_ses.session_time();
+		m_last_download = aux::time_now32();
 
 		if (m_share_mode)
 			recalc_share_mode();
@@ -4361,6 +4356,7 @@ namespace libtorrent
 
 		m_super_seeding = on;
 		set_need_save_resume();
+		state_updated();
 
 		if (m_super_seeding) return;
 
@@ -5734,7 +5730,7 @@ namespace libtorrent
 #endif
 
 			// unavailable, retry in 30 minutes
-			web->retry = aux::time_now() + minutes(30);
+			web->retry = aux::time_now32() + minutes32(30);
 			return;
 		}
 
@@ -5952,9 +5948,10 @@ namespace libtorrent
 		ret["total_uploaded"] = m_total_uploaded;
 		ret["total_downloaded"] = m_total_downloaded;
 
-		ret["active_time"] = active_time();
-		ret["finished_time"] = finished_time();
-		ret["seeding_time"] = seeding_time();
+		// cast to seconds in case that internal values doesn't have ratio<1>
+		ret["active_time"] = duration_cast<seconds>(active_time()).count();
+		ret["finished_time"] = duration_cast<seconds>(finished_time()).count();
+		ret["seeding_time"] = duration_cast<seconds>(seeding_time()).count();
 		ret["last_seen_complete"] = m_last_seen_complete;
 
 		ret["num_complete"] = m_complete;
@@ -7243,7 +7240,7 @@ namespace libtorrent
 		set_state(torrent_status::finished);
 		set_queue_position(-1);
 
-		m_became_finished = m_ses.session_time();
+		m_became_finished = aux::time_now32();
 
 		// we have to call completed() before we start
 		// disconnecting peers, since there's an assert
@@ -7349,6 +7346,7 @@ namespace libtorrent
 			m_picker.reset();
 			m_have_all = true;
 			update_gauge();
+			m_file_progress.clear();
 		}
 	}
 
@@ -7359,14 +7357,11 @@ namespace libtorrent
 		maybe_done_flushing();
 
 		set_state(torrent_status::seeding);
-		m_became_seed = m_ses.session_time();
-
-		// no need for this anymore
-		m_file_progress.clear();
+		m_became_seed = aux::time_now32();
 
 		if (!m_announcing) return;
 
-		time_point now = aux::time_now();
+		time_point32 const now = aux::time_now32();
 		for (std::vector<announce_entry>::iterator i = m_trackers.begin()
 			, end(m_trackers.end()); i != end; ++i)
 		{
@@ -7468,6 +7463,7 @@ namespace libtorrent
 			{
 				m_super_seeding = false;
 				set_need_save_resume();
+				state_updated();
 			}
 
 			if (is_finished() && m_state != torrent_status::finished)
@@ -7684,6 +7680,9 @@ namespace libtorrent
 #if TORRENT_USE_INVARIANT_CHECKS
 	void torrent::check_invariant() const
 	{
+		// the piece picker and the file progress states are supposed to be
+		// created in sync
+		TORRENT_ASSERT(has_picker() == !m_file_progress.empty());
 		TORRENT_ASSERT(current_stats_state() == int(m_current_gauge_state + counters::num_checking_torrents)
 			|| m_current_gauge_state == no_gauge_state);
 
@@ -7777,6 +7776,8 @@ namespace libtorrent
 
 		int seeds = 0;
 		int num_uploads = 0;
+		int num_connecting = 0;
+		int num_connecting_seeds = 0;
 		std::map<piece_block, int> num_requests;
 		for (const_peer_iterator i = this->begin(); i != this->end(); ++i)
 		{
@@ -7785,6 +7786,11 @@ namespace libtorrent
 			TORRENT_ASSERT(m_ses.has_peer(*i));
 #endif
 			peer_connection const& p = *(*i);
+
+			if (p.is_connecting()) ++num_connecting;
+
+			if (p.is_connecting() && p.peer_info_struct()->seed)
+				++num_connecting_seeds;
 
 			if (p.peer_info_struct() && p.peer_info_struct()->seed)
 				++seeds;
@@ -7808,6 +7814,14 @@ namespace libtorrent
 		}
 		TORRENT_ASSERT(num_uploads == int(m_num_uploads));
 		TORRENT_ASSERT(seeds == int(m_num_seeds));
+		TORRENT_ASSERT(num_connecting == int(m_num_connecting));
+		TORRENT_ASSERT(num_connecting_seeds == int(m_num_connecting_seeds));
+		TORRENT_ASSERT(int(m_num_uploads) <= int(m_connections.size()));
+		TORRENT_ASSERT(int(m_num_seeds) <= int(m_connections.size()));
+		TORRENT_ASSERT(int(m_num_connecting) <= int(m_connections.size()));
+		TORRENT_ASSERT(int(m_num_connecting_seeds) <= int(m_connections.size()));
+		TORRENT_ASSERT(int(m_num_connecting) + int(m_num_seeds) >= int(m_num_connecting_seeds));
+		TORRENT_ASSERT(int(m_num_connecting) + int(m_num_seeds) - int(m_num_connecting_seeds) <= int(m_connections.size()));
 
 		if (has_picker())
 		{
@@ -7942,6 +7956,9 @@ namespace libtorrent
 
 	void torrent::queue_up()
 	{
+		// fix race conditions on async position change calls (from handler)
+		if(!m_auto_managed || m_abort || is_finished()) return;
+
 		set_queue_position(queue_position() == 0
 			? queue_position() : queue_position() - 1);
 	}
@@ -7954,10 +7971,13 @@ namespace libtorrent
 	void torrent::set_queue_position(int p)
 	{
 		TORRENT_ASSERT(is_single_thread());
+
+		// fix race conditions on async position change calls (from handler)
+		if ((!m_auto_managed || m_abort || is_finished()) && p != -1) return;
+
 		TORRENT_ASSERT((p == -1) == is_finished()
 			|| (!m_auto_managed && p == -1)
 			|| (m_abort && p == -1));
-		if (is_finished() && p != -1) return;
 		if (p == m_sequence_number) return;
 
 		TORRENT_ASSERT(p >= -1);
@@ -8200,14 +8220,14 @@ namespace libtorrent
 		if (a < b) return 0;
 		return std::uint16_t(a - b);
 	}
-
+#ifndef TORRENT_NO_DEPRECATE
 	std::int16_t clamped_subtract_s16(int a, int b)
 	{
 		if (a + (std::numeric_limits<std::int16_t>::min)() < b)
 			return (std::numeric_limits<std::int16_t>::min)();
 		return std::int16_t(a - b);
 	}
-
+#endif
 	} // anonymous namespace
 
 	// this is called every time the session timer takes a step back. Since the
@@ -8229,44 +8249,9 @@ namespace libtorrent
 			}
 		}
 
-		// m_active_time, m_seeding_time and m_finished_time are absolute counters
-		// of the historical time we've spent in each state. The current time
-		// we've spent in those states (this session) is calculated by
-		// session_time() - m_started
-		// session_time() - m_became_seed
-		// session_time() - m_became_finished respectively. If any of the
-		// comparison points were pulled back to the oldest representable value (0)
-		// the left-over time must be transferred into the m_*_time counters.
-
-		if (m_started < seconds && !is_paused())
-		{
-			int const lost_seconds = seconds - m_started;
-			m_active_time += lost_seconds;
-		}
-		m_started = clamped_subtract_u16(m_started, seconds);
-
-		if (m_became_seed < seconds && is_seed())
-		{
-			int const lost_seconds = seconds - m_became_seed;
-			m_seeding_time += lost_seconds;
-		}
-		m_became_seed = clamped_subtract_u16(m_became_seed, seconds);
-
-		if (m_became_finished < seconds && is_finished())
-		{
-			int const lost_seconds = seconds - m_became_finished;
-			m_finished_time += lost_seconds;
-		}
-		m_became_finished = clamped_subtract_u16(m_became_finished, seconds);
-
-		m_last_upload = clamped_subtract_s16(m_last_upload, seconds);
-		m_last_download = clamped_subtract_s16(m_last_download, seconds);
 #ifndef TORRENT_NO_DEPRECATE
 		m_last_scrape = clamped_subtract_s16(m_last_scrape, seconds);
 #endif
-
-		m_last_saved_resume = clamped_subtract_u16(m_last_saved_resume, seconds);
-		m_upload_mode_time = clamped_subtract_u16(m_upload_mode_time, seconds);
 	}
 
 	// the higher seed rank, the more important to seed
@@ -8288,15 +8273,16 @@ namespace libtorrent
 
 		int ret = 0;
 
-		std::int64_t const fin_time = finished_time();
-		std::int64_t const download_time = int(active_time()) - fin_time;
+		seconds32 const act_time = active_time();
+		seconds32 const fin_time = finished_time();
+		seconds32 const download_time = act_time - fin_time;
 
 		// if we haven't yet met the seed limits, set the seed_ratio_not_met
 		// flag. That will make this seed prioritized
 		// downloaded may be 0 if the torrent is 0-sized
 		std::int64_t const downloaded = (std::max)(m_total_downloaded, m_torrent_file->total_size());
-		if (fin_time < s.get_int(settings_pack::seed_time_limit)
-			&& (download_time > 1
+		if (fin_time < seconds(s.get_int(settings_pack::seed_time_limit))
+			&& (download_time.count() > 1
 				&& fin_time * 100 / download_time < s.get_int(settings_pack::seed_time_ratio_limit))
 			&& downloaded > 0
 			&& m_total_uploaded * 100 / downloaded < s.get_int(settings_pack::share_ratio_limit))
@@ -8304,7 +8290,7 @@ namespace libtorrent
 
 		// if this torrent is running, and it was started less
 		// than 30 minutes ago, give it priority, to avoid oscillation
-		if (!is_paused() && (m_ses.session_time() - m_started) < 30 * 60)
+		if (!is_paused() && act_time < minutes(30))
 			ret |= recently_started;
 
 		// if we have any scrape data, use it to calculate
@@ -8355,7 +8341,7 @@ namespace libtorrent
 		}
 
 		m_need_save_resume_data = false;
-		m_last_saved_resume = m_ses.session_time();
+		m_last_saved_resume = aux::time_now32();
 		m_save_resume_flags = std::uint8_t(flags);
 		state_updated();
 
@@ -8452,13 +8438,16 @@ namespace libtorrent
 		update_state_list();
 		update_want_tick();
 
-		m_active_time += m_ses.session_time() - m_started;
+		const time_point now = aux::time_now();
 
-		if (is_seed())
-			m_seeding_time += m_ses.session_time() - m_became_seed;
+		m_active_time +=
+			duration_cast<seconds32>(now - m_started);
 
-		if (is_finished())
-			m_finished_time += m_ses.session_time() - m_became_finished;
+		if (is_seed()) m_seeding_time +=
+			duration_cast<seconds32>(now - m_became_seed);
+
+		if (is_finished()) m_finished_time +=
+			duration_cast<seconds32>(now - m_became_finished);
 
 		m_announce_to_dht = false;
 		m_announce_to_trackers = false;
@@ -8684,7 +8673,7 @@ namespace libtorrent
 		if (alerts().should_post<torrent_resumed_alert>())
 			alerts().emplace_alert<torrent_resumed_alert>(get_handle());
 
-		m_started = m_ses.session_time();
+		m_started = aux::time_now32();
 		if (is_seed()) m_became_seed = m_started;
 		if (is_finished()) m_became_finished = m_started;
 
@@ -8711,7 +8700,7 @@ namespace libtorrent
 		do_connect_boost();
 	}
 
-	void torrent::update_tracker_timer(time_point const now)
+	void torrent::update_tracker_timer(time_point32 const now)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		if (!m_announcing)
@@ -8722,7 +8711,7 @@ namespace libtorrent
 			return;
 		}
 
-		time_point next_announce = max_time();
+		time_point32 next_announce = time_point32::max();
 		int tier = INT_MAX;
 
 		bool found_working = false;
@@ -8757,7 +8746,7 @@ namespace libtorrent
 			}
 			else
 			{
-				time_point next_tracker_announce = (std::max)(t.next_announce, t.min_announce);
+				time_point32 next_tracker_announce = std::max(t.next_announce, t.min_announce);
 				if (next_tracker_announce < next_announce
 					&& (!found_working || t.is_working()))
 					next_announce = next_tracker_announce;
@@ -8864,7 +8853,7 @@ namespace libtorrent
 
 		m_announcing = false;
 
-		time_point now = aux::time_now();
+		time_point32 const now = aux::time_now32();
 		for (auto& t : m_trackers)
 		{
 			t.next_announce = now;
@@ -8873,31 +8862,44 @@ namespace libtorrent
 		announce_with_tracker(tracker_request::stopped);
 	}
 
-	int torrent::finished_time() const
+	seconds32 torrent::finished_time() const
 	{
-		// m_finished_time does not account for the current "session", just the
-		// time before we last started this torrent. To get the current time, we
-		// need to add the time since we started it
-		return m_finished_time + ((!is_finished() || is_paused()) ? 0
-			: (m_ses.session_time() - m_became_finished));
+		if(!is_finished() || is_paused())
+			return m_finished_time;
+
+		return m_finished_time + duration_cast<seconds32>(
+			aux::time_now() - m_became_finished);
 	}
 
-	int torrent::active_time() const
+	seconds32 torrent::active_time() const
 	{
+		if(is_paused())
+			return m_active_time;
+
 		// m_active_time does not account for the current "session", just the
 		// time before we last started this torrent. To get the current time, we
 		// need to add the time since we started it
-		return m_active_time + (is_paused() ? 0
-			: m_ses.session_time() - m_started);
+		return m_active_time + duration_cast<seconds32>(
+			aux::time_now() - m_started);
 	}
 
-	int torrent::seeding_time() const
+	seconds32 torrent::seeding_time() const
 	{
+		if(!is_seed() || is_paused())
+			return m_seeding_time;
 		// m_seeding_time does not account for the current "session", just the
 		// time before we last started this torrent. To get the current time, we
 		// need to add the time since we started it
-		return m_seeding_time + ((!is_seed() || is_paused()) ? 0
-			: m_ses.session_time() - m_became_seed);
+		return m_seeding_time + duration_cast<seconds32>(
+			aux::time_now() - m_became_seed);
+	}
+
+	seconds32 torrent::upload_mode_time() const
+	{
+		if(!m_upload_mode)
+			return seconds32(0);
+
+		return aux::time_now32() - m_upload_mode_time;
 	}
 
 	void torrent::second_tick(int tick_interval_ms)
@@ -8920,9 +8922,8 @@ namespace libtorrent
 		// if we're in upload only mode and we're auto-managed
 		// leave upload mode every 10 minutes hoping that the error
 		// condition has been fixed
-		if (m_upload_mode && m_auto_managed
-			&& int(m_ses.session_time() - m_upload_mode_time)
-			>= settings().get_int(settings_pack::optimistic_disk_retry))
+		if (m_upload_mode && m_auto_managed && upload_mode_time() >=
+			seconds(settings().get_int(settings_pack::optimistic_disk_retry)))
 		{
 			set_upload_mode(false);
 		}
@@ -9883,7 +9884,7 @@ namespace libtorrent
 		if (i == m_web_seeds.end()) return;
 		if (i->removed) return;
 		if (retry == 0) retry = settings().get_int(settings_pack::urlseed_wait_retry);
-		i->retry = aux::time_now() + seconds(retry);
+		i->retry = aux::time_now32() + seconds32(retry);
 	}
 
 	torrent_state torrent::get_peer_list_state()
@@ -10490,7 +10491,7 @@ namespace libtorrent
 	{
 		INVARIANT_CHECK;
 
-		time_point now = aux::time_now();
+		time_point32 const now = aux::time_now32();
 
 		st->handle = get_handle();
 		st->info_hash = info_hash();
@@ -10560,22 +10561,23 @@ namespace libtorrent
 
 		// activity time
 #ifndef TORRENT_NO_DEPRECATE
-		st->finished_time = finished_time();
-		st->active_time = active_time();
-		st->seeding_time = seeding_time();
+		// cast to seconds in case that internal values doesn't have ratio<1>
+		st->finished_time = int(duration_cast<seconds>(finished_time()).count());
+		st->active_time = int(duration_cast<seconds>(active_time()).count());
+		st->seeding_time = int(duration_cast<seconds>(seeding_time()).count());
 
-		st->time_since_upload = m_last_upload == (std::numeric_limits<std::int16_t>::min)() ? -1
-			: clamped_subtract_u16(m_ses.session_time(), m_last_upload);
-		st->time_since_download = m_last_download == (std::numeric_limits<std::int16_t>::min)() ? -1
-			: clamped_subtract_u16(m_ses.session_time(), m_last_download);
+		st->time_since_upload = int(total_seconds(aux::time_now()
+			- m_last_upload));
+		st->time_since_download = int(total_seconds(aux::time_now()
+			- m_last_download));
 #endif
 
-		st->finished_duration = seconds{finished_time()};
-		st->active_duration = seconds{active_time()};
-		st->seeding_duration = seconds{seeding_time()};
+		st->finished_duration = finished_time();
+		st->active_duration = active_time();
+		st->seeding_duration = seeding_time();
 
-		st->last_upload = m_ses.session_start_time() + seconds(m_last_upload);
-		st->last_download = m_ses.session_start_time() + seconds(m_last_download);
+		st->last_upload = m_last_upload;
+		st->last_download = m_last_download;
 
 		st->storage_mode = static_cast<storage_mode_t>(m_storage_mode);
 
@@ -10760,25 +10762,32 @@ namespace libtorrent
 		m_stats_counters.inc_stats_counter(counters::recv_failed_bytes, b);
 	}
 
+	// the number of connected peers that are seeds
 	int torrent::num_seeds() const
 	{
 		TORRENT_ASSERT(is_single_thread());
 		INVARIANT_CHECK;
 
-		return m_num_seeds;
+		return int(m_num_seeds) - int(m_num_connecting_seeds);
 	}
 
+	// the number of connected peers that are not seeds
 	int torrent::num_downloaders() const
 	{
 		TORRENT_ASSERT(is_single_thread());
 		INVARIANT_CHECK;
 
-		return (std::max)(0, int(m_connections.size()) - m_num_seeds - m_num_connecting);
+		int const ret = int(m_connections.size())
+			- m_num_seeds
+			- m_num_connecting
+			+ m_num_connecting_seeds;
+		TORRENT_ASSERT(ret >= 0);
+		return ret;
 	}
 
 	void torrent::tracker_request_error(tracker_request const& r
 		, int response_code, error_code const& ec, std::string const& msg
-		, int retry_interval)
+		, seconds32 const retry_interval)
 	{
 		TORRENT_ASSERT(is_single_thread());
 
@@ -10797,7 +10806,7 @@ namespace libtorrent
 			announce_entry* ae = find_tracker(r.url);
 			if (ae)
 			{
-				ae->failed(seconds(settings().get_int(settings_pack::tracker_backoff))
+				ae->failed(settings().get_int(settings_pack::tracker_backoff)
 					, retry_interval);
 				ae->last_error = ec;
 				ae->message = msg;
@@ -10839,7 +10848,7 @@ namespace libtorrent
 		// announce to the next working tracker
 		if ((!m_abort && !is_paused()) || r.event == tracker_request::stopped)
 			announce_with_tracker(r.event);
-		update_tracker_timer(aux::time_now());
+		update_tracker_timer(aux::time_now32());
 	}
 
 #ifndef TORRENT_DISABLE_LOGGING

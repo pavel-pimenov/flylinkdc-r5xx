@@ -153,7 +153,6 @@ namespace libtorrent
 		// if t is nullptr, we better not be connecting, since
 		// we can't decrement the connecting counter
 		TORRENT_ASSERT(t || !m_connecting);
-		if (m_connecting && t) t->inc_num_connecting();
 		m_est_reciprocation_rate = m_settings.get_int(settings_pack::default_est_reciprocation_rate);
 
 		m_channel_state[upload_channel] = peer_info::bw_idle;
@@ -334,6 +333,8 @@ namespace libtorrent
 
 		// if this is an incoming connection, we're done here
 		if (!m_connecting) return;
+
+		if (m_connecting && t) t->inc_num_connecting(m_peer_info);
 
 #ifndef TORRENT_DISABLE_LOGGING
 		peer_log(peer_log_alert::outgoing, "OPEN", "protocol: %s"
@@ -778,7 +779,7 @@ namespace libtorrent
 		if (m_connecting)
 		{
 			m_counters.inc_stats_counter(counters::num_peers_half_open, -1);
-			if (t) t->dec_num_connecting();
+			if (t) t->dec_num_connecting(m_peer_info);
 			m_connecting = false;
 		}
 
@@ -1549,14 +1550,14 @@ namespace libtorrent
 		// the later the suggestion is received, the higher priority we should
 		// ascribe to it, so we need to insert suggestions at the front of the
 		// queue.
-		if (int(m_suggested_pieces.size()) > m_settings.get_int(settings_pack::max_suggest_pieces))
+		if (m_suggested_pieces.end_index() > m_settings.get_int(settings_pack::max_suggest_pieces))
 			m_suggested_pieces.resize(m_settings.get_int(settings_pack::max_suggest_pieces) - 1);
 
 		m_suggested_pieces.insert(m_suggested_pieces.begin(), index);
 
 #ifndef TORRENT_DISABLE_LOGGING
 		peer_log(peer_log_alert::info, "SUGGEST_PIECE", "piece: %d added to set: %d"
-			, static_cast<int>(index), int(m_suggested_pieces.size()));
+			, static_cast<int>(index), m_suggested_pieces.end_index());
 #endif
 	}
 
@@ -2007,9 +2008,9 @@ namespace libtorrent
 		if (should_log(peer_log_alert::incoming_message))
 		{
 			std::string bitfield_str;
-			bitfield_str.resize(bits.size());
+			bitfield_str.resize(aux::numeric_cast<std::size_t>(bits.size()));
 			for (piece_index_t i(0); i != bits.end_index(); ++i)
-				bitfield_str[static_cast<int>(i)] = bits[i] ? '1' : '0';
+				bitfield_str[std::size_t(static_cast<int>(i))] = bits[i] ? '1' : '0';
 			peer_log(peer_log_alert::incoming_message, "BITFIELD"
 				, "%s", bitfield_str.c_str());
 		}
@@ -3784,9 +3785,9 @@ namespace libtorrent
 			send_suggest(*i);
 		}
 		int const max = m_settings.get_int(settings_pack::max_suggest_pieces);
-		if (int(m_suggest_pieces.size()) > max)
+		if (m_suggest_pieces.end_index() > max)
 		{
-			int const to_erase = int(m_suggest_pieces.size() - max);
+			int const to_erase = m_suggest_pieces.end_index() - max;
 			m_suggest_pieces.erase(m_suggest_pieces.begin()
 				, m_suggest_pieces.begin() + to_erase);
 		}
@@ -3877,7 +3878,7 @@ namespace libtorrent
 				m_counters.inc_stats_counter(counters::num_peers_down_requests);
 
 			TORRENT_ASSERT(verify_piece(t->to_req(block.block)));
-			block.send_buffer_offset = m_send_buffer.size();
+			block.send_buffer_offset = aux::numeric_cast<std::uint32_t>(m_send_buffer.size());
 			m_download_queue.push_back(block);
 			m_outstanding_bytes += block_size;
 #if TORRENT_USE_INVARIANT_CHECKS
@@ -3905,7 +3906,7 @@ namespace libtorrent
 					if (m_download_queue.empty())
 						m_counters.inc_stats_counter(counters::num_peers_down_requests);
 
-					block.send_buffer_offset = m_send_buffer.size();
+					block.send_buffer_offset = aux::numeric_cast<std::uint32_t>(m_send_buffer.size());
 					m_download_queue.push_back(block);
 					if (m_queued_time_critical) --m_queued_time_critical;
 
@@ -3998,7 +3999,7 @@ namespace libtorrent
 		if (m_connecting)
 		{
 			m_counters.inc_stats_counter(counters::num_peers_half_open, -1);
-			if (t) t->dec_num_connecting();
+			if (t) t->dec_num_connecting(m_peer_info);
 			m_connecting = false;
 		}
 
@@ -4054,9 +4055,9 @@ namespace libtorrent
 		if (m_disconnecting) return;
 
 		m_socket->set_close_reason(error_to_close_reason(ec));
-		close_reason_t close_reason = close_reason_t(m_socket->get_close_reason());
+		close_reason_t const close_reason = m_socket->get_close_reason();
 #ifndef TORRENT_DISABLE_LOGGING
-		if (close_reason != 0)
+		if (close_reason != close_reason_t::none)
 		{
 			peer_log(peer_log_alert::info, "CLOSE_REASON", "%d", int(close_reason));
 		}
@@ -4214,7 +4215,7 @@ namespace libtorrent
 		if (m_connecting)
 		{
 			m_counters.inc_stats_counter(counters::num_peers_half_open, -1);
-			if (t) t->dec_num_connecting();
+			if (t) t->dec_num_connecting(m_peer_info);
 			m_connecting = false;
 		}
 
@@ -4481,7 +4482,7 @@ namespace libtorrent
 #else
 			p.progress = float(p.pieces.count()) / float(p.pieces.size());
 #endif
-			p.progress_ppm = int(std::uint64_t(p.pieces.count()) * 1000000 / p.pieces.size());
+			p.progress_ppm = int(std::int64_t(p.pieces.count()) * 1000000 / p.pieces.size());
 		}
 
 		p.estimated_reciprocation_rate = m_est_reciprocation_rate;
@@ -4646,7 +4647,7 @@ namespace libtorrent
 			if (m_connecting)
 			{
 				m_counters.inc_stats_counter(counters::num_peers_half_open, -1);
-				if (t) t->dec_num_connecting();
+				if (t) t->dec_num_connecting(m_peer_info);
 				m_connecting = false;
 			}
 			disconnect(errors::torrent_aborted, op_bittorrent);
@@ -5017,7 +5018,7 @@ namespace libtorrent
 		// only add new piece-chunks if the send buffer is small enough
 		// otherwise there will be no end to how large it will be!
 
-		int buffer_size_watermark = int(boost::int64_t(m_uploaded_last_second)
+		int buffer_size_watermark = int(std::int64_t(m_uploaded_last_second)
 			* m_settings.get_int(settings_pack::send_buffer_watermark_factor) / 100);
 
 		if (buffer_size_watermark < m_settings.get_int(settings_pack::send_buffer_low_watermark))
@@ -5676,7 +5677,7 @@ namespace libtorrent
 
 			int const alloc_buf_size = m_ses.send_buffer_size();
 			int const buf_size = std::min(alloc_buf_size, size);
-			std::memcpy(session_buf.get(), buf, buf_size);
+			std::memcpy(session_buf.get(), buf, aux::numeric_cast<std::size_t>(buf_size));
 			buf += buf_size;
 			size -= buf_size;
 			m_send_buffer.append_buffer(std::move(session_buf), alloc_buf_size, buf_size);
@@ -5845,9 +5846,9 @@ namespace libtorrent
 		int sub_transferred = 0;
 		do {
 			sub_transferred = m_recv_buffer.advance_pos(bytes);
-			on_receive(error, sub_transferred);
-			bytes -= sub_transferred;
 			TORRENT_ASSERT(sub_transferred > 0);
+			on_receive(error, std::size_t(sub_transferred));
+			bytes -= sub_transferred;
 			if (m_disconnecting) return;
 		} while (bytes > 0 && sub_transferred > 0);
 
@@ -5960,7 +5961,7 @@ namespace libtorrent
 		if (m_connecting)
 		{
 			m_counters.inc_stats_counter(counters::num_peers_half_open, -1);
-			if (t) t->dec_num_connecting();
+			if (t) t->dec_num_connecting(m_peer_info);
 			m_connecting = false;
 		}
 
@@ -5988,7 +5989,7 @@ namespace libtorrent
 		}
 
 		// if there are outgoing interfaces specified, verify this
-		// peer is correctly bound to on of them
+		// peer is correctly bound to one of them
 		if (!m_settings.get_str(settings_pack::outgoing_interfaces).empty())
 		{
 			if (!m_ses.verify_bound_address(m_local.address()

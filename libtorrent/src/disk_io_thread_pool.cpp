@@ -55,7 +55,14 @@ namespace libtorrent
 
 	disk_io_thread_pool::~disk_io_thread_pool()
 	{
-		abort(true);
+        //try // https://github.com/arvidn/libtorrent/issues/1176
+        //{
+            abort(true);
+        //}
+        //catch (const std::exception& ) // TODO  catch (const concurrency::scheduler_resource_allocation_error& e)
+        //{
+            // TODO Log
+        // }
 	}
 
 	void disk_io_thread_pool::set_max_threads(int const i)

@@ -988,7 +988,6 @@ enum Strings   // @DontAdd
 	P2P_GUARD_ENABLE_STR, // "Lock of parasitic traffic based on the 'black list' ( ipfilter.zip from http://emule-security.org )"
 	PARTS, // "Parts:"
 	PASSIVE_NOTICE, // "You are connected to a hub in a passive mode!! We recommend to be switched in an active mode!!"
-	PASSIVE_SEARCH_NOTICE, // "You are in active mode, but have activated passive search. Don't use passive search if you have search results without this option because you don't get search result from passive clients!!!"
 	PASSIVE_USER, // "Passive user"
 	PASSWORD, // "Password"
 	PASSWORD_DESC, // "Enter password"

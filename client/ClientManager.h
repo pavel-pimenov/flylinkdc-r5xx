@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2017 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -291,7 +291,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		static UserMap g_users;
 		
-		static FastCriticalSection g_csUsers;
+		static CriticalSection g_csUsers;
 		typedef std::multimap<CID, OnlineUserPtr> OnlineMap;
 		typedef OnlineMap::iterator OnlineIter;
 		typedef OnlineMap::const_iterator OnlineIterC;

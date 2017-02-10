@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2016 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2017 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -262,8 +262,7 @@ int SSLSocket::wait(uint64_t millis, int waitFor)
 	if (ssl && (waitFor & Socket::WAIT_READ))
 	{
 		/** @todo Take writing into account as well if reading is possible? */
-		char c;
-		if (SSL_peek(ssl, &c, 1) > 0)
+		if (SSL_pending(ssl) > 0)
 			return WAIT_READ;
 	}
 	return Socket::wait(millis, waitFor);
@@ -275,8 +274,8 @@ bool SSLSocket::isTrusted()
 	{
 		return false;
 	}
-	//if (m_is_trusted)
-	//  return true;
+	if (m_is_trusted)
+		return true;
 	if (SSL_get_verify_result(ssl) != X509_V_OK)
 	{
 		return false;
@@ -288,7 +287,7 @@ bool SSLSocket::isTrusted()
 		return false;
 	}
 	X509_free(cert);
-	//m_is_trusted = true;
+	m_is_trusted = true;
 	return true;
 }
 /*
@@ -316,6 +315,7 @@ ByteVector SSLSocket::getKeyprint() const noexcept
 	{
 	    if (!ssl)
 	    return ByteVector();
+	    
 	    X509* x509 = SSL_get_peer_certificate(ssl);
 	    
 	    if (!x509)
@@ -379,14 +379,14 @@ ByteVector SSLSocket::getKeyprint() const noexcept
 
 void SSLSocket::shutdown() noexcept
 {
-	//m_is_trusted = false;
+	m_is_trusted = false;
 	if (ssl)
 		SSL_shutdown(ssl);
 }
 
 void SSLSocket::close() noexcept
 {
-	//m_is_trusted = false;
+	m_is_trusted = false;
 	if (ssl)
 	{
 		ssl.reset();

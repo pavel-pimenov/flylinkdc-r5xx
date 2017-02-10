@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2017 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,7 +148,7 @@ class Socket
 		}
 		virtual void shutdown() noexcept;
 		virtual void close() noexcept;
-		void disconnect();
+		void disconnect() noexcept;
 		
 		virtual bool waitConnected(uint64_t millis);
 		virtual bool waitAccepted(uint64_t millis);
@@ -313,7 +313,6 @@ class Socket
 	private:
 		void socksAuth(uint64_t timeout);
 		bool getLocalIPPort(uint16_t& p_port, string& p_ip, bool p_is_calc_ip) const;
-#ifdef _WIN32
 		static socket_t checksocket(socket_t ret)
 		{
 			if (ret == SOCKET_ERROR)
@@ -343,40 +342,10 @@ class Socket
 			// [!] PVS V106 (Implicit type conversion first argument 'xxx' of function 'check' to memsize type).
 			check(static_cast<socket_t>(ret), blockOk);
 		}
-#else
-		static int getLastError()
-		{
-			return errno;
-		}
-		static int checksocket(int ret)
-		{
-			if (ret < 0)
-			{
-				throw SocketException(getLastError());
-			}
-			return ret;
-		}
-		static int check(int ret, bool blockOk = false)
-		{
-			if (ret == -1)
-			{
-				int error = getLastError();
-				if (blockOk && (error == EWOULDBLOCK || error == ENOBUFS || error == EINPROGRESS || error == EAGAIN))
-				{
-					return -1;
-				}
-				else
-				{
-					throw SocketException(error);
-				}
-			}
-			return ret;
-		}
-#endif
 		
 };
 
-#endif // !defined(SOCKET_H)
+#endif // DCPLUSPLUS_DCPP_SOCKET_H
 
 /**
  * @file

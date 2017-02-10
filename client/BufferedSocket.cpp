@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2013 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2017 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -912,11 +912,11 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 	if (m_state != RUNNING)
 		return;
 		
-	if (socketIsDisconnecting()) 
+	if (socketIsDisconnecting())
 		return;
 	dcassert(p_file != NULL);
 	
-    const size_t l_sockSize = MAX_SOCKET_BUFFER_SIZE; // עמנלמחטע מעהאקא size_t(sock->getSocketOptInt(SO_SNDBUF));
+	const size_t l_sockSize = MAX_SOCKET_BUFFER_SIZE; // עמנלמחטע מעהאקא size_t(sock->getSocketOptInt(SO_SNDBUF));
 	static size_t g_bufSize = 0;
 	if (g_bufSize == 0)
 	{

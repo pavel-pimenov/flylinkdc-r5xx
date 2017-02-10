@@ -202,6 +202,7 @@ static const DllInfo g_IncompatibleDll[] =
 	_T("nvlsp64.dll"), "NVIDIA Application Filter",
 	_T("chtbrkg.dll"), "Adskip or Internet Download Manager integration",
 	_T("adguard.dll"), "Adguard", // Latest verion 5.1 not bad.
+    _T("pcapwsp.dll"), "ProxyCap",
 	_T("NetchartFilter.dll"), "NetchartFilter",
 	_T("vlsp.dll"), "Venturi Wireless Software",
 	_T("radhslib.dll"), "Naomi web filter",

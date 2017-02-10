@@ -127,9 +127,14 @@ class CGDIImage
 		DWORD GetFrameDelay(DWORD dwFrame);
 		bool SelectActiveFrame(DWORD dwFrame);
 		DWORD GetFrameCount();
-		DWORD GetWidth();
-		DWORD GetHeight();
-		
+		DWORD GetWidth() const
+		{
+			return m_dwWidth;
+		}
+		DWORD GetHeight() const
+		{
+			return m_dwHeight;
+		}
 		void RegisterCallback(ONFRAMECHANGED pOnFrameChangedProc, LPARAM lParam);
 		void UnregisterCallback(ONFRAMECHANGED pOnFrameChangedProc, LPARAM lParam);
 		

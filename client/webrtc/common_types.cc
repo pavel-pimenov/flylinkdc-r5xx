@@ -14,6 +14,10 @@
 
 namespace webrtc {
 
+int InStream::Rewind() { return -1; }
+
+int OutStream::Rewind() { return -1; }
+
 StreamDataCounters::StreamDataCounters() : first_packet_time_ms(-1) {}
 
 RTPHeaderExtension::RTPHeaderExtension()
@@ -27,10 +31,9 @@ RTPHeaderExtension::RTPHeaderExtension()
       voiceActivity(false),
       audioLevel(0),
       hasVideoRotation(false),
-      videoRotation(0) 
-  {
-    playout_delay.min_ms = -1;
-    playout_delay.max_ms = -1;
+      videoRotation(0),
+      hasRID(false),
+      rid(NULL) {
   }
 
 RTPHeader::RTPHeader()
@@ -40,10 +43,11 @@ RTPHeader::RTPHeader()
       timestamp(0),
       ssrc(0),
       numCSRCs(0),
-      arrOfCSRCs(),
       paddingLength(0),
       headerLength(0),
       payload_type_frequency(0),
-      extension() {}
+      extension() {
+  memset(&arrOfCSRCs, 0, sizeof(arrOfCSRCs));
+}
 
 }  // namespace webrtc

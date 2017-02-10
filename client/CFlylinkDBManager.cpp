@@ -318,13 +318,19 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 	bool l_is_send = CFlyServerJSON::pushError(16, l_error);
 	if (l_is_force_exit)
 	{
-		tstring l_body = l_russian_error + Text::toT(l_message);
-		boost::replace_all(l_body, " ",  "%20");
-		boost::replace_all(l_body, "\r", "%0D");
-		boost::replace_all(l_body, "\n", "%0A");
-		tstring l_shell = _T("mailto:pavel.pimenov@gmail.com?subject=FlylinkDC++ bug-report&body=") + l_body;
-		::ShellExecute(0, _T("Open"), l_shell.c_str(), _T(""), _T(""), SW_NORMAL);
-		exit(1);
+		static bool g_is_first = false;
+		if (g_is_first == false)
+		{
+			g_is_first = true;
+			tstring l_body = l_russian_error + Text::toT(l_message);
+			boost::replace_all(l_body, " ", "%20");
+			boost::replace_all(l_body, "\r", "%0D");
+			boost::replace_all(l_body, "\n", "%0A");
+			tstring l_shell = _T("mailto:pavel.pimenov@gmail.com?subject=FlylinkDC++ bug-report&body=") + l_body;
+			::ShellExecute(0, _T("Open"), l_shell.c_str(), _T(""), _T(""), SW_NORMAL);
+			// exit(1); // exit нелья - падаем  https://drdump.com/Bug.aspx?ProblemID=261050
+			//
+		}
 	}
 	if (!l_is_send)
 	{
