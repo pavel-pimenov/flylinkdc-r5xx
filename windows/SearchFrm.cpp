@@ -415,7 +415,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 // Кнопка очистки истории. [<-] InfinitySky.
 	ctrlPurge.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON |
-	                 BS_PUSHBUTTON , 0, IDC_PURGE);
+	                 BS_PUSHBUTTON, 0, IDC_PURGE);
 	ctrlPurge.SetIcon(g_purge_icon); // [+] InfinitySky. Иконка на кнопке очистки истории.
 	//purgeContainer.SubclassWindow(ctrlPurge.m_hWnd);
 	m_tooltip.AddTool(ctrlPurge, ResourceManager::CLEAR_SEARCH_HISTORY);
@@ -428,7 +428,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	
 // Кнопка поиска. [<-] InfinitySky.
 	ctrlDoSearch.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                    BS_PUSHBUTTON , 0, IDC_SEARCH);
+	                    BS_PUSHBUTTON, 0, IDC_SEARCH);
 	ctrlDoSearch.SetWindowText(CTSTRING(SEARCH));
 	ctrlDoSearch.SetFont(Fonts::g_systemFont);
 	ctrlDoSearch.SetIcon(g_search_icon); // [+] InfinitySky. Иконка на кнопке поиска.
@@ -567,7 +567,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	resultsMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
 	resultsMenu.SetMenuDefaultItem(IDC_DOWNLOAD_FAVORITE_DIRS);
 	*/
-	m_ctrlUDPMode.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | SS_ICON | BS_CENTER | BS_PUSHBUTTON , 0);
+	m_ctrlUDPMode.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | SS_ICON | BS_CENTER | BS_PUSHBUTTON, 0);
 	g_UDPTestText.clear();
 	g_isUDPTestOK = boost::logic::indeterminate;
 	if (g_isUDPTestOK)
@@ -1161,8 +1161,8 @@ void SearchFrame::on(SearchManagerListener::SR, const std::unique_ptr<SearchResu
 					CFlyServerJSON::addAntivirusCounter(*aResult, 0, l_virus_level);
 					aResult->m_virus_level = l_virus_level;
 					LogManager::virus_message("Search: ignore virus result  (Level 3): TTH = " + aResult->getTTH().toBase32() +
-					" File: " + aResult->getFileName() + +" Size:" + Util::toString(aResult->getSize()) +
-					" Hub: " + aResult->getHubUrl() + " Nick: " + aResult->getUser()->getLastNick() + " IP = " + aResult->getIPAsString());
+					                          " File: " + aResult->getFileName() + +" Size:" + Util::toString(aResult->getSize()) +
+					                          " Hub: " + aResult->getHubUrl() + " Nick: " + aResult->getUser()->getLastNick() + " IP = " + aResult->getIPAsString());
 					// http://dchublist.ru/forum/viewtopic.php?p=22426#p22426
 					m_droppedResults++;
 					return;
@@ -1455,7 +1455,7 @@ void SearchFrame::update_column_after_merge(std::vector<int> p_update_index)
 //			TODO - апдейты по колонкам не пашут иногда
 	static const int l_array[] =
 	{
-		COLUMN_BITRATE , COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO , COLUMN_MEDIA_AUDIO, COLUMN_DURATION, COLUMN_FLY_SERVER_RATING
+		COLUMN_BITRATE, COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO, COLUMN_MEDIA_AUDIO, COLUMN_DURATION, COLUMN_FLY_SERVER_RATING
 	};
 	static const std::vector<int> l_columns(l_array, l_array + _countof(l_array));
 	dcassert(!isClosedOrShutdown());
@@ -1607,7 +1607,7 @@ int SearchFrame::SearchInfo::compareItems(const SearchInfo* a, const SearchInfo*
 			if (a->m_sr.getType() == b->m_sr.getType())
 				return lstrcmpi(a->getText(COLUMN_TYPE).c_str(), b->getText(COLUMN_TYPE).c_str());
 			else
-				return(a->m_sr.getType() == SearchResult::TYPE_DIRECTORY) ? -1 : 1;
+				return (a->m_sr.getType() == SearchResult::TYPE_DIRECTORY) ? -1 : 1;
 		case COLUMN_HITS:
 			return compare(a->m_hits, b->m_hits);
 		case COLUMN_SLOTS:
@@ -1620,7 +1620,7 @@ int SearchFrame::SearchInfo::compareItems(const SearchInfo* a, const SearchInfo*
 			if (a->m_sr.getType() == b->m_sr.getType())
 				return compare(a->m_sr.getSize(), b->m_sr.getSize());
 			else
-				return(a->m_sr.getType() == SearchResult::TYPE_DIRECTORY) ? -1 : 1;
+				return (a->m_sr.getType() == SearchResult::TYPE_DIRECTORY) ? -1 : 1;
 		case COLUMN_FLY_SERVER_RATING: // TODO - распарсить x/y
 		case COLUMN_BITRATE:
 			return compare(Util::toInt64(a->columns[col]), Util::toInt64(b->columns[col]));
@@ -1711,7 +1711,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			return m_hits == 0 ? Util::emptyStringT : Util::toStringW(m_hits + 1) + _T(' ') + TSTRING(USERS);
 		case COLUMN_NICK:
 			return Text::toT(Util::toString(ClientManager::getNicks(getUser()->getCID(), m_sr.getHubUrl(), false)));
-			// TODO - сохранить ник в columns и показывать его от туда?
+		// TODO - сохранить ник в columns и показывать его от туда?
 		case COLUMN_TYPE:
 			if (m_sr.getType() == SearchResult::TYPE_FILE)
 			{
@@ -1775,8 +1775,8 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 		}
 		case COLUMN_SLOTS:
 			return Text::toT(m_sr.getSlotString());
-			// [-] PPA
-			//case COLUMN_CONNECTION: return Text::toT(ClientManager::getInstance()->getConnection(getUser()->getCID()));
+		// [-] PPA
+		//case COLUMN_CONNECTION: return Text::toT(ClientManager::getInstance()->getConnection(getUser()->getCID()));
 		case COLUMN_HUB:
 			return Text::toT(m_sr.getHubName() + " (" + m_sr.getHubUrl() + ')');
 		case COLUMN_EXACT_SIZE:
@@ -2347,7 +2347,7 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		ctrlMode.MoveWindow(rc);
 		
 		// Надпись "Размер": (левая, верхняя, правая, нижняя границы).
-		sizeLabel.MoveWindow(rc.left + lMargin, rc.top - labelH, 40 /* width - rMargin */ , labelH - 1);
+		sizeLabel.MoveWindow(rc.left + lMargin, rc.top - labelH, 40 /* width - rMargin */, labelH - 1);
 		
 		// Поле для ввода.
 		rc.left = rc.right + lMargin; // Левая граница.
@@ -3551,7 +3551,7 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 					if ((top - rc.top) < 2)
 						top = rc.top + 1;
 					const POINT ps = { rc.left, top };
-					g_userStateImage.Draw(cd->nmcd.hdc, 3 , ps);
+					g_userStateImage.Draw(cd->nmcd.hdc, 3, ps);
 					::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + 17, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
 				}
 				return CDRF_SKIPDEFAULT;

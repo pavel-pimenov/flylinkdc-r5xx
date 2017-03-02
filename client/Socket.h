@@ -49,11 +49,11 @@ class SocketException : public Exception
 {
 	public:
 #ifdef _DEBUG
-	explicit SocketException(const string& aError) noexcept :
-		Exception("SocketException: " + aError), m_error_code(0) { }
+		explicit SocketException(const string& aError) noexcept :
+			Exception("SocketException: " + aError), m_error_code(0) { }
 #else //_DEBUG
-	explicit SocketException(const string& aError) noexcept :
-		Exception(aError), m_error_code(0) { }
+		explicit SocketException(const string& aError) noexcept :
+			Exception(aError), m_error_code(0) { }
 #endif // _DEBUG
 		explicit SocketException(DWORD aError) noexcept;
 		DWORD getErrorCode() const
@@ -241,7 +241,7 @@ class Socket
 		void setOutBufSize();
 		virtual bool isSecure() const noexcept
 		{
-		    return false;
+			return false;
 		}
 		virtual bool isTrusted()
 		{
@@ -249,17 +249,19 @@ class Socket
 		}
 		virtual string getCipherName() const noexcept
 		{
-		    return Util::emptyString;
+			return Util::emptyString;
 		}
 		virtual vector<uint8_t> getKeyprint() const noexcept
 		{
-		    return Util::emptyByteVector; // [!] IRainman opt.
+			return Util::emptyByteVector; // [!] IRainman opt.
 		}
-		virtual bool verifyKeyprint(const string&, bool /*allowUntrusted*/) noexcept { return true; }
+		virtual bool verifyKeyprint(const string&, bool /*allowUntrusted*/) noexcept {
+			return true;
+		}
 		
 		virtual std::string getEncryptionInfo() const noexcept
 		{
-		    return Util::emptyString;
+			return Util::emptyString;
 		}
 		
 		/** When socks settings are updated, this has to be called... */

@@ -480,7 +480,7 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 					if (allowRemove && segment.getStart() != -1 && segment.getSize() == 0)
 					{
 						// no other partial chunk from this user, remove him from queue
-						removeUserL(qi, aUser, true);
+						removeUserL(qi, aUser);
 						qi->removeSourceL(aUser, QueueItem::Source::FLAG_NO_NEED_PARTS); // https://drdump.com/Problem.aspx?ProblemID=129066
 						m_lastError = STRING(NO_NEEDED_PART);
 						return nullptr; // airDC++
@@ -609,7 +609,7 @@ bool QueueManager::UserQueue::removeDownload(const QueueItemPtr& qi, const UserP
 void QueueManager::UserQueue::setQIPriority(const QueueItemPtr& qi, QueueItem::Priority p) // [!] IRainman fix.
 {
 	WLock(*QueueItem::g_cs); // [+] IRainamn fix.
-	removeQueueItemL(qi, false);
+	removeQueueItemL(qi);
 	qi->setPriority(p); // TODO для установки приоритета - нужно удалить и снова добавить запись в контейнер? - это зовется очень часто
 	addL(qi);
 }
@@ -623,36 +623,35 @@ QueueItemPtr QueueManager::UserQueue::getRunningL(const UserPtr& aUser) // [!] I
 	return i == g_runningMap.cend() ? nullptr : i->second;
 }
 
-void QueueManager::UserQueue::removeQueueItemL(const QueueItemPtr& qi, bool p_is_remove_running) // [!] IRainman fix.
+void QueueManager::UserQueue::removeQueueItem(const QueueItemPtr& qi)
+{
+	WLock(*QueueItem::g_cs);
+	g_userQueue.removeQueueItemL(qi);
+}
+
+void QueueManager::UserQueue::removeQueueItemL(const QueueItemPtr& qi)
 {
 	const auto& s = qi->getSourcesL();
 	for (auto i = s.cbegin(); i != s.cend(); ++i)
 	{
-		removeUserL(qi, i->first, p_is_remove_running,
-		            false); // Не делаем лишний поиск в  qi->isSourceL(aUser)
+		removeUserL(qi, i->first);
 	}
 }
 
-void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_remove_running, bool p_is_find_sources /*= true */)  // [!] IRainman fix.
+void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr& aUser)
 {
-	if (p_is_remove_running
-	        && qi == getRunningL(aUser) // Нужен ли поиск дополнительный перед удалением?
-	   )
+	if (qi == getRunningL(aUser))
 	{
 		removeDownload(qi, aUser);
 	}
-	bool l_isSource = !p_is_find_sources;
+	const bool l_isSource = qi->isSourceL(aUser); // crash https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=78346
 	if (!l_isSource)
 	{
-		l_isSource = qi->isSourceL(aUser); // crash https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=78346
-		if (!l_isSource)
-		{
-			const string l_error = "Error QueueManager::UserQueue::removeUserL [dcassert(isSource)] aUser = " +
-			                       (aUser ? aUser->getLastNick() : string("null"));
-			CFlyServerJSON::pushError(55, l_error);
-			dcassert(l_isSource);
-			return;
-		}
+		const string l_error = "Error QueueManager::UserQueue::removeUserL [dcassert(isSource)] aUser = " +
+		                       (aUser ? aUser->getLastNick() : string("null"));
+		CFlyServerJSON::pushError(55, l_error);
+		dcassert(l_isSource);
+		return;
 	}
 	{
 	
@@ -896,8 +895,8 @@ QueueManager::~QueueManager() noexcept
 		{
 			std::sort(filelists.begin(), filelists.end());
 			std::for_each(filelists.begin(),
-			std::set_difference(filelists.begin(), filelists.end(), protectedFileLists.begin(), protectedFileLists.end(), filelists.begin()),
-			File::deleteFile);
+			              std::set_difference(filelists.begin(), filelists.end(), protectedFileLists.begin(), protectedFileLists.end(), filelists.begin()),
+			              File::deleteFile);
 		}
 	}
 	SharedFileStream::check_before_destoy();
@@ -1213,11 +1212,11 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 					
 					switch (m_curOnDownloadSettings)
 					{
-							/* FLylinkDC Team TODO: IRainman: давайте копировать имеющийся файл в папку назначения? будем трафик экономить! p.s: см. выше. :)
-							case SettingsManager::ON_DOWNLOAD_EXIST_FILE_TO_NEW_DEST:
-							    ...
-							    return;
-							*/
+						/* FLylinkDC Team TODO: IRainman: давайте копировать имеющийся файл в папку назначения? будем трафик экономить! p.s: см. выше. :)
+						case SettingsManager::ON_DOWNLOAD_EXIST_FILE_TO_NEW_DEST:
+						    ...
+						    return;
+						*/
 						case SettingsManager::ON_DOWNLOAD_REPLACE:
 							File::deleteFile(l_target); // Delete old file.  FlylinkDC Team TODO: recheck existing file to save traffic and download time.
 							break;
@@ -1981,12 +1980,10 @@ bool QueueManager::internalMoveFile(const string& p_source, const string& p_targ
 void QueueManager::moveStuckFile(const QueueItemPtr& qi)
 {
 	moveFile(qi->getTempTarget(), qi->getTarget());
-	
 	{
 		if (qi->isFinished())
 		{
-			WLock(*QueueItem::g_cs);
-			g_userQueue.removeQueueItemL(qi);
+			g_userQueue.removeQueueItem(qi);
 		}
 	}
 	
@@ -2243,8 +2240,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 									}
 								}
 #endif
-								WLock(*QueueItem::g_cs);
-								g_userQueue.removeQueueItemL(q);
+								g_userQueue.removeQueueItem(q);
 							}
 							// [+] IRainman dclst support
 							if (q->isSet(QueueItem::FLAG_DCLST_LIST))
@@ -2466,8 +2462,7 @@ void QueueManager::fire_remove_internal(const QueueItemPtr& p_qi, bool p_is_remo
 	{
 		if (p_is_force_remove_item || p_is_remove_item && !p_qi->isFinished())
 		{
-			WLock(*QueueItem::g_cs);
-			g_userQueue.removeQueueItemL(p_qi, false);
+			g_userQueue.removeQueueItem(p_qi);
 		}
 	}
 	g_fileQueue.removeDeferredDB(p_qi, p_is_batch_remove);
@@ -2562,7 +2557,7 @@ void QueueManager::removeSource(const string& aTarget, const UserPtr& aUser, Fla
 		}
 		if (!q->isFinished())
 		{
-			g_userQueue.removeUserL(q, aUser, true);
+			g_userQueue.removeUserL(q, aUser);
 		}
 		q->removeSourceL(aUser, reason);
 		
@@ -2607,7 +2602,7 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 			}
 			else
 			{
-				g_userQueue.removeUserL(qi, aUser, true);
+				g_userQueue.removeUserL(qi, aUser);
 				qi->removeSourceL(aUser, reason);
 				fire_sources_updated(qi);
 				setDirty();
@@ -2624,7 +2619,7 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 			else
 			{
 				g_userQueue.removeDownload(qi, aUser);
-				g_userQueue.removeUserL(qi, aUser, true);
+				g_userQueue.removeUserL(qi, aUser);
 				isRunning = true;
 				qi->removeSourceL(aUser, reason);
 				fire_status_updated(qi);
@@ -2734,9 +2729,9 @@ void QueueManager::saveQueue(bool force) noexcept
 					if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 					{
 						if (qi->getFlyQueueID() &&
-						qi->isDirtySegment() == true &&
-						qi->isDirtyBase() == false &&
-						qi->isDirtySource() == false)
+						        qi->isDirtySegment() == true &&
+						        qi->isDirtyBase() == false &&
+						        qi->isDirtySource() == false)
 						{
 						
 							const CFlySegment l_QueueSegment(qi);

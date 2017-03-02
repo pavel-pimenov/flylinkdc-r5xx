@@ -1481,7 +1481,7 @@ float64 MediaInfo_Config_MediaInfo::File_DefaultFrameRate_Get ()
 
 //---------------------------------------------------------------------------
 #if MEDIAINFO_ADVANCED
-void MediaInfo_Config_MediaInfo::File_DefaultTimeCode_Set(string NewValue)
+void MediaInfo_Config_MediaInfo::File_DefaultTimeCode_Set(const string& NewValue)
 {
     CriticalSectionLocker CSL(CS);
     File_DefaultTimeCode = NewValue;

@@ -136,7 +136,7 @@ void FinishedManager::on(UploadManagerListener::Complete, const UploadPtr& u) no
 		PLAY_SOUND(SOUND_UPLOADFILE);
 		
 		auto item = std::make_shared<FinishedItem>(u->getPath(), u->getHintedUser(),
-		u->getFileSize(), u->getRunningAverage(), GET_TIME(), u->getTTH(), u->getActual(), u->getUser()->getIPAsString());
+		                                           u->getFileSize(), u->getRunningAverage(), GET_TIME(), u->getTTH(), u->getActual(), u->getUser()->getIPAsString());
 		if (SETTING(DB_LOG_FINISHED_UPLOADS))
 		{
 			CFlylinkDBManager::getInstance()->save_transfer_history(false, e_TransferUpload, item);

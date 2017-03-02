@@ -27,7 +27,7 @@
 
 #define SHOWTREE_MESSAGE_MAP 12
 
-class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_QUEUE > ,
+class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_QUEUE >,
 	public StaticFrame<QueueFrame, ResourceManager::DOWNLOAD_QUEUE, IDC_QUEUE>,
 	private QueueManagerListener,
 	public CSplitterImpl<QueueFrame>,

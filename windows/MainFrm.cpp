@@ -182,7 +182,7 @@ MainFrame::MainFrame() :
 	m_count_status_change(0),
 	m_count_tab_change(0),
 	QuickSearchBoxContainer(WC_COMBOBOX, this, QUICK_SEARCH_MAP),
-	QuickSearchEditContainer(WC_EDIT , this, QUICK_SEARCH_MAP),
+	QuickSearchEditContainer(WC_EDIT, this, QUICK_SEARCH_MAP),
 #ifdef SSA_WIZARD_FEATURE
 	m_is_wizard(false),
 #endif
@@ -1214,8 +1214,8 @@ HWND MainFrame::createQuickSearchBar()
 		rect.bottom += 100;
 		rect.left += 2;
 		
-		QuickSearchBox.Create(ctrlQuickSearchBar.m_hWnd, rect , NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-		                      WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL , 0);
+		QuickSearchBox.Create(ctrlQuickSearchBar.m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+		                      WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL, 0);
 		                      
 		updateQuickSearches();
 		
@@ -2040,39 +2040,39 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				case ID_FILE_CONNECT:
 					PublicHubsFrame::openWindow();
 					break;
-					/*
-					                    if (!m_isOpenHubFrame)
-					                    {
-					                        PublicHubsFrame::openWindow();
-					                        m_isOpenHubFrame = true;
-					#if 0
-					                        UINT checkState = BOOLSETTING(CONFIRM_OPEN_INET_HUBS) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-					                        if (checkState == BST_CHECKED
-					#ifndef _DEBUG
-					//  HUB_LIST_WARNING, // "Opening the window \"Internet Hubs\" you should be aware that their visit will lead to an external (Internet) traffic. If you fare with a limited amount of incoming traffic, visits to these hubs can lead to down speed to external resources because of threshold excess or to a substantial increase in bills for the Internet.\r\n\r\nShow the list of hubs?"
-					
-					                                || ::MessageBox(m_hWnd, CTSTRING(HUB_LIST_WARNING), CTSTRING(WARNING), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES
-					#else
-					                                || true
-					#endif
-					                           )
-					                        {
-					                            PublicHubsFrame::openWindow();
-					                            m_isOpenHubFrame = true;
-					                        }
-					                        else
-					                        {
-					                            WinUtil::setButtonPressed(ID_FILE_CONNECT, false);
-					                        }
-					#endif
-					                    }
-					                    else
-					                    {
-					                        PublicHubsFrame::openWindow();
-					          }
-					
-					                    break;
-					*/
+				/*
+				                    if (!m_isOpenHubFrame)
+				                    {
+				                        PublicHubsFrame::openWindow();
+				                        m_isOpenHubFrame = true;
+				#if 0
+				                        UINT checkState = BOOLSETTING(CONFIRM_OPEN_INET_HUBS) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
+				                        if (checkState == BST_CHECKED
+				#ifndef _DEBUG
+				//  HUB_LIST_WARNING, // "Opening the window \"Internet Hubs\" you should be aware that their visit will lead to an external (Internet) traffic. If you fare with a limited amount of incoming traffic, visits to these hubs can lead to down speed to external resources because of threshold excess or to a substantial increase in bills for the Internet.\r\n\r\nShow the list of hubs?"
+				
+				                                || ::MessageBox(m_hWnd, CTSTRING(HUB_LIST_WARNING), CTSTRING(WARNING), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES
+				#else
+				                                || true
+				#endif
+				                           )
+				                        {
+				                            PublicHubsFrame::openWindow();
+				                            m_isOpenHubFrame = true;
+				                        }
+				                        else
+				                        {
+				                            WinUtil::setButtonPressed(ID_FILE_CONNECT, false);
+				                        }
+				#endif
+				                    }
+				                    else
+				                    {
+				                        PublicHubsFrame::openWindow();
+				          }
+				
+				                    break;
+				*/
 				case IDC_FAVORITES:
 					FavoriteHubsFrame::openWindow();
 					break;
@@ -2675,7 +2675,9 @@ void MainFrame::storeWindowsPos()
 			SET_SETTING(MAIN_WINDOW_SIZE_X, rc.Width());
 			SET_SETTING(MAIN_WINDOW_SIZE_Y, rc.Height());
 		}
-		if (wp.showCmd == SW_SHOWNORMAL || wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWMAXIMIZED || wp.showCmd == SW_MAXIMIZE)
+		if (wp.showCmd == SW_SHOWNORMAL || wp.showCmd == SW_SHOW ||
+		        wp.showCmd == SW_SHOWMAXIMIZED || wp.showCmd == SW_SHOWMINIMIZED ||
+		        wp.showCmd == SW_MAXIMIZE)
 		{
 			SET_SETTING(MAIN_WINDOW_STATE, (int)wp.showCmd);
 		}
@@ -2853,10 +2855,10 @@ LRESULT MainFrame::onLink(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL
 		case IDC_HELP_HELP:
 			site = WinUtil::GetWikiLink() + _T("flylinkdc");
 			break;
-			// TODO
-			//case IDC_HELP_DONATE:
-			//  site = _T(HOMEPAGE);
-			//  break;
+		// TODO
+		//case IDC_HELP_DONATE:
+		//  site = _T(HOMEPAGE);
+		//  break;
 //[-]PPA        case IDC_GUIDE: site = _T(GUIDE); break;
 		case IDC_SITES_FLYLINK_TRAC:
 			site = _T(SITES_FLYLINK_TRAC);
@@ -3449,7 +3451,7 @@ LRESULT MainFrame::OnViewTransferViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/,
 	return 0;
 }
 
-LRESULT MainFrame::onCloseWindows(WORD , WORD wID, HWND , BOOL&)
+LRESULT MainFrame::onCloseWindows(WORD, WORD wID, HWND, BOOL&)
 {
 	switch (wID)
 	{
@@ -3484,7 +3486,7 @@ LRESULT MainFrame::onCloseWindows(WORD , WORD wID, HWND , BOOL&)
 	return 0;
 }
 
-LRESULT MainFrame::onLimiter(WORD , WORD , HWND, BOOL&)
+LRESULT MainFrame::onLimiter(WORD, WORD, HWND, BOOL&)
 {
 	onLimiter(); // [!] IRainman fix
 	return 0;
@@ -3583,7 +3585,7 @@ LRESULT MainFrame::onAppCommand(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam,
 	return TRUE;
 }
 
-LRESULT MainFrame::onAway(WORD , WORD , HWND, BOOL&)
+LRESULT MainFrame::onAway(WORD, WORD, HWND, BOOL&)
 {
 	onAwayPush();
 	return 0;

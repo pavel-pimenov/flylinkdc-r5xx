@@ -60,7 +60,7 @@ class ClientBase
 		
 		enum P2PType { DIRECT_CONNECT // Никак не используется TODO DHT - заменить на bool??
 #ifdef STRONG_USE_DHT
-		               , DHT
+		, DHT
 #endif
 		             };
 	protected:

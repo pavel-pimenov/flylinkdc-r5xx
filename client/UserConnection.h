@@ -250,8 +250,8 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		}
 		string getCipherName() const noexcept
 		{
-		    dcassert(socket); // [+] IRainman fix.
-		    return socket ? socket->getCipherName() : Util::emptyString;
+			dcassert(socket); // [+] IRainman fix.
+			return socket ? socket->getCipherName() : Util::emptyString;
 		}
 		vector<uint8_t> getKeyprint() const
 		{
@@ -333,7 +333,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		}
 		
 		// Ignore any other ADC commands for now
-		template<typename T> void handle(T , const AdcCommand&) { }
+		template<typename T> void handle(T, const AdcCommand&) { }
 		
 		int64_t getChunkSize() const
 		{

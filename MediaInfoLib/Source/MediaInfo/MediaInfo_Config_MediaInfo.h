@@ -129,7 +129,7 @@ public :
     #if MEDIAINFO_ADVANCED
         void          File_DefaultFrameRate_Set (float64 NewValue);
         float64       File_DefaultFrameRate_Get ();
-        void          File_DefaultTimeCode_Set (string NewValue);
+        void          File_DefaultTimeCode_Set (const string& NewValue);
         string        File_DefaultTimeCode_Get ();
     #endif //MEDIAINFO_ADVANCED
 

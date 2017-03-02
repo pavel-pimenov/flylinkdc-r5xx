@@ -950,6 +950,7 @@ void QueueItem::getAllDownloadsUsers(UserList& p_users)
 {
 	p_users.clear();
 	CFlyFastLock(m_fcs_download);
+	p_users.reserve(m_downloads.size());
 	for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 	{
 		p_users.push_back(i->first);

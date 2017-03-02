@@ -29,7 +29,7 @@
 
 #define SERVER_MESSAGE_MAP 7
 
-class FavoriteHubsFrame : public MDITabChildWindowImpl < FavoriteHubsFrame, RGB(0, 0, 0), IDR_FAVORITES > , public StaticFrame<FavoriteHubsFrame, ResourceManager::FAVORITE_HUBS, IDC_FAVORITES>,
+class FavoriteHubsFrame : public MDITabChildWindowImpl < FavoriteHubsFrame, RGB(0, 0, 0), IDR_FAVORITES >, public StaticFrame<FavoriteHubsFrame, ResourceManager::FAVORITE_HUBS, IDC_FAVORITES>,
 	private FavoriteManagerListener,
 	private ClientManagerListener,
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS

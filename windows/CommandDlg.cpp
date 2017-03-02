@@ -163,7 +163,7 @@ LRESULT CommandDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 	return 0;
 }
 
-LRESULT CommandDlg::onChange(WORD , WORD , HWND , BOOL&)
+LRESULT CommandDlg::onChange(WORD, WORD, HWND, BOOL&)
 {
 	updateCommand();
 	ctrlResult.SetWindowText(command.c_str());
@@ -176,7 +176,7 @@ LRESULT CommandDlg::onHub(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, 
 	return 0;
 }
 
-LRESULT CommandDlg::onType(WORD , WORD, HWND , BOOL&)
+LRESULT CommandDlg::onType(WORD, WORD, HWND, BOOL&)
 {
 	updateType();
 	updateCommand();

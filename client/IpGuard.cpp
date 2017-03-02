@@ -32,9 +32,11 @@ boost::atomic_int g_count(0);
 #endif
 
 IPList IpGuard::g_ipGuardList;
+int IpGuard::g_ipGuardListLoad = 0;
 
 void IpGuard::load()
 {
+	CFlyBusy l(g_ipGuardListLoad);
 	if (BOOLSETTING(ENABLE_IPGUARD))
 	{
 		string l_sIPGuard;
@@ -120,6 +122,8 @@ bool IpGuard::is_block_ip(const string& aIP, uint32_t& p_ip4)
 
 bool IpGuard::check_ip_str(const string& aIP, string& reason)
 {
+	if (g_ipGuardListLoad > 0) // fix https://drdump.com/Problem.aspx?ProblemID=263631
+		return false;
 	if (aIP.empty())
 		return false;
 		

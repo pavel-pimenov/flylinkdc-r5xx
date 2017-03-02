@@ -66,8 +66,8 @@ class DirectoryListing : public UserInfoBase
 				};
 				typedef vector<Ptr> List;
 				
-			File(Directory* p_Dir, const string& p_Name, int64_t p_Size, const TTHValue& p_TTH, uint32_t p_Hit, uint32_t p_ts, std::shared_ptr<CFlyMediaInfo>& p_media) noexcept :
-				name(p_Name), size(p_Size), parent(p_Dir), tthRoot(p_TTH), hit(p_Hit), ts(p_ts), m_media(p_media), adls(false)
+				File(Directory* p_Dir, const string& p_Name, int64_t p_Size, const TTHValue& p_TTH, uint32_t p_Hit, uint32_t p_ts, std::shared_ptr<CFlyMediaInfo>& p_media) noexcept :
+					name(p_Name), size(p_Size), parent(p_Dir), tthRoot(p_TTH), hit(p_Hit), ts(p_ts), m_media(p_media), adls(false)
 				{
 				}
 				File(const File& rhs, bool _adls = false) : name(rhs.name), size(rhs.size), parent(rhs.parent), tthRoot(rhs.tthRoot),

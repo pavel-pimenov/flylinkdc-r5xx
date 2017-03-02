@@ -26,7 +26,7 @@
 #include "ExListViewCtrl.h"
 #include "../client/FavoriteManager.h"
 
-class RecentHubsFrame : public MDITabChildWindowImpl < RecentHubsFrame, RGB(0, 0, 0), IDR_RECENT_HUBS > , public StaticFrame<RecentHubsFrame, ResourceManager::RECENT_HUBS, IDC_RECENTS>,
+class RecentHubsFrame : public MDITabChildWindowImpl < RecentHubsFrame, RGB(0, 0, 0), IDR_RECENT_HUBS >, public StaticFrame<RecentHubsFrame, ResourceManager::RECENT_HUBS, IDC_RECENTS>,
 	private FavoriteManagerListener, private SettingsManagerListener
 #ifdef _DEBUG
 	, boost::noncopyable // [+] IRainman fix.

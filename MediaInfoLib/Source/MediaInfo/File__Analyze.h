@@ -31,6 +31,28 @@ namespace MediaInfoLib
 
 class MediaInfo_Internal;
 
+struct buffer_data
+{
+    size_t Size;
+    int8u* Data;
+
+    buffer_data()
+    {
+        Size = 0;
+        Data = NULL;
+    }
+    buffer_data(const int8u* aData, size_t aSize)
+    {
+        Size = aSize;
+        Data = new int8u[aSize];
+        std::memcpy(Data, aData, aSize);
+    }
+
+    ~buffer_data()
+    {
+        delete[] Data; //Data=NULL;
+    }
+};
 #if !MEDIAINFO_TRACE
     #include "MediaInfo/File__Analyze_MinimizeSize.h"
 #else
@@ -57,8 +79,7 @@ public :
     void    Open_Buffer_Init        (File__Analyze* Sub);
     void    Open_Buffer_Init        (File__Analyze* Sub, int64u File_Size);
     void    Open_Buffer_OutOfBand   (                    const int8u* Buffer, size_t Buffer_Size) {File__Analyze::Buffer=Buffer; File__Analyze::Buffer_Size=Buffer_Size; Element_Offset=0; Element_Size=Buffer_Size; Read_Buffer_OutOfBand(); File__Analyze::Buffer=NULL; File__Analyze::Buffer_Size=0; Element_Offset=0; Element_Size=0;}
-    void    Open_Buffer_OutOfBand   (File__Analyze* Sub, const int8u* Buffer, size_t Buffer_Size);
-    void    Open_Buffer_OutOfBand   (File__Analyze* Sub) {if (Element_Offset<=Element_Size) Open_Buffer_OutOfBand(Sub, Buffer+Buffer_Offset+(size_t)Element_Offset, (size_t)(Element_Size-Element_Offset)); Element_Offset=Element_Size;}
+    void    Open_Buffer_OutOfBand   (File__Analyze* Sub);
     void    Open_Buffer_Continue    (                    const int8u* Buffer, size_t Buffer_Size);
     void    Open_Buffer_Continue    (File__Analyze* Sub, const int8u* Buffer, size_t Buffer_Size, bool IsNewPacket=true, float64 Ratio=1.0);
     void    Open_Buffer_Continue    (File__Analyze* Sub, size_t Buffer_Size) {if (Element_Offset+Buffer_Size<=Element_Size) Open_Buffer_Continue(Sub, Buffer+Buffer_Offset+(size_t)Element_Offset, Buffer_Size); Element_Offset+=Buffer_Size;}
@@ -234,7 +255,7 @@ protected :
 
     //Buffer
     virtual void Read_Buffer_Init ()          {}; //Temp, should be in File__Base caller
-    virtual void Read_Buffer_OutOfBand ()     {}; //Temp, should be in File__Base caller
+    virtual void Read_Buffer_OutOfBand ()     {Open_Buffer_Continue(Buffer, Buffer_Size);} //Temp, should be in File__Base caller
     virtual void Read_Buffer_Continue ()      {}; //Temp, should be in File__Base caller
     virtual void Read_Buffer_AfterParsing ()  {}; //Temp, should be in File__Base caller
     #if MEDIAINFO_SEEK
@@ -425,12 +446,16 @@ public :
         if (Element[Element_Level].UnTrusted)
             return ;
 
-        //Position
-        int64u Pos=Element_Offset+BS->OffsetBeforeLastCall_Get();
-
         element_details::Element_Node *node = new element_details::Element_Node;
         node->Set_Name(Parameter);
-        node->Pos = Pos==(int64u)-1 ? Pos : (File_Offset+Buffer_Offset+Pos);
+        node->Pos = File_Offset+Buffer_Offset+Element_Offset;
+        if (BS_Size)
+        {
+            int64u BS_BitOffset = BS_Size-BS->Remain();
+            if (GenericOption != (int8u)-1)
+                BS_BitOffset -= GenericOption;
+            node->Pos += BS_BitOffset>>3; //Including Bits to Bytes
+        }
         node->Value.set_Option(GenericOption);
         node->Value = Value;
         Element[Element_Level].TraceNode.Current_Child = Element[Element_Level].TraceNode.Children.size();
@@ -1296,6 +1321,7 @@ private :
 public: //TO CHANGE
     BitStream_Fast* BS;             //For conversion from bytes to bitstream
     BitStream*      BT;             //For conversion from bytes to bitstream
+    int64u          BS_Size;
 public : //TO CHANGE
     int64u Header_Size;             //Size of the header of the current element
     Ztring Details_Get(size_t Level=0) { std::string str; if (Element[Level].TraceNode.Print(Config_Trace_Format, str, Config_LineSeparator.To_UTF8(), File_Size) < 0) return Ztring(); return Ztring().From_UTF8(str);}

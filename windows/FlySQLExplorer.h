@@ -41,8 +41,8 @@ class FlySQLExplorer : boost::noncopyable
 	private:
 		typedef MDITabChildWindowImpl < FlySQLExplorer, RGB(255, 0, 255), IDR_FILE_LIST > baseClass;
 		typedef UCHandler<FlySQLExplorer>       ucBase;
-		typedef std::map < HWND , FlySQLExplorer* >  FrameMap;
-		typedef std::pair < HWND , FlySQLExplorer* > FramePair;
+		typedef std::map < HWND, FlySQLExplorer* >  FrameMap;
+		typedef std::pair < HWND, FlySQLExplorer* > FramePair;
 		
 	public:
 		// Таблица откликов

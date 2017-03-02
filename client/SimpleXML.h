@@ -357,10 +357,10 @@ class SimpleXML
 		
 		void checkChildSelected() const noexcept
 		{
-		    dcassert(current != NULL);
-		    if (!current)
-		    return;
-		    dcassert(currentChild != current->children.end());
+			dcassert(current != NULL);
+			if (!current)
+				return;
+			dcassert(currentChild != current->children.end());
 		}
 		
 		bool found;

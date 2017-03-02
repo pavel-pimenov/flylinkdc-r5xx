@@ -163,7 +163,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		
 		void appendNickToChat(const tstring& nick);
 		
-		void appendLogToChat(const string& path , const size_t linesCount);
+		void appendLogToChat(const string& path, const size_t linesCount);
 		virtual void readFrameLog() = 0;
 		ChatCtrl ctrlClient;
 		

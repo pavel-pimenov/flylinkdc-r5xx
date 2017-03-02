@@ -28,7 +28,7 @@
 #include "TypedListViewCtrl.h"
 #include "../FlyFeatures/RSSManager.h"
 
-class RSSNewsFrame : public MDITabChildWindowImpl < RSSNewsFrame, RGB(0, 0, 0), IDR_RSS > , public StaticFrame<RSSNewsFrame, ResourceManager::RSS_NEWS, IDC_RSS>,
+class RSSNewsFrame : public MDITabChildWindowImpl < RSSNewsFrame, RGB(0, 0, 0), IDR_RSS >, public StaticFrame<RSSNewsFrame, ResourceManager::RSS_NEWS, IDC_RSS>,
 	private SettingsManagerListener, private RSSListener
 #ifdef _DEBUG
 	, boost::noncopyable // [+] IRainman fix.

@@ -166,6 +166,7 @@
     <ClInclude Include="include\libtorrent\netlink.hpp" />
     <ClInclude Include="include\libtorrent\operations.hpp" />
     <ClInclude Include="include\libtorrent\packet_buffer.hpp" />
+    <ClInclude Include="include\libtorrent\packet_pool.hpp" />
     <ClInclude Include="include\libtorrent\parse_url.hpp" />
     <ClInclude Include="include\libtorrent\part_file.hpp" />
     <ClInclude Include="include\libtorrent\peer.hpp" />

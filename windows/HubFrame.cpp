@@ -287,6 +287,7 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	, m_is_ddos_detect(false)
 	, m_is_ext_json_hub(false)
 	, m_count_speak(0)
+	, m_count_lock_chat(0)
 	//, m_is_delete_all_items(false)
 {
 	m_userMapCS = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
@@ -363,8 +364,8 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	const auto l_is_favorite_active = ClientManager::isActive(fe, bWantAutodetect);
 	LogManager::message("Connect: " + m_client->getHubUrl() + string(" Mode: ") +
 	                    (m_client->isActive() ? ("Active" + ((fe && l_is_favorite_active) ? string("(favorites)") : string())) : "Passive") + string(" Support: ") +
-		                    MappingManager::getPortmapInfo(true, true));
-		                    
+	                    MappingManager::getPortmapInfo(true, true));
+	                    
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	ConnectionManager::getInstance()->addListener(this);
 #endif
@@ -597,16 +598,18 @@ void HubFrame::destroyMessagePanel(bool p_is_destroy)
 	const bool l_is_shutdown = p_is_destroy || ClientManager::isBeforeShutdown();
 	if (m_ctrlFilter)
 	{
+		/*
 		if (!l_is_shutdown && m_closed == false && m_before_close == false)
-		{
-			tstring l_filter;
-			WinUtil::GetWindowText(l_filter, *m_ctrlFilter);
-			m_filter == l_filter;
-			if (m_ctrlFilterSel)
-			{
-				m_FilterSelPos = m_ctrlFilterSel->GetCurSel();
-			}
-		}
+		        {
+		            tstring l_filter;
+		            WinUtil::GetWindowText(l_filter, *m_ctrlFilter); // https://drdump.com/UploadedReport.aspx?DumpID=13360480&SecondVisit=1
+		            m_filter == l_filter;
+		            if (m_ctrlFilterSel)
+		            {
+		                m_FilterSelPos = m_ctrlFilterSel->GetCurSel();
+		            }
+		        }
+		        */
 		safe_destroy_window(m_tooltip_hubframe); // использует m_ctrlSwitchPanels и m_ctrlShowUsers и m_ctrlShowMode
 		
 #ifdef SCALOLAZ_HUB_MODE
@@ -1499,6 +1502,7 @@ void HubFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, co
 }
 void HubFrame::doConnected()
 {
+	m_count_lock_chat = 0;
 	m_is_process_disconnected = false;
 	dcassert(!ClientManager::isBeforeShutdown());
 	clearUserList();
@@ -1643,18 +1647,18 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		}
 		break;
 #endif // FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
-		/*
-		case WM_SPEAKER_CONNECTED:
-		        {
-		            doConnected();
-		        }
-		        break;
-		        case WM_SPEAKER_DISCONNECTED:
-		        {
-		            doDisconnected();
-		        }
-		        break;
-		*/
+			/*
+			case WM_SPEAKER_CONNECTED:
+			        {
+			            doConnected();
+			        }
+			        break;
+			        case WM_SPEAKER_DISCONNECTED:
+			        {
+			            doDisconnected();
+			        }
+			        break;
+			*/
 #ifdef FLYLINKDC_PRIVATE_MESSAGE_USE_WIN_MESSAGES_Q
 		case WM_SPEAKER_PRIVATE_MESSAGE:
 		{
@@ -1735,11 +1739,11 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 #endif
 	CFlyBusyBool l_busy(m_spoken);
 	unique_ptr<CLockRedraw < > > l_lock_redraw;
+	unique_ptr<CLockRedraw < true > > l_lock_redraw_chat;
 	if (m_ctrlUsers)
 	{
 		l_lock_redraw = unique_ptr<CLockRedraw < > >(new CLockRedraw<> (*m_ctrlUsers));
 	}
-	//CLockRedraw<true> l_lock_redraw_chat(ctrlClient);
 	for (auto i = t.cbegin(); i != t.cend(); ++i)
 	{
 		if (!ClientManager::isBeforeShutdown())
@@ -1865,6 +1869,14 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					dcassert(!ClientManager::isBeforeShutdown());
 					if (!ClientManager::isBeforeShutdown())
 					{
+						if (++m_count_lock_chat > 2)
+						{
+							l_lock_redraw_chat = unique_ptr<CLockRedraw < true > >(new CLockRedraw< true >(ctrlClient));
+						}
+						else
+						{
+							ctrlClient.ShowScrollBar(SB_VERT, TRUE);
+						}
 						MessageTask& l_task = static_cast<MessageTask&>(*i->second);
 						std::unique_ptr<ChatMessage> msg(l_task.m_message_ptr);
 						////TODO - RoLex - chat- LogManager::message("ADD_CHAT_LINE. Hub:" + getHubHint() + " Message: [" + msg->m_text + "]");
@@ -2024,7 +2036,6 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				}
 				break;
 #endif
-				
 				case CHEATING_USER:
 				{
 					const StatusTask& l_task = static_cast<StatusTask&>(*i->second);
@@ -2972,7 +2983,7 @@ void HubFrame::onTab()
 	}
 }
 
-LRESULT HubFrame::onCloseWindows(WORD , WORD wID, HWND , BOOL&)
+LRESULT HubFrame::onCloseWindows(WORD, WORD wID, HWND, BOOL&)
 {
 	switch (wID)
 	{
@@ -3864,6 +3875,10 @@ LRESULT HubFrame::onSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 	if (m_ctrlFilter)
 	{
 		WinUtil::GetWindowText(m_filter, *m_ctrlFilter);
+		if (m_ctrlFilterSel)
+		{
+			m_FilterSelPos = m_ctrlFilterSel->GetCurSel();
+		}
 		updateUserList();
 	}
 	
@@ -4544,7 +4559,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 									}
 								}
 							}
-							g_userStateImage.Draw(cd->nmcd.hdc, l_icon_index , ps);
+							g_userStateImage.Draw(cd->nmcd.hdc, l_icon_index, ps);
 							l_step += 17;
 						}
 #endif //  FLYLINKDC_USE_ANTIVIRUS_DB   
@@ -4576,7 +4591,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							cd->clrText =  l_old_color;
 							//SetTextColor(cd->nmcd.hdc, cd->clrText);
 							const auto l_width_ip = WinUtil::getTextWidth(l_ip, cd->nmcd.hdc); // TODO - cache ?
-							::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + l_width_ip + 1, rc.top - 1 , ETO_CLIPPED, rc, _T("*"), 1, NULL);
+							::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + l_width_ip + 1, rc.top - 1, ETO_CLIPPED, rc, _T("*"), 1, NULL);
 						}
 						//unique_ptr<CSelectFont> l_font(!l_is_fantom_ip ? nullptr : unique_ptr<CSelectFont>(new CSelectFont(cd->nmcd.hdc, Fonts::g_halfFont)));
 						//::ExtTextOut(cd->nmcd.hdc, rc.left + 6, rc.top + 2, ETO_CLIPPED, rc, l_ip.c_str(), l_ip.length(), NULL);
@@ -4605,12 +4620,12 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						}
 						else
 						{
-							m_ctrlUsers->SetItemFilled(cd, rc, cd->clrText , cd->clrText); // TODO fix copy-paste
+							m_ctrlUsers->SetItemFilled(cd, rc, cd->clrText, cd->clrText);  // TODO fix copy-paste
 						}
 					}
 					else
 					{
-						m_ctrlUsers->SetItemFilled(cd, rc, cd->clrText , cd->clrText); // TODO fix copy-paste
+						m_ctrlUsers->SetItemFilled(cd, rc, cd->clrText, cd->clrText);  // TODO fix copy-paste
 					}
 					// TODO fix copy-paste
 					const auto& l_location = ui->getLocation();

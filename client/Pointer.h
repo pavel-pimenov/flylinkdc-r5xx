@@ -43,17 +43,17 @@ class intrusive_ptr_base
 		
 		bool unique(int p_val = 1) const noexcept
 		{
-		    return m_ref <= p_val;
+			return m_ref <= p_val;
 		}
 		
 		int getRefs() const noexcept
 		{
-		    return m_ref;
+			return m_ref;
 		}
 		
 	protected:
-	intrusive_ptr_base() noexcept :
-		m_ref(0) { }
+		intrusive_ptr_base() noexcept :
+			m_ref(0) { }
 		virtual ~intrusive_ptr_base() { }
 		
 	private:

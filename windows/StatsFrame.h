@@ -57,7 +57,7 @@ struct RatioInfo
 };
 #endif
 
-class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_NETWORK_STATISTICS_ICON > , public StaticFrame<StatsFrame, ResourceManager::NETWORK_STATISTICS, IDC_NET_STATS>
+class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_NETWORK_STATISTICS_ICON >, public StaticFrame<StatsFrame, ResourceManager::NETWORK_STATISTICS, IDC_NET_STATS>
 	, virtual private CFlyTimerAdapter
 	, virtual private CFlyTaskAdapter
 {

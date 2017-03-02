@@ -1485,24 +1485,24 @@ static string MXF_MCALabelDictionaryID_ChannelPositions(const std::vector<int128
                 LfeS+="LFE";
         }
         if (!FrontS.empty())
-            ToReturn+=FrontS.c_str();
+            ToReturn+=FrontS;
         if (!SideS.empty())
         {
             if (!ToReturn.empty())
                 ToReturn+=", ";
-            ToReturn+=SideS.c_str();
+            ToReturn+=SideS;
         }
         if (!BackS.empty())
         {
             if (!ToReturn.empty())
                 ToReturn+=", ";
-            ToReturn+=BackS.c_str();
+            ToReturn+=BackS;
         }
         if (!LfeS.empty())
         {
             if (!ToReturn.empty())
                 ToReturn+=", ";
-            ToReturn+=LfeS.c_str();
+            ToReturn+=LfeS;
         }
     }
 
@@ -3654,7 +3654,7 @@ void File_Mxf::Streams_Finish_Descriptor(const int128u& DescriptorUID, const int
                     //Special cases
                     std::map<std::string, Ztring>::iterator Info_Level=SubDescriptor->second.Infos.find("Temp_AVC_Format_Level");
                     std::map<std::string, Ztring>::iterator Info_constraint=SubDescriptor->second.Infos.find("Temp_AVC_constraint_set3_flag");
-                    if (Info_Level!=SubDescriptor->second.Infos.end() || Info_Level!=SubDescriptor->second.Infos.end())
+                    if (Info_Level!=SubDescriptor->second.Infos.end() || Info_constraint!=SubDescriptor->second.Infos.end())
                     {
                         //AVC Descriptor creates that, adapting
                         std::map<std::string, Ztring>::iterator Info_Profile=SubDescriptor->second.Infos.find("Format_Profile");

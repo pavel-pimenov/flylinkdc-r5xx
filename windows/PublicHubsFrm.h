@@ -31,7 +31,7 @@
 #define HUB_FILTER_MESSAGE_MAP 8
 #define HUB_TREE_MESSAGE_MAP 9
 #define HUB_LIST_MESSAGE_MAP 10
-class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0, 0), IDR_INTERNET_HUBS > ,
+class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0, 0), IDR_INTERNET_HUBS >,
 	public StaticFrame<PublicHubsFrame, ResourceManager::PUBLIC_HUBS, ID_FILE_CONNECT>,
 	public CSplitterImpl<PublicHubsFrame>,
 	private SettingsManagerListener
@@ -177,6 +177,13 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 			COLUMN_MAXUSERS,
 			COLUMN_RELIABILITY,
 			COLUMN_RATING,
+			COLUMN_SOFTWARE,
+			COLUMN_WEBSITE,
+			COLUMN_EMAIL,
+			COLUMN_ASN,
+			COLUMN_OPERATOR,
+			COLUMN_BOTS,
+			COLUMN_INFECTED,
 			COLUMN_LAST
 		};
 		
@@ -209,8 +216,6 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		
 		typedef boost::unordered_map<string, HubEntryList> PubListMap;
 		PubListMap m_publicListMatrix;
-		
-		
 		CContainedWindow        m_treeContainer;
 		CTreeViewCtrl           m_ctrlTree;
 		HTREEITEM               m_ISPRootItem;
@@ -226,7 +231,7 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		
 		
 		StringSet m_onlineHubs;
-		bool isOnline(const string& p_hubUrl)
+		bool isOnline(const string& p_hubUrl) const
 		{
 			return m_onlineHubs.find(p_hubUrl) != m_onlineHubs.end();
 		}

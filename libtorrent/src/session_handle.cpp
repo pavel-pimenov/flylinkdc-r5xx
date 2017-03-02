@@ -59,7 +59,7 @@ namespace libtorrent
 #ifndef BOOST_NO_EXCEPTIONS
 			try {
 #endif
-				(m_impl->*f)(a...);
+				(m_impl->*f)(std::forward<Args>(a)...);
 #ifndef BOOST_NO_EXCEPTIONS
 			} catch (system_error const& e) {
 				m_impl->alerts().emplace_alert<session_error_alert>(e.code(), e.what());
@@ -81,12 +81,12 @@ namespace libtorrent
 		bool done = false;
 
 		std::exception_ptr ex;
-		m_impl->get_io_service().dispatch([=,&done,&ex]() mutable
+		m_impl->get_io_service().dispatch([=, &done, &ex]() mutable
 		{
 #ifndef BOOST_NO_EXCEPTIONS
 			try {
 #endif
-				(m_impl->*f)(a...);
+				(m_impl->*f)(std::forward<Args>(a)...);
 #ifndef BOOST_NO_EXCEPTIONS
 			} catch (...) {
 				ex = std::current_exception();
@@ -110,12 +110,12 @@ namespace libtorrent
 		bool done = false;
 		Ret r;
 		std::exception_ptr ex;
-		m_impl->get_io_service().dispatch([=,&r,&done,&ex]() mutable
+		m_impl->get_io_service().dispatch([=, &r, &done, &ex]() mutable
 		{
 #ifndef BOOST_NO_EXCEPTIONS
 			try {
 #endif
-				r = (m_impl->*f)(a...);
+				r = (m_impl->*f)(std::forward<Args>(a)...);
 #ifndef BOOST_NO_EXCEPTIONS
 			} catch (...) {
 				ex = std::current_exception();
@@ -601,7 +601,16 @@ namespace libtorrent
 #endif
 	}
 
-	void session_handle::dht_direct_request(udp::endpoint ep, entry const& e, void* userdata)
+	void session_handle::dht_live_nodes(sha1_hash const& nid)
+	{
+#ifndef TORRENT_DISABLE_DHT
+		async_call(&session_impl::dht_live_nodes, nid);
+#else
+		TORRENT_UNUSED(nid);
+#endif
+	}
+
+	void session_handle::dht_direct_request(udp::endpoint const& ep, entry const& e, void* userdata)
 	{
 #ifndef TORRENT_DISABLE_DHT
 		entry copy = e;
@@ -741,7 +750,7 @@ namespace libtorrent
 		return sync_call_ret<peer_id>(&session_impl::get_peer_id);
 	}
 
-	void session_handle::set_key(int key)
+	void session_handle::set_key(std::uint32_t key)
 	{
 		async_call(&session_impl::set_key, key);
 	}
@@ -930,14 +939,19 @@ namespace libtorrent
 		set_proxy(s);
 	}
 
-	void session_handle::set_web_seed_proxy(proxy_settings const& s)
+	void session_handle::set_web_seed_proxy(proxy_settings const&)
 	{
-		set_proxy(s);
+		// NO-OP
 	}
 
 	void session_handle::set_tracker_proxy(proxy_settings const& s)
 	{
-		set_proxy(s);
+		// if the tracker proxy is enabled, set the "proxy_tracker_connections"
+		// setting
+		settings_pack pack;
+		pack.set_bool(settings_pack::proxy_tracker_connections
+			, s.type != aux::proxy_settings::none);
+		apply_settings(pack);
 	}
 
 	proxy_settings session_handle::peer_proxy() const
@@ -952,12 +966,14 @@ namespace libtorrent
 
 	proxy_settings session_handle::tracker_proxy() const
 	{
-		return proxy();
+		settings_pack const sett = get_settings();
+		return sett.get_bool(settings_pack::proxy_tracker_connections)
+			? proxy_settings(sett) : proxy_settings();
 	}
 
-	void session_handle::set_dht_proxy(proxy_settings const& s)
+	void session_handle::set_dht_proxy(proxy_settings const&)
 	{
-		set_proxy(s);
+		// NO-OP
 	}
 
 	proxy_settings session_handle::dht_proxy() const
@@ -1077,13 +1093,13 @@ namespace libtorrent
 	void session_handle::set_alert_mask(std::uint32_t m)
 	{
 		settings_pack p;
-		p.set_int(settings_pack::alert_mask, m);
+		p.set_int(settings_pack::alert_mask, int(m));
 		apply_settings(std::move(p));
 	}
 
 	std::uint32_t session_handle::get_alert_mask() const
 	{
-		return get_settings().get_int(settings_pack::alert_mask);
+		return std::uint32_t(get_settings().get_int(settings_pack::alert_mask));
 	}
 
 	void session_handle::start_lsd()

@@ -124,7 +124,7 @@ class CFlyRatioItem : public CFlyUploadDownloadPair<uint64_t>
 class User;
 struct CFlyUserRatioInfo : public CFlyRatioItem
 #ifdef _DEBUG
-		, boost::noncopyable
+	, boost::noncopyable
 #endif
 {
 	public:

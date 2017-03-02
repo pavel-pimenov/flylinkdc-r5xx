@@ -73,7 +73,7 @@ SimpleXMLReader::SimpleXMLReader(SimpleXMLReader::CallBack* callback) :
 	bufPos(0), pos(0), cb(callback), state(STATE_START)
 {
 	elements.reserve(64);
-	attribs.reserve(8); // 16 Много в void ListLoader::startTag маскимум = 8
+	attribs.reserve(4); // 16 Много в void ListLoader::startTag маскимум = 8
 }
 
 void SimpleXMLReader::append(std::string& str, size_t maxLen, int c)

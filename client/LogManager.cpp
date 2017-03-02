@@ -34,7 +34,8 @@ boost::unordered_map<string, string> LogManager::g_pathCache;
 bool LogManager::g_isInit = false;
 int LogManager::g_logOptions[LAST][2];
 FastCriticalSection LogManager::g_csPathCache;
-FastCriticalSection LogManager::g_csFile;
+std::map<std::string, FastCriticalSection> LogManager::g_csFile;
+FastCriticalSection LogManager::g_csFileArea;
 CFlyMessagesBuffer LogManager::g_LogFilesBuffer;
 FastCriticalSection LogManager::g_csLogFilesBuffer;
 HWND LogManager::g_mainWnd = nullptr;
@@ -161,7 +162,6 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 	dcassert(!l_area.empty());
 	if (l_is_new_path)
 	{
-		CFlyFastLock(g_csFile);
 		File::ensureDirectory(l_area);
 	}
 #ifndef _DEBUG
@@ -191,10 +191,7 @@ void LogManager::flush_all_log()
 			{
 				try
 				{
-					{
-						CFlyFastLock(g_csFile);
-						File::ensureDirectory(i->first);
-					}
+					File::ensureDirectory(i->first);
 					flush_file(i->first, i->second);
 				}
 				catch (const FileException& e)
@@ -212,7 +209,10 @@ void LogManager::flush_all_log()
 
 void LogManager::flush_file(const string& p_area, const string& p_msg)
 {
-	CFlyFastLock(g_csFile);
+	g_csFileArea.lock();
+	FastCriticalSection& l_cs = g_csFile[p_area];
+	g_csFileArea.unlock();
+	CFlyFastLock(l_cs);
 	File f(p_area, File::WRITE, File::OPEN | File::CREATE);
 	if (f.setEndPos(0) == 0)
 	{

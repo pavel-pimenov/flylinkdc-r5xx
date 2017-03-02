@@ -70,7 +70,7 @@ LRESULT UCPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	return TRUE;
 }
 
-LRESULT UCPage::onAddMenu(WORD , WORD , HWND , BOOL&)
+LRESULT UCPage::onAddMenu(WORD, WORD, HWND, BOOL&)
 {
 	CommandDlg dlg;
 	
@@ -82,7 +82,7 @@ LRESULT UCPage::onAddMenu(WORD , WORD , HWND , BOOL&)
 	return 0;
 }
 
-LRESULT UCPage::onChangeMenu(WORD , WORD , HWND , BOOL&)
+LRESULT UCPage::onChangeMenu(WORD, WORD, HWND, BOOL&)
 {
 	if (ctrlCommands.GetSelectedCount() == 1)
 	{
@@ -127,7 +127,7 @@ LRESULT UCPage::onRemoveMenu(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 	return 0;
 }
 
-LRESULT UCPage::onMoveUp(WORD , WORD , HWND , BOOL&)
+LRESULT UCPage::onMoveUp(WORD, WORD, HWND, BOOL&)
 {
 	int i = ctrlCommands.GetSelectedIndex();
 	if (i != -1 && i != 0)
@@ -145,7 +145,7 @@ LRESULT UCPage::onMoveUp(WORD , WORD , HWND , BOOL&)
 	return 0;
 }
 
-LRESULT UCPage::onMoveDown(WORD , WORD , HWND , BOOL&)
+LRESULT UCPage::onMoveDown(WORD, WORD, HWND, BOOL&)
 {
 	int i = ctrlCommands.GetSelectedIndex();
 	if (i != -1 && i != (ctrlCommands.GetItemCount() - 1))

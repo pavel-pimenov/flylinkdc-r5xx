@@ -82,7 +82,7 @@ BOOL PortalBrowserFrame::PreTranslateMessage_ByInstance(MSG* pMsg)
 		{
 			bRet = m_TranslateBrowserAccelerator(m_hBrowser, pMsg);
 		}
-		__except(1)
+		__except (1)
 		{
 		}
 	}
@@ -403,7 +403,7 @@ void PortalBrowserFrame::CloseBrowserWindow()
 			
 		Cleanup();
 	}
-	__except(1)
+	__except (1)
 	{
 	}
 }

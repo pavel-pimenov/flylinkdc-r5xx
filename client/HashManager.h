@@ -252,7 +252,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 			public:
 				Hasher() : m_stop(false), m_running(false), m_paused(0), m_rebuild(false), m_currentSize(0), m_path_id(0),
 					m_CurrentBytesLeft(0), //[+]IRainman
-					m_ForceMaxHashSpeed(0), dwMaxFiles(0), iMaxBytes(0), uiStartTime(0) { }
+					m_ForceMaxHashSpeed(0), dwMaxFiles(0), iMaxBytes(0), uiStartTime(0), m_last_error(0), m_last_error_overlapped(0) { }
 					
 				void hashFile(__int64 p_path_id, const string& fileName, int64_t size);
 				
@@ -336,7 +336,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 					return static_cast<size_t>(MAX_HASH_PROGRESS_VALUE * ((static_cast<double>(dwMaxFiles - filesLeft + 1) / static_cast<double>(dwMaxFiles)) * (static_cast<double>(iMaxBytes - bytesLeft) / static_cast<double>(iMaxBytes))));
 				}
 				
-				uint64_t GetStartTime()
+				uint64_t GetStartTime() const
 				{
 					return IsHashing() ? uiStartTime : 0;
 				}
@@ -361,7 +361,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 					}
 				}
 				
-				static inline DWORD GetMaxProgressValue()
+				static DWORD GetMaxProgressValue()
 				{
 					return MAX_HASH_PROGRESS_VALUE;
 				}
@@ -376,6 +376,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 					int64_t m_file_size;
 					int64_t m_path_id;
 				};
+				void instantPause();
 				typedef std::map<string, CFlyHashTaskItem> WorkMap;
 				
 				WorkMap w;
@@ -386,23 +387,16 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				volatile bool m_running; // [!] IRainman fix: this variable is volatile.
 				int64_t m_paused; //[!] PPA -> int
 				volatile bool m_rebuild; // [!] IRainman fix: this variable is volatile.
-				//string currentFile;// [-]IRainman
 				int64_t m_currentSize;
 				__int64 m_path_id;
-				
-				void instantPause();
-				
-				// [+] brain-ripper
 				int m_ForceMaxHashSpeed;
 				size_t dwMaxFiles;
 				int64_t iMaxBytes;
 				uint64_t uiStartTime;
-				// -----------------
-				
-				// [+]IRainman for better performance
 				int64_t m_CurrentBytesLeft;
 				string m_fname;
-				// [~]IRainman
+				DWORD m_last_error;
+				DWORD m_last_error_overlapped;
 		};
 		
 		friend class Hasher;

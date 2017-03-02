@@ -53,7 +53,7 @@ File__Duplicate_MpegTs::File__Duplicate_MpegTs (const Ztring &Target)
 : File__Duplicate__Base()
 {
     Writer.Configure(Target);
-
+    StreamID=0;
     //Current
     program_map_PIDs.resize(0x2000, 0);
     elementary_PIDs.resize(0x2000, 0);

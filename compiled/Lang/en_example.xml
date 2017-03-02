@@ -449,7 +449,7 @@
 	<string name="EnterGroupName">You must enter a group name!</string>
 	<string name="EnterNick">Please enter a nickname in the settings dialog!</string>
 	<string name="EnterPassword">Please enter a password</string>
-	<string name="EnterSearchString">Enter search string</string>
+	<string name="EnterSearchString">Enter search string (File name or TTH)</string>
 	<string name="Errors">Errors</string>
 	<string name="ErrorAddTthStream">Error adding hash data to NTFS stream</string>
 	<string name="ErrorCreatingRegistryKeyAdc">Error creating ADC registry key</string>
@@ -1099,6 +1099,12 @@
 	<string name="QueueSaved">Queue saved.</string>
 	<string name="QuickConnect">Quick Connect</string>
 	<string name="Rating">Rating</string>
+	<string name="Software">Hub software</string>
+	<string name="Website">Hub page</string>
+	<string name="Asn">ASN</string>
+	<string name="Operators">Operators</string>
+	<string name="Bots">Bots</string>
+	<string name="Infected">Infected</string>
 	<string name="Ratio">Ratio</string>
 	<string name="RatioMsgHelp">You can use:\r\n\r\n %[ratio]\t up/down ratio\r\n %[up]\t data uploaded\r\n %[down]\t data downloaded</string>
 	<string name="RatioMsgHelpDesc">Ratio message template help</string>

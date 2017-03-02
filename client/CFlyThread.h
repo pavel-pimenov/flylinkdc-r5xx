@@ -54,7 +54,7 @@ class BaseThread
 			IDLE = THREAD_PRIORITY_IDLE,
 			LOW = THREAD_PRIORITY_BELOW_NORMAL,
 			NORMAL = THREAD_PRIORITY_NORMAL
-			//HIGH = THREAD_PRIORITY_ABOVE_NORMAL
+			         //HIGH = THREAD_PRIORITY_ABOVE_NORMAL
 		};
 		static long safeInc(volatile long& v)
 		{
@@ -256,7 +256,7 @@ class CriticalSection
 			}
 		}
 #endif
-
+		
 		void log(const char* p_add_info)
 		{
 #ifdef FLYLINKDC_BETA
@@ -414,7 +414,7 @@ class FastCriticalSection
 		{
 			return 0;
 		}
-
+		
 	private:
 		volatile long m_state;
 #ifdef _DEBUG
@@ -524,7 +524,7 @@ static inline HANDLE _CriticalSectionGetEvent(LPCRITICAL_SECTION pcs)
 static inline VOID _WaitForCriticalSectionDbg(LPCRITICAL_SECTION pcs)
 {
 	HANDLE sem = _CriticalSectionGetEvent(pcs);
-
+	
 	DWORD dwWait;
 	do
 	{
@@ -561,12 +561,12 @@ inline VOID EnterCriticalSectionDbg(LPCRITICAL_SECTION pcs)
 			pcs->RecursionCount++;
 			return;
 		}
-
+		
 		// Критическая секция занята другой нитью.
 		// Придется подождать
 		_WaitForCriticalSectionDbg(pcs);
 	}
-
+	
 	// Либо критическая секция была "свободна",
 	// либо мы дождались. Сохраняем идентификатор текущей нити.
 	pcs->OwningThread = (HANDLE)::GetCurrentThreadId();
@@ -590,7 +590,7 @@ inline BOOL TryEnterCriticalSectionDbg(LPCRITICAL_SECTION pcs)
 	}
 	else
 		return FALSE; // Критическая секция занята другой нитью
-
+		
 	return TRUE;
 }
 
@@ -601,7 +601,7 @@ inline VOID LeaveCriticalSectionDbg(LPCRITICAL_SECTION pcs)
 	// с идентификатором нити-владельца.
 	// Если это не так, скорее всего мы имеем дело с ошибкой
 	dcassert(pcs->OwningThread == (HANDLE)::GetCurrentThreadId());
-
+	
 	if (--pcs->RecursionCount)
 	{
 		// Не последний вызов из этой нити.
@@ -613,7 +613,7 @@ inline VOID LeaveCriticalSectionDbg(LPCRITICAL_SECTION pcs)
 		// Последний вызов. Нужно "разбудить" какую-либо
 		// из ожидающих ниток, если таковые имеются
 		dcassert(NULL != pcs->OwningThread);
-
+		
 		pcs->OwningThread = NULL;
 		if (::InterlockedDecrement(&pcs->LockCount) >= 0)
 		{
@@ -652,7 +652,7 @@ class CBaseLock
 		{
 			::DeleteCriticalSection(&m_CS);
 		}
-
+		
 		void lock()
 		{
 			EnterCriticalSectionDbg(&m_CS);

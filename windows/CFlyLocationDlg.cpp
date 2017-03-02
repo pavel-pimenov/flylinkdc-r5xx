@@ -31,6 +31,8 @@ LRESULT CFlyLocationDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	// TODO -- SELECT distinct country FROM fly_country_ip
 	m_ctrlCountry.AddString(_T("Russia"));
 	m_ctrlCountry.SelectString(0, _T("Russia"));
+	m_ctrlCountry.AddString(_T("Belarus"));
+	m_ctrlCountry.AddString(_T("Kazakhstan"));
 	insertAndLocate(m_ctrlCountry, SETTING(FLY_LOCATOR_COUNTRY));
 	insertAndLocate(m_ctrlCity, SETTING(FLY_LOCATOR_CITY));
 	insertAndLocate(m_ctrlProvider, SETTING(FLY_LOCATOR_ISP));

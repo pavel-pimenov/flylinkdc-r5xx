@@ -29,7 +29,7 @@
 
 class Segment
 #ifdef _DEBUG
-	// : boost::noncopyable
+// : boost::noncopyable
 #endif
 {
 	public:

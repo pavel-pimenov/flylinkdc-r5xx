@@ -112,7 +112,7 @@ class SearchResultCore : public SearchResultBaseTTH
 
 class SearchResult : public SearchResultCore
 #ifdef _DEBUG
-	//, boost::noncopyable
+//, boost::noncopyable
 #endif
 {
 	public:

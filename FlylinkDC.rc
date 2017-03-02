@@ -1764,6 +1764,20 @@ BEGIN
     DEFPUSHBUTTON   "Ok",IDOK,283,307,60,14
 END
 
+IDD_FLY_TORRENT_DIALOG DIALOGEX 0, 0, 345, 324
+STYLE DS_SETFONT | DS_3DLOOK | DS_FIXEDSYS | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Download Torrent"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,219,307,60,14
+    LISTBOX         IDC_FLY_TORRENT_INFO_LISTBOX,10,220,325,64,LBS_OWNERDRAWVARIABLE | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "Ok",IDOK,283,307,60,14
+    LTEXT           "Default download directory",IDC_SETTINGS_DOWNLOAD_DIRECTORY,11,12,280,11
+    EDITTEXT        IDC_TORRENT_DOWNLOAD_DIR,10,26,303,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_TORRENT_DOWNLOAD_DIR_CHANGE,316,26,20,14
+    CONTROL         "",IDC_TORRENT_FILES,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | TVS_NOTOOLTIPS | WS_BORDER | WS_HSCROLL | WS_TABSTOP,10,41,325,176,WS_EX_CLIENTEDGE
+END
+
 IDD_ABOUTCMDS DIALOGEX 0, 0, 297, 200
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
@@ -2760,6 +2774,20 @@ BEGIN
         HORZGUIDE, 307
     END
 
+    IDD_FLY_TORRENT_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 3
+        RIGHTMARGIN, 342
+        VERTGUIDE, 3
+        VERTGUIDE, 342
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 320
+        HORZGUIDE, 4
+        HORZGUIDE, 151
+        HORZGUIDE, 154
+        HORZGUIDE, 307
+    END
+
     IDD_ABOUTCMDS, DIALOG
     BEGIN
         RIGHTMARGIN, 296
@@ -3032,7 +3060,12 @@ IDR_VIP_ICO_EVAHUB      ICON                    "res\\vip_eva.ico"
 
 IDR_VIP_ICO_TITANKALUGA ICON                    "res\\vip_titankaluga.ico"
 
-IDR_VIP_ICO_SIBFILES ICON                       "res\\vip_sibfiles.ico"
+IDR_VIP_ICO_SIBFILES    ICON                    "res\\vip_sibfiles.ico"
+
+IDR_VIP_ICO_ADRENALIN   ICON                    "res\\vip_adrenalin.ico"
+
+IDR_VIP_ICO_GODC        ICON                    "res\\vip_godc.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3133,6 +3166,18 @@ BEGIN
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 100, 100,
+    0, 0, 0, 0
+END
+
+IDD_FLY_TORRENT_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 100,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
     0, 0, 0, 0
 END
 

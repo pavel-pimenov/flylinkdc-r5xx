@@ -25,14 +25,16 @@ class AboutLogDlg : public CDialogImpl<AboutLogDlg>
 			m_richEditLibrary = ::LoadLibrary(L"Msftedit.dll");
 			if (!m_richEditLibrary)
 			{
+				dcassert(0);
 				_RPT1(_CRT_WARN, "[AboutLogDlg] LoadLibrary for Msftedit.dll failed with: %d\n", ::GetLastError());
-				return;
 			}
 		}
 		~AboutLogDlg()
 		{
 			if (m_richEditLibrary)
+			{
 				::FreeLibrary(m_richEditLibrary);
+			}
 		}
 		
 		BEGIN_MSG_MAP(AboutLogDlg)
@@ -52,7 +54,7 @@ class AboutLogDlg : public CDialogImpl<AboutLogDlg>
 			//WinUtil::FillRichEditFromString((HWND)GetDlgItem(IDC_THANKS), m_rtfData);   // TODO please refactoring this to use unicode.
 			
 			LRESULT lResult = GetDlgItem(IDC_THANKS).SendMessage(EM_GETEVENTMASK, 0, 0);
-			GetDlgItem(IDC_THANKS).SendMessage(EM_SETEVENTMASK , 0, lResult | ENM_LINK);
+			GetDlgItem(IDC_THANKS).SendMessage(EM_SETEVENTMASK, 0, lResult | ENM_LINK);
 			GetDlgItem(IDC_THANKS).SendMessage(EM_AUTOURLDETECT, TRUE, 0);
 			
 			return TRUE;

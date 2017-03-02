@@ -54,17 +54,17 @@ LRESULT RecentHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	
 	ctrlHubs.SetColumnOrderArray(COLUMN_LAST, columnIndexes);
 	ctrlConnect.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_DISABLED | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                   BS_PUSHBUTTON , 0, IDC_CONNECT);
+	                   BS_PUSHBUTTON, 0, IDC_CONNECT);
 	ctrlConnect.SetWindowText(CTSTRING(CONNECT));
 	ctrlConnect.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
 	ctrlRemove.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_DISABLED | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                  BS_PUSHBUTTON , 0, IDC_REMOVE);
+	                  BS_PUSHBUTTON, 0, IDC_REMOVE);
 	ctrlRemove.SetWindowText(CTSTRING(REMOVE));
 	ctrlRemove.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
 	ctrlRemoveAll.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                     BS_PUSHBUTTON , 0, IDC_REMOVE_ALL);
+	                     BS_PUSHBUTTON, 0, IDC_REMOVE_ALL);
 	ctrlRemoveAll.SetWindowText(CTSTRING(REMOVE_ALL));
 	ctrlRemoveAll.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
@@ -76,7 +76,7 @@ LRESULT RecentHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	int l_sort_type = ExListViewCtrl::SORT_STRING_NOCASE;
 	if (l_sort == 2 || l_sort == 3)
 		l_sort_type = ExListViewCtrl::SORT_INT;
-	ctrlHubs.setSort(SETTING(HUBS_RECENTS_COLUMNS_SORT), l_sort_type , BOOLSETTING(HUBS_RECENTS_COLUMNS_SORT_ASC));
+	ctrlHubs.setSort(SETTING(HUBS_RECENTS_COLUMNS_SORT), l_sort_type, BOOLSETTING(HUBS_RECENTS_COLUMNS_SORT_ASC));
 	
 	hubsMenu.CreatePopupMenu();
 	hubsMenu.AppendMenu(MF_STRING, IDC_CONNECT, CTSTRING(CONNECT));

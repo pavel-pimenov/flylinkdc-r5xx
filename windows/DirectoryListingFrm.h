@@ -41,13 +41,13 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST
 	, IDR_FILE_LIST_OFF // [~] InfinitySky. Вторая иконка.
 #endif
-	> , public CSplitterImpl<DirectoryListingFrame>,
-public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
+	>, public CSplitterImpl<DirectoryListingFrame>,
+	public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	, public CFlyServerAdapter
 #endif
 	, private CFlyTimerAdapter
-	// BUG-MENU , public UserInfoBaseHandler < DirectoryListingFrame, UserInfoGuiTraits::NO_FILE_LIST | UserInfoGuiTraits::NO_COPY >
+// BUG-MENU , public UserInfoBaseHandler < DirectoryListingFrame, UserInfoGuiTraits::NO_FILE_LIST | UserInfoGuiTraits::NO_COPY >
 	, public InternetSearchBaseHandler<DirectoryListingFrame> // [+] IRainman fix.
 	, public PreviewBaseHandler<DirectoryListingFrame> // [+] IRainman fix.
 #ifdef _DEBUG
@@ -594,8 +594,8 @@ public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 		static int columnIndexes[COLUMN_LAST];
 		static int columnSizes[COLUMN_LAST];
 		
-		typedef std::map< HWND , DirectoryListingFrame* > FrameMap;
-		typedef pair< HWND , DirectoryListingFrame* > FramePair;
+		typedef std::map< HWND, DirectoryListingFrame* > FrameMap;
+		typedef pair< HWND, DirectoryListingFrame* > FramePair;
 		static FrameMap g_dir_list_frames;
 		
 		void on(SettingsManagerListener::Repaint) override;

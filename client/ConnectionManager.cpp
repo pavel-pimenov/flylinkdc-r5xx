@@ -818,7 +818,7 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 	else
 	{
 		if (false  // TODO - узнать почему тут такой затыкон оставлен в оригинальном dc++
-		&& now + g_FLOOD_TRIGGER < m_floodCounter)
+		        && now + g_FLOOD_TRIGGER < m_floodCounter)
 		{
 			Socket s;
 			try

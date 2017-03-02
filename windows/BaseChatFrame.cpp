@@ -37,7 +37,7 @@ void BaseChatFrame::createStatusCtrl(HWND p_hWndStatusBar)
 	m_ctrlStatus = new CStatusBarCtrl;
 	m_ctrlStatus->Attach(p_hWndStatusBar);
 	m_ctrlLastLinesToolTip = new CFlyToolTipCtrl;
-	m_ctrlLastLinesToolTip->Create(m_ctrlStatus->m_hWnd, m_MessagePanelRECT , _T("Fly_BaseChatFrame_ToolTips"), WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP | TTS_BALLOON, WS_EX_TOPMOST);
+	m_ctrlLastLinesToolTip->Create(m_ctrlStatus->m_hWnd, m_MessagePanelRECT, _T("Fly_BaseChatFrame_ToolTips"), WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP | TTS_BALLOON, WS_EX_TOPMOST);
 	m_ctrlLastLinesToolTip->SetWindowPos(HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 	m_ctrlLastLinesToolTip->AddTool(m_ctrlStatus->m_hWnd);
 	m_ctrlLastLinesToolTip->SetDelayTime(TTDT_AUTOPOP, 15000);
@@ -867,7 +867,7 @@ void BaseChatFrame::appendNickToChat(const tstring& nick)
 	}
 }
 
-void BaseChatFrame::appendLogToChat(const string& path , const size_t linesCount)
+void BaseChatFrame::appendLogToChat(const string& path, const size_t linesCount)
 {
 	static const int64_t LOG_SIZE_TO_READ = 64 * 1024;
 	string buf;
@@ -890,7 +890,6 @@ void BaseChatFrame::appendLogToChat(const string& path , const size_t linesCount
 	size_t i = l_lines.getTokens().size() > (linesCount + 1) ? l_lines.getTokens().size() - linesCount : 0;
 	ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, Util::emptyStringT, Util::emptyStringT, Colors::g_ChatTextLog, true, false);
 	{
-		CLockRedraw<true> l_lock_redraw(ctrlClient);
 		for (; i < l_lines.getTokens().size(); ++i)
 		{
 			l_message.m_Msg = Text::toT(l_lines.getTokens()[i] + '\n');

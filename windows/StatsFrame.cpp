@@ -38,7 +38,7 @@ int StatsFrame::columnIndexes[] =
 int StatsFrame::columnSizes[] = { 300, 100, 100, 100 };
 
 static ResourceManager::Strings columnNames[] = { ResourceManager::FILE, ResourceManager::TYPE, ResourceManager::EXACT_SIZE,
-                                                  ResourceManager::SIZE, ResourceManager::TTH_ROOT , ResourceManager::PATH, ResourceManager::DOWNLOADED,
+                                                  ResourceManager::SIZE, ResourceManager::TTH_ROOT, ResourceManager::PATH, ResourceManager::DOWNLOADED,
                                                   ResourceManager::ADDED, ResourceManager::BITRATE
                                                 }; //TODO // !PPA!
 

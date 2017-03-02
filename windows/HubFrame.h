@@ -41,12 +41,12 @@
 
 struct CompareItems;
 
-class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HUB, IDR_HUB_OFF > , private ClientListener,
+class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HUB, IDR_HUB_OFF >, private ClientListener,
 	public  CSplitterImpl<HubFrame>,
 	private CFlyTimerAdapter,
 	private CFlyTaskAdapter,
 	public UCHandler<HubFrame>,
-	public UserInfoBaseHandler < HubFrame, UserInfoGuiTraits::NO_CONNECT_FAV_HUB | UserInfoGuiTraits::NICK_TO_CHAT | UserInfoGuiTraits::USER_LOG | UserInfoGuiTraits::INLINE_CONTACT_LIST, OnlineUserPtr > ,
+	public UserInfoBaseHandler < HubFrame, UserInfoGuiTraits::NO_CONNECT_FAV_HUB | UserInfoGuiTraits::NICK_TO_CHAT | UserInfoGuiTraits::USER_LOG | UserInfoGuiTraits::INLINE_CONTACT_LIST, OnlineUserPtr >,
 	private SettingsManagerListener,
 	private FavoriteManagerListener,
 	public BaseChatFrame // [+] IRainman copy-past fix.
@@ -401,6 +401,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		int m_count_init_insert_list_view;
 		unsigned m_last_count_resort;
 		unsigned m_count_speak;
+		unsigned m_count_lock_chat;
 		
 		static int g_columnIndexes[COLUMN_LAST];
 		static int g_columnSizes[COLUMN_LAST];

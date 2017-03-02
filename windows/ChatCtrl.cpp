@@ -351,16 +351,16 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message, bool p_is_lock_redraw)
 			const CHARFORMAT2& currentCF =
 			    p_message.m_bMyMess ? Colors::g_TextStyleMyNick :
 			    p_message.m_isFavorite ? (p_message.m_is_ban ? Colors::g_TextStyleFavUsersBan : Colors::g_TextStyleFavUsers) :
-				    p_message.m_is_op ? Colors::g_TextStyleOPs :
-				    BOOLSETTING(BOLD_AUTHOR_MESS) ? Colors::g_TextStyleBold :
-				    p_message.m_cf;
+			    p_message.m_is_op ? Colors::g_TextStyleOPs :
+			    BOOLSETTING(BOLD_AUTHOR_MESS) ? Colors::g_TextStyleBold :
+			    p_message.m_cf;
 			//dcassert(sizeof(currentCF) == sizeof(p_message.m_cf));
 			//if (memcmp(&currentCF, &p_message.m_cf,sizeof(currentCF)) == 0)
 			//{
 			//  insertAndFormat(g_open + p_message.m_Nick + g_close, p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
 			//}
 			//else
-		{
+			{
 				insertAndFormat(g_open, p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
 				insertAndFormat(p_message.m_Nick, currentCF, p_message.m_is_disable_style, lSelBegin, lSelEnd);
 				insertAndFormat(g_close, p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);

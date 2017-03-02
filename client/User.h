@@ -258,30 +258,16 @@ class User : public Flags
 		void AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);
 		void incMessagesCount();
 		bool flushRatio();
+		bool isDirty() const;
+	private:
+		bool isDirtyInternal() const;
+	public:
 		tstring getUDratio();
 		tstring getUpload();
 		tstring getDownload();
-		
-		uint64_t getBytesUploadRAW() const
-		{
-#ifdef FLYLINKDC_USE_RATIO_CS
-			CFlyFastLock(m_ratio_cs);
-#endif
-			if (m_ratio_ptr)
-				return m_ratio_ptr->get_upload();
-			else
-				return 0;
-		}
+		uint64_t getBytesUploadRAW() const;
 		uint64_t getBytesDownloadRAW() const
-		{
-#ifdef FLYLINKDC_USE_RATIO_CS
-			CFlyFastLock(m_ratio_cs);
-#endif
-			if (m_ratio_ptr)
-				return m_ratio_ptr->get_download();
-			else
-				return 0;
-		}
+		;
 		boost::asio::ip::address_v4 getIP();
 		boost::asio::ip::address_v4 getLastIPfromRAM() const
 		{

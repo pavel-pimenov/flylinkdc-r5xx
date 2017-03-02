@@ -1202,6 +1202,9 @@
     <Image Include="res\xxx.ico" />
     <Image Include="res\torrent.png" />
     <Image Include="res\TransferTree.png" />
+    <Image Include="res\vip_sibfiles.ico" />
+    <Image Include="res\vip_adrenalin.ico" />
+    <Image Include="res\vip_godc.ico" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

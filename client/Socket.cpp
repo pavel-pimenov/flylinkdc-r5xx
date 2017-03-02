@@ -42,8 +42,8 @@ uint16_t Socket::g_udpPort;
 #ifdef _DEBUG
 
 SocketException::SocketException(DWORD aError) noexcept
-:
-Exception("SocketException: " + errorToString(aError))
+	:
+	Exception("SocketException: " + errorToString(aError))
 {
 	m_error_code = aError;
 	dcdebug("Thrown: %s\n", what()); //-V111
@@ -52,7 +52,7 @@ Exception("SocketException: " + errorToString(aError))
 #else // _DEBUG
 
 SocketException::SocketException(DWORD aError) noexcept :
-Exception(errorToString(aError))
+	Exception(errorToString(aError))
 {
 	m_error_code = aError;
 }
@@ -120,10 +120,8 @@ uint16_t Socket::accept(const Socket& listeningSocket)
 	check(m_sock);
 	const string l_remote_ip = inet_ntoa(sock_addr.sin_addr);
 	IpGuard::check_ip_str(l_remote_ip, this);
-#ifdef _WIN32
 	// Make sure we disable any inherited windows message things for this socket.
 	::WSAAsyncSelect(m_sock, NULL, 0, 0);
-#endif
 	
 	m_type = TYPE_TCP;
 	
@@ -817,7 +815,6 @@ string Socket::resolve(const string& aDns)
 	}
 	g_last_resolve = aDns;
 #endif
-#ifdef _WIN32
 	sockaddr_in sock_addr  = { { 0 } };
 	
 	memzero(&sock_addr, sizeof(sock_addr));
@@ -840,23 +837,6 @@ string Socket::resolve(const string& aDns)
 	{
 		return aDns;
 	}
-#else
-	// POSIX doesn't guarantee the gethostbyname to be thread safe. And it may (will) return a pointer to static data.
-	string address;
-	addrinfo hints = { 0 };
-	addrinfo *result;
-	hints.ai_family = AF_INET;
-	
-	if (getaddrinfo(aDns.c_str(), NULL, &hints, &result) == 0)
-	{
-		if (result->ai_addr != NULL)
-			address = inet_ntoa(((sockaddr_in*)(result->ai_addr))->sin_addr);
-	
-		freeaddrinfo(result);
-	}
-	
-	return address;
-#endif
 }
 //============================================================================
 string Socket::getDefaultGateWay(boost::logic::tribool& p_is_wifi_router)
@@ -1031,11 +1011,7 @@ void Socket::close() noexcept
 	//dcassert(m_sock != INVALID_SOCKET);
 	if (m_sock != INVALID_SOCKET)
 	{
-#ifdef _WIN32
 		::closesocket(m_sock);
-#else
-		::close(sock);
-#endif
 		connected = false;
 		m_sock = INVALID_SOCKET;
 	}

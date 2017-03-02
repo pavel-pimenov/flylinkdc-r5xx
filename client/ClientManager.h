@@ -31,7 +31,7 @@ class UserCommand;
 
 class ClientManager : public Speaker<ClientManagerListener>,
 	private ClientListener, public Singleton<ClientManager>
-	//,private TimerManagerListener
+//,private TimerManagerListener
 {
 		friend class SpyFrame;
 	public:
@@ -291,7 +291,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		static UserMap g_users;
 		
-		static CriticalSection g_csUsers;
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csUsers;
 		typedef std::multimap<CID, OnlineUserPtr> OnlineMap;
 		typedef OnlineMap::iterator OnlineIter;
 		typedef OnlineMap::const_iterator OnlineIterC;

@@ -547,7 +547,7 @@ namespace libtorrent
 		}
 
 		int const num_allowed_pieces = m_settings.get_int(settings_pack::allowed_fast_set_size);
-		if (num_allowed_pieces == 0) return;
+		if (num_allowed_pieces <= 0) return;
 
 		if (!t->valid_metadata()) return;
 
@@ -605,7 +605,8 @@ namespace libtorrent
 			for (int i = 0; i < int(hash.size() / sizeof(std::uint32_t)); ++i)
 			{
 				++loops;
-				piece_index_t const piece(detail::read_uint32(p) % num_pieces);
+				TORRENT_ASSERT(num_pieces > 0);
+				piece_index_t const piece(int(detail::read_uint32(p) % std::uint32_t(num_pieces)));
 				if (std::find(m_accept_fast.begin(), m_accept_fast.end(), piece)
 					!= m_accept_fast.end())
 				{
@@ -861,10 +862,10 @@ namespace libtorrent
 			return;
 		m_fast_reconnect = r;
 		peer_info_struct()->last_connected = std::uint16_t(m_ses.session_time());
-		int rewind = m_settings.get_int(settings_pack::min_reconnect_time)
+		int const rewind = m_settings.get_int(settings_pack::min_reconnect_time)
 			* m_settings.get_int(settings_pack::max_failcount);
-		if (peer_info_struct()->last_connected < rewind) peer_info_struct()->last_connected = 0;
-		else peer_info_struct()->last_connected -= rewind;
+		if (int(peer_info_struct()->last_connected) < rewind) peer_info_struct()->last_connected = 0;
+		else peer_info_struct()->last_connected -= std::uint16_t(rewind);
 
 		if (peer_info_struct()->fast_reconnects < 15)
 			++peer_info_struct()->fast_reconnects;
@@ -2947,7 +2948,7 @@ namespace libtorrent
 	}
 
 	void peer_connection::on_disk_write_complete(storage_error const& error
-		, peer_request p, std::shared_ptr<torrent> t)
+		, peer_request const& p, std::shared_ptr<torrent> t)
 	{
 		TORRENT_ASSERT(is_single_thread());
 #ifndef TORRENT_DISABLE_LOGGING
@@ -5178,8 +5179,11 @@ namespace libtorrent
 		}
 		else
 		{
-			TORRENT_ASSERT(t->verifying_piece(piece));
-			if (t->seed_mode()) t->verified(piece);
+			if (t->seed_mode())
+			{
+				TORRENT_ASSERT(t->verifying_piece(piece));
+				t->verified(piece);
+			}
 
 #ifndef TORRENT_DISABLE_LOGGING
 			peer_log(peer_log_alert::info, "SEED_MODE_FILE_HASH"
@@ -5199,7 +5203,7 @@ namespace libtorrent
 
 	void peer_connection::on_disk_read_complete(disk_buffer_holder buffer
 		, int const flags, storage_error const& error
-		, peer_request r, time_point issue_time)
+		, peer_request const& r, time_point issue_time)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		// return value:

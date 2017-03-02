@@ -287,6 +287,51 @@ void User::AddRatioDownload(const boost::asio::ip::address_v4& p_ip, uint64_t p_
 		m_ratio_ptr->addDownload(p_ip, p_size);
 	}
 }
+uint64_t User::getBytesUploadRAW() const
+{
+#ifdef FLYLINKDC_USE_RATIO_CS
+	CFlyFastLock(m_ratio_cs);
+#endif
+	if (m_ratio_ptr)
+		return m_ratio_ptr->get_upload();
+	else
+		return 0;
+}
+uint64_t User::getBytesDownloadRAW() const
+{
+#ifdef FLYLINKDC_USE_RATIO_CS
+	CFlyFastLock(m_ratio_cs);
+#endif
+	if (m_ratio_ptr)
+		return m_ratio_ptr->get_download();
+	else
+		return 0;
+}
+
+bool User::isDirtyInternal() const
+{
+	if ((m_last_ip_sql.is_dirty() && !m_last_ip_sql.get().is_unspecified()) ||
+	        m_message_count.is_dirty() && m_message_count.get())
+		return true;
+	else
+		return false;
+}
+
+bool User::isDirty() const
+{
+	if (isDirtyInternal())
+	{
+		return true;
+	}
+#ifdef FLYLINKDC_USE_RATIO_CS
+	CFlyFastLock(m_ratio_cs);
+#endif
+	if (m_ratio_ptr)
+	{
+		return m_ratio_ptr->is_dirty();
+	}
+	return false;
+}
 bool User::flushRatio()
 {
 	bool l_result = false;
@@ -302,8 +347,7 @@ bool User::flushRatio()
 	}
 	if (BOOLSETTING(ENABLE_LAST_IP_AND_MESSAGE_COUNTER))
 	{
-		if ((m_last_ip_sql.is_dirty() && !m_last_ip_sql.get().is_unspecified()) ||
-		        m_message_count.is_dirty() && m_message_count.get())
+		if (isDirtyInternal())
 		{
 			// LogManager::message("User::flushRatio m_nick = " + m_nick);
 			if (getHubID() && !m_nick.empty() && CFlylinkDBManager::isValidInstance() && !m_last_ip_sql.get().is_unspecified())
@@ -440,7 +484,7 @@ bool Identity::setExtJSON(const string& p_ExtJSON)
 		l_result = false;
 #ifdef _DEBUG
 		LogManager::message("Duplicate ExtJSON = " + p_ExtJSON);
-		//dcassert(0);
+		dcassert(0);
 #endif
 	}
 	else

@@ -256,7 +256,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 			{
 				// Same CID but different SID not allowed - buggy hub? [!] IRainman: yes - this is a bug in the hub - it must filter the users with the same cid not depending on the sid! This error is typically used to send spam, as it came from himself.
 				const string l_message = ou->getIdentity().getNick() + " (" + ou->getIdentity().getSIDString() +
-				") has same CID {" + l_cid + "} as " + c.getNick() + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.";
+				                         ") has same CID {" + l_cid + "} as " + c.getNick() + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.";
 				fly_fire3(ClientListener::StatusMessage(), this, l_message, ClientListener::FLAG_IS_SPAM);
 				
 				//LogManager::ddos_message("Magic spam message filtered on hub: " + getHubUrl() + " detail:" + l_message);
@@ -738,7 +738,7 @@ void AdcHub::handle(AdcCommand::RCM, const AdcCommand& c) noexcept
 	// If they respond with their own, symmetric, RNT command, both
 	// clients call ConnectionManager::adcConnect.
 	send(AdcCommand(AdcCommand::CMD_NAT, ou->getIdentity().getSID(), AdcCommand::TYPE_DIRECT).
-	addParam(protocol).addParam(Util::toString(m_client_sock->getLocalPort())).addParam(token));
+	     addParam(protocol).addParam(Util::toString(m_client_sock->getLocalPort())).addParam(token));
 }
 
 void AdcHub::handle(AdcCommand::CMD, const AdcCommand& c) noexcept
@@ -938,7 +938,7 @@ void AdcHub::handle(AdcCommand::GET, const AdcCommand& c) noexcept
 			if (c.getParam(0) == "blom")
 			{
 				send(AdcCommand(AdcCommand::SEV_FATAL, AdcCommand::ERROR_PROTOCOL_GENERIC,
-				"Too few parameters for blom", AdcCommand::TYPE_HUB));
+				                "Too few parameters for blom", AdcCommand::TYPE_HUB));
 			}
 			else
 			{
@@ -1038,7 +1038,7 @@ void AdcHub::handle(AdcCommand::NAT, const AdcCommand& c) noexcept
 	
 	// ... and signal other client to do likewise.
 	send(AdcCommand(AdcCommand::CMD_RNT, ou->getIdentity().getSID(), AdcCommand::TYPE_DIRECT).addParam(protocol).
-	addParam(Util::toString(m_client_sock->getLocalPort())).addParam(token));
+	     addParam(Util::toString(m_client_sock->getLocalPort())).addParam(token));
 }
 
 void AdcHub::handle(AdcCommand::RNT, const AdcCommand& c) noexcept

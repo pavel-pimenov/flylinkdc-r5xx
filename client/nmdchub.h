@@ -63,7 +63,7 @@ class NmdcHub : public Client, private Flags
 		
 		string escape(const string& str) const override
 		{
-		    return validateMessage(str, false);
+			return validateMessage(str, false);
 		}
 		static string unescape(const string& str)
 		{

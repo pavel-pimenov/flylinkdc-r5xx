@@ -2112,15 +2112,15 @@ uint32_t Util::rand()
 		for (kk = 0; kk < N - M; kk++)
 		{
 			y = (g_mt[kk] & UPPER_MASK) | (g_mt[kk + 1] & LOWER_MASK);
-			g_mt[kk] = g_mt[kk + M] ^(y >> 1) ^ mag01[y & 0x1];
+			g_mt[kk] = g_mt[kk + M] ^ (y >> 1) ^ mag01[y & 0x1];
 		}
 		for (; kk < N - 1; kk++)
 		{
 			y = (g_mt[kk] & UPPER_MASK) | (g_mt[kk + 1] & LOWER_MASK);
-			g_mt[kk] = g_mt[kk + (M - N)] ^(y >> 1) ^ mag01[y & 0x1];
+			g_mt[kk] = g_mt[kk + (M - N)] ^ (y >> 1) ^ mag01[y & 0x1];
 		}
 		y = (g_mt[N - 1] & UPPER_MASK) | (g_mt[0] & LOWER_MASK);
-		g_mt[N - 1] = g_mt[M - 1] ^(y >> 1) ^ mag01[y & 0x1];
+		g_mt[N - 1] = g_mt[M - 1] ^ (y >> 1) ^ mag01[y & 0x1];
 		
 		g_mti = 0;
 	}
@@ -2716,7 +2716,7 @@ string Util::getWANIP(const string& p_url, LONG p_timeOut /* = 500 */)
 	return Util::emptyString;
 }
 //[+] SSA
-size_t Util::getDataFromInetSafe(bool p_is_use_cache, const string& p_url, string& p_data, LONG p_time_out /* = 0 */ , IDateReceiveReporter* p_reporter /*= NULL */)
+size_t Util::getDataFromInetSafe(bool p_is_use_cache, const string& p_url, string& p_data, LONG p_time_out /* = 0 */, IDateReceiveReporter* p_reporter /*= NULL */)
 {
 	std::vector<byte> l_bin_data;
 	CFlyHTTPDownloader l_http_downloader;
@@ -2905,7 +2905,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 		}
 	}
 #endif
-	CInternetHandle hURL(InternetOpenUrlA(hInternet, p_url.c_str(), NULL, 0, m_inet_flag | l_cache_flag , 0));
+	CInternetHandle hURL(InternetOpenUrlA(hInternet, p_url.c_str(), NULL, 0, m_inet_flag | l_cache_flag, 0));
 	if (!hURL)
 	{
 		//dcassert(0);

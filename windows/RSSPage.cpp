@@ -105,13 +105,13 @@ void RSSPage::addRSSEntry(const RSSFeed* rf, int pos)
 }
 
 // При добавлении ленты.
-LRESULT RSSPage::onAddFeed(WORD , WORD , HWND , BOOL&)
+LRESULT RSSPage::onAddFeed(WORD, WORD, HWND, BOOL&)
 {
 	RSS_SetFeedDlg dlg;
 	
 	if (dlg.DoModal() == IDOK)
 	{
-		RSSFeed* feed = RSSManager::getInstance()->addNewFeed(Text::fromT(dlg.m_strURL), Text::fromT(dlg.m_strName), Text::fromT(dlg.m_strCodeing) , true);
+		RSSFeed* feed = RSSManager::getInstance()->addNewFeed(Text::fromT(dlg.m_strURL), Text::fromT(dlg.m_strName), Text::fromT(dlg.m_strCodeing), true);
 		if (feed)
 			addRSSEntry(feed,  ctrlCommands.GetItemCount());
 	}
@@ -163,7 +163,7 @@ LRESULT RSSPage::onDoubleClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 }
 
 // При изменении.
-LRESULT RSSPage::onChangeFeed(WORD , WORD , HWND , BOOL&)
+LRESULT RSSPage::onChangeFeed(WORD, WORD, HWND, BOOL&)
 {
 	if (ctrlCommands.GetSelectedCount() == 1)
 	{

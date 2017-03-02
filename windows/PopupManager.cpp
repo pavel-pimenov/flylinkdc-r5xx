@@ -101,7 +101,7 @@ void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bo
 	HWND gotFocus = ::SetFocus(WinUtil::g_mainWnd);
 	
 	//compute the window position
-	CRect rc(screenWidth - width , screenHeight - height - offset, screenWidth, screenHeight - offset);
+	CRect rc(screenWidth - width, screenHeight - height - offset, screenWidth, screenHeight - offset);
 	
 	//Create a new popup
 	PopupWnd *p = new PopupWnd(msg, aTitle, rc, m_id++, m_hBitmap);

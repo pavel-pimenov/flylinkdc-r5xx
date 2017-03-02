@@ -171,7 +171,6 @@ namespace libtorrent
 		~scoped_unlocker_impl() { if (m_lock) m_lock->lock(); }
 		scoped_unlocker_impl(scoped_unlocker_impl&& rhs) : m_lock(rhs.m_lock)
 		{ rhs.m_lock = nullptr; }
-	private:
 		scoped_unlocker_impl& operator=(scoped_unlocker_impl&& rhs)
 		{
 			if (m_lock) m_lock->lock();

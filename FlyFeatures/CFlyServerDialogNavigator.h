@@ -57,7 +57,7 @@ class CFlyServerDialogNavigator :
 	public:
 		enum { IDD = IDD_FLY_SERVER_DIALOG };
 		
-		BEGIN_MSG_MAP(CNavigatorDlg)
+		BEGIN_MSG_MAP(CFlyServerDialogNavigator)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_CLOSE, OnClose)
 		// NOTIFY_HANDLER(IDC_FLY_SERVER_LISTBOX, PIN_BROWSE, OnBrowse)

@@ -302,7 +302,7 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 		l_russian_error += l_footer;
 		l_is_force_exit = true;
 	}
-	Util::setRegistryValueString(FLYLINKDC_REGISTRY_SQLITE_ERROR , Text::toT(l_error));
+	Util::setRegistryValueString(FLYLINKDC_REGISTRY_SQLITE_ERROR, Text::toT(l_error));
 	LogManager::message(p_txt, true); // Всегда логируем в файл (т.к. база может быть битой)
 	static int g_MessageBox = 0; // TODO - fix copy-paste
 	{
@@ -2361,10 +2361,11 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 			{
 				libtorrent::error_code ec;
 				libtorrent::add_torrent_params p = libtorrent::read_resume_data((const char*)l_resume.data(), int(l_resume.size()), ec);
-				p.save_path = SETTING(DOWNLOAD_DIRECTORY); // TODO - load from DB ?
+				//p.save_path = SETTING(DOWNLOAD_DIRECTORY); // TODO - load from DB ?
 				libtorrent::sha1_hash l_sha1;
 				l_q.getblob(1, l_sha1.data(), l_sha1.size());
 				p.info_hash = l_sha1;
+                p.flags |= libtorrent::add_torrent_params::flag_auto_managed;
 				
 				//p.resume_data.assign(l_resume.data(), l_resume.data() + l_resume.size());
 #ifdef _DEBUG
@@ -4208,6 +4209,8 @@ void CFlylinkDBManager::prepare_scan_folder(const tstring& p_path)
 				        (l_folder_name != Util::m_dotT) &&
 				        (l_folder_name != Util::m_dot_dotT))
 				{
+					if (fData->dwFileAttributes & (FILE_ATTRIBUTE_VIRTUAL | FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_TEMPORARY | FILE_ATTRIBUTE_REPARSE_POINT))
+						continue; // fix https://drdump.com/Problem.aspx?ProblemID=261004
 					const tstring l_full_pathT = p_path + l_folder_name + _T("\\");
 					const string l_full_path = Text::fromT(l_full_pathT);
 					if (Util::checkForbidenFolders(l_full_path) == false)
@@ -5277,7 +5280,7 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 	if (!l_status.ok())
 	{
 		const auto l_result_error = l_status.ToString();
-		Util::setRegistryValueString(FLYLINKDC_REGISTRY_LEVELDB_ERROR , Text::toT(l_result_error));
+		Util::setRegistryValueString(FLYLINKDC_REGISTRY_LEVELDB_ERROR, Text::toT(l_result_error));
 		if (l_status.IsIOError() || l_status.IsCorruption())
 		{
 			LogManager::message("[CFlyLevelDB::open_level_db] l_status.IsIOError() || l_status.IsCorruption() = " + l_result_error, true);

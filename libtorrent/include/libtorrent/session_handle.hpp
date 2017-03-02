@@ -63,10 +63,9 @@ namespace libtorrent
 
 #ifndef TORRENT_NO_DEPRECATE
 	struct session_status;
+	using user_load_function_t = std::function<void(sha1_hash const&
+		, std::vector<char>&, error_code&)>;
 #endif
-
-	typedef std::function<void(sha1_hash const&, std::vector<char>&
-		, error_code&)> user_load_function_t;
 
 	struct TORRENT_EXPORT session_handle
 	{
@@ -443,13 +442,20 @@ namespace libtorrent
 		void dht_get_peers(sha1_hash const& info_hash);
 		void dht_announce(sha1_hash const& info_hash, int port = 0, int flags = 0);
 
+		// Retrieve all the live DHT (identified by ``nid``) nodes. All the
+		// nodes id and endpoint will be returned in the list of nodes in the
+		// alert ``dht_live_nodes_alert``.
+		// Since this alert is a response to an explicit call, it will always be
+		// posted, regardless of the alert mask.
+		void dht_live_nodes(sha1_hash const& nid);
+
 		// Send an arbitrary DHT request directly to the specified endpoint. This
 		// function is intended for use by plugins. When a response is received
 		// or the request times out, a dht_direct_response_alert will be posted
 		// with the response (if any) and the userdata pointer passed in here.
 		// Since this alert is a response to an explicit call, it will always be
 		// posted, regardless of the alert mask.
-		void dht_direct_request(udp::endpoint ep, entry const& e, void* userdata = nullptr);
+		void dht_direct_request(udp::endpoint const& ep, entry const& e, void* userdata = nullptr);
 
 #ifndef TORRENT_NO_DEPRECATE
 		// deprecated in 0.15
@@ -575,7 +581,7 @@ namespace libtorrent
 		// sets the key sent to trackers. If it's not set, it is initialized
 		// by libtorrent. The key may be used by the tracker to identify the
 		// peer potentially across you changing your IP.
-		void set_key(int key);
+		void set_key(std::uint32_t key);
 
 		// built-in peer classes
 		static constexpr peer_class_t global_peer_class_id{0};

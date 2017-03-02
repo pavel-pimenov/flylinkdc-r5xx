@@ -51,7 +51,7 @@ std::unique_ptr<webrtc::RWLockWrapper> ClientManager::g_csOnlineUsersUpdateQueue
 
 std::unique_ptr<webrtc::RWLockWrapper> ClientManager::g_csClients = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ClientManager::g_csOnlineUsers = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
-CriticalSection ClientManager::g_csUsers;
+std::unique_ptr<webrtc::RWLockWrapper> ClientManager::g_csUsers = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 
 ClientManager::OnlineMap ClientManager::g_onlineUsers;
 ClientManager::UserMap ClientManager::g_users;
@@ -157,8 +157,8 @@ void ClientManager::clear()
 		g_onlineUsers.clear();
 	}
 	{
-		//CFlyWriteLock(*g_csUsers);
-		CFlyLock(g_csUsers);
+		CFlyWriteLock(*g_csUsers);
+		//CFlyLock(g_csUsers);
 		g_users.clear();
 	}
 }
@@ -581,8 +581,8 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL, uin
 	dcassert(!p_Nick.empty());
 	const CID cid = makeCid(p_Nick, p_HubURL);
 	
-	//  CFlyWriteLock(*g_csUsers);
-	CFlyLock(g_csUsers);
+	CFlyWriteLock(*g_csUsers);
+	//CFlyLock(g_csUsers);
 	//  dcassert(p_first_load == false || p_first_load == true && g_users.find(cid) == g_users.end())
 	const auto& l_result_insert = g_users.insert(make_pair(cid, std::make_shared<User>(cid, p_Nick, p_HubID)));
 	if (!l_result_insert.second)
@@ -607,8 +607,8 @@ UserPtr ClientManager::getUser(const string& p_Nick, const string& p_HubURL, uin
 UserPtr ClientManager::createUser(const CID& p_cid, const string& p_nick, uint32_t p_hub_id)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
-	//CFlyWriteLock(*g_csUsers);
-	CFlyLock(g_csUsers);
+	CFlyWriteLock(*g_csUsers);
+	//CFlyLock(g_csUsers);
 	auto l_item = g_users.insert(make_pair(p_cid, UserPtr()));
 	if (l_item.second == false)
 	{
@@ -621,8 +621,8 @@ UserPtr ClientManager::createUser(const CID& p_cid, const string& p_nick, uint32
 
 UserPtr ClientManager::findUser(const CID& cid)
 {
-	//CFlyReadLock(*g_csUsers);
-	CFlyLock(g_csUsers);
+	CFlyReadLock(*g_csUsers);
+	//CFlyLock(g_csUsers);
 	const auto& ui = g_users.find(cid);
 	if (ui != g_users.end())
 	{
@@ -1108,26 +1108,38 @@ void ClientManager::flushRatio(int p_max_count_flush)
 #ifdef FLYLINKDC_BETA
 		CFlyLog l_log("[ClientManager::flushRatio]");
 #endif
-		//CFlyReadLock(*g_csUsers);
-		CFlyLock(g_csUsers);
-		auto i = g_users.cbegin();
-		while (i != g_users.cend() && !isBeforeShutdown() && !AutoUpdate::getExitOnUpdate())
+		std::vector<UserPtr> l_users;
 		{
-			if (p_max_count_flush > 0 && i->second->flushRatio())
+#ifdef _DEBUG
+			CFlyLog l_log_debug("[ClientManager::flushRatio - read all USERS - _DEBUG]");
+#endif
+			CFlyReadLock(*g_csUsers);
+			//CFlyLock(g_csUsers);
+			auto i = g_users.cbegin();
+			while (i != g_users.cend())
+			{
+				if (i->second->isDirty())
+				{
+					l_users.push_back(i->second);
+				}
+				++i;
+			}
+#ifdef _DEBUG
+			l_log_debug.step("l_users.size() =" + Util::toString(l_users.size()));
+#endif
+		}
+		for (auto i : l_users)
+		{
+			if (i->flushRatio() && !isBeforeShutdown() && !AutoUpdate::getExitOnUpdate())
 			{
 				l_count_flush++;
 #ifdef FLYLINKDC_BETA
 #ifdef _DEBUG
-				//l_log.log("Flush for user: " + i->second->getLastNick() + " Hub = " + Util::toString(i->second->getHubID()) +
-				//          " ip = " + i->second->getIPAsString() + " CountMessages = " + Util::toString(i->second->getMessageCount()));
+				l_log.log("Flush for user: " + i->getLastNick() + " Hub = " + Util::toString(i->getHubID()) +
+				          " ip = " + i->getIPAsString() + " CountMessages = " + Util::toString(i->getMessageCount()));
 #endif
 #endif
-				if (--p_max_count_flush == 0)
-				{
-					break;
-				}
 			}
-			++i;
 		}
 #ifdef FLYLINKDC_BETA
 		if (l_count_flush)
@@ -1144,8 +1156,8 @@ void ClientManager::flushRatio(int p_max_count_flush)
 void ClientManager::usersCleanup()
 {
 	//CFlyLog l_log("[ClientManager::usersCleanup]");
-	//CFlyWriteLock(*g_csUsers);
-	CFlyLock(g_csUsers);
+	CFlyWriteLock(*g_csUsers);
+	//CFlyLock(g_csUsers);
 	auto i = g_users.begin();
 	while (i != g_users.end() && !isBeforeShutdown())
 	{
@@ -1183,16 +1195,16 @@ void ClientManager::createMe(const string& p_cid, const string& p_nick)
 	
 	
 #ifndef _DEBUG
-/*
-static bool g_is_first = false;
-	if (g_is_first == false)
-	{
-		g_is_first = true;
-		extern crash_rpt::CrashRpt g_crashRpt;
-		g_crashRpt.AddUserInfoToReport(L"PID", Text::toT(g_pid.toBase32()).c_str());
-		g_crashRpt.AddUserInfoToReport(L"CID", Text::toT(l_myCID.toBase32()).c_str());
-	}
-*/
+	/*
+	static bool g_is_first = false;
+	    if (g_is_first == false)
+	    {
+	        g_is_first = true;
+	        extern crash_rpt::CrashRpt g_crashRpt;
+	        g_crashRpt.AddUserInfoToReport(L"PID", Text::toT(g_pid.toBase32()).c_str());
+	        g_crashRpt.AddUserInfoToReport(L"CID", Text::toT(l_myCID.toBase32()).c_str());
+	    }
+	*/
 #endif
 	
 	g_uflylinkdc = std::make_shared<User>(g_pid, p_nick, 0);
@@ -1205,8 +1217,8 @@ static bool g_is_first = false;
 	g_iflylinkdc.setUser(g_uflylinkdc);
 	// [~] IRainman fix.
 	{
-		//CFlyWriteLock(*g_csUsers);
-		CFlyLock(g_csUsers);
+		CFlyWriteLock(*g_csUsers);
+		//CFlyLock(g_csUsers);
 		g_users.insert(make_pair(g_me->getCID(), g_me));
 	}
 }

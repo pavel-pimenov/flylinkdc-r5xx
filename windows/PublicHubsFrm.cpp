@@ -38,10 +38,18 @@ int PublicHubsFrame::columnIndexes[] =
 	COLUMN_MAXHUBS,
 	COLUMN_MAXUSERS,
 	COLUMN_RELIABILITY,
-	COLUMN_RATING
+	COLUMN_RATING,
+	COLUMN_SOFTWARE,
+	COLUMN_WEBSITE,
+	COLUMN_EMAIL,
+	COLUMN_ASN,
+	COLUMN_OPERATOR,
+	COLUMN_BOTS,
+	COLUMN_INFECTED,
+	COLUMN_LAST
 };
 
-int PublicHubsFrame::columnSizes[] = { 200, 290, 50, 100, 100, 100, 100, 100, 100, 100, 100, 100 };
+int PublicHubsFrame::columnSizes[] = { 200, 290, 50, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 20, 20, 20 };
 
 static ResourceManager::Strings columnNames[] =
 {
@@ -57,6 +65,14 @@ static ResourceManager::Strings columnNames[] =
 	ResourceManager::MAX_USERS,
 	ResourceManager::RELIABILITY,
 	ResourceManager::RATING,
+	ResourceManager::SOFTWARE,
+	ResourceManager::WEBSITE,
+	ResourceManager::EMAIL,
+	ResourceManager::ASN,
+	ResourceManager::OPERATORS,
+	ResourceManager::BOTS,
+	ResourceManager::INFECTED
+	
 };
 
 LRESULT PublicHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -169,19 +185,34 @@ class PubHubListXmlListLoader : public SimpleXMLReader::CallBack
 		{
 			if (p_name == "Hub")
 			{
-				const string& l_name = getAttrib(p_attribs, "Name", 0); // Local declaration of 'name' hides declaration of the same name in outer scope.
-				const string& server = getAttrib(p_attribs, "Address", 1);
-				const string& description = getAttrib(p_attribs, "Description", 2);
-				const string& users = getAttrib(p_attribs, "Users", 3);
-				const string& country = getAttrib(p_attribs, "Country", 4); //-V112
-				const string& shared = getAttrib(p_attribs, "Shared", 5);
-				const string& minShare = getAttrib(p_attribs, "Minshare", 5);
-				const string& minSlots = getAttrib(p_attribs, "Minslots", 5);
-				const string& maxHubs = getAttrib(p_attribs, "Maxhubs", 5);
-				const string& maxUsers = getAttrib(p_attribs, "Maxusers", 5);
-				const string& reliability = getAttrib(p_attribs, "Reliability", 5);
-				const string& rating = getAttrib(p_attribs, "Rating", 5);
-				publicHubs.push_back(HubEntry(l_name, server, description, users, country, shared, minShare, minSlots, maxHubs, maxUsers, reliability, rating));
+				const string l_name = getAttrib(p_attribs, "Name", 0); // Local declaration of 'name' hides declaration of the same name in outer scope.
+				const string server = getAttrib(p_attribs, "Address", 1);
+				const string description = getAttrib(p_attribs, "Description", 2);
+				const string users = getAttrib(p_attribs, "Users", 3);
+				const string country = getAttrib(p_attribs, "Country", 4); //-V112
+				const string shared = getAttrib(p_attribs, "Shared", 5);
+				const string minShare = getAttrib(p_attribs, "Minshare", 5);
+				const string minSlots = getAttrib(p_attribs, "Minslots", 5);
+				const string maxHubs = getAttrib(p_attribs, "Maxhubs", 5);
+				const string maxUsers = getAttrib(p_attribs, "Maxusers", 5);
+				const string reliability = getAttrib(p_attribs, "Reliability", 5);
+				const string rating = getAttrib(p_attribs, "Rating", 5);
+				
+				const string  Software = getAttrib(p_attribs, "Software", 5);
+				const string  Website = getAttrib(p_attribs, "Website", 5);
+				const string  Email = getAttrib(p_attribs, "Email", 5);
+				const string  ASN = getAttrib(p_attribs, "ASN", 5);
+				const string  Operators = getAttrib(p_attribs, "Operators", 5);
+				const string  Bots = getAttrib(p_attribs, "Bots", 5);
+				const string  Infected = getAttrib(p_attribs, "Infected", 5);
+				publicHubs.push_back(HubEntry(l_name, server, description, users, country, shared, minShare, minSlots, maxHubs, maxUsers, reliability, rating
+				                              , Software
+				                              , Website
+				                              , Email
+				                              , ASN
+				                              , Operators
+				                              , Bots
+				                              , Infected));
 			}
 		}
 		void endTag(const string&, const string&)
@@ -570,7 +601,14 @@ LRESULT PublicHubsFrame::onColumnClickHublist(int /*idCtrl*/, LPNMHDR pnmh, BOOL
 	else
 	{
 		// BAH, sorting on bytes will break of course...oh well...later...
-		if (l->iSubItem == COLUMN_USERS || l->iSubItem == COLUMN_MINSLOTS || l->iSubItem == COLUMN_MAXHUBS || l->iSubItem == COLUMN_MAXUSERS)
+		if (l->iSubItem == COLUMN_USERS ||
+		        l->iSubItem == COLUMN_MINSLOTS ||
+		        l->iSubItem == COLUMN_MAXHUBS ||
+		        l->iSubItem == COLUMN_MAXUSERS ||
+		        l->iSubItem == COLUMN_OPERATOR ||
+		        l->iSubItem == COLUMN_BOTS ||
+		        l->iSubItem == COLUMN_INFECTED
+		   )
 		{
 			m_ctrlHubs.setSort(l->iSubItem, ExListViewCtrl::SORT_INT);
 		}
@@ -817,12 +855,20 @@ void PublicHubsFrame::updateList()
 			l[COLUMN_MAXUSERS] = Util::toStringW(i->getMaxUsers());
 			l[COLUMN_RELIABILITY] = Util::toStringW(i->getReliability());
 			l[COLUMN_RATING] = Text::toT(i->getRating());
+			l[COLUMN_SOFTWARE] = Text::toT(i->getSoftware());
+			l[COLUMN_WEBSITE] = Text::toT(i->getWebsite());
+			l[COLUMN_EMAIL] = Text::toT(i->getEmail());
+			l[COLUMN_ASN] = Text::toT(i->getASN());
+			l[COLUMN_OPERATOR] = Util::toStringW(i->getOperators());
+			l[COLUMN_BOTS] = Util::toStringW(i->getBots());
+			l[COLUMN_INFECTED] = Util::toStringW(i->getInfected());
+			
+			
 			const auto l_country = i->getCountry();
 			dcassert(!l_country.empty());
 			const auto l_index_country = WinUtil::getFlagIndexByName(l_country.c_str());
 			//const auto l_index =
 			m_ctrlHubs.insert(cnt++, l, l_index_country); // !SMT!-IP
-			
 			/*
 			LVITEM lvItem = { 0 };
 			        lvItem.mask = LVIF_IMAGE;
@@ -1085,6 +1131,31 @@ bool PublicHubsFrame::matchFilter(const HubEntry& entry, const int& sel, bool do
 			entryString = entry.getRating();
 			doSizeCompare = false;
 			break;
+		case COLUMN_SOFTWARE:
+			entryString = entry.getSoftware();
+			doSizeCompare = false;
+			break;
+		case COLUMN_WEBSITE:
+			entryString = entry.getWebsite();
+			doSizeCompare = false;
+			break;
+		case COLUMN_EMAIL:
+			entryString = entry.getEmail();
+			doSizeCompare = false;
+			break;
+		case COLUMN_ASN:
+			entryString = entry.getASN();
+			doSizeCompare = false;
+			break;
+		case COLUMN_OPERATOR:
+			entrySize = entry.getOperators();
+			break;
+		case COLUMN_BOTS:
+			entrySize = entry.getBots();
+			break;
+		case COLUMN_INFECTED:
+			entrySize = entry.getInfected();
+			break;
 		default:
 			break;
 	}
@@ -1122,7 +1193,11 @@ bool PublicHubsFrame::matchFilter(const HubEntry& entry, const int& sel, bool do
 			        Util::findSubString(entry.getDescription(), m_filter) != string::npos ||
 			        Util::findSubString(entry.getServer(), m_filter) != string::npos ||
 			        Util::findSubString(entry.getCountry(), m_filter) != string::npos ||
-			        Util::findSubString(entry.getRating(), m_filter) != string::npos)
+			        Util::findSubString(entry.getRating(), m_filter) != string::npos ||
+			        Util::findSubString(entry.getSoftware(), m_filter) != string::npos ||
+			        Util::findSubString(entry.getWebsite(), m_filter) != string::npos ||
+			        Util::findSubString(entry.getEmail(), m_filter) != string::npos ||
+			        Util::findSubString(entry.getASN(), m_filter) != string::npos)
 			{
 				insert = true;
 			}
@@ -1136,8 +1211,8 @@ bool PublicHubsFrame::matchFilter(const HubEntry& entry, const int& sel, bool do
 
 void PublicHubsFrame::on(SettingsManagerListener::Repaint)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		if (m_ctrlHubs.isRedraw())
 		{

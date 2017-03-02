@@ -129,7 +129,9 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		{
 			return sock->getKeyprint();
 		}
-		bool verifyKeyprint(const string& expKP, bool allowUntrusted) noexcept { return sock->verifyKeyprint(expKP, allowUntrusted); }
+		bool verifyKeyprint(const string& expKP, bool allowUntrusted) noexcept {
+			return sock->verifyKeyprint(expKP, allowUntrusted);
+		}
 		
 		//[+]IRainman SpeedLimiter
 		void setMaxSpeed(int64_t maxSpeed)
@@ -231,7 +233,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		
 		struct TaskData
 #ifdef _DEBUG
-				: boost::noncopyable // [+] IRainman fix.
+			: boost::noncopyable // [+] IRainman fix.
 #endif
 		{
 			virtual ~TaskData() { }

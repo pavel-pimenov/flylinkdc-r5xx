@@ -17,7 +17,6 @@
  */
 
 #include "stdafx.h"
-
 #include "Resource.h"
 
 #include "../client/ResourceManager.h"
@@ -28,6 +27,7 @@
 #include "../client/QueueManager.h"
 #include "../client/QueueItem.h"
 #include "../client/ThrottleManager.h"
+#include "../FlyFeatures/CFlyTorrentDialog.h"
 
 #include "UsersFrame.h"
 
@@ -727,9 +727,9 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					// Get the color of this bar
 					COLORREF clr = SETTING(PROGRESS_OVERRIDE_COLORS) ?
 					               (l_ii->download ? (!l_ii->parent ? SETTING(DOWNLOAD_BAR_COLOR) : SETTING(PROGRESS_SEGMENT_COLOR)) : SETTING(UPLOAD_BAR_COLOR)) :
-						               GetSysColor(COLOR_HIGHLIGHT);
+					               GetSysColor(COLOR_HIGHLIGHT);
 					if (!l_ii->download && BOOLSETTING(UP_TRANSFER_COLORS)) //[+]PPA
-				{
+					{
 						const auto l_NumSlot = l_ii->getUser()->getSlots();
 						if (l_NumSlot != 0)
 						{
@@ -799,11 +799,11 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					SetBkMode(dc, TRANSPARENT);
 					COLORREF oldcol = ::SetTextColor(dc, SETTING(PROGRESS_OVERRIDE_COLORS2) ?
 					                                 (l_ii->download ? SETTING(PROGRESS_TEXT_COLOR_DOWN) : SETTING(PROGRESS_TEXT_COLOR_UP)) :
-						                                 OperaColors::TextFromBackground(clr));
-						                                 
+					                                 OperaColors::TextFromBackground(clr));
+					                                 
 					// Draw the background and border of the bar
 					if (l_ii->m_size == 0)
-				{
+					{
 						l_ii->m_size = 1;
 					}
 					
@@ -902,7 +902,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							if (!BOOLSETTING(THROTTLE_ENABLE))
 							{
 								const int64_t speedignore = Util::toInt64(SETTING(UPLOAD_SPEED));
-speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (l_ii->download ? SETTING(TOP_SPEED) : SETTING(TOP_UP_SPEED)) / 5 : speedignore * 20;
+								speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (l_ii->download ? SETTING(TOP_SPEED) : SETTING(TOP_UP_SPEED)) / 5 : speedignore * 20;
 							}
 							else
 							{
@@ -1042,7 +1042,7 @@ speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (l_ii->download ? SETT
 					if ((top - rc.top) < 2)
 						top = rc.top + 1;
 					const POINT ps = { rc.left, top };
-					g_userStateImage.Draw(cd->nmcd.hdc, 3 , ps);
+					g_userStateImage.Draw(cd->nmcd.hdc, 3, ps);
 					::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + 17, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
 				}
 				return CDRF_SKIPDEFAULT;
@@ -1863,7 +1863,7 @@ void TransferView::on(ConnectionManagerListener::FailedDownload, const HintedUse
 #ifdef FLYLINKDC_USE_IPFILTER
 		if (ui->m_hintedUser.user->isAnySet(User::PG_IPTRUST_BLOCK | User::PG_IPGUARD_BLOCK | User::PG_P2PGUARD_BLOCK
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
-		| User::PG_AVDB_BLOCK
+		                                    | User::PG_AVDB_BLOCK
 #endif
 		                                   ))
 		{
@@ -2023,8 +2023,8 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 		case COLUMN_IP:
 			return m_transfer_ip;
 #ifdef FLYLINKDC_USE_COLUMN_RATIO
-			// [~] brain-ripper
-			//case COLUMN_RATIO: return (status == STATUS_RUNNING) ? Util::toStringW(ratio()) : Util::emptyStringT;
+		// [~] brain-ripper
+		//case COLUMN_RATIO: return (status == STATUS_RUNNING) ? Util::toStringW(ratio()) : Util::emptyStringT;
 		case COLUMN_RATIO:
 			return m_ratio_as_text;
 #endif
@@ -2623,6 +2623,29 @@ void TransferView::on(QueueManagerListener::Added, const QueueItemPtr& qi) noexc
     }
 }
 */
+void TransferView::on(DownloadManagerListener::AddTorrent, const libtorrent::sha1_hash& p_sha1, std::vector<std::string>& p_files) noexcept
+{
+	// TODO - PostMessage
+	// std::async(std::launch::async,
+	//      [&] {
+	try {
+		CFlyTorrentDialog l_dlg(p_files);
+		if (l_dlg.DoModal(WinUtil::g_mainWnd) == IDOK)
+		{
+			DownloadManager::getInstance()->set_file_priority(p_sha1, l_dlg.m_selected_files);
+		}
+		else
+		{
+			DownloadManager::getInstance()->remove_torrent_file(p_sha1, 1);
+		}
+	}
+	catch (const Exception &e)
+	{
+		LogManager::message("DownloadManagerListener::AddTorrent - error " + e.getError());
+	}
+//   });
+}
+
 void TransferView::on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept
 {
 	if (!ClientManager::isBeforeShutdown())

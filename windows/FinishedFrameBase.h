@@ -36,7 +36,7 @@
 #define FINISHED_LIST_MESSAGE_MAP 12
 
 template<class T, int title, int id, int icon>
-class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon > ,
+class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >,
 	public StaticFrame<T, title, id>,
 	protected FinishedManagerListener,
 	private SettingsManagerListener,
@@ -68,7 +68,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			m_totalSpeed(0),
 			m_totalCount(0),
 			m_totalCountLast(0),
-			m_type(FinishedManager::e_Download) ,
+			m_type(FinishedManager::e_Download),
 			m_treeContainer(WC_TREEVIEW, this, FINISHED_TREE_MESSAGE_MAP),
 			m_listContainer(WC_LISTVIEW, this, FINISHED_LIST_MESSAGE_MAP)
 		{
@@ -92,16 +92,16 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		COMMAND_ID_HANDLER(IDC_GETLIST, onGetList)
 		COMMAND_ID_HANDLER(IDC_GRANTSLOT, onGrant)
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
-		COMMAND_ID_HANDLER(IDC_COPY_NICK     , onCopy)
-		COMMAND_ID_HANDLER(IDC_COPY_FILENAME , onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_NICK, onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_FILENAME, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_TYPE, onCopy)
-		COMMAND_ID_HANDLER(IDC_COPY_PATH     , onCopy)
-		COMMAND_ID_HANDLER(IDC_COPY_SIZE     , onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_PATH, onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_SIZE, onCopy)
 		COMMAND_ID_HANDLER(IDC_NETWORK_TRAFFIC, onCopy)
-		COMMAND_ID_HANDLER(IDC_COPY_TTH      , onCopy)
-		COMMAND_ID_HANDLER(IDC_COPY_HUB_URL      , onCopy)
-		COMMAND_ID_HANDLER(IDC_COPY_SPEED      , onCopy)
-		COMMAND_ID_HANDLER(IDC_COPY_IP      , onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_TTH, onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_HUB_URL, onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_SPEED, onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_IP, onCopy)
 		NOTIFY_HANDLER(id, LVN_GETDISPINFO, ctrlList.onGetDispInfo) // https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=47103 + http://www.flickr.com/photos/96019675@N02/11198858144/
 		NOTIFY_HANDLER(id, LVN_COLUMNCLICK, ctrlList.onColumnClick)
 		NOTIFY_HANDLER(id, LVN_KEYDOWN, onKeyDown)

@@ -79,7 +79,7 @@ LRESULT FlyUpdateDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	GetDlgItem(IDC_STATIC).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)img_f));
 	
 	LRESULT lResult = GetDlgItem(IDC_RTFDESCRIPTION).SendMessage(EM_GETEVENTMASK, 0, 0);
-	GetDlgItem(IDC_RTFDESCRIPTION).SendMessage(EM_SETEVENTMASK , 0, lResult | ENM_LINK);
+	GetDlgItem(IDC_RTFDESCRIPTION).SendMessage(EM_SETEVENTMASK, 0, lResult | ENM_LINK);
 	GetDlgItem(IDC_RTFDESCRIPTION).SendMessage(EM_AUTOURLDETECT, TRUE, 0);
 	
 	CenterWindow(GetParent());

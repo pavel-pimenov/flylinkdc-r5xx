@@ -41,16 +41,17 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/identify_client.hpp"
 #include "libtorrent/fingerprint.hpp"
 #include "libtorrent/string_util.hpp"
+#include "libtorrent/aux_/numeric_cast.hpp"
 
 namespace
 {
 
 	using namespace libtorrent;
 
-	int decode_digit(char c)
+	int decode_digit(std::uint8_t c)
 	{
-		if (is_digit(c)) return c - '0';
-		return unsigned(c) - 'A' + 10;
+		if (is_digit(char(c))) return c - '0';
+		return c - 'A' + 10;
 	}
 
 	// takes a peer id and returns a valid boost::optional
@@ -61,14 +62,14 @@ namespace
 	{
 		fingerprint ret("..", 0, 0, 0, 0);
 
-		if (id[0] != '-' || !is_print(id[1]) || (id[2] < '0')
+		if (id[0] != '-' || !is_print(char(id[1])) || (id[2] < '0')
 			|| (id[3] < '0') || (id[4] < '0')
 			|| (id[5] < '0') || (id[6] < '0')
 			|| id[7] != '-')
 			return boost::optional<fingerprint>();
 
-		ret.name[0] = id[1];
-		ret.name[1] = id[2];
+		ret.name[0] = char(id[1]);
+		ret.name[1] = char(id[2]);
 		ret.major_version = decode_digit(id[3]);
 		ret.minor_version = decode_digit(id[4]);
 		ret.revision_version = decode_digit(id[5]);
@@ -83,10 +84,10 @@ namespace
 	{
 		fingerprint ret("..", 0, 0, 0, 0);
 
-		if (!is_alpha(id[0]) && !is_digit(id[0]))
+		if (!is_alpha(char(id[0])) && !is_digit(char(id[0])))
 			return boost::optional<fingerprint>();
 
-		if (std::equal(id.begin()+4, id.begin()+6, "--"))
+		if (std::equal(id.begin() + 4, id.begin() + 6, "--"))
 		{
 			if ((id[1] < '0') || (id[2] < '0')
 				|| (id[3] < '0'))
@@ -104,7 +105,7 @@ namespace
 			ret.revision_version = id[3];
 		}
 
-		ret.name[0] = id[0];
+		ret.name[0] = char(id[0]);
 		ret.name[1] = 0;
 
 		ret.tag_version = 0;
@@ -137,7 +138,7 @@ namespace
 
 	// only support BitTorrentSpecification
 	// must be ordered alphabetically
-	static map_entry name_map[] =
+	static const map_entry name_map[] =
 	{
 		  {"7T", "aTorrent for android"}
 		, {"A",  "ABC"}
@@ -238,15 +239,15 @@ namespace
 
 	struct generic_map_entry
 	{
-		int const offset;
+		int offset;
 		char const* id;
 		char const* name;
 	};
 	// non-standard names
 	static const generic_map_entry generic_mappings[] =
 	{
-		{0, "-MG", "Media Get" }
-		, {0, "Deadman Walking-", "Deadman"}
+        {0, "-MG", "Media Get" }
+        , {0, "Deadman Walking-", "Deadman"}
 		, {5, "Azureus", "Azureus 2.0.3.2"}
 		, {0, "DansClient", "XanTorrent"}
 		, {4, "btfans", "SimpleBT"}
@@ -289,13 +290,15 @@ namespace
 			|| ((lhs.id[0] == rhs.id[0]) && (lhs.id[1] < rhs.id[1]));
 	}
 
-	static std::string lookup(fingerprint const& f)
+namespace
+{
+	std::string lookup(fingerprint const& f)
 	{
 		char identity[200];
 
 		const int size = sizeof(name_map)/sizeof(name_map[0]);
-		map_entry const tmp = {f.name, ""};
-		map_entry* i =
+		const map_entry tmp = {f.name, ""};
+		const map_entry* i =
 			std::lower_bound(name_map, name_map + size
 				, tmp, &compare_id);
 
@@ -327,13 +330,13 @@ namespace
 
 		if (f.tag_version != 0)
 		{
-			std::snprintf(identity + num_chars, sizeof(identity) - num_chars
+			std::snprintf(identity + num_chars, sizeof(identity) - aux::numeric_cast<std::size_t>(num_chars)
 				, ".%u", f.tag_version);
 		}
 
 		return identity;
 	}
-
+}
 	bool find_string(char const* id, char const* search)
 	{
 		return std::equal(search, search + std::strlen(search), id);
@@ -417,7 +420,7 @@ namespace libtorrent
 		std::string unknown("Unknown [");
 		for (peer_id::const_iterator i = p.begin(); i != p.end(); ++i)
 		{
-			unknown += is_print(char(*i))?*i:'.';
+			unknown += is_print(char(*i)) ? char(*i) : '.';
 		}
 		unknown += "]";
 		return unknown;

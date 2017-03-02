@@ -394,7 +394,9 @@ namespace libtorrent
 			void dht_get_peers(sha1_hash const& info_hash);
 			void dht_announce(sha1_hash const& info_hash, int port = 0, int flags = 0);
 
-			void dht_direct_request(udp::endpoint ep, entry& e
+			void dht_live_nodes(sha1_hash const& nid);
+
+			void dht_direct_request(udp::endpoint const& ep, entry& e
 				, void* userdata = nullptr);
 
 #ifndef TORRENT_NO_DEPRECATE
@@ -551,7 +553,7 @@ namespace libtorrent
 			void get_cache_info(torrent_handle h, cache_status* ret, int flags) const;
 
 			void set_peer_id(peer_id const& id);
-			void set_key(int key);
+			void set_key(std::uint32_t key);
 			std::uint16_t listen_port() const override;
 			std::uint16_t ssl_listen_port() const override;
 
@@ -769,7 +771,7 @@ namespace libtorrent
 
 #ifndef TORRENT_NO_DEPRECATE
 			// the alert pointers stored in m_alerts
-			mutable std::vector<alert*> m_alert_pointers;
+			mutable aux::vector<alert*> m_alert_pointers;
 
 			// if not all the alerts in m_alert_pointers have been delivered to
 			// the client. This is the offset into m_alert_pointers where the next
@@ -873,7 +875,7 @@ namespace libtorrent
 			// the key is an id that is used to identify the
 			// client with the tracker only. It is randomized
 			// at startup
-			int m_key = 0;
+			std::uint32_t m_key = 0;
 
 			// posts a notification when the set of local IPs changes
 			ip_change_notifier m_ip_notifier;
@@ -1194,7 +1196,7 @@ namespace libtorrent
 			// this keeps the timers more accurate over time
 			// as a kind of "leap second" to adjust for the
 			// accumulated error
-			std::uint16_t m_tick_residual = 0;
+			std::int16_t m_tick_residual = 0;
 
 #ifndef TORRENT_DISABLE_LOGGING
 			virtual bool should_log() const override;

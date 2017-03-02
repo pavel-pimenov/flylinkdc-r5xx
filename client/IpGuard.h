@@ -52,6 +52,7 @@ class IpGuard
 		
 	private:
 		static IPList g_ipGuardList;
+		static int g_ipGuardListLoad;
 };
 
 #endif // IPGUARD_H

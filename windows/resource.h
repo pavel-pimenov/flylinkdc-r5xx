@@ -214,6 +214,9 @@
 #define IDR_TORRENT_PNG                 325
 #define IDR_TRANSFER_TREE               326
 #define IDR_VIP_ICO_SIBFILES            327
+#define IDR_VIP_ICO_ADRENALIN           328
+#define IDR_VIP_ICO_GODC                329
+#define IDD_FLY_TORRENT_DIALOG          330
 #define IDR_ICON_XXX_BLOCK              999
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
@@ -1603,8 +1606,12 @@
 #define IDC_ENABLE_IPTRUST              2522
 #define IDC_OPEN_TORRENT_FILE           2523
 #define IDC_REMOVE_TORRENT              2524
+#define IDC_TORRENT_FILES               2524
 #define IDC_REMOVE_TORRENT_AND_FILE     2525
+#define IDC_TORRENT_DOWNLOAD_DIR        2525
 #define IDC_WHOIS_IP4_INFO              2526
+#define IDC_TORRENT_DOWNLOAD_DIR_CHANGE 2526
+#define IDC_FLY_TORRENT_INFO_LISTBOX    2527
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000
@@ -1671,7 +1678,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        309
 #define _APS_NEXT_COMMAND_VALUE         32812
-#define _APS_NEXT_CONTROL_VALUE         2523
+#define _APS_NEXT_CONTROL_VALUE         2527
 #define _APS_NEXT_SYMED_VALUE           2423
 #endif
 #endif

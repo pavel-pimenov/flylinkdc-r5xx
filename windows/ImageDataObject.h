@@ -94,7 +94,7 @@ class CImageDataObject : IDataObject
 		{
 			return E_NOTIMPL;
 		}
-		STDMETHOD(SetData)(FORMATETC* pformatetc , STGMEDIUM*  pmedium , BOOL  fRelease)
+		STDMETHOD(SetData)(FORMATETC* pformatetc, STGMEDIUM*  pmedium, BOOL  fRelease)
 		{
 			m_fromat = *pformatetc;
 			m_stgmed = *pmedium;

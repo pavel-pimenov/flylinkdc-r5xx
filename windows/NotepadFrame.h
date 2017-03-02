@@ -27,7 +27,7 @@
 
 #define NOTEPAD_MESSAGE_MAP 13
 
-class NotepadFrame : public MDITabChildWindowImpl < NotepadFrame, RGB(0, 0, 0), IDR_NOTEPAD > , public StaticFrame<NotepadFrame, ResourceManager::NOTEPAD, IDC_NOTEPAD>,
+class NotepadFrame : public MDITabChildWindowImpl < NotepadFrame, RGB(0, 0, 0), IDR_NOTEPAD >, public StaticFrame<NotepadFrame, ResourceManager::NOTEPAD, IDC_NOTEPAD>,
 	private SettingsManagerListener
 #ifdef _DEBUG
 	, boost::noncopyable // [+] IRainman fix.

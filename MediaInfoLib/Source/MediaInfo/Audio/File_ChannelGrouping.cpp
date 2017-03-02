@@ -65,6 +65,7 @@ File_ChannelGrouping::File_ChannelGrouping()
     Common=NULL;
     Channel_Pos=0;
     Channel_Total=1;
+    StreamID=0;
 }
 
 File_ChannelGrouping::~File_ChannelGrouping()

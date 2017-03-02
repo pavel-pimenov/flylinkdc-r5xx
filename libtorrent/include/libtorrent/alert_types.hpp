@@ -1558,6 +1558,8 @@ namespace libtorrent
 	// This alert is posted approximately once every second, and it contains
 	// byte counters of most statistics that's tracked for torrents. Each active
 	// torrent posts these alerts regularly.
+	// This alert has been superceded by calling ``post_torrent_updates()``
+	// regularly on the session object. This alert will be removed
 	struct TORRENT_EXPORT stats_alert final : torrent_alert
 	{
 		// internal
@@ -2379,8 +2381,8 @@ namespace libtorrent
 		int const m_size;
 	};
 
-	struct TORRENT_EXPORT dht_get_peers_reply_alert final : alert {
-
+	struct TORRENT_EXPORT dht_get_peers_reply_alert final : alert
+	{
 		dht_get_peers_reply_alert(aux::stack_allocator& alloc
 			, sha1_hash const& ih
 			, std::vector<tcp::endpoint> const& v);
@@ -2402,8 +2404,10 @@ namespace libtorrent
 
 	private:
 		std::reference_wrapper<aux::stack_allocator> m_alloc;
-		int const m_num_peers;
-		aux::allocation_slot m_peers_idx;
+		int m_v4_num_peers = 0;
+		int m_v6_num_peers = 0;
+		aux::allocation_slot m_v4_peers_idx;
+		aux::allocation_slot m_v6_peers_idx;
 	};
 
 	// This is posted exactly once for every call to session_handle::dht_direct_request.
@@ -2440,7 +2444,7 @@ namespace libtorrent
 	// this is posted when one or more blocks are picked by the piece picker,
 	// assuming the verbose piece picker logging is enabled (see
 	// picker_log_notification).
-	struct TORRENT_EXPORT picker_log_alert : peer_alert
+	struct TORRENT_EXPORT picker_log_alert final : peer_alert
 	{
 		// internal
 		picker_log_alert(aux::stack_allocator& alloc, torrent_handle const& h
@@ -2506,11 +2510,35 @@ namespace libtorrent
 		aux::allocation_slot const m_msg_idx;
 	};
 
+	struct TORRENT_EXPORT dht_live_nodes_alert final : alert
+	{
+		dht_live_nodes_alert(aux::stack_allocator& alloc
+			, sha1_hash const& nid
+			, std::vector<std::pair<sha1_hash, udp::endpoint>> const& nodes);
+
+		TORRENT_DEFINE_ALERT(dht_live_nodes_alert, 91)
+
+		static const int static_category = alert::dht_notification;
+		virtual std::string message() const override;
+
+		sha1_hash const node_id;
+
+		int num_nodes() const;
+		std::vector<std::pair<sha1_hash, udp::endpoint>> nodes() const;
+
+	private:
+		std::reference_wrapper<aux::stack_allocator> m_alloc;
+		int m_v4_num_nodes = 0;
+		int m_v6_num_nodes = 0;
+		aux::allocation_slot m_v4_nodes_idx;
+		aux::allocation_slot m_v6_nodes_idx;
+	};
+
 #undef TORRENT_DEFINE_ALERT_IMPL
 #undef TORRENT_DEFINE_ALERT
 #undef TORRENT_DEFINE_ALERT_PRIO
 
-	enum { num_alert_types = 91 }; // this enum represents "max_alert_index" + 1
+	enum { num_alert_types = 92 }; // this enum represents "max_alert_index" + 1
 }
 
 #endif

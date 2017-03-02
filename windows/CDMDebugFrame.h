@@ -22,7 +22,7 @@
 #define DEBUG_FILTER_EXCLUDE_TEXT_MESSAGE_MAP 21
 
 class CDMDebugFrame : private DebugManagerListener, public Thread,
-	public MDITabChildWindowImpl < CDMDebugFrame, RGB(0, 0, 0), IDR_CDM > ,
+	public MDITabChildWindowImpl < CDMDebugFrame, RGB(0, 0, 0), IDR_CDM >,
 	public StaticFrame<CDMDebugFrame, ResourceManager::MENU_CDMDEBUG_MESSAGES>
 {
 	public:

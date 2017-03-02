@@ -720,8 +720,10 @@
     <Image Include="res\thermometer2.ico" />
     <Image Include="res\torrent.png" />
     <Image Include="res\TransferTree.png" />
+    <Image Include="res\vip_adrenalin.ico" />
     <Image Include="res\vip_allavtovo.ico" />
     <Image Include="res\vip_eva.ico" />
+    <Image Include="res\vip_godc.ico" />
     <Image Include="res\vip_keepclear_org.ico" />
     <Image Include="res\vip_korobka.ico" />
     <Image Include="res\vip_milenahub.ico" />
@@ -730,6 +732,7 @@
     <Image Include="res\vip_prime.ico" />
     <Image Include="res\vip_prostoigra24.ico" />
     <Image Include="res\vip_scalolaz.ico" />
+    <Image Include="res\vip_sibfiles.ico" />
     <Image Include="res\vip_stealthhub.ico" />
     <Image Include="res\vip_titankaluga.ico" />
     <Image Include="res\wifi-router.ico" />

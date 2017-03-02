@@ -122,7 +122,7 @@ HIconWrapper WinUtil::g_hClockIcon(IDR_ICON_CLOCK);
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOnIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOffIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIcon;
-std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIconVIP[13]; // VIP_ICON
+std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIconVIP[15]; // VIP_ICON
 std::unique_ptr<HIconWrapper> WinUtil::g_HubDDoSIcon;
 HIconWrapper WinUtil::g_hThermometerIcon(IDR_ICON_THERMOMETR_BAG);
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -513,6 +513,8 @@ void WinUtil::initThemeIcons()
 	g_HubFlylinkDCIconVIP[10] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_EVAHUB));
 	g_HubFlylinkDCIconVIP[11] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_TITANKALUGA));
 	g_HubFlylinkDCIconVIP[12] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_SIBFILES));
+	g_HubFlylinkDCIconVIP[13] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_ADRENALIN));
+	g_HubFlylinkDCIconVIP[14] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_GODC));
 	
 	g_HubDDoSIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_ICON_MEDICAL_BAG));
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -2712,7 +2714,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 			}
 			else if (!fname.empty() && fhash.empty())
 			{
-				SearchFrame::openWindow(Text::toT(fname), fsize, (fsize == 0) ? Search::SIZE_DONTCARE : Search::SIZE_EXACT , Search::TYPE_ANY);
+				SearchFrame::openWindow(Text::toT(fname), fsize, (fsize == 0) ? Search::SIZE_DONTCARE : Search::SIZE_EXACT, Search::TYPE_ANY);
 			}
 			else
 			{
@@ -3608,7 +3610,7 @@ void WinUtil::SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID) // [+] SSA
 		//      startTag = _T("[ruwiki]");
 		//      endTag = _T("[/ruwiki]");
 		//      break;
-		
+	
 		default:
 			dcassert(0);
 	}

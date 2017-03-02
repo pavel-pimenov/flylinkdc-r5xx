@@ -104,7 +104,7 @@ int ResourceLoader::LoadImageList(UINT id, CImageList& aImgLst, int cx, int cy)
 	if (img.LoadFromResource(id, _T("PNG")))
 	{
 		imageCount = img.GetWidth() / cx;
-		aImgLst.Create(cx, cy, ILC_COLOR32 | ILC_MASK, imageCount , 1);
+		aImgLst.Create(cx, cy, ILC_COLOR32 | ILC_MASK, imageCount, 1);
 		aImgLst.Add(img);
 		img.Destroy();
 #if defined(USE_THEME_MANAGER)
@@ -119,7 +119,7 @@ int ResourceLoader::LoadImageList(UINT id, CImageList& aImgLst, int cx, int cy)
 				if (imageOriginalCount > imageCount)
 				{
 					CImageList originalImgLst;
-					originalImgLst.Create(cx, cy, ILC_COLOR32 | ILC_MASK, imageOriginalCount , 1);
+					originalImgLst.Create(cx, cy, ILC_COLOR32 | ILC_MASK, imageOriginalCount, 1);
 					originalImgLst.Add(img2);
 //						int iAddedIcon = 0;
 //						for (int i = imageCount; i<imageOriginalCount; i++)

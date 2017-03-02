@@ -58,7 +58,7 @@ using namespace net::r_eg::text::wildcards;
 #define FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
 // С виндовым таймером у меня иногда вешается на ноуте.
 class HIconWrapper;
-class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 255), IDR_SEARCH > ,
+class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 255), IDR_SEARCH >,
 	private SearchManagerListener, private ClientManagerListener,
 	public UCHandler<SearchFrame>, public UserInfoBaseHandler<SearchFrame, UserInfoGuiTraits::NO_COPY>,
 	private SettingsManagerListener
@@ -520,7 +520,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				
 				const UserPtr& getUser() const override
 				{
-				    return m_sr.getUser();
+					return m_sr.getUser();
 				}
 				
 				bool collapsed;
@@ -614,7 +614,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #endif
 		struct HubInfo
 #ifdef _DEBUG
-				: private boost::noncopyable
+			: private boost::noncopyable
 #endif
 		{
 			HubInfo(const tstring& aUrl, const tstring& aName, bool aOp) : url(aUrl),

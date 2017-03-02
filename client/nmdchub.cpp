@@ -2501,7 +2501,6 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 		c2 = p_search_param.m_size_mode == Search::SIZE_ATLEAST ? 'F' : 'T';
 		tmp = fromUtf8(escape(p_search_param.m_filter));
 	}
-	string::size_type i;
 	std::replace(tmp.begin(), tmp.end(), ' ', '$');
 	bool l_is_passive = p_search_param.m_is_force_passive_searh || BOOLSETTING(SEARCH_PASSIVE);
 	if (SearchManager::getSearchPortUint() == 0)
@@ -2889,6 +2888,23 @@ void NmdcHub::myInfoParse(const string& param)
 	else
 	{
 		ou->getIdentity().setDescription(tmpDesc); //
+		dcassert(param.size() > (j + 2)); //
+		if (param.size() > j + 3)
+		{
+			if (param[j] == '$')
+			{
+				if (param[j + 1] == 'A')
+				{
+					ou->getIdentity().getUser()->unsetFlag(User::NMDC_FILES_PASSIVE);
+					ou->getIdentity().getUser()->unsetFlag(User::NMDC_SEARCH_PASSIVE);
+				}
+				else if (param[j + 1] == 'P')
+				{
+					ou->getIdentity().getUser()->setFlag(User::NMDC_FILES_PASSIVE);
+					ou->getIdentity().getUser()->setFlag(User::NMDC_SEARCH_PASSIVE);
+				}
+			}
+		}
 	}
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 	if (l_is_only_desc_change && !ClientManager::isBeforeShutdown())

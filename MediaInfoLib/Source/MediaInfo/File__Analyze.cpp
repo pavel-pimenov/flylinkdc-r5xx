@@ -288,6 +288,9 @@ File__Analyze::File__Analyze ()
     //BitStream
     BS=new BitStream_Fast;
     BT=new BitStream_LE;
+    #if MEDIAINFO_TRACE
+        BS_Size=0;
+    #endif //MEDIAINFO_TRACE
 
     //Temp
     Status[IsAccepted]=false;
@@ -464,10 +467,13 @@ void File__Analyze::Open_Buffer_Init (File__Analyze* Sub, int64u File_Size_)
     Sub->Open_Buffer_Init(File_Size_);
 }
 
-void File__Analyze::Open_Buffer_OutOfBand (File__Analyze* Sub, const int8u* ToAdd, size_t ToAdd_Size)
+void File__Analyze::Open_Buffer_OutOfBand (File__Analyze* Sub)
 {
     if (Sub==NULL)
+    {
+        Skip_XX(Element_Size-Element_Offset,                    "Unknown");
         return;
+    }
 
     //Sub
     if (Sub->File_GoTo!=(int64u)-1)
@@ -488,7 +494,8 @@ void File__Analyze::Open_Buffer_OutOfBand (File__Analyze* Sub, const int8u* ToAd
         bool Demux_EventWasSent_Save=Config->Demux_EventWasSent;
         Config->Demux_EventWasSent=false;
     #endif //MEDIAINFO_DEMUX
-    Sub->Open_Buffer_OutOfBand(ToAdd, ToAdd_Size);
+    Sub->Open_Buffer_OutOfBand(Buffer+Buffer_Offset+(size_t)Element_Offset, (size_t)(Element_Size-Element_Offset));
+    Element_Offset=Element_Size;
     #if MEDIAINFO_DEMUX
         if (Demux_EventWasSent_Save)
             Config->Demux_EventWasSent=true;
@@ -726,6 +733,7 @@ void File__Analyze::Open_Buffer_Continue (const int8u* ToAdd, size_t ToAdd_Size)
 
     //Should parse again?
     if (((File_GoTo==File_Size && File_Size!=(int64u)-1) || File_Offset+Buffer_Offset>=File_Size)
+        && !Config->File_IsGrowing
        #if MEDIAINFO_DEMUX
          && !Config->Demux_EventWasSent
         #endif //MEDIAINFO_DEMUX
@@ -789,6 +797,7 @@ void File__Analyze::Open_Buffer_Continue (const int8u* ToAdd, size_t ToAdd_Size)
     if (Buffer_Size && Buffer_Offset<=Buffer_Size) //all is not used
     {
         if (File_Offset+Buffer_Size>=File_Size //No more data will come
+         && !Config->File_IsGrowing
         #if MEDIAINFO_DEMUX
          && !Config->Demux_EventWasSent
         #endif //MEDIAINFO_DEMUX
@@ -1638,6 +1647,13 @@ bool File__Analyze::FileHeader_Begin_0x000001()
                             Reject();
                             return false;
         default         :   break;
+    }
+
+    //WTV
+    if (Magic8==0xB7D800203749DA11LL && CC8(Buffer+8)==0xA64E0007E95EAD8DLL)
+    {
+        Reject();
+        return false;
     }
 
     //Detect TS files, and the parser is not enough precise to detect them later
@@ -2650,9 +2666,14 @@ void File__Analyze::Element_Begin(const char* Name)
 
     //TraceNode
     Element[Element_Level].TraceNode.Init();
-    Element[Element_Level].TraceNode.Pos=File_Offset+Buffer_Offset+Element_Offset+BS->OffsetBeforeLastCall_Get(); //TODO: change this, used in Element_End0()
     if (Trace_Activated)
     {
+        Element[Element_Level].TraceNode.Pos=File_Offset+Buffer_Offset+Element_Offset; //TODO: change this, used in Element_End0()
+        if (BS_Size)
+        {
+            int64u BS_BitOffset=BS_Size-BS->Remain();
+            Element[Element_Level].TraceNode.Pos+=BS_BitOffset>>3; //Including Bits to Bytes
+        }
         Element[Element_Level].TraceNode.Size=Element[Element_Level].Next-(File_Offset+Buffer_Offset+Element_Offset+BS->OffsetBeforeLastCall_Get());
         Element_Name(Name);
     }

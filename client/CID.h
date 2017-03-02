@@ -28,7 +28,7 @@
 
 class CID
 #ifdef _DEBUG
-	// TODO : private boost::noncopyable
+// TODO : private boost::noncopyable
 #endif
 {
 	public:

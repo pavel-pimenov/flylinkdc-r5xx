@@ -32,7 +32,7 @@
 #define SPYFRAME_SHOW_NICK 8
 #define SPYFRAME_LOG_FILE 9
 
-class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY > , public StaticFrame<SpyFrame, ResourceManager::SEARCH_SPY, IDC_SEARCH_SPY>,
+class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY >, public StaticFrame<SpyFrame, ResourceManager::SEARCH_SPY, IDC_SEARCH_SPY>,
 	private ClientManagerListener,
 	private SettingsManagerListener,
 	virtual private CFlyTimerAdapter,

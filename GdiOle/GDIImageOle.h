@@ -26,7 +26,7 @@ class IGDIImageDeleteNotify: public IUnknown
 class ATL_NO_VTABLE CGDIImageOle :
 	public CComObjectRootEx<CComSingleThreadModel>,
 #ifdef CTRL_WINDOWED
-	public IDispatchImpl < IGDIImage, &IID_IGDIImage, &LIBID_GdiOleLib, /*wMajor =*/ 1, /*wMinor =*/ 0 > ,
+	public IDispatchImpl < IGDIImage, &IID_IGDIImage, &LIBID_GdiOleLib, /*wMajor =*/ 1, /*wMinor =*/ 0 >,
 #else
 	public CStockPropImpl<CGDIImageOle, IGDIImage>,
 #endif

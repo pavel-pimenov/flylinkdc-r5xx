@@ -64,7 +64,7 @@ LRESULT RSSNewsFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	ctrlList.setAscending(BOOLSETTING(RSS_COLUMNS_SORT_ASC));
 	
 	ctrlRemoveAll.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-	                     BS_PUSHBUTTON , 0, IDC_REMOVE_ALL);
+	                     BS_PUSHBUTTON, 0, IDC_REMOVE_ALL);
 	ctrlRemoveAll.SetWindowText(CTSTRING(CDM_CLEAR));
 	ctrlRemoveAll.SetFont(Fonts::g_systemFont);
 	

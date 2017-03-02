@@ -87,7 +87,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	while (i < 6);
 #ifdef FLYLINKDC_USE_SYSLOG
 	syslog_loghost("syslog.fly-server.ru");
-	openlog("flylinkdc", 0 , LOG_USER | LOG_INFO);
+	openlog("flylinkdc", 0, LOG_USER | LOG_INFO);
 #endif
 	
 	CFlyLog l_StartUpLog("[StartUp]");

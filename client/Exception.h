@@ -32,7 +32,7 @@ using std::string;
 
 class Exception : public std::exception
 #ifdef _DEBUG
-	//, boost::noncopyable
+//, boost::noncopyable
 #endif
 {
 	public:

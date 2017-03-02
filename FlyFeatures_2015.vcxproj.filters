@@ -97,5 +97,8 @@
     <ClInclude Include="FlyFeatures\CFlyServerDialogNavigator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FlyFeatures\CFlyTorrentDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

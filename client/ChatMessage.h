@@ -57,14 +57,9 @@ class ChatMessage
 			if (m_text.size() >= 4 && (strnicmp(m_text, "/me ", 4) == 0 ||
 			                           strnicmp(m_text, "+me ", 4) == 0))
 			{
-				/* [-] IRainman fix.
-				if (BOOLSETTING(NSL_IGNORE_ME))
-				    return;
-				*/
 				thirdPerson = true;
 				m_text = m_text.substr(4);
 			}
-			
 		}
 		// [~] IRainman fix.
 		string format() const;

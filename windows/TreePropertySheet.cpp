@@ -204,7 +204,7 @@ void TreePropertySheet::addCam()
 	m_offset = 4 + (rectok.right - rectok.left);    //Score offset for next control
 	
 	m_Cam = new CButton;
-	m_Cam->Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON | BS_CENTER | BS_PUSHBUTTON , 0, IDC_PROPPAGE_CAMSHOOT);
+	m_Cam->Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON | BS_CENTER | BS_PUSHBUTTON, 0, IDC_PROPPAGE_CAMSHOOT);
 	m_Cam->MoveWindow(rectok);
 	
 	m_Camtooltip = new CFlyToolTipCtrl;

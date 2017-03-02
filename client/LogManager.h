@@ -102,7 +102,8 @@ class LogManager
 		
 		static CFlyMessagesBuffer g_LogFilesBuffer;
 		static FastCriticalSection g_csLogFilesBuffer;
-		static FastCriticalSection g_csFile;
+		static std::map<std::string, FastCriticalSection> g_csFile; // map - для исключения инвалидации
+		static FastCriticalSection g_csFileArea;
 		
 		LogManager();
 		~LogManager()
@@ -135,7 +136,7 @@ class CFlyLog
 	public:
 		CFlyLog(const string& p_message
 		        , bool p_skip_start = true
-		                              , bool p_only_file  = false
+		        , bool p_only_file  = false
 		       );
 		~CFlyLog();
 		uint64_t calcSumTime() const;

@@ -418,6 +418,7 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, unsigned p
 	}
 	if (!l_sector_result)
 	{
+		dcassert(0);
 		return false;
 		// TODO Залогировать ошибку.
 	}
@@ -425,15 +426,17 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, unsigned p
 	{
 		if ((g_HashBufferSize % l_sector_size) != 0)
 		{
+			dcassert(0);
 			return false;
 		}
 		else
 		{
-			h = ::CreateFile(File::formatPath(Text::toT(fname)).c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
-			                 FILE_FLAG_NO_BUFFERING | FILE_FLAG_OVERLAPPED, NULL);
+			h = ::CreateFile(File::formatPath(Text::toT(fname), true).c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
+			                 FILE_FLAG_NO_BUFFERING | FILE_FLAG_OVERLAPPED, nullptr);
+			// TODO | FILE_FLAG_POSIX_SEMANTICS
 			if (h == INVALID_HANDLE_VALUE)
 			{
-				// dcassert(0);
+				dcassert(0);
 				return false;
 			}
 			else
@@ -464,20 +467,26 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, unsigned p
 	
 	bool ok = false;
 	
+	if (l_size == 0)
+	{
+		ok = true;
+		goto cleanup; // TODO  fix goto
+	}
+	
 	uint64_t lastRead = GET_TICK();
 	if (!::ReadFile(h, hbuf, g_HashBufferSize, &hn, &over))
 	{
-		const auto l_error =   GetLastError();
-		if (l_error == ERROR_HANDLE_EOF)
+		m_last_error =   GetLastError();
+		if (m_last_error == ERROR_HANDLE_EOF)
 		{
 			hn = 0;
 		}
-		else if (l_error == ERROR_IO_PENDING)
+		else if (m_last_error == ERROR_IO_PENDING)
 		{
 			if (!GetOverlappedResult(h, &over, &hn, TRUE))
 			{
-				const auto l_error_overlapped =   GetLastError();
-				if (l_error_overlapped == ERROR_HANDLE_EOF)
+				m_last_error_overlapped =   GetLastError();
+				if (m_last_error_overlapped == ERROR_HANDLE_EOF)
 				{
 					hn = 0;
 				}
@@ -568,8 +577,14 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, unsigned p
 	}
 	
 cleanup:
-	::CloseHandle(over.hEvent);
-	::CloseHandle(h);
+	if (!::CloseHandle(over.hEvent))
+	{
+		LogManager::message("CloseHandle(over.hEvent) error: " + Util::translateError());
+	}
+	if (!::CloseHandle(h))
+	{
+		LogManager::message("CloseHandle(h) error: " + Util::translateError());
+	}
 	return ok;
 }
 
@@ -637,7 +652,7 @@ int HashManager::Hasher::run()
 			{
 				l_is_virtualBuf = true;
 				l_buf_size = g_HashBufferSize * 2;
-				l_buf = (uint8_t*)VirtualAlloc(NULL, l_buf_size , MEM_COMMIT, PAGE_READWRITE); // Нельзя убирать *2!
+				l_buf = (uint8_t*)VirtualAlloc(NULL, l_buf_size, MEM_COMMIT, PAGE_READWRITE);  // Нельзя убирать *2!
 				// какой-то %%% заюзал это в fastHash
 			}
 #endif
@@ -670,7 +685,9 @@ int HashManager::Hasher::run()
 			}
 			try
 			{
-				if (l_size == 0 && l_is_link)
+				if (l_size == 0) //  && l_is_link - для файлов запретных имен aux.h
+					// https://msdn.microsoft.com/en-us/library/aa365247.aspxтоже
+					//размер вертается = 0
 				{
 					File f(l_fname, File::READ, File::OPEN);
 					l_size = f.getSize(); // fix https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/15

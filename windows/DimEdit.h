@@ -86,21 +86,21 @@ class CDimEdit : public CWindowImpl< CDimEdit, CEdit >
 		//  Subclass the control.
 		BOOL SubclassWindow(HWND hWnd)
 		{
-			return(CWindowImpl< CDimEdit, CEdit >::SubclassWindow(hWnd));
+			return (CWindowImpl< CDimEdit, CEdit >::SubclassWindow(hWnd));
 		}
 		
 		//  Set the text to display when the control is empty (the "dim" text)
 		CDimEdit& SetDimText(const tstring& dimText)
 		{
 			m_dimText = dimText;
-			return(*this);
+			return (*this);
 		}
 		
 		//  Set the color to display the dim text in.
 		CDimEdit& SetDimColor(const COLORREF dimColor)
 		{
 			m_dimColor = dimColor;
-			return(*this);
+			return (*this);
 		}
 		
 		//  Another way to set the "dim" color.
@@ -109,7 +109,7 @@ class CDimEdit : public CWindowImpl< CDimEdit, CEdit >
 		                      const unsigned char blue)
 		{
 			m_dimColor = RGB(red, green, blue);
-			return(*this);
+			return (*this);
 		}
 		
 		// Message map and message handlers.

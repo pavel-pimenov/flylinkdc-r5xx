@@ -63,7 +63,7 @@ struct CFlyMediainfoRAWHasher
 
 class CFlyMediaInfo
 #ifdef _DEBUG
-	//: public boost::noncopyable
+//: public boost::noncopyable
 #endif
 {
 	public:

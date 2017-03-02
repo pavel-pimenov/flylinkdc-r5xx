@@ -95,9 +95,9 @@ int ExListViewCtrl::insert(TStringList& aList, int iImage, LPARAM lParam)
 	else
 	{
 	
-		tstring& b = aList[sortColumn];
-		int c = _tstoi(b.c_str());
-		double f = _tstof(b.c_str());
+		const tstring& b = aList[sortColumn];
+		const int c = _tstoi(b.c_str());
+		const double f = _tstof(b.c_str());
 		LPARAM data = NULL;
 		int low = 0;
 		int high = count - 1;
@@ -184,9 +184,9 @@ int ExListViewCtrl::insert(TStringList& aList, int iImage, LPARAM lParam)
 	dcassert(loc >= 0 && loc <= GetItemCount());
 	a.iItem = loc;
 	a.iSubItem = 0;
-	int i = InsertItem(&a);
+	const int i = InsertItem(&a);
 	int k = 0;
-	for (auto j = aList.cbegin(); j != aList.cend(); ++j, k++)
+	for (auto j = aList.cbegin(); j != aList.cend(); ++j, ++k)
 	{
 		SetItemText(i, k, j->c_str());
 	}
@@ -195,13 +195,12 @@ int ExListViewCtrl::insert(TStringList& aList, int iImage, LPARAM lParam)
 
 int ExListViewCtrl::insert(int nItem, TStringList& aList, int iImage, LPARAM lParam)
 {
-
 	dcassert(!aList.empty());
 	
 	int i = insert(nItem, aList[0], iImage, lParam);
 	
 	int k = 0;
-	for (auto j = aList.cbegin(); j != aList.cend(); ++j, k++)
+	for (auto j = aList.cbegin(); j != aList.cend(); ++j, ++k)
 	{
 		SetItemText(i, k, j->c_str());
 	}

@@ -48,7 +48,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/escape_string.hpp" // for convert_from_native
 #include "libtorrent/aux_/max_path.hpp" // for TORRENT_MAX_PATH
 
-namespace libtorrent {
+namespace libtorrent
+{
 
 	alert::alert() : m_timestamp(clock_type::now()) {}
 	alert::~alert() = default;
@@ -63,7 +64,8 @@ namespace libtorrent {
 		if (t)
 		{
 			std::string name_str = t->name();
-			if (!name_str.empty()) {
+			if (!name_str.empty())
+			{
 				m_name_idx = alloc.copy_string(name_str);
 			}
 			else
@@ -175,10 +177,12 @@ namespace libtorrent {
 
 	std::string file_completed_alert::message() const
 	{
-		char msg[200 + TORRENT_MAX_PATH];
-		std::snprintf(msg, sizeof(msg), "%s: file %d finished downloading"
-			, torrent_alert::message().c_str(), static_cast<int>(index));
-		return msg;
+		std::string ret { torrent_alert::message() };
+		char msg[200];
+		std::snprintf(msg, sizeof(msg), ": file %d finished downloading"
+			, static_cast<int>(index));
+		ret.append(msg);
+		return ret;
 	}
 
 	file_renamed_alert::file_renamed_alert(aux::stack_allocator& alloc
@@ -198,10 +202,13 @@ namespace libtorrent {
 
 	std::string file_renamed_alert::message() const
 	{
-		char msg[200 + TORRENT_MAX_PATH * 2];
-		std::snprintf(msg, sizeof(msg), "%s: file %d renamed to %s"
-			, torrent_alert::message().c_str(), static_cast<int>(index), new_name());
-		return msg;
+		std::string ret { torrent_alert::message() };
+		char msg[200];
+		std::snprintf(msg, sizeof(msg), ": file %d renamed to "
+			, static_cast<int>(index));
+		ret.append(msg);
+		ret.append(new_name());
+		return ret;
 	}
 
 	file_rename_failed_alert::file_rename_failed_alert(aux::stack_allocator& alloc
@@ -215,10 +222,12 @@ namespace libtorrent {
 
 	std::string file_rename_failed_alert::message() const
 	{
-		char ret[200 + TORRENT_MAX_PATH * 2];
-		std::snprintf(ret, sizeof(ret), "%s: failed to rename file %d: %s"
-			, torrent_alert::message().c_str(), static_cast<int>(index)
-			, convert_from_native(error.message()).c_str());
+		std::string ret { torrent_alert::message() };
+		char msg[200];
+		std::snprintf(msg, sizeof(msg), ": failed to rename file %d: "
+			, static_cast<int>(index));
+		ret.append(msg);
+		ret.append(convert_from_native(error.message()));
 		return ret;
 	}
 
@@ -1885,7 +1894,7 @@ namespace libtorrent {
 
 	span<char const> dht_pkt_alert::pkt_buf() const
 	{
-		return {m_alloc.get().ptr(m_msg_idx), size_t(m_size)};
+		return {m_alloc.get().ptr(m_msg_idx), std::size_t(m_size)};
 	}
 
 	std::string dht_pkt_alert::message() const
@@ -1913,54 +1922,69 @@ namespace libtorrent {
 		, std::vector<tcp::endpoint> const& peers)
 		: info_hash(ih)
 		, m_alloc(alloc)
-		, m_num_peers(int(peers.size()))
 	{
-		std::size_t total_size = peers.size(); // num bytes for sizes
-		for (auto const& endp : peers) {
-			total_size += endp.size();
+		for (auto const& endp : peers)
+		{
+			if (endp.protocol() == tcp::v4())
+				m_v4_num_peers++;
+#if TORRENT_USE_IPV6
+			else
+				m_v6_num_peers++;
+#endif
 		}
 
-		m_peers_idx = alloc.allocate(int(total_size));
+		m_v4_peers_idx = alloc.allocate(m_v4_num_peers * 6);
+		m_v6_peers_idx = alloc.allocate(m_v6_num_peers * 18);
 
-		char *ptr = alloc.ptr(m_peers_idx);
-		for (auto const& endp : peers) {
-			std::size_t const size = endp.size();
-			TORRENT_ASSERT(size < 0x100);
-			detail::write_uint8(size, ptr);
-			std::memcpy(ptr, endp.data(), size);
-			ptr += size;
+		char* v4_ptr = alloc.ptr(m_v4_peers_idx);
+#if TORRENT_USE_IPV6
+		char* v6_ptr = alloc.ptr(m_v6_peers_idx);
+#endif
+		for (auto const& endp : peers)
+		{
+			if (endp.protocol() == tcp::v4())
+				detail::write_endpoint(endp, v4_ptr);
+#if TORRENT_USE_IPV6
+			else
+				detail::write_endpoint(endp, v6_ptr);
+#endif
 		}
 	}
 
 	std::string dht_get_peers_reply_alert::message() const
 	{
 		char msg[200];
-		std::snprintf(msg, sizeof(msg), "incoming dht get_peers reply: %s, peers %d", aux::to_hex(info_hash).c_str(), m_num_peers);
+		std::snprintf(msg, sizeof(msg), "incoming dht get_peers reply: %s, peers %d"
+			, aux::to_hex(info_hash).c_str(), num_peers());
 		return msg;
 	}
 
 	int dht_get_peers_reply_alert::num_peers() const
 	{
-		return m_num_peers;
+		return m_v4_num_peers + m_v6_num_peers;
 	}
 
 #ifndef TORRENT_NO_DEPRECATE
-	void dht_get_peers_reply_alert::peers(std::vector<tcp::endpoint> &v) const {
+	void dht_get_peers_reply_alert::peers(std::vector<tcp::endpoint> &v) const
+	{
 		std::vector<tcp::endpoint> p(peers());
 		v.reserve(p.size());
 		std::copy(p.begin(), p.end(), std::back_inserter(v));
 	}
 #endif
-	std::vector<tcp::endpoint> dht_get_peers_reply_alert::peers() const {
-		std::size_t const num_peers = aux::numeric_cast<std::size_t>(m_num_peers);
-		std::vector<tcp::endpoint> peers(num_peers);
+	std::vector<tcp::endpoint> dht_get_peers_reply_alert::peers() const
+	{
+		aux::vector<tcp::endpoint> peers;
+		peers.reserve(num_peers());
 
-		const char *ptr = m_alloc.get().ptr(m_peers_idx);
-		for (std::size_t i = 0; i < num_peers; i++) {
-			std::size_t const size = detail::read_uint8(ptr);
-			std::memcpy(peers[i].data(), ptr, size);
-			ptr += size;
-		}
+		char const* v4_ptr = m_alloc.get().ptr(m_v4_peers_idx);
+		for (int i = 0; i < m_v4_num_peers; i++)
+			peers.push_back(detail::read_v4_endpoint<tcp::endpoint>(v4_ptr));
+#if TORRENT_USE_IPV6
+		char const* v6_ptr = m_alloc.get().ptr(m_v6_peers_idx);
+		for (int i = 0; i < m_v6_num_peers; i++)
+			peers.push_back(detail::read_v6_endpoint<tcp::endpoint>(v6_ptr));
+#endif
 
 		return peers;
 	}
@@ -2103,6 +2127,87 @@ namespace libtorrent {
 				, m_alloc.get().ptr(m_msg_idx));
 		}
 		return buf;
+	}
+
+	dht_live_nodes_alert::dht_live_nodes_alert(aux::stack_allocator& alloc
+		, sha1_hash const& nid
+		, std::vector<std::pair<sha1_hash, udp::endpoint>> const& nodes)
+		: node_id(nid)
+		, m_alloc(alloc)
+	{
+		for (auto const& n : nodes)
+		{
+			if (n.second.protocol() == udp::v4())
+				m_v4_num_nodes++;
+#if TORRENT_USE_IPV6
+			else
+				m_v6_num_nodes++;
+#endif
+		}
+
+		m_v4_nodes_idx = alloc.allocate(m_v4_num_nodes * (20 + 6));
+		m_v6_nodes_idx = alloc.allocate(m_v6_num_nodes * (20 + 18));
+
+		char* v4_ptr = alloc.ptr(m_v4_nodes_idx);
+#if TORRENT_USE_IPV6
+		char* v6_ptr = alloc.ptr(m_v6_nodes_idx);
+#endif
+		for (auto const& n : nodes)
+		{
+			udp::endpoint const& endp = n.second;
+			if (endp.protocol() == udp::v4())
+			{
+				detail::write_string(n.first.to_string(), v4_ptr);
+				detail::write_endpoint(endp, v4_ptr);
+			}
+#if TORRENT_USE_IPV6
+			else
+			{
+				detail::write_string(n.first.to_string(), v6_ptr);
+				detail::write_endpoint(endp, v6_ptr);
+			}
+#endif
+		}
+	}
+
+	std::string dht_live_nodes_alert::message() const
+	{
+		char msg[200];
+		std::snprintf(msg, sizeof(msg), "dht live nodes for id: %s, nodes %d"
+			, aux::to_hex(node_id).c_str(), num_nodes());
+		return msg;
+	}
+
+	int dht_live_nodes_alert::num_nodes() const
+	{
+		return m_v4_num_nodes + m_v6_num_nodes;
+	}
+
+	std::vector<std::pair<sha1_hash, udp::endpoint>> dht_live_nodes_alert::nodes() const
+	{
+		aux::vector<std::pair<sha1_hash, udp::endpoint>> nodes;
+		nodes.reserve(num_nodes());
+
+		char const* v4_ptr = m_alloc.get().ptr(m_v4_nodes_idx);
+		for (int i = 0; i < m_v4_num_nodes; i++)
+		{
+			sha1_hash ih;
+			std::memcpy(ih.data(), v4_ptr, 20);
+			v4_ptr += 20;
+			nodes.emplace_back(ih, detail::read_v4_endpoint<udp::endpoint>(v4_ptr));
+		}
+#if TORRENT_USE_IPV6
+		char const* v6_ptr = m_alloc.get().ptr(m_v6_nodes_idx);
+		for (int i = 0; i < m_v6_num_nodes; i++)
+		{
+			sha1_hash ih;
+			std::memcpy(ih.data(), v6_ptr, 20);
+			v6_ptr += 20;
+			nodes.emplace_back(ih, detail::read_v6_endpoint<udp::endpoint>(v6_ptr));
+		}
+#endif
+
+		return nodes;
 	}
 
 } // namespace libtorrent

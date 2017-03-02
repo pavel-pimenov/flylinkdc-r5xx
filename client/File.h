@@ -156,8 +156,8 @@ class File : public IOStream
 		// [+] IRainman FlylinkDC working with long paths
 		// http://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx#maxpath
 		// TODO сделать через шаблон
-		static string formatPath(const string& path);
-		static tstring formatPath(const tstring& path);
+		static string formatPath(const string& path, bool p_is_force_unc = false);
+		static tstring formatPath(const tstring& path, bool p_is_force_unc = false);
 		
 		virtual ~File() noexcept
 		{
@@ -204,7 +204,7 @@ class FileFindIter
 		static const FileFindIter end; // [+] IRainman opt.
 		
 		struct DirData
-				: public WIN32_FIND_DATA
+			: public WIN32_FIND_DATA
 		{
 			DirData();
 			

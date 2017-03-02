@@ -734,7 +734,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 		LRESULT onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
-			m_chevron.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_PUSHBUTTON , 0, IDC_CHEVRON);
+			m_chevron.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_PUSHBUTTON, 0, IDC_CHEVRON);
 			m_chevron.SetWindowText(_T("\u00bb"));
 			
 			// [+] SCALOlaz : Create a Close Button
@@ -1407,10 +1407,10 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			const int l_delta_x_space = aActive ? 1 : 0;
 			switch (WinUtil::GetTabsPosition())
 			{
-					// pos + 1 : делает смещение левого края вкладки, чтобы визуально отделить следующую отрисованную вкладку от предыдущей - 2 отдельные линии
-					// m_height : высота вкладки. Рассчитана где-то выше, от размера шрифта
-					// tabAnim : от 0 до x  колво пикселов, на которое изменять высоту вкладок для выбранных
-					// для вкладок TOP
+				// pos + 1 : делает смещение левого края вкладки, чтобы визуально отделить следующую отрисованную вкладку от предыдущей - 2 отдельные линии
+				// m_height : высота вкладки. Рассчитана где-то выше, от размера шрифта
+				// tabAnim : от 0 до x  колво пикселов, на которое изменять высоту вкладок для выбранных
+				// для вкладок TOP
 				case SettingsManager::TABS_TOP:
 				{
 					//Расчёт положения иконки и текста в зависимости от высоты вкладки
@@ -1502,7 +1502,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				}
 				else
 				{
-					Gdiplus::Pen l_pen(Gdiplus::Color(160, 160, 160) , 1);
+					Gdiplus::Pen l_pen(Gdiplus::Color(160, 160, 160), 1);
 					l_pen.SetDashStyle(Gdiplus::DashStyleSolid); //DashDot, Dot
 					graphics->DrawPath(&l_pen, l_tabsPath.get());
 				}
@@ -1662,9 +1662,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			                          dc.SetTextColor(SETTING(TAB_ACTIVITY_TEXT_COLOR))
 			                          :
 			                          dc.SetTextColor(GetSysColor(COLOR_BTNTEXT))))
-				                        :
-				                        dc.SetTextColor(SETTING(TAB_OFFLINE_TEXT_COLOR));    //[~] SCALOlaz
-				                        
+			                        :
+			                        dc.SetTextColor(SETTING(TAB_OFFLINE_TEXT_COLOR));    //[~] SCALOlaz
+			                        
 			//Цвет шрифта в зависимости от состояния юзера или хаба
 			//DWORD color_text_tab = tab->m_bState ? g_color_shadow : GetSysColor(COLOR_BTNTEXT);
 			
@@ -1678,7 +1678,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			
 			
 			if (!tab->m_mini)
-		{
+			{
 				// TODO - CSelectFont l_half_font(dc, Fonts::g_halfFont); //-V808
 				// Рисовать текст сжатым если открыли хаб из памяти (не фавориты)
 				dc.TextOut(pos, ypos + height_plus, tab->name.data(), tab->m_len); // [~] Sergey Shuhskanov //-V107
@@ -1699,7 +1699,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				dc.SetTextColor(RGB(255, 0, 0));
 				CSelectFont l_half_font(dc, Fonts::g_halfFont); //-V808
 				const auto l_cnt = Text::toT("+" + Util::toString(tab->m_count_messages));
-				dc.TextOut(pos + tab->m_size.cx - width_plus_ico - (l_cnt.size() * 3), ypos + height_plus_ico , l_cnt.c_str(), l_cnt.length());
+				dc.TextOut(pos + tab->m_size.cx - width_plus_ico - (l_cnt.size() * 3), ypos + height_plus_ico, l_cnt.c_str(), l_cnt.length());
 			}
 			
 			if (l_hIcon)

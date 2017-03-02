@@ -279,11 +279,11 @@ bool GeneralPage::GetLangByFile(const string& p_FileName, LanguageMap& p_Languag
 	static const LangInfo g_DefaultLang[] =
 	{
 		L"Беларуская (Беларусь)", "be-BY.xml",
-		L"English"              , "en-US.xml",
-		L"Español (España)"     , "es-ES.xml",
-		L"Francés (Francia)"    , "fr-FR.xml",
-		L"Português (Brasil)"   , "pt-BR.xml",
-		L"Русский (Россия)"     , "ru-RU.xml",
+		L"English", "en-US.xml",
+		L"Español (España)", "es-ES.xml",
+		L"Francés (Francia)", "fr-FR.xml",
+		L"Português (Brasil)", "pt-BR.xml",
+		L"Русский (Россия)", "ru-RU.xml",
 		L"Український (Україна)", "uk-UA.xml"
 	};
 	for (int i = 0; i < _countof(g_DefaultLang); ++i)

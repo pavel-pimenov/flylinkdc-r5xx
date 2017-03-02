@@ -78,19 +78,19 @@ class ConnectionStatus
 					return TSTRING(SUCCESSFULLY);
 				case CONNECTION_FAILURE:
 					return TSTRING(FAILED_TO_CONNECT);
-					// TODO?
-					//case DNS_FAILURE:
-					//  return "Domain name not resolved";
-					//case TIMEOUT:
-					//  return "Timeout";
-					//case REDIRECT:
-					//  return "Your redirect to " /*add link?*/;
-					//case BANNED:
-					//  return "You are banned :(";
-					//case MANY_HUBS:
-					//  return "Too many hubs";
-					//case BAD_NICKNAME:
-					//  return "Bad nickname";
+				// TODO?
+				//case DNS_FAILURE:
+				//  return "Domain name not resolved";
+				//case TIMEOUT:
+				//  return "Timeout";
+				//case REDIRECT:
+				//  return "Your redirect to " /*add link?*/;
+				//case BANNED:
+				//  return "You are banned :(";
+				//case MANY_HUBS:
+				//  return "Too many hubs";
+				//case BAD_NICKNAME:
+				//  return "Bad nickname";
 				default:
 					return TSTRING(UNKNOWN);
 			}
@@ -108,7 +108,7 @@ class ConnectionStatus
 
 class HubEntry
 #ifdef _DEBUG
-	// TODO : boost::noncopyable
+//: boost::noncopyable
 #endif
 {
 	public:
@@ -119,31 +119,43 @@ class HubEntry
 		}
 		HubEntry(const string& aName, const string& aServer, const string& aDescription, const string& aUsers, const string& aCountry,
 		         const string& aShared, const string& aMinShare, const string& aMinSlots, const string& aMaxHubs, const string& aMaxUsers,
-		         const string& aReliability, const string& aRating) : name(aName),
+		         const string& aReliability, const string& aRating,
+		         const string& aSoftware,
+		         const string& aWebsite,
+		         const string& aEmail,
+		         const string& aASN,
+		         const string& aOperator,
+		         const string& aBots,
+		         const string& aInfected
+		        ) : name(aName),
 			server(Util::formatDchubUrl(aServer)), // [!] IRainman fix.
 			description(aDescription), country(aCountry),
 			rating(aRating), reliability((float)(Util::toFloat(aReliability) / 100.0)), shared(Util::toInt64(aShared)), minShare(Util::toInt64(aMinShare)),
-			users(Util::toInt(aUsers)), minSlots(Util::toInt(aMinSlots)), maxHubs(Util::toInt(aMaxHubs)), maxUsers(Util::toInt(aMaxUsers))
+			users(Util::toInt(aUsers)), minSlots(Util::toInt(aMinSlots)), maxHubs(Util::toInt(aMaxHubs)), maxUsers(Util::toInt(aMaxUsers)),
+			software(aSoftware),
+			website(aWebsite),
+			email(aEmail),
+			aSN(aASN),
+			operators(Util::toInt(aOperator)),
+			bots(Util::toInt(aBots)),
+			infected(Util::toInt(aInfected))
 		{
 		}
-#ifdef FLYLINKDC_USE_DEAD_CODE
-	HubEntry(const string& aName, const string& aServer, const string& aDescription, const string& aUsers) noexcept :
-		name(aName), server(aServer), description(aDescription),
-		reliability(0.0), shared(0), minShare(0), users(Util::toInt(aUsers)), minSlots(0), maxHubs(0), maxUsers(0) { }
-		
-		
-	HubEntry(const HubEntry& rhs) noexcept :
-		name(rhs.name), server(rhs.server), description(rhs.description), country(rhs.country),
-		rating(rhs.rating), reliability(rhs.reliability), shared(rhs.shared), minShare(rhs.minShare), users(rhs.users), minSlots(rhs.minSlots),
-		maxHubs(rhs.maxHubs), maxUsers(rhs.maxUsers) { }
-#endif
-		~HubEntry() noexcept { }
 		
 		GETSET(string, name, Name);
 		GETSET(string, server, Server);
 		GETSET(string, description, Description);
 		GETSET(string, country, Country);
 		GETSET(string, rating, Rating);
+		
+		GETSET(string, software, Software);
+		GETSET(string, website, Website);
+		GETSET(string, email, Email);
+		GETSET(string, aSN, ASN);
+		GETSET(int, operators, Operators);
+		GETSET(int, bots, Bots);
+		GETSET(int, infected, Infected);
+		
 		GETSET(float, reliability, Reliability);
 		GETSET(int64_t, shared, Shared);
 		GETSET(int64_t, minShare, MinShare);
@@ -155,25 +167,25 @@ class HubEntry
 
 class FavoriteHubEntry
 #ifdef _DEBUG
-	// TODO : boost::noncopyable
+// TODO : boost::noncopyable
 #endif
 {
 	public:
 		typedef vector<FavoriteHubEntry*> List;
 		
-	FavoriteHubEntry() noexcept :
-		connect(false), encoding(Text::g_systemCharset), windowposx(0), windowposy(0), windowsizex(0),
-		        windowsizey(0), windowtype(0), chatusersplit(0),
-		        userliststate(true),
-		        m_ISPDisableFlylinkDCSupportHub(false),
+		FavoriteHubEntry() noexcept :
+			connect(false), encoding(Text::g_systemCharset), windowposx(0), windowposy(0), windowsizex(0),
+			windowsizey(0), windowtype(0), chatusersplit(0),
+			userliststate(true),
+			m_ISPDisableFlylinkDCSupportHub(false),
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
-		        chatusersplitstate(true),
+			chatusersplitstate(true),
 #endif
-		        hideShare(false),
-		        exclusiveHub(false), showJoins(false), exclChecks(false), mode(0),
-		        searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)), overrideId(0),
-		        headerSort(-1), headerSortAsc(true), suppressChatAndPM(false),
-		        autobanAntivirusIP(false), autobanAntivirusNick(false)
+			hideShare(false),
+			exclusiveHub(false), showJoins(false), exclChecks(false), mode(0),
+			searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)), overrideId(0),
+			headerSort(-1), headerSortAsc(true), suppressChatAndPM(false),
+			autobanAntivirusIP(false), autobanAntivirusNick(false)
 		{
 		} // !SMT!-S
 		virtual ~FavoriteHubEntry() noexcept { }

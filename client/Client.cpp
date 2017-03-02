@@ -93,7 +93,9 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 		"prostoigra24.ru",
 		"eva-hub.ru",
 		"titankaluga.ru",
-		"sibfiles.ru"
+		"sibfiles.ru",
+		"aab-new-adrenalin.ru",
+		"godc.ru"
 	};
 	if (l_lower_url.find("dc.fly-server.ru") != string::npos ||
 	        l_lower_url.find("adcs.flylinkdc.com") != string::npos)
@@ -164,7 +166,7 @@ void Client::reset_socket()
 	}
 #endif
 }
-             void Client::reconnect()
+void Client::reconnect()
 {
 	disconnect(true);
 	setAutoReconnect(true);
@@ -385,7 +387,7 @@ void Client::connect()
 		                                    true);
 		             dcdebug("Client::connect() %p\n", (void*)this);
 	}
-	             catch (const Exception& e)
+	catch (const Exception& e)
 	{
 		state = STATE_DISCONNECTED;
 		fly_fire2(ClientListener::ClientFailed(), this, e.getError());
@@ -425,7 +427,7 @@ void Client::send(const char* aMessage, size_t aLen)
 		             m_client_sock->write(aMessage, aLen);
 	}
 	
-	             COMMAND_DEBUG(toUtf8(string(aMessage, aLen)), DebugTask::HUB_OUT, getIpPort());
+	COMMAND_DEBUG(toUtf8(string(aMessage, aLen)), DebugTask::HUB_OUT, getIpPort());
 }
 
 void Client::on(Connected) noexcept
@@ -435,9 +437,9 @@ void Client::on(Connected) noexcept
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 		CFlyFastLock(lock(csSock); // [+] brain-ripper
 #endif
-		boost::system::error_code ec;
-		m_ip      = boost::asio::ip::address_v4::from_string(m_client_sock->getIp(), ec);
-		dcassert(!ec);
+		             boost::system::error_code ec;
+		             m_ip      = boost::asio::ip::address_v4::from_string(m_client_sock->getIp(), ec);
+		             dcassert(!ec);
 	}
 	if (m_client_sock->isSecure() && m_keyprint.compare(0, 7, "SHA256/", 7) == 0)
 	{
@@ -472,7 +474,7 @@ void Client::on(Failed, const string& aLine) noexcept
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 		CFlyFastLock(lock(csSock); // [+] brain-ripper
 #endif
-		if (m_client_sock)
+		             if (m_client_sock)
 	{
 		m_client_sock->removeListener(this);
 		}
@@ -507,7 +509,7 @@ void Client::disconnect(bool p_graceLess)
 	             m_client_sock->disconnect(p_graceLess);
 }
 
-             bool Client::isSecure() const
+bool Client::isSecure() const
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 	if (!isReady())//[+] IRainman fast shutdown!
@@ -518,7 +520,7 @@ void Client::disconnect(bool p_graceLess)
 	             return m_client_sock && m_client_sock->isSecure();//[!] IRainman fix
 }
 
-             bool Client::isTrusted() const
+bool Client::isTrusted() const
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 	if (!isReady())//[+] IRainman fast shutdown!
@@ -529,7 +531,7 @@ void Client::disconnect(bool p_graceLess)
 	             return m_client_sock && m_client_sock->isTrusted();//[!] IRainman fix
 }
 
-             string Client::getCipherName() const
+string Client::getCipherName() const
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 	if (!isReady())//[+] IRainman fast shutdown!
@@ -540,7 +542,7 @@ void Client::disconnect(bool p_graceLess)
 	             return m_client_sock ? m_client_sock->getCipherName() : Util::emptyString;//[!] IRainman fix
 }
 
-             vector<uint8_t> Client::getKeyprint() const
+vector<uint8_t> Client::getKeyprint() const
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 	if (!isReady())//[+] IRainman fast shutdown!
@@ -551,7 +553,7 @@ void Client::disconnect(bool p_graceLess)
 	             return m_client_sock ? m_client_sock->getKeyprint() : Util::emptyByteVector; // [!] IRainman fix
 }
 
-             void Client::updateCounts(bool aRemove)
+void Client::updateCounts(bool aRemove)
 {
 	// We always remove the count and then add the correct one if requested...
 	if (m_countType != COUNT_UNCOUNTED)
