@@ -62,9 +62,10 @@ LRESULT RSSPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	ctrlCommands.Attach(GetDlgItem(IDC_RSS_ITEMS));
 	ctrlCommands.GetClientRect(rc);
 	
-	ctrlCommands.InsertColumn(0, CTSTRING(RSS_URL), LVCFMT_LEFT, rc.Width() / 3, 0);
-	ctrlCommands.InsertColumn(1, CTSTRING(RSS_TITLE), LVCFMT_LEFT, rc.Width() / 3, 1);
-	ctrlCommands.InsertColumn(2, CTSTRING(RSS_CODEING), LVCFMT_LEFT, rc.Width() / 3, 1);
+//	ctrlCommands.InsertColumn(0, CTSTRING(RSS_URL), LVCFMT_LEFT, (rc.Width() - 30) / 3, 0);
+	ctrlCommands.InsertColumn(1, CTSTRING(RSS_TITLE), LVCFMT_LEFT, rc.Width() - 30, 1);
+//	ctrlCommands.InsertColumn(2, CTSTRING(RSS_CODEING), LVCFMT_LEFT, (rc.Width() - 30) / 3, 1);
+	ctrlCommands.InsertColumn(3, _T("+/-"), LVCFMT_CENTER, 30, 1);
 	SET_EXTENDENT_LIST_VIEW_STYLE(ctrlCommands);
 #ifdef USE_SET_LIST_COLOR_IN_SETTINGS
 	SET_LIST_COLOR_IN_SETTING(ctrlCommands);
@@ -97,10 +98,11 @@ void RSSPage::write()
 void RSSPage::addRSSEntry(const RSSFeed* rf, int pos)
 {
 	TStringList lst;
-	lst.push_back(Text::toT(rf->getFeedURL()));
+//	lst.push_back(Text::toT(rf->getFeedURL()));
 	lst.push_back(Text::toT(rf->getSource()));
-	size_t codeingT = RSSManager::GetCodeingByString(rf->getCodeing());
-	lst.push_back(GetCodeingFromMapName(codeingT));
+//	size_t codeingT = RSSManager::GetCodeingByString(rf->getCodeing());
+//	lst.push_back(GetCodeingFromMapName(codeingT));
+	lst.push_back(rf->getEnable() ? CTSTRING(YES) : _T(""));
 	ctrlCommands.insert(pos, lst, 0, (LPARAM)pos);
 }
 
@@ -111,7 +113,7 @@ LRESULT RSSPage::onAddFeed(WORD, WORD, HWND, BOOL&)
 	
 	if (dlg.DoModal() == IDOK)
 	{
-		RSSFeed* feed = RSSManager::getInstance()->addNewFeed(Text::fromT(dlg.m_strURL), Text::fromT(dlg.m_strName), Text::fromT(dlg.m_strCodeing), true);
+		RSSFeed* feed = RSSManager::getInstance()->addNewFeed(Text::fromT(dlg.m_strURL), Text::fromT(dlg.m_strName), Text::fromT(dlg.m_strCodeing), dlg.m_enabled);
 		if (feed)
 			addRSSEntry(feed,  ctrlCommands.GetItemCount());
 	}
@@ -176,11 +178,13 @@ LRESULT RSSPage::onChangeFeed(WORD, WORD, HWND, BOOL&)
 			dlg.m_strURL = Text::toT(feed->getFeedURL());
 			dlg.m_strName = Text::toT(feed->getSource());
 			dlg.m_strCodeing = Text::toT(feed->getCodeing());
+			dlg.m_enabled = feed->getEnable();
 			if (dlg.DoModal() == IDOK)
 			{
 				feed->setFeedURL(Text::fromT(dlg.m_strURL));
 				feed->setSource(Text::fromT(dlg.m_strName));
 				feed->setCodeing(Text::fromT(dlg.m_strCodeing));
+				feed->setEnable(dlg.m_enabled);
 				// Update ctrlCommands
 				ctrlCommands.DeleteItem(sel);
 				addRSSEntry(feed,  sel);

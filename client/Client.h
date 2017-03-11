@@ -270,11 +270,16 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		void processingPassword();
 		void escapeParams(StringMap& sm) const;
-		void setSearchInterval(uint32_t aInterval);
+		void setSearchInterval(uint32_t aInterval, bool p_is_search_rule);
+		void setSearchIntervalPassive(uint32_t aInterval, bool p_is_search_rule);
 		
 		uint32_t getSearchInterval() const
 		{
 			return m_searchQueue.m_interval;
+		}
+		uint32_t getSearchIntervalPassive() const
+		{
+			return m_searchQueue.m_interval_passive;
 		}
 		
 		void cheatMessage(const string& msg)

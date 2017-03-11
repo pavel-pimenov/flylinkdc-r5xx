@@ -242,6 +242,7 @@
     <ClInclude Include="include\libtorrent\version.hpp" />
     <ClInclude Include="include\libtorrent\web_connection_base.hpp" />
     <ClInclude Include="include\libtorrent\web_peer_connection.hpp" />
+    <ClInclude Include="include\libtorrent\write_resume_data.hpp" />
     <ClInclude Include="include\libtorrent\xml_parse.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -390,6 +391,7 @@
     <ClCompile Include="src\version.cpp" />
     <ClCompile Include="src\web_connection_base.cpp" />
     <ClCompile Include="src\web_peer_connection.cpp" />
+    <ClCompile Include="src\write_resume_data.cpp" />
     <ClCompile Include="src\xml_parse.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

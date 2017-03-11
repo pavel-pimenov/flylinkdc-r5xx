@@ -809,6 +809,7 @@ void FavoriteManager::save()
 				xml.addChildAttrib("AutobanAntivirusNick", (*i)->getAutobanAntivirusNick());
 				xml.addChildAttribIfNotEmpty("AntivirusCommandIP", (*i)->getAntivirusCommandIP());
 				xml.addChildAttrib("SearchInterval", Util::toString((*i)->getSearchInterval()));
+				xml.addChildAttrib("SearchIntervalPassive", Util::toString((*i)->getSearchIntervalPassive()));
 				// [!] IRainman mimicry function
 				// [-] xml.addChildAttrib("CliendId", (*i)->getClientId()); // !SMT!-S
 				xml.addChildAttribIfNotEmpty("ClientName", (*i)->getClientName());
@@ -1213,13 +1214,14 @@ void FavoriteManager::load(SimpleXML& aXml
 #endif
 				if (l_is_fly_hub_exists == false && l_CurrentServerUrl == CFlyServerConfig::g_support_hub)
 					l_is_fly_hub_exists = true;
-				if (l_CurrentServerUrl.find("kurskhub.ru") != string::npos || // http://dchublist.ru/forum/viewtopic.php?p=24102#p24102
+				if (
+				    //l_CurrentServerUrl.find("kurskhub.ru") != string::npos || // http://dchublist.ru/forum/viewtopic.php?p=24102#p24102
 #ifdef FLYLINKDC_USE_SUPPORT_HUB_EN
-				        l_CurrentServerUrl.find("tankafett.biz") != string::npos ||
-				        l_CurrentServerUrl.find(".dchub.net") != string::npos ||
-				        l_CurrentServerUrl.find(".dchublist.biz") != string::npos ||
+				    l_CurrentServerUrl.find("tankafett.biz") != string::npos ||
+				    l_CurrentServerUrl.find(".dchub.net") != string::npos ||
+				    l_CurrentServerUrl.find(".dchublist.biz") != string::npos ||
 #endif
-				        CFlyServerConfig::g_block_hubs.count(l_CurrentServerUrl))
+				    CFlyServerConfig::g_block_hubs.count(l_CurrentServerUrl))
 				{
 					CFlyServerJSON::pushError(35, "Block hub: " + l_CurrentServerUrl);
 					continue;
@@ -1771,7 +1773,7 @@ RecentHubEntry::Iter FavoriteManager::getRecentHub(const string& aServer)
 
 UserCommand::List FavoriteManager::getUserCommands(int ctx, const StringList& hubs/*[-] IRainman fix, bool& op*/) const
 {
-	vector<bool> isOp(hubs.size());
+	std::vector<bool> isOp(hubs.size());
 	
 	for (size_t i = 0; i < hubs.size(); ++i)
 	{

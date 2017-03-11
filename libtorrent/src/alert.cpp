@@ -45,6 +45,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/piece_block.hpp"
 #include "libtorrent/hex.hpp" // to_hex
 
+#ifndef TORRENT_NO_DEPRECATE
+#include "libtorrent/write_resume_data.hpp"
+#endif
+
 #include "libtorrent/aux_/escape_string.hpp" // for convert_from_native
 #include "libtorrent/aux_/max_path.hpp" // for TORRENT_MAX_PATH
 
@@ -696,11 +700,15 @@ namespace libtorrent
 	}
 
 	save_resume_data_alert::save_resume_data_alert(aux::stack_allocator& alloc
-		, std::shared_ptr<entry> const& rd
+		, add_torrent_params p
 		, torrent_handle const& h)
 		: torrent_alert(alloc, h)
-		, resume_data(rd)
-	{}
+		, params(std::move(p))
+	{
+#ifndef TORRENT_NO_DEPRECATE
+		resume_data = std::make_shared<entry>(write_resume_data(params));
+#endif
+	}
 
 	std::string save_resume_data_alert::message() const
 	{
@@ -1717,12 +1725,12 @@ namespace libtorrent
 
 	namespace
 	{
-		std::array<std::int64_t, counters::num_counters> counters_to_array(counters const& cnt)
+		aux::array<std::int64_t, counters::num_counters> counters_to_array(counters const& cnt)
 		{
-			std::array<std::int64_t, counters::num_counters> arr;
+			aux::array<std::int64_t, counters::num_counters> arr;
 
 			for (int i = 0; i < counters::num_counters; ++i)
-				arr[std::size_t(i)] = cnt[i];
+				arr[i] = cnt[i];
 
 			return arr;
 		}

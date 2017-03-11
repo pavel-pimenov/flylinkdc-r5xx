@@ -25,7 +25,7 @@
 bool SearchQueue::add(const Search& s)
 {
 	dcassert(s.m_owners.size() == 1);
-	dcassert(m_interval >= 10000); // min interval is 10 seconds.
+	dcassert(m_interval >= 2000);
 	
 	CFlyFastLock(m_cs);
 	
@@ -83,7 +83,7 @@ bool SearchQueue::add(const Search& s)
 	return true;
 }
 
-bool SearchQueue::pop(Search& s, uint64_t p_now)
+bool SearchQueue::pop(Search& s, uint64_t p_now, bool p_is_passive)
 {
 	dcassert(m_interval);
 #ifdef _DEBUG
@@ -93,9 +93,11 @@ bool SearchQueue::pop(Search& s, uint64_t p_now)
 		// LogManager::message("l_new_now != now,  l_new_now = " + Util::toString(l_new_now) + " now = " + Util::toString(p_now));
 	}
 #endif
-	if (p_now <= m_lastSearchTime + m_interval)
+	if (p_now <= m_lastSearchTime + (p_is_passive ? m_interval_passive : m_interval))
+	{
 		return false;
-		
+	}
+	
 	{
 		CFlyFastLock(m_cs);
 		if (!m_searchQueue.empty())

@@ -123,7 +123,7 @@ class CFlyTorrentDialog :
             m_ctrlTree.SetWindowLong(GWL_STYLE, m_ctrlTree.GetWindowLong(GWL_STYLE) | TVS_CHECKBOXES);
             m_htiRoot = m_ctrlTree.InsertItem(_T("Torrent files:"), TVI_ROOT, TVI_LAST);
             //m_ctrlTree.ModifyStyle(0, TVS_CHECKBOXES);
-            //m_ctrlTree.SetCheckState(m_htiRoot, TRUE);
+            m_ctrlTree.SetCheckState(m_htiRoot, TRUE);
             //SetChecked(m_htiRoot, true, 0);
             int j = 0;
             for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)

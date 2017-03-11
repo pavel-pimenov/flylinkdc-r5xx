@@ -1069,6 +1069,10 @@ void NmdcHub::supportsParse(const string& param)
 		{
 			m_supportFlags |= SUPPORTS_NICKRULE;
 		}
+		else if (*i == "SearchRule")
+		{
+			m_supportFlags |= SUPPORTS_SEARCHRULE;
+		}
 		else if (*i == "HubURL")
 		{
 			m_supportFlags |= SUPPORTS_HUBURL;
@@ -1182,6 +1186,7 @@ void NmdcHub::lockParse(const string& aLine)
 #endif
 			feat.push_back("HubURL");
 			feat.push_back("NickRule");
+			feat.push_back("SearchRule");
 #ifdef FLYLINKDC_SUPPORT_HUBTOPIC
 			// http://nmdc.sourceforge.net/NMDC.html#_hubtopic
 			feat.push_back("HubTopic");
@@ -1967,6 +1972,35 @@ void NmdcHub::onLine(const string& aLine)
 		}
 		fly_fire1(ClientListener::NickTaken());
 		//m_count_validate_denide++;
+	}
+	else if (cmd == "SearchRule")
+	{
+		const StringTokenizer<string> l_nick_rule(param, "$$", 4);
+		const StringList& sl = l_nick_rule.getTokens();
+		for (auto it = sl.cbegin(); it != sl.cend(); ++it)
+		{
+			auto l_pos = it->find(' ');
+			if (l_pos != string::npos && l_pos < it->size() + 1)
+			{
+				const string l_key = it->substr(0, l_pos);
+				if (l_key == "Int")
+				{
+					auto l_int = Util::toInt(it->substr(l_pos + 1));
+					if (l_int > 0)
+					{
+						setSearchInterval(l_int * 1000, true);
+					}
+				}
+				if (l_key == "IntPas")
+				{
+					auto l_int = Util::toInt(it->substr(l_pos + 1));
+					if (l_int > 0)
+					{
+						setSearchIntervalPassive(l_int * 1000, true);
+					}
+				}
+			}
+		}
 	}
 	else if (cmd == "NickRule")
 	{

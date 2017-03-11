@@ -238,7 +238,7 @@ static const char* g_settingTags[] =
 	"PopupDownloadFailed", "PopupDownloadFinished", "PopupUploadFinished", "PopupPm", "PopupNewPM", "PopupSearchSpy",
 	"PopupType", "WebServer", "WebServerPort",
 	"WebServerSearchSize", "WebServerSearchPageSize", "WebServerAllowChangeDownloadDIR", "WebServerAllowUPnP",// [+] IRainman
-	"WebServerLog", "ShutdownAction", "MinimumSearchInterval",
+	"WebServerLog", "ShutdownAction", "MinimumSearchInterval", "MinimumSearchIntervalPassive",
 	"PopupAway", "PopupMinimized", "ShowShareCheckedUsers", "MaxAutoMatchSource",
 	"ReservedSlotColor", "IgnoredColor", "FavoriteColor",
 	"NormalColour", "FireballColor", "ServerColor", "PasiveColor", "OpColor",
@@ -910,6 +910,7 @@ void SettingsManager::setDefaults()
 	//setDefault(AWAY, false);
 	//setDefault(SHUTDOWN_ACTION, 0);
 	setDefault(MINIMUM_SEARCH_INTERVAL, 10);
+	setDefault(MINIMUM_SEARCH_PASSIVE_INTERVAL, 10);
 	setDefault(PROGRESSBAR_ODC_STYLE, TRUE);
 	
 	setDefault(PROGRESS_3DDEPTH, 4); //-V112
@@ -1882,8 +1883,9 @@ bool SettingsManager::set(IntSetting key, int value)
 			break;
 		}
 		case MINIMUM_SEARCH_INTERVAL:
+		case MINIMUM_SEARCH_PASSIVE_INTERVAL:
 		{
-			if (value == 72)
+			if (value >= 120)
 			{
 				value = 10;
 			}

@@ -162,12 +162,12 @@ class SearchQueue
 	public:
 	
 		SearchQueue()
-			: m_lastSearchTime(0), m_interval(0)
+			: m_lastSearchTime(0), m_interval(0), m_interval_passive(0)
 		{
 		}
 		
 		bool add(const Search& s);
-		bool pop(Search& s, uint64_t now); // [!] IRainman opt
+		bool pop(Search& s, uint64_t now, bool p_is_passive);
 		bool empty()
 		{
 			// CFlyFastLock(m_cs);
@@ -190,6 +190,7 @@ class SearchQueue
 		    0 means no interval, no auto search and manual search is sent immediately
 		*/
 		uint32_t m_interval;
+		uint32_t m_interval_passive;
 		
 	private:
 		deque<Search> m_searchQueue;

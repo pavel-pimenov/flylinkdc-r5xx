@@ -32,6 +32,7 @@ class RSS_SetFeedDlg : public CDialogImpl<RSS_SetFeedDlg>
 		CEdit ctrlURL;
 		CEdit ctrlName;
 		CComboBox ctrlCodeing;
+		CButton ctrlEnable;
 		
 		typedef boost::unordered_map<wstring, string> CodeingMap;
 		typedef pair<wstring, string> CodeingMapPair;
@@ -40,6 +41,7 @@ class RSS_SetFeedDlg : public CDialogImpl<RSS_SetFeedDlg>
 		tstring m_strURL;
 		tstring m_strName;
 		tstring m_strCodeing;
+		bool m_enabled;
 		
 		enum { IDD = IDD_RSS_SET_FEED };
 		
@@ -50,7 +52,7 @@ class RSS_SetFeedDlg : public CDialogImpl<RSS_SetFeedDlg>
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
 		END_MSG_MAP()
 		
-		RSS_SetFeedDlg() : m_strURL(Util::emptyStringT), m_strName(Util::emptyStringT), m_strCodeing(Util::emptyStringT) { }
+		RSS_SetFeedDlg() : m_strURL(Util::emptyStringT), m_strName(Util::emptyStringT), m_strCodeing(Util::emptyStringT), m_enabled(FALSE) { }
 		
 		LRESULT onFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{

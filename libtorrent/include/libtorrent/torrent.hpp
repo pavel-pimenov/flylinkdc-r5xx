@@ -71,6 +71,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/suggest_piece.hpp"
 #include "libtorrent/units.hpp"
 #include "libtorrent/aux_/vector.hpp"
+#include "libtorrent/aux_/deferred_handler.hpp"
 
 #if TORRENT_COMPLETE_TYPES_REQUIRED
 #include "libtorrent/peer_connection.hpp"
@@ -640,7 +641,7 @@ namespace libtorrent
 		std::pair<peer_list::iterator, peer_list::iterator> find_peers(address const& a);
 
 		// the number of peers that belong to this torrent
-		int num_peers() const { return int(m_connections.size()); }
+		int num_peers() const { return int(m_connections.size() - m_peers_to_disconnect.size()); }
 		int num_seeds() const;
 		int num_downloaders() const;
 
@@ -959,7 +960,7 @@ namespace libtorrent
 
 		torrent_handle get_handle();
 
-		void write_resume_data(entry& rd) const;
+		void write_resume_data(add_torrent_params& atp) const;
 
 		void seen_complete() { m_last_seen_complete = time(0); }
 		int time_since_complete() const { return int(time(0) - m_last_seen_complete); }
@@ -1104,6 +1105,9 @@ namespace libtorrent
 		enum { no_gauge_state = 0xf };
 
 	private:
+
+		// trigger deferred disconnection of peers
+		void on_remove_peers();
 
 		void ip_filter_updated();
 
@@ -1252,6 +1256,9 @@ namespace libtorrent
 		// verified its hash. If the hash fails, send reject to
 		// peers with outstanding requests, and dont_have to other
 		// peers. This vector is ordered, to make lookups fast.
+
+		// TODO: 3 factor out predictive pieces and all operations on it into a
+		// separate class (to use as memeber here instead)
 		std::vector<piece_index_t> m_predictive_pieces;
 
 		// the performance counters of this session
@@ -1287,15 +1294,15 @@ namespace libtorrent
 		// the posix time this torrent was added and when
 		// it was completed. If the torrent isn't yet
 		// completed, m_completed_time is 0
-		time_t m_added_time = time(nullptr);
-		time_t m_completed_time = 0;
+		std::time_t m_added_time = time(nullptr);
+		std::time_t m_completed_time = 0;
 
 		// this was the last time _we_ saw a seed in this swarm
-		time_t m_last_seen_complete = 0;
+		std::time_t m_last_seen_complete = 0;
 
 		// this is the time last any of our peers saw a seed
 		// in this swarm
-		time_t m_swarm_last_seen_complete = 0;
+		std::time_t m_swarm_last_seen_complete = 0;
 
 		// keep a copy if the info-hash here, so it can be accessed from multiple
 		// threads, and be cheap to access from the client
@@ -1364,6 +1371,10 @@ namespace libtorrent
 		// the sequence number for this torrent, this is a
 		// monotonically increasing number for each added torrent
 		int m_sequence_number;
+
+		// used to post a message to defer disconnecting peers
+		std::vector<peer_connection*> m_peers_to_disconnect;
+		aux::deferred_handler m_deferred_disconnect;
 
 		// for torrents who have a bandwidth limit, this is != 0
 		// and refers to a peer_class in the session.

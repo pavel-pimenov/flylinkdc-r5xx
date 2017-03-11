@@ -33,7 +33,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/bdecode.hpp"
 #include "libtorrent/aux_/alloca.hpp"
 #include "libtorrent/aux_/numeric_cast.hpp"
-#include "libtorrent/string_util.hpp" // for is_digit
 #include <limits>
 #include <cstring> // for memset
 #include <cstdio> // for snprintf
@@ -49,6 +48,7 @@ namespace libtorrent
 
 	namespace
 	{
+	bool numeric(char c) { return c >= '0' && c <= '9'; }
 
 	// finds the end of an integer and verifies that it looks valid this does
 	// not detect all overflows, just the ones that are an order of magnitude
@@ -76,7 +76,7 @@ namespace libtorrent
 		int digits = 0;
 		do
 		{
-			if (!is_digit(*start))
+			if (!numeric(*start))
 			{
 				e = bdecode_errors::expected_digit;
 				break;
@@ -109,6 +109,14 @@ namespace libtorrent
 		// reading a key or a vale. 0 means key 1 is value
 		std::uint32_t state:1;
 	};
+
+	// diff between current and next item offset
+	// should only be called for non last item in array
+	int token_source_span(bdecode_token const& t)
+	{
+		return (&t)[1].offset - t.offset;
+	}
+
 	} // anonymous namespace
 
 
@@ -121,7 +129,7 @@ namespace libtorrent
 	{
 		while (start < end && *start != delimiter)
 		{
-			if (!is_digit(*start))
+			if (!numeric(*start))
 			{
 				ec = bdecode_errors::expected_digit;
 				return start;
@@ -192,7 +200,6 @@ namespace libtorrent
 			return boost::system::error_code(e, bdecode_category());
 		}
 	}
-
 
 	bdecode_node::bdecode_node()
 		: m_root_tokens(nullptr)
@@ -470,7 +477,7 @@ namespace libtorrent
 	{
 		TORRENT_ASSERT(type() == dict_t);
 
-		bdecode_token const* tokens = m_root_tokens;
+		bdecode_token const* const tokens = m_root_tokens;
 
 		// this is the first item
 		int token = m_token_idx + 1;
@@ -479,7 +486,7 @@ namespace libtorrent
 		{
 			bdecode_token const& t = tokens[token];
 			TORRENT_ASSERT(t.type == bdecode_token::string);
-			int const size = m_root_tokens[token + 1].offset - t.offset - t.start_offset();
+			int const size = token_source_span(t) - t.start_offset();
 			if (int(key.size()) == size
 				&& std::equal(key.data(), key.data() + size, m_buffer
 					+ t.offset + t.start_offset()))
@@ -554,7 +561,7 @@ namespace libtorrent
 	{
 		TORRENT_ASSERT(type() == int_t);
 		bdecode_token const& t = m_root_tokens[m_token_idx];
-		int size = m_root_tokens[m_token_idx + 1].offset - t.offset;
+		int const size = token_source_span(t);
 		TORRENT_ASSERT(t.type == bdecode_token::integer);
 
 		// +1 is to skip the 'i'
@@ -574,8 +581,7 @@ namespace libtorrent
 	{
 		TORRENT_ASSERT(type() == string_t);
 		bdecode_token const& t = m_root_tokens[m_token_idx];
-		std::size_t const size = m_root_tokens[m_token_idx + 1].offset - t.offset
-			- aux::numeric_cast<std::size_t>(t.start_offset());
+		std::size_t const size = aux::numeric_cast<std::size_t>(token_source_span(t) - t.start_offset());
 		TORRENT_ASSERT(t.type == bdecode_token::string);
 
 		return string_view(m_buffer + t.offset + t.start_offset(), size);
@@ -594,7 +600,7 @@ namespace libtorrent
 		TORRENT_ASSERT(type() == string_t);
 		bdecode_token const& t = m_root_tokens[m_token_idx];
 		TORRENT_ASSERT(t.type == bdecode_token::string);
-		return m_root_tokens[m_token_idx + 1].offset - t.offset - t.start_offset();
+		return token_source_span(t) - t.start_offset();
 	}
 
 	void bdecode_node::reserve(int tokens)
@@ -686,7 +692,7 @@ namespace libtorrent
 				{
 					// the current parent is a dict and we are parsing a key.
 					// only allow a digit (for a string) or 'e' to terminate
-					if (!is_digit(t) && t != 'e')
+					if (!numeric(t) && t != 'e')
 						TORRENT_FAIL_BDECODE(bdecode_errors::expected_digit);
 				}
 			}
@@ -770,7 +776,7 @@ namespace libtorrent
 				{
 					// this is the case for strings. The start character is any
 					// numeric digit
-					if (!is_digit(t))
+					if (!numeric(t))
 						TORRENT_FAIL_BDECODE(bdecode_errors::expected_value);
 
 					std::int64_t len = t - '0';

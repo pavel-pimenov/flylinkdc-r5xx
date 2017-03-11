@@ -54,8 +54,8 @@ goto :end
 
 :err
 echo Error extracting version/revision
-exit /b 1
+exit /B 1
 
 :end
 echo Extracted version: %VERSION_NUM%%BETA_STATE%%REVISION_NUM%
-exit /b 0
+exit /B 0

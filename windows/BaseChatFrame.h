@@ -186,8 +186,8 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		void destroyStatusbar(bool p_is_shutdown);
 		
 		enum { MAX_CLIENT_LINES = 10 }; // TODO copy-paste
-		TStringList lastLinesList;
-		tstring lastLines;
+		std::list<wstring> m_lastLinesList;
+		tstring m_lastLines;
 		StringMap ucLineParams;
 		
 		TStringList m_prevCommands;

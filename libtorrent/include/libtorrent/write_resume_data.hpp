@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2016, Arvid Norberg
+Copyright (c) 2017, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,38 +30,23 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_RANGE_HPP
-#define TORRENT_RANGE_HPP
+#ifndef TORRENT_WRITE_RESUME_DATA_HPP_INCLUDE
+#define TORRENT_WRITE_RESUME_DATA_HPP_INCLUDE
 
-namespace libtorrent { namespace aux {
+#include "libtorrent/error_code.hpp"
+#include "libtorrent/export.hpp"
+#include "libtorrent/bencode.hpp"
 
-	template <typename Iter>
-	struct iterator_range
-	{
-		Iter _begin, _end;
-		Iter begin() { return _begin; }
-		Iter end() { return _end; }
-	};
+namespace libtorrent
+{
+	struct add_torrent_params;
+	class entry;
 
-	template <typename Iter>
-	iterator_range<Iter> range(Iter begin, Iter end)
-	{ return { begin, end}; }
-
-	template <typename T, typename IndexType>
-	iterator_range<T*> range(vector<T, IndexType>& vec
-		, IndexType begin, IndexType end)
-	{
-		using type = typename underlying_index_t<IndexType>::type;
-		return {vec.data() + static_cast<type>(begin), vec.data() + static_cast<type>(end)};
-	}
-
-	template <typename T, typename IndexType>
-	iterator_range<T const*> range(vector<T, IndexType> const& vec
-		, IndexType begin, IndexType end)
-	{
-		using type = typename underlying_index_t<IndexType>::type;
-		return {vec.data() + static_cast<type>(begin), vec.data() + static_cast<type>(end)};
-	}
-}}
+	// this function turns the resume data in an ``add_torrent_params`` object
+	// into a bencoded structure
+	TORRENT_EXPORT entry write_resume_data(add_torrent_params const& atp);
+	TORRENT_EXPORT std::vector<char> write_resume_data_buf(add_torrent_params const& atp);
+}
 
 #endif
+

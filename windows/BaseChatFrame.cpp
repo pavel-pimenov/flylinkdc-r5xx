@@ -643,9 +643,9 @@ void BaseChatFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*
 	
 	if (bHistory)
 	{
-		lastLinesList.push_back(line);
-		while (lastLinesList.size() > static_cast<size_t>(MAX_CLIENT_LINES))
-			lastLinesList.erase(lastLinesList.begin());
+		m_lastLinesList.push_back(line);
+		while (m_lastLinesList.size() > static_cast<size_t>(MAX_CLIENT_LINES))
+			m_lastLinesList.pop_front();
 	}
 	
 	if (bInChat && BOOLSETTING(STATUS_IN_CHAT))
@@ -740,17 +740,18 @@ void BaseChatFrame::addLine(const Identity& from, const bool bMyMess, const bool
 LRESULT BaseChatFrame::onGetToolTip(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
 	NMTTDISPINFO* nm = (NMTTDISPINFO*)pnmh;
-	lastLines.clear();
-	for (auto i = lastLinesList.cbegin(); i != lastLinesList.cend(); ++i)
+	m_lastLines.clear();
+	m_lastLines.shrink_to_fit();
+	for (auto i = m_lastLinesList.cbegin(); i != m_lastLinesList.cend(); ++i)
 	{
-		lastLines += *i;
-		lastLines += _T("\r\n");
+		m_lastLines += *i;
+		m_lastLines += _T("\r\n");
 	}
-	if (lastLines.size() > 2)
+	if (m_lastLines.size() > 2)
 	{
-		lastLines.erase(lastLines.size() - 2);
+		m_lastLines.erase(m_lastLines.size() - 2);
 	}
-	nm->lpszText = const_cast<TCHAR*>(lastLines.c_str());
+	nm->lpszText = const_cast<TCHAR*>(m_lastLines.c_str());
 	
 	return 0;
 }

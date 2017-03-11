@@ -890,6 +890,7 @@
 	<string name="Min">min</string>
 	<string name="MinimizeOnClose">Minimize on close</string>
 	<string name="MinimumSearchInterval">Minimum search interval</string>
+	<string name="MinimumSearchPassiveInterval">Minimum search interval(Passive)</string>
 	<string name="MinislotControlGroup">Mini-Slots Control</string>
 	<string name="Minutes">Minutes</string>
 	<string name="MinShare">Min share</string>
@@ -1162,6 +1163,7 @@
 	<string name="Requesting">Requesting</string>
 	<string name="Resume">Resume</string>
 	<string name="RestoreLostShare">Restore folder that was previously in share?</string>
+	<string name="RestoreWindowPos">Attach a program window on center Master Monitor</string>
 	<string name="RetrievingData">Retrieving data</string>
 	<string name="RightColor">Right color</string>
 	<string name="RollbackInconsistency">Rollback inconsistency, existing file does not match the one being downloaded</string>
@@ -1170,6 +1172,7 @@
 	<string name="RssdlgName">Feed Name:</string>
 	<string name="RssdlgTitle">Create / modify RSS feed</string>
 	<string name="RssdlgUrl">Feed URL:</string>
+	<string name="RssdlgEnable">Enable RSS and autoupdate</string>
 	<string name="RssAuthor">Author</string>
 	<string name="RssCategory">Category</string>
 	<string name="RssCodeing">Encoding</string>

@@ -83,6 +83,7 @@ vc11
 vc12
 vc13
 vc15
+vc17
 developer.key
 setup
 BackUp
@@ -122,3 +123,4 @@ xmlValid.exe
 CustomLocations.bmp
 CustomLocations.ini
 XMLdocTemplate.xsl
+merge-vendors.bat

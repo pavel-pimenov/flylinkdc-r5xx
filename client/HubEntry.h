@@ -183,7 +183,9 @@ class FavoriteHubEntry
 #endif
 			hideShare(false),
 			exclusiveHub(false), showJoins(false), exclChecks(false), mode(0),
-			searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)), overrideId(0),
+			searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)),
+			searchIntervalPassive(SETTING(MINIMUM_SEARCH_PASSIVE_INTERVAL)),
+			overrideId(0),
 			headerSort(-1), headerSortAsc(true), suppressChatAndPM(false),
 			autobanAntivirusIP(false), autobanAntivirusNick(false)
 		{
@@ -248,6 +250,7 @@ class FavoriteHubEntry
 		GETSET(string, antivirusCommandIP, AntivirusCommandIP);
 		
 		GETSET(uint32_t, searchInterval, SearchInterval);
+		GETSET(uint32_t, searchIntervalPassive, SearchIntervalPassive);
 		GETSET(string, encoding, Encoding);
 		GETSET(string, group, Group);
 		

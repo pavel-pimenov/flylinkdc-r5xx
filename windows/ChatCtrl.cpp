@@ -1391,7 +1391,7 @@ LRESULT ChatCtrl::onWhoisIP(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 	{
 		if (wID == IDC_WHOIS_IP4_INFO)
 		{
-			const string l_report = "IPv4 Address" + Identity::formatIpString(Text::fromT(g_sSelectedIP));
+			const string l_report = "IPv4 Info: " + Identity::formatIpString(Text::fromT(g_sSelectedIP));
 			const auto l_client = ClientManager::findClient(getHubHint());
 			if (l_client)
 			{

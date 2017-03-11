@@ -102,7 +102,8 @@ class NmdcHub : public Client, private Flags
 #endif
 			SUPPORTS_NICKRULE = 0x10,
 			SUPPORTS_HUBURL = 0x20,
-			SUPPORTS_SEARCH_TTHS = 0x40 // —жатый формат поиска
+			SUPPORTS_SEARCH_TTHS = 0x40, // —жатый формат поиска
+			SUPPORTS_SEARCHRULE = 0x80,
 		};
 		
 		// MyInfo states.

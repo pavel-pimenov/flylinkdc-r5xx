@@ -52,6 +52,10 @@ LRESULT RSS_SetFeedDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	ctrlURL.SetWindowText(m_strURL.c_str());
 	ctrlName.SetWindowText(m_strName.c_str());
 	
+	ATTACH(IDC_RSS_ENABLE, ctrlEnable);
+	ctrlEnable.SetWindowText(CTSTRING(RSSDLG_ENABLE));
+	ctrlEnable.SetCheck(m_enabled ? 1 : 0);
+	
 	CenterWindow(GetParent());
 	return FALSE;
 }
@@ -65,6 +69,8 @@ LRESULT RSS_SetFeedDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
 		
 		ctrlCodeing.Attach(GetDlgItem(IDC_RSSFEED_CODEING));
 		m_strCodeing = Text::toT(WinUtil::getDataFromMap(ctrlCodeing.GetCurSel(), m_CodeingList));
+		
+		m_enabled = ctrlEnable.GetCheck() ? TRUE : FALSE;
 	}
 	
 	EndDialog(wID);

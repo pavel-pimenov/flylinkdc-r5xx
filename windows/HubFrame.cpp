@@ -760,8 +760,13 @@ HubFrame* HubFrame::openWindow(bool p_is_auto_connect,
 	{
 		frm = i->second;
 		if (::IsIconic(frm->m_hWnd))
+		{
 			::ShowWindow(frm->m_hWnd, SW_RESTORE);
-		frm->MDIActivate(frm->m_hWnd);
+		}
+		if (frm->m_hWndMDIClient)
+		{
+			frm->MDIActivate(frm->m_hWnd);
+		}
 	}
 	frm->setCustomVIPIcon();
 	return frm;
@@ -1869,13 +1874,17 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					dcassert(!ClientManager::isBeforeShutdown());
 					if (!ClientManager::isBeforeShutdown())
 					{
-						if (++m_count_lock_chat > 2)
+						if (ctrlClient.IsWindow())
 						{
-							l_lock_redraw_chat = unique_ptr<CLockRedraw < true > >(new CLockRedraw< true >(ctrlClient));
-						}
-						else
-						{
-							ctrlClient.ShowScrollBar(SB_VERT, TRUE);
+							if (++m_count_lock_chat > 1)
+							{
+								l_lock_redraw_chat = unique_ptr<CLockRedraw < true > >(new CLockRedraw< true >(ctrlClient));
+							}
+							else
+							{
+								ctrlClient.EnableScrollBar(SB_VERT, ESB_ENABLE_BOTH);
+								ctrlClient.ShowScrollBar(SB_VERT, TRUE);
+							}
 						}
 						MessageTask& l_task = static_cast<MessageTask&>(*i->second);
 						std::unique_ptr<ChatMessage> msg(l_task.m_message_ptr);
@@ -2260,9 +2269,9 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 			}
 			else
 			{
-				if (m_showUsers && iButtonPanelLength < 222)
+				if (m_showUsers && iButtonPanelLength < 242)
 				{
-					iButtonPanelLength  = 222;
+					iButtonPanelLength  = 242;
 				}
 			}
 		}
@@ -2300,8 +2309,7 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 					rc = ctrlMessageRect;
 					rc.bottom = rc.top + 18; // [~] JhaoDa
 					rc.left = rc.right + 2; // [~] Sergey Shushkanov
-					rc.right += 119; // [~] Sergey Shushkanov
-					rc.top -= 3;
+					rc.right += 139; // [~] Sergey Shushkanov
 					m_ctrlFilter->MoveWindow(rc);
 					
 					rc.left = rc.right + 2; // [~] Sergey Shushkanov
@@ -2311,12 +2319,15 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 				}
 				else
 				{
+					rc.bottom -= 2;
+					rc.top = rc.bottom - 18;
 					rc.left = rc.right + 5; // [~] Sergey Shushkanov
 					rc.right = rc.left + 116; // [~] Sergey Shushkanov
 					m_ctrlFilter->MoveWindow(rc);
 					
 					rc.left = rc.right + 2; // [~] Sergey Shushkanov
 					rc.right = rc.left + 99; // [~] Sergey Shushkanov
+					rc.top -= 1;
 					m_ctrlFilterSel->MoveWindow(rc);
 				}
 			}
@@ -2331,6 +2342,11 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		if (m_tooltip_hubframe && !BOOLSETTING(POPUPS_DISABLED))
 		{
 			m_tooltip_hubframe->Activate(TRUE);
+		}
+		if (ctrlClient.IsWindow())
+		{
+			//ctrlClient.EnableScrollBar(SB_VERT, ESB_ENABLE_BOTH);
+			ctrlClient.ShowScrollBar(SB_VERT, TRUE);
 		}
 	}
 }

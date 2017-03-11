@@ -26,7 +26,7 @@ for /f "tokens=1,2 delims= " %%a in ('svn.exe st -q') do (
 if "%%a"=="M" echo "%%b" changed
 if "%%a"=="M" echo Commit changes before making distrib!
 if "%%a"=="M" rem pause
-if "%%a"=="M" if not "%NOCOMMIT%"=="1" exit /b 1
+if "%%a"=="M" if not "%NOCOMMIT%"=="1" exit /B 1
 if "%%a"=="M" rem goto :end
 )
 
@@ -64,7 +64,7 @@ goto :end
 
 :OnError
 echo Error get revision from SVN
-if not "%1"=="WriteFakeHdrOnError" exit /b 1
+if not "%1"=="WriteFakeHdrOnError" exit /B 1
 if exist revision.h goto end
 echo generating fake header
 

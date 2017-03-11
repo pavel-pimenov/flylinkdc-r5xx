@@ -739,13 +739,6 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				g_RAM_WorkingSetSize = l_pmc.WorkingSetSize / 1024 / 1024;
 				g_RAM_PeakWorkingSetSize = l_pmc.PeakWorkingSetSize / 1024 / 1024;
 				caclPhysMemoryStat();
-				FILETIME tmpa = {0};
-				FILETIME tmpb = {0};
-				FILETIME kernelTimeFT = {0};
-				FILETIME userTimeFT = {0};
-				GetProcessTimes(GetCurrentProcess(), &tmpa, &tmpb, &kernelTimeFT, &userTimeFT);
-				const int64_t kernelTime = kernelTimeFT.dwLowDateTime | (((int64_t)kernelTimeFT.dwHighDateTime) << 32); //-V112
-				const int64_t userTime = userTimeFT.dwLowDateTime | (((int64_t)userTimeFT.dwHighDateTime) << 32); //-V112
 				string l_procs;
 				const int digit_procs = getProcessorsCount();
 				if (digit_procs > 1)
@@ -762,7 +755,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          "Compiled on: %s ]=-\r\n"
 				          "\t-=[ OS: %s ]=-\r\n"
 				          "\t-=[ CPU Clock: %.1f MHz%s. Memory (free): %s (%s) ]=-\r\n"
-				          "\t-=[ Uptime: %s. CPU: %s. Client Uptime: %s ]=-\r\n"
+				          "\t-=[ Uptime: %s. Client Uptime: %s ]=-\r\n"
 				          "\t-=[ RAM (peak): %s (%s). Virtual (peak): %s (%s) ]=-\r\n"
 				          "\t-=[ GDI units (peak): %d (%d). Handle (peak): %d (%d) ]=-\r\n"
 				          "\t-=[ Public share: %s. Files in share: %u. Total users: %u on hubs: %u ]=-\r\n"
@@ -786,7 +779,6 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				              GetTickCount64()
 #endif
 				              / 1000).c_str(),
-				          Util::formatSeconds((kernelTime + userTime) / (10I64 * 1000I64 * 1000I64)).c_str(),
 				          Util::formatTime(Util::getUpTime()).c_str(),
 				          Util::formatBytes(l_pmc.WorkingSetSize).c_str(),
 				          Util::formatBytes(l_pmc.PeakWorkingSetSize).c_str(),

@@ -109,7 +109,7 @@ class BloomFilter
 			return (h % table.size());
 		}
 		
-		vector<bool> table;
+		std::vector<bool> table;
 };
 
 #endif // !defined(BLOOM_FILTER_H)

@@ -57,8 +57,8 @@ class RSSItem
 class RSSFeed
 {
 	public:
-		RSSFeed(const string& afeedURL, const string& aSource, const string& codeingType)
-			: feedURL(afeedURL), source(aSource), lastNewsDate(0), codeing(codeingType)
+		RSSFeed(const string& afeedURL, const string& aSource, const string& codeingType, const bool aEnable)
+			: feedURL(afeedURL), source(aSource), lastNewsDate(0), codeing(codeingType), enable(aEnable)
 		{}
 		virtual ~RSSFeed();
 		
@@ -71,6 +71,7 @@ class RSSFeed
 		GETSET(string, feedURL, FeedURL);
 		GETSET(string, source, Source);
 		GETSET(string, codeing, Codeing);
+		GETSET_BOOL(bool, enable, Enable);
 		
 		const RSSItemList& getNewsList() const// [+] IRainman fix.
 		{
@@ -162,7 +163,7 @@ class RSSManager :
 		
 		static bool hasRSSFeed(const string& url, const string& name);
 		
-		static RSSFeed* addNewFeed(const string &url, const string & name, const string& codeing, bool bUpdateFeeds = false);
+		static RSSFeed* addNewFeed(const string &url, const string & name, const string& codeing, bool bUpdateFeeds/* = false*/);
 		static bool removeFeedAt(size_t pos);
 		
 		static const string getCodeing(const size_t i);

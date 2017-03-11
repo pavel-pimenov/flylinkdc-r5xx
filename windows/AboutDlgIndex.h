@@ -59,11 +59,13 @@ class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 				ab = 2013;
 			if (_MSC_VER >= 1900)
 				ab = 2015;
+			if (_MSC_VER >= 1910)
+				ab = 2017;
 			char l_full_version[64];
 			_snprintf(l_full_version, _countof(l_full_version), "%d (%d)", ab, _MSC_FULL_VER);
 			
 			SetDlgItemText(IDC_COMPT, (TSTRING(COMPILED_ON) + _T(' ') + Util::getCompileDate() + _T(' ') + Util::getCompileTime(_T("%H:%M:%S"))
-			                           + _T(",  Visual C++ ") + Text::toT(l_full_version)).c_str());
+			                           + _T(", Visual C++ ") + Text::toT(l_full_version)).c_str());
 			SetWindowText(CTSTRING(MENU_ABOUT));
 			m_ctrTab.Attach(GetDlgItem(IDC_ABOUTTAB));
 			TCITEM tcItem;

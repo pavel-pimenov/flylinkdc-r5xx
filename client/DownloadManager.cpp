@@ -38,6 +38,7 @@
 #include "libtorrent/torrent_status.hpp"
 #include "libtorrent/create_torrent.hpp"
 #include "libtorrent/hex.hpp"
+#include "libtorrent/write_resume_data.hpp"
 #endif
 
 
@@ -64,7 +65,7 @@ void DownloadManager::shutdown_torrent()
 		//int l_count = 10; // TODO
 		//while (m_torrent_resume_count == 0 && l_count-- > 0)
 		//{
-		//	Sleep(1000);
+		//  Sleep(1000);
 		//}
 		m_torrent_session.reset();
 	}
@@ -1021,14 +1022,12 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 					}
 					if (const auto l_a = lt::alert_cast<save_resume_data_alert>(a))
 					{
-						torrent_handle h = l_a->handle;
-						TORRENT_ASSERT(l_a->resume_data);
-						if (l_a->resume_data)
+						auto const l_buf = lt::write_resume_data_buf(l_a->params);
 						{
 							--m_torrent_resume_count;
 							std::vector<char> l_resume;
-							bencode(std::back_inserter(l_resume), *l_a->resume_data);
-							const torrent_status st = h.status(torrent_handle::query_save_path | torrent_handle::query_name);
+							bencode(std::back_inserter(l_resume), l_buf);
+							const torrent_status st = l_a->handle.status(torrent_handle::query_save_path | torrent_handle::query_name);
 							CFlylinkDBManager::getInstance()->save_torrent_resume(st.info_hash, st.name, l_resume);
 							// TODO l_a->handle.set_pinned(false);
 						}
@@ -1130,7 +1129,7 @@ bool DownloadManager::set_file_priority(const libtorrent::sha1_hash& p_sha1, con
 				l_h.prioritize_files(p_file_priority);
 				l_h.auto_managed(true);
 				l_h.resume();
-                l_h.save_resume_data(torrent_handle::save_info_dict | torrent_handle::only_if_modified);
+				l_h.save_resume_data(torrent_handle::save_info_dict | torrent_handle::only_if_modified);
 			}
 		}
 		catch (const std::runtime_error& e)
@@ -1291,15 +1290,15 @@ void DownloadManager::init_torrent(bool p_is_force)
 		        else
 		            p.flags &= ~lt::add_torrent_params::flag_seed_mode;
 		*/
-/*
-		auto l_h = m_torrent_session->add_torrent(p, ec);
-		if (ec)
-		{
-			dcdebug("%s\n", ec.message().c_str());
-			dcassert(0);
-			return;
-		}
-*/
+		/*
+		        auto l_h = m_torrent_session->add_torrent(p, ec);
+		        if (ec)
+		        {
+		            dcdebug("%s\n", ec.message().c_str());
+		            dcassert(0);
+		            return;
+		        }
+		*/
 		/*
 		while (!l_h.status().has_metadata)
 		        {

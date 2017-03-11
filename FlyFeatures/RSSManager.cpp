@@ -689,8 +689,13 @@ void RSSManager::load(SimpleXML& aXml)
 				
 				const size_t iCodeingType = Util::toInt(codeingType);
 				
+				bool  bUpdateFeeds = FALSE;
+				string l_tmp_enable = aXml.getChildAttrib("Enable");
+				if (l_tmp_enable.empty() || l_tmp_enable == "true")	// Set all feeds from old flylinkdc++,  as true enabled
+					bUpdateFeeds = TRUE;
+
 				// add only unique RSS feeds
-				addNewFeed(realURL, sourceName, getCodeing(iCodeingType));
+				addNewFeed(realURL, sourceName, getCodeing(iCodeingType), bUpdateFeeds);
 			}
 			aXml.stepOut();
 		}
@@ -704,7 +709,7 @@ RSSManager::addNewFeed(const string& url, const string& name, const string& code
 	CFlyLock(g_csFeed); // [+] IRainman fix.
 	if (!hasRSSFeed(url, name))
 	{
-		RSSFeed* rFeed = new RSSFeed(url, name, codeing);
+		RSSFeed* rFeed = new RSSFeed(url, name, codeing, bUpdateFeeds);
 		g_feeds.push_back(rFeed);
 		if (bUpdateFeeds)
 		{
@@ -755,6 +760,7 @@ void RSSManager::save(SimpleXML& aXml)
 		aXml.addChildAttrib("Name", (*i)->getSource());
 		const size_t codeingT = GetCodeingByString((*i)->getCodeing());
 		aXml.addChildAttrib("Codeing", Util::toString(codeingT));
+		aXml.addChildAttrib("Enable", (*i)->getEnable() ? "true" : "false");
 	}
 	aXml.stepOut();
 }

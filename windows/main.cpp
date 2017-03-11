@@ -424,12 +424,13 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 			rc.right = rc.left + SETTING(MAIN_WINDOW_SIZE_X);
 			rc.bottom = rc.top + SETTING(MAIN_WINDOW_SIZE_Y);
 		}
+#ifndef SCALOLAZ_MANY_MONITORS
 		// Now, let's ensure we have sane values here...
 		if ((rc.left < 0) || (rc.top < 0) || (rc.right - rc.left < 500) || ((rc.bottom - rc.top) < 300))
 		{
 			rc = wndMain.rcDefault;
 		}
-		
+#endif
 		const int rtl = /*ResourceManager::getInstance()->isRTL() ? WS_EX_RTLREADING :*/ 0; // [!] IRainman fix.
 		if (wndMain.CreateEx(NULL, rc, 0, rtl | WS_EX_APPWINDOW | WS_EX_WINDOWEDGE) == NULL)
 		{

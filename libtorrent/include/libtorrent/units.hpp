@@ -61,7 +61,8 @@ namespace aux {
 		constexpr operator UnderlyingType() const { return m_val; }
 #else
 		constexpr explicit strong_typedef(UnderlyingType val) : m_val(val) {}
-		constexpr explicit operator UnderlyingType() const { return m_val; }
+		//constexpr explicit operator UnderlyingType() const { return m_val; }
+		constexpr operator UnderlyingType() const { return m_val; } // [+] FlylinkDC++
 		constexpr bool operator==(strong_typedef const& rhs) const { return m_val == rhs.m_val; }
 		constexpr bool operator!=(strong_typedef const& rhs) const { return m_val != rhs.m_val; }
 		constexpr bool operator<(strong_typedef const& rhs) const { return m_val < rhs.m_val; }

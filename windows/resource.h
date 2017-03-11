@@ -213,7 +213,7 @@
 #define IDR_VIP_ICO_TITANKALUGA         324
 #define IDR_TORRENT_PNG                 325
 #define IDR_TRANSFER_TREE               326
-#define IDR_VIP_ICO_SIBFILES            327
+#define IDR_VIP_ICO_MYDC            327
 #define IDR_VIP_ICO_ADRENALIN           328
 #define IDR_VIP_ICO_GODC                329
 #define IDD_FLY_TORRENT_DIALOG          330
@@ -675,6 +675,7 @@
 #define IDC_EDIT6                       1459
 #define IDC_S                           1460
 #define IDC_SETTINGS_WEB_BIND_ADDRESS_HELP 1461
+#define IDC_S_PASSIVE                   1461
 #define IDC_FLAT                        1462
 #define IDC_S2                          1463
 #define IDC_WEB_BIND_ADDRESS            1464
@@ -739,11 +740,15 @@
 #define IDC_CHECK_ADD_SLOTS             1522
 #define IDC_FAV_SEARCH_INTERVAL         1523
 #define IDC_SETTINGS_KB5                1524
+#define IDC_FAV_SEARCH_PASSIVE_INTERVAL 1524
 #define IDC_FAV_SEARCH_INTERVAL_BOX     1525
 #define IDC_CD_GP                       1526
+#define IDC_FAV_SEARCH_PASSIVE_INTERVAL_BOX 1526
 #define IDC_SET_MIN_LENGHT_TTH_STREAM_SPIN 1527
 #define IDC_FAV_SEARCH_INTERVAL_SPIN    1528
 #define IDC_SETTINGS_KB6                1529
+#define IDC_FAV_SEARCH_INTERVAL_SPIN2   1529
+#define IDC_FAV_SEARCH_PASSIVE_INTERVAL_SPIN 1529
 #define IDC_SET_MIN_LENGHT_FOR_CHUNKS_SPIN 1530
 #define IDC_SETTINGS_AUTOPRIO           1531
 #define IDC_SET_MIN_LENGHT_FILE_FOR_MEDIAINFO_SPIN 1532
@@ -1612,6 +1617,7 @@
 #define IDC_WHOIS_IP4_INFO              2526
 #define IDC_TORRENT_DOWNLOAD_DIR_CHANGE 2526
 #define IDC_FLY_TORRENT_INFO_LISTBOX    2527
+#define IDC_REMOVE_TREE_ITEM            2528
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000
@@ -1648,6 +1654,8 @@
 #define IDC_TTH_USE_GPU                 7602
 #define IDC_TTH_GPU_DEVICES             7603
 #define IDC_SETTINGS_TTH_GPU_DEVICE     7604
+#define IDC_SETMASTERMONITOR            7605
+#define IDC_RSS_ENABLE                  7606
 #define ID_TOGGLE_TOOLBAR               32771
 #define ID_TOGGLE_QSEARCH               32772
 #define ID_VIEW_TRANSFER_VIEW           32773
@@ -1676,7 +1684,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        309
+#define _APS_NEXT_RESOURCE_VALUE        310
 #define _APS_NEXT_COMMAND_VALUE         32812
 #define _APS_NEXT_CONTROL_VALUE         2527
 #define _APS_NEXT_SYMED_VALUE           2423

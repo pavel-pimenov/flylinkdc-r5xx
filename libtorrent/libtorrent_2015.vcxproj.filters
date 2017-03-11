@@ -704,6 +704,9 @@
     <ClInclude Include="include\libtorrent\packet_pool.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\write_resume_data.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ed25519\src\add_scalar.cpp">
@@ -1142,6 +1145,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\disk_job_fence.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\write_resume_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

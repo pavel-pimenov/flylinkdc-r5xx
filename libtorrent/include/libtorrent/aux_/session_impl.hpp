@@ -347,7 +347,7 @@ namespace libtorrent
 
 			peer_id const& get_peer_id() const override { return m_peer_id; }
 
-			void close_connection(peer_connection* p, error_code const& ec) override;
+			void close_connection(peer_connection* p) override;
 
 			void apply_settings_pack(std::shared_ptr<settings_pack> pack) override;
 			void apply_settings_pack_impl(settings_pack const& pack
@@ -700,6 +700,7 @@ namespace libtorrent
 			void update_privileged_ports();
 			void update_auto_sequential();
 			void update_max_failcount();
+			void update_close_file_interval();
 
 			void update_upnp();
 			void update_natpmp();
@@ -976,6 +977,7 @@ namespace libtorrent
 			int m_peak_down_rate = 0;
 
 			void on_tick(error_code const& e);
+			void on_close_file(error_code const& e);
 
 			void try_connect_more_peers();
 			void auto_manage_checking_torrents(std::vector<torrent*>& list
@@ -1156,6 +1158,11 @@ namespace libtorrent
 			// this announce timer is used
 			// by Local service discovery
 			deadline_timer m_lsd_announce_timer;
+
+			// this is the timer used to call ``close_oldest`` on the ``file_pool``
+			// object. This closes the file that's been opened the longest every
+			// time it's called, to force the windows disk cache to be flushed
+			deadline_timer m_close_file_timer;
 
 			resolver m_host_resolver;
 

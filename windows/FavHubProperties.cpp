@@ -67,6 +67,9 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	SetDlgItemText(IDC_CONN_BORDER, CTSTRING(CONNECTION));
 	SetDlgItemText(IDC_FAV_SEARCH_INTERVAL, CTSTRING(MINIMUM_SEARCH_INTERVAL));
 	SetDlgItemText(IDC_S, CTSTRING(S));
+	SetDlgItemText(IDC_FAV_SEARCH_PASSIVE_INTERVAL, CTSTRING(MINIMUM_SEARCH_PASSIVE_INTERVAL));
+	SetDlgItemText(IDC_S_PASSIVE, CTSTRING(S));
+	
 	SetDlgItemText(IDC_CLIENT_ID, CTSTRING(CLIENT_ID)); // !SMT!-S
 	SetDlgItemText(IDC_ENCODING, CTSTRING(FAVORITE_HUB_ENCODING));
 	SetDlgItemText(IDC_ENCODINGTEXT, CTSTRING(FAVORITE_HUB_ENCODINGTEXT));
@@ -101,6 +104,7 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	SetDlgItemText(IDC_OPCHAT_STR, Text::toT(entry->getOpChat()).c_str());
 	SetDlgItemText(IDC_ANTIVIRUS_COMMAND_IP_STR, Text::toT(entry->getAntivirusCommandIP()).c_str());
 	SetDlgItemText(IDC_FAV_SEARCH_INTERVAL_BOX, Util::toStringW(entry->getSearchInterval()).c_str());
+	SetDlgItemText(IDC_FAV_SEARCH_PASSIVE_INTERVAL_BOX, Util::toStringW(entry->getSearchIntervalPassive()).c_str());
 	
 	SetDlgItemText(IDC_WIZARD_NICK_RND, CTSTRING(WIZARD_NICK_RND)); // Rand Nick button
 	SetDlgItemText(IDC_WIZARD_NICK_RND2, CTSTRING(DEFAULT));        // Default Nick button
@@ -181,6 +185,7 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	updown.SetRange(1, 500); //[+]NightOrion
 	updown.Detach();
 	
+
 	if (entry->getMode() == 0)
 		CheckRadioButton(IDC_ACTIVE, IDC_DEFAULT, IDC_DEFAULT);
 	else if (entry->getMode() == 1)
@@ -260,6 +265,9 @@ LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 		entry->setOpChat(Text::fromT(buf));
 		GET_TEXT(IDC_FAV_SEARCH_INTERVAL_BOX, buf);
 		entry->setSearchInterval(Util::toUInt32(Text::fromT(buf)));
+		GET_TEXT(IDC_FAV_SEARCH_PASSIVE_INTERVAL_BOX, buf);
+		entry->setSearchIntervalPassive(Util::toUInt32(Text::fromT(buf)));
+		
 		GET_TEXT(IDC_ANTIVIRUS_COMMAND_IP_STR, buf);
 		entry->setAntivirusCommandIP(Text::fromT(buf));
 		

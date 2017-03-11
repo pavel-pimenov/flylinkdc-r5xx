@@ -50,14 +50,14 @@ namespace libtorrent { namespace aux {
 		// pull in constructors from base class
 		using base::base;
 
-		auto operator[](IndexType idx) const -> decltype(this->base::operator[](underlying_index()))
+		const T& operator[](IndexType idx) const //-> decltype(this->base::operator[](underlying_index()))
 		{
 			TORRENT_ASSERT(idx >= IndexType(0));
 			TORRENT_ASSERT(idx < end_index());
 			return this->base::operator[](std::size_t(static_cast<underlying_index>(idx)));
 		}
 
-		auto operator[](IndexType idx) -> decltype(this->base::operator[](underlying_index()))
+		T& operator[](IndexType idx) //-> decltype(this->base::operator[](underlying_index()))
 		{
 			TORRENT_ASSERT(idx >= IndexType(0));
 			TORRENT_ASSERT(idx < end_index());

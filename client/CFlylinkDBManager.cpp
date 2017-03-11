@@ -2365,7 +2365,7 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 				libtorrent::sha1_hash l_sha1;
 				l_q.getblob(1, l_sha1.data(), l_sha1.size());
 				p.info_hash = l_sha1;
-                p.flags |= libtorrent::add_torrent_params::flag_auto_managed;
+				p.flags |= libtorrent::add_torrent_params::flag_auto_managed;
 				
 				//p.resume_data.assign(l_resume.data(), l_resume.data() + l_resume.size());
 #ifdef _DEBUG

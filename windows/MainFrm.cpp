@@ -453,7 +453,6 @@ void MainFrame::createTrayMenu() // [+]Drakon. Enlighting functions.
 	trayMenu.AppendMenu(MF_SEPARATOR);
 	trayMenu.AppendMenu(MF_STRING, IDC_REFRESH_FILE_LIST, CTSTRING(MENU_REFRESH_FILE_LIST));
 	trayMenu.AppendMenu(MF_STRING, IDC_TRAY_LIMITER, CTSTRING(TRAY_LIMITER));
-	
 	trayMenu.AppendMenu(MF_SEPARATOR); // [+]Drakon
 	trayMenu.AppendMenu(MF_STRING, ID_FILE_SETTINGS, CTSTRING(MENU_SETTINGS)); // [+]Drakon
 	
@@ -462,8 +461,10 @@ void MainFrame::createTrayMenu() // [+]Drakon. Enlighting functions.
 	trayMenu.AppendMenu(MF_STRING, IDC_UPDATE_FLYLINKDC, CTSTRING(UPDATE_CHECK)); // [~]Drakon. Moved from "file."
 	trayMenu.AppendMenu(MF_STRING, IDC_HELP_HOMEPAGE, CTSTRING(MENU_HOMEPAGE));
 	trayMenu.AppendMenu(MF_STRING, ID_APP_ABOUT, CTSTRING(MENU_ABOUT));
-	
 	trayMenu.AppendMenu(MF_SEPARATOR);
+#ifdef SCALOLAZ_MANY_MONITORS
+	trayMenu.AppendMenu(MF_STRING, IDC_SETMASTERMONITOR, CTSTRING(RESTORE_WINDOW_POS));
+#endif
 	trayMenu.AppendMenu(MF_STRING, ID_APP_EXIT, CTSTRING(MENU_EXIT));
 	trayMenu.SetMenuDefaultItem(IDC_TRAY_SHOW);
 }
@@ -2688,6 +2689,27 @@ void MainFrame::storeWindowsPos()
 	}
 }
 
+#ifdef SCALOLAZ_MANY_MONITORS
+LRESULT MainFrame::onSetDefaultPosition(WORD /*wNotifyCode*/, WORD /*wParam*/, HWND, BOOL& /*bHandled*/)
+{
+	CRect rc;
+	GetWindowRect(rc);
+	rc.left = 0;
+	rc.top = 0;
+	rc.right = rc.left + SETTING(MAIN_WINDOW_SIZE_X);
+	rc.bottom = rc.top + SETTING(MAIN_WINDOW_SIZE_Y);
+	if ((rc.right - rc.left) < 600 || (rc.bottom - rc.top) < 400)
+	{
+		rc.right = rc.left + 600;
+		rc.bottom = rc.top + 400;
+	}
+	MoveWindow(rc);
+	CenterWindow(GetParent());
+//	storeWindowsPos();       // ’з как лучше - сразу сохранить новые значени€, или ждЄм закрыти€ программы и там сохраним как обычно.
+	return 0;
+}
+#endif
+
 LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	QueueManager::getInstance()->saveQueue();
@@ -3338,10 +3360,9 @@ LRESULT MainFrame::onAppShow(WORD /*wNotifyCode*/, WORD /*wParam*/, HWND, BOOL& 
 
 void MainFrame::ShowBalloonTip(LPCTSTR szMsg, LPCTSTR szTitle, DWORD dwInfoFlags)
 {
-	dcassert(PopupManager::isValidInstance());
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	dcassert(getMainFrame());
-	if (getMainFrame() && !ClientManager::isShutdown() && PopupManager::isValidInstance())
+	if (getMainFrame() && !ClientManager::isBeforeShutdown() && PopupManager::isValidInstance())
 	{
 		Popup* p = new Popup;
 		p->Title = szTitle;

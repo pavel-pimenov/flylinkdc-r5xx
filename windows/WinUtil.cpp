@@ -512,7 +512,7 @@ void WinUtil::initThemeIcons()
 	g_HubFlylinkDCIconVIP[9] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_PROSTOIGRA));
 	g_HubFlylinkDCIconVIP[10] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_EVAHUB));
 	g_HubFlylinkDCIconVIP[11] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_TITANKALUGA));
-	g_HubFlylinkDCIconVIP[12] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_SIBFILES));
+	g_HubFlylinkDCIconVIP[12] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_MYDC));
 	g_HubFlylinkDCIconVIP[13] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_ADRENALIN));
 	g_HubFlylinkDCIconVIP[14] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_GODC));
 	

@@ -82,6 +82,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		MESSAGE_HANDLER(WM_SETFOCUS, onSetFocus)
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
+		COMMAND_ID_HANDLER(IDC_REMOVE_TREE_ITEM, onRemoveTreeItem)
 		COMMAND_ID_HANDLER(IDC_TOTAL, onRemove)
 #ifdef FLYLINKDC_USE_VIEW_AS_TEXT_OPTION
 		COMMAND_ID_HANDLER(IDC_VIEW_AS_TEXT, onViewAsText)
@@ -267,6 +268,9 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			g_TransferTreeImage.init();
 			m_ctrlTree.SetImageList(g_TransferTreeImage.getIconList(), TVSIL_NORMAL);
 			
+			m_directoryMenu.CreatePopupMenu();
+			m_directoryMenu.AppendMenu(MF_STRING, IDC_REMOVE_TREE_ITEM, CTSTRING(REMOVE));
+
 			m_RootItem = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
 			                                   m_transfer_type == e_TransferDownload ? _T("Download") : _T("Upload"),
 			                                   2, // g_ISPImage.m_flagImageCount + 14, // nImage
@@ -497,7 +501,29 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			}
 			return 0;
 		}
-		
+		LRESULT onRemoveTreeItem(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			if (m_ctrlTree.GetSelectedItem())
+			{
+				const auto l_tree_node_torrent = m_tree_torrent.find(m_ctrlTree.GetSelectedItem());
+				if (l_tree_node_torrent != m_tree_torrent.end())
+				{
+					SendMessage(WM_COMMAND, IDC_TOTAL);
+					m_ctrlTree.DeleteItem(l_tree_node_torrent->first);
+				}
+				else
+				{
+					const auto l_tree_node_dc = m_tree_dc.find(m_ctrlTree.GetSelectedItem());
+					if (l_tree_node_dc != m_tree_dc.end())
+					{
+						SendMessage(WM_COMMAND, IDC_TOTAL);
+						m_ctrlTree.DeleteItem(l_tree_node_dc->first);
+					}
+				}
+			}
+			return 0;
+		}
+
 		LRESULT onRemove(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			switch (wID)
@@ -680,10 +706,34 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				}
 				
 				if (!bShellMenuShown)
+				{
 					ctxMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
+				}
 					
 				return TRUE;
 			}
+			else if (reinterpret_cast<HWND>(wParam) == m_ctrlTree && m_ctrlTree.GetSelectedItem() != NULL)
+			{
+				POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+
+				if (pt.x == -1 && pt.y == -1)
+				{
+					WinUtil::getContextMenuPos(m_ctrlTree, pt);
+				}
+				else
+				{
+					m_ctrlTree.ScreenToClient(&pt);
+					UINT a = 0;
+					HTREEITEM ht = m_ctrlTree.HitTest(pt, &a);
+					if (ht != NULL && ht != m_ctrlTree.GetSelectedItem())
+						m_ctrlTree.SelectItem(ht);
+					m_ctrlTree.ClientToScreen(&pt);
+				}
+
+				m_directoryMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
+				return TRUE;
+			}
+
 			bHandled = FALSE;
 			return FALSE;
 		}
@@ -840,6 +890,8 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		CMenu ctxMenu;
 		CMenu copyMenu;
 		
+		OMenu m_directoryMenu;
+
 		TypedListViewCtrl<FinishedItemInfo, id> ctrlList;
 		CContainedWindow        m_listContainer;
 		

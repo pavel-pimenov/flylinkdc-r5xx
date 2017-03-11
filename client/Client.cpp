@@ -93,7 +93,7 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 		"prostoigra24.ru",
 		"eva-hub.ru",
 		"titankaluga.ru",
-		"sibfiles.ru",
+		"hub.mydc.ru",
 		"aab-new-adrenalin.ru",
 		"godc.ru"
 	};
@@ -299,11 +299,14 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		{
 			dcassert(SETTING(MINIMUM_SEARCH_INTERVAL) > 2);
 			const auto l_new_interval = std::max(SETTING(MINIMUM_SEARCH_INTERVAL), 2);
-			setSearchInterval(l_new_interval * 1000);
+			const auto l_new_interval_passive = std::max(SETTING(MINIMUM_SEARCH_PASSIVE_INTERVAL), 2);
+			setSearchInterval(l_new_interval * 1000, false);
+			setSearchIntervalPassive(l_new_interval_passive * 1000, false);
 		}
 		else
 		{
-			setSearchInterval(hub->getSearchInterval() * 1000);
+			setSearchInterval(hub->getSearchInterval() * 1000, false);
+			setSearchIntervalPassive(hub->getSearchIntervalPassive() * 1000, false);
 		}
 		
 		// [+] IRainman fix.
@@ -335,7 +338,8 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 #endif
 		setFavIp(Util::emptyString);
 		
-		setSearchInterval(SETTING(MINIMUM_SEARCH_INTERVAL) * 1000);
+		setSearchInterval(SETTING(MINIMUM_SEARCH_INTERVAL) * 1000, false);
+		setSearchIntervalPassive(SETTING(MINIMUM_SEARCH_PASSIVE_INTERVAL) * 1000, false);
 		
 		// [+] IRainman fix.
 		m_opChat.clear();
@@ -748,7 +752,8 @@ void Client::on(Second, uint64_t aTick) noexcept
 	if (isConnected() && !m_searchQueue.empty())
 	{
 		Search s;
-		if (m_searchQueue.pop(s, aTick)) // [!] IRainman opt
+		const bool l_is_active = isActive();
+		if (m_searchQueue.pop(s, aTick, l_is_active))
 		{
 			// TODO - пробежатьс€ по битовой маске?
 			// ≈сли она там есть
@@ -1205,12 +1210,33 @@ void Client::escapeParams(StringMap& sm) const
 	}
 }
 
-void Client::setSearchInterval(uint32_t aInterval)
+void Client::setSearchInterval(uint32_t aInterval,  bool p_is_search_rule /*= false */)
 {
 	// min interval is 2 seconds in FlylinkDC
-	m_searchQueue.m_interval = max(aInterval, (uint32_t)(2000)); // [!] FlylinkDC
-	m_searchQueue.m_interval = min(m_searchQueue.m_interval, (uint32_t)(120000));
+	if (p_is_search_rule)
+	{
+		m_searchQueue.m_interval = aInterval;
+	}
+	else
+	{
+		m_searchQueue.m_interval = max(aInterval, (uint32_t)(2000)); // [!] FlylinkDC
+		m_searchQueue.m_interval = min(m_searchQueue.m_interval, (uint32_t)(120000));
+	}
 	dcassert(m_searchQueue.m_interval != 0);
+}
+void Client::setSearchIntervalPassive(uint32_t aIntervalPassive, bool p_is_search_rule /*= false */)
+{
+	// min interval is 2 seconds in FlylinkDC
+	if (p_is_search_rule)
+	{
+		m_searchQueue.m_interval_passive = aIntervalPassive;
+	}
+	else
+	{
+		m_searchQueue.m_interval_passive = max(aIntervalPassive, (uint32_t)(2000)); // [!] FlylinkDC
+		m_searchQueue.m_interval_passive = min(m_searchQueue.m_interval_passive, (uint32_t)(120000));
+	}
+	dcassert(m_searchQueue.m_interval_passive != 0);
 }
 
 string Client::getTagVersion() const

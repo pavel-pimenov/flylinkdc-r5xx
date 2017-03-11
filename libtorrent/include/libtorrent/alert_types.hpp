@@ -975,7 +975,7 @@ namespace libtorrent
 	{
 		// internal
 		save_resume_data_alert(aux::stack_allocator& alloc
-			, std::shared_ptr<entry> const& rd
+			, add_torrent_params params
 			, torrent_handle const& h);
 
 		TORRENT_DEFINE_ALERT_PRIO(save_resume_data_alert, 37)
@@ -983,8 +983,15 @@ namespace libtorrent
 		static const int static_category = alert::storage_notification;
 		virtual std::string message() const override;
 
+		// the ``params`` structure is populated with the fields to be passed to
+		// add_torrent() or async_add_torrent() to resume the torrent. To
+		// save the state to disk, you may pass it on to write_resume_data().
+		add_torrent_params params;
+
+#ifndef TORRENT_NO_DEPRECATE
 		// points to the resume data.
-		std::shared_ptr<entry> const resume_data;
+		std::shared_ptr<entry> resume_data;
+#endif
 	};
 
 	// This alert is generated instead of ``save_resume_data_alert`` if there was an error
@@ -1558,7 +1565,7 @@ namespace libtorrent
 	// This alert is posted approximately once every second, and it contains
 	// byte counters of most statistics that's tracked for torrents. Each active
 	// torrent posts these alerts regularly.
-	// This alert has been superceded by calling ``post_torrent_updates()``
+	// This alert has been superseded by calling ``post_torrent_updates()``
 	// regularly on the session object. This alert will be removed
 	struct TORRENT_EXPORT stats_alert final : torrent_alert
 	{

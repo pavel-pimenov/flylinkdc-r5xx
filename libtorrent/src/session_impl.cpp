@@ -469,6 +469,7 @@ namespace aux {
 #endif
 		, m_timer(m_io_service)
 		, m_lsd_announce_timer(m_io_service)
+		, m_close_file_timer(m_io_service)
 		, m_host_resolver(m_io_service)
 	{
 		update_time_now();
@@ -477,7 +478,7 @@ namespace aux {
 	template <typename Fun, typename... Args>
 	void session_impl::wrap(Fun f, Args&&... a)
 #ifndef BOOST_NO_EXCEPTIONS
-		try
+	try
 #endif
 	{
 		(this->*f)(std::forward<Args>(a)...);
@@ -589,7 +590,7 @@ namespace aux {
 
 #ifndef TORRENT_DISABLE_LOGGING
 		// this alert is a bit special. The stats headers aren't very useful
-		// unless session_stats is enabled, sp it's posted in the session_Stats
+		// unless session_stats is enabled, so it's posted in the session_stats
 		// category as well
 		if (m_alerts.should_post<log_alert>()
 			|| m_alerts.should_post<session_stats_alert>())
@@ -901,6 +902,8 @@ namespace aux {
 		// about to send event=stopped to
 		m_host_resolver.abort();
 
+		m_close_file_timer.cancel();
+
 		// abort the main thread
 		m_abort = true;
 		error_code ec;
@@ -977,14 +980,12 @@ namespace aux {
 		session_log(" aborting all connections (%d)", int(m_connections.size()));
 #endif
 		// abort all connections
-		while (!m_connections.empty())
-		{
-#if TORRENT_USE_ASSERTS
-			int conn = int(m_connections.size());
-#endif
-			(*m_connections.begin())->disconnect(errors::stopping_torrent, op_bittorrent);
-			TORRENT_ASSERT_VAL(conn == int(m_connections.size()) + 1, conn);
-		}
+		// keep in mind that connections that are not associated with a torrent
+		// will remove its entry from m_connections immediately, which means we
+		// can't iterate over it here
+		auto conns = m_connections;
+		for (auto const& p : conns)
+			p->disconnect(errors::stopping_torrent, op_bittorrent);
 
 		// we need to give all the sockets an opportunity to actually have their handlers
 		// called and cancelled before we continue the shutdown. This is a bit
@@ -1763,6 +1764,12 @@ namespace aux {
 
 	void session_impl::on_ip_change(error_code const& ec)
 	{
+#ifndef TORRENT_DISABLE_LOGGING
+		if (!ec)
+			session_log("received ip change from internal ip_notifier");
+		else
+			session_log("received error on_ip_change: %d, %s", ec.value(), ec.message().c_str());
+#endif
 		if (ec || m_abort) return;
 		m_ip_notifier.async_wait([this] (error_code const& e)
 			{ this->wrap(&session_impl::on_ip_change, e); });
@@ -1778,7 +1785,7 @@ namespace aux {
 		TORRENT_ASSERT(is_single_thread());
 
 		TORRENT_ASSERT(!m_abort);
-		int flags = m_settings.get_bool(settings_pack::listen_system_port_fallback)
+		int const flags = m_settings.get_bool(settings_pack::listen_system_port_fallback)
 			? 0 : listen_no_system_port;
 
 		m_stats_counters.set_value(counters::has_incoming_connections, 0);
@@ -1871,7 +1878,7 @@ namespace aux {
 #ifndef TORRENT_DISABLE_LOGGING
 			if (should_log())
 			{
-				session_log("Closing listen socket for %s on device \"%s\""
+				session_log("closing listen socket for %s on device \"%s\""
 					, print_endpoint(remove_iter->local_endpoint).c_str()
 					, remove_iter->device.c_str());
 			}
@@ -2877,8 +2884,7 @@ namespace aux {
 	// currently expected to be scheduled for a connection
 	// with the connection queue, and should be cancelled
 	// TODO: should this function take a shared_ptr instead?
-	void session_impl::close_connection(peer_connection* p
-		, error_code const& ec)
+	void session_impl::close_connection(peer_connection* p)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		std::shared_ptr<peer_connection> sp(p->self());
@@ -2888,16 +2894,6 @@ namespace aux {
 		// last reference is held by the network thread.
 		if (!sp.unique())
 			m_undead_peers.push_back(sp);
-
-#ifndef TORRENT_DISABLE_LOGGING
-		if (should_log())
-		{
-			session_log(" CLOSING CONNECTION %s : %s"
-				, print_endpoint(p->remote()).c_str(), ec.message().c_str());
-		}
-#else
-		TORRENT_UNUSED(ec);
-#endif
 
 		TORRENT_ASSERT(p->is_disconnecting());
 
@@ -3441,6 +3437,16 @@ namespace aux {
 
 		m_tick_residual = m_tick_residual % 1000;
 //		m_peer_pool.release_memory();
+	}
+
+	void session_impl::on_close_file(error_code const& e)
+	{
+		if (e) return;
+
+		m_disk_thread.files().close_oldest();
+
+		// re-issue the timer
+		update_close_file_interval();
 	}
 
 	namespace {
@@ -5195,6 +5201,19 @@ namespace aux {
 		}
 	}
 
+	void session_impl::update_close_file_interval()
+	{
+		int const interval = m_settings.get_int(settings_pack::close_file_interval);
+		if (interval == 0 || m_abort)
+		{
+			m_close_file_timer.cancel();
+			return;
+		}
+		error_code ec;
+		m_close_file_timer.expires_from_now(seconds(interval), ec);
+		m_close_file_timer.async_wait(make_tick_handler(std::bind(&session_impl::on_close_file, this, _1)));
+	}
+
 	void session_impl::update_proxy()
 	{
 		// in case we just set a socks proxy, we might have to
@@ -6836,19 +6855,18 @@ namespace aux {
 		int unchokes_all = 0;
 		int num_optimistic = 0;
 		int disk_queue[2] = {0, 0};
-		for (connection_map::const_iterator i = m_connections.begin();
-			i != m_connections.end(); ++i)
+		for (auto const& p : m_connections)
 		{
-			TORRENT_ASSERT(*i);
-			std::shared_ptr<torrent> t = (*i)->associated_torrent().lock();
-			TORRENT_ASSERT(unique_peers.find(i->get()) == unique_peers.end());
-			unique_peers.insert(i->get());
+			TORRENT_ASSERT(p);
+			if (p->is_disconnecting()) continue;
 
-			if ((*i)->m_channel_state[0] & peer_info::bw_disk) ++disk_queue[0];
-			if ((*i)->m_channel_state[1] & peer_info::bw_disk) ++disk_queue[1];
+			std::shared_ptr<torrent> t = p->associated_torrent().lock();
+			TORRENT_ASSERT(unique_peers.find(p.get()) == unique_peers.end());
+			unique_peers.insert(p.get());
 
-			peer_connection* p = i->get();
-			TORRENT_ASSERT(!p->is_disconnecting());
+			if (p->m_channel_state[0] & peer_info::bw_disk) ++disk_queue[0];
+			if (p->m_channel_state[1] & peer_info::bw_disk) ++disk_queue[1];
+
 			if (p->ignore_unchoke_slots())
 			{
 				if (!p->is_choked()) ++unchokes_all;
