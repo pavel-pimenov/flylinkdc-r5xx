@@ -1,0 +1,693 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Header files">
+      <UniqueIdentifier>{68250cd4-0d91-44f8-883e-b8b381801681}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source files">
+      <UniqueIdentifier>{1a14c7ab-d0da-4375-a254-6656492d759c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header files\interface">
+      <UniqueIdentifier>{c14fbff7-c039-45a0-a24b-317e16680e4b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\yqueue.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ypipe_conflate.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ypipe_base.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ypipe.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\xsub.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\xpub.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\wire.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\windows.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vmci_listener.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vmci_connecter.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vmci_address.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vmci.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v2_protocol.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v2_encoder.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v2_decoder.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v1_encoder.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\v1_decoder.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\udp_engine.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\udp_address.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tweetnacl.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\trie.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tipc_listener.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tipc_connecter.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tipc_address.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\timers.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\thread.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tcp_listener.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tcp_connecter.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tcp_address.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tcp.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sub.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stream_engine.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stream.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stdint.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\socks_connecter.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\socks.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\socket_poller.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\socket_base.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\signaler.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\session_base.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\server.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\select.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\router.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\req.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rep.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\reaper.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\raw_encoder.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\raw_decoder.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\random.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\radio.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\push.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pull.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pub.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\proxy.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\precompiled.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\poller_base.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\poller.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\poll.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\platform.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\plain_server.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\plain_client.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pipe.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pgm_socket.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pgm_sender.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pgm_receiver.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pair.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\own.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\options.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\object.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\null_mechanism.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\norm_engine.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mutex.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mtrie.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\msg.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\metadata.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mechanism.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mailbox_safe.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mailbox.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\macros.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\likely.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lb.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\kqueue.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ipc_listener.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ipc_connecter.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ipc_address.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ip.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\io_thread.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\io_object.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\i_poll_events.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\i_mailbox.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\i_engine.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\i_encoder.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\i_decoder.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gssapi_server.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gssapi_mechanism_base.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gssapi_client.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fq.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fd.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\err.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\epoll.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\encoder.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dist.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dish.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\devpoll.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\decoder_allocators.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\decoder.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dealer.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dbuffer.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\curve_server.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\curve_client.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ctx.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\config.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\condition_variable.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\command.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\clock.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\client.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\blob.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\atomic_ptr.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\atomic_counter.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\array.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\address.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zmq.h">
+      <Filter>Header files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zmq_utils.h">
+      <Filter>Header files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="src\zmq_draft.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dgram.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gather.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scatter.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pollset.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\zmq_utils.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zmq.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\xsub.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\xpub.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vmci_listener.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vmci_connecter.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vmci_address.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vmci.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v2_encoder.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v2_decoder.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v1_encoder.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v1_decoder.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\udp_engine.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\udp_address.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\trie.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tipc_listener.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tipc_connecter.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tipc_address.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\timers.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thread.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tcp_listener.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tcp_connecter.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tcp_address.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tcp.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sub.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\stream_engine.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\stream.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\socks_connecter.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\socks.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\socket_poller.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\socket_base.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\signaler.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\session_base.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\server.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\select.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\router.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\req.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rep.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\reaper.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\raw_encoder.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\raw_decoder.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\random.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\radio.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\push.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pull.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pub.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\proxy.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\precompiled.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\poller_base.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\poll.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plain_server.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plain_client.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pipe.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pgm_socket.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pgm_sender.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pgm_receiver.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pair.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\own.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\options.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\object.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\null_mechanism.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\norm_engine.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mtrie.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\msg.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\metadata.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mechanism.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mailbox_safe.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mailbox.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lb.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\kqueue.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ipc_listener.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ipc_connecter.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ipc_address.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ip.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\io_thread.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\io_object.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gssapi_server.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gssapi_mechanism_base.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gssapi_client.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fq.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\err.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\epoll.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dist.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dish.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\devpoll.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\decoder_allocators.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dealer.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\curve_server.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\curve_client.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ctx.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\clock.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\client.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\address.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scatter.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gather.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dgram.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pollset.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
