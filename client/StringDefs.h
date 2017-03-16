@@ -1177,7 +1177,7 @@ enum Strings   // @DontAdd
 	RSSDLG_NAME, // "Feed Name:"
 	RSSDLG_TITLE, // "Create / modify RSS feed"
 	RSSDLG_URL, // "Feed URL:"
-	RSSDLG_ENABLE,  // "Enable RSS and autoupdate"
+	RSSDLG_ENABLE,  // "Enable Feed and autoupdate"
 	RSS_AUTHOR, // "Author"
 	RSS_CATEGORY, // "Category"
 	RSS_CODEING, // "Encoding"

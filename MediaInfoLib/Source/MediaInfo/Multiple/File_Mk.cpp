@@ -93,6 +93,9 @@
 #include <cmath>
 #include <algorithm>
 #include "ThirdParty/base64/base64.h"
+#if MEDIAINFO_EVENTS
+    #include "MediaInfo/MediaInfo_Events_Internal.h"
+#endif //MEDIAINFO_EVENTS
 //---------------------------------------------------------------------------
 
 namespace MediaInfoLib
@@ -547,7 +550,7 @@ static Ztring Mk_ID_String_From_Source_ID (const Ztring &Value)
                 return Value;
         }
 
-        return Ztring::ToZtring(ValueI) + __T(" (0x") + Ztring::ToZtring(ValueI, 16) + __T(")");
+        return Get_Hex_ID(ValueI);
     }
 
     if (Value.size()==6 && Value[0] == __T('0') && Value[1] == __T('1'))
@@ -572,7 +575,7 @@ static Ztring Mk_ID_String_From_Source_ID (const Ztring &Value)
         if (ValueI)
             ID2=ValueI>>8;
 
-        return Ztring::ToZtring(ID1) + __T(" (0x") + Ztring::ToZtring(ID1, 16) + __T(")") + (ID2?(__T('-') + Ztring::ToZtring(ID2) + __T(" (0x") + Ztring::ToZtring(ID2, 16) + __T(")")):Ztring());
+        return Get_Hex_ID(ID1) + (ID2? Get_Hex_ID(ID2):Ztring());
     }
 
     return Value;
@@ -812,7 +815,7 @@ void File_Mk::Streams_Finish()
                     float64 Duration_1000 = Statistics_FrameCount / float64_int64s(FrameRate_FromTags) * 1.001001;
                     bool CanBe1001 = false;
                     bool CanBe1000 = false;
-                    if (fabs((Duration_1000 - Duration_1001) * 10000) >= 15)
+                    if (std::fabs((Duration_1000 - Duration_1001) * 10000) >= 15)
                     {
                         Ztring DurationS; DurationS.From_Number(Statistics_Duration, 3);
                         Ztring DurationS_1001; DurationS_1001.From_Number(Duration_1001, 3);
@@ -827,7 +830,7 @@ void File_Mk::Streams_Finish()
                     }
 
                     // Duration from tags not reliable, checking TrackDefaultDuration
-                    if (CanBe1000 == CanBe1001)
+                    if (CanBe1000 == CanBe1001 && Temp->second.TrackDefaultDuration)
                     {
                         float64 Duration_Default=((float64)1000000000)/Temp->second.TrackDefaultDuration;
                         if (float64_int64s(Duration_Default) - Duration_Default*1.001000 > -0.000002
@@ -1716,6 +1719,10 @@ void File_Mk::Segment_Attachments()
 void File_Mk::Segment_Attachments_AttachedFile()
 {
     Element_Name("AttachedFile");
+
+    AttachedFile_FileName.clear();
+    AttachedFile_FileMimeType.clear();
+    AttachedFile_FileDescription.clear();
 }
 
 //---------------------------------------------------------------------------
@@ -1724,7 +1731,9 @@ void File_Mk::Segment_Attachments_AttachedFile_FileDescription()
     Element_Name("FileDescription");
 
     //Parsing
-    UTF8_Info();
+    Ztring Data=UTF8_Get();
+
+    AttachedFile_FileDescription=Data.To_UTF8();
 }
 
 //---------------------------------------------------------------------------
@@ -1740,6 +1749,8 @@ void File_Mk::Segment_Attachments_AttachedFile_FileName()
     //Cover is in the first file which name contains "cover"
     if (!CoverIsSetFromAttachment && Data.MakeLowerCase().find(__T("cover")) != string::npos)
         CurrentAttachmentIsCover=true;
+
+    AttachedFile_FileName=Data.To_UTF8();
 }
 
 //---------------------------------------------------------------------------
@@ -1748,7 +1759,9 @@ void File_Mk::Segment_Attachments_AttachedFile_FileMimeType()
     Element_Name("FileMimeType");
 
     //Parsing
-    Local_Info();
+    Ztring Data=Local_Get();
+
+    AttachedFile_FileMimeType=Data.To_UTF8();
 }
 
 //---------------------------------------------------------------------------
@@ -1756,8 +1769,10 @@ void File_Mk::Segment_Attachments_AttachedFile_FileData()
 {
     Element_Name("FileData");
 
+    bool Attachments_Demux=true;
+
     //Parsing
-    if (!CoverIsSetFromAttachment && CurrentAttachmentIsCover && Element_Size<=8*1024*1024) //TODO: option for setting the acceptable maximum size of the attachment
+    if ((Attachments_Demux || !CoverIsSetFromAttachment && CurrentAttachmentIsCover) && Element_Size<=16*1024*1024) //TODO: option for setting the acceptable maximum size of the attachment
     {
         if (!Element_IsComplete_Get())
         {
@@ -1767,12 +1782,30 @@ void File_Mk::Segment_Attachments_AttachedFile_FileData()
 
         std::string Data_Raw;
         Peek_String(Element_TotalSize_Get(), Data_Raw);
-        std::string Data_Base64(Base64::encode(Data_Raw));
 
-        //Filling
-        Fill(Stream_General, 0, General_Cover_Data, Data_Base64);
-        Fill(Stream_General, 0, General_Cover, "Yes");
-        CoverIsSetFromAttachment=true;
+        if (!CoverIsSetFromAttachment && CurrentAttachmentIsCover)
+        {
+            std::string Data_Base64(Base64::encode(Data_Raw));
+
+            //Filling
+            Fill(Stream_General, 0, General_Cover_Data, Data_Base64);
+            Fill(Stream_General, 0, General_Cover, "Yes");
+            CoverIsSetFromAttachment=true;
+        }
+
+        #if MEDIAINFO_EVENTS
+            if (Attachments_Demux)
+            {
+                EVENT_BEGIN(Global, AttachedFile, 0)
+                    Event.Content_Size=Data_Raw.size();
+                    Event.Content=(const int8u*)Data_Raw.c_str();
+                    Event.Flags=0;
+                    Event.Name=AttachedFile_FileName.c_str();
+                    Event.MimeType=AttachedFile_FileMimeType.c_str();
+                    Event.Description=AttachedFile_FileDescription.c_str();
+                EVENT_END()
+            }
+        #endif MEDIAINFO_EVENTS
     }
     
     Skip_XX(Element_TotalSize_Get(),                            "Data");

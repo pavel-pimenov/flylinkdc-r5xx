@@ -138,7 +138,7 @@ bool MainFrame::g_isHardwareShutdown = false;
 uint64_t MainFrame::g_CurrentShutdownTime = 0;
 bool MainFrame::g_isShutdownStatus = false;
 CComboBox MainFrame::QuickSearchBox;
-bool MainFrame::m_bDisableAutoComplete = false;
+bool MainFrame::g_bDisableAutoComplete = false;
 bool MainFrame::g_bAppMinimized = false;
 int MainFrame::g_CountSTATS = 0; //[+]PPA
 
@@ -163,6 +163,7 @@ MainFrame::MainFrame() :
 	m_is_tbarcreated(false),
 	m_is_wtbarcreated(false),
 	m_is_qtbarcreated(false),
+	m_is_end_session(false),
 	m_oldshutdown(false),
 	m_stopperThread(nullptr),
 	m_bHashProgressVisible(false),
@@ -1432,16 +1433,16 @@ LRESULT MainFrame::onQuickSearchChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
 {
 	if (uMsg == WM_CHAR)
 		if (wParam == VK_BACK)
-			m_bDisableAutoComplete = true;
+			g_bDisableAutoComplete = true;
 		else
-			m_bDisableAutoComplete = false;
+			g_bDisableAutoComplete = false;
 			
 	switch (wParam)
 	{
 		case VK_DELETE:
 			if (uMsg == WM_KEYDOWN)
 			{
-				m_bDisableAutoComplete = true;
+				g_bDisableAutoComplete = true;
 			}
 			bHandled = FALSE;
 			break;
@@ -1519,7 +1520,7 @@ LRESULT MainFrame::onQuickSearchEditChange(WORD /*wNotifyCode*/, WORD /*wID*/, H
 		
 		// Check to make sure autocompletion isn't disabled due to a backspace or delete
 		// Also, the user must be typing at the end of the string, not somewhere in the middle.
-		if (! m_bDisableAutoComplete && (dwStartSel == dwEndSel) && (dwStartSel == nTextLen))
+		if (! g_bDisableAutoComplete && (dwStartSel == dwEndSel) && (dwStartSel == nTextLen))
 		{
 			// Try and find a string that matches the typed substring.  If one is found,
 			// set the text of the combobox to that string and set the selection to mask off
@@ -2630,62 +2631,48 @@ LRESULT MainFrame::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL&
 	return 0;
 }
 
-//LRESULT MainFrame::onQueryEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)// [+]IRainman
-//{
-//	// http://msdn.microsoft.com/en-us/library/aa376890(VS.85).aspx
-//	if (lParam & ENDSESSION_CLOSEAPP > 0)
-//	{
-//	  // TODO можем вернуть FALSE и тем самым проигнорировать просьбу системы нас закрыть,
-//	  // однако при этом хорошо бы что нибудь спросить. к примеру подтверждение выхода корректно отработает только здесь,
-//	  // при выводе этого предупреждения в других местах нас через некоторое время закроют насильно.
-//	  // Следует обратить внимание что значение FALSE в этом случае надо вернуть сразу же, а не ждать пока пользователь ответит.
-//	  // WM_ENDSESSION нам, как и другим приложениям послан не будет. Так что запоминаем что пользователь уже разрешил выход.
-//	  return TRUE;
-//	}
-//	else if (lParam & ENDSESSION_CRITICAL > 0)
-//	{
-//	  // TODO Тут мы ничего сделать не можем. Даже если вернём FALSE, сессия завершается по критической причине,
-//	  // прерываем хеширование, игнорируем запрос подтверждения выхода, и т.д.
-//	  // Причиной подобного завершения может послужить почти севший аккамулятор поэтому возвращаем TRUE,
-//	  // и немедля сохраняемся в onEndSession (WM_ENDSESSION нам будет послан)
-//	  return TRUE;
-//	}
-//	else if (lParam & ENDSESSION_LOGOFF > 0)
-//	{
-//	  // TODO пользователь инициировал завершения сеанса, если включено подтверждение выхода то надо вернуть FALSE
-//	  // это прервёт процесс завершения сеанса, и ни одно приложение не будет закрыто. И только после этого
-//	  // следуют попросить подтверждение пользователя
-//	  return TRUE;
-//	}
-//}
 void MainFrame::storeWindowsPos()
 {
 	if (m_is_start_autoupdate == false)
 	{
 		WINDOWPLACEMENT wp = { 0 };
 		wp.length = sizeof(wp);
-		GetWindowPlacement(&wp);
-		
-		CRect rc;
-		GetWindowRect(rc);
-		
-		//  if (wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWNORMAL)
+		if (GetWindowPlacement(&wp))
 		{
-			SET_SETTING(MAIN_WINDOW_POS_X, rc.left);
-			SET_SETTING(MAIN_WINDOW_POS_Y, rc.top);
-			SET_SETTING(MAIN_WINDOW_SIZE_X, rc.Width());
-			SET_SETTING(MAIN_WINDOW_SIZE_Y, rc.Height());
+			// Состояние окна отдельно от координат! Там мы могли не попадать в условие, при MAXIMIZED
+			if (wp.showCmd == SW_SHOWNORMAL || wp.showCmd == SW_SHOW ||
+			        wp.showCmd == SW_SHOWMAXIMIZED || wp.showCmd == SW_SHOWMINIMIZED ||
+			        wp.showCmd == SW_MAXIMIZE)
+			{
+				SET_SETTING(MAIN_WINDOW_STATE, (int)wp.showCmd);
+			}
+			else
+			{
+				dcassert(0);
+			}
+			// Координаты окна
+			CRect rc;
+			// СОХРАНИМ координаты, только если окно в нормальном состоянии!!! Иначе - пусть будут последние
+			if (GetWindowRect(rc) && (wp.showCmd == SW_SHOW || wp.showCmd == SW_SHOWNORMAL))
+			{
+				SET_SETTING(MAIN_WINDOW_POS_X, rc.left);
+				SET_SETTING(MAIN_WINDOW_POS_Y, rc.top);
+				SET_SETTING(MAIN_WINDOW_SIZE_X, rc.Width());
+				SET_SETTING(MAIN_WINDOW_SIZE_Y, rc.Height());
+			}
+#ifdef _DEBUG
+			else {
+				dcdebug("MainFrame:: WINDOW  GetWindowRect(rc) -> NULL rc OR is SW_MAXIMIZED, SW_MINIMIZED, etc...\n");
+				// Вывести окно с этим сообщением
+			}
+#endif
 		}
-		if (wp.showCmd == SW_SHOWNORMAL || wp.showCmd == SW_SHOW ||
-		        wp.showCmd == SW_SHOWMAXIMIZED || wp.showCmd == SW_SHOWMINIMIZED ||
-		        wp.showCmd == SW_MAXIMIZE)
-		{
-			SET_SETTING(MAIN_WINDOW_STATE, (int)wp.showCmd);
+#ifdef _DEBUG
+		else {
+			dcdebug("MainFrame:: WINDOW  GetWindowPlacement(&wp) -> NULL data !!!\n");
+			// вывести окно с этим сообщением
 		}
-		else
-		{
-			dcassert(0);
-		}
+#endif
 	}
 }
 
@@ -2705,15 +2692,16 @@ LRESULT MainFrame::onSetDefaultPosition(WORD /*wNotifyCode*/, WORD /*wParam*/, H
 	}
 	MoveWindow(rc);
 	CenterWindow(GetParent());
-//	storeWindowsPos();       // Хз как лучше - сразу сохранить новые значения, или ждём закрытия программы и там сохраним как обычно.
+	storeWindowsPos();       // Хз как лучше - сразу сохранить новые значения, или ждём закрытия программы и там сохраним как обычно.
 	return 0;
 }
 #endif
 
 LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	QueueManager::getInstance()->saveQueue();
-	SettingsManager::getInstance()->save();
+	m_is_end_session = true;
+//	QueueManager::getInstance()->saveQueue();
+//	SettingsManager::getInstance()->save();
 	return 0;
 }
 
@@ -2733,7 +2721,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			dcdebug("MainFrame::OnClose first - User::g_user_counts = %d\n", int(User::g_user_counts)); // [!] IRainman fix: Issue 1037 иногда теряем объект User?
 #endif
 			m_stopexit = false;
-			if (SETTING(PROTECT_CLOSE) && !m_oldshutdown && SETTING(PASSWORD) != g_magic_password && !SETTING(PASSWORD).empty())
+			if (SETTING(PROTECT_CLOSE) && !m_oldshutdown && !m_is_end_session && SETTING(PASSWORD) != g_magic_password && !SETTING(PASSWORD).empty())
 			{
 				INT_PTR l_do_modal_result;
 				if (getPasswordInternal(l_do_modal_result) == false)
@@ -2792,9 +2780,18 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			
 			UINT checkState = AutoUpdate::getExitOnUpdate() ? BST_UNCHECKED : (BOOLSETTING(CONFIRM_EXIT) ? BST_CHECKED : BST_UNCHECKED); // [+] FlylinkDC.
 			
-			if ((m_oldshutdown || SETTING(PROTECT_CLOSE) || (checkState == BST_UNCHECKED) || (bForceNoWarning || ::MessageBox(m_hWnd, CTSTRING(REALLY_EXIT), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(ALWAYS_ASK), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)) && !m_stopexit) // [~] InfinitySky.
+			if ((m_oldshutdown || m_is_end_session ||
+			        SETTING(PROTECT_CLOSE) ||
+			        checkState == BST_UNCHECKED ||
+			        (bForceNoWarning ||
+			         ::MessageBox(m_hWnd, CTSTRING(REALLY_EXIT),
+			                      getFlylinkDCAppCaptionWithVersionT().c_str(),
+			                      CTSTRING(ALWAYS_ASK), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1,
+			                      checkState) == IDYES))
+			        && !m_stopexit)
 			{
 				{
+					storeWindowsPos();
 					ClientManager::before_shutdown();
 					CFlyCrashReportMarker l_crash(_T("StopGUI"));
 					LogManager::g_mainWnd = nullptr;
@@ -2827,7 +2824,6 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 						SET_SETTING(TRANSFER_SPLIT_SIZE, m_nProportionalPos);
 						Util::setRegistryValueInt(_T("TransferSplitSize"), m_nProportionalPos);
 					}
-					storeWindowsPos();
 					ShowWindow(SW_HIDE);
 				}
 				m_stopperThread = reinterpret_cast<HANDLE>(_beginthreadex(NULL, 0, &stopper, this, 0, nullptr));
@@ -3951,6 +3947,7 @@ UINT MainFrame::ShowDialogUpdate(const std::string& message, const std::string& 
 	{
 		case IDOK:
 		{
+			m_is_start_autoupdate = false;
 			storeWindowsPos();
 			m_is_start_autoupdate = true;
 			return (UINT)AutoUpdate::UPDATE_NOW;

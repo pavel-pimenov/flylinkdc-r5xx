@@ -187,49 +187,15 @@ struct complete_stream
                 #endif
             }
 
-            program& operator=(const program& p)
-            {
-                #if defined(MEDIAINFO_EIA608_YES) || defined(MEDIAINFO_EIA708_YES)
-                    if (p.ServiceDescriptors)
-                    {
-                        ServiceDescriptors=new File__Analyze::servicedescriptors;
-                        *ServiceDescriptors=*p.ServiceDescriptors;
-                    }
-                    else
-                        ServiceDescriptors=NULL;
-                #endif
-                HasChanged=p.HasChanged;
-                Infos=p.Infos;
-                ExtraInfos_Content=p.ExtraInfos_Content;
-                ExtraInfos_Option=p.ExtraInfos_Option;
-                EPGs=p.EPGs;
-                elementary_PIDs=p.elementary_PIDs;
-                StreamPos=p.StreamPos;
-                registration_format_identifier=p.registration_format_identifier;
-                pid=p.pid;
-                PCR_PID=p.PCR_PID;
-                source_id=p.source_id;
-                source_id_IsValid=p.source_id_IsValid;
-                IsParsed=p.IsParsed;
-                IsRegistered=p.IsRegistered;
-                HasNotDisplayableStreams=p.HasNotDisplayableStreams;
-                Update_Needed_IsRegistered=p.Update_Needed_IsRegistered;
-                Update_Needed_StreamCount=p.Update_Needed_StreamCount;
-                Update_Needed_StreamPos=p.Update_Needed_StreamPos;
-                Update_Needed_Info=p.Update_Needed_Info;
-                DVB_EPG_Blocks_IsUpdated=p.DVB_EPG_Blocks_IsUpdated;
-                Scte35=p.Scte35;
-
-                return *this;
-            }
-
             ~program()
             {
                 #if defined(MEDIAINFO_EIA608_YES) || defined(MEDIAINFO_EIA708_YES)
                     delete ServiceDescriptors;
                 #endif
             }
-        };
+			private:
+			program& operator=(const program& p);
+		};
         typedef std::map<int16u, program> programs; //Key is program_number
         programs Programs; //Key is program_number
         std::vector<int16u> programs_List;
@@ -542,43 +508,15 @@ struct complete_stream
                     start_time((int32u)-1)
                 {}
 
-                event(const event& e)
-                :
-                    start_time(e.start_time)
-                {
-                    #if defined(MEDIAINFO_EIA608_YES) || defined(MEDIAINFO_EIA708_YES)
-                        if (e.ServiceDescriptors)
-                        {
-                            ServiceDescriptors=new File__Analyze::servicedescriptors;
-                            *ServiceDescriptors=*e.ServiceDescriptors;
-                        }
-                        else
-                            ServiceDescriptors=NULL;
-                    #endif
-                }
-
-                event& operator=(const event& e)
-                {
-                    #if defined(MEDIAINFO_EIA608_YES) || defined(MEDIAINFO_EIA708_YES)
-                        if (e.ServiceDescriptors)
-                        {
-                            ServiceDescriptors=new File__Analyze::servicedescriptors;
-                            *ServiceDescriptors=*e.ServiceDescriptors;
-                        }
-                        else
-                            ServiceDescriptors=NULL;
-                    #endif
-                    start_time=e.start_time;
-
-                    return *this;
-                }
-
-                ~event()
-                {
-                    #if defined(MEDIAINFO_EIA608_YES) || defined(MEDIAINFO_EIA708_YES)
-                        delete ServiceDescriptors;
-                    #endif
-                }
+				~event()
+				{
+#if defined(MEDIAINFO_EIA608_YES) || defined(MEDIAINFO_EIA708_YES)
+					delete ServiceDescriptors;
+#endif
+				}
+			private:
+				event(const event& e);
+				event& operator=(const event& e);
             };
 
             typedef std::map<int16u, event> events; //Key is event_id

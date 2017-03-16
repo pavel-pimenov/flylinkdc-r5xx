@@ -1172,7 +1172,7 @@
 	<string name="RssdlgName">Feed Name:</string>
 	<string name="RssdlgTitle">Create / modify RSS feed</string>
 	<string name="RssdlgUrl">Feed URL:</string>
-	<string name="RssdlgEnable">Enable RSS and autoupdate</string>
+	<string name="RssdlgEnable">Enable Feed and autoupdate</string>
 	<string name="RssAuthor">Author</string>
 	<string name="RssCategory">Category</string>
 	<string name="RssCodeing">Encoding</string>

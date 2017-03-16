@@ -2897,7 +2897,7 @@ void File_Avc::sei_message_user_data_registered_itu_t_t35_GA94_03()
         //Coherency
         delete TemporalReferences_DelayedElement; TemporalReferences_DelayedElement=new temporal_reference();
 
-        TemporalReferences_DelayedElement->GA94_03=new buffer_data(Buffer + Buffer_Offset + (size_t)Element_Offset, (size_t)(Element_Size - Element_Offset));
+        TemporalReferences_DelayedElement->GA94_03=new buffer_data(Buffer+Buffer_Offset+(size_t)Element_Offset,(size_t)(Element_Size-Element_Offset));
 
         //Parsing
         Skip_XX(Element_Size-Element_Offset,                    "CC data");

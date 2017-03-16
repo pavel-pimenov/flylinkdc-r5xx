@@ -3291,7 +3291,7 @@ void File_Mpegv::user_data_start_3()
             TemporalReference.resize(TemporalReference_Offset+temporal_reference+1);
         if (TemporalReference[TemporalReference_Offset+temporal_reference]==NULL)
             TemporalReference[TemporalReference_Offset+temporal_reference]=new temporalreference;
-        buffer_data* BufferData=new buffer_data(Buffer + Buffer_Offset + (size_t)Element_Offset, (size_t)(Element_Size - Element_Offset));
+        buffer_data* BufferData=new buffer_data(Buffer+Buffer_Offset+(size_t)Element_Offset,(size_t)(Element_Size-Element_Offset));
         TemporalReference[TemporalReference_Offset+temporal_reference]->Scte.push_back(BufferData);
         TemporalReference[TemporalReference_Offset+temporal_reference]->Scte_Parsed.push_back(false);
         if (TemporalReference[TemporalReference_Offset+temporal_reference]->Scte_Parsed.size()>=2 && TemporalReference[TemporalReference_Offset+temporal_reference]->Scte_Parsed[TemporalReference[TemporalReference_Offset+temporal_reference]->Scte_Parsed.size()-2] && Scte_TemporalReference_Offset==TemporalReference_Offset+temporal_reference+1)

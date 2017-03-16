@@ -2711,7 +2711,7 @@ void QueueManager::setAutoPriority(const string& aTarget, bool ap)
 	}
 }
 
-void QueueManager::saveQueue(bool force) noexcept
+void QueueManager::saveQueue(bool force /* = false*/) noexcept
 {
 	if (!g_dirty && !force)
 		return;

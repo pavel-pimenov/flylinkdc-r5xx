@@ -1211,6 +1211,12 @@ void File__Analyze::Open_Buffer_Position_Set (int64u File_Offset_)
 }
 
 //---------------------------------------------------------------------------
+void File__Analyze::Open_Buffer_CheckFileModifications()
+{
+    Read_Buffer_CheckFileModifications();
+}
+
+//---------------------------------------------------------------------------
 #if MEDIAINFO_ADVANCED2
 void File__Analyze::Open_Buffer_SegmentChange ()
 {
@@ -2937,7 +2943,7 @@ void File__Analyze::Accept ()
             EVENT_END   ()
 
             #if MEDIAINFO_DEMUX && MEDIAINFO_NEXTPACKET
-                if (!Demux_EventWasSent_Accept_Specific && Config->NextPacket_Get() && Config->Event_CallBackFunction_IsSet())
+                if (!Demux_EventWasSent_Accept_Specific && Config->NextPacket_Get())
                     Config->Demux_EventWasSent=true;
             #endif //MEDIAINFO_DEMUX && MEDIAINFO_NEXTPACKET
         }
@@ -3781,6 +3787,35 @@ void File__Analyze::Demux_UnpacketizeContainer_Demux_Clear ()
     //Element_Begin1("Frame or Field");
 }
 #endif //MEDIAINFO_DEMUX
+
+//***************************************************************************
+// Decode
+//***************************************************************************
+
+#if MEDIAINFO_DECODE
+
+//---------------------------------------------------------------------------
+void File__Analyze::Decoded (const int8u* Buffer, size_t Buffer_Size)
+{
+    if (!Buffer_Size)
+        return;
+
+    #if MEDIAINFO_EVENTS
+        //Demux
+        if (StreamIDs_Size)
+            StreamIDs[StreamIDs_Size-1]=Element_Code;
+
+        EVENT_BEGIN(Global, Decoded, 0)
+            if (StreamIDs_Size)
+                Event.EventCode|=((int32u)ParserIDs[StreamIDs_Size-1]<<24);
+            Event.Content_Size=Buffer_Size;
+            Event.Content=Buffer;
+            Event.Flags=0;
+        EVENT_END()
+    #endif MEDIAINFO_EVENTS
+}
+
+#endif //MEDIAINFO_DECODE
 
 //***************************************************************************
 // IBI

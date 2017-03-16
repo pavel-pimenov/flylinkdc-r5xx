@@ -61,7 +61,7 @@ namespace Elements
 {
     const int64u free=0x66726565;
     const int64u mdat=0x6D646174;
-    const int64u moov_meta______=0x2D2D2D2D; // [IntelC++ 2012 beta2] warning #2415: variable "MediaInfoLib::Elements::moov_meta______" of static storage duration was declared but never referenced
+    const int64u moov_meta______=0x2D2D2D2D;
     const int64u moov_meta___ART=0xA9415254;
     const int64u moov_meta___alb=0xA9616C62;
     const int64u moov_meta___ard=0xA9617264;
@@ -111,7 +111,7 @@ namespace Elements
     const int64u moov_meta__cnID=0x636E4944;
     const int64u moov_meta__cpil=0x6370696C;
     const int64u moov_meta__cprt=0x63707274;
-    const int64u moov_meta__covr=0x636F7672; // [IntelC++ 2012 beta2] variable "MediaInfoLib::Elements::moov_meta__covr" of static storage duration was declared but never referenced
+    const int64u moov_meta__covr=0x636F7672;
     const int64u moov_meta__desc=0x64657363;
     const int64u moov_meta__disk=0x6469736B;
     const int64u moov_meta__dscp=0x64736370;
@@ -2301,7 +2301,10 @@ bool File_Mpeg4::BookMark_Needed()
                         Muxing[Temp->first].MaximalOffset=MaximalOffset;
                     #endif //MEDIAINFO_DEMUX
                     for (size_t Pos=0; Pos<Temp->second.Parsers.size(); Pos++)
-                        Temp->second.Parsers[Pos]->Stream_BitRateFromContainer=Temp->second.stsz_StreamSize*8/(((float64)Temp->second.stts_Duration)/Temp->second.mdhd_TimeScale);
+						{
+						if(Temp->second.stts_Duration && Temp->second.mdhd_TimeScale)
+						   Temp->second.Parsers[Pos]->Stream_BitRateFromContainer=Temp->second.stsz_StreamSize*8/(((float64)Temp->second.stts_Duration)/Temp->second.mdhd_TimeScale);
+						}
                     #if MEDIAINFO_DEMUX
                         if (FrameCount_MaxPerStream==(int32u)-1 && !Temp_stts_Durations.empty())
                         {
@@ -2810,11 +2813,14 @@ void File_Mpeg4::IsParsing_mdat_Set()
             tc->H24 = false;
             tc->NegativeTimes = false;
             for (std::map<int32u, stream>::iterator StreamTemp = Streams.begin(); StreamTemp != Streams.end(); ++StreamTemp)
-                if ((StreamTemp->second.StreamKind = Stream_Video))
+                if (StreamTemp->second.StreamKind == Stream_Video)
                 {
                     tc->TimeScale = StreamTemp->second.mdhd_TimeScale;
                     tc->FrameDuration = StreamTemp->second.stts_Min;
-                    tc->NumberOfFrames = (int8u)float64_int64s(((float64)StreamTemp->second.mdhd_TimeScale) / StreamTemp->second.stts_Min);
+                    if(tc->FrameDuration)
+                       tc->NumberOfFrames = (int8u)float64_int64s(((float64)StreamTemp->second.mdhd_TimeScale) / StreamTemp->second.stts_Min);
+                    else
+                       tc->NumberOfFrames = 0; 
                     break;
                 }
 

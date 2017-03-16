@@ -180,13 +180,13 @@ MediaInfo_Config Config;
 
 void MediaInfo_Config::Init()
 {
-    CS.Enter();
+    {
+        CriticalSectionLocker CSL(CS);
     //We use Init() instead of COnstructor because for some backends (like WxWidgets...) does NOT like constructor of static object with Unicode conversion
 
     //Test
     if (!LineSeparator.empty())
     {
-        CS.Leave();
         return; //Already done
     }
 
@@ -253,7 +253,7 @@ void MediaInfo_Config::Init()
         TryToFix=false;
     #endif //MEDIAINFO_FIXITY
 
-    CS.Leave();
+    }
 
     ZtringListList ZLL1; Language_Set(ZLL1);
 }
@@ -262,11 +262,144 @@ void MediaInfo_Config::Init()
 // Info
 //***************************************************************************
 
+static inline int _OctDigitValue(const String::value_type &ch)
+{
+    switch (ch)
+    {
+    case __T('0'): return 0;
+    case __T('1'): return 1;
+    case __T('2'): return 2;
+    case __T('3'): return 3;
+    case __T('4'): return 4;
+    case __T('5'): return 5;
+    case __T('6'): return 6;
+    case __T('7'): return 7;
+    }
+    return -1;
+}
+
+static inline int _HexDigitValue(const String::value_type &ch)
+{
+    switch (ch)
+    {
+    case __T('0'): return 0;
+    case __T('1'): return 1;
+    case __T('2'): return 2;
+    case __T('3'): return 3;
+    case __T('4'): return 4;
+    case __T('5'): return 5;
+    case __T('6'): return 6;
+    case __T('7'): return 7;
+    case __T('8'): return 8;
+    case __T('9'): return 9;
+    case __T('a'): case __T('A'): return 10;
+    case __T('b'): case __T('B'): return 11;
+    case __T('c'): case __T('C'): return 12;
+    case __T('d'): case __T('D'): return 13;
+    case __T('e'): case __T('E'): return 14;
+    case __T('f'): case __T('F'): return 15;
+    }
+    return -1;
+}
+
+static String _DecodeEscapeC(String::const_iterator first, String::const_iterator last)
+{
+    String decoded;
+    for (String::const_iterator it = first; it != last; ++it)
+    {
+        String::value_type ch = 0;
+        int inc = 0;
+        if (*it == __T('\\') && (it+1) != last)
+        {
+            switch (*(it+1))
+            {
+            case __T('a'):   ch = __T('\a'); inc = 1; break;
+            case __T('b'):   ch = __T('\b'); inc = 1; break;
+            case __T('f'):   ch = __T('\f'); inc = 1; break;
+            case __T('n'):   ch = __T('\n'); inc = 1; break;
+            case __T('r'):   ch = __T('\r'); inc = 1; break;
+            case __T('t'):   ch = __T('\t'); inc = 1; break;
+            case __T('v'):   ch = __T('\v'); inc = 1; break;
+            case __T('\''):  ch = __T('\''); inc = 1; break;
+            case __T('\"'):  ch = __T('\"'); inc = 1; break;
+            case __T('\\'):  ch = __T('\\'); inc = 1; break;
+            case __T('?'):   ch = __T('?');  inc = 1; break;
+            case __T('x'): // Hex
+                {
+                    int d;
+                    if ((it+2) != last && (d = _HexDigitValue(*(it+2))) >= 0)
+                    {
+                        ch = String::value_type(d);
+                        inc = 2;
+                        if ((it+3) != last && (d = _HexDigitValue(*(it+3))) >= 0)
+                        {
+                            ch = (ch << 4) | String::value_type(d);
+                            ++inc;
+                        }
+                    }
+                }
+                break;
+#if defined(__UNICODE__)
+            case __T('u'): case __T('U'): // Unicode
+                {
+                    int d;
+                    if ((it+2) != last && (d = _HexDigitValue(*(it+2))) >= 0)
+                    {
+                        ch = String::value_type(d);
+                        inc = 2;
+                        for (int i = 0; i < 3; ++i)
+                        {
+                            if ((it+3+i) != last && (d = _HexDigitValue(*(it+3+i))) >= 0)
+                            {
+                                ch = (ch << 4) | String::value_type(d);
+                                ++inc;
+                            }
+                        }
+                    }
+                }
+                break;
+#endif
+            default:
+                {
+                    int d;
+                    if ((d = _OctDigitValue(*(it+1))) >= 0) // Oct
+                    {
+                        ch = String::value_type(d);
+                        inc = 1;
+                        if ((it+2) != last && (d = _OctDigitValue(*(it+2))) >= 0)
+                        {
+                            ch = (ch << 3) | String::value_type(d);
+                            ++inc;
+                            if ((it+3) != last && (d = _OctDigitValue(*(it+3))) >= 0)
+                            {
+                                ch = (ch << 3) | String::value_type(d);
+                                ++inc;
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+        }
+        if (inc > 0)
+        {
+            decoded += ch;
+            it += inc;
+        }
+        else
+        {
+            decoded += *it;
+        }
+    }
+    return decoded;
+}
+
 Ztring MediaInfo_Config::Option (const String &Option, const String &Value_Raw)
 {
-    CS.Enter();
+    {
+    CriticalSectionLocker CSL(CS);
     SubFile_Config(Option)=Value_Raw;
-    CS.Leave();
+    }
 
     String Option_Lower(Option);
     size_t Egal_Pos=Option_Lower.find(__T('='));
@@ -297,6 +430,10 @@ Ztring MediaInfo_Config::Option (const String &Option, const String &Value_Raw)
 
         //Merge
         Value=FromFile;
+    }
+    else if (Value_Raw.substr(0, 7)==__T("cstr://"))
+    {
+        Value=_DecodeEscapeC(Value_Raw.begin() + 7, Value_Raw.end());
     }
     else
         Value=Value_Raw;
@@ -1809,10 +1946,11 @@ ZtringListList MediaInfo_Config::Inform_Replace_Get_All ()
 const Ztring &MediaInfo_Config::Format_Get (const Ztring &Value, infoformat_t KindOfFormatInfo)
 {
     //Loading codec table if not yet done
-    CS.Enter();
+    {
+        CriticalSectionLocker CSL(CS);
     if (Format.empty())
         MediaInfo_Config_Format(Format);
-    CS.Leave();
+    }
 
     return Format.Get(Value, KindOfFormatInfo);
 }
@@ -1821,10 +1959,11 @@ const Ztring &MediaInfo_Config::Format_Get (const Ztring &Value, infoformat_t Ki
 InfoMap &MediaInfo_Config::Format_Get ()
 {
     //Loading codec table if not yet done
-    CS.Enter();
+    {
+        CriticalSectionLocker CSL(CS);
     if (Format.empty())
         MediaInfo_Config_Format(Format);
-    CS.Leave();
+    }
 
     return Format;
 }
@@ -1833,10 +1972,11 @@ InfoMap &MediaInfo_Config::Format_Get ()
 const Ztring &MediaInfo_Config::Codec_Get (const Ztring &Value, infocodec_t KindOfCodecInfo)
 {
     //Loading codec table if not yet done
-    CS.Enter();
+    {
+        CriticalSectionLocker CSL(CS);
     if (Codec.empty())
         MediaInfo_Config_Codec(Codec);
-    CS.Leave();
+    }
 
     return Codec.Get(Value, KindOfCodecInfo);
 }
@@ -1845,10 +1985,11 @@ const Ztring &MediaInfo_Config::Codec_Get (const Ztring &Value, infocodec_t Kind
 const Ztring &MediaInfo_Config::Codec_Get (const Ztring &Value, infocodec_t KindOfCodecInfo, stream_t KindOfStream)
 {
     //Loading codec table if not yet done
-    CS.Enter();
+    {
+    CriticalSectionLocker CSL(CS);
     if (Codec.empty())
         MediaInfo_Config_Codec(Codec);
-    CS.Leave();
+    }
 
     //Transform to text
     Ztring KindOfStreamS;
@@ -1872,8 +2013,8 @@ const Ztring &MediaInfo_Config::CodecID_Get (stream_t KindOfStream, infocodecid_
 {
     if (Format>=InfoCodecID_Format_Max || KindOfStream>=Stream_Max)
         return EmptyString_Get();
-
-    CS.Enter();
+    {
+    CriticalSectionLocker CSL(CS);
     if (CodecID[Format][KindOfStream].empty())
     {
         switch (KindOfStream)
@@ -1924,7 +2065,7 @@ const Ztring &MediaInfo_Config::CodecID_Get (stream_t KindOfStream, infocodecid_
             default: ;
         }
     }
-    CS.Leave();
+    }
     return CodecID[Format][KindOfStream].Get(Value, KindOfCodecIDInfo);
 }
 
@@ -1933,8 +2074,8 @@ const Ztring &MediaInfo_Config::Library_Get (infolibrary_format_t Format, const 
 {
     if (Format>=InfoLibrary_Format_Max)
         return EmptyString_Get();
-
-    CS.Enter();
+    {
+    CriticalSectionLocker CSL(CS);
     if (Library[Format].empty())
     {
         switch (Format)
@@ -1946,7 +2087,7 @@ const Ztring &MediaInfo_Config::Library_Get (infolibrary_format_t Format, const 
             default: ;
         }
     }
-    CS.Leave();
+    }
     return Library[Format].Get(Value, KindOfLibraryInfo);
 }
 
@@ -1954,10 +2095,11 @@ const Ztring &MediaInfo_Config::Library_Get (infolibrary_format_t Format, const 
 const Ztring &MediaInfo_Config::Iso639_1_Get (const Ztring &Value)
 {
     //Loading codec table if not yet done
-    CS.Enter();
+    {
+        CriticalSectionLocker CSL(CS);
     if (Iso639_1.empty())
         MediaInfo_Config_Iso639_1(Iso639_1);
-    CS.Leave();
+    }
 
     return Iso639_1.Get(Ztring(Value).MakeLowerCase(), 1);
 }
@@ -1966,10 +2108,11 @@ const Ztring &MediaInfo_Config::Iso639_1_Get (const Ztring &Value)
 const Ztring &MediaInfo_Config::Iso639_2_Get (const Ztring &Value)
 {
     //Loading codec table if not yet done
-    CS.Enter();
+    {
+        CriticalSectionLocker CSL(CS);
     if (Iso639_2.empty())
         MediaInfo_Config_Iso639_2(Iso639_2);
-    CS.Leave();
+    }
 
     return Iso639_2.Get(Ztring(Value).MakeLowerCase(), 1);
 }
@@ -2011,7 +2154,8 @@ const Ztring MediaInfo_Config::Iso639_Translate (const Ztring& Value)
 const Ztring &MediaInfo_Config::Info_Get (stream_t KindOfStream, const Ztring &Value, info_t KindOfInfo)
 {
     //Loading codec table if not yet done
-    CS.Enter();
+    {
+    CriticalSectionLocker CSL(CS);
     if (Info[KindOfStream].empty())
         switch (KindOfStream)
         {
@@ -2024,8 +2168,7 @@ const Ztring &MediaInfo_Config::Info_Get (stream_t KindOfStream, const Ztring &V
             case Stream_Menu :      MediaInfo_Config_Menu(Info[Stream_Menu]);         Language_Set(Stream_Menu); break;
             default:;
         }
-    CS.Leave();
-
+    }
     if (KindOfStream>=Stream_Max)
         return EmptyString_Get();
     size_t Pos=Info[KindOfStream].Find(Value);
@@ -2037,7 +2180,8 @@ const Ztring &MediaInfo_Config::Info_Get (stream_t KindOfStream, const Ztring &V
 const Ztring &MediaInfo_Config::Info_Get (stream_t KindOfStream, size_t Pos, info_t KindOfInfo)
 {
     //Loading codec table if not yet done
-    CS.Enter();
+    {
+    CriticalSectionLocker CSL(CS);
     if (Info[KindOfStream].empty())
         switch (KindOfStream)
         {
@@ -2050,8 +2194,7 @@ const Ztring &MediaInfo_Config::Info_Get (stream_t KindOfStream, size_t Pos, inf
             case Stream_Menu :      MediaInfo_Config_Menu(Info[Stream_Menu]);         Language_Set(Stream_Menu); break;
             default:;
         }
-    CS.Leave();
-
+     }
     if (KindOfStream>=Stream_Max)
         return EmptyString_Get();
     if (Pos>=Info[KindOfStream].size() || (size_t)KindOfInfo>=Info[KindOfStream][Pos].size())
@@ -2065,7 +2208,8 @@ const ZtringListList &MediaInfo_Config::Info_Get(stream_t KindOfStream)
         return EmptyStringListList_Get();
 
     //Loading codec table if not yet done
-    CS.Enter();
+    {
+    CriticalSectionLocker CSL(CS);
     if (Info[KindOfStream].empty())
         switch (KindOfStream)
         {
@@ -2078,15 +2222,16 @@ const ZtringListList &MediaInfo_Config::Info_Get(stream_t KindOfStream)
             case Stream_Menu :      MediaInfo_Config_Menu(Info[Stream_Menu]);         Language_Set(Stream_Menu); break;
             default:;
         }
-    CS.Leave();
-
+    }
     return Info[KindOfStream];
 }
 
 //---------------------------------------------------------------------------
 Ztring MediaInfo_Config::Info_Parameters_Get (bool Complete)
 {
-    CS.Enter();
+    ZtringListList ToReturn;
+    {
+    CriticalSectionLocker CSL(CS);
 
     //Loading all
     MediaInfo_Config_General(Info[Stream_General]);
@@ -2098,7 +2243,6 @@ Ztring MediaInfo_Config::Info_Parameters_Get (bool Complete)
     MediaInfo_Config_Menu(Info[Stream_Menu]);
 
     //Building
-    ZtringListList ToReturn;
     size_t ToReturn_Pos=0;
 
     for (size_t StreamKind=0; StreamKind<Stream_Max; StreamKind++)
@@ -2119,7 +2263,7 @@ Ztring MediaInfo_Config::Info_Parameters_Get (bool Complete)
             }
         ToReturn_Pos++;
     }
-    CS.Leave();
+    }
 
     //Reset of language file
     Language_Set(Ztring()); //TODO: it is reseted to English, it should actually not modify the language config (MediaInfo_Config_xxx() modifies the language config)

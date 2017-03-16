@@ -1121,7 +1121,7 @@ void File_Mpeg_Psi::Table_00()
 
     //Reseting
     std::vector<int16u> Table_ID_Extension_List;
-    for (complete_stream::stream::table_id::table_id_extensions::iterator Table_ID_Extension=Complete_Stream->Streams[0x0000]->Table_IDs[0x00]->Table_ID_Extensions.begin(); Table_ID_Extension!=Complete_Stream->Streams[0x0000]->Table_IDs[0x00]->Table_ID_Extensions.end(); ++Table_ID_Extension)
+    for (complete_stream::stream::table_id::table_id_extensions::const_iterator Table_ID_Extension=Complete_Stream->Streams[0x0000]->Table_IDs[0x00]->Table_ID_Extensions.begin(); Table_ID_Extension!=Complete_Stream->Streams[0x0000]->Table_IDs[0x00]->Table_ID_Extensions.end(); ++Table_ID_Extension)
         if (Table_ID_Extension->first!=table_id_extension)
             Table_ID_Extension_List.push_back(Table_ID_Extension->first);
     for (size_t Pos=0; Pos<Table_ID_Extension_List.size(); Pos++)
@@ -1147,7 +1147,7 @@ void File_Mpeg_Psi::Table_00()
             {
                 program_number_Update();
 
-                std::map<int16u, complete_stream::transport_stream::program>::iterator program_number_Previous=program_numbers_Previous.find(program_number);
+                std::map<int16u, complete_stream::transport_stream::program>::const_iterator program_number_Previous=program_numbers_Previous.find(program_number);
                 if (program_number_Previous!=program_numbers_Previous.end())
                     program_numbers_Previous.erase(program_number_Previous);
             }
@@ -1157,7 +1157,7 @@ void File_Mpeg_Psi::Table_00()
 
     FILLING_BEGIN();
         //Removing previous elementary_PIDs no more used
-        for (std::map<int16u, complete_stream::transport_stream::program>::iterator program_number_Previous=program_numbers_Previous.begin(); program_number_Previous!=program_numbers_Previous.end(); ++program_number_Previous)
+        for (std::map<int16u, complete_stream::transport_stream::program>::const_iterator program_number_Previous=program_numbers_Previous.begin(); program_number_Previous!=program_numbers_Previous.end(); ++program_number_Previous)
         {
             program_number=program_number_Previous->first;
             program_number_Remove();

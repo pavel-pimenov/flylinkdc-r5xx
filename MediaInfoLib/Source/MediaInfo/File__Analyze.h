@@ -53,6 +53,16 @@ struct buffer_data
         delete[] Data; //Data=NULL;
     }
 };
+template <class T> inline Ztring Get_Hex_ID(const T& Value)
+{
+	Ztring ID_String;
+	ID_String.From_Number(Value); 
+	ID_String += __T(" (0x"); 
+	ID_String += Ztring::ToZtring(Value, 16); 
+	ID_String += __T(")");
+	return ID_String;
+}
+
 #if !MEDIAINFO_TRACE
     #include "MediaInfo/File__Analyze_MinimizeSize.h"
 #else
@@ -85,6 +95,7 @@ public :
     void    Open_Buffer_Continue    (File__Analyze* Sub, size_t Buffer_Size) {if (Element_Offset+Buffer_Size<=Element_Size) Open_Buffer_Continue(Sub, Buffer+Buffer_Offset+(size_t)Element_Offset, Buffer_Size); Element_Offset+=Buffer_Size;}
     void    Open_Buffer_Continue    (File__Analyze* Sub) {if (Element_Offset<=Element_Size) Open_Buffer_Continue(Sub, Buffer+Buffer_Offset+(size_t)Element_Offset, (size_t)(Element_Size-Element_Offset)); Element_Offset=Element_Size;}
     void    Open_Buffer_Position_Set(int64u File_Offset);
+    void    Open_Buffer_CheckFileModifications();
     #if MEDIAINFO_SEEK
     size_t  Open_Buffer_Seek        (size_t Method, int64u Value, int64u ID);
     #endif //MEDIAINFO_SEEK
@@ -257,6 +268,7 @@ protected :
     virtual void Read_Buffer_Init ()          {}; //Temp, should be in File__Base caller
     virtual void Read_Buffer_OutOfBand ()     {Open_Buffer_Continue(Buffer, Buffer_Size);} //Temp, should be in File__Base caller
     virtual void Read_Buffer_Continue ()      {}; //Temp, should be in File__Base caller
+    virtual void Read_Buffer_CheckFileModifications() {} //Temp, should be in File__Base caller
     virtual void Read_Buffer_AfterParsing ()  {}; //Temp, should be in File__Base caller
     #if MEDIAINFO_SEEK
     virtual size_t Read_Buffer_Seek (size_t, int64u, int64u); //Temp, should be in File__Base caller
@@ -429,8 +441,6 @@ public :
         else
             return Ztring().From_Local(Value, Value_Size);
     }
-    #define VALUE(Value) \
-        Ztring::ToZtring(Value).MakeUpperCase()+__T(" (0x")+Ztring::ToZtring(Value, 16).MakeUpperCase()+__T(")")
 
     //Param - Main
     template<typename T>
@@ -1427,6 +1437,9 @@ public :
     #else //MEDIAINFO_DEMUX
         #define Demux(_A, _B, _C)
     #endif //MEDIAINFO_DEMUX
+    #if MEDIAINFO_DECODE
+        void Decoded(const int8u* Buffer, size_t Buffer_Size);
+    #endif //MEDIAINFO_DECODE
 
     //Events data
     bool    PES_FirstByte_IsAvailable;

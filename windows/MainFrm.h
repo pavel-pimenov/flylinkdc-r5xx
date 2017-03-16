@@ -137,7 +137,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		MESSAGE_HANDLER(WM_DESTROY, onDestroy)
 		MESSAGE_HANDLER(WM_SIZE, onSize)
 		MESSAGE_HANDLER(WM_ENDSESSION, onEndSession)
-		//MESSAGE_HANDLER(WM_QUERYENDSESSION, onQueryEndSession)// [+] IRainman
 		MESSAGE_HANDLER(m_trayMessage, onTray)
 		MESSAGE_HANDLER(m_tbButtonMessage, onTaskbarButton); // [+] InfinitySky.
 		MESSAGE_HANDLER(WM_COPYDATA, onCopyData)
@@ -301,7 +300,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		LRESULT onHashProgress(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 		LRESULT onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
-		//LRESULT onQueryEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/);// [+]IRainman TODO
 		LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT onGetTTH(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -679,11 +677,12 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		CEdit QuickSearchEdit;
 		CContainedWindow QuickSearchBoxContainer;
 		CContainedWindow QuickSearchEditContainer;
-		static bool m_bDisableAutoComplete;
+		static bool g_bDisableAutoComplete;
 		
 		bool m_is_tbarcreated;
 		bool m_is_wtbarcreated; // [+]Drakon
 		bool m_is_qtbarcreated; // [+]Drakon
+		bool m_is_end_session;
 		
 		bool m_bTrayIcon;
 		int tuneTransferSplit();

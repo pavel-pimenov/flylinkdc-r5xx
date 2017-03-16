@@ -380,7 +380,38 @@ void GuiUninit(void*)
 	deleteFlyFeatures(); // [+] SSA
 	PopupManager::deleteInstance();
 }
-
+#ifdef SCALOLAZ_MANY_MONITORS
+int ObtainMonitors() // Count of a Display Devices
+{
+	DWORD i = 0;
+	int count = 0;
+	//DWORD j = 0;
+	DISPLAY_DEVICE dc = {0};
+	
+	dc.cb = sizeof(dc);
+	while (EnumDisplayDevices(NULL, i, &dc, EDD_GET_DEVICE_INTERFACE_NAME) != 0)
+		// Read More: https://msdn.microsoft.com/ru-ru/library/windows/desktop/dd162609(v=vs.85).aspx
+	{
+		if ((dc.StateFlags & DISPLAY_DEVICE_ACTIVE) && !(dc.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER))
+		{
+			// Read More: https://msdn.microsoft.com/ru-ru/library/windows/desktop/dd183569(v=vs.85).aspx
+			/*  // Этот кусок до счётчика Реальных Дисплеев нам не нужен, но оставлю. Вдруг приспичит разрешение дисплеев и их имена брать.
+			DEVMODE dm;
+			j = 0;
+			while (EnumDisplaySettings(dc.DeviceName, j, &dm) != 0)
+			{
+			    //Запоминаем DEVMODE dm, чтобы потом мы могли его найти и использовать
+			    //в ChangeDisplaySettings, когда будем инициализировать окно
+			    ++j;
+			}
+			*/
+			++count;    // Count for REAL Devices
+		}
+		++i;
+	}
+	return count;
+}
+#endif
 static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {
 #ifdef IRAINMAN_INCLUDE_GDI_INIT
@@ -419,18 +450,62 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 		        (SETTING(MAIN_WINDOW_SIZE_Y) != CW_USEDEFAULT))
 		{
 		
+			/*
+			
+			Пока не работает на мульти-мониках
+			            RECT l_desktop = {0,0,1024,600};
+			            GetWindowRect(GetDesktopWindow(), &l_desktop);
+			            rc.left = SETTING(MAIN_WINDOW_POS_X);
+			            bool l_is_skip = false;
+			            if (rc.left < 0 || rc.left >= l_desktop.left - 50)
+			            {
+			                rc.left = 0;
+			                rc.right = l_desktop.right;
+			                l_is_skip = true;
+			            }
+			            rc.top = SETTING(MAIN_WINDOW_POS_Y);
+			            if (rc.top < 0 || rc.top >= l_desktop.top - 50)
+			            {
+			                rc.top = 0;
+			                rc.bottom = l_desktop.bottom;
+			                l_is_skip = true;
+			            }
+			            if (l_is_skip == false)
+			            {
+			                rc.right = rc.left + SETTING(MAIN_WINDOW_SIZE_X);
+			                if (rc.right < 0 || rc.right >= l_desktop.right - l_desktop.left)
+			                    rc.right = l_desktop.right;
+			                rc.bottom = rc.top + SETTING(MAIN_WINDOW_SIZE_Y);
+			                if (rc.bottom < 0 || rc.bottom >= l_desktop.bottom - l_desktop.top)
+			                    rc.bottom = l_desktop.bottom;
+			            }
+			
+			
+			
+			*/
 			rc.left = SETTING(MAIN_WINDOW_POS_X);
 			rc.top = SETTING(MAIN_WINDOW_POS_Y);
 			rc.right = rc.left + SETTING(MAIN_WINDOW_SIZE_X);
 			rc.bottom = rc.top + SETTING(MAIN_WINDOW_SIZE_Y);
 		}
-#ifndef SCALOLAZ_MANY_MONITORS
+		
 		// Now, let's ensure we have sane values here...
-		if ((rc.left < 0) || (rc.top < 0) || (rc.right - rc.left < 500) || ((rc.bottom - rc.top) < 300))
+#ifdef SCALOLAZ_MANY_MONITORS
+		const int l_mons = ObtainMonitors();    // Get  Phisical Display Drives Count: 1 or more
+#endif
+		if (((rc.left < -10) || (rc.top < -10) || (rc.right - rc.left < 500) || ((rc.bottom - rc.top) < 300))
+#ifdef SCALOLAZ_MANY_MONITORS
+		        && l_mons < 2
+		        || ((rc.left < -2048) || (rc.right > 5000) || (rc.top < -10) || (rc.bottom > 4000))
+#endif
+		   )
 		{
 			rc = wndMain.rcDefault;
+			// nCmdShow - по идее, команда при запуске флая с настройками. Но мы её заюзаем как флад ДА для установки дефолтного стиля для окна.
+			// ниже по коду видно, что если в этой команде есть что-то, то будет заюзан стиль из Настроек клиента.
+			if (!nCmdShow)
+				nCmdShow = SW_SHOWDEFAULT;  // SW_SHOWNORMAL
 		}
-#endif
 		const int rtl = /*ResourceManager::getInstance()->isRTL() ? WS_EX_RTLREADING :*/ 0; // [!] IRainman fix.
 		if (wndMain.CreateEx(NULL, rc, 0, rtl | WS_EX_APPWINDOW | WS_EX_WINDOWEDGE) == NULL)
 		{
@@ -623,13 +698,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		WinUtil::AutoRunShortCut(false);
 		return 0;
 	}
-	//if (_tcsstr(lpstrCmdLine, _T("/restart")) != NULL) // [+] IRainman TODO
-	//{
-	//  // Система сама нас перезапустила со всеми параметрами прошлого запуска
-	//  // можем что нибудь при этом сделать
-	//  // Например спросить пользователя нужно ли нас запускать :)
-	//  // дополнительные сведения в MainFrame::onQueryEndSession
-	//}
 	
 	Util::initialize();
 	ThrottleManager::newInstance();
@@ -743,7 +811,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	leveldb::LevelDBDestoyModule();
 	return nRet;
 }
-
 /**
  * @file
  * $Id: main.cpp,v 1.65 2006/11/04 14:08:28 bigmuscle Exp $
