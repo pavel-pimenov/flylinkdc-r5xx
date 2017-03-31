@@ -794,6 +794,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		}
 		typedef boost::unordered_map<string, __int64> CFlyCacheDIC;
 		std::vector<CFlyCacheDIC> m_DIC;
+		
 #ifdef FLYLINKDC_USE_CACHE_HUB_URLS
 		typedef boost::unordered_map<unsigned, string> CFlyCacheDICName;
 		CFlyCacheDICName m_HubNameMap;
@@ -833,6 +834,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		string  m_last_path;
 		int     m_convert_ftype_stop_key;
 		size_t  m_count_json_stat;
+		
+		static FastCriticalSection  g_resume_torrents_cs;
+		static std::unordered_set<libtorrent::sha1_hash> g_resume_torrents;
+		
 		static int32_t g_count_queue_source;
 		static int32_t g_count_queue_files;
 		
@@ -841,6 +846,11 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		static void clearTTHCache();
 		static unsigned g_tth_cache_limit;
 	public:
+		static bool is_resume_torrent(const libtorrent::sha1_hash& p_sha1)
+		{
+			FastLock l(g_resume_torrents_cs);
+			return g_resume_torrents.find(p_sha1) != g_resume_torrents.end();
+		}
 		static void tryFixBadAlloc();
 		static unsigned get_tth_cache_size()
 		{

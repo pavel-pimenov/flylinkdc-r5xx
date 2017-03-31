@@ -183,6 +183,31 @@ namespace libtorrent
 		// if this bitfield is non-empty, it represents the files this web server
 		// has.
 		typed_bitfield<file_index_t> have_files;
+#if defined __GNUC__ && defined _GLIBCXX_DEBUG
+		// this works around a bug in libstdc++'s checked iterators
+		// http://stackoverflow.com/questions/22915325/avoiding-self-assignment-in-stdshuffle
+		web_seed_t& operator=(web_seed_t&& rhs)
+		{
+			if (&rhs == this) return *this;
+
+			web_seed_entry::operator=(std::move(rhs));
+			retry = std::move(rhs.retry);
+			endpoints = std::move(rhs.endpoints);
+			peer_info = std::move(rhs.peer_info);
+			supports_keepalive = std::move(rhs.supports_keepalive);
+			resolving = std::move(rhs.resolving);
+			removed = std::move(rhs.removed);
+			ephemeral = std::move(rhs.ephemeral);
+			restart_request = std::move(rhs.restart_request);
+			restart_piece = std::move(rhs.restart_piece);
+			redirects = std::move(rhs.redirects);
+			have_files = std::move(rhs.have_files);
+			return *this;
+		}
+
+		web_seed_t& operator=(web_seed_t const&) = default;
+		web_seed_t(web_seed_t const&) = default;
+#endif
 	};
 
 	struct TORRENT_EXTRA_EXPORT torrent_hot_members
@@ -292,7 +317,7 @@ namespace libtorrent
 	public:
 
 		torrent(aux::session_interface& ses, int block_size
-			, int seq, bool session_paused, add_torrent_params const& p
+			, bool session_paused, add_torrent_params const& p
 			, sha1_hash const& info_hash);
 		~torrent();
 
@@ -315,6 +340,7 @@ namespace libtorrent
 		{
 			TORRENT_ASSERT(m_added == true);
 			m_added = false;
+			set_queue_position(-1);
 			// make sure we decrement the gauge counter for this torrent
 			update_gauge();
 		}
@@ -425,7 +451,12 @@ namespace libtorrent
 		void set_queue_position(int p);
 		int queue_position() const { return m_sequence_number; }
 		// used internally
-		void set_queue_position_impl(int p) { m_sequence_number = p; }
+		void set_queue_position_impl(int const p)
+		{
+			if (m_sequence_number == p) return;
+			m_sequence_number = p;
+			state_updated();
+		}
 
 		void second_tick(int tick_interval_ms);
 
@@ -666,7 +697,7 @@ namespace libtorrent
 		// these are callbacks called by the tracker_connection instance
 		// (either http_tracker_connection or udp_tracker_connection)
 		// when this torrent got a response from its tracker request
-		// or when a failure occured
+		// or when a failure occurred
 		virtual void tracker_response(
 			tracker_request const& r
 			, address const& tracker_ip
@@ -1177,7 +1208,7 @@ namespace libtorrent
 
 		bool verify_peer_cert(bool preverified, boost::asio::ssl::verify_context& ctx);
 
-		void init_ssl(std::string const& cert);
+		void init_ssl(string_view cert);
 #endif
 
 		void setup_peer_class();

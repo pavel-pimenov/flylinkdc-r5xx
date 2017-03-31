@@ -254,7 +254,7 @@ namespace libtorrent { namespace aux
 
 		// indices of all files we ended up copying. These need to be deleted
 		// later
-		std::vector<bool> copied_files(std::size_t(f.num_files()), false);
+		aux::vector<bool, file_index_t> copied_files(std::size_t(f.num_files()), false);
 
 		file_index_t i;
 		error_code e;
@@ -558,4 +558,3 @@ namespace libtorrent { namespace aux
 	}
 
 }}
-

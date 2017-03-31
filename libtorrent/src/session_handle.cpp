@@ -200,7 +200,7 @@ namespace libtorrent
 
 			error_code ec;
 			add_torrent_params resume_data
-				= read_resume_data(&atp.resume_data[0], int(atp.resume_data.size()), ec);
+				= read_resume_data(atp.resume_data, ec);
 
 			resume_data.internal_resume_data_error = ec;
 			if (ec) return;
@@ -342,11 +342,14 @@ namespace libtorrent
 		return sync_call_ret<torrent_handle>(&session_impl::add_torrent, p, ecr);
 	}
 
-	void session_handle::async_add_torrent(add_torrent_params const& params)
+	void session_handle::async_add_torrent(add_torrent_params params)
 	{
 		TORRENT_ASSERT_PRECOND(!params.save_path.empty());
 
-		add_torrent_params* p = new add_torrent_params(params);
+		// we cannot capture a unique_ptr into a lambda in c++11, so we use a raw
+		// pointer for now. async_call uses a lambda expression to post the call
+		// to the main thread
+		add_torrent_params* p = new add_torrent_params(std::move(params));
 		p->save_path = complete(p->save_path);
 
 #ifndef TORRENT_NO_DEPRECATE

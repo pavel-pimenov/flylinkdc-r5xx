@@ -56,10 +56,9 @@ namespace libtorrent
 	// The add_torrent_params is a parameter pack for adding torrents to a
 	// session. The key fields when adding a torrent are:
 	//
-	// * ti - when you have a .torrent file
-	// * url - when you have a magnet link
-	// * info_hash - when all you have is an info-hash (this is similar to a
-	//   magnet link)
+	// * ti - when you have loaded a .torrent file into a torrent_info object
+	// * info_hash - when you don't have the metadata (.torrent file) but. This
+	//   is set when adding a magnet link.
 	//
 	// one of those fields must be set. Another mandatory field is
 	// ``save_path``. The add_torrent_params object is passed into one of the
@@ -79,6 +78,7 @@ namespace libtorrent
 	// new session. For serialization and deserialization of
 	// ``add_torrent_params`` objects, see read_resume_data() and
 	// write_resume_data().
+#include "libtorrent/aux_/disable_warnings_push.hpp"
 	struct TORRENT_EXPORT add_torrent_params
 	{
 		// The constructor can be used to initialize the storage constructor,
@@ -86,6 +86,10 @@ namespace libtorrent
 		// data for the torrent. For more information, see the ``storage`` field.
 		explicit add_torrent_params(storage_constructor_type sc = default_storage_constructor)
 			: storage(sc) {}
+		add_torrent_params(add_torrent_params&&) = default;
+		add_torrent_params& operator=(add_torrent_params&&) = default;
+		add_torrent_params(add_torrent_params const&) = default;
+		add_torrent_params& operator=(add_torrent_params const&) = default;
 
 		// values for the ``flags`` field
 		enum flags_t : std::uint64_t
@@ -192,7 +196,7 @@ namespace libtorrent
 			// indicates that this torrent should never be unloaded from RAM, even
 			// if unloading torrents are allowed in general. Setting this makes
 			// the torrent exempt from loading/unloading management.
-			flag_pinned = 0x1000,
+			flag_pinned TORRENT_DEPRECATED_ENUM = 0x1000,
 #endif
 
 			// the stop when ready flag. Setting this flag is equivalent to calling
@@ -215,7 +219,7 @@ namespace libtorrent
 			// if this flag is set (which it is by default) the torrent will be
 			// considered needing to save its resume data immediately as it's
 			// added. New torrents that don't have any resume data should do that.
-			// This flag is cleared by a successful call to read_resume_data()
+			// This flag is cleared by a successful call to save_resume_data()
 			flag_need_save_resume = 0x10000,
 
 #ifndef TORRENT_NO_DEPRECATE
@@ -231,7 +235,7 @@ namespace libtorrent
 			// resume data, which has its own flag (for historic reasons).
 			// If this flag is set, but file_priorities is empty, file priorities
 			// are still loaded from the resume data, if present.
-			flag_override_resume_data = 0x20000,
+			flag_override_resume_data TORRENT_DEPRECATED_ENUM = 0x20000,
 
 			// defaults to on and specifies whether tracker URLs loaded from
 			// resume data should be added to the trackers in the torrent or
@@ -240,12 +244,12 @@ namespace libtorrent
 			// replaced by any trackers in the resume data. The default behavior is
 			// to have the resume data override the .torrent file _and_ the
 			// trackers added in add_torrent_params.
-			flag_merge_resume_trackers = 0x40000,
+			flag_merge_resume_trackers TORRENT_DEPRECATED_ENUM = 0x40000,
 
 			// if this flag is set, the save path from the resume data file, if
 			// present, is honored. This defaults to not being set, in which
 			// case the save_path specified in add_torrent_params is always used.
-			flag_use_resume_save_path = 0x80000,
+			flag_use_resume_save_path TORRENT_DEPRECATED_ENUM = 0x80000,
 
 			// defaults to on and specifies whether web seed URLs loaded from
 			// resume data should be added to the ones in the torrent file or
@@ -255,7 +259,7 @@ namespace libtorrent
 			// add_torrent_params are also replaced. The default behavior is to
 			// have any web seeds in the resume data take precedence over whatever
 			// is passed in here as well as the .torrent file.
-			flag_merge_resume_http_seeds = 0x100000,
+			flag_merge_resume_http_seeds TORRENT_DEPRECATED_ENUM = 0x100000,
 #endif
 
 			// internal
@@ -269,11 +273,13 @@ namespace libtorrent
 #endif
 		};
 
+#include "libtorrent/aux_/disable_warnings_pop.hpp"
+
 		// filled in by the constructor and should be left untouched. It is used
 		// for forward binary compatibility.
 		int version = LIBTORRENT_VERSION_NUM;
 
-		// torrent_info object with the torrent to add. Unless the url or
+		// torrent_info object with the torrent to add. Unless the
 		// info_hash is set, this is required to be initialized.
 		std::shared_ptr<torrent_info> ti;
 
@@ -342,13 +348,6 @@ namespace libtorrent
 		// instead of this.
 		std::string trackerid;
 
-		// If you specify a ``url``, the torrent will be set in
-		// ``downloading_metadata`` state until the .torrent file has been
-		// downloaded. If there's any error while downloading, the torrent will
-		// be stopped and the torrent error state (``torrent_status::error``)
-		// will indicate what went wrong. The ``url`` may be set to a magnet link.
-		std::string url;
-
 		// flags controlling aspects of this torrent and how it's added. See
 		// flags_t for details.
 		//
@@ -362,6 +361,8 @@ namespace libtorrent
 		// set this to the info hash of the torrent to add in case the info-hash
 		// is the only known property of the torrent. i.e. you don't have a
 		// .torrent file nor a magnet link.
+		// To add a magnet link, use parse_magnet_uri() to populatefields in the
+		// add_torrent_params object.
 		sha1_hash info_hash;
 
 		// ``max_uploads``, ``max_connections``, ``upload_limit``,
@@ -471,11 +472,25 @@ namespace libtorrent
 
 #ifndef TORRENT_NO_DEPRECATE
 		// deprecated in 1.2
+
+		// ``url`` can be set to a magnet link, in order to download the .torrent
+		// file (also known as the metadata), specifically the info-dictionary,
+		// from the bittorrent swarm. This may require access to the DHT, in case
+		// the magnet link does not come with trackers.
+		//
+		// In earlier versions of libtorrent, the URL could be an HTTP or file://
+		// url. These uses are deprecated and discouraged. When adding a torrent
+		// by magnet link, it will be set to the ``downloading_metadata`` state
+		// until the .torrent file has been downloaded. If there is any error
+		// while downloading, the torrent will be stopped and the torrent error
+		// state (``torrent_status::error``) will indicate what went wrong.
+		std::string TORRENT_DEPRECATED_MEMBER url;
+
 		// if ``uuid`` is specified, it is used to find duplicates. If another
 		// torrent is already running with the same UUID as the one being added,
 		// it will be considered a duplicate. This is mainly useful for RSS feed
 		// items which has UUIDs specified.
-		std::string uuid;
+		std::string TORRENT_DEPRECATED_MEMBER uuid;
 
 		// The optional parameter, ``resume_data`` can be given if up to date
 		// fast-resume data is available. The fast-resume data can be acquired
@@ -483,7 +498,7 @@ namespace libtorrent
 		// torrent_handle. See fast-resume_. The ``vector`` that is passed in
 		// will be swapped into the running torrent instance with
 		// ``std::vector::swap()``.
-		std::vector<char> resume_data;
+		std::vector<char> TORRENT_DEPRECATED_MEMBER resume_data;
 
 		// to support the deprecated use case of reading the resume data into
 		// resume_data field and getting a reject alert, any parse failure is
@@ -493,6 +508,7 @@ namespace libtorrent
 #else
 		// hidden
 		// to maintain ABI compatibility
+		std::string deprecated5;
 		std::string deprecated1;
 		std::string deprecated2;
 		std::vector<char> deprecated3;

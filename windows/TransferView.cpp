@@ -2623,6 +2623,11 @@ void TransferView::on(QueueManagerListener::Added, const QueueItemPtr& qi) noexc
     }
 }
 */
+void TransferView::on(DownloadManagerListener::CompleteTorrentFile, const std::string& p_name) noexcept
+{
+	SHOW_POPUP(POPUP_DOWNLOAD_FINISHED, TSTRING(FILE) + _T(": ") + Text::toT(p_name), TSTRING(DOWNLOAD_FINISHED_IDLE));
+}
+
 void TransferView::on(DownloadManagerListener::AddTorrent, const libtorrent::sha1_hash& p_sha1, std::vector<std::string>& p_files) noexcept
 {
 	// TODO - PostMessage

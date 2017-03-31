@@ -274,9 +274,6 @@
     <ClCompile Include="leveldb\db\filename.cc">
       <Filter>Source Files\leveldb</Filter>
     </ClCompile>
-    <ClCompile Include="leveldb\db\leveldb_main.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
     <ClCompile Include="leveldb\db\log_reader.cc">
       <Filter>Source Files\leveldb</Filter>
     </ClCompile>

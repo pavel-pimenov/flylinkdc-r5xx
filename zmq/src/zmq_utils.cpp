@@ -27,17 +27,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define __STDC_LIMIT_MACROS 
-
 #include "precompiled.hpp"
-#include "macros.hpp"
 
+#include "macros.hpp"
 #include "clock.hpp"
 #include "err.hpp"
 #include "thread.hpp"
 #include "atomic_counter.hpp"
 #include "atomic_ptr.hpp"
 #include <assert.h>
+#include <new>
 #include <stdint.h>
 
 #if !defined ZMQ_HAVE_WINDOWS
@@ -77,7 +76,8 @@ unsigned long zmq_stopwatch_stop (void *watch_)
 
 void *zmq_threadstart(zmq_thread_fn* func, void* arg)
 {
-    zmq::thread_t* thread = new zmq::thread_t;
+    zmq::thread_t* thread = new (std::nothrow) zmq::thread_t;
+    alloc_assert(thread);
     thread->start(func, arg);
     return thread;
 }
@@ -217,12 +217,11 @@ int zmq_curve_keypair (char *z85_public_key, char *z85_secret_key)
     uint8_t public_key [32];
     uint8_t secret_key [32];
 
-    // Return codes are suppressed as none of these can actually fail.
-    crypto_box_keypair (public_key, secret_key);
+    int res = crypto_box_keypair (public_key, secret_key);
     zmq_z85_encode (z85_public_key, public_key, 32);
     zmq_z85_encode (z85_secret_key, secret_key, 32);
 
-    return 0;
+    return res;
 #else
     (void) z85_public_key, (void) z85_secret_key;
     errno = ENOTSUP;
@@ -268,7 +267,7 @@ int zmq_curve_public (char *z85_public_key, const char *z85_secret_key)
 
 void *zmq_atomic_counter_new (void)
 {
-    zmq::atomic_counter_t *counter = new zmq::atomic_counter_t;
+    zmq::atomic_counter_t *counter = new (std::nothrow) zmq::atomic_counter_t;
     alloc_assert (counter);
     return counter;
 }

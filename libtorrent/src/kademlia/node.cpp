@@ -220,15 +220,15 @@ void node::bootstrap(std::vector<udp::endpoint> const& nodes
 
 	for (auto const& n : nodes)
 	{
-		if (n.protocol() != protocol()) continue;
+#if !TORRENT_USE_IPV6
+		if (n.protocol() == udp::v6()) continue;
+#endif
+
 #ifndef TORRENT_DISABLE_LOGGING
 		++count;
 #endif
 		r->add_entry(node_id(), n, observer::flag_initial);
 	}
-
-	// make us start as far away from our node ID as possible
-	r->trim_seed_nodes();
 
 #ifndef TORRENT_DISABLE_LOGGING
 	if (m_observer != nullptr)

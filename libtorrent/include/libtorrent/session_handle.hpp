@@ -87,6 +87,8 @@ namespace libtorrent
 
 		// TODO: 2 the ip filter should probably be saved here too
 
+#include "libtorrent/aux_/disable_warnings_push.hpp"
+
 		// flags that determines which aspects of the session should be
 		// saved when calling save_state().
 		enum save_state_flags_t
@@ -106,15 +108,17 @@ namespace libtorrent
 
 #ifndef TORRENT_NO_DEPRECATE
 			,
-			save_as_map =       0x040,
-			save_proxy =        0x008,
-			save_i2p_proxy =    0x010,
-			save_dht_proxy = save_proxy,
-			save_peer_proxy = save_proxy,
-			save_web_proxy = save_proxy,
-			save_tracker_proxy = save_proxy
+			save_as_map TORRENT_DEPRECATED_ENUM =       0x040,
+			save_proxy TORRENT_DEPRECATED_ENUM =        0x008,
+			save_i2p_proxy TORRENT_DEPRECATED_ENUM =    0x010,
+			save_dht_proxy TORRENT_DEPRECATED_ENUM = save_proxy,
+			save_peer_proxy TORRENT_DEPRECATED_ENUM = save_proxy,
+			save_web_proxy TORRENT_DEPRECATED_ENUM = save_proxy,
+			save_tracker_proxy TORRENT_DEPRECATED_ENUM = save_proxy
 #endif
 		};
+
+#include "libtorrent/aux_/disable_warnings_pop.hpp"
 
 		// loads and saves all session settings, including dht_settings,
 		// encryption settings and proxy settings. ``save_state`` writes all keys
@@ -228,7 +232,7 @@ namespace libtorrent
 		torrent_handle add_torrent(add_torrent_params const& params);
 #endif
 		torrent_handle add_torrent(add_torrent_params const& params, error_code& ec);
-		void async_add_torrent(add_torrent_params const& params);
+		void async_add_torrent(add_torrent_params params);
 
 #ifndef BOOST_NO_EXCEPTIONS
 #ifndef TORRENT_NO_DEPRECATE
@@ -712,8 +716,8 @@ namespace libtorrent
 		enum listen_on_flags_t
 		{
 			// this is always on starting with 0.16.2
-			listen_reuse_address = 0x01,
-			listen_no_system_port = 0x02
+			listen_reuse_address TORRENT_DEPRECATED_ENUM = 0x01,
+			listen_no_system_port TORRENT_DEPRECATED_ENUM = 0x02
 		};
 
 		// deprecated in 0.16
@@ -767,6 +771,13 @@ namespace libtorrent
 		// there is no guarantee that adding the same torrent immediately after
 		// it was removed will not throw a system_error exception. Once
 		// the torrent is deleted, a torrent_deleted_alert is posted.
+		//
+		// Note that when a queued or downloading torrent is removed, its position
+		// in the download queue is vacated and avery subsequent torrent in the
+		// queue has their queue positions updated. This can potentially cause a
+		// large state_update to be posted. When removing all torrents, it is
+		// adviced to remove them from the back of the queue, to minimize the
+		// shifting.
 		void remove_torrent(const torrent_handle& h, int options = 0);
 
 #ifndef TORRENT_NO_DEPRECATE
@@ -934,8 +945,12 @@ namespace libtorrent
 		void set_alert_notify(std::function<void()> const& fun);
 
 #ifndef TORRENT_NO_DEPRECATE
+#include "libtorrent/aux_/disable_warnings_push.hpp"
+
 		TORRENT_DEPRECATED
 		void set_severity_level(alert::severity_t s);
+
+#include "libtorrent/aux_/disable_warnings_pop.hpp"
 
 		// use the setting instead
 		TORRENT_DEPRECATED

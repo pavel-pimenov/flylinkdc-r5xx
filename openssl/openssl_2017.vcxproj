@@ -776,8 +776,7 @@
     </ClCompile>
     <ClCompile Include="crypto\evp\evp_lib.c">
     </ClCompile>
-    <ClCompile Include="crypto\evp\evp_pbe.c">
-    </ClCompile>
+    <ClCompile Include="crypto\evp\evp_pbe.c" />
     <ClCompile Include="crypto\evp\evp_pkey.c">
     </ClCompile>
     <ClCompile Include="crypto\evp\e_aes.c">
@@ -893,7 +892,6 @@
     <ClCompile Include="crypto\modes\ccm128.c" />
     <ClCompile Include="crypto\modes\cfb128.c" />
     <ClCompile Include="crypto\modes\ctr128.c" />
-    <ClCompile Include="crypto\modes\cts128.c" />
     <ClCompile Include="crypto\modes\gcm128.c" />
     <ClCompile Include="crypto\modes\ofb128.c" />
     <ClCompile Include="crypto\modes\wrap128.c" />

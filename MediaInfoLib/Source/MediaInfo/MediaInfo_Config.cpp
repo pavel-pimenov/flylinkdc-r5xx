@@ -128,7 +128,7 @@ namespace MediaInfoLib
 {
 
 //---------------------------------------------------------------------------
-const Char*  MediaInfo_Version=__T("MediaInfoLib - v0.7.93");
+const Char*  MediaInfo_Version=__T("MediaInfoLib - v0.7.94");
 const Char*  MediaInfo_Url=__T("http://MediaArea.net/MediaInfo");
       Ztring EmptyZtring;       //Use it when we can't return a reference to a true Ztring
 const Ztring EmptyZtring_Const; //Use it when we can't return a reference to a true Ztring, const version
@@ -1014,6 +1014,15 @@ Ztring MediaInfo_Config::Option (const String &Option, const String &Value_Raw)
     else if (Option_Lower==__T("mpegts_forcestreamdisplay_get"))
     {
         return MpegTs_ForceStreamDisplay_Get()?__T("1"):__T("0");
+    }
+    else if (Option_Lower == __T("mpegts_forcetextstreamdisplay"))
+    {
+        MpegTs_ForceTextStreamDisplay_Set(Value.To_int8u() ? true : false);
+        return Ztring();
+    }
+    else if (Option_Lower == __T("mpegts_forcetextstreamdisplay_get"))
+    {
+        return MpegTs_ForceTextStreamDisplay_Get() ? __T("1") : __T("0");
     }
     else if (Option_Lower==__T("maxml_streamkinds"))
     {
@@ -2461,6 +2470,18 @@ bool MediaInfo_Config::MpegTs_ForceStreamDisplay_Get ()
 {
     CriticalSectionLocker CSL(CS);
     return MpegTs_ForceStreamDisplay;
+}
+
+void MediaInfo_Config::MpegTs_ForceTextStreamDisplay_Set(bool Value)
+{
+    CriticalSectionLocker CSL(CS);
+    MpegTs_ForceTextStreamDisplay = Value;
+}
+
+bool MediaInfo_Config::MpegTs_ForceTextStreamDisplay_Get()
+{
+    CriticalSectionLocker CSL(CS);
+    return MpegTs_ForceTextStreamDisplay;
 }
 
 #if MEDIAINFO_ADVANCED

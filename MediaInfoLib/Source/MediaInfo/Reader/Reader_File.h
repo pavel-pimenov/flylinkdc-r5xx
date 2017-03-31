@@ -71,6 +71,7 @@ public :
     std::bitset<32> Status;
     int64u          Partial_Begin;
     int64u          Partial_End;
+    size_t          CountOfSeconds;
 
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
     //Thread

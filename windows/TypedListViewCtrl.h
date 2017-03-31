@@ -29,15 +29,17 @@
 class ColumnInfo
 {
 	public:
-		ColumnInfo(const tstring &aName, int aPos, int aFormat, int aWidth): m_name(aName), m_pos(aPos), m_width(aWidth),
-			m_format(aFormat), m_is_visible(true), m_is_owner_draw(false) {}
+		ColumnInfo(const tstring &aName, int aPos, uint16_t aFormat, int aWidth): m_name(aName), m_pos(aPos), m_width(aWidth),
+			m_format(aFormat), m_is_visible(true), m_is_owner_draw(false)//, m_is_first_set(false)
+		{}
 		~ColumnInfo() {}
-		int m_format;
-		int16_t m_width;
-		int8_t  m_pos;
+		tstring m_name;
+		uint16_t m_format;
+		int16_t  m_width;
+		int8_t   m_pos;
 		bool m_is_visible;
 		bool m_is_owner_draw;
-		tstring m_name;
+		//bool m_is_first_set;
 };
 
 template<class T, int ctrlId>
@@ -245,18 +247,19 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 					{
 						di->item.mask |= LVIF_DI_SETITEM;
 						const auto l_sub_item = static_cast<size_t>(di->item.iSubItem);
-						//const auto& l_column_info = m_columnList[l_sub_item];
-						//if (l_column_info.m_is_owner_draw == false) // TODO - на OwnerDraw пропускать вызов getText
-						// Если не делать SetText - глючит инфа в подсказке на юзере
+						//auto& l_column_info = m_columnList[l_sub_item];
+						if (1) //l_column_info.m_is_owner_draw == false || l_column_info.m_is_first_set == false) // TODO - на OwnerDraw пропускать вызов getText но если не делать SetText - глючит инфа в подсказке на юзере
 						{
 							const auto l_index = m_columnIndexes[l_sub_item];
 							const auto& l_text = ((T*)di->item.lParam)->getText(l_index);
 							setText(di->item, l_text);
+							//l_column_info.m_is_first_set = true;
+							dcdebug("!!!!!!!!!!! OWNER_DRAW - onGetDispInfo l_index = %d setText \n", l_sub_item);
 						}
-						//else
-						//{
-						//dcdebug("!!!!!!!!!!! OWNER_DRAW - onGetDispInfo l_index = %d \n", l_sub_item);
-						//}
+						else
+						{
+							//dcdebug("!!!!!!!!!!! OWNER_DRAW - onGetDispInfo l_index = %d \n", l_sub_item);
+						}
 					}
 					if (di->item.mask & LVIF_IMAGE) // http://support.microsoft.com/KB/141834
 					{
@@ -673,7 +676,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		}
 #endif
 		
-		int InsertColumn(uint8_t nCol, const tstring &columnHeading, int nFormat = LVCFMT_LEFT, int nWidth = -1, int nSubItem = -1)
+		int InsertColumn(uint8_t nCol, const tstring &columnHeading, uint16_t nFormat = LVCFMT_LEFT, int nWidth = -1, int nSubItem = -1)
 		{
 			if (nWidth == 0)
 			{

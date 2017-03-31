@@ -34,6 +34,7 @@
 #include <stdio.h>
 
 #include "config.hpp"
+#include "err.hpp"
 #include "fd.hpp"
 #include "atomic_counter.hpp"
 #include "metadata.hpp"
@@ -58,7 +59,7 @@ namespace zmq
 
         //  Shared message buffer. Message data are either allocated in one
         //  continuous block along with this structure - thus avoiding one
-        //  malloc/free pair or they are stored in used-supplied memory.
+        //  malloc/free pair or they are stored in user-supplied memory.
         //  In the latter case, ffn member stores pointer to the function to be
         //  used to deallocate the data. If the buffer is actually shared (there
         //  are at least 2 references to it) refcount member contains number of
@@ -82,7 +83,7 @@ namespace zmq
             shared = 128
         };
 
-        bool check ();
+        bool check () const;
         int init();
 
         int init (void* data, size_t size_,
@@ -101,8 +102,8 @@ namespace zmq
         int move (msg_t &src_);
         int copy (msg_t &src_);
         void *data ();
-        size_t size ();
-        unsigned char flags ();
+        size_t size () const;
+        unsigned char flags () const;
         void set_flags (unsigned char flags_);
         void reset_flags (unsigned char flags_);
         metadata_t *metadata () const;
@@ -246,6 +247,20 @@ namespace zmq
         } u;
     };
 
+    inline int send_failure (zmq::msg_t *msg)
+    {
+        const int rc = msg->close ();
+        errno_assert (rc == 0);
+        return -1;
+    }
+
+    inline int send_failure (zmq::msg_t msg[], int count)
+    {
+        for (int i = 0; i < count; i++)
+            send_failure (&msg [i]);
+
+        return -1;
+    }
 }
 
 #endif

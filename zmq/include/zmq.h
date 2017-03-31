@@ -271,11 +271,11 @@ ZMQ_EXPORT int zmq_msg_close (zmq_msg_t *msg);
 ZMQ_EXPORT int zmq_msg_move (zmq_msg_t *dest, zmq_msg_t *src);
 ZMQ_EXPORT int zmq_msg_copy (zmq_msg_t *dest, zmq_msg_t *src);
 ZMQ_EXPORT void *zmq_msg_data (zmq_msg_t *msg);
-ZMQ_EXPORT size_t zmq_msg_size (zmq_msg_t *msg);
-ZMQ_EXPORT int zmq_msg_more (zmq_msg_t *msg);
-ZMQ_EXPORT int zmq_msg_get (zmq_msg_t *msg, int property);
+ZMQ_EXPORT size_t zmq_msg_size (const zmq_msg_t *msg);
+ZMQ_EXPORT int zmq_msg_more (const zmq_msg_t *msg);
+ZMQ_EXPORT int zmq_msg_get (const zmq_msg_t *msg, int property);
 ZMQ_EXPORT int zmq_msg_set (zmq_msg_t *msg, int property, int optval);
-ZMQ_EXPORT const char *zmq_msg_gets (zmq_msg_t *msg, const char *property);
+ZMQ_EXPORT const char *zmq_msg_gets (const zmq_msg_t *msg, const char *property);
 
 /******************************************************************************/
 /*  0MQ socket definition.                                                    */
@@ -441,7 +441,7 @@ ZMQ_EXPORT int zmq_socket_monitor (void *s, const char *addr, int events);
 
 
 /******************************************************************************/
-/*  I/O multiplexing.                                                         */
+/*  Deprecated I/O multiplexing. Prefer using zmq_poller API                  */
 /******************************************************************************/
 
 #define ZMQ_POLLIN 1

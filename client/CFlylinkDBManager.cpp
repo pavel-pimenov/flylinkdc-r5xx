@@ -40,6 +40,9 @@ boost::unordered_map<TTHValue, TigerTree> CFlylinkDBManager::g_tiger_tree_cache;
 FastCriticalSection CFlylinkDBManager::g_tth_cache_cs;
 unsigned CFlylinkDBManager::g_tth_cache_limit = 500;
 
+FastCriticalSection  CFlylinkDBManager::g_resume_torrents_cs;
+std::unordered_set<libtorrent::sha1_hash> CFlylinkDBManager::g_resume_torrents;
+
 
 const char* g_db_file_names[] = {"FlylinkDC.sqlite",
                                  "FlylinkDC_log.sqlite",
@@ -2360,13 +2363,16 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 			if (!l_resume.empty())
 			{
 				libtorrent::error_code ec;
-				libtorrent::add_torrent_params p = libtorrent::read_resume_data((const char*)l_resume.data(), int(l_resume.size()), ec);
+				libtorrent::add_torrent_params p = libtorrent::read_resume_data({ (const char*)l_resume.data(), l_resume.size()}, ec);
 				//p.save_path = SETTING(DOWNLOAD_DIRECTORY); // TODO - load from DB ?
 				libtorrent::sha1_hash l_sha1;
 				l_q.getblob(1, l_sha1.data(), l_sha1.size());
 				p.info_hash = l_sha1;
 				p.flags |= libtorrent::add_torrent_params::flag_auto_managed;
-				
+				{
+					FastLock l(g_resume_torrents_cs);
+					g_resume_torrents.insert(l_sha1);
+				}
 				//p.resume_data.assign(l_resume.data(), l_resume.data() + l_resume.size());
 #ifdef _DEBUG
 				ec.clear();
@@ -2383,7 +2389,7 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 			}
 			else
 			{
-				LogManager::message("Error add_torrent_file: resume data is empty()");
+				LogManager::torrent_message("Error add_torrent_file: resume data is empty()");
 				// TODO delete_torrent_resume
 			}
 		}

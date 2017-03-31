@@ -300,13 +300,19 @@ void LogManager::psr_message(const string& p_message)
 	}
 }
 
-void LogManager::torrent_message(const string& p_message)
+void LogManager::torrent_message(const string& p_message, bool p_is_add_sys_message /*= true*/)
 {
 	if (BOOLSETTING(LOG_TORRENT_TRACE))
 	{
 		StringMap params;
 		params["message"] = p_message;
 		LOG(TORRENT_TRACE, params);
+	}
+	if (p_is_add_sys_message)
+	{
+		StringMap params;
+		params["message"] = p_message;
+		LOG(SYSTEM, params);
 	}
 }
 void LogManager::dht_message(const string& p_message)

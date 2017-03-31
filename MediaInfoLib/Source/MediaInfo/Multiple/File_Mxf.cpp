@@ -109,6 +109,12 @@ namespace MediaInfoLib
 // Constants
 //***************************************************************************
 
+//---------------------------------------------------------------------------
+#if MEDIAINFO_TRACE
+    static const size_t MaxCountSameElementInTrace=10;
+#endif // MEDIAINFO_TRACE
+
+//---------------------------------------------------------------------------
 #define UUID(PART1, PART2, PART3, PART4, LOCAL, NORM, NAME, DESCRIPTION) \
     const int32u NAME##1=0x##PART1; \
     const int32u NAME##2=0x##PART2; \
@@ -2128,6 +2134,7 @@ static string Mxf_AcquisitionMetadata_Sony_MonitoringBaseCurve(int128u Value)
 File_Mxf::File_Mxf()
 :File__Analyze()
 {
+	Code2 = 0;
     //Configuration
     ParserName="MXF";
     #if MEDIAINFO_EVENTS
@@ -2164,6 +2171,7 @@ File_Mxf::File_Mxf()
     IsSearchingFooterPartitionAddress=false;
     FooterPartitionAddress_Jumped=false;
     PartitionPack_Parsed=false;
+    HeaderPartition_IsOpen=false;
     IdIsAlwaysSame_Offset=0;
     PartitionMetadata_PreviousPartition=(int64u)-1;
     PartitionMetadata_FooterPartition=(int64u)-1;
@@ -2173,6 +2181,11 @@ File_Mxf::File_Mxf()
     SDTI_SizePerFrame=0;
     SDTI_IsPresent=false;
     SDTI_IsInIndexStreamOffset=true;
+    #if MEDIAINFO_TRACE
+        SDTI_SystemMetadataPack_Trace_Count=0;
+        SDTI_PackageMetadataSet_Trace_Count=0;
+        Padding_Trace_Count=0;
+    #endif // MEDIAINFO_TRACE
     SystemScheme1_TimeCodeArray_StartTimecode_ms=(int64u)-1;
     SystemScheme1_FrameRateFromDescriptor=0;
     Essences_FirstEssence_Parsed=false;
@@ -4356,7 +4369,7 @@ void File_Mxf::Read_Buffer_CheckFileModifications()
         if (Config->ParseSpeed>=1.0)
         {
             bool Buffer_End_IsUpdated=false;
-            if (Config->File_IsGrowing && !Config->File_IsNotGrowingAnymore)
+            if (HeaderPartition_IsOpen && !Config->File_IsNotGrowingAnymore)
             {
                 File F;
                 F.Open(File_Name);
@@ -5840,6 +5853,16 @@ void File_Mxf::Data_Parse()
         essences::iterator Essence=Essences.find(Code_Compare4);
         if (Essence==Essences.end())
             Essence=Essences.insert(make_pair(Code_Compare4,essence())).first;
+
+        #if MEDIAINFO_TRACE
+            if (Trace_Activated)
+            {
+                if (Essence->second.Trace_Count<MaxCountSameElementInTrace)
+                    Essence->second.Trace_Count++;
+                else
+                    Element_Set_Remove_Children_IfNoErrors();
+            }
+        #endif // MEDIAINFO_TRACE
 
         if (Essence->second.Parsers.empty())
         {
@@ -8137,6 +8160,23 @@ void File_Mxf::MCAAudioElementKind()
 //---------------------------------------------------------------------------
 void File_Mxf::Filler()
 {
+    #if MEDIAINFO_TRACE
+        if (Trace_Activated)
+        {
+            if (Padding_Trace_Count<MaxCountSameElementInTrace || (IsParsingMiddle_MaxOffset==(int64u)-1 && Partitions_IsFooter))
+            {
+                if (!Essences.empty()) //Only after first essence data or in footer
+                    Padding_Trace_Count++;
+            }
+            else
+            {
+                Element_Set_Remove_Children_IfNoErrors();
+                Element_Begin0(); //TODO: Element_Set_Remove_Children_IfNoErrors does not work if there is not sub-element
+                Element_End0();
+            }
+        }
+    #endif // MEDIAINFO_TRACE
+
     Skip_XX(Element_Size,                                       "Junk");
 
     Buffer_PaddingBytes+=Element_Size;
@@ -8146,6 +8186,23 @@ void File_Mxf::Filler()
 //---------------------------------------------------------------------------
 void File_Mxf::TerminatingFiller()
 {
+    #if MEDIAINFO_TRACE
+        if (Trace_Activated)
+        {
+            if (Padding_Trace_Count<MaxCountSameElementInTrace || Partitions_IsFooter)
+            {
+                if (!Essences.empty()) //Only after first essence data or in footer
+                    Padding_Trace_Count++;
+            }
+            else
+            {
+                Element_Set_Remove_Children_IfNoErrors();
+                Element_Begin0(); //TODO: Element_Set_Remove_Children_IfNoErrors does not work if there is not sub-element
+                Element_End0();
+            }
+        }
+    #endif // MEDIAINFO_TRACE
+
     Skip_XX(Element_Size,                                       "Junk");
 
     Buffer_PaddingBytes+=Element_Size;
@@ -8181,7 +8238,7 @@ void File_Mxf::SubDescriptors()
 //---------------------------------------------------------------------------
 void File_Mxf::LensUnitMetadata()
 {
-    if (Count_Get(Stream_Other)==0)
+    if (AcquisitionMetadataLists.empty())
         AcquisitionMetadataLists.resize(0x10000);
 
     switch(Code2)
@@ -8206,7 +8263,7 @@ void File_Mxf::LensUnitMetadata()
 //---------------------------------------------------------------------------
 void File_Mxf::CameraUnitMetadata()
 {
-    if (Count_Get(Stream_Other)==0)
+    if (AcquisitionMetadataLists.empty())
         AcquisitionMetadataLists.resize(0x10000);
 
     switch(Code2)
@@ -8245,7 +8302,7 @@ void File_Mxf::CameraUnitMetadata()
 //---------------------------------------------------------------------------
 void File_Mxf::UserDefinedAcquisitionMetadata()
 {
-    if (Count_Get(Stream_Other)==0)
+    if (AcquisitionMetadataLists.empty())
     {
         AcquisitionMetadataLists.resize(0x10000);
         AcquisitionMetadata_Sony_CalibrationType = (int8u)-1;
@@ -8282,6 +8339,16 @@ void File_Mxf::UserDefinedAcquisitionMetadata()
 //---------------------------------------------------------------------------
 void File_Mxf::SDTI_SystemMetadataPack() //SMPTE 385M + 326M
 {
+    #if MEDIAINFO_TRACE
+        if (Trace_Activated)
+        {
+            if (SDTI_SystemMetadataPack_Trace_Count<MaxCountSameElementInTrace)
+                SDTI_SystemMetadataPack_Trace_Count++;
+            else
+                Element_Set_Remove_Children_IfNoErrors();
+        }
+    #endif // MEDIAINFO_TRACE
+
     //Info for SDTI in Index StreamOffset
     if (!SDTI_IsPresent)
     {
@@ -8443,6 +8510,16 @@ void File_Mxf::SDTI_SystemMetadataPack() //SMPTE 385M + 326M
 //---------------------------------------------------------------------------
 void File_Mxf::SDTI_PackageMetadataSet()
 {
+    #if MEDIAINFO_TRACE
+        if (Trace_Activated)
+        {
+            if (SDTI_PackageMetadataSet_Trace_Count<MaxCountSameElementInTrace)
+                SDTI_PackageMetadataSet_Trace_Count++;
+            else
+                Element_Set_Remove_Children_IfNoErrors();
+        }
+    #endif // MEDIAINFO_TRACE
+
     while (Element_Offset<Element_Size)
     {
         //Parsing
@@ -10519,6 +10596,7 @@ void File_Mxf::PartitionMetadata()
                         if (Config->ParseSpeed>=1.0)
                         {
                             Config->File_IsGrowing=true;
+                            HeaderPartition_IsOpen=true;
                             #if MEDIAINFO_HASH
                                 delete Hash; Hash=NULL;
                             #endif //MEDIAINFO_HASH
@@ -10530,6 +10608,7 @@ void File_Mxf::PartitionMetadata()
                         if (Config->ParseSpeed>=1.0)
                         {
                             Config->File_IsGrowing=true;
+                            HeaderPartition_IsOpen=true;
                             #if MEDIAINFO_HASH
                                 delete Hash; Hash=NULL;
                             #endif //MEDIAINFO_HASH
@@ -12029,6 +12108,46 @@ void File_Mxf::UserDefinedAcquisitionMetadata_Sony_E10B()
     FILLING_END();
 }
 
+//---------------------------------------------------------------------------
+//
+void File_Mxf::AcquisitionMetadata_Add(size_t Id, const string& Value)
+{
+	if (AcquisitionMetadataLists.size() > Id) // Fix https://github.com/MediaArea/MediaInfo/issues/143
+	{
+		if (!AcquisitionMetadataLists[Id])
+		{
+			AcquisitionMetadataLists[Id] = new acquisitionmetadatalist;
+			AcquisitionMetadataLists[Id]->push_back(acquisitionmetadata(Value));
+			return;
+		}
+		if ((*AcquisitionMetadataLists[Id])[AcquisitionMetadataLists[Id]->size() - 1].Value == Value)
+		{
+			(*AcquisitionMetadataLists[Id])[AcquisitionMetadataLists[Id]->size() - 1].FrameCount++;
+			return;
+		}
+		AcquisitionMetadataLists[Id]->push_back(acquisitionmetadata(Value));
+	}
+}
+//---------------------------------------------------------------------------
+//
+void File_Mxf::AcquisitionMetadata_Sony_E201_Add(size_t Id, const string& Value)
+{
+	if (AcquisitionMetadata_Sony_E201_Lists.size() > Id)
+	{
+		if (!AcquisitionMetadata_Sony_E201_Lists[Id])
+		{
+			AcquisitionMetadata_Sony_E201_Lists[Id] = new acquisitionmetadatalist;
+			AcquisitionMetadata_Sony_E201_Lists[Id]->push_back(acquisitionmetadata(Value));
+			return;
+		}
+		if ((*AcquisitionMetadata_Sony_E201_Lists[Id])[AcquisitionMetadata_Sony_E201_Lists[Id]->size() - 1].Value == Value)
+		{
+			(*AcquisitionMetadata_Sony_E201_Lists[Id])[AcquisitionMetadata_Sony_E201_Lists[Id]->size() - 1].FrameCount++;
+			return;
+		}
+		AcquisitionMetadata_Sony_E201_Lists[Id]->push_back(acquisitionmetadata(Value));
+	}
+}
 //---------------------------------------------------------------------------
 //
 void File_Mxf::UserDefinedAcquisitionMetadata_Sony_E201()

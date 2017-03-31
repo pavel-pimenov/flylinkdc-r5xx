@@ -423,6 +423,7 @@ namespace aux {
 		, m_disk_thread(m_io_service, m_stats_counters)
 		, m_download_rate(peer_connection::download_channel)
 		, m_upload_rate(peer_connection::upload_channel)
+		, m_host_resolver(m_io_service)
 		, m_tracker_manager(
 			std::bind(&session_impl::send_udp_packet, this, false, _1, _2, _3, _4)
 			, std::bind(&session_impl::send_udp_packet_hostname, this, _1, _2, _3, _4, _5)
@@ -462,7 +463,6 @@ namespace aux {
 		, m_timer(m_io_service)
 		, m_lsd_announce_timer(m_io_service)
 		, m_close_file_timer(m_io_service)
-		, m_host_resolver(m_io_service)
 	{
 		update_time_now();
 	}
@@ -630,11 +630,44 @@ namespace aux {
 		update_upnp();
 		update_natpmp();
 		update_lsd();
-		update_dht();
 		update_peer_fingerprint();
-		update_dht_bootstrap_nodes();
+
+		init_dht();
+	}
+
+	void session_impl::init_dht()
+	{
+		// the need of this elaborated logic is because if the value
+		// of settings_pack::dht_bootstrap_nodes is not the default,
+		// then update_dht_bootstrap_nodes is called. For this reason,
+		// three different cases should be considered.
+		// 1-) dht_bootstrap_nodes setting not touched
+		// 2-) dht_bootstrap_nodes changed but not empty
+		// 3-) dht_bootstrap_nodes set to empty ("")
+		// TODO: find a solution and refactor to avoid potentially stalling
+		// for minutes due to the name resolution
+
 #ifndef TORRENT_DISABLE_DHT
-		update_dht_announce_interval();
+		if (m_outstanding_router_lookups == 0)
+		{
+			// this can happens because either the setting value was untouched
+			// or the value in the initial settings is empty
+			if (m_settings.get_str(settings_pack::dht_bootstrap_nodes).empty())
+			{
+				// case 3)
+				update_dht();
+				update_dht_announce_interval();
+			}
+			else
+			{
+				// case 1)
+				// eventually update_dht() is called when all resolves are done
+				update_dht_bootstrap_nodes();
+			}
+		}
+		// else is case 2)
+		// in this case the call to update_dht_bootstrap_nodes() by the apply settings
+		// will eventually call update_dht() when all resolves are done
 #endif
 	}
 
@@ -2955,6 +2988,11 @@ namespace aux {
 			if (pe.second->has_peer(p)) return true;
 		return false;
 	}
+
+	bool session_impl::verify_queue_position(torrent const* t, int pos)
+	{
+		return m_download_queue.end_index() > pos && m_download_queue[pos] == t;
+	}
 #endif
 
 	void session_impl::sent_bytes(int bytes_payload, int bytes_protocol)
@@ -3525,23 +3563,22 @@ namespace aux {
 		TORRENT_ASSERT(m_dht);
 
 		// announce to DHT every 15 minutes
-		int delay = (std::max)(m_settings.get_int(settings_pack::dht_announce_interval)
-			/ (std::max)(int(m_torrents.size()), 1), 1);
+		int delay = std::max(m_settings.get_int(settings_pack::dht_announce_interval)
+			/ std::max(int(m_torrents.size()), 1), 1);
 
 		if (!m_dht_torrents.empty())
 		{
 			// we have prioritized torrents that need
 			// an initial DHT announce. Don't wait too long
 			// until we announce those.
-			delay = (std::min)(4, delay);
+			delay = std::min(4, delay);
 		}
 
 		ADD_OUTSTANDING_ASYNC("session_impl::on_dht_announce");
 		error_code ec;
 		m_dht_announce_timer.expires_from_now(seconds(delay), ec);
-		m_dht_announce_timer.async_wait([this](error_code const& err) {
-				this->wrap(&session_impl::on_dht_announce, err); }
-			);
+		m_dht_announce_timer.async_wait([this](error_code const& err)
+			{ this->wrap(&session_impl::on_dht_announce, err); });
 
 		if (!m_dht_torrents.empty())
 		{
@@ -4283,76 +4320,61 @@ namespace aux {
 
 	void session_impl::set_queue_position(torrent* me, int p)
 	{
-		// TODO: Maybe the queue position should be maintained as a vector of
-		// torrent pointers. Maybe this logic could be simplified
-		if (p >= 0 && me->queue_position() == -1)
+		int const current_pos = me->queue_position();
+		if (current_pos == p) return;
+
+		if (p >= 0 && current_pos == -1)
 		{
-			for (auto& i : m_torrents)
+			// we're inserting the torrent into the download queue
+			int const last = m_download_queue.end_index();
+			if (p >= last)
 			{
-				torrent* t = i.second.get();
-				if (t->queue_position() >= p)
-				{
-					t->set_queue_position_impl(t->queue_position()+1);
-					t->state_updated();
-				}
-				if (t->queue_position() >= p) t->set_queue_position_impl(t->queue_position()+1);
+				m_download_queue.push_back(me);
+				me->set_queue_position_impl(last);
+				return;
 			}
-			++m_max_queue_pos;
-			me->set_queue_position_impl((std::min)(m_max_queue_pos, p));
+
+			m_download_queue.insert(m_download_queue.begin() + p, me);
+			for (int i = p; i < m_download_queue.end_index(); ++i)
+			{
+				m_download_queue[i]->set_queue_position_impl(i);
+			}
 		}
 		else if (p < 0)
 		{
-			TORRENT_ASSERT(me->queue_position() >= 0);
+			// we're removing the torrent from the download queue
+			TORRENT_ASSERT(current_pos >= 0);
 			TORRENT_ASSERT(p == -1);
-			for (auto& i : m_torrents)
+			TORRENT_ASSERT(m_download_queue[current_pos] == me);
+			m_download_queue.erase(m_download_queue.begin() + current_pos);
+			me->set_queue_position_impl(-1);
+			for (int i = current_pos; i < m_download_queue.end_index(); ++i)
 			{
-				torrent* t = i.second.get();
-				if (t == me) continue;
-				if (t->queue_position() == -1) continue;
-				if (t->queue_position() >= me->queue_position())
-				{
-					t->set_queue_position_impl(t->queue_position()-1);
-					t->state_updated();
-				}
+				m_download_queue[i]->set_queue_position_impl(i);
 			}
-			--m_max_queue_pos;
-			me->set_queue_position_impl(p);
 		}
-		else if (p < me->queue_position())
+		else if (p < current_pos)
 		{
-			for (auto& i : m_torrents)
+			// we're moving the torrent up the queue
+			torrent* tmp = me;
+			for (int i = p; i <= current_pos; ++i)
 			{
-				torrent* t = i.second.get();
-				if (t == me) continue;
-				if (t->queue_position() == -1) continue;
-				if (t->queue_position() >= p
-					&& t->queue_position() < me->queue_position())
-				{
-					t->set_queue_position_impl(t->queue_position()+1);
-					t->state_updated();
-				}
+				std::swap(m_download_queue[i], tmp);
+				m_download_queue[i]->set_queue_position_impl(i);
 			}
-			me->set_queue_position_impl(p);
+			TORRENT_ASSERT(tmp == me);
 		}
-		else if (p > me->queue_position())
+		else if (p > current_pos)
 		{
-			for (auto& i : m_torrents)
+			// we're moving the torrent down the queue
+			p = std::min(p, m_download_queue.end_index() - 1);
+			for (int i = current_pos; i < p; ++i)
 			{
-				torrent* t = i.second.get();
-				int pos = t->queue_position();
-				if (t == me) continue;
-				if (pos == -1) continue;
-
-				if (pos <= p
-						&& pos > me->queue_position()
-						&& pos != -1)
-				{
-					t->set_queue_position_impl(t->queue_position()-1);
-					t->state_updated();
-				}
-
+				m_download_queue[i] = m_download_queue[i + 1];
+				m_download_queue[i]->set_queue_position_impl(i);
 			}
-			me->set_queue_position_impl((std::min)(m_max_queue_pos, p));
+			m_download_queue[p] = me;
+			me->set_queue_position_impl(p);
 		}
 
 		trigger_auto_manage();
@@ -4573,16 +4595,20 @@ namespace aux {
 	{
 		std::unique_ptr<add_torrent_params> holder(params);
 
-		if (string_begins_no_case("file://", params->url.c_str()) && !params->ti)
+#ifndef TORRENT_NO_DEPRECATE
+		if (!params->ti && string_begins_no_case("file://", params->url.c_str()))
 		{
 			if (!m_torrent_load_thread)
 				m_torrent_load_thread.reset(new work_thread_t());
 
 			m_torrent_load_thread->ios.post([params, this]
 			{
+				std::string const torrent_file_path = resolve_file_url(params->url);
+				params->url.clear();
+
 				std::unique_ptr<add_torrent_params> holder2(params);
 				error_code ec;
-				params->ti = std::make_shared<torrent_info>(resolve_file_url(params->url), ec);
+				params->ti = std::make_shared<torrent_info>(torrent_file_path, ec);
 				this->m_io_service.post(std::bind(&session_impl::on_async_load_torrent
 					, this, params, ec));
 				holder2.release();
@@ -4590,11 +4616,13 @@ namespace aux {
 			holder.release();
 			return;
 		}
+#endif
 
 		error_code ec;
-		add_torrent(*params, ec);
+		add_torrent(std::move(*params), ec);
 	}
 
+#ifndef TORRENT_NO_DEPRECATE
 	void session_impl::on_async_load_torrent(add_torrent_params* params, error_code ec)
 	{
 		std::unique_ptr<add_torrent_params> holder(params);
@@ -4607,9 +4635,10 @@ namespace aux {
 		}
 		TORRENT_ASSERT(params->ti->is_valid());
 		TORRENT_ASSERT(params->ti->num_files() > 0);
-		add_torrent(*params, ec);
 		params->url.clear();
+		add_torrent(std::move(*params), ec);
 	}
+#endif
 
 #ifndef TORRENT_DISABLE_EXTENSIONS
 	void session_impl::add_extensions_to_torrent(
@@ -4624,11 +4653,10 @@ namespace aux {
 	}
 #endif
 
-	torrent_handle session_impl::add_torrent(add_torrent_params const& p
+	torrent_handle session_impl::add_torrent(add_torrent_params params
 		, error_code& ec)
 	{
 		// params is updated by add_torrent_impl()
-		add_torrent_params params = p;
 		std::shared_ptr<torrent> torrent_ptr;
 
 		// in case there's an error, make sure to abort the torrent before leaving
@@ -4636,6 +4664,8 @@ namespace aux {
 		auto abort_torrent = aux::scope_end([&]{ if (torrent_ptr) torrent_ptr->abort(); });
 
 		bool added;
+		// TODO: 3 perhaps params could be moved into the torrent object, instead
+		// of it being copied by the torrent constructor
 		std::tie(torrent_ptr, added) = add_torrent_impl(params, ec);
 
 		torrent_handle const handle(torrent_ptr);
@@ -4654,8 +4684,10 @@ namespace aux {
 		}
 #endif
 
+#ifndef TORRENT_NO_DEPRECATE
 		if (m_alerts.should_post<torrent_added_alert>())
 			m_alerts.emplace_alert<torrent_added_alert>(handle);
+#endif
 
 		// if this was an existing torrent, we can't start it again, or add
 		// another set of plugins etc. we're done
@@ -4751,14 +4783,13 @@ namespace aux {
 	}
 
 	std::pair<std::shared_ptr<torrent>, bool>
-	session_impl::add_torrent_impl(
-		add_torrent_params& params
-		, error_code& ec)
+	session_impl::add_torrent_impl(add_torrent_params& params, error_code& ec)
 	{
 		TORRENT_ASSERT(!params.save_path.empty());
 
 		using ptr_t = std::shared_ptr<torrent>;
 
+#ifndef TORRENT_NO_DEPRECATE
 		if (string_begins_no_case("magnet:", params.url.c_str()))
 		{
 			parse_magnet_uri(params.url, params, ec);
@@ -4766,14 +4797,16 @@ namespace aux {
 			params.url.clear();
 		}
 
-		if (string_begins_no_case("file://", params.url.c_str()) && !params.ti)
+		if (!params.ti && string_begins_no_case("file://", params.url.c_str()))
 		{
-			std::string const filename = resolve_file_url(params.url);
-			auto t = std::make_shared<torrent_info>(filename, std::ref(ec), 0);
+			std::string const torrent_file_path = resolve_file_url(params.url);
+			params.url.clear();
+			auto t = std::make_shared<torrent_info>(torrent_file_path, std::ref(ec), 0);
 			if (ec) return std::make_pair(ptr_t(), false);
 			params.url.clear();
 			params.ti = t;
 		}
+#endif
 
 		if (params.ti && !params.ti->is_valid())
 		{
@@ -4857,11 +4890,10 @@ namespace aux {
 			return std::make_pair(ptr_t(), false);
 		}
 
-		int queue_pos = ++m_max_queue_pos;
-
 		torrent_ptr = std::make_shared<torrent>(*this
-			, 16 * 1024, queue_pos, m_paused
+			, 16 * 1024, m_paused
 			, params, params.info_hash);
+		torrent_ptr->set_queue_position(m_download_queue.end_index());
 
 		return std::make_pair(torrent_ptr, true);
 	}
@@ -4980,7 +5012,6 @@ namespace aux {
 		remove_torrent_impl(tptr, options);
 
 		tptr->abort();
-		tptr->set_queue_position(-1);
 	}
 
 	void session_impl::remove_torrent_impl(std::shared_ptr<torrent> tptr
@@ -5003,8 +5034,7 @@ namespace aux {
 		// this torrent might be filed under the URL-hash
 		if (i == m_torrents.end() && !tptr->url().empty())
 		{
-			std::string const& url = tptr->url();
-			i = m_torrents.find(hasher(url).final());
+			i = m_torrents.find(hasher(tptr->url()).final());
 		}
 #endif
 
@@ -5528,6 +5558,12 @@ namespace aux {
 	{
 		INVARIANT_CHECK;
 
+#ifndef TORRENT_DISABLE_LOGGING
+		session_log("about to start DHT, running: %s, router lookups: %d, aborting: %s"
+			, m_dht ? "true" : "false", m_outstanding_router_lookups
+			, m_abort ? "true" : "false");
+#endif
+
 		stop_dht();
 
 		// postpone starting the DHT if we're still resolving the DHT router
@@ -5569,6 +5605,10 @@ namespace aux {
 
 	void session_impl::stop_dht()
 	{
+#ifndef TORRENT_DISABLE_LOGGING
+		session_log("about to stop DHT, running: %s", m_dht ? "true" : "false");
+#endif
+
 		if (m_dht)
 		{
 			m_dht->stop();
@@ -5828,7 +5868,6 @@ namespace aux {
 	{
 		// this is not allowed to be the network thread!
 //		TORRENT_ASSERT(is_not_thread());
-
 // TODO: asserts that no outstanding async operations are still in flight
 
 #if defined TORRENT_ASIO_DEBUGGING
@@ -6179,8 +6218,8 @@ namespace aux {
 
 		ADD_OUTSTANDING_ASYNC("session_impl::on_dht_announce");
 		error_code ec;
-		int delay = (std::max)(m_settings.get_int(settings_pack::dht_announce_interval)
-			/ (std::max)(int(m_torrents.size()), 1), 1);
+		int delay = std::max(m_settings.get_int(settings_pack::dht_announce_interval)
+			/ std::max(int(m_torrents.size()), 1), 1);
 		m_dht_announce_timer.expires_from_now(seconds(delay), ec);
 		m_dht_announce_timer.async_wait([this](error_code const& e) {
 			this->wrap(&session_impl::on_dht_announce, e); });
@@ -6737,6 +6776,13 @@ namespace aux {
 			for (auto const& i : list)
 			{
 				TORRENT_ASSERT(i->m_links[l].in_list());
+			}
+
+			int idx = 0;
+			for (auto t : m_download_queue)
+			{
+				TORRENT_ASSERT(t->queue_position() == idx);
+				++idx;
 			}
 		}
 

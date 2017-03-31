@@ -163,7 +163,6 @@ namespace libtorrent
 	torrent::torrent(
 		aux::session_interface& ses
 		, int const block_size
-		, int const seq
 		, bool const session_paused
 		, add_torrent_params const& p
 		, sha1_hash const& info_hash)
@@ -181,7 +180,7 @@ namespace libtorrent
 		, m_storage_constructor(p.storage)
 		, m_info_hash(info_hash)
 		, m_error_file(torrent_status::error_file_none)
-		, m_sequence_number(seq)
+		, m_sequence_number(-1)
 		, m_announce_to_trackers((p.flags & add_torrent_params::flag_paused) == 0)
 		, m_announce_to_lsd((p.flags & add_torrent_params::flag_paused) == 0)
 		, m_has_incoming(false)
@@ -250,10 +249,11 @@ namespace libtorrent
 
 		// if override web seed flag is set, don't load any web seeds from the
 		// torrent file.
+		std::vector<web_seed_t> ws;
 		if ((p.flags & add_torrent_params::flag_override_web_seeds) == 0)
 		{
-			std::vector<web_seed_entry> const& web_seeds = m_torrent_file->web_seeds();
-			m_web_seeds.insert(m_web_seeds.end(), web_seeds.begin(), web_seeds.end());
+			for (auto const& e : m_torrent_file->web_seeds())
+				ws.emplace_back(e);
 		}
 
 		// add web seeds from add_torrent_params
@@ -262,17 +262,18 @@ namespace libtorrent
 
 		for (auto const& u : p.url_seeds)
 		{
-			m_web_seeds.push_back(web_seed_t(u, web_seed_entry::url_seed));
+			ws.emplace_back(web_seed_t(u, web_seed_entry::url_seed));
 
 			// correct URLs to end with a "/" for multi-file torrents
-			std::string& url = m_web_seeds.back().url;
+			std::string& url = ws.back().url;
 			if (multi_file && url[url.size()-1] != '/') url += '/';
 		}
 
 		for (auto const& e : p.http_seeds)
-		{
-			m_web_seeds.push_back(web_seed_t(e, web_seed_entry::http_seed));
-		}
+			ws.push_back(web_seed_t(e, web_seed_entry::http_seed));
+
+		aux::random_shuffle(ws.begin(), ws.end());
+		for (auto& w : ws) m_web_seeds.emplace_back(std::move(w));
 
 		// --- TRACKERS ---
 
@@ -470,7 +471,9 @@ namespace libtorrent
 
 		// add the web seeds from the .torrent file
 		std::vector<web_seed_entry> const& web_seeds = m_torrent_file->web_seeds();
-		m_web_seeds.insert(m_web_seeds.end(), web_seeds.begin(), web_seeds.end());
+		std::vector<web_seed_t> ws(web_seeds.begin(), web_seeds.end());
+		aux::random_shuffle(ws.begin(), ws.end());
+		for (auto& w : ws) m_web_seeds.push_back(std::move(w));
 
 #if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
 		static char const req2[4] = {'r', 'e', 'q', '2'};
@@ -1464,7 +1467,7 @@ namespace libtorrent
 #endif
 	}
 
-	void torrent::init_ssl(std::string const& cert)
+	void torrent::init_ssl(string_view cert)
 	{
 		using boost::asio::ssl::context;
 
@@ -1533,7 +1536,7 @@ namespace libtorrent
 
 		// wrap the PEM certificate in a BIO, for openssl to read
 		BIO* bp = BIO_new_mem_buf(
-			const_cast<void*>(static_cast<void const*>(cert.c_str()))
+			const_cast<void*>(static_cast<void const*>(cert.data()))
 			, int(cert.size()));
 
 		// parse the certificate into OpenSSL's internal
@@ -1642,7 +1645,7 @@ namespace libtorrent
 		if (int(m_file_priority.size()) > m_torrent_file->num_files())
 			m_file_priority.resize(m_torrent_file->num_files());
 
-		std::string cert = m_torrent_file->ssl_cert();
+		auto cert = m_torrent_file->ssl_cert();
 		if (!cert.empty())
 		{
 			m_ssl_torrent = true;
@@ -5790,8 +5793,8 @@ namespace libtorrent
 			return;
 		}
 
-		bool const is_ip = is_ip_address(hostname.c_str());
-		if (is_ip) a.address(address::from_string(hostname.c_str(), ec));
+		bool const is_ip = is_ip_address(hostname);
+		if (is_ip) a.address(address::from_string(hostname, ec));
 		bool const proxy_hostnames = settings().get_bool(settings_pack::proxy_hostnames)
 			&& !is_ip;
 
@@ -7516,6 +7519,9 @@ namespace libtorrent
 		TORRENT_ASSERT(current_stats_state() == int(m_current_gauge_state + counters::num_checking_torrents)
 			|| m_current_gauge_state == no_gauge_state);
 
+		TORRENT_ASSERT(m_sequence_number == -1
+			|| m_ses.verify_queue_position(this, m_sequence_number));
+
 		for (auto const& i : m_time_critical_pieces)
 		{
 			TORRENT_ASSERT(!is_seed());
@@ -7804,7 +7810,8 @@ namespace libtorrent
 
 		TORRENT_ASSERT((p == -1) == is_finished()
 			|| (!m_auto_managed && p == -1)
-			|| (m_abort && p == -1));
+			|| (m_abort && p == -1)
+			|| (!m_added && p == -1));
 		if (p == m_sequence_number) return;
 
 		TORRENT_ASSERT(p >= -1);
@@ -8897,28 +8904,45 @@ namespace libtorrent
 	}
 	catch (...) { handle_exception(); }
 
+	namespace {
+		int zero_or(int const val, int const def_val)
+		{ return (val <= 0) ? def_val : val; }
+	}
+
 	void torrent::maybe_connect_web_seeds()
 	{
 		if (m_abort) return;
 
 		// if we have everything we want we don't need to connect to any web-seed
-		if (!is_finished() && !m_web_seeds.empty() && m_files_checked
-			&& num_peers() < int(m_max_connections)
-			&& m_ses.num_connections() < settings().get_int(settings_pack::connections_limit))
+		if (m_web_seeds.empty()
+			|| is_finished()
+			|| !m_files_checked
+			|| num_peers() >= int(m_max_connections)
+			|| m_ses.num_connections() >= settings().get_int(settings_pack::connections_limit))
 		{
-			// keep trying web-seeds if there are any
-			// first find out which web seeds we are connected to
-			for (std::list<web_seed_t>::iterator i = m_web_seeds.begin();
-				i != m_web_seeds.end();)
-			{
-				std::list<web_seed_t>::iterator w = i++;
-				if (w->peer_info.connection) continue;
-				if (w->retry > aux::time_now()) continue;
-				if (w->resolving) continue;
-				if (w->removed) continue;
+			return;
+		}
 
-				connect_to_url_seed(w);
-			}
+		// when set to unlimited, use 100 as the limit
+		int limit = zero_or(settings().get_int(settings_pack::max_web_seed_connections)
+			, 100);
+
+		auto const now = aux::time_now();
+
+		// keep trying web-seeds if there are any
+		// first find out which web seeds we are connected to
+		for (std::list<web_seed_t>::iterator i = m_web_seeds.begin();
+			i != m_web_seeds.end() && limit > 0;)
+		{
+			std::list<web_seed_t>::iterator w = i++;
+			if (w->removed || w->retry > now)
+				continue;
+
+			--limit;
+			if (w->peer_info.connection || w->resolving)
+				continue;
+
+			connect_to_url_seed(w);
 		}
 	}
 
@@ -10510,23 +10534,26 @@ namespace libtorrent
 #endif
 		}
 
-		int num_pieces = m_torrent_file->num_pieces();
-		if (has_picker() && (flags & torrent_handle::query_pieces))
+		if (flags & torrent_handle::query_pieces)
 		{
-			st->pieces.resize(num_pieces, false);
-			for (piece_index_t i(0); i < piece_index_t(num_pieces); ++i)
-				if (m_picker->has_piece_passed(i)) st->pieces.set_bit(i);
-		}
-		else if (m_have_all)
-		{
-			st->pieces.resize(num_pieces, true);
-		}
-		else
-		{
-			st->pieces.resize(num_pieces, false);
+			int const num_pieces = m_torrent_file->num_pieces();
+			if (has_picker())
+			{
+				st->pieces.resize(num_pieces, false);
+				for (piece_index_t i(0); i < piece_index_t(num_pieces); ++i)
+					if (m_picker->has_piece_passed(i)) st->pieces.set_bit(i);
+			}
+			else if (m_have_all)
+			{
+				st->pieces.resize(num_pieces, true);
+			}
+			else
+			{
+				st->pieces.resize(num_pieces, false);
+			}
 		}
 		st->num_pieces = num_have();
-		st->num_seeds = num_seeds() - int(m_num_connecting_seeds);
+		st->num_seeds = num_seeds();
 		if ((flags & torrent_handle::query_distributed_copies) && m_picker.get())
 		{
 			std::tie(st->distributed_full_copies, st->distributed_fraction) =

@@ -141,9 +141,9 @@ namespace libtorrent
 
 		ret.save_path = rd.dict_find_string_value("save_path").to_string();
 
-		ret.url = rd.dict_find_string_value("url").to_string();
 #ifndef TORRENT_NO_DEPRECATE
 		// deprecated in 1.2
+		ret.url = rd.dict_find_string_value("url").to_string();
 		ret.uuid = rd.dict_find_string_value("uuid").to_string();
 #endif
 
@@ -332,10 +332,9 @@ namespace libtorrent
 		return ret;
 	}
 
-	add_torrent_params read_resume_data(char const* buffer, int size, error_code& ec)
+	add_torrent_params read_resume_data(span<char const> buffer, error_code& ec)
 	{
-		bdecode_node rd;
-		bdecode(buffer, buffer + size, rd, ec);
+		bdecode_node rd = bdecode(buffer, ec);
 		if (ec) return add_torrent_params();
 
 		return read_resume_data(rd, ec);

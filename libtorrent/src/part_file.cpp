@@ -114,7 +114,7 @@ namespace libtorrent
 
 			// this is used to determine which slots are free, and how many
 			// slots are allocated
-			std::vector<bool> free_slots;
+			aux::vector<bool, slot_index_t> free_slots;
 			free_slots.resize(num_pieces, true);
 
 			for (piece_index_t i = piece_index_t(0); i < piece_index_t(num_pieces); ++i)

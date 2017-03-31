@@ -716,6 +716,9 @@ void CFlyServerConfig::loadConfig()
 						checkStrKey(n);
 						g_mediainfo_ext.insert(n);
 					});
+#ifdef _DEBUG
+					g_mediainfo_ext.insert("mxf"); // https://github.com/MediaArea/MediaInfo/issues/143
+#endif
 					l_xml.getChildAttribSplit("virus_ext", g_virus_ext, [this](const string & n)
 					{
 						checkStrKey(n);

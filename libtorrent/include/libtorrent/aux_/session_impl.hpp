@@ -273,6 +273,7 @@ namespace libtorrent
 			// this is set while the session is building the
 			// torrent status update message
 			bool m_posting_torrent_updates = false;
+			bool verify_queue_position(torrent const* t, int pos) override;
 #endif
 
 			void on_exception(std::exception const& e) override;
@@ -473,13 +474,16 @@ namespace libtorrent
 				std::shared_ptr<torrent> const& torrent_ptr, void* userdata);
 #endif
 
-			torrent_handle add_torrent(add_torrent_params const&, error_code& ec);
+			torrent_handle add_torrent(add_torrent_params, error_code& ec);
 			// second return value is true if the torrent was added and false if an
 			// existing one was found.
 			std::pair<std::shared_ptr<torrent>, bool>
 			add_torrent_impl(add_torrent_params& p, error_code& ec);
 			void async_add_torrent(add_torrent_params* params);
+
+#ifndef TORRENT_NO_DEPRECATE
 			void on_async_load_torrent(add_torrent_params* params, error_code ec);
+#endif
 
 			void remove_torrent(torrent_handle const& h, int options) override;
 			void remove_torrent_impl(std::shared_ptr<torrent> tptr, int options) override;
@@ -529,8 +533,13 @@ namespace libtorrent
 			int rate_limit(peer_class_t c, int channel) const;
 
 			bool preemptive_unchoke() const override;
+
+			// deprecated, use stats counters ``num_peers_up_unchoked`` instead
 			int num_uploads() const override
 			{ return int(m_stats_counters[counters::num_peers_up_unchoked]); }
+
+			// deprecated, use stats counters ``num_peers_connected`` +
+			// ``num_peers_half_open`` instead.
 			int num_connections() const override { return int(m_connections.size()); }
 
 			int peak_up_rate() const { return m_peak_up_rate; }
@@ -732,6 +741,7 @@ namespace libtorrent
 			peer_class_pool m_classes;
 
 			void init(std::shared_ptr<settings_pack> pack);
+			void init_dht();
 
 			void submit_disk_jobs();
 
@@ -813,8 +823,14 @@ namespace libtorrent
 			// peer class for local peers
 			peer_class_t m_local_peer_class{0};
 
+			resolver m_host_resolver;
+
 			tracker_manager m_tracker_manager;
 			torrent_map m_torrents;
+
+			// all torrents that are downloading or queued,
+			// ordered by their queue position
+			aux::vector<torrent*> m_download_queue;
 
 #if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
 			// this maps obfuscated hashes to torrents. It's only
@@ -866,12 +882,6 @@ namespace libtorrent
 
 			// the peer id that is generated at the start of the session
 			peer_id m_peer_id;
-
-			// this is the highest queue position of any torrent
-			// in this session. queue positions are packed (i.e. there
-			// are no gaps). If there are no torrents with queue positions
-			// this is -1.
-			int m_max_queue_pos = -1;
 
 			// the key is an id that is used to identify the
 			// client with the tracker only. It is randomized
@@ -1086,6 +1096,7 @@ namespace libtorrent
 			std::shared_ptr<upnp> m_upnp;
 			std::shared_ptr<lsd> m_lsd;
 
+#ifndef TORRENT_NO_DEPRECATE
 			struct work_thread_t
 			{
 				work_thread_t()
@@ -1105,6 +1116,7 @@ namespace libtorrent
 				std::thread thread;
 			};
 			std::unique_ptr<work_thread_t> m_torrent_load_thread;
+#endif
 
 			// mask is a bitmask of which protocols to remap on:
 			// 1: NAT-PMP
@@ -1163,8 +1175,6 @@ namespace libtorrent
 			// object. This closes the file that's been opened the longest every
 			// time it's called, to force the windows disk cache to be flushed
 			deadline_timer m_close_file_timer;
-
-			resolver m_host_resolver;
 
 			// the index of the torrent that will be offered to
 			// connect to a peer next time on_tick is called.

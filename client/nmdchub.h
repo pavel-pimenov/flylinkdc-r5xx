@@ -243,7 +243,6 @@ class NmdcHub : public Client, private Flags
 		void myInfo(bool p_alwaysSend, bool p_is_force_passive = false);
 		void myInfoParse(const string& param);
 #ifdef FLYLINKDC_USE_EXT_JSON
-		
 		bool extJSONParse(const string& param, bool p_is_disable_fire = false);
 // #define FLYLINKDC_USE_EXT_JSON_GUARD
 #ifdef FLYLINKDC_USE_EXT_JSON_GUARD

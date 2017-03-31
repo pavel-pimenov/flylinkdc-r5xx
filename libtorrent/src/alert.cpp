@@ -1273,6 +1273,7 @@ namespace libtorrent
 		return m_alloc.get().ptr(m_file_idx);
 	}
 
+#ifndef TORRENT_NO_DEPRECATE
 	torrent_added_alert::torrent_added_alert(aux::stack_allocator& alloc
 		, torrent_handle const& h)
 		: torrent_alert(alloc, h)
@@ -1282,6 +1283,7 @@ namespace libtorrent
 	{
 		return torrent_alert::message() + " added";
 	}
+#endif
 
 	torrent_removed_alert::torrent_removed_alert(aux::stack_allocator& alloc
 		, torrent_handle const& h, sha1_hash const& ih)
@@ -1349,7 +1351,9 @@ namespace libtorrent
 		char const* torrent_name = info_hash;
 		if (params.ti) torrent_name = params.ti->name().c_str();
 		else if (!params.name.empty()) torrent_name = params.name.c_str();
+#ifndef TORRENT_NO_DEPRECATE
 		else if (!params.url.empty()) torrent_name = params.url.c_str();
+#endif
 		else aux::to_hex(params.info_hash, info_hash);
 
 		if (error)
@@ -2136,28 +2140,32 @@ namespace libtorrent
 		return buf;
 	}
 
-	dht_live_nodes_alert::dht_live_nodes_alert(aux::stack_allocator& alloc
-		, sha1_hash const& nid
-		, std::vector<std::pair<sha1_hash, udp::endpoint>> const& nodes)
-		: node_id(nid)
-		, m_alloc(alloc)
+	namespace
 	{
+	using nodes_slot = std::tuple<int, aux::allocation_slot, int, aux::allocation_slot>;
+
+	nodes_slot write_nodes(aux::stack_allocator& alloc
+		, std::vector<std::pair<sha1_hash, udp::endpoint>> const& nodes)
+	{
+		int v4_num_nodes = 0;
+		int v6_num_nodes = 0;
+
 		for (auto const& n : nodes)
 		{
 			if (n.second.protocol() == udp::v4())
-				m_v4_num_nodes++;
+				v4_num_nodes++;
 #if TORRENT_USE_IPV6
 			else
-				m_v6_num_nodes++;
+				v6_num_nodes++;
 #endif
 		}
 
-		m_v4_nodes_idx = alloc.allocate(m_v4_num_nodes * (20 + 6));
-		m_v6_nodes_idx = alloc.allocate(m_v6_num_nodes * (20 + 18));
+		aux::allocation_slot const v4_nodes_idx = alloc.allocate(v4_num_nodes * (20 + 6));
+		aux::allocation_slot const v6_nodes_idx = alloc.allocate(v6_num_nodes * (20 + 18));
 
-		char* v4_ptr = alloc.ptr(m_v4_nodes_idx);
+		char* v4_ptr = alloc.ptr(v4_nodes_idx);
 #if TORRENT_USE_IPV6
-		char* v6_ptr = alloc.ptr(m_v6_nodes_idx);
+		char* v6_ptr = alloc.ptr(v6_nodes_idx);
 #endif
 		for (auto const& n : nodes)
 		{
@@ -2175,6 +2183,51 @@ namespace libtorrent
 			}
 #endif
 		}
+
+		return nodes_slot(v4_num_nodes, v4_nodes_idx, v6_num_nodes, v6_nodes_idx);
+	}
+
+	std::vector<std::pair<sha1_hash, udp::endpoint>> read_nodes(
+		aux::stack_allocator const& alloc
+		, int const v4_num_nodes, aux::allocation_slot const v4_nodes_idx
+		, int const v6_num_nodes, aux::allocation_slot const v6_nodes_idx)
+	{
+		aux::vector<std::pair<sha1_hash, udp::endpoint>> nodes;
+		nodes.reserve(v4_num_nodes + v6_num_nodes);
+
+		char const* v4_ptr = alloc.ptr(v4_nodes_idx);
+		for (int i = 0; i < v4_num_nodes; i++)
+		{
+			sha1_hash ih;
+			std::memcpy(ih.data(), v4_ptr, 20);
+			v4_ptr += 20;
+			nodes.emplace_back(ih, detail::read_v4_endpoint<udp::endpoint>(v4_ptr));
+		}
+#if TORRENT_USE_IPV6
+		char const* v6_ptr = alloc.ptr(v6_nodes_idx);
+		for (int i = 0; i < v6_num_nodes; i++)
+		{
+			sha1_hash ih;
+			std::memcpy(ih.data(), v6_ptr, 20);
+			v6_ptr += 20;
+			nodes.emplace_back(ih, detail::read_v6_endpoint<udp::endpoint>(v6_ptr));
+		}
+#else
+		TORRENT_UNUSED(v6_nodes_idx);
+#endif
+
+		return nodes;
+	}
+	}
+
+	dht_live_nodes_alert::dht_live_nodes_alert(aux::stack_allocator& alloc
+		, sha1_hash const& nid
+		, std::vector<std::pair<sha1_hash, udp::endpoint>> const& nodes)
+		: node_id(nid)
+		, m_alloc(alloc)
+	{
+		std::tie(m_v4_num_nodes, m_v4_nodes_idx, m_v6_num_nodes, m_v6_nodes_idx)
+			= write_nodes(alloc, nodes);
 	}
 
 	std::string dht_live_nodes_alert::message() const
@@ -2192,29 +2245,9 @@ namespace libtorrent
 
 	std::vector<std::pair<sha1_hash, udp::endpoint>> dht_live_nodes_alert::nodes() const
 	{
-		aux::vector<std::pair<sha1_hash, udp::endpoint>> nodes;
-		nodes.reserve(num_nodes());
-
-		char const* v4_ptr = m_alloc.get().ptr(m_v4_nodes_idx);
-		for (int i = 0; i < m_v4_num_nodes; i++)
-		{
-			sha1_hash ih;
-			std::memcpy(ih.data(), v4_ptr, 20);
-			v4_ptr += 20;
-			nodes.emplace_back(ih, detail::read_v4_endpoint<udp::endpoint>(v4_ptr));
-		}
-#if TORRENT_USE_IPV6
-		char const* v6_ptr = m_alloc.get().ptr(m_v6_nodes_idx);
-		for (int i = 0; i < m_v6_num_nodes; i++)
-		{
-			sha1_hash ih;
-			std::memcpy(ih.data(), v6_ptr, 20);
-			v6_ptr += 20;
-			nodes.emplace_back(ih, detail::read_v6_endpoint<udp::endpoint>(v6_ptr));
-		}
-#endif
-
-		return nodes;
+		return read_nodes(m_alloc.get()
+			, m_v4_num_nodes, m_v4_nodes_idx
+			, m_v6_num_nodes, m_v6_nodes_idx);
 	}
 
 	session_stats_header_alert::session_stats_header_alert(aux::stack_allocator&)

@@ -70,9 +70,19 @@ POSSIBILITY OF SUCH DAMAGE.
 #pragma GCC diagnostic ignored "-Wformat-extra-args"
 #endif
 
+// ====== CLANG ========
+
+#if defined __clang__
+
+# if !defined TORRENT_BUILDING_LIBRARY
+// TODO: figure out which version of clang this is supported in
+#  define TORRENT_DEPRECATED_ENUM __attribute__ ((deprecated))
+#  define TORRENT_DEPRECATED_MEMBER __attribute__ ((deprecated))
+# endif
+
 // ======= GCC =========
 
-#if defined __GNUC__
+#elif defined __GNUC__
 
 #ifdef _GLIBCXX_CONCEPT_CHECKS
 #define TORRENT_COMPLETE_TYPES_REQUIRED 1
@@ -83,6 +93,11 @@ POSSIBILITY OF SUCH DAMAGE.
 // libtorrent itself
 # if __GNUC__ >= 3 && !defined TORRENT_BUILDING_LIBRARY
 #  define TORRENT_DEPRECATED __attribute__ ((deprecated))
+# endif
+
+# if __GNUC__ >= 6 && !defined TORRENT_BUILDING_LIBRARY
+#  define TORRENT_DEPRECATED_ENUM __attribute__ ((deprecated))
+#  define TORRENT_DEPRECATED_MEMBER __attribute__ ((deprecated))
 # endif
 
 // ======= SUNPRO =========
@@ -105,6 +120,12 @@ POSSIBILITY OF SUCH DAMAGE.
 # define TORRENT_DEPRECATED __declspec(deprecated)
 #endif
 
+// auto and decltype(auto) return types supports since MSVS2015
+// https://msdn.microsoft.com/en-us/library/hh567368.aspx
+// we need to force C++14 feature due VS2017 inability to parse C++11 syntax
+#if defined(_MSC_VER) && (_MSC_VER > 1900)
+#define TORRENT_AUTO_RETURN_TYPES 1
+#endif
 #endif
 
 
@@ -410,6 +431,14 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_DEPRECATED
 #endif
 
+#ifndef TORRENT_DEPRECATED_ENUM
+#define TORRENT_DEPRECATED_ENUM
+#endif
+
+#ifndef TORRENT_DEPRECATED_MEMBER
+#define TORRENT_DEPRECATED_MEMBER
+#endif
+
 #ifndef TORRENT_USE_COMMONCRYPTO
 #define TORRENT_USE_COMMONCRYPTO 0
 #endif
@@ -478,6 +507,10 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef TORRENT_USE_I2P
 #define TORRENT_USE_I2P 1
+#endif
+
+#ifndef TORRENT_AUTO_RETURN_TYPES
+#define TORRENT_AUTO_RETURN_TYPES 0
 #endif
 
 #if !defined(TORRENT_READ_HANDLER_MAX_SIZE)
