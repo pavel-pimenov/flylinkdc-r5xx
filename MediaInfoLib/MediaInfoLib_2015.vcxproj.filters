@@ -740,9 +740,6 @@
     <ClCompile Include="Source\ThirdParty\hmac-gladman\hmac.c">
       <Filter>ThirdParty\hmac-gladman</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ThirdParty\hmac-gladman\pwd2key.c">
-      <Filter>ThirdParty\hmac-gladman</Filter>
-    </ClCompile>
     <ClCompile Include="Source\ThirdParty\sha1-gladman\sha1.c">
       <Filter>ThirdParty\sha1-gladman</Filter>
     </ClCompile>
@@ -754,6 +751,9 @@
     </ClCompile>
     <ClCompile Include="Source\MediaInfo\File__Analyze_Element.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MediaInfo\Multiple\File_Vbi.cpp">
+      <Filter>Source Files\Multiple</Filter>
     </ClCompile>
     <ClCompile Include="Source\MediaInfo\Multiple\File_Wtv.cpp">
       <Filter>Source Files\Multiple</Filter>
@@ -1405,9 +1405,6 @@
     <ClInclude Include="Source\ThirdParty\hmac-gladman\hmac.h">
       <Filter>ThirdParty\hmac-gladman</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ThirdParty\hmac-gladman\pwd2key.h">
-      <Filter>ThirdParty\hmac-gladman</Filter>
-    </ClInclude>
     <ClInclude Include="Source\ThirdParty\sha1-gladman\sha1.h">
       <Filter>ThirdParty\sha1-gladman</Filter>
     </ClInclude>
@@ -1419,6 +1416,9 @@
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\File__Analyze_Element.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\Multiple\File_Vbi.h">
+      <Filter>Header Files\Multiple</Filter>
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\Multiple\File_Wtv.h">
       <Filter>Header Files\Multiple</Filter>

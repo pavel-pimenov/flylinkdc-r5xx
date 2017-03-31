@@ -297,6 +297,7 @@
     <ClCompile Include="Source\MediaInfo\Multiple\File_Pmp.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File_Ptx.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File_SequenceInfo.cpp" />
+    <ClCompile Include="Source\MediaInfo\Multiple\File_Vbi.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File_Wtv.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File_Xdcam_Clip.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper.cpp" />
@@ -442,12 +443,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Source\ThirdParty\hmac-gladman\pwd2key.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="Source\ThirdParty\md5\md5.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -536,6 +531,7 @@
     <ClInclude Include="Source\MediaInfo\Multiple\File_Pmp.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File_Ptx.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File_SequenceInfo.h" />
+    <ClInclude Include="Source\MediaInfo\Multiple\File_Vbi.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File_Wtv.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File_Xdcam_Clip.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper.h" />
@@ -684,7 +680,6 @@
     <ClInclude Include="Source\ThirdParty\aes-gladman\brg_types.h" />
     <ClInclude Include="Source\ThirdParty\base64\base64.h" />
     <ClInclude Include="Source\ThirdParty\hmac-gladman\hmac.h" />
-    <ClInclude Include="Source\ThirdParty\hmac-gladman\pwd2key.h" />
     <ClInclude Include="Source\ThirdParty\md5\md5.h" />
     <ClInclude Include="Source\ThirdParty\sha1-gladman\sha1.h" />
     <ClInclude Include="Source\ThirdParty\sha2-gladman\sha2.h" />

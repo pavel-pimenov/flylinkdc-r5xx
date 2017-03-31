@@ -2730,7 +2730,9 @@ void File_Mpeg4::moov_meta_ilst_xxxx_data()
                         else if (Value==__T("143460")) Value=__T("Australia");
                         else if (Value==__T("143461")) Value=__T("New Zealand");
                         else if (Value==__T("143462")) Value=__T("Japan");
-                        else Value=__T("Unknown Country");
+                        else if (Value==__T("143463")) Value=__T("Hong Kong");
+                        else if (Value==__T("143469")) Value=__T("Russia");
+                        else if (Value==__T("143470")) Value=__T("Taiwan");
                     }
                     if (!Parameter.empty())
                     {
@@ -5721,7 +5723,7 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_fiel()
     // 6 – B is displayed earliest, B is stored first in the file.
     // 9 – B is displayed earliest, T is stored first in the file.
     //14 – T is displayed earliest, B is stored first in the file.
-    Element_Name("Field/Frame Information");
+    Element_Name("Field handling");
 
     //Parsing
     int8u  fields, detail;

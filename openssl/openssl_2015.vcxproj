@@ -893,7 +893,6 @@
     <ClCompile Include="crypto\modes\ccm128.c" />
     <ClCompile Include="crypto\modes\cfb128.c" />
     <ClCompile Include="crypto\modes\ctr128.c" />
-    <ClCompile Include="crypto\modes\cts128.c" />
     <ClCompile Include="crypto\modes\gcm128.c" />
     <ClCompile Include="crypto\modes\ofb128.c" />
     <ClCompile Include="crypto\modes\wrap128.c" />

@@ -773,7 +773,8 @@ HubFrame* HubFrame::openWindow(bool p_is_auto_connect,
 }
 void HubFrame::setCustomVIPIcon()
 {
-	if (m_is_ddos_detect == false)
+	dcassert(!isClosedOrShutdown());
+	if (m_is_ddos_detect == false && !isClosedOrShutdown()) // fix https://drdump.com/Problem.aspx?ProblemID=254039
 	{
 		if (const auto l_index = getVIPIconIndex())
 		{

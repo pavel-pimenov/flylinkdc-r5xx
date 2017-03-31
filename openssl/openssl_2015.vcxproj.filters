@@ -1650,9 +1650,6 @@
     <ClCompile Include="crypto\modes\ctr128.c">
       <Filter>Source Files\crypto\modes</Filter>
     </ClCompile>
-    <ClCompile Include="crypto\modes\cts128.c">
-      <Filter>Source Files\crypto\modes</Filter>
-    </ClCompile>
     <ClCompile Include="crypto\objects\o_names.c">
       <Filter>Source Files\crypto\objects</Filter>
     </ClCompile>
