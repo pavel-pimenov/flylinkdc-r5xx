@@ -5250,7 +5250,7 @@ __int64 CFlylinkDBManager::convert_tth_history()
 }
 #ifdef FLYLINKDC_USE_LEVELDB
 //========================================================================================================
-CFlyLevelDB::CFlyLevelDB(): m_db(nullptr)
+CFlyLevelDB::CFlyLevelDB(): m_level_db(nullptr)
 {
 	m_readoptions.verify_checksums = true;
 	m_readoptions.fill_cache = true;
@@ -5272,7 +5272,7 @@ CFlyLevelDB::CFlyLevelDB(): m_db(nullptr)
 //========================================================================================================
 CFlyLevelDB::~CFlyLevelDB()
 {
-	safe_delete(m_db);
+	safe_delete(m_level_db);
 	safe_delete(m_options.filter_policy);
 	safe_delete(m_options.block_cache);
 	safe_delete(m_options.env); // http://code.google.com/p/leveldb/issues/detail?id=194 ?
@@ -5282,7 +5282,7 @@ CFlyLevelDB::~CFlyLevelDB()
 bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 {
 	p_is_destroy = false;
-	auto l_status = leveldb::DB::Open(m_options, p_db_name, &m_db);
+	auto l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db);
 	if (!l_status.ok())
 	{
 		const auto l_result_error = l_status.ToString();
@@ -5312,7 +5312,7 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 			if (l_count_delete_error == 0)
 			{
 				// Create new leveldb-database
-				l_status = leveldb::DB::Open(m_options, p_db_name, &m_db);
+				l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db);
 				if (l_status.ok())
 				{
 					LogManager::message("[CFlyLevelDB::open_level_db] OK Create new leveldb database: " + p_db_name, true);
@@ -5339,11 +5339,11 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 //========================================================================================================
 bool CFlyLevelDB::get_value(const void* p_key, size_t p_key_len, string& p_result)
 {
-	dcassert(m_db);
-	if (m_db)
+	dcassert(m_level_db);
+	if (m_level_db)
 	{
 		const leveldb::Slice l_key((const char*)p_key, p_key_len);
-		const auto l_status = m_db->Get(m_readoptions, l_key, &p_result);
+		const auto l_status = m_level_db->Get(m_readoptions, l_key, &p_result);
 		if (!(l_status.ok() || l_status.IsNotFound()))
 		{
 			const auto l_message = l_status.ToString();
@@ -5360,12 +5360,12 @@ bool CFlyLevelDB::get_value(const void* p_key, size_t p_key_len, string& p_resul
 //========================================================================================================
 bool CFlyLevelDB::set_value(const void* p_key, size_t p_key_len, const void* p_val, size_t p_val_len)
 {
-	dcassert(m_db);
-	if (m_db)
+	dcassert(m_level_db);
+	if (m_level_db)
 	{
 		const leveldb::Slice l_key((const char*)p_key, p_key_len);
 		const leveldb::Slice l_val((const char*)p_val, p_val_len);
-		const auto l_status = m_db->Put(m_writeoptions, l_key, l_val);
+		const auto l_status = m_level_db->Put(m_writeoptions, l_key, l_val);
 		if (!l_status.ok())
 		{
 			const auto l_message = l_status.ToString();

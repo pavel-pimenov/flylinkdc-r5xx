@@ -2017,7 +2017,7 @@ string Util::formatTime(uint64_t rest, const bool withSecond /*= true*/)
 	if (n)
 	{
 		formatTimeformatInterval(n);
-		formatedTime += (n >= 2) ? STRING(WEEKS) : STRING(WEEK);
+		formatedTime += (n >= 2) ? STRING(DATETIME_WEEKS) : STRING(DATETIME_WEEK);
 		i++;
 	}
 	n = rest / (24 * 3600);
@@ -2025,7 +2025,7 @@ string Util::formatTime(uint64_t rest, const bool withSecond /*= true*/)
 	if (n)
 	{
 		formatTimeformatInterval(n);
-		formatedTime += (n >= 2) ? STRING(DAYS) : STRING(DAY);
+		formatedTime += (n >= 2) ? STRING(DATETIME_DAYS) : STRING(DATETIME_DAY);
 		i++;
 	}
 	n = rest / (3600);
@@ -2033,7 +2033,7 @@ string Util::formatTime(uint64_t rest, const bool withSecond /*= true*/)
 	if (n)
 	{
 		formatTimeformatInterval(n);
-		formatedTime += (n >= 2) ? STRING(HOURS) : STRING(HOUR);
+		formatedTime += (n >= 2) ? STRING(DATETIME_HOURS) : STRING(DATETIME_HOUR);
 		i++;
 	}
 	n = rest / (60);
@@ -2041,7 +2041,7 @@ string Util::formatTime(uint64_t rest, const bool withSecond /*= true*/)
 	if (n)
 	{
 		formatTimeformatInterval(n);
-		formatedTime += STRING(MIN);
+		formatedTime += (n >= 2) ? STRING(DATETIME_MINUTES) : STRING(DATETIME_MINUTE);
 		i++;
 	}
 	if (withSecond && i <= 2)
@@ -2049,7 +2049,7 @@ string Util::formatTime(uint64_t rest, const bool withSecond /*= true*/)
 		if (rest)
 		{
 			formatTimeformatInterval(rest);
-			formatedTime += STRING(SEC);
+			formatedTime += STRING(DATETIME_SECONDS);
 		}
 	}
 	return formatedTime;

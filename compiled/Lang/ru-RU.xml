@@ -2102,5 +2102,15 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="YourIpIsBlocked">Ваш IP-адрес заблокирован!</String>
 		<String Name="YouHaveTheLatestVersion">Установленная версия FlylinkDC++ является самой последней.</String>
 		<String Name="Zb">ЗБ</String>
+	<String name="DatetimeWeek">неделя</String>
+		<String name="DatetimeWeeks">нед.</String>
+		<String name="DatetimeDay">день</String>
+		<String name="DatetimeDays">дн.</String>
+		<String name="DatetimeHour">час</String>
+		<String name="DatetimeHours">ч.</String>
+		<String name="DatetimeMinute">минута</String>
+		<String name="DatetimeMinutes">мин.</String>
+		<String name="DatetimeSecond">секунда</String>
+		<String name="DatetimeSeconds">сек.</String>
 	</Strings>
 </Language>

@@ -270,7 +270,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			
 			m_directoryMenu.CreatePopupMenu();
 			m_directoryMenu.AppendMenu(MF_STRING, IDC_REMOVE_TREE_ITEM, CTSTRING(REMOVE));
-
+			
 			m_RootItem = m_ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
 			                                   m_transfer_type == e_TransferDownload ? _T("Download") : _T("Upload"),
 			                                   2, // g_ISPImage.m_flagImageCount + 14, // nImage
@@ -523,7 +523,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 			}
 			return 0;
 		}
-
+		
 		LRESULT onRemove(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			switch (wID)
@@ -709,13 +709,13 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				{
 					ctxMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 				}
-					
+				
 				return TRUE;
 			}
 			else if (reinterpret_cast<HWND>(wParam) == m_ctrlTree && m_ctrlTree.GetSelectedItem() != NULL)
 			{
 				POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-
+				
 				if (pt.x == -1 && pt.y == -1)
 				{
 					WinUtil::getContextMenuPos(m_ctrlTree, pt);
@@ -729,11 +729,11 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 						m_ctrlTree.SelectItem(ht);
 					m_ctrlTree.ClientToScreen(&pt);
 				}
-
+				
 				m_directoryMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 				return TRUE;
 			}
-
+			
 			bHandled = FALSE;
 			return FALSE;
 		}
@@ -891,7 +891,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		CMenu copyMenu;
 		
 		OMenu m_directoryMenu;
-
+		
 		TypedListViewCtrl<FinishedItemInfo, id> ctrlList;
 		CContainedWindow        m_listContainer;
 		

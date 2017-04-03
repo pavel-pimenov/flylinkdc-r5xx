@@ -42,7 +42,7 @@ void UserInfoSimple::addSummaryMenu()
 		
 		if (l_params.m_limit)
 		{
-			userInfo += _T(", ") + TSTRING(SPEED_LIMIT) + _T(": ") + Util::formatBytesW(l_params.m_limit) + _T('/') + WSTRING(SEC);
+			userInfo += _T(", ") + TSTRING(SPEED_LIMIT) + _T(": ") + Util::formatBytesW(l_params.m_limit) + _T('/') + WSTRING(DATETIME_SECONDS);
 		}
 		
 		UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, userInfo.c_str());

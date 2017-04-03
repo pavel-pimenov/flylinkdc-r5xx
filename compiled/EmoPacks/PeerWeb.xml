@@ -66,7 +66,7 @@
 	<Emoticon HintText="Crego The Playa" PasteText=":crego:" Expression=":crego:" Bitmap="Images\PeerWeb\crego.bmp"/>
 	<Emoticon HintText="Crego The Playa" PasteText=":pimp:" Expression=":pimp:" Bitmap="Images\PeerWeb\crego.bmp"/>
 	<Emoticon HintText="Giant Grin" PasteText=":biggrin:" Expression=":biggrin:" Bitmap="Images\PeerWeb\icon30.bmp"/>
-	<Emoticon HintText="That's One Sketchy Smiley" PasteText=":sketchy:" Expression=":sketchy:"Bitmap="Images\PeerWeb\icon37.bmp"/>
+	<Emoticon HintText="That's One Sketchy Smiley" PasteText=":sketchy:" Expression=":sketchy:" Bitmap="Images\PeerWeb\icon37.bmp"/>
 	<Emoticon HintText="Relax And Have A Drink" PasteText=":martini:" Expression=":martini:" Bitmap="Images\PeerWeb\martini.bmp"/>
 	<Emoticon HintText="Beer" PasteText=":beer:" Expression=":beer:" Bitmap="Images\PeerWeb\beer_mug.bmp"/>
 	<Emoticon HintText="Thumbs Down!" PasteText="(N)" Expression="(N)" Bitmap="Images\PeerWeb\thumbs_down.bmp"/>

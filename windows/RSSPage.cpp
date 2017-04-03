@@ -34,7 +34,7 @@ PropPage::TextItem RSSPage::texts[] =
 	{ IDC_CHANGE_RSS, ResourceManager::SETTINGS_CHANGE },
 	{ IDC_REMOVE_RSS, ResourceManager::REMOVE },
 	{ IDC_RSSAUTOREFRESH_TIME_STR, ResourceManager::RSSAUTOREFRESH_TIME_STR },
-	{ IDC_RSS_AUTOREFRESH_MIN, ResourceManager::MINUTES },
+	{ IDC_RSS_AUTOREFRESH_MIN, ResourceManager::DATETIME_MINUTES },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 

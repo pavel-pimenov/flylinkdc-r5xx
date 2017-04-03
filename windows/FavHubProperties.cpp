@@ -185,7 +185,7 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	updown.SetRange(1, 500); //[+]NightOrion
 	updown.Detach();
 	
-
+	
 	if (entry->getMode() == 0)
 		CheckRadioButton(IDC_ACTIVE, IDC_DEFAULT, IDC_DEFAULT);
 	else if (entry->getMode() == 1)

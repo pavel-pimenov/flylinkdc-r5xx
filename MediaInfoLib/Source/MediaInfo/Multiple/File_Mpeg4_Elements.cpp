@@ -1333,7 +1333,7 @@ void File_Mpeg4::cdat()
         {
             Streams[(int32u)Element_Code].Parsers[Pos]->FrameInfo.DTS=FrameInfo.DTS;
             if (Element_Size>1)
-            Streams[(int32u)Element_Code].Parsers[Pos]->FrameInfo.DUR=FrameInfo.DUR/(Element_Size/2);
+                Streams[(int32u)Element_Code].Parsers[Pos]->FrameInfo.DUR=FrameInfo.DUR/(Element_Size/2);
         }
     #endif //MEDIAINFO_DEMUX
     while (Element_Offset+2<=Element_Size)

@@ -126,7 +126,6 @@
 	<string name="AwayModeOff">Away mode off</string>
 	<string name="AwayModeOn">Away mode on:</string>
 	<string name="AwayStatus">AWAY</string>
-	<string name="B">B</string>
 	<string name="Back">Back</string>
 	<string name="BadAlloc">Out of Memory!!!</string>
 	<string name="BalloonPopups">Balloon pop-ups</string>
@@ -334,8 +333,6 @@
 	<string name="D">D:</string>
 	<string name="DataBaseErrorString">\r\nThere was an error accessing the database.\r\nPlease send a text or a screenshot of the error to developers ppa74@ya.ru</string>
 	<string name="DataBaseLockedString">\r\nAn error occurred while accessing the database (DB file FlylinkDC_*.sqlite is locked!).\r\nPlease free busy database or send a text/screenshot of the error message to developers ppa74@ya.ru\r\n\r\nPress Ok for the next attempt (timeout 5 seconds)</string>
-	<string name="Day">day</string>
-	<string name="Days">days</string>
 	<string name="DclstgenInfoborder">DCLST metafile information</string>
 	<string name="DclstgenInfoFilesstatic">Total files count:</string>
 	<string name="DclstgenInfoFoldersstatic">Total folders count:</string>
@@ -432,7 +429,6 @@
 	<string name="DuplicateRange">Duplicate range</string>
 	<string name="DuplicateSource">Duplicate source</string>
 	<string name="Duration">Duration</string>
-	<string name="Eb">EiB</string>
 	<string name="Edit">Edit</string>
 	<string name="EditAccel">&amp;Edit</string>
 	<string name="Email">E-Mail</string>
@@ -583,8 +579,6 @@
 	<string name="FtpSendQuestion">Previous launch caused client crash. To help authors to find the cause, it is recommended to allow the sending archived file.\nIt contains the stack dump and error description only.\nIt does not contain any confidential information like  passwords, email addresses or credit card numbers.</string>
 	<string name="FtpSendQuestion2">Really send crash stack dump to developers?</string>
 	<string name="FullFilelistNfo">Display full info for File-lists in download queue</string>
-	<string name="Gb">GiB</string>
-	<string name="Gbps">GiB/s</string>
 	<string name="GenerateCertificates">Generate certificates</string>
 	<string name="GetFileList">Get File-list</string>
 	<string name="GetIp">Test port and get IP address</string>
@@ -633,8 +627,6 @@
 	<string name="Hits">Hits:</string>
 	<string name="HitCount">Hits</string>
 	<string name="HitRatio">Hit Ratio:</string>
-	<string name="Hour">hour</string>
-	<string name="Hours">hours</string>
 	<string name="Hub">Hub</string>
 	<string name="HublistCacheCorrupted">Cached Hub-list is corrupted or unsupported...</string>
 	<string name="HublistDownloadCorrupted">Downloaded Hub-list is corrupted or unsupported...</string>
@@ -715,8 +707,6 @@
 	<string name="JoinShowingOff">Join/part showing off</string>
 	<string name="JoinShowingOn">Join/part showing on</string>
 	<string name="JustNow">Just now</string>
-	<string name="Kb">KiB</string>
-	<string name="Kbps">KiB/s</string>
 	<string name="KbpsDisable">KiB/s (0=disable)</string>
 	<string name="KeepDlHistory">Keep downloads history between sessions</string>
 	<string name="KeepFinishedFilesOption">Keep finished files</string>
@@ -797,8 +787,6 @@
 	<string name="MaxSize">Max size</string>
 	<string name="MaxUsers">Max users</string>
 	<string name="MessagesCount">Messages</string>
-	<string name="Mb">MiB</string>
-	<string name="Mbps">MiB/s</string>
 	<string name="MediaAudio">Audio</string>
 	<string name="MediaMenuItunes">iTunes</string>
 	<string name="MediaMenuJa">jetAudio Player</string>
@@ -887,12 +875,10 @@
 	<string name="MenuWaitingUsers">Waiting Users\tCtrl+U</string>
 	<string name="MenuWindow">&amp;Window</string>
 	<string name="Midnight">Midnight</string>
-	<string name="Min">min</string>
 	<string name="MinimizeOnClose">Minimize on close</string>
 	<string name="MinimumSearchInterval">Minimum search interval</string>
 	<string name="MinimumSearchPassiveInterval">Minimum search interval(Passive)</string>
 	<string name="MinislotControlGroup">Mini-Slots Control</string>
-	<string name="Minutes">Minutes</string>
 	<string name="MinShare">Min share</string>
 	<string name="MinSlots">Min slots</string>
 	<string name="Mode">Mode</string>
@@ -991,7 +977,6 @@
 	<string name="Path">Path</string>
 	<string name="Paused">Paused</string>
 	<string name="PauseSearch">Pause</string>
-	<string name="Pb">PiB</string>
 	<string name="Picture">Picture</string>
 	<string name="Pk">PK String</string>
 	<string name="Play">Play</string>
@@ -1210,8 +1195,6 @@
 	<string name="SearchDoesNotWork">Search does not work?</string>
 	<string name="SearchesPer">Searches: %u/s, %u/min.</string>
 	<string name="SearchingFor">Searching for</string>
-	<string name="Sec">sec</string>
-	<string name="Seconds">Seconds</string>
 	<string name="SecurityAskOnShareFromShell">Asks user on adding folder for share from shell extension</string>
 	<string name="SecurityShareFromShellQuestion">Do you want to share this folder? After this operation Users will be able to download its content!</string>
 	<string name="SeekBeyondEnd">Request to seek beyond the end of data</string>
@@ -1650,7 +1633,6 @@
 	<string name="TargetFilenameTooLong">Target filename too long</string>
 	<string name="TargetFileExists">File already exists at the target location</string>
 	<string name="TargetRemoved">Target removed</string>
-	<string name="Tb">TiB</string>
 	<string name="TcpPortBusy">Unable to open TCP/TLS port. File transfers will not work correctly until you change settings or turn off any application that might be using the TCP/TLS port</string>
 	<string name="Techsupport">FlylinkDC++ Support</string>
 	<string name="TextFakepercent">Percent fake share accepted</string>
@@ -1838,8 +1820,6 @@
 	<string name="WebserverSearchPageName">Add and Search</string>
 	<string name="WebserverUser">Limited user.</string>
 	<string name="WebUrl">WebURL</string>
-	<string name="Week">week</string>
-	<string name="Weeks">weeks</string>
 	<string name="Welcome">Welcome</string>
 	<string name="WhatsThis">What's &amp;this?</string>
 	<string name="WhoIs">Whois </string>
@@ -1900,10 +1880,31 @@
 	<string name="WrongMask">Wrong mask.</string>
 	<string name="WrongEndIp">Wrong end IP in range.</string>
 	<string name="WrongStartIp">Wrong start IP in range.</string>
-	<string name="Yb">YiB</string>
 	<string name="Yellow">Yellow</string>
 	<string name="Yes">Yes</string>
 	<string name="YourIpIsBlocked">Your IP is Blocked!</string>
 	<string name="YouHaveTheLatestVersion">You already have the latest version of FlylinkDC++ installed.</string>
+	<string name="B">B</string>
+	<string name="Bps">B/s</string>
+	<string name="Kb">KiB</string>
+	<string name="Kbps">KiB/s</string>
+	<string name="Mb">MiB</string>
+	<string name="Mbps">MiB/s</string>
+	<string name="Gb">GiB</string>
+	<string name="Gbps">GiB/s</string>
+	<string name="Tb">TiB</string>
+	<string name="Pb">PiB</string>
+	<string name="Yb">YiB</string>
+	<string name="Eb">EiB</string>
 	<string name="Zb">ZiB</string>
+	<string name="DatetimeWeek">week</string>
+	<string name="DatetimeWeeks">weeks</string>
+	<string name="DatetimeDay">day</string>
+	<string name="DatetimeDays">day.</string>
+	<string name="DatetimeHour">hour</string>
+	<string name="DatetimeHours">hr.</string>
+	<string name="DatetimeMinute">minute</string>
+	<string name="DatetimeMinutes">min.</string>
+	<string name="DatetimeSecond">second</string>
+	<string name="DatetimeSeconds">sec.</string>
 </recources>

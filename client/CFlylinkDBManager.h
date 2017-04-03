@@ -69,7 +69,7 @@ class CFlySQLCommand
 #ifdef FLYLINKDC_USE_LEVELDB
 class CFlyLevelDB
 {
-		leveldb::DB* m_db;
+		leveldb::DB* m_level_db;
 		leveldb::Options      m_options;
 		leveldb::ReadOptions  m_readoptions;
 		leveldb::ReadOptions  m_iteroptions;
