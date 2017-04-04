@@ -91,9 +91,15 @@ namespace boost {
 #endif
 
       template<typename Allocator>
-        basic_string_view(const std::basic_string<charT, traits,
-          Allocator>& str) BOOST_NOEXCEPT
-        : ptr_(str.data()), len_(str.length()) {}
+        basic_string_view(const std::basic_string<charT, traits, Allocator>& str) BOOST_NOEXCEPT
+          : ptr_(str.data()), len_(str.length()) {}
+
+#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES) && !defined(BOOST_NO_CXX11_DELETED_FUNCTIONS)
+      // Constructing a string_view from a temporary string is a bad idea
+      //template<typename Allocator>
+      //  basic_string_view(      std::basic_string<charT, traits, Allocator>&&)
+      //    = delete;
+#endif
 
       BOOST_CONSTEXPR basic_string_view(const charT* str)
         : ptr_(str), len_(traits::length(str)) {}
@@ -121,10 +127,7 @@ namespace boost {
         BOOST_CONSTEXPR const_reference operator[](size_type pos) const BOOST_NOEXCEPT { return ptr_[pos]; }
 
         BOOST_CONSTEXPR const_reference at(size_t pos) const {
-            return pos >= len_ ? BOOST_THROW_EXCEPTION(std::out_of_range("boost::string_view::at")) : ptr_[pos];
-//             if ( pos >= len_ )
-//                 BOOST_THROW_EXCEPTION( std::out_of_range ( "boost::string_view::at" ) );
-//             return ptr_[pos];
+            return pos >= len_ ? BOOST_THROW_EXCEPTION(std::out_of_range("boost::string_view::at")), ptr_[0] : ptr_[pos];
             }
 
         BOOST_CONSTEXPR const_reference front() const                { return ptr_[0]; }

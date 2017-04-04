@@ -402,11 +402,8 @@ class QueueManager : public Singleton<QueueManager>,
 				void removeQueueItemL(const QueueItemPtr& qi);
 				void removeQueueItem(const QueueItemPtr& qi);
 				void removeUserL(const QueueItemPtr& qi, const UserPtr& aUser);
-				void setQIPriority(const QueueItemPtr& qi, QueueItem::Priority p); // [!] IRainman fix.
-				// [+] IRainman fix.
 				typedef boost::unordered_map<UserPtr, QueueItemList, User::Hash> UserQueueMap; // TODO - set ?
 				typedef boost::unordered_map<UserPtr, QueueItemPtr, User::Hash> RunningMap;
-				// [~] IRainman fix.
 #ifdef IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 				const UserQueueMap& getListL(size_t i) const
 				{
@@ -416,7 +413,7 @@ class QueueManager : public Singleton<QueueManager>,
 				bool userIsDownloadedFiles(const UserPtr& aUser, QueueItemList& p_status_update_array);
 #endif // IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 				
-				string getLastError()
+				string getLastError() const
 				{
 					return m_lastError;
 				}

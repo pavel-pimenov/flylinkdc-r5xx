@@ -606,14 +606,6 @@ bool QueueManager::UserQueue::removeDownload(const QueueItemPtr& qi, const UserP
 	return qi->removeDownload(user);
 }
 
-void QueueManager::UserQueue::setQIPriority(const QueueItemPtr& qi, QueueItem::Priority p) // [!] IRainman fix.
-{
-	WLock(*QueueItem::g_cs); // [+] IRainamn fix.
-	removeQueueItemL(qi);
-	qi->setPriority(p); // TODO для установки приоритета - нужно удалить и снова добавить запись в контейнер? - это зовется очень часто
-	addL(qi);
-}
-
 QueueItemPtr QueueManager::UserQueue::getRunningL(const UserPtr& aUser) // [!] IRainman fix.
 {
 #ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
@@ -662,9 +654,11 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 		const auto& j = ulm.find(aUser);
 		if (j == ulm.cend())
 		{
+#ifdef _DEBUG
 			const string l_error = "Error QueueManager::UserQueue::removeUserL [dcassert(j != ulm.cend())] aUser = " +
 			                       (aUser ? aUser->getLastNick() : string("null"));
 			CFlyServerJSON::pushError(55, l_error);
+#endif
 			//dcassert(j != ulm.cend());
 			return;
 		}
@@ -2660,7 +2654,7 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 					// Problem, we have to request connections to all these users...
 					q->getOnlineUsers(l_getConn);
 				}
-				g_userQueue.setQIPriority(q, p); // !!!!!!!!!!!!!!!!!! Удаляет и вставляет в массив каждую секунду
+				q->setPriority(p);
 #ifdef _DEBUG
 				LogManager::message("QueueManager g_userQueue.setQIPriority q->getTarget = " + q->getTarget());
 #endif

@@ -828,8 +828,11 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 				int m_count_run;
 				int run()
 				{
-					ClientManager::flushRatio(5000);
-					ClientManager::usersCleanup();
+					if (m_is_sync_run == false)
+					{
+						ClientManager::flushRatio(5000);
+						ClientManager::usersCleanup();
+					}
 					try
 					{
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS

@@ -274,9 +274,9 @@ void ConnectionManager::putCQI_L(ConnectionQueueItemPtr& cqi)
 	cqi->getUser()->flushRatio(); //[+]PPA branches-dev/ppa/issue-1035
 #endif
 	const string l_token = cqi->getConnectionQueueToken();
+	cqi.reset();
 	m_tokens_manager.removeToken(l_token);
 	fly_fire1(ConnectionManagerListener::RemoveToken(), l_token);
-	cqi.reset();
 }
 
 #if 0

@@ -120,7 +120,6 @@ void zlib_base::after(const char*& src_begin, char*& dest_begin, bool compress)
         zlib::uint length = compress ?
             static_cast<zlib::uint>(next_in - src_begin) :
             static_cast<zlib::uint>(next_out - dest_begin);
-        if (length > 0)
             crc_ = crc_imp_ = crc32(crc_imp_, buf, length);
     }
     total_in_ = s->total_in;

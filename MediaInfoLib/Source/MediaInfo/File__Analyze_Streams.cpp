@@ -923,7 +923,7 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, size_t Paramete
 }
 
 //---------------------------------------------------------------------------
-void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, const char* Parameter, const Ztring &Value, bool Replace)
+void File__Analyze::Fill (const stream_t StreamKind, const size_t StreamPos, const char* Parameter, const Ztring &Value, bool Replace)
 {
     //Integrity
     if (StreamKind>Stream_Max || Parameter==NULL || Parameter[0]=='\0')
@@ -990,22 +990,26 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, const char* Par
         return; // "Codec" does not exist in "Other"
     
     //Handling of unknown parameters
+	ZtringListList& Stream_More_Item = (*Stream_More)[StreamKind][StreamPos];
+	const Ztring ParameterISO = Ztring().From_ISO_8859_1(Parameter);
     if (Value.empty())
     {
         if (Replace)
         {
-            size_t Pos_ToReplace=(*Stream_More)[StreamKind][StreamPos].Find(Ztring().From_ISO_8859_1(Parameter), Info_Name);
+            size_t Pos_ToReplace= Stream_More_Item.Find(ParameterISO, Info_Name);
+			if (Pos_ToReplace >= Stream_More_Item.size())
+				Pos_ToReplace = 0;
             if (Pos_ToReplace!=(size_t)-1)
-                (*Stream_More)[StreamKind][StreamPos].erase((*Stream_More)[StreamKind][StreamPos].begin()+Pos_ToReplace); //Empty value --> remove the line
+				Stream_More_Item.erase(Stream_More_Item.begin()+Pos_ToReplace); //Empty value --> remove the line
         }
     }
     else
     {
-        Ztring &Target=(*Stream_More)[StreamKind][StreamPos](Ztring().From_ISO_8859_1(Parameter), Info_Text);
+        Ztring &Target= Stream_More_Item(ParameterISO, Info_Text);
         if (Target.empty() || Replace)
         {
             Target=Value; //First value
-            (*Stream_More)[StreamKind][StreamPos](Ztring().From_ISO_8859_1(Parameter), Info_Name_Text)=MediaInfoLib::Config.Language_Get(Ztring().From_Local(Parameter));
+			Stream_More_Item(ParameterISO, Info_Name_Text)=MediaInfoLib::Config.Language_Get(Ztring().From_Local(Parameter));
             Fill_SetOptions(StreamKind, StreamPos, Parameter, "Y NT");
         }
         else

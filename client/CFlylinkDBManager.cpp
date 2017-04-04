@@ -3434,7 +3434,7 @@ void CFlylinkDBManager::load_avdb()
 bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, uint32_t& p_message_count, boost::asio::ip::address_v4& p_last_ip)
 {
 	dcassert(BOOLSETTING(ENABLE_LAST_IP_AND_MESSAGE_COUNTER));
-	//CFlyLock(m_cs); // Убирать пока нельзя - вешаемся почему-то
+	CFlyLock(m_cs); // Убирать пока нельзя - вешаемся почему-то
 	try
 	{
 		p_message_count = 0;

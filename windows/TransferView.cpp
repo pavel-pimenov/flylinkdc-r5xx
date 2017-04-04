@@ -1292,6 +1292,9 @@ void TransferView::onSpeakerAddItem(const UpdateInfo& ui)
 		dcassert(!ui.m_token.empty());
 		if (!ConnectionManager::getInstance()->m_tokens_manager.isToken(ui.m_token))
 		{
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
+			LogManager::message("SKIP missing token TRANSFER_ADD_ITEM ErrorStatus: ui.token = " + ui.m_token);
+#endif
 			return;
 		}
 	}
@@ -1480,7 +1483,18 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 					if (ui.download && ui.m_is_torrent == false)
 					{
 						ItemInfo* parent = ii->parent ? ii->parent : ii;
-						
+						{
+							if (!ui.m_token.empty())
+							{
+								if (!ConnectionManager::getInstance()->m_tokens_manager.isToken(ui.m_token))
+								{
+#ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
+									LogManager::message("SKIP missing token TRANSFER_UPDATE_ITEM  ui.token = " + ui.m_token);
+#endif
+									break;
+								}
+							}
+						}
 						if (ui.type == Transfer::TYPE_FILE || ui.type == Transfer::TYPE_TREE)
 						{
 							/* parent item must be updated with correct info about whole file */
