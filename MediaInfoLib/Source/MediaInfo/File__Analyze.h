@@ -1131,10 +1131,12 @@ public :
     void Fill_Flush ();
     static size_t Fill_Parameter(stream_t StreamKind, generic StreamPos);
 
+#ifdef FLYLINKDC_MEDIAINFO_DEAD_CODE
     const Ztring &Retrieve_Const (stream_t StreamKind, size_t StreamPos, size_t Parameter, info_t KindOfInfo=Info_Text);
-    Ztring Retrieve (stream_t StreamKind, size_t StreamPos, size_t Parameter, info_t KindOfInfo=Info_Text);
     const Ztring &Retrieve_Const (stream_t StreamKind, size_t StreamPos, const char* Parameter, info_t KindOfInfo=Info_Text);
-    Ztring Retrieve (stream_t StreamKind, size_t StreamPos, const char* Parameter, info_t KindOfInfo=Info_Text);
+#endif
+    Ztring Retrieve(stream_t StreamKind, size_t StreamPos, size_t Parameter, info_t KindOfInfo = Info_Text);
+    Ztring Retrieve(stream_t StreamKind, size_t StreamPos, const char* Parameter, info_t KindOfInfo = Info_Text);
 
     void Clear (stream_t StreamKind, size_t StreamPos, size_t Parameter);
     void Clear (stream_t StreamKind, size_t StreamPos, const char* Parameter);

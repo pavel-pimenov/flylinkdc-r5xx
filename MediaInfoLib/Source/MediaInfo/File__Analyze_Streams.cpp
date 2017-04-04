@@ -979,7 +979,8 @@ void File__Analyze::Fill (const stream_t StreamKind, const size_t StreamPos, con
     }
 
     //Handling of well known parameters
-    size_t Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(Ztring().From_Local(Parameter));
+    const Ztring ParameterLocal = Ztring().From_Local(Parameter);
+    size_t Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(ParameterLocal);
     if (Pos!=Error)
     {
         Fill(StreamKind, StreamPos, Pos, Value, Replace);
@@ -990,17 +991,15 @@ void File__Analyze::Fill (const stream_t StreamKind, const size_t StreamPos, con
         return; // "Codec" does not exist in "Other"
     
     //Handling of unknown parameters
-	ZtringListList& Stream_More_Item = (*Stream_More)[StreamKind][StreamPos];
-	const Ztring ParameterISO = Ztring().From_ISO_8859_1(Parameter);
+    ZtringListList& Stream_More_Item = (*Stream_More)[StreamKind][StreamPos];
+    const Ztring ParameterISO = Ztring().From_ISO_8859_1(Parameter);
     if (Value.empty())
     {
         if (Replace)
         {
-            size_t Pos_ToReplace= Stream_More_Item.Find(ParameterISO, Info_Name);
-			if (Pos_ToReplace >= Stream_More_Item.size())
-				Pos_ToReplace = 0;
+            const size_t Pos_ToReplace= Stream_More_Item.Find(ParameterISO, Info_Name);
             if (Pos_ToReplace!=(size_t)-1)
-				Stream_More_Item.erase(Stream_More_Item.begin()+Pos_ToReplace); //Empty value --> remove the line
+                Stream_More_Item.erase(Stream_More_Item.begin()+Pos_ToReplace); //Empty value --> remove the line
         }
     }
     else
@@ -1009,7 +1008,7 @@ void File__Analyze::Fill (const stream_t StreamKind, const size_t StreamPos, con
         if (Target.empty() || Replace)
         {
             Target=Value; //First value
-			Stream_More_Item(ParameterISO, Info_Name_Text)=MediaInfoLib::Config.Language_Get(Ztring().From_Local(Parameter));
+			Stream_More_Item(ParameterISO, Info_Name_Text)=MediaInfoLib::Config.Language_Get(ParameterLocal);
             Fill_SetOptions(StreamKind, StreamPos, Parameter, "Y NT");
         }
         else
@@ -1045,7 +1044,7 @@ void File__Analyze::Fill_SetOptions(stream_t StreamKind, size_t StreamPos, const
 
     (*Stream_More)[StreamKind][StreamPos](Ztring().From_ISO_8859_1(Parameter), Info_Options).From_UTF8(Options);
 }
-
+#ifdef FLYLINKDC_MEDIAINFO_DEAD_CODE
 //---------------------------------------------------------------------------
 const Ztring &File__Analyze::Retrieve_Const (stream_t StreamKind, size_t StreamPos, size_t Parameter, info_t KindOfInfo)
 {
@@ -1059,7 +1058,7 @@ const Ztring &File__Analyze::Retrieve_Const (stream_t StreamKind, size_t StreamP
         return MediaInfoLib::Config.Info_Get(StreamKind, Parameter, KindOfInfo);
     return (*Stream)[StreamKind][StreamPos](Parameter);
 }
-
+#endif
 //---------------------------------------------------------------------------
 Ztring File__Analyze::Retrieve (stream_t StreamKind, size_t StreamPos, size_t Parameter, info_t KindOfInfo)
 {
@@ -1073,7 +1072,7 @@ Ztring File__Analyze::Retrieve (stream_t StreamKind, size_t StreamPos, size_t Pa
         return MediaInfoLib::Config.Info_Get(StreamKind, Parameter, KindOfInfo);
     return (*Stream)[StreamKind][StreamPos](Parameter);
 }
-
+#ifdef FLYLINKDC_MEDIAINFO_DEAD_CODE
 //---------------------------------------------------------------------------
 const Ztring &File__Analyze::Retrieve_Const (stream_t StreamKind, size_t StreamPos, const char* Parameter, info_t KindOfInfo)
 {
@@ -1086,17 +1085,18 @@ const Ztring &File__Analyze::Retrieve_Const (stream_t StreamKind, size_t StreamP
 
     if (KindOfInfo!=Info_Text)
         return MediaInfoLib::Config.Info_Get(StreamKind, Parameter, KindOfInfo);
-    size_t Parameter_Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(Ztring().From_Local(Parameter));
+    const Ztring ParameterLocal = Ztring().From_Local(Parameter);
+    size_t Parameter_Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(ParameterLocal);
     if (Parameter_Pos==Error)
     {
-        Parameter_Pos=(*Stream_More)[StreamKind][StreamPos].Find(Ztring().From_Local(Parameter));
+        Parameter_Pos=(*Stream_More)[StreamKind][StreamPos].Find(ParameterLocal);
         if (Parameter_Pos==Error)
             return MediaInfoLib::Config.EmptyString_Get();
         return (*Stream_More)[StreamKind][StreamPos](Parameter_Pos, 1);
     }
     return (*Stream)[StreamKind][StreamPos](Parameter_Pos);
 }
-
+#endif
 //---------------------------------------------------------------------------
 Ztring File__Analyze::Retrieve (stream_t StreamKind, size_t StreamPos, const char* Parameter, info_t KindOfInfo)
 {
@@ -1109,10 +1109,11 @@ Ztring File__Analyze::Retrieve (stream_t StreamKind, size_t StreamPos, const cha
 
     if (KindOfInfo!=Info_Text)
         return MediaInfoLib::Config.Info_Get(StreamKind, Parameter, KindOfInfo);
-    size_t Parameter_Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(Ztring().From_Local(Parameter));
+    const Ztring ParameterLocal = Ztring().From_Local(Parameter);
+    size_t Parameter_Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(ParameterLocal);
     if (Parameter_Pos==Error)
     {
-        Parameter_Pos=(*Stream_More)[StreamKind][StreamPos].Find(Ztring().From_Local(Parameter));
+        Parameter_Pos=(*Stream_More)[StreamKind][StreamPos].Find(ParameterLocal);
         if (Parameter_Pos==Error)
             return MediaInfoLib::Config.EmptyString_Get();
         return (*Stream_More)[StreamKind][StreamPos](Parameter_Pos, 1);
@@ -1140,11 +1141,11 @@ void File__Analyze::Clear (stream_t StreamKind, size_t StreamPos, const char* Pa
             }
         return;
     }
-
-    size_t Parameter_Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(Ztring().From_Local(Parameter));
+    const Ztring ParameterLocal = Ztring().From_Local(Parameter);
+    size_t Parameter_Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(ParameterLocal);
     if (Parameter_Pos==Error)
     {
-        Parameter_Pos=(*Stream_More)[StreamKind][StreamPos].Find(Ztring().From_Local(Parameter));
+        Parameter_Pos=(*Stream_More)[StreamKind][StreamPos].Find(ParameterLocal);
         if (Parameter_Pos==Error)
             return;
         (*Stream_More)[StreamKind][StreamPos](Parameter_Pos, 1).clear();
