@@ -293,12 +293,13 @@ namespace libtorrent
 
 		void abort(bool wait);
 
-		storage_holder new_torrent(std::unique_ptr<storage_interface> storage) override;
+		storage_holder new_torrent(storage_constructor_type sc
+			, storage_params p, std::shared_ptr<void> const&) override;
 		void remove_torrent(storage_index_t) override;
 
 		void async_read(storage_index_t storage, peer_request const& r
 			, std::function<void(disk_buffer_holder block
-				, int flags, storage_error const& se)> handler, void* requester, std::uint8_t flags = 0) override;
+				, std::uint32_t flags, storage_error const& se)> handler, void* requester, std::uint8_t flags = 0) override;
 		bool async_write(storage_index_t storage, peer_request const& r
 			, char const* buf, std::shared_ptr<disk_observer> o
 			, std::function<void(storage_error const&)> handler
@@ -343,6 +344,8 @@ namespace libtorrent
 			, bool no_pieces, bool session) const override;
 		storage_interface* get_torrent(storage_index_t) override;
 
+		std::vector<open_file_state> get_status(storage_index_t) const override;
+
 		// this submits all queued up jobs to the thread
 		void submit_jobs();
 
@@ -352,8 +355,6 @@ namespace libtorrent
 		bool is_disk_buffer(char* buffer) const override
 		{ return m_disk_cache.is_disk_buffer(buffer); }
 #endif
-
-		virtual file_pool& files() override { return m_file_pool; }
 
 		int prep_read_job_impl(disk_io_job* j, bool check_fence = true);
 
@@ -461,7 +462,7 @@ namespace libtorrent
 		void kick_hasher(cached_piece_entry* pe, std::unique_lock<std::mutex>& l);
 
 		// flags to pass in to flush_cache()
-		enum flush_flags_t
+		enum flush_flags_t : std::uint32_t
 		{
 			// only flush read cache (this is cheap)
 			flush_read_cache = 1,
@@ -474,9 +475,9 @@ namespace libtorrent
 			// used for asserts and only applies for fence jobs
 			flush_expect_clear = 8
 		};
-		void flush_cache(storage_interface* storage, int flags, jobqueue_t& completed_jobs, std::unique_lock<std::mutex>& l);
+		void flush_cache(storage_interface* storage, std::uint32_t flags, jobqueue_t& completed_jobs, std::unique_lock<std::mutex>& l);
 		void flush_expired_write_blocks(jobqueue_t& completed_jobs, std::unique_lock<std::mutex>& l);
-		void flush_piece(cached_piece_entry* pe, int flags, jobqueue_t& completed_jobs, std::unique_lock<std::mutex>& l);
+		void flush_piece(cached_piece_entry* pe, std::uint32_t flags, jobqueue_t& completed_jobs, std::unique_lock<std::mutex>& l);
 
 		int try_flush_hashed(cached_piece_entry* p, int cont_blocks, jobqueue_t& completed_jobs, std::unique_lock<std::mutex>& l);
 
@@ -521,6 +522,10 @@ namespace libtorrent
 
 		// the last time we expired write blocks from the cache
 		time_point m_last_cache_expiry = min_time();
+
+		// we call close_oldest_file on the file_pool regularly. This is the next
+		// time we should call it
+		time_point m_next_close_oldest_file = min_time();
 
 		// LRU cache of open files
 		file_pool m_file_pool{40};

@@ -55,7 +55,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/debug.hpp"
 #include "libtorrent/piece_block_progress.hpp"
 #include "libtorrent/ip_filter.hpp"
-#include "libtorrent/ip_notifier.hpp"
+#include "libtorrent/aux_/ip_notifier.hpp"
 #include "libtorrent/session_status.hpp"
 #include "libtorrent/add_torrent_params.hpp"
 #include "libtorrent/stat.hpp"
@@ -703,7 +703,7 @@ namespace libtorrent
 			void update_privileged_ports();
 			void update_auto_sequential();
 			void update_max_failcount();
-			void update_close_file_interval();
+			void update_resolver_cache_timeout();
 
 			void update_upnp();
 			void update_natpmp();
@@ -883,7 +883,7 @@ namespace libtorrent
 			std::uint32_t m_key = 0;
 
 			// posts a notification when the set of local IPs changes
-			ip_change_notifier m_ip_notifier;
+			std::unique_ptr<ip_change_notifier> m_ip_notifier;
 
 			// the addresses or device names of the interfaces we are supposed to
 			// listen on. if empty, it means that we should let the os decide
@@ -974,7 +974,6 @@ namespace libtorrent
 			int m_peak_down_rate = 0;
 
 			void on_tick(error_code const& e);
-			void on_close_file(error_code const& e);
 
 			void try_connect_more_peers();
 			void auto_manage_checking_torrents(std::vector<torrent*>& list
@@ -1191,16 +1190,6 @@ namespace libtorrent
 
 			void received_buffer(int size) override;
 			void sent_buffer(int size) override;
-
-			// each second tick the timer takes a little
-			// bit longer than one second to trigger. The
-			// extra time it took is accumulated into this
-			// counter. Every time it exceeds 1000, torrents
-			// will tick their timers 2 seconds instead of one.
-			// this keeps the timers more accurate over time
-			// as a kind of "leap second" to adjust for the
-			// accumulated error
-			std::int16_t m_tick_residual = 0;
 
 #ifndef TORRENT_DISABLE_LOGGING
 			virtual bool should_log() const override;

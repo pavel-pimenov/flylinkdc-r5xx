@@ -43,13 +43,14 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/vector.hpp"
 #include "libtorrent/export.hpp"
 #include "libtorrent/storage_defs.hpp"
+#include "libtorrent/time.hpp"
+#include "libtorrent/sha1_hash.hpp"
 
 namespace libtorrent
 {
 	struct storage_interface;
 	struct peer_request;
 	struct disk_observer;
-	struct file_pool;
 	struct add_torrent_params;
 	struct cache_status;
 	struct disk_buffer_holder;
@@ -60,9 +61,65 @@ namespace libtorrent
 
 	struct storage_holder;
 
+	enum file_open_mode
+	{
+		// open the file for reading only
+		read_only = 0,
+
+		// open the file for writing only
+		write_only = 1,
+
+		// open the file for reading and writing
+		read_write = 2,
+
+		// the mask for the bits determining read or write mode
+		rw_mask = read_only | write_only | read_write,
+
+		// open the file in sparse mode (if supported by the
+		// filesystem).
+		sparse = 0x4,
+
+		// don't update the access timestamps on the file (if
+		// supported by the operating system and filesystem).
+		// this generally improves disk performance.
+		no_atime = 0x8,
+
+		// open the file for random access. This disables read-ahead
+		// logic
+		random_access = 0x10,
+
+		// prevent the file from being opened by another process
+		// while it's still being held open by this handle
+		locked = 0x20,
+	};
+
+	// this contains information about a file that's currently open by the
+	// libtorrent disk I/O subsystem. It's associated with a single torent.
+	struct TORRENT_EXPORT open_file_state
+	{
+		// the index of the file this entry refers to into the ``file_storage``
+		// file list of this torrent. This starts indexing at 0.
+		file_index_t file_index;
+
+		// ``open_mode`` is a bitmask of the file flags this file is currently
+		// opened with. These are the flags used in the ``file::open()`` function.
+		// The flags used in this bitfield are defined by the file_open_mode enum.
+		//
+		// Note that the read/write mode is not a bitmask. The two least significant bits are used
+		// to represent the read/write mode. Those bits can be masked out using the ``rw_mask`` constant.
+		std::uint32_t open_mode;
+
+		// a (high precision) timestamp of when the file was last used.
+		time_point last_use;
+	};
+
+#ifndef TORRENT_NO_DEPRECATE
+	using pool_file_status = open_file_state;
+#endif
+
 	struct TORRENT_EXTRA_EXPORT disk_interface
 	{
-		enum flags_t
+		enum flags_t : std::uint8_t
 		{
 			sequential_access = 0x1,
 
@@ -74,12 +131,13 @@ namespace libtorrent
 			volatile_read = 0x10,
 		};
 
-		virtual storage_holder new_torrent(std::unique_ptr<storage_interface> storage) = 0;
+		virtual storage_holder new_torrent(storage_constructor_type sc
+			, storage_params p, std::shared_ptr<void> const&) = 0;
 		virtual void remove_torrent(storage_index_t) = 0;
 		virtual storage_interface* get_torrent(storage_index_t) = 0;
 
 		virtual void async_read(storage_index_t storage, peer_request const& r
-			, std::function<void(disk_buffer_holder block, int flags, storage_error const& se)> handler
+			, std::function<void(disk_buffer_holder block, std::uint32_t flags, storage_error const& se)> handler
 			, void* requester, std::uint8_t flags = 0) = 0;
 		virtual bool async_write(storage_index_t storage, peer_request const& r
 			, char const* buf, std::shared_ptr<disk_observer> o
@@ -116,7 +174,7 @@ namespace libtorrent
 		virtual void get_cache_info(cache_status* ret, storage_index_t storage
 			, bool no_pieces = true, bool session = true) const = 0;
 
-		virtual file_pool& files() = 0;
+		virtual std::vector<open_file_state> get_status(storage_index_t) const = 0;
 
 #if TORRENT_USE_ASSERTS
 		virtual bool is_disk_buffer(char* buffer) const = 0;

@@ -1647,7 +1647,6 @@ void QueueManager::move(const string& aSource, const string& aTarget) noexcept
 			// Good, update the target and move in the queue...
 			fly_fire2(QueueManagerListener::Moved(), qs, aSource);
 			g_fileQueue.moveTarget(qs, l_target);
-			//fly_fire1(QueueManagerListener::Added(), qs);// [-]IRainman
 			setDirty();
 		}
 		else
@@ -2487,7 +2486,6 @@ bool QueueManager::removeTarget(const string& aTarget, bool p_is_batch_remove)
 			// For partial-share
 			UploadManager::abortUpload(l_temp_target);
 		}
-		
 		
 		if (q->isRunning())
 		{

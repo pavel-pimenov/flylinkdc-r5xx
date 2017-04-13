@@ -47,7 +47,7 @@
 #include "CDMDebugFrame.h"
 #include "InputBox.h"
 #include "PopupManager.h"
-#include "ResourceLoader.h" // [+] InfinitySky. PNG Support from Apex 1.3.8.
+#include "ResourceLoader.h"
 #include "AGEmotionSetup.h"
 #include "Winamp.h"
 #include "Players.h"
@@ -89,6 +89,7 @@
 #include "../FlyFeatures/CProgressDlg.h"
 #include "../FlyFeatures/flyfeatures.h" // [+] SSA
 #include "CFlyLocationDlg.h"
+#include "ExMessageBox.h"
 
 #ifndef _DEBUG
 #include "../doctor-dump/CrashRpt.h"

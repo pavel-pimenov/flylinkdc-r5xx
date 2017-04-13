@@ -24,8 +24,9 @@
 #include "LineDlg.h"
 #include "HubFrame.h"
 #include "TextFrame.h"
-#include "ResourceLoader.h" // [+] InfinitySky. PNG Support from Apex 1.3.8.
+#include "ResourceLoader.h"
 #include "WinUtil.h"
+#include "ExMessageBox.h"
 
 int UsersFrame::columnIndexes[] = { COLUMN_NICK, COLUMN_HUB, COLUMN_SEEN, COLUMN_DESCRIPTION, COLUMN_SPEED_LIMIT, COLUMN_IGNORE, COLUMN_USER_SLOTS, COLUMN_CID }; // !SMT!-S
 int UsersFrame::columnSizes[] = { 200, 300, 150, 200, 100, 100, 100, 300 }; // !SMT!-S

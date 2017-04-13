@@ -22,7 +22,7 @@
 #define TRANSFER_VIEW_H
 
 #ifdef _DEBUG
-//#define FLYLINKDC_USE_DEBUG_TRANSFERS
+// #define FLYLINKDC_USE_DEBUG_TRANSFERS
 #endif
 #include "../client/DownloadManagerListener.h"
 #include "../client/UploadManagerListener.h"
@@ -37,7 +37,6 @@
 #include "UCHandler.h"
 #include "TypedListViewCtrl.h"
 #include "SearchFrm.h"
-#include "ExMessageBox.h" // [+] InfinitySky. From Apex.
 
 class TransferView : public CWindowImpl<TransferView>, private DownloadManagerListener,
 	private UploadManagerListener,
@@ -187,15 +186,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			return 0;
 		}
 		
-		LRESULT onRemoveAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-		{
-			UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-			if (checkState == BST_CHECKED || ::MessageBox(NULL, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
-				ctrlTransfers.forEachSelected(&ItemInfo::removeAll); // [6] https://www.box.net/shared/4eed8e2e275210b6b654
-			// Let's update the setting unchecked box means we bug user again...
-			SET_SETTING(CONFIRM_DELETE, checkState != BST_CHECKED); // [+] InfinitySky.
-			return 0;
-		}
+		LRESULT onRemoveAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 		LRESULT onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
@@ -707,6 +698,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(DownloadManagerListener::AddTorrent, const libtorrent::sha1_hash& p_sha1, std::vector<std::string>& p_files) noexcept override;
 		void on(DownloadManagerListener::CompleteTorrentFile, const std::string& p_file_name) noexcept override;
 		void on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept override;
+		void on(DownloadManagerListener::TorrentEvent, const DownloadArray&) noexcept override;
+		
 		void on(DownloadManagerListener::RemoveToken, const string& p_token) noexcept override;
 		void on(DownloadManagerListener::Requesting, const DownloadPtr& aDownload) noexcept override;
 		void on(DownloadManagerListener::Complete, const DownloadPtr& aDownload) noexcept override
@@ -718,7 +711,6 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(DownloadManagerListener::Starting, const DownloadPtr& aDownload) noexcept override;
 #endif
 		void on(DownloadManagerListener::Tick, const DownloadArray& aDownload) noexcept override;
-		void on(DownloadManagerListener::TorrentEvent, const DownloadArray&) noexcept override;
 		void on(DownloadManagerListener::Status, const UserConnection*, const string&) noexcept override;
 		
 		void on(UploadManagerListener::Starting, const UploadPtr& aUpload) noexcept override;

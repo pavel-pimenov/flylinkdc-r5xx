@@ -344,8 +344,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		                                      const boost::asio::ip::address_v4& p_last_ip,
 		                                      const uint32_t p_message_count,
 		                                      bool& p_is_sql_not_found,
-		                                      bool p_is_last_ip_dirty,
-		                                      bool p_is_message_count_dirty
+		                                      const bool p_is_last_ip_dirty,
+		                                      const bool p_is_message_count_dirty
 		                                     );
 	private:
 		void store_all_ratio_internal(uint32_t p_hub_id, const __int64& p_dic_nick,

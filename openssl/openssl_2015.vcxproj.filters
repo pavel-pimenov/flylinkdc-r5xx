@@ -570,9 +570,6 @@
     <ClCompile Include="crypto\o_str.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="crypto\o_time.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
     <ClCompile Include="crypto\uid.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
@@ -1506,9 +1503,6 @@
     <ClCompile Include="crypto\evp\evp_lib.c">
       <Filter>Source Files\crypto\evp</Filter>
     </ClCompile>
-    <ClCompile Include="crypto\evp\evp_pbe.c">
-      <Filter>Source Files\crypto\evp</Filter>
-    </ClCompile>
     <ClCompile Include="crypto\evp\evp_pkey.c">
       <Filter>Source Files\crypto\evp</Filter>
     </ClCompile>
@@ -2217,9 +2211,6 @@
     <ClCompile Include="crypto\camellia\cmll_utl.c">
       <Filter>Source Files\crypto\camellia</Filter>
     </ClCompile>
-    <ClCompile Include="crypto\modes\gcm128.c">
-      <Filter>Source Files\crypto\modes</Filter>
-    </ClCompile>
     <ClCompile Include="crypto\modes\xts128.c">
       <Filter>Source Files\crypto\modes</Filter>
     </ClCompile>
@@ -2273,6 +2264,15 @@
     </ClCompile>
     <ClCompile Include="crypto\bn\bn_asm.c">
       <Filter>Source Files\crypto\bn</Filter>
+    </ClCompile>
+    <ClCompile Include="crypto\modes\gcm128.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="crypto\o_time.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="crypto\evp\evp_pbe.c">
+      <Filter>Source Files\crypto</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -33,9 +33,7 @@
 #include "../client/IpGuard.h"
 #include "../windows/ChatBot.h"
 
-#include "../jsoncpp/include/json/value.h"
-#include "../jsoncpp/include/json/reader.h"
-#include "../jsoncpp/include/json/writer.h"
+#include "../jsoncpp/include/json/json.h"
 #include "../MediaInfoLib/Source/MediaInfo/MediaInfo_Const.h"
 #include "../MediaInfoLib/Source/MediaInfo/MediaInfo.h"
 #include "../MediaInfoLib/Source/MediaInfo/MediaInfo_Config.h"

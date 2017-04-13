@@ -32,7 +32,7 @@
 
 #include "../FlyFeatures/flyServer.h"
 #include "ZenLib/Format/Http/Http_Utils.h"
-#include "../jsoncpp/include/json/reader.h"
+#include "../jsoncpp/include/json/json.h"
 
 CFlyUnknownCommand NmdcHub::g_unknown_command;
 CFlyUnknownCommandArray NmdcHub::g_unknown_command_array;
@@ -1073,10 +1073,6 @@ void NmdcHub::supportsParse(const string& param)
 		{
 			m_supportFlags |= SUPPORTS_SEARCHRULE;
 		}
-		else if (*i == "HubURL")
-		{
-			m_supportFlags |= SUPPORTS_HUBURL;
-		}
 #ifdef FLYLINKDC_USE_EXT_JSON
 		else if (*i == "ExtJSON2")
 		{
@@ -2072,14 +2068,7 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	else if (cmd == "GetHubURL")
 	{
-		if (m_supportFlags & SUPPORTS_HUBURL)
-		{
-			send("$MyHubURL " + getHubUrl() + "|");
-		}
-		else
-		{
-			LogManager::message("Fix support $GetHubURL and $MyHubURL hub = " + getHubUrl());
-		}
+		send("$MyHubURL " + getHubUrl() + "|");
 	}
 	else
 	{

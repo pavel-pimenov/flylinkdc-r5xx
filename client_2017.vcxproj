@@ -338,7 +338,6 @@
     <ClCompile Include="client\SimpleXML.cpp" />
     <ClCompile Include="client\SimpleXMLReader.cpp" />
     <ClCompile Include="client\Socket.cpp" />
-    <ClCompile Include="client\SSL.cpp" />
     <ClCompile Include="client\SSLSocket.cpp" />
     <ClCompile Include="client\stdinc.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -401,9 +400,7 @@
     <ClCompile Include="client\sqlite\sqlite3x_connection.cpp" />
     <ClCompile Include="client\sqlite\sqlite3x_reader.cpp" />
     <ClCompile Include="client\sqlite\sqlite3x_transaction.cpp" />
-    <ClCompile Include="jsoncpp\src\lib_json\json_reader.cpp" />
-    <ClCompile Include="jsoncpp\src\lib_json\json_value.cpp" />
-    <ClCompile Include="jsoncpp\src\lib_json\json_writer.cpp" />
+    <ClCompile Include="jsoncpp\jsoncpp.cpp" />
     <ClCompile Include="leveldb\db\builder.cc">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -763,15 +760,8 @@
     <ClInclude Include="client\WildcardsReg.h" />
     <ClInclude Include="client\w_flylinkdc.h" />
     <ClInclude Include="client\ZipFile.h" />
-    <ClInclude Include="jsoncpp\include\json\autolink.h" />
-    <ClInclude Include="jsoncpp\include\json\config.h" />
-    <ClInclude Include="jsoncpp\include\json\features.h" />
-    <ClInclude Include="jsoncpp\include\json\forwards.h" />
+    <ClInclude Include="jsoncpp\include\json\json-forwards.h" />
     <ClInclude Include="jsoncpp\include\json\json.h" />
-    <ClInclude Include="jsoncpp\include\json\reader.h" />
-    <ClInclude Include="jsoncpp\include\json\value.h" />
-    <ClInclude Include="jsoncpp\include\json\writer.h" />
-    <ClInclude Include="jsoncpp\src\lib_json\json_batchallocator.h" />
     <ClInclude Include="leveldb\db\builder.h" />
     <ClInclude Include="leveldb\db\dbformat.h" />
     <ClInclude Include="leveldb\db\db_impl.h" />
@@ -837,7 +827,6 @@
     <ClInclude Include="client\Singleton.h" />
     <ClInclude Include="client\Socket.h" />
     <ClInclude Include="client\Speaker.h" />
-    <ClInclude Include="client\SSL.h" />
     <ClInclude Include="client\SSLSocket.h" />
     <ClInclude Include="client\stdinc.h" />
     <ClInclude Include="client\Streams.h" />
@@ -881,11 +870,6 @@
     <ClInclude Include="client\WebServerManager.h" />
     <ClInclude Include="client\Wildcards.h" />
     <ClInclude Include="client\ZUtils.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="jsoncpp\src\lib_json\json_internalarray.inl" />
-    <None Include="jsoncpp\src\lib_json\json_internalmap.inl" />
-    <None Include="jsoncpp\src\lib_json\json_valueiterator.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

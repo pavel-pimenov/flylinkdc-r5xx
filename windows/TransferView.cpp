@@ -37,7 +37,8 @@
 #include "QueueFrame.h"
 #include "WaitingUsersFrame.h"
 #include "BarShader.h"
-#include "ResourceLoader.h" // [+] InfinitySky. PNG Support from Apex 1.3.8.
+#include "ResourceLoader.h"
+#include "ExMessageBox.h"
 
 #include "libtorrent/hex.hpp"
 
@@ -2200,11 +2201,11 @@ void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload)
 		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 	}
 }
-void TransferView::on(DownloadManagerListener::TorrentEvent, const DownloadArray& dl) noexcept
+void TransferView::on(DownloadManagerListener::TorrentEvent, const DownloadArray& p_torrent_event) noexcept
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
-		for (auto j = dl.cbegin(); j != dl.cend(); ++j)
+		for (auto j = p_torrent_event.cbegin(); j != p_torrent_event.cend(); ++j)
 		{
 			UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, true);
 			ui->setStatus(ItemInfo::STATUS_RUNNING);
@@ -2226,6 +2227,7 @@ void TransferView::on(DownloadManagerListener::TorrentEvent, const DownloadArray
 		}
 	}
 }
+
 // TODO - убрать тики для массива
 void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl) noexcept
 {
@@ -2801,6 +2803,16 @@ LRESULT TransferView::onSetUserLimit(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 	FavoriteManager::getInstance()->setUploadLimit(getSelectedUser(), lim);
 	// close favusers window (it contains incorrect info, too lazy to update)
 	UsersFrame::closeWindow();
+	return 0;
+}
+
+LRESULT TransferView::onRemoveAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
+	if (checkState == BST_CHECKED || ::MessageBox(NULL, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
+		ctrlTransfers.forEachSelected(&ItemInfo::removeAll); // [6] https://www.box.net/shared/4eed8e2e275210b6b654
+	// Let's update the setting unchecked box means we bug user again...
+	SET_SETTING(CONFIRM_DELETE, checkState != BST_CHECKED); // [+] InfinitySky.
 	return 0;
 }
 

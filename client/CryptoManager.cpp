@@ -32,7 +32,6 @@
 
 #include <bzlib.h>
 
-
 void* CryptoManager::g_tmpKeysMap[KEY_LAST] = { NULL, NULL, NULL };
 CriticalSection* CryptoManager::cs = NULL;
 int CryptoManager::idxVerifyData = 0;
@@ -243,7 +242,7 @@ int CryptoManager::verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
 		else if (keyp.compare(0, 7, "SHA256/") != 0)
 			return allowUntrusted ? 1 : 0;
 			
-		ByteVector kp = ssl::X509_digest(cert, EVP_sha256());
+		ByteVector kp = X509_digest_internal(cert, EVP_sha256());
 		string expected_keyp = "SHA256/" + Encoder::toBase32(&kp[0], kp.size());
 		
 		// Do a full string comparison to avoid potential false positives caused by invalid inputs
@@ -728,7 +727,7 @@ const ByteVector& CryptoManager::getKeyprint() noexcept
 	return keyprint;
 }
 
-void CryptoManager::loadKeyprint(const string& file) noexcept
+void CryptoManager::loadKeyprint(const string& file)
 {
 	FILE* f = fopen(file.c_str(), "r");
 	if (!f)
@@ -747,7 +746,7 @@ void CryptoManager::loadKeyprint(const string& file) noexcept
 	
 	ssl::X509 x509(tmpx509);
 	
-	keyprint = ssl::X509_digest(x509, EVP_sha256());
+	keyprint = X509_digest_internal(x509, EVP_sha256());
 }
 
 SSL_CTX* CryptoManager::getSSLContext(SSLContext wanted)
@@ -950,6 +949,18 @@ void CryptoManager::locking_function(int mode, int n, const char* /*file*/, int 
 	}
 }
 
+ByteVector CryptoManager::X509_digest_internal(::X509* x509, const ::EVP_MD* md)
+{
+	unsigned int n;
+	unsigned char buf[EVP_MAX_MD_SIZE];
+	
+	if (!X509_digest(x509, md, buf, &n))
+	{
+		return ByteVector(); // Throw instead?
+	}
+	
+	return ByteVector(buf, buf + n);
+}
 
 /**
  * @file

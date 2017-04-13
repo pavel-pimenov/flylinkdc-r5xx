@@ -320,9 +320,9 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, size_t Paramete
                     break;
         }
 
+        const Ztring Parameter_String = Ztring::ToZtring(Parameter);
         if (Replace)
         {
-            Ztring Parameter_String=Ztring::ToZtring(Parameter);
             for (size_t Pos=0; Pos<Fill_Temp[StreamKindS].size(); Pos++)
                 if (Fill_Temp[StreamKindS][Pos].Parameter==Parameter_String)
                 {
@@ -331,7 +331,7 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, size_t Paramete
                 }
         }
         fill_temp_item NewList;
-        NewList.Parameter=Ztring::ToZtring(Parameter);
+        NewList.Parameter=Parameter_String;
         NewList.Value=Value;
         Fill_Temp[StreamKindS].push_back(NewList);
         return; //No streams
@@ -961,18 +961,18 @@ void File__Analyze::Fill (const stream_t StreamKind, const size_t StreamPos, con
                     break;
         }
 
+        const Ztring Parameter_String_UTF8 = Ztring().From_UTF8(Parameter);
         if (Replace)
         {
-            Ztring Parameter_String=Ztring().From_UTF8(Parameter);
             for (size_t Pos=0; Pos<Fill_Temp[StreamKindS].size(); Pos++)
-                if (Fill_Temp[StreamKindS][Pos].Parameter==Parameter_String)
+                if (Fill_Temp[StreamKindS][Pos].Parameter== Parameter_String_UTF8)
                 {
                     Fill_Temp[StreamKindS][Pos].Value=Value;
                     return;
                 }
         }
         fill_temp_item NewList;
-        NewList.Parameter=Ztring().From_UTF8(Parameter);
+        NewList.Parameter= Parameter_String_UTF8;
         NewList.Value=Value;
         Fill_Temp[StreamKindS].push_back(NewList);
         return; //No streams
@@ -980,7 +980,7 @@ void File__Analyze::Fill (const stream_t StreamKind, const size_t StreamPos, con
 
     //Handling of well known parameters
     const Ztring ParameterLocal = Ztring().From_Local(Parameter);
-    size_t Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(ParameterLocal);
+    const size_t Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(ParameterLocal);
     if (Pos!=Error)
     {
         Fill(StreamKind, StreamPos, Pos, Value, Replace);
@@ -1035,7 +1035,7 @@ void File__Analyze::Fill_SetOptions(stream_t StreamKind, size_t StreamPos, const
     }
 
     //Handling of well known parameters
-    size_t Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(Ztring().From_Local(Parameter));
+    const size_t Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(Ztring().From_Local(Parameter));
     if (Pos!=Error)
     {
         //We can not change that

@@ -42,7 +42,11 @@
 #include <stddef.h>
 #include <string>
 
-#include "snappy-stubs-public.h"
+#ifdef _WIN32
+#include "snappy-stubs-public-windows.h"
+#else
+#include "snappy-stubs-public-linux.h"
+#endif
 
 namespace snappy {
   class Source;

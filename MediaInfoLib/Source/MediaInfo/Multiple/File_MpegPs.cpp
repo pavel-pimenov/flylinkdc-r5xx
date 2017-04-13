@@ -323,7 +323,7 @@ void File_MpegPs::Streams_Fill()
 //---------------------------------------------------------------------------
 void File_MpegPs::Streams_Fill_PerStream(size_t StreamID, ps_stream &Temp, kindofstream KindOfStream)
 {
-    size_t Counts[Stream_Max];
+    size_t Counts[Stream_Max+1]; // TODO https://github.com/MediaArea/MediaInfoLib/issues/467
     for (size_t StreamKind=Stream_General+1; StreamKind<Stream_Max; StreamKind++)
         Counts[StreamKind]=Count_Get((stream_t)StreamKind);
 
@@ -2410,7 +2410,10 @@ void File_MpegPs::pack_start()
     {
     #endif //MEDIAINFO_TRACE
         //Parsing
-        Version=Buffer[Buffer_Pos]>>6;
+        if(Buffer_Pos< Buffer_Size) // https://github.com/MediaArea/MediaInfoLib/issues/471
+          Version=Buffer[Buffer_Pos]>>6;
+        else
+          Version=0;  
     #if MEDIAINFO_TRACE
     }
     #endif //MEDIAINFO_TRACE

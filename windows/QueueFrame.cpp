@@ -23,8 +23,10 @@
 #include "LineDlg.h"
 #include "../client/ShareManager.h"
 #include "../client/ClientManager.h"
+#include "../client/DownloadManager.h"
 #include "BarShader.h"
 #include "MainFrm.h"
+#include "ExMessageBox.h"
 
 int QueueFrame::columnIndexes[] = { COLUMN_TARGET, COLUMN_TYPE, COLUMN_STATUS, COLUMN_SEGMENTS, COLUMN_SIZE, COLUMN_PROGRESS, COLUMN_DOWNLOADED, COLUMN_PRIORITY,
                                     COLUMN_USERS, COLUMN_PATH,
@@ -130,7 +132,7 @@ LRESULT QueueFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	
 	addQueueList();
 	QueueManager::getInstance()->addListener(this);
-	
+	DownloadManager::getInstance()->addListener(this);
 	SettingsManager::getInstance()->addListener(this);
 	
 	memzero(statusSizes, sizeof(statusSizes));
@@ -140,6 +142,30 @@ LRESULT QueueFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	create_timer(1000);
 	bHandled = FALSE;
 	return 1;
+}
+
+
+void QueueFrame::QueueItemInfo::removeTarget(bool p_is_batch_remove)
+{
+	QueueManager::getInstance()->removeTarget(getTarget(), p_is_batch_remove);
+}
+
+int QueueFrame::QueueItemInfo::compareItems(const QueueItemInfo* a, const QueueItemInfo* b, int col)
+{
+	switch (col)
+	{
+		case COLUMN_SIZE:
+		case COLUMN_EXACT_SIZE:
+			return compare(a->getSize(), b->getSize());
+		case COLUMN_PRIORITY:
+			return compare((int)a->getPriority(), (int)b->getPriority());
+		case COLUMN_DOWNLOADED:
+			return compare(a->getDownloadedBytes(), b->getDownloadedBytes());
+		case COLUMN_ADDED:
+			return compare(a->getAdded(), b->getAdded());
+		default:
+			return lstrcmpi(a->getText(col).c_str(), b->getText(col).c_str());
+	}
 }
 
 const tstring QueueFrame::QueueItemInfo::getText(int col) const
@@ -381,6 +407,42 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 		}
 	}
 }
+void QueueFrame::on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept
+{
+}
+
+void QueueFrame::on(DownloadManagerListener::CompleteTorrentFile, const std::string& p_file_name) noexcept
+{
+}
+
+void QueueFrame::on(DownloadManagerListener::TorrentEvent, const DownloadArray& p_torrent_event) noexcept
+{
+#ifdef _DEBUG
+	for (auto j = p_torrent_event.cbegin(); j != p_torrent_event.cend(); ++j)
+	{
+		m_tasks.add(UPDATE_ITEM, new UpdateTorrentTask(j->m_path, j->m_sha1));
+		/*        UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, true);
+		        ui->setStatus(ItemInfo::STATUS_RUNNING);
+		        ui->setActual(j->m_actual);
+		        ui->setPos(j->m_pos);
+		        dcassert(j->m_is_torrent);
+		        ui->m_is_torrent = j->m_is_torrent;
+		        ui->m_sha1 = j->m_sha1;
+		        ui->m_is_seeding = j->m_is_seeding;
+		        ui->setSpeed(j->m_speed);
+		        ui->setSize(j->m_size);
+		        ui->setTimeLeft(j->m_second_left);
+		        ui->setType(Transfer::Type(j->m_type)); // TODO
+		        ui->setStatusString(j->m_status_string);
+		        ui->setTarget(j->m_path);
+		        //ui->setToken(j->m_token);
+		        //dcassert(!j->m_token.empty());
+		        m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
+		*/
+	}
+#endif
+}
+
 void QueueFrame::on(QueueManagerListener::AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept
 {
 	for (auto i = p_qi_array.cbegin(); i != p_qi_array.cend(); ++i)
@@ -877,12 +939,17 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 				{
 					const QueueItemInfo* ii = getItemInfo(ui.getTarget(), l_path);
 					if (!ii)
+					{
+						//dcassert(0);
+#ifdef _DEBUG
+						LogManager::message("Error find ui.getTarget() +" + ui.getTarget());
+#endif
 						break;
-						
+					}
+					
 					if (!showTree || l_is_cur_dir)
 					{
 						const int pos = ctrlQueue.findItem(ii);
-						//dcassert(pos != -1);
 						if (pos != -1)
 						{
 							const int l_top_index = ctrlQueue.GetTopIndex();
@@ -931,7 +998,15 @@ void QueueFrame::removeSelected()
 	if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
 	{
 		CWaitCursor l_cursor_wait;
-		ctrlQueue.forEachSelected(&QueueItemInfo::removeBatch);
+		try
+		{
+			ctrlQueue.forEachSelected(&QueueItemInfo::removeBatch);
+		}
+		catch (const std::bad_alloc&)
+		{
+			ShareManager::tryFixBadAlloc();
+			// fix  https://drdump.com/Problem.aspx?ProblemID=286889
+		}
 		QueueManager::FileQueue::removeArray();
 		QueueManager::getInstance()->fire_remove_batch();
 		// Let's update the setting unchecked box means we bug user again...
@@ -1974,6 +2049,7 @@ LRESULT QueueFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		safe_destroy_timer();
 		clear_and_destroy_task();
 		SettingsManager::getInstance()->removeListener(this);
+		DownloadManager::getInstance()->removeListener(this);
 		QueueManager::getInstance()->removeListener(this);
 		
 		WinUtil::setButtonPressed(IDC_QUEUE, false);

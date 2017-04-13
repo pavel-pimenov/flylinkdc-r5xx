@@ -17,14 +17,16 @@
  */
 
 #include "stdinc.h"
-#include "SSLSocket.h"
+
+#include <openssl/err.h>
 
 #include "LogManager.h"
 #include "SettingsManager.h"
 #include "ResourceManager.h"
 #include "StringTokenizer.h"
+#include "CryptoManager.h"
 
-#include <openssl/err.h>
+#include "SSLSocket.h"
 
 SSLSocket::SSLSocket(CryptoManager::SSLContext context, bool allowUntrusted, const string& expKP) : SSLSocket(context)
 {
@@ -321,7 +323,7 @@ ByteVector SSLSocket::getKeyprint() const noexcept
 	if (!x509)
 		return ByteVector();
 		
-	ByteVector res = ssl::X509_digest(x509, EVP_sha256());
+	ByteVector res = CryptoManager::X509_digest_internal(x509, EVP_sha256());
 	
 	X509_free(x509);
 	return res;

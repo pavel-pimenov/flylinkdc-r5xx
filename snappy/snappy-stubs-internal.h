@@ -45,7 +45,11 @@
 #include <sys/mman.h>
 #endif
 
-#include "snappy-stubs-public.h"
+#ifdef _WIN32
+#include "snappy-stubs-public-windows.h"
+#else
+#include "snappy-stubs-public-linux.h"
+#endif
 
 #if defined(__x86_64__)
 
@@ -61,7 +65,6 @@
 
 // Pull in std::min, std::ostream, and the likes. This is safe because this
 // header file is never used from any public header files.
-using namespace std;
 
 // The size of an array, if known at compile-time.
 // Will give unexpected results if used on a pointer.

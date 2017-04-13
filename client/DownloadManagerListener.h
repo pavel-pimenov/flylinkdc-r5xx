@@ -69,11 +69,11 @@ class DownloadManagerListener
 		 * No other messages will be sent before this.
 		 */
 		virtual void on(Requesting, const DownloadPtr& aDownload) noexcept { }
-		virtual void on(RemoveToken, const string& p_token) noexcept { }
-		virtual void on(RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept { }
-		virtual void on(AddTorrent, const libtorrent::sha1_hash& p_sha1, std::vector<std::string>& p_files) noexcept { }
+		virtual void on(RemoveToken, const std::string& p_token) noexcept { }
 		virtual void on(CompleteTorrentFile, const std::string& p_name) noexcept { }
 		
+		virtual void on(RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept { }
+		virtual void on(AddTorrent, const libtorrent::sha1_hash& p_sha1, std::vector<std::string>& p_files) noexcept { }
 		
 #ifdef FLYLINKDC_USE_DOWNLOAD_STARTING_FIRE
 		/**

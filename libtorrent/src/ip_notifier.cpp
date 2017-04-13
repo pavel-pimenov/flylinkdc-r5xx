@@ -30,21 +30,323 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#include "libtorrent/ip_notifier.hpp"
+#include "libtorrent/aux_/ip_notifier.hpp"
+#include "libtorrent/assert.hpp"
 
-#if defined TORRENT_WINDOWS && !defined TORRENT_BUILD_SIMULATOR
+#if defined TORRENT_BUILD_SIMULATOR
+// TODO: simulator support
+#elif TORRENT_USE_NETLINK
+#include "libtorrent/netlink.hpp"
+#include <array>
+#elif TORRENT_USE_SYSTEMCONFIGURATION
+#include <SystemConfiguration/SystemConfiguration.h>
+#elif defined TORRENT_WINDOWS
+#include "libtorrent/aux_/throw.hpp"
 #include "libtorrent/aux_/disable_warnings_push.hpp"
+#include <boost/asio/windows/object_handle.hpp>
 #include <iphlpapi.h>
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 #endif
 
-#include "libtorrent/aux_/throw.hpp"
-
-using namespace std::placeholders;
-
-namespace libtorrent
+namespace libtorrent { namespace aux
 {
-	ip_change_notifier::ip_change_notifier(io_service& ios)
+namespace
+{
+#if defined TORRENT_BUILD_SIMULATOR
+	// TODO: ip_change_notifier_sim
+#elif TORRENT_USE_NETLINK
+struct ip_change_notifier_impl final : ip_change_notifier
+{
+	explicit ip_change_notifier_impl(io_service& ios)
+		: m_socket(ios
+			, netlink::endpoint(netlink(NETLINK_ROUTE), RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR))
+	{}
+
+	// noncopyable
+	ip_change_notifier_impl(ip_change_notifier_impl const&) = delete;
+	ip_change_notifier_impl& operator=(ip_change_notifier_impl const&) = delete;
+
+	void async_wait(std::function<void(error_code const&)> cb) override
+	{
+		using namespace std::placeholders;
+		m_socket.async_receive(boost::asio::buffer(m_buf)
+			, std::bind(&ip_change_notifier_impl::on_notify, this, _1, _2, std::move(cb)));
+	}
+
+	void cancel() override
+	{ m_socket.cancel();}
+
+private:
+	netlink::socket m_socket;
+	std::array<char, 4096> m_buf;
+
+	void on_notify(error_code const& ec, std::size_t bytes_transferred
+		, std::function<void(error_code const&)> const& cb)
+	{
+		TORRENT_UNUSED(bytes_transferred);
+
+		// on linux we could parse the message to get information about the
+		// change but Windows requires the application to enumerate the
+		// interfaces after a notification so do that for Linux as well to
+		// minimize the difference between platforms
+
+		// Linux can generate ENOBUFS if the socket's buffers are full
+		// don't treat it as an error
+		if (ec.value() == boost::system::errc::no_buffer_space)
+			cb(error_code());
+		else
+			cb(ec);
+	}
+};
+#elif TORRENT_USE_SYSTEMCONFIGURATION
+
+template <typename T> void CFRefRetain(T h) { CFRetain(h); }
+template <typename T> void CFRefRelease(T h) { CFRelease(h); }
+
+template <typename T
+	, void (*Retain)(T) = CFRefRetain<T>, void (*Release)(T) = CFRefRelease<T>>
+struct CFRef
+{
+	CFRef() {}
+	explicit CFRef(T h) : m_h(h) {} // take ownership
+	~CFRef() { release(); }
+
+	CFRef(CFRef const& rhs) : m_h(rhs.m_h) { retain(); }
+	CFRef& operator=(CFRef const& rhs)
+	{
+		if (m_h == rhs.m_h) return *this;
+		release();
+		m_h = rhs.m_h;
+		retain();
+		return *this;
+	}
+
+	CFRef& operator=(T h) { m_h = h; return *this;}
+	CFRef& operator=(std::nullptr_t) { release(); return *this;}
+
+	T get() const { return m_h; }
+	explicit operator bool() const { return m_h != nullptr; }
+
+private:
+	T m_h = nullptr; // handle
+
+	void retain() { if (m_h != nullptr) Retain(m_h); }
+	void release() { if (m_h != nullptr) Release(m_h); m_h = nullptr; }
+};
+
+void CFDispatchRetain(dispatch_queue_t q) { dispatch_retain(q); }
+void CFDispatchRelease(dispatch_queue_t q) { dispatch_release(q); }
+using CFDispatchRef = CFRef<dispatch_queue_t, CFDispatchRetain, CFDispatchRelease>;
+
+#if TORRENT_USE_SC_NETWORK_REACHABILITY
+CFRef<SCNetworkReachabilityRef> create_reachability(SCNetworkReachabilityCallBack callback
+	, void* context_info)
+{
+	TORRENT_ASSERT(callback != nullptr);
+
+	sockaddr_in addr = {};
+	addr.sin_len = sizeof(addr);
+	addr.sin_family = AF_INET;
+
+	CFRef<SCNetworkReachabilityRef> reach{SCNetworkReachabilityCreateWithAddress(nullptr
+		, reinterpret_cast<sockaddr const*>(&addr))};
+	if (!reach)
+		return CFRef<SCNetworkReachabilityRef>();
+
+	SCNetworkReachabilityContext context = {0, nullptr, nullptr, nullptr, nullptr};
+	context.info = context_info;
+
+	return SCNetworkReachabilitySetCallback(reach.get(), callback, &context)
+		? reach : CFRef<SCNetworkReachabilityRef>();
+}
+
+struct ip_change_notifier_impl final : ip_change_notifier
+{
+	explicit ip_change_notifier_impl(io_service& ios)
+		: m_ios(ios)
+	{
+		m_queue = dispatch_queue_create("libtorrent.IPChangeNotifierQueue", nullptr);
+		m_reach = create_reachability(
+			[](SCNetworkReachabilityRef /*target*/, SCNetworkReachabilityFlags /*flags*/, void *info)
+			{
+				auto obj = static_cast<ip_change_notifier_impl*>(info);
+				obj->m_ios.post([obj]()
+				{
+					if (!obj->m_cb) return;
+					auto cb = std::move(obj->m_cb);
+					obj->m_cb = nullptr;
+					cb(error_code());
+				});
+			}, this);
+
+		if (!m_queue || !m_reach
+			|| !SCNetworkReachabilitySetDispatchQueue(m_reach.get(), m_queue.get()))
+			cancel();
+	}
+
+	// noncopyable
+	ip_change_notifier_impl(ip_change_notifier_impl const&) = delete;
+	ip_change_notifier_impl& operator=(ip_change_notifier_impl const&) = delete;
+
+	~ip_change_notifier_impl() override
+	{ cancel(); }
+
+	void async_wait(std::function<void(error_code const&)> cb) override
+	{
+		if (m_queue)
+			m_cb = std::move(cb);
+		else
+			m_ios.post([cb]()
+			{ cb(make_error_code(boost::system::errc::not_supported)); });
+	}
+
+	void cancel() override
+	{
+		if (m_reach)
+			SCNetworkReachabilitySetDispatchQueue(m_reach.get(), nullptr);
+
+		m_cb = nullptr;
+		m_reach = nullptr;
+		m_queue = nullptr;
+	}
+
+private:
+	io_service& m_ios;
+	CFDispatchRef m_queue;
+	CFRef<SCNetworkReachabilityRef> m_reach;
+	std::function<void(error_code const&)> m_cb = nullptr;
+};
+#else
+// see https://developer.apple.com/library/content/technotes/tn1145/_index.html
+CFRef<CFMutableArrayRef> create_keys_array()
+{
+	CFRef<CFMutableArrayRef> keys{CFArrayCreateMutable(nullptr
+		, 0, &kCFTypeArrayCallBacks)};
+
+	// "State:/Network/Interface/[^/]+/IPv4"
+	CFRef<CFStringRef> key{SCDynamicStoreKeyCreateNetworkInterfaceEntity(nullptr
+		, kSCDynamicStoreDomainState, kSCCompAnyRegex, kSCEntNetIPv4)};
+	CFArrayAppendValue(keys.get(), key.get());
+
+	// NOTE: for IPv6, you can replicate the above setup with kSCEntNetIPv6
+	// but due to the current state of most common configurations, where
+	// IPv4 is used alongside with IPv6, you will end up with twice the
+	// notifications for the same change
+
+	return keys;
+}
+
+CFRef<SCDynamicStoreRef> create_dynamic_store(SCDynamicStoreCallBack callback, void* context_info)
+{
+	TORRENT_ASSERT(callback != nullptr);
+
+	SCDynamicStoreContext context = {0, nullptr, nullptr, nullptr, nullptr};
+	context.info = context_info;
+	CFRef<SCDynamicStoreRef> store{SCDynamicStoreCreate(nullptr
+		, CFSTR("libtorrent.IPChangeNotifierStore"), callback, &context)};
+	if (!store)
+		return CFRef<SCDynamicStoreRef>();
+
+	CFRef<CFMutableArrayRef> keys = create_keys_array();
+	return SCDynamicStoreSetNotificationKeys(store.get(), nullptr, keys.get())
+		? store : CFRef<SCDynamicStoreRef>();
+}
+
+struct ip_change_notifier_impl final : ip_change_notifier
+{
+	explicit ip_change_notifier_impl(io_service& ios)
+		: m_ios(ios)
+	{
+		m_queue = dispatch_queue_create("libtorrent.IPChangeNotifierQueue", nullptr);
+		m_store = create_dynamic_store(
+			[](SCDynamicStoreRef /*store*/, CFArrayRef /*changedKeys*/, void *info)
+			{
+				auto obj = static_cast<ip_change_notifier_impl*>(info);
+				obj->m_ios.post([obj]()
+				{
+					if (!obj->m_cb) return;
+					auto cb = std::move(obj->m_cb);
+					obj->m_cb = nullptr;
+					cb(error_code());
+				});
+			}, this);
+
+		if (!m_queue || !m_store
+			|| !SCDynamicStoreSetDispatchQueue(m_store.get(), m_queue.get()))
+			cancel();
+	}
+
+	// noncopyable
+	ip_change_notifier_impl(ip_change_notifier_impl const&) = delete;
+	ip_change_notifier_impl& operator=(ip_change_notifier_impl const&) = delete;
+
+	~ip_change_notifier_impl() override
+	{ cancel(); }
+
+	void async_wait(std::function<void(error_code const&)> cb) override
+	{
+		if (m_queue)
+			m_cb = std::move(cb);
+		else
+			m_ios.post([cb]()
+			{ cb(make_error_code(boost::system::errc::not_supported)); });
+	}
+
+	void cancel() override
+	{
+		if (m_store)
+			SCDynamicStoreSetDispatchQueue(m_store.get(), nullptr);
+
+		m_cb = nullptr;
+		m_store = nullptr;
+		m_queue = nullptr;
+	}
+
+private:
+	io_service& m_ios;
+	CFDispatchRef m_queue;
+	CFRef<SCDynamicStoreRef> m_store;
+	std::function<void(error_code const&)> m_cb = nullptr;
+};
+#endif // TORRENT_USE_SC_NETWORK_REACHABILITY
+
+#elif defined TORRENT_WINDOWS
+	// TODO: ip_change_notifier_win
+#else
+	// TODO: ip_change_notifier_default
+#endif
+
+	// TODO: to remove when separated per platform
+#if defined TORRENT_BUILD_SIMULATOR || defined TORRENT_WINDOWS
+	struct ip_change_notifier_impl final : ip_change_notifier
+	{
+		explicit ip_change_notifier_impl(io_service& ios);
+		~ip_change_notifier_impl() override;
+		ip_change_notifier_impl(ip_change_notifier_impl const&) = delete;
+		ip_change_notifier_impl& operator=(ip_change_notifier_impl const&) = delete;
+
+		// cb will be invoked  when a change is detected in the
+		// system's IP addresses
+		void async_wait(std::function<void(error_code const&)> cb) override;
+		void cancel() override;
+
+	private:
+		void on_notify(error_code const& error
+			, std::size_t bytes_transferred
+			, std::function<void(error_code const&)> cb);
+
+#if defined TORRENT_BUILD_SIMULATOR
+		// TODO: simulator support
+#elif TORRENT_USE_NETLINK
+		netlink::socket m_socket;
+		std::array<char, 4096> m_buf;
+#elif defined TORRENT_WINDOWS
+		OVERLAPPED m_ovl = {};
+		boost::asio::windows::object_handle m_hnd;
+#endif
+	};
+
+	ip_change_notifier_impl::ip_change_notifier_impl(io_service& ios)
 #if defined TORRENT_BUILD_SIMULATOR
 #elif TORRENT_USE_NETLINK
 		: m_socket(ios
@@ -63,7 +365,7 @@ namespace libtorrent
 #endif
 	}
 
-	ip_change_notifier::~ip_change_notifier()
+	ip_change_notifier_impl::~ip_change_notifier_impl()
 	{
 #if defined TORRENT_WINDOWS && !defined TORRENT_BUILD_SIMULATOR
 		cancel();
@@ -71,13 +373,15 @@ namespace libtorrent
 #endif
 	}
 
-	void ip_change_notifier::async_wait(std::function<void(error_code const&)> cb)
+	void ip_change_notifier_impl::async_wait(std::function<void(error_code const&)> cb)
 	{
 #if defined TORRENT_BUILD_SIMULATOR
+		TORRENT_UNUSED(&ip_change_notifier_impl::on_notify);
 		TORRENT_UNUSED(cb);
 #elif TORRENT_USE_NETLINK
+		using namespace std::placeholders;
 		m_socket.async_receive(boost::asio::buffer(m_buf)
-			, std::bind(&ip_change_notifier::on_notify, this, _1, _2, cb));
+			, std::bind(&ip_change_notifier_impl::on_notify, this, _1, _2, cb));
 #elif defined TORRENT_WINDOWS
 		HANDLE hnd;
 		DWORD err = NotifyAddrChange(&hnd, &m_ovl);
@@ -91,11 +395,12 @@ namespace libtorrent
 				{ cb(error_code(err, system_category())); });
 		}
 #else
+		TORRENT_UNUSED(&ip_change_notifier_impl::on_notify);
 		cb(make_error_code(boost::system::errc::not_supported));
 #endif
 	}
 
-	void ip_change_notifier::cancel()
+	void ip_change_notifier_impl::cancel()
 	{
 #if defined TORRENT_BUILD_SIMULATOR
 #elif TORRENT_USE_NETLINK
@@ -106,7 +411,7 @@ namespace libtorrent
 #endif
 	}
 
-	void ip_change_notifier::on_notify(error_code const& ec
+	void ip_change_notifier_impl::on_notify(error_code const& ec
 		, std::size_t bytes_transferred
 		, std::function<void(error_code const&)> cb)
 	{
@@ -124,4 +429,12 @@ namespace libtorrent
 		else
 			cb(ec);
 	}
-}
+#endif // defined TORRENT_BUILD_SIMULATOR || TORRENT_USE_NETLINK || defined TORRENT_WINDOWS
+
+} // anonymous namespace
+
+	std::unique_ptr<ip_change_notifier> create_ip_notifier(io_service& ios)
+	{
+		return std::unique_ptr<ip_change_notifier>(new ip_change_notifier_impl(ios));
+	}
+}}

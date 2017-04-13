@@ -59,7 +59,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/fingerprint.hpp"
 #include "libtorrent/alert_types.hpp"
 #include "libtorrent/invariant_check.hpp"
-#include "libtorrent/file.hpp"
 #include "libtorrent/bt_peer_connection.hpp"
 #include "libtorrent/peer_connection_handle.hpp"
 #include "libtorrent/ip_filter.hpp"
@@ -433,7 +432,7 @@ namespace aux {
 #endif
 			)
 		, m_work(new io_service::work(m_io_service))
-		, m_ip_notifier(m_io_service)
+		, m_ip_notifier(create_ip_notifier(m_io_service))
 #if TORRENT_USE_I2P
 		, m_i2p_conn(m_io_service)
 #endif
@@ -609,7 +608,7 @@ namespace aux {
 		session_log(" done starting session");
 #endif
 
-		m_ip_notifier.async_wait([this](error_code const& e)
+		m_ip_notifier->async_wait([this](error_code const& e)
 			{ this->wrap(&session_impl::on_ip_change, e); });
 
 		apply_settings_pack_impl(*pack, true);
@@ -625,6 +624,7 @@ namespace aux {
 		update_connections_limit();
 		update_unchoke_limit();
 		update_disk_threads();
+		update_resolver_cache_timeout();
 		update_upnp();
 		update_natpmp();
 		update_lsd();
@@ -904,7 +904,7 @@ namespace aux {
 		m_abort = true;
 		error_code ec;
 
-		m_ip_notifier.cancel();
+		m_ip_notifier->cancel();
 
 #if TORRENT_USE_I2P
 		m_i2p_conn.close(ec);
@@ -1757,7 +1757,7 @@ namespace aux {
 			session_log("received error on_ip_change: %d, %s", ec.value(), ec.message().c_str());
 #endif
 		if (ec || m_abort) return;
-		m_ip_notifier.async_wait([this] (error_code const& e)
+		m_ip_notifier->async_wait([this] (error_code const& e)
 			{ this->wrap(&session_impl::on_ip_change, e); });
 		reopen_listen_sockets();
 	}
@@ -3050,8 +3050,6 @@ namespace aux {
 
 		int const tick_interval_ms = aux::numeric_cast<int>(total_milliseconds(now - m_last_second_tick));
 		m_last_second_tick = now;
-		m_tick_residual = aux::numeric_cast<std::int16_t>(m_tick_residual + tick_interval_ms - 1000);
-		TORRENT_ASSERT(m_tick_residual >= 0);
 
 		std::int32_t const stime = session_time();
 		if (stime > 65000)
@@ -3331,18 +3329,7 @@ namespace aux {
 			}
 		}
 
-		m_tick_residual = m_tick_residual % 1000;
 //		m_peer_pool.release_memory();
-	}
-
-	void session_impl::on_close_file(error_code const& e)
-	{
-		if (e) return;
-
-		m_disk_thread.files().close_oldest();
-
-		// re-issue the timer
-		update_close_file_interval();
 	}
 
 	namespace {
@@ -5074,17 +5061,10 @@ namespace aux {
 			i.second->update_max_failcount();
 	}
 
-	void session_impl::update_close_file_interval()
+	void session_impl::update_resolver_cache_timeout()
 	{
-		int const interval = m_settings.get_int(settings_pack::close_file_interval);
-		if (interval == 0 || m_abort)
-		{
-			m_close_file_timer.cancel();
-			return;
-		}
-		error_code ec;
-		m_close_file_timer.expires_from_now(seconds(interval), ec);
-		m_close_file_timer.async_wait(make_tick_handler(std::bind(&session_impl::on_close_file, this, _1)));
+		int const timeout = m_settings.get_int(settings_pack::resolver_cache_timeout);
+		m_host_resolver.set_cache_timeout(seconds(timeout));
 	}
 
 	void session_impl::update_proxy()
@@ -5760,10 +5740,9 @@ namespace aux {
 			std::uint64_t prev_csw = 0;
 			if (!_wakeups.empty()) prev_csw = _wakeups[0].context_switches;
 			std::fprintf(f, "abs. time\trel. time\tctx switch\tidle-wakeup\toperation\n");
-			for (int i = 0; i < _wakeups.size(); ++i)
+			for (wakeup_t const& w : _wakeups)
 			{
-				wakeup_t const& w = _wakeups[i];
-				bool idle_wakeup = w.context_switches > prev_csw;
+				bool const idle_wakeup = w.context_switches > prev_csw;
 				std::fprintf(f, "%" PRId64 "\t%" PRId64 "\t%" PRId64 "\t%c\t%s\n"
 					, total_microseconds(w.timestamp - m)
 					, total_microseconds(w.timestamp - prev)

@@ -776,7 +776,8 @@
     </ClCompile>
     <ClCompile Include="crypto\evp\evp_lib.c">
     </ClCompile>
-    <ClCompile Include="crypto\evp\evp_pbe.c" />
+    <ClCompile Include="crypto\evp\evp_pbe.c">
+    </ClCompile>
     <ClCompile Include="crypto\evp\evp_pkey.c">
     </ClCompile>
     <ClCompile Include="crypto\evp\e_aes.c">

@@ -23,13 +23,16 @@
 
 #include "FlatTabCtrl.h"
 #include "TypedListViewCtrl.h"
-#include "../client/QueueManager.h"
+#include "../client/QueueManagerListener.h"
+#include "../client/DownloadManagerListener.h"
+//TransferData.h
 
 #define SHOWTREE_MESSAGE_MAP 12
 
 class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_QUEUE >,
 	public StaticFrame<QueueFrame, ResourceManager::DOWNLOAD_QUEUE, IDC_QUEUE>,
 	private QueueManagerListener,
+	private DownloadManagerListener,
 	public CSplitterImpl<QueueFrame>,
 	public PreviewBaseHandler<QueueFrame, false>, // [+] IRainman fix.
 	private SettingsManagerListener,
@@ -239,39 +242,13 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				explicit QueueItemInfo(const QueueItemPtr& aQI) : m_qi(aQI)
 				{
 				}
-				
-				~QueueItemInfo()
-				{
-				}
+				const tstring getText(int col) const;
+				static int compareItems(const QueueItemInfo* a, const QueueItemInfo* b, int col);
+				void removeTarget(bool p_is_batch_remove);
 				
 				void removeBatch()
 				{
 					removeTarget(true);
-				}
-				void removeTarget(bool p_is_batch_remove)
-				{
-					QueueManager::getInstance()->removeTarget(getTarget(), p_is_batch_remove);
-				}
-				
-				// TypedListViewCtrl functions
-				const tstring getText(int col) const;
-				
-				static int compareItems(const QueueItemInfo* a, const QueueItemInfo* b, int col)
-				{
-					switch (col)
-					{
-						case COLUMN_SIZE:
-						case COLUMN_EXACT_SIZE:
-							return compare(a->getSize(), b->getSize());
-						case COLUMN_PRIORITY:
-							return compare((int)a->getPriority(), (int)b->getPriority());
-						case COLUMN_DOWNLOADED:
-							return compare(a->getDownloadedBytes(), b->getDownloadedBytes());
-						case COLUMN_ADDED:
-							return compare(a->getAdded(), b->getAdded());
-						default:
-							return lstrcmpi(a->getText(col).c_str(), b->getText(col).c_str());
-					}
 				}
 				int getImageIndex() const
 				{
@@ -281,7 +258,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				{
 					return 0;
 				}
-				
 				const QueueItemPtr& getQueueItem() const
 				{
 					return m_qi;
@@ -290,22 +266,18 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				{
 					return Util::getFilePath(getTarget());
 				}
-				
 				bool isSet(Flags::MaskType aFlag) const
 				{
 					return (m_qi->getFlags() & aFlag) == aFlag;
 				}
-				
 				bool isAnySet(Flags::MaskType aFlag) const
 				{
 					return (m_qi->getFlags() & aFlag) != 0;
 				}
-				
 				string getTarget() const
 				{
 					return m_qi->getTarget();
 				}
-				
 				int64_t getSize() const
 				{
 					return m_qi->getSize();
@@ -322,7 +294,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				{
 					return m_qi->getTTH();
 				}
-				
 				QueueItem::Priority getPriority() const
 				{
 					return m_qi->getPriority();
@@ -335,7 +306,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				{
 					return m_qi->isFinished();
 				}
-				
 				bool getAutoPriority() const
 				{
 					return m_qi->getAutoPriority();
@@ -361,7 +331,13 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 			private:
 				const string m_target;
 		};
-		
+		struct UpdateTorrentTask : public UpdateTask
+		{
+				explicit UpdateTorrentTask(const std::string& p_target, const libtorrent::sha1_hash& p_sha1) : UpdateTask(p_target), m_sha1() { }
+			private:
+				libtorrent::sha1_hash m_sha1;
+				
+		};
 		OMenu browseMenu;
 		OMenu removeMenu;
 		OMenu removeAllMenu;
@@ -467,6 +443,10 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		void on(QueueManagerListener::RecheckNoTree, const string& target) noexcept override;
 		void on(QueueManagerListener::RecheckAlreadyFinished, const string& target) noexcept override;
 		void on(QueueManagerListener::RecheckDone, const string& target) noexcept override;
+		
+		void on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept override;
+		void on(DownloadManagerListener::CompleteTorrentFile, const std::string& p_file_name) noexcept override;
+		void on(DownloadManagerListener::TorrentEvent, const DownloadArray&) noexcept override;
 		
 };
 

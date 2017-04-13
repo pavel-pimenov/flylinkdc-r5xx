@@ -39,7 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/announce_entry.hpp"
 #include "libtorrent/performance_counters.hpp" // for counters
 #include "libtorrent/alert_manager.hpp"
-#include "libtorrent/file.hpp" // for combine_path etc.
+#include "libtorrent/aux_/path.hpp"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -276,12 +276,9 @@ namespace libtorrent
 		params.files = &t.files();
 		params.mapped_files = nullptr;
 		params.path = path;
-		params.pool = &disk_thread.files();
 		params.mode = storage_mode_sparse;
 
-		std::unique_ptr<storage_interface> stor(default_storage_constructor(params));
-		stor->set_files(&t.files());
-		storage_holder storage = disk_thread.new_torrent(std::move(stor));
+		storage_holder storage = disk_thread.new_torrent(default_storage_constructor, std::move(params), std::shared_ptr<void>());
 
 		settings_pack sett;
 		sett.set_int(settings_pack::cache_size, 0);

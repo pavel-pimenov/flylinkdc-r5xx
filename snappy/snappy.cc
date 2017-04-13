@@ -39,6 +39,8 @@
 
 namespace snappy {
 
+using std::min; // [+]FlylinkDC++
+using std::vector; // [+]FlylinkDC++
 using internal::COPY_1_BYTE_OFFSET;
 using internal::COPY_2_BYTE_OFFSET;
 using internal::COPY_4_BYTE_OFFSET;

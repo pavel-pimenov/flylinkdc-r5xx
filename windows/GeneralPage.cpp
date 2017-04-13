@@ -21,7 +21,7 @@
 #include "Resource.h"
 #include "GeneralPage.h"
 #include "WinUtil.h"
-#include "ResourceLoader.h" // [+] InfinitySky. PNG Support from Apex 1.3.8.
+#include "ResourceLoader.h"
 
 // Переводы элементов интерфейса.
 PropPage::TextItem GeneralPage::texts[] =

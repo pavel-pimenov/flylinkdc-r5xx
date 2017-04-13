@@ -21,7 +21,7 @@
 #include "Resource.h"
 
 #include "TreePropertySheet.h"
-#include "ResourceLoader.h" // [+] InfinitySky. PNG Support from Apex 1.3.8.
+#include "ResourceLoader.h"
 #include "WinUtil.h"
 #include "../client/ResourceManager.h"
 

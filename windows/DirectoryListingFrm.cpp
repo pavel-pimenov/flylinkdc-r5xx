@@ -32,9 +32,7 @@
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 #include "../FlyFeatures/flyServer.h"
 #include "../FlyFeatures/CFlyServerDialogNavigator.h"
-#include "../jsoncpp/include/json/value.h"
-#include "../jsoncpp/include/json/reader.h"
-#include "../jsoncpp/include/json/writer.h"
+#include "../jsoncpp/include/json/json.h"
 #endif
 
 #define SCALOLAZ_DIRLIST_ADDFAVUSER

@@ -1758,7 +1758,7 @@ class WinUtil
 //TODO      static bool checkIsButtonPressed(int nID);// [+] IRainman
 
 #ifdef FLYLINKDC_USE_LIST_VIEW_WATER_MARK
-		static bool setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int width = 128, int height = 128); // [+] InfinitySky. PNG Support from Apex 1.3.8.
+		static bool setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int width = 128, int height = 128);
 #endif
 		static string getWMPSpam(HWND playerWnd = NULL);
 		static string getItunesSpam(HWND playerWnd = NULL);

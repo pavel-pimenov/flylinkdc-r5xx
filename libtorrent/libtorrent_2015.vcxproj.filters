@@ -641,9 +641,6 @@
     <ClInclude Include="include\libtorrent\piece_block.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\ip_notifier.hpp">
-      <Filter>Header Files\libtorrent</Filter>
-    </ClInclude>
     <ClInclude Include="include\libtorrent\netlink.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
@@ -706,6 +703,15 @@
     </ClInclude>
     <ClInclude Include="include\libtorrent\write_resume_data.hpp">
       <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\deferred_handler.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\ip_notifier.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\path.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1148,6 +1154,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\write_resume_data.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\path.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

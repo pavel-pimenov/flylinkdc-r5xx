@@ -65,7 +65,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/storage.hpp"
 #include "libtorrent/torrent.hpp"
-#include "libtorrent/file.hpp"
+#include "libtorrent/aux_/path.hpp"
 #include "libtorrent/invariant_check.hpp"
 #include "libtorrent/file_pool.hpp"
 #include "libtorrent/aux_/session_impl.hpp"
@@ -85,7 +85,7 @@ namespace libtorrent
 
 	struct write_fileop final : aux::fileop
 	{
-		write_fileop(default_storage& st, int flags)
+		write_fileop(default_storage& st, std::uint32_t const flags)
 			: m_storage(st)
 			, m_flags(flags)
 		{}
@@ -160,12 +160,12 @@ namespace libtorrent
 		}
 	private:
 		default_storage& m_storage;
-		int m_flags;
+		std::uint32_t const m_flags;
 	};
 
 	struct read_fileop final : aux::fileop
 	{
-		read_fileop(default_storage& st, int const flags)
+		read_fileop(default_storage& st, std::uint32_t const flags)
 			: m_storage(st)
 			, m_flags(flags)
 		{}
@@ -238,18 +238,19 @@ namespace libtorrent
 
 	private:
 		default_storage& m_storage;
-		int const m_flags;
+		std::uint32_t const m_flags;
 	};
 
-	default_storage::default_storage(storage_params const& params)
-		: m_files(*params.files)
-		, m_pool(*params.pool)
+	default_storage::default_storage(storage_params const& params
+		, file_pool& pool)
+		: storage_interface(*params.files)
+		, m_pool(pool)
 		, m_allocate_files(params.mode == storage_mode_allocate)
 	{
 		if (params.mapped_files) m_mapped_files.reset(new file_storage(*params.mapped_files));
 		if (params.priorities) m_file_priority = *params.priorities;
 
-		TORRENT_ASSERT(m_files.num_files() > 0);
+		TORRENT_ASSERT(files().num_files() > 0);
 		m_save_path = complete(params.path);
 		m_part_file_name = "." + (params.info
 			? aux::to_hex(params.info->info_hash())
@@ -272,7 +273,7 @@ namespace libtorrent
 
 		m_part_file.reset(new part_file(
 			m_save_path, m_part_file_name
-			, m_files.num_pieces(), m_files.piece_length()));
+			, files().num_pieces(), files().piece_length()));
 	}
 
 	void default_storage::set_file_priority(
@@ -544,7 +545,7 @@ namespace libtorrent
 		// in our file_storage, so that when it is created
 		// it will get the new name
 		if (!m_mapped_files)
-		{ m_mapped_files.reset(new file_storage(m_files)); }
+		{ m_mapped_files.reset(new file_storage(files())); }
 		m_mapped_files->rename_file(index, new_filename);
 	}
 
@@ -613,7 +614,8 @@ namespace libtorrent
 	}
 
 	int default_storage::readv(span<iovec_t const> bufs
-		, piece_index_t const piece, int offset, int flags, storage_error& ec)
+		, piece_index_t const piece, int const offset
+		, std::uint32_t const flags, storage_error& ec)
 	{
 		read_fileop op(*this, flags);
 
@@ -624,14 +626,15 @@ namespace libtorrent
 	}
 
 	int default_storage::writev(span<iovec_t const> bufs
-		, piece_index_t const piece, int offset, int flags, storage_error& ec)
+		, piece_index_t const piece, int const offset
+		, std::uint32_t const flags, storage_error& ec)
 	{
 		write_fileop op(*this, flags);
 		return readwritev(files(), bufs, piece, offset, op, ec);
 	}
 
-	file_handle default_storage::open_file(file_index_t const file, int mode
-		, storage_error& ec) const
+	file_handle default_storage::open_file(file_index_t const file
+		, std::uint32_t mode, storage_error& ec) const
 	{
 		file_handle h = open_file_impl(file, mode, ec.ec);
 		if (((mode & file::rw_mask) != file::read_only)
@@ -691,10 +694,10 @@ namespace libtorrent
 		return h;
 	}
 
-	file_handle default_storage::open_file_impl(file_index_t file, int mode
+	file_handle default_storage::open_file_impl(file_index_t file, std::uint32_t mode
 		, error_code& ec) const
 	{
-		bool lock_files = m_settings ? settings().get_bool(settings_pack::lock_files) : false;
+		bool const lock_files = m_settings ? settings().get_bool(settings_pack::lock_files) : false;
 		if (lock_files) mode |= file::lock_file;
 
 		if (!m_allocate_files) mode |= file::sparse;
@@ -736,9 +739,10 @@ namespace libtorrent
 		return false;
 	}
 
-	storage_interface* default_storage_constructor(storage_params const& params)
+	storage_interface* default_storage_constructor(storage_params const& params
+		, file_pool& pool)
 	{
-		return new default_storage(params);
+		return new default_storage(params, pool);
 	}
 
 	// -- disabled_storage --------------------------------------------------
@@ -756,6 +760,8 @@ namespace libtorrent
 		class disabled_storage final : public storage_interface
 		{
 		public:
+			explicit disabled_storage(file_storage const& fs) : storage_interface(fs) {}
+
 			bool has_any_file(storage_error&) override { return false; }
 			void set_file_priority(aux::vector<std::uint8_t, file_index_t> const&
 				, storage_error&) override {}
@@ -766,12 +772,12 @@ namespace libtorrent
 			status_t move_storage(std::string const&, int, storage_error&) override { return status_t::no_error; }
 
 			int readv(span<iovec_t const> bufs
-				, piece_index_t, int, int, storage_error&) override
+				, piece_index_t, int, std::uint32_t, storage_error&) override
 			{
 				return bufs_size(bufs);
 			}
 			int writev(span<iovec_t const> bufs
-				, piece_index_t, int, int, storage_error&) override
+				, piece_index_t, int, std::uint32_t, storage_error&) override
 			{
 				return bufs_size(bufs);
 			}
@@ -782,10 +788,9 @@ namespace libtorrent
 		};
 	}
 
-	storage_interface* disabled_storage_constructor(storage_params const& params)
+	storage_interface* disabled_storage_constructor(storage_params const& params, file_pool&)
 	{
-		TORRENT_UNUSED(params);
-		return new disabled_storage;
+		return new disabled_storage(*params.files);
 	}
 
 	// -- zero_storage ------------------------------------------------------
@@ -796,10 +801,11 @@ namespace libtorrent
 		// anything written to it
 		struct zero_storage final : storage_interface
 		{
+			explicit zero_storage(file_storage const& fs) : storage_interface(fs) {}
 			void initialize(storage_error&) override {}
 
 			int readv(span<iovec_t const> bufs
-				, piece_index_t, int, int, storage_error&) override
+				, piece_index_t, int, std::uint32_t, storage_error&) override
 			{
 				int ret = 0;
 				for (auto const& b : bufs)
@@ -810,7 +816,7 @@ namespace libtorrent
 				return 0;
 			}
 			int writev(span<iovec_t const> bufs
-				, piece_index_t, int, int, storage_error&) override
+				, piece_index_t, int, std::uint32_t, storage_error&) override
 			{
 				int ret = 0;
 				for (auto const& b : bufs)
@@ -834,9 +840,9 @@ namespace libtorrent
 		};
 	}
 
-	storage_interface* zero_storage_constructor(storage_params const&)
+	storage_interface* zero_storage_constructor(storage_params const& params, file_pool&)
 	{
-		return new zero_storage;
+		return new zero_storage(*params.files);
 	}
 
 } // namespace libtorrent

@@ -175,9 +175,6 @@ unsigned ClientManager::getTotalUsers()
 }
 void ClientManager::setIPUser(const UserPtr& p_user, const string& p_ip, const uint16_t p_udpPort /* = 0 */)
 {
-	// [!] TODO FlylinkDC++ Team - Зачем этот метод?
-	// Нужен! r8622
-	// L: Данный метод предназначен для обновления IP всем юзерам с этим CID.
 	if (p_ip.empty())
 		return;
 		
@@ -186,11 +183,11 @@ void ClientManager::setIPUser(const UserPtr& p_user, const string& p_ip, const u
 	for (auto i = p.first; i != p.second; ++i)
 	{
 #ifdef _DEBUG
-		const auto l_old_ip = i->second->getIdentity().getIpAsString();
-		if (l_old_ip != p_ip)
-		{
-			LogManager::message("ClientManager::setIPUser, p_user = " + p_user->getLastNick() + " old ip = " + l_old_ip + " ip = " + p_ip);
-		}
+//		const auto l_old_ip = i->second->getIdentity().getIpAsString();
+//		if (l_old_ip != p_ip)
+//		{
+//			LogManager::message("ClientManager::setIPUser, p_user = " + p_user->getLastNick() + " old ip = " + l_old_ip + " ip = " + p_ip);
+//		}
 #endif
 		i->second->getIdentity().setIp(p_ip);
 		if (p_udpPort != 0)
@@ -1135,8 +1132,8 @@ void ClientManager::flushRatio(int p_max_count_flush)
 				l_count_flush++;
 #ifdef FLYLINKDC_BETA
 #ifdef _DEBUG
-				l_log.log("Flush for user: " + i->getLastNick() + " Hub = " + Util::toString(i->getHubID()) +
-				          " ip = " + i->getIPAsString() + " CountMessages = " + Util::toString(i->getMessageCount()));
+				l_log.log("Flush for user: " + i->getLastNick() + " Hub = " + Util::toString(i->getHubID()));
+				// +   " ip = " + i->getIPAsString() + " CountMessages = " + Util::toString(i->getMessageCount()));
 #endif
 #endif
 			}

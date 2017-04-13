@@ -131,7 +131,8 @@ void InfoMap::Write(const Ztring &NewInfoMap)
         Pos2_Separator=NewInfoMap.find(__T(';'), Pos1);
         if (Pos2_Separator<Pos2_EOL)
         {
-            ZtringList List; List.Write(NewInfoMap.substr(Pos1, Pos2_EOL-Pos1));
+            ZtringList List; 
+            List.Write(NewInfoMap.substr(Pos1, Pos2_EOL-Pos1));
             insert (pair<Ztring, ZtringList>(NewInfoMap.substr(Pos1, Pos2_Separator-Pos1), List));
         }
         Pos1=Pos2_EOL+1;

@@ -34,7 +34,7 @@
 
 #include "Resource.h"
 #include "MainFrm.h"
-#include "ResourceLoader.h" // [+] InfinitySky. PNG Support from Apex 1.3.8.
+#include "ResourceLoader.h"
 #include "ChatBot.h" // !SMT!-CB
 #include "PopupManager.h"
 #include "ToolbarManager.h"

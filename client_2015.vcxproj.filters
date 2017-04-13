@@ -112,9 +112,6 @@
     <ClCompile Include="client\Socket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\SSL.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="client\SSLSocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -234,15 +231,6 @@
     </ClCompile>
     <ClCompile Include="client\UserManager.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="jsoncpp\src\lib_json\json_writer.cpp">
-      <Filter>Source Files\jsoncpp</Filter>
-    </ClCompile>
-    <ClCompile Include="jsoncpp\src\lib_json\json_value.cpp">
-      <Filter>Source Files\jsoncpp</Filter>
-    </ClCompile>
-    <ClCompile Include="jsoncpp\src\lib_json\json_reader.cpp">
-      <Filter>Source Files\jsoncpp</Filter>
     </ClCompile>
     <ClCompile Include="client\DebugManager.cpp">
       <Filter>Source Files</Filter>
@@ -450,6 +438,9 @@
     </ClCompile>
     <ClCompile Include="client\TransferData.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jsoncpp\jsoncpp.cpp">
+      <Filter>Source Files\jsoncpp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -660,9 +651,6 @@
     <ClInclude Include="client\Speaker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="client\ssl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="client\SSLSocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -822,31 +810,7 @@
     <ClInclude Include="client\w_flylinkdc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="jsoncpp\include\json\autolink.h">
-      <Filter>Header Files\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\include\json\config.h">
-      <Filter>Header Files\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\include\json\features.h">
-      <Filter>Header Files\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\include\json\forwards.h">
-      <Filter>Header Files\jsoncpp</Filter>
-    </ClInclude>
     <ClInclude Include="jsoncpp\include\json\json.h">
-      <Filter>Header Files\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\src\lib_json\json_batchallocator.h">
-      <Filter>Header Files\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\include\json\reader.h">
-      <Filter>Header Files\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\include\json\value.h">
-      <Filter>Header Files\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\include\json\writer.h">
       <Filter>Header Files\jsoncpp</Filter>
     </ClInclude>
     <ClInclude Include="client\cperformance.h">
@@ -1134,6 +1098,9 @@
     <ClInclude Include="client\CFlySearchItemTTH.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="jsoncpp\include\json\json-forwards.h">
+      <Filter>Header Files\jsoncpp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -1189,16 +1156,5 @@
     <CustomBuild Include="client\StringDefs.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="jsoncpp\src\lib_json\json_internalarray.inl">
-      <Filter>Source Files\jsoncpp</Filter>
-    </None>
-    <None Include="jsoncpp\src\lib_json\json_valueiterator.inl">
-      <Filter>Source Files\jsoncpp</Filter>
-    </None>
-    <None Include="jsoncpp\src\lib_json\json_internalmap.inl">
-      <Filter>Source Files\jsoncpp</Filter>
-    </None>
   </ItemGroup>
 </Project>

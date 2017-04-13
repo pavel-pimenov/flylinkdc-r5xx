@@ -116,10 +116,10 @@ namespace libtorrent
 
 #endif // DEBUG_DISK_THREAD
 
-	int file_flags_for_job(disk_io_job* j
+	std::uint32_t file_flags_for_job(disk_io_job* j
 		, bool const coalesce_buffers)
 	{
-		int ret = 0;
+		std::uint32_t ret = 0;
 		if (!(j->flags & disk_interface::sequential_access)) ret |= file::random_access;
 		if (coalesce_buffers) ret |= file::coalesce_buffers;
 		return ret;
@@ -206,8 +206,17 @@ namespace libtorrent
 		return m_torrents[storage].get();
 	}
 
-	storage_holder disk_io_thread::new_torrent(std::unique_ptr<storage_interface> storage)
+	std::vector<open_file_state> disk_io_thread::get_status(storage_index_t const st) const
 	{
+		return m_file_pool.get_status(st);
+	}
+
+	storage_holder disk_io_thread::new_torrent(storage_constructor_type sc
+		, storage_params p, std::shared_ptr<void> const& owner)
+	{
+		std::unique_ptr<storage_interface> storage(sc(p, m_file_pool));
+		storage->set_owner(owner);
+
 		TORRENT_ASSERT(storage);
 		if (m_free_slots.empty())
 		{
@@ -380,7 +389,7 @@ namespace libtorrent
 		// piece range
 		piece_index_t const range_start((static_cast<int>(p->piece) / cont_pieces) * cont_pieces);
 		piece_index_t const range_end(std::min(static_cast<int>(range_start)
-			+ cont_pieces, p->storage->files()->num_pieces()));
+			+ cont_pieces, p->storage->files().num_pieces()));
 
 		// look through all the pieces in this range to see if
 		// they are ready to be flushed. If so, flush them all,
@@ -578,7 +587,7 @@ namespace libtorrent
 		TORRENT_PIECE_ASSERT(start < end, pe);
 		end = (std::min)(end, int(pe->blocks_in_piece));
 
-		int piece_size = pe->storage->files()->piece_size(pe->piece);
+		int piece_size = pe->storage->files().piece_size(pe->piece);
 		TORRENT_PIECE_ASSERT(piece_size > 0, pe);
 
 		std::size_t iov_len = 0;
@@ -649,8 +658,8 @@ namespace libtorrent
 		DLOG("]\n");
 #endif
 
-		int const file_flags = m_settings.get_bool(settings_pack::coalesce_writes)
-			? file::coalesce_buffers : 0;
+		std::uint32_t const file_flags = m_settings.get_bool(settings_pack::coalesce_writes)
+			? file::coalesce_buffers : static_cast<file::open_mode_t>(0);
 
 		// issue the actual write operation
 		auto iov_start = iov;
@@ -811,7 +820,7 @@ namespace libtorrent
 		}
 	}
 
-	void disk_io_thread::flush_piece(cached_piece_entry* pe, int flags
+	void disk_io_thread::flush_piece(cached_piece_entry* pe, std::uint32_t const flags
 		, jobqueue_t& completed_jobs, std::unique_lock<std::mutex>& l)
 	{
 		TORRENT_ASSERT(l.owns_lock());
@@ -844,7 +853,7 @@ namespace libtorrent
 		}
 	}
 
-	void disk_io_thread::flush_cache(storage_interface* storage, int const flags
+	void disk_io_thread::flush_cache(storage_interface* storage, std::uint32_t const flags
 		, jobqueue_t& completed_jobs, std::unique_lock<std::mutex>& l)
 	{
 		if (storage)
@@ -1215,7 +1224,7 @@ namespace libtorrent
 
 		time_point const start_time = clock_type::now();
 
-		int const file_flags = file_flags_for_job(j
+		std::uint32_t const file_flags = file_flags_for_job(j
 			, m_settings.get_bool(settings_pack::coalesce_reads));
 		iovec_t b = {j->buffer.disk_block, std::size_t(j->d.io.buffer_size)};
 
@@ -1242,7 +1251,7 @@ namespace libtorrent
 	status_t disk_io_thread::do_read(disk_io_job* j, jobqueue_t& completed_jobs)
 	{
 		int const block_size = m_disk_cache.block_size();
-		int const piece_size = j->storage->files()->piece_size(j->piece);
+		int const piece_size = j->storage->files().piece_size(j->piece);
 		int const blocks_in_piece = (piece_size + block_size - 1) / block_size;
 		int const iov_len = m_disk_cache.pad_job(j, blocks_in_piece
 			, m_settings.get_int(settings_pack::read_cache_line_size));
@@ -1291,7 +1300,7 @@ namespace libtorrent
 		// can remove them. We can now release the cache std::mutex and dive into the
 		// disk operations.
 
-		int const file_flags = file_flags_for_job(j
+		std::uint32_t const file_flags = file_flags_for_job(j
 			, m_settings.get_bool(settings_pack::coalesce_reads));
 		time_point const start_time = clock_type::now();
 
@@ -1450,7 +1459,7 @@ namespace libtorrent
 		time_point const start_time = clock_type::now();
 
 		iovec_t const b = {j->buffer.disk_block, std::size_t(j->d.io.buffer_size)};
-		int const file_flags = file_flags_for_job(j
+		std::uint32_t const file_flags = file_flags_for_job(j
 			, m_settings.get_bool(settings_pack::coalesce_writes));
 
 		m_stats_counters.inc_stats_counter(counters::num_writing_threads, 1);
@@ -1542,8 +1551,8 @@ namespace libtorrent
 	}
 
 	void disk_io_thread::async_read(storage_index_t storage, peer_request const& r
-		, std::function<void(disk_buffer_holder block, int flags, storage_error const& se)> handler
-		, void* requester, std::uint8_t const flags)
+		, std::function<void(disk_buffer_holder block, std::uint32_t const flags
+		, storage_error const& se)> handler, void* requester, std::uint8_t const flags)
 	{
 		TORRENT_ASSERT(r.length <= m_disk_cache.block_size());
 		TORRENT_ASSERT(r.length <= 16 * 1024);
@@ -1697,7 +1706,7 @@ namespace libtorrent
 		{
 			cached_piece_entry const& p = *i;
 			int bs = m_disk_cache.block_size();
-			int piece_size = p.storage->files()->piece_size(p.piece);
+			int piece_size = p.storage->files().piece_size(p.piece);
 			int blocks_in_piece = (piece_size + bs - 1) / bs;
 			for (int k = 0; k < blocks_in_piece; ++k)
 				TORRENT_PIECE_ASSERT(p.blocks[k].buf != j->buffer.disk_block, &p);
@@ -1773,7 +1782,7 @@ namespace libtorrent
 		j->flags = flags;
 		j->requester = requester;
 
-		int piece_size = j->storage->files()->piece_size(piece);
+		int piece_size = j->storage->files().piece_size(piece);
 
 		// first check to see if the hashing is already done
 		std::unique_lock<std::mutex> l(m_cache_mutex);
@@ -2020,7 +2029,7 @@ namespace libtorrent
 		if (!pe->hash) return;
 		if (pe->hashing) return;
 
-		int const piece_size = pe->storage->files()->piece_size(pe->piece);
+		int const piece_size = pe->storage->files().piece_size(pe->piece);
 		partial_hash* ph = pe->hash.get();
 
 		// are we already done?
@@ -2135,10 +2144,10 @@ namespace libtorrent
 		// just read straight from the file
 		TORRENT_ASSERT(m_magic == 0x1337);
 
-		int const piece_size = j->storage->files()->piece_size(j->piece);
+		int const piece_size = j->storage->files().piece_size(j->piece);
 		int const block_size = m_disk_cache.block_size();
 		int const blocks_in_piece = (piece_size + block_size - 1) / block_size;
-		int const file_flags = file_flags_for_job(j
+		std::uint32_t const file_flags = file_flags_for_job(j
 			, m_settings.get_bool(settings_pack::coalesce_reads));
 
 		iovec_t iov;
@@ -2182,8 +2191,8 @@ namespace libtorrent
 
 	status_t disk_io_thread::do_hash(disk_io_job* j, jobqueue_t& /* completed_jobs */ )
 	{
-		int const piece_size = j->storage->files()->piece_size(j->piece);
-		int const file_flags = file_flags_for_job(j
+		int const piece_size = j->storage->files().piece_size(j->piece);
+		std::uint32_t const file_flags = file_flags_for_job(j
 			, m_settings.get_bool(settings_pack::coalesce_reads));
 
 		std::unique_lock<std::mutex> l(m_cache_mutex);
@@ -2484,7 +2493,7 @@ namespace libtorrent
 		// torrent. The storage must create hard links (or copy) those files. If
 		// any file does not exist or is inaccessible, the disk job must fail.
 
-		TORRENT_ASSERT(j->storage->files()->piece_length() > 0);
+		TORRENT_ASSERT(j->storage->files().piece_length() > 0);
 
 		// if we don't have any resume data, return
 		// or if error is set and return value is 'no_error' or 'need_full_check'
@@ -2891,7 +2900,7 @@ namespace libtorrent
 	{
 		TORRENT_ASSERT(m_magic == 0x1337);
 
-		TORRENT_ASSERT(!j->storage || j->storage->files()->is_valid());
+		TORRENT_ASSERT(!j->storage || j->storage->files().is_valid());
 		TORRENT_ASSERT(j->next == nullptr);
 		// if this happens, it means we started to shut down
 		// the disk threads too early. We have to post all jobs
@@ -3083,6 +3092,20 @@ namespace libtorrent
 					std::shared_ptr<storage_interface> st = m_need_tick.front().second.lock();
 					m_need_tick.erase(m_need_tick.begin());
 					if (st) st->tick();
+				}
+
+				if (now > m_next_close_oldest_file)
+				{
+					seconds const interval(m_settings.get_int(settings_pack::close_file_interval));
+					if (interval <= seconds(0))
+					{
+						m_next_close_oldest_file = max_time();
+					}
+					else
+					{
+						m_next_close_oldest_file = now + interval;
+						m_file_pool.close_oldest();
+					}
 				}
 			}
 

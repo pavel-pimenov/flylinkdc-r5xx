@@ -3712,8 +3712,8 @@ void CFlylinkDBManager::update_last_ip_and_message_count(uint32_t p_hub_id, cons
                                                          const boost::asio::ip::address_v4& p_last_ip,
                                                          const uint32_t p_message_count,
                                                          bool& p_is_sql_not_found,
-                                                         bool p_is_last_ip_dirty,
-                                                         bool p_is_message_count_dirty
+                                                         const bool p_is_last_ip_dirty,
+                                                         const bool p_is_message_count_dirty
                                                         )
 {
 #ifndef FLYLINKDC_USE_LASTIP_CACHE
@@ -3807,9 +3807,12 @@ void CFlylinkDBManager::flush_all_last_ip_and_message_count()
 #endif // FLYLINKDC_USE_LASTIP_CACHE
 }
 //========================================================================================================
-void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick, uint32_t p_message_count, boost::asio::ip::address_v4 p_last_ip, bool& p_is_sql_not_found,
-                                                 bool p_is_last_ip_dirty,
-                                                 bool p_is_message_count_dirty
+void CFlylinkDBManager::update_last_ip_deferredL(uint32_t p_hub_id, const string& p_nick,
+                                                 uint32_t p_message_count,
+                                                 boost::asio::ip::address_v4 p_last_ip,
+                                                 bool& p_is_sql_not_found,
+                                                 const bool p_is_last_ip_dirty,
+                                                 const bool p_is_message_count_dirty
                                                 )
 {
 	dcassert(BOOLSETTING(ENABLE_LAST_IP_AND_MESSAGE_COUNTER));

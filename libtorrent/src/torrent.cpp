@@ -97,6 +97,7 @@ POSSIBILITY OF SUCH DAMAGE.
 // TODO: factor out cache_status to its own header
 #include "libtorrent/disk_io_thread.hpp" // for cache_status
 #include "libtorrent/aux_/numeric_cast.hpp"
+#include "libtorrent/aux_/path.hpp"
 
 #ifndef TORRENT_DISABLE_LOGGING
 #include "libtorrent/aux_/session_impl.hpp" // for tracker_logger
@@ -1593,19 +1594,14 @@ namespace libtorrent
 			params.mapped_files = nullptr;
 		}
 		params.path = m_save_path;
-		params.pool = &m_ses.disk_thread().files();
 		params.mode = static_cast<storage_mode_t>(m_storage_mode);
 		params.priorities = &m_file_priority;
 		params.info = m_torrent_file.get();
 
 		TORRENT_ASSERT(m_storage_constructor);
 
-		std::unique_ptr<storage_interface> storage(m_storage_constructor(params));
-		storage->set_files(&m_torrent_file->files());
-		// the shared_from_this() will create an intentional
-		// cycle of ownership, se the hpp file for description.
-		storage->set_owner(shared_from_this());
-		m_storage = m_ses.disk_thread().new_torrent(std::move(storage));
+		m_storage = m_ses.disk_thread().new_torrent(m_storage_constructor
+			, params, shared_from_this());
 	}
 
 	peer_connection* torrent::find_lowest_ranking_peer() const
@@ -5999,7 +5995,7 @@ namespace libtorrent
 				bitmask.resize(num_blocks_per_piece, false);
 
 				auto const info = m_picker->blocks_for_piece(dp);
-				for (int i = 0; i < num_blocks_per_piece; ++i)
+				for (int i = 0; i < int(info.size()); ++i)
 				{
 					if (info[i].state == piece_picker::block_info::state_finished)
 						bitmask.set_bit(i);
@@ -8177,7 +8173,7 @@ namespace libtorrent
 	// TODO: add a flag to ignore stats, and only care about resume data for
 	// content. For unchanged files, don't trigger a load of the metadata
 	// just to save an empty resume data file
-	void torrent::save_resume_data(int flags)
+	void torrent::save_resume_data(int const flags)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		INVARIANT_CHECK;
