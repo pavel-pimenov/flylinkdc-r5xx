@@ -43,8 +43,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/string_util.hpp"
 #include "libtorrent/aux_/numeric_cast.hpp"
 
-namespace
-{
+namespace {
+
 
 	using namespace libtorrent;
 
@@ -246,8 +246,8 @@ namespace
 	// non-standard names
 	static const generic_map_entry generic_mappings[] =
 	{
-        {0, "-MG", "Media Get" }
-        , {0, "Deadman Walking-", "Deadman"}
+		{0, "-MG", "Media Get" }
+		, {0, "Deadman Walking-", "Deadman"}
 		, {5, "Azureus", "Azureus 2.0.3.2"}
 		, {0, "DansClient", "XanTorrent"}
 		, {4, "btfans", "SimpleBT"}
@@ -290,8 +290,8 @@ namespace
 			|| ((lhs.id[0] == rhs.id[0]) && (lhs.id[1] < rhs.id[1]));
 	}
 
-namespace
-{
+namespace {
+
 	std::string lookup(fingerprint const& f)
 	{
 		char identity[200];
@@ -343,8 +343,7 @@ namespace
 	}
 }
 
-namespace libtorrent
-{
+namespace libtorrent {
 
 #ifndef TORRENT_NO_DEPRECATE
 

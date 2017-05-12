@@ -246,6 +246,9 @@ class CFlyServerConfig
 #endif // STRONG_USE_DHT
 	public:
 		static bool isSpam(const string& p_line);
+		static void loadTorrentSearchEngine();
+		static string g_lua_source_search_engine;
+		static bool torrentSearch(HWND p_wnd, int p_message, const tstring& p_search);
 	private:
 		static std::vector<string> g_spam_urls;
 		static StringSet g_parasitic_files;
@@ -304,6 +307,7 @@ class CFlyServerConfig
 		static bool     g_is_use_hit_media_files;
 		static bool     g_is_use_hit_binary_files;
 		static bool     g_is_use_statistics;
+        static bool     g_is_use_log_redirect;
 		
 #ifdef USE_SUPPORT_HUB
 		static string   g_support_hub;

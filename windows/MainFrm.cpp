@@ -34,7 +34,6 @@
 #include "FinishedFrame.h"
 #include "ADLSearchFrame.h"
 #include "FinishedULFrame.h"
-#include "TextFrame.h"
 #ifdef FLYLINKDC_USE_STATS_FRAME
 # include "StatsFrame.h"
 #endif
@@ -1826,15 +1825,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 		std::unique_ptr<tstring> file(reinterpret_cast<tstring*>(lParam));
 		if (!ClientManager::isShutdown())
 		{
-			if (BOOLSETTING(EXTERNAL_PREVIEW)) // !SMT!-UI
-			{
-				ShellExecute(NULL, NULL, file->c_str(), NULL, NULL, SW_SHOW); // !SMT!-UI
-			}
-			else
-			{
-				TextFrame::openWindow(*file);
-				File::deleteFileT(*file);
-			}
+			ShellExecute(NULL, NULL, file->c_str(), NULL, NULL, SW_SHOW); // !SMT!-UI
 		}
 	}
 	else if (wParam == PARSE_COMMAND_LINE)

@@ -220,7 +220,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 			REMOVE_ITEM,
 			REMOVE_ITEM_ARRAY,
 			UPDATE_ITEM,
-			UPDATE_STATUSBAR,//[+]IRainman optimize QueueFrame
+			UPDATE_STATUSBAR,
 			UPDATE_STATUS
 		};
 		StringList m_tmp_target_to_delete; // [+] NightOrion bugfix deleting folder from queue
@@ -229,9 +229,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		void removeSources();
 		void doTimerTask();
 		
-		class QueueItemInfo;
-		friend class QueueItemInfo;
-		
 		class QueueItemInfo
 #ifdef _DEBUG
 			: boost::noncopyable // [+] IRainman fix.
@@ -239,7 +236,10 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 			
 		{
 			public:
-				explicit QueueItemInfo(const QueueItemPtr& aQI) : m_qi(aQI)
+				explicit QueueItemInfo(const QueueItemPtr& p_qi) : m_qi(p_qi)
+				{
+				}
+				explicit QueueItemInfo(const libtorrent::sha1_hash& p_sha1, const std::string& p_save_path) : m_sha1(p_sha1), m_save_path(p_save_path)
 				{
 				}
 				const tstring getText(int col) const;
@@ -258,6 +258,13 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				{
 					return 0;
 				}
+				bool isTorrent() const
+				{
+					if (m_qi)
+						return false;
+					else
+						return true;
+				}
 				const QueueItemPtr& getQueueItem() const
 				{
 					return m_qi;
@@ -268,51 +275,86 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 				}
 				bool isSet(Flags::MaskType aFlag) const
 				{
-					return (m_qi->getFlags() & aFlag) == aFlag;
+					if (!isTorrent())
+						return (m_qi->getFlags() & aFlag) == aFlag;
+					else
+						return false; // TODO
 				}
 				bool isAnySet(Flags::MaskType aFlag) const
 				{
-					return (m_qi->getFlags() & aFlag) != 0;
+					if (!isTorrent())
+						return (m_qi->getFlags() & aFlag) != 0;
+					else
+						return false; // TODO
 				}
 				string getTarget() const
 				{
-					return m_qi->getTarget();
+					if (m_qi)
+						return m_qi->getTarget();
+					else
+						return m_save_path; // TODO
 				}
 				int64_t getSize() const
 				{
-					return m_qi->getSize();
+					if (m_qi)
+						return m_qi->getSize();
+					else
+						return 0; // TODO
 				}
 				int64_t getDownloadedBytes() const
 				{
-					return m_qi->getDownloadedBytes();
+					if (!isTorrent())
+						return m_qi->getDownloadedBytes();
+					else
+						return  0; // TODO
 				}
 				time_t getAdded() const
 				{
-					return m_qi->getAdded();
+					if (!isTorrent())
+						return m_qi->getAdded();
+					else
+						return GET_TIME(); // TODO
 				}
-				const TTHValue& getTTH() const
+				const TTHValue getTTH() const
 				{
-					return m_qi->getTTH();
+					if (!isTorrent())
+						return m_qi->getTTH();
+					else
+						return TTHValue(); // TODO
 				}
 				QueueItem::Priority getPriority() const
 				{
-					return m_qi->getPriority();
+					if (!isTorrent())
+						return m_qi->getPriority();
+					else
+						return QueueItem::Priority(); // TODO
 				}
 				bool isWaiting() const
 				{
-					return m_qi->isWaiting();
+					if (!isTorrent())
+						return m_qi->isWaiting();
+					else
+						return false; // TODO
 				}
 				bool isFinished() const
 				{
-					return m_qi->isFinished();
+					if (!isTorrent())
+						return m_qi->isFinished();
+					else
+						return false; // TODO
 				}
 				bool getAutoPriority() const
 				{
-					return m_qi->getAutoPriority();
+					if (!isTorrent())
+						return m_qi->getAutoPriority();
+					else
+						return false; // TODO
 				}
 				
 			private:
 				const QueueItemPtr m_qi;
+				const libtorrent::sha1_hash m_sha1;
+				string m_save_path;
 		};
 		
 		struct QueueItemInfoTask :  public Task
@@ -323,20 +365,15 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		
 		struct UpdateTask : public Task
 		{
+				explicit UpdateTask(const string& p_target, const libtorrent::sha1_hash& p_sha1) : m_target(p_target), m_sha1(p_sha1) { }
 				explicit UpdateTask(const string& p_target) : m_target(p_target) { }
 				const string& getTarget() const
 				{
 					return m_target;
 				}
+				libtorrent::sha1_hash m_sha1;
 			private:
 				const string m_target;
-		};
-		struct UpdateTorrentTask : public UpdateTask
-		{
-				explicit UpdateTorrentTask(const std::string& p_target, const libtorrent::sha1_hash& p_sha1) : UpdateTask(p_target), m_sha1() { }
-			private:
-				libtorrent::sha1_hash m_sha1;
-				
 		};
 		OMenu browseMenu;
 		OMenu removeMenu;
@@ -380,6 +417,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		
 		void addQueueList();
 		void addQueueItem(QueueItemInfo* qi, bool noSort);
+		
 		HTREEITEM addDirectory(const string& dir, bool isFileList = false, HTREEITEM startAt = NULL);
 		void removeDirectory(const string& dir, bool isFileList = false);
 		void removeDirectories(HTREEITEM ht);
@@ -447,6 +485,8 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		void on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept override;
 		void on(DownloadManagerListener::CompleteTorrentFile, const std::string& p_file_name) noexcept override;
 		void on(DownloadManagerListener::TorrentEvent, const DownloadArray&) noexcept override;
+		void on(DownloadManagerListener::AddedTorrent, const libtorrent::sha1_hash& p_sha1, const std::string& p_save_path) noexcept override;
+		
 		
 };
 

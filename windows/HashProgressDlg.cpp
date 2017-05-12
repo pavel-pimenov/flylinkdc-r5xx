@@ -162,20 +162,10 @@ void HashProgressDlg::updateStats()
 	if (g_cur_mediainfo_file_tth.empty())
 	{
 		SetDlgItemText(IDC_CURRENT_TTH, _T(""));
-		if (!m_cur_mediainfo_file_tth.empty()) // Раньше записывали в реестр значение?
-		{
-			m_cur_mediainfo_file_tth.clear();
-			Util::deleteRegistryValue(FLYLINKDC_REGISTRY_MEDIAINFO_FREEZE_KEY);
-		}
 	}
 	else
 	{
 		SetDlgItemText(IDC_CURRENT_TTH, Text::toT("TTH: " + g_cur_mediainfo_file_tth + " (mediainfo)").c_str());
-		if (m_cur_mediainfo_file_tth != g_cur_mediainfo_file_tth) // Исключем постоянную запись в реестр
-		{
-			m_cur_mediainfo_file_tth = g_cur_mediainfo_file_tth;
-			Util::setRegistryValueString(FLYLINKDC_REGISTRY_MEDIAINFO_FREEZE_KEY, Text::toT(g_cur_mediainfo_file));
-		}
 	}
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER    
 	progress.SetPos(HashManager::getInstance()->GetProgressValue());

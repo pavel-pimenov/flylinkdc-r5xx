@@ -46,8 +46,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace std::placeholders;
 
-namespace libtorrent { namespace dht
-{
+namespace libtorrent { namespace dht {
 
 #if TORRENT_USE_ASSERTS
 template <class It, class Cmp>
@@ -94,11 +93,33 @@ traversal_algorithm::traversal_algorithm(
 #endif
 }
 
-void traversal_algorithm::resort_results()
+void traversal_algorithm::resort_result(observer* o)
 {
-	std::sort(m_results.begin(), m_results.end()
+	// find the given observer, remove it and insert it in its sorted location
+	auto it = std::find_if(m_results.begin(), m_results.end()
+		, [=](observer_ptr const& ptr) { return ptr.get() == o; });
+
+	if (it == m_results.end()) return;
+
+	if (it - m_results.begin() < m_sorted_results)
+		--m_sorted_results;
+
+	observer_ptr ptr = std::move(*it);
+	m_results.erase(it);
+
+	TORRENT_ASSERT(std::size_t(m_sorted_results) <= m_results.size());
+	auto end = m_results.begin() + m_sorted_results;
+
+	TORRENT_ASSERT(libtorrent::dht::is_sorted(m_results.begin(), end
+		, [this](observer_ptr const& lhs, observer_ptr const& rhs)
+		{ return compare_ref(lhs->id(), rhs->id(), m_target); }));
+
+	auto iter = std::lower_bound(m_results.begin(), end, ptr
 		, [this](observer_ptr const& lhs, observer_ptr const& rhs)
 		{ return compare_ref(lhs->id(), rhs->id(), m_target); });
+
+	m_results.insert(iter, ptr);
+	++m_sorted_results;
 }
 
 void traversal_algorithm::add_entry(node_id const& id
@@ -118,85 +139,109 @@ void traversal_algorithm::add_entry(node_id const& id
 		done();
 		return;
 	}
+
+	o->flags |= flags;
+
 	if (id.is_all_zeros())
 	{
 		o->set_id(generate_random_id());
 		o->flags |= observer::flag_no_id;
-	}
 
-	o->flags |= flags;
-
-	TORRENT_ASSERT(libtorrent::dht::is_sorted(m_results.begin(), m_results.end()
-		, [this](observer_ptr const& lhs, observer_ptr const& rhs)
-		{ return compare_ref(lhs->id(), rhs->id(), m_target); }));
-
-	auto iter = std::lower_bound(m_results.begin(), m_results.end(), o
-		, [this](observer_ptr const& lhs, observer_ptr const& rhs)
-		{ return compare_ref(lhs->id(), rhs->id(), m_target); });
-
-	if (iter == m_results.end() || (*iter)->id() != id)
-	{
-		if (m_node.settings().restrict_search_ips
-			&& !(flags & observer::flag_initial))
-		{
-#if TORRENT_USE_IPV6
-			if (o->target_addr().is_v6())
-			{
-				address_v6::bytes_type addr_bytes = o->target_addr().to_v6().to_bytes();
-				address_v6::bytes_type::const_iterator prefix_it = addr_bytes.begin();
-				std::uint64_t const prefix6 = detail::read_uint64(prefix_it);
-
-				if (m_peer6_prefixes.insert(prefix6).second)
-					goto add_result;
-			}
-			else
-#endif
-			{
-				// mask the lower octet
-				std::uint32_t const prefix4
-					= o->target_addr().to_v4().to_ulong() & 0xffffff00;
-
-				if (m_peer4_prefixes.insert(prefix4).second)
-					goto add_result;
-			}
-
-			// we already have a node in this search with an IP very
-			// close to this one. We know that it's not the same, because
-			// it claims a different node-ID. Ignore this to avoid attacks
-#ifndef TORRENT_DISABLE_LOGGING
-			dht_observer* logger = get_node().observer();
-			if (logger != nullptr && logger->should_log(dht_logger::traversal))
-			{
-				logger->log(dht_logger::traversal
-					, "[%u] traversal DUPLICATE node. id: %s addr: %s type: %s"
-					, m_id, aux::to_hex(o->id()).c_str(), print_address(o->target_addr()).c_str(), name());
-			}
-#endif
-			return;
-		}
-
-	add_result:
-
-		TORRENT_ASSERT((o->flags & observer::flag_no_id)
-			|| std::none_of(m_results.begin(), m_results.end()
-			, [&id](observer_ptr const& ob) { return ob->id() == id; }));
+		m_results.push_back(o);
 
 #ifndef TORRENT_DISABLE_LOGGING
 		dht_observer* logger = get_node().observer();
 		if (logger != nullptr && logger->should_log(dht_logger::traversal))
 		{
 			logger->log(dht_logger::traversal
-				, "[%u] ADD id: %s addr: %s distance: %d invoke-count: %d type: %s"
+				, "[%u] ADD (no-id) id: %s addr: %s distance: %d invoke-count: %d type: %s"
 				, m_id, aux::to_hex(id).c_str(), print_endpoint(addr).c_str()
 				, distance_exp(m_target, id), m_invoke_count, name());
 		}
 #endif
-		iter = m_results.insert(iter, o);
-
-		TORRENT_ASSERT(libtorrent::dht::is_sorted(m_results.begin(), m_results.end()
-			, [this](observer_ptr const& lhs, observer_ptr const& rhs)
-			{ return compare_ref(lhs->id(), rhs->id(), m_target); }));
 	}
+	else
+	{
+		TORRENT_ASSERT(std::size_t(m_sorted_results) <= m_results.size());
+		auto end = m_results.begin() + m_sorted_results;
+
+		TORRENT_ASSERT(libtorrent::dht::is_sorted(m_results.begin(), end
+				, [this](observer_ptr const& lhs, observer_ptr const& rhs)
+				{ return compare_ref(lhs->id(), rhs->id(), m_target); }));
+
+		auto iter = std::lower_bound(m_results.begin(), end, o
+			, [this](observer_ptr const& lhs, observer_ptr const& rhs)
+			{ return compare_ref(lhs->id(), rhs->id(), m_target); });
+
+		if (iter == end || (*iter)->id() != id)
+		{
+			// this IP restriction does not apply to the nodes we loaded from out
+			// node cache
+			if (m_node.settings().restrict_search_ips
+				&& !(flags & observer::flag_initial))
+			{
+#if TORRENT_USE_IPV6
+				if (o->target_addr().is_v6())
+				{
+					address_v6::bytes_type addr_bytes = o->target_addr().to_v6().to_bytes();
+					address_v6::bytes_type::const_iterator prefix_it = addr_bytes.begin();
+					std::uint64_t const prefix6 = detail::read_uint64(prefix_it);
+
+					if (m_peer6_prefixes.insert(prefix6).second)
+						goto add_result;
+				}
+				else
+#endif
+				{
+					// mask the lower octet
+					std::uint32_t const prefix4
+						= o->target_addr().to_v4().to_ulong() & 0xffffff00;
+
+					if (m_peer4_prefixes.insert(prefix4).second)
+						goto add_result;
+				}
+
+				// we already have a node in this search with an IP very
+				// close to this one. We know that it's not the same, because
+				// it claims a different node-ID. Ignore this to avoid attacks
+#ifndef TORRENT_DISABLE_LOGGING
+				dht_observer* logger = get_node().observer();
+				if (logger != nullptr && logger->should_log(dht_logger::traversal))
+				{
+					logger->log(dht_logger::traversal
+						, "[%u] traversal DUPLICATE node. id: %s addr: %s type: %s"
+						, m_id, aux::to_hex(o->id()).c_str(), print_address(o->target_addr()).c_str(), name());
+				}
+#endif
+				return;
+			}
+
+	add_result:
+
+			TORRENT_ASSERT((o->flags & observer::flag_no_id)
+				|| std::none_of(m_results.begin(), end
+					, [&id](observer_ptr const& ob) { return ob->id() == id; }));
+
+#ifndef TORRENT_DISABLE_LOGGING
+			dht_observer* logger = get_node().observer();
+			if (logger != nullptr && logger->should_log(dht_logger::traversal))
+			{
+				logger->log(dht_logger::traversal
+					, "[%u] ADD id: %s addr: %s distance: %d invoke-count: %d type: %s"
+					, m_id, aux::to_hex(id).c_str(), print_endpoint(addr).c_str()
+					, distance_exp(m_target, id), m_invoke_count, name());
+			}
+#endif
+			m_results.insert(iter, o);
+			++m_sorted_results;
+		}
+	}
+
+	TORRENT_ASSERT(std::size_t(m_sorted_results) <= m_results.size());
+	TORRENT_ASSERT(libtorrent::dht::is_sorted(m_results.begin()
+		, m_results.begin() + m_sorted_results
+		, [this](observer_ptr const& lhs, observer_ptr const& rhs)
+		{ return compare_ref(lhs->id(), rhs->id(), m_target); }));
 
 	if (m_results.size() > 100)
 	{
@@ -218,6 +263,7 @@ void traversal_algorithm::add_entry(node_id const& id
 #endif
 		});
 		m_results.resize(100);
+		m_sorted_results = std::min(std::int8_t(100), m_sorted_results);
 	}
 }
 
@@ -227,7 +273,7 @@ void traversal_algorithm::start()
 	// router nodes in the table
 	if (m_results.size() < 3) add_router_entries();
 	init();
-	bool is_done = add_requests();
+	bool const is_done = add_requests();
 	if (is_done) done();
 }
 
@@ -275,7 +321,7 @@ void traversal_algorithm::finished(observer_ptr o)
 	++m_responses;
 	TORRENT_ASSERT(m_invoke_count > 0);
 	--m_invoke_count;
-	bool is_done = add_requests();
+	bool const is_done = add_requests();
 	if (is_done) done();
 }
 
@@ -304,7 +350,7 @@ void traversal_algorithm::failed(observer_ptr o, int const flags)
 		// by increasing the branch factor
 		if ((o->flags & observer::flag_short_timeout) == 0)
 		{
-			TORRENT_ASSERT(m_branch_factor < (std::numeric_limits<std::int16_t>::max)());
+			TORRENT_ASSERT(m_branch_factor < (std::numeric_limits<std::int8_t>::max)());
 			++m_branch_factor;
 		}
 		o->flags |= observer::flag_short_timeout;
@@ -389,7 +435,7 @@ void traversal_algorithm::done()
 				, print_endpoint(o->target_ep()).c_str());
 
 			--results_target;
-			int dist = distance_exp(m_target, o->id());
+			int const dist = distance_exp(m_target, o->id());
 			if (dist < closest_target) closest_target = dist;
 		}
 #endif
@@ -407,6 +453,7 @@ void traversal_algorithm::done()
 	// delete all our references to the observer objects so
 	// they will in turn release the traversal algorithm
 	m_results.clear();
+	m_sorted_results = 0;
 	m_invoke_count = 0;
 }
 
@@ -424,7 +471,7 @@ bool traversal_algorithm::add_requests()
 	// if we're doing aggressive lookups, we keep branch-factor
 	// outstanding requests _at the tops_ of the result list. Otherwise
 	// we just keep any branch-factor outstanding requests
-	bool agg = m_node.settings().aggressive_lookups;
+	bool const agg = m_node.settings().aggressive_lookups;
 
 	// Find the first node that hasn't already been queried.
 	// and make sure that the 'm_branch_factor' top nodes
@@ -475,7 +522,7 @@ bool traversal_algorithm::add_requests()
 		o->flags |= observer::flag_queried;
 		if (invoke(*i))
 		{
-			TORRENT_ASSERT(m_invoke_count < (std::numeric_limits<std::int16_t>::max)());
+			TORRENT_ASSERT(m_invoke_count < (std::numeric_limits<std::int8_t>::max)());
 			++m_invoke_count;
 			++outstanding;
 		}
@@ -510,7 +557,7 @@ void traversal_algorithm::add_router_entries()
 
 void traversal_algorithm::init()
 {
-	m_branch_factor = aux::numeric_cast<std::int16_t>(m_node.branch_factor());
+	m_branch_factor = aux::numeric_cast<std::int8_t>(m_node.branch_factor());
 	m_node.add_traversal_algorithm(this);
 }
 
@@ -546,6 +593,24 @@ void traversal_algorithm::status(dht_lookup& l)
 	l.last_sent = last_sent;
 }
 
+void traversal_algorithm::look_for_nodes(bdecode_node const& r, std::function<void(const node_endpoint&)> f)
+{
+	udp const protocol = get_node().protocol();
+	int const protocol_size = int(detail::address_size(protocol));
+	char const* nodes_key = get_node().protocol_nodes_key();
+	bdecode_node const n = r.dict_find_string(nodes_key);
+	if (n)
+	{
+		char const* nodes = n.string_ptr();
+		char const* end = nodes + n.string_length();
+
+		while (end - nodes >= 20 + protocol_size + 2)
+		{
+			f(read_node_endpoint(protocol, nodes));
+		}
+	}
+}
+
 void traversal_observer::reply(msg const& m)
 {
 	bdecode_node const r = m.message.dict_find_dict("r");
@@ -553,7 +618,7 @@ void traversal_observer::reply(msg const& m)
 	{
 #ifndef TORRENT_DISABLE_LOGGING
 		if (get_observer() != nullptr)
-		{
+{
 			get_observer()->log(dht_logger::traversal
 				, "[%u] missing response dict"
 				, algorithm()->id());
@@ -568,7 +633,7 @@ void traversal_observer::reply(msg const& m)
 	{
 		bdecode_node const nid = r.dict_find_string("id");
 		char hex_id[41];
-		aux::to_hex({nid.string_ptr(), 20}, hex_id);
+		aux::to_hex({ nid.string_ptr(), 20 }, hex_id);
 		logger->log(dht_logger::traversal
 			, "[%u] RESPONSE id: %s invoke-count: %d addr: %s type: %s"
 			, algorithm()->id(), hex_id, algorithm()->invoke_count()
@@ -576,22 +641,7 @@ void traversal_observer::reply(msg const& m)
 	}
 #endif
 
-	// look for nodes
-	udp const protocol = algorithm()->get_node().protocol();
-	int const protocol_size = int(detail::address_size(protocol));
-	char const* nodes_key = algorithm()->get_node().protocol_nodes_key();
-	bdecode_node const n = r.dict_find_string(nodes_key);
-	if (n)
-	{
-		char const* nodes = n.string_ptr();
-		char const* end = nodes + n.string_length();
-
-		while (end - nodes >= 20 + protocol_size + 2)
-		{
-			node_endpoint nep = read_node_endpoint(protocol, nodes);
-			algorithm()->traverse(nep.id, nep.ep);
-		}
-	}
+	algorithm()->look_for_nodes(r, [this](node_endpoint const& nep) { algorithm()->traverse(nep.id, nep.ep); });
 
 	bdecode_node const id = r.dict_find_string("id");
 	if (!id || id.string_length() != 20)

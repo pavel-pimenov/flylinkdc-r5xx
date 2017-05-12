@@ -229,6 +229,8 @@ class ATL_NO_VTABLE CPropertyListImpl :
 			m_iPrevious(0),
 			m_iPrevXGhostBar(0)
 		{
+			PROPERTYDRAWINFO r = { 0 };
+			m_di = r;
 		}
 		
 		// Operations

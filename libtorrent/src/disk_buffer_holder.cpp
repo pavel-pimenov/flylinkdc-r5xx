@@ -34,11 +34,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/storage.hpp" // for storage_interface
 #include "libtorrent/aux_/block_cache_reference.hpp"
 
-namespace libtorrent
-{
+namespace libtorrent {
 
 	disk_buffer_holder::disk_buffer_holder(buffer_allocator_interface& alloc, char* buf) noexcept
-		: m_allocator(&alloc), m_buf(buf)
+		: m_allocator(&alloc), m_buf(buf), m_ref()
 	{}
 
 	disk_buffer_holder& disk_buffer_holder::operator=(disk_buffer_holder&& h) noexcept
@@ -51,7 +50,8 @@ namespace libtorrent
 		: m_allocator(h.m_allocator), m_buf(h.m_buf), m_ref(h.m_ref)
 	{
 		// we own this buffer now
-		h.release();
+		h.m_buf = nullptr;
+		h.m_ref = aux::block_cache_reference();
 	}
 
 	disk_buffer_holder::disk_buffer_holder(buffer_allocator_interface& alloc
@@ -77,6 +77,7 @@ namespace libtorrent
 
 	char* disk_buffer_holder::release() noexcept
 	{
+		TORRENT_ASSERT(m_ref.cookie == aux::block_cache_reference::none);
 		char* ret = m_buf;
 		m_buf = nullptr;
 		m_ref = aux::block_cache_reference();

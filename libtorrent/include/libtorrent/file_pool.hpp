@@ -43,8 +43,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/storage_defs.hpp"
 #include "libtorrent/disk_interface.hpp" // for open_file_state
 
-namespace libtorrent
-{
+namespace libtorrent {
+
 	class file_storage;
 	struct open_file_state;
 
@@ -101,7 +101,7 @@ namespace libtorrent
 
 	private:
 
-		void remove_oldest(std::unique_lock<std::mutex>& l);
+		file_handle remove_oldest(std::unique_lock<std::mutex>&);
 
 		int m_size;
 		bool m_low_prio_io = false;

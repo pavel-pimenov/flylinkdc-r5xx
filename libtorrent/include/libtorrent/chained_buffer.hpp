@@ -54,8 +54,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_CPP98_DEQUE 0
 #endif
 
-namespace libtorrent
-{
+namespace libtorrent {
+
 	// TODO: 2 this type should probably be renamed to send_buffer
 	struct TORRENT_EXTRA_EXPORT chained_buffer : private single_threaded
 	{
@@ -153,7 +153,7 @@ namespace libtorrent
 		// tries to copy the given buffer to the end of the
 		// last chained buffer. If there's not enough room
 		// it returns nullptr
-		char* append(char const* buf, int s);
+		char* append(span<char const> buf);
 
 		// tries to allocate memory from the end
 		// of the last buffer. If there isn't

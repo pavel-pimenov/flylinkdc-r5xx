@@ -47,7 +47,7 @@ PropPage::TextItem NetworkPage::texts[] =
 	{ IDC_AUTODETECT, ResourceManager::SETTINGS_CONNECTION_AUTODETECT },
 #endif
 	{ IDC_WAN_IP_MANUAL, ResourceManager::SETTINGS_WAN_IP_MANUAL },
-	{ IDC_NO_IP_OVERRIDE, ResourceManager::SETTINGS_OVERRIDE },
+	{ IDC_NO_IP_OVERRIDE, ResourceManager::SETTINGS_NO_IP_OVERRIDE },
 	{ IDC_SETTINGS_PORTS, ResourceManager::SETTINGS_PORTS },
 	{ IDC_SETTINGS_IP, ResourceManager::SETTINGS_EXTERNAL_IP },
 	{ IDC_SETTINGS_PORT_TCP, ResourceManager::SETTINGS_TCP_PORT },
@@ -341,6 +341,12 @@ void NetworkPage::updateTestPortIcon(bool p_is_wait)
 		}
 		auto calcIconsIndex = [&](const int p_icon, const boost::logic::tribool & p_status) -> bool
 		{
+			extern bool g_DisableTestPort;
+			if (g_DisableTestPort)
+			{
+				SetStage(p_icon, StageDisableTest);
+				return false;
+			}
 			if (p_is_wait && m_count_test_port_tick == 0)
 			{
 				SetStage(p_icon, StageWait);
@@ -536,6 +542,7 @@ void NetworkPage::SetStage(int ID, StagesIcon stage)
 	static HIconWrapper g_hModeFailIco(IDR_ICON_FAIL_ICON);
 	static HIconWrapper g_hModePauseIco(IDR_ICON_PAUSE_ICON);
 	static HIconWrapper g_hModeProcessIco(IDR_NETWORK_STATISTICS_ICON);
+	static HIconWrapper g_hModeDisableTestIco(IDR_SKULL_RED_ICO);
 	
 	HIconWrapper* l_icon = nullptr;
 	switch (stage)
@@ -554,6 +561,9 @@ void NetworkPage::SetStage(int ID, StagesIcon stage)
 			break;
 		case StageQuestion:
 			l_icon = &g_hModeQuestionIco;
+			break;
+		case StageDisableTest:
+			l_icon = &g_hModeDisableTestIco;
 			break;
 		case StageWait:
 		default:

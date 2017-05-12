@@ -114,7 +114,7 @@ class HubEntry
 	public:
 		typedef deque<HubEntry> List; // [!] IRainman opt: change vector to deque
 		
-		HubEntry() : reliability(0), shared(0), minShare(0), users(0), minSlots(0), maxHubs(0), maxUsers(0)
+		HubEntry() : reliability(0), shared(0), minShare(0), users(0), minSlots(0), maxHubs(0), maxUsers(0), bots(0), infected(0), operators(0)
 		{
 		}
 		HubEntry(const string& aName, const string& aServer, const string& aDescription, const string& aUsers, const string& aCountry,

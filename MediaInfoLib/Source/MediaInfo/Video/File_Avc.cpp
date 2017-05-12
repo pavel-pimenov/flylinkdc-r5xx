@@ -1399,8 +1399,12 @@ void File_Avc::Read_Buffer_Unsynched()
     if (SizedBlocks || !Config_IsRepeated) //If sized blocks, it is not a broadcasted stream so SPS/PPS are only in container header, we must not disable them.
     {
         //Rebuilding immediatly TemporalReferences
-        for (std::vector<seq_parameter_set_struct*>::iterator seq_parameter_set_Item=seq_parameter_sets.begin(); seq_parameter_set_Item!=seq_parameter_sets.end(); ++seq_parameter_set_Item)
-            if ((*seq_parameter_set_Item))
+		// ==> Start patch MPC
+		// https://sourceforge.net/p/mpcbe/code/HEAD/tree/trunk/
+		seq_parameter_set_structs* _seq_parameter_sets = !seq_parameter_sets.empty() ? &seq_parameter_sets : &subset_seq_parameter_sets;
+		for (std::vector<seq_parameter_set_struct*>::iterator seq_parameter_set_Item = _seq_parameter_sets->begin(); seq_parameter_set_Item != _seq_parameter_sets->end(); ++seq_parameter_set_Item)
+		// ==> End patch MPC
+			if ((*seq_parameter_set_Item))
             {
                 size_t MaxNumber;
                 switch ((*seq_parameter_set_Item)->pic_order_cnt_type)
@@ -2262,6 +2266,7 @@ void File_Avc::slice_header()
                         default:;
                     }
                 }
+				if (TemporalReferences_Reserved) // fix https://github.com/MediaArea/MediaInfoLib/issues/477
                 while (TemporalReferences_Offset+pic_order_cnt>=3*TemporalReferences_Reserved)
                 {
                     for (size_t Pos=0; Pos<TemporalReferences_Reserved; Pos++)
@@ -2325,7 +2330,11 @@ void File_Avc::slice_header()
             }
         }
 
-        if ((*seq_parameter_set_Item)->vui_parameters && (*seq_parameter_set_Item)->vui_parameters->timing_info_present_flag && (*seq_parameter_set_Item)->vui_parameters->num_units_in_tick)
+        if ((*seq_parameter_set_Item)->vui_parameters && 
+			(*seq_parameter_set_Item)->vui_parameters->timing_info_present_flag && 
+			(*seq_parameter_set_Item)->vui_parameters->num_units_in_tick &&
+			FrameRate_Divider &&
+			(*seq_parameter_set_Item)->vui_parameters->time_scale)
             tc=float64_int64s(((float64)1000000000)/((float64)(*seq_parameter_set_Item)->vui_parameters->time_scale/(*seq_parameter_set_Item)->vui_parameters->num_units_in_tick/((*seq_parameter_set_Item)->pic_order_cnt_type==2?1:2)/FrameRate_Divider)/((!(*seq_parameter_set_Item)->frame_mbs_only_flag && field_pic_flag)?2:1));
         if (first_mb_in_slice==0)
         {
@@ -2733,7 +2742,7 @@ void File_Avc::sei_message_pic_timing(int32u /*payloadSize*/, int32u seq_paramet
             case  3 :
             case  4 :
             case  5 :
-            case  6 : break;
+            case  6 : FrameRate_Divider=1; break;
             case  7 : FrameRate_Divider=2; break;
             case  8 : FrameRate_Divider=3; break;
             default : Param_Info1("Reserved"); return; //NumClockTS is unknown
@@ -3276,7 +3285,6 @@ void File_Avc::seq_parameter_set()
         if (Null)
             Trusted_IsNot("Should be NULL byte");
     }
-    bool use_Data_Item_New = false;
     FILLING_BEGIN_PRECISE();
         //NextCode
         NextCode_Clear();
@@ -3284,7 +3292,6 @@ void File_Avc::seq_parameter_set()
 
         //Add
         seq_parameter_set_data_Add(seq_parameter_sets, seq_parameter_set_id, Data_Item_New);
-        use_Data_Item_New = true;
 
         //Autorisation of other streams
         Streams[0x08].Searching_Payload=true; //pic_parameter_set
@@ -3296,9 +3303,9 @@ void File_Avc::seq_parameter_set()
         Streams[0x0B].Searching_Payload=true; //end_of_stream
         if (Streams[0x07].ShouldDuplicate)
             Streams[0x0B].ShouldDuplicate=true; //end_of_stream
-    FILLING_END();
-    if (use_Data_Item_New==false)
+    FILLING_ELSE();
         delete Data_Item_New;
+    FILLING_END();
 }
 
 void File_Avc::seq_parameter_set_data_Add(std::vector<seq_parameter_set_struct*> &Data, const int32u Data_id, seq_parameter_set_struct* Data_Item_New)

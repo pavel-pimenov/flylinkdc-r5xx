@@ -34,8 +34,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_OPERATIONS_HPP_INCLUDED
 #define TORRENT_OPERATIONS_HPP_INCLUDED
 
-namespace libtorrent
-{
+namespace libtorrent {
+
 	// these constants are used to identify the operation that failed, causing a
 	// peer to disconnect
 	enum operation_t
@@ -105,4 +105,3 @@ namespace libtorrent
 }
 
 #endif // TORRENT_OPERATIONS_HPP_INCLUDED
-

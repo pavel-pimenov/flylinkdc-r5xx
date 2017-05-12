@@ -23,7 +23,6 @@
 #include "SearchFrm.h"
 #include "WinUtil.h"
 #include "MainFrm.h"
-#include "TextFrame.h"
 #include "ChatBot.h"
 #include "UserInfoSimple.h"
 #include "../client/ClientManager.h"

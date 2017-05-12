@@ -42,36 +42,37 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <set>
 #include <string>
 
-namespace libtorrent { namespace aux
-{
-	int copy_bufs(span<iovec_t const> bufs, int const bytes, span<iovec_t> target)
+namespace libtorrent { namespace aux {
+
+	int copy_bufs(span<iovec_t const> bufs, int bytes
+		, span<iovec_t> target)
 	{
-		int size = 0;
-		for (int i = 0;; i++)
+		TORRENT_ASSERT(bytes >= 0);
+		auto dst = target.begin();
+		int ret = 0;
+		if (bytes == 0) return ret;
+		for (iovec_t const& src : bufs)
 		{
-			std::size_t const idx = std::size_t(i);
-			target[idx] = bufs[idx];
-			size += int(bufs[idx].iov_len);
-			if (size >= bytes)
-			{
-				TORRENT_ASSERT(target[idx].iov_len >= aux::numeric_cast<std::size_t>(size - bytes));
-				target[idx].iov_len -= aux::numeric_cast<std::size_t>(size - bytes);
-				return i + 1;
-			}
+			std::size_t const to_copy = std::min(src.size(), std::size_t(bytes));
+			*dst = src.first(to_copy);
+			bytes -= int(to_copy);
+			++ret;
+			++dst;
+			if (bytes <= 0) return ret;
 		}
+		return ret;
 	}
 
 	span<iovec_t> advance_bufs(span<iovec_t> bufs, int const bytes)
 	{
-		int size = 0;
+		TORRENT_ASSERT(bytes >= 0);
+		std::size_t size = 0;
 		for (;;)
 		{
-			size += int(bufs.front().iov_len);
-			if (size >= bytes)
+			size += bufs.front().size();
+			if (size >= std::size_t(bytes))
 			{
-				bufs.front().iov_base = reinterpret_cast<char*>(bufs.front().iov_base)
-					+ bufs.front().iov_len - (size - bytes);
-				bufs.front().iov_len = aux::numeric_cast<std::size_t>(size - bytes);
+				bufs.front() = bufs.front().last(size - std::size_t(bytes));
 				return bufs;
 			}
 			bufs = bufs.subspan(1);
@@ -83,14 +84,16 @@ namespace libtorrent { namespace aux
 
 	int count_bufs(span<iovec_t const> bufs, int bytes)
 	{
-		int size = 0;
-		int count = 1;
-		if (bytes == 0) return 0;
-		for (auto i = bufs.begin();; ++i, ++count)
+		std::size_t size = 0;
+		int count = 0;
+		if (bytes == 0) return count;
+		for (auto b : bufs)
 		{
-			size += int(i->iov_len);
-			if (size >= bytes) return count;
+			++count;
+			size += b.size();
+			if (size >= std::size_t(bytes)) return count;
 		}
+		return count;
 	}
 
 	}
@@ -101,8 +104,8 @@ namespace libtorrent { namespace aux
 	// and writing. This function is a template, and the fileop decides what to
 	// do with the file and the buffers.
 	int readwritev(file_storage const& files, span<iovec_t const> const bufs
-		, piece_index_t const piece, const int offset, fileop& op
-		, storage_error& ec)
+		, piece_index_t const piece, const int offset
+		, storage_error& ec, fileop op)
 	{
 		TORRENT_ASSERT(piece >= piece_index_t(0));
 		TORRENT_ASSERT(piece < files.end_piece());
@@ -166,7 +169,7 @@ namespace libtorrent { namespace aux
 			// file_bytes_left bytes, i.e. just this one operation
 			int tmp_bufs_used = copy_bufs(current_buf, file_bytes_left, tmp_buf);
 
-			int bytes_transferred = op.file_op(file_index, file_offset
+			int bytes_transferred = op(file_index, file_offset
 				, tmp_buf.first(tmp_bufs_used), ec);
 			if (ec) return -1;
 

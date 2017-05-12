@@ -17,6 +17,7 @@
  */
 
 #include "stdinc.h"
+#include <future>
 
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
@@ -31,7 +32,7 @@
 #include "../client/Wildcards.h"
 #include "../client/MappingManager.h"
 #include "../client/IpGuard.h"
-#include "../windows/ChatBot.h"
+#include "../client/w.h"
 
 #include "../jsoncpp/include/json/json.h"
 #include "../MediaInfoLib/Source/MediaInfo/MediaInfo_Const.h"
@@ -62,6 +63,8 @@
 #include <psapi.h>
 #pragma comment(lib, "psapi.lib")
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
+
+#include "selene.h"
 
 string g_debug_fly_server_url;
 CFlyServerConfig g_fly_server_config;
@@ -134,6 +137,7 @@ bool     CFlyServerConfig::g_is_append_cid_error_log = true; // Добавлять ID к л
 bool     CFlyServerConfig::g_is_use_hit_media_files = false;
 bool     CFlyServerConfig::g_is_use_hit_binary_files = false;
 bool     CFlyServerConfig::g_is_use_statistics = false;
+bool     CFlyServerConfig::g_is_use_log_redirect = false;
 
 DWORD CFlyServerConfig::g_max_size_for_virus_detect = 10 * 1024 * 1024; // Максимальный размер (10M)
 
@@ -166,8 +170,9 @@ StringSet CFlyServerConfig::g_custom_compress_ext;
 StringSet CFlyServerConfig::g_block_share_name;
 StringList CFlyServerConfig::g_block_share_mask;
 FastCriticalSection CFlyServerConfig::g_cs_mirror_test_port;
+string CFlyServerConfig::g_lua_source_search_engine;
 
-extern ::tstring g_full_user_agent;
+extern tstring g_full_user_agent;
 
 //======================================================================================================
 const CServerItem& CFlyServerConfig::getStatServer()
@@ -554,6 +559,9 @@ void CFlyServerConfig::loadConfig()
 					l_int_flag = 0;
 					initUINT16("use_statistics", l_int_flag, 0);
 					g_is_use_statistics = l_int_flag != 0;
+
+                    initUINT16("use_log_redirect", l_int_flag, 0);
+                    g_is_use_log_redirect = l_int_flag != 0;
 					
 					m_min_file_size = Util::toInt64(l_xml.getChildAttrib("min_file_size")); // В конфиге min_size - переименовать
 					dcassert(m_min_file_size);
@@ -1007,6 +1015,195 @@ bool CFlyServerConfig::SyncAntivirusDB(bool& p_is_need_reload)
 	return true;
 }
 #endif
+//=========================================================================================
+bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const tstring& p_search)
+{
+	try
+	{
+		if (g_lua_source_search_engine.empty())
+		{
+			return false;
+		}
+		sel::State l_lua_state(true);
+		l_lua_state.Load(g_lua_source_search_engine, false, "flylinkdc-search-engine");
+		std::string l_trackers = l_lua_state["get_trackers"]();
+
+		Json::Value l_root;
+		Json::Reader l_reader(Json::Features::strictMode());
+		const bool l_parsingSuccessful = l_reader.parse(l_trackers, l_root);
+		if (!l_parsingSuccessful)
+		{
+			dcassert(0);
+			LogManager::message("Failed to parse json get_trackers(): l_trackers = " + l_trackers);
+			return false;
+		}
+		else
+		{
+			string l_agent = l_root["agent"].asString();
+			const Json::Value& l_arrays = l_root["items"];
+			const Json::Value::ArrayIndex l_count = l_arrays.size();
+			for (Json::Value::ArrayIndex j = 0; j < l_count; ++j)
+			{
+				const Json::Value& l_cur_item_in = l_arrays[j];
+				const auto l_root_torrent_url = l_cur_item_in["url"].asString();
+				string l_local_agent = l_cur_item_in["agent"].asString();
+				if (l_local_agent.empty())
+					l_local_agent = l_agent;
+				const string l_search_encode = Util::encodeURI(Text::fromT(p_search), false);
+				std::async(std::launch::async,
+					[&] {
+					for (int l_num_page = 0; l_num_page < 20 // TODO - конифг
+						 ; ++l_num_page)
+					{
+						const string l_search_result = l_lua_state["get_url"](j, l_search_encode.c_str(), "", l_num_page, 0, 0, 0);
+#ifdef _DEBUG
+						LogManager::message("l_url = [page = " + Util::toString(l_num_page) + "] " + l_search_result + " l_agent = " + l_agent + " l_agent_global = " + l_agent);
+#endif
+						try
+						{
+							std::vector<byte> l_data;
+							CFlyHTTPDownloader l_http_downloader;
+							l_http_downloader.m_is_use_cache = true;
+							if (!l_local_agent.empty())
+							{
+								l_http_downloader.m_user_agent = Text::toT(l_local_agent);
+							}
+							if (l_http_downloader.getBinaryDataFromInet(l_search_result, l_data, 1000))
+							{
+								const std::string l_html_result((char*)l_data.data(), l_data.size());
+								const std::string l_magnet_result = l_lua_state["search"](int(j), l_html_result.c_str());
+								if (l_magnet_result.empty())
+									break; // кончились странички
+
+#ifdef _DEBUG
+								LogManager::message("l_magnet_result = " + l_magnet_result);
+#endif
+								try
+								{
+									Json::Value l_root;
+									Json::Reader l_reader(Json::Features::strictMode());
+									const bool l_parsingSuccessful = l_reader.parse(l_magnet_result, l_root);
+									if (!l_parsingSuccessful)
+									{
+										dcassert(0);
+										const string l_error = "onTorrentSearch[0] async - Failed to parse json l_magnet_result = " + l_magnet_result;
+										CFlyServerJSON::pushError(78, l_error);
+									}
+									else
+									{
+										const Json::Value& l_arrays = l_root["items"];
+										const Json::Value::ArrayIndex l_count = l_arrays.size();
+										for (Json::Value::ArrayIndex i = 0; i < l_count; ++i)
+										{
+											const auto l_magnet = l_arrays[i]["magnet"].asString();
+											if (!l_magnet.empty())
+											{
+												SearchResult* l_result = new SearchResult;
+												l_result->setFile(l_arrays[i]["name"].asString());
+												l_result->setTorrentMagnet(l_magnet);
+												l_result->m_peer = atoi(l_arrays[i]["peer"].asString().c_str());
+												l_result->m_seed = atoi(l_arrays[i]["seed"].asString().c_str());
+												l_result->m_comment = atoi(l_arrays[i]["comment"].asString().c_str());
+												l_result->m_url = l_root_torrent_url + l_arrays[i]["url"].asString();
+												l_result->m_date = l_arrays[i]["date"].asString();
+												l_result->m_torrent_page = l_num_page+1;
+												const auto l_size = Text::toLower(l_arrays[i]["size"].asString());
+												l_result->m_size = atoi(l_size.c_str());
+												if (l_size.find("mb") != string::npos)
+													l_result->m_size = l_result->m_size * 1024 * 1024;
+												if (l_size.find("gb") != string::npos)
+													l_result->m_size = l_result->m_size * 1024 * 1024 * 1024;
+												if (l_size.find("kb") != string::npos)
+													l_result->m_size = l_result->m_size * 1024;
+												safe_post_message(p_wnd, p_message, l_result);
+											}
+										}
+									}
+								}
+								catch (const Exception &e)
+								{
+									dcassert(0);
+									const string l_error = "onTorrentSearch[1] async - error " + e.getError();
+									CFlyServerJSON::pushError(77, l_error);
+								}
+							}
+							else
+							{
+								dcassert(0);
+								const string l_error = "onTorrentSearch[4] getBinaryDataFromInet error l_search_result = " + l_search_result;
+								CFlyServerJSON::pushError(79, l_error);
+							}
+						}
+						catch (const Exception &e)
+						{
+							dcassert(0);
+							const string l_error = "onTorrentSearch[2] async - Exception " + e.getError();
+							CFlyServerJSON::pushError(77, l_error);
+						}
+						catch (std::runtime_error& e)
+						{
+							dcassert(0);
+							CFlyServerJSON::pushError(77, "onTorrentSearch[3] async - runtime_error = " + string(e.what()));
+						}
+
+					} // for
+				}
+
+				);
+
+			}
+				/*
+				p_tracker_index,
+				p_search,
+				p_category,
+				p_page,
+				p_whole_word,
+				p_sort,
+				p_desc)
+				*/
+			}
+		}
+	
+	catch (std::runtime_error& e)
+	{
+		dcassert(0);
+		CFlyServerJSON::pushError(77, "onTorrentSearch error JSON error = " + string(e.what()));
+	}
+	return false;
+}
+//=========================================================================================
+void CFlyServerConfig::loadTorrentSearchEngine()
+{
+	if (g_lua_source_search_engine.empty())
+	{
+		std::async(std::launch::async,
+			[&] {
+			try
+			{
+				if (g_lua_source_search_engine.empty())
+				{
+#if _DEBUG					
+					Util::getDataFromInetSafe(true, "file://Q:/vc15/r5xx/compiled/Settings/lua/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
+#else
+					Util::getDataFromInetSafe(true, "http://etc.fly-server.ru/etc/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
+#endif
+				}
+			}
+			catch (const Exception &e)
+			{
+				dcassert(0);
+				const string l_error = "loadTorrentSearchEngine error " + e.getError();
+				CFlyServerJSON::pushError(77, l_error);
+			}
+			catch (std::runtime_error& e)
+			{
+				dcassert(0);
+				CFlyServerJSON::pushError(77, "loadTorrentSearchEngine - error = " + string(e.what()));
+			}
+		}
+		);
+	}
+}
 //======================================================================================================
 bool CFlyServerConfig::isIgnoreFloodCommand(const string& p_command)
 {
@@ -1389,32 +1586,39 @@ bool CFlyServerJSON::setTestPortOK(unsigned short p_port, const std::string& p_t
 //======================================================================================================
 bool CFlyServerJSON::isTestPortOK(unsigned short p_port, const std::string& p_type, bool p_is_assert /*= false */)
 {
-	dcassert(p_type == "udp" || p_type == "tcp");
-	CFlyFastLock(g_cs_test_port);
-	const auto i = g_test_port_map.find(make_pair(p_port, p_type));
-	if (i != g_test_port_map.end())
+	extern bool g_DisableTestPort;
+	if (g_DisableTestPort == false)
 	{
-		return i->second.first;
+
+		dcassert(p_type == "udp" || p_type == "tcp");
+		CFlyFastLock(g_cs_test_port);
+		const auto i = g_test_port_map.find(make_pair(p_port, p_type));
+		if (i != g_test_port_map.end())
+		{
+			return i->second.first;
+		}
+		else
+		{
+			//dcassert(0);
+#ifdef _DEBUG
+			LogManager::message("[CFlyServerJSON::isTestPortOK] Not found Test Port " + p_type + " = " + Util::toString(p_port));
+#endif
+		}
+		if (p_is_assert)
+		{
+			//dcassert(0);
+			static bool g_is_first = false;
+			if (!g_is_first)
+			{
+				g_is_first = true;
+				// TODO - много спама - разобраться почему.
+				// CFlyServerJSON::pushError(57, "Call isTestPortOK before test port " + p_type + " = " + Util::toString(p_port));
+			}
+		}
+		return false;
 	}
 	else
-	{
-		dcassert(0);
-#ifdef _DEBUG
-		LogManager::message("[CFlyServerJSON::isTestPortOK] Not found Test Port " + p_type + " = " + Util::toString(p_port));
-#endif
-	}
-	if (p_is_assert)
-	{
-		//dcassert(0);
-		static bool g_is_first = false;
-		if (!g_is_first)
-		{
-			g_is_first = true;
-			// TODO - много спама - разобраться почему.
-			// CFlyServerJSON::pushError(57, "Call isTestPortOK before test port " + p_type + " = " + Util::toString(p_port));
-		}
-	}
-	return false;
+		return true;
 }
 //======================================================================================================
 bool CFlyServerJSON::pushTestPort(
@@ -1538,7 +1742,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 }
 #endif
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 76 (36,58,44,49 - устарели)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 79 (36,58,44,49 - устарели)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;
@@ -2848,6 +3052,7 @@ class CFlyCrashReportInformer
 		}
 };
 #endif
+
 //=========================================================================================
 bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, const TTHValue& p_tth, bool p_force /* = false*/)
 {
@@ -2862,17 +3067,21 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 		if (p_size < SETTING(MIN_MEDIAINFO_SIZE) * 1024 * 1024) // TODO: p_size?
 			return false;
 		const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(p_name));
+#ifndef _DEBUG
 		if (!CFlyServerConfig::isMediainfoExt(l_file_ext))
 			return false;
+#endif
 		char l_size[22];
 		l_size[0] = 0;
 		_snprintf(l_size, _countof(l_size), "%I64d", p_size);
 		g_cur_mediainfo_file_tth = p_tth.toBase32();
 		g_cur_mediainfo_file = p_name + "\r\n TTH = " + g_cur_mediainfo_file_tth + "\r\n File size = " + string(l_size);
+		Util::setRegistryValueString(FLYLINKDC_REGISTRY_MEDIAINFO_FREEZE_KEY, Text::toT(g_cur_mediainfo_file));
 #ifndef _DEBUG
 		g_crashRpt.AddUserInfoToReport(l_doctor_dump_key, Text::toT(g_cur_mediainfo_file).c_str());
 		g_crashRpt.SetCustomInfo(Text::toT(g_cur_mediainfo_file_tth).c_str());
 #endif
+
 		if (g_media_info_lib.Open(Text::toT(File::formatPath(p_name))))
 		{
 			// const bool l_is_media_info_fly_server = g_fly_server_config.isSupportFile(l_file_ext, p_size);
@@ -3042,6 +3251,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 		}
 		g_cur_mediainfo_file_tth.clear();
 		g_cur_mediainfo_file.clear();
+		Util::deleteRegistryValue(FLYLINKDC_REGISTRY_MEDIAINFO_FREEZE_KEY);
 #ifndef _DEBUG
 		g_crashRpt.RemoveUserInfoFromReport(l_doctor_dump_key);
 		g_crashRpt.SetCustomInfo(_T(""));
@@ -3053,7 +3263,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 		const string l_error = g_cur_mediainfo_file + " TTH:" + p_tth.toBase32() + " MediaInfo-error: " + string(e.what());
 		CFlyServerJSON::pushError(15, "error getmediainfo:" + l_error);
 		Util::setRegistryValueString(FLYLINKDC_REGISTRY_MEDIAINFO_CRASH_KEY, Text::toT(l_error));
-		LogManager::message("getMediaInfo: " + p_name + "TTH:" + p_tth.toBase32() + ' ' + STRING(ERROR_STRING) + ": " + string(e.what()));
+		Util::deleteRegistryValue(FLYLINKDC_REGISTRY_MEDIAINFO_FREEZE_KEY);
 		char l_buf[4000];
 		l_buf[0] = 0;
 		sprintf_s(l_buf, _countof(l_buf), CSTRING(ERROR_MEDIAINFO_SCAN), p_name.c_str(), e.what());
@@ -3063,6 +3273,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 	catch (...)
 	{
 		// TODO сюда не попадаем если SEH - найти способ и поправить
+		Util::deleteRegistryValue(FLYLINKDC_REGISTRY_MEDIAINFO_FREEZE_KEY);
 		Util::setRegistryValueString(FLYLINKDC_REGISTRY_MEDIAINFO_CRASH_KEY, Text::toT(g_cur_mediainfo_file + " catch(...) "));
 		CFlyServerJSON::pushError(15, "error getmediainfo[2] " + g_cur_mediainfo_file + " TTH:" + p_tth.toBase32() + " catch(...)");
 		throw;

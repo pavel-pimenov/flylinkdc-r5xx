@@ -60,15 +60,9 @@
 
 int alt_clock_gettime (int clock_id, timespec *ts)
 {
-    // The clock_id specified is not supported on this system.
-    if (clock_id != CLOCK_REALTIME) {
-        errno = EINVAL;
-        return -1;
-    }
-
     clock_serv_t cclock;
     mach_timespec_t mts;
-    host_get_clock_service (mach_host_self (), CALENDAR_CLOCK, &cclock);
+    host_get_clock_service (mach_host_self (), clock_id, &cclock);
     clock_get_time (cclock, &mts);
     mach_port_deallocate (mach_task_self (), cclock);
     ts->tv_sec = mts.tv_sec;
@@ -84,6 +78,10 @@ static zmq::mutex_t compatible_get_tick_count64_mutex;
 
 ULONGLONG compatible_get_tick_count64()
 {
+#ifdef ZMQ_HAVE_WINDOWS_UWP
+  const ULONGLONG result = ::GetTickCount64();
+  return result;
+#else
   zmq::scoped_lock_t locker(compatible_get_tick_count64_mutex);
 
   static DWORD s_wrap = 0;
@@ -97,19 +95,24 @@ ULONGLONG compatible_get_tick_count64()
   const ULONGLONG result = (static_cast<ULONGLONG>(s_wrap) << 32) + static_cast<ULONGLONG>(current_tick);
 
   return result;
+#endif
 }
 
 f_compatible_get_tick_count64 init_compatible_get_tick_count64()
 {
   f_compatible_get_tick_count64 func = NULL;
+#if !defined ZMQ_HAVE_WINDOWS_UWP
+
   HMODULE module = ::LoadLibraryA("Kernel32.dll");
   if (module != NULL)
     func = reinterpret_cast<f_compatible_get_tick_count64>(::GetProcAddress(module, "GetTickCount64"));
-
+#endif
   if (func == NULL)
     func = compatible_get_tick_count64;
 
+#if !defined ZMQ_HAVE_WINDOWS_UWP
   ::FreeLibrary(module);
+#endif
 
   return func;
 }
@@ -153,8 +156,8 @@ uint64_t zmq::clock_t::now_us ()
     //  Use POSIX clock_gettime function to get precise monotonic time.
     struct timespec tv;
 
-#if defined ZMQ_HAVE_OSX && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200 // less than macOS 10.12    
-    int rc = alt_clock_gettime (CLOCK_MONOTONIC, &tv);
+#if defined ZMQ_HAVE_OSX && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200 // less than macOS 10.12
+    int rc = alt_clock_gettime (SYSTEM_CLOCK, &tv);
 #else
     int rc = clock_gettime (CLOCK_MONOTONIC, &tv);
 #endif
@@ -241,7 +244,7 @@ uint64_t zmq::clock_t::rdtsc ()
 #else
     struct timespec ts;
     #if defined ZMQ_HAVE_OSX && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200 // less than macOS 10.12
-        alt_clock_gettime (CLOCK_MONOTONIC, &ts);
+        alt_clock_gettime (SYSTEM_CLOCK, &ts);
     #else
         clock_gettime (CLOCK_MONOTONIC, &ts);
     #endif

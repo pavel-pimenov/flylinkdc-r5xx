@@ -39,6 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/string_util.hpp"
 #include "libtorrent/settings_pack.hpp"
+#include "libtorrent/random.hpp"
 #include "libtorrent/hex.hpp" // for to_hex
 #include "libtorrent/debug.hpp"
 
@@ -47,8 +48,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace std::placeholders;
 
-namespace libtorrent
-{
+namespace libtorrent {
 
 	struct i2p_error_category : boost::system::error_category
 	{
@@ -131,7 +131,7 @@ namespace libtorrent
 		m_state = sam_connecting;
 
 		char tmp[20];
-		std::generate(tmp, tmp + sizeof(tmp), &std::rand);
+		aux::random_bytes(tmp);
 		m_session_id.resize(sizeof(tmp)*2);
 		aux::to_hex(tmp, &m_session_id[0]);
 

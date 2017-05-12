@@ -445,7 +445,7 @@ public:
 		if(message.GetLength() > 0)
 		{
 			_CSTRING_NS::CString formattedMessage;
-			formattedMessage.Format(message, replaceCount, m_sFindNext, m_sReplaceWith);
+			formattedMessage.Format(message, replaceCount, (LPCTSTR)m_sFindNext, (LPCTSTR)m_sReplaceWith);
 			if(m_pFindReplaceDialog != NULL)
 			{
 				m_pFindReplaceDialog->MessageBox(formattedMessage,

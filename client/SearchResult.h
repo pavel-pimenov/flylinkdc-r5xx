@@ -36,7 +36,8 @@ class SearchResultBaseTTH
 		enum Types
 		{
 			TYPE_FILE,
-			TYPE_DIRECTORY
+			TYPE_DIRECTORY,
+			TYPE_TORRENT_MAGNET
 		};
 		SearchResultBaseTTH():
 			m_size(0),
@@ -54,6 +55,28 @@ class SearchResultBaseTTH
 		const string& getFile() const
 		{
 			return m_file;
+		}
+		void setFile(const string& p_file)
+		{
+			m_file = p_file;
+		}
+		const string getSHA1() const
+		{
+			const auto l_pos = m_torrent_magnet.find("xt=urn:btih:");
+			if (l_pos != string::npos)
+			{
+				return m_torrent_magnet.substr(l_pos + 12, 40);
+			}
+			return "";
+		}
+		const string& getTorrentMagnet() const
+		{
+			return m_torrent_magnet;
+		}
+		void setTorrentMagnet(const string& p_torrent_magnet)
+		{
+			m_torrent_magnet = p_torrent_magnet;
+			m_type = TYPE_TORRENT_MAGNET;
 		}
 		int64_t getSize() const
 		{
@@ -84,10 +107,20 @@ class SearchResultBaseTTH
 		{
 			return Util::toString(getFreeSlots()) + '/' + Util::toString(getSlots());
 		}
+		string getPeersString() const
+		{
+			return Util::toString(m_peer) + '/' + Util::toString(m_seed);
+		}
+		uint16_t m_peer = 0;
+		uint16_t m_seed = 0;
+		uint16_t m_comment = 0;
+		string m_url;
+		string m_date;
+		int64_t m_size;
 	protected:
 		TTHValue m_tth;
 		string m_file;
-		int64_t m_size;
+		string m_torrent_magnet;
 		uint8_t m_slots;
 		uint8_t m_freeSlots;
 		Types m_type;
@@ -176,6 +209,7 @@ class SearchResult : public SearchResultCore
 		bool m_is_virus;
 		bool m_is_tth_remembrance;
 		bool m_is_tth_queue;
+		unsigned m_torrent_page = 0;
 		
 		mutable uint8_t m_virus_level;
 		const string& getP2PGuard() const

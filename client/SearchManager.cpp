@@ -68,7 +68,8 @@ SearchManager::~SearchManager()
 
 void SearchManager::runTestUDPPort()
 {
-	if (boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel))
+	extern bool g_DisableTestPort;
+	if (g_DisableTestPort == false && boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel))
 	{
 		string p_external_ip;
 		std::vector<unsigned short> l_udp_port, l_tcp_port;

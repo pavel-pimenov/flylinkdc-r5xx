@@ -37,8 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <cstdarg> // for va_start, va_end
 #endif
 
-namespace libtorrent
-{
+namespace libtorrent {
 
 connection_type peer_connection_handle::type() const
 {
@@ -266,11 +265,12 @@ bool peer_connection_handle::in_handshake() const
 	return pc->in_handshake();
 }
 
-void peer_connection_handle::send_buffer(char const* begin, int size, int flags)
+void peer_connection_handle::send_buffer(char const* begin, int size
+	, std::uint32_t const flags)
 {
 	std::shared_ptr<peer_connection> pc = native_handle();
 	TORRENT_ASSERT(pc);
-	pc->send_buffer(begin, size, flags);
+	pc->send_buffer({begin, std::size_t(size)}, flags);
 }
 
 time_t peer_connection_handle::last_seen_complete() const

@@ -23,6 +23,8 @@ jsoncpp
 doctor-dump
 leveldb
 libtorrent
+lua
+selene
 src_exclude.txt
 src_include.txt
 src_backup.bat

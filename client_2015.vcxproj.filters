@@ -1098,9 +1098,6 @@
     <ClInclude Include="client\CFlySearchItemTTH.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="jsoncpp\include\json\json-forwards.h">
-      <Filter>Header Files\jsoncpp</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

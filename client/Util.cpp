@@ -2721,6 +2721,10 @@ size_t Util::getDataFromInetSafe(bool p_is_use_cache, const string& p_url, strin
 	std::vector<byte> l_bin_data;
 	CFlyHTTPDownloader l_http_downloader;
 	l_http_downloader.m_is_use_cache = p_is_use_cache;
+	if (p_is_use_cache)
+	{
+		l_http_downloader.setInetFlag(INTERNET_FLAG_CACHE_IF_NET_FAIL);
+	}
 	const size_t l_bin_size = l_http_downloader.getBinaryDataFromInetSafe(p_url, l_bin_data, p_time_out, p_reporter);
 	if (l_bin_size)
 	{
@@ -2826,7 +2830,6 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInetSafe(const string& p_url, std:
 		// boost::replace_all(l_url, "etc2.", "etc.");
 #endif
 		l_length = getBinaryDataFromInet(l_url, p_data_out, p_time_out, p_reporter);
-		
 		if (l_length > 0)
 		{
 			if (i >= 4) // ≈сли на зеркале скачали - остаемс€ на нем
@@ -2869,7 +2872,8 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 	if (p_url.empty())
 		return 0;
 	p_data_out.clear();
-	CInternetHandle hInternet(InternetOpen(g_full_user_agent.c_str(), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
+	
+	CInternetHandle hInternet(InternetOpen(m_user_agent.empty() ? g_full_user_agent.c_str() : m_user_agent.c_str(), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
 	if (!hInternet)
 	{
 		create_error_message("InternetOpen", p_url);
@@ -3117,8 +3121,8 @@ void Util::BackupSettings()
 string Util::formatDchubUrl(const string& DchubUrl)
 {
 #ifdef _DEBUG
-	static unsigned int l_call_count = 0;
-	dcdebug("Util::formatDchubUrl DchubUrl =\"%s\", call count %d\n", DchubUrl.c_str(), ++l_call_count);
+	//static unsigned int l_call_count = 0;
+	//dcdebug("Util::formatDchubUrl DchubUrl =\"%s\", call count %d\n", DchubUrl.c_str(), ++l_call_count);
 #endif
 	//[-] PVS-Studio V808 string path;
 	uint16_t port;

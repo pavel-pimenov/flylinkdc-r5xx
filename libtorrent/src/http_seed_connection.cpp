@@ -39,8 +39,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/peer_info.hpp"
 #include "libtorrent/hex.hpp" // for is_hex
 
-namespace libtorrent
-{
+namespace libtorrent {
+
 	http_seed_connection::http_seed_connection(peer_connection_args const& pack
 		, web_seed_t& web)
 		: web_connection_base(pack, web)
@@ -192,7 +192,7 @@ namespace libtorrent
 		peer_log(peer_log_alert::outgoing_message, "REQUEST", "%s", request.c_str());
 #endif
 
-		send_buffer(request.c_str(), int(request.size()), message_type_request);
+		send_buffer(request, message_type_request);
 	}
 
 	// --------------------------

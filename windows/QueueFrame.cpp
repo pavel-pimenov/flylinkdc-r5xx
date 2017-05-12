@@ -27,6 +27,7 @@
 #include "BarShader.h"
 #include "MainFrm.h"
 #include "ExMessageBox.h"
+#include "libtorrent/hex.hpp"
 
 int QueueFrame::columnIndexes[] = { COLUMN_TARGET, COLUMN_TYPE, COLUMN_STATUS, COLUMN_SEGMENTS, COLUMN_SIZE, COLUMN_PROGRESS, COLUMN_DOWNLOADED, COLUMN_PRIORITY,
                                     COLUMN_USERS, COLUMN_PATH,
@@ -182,65 +183,75 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 			{
 				return TSTRING(DOWNLOAD_FINISHED_IDLE);
 			}
-			const size_t l_online = m_qi->getLastOnlineCount();
-			const size_t l_count_source = m_qi->getSourcesCount();
-			if (isWaiting())
+			if (!isTorrent())
 			{
-				if (l_online > 0)
+				const size_t l_online = m_qi->getLastOnlineCount();
+				const size_t l_count_source = m_qi->getSourcesCount();
+				if (isWaiting())
+				{
+					if (l_online > 0)
+					{
+						if (l_count_source == 1)
+						{
+							return TSTRING(WAITING_USER_ONLINE);
+						}
+						else
+						{
+							tstring buf;
+							buf.resize(64);
+							buf.resize(_snwprintf(&buf[0], buf.size(), CTSTRING(WAITING_USERS_ONLINE), l_online, l_count_source));
+							return buf;
+						}
+					}
+					else
+					{
+						switch (l_count_source)
+						{
+							case 0:
+								return TSTRING(NO_USERS_TO_DOWNLOAD_FROM);
+							case 1:
+								return TSTRING(USER_OFFLINE);
+							case 2:
+								return TSTRING(BOTH_USERS_OFFLINE);
+							case 3:
+								return TSTRING(ALL_3_USERS_OFFLINE);
+							case 4:
+								return TSTRING(ALL_4_USERS_OFFLINE);
+							default:
+								tstring buf;
+								buf.resize(64);
+								buf.resize(_snwprintf(&buf[0], buf.size(), CTSTRING(ALL_USERS_OFFLINE), l_count_source));
+								return buf;
+						};
+					}
+				}
+				else
 				{
 					if (l_count_source == 1)
 					{
-						return TSTRING(WAITING_USER_ONLINE);
+						return TSTRING(USER_ONLINE);
 					}
 					else
 					{
 						tstring buf;
 						buf.resize(64);
-						buf.resize(_snwprintf(&buf[0], buf.size(), CTSTRING(WAITING_USERS_ONLINE), l_online, l_count_source));
+						buf.resize(_snwprintf(&buf[0], buf.size(), CTSTRING(USERS_ONLINE), l_online, l_count_source));
 						return buf;
 					}
-				}
-				else
-				{
-					switch (l_count_source)
-					{
-						case 0:
-							return TSTRING(NO_USERS_TO_DOWNLOAD_FROM);
-						case 1:
-							return TSTRING(USER_OFFLINE);
-						case 2:
-							return TSTRING(BOTH_USERS_OFFLINE);
-						case 3:
-							return TSTRING(ALL_3_USERS_OFFLINE);
-						case 4:
-							return TSTRING(ALL_4_USERS_OFFLINE);
-						default:
-							tstring buf;
-							buf.resize(64);
-							buf.resize(_snwprintf(&buf[0], buf.size(), CTSTRING(ALL_USERS_OFFLINE), l_count_source));
-							return buf;
-					};
-				}
-			}
-			else
-			{
-				if (l_count_source == 1)
-				{
-					return TSTRING(USER_ONLINE);
-				}
-				else
-				{
-					tstring buf;
-					buf.resize(64);
-					buf.resize(_snwprintf(&buf[0], buf.size(), CTSTRING(USERS_ONLINE), l_online, l_count_source));
-					return buf;
 				}
 			}
 		}
 		case COLUMN_SEGMENTS:
 		{
-			const QueueItemPtr& qi = getQueueItem();
-			return Util::toStringW(qi->getDownloadsSegmentCount()) + _T('/') + Util::toStringW(qi->getMaxSegments()); // [!] IRainman fix.
+			if (!isTorrent())
+			{
+				const QueueItemPtr qi = getQueueItem();
+				return Util::toStringW(qi->getDownloadsSegmentCount()) + _T('/') + Util::toStringW(qi->getMaxSegments());
+			}
+			else
+			{
+				return _T("TODO - Segmets");
+			}
 		}
 		case COLUMN_SIZE:
 			return getSize() == -1 ? TSTRING(UNKNOWN) : Util::formatBytesW(getSize());
@@ -285,69 +296,11 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 		case COLUMN_USERS:
 		{
 			tstring tmp;
-			RLock(*QueueItem::g_cs);
-			const auto& sources = m_qi->getSourcesL();
-			for (auto j = sources.cbegin(); j != sources.cend(); ++j)
+			if (!isTorrent())
 			{
-				if (!tmp.empty())
-					tmp += _T(", ");
-				string l_hub_name;
-				if (j->first->getHubID())
-				{
-					l_hub_name = CFlylinkDBManager::getInstance()->get_hub_name(j->first->getHubID());
-				}
-				tmp += j->first->getLastNickT() + _T(" (") + Text::toT(l_hub_name) + _T(")");
-				//tmp += WinUtil::getNicks(j->first, Util::emptyString);
-			}
-			return tmp.empty() ? TSTRING(NO_USERS) : tmp;
-		}
-		case COLUMN_PATH:
-		{
-			return Text::toT(getPath());
-		}
-		case COLUMN_LOCAL_PATH: // TODO fix copy-paste
-		{
-			tstring l_result;
-			if (!m_qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP))
-			{
-				l_result = Text::toT(ShareManager::toRealPath(getTTH()));
-				if (l_result.empty())
-				{
-					const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(getTTH());
-					if (l_status_file & CFlylinkDBManager::PREVIOUSLY_DOWNLOADED)
-						l_result += TSTRING(I_DOWNLOADED_THIS_FILE);
-					if (l_status_file & CFlylinkDBManager::VIRUS_FILE_KNOWN)
-					{
-						if (!l_result.empty())
-							l_result += _T(" + ");
-						l_result += TSTRING(VIRUS_FILE);
-					}
-					if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE)
-					{
-						if (!l_result.empty())
-							l_result += _T(" + ");
-						l_result +=  TSTRING(THIS_FILE_WAS_IN_MY_SHARE);
-					}
-				}
-			}
-			return l_result;
-		}
-		case COLUMN_EXACT_SIZE:
-		{
-			return getSize() == -1 ? TSTRING(UNKNOWN) : Util::formatExactSize(getSize());
-		}
-		case COLUMN_SPEED:
-		{
-			return  Text::toT(Util::formatBytes(m_qi->getAverageSpeed()) + '/' + STRING(S));
-		}
-		case COLUMN_ERRORS:
-		{
-			tstring tmp;
-			RLock(*QueueItem::g_cs);
-			const auto& badSources = m_qi->getBadSourcesL();
-			for (auto j = badSources.cbegin(); j != badSources.cend(); ++j)
-			{
-				if (!j->second.isSet(QueueItem::Source::FLAG_REMOVED))
+				RLock(*QueueItem::g_cs);
+				const auto& sources = m_qi->getSourcesL();
+				for (auto j = sources.cbegin(); j != sources.cend(); ++j)
 				{
 					if (!tmp.empty())
 						tmp += _T(", ");
@@ -357,38 +310,114 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 						l_hub_name = CFlylinkDBManager::getInstance()->get_hub_name(j->first->getHubID());
 					}
 					tmp += j->first->getLastNickT() + _T(" (") + Text::toT(l_hub_name) + _T(")");
-					
 					//tmp += WinUtil::getNicks(j->first, Util::emptyString);
-					tmp += _T(" (");
-					if (j->second.isSet(QueueItem::Source::FLAG_FILE_NOT_AVAILABLE))
+				}
+				return tmp.empty() ? TSTRING(NO_USERS) : tmp;
+			}
+			else
+				return tmp;
+		}
+		case COLUMN_PATH:
+		{
+			return Text::toT(getPath());
+		}
+		case COLUMN_LOCAL_PATH: // TODO fix copy-paste
+		{
+			if (!isTorrent())
+			{
+				tstring l_result;
+				if (!m_qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP))
+				{
+					l_result = Text::toT(ShareManager::toRealPath(getTTH()));
+					if (l_result.empty())
 					{
-						tmp += TSTRING(FILE_NOT_AVAILABLE);
+						const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(getTTH());
+						if (l_status_file & CFlylinkDBManager::PREVIOUSLY_DOWNLOADED)
+							l_result += TSTRING(I_DOWNLOADED_THIS_FILE);
+						if (l_status_file & CFlylinkDBManager::VIRUS_FILE_KNOWN)
+						{
+							if (!l_result.empty())
+								l_result += _T(" + ");
+							l_result += TSTRING(VIRUS_FILE);
+						}
+						if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE)
+						{
+							if (!l_result.empty())
+								l_result += _T(" + ");
+							l_result += TSTRING(THIS_FILE_WAS_IN_MY_SHARE);
+						}
 					}
-					else if (j->second.isSet(QueueItem::Source::FLAG_PASSIVE))
+				}
+				return l_result;
+			}
+			else
+			{
+				return Text::toT(m_save_path);
+			}
+		}
+		case COLUMN_EXACT_SIZE:
+		{
+			return getSize() == -1 ? TSTRING(UNKNOWN) : Util::formatExactSize(getSize());
+		}
+		case COLUMN_SPEED:
+		{
+			if (!isTorrent())
+				return  Text::toT(Util::formatBytes(m_qi->getAverageSpeed()) + '/' + STRING(S));
+			else
+				return _T("TODO Speed"); // TODO
+		}
+		case COLUMN_ERRORS:
+		{
+			tstring tmp;
+			if (!isTorrent())
+			{
+				RLock(*QueueItem::g_cs);
+				const auto& badSources = m_qi->getBadSourcesL();
+				for (auto j = badSources.cbegin(); j != badSources.cend(); ++j)
+				{
+					if (!j->second.isSet(QueueItem::Source::FLAG_REMOVED))
 					{
-						tmp += TSTRING(PASSIVE_USER);
+						if (!tmp.empty())
+							tmp += _T(", ");
+						string l_hub_name;
+						if (j->first->getHubID())
+						{
+							l_hub_name = CFlylinkDBManager::getInstance()->get_hub_name(j->first->getHubID());
+						}
+						tmp += j->first->getLastNickT() + _T(" (") + Text::toT(l_hub_name) + _T(")");
+						
+						//tmp += WinUtil::getNicks(j->first, Util::emptyString);
+						tmp += _T(" (");
+						if (j->second.isSet(QueueItem::Source::FLAG_FILE_NOT_AVAILABLE))
+						{
+							tmp += TSTRING(FILE_NOT_AVAILABLE);
+						}
+						else if (j->second.isSet(QueueItem::Source::FLAG_PASSIVE))
+						{
+							tmp += TSTRING(PASSIVE_USER);
+						}
+						else if (j->second.isSet(QueueItem::Source::FLAG_BAD_TREE))
+						{
+							tmp += TSTRING(INVALID_TREE);
+						}
+						else if (j->second.isSet(QueueItem::Source::FLAG_SLOW_SOURCE))
+						{
+							tmp += TSTRING(SLOW_USER);
+						}
+						else if (j->second.isSet(QueueItem::Source::FLAG_NO_TTHF))
+						{
+							tmp += TSTRING(SOURCE_TOO_OLD);
+						}
+						else if (j->second.isSet(QueueItem::Source::FLAG_NO_NEED_PARTS))
+						{
+							tmp += TSTRING(NO_NEEDED_PART);
+						}
+						else if (j->second.isSet(QueueItem::Source::FLAG_UNTRUSTED))
+						{
+							tmp += TSTRING(CERTIFICATE_NOT_TRUSTED);
+						}
+						tmp += _T(')');
 					}
-					else if (j->second.isSet(QueueItem::Source::FLAG_BAD_TREE))
-					{
-						tmp += TSTRING(INVALID_TREE);
-					}
-					else if (j->second.isSet(QueueItem::Source::FLAG_SLOW_SOURCE))
-					{
-						tmp += TSTRING(SLOW_USER);
-					}
-					else if (j->second.isSet(QueueItem::Source::FLAG_NO_TTHF))
-					{
-						tmp += TSTRING(SOURCE_TOO_OLD);
-					}
-					else if (j->second.isSet(QueueItem::Source::FLAG_NO_NEED_PARTS))
-					{
-						tmp += TSTRING(NO_NEEDED_PART);
-					}
-					else if (j->second.isSet(QueueItem::Source::FLAG_UNTRUSTED))
-					{
-						tmp += TSTRING(CERTIFICATE_NOT_TRUSTED);
-					}
-					tmp += _T(')');
 				}
 			}
 			return tmp.empty() ? TSTRING(NO_ERRORS) : tmp;
@@ -399,7 +428,10 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 		}
 		case COLUMN_TTH:
 		{
-			return m_qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP) ? Util::emptyStringT : Text::toT(getTTH().toBase32());
+			if (!isTorrent())
+				return m_qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP) ? Util::emptyStringT : Text::toT(getTTH().toBase32());
+			else
+				return Text::toT(libtorrent::aux::to_hex(m_sha1));
 		}
 		default:
 		{
@@ -409,36 +441,22 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 }
 void QueueFrame::on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept
 {
+	m_tasks.add(REMOVE_ITEM, new StringTask(DownloadManager::getInstance()->get_torrent_name(p_sha1)));
 }
 
 void QueueFrame::on(DownloadManagerListener::CompleteTorrentFile, const std::string& p_file_name) noexcept
 {
 }
-
+void QueueFrame::on(DownloadManagerListener::AddedTorrent, const libtorrent::sha1_hash& p_sha1, const std::string& p_save_path) noexcept
+{
+	m_tasks.add(ADD_ITEM, new QueueItemInfoTask(new QueueItemInfo(p_sha1, p_save_path)));
+}
 void QueueFrame::on(DownloadManagerListener::TorrentEvent, const DownloadArray& p_torrent_event) noexcept
 {
 #ifdef _DEBUG
 	for (auto j = p_torrent_event.cbegin(); j != p_torrent_event.cend(); ++j)
 	{
-		m_tasks.add(UPDATE_ITEM, new UpdateTorrentTask(j->m_path, j->m_sha1));
-		/*        UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, true);
-		        ui->setStatus(ItemInfo::STATUS_RUNNING);
-		        ui->setActual(j->m_actual);
-		        ui->setPos(j->m_pos);
-		        dcassert(j->m_is_torrent);
-		        ui->m_is_torrent = j->m_is_torrent;
-		        ui->m_sha1 = j->m_sha1;
-		        ui->m_is_seeding = j->m_is_seeding;
-		        ui->setSpeed(j->m_speed);
-		        ui->setSize(j->m_size);
-		        ui->setTimeLeft(j->m_second_left);
-		        ui->setType(Transfer::Type(j->m_type)); // TODO
-		        ui->setStatusString(j->m_status_string);
-		        ui->setTarget(j->m_path);
-		        //ui->setToken(j->m_token);
-		        //dcassert(!j->m_token.empty());
-		        m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
-		*/
+		m_tasks.add(UPDATE_ITEM, new UpdateTask(j->m_path, j->m_sha1));
 	}
 #endif
 }
@@ -450,6 +468,7 @@ void QueueFrame::on(QueueManagerListener::AddedArray, const std::vector<QueueIte
 		m_tasks.add(ADD_ITEM, new QueueItemInfoTask(new QueueItemInfo(*i)));
 	}
 }
+
 void QueueFrame::on(QueueManagerListener::Added, const QueueItemPtr& aQI) noexcept
 {
 	m_tasks.add(ADD_ITEM, new QueueItemInfoTask(new QueueItemInfo(aQI)));
@@ -511,7 +530,6 @@ void QueueFrame::addQueueList()
 	CLockRedraw<> l_lock_draw(ctrlQueue);
 	CLockRedraw<true> l_lock_draw_dir(ctrlDirs);
 	{
-		// [!] IRainman opt.
 		QueueManager::LockFileQueueShared l_fileQueue;
 		const auto& li = l_fileQueue.getQueueL();
 		for (auto j = li.cbegin(); j != li.cend(); ++j)
@@ -520,7 +538,6 @@ void QueueFrame::addQueueList()
 			QueueItemInfo* ii = new QueueItemInfo(aQI);
 			addQueueItem(ii, true);
 		}
-		// [~] IRainman opt.
 	}
 	ctrlQueue.resort();
 }
@@ -778,21 +795,11 @@ void QueueFrame::on(QueueManagerListener::Removed, const QueueItemPtr& aQI) noex
 	{
 		m_tasks.add(REMOVE_ITEM, new StringTask(aQI->getTarget()));
 	}
-	
-	// we need to call speaker now to properly remove item before other actions
-	// [!] SSA - fixed bug with deadlock on opened QueueFrame
-	// onSpeaker(0, 0, 0, *reinterpret_cast<BOOL*>(NULL));
 }
 
 void QueueFrame::on(QueueManagerListener::Moved, const QueueItemPtr& aQI, const string& oldTarget) noexcept
 {
 	m_tasks.add(REMOVE_ITEM, new StringTask(oldTarget));
-	
-	
-	// we need to call speaker now to properly remove item before other actions
-	// [!] SSA - fixed bug with deadlock on opened QueueFrame (Убрать в случае Deadlock'а по Move'у)
-	//onSpeaker(0, 0, 0, *reinterpret_cast<BOOL*>(NULL));
-	
 	m_tasks.add(ADD_ITEM, new QueueItemInfoTask(new QueueItemInfo(aQI)));
 }
 
@@ -908,7 +915,6 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 			case ADD_ITEM:
 			{
 				const auto& iit = static_cast<QueueItemInfoTask&>(*ti->second);
-				
 				dcassert(ctrlQueue.findItem(iit.m_ii) == -1);
 				addQueueItem(iit.m_ii, false);
 				m_dirty = true;
@@ -935,6 +941,11 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 				auto &ui = static_cast<UpdateTask&>(*ti->second);
 				const auto l_path = Util::getFilePath(ui.getTarget());
 				const bool l_is_cur_dir = isCurDir(l_path);
+				if (showTree && l_is_cur_dir == false)
+				{
+					// TODO addQueueItem(ui.m_ii, false);
+					//m_dirty = true;
+				}
 				if (!showTree || l_is_cur_dir)
 				{
 					const QueueItemInfo* ii = getItemInfo(ui.getTarget(), l_path);
@@ -942,7 +953,7 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 					{
 						//dcassert(0);
 #ifdef _DEBUG
-						LogManager::message("Error find ui.getTarget() +" + ui.getTarget());
+						//LogManager::message("Error find ui.getTarget() +" + ui.getTarget());
 #endif
 						break;
 					}
@@ -1278,115 +1289,118 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 				singleMenu.SetMenuDefaultItem(IDC_SEARCH_ALTERNATES); // !SMT!-UI
 				
 				const QueueItemInfo* ii = getSelectedQueueItem();
+				if (ii && !ii->isTorrent())
 				{
-					const QueueItemPtr qi = ii->getQueueItem(); // [+]
-					segmentsMenu.CheckMenuItem(IDC_SEGMENTONE - 1 + qi->getMaxSegments(), MF_CHECKED);
+					{
+						const QueueItemPtr qi = ii->getQueueItem();
+						segmentsMenu.CheckMenuItem(IDC_SEGMENTONE - 1 + qi->getMaxSegments(), MF_CHECKED);
+					}
+					if (!ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
+					{
+						setupPreviewMenu(ii->getTarget());
+						activatePreviewItems(singleMenu);
+					}
+					else
+					{
+						singleMenu.EnableMenuItem((UINT_PTR)(HMENU)segmentsMenu, MFS_DISABLED);
+					}
 				}
-				if (!ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_DCLST_LIST | QueueItem::FLAG_USER_GET_IP))
-				{
-					setupPreviewMenu(ii->getTarget());
-					activatePreviewItems(singleMenu);
-				}
-				else
-				{
-					singleMenu.EnableMenuItem((UINT_PTR)(HMENU)segmentsMenu, MFS_DISABLED);
-				}
-				
 				menuItems = 0;
 				int pmItems = 0;
 				if (ii)
-				{
-					RLock(*QueueItem::g_cs);
-					const QueueItemPtr qi = ii->getQueueItem();
-					if (qi)
+					if (!ii->isTorrent())
 					{
-						const auto& sources = ii->getQueueItem()->getSourcesL(); // Делать копию нельзя
-						// ниже сохраняем адрес итератора
-						for (auto i = sources.cbegin(); i != sources.cend(); ++i)
+						RLock(*QueueItem::g_cs);
+						const QueueItemPtr qi = ii->getQueueItem();
+						if (qi)
 						{
-							const auto user = i->first;
-							string l_hub_name;
-							if (user->getHubID())
+							const auto& sources = ii->getQueueItem()->getSourcesL(); // Делать копию нельзя
+							// ниже сохраняем адрес итератора
+							for (auto i = sources.cbegin(); i != sources.cend(); ++i)
 							{
-								l_hub_name = CFlylinkDBManager::getInstance()->get_hub_name(user->getHubID());
-							}
-							tstring nick = WinUtil::escapeMenu(user->getLastNickT() + _T(" (") + Text::toT(l_hub_name) + _T(")"));
-							
-							// tstring nick = WinUtil::escapeMenu(WinUtil::getNicks(user, Util::emptyString));
-							// add hub hint to menu
-							//const auto& hubs = ClientManager::getHubNames(user->getCID(), Util::emptyString);
-							//if (!hubs.empty())
-							//  nick += _T(" (") + Text::toT(hubs[0]) + _T(")");
-							
-							mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
-							mi.fType = MFT_STRING;
-							mi.dwTypeData = (LPTSTR)nick.c_str();
-							mi.dwItemData = (ULONG_PTR)& i->first;
-							mi.wID = IDC_BROWSELIST + menuItems;
-							browseMenu.InsertMenuItem(menuItems, TRUE, &mi);
-							mi.wID = IDC_REMOVE_SOURCE + 1 + menuItems; // "All" is before sources
-							removeMenu.InsertMenuItem(menuItems + 2, TRUE, &mi); // "All" and separator come first
-							mi.wID = IDC_REMOVE_SOURCES + menuItems;
-							removeAllMenu.InsertMenuItem(menuItems, TRUE, &mi);
-							if (user->isOnline())
-							{
-								mi.wID = IDC_PM + menuItems;
-								pmMenu.InsertMenuItem(menuItems, TRUE, &mi);
-								pmItems++;
-							}
-							menuItems++;
-						}
-						readdItems = 0;
-						const auto& badSources = ii->getQueueItem()->getBadSourcesL(); // Делать копию нельзя
-						// ниже сохраняем адрес итератора
-						for (auto i = badSources.cbegin(); i != badSources.cend(); ++i)
-						{
-							const auto& user = i->first;
-							tstring nick = WinUtil::getNicks(user, Util::emptyString);
-							if (i->second.isSet(QueueItem::Source::FLAG_FILE_NOT_AVAILABLE))
-							{
-								nick += _T(" (") + TSTRING(FILE_NOT_AVAILABLE) + _T(")");
-							}
-							else if (i->second.isSet(QueueItem::Source::FLAG_PASSIVE))
-							{
-								nick += _T(" (") + TSTRING(PASSIVE_USER) + _T(")");
-							}
-							else if (i->second.isSet(QueueItem::Source::FLAG_BAD_TREE))
-							{
-								nick += _T(" (") + TSTRING(INVALID_TREE) + _T(")");
-							}
-							else if (i->second.isSet(QueueItem::Source::FLAG_NO_NEED_PARTS))
-							{
-								nick += _T(" (") + TSTRING(NO_NEEDED_PART) + _T(")");
-							}
-							else if (i->second.isSet(QueueItem::Source::FLAG_NO_TTHF))
-							{
-								nick += _T(" (") + TSTRING(SOURCE_TOO_OLD) + _T(")");
-							}
-							else if (i->second.isSet(QueueItem::Source::FLAG_SLOW_SOURCE))
-							{
-								nick += _T(" (") + TSTRING(SLOW_USER) + _T(")");
-							}
-							else if (i->second.isSet(QueueItem::Source::FLAG_UNTRUSTED))
-							{
-								nick += _T(" (") + TSTRING(CERTIFICATE_NOT_TRUSTED) + _T(")");
-							}
-							// add hub hint to menu
-							const auto& hubs = ClientManager::getHubNames(user->getCID(), Util::emptyString);
-							if (!hubs.empty())
-								nick += _T(" (") + Text::toT(hubs[0]) + _T(")");
+								const auto user = i->first;
+								string l_hub_name;
+								if (user->getHubID())
+								{
+									l_hub_name = CFlylinkDBManager::getInstance()->get_hub_name(user->getHubID());
+								}
+								tstring nick = WinUtil::escapeMenu(user->getLastNickT() + _T(" (") + Text::toT(l_hub_name) + _T(")"));
 								
-							mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
-							mi.fType = MFT_STRING;
-							mi.dwTypeData = (LPTSTR)nick.c_str();
-							mi.dwItemData = (ULONG_PTR) & (*i);
-							mi.wID = IDC_READD + 1 + readdItems;  // "All" is before sources
-							readdMenu.InsertMenuItem(readdItems + 2, TRUE, &mi);  // "All" and separator come first
-							readdItems++;
+								// tstring nick = WinUtil::escapeMenu(WinUtil::getNicks(user, Util::emptyString));
+								// add hub hint to menu
+								//const auto& hubs = ClientManager::getHubNames(user->getCID(), Util::emptyString);
+								//if (!hubs.empty())
+								//  nick += _T(" (") + Text::toT(hubs[0]) + _T(")");
+								
+								mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
+								mi.fType = MFT_STRING;
+								mi.dwTypeData = (LPTSTR)nick.c_str();
+								mi.dwItemData = (ULONG_PTR)& i->first;
+								mi.wID = IDC_BROWSELIST + menuItems;
+								browseMenu.InsertMenuItem(menuItems, TRUE, &mi);
+								mi.wID = IDC_REMOVE_SOURCE + 1 + menuItems; // "All" is before sources
+								removeMenu.InsertMenuItem(menuItems + 2, TRUE, &mi); // "All" and separator come first
+								mi.wID = IDC_REMOVE_SOURCES + menuItems;
+								removeAllMenu.InsertMenuItem(menuItems, TRUE, &mi);
+								if (user->isOnline())
+								{
+									mi.wID = IDC_PM + menuItems;
+									pmMenu.InsertMenuItem(menuItems, TRUE, &mi);
+									pmItems++;
+								}
+								menuItems++;
+							}
+							readdItems = 0;
+							const auto& badSources = ii->getQueueItem()->getBadSourcesL(); // Делать копию нельзя
+							// ниже сохраняем адрес итератора
+							for (auto i = badSources.cbegin(); i != badSources.cend(); ++i)
+							{
+								const auto& user = i->first;
+								tstring nick = WinUtil::getNicks(user, Util::emptyString);
+								if (i->second.isSet(QueueItem::Source::FLAG_FILE_NOT_AVAILABLE))
+								{
+									nick += _T(" (") + TSTRING(FILE_NOT_AVAILABLE) + _T(")");
+								}
+								else if (i->second.isSet(QueueItem::Source::FLAG_PASSIVE))
+								{
+									nick += _T(" (") + TSTRING(PASSIVE_USER) + _T(")");
+								}
+								else if (i->second.isSet(QueueItem::Source::FLAG_BAD_TREE))
+								{
+									nick += _T(" (") + TSTRING(INVALID_TREE) + _T(")");
+								}
+								else if (i->second.isSet(QueueItem::Source::FLAG_NO_NEED_PARTS))
+								{
+									nick += _T(" (") + TSTRING(NO_NEEDED_PART) + _T(")");
+								}
+								else if (i->second.isSet(QueueItem::Source::FLAG_NO_TTHF))
+								{
+									nick += _T(" (") + TSTRING(SOURCE_TOO_OLD) + _T(")");
+								}
+								else if (i->second.isSet(QueueItem::Source::FLAG_SLOW_SOURCE))
+								{
+									nick += _T(" (") + TSTRING(SLOW_USER) + _T(")");
+								}
+								else if (i->second.isSet(QueueItem::Source::FLAG_UNTRUSTED))
+								{
+									nick += _T(" (") + TSTRING(CERTIFICATE_NOT_TRUSTED) + _T(")");
+								}
+								// add hub hint to menu
+								const auto& hubs = ClientManager::getHubNames(user->getCID(), Util::emptyString);
+								if (!hubs.empty())
+									nick += _T(" (") + Text::toT(hubs[0]) + _T(")");
+									
+								mi.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA;
+								mi.fType = MFT_STRING;
+								mi.dwTypeData = (LPTSTR)nick.c_str();
+								mi.dwItemData = (ULONG_PTR) & (*i);
+								mi.wID = IDC_READD + 1 + readdItems;  // "All" is before sources
+								readdMenu.InsertMenuItem(readdItems + 2, TRUE, &mi);  // "All" and separator come first
+								readdItems++;
+							}
 						}
 					}
-				}
-				
+					
 				if (menuItems == 0)
 				{
 					singleMenu.EnableMenuItem((UINT_PTR)(HMENU)browseMenu, MFS_DISABLED);
@@ -1553,8 +1567,7 @@ LRESULT QueueFrame::onBrowseList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 		OMenuItem* omi = (OMenuItem*)mi.dwItemData;
 		if (omi)
 		{
-			UserPtr* s   = (UserPtr*)omi->m_data;
-			// dcassert(getSelectedQueueItem() && QueueManager::getInstance()->isSourceValid(getSelectedQueueItem()->getQueueItem(), s));
+			const UserPtr* s   = (UserPtr*)omi->m_data;
 			try
 			{
 				const auto& hubs = ClientManager::getHubNames((*s)->getCID(), Util::emptyString);
@@ -1574,7 +1587,9 @@ LRESULT QueueFrame::onReadd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 	{
 		int i = ctrlQueue.GetNextItem(-1, LVNI_SELECTED);
 		const QueueItemInfo* ii = ctrlQueue.getItemData(i);
-		
+		if (ii->isTorrent())
+			return 0;
+			
 		CMenuItemInfo mi;
 		mi.fMask = MIIM_DATA;
 		
@@ -1583,7 +1598,7 @@ LRESULT QueueFrame::onReadd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 		{
 			try
 			{
-				auto l_item = ii->getQueueItem();
+				const auto& l_item = ii->getQueueItem();
 				QueueManager::getInstance()->readdAll(l_item);
 			}
 			catch (const QueueException& e)
@@ -1619,6 +1634,8 @@ LRESULT QueueFrame::onRemoveSource(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
 		m_remove_source_array.clear();
 		int i = ctrlQueue.GetNextItem(-1, LVNI_SELECTED);
 		const QueueItemInfo* ii = ctrlQueue.getItemData(i);
+		if (ii->isTorrent())
+			return 0;
 		if (wID == IDC_REMOVE_SOURCE)
 		{
 			RLock(*QueueItem::g_cs);
@@ -1709,15 +1726,14 @@ LRESULT QueueFrame::onSegments(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 	while ((i = ctrlQueue.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		QueueItemInfo* ii = ctrlQueue.getItemData(i);
+		if (!ii->isTorrent())
 		{
-			// [!] IRainman fix.
-			// [-] QueueManager::LockInstance l_instance;
-			// [-] QueueItem* qi = QueueManager::getInstance()->fileQueue.find(ii->getTarget());
-			const QueueItemPtr& qi = ii->getQueueItem();
-			// [~] IRainman fix.
-			qi->setMaxSegments(max((uint8_t)1, (uint8_t)(wID - IDC_SEGMENTONE + 1))); // !BUGMASTER!-S
+			{
+				const QueueItemPtr& qi = ii->getQueueItem();
+				qi->setMaxSegments(max((uint8_t)1, (uint8_t)(wID - IDC_SEGMENTONE + 1))); // !BUGMASTER!-S
+			}
+			ctrlQueue.updateItem(ctrlQueue.findItem(ii), COLUMN_SEGMENTS);
 		}
-		ctrlQueue.updateItem(ctrlQueue.findItem(ii), COLUMN_SEGMENTS);
 	}
 	
 	return 0;
@@ -2185,15 +2201,18 @@ LRESULT QueueFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
 	NMLVCUSTOMDRAW* cd = (NMLVCUSTOMDRAW*)pnmh;
 	
-	QueueItemInfo *qii = (QueueItemInfo*)cd->nmcd.lItemlParam;
+	const QueueItemInfo *ii = (const QueueItemInfo*)cd->nmcd.lItemlParam;
 	switch (cd->nmcd.dwDrawStage)
 	{
 		case CDDS_PREPAINT:
 			return CDRF_NOTIFYITEMDRAW;
 		case CDDS_ITEMPREPAINT:
 		{
-			if (qii && qii->getQueueItem() &&  // https://drdump.com/Problem.aspx?ProblemID=259662
-			        !qii->getQueueItem()->getBadSourcesL().empty()) // https://www.crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=117848
+#if 0
+			if (ii &&
+			        !ii->isTorrent() &&
+			        ii->getQueueItem() &&  // https://drdump.com/Problem.aspx?ProblemID=259662
+			        !ii->getQueueItem()->getBadSourcesL().empty()) // https://www.crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=117848
 			{
 				cd->clrText = SETTING(ERROR_COLOR);
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
@@ -2205,8 +2224,10 @@ LRESULT QueueFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			Colors::alternationBkColor(cd); // [+] IRainman
 #endif
 			return CDRF_NOTIFYSUBITEMDRAW;
+#else
+			return CDRF_NOTIFYSUBITEMDRAW;
+#endif
 		}
-		
 		case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		{
 			if (ctrlQueue.findColumn(cd->iSubItem) == COLUMN_PROGRESS)
@@ -2216,33 +2237,34 @@ LRESULT QueueFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					bHandled = FALSE;
 					return 0;
 				}
-				// [-]if (!qii) return CDRF_DODEFAULT; [-] IRainman fix.
-				if (qii->getSize() == -1) return CDRF_DODEFAULT;
+				if (ii->getSize() == -1) return CDRF_DODEFAULT;
 				
 				// draw something nice...
 				CRect rc;
 				ctrlQueue.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
-				CBarShader statusBar(rc.Height(), rc.Width(), SETTING(PROGRESS_BACK_COLOR), qii->getSize());
-				try
+				CBarShader statusBar(rc.Height(), rc.Width(), SETTING(PROGRESS_BACK_COLOR), ii->getSize());
+				if (!ii->isTorrent())
 				{
-					vector<pair<Segment, Segment>> l_runnigChunksAndDownloadBytes;
-					vector<Segment> l_doneChunks;
-					QueueManager::getChunksVisualisation(qii->getQueueItem(), l_runnigChunksAndDownloadBytes, l_doneChunks);
-					for (auto i = l_runnigChunksAndDownloadBytes.cbegin(); i < l_runnigChunksAndDownloadBytes.cend(); ++i)
+					try
 					{
-						statusBar.FillRange((*i).first.getStart(), (*i).first.getEnd(), SETTING(COLOR_RUNNING));
-						statusBar.FillRange((*i).second.getStart(), (*i).second.getEnd(), SETTING(COLOR_DOWNLOADED));
+						vector<pair<Segment, Segment>> l_runnigChunksAndDownloadBytes;
+						vector<Segment> l_doneChunks;
+						QueueManager::getChunksVisualisation(ii->getQueueItem(), l_runnigChunksAndDownloadBytes, l_doneChunks);
+						for (auto i = l_runnigChunksAndDownloadBytes.cbegin(); i < l_runnigChunksAndDownloadBytes.cend(); ++i)
+						{
+							statusBar.FillRange((*i).first.getStart(), (*i).first.getEnd(), SETTING(COLOR_RUNNING));
+							statusBar.FillRange((*i).second.getStart(), (*i).second.getEnd(), SETTING(COLOR_DOWNLOADED));
+						}
+						for (auto i = l_doneChunks.cbegin(); i < l_doneChunks.cend(); ++i)
+						{
+							statusBar.FillRange((*i).getStart(), (*i).getEnd(), SETTING(COLOR_DOWNLOADED));
+						}
 					}
-					for (auto i = l_doneChunks.cbegin(); i < l_doneChunks.cend(); ++i)
+					catch (std::bad_alloc&)
 					{
-						statusBar.FillRange((*i).getStart(), (*i).getEnd(), SETTING(COLOR_DOWNLOADED));
+						ShareManager::tryFixBadAlloc(); // https://drdump.com/Problem.aspx?ProblemID=238815
 					}
 				}
-				catch (std::bad_alloc&)
-				{
-					ShareManager::tryFixBadAlloc(); // https://drdump.com/Problem.aspx?ProblemID=238815
-				}
-				
 				CDC cdc;
 				cdc.CreateCompatibleDC(cd->nmcd.hdc);
 				HBITMAP pOldBmp = cdc.SelectBitmap(CreateCompatibleBitmap(cd->nmcd.hdc,  rc.Width(),  rc.Height()));
@@ -2288,14 +2310,12 @@ LRESULT QueueFrame::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 {
 	if (ctrlQueue.GetSelectedCount() == 1)
 	{
-		const QueueItemInfo* i = getSelectedQueueItem();
-		// [!] IRainman fix.
-		// [-] QueueManager::LockInstance l_instance;
-		// [-] QueueItem* qi = QueueManager::getInstance()->fileQueue.find(i->getTarget());
-		// [-] if (qi)
-		const QueueItemPtr& qi = i->getQueueItem();
-		// [~] IRainman fix.
-		startMediaPreview(wID, qi);
+		const QueueItemInfo* ii = getSelectedQueueItem();
+		if (!ii->isTorrent())
+		{
+			const auto& qi = ii->getQueueItem();
+			startMediaPreview(wID, qi);
+		}
 	}
 	return 0;
 }
@@ -2307,13 +2327,16 @@ LRESULT QueueFrame::onRemoveOffline(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 	while ((j = ctrlQueue.GetNextItem(j, LVNI_SELECTED)) != -1)
 	{
 		const QueueItemInfo* ii = ctrlQueue.getItemData(j);
-		RLock(*QueueItem::g_cs);
-		const auto& sources = ii->getQueueItem()->getSourcesL();
-		for (auto i =  sources.cbegin(); i != sources.cend(); ++i)  // https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=111640
+		if (!ii->isTorrent())
 		{
-			if (!i->first->isOnline())
+			RLock(*QueueItem::g_cs);
+			const auto& sources = ii->getQueueItem()->getSourcesL();
+			for (auto i = sources.cbegin(); i != sources.cend(); ++i)  // https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=111640
 			{
-				m_remove_source_array.push_back(std::make_pair(ii->getTarget(), i->first));
+				if (!i->first->isOnline())
+				{
+					m_remove_source_array.push_back(std::make_pair(ii->getTarget(), i->first));
+				}
 			}
 		}
 	}

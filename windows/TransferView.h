@@ -695,7 +695,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(ConnectionManagerListener::UserUpdated, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept override;
 		void on(ConnectionManagerListener::ConnectionStatusChanged, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept override;
 		
-		void on(DownloadManagerListener::AddTorrent, const libtorrent::sha1_hash& p_sha1, std::vector<std::string>& p_files) noexcept override;
+		void on(DownloadManagerListener::SelectTorrent, const libtorrent::sha1_hash& p_sha1, std::vector<std::string>& p_files) noexcept override;
 		void on(DownloadManagerListener::CompleteTorrentFile, const std::string& p_file_name) noexcept override;
 		void on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept override;
 		void on(DownloadManagerListener::TorrentEvent, const DownloadArray&) noexcept override;
@@ -711,7 +711,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(DownloadManagerListener::Starting, const DownloadPtr& aDownload) noexcept override;
 #endif
 		void on(DownloadManagerListener::Tick, const DownloadArray& aDownload) noexcept override;
-		void on(DownloadManagerListener::Status, const UserConnection*, const string&) noexcept override;
+		void on(DownloadManagerListener::Status, const UserConnection*, const std::string&) noexcept override;
 		
 		void on(UploadManagerListener::Starting, const UploadPtr& aUpload) noexcept override;
 		void on(UploadManagerListener::Tick, const UploadArray& aUpload) noexcept override;

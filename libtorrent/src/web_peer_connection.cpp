@@ -53,8 +53,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/torrent.hpp"
 #include "libtorrent/http_parser.hpp"
 
-namespace libtorrent
-{
+namespace libtorrent {
+
 constexpr int request_size_overhead = 5000;
 
 std::string escape_file_path(file_storage const& storage, file_index_t index);
@@ -95,8 +95,8 @@ web_peer_connection::web_peer_connection(peer_connection_args const& pack
 	{
 		// handle incorrect .torrent files which are multi-file
 		// but have web seeds not ending with a slash
-		if (m_path.empty() || m_path[m_path.size() - 1] != '/') m_path += '/';
-		if (m_url.empty() || m_url[m_url.size() - 1] != '/') m_url += '/';
+		ensure_trailing_slash(m_path);
+		ensure_trailing_slash(m_url);
 	}
 	else
 	{
@@ -464,7 +464,7 @@ void web_peer_connection::write_request(peer_request const& r)
 	peer_log(peer_log_alert::outgoing_message, "REQUEST", "%s", request.c_str());
 #endif
 
-	send_buffer(request.c_str(), int(request.size()), message_type_request);
+	send_buffer(request, message_type_request);
 }
 
 namespace {

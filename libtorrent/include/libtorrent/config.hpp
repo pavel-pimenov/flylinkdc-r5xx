@@ -33,12 +33,17 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_CONFIG_HPP_INCLUDED
 #define TORRENT_CONFIG_HPP_INCLUDED
 
+// [+]FlylinkDC++
 #ifndef TORRENT_NO_DEPRECATE
-#define TORRENT_NO_DEPRECATE // [+]FlylinkDC++
+#define TORRENT_NO_DEPRECATE 
 #endif
 #ifndef TORRENT_DISABLE_LOGGING
-#define TORRENT_DISABLE_LOGGING // [+]FlylinkDC++
+//#define TORRENT_DISABLE_LOGGING 
 #endif
+#ifndef TORRENT_DISABLE_EXTENSIONS
+//#define TORRENT_DISABLE_EXTENSIONS
+#endif
+// [~]FlylinkDC++
 
 #include "libtorrent/aux_/disable_warnings_push.hpp"
 
@@ -640,5 +645,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #	define TORRENT_HAS_ARM_CRC32 0
 #endif
 #endif // TORRENT_HAS_ARM_CRC32
+
+namespace libtorrent {}
+
+// create alias
+namespace lt = libtorrent;
 
 #endif // TORRENT_CONFIG_HPP_INCLUDED

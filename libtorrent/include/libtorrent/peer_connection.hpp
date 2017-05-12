@@ -75,8 +75,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <array>
 #include <cstdint>
 
-namespace libtorrent
-{
+namespace libtorrent {
+
 	class torrent;
 	struct torrent_peer;
 	struct disk_interface;
@@ -85,8 +85,8 @@ namespace libtorrent
 	struct peer_plugin;
 #endif
 
-	namespace aux
-	{
+namespace aux {
+
 		struct session_interface;
 	}
 
@@ -620,7 +620,7 @@ namespace libtorrent
 		virtual piece_block_progress downloading_piece_progress() const;
 
 		enum message_type_flags { message_type_request = 1 };
-		void send_buffer(char const* begin, int size, int flags = 0);
+		void send_buffer(span<char const> buf, std::uint32_t flags = 0);
 		void setup_send();
 
 		template <typename Holder>

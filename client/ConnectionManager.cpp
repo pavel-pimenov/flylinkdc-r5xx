@@ -190,15 +190,19 @@ void ConnectionManager::start_tcp_tls_listener()
 }
 void ConnectionManager::test_tcp_port()
 {
-	string l_external_ip;
-	std::vector<unsigned short> l_udp_port, l_tcp_port;
-	l_tcp_port.push_back(SETTING(TCP_PORT));
-	if (CryptoManager::TLSOk())
+	extern bool g_DisableTestPort;
+	if (g_DisableTestPort == false)
 	{
-		l_tcp_port.push_back(SETTING(TLS_PORT));
+		string l_external_ip;
+		std::vector<unsigned short> l_udp_port, l_tcp_port;
+		l_tcp_port.push_back(SETTING(TCP_PORT));
+		if (CryptoManager::TLSOk())
+		{
+			l_tcp_port.push_back(SETTING(TLS_PORT));
+		}
+		const bool l_is_tcp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0, CryptoManager::TLSOk() ? "TCP+TLS" : "TCP");
+		//dcassert(l_is_tcp_port_send);
 	}
-	const bool l_is_tcp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0, CryptoManager::TLSOk() ? "TCP+TLS" : "TCP");
-	//dcassert(l_is_tcp_port_send);
 	g_is_test_tcp_port = true;
 }
 

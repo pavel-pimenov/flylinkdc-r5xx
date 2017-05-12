@@ -37,8 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/kademlia/dht_observer.hpp>
 #include <libtorrent/performance_counters.hpp>
 
-namespace libtorrent { namespace dht
-{
+namespace libtorrent { namespace dht {
 
 void get_item::got_data(bdecode_node const& v,
 	public_key const& pk,
@@ -176,7 +175,7 @@ void get_item_observer::reply(msg const& m)
 	signature sig;
 	sequence_number seq{0};
 
-	bdecode_node r = m.message.dict_find_dict("r");
+	bdecode_node const r = m.message.dict_find_dict("r");
 	if (!r)
 	{
 #ifndef TORRENT_DISABLE_LOGGING

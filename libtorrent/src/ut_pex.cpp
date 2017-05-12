@@ -46,8 +46,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef TORRENT_DISABLE_EXTENSIONS
 
-namespace libtorrent { namespace
-{
+namespace libtorrent {namespace {
+
 	static const char extension_name[] = "ut_pex";
 
 	enum
@@ -481,8 +481,8 @@ namespace libtorrent { namespace
 			detail::write_uint32(1 + 1 + int(pex_msg.size()), ptr);
 			detail::write_uint8(bt_peer_connection::msg_extended, ptr);
 			detail::write_uint8(m_message_index, ptr);
-			m_pc.send_buffer(msg, sizeof(msg));
-			m_pc.send_buffer(&pex_msg[0], int(pex_msg.size()));
+			m_pc.send_buffer(msg);
+			m_pc.send_buffer(pex_msg);
 
 			m_pc.stats_counters().inc_stats_counter(counters::num_outgoing_extended);
 			m_pc.stats_counters().inc_stats_counter(counters::num_outgoing_pex);
@@ -596,8 +596,8 @@ namespace libtorrent { namespace
 			detail::write_uint32(1 + 1 + int(pex_msg.size()), ptr);
 			detail::write_uint8(bt_peer_connection::msg_extended, ptr);
 			detail::write_uint8(m_message_index, ptr);
-			m_pc.send_buffer(msg, sizeof(msg));
-			m_pc.send_buffer(&pex_msg[0], int(pex_msg.size()));
+			m_pc.send_buffer(msg);
+			m_pc.send_buffer(pex_msg);
 
 			m_pc.stats_counters().inc_stats_counter(counters::num_outgoing_extended);
 			m_pc.stats_counters().inc_stats_counter(counters::num_outgoing_pex);
@@ -646,8 +646,8 @@ namespace libtorrent { namespace
 	}
 } }
 
-namespace libtorrent
-{
+namespace libtorrent {
+
 	std::shared_ptr<torrent_plugin> create_ut_pex_plugin(torrent_handle const& th, void*)
 	{
 		torrent* t = th.native_handle().get();

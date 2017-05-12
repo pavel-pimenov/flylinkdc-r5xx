@@ -45,8 +45,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/address.hpp"
 #include "libtorrent/assert.hpp"
 
-namespace libtorrent
-{
+namespace libtorrent {
 
 // hidden
 inline bool operator<=(address const& lhs
@@ -63,14 +62,13 @@ struct ip_range
 	std::uint32_t flags;
 };
 
-namespace detail
-{
+namespace detail {
 
 	template<class Addr>
 	Addr zero()
 	{
 		Addr zero;
-		std::fill(zero.begin(), zero.end(), 0);
+		std::fill(zero.begin(), zero.end(), static_cast<typename Addr::value_type>(0));
 		return zero;
 	}
 

@@ -41,12 +41,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/hex.hpp> // to_hex
 #endif
 
-namespace libtorrent { namespace dht
-{
+namespace libtorrent { namespace dht {
 
 void find_data_observer::reply(msg const& m)
 {
-	bdecode_node r = m.message.dict_find_dict("r");
+	bdecode_node const r = m.message.dict_find_dict("r");
 	if (!r)
 	{
 #ifndef TORRENT_DISABLE_LOGGING

@@ -90,6 +90,8 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 			m_userMenu(nullptr),
 			m_is_suppress_chat_and_pm(false)
 		{
+			RECT r = { 0 };
+			m_MessagePanelRECT = r;
 		}
 		virtual ~BaseChatFrame() {}
 		virtual void doDestroyFrame() = 0;

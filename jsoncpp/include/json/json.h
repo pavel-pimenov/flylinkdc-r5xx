@@ -10,12 +10,12 @@ The JsonCpp library's source code, including accompanying documentation,
 tests and demonstration applications, are licensed under the following
 conditions...
 
-The author (Baptiste Lepilleur) explicitly disclaims copyright in all 
+The JsonCpp Authors explicitly disclaim copyright in all 
 jurisdictions which recognize such a disclaimer. In such jurisdictions, 
 this software is released into the Public Domain.
 
 In jurisdictions which do not recognize Public Domain property (e.g. Germany as of
-2010), this software is Copyright (c) 2007-2010 by Baptiste Lepilleur, and is
+2010), this software is Copyright (c) 2007-2010 by The JsonCpp Authors, and is
 released under the terms of the MIT License (see below).
 
 In jurisdictions which recognize Public Domain property, the user of this 
@@ -31,7 +31,7 @@ described in clear, concise terms at:
 The full text of the MIT License follows:
 
 ========================================================================
-Copyright (c) 2007-2010 Baptiste Lepilleur
+Copyright (c) 2007-2010 The JsonCpp Authors
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -1006,7 +1006,7 @@ Json::Value obj_value(Json::objectValue); // {}
   /// Include delimiters and embedded newlines.
   JSONCPP_STRING getComment(CommentPlacement placement) const;
 
-  JSONCPP_STRING toStyledString(bool p_use_end_line = true) const;
+  JSONCPP_STRING toStyledString(bool p_use_end_line = true) const; //[+] FlylinkDC++
 
   const_iterator begin() const;
   const_iterator end() const;
@@ -1383,7 +1383,7 @@ public:
   /** \brief Constructs a Reader allowing the specified feature set
    * for parsing.
    */
-  explicit Reader(const Features& features);
+  explicit Reader(const Features& features); // [+]FlylinkDC++
 
   /** \brief Read a Value from a <a HREF="http://www.json.org">JSON</a>
    * document.
@@ -1959,7 +1959,7 @@ private:
  */
 class JSON_API StyledWriter : public Writer {
 public:
-  explicit StyledWriter(bool p_use_end_line);
+  explicit StyledWriter(bool p_use_end_line); //[+]FlylinkDC++
   ~StyledWriter() JSONCPP_OVERRIDE {}
 
 public: // overridden from Writer

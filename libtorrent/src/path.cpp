@@ -125,13 +125,12 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 
-namespace libtorrent
-{
+namespace libtorrent {
+
 	int bufs_size(span<iovec_t const> bufs)
 	{
 		std::size_t size = 0;
-		for (auto buf : bufs)
-			size += buf.iov_len;
+		for (auto buf : bufs) size += buf.size();
 		return int(size);
 	}
 

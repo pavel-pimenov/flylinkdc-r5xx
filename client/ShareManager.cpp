@@ -2279,6 +2279,8 @@ Search::TypeModes ShareManager::getFType(const string& aFileName, bool p_include
 			return Search::TYPE_COMICS;
 		else if (checkType(aFileName, Search::TYPE_BOOK))
 			return Search::TYPE_BOOK;
+		//else if (checkType(aFileName, Search::TYPE_TORRENT_MAGNET))
+		//  return Search::TYPE_TORRENT_MAGNET;
 	}
 	if (checkType(aFileName, Search::TYPE_VIDEO))
 		return Search::TYPE_VIDEO;

@@ -235,8 +235,13 @@ void splash_callBack(void* p_x, const tstring& p_a)
 
 CEdit g_dummy;
 CWindow g_splash;
-bool g_DisableSplash = false;
+bool g_DisableSplash  = false;
 bool g_DisableGDIPlus = false;
+#ifdef _DEBUG
+bool g_DisableTestPort = false;
+#else
+bool g_DisableTestPort = false;
+#endif
 #ifdef SSA_WIZARD_FEATURE
 bool g_ShowWizard = false;
 #endif
@@ -645,6 +650,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		g_DisableSplash = true;
 	if (_tcsstr(lpstrCmdLine, _T("/nogdiplus")) != NULL)
 		g_DisableGDIPlus = true;
+	if (_tcsstr(lpstrCmdLine, _T("/notestport")) != NULL)
+		g_DisableTestPort = true;
 	if (_tcsstr(lpstrCmdLine, _T("/q")) != NULL)
 		l_is_multipleInstances = true;
 	if (_tcsstr(lpstrCmdLine, _T("/nowine")) != NULL)
@@ -653,6 +660,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		CompatibilityManager::setWine(true);
 	if (_tcsstr(lpstrCmdLine, _T("/magnet")) != NULL)
 		l_is_magnet = true;
+		
 #ifdef FLYLINKDC_BETA
 	if (_tcsstr(lpstrCmdLine, _T("/strongdc")) != NULL)
 		g_UseStrongDCTag = true;

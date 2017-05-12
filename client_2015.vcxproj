@@ -760,7 +760,6 @@
     <ClInclude Include="client\WildcardsReg.h" />
     <ClInclude Include="client\w_flylinkdc.h" />
     <ClInclude Include="client\ZipFile.h" />
-    <ClInclude Include="jsoncpp\include\json\json-forwards.h" />
     <ClInclude Include="jsoncpp\include\json\json.h" />
     <ClInclude Include="leveldb\db\builder.h" />
     <ClInclude Include="leveldb\db\dbformat.h" />

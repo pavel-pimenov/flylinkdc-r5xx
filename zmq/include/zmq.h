@@ -636,6 +636,18 @@ ZMQ_EXPORT int   zmq_timers_reset (void *timers, int timer_id);
 ZMQ_EXPORT long  zmq_timers_timeout (void *timers);
 ZMQ_EXPORT int   zmq_timers_execute (void *timers);
 
+/******************************************************************************/
+/*  GSSAPI socket options to set name type                                    */
+/******************************************************************************/
+
+#define ZMQ_GSSAPI_PRINCIPAL_NAMETYPE 90
+#define ZMQ_GSSAPI_SERVICE_PRINCIPAL_NAMETYPE 91
+
+/*  GSSAPI principal name types                                               */
+#define ZMQ_GSSAPI_NT_HOSTBASED 0
+#define ZMQ_GSSAPI_NT_USER_NAME 1
+#define ZMQ_GSSAPI_NT_KRB5_PRINCIPAL 2
+
 #endif // ZMQ_BUILD_DRAFT_API
 
 

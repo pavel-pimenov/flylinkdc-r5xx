@@ -84,8 +84,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace std::placeholders;
 
-namespace libtorrent
-{
+namespace libtorrent {
 
 	namespace {
 
@@ -5656,38 +5655,35 @@ namespace libtorrent
 		return piece_block_progress();
 	}
 
-	void peer_connection::send_buffer(char const* buf, int size, int flags)
+	void peer_connection::send_buffer(span<char const> buf, std::uint32_t const flags)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		TORRENT_UNUSED(flags);
 
-		int free_space = m_send_buffer.space_in_last_buffer();
-		if (free_space > size) free_space = size;
+		std::size_t const free_space = std::min(
+			std::size_t(m_send_buffer.space_in_last_buffer()), buf.size());
 		if (free_space > 0)
 		{
-			char* dst = m_send_buffer.append(buf, free_space);
+			char* dst = m_send_buffer.append(buf.subspan(0, free_space));
 
 			// this should always succeed, because we checked how much space
 			// there was up-front
 			TORRENT_UNUSED(dst);
 			TORRENT_ASSERT(dst != nullptr);
-			size -= free_space;
-			buf += free_space;
+			buf = buf.subspan(free_space);
 		}
-		if (size <= 0) return;
+		if (buf.size() <= 0) return;
 
-		int i = 0;
-		while (size > 0)
+		while (buf.size() > 0)
 		{
 			aux::ses_buffer_holder session_buf = m_ses.allocate_buffer();
 
 			int const alloc_buf_size = m_ses.send_buffer_size();
-			int const buf_size = std::min(alloc_buf_size, size);
-			std::memcpy(session_buf.get(), buf, aux::numeric_cast<std::size_t>(buf_size));
-			buf += buf_size;
-			size -= buf_size;
-			m_send_buffer.append_buffer(std::move(session_buf), alloc_buf_size, buf_size);
-			++i;
+			int const buf_size = std::min(alloc_buf_size, int(buf.size()));
+			std::copy(buf.data(), buf.data() + buf_size, session_buf.get());
+			buf = buf.subspan(std::size_t(buf_size));
+			m_send_buffer.append_buffer(std::move(session_buf)
+				, alloc_buf_size, buf_size);
 		}
 		setup_send();
 	}
@@ -5944,20 +5940,6 @@ namespace libtorrent
 			if (t) t->debug_log("END connect [%p]", static_cast<void*>(this));
 			m_connect_time = completed;
 		}
-#endif
-
-#ifdef TORRENT_USE_OPENSSL
-#ifdef TORRENT_MACOS_DEPRECATED_LIBCRYPTO
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-#endif
-		// add this RTT to the PRNG seed, to add more unpredictability
-		std::int64_t now = total_microseconds(completed - m_connect);
-		// assume 12 bits of entropy (i.e. about 8 milliseconds)
-		RAND_add(&now, 8, 1.5);
-#ifdef TORRENT_MACOS_DEPRECATED_LIBCRYPTO
-#pragma clang diagnostic pop
-#endif
 #endif
 
 		// if t is nullptr, we better not be connecting, since

@@ -126,8 +126,8 @@ POSSIBILITY OF SUCH DAMAGE.
 //	{
 //		return new temp_storage(*params.files);
 //	}
-namespace libtorrent
-{
+namespace libtorrent {
+
 	class session;
 	struct file_pool;
 	namespace aux { struct session_settings; }
@@ -336,7 +336,7 @@ namespace libtorrent
 		int dec_refcount()
 		{
 			TORRENT_ASSERT(m_references > 0);
-			return m_references--;
+			return --m_references;
 		}
 		void inc_refcount() { ++m_references; }
 	private:

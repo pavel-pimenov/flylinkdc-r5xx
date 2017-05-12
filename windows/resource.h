@@ -217,6 +217,7 @@
 #define IDR_VIP_ICO_ADRENALIN           328
 #define IDR_VIP_ICO_GODC                329
 #define IDD_FLY_TORRENT_DIALOG          330
+#define IDR_VIP_ZHIGANDC                331
 #define IDR_ICON_XXX_BLOCK              999
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
@@ -693,7 +694,6 @@
 #define IDC_ODC_STYLE                   1478
 #define IDC_NO_IP_OVERRIDE              1479
 #define IDC_WINDOWS_STARTUP             1480
-#define IDC_NO_IP_OVERRIDE2             1480
 #define IDC_WAN_IP_MANUAL               1480
 #define IDC_SETTINGS_PORTS              1481
 #define IDC_SETTINGS_AUTO_OPEN          1482
@@ -1618,6 +1618,11 @@
 #define IDC_TORRENT_DOWNLOAD_DIR_CHANGE 2526
 #define IDC_FLY_TORRENT_INFO_LISTBOX    2527
 #define IDC_REMOVE_TREE_ITEM            2528
+#define IDC_COPY_TORRENT_DATE           2529
+#define IDC_COPY_TORRENT_COMMENT        2530
+#define IDC_COPY_TORRENT_URL            2531
+#define IDC_COPY_TORRENT_PAGE           2532
+
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000

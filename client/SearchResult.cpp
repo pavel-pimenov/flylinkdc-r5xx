@@ -140,7 +140,7 @@ void SearchResult::calcP2PGuard()
 
 void SearchResult::calcHubName()
 {
-	if (m_hubName.empty())
+	if (m_hubName.empty() && getUser())
 	{
 		const StringList names = ClientManager::getHubNames(getUser()->getCID(), Util::emptyString);
 		m_hubName = names.empty() ? STRING(OFFLINE) : Util::toString(names);

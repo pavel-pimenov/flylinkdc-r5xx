@@ -95,8 +95,10 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 		"titankaluga.ru",
 		"hub.mydc.ru",
 		"aab-new-adrenalin.ru",
-		"godc.ru"
+		"godc.ru",
+		"zhigandc.ru"
 	};
+// TODO static_assert(_countof(g_vip_icons_array) == _countof(WinUtil::g_HubFlylinkDCIconVIP))
 	if (l_lower_url.find("dc.fly-server.ru") != string::npos ||
 	        l_lower_url.find("adcs.flylinkdc.com") != string::npos)
 	{
@@ -396,7 +398,6 @@ void Client::connect()
 		state = STATE_DISCONNECTED;
 		fly_fire2(ClientListener::ClientFailed(), this, e.getError());
 	}
-	//m_isActivMode = ClientManager::isActive(fhe); // [+] IRainman opt.
 	updateActivity();
 }
 bool ClientBase::isActive() const
@@ -407,11 +408,18 @@ bool ClientBase::isActive() const
 	}
 	else
 	{
-		const FavoriteHubEntry* fe = FavoriteManager::getFavoriteHubEntry(getHubUrl());
-		bool l_bWantAutodetect = false;
-		const auto l_res = isDetectActiveConnection() || ClientManager::isActive(fe, l_bWantAutodetect); //
-		//|| (ConnectionManager::g_is_test_tcp_port == true && CFlyServerJSON::isTestPortOK(SETTING(TCP_PORT), "tcp") == true);
-		return l_res;
+		extern bool g_DisableTestPort;
+		if (g_DisableTestPort == false)
+		{
+			const FavoriteHubEntry* fe = FavoriteManager::getFavoriteHubEntry(getHubUrl());
+			bool l_bWantAutodetect = false;
+			const auto l_res = isDetectActiveConnection() || ClientManager::isActive(fe, l_bWantAutodetect); //
+			return l_res;
+		}
+		else
+		{
+			return true; // Manual active
+		}
 	}
 }
 

@@ -2165,7 +2165,7 @@ void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownl
 	}
 }
 
-void TransferView::on(DownloadManagerListener::Status, const UserConnection* p_conn, const string& aReason) noexcept
+void TransferView::on(DownloadManagerListener::Status, const UserConnection* p_conn, const std::string& aReason) noexcept
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
@@ -2625,26 +2625,13 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 		m_tasks.add(TRANSFER_UPDATE_PARENT, ui);  // [!] IRainman opt.
 	}
 }
-/*
-void TransferView::on(QueueManagerListener::AddedArray, const std::vector<QueueItemPtr>& p_qi_array) noexcept
-{
-    if (!ClientManager::isBeforeShutdown())
-    {
-    }
-}
-void TransferView::on(QueueManagerListener::Added, const QueueItemPtr& qi) noexcept
-{
-    if (!ClientManager::isBeforeShutdown())
-    {
-    }
-}
-*/
+
 void TransferView::on(DownloadManagerListener::CompleteTorrentFile, const std::string& p_name) noexcept
 {
 	SHOW_POPUP(POPUP_DOWNLOAD_FINISHED, TSTRING(FILE) + _T(": ") + Text::toT(p_name), TSTRING(DOWNLOAD_FINISHED_IDLE));
 }
 
-void TransferView::on(DownloadManagerListener::AddTorrent, const libtorrent::sha1_hash& p_sha1, std::vector<std::string>& p_files) noexcept
+void TransferView::on(DownloadManagerListener::SelectTorrent, const libtorrent::sha1_hash& p_sha1, std::vector<std::string>& p_files) noexcept
 {
 	// TODO - PostMessage
 	// std::async(std::launch::async,
@@ -2654,6 +2641,7 @@ void TransferView::on(DownloadManagerListener::AddTorrent, const libtorrent::sha
 		if (l_dlg.DoModal(WinUtil::g_mainWnd) == IDOK)
 		{
 			DownloadManager::getInstance()->set_file_priority(p_sha1, l_dlg.m_selected_files);
+			DownloadManager::getInstance()->fire_added_torrent(p_sha1);
 		}
 		else
 		{
@@ -2662,7 +2650,7 @@ void TransferView::on(DownloadManagerListener::AddTorrent, const libtorrent::sha
 	}
 	catch (const Exception &e)
 	{
-		LogManager::message("DownloadManagerListener::AddTorrent - error " + e.getError());
+		LogManager::message("DownloadManagerListener::SelectTorrent - error " + e.getError());
 	}
 //   });
 }

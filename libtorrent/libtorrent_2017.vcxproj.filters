@@ -713,6 +713,12 @@
     <ClInclude Include="include\libtorrent\aux_\path.hpp">
       <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\session_listen_socket.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\session_udp_sockets.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ed25519\src\add_scalar.cpp">
@@ -1157,6 +1163,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\path.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\session_udp_sockets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

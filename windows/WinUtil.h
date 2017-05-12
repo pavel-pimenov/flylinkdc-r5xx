@@ -1185,6 +1185,7 @@ struct FileImage : public BaseImageList
 			DIR_DSLCT,
 			DIR_DVD,
 			DIR_BD,
+			DIR_TORRENT,
 			DIR_IMAGE_LAST
 		};
 		
@@ -1540,7 +1541,7 @@ class WinUtil
 #else
 		static std::unique_ptr<HIconWrapper> g_HubVirusIcon;
 #endif
-		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[15]; // VIP_ICON
+		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[16]; // VIP_ICON
 		
 		static void initThemeIcons();
 		
@@ -1568,7 +1569,7 @@ class WinUtil
 		static LONG getTextWidth(const tstring& str, HWND hWnd)
 		{
 			LONG sz = 0;
-			dcassert(str.length());
+			//dcassert(str.length());
 			if (str.length())
 			{
 				const HDC dc = ::GetDC(hWnd);
@@ -1581,7 +1582,7 @@ class WinUtil
 		static LONG getTextWidth(const tstring& str, HDC dc)
 		{
 			SIZE sz = { 0, 0 };
-			dcassert(str.length());
+			//dcassert(str.length());
 			if (str.length())
 			{
 				::GetTextExtentPoint32(dc, str.c_str(), str.length(), &sz); //-V107

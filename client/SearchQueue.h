@@ -45,6 +45,7 @@ struct Search
 		TYPE_CD_IMAGE,
 		TYPE_COMICS,
 		TYPE_BOOK,
+		TYPE_TORRENT_MAGNET,
 		TYPE_LAST_MODE
 	};
 	Search() : m_is_force_passive_searh(false), m_sizeMode(SIZE_DONTCARE), m_size(0), m_fileTypes_bitmap(0), m_token(0)

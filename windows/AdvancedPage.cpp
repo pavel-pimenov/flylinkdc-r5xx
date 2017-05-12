@@ -63,8 +63,6 @@ AdvancedPage::ListItem AdvancedPage::listItems[] =
 	{ SettingsManager::NMDC_DEBUG, ResourceManager::SETTINGS_NMDC_DEBUG },
 #endif
 	{ SettingsManager::SHOW_SHELL_MENU, ResourceManager::SETTINGS_SHOW_SHELL_MENU },
-	{ SettingsManager::OPEN_LOGS_INTERNAL, ResourceManager::OPEN_LOGS_INTERNAL },
-	{ SettingsManager::EXTERNAL_PREVIEW, ResourceManager::EXTERNAL_PREVIEW },
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	{ SettingsManager::ENABLE_LAST_IP_AND_MESSAGE_COUNTER, ResourceManager::ENABLE_LAST_IP_AND_MESSAGE_COUNTER },
 #endif

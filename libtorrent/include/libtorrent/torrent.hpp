@@ -82,8 +82,8 @@ POSSIBILITY OF SUCH DAMAGE.
 // logic
 #define TORRENT_DEBUG_STREAMING 0
 
-namespace libtorrent
-{
+namespace libtorrent {
+
 	class http_parser;
 
 	struct storage_interface;
@@ -527,13 +527,7 @@ namespace libtorrent
 		void force_recheck();
 		void save_resume_data(int flags);
 
-		bool need_save_resume_data() const
-		{
-			// save resume data every 15 minutes regardless, just to
-			// keep stats up to date
-			return m_need_save_resume_data ||
-				aux::time_now32() - m_last_saved_resume > minutes(15);
-		}
+		bool need_save_resume_data() const { return m_need_save_resume_data; }
 
 		void set_need_save_resume()
 		{
@@ -1023,7 +1017,7 @@ namespace libtorrent
 		// renames the file with the given index to the new name
 		// the name may include a directory path
 		// returns false on failure
-		void rename_file(file_index_t index, std::string const& name);
+		void rename_file(file_index_t index, std::string name);
 
 		// unless this returns true, new connections must wait
 		// with their initialization.
@@ -1160,6 +1154,10 @@ namespace libtorrent
 			, file_index_t const file_idx
 			, storage_error const& error);
 		void on_cache_flushed();
+
+		// this is used when a torrent is being removed.It synchronizes with the
+		// disk thread
+		void on_torrent_aborted();
 
 		// upload and download rate limits for the torrent
 		void set_limit_impl(int limit, int channel, bool state_update = true);
@@ -1355,8 +1353,6 @@ namespace libtorrent
 
 		// m_num_verified = m_verified.count()
 		std::uint32_t m_num_verified = 0;
-
-		time_point32 m_last_saved_resume = aux::time_now32();
 
 		// if this torrent is running, this was the time
 		// when it was started. This is used to have a

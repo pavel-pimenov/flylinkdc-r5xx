@@ -53,8 +53,8 @@ POSSIBILITY OF SUCH DAMAGE.
 // that will be sent to the tracker. The user-agent will also be used to identify the
 // client with other peers.
 //
-namespace libtorrent
-{
+namespace libtorrent {
+
 	namespace aux { struct session_impl; struct session_settings; }
 
 	struct settings_pack;
@@ -199,11 +199,6 @@ namespace libtorrent
 			// GUID must be uppercased string embraced in curly brackets.
 			// ``{E4F0B674-0DFC-48BB-98A5-2AA730BDB6D6}::7777`` - will accept
 			// connections on port 7777 on adapter with this GUID.
-			//
-			// .. note::
-			//   The current support for opening arbitrary UDP sockets is limited.
-			//   In this version of libtorrent, there will only ever be two UDP
-			//   sockets, one for IPv4 and one for IPv6.
 			listen_interfaces,
 
 			// when using a poxy, this is the hostname where the proxy is running
@@ -716,8 +711,7 @@ namespace libtorrent
 		{
 			// ``tracker_completion_timeout`` is the number of seconds the tracker
 			// connection will wait from when it sent the request until it
-			// considers the tracker to have timed-out. Default value is 60
-			// seconds.
+			// considers the tracker to have timed-out.
 			tracker_completion_timeout = int_type_base,
 
 			// ``tracker_receive_timeout`` is the number of seconds to wait to
@@ -727,9 +721,11 @@ namespace libtorrent
 			// occur.
 			tracker_receive_timeout,
 
-			// the time to wait when sending a stopped message before considering
-			// a tracker to have timed out. this is usually shorter, to make the
-			// client quit faster
+			// ``stop_tracker_timeout`` is the number of seconds to wait when
+			// sending a stopped message before considering a tracker to have
+			// timed out. This is usually shorter, to make the client quit faster.
+			// If the value is set to 0, the connections to trackers with the
+			// stopped event are suppressed.
 			stop_tracker_timeout,
 
 			// this is the maximum number of bytes in a tracker response. If a
@@ -1434,7 +1430,7 @@ namespace libtorrent
 			max_metadata_size,
 
 #ifndef TORRENT_NO_DEPRECATE
-			// DEPRECTED: use aio_threads instead
+			// DEPRECATED: use aio_threads instead
 
 			// ``hashing_threads`` is the number of threads to use for piece hash
 			// verification. It defaults to 1. For very high download rates, on

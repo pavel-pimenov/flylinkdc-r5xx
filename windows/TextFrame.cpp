@@ -17,10 +17,10 @@
  */
 
 #include "stdafx.h"
-
 #include "Resource.h"
-
 #include "TextFrame.h"
+
+#ifdef FLYLINKDC_USE_VIEW_AS_TEXT_OPTION
 #include "../client/File.h"
 
 #define MAX_TEXT_LEN 32768
@@ -138,6 +138,8 @@ void TextFrame::on(SettingsManagerListener::Repaint)
 		RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
 	}
 }
+
+#endif
 
 /**
  * @file

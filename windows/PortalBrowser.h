@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "TextFrame.h"
+#include "flattabctrl.h"
 
 // https://flylinkdc.googlecode.com/svn/extension/PortalBrowser/PortalBrowser/PortalBrowser.h
 
@@ -34,11 +34,9 @@ class IPortalList
 		virtual LPCWSTR GetName(size_t indPortal) const = 0;
 		virtual LPCWSTR GetHubUrl(size_t indPortal) const = 0;
 		virtual PORTAL_DATA const *GetData(size_t indPortal) const = 0;
-		
 		virtual size_t GetSearchCount(size_t indPortal) const = 0;
 		virtual LPCWSTR GetSearchName(size_t indPortal, size_t indSearch) const = 0;
 		virtual SEARCH_DATA_STRUCT const *GetSearchData(size_t indPortal, size_t indSearch) const = 0;
-		
 		virtual HBITMAP GetBitmap(size_t indPortal, bool bSmall) const = 0;
 };
 

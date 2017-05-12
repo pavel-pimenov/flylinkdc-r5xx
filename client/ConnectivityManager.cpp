@@ -127,30 +127,34 @@ void ConnectivityManager::detectConnection()
 }
 void ConnectivityManager::test_all_ports()
 {
-	if (SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_FIREWALL_PASSIVE && !ClientManager::isBeforeShutdown())
+	extern bool g_DisableTestPort;
+	if (g_DisableTestPort == false)
 	{
-		// Test Port
-		string l_external_ip;
-		std::vector<unsigned short> l_udp_port, l_tcp_port;
-		l_udp_port.push_back(SETTING(UDP_PORT));
-#ifdef STRONG_USE_DHT
-		l_udp_port.push_back(SETTING(DHT_PORT));
-#endif
-		l_tcp_port.push_back(SETTING(TCP_PORT));
-		l_tcp_port.push_back(SETTING(TLS_PORT));
-		if (CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0,
-#ifdef STRONG_USE_DHT
-		                                 "UDP+DHT+TCP+TLS"
-#else
-		                                 "UDP+TCP+TLS"
-#endif
-		                                ))
+		if (SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_FIREWALL_PASSIVE && !ClientManager::isBeforeShutdown())
 		{
-			if (!l_external_ip.empty())
+			// Test Port
+			string l_external_ip;
+			std::vector<unsigned short> l_udp_port, l_tcp_port;
+			l_udp_port.push_back(SETTING(UDP_PORT));
+#ifdef STRONG_USE_DHT
+			l_udp_port.push_back(SETTING(DHT_PORT));
+#endif
+			l_tcp_port.push_back(SETTING(TCP_PORT));
+			l_tcp_port.push_back(SETTING(TLS_PORT));
+			if (CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0,
+#ifdef STRONG_USE_DHT
+			                                 "UDP+DHT+TCP+TLS"
+#else
+			                                 "UDP+TCP+TLS"
+#endif
+			                                ))
 			{
-				if (!BOOLSETTING(WAN_IP_MANUAL))
+				if (!l_external_ip.empty())
 				{
-					SET_SETTING(EXTERNAL_IP, l_external_ip);
+					if (!BOOLSETTING(WAN_IP_MANUAL))
+					{
+						SET_SETTING(EXTERNAL_IP, l_external_ip);
+					}
 				}
 			}
 		}

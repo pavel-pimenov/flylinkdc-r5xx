@@ -1,8 +1,10 @@
 #include "stdafx.h"
+#include <fstream>
+
+#pragma warning(disable: 4458)
 #include "PortalBrowser.h"
 #include "MainFrm.h"
 #include "WinUtil.h"
-#include <fstream>
 
 std::map<std::wstring, PortalBrowserFrame*> PortalBrowserFrame::g_portal_frames;
 FastCriticalSection PortalBrowserFrame::g_cs;

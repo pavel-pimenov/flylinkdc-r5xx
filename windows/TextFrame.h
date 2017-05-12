@@ -21,9 +21,10 @@
 
 #pragma once
 
-
 #include "FlatTabCtrl.h"
 #include "WinUtil.h"
+
+#ifdef FLYLINKDC_USE_VIEW_AS_TEXT_OPTION
 
 class TextFrame : public MDITabChildWindowImpl<TextFrame>, private SettingsManagerListener
 #ifdef _DEBUG
@@ -90,6 +91,8 @@ class TextFrame : public MDITabChildWindowImpl<TextFrame>, private SettingsManag
 		
 		static DWORD CALLBACK EditStreamCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb);
 };
+
+#endif
 
 #endif // !defined(TEXT_FRAME_H)
 

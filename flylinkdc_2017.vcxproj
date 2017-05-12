@@ -120,7 +120,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\openssl\include;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\windows;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\client;$(SolutionDir)\libtorrent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\openssl\include;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\windows;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\client;$(SolutionDir)\libtorrent\include;$(SolutionDir)\selene\include;$(SolutionDir)\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -176,7 +176,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\openssl\include;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\windows;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\client;$(SolutionDir)\libtorrent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\openssl\include;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\windows;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\client;$(SolutionDir)\libtorrent\include;$(SolutionDir)\selene\include;$(SolutionDir)\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -239,7 +239,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\openssl\include;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\windows;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\client;$(SolutionDir)\libtorrent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\openssl\include;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\windows;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\client;$(SolutionDir)\libtorrent\include;$(SolutionDir)\selene\include;$(SolutionDir)\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -313,7 +313,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\openssl\include;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\windows;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\client;$(SolutionDir)\libtorrent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\openssl\include;$(SolutionDir)\wtl;$(SolutionDir)\zlib;$(SolutionDir)\windows;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\client;$(SolutionDir)\libtorrent\include;$(SolutionDir)\selene\include;$(SolutionDir)\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>UNICODE;_UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -869,6 +869,9 @@
     </ProjectReference>
     <ProjectReference Include="libtorrent\libtorrent_2017.vcxproj">
       <Project>{a2c26111-84f5-4ca3-85b8-bd80f1921238}</Project>
+    </ProjectReference>
+    <ProjectReference Include="lua\lua_2017.vcxproj">
+      <Project>{8cab66de-3f50-4135-9bed-395c253ea7dc}</Project>
     </ProjectReference>
     <ProjectReference Include="MediaInfoLib\MediaInfoLib_2017.vcxproj">
       <Project>{20e0f8d6-213c-460b-b361-9c725cb375c7}</Project>

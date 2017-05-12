@@ -42,8 +42,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace std::placeholders;
 
-namespace libtorrent
-{
+namespace libtorrent {
+
 	timeout_handler::timeout_handler(io_service& ios)
 		: m_start_time(clock_type::now())
 		, m_read_time(m_start_time)
@@ -169,6 +169,11 @@ namespace libtorrent
 		if (cb) cb->tracker_request_error(m_req, code, ec, msg.c_str()
 			, interval.count() == 0 ? min_interval : interval);
 		close();
+	}
+
+	address tracker_connection::bind_interface() const
+	{
+		return m_req.outgoing_socket->get_local_endpoint().address();
 	}
 
 	void tracker_connection::sent_bytes(int bytes)
@@ -370,19 +375,21 @@ namespace libtorrent
 		return p->on_receive_hostname(hostname, buf);
 	}
 
-	void tracker_manager::send_hostname(char const* hostname, int const port
+	void tracker_manager::send_hostname(aux::session_listen_socket* sock
+		, char const* hostname, int const port
 		, span<char const> p, error_code& ec, int const flags)
 	{
 		TORRENT_ASSERT(is_single_thread());
-		m_send_fun_hostname(hostname, port, p, ec, flags);
+		m_send_fun_hostname(sock, hostname, port, p, ec, flags);
 	}
 
-	void tracker_manager::send(udp::endpoint const& ep
+	void tracker_manager::send(aux::session_listen_socket* sock
+		, udp::endpoint const& ep
 		, span<char const> p
 		, error_code& ec, int const flags)
 	{
 		TORRENT_ASSERT(is_single_thread());
-		m_send_fun(ep, p, ec, flags);
+		m_send_fun(sock, ep, p, ec, flags);
 	}
 
 	void tracker_manager::abort_all_requests(bool all)

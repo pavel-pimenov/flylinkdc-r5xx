@@ -103,14 +103,11 @@ class QueueItem : public Flags
 #endif
 			/** Autodrop slow source is enabled for this file */
 			FLAG_AUTODROP = 0x100,
-			/** [+] SSA - check User IP */
 			FLAG_USER_GET_IP = 0x200,
-			/** [+] SSA - dclst support */
 			FLAG_DCLST_LIST = 0x400,
-			/** [+] SSA - media preview */
 			FLAG_MEDIA_VIEW = 0x800,
-			/** [+] IRainman - open file */
 			FLAG_OPEN_FILE = 0x1000,
+			FLAG_TORRENT_FILE = 0x2000
 		};
 		
 		bool isUserList() const

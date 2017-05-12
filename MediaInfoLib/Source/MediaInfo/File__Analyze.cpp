@@ -1196,6 +1196,7 @@ void File__Analyze::Open_Buffer_SegmentChange ()
 void File__Analyze::Open_Buffer_Unsynch ()
 {
     Status[IsFinished]=false;
+    Config->IsFinishing=false;
     FrameInfo=frame_info();
     FrameInfo_Previous=frame_info();
     FrameInfo_Next=frame_info();
@@ -1262,8 +1263,10 @@ void File__Analyze::Open_Buffer_Finalize (bool NoBufferModification)
     if (!NoBufferModification && !Config->IsFinishing)
     {
         Config->IsFinishing=true;
+        int64u FileSize_Real=File_Size;
         File_Size=File_Offset+Buffer_Size;
         Open_Buffer_Continue((const int8u*)NULL, 0);
+        File_Size=FileSize_Real;
         #if MEDIAINFO_DEMUX
             if (Config->Demux_EventWasSent)
             {
@@ -3084,6 +3087,8 @@ void File__Analyze::ForceFinish ()
             if (Config->Demux_EventWasSent)
                 return;
         #endif //MEDIAINFO_DEMUX
+        if (FrameInfo.DTS==(int64u)-1 && FrameInfo_Previous.DTS!=(int64u)-1)
+            FrameInfo=FrameInfo_Previous;
         Streams_Finish();
         #if MEDIAINFO_DEMUX
             if (Config->Demux_EventWasSent)

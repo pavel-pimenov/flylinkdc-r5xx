@@ -471,7 +471,6 @@
 	<string name="ExitOnHashingDoneText">Exit program after completion of indexing</string>
 	<string name="ExpandedResults">Expand search results</string>
 	<string name="ExpandAll">Expand All</string>
-	<string name="ExternalPreview">Preview text files in external program</string>
 	<string name="ExtraslotToDl">Extra-slot to users I'm downloading from</string>
 	<string name="ExtraHubSlots">Slots per hub</string>
 	<string name="ExtraSlotsSet">Extra-slots set</string>
@@ -959,7 +958,6 @@
 	<string name="Open">Open</string>
 	<string name="OpenFolder">Open folder</string>
 	<string name="OpenHubLog">Open hub log</string>
-	<string name="OpenLogsInternal">Open log files internally (performance may decrease when opening huge log files)</string>
 	<string name="OpenUserLog">Open user log</string>
 	<string name="Outgoing">outgoing</string>
 	<string name="OverlappedSlowSegment">Overlapped by faster user</string>
@@ -1401,7 +1399,7 @@
 	<string name="SettingsOperacolors">Progressbar colors</string>
 	<string name="SettingsOptions">Options</string>
 	<string name="SettingsOutgoing">Outgoing connection settings</string>
-	<string name="SettingsOverride">Don't allow hub/UPnP to override</string>
+	<string name="SettingsNoIpOverride">Don't allow hub/UPnP to override</string>
 	<string name="SettingsParams">Params</string>
 	<string name="SettingsPassword">Password</string>
 	<string name="SettingsPasswordHint">Password hint</string>
@@ -1640,6 +1638,10 @@
 	<string name="TextStatRequest">To improve the program FlylinkDC++ collects anonymous\r\nusage statistics and transmits it to the developers.\r\nAccording to the law of many countries FlylinkDC++ needs\r\nyour permission to do so.\r\nAllow the program to collect and send anonymous usage statistics to developers?</string>
 	<string name="TextStatInfo">To improve the program FlylinkDC++ collects anonymous\r\nusage statistics and transmits it to the developers.\r\nAccording to the law of many countries FlylinkDC++ are\r\nobliged to inform about this fact.</string>
 	<string name="TextStr">Text</string>
+	<string name="TorrentComment">Torrent count comments</string>
+	<string name="TorrentDate">Torrent date</string>
+	<string name="TorrentUrl">Torrent URL</string>
+	<string name="TorrentPage">Torrent page</string>
 	<string name="Tth">TTH</string>
 	<string name="FavEnemyUser">Enemy user/Speed Ban</string>
 	<string name="FavUser">Favorite user</string>
@@ -1687,6 +1689,7 @@
 	<string name="TthAlreadyShared">A file with the same hash already exists in your share</string>
 	<string name="TthInconsistency">TTH Inconsistency</string>
 	<string name="TthRoot">TTH Root</string>
+	<string name="TthRootOrTorrentMagnet">TTH or torrent magnet</string>
 	<string name="TwoColors">Two colors</string>
 	<string name="Type">Type</string>
 	<string name="U">U:</string>

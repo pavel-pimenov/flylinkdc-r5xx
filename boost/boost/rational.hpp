@@ -156,9 +156,9 @@ public:
     BOOST_CONSTEXPR rational(const T& n, typename enable_if_c<
        rational_detail::is_compatible_integer<T, IntType>::value
     >::type const* = 0) : num(n), den(1) {}
-    template <class T>
-    rational(const T& n, const T& d, typename enable_if_c<
-       rational_detail::is_compatible_integer<T, IntType>::value
+    template <class T, class U>
+    rational(const T& n, const U& d, typename enable_if_c<
+       rational_detail::is_compatible_integer<T, IntType>::value && rational_detail::is_compatible_integer<U, IntType>::value
     >::type const* = 0) : num(n), den(d) {
        normalize();
     }
@@ -185,10 +185,10 @@ public:
     >::type operator=(const T& n) { return assign(static_cast<IntType>(n), static_cast<IntType>(1)); }
 
     // Assign in place
-    template <class T>
+    template <class T, class U>
     typename enable_if_c<
-       rational_detail::is_compatible_integer<T, IntType>::value, rational &
-    >::type assign(const T& n, const T& d)
+       rational_detail::is_compatible_integer<T, IntType>::value && rational_detail::is_compatible_integer<U, IntType>::value, rational &
+    >::type assign(const T& n, const U& d)
     {
        return *this = rational<IntType>(static_cast<IntType>(n), static_cast<IntType>(d));
     }
@@ -210,12 +210,16 @@ public:
     {
        assign(n, static_cast<T>(1));
     }
-    template <class T>
-    rational(const T& n, const T& d, typename enable_if_c<
-       std::numeric_limits<T>::is_specialized && std::numeric_limits<T>::is_integer
-       && !rational_detail::is_compatible_integer<T, IntType>::value
+    template <class T, class U>
+    rational(const T& n, const U& d, typename enable_if_c<
+       (!rational_detail::is_compatible_integer<T, IntType>::value
+       || !rational_detail::is_compatible_integer<U, IntType>::value)
+       && std::numeric_limits<T>::is_specialized && std::numeric_limits<T>::is_integer
        && (std::numeric_limits<T>::radix == std::numeric_limits<IntType>::radix)
-       && is_convertible<T, IntType>::value
+       && is_convertible<T, IntType>::value &&
+       std::numeric_limits<U>::is_specialized && std::numeric_limits<U>::is_integer
+       && (std::numeric_limits<U>::radix == std::numeric_limits<IntType>::radix)
+       && is_convertible<U, IntType>::value
     >::type const* = 0)
     {
        assign(n, d);
@@ -229,14 +233,18 @@ public:
        rational &
     >::type operator=(const T& n) { return assign(n, static_cast<T>(1)); }
 
-    template <class T>
+    template <class T, class U>
     typename enable_if_c<
-       std::numeric_limits<T>::is_specialized && std::numeric_limits<T>::is_integer
-       && !rational_detail::is_compatible_integer<T, IntType>::value
+       (!rational_detail::is_compatible_integer<T, IntType>::value
+          || !rational_detail::is_compatible_integer<U, IntType>::value)
+       && std::numeric_limits<T>::is_specialized && std::numeric_limits<T>::is_integer
        && (std::numeric_limits<T>::radix == std::numeric_limits<IntType>::radix)
-       && is_convertible<T, IntType>::value,
+       && is_convertible<T, IntType>::value &&
+       std::numeric_limits<U>::is_specialized && std::numeric_limits<U>::is_integer
+       && (std::numeric_limits<U>::radix == std::numeric_limits<IntType>::radix)
+       && is_convertible<U, IntType>::value,
        rational &
-    >::type assign(const T& n, const T& d)
+    >::type assign(const T& n, const U& d)
     {
        if(!is_safe_narrowing_conversion(n) || !is_safe_narrowing_conversion(d))
           BOOST_THROW_EXCEPTION(bad_rational());
@@ -342,7 +350,7 @@ public:
     bool operator== (const rational& r) const;
 
     template <class T>
-    typename boost::enable_if_c<rational_detail::is_compatible_integer<T, IntType>::value, bool>::type operator< (const T& i)
+    typename boost::enable_if_c<rational_detail::is_compatible_integer<T, IntType>::value, bool>::type operator< (const T& i) const
     {
        // Avoid repeated construction
        int_type const  zero(0);
@@ -359,12 +367,12 @@ public:
        return q < i;
     }
     template <class T>
-    typename boost::enable_if_c<rational_detail::is_compatible_integer<T, IntType>::value, bool>::type operator>(const T& i)
+    typename boost::enable_if_c<rational_detail::is_compatible_integer<T, IntType>::value, bool>::type operator>(const T& i) const
     {
        return operator==(i) ? false : !operator<(i);
     }
     template <class T>
-    BOOST_CONSTEXPR typename boost::enable_if_c<rational_detail::is_compatible_integer<T, IntType>::value, bool>::type operator== (const T& i)
+    BOOST_CONSTEXPR typename boost::enable_if_c<rational_detail::is_compatible_integer<T, IntType>::value, bool>::type operator== (const T& i) const
     {
        return ((den == IntType(1)) && (num == i));
     }
@@ -399,12 +407,19 @@ private:
         return d > zero && ( n != zero || d == one ) && inner_abs( inner_gcd(n,
          d, zero), zero ) == one;
     }
-
+    //
+    // Conversion checks:
+    //
+    // (1) From an unsigned type with more digits than IntType:
+    //
     template <class T>
     BOOST_CONSTEXPR static typename boost::enable_if_c<(std::numeric_limits<T>::digits > std::numeric_limits<IntType>::digits) && (std::numeric_limits<T>::is_signed == false), bool>::type is_safe_narrowing_conversion(const T& val)
     {
        return val < (T(1) << std::numeric_limits<IntType>::digits);
     }
+    //
+    // (2) From a signed type with more digits than IntType, and IntType also signed:
+    //
     template <class T>
     BOOST_CONSTEXPR static typename boost::enable_if_c<(std::numeric_limits<T>::digits > std::numeric_limits<IntType>::digits) && (std::numeric_limits<T>::is_signed == true) && (std::numeric_limits<IntType>::is_signed == true), bool>::type is_safe_narrowing_conversion(const T& val)
     {
@@ -414,18 +429,43 @@ private:
        // is from Boost.Multiprecision).
        return (val < (T(1) << std::numeric_limits<IntType>::digits)) && (val >= -(T(1) << std::numeric_limits<IntType>::digits));
     }
+    //
+    // (3) From a signed type with more digits than IntType, and IntType unsigned:
+    //
     template <class T>
     BOOST_CONSTEXPR static typename boost::enable_if_c<(std::numeric_limits<T>::digits > std::numeric_limits<IntType>::digits) && (std::numeric_limits<T>::is_signed == true) && (std::numeric_limits<IntType>::is_signed == false), bool>::type is_safe_narrowing_conversion(const T& val)
     {
        return (val < (T(1) << std::numeric_limits<IntType>::digits)) && (val >= 0);
     }
+    //
+    // (4) From a signed type with fewer digits than IntType, and IntType unsigned:
+    //
     template <class T>
     BOOST_CONSTEXPR static typename boost::enable_if_c<(std::numeric_limits<T>::digits <= std::numeric_limits<IntType>::digits) && (std::numeric_limits<T>::is_signed == true) && (std::numeric_limits<IntType>::is_signed == false), bool>::type is_safe_narrowing_conversion(const T& val)
     {
        return val >= 0;
     }
+    //
+    // (5) From an unsigned type with fewer digits than IntType, and IntType signed:
+    //
     template <class T>
     BOOST_CONSTEXPR static typename boost::enable_if_c<(std::numeric_limits<T>::digits <= std::numeric_limits<IntType>::digits) && (std::numeric_limits<T>::is_signed == false) && (std::numeric_limits<IntType>::is_signed == true), bool>::type is_safe_narrowing_conversion(const T&)
+    {
+       return true;
+    }
+    //
+    // (6) From an unsigned type with fewer digits than IntType, and IntType unsigned:
+    //
+    template <class T>
+    BOOST_CONSTEXPR static typename boost::enable_if_c<(std::numeric_limits<T>::digits <= std::numeric_limits<IntType>::digits) && (std::numeric_limits<T>::is_signed == false) && (std::numeric_limits<IntType>::is_signed == false), bool>::type is_safe_narrowing_conversion(const T&)
+    {
+       return true;
+    }
+    //
+    // (7) From an signed type with fewer digits than IntType, and IntType signed:
+    //
+    template <class T>
+    BOOST_CONSTEXPR static typename boost::enable_if_c<(std::numeric_limits<T>::digits <= std::numeric_limits<IntType>::digits) && (std::numeric_limits<T>::is_signed == true) && (std::numeric_limits<IntType>::is_signed == true), bool>::type is_safe_narrowing_conversion(const T&)
     {
        return true;
     }

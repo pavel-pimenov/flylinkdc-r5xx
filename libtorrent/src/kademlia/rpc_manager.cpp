@@ -59,8 +59,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace std::placeholders;
 
-namespace libtorrent { namespace dht
-{
+namespace libtorrent { namespace dht {
 
 // TODO: 3 move this into it's own .cpp file
 dht_observer* observer::get_observer() const
@@ -133,7 +132,7 @@ void observer::set_id(node_id const& id)
 {
 	if (m_id == id) return;
 	m_id = id;
-	if (m_algorithm) m_algorithm->resort_results();
+	if (m_algorithm) m_algorithm->resort_result(this);
 }
 
 using observer_storage = aux::aligned_union<1
@@ -149,10 +148,13 @@ using observer_storage = aux::aligned_union<1
 
 rpc_manager::rpc_manager(node_id const& our_id
 	, dht_settings const& settings
-	, routing_table& table, udp_socket_interface* sock
+	, routing_table& table
+	, aux::session_listen_socket* sock
+	, socket_manager* sock_man
 	, dht_logger* log)
 	: m_pool_allocator(sizeof(observer_storage), 10)
 	, m_sock(sock)
+	, m_sock_man(sock_man)
 #ifndef TORRENT_DISABLE_LOGGING
 	, m_log(log)
 #endif
@@ -481,7 +483,7 @@ bool rpc_manager::invoke(entry& e, udp::endpoint const& target_addr
 	}
 #endif
 
-	if (m_sock->send_packet(e, target_addr))
+	if (m_sock_man->send_packet(m_sock, e, target_addr))
 	{
 		m_transactions.insert(std::make_pair(tid, o));
 #if TORRENT_USE_ASSERTS

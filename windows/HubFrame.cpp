@@ -23,7 +23,6 @@
 #include "HubFrame.h"
 #include "SearchFrm.h"
 #include "PrivateFrame.h"
-#include "TextFrame.h"
 #include "ChatBot.h"
 #include "BarShader.h"
 #include "../client/QueueManager.h"
@@ -3198,7 +3197,10 @@ LRESULT HubFrame::onFollow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/,
 		if (ClientManager::isConnected(m_redirect))
 		{
 			addStatus(TSTRING(REDIRECT_ALREADY_CONNECTED), true, false, Colors::g_ChatTextServer);
-			CFlyServerJSON::pushError(46, "HubFrame::onFollow " + getHubHint() + " -> " + m_redirect + " ALREADY CONNECTED");
+			if (CFlyServerConfig::g_is_use_log_redirect)
+			{
+				CFlyServerJSON::pushError(46, "HubFrame::onFollow " + getHubHint() + " -> " + m_redirect + " ALREADY CONNECTED");
+			}
 			return 0;
 		}
 		//dcassert(g_frames.find(server) != g_frames.end());
@@ -3610,11 +3612,14 @@ void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 		{
 			//redirAdr = l_reserve_server;
 			l_is_double_redir = true;
-			const string l_redirect = "HubFrame::on(Redirect) " + getHubHint() + " -> " + redirAdr + " REDIRECT_ALREADY_CONNECTED!";
-			if (m_last_redirect != l_redirect)
+			if (CFlyServerConfig::g_is_use_log_redirect)
 			{
-				m_last_redirect = l_redirect;
-				CFlyServerJSON::pushError(l_code, m_last_redirect);
+				const string l_redirect = "HubFrame::on(Redirect) " + getHubHint() + " -> " + redirAdr + " REDIRECT_ALREADY_CONNECTED!";
+				if (m_last_redirect != l_redirect)
+				{
+					m_last_redirect = l_redirect;
+					CFlyServerJSON::pushError(l_code, m_last_redirect);
+				}
 			}
 		}
 	}
@@ -3633,11 +3638,14 @@ void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 			}
 			*/
 		}
-		const string l_redirect = "HubFrame::on(Redirect) " + l_loop_message + getHubHint() + " -> " + m_redirect + " auto follow = " + Util::toString(BOOLSETTING(AUTO_FOLLOW));
-		if (m_last_redirect != l_redirect)
+		if (CFlyServerConfig::g_is_use_log_redirect)
 		{
-			m_last_redirect = l_redirect;
-			CFlyServerJSON::pushError(l_loop_message.empty() ? l_code : 51, m_last_redirect);
+			const string l_redirect = "HubFrame::on(Redirect) " + l_loop_message + getHubHint() + " -> " + m_redirect + " auto follow = " + Util::toString(BOOLSETTING(AUTO_FOLLOW));
+			if (m_last_redirect != l_redirect)
+			{
+				m_last_redirect = l_redirect;
+				CFlyServerJSON::pushError(l_loop_message.empty() ? l_code : 51, m_last_redirect);
+			}
 		}
 	}
 #ifdef FLYLINKDC_USE_AUTO_FOLLOW

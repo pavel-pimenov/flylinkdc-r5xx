@@ -131,6 +131,11 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		COMMAND_ID_HANDLER(IDC_SEARCH_PAUSE, onPause)
 		COMMAND_ID_HANDLER(IDC_COPY_NICK, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_FILENAME, onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_TORRENT_DATE, onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_TORRENT_COMMENT, onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_TORRENT_URL, onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_TORRENT_PAGE, onCopy)
+		
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		MESSAGE_HANDLER(WM_SPEAKER_MERGE_FLY_SERVER, onMergeFlyServerResult)
 		COMMAND_ID_HANDLER(IDC_COPY_FLYSERVER_INFORM, onCopy)
@@ -480,6 +485,10 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #endif
 			COLUMN_TTH,
 			COLUMN_P2P_GUARD,
+			COLUMN_TORRENT_COMMENT,
+			COLUMN_TORRENT_DATE,
+			COLUMN_TORRENT_URL,
+			COLUMN_TORRENT_PAGE,
 			COLUMN_LAST
 		};
 		
@@ -501,7 +510,6 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			LESS,
 			NOT_EQUAL
 		};
-		
 		class SearchInfo : public UserInfoBase
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 			, public CFlyServerInfo
@@ -511,7 +519,9 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				typedef SearchInfo* Ptr;
 				typedef vector<Ptr> Array;
 				
-				SearchInfo(const SearchResult &aSR) : m_sr(aSR), collapsed(true), parent(nullptr), m_hits(0), m_icon_index(-1), m_is_flush_ip_to_sqlite(false)
+				SearchInfo(const SearchResult &aSR) : m_sr(aSR), collapsed(true), parent(nullptr),
+					m_hits(0), m_icon_index(-1), m_is_flush_ip_to_sqlite(false),
+					m_is_torrent(false)
 				{
 				}
 				~SearchInfo()
@@ -522,7 +532,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				{
 					return m_sr.getUser();
 				}
-				
+				bool m_is_torrent;
 				bool collapsed;
 				SearchInfo* parent;
 				size_t m_hits;
@@ -534,10 +544,10 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				void view();
 				struct Download
 				{
-					Download(const tstring& aTarget, SearchFrame* aSf, QueueItem::Priority aPrio, QueueItem::MaskType aMask = 0) : m_tgt(aTarget), sf(aSf), prio(aPrio), mask(aMask) { }
+					Download(const tstring& aTarget, SearchFrame* aSf, QueueItem::Priority aPrio, QueueItem::MaskType aMask = 0) : m_tgt(aTarget), m_sf(aSf), prio(aPrio), mask(aMask) { }
 					void operator()(const SearchInfo* si);
 					const tstring m_tgt;
-					SearchFrame* sf;
+					SearchFrame* m_sf;
 					QueueItem::Priority prio;
 					QueueItem::MaskType mask;
 				};
@@ -580,26 +590,6 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				{
 					return columns[COLUMN_TTH];
 				}
-				/*
-				void updateMainItem()
-				{
-				    uint32_t total = parent->subItems.size();
-				    if (total != 0)
-				    {
-				        LocalArray<TCHAR, 256> buf;
-				        _snwprintf(buf, buf.size(), _T("%d %s"), total + 1, CTSTRING(USERS));
-				
-				        parent->columns[COLUMN_HITS] = buf;
-				        if (total == 1)
-				            parent->columns[COLUMN_SIZE] = columns[COLUMN_SIZE];
-				    }
-				    else
-				    {
-				        parent->columns[COLUMN_HITS].clear();
-				    }
-				}
-				*/
-				
 				Util::CustomNetworkIndex m_location;
 				bool m_is_flush_ip_to_sqlite;
 				SearchResult m_sr;
@@ -646,13 +636,12 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		enum Speakers
 		{
 			ADD_RESULT,
-			//FILTER_RESULT,[-]IRainman optimize SearchFrame
 			HUB_ADDED,
 			HUB_CHANGED,
 			HUB_REMOVED,
 			QUEUE_STATS,
-			UPDATE_STATUS, // [+] IRainman opt.
-			//SEARCH_START
+			UPDATE_STATUS,
+			PREPARE_RESULT_TORRENT
 		};
 		
 		tstring m_initialString;
@@ -663,17 +652,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CStatusBarCtrl ctrlStatus;
 		CEdit ctrlSearch;
 		CComboBox ctrlSearchBox;
-		void init_last_search_box()
-		{
-			while (ctrlSearchBox.GetCount())
-			{
-				ctrlSearchBox.DeleteString(0);
-			}
-			for (auto i = g_lastSearches.cbegin(); i != g_lastSearches.cend(); ++i)
-			{
-				ctrlSearchBox.AddString(i->c_str());
-			}
-		}
+		void init_last_search_box();
 		
 		CEdit ctrlSize;
 		CComboBox ctrlMode;
@@ -780,6 +759,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		OMenu targetDirMenu;
 		OMenu priorityMenu;
 		OMenu copyMenu;
+		OMenu copyMenuTorrent;
 		OMenu tabMenu; // [+] InfinitySky
 		
 		StringList m_search;
@@ -895,6 +875,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		void downloadWholeSelected(const tstring& aDir);
 		void onEnter();
 		void onTab(bool shift);
+		int makeTargetMenu(const SearchInfo* p_si);
 		void download(SearchResult* aSR, const tstring& aDir, bool view);
 		
 		void on(SearchManagerListener::SR, const std::unique_ptr<SearchResult>& aResult) noexcept override;

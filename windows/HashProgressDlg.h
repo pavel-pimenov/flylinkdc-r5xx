@@ -80,7 +80,6 @@ class HashProgressDlg : public CDialogImpl<HashProgressDlg>, private CFlyTimerAd
 		bool bExitOnDone;
 		CProgressBarCtrl progress;
 		CButton ExitOnDoneButton;
-		string m_cur_mediainfo_file_tth;
 		CTrackBarCtrl m_Slider;
 #ifdef SCALOLAZ_HASH_HELPLINK
 		CFlyHyperLink m_HashHelp;

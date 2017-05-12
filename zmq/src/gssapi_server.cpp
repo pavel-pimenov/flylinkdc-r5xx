@@ -58,8 +58,8 @@ zmq::gssapi_server_t::gssapi_server_t (session_base_t *session_,
         principal_name = static_cast <char *>(malloc(principal_size+1));
         assert(principal_name);
         memcpy(principal_name, options_.gss_principal.c_str(), principal_size+1 );
-
-        if (acquire_credentials (principal_name, &cred) != 0)
+        gss_OID name_type = convert_nametype (options_.gss_principal_nt);
+        if (acquire_credentials (principal_name, &cred, name_type) != 0)
             maj_stat = GSS_S_FAILURE;
     }
 }

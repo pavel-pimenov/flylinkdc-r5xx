@@ -57,8 +57,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <boost/shared_array.hpp>
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 
-namespace libtorrent
-{
+namespace libtorrent {
+
 	// maps an operation id (from peer_error_alert and peer_disconnected_alert)
 	// to its name. See peer_connection for the constants
 	TORRENT_EXPORT char const* operation_name(int op);
@@ -1188,8 +1188,8 @@ namespace libtorrent
 		virtual std::string message() const override;
 	};
 
-	// This alert is posted when there is an error on the UDP socket. The
-	// UDP socket is used for all uTP, DHT and UDP tracker traffic. It's
+	// This alert is posted when there is an error on a UDP socket. The
+	// UDP sockets are used for all uTP, DHT and UDP tracker traffic. They are
 	// global to the session.
 	struct TORRENT_EXPORT udp_error_alert final : alert
 	{
@@ -1856,7 +1856,7 @@ namespace libtorrent
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-	struct TORRENT_DEPRECATED TORRENT_EXPORT mmap_cache_alert final : alert
+	struct TORRENT_DEPRECATED_EXPORT mmap_cache_alert final : alert
 	{
 		mmap_cache_alert(aux::stack_allocator& alloc
 			, error_code const& ec);

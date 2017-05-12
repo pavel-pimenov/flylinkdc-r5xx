@@ -36,7 +36,8 @@ class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 			StageWait,
 			StageWarn,
 			StageUnknown,
-			StageQuestion
+			StageQuestion,
+			StageDisableTest
 		};
 		void SetStage(int ID, StagesIcon stage);
 		void TestWinFirewall();

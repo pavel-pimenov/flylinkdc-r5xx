@@ -683,8 +683,8 @@ void upnp::try_map_upnp(bool timer)
 	}
 }
 
-void upnp::post(upnp::rootdevice const& d, char const* soap
-	, char const* soap_action)
+void upnp::post(upnp::rootdevice const& d, string_view const soap
+	, string_view const soap_action)
 {
 	TORRENT_ASSERT(is_single_thread());
 	TORRENT_ASSERT(d.magic == 1337);
@@ -695,17 +695,53 @@ void upnp::post(upnp::rootdevice const& d, char const* soap
 		"Host: %s:%u\r\n"
 		"Content-Type: text/xml; charset=\"utf-8\"\r\n"
 		"Content-Length: %d\r\n"
-		"Soapaction: \"%s#%s\"\r\n\r\n"
-		"%s"
+		"Soapaction: \"%s#%*s\"\r\n\r\n"
+		"%*s"
 		, d.path.c_str(), d.hostname.c_str(), d.port
-		, int(strlen(soap)), d.service_namespace.c_str(), soap_action
-		, soap);
+		, int(soap.size()), d.service_namespace.c_str()
+		, int(soap_action.size()), soap_action.data()
+		, int(soap.size()), soap.data());
 
 	d.upnp_connection->m_sendbuffer = header;
 
 #ifndef TORRENT_DISABLE_LOGGING
 	log("sending: %s", header);
 #endif
+}
+/*
+span<char> create_xml_tag(std::initializer_list<std::pair<string_view, string_view>> const args)
+{
+	span<char> buf;
+	for (auto const a : args)
+	{
+		int written = std::snprintf(buf.data(), buf.size(), "<%*s>%*s</%*s>\n"
+			, int(a.first.size()), a.first.data()
+			, int(a.second.size()), a.second.data()
+			, int(a.first.size()), a.first.data());
+		buf = buf.subspan(written);
+	}
+	return buf;
+}
+*/
+std::string upnp::create_soap(string_view const soap_action
+	, string_view const service_namespace, string_view const part)
+{
+//	auto const t = create_xml_tag(
+//	{ { "Body"_sv, soap_action},{ } }
+//	);
+
+	char soap[2048];
+	std::snprintf(soap, sizeof(soap), "<?xml version=\"1.0\"?>\n"
+		"<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" "
+		"s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
+		"<s:Body><u:%*s xmlns:u=\"%*s\">"
+		"%*s"
+		"</u:%*s></s:Body></s:Envelope>"
+		, int(soap_action.size()), soap_action.data()
+		, int(service_namespace.size()), service_namespace.data()
+		, int(part.size()), part.data()
+		, int(soap_action.size()), soap_action.data());
+	return soap;
 }
 
 void upnp::create_port_mapping(http_connection& c, rootdevice& d, int const i)
@@ -726,13 +762,10 @@ void upnp::create_port_mapping(http_connection& c, rootdevice& d, int const i)
 	char const* soap_action = "AddPortMapping";
 
 	error_code ec;
-	std::string local_endpoint = print_address(c.socket().local_endpoint(ec).address());
+	std::string const local_endpoint = print_address(c.socket().local_endpoint(ec).address());
 
-	char soap[2048];
-	std::snprintf(soap, sizeof(soap), "<?xml version=\"1.0\"?>\n"
-		"<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" "
-		"s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
-		"<s:Body><u:%s xmlns:u=\"%s\">"
+	char soap_body[2048];
+	std::snprintf(soap_body, sizeof(soap_body),
 		"<NewRemoteHost></NewRemoteHost>"
 		"<NewExternalPort>%u</NewExternalPort>"
 		"<NewProtocol>%s</NewProtocol>"
@@ -741,13 +774,16 @@ void upnp::create_port_mapping(http_connection& c, rootdevice& d, int const i)
 		"<NewEnabled>1</NewEnabled>"
 		"<NewPortMappingDescription>%s at %s:%d</NewPortMappingDescription>"
 		"<NewLeaseDuration>%u</NewLeaseDuration>"
-		"</u:%s></s:Body></s:Envelope>"
-		, soap_action, d.service_namespace.c_str(), d.mapping[i].external_port
-		, (d.mapping[i].protocol == portmap_protocol::udp ? "UDP" : "TCP")
+		, d.mapping[i].external_port
+		, d.mapping[i].protocol_name()
 		, d.mapping[i].local_port
 		, local_endpoint.c_str()
-		, m_user_agent.c_str(), local_endpoint.c_str(), d.mapping[i].local_port
-		, d.lease_duration, soap_action);
+		, m_user_agent.c_str()
+		, local_endpoint.c_str()
+		, d.mapping[i].local_port
+		, d.lease_duration);
+
+	auto const soap = create_soap(soap_action, d.service_namespace, soap_body);
 
 	post(d, soap, soap_action);
 }
@@ -851,20 +887,15 @@ void upnp::delete_port_mapping(rootdevice& d, int const i)
 
 	char const* soap_action = "DeletePortMapping";
 
-	char soap[2048];
-	error_code ec;
-	std::snprintf(soap, sizeof(soap), "<?xml version=\"1.0\"?>\n"
-		"<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" "
-		"s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
-		"<s:Body><u:%s xmlns:u=\"%s\">"
+	char soap_body[2048];
+	std::snprintf(soap_body, sizeof(soap_body),
 		"<NewRemoteHost></NewRemoteHost>"
 		"<NewExternalPort>%u</NewExternalPort>"
 		"<NewProtocol>%s</NewProtocol>"
-		"</u:%s></s:Body></s:Envelope>"
-		, soap_action, d.service_namespace.c_str()
 		, d.mapping[i].external_port
-		, (d.mapping[i].protocol == portmap_protocol::udp ? "UDP" : "TCP")
-		, soap_action);
+		, d.mapping[i].protocol_name());
+
+	auto const soap = create_soap(soap_action, d.service_namespace, soap_body);
 
 	post(d, soap, soap_action);
 }
@@ -1057,15 +1088,7 @@ void upnp::get_ip_address(rootdevice& d)
 	}
 
 	char const* soap_action = "GetExternalIPAddress";
-
-	char soap[2048];
-	std::snprintf(soap, sizeof(soap), "<?xml version=\"1.0\"?>\n"
-		"<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" "
-		"s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
-		"<s:Body><u:%s xmlns:u=\"%s\">"
-		"</u:%s></s:Body></s:Envelope>"
-		, soap_action, d.service_namespace.c_str()
-		, soap_action);
+	auto const soap = create_soap(soap_action, d.service_namespace, "");
 
 	post(d, soap, soap_action);
 }
@@ -1106,8 +1129,7 @@ void find_error_code(int const type, string_view string, error_code_parse_state&
 	}
 	else if (type == xml_string && state.in_error_code)
 	{
-		std::string error_code_str(string.begin(), string.end());
-		state.error_code = std::atoi(error_code_str.c_str());
+		state.error_code = std::atoi(string.to_string().c_str());
 		state.exit = true;
 	}
 }
@@ -1128,8 +1150,8 @@ void find_ip_address(int const type, string_view string, ip_address_parse_state&
 	}
 }
 
-namespace
-{
+namespace {
+
 	struct error_code_t
 	{
 		int code;

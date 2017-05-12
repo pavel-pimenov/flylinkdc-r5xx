@@ -49,10 +49,10 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace std::placeholders;
 
-namespace libtorrent
-{
-	namespace
-	{
+namespace libtorrent {
+
+	namespace {
+
 		inline bool default_pred(std::string const&) { return true; }
 
 		inline bool ignore_subdir(std::string const& leaf)
@@ -179,7 +179,7 @@ namespace libtorrent
 				st->iothread.abort(true);
 				return;
 			}
-			st->ct.set_hash(piece, sha1_hash(piece_hash));
+			st->ct.set_hash(piece, piece_hash);
 			st->f(st->completed_piece);
 			++st->completed_piece;
 			if (st->piece_counter < st->ct.files().end_piece())

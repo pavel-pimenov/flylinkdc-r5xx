@@ -2525,7 +2525,10 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 		tmp = fromUtf8(escape(p_search_param.m_filter));
 	}
 	std::replace(tmp.begin(), tmp.end(), ' ', '$');
+	extern bool g_DisableTestPort;
 	bool l_is_passive = p_search_param.m_is_force_passive_searh || BOOLSETTING(SEARCH_PASSIVE);
+	if (g_DisableTestPort == true)
+		l_is_passive = false;
 	if (SearchManager::getSearchPortUint() == 0)
 	{
 		l_is_passive = true;

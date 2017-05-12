@@ -30,6 +30,7 @@
 #include "wtl_flylinkdc.h"
 #include "leveldb/db.h"
 #include "libtorrent/version.hpp"
+#include "../lua/lua.h"
 
 class AboutDlg : public CDialogImpl<AboutDlg>
 #ifdef _DEBUG
@@ -115,6 +116,7 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    _T("MediaInfoLib 0.7.94\r\n")//MediaInfoLib::MediaInfo_Version _T("\r\n")
 			    _T("WTL 9.1\r\n")
 			    _T("XMLParser 2.43\r\n") //XMLParser::XMLNode::getVersion()
+			    _T(LUA_VERSION) _T("\r\n")
 			    _T("InnoSetup 5.5.9");
 			CEdit ctrlPartySoftware(GetDlgItem(IDC_THIRD_PARTY_SOFTWARE));
 			ctrlPartySoftware.FmtLines(TRUE);

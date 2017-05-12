@@ -53,10 +53,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/piece_block_progress.hpp"
 #include "libtorrent/config.hpp"
 #include "libtorrent/pe_crypto.hpp"
+#include "libtorrent/io.hpp"
 
-namespace libtorrent
-{
-	class torrent;
+namespace libtorrent {
 
 #ifndef TORRENT_DISABLE_EXTENSIONS
 	struct TORRENT_EXTRA_EXPORT ut_pex_peer_store
@@ -125,7 +124,7 @@ namespace libtorrent
 
 		enum message_type
 		{
-	// standard messages
+			// standard messages
 			msg_choke = 0,
 			msg_unchoke,
 			msg_interested,
@@ -272,6 +271,29 @@ namespace libtorrent
 #endif
 
 	private:
+
+		template <typename... Args>
+		void send_message(message_type const type
+			, counters::stats_counter_t const counter
+			, std::uint32_t flags
+			, Args... args)
+		{
+			TORRENT_ASSERT(m_sent_handshake);
+			TORRENT_ASSERT(m_sent_bitfield);
+
+			char msg[5 + sizeof...(Args) * 4]
+				= { 0,0,0,1 + sizeof...(Args) * 4, static_cast<char>(type) };
+			char* ptr = msg + 5;
+			TORRENT_UNUSED(ptr);
+
+			int tmp[] = {0, (detail::write_int32(args, ptr), 0)...};
+			TORRENT_UNUSED(tmp);
+
+			send_buffer(msg, flags);
+
+			stats_counters().inc_stats_counter(counter);
+		}
+
 		void write_dht_port();
 
 		bool dispatch_message(int received);
@@ -296,8 +318,8 @@ namespace libtorrent
 		void write_pe3_sync();
 		void write_pe4_sync(int crypto_select);
 
-		void write_pe_vc_cryptofield(char* write_buf, int len
-			, int crypto_field, int pad_size);
+		void write_pe_vc_cryptofield(span<char> write_buf
+			, int crypto_field, std::size_t pad_size);
 
 		// Returns offset at which bytestream (src, src + src_size)
 		// matches bytestream(target, target + target_size).

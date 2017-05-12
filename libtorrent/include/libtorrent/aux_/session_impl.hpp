@@ -36,6 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/config.hpp"
 #include "libtorrent/aux_/session_settings.hpp"
 #include "libtorrent/aux_/session_interface.hpp"
+#include "libtorrent/aux_/session_udp_sockets.hpp"
 #include "libtorrent/linked_list.hpp"
 #include "libtorrent/torrent_peer.hpp"
 #include "libtorrent/torrent_peer_allocator.hpp"
@@ -100,8 +101,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <cstdarg> // for va_start, va_end
 #include <unordered_map>
 
-namespace libtorrent
-{
+namespace libtorrent {
 
 	struct plugin;
 	struct upnp;
@@ -112,14 +112,35 @@ namespace libtorrent
 	struct cache_info;
 	struct torrent_handle;
 
-	namespace dht
-	{
-		struct dht_tracker;
-		class item;
-	}
+namespace dht {
 
-	struct listen_socket_t
+	struct dht_tracker;
+	class item;
+
+}
+
+namespace aux {
+
+		struct session_impl;
+		struct session_settings;
+
+#ifndef TORRENT_DISABLE_LOGGING
+		struct tracker_logger;
+#endif
+
+#ifndef TORRENT_DISABLE_DHT
+		TORRENT_EXTRA_EXPORT dht_settings read_dht_settings(bdecode_node const& e);
+		TORRENT_EXTRA_EXPORT entry save_dht_settings(dht_settings const& settings);
+#endif
+
+	struct listen_socket_t final : aux::session_listen_socket
 	{
+		address get_external_address() override
+		{ return external_address.external_address(); }
+
+		tcp::endpoint get_local_endpoint() override
+		{ return local_endpoint; }
+
 		listen_socket_t()
 		{
 			tcp_port_mapping[0] = -1;
@@ -158,14 +179,8 @@ namespace libtorrent
 		int tcp_port_mapping[2];
 		int udp_port_mapping[2];
 
-		// set to true if this is an SSL listen socket
-		bool ssl = false;
-
-		// this is true when the udp socket send() has failed with EAGAIN or
-		// EWOULDBLOCK. i.e. we're currently waiting for the socket to become
-		// writeable again. Once it is, we'll set it to false and notify the utp
-		// socket manager
-		bool udp_write_blocked = false;
+		// indicates whether this is an SSL listen socket or not
+		transport ssl = transport::plaintext;
 
 		// the actual sockets (TCP listen socket and UDP socket)
 		// An entry does not necessarily have a UDP or TCP socket. One of these
@@ -173,32 +188,23 @@ namespace libtorrent
 		// These must be shared_ptr to avoid a dangling reference if an
 		// incoming packet is in the event queue when the socket is erased
 		std::shared_ptr<tcp::acceptor> sock;
-		std::shared_ptr<udp_socket> udp_sock;
+		std::shared_ptr<aux::session_udp_socket> udp_sock;
 	};
-
-	namespace aux
-	{
-		struct session_impl;
-		struct session_settings;
-
-#ifndef TORRENT_DISABLE_LOGGING
-		struct tracker_logger;
-#endif
-
-#ifndef TORRENT_DISABLE_DHT
-		TORRENT_EXTRA_EXPORT dht_settings read_dht_settings(bdecode_node const& e);
-		TORRENT_EXTRA_EXPORT entry save_dht_settings(dht_settings const& settings);
-#endif
 
 		struct TORRENT_EXTRA_EXPORT listen_endpoint_t
 		{
-			listen_endpoint_t(address adr, int p, std::string dev, bool s)
+			listen_endpoint_t(address adr, int p, std::string dev, transport s)
 				: addr(adr), port(p), device(dev), ssl(s) {}
+
+			bool operator==(listen_endpoint_t const& o) const
+			{
+				return addr == o.addr && port == o.port && device == o.device && ssl == o.ssl;
+			}
 
 			address addr;
 			int port;
 			std::string device;
-			bool ssl;
+			transport ssl;
 		};
 
 		// partitions sockets based on whether they match one of the given endpoints
@@ -209,6 +215,11 @@ namespace libtorrent
 		partition_listen_sockets(
 			std::vector<listen_endpoint_t>& eps
 			, std::list<listen_socket_t>& sockets);
+
+		// expand [::] to all IPv6 interfaces for BEP 45 compliance
+		TORRENT_EXTRA_EXPORT void expand_unspecified_address(
+			std::vector<ip_interface> const& ifs
+			, std::vector<listen_endpoint_t>& eps);
 
 		// this is the link between the main thread and the
 		// thread started to run the main downloader loop
@@ -281,6 +292,7 @@ namespace libtorrent
 
 			void on_ip_change(error_code const& ec);
 			void reopen_listen_sockets();
+			void reopen_outgoing_sockets();
 
 			torrent_peer_allocator_interface* get_peer_allocator() override
 			{ return &m_peer_allocator; }
@@ -304,9 +316,9 @@ namespace libtorrent
 			tcp::endpoint get_ipv6_interface() const override;
 			tcp::endpoint get_ipv4_interface() const override;
 
-			void async_accept(std::shared_ptr<tcp::acceptor> const& listener, bool ssl);
+			void async_accept(std::shared_ptr<tcp::acceptor> const& listener, transport ssl);
 			void on_accept_connection(std::shared_ptr<socket_type> const& s
-				, std::weak_ptr<tcp::acceptor> listener, error_code const& e, bool ssl);
+				, std::weak_ptr<tcp::acceptor> listener, error_code const& e, transport ssl);
 
 			void incoming_connection(std::shared_ptr<socket_type> const& s);
 
@@ -558,7 +570,17 @@ namespace libtorrent
 			void set_peer_id(peer_id const& id);
 			void set_key(std::uint32_t key);
 			std::uint16_t listen_port() const override;
+			std::uint16_t listen_port(listen_socket_t* sock) const;
 			std::uint16_t ssl_listen_port() const override;
+			std::uint16_t ssl_listen_port(listen_socket_t* sock) const;
+
+			void for_each_listen_socket(std::function<void(aux::session_listen_socket*)> f) override
+			{
+				for (auto& s : m_listen_sockets)
+				{
+					f(&s);
+				}
+			}
 
 			alert_manager& alerts() override { return m_alerts; }
 			disk_interface& disk_thread() override { return m_disk_thread; }
@@ -624,9 +646,8 @@ namespace libtorrent
 			int send_buffer_size() const override { return send_buffer_size_impl; }
 
 			// implements dht_observer
-			virtual void set_external_address(address const& ip
-				, address const& source) override;
-			virtual address external_address(udp proto) override;
+			virtual void set_external_address(aux::session_listen_socket* iface
+				, address const& ip, address const& source) override;
 			virtual void get_peers(sha1_hash const& ih) override;
 			virtual void announce(sha1_hash const& ih, address const& addr, int port) override;
 			virtual void outgoing_get_peers(sha1_hash const& target
@@ -651,6 +672,9 @@ namespace libtorrent
 				, dht::msg const& request, entry& response) override;
 
 			void set_external_address(address const& ip
+				, int source_type, address const& source) override;
+			void set_external_address(tcp::endpoint const& local_endpoint
+				, address const& ip
 				, int source_type, address const& source) override;
 			virtual external_ip external_address() const override;
 
@@ -743,6 +767,12 @@ namespace libtorrent
 
 			void on_lsd_peer(tcp::endpoint const& peer, sha1_hash const& ih) override;
 			void setup_socket_buffers(socket_type& s) override;
+
+			void set_external_address(listen_socket_t& sock, address const& ip
+				, int const source_type, address const& source);
+
+			void interface_to_endpoints(std::string const& device, int const port
+				, bool const ssl, std::vector<listen_endpoint_t>& eps);
 
 			// the settings for the client
 			aux::session_settings m_settings;
@@ -903,6 +933,8 @@ namespace libtorrent
 			// we might need more than one listen socket
 			std::list<listen_socket_t> m_listen_sockets;
 
+			outgoing_sockets m_outgoing_sockets;
+
 #if TORRENT_USE_I2P
 			i2p_connection m_i2p_conn;
 			std::shared_ptr<socket_type> m_i2p_listen_socket;
@@ -1049,22 +1081,44 @@ namespace libtorrent
 			int m_outstanding_router_lookups = 0;
 #endif
 
-			void send_udp_packet_hostname(char const* hostname
+			void send_udp_packet_hostname(std::weak_ptr<utp_socket_interface> sock
+				, char const* hostname
 				, int port
 				, span<char const> p
 				, error_code& ec
 				, int flags);
 
-			void send_udp_packet(bool ssl
+			void send_udp_packet_hostname_listen(aux::session_listen_socket* sock
+				, char const* hostname
+				, int port
+				, span<char const> p
+				, error_code& ec
+				, int flags)
+			{
+				listen_socket_t* s = static_cast<listen_socket_t*>(sock);
+				send_udp_packet_hostname(s->udp_sock, hostname, port, p, ec, flags);
+			}
+
+			void send_udp_packet(std::weak_ptr<utp_socket_interface> sock
 				, udp::endpoint const& ep
 				, span<char const> p
 				, error_code& ec
 				, int flags);
 
-			void on_udp_writeable(std::weak_ptr<udp_socket> s, error_code const& ec);
+			void send_udp_packet_listen(aux::session_listen_socket* sock
+				, udp::endpoint const& ep
+				, span<char const> p
+				, error_code& ec
+				, int flags)
+			{
+				listen_socket_t* s = static_cast<listen_socket_t*>(sock);
+				send_udp_packet(s->udp_sock, ep, p, ec, flags);
+			}
 
-			void on_udp_packet(std::weak_ptr<udp_socket> const& s
-				, bool ssl, error_code const& ec);
+			void on_udp_writeable(std::weak_ptr<session_udp_socket> s, error_code const& ec);
+
+			void on_udp_packet(std::weak_ptr<session_udp_socket> s
+				, transport ssl, error_code const& ec);
 
 			libtorrent::utp_socket_manager m_utp_socket_manager;
 

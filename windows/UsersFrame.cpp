@@ -23,7 +23,6 @@
 #include "MainFrm.h"
 #include "LineDlg.h"
 #include "HubFrame.h"
-#include "TextFrame.h"
 #include "ResourceLoader.h"
 #include "WinUtil.h"
 #include "ExMessageBox.h"

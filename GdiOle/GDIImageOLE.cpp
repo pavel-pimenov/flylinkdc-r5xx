@@ -15,7 +15,11 @@ CGDIImageOle::CGDIImageOle():
 	m_hCallbackWnd(nullptr),
 	m_dwUpdateMsg(WM_USER),
 	m_bIsDeleting(false),
-	m_bRegistered(false)
+	m_bRegistered(false),
+	m_dwCurrentFrame(0),
+	m_dwW(0),
+	m_dwH(0),
+	m_hBackDC(nullptr)
 {
 	//m_bWindowOnly = TRUE;
 	//CalcExtent(m_sizeExtent);

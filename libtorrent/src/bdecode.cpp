@@ -42,12 +42,12 @@ POSSIBILITY OF SUCH DAMAGE.
 #define BOOST_SYSTEM_NOEXCEPT throw()
 #endif
 
-namespace libtorrent
-{
+namespace libtorrent {
+
 	using detail::bdecode_token;
 
-	namespace
-	{
+namespace {
+
 	bool numeric(char c) { return c >= '0' && c <= '9'; }
 
 	// finds the end of an integer and verifies that it looks valid this does
@@ -102,6 +102,7 @@ namespace libtorrent
 
 	struct stack_frame
 	{
+		stack_frame() : token(0), state(0) {}
 		explicit stack_frame(int const t): token(std::uint32_t(t)), state(0) {}
 		// this is an index into m_tokens
 		std::uint32_t token:31;
@@ -210,7 +211,6 @@ namespace libtorrent
 		, m_last_token(-1)
 		, m_size(-1)
 	{}
-
 	bdecode_node::bdecode_node(bdecode_node const& n)
 		: m_tokens(n.m_tokens)
 		, m_root_tokens(n.m_root_tokens)
@@ -223,7 +223,6 @@ namespace libtorrent
 	{
 		(*this) = n;
 	}
-
 	bdecode_node& bdecode_node::operator=(bdecode_node const& n)
 	{
 		m_tokens = n.m_tokens;

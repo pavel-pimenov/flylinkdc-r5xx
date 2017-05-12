@@ -35,8 +35,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstring> // for memcpy
 
-namespace libtorrent
-{
+namespace libtorrent {
+
 	void chained_buffer::pop_front(int bytes_to_pop)
 	{
 		TORRENT_ASSERT(is_single_thread());
@@ -83,14 +83,14 @@ namespace libtorrent
 
 	// tries to copy the given buffer to the end of the
 	// last chained buffer. If there's not enough room
-	// it returns false
-	char* chained_buffer::append(char const* buf, int const s)
+	// it returns nullptr
+	char* chained_buffer::append(span<char const> buf)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		TORRENT_ASSERT(!m_destructed);
-		char* const insert = allocate_appendix(s);
+		char* const insert = allocate_appendix(static_cast<int>(buf.size()));
 		if (insert == nullptr) return nullptr;
-		std::memcpy(insert, buf, std::size_t(s));
+		std::memcpy(insert, buf.data(), buf.size());
 		return insert;
 	}
 

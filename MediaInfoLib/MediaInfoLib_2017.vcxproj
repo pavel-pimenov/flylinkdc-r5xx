@@ -84,7 +84,7 @@
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)../ZenLib/Source;$(ProjectDir)../zlib;$(ProjectDir)Source/ThirdParty/tinyxml2;$(ProjectDir)Source/ThirdParty/sha2-gladman;$(ProjectDir)Source/ThirdParty/hmac-gladman;$(ProjectDir)Source/ThirdParty/aes-gladman;$(ProjectDir)Source/ThirdParty/sha1-gladman;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;MEDIAINFO_TRACE_NO;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_NEXTPACKET_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;MEDIAINFO_LIBCURL_NO;MEDIAINFO_AES_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;MEDIAINFO_TRACE_NO;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DUPLICATE_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_LIBCURL_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;MEDIAINFO_NEXTPACKET_NO;MEDIAINFO_AES_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -109,7 +109,7 @@
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)../ZenLib/Source;$(ProjectDir)../zlib;$(ProjectDir)Source/ThirdParty/tinyxml2;$(ProjectDir)Source/ThirdParty/sha2-gladman;$(ProjectDir)Source/ThirdParty/hmac-gladman;$(ProjectDir)Source/ThirdParty/aes-gladman;$(ProjectDir)Source/ThirdParty/sha1-gladman;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;MEDIAINFO_TRACE_NO;MEDIAINFO_EVENTS_NOx;MEDIAINFO_DEMUX_NOx;MEDIAINFO_DUPLICATE_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_LIBCURL_DLL_RUNTIME;MEDIAINFO_LIBCURL_NO;MEDIAINFO_SEEK_NOx;MEDIAINFO_IBI_NOx;MEDIAINFO_NEXTPACKET_NOx;MEDIAINFO_AES_NOx;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;MEDIAINFO_TRACE_NO;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DUPLICATE_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_LIBCURL_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;MEDIAINFO_NEXTPACKET_NO;MEDIAINFO_AES_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -140,7 +140,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <DisableSpecificWarnings>4100;4127;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WIN32;NDEBUG;MEDIAINFO_TRACE_NO;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DUPLICATE_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_LIBCURL_DLL_RUNTIME;MEDIAINFO_LIBCURL_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;MEDIAINFO_NEXTPACKET_NO;MEDIAINFO_AES_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;MEDIAINFO_TRACE_NO;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DUPLICATE_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_LIBCURL_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;MEDIAINFO_NEXTPACKET_NO;MEDIAINFO_AES_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -535,10 +535,8 @@
     <ClInclude Include="Source\MediaInfo\Multiple\File_Wtv.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File_Xdcam_Clip.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper.h" />
-    <ClInclude Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper_Common.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper_Resource.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper_Sequence.h" />
-    <ClInclude Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper_Sequence_Common.h" />
     <ClInclude Include="Source\MediaInfo\PreComp.h" />
     <ClInclude Include="Source\MediaInfo\Reader\Reader_libcurl_Include.h" />
     <ClInclude Include="Source\MediaInfo\Reader\Reader__Base.h" />

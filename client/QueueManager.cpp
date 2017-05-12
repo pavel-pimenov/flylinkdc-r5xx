@@ -1426,34 +1426,38 @@ bool QueueManager::addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flag
 void QueueManager::addDirectory(const string& aDir, const UserPtr& aUser, const string& aTarget, QueueItem::Priority p /* = QueueItem::DEFAULT */) noexcept
 {
 	bool needList;
+	dcassert(aUser);
+	if (aUser) // torrent
 	{
-		CFlyFastLock(csDirectories);
-		
-		const auto dp = m_directories.equal_range(aUser);
-		
-		for (auto i = dp.first; i != dp.second; ++i)
 		{
-			if (stricmp(aTarget.c_str(), i->second->getName().c_str()) == 0)
-				return;
+			CFlyFastLock(csDirectories);
+			
+			const auto dp = m_directories.equal_range(aUser);
+			
+			for (auto i = dp.first; i != dp.second; ++i)
+			{
+				if (stricmp(aTarget.c_str(), i->second->getName().c_str()) == 0)
+					return;
+			}
+			
+			// Unique directory, fine...
+			m_directories.insert(make_pair(aUser, new DirectoryItem(aUser, aDir, aTarget, p)));
+			needList = (dp.first == dp.second);
 		}
 		
-		// Unique directory, fine...
-		m_directories.insert(make_pair(aUser, new DirectoryItem(aUser, aDir, aTarget, p)));
-		needList = (dp.first == dp.second);
-	}
-	
-	setDirty();
-	
-	if (needList)
-	{
-		try
+		setDirty();
+		
+		if (needList)
 		{
-			addList(aUser, QueueItem::FLAG_DIRECTORY_DOWNLOAD | QueueItem::FLAG_PARTIAL_LIST, aDir);
-		}
-		catch (const Exception&)
-		{
-			dcassert(0);
-			// Ignore, we don't really care...
+			try
+			{
+				addList(aUser, QueueItem::FLAG_DIRECTORY_DOWNLOAD | QueueItem::FLAG_PARTIAL_LIST, aDir);
+			}
+			catch (const Exception&)
+			{
+				dcassert(0);
+				// Ignore, we don't really care...
+			}
 		}
 	}
 }
@@ -1578,8 +1582,8 @@ void QueueManager::ListMatcher::execute(const StringList& list) // [+] IRainman 
 
 void QueueManager::QueueManagerWaiter::execute(const WaiterFile& p_currentFile) // [+] IRainman: auto pausing running downloads before moving.
 {
-	const string& l_source = p_currentFile.getSource();
-	const string& l_target = p_currentFile.getTarget();
+	const string l_source = p_currentFile.getSource();
+	const string l_target = p_currentFile.getTarget();
 	const QueueItem::Priority l_priority = p_currentFile.getPriority();
 	
 	auto qm = QueueManager::getInstance();

@@ -41,8 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/string_util.hpp" // for allocate_string_copy
 #include "libtorrent/aux_/escape_string.hpp" // for read_until
 
-namespace libtorrent
-{
+namespace libtorrent {
 
 	bool is_ok_status(int http_status)
 	{
@@ -122,8 +121,7 @@ namespace libtorrent
 			// however, we may still need to insert a '/' in case neither side
 			// has one. We know the location doesn't start with a / already.
 			// so, if the referrer doesn't end with one, add it.
-			if (url.empty() || url[url.size() - 1] != '/')
-				url += '/';
+			ensure_trailing_slash(url);
 			url += location;
 		}
 		return url;

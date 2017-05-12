@@ -103,6 +103,7 @@ class CFlyHTTPDownloader
 		static void nextMirror();
 		bool m_is_add_url;
 		bool m_is_use_cache;
+		tstring m_user_agent;
 		CFlyHTTPDownloader() : m_inet_flag(0), m_last_error_code(0), m_is_add_url(true), m_is_use_cache(false)
 		{
 		}
@@ -1342,23 +1343,6 @@ class Util
 		static void WriteTextResourceToFile(const int p_res, const tstring& p_file);
 #endif
 		
-		// Identify TTH.
-		inline static bool isTTHChar(const TCHAR c)
-		{
-			return (c >= L'0' && c <= L'9') || (c >= L'A' && c <= L'Z');
-		}
-		static bool isTTH(const tstring& p_TTH)
-		{
-			dcassert(p_TTH.size() == 39);
-			for (size_t i = 0; i < 39; i++)
-			{
-				if (!isTTHChar(p_TTH[i]))
-				{
-					return false;
-				}
-			}
-			return true;
-		}
 };
 
 /** Case insensitive hash function for strings */

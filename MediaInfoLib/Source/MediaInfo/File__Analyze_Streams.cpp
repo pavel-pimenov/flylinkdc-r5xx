@@ -19,6 +19,7 @@
 //---------------------------------------------------------------------------
 #include "MediaInfo/File__Analyze.h"
 #include "MediaInfo/MediaInfo_Internal.h"
+#include "MediaInfo/MediaInfo_Config.h"
 #include "MediaInfo/TimeCode.h"
 #include "ZenLib/File.h"
 #include "ZenLib/FileName.h"
@@ -961,26 +962,26 @@ void File__Analyze::Fill (const stream_t StreamKind, const size_t StreamPos, con
                     break;
         }
 
-        const Ztring Parameter_String_UTF8 = Ztring().From_UTF8(Parameter);
+        const Ztring Parameter_UTF8 = Ztring().From_UTF8(Parameter);
         if (Replace)
         {
             for (size_t Pos=0; Pos<Fill_Temp[StreamKindS].size(); Pos++)
-                if (Fill_Temp[StreamKindS][Pos].Parameter== Parameter_String_UTF8)
+                if (Fill_Temp[StreamKindS][Pos].Parameter== Parameter_UTF8)
                 {
                     Fill_Temp[StreamKindS][Pos].Value=Value;
                     return;
                 }
         }
         fill_temp_item NewList;
-        NewList.Parameter= Parameter_String_UTF8;
+        NewList.Parameter= Parameter_UTF8;
         NewList.Value=Value;
         Fill_Temp[StreamKindS].push_back(NewList);
         return; //No streams
     }
 
     //Handling of well known parameters
-    const Ztring ParameterLocal = Ztring().From_Local(Parameter);
-    const size_t Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(ParameterLocal);
+    const Ztring Parameter_Local = Ztring().From_Local(Parameter);
+    const size_t Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(Parameter_Local);
     if (Pos!=Error)
     {
         Fill(StreamKind, StreamPos, Pos, Value, Replace);
@@ -992,23 +993,23 @@ void File__Analyze::Fill (const stream_t StreamKind, const size_t StreamPos, con
     
     //Handling of unknown parameters
     ZtringListList& Stream_More_Item = (*Stream_More)[StreamKind][StreamPos];
-    const Ztring ParameterISO = Ztring().From_ISO_8859_1(Parameter);
+    const Ztring Parameter_ISO = Ztring().From_ISO_8859_1(Parameter);
     if (Value.empty())
     {
         if (Replace)
         {
-            const size_t Pos_ToReplace= Stream_More_Item.Find(ParameterISO, Info_Name);
+            const size_t Pos_ToReplace= Stream_More_Item.Find(Parameter_ISO, Info_Name);
             if (Pos_ToReplace!=(size_t)-1)
                 Stream_More_Item.erase(Stream_More_Item.begin()+Pos_ToReplace); //Empty value --> remove the line
         }
     }
     else
     {
-        Ztring &Target= Stream_More_Item(ParameterISO, Info_Text);
+        Ztring &Target= Stream_More_Item(Parameter_ISO, Info_Text);
         if (Target.empty() || Replace)
         {
             Target=Value; //First value
-			Stream_More_Item(ParameterISO, Info_Name_Text)=MediaInfoLib::Config.Language_Get(ParameterLocal);
+			Stream_More_Item(Parameter_ISO, Info_Name_Text)=MediaInfoLib::Config.Language_Get(Parameter_Local);
             Fill_SetOptions(StreamKind, StreamPos, Parameter, "Y NT");
         }
         else
@@ -1085,11 +1086,11 @@ const Ztring &File__Analyze::Retrieve_Const (stream_t StreamKind, size_t StreamP
 
     if (KindOfInfo!=Info_Text)
         return MediaInfoLib::Config.Info_Get(StreamKind, Parameter, KindOfInfo);
-    const Ztring ParameterLocal = Ztring().From_Local(Parameter);
-    size_t Parameter_Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(ParameterLocal);
+    const Ztring Parameter_Local = Ztring().From_Local(Parameter);
+    size_t Parameter_Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(Parameter_Local);
     if (Parameter_Pos==Error)
     {
-        Parameter_Pos=(*Stream_More)[StreamKind][StreamPos].Find(ParameterLocal);
+        Parameter_Pos=(*Stream_More)[StreamKind][StreamPos].Find(Parameter_Local);
         if (Parameter_Pos==Error)
             return MediaInfoLib::Config.EmptyString_Get();
         return (*Stream_More)[StreamKind][StreamPos](Parameter_Pos, 1);
@@ -1109,11 +1110,11 @@ Ztring File__Analyze::Retrieve (stream_t StreamKind, size_t StreamPos, const cha
 
     if (KindOfInfo!=Info_Text)
         return MediaInfoLib::Config.Info_Get(StreamKind, Parameter, KindOfInfo);
-    const Ztring ParameterLocal = Ztring().From_Local(Parameter);
-    size_t Parameter_Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(ParameterLocal);
+    const Ztring Parameter_Local = Ztring().From_Local(Parameter);
+    size_t Parameter_Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(Parameter_Local);
     if (Parameter_Pos==Error)
     {
-        Parameter_Pos=(*Stream_More)[StreamKind][StreamPos].Find(ParameterLocal);
+        Parameter_Pos=(*Stream_More)[StreamKind][StreamPos].Find(Parameter_Local);
         if (Parameter_Pos==Error)
             return MediaInfoLib::Config.EmptyString_Get();
         return (*Stream_More)[StreamKind][StreamPos](Parameter_Pos, 1);
@@ -1141,11 +1142,11 @@ void File__Analyze::Clear (stream_t StreamKind, size_t StreamPos, const char* Pa
             }
         return;
     }
-    const Ztring ParameterLocal = Ztring().From_Local(Parameter);
-    size_t Parameter_Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(ParameterLocal);
+    const Ztring Parameter_Local = Ztring().From_Local(Parameter);
+    size_t Parameter_Pos=MediaInfoLib::Config.Info_Get(StreamKind).Find(Parameter_Local);
     if (Parameter_Pos==Error)
     {
-        Parameter_Pos=(*Stream_More)[StreamKind][StreamPos].Find(ParameterLocal);
+        Parameter_Pos=(*Stream_More)[StreamKind][StreamPos].Find(Parameter_Local);
         if (Parameter_Pos==Error)
             return;
         (*Stream_More)[StreamKind][StreamPos](Parameter_Pos, 1).clear();
@@ -2319,7 +2320,7 @@ void File__Analyze::CodecID_Fill(const Ztring &Value, stream_t StreamKind, size_
     Fill(StreamKind, StreamPos, Fill_Parameter(StreamKind, Generic_Format_Profile), MediaInfoLib::Config.CodecID_Get(StreamKind_CodecID, Format, Value, InfoCodecID_Profile), true);
     Fill(StreamKind, StreamPos, Fill_Parameter(StreamKind, Generic_ColorSpace), MediaInfoLib::Config.CodecID_Get(StreamKind_CodecID, Format, Value, InfoCodecID_ColorSpace), true);
     Fill(StreamKind, StreamPos, Fill_Parameter(StreamKind, Generic_ChromaSubsampling), MediaInfoLib::Config.CodecID_Get(StreamKind_CodecID, Format, Value, InfoCodecID_ChromaSubsampling), true);
-    if (Retrieve(StreamKind, StreamPos, Fill_Parameter(StreamKind, Generic_BitDepth)).empty())
+    if (Retrieve(StreamKind, StreamPos, Fill_Parameter(StreamKind, Generic_BitDepth)).empty() && !MediaInfoLib::Config.CodecID_Get(StreamKind_CodecID, Format, Value, InfoCodecID_BitDepth).empty())
         Fill(StreamKind, StreamPos, Fill_Parameter(StreamKind, Generic_BitDepth), MediaInfoLib::Config.CodecID_Get(StreamKind_CodecID, Format, Value, InfoCodecID_BitDepth), true);
     if (Retrieve(StreamKind, StreamPos, Fill_Parameter(StreamKind, Generic_Compression_Mode)).empty())
         Fill(StreamKind, StreamPos, Fill_Parameter(StreamKind, Generic_Compression_Mode), MediaInfoLib::Config.CodecID_Get(StreamKind_CodecID, Format, Value, InfoCodecID_Compression_Mode), true);

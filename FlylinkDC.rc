@@ -3070,6 +3070,8 @@ IDR_VIP_ICO_ADRENALIN   ICON                    "res\\vip_adrenalin.ico"
 
 IDR_VIP_ICO_GODC        ICON                    "res\\vip_godc.ico"
 
+IDR_VIP_ZHIGANDC        ICON                    "res\\vip_zhigandc.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

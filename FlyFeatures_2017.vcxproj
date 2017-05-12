@@ -91,7 +91,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)Zenlib\Source;$(SolutionDir)\libtorrent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)Zenlib\Source;$(SolutionDir)\libtorrent\include;$(SolutionDir)\selene\include;$(SolutionDir)\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -112,7 +112,7 @@
     <ClCompile>
       <Optimization>Full</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)Zenlib\Source;$(SolutionDir)\libtorrent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)Zenlib\Source;$(SolutionDir)\libtorrent\include;$(SolutionDir)\selene\include;$(SolutionDir)\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -141,7 +141,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)Zenlib\Source;$(SolutionDir)\libtorrent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)Zenlib\Source;$(SolutionDir)\libtorrent\include;$(SolutionDir)\selene\include;$(SolutionDir)\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -162,7 +162,7 @@
     <ClCompile>
       <Optimization>Full</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)Zenlib\Source;$(SolutionDir)\libtorrent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir)\client;$(SolutionDir)\zlib;$(SolutionDir)\bzip2;$(SolutionDir)\leveldb\include;$(SolutionDir)\MediaInfoLib\Source;$(SolutionDir)Zenlib\Source;$(SolutionDir)\libtorrent\include;$(SolutionDir)\selene\include;$(SolutionDir)\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

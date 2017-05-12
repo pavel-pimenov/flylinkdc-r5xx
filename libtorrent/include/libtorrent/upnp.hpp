@@ -48,8 +48,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <functional>
 #include <set>
 
-namespace libtorrent
-{
+namespace libtorrent {
 
 	namespace upnp_errors
 	{
@@ -241,8 +240,10 @@ private:
 	void get_ip_address(rootdevice& d);
 	void delete_port_mapping(rootdevice& d, int i);
 	void create_port_mapping(http_connection& c, rootdevice& d, int i);
-	void post(upnp::rootdevice const& d, char const* soap
-		, char const* soap_action);
+	void post(upnp::rootdevice const& d, string_view const soap
+		, string_view const soap_action);
+	std::string create_soap(string_view const soap_action
+		, string_view const service_namespace, string_view const part);
 
 	int num_mappings() const { return int(m_mappings.size()); }
 
@@ -276,6 +277,11 @@ private:
 
 		// the number of times this mapping has failed
 		int failcount = 0;
+
+		char const* protocol_name() const
+		{
+			return protocol == aux::portmap_protocol::udp ? "UDP" : "TCP";
+		}
 	};
 
 	struct rootdevice

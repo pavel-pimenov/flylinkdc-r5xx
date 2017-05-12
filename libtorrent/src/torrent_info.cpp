@@ -65,8 +65,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <set>
 #include <ctime>
 
-namespace libtorrent
-{
+namespace libtorrent {
 
 	namespace {
 
@@ -1461,7 +1460,8 @@ namespace libtorrent
 		{
 			web_seed_entry ent(maybe_url_encode(url_seeds.string_value().to_string())
 				, web_seed_entry::url_seed);
-			if ((m_flags & multifile) && ent.url[ent.url.size() - 1] != '/') ent.url += '/';
+			if (m_flags & multifile)
+				ensure_trailing_slash(ent.url);
 			m_web_seeds.push_back(ent);
 		}
 		else if (url_seeds && url_seeds.type() == bdecode_node::list_t)
@@ -1475,9 +1475,9 @@ namespace libtorrent
 				if (url.string_length() == 0) continue;
 				web_seed_entry ent(maybe_url_encode(url.string_value().to_string())
 					, web_seed_entry::url_seed);
-				if ((m_flags & multifile) && ent.url[ent.url.size() - 1] != '/') ent.url += '/';
-				if (unique.count(ent.url)) continue;
-				unique.insert(ent.url);
+				if (m_flags & multifile)
+					ensure_trailing_slash(ent.url);
+				if (!unique.insert(ent.url).second) continue;
 				m_web_seeds.push_back(ent);
 			}
 		}
@@ -1498,9 +1498,8 @@ namespace libtorrent
 			{
 				bdecode_node const url = http_seeds.list_at(i);
 				if (url.type() != bdecode_node::string_t || url.string_length() == 0) continue;
-				std::string u = maybe_url_encode(url.string_value().to_string());
-				if (unique.count(u)) continue;
-				unique.insert(u);
+				std::string const u = maybe_url_encode(url.string_value().to_string());
+				if (!unique.insert(u).second) continue;
 				m_web_seeds.push_back(web_seed_entry(u, web_seed_entry::http_seed));
 			}
 		}
@@ -1533,8 +1532,8 @@ namespace libtorrent
 	}
 
 #ifndef TORRENT_NO_DEPRECATE
-	namespace
-	{
+namespace {
+
 		struct filter_web_seed_type
 		{
 			explicit filter_web_seed_type(web_seed_entry::type_t t_) : t(t_) {}

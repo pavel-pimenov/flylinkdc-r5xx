@@ -53,7 +53,7 @@ void CustomMenuManager::load(/* SimpleXML&*/ /*aXml*/)
 		if (!strRootProviderURL.empty())
 		{
 			AppendUriSeparator(strRootProviderURL);
-			string strCustomMenu = strRootProviderURL + "ISP_menu.xml";
+			const string strCustomMenu = strRootProviderURL + "ISP_menu.xml";
 			GetData(strCustomMenu, data);
 		}
 	}
@@ -61,7 +61,7 @@ void CustomMenuManager::load(/* SimpleXML&*/ /*aXml*/)
 	// [!] SSA use old way for compatibility
 	if (data.empty() && SETTING(USE_CUSTOM_MENU))
 	{
-		const string& strPathURL = SETTING(CUSTOM_MENU_PATH);
+		const string strPathURL = SETTING(CUSTOM_MENU_PATH);
 		if (!strPathURL.empty())
 		{
 			GetData(strPathURL, data);

@@ -103,4 +103,16 @@ template <class T> class CFlySafeGuard
 		}
 };
 
+template <class T> bool safe_post_message(HWND p_wnd, int p_x, T* p_ptr)
+{
+	if (::PostMessage(p_wnd, WM_SPEAKER, WPARAM(p_x), LPARAM(p_ptr)) == FALSE)
+	{
+		delete p_ptr;
+		// TODO - LOG dcassert(0);
+		//dcdebug("safe_post_message error %d\n", GetLastError());
+		return false;
+	}
+	return true;
+}
+
 #endif /* W_H_ */

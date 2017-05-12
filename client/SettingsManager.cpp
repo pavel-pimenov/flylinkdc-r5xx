@@ -273,8 +273,7 @@ static const char* g_settingTags[] =
 	"DiredtorListingFrameSplit",
 	"FlyServerHubListSplit",
 	"MediaPlayer", "ProtFavs", "MaxMsgLength", "PopupBackColor", "PopupTextColor", "PopupTitleTextColor", "PopupImage", "PopupColors", "SortFavUsersFirst",
-	"ShowShellMenu", "OpenLogsInternal",
-	// "NoEmotesLinks", [-] IRainman
+	"ShowShellMenu",
 	
 	"NsLookupMode", "NsLookupDelay", // !SMT!-IP
 	"EnableAutoBan",// [+] IRainman
@@ -282,7 +281,7 @@ static const char* g_settingTags[] =
 	"AutoBanProtectOP",
 #endif
 	"BanSlots", "BanSlotsH", /*old "BanShareMax",*/ "BanShare", "BanLimit", "BanmsgPeriod", "BanStealth", "BanForcePM", /* old "BanSkipOps",*/ "ExtraSlotToDl", // !SMT!-S
-	"BanColor", "DupeColor", "VirusColor", "MultilineChatInput", "ExternalPreview", "SendSlotgrantMsg", "FavUserDblClick", // !SMT!-UI
+	"BanColor", "DupeColor", "VirusColor", "MultilineChatInput", "SendSlotgrantMsg", "FavUserDblClick", // !SMT!-UI
 	"ProtectPrivate", "ProtectPrivateRnd", "ProtectPrivateSay", // !SMT!-PSW
 	"UploadTransfersColors", // [+] Drakon
 	"StartupBackup", // [+] Drakon
@@ -1054,7 +1053,6 @@ void SettingsManager::setDefaults()
 	setDefault(POPUP_TEXTCOLOR, RGB(255, 255, 255));
 	setDefault(POPUP_TITLE_TEXTCOLOR, RGB(255, 255, 255));
 	//setDefault(POPUP_IMAGE, 0);
-	setDefault(OPEN_LOGS_INTERNAL, TRUE); //[+]PPA
 	// ApexDC++
 #ifdef FLYLINKDC_USE_DNS
 	setDefault(NSLOOKUP_MODE, Socket::DNSCache::NSLOOKUP_DELAYED); // !SMT!-IP
@@ -1103,7 +1101,6 @@ void SettingsManager::setDefaults()
 #endif
 	setDefault(USE_MAGNETS_IN_PLAYERS_SPAM, TRUE);
 	//setDefault(USE_BITRATE_FIX_FOR_SPAM, false);
-	//setDefault(EXTERNAL_PREVIEW, false);
 	//setDefault(SEND_SLOTGRANT_MSG, false);
 	//setDefault(FAVUSERLIST_DBLCLICK, false);
 	
