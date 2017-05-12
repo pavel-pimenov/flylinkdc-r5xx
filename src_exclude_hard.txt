@@ -26,4 +26,5 @@ CustomLocations.ini
 sign-flylinkdc.bat
 merge-vendors.bat
 flylinkdc-search-engine.lua
+sign-flylinkdc.bat
 
