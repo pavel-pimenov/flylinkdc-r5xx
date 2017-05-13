@@ -172,7 +172,7 @@ StringList CFlyServerConfig::g_block_share_mask;
 FastCriticalSection CFlyServerConfig::g_cs_mirror_test_port;
 string CFlyServerConfig::g_lua_source_search_engine;
 
-extern tstring g_full_user_agent;
+extern ::tstring g_full_user_agent;
 
 //======================================================================================================
 const CServerItem& CFlyServerConfig::getStatServer()
@@ -1125,6 +1125,7 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const tstring& p
 									dcassert(0);
 									const string l_error = "onTorrentSearch[1] async - error " + e.getError();
 									CFlyServerJSON::pushError(77, l_error);
+									break;
 								}
 							}
 							else
@@ -1132,6 +1133,7 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const tstring& p
 								dcassert(0);
 								const string l_error = "onTorrentSearch[4] getBinaryDataFromInet error l_search_result = " + l_search_result;
 								CFlyServerJSON::pushError(79, l_error);
+								break;
 							}
 						}
 						catch (const Exception &e)
@@ -1139,28 +1141,18 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const tstring& p
 							dcassert(0);
 							const string l_error = "onTorrentSearch[2] async - Exception " + e.getError();
 							CFlyServerJSON::pushError(77, l_error);
+							break;
 						}
 						catch (std::runtime_error& e)
 						{
 							dcassert(0);
 							CFlyServerJSON::pushError(77, "onTorrentSearch[3] async - runtime_error = " + string(e.what()));
+							break;
 						}
-
 					} // for
 				}
-
 				);
-
 			}
-				/*
-				p_tracker_index,
-				p_search,
-				p_category,
-				p_page,
-				p_whole_word,
-				p_sort,
-				p_desc)
-				*/
 			}
 		}
 	

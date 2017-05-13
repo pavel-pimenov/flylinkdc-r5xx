@@ -64,4 +64,5 @@ GdiOle\GdiOle_i.h
 GdiOle\GdiOle_p.c
 src_backup_7z.bat
 src_gen_filename.bat
-UpdateGeoIP.batsign-flylinkdc.bat
+UpdateGeoIP.bat
+sign-flylinkdc.bat

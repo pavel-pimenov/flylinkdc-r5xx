@@ -255,14 +255,14 @@ const char* Mpegv_matrix_coefficients(int8u matrix_coefficients);
 //---------------------------------------------------------------------------
 static const char* Avc_Colorimetry_format_idc(int8u chroma_format_idc)
 {
-	switch (chroma_format_idc)
-	{
-	case 0: return "monochrome";
-	case 1: return "4:2:0";
-	case 2: return "4:2:2";
-	case 3: return "4:4:4";
-	default: return "Unknown";
-	}
+    switch (chroma_format_idc)
+    {
+        case 0: return "monochrome";
+        case 1: return "4:2:0";
+        case 2: return "4:2:2";
+        case 3: return "4:4:4";
+        default: return "Unknown";
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -617,9 +617,9 @@ void File_Avc::Streams_Fill(std::vector<seq_parameter_set_struct*>::iterator seq
     //Calculating - Pixels
     int32u Width =((*seq_parameter_set_Item)->pic_width_in_mbs_minus1       +1)*16;
     int32u Height=((*seq_parameter_set_Item)->pic_height_in_map_units_minus1+1)*16*(2-(*seq_parameter_set_Item)->frame_mbs_only_flag);
-	int8u chromaArrayType = (*seq_parameter_set_Item)->ChromaArrayType();
-	if (chromaArrayType >= 4)
-		chromaArrayType = 0;
+    int8u chromaArrayType = (*seq_parameter_set_Item)->ChromaArrayType();
+    if (chromaArrayType >= 4)
+        chromaArrayType = 0;
     int32u CropUnitX=Avc_SubWidthC [chromaArrayType];
     int32u CropUnitY=Avc_SubHeightC[chromaArrayType]*(2-(*seq_parameter_set_Item)->frame_mbs_only_flag);
     Width -=((*seq_parameter_set_Item)->frame_crop_left_offset+(*seq_parameter_set_Item)->frame_crop_right_offset )*CropUnitX;
@@ -864,7 +864,6 @@ void File_Avc::Streams_Fill(std::vector<seq_parameter_set_struct*>::iterator seq
         Fill(Stream_Video, 0, Video_ColorSpace, "RGB");
     else
         Fill(Stream_Video, 0, Video_ColorSpace, "YUV");
-	//  https://github.com/MediaArea/MediaInfoLib/issues/498
     Fill(Stream_Video, 0, Video_Colorimetry, Avc_Colorimetry_format_idc((*seq_parameter_set_Item)->chroma_format_idc));
     if ((*seq_parameter_set_Item)->bit_depth_luma_minus8==(*seq_parameter_set_Item)->bit_depth_chroma_minus8)
         Fill(Stream_Video, 0, Video_BitDepth, (*seq_parameter_set_Item)->bit_depth_luma_minus8+8);
@@ -1412,7 +1411,7 @@ void File_Avc::Read_Buffer_Unsynched()
 		seq_parameter_set_structs* _seq_parameter_sets = !seq_parameter_sets.empty() ? &seq_parameter_sets : &subset_seq_parameter_sets;
 		for (std::vector<seq_parameter_set_struct*>::iterator seq_parameter_set_Item = _seq_parameter_sets->begin(); seq_parameter_set_Item != _seq_parameter_sets->end(); ++seq_parameter_set_Item)
 		// ==> End patch MPC
-			if ((*seq_parameter_set_Item))
+            if ((*seq_parameter_set_Item))
             {
                 size_t MaxNumber;
                 switch ((*seq_parameter_set_Item)->pic_order_cnt_type)
@@ -3293,6 +3292,7 @@ void File_Avc::seq_parameter_set()
         if (Null)
             Trusted_IsNot("Should be NULL byte");
     }
+
     FILLING_BEGIN_PRECISE();
         //NextCode
         NextCode_Clear();
