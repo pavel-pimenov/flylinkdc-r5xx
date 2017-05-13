@@ -1016,7 +1016,7 @@ bool CFlyServerConfig::SyncAntivirusDB(bool& p_is_need_reload)
 }
 #endif
 //=========================================================================================
-bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const tstring& p_search)
+bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring& p_search)
 {
 	try
 	{

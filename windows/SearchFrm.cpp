@@ -1356,7 +1356,9 @@ bool SearchFrame::scan_list_view_from_merge()
 				return false;
 			}
 			SearchInfo* l_item_info = ctrlResults.getItemData(j);
-			if (l_item_info == nullptr || l_item_info->m_already_processed || l_item_info->parent) // ”же не первый раз или это дочерний узел по TTH?
+			if (l_item_info == nullptr || l_item_info->m_already_processed ||
+			        l_item_info->parent ||
+			        l_item_info->m_is_torrent) // ”же не первый раз или это дочерний узел по TTH?
 				continue;
 			l_item_info->m_already_processed = true;
 			const auto& sr2 = l_item_info->m_sr;

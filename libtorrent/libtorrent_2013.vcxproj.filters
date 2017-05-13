@@ -24,18 +24,156 @@
     <Filter Include="Source Files\kadmelia">
       <UniqueIdentifier>{70616e8f-4ce0-40dd-b156-7cd1b47b6c17}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ed25519">
+      <UniqueIdentifier>{042d9ce0-c113-4371-92e2-a1b9c1efc4fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ed25519\headers">
+      <UniqueIdentifier>{b6ece4b8-6ae7-4a5a-b0ed-5ec7b83afac0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\libtorrent\address.hpp">
-      <Filter>Header Files\libtorrent</Filter>
+    <ClInclude Include="include\libtorrent\aux_\session_impl.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\allocating_handler.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\bind_to_device.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\byteswap.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\cppint_import_export.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\cpuid.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\disable_warnings_pop.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\disable_warnings_push.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\escape_string.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\ffs.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\file_progress.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\io.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\max_path.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\merkle.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\openssl.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\proxy_settings.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\session_call.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\session_interface.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\session_settings.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\suggest_piece.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\time.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\extensions\smart_ban.hpp">
+      <Filter>Header Files\libtorrent\extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\extensions\ut_metadata.hpp">
+      <Filter>Header Files\libtorrent\extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\extensions\ut_pex.hpp">
+      <Filter>Header Files\libtorrent\extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\dht_observer.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\dht_storage.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\dht_tracker.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\direct_request.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\dos_blocker.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\ed25519.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\find_data.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\get_item.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\get_peers.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\item.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\msg.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\node.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\node_entry.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\node_id.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\observer.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\put_data.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\refresh.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\routing_table.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\rpc_manager.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\traversal_algorithm.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\types.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\add_torrent_params.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\alert.hpp">
+    <ClInclude Include="include\libtorrent\address.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\alert_dispatcher.hpp">
+    <ClInclude Include="include\libtorrent\alert.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\alert_manager.hpp">
@@ -44,10 +182,10 @@
     <ClInclude Include="include\libtorrent\alert_types.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\alloca.hpp">
+    <ClInclude Include="include\libtorrent\allocator.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\allocator.hpp">
+    <ClInclude Include="include\libtorrent\announce_entry.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\assert.hpp">
@@ -65,10 +203,16 @@
     <ClInclude Include="include\libtorrent\bandwidth_socket.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\bdecode.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
     <ClInclude Include="include\libtorrent\bencode.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\bitfield.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\block_cache.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\bloom_filter.hpp">
@@ -89,16 +233,22 @@
     <ClInclude Include="include\libtorrent\chained_buffer.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\config.hpp">
+    <ClInclude Include="include\libtorrent\choker.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\connection_queue.hpp">
+    <ClInclude Include="include\libtorrent\close_reason.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\config.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\ConvertUTF.h">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\copy_ptr.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\crc32c.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\create_torrent.hpp">
@@ -116,7 +266,22 @@
     <ClInclude Include="include\libtorrent\disk_buffer_pool.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\disk_interface.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\disk_io_job.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
     <ClInclude Include="include\libtorrent\disk_io_thread.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\disk_io_thread_pool.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\disk_job_pool.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\disk_observer.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\ed25519.hpp">
@@ -132,9 +297,6 @@
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\error_code.hpp">
-      <Filter>Header Files\libtorrent</Filter>
-    </ClInclude>
-    <ClInclude Include="include\libtorrent\escape_string.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\export.hpp">
@@ -161,6 +323,15 @@
     <ClInclude Include="include\libtorrent\hasher.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\hasher512.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\heterogeneous_queue.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\hex.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
     <ClInclude Include="include\libtorrent\http_connection.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
@@ -185,9 +356,6 @@
     <ClInclude Include="include\libtorrent\instantiate_connection.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\intrusive_ptr_base.hpp">
-      <Filter>Header Files\libtorrent</Filter>
-    </ClInclude>
     <ClInclude Include="include\libtorrent\invariant_check.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
@@ -209,16 +377,22 @@
     <ClInclude Include="include\libtorrent\lazy_entry.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\link.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\linked_list.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
     <ClInclude Include="include\libtorrent\lsd.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\magnet_uri.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\max.hpp">
+    <ClInclude Include="include\libtorrent\natpmp.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\natpmp.hpp">
+    <ClInclude Include="include\libtorrent\operations.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\packet_buffer.hpp">
@@ -227,10 +401,31 @@
     <ClInclude Include="include\libtorrent\parse_url.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\part_file.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\pe_crypto.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
     <ClInclude Include="include\libtorrent\peer.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\peer_class.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\peer_class_set.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\peer_class_type_filter.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
     <ClInclude Include="include\libtorrent\peer_connection.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\peer_connection_handle.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\peer_connection_interface.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\peer_id.hpp">
@@ -239,10 +434,13 @@
     <ClInclude Include="include\libtorrent\peer_info.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\peer_list.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
     <ClInclude Include="include\libtorrent\peer_request.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\pe_crypto.hpp">
+    <ClInclude Include="include\libtorrent\performance_counters.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\piece_block_progress.hpp">
@@ -251,13 +449,10 @@
     <ClInclude Include="include\libtorrent\piece_picker.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\policy.hpp">
+    <ClInclude Include="include\libtorrent\platform_util.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\proxy_base.hpp">
-      <Filter>Header Files\libtorrent</Filter>
-    </ClInclude>
-    <ClInclude Include="include\libtorrent\ptime.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\puff.hpp">
@@ -266,25 +461,49 @@
     <ClInclude Include="include\libtorrent\random.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\rss.hpp">
+    <ClInclude Include="include\libtorrent\read_resume_data.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\receive_buffer.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\request_blocks.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\resolve_links.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\resolver.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\resolver_interface.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\session.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\session_handle.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
     <ClInclude Include="include\libtorrent\session_settings.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\session_stats.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\session_status.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\settings.hpp">
+    <ClInclude Include="include\libtorrent\settings_pack.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\sha1.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\sha1_hash.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\size_type.hpp">
+    <ClInclude Include="include\libtorrent\sha512.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\sliding_average.hpp">
@@ -305,10 +524,19 @@
     <ClInclude Include="include\libtorrent\socks5_stream.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\span.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
     <ClInclude Include="include\libtorrent\ssl_stream.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\stack_allocator.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
     <ClInclude Include="include\libtorrent\stat.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\stat_cache.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\storage.hpp">
@@ -320,22 +548,16 @@
     <ClInclude Include="include\libtorrent\string_util.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\thread.hpp">
+    <ClInclude Include="include\libtorrent\string_view.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\tailqueue.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\time.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\timestamp_history.hpp">
-      <Filter>Header Files\libtorrent</Filter>
-    </ClInclude>
-    <ClInclude Include="include\libtorrent\tommath.h">
-      <Filter>Header Files\libtorrent</Filter>
-    </ClInclude>
-    <ClInclude Include="include\libtorrent\tommath_class.h">
-      <Filter>Header Files\libtorrent</Filter>
-    </ClInclude>
-    <ClInclude Include="include\libtorrent\tommath_superclass.h">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\torrent.hpp">
@@ -347,6 +569,15 @@
     <ClInclude Include="include\libtorrent\torrent_info.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\torrent_peer.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\torrent_peer_allocator.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\torrent_status.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
     <ClInclude Include="include\libtorrent\tracker_manager.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
@@ -354,6 +585,9 @@
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\udp_tracker_connection.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\uncork_interface.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\union_endpoint.hpp">
@@ -371,6 +605,9 @@
     <ClInclude Include="include\libtorrent\utp_stream.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\vector_utils.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
     <ClInclude Include="include\libtorrent\version.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
@@ -383,86 +620,141 @@
     <ClInclude Include="include\libtorrent\xml_parse.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\dht_observer.hpp">
+    <ClInclude Include="ed25519\src\fe.h">
+      <Filter>Source Files\ed25519\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ed25519\src\fixedint.h">
+      <Filter>Source Files\ed25519\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ed25519\src\ge.h">
+      <Filter>Source Files\ed25519\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ed25519\src\precomp_data.h">
+      <Filter>Source Files\ed25519\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ed25519\src\sc.h">
+      <Filter>Source Files\ed25519\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\has_block.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\piece_block.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\netlink.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\block_cache_reference.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\units.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\io.hpp">
       <Filter>Header Files\libtorrent\kadmelia</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\dht_tracker.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\vector.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\find_data.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\storage_utils.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\get_item.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\dev_random.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\get_peers.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\aligned_union.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\item.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\deque.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\logging.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\disk_job_fence.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\msg.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\range.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\node.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\storage_piece_set.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\node_entry.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\aligned_storage.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\node_id.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\numeric_cast.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\observer.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\unique_ptr.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\refresh.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\alloca.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\routing_table.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\throw.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\rpc_manager.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\typed_span.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\kademlia\traversal_algorithm.hpp">
-      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    <ClInclude Include="include\libtorrent\aux_\array.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\extensions\logger.hpp">
-      <Filter>Header Files\libtorrent\extensions</Filter>
+    <ClInclude Include="include\libtorrent\packet_pool.hpp">
+      <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\extensions\lt_trackers.hpp">
-      <Filter>Header Files\libtorrent\extensions</Filter>
+    <ClInclude Include="include\libtorrent\write_resume_data.hpp">
+      <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\extensions\metadata_transfer.hpp">
-      <Filter>Header Files\libtorrent\extensions</Filter>
+    <ClInclude Include="include\libtorrent\aux_\deferred_handler.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\extensions\smart_ban.hpp">
-      <Filter>Header Files\libtorrent\extensions</Filter>
+    <ClInclude Include="include\libtorrent\aux_\ip_notifier.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\extensions\ut_metadata.hpp">
-      <Filter>Header Files\libtorrent\extensions</Filter>
+    <ClInclude Include="include\libtorrent\aux_\path.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\extensions\ut_pex.hpp">
-      <Filter>Header Files\libtorrent\extensions</Filter>
+    <ClInclude Include="include\libtorrent\aux_\session_listen_socket.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\aux_\session_impl.hpp">
+    <ClInclude Include="include\libtorrent\aux_\session_udp_sockets.hpp">
       <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="include\libtorrent\Makefile.am">
-      <Filter>Header Files\libtorrent</Filter>
-    </None>
-    <None Include="include\libtorrent\Makefile.in">
-      <Filter>Header Files\libtorrent</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
+    <ClCompile Include="ed25519\src\add_scalar.cpp">
+      <Filter>Source Files\ed25519</Filter>
+    </ClCompile>
+    <ClCompile Include="ed25519\src\fe.cpp">
+      <Filter>Source Files\ed25519</Filter>
+    </ClCompile>
+    <ClCompile Include="ed25519\src\ge.cpp">
+      <Filter>Source Files\ed25519</Filter>
+    </ClCompile>
+    <ClCompile Include="ed25519\src\key_exchange.cpp">
+      <Filter>Source Files\ed25519</Filter>
+    </ClCompile>
+    <ClCompile Include="ed25519\src\keypair.cpp">
+      <Filter>Source Files\ed25519</Filter>
+    </ClCompile>
+    <ClCompile Include="ed25519\src\sc.cpp">
+      <Filter>Source Files\ed25519</Filter>
+    </ClCompile>
+    <ClCompile Include="ed25519\src\sign.cpp">
+      <Filter>Source Files\ed25519</Filter>
+    </ClCompile>
+    <ClCompile Include="ed25519\src\verify.cpp">
+      <Filter>Source Files\ed25519</Filter>
+    </ClCompile>
+    <ClCompile Include="src\kademlia\dht_storage.cpp">
+      <Filter>Source Files\kadmelia</Filter>
+    </ClCompile>
     <ClCompile Include="src\kademlia\dht_tracker.cpp">
+      <Filter>Source Files\kadmelia</Filter>
+    </ClCompile>
+    <ClCompile Include="src\kademlia\dos_blocker.cpp">
+      <Filter>Source Files\kadmelia</Filter>
+    </ClCompile>
+    <ClCompile Include="src\kademlia\ed25519.cpp">
       <Filter>Source Files\kadmelia</Filter>
     </ClCompile>
     <ClCompile Include="src\kademlia\find_data.cpp">
@@ -477,13 +769,19 @@
     <ClCompile Include="src\kademlia\item.cpp">
       <Filter>Source Files\kadmelia</Filter>
     </ClCompile>
-    <ClCompile Include="src\kademlia\logging.cpp">
+    <ClCompile Include="src\kademlia\msg.cpp">
       <Filter>Source Files\kadmelia</Filter>
     </ClCompile>
     <ClCompile Include="src\kademlia\node.cpp">
       <Filter>Source Files\kadmelia</Filter>
     </ClCompile>
+    <ClCompile Include="src\kademlia\node_entry.cpp">
+      <Filter>Source Files\kadmelia</Filter>
+    </ClCompile>
     <ClCompile Include="src\kademlia\node_id.cpp">
+      <Filter>Source Files\kadmelia</Filter>
+    </ClCompile>
+    <ClCompile Include="src\kademlia\put_data.cpp">
       <Filter>Source Files\kadmelia</Filter>
     </ClCompile>
     <ClCompile Include="src\kademlia\refresh.cpp">
@@ -498,9 +796,6 @@
     <ClCompile Include="src\kademlia\traversal_algorithm.cpp">
       <Filter>Source Files\kadmelia</Filter>
     </ClCompile>
-    <ClCompile Include="src\mpi.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\alert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -510,10 +805,7 @@
     <ClCompile Include="src\allocator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\asio.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\asio_ssl.cpp">
+    <ClCompile Include="src\announce_entry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\assert.cpp">
@@ -528,6 +820,15 @@
     <ClCompile Include="src\bandwidth_queue_entry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\bdecode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bitfield.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\block_cache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\bloom_filter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -540,10 +841,19 @@
     <ClCompile Include="src\chained_buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\connection_queue.cpp">
+    <ClCompile Include="src\choker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\close_reason.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ConvertUTF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cpuid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\crc32c.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\create_torrent.cpp">
@@ -555,7 +865,16 @@
     <ClCompile Include="src\disk_buffer_pool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\disk_io_job.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\disk_io_thread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\disk_io_thread_pool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\disk_job_pool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\entry.cpp">
@@ -570,10 +889,16 @@
     <ClCompile Include="src\escape_string.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\ffs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\file.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\file_pool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\file_progress.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\file_storage.cpp">
@@ -583,6 +908,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\hasher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hasher512.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\http_connection.cpp">
@@ -618,19 +949,13 @@
     <ClCompile Include="src\lazy_bdecode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\logger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\lsd.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\lt_trackers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\magnet_uri.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\metadata_transfer.cpp">
+    <ClCompile Include="src\merkle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\natpmp.cpp">
@@ -642,16 +967,40 @@
     <ClCompile Include="src\parse_url.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\part_file.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\pe_crypto.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\peer_class.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\peer_class_set.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\peer_connection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\peer_connection_handle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\peer_list.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\performance_counters.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\piece_picker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\policy.cpp">
+    <ClCompile Include="src\platform_util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\proxy_base.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\proxy_settings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\puff.cpp">
@@ -660,19 +1009,49 @@
     <ClCompile Include="src\random.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\rss.cpp">
+    <ClCompile Include="src\read_resume_data.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\receive_buffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\request_blocks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resolve_links.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resolver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\session.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\session_call.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\session_handle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\session_impl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\settings.cpp">
+    <ClCompile Include="src\session_settings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\session_stats.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\settings_pack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\sha1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sha1_hash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sha512.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\smart_ban.cpp">
@@ -690,13 +1069,13 @@
     <ClCompile Include="src\stat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\stat_cache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\storage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\string_util.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\thread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\time.cpp">
@@ -712,6 +1091,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\torrent_info.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\torrent_peer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\torrent_peer_allocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\torrent_status.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\tracker_manager.cpp">
@@ -741,6 +1129,9 @@
     <ClCompile Include="src\utp_stream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\version.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\web_connection_base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -748,6 +1139,33 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\xml_parse.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\kademlia\dht_state.cpp">
+      <Filter>Source Files\kadmelia</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fingerprint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ip_notifier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\storage_utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\storage_piece_set.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\disk_job_fence.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\write_resume_data.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\path.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\session_udp_sockets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

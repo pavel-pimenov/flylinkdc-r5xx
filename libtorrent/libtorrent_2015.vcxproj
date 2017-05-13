@@ -64,7 +64,9 @@
     <ClInclude Include="include\libtorrent\aux_\session_call.hpp" />
     <ClInclude Include="include\libtorrent\aux_\session_impl.hpp" />
     <ClInclude Include="include\libtorrent\aux_\session_interface.hpp" />
+    <ClInclude Include="include\libtorrent\aux_\session_listen_socket.hpp" />
     <ClInclude Include="include\libtorrent\aux_\session_settings.hpp" />
+    <ClInclude Include="include\libtorrent\aux_\session_udp_sockets.hpp" />
     <ClInclude Include="include\libtorrent\aux_\storage_piece_set.hpp" />
     <ClInclude Include="include\libtorrent\aux_\storage_utils.hpp" />
     <ClInclude Include="include\libtorrent\aux_\suggest_piece.hpp" />
@@ -360,6 +362,7 @@
     <ClCompile Include="src\session_impl.cpp" />
     <ClCompile Include="src\session_settings.cpp" />
     <ClCompile Include="src\session_stats.cpp" />
+    <ClCompile Include="src\session_udp_sockets.cpp" />
     <ClCompile Include="src\settings_pack.cpp" />
     <ClCompile Include="src\sha1.cpp" />
     <ClCompile Include="src\sha1_hash.cpp" />
@@ -460,7 +463,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_NO_RTTI;BOOST_ASIO_HEADER_ONLY;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;x_TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>xTORRENT_DISABLE_LOGGING;xTORRENT_DISABLE_EXTENSIONS;TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_NO_RTTI;BOOST_ASIO_HEADER_ONLY;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;x_TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\libtorrent\include;$(SolutionDir)\openssl\include;..\boost;..\libtorrent\include;..\openssl\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
@@ -481,7 +484,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_ASIO_HEADER_ONLY;BOOST_NO_RTTI;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;x_TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>xTORRENT_DISABLE_LOGGING;xTORRENT_DISABLE_EXTENSIONS;TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_ASIO_HEADER_ONLY;BOOST_NO_RTTI;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;x_TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\libtorrent\include;$(SolutionDir)\openssl\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
@@ -500,7 +503,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_NO_RTTI;BOOST_ASIO_HEADER_ONLY;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;x_TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>xTORRENT_DISABLE_LOGGING;xTORRENT_DISABLE_EXTENSIONS;TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_NO_RTTI;BOOST_ASIO_HEADER_ONLY;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;x_TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\libtorrent\include;$(SolutionDir)\openssl\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <Optimization>Disabled</Optimization>
@@ -509,7 +512,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_ASIO_HEADER_ONLY;BOOST_NO_RTTI;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;x_TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>xTORRENT_DISABLE_LOGGING;xTORRENT_DISABLE_EXTENSIONS;TORRENT_NO_DEPRECATE;TORRENT_USE_BOOST_DATE_TIME;TORRENT_BUILDING_SHARED;TORRENT_LINKING_SHARED;BOOST_ASIO_ENABLE_CANCELIO;BOOST_ASIO_SEPARATE_COMPILATION;BOOST_ALL_NO_LIB;BOOST_ASIO_HEADER_ONLY;BOOST_NO_RTTI;TORRENT_DISABLE_GEO_IP;TORRENT_DISABLE_ENCRYPTION;x_TORRENT_USE_LIBCRYPTO;_WIN32_WINNT=0x0501;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\boost;$(SolutionDir)\libtorrent\include;$(SolutionDir)\openssl\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <IntrinsicFunctions>true</IntrinsicFunctions>

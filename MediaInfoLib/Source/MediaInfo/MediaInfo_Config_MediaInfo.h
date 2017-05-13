@@ -31,7 +31,7 @@
 #include "ZenLib/CriticalSection.h"
 #include "ZenLib/Translation.h"
 #include "ZenLib/InfoMap.h"
-using namespace ZenLib;
+//[-] FlylinkD++ using namespace ZenLib;
 //---------------------------------------------------------------------------
 
 namespace MediaInfoLib

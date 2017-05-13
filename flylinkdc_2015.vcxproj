@@ -870,6 +870,9 @@
     <ProjectReference Include="libtorrent\libtorrent_2015.vcxproj">
       <Project>{a2c26111-84f5-4ca3-85b8-bd80f1921238}</Project>
     </ProjectReference>
+    <ProjectReference Include="lua\lua_2015.vcxproj">
+      <Project>{8cab66de-3f50-4135-9bed-395c253ea7dc}</Project>
+    </ProjectReference>
     <ProjectReference Include="MediaInfoLib\MediaInfoLib_2015.vcxproj">
       <Project>{20e0f8d6-213c-460b-b361-9c725cb375c7}</Project>
     </ProjectReference>
