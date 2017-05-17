@@ -204,7 +204,7 @@ public:
             LastByte_Size=MIN(8, Buffer_Size)-NewBits;
             Buffer_Size -=MIN(8, Buffer_Size);
         }
-    };
+    }
 
     void SkipB ()
     {
@@ -298,38 +298,38 @@ public:
             LastByte_Size=LastByte_Size_BookMark;
             BufferUnderRun=BufferUnderRun_BookMark;
         }
-    };
+    }
 
     virtual int32u Remain () //How many bits remain?
     {
         return (int32u)(Buffer_Size+LastByte_Size);
-    };
+    }
 
     virtual void Byte_Align()
     {
         Get(LastByte_Size);
-    };
+    }
 
     virtual size_t Offset_Get()
     {
         if (BufferUnderRun)
             return 0;
         return (Buffer_Size_Init-Buffer_Size)/8;
-    };
+    }
 
     virtual size_t BitOffset_Get()
     {
         if (BufferUnderRun)
             return 0;
         return LastByte_Size;
-    };
+    }
 
     virtual size_t OffsetBeforeLastCall_Get()
     {
         if (BufferUnderRun)
             return 0;
         return (Buffer_Size_Init-Buffer_Size_BeforeLastCall)/8;
-    };
+    }
 
 private :
     const int8u*    Buffer;

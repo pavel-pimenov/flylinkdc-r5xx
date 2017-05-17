@@ -151,6 +151,15 @@ namespace libtorrent { namespace aux {
 	// or outstanding writes
 	struct TORRENT_EXPORT partial_piece_info
 	{
+#ifndef TORRENT_NO_DEPRECATE
+#include "libtorrent/aux_/disable_warnings_push.hpp"
+		partial_piece_info() = default;
+		partial_piece_info(partial_piece_info&&) = default;
+		partial_piece_info(partial_piece_info const&) = default;
+		partial_piece_info& operator=(partial_piece_info const&) = default;
+		partial_piece_info& operator=(partial_piece_info&&) = default;
+#include "libtorrent/aux_/disable_warnings_pop.hpp"
+#endif
 		// the index of the piece in question. ``blocks_in_piece`` is the number
 		// of blocks in this particular piece. This number will be the same for
 		// most pieces, but
@@ -177,6 +186,7 @@ namespace libtorrent { namespace aux {
 		//	get_download_queue() is called, it will be invalidated.
 		block_info* blocks;
 
+#ifndef TORRENT_NO_DEPRECATE
 		// the speed classes. These may be used by the piece picker to
 		// coalesce requests of similar download rates
 		enum state_t { none, slow, medium, fast };
@@ -193,7 +203,12 @@ namespace libtorrent { namespace aux {
 		// downloaded pieces down. Pieces set to ``none`` can be converted into
 		// any of ``fast``, ``medium`` or ``slow`` as soon as a peer want to
 		// download from it.
-		state_t piece_state;
+		state_t TORRENT_DEPRECATED_MEMBER piece_state;
+#else
+		// hidden
+		enum deprecated_state_t { none, slow, medium, fast };
+		deprecated_state_t deprecated_piece_state;
+#endif
 	};
 
 	// for std::hash (and to support using this type in unordered_map etc.)

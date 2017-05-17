@@ -19,7 +19,6 @@
 #if !MEDIAINFO_TRACE
 //---------------------------------------------------------------------------
 #include "MediaInfo/File__Analyze.h"
-#include "ZenLib/BitStream_LE.h"
 #include <cmath>
 using namespace std;
 //---------------------------------------------------------------------------

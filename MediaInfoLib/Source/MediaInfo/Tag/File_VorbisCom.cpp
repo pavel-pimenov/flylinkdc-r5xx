@@ -44,7 +44,8 @@ extern std::string ExtensibleWave_ChannelMask2 (int32u ChannelMask); //In Multip
 File_VorbisCom::File_VorbisCom()
 :File__Analyze()
 {
-    //In
+	user_comment_list_length=0;
+	//In
     StreamKind_Specific=Stream_General;
     StreamKind_Multiple=Stream_General;
     StreamKind_Common  =Stream_General;

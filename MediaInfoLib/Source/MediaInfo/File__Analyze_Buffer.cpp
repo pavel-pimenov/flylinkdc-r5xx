@@ -20,7 +20,6 @@
 //---------------------------------------------------------------------------
 #include "MediaInfo/File__Analyze.h"
 #include "MediaInfo/MediaInfo_Config.h"
-#include "ZenLib/BitStream_LE.h"
 #include <cmath>
 using namespace std;
 //---------------------------------------------------------------------------

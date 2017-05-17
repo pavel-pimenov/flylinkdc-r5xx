@@ -2753,7 +2753,7 @@ namespace libtorrent {
 				continue;
 
 			if (ae.tier > state.tier && state.sent_announce
-				&& !settings().get_bool(settings_pack::announce_to_all_tiers)) break;
+				&& !settings().get_bool(settings_pack::announce_to_all_tiers)) continue;
 			if (aep.is_working()) { state.tier = ae.tier; state.sent_announce = false; }
 			if (!aep.can_announce(now, is_seed(), ae.fail_limit))
 			{
@@ -6283,6 +6283,11 @@ namespace libtorrent {
 			pi.finished = int(i->finished);
 			pi.writing = int(i->writing);
 			pi.requested = int(i->requested);
+#ifndef TORRENT_NO_DEPRECATE
+			pi.piece_state = partial_piece_info::none;
+#else
+			pi.deprecated_piece_state = partial_piece_info::none;
+#endif
 			TORRENT_ASSERT(counter * blocks_per_piece + pi.blocks_in_piece <= int(blk.size()));
 			pi.blocks = &blk[std::size_t(counter * blocks_per_piece)];
 			int const piece_size = torrent_file().piece_size(i->index);
@@ -10758,18 +10763,26 @@ namespace {
 			int fails = 0;
 			if (ae)
 			{
-				for (auto& aep : ae->endpoints)
+				auto aep = std::find_if(ae->endpoints.begin(), ae->endpoints.end()
+					, [&](announce_endpoint const& e) { return e.socket == r.outgoing_socket; });
+
+				if (aep != ae->endpoints.end())
 				{
-					if (aep.socket != r.outgoing_socket) continue;
-					aep.failed(settings().get_int(settings_pack::tracker_backoff)
+					aep->failed(settings().get_int(settings_pack::tracker_backoff)
 						, retry_interval);
-					aep.last_error = ec;
-					aep.message = msg;
+					aep->last_error = ec;
+					aep->message = msg;
 #ifndef TORRENT_DISABLE_LOGGING
-					debug_log("*** increment tracker fail count [%d]", aep.fails);
+					debug_log("*** increment tracker fail count [%d]", aep->fails);
 #endif
-					break;
 				}
+				else
+				{
+#ifndef TORRENT_DISABLE_LOGGING
+					debug_log("*** no matching endpoint for request [%s, %s]", r.url.c_str(), print_endpoint(r.outgoing_socket->get_local_endpoint()).c_str());
+#endif
+				}
+
 
 				int const tracker_index = int(ae - m_trackers.data());
 

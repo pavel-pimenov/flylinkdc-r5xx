@@ -23,7 +23,6 @@
 #include "MediaInfo/TimeCode.h"
 #include "ZenLib/File.h"
 #include "ZenLib/FileName.h"
-#include "ZenLib/BitStream_LE.h"
 #include <cmath>
 #include <cfloat>
 using namespace std;

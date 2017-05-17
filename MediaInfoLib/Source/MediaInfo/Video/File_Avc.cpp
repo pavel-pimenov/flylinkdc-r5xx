@@ -855,8 +855,9 @@ void File_Avc::Streams_Fill(std::vector<seq_parameter_set_struct*>::iterator seq
         }
     if ((*seq_parameter_set_Item)->max_num_ref_frames>0)
     {
-        Fill(Stream_Video, 0, Video_Format_Settings, Ztring::ToZtring((*seq_parameter_set_Item)->max_num_ref_frames)+__T(" Ref Frames"));
-        Fill(Stream_Video, 0, Video_Codec_Settings, Ztring::ToZtring((*seq_parameter_set_Item)->max_num_ref_frames)+__T(" Ref Frames"));
+        const Ztring Video_Format = Ztring::ToZtring((*seq_parameter_set_Item)->max_num_ref_frames) + __T(" Ref Frames");
+        Fill(Stream_Video, 0, Video_Format_Settings, Video_Format);
+        Fill(Stream_Video, 0, Video_Codec_Settings, Video_Format);
         Fill(Stream_Video, 0, Video_Format_Settings_RefFrames, (*seq_parameter_set_Item)->max_num_ref_frames);
         Fill(Stream_Video, 0, Video_Codec_Settings_RefFrames, (*seq_parameter_set_Item)->max_num_ref_frames);
     }

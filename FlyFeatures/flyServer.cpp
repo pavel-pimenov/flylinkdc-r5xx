@@ -1040,6 +1040,7 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring&
 		else
 		{
 			string l_agent = l_root["agent"].asString();
+            unsigned l_page_limit_global = l_root["page_limit"].asUInt();
 			const Json::Value& l_arrays = l_root["items"];
 			const Json::Value::ArrayIndex l_count = l_arrays.size();
 			for (Json::Value::ArrayIndex j = 0; j < l_count; ++j)
@@ -1047,12 +1048,15 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring&
 				const Json::Value& l_cur_item_in = l_arrays[j];
 				const auto l_root_torrent_url = l_cur_item_in["url"].asString();
 				string l_local_agent = l_cur_item_in["agent"].asString();
+                unsigned l_page_limit_local = l_cur_item_in["page_limit"].asUInt();
+                if (l_page_limit_local == 0)
+                    l_page_limit_local = l_page_limit_global;
 				if (l_local_agent.empty())
 					l_local_agent = l_agent;
 				const string l_search_encode = Util::encodeURI(Text::fromT(p_search), false);
 				std::async(std::launch::async,
 					[&] {
-					for (int l_num_page = 0; l_num_page < 20 // TODO - конифг
+					for (int l_num_page = 0; l_num_page < l_page_limit_local
 						 ; ++l_num_page)
 					{
 						const string l_search_result = l_lua_state["get_url"](j, l_search_encode.c_str(), "", l_num_page, 0, 0, 0);
@@ -1174,7 +1178,7 @@ void CFlyServerConfig::loadTorrentSearchEngine()
 			{
 				if (g_lua_source_search_engine.empty())
 				{
-#if _DEBUG					
+#ifdef _DEBUG					
 					Util::getDataFromInetSafe(true, "file://Q:/vc15/r5xx/compiled/Settings/lua/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
 #else
 					Util::getDataFromInetSafe(true, "http://etc.fly-server.ru/etc/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);

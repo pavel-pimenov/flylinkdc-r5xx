@@ -36,7 +36,7 @@ public:
         buffer=Buffer_;
         ptr=Buffer_;
         storage=(long)Size_;
-    };
+    }
 
     int32u Get (size_t HowMany)
     {
@@ -88,7 +88,7 @@ public:
         overflow:
 
         return(ret);
-    };
+    }
 
     void Skip(size_t bits)
     {
@@ -98,26 +98,26 @@ public:
     int32u Remain () //How many bits remain?
     {
         return storage*8-(endbyte*8+endbit);
-    };
+    }
 
     void Byte_Align()
     {
-    };
+    }
 
     size_t Offset_Get()
     {
         return ptr-buffer;
-    };
+    }
 
     size_t BitOffset_Get()
     {
         return endbit;
-    };
+    }
 
     size_t OffsetBeforeLastCall_Get()
     {
         return ptr_BeforeLastCall-buffer;
-    };
+    }
 
 private :
     long endbyte;
