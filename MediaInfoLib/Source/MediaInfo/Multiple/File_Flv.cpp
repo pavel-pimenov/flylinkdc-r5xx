@@ -436,6 +436,13 @@ File_Flv::File_Flv()
     PreviousTagSize=(int32u)-1;
     meta_filesize=(int64u)-1;
     meta_duration=0;
+    video_stream_Count = 0;
+    audio_stream_Count = 0;
+    video_stream_FrameRate_Detected = 0;
+    Time = 0;
+    meta_Level = 0;
+    PreviousTagSize_Add11 = 0;
+
 }
 
 //***************************************************************************

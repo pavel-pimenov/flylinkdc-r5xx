@@ -211,6 +211,7 @@ namespace {
 		, m_last_token(-1)
 		, m_size(-1)
 	{}
+
 	bdecode_node::bdecode_node(bdecode_node const& n)
 		: m_tokens(n.m_tokens)
 		, m_root_tokens(n.m_root_tokens)
@@ -223,6 +224,7 @@ namespace {
 	{
 		(*this) = n;
 	}
+
 	bdecode_node& bdecode_node::operator=(bdecode_node const& n)
 	{
 		m_tokens = n.m_tokens;

@@ -135,6 +135,12 @@ File_H263::File_H263()
     //In
     Frame_Count_Valid=MediaInfoLib::Config.ParseSpeed_Get()>=0.3?8:2;
     FrameIsAlwaysComplete=false;
+
+    Temporal_Reference = 0;
+    Source_Format = 0;
+    PAR_W = 0;
+    PAR_H = 0;
+    Temporal_Reference_IsValid=0;
 }
 
 //---------------------------------------------------------------------------

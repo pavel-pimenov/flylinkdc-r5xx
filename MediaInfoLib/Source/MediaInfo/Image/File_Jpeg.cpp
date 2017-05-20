@@ -192,6 +192,9 @@ File_Jpeg::File_Jpeg()
     #if MEDIAINFO_DEMUX
     FrameRate=0;
     #endif //MEDIAINFO_DEMUX
+    APPE_Adobe0_transform=0;
+    APP0_JFIF_Parsed=0;
+    SOS_SOD_Parsed=0;
 }
 
 //***************************************************************************

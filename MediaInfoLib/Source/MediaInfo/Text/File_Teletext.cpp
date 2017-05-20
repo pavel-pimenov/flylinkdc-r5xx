@@ -65,6 +65,10 @@ File_Teletext::File_Teletext()
     //Temp
     PageNumber=0xFF;
     SubCode=0x3F7F;
+    CharacterSubset=0;
+    X=0;
+    Y=0;
+    End=0;
 }
 
 //---------------------------------------------------------------------------

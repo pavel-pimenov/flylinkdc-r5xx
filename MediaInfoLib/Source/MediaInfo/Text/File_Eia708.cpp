@@ -55,6 +55,7 @@ File_Eia708::File_Eia708()
 
     //Stream
     service_number=(int8u)-1;
+    block_size=0;
 
     //Temp
     StandAloneCommand=false;

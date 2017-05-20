@@ -69,6 +69,8 @@ File_DvbSubtitle::File_DvbSubtitle()
 
     //Temp
     MustFindDvbHeader=true;
+    page_id=0;
+    subtitle_stream_id=0;
 }
 
 //---------------------------------------------------------------------------

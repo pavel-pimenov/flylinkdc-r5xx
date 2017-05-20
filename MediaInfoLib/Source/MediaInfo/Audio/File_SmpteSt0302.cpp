@@ -53,6 +53,9 @@ File_SmpteSt0302::File_SmpteSt0302()
     #endif //MEDIAINFO_EVENTS
     PTS_DTS_Needed=true;
     IsRawStream=true;
+    audio_packet_size = false;
+    number_channels = false;
+    bits_per_sample = false;
 }
 
 //---------------------------------------------------------------------------

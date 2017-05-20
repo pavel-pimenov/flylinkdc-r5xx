@@ -89,6 +89,7 @@ File_SmpteSt0331::File_SmpteSt0331()
 
     //In
     QuantizationBits=0;
+    Channels_valid = false;
 }
 
 //***************************************************************************

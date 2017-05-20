@@ -219,8 +219,7 @@ void natpmp::delete_mapping(int const index)
 	if (m.protocol == portmap_protocol::none) return;
 	if (!m.map_sent)
 	{
-		m.act = mapping_t::action::none;
-		m.protocol = portmap_protocol::none;
+		m.set_none();
 		return;
 	}
 
@@ -276,11 +275,9 @@ void natpmp::try_next_mapping(int const i)
 		return;
 	}
 
-	auto const m = std::find_if(m_mappings.begin(), 
-        m_mappings.end() , [] (mapping_t const& ma) { return ma.act != mapping_t::action::none &&
-                                                             ma.protocol != portmap_protocol::none; });
-     // fix https://github.com/arvidn/libtorrent/issues/1370
-
+	auto const m = std::find_if(
+		m_mappings.begin(), m_mappings.end()
+		, [](mapping_t const& ma) { return ma.act != mapping_t::action::none; });
 	if (m == m_mappings.end())
 	{
 		if (m_abort)
@@ -554,7 +551,7 @@ void natpmp::on_reply(error_code const& e
 	{
 		// this means the mapping was
 		// successfully closed
-		m->protocol = portmap_protocol::none;
+		m->set_none();
 	}
 	else
 	{
@@ -565,7 +562,7 @@ void natpmp::on_reply(error_code const& e
 	if (result != 0)
 	{
 		// TODO: 3 it would be nice to have a separate NAT-PMP error category
-		errors::error_code_enum const errors[] =
+		static errors::error_code_enum const errors[] =
 		{
 			errors::unsupported_protocol_version,
 			errors::natpmp_not_authorized,

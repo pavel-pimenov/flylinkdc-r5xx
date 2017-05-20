@@ -67,6 +67,7 @@ File__Tags_Helper::File__Tags_Helper()
     ApeTag_Size=0;
     TagSizeIsFinal=false;
     SearchingForEndTags=false;
+    Parser_Buffer_Size=0;
 }
 
 //---------------------------------------------------------------------------

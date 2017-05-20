@@ -80,6 +80,13 @@ File__ReferenceFilesHelper::File__ReferenceFilesHelper(File__Analyze* MI_, Media
     #if MEDIAINFO_NEXTPACKET
         DTS_Interval=(int64u)-1;
     #endif //MEDIAINFO_NEXTPACKET
+
+    Demux_Interleave = 0;
+    CountOfReferencesToParse = 0;
+    CountOfReferences_ForReadSize = 0;
+    StreamKind_Last = Stream_General;
+    StreamPos_From = 0;
+    StreamPos_To = 0;
 }
 
 //---------------------------------------------------------------------------

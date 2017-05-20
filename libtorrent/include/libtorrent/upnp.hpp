@@ -254,15 +254,8 @@ private:
 		tcp::endpoint local_ep;
 	};
 
-	struct mapping_t
+	struct mapping_t : public aux::base_mapping_t
 	{
-		enum class action : std::uint8_t { none, add, del };
-
-		// the time the port mapping will expire
-		time_point expires;
-
-		action act = action::none;
-
 		// the local port for this mapping. If this is set
 		// to 0, the mapping is not in use
 		tcp::endpoint local_ep;
@@ -272,16 +265,8 @@ private:
 		// should announce to others
 		int external_port = 0;
 
-		// 2 = udp, 1 = tcp
-		aux::portmap_protocol protocol = aux::portmap_protocol::none;
-
 		// the number of times this mapping has failed
 		int failcount = 0;
-
-		char const* protocol_name() const
-		{
-			return protocol == aux::portmap_protocol::udp ? "UDP" : "TCP";
-		}
 	};
 
 	struct rootdevice

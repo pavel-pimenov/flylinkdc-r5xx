@@ -75,6 +75,7 @@ File_Scte20::File_Scte20()
     progressive_frame=false;
     top_field_first=false;
     repeat_first_field=false;
+    Eia608_DisplayEmptyStream = false;
 
     //Temp
     Streams.resize(2); //CEA-608 Field 1, CEA-608 Field 2

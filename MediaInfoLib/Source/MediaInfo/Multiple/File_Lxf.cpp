@@ -154,6 +154,9 @@ File_Lxf::File_Lxf()
     TimeStamp_Rate=720000;
     Duration_Detected=false;
     LastAudio_BufferOffset=(int64u)-1;
+    SampleSize = 0;
+    Version = 0;
+    File_Buffer_Size_Hint_Pointer = 0;
 }
 
 //---------------------------------------------------------------------------

@@ -238,7 +238,7 @@ void upnp::delete_mapping(int const mapping)
 
 	if (mapping >= int(m_mappings.size())) return;
 
-	global_mapping_t& m = m_mappings[mapping];
+	global_mapping_t const& m = m_mappings[mapping];
 
 #ifndef TORRENT_DISABLE_LOGGING
 	log("deleting port map: [ protocol: %s ext_port: %u "
