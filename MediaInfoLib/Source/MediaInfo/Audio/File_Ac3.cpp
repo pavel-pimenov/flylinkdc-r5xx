@@ -1897,13 +1897,16 @@ void File_Ac3::Core_Frame()
 	{
 		auxdatal = (int16u)-1;
 		Element_Size = Element_Size_Save;
-		return; // https://github.com/MediaArea/MediaInfoLib/issues/505
+		//return; // https://github.com/MediaArea/MediaInfoLib/issues/505
 	}
-    if (Buffer[BufferIndex-3]&0x02) //auxdatae
-        auxdatal=(((int16u)Buffer[BufferIndex-4])<<6)
-                |(         Buffer[BufferIndex-3] >>2);
-    else
-        auxdatal=(int16u)-1; //auxdata is empty
+	else
+	{
+		if (Buffer[BufferIndex - 3] & 0x02) //auxdatae
+			auxdatal = (((int16u)Buffer[BufferIndex - 4]) << 6)
+			| (Buffer[BufferIndex - 3] >> 2);
+		else
+			auxdatal = (int16u)-1; //auxdata is empty
+	}
     BitStream_Fast Search(Buffer+Buffer_Offset, Element_Size);
     while(Search.Remain()>18)
     {

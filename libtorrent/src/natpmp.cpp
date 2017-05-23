@@ -219,7 +219,8 @@ void natpmp::delete_mapping(int const index)
 	if (m.protocol == portmap_protocol::none) return;
 	if (!m.map_sent)
 	{
-		m.set_none();
+		m.act = mapping_t::action::none;
+		m.protocol = portmap_protocol::none;
 		return;
 	}
 
@@ -230,41 +231,41 @@ void natpmp::delete_mapping(int const index)
 int natpmp::add_mapping(portmap_protocol const p, int const external_port
 	, tcp::endpoint const local_ep)
 {
-        TORRENT_ASSERT(is_single_thread());
+	TORRENT_ASSERT(is_single_thread());
 
-        if (m_disabled) return -1;
+	if (m_disabled) return -1;
 
-        auto i = std::find_if(m_mappings.begin()
-            , m_mappings.end(), [](mapping_t const& m) { return m.protocol == portmap_protocol::none; });
-        if (i == m_mappings.end())
-        {
-            m_mappings.push_back(mapping_t());
-            i = m_mappings.end() - 1;
-        }
-        i->protocol = p;
-        i->external_port = external_port;
-        i->local_port = local_ep.port();
-        i->act = mapping_t::action::add;
+	auto i = std::find_if(m_mappings.begin()
+		, m_mappings.end(), [] (mapping_t const& m) { return m.protocol == portmap_protocol::none; });
+	if (i == m_mappings.end())
+	{
+		m_mappings.push_back(mapping_t());
+		i = m_mappings.end() - 1;
+	}
+	i->protocol = p;
+	i->external_port = external_port;
+	i->local_port = local_ep.port();
+	i->act = mapping_t::action::add;
 
-        int const mapping_index = int(i - m_mappings.begin());
+	int const mapping_index = int(i - m_mappings.begin());
 #ifndef TORRENT_DISABLE_LOGGING
-        if (should_log())
-        {
-            natpmp::mapping_t const& m = *i;
-            log("add-mapping: proto: %s port: %d local-port: %d action: %s ttl: %" PRId64
-                , (m.protocol == portmap_protocol::none
-                    ? "none" : m.protocol == portmap_protocol::tcp ? "tcp" : "udp")
-                , m.external_port
-                , m.local_port
-                , (m.act == mapping_t::action::none
-                    ? "none" : m.act == mapping_t::action::add ? "add" : "delete")
-                , total_seconds(m.expires - aux::time_now()));
-        }
+	if (should_log())
+	{
+		natpmp::mapping_t const& m = *i;
+		log("add-mapping: proto: %s port: %d local-port: %d action: %s ttl: %" PRId64
+			, (m.protocol == portmap_protocol::none
+				? "none" : m.protocol == portmap_protocol::tcp ? "tcp" : "udp")
+			, m.external_port
+			, m.local_port
+			, (m.act == mapping_t::action::none
+				? "none" : m.act == mapping_t::action::add ? "add" : "delete")
+			, total_seconds(m.expires - aux::time_now()));
+	}
 #endif
 
-        update_mapping(mapping_index);
-        return mapping_index;
-    }
+	update_mapping(mapping_index);
+	return mapping_index;
+}
 
 void natpmp::try_next_mapping(int const i)
 {
@@ -277,7 +278,9 @@ void natpmp::try_next_mapping(int const i)
 
 	auto const m = std::find_if(
 		m_mappings.begin(), m_mappings.end()
-		, [](mapping_t const& ma) { return ma.act != mapping_t::action::none; });
+		, [] (mapping_t const& ma) { return ma.act != mapping_t::action::none
+			&& ma.protocol != portmap_protocol::none; });
+
 	if (m == m_mappings.end())
 	{
 		if (m_abort)
@@ -551,7 +554,7 @@ void natpmp::on_reply(error_code const& e
 	{
 		// this means the mapping was
 		// successfully closed
-		m->set_none();
+		m->protocol = portmap_protocol::none;
 	}
 	else
 	{
@@ -562,13 +565,13 @@ void natpmp::on_reply(error_code const& e
 	if (result != 0)
 	{
 		// TODO: 3 it would be nice to have a separate NAT-PMP error category
-		static errors::error_code_enum const errors[] =
+		errors::error_code_enum errors[] =
 		{
 			errors::unsupported_protocol_version,
 			errors::natpmp_not_authorized,
 			errors::network_failure,
 			errors::no_resources,
-			errors::unsupported_opcode
+			errors::unsupported_opcode,
 		};
 		errors::error_code_enum ev = errors::no_error;
 		if (result >= 1 && result <= 5) ev = errors[result - 1];
@@ -679,6 +682,6 @@ void natpmp::close_impl()
 	m_refresh_timer.cancel(ec);
 	m_currently_mapping = -1;
 	update_mapping(0);
-    }
+}
 
 } // namespace libtorrent

@@ -86,7 +86,7 @@ namespace libtorrent { namespace aux {
 		{
 			return protocol == aux::portmap_protocol::udp ? "UDP" : "TCP";
 		}
-		void set_none()
+		void clear()
 		{
 			protocol = aux::portmap_protocol::none;
 			act = action::none;
