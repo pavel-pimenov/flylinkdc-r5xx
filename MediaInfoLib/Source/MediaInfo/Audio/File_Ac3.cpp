@@ -1889,24 +1889,17 @@ void File_Ac3::Core_Frame()
     {
         int16u frmsiz=CC2(Buffer+Buffer_Offset+(size_t)Element_Offset+2)&0x07FF;
         Element_Size=Element_Offset+2+frmsiz*2;
+        if (Element_Size>Element_Size_Save)
+            Element_Size=Element_Size_Save; // Not expected, but trying to parse the begining
     }
 
     //Pre-parsing, finding some elements presence
-	const int BufferIndex = Buffer_Offset + Element_Size;
-	if (BufferIndex > Buffer_Size)
-	{
-		auxdatal = (int16u)-1;
-		Element_Size = Element_Size_Save;
-		//return; // https://github.com/MediaArea/MediaInfoLib/issues/505
-	}
-	else
-	{
-		if (Buffer[BufferIndex - 3] & 0x02) //auxdatae
-			auxdatal = (((int16u)Buffer[BufferIndex - 4]) << 6)
-			| (Buffer[BufferIndex - 3] >> 2);
-		else
-			auxdatal = (int16u)-1; //auxdata is empty
-	}
+    int16u auxdatal;
+    if (Buffer[Buffer_Offset+(Element_Size)-3]&0x02) //auxdatae
+        auxdatal=(((int16u)Buffer[Buffer_Offset+(Element_Size)-4])<<6)
+                |(         Buffer[Buffer_Offset+(Element_Size)-3] >>2);
+    else
+        auxdatal=(int16u)-1; //auxdata is empty
     BitStream_Fast Search(Buffer+Buffer_Offset, Element_Size);
     while(Search.Remain()>18)
     {
@@ -3360,9 +3353,6 @@ void File_Ac3::Core_Frame()
     else
         Skip_XX(Element_Size-Element_Offset,                        "Unknown");
 
-    //true Element_Size is back
-    Element_Size=Element_Size_Save;
-
     if (bsid<=0x10)
     {
         size_t BitsAtEnd=18; //auxdatae+errorcheck
@@ -3386,6 +3376,17 @@ void File_Ac3::Core_Frame()
                 BS_End();
                 Skip_B2(                                            "crc2");
             Element_End0();
+        }
+        else
+        {
+            BS_End();
+            Skip_XX(Element_Size-Element_Offset,                    "Unknown");
+        }
+
+        if (bsid>0x0A) //E-AC-3 only
+        {
+            //true Element_Size is back
+            Element_Size=Element_Size_Save;
         }
     }
 

@@ -1407,11 +1407,9 @@ void File_Avc::Read_Buffer_Unsynched()
     if (SizedBlocks || !Config_IsRepeated) //If sized blocks, it is not a broadcasted stream so SPS/PPS are only in container header, we must not disable them.
     {
         //Rebuilding immediatly TemporalReferences
-		// ==> Start patch MPC
 		// https://sourceforge.net/p/mpcbe/code/HEAD/tree/trunk/
-		seq_parameter_set_structs* _seq_parameter_sets = !seq_parameter_sets.empty() ? &seq_parameter_sets : &subset_seq_parameter_sets;
+        seq_parameter_set_structs* _seq_parameter_sets=!seq_parameter_sets.empty()?&seq_parameter_sets:&subset_seq_parameter_sets; //Some MVC streams have no seq_parameter_sets. TODO: better management of temporal references
 		for (std::vector<seq_parameter_set_struct*>::iterator seq_parameter_set_Item = _seq_parameter_sets->begin(); seq_parameter_set_Item != _seq_parameter_sets->end(); ++seq_parameter_set_Item)
-		// ==> End patch MPC
             if ((*seq_parameter_set_Item))
             {
                 size_t MaxNumber;
@@ -2811,7 +2809,7 @@ void File_Avc::sei_message_pic_timing(int32u /*payloadSize*/, int32u seq_paramet
     }
     BS_End();
 
-    FILLING_BEGIN();
+    FILLING_BEGIN_PRECISE();
         if ((*seq_parameter_set_Item)->pic_struct_FirstDetected==(int8u)-1 && (*seq_parameter_set_Item)->vui_parameters && (*seq_parameter_set_Item)->vui_parameters->pic_struct_present_flag)
             (*seq_parameter_set_Item)->pic_struct_FirstDetected=pic_struct;
     FILLING_END();
