@@ -1192,12 +1192,6 @@ void NmdcHub::lockParse(const string& aLine)
 			{
 				feat.push_back("TLS");
 			}
-#ifdef STRONG_USE_DHT
-			if (BOOLSETTING(USE_DHT))
-			{
-				feat.push_back("DHT0");
-			}
-#endif
 			supports(feat);
 		}
 		

@@ -1005,7 +1005,7 @@
 #define IDC_RSSFEED_URL                 1787
 #define IDC_SETTINGS_PORT_TORRENT       1788
 #define IDC_RSSFEED_NAME_LBL            1789
-#define IDC_PORT_DHT                    1790
+#define IDC_PORT_TORRENT                1790
 #define IDC_RSSFEED_NAME                1791
 #define IDC_FLYLINK_TRUST_IP_URL        1792
 #define IDC_FLYLINK_TRUST_IP_URL_STR    1793

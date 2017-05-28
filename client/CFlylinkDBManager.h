@@ -482,13 +482,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void save_fly_server_cache(const TTHValue& p_tth, const CFlyServerCache& p_value);
 #endif
 		void add_file(__int64 p_path_id, const string& p_file_name, int64_t p_time_stamp, const TigerTree& p_tth, int64_t p_size, CFlyMediaInfo& p_out_media);
-#ifdef STRONG_USE_DHT
-		void save_dht_nodes(const std::vector<dht::BootstrapNode>& p_dht_nodes);
-		bool load_dht_nodes(std::vector<dht::BootstrapNode>& p_dht_nodes);
-		void save_dht_files(const dht::TTHArray& p_dht_files);
-		int  find_dht_files(const TTHValue& p_tth, dht::SourceList& p_source_list);
-		void check_expiration_dht_files(uint64_t p_Tick);
-#endif //STRONG_USE_DHT
 		
 		void save_geoip(const CFlyLocationIPArray& p_geo_ip);
 		void save_p2p_guard(const CFlyP2PGuardArray& p_p2p_guard_ip, const string&  p_manual_marker, int p_type);
@@ -628,14 +621,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		CFlySQLCommand m_update_base_mediainfo;
 		
-#ifdef STRONG_USE_DHT
-		CFlySQLCommand m_load_dht_nodes;
-		CFlySQLCommand m_save_dht_nodes;
-		CFlySQLCommand m_find_dht_files;
-		CFlySQLCommand m_save_dht_files;
-		CFlySQLCommand m_check_expiration_dht_files;
-		CFlySQLCommand m_delete_dht_nodes;
-#endif // STRONG_USE_DHT
 		CFlySQLCommand m_fly_hash_block_convert_loop;
 		CFlySQLCommand m_fly_hash_block_convert_update;
 		CFlySQLCommand m_fly_hash_block_convert_drop_dup;

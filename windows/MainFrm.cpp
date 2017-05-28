@@ -637,11 +637,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	ctrlUpdateProgress.SetRange(0, 100);
 	ctrlUpdateProgress.SetStep(1);
 	
-#ifdef STRONG_USE_DHT
-	tabDHTMenu.CreatePopupMenu();   // [+] add context menu on DHT area in status bar
-	tabDHTMenu.AppendMenu(MF_STRING, IDC_STATUS_DHT_ON, CTSTRING(DHT_ENABLE));  // "&Enable DHT"
-	tabDHTMenu.AppendMenu(MF_STRING, IDC_STATUS_DHT_OFF, CTSTRING(DHT_DISABLE));    // "&Disable DHT"
-#endif
 	//  AppendMenu(tabDHTMenu,MF_SEPARATOR,NULL,NULL);
 	tabAWAYMenu.CreatePopupMenu();  // [+] add context menu on DHT area in status bar
 	tabAWAYMenu.AppendMenu(MF_STRING, IDC_STATUS_AWAY_ON_OFF, CTSTRING(AWAY));
@@ -981,17 +976,6 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			dcassert(!ClientManager::isStartup());
 			TStringList* Stats = new TStringList();
 			Stats->push_back(Util::getAway() ? TSTRING(AWAY_STATUS) : Util::emptyStringT);
-#ifdef STRONG_USE_DHT
-			if (BOOLSETTING(USE_DHT)) // [+] IRainman.
-			{
-				dht::DHT* dhtManager = dht::DHT::getInstance();
-				Stats->push_back(_T("DHT: ") + (dhtManager->isConnected() ? Util::toStringW(dhtManager->getNodesCount()) : _T("-")));
-			}
-			else
-			{
-				Stats->push_back(TSTRING(DHT_DISABLED));
-			}
-#endif // STRONG_USE_DHT
 #ifdef FLYLINKDC_CALC_MEMORY_USAGE
 			const wstring l_dlstr = Util::formatBytesW(g_downdiff);
 			const wstring l_ulstr = Util::formatBytesW(g_updiff);
@@ -2130,11 +2114,6 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		const unsigned short l_lastTCP = static_cast<unsigned short>(SETTING(TCP_PORT));
 		const unsigned short l_lastUDP = static_cast<unsigned short>(SETTING(UDP_PORT));
 		const unsigned short l_lastTLS = static_cast<unsigned short>(SETTING(TLS_PORT));
-#ifdef STRONG_USE_DHT
-		const unsigned short l_lastDHT = static_cast<unsigned short>(SETTING(DHT_PORT));
-		dcassert(l_lastDHT);
-		const bool l_lastDHTConn = BOOLSETTING(USE_DHT);
-#endif
 		const auto l_lastCloseButtons = BOOLSETTING(TABS_CLOSEBUTTONS);
 		
 		const int l_lastConn = SETTING(INCOMING_CONNECTIONS);
@@ -2154,10 +2133,6 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			const unsigned short l_newTCP = static_cast<unsigned short>(SETTING(TCP_PORT));
 			const unsigned short l_newUDP = static_cast<unsigned short>(SETTING(UDP_PORT));
 			const unsigned short l_newTLS = static_cast<unsigned short>(SETTING(TLS_PORT));
-#ifdef STRONG_USE_DHT
-			const unsigned short l_newDHT = static_cast<unsigned short>(SETTING(DHT_PORT));
-			const bool l_newDHTConn = BOOLSETTING(USE_DHT);
-#endif
 			const int l_newConn = SETTING(INCOMING_CONNECTIONS);
 			const string l_newMapper = SETTING(MAPPER);
 			const string l_newBind = SETTING(BIND_ADDRESS);
@@ -2167,10 +2142,6 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			                                                      l_newTCP != l_lastTCP ||
 			                                                      l_newUDP != l_lastUDP ||
 			                                                      l_newTLS != l_lastTLS ||
-#ifdef STRONG_USE_DHT
-			                                                      l_newDHT != l_lastDHT ||
-			                                                      l_newDHTConn != l_lastDHTConn ||
-#endif
 			                                                      l_newMapper != l_lastMapper ||
 			                                                      l_newBind != l_lastBind);
 			                                                      
@@ -2275,9 +2246,6 @@ void MainFrame::getIPupdate()
 			l_udp_port.push_back(SETTING(UDP_PORT));
 			l_tcp_port.push_back(SETTING(TCP_PORT));
 			l_tcp_port.push_back(SETTING(TLS_PORT));
-#ifdef STRONG_USE_DHT
-			l_udp_port.push_back(SETTING(DHT_PORT));
-#endif
 		}
 	}
 	bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, SETTING(IPUPDATE_INTERVAL), "Get external IP");
@@ -2983,9 +2951,6 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 			setw(STATUS_PART_SLOTS);
 			setw(STATUS_PART_3);
 			setw(STATUS_PART_SHARED_SIZE);
-#ifdef STRONG_USE_DHT
-			setw(STATUS_PART_DHT);
-#endif
 			setw(STATUS_PART_1);
 			setw(STATUS_PART_MESSAGE);
 			
@@ -3008,10 +2973,6 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 				updateRect.right = w[STATUS_PART_1] - 1;
 				ctrlUpdateProgress.MoveWindow(&updateRect);
 			}
-			
-#ifdef STRONG_USE_DHT
-			m_ctrlStatus.GetRect(STATUS_PART_DHT, &m_tabDHTRect);       // Get DHT Area Rect
-#endif
 			//tabDHTRect.right -= 2;
 			m_ctrlStatus.GetRect(STATUS_PART_1, &m_tabAWAYRect);    // Get AWAY Area Rect
 			
@@ -3674,9 +3635,6 @@ LRESULT MainFrame::onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		updateTray(false);
 	}
 	bHandled = FALSE;
-#ifdef STRONG_USE_DHT
-	tabDHTMenu.DestroyMenu();
-#endif
 	winampMenu.DestroyMenu();
 	return 0;
 }
@@ -3731,18 +3689,6 @@ LRESULT MainFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BO
 		POINT ptClient = pt;
 		::ScreenToClient(m_hWndStatusBar, &ptClient);
 		
-#ifdef STRONG_USE_DHT
-		if (ptClient.x >= m_tabDHTRect.left && ptClient.x <= m_tabDHTRect.right)
-		{
-			if (GetMenuItemCount(tabDHTMenu) != -1) // Is valid menulist
-			{
-				const int l_currentDhtState = SETTING(USE_DHT);
-				tabDHTMenu.CheckMenuItem(IDC_STATUS_DHT_ON, MF_BYCOMMAND | l_currentDhtState ? MF_CHECKED : MF_UNCHECKED);
-				tabDHTMenu.CheckMenuItem(IDC_STATUS_DHT_OFF, MF_BYCOMMAND | l_currentDhtState ? MF_UNCHECKED : MF_CHECKED);
-				tabDHTMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
-			}
-		}
-#endif
 		// AWAY
 		if (ptClient.x >= m_tabAWAYRect.left && ptClient.x <= m_tabAWAYRect.right)
 		{
@@ -3781,12 +3727,6 @@ LRESULT MainFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BO
 LRESULT MainFrame::onContextMenuL(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	const POINT ptClient = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-#ifdef STRONG_USE_DHT
-	if (ptClient.x >= m_tabDHTRect.left && ptClient.x <= m_tabDHTRect.right)
-	{
-		onDHTPush();
-	}
-#endif
 	// AWAY area
 	if (ptClient.x >= m_tabAWAYRect.left && ptClient.x <= m_tabAWAYRect.right)
 	{
@@ -3984,29 +3924,6 @@ LRESULT MainFrame::OnFileSettingsWizard(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 }
 #endif // SSA_WIZARD_FEATURE
 
-#ifdef STRONG_USE_DHT
-LRESULT MainFrame::onCheckDHTStats(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */)
-{
-	onDHTPush();
-	return TRUE;
-}
-void MainFrame::onDHTPush()
-{
-	SET_SETTING(USE_DHT, !l_currentDhtStateIsEnable); // TODO - не поддерживается смена номера порта
-#ifdef SSA_VIDEO_PREVIEW_FEATURE
-	if (l_currentDhtStateIsEnable)
-	{
-		dht::DHT::getInstance()->stop();
-	}
-	else
-	{
-		dht::DHT::getInstance()->start();
-	}
-#else
-	ConnectivityManager::getInstance()->setup(true);
-#endif
-}
-#endif
 // [+] SSA
 LRESULT MainFrame::OnToolbarDropDown(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {

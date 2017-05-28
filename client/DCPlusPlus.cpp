@@ -44,11 +44,6 @@
 #include "IPGrant.h"
 #endif // SSA_IPGRANT_FEATURE
 
-#ifdef STRONG_USE_DHT
-#include "../dht/DHT.h"
-#endif
-
-
 #ifdef USE_FLYLINKDC_VLD
 #include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h" // VLD качать тут http://vld.codeplex.com/
 #endif
@@ -150,9 +145,6 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	DownloadManager::newInstance();
 	UploadManager::newInstance();
 	
-#ifdef STRONG_USE_DHT
-	LOAD_STEP("DHT", dht::DHT::newInstance());
-#endif
 	LOAD_STEP("Ensure list path", QueueManager::newInstance());
 	LOAD_STEP("Create empty share", ShareManager::newInstance());
 	LOAD_STEP("Ensure fav path", FavoriteManager::newInstance());
@@ -206,9 +198,6 @@ void preparingCoreToShutdown() // [+] IRainamn fix.
 		CFlyLog l_log("[Core shutdown]");
 		TimerManager::getInstance()->shutdown();
 		ClientManager::shutdown();
-#ifdef STRONG_USE_DHT
-		dht::BootstrapManager::shutdown_http();
-#endif
 		UploadManager::shutdown();
 		WebServerManager::getInstance()->shutdown();
 		HashManager::getInstance()->shutdown();
@@ -289,12 +278,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 #ifdef _DEBUG
 		dcdebug("shutdown start - User::g_user_counts = %d OnlineUser::g_online_user_counts = %d\n", int(User::g_user_counts), int(OnlineUser::g_online_user_counts));
 #endif
-#ifdef STRONG_USE_DHT
-		dht::DHT::getInstance()->stop(true); // [+] IRainman fix.
-#ifdef _DEBUG
-		dcdebug("shutdown (after closing last hub (DHT::stop) - User::g_user_counts = %d OnlineUser::g_online_user_counts = %d\n", int(User::g_user_counts), int(OnlineUser::g_online_user_counts)); // [+] IRainman fix.
-#endif
-#endif
 #ifdef FLYLINKDC_USE_TORRENT
 		DownloadManager::getInstance()->shutdown_torrent();
 #endif
@@ -325,9 +308,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		ADLSearchManager::deleteInstance();
 		FinishedManager::deleteInstance();
 		ShareManager::deleteInstance();
-#ifdef STRONG_USE_DHT
-		dht::DHT::deleteInstance();
-#endif
 #ifdef USE_FLYLINKDC_VLD
 		VLDDisable(); // TODO VLD показывает там лики - не понял пока как победить OpenSSL
 #endif

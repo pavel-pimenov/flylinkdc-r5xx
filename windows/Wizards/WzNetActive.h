@@ -83,9 +83,6 @@ public:
 		SetDlgItemText(IDC_WIZARD_NETA_BTN_SETUPROUTER, CTSTRING(WIZARD_NETA_BTN_SETUPROUTER));
 		SetDlgItemText(IDC_WIZARD_NETA_ROUTER_STATIC, CTSTRING(WIZARD_NETA_ROUTER_STATIC));
 		SetDlgItemText(IDC_WIZARD_NETA_BTN_TEST, CTSTRING(WIZARD_NETA_BTN_TEST));
-#ifdef STRONG_USE_DHT
-		SetDlgItemText(IDC_WIZARD_NETA_USE_DHT, CTSTRING(WIZARD_NETA_USE_DHT));
-#endif
 		SetDlgItemText(IDC_WIZARD_NETA_BTN_CHECKUPNP, CTSTRING(WIZARD_NETA_BTN_CHECKUPNP));
 		
 		uint16_t tcp = SETTING(TCP_PORT);
@@ -109,13 +106,6 @@ public:
 			//}
 			CheckDlgButton(IDC_WIZARD_NETA_USEDC, BST_CHECKED);
 		}
-
-#ifdef STRONG_USE_DHT
-		if (BOOLSETTING(USE_DHT))
-		{
-			CheckDlgButton(IDC_WIZARD_NETA_USE_DHT, BST_CHECKED);
-		}
-#endif
 
 		SetStage(IDC_WIZARD_NETA_TCP_ICO, StageWait);
 		SetStage(IDC_WIZARD_NETA_UDP_ICO, StageWait);
@@ -409,25 +399,6 @@ public:
 /*		test = */SET_SETTING( UDP_PORT , Text::fromT( tmp ));
 //if ( test) ???
 		SET_SETTING( INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_UPNP ); // [+] PPA всегд ставим Upnp - у многих сейчас wifi и роутеры.
-		// TODO - проверить как пашет эта галка на прямом
-/*
-		if (isNeedPassiveMode)
-		{
-			SET_SETTING( INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_PASSIVE);
-		}else if ( _isUPNPChecked )
-		{
-			SET_SETTING( INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_UPNP );
-		}else if (IsDlgButtonChecked(IDC_WIZARD_NETA_USEDC) == BST_CHECKED)
-		{
-			SET_SETTING( INCOMING_CONNECTIONS, SettingsManager::INCOMING_DIRECT);
-		}else
-		{
-			SET_SETTING( INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_NAT);
-		}
-		*/
-#ifdef STRONG_USE_DHT
-		SET_SETTING( USE_DHT,  ( IsDlgButtonChecked(IDC_WIZARD_NETA_USE_DHT) == BST_CHECKED ) );
-#endif
 		return FALSE;       // allow deactivation
 		}
 		catch(Exception & e)

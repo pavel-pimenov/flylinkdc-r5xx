@@ -995,10 +995,6 @@ void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const 
 
 void ClientManager::search(const SearchParamOwner& p_search_param)
 {
-#ifdef STRONG_USE_DHT
-	if (BOOLSETTING(USE_DHT) && p_search_param.m_file_type == Search::TYPE_TTH)
-		dht::DHT::getInstance()->findFile(p_search_param.m_filter);
-#endif
 	CFlyReadLock(*g_csClients);
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
@@ -1021,12 +1017,6 @@ void ClientManager::search(const SearchParamOwner& p_search_param)
 
 uint64_t ClientManager::multi_search(const SearchParamTokenMultiClient& p_search_param)
 {
-#ifdef STRONG_USE_DHT
-	if (BOOLSETTING(USE_DHT) && p_search_param.m_file_type == Search::TYPE_TTH)
-	{
-		dht::DHT::getInstance()->findFile(p_search_param.m_filter, p_search_param.m_token);
-	}
-#endif
 	uint64_t estimateSearchSpan = 0;
 	if (p_search_param.m_clients.empty())
 	{
@@ -1307,27 +1297,6 @@ void ClientManager::cancelSearch(void* aOwner)
 		i->second->cancelSearch(aOwner);
 	}
 }
-
-#ifdef STRONG_USE_DHT
-OnlineUserPtr ClientManager::findDHTNode(const CID& cid)
-{
-	CFlyReadLock(*g_csOnlineUsers);
-	
-	const auto op = g_onlineUsers.equal_range(cid);
-	for (auto i = op.first; i != op.second; ++i)
-	{
-		OnlineUser* ou = i->second;
-		
-		// user not in DHT, so don't bother with other hubs
-		if (!ou->getUser()->isSet(User::DHT0))
-			break;
-			
-		if (ou->isDHT())
-			return ou;
-	}
-	return nullptr;
-}
-#endif
 
 void ClientManager::on(Connected, const Client* c) noexcept
 {

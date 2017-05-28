@@ -137,9 +137,6 @@ static const char* g_settingTags[] =
 	"RssNewsOrder",   // [+] SSA
 	"RssNewsWidth",   // [+] SSA
 	"RssNewsVisible", // [+] SSA
-#ifdef STRONG_USE_DHT
-	"DHTKey",
-#endif
 	"Mapper",
 	"PortalBrowserUpdateURL",// [+] PPA
 	"ISPResourceRootURL",// [+] PPA
@@ -1198,7 +1195,7 @@ void SettingsManager::setDefaults()
 	setDefault(AUTO_SLOTS, 5);
 	setDefault(ALLOW_NAT_TRAVERSAL, TRUE);
 	//setDefault(USE_EXPLORER_THEME, false); // [~] IRainman set to disable default.
-	setDefault(USE_DHT, TRUE);
+	setDefault(USE_TORRENT, TRUE);
 	setDefault(LANGUAGE_FILE, g_default_lang_file_name);
 	//setDefault(DEFAULT_CODEPAGE,"");
 	setDefault(MIN_MULTI_CHUNK_SIZE, 2); // [+] IRainman
@@ -1385,12 +1382,6 @@ void SettingsManager::load(const string& aFileName)
 	{
 		set(PRIVATE_ID, CID::generate().toBase32());
 	}
-#ifdef STRONG_USE_DHT
-	if (SETTING(DHT_KEY).length() != 39 || CID(SETTING(DHT_KEY)).isZero())
-	{
-		set(DHT_KEY, CID::generate().toBase32());
-	}
-#endif
 	
 	const string l_config_version = get(CONFIG_VERSION, false);
 	const int l_version = Util::toInt(l_config_version); // [!] FlylinkDC used revision version (not kernel version!)

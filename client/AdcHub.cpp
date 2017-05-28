@@ -59,9 +59,6 @@ const string AdcSupports::BAS0_SUPPORT("ADBAS0");
 const string AdcSupports::TIGR_SUPPORT("ADTIGR");
 const string AdcSupports::UCM0_SUPPORT("ADUCM0");
 const string AdcSupports::BLO0_SUPPORT("ADBLO0");
-#ifdef STRONG_USE_DHT
-const string AdcSupports::DHT0_SUPPORT("ADDHT0");
-#endif
 const string AdcSupports::ZLIF_SUPPORT("ADZLIF");
 
 const vector<StringList> AdcHub::m_searchExts;
@@ -1757,13 +1754,6 @@ void AdcHub::on(Connected c) noexcept
 	{
 		cmd.addParam(AdcSupports::BLO0_SUPPORT);
 	}
-#ifdef STRONG_USE_DHT
-	if (BOOLSETTING(USE_DHT))
-	{
-		cmd.addParam(AdcSupports::DHT0_SUPPORT);
-	}
-#endif
-	
 	cmd.addParam(AdcSupports::ZLIF_SUPPORT);
 	
 	send(cmd);

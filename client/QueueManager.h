@@ -344,10 +344,6 @@ class QueueManager : public Singleton<QueueManager>,
 				// find some PFS sources to exchange parts info
 				static void findPFSSourcesL(PFSSourceList&);
 				
-#ifdef STRONG_USE_DHT
-				// return a PFS tth to DHT publish
-				static TTHValue* findPFSPubTTH();
-#endif
 				QueueItemPtr findAutoSearch(deque<string>& p_recent) const; // [!] IRainman fix.
 				static size_t getSize()
 				{

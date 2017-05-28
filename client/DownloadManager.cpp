@@ -1255,7 +1255,7 @@ bool DownloadManager::add_torrent_file(const tstring& p_torrent_path, const tstr
 }
 void DownloadManager::init_torrent(bool p_is_force)
 {
-	if (!BOOLSETTING(USE_DHT) && p_is_force == false)
+	if (!BOOLSETTING(USE_TORRENT) && p_is_force == false)
 	{
 		LogManager::torrent_message("Disable torrent DHT...");
 		return;

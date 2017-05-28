@@ -117,7 +117,7 @@
 #include <stdio.h>
 #include <openssl/objects.h>
 #include "ssl_locl.h"
-// [-] FlylinkDC++ #include "srtp.h"
+//#include "srtp.h" [-]FlylinkDC++
 
 #ifndef OPENSSL_NO_SRTP
 

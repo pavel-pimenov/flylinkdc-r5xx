@@ -1786,7 +1786,7 @@ enum Strings   // @DontAdd
 	USE_BITRATE_FIX_FOR_SPAM, // "Use Bitrate/Sample fix for QCD/QMP players"
 	USE_CUSTOM_LIST_BACKGROUND, // "Use custom list background style"
 	USE_CUSTOM_MENU, // "Use custom menus"
-	USE_DHT, // "Enable torrent"
+	USE_TORRENT, // "Enable torrent"
 	USE_DHT_NOTANSWER, // "Do not ask again"
 	USE_EXPLORER_THEME, // "Use Explorer theme in listviews and treeviews"
 	UC_SUBMENU, // "Place usercommands to submenu"

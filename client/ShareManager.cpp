@@ -38,10 +38,6 @@
 #include "../FlyFeatures/flyServer.h"
 #include "../client/CFlylinkDBManager.h"
 
-#ifdef STRONG_USE_DHT
-#include "../dht/IndexManager.h"
-#endif
-
 #ifdef _WIN32
 # include <ShlObj.h>
 #else
@@ -1544,19 +1540,6 @@ bool ShareManager::updateIndicesFileL(Directory& dir, const Directory::ShareFile
 		}
 		dcassert(Text::toLower(f.getName()) == f.getLowName());
 		g_bloom.add(f.getLowName());
-#ifdef STRONG_USE_DHT
-		if (!ClientManager::isBeforeShutdown())
-		{
-			if (g_is_initial == false && dht::IndexManager::isTimeForPublishing() && BOOLSETTING(USE_DHT))
-			{
-				dht::IndexManager::publishFile(f.getTTH(), f.getSize());
-			}
-		}
-		else
-		{
-			return false;
-		}
-#endif
 		return true;
 	}
 	return false;
@@ -1583,10 +1566,6 @@ void ShareManager::refresh_share(bool p_dirs /* = false */, bool aUpdate /* = tr
 	{
 		l_is_cached = false;
 	}
-	
-#ifdef STRONG_USE_DHT
-	dht::IndexManager::setTimeForPublishing();
-#endif
 	
 	try
 	{
@@ -1696,14 +1675,6 @@ int ShareManager::run()
 		{
 			ClientManager::infoUpdated();
 		}
-		
-#ifdef STRONG_USE_DHT
-		if (dht::IndexManager::isTimeForPublishing())
-		{
-			dht::IndexManager::setNextPublishing();
-		}
-		
-#endif
 	}
 	m_is_refreshing.clear();
 	CFlylinkDBManager::getInstance()->flush_hash();

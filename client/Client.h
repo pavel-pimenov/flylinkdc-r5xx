@@ -58,11 +58,7 @@ class ClientBase
 		{ }
 		virtual ~ClientBase() {} // [cppcheck]
 		
-		enum P2PType { DIRECT_CONNECT // Никак не используется TODO DHT - заменить на bool??
-#ifdef STRONG_USE_DHT
-		, DHT
-#endif
-		             };
+		enum P2PType { DIRECT_CONNECT };
 	protected:
 		P2PType m_type;
 	public:
@@ -88,11 +84,7 @@ class ClientBase
 		}
 		bool isDHT() const
 		{
-#ifdef STRONG_USE_DHT
-			return m_type == DHT;
-#else
 			return false;
-#endif
 		}
 		
 		virtual const string getHubUrl() const = 0;

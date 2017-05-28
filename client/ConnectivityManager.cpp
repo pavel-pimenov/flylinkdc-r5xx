@@ -136,17 +136,10 @@ void ConnectivityManager::test_all_ports()
 			string l_external_ip;
 			std::vector<unsigned short> l_udp_port, l_tcp_port;
 			l_udp_port.push_back(SETTING(UDP_PORT));
-#ifdef STRONG_USE_DHT
-			l_udp_port.push_back(SETTING(DHT_PORT));
-#endif
 			l_tcp_port.push_back(SETTING(TCP_PORT));
 			l_tcp_port.push_back(SETTING(TLS_PORT));
 			if (CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0,
-#ifdef STRONG_USE_DHT
-			                                 "UDP+DHT+TCP+TLS"
-#else
 			                                 "UDP+TCP+TLS"
-#endif
 			                                ))
 			{
 				if (!l_external_ip.empty())
@@ -370,20 +363,6 @@ void ConnectivityManager::listen() // TODO - fix copy-paste
 		break;
 	}
 	
-#ifdef STRONG_USE_DHT
-	try
-	{
-		if (dht::DHT::getInstance()->getPort() &&  dht::DHT::getInstance()->getPort() != SETTING(DHT_PORT))
-		{
-			// TODO dht::DHT::getInstance()->stop(); это не пашет - нужно разрушение
-		}
-		dht::DHT::getInstance()->start();
-	}
-	catch (const Exception& e)
-	{
-		l_exceptions += " * DHT listen UDP Port = " + Util::toString(SETTING(DHT_PORT)) + " error = " + e.getError() + "\r\n";
-	}
-#endif
 	if (!l_exceptions.empty())
 	{
 		throw Exception("ConnectivityManager::listen() error:\r\n" + l_exceptions);
@@ -394,9 +373,6 @@ void ConnectivityManager::disconnect()
 {
 	SearchManager::getInstance()->disconnect();
 	ConnectionManager::getInstance()->disconnect();
-#ifdef STRONG_USE_DHT
-	dht::DHT::getInstance()->stop();
-#endif
 }
 
 void ConnectivityManager::log(const string& p_message)

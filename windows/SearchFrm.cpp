@@ -903,7 +903,7 @@ void SearchFrame::onEnter()
 		CFlylinkDBManager::getInstance()->save_registry(g_lastSearches, e_SearchHistory); //[+]PPA
 	}
 	MainFrame::updateQuickSearches();
-	if (m_search_param.m_file_type != Search::TYPE_TTH && !isTTH(s))
+	if (m_search_param.m_file_type != Search::TYPE_TTH && !isTTH(s) && BOOLSETTING(USE_TORRENT))
 	{
 		CFlyServerConfig::torrentSearch(m_win_handler, PREPARE_RESULT_TORRENT, s);
 	}

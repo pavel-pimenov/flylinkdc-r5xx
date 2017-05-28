@@ -32,13 +32,6 @@
 #include "Pointer.h"
 #include "CFlylinkDBManager.h"
 
-#ifdef STRONG_USE_DHT
-namespace dht
-{
-class IndexManager;
-}
-#endif
-
 STANDARD_EXCEPTION_ADD_INFO(ShareException); // [!] FlylinkDC++
 
 class SimpleXML;
@@ -433,10 +426,6 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		typedef boost::unordered_map<string, CFlyBaseDirItem> ShareMap;
 		static ShareMap g_shares;
 		static ShareMap g_lost_shares;
-		
-#ifdef STRONG_USE_DHT
-		friend class ::dht::IndexManager;
-#endif
 		
 		typedef boost::unordered_map<TTHValue, Directory::ShareFile::Set::const_iterator> HashFileMap;
 		

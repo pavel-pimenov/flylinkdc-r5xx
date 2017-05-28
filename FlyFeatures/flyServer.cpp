@@ -73,10 +73,6 @@ CFlyServerStatistics g_fly_server_stat;
 CServerItem CFlyServerConfig::g_stat_server;
 #define FLY_SHUTDOWN_FILE_MARKER_NAME "FlylinkDCShutdownMarker.txt"
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
-#ifdef STRONG_USE_DHT
-std::vector<DHTServer>    CFlyServerConfig::g_dht_servers;
-uint16_t CFlyServerConfig::g_min_interval_dth_connect = 60; //   DHT обращаемс€ не чаще раз в 60 секунд (найти причину почему это происходит)
-#endif // STRONG_USE_DHT
 std::vector<string>   CFlyServerConfig::g_spam_urls;
 DWORD CFlyServerConfig::g_winet_connect_timeout = 2000;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -312,26 +308,6 @@ bool CFlyServerConfig::isSpam(const string& p_line)
 	return false;
 }
 //======================================================================================================
-#ifdef STRONG_USE_DHT
-const DHTServer& CFlyServerConfig::getRandomDHTServer()
-{
-	dcassert(!g_dht_servers.empty());
-	if (!g_dht_servers.empty())
-	{
-		const int l_id = Util::rand(g_dht_servers.size());
-		return g_dht_servers[l_id];
-	}
-	else
-	{
-		dcassert(0);
-		// fix https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=113332
-		// TODO - ѕопытатьс€ повторить.
-		g_dht_servers.push_back(DHTServer("http://dht.fly-server.ru/dcDHT.php", ""));
-		return g_dht_servers[0];
-	}
-}
-#endif // STRONG_USE_DHT
-//======================================================================================================
 inline static void checkStrKeyCase(const string& p_str)
 {
 #ifdef _DEBUG
@@ -450,22 +426,6 @@ void CFlyServerConfig::loadConfig()
 			l_xml.fromXML(l_data);
 			if (l_xml.findChild("Bootstraps"))
 			{
-#ifdef STRONG_USE_DHT
-				if (g_dht_servers.empty()) // DHT забираем один раз
-				{
-					l_xml.stepIn();
-					while (l_xml.findChild("server"))
-					{
-						const string& l_server = l_xml.getChildAttrib("url");
-						if (!l_server.empty())
-						{
-							const string& l_agent = l_xml.getChildAttrib("agent");
-							g_dht_servers.push_back(DHTServer(l_server, l_agent));
-						}
-					}
-					l_xml.stepOut();
-				}
-#endif // STRONG_USE_DHT
 				{
 					l_xml.stepIn();
 					while (l_xml.findChild("antispam"))
@@ -540,9 +500,6 @@ void CFlyServerConfig::loadConfig()
 					initUINT16("unique_files_for_virus_detect", g_unique_files_for_virus_detect, 2);
 					initDWORD("max_size_for_virus_detect", g_max_size_for_virus_detect);
 					
-#ifdef STRONG_USE_DHT
-					initUINT16("min_interval_dth_connect", g_min_interval_dth_connect, 60); // ѕока нет в XML
-#endif
 					initDWORD("winet_connect_timeout", g_winet_connect_timeout);
 					initDWORD("winet_receive_timeout", g_winet_receive_timeout);
 					initDWORD("winet_send_timeout", g_winet_send_timeout);
@@ -1447,9 +1404,6 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 		};
 		const auto l_path = Text::toT(Util::getConfigPath());
 		l_disk_info["DBMain"] = getFileSize(l_path + _T("\\FlylinkDC.sqlite"));
-#ifdef STRONG_USE_DHT
-		l_disk_info["DBDHT"] = getFileSize(l_path + _T("\\FlylinkDC_dht.sqlite"));
-#endif
 		l_disk_info["DBMediainfo"] = getFileSize(l_path + _T("\\FlylinkDC_mediainfo.sqlite"));
 		l_disk_info["DBLog"] = getFileSize(l_path + _T("\\FlylinkDC_log.sqlite"));
 		l_disk_info["DBStat"] = getFileSize(l_path + _T("\\FlylinkDC_stat.sqlite"));

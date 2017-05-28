@@ -149,9 +149,6 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  RSS_COLUMNS_ORDER, // [+] SSA
 		                  RSS_COLUMNS_WIDTHS, // [+] SSA
 		                  RSS_COLUMNS_VISIBLE, // [+] SSA
-#ifdef STRONG_USE_DHT
-		                  DHT_KEY,
-#endif
 		                  MAPPER,
 		                  PORTAL_BROWSER_UPDATE_URL, // [+]PPA
 		                  ISP_RESOURCE_ROOT_URL, // [+]PPA
@@ -373,7 +370,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  OVERLAP_CHUNKS,
 		                  EXTRA_PARTIAL_SLOTS,
 		                  AUTO_SLOTS,
-		                  USE_DHT,
+		                  USE_TORRENT,
 		                  DHT_PORT,
 		                  KEEP_FINISHED_FILES_OPTION,
 		                  ALLOW_NAT_TRAVERSAL, USE_EXPLORER_THEME, UC_SUBMENU, AUTO_DETECT_CONNECTION,

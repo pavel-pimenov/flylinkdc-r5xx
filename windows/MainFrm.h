@@ -246,10 +246,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 #ifdef IRAINMAN_INCLUDE_RSS
 		COMMAND_ID_HANDLER(IDC_RSS, onOpenWindows) // [+] SSA
 #endif
-#ifdef STRONG_USE_DHT
-		COMMAND_ID_HANDLER(IDC_STATUS_DHT_ON, onCheckDHTStats)
-		COMMAND_ID_HANDLER(IDC_STATUS_DHT_OFF, onCheckDHTStats)
-#endif
 		COMMAND_ID_HANDLER(IDC_STATUS_AWAY_ON_OFF, onAway)
 #ifdef USE_SUPPORT_HUB
 		COMMAND_ID_HANDLER(IDC_CONNECT_TO_FLYSUPPORT_HUB, OnConnectToSupportHUB)
@@ -370,9 +366,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 		LRESULT OnPreviewServerReady(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled);
 		LRESULT onPreviewLogDlg(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-#endif
-#ifdef STRONG_USE_DHT
-		LRESULT onCheckDHTStats(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 #endif
 #ifdef FLYLINKDC_USE_SQL_EXPLORER
 		LRESULT onOpenSQLExplorer(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -642,9 +635,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		{
 			STATUS_PART_MESSAGE,
 			STATUS_PART_1,
-#ifdef STRONG_USE_DHT
-			STATUS_PART_DHT,
-#endif
 			STATUS_PART_SHARED_SIZE,
 			STATUS_PART_3,
 			STATUS_PART_SLOTS,
@@ -699,10 +689,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		CMenu trayMenu;
 		CMenu tbMenu;
-#ifdef STRONG_USE_DHT
-		RECT  m_tabDHTRect;
-		CMenu tabDHTMenu;
-#endif
 		CMenu tabAWAYMenu;
 		CMenu winampMenu;
 		RECT  m_tabAWAYRect;

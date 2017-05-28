@@ -60,7 +60,7 @@ PropPage::TextItem NetworkPage::texts[] =
 	{ IDC_NATT, ResourceManager::ALLOW_NAT_TRAVERSAL },
 	{ IDC_IPUPDATE, ResourceManager::UPDATE_IP },
 	{ IDC_SETTINGS_UPDATE_IP_INTERVAL, ResourceManager::UPDATE_IP_INTERVAL },
-	{ IDC_SETTINGS_USE_TORRENT,  ResourceManager::USE_DHT },
+	{ IDC_SETTINGS_USE_TORRENT,  ResourceManager::USE_TORRENT },
 	{ IDC_GETIP, ResourceManager::GET_IP },
 	{ IDC_ADD_FLYLINKDC_WINFIREWALL, ResourceManager::ADD_FLYLINKDC_WINFIREWALL },
 	{ IDC_STATIC_GATEWAY, ResourceManager::SETTINGS_GATEWAY },
@@ -83,8 +83,8 @@ PropPage::Item NetworkPage::items[] =
 	{ IDC_UPDATE_IP_INTERVAL, SettingsManager::IPUPDATE_INTERVAL, PropPage::T_INT },
 	{ IDC_BIND_ADDRESS,     SettingsManager::BIND_ADDRESS, PropPage::T_STR },
 	{ IDC_NATT,             SettingsManager::ALLOW_NAT_TRAVERSAL, PropPage::T_BOOL },
-	{ IDC_PORT_DHT,         SettingsManager::DHT_PORT,      PropPage::T_INT },
-	{ IDC_SETTINGS_USE_TORRENT, SettingsManager::USE_DHT, PropPage::T_BOOL },
+	{ IDC_PORT_TORRENT,         SettingsManager::DHT_PORT,      PropPage::T_INT },
+	{ IDC_SETTINGS_USE_TORRENT, SettingsManager::USE_TORRENT, PropPage::T_BOOL },
 	{ 0, 0, PropPage::T_END }
 };
 
@@ -195,11 +195,7 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	m_desc.Attach(GetDlgItem(IDC_PORT_TLS));
 	m_desc.LimitText(5);
 	m_desc.Detach();
-#ifdef STRONG_USE_DHT
-	m_desc.Attach(GetDlgItem(IDC_PORT_DHT));
-	m_desc.LimitText(5);
-	m_desc.Detach();
-#endif
+	
 	m_BindCombo.Attach(GetDlgItem(IDC_BIND_ADDRESS));
 	const auto l_tool_tip = WinUtil::getAddresses(m_BindCombo);
 	m_IPHint.SetMaxTipWidth(1024);
@@ -253,7 +249,7 @@ void NetworkPage::fixControls()
 	::EnableWindow(GetDlgItem(IDC_FIREWALL_NAT), !auto_detect);
 	::EnableWindow(GetDlgItem(IDC_FIREWALL_PASSIVE), !auto_detect);
 	
-	::EnableWindow(GetDlgItem(IDC_PORT_DHT), torrent);
+	::EnableWindow(GetDlgItem(IDC_PORT_TORRENT), torrent);
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_PORT_TORRENT), torrent);
 	
 	m_is_manual = wan_ip_manual;
@@ -473,12 +469,6 @@ bool NetworkPage::runTestPort()
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	std::vector<unsigned short> l_udp_port, l_tcp_port;
 	l_udp_port.push_back(SETTING(UDP_PORT));
-#ifdef STRONG_USE_DHT
-	if (dht::DHT::isValidInstance() && dht::DHT::getInstance()->getPort())
-	{
-		l_udp_port.push_back(dht::DHT::getInstance()->getPort());
-	}
-#endif
 	l_tcp_port.push_back(SETTING(TCP_PORT));
 	if (CryptoManager::TLSOk())
 	{

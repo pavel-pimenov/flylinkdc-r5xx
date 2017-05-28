@@ -39,9 +39,6 @@ class AdcSupports // [+] IRainman fix.
 		static const string TIGR_SUPPORT;
 		static const string UCM0_SUPPORT;
 		static const string BLO0_SUPPORT;
-#ifdef STRONG_USE_DHT
-		static const string DHT0_SUPPORT;
-#endif
 		static const string ZLIF_SUPPORT;
 		
 		enum KnownSupports

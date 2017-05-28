@@ -36,9 +36,6 @@ string AdcSupports::getSupports(const Identity& id)
 	CHECK_FEAT(UDP6);
 	CHECK_FEAT(ADCS);
 	CHECK_FEAT(NAT0);
-#ifdef STRONG_USE_DHT
-	CHECK_SUP(DHT0);
-#endif
 	
 #undef CHECK_FEAT
 	
@@ -74,26 +71,23 @@ void AdcSupports::setSupports(Identity& id, const StringList & su)
 				else CHECK_FEAT(UDP6)
 					else CHECK_FEAT(ADCS)
 						else CHECK_FEAT(NAT0)
-#ifdef STRONG_USE_DHT
-							else CHECK_SUP(DHT0)
-#endif
-								else CHECK_SUP_BIT(SEGA)
-								
+							else CHECK_SUP_BIT(SEGA)
+							
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
-									else
-									{
-										//dcassert(0);
-										CFlyFastLock(g_debugCsUnknownAdcFeatures);
-										g_debugUnknownAdcFeatures[*i] = Util::toString(su);
-									}
+								else
+								{
+									//dcassert(0);
+									CFlyFastLock(g_debugCsUnknownAdcFeatures);
+									g_debugUnknownAdcFeatures[*i] = Util::toString(su);
+								}
 #endif
-									
+								
 #undef CHECK_FEAT
-									
+								
 #undef CHECK_SUP
-									
+								
 #undef CHECK_SUP_BIT
-									
+								
 	}
 	id.setKnownSupports(knownSupports);
 }

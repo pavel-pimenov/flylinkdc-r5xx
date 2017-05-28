@@ -47,9 +47,6 @@ std::unordered_set<libtorrent::sha1_hash> CFlylinkDBManager::g_resume_torrents;
 const char* g_db_file_names[] = {"FlylinkDC.sqlite",
                                  "FlylinkDC_log.sqlite",
                                  "FlylinkDC_mediainfo.sqlite",
-#ifdef STRONG_USE_DHT
-                                 "FlylinkDC_dht.sqlite",
-#endif
                                  "FlylinkDC_stat.sqlite",
                                  "FlylinkDC_locations.sqlite",
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -149,9 +146,6 @@ static void gf_trace_callback(void* p_udp, const char* p_sql)
 void CFlylinkDBManager::pragma_executor(const char* p_pragma)
 {
 	static const char* l_db_name[] = {"main", "media_db",
-#ifdef STRONG_USE_DHT
-	                                  "dht_db",
-#endif
 	                                  "stat_db", "location_db", "user_db"
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	                                  , "antivirus_db"
@@ -443,14 +437,6 @@ CFlylinkDBManager::CFlylinkDBManager()
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_log.sqlite' as log_db");
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_mediainfo.sqlite' as media_db");
-#ifdef STRONG_USE_DHT
-				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_dht.sqlite' as dht_db");
-#else
-				if (File::deleteFile("FlylinkDC_dht.sqlite"))
-				{
-					File::deleteFile("FlylinkDC_dht.sqlite-journal");
-				}
-#endif
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_stat.sqlite' as stat_db");
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_locations.sqlite' as location_db");
 				m_flySQLiteDB.executenonquery("attach database 'FlylinkDC_user.sqlite' as user_db");
@@ -527,29 +513,6 @@ CFlylinkDBManager::CFlylinkDBManager()
 		    "ip text, file text, source text, target text,fsize int64,fchunk int64,extra text,userCID text);");
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 		    
-#ifdef STRONG_USE_DHT
-		m_flySQLiteDB.executenonquery(
-		    "CREATE TABLE IF NOT EXISTS dht_db.fly_dht_node(\n"
-		    "cid char(24) not null,\n"
-		    "expires int64,\n"
-		    "type integer,\n"
-		    "verified integer,\n"
-		    "ip int64,\n"
-		    "port integer,\n"
-		    "key char(24),\n"
-		    "key_ip int64, primary key(cid));");
-		m_flySQLiteDB.executenonquery(
-		    "CREATE TABLE IF NOT EXISTS dht_db.fly_dht_file(\n"
-		    "tth char(24) not null,\n"
-		    "cid char(24) not null,\n"
-		    "ip int64,\n"
-		    "port integer,\n"
-		    "size int64 not null,\n"
-		    "expires int64,\n"
-		    "partial integer, primary key(tth,cid))");
-		// l_flySQLiteDB_dht.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS dht_db.iu_fly_dht_file ON fly_dht_file(tth,cid);");
-#endif // STRONG_USE_DHT
-		
 		// MEDIA_DB
 		m_flySQLiteDB.executenonquery("create table IF NOT EXISTS media_db.fly_server_cache(tth char(24) PRIMARY KEY NOT NULL, fly_audio text,fly_audio_br text,fly_video text,fly_xy text);");
 		m_flySQLiteDB.executenonquery(
@@ -2536,164 +2499,6 @@ void CFlylinkDBManager::save_transfer_history(bool p_is_torrent, eTypeTransfer p
 		errorDB("SQLite - save_transfer_history: " + e.getError());
 	}
 }
-//========================================================================================================
-#ifdef STRONG_USE_DHT
-int CFlylinkDBManager::find_dht_files(const TTHValue& p_tth, dht::SourceList& p_source_list)
-{
-	// CFlyLock(m_cs);
-	int l_count = 0;
-	try
-	{
-		m_find_dht_files.init(m_flySQLiteDB, "select tth,cid,ip,port,size,partial from dht_db.fly_dht_file where tth=?");
-		m_find_dht_files->bind(1, p_tth.data, 24, SQLITE_STATIC);
-		sqlite3_reader l_q = m_find_dht_files->executereader();
-		for (; l_q.read(); ++l_count)
-		{
-			vector<uint8_t> l_cid_buf;
-			dht::Source l_source;
-			l_q.getblob(1, l_cid_buf);
-			dcassert(l_cid_buf.size() == 24);
-			if (l_cid_buf.size() == 24)
-				l_source.setCID(CID(&l_cid_buf[0]));
-			l_source.setIp(l_q.getstring(2));
-			dcassert(l_q.getint(3) > 0 && l_q.getint(3) < 0xFFFF);
-			l_source.setUdpPort(static_cast<uint16_t>(l_q.getint(3)));
-			l_source.setSize(l_q.getint64(4));
-			l_source.setPartial(l_q.getint(5) ? 1 : 0);
-//				l_source.setExpires(l_q.getint64(6));
-			p_source_list.push_back(l_source);
-		}
-		//LogManager::message("[dht] find_dht_files TTH = " + p_tth.toBase32(),true);
-	}
-	catch (const database_error& e)
-	{
-		errorDB("SQLite - find_dht_files: " + e.getError());
-	}
-	return l_count;
-}
-//========================================================================================================
-void CFlylinkDBManager::check_expiration_dht_files(uint64_t p_Tick)
-{
-	CFlyLock(m_cs);
-	try
-	{
-		{
-			m_check_expiration_dht_files.init(m_flySQLiteDB, "delete from dht_db.fly_dht_file where expires < strftime('%s','now','localtime')-86400"); // 24 hours
-			m_check_expiration_dht_files->executenonquery();
-		}
-		//LogManager::message("[dht] check_expiration_dht_files p_Tick = " + Util::toString(p_Tick),true);
-	}
-	catch (const database_error& e)
-	{
-		errorDB("SQLite - check_expiration_dht_files: " + e.getError());
-	}
-}
-//========================================================================================================
-void CFlylinkDBManager::save_dht_files(const dht::TTHArray& p_dht_files)
-{
-	CFlyLock(m_cs);
-	try
-	{
-		sqlite3_transaction l_trans(m_flySQLiteDB, p_dht_files.size() > 1);
-		m_save_dht_files.init(m_flySQLiteDB, "insert or replace into dht_db.fly_dht_file(tth,cid,ip,port,size,partial,expires) "
-		                      "values(?,?,?,?,?,?,strftime('%s','now','localtime'))");
-		const auto &l_save_dht_files_get = m_save_dht_files.get_sql();
-		for (auto i = p_dht_files.cbegin(); i != p_dht_files.cend(); ++i)
-		{
-			l_save_dht_files_get->bind(1, i->getTTH().data, 24, SQLITE_STATIC);
-			l_save_dht_files_get->bind(2, i->getCID().data(), 24, SQLITE_STATIC);
-			l_save_dht_files_get->bind(3, i->getIp(), SQLITE_STATIC);
-			dcassert(i->getUdpPort() > 0 && i->getUdpPort() < 0xFFFF);
-			l_save_dht_files_get->bind(4, i->getUdpPort());
-			l_save_dht_files_get->bind(5, static_cast<__int64>(i->getSize()));
-			l_save_dht_files_get->bind(6, i->getPartial());
-			l_save_dht_files_get->executenonquery();
-// Нельзя делать логирования внутри транзакции
-//			LogManager::message("[dht] save_dht_file TTH = " + i->getTTH().toBase32() + " size = " + Util::toString(i->getSize()),true);
-		}
-		l_trans.commit();
-	}
-	catch (const database_error& e)
-	{
-		errorDB("SQLite - save_dht_files: " + e.getError());
-	}
-}
-//========================================================================================================
-void CFlylinkDBManager::save_dht_nodes(const std::vector<dht::BootstrapNode>& p_dht_nodes) // [!] IRainman opt: replace dqueue to vector.
-{
-	CFlyLock(m_cs);
-	try
-	{
-		{
-			sqlite3_transaction l_trans(m_flySQLiteDB);
-			m_delete_dht_nodes.init(m_flySQLiteDB, "delete from dht_db.fly_dht_node");
-			m_delete_dht_nodes->executenonquery();
-			m_save_dht_nodes.init(m_flySQLiteDB, "insert into dht_db.fly_dht_node(cid,ip,port,key,key_ip,expires)\n"
-			                      "values(?,?,?,?,?,strftime('%s','now','localtime'))"); // ,type,verified
-			const auto &l_sav_dht_nodes_get = m_save_dht_nodes.get_sql();
-			for (auto k = p_dht_nodes.cbegin(); k != p_dht_nodes.cend(); ++k)
-			{
-				l_sav_dht_nodes_get->bind(1, k->m_cid.data(), 24, SQLITE_STATIC);
-				l_sav_dht_nodes_get->bind(2, k->m_ip, SQLITE_STATIC);
-				l_sav_dht_nodes_get->bind(3, k->m_udpPort);
-				if (!k->m_udpKey.m_ip.empty())
-					l_sav_dht_nodes_get->bind(4, k->m_udpKey.m_key.data(), 24, SQLITE_STATIC);
-				else
-					l_sav_dht_nodes_get->bind(4, k->m_udpKey.m_key.data(), 0, SQLITE_STATIC);
-				l_sav_dht_nodes_get->bind(5, k->m_udpKey.m_ip, SQLITE_STATIC);
-				l_sav_dht_nodes_get->executenonquery();
-			}
-			l_trans.commit();
-		}
-		//LogManager::message("[dht] save_dht_nodes",true);
-	}
-	catch (const database_error& e)
-	{
-		errorDB("SQLite - save_dht_nodes: " + e.getError());
-	}
-}
-//========================================================================================================
-bool CFlylinkDBManager::load_dht_nodes(std::vector<dht::BootstrapNode>& p_dht_nodes) // [!] IRainman opt: replace dqueue to vector and return bool.
-{
-	p_dht_nodes.reserve(500);
-	// CFlyLock(m_cs);
-	try
-	{
-		m_load_dht_nodes.init(m_flySQLiteDB,
-		                      "select cid,ip,port,key,key_ip from dht_db.fly_dht_node " // load nodes; when file is older than 7 days, bootstrap from database later
-		                      "where expires >= strftime('%s','now','localtime') - (86400 * 7)"
-		                     ); //type,verified
-		                     
-		sqlite3_reader l_q = m_load_dht_nodes->executereader();
-		while (l_q.read())
-		{
-			dht::BootstrapNode l_nodes;
-			vector<uint8_t> l_cid_buf;
-			l_q.getblob(0, l_cid_buf);
-			if (l_cid_buf.size() == 24)
-				l_nodes.m_cid = CID(&l_cid_buf[0]);
-			l_nodes.m_ip = l_q.getstring(1);
-			l_nodes.m_udpPort = l_q.getint(2);
-			l_nodes.m_udpKey.m_ip = l_q.getstring(4);
-			if (!l_nodes.m_udpKey.m_ip.empty())
-			{
-				vector<uint8_t> l_key_buf;
-				l_q.getblob(3, l_key_buf);
-				if (l_key_buf.size() == 24)
-					l_nodes.m_udpKey.m_key = CID(&l_key_buf[0]);
-			}
-			p_dht_nodes.push_back(l_nodes);
-		}
-		//if (!p_dht_nodes.empty())
-		//  LogManager::message("[dht] load_dht_nodes p_dht_nodes.size() = " + Util::toString(p_dht_nodes.size()),true);
-	}
-	catch (const database_error& e)
-	{
-		errorDB("SQLite - load_dht_nodes: " + e.getError());
-	}
-	return !p_dht_nodes.empty();
-}
-#endif // STRONG_USE_DHT
 //========================================================================================================
 void CFlylinkDBManager::load_ignore(StringSet& p_ignores)
 {

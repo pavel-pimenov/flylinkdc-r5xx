@@ -74,16 +74,6 @@ struct CServerItem
 	GETSET(uint32_t, m_time_response, TimeResponse);
 };
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
-#ifdef STRONG_USE_DHT
-struct DHTServer
-{
-	DHTServer(const string& p_url, const string& p_agent = Util::emptyString) : m_url(p_url), m_agent(p_agent)
-	{
-	}
-	GETC(string, m_url, Url);
-	GETC(string, m_agent, Agent);
-};
-#endif // STRONG_USE_DHT
 //=======================================================================
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 class  CFlyServerStatistics
@@ -237,13 +227,6 @@ class CFlyServerConfig
 		static const uint32_t TIME_TO_RELOAD_CONFIG_IF_ERROR = 1000 * 60 * 30; // 30m
 		static const uint32_t TIME_TO_RELOAD_CONFIG_IF_SUCCESFUL = 1000 * 60 * 60 * 12; // 12h
 		
-#ifdef STRONG_USE_DHT
-	private:
-		static std::vector<DHTServer> g_dht_servers;
-		static uint16_t g_min_interval_dth_connect;
-	public:
-		static const DHTServer& getRandomDHTServer();
-#endif // STRONG_USE_DHT
 	public:
 		static bool isSpam(const string& p_line);
 		static void loadTorrentSearchEngine();

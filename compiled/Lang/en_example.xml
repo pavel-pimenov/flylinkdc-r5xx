@@ -1781,7 +1781,7 @@
 	<string name="UseBitrateFixForSpam">Use Bitrate/Sample fix for QCD/QMP players</string>
 	<string name="UseCustomListBackground">Use custom list background style</string>
 	<string name="UseCustomMenu">Use custom menus</string>
-	<string name="UseDht">Enable torrent</string>
+	<string name="UseTorrent">Enable torrent</string>
 	<string name="UseDhtNotanswer">Do not ask again</string>
 	<string name="UseExplorerTheme">Use Explorer theme in listviews and treeviews</string>
 	<string name="UcSubmenu">Place usercommands to submenu</string>

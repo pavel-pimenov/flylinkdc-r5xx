@@ -35,13 +35,7 @@
 #include "SharedFileStream.h"
 #include "ADLSearch.h"
 #include "../FlyFeatures/flyServer.h"
-
-
-#ifdef STRONG_USE_DHT
-#include "../dht/IndexManager.h"
-#else
 #include "ShareManager.h"
-#endif
 
 
 std::unique_ptr<webrtc::RWLockWrapper> QueueManager::FileQueue::g_cs_remove = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
@@ -931,10 +925,6 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		return;
 	string searchString;
 	vector<const PartsInfoReqParam*> params;
-#ifdef STRONG_USE_DHT
-	TTHValue* tthPub = nullptr;
-#endif
-	
 	{
 		PFSSourceList sl;
 		// RLock(*QueueItem::g_cs);
@@ -963,13 +953,6 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 			source->setNextQueryTime(aTick + 300000);       // 5 minutes
 		}
 	}
-	// [!] IRainman fix: code below, always starts only thread TimerManager, and no needs to lock.
-	
-#ifdef STRONG_USE_DHT
-	if (BOOLSETTING(USE_DHT) && SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_FIREWALL_PASSIVE)
-		tthPub = g_fileQueue.findPFSPubTTH();
-#endif
-		
 	if (g_fileQueue.getSize() > 0 && aTick >= nextSearch && BOOLSETTING(AUTO_SEARCH))
 	{
 		// We keep 30 recent searches to avoid duplicate searches
@@ -1028,15 +1011,6 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		
 		delete param;
 	}
-#ifdef STRONG_USE_DHT
-	// DHT PFS announce
-	if (tthPub)
-	{
-		dht::IndexManager::publishPartialFile(*tthPub);
-		delete tthPub;
-	}
-#endif
-	
 	if (!searchString.empty())
 	{
 		SearchManager::getInstance()->search_auto(searchString);
@@ -3400,45 +3374,6 @@ void QueueManager::FileQueue::findPFSSourcesL(PFSSourceList& sl)
 		}
 	}
 }
-
-#ifdef STRONG_USE_DHT
-TTHValue* QueueManager::FileQueue::findPFSPubTTH()
-{
-	const uint64_t now = GET_TICK();
-	QueueItemPtr cand;
-	{
-		RLock(*g_csFQ); // [+] IRainman fix.
-		
-		for (auto i = g_queue.cbegin(); i != g_queue.cend(); ++i)
-		{
-			const auto qi = i->second;
-			// [-] IRainman fix: not possible in normal state.
-			// if (qi == nullptr)  // PVS-Studio V595 The pointer was utilized before it was verified against nullptr.
-			// continue;
-			// [~]
-			
-			if (!File::isExist(qi->isFinished() ? qi->getTarget() : qi->getTempTargetConst())) // don't share when file does not exist
-				continue;
-				
-			if (qi->getPriority() > QueueItem::PAUSED && qi->getSize() >= PARTIAL_SHARE_MIN_SIZE && now >= qi->getNextPublishingTime())
-			{
-				if (cand == nullptr || cand->getNextPublishingTime() > qi->getNextPublishingTime() || (cand->getNextPublishingTime() == qi->getNextPublishingTime() && cand->getPriority() < qi->getPriority()))
-				{
-					if (qi->getDownloadedBytes() > qi->get_block_size_sql())
-						cand = qi;
-				}
-			}
-		}
-		
-		if (cand)
-		{
-			cand->setNextPublishingTime(now + PFS_REPUBLISH_TIME);      // one hour
-			return new TTHValue(cand->getTTH());
-		}
-	}
-	return nullptr;
-}
-#endif
 
 /**
  * @file

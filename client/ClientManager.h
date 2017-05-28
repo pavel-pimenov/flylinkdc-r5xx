@@ -253,9 +253,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static void setUnknownCommand(const UserPtr& p, const string& aUnknownCommand);
 		static void reportUser(const HintedUser& user);
 		
-#ifdef STRONG_USE_DHT
-		static OnlineUserPtr findDHTNode(const CID& cid);
-#endif
 		static void shutdown();
 		static void before_shutdown();
 		static void clear();

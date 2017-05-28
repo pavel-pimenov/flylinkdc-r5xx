@@ -118,9 +118,6 @@ int MappingManager::run()
 	const uint16_t conn_port = ConnectionManager::getInstance()->getPort();
 	const uint16_t secure_port = ConnectionManager::getInstance()->getSecurePort();
 	const uint16_t search_port = SearchManager::getSearchPortUint();
-#ifdef STRONG_USE_DHT
-	const uint16_t dht_port = dht::DHT::getInstance()->getPort();
-#endif
 	if (m_renewal
 	        && getOpened()) //[+]FlylinkDC++ Team
 	{
@@ -209,17 +206,6 @@ int MappingManager::run()
 					// не скидываем все пробросы! mapper.close();
 					l_is_ok = false;
 				}
-#ifdef STRONG_USE_DHT
-				else
-				{
-					if (protocol == Mapper::PROTOCOL_UDP && port == SETTING(DHT_PORT) /* && description == dht::NetworkName */)
-					{
-						dht::DHT::test_dht_port();
-					}
-					l_info = "Successfully Port Forwarding ";
-					l_is_ok = true;
-				}
-#endif // STRONG_USE_DHT
 				log_internal(l_info + l_info_port + " with the " + mapper.getMapperName() + " interface");
 			}
 			return l_is_ok;
@@ -243,11 +229,7 @@ int MappingManager::run()
 		
 		if (!(l_is_map_tcp
 		        && l_is_map_udp
-		        && (l_is_map_tls || !CryptoManager::TLSOk())
-#ifdef STRONG_USE_DHT
-		        && (l_is_map_dht || !BOOLSETTING(USE_DHT))
-#endif
-		     ))
+		        && (l_is_map_tls || !CryptoManager::TLSOk())))
 		{
 			dcassert(0);
 			continue;

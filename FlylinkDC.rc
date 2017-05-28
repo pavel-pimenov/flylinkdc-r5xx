@@ -496,7 +496,7 @@ BEGIN
     LTEXT           "TLS/TCP",IDC_SETTINGS_PORT_TLS,207,131,28,8,0,WS_EX_RIGHT
     EDITTEXT        IDC_PORT_TLS,240,129,30,14,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "Torrent",IDC_SETTINGS_PORT_TORRENT,205,146,30,8,0,WS_EX_RIGHT
-    EDITTEXT        IDC_PORT_DHT,240,145,30,14,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_PORT_TORRENT,240,145,30,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Don't allow hub/UPnP to override",IDC_NO_IP_OVERRIDE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,167,157,10
     CONTROL         "Work in passive mode if specified active mode not available (autodetect)",IDC_AUTODETECT,
