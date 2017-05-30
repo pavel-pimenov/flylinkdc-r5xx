@@ -868,6 +868,19 @@ void SearchFrame::init_last_search_box()
 	}
 }
 //=========================================================================================================
+int SearchFrame::TorrentSearchSender::run()
+{
+	try
+	{
+		CFlyServerConfig::torrentSearch(m_wnd, PREPARE_RESULT_TORRENT, m_search);
+	}
+	catch (const std::bad_alloc&)
+	{
+		ShareManager::tryFixBadAlloc();
+	}
+	return 0;
+}
+//=========================================================================================================
 void SearchFrame::onEnter()
 {
 	BOOL tmp_Handled;
@@ -905,7 +918,7 @@ void SearchFrame::onEnter()
 	MainFrame::updateQuickSearches();
 	if (m_search_param.m_file_type != Search::TYPE_TTH && !isTTH(s) && BOOLSETTING(USE_TORRENT))
 	{
-		CFlyServerConfig::torrentSearch(m_win_handler, PREPARE_RESULT_TORRENT, s);
+		m_torrentSearchThread.start_torrent_search(m_win_handler, s);
 	}
 	// Change Default Settings If Changed
 	if (m_onlyFree != BOOLSETTING(FREE_SLOTS_DEFAULT))

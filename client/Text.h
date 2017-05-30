@@ -90,18 +90,6 @@ inline string wideToUtf8(const wstring& str) noexcept
 int utf8ToWc(const char* str, wchar_t& c);
 
 #ifdef UNICODE
-/*
-inline const tstring uppercase(tstring p_str) noexcept
-{
-    transform(p_str.begin(), p_str.end(), p_str.begin(), towupper);
-    return p_str;
-}
-inline const string uppercase(string p_str) noexcept
-{
-    transform(p_str.begin(), p_str.end(), p_str.begin(), toupper);
-    return p_str;
-}
-*/
 inline const tstring lowercase(tstring p_str) noexcept
 {
 	transform(p_str.begin(), p_str.end(), p_str.begin(), towlower);

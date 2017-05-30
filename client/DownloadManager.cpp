@@ -889,7 +889,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 					//LogManager::torrent_message(".:::. TorrentAllert:" + a->message() + " info:" + std::string(a->what()));
 					if (const auto l_port = lt::alert_cast<lt::log_alert>(a))
 					{
-						LogManager::torrent_message("log_alert: " + a->message() + " info:" + std::string(a->what()));
+						//LogManager::torrent_message("log_alert: " + a->message() + " info:" + std::string(a->what()));
 					}
 					
 #endif

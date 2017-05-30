@@ -722,6 +722,9 @@
     <ClInclude Include="include\libtorrent\aux_\portmap.hpp">
       <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\flags.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ed25519\src\add_scalar.cpp">

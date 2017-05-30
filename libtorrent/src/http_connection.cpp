@@ -441,8 +441,8 @@ void http_connection::on_timeout(std::weak_ptr<http_connection> p
 		else
 		{
 			c->callback(boost::asio::error::timed_out);
-		return;
-	}
+			return;
+		}
 	}
 	else
 	{

@@ -231,7 +231,7 @@ class CFlyServerConfig
 		static bool isSpam(const string& p_line);
 		static void loadTorrentSearchEngine();
 		static string g_lua_source_search_engine;
-		static bool torrentSearch(HWND p_wnd, int p_message, const tstring& p_search);
+		static bool torrentSearch(HWND p_wnd, int p_message, const tstring p_search);
 	private:
 		static std::vector<string> g_spam_urls;
 		static StringSet g_parasitic_files;

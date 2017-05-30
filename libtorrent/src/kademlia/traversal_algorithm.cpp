@@ -352,7 +352,7 @@ void traversal_algorithm::failed(observer_ptr o, int const flags)
 			&& m_branch_factor < std::numeric_limits<std::int8_t>::max())
 		{
 			++m_branch_factor;
-		o->flags |= observer::flag_short_timeout;
+			o->flags |= observer::flag_short_timeout;
 		}
 #ifndef TORRENT_DISABLE_LOGGING
 		log_timeout(o, "1ST_");
@@ -593,16 +593,14 @@ void traversal_algorithm::status(dht_lookup& l)
 	l.last_sent = last_sent;
 }
 
-void traversal_algorithm::look_for_nodes(bdecode_node const& r, std::function<void(const node_endpoint&)> f)
+void look_for_nodes(char const* nodes_key, udp const& protocol, bdecode_node const& r, std::function<void(const node_endpoint&)> f)
 {
-	udp const protocol = get_node().protocol();
-	int const protocol_size = int(detail::address_size(protocol));
-	char const* nodes_key = get_node().protocol_nodes_key();
 	bdecode_node const n = r.dict_find_string(nodes_key);
 	if (n)
 	{
 		char const* nodes = n.string_ptr();
 		char const* end = nodes + n.string_length();
+		int const protocol_size = int(detail::address_size(protocol));
 
 		while (end - nodes >= 20 + protocol_size + 2)
 		{
@@ -618,7 +616,7 @@ void traversal_observer::reply(msg const& m)
 	{
 #ifndef TORRENT_DISABLE_LOGGING
 		if (get_observer() != nullptr)
-{
+		{
 			get_observer()->log(dht_logger::traversal
 				, "[%u] missing response dict"
 				, algorithm()->id());
@@ -627,13 +625,14 @@ void traversal_observer::reply(msg const& m)
 		return;
 	}
 
+	bdecode_node const id = r.dict_find_string("id");
+
 #ifndef TORRENT_DISABLE_LOGGING
 	dht_observer* logger = get_observer();
 	if (logger != nullptr && logger->should_log(dht_logger::traversal))
 	{
-		bdecode_node const nid = r.dict_find_string("id");
 		char hex_id[41];
-		aux::to_hex({ nid.string_ptr(), 20 }, hex_id);
+		aux::to_hex({id.string_ptr(), 20}, hex_id);
 		logger->log(dht_logger::traversal
 			, "[%u] RESPONSE id: %s invoke-count: %d addr: %s type: %s"
 			, algorithm()->id(), hex_id, algorithm()->invoke_count()
@@ -641,9 +640,9 @@ void traversal_observer::reply(msg const& m)
 	}
 #endif
 
-	algorithm()->look_for_nodes(r, [this](node_endpoint const& nep) { algorithm()->traverse(nep.id, nep.ep); });
+	look_for_nodes(algorithm()->get_node().protocol_nodes_key(), algorithm()->get_node().protocol(), r,
+		[this](node_endpoint const& nep) { algorithm()->traverse(nep.id, nep.ep); });
 
-	bdecode_node const id = r.dict_find_string("id");
 	if (!id || id.string_length() != 20)
 	{
 #ifndef TORRENT_DISABLE_LOGGING

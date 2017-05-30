@@ -121,6 +121,7 @@
     <ClInclude Include="include\libtorrent\file_pool.hpp" />
     <ClInclude Include="include\libtorrent\file_storage.hpp" />
     <ClInclude Include="include\libtorrent\fingerprint.hpp" />
+    <ClInclude Include="include\libtorrent\flags.hpp" />
     <ClInclude Include="include\libtorrent\gzip.hpp" />
     <ClInclude Include="include\libtorrent\hasher.hpp" />
     <ClInclude Include="include\libtorrent\hasher512.hpp" />

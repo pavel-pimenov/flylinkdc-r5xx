@@ -917,6 +917,32 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		LRESULT onItemChangedHub(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 		
 		void speak(Speakers s, const Client* aClient);
+	private:
+		class TorrentSearchSender : public Thread
+		{
+			private:
+				HWND m_wnd;
+				tstring m_search;
+				int run();
+			public:
+				TorrentSearchSender() { }
+				void start_torrent_search(HWND p_wnd, const tstring& p_search)
+				{
+					m_wnd = p_wnd;
+					m_search = p_search;
+					//CFlyBusy l(m_count_run);
+					try
+					{
+						//join();
+						start(1024);
+					}
+					catch (const ThreadException& e)
+					{
+						LogManager::message("TorrentSearchSender: = " + e.getError());
+					}
+				}
+		} m_torrentSearchThread;
+		
 };
 
 #endif // !defined(SEARCH_FRM_H)

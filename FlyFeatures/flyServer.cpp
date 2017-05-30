@@ -973,7 +973,7 @@ bool CFlyServerConfig::SyncAntivirusDB(bool& p_is_need_reload)
 }
 #endif
 //=========================================================================================
-bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring& p_search)
+bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring p_search)
 {
 	try
 	{
@@ -981,6 +981,7 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring&
 		{
 			return false;
 		}
+		CFlyLog l_log("[Torrent search]");
 		sel::State l_lua_state(true);
 		l_lua_state.Load(g_lua_source_search_engine, false, "flylinkdc-search-engine");
 		std::string l_trackers = l_lua_state["get_trackers"]();
@@ -1004,6 +1005,7 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring&
 			{
 				const Json::Value& l_cur_item_in = l_arrays[j];
 				const auto l_root_torrent_url = l_cur_item_in["url"].asString();
+				l_log.log("Search = " + l_root_torrent_url);
 				string l_local_agent = l_cur_item_in["agent"].asString();
                 unsigned l_page_limit_local = l_cur_item_in["page_limit"].asUInt();
                 if (l_page_limit_local == 0)
@@ -1011,8 +1013,7 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring&
 				if (l_local_agent.empty())
 					l_local_agent = l_agent;
 				const string l_search_encode = Util::encodeURI(Text::fromT(p_search), false);
-				std::async(std::launch::async,
-					[&] {
+				{
 					for (int l_num_page = 0; l_num_page < l_page_limit_local
 						 ; ++l_num_page)
 					{
@@ -1037,7 +1038,7 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring&
 									break; // кончились странички
 
 #ifdef _DEBUG
-								LogManager::message("l_magnet_result = " + l_magnet_result);
+								//LogManager::message("l_magnet_result = " + l_magnet_result);
 #endif
 								try
 								{
@@ -1112,7 +1113,6 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring&
 						}
 					} // for
 				}
-				);
 			}
 			}
 		}

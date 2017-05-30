@@ -320,6 +320,8 @@ namespace libtorrent {
 			// peer was banned because its listen port is within a banned port
 			// range, as specified by the port_filter.
 			banned_by_port_filter,
+			// The session_handle is not referring to a valid session_impl
+			invalid_session_handle,
 
 
 			// The NAT-PMP router responded with an unsupported protocol version
@@ -481,12 +483,11 @@ namespace libtorrent {
 	using boost::system::generic_category;
 	using boost::system::system_category;
 
-#ifndef BOOST_NO_EXCEPTIONS
 	using boost::system::system_error;
 
-#ifndef TORRENT_NO_DEPRECATE
-	using system_error = boost::system::system_error;
+#ifndef BOOST_NO_EXCEPTIONS
 
+#ifndef TORRENT_NO_DEPRECATE
 	TORRENT_DEPRECATED
 	inline boost::system::error_category& get_libtorrent_category()
 	{ return libtorrent_category(); }
