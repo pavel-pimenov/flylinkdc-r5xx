@@ -159,6 +159,13 @@ namespace libtorrent {
 		, m_state(torrent_status::checking_resume_data)
 	{}
 
+	void torrent_hot_members::remove_connection(peer_connection const* p)
+	{
+		auto const i = sorted_find(m_connections, p);
+		if (i != m_connections.end())
+			m_connections.erase(i);
+	}
+
 	torrent::torrent(
 		aux::session_interface& ses
 		, int const block_size
@@ -3140,7 +3147,7 @@ namespace libtorrent {
 #endif
 			{
 				ADD_OUTSTANDING_ASYNC("torrent::on_peer_name_lookup");
-				m_ses.get_resolver().async_resolve(i.hostname, resolver_interface::abort_on_shutdown
+				m_ses.get_resolver().async_resolve(i.hostname, resolver_flags::abort_on_shutdown
 					, std::bind(&torrent::on_peer_name_lookup, shared_from_this(), _1, _2, i.port));
 			}
 		}
@@ -5367,9 +5374,7 @@ namespace libtorrent {
 			// if the peer was inserted in m_connections but instructed to
 			// be removed from this torrent, just remove it from it, see
 			// attach_peer logic.
-			auto const i = sorted_find(m_connections, p);
-			if (i != m_connections.end())
-				m_connections.erase(i);
+			remove_connection(p);
 		}
 
 		torrent_peer* pp = p->peer_info_struct();
@@ -5443,9 +5448,7 @@ namespace libtorrent {
 			TORRENT_ASSERT(p != nullptr);
 			TORRENT_ASSERT(p->associated_torrent().lock().get() == this);
 
-			auto const i = sorted_find(m_connections, p);
-			if (i != m_connections.end())
-				m_connections.erase(i);
+			remove_connection(p);
 			m_ses.close_connection(p);
 		}
 
@@ -5621,7 +5624,7 @@ namespace libtorrent {
 
 			// use proxy
 			web->resolving = true;
-			m_ses.get_resolver().async_resolve(ps.hostname, resolver_interface::abort_on_shutdown
+			m_ses.get_resolver().async_resolve(ps.hostname, resolver_flags::abort_on_shutdown
 				, [self, web, proxy_port](error_code const& e, std::vector<address> const& addrs)
 				{
 					self->wrap(&torrent::on_proxy_name_lookup, e, addrs, web, proxy_port);
@@ -5643,7 +5646,7 @@ namespace libtorrent {
 			auto self = shared_from_this();
 			web->resolving = true;
 
-			m_ses.get_resolver().async_resolve(hostname, resolver_interface::abort_on_shutdown
+			m_ses.get_resolver().async_resolve(hostname, resolver_flags::abort_on_shutdown
 				, [self, web, port](error_code const& e, std::vector<address> const& addrs)
 				{
 					self->wrap(&torrent::on_name_lookup, e, addrs, port, web);
@@ -5728,7 +5731,7 @@ namespace libtorrent {
 
 		auto self = shared_from_this();
 		web->resolving = true;
-		m_ses.get_resolver().async_resolve(hostname, resolver_interface::abort_on_shutdown
+		m_ses.get_resolver().async_resolve(hostname, resolver_flags::abort_on_shutdown
 			, [self, web, port](error_code const& err, std::vector<address> const& addr)
 			{
 				self->wrap(&torrent::on_name_lookup, err, addr, port, web);
@@ -8437,7 +8440,7 @@ namespace libtorrent {
 			// disconnect all peers with no outstanding data to receive
 			// and choke all remaining peers to prevent responding to new
 			// requests
-			for (peer_connection* p : m_connections)
+			for (auto p : m_connections)
 			{
 				TORRENT_INCREMENT(m_iterating_connections);
 				TORRENT_ASSERT(p->associated_torrent().lock().get() == this);
@@ -8479,9 +8482,10 @@ namespace libtorrent {
 
 		if (log_peers)
 		{
-			for (auto const c : m_connections)
+			for (auto const p : m_connections)
 			{
-				c->peer_log(peer_log_alert::info, "TORRENT", "%s", message);
+				TORRENT_INCREMENT(m_iterating_connections);
+				p->peer_log(peer_log_alert::info, "TORRENT", "%s", message);
 			}
 		}
 
@@ -8969,6 +8973,8 @@ namespace libtorrent {
 		m_swarm_last_seen_complete = m_last_seen_complete;
 		for (auto p : m_connections)
 		{
+			TORRENT_INCREMENT(m_iterating_connections);
+
 			// look for the peer that saw a seed most recently
 			m_swarm_last_seen_complete = (std::max)(p->last_seen_complete(), m_swarm_last_seen_complete);
 

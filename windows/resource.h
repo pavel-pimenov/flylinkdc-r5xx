@@ -1622,7 +1622,8 @@
 #define IDC_COPY_TORRENT_COMMENT        2530
 #define IDC_COPY_TORRENT_URL            2531
 #define IDC_COPY_TORRENT_PAGE           2532
-
+#define IDC_PAUSE_TORRENT	   		    2533 
+#define IDC_RESUME_TORRENT   			2534
 #define IDC_DOWNLOAD_TARGET_DIR         3000
 #define IDC_SELECT_WINDOW               3500
 #define IDC_USER_COMMAND                4000

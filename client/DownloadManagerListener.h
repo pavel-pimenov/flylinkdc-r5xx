@@ -41,6 +41,7 @@
  * GUI is not DownloadManagers problem at all???
  */
 
+typedef std::vector<std::pair<std::string, int64_t> > CFlyTorrentFileArray;
 class DownloadManagerListener
 {
 	public:
@@ -74,7 +75,7 @@ class DownloadManagerListener
 		virtual void on(CompleteTorrentFile, const std::string& p_name) noexcept { }
 		
 		virtual void on(RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept { }
-		virtual void on(SelectTorrent, const libtorrent::sha1_hash& p_sha1, std::vector<std::string>& p_files) noexcept { }
+		virtual void on(SelectTorrent, const libtorrent::sha1_hash& p_sha1, CFlyTorrentFileArray& p_files) noexcept { }
 		virtual void on(AddedTorrent, const libtorrent::sha1_hash& p_sha1, const std::string& p_save_path) noexcept { }
 		
 #ifdef FLYLINKDC_USE_DOWNLOAD_STARTING_FIRE

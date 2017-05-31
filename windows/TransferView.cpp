@@ -550,11 +550,13 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 				
 				activatePreviewItems(transferMenu);
 				transferMenu.SetMenuDefaultItem(IDC_PRIVATE_MESSAGE);
-			} // Конец менюшка от DC++
+			} // Конец менюшке от DC++
 			else
 			{
 				// Менюшка от торрента
 				transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)m_copyMenu, CTSTRING(COPY)); // TODO m_copyTorrentMenu
+				transferMenu.AppendMenu(MF_STRING, IDC_PAUSE_TORRENT, CTSTRING(PAUSE_TORRENT));
+				transferMenu.AppendMenu(MF_STRING, IDC_RESUME_TORRENT, CTSTRING(RESUME));
 				transferMenu.AppendMenu(MF_STRING, IDC_REMOVE_TORRENT, CTSTRING(REMOVE_TORRENT));
 				transferMenu.AppendMenu(MF_STRING, IDC_REMOVE_TORRENT_AND_FILE, CTSTRING(REMOVE_TORRENT_AND_FILE));
 			}
@@ -876,7 +878,8 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						rc9.top += 1; //[~] Sergey Shushkanov
 						rc9.right = rc9.left + 16;
 						rc9.bottom = rc9.top + 16; //[~] Sergey Shushkanov
-						m_torrentImages.DrawEx(l_ii->m_is_seeding ? 1 : 0, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+						const int index = l_ii->m_is_pause ? 2 : (l_ii->m_is_seeding ? 1 : 0);
+						m_torrentImages.DrawEx(index, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
 					}
 					else if (BOOLSETTING(STEALTHY_STYLE_ICO) || l_ii->m_is_force_passive)
 					{
@@ -986,11 +989,11 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					if (l_ii->m_is_torrent && l_ii->parent == nullptr)
 					{
 						RECT rc9 = rc3;
-						//rc9.left -= 19 - l_shift; //[~] Sergey Shushkanov
 						rc9.top += 1; //[~] Sergey Shushkanov
 						rc9.right = rc9.left + 16;
 						rc9.bottom = rc9.top + 16; //[~] Sergey Shushkanov
-						m_torrentImages.DrawEx(l_ii->m_is_seeding ? 1 : 0, cd->nmcd.hdc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
+						const int index = l_ii->m_is_pause ? 2 : (l_ii->m_is_seeding ? 1 : 0);
+						m_torrentImages.DrawEx(index, cd->nmcd.hdc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
 						l_shift += 16;
 					}
 					if (!l_stat.empty())
@@ -1635,6 +1638,7 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 		
 	m_is_torrent = ui.m_is_torrent;
 	m_is_seeding = ui.m_is_seeding;
+	m_is_pause = ui.m_is_pause;
 	m_sha1 = ui.m_sha1;
 	
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
@@ -2215,6 +2219,7 @@ void TransferView::on(DownloadManagerListener::TorrentEvent, const DownloadArray
 			ui->m_is_torrent = j->m_is_torrent;
 			ui->m_sha1 = j->m_sha1;
 			ui->m_is_seeding = j->m_is_seeding;
+			ui->m_is_pause = j->m_is_pause;
 			ui->setSpeed(j->m_speed);
 			ui->setSize(j->m_size);
 			ui->setTimeLeft(j->m_second_left);
@@ -2328,6 +2333,16 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, const bool down
 		
 		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 	}
+}
+
+void TransferView::ItemInfo::pauseTorrentFile()
+{
+	DownloadManager::getInstance()->pause_torrent_file(m_sha1, false);
+}
+
+void TransferView::ItemInfo::resumeTorrentFile()
+{
+	DownloadManager::getInstance()->pause_torrent_file(m_sha1, true);
 }
 
 void TransferView::ItemInfo::removeTorrentAndFile()
@@ -2631,7 +2646,7 @@ void TransferView::on(DownloadManagerListener::CompleteTorrentFile, const std::s
 	SHOW_POPUP(POPUP_DOWNLOAD_FINISHED, TSTRING(FILE) + _T(": ") + Text::toT(p_name), TSTRING(DOWNLOAD_FINISHED_IDLE));
 }
 
-void TransferView::on(DownloadManagerListener::SelectTorrent, const libtorrent::sha1_hash& p_sha1, std::vector<std::string>& p_files) noexcept
+void TransferView::on(DownloadManagerListener::SelectTorrent, const libtorrent::sha1_hash& p_sha1, CFlyTorrentFileArray& p_files) noexcept
 {
 	// TODO - PostMessage
 	// std::async(std::launch::async,

@@ -156,7 +156,7 @@ MainFrame::MainFrame() :
 	m_second_count(60),
 	m_trayMessage(0),
 	m_tbButtonMessage(0), // [+] InfinitySky.
-	m_maximized(false),
+	m_is_maximized(false),
 	m_lastUp(0),
 	m_lastMove(0),
 	m_lastDown(0), // [+] IRainman Speedmeter
@@ -2574,7 +2574,7 @@ LRESULT MainFrame::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL&
 			}
 			setAwayByMinimized();
 		}
-		m_maximized = IsZoomed() > 0;
+		m_is_maximized = IsZoomed() > 0;
 	}
 	else if ((wParam == SIZE_RESTORED || wParam == SIZE_MAXIMIZED))
 	{
@@ -2584,6 +2584,14 @@ LRESULT MainFrame::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL&
 			setAwayByMinimized();
 			CompatibilityManager::restoreProcessPriority();
 			setTrayAndTaskbarIcons();
+		}
+		if (wParam == SIZE_RESTORED)
+		{
+			if (SETTING(MAIN_WINDOW_STATE) == SW_SHOWMAXIMIZED)
+			{
+				//SET_SETTING(MAIN_WINDOW_STATE, SW_SHOWMAXIMIZED);
+				//ShowWindow(SW_SHOWMAXIMIZED);
+			}
 		}
 	}
 	// [~] IRainman fix.
@@ -3163,7 +3171,7 @@ bool MainFrame::getPasswordInternal(INT_PTR& p_do_modal_result)
 // !SMT!-f
 bool MainFrame::getPassword()
 {
-	if (m_maximized || !SETTING(PROTECT_TRAY) || SETTING(PASSWORD) == g_magic_password || SETTING(PASSWORD).empty())
+	if (m_is_maximized || !SETTING(PROTECT_TRAY) || SETTING(PASSWORD) == g_magic_password || SETTING(PASSWORD).empty())
 		return true;
 	INT_PTR l_do_modal_result;
 	if (!getPasswordInternal(l_do_modal_result))
@@ -3271,7 +3279,7 @@ LRESULT MainFrame::onAppShow(WORD /*wNotifyCode*/, WORD /*wParam*/, HWND, BOOL& 
 {
 	if (::IsIconic(m_hWnd))
 	{
-		if (!m_maximized && SETTING(PROTECT_TRAY) && SETTING(PASSWORD) != g_magic_password && !SETTING(PASSWORD).empty())
+		if (!m_is_maximized && SETTING(PROTECT_TRAY) && SETTING(PASSWORD) != g_magic_password && !SETTING(PASSWORD).empty())
 		{
 			const auto l_title_name = _T("Password required - FlylinkDC++");
 			const HWND otherWnd = FindWindow(NULL, l_title_name);

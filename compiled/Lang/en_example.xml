@@ -205,6 +205,7 @@
 	<string name="CloseConnectionAndAddIpGuard">Close Connection and add P2P Guard database</string>
 	<string name="RemoveTorrent">Remove torrent session</string>
 	<string name="RemoveTorrentAndFile">Remove torrent session and file</string>
+	<string name="PauseTorrent">Pause</string>
 	<string name="CloseHot">Close\tCtrl+W</string>
 	<string name="CmdAwayMsg">On/Off away mode with specific (message)</string>
 	<string name="CmdClearChat">Clear chat window</string>
@@ -1145,6 +1146,7 @@
 	<string name="ReportBugs">Report bugs</string>
 	<string name="Requesting">Requesting</string>
 	<string name="Resume">Resume</string>
+	<string name="ResumeTorrent">Resume torrent</string>
 	<string name="RestoreLostShare">Restore folder that was previously in share?</string>
 	<string name="RestoreWindowPos">Attach a program window on center Master Monitor</string>
 	<string name="RetrievingData">Retrieving data</string>

@@ -82,6 +82,9 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		COMMAND_ID_HANDLER(IDC_ADD_P2P_GUARD, onAddP2PGuard)
 		COMMAND_ID_HANDLER(IDC_REMOVE_TORRENT, onRemoveTorrent);
 		COMMAND_ID_HANDLER(IDC_REMOVE_TORRENT_AND_FILE, onRemoveTorrentAndFile);
+		COMMAND_ID_HANDLER(IDC_PAUSE_TORRENT, onPauseTorrent);
+		COMMAND_ID_HANDLER(IDC_RESUME_TORRENT, onResumeTorrent);
+
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
 		COMMAND_ID_HANDLER(IDC_REMOVEALL, onRemoveAll)
 		COMMAND_ID_HANDLER(IDC_DISCONNECT_ALL, onDisconnectAll)
@@ -169,6 +172,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			ctrlTransfers.forEachSelected(&ItemInfo::disconnectAndP2PGuard);
 			return 0;
 		}
+
 		LRESULT onRemoveTorrent(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			ctrlTransfers.forEachSelected(&ItemInfo::removeTorrent);
@@ -179,7 +183,16 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			ctrlTransfers.forEachSelected(&ItemInfo::removeTorrentAndFile);
 			return 0;
 		}
-		
+		LRESULT onPauseTorrent(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			ctrlTransfers.forEachSelected(&ItemInfo::pauseTorrentFile);
+			return 0;
+		}		
+		LRESULT onResumeTorrent(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			ctrlTransfers.forEachSelected(&ItemInfo::resumeTorrentFile);
+			return 0;
+		}
 		LRESULT onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			ctrlTransfers.forEachSelected(&ItemInfo::disconnect);
@@ -304,7 +317,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				ItemInfo(const HintedUser& u, const bool p_is_download, const bool p_is_torrent) :
 					m_hintedUser(u), m_is_torrent(p_is_torrent), download(p_is_download), transferFailed(false),
 					m_status(STATUS_WAITING), m_pos(0), m_size(0), m_actual(0), m_speed(0), m_timeLeft(0),
-					collapsed(true), parent(nullptr), m_hits(-1), running(0), m_type(Transfer::TYPE_FILE), m_is_force_passive(false), m_is_seeding(false)
+					collapsed(true), parent(nullptr), m_hits(-1), running(0), m_type(Transfer::TYPE_FILE), 
+					m_is_force_passive(false), m_is_seeding(false), m_is_pause(false)
 				{
 					update_nicks();
 				}
@@ -312,6 +326,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				const bool download;
 				bool m_is_torrent;
 				bool m_is_seeding;
+				bool m_is_pause;
 				
 				libtorrent::sha1_hash m_sha1;
 				
@@ -362,6 +377,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				void disconnectAndP2PGuard();
 				void removeTorrent();
 				void removeTorrentAndFile();
+				void pauseTorrentFile();
+				void resumeTorrentFile();
 				void removeAll();
 				
 				double getProgressPosition() const
@@ -390,6 +407,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 						ii->m_speed = m_speed;
 						ii->m_statusString = m_target;
 						ii->m_is_seeding = m_is_seeding;
+						ii->m_is_pause = m_is_pause;
 						ii->m_sha1 = m_sha1;
 					}
 					else
@@ -450,18 +468,21 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			UpdateInfo(const libtorrent::sha1_hash& p_sha1) :
 				m_sha1(p_sha1), updateMask(0), download(true),
 				transferFailed(false), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
-				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), m_is_torrent(true), m_is_seeding(false)
+				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), 
+				timeLeft(0), m_is_torrent(true), m_is_seeding(false), m_is_pause(false)
 			{
 			}
 			UpdateInfo(const HintedUser& aHintedUser, const bool isDownload, const bool isTransferFailed = false) :
 				updateMask(0), download(isDownload), m_hintedUser(aHintedUser), // fix empty string
 				transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
-				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), m_is_torrent(false), m_is_seeding(false)
+				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), 
+				m_is_torrent(false), m_is_seeding(false), m_is_pause(false)
 			{
 			}
 			UpdateInfo() :
 				updateMask(0), download(true), transferFailed(false), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
-				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), m_is_torrent(false), m_is_seeding(false)
+				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), 
+				m_is_torrent(false), m_is_seeding(false), m_is_pause(false)
 			{
 			}
 			~UpdateInfo()
@@ -480,6 +501,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			const bool download;
 			bool m_is_torrent;
 			bool m_is_seeding;
+			bool m_is_pause;
 			libtorrent::sha1_hash m_sha1;
 			const bool transferFailed; // [!] is const member.
 			// [~]
@@ -695,7 +717,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(ConnectionManagerListener::UserUpdated, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept override;
 		void on(ConnectionManagerListener::ConnectionStatusChanged, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept override;
 		
-		void on(DownloadManagerListener::SelectTorrent, const libtorrent::sha1_hash& p_sha1, std::vector<std::string>& p_files) noexcept override;
+		void on(DownloadManagerListener::SelectTorrent, const libtorrent::sha1_hash& p_sha1, CFlyTorrentFileArray& p_files) noexcept override;
 		void on(DownloadManagerListener::CompleteTorrentFile, const std::string& p_file_name) noexcept override;
 		void on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept override;
 		void on(DownloadManagerListener::TorrentEvent, const DownloadArray&) noexcept override;

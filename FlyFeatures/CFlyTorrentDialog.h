@@ -42,11 +42,11 @@ class CFlyTorrentDialog :
         CTreeViewCtrl m_ctrlTree;
         CContainedWindow m_treeContainer;
         HTREEITEM m_htiRoot;
-        std::vector<std::string> m_files;
+		CFlyTorrentFileArray m_files;
 	public:
         std::vector<int> m_selected_files;
         enum { IDD = IDD_FLY_TORRENT_DIALOG };
-        CFlyTorrentDialog(const std::vector<std::string>& p_files):m_files(p_files)
+        CFlyTorrentDialog(const CFlyTorrentFileArray& p_files):m_files(p_files)
         {
         }
 		BEGIN_MSG_MAP(CFlyTorrentDialog)
@@ -128,7 +128,7 @@ class CFlyTorrentDialog :
             int j = 0;
             for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
             {
-                HTREEITEM l_item = m_ctrlTree.InsertItem(Text::toT(*i).c_str(), m_htiRoot, TVI_LAST);
+                HTREEITEM l_item = m_ctrlTree.InsertItem(Text::toT(i->first + " (" + Util::formatBytes(i->second) +")").c_str(), m_htiRoot, TVI_LAST);
                 m_ctrlTree.SetCheckState(l_item, TRUE);
                 m_ctrlTree.SetItemData(l_item, j++);
             }

@@ -706,11 +706,11 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		CComPtr<ITaskbarList3> m_taskbarList; // [+] InfinitySky.
 		
 		/** Was the window maximized when minimizing it? */
-		bool m_maximized;
+		bool m_is_maximized;
 		void ShowWindowMax()
 		{
 			ShowWindow(SW_SHOW);
-			ShowWindow(m_maximized ? SW_MAXIMIZE : SW_RESTORE);
+			ShowWindow(m_is_maximized ? SW_MAXIMIZE : SW_RESTORE);
 		}
 		
 		uint64_t m_lastMove;

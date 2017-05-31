@@ -849,7 +849,7 @@ namespace lt = libtorrent;
 
 void DownloadManager::select_files(const libtorrent::torrent_handle& p_torrent_handle)
 {
-	std::vector<std::string> l_files;
+	CFlyTorrentFileArray l_files;
 	if (p_torrent_handle.is_valid())
 	{
 		auto l_file = p_torrent_handle.torrent_file();
@@ -860,7 +860,7 @@ void DownloadManager::select_files(const libtorrent::torrent_handle& p_torrent_h
 		{
 			p_torrent_handle.file_priority(file_index_t(i), 0);
 			const std::string filePath = fileStorage.file_path(file_index_t(i));
-			l_files.push_back(filePath);
+			l_files.push_back(make_pair(filePath, fileStorage.file_size(file_index_t(i))));
 #ifdef _DEBUG
 			LogManager::torrent_message("metadata_received_alert: File = " + filePath);
 #endif
@@ -1176,6 +1176,37 @@ bool DownloadManager::set_file_priority(const libtorrent::sha1_hash& p_sha1, con
 	return false;
 	
 }
+bool DownloadManager::pause_torrent_file(const libtorrent::sha1_hash& p_sha1, bool p_is_resume)
+{
+	if (m_torrent_session)
+	{
+		lt::error_code ec;
+		try
+		{
+			const auto l_h = m_torrent_session->find_torrent(p_sha1);
+			if (l_h.is_valid())
+			{
+				if (p_is_resume)
+				{
+					l_h.auto_managed(true);
+					l_h.resume();
+				}
+				else
+				{
+					l_h.auto_managed(false);
+					l_h.pause();
+				}
+			}
+			return true;
+		}
+		catch (const std::runtime_error& e)
+		{
+			LogManager::torrent_message("Error pause_torrent_file: " + std::string(e.what()));
+		}
+	}
+	return false;
+
+}
 bool DownloadManager::remove_torrent_file(const libtorrent::sha1_hash& p_sha1, const int p_delete_options)
 {
 	if (m_torrent_session)
@@ -1192,6 +1223,7 @@ bool DownloadManager::remove_torrent_file(const libtorrent::sha1_hash& p_sha1, c
 			//{
 			//  LogManager::torrent_message("Error remove_torrent_file: sha1 = ");
 			//}
+			return true;
 		}
 		catch (const std::runtime_error& e)
 		{

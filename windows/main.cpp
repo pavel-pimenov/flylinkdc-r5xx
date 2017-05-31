@@ -484,9 +484,6 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 			                if (rc.bottom < 0 || rc.bottom >= l_desktop.bottom - l_desktop.top)
 			                    rc.bottom = l_desktop.bottom;
 			            }
-			
-			
-			
 			*/
 			rc.left = SETTING(MAIN_WINDOW_POS_X);
 			rc.top = SETTING(MAIN_WINDOW_POS_Y);
@@ -506,7 +503,8 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 		   )
 		{
 			rc = wndMain.rcDefault;
-			// nCmdShow - по идее, команда при запуске флая с настройками. Но мы её заюзаем как флад ДА для установки дефолтного стиля для окна.
+			// nCmdShow - по идее, команда при запуске флая с настройками. Но мы её заюзаем как флаг
+			// ДА для установки дефолтного стиля для окна.
 			// ниже по коду видно, что если в этой команде есть что-то, то будет заюзан стиль из Настроек клиента.
 			if (!nCmdShow)
 				nCmdShow = SW_SHOWDEFAULT;  // SW_SHOWNORMAL
@@ -534,15 +532,12 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 			if (/*SETTING(PROTECT_PRIVATE) && */SETTING(PROTECT_PRIVATE_RND))
 				SET_SETTING(PM_PASSWORD, Util::getRandomNick()); // Generate a random PM password
 				
+			wndMain.ShowWindow(((nCmdShow == SW_SHOWDEFAULT) || (nCmdShow == SW_SHOWNORMAL)) ? SETTING(MAIN_WINDOW_STATE) : nCmdShow);
 			if (BOOLSETTING(MINIMIZE_ON_STARTUP))
 			{
 				wndMain.ShowWindow(SW_SHOWMINIMIZED);
 			}
-			else
-			{
-				wndMain.ShowWindow(((nCmdShow == SW_SHOWDEFAULT) || (nCmdShow == SW_SHOWNORMAL)) ? SETTING(MAIN_WINDOW_STATE) : nCmdShow);
-			}
-			
+
 			DestroySplash();
 			
 			AutoUpdateGUIMethod* l_guiDelegate = &wndMain;

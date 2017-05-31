@@ -45,6 +45,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/string_util.hpp"
 #include "libtorrent/aux_/throw.hpp"
 
+#ifdef _DEBUG
+#include "Windows.h"
+#endif
+
 namespace libtorrent {
 
 namespace detail {
@@ -639,6 +643,9 @@ namespace {
 		std::string ret;
 		ret.reserve(256);
 		to_string_impl(ret, 0);
+#ifdef _DEBUG
+//		::Sleep(5000);
+#endif
 		return ret;
 	}
 
