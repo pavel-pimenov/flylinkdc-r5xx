@@ -118,6 +118,7 @@ namespace sqlite3x {
 		void rollback();
 	};
 
+    class sqlite3_reader;
 	class sqlite3_command
 #ifdef _DEBUG
 		: boost::noncopyable 

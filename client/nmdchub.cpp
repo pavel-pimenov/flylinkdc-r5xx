@@ -2394,12 +2394,14 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			m_lastExtJSONSupport = l_ExtJSONSupport;
 			m_version_fly_info = g_version_fly_info;
 			Json::Value l_json_info;
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
 			if (!SETTING(FLY_LOCATOR_COUNTRY).empty())
 				l_json_info["Country"] = SETTING(FLY_LOCATOR_COUNTRY).substr(0, 30);
 			if (!SETTING(FLY_LOCATOR_CITY).empty())
 				l_json_info["City"] = SETTING(FLY_LOCATOR_CITY).substr(0, 30);
 			if (!SETTING(FLY_LOCATOR_ISP).empty())
 				l_json_info["ISP"] = SETTING(FLY_LOCATOR_ISP).substr(0, 30);
+#endif
 			l_json_info["Gender"] = SETTING(FLY_GENDER) + 1;
 			if (!l_ExtJSONSupport.empty())
 				l_json_info["Support"] = l_ExtJSONSupport;

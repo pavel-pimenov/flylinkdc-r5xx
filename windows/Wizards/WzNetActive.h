@@ -194,7 +194,7 @@ public:
 				_isUDPOk = false;
 			}
 		}
-		return dlg.getDeviceName(); // [+]PPA
+		return dlg.getDeviceName(); 
 	}
 	bool WrongPorts(uint16_t tcp, uint16_t udp)
 	{
@@ -380,13 +380,9 @@ public:
 	{
 		try
 		{
-		// bool isNeedPassiveMode = false;
-		// ѕроверка делает уже ранее
-		// CheckUPNP(true, _isUPNPChecked); // [+]PPA 
 		if (!_isTCPOk)
 		{
-			// [+]PPA Ќе спрашиваем про пассивный режим. 
-
+			// Ќе спрашиваем про пассивный режим. 
 			// isNeedPassiveMode = (MessageBox(CTSTRING(WIZARD_NETA_NEEDPASSIVEMODE), CTSTRING(WIZARD_TITLE), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1) == IDYES);
 			// TODO - похоронить мессагу WIZARD_NETA_NEEDPASSIVEMODE
 		}

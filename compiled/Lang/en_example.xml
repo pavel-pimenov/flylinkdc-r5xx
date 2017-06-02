@@ -1643,6 +1643,7 @@
 	<string name="TorrentComment">Torrent count comments</string>
 	<string name="TorrentDate">Torrent date</string>
 	<string name="TorrentUrl">Torrent URL</string>
+	<string name="TorrentTracker">Torrent tracker</string>
 	<string name="TorrentPage">Torrent page</string>
 	<string name="Tth">TTH</string>
 	<string name="FavEnemyUser">Enemy user/Speed Ban</string>

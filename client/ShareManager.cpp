@@ -1903,7 +1903,7 @@ void ShareManager::Directory::toXml(OutputStream& xmlFile, string& p_indent, str
 	if (!p_indent.empty())
 		xmlFile.write(p_indent);
 	xmlFile.write(LITERAL("<Directory Name=\""));
-	xmlFile.write(SimpleXML::escapeAtrib(getName(), tmp2)); // [+]PPA - упростил операцию escape без анализа кодировки utf-8 stricmp(encoding, Text::g_utf8)
+	xmlFile.write(SimpleXML::escapeAtrib(getName(), tmp2)); // TODO  упростил операцию escape без анализа кодировки utf-8 stricmp(encoding, Text::g_utf8)
 	
 	if (fullList)
 	{
@@ -1949,7 +1949,7 @@ void ShareManager::Directory::filesToXml(OutputStream& xmlFile, string& indent, 
 		if (!indent.empty())
 			xmlFile.write(indent);
 		xmlFile.write(LITERAL("<File Name=\""));
-		xmlFile.write(SimpleXML::escapeAtrib(f.getName(), tmp2)); // [+]PPA - упростил операцию escape без анализа кодировки utf-8 stricmp(encoding, Text::g_utf8)
+		xmlFile.write(SimpleXML::escapeAtrib(f.getName(), tmp2)); // TODO - упростил операцию escape без анализа кодировки utf-8 stricmp(encoding, Text::g_utf8)
 		xmlFile.write(LITERAL("\" Size=\""));
 		xmlFile.write(Util::toString(f.getSize()));
 		xmlFile.write(LITERAL("\" TTH=\""));
@@ -3073,9 +3073,9 @@ int64_t ShareManager::addExcludeFolder(const string &path)
 			{
 				bytesNotCounted += Util::getDirSize(*j);
 				j = g_notShared.erase(j);
-				if (g_notShared.empty()) //[+]PPA
+				if (g_notShared.empty())
 					break;
-				if (j != g_notShared.begin()) // [+]PPA fix vector iterator not decrementable
+				if (j != g_notShared.begin())
 					--j;
 			}
 		}
@@ -3103,9 +3103,9 @@ int64_t ShareManager::removeExcludeFolder(const string &path, bool returnSize /*
 					bytesAdded += Util::getDirSize(*j);
 					
 				j = g_notShared.erase(j);
-				if (g_notShared.empty()) //[+]PPA
+				if (g_notShared.empty())
 					break;
-				if (j != g_notShared.begin()) // [+]PPA fix vector iterator not decrementable
+				if (j != g_notShared.begin())
 					--j;
 			}
 		}

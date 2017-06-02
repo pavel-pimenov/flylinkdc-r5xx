@@ -393,7 +393,7 @@ bool FavoriteManager::addUserL(const UserPtr& aUser, FavoriteMap::iterator& iUse
 bool FavoriteManager::getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskType& p_flags, int& p_uploadLimit) // [+] IRainman opt.
 {
 	dcassert(!ClientManager::isBeforeShutdown());
-	if (isNotEmpty()) // [+]PPA
+	if (isNotEmpty())
 	{
 		CFlyReadLock(*g_csFavUsers);
 		const auto l_user = g_fav_users_map.find(aUser->getCID());
@@ -410,7 +410,7 @@ bool FavoriteManager::getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskTy
 bool FavoriteManager::isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser) // [+] IRainman opt.
 {
 	dcassert(!ClientManager::isBeforeShutdown());
-	if (isNotEmpty()) // [+]PPA
+	if (isNotEmpty())
 	{
 		CFlyReadLock(*g_csFavUsers);
 		const auto l_user = g_fav_users_map.find(aUser->getCID());
@@ -429,7 +429,7 @@ bool FavoriteManager::isNoFavUserOrUserBanUpload(const UserPtr& aUser) // [+] IR
 bool FavoriteManager::getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_favuser) // [+] IRainman opt.
 {
 	dcassert(!ClientManager::isBeforeShutdown());
-	if (isNotEmpty()) // [+]PPA
+	if (isNotEmpty())
 	{
 		CFlyReadLock(*g_csFavUsers);
 		const auto l_user = g_fav_users_map.find(p_user->getCID());
@@ -445,7 +445,7 @@ bool FavoriteManager::getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_fav
 bool FavoriteManager::isFavoriteUser(const UserPtr& aUser, bool& p_is_ban)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
-	if (isNotEmpty()) // [+]PPA
+	if (isNotEmpty())
 	{
 		CFlyReadLock(*g_csFavUsers);
 		bool l_result;
@@ -517,7 +517,7 @@ void FavoriteManager::removeFavoriteUser(const UserPtr& aUser)
 
 string FavoriteManager::getUserUrl(const UserPtr& aUser)
 {
-	if (isNotEmpty()) // [+]PPA
+	if (isNotEmpty())
 	{
 		CFlyReadLock(*g_csFavUsers);
 		const auto& i = g_fav_users_map.find(aUser->getCID());
@@ -1589,7 +1589,7 @@ void FavoriteManager::load(SimpleXML& aXml
 
 void FavoriteManager::userUpdated(const OnlineUser& info)
 {
-	if (!ClientManager::isBeforeShutdown() && isNotEmpty()) // [+]PPA
+	if (!ClientManager::isBeforeShutdown() && isNotEmpty())
 	{
 		CFlyReadLock(*g_csFavUsers);
 		auto i = g_fav_users_map.find(info.getUser()->getCID());
@@ -1688,7 +1688,7 @@ void FavoriteManager::setUploadLimit(const UserPtr& aUser, int lim, bool createU
 bool FavoriteManager::getFlag(const UserPtr& aUser, FavoriteUser::Flags f)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
-	if (isNotEmpty()) // [+]PPA
+	if (isNotEmpty())
 	{
 		CFlyReadLock(*g_csFavUsers);
 		const auto i = g_fav_users_map.find(aUser->getCID());
@@ -1726,7 +1726,7 @@ void FavoriteManager::setFlag(const UserPtr& aUser, FavoriteUser::Flags f, bool 
 
 void FavoriteManager::setUserDescription(const UserPtr& aUser, const string& aDescription)
 {
-	if (isNotEmpty()) // [+]PPA
+	if (isNotEmpty())
 	{
 		{
 			CFlyReadLock(*g_csFavUsers);
@@ -1831,7 +1831,7 @@ void FavoriteManager::on(UserDisconnected, const UserPtr& aUser) noexcept
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
-		if (isNotEmpty()) // [+]PPA
+		if (isNotEmpty())
 		{
 			{
 				CFlyReadLock(*g_csFavUsers);
@@ -1852,7 +1852,7 @@ void FavoriteManager::on(UserConnected, const UserPtr& aUser) noexcept
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
-		if (isNotEmpty()) // [+]PPA
+		if (isNotEmpty())
 		{
 			{
 				CFlyReadLock(*g_csFavUsers);

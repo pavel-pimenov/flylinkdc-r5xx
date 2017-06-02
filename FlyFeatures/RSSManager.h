@@ -100,7 +100,7 @@ class RSSFeed
 		RssFormat DetectRSSFormat(void* data, RSSParser parser);
 		bool ProcessRSS(void* data, RSSParser parser, bool isUtf8);
 		bool ProcessAtom(void* data, RSSParser parser, bool isUtf8);
-		time_t convertPubDate(const string& p_str_date); // [+]PPA
+		time_t convertPubDate(const string& p_str_date);
 		
 		FastCriticalSection csNews;
 		RSSItemList m_newsList;

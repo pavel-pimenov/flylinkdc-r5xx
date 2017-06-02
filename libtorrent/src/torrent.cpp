@@ -159,13 +159,6 @@ namespace libtorrent {
 		, m_state(torrent_status::checking_resume_data)
 	{}
 
-	void torrent_hot_members::remove_connection(peer_connection const* p)
-	{
-		auto const i = sorted_find(m_connections, p);
-		if (i != m_connections.end())
-			m_connections.erase(i);
-	}
-
 	torrent::torrent(
 		aux::session_interface& ses
 		, int const block_size
@@ -5341,6 +5334,14 @@ namespace libtorrent {
 
 #endif
 
+	void torrent::remove_connection(peer_connection const* p)
+	{
+		TORRENT_ASSERT(m_iterating_connections == 0);
+		auto const i = sorted_find(m_connections, p);
+		if (i != m_connections.end())
+			m_connections.erase(i);
+	}
+
 	void torrent::remove_peer(peer_connection* p)
 	{
 		TORRENT_ASSERT(p != nullptr);
@@ -7519,7 +7520,7 @@ namespace libtorrent {
 		return;
 	}
 
-	void torrent::move_storage(std::string const& save_path, int const flags)
+	void torrent::move_storage(std::string const& save_path, move_flags_t const flags)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		INVARIANT_CHECK;
@@ -7550,7 +7551,7 @@ namespace libtorrent {
 #else
 			std::string path = save_path;
 #endif
-			m_ses.disk_thread().async_move_storage(m_storage, std::move(path), std::uint8_t(flags)
+			m_ses.disk_thread().async_move_storage(m_storage, std::move(path), flags
 				, std::bind(&torrent::on_storage_moved, shared_from_this(), _1, _2, _3));
 			m_moving_storage = true;
 		}

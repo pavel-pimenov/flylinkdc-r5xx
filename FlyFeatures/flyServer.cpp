@@ -1001,13 +1001,16 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
             unsigned l_page_limit_global = l_root["page_limit"].asUInt();
 			const Json::Value& l_arrays = l_root["items"];
 			const Json::Value::ArrayIndex l_count = l_arrays.size();
-			for (Json::Value::ArrayIndex j = 0; j < l_count; ++j)
+			for (Json::Value::ArrayIndex k = 0; k < l_count; ++k)
 			{
-				const Json::Value& l_cur_item_in = l_arrays[j];
+				const Json::Value& l_cur_item_in = l_arrays[k];
 				const auto l_root_torrent_url = l_cur_item_in["url"].asString();
 				l_log.log("Search = " + l_root_torrent_url);
 				string l_local_agent = l_cur_item_in["agent"].asString();
+				string l_tracker_name = l_cur_item_in["name"].asString();
                 unsigned l_page_limit_local = l_cur_item_in["page_limit"].asUInt();
+				dcassert(!l_cur_item_in["index"].asString().empty());
+				int l_index = l_cur_item_in["index"].asInt();
                 if (l_page_limit_local == 0)
                     l_page_limit_local = l_page_limit_global;
 				if (l_local_agent.empty())
@@ -1017,9 +1020,9 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 					for (int l_num_page = 0; l_num_page < l_page_limit_local
 						 ; ++l_num_page)
 					{
-						const string l_search_result = l_lua_state["get_url"](j, l_search_encode.c_str(), "", l_num_page, 0, 0, 0);
+						const string l_search_url= l_lua_state["get_url"](l_index, l_search_encode.c_str(), "", l_num_page, 0, 0, 0);
 #ifdef _DEBUG
-						LogManager::message("l_url = [page = " + Util::toString(l_num_page) + "] " + l_search_result + " l_agent = " + l_agent + " l_agent_global = " + l_agent);
+						//LogManager::message("l_url = [page = " + Util::toString(l_num_page) + "] " + l_search_result + " l_agent = " + l_agent + " l_agent_global = " + l_agent);
 #endif
 						try
 						{
@@ -1030,15 +1033,15 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 							{
 								l_http_downloader.m_user_agent = Text::toT(l_local_agent);
 							}
-							if (l_http_downloader.getBinaryDataFromInet(l_search_result, l_data, 1000))
+							if (l_http_downloader.getBinaryDataFromInet(l_search_url, l_data, 1000))
 							{
 								const std::string l_html_result((char*)l_data.data(), l_data.size());
-								const std::string l_magnet_result = l_lua_state["search"](int(j), l_html_result.c_str());
+								const std::string l_magnet_result = l_lua_state["search"](l_index, l_html_result.c_str());
 								if (l_magnet_result.empty())
 									break; // кончились странички
 
 #ifdef _DEBUG
-								//LogManager::message("l_magnet_result = " + l_magnet_result);
+								LogManager::message("l_magnet_result = " + l_magnet_result);
 #endif
 								try
 								{
@@ -1047,8 +1050,12 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 									const bool l_parsingSuccessful = l_reader.parse(l_magnet_result, l_root);
 									if (!l_parsingSuccessful)
 									{
+#ifdef _DEBUG
+										LogManager::message("Error - l_magnet_result = " + l_magnet_result);
+#endif
 										dcassert(0);
-										const string l_error = "onTorrentSearch[0] async - Failed to parse json l_magnet_result = " + l_magnet_result;
+										const string l_error = "onTorrentSearch[0] async - Failed to parse json URL = " + l_search_url
+											+ " l_magnet_result = " + l_magnet_result;
 										CFlyServerJSON::pushError(78, l_error);
 									}
 									else
@@ -1067,16 +1074,20 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 												l_result->m_seed = atoi(l_arrays[i]["seed"].asString().c_str());
 												l_result->m_comment = atoi(l_arrays[i]["comment"].asString().c_str());
 												l_result->m_url = l_root_torrent_url + l_arrays[i]["url"].asString();
+												l_result->m_tracker = l_tracker_name;
+												l_result->m_tracker_index = l_index;
 												l_result->m_date = l_arrays[i]["date"].asString();
 												l_result->m_torrent_page = l_num_page+1;
-												const auto l_size = Text::toLower(l_arrays[i]["size"].asString());
-												l_result->m_size = atoi(l_size.c_str());
+												const string l_size = Text::toLower(l_arrays[i]["size"].asString());
+												dcassert(!l_size.empty());
+												auto l_size_float = Util::toDouble(l_size);
 												if (l_size.find("mb") != string::npos)
-													l_result->m_size = l_result->m_size * 1024 * 1024;
+													l_size_float = l_size_float * 1024.0 * 1024.0;
 												if (l_size.find("gb") != string::npos)
-													l_result->m_size = l_result->m_size * 1024 * 1024 * 1024;
+													l_size_float = l_size_float * 1024.0 * 1024.0 * 1024.0;
 												if (l_size.find("kb") != string::npos)
-													l_result->m_size = l_result->m_size * 1024;
+													l_size_float = l_size_float * 1024.0;
+												l_result->m_size = l_size_float;
 												safe_post_message(p_wnd, p_message, l_result);
 											}
 										}
@@ -1085,7 +1096,7 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 								catch (const Exception &e)
 								{
 									dcassert(0);
-									const string l_error = "onTorrentSearch[1] async - error " + e.getError();
+									const string l_error = "onTorrentSearch[1] URL = " + l_search_url  +" error " + e.getError();
 									CFlyServerJSON::pushError(77, l_error);
 									break;
 								}
@@ -1093,7 +1104,7 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 							else
 							{
 								dcassert(0);
-								const string l_error = "onTorrentSearch[4] getBinaryDataFromInet error l_search_result = " + l_search_result;
+								const string l_error = "onTorrentSearch[4] getBinaryDataFromInet error l_search_url = " + l_search_url;
 								CFlyServerJSON::pushError(79, l_error);
 								break;
 							}
@@ -1101,14 +1112,14 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 						catch (const Exception &e)
 						{
 							dcassert(0);
-							const string l_error = "onTorrentSearch[2] async - Exception " + e.getError();
+							const string l_error = "onTorrentSearch[2] URL = " + l_search_url + " Exception " + e.getError();
 							CFlyServerJSON::pushError(77, l_error);
 							break;
 						}
 						catch (std::runtime_error& e)
 						{
 							dcassert(0);
-							CFlyServerJSON::pushError(77, "onTorrentSearch[3] async - runtime_error = " + string(e.what()));
+							CFlyServerJSON::pushError(77, "onTorrentSearch[3] URL = " + l_search_url + " runtime_error = " + string(e.what()));
 							break;
 						}
 					} // for
@@ -1140,6 +1151,7 @@ void CFlyServerConfig::loadTorrentSearchEngine()
 #else
 					Util::getDataFromInetSafe(true, "http://etc.fly-server.ru/etc/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
 #endif
+					dcassert(!g_lua_source_search_engine.empty());
 				}
 			}
 			catch (const Exception &e)
@@ -1843,6 +1855,7 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		{
 			l_info["ISP_URL"] = l_ISP_URL;
 		}
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
 		if (!SETTING(FLY_LOCATOR_COUNTRY).empty())
 		{
 			Json::Value& l_locator = l_info["Locator"];
@@ -1850,6 +1863,7 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 			l_locator["City"] = SETTING(FLY_LOCATOR_CITY);
 			l_locator["ISP"] = SETTING(FLY_LOCATOR_ISP);
 		}
+#endif
 		// јгрегационные параметры
 		{
 			Json::Value& l_stat_info = l_info["Stat"];

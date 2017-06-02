@@ -744,7 +744,7 @@ int HashManager::Hasher::run()
 									lastRead = GET_TICK();
 								}
 								n = l_slow_file_reader.read(l_buf, bufSize);
-								if (n > 0) // [+]PPA
+								if (n > 0)
 								{
 									tth->update(l_buf, n);
 									{

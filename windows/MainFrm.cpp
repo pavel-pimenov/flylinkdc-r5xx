@@ -87,7 +87,9 @@
 #endif
 #include "../FlyFeatures/CProgressDlg.h"
 #include "../FlyFeatures/flyfeatures.h" // [+] SSA
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
 #include "CFlyLocationDlg.h"
+#endif
 #include "ExMessageBox.h"
 
 #ifndef _DEBUG
@@ -2372,7 +2374,7 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 //    PROFILE_THREAD_SCOPED()
 	const bool l_settingsNickExist = !SETTING(NICK).empty();
 	missedAutoConnect = false;
-	CFlyLockWindowUpdate l(WinUtil::g_mdiClient); // [+]PPA
+	CFlyLockWindowUpdate l(WinUtil::g_mdiClient);
 	HubFrame* frm = nullptr;
 	{
 		int l_count_sec = 0;
@@ -3588,6 +3590,7 @@ LRESULT MainFrame::onFoundNewVersion(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 	return 0;
 }
 
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
 LRESULT MainFrame::onChangeLocation(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	CFlyLocationDlg l_dlg;
@@ -3601,9 +3604,10 @@ LRESULT MainFrame::onChangeLocation(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 			ClientManager::resend_ext_json();
 		}
 	}
-	
 	return S_OK;
 }
+#endif
+
 LRESULT MainFrame::onUpdate(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	AutoUpdate::getInstance()->startUpdateManually();

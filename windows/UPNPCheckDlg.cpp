@@ -261,7 +261,7 @@ bool UPNPCheckDlg::MiniUPnPc_init(string& url, string& service, string& device)
 		url = urls.controlURL;
 		service = data.first.servicetype;
 		device = data.CIF.friendlyName;
-		device += '(' + data.CIF.modelDescription + ')'; // [+]PPA TODO - fix cope-paste
+		device += '(' + data.CIF.modelDescription + ')';
 	}
 	
 	if (res)

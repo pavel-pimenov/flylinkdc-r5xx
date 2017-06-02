@@ -1268,6 +1268,11 @@ class UserStateImage : public BaseImageList
 	public:
 		void init();
 };
+class TrackerImage : public BaseImageList
+{
+	public:
+		void init();
+};
 class GenderImage : public BaseImageList
 {
 	public:
@@ -1277,6 +1282,7 @@ class GenderImage : public BaseImageList
 
 extern UserImage g_userImage;
 extern UserStateImage g_userStateImage;
+extern TrackerImage g_trackerImage;
 extern GenderImage g_genderImage;
 
 class ISPImage : public BaseImageList

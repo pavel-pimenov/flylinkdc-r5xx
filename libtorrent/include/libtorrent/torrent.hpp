@@ -186,7 +186,7 @@ namespace libtorrent {
 #if defined __GNUC__ && defined _GLIBCXX_DEBUG
 		// this works around a bug in libstdc++'s checked iterators
 		// http://stackoverflow.com/questions/22915325/avoiding-self-assignment-in-stdshuffle
-		web_seed_t& operator=(web_seed_t&& rhs)
+		web_seed_t& operator=(web_seed_t&& rhs) noexcept
 		{
 			if (&rhs == this) return *this;
 
@@ -302,8 +302,6 @@ namespace libtorrent {
 		std::uint32_t m_state:3;
 
 		std::unique_ptr<peer_list> m_peer_list;
-
-		void remove_connection(peer_connection const* p);
 	};
 
 	// a torrent is a class that holds information
@@ -321,7 +319,7 @@ namespace libtorrent {
 		torrent(aux::session_interface& ses, int block_size
 			, bool session_paused, add_torrent_params const& p
 			, sha1_hash const& info_hash);
-		~torrent();
+		~torrent() override;
 
 		// This may be called from multiple threads
 		sha1_hash const& info_hash() const { return m_info_hash; }
@@ -686,7 +684,9 @@ namespace libtorrent {
 		void get_download_queue(std::vector<partial_piece_info>* queue) const;
 
 		void update_auto_sequential();
-
+	private:
+		void remove_connection(peer_connection const* p);
+	public:
 // --------------------------------------------
 		// TRACKER MANAGEMENT
 
@@ -1014,7 +1014,7 @@ namespace libtorrent {
 		// RESOURCE MANAGEMENT
 
 		// flags are defined in storage.hpp
-		void move_storage(std::string const& save_path, int flags);
+		void move_storage(std::string const& save_path, move_flags_t flags);
 
 		// renames the file with the given index to the new name
 		// the name may include a directory path

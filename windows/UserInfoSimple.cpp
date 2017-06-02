@@ -81,7 +81,7 @@ void UserInfoSimple::addSummaryMenu()
 		{
 			if (uit->getUser() == getUser())
 			{
-				uint8_t l_count_menu = 0; // [+]PPA
+				uint8_t l_count_menu = 0;
 				for (auto i = uit->m_waiting_files.cbegin(); i != uit->m_waiting_files.cend(); ++i)
 				{
 					if (!caption)
@@ -108,7 +108,7 @@ void UserInfoSimple::addSummaryMenu()
 	}
 	caption = false;
 	{
-		uint8_t l_count_menu = 0; // [+]PPA
+		uint8_t l_count_menu = 0;
 		RLock(*QueueItem::g_cs);
 		QueueManager::LockFileQueueShared l_fileQueue;
 		const auto& downloads = l_fileQueue.getQueueL();

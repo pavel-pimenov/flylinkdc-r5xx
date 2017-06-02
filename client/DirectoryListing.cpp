@@ -493,7 +493,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 		{
 			m_base = b;
 		}
-		if (m_base.size() > 1) // [+]PPA fix for [4](("Version", "1"),("CID", "EDI7OWB6TZWH6X6L2D3INC6ORQSG6RQDJ6AJ5QY"),("Base", "/"),("Generator", "DC++ 0.785"))
+		if (m_base.size() > 1)
 		{
 			const StringTokenizer<string> sl(m_base.substr(1), '/');
 			for (auto i = sl.getTokens().cbegin(); i != sl.getTokens().cend(); ++i)

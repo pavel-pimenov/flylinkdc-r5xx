@@ -409,6 +409,8 @@ typedef unsigned __int64 uint64_t;
 #define FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 #define FLYLINKDC_USE_SOCKET_COUNTER
 
+#define FLYLINKDC_USE_LOCATION_DIALOG
+
 // Make sure we're using the templates from algorithm...
 #ifdef min
 # undef min

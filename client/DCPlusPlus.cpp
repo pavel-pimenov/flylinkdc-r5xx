@@ -44,7 +44,7 @@
 #include "IPGrant.h"
 #endif // SSA_IPGRANT_FEATURE
 
-#ifdef USE_FLYLINKDC_VLD
+#ifdef FLYLINKDC_USE_VLD
 #include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h" // VLD качать тут http://vld.codeplex.com/
 #endif
 
@@ -132,12 +132,12 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	LOAD_STEP("TTH on GPU", GPGPUTTHManager::newInstance());
 #endif
 	HashManager::newInstance();
-#ifdef USE_FLYLINKDC_VLD
+#ifdef FLYLINKDC_USE_VLD
 	VLDDisable(); // TODO VLD показывает там лики - не понял пока как победить OpenSSL
 #endif
 // FLYLINKDC_CRYPTO_DISABLE
 	LOAD_STEP("SSL", CryptoManager::newInstance());
-#ifdef USE_FLYLINKDC_VLD
+#ifdef FLYLINKDC_USE_VLD
 	VLDEnable(); // TODO VLD показывает там лики - не понял пока как победить OpenSSL
 #endif
 	SearchManager::newInstance();
@@ -308,12 +308,12 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		ADLSearchManager::deleteInstance();
 		FinishedManager::deleteInstance();
 		ShareManager::deleteInstance();
-#ifdef USE_FLYLINKDC_VLD
+#ifdef FLYLINKDC_USE_VLD
 		VLDDisable(); // TODO VLD показывает там лики - не понял пока как победить OpenSSL
 #endif
 // FLYLINKDC_CRYPTO_DISABLE
 		CryptoManager::deleteInstance();
-#ifdef USE_FLYLINKDC_VLD
+#ifdef FLYLINKDC_USE_VLD
 		VLDEnable(); // TODO VLD показывает там лики - не понял пока как победить OpenSSL
 #endif
 		ThrottleManager::deleteInstance();

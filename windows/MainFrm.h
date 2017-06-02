@@ -208,7 +208,9 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		COMMAND_ID_HANDLER(ID_WINDOW_RESTORE_ALL, onWindowRestoreAll)
 		COMMAND_ID_HANDLER(IDC_SHUTDOWN, onShutDown)
 		COMMAND_ID_HANDLER(IDC_UPDATE_FLYLINKDC, onUpdate)
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
 		COMMAND_ID_HANDLER(IDC_FLYLINKDC_LOCATION, onChangeLocation)
+#endif
 		COMMAND_ID_HANDLER(IDC_FLYLINKDC_FOUND_NEW_VERSION, onFoundNewVersion)
 		
 		COMMAND_ID_HANDLER(IDC_DISABLE_SOUNDS, onDisableSounds)
@@ -328,7 +330,9 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		LRESULT onAway(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onLimiter(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onUpdate(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
 		LRESULT onChangeLocation(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+#endif
 		LRESULT onFoundNewVersion(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onDisableSounds(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onDisablePopups(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/); // [+] InfinitySky.

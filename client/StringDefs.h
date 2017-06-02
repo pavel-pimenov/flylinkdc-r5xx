@@ -1648,6 +1648,7 @@ enum Strings   // @DontAdd
 	TORRENT_COMMENT, // "Torrent count comments"
 	TORRENT_DATE, // "Torrent date"
 	TORRENT_URL, // "Torrent URL"
+	TORRENT_TRACKER, // "Torrent tracker"
 	TORRENT_PAGE, // "Torrent page"
 	TTH, // "TTH"
 	FAV_ENEMY_USER, // "Enemy user/Speed Ban"

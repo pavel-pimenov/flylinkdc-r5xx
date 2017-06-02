@@ -56,6 +56,7 @@
     <ClInclude Include="include\libtorrent\aux_\ip_notifier.hpp" />
     <ClInclude Include="include\libtorrent\aux_\max_path.hpp" />
     <ClInclude Include="include\libtorrent\aux_\merkle.hpp" />
+    <ClInclude Include="include\libtorrent\aux_\noexcept_movable.hpp" />
     <ClInclude Include="include\libtorrent\aux_\numeric_cast.hpp" />
     <ClInclude Include="include\libtorrent\aux_\openssl.hpp" />
     <ClInclude Include="include\libtorrent\aux_\path.hpp" />

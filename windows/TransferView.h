@@ -84,7 +84,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		COMMAND_ID_HANDLER(IDC_REMOVE_TORRENT_AND_FILE, onRemoveTorrentAndFile);
 		COMMAND_ID_HANDLER(IDC_PAUSE_TORRENT, onPauseTorrent);
 		COMMAND_ID_HANDLER(IDC_RESUME_TORRENT, onResumeTorrent);
-
+		
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
 		COMMAND_ID_HANDLER(IDC_REMOVEALL, onRemoveAll)
 		COMMAND_ID_HANDLER(IDC_DISCONNECT_ALL, onDisconnectAll)
@@ -172,7 +172,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			ctrlTransfers.forEachSelected(&ItemInfo::disconnectAndP2PGuard);
 			return 0;
 		}
-
+		
 		LRESULT onRemoveTorrent(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			ctrlTransfers.forEachSelected(&ItemInfo::removeTorrent);
@@ -187,7 +187,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		{
 			ctrlTransfers.forEachSelected(&ItemInfo::pauseTorrentFile);
 			return 0;
-		}		
+		}
 		LRESULT onResumeTorrent(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			ctrlTransfers.forEachSelected(&ItemInfo::resumeTorrentFile);
@@ -317,7 +317,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				ItemInfo(const HintedUser& u, const bool p_is_download, const bool p_is_torrent) :
 					m_hintedUser(u), m_is_torrent(p_is_torrent), download(p_is_download), transferFailed(false),
 					m_status(STATUS_WAITING), m_pos(0), m_size(0), m_actual(0), m_speed(0), m_timeLeft(0),
-					collapsed(true), parent(nullptr), m_hits(-1), running(0), m_type(Transfer::TYPE_FILE), 
+					collapsed(true), parent(nullptr), m_hits(-1), running(0), m_type(Transfer::TYPE_FILE),
 					m_is_force_passive(false), m_is_seeding(false), m_is_pause(false)
 				{
 					update_nicks();
@@ -468,20 +468,20 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			UpdateInfo(const libtorrent::sha1_hash& p_sha1) :
 				m_sha1(p_sha1), updateMask(0), download(true),
 				transferFailed(false), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
-				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), 
+				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0),
 				timeLeft(0), m_is_torrent(true), m_is_seeding(false), m_is_pause(false)
 			{
 			}
 			UpdateInfo(const HintedUser& aHintedUser, const bool isDownload, const bool isTransferFailed = false) :
 				updateMask(0), download(isDownload), m_hintedUser(aHintedUser), // fix empty string
 				transferFailed(isTransferFailed), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
-				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), 
+				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0),
 				m_is_torrent(false), m_is_seeding(false), m_is_pause(false)
 			{
 			}
 			UpdateInfo() :
 				updateMask(0), download(true), transferFailed(false), type(Transfer::TYPE_LAST), running(0), m_is_force_passive(false),
-				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0), 
+				status(ItemInfo::STATUS_WAITING), pos(0), size(0), actual(0), speed(0), timeLeft(0),
 				m_is_torrent(false), m_is_seeding(false), m_is_pause(false)
 			{
 			}

@@ -92,9 +92,11 @@ int HubFrame::g_columnSizes[] = { 100,    // COLUMN_NICK
                                   40      // COLUMN_P2P_GUARD
 #ifdef FLYLINKDC_USE_EXT_JSON
                                   , 20   // FLY_HUB_GENDER
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
                                   , 50   // COLUMN_FLY_HUB_COUNTRY
                                   , 50   // COLUMN_FLY_HUB_CITY
                                   , 50   // COLUMN_FLY_HUB_ISP
+#endif
                                   , 50   // COLUMN_FLY_HUB_COUNT_FILES
                                   , 100  // COLUMN_FLY_HUB_LAST_SHARE_DATE
                                   , 100   // COLUMN_FLY_HUB_RAM
@@ -142,9 +144,11 @@ int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
                                     COLUMN_P2P_GUARD
 #ifdef FLYLINKDC_USE_EXT_JSON
                                     , COLUMN_FLY_HUB_GENDER
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
                                     , COLUMN_FLY_HUB_COUNTRY
                                     , COLUMN_FLY_HUB_CITY
                                     , COLUMN_FLY_HUB_ISP
+#endif
                                     , COLUMN_FLY_HUB_COUNT_FILES
                                     , COLUMN_FLY_HUB_LAST_SHARE_DATE
                                     , COLUMN_FLY_HUB_RAM
@@ -192,9 +196,11 @@ static ResourceManager::Strings g_columnNames[] = { ResourceManager::NICK,      
                                                     ResourceManager::P2P_GUARD,       // COLUMN_P2P_GUARD
 #ifdef FLYLINKDC_USE_EXT_JSON
                                                     ResourceManager::FLY_HUB_GENDER, // COLUMN_FLY_HUB_GENDER
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
                                                     ResourceManager::FLY_HUB_COUNTRY, // COLUMN_FLY_HUB_COUNTRY
                                                     ResourceManager::FLY_HUB_CITY,   // ,COLUMN_FLY_HUB_CITY
                                                     ResourceManager::FLY_HUB_ISP,    // COLUMN_FLY_HUB_ISP
+#endif
                                                     ResourceManager::FLY_HUB_COUNT_FILES,     // COLUMN_FLY_HUB_COUNT_FILES
                                                     ResourceManager::FLY_HUB_LAST_SHARE_DATE, // COLUMN_FLY_HUB_LAST_SHARE_DATE
                                                     ResourceManager::FLY_HUB_RAM,             // COLUMN_FLY_HUB_RAM
@@ -393,9 +399,11 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 #endif
 		m_ctrlUsers->setColumnOwnerDraw(COLUMN_P2P_GUARD);
 #ifdef FLYLINKDC_USE_EXT_JSON
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
 		//m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_COUNTRY);
 		//m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_CITY);
 		//m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_ISP);
+#endif
 		// m_ctrlUsers->setColumnOwnerDraw(COLUMN_FLY_HUB_GENDER);
 #endif
 		// m_ctrlUsers->SetCallbackMask(m_ctrlUsers->GetCallbackMask() | LVIS_STATEIMAGEMASK);

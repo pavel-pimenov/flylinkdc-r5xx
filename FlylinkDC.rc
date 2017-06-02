@@ -3100,6 +3100,8 @@ IDR_TRANSFER_TREE       PNG                     "res\\TransferTree.png"
 
 IDR_STATE_USERS         PNG                     "res\\StateUsers.png"
 
+IDR_TRACKER_IMAGES         PNG                  "res\\Trackers.png"
+
 IDR_GENDER_USERS        PNG                     "res\\Gender.png"
 
 IDR_FLAGS               PNG                     "res\\Flags.png"

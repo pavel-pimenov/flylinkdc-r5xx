@@ -4,7 +4,7 @@
 #ifndef __CFLYPROFILER_H__
 #define __CFLYPROFILER_H__
 
-#if !defined(_WIN64) // [+]PPA
+#if !defined(_WIN64)
 
 #ifdef _DEBUG
 // #define __PROFILER_ENABLED__
@@ -63,7 +63,6 @@
 #define PROFILE_STOP()              Profiler::exit();
 #else
 
-// [+]PPA TODO fix copy-paste
 #define PROFILE_THREAD_START_RAW( text )
 #define PROFILE_THREAD_START()
 #define PROFILE_THREAD_START_DESC( desc )
@@ -316,7 +315,6 @@ struct ScopedTimer
 };
 
 #else
-// [+]PPA TODO fix copy-paste
 
 #define PROFILE_THREAD_START_RAW( text )
 #define PROFILE_THREAD_START()

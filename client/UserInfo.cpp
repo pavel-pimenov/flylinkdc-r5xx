@@ -273,6 +273,7 @@ tstring UserInfo::getText(int p_col) const
 			return Text::toT(getIdentity().getTag());
 		}
 #ifdef FLYLINKDC_USE_EXT_JSON
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
 		case COLUMN_FLY_HUB_COUNTRY:
 		{
 			return Text::toT(getIdentity().getFlyHubCountry());
@@ -285,6 +286,7 @@ tstring UserInfo::getText(int p_col) const
 		{
 			return Text::toT(getIdentity().getFlyHubISP());
 		}
+#endif
 		case COLUMN_FLY_HUB_GENDER:
 		{
 			return getIdentity().getGenderTypeAsString();

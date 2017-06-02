@@ -9,6 +9,8 @@
 #include "CFlyLocationDlg.h"
 #include "atlstr.h"
 
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
+
 LRESULT CFlyLocationDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	m_ctrlCountry.Attach(GetDlgItem(IDC_LOCATION_COUNTRY));
@@ -59,3 +61,4 @@ LRESULT CFlyLocationDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
 	return 0;
 }
 
+#endif

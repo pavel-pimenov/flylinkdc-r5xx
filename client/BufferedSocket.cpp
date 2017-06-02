@@ -656,8 +656,8 @@ void BufferedSocket::threadRead()
 						}
 					}
 					// process all lines
-#define USE_FLYLINKDC_MYINFO_ARRAY
-#ifdef USE_FLYLINKDC_MYINFO_ARRAY
+#define FLYLINKDC_USE_MYINFO_ARRAY
+#ifdef FLYLINKDC_USE_MYINFO_ARRAY
 #ifdef _DEBUG
 					// LogManager::message("BufferedSocket::threadRead[MODE_ZPIPE] = " + l);
 #endif

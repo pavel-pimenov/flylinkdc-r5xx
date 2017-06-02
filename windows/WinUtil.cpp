@@ -76,6 +76,7 @@ const TCHAR* g_file_list_type = L"All Lists\0*.xml.bz2;*.dcls;*.dclst;*.torrent\
 FileImage g_fileImage;
 UserImage g_userImage;
 UserStateImage g_userStateImage;
+TrackerImage g_trackerImage;
 GenderImage g_genderImage;
 FlagImage g_flagImage;
 ISPImage  g_ISPImage;
@@ -587,6 +588,12 @@ void UserStateImage::init()
 {
 	ResourceLoader::LoadImageList(IDR_STATE_USERS, m_images, 16, 16);
 }
+
+void TrackerImage::init()
+{
+	ResourceLoader::LoadImageList(IDR_TRACKER_IMAGES, m_images, 16, 16);
+}
+
 void GenderImage::init()
 {
 	ResourceLoader::LoadImageList(IDR_GENDER_USERS, m_images, 16, 16);
@@ -828,12 +835,15 @@ void WinUtil::init(HWND hWnd)
 	g_mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)help, CTSTRING(MENU_HLP)); // [~] Drakon
 	
 #ifdef FLYLINKDC_USE_EXT_JSON
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
 	CMenuHandle l_menu_flylinkdc_location;
 	l_menu_flylinkdc_location.CreatePopupMenu();
 	l_menu_flylinkdc_location.AppendMenu(MF_STRING, IDC_FLYLINKDC_LOCATION, CTSTRING(MENU_CHANGE_FLYLINKDC_LOCATION)); //  _T("Change FlylinkDC++ location!")
 	const string l_text_flylinkdc_location = "|||| " + SETTING(FLY_LOCATOR_COUNTRY) +
 	                                         " - " + SETTING(FLY_LOCATOR_CITY) + " - " + SETTING(FLY_LOCATOR_ISP) + " ||||";
 	g_mainMenu.AppendMenu(MF_STRING, l_menu_flylinkdc_location, Text::toT(l_text_flylinkdc_location).c_str());
+#endif
+	
 #endif // FLYLINKDC_USE_EXT_JSON
 	g_fileImage.init();
 	
@@ -845,6 +855,7 @@ void WinUtil::init(HWND hWnd)
 	
 	g_userImage.init();
 	g_userStateImage.init();
+	g_trackerImage.init();
 	g_genderImage.init();
 	
 	Colors::init();
@@ -1126,6 +1137,7 @@ void WinUtil::uninit()
 	g_mainWnd = nullptr;
 	g_fileImage.uninit();
 	g_userImage.uninit();
+	g_trackerImage.uninit();
 	g_userStateImage.uninit();
 	g_genderImage.uninit();
 	g_ISPImage.uninit(); // TODO - позже

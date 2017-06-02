@@ -1205,7 +1205,7 @@ bool DownloadManager::pause_torrent_file(const libtorrent::sha1_hash& p_sha1, bo
 		}
 	}
 	return false;
-
+	
 }
 bool DownloadManager::remove_torrent_file(const libtorrent::sha1_hash& p_sha1, const int p_delete_options)
 {

@@ -2710,6 +2710,10 @@ string Util::getWANIP(const string& p_url, LONG p_timeOut /* = 500 */)
 		{
 			l_log.step(string("Error parse XML: ") + e.what());
 		}
+		catch (std::exception& e)
+		{
+			l_log.step(string("std::exception: ") + e.what()); // fix https://drdump.com/Problem.aspx?ProblemID=300455
+		}
 	}
 	else
 		l_log.step("Error download : " + Util::translateError());

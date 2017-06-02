@@ -135,13 +135,13 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  ITUNES_FORMAT, MPLAYERC_FORMAT, RAW1_TEXT, RAW2_TEXT, RAW3_TEXT, RAW4_TEXT, RAW5_TEXT, POPUP_FONT, POPUP_TITLE_FONT, POPUPFILE,
 		                  
 		                  BAN_MESSAGE, SLOT_ASK, // !SMT!-S
-		                  URL_GET_IP, // [+]PPA
+		                  URL_GET_IP,
 		                  PM_PASSWORD, PM_PASSWORD_HINT, PM_PASSWORD_OK_HINT, // !SMT!-PSW
-		                  COPY_WMLINK,//[+]necros
-		                  RATIO_TEMPLATE, //[+] WhiteD. Custom ratio message
-		                  URL_IPTRUST, //[+]PPA
-		                  TOOLBAR_SETTINGS, // [*]Drakon
-		                  WINAMPTOOLBAR,  // [*]Drakon
+		                  COPY_WMLINK,
+		                  RATIO_TEMPLATE,
+		                  URL_IPTRUST,
+		                  TOOLBAR_SETTINGS,
+		                  WINAMPTOOLBAR,
 #ifdef RIP_USE_LOG_PROTOCOL
 		                  LOG_FILE_PROTOCOL, LOG_FORMAT_PROTOCOL,
 #endif
@@ -150,8 +150,8 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  RSS_COLUMNS_WIDTHS, // [+] SSA
 		                  RSS_COLUMNS_VISIBLE, // [+] SSA
 		                  MAPPER,
-		                  PORTAL_BROWSER_UPDATE_URL, // [+]PPA
-		                  ISP_RESOURCE_ROOT_URL, // [+]PPA
+		                  PORTAL_BROWSER_UPDATE_URL,
+		                  ISP_RESOURCE_ROOT_URL,
 		                  THEME_MANAGER_THEME_DLL_NAME, // [+] SSA
 		                  THEME_MANAGER_SOUNDS_THEME_NAME, // [+] SCALOlaz: Sound Themes
 		                  AUTOUPDATE_SERVER_URL, // [+] SSA

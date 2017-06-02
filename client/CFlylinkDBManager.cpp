@@ -2727,7 +2727,7 @@ int32_t CFlylinkDBManager::load_queue()
 						                                   l_added, l_tthRoot, max((uint8_t)1, l_maxSegments));
 						                                   
 						dcassert(qi->isDirtyAll() == false);
-						qi->setDirty(false); // [+]PPA загрузили из очереди - сделаем ее чистую
+						qi->setDirty(false);
 						l_qitem.push_back(qi);
 					}
 					// [+] brain-ripper

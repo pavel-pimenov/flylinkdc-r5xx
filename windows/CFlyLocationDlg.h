@@ -10,6 +10,7 @@
 #include "../client/Util.h"
 #include "WinUtil.h"
 
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
 class CFlyLocationDlg : public CDialogImpl<CFlyLocationDlg>
 {
 	public:
@@ -47,6 +48,7 @@ class CFlyLocationDlg : public CDialogImpl<CFlyLocationDlg>
 		}
 		
 };
+#endif // FLYLINKDC_USE_LOCATION_DIALOG
 
 #endif // !defined(CFLYLOCATION_DLG_H)
 

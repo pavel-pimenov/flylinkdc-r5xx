@@ -2108,7 +2108,6 @@ class MediainfoCtrl : public Base
 {
 #ifdef SCALOLAZ_MEDIAVIDEO_ICO
 	public:
-		// [+]PPA
 		bool drawHDIcon(const LPNMLVCUSTOMDRAW p_cd, const tstring& p_coulumn_media_xy, int p_coulumn_xy_index)
 		{
 			if (!p_coulumn_media_xy.empty() && findColumn(p_cd->iSubItem) == p_coulumn_xy_index)

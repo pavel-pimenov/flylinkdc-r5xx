@@ -269,10 +269,10 @@ class NmdcHub : public Client, private Flags
 		
 		void on(BufferedSocketListener::Connected) noexcept override;
 		void on(BufferedSocketListener::Line, const string& l) noexcept override;
-		void on(BufferedSocketListener::MyInfoArray, StringList&) noexcept override; // [+]PPA
-		void on(BufferedSocketListener::DDoSSearchDetect, const string&) noexcept override; // [+]PPA
-		void on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH&) noexcept override; // [+]PPA
-		void on(BufferedSocketListener::SearchArrayFile, const CFlySearchArrayFile&) noexcept override; // [+]PPA
+		void on(BufferedSocketListener::MyInfoArray, StringList&) noexcept override;
+		void on(BufferedSocketListener::DDoSSearchDetect, const string&) noexcept override;
+		void on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH&) noexcept override;
+		void on(BufferedSocketListener::SearchArrayFile, const CFlySearchArrayFile&) noexcept override;
 		void on(BufferedSocketListener::Failed, const string&) noexcept override;
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 	public:

@@ -115,6 +115,8 @@ class SearchResultBaseTTH
 		uint16_t m_seed = 0;
 		uint16_t m_comment = 0;
 		string m_url;
+		string m_tracker;
+		uint16_t m_tracker_index = 0;
 		string m_date;
 		int64_t m_size;
 	protected:

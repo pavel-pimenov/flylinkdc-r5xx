@@ -88,6 +88,7 @@ int SearchFrame::columnIndexes[] =
 	COLUMN_TORRENT_COMMENT,
 	COLUMN_TORRENT_DATE,
 	COLUMN_TORRENT_URL,
+	COLUMN_TORRENT_TRACKER,
 	COLUMN_TORRENT_PAGE
 };
 int SearchFrame::columnSizes[] =
@@ -115,6 +116,7 @@ int SearchFrame::columnSizes[] =
 	30,
 	40,
 	100,
+	40,
 	20
 }; // !SMT!-IP
 
@@ -149,6 +151,7 @@ static ResourceManager::Strings columnNames[] = {ResourceManager::FILE,
                                                  ResourceManager::TORRENT_COMMENT,
                                                  ResourceManager::TORRENT_DATE,
                                                  ResourceManager::TORRENT_URL,
+                                                 ResourceManager::TORRENT_TRACKER,
                                                  ResourceManager::TORRENT_PAGE
                                                 };
 
@@ -777,11 +780,6 @@ LRESULT SearchFrame::onDrawItem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 			OperaColors::FloodFill(dc, rc.left, rc.top, rc.left + (LONG)length, rc.bottom, RGB(128, 128, 128), RGB(160, 160, 160));
 			
 			dc.SetBkMode(TRANSPARENT);
-			/* [-] IRainman fix.
-			const uint64_t percent = (now - searchStartTime) * 100 / (searchEndTime - searchStartTime);
-			const tstring progress = percent >= 100 ? TSTRING(DONE) : Text::toT(Util::toStringPercent(percent));
-			const tstring buf = TSTRING(SEARCHING_FOR) + _T(' ') + target + _T(" ... ") + progress;
-			[-] IRainman fix. */
 			const int textHeight = WinUtil::getTextHeight(dc);
 			const LONG top = rc.top + (rc.bottom - rc.top - textHeight) / 2;
 			
@@ -1796,6 +1794,8 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 				return Text::toT(m_sr.m_date);
 			case COLUMN_TORRENT_URL:
 				return Text::toT(Util::toString(m_sr.m_url));
+			case COLUMN_TORRENT_TRACKER:
+				return Text::toT(Util::toString(m_sr.m_tracker));
 			case COLUMN_TORRENT_PAGE:
 				return Text::toT(Util::toString(m_sr.m_torrent_page));
 		}
@@ -1952,7 +1952,6 @@ void SearchFrame::SearchInfo::Download::operator()(const SearchInfo* si)
 		dcassert(0);
 		return;
 	}
-	
 	try
 	{
 		if (prio == QueueItem::DEFAULT && WinUtil::isShift())
@@ -3715,7 +3714,6 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 						cd->clrTextBk = SETTING(DUPE_EX2_COLOR);
 					if (si->m_sr.m_is_tth_queue)
 						cd->clrTextBk = SETTING(DUPE_EX3_COLOR);
-						
 					if (!si->columns[COLUMN_FLY_SERVER_RATING].empty())
 						cd->clrTextBk = OperaColors::brightenColor(cd->clrTextBk, -0.02f);
 					si->m_sr.calcHubName();
@@ -3747,20 +3745,19 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 		}
 		case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		{
-			const SearchInfo* si = reinterpret_cast<SearchInfo*>(cd->nmcd.lItemlParam);
+			SearchInfo* si = reinterpret_cast<SearchInfo*>(cd->nmcd.lItemlParam);
+			if (!si)
+				return CDRF_DODEFAULT;
+			const auto l_column_id = ctrlResults.findColumn(cd->iSubItem);
 			if (!si->m_is_torrent)
 			{
-				SearchInfo* si = reinterpret_cast<SearchInfo*>(cd->nmcd.lItemlParam);
-				if (!si)
-					return CDRF_DODEFAULT;
-				const auto l_column_id = ctrlResults.findColumn(cd->iSubItem);
 				if (l_column_id == COLUMN_P2P_GUARD)
 				{
 					CRect rc;
 					ctrlResults.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 					ctrlResults.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
 					si->m_sr.calcP2PGuard();
-					const tstring& l_value = si->getText(l_column_id);
+					const tstring l_value = si->getText(l_column_id);
 					if (!l_value.empty())
 					{
 						LONG top = rc.top + (rc.Height() - 15) / 2;
@@ -3833,7 +3830,7 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 							l_step += 25;
 						}
 						top = rc.top + (rc.Height() - 15 /*WinUtil::getTextHeight(cd->nmcd.hdc)*/ - 1) / 2;
-						const auto& l_desc = si->m_location.getDescription();
+						const auto l_desc = si->m_location.getDescription();
 						if (!l_desc.empty())
 						{
 							::ExtTextOut(cd->nmcd.hdc, rc.left + l_step + 5, top + 1, ETO_CLIPPED, rc, l_desc.c_str(), l_desc.length(), nullptr);
@@ -3849,6 +3846,30 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 				}
 #endif //SCALOLAZ_MEDIAVIDEO_ICO
 			}
+			else // torrent
+			{
+				if (l_column_id == COLUMN_TTH)
+				{
+					CRect rc;
+					ctrlResults.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
+					ctrlResults.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
+					const tstring l_value = si->getText(l_column_id);
+					if (!l_value.empty())
+					{
+						LONG top = rc.top + (rc.Height() - 15) / 2;
+						if ((top - rc.top) < 2)
+							top = rc.top + 1;
+						const POINT ps = { rc.left, top };
+						if (si->m_sr.m_tracker_index >= 0)
+						{
+							g_trackerImage.Draw(cd->nmcd.hdc, si->m_sr.m_tracker_index, ps);
+						}
+						::ExtTextOut(cd->nmcd.hdc, rc.left + 6 + 17, rc.top + 2, ETO_CLIPPED, rc, l_value.c_str(), l_value.length(), NULL);
+					}
+					return CDRF_SKIPDEFAULT;
+				}
+			}
+			
 			return CDRF_DODEFAULT;
 		}
 		default:

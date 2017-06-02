@@ -40,8 +40,7 @@ void TransferData::init(libtorrent::torrent_status const& s)
 	{
 		m_status_string += _T("[Torrent] ") + TSTRING(PAUSED);
 	}
-	else
-	if (s.state == libtorrent::torrent_status::checking_files)
+	else if (s.state == libtorrent::torrent_status::checking_files)
 	{
 		m_status_string += Text::tformat(TSTRING(CHECKED_BYTES), "", m_percent, "");
 	}
