@@ -236,11 +236,11 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 	l_message += get_db_size_info();
 	bool l_is_force_exit = false;
 	tstring l_russian_error;
-	bool l_is_db_malformed = p_txt.find(": database disk image is malformed") != string::npos;
-	l_is_db_malformed |= p_txt.find(": disk I/O error") != string::npos;
+	bool l_is_db_malformed = p_txt.find("database disk image is malformed") != string::npos;
+	l_is_db_malformed |= p_txt.find("disk I/O error") != string::npos;
 	
-	bool l_is_db_error_open  = p_txt.find(": unable to open database:") != string::npos;
-	bool l_is_db_ro  = p_txt.find(": attempt to write a readonly database") != string::npos;
+	bool l_is_db_error_open  = p_txt.find("unable to open database") != string::npos;
+	bool l_is_db_ro  = p_txt.find("attempt to write a readonly database") != string::npos;
 	
 	const tstring l_footer = _T("Если это не поможет пишите подробности на pavel.pimenov@gmail.com или ppa74@ya.ru\r\n")
 	                         _T("помогу разобраться с ошибкой и исправить код флайлинка так,\r\n")
@@ -290,7 +290,7 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 	{
 		ShareManager::tryFixBadAlloc();
 	}
-	if (p_txt.find(" database or disk is full") != string::npos)
+	if (p_txt.find("database or disk is full") != string::npos)
 	{
 		l_message += l_rnrn;
 		l_message += l_rnrn;

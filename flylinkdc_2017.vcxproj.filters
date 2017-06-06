@@ -1205,6 +1205,8 @@
     <Image Include="res\vip_sibfiles.ico" />
     <Image Include="res\vip_adrenalin.ico" />
     <Image Include="res\vip_godc.ico" />
+    <Image Include="res\vip_zhigandc.ico" />
+    <Image Include="res\Trackers.png" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

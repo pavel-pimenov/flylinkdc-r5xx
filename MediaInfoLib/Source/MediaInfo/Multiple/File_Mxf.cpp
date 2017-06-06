@@ -3892,7 +3892,7 @@ void File_Mxf::Streams_Finish_Component_ForTimeCode(const int128u& ComponentUID,
                     TimeCode TC2(Component_TC2->second.MxfTimeCode.StartTimecode+Config->File_IgnoreEditsBefore, (int8u)Component_TC2->second.MxfTimeCode.RoundedTimecodeBase, Component2->second.MxfTimeCode.DropFrame);
                     if (TC2.ToFrames()-TC.ToFrames()==2)
                     {
-                        TC++;
+                        ++TC;
                         IsHybridTimeCode=true;
                     }
                 }

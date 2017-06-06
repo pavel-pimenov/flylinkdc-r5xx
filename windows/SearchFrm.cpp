@@ -870,7 +870,9 @@ int SearchFrame::TorrentSearchSender::run()
 {
 	try
 	{
-		CFlyServerConfig::torrentSearch(m_wnd, PREPARE_RESULT_TORRENT, m_search);
+		dcassert(!m_search.empty());
+		if(!m_search.empty())
+		   CFlyServerConfig::torrentSearch(m_wnd, PREPARE_RESULT_TORRENT, m_search);
 	}
 	catch (const std::bad_alloc&)
 	{
@@ -914,7 +916,7 @@ void SearchFrame::onEnter()
 		CFlylinkDBManager::getInstance()->save_registry(g_lastSearches, e_SearchHistory); //[+]PPA
 	}
 	MainFrame::updateQuickSearches();
-	if (m_search_param.m_file_type != Search::TYPE_TTH && !isTTH(s) && BOOLSETTING(USE_TORRENT))
+	if (m_search_param.m_file_type != Search::TYPE_TTH && !isTTH(s) && BOOLSETTING(USE_TORRENT) && !s.empty())
 	{
 		m_torrentSearchThread.start_torrent_search(m_win_handler, s);
 	}

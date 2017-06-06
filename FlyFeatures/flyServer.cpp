@@ -998,6 +998,8 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 		else
 		{
 			string l_agent = l_root["agent"].asString();
+			const string l_version = l_root["version"].asString();
+			const string l_error_base = "Version:" + l_version + " onTorrentSearch";
             unsigned l_page_limit_global = l_root["page_limit"].asUInt();
 			const Json::Value& l_arrays = l_root["items"];
 			const Json::Value::ArrayIndex l_count = l_arrays.size();
@@ -1020,7 +1022,14 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 					for (int l_num_page = 0; l_num_page < l_page_limit_local
 						 ; ++l_num_page)
 					{
-						const string l_search_url= l_lua_state["get_url"](l_index, l_search_encode.c_str(), "", l_num_page, 0, 0, 0);
+						const string l_search_url
+#ifdef  _DEBUG
+							= l_lua_state["get_url"](l_index, l_search_encode.c_str(), "", l_num_page, 0, 0, 0);
+//							= "https://thepiratebay.org/search//5/7//";
+#else
+							= l_lua_state["get_url"](l_index, l_search_encode.c_str(), "", l_num_page, 0, 0, 0);
+#endif
+
 #ifdef _DEBUG
 						//LogManager::message("l_url = [page = " + Util::toString(l_num_page) + "] " + l_search_result + " l_agent = " + l_agent + " l_agent_global = " + l_agent);
 #endif
@@ -1039,7 +1048,6 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 								const std::string l_magnet_result = l_lua_state["search"](l_index, l_html_result.c_str());
 								if (l_magnet_result.empty())
 									break; // кончились странички
-
 #ifdef _DEBUG
 								LogManager::message("l_magnet_result = " + l_magnet_result);
 #endif
@@ -1052,11 +1060,19 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 									{
 #ifdef _DEBUG
 										LogManager::message("Error - l_magnet_result = " + l_magnet_result);
+										{
+											std::ofstream l_fs;
+											static int g_id_file = 0;
+											l_fs.open("flylinkdc-search-error-" + Util::toString(++g_id_file) + ".html", std::ifstream::out | std::ifstream::binary);
+											l_fs.write((const char*)l_html_result.data(), l_html_result.size());
+										}
+
 #endif
 										dcassert(0);
-										const string l_error = "onTorrentSearch[0] async - Failed to parse json URL = " + l_search_url
+										const string l_error = l_error_base +"-0 Failed to parse json URL = " + l_search_url
 											+ " l_magnet_result = " + l_magnet_result;
 										CFlyServerJSON::pushError(78, l_error);
+										break;
 									}
 									else
 									{
@@ -1079,15 +1095,22 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 												l_result->m_date = l_arrays[i]["date"].asString();
 												l_result->m_torrent_page = l_num_page+1;
 												const string l_size = Text::toLower(l_arrays[i]["size"].asString());
-												dcassert(!l_size.empty());
-												auto l_size_float = Util::toDouble(l_size);
-												if (l_size.find("mb") != string::npos)
-													l_size_float = l_size_float * 1024.0 * 1024.0;
-												if (l_size.find("gb") != string::npos)
-													l_size_float = l_size_float * 1024.0 * 1024.0 * 1024.0;
-												if (l_size.find("kb") != string::npos)
-													l_size_float = l_size_float * 1024.0;
-												l_result->m_size = l_size_float;
+												if (!l_size.empty())
+												{
+													dcassert(!l_size.empty());
+													auto l_size_float = Util::toDouble(l_size);
+													if (l_size.find("mb") != string::npos)
+														l_size_float = l_size_float * 1024.0 * 1024.0;
+													if (l_size.find("gb") != string::npos)
+														l_size_float = l_size_float * 1024.0 * 1024.0 * 1024.0;
+													if (l_size.find("kb") != string::npos)
+														l_size_float = l_size_float * 1024.0;
+													l_result->m_size = l_size_float;
+												}
+												else
+												{
+													l_result->m_size = 0;
+												}
 												safe_post_message(p_wnd, p_message, l_result);
 											}
 										}
@@ -1096,7 +1119,7 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 								catch (const Exception &e)
 								{
 									dcassert(0);
-									const string l_error = "onTorrentSearch[1] URL = " + l_search_url  +" error " + e.getError();
+									const string l_error = l_error_base + "-1 URL = " + l_search_url  +" error " + e.getError();
 									CFlyServerJSON::pushError(77, l_error);
 									break;
 								}
@@ -1104,7 +1127,7 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 							else
 							{
 								dcassert(0);
-								const string l_error = "onTorrentSearch[4] getBinaryDataFromInet error l_search_url = " + l_search_url;
+								const string l_error = l_error_base + "-4 getBinaryDataFromInet error l_search_url = " + l_search_url;
 								CFlyServerJSON::pushError(79, l_error);
 								break;
 							}
@@ -1112,14 +1135,14 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 						catch (const Exception &e)
 						{
 							dcassert(0);
-							const string l_error = "onTorrentSearch[2] URL = " + l_search_url + " Exception " + e.getError();
+							const string l_error = l_error_base + "-2 URL = " + l_search_url + " Exception " + e.getError();
 							CFlyServerJSON::pushError(77, l_error);
 							break;
 						}
 						catch (std::runtime_error& e)
 						{
 							dcassert(0);
-							CFlyServerJSON::pushError(77, "onTorrentSearch[3] URL = " + l_search_url + " runtime_error = " + string(e.what()));
+							CFlyServerJSON::pushError(77, l_error_base + "-3 URL = " + l_search_url + " runtime_error = " + string(e.what()));
 							break;
 						}
 					} // for

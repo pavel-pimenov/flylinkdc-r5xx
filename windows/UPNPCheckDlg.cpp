@@ -243,10 +243,10 @@ LRESULT UPNPCheckDlg::OnSetFAIL(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 bool UPNPCheckDlg::MiniUPnPc_init(string& url, string& service, string& device)
 {
 	bool initialized  = false;
-	
+	int l_error = UPNPDISCOVER_SUCCESS;
 	UPNPDev* devices = upnpDiscover(2000,
 	                                SettingsManager::getInstance()->isDefault(SettingsManager::BIND_ADDRESS) ? nullptr : SETTING(BIND_ADDRESS).c_str(),
-	                                0, 0, 0, 0);
+		nullptr, UPNP_LOCAL_PORT_ANY, false, 2, &l_error);
 	if (!devices)
 		return false;
 		

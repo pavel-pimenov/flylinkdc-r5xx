@@ -46,7 +46,7 @@ bool Mapper_MiniUPnPc::init()
 	int l_error = UPNPDISCOVER_SUCCESS;
 	UPNPDev* devices = upnpDiscover(2000,
 	                                SettingsManager::isDefault(SettingsManager::BIND_ADDRESS) ? nullptr : SETTING(BIND_ADDRESS).c_str(),
-	                                0, UPNP_LOCAL_PORT_ANY, false, 2, &l_error);
+	                                nullptr, UPNP_LOCAL_PORT_ANY, false, 2, &l_error);
 	if (l_error != UPNPDISCOVER_SUCCESS || !devices)
 	{
 		dcassert(0);
