@@ -398,12 +398,18 @@ StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool
 StringList ClientManager::getNicks(const HintedUser& user)
 {
 	dcassert(user.user);
-	return getNicks(user.user->getCID(), user.hint);
+	if (user.user)
+		return getNicks(user.user->getCID(), user.hint);
+	else
+		return StringList();
 }
 StringList ClientManager::getHubNames(const HintedUser& user)
 {
 	dcassert(user.user);
-	return getHubNames(user.user->getCID(), user.hint);
+	if (user.user)
+		return getHubNames(user.user->getCID(), user.hint);
+	else
+		return StringList();
 }
 bool ClientManager::isConnected(const string& aUrl)
 {
@@ -414,6 +420,17 @@ bool ClientManager::isOnline(const UserPtr& aUser)
 {
 	CFlyReadLock(*g_csOnlineUsers);
 	return g_onlineUsers.find(aUser->getCID()) != g_onlineUsers.end();
+}
+OnlineUserPtr ClientManager::findOnlineUserL(const HintedUser& user, bool priv)
+{
+	if (user.user)
+		return findOnlineUserL(user.user->getCID(), user.hint, priv);
+	else
+		return OnlineUserPtr();
+}
+UserPtr ClientManager::findUser(const string& aNick, const string& aHubUrl)
+{
+	return findUser(makeCid(aNick, aHubUrl));
 }
 OnlineUserPtr ClientManager::findOnlineUserL(const CID& cid, const string& hintUrl, bool priv)
 {
@@ -830,22 +847,25 @@ void ClientManager::userCommandL(const HintedUser& hintedUser, const UserCommand
 	 * SearchManager::onRES(const AdcCommand& cmd, ...). when that is done, and SearchResults are
 	 * switched to storing only reliable HintedUsers (found with the token of the ADC command),
 	 * change this call to findOnlineUserHint. */
-	OnlineUserPtr ou = findOnlineUserL(hintedUser.user->getCID(), hintedUser.hint.empty() ? uc.getHub() : hintedUser.hint, false);
-	if (!ou || ou->isDHT())
-		return;
-		
-	auto& l_ñlient = ou->getClient();
-	const string& opChat = l_ñlient.getOpChat();
-	if (opChat.find('*') == string::npos && opChat.find('?') == string::npos)
+	if (hintedUser.user)
 	{
-		params["opchat"] = opChat;
+		OnlineUserPtr ou = findOnlineUserL(hintedUser.user->getCID(), hintedUser.hint.empty() ? uc.getHub() : hintedUser.hint, false);
+		if (!ou || ou->isDHT())
+			return;
+			
+		auto& l_ñlient = ou->getClient();
+		const string& opChat = l_ñlient.getOpChat();
+		if (opChat.find('*') == string::npos && opChat.find('?') == string::npos)
+		{
+			params["opchat"] = opChat;
+		}
+		
+		ou->getIdentity().getParams(params, "user", compatibility);
+		l_ñlient.getHubIdentity().getParams(params, "hub", false);
+		l_ñlient.getMyIdentity().getParams(params, "my", compatibility);
+		l_ñlient.escapeParams(params);
+		l_ñlient.sendUserCmd(uc, params); // TODO - ñåòü çîâåì ïîä Lock-îì
 	}
-	
-	ou->getIdentity().getParams(params, "user", compatibility);
-	l_ñlient.getHubIdentity().getParams(params, "hub", false);
-	l_ñlient.getMyIdentity().getParams(params, "my", compatibility);
-	l_ñlient.escapeParams(params);
-	l_ñlient.sendUserCmd(uc, params); // TODO - ñåòü çîâåì ïîä Lock-îì
 }
 
 void ClientManager::send(AdcCommand& cmd, const CID& cid)
@@ -1602,6 +1622,7 @@ void ClientManager::reportUser(const HintedUser& user)
 	const bool priv = FavoriteManager::isPrivate(user.hint);
 	string l_report;
 	Client* l_client = nullptr;
+	if (user.user)
 	{
 		CFlyReadLock(*g_csOnlineUsers);
 		OnlineUserPtr ou = findOnlineUserL(user.user->getCID(), user.hint, priv);

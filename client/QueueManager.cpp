@@ -1039,10 +1039,16 @@ void QueueManager::DclstLoader::execute(const string& p_currentDclstFile) // [+]
 string QueueManager::getListPath(const UserPtr& user) const
 {
 	dcassert(user); // [!] IRainman fix: Unable to load the file list with an empty user!
-	
-	const StringList nicks = ClientManager::getNicks(user->getCID(), Util::emptyString);
-	const string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
-	return checkTarget(Util::getListPath() + nick + user->getCID().toBase32(), -1);// [!] IRainman fix. FlylinkDC use Size on 2nd parametr!
+	if (user)
+	{
+		const StringList nicks = ClientManager::getNicks(user->getCID(), Util::emptyString);
+		const string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
+		return checkTarget(Util::getListPath() + nick + user->getCID().toBase32(), -1);// [!] IRainman fix. FlylinkDC use Size on 2nd parametr!
+	}
+	else
+	{
+		return "";
+	}
 }
 
 void QueueManager::get_download_connection(const UserPtr& aUser)

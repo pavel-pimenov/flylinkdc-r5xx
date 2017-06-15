@@ -34,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_DISK_IO_THREAD
 
 #include "libtorrent/config.hpp"
+#include "libtorrent/debug.hpp"
 #include "libtorrent/storage.hpp"
 #include "libtorrent/allocator.hpp"
 #include "libtorrent/io_service.hpp"
@@ -273,7 +274,7 @@ namespace aux {
 
 		// counts only fence jobs that are currently blocking jobs
 		// not fences that are themself blocked
-		int num_fence_jobs[disk_io_job::num_job_ids];
+		int num_fence_jobs[static_cast<int>(job_action_t::num_job_ids)];
 #endif
 	};
 
@@ -299,13 +300,13 @@ namespace aux {
 
 		void async_read(storage_index_t storage, peer_request const& r
 			, std::function<void(disk_buffer_holder block
-				, std::uint32_t flags, storage_error const& se)> handler, void* requester, std::uint8_t flags = 0) override;
+				, std::uint32_t flags, storage_error const& se)> handler, std::uint8_t flags = 0) override;
 		bool async_write(storage_index_t storage, peer_request const& r
 			, char const* buf, std::shared_ptr<disk_observer> o
 			, std::function<void(storage_error const&)> handler
 			, std::uint8_t flags = 0) override;
 		void async_hash(storage_index_t storage, piece_index_t piece, std::uint8_t flags
-			, std::function<void(piece_index_t, sha1_hash const&, storage_error const&)> handler, void* requester) override;
+			, std::function<void(piece_index_t, sha1_hash const&, storage_error const&)> handler) override;
 		void async_move_storage(storage_index_t storage, std::string p, move_flags_t flags
 			, std::function<void(status_t, std::string const&, storage_error const&)> handler) override;
 		void async_release_files(storage_index_t storage
@@ -382,7 +383,6 @@ namespace aux {
 		status_t do_trim_cache(disk_io_job* j, jobqueue_t& completed_jobs);
 		status_t do_file_priority(disk_io_job* j, jobqueue_t& completed_jobs);
 		status_t do_clear_piece(disk_io_job* j, jobqueue_t& completed_jobs);
-		status_t do_resolve_links(disk_io_job* j, jobqueue_t& completed_jobs);
 
 		void call_job_handlers();
 
@@ -399,12 +399,14 @@ namespace aux {
 
 			void thread_fun(disk_io_thread_pool& pool, io_service::work work) override
 			{
+				ADD_OUTSTANDING_ASYNC("disk_io_thread::work");
 				m_owner.thread_fun(*this, pool);
 
 				// w's dtor releases the io_service to allow the run() call to return
 				// we do this once we stop posting new callbacks to it.
 				// after the dtor has been called, the disk_io_thread object may be destructed
 				TORRENT_UNUSED(work);
+				COMPLETE_ASYNC("disk_io_thread::work");
 			}
 
 			disk_io_thread& m_owner;

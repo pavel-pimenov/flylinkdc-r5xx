@@ -162,6 +162,7 @@
     <ClInclude Include="include\libtorrent\kademlia\refresh.hpp" />
     <ClInclude Include="include\libtorrent\kademlia\routing_table.hpp" />
     <ClInclude Include="include\libtorrent\kademlia\rpc_manager.hpp" />
+    <ClInclude Include="include\libtorrent\kademlia\sample_infohashes.hpp" />
     <ClInclude Include="include\libtorrent\kademlia\traversal_algorithm.hpp" />
     <ClInclude Include="include\libtorrent\kademlia\types.hpp" />
     <ClInclude Include="include\libtorrent\lazy_entry.hpp" />
@@ -261,6 +262,7 @@
     <ClCompile Include="ed25519\src\sc.cpp" />
     <ClCompile Include="ed25519\src\sign.cpp" />
     <ClCompile Include="ed25519\src\verify.cpp" />
+    <ClCompile Include="src\add_torrent_params.cpp" />
     <ClCompile Include="src\alert.cpp" />
     <ClCompile Include="src\alert_manager.cpp" />
     <ClCompile Include="src\allocator.cpp" />
@@ -331,6 +333,7 @@
     <ClCompile Include="src\kademlia\refresh.cpp" />
     <ClCompile Include="src\kademlia\routing_table.cpp" />
     <ClCompile Include="src\kademlia\rpc_manager.cpp" />
+    <ClCompile Include="src\kademlia\sample_infohashes.cpp" />
     <ClCompile Include="src\kademlia\traversal_algorithm.cpp" />
     <ClCompile Include="src\lazy_bdecode.cpp" />
     <ClCompile Include="src\lsd.cpp" />

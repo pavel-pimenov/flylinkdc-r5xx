@@ -37,6 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <list>
 #include <vector>
 #include <unordered_set>
+#include <array>
 
 #include "libtorrent/time.hpp"
 #include "libtorrent/error_code.hpp"
@@ -72,15 +73,15 @@ namespace aux {
 
 	struct piece_log_t
 	{
-		explicit piece_log_t(int j, int b= -1): job(j), block(b) {}
-		int job;
+		explicit piece_log_t(job_action_t j, int b = -1): job(j), block(b) {}
+		job_action_t job;
 		int block;
 
 		// these are "jobs" thar cause piece_refcount
 		// to be incremented
 		enum artificial_jobs
 		{
-			flushing = disk_io_job::num_job_ids, // 20
+			flushing = static_cast<int>(job_action_t::num_job_ids), // 20
 			flush_expired,
 			try_flush_write_blocks,
 			try_flush_write_blocks2,
@@ -90,11 +91,12 @@ namespace aux {
 
 			last_job
 		};
+		explicit piece_log_t(artificial_jobs j, int b = -1): job(static_cast<job_action_t>(j)), block(b) {}
 
-		static char const* const job_names[7];
+		static std::array<char const*, 7> const job_names;
 	};
 
-	char const* job_name(int j);
+	char const* job_name(job_action_t j);
 
 #endif // TORRENT_DISABLE_LOGGING
 
@@ -103,7 +105,7 @@ namespace aux {
 	void assert_print_piece(cached_piece_entry const* pe);
 #endif
 
-	extern const char* const job_action_name[];
+	extern std::array<const char*, 15> const job_action_name;
 
 	struct TORRENT_EXTRA_EXPORT partial_hash
 	{
@@ -119,14 +121,15 @@ namespace aux {
 		cached_block_entry()
 			: buf(0)
 			, refcount(0)
-			, dirty(false)
-			, pending(false)
+			, dirty(0)
+			, pending(0)
+			, cache_hit(0)
 		{
 		}
 
 		char* buf;
 
-		enum { max_refcount = (1 << 30) - 1 };
+		enum { max_refcount = (1 << 29) - 1 };
 
 		// the number of references to this buffer. These references
 		// might be in outstanding asynchronous requests or in peer
@@ -134,7 +137,7 @@ namespace aux {
 		// all references are gone and refcount reaches 0. The buf
 		// pointer in this struct doesn't count as a reference and
 		// is always the last to be cleared
-		std::uint32_t refcount:30;
+		std::uint32_t refcount:29;
 
 		// if this is true, this block needs to be written to
 		// disk before it's freed. Typically all blocks in a piece
@@ -149,6 +152,11 @@ namespace aux {
 		// If the dirty flag is set, it means there's an outstanding
 		// write job to write this block.
 		std::uint32_t pending:1;
+
+		// this is set to 1 if this block has been read at least once. If the same
+		// block is read twice, the whole piece is considered *frequently* used,
+		// not just recently used.
+		std::uint32_t cache_hit:1;
 
 #if TORRENT_USE_ASSERTS
 		// this many of the references are held by hashing operations
@@ -193,16 +201,12 @@ namespace aux {
 		void* get_storage() const { return storage.get(); }
 
 		bool operator==(cached_piece_entry const& rhs) const
-		{ return storage.get() == rhs.storage.get() && piece == rhs.piece; }
+		{ return piece == rhs.piece && storage.get() == rhs.storage.get(); }
 
 		// if this is set, we'll be calculating the hash
 		// for this piece. This member stores the interim
 		// state while we're calculating the hash.
 		std::unique_ptr<partial_hash> hash;
-
-		// set to a unique identifier of a peer that last
-		// requested from this piece.
-		void* last_requester = nullptr;
 
 		// the pointers to the block data. If this is a ghost
 		// cache entry, there won't be any data here
@@ -394,7 +398,7 @@ namespace aux {
 		// called when we're reading and we found the piece we're
 		// reading from in the hash table (not necessarily that we
 		// hit the block we needed)
-		void cache_hit(cached_piece_entry* p, void* requester, bool volatile_read);
+		void cache_hit(cached_piece_entry* p, int block, bool volatile_read);
 
 		// free block from piece entry
 		void free_block(cached_piece_entry* pe, int block);

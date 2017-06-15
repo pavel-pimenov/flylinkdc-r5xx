@@ -80,7 +80,7 @@ class FinishedItem
 			target(aTarget),
 			cid(aUser.user->getCID()),
 			hub(aUser.hint),
-			hubs(Util::toString(ClientManager::getHubNames(aUser.user->getCID(), Util::emptyString))),
+			hubs(aUser.user ? Util::toString(ClientManager::getHubNames(aUser.user->getCID(), Util::emptyString)) : Util::emptyString),
 			size(aSize),
 			avgSpeed(aSpeed),
 			time(aTime),

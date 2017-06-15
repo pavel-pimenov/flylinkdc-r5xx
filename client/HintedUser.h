@@ -47,7 +47,10 @@ class HintedUser
 			return hint == rhs.hint && user == rhs.user;
 			// ignore the hint, we don't want lists with multiple instances of the same user...
 		}
-		
+		string to_string() const
+		{
+			return "(" + hint + ")" + (user ? user->getLastNick() : std::string(""));
+		}
 		operator UserPtr() const
 		{
 			return user;

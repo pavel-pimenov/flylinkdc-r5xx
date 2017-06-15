@@ -207,7 +207,7 @@ class AdcCommand
 			return *((uint16_t*)x);
 		}
 		
-		bool operator==(uint32_t aCmd)
+		bool operator==(uint32_t aCmd) const
 		{
 			return m_cmdInt == aCmd;
 		}

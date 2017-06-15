@@ -90,15 +90,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		* @param priv discard any user that doesn't match the hint.
 		* @return OnlineUser* found by CID and hint; might be only by CID if priv is false.
 		*/
-		static OnlineUserPtr findOnlineUserL(const HintedUser& user, bool priv)
-		{
-			return findOnlineUserL(user.user->getCID(), user.hint, priv);
-		}
+		static OnlineUserPtr findOnlineUserL(const HintedUser& user, bool priv);
 		static OnlineUserPtr findOnlineUserL(const CID& cid, const string& hintUrl, bool priv);
-		static UserPtr findUser(const string& aNick, const string& aHubUrl)
-		{
-			return findUser(makeCid(aNick, aHubUrl));
-		}
+		static UserPtr findUser(const string& aNick, const string& aHubUrl);
 		static UserPtr findUser(const CID& cid);
 		static UserPtr findLegacyUser(const string& aNick, const string& aHubUrl);
 		

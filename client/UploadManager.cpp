@@ -1607,7 +1607,7 @@ void UploadQueueItem::update()
 	setText(COLUMN_TYPE, Text::toT(Util::getFileExtWithoutDot(getFile())));
 	setText(COLUMN_PATH, Text::toT(Util::getFilePath(getFile())));
 	setText(COLUMN_NICK, getUser()->getLastNickT()); // [1] https://www.box.net/shared/plriwg50qendcr3kbjp5
-	setText(COLUMN_HUB, Text::toT(Util::toString(ClientManager::getHubNames(getHintedUser().user->getCID(), Util::emptyString))));
+	setText(COLUMN_HUB, getHintedUser().user ? Text::toT(Util::toString(ClientManager::getHubNames(getHintedUser().user->getCID(), Util::emptyString))) : Util::emptyStringT);
 	setText(COLUMN_TRANSFERRED, Util::formatBytesW(getPos()) + _T(" (") + Util::toStringW((double)getPos() * 100.0 / (double)getSize()) + _T("%)"));
 	setText(COLUMN_SIZE, Util::formatBytesW(getSize()));
 	setText(COLUMN_ADDED, Text::toT(Util::formatDigitalClock(getTime())));

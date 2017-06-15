@@ -1033,6 +1033,8 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 #ifdef _DEBUG
 						//LogManager::message("l_url = [page = " + Util::toString(l_num_page) + "] " + l_search_result + " l_agent = " + l_agent + " l_agent_global = " + l_agent);
 #endif
+						if (l_search_url.empty()) 
+							break;
 						try
 						{
 							std::vector<byte> l_data;
@@ -1042,95 +1044,95 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 							{
 								l_http_downloader.m_user_agent = Text::toT(l_local_agent);
 							}
-							if (l_http_downloader.getBinaryDataFromInet(l_search_url, l_data, 1000))
-							{
-								const std::string l_html_result((char*)l_data.data(), l_data.size());
-								const std::string l_magnet_result = l_lua_state["search"](l_index, l_html_result.c_str());
-								if (l_magnet_result.empty())
-									break; // кончились странички
-#ifdef _DEBUG
-								LogManager::message("l_magnet_result = " + l_magnet_result);
-#endif
-								try
+								if (l_http_downloader.getBinaryDataFromInet(l_search_url, l_data, 1000))
 								{
-									Json::Value l_root;
-									Json::Reader l_reader(Json::Features::strictMode());
-									const bool l_parsingSuccessful = l_reader.parse(l_magnet_result, l_root);
-									if (!l_parsingSuccessful)
-									{
+									const std::string l_html_result((char*)l_data.data(), l_data.size());
+									const std::string l_magnet_result = l_lua_state["search"](l_index, l_html_result.c_str());
+									if (l_magnet_result.empty())
+										break; // кончились странички
 #ifdef _DEBUG
-										LogManager::message("Error - l_magnet_result = " + l_magnet_result);
+									LogManager::message("l_magnet_result = " + l_magnet_result);
+#endif
+									try
+									{
+										Json::Value l_root;
+										Json::Reader l_reader(Json::Features::strictMode());
+										const bool l_parsingSuccessful = l_reader.parse(l_magnet_result, l_root);
+										if (!l_parsingSuccessful)
 										{
-											std::ofstream l_fs;
-											static int g_id_file = 0;
-											l_fs.open("flylinkdc-search-error-" + Util::toString(++g_id_file) + ".html", std::ifstream::out | std::ifstream::binary);
-											l_fs.write((const char*)l_html_result.data(), l_html_result.size());
-										}
+#ifdef _DEBUG
+											LogManager::message("Error - l_magnet_result = " + l_magnet_result);
+											{
+												std::ofstream l_fs;
+												static int g_id_file = 0;
+												l_fs.open("flylinkdc-search-error-" + Util::toString(++g_id_file) + ".html", std::ifstream::out | std::ifstream::binary);
+												l_fs.write((const char*)l_html_result.data(), l_html_result.size());
+											}
 
 #endif
-										dcassert(0);
-										const string l_error = l_error_base +"-0 Failed to parse json URL = " + l_search_url
-											+ " l_magnet_result = " + l_magnet_result;
-										CFlyServerJSON::pushError(78, l_error);
-										break;
-									}
-									else
-									{
-										const Json::Value& l_arrays = l_root["items"];
-										const Json::Value::ArrayIndex l_count = l_arrays.size();
-										for (Json::Value::ArrayIndex i = 0; i < l_count; ++i)
+											dcassert(0);
+											const string l_error = l_error_base + "-0 Failed to parse json URL = " + l_search_url
+												+ " l_magnet_result = " + l_magnet_result;
+											CFlyServerJSON::pushError(78, l_error);
+											break;
+										}
+										else
 										{
-											const auto l_magnet = l_arrays[i]["magnet"].asString();
-											if (!l_magnet.empty())
+											const Json::Value& l_arrays = l_root["items"];
+											const Json::Value::ArrayIndex l_count = l_arrays.size();
+											for (Json::Value::ArrayIndex i = 0; i < l_count; ++i)
 											{
-												SearchResult* l_result = new SearchResult;
-												l_result->setFile(l_arrays[i]["name"].asString());
-												l_result->setTorrentMagnet(l_magnet);
-												l_result->m_peer = atoi(l_arrays[i]["peer"].asString().c_str());
-												l_result->m_seed = atoi(l_arrays[i]["seed"].asString().c_str());
-												l_result->m_comment = atoi(l_arrays[i]["comment"].asString().c_str());
-												l_result->m_url = l_root_torrent_url + l_arrays[i]["url"].asString();
-												l_result->m_tracker = l_tracker_name;
-												l_result->m_tracker_index = l_index;
-												l_result->m_date = l_arrays[i]["date"].asString();
-												l_result->m_torrent_page = l_num_page+1;
-												const string l_size = Text::toLower(l_arrays[i]["size"].asString());
-												if (!l_size.empty())
+												const auto l_magnet = l_arrays[i]["magnet"].asString();
+												if (!l_magnet.empty())
 												{
-													dcassert(!l_size.empty());
-													auto l_size_float = Util::toDouble(l_size);
-													if (l_size.find("mb") != string::npos)
-														l_size_float = l_size_float * 1024.0 * 1024.0;
-													if (l_size.find("gb") != string::npos)
-														l_size_float = l_size_float * 1024.0 * 1024.0 * 1024.0;
-													if (l_size.find("kb") != string::npos)
-														l_size_float = l_size_float * 1024.0;
-													l_result->m_size = l_size_float;
+													SearchResult* l_result = new SearchResult;
+													l_result->setFile(l_arrays[i]["name"].asString());
+													l_result->setTorrentMagnet(l_magnet);
+													l_result->m_peer = atoi(l_arrays[i]["peer"].asString().c_str());
+													l_result->m_seed = atoi(l_arrays[i]["seed"].asString().c_str());
+													l_result->m_comment = atoi(l_arrays[i]["comment"].asString().c_str());
+													l_result->m_url = l_root_torrent_url + l_arrays[i]["url"].asString();
+													l_result->m_tracker = l_tracker_name;
+													l_result->m_tracker_index = l_index;
+													l_result->m_date = l_arrays[i]["date"].asString();
+													l_result->m_torrent_page = l_num_page + 1;
+													const string l_size = Text::toLower(l_arrays[i]["size"].asString());
+													if (!l_size.empty())
+													{
+														dcassert(!l_size.empty());
+														auto l_size_float = Util::toDouble(l_size);
+														if (l_size.find("mb") != string::npos)
+															l_size_float = l_size_float * 1024.0 * 1024.0;
+														if (l_size.find("gb") != string::npos)
+															l_size_float = l_size_float * 1024.0 * 1024.0 * 1024.0;
+														if (l_size.find("kb") != string::npos)
+															l_size_float = l_size_float * 1024.0;
+														l_result->m_size = l_size_float;
+													}
+													else
+													{
+														l_result->m_size = 0;
+													}
+													safe_post_message(p_wnd, p_message, l_result);
 												}
-												else
-												{
-													l_result->m_size = 0;
-												}
-												safe_post_message(p_wnd, p_message, l_result);
 											}
 										}
 									}
+									catch (const Exception &e)
+									{
+										dcassert(0);
+										const string l_error = l_error_base + "-1 URL = " + l_search_url + " error " + e.getError();
+										CFlyServerJSON::pushError(77, l_error);
+										break;
+									}
 								}
-								catch (const Exception &e)
+								else
 								{
 									dcassert(0);
-									const string l_error = l_error_base + "-1 URL = " + l_search_url  +" error " + e.getError();
-									CFlyServerJSON::pushError(77, l_error);
+									const string l_error = l_error_base + "-4 getBinaryDataFromInet error l_search_url = " + l_search_url;
+									CFlyServerJSON::pushError(79, l_error);
 									break;
 								}
-							}
-							else
-							{
-								dcassert(0);
-								const string l_error = l_error_base + "-4 getBinaryDataFromInet error l_search_url = " + l_search_url;
-								CFlyServerJSON::pushError(79, l_error);
-								break;
-							}
 						}
 						catch (const Exception &e)
 						{

@@ -36,6 +36,34 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <cstdint>
 
 namespace libtorrent { namespace dht {
+/*
+	template <int N>
+	struct base_key
+	{
+		base_key() = default;
+		explicit base_key(char const* b)
+		{ std::copy(b, b + len, bytes.begin()); }
+		bool operator==(base_key const& rhs) const
+		{ return bytes == rhs.bytes; }
+		constexpr static int len = N;
+		std::array<char, len> bytes;
+	};
+	struct public_key : public base_key<32> 
+	{
+		public_key() = default;
+		explicit public_key(char const* b) :base_key(b) {}
+	};
+	struct secret_key : public base_key<64> 
+	{
+		secret_key() = default;
+		explicit secret_key(char const* b) :base_key(b) {}
+	};
+	struct signature : public base_key<64> 
+	{
+		signature() = default;
+		explicit signature(char const* b) :base_key(b) {}
+	};
+*/
 
 	struct public_key
 	{

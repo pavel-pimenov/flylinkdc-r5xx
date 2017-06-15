@@ -23,6 +23,7 @@
 #include "CryptoManager.h"
 #include "QueueManager.h"
 #include "ShareManager.h"
+#include "DebugManager.h"
 
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 #include "nmdchub.h"
@@ -64,6 +65,7 @@ string TokenManager::makeToken() noexcept
 #ifdef _DEBUG
 	LogManager::message("TokenManager::makeToken token = " + l_token);
 #endif
+	DETECTION_DEBUG("[ConnectionManager][TokenManager::makeToken] " + l_token);
 	return l_token;
 }
 bool TokenManager::isToken(const string& aToken) noexcept
@@ -109,12 +111,14 @@ void TokenManager::removeToken(const string& aToken) noexcept
 		LogManager::message("TokenManager::removeToken [+] token = " + aToken);
 #endif
 		m_tokens.erase(p);
+		DETECTION_DEBUG("[ConnectionManager][TokenManager::removeToken] " + aToken);
 	}
 	else
 	{
 #ifdef _DEBUG
 		LogManager::message("TokenManager::removeToken [-] token = " + aToken);
 #endif
+		DETECTION_DEBUG("[ConnectionManager][TokenManager::removeToken][empty] " + aToken);
 //		dcassert(0);
 	}
 }
@@ -254,11 +258,13 @@ ConnectionQueueItemPtr ConnectionManager::getCQI_L(const HintedUser& aHintedUser
 	{
 		dcassert(find(g_downloads.begin(), g_downloads.end(), aHintedUser) == g_downloads.end());
 		g_downloads.insert(cqi);
+		DETECTION_DEBUG("[ConnectionManager][getCQI][download] " + aHintedUser.to_string());
 	}
 	else
 	{
 		dcassert(find(g_uploads.begin(), g_uploads.end(), aHintedUser) == g_uploads.end());
 		g_uploads.insert(cqi);
+		DETECTION_DEBUG("[ConnectionManager][getCQI][upload] " + aHintedUser.to_string());
 	}
 	return cqi;
 }
@@ -268,11 +274,13 @@ void ConnectionManager::putCQI_L(ConnectionQueueItemPtr& cqi)
 	if (cqi->isDownload())
 	{
 		g_downloads.erase(cqi);
+		DETECTION_DEBUG("[ConnectionManager][putCQI][download] " + cqi->getHintedUser().to_string());
 	}
 	else
 	{
 		UploadManager::removeDelayUpload(cqi->getUser());
 		g_uploads.erase(cqi);
+		DETECTION_DEBUG("[ConnectionManager][putCQI][upload] " + cqi->getHintedUser().to_string());
 	}
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	cqi->getUser()->flushRatio(); //[+]PPA branches-dev/ppa/issue-1035
@@ -311,6 +319,7 @@ UserConnection* ConnectionManager::getConnection(bool aNmdc, bool secure) noexce
 	{
 		uc->setFlag(UserConnection::FLAG_NMDC);
 	}
+	DETECTION_DEBUG("[ConnectionManager][getConnection] " + uc->getHintedUser().to_string());
 	return uc;
 }
 
@@ -323,6 +332,7 @@ void ConnectionManager::putConnection(UserConnection* aConn)
 		dcassert(g_userConnections.find(aConn) != g_userConnections.end());
 		g_userConnections.erase(aConn);
 	}
+	DETECTION_DEBUG("[ConnectionManager][putConnection] " + aConn->getHintedUser().to_string());
 }
 void ConnectionManager::flushOnUserUpdated()
 {
@@ -1804,7 +1814,10 @@ void ConnectionManager::disconnect(const UserPtr& aUser)
 	{
 		UserConnection* uc = *i;
 		if (uc->getUser() == aUser)
+		{
 			uc->disconnect(true);
+			DETECTION_DEBUG("[ConnectionManager][disconnect] " + uc->getHintedUser().to_string());
+		}
 	}
 }
 
@@ -1818,6 +1831,7 @@ void ConnectionManager::disconnect(const UserPtr& aUser, bool isDownload) // [!]
 		if (uc->getUser() == aUser && uc->isSet((Flags::MaskType)(isDownload ? UserConnection::FLAG_DOWNLOAD : UserConnection::FLAG_UPLOAD)))
 		{
 			uc->disconnect(true);
+			DETECTION_DEBUG("[ConnectionManager][disconnect] " + uc->getHintedUser().to_string());
 		}
 	}
 }

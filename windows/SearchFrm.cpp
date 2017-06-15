@@ -871,8 +871,8 @@ int SearchFrame::TorrentSearchSender::run()
 	try
 	{
 		dcassert(!m_search.empty());
-		if(!m_search.empty())
-		   CFlyServerConfig::torrentSearch(m_wnd, PREPARE_RESULT_TORRENT, m_search);
+		if (!m_search.empty())
+			CFlyServerConfig::torrentSearch(m_wnd, PREPARE_RESULT_TORRENT, m_search);
 	}
 	catch (const std::bad_alloc&)
 	{

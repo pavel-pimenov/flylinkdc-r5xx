@@ -97,34 +97,37 @@ void Transfer::getParams(const UserConnection* aSource, StringMap& params) const
 {
 	const auto hint = aSource->getHintedUser().hint;
 	const auto user = aSource->getUser();
-	
-	params["userCID"] = user->getCID().toBase32();
-	params["userNI"] = !user->getLastNick().empty() ? user->getLastNick() : Util::toString(ClientManager::getNicks(user->getCID(), Util::emptyString, false));
-	params["userI4"] = aSource->getRemoteIp();
-	
-	StringList hubNames = ClientManager::getHubNames(user->getCID(), hint);
-	if (hubNames.empty())
+	dcassert(user);
+	if (user)
 	{
-		hubNames.push_back(STRING(OFFLINE));
+		params["userCID"] = user->getCID().toBase32();
+		params["userNI"] = !user->getLastNick().empty() ? user->getLastNick() : Util::toString(ClientManager::getNicks(user->getCID(), Util::emptyString, false));
+		params["userI4"] = aSource->getRemoteIp();
+		
+		StringList hubNames = ClientManager::getHubNames(user->getCID(), hint);
+		if (hubNames.empty())
+		{
+			hubNames.push_back(STRING(OFFLINE));
+		}
+		params["hub"] = Util::toString(hubNames);
+		
+		StringList hubs = ClientManager::getHubs(user->getCID(), hint);
+		if (hubs.empty())
+		{
+			hubs.push_back(STRING(OFFLINE));
+		}
+		params["hubURL"] = Util::toString(hubs);
+		
+		params["fileSI"] = Util::toString(getSize());
+		params["fileSIshort"] = Util::formatBytes(getSize());
+		params["fileSIchunk"] = Util::toString(getPos());
+		params["fileSIchunkshort"] = Util::formatBytes(getPos());
+		params["fileSIactual"] = Util::toString(getActual());
+		params["fileSIactualshort"] = Util::formatBytes(getActual());
+		params["speed"] = Util::formatBytes(getRunningAverage()) + '/' + STRING(S);
+		params["time"] = getStart() == 0 ? "-" : Util::formatSeconds((getLastTick() - getStart()) / 1000); // [!] IRainman refactoring transfer mechanism
+		params["fileTR"] = getTTH().toBase32();
 	}
-	params["hub"] = Util::toString(hubNames);
-	
-	StringList hubs = ClientManager::getHubs(user->getCID(), hint);
-	if (hubs.empty())
-	{
-		hubs.push_back(STRING(OFFLINE));
-	}
-	params["hubURL"] = Util::toString(hubs);
-	
-	params["fileSI"] = Util::toString(getSize());
-	params["fileSIshort"] = Util::formatBytes(getSize());
-	params["fileSIchunk"] = Util::toString(getPos());
-	params["fileSIchunkshort"] = Util::formatBytes(getPos());
-	params["fileSIactual"] = Util::toString(getActual());
-	params["fileSIactualshort"] = Util::formatBytes(getActual());
-	params["speed"] = Util::formatBytes(getRunningAverage()) + '/' + STRING(S);
-	params["time"] = getStart() == 0 ? "-" : Util::formatSeconds((getLastTick() - getStart()) / 1000); // [!] IRainman refactoring transfer mechanism
-	params["fileTR"] = getTTH().toBase32();
 }
 void Transfer::setStart(uint64_t tick)
 {

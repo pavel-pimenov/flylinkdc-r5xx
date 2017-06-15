@@ -728,6 +728,9 @@
     <ClInclude Include="include\libtorrent\aux_\noexcept_movable.hpp">
       <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\kademlia\sample_infohashes.hpp">
+      <Filter>Header Files\libtorrent\kadmelia</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ed25519\src\add_scalar.cpp">
@@ -1176,6 +1179,12 @@
     </ClCompile>
     <ClCompile Include="src\session_udp_sockets.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\add_torrent_params.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\kademlia\sample_infohashes.cpp">
+      <Filter>Source Files\kadmelia</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
