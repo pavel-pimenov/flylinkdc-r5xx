@@ -777,11 +777,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	
 	if (SETTING(NICK).empty())
 	{
-#ifdef FLYLINKDC_USE_OLD_INNOSETUP_WIZARD
-		SET_SETTING(NICK, Util::getRegistryValueString("Nick"));
-		if (SETTING(NICK).empty())
-#endif
-			PostMessage(WM_COMMAND, ID_FILE_SETTINGS);
+		PostMessage(WM_COMMAND, ID_FILE_SETTINGS);
 	}
 	
 	m_jaControl = unique_ptr<JAControl>(new JAControl((HWND)(*this)));
@@ -817,7 +813,8 @@ void MainFrame::openDefaultWindows()
 {
 	if (BOOLSETTING(OPEN_FAVORITE_HUBS)) PostMessage(WM_COMMAND, IDC_FAVORITES);
 	if (BOOLSETTING(OPEN_FAVORITE_USERS)) PostMessage(WM_COMMAND, IDC_FAVUSERS);
-	if (BOOLSETTING(OPEN_QUEUE)) PostMessage(WM_COMMAND, IDC_QUEUE);
+// TODO - очередь грузится асинхронно
+//	if (BOOLSETTING(OPEN_QUEUE)) PostMessage(WM_COMMAND, IDC_QUEUE);
 	if (BOOLSETTING(OPEN_FINISHED_DOWNLOADS)) PostMessage(WM_COMMAND, IDC_FINISHED);
 	if (BOOLSETTING(OPEN_WAITING_USERS)) PostMessage(WM_COMMAND, IDC_UPLOAD_QUEUE);
 	if (BOOLSETTING(OPEN_FINISHED_UPLOADS)) PostMessage(WM_COMMAND, IDC_FINISHED_UL);

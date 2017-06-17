@@ -1270,9 +1270,6 @@
     <ClInclude Include="Source\MediaInfo\Audio\File_SmpteSt0331.h">
       <Filter>Header Files\Audio</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Mediainfo\audio\File_SmpteSt0337.h">
-      <Filter>Header Files\Audio</Filter>
-    </ClInclude>
     <ClInclude Include="Source\MediaInfo\Text\File_AribStdB24B37.h">
       <Filter>Header Files\Text</Filter>
     </ClInclude>
@@ -1416,6 +1413,9 @@
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\Multiple\File_Wtv.h">
       <Filter>Header Files\Multiple</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Mediainfo\audio\File_SmpteSt0337.h">
+      <Filter>Header Files\Audio</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

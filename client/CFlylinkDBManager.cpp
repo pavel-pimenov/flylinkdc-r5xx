@@ -834,6 +834,12 @@ CFlylinkDBManager::CFlylinkDBManager()
 			}
 			m_flySQLiteDB.executenonquery("PRAGMA user_version=3");
 		}
+		if (l_db_user_version < 4)
+		{
+			safeAlter("delete FROM fly_queue_source where CID = X'000000000000000000000000000000000000000000000000'", true);
+			m_flySQLiteDB.executenonquery("PRAGMA user_version=4");
+		}
+		
 		
 		// TODO - грохнуть поля  fly_queue в и перетащить базу в другие файлы.
 		
@@ -2583,7 +2589,6 @@ int32_t CFlylinkDBManager::load_queue()
 		
 // #define FLYLINKDC_USE_DEBUG_10_RECORD
 #endif
-
 		try
 		{
 			boost::unordered_map<int, std::vector< CFlySourcesItem > > l_sources_map;
@@ -2596,14 +2601,19 @@ int32_t CFlylinkDBManager::load_queue()
 #endif
 				sqlite3_reader l_q = m_get_fly_queue_all_source->executereader();
 				unsigned l_count_users = 0;
-				while (l_q.read())
+				while (l_q.read() && !ClientManager::isBeforeShutdown())
 				{
 					CID l_cid;
 					if (l_q.getblob(1, l_cid.get_data_for_write(), 24))
 					{
-						auto& l_source_items = l_sources_map[l_q.getint(0)];
-						l_source_items.push_back(CFlySourcesItem(l_cid, l_q.getstring(2), l_q.getint(3)));
-						l_count_users++;
+						dcassert(!l_cid.isZero());
+						//if (!l_cid.isZero())
+						{
+							auto& l_source_items = l_sources_map[l_q.getint(0)];
+							dcassert(!l_q.getstring(2).empty());
+							l_source_items.push_back(CFlySourcesItem(l_cid, l_q.getstring(2), l_q.getint(3)));
+							l_count_users++;
+						}
 					}
 				}
 				if (!l_sources_map.empty())
@@ -2632,7 +2642,7 @@ int32_t CFlylinkDBManager::load_queue()
 			{
 				CFlyLog l_q_files_log("[Load queue files]");
 				sqlite3_reader l_q = m_get_fly_queue->executereader();
-				while (l_q.read())
+				while (l_q.read() && !ClientManager::isBeforeShutdown())
 				{
 					const int64_t l_size = l_q.getint64(2);
 					if (l_size < 0)
@@ -2725,34 +2735,44 @@ int32_t CFlylinkDBManager::load_queue()
 						                                   l_q.getint(8) != 0,
 						                                   l_tempTarget,
 						                                   l_added, l_tthRoot, max((uint8_t)1, l_maxSegments));
-						                                   
-						dcassert(qi->isDirtyAll() == false);
-						qi->setDirty(false);
-						l_qitem.push_back(qi);
-					}
-					// [+] brain-ripper
-					qi->setSectionString(l_q.getstring(4), true);
-					const auto l_source_items = l_sources_map.find(l_ID);
-					if (l_source_items != l_sources_map.end())
-					{
-						// TODO - возможно появление дублей
-						for (auto i = l_source_items->second.cbegin(); i != l_source_items->second.cend(); ++i)
+						if (qi) // Возможны дубли
 						{
-							add_sourceL(qi, i->m_CID, i->m_nick, i->m_hub_id); //
+							dcassert(qi->isDirtyAll() == false);
+							qi->setDirty(false);
+							l_qitem.push_back(qi);
+						}
+						else
+						{
+#ifdef  _DEBUG
+							LogManager::message("Skip QueueManager::g_fileQueue.add - l_target = " + l_target);
+#endif //  _DEBUG
 						}
 					}
-					else
+					if (qi)
 					{
-						//dcassert(0);
+						// [+] brain-ripper
+						qi->setSectionString(l_q.getstring(4), true);
+						const auto l_source_items = l_sources_map.find(l_ID);
+						if (l_source_items != l_sources_map.end())
+						{
+							// TODO - возможно появление дублей
+							for (auto i = l_source_items->second.cbegin(); i != l_source_items->second.cend(); ++i)
+							{
+								add_sourceL(qi, i->m_CID, i->m_nick, i->m_hub_id); //
+							}
+						}
+						else
+						{
+							//dcassert(0);
+						}
+						qi->calcAverageSpeedAndCalcAndGetDownloadedBytesL();
+						qi->resetDirtyAll();
 					}
-					qi->calcAverageSpeedAndCalcAndGetDownloadedBytesL();
-					qi->resetDirtyAll();
 				}
 				if (g_count_queue_source)
 				{
 					l_q_files_log.step("Items:" + Util::toString(g_count_queue_source));
 				}
-				
 			}
 			// if (!l_sources_map.empty())
 			{

@@ -1371,7 +1371,6 @@ enum Strings   // @DontAdd
 	SETTINGS_LOG_TRACE_SQLITE, // "Log queries to the SQLite base"
 	SETTINGS_LOG_DDOS_TRACE, // "Log DDoS detect"
 	SETTINGS_LOG_VIRUS_TRACE, // "Log Virus detect"
-	SETTINGS_LOG_DHT_TRACE,  // "Log DHT"
 	SETTINGS_LOG_TORRENT_TRACE,  // "Log torrent"
 	SETTINGS_LOG_PSR_TRACE,  // "Log PSR (partial search results)"
 	SETTINGS_LOG_FLOOD_TRACE, // "Log Flood $Command detect"

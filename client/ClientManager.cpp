@@ -58,6 +58,11 @@ ClientManager::UserMap ClientManager::g_users;
 
 ClientManager::ClientManager()
 {
+	if (SETTING(NICK).empty())
+	{
+		SET_SETTING(NICK, "[fly]" + Util::getRandomNick(15));
+	}
+	dcassert(!SETTING(NICK).empty());
 	createMe(SETTING(PRIVATE_ID), SETTING(NICK)); // [+] IRainman fix.
 }
 

@@ -1198,7 +1198,7 @@ void NmdcHub::lockParse(const string& aLine)
 		key(CryptoManager::getInstance()->makeKey(lock));
 		
 		string l_nick = getMyNick();
-		const string l_fly_nick = getRandomNick();
+		const string l_fly_nick = getRandomTempNick();
 		if (!l_fly_nick.empty())
 		{
 			l_nick = l_fly_nick;
@@ -2046,7 +2046,7 @@ void NmdcHub::onLine(const string& aLine)
 			if (m_nick_rule)
 			{
 				string l_nick = getMyNick();
-				const string l_fly_nick = getRandomNick();
+				const string l_fly_nick = getRandomTempNick();
 				if (!l_fly_nick.empty())
 				{
 					l_nick = l_fly_nick;

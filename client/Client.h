@@ -450,7 +450,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			getMyIdentity().setDescription(descr);
 		}
-		GETSET(string, randomNick, RandomNick)
+		GETSET(string, randomTempNick, RandomTempNick)
 		GETSET(string, name, Name)
 		GETSET(string, rawOne, RawOne);
 		GETSET(string, rawTwo, RawTwo);

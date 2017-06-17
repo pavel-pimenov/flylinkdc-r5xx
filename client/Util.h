@@ -1142,7 +1142,7 @@ class Util
 		{
 			return rand(high - low) + low;
 		}
-		static string getRandomNick();//[+]FlylinkDC++ Team
+		static string getRandomNick(size_t iNickLength = 20);
 		
 		static string getRegistryCommaSubkey(const tstring& p_key);
 		static string getRegistryValueString(const TCHAR* p_key, bool p_is_path = false);

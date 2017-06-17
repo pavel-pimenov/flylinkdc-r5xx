@@ -73,8 +73,6 @@ void LogManager::init()
 	g_logOptions[DDOS_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_DDOS_TRACE;
 	g_logOptions[CMDDEBUG_TRACE][FILE]     = SettingsManager::LOG_FILE_CMDDEBUG_TRACE;
 	g_logOptions[CMDDEBUG_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_CMDDEBUG_TRACE;
-	g_logOptions[DHT_TRACE][FILE]     = SettingsManager::LOG_FILE_DHT_TRACE;
-	g_logOptions[DHT_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_DHT_TRACE;
 	g_logOptions[PSR_TRACE][FILE]     = SettingsManager::LOG_FILE_PSR_TRACE;
 	g_logOptions[PSR_TRACE][FORMAT]   = SettingsManager::LOG_FORMAT_PSR_TRACE;
 	g_logOptions[FLOOD_TRACE][FILE]     = SettingsManager::LOG_FILE_FLOOD_TRACE;
@@ -313,15 +311,6 @@ void LogManager::torrent_message(const string& p_message, bool p_is_add_sys_mess
 		StringMap params;
 		params["message"] = p_message;
 		LOG(SYSTEM, params);
-	}
-}
-void LogManager::dht_message(const string& p_message)
-{
-	if (BOOLSETTING(LOG_DHT_TRACE))
-	{
-		StringMap params;
-		params["message"] = p_message;
-		LOG(DHT_TRACE, params);
 	}
 }
 

@@ -3833,7 +3833,7 @@ void HubFrame::on(ClientListener::NickTaken) noexcept
 		l_fly_user += "_R" + getRandomSuffix();
 	}
 	m_client->setMyNick(l_fly_user);
-	m_client->setRandomNick(l_fly_user);
+	m_client->setRandomTempNick(l_fly_user);
 	setHubParam();
 	CFlyServerJSON::pushError(54, "Hub = " + m_client->getHubUrl() + " New random nick = " + l_fly_user);
 	if (m_reconnect_count < 3)

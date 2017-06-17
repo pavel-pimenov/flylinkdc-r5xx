@@ -2649,8 +2649,6 @@ void TransferView::on(DownloadManagerListener::CompleteTorrentFile, const std::s
 void TransferView::on(DownloadManagerListener::SelectTorrent, const libtorrent::sha1_hash& p_sha1, CFlyTorrentFileArray& p_files) noexcept
 {
 	// TODO - PostMessage
-	// std::async(std::launch::async,
-	//      [&] {
 	try {
 		CFlyTorrentDialog l_dlg(p_files);
 		if (l_dlg.DoModal(WinUtil::g_mainWnd) == IDOK)
@@ -2667,7 +2665,6 @@ void TransferView::on(DownloadManagerListener::SelectTorrent, const libtorrent::
 	{
 		LogManager::message("DownloadManagerListener::SelectTorrent - error " + e.getError());
 	}
-//   });
 }
 
 void TransferView::on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept

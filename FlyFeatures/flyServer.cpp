@@ -1040,10 +1040,10 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 							std::vector<byte> l_data;
 							CFlyHTTPDownloader l_http_downloader;
 							l_http_downloader.m_is_use_cache = true;
-							if (!l_local_agent.empty())
-							{
-								l_http_downloader.m_user_agent = Text::toT(l_local_agent);
-							}
+								if (!l_local_agent.empty())
+								{
+									l_http_downloader.m_user_agent = Text::toT(l_local_agent);
+								}
 								if (l_http_downloader.getBinaryDataFromInet(l_search_url, l_data, 1000))
 								{
 									const std::string l_html_result((char*)l_data.data(), l_data.size());

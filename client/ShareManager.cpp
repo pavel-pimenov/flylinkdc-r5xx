@@ -80,8 +80,6 @@ ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
 	m_sweep_guard(false),
 #endif
 	m_sweep_path(false)
-	//m_updateXmlListInProcess(false), //
-	//m_is_refreshing(false)
 {
 	m_lastXmlUpdate = m_lastFullUpdate = GET_TICK();
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
@@ -523,9 +521,6 @@ void ShareManager::load(SimpleXML& aXml)
 {
 	CFlyBusy l_busy(g_RebuildIndexes);
 	CFlyWriteLock(*g_csShare);
-#ifdef FLYLINKDC_USE_OLD_INNOSETUP_WIZARD
-	int l_count_dir = 0;
-#endif
 	aXml.resetCurrentChild();
 	if (aXml.findChild("Share"))
 	{
@@ -553,9 +548,6 @@ void ShareManager::load(SimpleXML& aXml)
 				if (getByVirtualL(vName) == g_list_directories.end())
 				{
 					g_list_directories.push_back(Directory::create(vName));
-#ifdef FLYLINKDC_USE_OLD_INNOSETUP_WIZARD
-					l_count_dir++;
-#endif
 				}
 			}
 		}
@@ -602,17 +594,6 @@ void ShareManager::load(SimpleXML& aXml)
 		}
 		aXml.stepOut();
 	}
-#ifdef FLYLINKDC_USE_OLD_INNOSETUP_WIZARD
-	if (l_count_dir == 0)
-	{
-		const string l_dir = Util::getRegistryValueString("DownloadDir", true);
-		if (!l_dir.empty())
-		{
-			shares.insert(std::make_pair(l_dir, "DC++Downloads"));
-			l_count_dir++;
-		}
-	}
-#endif
 }
 
 const string g_SDirectory = "Directory";
@@ -1603,6 +1584,7 @@ int ShareManager::run()
 	if (g_is_first == false)
 	{
 		g_is_first = true;
+		QueueManager::getInstance()->loadQueue();
 		for (int i = 0; i < 50 * 10; i++) // ∆дем 5 сек
 		{
 			::Sleep(10);

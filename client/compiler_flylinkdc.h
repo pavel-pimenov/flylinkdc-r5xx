@@ -175,7 +175,6 @@ typedef unsigned __int64 uint64_t;
 //#define FLYLINKDC_USE_VACUUM
 
 #define FLYLINKDC_USE_DOS_GUARD // ¬ключаем защиту от DoS атаки старых версий - http://www.flylinkdc.ru/2011/01/flylinkdc-dos.html
-//#define FLYLINKDC_USE_OLD_INNOSETUP_WIZARD
 //# define FLYLINKDC_USE_APEX_EX_MESSAGE_BOX // TODO: глючит - много дампов по переполнению стека, необходимо найти альтернативу.
 #define PPA_USER_COMMANDS_HUBS_SET
 #define FLYLINKDC_USE_IPFILTER
@@ -330,7 +329,7 @@ typedef unsigned __int64 uint64_t;
 #ifndef FLYLINKDC_HE
 # define SSA_IPGRANT_FEATURE // [+] SSA additional slots for special IP's
 // # define SSA_VIDEO_PREVIEW_FEATURE //
-# define SSA_WIZARD_FEATURE
+// # define SSA_WIZARD_FEATURE
 #endif
 // TODO
 //#define SSA_SHELL_INTEGRATION

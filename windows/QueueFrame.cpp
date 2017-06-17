@@ -441,7 +441,9 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 }
 void QueueFrame::on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept
 {
+#ifdef _DEBUG
 	m_tasks.add(REMOVE_ITEM, new StringTask(DownloadManager::getInstance()->get_torrent_name(p_sha1)));
+#endif
 }
 
 void QueueFrame::on(DownloadManagerListener::CompleteTorrentFile, const std::string& p_file_name) noexcept
@@ -449,7 +451,9 @@ void QueueFrame::on(DownloadManagerListener::CompleteTorrentFile, const std::str
 }
 void QueueFrame::on(DownloadManagerListener::AddedTorrent, const libtorrent::sha1_hash& p_sha1, const std::string& p_save_path) noexcept
 {
+#ifdef _DEBUG
 	m_tasks.add(ADD_ITEM, new QueueItemInfoTask(new QueueItemInfo(p_sha1, p_save_path)));
+#endif
 }
 void QueueFrame::on(DownloadManagerListener::TorrentEvent, const DownloadArray& p_torrent_event) noexcept
 {

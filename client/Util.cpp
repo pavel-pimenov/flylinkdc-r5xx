@@ -2133,39 +2133,30 @@ uint32_t Util::rand()
 	
 	return y;
 }
-//[+]FlylinkDC++ Team
-string Util::getRandomNick()
+
+string Util::getRandomNick(size_t iNickLength /*= 20*/)
 {
-	// Create RND nick
-	const size_t iNickLength = 20;
-	const char  samples[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	const char  samples2[] = "_-";
-	const char* samples3[] =
+	static const char  samples[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	static const char* samples3[] =
 	{
-		"Admin",
-		"Bear", "Boy",
+		"Bear",
 		"Cool", "Cow",
-		"Dolly",    "DCman",
-		"Eagle",    "Earth",
+		"Dolly", "DCman",
+		"Eagle", "Earth",
 		"Fire",
-		"Girl",
-		"Hawk", "Head", "Hedgehog", "Hulk",
+		"Hawk", "Head", "Hulk",
 		"Indy",
 		"Jocker",
-		"Man",  "Men",  "Moon", "Monkey",
-		"Onotole",
+		"Man", "Moon", "Monkey",
 		"Rabbit",
-		"Smile",    "Sun",
-		"Troll",    "True",
+		"Smile", "Sun",
+		"Troll",
 		"User",
-		"Water",    "Women",
-		"Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel", "India", "Juliet",
-		"Kilo", "Lima", "Mike", "November", "Oscar", "Papa", "Quebec", "Romeo", "Sierra", "Tango",
-		"Uniform", "Victor", "Whiskey", "Xray", "Yankee", "Zulu"
+		"Water"
 	};
 	
 	string name = samples3[Util::rand(_countof(samples3) - 1)];
-	name += samples2[Util::rand(_countof(samples2) - 1)];
+	name += '_';
 	
 	for (size_t i = Util::rand(3, 7); i; --i)
 	{
@@ -2173,8 +2164,10 @@ string Util::getRandomNick()
 	}
 	
 	if (name.size() > iNickLength)
+	{
 		name.resize(iNickLength);
-		
+	}
+	
 	return name;
 }
 //======================================================================================================================================

@@ -94,10 +94,9 @@ static const char* g_settingTags[] =
 	"LogFormatVirusTrace",
 	"LogFormatDdosTrace",
 	"LogFormatCMDDebugTrace",
-	"LogFormatDHTTrace",
+	"LogFormatTorrentTrace",
 	"LogFormatPSRTrace",
 	"LogFormatFloodTrace",
-	"LogFormatTorrentTrace",
 	
 	"WebServerUser", "WebServerPass", "LogFileMainChat",
 	"LogFilePrivateChat", "LogFileStatus", "LogFileUpload", "LogFileDownload", "LogFileSystem", "LogFormatSystem",
@@ -107,10 +106,9 @@ static const char* g_settingTags[] =
 	"LogFileVirusTrace",
 	"LogFileDdosTrace",
 	"LogFileCMDDebugTrace",
-	"LogFileDHTTrace",
+	"LogFileTorrentTrace",
 	"LogFilePSRTrace",
 	"LogFileFloodTrace",
-	"LogFileTorrentTrace",
 	
 	"DirectoryListingFrameOrder", "DirectoryListingFrameWidths",
 	"TransferFrameVisible", "SearchFrameVisible", "QueueFrameVisible", "HubFrameVisible", "UploadQueueFrameVisible",
@@ -184,7 +182,7 @@ static const char* g_settingTags[] =
 	"SendBloom",
 	"AutoSearchAutoMatch", "DownloadBarColor", "UploadBarColor", "LogSystem",
 	"LogCustomLocation", // [+] IRainman
-	"LogSQLiteTrace", "LogVirusTrace", "LogDDOSTrace", "LogDHTTrace", "LogPSRTrace", "LogFloodTrace", "LogTorrentTrace", "LogCMDDebugTrace",
+	"LogSQLiteTrace", "LogVirusTrace", "LogDDOSTrace", "LogPSRTrace", "LogFloodTrace", "LogTorrentTrace", "LogCMDDebugTrace",
 	"LogFilelistTransfers", "ShowStatusbar", "ShowToolbar", "ShowTransferview", "ShowTransferViewToolbar",
 	"SearchPassiveAlways", "SetMinislotSize", "ShutdownInterval",
 	//"CzertHiddenSettingA", "CzertHiddenSettingB",// [-] IRainman SpeedLimiter
@@ -491,13 +489,7 @@ void SettingsManager::setDefaults()
 	g_connectionSpeeds.push_back("100");
 	g_connectionSpeeds.push_back("1000");
 	dcassert(g_connectionSpeeds.size() == g_connectionSpeeds.capacity());
-#ifdef FLYLINKDC_USE_OLD_INNOSETUP_WIZARD
-	const string l_dir = Util::getRegistryValueString("DownloadDir", true);
-	if (!l_dir.empty())
-		setDefault(DOWNLOAD_DIRECTORY, l_dir);
-	else
-#endif
-		setDefault(DOWNLOAD_DIRECTORY, Util::getDownloadsPath());
+	setDefault(DOWNLOAD_DIRECTORY, Util::getDownloadsPath());
 	//setDefault(TEMP_DOWNLOAD_DIRECTORY, "");
 	setDefault(SLOTS, 15); // [!] PPA 2->15
 	setDefault(WEBSERVER_PORT, 0);
@@ -577,9 +569,6 @@ void SettingsManager::setDefaults()
 	
 	setDefault(LOG_FILE_CMDDEBUG_TRACE, "cmddebug.log");
 	setDefault(LOG_FORMAT_CMDDEBUG_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
-	
-	setDefault(LOG_FILE_DHT_TRACE, "dht.log");
-	setDefault(LOG_FORMAT_DHT_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
 	setDefault(LOG_FILE_PSR_TRACE, "psr.log");
 	setDefault(LOG_FORMAT_PSR_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
@@ -1635,7 +1624,6 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 		case LOG_FILE_TRACE_SQLITE:
 		case LOG_FILE_VIRUS_TRACE:
 		case LOG_FILE_DDOS_TRACE:
-		case LOG_FILE_DHT_TRACE:
 		case LOG_FILE_TORRENT_TRACE:
 		case LOG_FILE_PSR_TRACE:
 		case LOG_FILE_FLOOD_TRACE:

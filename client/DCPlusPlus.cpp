@@ -180,7 +180,6 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	
 	LOAD_STEP_L(SHARED_FILES, ShareManager::getInstance()->refresh_share(true, false));
 	
-	LOAD_STEP_L(DOWNLOAD_QUEUE, QueueManager::getInstance()->loadQueue());
 #ifdef IRAINMAN_USE_STRING_POOL
 	StringPool::newInstance(); // [+] IRainman opt.
 #endif

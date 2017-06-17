@@ -248,8 +248,8 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		if (updateNick)
 		{
 			string l_nick = hub->getNick(true);
-			if (!getRandomNick().empty())
-				l_nick = getRandomNick();
+			if (!getRandomTempNick().empty()) // сгенерили _Rxxx?
+				l_nick = getRandomTempNick();
 			checkNick(l_nick);
 			setMyNick(l_nick);
 		}
