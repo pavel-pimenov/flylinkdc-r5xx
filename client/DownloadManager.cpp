@@ -430,8 +430,11 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 	}
 	catch (...)
 	{
-		LogManager::message("catch (...) Error new BufferedOutputStream<true> l_buf_size (Mb) = " + Util::toString(l_buf_size / 1024 / 1024) + " email: ppa74@ya.ru");
+		dcassert(0);
+		std::string l_error = "catch (...) Error new BufferedOutputStream<true> l_buf_size (Mb) = " + Util::toString(l_buf_size / 1024 / 1024) + " email: ppa74@ya.ru";
+		LogManager::message(l_error);
 		d->reset_download_file();
+		//failDownload(aSource, l_error);
 		return;
 	}
 	
@@ -497,9 +500,7 @@ void DownloadManager::fireData(UserConnection* aSource, const uint8_t* aData, si
 	}
 	catch (const Exception& e)
 	{
-		// [!] IRainman fix: no needs.
 		// d->resetPos(); // is there a better way than resetting the position?
-		// [~] IRainman fix: no needs.
 		failDownload(aSource, e.getError());
 	}
 	

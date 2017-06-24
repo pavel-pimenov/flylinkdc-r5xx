@@ -77,26 +77,18 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	void clear_bufs(span<iovec_t const> bufs)
-	{
-		for (auto buf : bufs)
-			std::memset(buf.data(), 0, buf.size());
-	}
-
 	default_storage::default_storage(storage_params const& params
 		, file_pool& pool)
-		: storage_interface(*params.files)
+		: storage_interface(params.files)
+		, m_file_priority(params.priorities)
 		, m_pool(pool)
 		, m_allocate_files(params.mode == storage_mode_allocate)
 	{
 		if (params.mapped_files) m_mapped_files.reset(new file_storage(*params.mapped_files));
-		if (params.priorities) m_file_priority = *params.priorities;
 
 		TORRENT_ASSERT(files().num_files() > 0);
 		m_save_path = complete(params.path);
-		m_part_file_name = "." + (params.info
-			? aux::to_hex(params.info->info_hash())
-			: params.files->name()) + ".parts";
+		m_part_file_name = "." + aux::to_hex(params.info_hash) + ".parts";
 	}
 
 	default_storage::~default_storage()
@@ -151,7 +143,7 @@ namespace libtorrent {
 				if (ec)
 				{
 					ec.file(i);
-					ec.operation = storage_error::partfile_write;
+					ec.operation = operation_t::partfile_write;
 					return;
 				}
 			}
@@ -176,7 +168,7 @@ namespace libtorrent {
 					if (ec)
 					{
 						ec.file(i);
-						ec.operation = storage_error::partfile_read;
+						ec.operation = operation_t::partfile_read;
 						return;
 					}
 					// remove the file
@@ -185,7 +177,7 @@ namespace libtorrent {
 					if (ec)
 					{
 						ec.file(i);
-						ec.operation = storage_error::remove;
+						ec.operation = operation_t::file_remove;
 					}
 				}
 */
@@ -197,7 +189,7 @@ namespace libtorrent {
 		if (ec)
 		{
 			ec.file(file_index_t(-1));
-			ec.operation = storage_error::partfile_write;
+			ec.operation = operation_t::partfile_write;
 		}
 	}
 
@@ -245,7 +237,7 @@ namespace libtorrent {
 			if (err && err != boost::system::errc::no_such_file_or_directory)
 			{
 				ec.file(file_index);
-				ec.operation = storage_error::stat;
+				ec.operation = operation_t::file_stat;
 				ec.ec = err;
 				break;
 			}
@@ -267,7 +259,7 @@ namespace libtorrent {
 					if (ec.ec)
 					{
 						ec.file(file_index);
-						ec.operation = storage_error::mkdir;
+						ec.operation = operation_t::mkdir;
 						break;
 					}
 				}
@@ -277,7 +269,7 @@ namespace libtorrent {
 				if (ec)
 				{
 					ec.file(file_index);
-					ec.operation = storage_error::fallocate;
+					ec.operation = operation_t::file_fallocate;
 					return;
 				}
 
@@ -286,7 +278,7 @@ namespace libtorrent {
 				if (ec)
 				{
 					ec.file(file_index);
-					ec.operation = storage_error::fallocate;
+					ec.operation = operation_t::file_fallocate;
 					break;
 				}
 			}
@@ -312,7 +304,7 @@ namespace libtorrent {
 				if (ec && ec.ec != boost::system::errc::no_such_file_or_directory)
 				{
 					ec.file(i);
-					ec.operation = storage_error::stat;
+					ec.operation = operation_t::file_stat;
 					m_stat_cache.clear();
 					return false;
 				}
@@ -333,7 +325,7 @@ namespace libtorrent {
 		if (ec)
 		{
 			ec.file(file_index_t(-1));
-			ec.operation = storage_error::stat;
+			ec.operation = operation_t::file_stat;
 			return false;
 		}
 		return false;
@@ -366,7 +358,7 @@ namespace libtorrent {
 			if (ec.ec)
 			{
 				ec.file(index);
-				ec.operation = storage_error::rename;
+				ec.operation = operation_t::file_rename;
 				return;
 			}
 
@@ -381,7 +373,7 @@ namespace libtorrent {
 			if (ec)
 			{
 				ec.file(index);
-				ec.operation = storage_error::rename;
+				ec.operation = operation_t::file_rename;
 				return;
 			}
 		}
@@ -389,7 +381,7 @@ namespace libtorrent {
 		{
 			// if exists fails, report that error
 			ec.file(index);
-			ec.operation = storage_error::rename;
+			ec.operation = operation_t::file_rename;
 			return;
 		}
 
@@ -480,7 +472,7 @@ namespace libtorrent {
 			if (files().pad_file_at(file_index))
 			{
 				// reading from a pad file yields zeroes
-				clear_bufs(vec);
+				aux::clear_bufs(vec);
 				return bufs_size(vec);
 			}
 
@@ -499,7 +491,7 @@ namespace libtorrent {
 				{
 					ec.ec = e;
 					ec.file(file_index);
-					ec.operation = storage_error::partfile_read;
+					ec.operation = operation_t::partfile_read;
 					return -1;
 				}
 				return ret;
@@ -515,7 +507,7 @@ namespace libtorrent {
 
 			// set this unconditionally in case the upper layer would like to treat
 			// short reads as errors
-			ec.operation = storage_error::read;
+			ec.operation = operation_t::file_read;
 
 			// we either get an error or 0 or more bytes read
 			TORRENT_ASSERT(e || ret >= 0);
@@ -562,7 +554,7 @@ namespace libtorrent {
 				{
 					ec.ec = e;
 					ec.file(file_index);
-					ec.operation = storage_error::partfile_write;
+					ec.operation = operation_t::partfile_write;
 					return -1;
 				}
 				return ret;
@@ -582,7 +574,7 @@ namespace libtorrent {
 
 			// set this unconditionally in case the upper layer would like to treat
 			// short reads as errors
-			ec.operation = storage_error::write;
+			ec.operation = operation_t::file_write;
 
 			// we either get an error or 0 or more bytes read
 			TORRENT_ASSERT(e || ret >= 0);
@@ -615,7 +607,7 @@ namespace libtorrent {
 			if (ec.ec)
 			{
 				ec.file(file);
-				ec.operation = storage_error::mkdir;
+				ec.operation = operation_t::mkdir;
 				return file_handle();
 			}
 
@@ -626,7 +618,7 @@ namespace libtorrent {
 		if (ec.ec)
 		{
 			ec.file(file);
-			ec.operation = storage_error::open;
+			ec.operation = operation_t::file_open;
 			return file_handle();
 		}
 		TORRENT_ASSERT(h);
@@ -653,7 +645,7 @@ namespace libtorrent {
 				{
 					ec.ec = e;
 					ec.file(file);
-					ec.operation = storage_error::fallocate;
+					ec.operation = operation_t::file_fallocate;
 					return h;
 				}
 				m_stat_cache.set_dirty(file);
@@ -758,7 +750,7 @@ namespace {
 
 	storage_interface* disabled_storage_constructor(storage_params const& params, file_pool&)
 	{
-		return new disabled_storage(*params.files);
+		return new disabled_storage(params.files);
 	}
 
 	// -- zero_storage ------------------------------------------------------
@@ -810,7 +802,7 @@ namespace {
 
 	storage_interface* zero_storage_constructor(storage_params const& params, file_pool&)
 	{
-		return new zero_storage(*params.files);
+		return new zero_storage(params.files);
 	}
 
 } // namespace libtorrent

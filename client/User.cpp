@@ -495,10 +495,9 @@ bool Identity::setExtJSON(const string& p_ExtJSON)
 	return l_result;
 }
 
-void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility, bool dht) const
+void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility) const
 {
 	PROFILE_THREAD_START();
-	if (!dht)
 	{
 #define APPEND(cmd, val) sm[prefix + cmd] = val;
 #define SKIP_EMPTY(cmd, val) { if (!val.empty()) { APPEND(cmd, val); } }
@@ -1336,10 +1335,6 @@ User::DefinedAutoBanFlags User::hasAutoBan(Client *p_Client, const bool p_is_fav
 }
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 
-bool OnlineUser::isDHT() const
-{
-	return m_client.isDHT();
-}
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_TAG
 bool OnlineUser::isTagUpdate(const string& p_tag, bool& p_is_version_change)
 {

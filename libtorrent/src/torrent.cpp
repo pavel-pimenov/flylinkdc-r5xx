@@ -595,7 +595,8 @@ namespace libtorrent {
 			&& m_ses.alerts().should_post<fastresume_rejected_alert>())
 		{
 			m_ses.alerts().emplace_alert<fastresume_rejected_alert>(get_handle()
-				, m_add_torrent_params->internal_resume_data_error, "", "");
+				, m_add_torrent_params->internal_resume_data_error, ""
+				, operation_t::unknown);
 		}
 #endif
 
@@ -1028,7 +1029,8 @@ namespace libtorrent {
 		{
 			debug_log("disk error: (%d) %s [%*s : %s] in file: %s"
 				, error.ec.value(), error.ec.message().c_str()
-				, int(job_name.size()), job_name.data(), error.operation_str()
+				, int(job_name.size()), job_name.data()
+				, operation_name(error.operation)
 				, resolve_filename(error.file()).c_str());
 		}
 #endif
@@ -1037,8 +1039,8 @@ namespace libtorrent {
 		{
 			if (alerts().should_post<file_error_alert>())
 				alerts().emplace_alert<file_error_alert>(error.ec
-					, resolve_filename(error.file()), error.operation_str(), get_handle());
-			if (c) c->disconnect(errors::no_memory, operation_t::file);
+					, resolve_filename(error.file()), error.operation, get_handle());
+			if (c) c->disconnect(errors::no_memory, error.operation);
 			return;
 		}
 
@@ -1047,7 +1049,7 @@ namespace libtorrent {
 		// notify the user of the error
 		if (alerts().should_post<file_error_alert>())
 			alerts().emplace_alert<file_error_alert>(error.ec
-				, resolve_filename(error.file()), error.operation_str(), get_handle());
+				, resolve_filename(error.file()), error.operation, get_handle());
 
 		// if a write operation failed, and future writes are likely to
 		// fail, while reads may succeed, just set the torrent to upload mode
@@ -1580,22 +1582,15 @@ namespace libtorrent {
 
 	void torrent::construct_storage()
 	{
-		storage_params params;
-
-		if (&m_torrent_file->orig_files() != &m_torrent_file->files())
-		{
-			params.mapped_files = &m_torrent_file->files();
-			params.files = &m_torrent_file->orig_files();
-		}
-		else
-		{
-			params.files = &m_torrent_file->files();
-			params.mapped_files = nullptr;
-		}
-		params.path = m_save_path;
-		params.mode = static_cast<storage_mode_t>(m_storage_mode);
-		params.priorities = &m_file_priority;
-		params.info = m_torrent_file.get();
+		storage_params params{
+			m_torrent_file->orig_files(),
+			&m_torrent_file->orig_files() != &m_torrent_file->files()
+				? &m_torrent_file->files() : nullptr,
+			m_save_path,
+			static_cast<storage_mode_t>(m_storage_mode),
+			m_file_priority,
+			m_info_hash
+		};
 
 		TORRENT_ASSERT(m_storage_constructor);
 
@@ -1982,7 +1977,7 @@ namespace libtorrent {
 			m_ses.alerts().emplace_alert<fastresume_rejected_alert>(get_handle()
 				, error.ec
 				, resolve_filename(error.file())
-				, error.operation_str());
+				, error.operation);
 		}
 
 #ifndef TORRENT_DISABLE_LOGGING
@@ -2294,7 +2289,7 @@ namespace libtorrent {
 				m_num_checked_pieces = piece_index_t{0};
 				if (m_ses.alerts().should_post<file_error_alert>())
 					m_ses.alerts().emplace_alert<file_error_alert>(error.ec,
-						resolve_filename(error.file()), error.operation_str(), get_handle());
+						resolve_filename(error.file()), error.operation, get_handle());
 
 #ifndef TORRENT_DISABLE_LOGGING
 				if (should_log())
@@ -4391,7 +4386,7 @@ namespace libtorrent {
 			{
 				if (pc->super_seeded_piece(i))
 				{
-					// avoid superseeding the same piece to more than one
+					// avoid super-seeding the same piece to more than one
 					// peer if we can avoid it. Do this by artificially
 					// increase the availability
 					availability = 999;
@@ -4555,11 +4550,17 @@ namespace libtorrent {
 		}
 	}
 
-	void torrent::set_piece_deadline(piece_index_t piece, int t, int flags)
+	void torrent::set_piece_deadline(piece_index_t const piece, int const t, int const flags)
 	{
 		INVARIANT_CHECK;
 
-		if (m_abort)
+		TORRENT_ASSERT_PRECOND(piece >= piece_index_t(0));
+		TORRENT_ASSERT_PRECOND(valid_metadata());
+		TORRENT_ASSERT_PRECOND(valid_metadata() && piece < m_torrent_file->end_piece());
+
+		if (m_abort || !valid_metadata()
+			|| piece < piece_index_t(0)
+			|| piece >= m_torrent_file->end_piece())
 		{
 			// failed
 			if (flags & torrent_handle::alert_when_available)
@@ -4570,7 +4571,7 @@ namespace libtorrent {
 			return;
 		}
 
-		time_point deadline = aux::time_now() + milliseconds(t);
+		time_point const deadline = aux::time_now() + milliseconds(t);
 
 		// if we already have the piece, no need to set the deadline.
 		// however, if the user asked to get the piece data back, we still
@@ -4593,7 +4594,7 @@ namespace libtorrent {
 			m_ses.get_io_service().post([self] { self->wrap(&torrent::cancel_non_critical); });
 		}
 
-		for (std::vector<time_critical_piece>::iterator i = m_time_critical_pieces.begin()
+		for (auto i = m_time_critical_pieces.begin()
 			, end(m_time_critical_pieces.end()); i != end; ++i)
 		{
 			if (i->piece != piece) continue;
@@ -4627,8 +4628,7 @@ namespace libtorrent {
 		p.deadline = deadline;
 		p.peers = 0;
 		p.piece = piece;
-		std::vector<time_critical_piece>::iterator critical_piece_it
-			= std::upper_bound(m_time_critical_pieces.begin()
+		auto const critical_piece_it = std::upper_bound(m_time_critical_pieces.begin()
 			, m_time_critical_pieces.end(), p);
 		m_time_critical_pieces.insert(critical_piece_it, p);
 
@@ -4647,7 +4647,7 @@ namespace libtorrent {
 		m_picker->get_downloaders(downloaders, piece);
 
 		int block = 0;
-		for (std::vector<torrent_peer*>::iterator i = downloaders.begin()
+		for (auto i = downloaders.begin()
 			, end(downloaders.end()); i != end; ++i, ++block)
 		{
 			torrent_peer* tp = *i;
@@ -4662,7 +4662,7 @@ namespace libtorrent {
 		remove_time_critical_piece(piece);
 	}
 
-	void torrent::remove_time_critical_piece(piece_index_t piece, bool finished)
+	void torrent::remove_time_critical_piece(piece_index_t const piece, bool const finished)
 	{
 		for (auto i = m_time_critical_pieces.begin(), end(m_time_critical_pieces.end());
 			i != end; ++i)
@@ -4758,7 +4758,7 @@ namespace libtorrent {
 		m_picker->get_availability(avail);
 	}
 
-	void torrent::set_piece_priority(piece_index_t const index, int priority)
+	void torrent::set_piece_priority(piece_index_t const index, int const priority)
 	{
 //		INVARIANT_CHECK;
 
@@ -7528,8 +7528,9 @@ namespace libtorrent {
 		if (m_abort)
 		{
 			if (alerts().should_post<storage_moved_failed_alert>())
-				alerts().emplace_alert<storage_moved_failed_alert>(get_handle(), boost::asio::error::operation_aborted
-					, "", "");
+				alerts().emplace_alert<storage_moved_failed_alert>(get_handle()
+					, boost::asio::error::operation_aborted
+					, "", operation_t::unknown);
 			return;
 		}
 
@@ -7597,7 +7598,7 @@ namespace libtorrent {
 		{
 			if (alerts().should_post<storage_moved_failed_alert>())
 				alerts().emplace_alert<storage_moved_failed_alert>(get_handle(), error.ec
-					, resolve_filename(error.file()), error.operation_str());
+					, resolve_filename(error.file()), error.operation);
 		}
 	}
 	catch (...) { handle_exception(); }

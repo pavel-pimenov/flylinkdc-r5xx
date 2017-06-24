@@ -2864,7 +2864,7 @@ bool SearchFrame::is_filter_item(const SearchInfo* si)
 	else
 	{
 		bool l_is_filter = false;
-		if (si->m_sr.getType() == SearchResult::TYPE_FILE)
+		if (!si->m_is_torrent == false && si->m_sr.getType() == SearchResult::TYPE_FILE)
 		{
 			const auto l_file_ext = Text::toLower(Util::getFileExtWithoutDot(si->m_sr.getFileName()));
 			const auto& l_filtered_item = m_filter_map[m_CurrentTreeItem];
@@ -2877,13 +2877,31 @@ bool SearchFrame::is_filter_item(const SearchInfo* si)
 				}
 			}
 		}
+		else if (si->m_is_torrent && si->m_sr.getType() == SearchResult::TYPE_TORRENT_MAGNET)
+		{
+			if (m_CurrentTreeItem == m_tree_type[Search::TYPE_TORRENT_MAGNET])
+				l_is_filter = true;
+			else
+				l_is_filter = false;
+			/*
+			const auto& l_filtered_item = m_filter_map[m_CurrentTreeItem];
+			for (auto j = l_filtered_item.cbegin(); j != l_filtered_item.cend(); ++j)
+			{
+			    //if (j->second == l_file_ext)
+			    {
+			        l_is_filter = true;
+			        break;
+			    }
+			}
+			*/
+		}
 		return l_is_filter;
 	}
 }
 #endif // FLYLINKDC_USE_TREE_SEARCH
 bool SearchFrame::isSkipSearchResult(SearchInfo*& si)
 {
-	dcassert(m_closed == false);
+	//dcassert(m_closed == false);
 	if (m_closed == true || m_is_before_search == true)
 	{
 		check_delete(si);
@@ -3058,7 +3076,10 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 			const SearchInfoList::ParentPair l_pp = { si, SearchInfoList::g_emptyVector };
 			if (si->m_is_torrent)
 			{
-				ctrlResults.insertItem(si, I_IMAGECALLBACK);
+				if (is_filter_item(si))
+				{
+					ctrlResults.insertItem(si, I_IMAGECALLBACK);
+				}
 			}
 			else
 			{

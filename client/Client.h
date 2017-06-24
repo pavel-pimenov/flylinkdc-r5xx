@@ -82,10 +82,6 @@ class ClientBase
 		{
 			return m_type;
 		}
-		bool isDHT() const
-		{
-			return false;
-		}
 		
 		virtual const string getHubUrl() const = 0;
 		virtual const string getHubName() const = 0; // [!] IRainman opt.

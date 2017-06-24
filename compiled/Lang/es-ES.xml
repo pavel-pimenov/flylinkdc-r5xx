@@ -1624,7 +1624,7 @@
 		<String Name="UseMagnetsInPlayersSpam">Utilice enlaces en el spam de reproductores</String>
 		<String Name="UseRegexpOrWc">Utilice RegExp y/o comodines</String>
 		<String Name="Version">Versión</String>
-		<String Name="VideoAndSubtitles">Vídeo y subtítulos</String>
+		<String Name="VideoAndSubtitles">Vídeo</String>
 		<String Name="ViewAsText">Ver como texto</String>
 		<String Name="ViewGridcontrols">Usar estilo de cuadricula de controles</String>
 		<String Name="VirtualName">Nombre virtual</String>

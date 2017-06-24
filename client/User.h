@@ -67,7 +67,6 @@ class User : public Flags
 			
 			NO_ADC_1_0_PROTOCOL_BIT,
 			NO_ADCS_0_10_PROTOCOL_BIT,
-			DHT_BIT,
 			NAT_BIT,
 #ifdef FLYLINKDC_USE_IPFILTER
 			PG_IPGUARD_BLOCK_BIT,
@@ -110,7 +109,6 @@ class User : public Flags
 			NO_ADC_1_0_PROTOCOL = 1 << NO_ADC_1_0_PROTOCOL_BIT,
 			NO_ADCS_0_10_PROTOCOL = 1 << NO_ADCS_0_10_PROTOCOL_BIT,
 			
-			DHT0 = 1 << DHT_BIT,
 			NAT0 = 1 << NAT_BIT,
 			
 #ifdef FLYLINKDC_USE_IPFILTER

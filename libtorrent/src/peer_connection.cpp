@@ -1840,9 +1840,9 @@ namespace libtorrent {
 
 		if (t->super_seeding() && !m_settings.get_bool(settings_pack::strict_super_seeding))
 		{
-			// if we're superseeding and the peer just told
-			// us that it completed the piece we're superseeding
-			// to it, change the superseeding piece for this peer
+			// if we're super-seeding and the peer just told
+			// us that it completed the piece we're super-seeding
+			// to it, change the super-seeding piece for this peer
 			// if the peer optimizes out redundant have messages
 			// this will be handled when the peer sends not-interested
 			// instead.
@@ -5267,7 +5267,7 @@ namespace libtorrent {
 			if (t->alerts().should_post<file_error_alert>())
 				t->alerts().emplace_alert<file_error_alert>(error.ec
 					, t->resolve_filename(error.file())
-					, error.operation_str(), t->get_handle());
+					, error.operation, t->get_handle());
 
 			++m_disk_read_failures;
 			if (m_disk_read_failures > 100) disconnect(error.ec, operation_t::file_read);

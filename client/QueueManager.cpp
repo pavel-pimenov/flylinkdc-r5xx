@@ -1859,8 +1859,6 @@ void QueueManager::setFile(const DownloadPtr& d)
 	else if (d->getType() == Transfer::TYPE_FULL_LIST)
 	{
 		{
-			// [-] CFlyLock(cs); [-] IRainman fix.
-			
 			QueueItemPtr qi = QueueManager::FileQueue::find_target(d->getPath());
 			if (!qi)
 			{
@@ -2201,7 +2199,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 							}
 							//[~]PPA
 							
-							if (!ClientManager::isShutdown())
+							if (!ClientManager::isBeforeShutdown())
 							{
 								fly_fire3(QueueManagerListener::Finished(), q, dir, aDownload);
 							}
@@ -2598,8 +2596,8 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 				g_userQueue.removeUserL(qi, aUser);
 				isRunning = true;
 				qi->removeSourceL(aUser, reason);
-				fire_status_updated(qi);
-				fire_sources_updated(qi);
+				fire_status_updated(qi); // TODO возможно залипание тут
+				fire_sources_updated(qi); // TODO возможно залипание тут
 				setDirty();
 			}
 		}

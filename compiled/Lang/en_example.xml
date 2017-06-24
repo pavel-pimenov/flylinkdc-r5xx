@@ -367,14 +367,6 @@
 	<string name="Description">Description</string>
 	<string name="Destination">Destination</string>
 	<string name="DeterminConType">Determining connection type...</string>
-	<string name="DhtBootstrappingStarted">DHT bootstrapping started</string>
-	<string name="DhtBootstrapError">DHT bootstrap error:</string>
-	<string name="DhtDisable">Disable DHT</string>
-	<string name="DhtDisabled">DHT: Disabled</string>
-	<string name="DhtEnable">Enable DHT</string>
-	<string name="DhtEnabled">DHT enabled again</string>
-	<string name="DhtFirewalledUdp">Firewalled UDP status set</string>
-	<string name="DhtOurUpdPortOpend">Our UDP port seems to be opened</string>
 	<string name="Directory">Directory</string>
 	<string name="DirectoryAddError">Directory or directory name already exists</string>
 	<string name="DirectoryIsHidden">Directory is hidden</string>
@@ -1790,7 +1782,7 @@
 	<string name="UseMagnetsInPlayersSpam">Use magnets in players spam</string>
 	<string name="UseRegexpOrWc">Use RegExp and/or wildcards</string>
 	<string name="Version">Version</string>
-	<string name="VideoAndSubtitles">Video and subtitles</string>
+	<string name="VideoAndSubtitles">Video</string>
 	<string name="CdDvdImages">CD-DVD Image</string>
 	<string name="Comics">Comics</string>
 	<string name="Book">Book</string>

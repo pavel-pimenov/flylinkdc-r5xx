@@ -465,8 +465,8 @@ void QueueItem::addDownload(const DownloadPtr& p_download)
 {
 	CFlyFastLock(m_fcs_download);
 	dcassert(p_download->getUser());
-	dcassert(m_downloads.find(p_download->getUser()) == m_downloads.end());
-	m_downloads.insert(std::make_pair(p_download->getUser(), p_download));
+	//dcassert(m_downloads.find(p_download->getUser()) == m_downloads.end());
+	m_downloads[p_download->getUser()] = p_download;
 }
 
 bool QueueItem::removeDownload(const UserPtr& p_user)

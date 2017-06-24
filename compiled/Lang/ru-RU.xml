@@ -1949,7 +1949,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="UseMagnetsInPlayersSpam">Использовать магнетки в сообщениях плееров</String>
 		<String Name="UseRegexpOrWc">Используются регулярные выражения или маски</String>
 		<String Name="Version">Версия</String>
-		<String Name="VideoAndSubtitles">Видео и субтитры</String>
+		<String Name="VideoAndSubtitles">Видео</String>
 		<String Name="CdDvdImages">CD-DVD образ</String>
 		<String Name="Comics">Комикс</String>
 		<String Name="Book">Книга</String>

@@ -1636,7 +1636,7 @@
 		<String Name="UseMagnetsInPlayersSpam">Використовувати Magnet-посилання в повідомленнях плеєрів</String>
 		<String Name="UseRegexpOrWc">Використовуються регулярні вирази або маски</String>
 		<String Name="Version">Версія</String>
-		<String Name="VideoAndSubtitles">Відео та субтитри</String>
+		<String Name="VideoAndSubtitles">Відео</String>
 		<String Name="ViewAsText">Показати як текст</String>
 		<String Name="ViewGridcontrols">Показувати роздільники списків</String>
 		<String Name="VirtualName">Віртуальна назва</String>

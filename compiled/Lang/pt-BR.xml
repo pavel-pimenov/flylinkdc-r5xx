@@ -1960,7 +1960,7 @@ A não ser que não esteja conectado à Internet ou a conexão tiver configurada
     <string name="UseMagnetsInPlayersSpam">Usar magnéticos no spam do player</string>
     <string name="UseRegexpOrWc">Usar RegExp e/ou coringas</string>
     <string name="Version">Versão</string>
-    <string name="VideoAndSubtitles">Vídeos e Legendas</string>
+    <string name="VideoAndSubtitles">Vídeos</string>
     <string name="CdDvdImages">Imagem de CD-DVD</string>
     <string name="Comics">Quadrinhos</string>
     <string name="Book">Livros</string>

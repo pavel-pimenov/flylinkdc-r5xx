@@ -22,7 +22,7 @@
 #define TRANSFER_VIEW_H
 
 #ifdef _DEBUG
-// #define FLYLINKDC_USE_DEBUG_TRANSFERS
+#define FLYLINKDC_USE_DEBUG_TRANSFERS
 #endif
 #include "../client/DownloadManagerListener.h"
 #include "../client/UploadManagerListener.h"

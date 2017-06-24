@@ -644,7 +644,7 @@ void SettingsManager::setDefaults()
 	//setDefault(OPEN_PUBLIC, false);
 	//setDefault(OPEN_FAVORITE_HUBS, false);
 	//setDefault(OPEN_FAVORITE_USERS, false);
-	//setDefault(OPEN_QUEUE, false);
+	setDefault(OPEN_QUEUE, false);
 	//setDefault(OPEN_FINISHED_DOWNLOADS, false);
 	//setDefault(OPEN_FINISHED_UPLOADS, false);
 	//setDefault(OPEN_SEARCH_SPY, false);

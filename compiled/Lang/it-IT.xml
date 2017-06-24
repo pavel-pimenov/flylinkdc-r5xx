@@ -2038,7 +2038,7 @@ Connessione impostata completamente in modalità di configurazione automatica.</
 		<String Name="UseMagnetsInPlayersSpam">Utilizza collegamenti nello spam del lettore</String>
 		<String Name="UseRegexpOrWc">Utilizza RegExp e/o caratteri jolly</String>
 		<String Name="Version">Versione</String>
-		<String Name="VideoAndSubtitles">Video e sottotitoli</String>
+		<String Name="VideoAndSubtitles">Video</String>
 		<String Name="ViewAsText">Visualizza testo</String>
 		<String Name="ViewGridcontrols">Utilizza griglia per migliorare la visualizzazione dei file</String>
 		<String Name="VirtualName">Nome</String>

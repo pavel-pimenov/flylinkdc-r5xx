@@ -52,6 +52,7 @@ std::set<ConnectionQueueItemPtr> ConnectionManager::g_uploads; // TODO - сделать
 FastCriticalSection ConnectionManager::g_cs_update;
 UserSet ConnectionManager::g_users_for_update;
 bool ConnectionManager::g_shuttingDown = false;
+TokenManager ConnectionManager::g_tokens_manager;
 
 string TokenManager::makeToken() noexcept
 {
@@ -122,7 +123,21 @@ void TokenManager::removeToken(const string& aToken) noexcept
 //		dcassert(0);
 	}
 }
-
+string TokenManager::toString() noexcept
+{
+	CFlyFastLock(m_cs);
+	string l_res;
+	if (!m_tokens.empty())
+	{
+		l_res = "Tokens:\r\n";
+		for (auto i : m_tokens)
+		{
+			l_res += i;
+			l_res += ",";
+		}
+	}
+	return l_res;
+}
 
 ConnectionManager::ConnectionManager() : m_floodCounter(0), server(nullptr),
 	secureServer(nullptr)
@@ -253,7 +268,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 
 ConnectionQueueItemPtr ConnectionManager::getCQI_L(const HintedUser& aHintedUser, bool download)
 {
-	auto cqi = std::make_shared<ConnectionQueueItem>(aHintedUser, download, m_tokens_manager.makeToken());
+	auto cqi = std::make_shared<ConnectionQueueItem>(aHintedUser, download, g_tokens_manager.makeToken());
 	if (download)
 	{
 		dcassert(find(g_downloads.begin(), g_downloads.end(), aHintedUser) == g_downloads.end());
@@ -287,7 +302,7 @@ void ConnectionManager::putCQI_L(ConnectionQueueItemPtr& cqi)
 #endif
 	const string l_token = cqi->getConnectionQueueToken();
 	cqi.reset();
-	m_tokens_manager.removeToken(l_token);
+	g_tokens_manager.removeToken(l_token);
 	fly_fire1(ConnectionManagerListener::RemoveToken(), l_token);
 }
 
@@ -590,6 +605,8 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 		{
 			// const HintedUser l_hinted_user = (*m)->getHintedUser();
 			const bool l_is_download = (*m)->isDownload();
+			const auto l_hinted_user = (*m)->getHintedUser();
+			const auto l_token = (*m)->getConnectionQueueToken();
 			if (l_is_download)
 			{
 				CFlyWriteLock(*g_csDownloads);
@@ -602,7 +619,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 			}
 			if (!ClientManager::isBeforeShutdown())
 			{
-				// fly_fire2(ConnectionManagerListener::Removed(), l_hinted_user, l_is_download);
+				fly_fire3(ConnectionManagerListener::Removed(), l_hinted_user, l_is_download, l_token);
 			}
 		}
 		l_removed.clear();

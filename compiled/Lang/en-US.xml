@@ -1964,7 +1964,7 @@ Either you're not connected to the Internet or you have configured the connectio
 		<String Name="UseMagnetsInPlayersSpam">Use magnets in players spam</String>
 		<String Name="UseRegexpOrWc">Use RegExp and/or wildcards</String>
 		<String Name="Version">Version</String>
-		<String Name="VideoAndSubtitles">Video and subtitles</String>
+		<String Name="VideoAndSubtitles">Video</String>
 		<String Name="CdDvdImages">CD-DVD Image</String>
 		<String Name="Comics">Comics</String>
 		<String Name="Book">Book</String>

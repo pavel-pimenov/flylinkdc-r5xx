@@ -376,7 +376,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 #endif
 		void ViewTransferView(BOOL bVisible);
 		void onAwayPush();
-		void onDHTPush();
 		void getTaskbarState(int p_code = 0);
 		static unsigned int WINAPI stopper(void* p);
 		void UpdateLayout(BOOL bResizeBars = TRUE);

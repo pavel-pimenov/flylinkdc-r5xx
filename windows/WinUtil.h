@@ -1759,7 +1759,6 @@ class WinUtil
 			}
 		}
 		
-//[-]PPA    static string disableCzChars(string message);
 		static bool shutDown(int action);
 		static int setButtonPressed(int nID, bool bPressed = true);
 //TODO      static bool checkIsButtonPressed(int nID);// [+] IRainman

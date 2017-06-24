@@ -37,6 +37,7 @@
 #include "UploadManager.h"
 #include "../FlyFeatures/flyServer.h"
 #include "../client/CFlylinkDBManager.h"
+#include "../windows/resource.h"
 
 #ifdef _WIN32
 # include <ShlObj.h>
@@ -1585,6 +1586,21 @@ int ShareManager::run()
 	{
 		g_is_first = true;
 		QueueManager::getInstance()->loadQueue();
+		if (BOOLSETTING(OPEN_QUEUE))
+		{
+			extern bool g_is_auto_open_queue;
+			if (LogManager::g_mainWnd)
+			{
+				if (!::PostMessage(LogManager::g_mainWnd, WM_COMMAND, IDC_QUEUE, 0))
+				{
+					g_is_auto_open_queue = true;
+				}
+			}
+			else
+			{
+				g_is_auto_open_queue = true;
+			}
+		}
 		for (int i = 0; i < 50 * 10; i++) // ∆дем 5 сек
 		{
 			::Sleep(10);

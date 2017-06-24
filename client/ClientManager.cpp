@@ -855,7 +855,7 @@ void ClientManager::userCommandL(const HintedUser& hintedUser, const UserCommand
 	if (hintedUser.user)
 	{
 		OnlineUserPtr ou = findOnlineUserL(hintedUser.user->getCID(), hintedUser.hint.empty() ? uc.getHub() : hintedUser.hint, false);
-		if (!ou || ou->isDHT())
+		if (!ou)
 			return;
 			
 		auto& l_ñlient = ou->getClient();
@@ -887,7 +887,7 @@ void ClientManager::send(AdcCommand& cmd, const CID& cid)
 			u = i->second;
 			if (cmd.getType() == AdcCommand::TYPE_UDP && !u->getIdentity().isUdpActive())
 			{
-				if (u->getUser()->isNMDC() || u->isDHT())
+				if (u->getUser()->isNMDC())
 					return;
 					
 				cmd.setType(AdcCommand::TYPE_DIRECT);
@@ -1457,7 +1457,7 @@ void ClientManager::fileListDisconnected(const UserPtr& p)
 	{
 		CFlyReadLock(*g_csOnlineUsers);
 		const auto i = g_onlineUsers.find(p->getCID());
-		if (i != g_onlineUsers.end()  && !i->second->isDHT())
+		if (i != g_onlineUsers.end())
 		{
 			OnlineUser* ou = i->second;
 			auto& id = ou->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'ou->getIdentity()' expression repeatedly. cheatmanager.h 43
@@ -1487,7 +1487,7 @@ void ClientManager::connectionTimeout(const UserPtr& p)
 	{
 		CFlyReadLock(*g_csOnlineUsers);
 		const auto i = g_onlineUsers.find(p->getCID());
-		if (i != g_onlineUsers.end()  && !i->second->isDHT())
+		if (i != g_onlineUsers.end())
 		{
 			OnlineUserPtr ou = i->second;
 			auto& id = ou->getIdentity(); // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'ou.getIdentity()' expression repeatedly. cheatmanager.h 80
@@ -1522,7 +1522,7 @@ void ClientManager::checkCheating(const UserPtr& p, DirectoryListing* dl)
 	{
 		CFlyReadLock(*g_csOnlineUsers);
 		const auto i = g_onlineUsers.find(p->getCID());
-		if (i == g_onlineUsers.end() || i->second->isDHT())
+		if (i == g_onlineUsers.end())
 			return;
 			
 		ou = i->second;
@@ -1579,7 +1579,7 @@ void ClientManager::setClientStatus(const UserPtr& p, const string& aCheatString
 	{
 		CFlyReadLock(*g_csOnlineUsers);
 		const auto i = g_onlineUsers.find(p->getCID());
-		if (i == g_onlineUsers.end() || i->second->isDHT())
+		if (i == g_onlineUsers.end())
 			return;
 			
 		ou = i->second;
@@ -1631,7 +1631,7 @@ void ClientManager::reportUser(const HintedUser& user)
 	{
 		CFlyReadLock(*g_csOnlineUsers);
 		OnlineUserPtr ou = findOnlineUserL(user.user->getCID(), user.hint, priv);
-		if (!ou || ou->isDHT())
+		if (!ou)
 			return;
 			
 		ou->getIdentity().getReport(l_report);

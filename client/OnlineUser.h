@@ -834,7 +834,7 @@ class Identity
 #endif
 		}
 		
-		void getParams(StringMap& map, const string& prefix, bool compatibility, bool dht = false) const;
+		void getParams(StringMap& map, const string& prefix, bool compatibility) const;
 		UserPtr& getUser()
 		{
 			return user;
@@ -976,7 +976,6 @@ class OnlineUser :  public UserInfoBase
 		{
 			return (const Client&)m_client;
 		}
-		bool isDHT() const;
 		ClientBase& getClientBase()
 		{
 			return m_client;

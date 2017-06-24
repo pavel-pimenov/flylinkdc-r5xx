@@ -35,6 +35,7 @@ class TokenManager
 	public:
 		string getToken() noexcept;
 		string makeToken() noexcept;
+		string toString() noexcept;
 		bool addToken(const string& aToken) noexcept;
 		bool isToken(const string& aToken) noexcept;
 		void removeToken(const string& aToken) noexcept;
@@ -199,7 +200,7 @@ class ConnectionManager :
 	public Singleton<ConnectionManager>
 {
 	public:
-		TokenManager m_tokens_manager;
+		static TokenManager g_tokens_manager;
 		void nmdcExpect(const string& aNick, const string& aMyNick, const string& aHubUrl
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		                , ExpectedMap::DefinedExpectedReason reason = ExpectedMap::REASON_DEFAULT

@@ -639,7 +639,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	ctrlUpdateProgress.SetRange(0, 100);
 	ctrlUpdateProgress.SetStep(1);
 	
-	//  AppendMenu(tabDHTMenu,MF_SEPARATOR,NULL,NULL);
 	tabAWAYMenu.CreatePopupMenu();  // [+] add context menu on DHT area in status bar
 	tabAWAYMenu.AppendMenu(MF_STRING, IDC_STATUS_AWAY_ON_OFF, CTSTRING(AWAY));
 	
@@ -809,12 +808,15 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	DownloadManager::getInstance()->init_torrent();
 	return 0;
 }
+bool g_is_auto_open_queue = false; // Флаг выставляется в потоке если он заканичвается раньше построения окна.
 void MainFrame::openDefaultWindows()
 {
 	if (BOOLSETTING(OPEN_FAVORITE_HUBS)) PostMessage(WM_COMMAND, IDC_FAVORITES);
 	if (BOOLSETTING(OPEN_FAVORITE_USERS)) PostMessage(WM_COMMAND, IDC_FAVUSERS);
-// TODO - очередь грузится асинхронно
-//	if (BOOLSETTING(OPEN_QUEUE)) PostMessage(WM_COMMAND, IDC_QUEUE);
+	if (g_is_auto_open_queue && BOOLSETTING(OPEN_QUEUE))
+	{
+		PostMessage(WM_COMMAND, IDC_QUEUE);
+	}
 	if (BOOLSETTING(OPEN_FINISHED_DOWNLOADS)) PostMessage(WM_COMMAND, IDC_FINISHED);
 	if (BOOLSETTING(OPEN_WAITING_USERS)) PostMessage(WM_COMMAND, IDC_UPLOAD_QUEUE);
 	if (BOOLSETTING(OPEN_FINISHED_UPLOADS)) PostMessage(WM_COMMAND, IDC_FINISHED_UL);
