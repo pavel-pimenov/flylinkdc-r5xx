@@ -888,7 +888,7 @@ void File_Flv::Data_Parse()
         if ((((Count_Get(Stream_Video)==0 || Stream[Stream_Video].TimeStamp!=(int32u)-1)
            && (Count_Get(Stream_Audio)==0 || Stream[Stream_Audio].TimeStamp!=(int32u)-1))
           || (File_Size>1024*1024*2 && File_Offset+Buffer_Offset-Header_Size-PreviousTagSize-4<File_Size-1024*1024))
-         && Config->ParseSpeed<1)
+         && Config->ParseSpeed<1.0)
             File__Analyze::Finish();
         else if (Element_Code==0xFA) //RM metadata have a malformed PreviousTagSize, always
         {
@@ -901,7 +901,7 @@ void File_Flv::Data_Parse()
         else
             File__Analyze::GoTo(File_Offset+Buffer_Offset-Header_Size-PreviousTagSize-4);
     }
-    else if (!Status[IsFilled] && !video_stream_Count && !audio_stream_Count && video_stream_FrameRate_Detected && File_Offset+1024*1024*2<File_Size && MediaInfoLib::Config.ParseSpeed_Get()<1) //All streams are parsed
+    else if (!Status[IsFilled] && !video_stream_Count && !audio_stream_Count && video_stream_FrameRate_Detected && File_Offset+1024*1024*2<File_Size && Config->ParseSpeed<1.0) //All streams are parsed
     {
         Fill();
 
@@ -939,7 +939,7 @@ void File_Flv::video()
     }
 
     //Needed?
-    if (!video_stream_Count && Config->ParseSpeed<1)
+    if (!video_stream_Count && Config->ParseSpeed<1.0)
         return; //No more need of Video stream
 
     //Parsing
@@ -1265,7 +1265,7 @@ void File_Flv::audio()
     }
 
     //Needed?
-    if (!audio_stream_Count && Config->ParseSpeed<1)
+    if (!audio_stream_Count && Config->ParseSpeed<1.0)
         return; //No more need of Audio stream
 
     //Parsing
@@ -1521,6 +1521,11 @@ void File_Flv::meta_SCRIPTDATAVALUE(const std::string &StringData)
                         ValueS.From_Number(Value, 0);
                     Element_Info1(ValueS);
                 #endif //MEDIAINFO_TRACE
+                if (StreamKind==Stream_Video && ToFill=="FrameRate")
+                {
+                    if (Retrieve(Stream_Video, 0, Video_FrameRate).To_float32()<1000 && Value>=1000)
+                        ToFill.clear(); //Such incoherency was found in 1 file (e.g. 30 then 30000)
+                }
                 if (!ToFill.empty())
                 {
                     Fill(StreamKind, 0, ToFill.c_str(), ValueS, true);
@@ -1565,6 +1570,7 @@ void File_Flv::meta_SCRIPTDATAVALUE(const std::string &StringData)
                     else if (StringDataModified=="Encoded_With") {ToFill=General_Encoded_Application;}
                     else if (StringDataModified=="Encoded_By") {ToFill=General_Encoded_Application;}
                     else if (StringDataModified=="metadatacreator") {ToFill=General_Tagged_Application;}
+                    else if (StringDataModified=="title") {ToFill=General_Title;}
                     else if (StringDataModified=="creation_time") {ToFill=General_Encoded_Date; Value.insert(0, __T("UTC "));}
                     else if (StringDataModified=="sourcedata") {}
                     else if (StringDataModified=="audiocodecid") {}

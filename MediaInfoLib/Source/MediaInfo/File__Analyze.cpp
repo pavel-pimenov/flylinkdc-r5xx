@@ -249,9 +249,6 @@ File__Analyze::File__Analyze ()
     Buffer_JunkBytes=0;
     Stream_BitRateFromContainer=0;
 
-    //EOF
-    EOF_AlreadyDetected=(MediaInfoLib::Config.ParseSpeed_Get()==1.0)?true:false;
-
     //Synchro
     MustParseTheHeaderFile=true;
     Synched=false;
@@ -393,6 +390,7 @@ void File__Analyze::Open_Buffer_Init (int64u File_Size_)
     if (MediaInfoLib::Config.FormatDetection_MaximumOffset_Get())
         Buffer_TotalBytes_FirstSynched_Max=MediaInfoLib::Config.FormatDetection_MaximumOffset_Get();
     Config->File_ParseSpeed_Set(MediaInfoLib::Config.ParseSpeed_Get(), true);
+    EOF_AlreadyDetected=(Config->ParseSpeed>=1.0)?true:false;
     if (Config->File_IsSub_Get())
         IsSub=true;
     #if MEDIAINFO_DEMUX
@@ -427,7 +425,7 @@ void File__Analyze::Open_Buffer_Init (int64u File_Size_)
         }
     #endif //MEDIAINFO_EVENTS
     #if MEDIAINFO_IBIUSAGE
-        Config_Ibi_Create=Config->Ibi_Create_Get() && Config->ParseSpeed==1.0;
+        Config_Ibi_Create=Config->Ibi_Create_Get() && Config->ParseSpeed>=1.0;
         if (Config_Ibi_Create && !IsSub && IbiStream==NULL)
             IbiStream=new ibi::stream;
     #endif //MEDIAINFO_IBIUSAGE
@@ -471,11 +469,11 @@ void File__Analyze::Open_Buffer_Init (File__Analyze* Sub, int64u File_Size_)
     Sub->Open_Buffer_Init(File_Size_);
 }
 
-void File__Analyze::Open_Buffer_OutOfBand (File__Analyze* Sub)
+void File__Analyze::Open_Buffer_OutOfBand (File__Analyze* Sub, size_t Size)
 {
     if (Sub==NULL)
     {
-        Skip_XX(Element_Size-Element_Offset,                    "Unknown");
+        Skip_XX(Size,                                           "Unknown");
         return;
     }
 
@@ -498,8 +496,8 @@ void File__Analyze::Open_Buffer_OutOfBand (File__Analyze* Sub)
         bool Demux_EventWasSent_Save=Config->Demux_EventWasSent;
         Config->Demux_EventWasSent=false;
     #endif //MEDIAINFO_DEMUX
-    Sub->Open_Buffer_OutOfBand(Buffer+Buffer_Offset+(size_t)Element_Offset, (size_t)(Element_Size-Element_Offset));
-    Element_Offset=Element_Size;
+    Sub->Open_Buffer_OutOfBand(Buffer+Buffer_Offset+(size_t)Element_Offset, Size);
+    Element_Offset+=Size;
     #if MEDIAINFO_DEMUX
         if (Demux_EventWasSent_Save)
             Config->Demux_EventWasSent=true;
@@ -2573,7 +2571,7 @@ void File__Analyze::Data_GoTo (int64u GoTo_, const char* ParserName)
 #if MEDIAINFO_TRACE
 void File__Analyze::Data_GoToFromEnd (int64u GoToFromEnd, const char* ParserName)
 {
-    if (IsSub && Config->ParseSpeed==1)
+    if (IsSub && Config->ParseSpeed>=1)
         return;
 
     if (GoToFromEnd>File_Size)
@@ -3042,7 +3040,7 @@ void File__Analyze::Finish ()
     if (!ShouldContinueParsing && !Status[IsFilled])
         Fill();
 
-    if (ShouldContinueParsing || Config->ParseSpeed==1)
+    if (ShouldContinueParsing || Config->ParseSpeed>=1)
     {
         #if MEDIAINFO_TRACE
         if (!ParserName.empty())
@@ -3139,7 +3137,7 @@ void File__Analyze::ForceFinish ()
     Status[IsFinished]=true;
 
     //Real stream size
-    if (Config->ParseSpeed==1 && IsRawStream && Buffer_TotalBytes)
+    if (Config->ParseSpeed>=1 && IsRawStream && Buffer_TotalBytes)
     {
         //Exception with text streams embedded in video
         if (StreamKind_Last==Stream_Text)
@@ -3149,7 +3147,7 @@ void File__Analyze::ForceFinish ()
     }
 
     //Frame count
-    if (Config->ParseSpeed==1 && IsRawStream && Frame_Count && Frame_Count!=(int64u)-1 && Retrieve(StreamKind_Last, 0, Fill_Parameter(StreamKind_Last, Generic_FrameCount)).empty())
+    if (Config->ParseSpeed>=1 && IsRawStream && Frame_Count && Frame_Count!=(int64u)-1 && Retrieve(StreamKind_Last, 0, Fill_Parameter(StreamKind_Last, Generic_FrameCount)).empty())
         Fill(StreamKind_Last, 0, Fill_Parameter(StreamKind_Last, Generic_FrameCount), Frame_Count);
 }
 
@@ -3211,7 +3209,7 @@ void File__Analyze::GoTo (int64u GoTo, const char* ParserName)
 
     Element_Show();
 
-    if (IsSub && Config->ParseSpeed==1)
+    if (IsSub && Config->ParseSpeed>=1)
         return;
 
     if (GoTo==File_Size)
@@ -3282,7 +3280,7 @@ void File__Analyze::GoTo (int64u GoTo)
         return;
     }
 
-    if (IsSub && Config->ParseSpeed==1)
+    if (IsSub && Config->ParseSpeed>=1)
         return;
 
     if (GoTo==File_Size)

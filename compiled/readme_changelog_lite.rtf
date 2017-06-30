@@ -7,7 +7,28 @@
 \'d2\'e0\'ea\'e6\'e5 \'e0\'ed\'ee\'ed\'e8\'ec\'ed\'ee \'ec\'ee\'e6\'ed\'ee \'e2\'fb\'f1\'ea\'e0\'e7\'fb\'e2\'e0\'f2\'fc \'e7\'e0\'ec\'e5\'f7\'e0\'ed\'e8\'ff \'ee \'ef\'f0\'ee\'e3\'f0\'e0\'ec\'ec\'e5 \'ed\'e0 \'f5\'e0\'e1\'e5 \'ef\'ee\'e4\'e4\'e5\'e6\'ea\'e8\par
 dchub://dc.fly-server.ru\par
 \par
-\lang1033\b\f1\fs20 ===\lang1049\f0  \lang1033\f1 r50\lang1049\f0 4 \lang1033\f1 build 20812 ===\par
+\lang1033\b\f1\fs20 ===\lang1049\f0  \lang1033\f1 r50\lang1049\f0 4 \lang1033\f1 build 20822 ===\par
+\pard\nowidctlpar\lang1049\b0\f0\fs16 * jsoncpp 1.8.1\par
+* libtorrent\par
+* mediainfo  0.7.97, 2017-06-30\par
++ HEVC: support of stream having VPS hrd_parameters\par
++ FLV: support of FLV files with an ID3v2 header\par
++ FLV: detect some incoherent frame rates in buggy files\par
++ TIFF: support of more tags\par
++ I518, AAC: consider 4 back channels as 2 side + 2 back channels\par
++ Matroska: integrate all elements from Matroska specs in MediaTrace\par
++ WAV: parsing of MPEG Audio extension "mext" chunk and displayed in MediaTrace\par
++ MPC: channels count\par
++ AAC: ADTS/ADIF duration in case of full parsing and/or "risky bitrate estimation" option\par
+x MXF: less false-positive detection of some files as MXF\par
+x B1053, WAV: metadata coherency, ignore "fact" chunk more often in order to avoid bad information when this chunk is buggy\par
+x B1029, DPX: DPX endianess not considered with some fields in MediaTrace\par
+x Custom template: can check "Other" part as any other parts\par
+x Matroska: fix parsing issue with small byte blocks are taken from the file e.g. when reading from HTTP link\par
+x Matroska: files with unknown block size were flagged as truncated\par
+x MediaTrace: values with a \\n were breaking the text report lines\par
+x Some typos (RefFrames, SPF)\par
+\pard\lang1033\b\f1\fs20 ===\lang1049\f0  \lang1033\f1 r50\lang1049\f0 4 \lang1033\f1 build 20812 ===\par
 \pard\nowidctlpar\lang1049\b0\f0\fs16 * \'cf\'ee\'ef\'f0\'e0\'e2\'e8\'eb \'f4\'f3\'ed\'ea\'f6\'e8\'fe \'e0\'e2\'f2\'ee\'ec\'e0\'f2\'e8\'f7\'e5\'f1\'ea\'ee\'e3\'ee \'ee\'f2\'ea\'f0\'fb\'f2\'e8\'ff \'ee\'ea\'ed\'e0 \'ee\'f7\'e5\'f0\'e5\'e4\'e8 \'e7\'e0\'ea\'e0\'f7\'e5\'ea \'ef\'ee\'f1\'eb\'e5 \'e7\'e0\'ef\'f3\'f1\'ea\'e0 \'ef\'f0\'e8\'eb\'ee\'e6\'e5\'ed\'e8\'ff\par
   (\'ed\'e5 \'e2\'f1\'e5\'e3\'e4\'e0 \'f1\'f0\'e0\'e1\'e0\'f2\'fb\'e2\'e0\'eb\'e0 \'e5\'f1\'eb\'e8 \'ee\'f7\'e5\'f0\'e5\'e4\'fc \'ec\'e5\'eb\'ea\'e0\'ff \'e8\'eb\'e8 \'e5\'e5 \'ed\'e5 \'e1\'fb\'eb\'ee)\par
 * \'ce\'e1\'ed\'ee\'e2\'eb\'e5\'ed\'e0 libtorrent \'e8 mediainfo\par

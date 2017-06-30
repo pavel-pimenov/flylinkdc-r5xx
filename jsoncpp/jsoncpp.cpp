@@ -4232,15 +4232,16 @@ JSONCPP_STRING valueToString(double value, bool useSpecialFloats, unsigned int p
   char buffer[36];
   int len = -1;
 
-  char formatString[6];
-  sprintf(formatString, "%%.%dg", precision);
+  char formatString[15];
+  snprintf(formatString, sizeof(formatString), "%%.%dg", precision);
 
   // Print into the buffer. We need not request the alternative representation
   // that always has a decimal point because JSON doesn't distingish the
   // concepts of reals and integers.
   if (isfinite(value)) {
     len = snprintf(buffer, sizeof(buffer), formatString, value);
-    
+    fixNumericLocale(buffer, buffer + len);
+
     // try to ensure we preserve the fact that this was given to us as a double on input
     if (!strstr(buffer, ".") && !strstr(buffer, "e")) {
       strcat(buffer, ".0");
@@ -4255,10 +4256,8 @@ JSONCPP_STRING valueToString(double value, bool useSpecialFloats, unsigned int p
     } else {
       len = snprintf(buffer, sizeof(buffer), useSpecialFloats ? "Infinity" : "1e+9999");
     }
-    // For those, we do not need to call fixNumLoc, but it is fast.
   }
   assert(len >= 0);
-  fixNumericLocale(buffer, buffer + len);
   return buffer;
 }
 }

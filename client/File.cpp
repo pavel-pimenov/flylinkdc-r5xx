@@ -94,7 +94,7 @@ int64_t File::getLastWriteTime()const noexcept
 }
 
 //[+] Greylink
-int64_t File::getTimeStamp(const string& aFileName) throw(FileException)
+int64_t File::getTimeStamp(const string& aFileName)
 {
 	WIN32_FIND_DATA fd;
 	HANDLE hFind = FindFirstFileEx(Text::toT(formatPath(aFileName)).c_str(),
@@ -109,7 +109,7 @@ int64_t File::getTimeStamp(const string& aFileName) throw(FileException)
 	return *(int64_t*)&fd.ftLastWriteTime;
 }
 
-void File::setTimeStamp(const string& aFileName, const uint64_t stamp) throw(FileException)
+void File::setTimeStamp(const string& aFileName, const uint64_t stamp)
 {
 	HANDLE hCreate = CreateFile(formatPath(Text::toT(aFileName)).c_str(), FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
 	if (hCreate == INVALID_HANDLE_VALUE)
@@ -201,15 +201,15 @@ void File::setSize(int64_t newSize)
 	setEOF();
 	setPos(pos);
 }
-void File::setPos(int64_t pos) throw(FileException)
+void File::setPos(int64_t pos)
 {
 	// [!] IRainman use SetFilePointerEx function!
 	LARGE_INTEGER x = {0};
 	x.QuadPart = pos;
 	if (!::SetFilePointerEx(h, x, &x, FILE_BEGIN))
-		throw(FileException(Util::translateError())); //[+]PPA
+		throw(FileException(Util::translateError()));
 }
-int64_t File::setEndPos(int64_t pos) throw(FileException)
+int64_t File::setEndPos(int64_t pos)
 {
 	// [!] IRainman use SetFilePointerEx function!
 	LARGE_INTEGER x = {0};
@@ -219,7 +219,7 @@ int64_t File::setEndPos(int64_t pos) throw(FileException)
 	return x.QuadPart;
 }
 
-void File::movePos(int64_t pos) throw(FileException)
+void File::movePos(int64_t pos)
 {
 	// [!] IRainman use SetFilePointerEx function!
 	LARGE_INTEGER x = {0};

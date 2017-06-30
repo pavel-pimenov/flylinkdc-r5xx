@@ -108,7 +108,7 @@ class File : public IOStream
 			return getSize(Text::toT(aFileName));
 		}
 		// [+] Greylink
-		static int64_t getTimeStamp(const string& aFileName) throw(FileException);
+		static int64_t getTimeStamp(const string& aFileName);
 		static int64_t getSafeTimeStamp(const string& p_FileName) noexcept
 		{
 			int64_t l_time_stamp;
@@ -122,7 +122,7 @@ class File : public IOStream
 			}
 			return l_time_stamp;
 		}
-		static void setTimeStamp(const string& aFileName, const uint64_t stamp) throw(FileException);
+		static void setTimeStamp(const string& aFileName, const uint64_t stamp);
 		// [~] Greylink
 		
 		// [+] IRainman

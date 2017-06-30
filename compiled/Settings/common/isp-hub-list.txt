@@ -10,6 +10,7 @@
 ;Spain;Barakaldo;Euskatel;;adcs://dc.ekparty.org:2780
 ;USA;Dallas;123systems;;dcbee.pp.ua
 ;USA;Torrance;CoolVDS;;outlaw.pshub.net:666
+;Uzbekistan;Tashkent;Fibernet;;dc.fibernet.uz,Macl1n.St1mul.uz,hub.thegame.uz
 ;Uzbekistan;Tashkent;Turontelecom;;algoritm.uz
 ;Азербайджан;Баку;Bakcell;;dost.az
 ;Азербайджан;Баку;Bakinternet;;kinoman.vip
@@ -482,6 +483,7 @@
 ;Россия;Котово;Волга-Связь-ТВ;;192.168.254.2
 ;Россия;Красноармейск;Dialog-K;;dc.netorn.ru:411
 ;Россия;Красногорск;Rednet;;krasnogorsk.ru,dchub.krasnogorsk.ru:411
+;Россия;Красногорск;Билайн;;hub.homenetwork.ru
 ;Россия;Красногорский Челябинской области;TeleNet;;dc.krasntv.ru
 ;Россия;Краснодар;Atamic;;dc.avangard-hub.ru
 ;Россия;Краснодар;Comstar;;p2p.krasnodarnet.ru:4111
@@ -617,19 +619,21 @@
 ;Россия;Москва;2Ком;;russia-dc.ru,gedeon.no-ip.info
 ;Россия;Москва;Butovo-NET;;dc.cifracom.ru
 ;Россия;Москва;CityLink;;dc.kvidex.net
+;Россия;Москва;Corbina;;hmn.pp.ru
 ;Россия;Москва;Das-online;;10.131.0.4,10.131.36.100
 ;Россия;Москва;Flex;;10.225.208.208:411,10.205.22.28:411,10.205.6.42:411,10.33.223.223:411,10.227.11.100:411,10.224.179.118:411,10.201.9.100:411,10.170.161.189:411,10.10.200.34:411,dc.prapor-hub.com:411,77.243.109.150:411,10.201.134.23:411,dc.masterlink.ru:411,10.155.117.51:411,10.205.18.99:411,dc.netorn.ru:411,10.33.192.145:411,10.139.148.77:1209,dc.sphub.ru:411,10.70.64.217:411,10.139.22.51:1779,10.224.167.254,10.224.168.140,172.28.2.164,10.147.78.14,10.110.119.41,81.88.208.142,172.23.112.110,10.173.126.4,217.70.16.22,10.35.64.162,10.35.0.12,ultimate.trytek.ru,10.224.77.27,dc.mytischi.net,karumo.pp.ru,10.48.0.250:411,hub.koptevo.net:4111,dc.kvidex.net,10.39.117.252,89.222.211.212,el-gorsk.sytes.net,dc.misteriya.com,dc.life24h.net
 ;Россия;Москва;Golden;;p2p.corbina.net
 ;Россия;Москва;HausNet;;dc.netorn.ru,dc.kvidex.net:4111,hub.interlan.ru:411,dc.ultimanet.ru,hub.koptevo.net:4111,infinity.krasno.ru:411,dc.commsol.ru:411,dc.degunino.net
 ;Россия;Москва;Koptevo-Net;;dc.koptevo.net:4111,10.10.97.57,hub.homenetwork.ru,172.28.4.75,hub.interlan.ru,10.170.161.189:411,10.155.117.51:411,10.139.148.77:1209,10.70.32.131:411,dc.netorn.ru:411,dc.spnet.ru:411,172.24.40.50:411,10.33.223.223:411,dc.deg-world.net:411,10.122.226.31,10.10.200.34,10.35.0.12:411,dc.m9-uz.ru:411,dc.imsys.ru:411,dc-pozitive.net:411,dc.kvidex.net,dc.tushino.com,p2p.opcom.ru,dc.sphub.ru:411,dc.khotkovo.net:411,dcplus.mosinter.net:411,10.226.9.100:411,dc.mytischi.net,dc2.mytischi.net,otaku.degunino.net,10.70.64.217:411,10.225.208.208:411,10.139.22.51:1779,10.226.16.113:411,172.28.2.164:411,10.170.167.4:411,dc.starsteam.ru:4111,10.33.192.145,10.70.0.99:411,10.71.2.141:411,172.23.112.110:411,vs.maryno.net,dc.home-media.ru,10.70.0.91:411,10.147.106.21:411,connect.fdns.net
 ;Россия;Москва;KSTelecom;;10.32.250.9:4111,10.32.103.237,blonde.dyndns.org:4111
+;Россия;Москва;Kvidex;;hmn.pp.ru
 ;Россия;Москва;Lan-expert;;10.32.103.237
 ;Россия;Москва;Mirskoy-Ru;;dc.mirskoy.ru
 ;Россия;Москва;Net-dsg;;mz.dsg
 ;Россия;Москва;NetByNet;;dc.peering-net.net,dc1.peering-net.net,dc2.peering-net.net,portal.peering-net.net,dc.maxnet.ua,10.5.9.125,10.251.253.4:4111,dc.dcmagnets.ru,dc.filimania.com,allavtovo.ru,dc.cifracom.ru,piknik-dc.ru,godc.ru
 ;Россия;Москва;Netorn;;dc.netorn.ru
 ;Россия;Москва;NK-NET;;dc.maryno.net,dc.nk-net.ru,dc.kvidex.net,hub.interlan.ru,dc.khotkovo.net,dc.netorn.ru,dc.lofisnet.ru,dc.mytischi.net,dc2.mytischi.net,dc-pozitive.net,hub.koptevo.net:4111,dc.spnet.ru,favorite-hub.ru,dc.deg-world.net
-;Россия;Москва;OnLime;;dc.pivosik.info,dc.vhz-team.ru,dc.zelserv.ru,dc-alter.ru,dc.cifracom.ru,motya.hub.nov.ru,p2p.mosell.ru:4002,dc.s125.ru,allavtovo.ru
+;Россия;Москва;OnLime;;dc.pivosik.info,dc.vhz-team.ru,dc.zelserv.ru,dc-alter.ru,dc.cifracom.ru,motya.hub.nov.ru,p2p.mosell.ru:4002,dc.s125.ru,allavtovo.ru,hmn.pp.ru
 ;Россия;Москва;Peering Net;;dc.peering-net.net,dc1.peering-net.net,dc2.peering-net.net,portal.peering-net.net
 ;Россия;Москва;PromoGame;;dc.promogame.info
 ;Россия;Москва;Prov-ru;;online-hub.ru,angel.karumo.pp.ru,casper-house.ru,dc-vip.ru,dc-vip.ru:2411,dc1.peering-net.net,dc2.peering-net.net,dc.netorn.ru,dc.maryno.net,dc.lanport.ru,dc.inetcom.ru,dc.kvidex.net,p2p.opcom.ru,dc.vilvit.net,dc.lofisnet.ru,dc.khotkovo.net,dc.unilines.ru,dc.pushkino-telecom.ru,dc.east.ru,X-FilesReality.ru,dc2.x-filesreality.ru:666,ssvhub.ru,connect-server.net,dc.starsteam.ru:4111,ultimate.trytek.ru,10.145.72.22,space.trytek.ru,dc.nicosoft.ru,dc.strikearena.ru,213.141.145.79,dc.masterlink.ru,85.159.40.183,79.120.8.63,79.120.84.75,dc.klan-hub.ru,crysis.myhub.pp.ua:666,trivia.netbynet.ru,chronos-hub.no-ip.org,10.157.52.94,reality-media.ru,213.141.148.157,rushub.dcul.ru,10.157.199.12
@@ -1240,6 +1244,7 @@
 ;Узбекистан;Ташкент;TAS-IX;;hub.tas-ix.net
 ;Узбекистан;Ташкент;TheGame-Uz;;hub.thegame.uz
 ;Узбекистан;Ташкент;TPS;;jetfree.no-ip.info
+;Узбекистан;Ташкент;Turontelecom;;178.218.204.186
 ;Узбекистан;Ташкент;Uzinfocom;;hub.hi.uz,l2maxi.uz,dc.hi.uz
 ;Узбекистан;Ташкент;Uznet;;213.230.121.155
 ;Узбекистан;Ташкент;UzOnline;;angelka.no-ip.info,madman242.no-ip.biz:411,steep-hub.myftp.org,hub.hi.uz
@@ -1335,8 +1340,8 @@
 ;Украина;Одесса;CSFF;;dc.cifracom.ru,dc.filimania.com,superstorm.ru,dc.mside.net,piknik-dc.ru,starshub.ru,unformal.interzet.ru,favorite-hub.ru,promusic.interzet.ru,dc.unionbest.ru,dc.triolan.ua,4local.ru,verlihub.org:4111,artcool.org,dc.langate.ua,inhub.no-ip.org,angel.karumo.pp.ru,amber.zapto.org,dc.pashahub.ru,goldhub.mydc.ru,prime-hub.ru,allavtovo.ru,pozitiv.smilehub.ru,dc.kmsnet.ru,hub.balunet.org,dc.tiera.ru,dc.dcmagnets.ru,dcukrtelekom.no-ip.org
 ;Украина;Одесса;TeNeT New;;dc.pshub.net,dc.triolan.ua,dc.cifracom.ru,lopatos.org.ua,dc.langate.ua,dc.kraft.od.ua,dc.maxnet.ua,dc.kraft.od.ua:411,breeze-p2p.od.ua:1411,dc.fly-server.ru,ruflexhub.ru,dc.rutrack.net,dc.filimania.com,dcsamara.net,dc.sobernet.ru:4111,megabithub.ru,nlight.org.ua,hubsergdc.ukroffice.com,hub.kharkov.ua:4111,power-hub.ru:1209,dc.filesharing.bz.ua,dchub.in.ua,service.rds-rostov.ru,hub.volia.pp.ua,globalnet.ddns.net,nemesis.te-home.net,dc.triolan-kharkov.org.ua,world-inhub.no-ip.org,dc.tiera.ru
 ;Украина;Острог;Каро;;hub.karo.net.ua
-;Украина;Павлоград;MultiNet;;dc.multinet.dp.ua
-;Украина;Павлоград;Multinet-dp-ua;;dchub://multinet.dp.ua
+;Украина;Павлоград;MultiNet;;dc.multinet.dp.ua,dc.filimania.com
+;Украина;Павлоград;Multinet-dp-ua;;multinet.dp.ua,dc.multinet.dp.ua
 ;Украина;Павлоград;Старнет;;starnet.lan
 ;Украина;Перевальск;Alchevsk-net;;dcpp.lugalink.net,dc.kompik.lg.ua
 ;Украина;Перевальск;Matrix;;dcpp.lan

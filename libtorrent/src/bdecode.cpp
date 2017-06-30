@@ -99,7 +99,30 @@ namespace {
 
 		return start;
 	}
-
+/*
+	struct stack_frame
+	{
+		stack_frame() : m_token_state(0) {}
+		explicit stack_frame(int const t): m_token_state(std::uint32_t(t & 0x7FFFFFFF)) {}
+		// this is an index into m_tokens
+		std::uint32_t index() const
+		{
+			return m_token_state & 0x7FFFFFFF;
+		}
+		// this is used for dictionaries to indicate whether we're
+		// reading a key or a vale. 'false' means key 'true' is value
+		bool state() const
+		{
+			return (m_token_state & 0x80000000) == 0x80000000;
+		}
+		void change_state()
+		{
+			m_token_state ^= 0x80000000;
+		}
+	private:
+		std::uint32_t m_token_state;
+	};
+*/
 	struct stack_frame
 	{
 		stack_frame() : token(0), state(0) {}
@@ -796,6 +819,7 @@ namespace {
 					std::int64_t len = t - '0';
 					char const* const str_start = start;
 					++start;
+					if (start >= end) TORRENT_FAIL_BDECODE(bdecode_errors::unexpected_eof);
 					bdecode_errors::error_code_enum e = bdecode_errors::no_error;
 					start = parse_int(start, end, ':', len, e);
 					if (e)
