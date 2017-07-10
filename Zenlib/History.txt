@@ -1,3 +1,8 @@
+Version 0.4.35, 2017-03-31
+--------------
++ Enable large files support in CMake project
++ Visual Studio 2017 project files
+
 Version 0.4.34, 2016-11-30
 --------------
 + Minor performance optimizations and cleanup (Thanks to Pavel Pimenov)

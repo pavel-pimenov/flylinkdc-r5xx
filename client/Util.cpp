@@ -373,6 +373,7 @@ void Util::initialize()
 	
 	File::ensureDirectory(g_paths[PATH_USER_CONFIG]);
 	File::ensureDirectory(g_paths[PATH_USER_LOCAL]);
+	File::ensureDirectory(getTempPath()); // airdc++
 }
 //==========================================================================
 static const char* g_countryCodes[] = // TODO: needs update this table! http://en.wikipedia.org/wiki/ISO_3166-1

@@ -2010,7 +2010,7 @@ void NmdcHub::onLine(const string& aLine)
 				else if (l_key == "Max")
 				{
 					m_nick_rule->m_nick_rule_max = Util::toInt(it->substr(l_pos + 1));
-
+					
 				}
 				else if (l_key == "Char")
 				{
