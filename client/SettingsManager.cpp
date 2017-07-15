@@ -570,14 +570,15 @@ void SettingsManager::setDefaults()
 	setDefault(LOG_FILE_CMDDEBUG_TRACE, "cmddebug.log");
 	setDefault(LOG_FORMAT_CMDDEBUG_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
+	setDefault(LOG_FILE_TORRENT_TRACE, "torrent.log");
+	setDefault(LOG_FORMAT_TORRENT_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
+
 	setDefault(LOG_FILE_PSR_TRACE, "psr.log");
 	setDefault(LOG_FORMAT_PSR_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
 	setDefault(LOG_FILE_FLOOD_TRACE, "flood.log");
 	setDefault(LOG_FORMAT_FLOOD_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
-	setDefault(LOG_FILE_TORRENT_TRACE, "torrent.log");
-	setDefault(LOG_FORMAT_TORRENT_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	
 	setDefault(TIME_STAMPS_FORMAT, "%X"); // [!] IRainman fix: use system format time. "%H:%M:%S"
 //
@@ -1460,7 +1461,7 @@ void SettingsManager::load(const string& aFileName)
 			set(LANGUAGE_FILE, getLanguageFileFromOldName());
 		}
 	}
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 	{
 		if (SETTING(CUSTOM_MENU_PATH) == "file://./Settings/custom_menu.xml" || SETTING(CUSTOM_MENU_PATH).empty())
 		{

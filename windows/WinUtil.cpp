@@ -56,7 +56,9 @@
 #include <control.h>
 #include <strmif.h> // error with missing ddraw.h, get it from MS DirectX SDK
 #include "BarShader.h"
+#ifdef FLYLINKDC_USE_CUSTOM_MENU
 #include "../FlyFeatures/CustomMenuManager.h" //[+] //SSA
+#endif
 #include "DirectoryListingFrm.h"
 
 #include "HTMLColors.h"
@@ -773,13 +775,15 @@ void WinUtil::init(HWND hWnd)
 	if (InitPortalBrowserMenuItems(PortalBrowserMenu))
 		g_mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)PortalBrowserMenu, CTSTRING(PORTAL_BROWSER));
 #endif
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
+#ifdef FLYLINKDC_USE_CUSTOM_MENU
 	// [+] SSA: Custom menu support.
 	CMenuHandle customMenuXML;
 	string customMenuNameXML;
 	if (FillCustomMenu(customMenuXML, customMenuNameXML))
 		g_mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)customMenuXML, Text::toT(customMenuNameXML).c_str());
 	// [~] SSA: Custom menu support.
+#endif
 #endif
 	
 	CMenuHandle window;
@@ -3384,7 +3388,8 @@ tstring WinUtil::getNicks(const HintedUser& user)
 	return getNicks(user.user, user.hint);
 }
 
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
+#ifdef FLYLINKDC_USE_CUSTOM_MENU
 bool WinUtil::FillCustomMenu(CMenuHandle &menu, string& menuName) //[+] SSA: Custom menu support.
 {
 	const CustomMenuManager* l_instance = CustomMenuManager::getInstance();
@@ -3445,7 +3450,8 @@ bool WinUtil::FillCustomMenu(CMenuHandle &menu, string& menuName) //[+] SSA: Cus
 	return bRet != FALSE;
 }
 // [~] SSA: Custom menu support.
-#endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#endif
+#endif // FLYLINKDC_USE_PROVIDER_RESOURCES
 
 
 

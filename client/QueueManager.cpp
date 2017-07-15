@@ -567,6 +567,8 @@ void QueueManager::FileQueue::calcPriorityAndGetRunningFilesL(QueueItem::Priorit
 {
 	for (auto i = g_queue.cbegin(); i != g_queue.cend(); ++i)
 	{
+		if (ClientManager::isBeforeShutdown())
+			break;
 		const QueueItemPtr& q = i->second;
 		if (q->isRunning())
 		{
@@ -927,13 +929,14 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	vector<const PartsInfoReqParam*> params;
 	{
 		PFSSourceList sl;
-		// RLock(*QueueItem::g_cs);
 		//find max 10 pfs sources to exchange parts
 		//the source basis interval is 5 minutes
 		g_fileQueue.findPFSSourcesL(sl);
 		
 		for (auto i = sl.cbegin(); i != sl.cend(); ++i)
 		{
+			if (ClientManager::isBeforeShutdown())
+				return;
 			QueueItem::PartialSource::Ptr source = i->first->second.getPartialSource();
 			const QueueItemPtr qi = i->second;
 			
@@ -3326,14 +3329,23 @@ void QueueManager::FileQueue::findPFSSourcesL(PFSSourceList& sl)
 	RLock(*g_csFQ); // [+] IRainman fix.
 	for (auto i = g_queue.cbegin(); i != g_queue.cend(); ++i)
 	{
+		if (ClientManager::isBeforeShutdown())
+			return;
 		const auto q = i->second;
 		
 		if (q->getSize() < PARTIAL_SHARE_MIN_SIZE) continue;
 		
 		// don't share when file does not exist
-		if (!File::isExist(q->isFinished() ? q->getTarget() : q->getTempTargetConst())) // Обязательно Const
+		if (q->m_is_file_not_exist == true)
+		{
 			continue;
-			
+		}
+		if (q->m_is_file_not_exist == false && !File::isExist(q->isFinished() ? q->getTarget() : q->getTempTargetConst())) // Обязательно Const
+		{
+			q->m_is_file_not_exist = true;
+			continue;
+		}
+		
 		QueueItem::getPFSSourcesL(q, buffer, now);
 //////////////////
 #ifdef _DEBUG

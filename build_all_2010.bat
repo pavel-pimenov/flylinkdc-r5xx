@@ -14,7 +14,7 @@ move *.7z "U:\webdav\src-bin-pdb\flylinkdc-r5xx\r504"
 
 rem copy changelog-flylinkdc*.txt "U:\webdav\src-bin-pdb"
 
-copy ..\flylinkdc-update\5xx\stable-lib-dll\*.dll .\compiled\PortalBrowser
+rem copy ..\flylinkdc-update\5xx\stable-lib-dll\*.dll .\compiled\PortalBrowser
 
 cd setup 
 call build_setup_base.bat

@@ -18,7 +18,7 @@
 
 #include "stdafx.h"
 
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 
 
 #include "../client/SettingsManager.h"
@@ -91,4 +91,4 @@ void ProvidersPage::fixControls()
 	GetDlgItem(IDC_USE_CUSTOM_MENU).EnableWindow(!use_resources);
 }
 
-#endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#endif // FLYLINKDC_USE_PROVIDER_RESOURCES

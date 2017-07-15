@@ -3259,7 +3259,7 @@ void CFlylinkDBManager::load_avdb()
 bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const string& p_nick, uint32_t& p_message_count, boost::asio::ip::address_v4& p_last_ip)
 {
 	dcassert(BOOLSETTING(ENABLE_LAST_IP_AND_MESSAGE_COUNTER));
-	CFlyLock(m_cs); // Убирать пока нельзя - вешаемся почему-то
+	//CFlyLock(m_cs);
 	try
 	{
 		p_message_count = 0;
@@ -3310,7 +3310,8 @@ bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const stri
 	}
 	catch (const database_error& e)
 	{
-		errorDB("SQLite - load_last_ip_and_user_stat: " + e.getError());
+		// errorDB("SQLite - load_last_ip_and_user_stat: " + e.getError());
+		LogManager::message("SQLite - load_last_ip_and_user_stat: " + e.getError());
 	}
 	return false;
 }

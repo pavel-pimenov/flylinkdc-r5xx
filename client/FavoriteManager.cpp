@@ -52,7 +52,7 @@ std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csFavUsers = std::uniq
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csHubs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csDirs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csUserCommand = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 StringSet FavoriteManager::g_sync_hub_local;
 StringSet FavoriteManager::g_sync_hub_external;
 StringSet FavoriteManager::g_sync_hub_isp_delete;
@@ -957,7 +957,7 @@ void FavoriteManager::recentsave()
 		g_recent_dirty = false;
 	}
 }
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 bool FavoriteManager::load_from_url()
 {
 
@@ -999,7 +999,7 @@ bool FavoriteManager::load_from_url()
 	}
 	return false;
 }
-#endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#endif // FLYLINKDC_USE_PROVIDER_RESOURCES
 void FavoriteManager::load()
 {
 	g_count_hub = 0;
@@ -1093,7 +1093,7 @@ void FavoriteManager::load()
 		g_recent_dirty = true;
 	}
 	// [~] IRainman fix.
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 	if (load_from_url() && !g_sync_hub_external.empty())
 	{
 		for (auto m = g_sync_hub_external.cbegin(); m != g_sync_hub_external.cend() && !g_sync_hub_local.empty(); ++m)
@@ -1111,7 +1111,7 @@ void FavoriteManager::load()
 			LogManager::message("[ISPFavorite][Connect]: " + *k + "ISP Recycled");
 		}
 	}
-#endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#endif // FLYLINKDC_USE_PROVIDER_RESOURCES
 }
 void FavoriteManager::connectToFlySupportHub()
 {
@@ -1170,7 +1170,7 @@ bool FavoriteManager::replaceDeadHub()
 	return l_result;
 }
 void FavoriteManager::load(SimpleXML& aXml
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
                            , bool p_is_url /* = false*/
 #endif
                           )
@@ -1185,7 +1185,7 @@ void FavoriteManager::load(SimpleXML& aXml
 		if (aXml.findChild("Hubs"))
 		{
 			aXml.stepIn();
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 			if (!p_is_url)
 #endif
 			{
@@ -1201,7 +1201,9 @@ void FavoriteManager::load(SimpleXML& aXml
 			}
 			aXml.resetCurrentChild();
 			g_AllHubUrls.clear();
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 			g_sync_hub_isp_delete.clear();
+#endif
 			bool l_is_fly_hub_exists = false;
 			unsigned l_count_active_ru_hub = 0;
 			const unsigned l_limit_russian_hub = 1;
@@ -1250,7 +1252,7 @@ void FavoriteManager::load(SimpleXML& aXml
 				}
 				
 				e->setConnect(l_is_connect);
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 				const bool l_is_ISPDisableFlylinkDCSupportHub = aXml.getBoolChildAttrib("ISPDisableFlylinkDCSupportHub");
 				g_is_ISPDisableFlylinkDCSupportHub |= l_is_ISPDisableFlylinkDCSupportHub;
 				e->setISPDisableFlylinkDCSupportHub(l_is_ISPDisableFlylinkDCSupportHub);
@@ -1295,14 +1297,14 @@ void FavoriteManager::load(SimpleXML& aXml
 					e->setEncoding(aXml.getChildAttrib("Encoding"));
 				}
 				// [~] IRainman fix.
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 				if (!p_is_url)
 				{
 					if (l_Group == "ISP")
 					{
 						g_sync_hub_local.insert(l_CurrentServerUrl);
 					}
-#endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#endif // FLYLINKDC_USE_PROVIDER_RESOURCES
 					auto l_nick = aXml.getChildAttrib("Nick");
 					const auto l_password = aXml.getChildAttrib("Password");
 					const auto l_pos_rnd_marker = l_nick.rfind("_RND_");
@@ -1376,7 +1378,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					                            Util::toInt64(aXml.getChildAttrib("LastAttempts")),
 					                            Util::toInt64(aXml.getChildAttrib("LastSucces")));
 #endif
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 				}
 				else
 				{
@@ -1450,9 +1452,9 @@ void FavoriteManager::load(SimpleXML& aXml
 #else
 					{
 						CFlyWriteLock(*g_csHubs);
-						favoriteHubs.push_back(e);
+						g_favoriteHubs.push_back(e);
 					}
-#endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#endif // FLYLINKDC_USE_PROVIDER_RESOURCES
 			}
 			//
 			if (l_is_fly_hub_exists == false && g_is_ISPDisableFlylinkDCSupportHub == false)
@@ -1498,7 +1500,7 @@ void FavoriteManager::load(SimpleXML& aXml
 		}
 		
 		aXml.resetCurrentChild();
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 		if (!p_is_url)
 #endif
 		{

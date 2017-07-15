@@ -2700,6 +2700,8 @@ namespace libtorrent {
 			// and removing entries for non-existent ones
 			std::vector<announce_endpoint>::size_type valid_endpoints = 0;
 			m_ses.for_each_listen_socket([&](aux::session_listen_socket* s) {
+				if (s->is_ssl() != is_ssl_torrent())
+					return;
 				for (auto& aep : ae.endpoints)
 				{
 					if (aep.socket != s) continue;
@@ -4938,7 +4940,7 @@ namespace libtorrent {
 		if (m_torrent_file->num_pieces() > 0 && m_storage)
 		{
 			m_ses.disk_thread().async_set_file_priority(m_storage
-				, m_file_priority, std::bind(&torrent::on_file_priority, this, _1));
+				, m_file_priority, std::bind(&torrent::on_file_priority, shared_from_this(), _1));
 		}
 
 		update_piece_priorities();
@@ -4977,7 +4979,7 @@ namespace libtorrent {
 		if (m_storage)
 		{
 			m_ses.disk_thread().async_set_file_priority(m_storage
-				, m_file_priority, std::bind(&torrent::on_file_priority, this, _1));
+				, m_file_priority, std::bind(&torrent::on_file_priority, shared_from_this(), _1));
 		}
 		update_piece_priorities();
 	}

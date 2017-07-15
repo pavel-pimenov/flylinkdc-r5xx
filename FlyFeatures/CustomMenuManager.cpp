@@ -18,7 +18,7 @@
 
 #include "stdinc.h"
 
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_CUSTOM_MENU
 
 #include <wininet.h>
 #include "CustomMenuManager.h"
@@ -139,4 +139,4 @@ const string& CustomMenuManager::GetUrlByID(int id)
 	return Util::emptyString;
 }
 
-#endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#endif // FLYLINKDC_USE_CUSTOM_MENU

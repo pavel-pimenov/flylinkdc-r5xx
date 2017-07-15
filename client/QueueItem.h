@@ -372,10 +372,11 @@ class QueueItem : public Flags
 		bool m_dirty_base;
 		bool m_dirty_source;
 		bool m_dirty_segment;
-//		bool m_is_failed;
 		uint64_t m_block_size;
 		void calcBlockSize();
 	public:
+		bool m_is_file_not_exist;
+		
 		const TTHValue& getTTH() const
 		{
 			return m_tthRoot;

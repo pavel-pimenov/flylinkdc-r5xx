@@ -641,9 +641,13 @@ namespace {
 	std::string entry::to_string() const
 	{
 		std::string ret;
-		ret.reserve(256);
+		if(type() == dictionary_t) ret.reserve(280);
+
 		to_string_impl(ret, 0);
 #ifdef _DEBUG
+		static std::map<data_type, std::map<size_t, unsigned> > g_entry_stat;
+		auto& item = g_entry_stat[type()];
+		item[ret.size()]++;
 //		::Sleep(5000);
 #endif
 		return ret;

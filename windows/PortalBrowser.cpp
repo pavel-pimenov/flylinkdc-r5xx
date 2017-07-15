@@ -2,6 +2,9 @@
 #include <fstream>
 
 #pragma warning(disable: 4458)
+
+#ifdef RIP_USE_PORTAL_BROWSER
+
 #include "PortalBrowser.h"
 #include "MainFrm.h"
 #include "WinUtil.h"
@@ -783,3 +786,4 @@ size_t GetPortalBrowserListCount()
 {
 	return g_PortalList.size();
 }
+#endif

@@ -7,7 +7,6 @@ wtl
 bzip2
 res
 zlib
-PortalBrowser
 XMLParser
 Tools
 Tools\*.exe
@@ -37,8 +36,6 @@ FlyUpdate.rc
 revision.h
 FlylinkDCExt.h
 version.h
-compiled\PortalBrowser\*.xml
-compiled\PortalBrowser\*.xsd
 changelog*
 compiled\Settings\custom_menu.xml
 compiled\Settings\CustomCompressExt.ini

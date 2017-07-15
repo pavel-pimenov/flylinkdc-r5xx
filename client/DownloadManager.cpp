@@ -855,7 +855,7 @@ void DownloadManager::select_files(const libtorrent::torrent_handle& p_torrent_h
 	{
 		auto l_file = p_torrent_handle.torrent_file();
 		l_files.reserve(l_file->num_files());
-		const std::string torrentName = p_torrent_handle.status(torrent_handle::query_name).name;
+		//const std::string torrentName = p_torrent_handle.status(torrent_handle::query_name).name;
 		const file_storage fileStorage = l_file->files();
 		for (int i = 0; i < fileStorage.num_files(); i++)
 		{
@@ -1064,6 +1064,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 						for (const auto j : st->status)
 						{
 							lt::torrent_status const& s = j;
+#ifdef FLYLINKDC_BETA
 							std::string l_log = "[" + Util::toString(l_pos) + "] Status: " + st->message() + " [ " + s.save_path + "\\" + s.name
 							                    + " ] Download: " + Util::toString(s.download_payload_rate / 1000) + " kB/s "
 							                    + " ] Upload: " + Util::toString(s.upload_payload_rate / 1000) + " kB/s "
@@ -1075,6 +1076,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 								g_last_log = l_log;
 							}
 							LogManager::torrent_message(l_log, false);
+#endif
 							l_pos++;
 							DownloadArray l_tickList;
 							{

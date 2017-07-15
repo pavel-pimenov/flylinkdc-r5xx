@@ -1922,8 +1922,10 @@ class WinUtil
 		static tstring getCommandsList();
 	private:
 		static int CALLBACK browseCallbackProc(HWND hwnd, UINT uMsg, LPARAM /*lp*/, LPARAM pData);
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
+#ifdef FLYLINKDC_USE_CUSTOM_MENU
 		static bool FillCustomMenu(CMenuHandle &menu, string& menuName); // [+]  SSA: Custom menu support.
+#endif
 #endif
 		static inline TCHAR CharTranscode(const TCHAR msg); // [+] Drakon. Transcoding text between Russian & English
 		static bool   CreateShortCut(const tstring& pszTargetfile, const tstring& pszTargetargs, const tstring& pszLinkfile, const tstring& pszDescription, int iShowmode, const tstring& pszCurdir, const tstring& pszIconfile, int iIconindex);

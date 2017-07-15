@@ -38,18 +38,15 @@
 #endif
 
 // [+] IRainman opt.
+extern int g_magic_width;
 extern bool g_TabsCloseButtonEnabled;
 extern CMenu g_mnu;
-#ifdef IRAINMAN_USE_GDI_PLUS_TAB
-extern Gdiplus::Pen g_pen_conter_side;
-#endif
-extern int g_magic_width;
-
 extern DWORD g_color_shadow;
 extern DWORD g_color_light;
 extern DWORD g_color_face;
 extern DWORD g_color_filllight;
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
+extern Gdiplus::Pen g_pen_conter_side;
 extern Gdiplus::Color g_color_shadow_gdi;
 extern Gdiplus::Color g_color_light_gdi;
 extern Gdiplus::Color g_color_face_gdi;

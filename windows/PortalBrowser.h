@@ -2,6 +2,7 @@
 
 #pragma once
 
+#ifdef RIP_USE_PORTAL_BROWSER
 #include "flattabctrl.h"
 
 // https://flylinkdc.googlecode.com/svn/extension/PortalBrowser/PortalBrowser/PortalBrowser.h
@@ -193,3 +194,5 @@ PORTAL_BROWSER_ITEM_STRUCT const *GetPortalBrowserListData(size_t ind);
 size_t GetPortalBrowserListCount();
 bool IfHaveVisiblePortals();
 void OpenVisiblePortals(HWND hWnd);
+
+#endif

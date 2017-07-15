@@ -329,12 +329,8 @@ class FavoriteManager : private Speaker<FavoriteManagerListener>,
 		UserCommand::List getUserCommands(int ctx, const StringList& hub/* [-] IRainman fix, bool& op*/) const;
 		
 		static void load();
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 		static bool load_from_url();
-#endif
-		static void save();
-		static void recentsave();
-		static size_t getCountFavsUsers();
 		static bool isISPDelete(const string& p_server)
 		{
 			auto i = g_sync_hub_isp_delete.find(p_server);
@@ -343,6 +339,10 @@ class FavoriteManager : private Speaker<FavoriteManagerListener>,
 			else
 				return true;
 		}
+#endif
+		static void save();
+		static void recentsave();
+		static size_t getCountFavsUsers();
 		static bool isRedirectHub(const string& p_server)
 		{
 			auto i = g_redirect_hubs.find(p_server);
@@ -363,7 +363,7 @@ class FavoriteManager : private Speaker<FavoriteManagerListener>,
 				return true;
 		}
 		static FavoriteHubEntryList g_favoriteHubs;
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 		static StringSet g_sync_hub_local;
 		static StringSet g_sync_hub_isp_delete;
 		static StringSet g_sync_hub_external;
@@ -428,7 +428,7 @@ class FavoriteManager : private Speaker<FavoriteManagerListener>,
 		void on(UserDisconnected, const UserPtr& user) noexcept override;
 		
 		static void load(SimpleXML& aXml
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 		                 , bool p_is_url = false
 #endif
 		                );

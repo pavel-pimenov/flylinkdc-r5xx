@@ -20,7 +20,7 @@
 
 #pragma once
 
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 
 #include <atlcrack.h>
 #include "PropPage.h"
@@ -84,6 +84,6 @@ class ProvidersPage : public EmptyPage
 		{
 		}
 };
-#endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#endif // FLYLINKDC_USE_PROVIDER_RESOURCES
 
 #endif // _PROVIDERS_PAGE_H_

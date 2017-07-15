@@ -1,3 +1,5 @@
+goto :fly_exit
+
 set DIR_ATTRIB=
 
 SETLOCAL ENABLEDELAYEDEXPANSION
@@ -33,3 +35,5 @@ rem Make PortalBrowser XML documentation
 call GeneratePortalBrowserXMLdoc.bat
 
 cd %START_DIR%
+
+:fly_exit

@@ -18,7 +18,9 @@
 
 #include "stdinc.h"
 #include "ResourceManager.h"
+#ifdef FLYLINKDC_USE_CUSTOM_MENU
 #include "CustomMenuManager.h"
+#endif
 #include "RSSManager.h"
 #include "ThemeManager.h"
 #include "AutoUpdate.h"
@@ -31,7 +33,7 @@ void createFlyFeatures()
 	ThemeManager::newInstance();      // [+] SSA
 	InetDownloadReporter::newInstance(); // [+] SSA
 	AutoUpdate::newInstance();        // [+] SSA
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_CUSTOM_MENU
 	CustomMenuManager::newInstance(); // [+] SSA
 #endif
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
@@ -44,11 +46,13 @@ void createFlyFeatures()
 
 void startupFlyFeatures(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam)
 {
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 	if (pProgressCallbackProc != NULL)
 		pProgressCallbackProc(pProgressParam, TSTRING(CUSTOM_MENU));
 		
+#ifdef FLYLINKDC_USE_CUSTOM_MENU
 	CustomMenuManager::getInstance()->load();
+#endif
 #endif
 	ThemeManager::getInstance()->load(); //[+] SSA
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
@@ -77,7 +81,7 @@ void deleteFlyFeatures()
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 	VideoPreview::deleteInstance();
 #endif
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_CUSTOM_MENU
 	CustomMenuManager::deleteInstance(); //[+] SSA
 #endif
 	AutoUpdate::deleteInstance();

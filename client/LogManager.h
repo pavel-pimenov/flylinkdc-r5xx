@@ -54,9 +54,9 @@ class LogManager
 		               VIRUS_TRACE,
 		               DDOS_TRACE,
 		               CMDDEBUG_TRACE,
-		               PSR_TRACE,
+					   TORRENT_TRACE,
+			           PSR_TRACE,
 		               FLOOD_TRACE,
-		               TORRENT_TRACE,
 		               LAST
 		             };
 		             

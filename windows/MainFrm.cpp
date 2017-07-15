@@ -68,7 +68,9 @@
 #include "../client/WebServerManager.h"
 #include "../client/ThrottleManager.h"
 #include "../client/MD5Calc.h"
+#ifdef FLYLINKDC_USE_CUSTOM_MENU
 #include "../FlyFeatures/CustomMenuManager.h" //[+] //SSA
+#endif
 #include "../client/MappingManager.h"
 #include "../client/Text.h"
 #include "../client/NmdcHub.h"
@@ -1999,7 +2001,7 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 		PortalBrowserFrame::openWindow(wID);
 	else
 #endif
-#ifdef IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#ifdef FLYLINKDC_USE_CUSTOM_MENU
 		// [+]  SSA: Custom menu support.
 		if (wID >= IDC_CUSTOM_MENU && wID <= IDC_CUSTOM_MENU100)
 		{
@@ -2010,7 +2012,7 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 			}
 		}
 		else // [~]  SSA: Custom menu support.
-#endif // IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+#endif
 			switch (wID)
 			{
 				case ID_FILE_SEARCH:
@@ -2435,16 +2437,14 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 			{
 				if ((*j)->getAutoOpen() == false && (*j)->getOpenTab() == "+")
 				{
+#ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 					if (FavoriteManager::isISPDelete((*j)->getServer()) == false)
+#endif
 					{
 						frm = HubFrame::openWindow(true,
 						                           (*j)->getServer(),
 						                           (*j)->getName()
 						                          );
-					}
-					else
-					{
-						//dcassert(0);
 					}
 				}
 			}

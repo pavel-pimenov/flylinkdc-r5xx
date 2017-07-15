@@ -50,6 +50,7 @@ QueueItem::QueueItem(const string& aTarget, int64_t aSize, Priority aPriority, b
 	m_dirty_base(false),
 	m_dirty_source(false),
 	m_dirty_segment(false),
+	m_is_file_not_exist(false),
 //	m_is_failed(false),
 	m_block_size(0),
 	m_tthRoot(p_tth),

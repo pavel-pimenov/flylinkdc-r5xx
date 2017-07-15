@@ -1312,7 +1312,7 @@ namespace {
 
 	std::string torrent_error_alert::message() const
 	{
-		char msg[400];
+		char msg[1400]; // https://github.com/arvidn/libtorrent/issues/2152
 		if (error)
 		{
 			std::snprintf(msg, sizeof(msg), " ERROR: (%d %s) %s"

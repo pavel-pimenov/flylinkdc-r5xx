@@ -5,7 +5,7 @@ del UpdateMaker.exe
 copy FlylinkDC.exe Q:\vc15\r4xx-release\compiled
 copy FlylinkDC_x64.exe Q:\vc15\r4xx-release\compiled
 
-copy ..\..\flylinkdc-update\5xx\stable-lib-dll\*.dll .\PortalBrowser
+rem copy ..\..\flylinkdc-update\5xx\stable-lib-dll\*.dll .\PortalBrowser
 copy UpdateTools\FlyUpdate\FlyUpdate.exe .
 copy UpdateTools\Updatemaker\UpdateMaker.exe .
 notepad ..\changelog-flylinkdc-r5xx-svn.txt

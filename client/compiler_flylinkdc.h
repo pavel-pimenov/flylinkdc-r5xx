@@ -217,7 +217,7 @@ typedef unsigned __int64 uint64_t;
 # define IRAINMAN_ENABLE_AUTO_BAN
 # define IRAINMAN_INCLUDE_SMILE // Disable this to cut all smile support from code.
 # define IRAINMAN_INCLUDE_RSS // Disable this to cut rss-manager from code.
-# define IRAINMAN_INCLUDE_PROVIDER_RESOURCES_AND_CUSTOM_MENU
+# define FLYLINKDC_USE_PROVIDER_RESOURCES
 #endif // FLYLINKDC_HE
 // #define IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
 #define IRAINMAN_ENABLE_OP_VIP_MODE
@@ -291,7 +291,7 @@ typedef unsigned __int64 uint64_t;
 //
 #define RIP_USE_CONNECTION_AUTODETECT
 
-#define RIP_USE_PORTAL_BROWSER
+//#define RIP_USE_PORTAL_BROWSER
 #ifdef _DEBUG
 // #define RIP_USE_LOG_PROTOCOL // выключил т.к. сильно грузит систему
 #endif
