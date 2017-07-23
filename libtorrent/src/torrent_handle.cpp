@@ -48,8 +48,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/utf8.hpp"
 #include "libtorrent/announce_entry.hpp"
 #include "libtorrent/write_resume_data.hpp"
+#include "libtorrent/torrent_flags.hpp"
 
-#if TORRENT_COMPLETE_TYPES_REQUIRED
+#ifndef TORRENT_NO_DEPRECATE
 #include "libtorrent/peer_info.hpp" // for peer_list_entry
 #endif
 
@@ -265,6 +266,28 @@ namespace libtorrent {
 		async_call(&torrent::pause, bool(flags & graceful_pause));
 	}
 
+	torrent_flags_t torrent_handle::flags() const
+	{
+		return sync_call_ret<torrent_flags_t>(torrent_flags_t{}, &torrent::flags);
+	}
+
+	void torrent_handle::set_flags(torrent_flags_t const flags
+		, torrent_flags_t const mask) const
+	{
+		async_call(&torrent::set_flags, flags, mask);
+	}
+
+	void torrent_handle::set_flags(torrent_flags_t const flags) const
+	{
+		async_call(&torrent::set_flags, torrent_flags::all, flags);
+	}
+
+	void torrent_handle::unset_flags(torrent_flags_t const flags) const
+	{
+		async_call(&torrent::set_flags, torrent_flags_t{}, flags);
+	}
+
+#ifndef TORRENT_NO_DEPRECATE
 	void torrent_handle::stop_when_ready(bool b) const
 	{
 		async_call(&torrent::stop_when_ready, b);
@@ -284,6 +307,7 @@ namespace libtorrent {
 	{
 		async_call(&torrent::set_upload_mode, b);
 	}
+#endif
 
 	void torrent_handle::flush_cache() const
 	{
@@ -340,10 +364,12 @@ namespace libtorrent {
 		async_call(&torrent::resume);
 	}
 
+#ifndef TORRENT_NO_DEPRECATE
 	void torrent_handle::auto_managed(bool m) const
 	{
 		async_call(&torrent::auto_managed, m);
 	}
+#endif
 
 	int torrent_handle::queue_position() const
 	{
@@ -407,10 +433,12 @@ namespace libtorrent {
 		return st;
 	}
 
+#ifndef TORRENT_NO_DEPRECATE
 	void torrent_handle::set_sequential_download(bool sd) const
 	{
 		async_call(&torrent::set_sequential_download, sd);
 	}
+#endif
 
 	void torrent_handle::piece_availability(std::vector<int>& avail) const
 	{
@@ -648,7 +676,8 @@ namespace libtorrent {
 
 #endif
 
-	void torrent_handle::connect_peer(tcp::endpoint const& adr, int source, int flags) const
+	void torrent_handle::connect_peer(tcp::endpoint const& adr
+		, peer_source_flags_t const source, int flags) const
 	{
 		async_call(&torrent::add_peer, adr, source, flags);
 	}
@@ -697,12 +726,12 @@ namespace libtorrent {
 		async_call(&torrent::scrape_tracker, idx, true);
 	}
 
+#ifndef TORRENT_NO_DEPRECATE
 	void torrent_handle::super_seeding(bool on) const
 	{
 		async_call(&torrent::set_super_seeding, on);
 	}
 
-#ifndef TORRENT_NO_DEPRECATE
 	void torrent_handle::get_full_peer_list(std::vector<peer_list_entry>& v) const
 	{
 		auto vp = &v;

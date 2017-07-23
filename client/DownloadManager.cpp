@@ -866,7 +866,7 @@ void DownloadManager::select_files(const libtorrent::torrent_handle& p_torrent_h
 			LogManager::torrent_message("metadata_received_alert: File = " + filePath);
 #endif
 		}
-		p_torrent_handle.auto_managed(false);
+		p_torrent_handle.unset_flags(lt::torrent_flags::auto_managed);
 		p_torrent_handle.pause();
 		fly_fire1(DownloadManagerListener::SelectTorrent(), l_file->info_hash(), l_files);
 	}
@@ -1054,6 +1054,10 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 					{
 						LogManager::torrent_message("torrent_error_alert: " + a->message() + " info:" + std::string(a->what()));
 					}
+					if (lt::alert_cast<lt::file_error_alert>(a))
+					{
+						LogManager::torrent_message("file_error_alert: " + a->message() + " info:" + std::string(a->what()));
+					}
 					if (auto st = lt::alert_cast<lt::state_update_alert>(a))
 					{
 						if (st->status.empty())
@@ -1166,7 +1170,7 @@ bool DownloadManager::set_file_priority(const libtorrent::sha1_hash& p_sha1, con
 			if (l_h.is_valid())
 			{
 				l_h.prioritize_files(p_file_priority);
-				l_h.auto_managed(true);
+				l_h.set_flags(lt::torrent_flags::auto_managed);
 				l_h.resume();
 				l_h.save_resume_data(torrent_handle::save_info_dict | torrent_handle::only_if_modified);
 			}
@@ -1191,12 +1195,12 @@ bool DownloadManager::pause_torrent_file(const libtorrent::sha1_hash& p_sha1, bo
 			{
 				if (p_is_resume)
 				{
-					l_h.auto_managed(true);
+					l_h.set_flags(lt::torrent_flags::auto_managed);
 					l_h.resume();
 				}
 				else
 				{
-					l_h.auto_managed(false);
+					l_h.unset_flags(lt::torrent_flags::auto_managed);
 					l_h.pause();
 				}
 			}
@@ -1249,7 +1253,7 @@ bool DownloadManager::add_torrent_file(const tstring& p_torrent_path, const tstr
 		p.storage_mode = storage_mode_sparse;
 		if (!p_torrent_path.empty())
 		{
-			p.ti = std::make_shared<torrent_info>(Text::fromT(p_torrent_path), std::ref(ec), 0);
+			p.ti = std::make_shared<torrent_info>(Text::fromT(p_torrent_path), std::ref(ec));
 			// for .torrent
 			//p.flags |= lt::add_torrent_params::flag_paused;
 			//p.flags &= ~lt::add_torrent_params::flag_auto_managed;
@@ -1356,8 +1360,8 @@ void DownloadManager::init_torrent(bool p_is_force)
 		//p.flags |= lt::add_torrent_params::flag_upload_mode;
 		
 		//p.flags |= lt::add_torrent_params::flag_paused;
-		p.flags |= lt::add_torrent_params::flag_auto_managed;
-		p.flags |= lt::add_torrent_params::flag_duplicate_is_error;
+		p.flags |= lt::torrent_flags::auto_managed;
+		p.flags |= lt::torrent_flags::duplicate_is_error;
 		// TODO p.flags |= lt::add_torrent_params::flag_update_subscribe;
 		
 		// TODO p.flags |= lt::add_torrent_params::flag_sequential_download;
@@ -1387,7 +1391,7 @@ void DownloadManager::init_torrent(bool p_is_force)
 		            ::Sleep(100);
 		        }
 		
-		        l_h.auto_managed(false);
+		        l_h.unset_flags(lt::torrent_flags::auto_managed);;
 		        l_h.pause();
 		*/
 		

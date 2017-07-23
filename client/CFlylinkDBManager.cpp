@@ -2337,7 +2337,7 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 				libtorrent::sha1_hash l_sha1;
 				l_q.getblob(1, l_sha1.data(), l_sha1.size());
 				p.info_hash = l_sha1;
-				p.flags |= libtorrent::add_torrent_params::flag_auto_managed;
+				p.flags |= libtorrent::torrent_flags::auto_managed;
 				{
 					FastLock l(g_resume_torrents_cs);
 					g_resume_torrents.insert(l_sha1);
@@ -2821,9 +2821,10 @@ void CFlylinkDBManager::add_sourceL(const QueueItemPtr& p_QueueItem, const CID& 
 			wantConnection = QueueManager::addSourceL(p_QueueItem, l_user, 0, true) && l_user->isOnline(); // Добавить флаг ускоренной загрузки первый раз.
 			g_count_queue_source++;
 		}
-		catch (const Exception& e)
+		catch (const Exception& )
 		{
-			LogManager::message("CFlylinkDBManager::add_sourceL, Error = " + e.getError(), true);
+            dcassert(0);
+			//LogManager::message("CFlylinkDBManager::add_sourceL, Error = " + e.getError(), true);
 		}
 		if (wantConnection)
 		{
@@ -3311,6 +3312,7 @@ bool CFlylinkDBManager::load_last_ip_and_user_stat(uint32_t p_hub_id, const stri
 	catch (const database_error& e)
 	{
 		// errorDB("SQLite - load_last_ip_and_user_stat: " + e.getError());
+		dcassert(0);
 		LogManager::message("SQLite - load_last_ip_and_user_stat: " + e.getError());
 	}
 	return false;

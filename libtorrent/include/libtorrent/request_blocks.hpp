@@ -33,6 +33,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_REQUEST_BLOCKS_HPP_INCLUDED
 #define TORRENT_REQUEST_BLOCKS_HPP_INCLUDED
 
+#include "libtorrent/peer_info.hpp"
+
 namespace libtorrent {
 
 	class torrent;
@@ -48,7 +50,7 @@ namespace libtorrent {
 	// to connecting to peers with higher rank. This is to avoid
 	// problems when our peer list is diluted by stale peers from
 	// the resume data for instance
-	int source_rank(int source_bitmask);
+	int source_rank(peer_source_flags_t source_bitmask);
 }
 
 #endif

@@ -193,6 +193,12 @@ namespace libtorrent {
 		}
 #endif
 
+		if (!tracker_req().outgoing_socket)
+		{
+			fail(errors::invalid_listen_socket, -1, "outgoing socket was closed");
+			return;
+		}
+
 		m_tracker_connection = std::make_shared<http_connection>(get_io_service(), m_man.host_resolver()
 			, std::bind(&http_tracker_connection::on_response, shared_from_this(), _1, _2, _3, _4)
 			, true, settings.get_int(settings_pack::max_http_recv_buffer_size)
@@ -223,8 +229,8 @@ namespace libtorrent {
 			, ps.proxy_tracker_connections ? &ps : nullptr
 			, 5, user_agent, bind_interface()
 			, (tracker_req().event == tracker_request::stopped
-				? resolver_flags::cache_only : resolver_flags::none)
-				| resolver_flags::abort_on_shutdown
+				? resolver_interface::cache_only : resolver_flags{})
+				| resolver_interface::abort_on_shutdown
 #ifndef TORRENT_NO_DEPRECATE
 			, tracker_req().auth
 #else

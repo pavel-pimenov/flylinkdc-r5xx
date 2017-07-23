@@ -33,57 +33,89 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_FLAGS_HPP_INCLUDED
 #define TORRENT_FLAGS_HPP_INCLUDED
 
-// this is based on Anthony William's article:
-// https://www.justsoftwaresolutions.co.uk/cplusplus/using-enum-classes-as-bitfields.html
-
 #include <type_traits> // for enable_if
+#include <iosfwd>
 
 namespace libtorrent {
 namespace flags {
 
-template <typename E>
-struct enable_flag_operators : std::false_type {};
+template<typename UnderlyingType, typename Tag
+	, typename Cond = typename std::enable_if<std::is_integral<UnderlyingType>::value>::type>
+struct bitfield_flag
+{
+	using underlying_type = UnderlyingType;
 
-#define ENUM_OPERATOR(op) \
-	template<typename E> \
-	constexpr typename std::enable_if<enable_flag_operators<E>::value, E>::type \
-	operator op (E const lhs, E const rhs) { \
-		using underlying = typename std::underlying_type<E>::type; \
-		return static_cast<E>( \
-			static_cast<underlying>(lhs) op static_cast<underlying>(rhs)); \
-	} \
-	\
-	template<typename E> \
-	typename std::enable_if<enable_flag_operators<E>::value, E&>::type \
-	operator op##= (E& lhs, E const rhs) { \
-		using underlying = typename std::underlying_type<E>::type; \
-		lhs = static_cast<E>( \
-			static_cast<underlying>(lhs) op static_cast<underlying>(rhs)); \
-		return lhs; \
+	constexpr bitfield_flag(bitfield_flag const& rhs) noexcept = default;
+	constexpr bitfield_flag(bitfield_flag&& rhs) noexcept = default;
+	constexpr bitfield_flag() noexcept : m_val(0) {}
+	explicit constexpr bitfield_flag(UnderlyingType val) noexcept : m_val(val) {}
+#ifdef TORRENT_NO_DEPRECATE
+	explicit constexpr operator UnderlyingType() const noexcept { return m_val; }
+#else
+	constexpr operator UnderlyingType() const noexcept { return m_val; }
+#endif
+	explicit constexpr operator bool() const noexcept { return m_val != 0; }
+
+	bool constexpr operator==(bitfield_flag const f) const noexcept
+	{ return m_val == f.m_val; }
+
+	bool constexpr operator!=(bitfield_flag const f) const noexcept
+	{ return m_val != f.m_val; }
+
+	bitfield_flag& operator|=(bitfield_flag const f) noexcept
+	{
+		m_val |= f.m_val;
+		return *this;
 	}
 
-ENUM_OPERATOR(|)
-ENUM_OPERATOR(&)
-ENUM_OPERATOR(^)
-
-	template<typename E>
-	constexpr typename std::enable_if<enable_flag_operators<E>::value, E>::type
-	operator~ (E const operand) {
-		using underlying = typename std::underlying_type<E>::type;
-		return static_cast<E>(~static_cast<underlying>(operand));
+	bitfield_flag& operator&=(bitfield_flag const f) noexcept
+	{
+		m_val &= f.m_val;
+		return *this;
 	}
 
-	template<typename E>
-	constexpr typename std::enable_if<enable_flag_operators<E>::value, bool>::type
-	test(E const operand) {
-		using underlying = typename std::underlying_type<E>::type;
-		return static_cast<underlying>(operand) != 0;
+	bitfield_flag& operator^=(bitfield_flag const f) noexcept
+	{
+		m_val ^= f.m_val;
+		return *this;
 	}
 
-#undef ENUM_OPERATOR
+	constexpr friend bitfield_flag operator|(bitfield_flag const lhs, bitfield_flag const rhs) noexcept
+	{
+		return bitfield_flag(lhs.m_val | rhs.m_val);
+	}
+
+	constexpr friend bitfield_flag operator&(bitfield_flag const lhs, bitfield_flag const rhs) noexcept
+	{
+		return bitfield_flag(lhs.m_val & rhs.m_val);
+	}
+
+	constexpr friend bitfield_flag operator^(bitfield_flag const lhs, bitfield_flag const rhs) noexcept
+	{
+		return bitfield_flag(lhs.m_val ^ rhs.m_val);
+	}
+
+	constexpr bitfield_flag operator~() const noexcept
+	{
+		return bitfield_flag(~m_val);
+	}
+
+	bitfield_flag& operator=(bitfield_flag const& rhs) noexcept = default;
+	bitfield_flag& operator=(bitfield_flag&& rhs) noexcept = default;
+private:
+	UnderlyingType m_val;
+};
+
+#if TORRENT_USE_IOSTREAM
+	template <typename T, typename Tag>
+	std::ostream& operator<<(std::ostream& os, bitfield_flag<T, Tag> val)
+	{ return os << static_cast<T>(val); }
+#endif
 
 } // flags
 } // libtorrent
+
+#undef ENUM_OPERATOR
 
 #endif
 
