@@ -671,7 +671,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="HashProgress">Хеширую файлы…</String>
 		<String Name="HashProgressBackground">Запустить в фоновом режиме</String>
 		<String Name="HashProgressStats">Статус</String>
-		<String Name="HashProgressText">Подождите, пока FlylinkDC++ прохеширует ваши файлы (они не будут расшарены пока не прохешируются)…</String>
+		<String Name="HashProgressText">Подождите, пока FlylinkDC++ прохеширует ваши файлы (они не будут расшарены, пока не прохешируются)…</String>
 		<String Name="HashReadFailed">Невозможно прочесть базу данных хеша</String>
 		<String Name="HashRebuilt">База данных хеша обновлена</String>
 		<String Name="HashRefreshFileList">Обновить список файлов</String>
@@ -812,7 +812,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="LastRecentHubs">Последние открытые хабы</String>
 		<String Name="LastSeen">Время (последнее)</String>
 		<String Name="LastSuccesfullyConnected">Время последнего успешного подключения</String>
-		<String Name="LeafCorrupted">Файл был поврежден, повторное скачивание %s…</String>
+		<String Name="LeafCorrupted">Файл был повреждён, повторное скачивание %s…</String>
 		<String Name="Left">осталось</String>
 		<String Name="LeftColor">Цвет слева</String>
 		<String Name="LibCrash">Программа %s послужила причиной аварийного закрытия FlylinkDC++. Удалите её, обновите или установите альтернативную программу.</String>
@@ -950,7 +950,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="MenuSearch">&amp;Поиск	Ctrl + S</String>
 		<String Name="MenuSearchSpy">Поиск-шпион</String>
 		<String Name="MenuSettings">Настройки…	F12</String>
-		<String Name="MenuSettingsWizard">Мастер Настроек…	Ctrl + Shift + W</String>
+		<String Name="MenuSettingsWizard">Мастер Настройки…	Ctrl + Shift + W</String>
 		<String Name="MenuShow">Показать FlylinkDC++</String>
 		<String Name="MenuSites">Сайты</String>
 		<String Name="MenuSitesGuide">Руководство пользователя</String>
@@ -1273,7 +1273,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Resume">Возобновить</String>
 		<String Name="ResumeTorrent">Продолжить торрент</String>
 		<String Name="RestoreLostShare">Восстановить папку, которая ранее была в шаре?</String>
-		<String Name="RestoreWindowPos">Расположить окно по центру основного монитора</String>
+		<String Name="RestoreWindowPos">Расположить по центру основного монитора</String>
 		<String Name="RetrievingData">Получение данных</String>
 		<String Name="RightColor">Цвет справа</String>
 		<String Name="RollbackInconsistency">Откат, существующий файл не совпадает с тем, что был скачан</String>
@@ -1660,7 +1660,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ShowSendMessageButton">Показать кнопку «Отправить сообщение»</String>
 		<String Name="Shutdown">Выключить компьютер</String>
 		<String Name="ShutdownAction">Действие</String>
-		<String Name="ShutdownOff">Процесс выключения отменён...</String>
+		<String Name="ShutdownOff">Процесс выключения отменён…</String>
 		<String Name="ShutdownOn">Процесс выключения запущен…</String>
 		<String Name="Size">Размер</String>
 		<String Name="SizeExact">Точный</String>
@@ -1787,7 +1787,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SystemMessage">Системное сообщение</String>
 		<String Name="Timestamp">Времянная метка</String>
 		<String Name="TextStyleTimeSample">Время</String>
-		<String Name="TextStyleUrl">URL (http, mailto, ...)</String>
+		<String Name="TextStyleUrl">URL (http, mailto, …)</String>
 		<String Name="TextStyleUrlSample">http://flylinkdc.com</String>
 		<String Name="Theme">Темы для FlylinkDC++</String>
 		<String Name="ThemeChangeTheme">Тема изменена</String>
