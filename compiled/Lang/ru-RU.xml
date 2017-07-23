@@ -78,7 +78,7 @@
 		<String Name="Antivirus">AVDB</String>
 		<String Name="P2pGuard">P2P Guard</String>
 		<String Name="AscrollChat">Автопрокрутка чата</String>
-		<String Name="Ask">Спросить</String>
+		<String Name="Ask">Попросить</String>
 		<String Name="AskSlot">Попросить слоты</String>
 		<String Name="AskSlotTemplate">Привет, %[nick]! Дай мне, пожалуйста, слот на скачку %[filename].</String>
 		<String Name="AtHubYouHaveRightOperator">На хабе %s у вас есть права оператора</String>
@@ -150,8 +150,8 @@
 		<String Name="AwayModeOff">Режим "ушёл" выключен</String>
 		<String Name="AwayModeOn">Режим "ушёл" включен:</String>
 		<String Name="AwayStatus">УШЁЛ</String>
-		<String Name="B">Б</String>
 		<String Name="Back">Назад</String>
+		<String Name="BadAlloc">Недостаточно памяти!!!</String>
 		<String Name="BalloonPopups">Всплывающие сообщения</String>
 		<String Name="BanmsgPeriod">Период сообщений (0 – отключить ЛС), мин</String>
 		<String Name="BanColorDlg">Список файлов – Автобан</String>
@@ -177,7 +177,7 @@
 		<String Name="BlendOfflineSearch">Смешать офлайн-результаты поиска</String>
 		<String Name="BlockedIncomingConn">Блокировано входящее соединение с</String>
 		<String Name="BothUsersOffline">Оба пользователя офлайн</String>
-		<String Name="Browse">Обзор…</String>
+		<String Name="Browse">Обзор...</String>
 		<String Name="BrowseFileList">Просмотреть список файлов</String>
 		<String Name="BtnStart">Запустить</String>
 		<String Name="BtnStop">Остановить</String>
@@ -328,7 +328,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ConfiguredHubLists">Список интернет-хабов</String>
 		<String Name="Connect">&amp;Соединение</String>
 		<String Name="Connected">Соединён</String>
-		<String Name="Connecting">Соединение…</String>
+		<String Name="Connecting">Соединение...</String>
 		<String Name="ConnectingForced">Соединение (принудительно)…</String>
 		<String Name="ConnectingTo">Соединение с</String>
 		<String Name="Connection">Соединение</String>
@@ -342,25 +342,27 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ConnectAll">Соединиться со всеми пользователями</String>
 		<String Name="ConnectFavuserHub">Соединиться с хабом</String>
 		<String Name="ConnectToSupportHub">Присоединяться к хабу поддержки при каждом старте</String>
+		<String Name="DisableAutoremoveVirusHub">Отключить автоудаление вирусных хабов</String>
 		<String Name="ContactListMenu">Список контактов</String>
 		<String Name="ContinueSearch">Продолжить</String>
 		<String Name="Copy">Копировать</String>
+		<String Name="CopyUserInfo">Копировать информацию о пользователе</String>
 		<String Name="CopyAll">Копировать всё</String>
 		<String Name="CopyDescription">Описание</String>
 		<String Name="CopyEmailAddress">E-mail</String>
 		<String Name="CopyGeoLocation">Расположение</String>
-		<String Name="CopyExactShare">Точную шару</String>
-		<String Name="CopyAntivirusDbInfo">Информацию антивирусной базы данных</String>
-		<String Name="CopyFullMagnetLink">Полную магнет-ссылку</String>
+		<String Name="CopyExactShare">Точная шара</String>
+		<String Name="CopyAntivirusDbInfo">Информация антивирусной базы данных</String>
+		<String Name="CopyFullMagnetLink">Полную магнет-ссылку:</String>
 		<String Name="CopyHub">Адрес в буфер обмена</String>
 		<String Name="CopyIp">IP</String>
 		<String Name="CopyLine">Всю строку</String>
 		<String Name="CopyMagnet">Магнет</String>
 		<String Name="CopyMagnetLink">Магнет-ссылку</String>
 		<String Name="CopyMd5">MD5</String>
-		<String Name="CopyMlinkTempl">WEB-ссылку</String>
+		<String Name="CopyMlinkTempl">Магнет как web-ссылку</String>
 		<String Name="CopyNick">Ник</String>
-		<String Name="CopyNickIp">Ник + IP</String>
+		<String Name="CopyNickIp">Ник+IP</String>
 		<String Name="CopyApplication">Приложение</String>
 		<String Name="CopyTag">Тег</String>
 		<String Name="CopyCid">CID</String>
@@ -372,6 +374,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Country">Страна</String>
 		<String Name="CountryInChat">Пытаться показать страну пользователей в чате</String>
 		<String Name="IspInChat">Пытаться показать 'провайдера' пользователя в чате</String>
+		<String Name="CpuInfo">Информация о процессоре</String>
 		<String Name="CpuSpeed">Частота процессора</String>
 		<String Name="CrcChecked">TTH проверены</String>
 		<String Name="CreatingHash">Хеширование</String>
@@ -382,15 +385,14 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="CustDesc">О себе</String>
 		<String Name="CzdcRatiomsg">Шаблон сообщения ratio</String>
 		<String Name="D">З:</String>
-		<String Name="DataBaseErrorString">Произошла ошибка доступа к базе данных.
+		<String Name="DataBaseErrorString">
+Произошла ошибка доступа к базе данных.
 Пожалуйста, отправьте её текст или скриншот этого сообщения разработчикам на почту ppa74@ya.ru.</String>
 		<String Name="DataBaseLockedString">
 Произошла ошибка при обращении к базе данных (файл базы данных FlylinkDC_*.sqlite заблокирован!).
 Пожалуйста, закройте блокирующую его программу или отправьте текст/скриншот ошибки разработчикам ppa74@ya.ru
 
 Нажмите Ok для новой попытки (тайм-аут 5 секунд)</String>
-		<String Name="Day">день</String>
-		<String Name="Days">дни</String>
 		<String Name="DclstgenInfoborder">Информация о DCLST-метафайле</String>
 		<String Name="DclstgenInfoFilesstatic">Кол-во файлов:</String>
 		<String Name="DclstgenInfoFoldersstatic">Кол-во каталогов:</String>
@@ -416,7 +418,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Default">По умолчанию</String>
 		<String Name="DefaultAwayMessage">Здравствуй, %[userNI]! Меня, скорее всего, нет рядом или я чем-то занят с %H:%M %d-%m-%Y. Освобожусь, отвечу позже. Всего Доброго!</String>
 		<String Name="DefaultNcdcHubEncodingtext">Кодировка хаба по-умолчанию:</String>
-		<String Name="DefPasswordHint">Личка запаролена! Введи пароль: « %[pm_pass] »</String>
+		<String Name="DefPasswordHint">Пользователь отключил приём личных сообщений. Используйте пароль «%[pm_pass]»</String>
 		<String Name="DefPasswordOkHint">Пароль верен. Пользователь сможет получать ваши сообщения.</String>
 		<String Name="DeleteChecked">Удалить выбранные файл-листы</String>
 		<String Name="DenyAll">Запретить все</String>
@@ -424,14 +426,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Description">Описание</String>
 		<String Name="Destination">Назначение</String>
 		<String Name="DeterminConType">Определение типа соединения…</String>
-		<String Name="DhtBootstrappingStarted">DHT начал загрузку</String>
-		<String Name="DhtBootstrapError">Ошибка загрузки DHT:</String>
-		<String Name="DhtDisable">Выключить DHT</String>
-		<String Name="DhtDisabled">DHT: Отключён</String>
-		<String Name="DhtEnable">Включить DHT</String>
-		<String Name="DhtEnabled">DHT снова включен</String>
-		<String Name="DhtFirewalledUdp">Определён адрес файервола</String>
-		<String Name="DhtOurUpdPortOpend">UDP-порт уже открыт</String>
 		<String Name="Directory">Папка</String>
 		<String Name="DirectoryAddError">Папка уже существует</String>
 		<String Name="DirectoryIsHidden">Скрытая папка</String>
@@ -447,6 +441,8 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="DisconnectAll">Отключить всех пользователей</String>
 		<String Name="DisconnectRaw">Отключить</String>
 		<String Name="DisconnectUser">Отключить пользователя(ей)</String>
+		<String Name="DiskSpace">Место на диске (свободно, всего)</String>
+		<String Name="DisksInfo">Инфо о дисках (локальных, сетевых, переносных)</String>
 		<String Name="Dl">Пр:</String>
 		<String Name="DnsBare">DNS</String>
 		<String Name="Document">Документ</String>
@@ -460,6 +456,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Download">Скачать</String>
 		<String Name="Downloaded">Скачано</String>
 		<String Name="DownloadedBytes">Скачано %s (%.01f%%) за %s</String>
+		<String Name="CheckedBytes">Проверено %s(%.01f%%)</String>
 		<String Name="DownloadedFrom">Скачано от</String>
 		<String Name="DownloadedParts">Скачанные части</String>
 		<String Name="Downloading">Скачивание…</String>
@@ -479,19 +476,19 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="DupeColorDlg">В шаре</String>
 		<String Name="DupeEx1">Список файлов – Уже скачал</String>
 		<String Name="DupeEx2">Список файлов – Был в шаре</String>
+		<String Name="DupeEx3">Список файлов - Очередь TTH</String>
 		<String Name="DuplicateExtensions">Повторяющееся расширение</String>
 		<String Name="DuplicateRange">Повторяющийся диапозон</String>
 		<String Name="DuplicateSource">Дубликат источника</String>
 		<String Name="Duration">Длительность</String>
-		<String Name="Eb">ЭБ</String>
 		<String Name="Edit">Изменить</String>
 		<String Name="EditAccel">&amp;Правка</String>
 		<String Name="Email">E-Mail</String>
 		<String Name="EmptyLineSkiped">Пустая строка пропущена</String>
 		<String Name="EnableHubmodePic">Показывать «Иконку режима» для хабов</String>
 		<String Name="EnableCountryflag">Добавить флаг страны в «Расположение» списка пользователей</String>
-		<String Name="EnableLastIp">Сохранять IP в базе SQLite</String>
-		<String Name="EnableFlyServer">Показывать MediaInfo</String>
+		<String Name="EnableLastIpAndMessageCounter">Сохранять последний IP и счётчик сообщений чата в базе SQLite</String>
+		<String Name="EnableFlyServer">Показать MediaInfo</String>
 		<String Name="EnableHitFileList">Включить счётчик скачивания файла в списке файлов</String>
 		<String Name="EnableRatioUserList">Включить отображение скачанного/розданного в списке пользователей</String>
 		<String Name="EnableMultiSource">Включить сегментирование</String>
@@ -500,7 +497,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="EnterGroupName">Вы должны ввести имя группы!</String>
 		<String Name="EnterNick">Пожалуйста, введите ник в настройках клиента!</String>
 		<String Name="EnterPassword">Введите пароль или смените ник. Указанный ник занят</String>
-		<String Name="EnterSearchString">Введите строку поиска (имя файла или TTH)</String>
+		<String Name="EnterSearchString">Введите строку поиска (Имя файла или TTH)</String>
 		<String Name="Errors">Ошибки</String>
 		<String Name="ErrorAddTthStream">Ошибка при добавлении данных о хеше в поток NTFS</String>
 		<String Name="ErrorCreatingRegistryKeyAdc">Ошибка при создании adc-ключа в реестре (запускайте FlylinkDC++ от имени администратора!)</String>
@@ -528,7 +525,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ExitOnHashingDoneText">Выйти после завершения хеширования</String>
 		<String Name="ExpandedResults">Развернуть результаты поиска</String>
 		<String Name="ExpandAll">Развернуть всё</String>
-		<String Name="ExternalPreview">Использовать внешнюю программу для быстрого просмотра текстов</String>
 		<String Name="ExtraslotToDl">Экстраслот тем, с кого сейчас качаю</String>
 		<String Name="ExtraHubSlots">Слотов на хаб</String>
 		<String Name="ExtraSlotsSet">Установка экстраслотов</String>
@@ -605,11 +601,14 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="FlyHubLastShareDate">Посл.шаринг</String>
 		<String Name="FlyHubRam">ОЗУ</String>
 		<String Name="FlyHubSqliteDbSize">Размер базы SQLite</String>
+		<String Name="FlyHubQueue">Очередь</String>
 		<String Name="FlyHubTimes">Раз</String>
 		<String Name="FlyHubGender">Пол</String>
+		<String Name="FlyHubSupportInfo">Доп.Информация</String>
+		<String Name="FlyVerifyCertFailed">Верификация сертификата не удалась!</String>
 		<String Name="Flyupdate">Автоматическое обновление FlylinkDC++</String>
 		<String Name="FlyupdateCannotupdate">Автоматическое обновление не смогло обновить FlylinkDC++. Скачайте установщик с http://www.flylinkdc.ru/ и запустите вручную.</String>
-		<String Name="FlyupdateCheckupdatebase">Проверка обновления  FlylinkDC++…</String>
+		<String Name="FlyupdateCheckupdatebase">Проверка обновления FlylinkDC++…</String>
 		<String Name="FlyupdateDeletetingfiles">Удаление временных файлов обновления FlylinkDC++…</String>
 		<String Name="FlyupdateDeletetingfolders">Удаление временных каталогов обновления FlylinkDC++…</String>
 		<String Name="FlyupdateStillrunning">Обновление не может быть продолжено, поскольку FlylinkDC++ до сих пор в памяти. Подождать еще?</String>
@@ -633,8 +632,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="FtpSendQuestion">Предыдущий запуск приложения вызвал сбой. Чтобы помочь авторам установить причину, рекомендуется разрешить отправку заархивированного файла. Он содержит дамп структуры стека и описание ошибки. В нём не содержится конфиденциальных данных, паролей, адресов эл. почты, номеров кредитных карт и прочего.</String>
 		<String Name="FtpSendQuestion2">Действительно отправить дамп ошибки разработчикам?</String>
 		<String Name="FullFilelistNfo">Отображать полную информацию о файле в очереди загрузки</String>
-		<String Name="Gb">ГБ</String>
-		<String Name="Gbps">Гб/с</String>
 		<String Name="GenerateCertificates">Создать сертификаты</String>
 		<String Name="GetFileList">Получить список файлов</String>
 		<String Name="GetIp">Тест портов и определение IP</String>
@@ -687,8 +684,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Hits">Совпадения:</String>
 		<String Name="HitCount">Совпадения</String>
 		<String Name="HitRatio">Отношение:</String>
-		<String Name="Hour">час</String>
-		<String Name="Hours">часов</String>
 		<String Name="Hub">Хаб</String>
 		<String Name="HublistCacheCorrupted">Список хабов, загруженный из кэша, повреждён или имеет неподдерживаемый формат…</String>
 		<String Name="HublistDownloadCorrupted">Загруженный список хабов повреждён или имеет неподдерживаемый формат…</String>
@@ -803,8 +798,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="JoinShowingOff">Показ «пришёл/ушёл» выключен</String>
 		<String Name="JoinShowingOn">Показ «пришёл/ушёл» включен</String>
 		<String Name="JustNow">Только что</String>
-		<String Name="Kb">кБ</String>
-		<String Name="Kbps">кБ/с</String>
 		<String Name="KbpsDisable">кБ/с (0=выкл.)</String>
 		<String Name="KeepDlHistory">Сохранять историю загрузок между сессиями</String>
 		<String Name="KeepFinishedFilesOption">Оставлять завершённые файлы</String>
@@ -816,6 +809,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="LastChange">Последняя зафиксированная активность</String>
 		<String Name="LastHub">Хаб (Последний раз в сети)</String>
 		<String Name="LastIp">Последний IP</String>
+		<String Name="LastRecentHubs">Последние открытые хабы</String>
 		<String Name="LastSeen">Время (последнее)</String>
 		<String Name="LastSuccesfullyConnected">Время последнего успешного подключения</String>
 		<String Name="LeafCorrupted">Файл был поврежден, повторное скачивание %s…</String>
@@ -856,7 +850,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="MagnetDlgQueue">Добавить этот файл в очередь скачивания</String>
 		<String Name="MagnetDlgQueueDclst">Поместить содержимое DCLST в очередь скачивания</String>
 		<String Name="MagnetDlgRemember">Сделать то же самое в следующий раз</String>
-		<String Name="MagnetDlgSaveas">Сохранить в…</String>
+		<String Name="MagnetDlgSaveas">Сохранить как…</String>
 		<String Name="MagnetDlgSearch">Начать поиск этого файла</String>
 		<String Name="MagnetDlgSize">Размер файла:</String>
 		<String Name="MagnetDlgTextBad">Магнет-ссылка была отправлена в FlylinkDC++, но она не содержала верного хеша для использования в Direct Connect сети. Никаких действий не будет сделано.</String>
@@ -885,8 +879,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="MaxSize">Макс. размер</String>
 		<String Name="MaxUsers">Макс. пользователей</String>
 		<String Name="MessagesCount">Сообщений</String>
-		<String Name="Mb">МБ</String>
-		<String Name="Mbps">Мб/с</String>
 		<String Name="MediaAudio">Аудио</String>
 		<String Name="MediaMenuItunes">iTunes</String>
 		<String Name="MediaMenuJa">jetAudio Player</String>
@@ -975,11 +967,10 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="MenuWaitingUsers">Очередь отдачи	Ctrl + U</String>
 		<String Name="MenuWindow">&amp;Окно</String>
 		<String Name="Midnight">Полночь</String>
-		<String Name="Min">минут</String>
 		<String Name="MinimizeOnClose">Сворачивать при закрытии</String>
 		<String Name="MinimumSearchInterval">Мин. интервал поиска</String>
+		<String Name="MinimumSearchPassiveInterval">Мин. интервал поиска (Пассивный)</String>
 		<String Name="MinislotControlGroup">Управление мини-слотами</String>
-		<String Name="Minutes">минут</String>
 		<String Name="MinShare">Мин. шара</String>
 		<String Name="MinSlots">Мин. кол-во слотов</String>
 		<String Name="Mode">Режим</String>
@@ -1013,6 +1004,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="NeedUserFilesMenu">Закачки с этого пользователя</String>
 		<String Name="NetlimiterWarning">NetLimiter был обнаружен на вашем компьютере. Он является частой причиной аварийного выхода FlylinkDC++, разрывов соединений и маленькой скорости скачивания. Пожалуйста, удалите его и используйте другую аналогичную программу.</String>
 		<String Name="NetworkStatistics">Сетевая статистика</String>
+		<String Name="NetworkTraffic">Сетевой трафик</String>
 		<String Name="New">&amp;Новый…</String>
 		<String Name="NewsBlog">Блог с новыми версиями</String>
 		<String Name="NewBeta">Доступна новая бета-версия</String>
@@ -1071,7 +1063,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Open">Открыть</String>
 		<String Name="OpenFolder">Открыть папку</String>
 		<String Name="OpenHubLog">Открыть журнал хаба</String>
-		<String Name="OpenLogsInternal">Открывать журналы внутри программы (влияет на быстродействие, если журналы очень большие)</String>
 		<String Name="OpenUserLog">Открыть журнал пользователя</String>
 		<String Name="Outgoing">исходящий</String>
 		<String Name="OverlappedSlowSegment">Перехвачено более быстрым пользователем</String>
@@ -1082,7 +1073,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="P2pGuardEnableStr">Блокирует трафик с/для 'черного списка' ( ipfilter.zip с http://emule-security.org )</String>
 		<String Name="Parts">Ушёл:</String>
 		<String Name="PassiveNotice">Вы подключены к хабу в пассивном режиме, рекомендуем переключиться в активный режим – инструкция:</String>
-		<String Name="PassiveSearchNotice">У вас установлен активный режим, но активирован поиск в пассивном режиме. Не используйте пассивный поиск, если у вас работает поиск без данной опции, т. к. вы не увидите результатов поиска от пассивных клиентов!!!</String>
 		<String Name="PassiveUser">Пассивный пользователь</String>
 		<String Name="Password">Пароль</String>
 		<String Name="PasswordDesc">Введите пароль</String>
@@ -1090,7 +1080,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Path">Путь</String>
 		<String Name="Paused">Пауза</String>
 		<String Name="PauseSearch">Пауза</String>
-		<String Name="Pb">Пб</String>
 		<String Name="Picture">Картинка</String>
 		<String Name="Pk">PK-строка</String>
 		<String Name="Play">Тест</String>
@@ -1211,7 +1200,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 
 Пусто = строка по умолчанию -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[bitrate],%[sample]) (%[elapsed] %[bar] %[length]) %[magnet]</String>
 		<String Name="QcdqmpHelpDesc">Помощь по тегам плееров Quinnware</String>
-		<String Name="QsearchStr">Поиск…</String>
+		<String Name="QsearchStr">Быстрый поиск…</String>
 		<String Name="Queued">Очередь:</String>
 		<String Name="QueueSaved">Очередь сохранена.</String>
 		<String Name="QuickConnect">Быстрое соединение</String>
@@ -1326,14 +1315,11 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SearchFilterLblExclude">И исключить совпадения</String>
 		<String Name="SearchOptions">Настройки поиска</String>
 		<String Name="SearchShowhidepanel">Показать/Скрыть панель Настроек</String>
-		<String Name="SearchSpamFrom">Поиск-спам обнаружен</String>
 		<String Name="SearchSpy">Поиск-шпион</String>
 		<String Name="SearchString">Строка поиска</String>
 		<String Name="SearchDoesNotWork">Поиск не работает?</String>
 		<String Name="SearchesPer">Поиски: %u/с, %u/мин.</String>
 		<String Name="SearchingFor">Ищем</String>
-		<String Name="Sec">секунд</String>
-		<String Name="Seconds">Секунд</String>
 		<String Name="SecurityAskOnShareFromShell">Спрашивать при расшаривании папок через контекстное меню Проводника.</String>
 		<String Name="SecurityShareFromShellQuestion">Вы точно хотите опубликовать (расшарить) содержимое этой папки? Если да, содержимое этой папки станет доступно всем пользователям.</String>
 		<String Name="SeekBeyondEnd">Попытка запроса за пределы области данных</String>
@@ -1437,13 +1423,13 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsColorReserved">Получил слот</String>
 		<String Name="SettingsCommand">Команда</String>
 		<String Name="SettingsCompressTransfers">Разрешить безопасные и сжатые передачи</String>
-		<String Name="SettingsConfigureHubLists">Списки интернет-хабов</String>
 		<String Name="SettingsConfirmDialogOptions">Подтверждения</String>
 		<String Name="SettingsConfirmExit">Подтверждение выхода из программы</String>
 		<String Name="SettingsConfirmHubgroupRemoval">Подтверждение удаления группы хабов</String>
 		<String Name="SettingsConfirmHubRemoval">Подтверждение удаления избранного хаба</String>
 		<String Name="SettingsConfirmItemRemoval">Подтверждение удаления файла из очереди</String>
 		<String Name="SettingsConnectionAutodetect">Работать в пассивном режиме, если указанный выше активный режим не доступен (автоопределение)</String>
+		<String Name="SettingsWanIpManual">Ручной WAN IP</String>
 		<String Name="SettingsCzdcExtraDownloads">Если выбран самый высокий приоритет скачивания, добавлять дополнительные слоты</String>
 		<String Name="SettingsDclsPage">Поддержка DCLST</String>
 		<String Name="SettingsDefaultAwayMsg">Сообщение «ушёл»</String>
@@ -1571,8 +1557,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsProtectPrivateSay">Сообщить о подборе пароля или попытке ЛС</String>
 		<String Name="SettingsProviders">Ресурсы провайдера</String>
 		<String Name="SettingsProxy">Настройки прокси</String>
-		<String Name="SettingsPublicHubList">Список интернет-хабов</String>
-		<String Name="SettingsPublicHubListUrl">Настройка списков интернет-хабов</String>
 		<String Name="SettingsQueue">Очередь</String>
 		<String Name="SettingsRc">Удалённое управление</String>
 		<String Name="SettingsRequiresRestart">Примечание. Большинство из этих настроек требует перезагрузки FlylinkDC++ для их применения.</String>
@@ -1615,6 +1599,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsStatisticsSend">Разрешить программе сбор и отправку анонимной статистики разработчикам.</String>
 		<String Name="SettingsAntivirusAutobanForIp">Автобан антивирусом (по IP):</String>
 		<String Name="SettingsAntivirusAutobanForNick">Автобан антивирусом (по Нику):</String>
+		<String Name="SettingsAntivirusCommandIp">Команда чата (по умолчанию !banip):</String>
 		<String Name="SettingsStatusInChat">Показывать статусные сообщения в главном чате</String>
 		<String Name="SettingsStripTopic">Скрывать темы хабов (на вкладках и в заголовке окна)</String>
 		<String Name="SettingsTabs">Вкладки</String>
@@ -1649,7 +1634,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsUseSystemIcons">Использовать системные значки для файлов (немного замедляет просмотр)</String>
 		<String Name="SettingsUseTextForLogs">Использовать текстовые файлы</String>
 		<String Name="SettingsUseTls">Использовать TLS, когда удаленный клиент это поддерживает</String>
-		<String name="SettingsWanIpManual">Я знаю свой WAN IP</String>
 		<String Name="SettingsWebserver">Включить веб-сервер</String>
 		<String Name="SettingsWindows">Окна</String>
 		<String Name="SettingsWindowsOptions">Настройки окон</String>
@@ -1668,7 +1652,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ShareNewFolderMessage">Папка расшарена. Теперь пользователи смогут скачивать её содержимое.</String>
 		<String Name="ShowBbcodePanel">Показать панель BB-кодов</String>
 		<String Name="ShowCurrentSpeedInTitle">Текущая скорость в заголовке</String>
-		<String Name="ShowCustomMiniIconOnTaskbar">Показывать мини-значок на панели задач при использовании другого значка программы</String>
 		<String Name="ShowEmotionsBtn">Показать кнопку со смайлами</String>
 		<String Name="ShowJoins">Показ вх/вых</String>
 		<String Name="ShowMultiChatBtn">Показать кнопку «Многострочный ввод текста»</String>
@@ -1677,7 +1660,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ShowSendMessageButton">Показать кнопку «Отправить сообщение»</String>
 		<String Name="Shutdown">Выключить компьютер</String>
 		<String Name="ShutdownAction">Действие</String>
-		<String Name="ShutdownOff">Процесс выключения отменён…</String>
+		<String Name="ShutdownOff">Процесс выключения отменён...</String>
 		<String Name="ShutdownOn">Процесс выключения запущен…</String>
 		<String Name="Size">Размер</String>
 		<String Name="SizeExact">Точный</String>
@@ -1741,8 +1724,8 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="StealthyIndicateSpeeds">Отображать скорости (упрощённый стиль)</String>
 		<String Name="Stop">Остановить</String>
 		<String Name="Stopped">Остановлено</String>
-		<String Name="StoredPasswordSent">Пароль отправлен…</String>
-		<String Name="StoreSearchIp">Сохранять IP в SQLite</String>
+		<String Name="StoredPasswordSent">Сохранённый пароль отправлен…</String>
+		<String Name="StoreSearchIp">Хранить IP в базе (медленно)</String>
 		<String Name="StringNotFound">Строка не найдена:</String>
 		<String Name="Successfully">Успешно</String>
 		<String Name="SuccessfullyGetTthStream">Получение TTH из потока NTFS завершено успешно:</String>
@@ -1774,7 +1757,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="TargetFilenameTooLong">Целевое имя слишком длинное</String>
 		<String Name="TargetFileExists">Файл уже существует в папке назначения</String>
 		<String Name="TargetRemoved">Удалено</String>
-		<String Name="Tb">ТБ</String>
 		<String Name="TcpPortBusy">Не могу открыть TCP-порт. Передача файлов будет работать некорректно, пока вы не поменяете настройки или не выключите программу, которая использует этот TCP-порт</String>
 		<String Name="Techsupport">Поддержка FlylinkDC++</String>
 		<String Name="TextFakepercent">Допустимый процент несоответствия шары</String>
@@ -2002,8 +1984,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="WebserverSearchPageName">Добавление и поиск</String>
 		<String Name="WebserverUser">Пользователь.</String>
 		<String Name="WebUrl">Web ссылка</String>
-		<String Name="Week">неделя</String>
-		<String Name="Weeks">недели</String>
 		<String Name="Welcome">Добро пожаловать</String>
 		<String Name="WhatsThis">Что &amp;это?</String>
 		<String Name="WhoIs">Whois</String>
@@ -2085,7 +2065,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 </String>
 		<String Name="WizardStartupTxt3">Нажмите кнопку Далее, чтобы продолжить…</String>
 		<String Name="WizardTitle">Мастер настройки FlylinkDC++</String>
-		<String Name="WmpHelp">/wmp – работает с Windows Media Player 9+
+		<String Name="WmpHelpStr">/wmp – работает с Windows Media Player 9+
 
 - %[version] – версия Windows Media Player
 - %[fullversion] – полная версия Windows Media Player
@@ -2112,21 +2092,32 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="WrongMask">Неправильно маска.</String>
 		<String Name="WrongEndIp">Неверный конечный IP-адрес в диапазоне.</String>
 		<String Name="WrongStartIp">Неверный начальный IP-адрес в диапазоне.</String>
-		<String Name="Yb">ЙБ</String>
 		<String Name="Yellow">Жёлтый</String>
 		<String Name="Yes">Да</String>
 		<String Name="YourIpIsBlocked">Ваш IP-адрес заблокирован!</String>
 		<String Name="YouHaveTheLatestVersion">Установленная версия FlylinkDC++ является самой последней.</String>
+		<String Name="B">Б</String>
+		<String Name="Bps">Б/с</String>
+		<String Name="Kb">кБ</String>
+		<String Name="Kbps">кБ/с</String>
+		<String Name="Mb">МБ</String>
+		<String Name="Mbps">Мб/с</String>
+		<String Name="Gb">ГБ</String>
+		<String Name="Gbps">Гб/с</String>
+		<String Name="Tb">ТБ</String>
+		<String Name="Pb">Пб</String>
+		<String Name="Yb">ЙБ</String>
+		<String Name="Eb">ЭБ</String>
 		<String Name="Zb">ЗБ</String>
-	<String name="DatetimeWeek">неделя</String>
-		<String name="DatetimeWeeks">нед.</String>
-		<String name="DatetimeDay">день</String>
-		<String name="DatetimeDays">дн.</String>
-		<String name="DatetimeHour">час</String>
-		<String name="DatetimeHours">ч.</String>
-		<String name="DatetimeMinute">минута</String>
-		<String name="DatetimeMinutes">мин.</String>
-		<String name="DatetimeSecond">секунда</String>
-		<String name="DatetimeSeconds">сек.</String>
+		<String Name="DatetimeWeek">неделя</String>
+		<String Name="DatetimeWeeks">недели</String>
+		<String Name="DatetimeDay">день</String>
+		<String Name="DatetimeDays">день.</String>
+		<String Name="DatetimeHour">час</String>
+		<String Name="DatetimeHours">ч.</String>
+		<String Name="DatetimeMinute">минута</String>
+		<String Name="DatetimeMinutes">мин.</String>
+		<String Name="DatetimeSecond">секунда</String>
+		<String Name="DatetimeSeconds">с.</String>
 	</Strings>
 </Language>
