@@ -81,8 +81,6 @@
 		<String Name="Ask">Спросить</String>
 		<String Name="AskSlot">Попросить слоты</String>
 		<String Name="AskSlotTemplate">Привет, %[nick]! Дай мне, пожалуйста, слот на скачку %[filename].</String>
-		<String Name="AttemptToUseSpamMessageCm">Кто-то (%s) с адреса %s:%d пытается использовать ваш клиент для спама! Пожалуйста, уведомите об этом владельца хаба.</String>
-		<String Name="AttemptToUseSpamMessageS">Кто-то с адреса %s пытается использовать ваш клиент для спама! Пожалуйста, уведомите об этом владельца хаба.</String>
 		<String Name="AtHubYouHaveRightOperator">На хабе %s у вас есть права оператора</String>
 		<String Name="AtLeast">Не менее</String>
 		<String Name="AtMost">Не более</String>
@@ -144,6 +142,7 @@
 		<String Name="AutoConnectRemoved">Автоподключение убрано</String>
 		<String Name="AutoConnectStartOff">Удалить автоподключение при старте</String>
 		<String Name="AutoConnectStartOn">Включить автоподключение при старте</String>
+		<String Name="AverageDownloadUpload">Скорость загрузки, отдачи, и к-во файлов</String>
 		<String Name="AutoGrantNick">Автовыдача слота / Ник</String>
 		<String Name="AutoGrant">Автовыдача слота</String>
 		<String Name="AverageUpload">Скорость отдачи</String>
@@ -230,6 +229,9 @@
 		<String Name="Close">Закрыть</String>
 		<String Name="CloseConnection">Закрыть соединение</String>
 		<String Name="CloseConnectionAndAddIpGuard">Закрыть Соединение и добавить в базу P2P Guard</String>
+		<String Name="RemoveTorrent">Удалить сессию торрента</String>
+		<String Name="RemoveTorrentAndFile">Удалить сессию торрента и файл</String>
+		<String Name="PauseTorrent">Пауза</String>
 		<String Name="CloseHot">Закрыть	Ctrl + W</String>
 		<String Name="CmdAwayMsg">Вкл/Выкл режим «Ушёл» с сообщением</String>
 		<String Name="CmdClearChat">Очистить окно чата</String>
@@ -315,6 +317,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 %[line:reason] – открыть окно для ввода "reason"
 * – контекст: только чат и поиск</String>
 		<String Name="CommandTooLong">Команда слишком длинная</String>
+		<String Name="CommandShutdownInProgress">Происходит выключение FlylinkDC++...</String>
 		<String Name="CommaNotFound">Запятая не найдена</String>
 		<String Name="Comment">Комментарий</String>
 		<String Name="CommentedLine">Закомментированная строка</String>
@@ -936,7 +939,8 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="MenuOpenDownloadsDir">Папка для скачивания</String>
 		<String Name="MenuOpenLogsDir">Открыть папку с журналами</String>
 		<String Name="MenuOpenConfigDir">Открыть папку с настройками (!)</String>
-		<String Name="MenuOpenFileList">Открыть список файлов или .torrent…	Ctrl + L</String>
+		<String Name="MenuOpenFileList">Открыть список файлов или торрент-файл…	Ctrl + L</String>
+		<String Name="MenuOpenTorrentFile">Открыть файл *.torrent</String>
 		<String Name="MenuOpenMatchAll">Сравнить скачанные списки</String>
 		<String Name="MenuOpenOwnList">Открыть собственный список файлов	F8</String>
 		<String Name="MenuOpenSqlexplorer">Открыть SQLExplorer</String>
@@ -1212,6 +1216,12 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="QueueSaved">Очередь сохранена.</String>
 		<String Name="QuickConnect">Быстрое соединение</String>
 		<String Name="Rating">Рейтинг</String>
+		<String Name="Software">ПО хаба</String>
+		<String Name="Website">Страница Хаба</String>
+		<String Name="Asn">ASN</String>
+		<String Name="Operators">Операторы</String>
+		<String Name="Bots">Боты</String>
+		<String Name="Infected">Заражены</String>
 		<String Name="Ratio">Отношение</String>
 		<String Name="RatioMsgHelp">В шаблоне возможно использование:
 
@@ -1238,7 +1248,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="RejectedPrivateMessageFrom">Отклонено ЛС от</String>
 		<String Name="Reliability">Надёжность</String>
 		<String Name="Reload">Перезагрузить</String>
-		<String Name="ReloadDir">Перезагрузка базы…</String>
+		<String Name="ReloadDir">Перезагрузка каталога…</String>
 		<String Name="ScanDir">Сканирование каталога…</String>
 		<String Name="RemainedAttempts">Осталось попыток</String>
 		<String Name="RememberSettingsPage">Запоминать страницу в окне «Настройки»</String>
@@ -1272,7 +1282,9 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ReportBugs">Сообщайте об ошибках</String>
 		<String Name="Requesting">Запрос</String>
 		<String Name="Resume">Возобновить</String>
+		<String Name="ResumeTorrent">Продолжить торрент</String>
 		<String Name="RestoreLostShare">Восстановить папку, которая ранее была в шаре?</String>
+		<String Name="RestoreWindowPos">Расположить окно по центру основного монитора</String>
 		<String Name="RetrievingData">Получение данных</String>
 		<String Name="RightColor">Цвет справа</String>
 		<String Name="RollbackInconsistency">Откат, существующий файл не совпадает с тем, что был скачан</String>
@@ -1281,6 +1293,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="RssdlgName">Имя ленты:</String>
 		<String Name="RssdlgTitle">Создать/изменить ленту новостей</String>
 		<String Name="RssdlgUrl">Адрес ленты:</String>
+		<String Name="RssdlgEnable">Включить ленту и автообновление</String>
 		<String Name="RssAuthor">Автор</String>
 		<String Name="RssCategory">Категория</String>
 		<String Name="RssCodeing">Кодировка</String>
@@ -1297,6 +1310,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Saved">Сохранено…</String>
 		<String Name="SavePassword">Сохранить пароль</String>
 		<String Name="SaveSearchSettingsText">Сохранить настройки поиска</String>
+		<String Name="UseSearchGroupTreeSettingsText">Использовать дерево групп</String>
 		<String Name="SaveSearchSettingsTooltip">Эта опция предполагает сохранение параметров поиска: размер, тип, метод и так далее.</String>
 		<String Name="Search">Поиск</String>
 		<String Name="SearchDetectTth">Автоматически переключать тип поиска на TTH, если он был введён в строку поиска</String>
@@ -1407,11 +1421,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsBindAddress">Присвоенный адрес</String>
 		<String Name="SettingsBindAddressHelp">Сетевой интерфейс для всех соединений</String>
 		<String Name="SettingsBoldOptions">Выделение вкладок при изменениях</String>
-		<String Name="SettingsBtHelp">Для примера:
-«C:\Program Files (x86)\uTorrent\uTorrent.exe» – для ассоциации с uTorrent на 64-битной платформе
-«C:\Program Files\uTorrent\uTorrent.exe» – для ассоциации с uTorrent на 32-битной платформе</String>
-		<String Name="SettingsBittorrentProgramm">Программа BitTorrent для магнет-ссылок:</String>
-		<String Name="SettingsBittorrentErrorConfig">FlylinkDC++ не смог открыть ссылку т.к. в настройках не указан торрент клиент (Меню-&gt;Файл-&gt;Настройки-&gt;Загрузки-&gt;Путь к торрент клиенту)</String>
 		<String Name="SettingsCertificates">Безопасность</String>
 		<String Name="SettingsChange">&amp;Изменить</String>
 		<String Name="SettingsClearSearch">Очищать строку поиска после каждого запроса</String>
@@ -1439,7 +1448,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsDclsPage">Поддержка DCLST</String>
 		<String Name="SettingsDefaultAwayMsg">Сообщение «ушёл»</String>
 		<String Name="SettingsDefaultClick">Клик-команды</String>
-		<String Name="SettingsDhtPort">Torrent</String>
+		<String Name="SettingsTorrentPort">Торрент</String>
 		<String Name="SettingsDirect">Прямое соединение</String>
 		<String Name="SettingsDirectories">Папки</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Показывать обманщиков в главном чате</String>
@@ -1469,6 +1478,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsFirewallNat">Брандмауэр с ручным перенаправлением портов</String>
 		<String Name="SettingsFirewallPassive">Брандмауэр (Пассивный режим: для тех, кто не умеет пробрасывать порты)</String>
 		<String Name="SettingsFirewallPassiveForce">Принудительно перейти в пассивный режим (установить если ничего не качает и не ищет!)</String>
+		<String Name="SettingsXxxBlockShare">Блокировать расшаривание XXX файлов!</String>
 		<String Name="SettingsFirewallAutoPassive">Автоматическое пассивное соединение (перерыв между попытками – 2 минуты)</String>
 		<String Name="SettingsFirewallBlockDownloadFromAvdbUsers">Блокировать загрузки с вирусных пользователей (AVDB)</String>
 		<String Name="SettingsFirewallUpnp">UPnP (для Wi-Fi роутеров)</String>
@@ -1495,7 +1505,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsLogTraceSqlite">Журнал обращений к базе SQLite</String>
 		<String Name="SettingsLogDdosTrace">Журнал обнаружения DDoS</String>
 		<String Name="SettingsLogVirusTrace">Лог обнаружения вирусов</String>
-		<String Name="SettingsLogDhtTrace">Журнал DHT</String>
+		<String Name="SettingsLogTorrentTrace">Журнал торрента</String>
 		<String Name="SettingsLogPsrTrace">Журнал результатов частичного поиска</String>
 		<String Name="SettingsLogFloodTrace">Журнал обнаружения флуда $Command</String>
 		<String Name="SettingsLogCmddebugTrace">Журнал CDM отладчика</String>
@@ -1529,7 +1539,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsOperacolors">Полоса прогресса</String>
 		<String Name="SettingsOptions">Настройки</String>
 		<String Name="SettingsOutgoing">Настройки исходящих соединений</String>
-		<String Name="SettingsOverride">Не учитывать настройки хабов/UPnP</String>
+		<String Name="SettingsNoIpOverride">Не позволять хабу/UPnP перезаписывать</String>
 		<String Name="SettingsParams">Параметры</String>
 		<String Name="SettingsPassword">Пароль</String>
 		<String Name="SettingsPasswordHint">Подсказка к паролю</String>
@@ -1720,7 +1730,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Speed">Скорость</String>
 		<String Name="SpeedLimit">Ограничение скорости</String>
 		<String Name="SpeedLimitManual">Вручную установить лимит отдачи</String>
-		<String Name="SqliteUseExclusiveLockMode">Использовать режим монопольной блокировки базы данных SQLite. Этот параметр улучшает производительность.</String>
 		<String Name="SqliteUseJournalMemory">Держать файл с изменениями SQLite в памяти. Это может повредить базу данных в случае неполадок программы или системы.</String>
 		<String Name="SslError">Ошибка SSL</String>
 		<String Name="StartIpEqual">Начальный и конечный IP равны. Диапазон добавлен как одиночный IP.</String>
@@ -1739,6 +1748,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SuccessfullyGetTthStream">Получение TTH из потока NTFS завершено успешно:</String>
 		<String Name="SpeedSuperUser">Суперпользователь (ограничение не действует)</String>
 		<String Name="Supports">Поддержка</String>
+		<String Name="SupportsServerDesc">Хаб поддержки FlylinkDC++</String>
 		<String Name="SuppressFavChatAndPm">Отключить чат и личные сообщения</String>
 		<String Name="Suspend">Приостановить</String>
 		<String Name="SxmlEmptyTagName">Пустое имя тега не допускается</String>
@@ -1779,6 +1789,11 @@ Raw: отослать raw-команду хабу (только для эксп�
 Согласно законодательству многих стран, FlylinkDC++
 обязан информировать об этом факте.</String>
 		<String Name="TextStr">Текст</String>
+		<String Name="TorrentComment">Счётчик комментариев торрента</String>
+		<String Name="TorrentDate">Дата торрента</String>
+		<String Name="TorrentUrl">Адрес торрента</String>
+		<String Name="TorrentTracker">Торрент трекер</String>
+		<String Name="TorrentPage">Страница торрента</String>
 		<String Name="Tth">TTH</String>
 		<String Name="FavEnemyUser">Недруг / Запрет скорости</String>
 		<String Name="FavUser">Друг</String>
@@ -1797,7 +1812,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ThemeChangeThemeInfo">Перезапустите программу, чтобы изменить тему</String>
 		<String Name="ThemeDefaultName">Тема по умолчанию</String>
 		<String Name="ThisFileWasInMyShare">Этот файл был у меня в шаре…</String>
-		<String Name="ThisFunctionalIsDisabled">Этот функционал отключен в данной версии</String>
+		<String Name="ThisFunctionalIsDisabled">Этот функционал находится в разработке либо отключен в данной версии</String>
 		<String Name="ThisVersionReleased">Есть релиз этой версии или более новый</String>
 		<String Name="Threshold">Порог пользователей</String>
 		<String Name="TicksSpeedDown">Значение максимальной скорости приёма:</String>
@@ -1849,6 +1864,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="TthAlreadyShared">Файл с таким же ТТН уже находится в вашей шаре</String>
 		<String Name="TthInconsistency">Несоответствие TTH</String>
 		<String Name="TthRoot">TTH</String>
+		<String Name="TthRootOrTorrentMagnet">TTH или магнет-ссылка</String>
 		<String Name="TwoColors">Два цвета</String>
 		<String Name="Type">Тип</String>
 		<String Name="U">О:</String>
@@ -1942,7 +1958,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="UseBitrateFixForSpam">Костыль для правильного отображения спама от QMP-/QCD-плееров</String>
 		<String Name="UseCustomListBackground">Чередующийся стиль фона для списков</String>
 		<String Name="UseCustomMenu">Использовать меню провайдера</String>
-		<String Name="UseDht">Включить torrent</String>
+		<String Name="UseTorrent">Включить торрент</String>
 		<String Name="UseDhtNotanswer">Не спрашивать снова</String>
 		<String Name="UseExplorerTheme">Использовать тему проводника в списках</String>
 		<String Name="UcSubmenu">Располагать команды хаба и команды пользователя в подменю</String>
