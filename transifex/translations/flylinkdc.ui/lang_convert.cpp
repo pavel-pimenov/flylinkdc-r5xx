@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <map>
+#include <algorithm>
 
 using namespace std;
 //---------------------------------------------------------------------------
@@ -12,6 +13,7 @@ int main(int argc, char* argv[])
   {
     string l_inFileName = argv[1];
     string vOutFileName = string("new\\") + l_inFileName;
+    std::replace(vOutFileName.begin(), vOutFileName.end(), '_', '-');
     fstream in(l_inFileName.c_str(), ios_base::in);
     fstream out(vOutFileName.c_str(), ios_base::out | ios_base::trunc);
     string strCurLine;
