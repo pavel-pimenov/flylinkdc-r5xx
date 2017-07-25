@@ -116,3 +116,7 @@ FlylinkDC-*.7z
 /compiled/*.exp
 /compiled/Settings/Certificates/client.crt
 /compiled/Settings/Certificates/client.key
+/lua/Release/lua.tlog/*.tlog
+/lua/Release/lua.tlog/*.lastbuildstate
+/lua/x64/Release/lua.tlog/*.tlog
+/lua/x64/Release/lua.tlog/*.lastbuildstate
