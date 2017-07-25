@@ -2821,9 +2821,9 @@ void CFlylinkDBManager::add_sourceL(const QueueItemPtr& p_QueueItem, const CID& 
 			wantConnection = QueueManager::addSourceL(p_QueueItem, l_user, 0, true) && l_user->isOnline(); // Добавить флаг ускоренной загрузки первый раз.
 			g_count_queue_source++;
 		}
-		catch (const Exception& )
+		catch (const Exception&)
 		{
-            dcassert(0);
+			dcassert(0);
 			//LogManager::message("CFlylinkDBManager::add_sourceL, Error = " + e.getError(), true);
 		}
 		if (wantConnection)

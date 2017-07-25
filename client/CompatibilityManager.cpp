@@ -861,10 +861,7 @@ bool CompatibilityManager::checkTeredo()
 	const unsigned WORKING_BUFFER_SIZE = 15000;
 	const unsigned MAX_TRIES = 3;
 	
-	DWORD dwSize = 0;
 	DWORD dwRetVal = 0;
-	
-	unsigned int i = 0;
 	
 	// Set the flags to pass to GetAdaptersAddresses
 	ULONG flags = GAA_FLAG_INCLUDE_PREFIX;
@@ -874,18 +871,16 @@ bool CompatibilityManager::checkTeredo()
 	//        family = AF_INET;
 	//        family = AF_INET6;
 	
-	LPVOID lpMsgBuf = NULL;
-	
 	PIP_ADAPTER_ADDRESSES pAddresses = NULL;
 	ULONG outBufLen = 0;
 	ULONG Iterations = 0;
 	
 	PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
-	PIP_ADAPTER_UNICAST_ADDRESS pUnicast = NULL;
-	PIP_ADAPTER_ANYCAST_ADDRESS pAnycast = NULL;
-	PIP_ADAPTER_MULTICAST_ADDRESS pMulticast = NULL;
-	IP_ADAPTER_DNS_SERVER_ADDRESS *pDnServer = NULL;
-	IP_ADAPTER_PREFIX *pPrefix = NULL;
+	//PIP_ADAPTER_UNICAST_ADDRESS pUnicast = NULL;
+	//PIP_ADAPTER_ANYCAST_ADDRESS pAnycast = NULL;
+	//PIP_ADAPTER_MULTICAST_ADDRESS pMulticast = NULL;
+	//IP_ADAPTER_DNS_SERVER_ADDRESS *pDnServer = NULL;
+	//IP_ADAPTER_PREFIX *pPrefix = NULL;
 	
 	
 	/*
@@ -1040,6 +1035,8 @@ bool CompatibilityManager::checkTeredo()
 		else
 		{
 			dcassert(0);
+			//LPVOID lpMsgBuf = NULL;
+			
 			/*
 			if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
 			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,

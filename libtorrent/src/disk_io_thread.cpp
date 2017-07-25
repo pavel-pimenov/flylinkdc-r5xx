@@ -198,7 +198,7 @@ namespace libtorrent {
 		, m_stats_counters(cnt)
 		, m_ios(ios)
 	{
-		m_disk_cache.set_settings(m_settings);
+		// m_disk_cache.set_settings(m_settings); //fix https://drdump.com/DumpGroup.aspx?DumpGroupID=831565
 	}
 
 	storage_interface* disk_io_thread::get_torrent(storage_index_t const storage)

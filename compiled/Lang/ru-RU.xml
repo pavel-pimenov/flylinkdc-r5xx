@@ -70,7 +70,7 @@
 		<String Name="AllFileSlotsTaken">Вы качаете максимальное число файлов</String>
 		<String Name="AllUsersOffline">Все %d пользователи офлайн</String>
 		<String Name="AlreadyIgnored">Пользователь уже находится в игнор-листе!</String>
-		<String Name="AlreadyRunning">FlylinkDC++ уже запущен или находится в процессе завершения работы...
+		<String Name="AlreadyRunning">FlylinkDC++ уже запущен или находится в процессе завершения работы…
 Вы уверены, что хотите запустить ещё один экземпляр программы?</String>
 		<String Name="AlternatesSend">Ищутся альтернативные источники по ТТН для:</String>
 		<String Name="AlwaysAsk">Всегда спрашивать</String>

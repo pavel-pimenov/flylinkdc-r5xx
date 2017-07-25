@@ -4278,7 +4278,7 @@ JSONCPP_STRING valueToString(double value, bool useSpecialFloats, unsigned int p
     fixNumericLocale(buffer, buffer + len);
 
     // try to ensure we preserve the fact that this was given to us as a double on input
-	if (!strchr(buffer, '.') && !strchr(buffer, 'e')) {
+    if (!strchr(buffer, '.') && !strchr(buffer, 'e')) {
       strcat(buffer, ".0");
     }
 

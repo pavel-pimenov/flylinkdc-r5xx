@@ -572,7 +572,7 @@ void SettingsManager::setDefaults()
 	
 	setDefault(LOG_FILE_TORRENT_TRACE, "torrent.log");
 	setDefault(LOG_FORMAT_TORRENT_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
-
+	
 	setDefault(LOG_FILE_PSR_TRACE, "psr.log");
 	setDefault(LOG_FORMAT_PSR_TRACE, "[%Y-%m-%d %H:%M:%S] %[message]");
 	

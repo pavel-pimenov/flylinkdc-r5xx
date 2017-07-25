@@ -380,6 +380,7 @@
     <ClCompile Include="src\socket_io.cpp" />
     <ClCompile Include="src\socket_type.cpp" />
     <ClCompile Include="src\socks5_stream.cpp" />
+    <ClCompile Include="src\stack_allocator.cpp" />
     <ClCompile Include="src\stat.cpp" />
     <ClCompile Include="src\stat_cache.cpp" />
     <ClCompile Include="src\storage.cpp" />
