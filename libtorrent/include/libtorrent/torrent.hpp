@@ -114,7 +114,7 @@ namespace libtorrent {
 		// by what time we want this piece
 		time_point deadline;
 		// 1 = send alert with piece data when available
-		int flags;
+		deadline_flags_t flags;
 		// how many peers it's been requested from
 		int peers;
 		// the piece index
@@ -411,8 +411,7 @@ namespace libtorrent {
 
 		int seed_rank(aux::session_settings const& s) const;
 
-		enum flags_t { overwrite_existing = 1 };
-		void add_piece(piece_index_t piece, char const* data, int flags = 0);
+		void add_piece(piece_index_t piece, char const* data, add_piece_flags_t flags);
 		void on_disk_write_complete(storage_error const& error
 			, peer_request const& p);
 
@@ -529,7 +528,7 @@ namespace libtorrent {
 		bool is_paused() const;
 		bool is_torrent_paused() const { return m_paused; }
 		void force_recheck();
-		void save_resume_data(int flags);
+		void save_resume_data(resume_data_flags_t flags);
 
 		bool need_save_resume_data() const { return m_need_save_resume_data; }
 
@@ -543,7 +542,7 @@ namespace libtorrent {
 
 		bool should_check_files() const;
 
-		bool delete_files(int options);
+		bool delete_files(remove_flags_t options);
 		void peers_erased(std::vector<torrent_peer*> const& peers);
 
 #ifndef TORRENT_NO_DEPRECATE
@@ -569,12 +568,12 @@ namespace libtorrent {
 		void file_priorities(aux::vector<int, file_index_t>*) const;
 
 		void cancel_non_critical();
-		void set_piece_deadline(piece_index_t piece, int t, int flags);
+		void set_piece_deadline(piece_index_t piece, int t, deadline_flags_t flags);
 		void reset_piece_deadline(piece_index_t piece);
 		void clear_time_critical();
 		void update_piece_priorities();
 
-		void status(torrent_status* st, std::uint32_t flags);
+		void status(torrent_status* st, status_flags_t flags);
 
 		// this torrent changed state, if the user is subscribing to
 		// it, add it to the m_state_updates list in session_impl
@@ -1532,7 +1531,7 @@ namespace libtorrent {
 
 		// these are the flags sent in on a call to save_resume_data
 		// we need to save them to check them in write_resume_data
-		std::uint32_t m_save_resume_flags:8;
+		resume_data_flags_t m_save_resume_flags;
 
 // ----
 

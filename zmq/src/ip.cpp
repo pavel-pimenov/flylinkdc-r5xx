@@ -110,7 +110,8 @@ void zmq::enable_ipv4_mapping (fd_t s_)
 
 #undef IPV6_V6ONLY // [+] FlylinkDC++ fix for Win XP
 
-#ifdef IPV6_V6ONLY
+#if defined IPV6_V6ONLY && !defined ZMQ_HAVE_OPENBSD
+
 #ifdef ZMQ_HAVE_WINDOWS
     DWORD flag = 0;
 #else

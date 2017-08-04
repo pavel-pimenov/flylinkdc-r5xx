@@ -58,6 +58,22 @@ using libtorrent::aux::session_impl;
 
 namespace libtorrent {
 
+	constexpr resume_data_flags_t torrent_handle::flush_disk_cache;
+	constexpr resume_data_flags_t torrent_handle::save_info_dict;
+	constexpr resume_data_flags_t torrent_handle::only_if_modified;
+	constexpr add_piece_flags_t torrent_handle::overwrite_existing;
+	constexpr pause_flags_t torrent_handle::graceful_pause;
+	constexpr deadline_flags_t torrent_handle::alert_when_available;
+
+	constexpr status_flags_t torrent_handle::query_distributed_copies;
+	constexpr status_flags_t torrent_handle::query_accurate_download_counters;
+	constexpr status_flags_t torrent_handle::query_last_seen_complete;
+	constexpr status_flags_t torrent_handle::query_pieces;
+	constexpr status_flags_t torrent_handle::query_verified_pieces;
+	constexpr status_flags_t torrent_handle::query_torrent_file;
+	constexpr status_flags_t torrent_handle::query_name;
+	constexpr status_flags_t torrent_handle::query_save_path;
+
 #ifndef BOOST_NO_EXCEPTIONS
 	void TORRENT_NO_RETURN throw_invalid_handle()
 	{
@@ -261,7 +277,7 @@ namespace libtorrent {
 		return sync_call_ret<bool>(false, &torrent::set_metadata, metadata);
 	}
 
-	void torrent_handle::pause(int flags) const
+	void torrent_handle::pause(pause_flags_t const flags) const
 	{
 		async_call(&torrent::pause, bool(flags & graceful_pause));
 	}
@@ -344,7 +360,7 @@ namespace libtorrent {
 #endif
 	}
 
-	void torrent_handle::save_resume_data(int f) const
+	void torrent_handle::save_resume_data(resume_data_flags_t f) const
 	{
 		async_call(&torrent::save_resume_data, f);
 	}
@@ -426,7 +442,7 @@ namespace libtorrent {
 		sync_call(&torrent::file_progress, std::ref(arg), flags);
 	}
 
-	torrent_status torrent_handle::status(std::uint32_t flags) const
+	torrent_status torrent_handle::status(status_flags_t const flags) const
 	{
 		torrent_status st;
 		sync_call(&torrent::status, &st, flags);
@@ -607,7 +623,7 @@ namespace libtorrent {
 		async_call(&torrent::add_tracker, url);
 	}
 
-	void torrent_handle::add_piece(piece_index_t piece, char const* data, int flags) const
+	void torrent_handle::add_piece(piece_index_t piece, char const* data, add_piece_flags_t const flags) const
 	{
 		sync_call(&torrent::add_piece, piece, data, flags);
 	}
@@ -751,7 +767,8 @@ namespace libtorrent {
 		sync_call(&torrent::get_download_queue, queuep);
 	}
 
-	void torrent_handle::set_piece_deadline(piece_index_t index, int deadline, int flags) const
+	void torrent_handle::set_piece_deadline(piece_index_t index, int deadline
+		, deadline_flags_t const flags) const
 	{
 		async_call(&torrent::set_piece_deadline, index, deadline, flags);
 	}

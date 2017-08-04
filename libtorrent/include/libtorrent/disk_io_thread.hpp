@@ -311,7 +311,7 @@ namespace aux {
 			, std::function<void(status_t, std::string const&, storage_error const&)> handler) override;
 		void async_release_files(storage_index_t storage
 			, std::function<void()> handler = std::function<void()>()) override;
-		void async_delete_files(storage_index_t storage, int options
+		void async_delete_files(storage_index_t storage, remove_flags_t options
 			, std::function<void(storage_error const&)> handler) override;
 		void async_check_files(storage_index_t storage
 			, add_torrent_params const* resume_data
@@ -578,6 +578,7 @@ namespace aux {
 		int m_magic = 0x1337;
 		std::atomic<bool> m_jobs_aborted{false};
 #endif
+		std::string m_error_code;
 	};
 }
 

@@ -539,7 +539,8 @@ namespace aux {
 	{
 		if (pack.has_val(settings_pack::alert_mask))
 		{
-			m_alerts.set_alert_mask(std::uint32_t(pack.get_int(settings_pack::alert_mask)));
+			m_alerts.set_alert_mask(alert_category_t(
+				static_cast<std::uint32_t>(pack.get_int(settings_pack::alert_mask))));
 		}
 
 #ifndef TORRENT_DISABLE_LOGGING
@@ -715,7 +716,7 @@ namespace aux {
 #endif
 	}
 
-	void session_impl::save_state(entry* eptr, std::uint32_t const flags) const
+	void session_impl::save_state(entry* eptr, save_state_flags_t const flags) const
 	{
 		TORRENT_ASSERT(is_single_thread());
 
@@ -755,7 +756,7 @@ namespace aux {
 	}
 
 	void session_impl::load_state(bdecode_node const* e
-		, std::uint32_t const flags)
+		, save_state_flags_t const flags)
 	{
 		TORRENT_ASSERT(is_single_thread());
 
@@ -1468,27 +1469,25 @@ namespace {
 		return tcp::endpoint();
 	}
 
-	enum { listen_no_system_port = 0x02 };
-
 	std::shared_ptr<listen_socket_t> session_impl::setup_listener(std::string const& device
-		, tcp::endpoint bind_ep, int flags, error_code& ec)
+		, tcp::endpoint bind_ep, transport const ssl, error_code& ec)
 	{
 		int retries = m_settings.get_int(settings_pack::max_retry_port_bind);
 
 #ifndef TORRENT_DISABLE_LOGGING
 		if (should_log())
 		{
-			session_log("attempting to open listen socket to: %s on device: %s flags: %x"
-				, print_endpoint(bind_ep).c_str(), device.c_str(), flags);
+			session_log("attempting to open listen socket to: %s on device: %s ssl: %x"
+				, print_endpoint(bind_ep).c_str(), device.c_str(), static_cast<int>(ssl));
 		}
 #endif
 
 		auto ret = std::make_shared<listen_socket_t>();
-		ret->ssl = (flags & open_ssl_socket) != 0 ? transport::ssl : transport::plaintext;
+		ret->ssl = ssl;
 		ret->original_port = bind_ep.port();
 		operation_t last_op = operation_t::unknown;
 		socket_type_t const sock_type
-			= (flags & open_ssl_socket)
+			= (ssl == transport::ssl)
 			? socket_type_t::tcp_ssl
 			: socket_type_t::tcp;
 
@@ -1624,7 +1623,7 @@ namespace {
 			}
 
 			if (ec == error_code(error::address_in_use)
-				&& !(flags & listen_no_system_port)
+				&& m_settings.get_bool(settings_pack::listen_system_port_fallback)
 				&& bind_ep.port() != 0)
 			{
 				// instead of giving up, try let the OS pick a port
@@ -1701,7 +1700,7 @@ namespace {
 		} // force-proxy mode
 
 		socket_type_t const udp_sock_type
-			= (flags & open_ssl_socket)
+			= (ssl == transport::ssl)
 			? socket_type_t::utp_ssl
 			: socket_type_t::udp;
 		udp::endpoint const udp_bind_ep(bind_ep.address(), bind_ep.port());
@@ -1896,8 +1895,6 @@ namespace {
 		TORRENT_ASSERT(is_single_thread());
 
 		TORRENT_ASSERT(!m_abort);
-		int const flags = m_settings.get_bool(settings_pack::listen_system_port_fallback)
-			? 0 : listen_no_system_port;
 
 		m_stats_counters.set_value(counters::has_incoming_connections, 0);
 		error_code ec;
@@ -1975,8 +1972,7 @@ namespace {
 		for (auto const& ep : eps)
 		{
 			std::shared_ptr<listen_socket_t> s = setup_listener(ep.device
-				, tcp::endpoint(ep.addr, std::uint16_t(ep.port))
-				, flags | (ep.ssl == transport::ssl ? open_ssl_socket : 0), ec);
+				, tcp::endpoint(ep.addr, std::uint16_t(ep.port)), ep.ssl, ec);
 
 			if (!ec && (s->sock || s->udp_sock))
 			{
@@ -2331,7 +2327,7 @@ namespace {
 		, int const port
 		, span<char const> p
 		, error_code& ec
-		, int const flags)
+		, udp_send_flags_t const flags)
 	{
 		auto si = sock.lock();
 		if (!si)
@@ -2358,7 +2354,7 @@ namespace {
 		, udp::endpoint const& ep
 		, span<char const> p
 		, error_code& ec
-		, int const flags)
+		, udp_send_flags_t const flags)
 	{
 		auto si = sock.lock();
 		if (!si)
@@ -4579,7 +4575,7 @@ namespace {
 
 	void session_impl::get_torrent_status(std::vector<torrent_status>* ret
 		, std::function<bool(torrent_status const&)> const& pred
-		, std::uint32_t const flags) const
+		, status_flags_t const flags) const
 	{
 		for (auto const& t : m_torrents)
 		{
@@ -4592,7 +4588,7 @@ namespace {
 	}
 
 	void session_impl::refresh_torrent_status(std::vector<torrent_status>* ret
-		, std::uint32_t const flags) const
+		, status_flags_t const flags) const
 	{
 		for (auto& st : *ret)
 		{
@@ -4602,7 +4598,7 @@ namespace {
 		}
 	}
 
-	void session_impl::post_torrent_updates(std::uint32_t const flags)
+	void session_impl::post_torrent_updates(status_flags_t const flags)
 	{
 		INVARIANT_CHECK;
 
@@ -5116,7 +5112,8 @@ namespace {
 		return false;
 	}
 
-	void session_impl::remove_torrent(const torrent_handle& h, int options)
+	void session_impl::remove_torrent(const torrent_handle& h
+		, remove_flags_t const options)
 	{
 		INVARIANT_CHECK;
 
@@ -5132,7 +5129,7 @@ namespace {
 	}
 
 	void session_impl::remove_torrent_impl(std::shared_ptr<torrent> tptr
-		, int options)
+		, remove_flags_t const options)
 	{
 #ifndef TORRENT_NO_DEPRECATE
 		// deprecated in 1.2
@@ -5682,7 +5679,7 @@ namespace {
 				, udp::endpoint const& ep
 				, span<char const> p
 				, error_code& ec
-				, int flags)
+				, udp_send_flags_t const flags)
 				{ send_udp_packet_listen(sock, ep, p, ec, flags); }
 			, m_dht_settings
 			, m_stats_counters
@@ -6492,7 +6489,8 @@ namespace {
 
 	void session_impl::update_alert_mask()
 	{
-		m_alerts.set_alert_mask(std::uint32_t(m_settings.get_int(settings_pack::alert_mask)));
+		m_alerts.set_alert_mask(alert_category_t(
+			static_cast<std::uint32_t>(m_settings.get_int(settings_pack::alert_mask))));
 	}
 
 	void session_impl::pop_alerts(std::vector<alert*>* alerts)

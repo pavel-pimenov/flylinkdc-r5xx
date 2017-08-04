@@ -1214,7 +1214,7 @@ bool DownloadManager::pause_torrent_file(const libtorrent::sha1_hash& p_sha1, bo
 	return false;
 	
 }
-bool DownloadManager::remove_torrent_file(const libtorrent::sha1_hash& p_sha1, const int p_delete_options)
+bool DownloadManager::remove_torrent_file(const libtorrent::sha1_hash& p_sha1, libtorrent::remove_flags_t p_options)
 {
 	if (m_torrent_session)
 	{
@@ -1224,7 +1224,7 @@ bool DownloadManager::remove_torrent_file(const libtorrent::sha1_hash& p_sha1, c
 			const auto l_h = m_torrent_session->find_torrent(p_sha1);
 			//if (l_h.is_valid())
 			{
-				m_torrent_session->remove_torrent(l_h, p_delete_options);
+				m_torrent_session->remove_torrent(l_h, p_options);
 			}
 			//else
 			//{
@@ -1319,7 +1319,14 @@ void DownloadManager::init_torrent(bool p_is_force)
 		              );
 		l_sett.set_str(settings_pack::user_agent, "FlylinkDC++ " A_REVISION_NUM_STR); // LIBTORRENT_VERSION //  A_VERSION_NUM_STR
 		l_sett.set_int(settings_pack::choking_algorithm, settings_pack::rate_based_choker);
-		// l_sett.set_int(settings_pack::active_loaded_limit, 50);
+		
+		l_sett.set_int(settings_pack::active_downloads, -1);
+		l_sett.set_int(settings_pack::active_seeds, -1);
+		l_sett.set_int(settings_pack::active_limit, -1);
+		l_sett.set_int(settings_pack::active_tracker_limit, -1);
+		l_sett.set_int(settings_pack::active_dht_limit, -1);
+		l_sett.set_int(settings_pack::active_lsd_limit, -1);
+		
 		l_sett.set_bool(settings_pack::enable_upnp, true);
 		l_sett.set_bool(settings_pack::enable_natpmp, true);
 		l_sett.set_bool(settings_pack::enable_lsd, true);

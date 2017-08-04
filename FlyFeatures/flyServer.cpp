@@ -975,6 +975,7 @@ bool CFlyServerConfig::SyncAntivirusDB(bool& p_is_need_reload)
 //=========================================================================================
 bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring p_search)
 {
+#ifndef USE_FLYSERVER_LOCAL_FILE
 	try
 	{
 		if (g_lua_source_search_engine.empty())
@@ -1158,6 +1159,7 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 		dcassert(0);
 		CFlyServerJSON::pushError(77, "onTorrentSearch error JSON error = " + string(e.what()));
 	}
+#endif
 	return false;
 }
 //=========================================================================================

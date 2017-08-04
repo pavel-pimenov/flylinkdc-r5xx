@@ -2358,12 +2358,12 @@ void TransferView::ItemInfo::resumeTorrentFile()
 
 void TransferView::ItemInfo::removeTorrentAndFile()
 {
-	DownloadManager::getInstance()->remove_torrent_file(m_sha1, 1);
+	DownloadManager::getInstance()->remove_torrent_file(m_sha1, lt::session::delete_files);
 }
 
 void TransferView::ItemInfo::removeTorrent()
 {
-	DownloadManager::getInstance()->remove_torrent_file(m_sha1, 0);
+	DownloadManager::getInstance()->remove_torrent_file(m_sha1, { });
 }
 
 void TransferView::ItemInfo::disconnectAndP2PGuard()
@@ -2669,7 +2669,7 @@ void TransferView::on(DownloadManagerListener::SelectTorrent, const libtorrent::
 		}
 		else
 		{
-			DownloadManager::getInstance()->remove_torrent_file(p_sha1, 1);
+			DownloadManager::getInstance()->remove_torrent_file(p_sha1, lt::session::delete_files);
 		}
 	}
 	catch (const Exception &e)

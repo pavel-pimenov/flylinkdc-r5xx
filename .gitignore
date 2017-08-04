@@ -12,12 +12,18 @@
 *.la
 *.a
 
+*.lastbuildstate
+*.tlog
+*.idb
+
 /FlyFeatures.vcxproj.user
 
 /*.opensdf
 /*.sdf
 /*.suo
 /*.7z
+
+GdiOle.res
 
 /GdiOle/GdiOle.vcxproj.user
 
@@ -61,7 +67,6 @@
 
 vc10
 vc11
-vc13
 vc14
 vc15
 vc17
@@ -114,10 +119,5 @@ FlylinkDC-*.7z
 /compiled/*.dmp
 /*.opendb
 /*.db
-/compiled/*.exp
-/compiled/Settings/Certificates/client.crt
-/compiled/Settings/Certificates/client.key
-/lua/Release/lua.tlog/*.tlog
-/lua/Release/lua.tlog/*.lastbuildstate
-/lua/x64/Release/lua.tlog/*.tlog
-/lua/x64/Release/lua.tlog/*.lastbuildstate
+/compiled/flylinkdc.exp
+/compiled/flylinkdc_x64.exp

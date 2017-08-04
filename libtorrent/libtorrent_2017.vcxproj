@@ -208,6 +208,7 @@
     <ClInclude Include="include\libtorrent\session_settings.hpp" />
     <ClInclude Include="include\libtorrent\session_stats.hpp" />
     <ClInclude Include="include\libtorrent\session_status.hpp" />
+    <ClInclude Include="include\libtorrent\session_types.hpp" />
     <ClInclude Include="include\libtorrent\settings_pack.hpp" />
     <ClInclude Include="include\libtorrent\sha1.hpp" />
     <ClInclude Include="include\libtorrent\sha1_hash.hpp" />

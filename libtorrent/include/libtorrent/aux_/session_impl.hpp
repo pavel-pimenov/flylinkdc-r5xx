@@ -499,15 +499,15 @@ namespace aux {
 			void on_async_load_torrent(add_torrent_params* params, error_code ec);
 #endif
 
-			void remove_torrent(torrent_handle const& h, int options) override;
-			void remove_torrent_impl(std::shared_ptr<torrent> tptr, int options) override;
+			void remove_torrent(torrent_handle const& h, remove_flags_t options) override;
+			void remove_torrent_impl(std::shared_ptr<torrent> tptr, remove_flags_t options) override;
 
 			void get_torrent_status(std::vector<torrent_status>* ret
 				, std::function<bool(torrent_status const&)> const& pred
-				, std::uint32_t flags) const;
+				, status_flags_t flags) const;
 			void refresh_torrent_status(std::vector<torrent_status>* ret
-				, std::uint32_t flags) const;
-			void post_torrent_updates(std::uint32_t flags);
+				, status_flags_t flags) const;
+			void post_torrent_updates(status_flags_t flags);
 			void post_session_stats();
 			void post_dht_stats();
 
@@ -600,8 +600,8 @@ namespace aux {
 
 			void announce_lsd(sha1_hash const& ih, int port, bool broadcast = false) override;
 
-			void save_state(entry* e, std::uint32_t flags) const;
-			void load_state(bdecode_node const* e, std::uint32_t flags);
+			void save_state(entry* e, save_state_flags_t flags) const;
+			void load_state(bdecode_node const* e, save_state_flags_t flags);
 
 			bool has_connection(peer_connection* p) const override;
 			void insert_peer(std::shared_ptr<peer_connection> const& c) override;
@@ -957,13 +957,8 @@ namespace aux {
 			// round-robin index into m_outgoing_interfaces
 			mutable std::uint8_t m_interface_index = 0;
 
-			enum listen_on_flags_t
-			{
-				open_ssl_socket = 0x10
-			};
-
 			std::shared_ptr<listen_socket_t> setup_listener(std::string const& device
-				, tcp::endpoint bind_ep, int flags, error_code& ec);
+				, tcp::endpoint bind_ep, transport ssl, error_code& ec);
 
 #ifndef TORRENT_DISABLE_DHT
 			dht::dht_state m_dht_state;
@@ -1094,14 +1089,14 @@ namespace aux {
 				, int port
 				, span<char const> p
 				, error_code& ec
-				, int flags);
+				, udp_send_flags_t flags);
 
 			void send_udp_packet_hostname_listen(aux::listen_socket_handle const& sock
 				, char const* hostname
 				, int port
 				, span<char const> p
 				, error_code& ec
-				, int flags)
+				, udp_send_flags_t const flags)
 			{
 				listen_socket_t* s = sock.get();
 				if (!s)
@@ -1116,13 +1111,13 @@ namespace aux {
 				, udp::endpoint const& ep
 				, span<char const> p
 				, error_code& ec
-				, int flags);
+				, udp_send_flags_t flags);
 
 			void send_udp_packet_listen(aux::listen_socket_handle const& sock
 				, udp::endpoint const& ep
 				, span<char const> p
 				, error_code& ec
-				, int flags)
+				, udp_send_flags_t const flags)
 			{
 				listen_socket_t* s = sock.get();
 				if (!s)

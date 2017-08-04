@@ -194,7 +194,7 @@ namespace libtorrent {
 		, m_stop_when_ready(p.flags & torrent_flags::stop_when_ready)
 		, m_need_save_resume_data(p.flags & torrent_flags::need_save_resume)
 		, m_max_uploads((1 << 24) - 1)
-		, m_save_resume_flags(0)
+		, m_save_resume_flags()
 		, m_num_uploads(0)
 		, m_need_connect_boost(true)
 		, m_lsd_seq(0)
@@ -420,7 +420,7 @@ namespace libtorrent {
 		// torrent, create another reference
 		auto me = shared_from_this();
 
-		m_ses.remove_torrent_impl(me, 0);
+		m_ses.remove_torrent_impl(me, {});
 
 		if (alerts().should_post<torrent_update_alert>())
 			alerts().emplace_alert<torrent_update_alert>(get_handle(), info_hash(), tf->info_hash());
@@ -1276,7 +1276,8 @@ namespace libtorrent {
 
 	// TODO: 3 there's some duplication between this function and
 	// peer_connection::incoming_piece(). is there a way to merge something?
-	void torrent::add_piece(piece_index_t const piece, char const* data, int const flags)
+	void torrent::add_piece(piece_index_t const piece, char const* data
+		, add_piece_flags_t const flags)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		int piece_size = m_torrent_file->piece_size(piece);
@@ -1290,7 +1291,7 @@ namespace libtorrent {
 		need_picker();
 
 		if (picker().have_piece(piece)
-			&& (flags & torrent::overwrite_existing) == 0)
+			&& !(flags & torrent_handle::overwrite_existing))
 			return;
 
 		peer_request p;
@@ -1300,7 +1301,7 @@ namespace libtorrent {
 		for (int i = 0; i < blocks_in_piece; ++i, p.start += block_size())
 		{
 			if (picker().is_finished(piece_block(piece, i))
-				&& (flags & torrent::overwrite_existing) == 0)
+				&& !(flags & torrent_handle::overwrite_existing))
 				continue;
 
 			p.length = std::min(piece_size - p.start, int(block_size()));
@@ -1920,6 +1921,7 @@ namespace libtorrent {
 
 		update_want_peers();
 
+		// this will remove the piece picker, if we're done with it
 		maybe_done_flushing();
 	}
 
@@ -4609,7 +4611,8 @@ namespace libtorrent {
 		}
 	}
 
-	void torrent::set_piece_deadline(piece_index_t const piece, int const t, int const flags)
+	void torrent::set_piece_deadline(piece_index_t const piece, int const t
+		, deadline_flags_t const flags)
 	{
 		INVARIANT_CHECK;
 
@@ -8093,7 +8096,7 @@ namespace libtorrent {
 		return limit_impl(peer_connection::download_channel);
 	}
 
-	bool torrent::delete_files(int const options)
+	bool torrent::delete_files(remove_flags_t const options)
 	{
 		TORRENT_ASSERT(is_single_thread());
 
@@ -8326,7 +8329,7 @@ namespace libtorrent {
 	// TODO: add a flag to ignore stats, and only care about resume data for
 	// content. For unchanged files, don't trigger a load of the metadata
 	// just to save an empty resume data file
-	void torrent::save_resume_data(int const flags)
+	void torrent::save_resume_data(resume_data_flags_t const flags)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		INVARIANT_CHECK;
@@ -8346,7 +8349,7 @@ namespace libtorrent {
 		}
 
 		m_need_save_resume_data = false;
-		m_save_resume_flags = aux::numeric_cast<std::uint8_t>(flags);
+		m_save_resume_flags = flags;
 		state_updated();
 
 		if ((flags & torrent_handle::flush_disk_cache) && m_storage)
@@ -10547,7 +10550,7 @@ namespace {
 		m_links[aux::session_interface::torrent_state_updates].insert(list, this);
 	}
 
-	void torrent::status(torrent_status* st, std::uint32_t flags)
+	void torrent::status(torrent_status* st, status_flags_t flags)
 	{
 		INVARIANT_CHECK;
 
@@ -10657,7 +10660,7 @@ namespace {
 		st->super_seeding = m_super_seeding;
 #endif
 		st->has_metadata = valid_metadata();
-		bytes_done(*st, (flags & torrent_handle::query_accurate_download_counters) != 0);
+		bytes_done(*st, bool(flags & torrent_handle::query_accurate_download_counters));
 		TORRENT_ASSERT(st->total_wanted_done >= 0);
 		TORRENT_ASSERT(st->total_done >= st->total_wanted_done);
 

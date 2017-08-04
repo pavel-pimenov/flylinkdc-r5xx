@@ -138,6 +138,8 @@ namespace libtorrent {
 
 		// timer to check for and reap idle threads
 		deadline_timer m_idle_timer;
+
+		std::string m_error_code;
 	};
 } // namespace libtorrent
 

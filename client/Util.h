@@ -108,8 +108,16 @@ class CFlyHTTPDownloader
 		{
 		}
 		std::vector<string> m_get_http_header_item;
-		uint64_t getBinaryDataFromInetSafe(const string& p_url, std::vector<unsigned char>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
-		uint64_t getBinaryDataFromInet(const string& p_url, std::vector<unsigned char>& p_dataOut, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
+		uint64_t getBinaryDataFromInetSafe(const string& p_url, std::vector<unsigned char>& p_dataOut, LONG p_time_out = 0, IDateReceiveReporter* p_reporter = NULL);
+		uint64_t getBinaryDataFromInet(const string& p_url, std::vector<unsigned char>& p_dataOut, LONG p_time_out = 0, IDateReceiveReporter* p_reporter = NULL);
+		struct CFlyUrlItem
+		{
+			string m_url;
+			std::vector<unsigned char> p_body;
+		};
+		typedef std::vector<CFlyUrlItem> CFlyUrlItemArray;
+		
+		uint64_t getBinaryDataFromInetArray(CFlyUrlItemArray& p_url_array, LONG p_time_out = 0, IDateReceiveReporter* p_reporter = NULL);
 		void clear()
 		{
 			m_get_http_header_item.clear();

@@ -46,6 +46,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/time.hpp"
 #include "libtorrent/sha1_hash.hpp"
 #include "libtorrent/flags.hpp"
+#include "libtorrent/session_types.hpp"
 
 namespace libtorrent {
 
@@ -68,33 +69,33 @@ namespace libtorrent {
 	namespace file_open_mode
 	{
 		// open the file for reading only
-		constexpr file_open_mode_t read_only{0};
+		constexpr file_open_mode_t read_only{};
 
 		// open the file for writing only
-		constexpr file_open_mode_t write_only{1};
+		constexpr file_open_mode_t write_only = 0_bit;
 
 		// open the file for reading and writing
-		constexpr file_open_mode_t read_write{2};
+		constexpr file_open_mode_t read_write = 1_bit;
 
 		// the mask for the bits determining read or write mode
 		constexpr file_open_mode_t rw_mask = read_only | write_only | read_write;
 
 		// open the file in sparse mode (if supported by the
 		// filesystem).
-		constexpr file_open_mode_t sparse{0x4};
+		constexpr file_open_mode_t sparse = 2_bit;
 
 		// don't update the access timestamps on the file (if
 		// supported by the operating system and filesystem).
 		// this generally improves disk performance.
-		constexpr file_open_mode_t no_atime{0x8};
+		constexpr file_open_mode_t no_atime = 3_bit;
 
 		// open the file for random access. This disables read-ahead
 		// logic
-		constexpr file_open_mode_t random_access{0x10};
+		constexpr file_open_mode_t random_access = 5_bit;
 
 		// prevent the file from being opened by another process
 		// while it's still being held open by this handle
-		constexpr file_open_mode_t locked{0x20};
+		constexpr file_open_mode_t locked = 6_bit;
 	}
 
 	// this contains information about a file that's currently open by the
@@ -164,7 +165,7 @@ namespace libtorrent {
 		virtual void async_rename_file(storage_index_t storage
 			, file_index_t index, std::string name
 			, std::function<void(std::string const&, file_index_t, storage_error const&)> handler) = 0;
-		virtual void async_delete_files(storage_index_t storage, int options
+		virtual void async_delete_files(storage_index_t storage, remove_flags_t options
 			, std::function<void(storage_error const&)> handler) = 0;
 		virtual void async_set_file_priority(storage_index_t storage
 			, aux::vector<std::uint8_t, file_index_t> prio

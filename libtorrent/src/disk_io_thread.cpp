@@ -57,6 +57,11 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/variant/get.hpp>
 
+#ifndef _DEBUG
+#include "libtorrent/aux_/escape_string.hpp" // for convert_to_wstring
+#include "../doctor-dump/CrashRpt.h"
+#endif
+
 #define DEBUG_DISK_THREAD 0
 
 #if DEBUG_DISK_THREAD
@@ -198,7 +203,19 @@ namespace libtorrent {
 		, m_stats_counters(cnt)
 		, m_ios(ios)
 	{
-		// m_disk_cache.set_settings(m_settings); //fix https://drdump.com/DumpGroup.aspx?DumpGroupID=831565
+		try // https://github.com/arvidn/libtorrent/issues/1176
+		{
+			m_disk_cache.set_settings(m_settings);
+		}
+		catch (const std::exception& e)
+		{
+			m_error_code = e.what(); // try fix https://drdump.com/DumpGroup.aspx?DumpGroupID=831565
+#ifndef _DEBUG
+			extern crash_rpt::CrashRpt g_crashRpt;
+			g_crashRpt.AddUserInfoToReport(L"T2", libtorrent::convert_to_wstring(m_error_code).c_str());
+#endif
+			throw;
+		}
 	}
 
 	storage_interface* disk_io_thread::get_torrent(storage_index_t const storage)
@@ -1826,7 +1843,7 @@ namespace libtorrent {
 	}
 
 	void disk_io_thread::async_delete_files(storage_index_t const storage
-		, int const options
+		, remove_flags_t const options
 		, std::function<void(storage_error const&)> handler)
 	{
 		// remove cache blocks belonging to this torrent
@@ -2465,7 +2482,7 @@ namespace libtorrent {
 
 	status_t disk_io_thread::do_delete_files(disk_io_job* j, jobqueue_t& completed_jobs)
 	{
-		TORRENT_ASSERT(boost::get<int>(j->argument) != 0);
+		TORRENT_ASSERT(boost::get<remove_flags_t>(j->argument));
 
 		// if this assert fails, something's wrong with the fence logic
 		TORRENT_ASSERT(j->storage->num_outstanding_jobs() == 1);
@@ -2477,7 +2494,7 @@ namespace libtorrent {
 			, completed_jobs, l);
 		l.unlock();
 
-		j->storage->delete_files(boost::get<int>(j->argument), j->error);
+		j->storage->delete_files(boost::get<remove_flags_t>(j->argument), j->error);
 		return j->error ? status_t::fatal_disk_error : status_t::no_error;
 	}
 
