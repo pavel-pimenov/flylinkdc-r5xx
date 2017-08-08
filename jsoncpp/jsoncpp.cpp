@@ -10,13 +10,13 @@ The JsonCpp library's source code, including accompanying documentation,
 tests and demonstration applications, are licensed under the following
 conditions...
 
-The JsonCpp Authors explicitly disclaim copyright in all 
+Baptiste Lepilleur and The JsonCpp Authors explicitly disclaim copyright in all 
 jurisdictions which recognize such a disclaimer. In such jurisdictions, 
 this software is released into the Public Domain.
 
 In jurisdictions which do not recognize Public Domain property (e.g. Germany as of
-2010), this software is Copyright (c) 2007-2010 by The JsonCpp Authors, and is
-released under the terms of the MIT License (see below).
+2010), this software is Copyright (c) 2007-2010 by Baptiste Lepilleur and
+The JsonCpp Authors, and is released under the terms of the MIT License (see below).
 
 In jurisdictions which recognize Public Domain property, the user of this 
 software may choose to accept it either as 1) Public Domain, 2) under the 
@@ -31,7 +31,7 @@ described in clear, concise terms at:
 The full text of the MIT License follows:
 
 ========================================================================
-Copyright (c) 2007-2010 The JsonCpp Authors
+Copyright (c) 2007-2010 Baptiste Lepilleur and The JsonCpp Authors
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -82,7 +82,7 @@ license you like.
 // Beginning of content of file: src/lib_json/json_tool.h
 // //////////////////////////////////////////////////////////////////////
 
-// Copyright 2007-2010 Baptiste Lepilleur
+// Copyright 2007-2010 Baptiste Lepilleur and The JsonCpp Authors
 // Distributed under MIT license, or public domain if desired and
 // recognized in your jurisdiction.
 // See file LICENSE for detail or copy at http://jsoncpp.sourceforge.net/LICENSE
@@ -213,7 +213,7 @@ static inline void fixNumericLocaleInput(char* begin, char* end) {
 // Beginning of content of file: src/lib_json/json_reader.cpp
 // //////////////////////////////////////////////////////////////////////
 
-// Copyright 2007-2011 Baptiste Lepilleur
+// Copyright 2007-2011 Baptiste Lepilleur and The JsonCpp Authors
 // Copyright (C) 2016 InfoTeCS JSC. All rights reserved.
 // Distributed under MIT license, or public domain if desired and
 // recognized in your jurisdiction.
@@ -296,7 +296,7 @@ Features Features::strictMode() {
 // Implementation of class Reader
 // ////////////////////////////////
 
-static bool containsNewLine(Reader::Location begin, Reader::Location end) {
+bool Reader::containsNewLine(Reader::Location begin, Reader::Location end) {
   for (; begin < end; ++begin)
     if (*begin == '\n' || *begin == '\r')
       return true;
@@ -585,7 +585,7 @@ bool Reader::readComment() {
   return true;
 }
 
-static JSONCPP_STRING normalizeEOL(Reader::Location begin, Reader::Location end) {
+JSONCPP_STRING Reader::normalizeEOL(Reader::Location begin, Reader::Location end) {
   JSONCPP_STRING normalized;
   normalized.reserve(static_cast<size_t>(end - begin));
   Reader::Location current = begin;
@@ -1234,6 +1234,9 @@ private:
   void addComment(Location begin, Location end, CommentPlacement placement);
   void skipCommentTokens(Token& token);
 
+  static JSONCPP_STRING normalizeEOL(Location begin, Location end);
+  static bool containsNewLine(Location begin, Location end);
+
   typedef std::stack<Value*> Nodes;
   Nodes nodes_;
   Errors errors_;
@@ -1250,6 +1253,13 @@ private:
 };  // OurReader
 
 // complete copy of Read impl, for OurReader
+
+bool OurReader::containsNewLine(OurReader::Location begin, OurReader::Location end) {
+  for (; begin < end; ++begin)
+    if (*begin == '\n' || *begin == '\r')
+      return true;
+  return false;
+}
 
 OurReader::OurReader(OurFeatures const& features)
     : errors_(), document_(), begin_(), end_(), current_(), lastValueEnd_(),
@@ -1558,6 +1568,25 @@ bool OurReader::readComment() {
     addComment(commentBegin, current_, placement);
   }
   return true;
+}
+
+JSONCPP_STRING OurReader::normalizeEOL(OurReader::Location begin, OurReader::Location end) {
+  JSONCPP_STRING normalized;
+  normalized.reserve(static_cast<size_t>(end - begin));
+  OurReader::Location current = begin;
+  while (current != end) {
+    char c = *current++;
+    if (c == '\r') {
+      if (current != end && *current == '\n')
+         // convert dos EOL
+         ++current;
+      // convert Mac EOL
+      normalized += '\n';
+    } else {
+      normalized += c;
+    }
+  }
+  return normalized;
 }
 
 void
@@ -2263,7 +2292,7 @@ JSONCPP_ISTREAM& operator>>(JSONCPP_ISTREAM& sin, Value& root) {
 // Beginning of content of file: src/lib_json/json_valueiterator.inl
 // //////////////////////////////////////////////////////////////////////
 
-// Copyright 2007-2010 Baptiste Lepilleur
+// Copyright 2007-2010 Baptiste Lepilleur and The JsonCpp Authors
 // Distributed under MIT license, or public domain if desired and
 // recognized in your jurisdiction.
 // See file LICENSE for detail or copy at http://jsoncpp.sourceforge.net/LICENSE
@@ -2444,7 +2473,7 @@ ValueIterator& ValueIterator::operator=(const SelfType& other) {
 // Beginning of content of file: src/lib_json/json_value.cpp
 // //////////////////////////////////////////////////////////////////////
 
-// Copyright 2011 Baptiste Lepilleur
+// Copyright 2011 Baptiste Lepilleur and The JsonCpp Authors
 // Distributed under MIT license, or public domain if desired and
 // recognized in your jurisdiction.
 // See file LICENSE for detail or copy at http://jsoncpp.sourceforge.net/LICENSE
@@ -2964,18 +2993,10 @@ Value::~Value() {
   value_.uint_ = 0;
 }
 
-Value& Value::operator=(const Value& other) {
-  swap(const_cast<Value&>(other));
-  return *this;
-}
-
-#if JSON_HAS_RVALUE_REFERENCES
-Value& Value::operator=(Value&& other) {
-  initBasic(nullValue);
+Value& Value::operator=(Value other) {
   swap(other);
   return *this;
 }
-#endif
 
 void Value::swapPayload(Value& other) {
   ValueType temp = type_;
@@ -4123,7 +4144,7 @@ Value& Path::make(Value& root) const {
 // Beginning of content of file: src/lib_json/json_writer.cpp
 // //////////////////////////////////////////////////////////////////////
 
-// Copyright 2011 Baptiste Lepilleur
+// Copyright 2011 Baptiste Lepilleur and The JsonCpp Authors
 // Distributed under MIT license, or public domain if desired and
 // recognized in your jurisdiction.
 // See file LICENSE for detail or copy at http://jsoncpp.sourceforge.net/LICENSE

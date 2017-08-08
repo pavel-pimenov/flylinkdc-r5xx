@@ -758,6 +758,9 @@
     <ClCompile Include="Source\MediaInfo\Multiple\File_Wtv.cpp">
       <Filter>Source Files\Multiple</Filter>
     </ClCompile>
+    <ClCompile Include="Source\MediaInfo\OutputHelpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\MediaInfo\File__Analyse_Automatic.h">
@@ -1416,6 +1419,9 @@
     </ClInclude>
     <ClInclude Include="source\Mediainfo\audio\File_SmpteSt0337.h">
       <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\OutputHelpers.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -303,6 +303,7 @@
     <ClCompile Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper_Resource.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper_Sequence.cpp" />
+    <ClCompile Include="Source\MediaInfo\OutputHelpers.cpp" />
     <ClCompile Include="Source\MediaInfo\PreComp.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -537,6 +538,7 @@
     <ClInclude Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper_Resource.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper_Sequence.h" />
+    <ClInclude Include="Source\MediaInfo\OutputHelpers.h" />
     <ClInclude Include="Source\MediaInfo\PreComp.h" />
     <ClInclude Include="Source\MediaInfo\Reader\Reader_libcurl_Include.h" />
     <ClInclude Include="Source\MediaInfo\Reader\Reader__Base.h" />

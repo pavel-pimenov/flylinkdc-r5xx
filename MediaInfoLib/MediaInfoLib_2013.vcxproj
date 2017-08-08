@@ -99,7 +99,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Lib>
-      <OutputFile>$(OutDir)MediaInfo.lib</OutputFile>
+      <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
       <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
@@ -108,7 +108,7 @@
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)../ZenLib/Source;$(ProjectDir)../zlib;$(ProjectDir)Source/ThirdParty/tinyxml2;$(ProjectDir)Source/ThirdParty/sha2-gladman;$(ProjectDir)Source/ThirdParty/hmac-gladman;$(ProjectDir)Source/ThirdParty/aes-gladman;$(ProjectDir)Source/ThirdParty/sha1-gladman;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;MEDIAINFO_TRACE_NO;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DUPLICATE_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_LIBCURL_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;MEDIAINFO_NEXTPACKET_NO;MEDIAINFO_AES_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;MEDIAINFO_TRACE_YES;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DUPLICATE_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_LIBCURL_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;MEDIAINFO_NEXTPACKET_NO;MEDIAINFO_AES_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -123,7 +123,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Lib>
-      <OutputFile>$(OutDir)MediaInfo.lib</OutputFile>
+      <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
       <TargetMachine>MachineX64</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
@@ -153,8 +153,9 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Lib>
-      <OutputFile>$(OutDir)MediaInfo.lib</OutputFile>
+      <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
       <TargetMachine>MachineX86</TargetMachine>
+      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -183,8 +184,9 @@
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
     <Lib>
-      <OutputFile>$(OutDir)MediaInfo.lib</OutputFile>
+      <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
       <TargetMachine>MachineX64</TargetMachine>
+      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -294,10 +296,13 @@
     <ClCompile Include="Source\MediaInfo\Multiple\File_Pmp.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File_Ptx.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File_SequenceInfo.cpp" />
+    <ClCompile Include="Source\MediaInfo\Multiple\File_Vbi.cpp" />
+    <ClCompile Include="Source\MediaInfo\Multiple\File_Wtv.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File_Xdcam_Clip.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper_Resource.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper_Sequence.cpp" />
+    <ClCompile Include="Source\MediaInfo\OutputHelpers.cpp" />
     <ClCompile Include="Source\MediaInfo\PreComp.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -438,12 +443,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Source\ThirdParty\hmac-gladman\pwd2key.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="Source\ThirdParty\md5\md5.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -532,10 +531,13 @@
     <ClInclude Include="Source\MediaInfo\Multiple\File_Pmp.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File_Ptx.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File_SequenceInfo.h" />
+    <ClInclude Include="Source\MediaInfo\Multiple\File_Vbi.h" />
+    <ClInclude Include="Source\MediaInfo\Multiple\File_Wtv.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File_Xdcam_Clip.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper_Resource.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File__ReferenceFilesHelper_Sequence.h" />
+    <ClInclude Include="Source\MediaInfo\OutputHelpers.h" />
     <ClInclude Include="Source\MediaInfo\PreComp.h" />
     <ClInclude Include="Source\MediaInfo\Reader\Reader_libcurl_Include.h" />
     <ClInclude Include="Source\MediaInfo\Reader\Reader__Base.h" />
@@ -677,7 +679,6 @@
     <ClInclude Include="Source\ThirdParty\aes-gladman\brg_types.h" />
     <ClInclude Include="Source\ThirdParty\base64\base64.h" />
     <ClInclude Include="Source\ThirdParty\hmac-gladman\hmac.h" />
-    <ClInclude Include="Source\ThirdParty\hmac-gladman\pwd2key.h" />
     <ClInclude Include="Source\ThirdParty\md5\md5.h" />
     <ClInclude Include="Source\ThirdParty\sha1-gladman\sha1.h" />
     <ClInclude Include="Source\ThirdParty\sha2-gladman\sha2.h" />
