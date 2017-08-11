@@ -2664,7 +2664,7 @@ void TransferView::on(DownloadManagerListener::SelectTorrent, const libtorrent::
 		CFlyTorrentDialog l_dlg(p_files);
 		if (l_dlg.DoModal(WinUtil::g_mainWnd) == IDOK)
 		{
-			DownloadManager::getInstance()->set_file_priority(p_sha1, l_dlg.m_selected_files);
+			DownloadManager::getInstance()->set_file_priority(p_sha1, l_dlg.m_files, l_dlg.m_selected_files); // TODO - убрать m_selected_files
 			DownloadManager::getInstance()->fire_added_torrent(p_sha1);
 		}
 		else

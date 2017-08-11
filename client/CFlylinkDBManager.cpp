@@ -43,6 +43,8 @@ unsigned CFlylinkDBManager::g_tth_cache_limit = 500;
 FastCriticalSection  CFlylinkDBManager::g_resume_torrents_cs;
 std::unordered_set<libtorrent::sha1_hash> CFlylinkDBManager::g_resume_torrents;
 
+FastCriticalSection  CFlylinkDBManager::g_delete_torrents_cs;
+std::unordered_set<libtorrent::sha1_hash> CFlylinkDBManager::g_delete_torrents;
 
 const char* g_db_file_names[] = {"FlylinkDC.sqlite",
                                  "FlylinkDC_log.sqlite",
@@ -2378,6 +2380,15 @@ void CFlylinkDBManager::delete_torrent_resume(const libtorrent::sha1_hash& p_sha
 		                             "delete from queue_db.fly_queue_torrent where sha1=?");
 		m_delete_resume_torrent->bind(1, p_sha1.data(), p_sha1.size(), SQLITE_STATIC);
 		m_delete_resume_torrent->executenonquery();
+		if (m_delete_resume_torrent.sqlite3_changes() == 1)
+		{
+			FastLock l(g_delete_torrents_cs);
+			g_delete_torrents.insert(p_sha1);
+		}
+		else
+		{
+			dcassert(0); // Зовем второй раз удаление - не хорошо
+		}
 	}
 	catch (const database_error& e)
 	{
@@ -2399,13 +2410,13 @@ void CFlylinkDBManager::save_torrent_resume(const libtorrent::sha1_hash& p_sha1,
 			sqlite3_reader l_q_check = m_check_resume_torrent->executereader();
 			while (l_q_check.read())
 			{
+				l_ID = l_q_check.getint64(1);
 				vector<uint8_t> l_resume;
 				l_q_check.getblob(0, l_resume);
 				//dcassert(!l_resume.empty());
 				if (!l_resume.empty() && l_resume.size() == p_resume.size())
 				{
 					l_is_need_update = !memcmp(&p_resume[0], &l_resume[0], l_resume.size());
-					l_ID = l_q_check.getint64(1);
 				}
 			}
 		}
@@ -2425,9 +2436,9 @@ void CFlylinkDBManager::save_torrent_resume(const libtorrent::sha1_hash& p_sha1,
 			{
 				m_update_resume_torrent.init(m_flySQLiteDB,
 				                             "update queue_db.fly_queue_torrent set day = strftime('%s','now','localtime')/60/60/24,\n"
-				                             "stamp = strftime('%s','now','localtime')\n"
-				                             "resume=?\n"
-				                             "name=? where id=?");
+				                             "stamp = strftime('%s','now','localtime'),\n"
+				                             "resume = ?,\n"
+				                             "name = ? where id = ?");
 				m_update_resume_torrent->bind(1, &p_resume[0], p_resume.size(), SQLITE_STATIC);
 				m_update_resume_torrent->bind(2, p_name, SQLITE_STATIC);
 				m_update_resume_torrent->bind(3, l_ID);

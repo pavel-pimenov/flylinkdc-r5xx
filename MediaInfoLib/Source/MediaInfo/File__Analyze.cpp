@@ -327,6 +327,7 @@ File__Analyze::File__Analyze ()
         BookMark_Element_Level = 0;
         BookMark_GoTo = 0;
         PES_FirstByte_Value = 0;
+		EOF_AlreadyDetected = false;
 }
 
 //---------------------------------------------------------------------------

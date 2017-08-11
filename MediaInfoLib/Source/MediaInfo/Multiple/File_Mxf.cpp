@@ -2139,6 +2139,12 @@ File_Mxf::File_Mxf()
 :File__Analyze()
 {
 	Code2 = 0;
+	Length2 = 0;
+	File_Size_Total = 0;
+	IndexTable_NSL = 0;
+	IndexTable_NPE = 0;
+	TimeCodeFromMaterialPackage = false;
+	AcquisitionMetadata_Sony_CalibrationType = 0;
     //Configuration
     ParserName="MXF";
     #if MEDIAINFO_EVENTS

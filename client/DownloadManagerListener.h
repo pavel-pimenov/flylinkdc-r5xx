@@ -41,7 +41,12 @@
  * GUI is not DownloadManagers problem at all???
  */
 
-typedef std::vector<std::pair<std::string, int64_t> > CFlyTorrentFileArray;
+struct CFlyTorrentFile
+{
+	std::string m_file_path;
+	int64_t m_size = 0;
+};
+typedef std::vector<CFlyTorrentFile> CFlyTorrentFileArray;
 class DownloadManagerListener
 {
 	public:

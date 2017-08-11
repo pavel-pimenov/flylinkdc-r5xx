@@ -120,4 +120,5 @@ FlylinkDC-*.7z
 
 *.tlog
 *.idb
-/vc13/Win32/Debug/GdiOle/GdiOle.res
+*.res
+

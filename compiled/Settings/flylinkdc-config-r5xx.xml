@@ -2,20 +2,10 @@
 <Bootstraps>
 	<server url="http://dht.fly-server.ru/dcDHT.php"/>
 	<antispam url="http://linkstar.pro"/>
+	<antispam url="dchub://vdc34.ru"/>
 	<antispam url="dchublist.biz"/>
-	<antispam url="dchub.net"/>
-	<antispam url="http://hublist.dchub.net"/>
-	<antispam url="dchub://sexy-hub.ru"/>
-	<antispam url="www.pribambasiki.ru"/>
-	<antispam url="new games ugadajjka"/>
-	<antispam url="hub.sovietred.ru:4111"/>
-	<antispam url="csp.sovietland.ru"/>
-	<antispam url="dchub://tsdhub.info"/>
-	<antispam url="Stealth Group"/>
-	<antispam url=".sovietred.ru"/>
-	<antispam url="://dchublist.wordpress.com"/>
-	<antispam url="://hubliste.wordpress.com"/>
-	<antispam url=".dc-planet.ru"/>
+	<antispam url="dcplusplus.ru"/>
+	<antispam url="dc-planet.ru"/>
 	<fly-server 
 		ip ="media.fly-server.ru"
 		port ="37015"
@@ -29,7 +19,7 @@
 		support_hub = "dchub://dc.fly-server.ru"
 		support_hub_en = "dchub://dc.fly-server.ru"
 		antivirus_db = ""
-		hublist_url = "http://dchublist.ru/hublist.xml.bz2,http://www.te-home.net/?do=hublist&amp;get=hublist-ru.xml.bz2,http://hublist.flexhub.org/hublist.xml.bz2,http://dchublist.biz/?do=hublist.xml.bz2"
+		hublist_url = "http://www.te-home.net/?do=hublist&amp;get=hublist.xml.bz2,http://dchublist.ru/hublist.xml.bz2,http://dchublist.biz/?do=hublist.xml.bz2"
 		max_size_for_virus_detect = "10485760"
 		unique_files_for_virus_detect = "3"
 		min_file_size ="30000"
@@ -40,13 +30,12 @@
 		interval_flood_command="5"
  		max_flood_command="100"
 		ban_flood_command="20"
-		guard_tcp_port = "80,443,22,21"
-		exclude_error_syslog="9,5,16,10,4,17,26,29,25,24,36,39,43,40,46,44,41,48,47,55,54"
+		guard_tcp_port = "80,443,22"
+		exclude_error_syslog="1,2,3,4,5,16,9,10,13,14,17,26,29,25,24,35,36,37,39,43,40,46,44,41,42,45,47,48,49,52,56,55,54,61,62,63"
 		append_cid_error_log="1"
 		use_hit_media_files="0"
 		use_hit_binary_files="0"
-
-     use_statistics="0"
+		use_statistics="0"
 		regex_find_ip="(\d\d?\d?\.\d\d?\d?\.\d\d?\d?\.\d\d?\d?)"
 		exclude_error_log="9,5,16,10,4,17,26,29,25,24,36,39,43,40,48,47,46,55,54"
 		exclude_cid_error_log="35,38,45,32,34,49"
@@ -58,19 +47,19 @@
 		virus_ext ="exe.exe,avi.exe,dvdrip.exe,flac.exe,mp4.exe"
 		type= "http"
 		exclude_tag = "Codec/Extensions,Format/Extensions,Cover,Cover_Type,Cover_Mime,StreamSize_Proportion,Cover_Data,CodecID/Url,Codec/Url,CompleteName,UniqueID,Unique ID,UniqueID/String,Format/Url,FolderName,File_Created_Date_Local,File_Modified_Date,File_Modified_Date_Local,FileName,FileSize,File_Created_Date,Tagged_Date,Album replay gain,Album replay gain peak,Comment,Copyright,Cover type,Cover MIME,GRACENOTEFILEID,GRACENOTEEXTDATA,Alignment,Menu ID,Replay gain,Replay gain peak,Source,Forced,Encoded_Library/Date,Cover_Description,Encoded_Date,EncodedBy,Encoded_Library/Version,Encoded_Library,HeaderSize,ISRC,Mastered_Date,Menu_Codec_List,MenuCount,Mood,Original/Released_Date,Source_Duration_LastFrame,Source_StreamSize_Encoded,TimeCode_FirstFrame"
-
-include_tag = ""
+		include_tag = ""
 		exclude_tag_inform = "File size,Log eac,LOG EAC,METADATA_BLOCK_PICTURE,iTunMOVI,LOG,Part_ID,cuesheet,Cuesheet,COVERART,Duration,LOGFILE,Logfile,Unique ID,ID,Complete name,Encoding settings,Encoded date,Tagged date,Album replay gain,Album replay gain peak,Comment,Copyright,Cover,Cover type,Cover MIME,GRACENOTEFILEID,GRACENOTEEXTDATA,Overall bit rate mode,Overall bit rate,NOTES,Alignment,Forced,Menu ID,Replay gain,Replay gain peak,Source"
 		send_full_mediainfo = "0"
 		parasitic_file = "id.bdmv,mcmf.xml,contenthash000.tbl,anydvd.xrl,online.crl,00001.clpi,00000.clpi,contentrevocation.lst"
-		block_share_ext = "jc!,ob!,dmf,mta,dmfr,!ut,part,!bt,bc!,getright,antifrag,pusd,dusd,download,crdownload,gltth,kwm,pwm,partial"
+		block_share_ext = "!fl,!qb,jc!,ob!,dmf,mta,dmfr,!ut,parts,part,!bt,bc!,getright,antifrag,pusd,dusd,download,crdownload,gltth,kwm,pwm,partial"
 		block_share_name = "thumbs.db,zbthumbnail.info"
 		block_share_mask = "~utorrentpartfile*,.~lock.*.*#,*.~"
 		custom_compress_ext = "msi,3gp,avi,divx,flv,m4v,mkv,mov,mp4,mpg,mpeg,vob,wmv,bik,qt,rm,dts,aac,ac3,ape,fla,flac,m4a,mp1,mp2,mp3,ogg,wma,wv,mka,vqf,lqt,tiff,tif,jpg,gif,djvu,djv,part1,part2,part3,part4,part5,part6,part7,part8,part9,part10,cab,cso,0,000,7z,a01,ace,ain,alz,apz,ar,arc,arh,ari,arj,ark,axx,bhx,bz,bz2,bzip,bzip2,c00,c01,c02,car,cb7,cbr,cbz,deb,dgc,dist,f,fdp,gca,gz,gzi,gzip,ha,hbc,hbc2,hbe,hki,hki2,hpk,hyp,ice,ipg,ipk,ish,j,jgz,jic,kgb,lbr,lha,lzh,lzma,lzo,lzx,pak,paq6,paq7,paq8,par,par2,pbi,pea,pf,pim,pit,piz,pkg,puz,qda,r00,r01,r02,r03,r04,r05,r06,r07,r08,r09,rar,rev,rk,rpm,rte,rzs,s00,s01,s02,sar,sdn,sea,sen,sfs,sfx,sh,shar,shr,sit,sitx,spt,sqx,sqz,tbz,tbz2,tg,tgz,tlz,tlzma,txz,tz,uha,wad,war,xef,xez,xmcdz,xpi,xz,y,z,z02,z04,zap,zip,zipx,zix,zoo,zpi,zz,png,jar,chm,jpeg"
-		mapping_hubs = "dchub://dc.a-galaxy.com,dchub://dc.fly-server.ru,dchub://dc.livedc.ru,dchub://dc.fly-server.ru"
-		block_hubs = "adc://adchub.com:1687,dchub://mgland.ru,dchub://cinemann.ru,dchub://dc.mgland.ru,dchub://coolhub.ru,dchub://elitedc.ru"
+		mapping_hubs = "dchub://p2p.tmb.ru,dchub://dc.fly-server.ru"
+		block_hubs = "adc://adchub.com:1687,dchub://mgland.ru,dchub://cinemann.ru,dchub://dc.mgland.ru,dchub://coolhub.ru"
 		block_ip ="206.123.249.115,208.103.122.166,66.212.143.106,217.118.79.44,80.95.0.130,217.118.79.39,208.103.122.165"
 		max_ddos_connect_to_me = "30"
 		ban_ddos_connect_to_me = "5"
+		use_log_redirect = "0"
 	/>
 </Bootstraps>

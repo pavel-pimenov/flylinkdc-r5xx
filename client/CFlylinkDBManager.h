@@ -816,12 +816,14 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		__int64 m_queue_id;
 		__int64 m_last_path_id;
-		string  m_last_path;
+		std::string  m_last_path;
 		int     m_convert_ftype_stop_key;
 		size_t  m_count_json_stat;
 		
 		static FastCriticalSection  g_resume_torrents_cs;
+		static FastCriticalSection  g_delete_torrents_cs;
 		static std::unordered_set<libtorrent::sha1_hash> g_resume_torrents;
+		static std::unordered_set<libtorrent::sha1_hash> g_delete_torrents;
 		
 		static int32_t g_count_queue_source;
 		static int32_t g_count_queue_files;
@@ -836,6 +838,12 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 			FastLock l(g_resume_torrents_cs);
 			return g_resume_torrents.find(p_sha1) != g_resume_torrents.end();
 		}
+		static bool is_delete_torrent(const libtorrent::sha1_hash& p_sha1)
+		{
+			FastLock l(g_delete_torrents_cs);
+			return g_delete_torrents.find(p_sha1) != g_delete_torrents.end();
+		}
+		
 		static void tryFixBadAlloc();
 		static unsigned get_tth_cache_size()
 		{
