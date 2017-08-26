@@ -109,7 +109,7 @@ void zlib_base::before( const char*& src_begin, const char* src_end,
 void zlib_base::after(const char*& src_begin, char*& dest_begin, bool compress)
 {
     z_stream* s = static_cast<z_stream*>(stream_);
-    char* next_in = reinterpret_cast<char*>(s->next_in);
+    const char* next_in = reinterpret_cast<const char*>(s->next_in);
     char* next_out = reinterpret_cast<char*>(s->next_out);
     if (calculate_crc_) {
         const zlib::byte* buf = compress ?
@@ -120,11 +120,11 @@ void zlib_base::after(const char*& src_begin, char*& dest_begin, bool compress)
         zlib::uint length = compress ?
             static_cast<zlib::uint>(next_in - src_begin) :
             static_cast<zlib::uint>(next_out - dest_begin);
-            crc_ = crc_imp_ = crc32(crc_imp_, buf, length);
+        crc_ = crc_imp_ = crc32(crc_imp_, buf, length);
     }
     total_in_ = s->total_in;
     total_out_ = s->total_out;
-    src_begin = const_cast<const char*>(next_in);
+    src_begin = next_in;
     dest_begin = next_out;
 }
 

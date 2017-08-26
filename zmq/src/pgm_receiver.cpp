@@ -67,6 +67,7 @@ int zmq::pgm_receiver_t::init (bool udp_encapsulation_, const char *network_)
 void zmq::pgm_receiver_t::plug (io_thread_t *io_thread_,
     session_base_t *session_)
 {
+    LIBZMQ_UNUSED (io_thread_);
     //  Retrieve PGM fds and start polling.
     fd_t socket_fd = retired_fd;
     fd_t waiting_pipe_fd = retired_fd;
@@ -150,6 +151,11 @@ void zmq::pgm_receiver_t::restart_input ()
 
     active_tsi = NULL;
     in_event ();
+}
+
+const char *zmq::pgm_receiver_t::get_endpoint () const
+{
+    return "";
 }
 
 void zmq::pgm_receiver_t::in_event ()

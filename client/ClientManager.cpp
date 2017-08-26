@@ -959,7 +959,7 @@ void ClientManager::infoUpdated(bool p_is_force /* = false*/)
 	for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 	{
 		Client* c = i->second;
-		if (ClientManager::isBeforeShutdown())
+		if (!ClientManager::isBeforeShutdown())
 		{
 			if (c->isConnected())
 			{
@@ -1123,7 +1123,7 @@ void ClientManager::flushRatio(int p_max_count_flush)
 		std::vector<UserPtr> l_users;
 		{
 #ifdef _DEBUG
-			CFlyLog l_log_debug("[ClientManager::flushRatio - read all USERS - _DEBUG]");
+			//CFlyLog l_log_debug("[ClientManager::flushRatio - read all USERS - _DEBUG]");
 #endif
 			CFlyReadLock(*g_csUsers);
 			//CFlyLock(g_csUsers);
@@ -1137,7 +1137,7 @@ void ClientManager::flushRatio(int p_max_count_flush)
 				++i;
 			}
 #ifdef _DEBUG
-			l_log_debug.step("l_users.size() =" + Util::toString(l_users.size()));
+			//l_log_debug.step("l_users.size() =" + Util::toString(l_users.size()));
 #endif
 		}
 		for (auto i : l_users)

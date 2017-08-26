@@ -1667,12 +1667,9 @@ int ShareManager::run()
 		m_is_refreshDirs = false;
 		LogManager::message(STRING(FILE_LIST_REFRESH_FINISHED));
 	}
-	if (!ClientManager::isBeforeShutdown())
+	if (m_is_update)
 	{
-		if (m_is_update)
-		{
 			ClientManager::infoUpdated();
-		}
 	}
 	m_is_refreshing.clear();
 	CFlylinkDBManager::getInstance()->flush_hash();

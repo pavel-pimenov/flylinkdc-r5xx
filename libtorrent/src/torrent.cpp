@@ -2744,9 +2744,15 @@ namespace libtorrent {
 			&& m_torrent_file
 			&& m_torrent_file->priv())
 		{
-			tcp::endpoint ep;
-			ep = m_ses.get_ipv6_interface();
-			if (ep != tcp::endpoint()) req.ipv6 = ep.address().to_v6();
+
+			m_ses.for_each_listen_socket([&](aux::listen_socket_handle const& s)
+			{
+				if (s.is_ssl() != is_ssl_torrent())
+					return;
+				if (!s.get_local_endpoint().address().is_v6())
+					return;
+				req.ipv6.push_back(s.get_local_endpoint().address().to_v6());
+			});
 		}
 #endif
 
@@ -5897,6 +5903,7 @@ namespace libtorrent {
 
 		if (is_paused()) return;
 		if (m_ses.is_aborted()) return;
+		if (is_upload_only()) return;
 
 		// this web seed may have redirected all files to other URLs, leaving it
 		// having no file left, and there's no longer any point in connecting to
@@ -6502,7 +6509,7 @@ namespace libtorrent {
 				, m_ses.i2p_proxy(), *s, nullptr, nullptr, false, false);
 			(void)ret;
 			TORRENT_ASSERT(ret);
-			s->get<i2p_stream>()->set_destination(static_cast<i2p_peer*>(peerinfo)->destination);
+			s->get<i2p_stream>()->set_destination(static_cast<i2p_peer*>(peerinfo)->dest());
 			s->get<i2p_stream>()->set_command(i2p_stream::cmd_connect);
 			s->get<i2p_stream>()->set_session_id(m_ses.i2p_session());
 		}

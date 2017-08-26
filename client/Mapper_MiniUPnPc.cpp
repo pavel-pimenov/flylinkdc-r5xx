@@ -42,7 +42,7 @@ bool Mapper_MiniUPnPc::init()
 		l_log.step("m_initialized == true!");
 		return true;
 	}
-	l_log.step("BIND_ADDRESS = " + SETTING(BIND_ADDRESS));
+	l_log.step("BIND_ADDRESS = [" + SETTING(BIND_ADDRESS) + "]");
 	int l_error = UPNPDISCOVER_SUCCESS;
 	UPNPDev* devices = upnpDiscover(2000,
 	                                SettingsManager::isDefault(SettingsManager::BIND_ADDRESS) ? nullptr : SETTING(BIND_ADDRESS).c_str(),

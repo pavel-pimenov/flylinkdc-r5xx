@@ -28,6 +28,7 @@
 #include <stdarg.h>
 //#define WIN32_LEAN_AND_MEAN
 //#include <windows.h>
+#include <fstream>
 
 inline void debugTrace(const char* format, ...)
 {
@@ -38,6 +39,16 @@ inline void debugTrace(const char* format, ...)
 	buf[0] = 0;
 	_vsnprintf(buf, _countof(buf), format, args);
 	OutputDebugStringA(buf);
+	std::ofstream l_fs;
+	l_fs.open(_T("flylinkdc-debug-trace.log"), std::ifstream::out | std::ifstream::app);
+	if (l_fs.good())
+	{
+		l_fs << " Message: [" << buf << "]" << std::endl;
+	}
+	else
+	{
+		//dcassert(0);
+	}
 #else // _WIN32
 	vprintf(format, args);
 #endif // _WIN32

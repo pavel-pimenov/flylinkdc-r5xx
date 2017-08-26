@@ -172,7 +172,7 @@ namespace libtorrent {
 #endif
 			if (!settings.get_bool(settings_pack::anonymous_mode))
 			{
-				std::string announce_ip = settings.get_str(settings_pack::announce_ip);
+				std::string const& announce_ip = settings.get_str(settings_pack::announce_ip);
 				if (!announce_ip.empty())
 				{
 					url += "&ip=" + escape_string(announce_ip);
@@ -181,12 +181,13 @@ namespace libtorrent {
 		}
 
 #if TORRENT_USE_IPV6
-		if (tracker_req().ipv6 != address_v6() && !i2p)
+		if (!tracker_req().ipv6.empty() && !i2p)
 		{
-			error_code err;
-			std::string const ip = tracker_req().ipv6.to_string(err);
-			if (!err)
+			for (auto const& v6 : tracker_req().ipv6)
 			{
+				error_code err;
+				std::string const ip = v6.to_string(err);
+				if (err) continue;
 				url += "&ipv6=";
 				url += escape_string(ip);
 			}
@@ -586,10 +587,10 @@ namespace libtorrent {
 		if (ip_ent)
 		{
 			char const* p = ip_ent.string_ptr();
-			if (ip_ent.string_length() == int(address_v4::bytes_type().size()))
+			if (ip_ent.string_length() == std::tuple_size<address_v4::bytes_type>::value)
 				resp.external_ip = detail::read_v4_address(p);
 #if TORRENT_USE_IPV6
-			else if (ip_ent.string_length() == int(address_v6::bytes_type().size()))
+			else if (ip_ent.string_length() == std::tuple_size<address_v6::bytes_type>::value)
 				resp.external_ip = detail::read_v6_address(p);
 #endif
 		}

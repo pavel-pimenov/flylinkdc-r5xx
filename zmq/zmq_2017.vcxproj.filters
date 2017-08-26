@@ -396,6 +396,15 @@
     <ClInclude Include="src\pollset.hpp">
       <Filter>Header files</Filter>
     </ClInclude>
+    <ClInclude Include="src\mechanism_base.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\curve_mechanism_base.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\zap_client.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\zmq_utils.cpp">
@@ -687,6 +696,15 @@
       <Filter>Source files</Filter>
     </ClCompile>
     <ClCompile Include="src\pollset.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mechanism_base.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\curve_mechanism_base.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zap_client.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
   </ItemGroup>

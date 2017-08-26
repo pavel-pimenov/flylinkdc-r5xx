@@ -107,8 +107,7 @@ namespace {
 #if !defined TORRENT_BUILD_SIMULATOR
 	address_v4 inaddr_to_address(in_addr const* ina, int const len = 4)
 	{
-		boost::asio::ip::address_v4::bytes_type b;
-		b.fill(0);
+		boost::asio::ip::address_v4::bytes_type b = {};
 		if (len > 0) std::memcpy(b.data(), ina, std::min(std::size_t(len), b.size()));
 		return address_v4(b);
 	}
@@ -116,8 +115,7 @@ namespace {
 #if TORRENT_USE_IPV6
 	address_v6 inaddr6_to_address(in6_addr const* ina6, int const len = 16)
 	{
-		boost::asio::ip::address_v6::bytes_type b;
-		b.fill(0);
+		boost::asio::ip::address_v6::bytes_type b = {};
 		if (len > 0) std::memcpy(b.data(), ina6, std::min(std::size_t(len), b.size()));
 		return address_v6(b);
 	}
@@ -286,9 +284,10 @@ namespace {
 #pragma clang diagnostic pop
 #endif
 
-		if_indextoname(std::uint32_t(if_index), rt_info->name);
 		ifreq req = {};
 		if_indextoname(std::uint32_t(if_index), req.ifr_name);
+		static_assert(sizeof(rt_info->name) >= sizeof(req.ifr_name), "ip_route::name is too small");
+		std::memcpy(rt_info->name, req.ifr_name, sizeof(req.ifr_name));
 		ioctl(s, siocgifmtu, &req);
 		rt_info->mtu = req.ifr_mtu;
 //		obviously this doesn't work correctly. How do you get the netmask for a route?
@@ -298,39 +297,7 @@ namespace {
 		return true;
 	}
 
-	int parse_nl_link(nlmsghdr* nl_hdr, ip_interface* link_info)
-	{
-		ifinfomsg* link_msg = reinterpret_cast<ifinfomsg*>(NLMSG_DATA(nl_hdr));
-
-		link_info->name[0] = 0;
-		link_info->mtu = 0;
-
-		int rt_len = int(IFLA_PAYLOAD(nl_hdr));
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-align"
-#endif
-		for (rtattr* rt_attr = reinterpret_cast<rtattr*>(IFLA_RTA(link_msg));
-			RTA_OK(rt_attr, rt_len); rt_attr = RTA_NEXT(rt_attr, rt_len))
-		{
-			switch(rt_attr->rta_type)
-			{
-			case IFLA_MTU:
-				link_info->mtu = int(*reinterpret_cast<unsigned int*>(RTA_DATA(rt_attr)));
-				break;
-			case IFLA_IFNAME:
-				strncpy(link_info->name, reinterpret_cast<char*>(RTA_DATA(rt_attr)), sizeof(link_info->name));
-				break;
-			}
-		}
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
-
-		return link_msg->ifi_index;
-	}
-
-	bool parse_nl_address(std::map<int, ip_interface> const& link_info, nlmsghdr* nl_hdr, ip_interface* ip_info)
+	bool parse_nl_address(nlmsghdr* nl_hdr, ip_interface* ip_info)
 	{
 		ifaddrmsg* addr_msg = reinterpret_cast<ifaddrmsg*>(NLMSG_DATA(nl_hdr));
 
@@ -371,9 +338,6 @@ namespace {
 			}
 		}
 
-		// intiialize name to be empty
-		ip_info->name[0] = '\0';
-
 		int rt_len = int(IFA_PAYLOAD(nl_hdr));
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -399,24 +363,14 @@ namespace {
 					ip_info->interface_address = inaddr_to_address(reinterpret_cast<in_addr*>(RTA_DATA(rt_attr)));
 				}
 				break;
-			case IFA_LABEL:
-				strncpy(ip_info->name, reinterpret_cast<char*>(RTA_DATA(rt_attr)), sizeof(ip_info->name));
-				break;
 			}
 		}
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
 
-		auto ifi_info = link_info.find(int(addr_msg->ifa_index));
-		if (ifi_info != link_info.end())
-		{
-			ip_info->mtu = ifi_info->second.mtu;
-			// for some reason IPv6 entries don't include an IFA_LABEL attribute
-			// so get it from the link in that case
-			if (ip_info->name[0] == '\0')
-				strncpy(ip_info->name, ifi_info->second.name, sizeof(ip_info->name));
-		}
+		static_assert(sizeof(ip_info->name) >= IF_NAMESIZE, "not enough space in ip_interface::name");
+		if_indextoname(addr_msg->ifa_index, ip_info->name);
 
 		return true;
 	}
@@ -428,7 +382,7 @@ namespace {
 int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldlenp, void *newp, size_t newlen);
 #endif
 
-	bool parse_route(int s, rt_msghdr* rtm, ip_route* rt_info)
+	bool parse_route(int, rt_msghdr* rtm, ip_route* rt_info)
 	{
 		sockaddr* rti_info[RTAX_MAX];
 		sockaddr* sa = reinterpret_cast<sockaddr*>(rtm + 1);
@@ -461,15 +415,6 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 		rt_info->netmask = sockaddr_to_address(rti_info[RTAX_NETMASK]
 			, rt_info->destination.is_v4() ? AF_INET : AF_INET6);
 		if_indextoname(rtm->rtm_index, rt_info->name);
-
-		// TODO: get the MTU (and other interesting metrics) from the rt_msghdr instead
-		ifreq req = {};
-		if_indextoname(rtm->rtm_index, req.ifr_name);
-
-		// ignore errors here. This is best-effort
-		ioctl(s, siocgifmtu, &req);
-		rt_info->mtu = req.ifr_mtu;
-
 		return true;
 	}
 #endif
@@ -482,8 +427,8 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 			return false;
 		}
 
-		strncpy(rv.name, ifa->ifa_name, sizeof(rv.name));
-		rv.name[sizeof(rv.name)-1] = 0;
+		std::strncpy(rv.name, ifa->ifa_name, sizeof(rv.name));
+		rv.name[sizeof(rv.name) - 1] = 0;
 
 		// determine address
 		rv.interface_address = sockaddr_to_address(ifa->ifa_addr);
@@ -508,12 +453,9 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 #if TORRENT_USE_IPV6
 		if (a1.is_v6())
 		{
-			address_v6::bytes_type b1;
-			address_v6::bytes_type b2;
-			address_v6::bytes_type m;
-			b1 = a1.to_v6().to_bytes();
-			b2 = a2.to_v6().to_bytes();
-			m = mask.to_v6().to_bytes();
+			address_v6::bytes_type b1 = a1.to_v6().to_bytes();
+			address_v6::bytes_type b2 = a2.to_v6().to_bytes();
+			address_v6::bytes_type m = mask.to_v6().to_bytes();
 			for (std::size_t i = 0; i < b1.size(); ++i)
 			{
 				b1[i] &= m[i];
@@ -603,8 +545,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 			ip_interface wan;
 			wan.interface_address = ip;
 			wan.netmask = address_v4::from_string("255.255.255.255");
-			strcpy(wan.name, "eth0");
-			wan.mtu = ios.sim().config().path_mtu(ip, ip);
+			std::strcpy(wan.name, "eth0");
 			ret.push_back(wan);
 		}
 #elif TORRENT_USE_NETLINK
@@ -615,19 +556,15 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 			return ret;
 		}
 
-		std::uint32_t seq = 0;
-		std::map<int, ip_interface> link_info;
-
+		char msg[NL_BUFSIZE] = {};
+		nlmsghdr* nl_msg = reinterpret_cast<nlmsghdr*>(msg);
+		int len = nl_dump_request(sock, RTM_GETADDR, 0, AF_PACKET, msg, sizeof(ifaddrmsg));
+		if (len < 0)
 		{
-			char msg[NL_BUFSIZE] = {};
-			nlmsghdr* nl_msg = reinterpret_cast<nlmsghdr*>(msg);
-			int len = nl_dump_request(sock, RTM_GETLINK, seq++, AF_UNSPEC, msg, sizeof(ifinfomsg));
-			if (len < 0)
-			{
-				ec = error_code(errno, system_category());
-				close(sock);
-				return ret;
-			}
+			ec = error_code(errno, system_category());
+			close(sock);
+			return ret;
+		}
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -635,43 +572,14 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 			// NLMSG_OK uses signed/unsigned compare in the same expression
 #pragma clang diagnostic ignored "-Wsign-compare"
 #endif
-			for (; NLMSG_OK(nl_msg, len); nl_msg = NLMSG_NEXT(nl_msg, len))
-			{
-				ip_interface iface;
-				int ifi_index = parse_nl_link(nl_msg, &iface);
-				if (ifi_index >= 0) link_info.emplace(ifi_index, iface);
-			}
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
-		}
-
+		for (; NLMSG_OK(nl_msg, len); nl_msg = NLMSG_NEXT(nl_msg, len))
 		{
-			char msg[NL_BUFSIZE] = {};
-			nlmsghdr* nl_msg = reinterpret_cast<nlmsghdr*>(msg);
-			int len = nl_dump_request(sock, RTM_GETADDR, seq++, AF_PACKET, msg, sizeof(ifaddrmsg));
-			if (len < 0)
-			{
-				ec = error_code(errno, system_category());
-				close(sock);
-				return ret;
-			}
-
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-align"
-			// NLMSG_OK uses signed/unsigned compare in the same expression
-#pragma clang diagnostic ignored "-Wsign-compare"
-#endif
-			for (; NLMSG_OK(nl_msg, len); nl_msg = NLMSG_NEXT(nl_msg, len))
-			{
-				ip_interface iface;
-				if (parse_nl_address(link_info, nl_msg, &iface)) ret.push_back(iface);
-			}
+			ip_interface iface;
+			if (parse_nl_address(nl_msg, &iface)) ret.push_back(iface);
+		}
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
-		}
 
 		close(sock);
 #elif TORRENT_USE_IFADDRS
@@ -690,7 +598,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 			return ret;
 		}
 
-		for (ifaddrs* ifa = ifaddr; ifa; ifa = ifa->ifa_next)
+		for (ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next)
 		{
 			if (ifa->ifa_addr == nullptr) continue;
 			if ((ifa->ifa_flags & IFF_UP) == 0) continue;
@@ -699,16 +607,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 			{
 				ip_interface iface;
 				if (iface_from_ifaddrs(ifa, iface))
-				{
-					ifreq req = {};
-					// -1 to leave a 0-terminator
-					std::strncpy(req.ifr_name, iface.name, IF_NAMESIZE - 1);
-
-					// ignore errors here. This is best-effort
-					ioctl(s, siocgifmtu, &req);
-					iface.mtu = req.ifr_mtu;
 					ret.push_back(iface);
-				}
 			}
 		}
 		close(s);
@@ -754,25 +653,10 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 			{
 				ip_interface iface;
 				iface.interface_address = sockaddr_to_address(&item.ifr_addr);
-				strcpy(iface.name, item.ifr_name);
+				std::strcpy(iface.name, item.ifr_name);
 
 				ifreq req = {};
-				// -1 to leave a 0-terminator
-				strncpy(req.ifr_name, item.ifr_name, IF_NAMESIZE - 1);
-				if (ioctl(s, siocgifmtu, &req) < 0)
-				{
-					ec = error_code(errno, system_category());
-					close(s);
-					return ret;
-				}
-#ifndef TORRENT_OS2
-				iface.mtu = req.ifr_mtu;
-#else
-				iface.mtu = req.ifr_metric; // according to tcp/ip reference
-#endif
-
-				std::memset(&req, 0, sizeof(req));
-				strncpy(req.ifr_name, item.ifr_name, IF_NAMESIZE - 1);
+				std::strncpy(req.ifr_name, item.ifr_name, IF_NAMESIZE - 1);
 				if (ioctl(s, SIOCGIFNETMASK, &req) < 0)
 				{
 #if TORRENT_USE_IPV6
@@ -835,9 +719,8 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 				adapter != 0; adapter = adapter->Next)
 			{
 				ip_interface r;
-				strncpy(r.name, adapter->AdapterName, sizeof(r.name));
+				std::strncpy(r.name, adapter->AdapterName, sizeof(r.name));
 				r.name[sizeof(r.name)-1] = 0;
-				r.mtu = adapter->Mtu;
 				for (IP_ADAPTER_UNICAST_ADDRESS* unicast = adapter->FirstUnicastAddress;
 					unicast; unicast = unicast->Next)
 				{
@@ -882,7 +765,6 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 			iface.netmask = sockaddr_to_address(&buffer[i].iiNetmask.Address
 				, iface.interface_address.is_v4() ? AF_INET : AF_INET6);
 			iface.name[0] = 0;
-			iface.mtu = 1500; // how to get the MTU?
 			ret.push_back(iface);
 		}
 
@@ -903,7 +785,6 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 		{
 			iface.interface_address = i->endpoint().address();
 			iface.name[0] = '\0';
-			iface.mtu = 1500;
 			if (iface.interface_address.is_v4())
 				iface.netmask = address_v4::netmask(iface.interface_address.to_v4());
 			ret.push_back(iface);
@@ -951,7 +832,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 				b[14] = 1;
 				r.gateway = address_v6(b);
 			}
-			strcpy(r.name, "eth0");
+			std::strcpy(r.name, "eth0");
 			r.mtu = ios.sim().config().path_mtu(ip, ip);
 			ret.push_back(r);
 		}

@@ -37,7 +37,7 @@
 		use_hit_binary_files="0"
 		use_statistics="0"
 		regex_find_ip="(\d\d?\d?\.\d\d?\d?\.\d\d?\d?\.\d\d?\d?)"
-		exclude_error_log="9,5,16,10,4,17,26,29,25,24,36,39,43,40,48,47,46,55,54"
+		exclude_error_log="9,5,10,4,17,26,29,25,24,36,39,43,40,48,47,46,55,54,35,45,61,49,57,34,38,71,27"
 		exclude_cid_error_log="35,38,45,32,34,49"
 		ignore_flood_command="Search,Quit,MyINFO,UserIP,RevConnectToMe,ConnectToMe,UserCommand,ExtJSON,SA,SP"
 		zlib_compress_level = "9"

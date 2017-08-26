@@ -3650,22 +3650,6 @@ LRESULT MainFrame::onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	return 0;
 }
 
-//LRESULT MainFrame::onTrayLimiter(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) //[-] NightOrion - Double of MainFrame::onLimiter
-//{
-//	if (BOOLSETTING(THROTTLE_ENABLE) == true)
-//	{
-//		Util::setLimiter(false);
-//		MainFrame::setLimiterButton(false);
-//	}
-//	else
-//	{
-//		Util::setLimiter(true);
-//		MainFrame::setLimiterButton(true);
-//	}
-//	ClientManager::infoUpdated();
-//	return 0;
-//}**
-
 // !SMT!-UI
 void MainFrame::setIcon(HICON newIcon)
 {

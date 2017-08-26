@@ -1010,11 +1010,13 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 	{
 		const string l_guard_port = "[" + Util::formatDigitalDate() + "] [TCP PortGuard] Block DDoS: " + aIPServer + ':' + Util::toString(aPort) + " HubInfo: " + p_HubInfo + " UserInfo: " + p_userInfo;
 		LogManager::ddos_message(l_guard_port);
+		/*
 		static int g_is_first = 0;
 		if (++g_is_first < 10)
 		{
-			CFlyServerJSON::pushError(61, l_guard_port);
+		    CFlyServerJSON::pushError(61, l_guard_port);
 		}
+		*/
 		return true;
 	}
 	{

@@ -302,10 +302,10 @@ namespace aux {
 	void expand_unspecified_address(std::vector<ip_interface> const& ifs
 		, std::vector<listen_endpoint_t>& eps)
 	{
-		auto unspeficied_begin = std::partition(eps.begin(), eps.end()
+		auto unspecified_begin = std::partition(eps.begin(), eps.end()
 			, [](listen_endpoint_t const& ep) { return !(ep.addr.is_v6() && ep.addr.is_unspecified()); });
-		std::vector<listen_endpoint_t> unspecified_eps(unspeficied_begin, eps.end());
-		eps.erase(unspeficied_begin, eps.end());
+		std::vector<listen_endpoint_t> unspecified_eps(unspecified_begin, eps.end());
+		eps.erase(unspecified_begin, eps.end());
 		for (auto const& uep : unspecified_eps)
 		{
 			for (auto const& ipface : ifs)
@@ -1442,31 +1442,6 @@ namespace {
 
 		if (init || reopen_outgoing_port)
 			reopen_outgoing_sockets();
-	}
-
-	// TODO: 3 try to remove these functions. They are misleading and not very
-	// useful. Anything using these should probably be fixed to do something more
-	// multi-homed friendly
-	tcp::endpoint session_impl::get_ipv6_interface() const
-	{
-#if TORRENT_USE_IPV6
-		for (auto const& i : m_listen_sockets)
-		{
-			if (!i->local_endpoint.address().is_v6()) continue;
-			return tcp::endpoint(i->local_endpoint.address(), std::uint16_t(i->tcp_external_port));
-		}
-#endif
-		return tcp::endpoint();
-	}
-
-	tcp::endpoint session_impl::get_ipv4_interface() const
-	{
-		for (auto const& i : m_listen_sockets)
-		{
-			if (!i->local_endpoint.address().is_v4()) continue;
-			return tcp::endpoint(i->local_endpoint.address(), std::uint16_t(i->tcp_external_port));
-		}
-		return tcp::endpoint();
 	}
 
 	std::shared_ptr<listen_socket_t> session_impl::setup_listener(std::string const& device
@@ -3547,8 +3522,6 @@ namespace {
 				}
 			}
 		}
-
-//		m_peer_pool.release_memory();
 	}
 
 	namespace {
@@ -6235,12 +6208,6 @@ namespace {
 		if (m_settings.get_int(settings_pack::aio_threads) > 1)
 			m_settings.set_int(settings_pack::aio_threads, 1);
 #endif
-	}
-
-	void session_impl::update_cache_buffer_chunk_size()
-	{
-		if (m_settings.get_int(settings_pack::cache_buffer_chunk_size) <= 0)
-			m_settings.set_int(settings_pack::cache_buffer_chunk_size, 1);
 	}
 
 	void session_impl::update_report_web_seed_downloads()

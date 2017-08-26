@@ -2586,8 +2586,6 @@ namespace libtorrent {
 			, completed_jobs, l);
 		l.unlock();
 
-		m_disk_cache.release_memory();
-
 		j->storage->release_files(j->error);
 		return j->error ? status_t::fatal_disk_error : status_t::no_error;
 	}

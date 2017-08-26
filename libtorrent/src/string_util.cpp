@@ -40,6 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstdlib> // for malloc
 #include <cstring> // for memmov/strcpy/strlen
+#include <algorithm> // for search
 
 namespace libtorrent {
 
@@ -147,6 +148,20 @@ namespace libtorrent {
 	bool string_ends_with(string_view s1, string_view s2)
 	{
 		return s1.size() >= s2.size() && std::equal(s2.rbegin(), s2.rend(), s1.rbegin());
+	}
+
+	int search(span<char const> src, span<char const> target)
+	{
+		TORRENT_ASSERT(!src.empty());
+		TORRENT_ASSERT(!target.empty());
+		TORRENT_ASSERT(target.size() >= src.size());
+		TORRENT_ASSERT(target.size() < std::size_t(std::numeric_limits<int>::max()));
+
+		auto it = std::search(target.begin(), target.end(), src.begin(), src.end());
+
+		// no complete sync
+		if (it == target.end()) return -1;
+		return static_cast<int>(it - target.begin());
 	}
 
 	char* allocate_string_copy(char const* str)
@@ -401,4 +416,27 @@ namespace libtorrent {
 
 #endif
 
+	std::size_t string_hash_no_case::operator()(std::string const& s) const
+	{
+		std::size_t ret = 5381;
+		for (std::string::const_iterator i = s.begin(); i != s.end(); ++i)
+			ret = (ret * 33) ^ static_cast<std::size_t>(to_lower(*i));
+		return ret;
+	}
+
+	bool string_eq_no_case::operator()(std::string const& lhs, std::string const& rhs) const
+	{
+		if (lhs.size() != rhs.size()) return false;
+
+		std::string::const_iterator s1 = lhs.begin();
+		std::string::const_iterator s2 = rhs.begin();
+
+		while (s1 != lhs.end() && s2 != rhs.end())
+		{
+			if (to_lower(*s1) != to_lower(*s2)) return false;
+			++s1;
+			++s2;
+		}
+		return true;
+	}
 }

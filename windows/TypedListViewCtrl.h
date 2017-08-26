@@ -254,7 +254,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 							const auto& l_text = ((T*)di->item.lParam)->getText(l_index);
 							setText(di->item, l_text);
 							//l_column_info.m_is_first_set = true;
-							dcdebug("!!!!!!!!!!! OWNER_DRAW - onGetDispInfo l_index = %d setText \n", int(l_sub_item));
+							//dcdebug("!!!!!!!!!!! OWNER_DRAW - onGetDispInfo l_index = %d setText \n", int(l_sub_item));
 						}
 						else
 						{

@@ -734,6 +734,12 @@
     <ClInclude Include="include\libtorrent\aux_\listen_socket_handle.hpp">
       <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\session_types.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\string_ptr.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ed25519\src\add_scalar.cpp">

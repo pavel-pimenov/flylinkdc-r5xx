@@ -94,9 +94,9 @@ namespace boost {
 
 // #if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES) && !defined(BOOST_NO_CXX11_DELETED_FUNCTIONS)
 //         // Constructing a string_ref from a temporary string is a bad idea
-        //template<typename Allocator>
-        //basic_string_ref(      std::basic_string<charT, traits, Allocator>&&)
-        //    = delete;
+//         template<typename Allocator>
+//         basic_string_ref(      std::basic_string<charT, traits, Allocator>&&)
+//             = delete;
 // #endif
 
         BOOST_CONSTEXPR basic_string_ref(const charT* str, size_type len) BOOST_NOEXCEPT

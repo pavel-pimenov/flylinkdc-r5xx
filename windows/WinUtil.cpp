@@ -1783,7 +1783,6 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			StringMap sm;
 			status = TSTRING(AWAY_MODE_ON) + _T(' ') + Text::toT(Util::getAwayMessage(sm));
 		}
-		// [-] IRainman fix ClientManager::infoUpdated();
 	}
 	else if (stricmp(cmd.c_str(), _T("u")) == 0)
 	{

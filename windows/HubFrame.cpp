@@ -1566,9 +1566,7 @@ void HubFrame::doDisconnected()
 LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled */)
 {
 	if (ClientManager::isBeforeShutdown())
-	{
 		return 0;
-	}
 	switch (uMsg)
 	{
 #ifdef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
@@ -2134,13 +2132,7 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 	if (isClosedOrShutdown())
 		return;
 	if (ClientManager::isStartup() == true)
-	{
 		return;
-	}
-	if (ClientManager::isBeforeShutdown())
-	{
-		return;
-	}
 	if (m_tooltip_hubframe)
 	{
 		m_tooltip_hubframe->Activate(FALSE);

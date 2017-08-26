@@ -40,20 +40,17 @@ class Exception : public std::exception
 		virtual ~Exception() noexcept
 		{
 		}
-		explicit Exception(const string& aError) : error(aError)
-		{
-			dcdrun(if (!error.empty())) dcdebug("Thrown: %s\n", error.c_str()); //-V111
-		}
+		explicit Exception(const string& aError);
 		const char* what() const
 		{
-			return getError().c_str();
+			return m_error.c_str();
 		}
 		const string& getError() const
 		{
-			return error;
+			return m_error;
 		}
 	protected:
-		const string error; // [!] IRainman: this is const string.
+		const string m_error;
 	private:
 		Exception& operator = (const Exception& Source);
 };

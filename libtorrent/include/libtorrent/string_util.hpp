@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/config.hpp"
 #include "libtorrent/string_view.hpp"
+#include "libtorrent/span.hpp"
 
 #include <vector>
 #include <string>
@@ -70,6 +71,10 @@ namespace libtorrent {
 	TORRENT_EXTRA_EXPORT void url_random(char* begin, char* end);
 
 	TORRENT_EXTRA_EXPORT bool string_ends_with(string_view s1, string_view s2);
+
+	// Returns offset at which src matches target.
+	// If no sync found, return -1
+	TORRENT_EXTRA_EXPORT int search(span<char const> src, span<char const> target);
 
 	struct listen_interface_t
 	{
@@ -119,6 +124,15 @@ namespace libtorrent {
 	TORRENT_EXTRA_EXPORT bool is_i2p_url(std::string const& url);
 
 #endif
+
+	// this can be used as the hash function in std::unordered_*
+	struct TORRENT_EXTRA_EXPORT string_hash_no_case
+	{ size_t operator()(std::string const& s) const; };
+
+	// these can be used as the comparison functions in std::map and std::set
+	struct TORRENT_EXTRA_EXPORT string_eq_no_case
+	{ bool operator()(std::string const& lhs, std::string const& rhs) const; };
+
 }
 
 #endif

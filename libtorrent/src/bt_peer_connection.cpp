@@ -68,6 +68,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/socket_type.hpp"
 #include "libtorrent/performance_counters.hpp" // for counters
 #include "libtorrent/alert_manager.hpp" // for alert_manager
+#include "libtorrent/string_util.hpp" // for search
 
 #if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
 #include "libtorrent/pe_crypto.hpp"
@@ -475,10 +476,6 @@ namespace {
 
 #if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
 
-	namespace {
-		char random_byte() { return char(random(0xff)); }
-	}
-
 	void bt_peer_connection::write_pe1_2_dhkey()
 	{
 		INVARIANT_CHECK;
@@ -514,7 +511,7 @@ namespace {
 		std::memcpy(ptr, local_key.data(), dh_key_len);
 		ptr += dh_key_len;
 
-		std::generate(ptr, ptr + pad_size, random_byte);
+		aux::random_bytes({ptr, pad_size});
 		send_buffer({msg, buf_size});
 
 #ifndef TORRENT_DISABLE_LOGGING
@@ -664,35 +661,12 @@ namespace {
 		aux::write_uint32(crypto_field, write_buf);
 		aux::write_uint16(pad_size, write_buf); // len (pad)
 
-		std::generate(write_buf.data(), write_buf.data() + pad_size, random_byte);
+		aux::random_bytes(write_buf.first(pad_size));
 		write_buf = write_buf.subspan(pad_size);
 
 		// append len(ia) if we are initiating
 		if (is_outgoing())
 			aux::write_uint16(handshake_len, write_buf); // len(IA)
-	}
-
-	// TODO: 3 use span instead of (pointer,len) pairs
-	int bt_peer_connection::get_syncoffset(char const* src, int const src_size
-		, char const* target, int const target_size) const
-	{
-		TORRENT_ASSERT(target_size >= src_size);
-		TORRENT_ASSERT(src_size > 0);
-		TORRENT_ASSERT(src);
-		TORRENT_ASSERT(target);
-
-		int const traverse_limit = target_size - src_size;
-
-		// TODO: this could be optimized using knuth morris pratt
-		for (int i = 0; i < traverse_limit; ++i)
-		{
-			char const* target_ptr = target + i;
-			if (std::equal(src, src+src_size, target_ptr))
-				return i;
-		}
-
-		// no complete sync
-		return -1;
 	}
 
 	void bt_peer_connection::rc4_decrypt(span<char> buf)
@@ -1712,7 +1686,6 @@ namespace {
 		}
 
 		disconnect(errors::invalid_message, operation_t::bittorrent, 2);
-		return;
 	}
 
 	void bt_peer_connection::on_extended_handshake()
@@ -1800,7 +1773,7 @@ namespace {
 		auto myip = root.dict_find_string_value("yourip");
 		if (!myip.empty())
 		{
-			if (myip.size() == address_v4::bytes_type().size())
+			if (myip.size() == std::tuple_size<address_v4::bytes_type>::value)
 			{
 				address_v4::bytes_type bytes;
 				std::copy(myip.begin(), myip.end(), bytes.begin());
@@ -1809,7 +1782,7 @@ namespace {
 					, aux::session_interface::source_peer, remote().address());
 			}
 #if TORRENT_USE_IPV6
-			else if (myip.size() == address_v6::bytes_type().size())
+			else if (myip.size() == std::tuple_size<address_v6::bytes_type>::value)
 			{
 				address_v6::bytes_type bytes;
 				std::copy(myip.begin(), myip.end(), bytes.begin());
@@ -2392,7 +2365,7 @@ namespace {
 			append_const_send_buffer(std::move(buffer), r.length);
 		}
 
-		m_payloads.push_back(range(send_buffer_size() - r.length, r.length));
+		m_payloads.emplace_back(send_buffer_size() - r.length, r.length);
 		setup_send();
 
 		stats_counters().inc_stats_counter(counters::num_outgoing_piece);
@@ -2562,7 +2535,7 @@ namespace {
 				return;
 			}
 
-			if (!m_sync_hash.get())
+			if (!m_sync_hash)
 			{
 				TORRENT_ASSERT(m_sync_bytes_read == 0);
 
@@ -2584,8 +2557,7 @@ namespace {
 #endif
 			}
 
-			int const syncoffset = get_syncoffset(m_sync_hash->data(), 20
-				, recv_buffer.begin(), int(recv_buffer.size()));
+			int const syncoffset = search(*m_sync_hash, recv_buffer);
 
 			// No sync
 			if (syncoffset == -1)
@@ -2670,7 +2642,7 @@ namespace {
 #endif
 			}
 
-			if (!m_rc4.get())
+			if (!m_rc4)
 			{
 				disconnect(errors::invalid_info_hash, operation_t::bittorrent, 1);
 				return;
@@ -2711,7 +2683,7 @@ namespace {
 			}
 
 			// generate the verification constant
-			if (!m_sync_vc.get())
+			if (!m_sync_vc)
 			{
 				TORRENT_ASSERT(m_sync_bytes_read == 0);
 
@@ -2726,8 +2698,7 @@ namespace {
 			}
 
 			TORRENT_ASSERT(m_sync_vc.get());
-			int const syncoffset = get_syncoffset(m_sync_vc.get(), 8
-				, recv_buffer.begin(), int(recv_buffer.size()));
+			int const syncoffset = search({m_sync_vc.get(), 8}, recv_buffer);
 
 			// No sync
 			if (syncoffset == -1)
@@ -2783,10 +2754,8 @@ namespace {
 
 			if (!m_recv_buffer.packet_finished()) return;
 
-			// TODO: 3 this is weird buffer handling
-			span<char> const buf = m_recv_buffer.mutable_buffer();
-			TORRENT_ASSERT(int(buf.size()) >= m_recv_buffer.packet_size());
-			rc4_decrypt({buf.data(), size_t(m_recv_buffer.packet_size())});
+			rc4_decrypt(m_recv_buffer.mutable_buffer().first(
+				size_t(m_recv_buffer.packet_size())));
 
 			recv_buffer = m_recv_buffer.get();
 
@@ -2890,10 +2859,8 @@ namespace {
 
 			int const pad_size = is_outgoing() ? m_recv_buffer.packet_size() : m_recv_buffer.packet_size() - 2;
 
-			// TODO: 3 this is weird buffer handling
-			span<char> const buf = m_recv_buffer.mutable_buffer();
-			TORRENT_ASSERT(int(buf.size()) >= m_recv_buffer.packet_size());
-			rc4_decrypt({buf.data(), size_t(m_recv_buffer.packet_size())});
+			rc4_decrypt(m_recv_buffer.mutable_buffer().first(
+				size_t(m_recv_buffer.packet_size())));
 
 			recv_buffer = m_recv_buffer.get();
 
@@ -2951,10 +2918,7 @@ namespace {
 			if (!m_recv_buffer.packet_finished()) return;
 
 			// ia is always rc4, so decrypt it
-			// TODO: 3 this is weird buffer handling
-			span<char> const buf = m_recv_buffer.mutable_buffer();
-			TORRENT_ASSERT(int(buf.size()) >= m_recv_buffer.packet_size());
-			rc4_decrypt({buf.data(), size_t(m_recv_buffer.packet_size())});
+			rc4_decrypt(m_recv_buffer.mutable_buffer().first(size_t(m_recv_buffer.packet_size())));
 
 #ifndef TORRENT_DISABLE_LOGGING
 			peer_log(peer_log_alert::info, "ENCRYPTION"
@@ -3462,10 +3426,9 @@ namespace {
 			// this points to the first entry to not erase. i.e.
 			// [begin, first_to_keep) will be erased because
 			// the payload ranges they represent have been sent
-			std::vector<range>::iterator first_to_keep = m_payloads.begin();
+			auto first_to_keep = m_payloads.begin();
 
-			for (std::vector<range>::iterator i = m_payloads.begin();
-				i != m_payloads.end(); ++i)
+			for (auto i = m_payloads.begin(); i != m_payloads.end(); ++i)
 			{
 				i->start -= int(bytes_transferred);
 				if (i->start < 0)

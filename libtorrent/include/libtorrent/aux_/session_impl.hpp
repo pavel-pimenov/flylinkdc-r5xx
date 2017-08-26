@@ -321,9 +321,6 @@ namespace aux {
 			// need the initial push to connect peers
 			void prioritize_connections(std::weak_ptr<torrent> t) override;
 
-			tcp::endpoint get_ipv6_interface() const override;
-			tcp::endpoint get_ipv4_interface() const override;
-
 			void async_accept(std::shared_ptr<tcp::acceptor> const& listener, transport ssl);
 			void on_accept_connection(std::shared_ptr<socket_type> const& s
 				, std::weak_ptr<tcp::acceptor> listener, error_code const& e, transport ssl);
@@ -729,7 +726,6 @@ namespace aux {
 			void update_queued_disk_bytes();
 			void update_alert_queue_size();
 			void update_disk_threads();
-			void update_cache_buffer_chunk_size();
 			void update_report_web_seed_downloads();
 			void update_outgoing_interfaces();
 			void update_listen_interfaces();

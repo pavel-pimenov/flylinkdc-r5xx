@@ -1957,9 +1957,7 @@ void TransferView::ItemInfo::update_nicks()
 const tstring TransferView::ItemInfo::getText(uint8_t col) const
 {
 	if (ClientManager::isBeforeShutdown())
-	{
 		return Util::emptyStringT;
-	}
 	switch (col)
 	{
 		case COLUMN_USER:

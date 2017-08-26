@@ -507,7 +507,7 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 					if (segment.getSize() == 0)
 					{
 						m_lastError = segment.getStart() == -1 ? STRING(ALL_DOWNLOAD_SLOTS_TAKEN) : STRING(NO_FREE_BLOCK);
-						dcdebug("No segment for %s in %s, block " I64_FMT "\n", aUser->getCID().toBase32().c_str(), qi->getTarget().c_str(), blockSize);
+						dcdebug("No segment for User:[%s] in %s, block " I64_FMT "\n", aUser->getCID().toBase32().c_str(), qi->getTarget().c_str(), blockSize);
 						continue;
 					}
 				}
@@ -2276,7 +2276,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 							if (downloaded > 0)
 							{
 								// since download is not finished, it should never happen that downloaded size is same as segment size
-								dcassert(downloaded < aDownload->getSize());
+								//dcassert(downloaded < aDownload->getSize());
 								
 								{
 									q->addSegment(Segment(aDownload->getStartPos(), downloaded));

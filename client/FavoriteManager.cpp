@@ -285,12 +285,6 @@ void FavoriteManager::removeUserCommand(const string& p_Hub)
 #ifdef PPA_USER_COMMANDS_HUBS_SET
 		bool hubWithoutCommands = true; // [+] IRainman fix: cleanup.
 #endif
-//		if (ClientManager::isBeforeShutdown())
-		{
-#ifdef _DEBUG
-//			LogManager::message("FavoriteManager::removeUserCommand with shutdown);
-#endif
-		}
 		
 		for (auto i = g_userCommands.cbegin(); i != g_userCommands.cend();)
 		{
