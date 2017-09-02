@@ -12,7 +12,10 @@ rem C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools 
 rem %comspec% /k "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat"
 
 rem call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\vsdevcmd.bat"
+
 "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe" FlylinkDC_2017.sln /Rebuild "Release|Win32"
+rem chcp 437
+rem msbuild FlylinkDC_2017.sln /t:Rebuild /p:COnfiguration="Release" /p:Platform="Win32" /v:diag
 
 if not exist .\compiled\FlylinkDC.exe goto :builderror
 

@@ -298,8 +298,9 @@ void ConnectionManager::putCQI_L(ConnectionQueueItemPtr& cqi)
 		DETECTION_DEBUG("[ConnectionManager][putCQI][upload] " + cqi->getHintedUser().to_string());
 	}
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-	cqi->getUser()->flushRatio(); //[+]PPA branches-dev/ppa/issue-1035
+	cqi->getUser()->flushRatio();
 #endif
+	QueueManager::g_userQueue.removeRunning(cqi->getUser());
 	const string l_token = cqi->getConnectionQueueToken();
 	cqi.reset();
 	g_tokens_manager.removeToken(l_token);

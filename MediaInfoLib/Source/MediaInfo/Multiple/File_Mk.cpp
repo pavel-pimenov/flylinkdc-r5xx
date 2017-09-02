@@ -15,7 +15,7 @@
 //---------------------------------------------------------------------------
 #include "MediaInfo/Setup.h"
 //---------------------------------------------------------------------------
-
+#include "ZenLib/File.h" // [+]FlylinkDC++
 //---------------------------------------------------------------------------
 #if defined(MEDIAINFO_MK_YES)
 //---------------------------------------------------------------------------
@@ -4386,7 +4386,7 @@ void File_Mk::CRC32_Check ()
                                 {
                                     size_t NewBuffer_Size=(size_t)(CRC32Compute[i].UpTo-CRC32Compute[i].From);
                                     int8u* NewBuffer=new int8u[NewBuffer_Size];
-                                    File F;
+                                    ZenLib::File F;
                                     if (F.Open(File_Name))
                                     {
                                         F.GoTo(CRC32Compute[i].From);

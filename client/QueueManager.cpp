@@ -341,20 +341,35 @@ QueueItemPtr QueueManager::FileQueue::findAutoSearch(deque<string>& p_recent) co
 			QueueItemPtr cand = findCandidateL(i, g_queue.end(), p_recent);
 			if (cand == nullptr)
 			{
+#ifdef _DEBUG
+				LogManager::message("[1] FileQueue::findAutoSearch - cand is null");
+#endif
 				cand = findCandidateL(g_queue.begin(), i, p_recent);
+#ifdef _DEBUG
+				LogManager::message("[1-1] FileQueue::findAutoSearch - cand" + cand->getTarget());
+#endif
 			}
 			else if (cand->getNextSegmentL(0, 0, 0, nullptr).getSize() == 0)
 			{
 				QueueItemPtr cand2 = findCandidateL(g_queue.begin(), i, p_recent);
 				if (cand2 != nullptr && cand2->getNextSegmentL(0, 0, 0, nullptr).getSize() != 0)
 				{
+#ifdef _DEBUG
+					LogManager::message("[2] FileQueue::findAutoSearch - cand2 = " + cand2->getTarget());
+#endif
 					cand = cand2;
 				}
 			}
+#ifdef _DEBUG
+			LogManager::message("[3] FileQueue::findAutoSearch - cand = " + cand->getTarget());
+#endif
 			return cand;
 		}
 		else
 		{
+#ifdef _DEBUG
+			LogManager::message("[4] FileQueue::findAutoSearch - not found g_queue.empty()");
+#endif
 			return QueueItemPtr();
 		}
 	}
@@ -526,16 +541,7 @@ void QueueManager::UserQueue::addDownload(const QueueItemPtr& qi, const Download
 	qi->addDownload(d);
 	// Only one download per user...
 	{
-#ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
 		CFlyWriteLock(*g_runningMapCS);
-#endif
-#ifdef _DEBUG
-		const auto l_item = g_runningMap.find(d->getUser());
-		if (l_item != g_runningMap.end())
-		{
-			//dcassert(g_runningMap.find(d->getUser()) == g_runningMap.end());
-		}
-#endif
 		g_runningMap[d->getUser()] = qi;
 	}
 }
@@ -590,23 +596,21 @@ void QueueManager::FileQueue::calcPriorityAndGetRunningFilesL(QueueItem::Priorit
 		}
 	}
 }
-
-bool QueueManager::UserQueue::removeDownload(const QueueItemPtr& qi, const UserPtr& user) // [!] IRainman fix: this function needs external lock.
+void QueueManager::UserQueue::removeRunning(const UserPtr& aUser)
 {
-	{
-#ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
-		CFlyWriteLock(*g_runningMapCS);
-#endif
-		g_runningMap.erase(user);
-	}
-	return qi->removeDownload(user);
+	CFlyWriteLock(*g_runningMapCS);
+	g_runningMap.erase(aUser);
 }
 
-QueueItemPtr QueueManager::UserQueue::getRunningL(const UserPtr& aUser) // [!] IRainman fix.
+bool QueueManager::UserQueue::removeDownload(const QueueItemPtr& qi, const UserPtr& aUser)
 {
-#ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
+	removeRunning(aUser);
+	return qi->removeDownload(aUser);
+}
+
+QueueItemPtr QueueManager::UserQueue::getRunning(const UserPtr& aUser)
+{
 	CFlyReadLock(*g_runningMapCS);
-#endif
 	const auto i = g_runningMap.find(aUser);
 	return i == g_runningMap.cend() ? nullptr : i->second;
 }
@@ -628,7 +632,7 @@ void QueueManager::UserQueue::removeQueueItemL(const QueueItemPtr& qi)
 
 void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr& aUser)
 {
-	if (qi == getRunningL(aUser))
+	if (qi == getRunning(aUser))
 	{
 		removeDownload(qi, aUser);
 	}
@@ -980,6 +984,18 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 				LogManager::message(STRING(ALTERNATES_SEND) + ' ' + Util::getFileName(qi->getTargetFileName()) + " TTH = " + qi->getTTH().toBase32());
 			}
 		}
+		else
+		{
+#ifdef _DEBUG
+			LogManager::message("[!]g_fileQueue.findAutoSearch - empty()");
+#endif
+		}
+	}
+	else
+	{
+#ifdef _DEBUG
+		LogManager::message("[!]g_fileQueue.getSize() > 0 && aTick >= nextSearch && BOOLSETTING(AUTO_SEARCH)");
+#endif
 	}
 	// [~] IRainman fix.
 	
@@ -1348,7 +1364,7 @@ bool QueueManager::addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flag
 	{
 		// [-] WLock(*QueueItem::g_cs); // [-] IRainman fix.
 		
-		//dcassert(p_is_first_load == true && !userQueue.getRunningL(aUser) || p_is_first_load == false);
+		//dcassert(p_is_first_load == true && !userQueue.getRunning(aUser) || p_is_first_load == false);
 		if (p_is_first_load)
 		{
 			wantConnection = true;
@@ -1356,7 +1372,7 @@ bool QueueManager::addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flag
 		else
 		{
 			wantConnection = qi->getPriority() != QueueItem::PAUSED
-			                 && !g_userQueue.getRunningL(aUser);
+			                 && !g_userQueue.getRunning(aUser);
 		}
 		
 		// TODO - LOG dcassert(p_is_first_load == true && !qi->isSourceL(aUser) || p_is_first_load == false);
@@ -2526,7 +2542,7 @@ void QueueManager::removeSource(const string& aTarget, const UserPtr& aUser, Fla
 			break;
 		}
 		
-		if (q->isRunning() && g_userQueue.getRunningL(aUser) == q)
+		if (q->isRunning() && g_userQueue.getRunning(aUser) == q)
 		{
 			isRunning = true;
 			g_userQueue.removeDownload(q, aUser);
@@ -2586,7 +2602,7 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 			}
 		}
 		
-		qi = g_userQueue.getRunningL(aUser);
+		qi = g_userQueue.getRunning(aUser);
 		if (qi)
 		{
 			if (qi->isSet(QueueItem::FLAG_USER_LIST))
@@ -2994,7 +3010,7 @@ void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchRes
 					else
 					{
 						// Нашли источник но он не активный еще
-						if (qi->getPriority() != QueueItem::PAUSED && !g_userQueue.getRunningL(p_sr->getUser()))
+						if (qi->getPriority() != QueueItem::PAUSED && !g_userQueue.getRunning(p_sr->getUser()))
 						{
 							wantConnection = true;
 						}
@@ -3084,6 +3100,7 @@ void QueueManager::on(ClientManagerListener::UserDisconnected, const UserPtr& aU
 		}
 	}
 #endif // IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
+	g_userQueue.removeRunning(aUser); // fix https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1673
 }
 #if 0
 bool QueueManager::getTargetByRoot(const TTHValue& tth, string& p_target, string& p_tempTarget)
@@ -3166,7 +3183,7 @@ bool QueueManager::dropSource(const DownloadPtr& aDownload)
 	{
 		RLock(*QueueItem::g_cs); // [!] IRainman fix.
 		
-		const QueueItemPtr q = g_userQueue.getRunningL(aDownload->getUser());
+		const QueueItemPtr q = g_userQueue.getRunning(aDownload->getUser());
 		
 		dcassert(q); // [+] IRainman fix.
 		if (!q)

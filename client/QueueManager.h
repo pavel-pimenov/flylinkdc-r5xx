@@ -392,9 +392,10 @@ class QueueManager : public Singleton<QueueManager>,
 				void addL(const QueueItemPtr& qi); // [!] IRainman fix.
 				void addL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_first_load); // [!] IRainman fix.
 				QueueItemPtr getNextL(const UserPtr& aUser, QueueItem::Priority minPrio = QueueItem::LOWEST, int64_t wantedSize = 0, int64_t lastSpeed = 0, bool allowRemove = false); // [!] IRainman fix.
-				QueueItemPtr getRunningL(const UserPtr& aUser); // [!] IRainman fix.
-				void addDownload(const QueueItemPtr& qi, const DownloadPtr& d); // [!] IRainman fix: this function needs external lock.
-				bool removeDownload(const QueueItemPtr& qi, const UserPtr& d); // [!] IRainman fix: this function needs external lock.
+				QueueItemPtr getRunning(const UserPtr& aUser);
+				void addDownload(const QueueItemPtr& qi, const DownloadPtr& d);
+				bool removeDownload(const QueueItemPtr& qi, const UserPtr& d);
+				void removeRunning(const UserPtr& d);
 				void removeQueueItemL(const QueueItemPtr& qi);
 				void removeQueueItem(const QueueItemPtr& qi);
 				void removeUserL(const QueueItemPtr& qi, const UserPtr& aUser);

@@ -53,6 +53,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/string_view.hpp"
 #include "libtorrent/stack_allocator.hpp"
 #include "libtorrent/aux_/noexcept_movable.hpp"
+#include "libtorrent/portmap.hpp" // for portmap_transport
 
 #include "libtorrent/aux_/disable_warnings_push.hpp"
 #include <boost/shared_array.hpp>
@@ -131,12 +132,15 @@ namespace libtorrent {
 	{
 		// internal
 		tracker_alert(aux::stack_allocator& alloc, torrent_handle const& h
-			, string_view u);
+			, tcp::endpoint const& ep, string_view u);
 
 		static const int alert_type = 2;
 		static constexpr alert_category_t static_category = alert::tracker_notification;
 		virtual alert_category_t category() const override { return static_category; }
 		virtual std::string message() const override;
+
+		// endpoint of the listen interface being announced
+		aux::noexcept_movable<tcp::endpoint> local_endpoint;
 
 		// returns a 0-terminated string of the tracker's URL
 		char const* tracker_url() const;
@@ -431,7 +435,8 @@ namespace libtorrent {
 	{
 		// internal
 		tracker_error_alert(aux::stack_allocator& alloc
-			, torrent_handle const& h, int times, int status, string_view u
+			, torrent_handle const& h, tcp::endpoint const& ep
+			, int times, int status, string_view u
 			, error_code const& e, string_view m);
 
 		TORRENT_DEFINE_ALERT(tracker_error_alert, 11)
@@ -461,7 +466,8 @@ namespace libtorrent {
 	{
 		// internal
 		tracker_warning_alert(aux::stack_allocator& alloc
-			, torrent_handle const& h, string_view u, string_view m);
+			, torrent_handle const& h, tcp::endpoint const& ep
+			, string_view u, string_view m);
 
 		TORRENT_DEFINE_ALERT(tracker_warning_alert, 12)
 
@@ -485,7 +491,8 @@ namespace libtorrent {
 	{
 		// internal
 		scrape_reply_alert(aux::stack_allocator& alloc
-			, torrent_handle const& h, int incomp, int comp, string_view u);
+			, torrent_handle const& h, tcp::endpoint const& ep
+			, int incomp, int comp, string_view u);
 
 		TORRENT_DEFINE_ALERT(scrape_reply_alert, 13)
 
@@ -504,9 +511,11 @@ namespace libtorrent {
 	{
 		// internal
 		scrape_failed_alert(aux::stack_allocator& alloc
-			, torrent_handle const& h, string_view u, error_code const& e);
+			, torrent_handle const& h, tcp::endpoint const& ep
+			, string_view u, error_code const& e);
 		scrape_failed_alert(aux::stack_allocator& alloc
-			, torrent_handle const& h, string_view u, string_view m);
+			, torrent_handle const& h, tcp::endpoint const& ep
+			, string_view u, string_view m);
 
 		TORRENT_DEFINE_ALERT(scrape_failed_alert, 14)
 
@@ -538,7 +547,8 @@ namespace libtorrent {
 	{
 		// internal
 		tracker_reply_alert(aux::stack_allocator& alloc
-			, torrent_handle const& h, int np, string_view u);
+			, torrent_handle const& h, tcp::endpoint const& ep
+			, int np, string_view u);
 
 		TORRENT_DEFINE_ALERT(tracker_reply_alert, 15)
 
@@ -576,7 +586,7 @@ namespace libtorrent {
 	{
 		// internal
 		tracker_announce_alert(aux::stack_allocator& alloc
-			, torrent_handle const& h
+			, torrent_handle const& h, tcp::endpoint const& ep
 			, string_view u, int e);
 
 		TORRENT_DEFINE_ALERT(tracker_announce_alert, 17)
@@ -1391,7 +1401,8 @@ namespace libtorrent {
 	struct TORRENT_EXPORT portmap_error_alert final : alert
 	{
 		// internal
-		portmap_error_alert(aux::stack_allocator& alloc, int i, int t
+		portmap_error_alert(aux::stack_allocator& alloc, int i
+			, portmap_transport t
 			, error_code const& e);
 
 		TORRENT_DEFINE_ALERT(portmap_error_alert, 50)
@@ -1404,12 +1415,15 @@ namespace libtorrent {
 		// the index returned from add_mapping().
 		int const mapping;
 
-		// is 0 for NAT-PMP and 1 for UPnP.
-		int const map_type;
+		// UPnP or NAT-PMP
+		portmap_transport map_transport;
 
 		// tells you what failed.
 		error_code const error;
 #ifndef TORRENT_NO_DEPRECATE
+		// is 0 for NAT-PMP and 1 for UPnP.
+		int const TORRENT_DEPRECATED_MEMBER map_type;
+
 		std::string TORRENT_DEPRECATED_MEMBER msg;
 #endif
 	};
@@ -1421,7 +1435,8 @@ namespace libtorrent {
 	struct TORRENT_EXPORT portmap_alert final : alert
 	{
 		// internal
-		portmap_alert(aux::stack_allocator& alloc, int i, int port, int t, int protocol);
+		portmap_alert(aux::stack_allocator& alloc, int i, int port
+			, portmap_transport t, portmap_protocol protocol);
 
 		TORRENT_DEFINE_ALERT(portmap_alert, 51)
 
@@ -1435,9 +1450,11 @@ namespace libtorrent {
 		// the external port allocated for the mapping.
 		int const external_port;
 
-		// 0 for NAT-PMP and 1 for UPnP.
-		int const map_type;
+		portmap_protocol const map_protocol;
 
+		portmap_transport const map_transport;
+
+#ifndef TORRENT_NO_DEPRECATE
 		enum protocol_t
 		{
 			tcp,
@@ -1445,7 +1462,11 @@ namespace libtorrent {
 		};
 
 		// the protocol this mapping was for. one of protocol_t enums
-		int const protocol;
+		int const TORRENT_DEPRECATED_MEMBER protocol;
+
+		// 0 for NAT-PMP and 1 for UPnP.
+		int const TORRENT_DEPRECATED_MEMBER map_type;
+#endif
 	};
 
 	// This alert is generated to log informational events related to either
@@ -1457,14 +1478,14 @@ namespace libtorrent {
 	struct TORRENT_EXPORT portmap_log_alert final : alert
 	{
 		// internal
-		portmap_log_alert(aux::stack_allocator& alloc, int t, const char* m);
+		portmap_log_alert(aux::stack_allocator& alloc, portmap_transport t, const char* m);
 
 		TORRENT_DEFINE_ALERT(portmap_log_alert, 52)
 
 		static constexpr alert_category_t static_category = alert::port_mapping_log_notification;
 		virtual std::string message() const override;
 
-		int const map_type;
+		portmap_transport const map_transport;
 
 		// the message associated with this log line
 		char const* log_message() const;
@@ -1476,6 +1497,7 @@ namespace libtorrent {
 		aux::allocation_slot m_log_idx;
 #ifndef TORRENT_NO_DEPRECATE
 	public:
+		int const TORRENT_DEPRECATED_MEMBER map_type;
 		std::string TORRENT_DEPRECATED_MEMBER msg;
 #endif
 
@@ -1703,7 +1725,7 @@ namespace libtorrent {
 	{
 		// internal
 		trackerid_alert(aux::stack_allocator& alloc, torrent_handle const& h
-			, string_view u, const std::string& id);
+			, tcp::endpoint const& ep , string_view u, const std::string& id);
 
 		TORRENT_DEFINE_ALERT(trackerid_alert, 61)
 

@@ -1669,7 +1669,7 @@ int ShareManager::run()
 	}
 	if (m_is_update)
 	{
-			ClientManager::infoUpdated();
+		ClientManager::infoUpdated();
 	}
 	m_is_refreshing.clear();
 	CFlylinkDBManager::getInstance()->flush_hash();

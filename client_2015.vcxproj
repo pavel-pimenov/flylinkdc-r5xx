@@ -291,10 +291,6 @@
     <ClCompile Include="client\HashManager.cpp" />
     <ClCompile Include="client\LogManager.cpp" />
     <ClCompile Include="client\Mapper.cpp" />
-    <ClCompile Include="client\Mapper_MiniUPnPc.cpp" />
-    <ClCompile Include="client\Mapper_NATPMP.cpp" />
-    <ClCompile Include="client\Mapper_WinUPnP.cpp" />
-    <ClCompile Include="client\MappingManager.cpp" />
     <ClCompile Include="client\idna\idna.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdinc.h</PrecompiledHeaderFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
@@ -654,9 +650,6 @@
     <ClInclude Include="client\idna\punycode.h" />
     <ClInclude Include="client\IPGrant.h" />
     <ClInclude Include="client\iplist.h" />
-    <ClInclude Include="client\Mapper_MiniUPnPc.h" />
-    <ClInclude Include="client\Mapper_NATPMP.h" />
-    <ClInclude Include="client\Mapper_WinUPnP.h" />
     <ClInclude Include="client\MD5Calc.h" />
     <ClInclude Include="client\CFlylinkDBManager.h" />
     <ClInclude Include="client\sqlite\sqlite3.h" />

@@ -876,12 +876,6 @@
     <ProjectReference Include="MediaInfoLib\MediaInfoLib_2015.vcxproj">
       <Project>{20e0f8d6-213c-460b-b361-9c725cb375c7}</Project>
     </ProjectReference>
-    <ProjectReference Include="miniupnpc\miniupnpc_2015.vcxproj">
-      <Project>{51015502-c27c-43cf-9fa4-12ab9db5d36e}</Project>
-    </ProjectReference>
-    <ProjectReference Include="natpmp\natpmp_2015.vcxproj">
-      <Project>{bfa63dd8-95fc-7a39-5d84-d995b2863fe8}</Project>
-    </ProjectReference>
     <ProjectReference Include="openssl\openssl_2015.vcxproj">
       <Project>{b9f644c2-f9de-4648-b613-43755d81ea3b}</Project>
     </ProjectReference>

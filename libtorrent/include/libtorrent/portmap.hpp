@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2016, Arvid Norberg
+Copyright (c) 2003-2017, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,20 +30,23 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_NON_OWNING_HANDLE_HPP_INCLUDED
-#define TORRENT_NON_OWNING_HANDLE_HPP_INCLUDED
+#ifndef TORRENT_PORTMAP_HPP_INCLUDED
+#define TORRENT_PORTMAP_HPP_INCLUDED
 
-namespace libtorrent { namespace aux {
+#include "libtorrent/config.hpp"
 
-	// internal
-	struct non_owning_handle
+namespace libtorrent {
+
+	enum class portmap_transport : std::uint8_t
 	{
-		explicit non_owning_handle(char* b) : m_buf(b) {}
-		char* get() const { return m_buf; }
-	private:
-		char* m_buf;
+		natpmp, upnp
 	};
 
-}}
+	enum class portmap_protocol : std::uint8_t
+	{
+		none, tcp, udp
+	};
 
-#endif
+}
+
+#endif  //TORRENT_PORTMAP_HPP_INCLUDED

@@ -195,6 +195,7 @@
     <ClInclude Include="include\libtorrent\piece_block_progress.hpp" />
     <ClInclude Include="include\libtorrent\piece_picker.hpp" />
     <ClInclude Include="include\libtorrent\platform_util.hpp" />
+    <ClInclude Include="include\libtorrent\portmap.hpp" />
     <ClInclude Include="include\libtorrent\proxy_base.hpp" />
     <ClInclude Include="include\libtorrent\puff.hpp" />
     <ClInclude Include="include\libtorrent\random.hpp" />

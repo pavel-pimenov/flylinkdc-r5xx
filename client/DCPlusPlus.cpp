@@ -164,8 +164,6 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	FinishedManager::newInstance();
 	LOAD_STEP("ADLSearch", ADLSearchManager::newInstance());
 	ConnectivityManager::newInstance();
-	MappingManager::newInstance();
-	//DebugManager::newInstance(); [-] IRainman opt.
 	
 	LOAD_STEP_L(FAVORITE_HUBS, FavoriteManager::load());
 	
@@ -283,7 +281,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		QueueManager::getInstance()->saveQueue(true);
 		SettingsManager::getInstance()->save();
 		ConnectionManager::getInstance()->shutdown();
-		MappingManager::getInstance()->close();
 		
 		preparingCoreToShutdown(); // Зовем тут второй раз т.к. вероятно при автообновлении оно не зовется.
 		
@@ -297,7 +294,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 #ifdef IRAINMAN_USE_STRING_POOL
 		StringPool::deleteInstance(); // [+] IRainman opt.
 #endif
-		MappingManager::deleteInstance();
 		ConnectivityManager::deleteInstance();
 		WebServerManager::deleteInstance();
 		if (pGuiInitProc)

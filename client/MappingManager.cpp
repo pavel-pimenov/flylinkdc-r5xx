@@ -23,309 +23,19 @@
 #include "CompatibilityManager.h"
 #include "CryptoManager.h"
 #include "LogManager.h"
-#include "Mapper_MiniUPnPc.h"
-#include "Mapper_NATPMP.h"
-#include "Mapper_WinUPnP.h"
 #include "SearchManager.h"
 #include "ScopedFunctor.h"
 #include "../FlyFeatures/flyServer.h"
 
 string MappingManager::g_externalIP;
 string MappingManager::g_defaultGatewayIP;
-string MappingManager::g_mapperName;
 boost::logic::tribool MappingManager::g_is_wifi_router = boost::logic::indeterminate;
 
-MappingManager::MappingManager() : m_renewal(0), m_listeners_count(0)
+MappingManager::MappingManager()
 {
-	//m_busy = false;
 	g_defaultGatewayIP = Socket::getDefaultGateWay(g_is_wifi_router);
-	addMapper<Mapper_MiniUPnPc>();
-	addMapper<Mapper_NATPMP>();
-#ifdef HAVE_NATUPNP_H
-	addMapper<Mapper_WinUPnP>();
-#endif
-}
-StringList MappingManager::getMappers() const
-{
-	StringList ret;
-	ret.reserve(m_mappers.size());
-	for (auto i = m_mappers.cbegin(), iend = m_mappers.cend(); i != iend; ++i)
-	{
-		ret.push_back(i->first);
-	}
-	return ret;
 }
 
-bool MappingManager::open()
-{
-	if (getOpened())
-		return false;
-		
-	if (m_mappers.empty())
-	{
-		log_internal(STRING(UPNP_NO_IMPLEMENTATION));
-		return false;
-	}
-	
-	if (m_busy.test_and_set())
-	{
-		log_internal("Another UPnP port mapping attempt is in progress...");
-		return false;
-	}
-	
-	start(64);
-	
-	return true;
-}
-
-void MappingManager::close()
-{
-	if (m_listeners_count)
-	{
-		TimerManager::getInstance()->removeListener(this);
-		--m_listeners_count;
-	}
-	
-	if (m_working.get())
-	{
-		close(*m_working);
-		m_working.reset();
-	}
-}
-
-bool MappingManager::getOpened() const
-{
-	return m_working.get() != NULL;
-}
-
-string MappingManager::getStatus() const
-{
-	if (m_working.get())
-	{
-		const auto& mapper = *m_working;
-		return str(F_("Successfully created port mappings on the %1% device with the %2% interface") %
-		           deviceString(mapper) % mapper.getMapperName());
-	}
-	return "Failed to create port mappings";
-}
-
-int MappingManager::run()
-{
-	g_mapperName.clear();
-	ScopedFunctor([this] { m_busy.clear(); });
-	
-	// cache these
-	const uint16_t conn_port = ConnectionManager::getInstance()->getPort();
-	const uint16_t secure_port = ConnectionManager::getInstance()->getSecurePort();
-	const uint16_t search_port = SearchManager::getSearchPortUint();
-	if (m_renewal
-	        && getOpened()) //[+]FlylinkDC++ Team
-	{
-		Mapper& mapper = *m_working;
-		
-		ScopedFunctor([&mapper] { mapper.uninit(); });
-		if (!mapper.init())
-		{
-			// can't renew; try again later.
-			m_renewal = GET_TICK() + std::max(mapper.renewal(), 10u) * 60 * 1000;
-			return 0;
-		}
-		
-		auto addRule = [this, &mapper](const unsigned short port, Mapper::Protocol protocol, const string & description) -> bool
-		{
-			// just launch renewal requests - don't bother with possible failures.
-			if (port)
-			{
-				return mapper.open(port, protocol, getFlylinkDCAppCaption() + description + " port (" + Util::toString(port) + ' ' + Mapper::protocols[protocol] + ")");
-			}
-			return false;
-		};
-		SettingsManager::upnpPortLevelInit();
-		g_mapperName = mapper.getMapperName();
-		SettingsManager::g_upnpTCPLevel = addRule(conn_port, Mapper::PROTOCOL_TCP, ("Transfer"));
-		if (CryptoManager::TLSOk())
-		{
-			SettingsManager::g_upnpTLSLevel = addRule(secure_port, Mapper::PROTOCOL_TCP, ("Encrypted transfer"));
-		}
-		SettingsManager::g_upnpUDPSearchLevel = addRule(search_port, Mapper::PROTOCOL_UDP, ("Search"));
-		
-		auto minutes = mapper.renewal();
-		if (minutes)
-		{
-			m_renewal = GET_TICK() + std::max(minutes, 10u) * 60 * 1000;
-		}
-		else
-		{
-			if (m_listeners_count)
-			{
-				TimerManager::getInstance()->removeListener(this);
-				--m_listeners_count;
-			}
-		}
-		
-		return 0;
-	}
-	
-	// move the preferred mapper to the top of the stack.
-	const auto setting = SETTING(MAPPER);
-	for (auto i = m_mappers.cbegin(); i != m_mappers.cend(); ++i)
-	{
-		if (i->first == setting)
-		{
-			if (i != m_mappers.cbegin())
-			{
-				const auto mapper = *i;
-				m_mappers.erase(i);
-				m_mappers.insert(m_mappers.begin(), mapper);
-			}
-			break;
-		}
-	}
-	
-	for (auto i = m_mappers.cbegin(); i != m_mappers.cend(); ++i)
-	{
-		unique_ptr<Mapper> pMapper(i->second());
-		Mapper& mapper = *pMapper;
-		
-		ScopedFunctor([&mapper] { mapper.uninit(); });
-		if (!mapper.init())
-		{
-			log_internal("Failed to initalize the " + mapper.getMapperName() + " interface");
-			continue;
-		}
-		auto addRule = [this, &mapper](const unsigned short port, Mapper::Protocol protocol, const string & description) -> bool
-		{
-			bool l_is_ok = true;
-			if (port)
-			{
-				string l_info;
-				string l_info_port = description + " port (" + Util::toString(port) + ' ' + Mapper::protocols[protocol] + ')';
-				if (!mapper.open(port, protocol, getFlylinkDCAppCaption() + l_info_port))
-				{
-					l_info = "Failed to map the ";
-					// не скидываем все пробросы! mapper.close();
-					l_is_ok = false;
-				}
-				log_internal(l_info + l_info_port + " with the " + mapper.getMapperName() + " interface");
-			}
-			return l_is_ok;
-		};
-		
-		g_mapperName.clear();
-		SettingsManager::upnpPortLevelInit();
-		const bool l_is_map_tcp = addRule(conn_port, Mapper::PROTOCOL_TCP, "Transfer");
-		bool l_is_map_tls = false;
-		if (CryptoManager::TLSOk())
-		{
-			l_is_map_tls = addRule(secure_port, Mapper::PROTOCOL_TCP, "Encrypted transfer");
-		}
-		const bool l_is_map_udp = addRule(search_port, Mapper::PROTOCOL_UDP, "Search");
-		SettingsManager::g_upnpUDPSearchLevel = l_is_map_udp;
-		SettingsManager::g_upnpTCPLevel = l_is_map_tcp;
-		if (CryptoManager::TLSOk())
-		{
-			SettingsManager::g_upnpTLSLevel = l_is_map_tls;
-		}
-		
-		if (!(l_is_map_tcp
-		        && l_is_map_udp
-		        && (l_is_map_tls || !CryptoManager::TLSOk())))
-		{
-			dcassert(0);
-			continue;
-		}
-		
-		g_mapperName = mapper.getMapperName();
-		log_internal(STRING(UPNP_SUCCESSFULLY_CREATED_MAPPINGS));
-		
-		m_working = std::move(pMapper);
-		
-		g_externalIP = mapper.getExternalIP();
-		if (g_externalIP.empty())
-		{
-			// no cleanup because the mappings work and hubs will likely provide the correct IP.
-			log_internal(STRING(UPNP_FAILED_TO_GET_EXTERNAL_IP));
-		}
-		
-		ConnectivityManager::mappingFinished(mapper.getMapperName());
-		auto minutes = mapper.renewal();
-		if (minutes && !ClientManager::isBeforeShutdown())
-		{
-			m_renewal = GET_TICK() + std::max(minutes, 10u) * 60 * 1000;
-			if (m_listeners_count == 0)
-			{
-				TimerManager::getInstance()->addListener(this);
-				++m_listeners_count;
-			}
-		}
-		ClientManager::infoUpdated(true);
-		break;
-	}
-	
-	if (!getOpened())
-	{
-		log_internal(STRING(UPNP_FAILED_TO_CREATE_MAPPINGS));
-		ConnectivityManager::mappingFinished(Util::emptyString);
-		ClientManager::upnp_error_force_passive();
-	}
-	
-	return 0;
-}
-
-void MappingManager::close(Mapper& mapper)
-{
-	if (mapper.hasRules())
-	{
-		bool ret = mapper.init();
-		if (ret)
-		{
-			ret = mapper.close_all_rules();
-			mapper.uninit();
-			SettingsManager::upnpPortLevelInit();
-		}
-		if (!ret)
-		{
-			log_internal(STRING(UPNP_FAILED_TO_REMOVE_MAPPINGS));
-		}
-	}
-}
-
-void MappingManager::log_internal(const string& message)
-{
-	LogManager::message("Port mapping: " + message);
-}
-
-string MappingManager::deviceString(const Mapper& p_mapper) const
-{
-	const auto l_dev_name = p_mapper.getDeviceName();
-	const auto l_model_desc = p_mapper.getModelDescription();
-	string l_name = l_dev_name;
-	if (!l_name.empty() || !l_model_desc.empty())
-	{
-		if (l_model_desc != l_dev_name)
-		{
-			return l_name + '(' + l_model_desc + ')';
-		}
-		else
-		{
-			return l_model_desc;
-		}
-	}
-	else
-	{
-		return Util::emptyString;
-	}
-}
-
-void MappingManager::on(TimerManagerListener::Minute, uint64_t tick) noexcept
-{
-	if (ClientManager::isBeforeShutdown())
-		return;
-	if (tick >= m_renewal && !m_busy.test_and_set())
-	{
-		start(64);
-	}
-}
 string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public_ip)
 {
 	string l_description;
@@ -341,14 +51,6 @@ string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public
 			break;
 		case SettingsManager::INCOMING_FIREWALL_UPNP:
 			l_description += "+UPnP";
-			if (g_mapperName.empty())
-			{
-				//l_description += "(error)";
-			}
-			else
-			{
-				l_description += "(" + g_mapperName + ")";
-			}
 			break;
 		case SettingsManager::INCOMING_FIREWALL_PASSIVE:
 			l_description += "+Passive";
@@ -359,7 +61,7 @@ string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public
 		default:
 			dcassert(0);
 	}
-	if (MappingManager::isRouter())
+	if (isRouter())
 	{
 		l_description += "+Router";
 		if (p_add_router_name)
@@ -367,9 +69,9 @@ string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public
 			l_description += ": " + (CompatibilityManager::g_upnp_router_model.empty() ? "undefined" : CompatibilityManager::g_upnp_router_model);
 		}
 	}
-	if (!MappingManager::getExternaIP().empty())
+	if (!getExternaIP().empty())
 	{
-		if (Util::isPrivateIp(MappingManager::getExternaIP()))
+		if (Util::isPrivateIp(getExternaIP()))
 		{
 			l_description += "+Private IP";
 		}
@@ -379,7 +81,7 @@ string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public
 		}
 		if (p_show_public_ip)
 		{
-			l_description += ": " + MappingManager::getExternaIP();
+			l_description += ": " + getExternaIP();
 		}
 	}
 	auto calcTestPortInfo = [](const string & p_name_port, const boost::logic::tribool & p_status, const uint16_t p_port) ->string

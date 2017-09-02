@@ -2609,11 +2609,11 @@ namespace {
 				// if we failed to accept an incoming connection
 				// because we have too many files open, try again
 				// and lower the number of file descriptors used
-				// elsewere.
+				// elsewhere.
 				if (m_settings.get_int(settings_pack::connections_limit) > 10)
 				{
 					// now, disconnect a random peer
-					torrent_map::iterator i = std::max_element(m_torrents.begin(), m_torrents.end()
+					auto const i = std::max_element(m_torrents.begin(), m_torrents.end()
 						, [](torrent_map::value_type const& lhs, torrent_map::value_type const& rhs)
 						{ return lhs.second->num_peers() < rhs.second->num_peers(); });
 
@@ -2985,7 +2985,7 @@ namespace {
 
 		TORRENT_ASSERT(sp.use_count() > 0);
 
-		connection_map::iterator i = m_connections.find(sp);
+		auto const i = m_connections.find(sp);
 		// make sure the next disk peer round-robin cursor stays valid
 		if (i != m_connections.end()) m_connections.erase(i);
 	}
@@ -3282,10 +3282,9 @@ namespace {
 			case settings_pack::peer_proportional:
 				{
 					int num_peers[2][2] = {{0, 0}, {0, 0}};
-					for (connection_map::iterator i = m_connections.begin()
-						, end(m_connections.end());i != end; ++i)
+					for (auto const& i : m_connections)
 					{
-						peer_connection& p = *(*i);
+						peer_connection& p = *i;
 						if (p.in_handshake()) continue;
 						int protocol = 0;
 						if (is_utp(*p.get_socket())) protocol = 1;
@@ -3488,13 +3487,13 @@ namespace {
 				{
 					// every 90 seconds, disconnect the worst peers
 					// if we have reached the connection limit
-					torrent_map::iterator i = std::max_element(m_torrents.begin(), m_torrents.end()
+					auto const i = std::max_element(m_torrents.begin(), m_torrents.end()
 						, [] (torrent_map::value_type const& lhs, torrent_map::value_type const& rhs)
 						{ return lhs.second->num_peers() < rhs.second->num_peers(); });
 
 					TORRENT_ASSERT(i != m_torrents.end());
-					int peers_to_disconnect = (std::min)((std::max)(
-						int(i->second->num_peers() * m_settings.get_int(settings_pack::peer_turnover) / 100), 1)
+					int const peers_to_disconnect = std::min(std::max(
+						i->second->num_peers() * m_settings.get_int(settings_pack::peer_turnover) / 100, 1)
 						, i->second->num_connect_candidates());
 					i->second->disconnect_peers(peers_to_disconnect
 						, error_code(errors::optimistic_disconnect));
@@ -3514,7 +3513,7 @@ namespace {
 							|| t->max_connections() < 6)
 							continue;
 
-						int peers_to_disconnect = (std::min)((std::max)(t->num_peers()
+						int const peers_to_disconnect = (std::min)((std::max)(t->num_peers()
 							* m_settings.get_int(settings_pack::peer_turnover) / 100, 1)
 							, t->num_connect_candidates());
 						t->disconnect_peers(peers_to_disconnect, errors::optimistic_disconnect);
@@ -3560,7 +3559,7 @@ namespace {
 
 	void session_impl::prioritize_connections(std::weak_ptr<torrent> t)
 	{
-		m_prio_torrents.push_back(std::make_pair(t, 10));
+		m_prio_torrents.emplace_back(t, 10);
 	}
 
 #ifndef TORRENT_DISABLE_DHT
@@ -3693,8 +3692,8 @@ namespace {
 
 		ADD_OUTSTANDING_ASYNC("session_impl::on_lsd_announce");
 		// announce on local network every 5 minutes
-		int delay = (std::max)(m_settings.get_int(settings_pack::local_service_announce_interval)
-			/ (std::max)(int(m_torrents.size()), 1), 1);
+		int const delay = std::max(m_settings.get_int(settings_pack::local_service_announce_interval)
+			/ std::max(int(m_torrents.size()), 1), 1);
 		error_code ec;
 		m_lsd_announce_timer.expires_from_now(seconds(delay), ec);
 		m_lsd_announce_timer.async_wait([this](error_code const& err) {
@@ -3987,7 +3986,7 @@ namespace {
 
 		int num_opt_unchoke = m_settings.get_int(settings_pack::num_optimistic_unchoke_slots);
 		int const allowed_unchoke_slots = int(m_stats_counters[counters::num_unchoke_slots]);
-		if (num_opt_unchoke == 0) num_opt_unchoke = (std::max)(1, allowed_unchoke_slots / 5);
+		if (num_opt_unchoke == 0) num_opt_unchoke = std::max(1, allowed_unchoke_slots / 5);
 		if (num_opt_unchoke > int(opt_unchoke.size())) num_opt_unchoke =
 			int(opt_unchoke.size());
 
@@ -4022,7 +4021,7 @@ namespace {
 				// remove this peer from prev_opt_unchoke, to prevent us from
 				// choking it later. This peer gets another round of optimistic
 				// unchoke
-				std::vector<torrent_peer*>::iterator existing =
+				auto const existing =
 					std::find(prev_opt_unchoke.begin(), prev_opt_unchoke.end(), pi);
 				TORRENT_ASSERT(existing != prev_opt_unchoke.end());
 				prev_opt_unchoke.erase(existing);
@@ -4126,7 +4125,7 @@ namespace {
 		INVARIANT_CHECK;
 
 		int steps_since_last_connect = 0;
-		int num_torrents = int(want_peers_finished.size() + want_peers_download.size());
+		int const num_torrents = int(want_peers_finished.size() + want_peers_download.size());
 		for (;;)
 		{
 			if (m_next_downloading_connect_torrent >= int(want_peers_download.size()))
@@ -4263,7 +4262,7 @@ namespace {
 			// we don't know at what rate we can upload. If we have a
 			// measurement of the peak, use that + 10kB/s, otherwise
 			// assume 20 kB/s
-			max_upload_rate = (std::max)(20000, m_peak_up_rate + 10000);
+			max_upload_rate = std::max(20000, m_peak_up_rate + 10000);
 			if (m_alerts.should_post<performance_alert>())
 				m_alerts.emplace_alert<performance_alert>(torrent_handle()
 					, performance_alert::bittyrant_with_no_uplimit);
@@ -4292,7 +4291,7 @@ namespace {
 		int const unchoked_counter_optimistic
 			= int(m_stats_counters[counters::num_peers_up_unchoked_optimistic]);
 		int const num_opt_unchoke = (unchoked_counter_optimistic == 0)
-			? (std::max)(1, allowed_upload_slots / 5) : unchoked_counter_optimistic;
+			? std::max(1, allowed_upload_slots / 5) : unchoked_counter_optimistic;
 
 		int unchoke_set_size = allowed_upload_slots - num_opt_unchoke;
 
@@ -4369,7 +4368,7 @@ namespace {
 	{
 		TORRENT_ASSERT(is_single_thread());
 
-		torrent_map::const_iterator i = m_torrents.find(info_hash);
+		auto const i = m_torrents.find(info_hash);
 #if TORRENT_USE_INVARIANT_CHECKS
 		for (auto const& te : m_torrents)
 		{
@@ -4461,7 +4460,7 @@ namespace {
 		sha1_hash obfuscated = info_hash;
 		obfuscated ^= xor_mask;
 
-		torrent_map::iterator i = m_obfuscated_torrents.find(obfuscated);
+		auto const i = m_obfuscated_torrents.find(obfuscated);
 		if (i == m_obfuscated_torrents.end()) return nullptr;
 		return i->second.get();
 	}
@@ -4942,7 +4941,7 @@ namespace {
 		// if we still can't find the torrent, look for it by url
 		if (!torrent_ptr && !params.url.empty())
 		{
-			torrent_map::iterator i = std::find_if(m_torrents.begin(), m_torrents.end()
+			auto const i = std::find_if(m_torrents.begin(), m_torrents.end()
 				, [&params](torrent_map::value_type const& te)
 				{ return te.second->url() == params.url; });
 			if (i != m_torrents.end())
@@ -5415,32 +5414,29 @@ namespace {
 	}
 
 	namespace {
-		bool find_tcp_port_mapping(int transport, int mapping, std::shared_ptr<listen_socket_t> const& ls)
+		bool find_tcp_port_mapping(portmap_transport const transport
+			, int mapping, std::shared_ptr<listen_socket_t> const& ls)
 		{
-			return ls->tcp_port_mapping[transport] == mapping;
+			return ls->tcp_port_mapping[static_cast<int>(transport)] == mapping;
 		}
 
-		bool find_udp_port_mapping(int transport, int mapping, std::shared_ptr<listen_socket_t> const& ls)
+		bool find_udp_port_mapping(portmap_transport const transport
+			, int mapping, std::shared_ptr<listen_socket_t> const& ls)
 		{
-			return ls->udp_port_mapping[transport] == mapping;
+			return ls->udp_port_mapping[static_cast<int>(transport)] == mapping;
 		}
 	}
 
-	// transport is 0 for NAT-PMP and 1 for UPnP
 	void session_impl::on_port_mapping(int mapping, address const& ip, int port
 		, portmap_protocol const proto, error_code const& ec
-		, aux::portmap_transport transport)
+		, portmap_transport const transport)
 	{
 		TORRENT_ASSERT(is_single_thread());
-
-		int map_transport =
-			static_cast<std::underlying_type<aux::portmap_transport>::type>(transport);
-		TORRENT_ASSERT(map_transport >= 0 && map_transport <= 1);
 
 		if (ec && m_alerts.should_post<portmap_error_alert>())
 		{
 			m_alerts.emplace_alert<portmap_error_alert>(mapping
-				, map_transport, ec);
+				, transport, ec);
 		}
 
 		// look through our listen sockets to see if this mapping is for one of
@@ -5448,13 +5444,13 @@ namespace {
 
 		auto ls
 			= std::find_if(m_listen_sockets.begin(), m_listen_sockets.end()
-			, std::bind(find_tcp_port_mapping, map_transport, mapping, _1));
+			, std::bind(find_tcp_port_mapping, transport, mapping, _1));
 
 		bool tcp = true;
 		if (ls == m_listen_sockets.end())
 		{
 			ls = std::find_if(m_listen_sockets.begin(), m_listen_sockets.end()
-				, std::bind(find_udp_port_mapping, map_transport, mapping, _1));
+				, std::bind(find_udp_port_mapping, transport, mapping, _1));
 			tcp = false;
 		}
 
@@ -5474,8 +5470,7 @@ namespace {
 		if (!ec && m_alerts.should_post<portmap_alert>())
 		{
 			m_alerts.emplace_alert<portmap_alert>(mapping, port
-				, map_transport, proto == portmap_protocol::udp
-				? portmap_alert::udp : portmap_alert::tcp);
+				, transport, proto);
 		}
 	}
 
@@ -6214,13 +6209,12 @@ namespace {
 	{
 		// if this flag changed, update all web seed connections
 		bool report = m_settings.get_bool(settings_pack::report_web_seed_downloads);
-		for (connection_map::iterator i = m_connections.begin()
-			, end(m_connections.end()); i != end; ++i)
+		for (auto const& c : m_connections)
 		{
-			connection_type const type = (*i)->type();
+			connection_type const type = c->type();
 			if (type == connection_type::url_seed
 				|| type == connection_type::http_seed)
-				(*i)->ignore_stats(!report);
+				c->ignore_stats(!report);
 		}
 	}
 
@@ -6599,13 +6593,14 @@ namespace {
 		return m_upnp.get();
 	}
 
-	int session_impl::add_port_mapping(int t, int external_port
-		, int local_port)
+	int session_impl::add_port_mapping(portmap_protocol const t
+		, int const external_port
+		, int const local_port)
 	{
 		int ret = 0;
-		if (m_upnp) ret = m_upnp->add_mapping(static_cast<portmap_protocol>(t), external_port
+		if (m_upnp) ret = m_upnp->add_mapping(t, external_port
 			, tcp::endpoint({}, static_cast<std::uint16_t>(local_port)));
-		if (m_natpmp) ret = m_natpmp->add_mapping(static_cast<portmap_protocol>(t), external_port
+		if (m_natpmp) ret = m_natpmp->add_mapping(t, external_port
 			, tcp::endpoint({}, static_cast<std::uint16_t>(local_port)));
 		return ret;
 	}
@@ -6727,19 +6722,15 @@ namespace {
 		m_alerts.emplace_alert<dht_pkt_alert>(pkt, d, node);
 	}
 
-	bool session_impl::should_log_portmap(aux::portmap_transport) const
+	bool session_impl::should_log_portmap(portmap_transport) const
 	{
 		return m_alerts.should_post<portmap_log_alert>();
 	}
 
-	void session_impl::log_portmap(aux::portmap_transport transport, char const* msg) const
+	void session_impl::log_portmap(portmap_transport transport, char const* msg) const
 	{
-		int map_transport =
-			static_cast<std::underlying_type<aux::portmap_transport>::type>(transport);
-		TORRENT_ASSERT(map_transport >= 0 && map_transport <= 1);
-
 		if (m_alerts.should_post<portmap_log_alert>())
-			m_alerts.emplace_alert<portmap_log_alert>(map_transport, msg);
+			m_alerts.emplace_alert<portmap_log_alert>(transport, msg);
 	}
 
 	bool session_impl::should_log_lsd() const
@@ -6828,29 +6819,6 @@ namespace {
 
 #ifndef TORRENT_DISABLE_DHT
 		if (m_dht) m_dht->update_node_id(sock);
-#endif
-	}
-
-	ses_buffer_holder session_impl::allocate_buffer()
-	{
-		TORRENT_ASSERT(is_single_thread());
-
-#ifdef TORRENT_DISABLE_POOL_ALLOCATOR
-		std::size_t num_bytes = aux::numeric_cast<std::size_t>(send_buffer_size());
-		return ses_buffer_holder(*this, static_cast<char*>(std::malloc(num_bytes)));
-#else
-		return ses_buffer_holder(*this, static_cast<char*>(m_send_buffers.malloc()));
-#endif
-	}
-
-	void session_impl::free_buffer(char* buf)
-	{
-		TORRENT_ASSERT(is_single_thread());
-
-#ifdef TORRENT_DISABLE_POOL_ALLOCATOR
-		free(buf);
-#else
-		m_send_buffers.free(buf);
 #endif
 	}
 

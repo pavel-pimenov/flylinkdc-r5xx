@@ -26,42 +26,22 @@
 
 #include "forward.h"
 #include "typedefs.h"
-#include "Mapper.h"
-#include "TimerManager.h"
 #include "Util.h"
 #include "..\boost\boost\logic\tribool.hpp"
 
-class MappingManager :
-	public Singleton<MappingManager>,
-	private Thread,
-	private TimerManagerListener
+class MappingManager
 {
 	public:
-		/** add an implementation derived from the base Mapper class, passed as template parameter.
-		the first added mapper will be tried first, unless the "MAPPER" setting is not empty. */
-		template<typename T> void addMapper()
-		{
-			m_mappers.push_back(make_pair(T::g_name, [] { return new T(); }));
-		}
-		StringList getMappers() const;
+		MappingManager();
 		
-		bool open();
-		void close();
-		bool getOpened() const;
-		string getStatus() const;
-		string getDeviceString() const
-		{
-			if (m_working.get())
-			{
-				return deviceString(*m_working);
-			}
-			else
-				return Util::emptyString;
-		}
 		static string getPortmapInfo(bool p_add_router_name, bool p_show_public_ip);
 		static string getExternaIP()
 		{
 			return g_externalIP;
+		}
+		static void setExternaIP(const string& p_ip)
+		{
+			g_externalIP = p_ip;
 		}
 		static string getDefaultGatewayIP()
 		{
@@ -75,33 +55,16 @@ class MappingManager :
 		{
 			return g_is_wifi_router == true;
 		}
+		static void close()
+		{
+		}
+		static void open()
+		{
+		}
 	private:
-		friend class Singleton<MappingManager>;
-		
-		vector<pair<string, std::function<Mapper * ()>>> m_mappers;
-		
-		boost::atomic_flag m_busy;
-		unique_ptr<Mapper> m_working; /// currently working implementation.
-		uint64_t m_renewal; /// when the next renewal should happen, if requested by the mapper.
-		int m_listeners_count;
 		static string g_externalIP;
 		static string g_defaultGatewayIP;
-		static string g_mapperName;
 		static boost::logic::tribool g_is_wifi_router;
-		MappingManager();
-		/*virtual*/
-		~MappingManager()
-		{
-			join();
-		}
-		
-		int run();
-		
-		void close(Mapper& mapper);
-		void log_internal(const string& message);
-		string deviceString(const Mapper& p_mapper) const;
-		
-		void on(TimerManagerListener::Minute, uint64_t tick) noexcept override;
 };
 
 #endif

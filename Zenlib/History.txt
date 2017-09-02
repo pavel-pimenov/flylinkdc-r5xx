@@ -1,3 +1,15 @@
+Version 0.4.37, 2017-08-18
+--------------
+x Restore CMake 2.8 compatibility
+x Fix CSV loading with old Mac-style carriage return
+x Fix a mutex dead lock with some thread class calls
+
+Version 0.4.36, 2017-08-08
+--------------
++ pkg-config and CMake improvements
++ Correct handle of load from CSV with quotes
++ Mageia 6, Fedora 26, Debian 9 compatibility
+
 Version 0.4.35, 2017-03-31
 --------------
 + Enable large files support in CMake project

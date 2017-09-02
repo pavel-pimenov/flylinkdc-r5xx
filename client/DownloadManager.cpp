@@ -28,6 +28,7 @@
 #include "UploadManager.h"
 #include "FinishedManager.h"
 #include "PGLoader.h"
+#include "MappingManager.h"
 #include "../FlyFeatures/flyServer.h"
 #ifdef FLYLINKDC_USE_TORRENT
 #include "libtorrent/session.hpp"
@@ -941,7 +942,6 @@ void DownloadManager::select_files(const libtorrent::torrent_handle& p_torrent_h
 }
 void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion)
 {
-
 	try
 	{
 		p_torrent_sesion->get_io_service().post([p_torrent_sesion, this]
@@ -963,15 +963,35 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 					}
 					
 #endif
+					if (const auto l_ext_ip = lt::alert_cast<lt::external_ip_alert>(a))
+					{
+						MappingManager::setExternaIP(l_ext_ip->external_address.to_string());
+					}
 					if (const auto l_port = lt::alert_cast<lt::portmap_alert>(a))
 					{
-						LogManager::torrent_message("portmap_alert: " + a->message() + " info:" + std::string(a->what()));
-						SettingsManager::g_upnpTorrentLevel = true;
+						LogManager::torrent_message("portmap_alert: " + a->message() + " info:" + std::string(a->what()) + " index = " + Util::toString(l_port->mapping));
+						if (l_port->mapping == m_maping_index[0])
+							SettingsManager::g_upnpTCPLevel = true;
+						if (l_port->mapping == m_maping_index[2])
+							SettingsManager::g_upnpUDPSearchLevel = true;
+						if (l_port->mapping == m_maping_index[1])
+							SettingsManager::g_upnpTLSLevel = true;
+						if (l_port->mapping == 0)
+							SettingsManager::g_upnpTorrentLevel = true;
 					}
+					
 					if (const auto l_port = lt::alert_cast<lt::portmap_error_alert>(a))
 					{
-						LogManager::torrent_message("portmap_error_alert: " + a->message() + " info:" + std::string(a->what()));
-						SettingsManager::g_upnpTorrentLevel = false;
+						dcassert(0);
+						LogManager::torrent_message("portmap_error_alert: " + a->message() + " info:" + std::string(a->what()) + " index = " + Util::toString(l_port->mapping));
+						if (l_port->mapping == m_maping_index[0])
+							SettingsManager::g_upnpTCPLevel = false;
+						if (l_port->mapping == m_maping_index[2])
+							SettingsManager::g_upnpUDPSearchLevel = false;
+						if (l_port->mapping == m_maping_index[1])
+							SettingsManager::g_upnpTLSLevel = false;
+						if (l_port->mapping == 0)
+							SettingsManager::g_upnpTorrentLevel = false;
 					}
 					if (const auto l_delete = lt::alert_cast<lt::torrent_removed_alert>(a))
 					{
@@ -1411,11 +1431,13 @@ bool DownloadManager::add_torrent_file(const tstring& p_torrent_path, const tstr
 }
 void DownloadManager::init_torrent(bool p_is_force)
 {
+	/*
 	if (!BOOLSETTING(USE_TORRENT) && p_is_force == false)
-	{
-		LogManager::torrent_message("Disable torrent DHT...");
-		return;
-	}
+	    {
+	        LogManager::torrent_message("Disable torrent DHT...");
+	        return;
+	    }
+	*/
 	try
 	{
 		m_torrent_resume_count = 0;
@@ -1463,8 +1485,20 @@ void DownloadManager::init_torrent(bool p_is_force)
 		
 		m_torrent_session = std::make_unique<lt::session>(l_sett);
 		m_torrent_session->set_alert_notify(std::bind(&DownloadManager::onTorrentAlertNotify, this, m_torrent_session.get()));
-		lt::dht_settings dht;
-		m_torrent_session->set_dht_settings(dht);
+		//lt::dht_settings dht;
+		//m_torrent_session->set_dht_settings(dht);
+		if (SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_UPNP || BOOLSETTING(AUTO_DETECT_CONNECTION))
+		{
+			m_maping_index[0] = m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TCP_PORT), SETTING(TCP_PORT));
+			m_maping_index[1] = m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TLS_PORT), SETTING(TLS_PORT));
+			m_maping_index[2] = m_torrent_session->add_port_mapping(lt::session::udp, SETTING(UDP_PORT), SETTING(UDP_PORT));
+		}
+		else
+		{
+			m_maping_index[0] = -1;
+			m_maping_index[1] = -1;
+			m_maping_index[2] = -1;
+		}
 		
 #ifdef _DEBUG
 		lt::error_code ec;

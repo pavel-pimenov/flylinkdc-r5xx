@@ -24,7 +24,6 @@
 
 #include <boost/version.hpp>
 #include "../bzip2/bzlib_private.h"
-#include "../miniupnpc/miniupnpc.h"
 #include "../openssl/include/openssl/opensslv.h"
 #include "HIconWrapper.h"
 #include "wtl_flylinkdc.h"
@@ -110,7 +109,6 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    _T("bzip ") _T(BZ_VERSION) _T("\r\n")
 			    _T("zlib ") _T(ZLIB_VERSION) _T("\r\n")
 			    _T("jsoncpp 0.5.0\r\n")
-			    _T("miniupnpc ") _T(MINIUPNPC_VERSION) _T("\r\n")
 			    _T("ZenLib 0.4.34\r\n")
 			    _T(OPENSSL_VERSION_TEXT) _T("\r\n")
 			    _T("MediaInfoLib 0.7.98\r\n")//MediaInfoLib::MediaInfo_Version _T("\r\n")

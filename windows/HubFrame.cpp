@@ -243,7 +243,6 @@ HubFrame::HubFrame(bool p_is_auto_connect,
 	, m_second_count(60)
 	, m_upnp_message_tick(10)
 	, m_hub_name_update_count(0)
-	, m_reconnect_count(0)
 	, m_is_hub_name_updated(false)
 	, m_is_first_goto_end(false)
 	, m_waitingForPW(false)
@@ -3828,11 +3827,8 @@ void HubFrame::on(ClientListener::NickTaken) noexcept
 	m_client->setRandomTempNick(l_fly_user);
 	setHubParam();
 	CFlyServerJSON::pushError(54, "Hub = " + m_client->getHubUrl() + " New random nick = " + l_fly_user);
-	if (m_reconnect_count < 3)
-	{
-		m_client->reconnect();
-		m_reconnect_count++;
-	}
+	m_client->setAutoReconnect(true);
+	m_client->setReconnDelay(30);
 }
 void HubFrame::on(ClientListener::CheatMessage, const string& line) noexcept
 {

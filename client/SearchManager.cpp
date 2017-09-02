@@ -23,6 +23,7 @@
 #include "QueueManager.h"
 #include "StringTokenizer.h"
 #include "FinishedManager.h"
+#include "DebugManager.h"
 #include "../FlyFeatures/flyServer.h"
 
 
@@ -71,13 +72,13 @@ void SearchManager::runTestUDPPort()
 	extern bool g_DisableTestPort;
 	if (g_DisableTestPort == false && boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel))
 	{
-		string p_external_ip;
+		string l_external_ip;
 		std::vector<unsigned short> l_udp_port, l_tcp_port;
 		l_udp_port.push_back(SETTING(UDP_PORT));
-		bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, p_external_ip, 0, "UDP");
+		bool l_is_udp_port_send = CFlyServerJSON::pushTestPort(l_udp_port, l_tcp_port, l_external_ip, 0, "UDP");
 		if (l_is_udp_port_send)
 		{
-			SettingsManager::g_UDPTestExternalIP = p_external_ip;
+			SettingsManager::g_UDPTestExternalIP = l_external_ip;
 		}
 	}
 }
@@ -365,6 +366,7 @@ int SearchManager::UdpQueue::run()
 			
 			const TTHValue l_tth_value(tth);
 			auto sr = std::make_unique<SearchResult>(user, type, slots, freeSlots, size, file, Util::emptyString, url, remoteIp, l_tth_value, -1 /*0 == auto*/);
+			COMMAND_DEBUG("[Search-result] url = " + url + " remoteIp = " + remoteIp.to_string() + " file = " + file + " user = " + user->getLastNick(), DebugTask::CLIENT_IN, remoteIp.to_string());
 			SearchManager::getInstance()->fly_fire1(SearchManagerListener::SR(), sr);
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 			CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "$SR", x, remoteIp, "", url, tth);

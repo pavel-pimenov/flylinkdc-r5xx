@@ -9,7 +9,6 @@
 
 #include "MediaInfo/MediaInfo_Events.h"
 #include "MediaInfo/TimeCode.h"
-//[-] FlylinkDC++ Team #include <cstring>
 using namespace MediaInfoLib;
 
 //---------------------------------------------------------------------------

@@ -32,23 +32,19 @@ bool ConnectivityManager::g_is_running = false;
 ConnectivityManager::ConnectivityManager() :
 	autoDetected(false)
 {
+	static MappingManager g_mapping;
 }
 
 void ConnectivityManager::startSocket()
 {
 	autoDetected = false;
-	
 	disconnect();
-	
-	// active check mustn't be there to hub-dependent setting works correctly
-	//if(ClientManager::isActive()) {
 	listen();
 	// must be done after listen calls; otherwise ports won't be set
 	if (SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_UPNP)
 	{
-		MappingManager::getInstance()->open();
+		MappingManager::open();
 	}
-	//}
 }
 
 void ConnectivityManager::detectConnection()
@@ -67,10 +63,7 @@ void ConnectivityManager::detectConnection()
 		SettingsManager::unset(SettingsManager::EXTERNAL_IP);
 	}
 	SettingsManager::unset(SettingsManager::BIND_ADDRESS);
-	if (MappingManager::getInstance()->getOpened())
-	{
-		MappingManager::getInstance()->close();
-	}
+	
 	
 	disconnect();
 	
@@ -120,10 +113,6 @@ void ConnectivityManager::detectConnection()
 	}
 	log(STRING(LOCAL_NET_NAT_DETECT));
 	
-	if (!MappingManager::getInstance()->open())
-	{
-		g_is_running = false;
-	}
 }
 void ConnectivityManager::test_all_ports()
 {
@@ -160,7 +149,9 @@ void ConnectivityManager::setup_connections(bool settingsChanged)
 		if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 		{
 			if (!autoDetected)
+			{
 				detectConnection();
+			}
 		}
 		else
 		{
@@ -168,14 +159,14 @@ void ConnectivityManager::setup_connections(bool settingsChanged)
 			{
 				if (settingsChanged || SETTING(INCOMING_CONNECTIONS) != SettingsManager::INCOMING_FIREWALL_UPNP)
 				{
-					MappingManager::getInstance()->close();
+					MappingManager::close(); // TODO
 				}
 				startSocket();
 			}
-			else if (SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_UPNP && !MappingManager::getInstance()->getOpened())
+			else if (SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_UPNP)
 			{
 				// previous mappings had failed; try again
-				MappingManager::getInstance()->open();
+				MappingManager::open(); // TODO
 			}
 		}
 	}
@@ -213,11 +204,9 @@ string ConnectivityManager::getInformation()
 		}
 		case SettingsManager::INCOMING_FIREWALL_UPNP:
 		{
-			const auto l_status = MappingManager::getInstance()->getStatus();
-			mode = str(F_("Active mode behind a router can configure; port mapping status: %2%") % l_status);
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
-			g_fly_server_stat.m_upnp_router_name = MappingManager::getInstance()->getDeviceString();
-			g_fly_server_stat.m_upnp_status = l_status;
+			// g_fly_server_stat.m_upnp_router_name = // MappingManager::getInstance()->getDeviceString();
+			// g_fly_server_stat.m_upnp_status = l_status;
 #endif
 			break;
 		}

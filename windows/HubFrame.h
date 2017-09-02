@@ -308,7 +308,6 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		
 		tstring m_shortHubName;
 		uint8_t m_hub_name_update_count;
-		uint8_t m_reconnect_count;
 		bool m_is_hub_name_updated;
 		bool m_is_process_disconnected;
 		bool m_is_first_goto_end;

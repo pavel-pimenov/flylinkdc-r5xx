@@ -7,6 +7,8 @@ call tools\ExtractVersion.bat %1 %2 %3 %4
 if errorlevel 1 goto :error
 
 "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe" FlylinkDC_2017.sln /Rebuild "Release|x64"
+rem chcp 437
+rem msbuild FlylinkDC_2017.sln /t:Rebuild /p:COnfiguration="Release" /p:Platform="x64" /v:diag
 
 if not exist .\compiled\FlylinkDC_x64.exe goto :builderror
 
