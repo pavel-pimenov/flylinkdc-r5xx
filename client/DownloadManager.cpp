@@ -1473,7 +1473,11 @@ void DownloadManager::init_torrent(bool p_is_force)
 		l_sett.set_bool(settings_pack::enable_natpmp, true);
 		l_sett.set_bool(settings_pack::enable_lsd, true);
 		l_sett.set_bool(settings_pack::enable_dht, true);
+#ifdef _DEBUG
+		l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:56657");
+#else
 		l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:8999");
+#endif
 		std::string l_dht_nodes;
 		for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
 		{

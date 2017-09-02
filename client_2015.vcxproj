@@ -290,7 +290,7 @@
     <ClCompile Include="client\HashBloom.cpp" />
     <ClCompile Include="client\HashManager.cpp" />
     <ClCompile Include="client\LogManager.cpp" />
-    <ClCompile Include="client\Mapper.cpp" />
+    <ClCompile Include="client\MappingManager.cpp" />
     <ClCompile Include="client\idna\idna.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdinc.h</PrecompiledHeaderFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
@@ -308,16 +308,7 @@
     <ClCompile Include="client\IPGrant.cpp" />
     <ClCompile Include="client\IpGuard.cpp" />
     <ClCompile Include="client\iplist.cpp" />
-    <ClCompile Include="client\MD5Calc.cpp">
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
-      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Speed</FavorSizeOrSpeed>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </PrecompiledHeader>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
-      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Speed</FavorSizeOrSpeed>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="client\MD5Calc.cpp" />
     <ClCompile Include="client\MerkleTree.cpp" />
     <ClCompile Include="client\NmdcHub.cpp" />
     <ClCompile Include="client\PGLoader.cpp" />
@@ -701,7 +692,6 @@
     <ClInclude Include="client\HubEntry.h" />
     <ClInclude Include="client\IpGuard.h" />
     <ClInclude Include="client\LogManager.h" />
-    <ClInclude Include="client\Mapper.h" />
     <ClInclude Include="client\MappingManager.h" />
     <ClInclude Include="client\MerkleCheckOutputStream.h" />
     <ClInclude Include="client\MerkleTree.h" />
