@@ -54,7 +54,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 {
 #ifdef FLYLINKDC_USE_TORRENT
 		std::unique_ptr<libtorrent::session> m_torrent_session;
-		int m_maping_index[3];
+		libtorrent::port_mapping_t m_maping_index[3];
 		void onTorrentAlertNotify(libtorrent::session* p_torrent_sesion);
 		void select_files(const libtorrent::torrent_handle& p_torrent_handle);
 		std::atomic<int> m_torrent_resume_count = { 0 };

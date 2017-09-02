@@ -969,28 +969,30 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 					}
 					if (const auto l_port = lt::alert_cast<lt::portmap_alert>(a))
 					{
-						LogManager::torrent_message("portmap_alert: " + a->message() + " info:" + std::string(a->what()) + " index = " + Util::toString(l_port->mapping));
+						LogManager::torrent_message("portmap_alert: " + a->message() + " info:" +
+							std::string(a->what()) + " index = " + Util::toString(int(l_port->mapping)));
 						if (l_port->mapping == m_maping_index[0])
 							SettingsManager::g_upnpTCPLevel = true;
 						if (l_port->mapping == m_maping_index[2])
 							SettingsManager::g_upnpUDPSearchLevel = true;
 						if (l_port->mapping == m_maping_index[1])
 							SettingsManager::g_upnpTLSLevel = true;
-						if (l_port->mapping == 0)
+						if (l_port->mapping == port_mapping_t(0)) // TODO (1)
 							SettingsManager::g_upnpTorrentLevel = true;
 					}
 					
 					if (const auto l_port = lt::alert_cast<lt::portmap_error_alert>(a))
 					{
 						dcassert(0);
-						LogManager::torrent_message("portmap_error_alert: " + a->message() + " info:" + std::string(a->what()) + " index = " + Util::toString(l_port->mapping));
+						LogManager::torrent_message("portmap_error_alert: " + a->message() + " info:" + 
+							std::string(a->what()) + " index = " + Util::toString(int(l_port->mapping)));
 						if (l_port->mapping == m_maping_index[0])
 							SettingsManager::g_upnpTCPLevel = false;
 						if (l_port->mapping == m_maping_index[2])
 							SettingsManager::g_upnpUDPSearchLevel = false;
 						if (l_port->mapping == m_maping_index[1])
 							SettingsManager::g_upnpTLSLevel = false;
-						if (l_port->mapping == 0)
+						if (l_port->mapping == port_mapping_t(0)) // TODO (1)
 							SettingsManager::g_upnpTorrentLevel = false;
 					}
 					if (const auto l_delete = lt::alert_cast<lt::torrent_removed_alert>(a))
@@ -1495,9 +1497,9 @@ void DownloadManager::init_torrent(bool p_is_force)
 		}
 		else
 		{
-			m_maping_index[0] = -1;
-			m_maping_index[1] = -1;
-			m_maping_index[2] = -1;
+			m_maping_index[0] = lt::port_mapping_t(-1);
+			m_maping_index[1] = lt::port_mapping_t(-1);
+			m_maping_index[2] = lt::port_mapping_t(-1);
 		}
 		
 #ifdef _DEBUG
