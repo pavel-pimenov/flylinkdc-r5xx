@@ -508,7 +508,6 @@
     <ClCompile Include="windows\UCPage.cpp" />
     <ClCompile Include="windows\UpdatePage.cpp" />
     <ClCompile Include="windows\SharePage.cpp" />
-    <ClCompile Include="windows\UPNPCheckDlg.cpp" />
     <ClCompile Include="windows\UserInfoSimple.cpp" />
     <ClCompile Include="windows\UserListColours.cpp" />
     <ClCompile Include="windows\UsersFrame.cpp" />
@@ -681,7 +680,6 @@
     <ClInclude Include="windows\UCPage.h" />
     <ClInclude Include="windows\UpdatePage.h" />
     <ClInclude Include="windows\SharePage.h" />
-    <ClInclude Include="windows\UPNPCheckDlg.h" />
     <ClInclude Include="windows\UserInfoSimple.h" />
     <ClInclude Include="windows\UserListColours.h" />
     <ClInclude Include="windows\UsersFrame.h" />

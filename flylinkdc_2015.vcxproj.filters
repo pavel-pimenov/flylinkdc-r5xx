@@ -313,9 +313,6 @@
     <ClCompile Include="windows\FlySQLExplorer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows\UPNPCheckDlg.cpp">
-      <Filter>Wizard</Filter>
-    </ClCompile>
     <ClCompile Include="windows\SharePage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -749,9 +746,6 @@
     </ClInclude>
     <ClInclude Include="windows\FlySQLExplorer.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\UPNPCheckDlg.h">
-      <Filter>Wizard</Filter>
     </ClInclude>
     <ClInclude Include="windows\AboutCmdsDlg.h">
       <Filter>Header Files</Filter>

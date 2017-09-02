@@ -34,16 +34,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FlyFeatures", "FlyFeatures_
 		{F8D0E5FE-BABD-4FC8-B3FE-B48978D23FEB} = {F8D0E5FE-BABD-4FC8-B3FE-B48978D23FEB}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "miniupnpc", "miniupnpc\miniupnpc_2015.vcxproj", "{51015502-C27C-43CF-9FA4-12AB9DB5D36E}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MediaInfoLib", "MediaInfoLib\MediaInfoLib_2015.vcxproj", "{20E0F8D6-213C-460B-B361-9C725CB375C7}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0DA1DA7D-F393-4E7C-A7CE-CB5C6A67BC94} = {0DA1DA7D-F393-4E7C-A7CE-CB5C6A67BC94}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ZenLib", "zenlib\ZenLib_2015.vcxproj", "{0DA1DA7D-F393-4E7C-A7CE-CB5C6A67BC94}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "natpmp", "natpmp\natpmp_2015.vcxproj", "{BFA63DD8-95FC-7A39-5D84-D995B2863FE8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "openssl", "openssl\openssl_2015.vcxproj", "{B9F644C2-F9DE-4648-B613-43755D81EA3B}"
 EndProject
