@@ -1,4 +1,3 @@
-@echo off
 call svn update
 
 set NOCOMMIT=

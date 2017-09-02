@@ -1,4 +1,3 @@
-@echo off
 rem Parse input parameters.
 rem Valid values: norev, nover, nobeta
 
