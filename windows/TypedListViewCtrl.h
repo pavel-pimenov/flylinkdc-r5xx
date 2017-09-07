@@ -1374,6 +1374,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 #ifdef _DEBUG
 				if (l_id < 0)
 				{
+					dcassert(0);
 					LogManager::message("Error removeGroupedItem = " + Util::toString(item));
 				}
 #endif

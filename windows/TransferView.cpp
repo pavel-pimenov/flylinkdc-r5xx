@@ -1494,6 +1494,9 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 #ifdef FLYLINKDC_USE_DEBUG_TRANSFERS
 									LogManager::message("SKIP missing token TRANSFER_UPDATE_ITEM  ui.token = " + ui.m_token);
 #endif
+									//UpdateInfo* l_remove_ui = new UpdateInfo(HintedUser(), true); // Костыль
+									//l_remove_ui->setToken(ui.m_token);
+									//m_tasks.add(TRANSFER_REMOVE_TOKEN_ITEM, l_remove_ui);
 									break;
 								}
 							}
@@ -1565,9 +1568,10 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 					}
 #endif
 					// dcassert(0);
-					if (!ui.m_token.empty() || ui.m_is_torrent == true && !ui.m_sha1.is_all_zeros())
+					//if (!ui.m_token.empty() || ui.m_is_torrent == true && !ui.m_sha1.is_all_zeros())
 					{
-						onSpeakerAddItem(ui); // потеряли....
+						//onSpeakerAddItem(ui); // потеряли.... но если открыть - возникают висяки
+                        // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1674
 					}
 				}
 			}

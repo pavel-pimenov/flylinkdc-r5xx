@@ -304,8 +304,8 @@ static QueueItemPtr findCandidateL(const QueueItem::QIStringMap::const_iterator&
 		if (q->getPriority() == QueueItem::PAUSED)
 			continue;
 		// No files that already have more than AUTO_SEARCH_LIMIT online sources
-		if (q->countOnlineUsersGreatOrEqualThanL(SETTING(AUTO_SEARCH_LIMIT)))
-			continue;
+		//if (q->countOnlineUsersGreatOrEqualThanL(SETTING(AUTO_SEARCH_LIMIT)))
+		//	continue;
 		// Did we search for it recently?
 		if (find(recent.begin(), recent.end(), q->getTarget()) != recent.end())
 			continue;
@@ -335,9 +335,12 @@ QueueItemPtr QueueManager::FileQueue::findAutoSearch(deque<string>& p_recent) co
 		{
 			const auto start = (QueueItem::QIStringMap::size_type)Util::rand((uint32_t)g_queue.size());
 			
-			auto i = g_queue.cbegin();
+			auto i = g_queue.begin();
 			advance(i, start);
-			
+			if (i == g_queue.end())
+			{
+				i = g_queue.begin();
+			}
 			QueueItemPtr cand = findCandidateL(i, g_queue.end(), p_recent);
 			if (cand == nullptr)
 			{
@@ -346,7 +349,10 @@ QueueItemPtr QueueManager::FileQueue::findAutoSearch(deque<string>& p_recent) co
 #endif
 				cand = findCandidateL(g_queue.begin(), i, p_recent);
 #ifdef _DEBUG
-				LogManager::message("[1-1] FileQueue::findAutoSearch - cand" + cand->getTarget());
+				if (cand)
+				{
+					LogManager::message("[1-1] FileQueue::findAutoSearch - cand" + cand->getTarget());
+				}
 #endif
 			}
 			else if (cand->getNextSegmentL(0, 0, 0, nullptr).getSize() == 0)
@@ -361,7 +367,10 @@ QueueItemPtr QueueManager::FileQueue::findAutoSearch(deque<string>& p_recent) co
 				}
 			}
 #ifdef _DEBUG
-			LogManager::message("[3] FileQueue::findAutoSearch - cand = " + cand->getTarget());
+			if (cand)
+			{
+				LogManager::message("[3] FileQueue::findAutoSearch - cand = " + cand->getTarget());
+			}
 #endif
 			return cand;
 		}
@@ -2991,7 +3000,6 @@ void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchRes
 					{
 						if (qi->isFinished())
 							break;  // don't add sources to already finished files
-							
 						try
 						{
 							needsAutoMatch = !qi->countOnlineUsersGreatOrEqualThanL(SETTING(MAX_AUTO_MATCH_SOURCES));

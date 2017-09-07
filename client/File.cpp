@@ -305,7 +305,7 @@ size_t File::flushBuffers(bool aForce)
 	}
 #endif
 #ifdef _DEBUG
-	dcdebug("File %s was flushed in " I64_FMT " ms\n", "File-x-todo"/*getRealPath().c_str() */, (boost::posix_time::microsec_clock::universal_time() - start).total_milliseconds());
+	//dcdebug("File %s was flushed in " I64_FMT " ms\n", "File-x-todo"/*getRealPath().c_str() */, (boost::posix_time::microsec_clock::universal_time() - start).total_milliseconds());
 #endif
 	return 0;
 }

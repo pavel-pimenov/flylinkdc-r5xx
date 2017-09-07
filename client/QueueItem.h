@@ -32,8 +32,7 @@
 #include "LogManager.h"
 #endif
 
-typedef boost::unordered_map<UserPtr, DownloadPtr, User::Hash> DownloadMap;
-
+typedef std::vector<DownloadPtr> DownloadList;
 
 extern const string g_dc_temp_extension;
 
@@ -395,7 +394,7 @@ class QueueItem : public Flags
 			return m_block_size;
 		}
 		
-		DownloadMap m_downloads;
+		DownloadList m_downloads;
 		
 		SegmentSet m_done_segment;
 		string getSectionString() const;

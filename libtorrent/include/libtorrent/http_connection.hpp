@@ -54,7 +54,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/deadline_timer.hpp"
 #include "libtorrent/assert.hpp"
 #include "libtorrent/socket_type.hpp"
-#include "libtorrent/session_settings.hpp"
 #include "libtorrent/i2p_stream.hpp"
 #include "libtorrent/aux_/vector.hpp"
 #include "libtorrent/resolver_interface.hpp"
@@ -67,7 +66,7 @@ struct resolver_interface;
 const int default_max_bottled_buffer_size = 2 * 1024 * 1024;
 
 typedef std::function<void(error_code const&
-	, http_parser const&, char const* data, int size, http_connection&)> http_handler;
+	, http_parser const&, span<char const> data, http_connection&)> http_handler;
 
 typedef std::function<void(http_connection&)> http_connect_handler;
 
@@ -143,7 +142,7 @@ private:
 		, error_code const& e);
 	void on_assign_bandwidth(error_code const& e);
 
-	void callback(error_code e, char* data = nullptr, int size = 0);
+	void callback(error_code e, span<char> data = {});
 
 	aux::vector<char> m_recvbuffer;
 

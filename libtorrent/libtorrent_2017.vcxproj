@@ -144,6 +144,7 @@
     <ClInclude Include="include\libtorrent\ip_filter.hpp" />
     <ClInclude Include="include\libtorrent\ip_voter.hpp" />
     <ClInclude Include="include\libtorrent\kademlia\dht_observer.hpp" />
+    <ClInclude Include="include\libtorrent\kademlia\dht_settings.hpp" />
     <ClInclude Include="include\libtorrent\kademlia\dht_storage.hpp" />
     <ClInclude Include="include\libtorrent\kademlia\dht_tracker.hpp" />
     <ClInclude Include="include\libtorrent\kademlia\direct_request.hpp" />
@@ -320,6 +321,7 @@
     <ClCompile Include="src\ip_filter.cpp" />
     <ClCompile Include="src\ip_notifier.cpp" />
     <ClCompile Include="src\ip_voter.cpp" />
+    <ClCompile Include="src\kademlia\dht_settings.cpp" />
     <ClCompile Include="src\kademlia\dht_state.cpp" />
     <ClCompile Include="src\kademlia\dht_storage.cpp" />
     <ClCompile Include="src\kademlia\dht_tracker.cpp" />

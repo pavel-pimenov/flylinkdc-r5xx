@@ -808,7 +808,10 @@ void UploadManager::removeUpload(UploadPtr& aUpload, bool delay)
 	//dcassert(!ClientManager::isBeforeShutdown());
 	CFlyWriteLock(*g_csUploadsDelay);
 	//dcassert(find(g_uploads.begin(), g_uploads.end(), aUpload) != g_uploads.end());
-	g_uploads.erase(remove(g_uploads.begin(), g_uploads.end(), aUpload), g_uploads.end());
+	if (!g_uploads.empty())
+	{
+		g_uploads.erase(remove(g_uploads.begin(), g_uploads.end(), aUpload), g_uploads.end());
+	}
 	decreaseUserConnectionAmountL(aUpload->getUser());// [+] IRainman SpeedLimiter
 	
 	if (delay)

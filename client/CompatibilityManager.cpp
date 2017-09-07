@@ -758,7 +758,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          "\t-=[ Uptime: %s. Client Uptime: %s ]=-\r\n"
 				          "\t-=[ RAM (peak): %s (%s). Virtual (peak): %s (%s) ]=-\r\n"
 				          "\t-=[ GDI units (peak): %d (%d). Handle (peak): %d (%d) ]=-\r\n"
-				          "\t-=[ Public share: %s. Files in share: %u. Total users: %u on hubs: %u ]=-\r\n"
+				          "\t-=[ Share: %s. Files in share: %u. Total users: %u on hubs: %u ]=-\r\n"
 				          "\t-=[ TigerTree cache: %u Search not exists cache: %u Search exists cache: %u]=-\r\n"
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 				          "\t-=[ Total download: %s. Total upload: %s ]=-\r\n"

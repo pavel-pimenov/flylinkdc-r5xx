@@ -46,7 +46,8 @@ class session;
  * Singleton. Use its listener interface to update the download list
  * in the user interface.
  */
-typedef boost::unordered_map<UserPtr, UserConnection*, User::Hash> IdlersMap;
+//typedef boost::unordered_map<UserPtr, UserConnection*, User::Hash> IdlersMap;
+typedef std::vector<UserConnection*> UserConnectionList;
 
 class DownloadManager : public Speaker<DownloadManagerListener>,
 	private UserConnectionListener, private TimerManagerListener,
@@ -99,8 +100,8 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 	private:
 	
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDownload;
-		static DownloadMap g_download_map;
-		static IdlersMap g_idlers;
+		static DownloadList g_download_map;
+		static UserConnectionList g_idlers;
 		static void remove_idlers(UserConnection* aSource);
 		
 		static int64_t g_runningAverage;//[+] IRainman refactoring transfer mechanism

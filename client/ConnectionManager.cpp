@@ -490,7 +490,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 #endif
 		for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
 		{
-			const ConnectionQueueItemPtr& cqi = *i;
+			const auto cqi = *i;
 			if (cqi->getState() != ConnectionQueueItem::ACTIVE) // crash - https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=44111
 			{
 				if (!cqi->getUser()->isOnline())

@@ -374,7 +374,7 @@ bool zmq::session_base_t::zap_enabled ()
 {
     return (
          options.mechanism != ZMQ_NULL ||
-        (options.mechanism == ZMQ_NULL && options.zap_domain.length() > 0)
+         !options.zap_domain.empty()
     );
 }
 
@@ -433,14 +433,22 @@ void zmq::session_base_t::engine_error (
 
     switch (reason) {
         case stream_engine_t::timeout_error:
+            /* FALLTHROUGH */
         case stream_engine_t::connection_error:
-            if (active)
+            if (active) {
                 reconnect ();
-            else
-                terminate ();
-            break;
+                break;
+            }
+            /* FALLTHROUGH */
         case stream_engine_t::protocol_error:
-            terminate ();
+            if (pending) {
+                if (pipe)
+                    pipe->terminate (0);
+                if (zap_pipe)
+                    zap_pipe->terminate (0);
+            } else {
+                terminate ();
+            }
             break;
     }
 

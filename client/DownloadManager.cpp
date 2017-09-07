@@ -46,8 +46,8 @@
 
 
 std::unique_ptr<webrtc::RWLockWrapper> DownloadManager::g_csDownload = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
-DownloadMap DownloadManager::g_download_map;
-IdlersMap DownloadManager::g_idlers;
+DownloadList DownloadManager::g_download_map;
+UserConnectionList DownloadManager::g_idlers;
 int64_t DownloadManager::g_runningAverage;
 
 DownloadManager::DownloadManager()
@@ -151,7 +151,7 @@ DownloadManager::~DownloadManager()
 				break;
 			}
 		}
-		Thread::sleep(10);
+		Thread::sleep(50);
 		// dcassert(0);
 		// TODO - возможно мы тут висим и не даем разрушиться менеджеру?
 		// Добавить логирование тиков на флай сервер
@@ -163,7 +163,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	if (ClientManager::isBeforeShutdown())
 		return;
 		
-	typedef vector<pair<string, UserPtr> > TargetList;
+	typedef vector<pair<std::string, UserPtr> > TargetList;
 	TargetList dropTargets;
 	
 	DownloadArray l_tickList;
@@ -174,7 +174,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		l_tickList.reserve(g_download_map.size());
 		for (auto i = g_download_map.cbegin(); i != g_download_map.cend(); ++i)
 		{
-			auto d = i->second;
+			auto d = *i;
 			if (d->getPos() > 0) // https://drdump.com/DumpGroup.aspx?DumpGroupID=614035&Login=guest (Wine)
 			{
 				TransferData l_td(d->getUserConnection()->getConnectionQueueToken());
@@ -269,14 +269,14 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 
 void DownloadManager::remove_idlers(UserConnection* aSource)
 {
-	//dcassert(!ClientManager::isBeforeShutdown());
 	CFlyWriteLock(*g_csDownload);
 	if (!ClientManager::isBeforeShutdown())
 	{
 		dcassert(aSource->getUser());
-		// Могут быть не найдены.
-		// лишняя проверка dcassert(m_idlers.find(aSource->getUser()) != m_idlers.end());
-		g_idlers.erase(aSource->getUser());
+		auto i = find(g_idlers.begin(), g_idlers.end(), aSource);
+		if (i == g_idlers.end())
+			return;
+		g_idlers.erase(i);
 	}
 	else
 	{
@@ -291,10 +291,12 @@ void DownloadManager::checkIdle(const UserPtr& aUser)
 	{
 		CFlyReadLock(*g_csDownload);
 		dcassert(aUser);
-		const auto& l_find = g_idlers.find(aUser);
-		if (l_find != g_idlers.end())
-		{
-			l_find->second->updated();
+		for (auto i = g_idlers.begin(); i != g_idlers.end(); ++i) {
+			UserConnection* uc = *i;
+			if (uc->getUser() == aUser) {
+				uc->updated();
+				return;
+			}
 		}
 	}
 }
@@ -384,8 +386,7 @@ void DownloadManager::checkDownloads(UserConnection* aConn)
 		{
 			CFlyWriteLock(*g_csDownload);
 			dcassert(aConn->getUser());
-			dcassert(g_idlers.find(aConn->getUser()) == g_idlers.end());
-			g_idlers[aConn->getUser()] = aConn;
+			g_idlers.push_back(aConn);
 		}
 		return;
 	}
@@ -400,8 +401,7 @@ void DownloadManager::checkDownloads(UserConnection* aConn)
 	{
 		CFlyWriteLock(*g_csDownload);
 		dcassert(d->getUser());
-		dcassert(g_download_map.find(d->getUser()) == g_download_map.end());
-		g_download_map[d->getUser()] = d;
+		g_download_map.push_back(d);
 	}
 	fly_fire1(DownloadManagerListener::Requesting(), d);
 	
@@ -631,7 +631,7 @@ void DownloadManager::endData(UserConnection* aSource)
 		aSource->setSpeed(d->getRunningAverage());
 		aSource->updateChunkSize(d->getTigerTree().getBlockSize(), d->getSize(), GET_TICK() - d->getStart());
 		
-		dcdebug("Download finished: %s, size " I64_FMT ", downloaded " I64_FMT "\n", d->getPath().c_str(), d->getSize(), d->getPos());
+		dcdebug("Download finished: %s, size " I64_FMT ", pos: " I64_FMT "\n", d->getPath().c_str(), d->getSize(), d->getPos());
 	}
 	
 	removeDownload(d);
@@ -639,6 +639,11 @@ void DownloadManager::endData(UserConnection* aSource)
 	if (d->getType() != Transfer::TYPE_FILE)
 	{
 		fly_fire1(DownloadManagerListener::Complete(), d);
+		if (d->getUserConnection())
+		{
+			auto l_token = d->getUserConnection()->getConnectionQueueToken();
+			fly_fire1(DownloadManagerListener::RemoveToken(), l_token);
+		}
 	}
 	try
 	{
@@ -647,7 +652,7 @@ void DownloadManager::endData(UserConnection* aSource)
 	catch (const HashException& e)
 	{
 		//aSource->setDownload(nullptr);
-		const string l_error = "[DownloadManager::endData]HashException - for " + d->getPath() + " Error = " = e.getError();
+		const std::string l_error = "[DownloadManager::endData]HashException - for " + d->getPath() + " Error = " = e.getError();
 		LogManager::message(l_error);
 		CFlyServerJSON::pushError(30, l_error);
 		dcassert(0);
@@ -758,8 +763,11 @@ void DownloadManager::removeDownload(const DownloadPtr& d)
 	
 	{
 		CFlyWriteLock(*g_csDownload);
-		//////////////dcassert(g_download_map.find(d->getUser()) != g_download_map.end());
-		g_download_map.erase(d->getUser());
+		if (!g_download_map.empty())
+		{
+			dcassert(find(g_download_map.begin(), g_download_map.end(), d) != g_download_map.end());
+			g_download_map.erase(remove(g_download_map.begin(), g_download_map.end(), d), g_download_map.end());
+		}
 	}
 }
 
@@ -769,7 +777,7 @@ void DownloadManager::abortDownload(const string& aTarget)
 	CFlyReadLock(*g_csDownload);
 	for (auto i = g_download_map.cbegin(); i != g_download_map.cend(); ++i)
 	{
-		auto d = i->second;
+		const auto& d = *i;
 		if (d->getPath() == aTarget)
 		{
 			dcdebug("Trying to close connection for download %p\n", d.get());
@@ -873,7 +881,8 @@ bool DownloadManager::checkFileDownload(const UserPtr& aUser)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	CFlyReadLock(*g_csDownload);
-	const auto& l_find = g_download_map.find(aUser);
+/*
+const auto& l_find = g_download_map.find(aUser);
 	if (l_find != g_download_map.end())
 		if (l_find->second->getType() != Download::TYPE_PARTIAL_LIST &&
 		        l_find->second->getType() != Download::TYPE_FULL_LIST &&
@@ -881,14 +890,16 @@ bool DownloadManager::checkFileDownload(const UserPtr& aUser)
 		{
 			return true;
 		}
-		
-	/*  for (auto i = m_download_map.cbegin(); i != m_download_map.cend(); ++i)
+*/		
+  for (auto i = g_download_map.cbegin(); i != g_download_map.cend(); ++i)
 	    {
-	        auto d = i->second;
-	            if (d->getUser() == aUser && d->getType() != Download::TYPE_PARTIAL_LIST && d->getType() != Download::TYPE_FULL_LIST && d->getType() != Download::TYPE_TREE)
+	        const auto d = *i;
+	            if (d->getUser() == aUser && 
+					d->getType() != Download::TYPE_PARTIAL_LIST && 
+					d->getType() != Download::TYPE_FULL_LIST && 
+					d->getType() != Download::TYPE_TREE)
 	                return true;
 	    }
-	*/
 	return false;
 }
 /*#ifdef IRAINMAN_ENABLE_AUTO_BAN
@@ -1473,11 +1484,7 @@ void DownloadManager::init_torrent(bool p_is_force)
 		l_sett.set_bool(settings_pack::enable_natpmp, true);
 		l_sett.set_bool(settings_pack::enable_lsd, true);
 		l_sett.set_bool(settings_pack::enable_dht, true);
-#ifdef _DEBUG
-		l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:56657");
-#else
 		l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:8999");
-#endif
 		std::string l_dht_nodes;
 		for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
 		{
