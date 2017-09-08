@@ -881,25 +881,25 @@ bool DownloadManager::checkFileDownload(const UserPtr& aUser)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	CFlyReadLock(*g_csDownload);
-/*
-const auto& l_find = g_download_map.find(aUser);
-	if (l_find != g_download_map.end())
-		if (l_find->second->getType() != Download::TYPE_PARTIAL_LIST &&
-		        l_find->second->getType() != Download::TYPE_FULL_LIST &&
-		        l_find->second->getType() != Download::TYPE_TREE)
-		{
+	/*
+	const auto& l_find = g_download_map.find(aUser);
+	    if (l_find != g_download_map.end())
+	        if (l_find->second->getType() != Download::TYPE_PARTIAL_LIST &&
+	                l_find->second->getType() != Download::TYPE_FULL_LIST &&
+	                l_find->second->getType() != Download::TYPE_TREE)
+	        {
+	            return true;
+	        }
+	*/
+	for (auto i = g_download_map.cbegin(); i != g_download_map.cend(); ++i)
+	{
+		const auto d = *i;
+		if (d->getUser() == aUser &&
+		        d->getType() != Download::TYPE_PARTIAL_LIST &&
+		        d->getType() != Download::TYPE_FULL_LIST &&
+		        d->getType() != Download::TYPE_TREE)
 			return true;
-		}
-*/		
-  for (auto i = g_download_map.cbegin(); i != g_download_map.cend(); ++i)
-	    {
-	        const auto d = *i;
-	            if (d->getUser() == aUser && 
-					d->getType() != Download::TYPE_PARTIAL_LIST && 
-					d->getType() != Download::TYPE_FULL_LIST && 
-					d->getType() != Download::TYPE_TREE)
-	                return true;
-	    }
+	}
 	return false;
 }
 /*#ifdef IRAINMAN_ENABLE_AUTO_BAN
@@ -981,7 +981,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 					if (const auto l_port = lt::alert_cast<lt::portmap_alert>(a))
 					{
 						LogManager::torrent_message("portmap_alert: " + a->message() + " info:" +
-							std::string(a->what()) + " index = " + Util::toString(int(l_port->mapping)));
+						                            std::string(a->what()) + " index = " + Util::toString(int(l_port->mapping)));
 						if (l_port->mapping == m_maping_index[0])
 							SettingsManager::g_upnpTCPLevel = true;
 						if (l_port->mapping == m_maping_index[2])
@@ -995,8 +995,8 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 					if (const auto l_port = lt::alert_cast<lt::portmap_error_alert>(a))
 					{
 						dcassert(0);
-						LogManager::torrent_message("portmap_error_alert: " + a->message() + " info:" + 
-							std::string(a->what()) + " index = " + Util::toString(int(l_port->mapping)));
+						LogManager::torrent_message("portmap_error_alert: " + a->message() + " info:" +
+						                            std::string(a->what()) + " index = " + Util::toString(int(l_port->mapping)));
 						if (l_port->mapping == m_maping_index[0])
 							SettingsManager::g_upnpTCPLevel = false;
 						if (l_port->mapping == m_maping_index[2])

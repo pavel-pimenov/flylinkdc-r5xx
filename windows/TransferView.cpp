@@ -1568,10 +1568,10 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 					}
 #endif
 					// dcassert(0);
-					//if (!ui.m_token.empty() || ui.m_is_torrent == true && !ui.m_sha1.is_all_zeros())
+					if (ui.m_is_torrent == true && !ui.m_sha1.is_all_zeros())
 					{
-						//onSpeakerAddItem(ui); // потеряли.... но если открыть - возникают висяки
-                        // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1674
+						onSpeakerAddItem(ui);
+						// https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1674
 					}
 				}
 			}
@@ -2116,7 +2116,9 @@ void TransferView::on(DownloadManagerListener::Requesting, const DownloadPtr& aD
 	ui->setStatusString(TSTRING(REQUESTING) + _T(' ') + getFile(aDownload->getType(), Text::toT(Util::getFileName(aDownload->getPath()))) + _T("..."));
 	if (aDownload->getUserConnection())
 	{
-		ui->setToken(aDownload->getUserConnection()->getConnectionQueueToken());
+		const auto l_token = aDownload->getUserConnection()->getConnectionQueueToken();
+		dcassert(!l_token.empty());
+		ui->setToken(l_token);
 	}
 	else
 	{
@@ -2155,7 +2157,10 @@ void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownl
 		// [-] ui->setIP(aDownload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
 		if (aDownload->getUserConnection())
 		{
-			ui->setToken(aDownload->getUserConnection()->getConnectionQueueToken());
+			//const auto l_token = aDownload->getUserConnection()->getConnectionQueueToken();
+			//dcassert(!l_token.empty());
+			
+			//ui->setToken(l_token); // fix https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1671
 		}
 		else
 		{

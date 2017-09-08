@@ -305,7 +305,7 @@ static QueueItemPtr findCandidateL(const QueueItem::QIStringMap::const_iterator&
 			continue;
 		// No files that already have more than AUTO_SEARCH_LIMIT online sources
 		//if (q->countOnlineUsersGreatOrEqualThanL(SETTING(AUTO_SEARCH_LIMIT)))
-		//	continue;
+		//  continue;
 		// Did we search for it recently?
 		if (find(recent.begin(), recent.end(), q->getTarget()) != recent.end())
 			continue;

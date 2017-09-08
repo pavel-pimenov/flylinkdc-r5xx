@@ -8,7 +8,7 @@ copy FlylinkDC_x64.exe Q:\vc15\r4xx-release\compiled
 rem copy ..\..\flylinkdc-update\5xx\stable-lib-dll\*.dll .\PortalBrowser
 copy UpdateTools\FlyUpdate\FlyUpdate.exe .
 copy UpdateTools\Updatemaker\UpdateMaker.exe .
-notepad ..\changelog-flylinkdc-r5xx-svn.txt
+"C:\Program Files (x86)\Notepad++\notepad++.exe" ..\changelog-flylinkdc-r5xx-svn.txt
 start /wait wordpad readme_changelog_lite.rtf
 cd alluser
 svn update

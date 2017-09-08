@@ -137,9 +137,6 @@ int zmq::plain_client_t::produce_hello (msg_t *msg_) const
 
     *ptr++ = static_cast <unsigned char> (password.length ());
     memcpy (ptr, password.c_str (), password.length ());
-#ifdef _DEBUG
-    ptr += password.length (); //-V1001
-#endif
 
     return 0;
 }

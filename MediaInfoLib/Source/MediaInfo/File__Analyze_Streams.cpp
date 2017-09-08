@@ -1044,7 +1044,6 @@ void File__Analyze::Fill_SetOptions(stream_t StreamKind, size_t StreamPos, const
 
     (*Stream_More)[StreamKind][StreamPos](Ztring().From_ISO_8859_1(Parameter), Info_Options).From_UTF8(Options);
 }
-#ifdef FLYLINKDC_MEDIAINFO_DEAD_CODE
 //---------------------------------------------------------------------------
 const Ztring &File__Analyze::Retrieve_Const (stream_t StreamKind, size_t StreamPos, size_t Parameter, info_t KindOfInfo)
 {
@@ -1058,7 +1057,6 @@ const Ztring &File__Analyze::Retrieve_Const (stream_t StreamKind, size_t StreamP
         return MediaInfoLib::Config.Info_Get(StreamKind, Parameter, KindOfInfo);
     return (*Stream)[StreamKind][StreamPos](Parameter);
 }
-#endif
 //---------------------------------------------------------------------------
 Ztring File__Analyze::Retrieve (stream_t StreamKind, size_t StreamPos, size_t Parameter, info_t KindOfInfo)
 {
@@ -1072,7 +1070,6 @@ Ztring File__Analyze::Retrieve (stream_t StreamKind, size_t StreamPos, size_t Pa
         return MediaInfoLib::Config.Info_Get(StreamKind, Parameter, KindOfInfo);
     return (*Stream)[StreamKind][StreamPos](Parameter);
 }
-#ifdef FLYLINKDC_MEDIAINFO_DEAD_CODE
 //---------------------------------------------------------------------------
 const Ztring &File__Analyze::Retrieve_Const (stream_t StreamKind, size_t StreamPos, const char* Parameter, info_t KindOfInfo)
 {
@@ -1096,7 +1093,6 @@ const Ztring &File__Analyze::Retrieve_Const (stream_t StreamKind, size_t StreamP
     }
     return (*Stream)[StreamKind][StreamPos](Parameter_Pos);
 }
-#endif
 //---------------------------------------------------------------------------
 Ztring File__Analyze::Retrieve (stream_t StreamKind, size_t StreamPos, const char* Parameter, info_t KindOfInfo)
 {
@@ -1402,6 +1398,7 @@ size_t File__Analyze::Merge(File__Analyze &ToAdd, stream_t StreamKind, size_t St
     Source_Kind_Temp=Retrieve(StreamKind, StreamPos_To, "Source_Kind");
     Source_Info_Temp=Retrieve(StreamKind, StreamPos_To, "Source_Info");
     Ztring BitRate_Temp=Retrieve(StreamKind, StreamPos_To, "BitRate");
+    Ztring CodecID_Temp=Retrieve(StreamKind, StreamPos_To, "CodecID");
 
     //Merging
     size_t Count=0;
@@ -1557,6 +1554,11 @@ size_t File__Analyze::Merge(File__Analyze &ToAdd, stream_t StreamKind, size_t St
         Ztring Temp=Retrieve(StreamKind, StreamPos_To, "BitRate");
         Temp.FindAndReplace(__T("Unknown"), BitRate_Temp, 0, Ztring_Recursive);
         Fill(StreamKind, StreamPos_To, "BitRate", Temp, true);
+    }
+    const Ztring& CodecID_New =ToAdd.Retrieve_Const(StreamKind, StreamPos_From, "CodecID");
+    if (!CodecID_Temp.empty() && !CodecID_New.empty() && CodecID_Temp!=CodecID_New && (Config->File_IsReferenced_Get() ^ !ToAdd.Config->File_IsReferenced_Get())) //TODO: better handling of merges, avoiding duplicate merges so we can remeove hack CodecID_Temp!=CodecID_New
+    {
+        Fill(StreamKind, StreamPos_To, "CodecID", CodecID_Temp+__T('-')+ToAdd.Retrieve(StreamKind, StreamPos_From, "CodecID"), true);
     }
 
     Fill(StreamKind, StreamPos_To, (size_t)General_Count, Count_Get(StreamKind, StreamPos_To), 10, true);
