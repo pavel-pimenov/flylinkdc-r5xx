@@ -300,12 +300,12 @@ namespace aux {
 
 		void async_read(storage_index_t storage, peer_request const& r
 			, std::function<void(disk_buffer_holder block
-				, std::uint32_t flags, storage_error const& se)> handler, std::uint8_t flags = 0) override;
+				, disk_job_flags_t flags, storage_error const& se)> handler, disk_job_flags_t flags = {}) override;
 		bool async_write(storage_index_t storage, peer_request const& r
 			, char const* buf, std::shared_ptr<disk_observer> o
 			, std::function<void(storage_error const&)> handler
-			, std::uint8_t flags = 0) override;
-		void async_hash(storage_index_t storage, piece_index_t piece, std::uint8_t flags
+			, disk_job_flags_t flags = {}) override;
+		void async_hash(storage_index_t storage, piece_index_t piece, disk_job_flags_t flags
 			, std::function<void(piece_index_t, sha1_hash const&, storage_error const&)> handler) override;
 		void async_move_storage(storage_index_t storage, std::string p, move_flags_t flags
 			, std::function<void(status_t, std::string const&, storage_error const&)> handler) override;
@@ -392,7 +392,7 @@ namespace aux {
 		{
 			explicit job_queue(disk_io_thread& owner) : m_owner(owner) {}
 
-			virtual void notify_all() override
+			void notify_all() override
 			{
 				m_job_cond.notify_all();
 			}
@@ -531,6 +531,7 @@ namespace aux {
 		// disk cache
 		mutable std::mutex m_cache_mutex;
 		block_cache m_disk_cache;
+		void try_evict_blocks(int const len);
 		enum
 		{
 			cache_check_idle,

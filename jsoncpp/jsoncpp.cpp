@@ -2267,10 +2267,6 @@ JSONCPP_ISTREAM& operator>>(JSONCPP_ISTREAM& sin, Value& root) {
   JSONCPP_STRING errs;
   bool ok = parseFromStream(b, sin, &root, &errs);
   if (!ok) {
-    fprintf(stderr,
-            "Error from reader: %s",
-            errs.c_str());
-
     throwRuntimeError(errs);
   }
   return sin;
@@ -3622,7 +3618,7 @@ Value const& Value::operator[](CppTL::ConstString const& key) const
 Value& Value::append(const Value& value) { return (*this)[size()] = value; }
 
 #if JSON_HAS_RVALUE_REFERENCES
-  Value& Value::append(Value&& value) { return (*this)[size()] = value; }
+  Value& Value::append(Value&& value) { return (*this)[size()] = std::move(value); }
 #endif
 
 Value Value::get(char const* key, char const* cend, Value const& defaultValue) const

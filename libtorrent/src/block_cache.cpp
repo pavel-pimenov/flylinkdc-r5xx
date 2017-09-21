@@ -373,7 +373,7 @@ int block_cache::try_read(disk_io_job* j, buffer_allocator_interface& allocator
 #if TORRENT_USE_ASSERTS
 	p->piece_log.push_back(piece_log_t(j->action, j->d.io.offset / 0x4000));
 #endif
-	cache_hit(p, j->d.io.offset / block_size(), (j->flags & disk_interface::volatile_read) != 0);
+	cache_hit(p, j->d.io.offset / block_size(), bool(j->flags & disk_interface::volatile_read));
 
 	ret = copy_from_piece(p, j, allocator, expect_no_fail);
 	if (ret < 0) return ret;
@@ -1253,7 +1253,7 @@ void block_cache::insert_blocks(cached_piece_entry* pe, int block, span<iovec_t 
 	TORRENT_ASSERT(pe->in_use);
 	TORRENT_PIECE_ASSERT(iov.size() > 0, pe);
 
-	cache_hit(pe, j->d.io.offset / block_size(), (j->flags & disk_interface::volatile_read) != 0);
+	cache_hit(pe, j->d.io.offset / block_size(), bool(j->flags & disk_interface::volatile_read));
 
 	TORRENT_ASSERT(pe->in_use);
 
@@ -1328,7 +1328,7 @@ bool block_cache::inc_block_refcount(cached_piece_entry* pe, int block, int reas
 		case ref_hashing: ++pe->blocks[block].hashing_count; break;
 		case ref_reading: ++pe->blocks[block].reading_count; break;
 		case ref_flushing: ++pe->blocks[block].flushing_count; break;
-	};
+	}
 	TORRENT_ASSERT(int(pe->blocks[block].refcount) >= pe->blocks[block].hashing_count
 		+ pe->blocks[block].reading_count + pe->blocks[block].flushing_count);
 #else
@@ -1361,7 +1361,7 @@ void block_cache::dec_block_refcount(cached_piece_entry* pe, int block, int reas
 		case ref_hashing: --pe->blocks[block].hashing_count; break;
 		case ref_reading: --pe->blocks[block].reading_count; break;
 		case ref_flushing: --pe->blocks[block].flushing_count; break;
-	};
+	}
 	TORRENT_PIECE_ASSERT(int(pe->blocks[block].refcount) >= pe->blocks[block].hashing_count
 		+ pe->blocks[block].reading_count + pe->blocks[block].flushing_count, pe);
 #else
@@ -1397,56 +1397,6 @@ void block_cache::abort_dirty(cached_piece_entry* pe)
 	}
 	if (num_to_delete) free_multiple_buffers(to_delete.first(num_to_delete));
 
-	update_cache_state(pe);
-}
-
-// frees all buffers associated with this piece. May only
-// be called for pieces with a refcount of 0
-void block_cache::free_piece(cached_piece_entry* pe)
-{
-	INVARIANT_CHECK;
-
-	TORRENT_PIECE_ASSERT(pe->in_use, pe);
-
-	TORRENT_PIECE_ASSERT(pe->refcount == 0, pe);
-	TORRENT_PIECE_ASSERT(pe->piece_refcount == 0, pe);
-	TORRENT_PIECE_ASSERT(pe->outstanding_read == 0, pe);
-
-	// build a vector of all the buffers we need to free
-	// and free them all in one go
-	TORRENT_ALLOCA(to_delete, char*, pe->blocks_in_piece);
-	int num_to_delete = 0;
-	int removed_clean = 0;
-	for (int i = 0; i < pe->blocks_in_piece; ++i)
-	{
-		if (pe->blocks[i].buf == nullptr) continue;
-		TORRENT_PIECE_ASSERT(pe->blocks[i].pending == false, pe);
-		TORRENT_PIECE_ASSERT(pe->blocks[i].refcount == 0, pe);
-		TORRENT_PIECE_ASSERT(num_to_delete < pe->blocks_in_piece, pe);
-		to_delete[num_to_delete++] = pe->blocks[i].buf;
-		pe->blocks[i].buf = nullptr;
-		TORRENT_PIECE_ASSERT(pe->num_blocks > 0, pe);
-		--pe->num_blocks;
-		if (pe->blocks[i].dirty)
-		{
-			TORRENT_PIECE_ASSERT(m_write_cache_size > 0, pe);
-			--m_write_cache_size;
-			TORRENT_PIECE_ASSERT(pe->num_dirty > 0, pe);
-			--pe->num_dirty;
-		}
-		else
-		{
-			++removed_clean;
-		}
-	}
-
-	TORRENT_PIECE_ASSERT(m_read_cache_size >= removed_clean, pe);
-	m_read_cache_size -= removed_clean;
-	if (pe->cache_state == cached_piece_entry::volatile_read_lru)
-	{
-		m_volatile_size -= num_to_delete;
-	}
-	if (num_to_delete) free_multiple_buffers(to_delete.first(num_to_delete));
 	update_cache_state(pe);
 }
 
@@ -1694,7 +1644,7 @@ int block_cache::copy_from_piece(cached_piece_entry* const pe
 	// if block_offset > 0, we need to read two blocks, and then
 	// copy parts of both, because it's not aligned to the block
 	// boundaries
-	if (blocks_to_read == 1 && (j->flags & disk_io_job::force_copy) == 0)
+	if (blocks_to_read == 1 && !(j->flags & disk_interface::force_copy))
 	{
 		// special case for block aligned request
 		// don't actually copy the buffer, just reference

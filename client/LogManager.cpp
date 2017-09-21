@@ -314,21 +314,13 @@ void LogManager::torrent_message(const string& p_message, bool p_is_add_sys_mess
 	}
 }
 
-void LogManager::message(const string& msg, bool p_only_file /*= false */)
+void LogManager::speak_status_message(const string& p_msg)
 {
-#if !defined(FLYLINKDC_BETA) || defined(FLYLINKDC_HE)
-	if (BOOLSETTING(LOG_SYSTEM))
-#endif
-	{
-		StringMap params;
-		params["message"] = msg;
-		log(SYSTEM, params, p_only_file); // [1] https://www.box.net/shared/9e63916273d37e5b2932
-	}
 	if (LogManager::g_isLogSpeakerEnabled == true && ClientManager::isStartup() == false && ClientManager::isShutdown() == false)
 	{
 		if (LogManager::g_mainWnd)
 		{
-			auto l_str_messages = new string(msg);
+			auto l_str_messages = new string(p_msg);
 			// TODO safe_post_message(LogManager::g_mainWnd, g_LogMessageID, l_str_messages);
 			if (::PostMessage(LogManager::g_mainWnd, WM_SPEAKER, g_LogMessageID, (LPARAM)l_str_messages) == FALSE)
 			{
@@ -339,6 +331,19 @@ void LogManager::message(const string& msg, bool p_only_file /*= false */)
 			}
 		}
 	}
+}
+
+void LogManager::message(const string& p_msg, bool p_only_file /*= false */)
+{
+#if !defined(FLYLINKDC_BETA) || defined(FLYLINKDC_HE)
+	if (BOOLSETTING(LOG_SYSTEM))
+#endif
+	{
+		StringMap params;
+		params["message"] = p_msg;
+		log(SYSTEM, params, p_only_file); // [1] https://www.box.net/shared/9e63916273d37e5b2932
+	}
+	speak_status_message(p_msg);
 }
 CFlyLog::CFlyLog(const string& p_message
                  , bool p_skip_start /* = true */

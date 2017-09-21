@@ -71,7 +71,7 @@ namespace libtorrent { namespace aux {
 			int ret = 0;
 			while (m_blocked_jobs.size())
 			{
-				disk_io_job *bj = static_cast<disk_io_job*>(m_blocked_jobs.pop_front());
+				disk_io_job *bj = m_blocked_jobs.pop_front();
 				if (bj->flags & disk_io_job::fence)
 				{
 					// we encountered another fence. We cannot post anymore
@@ -81,7 +81,7 @@ namespace libtorrent { namespace aux {
 					// executing currently, we should add the fence job.
 					if (m_outstanding_jobs == 0 && jobs.empty())
 					{
-						TORRENT_ASSERT((bj->flags & disk_io_job::in_progress) == 0);
+						TORRENT_ASSERT(!(bj->flags & disk_io_job::in_progress));
 						bj->flags |= disk_io_job::in_progress;
 						++m_outstanding_jobs;
 						++ret;
@@ -98,7 +98,7 @@ namespace libtorrent { namespace aux {
 					}
 					return ret;
 				}
-				TORRENT_ASSERT((bj->flags & disk_io_job::in_progress) == 0);
+				TORRENT_ASSERT(!(bj->flags & disk_io_job::in_progress));
 				bj->flags |= disk_io_job::in_progress;
 
 				++m_outstanding_jobs;
@@ -122,10 +122,10 @@ namespace libtorrent { namespace aux {
 		TORRENT_ASSERT(m_blocked_jobs.size() > 0);
 
 		// this is the fence job
-		disk_io_job *bj = static_cast<disk_io_job*>(m_blocked_jobs.pop_front());
+		disk_io_job *bj = m_blocked_jobs.pop_front();
 		TORRENT_ASSERT(bj->flags & disk_io_job::fence);
 
-		TORRENT_ASSERT((bj->flags & disk_io_job::in_progress) == 0);
+		TORRENT_ASSERT(!(bj->flags & disk_io_job::in_progress));
 		bj->flags |= disk_io_job::in_progress;
 
 		++m_outstanding_jobs;
@@ -149,7 +149,7 @@ namespace libtorrent { namespace aux {
 		// this job still needs to get queued up
 		if (m_has_fence == 0)
 		{
-			TORRENT_ASSERT((j->flags & disk_io_job::in_progress) == 0);
+			TORRENT_ASSERT(!(j->flags & disk_io_job::in_progress));
 			j->flags |= disk_io_job::in_progress;
 			++m_outstanding_jobs;
 			return false;
@@ -183,7 +183,7 @@ namespace libtorrent { namespace aux {
 	int disk_job_fence::raise_fence(disk_io_job* j, disk_io_job* fj
 		, counters& cnt)
 	{
-		TORRENT_ASSERT((j->flags & disk_io_job::fence) == 0);
+		TORRENT_ASSERT(!(j->flags & disk_io_job::fence));
 		j->flags |= disk_io_job::fence;
 
 		std::lock_guard<std::mutex> l(m_mutex);

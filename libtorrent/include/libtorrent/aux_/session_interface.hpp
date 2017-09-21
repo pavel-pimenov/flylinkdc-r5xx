@@ -300,7 +300,7 @@ namespace libtorrent { namespace aux {
 		virtual bool announce_dht() const = 0;
 		virtual void add_dht_node(udp::endpoint const& n) = 0;
 		virtual bool has_dht() const = 0;
-		virtual int external_udp_port() const = 0;
+		virtual int external_udp_port(address const& local_address) const = 0;
 		virtual dht::dht_tracker* dht() = 0;
 		virtual void prioritize_dht(std::weak_ptr<torrent> t) = 0;
 #endif
@@ -313,8 +313,7 @@ namespace libtorrent { namespace aux {
 		virtual bool verify_queue_position(torrent const*, int) = 0;
 #endif
 
-	protected:
-		~session_interface() {}
+		virtual ~session_interface() {}
 	};
 }}
 

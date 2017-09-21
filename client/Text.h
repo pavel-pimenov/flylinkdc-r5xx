@@ -89,7 +89,6 @@ inline string wideToUtf8(const wstring& str) noexcept
 
 int utf8ToWc(const char* str, wchar_t& c);
 
-#ifdef UNICODE
 inline const tstring lowercase(tstring p_str) noexcept
 {
 	transform(p_str.begin(), p_str.end(), p_str.begin(), towlower);
@@ -125,25 +124,7 @@ inline string fromT(const TCHAR* str) noexcept
 {
 	return fromT(tstring(str));
 }
-#else
-inline const tstring& toT(const string& str, tstring& tmp) noexcept
-{
-	return utf8ToAcp(str, tmp);
-}
-inline tstring toT(const string& str) noexcept
-{
-	return utf8ToAcp(str);
-}
 
-inline const string& fromT(const tstring& str, string& tmp) noexcept
-{
-	return acpToUtf8(str, tmp);
-}
-inline string fromT(const tstring& str) noexcept
-{
-	return acpToUtf8(str);
-}
-#endif
 bool isAscii(const string& p_str) noexcept; // [+] IRainman fix
 bool isAscii(const char* str) noexcept;
 bool validateUtf8(const string& p_str, size_t p_pos = 0) noexcept;

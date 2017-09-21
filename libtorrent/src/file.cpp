@@ -381,7 +381,7 @@ static_assert(!(open_mode::sparse & open_mode::attribute_mask), "internal flags 
 		if (m_handle != INVALID_HANDLE_VALUE)
 			FindClose(m_handle);
 #else
-		if (m_handle) closedir(m_handle);
+		if (m_handle) ::closedir(m_handle);
 #endif
 	}
 
@@ -542,7 +542,7 @@ static_assert(!(open_mode::sparse & open_mode::attribute_mask), "internal flags 
 			| ((mode & open_mode::no_cache) ? FILE_FLAG_WRITE_THROUGH : 0);
 
 		handle_type handle = CreateFileW(file_path.c_str(), m.rw_mode
-			, (mode & open_mode::lock_file) ? FILE_SHARE_READ : FILE_SHARE_READ | FILE_SHARE_WRITE
+			, FILE_SHARE_READ | FILE_SHARE_WRITE
 			, 0, m.create_mode, flags, 0);
 
 		if (handle == INVALID_HANDLE_VALUE)
@@ -618,12 +618,6 @@ static_assert(!(open_mode::sparse & open_mode::attribute_mask), "internal flags 
 
 		m_file_handle = handle;
 
-		// The purpose of the lock_file flag is primarily to prevent other
-		// processes from corrupting files that are being used by libtorrent.
-		// the posix file locking mechanism does not prevent others from
-		// accessing files, unless they also attempt to lock the file. That's
-		// why the SETLK mechanism is not used here.
-
 #ifdef DIRECTIO_ON
 		// for solaris
 		if ((mode & open_mode::no_cache))
@@ -638,11 +632,11 @@ static_assert(!(open_mode::sparse & open_mode::attribute_mask), "internal flags 
 		if ((mode & open_mode::no_cache))
 		{
 			int yes = 1;
-			fcntl(native_handle(), F_NOCACHE, &yes);
+			::fcntl(native_handle(), F_NOCACHE, &yes);
 
 #ifdef F_NODIRECT
 			// it's OK to temporarily cache written pages
-			fcntl(native_handle(), F_NODIRECT, &yes);
+			::fcntl(native_handle(), F_NODIRECT, &yes);
 #endif
 		}
 #endif
@@ -651,6 +645,9 @@ static_assert(!(open_mode::sparse & open_mode::attribute_mask), "internal flags 
 		if ((mode & open_mode::random_access))
 		{
 			// disable read-ahead
+			// NOTE: in android this function was introduced in API 21,
+			// but the constant POSIX_FADV_RANDOM is there for lower
+			// API levels, just don't add :: to allow a macro workaround
 			posix_fadvise(native_handle(), 0, 0, POSIX_FADV_RANDOM);
 		}
 #endif
@@ -789,7 +786,6 @@ typedef struct _FILE_ALLOCATED_RANGE_BUFFER {
 	{
 		std::size_t const buf_size = aux::numeric_cast<std::size_t>(bufs_size(bufs));
 		char* buf = new char[buf_size];
-		if (!buf) return false;
 		tmp = { buf, buf_size };
 		bufs = span<iovec_t const>(tmp);
 		return true;
@@ -807,7 +803,6 @@ typedef struct _FILE_ALLOCATED_RANGE_BUFFER {
 	{
 		std::size_t const buf_size = aux::numeric_cast<std::size_t>(bufs_size(bufs));
 		char* buf = new char[buf_size];
-		if (!buf) return false;
 		gather_copy(bufs, buf);
 		tmp = { buf, buf_size };
 		bufs = span<iovec_t const>(tmp);
@@ -1048,7 +1043,7 @@ namespace {
 	!defined DIRECTIO_ON
 		if (m_open_mode & open_mode::no_cache)
 		{
-			if (fdatasync(native_handle()) != 0
+			if (::fdatasync(native_handle()) != 0
 				&& errno != EINVAL
 				&& errno != ENOSYS)
 			{
@@ -1197,7 +1192,7 @@ namespace {
 #endif // if Windows Vista
 #else // NON-WINDOWS
 		struct stat st;
-		if (fstat(native_handle(), &st) != 0)
+		if (::fstat(native_handle(), &st) != 0)
 		{
 			ec.assign(errno, system_category());
 			return false;
@@ -1205,7 +1200,7 @@ namespace {
 
 		// only truncate the file if it doesn't already
 		// have the right size. We don't want to update
-		if (st.st_size != s && ftruncate(native_handle(), s) < 0)
+		if (st.st_size != s && ::ftruncate(native_handle(), s) < 0)
 		{
 			ec.assign(errno, system_category());
 			return false;
@@ -1286,7 +1281,7 @@ namespace {
 		return file_size.QuadPart;
 #else
 		struct stat fs;
-		if (fstat(native_handle(), &fs) != 0)
+		if (::fstat(native_handle(), &fs) != 0)
 		{
 			ec.assign(errno, system_category());
 			return -1;
@@ -1338,7 +1333,7 @@ typedef struct _FILE_ALLOCATED_RANGE_BUFFER {
 
 #elif defined SEEK_DATA
 		// this is supported on solaris
-		std::int64_t ret = lseek(native_handle(), start, SEEK_DATA);
+		std::int64_t ret = ::lseek(native_handle(), start, SEEK_DATA);
 		if (ret < 0) return start;
 		return start;
 #else

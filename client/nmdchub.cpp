@@ -1662,7 +1662,7 @@ void NmdcHub::toParse(const string& param)
 	if (l_user_for_message == nullptr)
 	{
 #ifdef FLYLINKDC_BETA
-		LogManager::message("NmdcHub::toParse $To: invalid user: rtNick = " + rtNick + " param = " + param + " Hub = " + getHubUrl());
+	//	LogManager::speak_status_message("NmdcHub::toParse $To: invalid user: rtNick = " + rtNick + " param = " + param + " Hub = " + getHubUrl());
 #endif
 		// return; // todo: here we dont get private message from unknown user
 	}
@@ -1703,8 +1703,19 @@ void NmdcHub::toParse(const string& param)
 	}
 	if (!allowPrivateMessagefromUser(*message)) // [+] IRainman fix.
 	{
-		LogManager::message("Ignore PM: from user: " + message->m_from->getUser()->getLastNick() + " on hub: " + getHubUrl() + " Message: " + message->m_text);
-		return;
+			StringMap params;
+			if (message->m_from && message->m_from->getUser())
+			{
+				params["hubNI"] = Util::toString(ClientManager::getHubNames(message->m_from->getUser()->getCID(), getHubUrl()));
+				params["hubURL"] = Util::toString(ClientManager::getHubs(message->m_from->getUser()->getCID(), getHubUrl()));
+				params["userNI"] = message->m_from->getUser()->getLastNick();
+				params["myCID"] = ClientManager::getMyCID().toBase32();
+				const string l_msg = message->m_from->getUser()->getLastNick() + " on hub: " + " Message: " + message->m_text;
+				params["message"] = l_msg;
+				LOG(PM, params);
+				LogManager::speak_status_message(l_msg);
+			}
+			return;
 	}
 	
 	fly_fire2(ClientListener::Message(), this, message); // [+]

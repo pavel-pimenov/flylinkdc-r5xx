@@ -547,9 +547,9 @@ void SettingsManager::setDefaults()
 #ifdef RIP_USE_LOG_PROTOCOL
 	setDefault(LOG_FORMAT_PROTOCOL, "[%Y-%m-%d %H:%M:%S] %[message]");
 #endif
-	setDefault(LOG_FILE_MAIN_CHAT, "%Y - %B\\%[hubURL].log");
-	setDefault(LOG_FILE_STATUS, "%Y - %B\\%[hubURL]_status.log");
-	setDefault(LOG_FILE_PRIVATE_CHAT, "PM\\%Y - %B\\%[userNI]-%[hubURL].log");
+	setDefault(LOG_FILE_MAIN_CHAT, "%Y-%m\\%[hubURL].log");
+	setDefault(LOG_FILE_STATUS, "%Y-%m\\%[hubURL]_status.log");
+	setDefault(LOG_FILE_PRIVATE_CHAT, "PM\\%Y-%m\\%[userNI]-%[hubURL].log");
 	setDefault(LOG_FILE_UPLOAD, "Uploads.log");
 	setDefault(LOG_FILE_DOWNLOAD, "Downloads.log");
 	setDefault(LOG_FILE_SYSTEM, "System.log");
@@ -1652,10 +1652,11 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 			}
 			l_auto |= Text::safe_strftime_translate(l_new_value);
 			strSettings[key - STR_FIRST] = l_new_value;
-			if (key == LOG_FILE_PRIVATE_CHAT && l_new_value == "PM\\%B - %Y\\%[userNI].log")
+			const string l_template_pm_folder = "PM\\%B - %Y\\";
+			if (key == LOG_FILE_PRIVATE_CHAT && l_new_value.find(l_template_pm_folder) != string::npos)
 			{
 				l_auto = false;
-				l_new_value = "PM\\%Y - %B\\%[userNI]-%[hubURL].log";
+			    boost::replace_all(l_new_value, l_template_pm_folder, "PM\\%Y-%m\\");
 				strSettings[key - STR_FIRST] = l_new_value;
 			}
 		}

@@ -219,6 +219,7 @@
 #define IDD_FLY_TORRENT_DIALOG          330
 #define IDR_VIP_ZHIGANDC                331
 #define IDR_TRACKER_IMAGES              332
+#define IDR_VIP_HMN_PP					333
 #define IDR_ICON_XXX_BLOCK              999
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001

@@ -3044,6 +3044,8 @@ IDR_VIP_ICO_SCALOLAZ    ICON                    "res\\vip_scalolaz.ico"
 
 IDR_VIP_ICO_MILENAHUB   ICON                    "res\\vip_milenahub.ico"
 
+IDR_VIP_HMN_PP          ICON                    "res\\vip_hmn_pp.ico"
+
 IDR_VIP_ICO_STEALTHHUB  ICON                    "res\\vip_stealthhub.ico"
 
 IDR_VIP_ICO_KEEPCLEAR   ICON                    "res\\vip_keepclear_org.ico"

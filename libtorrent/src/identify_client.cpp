@@ -45,7 +45,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace {
 
-
 	using namespace libtorrent;
 
 	int decode_digit(std::uint8_t c)
@@ -138,7 +137,7 @@ namespace {
 
 	// only support BitTorrentSpecification
 	// must be ordered alphabetically
-	static const map_entry name_map[] =
+	const map_entry name_map[] =
 	{
 		  {"7T", "aTorrent for android"}
 		, {"A",  "ABC"}
@@ -244,7 +243,7 @@ namespace {
 		char const* name;
 	};
 	// non-standard names
-	static const generic_map_entry generic_mappings[] =
+	const generic_map_entry generic_mappings[] =
 	{
 		{0, "-MG", "Media Get" }
 		, {0, "Deadman Walking-", "Deadman"}
@@ -290,8 +289,6 @@ namespace {
 			|| ((lhs.id[0] == rhs.id[0]) && (lhs.id[1] < rhs.id[1]));
 	}
 
-namespace {
-
 	std::string lookup(fingerprint const& f)
 	{
 		char identity[200];
@@ -320,7 +317,7 @@ namespace {
 		{
 			// if we don't have this client in the list
 			// just use the one or two letter code
-			memcpy(temp, f.name, 2);
+			std::memcpy(temp, f.name, 2);
 			temp[2] = 0;
 			name = temp;
 		}
@@ -336,12 +333,13 @@ namespace {
 
 		return identity;
 	}
-}
+
 	bool find_string(char const* id, char const* search)
 	{
 		return std::equal(search, search + std::strlen(search), id);
 	}
-}
+
+} // anonymous namespace
 
 namespace libtorrent {
 

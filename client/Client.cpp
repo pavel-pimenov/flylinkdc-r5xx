@@ -96,7 +96,8 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 		"hub.mydc.ru",
 		"aab-new-adrenalin.ru",
 		"godc.ru",
-		"zhigandc.ru"
+		"zhigandc.ru",
+		"hmn.pp.ru"
 	};
 // TODO static_assert(_countof(g_vip_icons_array) == _countof(WinUtil::g_HubFlylinkDCIconVIP))
 	if (l_lower_url.find("dc.fly-server.ru") != string::npos ||

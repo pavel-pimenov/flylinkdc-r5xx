@@ -35,7 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/lazy_entry.hpp"
 #include "libtorrent/bdecode.hpp" // for error codes
 #include "libtorrent/string_util.hpp" // for is_digit
-#include <cstring>
+#include <cstring> // for memset
 #include <limits> // for numeric_limits
 #include <cstdio> // for snprintf
 #include <cinttypes> // for PRId64 et.al.
@@ -240,10 +240,9 @@ namespace {
 	{
 		TORRENT_ASSERT(m_type == int_t);
 		std::int64_t val = 0;
-		bool negative = false;
-		if (*m_data.start == '-') negative = true;
+		bool const negative = (*m_data.start == '-');
 		bdecode_errors::error_code_enum ec = bdecode_errors::no_error;
-		parse_int(m_data.start + negative
+		parse_int(m_data.start + int(negative)
 			, m_data.start + m_size, 'e', val, ec);
 		if (ec) return 0;
 		if (negative) val = -val;
@@ -604,7 +603,7 @@ namespace {
 	std::string print_entry(lazy_entry const& e, bool single_line, int indent)
 	{
 		char indent_str[200];
-		memset(indent_str, ' ', 200);
+		std::memset(indent_str, ' ', 200);
 		indent_str[0] = ',';
 		indent_str[1] = '\n';
 		indent_str[199] = 0;

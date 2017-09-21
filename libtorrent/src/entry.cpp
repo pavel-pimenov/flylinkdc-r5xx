@@ -65,7 +65,7 @@ namespace detail {
 		}
 		buf[--size] = '\0';
 		if (val == 0) buf[--size] = '0';
-		for (; size > sign && val != 0;)
+		while (size > sign && val != 0)
 		{
 			buf[--size] = '0' + char(val % 10);
 			val /= 10;
@@ -151,6 +151,7 @@ namespace {
 
 	entry& entry::operator=(entry&& e) noexcept
 	{
+		if (&e == this) return *this;
 		swap(e);
 		return *this;
 	}
