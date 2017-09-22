@@ -23,7 +23,6 @@
 #include "HubFrame.h"
 #include "SearchFrm.h"
 #include "PrivateFrame.h"
-#include "ChatBot.h"
 #include "BarShader.h"
 #include "../client/QueueManager.h"
 #include "../client/ShareManager.h"
@@ -1730,6 +1729,49 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 	return 0;
 }
 #endif
+void HubFrame::updateUserJoin(const OnlineUserPtr& p_ou)
+{
+	if (!ClientManager::isBeforeShutdown() && isConnected())
+	{
+		if (updateUser(p_ou, -1))
+		{
+			const Identity& id = p_ou->getIdentity();
+			if (m_client->is_all_my_info_loaded())
+			{
+				dcassert(!id.getNickT().empty());
+				const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(p_ou->getUser()); // [!] TODO: в ядро!
+				if (isFavorite)
+				{
+					PLAY_SOUND(SOUND_FAVUSER);
+					SHOW_POPUP(POPUP_FAVORITE_CONNECTED, id.getNickT() + _T(" - ") + Text::toT(m_client->getHubName()), TSTRING(FAVUSER_ONLINE));
+				}
+				if (!id.isBotOrHub()) // [+] IRainman fix: no show has come/gone for bots, and a hub.
+				{
+					if (m_showJoins || (m_favShowJoins && isFavorite))
+					{
+						BaseChatFrame::addLine(_T("*** ") + TSTRING(JOINS) + _T(' ') + id.getNickT(), Colors::g_ChatTextSystem);
+					}
+				}
+				m_needsUpdateStats = true;
+			}
+			else
+			{
+				m_needsUpdateStats = false;
+			}
+			// Automatically open "op chat"
+			//if (!m_is_op_chat_opened)
+			if (m_client->isInOperatorList(id.getNick()) && !PrivateFrame::isOpen(p_ou->getUser()))
+			{
+				PrivateFrame::openWindow(p_ou, HintedUser(p_ou->getUser(), m_client->getHubUrl()), m_client->getMyNick());
+				//m_is_op_chat_opened = true;
+			}
+		}
+		else
+		{
+			m_needsUpdateStats |= m_client->isChangeAvailableBytes();
+		}
+	}
+}
 
 LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam */, BOOL& /*bHandled*/)
 {
@@ -1749,6 +1791,14 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 	if (m_ctrlUsers)
 	{
 		l_lock_redraw = unique_ptr<CLockRedraw < > >(new CLockRedraw<> (*m_ctrlUsers));
+	}
+	{
+		std::deque<OnlineUserPtr> l_new_ou;
+		m_client->getNewMyINFO(l_new_ou);
+		for (auto j : l_new_ou)
+		{
+			updateUserJoin(j);
+		}
 	}
 	for (auto i = t.cbegin(); i != t.cend(); ++i)
 	{
@@ -1785,51 +1835,6 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				break;
 				
 #ifndef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
-				case UPDATE_USER_JOIN:
-				{
-					if (!ClientManager::isBeforeShutdown() && isConnected())
-					{
-						const OnlineUserTask& u = static_cast<OnlineUserTask&>(*i->second);
-						if (updateUser(u.m_ou, -1))
-						{
-							const Identity& id = u.m_ou->getIdentity();
-							if (m_client->is_all_my_info_loaded())
-							{
-								dcassert(!id.getNickT().empty());
-								const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(u.m_ou->getUser()); // [!] TODO: в ядро!
-								if (isFavorite)
-								{
-									PLAY_SOUND(SOUND_FAVUSER);
-									SHOW_POPUP(POPUP_FAVORITE_CONNECTED, id.getNickT() + _T(" - ") + Text::toT(m_client->getHubName()), TSTRING(FAVUSER_ONLINE));
-								}
-								if (!id.isBotOrHub()) // [+] IRainman fix: no show has come/gone for bots, and a hub.
-								{
-									if (m_showJoins || (m_favShowJoins && isFavorite))
-									{
-										BaseChatFrame::addLine(_T("*** ") + TSTRING(JOINS) + _T(' ') + id.getNickT(), Colors::g_ChatTextSystem);
-									}
-								}
-								m_needsUpdateStats = true;
-							}
-							else
-							{
-								m_needsUpdateStats = false;
-							}
-							// Automatically open "op chat"
-							//if (!m_is_op_chat_opened)
-							if (m_client->isInOperatorList(id.getNick()) && !PrivateFrame::isOpen(u.m_ou->getUser()))
-							{
-								PrivateFrame::openWindow(u.m_ou, HintedUser(u.m_ou->getUser(), m_client->getHubUrl()), m_client->getMyNick());
-								//m_is_op_chat_opened = true;
-							}
-						}
-						else
-						{
-							m_needsUpdateStats |= m_client->isChangeAvailableBytes();
-						}
-					}
-				}
-				break;
 				
 #endif // FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
 #ifndef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
@@ -1978,7 +1983,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 							if (m_client->getSuppressChatAndPM())
 							{
 								m_client->disconnect(false);
-								m_client->fly_fire1(ClientListener::NickTaken());
+								m_client->fly_fire(ClientListener::NickTaken());
 							}
 							else
 							{
@@ -2005,7 +2010,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 								else
 								{
 									m_client->disconnect(false);
-									m_client->fly_fire1(ClientListener::NickTaken());
+									m_client->fly_fire(ClientListener::NickTaken());
 								}
 							}
 						}
@@ -3479,9 +3484,6 @@ void HubFrame::on(ClientListener::Connected, const Client* c) noexcept
 	
 	speak(CONNECTED);
 	//PostMessage(WM_SPEAKER_CONNECTED);
-#ifdef FLYLINKDC_USE_CHAT_BOT
-	ChatBot::getInstance()->onHubAction(BotInit::RECV_CONNECT, c->getHubUrl());
-#endif
 }
 
 void HubFrame::on(ClientListener::DDoSSearchDetect, const string&) noexcept
@@ -3533,7 +3535,7 @@ void HubFrame::on(ClientListener::UserShareUpdated, const OnlineUserPtr& user) n
 	}
 }
 #endif
-
+/*
 void HubFrame::on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr& user) noexcept   // !SMT!-fix
 {
 	// TODO - добавить команду первого входа юзера
@@ -3553,11 +3555,9 @@ void HubFrame::on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr& user) 
 #ifdef _DEBUG
 //		LogManager::message("[single OnlineUserPtr] void HubFrame::on(ClientListener::UserUpdatedMyINFO nick = " + user->getUser()->getLastNick() + " this = " + Util::toString(__int64(this)));
 #endif
-#ifdef FLYLINKDC_USE_CHAT_BOT
-		ChatBot::getInstance()->onUserAction(BotInit::RECV_UPDATE, user->getUser());
-#endif
 	}
 }
+*/
 
 void HubFrame::on(ClientListener::StatusMessage, const Client*, const string& line, int statusFlags) noexcept
 {
@@ -3572,9 +3572,6 @@ void HubFrame::on(ClientListener::UsersUpdated, const Client*, const OnlineUserL
 #ifdef _DEBUG
 //		LogManager::message("[array OnlineUserPtr] void HubFrame::on(UsersUpdated nick = " + (*i)->getUser()->getLastNick());
 #endif
-#ifdef FLYLINKDC_USE_CHAT_BOT
-		ChatBot::getInstance()->onUserAction(BotInit::RECV_UPDATE, (*i)->getUser());
-#endif
 	}
 }
 void HubFrame::on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr& user) noexcept
@@ -3584,9 +3581,6 @@ void HubFrame::on(ClientListener::UserRemoved, const Client*, const OnlineUserPt
 	PostMessage(WM_SPEAKER_REMOVE_USER, WPARAM(l_ou_ptr));
 #else
 	speak(REMOVE_USER, user);
-#endif
-#ifdef FLYLINKDC_USE_CHAT_BOT
-	ChatBot::getInstance()->onUserAction(BotInit::RECV_PART, user->getUser()); // !SMT!-fix
 #endif
 }
 

@@ -251,9 +251,9 @@ typedef unsigned __int64 uint64_t;
 //#  define IRAINMAN_USE_OLD_CODE_IN_USER_INFO_ONLY_FOR_TEST 1
 # endif // IRAINMAN_USE_NG_FAST_USER_INFO
 # define IRAINMAN_IDENTITY_IS_NON_COPYABLE
-#ifndef _DEBUG
-# define IRAINMAN_USE_SPIN_LOCK
-#endif
+
+#define IRAINMAN_USE_SPIN_LOCK
+
 # define IRAINMAN_USE_READ_WRITE_POLITICS
 # ifdef IRAINMAN_USE_READ_WRITE_POLITICS
 // [!] IRainman opt: use policies without copying data.

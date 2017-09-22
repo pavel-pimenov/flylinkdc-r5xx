@@ -31,9 +31,6 @@
     <ClCompile Include="windows\CertificatesPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows\ChatBot.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="windows\ChatCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -703,9 +700,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\QCDCtrlMsgs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\ChatBot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\ClientsPage.h">

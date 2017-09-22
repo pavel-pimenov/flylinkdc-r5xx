@@ -881,13 +881,13 @@ void AdcHub::handle(AdcCommand::STA, const AdcCommand& c) noexcept
 			return;
 		}
 	}
-	unique_ptr<ChatMessage> message(new ChatMessage(c.getParam(1), ou));
-	fly_fire2(ClientListener::Message(), this, message);
+	unique_ptr<ChatMessage> l_message(new ChatMessage(c.getParam(1), ou));
+	fly_fire2(ClientListener::Message(), this, l_message);
 	if (l_code == AdcCommand::ERROR_NICK_INVALID || l_code == AdcCommand::ERROR_NICK_TAKEN || l_code == AdcCommand::ERROR_BAD_PASSWORD)
 	{
 		if (m_client_sock)
 			m_client_sock->disconnect(false);
-		fly_fire1(ClientListener::NickTaken());
+		fly_fire(ClientListener::NickTaken());
 	}
 }
 

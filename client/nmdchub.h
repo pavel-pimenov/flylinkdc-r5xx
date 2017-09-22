@@ -201,6 +201,7 @@ class NmdcHub : public Client, private Flags
 		
 		void clearUsers();
 		void onLine(const string& aLine);
+		static void logPM(const UserPtr& p_user, const string& p_msg, const string& p_hub_url);
 		void resetAntivirusInfo();
 		
 		OnlineUserPtr getUser(const string& aNick, bool p_hub, bool p_first_load); // [!] IRainman fix: return OnlineUserPtr and add hub

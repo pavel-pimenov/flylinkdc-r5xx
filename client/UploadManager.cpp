@@ -1368,7 +1368,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 				auto u = *i;
 				if (u->getPos() > 0)
 				{
-					TransferData l_td(u->getUserConnection()->getConnectionQueueToken());
+					TransferData l_td(u->getConnectionQueueToken());
 					l_td.m_hinted_user = u->getHintedUser();
 					l_td.m_pos = u->getStartPos() + u->getPos();
 					l_td.m_actual = u->getStartPos() + u->getActual();

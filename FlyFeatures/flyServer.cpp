@@ -1834,12 +1834,6 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 			l_info["VID"] = l_VID_Array;
 		}
 #ifndef USE_STRONGDC_SQLITE
-#ifdef FLYLINKDC_USE_CHAT_BOT
-		if (ChatBot::isLoaded())
-		{
-			l_info["is_chat_bot"] = 1;
-		}
-#endif
 		if (SETTING(ENABLE_AUTO_BAN))
 		{
 			l_info["is_autoban"] = 1;

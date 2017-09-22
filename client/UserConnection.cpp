@@ -146,7 +146,11 @@ bool UserConnection::isIPGuard(ResourceManager::Strings p_id_string, bool p_is_d
 			getUser()->setFlag(User::PG_AVDB_BLOCK);
 		}
 #endif
-		LogManager::message("IPFilter: " + ResourceManager::getString(p_id_string) + " (" + getRemoteIp() + ") " + l_block_message);
+		//if (!getUser()->isSet(User::PG_LOG_BLOCK_BIT))
+		{
+			getUser()->setFlag(User::PG_LOG_BLOCK_BIT);
+			LogManager::message("IPFilter: " + ResourceManager::getString(p_id_string) + " (" + getRemoteIp() + ") " + l_block_message);
+		}
 		QueueManager::getInstance()->removeSource(getUser(), QueueItem::Source::FLAG_REMOVED);
 		return true;
 	}

@@ -35,7 +35,6 @@
 #include "Resource.h"
 #include "MainFrm.h"
 #include "ResourceLoader.h"
-#include "ChatBot.h" // !SMT!-CB
 #include "PopupManager.h"
 #include "ToolbarManager.h"
 #include "../client/MappingManager.h"
@@ -428,11 +427,7 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	
 	CMessageLoop theLoop;
 	_Module.AddMessageLoop(&theLoop);
-	
-#ifdef FLYLINKDC_USE_CHAT_BOT
-	ChatBot::newInstance(); // !SMT!-CB
-#endif
-	
+
 	startup(splash_callBack, g_DisableSplash ? (void*)0 : (void*)g_splash.m_hWnd, GuiInit, NULL);
 	startupFlyFeatures(splash_callBack, g_DisableSplash ? (void*)0 : (void*)g_splash.m_hWnd); // [+] SSA
 	WinUtil::initThemeIcons();
@@ -550,9 +545,6 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 		}  // [!] IRainman fix: correct unload.
 	} // !SMT!-fix
 	
-#ifdef FLYLINKDC_USE_CHAT_BOT
-	ChatBot::deleteInstance(); // !SMT!-CB
-#endif
 	shutdown(GuiUninit, NULL/*, true*/);
 #if defined(__PROFILER_ENABLED__)
 	Profiler::dumphtml();

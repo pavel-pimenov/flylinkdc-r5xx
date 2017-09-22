@@ -520,7 +520,7 @@ void WinUtil::initThemeIcons()
 	g_HubFlylinkDCIconVIP[14] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_GODC));
 	g_HubFlylinkDCIconVIP[15] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ZHIGANDC));
 	g_HubFlylinkDCIconVIP[16] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_HMN_PP));
-	// dchub://hmn.pp.ru 
+
 	
 	g_HubDDoSIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_ICON_MEDICAL_BAG));
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB

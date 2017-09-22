@@ -72,13 +72,20 @@ void File::init(const tstring& aFileName, int access, int mode, bool isAbsoluteP
 	
 	if (h == INVALID_HANDLE_VALUE)
 	{
-#if 0
+#ifdef _DEBUG
+#if 1
+        if (outPath.find(_T(".dctmp")) != tstring::npos)
+        {
+            int a;
+            a++;
+        }
 		std::ofstream l_fs;
 		l_fs.open(_T("flylinkdc-file-error.log"), std::ifstream::out | std::ifstream::app);
 		if (l_fs.good())
 		{
 			l_fs << Util::toString(GetLastError()) << " File = " << Text::fromT(outPath) << std::endl;
 		}
+#endif
 #endif
 		throw FileException(Util::translateError());
 	}

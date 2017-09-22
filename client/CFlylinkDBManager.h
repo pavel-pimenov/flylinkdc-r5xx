@@ -833,16 +833,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		static void clearTTHCache();
 		static unsigned g_tth_cache_limit;
 	public:
-		static bool is_resume_torrent(const libtorrent::sha1_hash& p_sha1)
-		{
-			FastLock l(g_resume_torrents_cs);
-			return g_resume_torrents.find(p_sha1) != g_resume_torrents.end();
-		}
-		static bool is_delete_torrent(const libtorrent::sha1_hash& p_sha1)
-		{
-			FastLock l(g_delete_torrents_cs);
-			return g_delete_torrents.find(p_sha1) != g_delete_torrents.end();
-		}
+		static bool is_resume_torrent(const libtorrent::sha1_hash& p_sha1);
+		static bool is_delete_torrent(const libtorrent::sha1_hash& p_sha1);
 		
 		static void tryFixBadAlloc();
 		static unsigned get_tth_cache_size()

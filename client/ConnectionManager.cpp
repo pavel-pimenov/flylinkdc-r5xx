@@ -257,7 +257,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 		}
 		if (l_cqi && !ClientManager::isBeforeShutdown())
 		{
-			fly_fire2(ConnectionManagerListener::Added(), HintedUser(aUser, Util::emptyString), true, l_cqi->getConnectionQueueToken());
+			fly_fire3(ConnectionManagerListener::Added(), HintedUser(aUser, Util::emptyString), true, l_cqi->getConnectionQueueToken());
 			return;
 		}
 #ifndef USING_IDLERS_IN_CONNECTION_MANAGER
@@ -454,11 +454,11 @@ void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 		}
 		for (auto i = l_download_users.cbegin(); i != l_download_users.cend(); ++i)
 		{
-			fly_fire2(ConnectionManagerListener::UserUpdated(), i->m_hinted_user, true, i->m_token);
+			fly_fire3(ConnectionManagerListener::UserUpdated(), i->m_hinted_user, true, i->m_token);
 		}
 		for (auto i = l_upload_users.cbegin(); i != l_upload_users.cend(); ++i)
 		{
-			fly_fire2(ConnectionManagerListener::UserUpdated(), i->m_hinted_user, false, i->m_token);
+			fly_fire3(ConnectionManagerListener::UserUpdated(), i->m_hinted_user, false, i->m_token);
 		}
 	}
 }
@@ -630,7 +630,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 	{
 		if (!ClientManager::isBeforeShutdown())
 		{
-			fly_fire2(ConnectionManagerListener::ConnectionStatusChanged(), j->m_hinted_user, true, j->m_token);
+			fly_fire3(ConnectionManagerListener::ConnectionStatusChanged(), j->m_hinted_user, true, j->m_token);
 		}
 	}
 	l_status_changed.clear();
@@ -639,7 +639,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 	{
 		if (!ClientManager::isBeforeShutdown())
 		{
-			fly_fire2(ConnectionManagerListener::FailedDownload(), k->m_hinted_user, k->m_reason, k->m_token);
+			fly_fire3(ConnectionManagerListener::FailedDownload(), k->m_hinted_user, k->m_reason, k->m_token);
 		}
 	}
 	l_error_download.clear();
@@ -1572,7 +1572,7 @@ void ConnectionManager::addUploadConnection(UserConnection* p_conn)
 	{
 		if (!ClientManager::isBeforeShutdown())
 		{
-			fly_fire2(ConnectionManagerListener::Added(), l_cqi->getHintedUser(), false, l_cqi->getConnectionQueueToken());
+			fly_fire3(ConnectionManagerListener::Added(), l_cqi->getHintedUser(), false, l_cqi->getConnectionQueueToken());
 #ifdef FLYLINKDC_USE_CONNECTED_EVENT
 			fly_fire1(ConnectionManagerListener::Connected(), l_cqi);
 #endif
@@ -1801,13 +1801,13 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 			}
 			if (!ClientManager::isBeforeShutdown())
 			{
-				fly_fire2(ConnectionManagerListener::Removed(), aSource->getHintedUser(), l_is_download, l_token);
+				fly_fire3(ConnectionManagerListener::Removed(), aSource->getHintedUser(), l_is_download, l_token);
 				l_is_fire_faled = false;
 			}
 		}
 		if (l_is_fire_faled && !ClientManager::isBeforeShutdown() && l_error_download.m_hinted_user.user)
 		{
-			fly_fire2(ConnectionManagerListener::FailedDownload(), l_error_download.m_hinted_user, l_error_download.m_reason, l_token);
+			fly_fire3(ConnectionManagerListener::FailedDownload(), l_error_download.m_hinted_user, l_error_download.m_reason, l_token);
 		}
 	}
 	else

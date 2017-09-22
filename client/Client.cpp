@@ -152,6 +152,10 @@ Client::~Client()
 		dcassert(FavoriteManager::countUserCommand(getHubUrl()) == 0);
 	}
 	updateCounts(true);
+	{
+		CFlyFastLock(m_fs_update_online_user);
+		m_update_online_user_deque.clear();
+	}
 }
 void Client::reset_socket()
 {
@@ -636,7 +640,9 @@ void Client::updatedMyINFO(const OnlineUserPtr& aUser)
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
-		fly_fire1(ClientListener::UserUpdatedMyINFO(), aUser);
+		CFlyFastLock(m_fs_update_online_user);
+		m_update_online_user_deque.push_back(aUser);
+		// fly_fire1(ClientListener::UserUpdatedMyINFO(), aUser);
 	}
 }
 

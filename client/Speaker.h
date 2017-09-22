@@ -64,7 +64,7 @@ class Speaker
 		template<typename... ArgT>
 		void fire_log(const char* p_function, int p_line, ArgT && ... args)
 		{
-			const string l_f = p_function + string(" Line: ") + Util::toString(p_line);
+			const std::string l_f = p_function + std::string(" Line: ") + Util::toString(p_line);
 			CFlyLockLine(m_listenerCS, l_f.c_str());
 			ListenerList tmp = m_listeners;
 #ifdef _DEBUG

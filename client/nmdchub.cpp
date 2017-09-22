@@ -1703,22 +1703,27 @@ void NmdcHub::toParse(const string& param)
 	}
 	if (!allowPrivateMessagefromUser(*message)) // [+] IRainman fix.
 	{
-			StringMap params;
 			if (message->m_from && message->m_from->getUser())
 			{
-				params["hubNI"] = Util::toString(ClientManager::getHubNames(message->m_from->getUser()->getCID(), getHubUrl()));
-				params["hubURL"] = Util::toString(ClientManager::getHubs(message->m_from->getUser()->getCID(), getHubUrl()));
-				params["userNI"] = message->m_from->getUser()->getLastNick();
-				params["myCID"] = ClientManager::getMyCID().toBase32();
-				const string l_msg = message->m_from->getUser()->getLastNick() + " on hub: " + " Message: " + message->m_text;
-				params["message"] = l_msg;
-				LOG(PM, params);
-				LogManager::speak_status_message(l_msg);
+				logPM(message->m_from->getUser(), message->m_text, getHubUrl());
 			}
 			return;
 	}
 	
 	fly_fire2(ClientListener::Message(), this, message); // [+]
+}
+//==========================================================================================
+void NmdcHub::logPM(const UserPtr& p_user, const string& p_msg, const string& p_hub_url)
+{
+	StringMap params;
+	params["hubNI"] = Util::toString(ClientManager::getHubNames(p_user->getCID(), p_hub_url));
+	params["hubURL"] = Util::toString(ClientManager::getHubs(p_user->getCID(), p_hub_url));
+	params["userNI"] = p_user->getLastNick();
+	params["myCID"] = ClientManager::getMyCID().toBase32();
+	const string l_msg = p_user->getLastNick() + " on hub: " + " Message: " + p_msg;
+	params["message"] = l_msg;
+	LOG(PM, params);
+	LogManager::speak_status_message(l_msg);
 }
 //==========================================================================================
 void NmdcHub::onLine(const string& aLine)
@@ -1889,7 +1894,7 @@ void NmdcHub::onLine(const string& aLine)
 		dcassert(m_client_sock);
 		if (m_client_sock)
 			m_client_sock->disconnect(false);
-		fly_fire1(ClientListener::NickTaken());
+		fly_fire( ClientListener::NickTaken() );
 		//m_count_validate_denide++;
 	}
 	else if (cmd == "UserIP")
@@ -1971,7 +1976,7 @@ void NmdcHub::onLine(const string& aLine)
 				setMyNick(l_nick);
 			}
 		}
-		fly_fire1(ClientListener::NickTaken());
+		fly_fire(ClientListener::NickTaken());
 		//m_count_validate_denide++;
 	}
 	else if (cmd == "SearchRule")
@@ -3246,7 +3251,7 @@ void NmdcHub::on(BufferedSocketListener::Failed, const string& aLine) noexcept
 void NmdcHub::RequestConnectionForAutodetect()
 {
 	const unsigned c_MAX_CONNECTION_REQUESTS_COUNT = 3;
-	
+
 	if (m_bAutodetectionPending && m_iRequestCount < c_MAX_CONNECTION_REQUESTS_COUNT)
 	{
 		bool bWantAutodetect = false;

@@ -177,7 +177,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 			auto d = *i;
 			if (d->getPos() > 0) // https://drdump.com/DumpGroup.aspx?DumpGroupID=614035&Login=guest (Wine)
 			{
-				TransferData l_td(d->getUserConnection()->getConnectionQueueToken());
+				TransferData l_td(d->getConnectionQueueToken());
 				l_td.m_hinted_user = d->getHintedUser();
 				l_td.m_pos = d->getPos();
 				l_td.m_actual = d->getActual();
@@ -641,7 +641,7 @@ void DownloadManager::endData(UserConnection* aSource)
 		fly_fire1(DownloadManagerListener::Complete(), d);
 		if (d->getUserConnection())
 		{
-			auto l_token = d->getUserConnection()->getConnectionQueueToken();
+			const auto l_token = d->getConnectionQueueToken();
 			fly_fire1(DownloadManagerListener::RemoveToken(), l_token);
 		}
 	}
@@ -948,7 +948,7 @@ void DownloadManager::select_files(const libtorrent::torrent_handle& p_torrent_h
 		}
 		p_torrent_handle.unset_flags(lt::torrent_flags::auto_managed);
 		p_torrent_handle.pause();
-		fly_fire1(DownloadManagerListener::SelectTorrent(), l_file->info_hash(), l_files);
+		fly_fire2(DownloadManagerListener::SelectTorrent(), l_file->info_hash(), l_files);
 	}
 }
 void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion)

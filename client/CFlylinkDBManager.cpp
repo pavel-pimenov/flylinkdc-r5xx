@@ -2341,7 +2341,7 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 				p.info_hash = l_sha1;
 				p.flags |= libtorrent::torrent_flags::auto_managed;
 				{
-					FastLock l(g_resume_torrents_cs);
+					CFlyFastLock(g_resume_torrents_cs);
 					g_resume_torrents.insert(l_sha1);
 				}
 				//p.resume_data.assign(l_resume.data(), l_resume.data() + l_resume.size());
@@ -2382,7 +2382,7 @@ void CFlylinkDBManager::delete_torrent_resume(const libtorrent::sha1_hash& p_sha
 		m_delete_resume_torrent->executenonquery();
 		if (m_delete_resume_torrent.sqlite3_changes() == 1)
 		{
-			FastLock l(g_delete_torrents_cs);
+			CFlyFastLock(g_delete_torrents_cs);
 			g_delete_torrents.insert(p_sha1);
 		}
 		else
@@ -5075,6 +5075,18 @@ __int64 CFlylinkDBManager::convert_tth_historyL()
 		errorDB("SQLite - convert_tth_historyL: " + e.getError());
 	}
 	return l_count;
+}
+//========================================================================================================
+bool CFlylinkDBManager::is_resume_torrent(const libtorrent::sha1_hash& p_sha1)
+{
+	CFlyFastLock(g_resume_torrents_cs);
+	return g_resume_torrents.find(p_sha1) != g_resume_torrents.end();
+}
+//========================================================================================================
+bool CFlylinkDBManager::is_delete_torrent(const libtorrent::sha1_hash& p_sha1)
+{
+	CFlyFastLock(g_delete_torrents_cs);
+	return g_delete_torrents.find(p_sha1) != g_delete_torrents.end();
 }
 //========================================================================================================
 __int64 CFlylinkDBManager::convert_tth_history()

@@ -511,7 +511,7 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 		{
 			if (!p_all_myInfo.empty())
 			{
-				fly_fire1(BufferedSocketListener::MyInfoArray(), p_all_myInfo);
+				fly_fire1(BufferedSocketListener::MyInfoArray(), p_all_myInfo); // todo zmq
 			}
 			set_all_my_info_loaded(); // закончился стартовый поток $MyINFO
 		}
@@ -581,7 +581,7 @@ void BufferedSocket::parseMyINfo(
 {
 	if (!p_all_myInfo.empty())
 	{
-		fly_fire1(BufferedSocketListener::MyInfoArray(), p_all_myInfo);
+		fly_fire1(BufferedSocketListener::MyInfoArray(), p_all_myInfo); // todo zmq
 	}
 }
 void BufferedSocket::parseSearch(

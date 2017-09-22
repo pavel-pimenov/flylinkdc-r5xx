@@ -52,6 +52,18 @@ Transfer::Transfer(UserConnection* p_conn, const string& p_path, const TTHValue&
     lastTick = tick;
  }
 */
+string Transfer::getConnectionQueueToken() const
+{
+    if (getUserConnection())
+    {
+        return getUserConnection()->getConnectionQueueToken();
+    }
+    else
+    {
+        return Util::emptyString;
+    }
+}
+
 void Transfer::tick(uint64_t p_CurrentTick)
 {
 	if (!ClientManager::isBeforeShutdown())
