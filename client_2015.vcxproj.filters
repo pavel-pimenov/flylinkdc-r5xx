@@ -756,9 +756,6 @@
     <ClInclude Include="client\debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="client\Mapper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="client\MappingManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1076,6 +1073,78 @@
     </ClInclude>
     <ClInclude Include="client\CFlySearchItemTTH.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\BaseFun.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\Class.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\ClassFun.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\Ctor.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\Dtor.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\ExceptionHandler.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\ExceptionTypes.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\Fun.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\function.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\LuaName.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\LuaRef.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\MetatableRegistry.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\Obj.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\ObjFun.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\primitives.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\references.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\Registry.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\ResourceHandler.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\Selector.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\State.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\traits.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\Tuple.h">
+      <Filter>Header Files\selene</Filter>
+    </ClInclude>
+    <ClInclude Include="selene\include\selene\util.h">
+      <Filter>Header Files\selene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
