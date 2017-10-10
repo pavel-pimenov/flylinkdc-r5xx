@@ -27,6 +27,7 @@
 #include "TransferData.h"
 #include "Download.h"
 
+#include "libtorrent\torrent_info.hpp"
 /**
  * Use this listener interface to get progress information for downloads.
  *
@@ -80,7 +81,8 @@ class DownloadManagerListener
 		virtual void on(CompleteTorrentFile, const std::string& p_name) noexcept { }
 		
 		virtual void on(RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept { }
-		virtual void on(SelectTorrent, const libtorrent::sha1_hash& p_sha1, CFlyTorrentFileArray& p_files) noexcept { }
+		virtual void on(SelectTorrent, const libtorrent::sha1_hash& p_sha1, CFlyTorrentFileArray& p_files,
+		                std::shared_ptr<const libtorrent::torrent_info> p_torrent_info) noexcept { }
 		virtual void on(AddedTorrent, const libtorrent::sha1_hash& p_sha1, const std::string& p_save_path) noexcept { }
 		
 #ifdef FLYLINKDC_USE_DOWNLOAD_STARTING_FIRE

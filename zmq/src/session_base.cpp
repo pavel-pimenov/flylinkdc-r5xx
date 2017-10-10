@@ -286,8 +286,10 @@ void zmq::session_base_t::read_activated (pipe_t *pipe_)
 
     if (likely (pipe_ == pipe))
         engine->restart_output ();
-    else
+    else {
+        // i.e. pipe_ == zap_pipe
         engine->zap_msg_available ();
+    }
 }
 
 void zmq::session_base_t::write_activated (pipe_t *pipe_)
@@ -356,12 +358,12 @@ int zmq::session_base_t::zap_connect ()
 
     send_bind (peer.socket, new_pipes [1], false);
 
-    //  Send empty identity if required by the peer.
-    if (peer.options.recv_identity) {
+    //  Send empty routing id if required by the peer.
+    if (peer.options.recv_routing_id) {
         msg_t id;
         rc = id.init ();
         errno_assert (rc == 0);
-        id.set_flags (msg_t::identity);
+        id.set_flags (msg_t::routing_id);
         bool ok = zap_pipe->write (&id);
         zmq_assert (ok);
         zap_pipe->flush ();
@@ -534,6 +536,11 @@ void zmq::session_base_t::reconnect ()
     //  Reconnect.
     if (options.reconnect_ivl != -1)
         start_connecting (true);
+    else {
+        std::string *ep = new (std::string);
+        addr->to_string (*ep);
+        send_term_endpoint (socket, ep);
+    }
 
     //  For subscriber sockets we hiccup the inbound pipe, which will cause
     //  the socket object to resend all the subscriptions.

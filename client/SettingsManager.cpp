@@ -177,7 +177,7 @@ static const char* g_settingTags[] =
 	"CompressTransfers", "ShowProgressBars", "MaxTabRows",
 	"MaxCompression", "AntiFragMethod", "AntiFragMax", "MDIMaxmimized",
 	// [-] "NoAwayMsgToBots", [-] IRainman fix.
-	"SkipZeroByte", "AdlsBreakOnFirst",
+	"SkipZeroByte","SkipAlreadyDownloadedFiles", "AdlsBreakOnFirst",
 	"HubUserCommands",
 	"SendBloom",
 	"AutoSearchAutoMatch", "DownloadBarColor", "UploadBarColor", "LogSystem",
@@ -1656,7 +1656,7 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 			if (key == LOG_FILE_PRIVATE_CHAT && l_new_value.find(l_template_pm_folder) != string::npos)
 			{
 				l_auto = false;
-			    boost::replace_all(l_new_value, l_template_pm_folder, "PM\\%Y-%m\\");
+				boost::replace_all(l_new_value, l_template_pm_folder, "PM\\%Y-%m\\");
 				strSettings[key - STR_FIRST] = l_new_value;
 			}
 		}

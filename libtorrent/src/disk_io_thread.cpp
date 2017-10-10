@@ -55,7 +55,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <functional>
 
+#include "libtorrent/aux_/disable_warnings_push.hpp"
 #include <boost/variant/get.hpp>
+#include "libtorrent/aux_/disable_warnings_pop.hpp"
 
 #ifndef _DEBUG
 #include "libtorrent/aux_/escape_string.hpp" // for convert_to_wstring
@@ -78,10 +80,10 @@ namespace libtorrent {
 #if TORRENT_USE_ASSERTS
 
 #define TORRENT_PIECE_ASSERT(cond, piece) \
-	do { if (!(cond)) { assert_print_piece(piece); assert_fail(#cond, __LINE__, __FILE__, TORRENT_FUNCTION, 0); } } TORRENT_WHILE_0
+	do { if (!(cond)) { assert_print_piece(piece); assert_fail(#cond, __LINE__, __FILE__, TORRENT_FUNCTION, nullptr); } } TORRENT_WHILE_0
 
 #define TORRENT_PIECE_ASSERT_FAIL(piece) \
-	do { assert_print_piece(piece); assert_fail("<unconditional>", __LINE__, __FILE__, TORRENT_FUNCTION, 0); } TORRENT_WHILE_0
+	do { assert_print_piece(piece); assert_fail("<unconditional>", __LINE__, __FILE__, TORRENT_FUNCTION, nullptr); } TORRENT_WHILE_0
 
 #else
 #define TORRENT_PIECE_ASSERT(cond, piece) do {} TORRENT_WHILE_0
@@ -592,7 +594,8 @@ constexpr disk_job_flags_t disk_interface::cache_hit;
 
 		// if the cache is under high pressure, we need to evict
 		// the blocks we just flushed to make room for more write pieces
-		try_evict_blocks(0);
+		int evict = m_disk_cache.num_to_evict(0);
+		if (evict > 0) m_disk_cache.try_evict_blocks(evict);
 
 		return iov_len;
 	}
@@ -826,15 +829,10 @@ constexpr disk_job_flags_t disk_interface::cache_hit;
 
 		// if the cache is under high pressure, we need to evict
 		// the blocks we just flushed to make room for more write pieces
-		try_evict_blocks(0);
+		int evict = m_disk_cache.num_to_evict(0);
+		if (evict > 0) m_disk_cache.try_evict_blocks(evict);
 
 		return iov_len;
-	}
-
-	void disk_io_thread::try_evict_blocks(int const len)
-	{
-		int const evict = m_disk_cache.num_to_evict(len);
-		if (evict > 0) m_disk_cache.try_evict_blocks(evict);
 	}
 
 	void disk_io_thread::fail_jobs(storage_error const& e, jobqueue_t& jobs_)
@@ -1296,7 +1294,8 @@ constexpr disk_job_flags_t disk_interface::cache_hit;
 
 		std::unique_lock<std::mutex> l(m_cache_mutex);
 
-		try_evict_blocks(iov_len);
+		int evict = m_disk_cache.num_to_evict(iov_len);
+		if (evict > 0) m_disk_cache.try_evict_blocks(evict);
 
 		cached_piece_entry* pe = m_disk_cache.find_piece(j);
 		if (pe == nullptr)
@@ -1897,7 +1896,7 @@ constexpr disk_job_flags_t disk_interface::cache_hit;
 		for (auto& p : pieces)
 		{
 			cached_piece_entry* pe = m_disk_cache.find_piece(p.first, p.second);
-			if (pe == NULL) continue;
+			if (pe == nullptr) continue;
 			TORRENT_ASSERT(pe->outstanding_read == 1);
 			pe->outstanding_read = 0;
 		}

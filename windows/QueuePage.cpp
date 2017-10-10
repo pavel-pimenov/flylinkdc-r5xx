@@ -64,6 +64,8 @@ PropPage::ListItem QueuePage::optionItems[] =
 {
 	{ SettingsManager::AUTO_SEARCH_AUTO_MATCH, ResourceManager::SETTINGS_AUTO_SEARCH_AUTO_MATCH },
 	{ SettingsManager::SKIP_ZERO_BYTE, ResourceManager::SETTINGS_SKIP_ZERO_BYTE },
+	{ SettingsManager::SKIP_ALREADY_DOWNLOADED_FILES, ResourceManager::SETTINGS_SKIP_ALREADY_DOWNLOADED_FILES },
+	
 //[-]PPA может приводить к неполному скачиванию папки (например DVD - диска)
 // TODO необходим рефакторинг работы функционала! предоставление выбора скопировать файлы из уже имеющихся
 //	{ SettingsManager::DONT_DL_ALREADY_SHARED, ResourceManager::SETTINGS_DONT_DL_ALREADY_SHARED },

@@ -139,6 +139,11 @@ namespace {
 #include <openssl/crypto.h>
 #include <openssl/rand.h>
 
+// by openssl changelog at https://www.openssl.org/news/changelog.html
+// Changes between 1.0.2h and 1.1.0  [25 Aug 2016]
+// - Most global cleanup functions are no longer required because they are handled
+//   via auto-deinit. Affected function CRYPTO_cleanup_all_ex_data()
+#if !defined(OPENSSL_API_COMPAT) || OPENSSL_API_COMPAT < 0x10100000L
 namespace {
 
 	// openssl requires this to clean up internal
@@ -155,6 +160,7 @@ namespace {
 #endif
 	} openssl_global_destructor;
 }
+#endif
 
 #endif // TORRENT_USE_OPENSSL
 
@@ -1086,17 +1092,17 @@ namespace {
 	{
 		TORRENT_ASSERT(is_single_thread());
 		// if you hit this assert, you're deleting a non-existent peer class
-		TORRENT_ASSERT(m_classes.at(cid));
+		TORRENT_ASSERT_PRECOND(m_classes.at(cid));
 		if (m_classes.at(cid) == nullptr) return;
 		m_classes.decref(cid);
 	}
 
-	peer_class_info session_impl::get_peer_class(peer_class_t cid)
+	peer_class_info session_impl::get_peer_class(peer_class_t const cid) const
 	{
 		peer_class_info ret;
-		peer_class* pc = m_classes.at(cid);
+		peer_class const* pc = m_classes.at(cid);
 		// if you hit this assert, you're passing in an invalid cid
-		TORRENT_ASSERT(pc);
+		TORRENT_ASSERT_PRECOND(pc);
 		if (pc == nullptr)
 		{
 #if TORRENT_USE_INVARIANT_CHECKS
@@ -1163,7 +1169,7 @@ namespace {
 	{
 		peer_class* pc = m_classes.at(cid);
 		// if you hit this assert, you're passing in an invalid cid
-		TORRENT_ASSERT(pc);
+		TORRENT_ASSERT_PRECOND(pc);
 		if (pc == nullptr) return;
 
 		pc->set_info(&pci);
@@ -5810,13 +5816,12 @@ namespace {
 
 		void on_dht_put_mutable_item(alert_manager& alerts, dht::item const& i, int num)
 		{
-			dht::signature sig = i.sig();
-			dht::public_key pk = i.pk();
-			dht::sequence_number seq = i.seq();
-			std::string salt = i.salt();
-
 			if (alerts.should_post<dht_put_alert>())
 			{
+				dht::signature const sig = i.sig();
+				dht::public_key const pk = i.pk();
+				dht::sequence_number const seq = i.seq();
+				std::string const salt = i.salt();
 				alerts.emplace_alert<dht_put_alert>(pk.bytes, sig.bytes, salt
 					, seq.value, num);
 			}

@@ -1377,6 +1377,7 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 			{
 				//dcassert(!client->is_all_my_info_loaded());
 				// [!] TODO if (m_client->is_all_my_info_loaded()) // TODO нельзя тут отключать иначе глючит обновления своего ника если хаб PtoX у самого себя шара = 0
+				if (m_ctrlUsers)
 				{
 					PROFILE_THREAD_SCOPED_DESC("HubFrame::updateUser-update")
 					m_needsResort |= ui->is_update(m_ctrlUsers->getSortColumn());
@@ -1428,6 +1429,11 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 							                    + " ! pos >= l_top_index && pos <= l_top_index + l_count_per_page pos = " + Util::toString(pos));
 						}
 #endif
+					}
+					else
+					{
+						// Не нашли элемент
+						dcassert(0);
 					}
 				}
 			}
@@ -1771,6 +1777,10 @@ void HubFrame::updateUserJoin(const OnlineUserPtr& p_ou)
 			m_needsUpdateStats |= m_client->isChangeAvailableBytes();
 		}
 	}
+	else
+	{
+		dcassert(0);
+	}
 }
 
 LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam */, BOOL& /*bHandled*/)
@@ -1792,14 +1802,28 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 	{
 		l_lock_redraw = unique_ptr<CLockRedraw < > >(new CLockRedraw<> (*m_ctrlUsers));
 	}
-	{
-		std::deque<OnlineUserPtr> l_new_ou;
-		m_client->getNewMyINFO(l_new_ou);
-		for (auto j : l_new_ou)
-		{
-			updateUserJoin(j);
-		}
-	}
+	/*
+	if (m_client && m_client->is_all_my_info_loaded() == true)
+	    {
+	        std::deque<OnlineUserPtr> l_new_ou;
+	        m_client->getNewMyINFO(l_new_ou);
+	        if (!l_new_ou.empty())
+	        {
+	#ifdef _DEBUG
+	            //CFlyLog l_int_log("updateUserJoin");
+	            //int k = 0;
+	#endif
+	            for (auto j : l_new_ou)
+	            {
+	                if (!ClientManager::isBeforeShutdown())
+	                    updateUserJoin(j);
+	#ifdef _DEBUG
+	                //l_int_log.step("Join: " + Util::toString(++k) + " Hub = " + j->getClient().getHubUrl() + " Nick:" + j->getUser()->getLastNick());
+	#endif
+	            }
+	        }
+	    }
+	*/
 	for (auto i = t.cbegin(); i != t.cend(); ++i)
 	{
 		if (!ClientManager::isBeforeShutdown())
@@ -1835,7 +1859,15 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				break;
 				
 #ifndef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
-				
+				case UPDATE_USER_JOIN:
+				{
+					if (!ClientManager::isBeforeShutdown() && isConnected())
+					{
+						const OnlineUserTask& u = static_cast<OnlineUserTask&>(*i->second);
+						updateUserJoin(u.m_ou);
+					}
+				}
+				break;
 #endif // FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
 #ifndef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
 				case REMOVE_USER:
@@ -3535,7 +3567,6 @@ void HubFrame::on(ClientListener::UserShareUpdated, const OnlineUserPtr& user) n
 	}
 }
 #endif
-/*
 void HubFrame::on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr& user) noexcept   // !SMT!-fix
 {
 	// TODO - добавить команду первого входа юзера
@@ -3557,7 +3588,6 @@ void HubFrame::on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr& user) 
 #endif
 	}
 }
-*/
 
 void HubFrame::on(ClientListener::StatusMessage, const Client*, const string& line, int statusFlags) noexcept
 {
@@ -3999,28 +4029,30 @@ bool HubFrame::parseFilter(FilterModes& mode, int64_t& size)
 void HubFrame::InsertItemInternal(const UserInfo* ui)
 {
 	//dcassert(m_is_delete_all_items == false);
+	int l_res_insert = -1;
 	if (m_is_ext_json_hub)
 	{
 		const auto l_gender = ui->getIdentity().getGenderType();
 		if (l_gender > 1)
 		{
-			m_ctrlUsers->insertItemState(ui, I_IMAGECALLBACK, ui->getIdentity().getGenderType());
+			l_res_insert = m_ctrlUsers->insertItemState(ui, I_IMAGECALLBACK, ui->getIdentity().getGenderType());
 		}
 		else
 		{
 			if (m_is_init_load_list_view)
-				m_ctrlUsers->insertItemLast(ui, I_IMAGECALLBACK, m_count_init_insert_list_view);
+				l_res_insert = m_ctrlUsers->insertItemLast(ui, I_IMAGECALLBACK, m_count_init_insert_list_view);
 			else
-				m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
+				l_res_insert = m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
 		}
 	}
 	else
 	{
 		if (m_is_init_load_list_view)
-			m_ctrlUsers->insertItemLast(ui, I_IMAGECALLBACK, m_count_init_insert_list_view);
+			l_res_insert = m_ctrlUsers->insertItemLast(ui, I_IMAGECALLBACK, m_count_init_insert_list_view);
 		else
-			m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
+			l_res_insert = m_ctrlUsers->insertItem(ui, I_IMAGECALLBACK);
 	}
+	dcassert(l_res_insert != -1);
 }
 void HubFrame::InsertUserList(UserInfo* ui) // [!] IRainman opt.
 {

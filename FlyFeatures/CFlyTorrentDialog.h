@@ -21,10 +21,13 @@
 
 
 #include "PropertyList.h"
+#include "libtorrent/announce_entry.hpp"
+#include "libtorrent/hex.hpp"
+#include "../windows/WinUtil.h"
 
 #define WM_INIT_TORRENT_TREE WM_USER + 100
 
-//typedef std::vector< std::pair<tstring, tstring> > TStringPairArray;
+typedef std::vector< std::pair<tstring, tstring> > TStringPairArray;
 
 #define FLYLINKDC_USE_RESIZE_DLG
 class CFlyTorrentDialog :
@@ -34,21 +37,35 @@ class CFlyTorrentDialog :
 #endif
 {
 	public:
-//		TStringPairArray m_MediaInfo;
-//		TStringPairArray m_FileInfo;
-//		TStringPairArray m_MIInform;
+		TStringPairArray m_FileInfo;
 	private:
-		CPropertyListCtrl m_ctlList;
+		CPropertyListCtrl m_torrentPropertyList;
         CTreeViewCtrl m_ctrlTree;
         CContainedWindow m_treeContainer;
         HTREEITEM m_htiRoot;
+		std::shared_ptr<const libtorrent::torrent_info> m_ti;
 	public:
 		CFlyTorrentFileArray m_files;
 		std::vector<int> m_selected_files;
         enum { IDD = IDD_FLY_TORRENT_DIALOG };
-        CFlyTorrentDialog(const CFlyTorrentFileArray& p_files):m_files(p_files)
+        CFlyTorrentDialog(const CFlyTorrentFileArray& p_files, std::shared_ptr<const libtorrent::torrent_info> p_ti):
+			 m_files(p_files),m_ti(p_ti)
         {
         }
+private:
+		void addArray(const TCHAR* p_name, const TStringPairArray& p_array)
+		{
+			if (!p_array.empty())
+			{
+				m_torrentPropertyList.AddItem(PropCreateCategory(p_name));
+				for (auto i = p_array.begin(); i != p_array.end(); ++i)
+				{
+					if (!i->second.empty())
+						m_torrentPropertyList.AddItem(PropCreateSimple(i->first.c_str(), i->second.c_str()));
+				}
+			}
+		}
+
 		BEGIN_MSG_MAP(CFlyTorrentDialog)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_CLOSE, OnClose)
@@ -57,6 +74,7 @@ class CFlyTorrentDialog :
 
         COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
+		COMMAND_ID_HANDLER(IDC_TORRENT_DOWNLOAD_DIR_CHANGE, onClickedBrowseDir)
 #ifdef FLYLINKDC_USE_RESIZE_DLG
         REFLECT_NOTIFICATIONS()
         CHAIN_MSG_MAP(CDialogResize<CFlyTorrentDialog>)
@@ -66,29 +84,46 @@ class CFlyTorrentDialog :
 #ifdef FLYLINKDC_USE_RESIZE_DLG
 		BEGIN_DLGRESIZE_MAP(CFlyTorrentDialog)
 		DLGRESIZE_CONTROL(IDC_FLY_TORRENT_INFO_LISTBOX, DLSZ_SIZE_X)
+		DLGRESIZE_CONTROL(IDC_FLY_TORRENT_INFO_LISTBOX, DLSZ_MOVE_Y)
         DLGRESIZE_CONTROL(IDC_TORRENT_FILES, DLSZ_SIZE_X)
-            
+		DLGRESIZE_CONTROL(IDC_TORRENT_FILES, DLSZ_SIZE_Y)
+
 		DLGRESIZE_CONTROL(IDCANCEL, DLSZ_MOVE_X | DLSZ_MOVE_Y)
 		DLGRESIZE_CONTROL(IDOK, DLSZ_MOVE_X | DLSZ_MOVE_Y)		
 		END_DLGRESIZE_MAP()
 #endif
-
-	private:	
-		/*
-        void addArray(const TCHAR* p_name, const TStringPairArray& p_array)
+public:
+		tstring m_dir;
+private:
+		tstring getDir()
 		{
-			if (!p_array.empty())
+			m_dir.clear();
+			m_dir.resize(::GetWindowTextLength(GetDlgItem(IDC_TORRENT_DOWNLOAD_DIR)));
+			if (m_dir.size())
 			{
-				m_ctlList.AddItem(PropCreateCategory(p_name));
-				for (auto i = p_array.begin(); i != p_array.end(); ++i)
+				GetDlgItemText(IDC_TORRENT_DOWNLOAD_DIR, &m_dir[0], m_dir.size() + 1);
+				AppendPathSeparator(m_dir);
+				SetDlgItemText(IDC_TORRENT_DOWNLOAD_DIR, m_dir.c_str());
+			}
+			return m_dir;
+		}
+
+		LRESULT onClickedBrowseDir(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+		{
+			tstring dir = getDir();
+			if (dir.size())
+			{
+				if (WinUtil::browseDirectory(dir, m_hWnd))
 				{
-					if (!i->second.empty())
-						m_ctlList.AddItem(PropCreateSimple(i->first.c_str(), i->second.c_str()));
+					AppendPathSeparator(dir);
+					SetDlgItemText(IDC_TORRENT_DOWNLOAD_DIR, dir.c_str());
+					m_dir = dir;
 				}
 			}
+			return 0;
 		}
-        */
-        LRESULT OnClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
+
+		LRESULT OnClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
         {
             const DWORD dwPos = GetMessagePos();
             POINT ptPos;
@@ -118,44 +153,76 @@ class CFlyTorrentDialog :
             bHandled = FALSE;
             return 0;
         }
-        LRESULT onInitTorrentTree(UINT, WPARAM, LPARAM, BOOL&)
-        {
-            m_ctrlTree.SetWindowLong(GWL_STYLE, m_ctrlTree.GetWindowLong(GWL_STYLE) | TVS_CHECKBOXES);
-            m_htiRoot = m_ctrlTree.InsertItem(_T("Torrent files:"), TVI_ROOT, TVI_LAST);
-            //m_ctrlTree.ModifyStyle(0, TVS_CHECKBOXES);
-            m_ctrlTree.SetCheckState(m_htiRoot, TRUE);
-            //SetChecked(m_htiRoot, true, 0);
-            int j = 0;
-            for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
-            {
-                HTREEITEM l_item = m_ctrlTree.InsertItem(Text::toT(i->m_file_path + " (" + Util::formatBytes(i->m_size) +")").c_str(), m_htiRoot, TVI_LAST);
-                m_ctrlTree.SetCheckState(l_item, TRUE);
-                m_ctrlTree.SetItemData(l_item, j++);
-            }
-            m_ctrlTree.Expand(m_htiRoot);
-            //m_ctrlTree.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_TORRENT_FILES);
-            //WinUtil::SetWindowThemeExplorer(m_ctrlTree.m_hWnd);
-            //m_ctrlTree.SetBkColor(Colors::g_bgColor);
-            //m_ctrlTree.SetTextColor(Colors::g_textColor);
+		LRESULT onInitTorrentTree(UINT, WPARAM, LPARAM, BOOL&)
+		{
+			m_ctrlTree.SetWindowLong(GWL_STYLE, m_ctrlTree.GetWindowLong(GWL_STYLE) | TVS_CHECKBOXES);
+			m_htiRoot = m_ctrlTree.InsertItem(_T("Torrent files:"), TVI_ROOT, TVI_LAST);
+			//m_ctrlTree.ModifyStyle(0, TVS_CHECKBOXES);
+			m_ctrlTree.SetCheckState(m_htiRoot, TRUE);
+			//SetChecked(m_htiRoot, true, 0);
+			int j = 0;
+			for (auto i = m_files.cbegin(); i != m_files.cend(); ++i)
+			{
+				HTREEITEM l_item = m_ctrlTree.InsertItem(Text::toT(i->m_file_path + " (" + Util::formatBytes(i->m_size) + ")").c_str(), m_htiRoot, TVI_LAST);
+				m_ctrlTree.SetCheckState(l_item, TRUE);
+				m_ctrlTree.SetItemData(l_item, j++);
+			}
+			m_ctrlTree.Expand(m_htiRoot);
 
-            //m_ctlList.m_bReadOnly = TRUE;
-            //addArray(_T("FileInfo"), m_FileInfo);
-            //addArray(_T("MediaInfo"), m_MediaInfo);
+			// m_torrentPropertyList.m_bReadOnly = TRUE;
+			TStringPairArray l_info;
+
+			if (m_ti->creation_date() > 0) {
+				char buf[50];
+				auto l_time = m_ti->creation_date();
+				tm* l_loc = localtime(&l_time);
+				if (l_loc && strftime(buf, 21, "%Y-%m-%d %H:%M:%S", l_loc))
+					l_info.push_back({ _T("Creation date"), Text::toT(buf) });
+			}
+
+			if (!m_ti->creator().empty()) l_info.push_back({ _T("Creator"), Text::toT(m_ti->creator()) });
+			if (!m_ti->comment().empty()) l_info.push_back({ _T("Comment"), Text::toT(m_ti->comment()) });
+			l_info.push_back({ _T("Info hash"), Text::toT(lt::aux::to_hex(m_ti->info_hash())) });
+			addArray(_T("Info"), l_info);
+			l_info.clear();
+
+			for (auto const& n : m_ti->nodes())
+				l_info.push_back({ Text::toT(n.first), Util::toStringT(n.second) });
+			addArray(_T("Nodes"), l_info);
+			l_info.clear();
+
+			for (auto const& t : m_ti->trackers())
+				l_info.push_back({ Text::toT(t.trackerid), Text::toT(t.url) });
+			l_info.clear();
+			addArray(_T("Trackers"), l_info);
+
+			TStringPairArray l_web_sed_info;
+			TStringPairArray l_http_sed_info;
+			for (auto const& s : m_ti->web_seeds())
+			{
+			if (s.type == lt::web_seed_entry::url_seed)
+			l_web_sed_info.push_back({ _T(""), Text::toT(s.url) });
+			else if (s.type == lt::web_seed_entry::http_seed)
+			l_http_sed_info.push_back({ _T(""), Text::toT(s.url) });
+			}
+			addArray(_T("web seed"), l_web_sed_info);
+			addArray(_T("http seed"), l_http_sed_info);
+
             return 0;
         }
             
 		LRESULT OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 		{
 			CenterWindow();
-			m_ctlList.SubclassWindow(GetDlgItem(IDC_FLY_TORRENT_INFO_LISTBOX));
-			m_ctlList.SetExtendedListStyle(PLS_EX_CATEGORIZED);
-			m_ctlList.SetColumnWidth(100);
+			m_torrentPropertyList.SubclassWindow(GetDlgItem(IDC_FLY_TORRENT_INFO_LISTBOX));
+			m_torrentPropertyList.SetExtendedListStyle(PLS_EX_CATEGORIZED);
+			m_torrentPropertyList.SetColumnWidth(100);
             
-            ::EnableWindow(GetDlgItem(IDC_TORRENT_DOWNLOAD_DIR_CHANGE), FALSE);
-            ::EnableWindow(GetDlgItem(IDC_TORRENT_DOWNLOAD_DIR), FALSE);
+            //::EnableWindow(GetDlgItem(IDC_TORRENT_DOWNLOAD_DIR_CHANGE), FALSE);
+            //::EnableWindow(GetDlgItem(IDC_TORRENT_DOWNLOAD_DIR), FALSE);
                 
              m_ctrlTree.Attach(GetDlgItem(IDC_TORRENT_FILES));
-             ::SetWindowText(GetDlgItem(IDC_TORRENT_DOWNLOAD_DIR), Text::toT(SETTING(DOWNLOAD_DIRECTORY)).c_str());
+             ::SetWindowText(GetDlgItem(IDC_TORRENT_DOWNLOAD_DIR), Text::toT(SETTING(DOWNLOAD_DIRECTORY)).c_str()); // TODO -
 #ifdef FLYLINKDC_USE_RESIZE_DLG
              DlgResize_Init();
 #endif
@@ -172,6 +239,7 @@ class CFlyTorrentDialog :
 		{
 			if (wID == IDOK)
 			{
+				getDir();
                 m_selected_files.resize(m_files.size());
                 for (HTREEITEM child = m_ctrlTree.GetChildItem(m_htiRoot); child != NULL; child = m_ctrlTree.GetNextSiblingItem(child))
                 {

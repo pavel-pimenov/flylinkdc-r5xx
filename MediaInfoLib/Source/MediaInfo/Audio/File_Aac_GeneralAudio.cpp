@@ -362,6 +362,7 @@ void File_Aac::raw_data_block()
 
         #if MEDIAINFO_TRACE
             bool Trace_Activated_Save=Trace_Activated;
+            if (id_syn_ele!=0x05)
             Trace_Activated=false; //It is too big, disabling trace for now for full AAC parsing
         #endif //MEDIAINFO_TRACE
 

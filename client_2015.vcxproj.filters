@@ -1196,6 +1196,9 @@
     <Filter Include="Source Files\syslog">
       <UniqueIdentifier>{dffc505f-b950-4afe-b0c9-fc5b67a232a0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\selene">
+      <UniqueIdentifier>{b769fbea-470d-4491-9a00-40028bb8cc41}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="client\StringDefs.h">

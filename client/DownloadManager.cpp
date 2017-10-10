@@ -709,14 +709,14 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& p_reas
 	
 	if (d)
 	{
-		const string l_path = d->getPath();
+		const std::string l_path = d->getPath();
 		removeDownload(d);
 		fly_fire2(DownloadManagerListener::Failed(), d, p_reason);
 		
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 		if (d->isSet(Download::FLAG_USER_CHECK))
 		{
-			if (reason == STRING(DISCONNECTED))
+			if (p_reason == STRING(DISCONNECTED))
 			{
 				ClientManager::fileListDisconnected(aSource->getUser());
 			}
@@ -729,8 +729,25 @@ void DownloadManager::failDownload(UserConnection* aSource, const string& p_reas
 		d->m_reason = p_reason;
 		QueueManager::getInstance()->putDownload(l_path, d, false);
 	}
+#ifdef _DEBUG
+	LogManager::message("DownloadManager::failDownload p_reason =" + p_reason);
+#endif // _DEBUG
 	
 	removeConnection(aSource);
+	/*
+	    if (!QueueManager::g_userQueue.getRunning(aSource->getUser()))
+	        //p_reason.find(STRING(TARGET_REMOVED)) == std::string::npos) // TODO Check UserPtr
+	    {
+	        removeConnection(aSource);
+	    }
+	    else
+	    {
+	#ifdef _DEBUG
+	        LogManager::message("DownloadManager::failDownload SKIP removeConnection!!!!!");
+	#endif // _DEBUG
+	    }
+	*/
+	
 }
 
 void DownloadManager::removeConnection(UserConnection* p_conn, bool p_is_remove_listener /* = true */)
@@ -755,8 +772,12 @@ void DownloadManager::removeDownload(const DownloadPtr& d)
 			{
 				d->getDownloadFile()->flushBuffers(false);
 			}
-			catch (const Exception&)
+			catch (const Exception& e)
 			{
+#ifdef _DEBUG
+				dcassert(0);
+				LogManager::message("DownloadManager::removeDownload error =" + string(e.what()));
+#endif // _DEBUG
 			}
 		}
 	}
@@ -947,8 +968,9 @@ void DownloadManager::select_files(const libtorrent::torrent_handle& p_torrent_h
 #endif
 		}
 		p_torrent_handle.unset_flags(lt::torrent_flags::auto_managed);
+		const auto l_torrent_info = p_torrent_handle.torrent_file();
 		p_torrent_handle.pause();
-		fly_fire2(DownloadManagerListener::SelectTorrent(), l_file->info_hash(), l_files);
+		fly_fire3(DownloadManagerListener::SelectTorrent(), l_file->info_hash(), l_files, l_torrent_info);
 	}
 }
 void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion)
@@ -1032,6 +1054,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 					}
 					if (const auto l_delete = lt::alert_cast<lt::torrent_delete_failed_alert>(a))
 					{
+						dcassert(0);
 						LogManager::torrent_message("torrent_delete_failed_alert: " + a->message());
 					}
 					if (const auto l_delete = lt::alert_cast<lt::torrent_deleted_alert>(a))
@@ -1057,6 +1080,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 					}
 					if (const auto l_rename = lt::alert_cast<lt::file_rename_failed_alert>(a))
 					{
+						dcassert(0);
 						LogManager::torrent_message("file_rename_failed_alert: " + a->message() +
 						                            " error = " + Util::toString(l_rename->error.value()), true);
 						if (!--m_torrent_rename_count)
@@ -1096,7 +1120,10 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 						const auto l_size = l_files.file_size(l_a->index);
 						const auto l_file_name = l_files.file_name(l_a->index).to_string();
 						//const auto l_file_path = l_files.file_path(l_a->index);
-						auto l_full_file_path = SETTING(DOWNLOAD_DIRECTORY) + l_files.file_path(l_a->index);
+						
+						const torrent_status st = l_a->handle.status(torrent_handle::query_save_path);
+						
+						auto l_full_file_path = st.save_path + l_files.file_path(l_a->index);
 						auto const l_is_tmp = l_full_file_path.find_last_of(".!fl");
 						if (l_is_tmp != std::string::npos && l_is_tmp > 3)
 						{
@@ -1138,6 +1165,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 					}
 					if (const auto l_a = lt::alert_cast<lt::add_torrent_alert>(a))
 					{
+						++m_torrent_resume_count;
 						auto l_name = l_a->handle.status(torrent_handle::query_name);
 						LogManager::torrent_message("Add torrent: " + l_name.name);
 						m_torrents.insert(l_a->handle);
@@ -1174,6 +1202,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 					
 					if (const auto l_a = lt::alert_cast<save_resume_data_failed_alert>(a))
 					{
+						dcassert(0);
 						dcassert(m_torrent_resume_count > 0);
 						--m_torrent_resume_count;
 						LogManager::torrent_message("save_resume_data_failed_alert: " + l_a->message() + " info:" + std::string(a->what()), true);
@@ -1300,7 +1329,8 @@ int DownloadManager::listen_torrent_port()
 	}
 	return 0;
 }
-bool DownloadManager::set_file_priority(const libtorrent::sha1_hash& p_sha1, const CFlyTorrentFileArray& p_files, const std::vector<int>& p_file_priority)
+bool DownloadManager::set_file_priority(const libtorrent::sha1_hash& p_sha1, const CFlyTorrentFileArray& p_files,
+                                        const std::vector<int>& p_file_priority, const std::string& p_save_path)
 {
 	if (m_torrent_session)
 	{
@@ -1310,6 +1340,11 @@ bool DownloadManager::set_file_priority(const libtorrent::sha1_hash& p_sha1, con
 			const auto l_h = m_torrent_session->find_torrent(p_sha1);
 			if (l_h.is_valid())
 			{
+				const torrent_status st = l_h.status(torrent_handle::query_save_path);
+				if (p_save_path != st.save_path)
+				{
+					l_h.move_storage(p_save_path);
+				}
 				l_h.prioritize_files(p_file_priority);
 				for (int i = 0; i < p_files.size(); i++)
 				{
@@ -1399,7 +1434,7 @@ bool DownloadManager::add_torrent_file(const tstring& p_torrent_path, const tstr
 		lt::error_code ec;
 		lt::add_torrent_params p;
 		p.save_path = SETTING(DOWNLOAD_DIRECTORY);
-//		auto renamed_files = p.renamed_files; // ".!fl" ?
+// TODO     auto renamed_files = p.renamed_files; // ".!fl" ?
 		p.storage_mode = storage_mode_sparse;
 		if (!p_torrent_path.empty())
 		{

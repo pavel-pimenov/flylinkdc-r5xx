@@ -722,7 +722,6 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 			if (!u->getUser()->isSet(User::NMDC_SEARCH_PASSIVE))
 			{
 				u->getUser()->setFlag(User::NMDC_SEARCH_PASSIVE);
-				//updatedMyINFO(u); // Обновлять не нужно - используется только в отчете по юзеру
 			}
 			// [~] IRainman fix.
 			
@@ -996,7 +995,6 @@ void NmdcHub::chatMessageParse(const string& p_line)
 		{
 			chatMessage->m_from = l_user; ////getUser(nick, false, false); // Тут внутри снова идет поиск findUser(nick)
 			chatMessage->m_from->getIdentity().setHub();
-			//updatedMyINFO(chatMessage->m_from);
 		}
 	}
 	if (!isSupressChatAndPM())
@@ -1244,11 +1242,8 @@ void NmdcHub::helloParse(const string& param)
 				version();
 				getNickList();
 				myInfo(true);
-				// [-] IRainman.
-				//SetEvent(m_hEventClientInitialized);
 			}
 		}
-		// updatedMyINFO(ou);
 	}
 }
 //==========================================================================================
@@ -1662,7 +1657,7 @@ void NmdcHub::toParse(const string& param)
 	if (l_user_for_message == nullptr)
 	{
 #ifdef FLYLINKDC_BETA
-	//	LogManager::speak_status_message("NmdcHub::toParse $To: invalid user: rtNick = " + rtNick + " param = " + param + " Hub = " + getHubUrl());
+		//  LogManager::speak_status_message("NmdcHub::toParse $To: invalid user: rtNick = " + rtNick + " param = " + param + " Hub = " + getHubUrl());
 #endif
 		// return; // todo: here we dont get private message from unknown user
 	}
@@ -1677,14 +1672,12 @@ void NmdcHub::toParse(const string& param)
 			// Assume it's from the hub
 			message->m_replyTo = getUser(rtNick, false, false); // [!] IRainman fix: use OnlineUserPtr
 			message->m_replyTo->getIdentity().setHub();
-			//[-] updatedMyINFO(message->m_replyTo); // TODO ??
 		}
 		if (message->m_from == nullptr)
 		{
 			// Assume it's from the hub
 			message->m_from = getUser(fromNick, false, false); // [!] IRainman fix: use OnlineUserPtr
 			message->m_from->getIdentity().setHub();
-			//[-] updatedMyINFO(message->m_from); // TODO ??
 		}
 		
 		// Update pointers just in case they've been invalidated
@@ -1703,11 +1696,11 @@ void NmdcHub::toParse(const string& param)
 	}
 	if (!allowPrivateMessagefromUser(*message)) // [+] IRainman fix.
 	{
-			if (message->m_from && message->m_from->getUser())
-			{
-				logPM(message->m_from->getUser(), message->m_text, getHubUrl());
-			}
-			return;
+		if (message->m_from && message->m_from->getUser())
+		{
+			logPM(message->m_from->getUser(), message->m_text, getHubUrl());
+		}
+		return;
 	}
 	
 	fly_fire2(ClientListener::Message(), this, message); // [+]
@@ -1894,7 +1887,7 @@ void NmdcHub::onLine(const string& aLine)
 		dcassert(m_client_sock);
 		if (m_client_sock)
 			m_client_sock->disconnect(false);
-		fly_fire( ClientListener::NickTaken() );
+		fly_fire(ClientListener::NickTaken());
 		//m_count_validate_denide++;
 	}
 	else if (cmd == "UserIP")
@@ -3251,7 +3244,7 @@ void NmdcHub::on(BufferedSocketListener::Failed, const string& aLine) noexcept
 void NmdcHub::RequestConnectionForAutodetect()
 {
 	const unsigned c_MAX_CONNECTION_REQUESTS_COUNT = 3;
-
+	
 	if (m_bAutodetectionPending && m_iRequestCount < c_MAX_CONNECTION_REQUESTS_COUNT)
 	{
 		bool bWantAutodetect = false;

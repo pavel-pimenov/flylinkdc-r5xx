@@ -39,6 +39,7 @@ class TokenManager
 		bool addToken(const string& aToken) noexcept;
 		bool isToken(const string& aToken) noexcept;
 		void removeToken(const string& aToken) noexcept;
+		unsigned countToken() noexcept;
 		~TokenManager()
 		{
 #ifdef _DEBUG

@@ -193,7 +193,9 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  COMPRESS_TRANSFERS, SHOW_PROGRESS_BARS, MAX_TAB_ROWS,
 		                  MAX_COMPRESSION, ANTI_FRAG, ANTI_FRAG_MAX, MDI_MAXIMIZED,
 		                  // [-] NO_AWAYMSG_TO_BOTS, [-] IRainman fix.
-		                  SKIP_ZERO_BYTE, ADLS_BREAK_ON_FIRST,
+		                  SKIP_ZERO_BYTE,
+			              SKIP_ALREADY_DOWNLOADED_FILES, 
+			              ADLS_BREAK_ON_FIRST,
 		                  HUB_USER_COMMANDS,
 		                  SEND_BLOOM,
 		                  AUTO_SEARCH_AUTO_MATCH, DOWNLOAD_BAR_COLOR, UPLOAD_BAR_COLOR, LOG_SYSTEM,

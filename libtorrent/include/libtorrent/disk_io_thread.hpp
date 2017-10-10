@@ -531,7 +531,6 @@ namespace aux {
 		// disk cache
 		mutable std::mutex m_cache_mutex;
 		block_cache m_disk_cache;
-		void try_evict_blocks(int const len);
 		enum
 		{
 			cache_check_idle,

@@ -1453,6 +1453,7 @@
 	<string name="SettingsShowShellMenu">Show shell menu in finished transfers</string>
 	<string name="SettingsSkiplistShare">Share skiplist (wildcard: *, separator: ;)</string>
 	<string name="SettingsSkipZeroByte">Skip zero-byte files</string>
+	<string name="SettingsSkipAlreadyDownloadedFiles">Skip already downloaded files</string>
 	<string name="SettingsSocketInBuffer">Socket read buffer</string>
 	<string name="SettingsSocketOutBuffer">Socket write buffer</string>
 	<string name="SettingsSocks5">SOCKS5</string>
@@ -1681,6 +1682,7 @@
 	<string name="TrayLimiter">Limit transfer speeds</string>
 	<string name="TrustedCertificatesPath">Trusted certificates path</string>
 	<string name="TthAlreadyShared">A file with the same hash already exists in your share</string>
+	<string name="TthAlreadyDownloadeded">A file with the same hash already donloaded</string>
 	<string name="TthInconsistency">TTH Inconsistency</string>
 	<string name="TthRoot">TTH Root</string>
 	<string name="TthRootOrTorrentMagnet">TTH or torrent magnet</string>

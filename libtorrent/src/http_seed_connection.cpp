@@ -274,15 +274,14 @@ namespace libtorrent {
 				// if the status code is not one of the accepted ones, abort
 				if (!is_ok_status(m_parser.status_code()))
 				{
-					int retry_time = atoi(m_parser.header("retry-after").c_str());
-					if (retry_time <= 0) retry_time = 5 * 60;
+					int const retry_time = m_parser.header_uint("retry-after", 5 * 60);
 					// temporarily unavailable, retry later
 					t->retry_web_seed(this, retry_time);
 
-					std::string error_msg = to_string(m_parser.status_code()).data()
-						+ (" " + m_parser.message());
 					if (t->alerts().should_post<url_seed_alert>())
 					{
+						std::string const error_msg = to_string(m_parser.status_code()).data()
+							+ (" " + m_parser.message());
 						t->alerts().emplace_alert<url_seed_alert>(t->get_handle(), url()
 							, error_msg);
 					}

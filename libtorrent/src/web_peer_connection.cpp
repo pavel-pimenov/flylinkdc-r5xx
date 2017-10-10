@@ -578,14 +578,13 @@ void web_peer_connection::handle_error(int const bytes_left)
 	// associated with the file we just requested. Only
 	// when it doesn't have any of the file do the following
 	// pad files will make it complicated
-	int retry_time = atoi(m_parser.header("retry-after").c_str());
-	if (retry_time <= 0) retry_time = m_settings.get_int(settings_pack::urlseed_wait_retry);
+	int const retry_time = m_parser.header_uint("retry-after", m_settings.get_int(settings_pack::urlseed_wait_retry));
 	// temporarily unavailable, retry later
 	t->retry_web_seed(this, retry_time);
-	std::string error_msg = to_string(m_parser.status_code()).data()
-		+ (" " + m_parser.message());
 	if (t->alerts().should_post<url_seed_alert>())
 	{
+		std::string const error_msg = to_string(m_parser.status_code()).data()
+			+ (" " + m_parser.message());
 		t->alerts().emplace_alert<url_seed_alert>(t->get_handle(), m_url
 			, error_msg);
 	}

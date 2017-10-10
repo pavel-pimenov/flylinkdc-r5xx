@@ -101,7 +101,11 @@ bool TokenManager::addToken(const string& aToken) noexcept
 #endif
 	return false;
 }
-
+unsigned TokenManager::countToken() noexcept
+{
+	CFlyFastLock(m_cs);
+	return m_tokens.size();
+}
 void TokenManager::removeToken(const string& aToken) noexcept
 {
 	CFlyFastLock(m_cs);
@@ -1776,8 +1780,8 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 				cqi->setErrors(protocolError ? -1 : (cqi->getErrors() + 1));
 				l_error_download.m_hinted_user = cqi->getHintedUser();
 				l_error_download.m_reason = aError;
-				//l_error_download.m_token = cqi->getConnectionQueueToken();
-				putCQI_L(cqi);
+				l_error_download.m_token = cqi->getConnectionQueueToken();
+				//!!! putCQI_L(cqi); не делаем отключение - теряем докачку https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1679
 			}
 		}
 		else if (aSource->isSet(UserConnection::FLAG_UPLOAD))

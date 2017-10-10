@@ -443,7 +443,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 		void on(ClientListener::UserShareUpdated, const OnlineUserPtr&) noexcept override;
 #endif
-		//void on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr&) noexcept override; // !SMT!-fix
+		void on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr&) noexcept override; // !SMT!-fix
 		void on(ClientListener::UsersUpdated, const Client*, const OnlineUserList&) noexcept override;
 		void on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr&) noexcept override;
 		void on(ClientListener::Redirect, const Client*, const string&) noexcept override;

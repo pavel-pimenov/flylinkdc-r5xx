@@ -104,10 +104,10 @@ void zap_client_t::send_zap_request (const char *mechanism,
     rc = session->write_zap_msg (&msg);
     errno_assert (rc == 0);
 
-    //  Identity frame
-    rc = msg.init_size (options.identity_size);
+    //  Routing id frame
+    rc = msg.init_size (options.routing_id_size);
     errno_assert (rc == 0);
-    memcpy (msg.data (), options.identity, options.identity_size);
+    memcpy (msg.data (), options.routing_id, options.routing_id_size);
     msg.set_flags (msg_t::more);
     rc = session->write_zap_msg (&msg);
     errno_assert (rc == 0);
@@ -299,10 +299,7 @@ void zap_client_common_handshake_t::handle_zap_status_code ()
 
 int zap_client_common_handshake_t::receive_and_process_zap_reply ()
 {
-    int rc = zap_client_t::receive_and_process_zap_reply ();
-    if (rc == 1)
-        // TODO shouldn't the state already be this?
-        state = waiting_for_zap_reply;
-    return rc;
+    zmq_assert (state == waiting_for_zap_reply);
+    return zap_client_t::receive_and_process_zap_reply ();
 }
 }

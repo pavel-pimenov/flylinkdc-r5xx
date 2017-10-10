@@ -537,7 +537,7 @@ namespace aux {
 		// a torrent_plugin instance.
 		void add_extension(
 			std::function<std::shared_ptr<torrent_plugin>(torrent_handle const&, void*)> const& ext
-			, void* userdata = 0);
+			, void* userdata = nullptr);
 
 		// ``set_metadata`` expects the *info* section of metadata. i.e. The
 		// buffer passed in will be hashed and verified against the info-hash. If
@@ -814,9 +814,7 @@ namespace aux {
 		// certificate in the .torrent file to be valid.
 		//
 		// The set_ssl_certificate_buffer() overload takes the actual certificate,
-		// private key and DH params as strings, rather than paths to files. This
-		// overload is only available when libtorrent is built against boost
-		// 1.54 or later.
+		// private key and DH params as strings, rather than paths to files.
 		//
 		// ``cert`` is a path to the (signed) certificate in .pem format
 		// corresponding to this torrent.

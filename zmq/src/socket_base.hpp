@@ -186,7 +186,7 @@ namespace zmq
         void process_destroy ();
 
         // Next assigned name on a zmq_connect() call used by ROUTER and STREAM socket types
-        std::string connect_rid;
+        std::string connect_routing_id;
 
     private:
         // test if event should be sent and then dispatch it        
@@ -250,6 +250,7 @@ namespace zmq
         void process_stop ();
         void process_bind (zmq::pipe_t *pipe_);
         void process_term (int linger_);
+        void process_term_endpoint (std::string *endpoint_);
 
         void update_pipe_options(int option_);
 

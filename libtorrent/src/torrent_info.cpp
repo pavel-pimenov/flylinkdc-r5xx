@@ -99,7 +99,7 @@ namespace libtorrent {
 		static const char invalid_chars[] = "/\\";
 #endif
 		if (c > 127) return false;
-		return std::strchr(invalid_chars, static_cast<char>(c)) != NULL;
+		return std::strchr(invalid_chars, static_cast<char>(c)) != nullptr;
 	}
 
 	} // anonymous namespace
@@ -176,9 +176,9 @@ namespace libtorrent {
 		if (element.size() == 1 && element[0] == '.') return;
 
 #ifdef TORRENT_WINDOWS
-#define TORRENT_SEPARATOR "\\"
+#define TORRENT_SEPARATOR '\\'
 #else
-#define TORRENT_SEPARATOR "/"
+#define TORRENT_SEPARATOR '/'
 #endif
 		path.reserve(path.size() + element.size() + 2);
 		int added_separator = 0;
@@ -389,8 +389,7 @@ namespace {
 		std::time_t const mtime = std::time_t(dict.dict_find_int_value("mtime", 0));
 
 		std::string path = root_dir;
-		char const* filename = nullptr;
-		int filename_len = 0;
+		string_view filename;
 
 		if (top_level)
 		{
@@ -404,9 +403,18 @@ namespace {
 				return false;
 			}
 
-			filename = p.string_ptr() + info_ptr_diff;
-			filename_len = p.string_length();
+			filename = { p.string_ptr() + info_ptr_diff
+				, static_cast<std::size_t>(p.string_length())};
+
+			while (!filename.empty() && filename.front() == TORRENT_SEPARATOR)
+				filename.remove_prefix(1);
+
 			sanitize_append_path_element(path, p.string_value());
+			if (path.empty())
+			{
+				ec = errors::torrent_missing_name;
+				return false;
+			}
 		}
 		else
 		{
@@ -424,8 +432,10 @@ namespace {
 					bdecode_node const e = p.list_at(i);
 					if (i == end - 1)
 					{
-						filename = e.string_ptr() + info_ptr_diff;
-						filename_len = e.string_length();
+						filename = {e.string_ptr() + info_ptr_diff
+							, static_cast<std::size_t>(e.string_length()) };
+						while (!filename.empty() && filename.front() == TORRENT_SEPARATOR)
+							filename.remove_prefix(1);
 					}
 					sanitize_append_path_element(path, e.string_value());
 				}
@@ -475,16 +485,14 @@ namespace {
 			file_flags &= ~file_storage::flag_symlink;
 		}
 
-		if (filename_len > int(path.length())
-			|| path.compare(path.size() - std::size_t(filename_len), std::size_t(filename_len), filename
-				, std::size_t(filename_len)) != 0)
+		if (filename.size() > path.length()
+			|| path.substr(path.size() - filename.size()) != filename)
 		{
 			// if the filename was sanitized and differ, clear it to just use path
-			filename = nullptr;
-			filename_len = 0;
+			filename = {};
 		}
 
-		files.add_file_borrow({filename, std::size_t(filename_len)}, path, file_size, file_flags, filehash
+		files.add_file_borrow(filename, path, file_size, file_flags, filehash
 			, mtime, symlink_path);
 		return true;
 	}
@@ -639,7 +647,7 @@ namespace {
 			{
 				p = parent_path(p);
 				// we don't want trailing slashes here
-				TORRENT_ASSERT(p[p.size() - 1] == *TORRENT_SEPARATOR);
+				TORRENT_ASSERT(p[p.size() - 1] == TORRENT_SEPARATOR);
 				p.resize(p.size() - 1);
 				files.insert(p);
 			}
@@ -944,14 +952,14 @@ namespace {
 		ptrdiff_t const info_ptr_diff = m_info_section.get() - section.data();
 
 		// extract piece length
-		int piece_length = int(info.dict_find_int_value("piece length", -1));
-		if (piece_length <= 0)
+		std::int64_t piece_length = info.dict_find_int_value("piece length", -1);
+		if (piece_length <= 0 || piece_length > std::numeric_limits<int>::max())
 		{
 			ec = errors::torrent_missing_piece_length;
 			return false;
 		}
 		file_storage files;
-		files.set_piece_length(piece_length);
+		files.set_piece_length(static_cast<int>(piece_length));
 
 		// extract file name (or the directory name if it's a multi file libtorrent)
 		bdecode_node name_ent = info.dict_find_string("name.utf-8");
@@ -995,11 +1003,41 @@ namespace {
 			}
 			m_flags |= multifile;
 		}
-		TORRENT_ASSERT(!files.name().empty());
+		if (files.num_files() == 0)
+		{
+			ec = errors::no_files_in_torrent;
+			// mark the torrent as invalid
+			m_files.set_piece_length(0);
+			return false;
+		}
+		if (files.num_files() == 0)
+		{
+			ec = errors::no_files_in_torrent;
+			// mark the torrent as invalid
+			m_files.set_piece_length(0);
+			return false;
+		}
+		if (files.name().empty())
+		{
+			ec = errors::torrent_missing_name;
+			// mark the torrent as invalid
+			m_files.set_piece_length(0);
+			return false;
+		}
 
 		// extract SHA-1 hashes for all pieces
 		// we want this division to round upwards, that's why we have the
 		// extra addition
+
+		if (files.total_size() >=
+			static_cast<boost::int64_t>(std::numeric_limits<int>::max()
+			- files.piece_length()) * files.piece_length())
+		{
+			ec = errors::too_many_pieces_in_torrent;
+			// mark the torrent as invalid
+			m_files.set_piece_length(0);
+			return false;
+		}
 
 		files.set_num_pieces(int((files.total_size() + files.piece_length() - 1)
 			/ files.piece_length()));
@@ -1009,6 +1047,15 @@ namespace {
 		if (!pieces && !root_hash)
 		{
 			ec = errors::torrent_missing_pieces;
+			// mark the torrent as invalid
+			m_files.set_piece_length(0);
+			return false;
+		}
+
+		// we expect the piece hashes to be < 2 GB in size
+		if (files.num_pieces() >= std::numeric_limits<int>::max() / 20)
+		{
+			ec = errors::too_many_pieces_in_torrent;
 			// mark the torrent as invalid
 			m_files.set_piece_length(0);
 			return false;
@@ -1034,13 +1081,6 @@ namespace {
 			if (root_hash.string_length() != 20)
 			{
 				ec = errors::torrent_invalid_hashes;
-				// mark the torrent as invalid
-				m_files.set_piece_length(0);
-				return false;
-			}
-			if (files.num_pieces() >= std::numeric_limits<int>::max() / 2)
-			{
-				ec = errors::too_many_pieces_in_torrent;
 				// mark the torrent as invalid
 				m_files.set_piece_length(0);
 				return false;

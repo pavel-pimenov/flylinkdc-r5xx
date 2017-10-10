@@ -270,7 +270,7 @@ namespace libtorrent {
 		// can be changed by calling ``set_name``.
 		void add_file_borrow(string_view filename
 			, std::string const& path, std::int64_t file_size
-			, file_flags_t file_flags = {}, char const* filehash = 0
+			, file_flags_t file_flags = {}, char const* filehash = nullptr
 			, std::int64_t mtime = 0, string_view symlink_path = string_view());
 		void add_file(std::string const& path, std::int64_t file_size
 			, file_flags_t file_flags = {}
@@ -284,7 +284,7 @@ namespace libtorrent {
 		TORRENT_DEPRECATED
 		void add_file_borrow(char const* filename, int filename_len
 			, std::string const& path, std::int64_t file_size
-			, file_flags_t file_flags = {}, char const* filehash = 0
+			, file_flags_t file_flags = {}, char const* filehash = nullptr
 			, std::int64_t mtime = 0, string_view symlink_path = string_view());
 		TORRENT_DEPRECATED
 		void add_file(file_entry const& fe, char const* filehash = nullptr);
@@ -509,6 +509,7 @@ namespace libtorrent {
 		// low-level function. returns a pointer to the internal storage for
 		// the filename. This string may not be 0-terminated!
 		// the ``file_name_len()`` function returns the length of the filename.
+		// prefer to use ``file_name()`` instead, which returns a ``string_view``.
 		char const* file_name_ptr(file_index_t index) const;
 		int file_name_len(file_index_t index) const;
 

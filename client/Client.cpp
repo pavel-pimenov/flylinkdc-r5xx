@@ -118,9 +118,6 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 	m_myOnlineUser = std::make_shared<OnlineUser> (l_my_user, *this, 0); // [+] IRainman fix.
 	m_hubOnlineUser = std::make_shared<OnlineUser>(l_hub_user, *this, AdcCommand::HUB_SID); // [+] IRainman fix.
 	
-	// [-] IRainman.
-	//m_hEventClientInitialized = CreateEvent(NULL, TRUE, FALSE, NULL);//[+]FlylinkDC
-	
 	string file, proto, query, fragment;
 	Util::decodeUrl(getHubUrl(), proto, m_address, m_port, file, query, fragment);
 	if (!query.empty())
@@ -153,8 +150,8 @@ Client::~Client()
 	}
 	updateCounts(true);
 	{
-		CFlyFastLock(m_fs_update_online_user);
-		m_update_online_user_deque.clear();
+		//CFlyFastLock(m_fs_update_online_user);
+		//m_update_online_user_deque.clear();
 	}
 }
 void Client::reset_socket()
@@ -496,8 +493,6 @@ void Client::on(Failed, const string& aLine) noexcept
 		m_client_sock->removeListener(this);
 		}
 	}
-// [-] IRainman.
-//SetEvent(m_hEventClientInitialized);
 	if (!ClientManager::isShutdown())
 	{
 		updateActivity();
@@ -630,7 +625,7 @@ bool Client::changeBytesSharedL(Identity& p_id, const int64_t p_bytes)
 
 void Client::fire_user_updated(const OnlineUserList& p_list)
 {
-	if (!p_list.empty() && !ClientManager::isShutdown())
+	if (!p_list.empty() && !ClientManager::isBeforeShutdown())
 	{
 		fly_fire2(ClientListener::UsersUpdated(), this, p_list);
 	}
@@ -640,9 +635,9 @@ void Client::updatedMyINFO(const OnlineUserPtr& aUser)
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
-		CFlyFastLock(m_fs_update_online_user);
-		m_update_online_user_deque.push_back(aUser);
-		// fly_fire1(ClientListener::UserUpdatedMyINFO(), aUser);
+		//CFlyFastLock(m_fs_update_online_user);
+		//m_update_online_user_deque.push_back(aUser);
+		fly_fire1(ClientListener::UserUpdatedMyINFO(), aUser);
 	}
 }
 

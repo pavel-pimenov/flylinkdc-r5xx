@@ -245,13 +245,15 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		void updatedMyINFO(const OnlineUserPtr& aUser);
 		
+		/*
 		std::deque<OnlineUserPtr> m_update_online_user_deque;
 		FastCriticalSection m_fs_update_online_user;
-		void getNewMyINFO(std::deque<OnlineUserPtr>&	p_ou_array)
+		void getNewMyINFO(std::deque<OnlineUserPtr>&    p_ou_array)
 		{
-			CFlyFastLock(m_fs_update_online_user);
-			p_ou_array.swap(m_update_online_user_deque);
+		    CFlyFastLock(m_fs_update_online_user);
+		    p_ou_array.swap(m_update_online_user_deque);
 		}
+		*/
 		static int getTotalCounts()
 		{
 			return g_counts[COUNT_NORMAL] + g_counts[COUNT_REGISTERED] + g_counts[COUNT_OP];
@@ -567,11 +569,6 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		SearchQueue m_searchQueue;
 		BufferedSocket* m_client_sock;
 		void reset_socket(); //[+]FlylinkDC++ Team
-		
-		// [+] brain-ripper
-		// initialization event, to delay processing of command line
-		// until client is initialized
-		//HANDLE m_hEventClientInitialized; [-] IRainman.
 		
 		// [+] brain-ripper
 		// need to protect socket:

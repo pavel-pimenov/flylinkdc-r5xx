@@ -34,9 +34,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 #include <algorithm>
 #include <cstdlib>
+#include <cinttypes>
 
 #include "libtorrent/config.hpp"
 #include "libtorrent/http_parser.hpp"
+#include "libtorrent/hex.hpp" // for hex_to_int
 #include "libtorrent/assert.hpp"
 #include "libtorrent/parse_url.hpp" // for parse_url_components
 #include "libtorrent/string_util.hpp" // for ensure_trailing_slash, to_lower
@@ -256,7 +258,7 @@ restart_response:
 				while (separator < line.size()
 					&& (line[separator] == ' ' || line[separator] == '\t'))
 					++separator;
-				std::string value = line.substr(separator, std::string::npos);
+				std::string const value = line.substr(separator, std::string::npos);
 				m_header.insert(std::make_pair(name, value));
 
 				if (name == "content-length")
@@ -368,15 +370,13 @@ restart_response:
 						if (chunk_size == 0)
 						{
 							m_finished = true;
-							TORRENT_ASSERT(m_content_length < 0 || m_recv_pos - m_body_start_pos
-								- m_chunk_header_size == m_content_length);
 						}
 						header_size -= m_partial_chunk_header;
 						m_partial_chunk_header = 0;
-//						std::fprintf(stderr, "parse_chunk_header(%d, -> %d, -> %d) -> %d\n"
-//							"  incoming = %d\n  m_recv_pos = %d\n  m_cur_chunk_end = %d\n"
+//						std::fprintf(stderr, "parse_chunk_header(%d, -> %" PRId64 ", -> %d) -> %d\n"
+//							"  incoming = %d\n  m_recv_pos = %d\n  m_cur_chunk_end = %" PRId64 "\n"
 //							"  content-length = %d\n"
-//							, buf.size(), int(chunk_size), header_size, 1, incoming, int(m_recv_pos)
+//							, int(buf.size()), chunk_size, header_size, 1, incoming, int(m_recv_pos)
 //							, m_cur_chunk_end, int(m_content_length));
 					}
 					else
@@ -384,10 +384,10 @@ restart_response:
 						m_partial_chunk_header += incoming;
 						header_size = incoming;
 
-//						std::fprintf(stderr, "parse_chunk_header(%d, -> %d, -> %d) -> %d\n"
-//							"  incoming = %d\n  m_recv_pos = %d\n  m_cur_chunk_end = %d\n"
+//						std::fprintf(stderr, "parse_chunk_header(%d, -> %" PRId64 ", -> %d) -> %d\n"
+//							"  incoming = %d\n  m_recv_pos = %d\n  m_cur_chunk_end = %" PRId64 "\n"
 //							"  content-length = %d\n"
-//							, buf.size(), int(chunk_size), header_size, 0, incoming, int(m_recv_pos)
+//							, int(buf.size()), chunk_size, header_size, 0, incoming, int(m_recv_pos)
 //							, m_cur_chunk_end, int(m_content_length));
 					}
 					m_chunk_header_size += header_size;
@@ -428,6 +428,9 @@ restart_response:
 		return ret;
 	}
 
+	// this function signals error by assigning a negative value to "chunk_size"
+	// the return value indicates whether enough data is available in "buf" to
+	// completely parse the chunk header. Returning false means we need more data
 	bool http_parser::parse_chunk_header(span<char const> buf
 		, std::int64_t* chunk_size, int* header_size)
 	{
@@ -452,15 +455,36 @@ restart_response:
 		// there are extra tail headers, which is terminated by an
 		// empty line
 
+		*header_size = int(newline - buf.data());
+
 		// first, read the chunk length
-		*chunk_size = std::strtoll(pos, nullptr, 16);
-		if (*chunk_size < 0) return true;
+		std::int64_t size = 0;
+		for (char const* i = pos; i != newline; ++i)
+		{
+			if (*i == '\r') continue;
+			if (*i == '\n') continue;
+			if (*i == ';') break;
+			int const digit = aux::hex_to_int(*i);
+			if (digit < 0)
+			{
+				*chunk_size = -1;
+				return true;
+			}
+			if (size >= std::numeric_limits<std::int64_t>::max() / 16)
+			{
+				*chunk_size = -1;
+				return true;
+			}
+			size *= 16;
+			size += digit;
+		}
+		*chunk_size = size;
 
 		if (*chunk_size != 0)
 		{
-			*header_size = int(newline - buf.data());
-			// the newline alone is two bytes
-			TORRENT_ASSERT(newline - buf.data() > 2);
+			// the newline is at least 1 byte, and the length-prefix is at least 1
+			// byte
+			TORRENT_ASSERT(newline - buf.data() >= 2);
 			return true;
 		}
 

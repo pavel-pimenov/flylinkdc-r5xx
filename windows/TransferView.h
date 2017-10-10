@@ -717,7 +717,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(ConnectionManagerListener::UserUpdated, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept override;
 		void on(ConnectionManagerListener::ConnectionStatusChanged, const HintedUser& p_hinted_user, bool p_is_download, const string& p_token) noexcept override;
 		
-		void on(DownloadManagerListener::SelectTorrent, const libtorrent::sha1_hash& p_sha1, CFlyTorrentFileArray& p_files) noexcept override;
+		void on(DownloadManagerListener::SelectTorrent, const libtorrent::sha1_hash& p_sha1, CFlyTorrentFileArray& p_files,
+		        std::shared_ptr<const libtorrent::torrent_info> p_torrent_info) noexcept override;
 		void on(DownloadManagerListener::CompleteTorrentFile, const std::string& p_file_name) noexcept override;
 		void on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept override;
 		void on(DownloadManagerListener::TorrentEvent, const DownloadArray&) noexcept override;

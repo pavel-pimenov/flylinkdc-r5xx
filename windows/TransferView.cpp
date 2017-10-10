@@ -1364,13 +1364,29 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				for (int j = 0; j < ctrlTransfers.GetItemCount(); ++j)
 				{
 					ItemInfo* ii = ctrlTransfers.getItemData(j);
+					
 					bool l_is_find = false;
 					if (ui.m_is_torrent == true && ii->m_is_torrent == true)
-						l_is_find = ii->m_sha1 == ui.m_sha1;
+						l_is_find |= ii->m_sha1 == ui.m_sha1;
 					else
 					{
 						if (ui.m_is_torrent == false && ii->m_is_torrent == false)
-							l_is_find = ii->m_token == ui.m_token;
+						{
+							l_is_find |= ii->m_token == ui.m_token;
+							if (!l_is_find)
+							{
+								if (
+								    //!ii->m_token.empty() && !ui.m_token.empty() && ConnectionManager::g_tokens_manager.isToken(ui.m_token) == false ||
+								    ConnectionManager::g_tokens_manager.countToken() == 0)
+								{
+									l_is_find = true;
+									//dcassert(0);
+#ifdef _DEBUG
+									LogManager::message("TRANSFER_REMOVE_TOKEN_ITEM [!] Force ui.token = " + ui.m_token);
+#endif
+								}
+							}
+						}
 					}
 					if (l_is_find)
 					{
@@ -1569,7 +1585,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 #endif
 					// dcassert(0);
 					//if(!ui.m_token.empty() || ui.m_is_torrent == true) // Дублируются
-					if (ui.m_is_torrent == true && !ui.m_sha1.is_all_zeros())
+					//if (ui.m_is_torrent == true && !ui.m_sha1.is_all_zeros() || (!ui.m_token.empty() && ui.m_is_torrent == false)) // Лучший вариант
 					{
 						onSpeakerAddItem(ui);
 						// https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1674
@@ -1886,7 +1902,7 @@ void TransferView::on(ConnectionManagerListener::FailedDownload, const HintedUse
 		LogManager::message("ConnectionManagerListener::FailedDownload user = " + p_hinted_user.user->getLastNick() + " Reason = " + p_reason);
 #endif
 		UpdateInfo* ui = new UpdateInfo(p_hinted_user, true);
-        dcassert(!p_token.empty());
+		dcassert(!p_token.empty());
 		ui->setToken(p_token);
 #ifdef FLYLINKDC_USE_IPFILTER
 		if (ui->m_hintedUser.user->isAnySet(User::PG_IPTRUST_BLOCK | User::PG_IPGUARD_BLOCK | User::PG_P2PGUARD_BLOCK
@@ -2096,6 +2112,9 @@ void TransferView::starting(UpdateInfo* ui, const Transfer* t)
 	//const auto l_result = ConnectionManager::getCipherNameAndIP(const_cast<UserConnection*>(t->getUserConnection()) , l_chiper_name, l_ip);
 	//dcassert(l_result);
 	ui->setCipher(t->getChiperName());
+	const auto l_token = t->getConnectionQueueToken();
+	dcassert(!l_token.empty());
+	ui->setToken(l_token);
 	ui->setIP(t->getIP());
 }
 
@@ -2114,21 +2133,11 @@ void TransferView::on(DownloadManagerListener::Requesting, const DownloadPtr& aD
 	ui->setSize(aDownload->getSize());
 	ui->setStatus(ItemInfo::STATUS_RUNNING);
 	ui->setTarget(aDownload->getPath());
-    const auto l_token = aDownload->getConnectionQueueToken();
-    dcassert(!l_token.empty());
-    ui->setToken(l_token);
 	ui->updateMask &= ~UpdateInfo::MASK_STATUS; // hack to avoid changing item status
 	ui->setStatusString(TSTRING(REQUESTING) + _T(' ') + getFile(aDownload->getType(), Text::toT(Util::getFileName(aDownload->getPath()))) + _T("..."));
-	if (aDownload->getUserConnection())
-	{
-		const auto l_token = aDownload->getUserConnection()->getConnectionQueueToken();
-		dcassert(!l_token.empty());
-		ui->setToken(l_token);
-	}
-	else
-	{
-		dcassert(0);
-	}
+	const auto l_token = aDownload->getConnectionQueueToken();
+	dcassert(!l_token.empty());
+	ui->setToken(l_token);
 	m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 }
 
@@ -2144,6 +2153,9 @@ void TransferView::on(DownloadManagerListener::Starting, const DownloadPtr& aDow
 		ui->setTarget(aDownload->getPath());
 		ui->setType(aDownload->getType());
 		// [-] ui->setIP(aDownload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
+		const auto l_token = aDownload->getConnectionQueueToken();
+		dcassert(!l_token.empty());
+		ui->setToken(l_token);
 		
 		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 	}
@@ -2160,17 +2172,9 @@ void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownl
 		ui->setTarget(aDownload->getPath());
 		ui->setType(aDownload->getType());
 		// [-] ui->setIP(aDownload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
-		if (aDownload->getUserConnection())
-		{
-			//const auto l_token = aDownload->getConnectionQueueToken();
-			//dcassert(!l_token.empty());
-			
-			//ui->setToken(l_token); // fix https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1671
-		}
-		else
-		{
-			dcassert(0);
-		}
+		const auto l_token = aDownload->getConnectionQueueToken();
+		dcassert(!l_token.empty());
+		ui->setToken(l_token); // fix https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1671
 		
 		tstring tmpReason = Text::toT(aReason);
 		if (aDownload->isSet(Download::FLAG_SLOWUSER))
@@ -2200,7 +2204,9 @@ void TransferView::on(DownloadManagerListener::Status, const UserConnection* p_c
 		UpdateInfo* ui = new UpdateInfo(p_conn->getHintedUser(), true); // [!] IRainman fix.
 		ui->setStatus(ItemInfo::STATUS_WAITING);
 		ui->setStatusString(Text::toT(aReason));
-		ui->setToken(p_conn->getConnectionQueueToken());
+		const auto l_token = p_conn->getConnectionQueueToken();
+		dcassert(!l_token.empty());
+		ui->setToken(l_token);
 		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 	}
 }
@@ -2224,7 +2230,11 @@ void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload)
 		{
 			ui->setStatusString(TSTRING(UPLOAD_STARTING));
 		}
-		ui->setToken(aUpload->getConnectionQueueToken());
+		
+		const auto l_token = aUpload->getConnectionQueueToken();
+		dcassert(!l_token.empty());
+		ui->setToken(l_token);
+		
 		m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 	}
 }
@@ -2261,6 +2271,12 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl) no
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
+		if (ConnectionManager::g_tokens_manager.countToken() == 0)
+		{
+			UpdateInfo* ui = new UpdateInfo(HintedUser(), true);
+			m_tasks.add(TRANSFER_REMOVE_TOKEN_ITEM, ui);
+		}
+		
 		if (!MainFrame::isAppMinimized())// [+]IRainman opt
 		{
 			for (auto j = dl.cbegin(); j != dl.cend(); ++j)
@@ -2346,9 +2362,10 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, const bool down
 		ui->setTimeLeft(0);
 		ui->setRunning(0);
 		ui->setStatusString(download ? TSTRING(DOWNLOAD_FINISHED_IDLE) : TSTRING(UPLOAD_FINISHED_IDLE));
-        const auto l_token = aTransfer->getConnectionQueueToken();
-        dcassert(!l_token.empty());
-		// TODO если делать то залипает ui->setToken(l_token);
+		const auto l_token = aTransfer->getConnectionQueueToken();
+		dcassert(!l_token.empty());
+		// TODO если делать то залипает
+		ui->setToken(l_token);
 		if (!download && aTransfer->getType() != Transfer::TYPE_TREE)
 		{
 			SHOW_POPUP(POPUP_UPLOAD_FINISHED,
@@ -2649,23 +2666,29 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 			return;
 		}
 		
+		const auto l_token = p_download->getConnectionQueueToken();
+		dcassert(!l_token.empty());
 		// update download item
-		UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
-        const auto l_token = p_download->getConnectionQueueToken();
-        dcassert(!l_token.empty());
-        ui->setToken(l_token);
-		ui->setTarget(qi->getTarget());
-		ui->setStatus(ItemInfo::STATUS_WAITING);
-		ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
-		m_tasks.add(TRANSFER_UPDATE_ITEM, ui); // [!] IRainman opt.
-		// update file item
-		ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
-		ui->setTarget(qi->getTarget());
-		ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
-		ui->setStatus(ItemInfo::STATUS_WAITING);
-        ui->setToken(l_token);
-        SHOW_POPUP(POPUP_DOWNLOAD_FINISHED, TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target), TSTRING(DOWNLOAD_FINISHED_IDLE));
-		m_tasks.add(TRANSFER_UPDATE_PARENT, ui);  // [!] IRainman opt.
+		if (0)
+		{
+			UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
+			ui->setToken(l_token);
+			ui->setTarget(qi->getTarget());
+			ui->setStatus(ItemInfo::STATUS_WAITING);
+			ui->setToken(l_token);
+			ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
+			m_tasks.add(TRANSFER_UPDATE_ITEM, ui); // [!] IRainman opt.
+		}
+		{
+			// update file item
+			UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
+			ui->setToken(l_token);
+			ui->setTarget(qi->getTarget());
+			ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
+			ui->setStatus(ItemInfo::STATUS_WAITING);
+			SHOW_POPUP(POPUP_DOWNLOAD_FINISHED, TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target), TSTRING(DOWNLOAD_FINISHED_IDLE));
+			m_tasks.add(TRANSFER_UPDATE_PARENT, ui);  // [!] IRainman opt.
+		}
 	}
 }
 
@@ -2674,14 +2697,17 @@ void TransferView::on(DownloadManagerListener::CompleteTorrentFile, const std::s
 	SHOW_POPUP(POPUP_DOWNLOAD_FINISHED, TSTRING(FILE) + _T(": ") + Text::toT(p_name), TSTRING(DOWNLOAD_FINISHED_IDLE));
 }
 
-void TransferView::on(DownloadManagerListener::SelectTorrent, const libtorrent::sha1_hash& p_sha1, CFlyTorrentFileArray& p_files) noexcept
+void TransferView::on(DownloadManagerListener::SelectTorrent, const libtorrent::sha1_hash& p_sha1,
+                      CFlyTorrentFileArray& p_files, std::shared_ptr<const libtorrent::torrent_info> p_torrent_info) noexcept
 {
 	// TODO - PostMessage
 	try {
-		CFlyTorrentDialog l_dlg(p_files);
+		CFlyTorrentDialog l_dlg(p_files, p_torrent_info);
 		if (l_dlg.DoModal(WinUtil::g_mainWnd) == IDOK)
 		{
-			DownloadManager::getInstance()->set_file_priority(p_sha1, l_dlg.m_files, l_dlg.m_selected_files); // TODO - убрать m_selected_files
+			const tstring l_dir = l_dlg.m_dir;
+			DownloadManager::getInstance()->set_file_priority(p_sha1, l_dlg.m_files,
+			                                                  l_dlg.m_selected_files, Text::fromT(l_dir)); // TODO - убрать m_selected_files
 			DownloadManager::getInstance()->fire_added_torrent(p_sha1);
 		}
 		else

@@ -347,7 +347,7 @@ namespace libtorrent {
 
 		// clears the given piece's download flag
 		// this means that this piece-block can be picked again
-		void abort_download(piece_block block, torrent_peer* peer = 0);
+		void abort_download(piece_block block, torrent_peer* peer = nullptr);
 
 		// returns true if all blocks in this piece are finished
 		// or if we have the piece
@@ -408,7 +408,7 @@ namespace libtorrent {
 
 		void check_peer_invariant(typed_bitfield<piece_index_t> const& have
 			, torrent_peer const* p) const;
-		void check_invariant(const torrent* t = 0) const;
+		void check_invariant(const torrent* t = nullptr) const;
 #endif
 
 		// functor that compares indices on downloading_pieces

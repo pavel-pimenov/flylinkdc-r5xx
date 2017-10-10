@@ -45,7 +45,7 @@ class CFlyServerDialogNavigator :
 		TStringPairArray m_MIInform;
 		
 	private:
-		CPropertyListCtrl m_ctlList;
+		CPropertyListCtrl m_ctlPropertyList;
 		//CMiniHtmlCtrl m_ctrlLabel;
 		CEdit m_ctrlLabel;
 		
@@ -95,11 +95,11 @@ class CFlyServerDialogNavigator :
 		{
 			if (!p_array.empty())
 			{
-				m_ctlList.AddItem(PropCreateCategory(p_name));
+				m_ctlPropertyList.AddItem(PropCreateCategory(p_name));
 				for (auto i = p_array.begin(); i != p_array.end(); ++i)
 				{
 					if (!i->second.empty())
-						m_ctlList.AddItem(PropCreateSimple(i->first.c_str(), i->second.c_str()));
+						m_ctlPropertyList.AddItem(PropCreateSimple(i->first.c_str(), i->second.c_str()));
 				}
 			}
 		}
@@ -107,60 +107,60 @@ class CFlyServerDialogNavigator :
 		LRESULT OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 		{
 			CenterWindow();
-//	   m_ctlList.AddItem(new CProperty(PROP_GROUP,_T("General"),new CComVariant (L"Item-1"),true));
-//	   m_ctlList.AddItem(new CProperty(PROP_ITEM,_T("Attr-1"),new CComVariant (L"Value-1"),true));
+//	   m_ctlPropertyList.AddItem(new CProperty(PROP_GROUP,_T("General"),new CComVariant (L"Item-1"),true));
+//	   m_ctlPropertyList.AddItem(new CProperty(PROP_ITEM,_T("Attr-1"),new CComVariant (L"Value-1"),true));
 
-			m_ctlList.SubclassWindow(GetDlgItem(IDC_FLY_SERVER_LISTBOX));
-			m_ctlList.SetExtendedListStyle(PLS_EX_CATEGORIZED);
-			m_ctlList.SetColumnWidth(100);
-			//  m_ctlList.m_bReadOnly = TRUE;
+			m_ctlPropertyList.SubclassWindow(GetDlgItem(IDC_FLY_SERVER_LISTBOX));
+			m_ctlPropertyList.SetExtendedListStyle(PLS_EX_CATEGORIZED);
+			m_ctlPropertyList.SetColumnWidth(100);
+			//  m_ctlPropertyList.m_bReadOnly = TRUE;
 			addArray(_T("FileInfo"), m_FileInfo);
 			addArray(_T("MediaInfo"), m_MediaInfo);
 			/*
 			// TODO - убрать копипаст
 			      if(!m_FileInfo.empty())
 			      {
-			      m_ctlList.AddItem( PropCreateCategory(_T("FileInfo")) );
+			      m_ctlPropertyList.AddItem( PropCreateCategory(_T("FileInfo")) );
 			      for (auto i = m_FileInfo.begin(); i!=m_FileInfo.end(); ++i)
 			      {
 			          if(!i->second.empty())
-			            m_ctlList.AddItem(PropCreateSimple(i->first.c_str(),i->second.c_str()));
+			            m_ctlPropertyList.AddItem(PropCreateSimple(i->first.c_str(),i->second.c_str()));
 			      }
 			      }
 			      // TODO - убрать копипаст
 			      if(!m_MediaInfo.empty())
 			      {
-			      m_ctlList.AddItem( PropCreateCategory(_T("MediaInfo")) );
+			      m_ctlPropertyList.AddItem( PropCreateCategory(_T("MediaInfo")) );
 			      for (auto i = m_MediaInfo.begin(); i!=m_MediaInfo.end(); ++i)
 			      {
 			          if(!i->second.empty())
-			             m_ctlList.AddItem(PropCreateSimple(i->first.c_str(),i->second.c_str()));
+			             m_ctlPropertyList.AddItem(PropCreateSimple(i->first.c_str(),i->second.c_str()));
 			      }
 			      }
 			      */
-			// m_ctlList.SetReadOnly(TRUE);
+			// m_ctlPropertyList.SetReadOnly(TRUE);
 			// m_ctrlLabel.SubclassWindow(GetDlgItem(IDC_MEDIAINFORM_STATIC));
 			m_ctrlLabel.Attach(GetDlgItem(IDC_MEDIAINFORM_STATIC));
 			m_ctrlLabel.SetReadOnly(TRUE);
 			if (!m_MIInform.empty())
 				m_ctrlLabel.SetWindowText(m_MIInform[0].second.c_str());
-			/*     m_ctlList.AddItem( PropCreateSimple(_T("Name"), _T("bjarke")) );
-			      m_ctlList.AddItem( PropCreateSimple(_T("X\r\nX-2\r\nX-3\r\nX-4\r\n"), 123L) );
-			      m_ctlList.AddItem( PropCreateSimple(_T("Y"), _T("1\r\n\2\n3")) );
+			/*     m_ctlPropertyList.AddItem( PropCreateSimple(_T("Name"), _T("bjarke")) );
+			      m_ctlPropertyList.AddItem( PropCreateSimple(_T("X\r\nX-2\r\nX-3\r\nX-4\r\n"), 123L) );
+			      m_ctlPropertyList.AddItem( PropCreateSimple(_T("Y"), _T("1\r\n\2\n3")) );
 			
-			      m_ctlList.AddItem( PropCreateCategory(_T("General")) );
-			      m_ctlList.AddItem( PropCreateSimple(_T("Enabled"), false) );
-			      m_ctlList.AddItem( PropCreateFileName(_T("Picture"), _T("C:\\Temp\\Test.bmp")) );
+			      m_ctlPropertyList.AddItem( PropCreateCategory(_T("General")) );
+			      m_ctlPropertyList.AddItem( PropCreateSimple(_T("Enabled"), false) );
+			      m_ctlPropertyList.AddItem( PropCreateFileName(_T("Picture"), _T("C:\\Temp\\Test.bmp")) );
 			*/
 			/*
-			       m_ctlList.SetExtendedListStyle(PLS_EX_CATEGORIZED);
-			       HPROPERTY hAppearance = m_ctlList.AddItem( PropCreateCategory(_T("Appearance"), 1234) );
-			       HPROPERTY hName = m_ctlList.AddItem( PropCreateSimple(_T("Name"), _T("bjarke")) );
-			       m_ctlList.AddItem( PropCreateSimple(_T("X"), 123L) );
-			       m_ctlList.AddItem( PropCreateSimple(_T("Y"), 456L) );
-			       m_ctlList.AddItem( PropCreateCategory(_T("Behaviour")) );
-			       m_ctlList.AddItem( PropCreateSimple(_T("Enabled"), false) );
-			       m_ctlList.AddItem( PropCreateFileName(_T("Picture"), _T("C:\\Temp\\Test.bmp")) );
+			       m_ctlPropertyList.SetExtendedListStyle(PLS_EX_CATEGORIZED);
+			       HPROPERTY hAppearance = m_ctlPropertyList.AddItem( PropCreateCategory(_T("Appearance"), 1234) );
+			       HPROPERTY hName = m_ctlPropertyList.AddItem( PropCreateSimple(_T("Name"), _T("bjarke")) );
+			       m_ctlPropertyList.AddItem( PropCreateSimple(_T("X"), 123L) );
+			       m_ctlPropertyList.AddItem( PropCreateSimple(_T("Y"), 456L) );
+			       m_ctlPropertyList.AddItem( PropCreateCategory(_T("Behaviour")) );
+			       m_ctlPropertyList.AddItem( PropCreateSimple(_T("Enabled"), false) );
+			       m_ctlPropertyList.AddItem( PropCreateFileName(_T("Picture"), _T("C:\\Temp\\Test.bmp")) );
 			*/
 #ifdef USE_FLY_SERVER_USE_IE_EXPLORER
 			

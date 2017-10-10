@@ -242,9 +242,9 @@ namespace libtorrent {
 		void write_piece(peer_request const& r, disk_buffer_holder buffer) override;
 		void write_keepalive() override;
 		void write_handshake();
+		void write_upload_only(bool enabled) override;
 #ifndef TORRENT_DISABLE_EXTENSIONS
 		void write_extensions();
-		void write_upload_only();
 		void write_share_mode();
 		void write_holepunch_msg(int type, tcp::endpoint const& ep, int error);
 #endif
@@ -410,6 +410,8 @@ namespace libtorrent {
 #pragma clang diagnostic push
 // macOS clang doesn't have -Wshadow-field
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
+// Xcode 9 needs this
+#pragma clang diagnostic ignored "-Wunknown-warning-option"
 #pragma clang diagnostic ignored "-Wshadow-field"
 #endif
 		crypto_receive_buffer m_recv_buffer;

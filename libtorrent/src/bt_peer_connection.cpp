@@ -77,13 +77,11 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	namespace mp = boost::multiprecision;
-
 #if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
 namespace {
 
-	std::size_t const handshake_len = 68;
-	std::size_t const dh_key_len = 96;
+	constexpr std::size_t handshake_len = 68;
+	constexpr std::size_t dh_key_len = 96;
 
 	// stream key (info hash of attached torrent)
 	// secret is the DH shared secret
@@ -135,15 +133,15 @@ namespace {
 		if (ep.address().is_v4())
 		{
 #endif
-			peers4_t::value_type v(ep.address().to_v4().to_bytes(), ep.port());
-			auto i = std::lower_bound(m_peers.begin(), m_peers.end(), v);
+			peers4_t::value_type const v(ep.address().to_v4().to_bytes(), ep.port());
+			auto const i = std::lower_bound(m_peers.begin(), m_peers.end(), v);
 			return i != m_peers.end() && *i == v;
 #if TORRENT_USE_IPV6
 		}
 		else
 		{
-			peers6_t::value_type v(ep.address().to_v6().to_bytes(), ep.port());
-			auto i = std::lower_bound(m_peers6.begin(), m_peers6.end(), v);
+			peers6_t::value_type const v(ep.address().to_v6().to_bytes(), ep.port());
+			auto const i = std::lower_bound(m_peers6.begin(), m_peers6.end(), v);
 			return i != m_peers6.end() && *i == v;
 		}
 #endif
@@ -193,13 +191,13 @@ namespace {
 #if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
 	void bt_peer_connection::switch_send_crypto(std::shared_ptr<crypto_plugin> crypto)
 	{
-		if (m_enc_handler.switch_send_crypto(crypto, send_buffer_size() - get_send_barrier()))
+		if (m_enc_handler.switch_send_crypto(std::move(crypto), send_buffer_size() - get_send_barrier()))
 			set_send_barrier(send_buffer_size());
 	}
 
 	void bt_peer_connection::switch_recv_crypto(std::shared_ptr<crypto_plugin> crypto)
 	{
-		m_enc_handler.switch_recv_crypto(crypto, m_recv_buffer);
+		m_enc_handler.switch_recv_crypto(std::move(crypto), m_recv_buffer);
 	}
 #endif
 
@@ -215,7 +213,7 @@ namespace {
 #ifndef TORRENT_DISABLE_LOGGING
 			peer_log(peer_log_alert::info, "ON_CONNECTED", "graceful-paused");
 #endif
-			disconnect(error_code(errors::torrent_paused), operation_t::bittorrent);
+			disconnect(errors::torrent_paused, operation_t::bittorrent);
 			return;
 		}
 
@@ -315,13 +313,17 @@ namespace {
 		// connections that are still in the handshake
 		// will send their bitfield when the handshake
 		// is done
+		std::shared_ptr<torrent> t = associated_torrent().lock();
 #ifndef TORRENT_DISABLE_EXTENSIONS
-		write_upload_only();
+		if (!t->share_mode())
+		{
+			bool const upload_only_enabled = t->is_upload_only() && !t->super_seeding();
+			send_upload_only(upload_only_enabled);
+		}
 #endif
 
 		if (m_sent_bitfield) return;
 
-		std::shared_ptr<torrent> t = associated_torrent().lock();
 		TORRENT_ASSERT(t);
 		write_bitfield();
 		TORRENT_ASSERT(m_sent_bitfield);
@@ -339,7 +341,7 @@ namespace {
 #endif
 	}
 
-	void bt_peer_connection::write_dht_port(int listen_port)
+	void bt_peer_connection::write_dht_port(int const listen_port)
 	{
 		INVARIANT_CHECK;
 
@@ -605,7 +607,7 @@ namespace {
 		send_buffer({msg, sizeof(msg) - 512 + pad_size});
 	}
 
-	void bt_peer_connection::write_pe4_sync(int crypto_select)
+	void bt_peer_connection::write_pe4_sync(int const crypto_select)
 	{
 		INVARIANT_CHECK;
 
@@ -1028,14 +1030,14 @@ namespace {
 	// ----------- PIECE -----------
 	// -----------------------------
 
-	void bt_peer_connection::on_piece(int received)
+	void bt_peer_connection::on_piece(int const received)
 	{
 		INVARIANT_CHECK;
 
 		TORRENT_ASSERT(received >= 0);
 
 		span<char const> recv_buffer = m_recv_buffer.get();
-		int recv_pos = m_recv_buffer.pos(); // recv_buffer.end - recv_buffer.begin;
+		int const recv_pos = m_recv_buffer.pos(); // recv_buffer.end - recv_buffer.begin;
 
 		std::shared_ptr<torrent> t = associated_torrent().lock();
 		TORRENT_ASSERT(t);
@@ -1249,7 +1251,7 @@ namespace {
 		span<char const> recv_buffer = m_recv_buffer.get();
 
 		const char* ptr = recv_buffer.begin() + 1;
-		int listen_port = detail::read_uint16(ptr);
+		int const listen_port = detail::read_uint16(ptr);
 
 		incoming_dht_port(listen_port);
 
@@ -1344,7 +1346,7 @@ namespace {
 		if (!m_recv_buffer.packet_finished()) return;
 		span<char const> recv_buffer = m_recv_buffer.get();
 		const char* ptr = recv_buffer.begin() + 1;
-		piece_index_t index(detail::read_int32(ptr));
+		piece_index_t const index(detail::read_int32(ptr));
 
 		incoming_allowed_fast(index);
 	}
@@ -1597,7 +1599,7 @@ namespace {
 		TORRENT_ASSERT(recv_buffer.front() == msg_extended);
 		recv_buffer = recv_buffer.subspan(1);
 
-		int extended_id = aux::read_uint8(recv_buffer);
+		int const extended_id = aux::read_uint8(recv_buffer);
 
 		if (extended_id == 0)
 		{
@@ -1743,7 +1745,7 @@ namespace {
 		}
 
 		// there is supposed to be a remote listen port
-		int listen_port = int(root.dict_find_int_value("p"));
+		int const listen_port = int(root.dict_find_int_value("p"));
 		if (listen_port > 0 && peer_info_struct() != nullptr)
 		{
 			t->update_peer_port(listen_port, peer_info_struct(), peer_info::incoming);
@@ -1757,10 +1759,10 @@ namespace {
 		int const last_seen_complete = int(root.dict_find_int_value("complete_ago", -1));
 		if (last_seen_complete >= 0) set_last_seen_complete(last_seen_complete);
 
-		auto client_info = root.dict_find_string_value("v");
+		auto const client_info = root.dict_find_string_value("v");
 		if (!client_info.empty()) m_client_version = client_info.to_string();
 
-		int reqq = int(root.dict_find_int_value("reqq"));
+		int const reqq = int(root.dict_find_int_value("reqq"));
 		if (reqq > 0) max_out_request_queue(reqq);
 
 		if (root.dict_find_int_value("upload_only", 0))
@@ -1770,7 +1772,7 @@ namespace {
 			&& root.dict_find_int_value("share_mode", 0))
 			set_share_mode(true);
 
-		auto myip = root.dict_find_string_value("yourip");
+		auto const myip = root.dict_find_string_value("yourip");
 		if (!myip.empty())
 		{
 			if (myip.size() == std::tuple_size<address_v4::bytes_type>::value)
@@ -1904,42 +1906,36 @@ namespace {
 		return finished;
 	}
 
-#ifndef TORRENT_DISABLE_EXTENSIONS
-	void bt_peer_connection::write_upload_only()
+	void bt_peer_connection::write_upload_only(bool const enabled)
 	{
+#ifndef TORRENT_DISABLE_EXTENSIONS
 		INVARIANT_CHECK;
 
+#if TORRENT_USE_ASSERTS
 		std::shared_ptr<torrent> t = associated_torrent().lock();
+		TORRENT_ASSERT(!t->share_mode());
+#endif
+
 		if (m_upload_only_id == 0) return;
-		if (t->share_mode()) return;
 
 		// if we send upload-only, the other end is very likely to disconnect
 		// us, at least if it's a seed. If we don't want to close redundant
 		// connections, don't sent upload-only
 		if (!m_settings.get_bool(settings_pack::close_redundant_connections)) return;
 
-#ifndef TORRENT_DISABLE_LOGGING
-		if (should_log(peer_log_alert::outgoing_message))
-		{
-			peer_log(peer_log_alert::outgoing_message, "UPLOAD_ONLY", "%d"
-				, int(t->is_upload_only() && !t->super_seeding()));
-		}
-#endif
-
 		char msg[7] = {0, 0, 0, 3, msg_extended};
 		char* ptr = msg + 5;
 		detail::write_uint8(m_upload_only_id, ptr);
-		// if we're super seeding, we don't want to make peers
-		// think that we only have a single piece and is upload
-		// only, since they might disconnect immediately when
-		// they have downloaded a single piece, although we'll
-		// make another piece available
-		detail::write_uint8(t->is_upload_only() && !t->super_seeding(), ptr);
+		detail::write_uint8(enabled, ptr);
 		send_buffer(msg);
 
 		stats_counters().inc_stats_counter(counters::num_outgoing_extended);
+#else
+		TORRENT_UNUSED(enabled);
+#endif
 	}
 
+#ifndef TORRENT_DISABLE_EXTENSIONS
 	void bt_peer_connection::write_share_mode()
 	{
 		INVARIANT_CHECK;
@@ -2080,7 +2076,7 @@ namespace {
 
 		// add predictive pieces to the bitfield as well, since we won't
 		// announce them again
-		for (piece_index_t p : t->predictive_pieces())
+		for (piece_index_t const p : t->predictive_pieces())
 			msg[5 + static_cast<int>(p) / 8] |= (0x80 >> (static_cast<int>(p) & 7));
 
 #ifndef TORRENT_DISABLE_LOGGING
@@ -2255,7 +2251,7 @@ namespace {
 		send_message(msg_not_interested, counters::num_outgoing_not_interested, 0);
 	}
 
-	void bt_peer_connection::write_have(piece_index_t index)
+	void bt_peer_connection::write_have(piece_index_t const index)
 	{
 		INVARIANT_CHECK;
 		TORRENT_ASSERT(associated_torrent().lock()->valid_metadata());
@@ -3325,7 +3321,7 @@ namespace {
 			int packet_size = detail::read_int32(ptr);
 
 			// don't accept packets larger than 1 MB
-			if (packet_size > 1024*1024 || packet_size < 0)
+			if (packet_size > 1024 * 1024 || packet_size < 0)
 			{
 				// packet too large
 				received_bytes(0, int(bytes_transferred));
@@ -3409,7 +3405,7 @@ namespace {
 	// --------------------------
 
 	void bt_peer_connection::on_sent(error_code const& error
-		, std::size_t bytes_transferred)
+		, std::size_t const bytes_transferred)
 	{
 		INVARIANT_CHECK;
 

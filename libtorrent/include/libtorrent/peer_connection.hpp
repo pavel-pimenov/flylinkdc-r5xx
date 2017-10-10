@@ -282,7 +282,7 @@ namespace aux {
 
 		void set_peer_info(torrent_peer* pi) override
 		{
-			TORRENT_ASSERT(m_peer_info == 0 || pi == 0 );
+			TORRENT_ASSERT(m_peer_info == nullptr || pi == nullptr );
 			TORRENT_ASSERT(pi != nullptr || m_disconnect_started);
 			m_peer_info = pi;
 		}
@@ -576,6 +576,7 @@ namespace aux {
 		void send_interested();
 		void send_not_interested();
 		void send_suggest(piece_index_t piece);
+		void send_upload_only(bool enabled);
 
 		void snub_peer();
 		// reject any request in the request
@@ -653,7 +654,7 @@ namespace aux {
 #endif
 
 		time_t last_seen_complete() const { return m_last_seen_complete; }
-		void set_last_seen_complete(int ago) { m_last_seen_complete = ::time(0) - ago; }
+		void set_last_seen_complete(int ago) { m_last_seen_complete = ::time(nullptr) - ago; }
 
 		std::int64_t uploaded_in_last_round() const
 		{ return m_statistics.total_payload_upload() - m_uploaded_at_last_round; }
@@ -706,6 +707,7 @@ namespace aux {
 
 		virtual void write_reject_request(peer_request const& r) = 0;
 		virtual void write_allow_fast(piece_index_t piece) = 0;
+		virtual void write_upload_only(bool enabled) = 0;
 
 		virtual void on_connected() = 0;
 		virtual void on_tick() {}
