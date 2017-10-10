@@ -182,13 +182,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #if TARGET_OS_IPHONE
 #define TORRENT_USE_SC_NETWORK_REACHABILITY 1
 #endif
-
-#else // __APPLE__
-// FreeBSD has a reasonable iconv signature
-// unless we're on glibc
-#ifndef __GLIBC__
-# define TORRENT_ICONV_ARG(x) (x)
-#endif
 #endif // __APPLE__
 
 #define TORRENT_USE_DEV_RANDOM 1
@@ -342,7 +335,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_USE_IFCONF 1
 #define TORRENT_USE_SYSCTL 1
 #define TORRENT_USE_IPV6 0
-#define TORRENT_ICONV_ARG(x) (x)
 #define TORRENT_USE_WRITEV 0
 #define TORRENT_USE_READV 0
 
@@ -367,10 +359,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_NO_RETURN __declspec(noreturn)
 #else
 #define TORRENT_NO_RETURN
-#endif
-
-#ifndef TORRENT_ICONV_ARG
-#define TORRENT_ICONV_ARG(x) const_cast<char**>(x)
 #endif
 
 #if defined __GNUC__ || defined __clang__

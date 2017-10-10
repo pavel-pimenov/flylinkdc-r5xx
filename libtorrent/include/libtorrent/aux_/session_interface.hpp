@@ -49,9 +49,14 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 
 #ifdef TORRENT_USE_OPENSSL
-#include "libtorrent/aux_/disable_warnings_push.hpp"
-#include <boost/asio/ssl/context.hpp>
-#include "libtorrent/aux_/disable_warnings_pop.hpp"
+// there is no forward declaration header for asio
+namespace boost {
+namespace asio {
+namespace ssl {
+	class context;
+}
+}
+}
 #endif
 
 namespace libtorrent {
@@ -147,7 +152,7 @@ namespace libtorrent { namespace aux {
 
 		virtual alert_manager& alerts() = 0;
 
-		virtual torrent_peer_allocator_interface* get_peer_allocator() = 0;
+		virtual torrent_peer_allocator_interface& get_peer_allocator() = 0;
 		virtual io_service& get_io_service() = 0;
 		virtual resolver_interface& get_resolver() = 0;
 

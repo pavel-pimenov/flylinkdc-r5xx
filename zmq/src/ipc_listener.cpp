@@ -289,26 +289,18 @@ error:
 int zmq::ipc_listener_t::close ()
 {
     zmq_assert (s != retired_fd);
+    int fd_for_event = s;
     int rc = ::close (s);
     errno_assert (rc == 0);
 
     s = retired_fd;
 
-    //  If there's an underlying UNIX domain socket, get rid of the file it
-    //  is associated with.
-    //  MUST NOT unlink if the FD is managed by the user, or it will stop
-    //  working after the first client connects. The user will take care of
-    //  cleaning up the file after the service is stopped.
     if (has_file && options.use_fd == -1) {
         rc = 0;
 
-        if ( !filename.empty () ) {
-          rc = ::unlink(filename.c_str ());
-        }
-
         if ( rc == 0 && !tmp_socket_dirname.empty() ) {
-          rc = ::rmdir(tmp_socket_dirname.c_str ());
-          tmp_socket_dirname.clear();
+            rc = ::rmdir(tmp_socket_dirname.c_str ());
+            tmp_socket_dirname.clear();
         }
 
         if (rc != 0) {
@@ -317,7 +309,7 @@ int zmq::ipc_listener_t::close ()
         }
     }
 
-    socket->event_closed (endpoint, s);
+    socket->event_closed (endpoint, fd_for_event);
     return 0;
 }
 

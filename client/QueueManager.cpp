@@ -1114,29 +1114,32 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 	const bool l_userList = (aFlags & QueueItem::FLAG_USER_LIST) == QueueItem::FLAG_USER_LIST;
 	const bool l_testIP = (aFlags & QueueItem::FLAG_USER_GET_IP) == QueueItem::FLAG_USER_GET_IP;
 	const bool l_newItem = !(l_testIP || l_userList);
-
+	
 	if (l_newItem)
 	{
 		// Check if we're not downloading something already in our share
-	//[-]PPA
+		//[-]PPA
 		/*
-			if (BOOLSETTING(DONT_DL_ALREADY_SHARED)){
-				if (ShareManager::isTTHShared(root)){
-					throw QueueException(STRING(TTH_ALREADY_SHARED));
-				}
-			}
+		    if (BOOLSETTING(DONT_DL_ALREADY_SHARED)){
+		        if (ShareManager::isTTHShared(root)){
+		            throw QueueException(STRING(TTH_ALREADY_SHARED));
+		        }
+		    }
 		*/
-
+		
 		//  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1667
 		if (BOOLSETTING(SKIP_ALREADY_DOWNLOADED_FILES)) {
 			const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(aRoot);
 			if (l_status_file & CFlylinkDBManager::PREVIOUSLY_DOWNLOADED)
 			{
-				throw QueueException(STRING(TTH_ALREADY_DOWNLOADEDED));
+				if (CFlylinkDBManager::getInstance()->is_download_tth(aRoot))
+				{
+					throw QueueException(STRING(TTH_ALREADY_DOWNLOADEDED));
+				}
 			}
 		}
 	}
-
+	
 	
 	string l_target;
 	string l_tempTarget;

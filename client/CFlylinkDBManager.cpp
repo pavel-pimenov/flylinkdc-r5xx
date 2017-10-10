@@ -791,11 +791,9 @@ CFlylinkDBManager::CFlylinkDBManager()
 		                              "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,type int not null,day int64 not null,stamp int64 not null,"
 		                              "tth char(39),path text not null,nick text, hub text,size int64 not null,speed int,ip text, actual int64);");
 		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS transfer_db.fly_transfer_file_day_type ON fly_transfer_file(day,type);");
-#ifdef _DEBUG
-		//m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS transfer_db.fly_transfer_file_tth ON fly_transfer_file(tth);");
-#else
-		m_flySQLiteDB.executenonquery("DROP INDEX IF EXISTS transfer_db.fly_transfer_file_tth;"); //Пока не используется
-#endif
+		// TODO - сделать позже если будет тормозить
+		// m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS transfer_db.i_fly_transfer_file_tth ON fly_transfer_file(tth);");
+		
 		safeAlter("ALTER TABLE transfer_db.fly_transfer_file add column actual int64");
 		
 		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS transfer_db.fly_transfer_file_torrent("
@@ -2169,6 +2167,27 @@ void CFlylinkDBManager::save_registry(const CFlyRegistryMap& p_values, eTypeSegm
 	{
 		errorDB("SQLite - save_registry: " + e.getError());
 	}
+}
+//========================================================================================================
+bool CFlylinkDBManager::is_download_tth(const TTHValue& p_tth)
+{
+	try
+	{
+		m_is_download_tth.init(m_flySQLiteDB,
+		                       "select 1 from transfer_db.fly_transfer_file where type=0 and tth=? limit 1");
+		const auto l_tth = p_tth.toBase32();
+		m_is_download_tth->bind(1, l_tth, SQLITE_STATIC);
+		sqlite3_reader l_q = m_is_download_tth->executereader();
+		while (l_q.read())
+		{
+			return true;
+		}
+	}
+	catch (const database_error& e)
+	{
+		errorDB("SQLite - is_download_tth: " + e.getError());
+	}
+	return false;
 }
 //========================================================================================================
 void CFlylinkDBManager::load_transfer_historgam(bool p_is_torrent, eTypeTransfer p_type, CFlyTransferHistogramArray& p_array)

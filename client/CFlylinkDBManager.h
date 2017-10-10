@@ -398,6 +398,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		void load_transfer_history(bool p_is_torrent, eTypeTransfer p_type, int p_day);
 		void load_transfer_historgam(bool p_is_torrent, eTypeTransfer p_type, CFlyTransferHistogramArray& p_array);
+		bool is_download_tth(const TTHValue& p_tth);
 		void save_transfer_history(bool p_is_torrent, eTypeTransfer p_type, const FinishedItemPtr& p_item);
 		void delete_transfer_history(const vector<__int64>& p_id_array);
 		void delete_transfer_history_torrent(const vector<__int64>& p_id_array);
@@ -790,6 +791,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_select_transfer_day_torrent;
 		CFlySQLCommand m_select_transfer_tth;
 		CFlySQLCommand m_select_transfer_histrogram;
+		CFlySQLCommand m_is_download_tth;
 		CFlySQLCommand m_select_transfer_histrogram_torrent;
 		CFlySQLCommand m_select_transfer_convert_leveldb;
 		CFlySQLCommand m_insert_transfer;
