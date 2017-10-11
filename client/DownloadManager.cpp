@@ -124,9 +124,9 @@ void DownloadManager::shutdown_torrent()
 		{
 			Sleep(10);
 		}
-		for (auto i : m_torrents)
+		for (auto s : m_torrents)
 		{
-			i.save_resume_data(); // libtorrent::torrent_handle::save_info_dict | libtorrent::torrent_handle::only_if_modified
+			s.save_resume_data();
 			++m_torrent_resume_count;
 		}
 		int l_count = 40; // 4 сек
@@ -980,8 +980,8 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 		p_torrent_sesion->get_io_service().post([p_torrent_sesion, this]
 		{
 			p_torrent_sesion->post_torrent_updates();
-			p_torrent_sesion->post_session_stats();
-			p_torrent_sesion->post_dht_stats();
+			// Спам. p_torrent_sesion->post_session_stats();
+			// p_torrent_sesion->post_dht_stats();
 			std::vector<lt::alert*> alerts;
 			p_torrent_sesion->pop_alerts(&alerts);
 			for (lt::alert const * a : alerts)
@@ -989,12 +989,30 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 				try
 				{
 #ifdef _DEBUG
-					//LogManager::torrent_message(".:::. TorrentAllert:" + a->message() + " info:" + std::string(a->what()));
+					
 					if (const auto l_port = lt::alert_cast<lt::log_alert>(a))
 					{
-						//LogManager::torrent_message("log_alert: " + a->message() + " info:" + std::string(a->what()));
+						// LogManager::torrent_message("log_alert: " + a->message() + " info:" + std::string(a->what()));
 					}
-					
+					else
+					{
+						std::string l_dbg_message = ".:::. TorrentAllert:" + a->message() + " info:" + std::string(a->what() + std::string(" typeid:") + std::string(typeid(*a).name()));
+						if (std::string(a->what()) != "torrent_log_alert" && 
+							std::string(typeid(*a).name()) != "struct libtorrent::state_update_alert" &&
+							std::string(typeid(*a).name()) != "struct libtorrent::block_finished_alert" &&  // TODO - opt
+							std::string(typeid(*a).name()) != "struct libtorrent::block_downloading_alert" &&
+							std::string(typeid(*a).name()) != "struct libtorrent::block_timeout_alert" &&
+							std::string(typeid(*a).name()) != "struct libtorrent::piece_finished_alert"
+							
+														)
+						{
+							LogManager::torrent_message(l_dbg_message);
+						}
+						if (const auto l_port = lt::alert_cast<lt::torrent_log_alert>(a))
+						{
+							// LogManager::torrent_message("torrent_log_alert: " + a->message() + " info:" + std::string(a->what()));
+						}
+					}
 #endif
 					if (const auto l_ext_ip = lt::alert_cast<lt::external_ip_alert>(a))
 					{
@@ -1127,9 +1145,9 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 						auto const l_is_tmp = l_full_file_path.find_last_of(".!fl");
 						if (l_is_tmp != std::string::npos && l_is_tmp > 3)
 						{
-							const auto l_new_name = l_full_file_path.substr(0, l_is_tmp - 3);
+							l_full_file_path = l_full_file_path.substr(0, l_is_tmp - 3);
 							++m_torrent_rename_count;
-							l_a->handle.rename_file(l_a->index, l_new_name);
+							l_a->handle.rename_file(l_a->index, l_full_file_path);
 						}
 						
 						// TODO заменить SETTING(DOWNLOAD_DIRECTORY) на путь выбора
@@ -1165,7 +1183,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 					}
 					if (const auto l_a = lt::alert_cast<lt::add_torrent_alert>(a))
 					{
-						++m_torrent_resume_count;
+						//++m_torrent_resume_count;
 						auto l_name = l_a->handle.status(torrent_handle::query_name);
 						LogManager::torrent_message("Add torrent: " + l_name.name);
 						m_torrents.insert(l_a->handle);
@@ -1224,6 +1242,10 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 					if (lt::alert_cast<lt::file_error_alert>(a))
 					{
 						LogManager::torrent_message("file_error_alert: " + a->message() + " info:" + std::string(a->what()));
+					}
+					if (auto st = lt::alert_cast<lt::state_changed_alert>(a))
+					{
+
 					}
 					if (auto st = lt::alert_cast<lt::state_update_alert>(a))
 					{
@@ -1346,10 +1368,14 @@ bool DownloadManager::set_file_priority(const libtorrent::sha1_hash& p_sha1, con
 					l_h.move_storage(p_save_path);
 				}
 				l_h.prioritize_files(p_file_priority);
+				dcassert(p_file_priority.size() == p_files.size());
 				for (int i = 0; i < p_files.size(); i++)
 				{
-					++m_torrent_rename_count;
-					l_h.rename_file(file_index_t(i), p_files[i].m_file_path + ".!fl");
+					if (p_file_priority[i])
+					{
+						++m_torrent_rename_count;
+						l_h.rename_file(file_index_t(i), p_files[i].m_file_path + ".!fl");
+					}
 				}
 				
 				l_h.set_flags(lt::torrent_flags::auto_managed);
@@ -1434,7 +1460,7 @@ bool DownloadManager::add_torrent_file(const tstring& p_torrent_path, const tstr
 		lt::error_code ec;
 		lt::add_torrent_params p;
 		p.save_path = SETTING(DOWNLOAD_DIRECTORY);
-// TODO     auto renamed_files = p.renamed_files; // ".!fl" ?
+// TODO - прокинуть фичу в либторрент    auto renamed_files = p.renamed_files; // ".!fl" ?
 		p.storage_mode = storage_mode_sparse;
 		if (!p_torrent_path.empty())
 		{
@@ -1502,7 +1528,7 @@ void DownloadManager::init_torrent(bool p_is_force)
 		               //  | lt::alert::peer_notification
 		               | lt::alert::session_log_notification
 		               | lt::alert::torrent_log_notification
-		               | lt::alert::peer_log_notification
+		              // Много спама | lt::alert::peer_log_notification
 #endif
 		              );
 		l_sett.set_str(settings_pack::user_agent, "FlylinkDC++ " A_REVISION_NUM_STR); // LIBTORRENT_VERSION //  A_VERSION_NUM_STR

@@ -29,27 +29,53 @@ void TransferData::init(libtorrent::torrent_status const& s)
 	m_num_seeds = s.num_seeds;
 	m_num_peers = s.num_peers;
 	m_is_torrent = true;
-	m_is_seeding = s.state == libtorrent::torrent_status::seeding;
+	m_is_seeding = s.state == libtorrent::torrent_status::seeding || s.state == libtorrent::torrent_status::finished;
 	m_is_pause = (s.flags & libtorrent::torrent_flags::paused) == libtorrent::torrent_flags::paused;
 	//calc_percent();
 	m_percent = s.progress_ppm / 10000;
 	///l_td.m_status_string += _T("[Torrent] Peers:") + Util::toStringT(s.num_peers) + _T(" Seeds:") + Util::toStringT(s.num_seeds) + _T(" ");
 	//l_td.m_status_string += Text::tformat(TSTRING(DOWNLOADED_BYTES), Util::formatBytesW(l_td.m_pos).c_str(),
 	//  l_td.m_percent, l_td.get_elapsed(aTick).c_str());
-	if (m_is_pause)
+	m_status_string = _T("[Torrent] ");
+	switch (s.state)
 	{
-		m_status_string += _T("[Torrent] ") + TSTRING(PAUSED);
+	case  libtorrent::torrent_status::checking_files:
+	m_status_string += Text::tformat(TSTRING(CHECKED_BYTES), "", m_percent, "");
+		break;
+	case  libtorrent::torrent_status::downloading_metadata:
+		m_status_string += TSTRING(DOWNLOADING_METADATA);
+		break;
+	case  libtorrent::torrent_status::downloading:
+		m_status_string += TSTRING(DOWNLOADING);
+		break;
+	case  libtorrent::torrent_status::finished:
+		m_status_string += TSTRING(FINISHED);
+		break;
+	case  libtorrent::torrent_status::seeding:
+		m_status_string += TSTRING(SEEDING);
+		break;
+	case  libtorrent::torrent_status::allocating:
+		m_status_string += TSTRING(ALLOCATING);
+		break;
+	case  libtorrent::torrent_status::checking_resume_data:
+		m_status_string += TSTRING(CHECKING_RESUME_DATA);
+		break;
+	default:
+		dcassert(0);
+		break;
 	}
-	else if (s.state == libtorrent::torrent_status::checking_files)
+
+	if (m_is_pause && s.state == libtorrent::torrent_status::downloading_metadata)
 	{
-		m_status_string += Text::tformat(TSTRING(CHECKED_BYTES), "", m_percent, "");
+		m_status_string += TSTRING(PAUSED) + _T(" ");
 	}
-	else
+	if (s.state == libtorrent::torrent_status::downloading || 
+		s.state == libtorrent::torrent_status::finished)
 	{
-		const tstring l_peer_seed = _T("[Torrent] Peers:") + Util::toStringT(s.num_peers) + _T(" Seeds:") + Util::toStringT(s.num_seeds) + _T(" ");
+		const tstring l_peer_seed = _T(" Peers:") + Util::toStringT(s.num_peers) + _T(" Seeds:") + Util::toStringT(s.num_seeds) + _T(" ");
 		if (s.state == libtorrent::torrent_status::seeding)
 		{
-			m_status_string = l_peer_seed + _T(" Seeding! Download: ") + Util::formatBytesW(s.total_download) + _T(" Upload: ") + Util::formatBytesW(s.total_upload);
+			m_status_string = l_peer_seed + _T("  Download: ") + Util::formatBytesW(s.total_download) + _T(" Upload: ") + Util::formatBytesW(s.total_upload);
 		}
 		else
 		{

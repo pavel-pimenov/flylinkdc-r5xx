@@ -9064,7 +9064,6 @@ namespace libtorrent {
 		maybe_connect_web_seeds();
 
 		m_swarm_last_seen_complete = m_last_seen_complete;
-		//auto l_connections = m_connections; // https://github.com/arvidn/libtorrent/issues/2044
 		for (auto p : m_connections)
 		{
 			TORRENT_INCREMENT(m_iterating_connections);
