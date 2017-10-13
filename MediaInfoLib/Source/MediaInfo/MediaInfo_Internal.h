@@ -55,6 +55,7 @@ class MediaInfo_Internal
 	: public ZenLib::Thread
 #endif
 {
+	friend class sequence;
 public :
     //Constructor/Destructor
     MediaInfo_Internal ();

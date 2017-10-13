@@ -397,6 +397,11 @@
 	<string name="Download">Download</string>
 	<string name="Downloaded">Downloaded</string>
 	<string name="DownloadedBytes">Downloaded %s (%.01f%%) in %s</string>
+	<string name="DownloadingMetadata">Downloading metadata...</string>
+	<string name="Finished">Finished</string>
+	<string name="Seeding">Seeding</string>
+	<string name="Allocating">Allocating</string>
+	<string name="CheckingResumeData">Cheking resume data...</string>
 	<string name="CheckedBytes">Checked %s(%.01f%%)</string>
 	<string name="DownloadedFrom">downloaded from</string>
 	<string name="DownloadedParts">Downloaded parts</string>

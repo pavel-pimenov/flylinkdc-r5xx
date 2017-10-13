@@ -456,6 +456,11 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Download">Скачать</String>
 		<String Name="Downloaded">Скачано</String>
 		<String Name="DownloadedBytes">Скачано %s (%.01f%%) за %s</String>
+		<string name="DownloadingMetadata">Загрузка метаданных торрента...</string>
+		<string name="Finished">Завершено</string>
+		<string name="Seeding">Сидим на раздаче</string>
+		<string name="Allocating">Распределяем диск под закачку</string>
+		<string name="CheckingResumeData">Проверка данных докачки торрента...</string>
 		<String Name="CheckedBytes">Проверено %s(%.01f%%)</String>
 		<String Name="DownloadedFrom">Скачано от</String>
 		<String Name="DownloadedParts">Скачанные части</String>

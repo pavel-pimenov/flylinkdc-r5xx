@@ -3046,28 +3046,129 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 			else if (sr.getType() == SearchResult::TYPE_TORRENT_MAGNET)
 			{
 				const auto l_file_type = Search::TYPE_TORRENT_MAGNET;
-				auto& l_type_node = m_tree_type[Search::TYPE_TORRENT_MAGNET];
-				if (l_type_node == nullptr)
+				auto& l_torrent_node = m_tree_type[Search::TYPE_TORRENT_MAGNET];
+				if (l_torrent_node == nullptr)
 				{
-					l_type_node = m_ctrlSearchFilterTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
-					                                                _T("Torrents"),
-					                                                l_file_type, // nImage
-					                                                l_file_type, // nSelectedImage
-					                                                0, // nState
-					                                                0, // nStateMask
-					                                                l_file_type, // lParam
-					                                                m_RootTreeItem, // aParent,
-					                                                0  // hInsertAfter
-					                                               );
+					l_torrent_node = m_ctrlSearchFilterTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+					                                                   _T("Torrents"),
+					                                                   l_file_type, // nImage
+					                                                   l_file_type, // nSelectedImage
+					                                                   0, // nState
+					                                                   0, // nStateMask
+					                                                   l_file_type, // lParam
+					                                                   m_RootTreeItem, // aParent,
+					                                                   0  // hInsertAfter
+					                                                  );
 					if (m_is_expand_tree == false)
 					{
 						m_ctrlSearchFilterTree.Expand(m_RootTreeItem);
 						m_is_expand_tree = true;
 					}
 				}
+				{
+					const auto l_file_name = sr.getFileName();
+					if (l_file_name.find(" PC ") != string::npos)
+					{
+						add_category("PC", "Soft", si, sr, l_file_type, l_torrent_node);
+						add_category("DVD-ISO", "Soft", si, sr, l_file_type, l_torrent_node);
+					}
+					add_category(sr.m_tracker, "Tracker", si, sr, l_file_type, l_torrent_node, true);
+					
+					for (int j = 2020; j > 1900; --j)
+					{
+						add_category(Util::toString(j), "Year", si, sr, l_file_type, l_torrent_node);
+					}
+					{
+						const char* l_doc_array[] = {
+							"PDF",
+							"RTF",
+							"DJVU",
+							"FB2"
+						};
+						for (const auto r : l_doc_array)
+						{
+							add_category(r, "Doc", si, sr, l_file_type, l_torrent_node);
+						}
+					}
+					{
+						const char* l_audio_rip_array[] = {
+							"MP3",
+							"FLAC"
+						};
+						for (const auto r : l_audio_rip_array)
+						{
+							add_category(r, "Audio", si, sr, l_file_type, l_torrent_node);
+						}
+					}
+					
+					{
+						const char* l_type_rip_array[] = {
+							"DVDRip",
+							"DVD-Audio",
+							"DVD-Video",
+							"DVD-5",
+							"DVD-9",
+							"HDRip",
+							"BDRip",
+							"XviD",
+							"BDRemux",
+							"HDVideo",
+							"HDTV",
+							"CAMRip",
+							"TS",
+							"SATRip",
+							"WEB-DLRip",
+							"VHSRip",
+							"iTunes",
+							"Amedia",
+							"ÊÏÊ"
+						};
+						for (const auto r : l_type_rip_array)
+						{
+							add_category(r, "Video", si, sr, l_file_type, l_torrent_node);
+						}
+					}
+					{
+						const char* l_type_team_array[] = { "MediaClub",
+						                                    "Files-x",
+						                                    "GeneralFilm",
+						                                    "MegaPeer",
+						                                    "Neofilm",
+						                                    "SeadLine Studio",
+						                                    "Scarabey",
+						                                    "den904",
+						                                    "qqss44",
+						                                    "HQ-ViDEO",
+						                                    "SMALL-RiP",
+						                                    "HQClub",
+						                                    "HELLYWOOD",
+						                                    "FreeHD",
+						                                    "HDReactor",
+						                                    "R.G."
+						                                  };
+						for (const auto t : l_type_team_array)
+						{
+							add_category(t, "Team", si, sr, l_file_type, l_torrent_node);
+						}
+					}
+					{
+						const char* l_type_resolution_array[] = {
+							"1080p",
+							"720p"
+							"x264",
+						};
+						for (const auto r : l_type_resolution_array)
+						{
+							add_category(r, "Resolution", si, sr, l_file_type, l_torrent_node);
+						}
+					}
+				}
 				const auto l_marker = make_pair(si, ".torrent-magnet");
-				//m_filter_map[l_item].push_back(l_marker);
-				m_filter_map[l_type_node].push_back(l_marker);
+				for (auto const &c : m_category_map)
+				{
+					m_filter_map[c.second].push_back(l_marker);
+				}
+				m_filter_map[l_torrent_node].push_back(l_marker);
 			}
 		}
 #endif
@@ -3141,7 +3242,57 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 		//ctrlStatus.SetText(3, (Util::toStringW(resultsCount + pausedResults.size()) + _T('/') + Util::toStringW(resultsCount) + _T(' ') + WSTRING(FILES)).c_str());//[-]IRainman optimize SearchFrame
 	}
 }
-
+void SearchFrame::add_category(const std::string p_search, const std::string p_group, SearchInfo* p_si,
+                               const SearchResult& p_sr, int p_type_node, HTREEITEM p_parent_node, bool p_force_add /* = false */)
+{
+	HTREEITEM l_item = nullptr;
+	const string l_year = p_search;
+	const auto l_file_name = p_sr.getFileName();
+	if (l_file_name.find(l_year) != string::npos || p_force_add == true)
+	{
+		const auto l_sub_item = m_tree_sub_torrent_map.find(l_year);
+		if (l_sub_item == m_tree_sub_torrent_map.end())
+		{
+			auto& l_year_node = m_category_map[p_group];
+			if (!l_year_node)
+			{
+				l_year_node = m_ctrlSearchFilterTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+				                                                Text::toT(p_group).c_str(),
+				                                                Search::TYPE_TORRENT_MAGNET + 2, // nImage
+				                                                Search::TYPE_TORRENT_MAGNET + 2, // nSelectedImage
+				                                                0, // nState
+				                                                0, // nStateMask
+				                                                p_type_node, // lParam
+				                                                p_parent_node, // aParent,
+				                                                0  // hInsertAfter
+				                                               );
+			}
+			l_item = m_ctrlSearchFilterTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+			                                           Text::toT(l_year).c_str(),
+			                                           Search::TYPE_TORRENT_MAGNET + 1, // nImage
+			                                           Search::TYPE_TORRENT_MAGNET + 1, // nSelectedImage
+			                                           0, // nState
+			                                           0, // nStateMask
+			                                           e_Ext, // lParam
+			                                           l_year_node, // aParent,
+			                                           0  // hInsertAfter
+			                                          );
+			m_tree_sub_torrent_map.insert(std::make_pair(l_year, l_item));
+			if (m_is_expand_sub_tree == false)
+			{
+				m_ctrlSearchFilterTree.Expand(p_parent_node);
+				//m_ctrlSearchFilterTree.Expand(l_year_node);
+				m_is_expand_sub_tree = true;
+			}
+		}
+		else
+		{
+			l_item = l_sub_item->second;
+		}
+		const auto l_marker = make_pair(p_si, ".torrent-magnet");
+		m_filter_map[l_item].push_back(l_marker);
+	}
+}
 LRESULT SearchFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
 	switch (wParam)
@@ -4196,13 +4347,16 @@ void SearchFrame::set_tree_item_status(const SearchInfo* p_si)
 }
 void SearchFrame::clear_tree_filter_contaners()
 {
+	m_category_map.clear();
 	m_tree_ext_map.clear();
+	m_tree_sub_torrent_map.clear();
 	m_filter_map.clear();
 	m_tree_type.clear();
 	m_CurrentTreeItem = nullptr;
 	m_OldTreeItem = nullptr;
 	m_RootTreeItem = nullptr;
 	m_is_expand_tree = false;
+	m_is_expand_sub_tree = false;
 	m_ctrlSearchFilterTree.DeleteAllItems();
 }
 

@@ -241,6 +241,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			m_waitingResults(false),
 			m_needsUpdateStats(false), // [+] IRainman opt.
 			m_is_expand_tree(false),
+			m_is_expand_sub_tree(false),
 			m_Theme(nullptr),
 			m_need_resort(false),
 			m_is_use_tree(true),
@@ -733,13 +734,18 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		HTREEITEM   m_RootTreeItem;
 		HTREEITEM   m_CurrentTreeItem;
 		HTREEITEM   m_OldTreeItem;
-		std::unordered_map<string, HTREEITEM>   m_tree_ext_map;
+		std::unordered_map<string, HTREEITEM> m_category_map;
+		std::unordered_map<string, HTREEITEM> m_tree_ext_map;
+		std::unordered_map<string, HTREEITEM> m_tree_sub_torrent_map;
 		std::unordered_map<HTREEITEM, std::vector<std::pair<SearchInfo*, string > > > m_filter_map;
 		std::unordered_map<Search::TypeModes, HTREEITEM> m_tree_type;
 		bool m_is_expand_tree;
+		bool m_is_expand_sub_tree;
 		bool is_filter_item(const SearchInfo* si);
 		void clear_tree_filter_contaners();
 		void set_tree_item_status(const SearchInfo* p_si);
+		void add_category(const std::string p_search, std::string p_group, SearchInfo* p_si,
+		                  const SearchResult& p_sr, int p_type_node,  HTREEITEM p_parent_node, bool p_force_add = false);
 #endif
 		//std::unordered_set<SearchInfo*> m_search_info_leak_detect;
 		SearchInfo* check_new(SearchInfo* p_ptr)

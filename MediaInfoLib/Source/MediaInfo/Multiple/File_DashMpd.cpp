@@ -152,7 +152,7 @@ struct template_generic
         duration_Max=0;
         startNumber_Max=0;
     }
-
+public: // todo https://github.com/MediaArea/MediaInfoLib/issues/622
     template_generic(const template_generic &ToCopy)
     {
         if (this == &ToCopy)
@@ -168,7 +168,7 @@ struct template_generic
         duration_Max=ToCopy.duration_Max;
         startNumber_Max=ToCopy.startNumber_Max;
     }
-
+public:
     void AdaptationSet_Attributes_Parse     (XMLElement* Item);
     void SegmentTemplate_Attributes_Parse   (XMLElement* Item);
     void SegmentTimeline_Attributes_Parse   (XMLElement* Item);

@@ -72,6 +72,17 @@ public:
     bool                FileSize_IsPresent; //TODO: merge with FileSize after regression tests
     MediaInfo_Internal* MI;
     std::bitset<32> Status;
+
+/*
+private:	
+	sequence& operator =(const sequence& ToCopy)
+	{
+		MI = new MediaInfo_Internal;
+		*MI = *ToCopy.MI;
+		// TODO
+		return *this;
+	}
+	*/
 };
 
 typedef std::vector<sequence*> sequences;
