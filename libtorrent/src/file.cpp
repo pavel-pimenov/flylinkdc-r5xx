@@ -1193,6 +1193,11 @@ namespace {
 			fstore_t f = {F_ALLOCATECONTIG, F_PEOFPOSMODE, 0, s, 0};
 			if (fcntl(native_handle(), F_PREALLOCATE, &f) < 0)
 			{
+				// It appears Apple's new filesystem (APFS) does not
+				// support this control message and fails with EINVAL
+				// if so, just skip it
+				if (errno != EINVAL)
+				{
 				if (errno != ENOSPC)
 				{
 					ec.assign(errno, system_category());
@@ -1205,6 +1210,7 @@ namespace {
 					ec.assign(errno, system_category());
 					return false;
 				}
+			}
 			}
 #endif // F_PREALLOCATE
 

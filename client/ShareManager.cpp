@@ -278,7 +278,7 @@ bool ShareManager::isTTHShared(const TTHValue& tth)
 }
 string ShareManager::toRealPath(const TTHValue& tth)
 {
-	CFlyReadLock(*g_csShare);
+	// CFlyReadLock(*g_csShare);
 	{
 		CFlyLock(g_csTTHIndex);
 		const auto i = g_tthIndex.find(tth);
@@ -288,7 +288,10 @@ string ShareManager::toRealPath(const TTHValue& tth)
 			{
 				return i->second->getRealPath();
 			}
-			catch (const ShareException&) {}
+			catch (const ShareException&)
+			{
+				dcassert(0);
+			}
 		}
 	}
 	return Util::emptyString;
@@ -305,7 +308,7 @@ string ShareManager::toVirtual(const TTHValue& tth)
 	{
 		return Transfer::g_user_list_name;
 	}
-	CFlyReadLock(*g_csShare);
+	//!CFlyReadLock(*g_csShare);
 	{
 		CFlyLock(g_csTTHIndex);
 		const auto& i = g_tthIndex.find(tth);
@@ -472,7 +475,7 @@ void ShareManager::checkShutdown(const string& virtualFile) const
 }
 string ShareManager::findFileAndRealPath(const string& virtualFile, TTHValue& p_tth, bool p_is_fetch_tth) const
 {
-	CFlyReadLock(*g_csShare);
+	// CFlyReadLock(*g_csShare);
 	if (virtualFile.compare(0, 4, "TTH/", 4) == 0)
 	{
 		CFlyLock(g_csTTHIndex);
@@ -488,7 +491,7 @@ string ShareManager::findFileAndRealPath(const string& virtualFile, TTHValue& p_
 		}
 		return i->second->getRealPath();
 	}
-	
+	CFlyReadLock(*g_csShare); // Унес ниже - но опасно....
 	const auto v = splitVirtualL(virtualFile);
 	const auto it = std::find_if(v.first->m_share_files.begin(), v.first->m_share_files.end(),
 	                             [&](const Directory::ShareFile & p_file) -> bool {return stricmp(p_file.getName(), v.second) == 0;}

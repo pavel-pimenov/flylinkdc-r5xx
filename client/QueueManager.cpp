@@ -1117,18 +1117,21 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 	
 	if (l_newItem)
 	{
+		const auto l_target_name = "  " + aTarget + " TTH = " + aRoot.toBase32();
 		if (BOOLSETTING(DONT_DL_PREVIOUSLY_BEEN_IN_SHARE)) {
 			const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(aRoot);
 			if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE
 			        && !ShareManager::isTTHShared(aRoot))
 			{
-				throw QueueException(STRING(TTH_PREVIOUSLY_BEEN_IN_SHARE));
+				throw QueueException(STRING(TTH_PREVIOUSLY_BEEN_IN_SHARE)
+				                     + l_target_name);
 			}
 		}
 		
 		if (BOOLSETTING(DONT_DL_ALREADY_SHARED)) {
 			if (ShareManager::isTTHShared(aRoot)) {
-				throw QueueException(STRING(TTH_ALREADY_SHARED));
+				throw QueueException(STRING(TTH_ALREADY_SHARED)
+				                     + l_target_name);
 			}
 		}
 		
@@ -1139,13 +1142,15 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 			{
 				if (CFlylinkDBManager::getInstance()->is_download_tth(aRoot))
 				{
-					throw QueueException(STRING(TTH_ALREADY_DOWNLOADEDED));
+					throw QueueException(STRING(TTH_ALREADY_DOWNLOADEDED)
+					                     + l_target_name);
 				}
 			}
 		}
 		if (QueueManager::is_queue_tth(aRoot))
 		{
-			throw QueueException(STRING(TTH_ALREADY_QUEUE_DOWNLOAD));
+			throw QueueException(STRING(TTH_ALREADY_QUEUE_DOWNLOAD)
+			                     + l_target_name);
 		}
 	}
 	

@@ -522,7 +522,11 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 		{
 			if (!p_all_myInfo.empty())
 			{
-				fly_fire1(BufferedSocketListener::MyInfoArray(), p_all_myInfo); // todo zmq
+				dcassert(m_is_disconnecting == false)
+				if (m_is_disconnecting == false)
+				{
+					fly_fire1(BufferedSocketListener::MyInfoArray(), p_all_myInfo); // todo zmq
+				}
 			}
 			set_all_my_info_loaded(); // закончился стартовый поток $MyINFO
 		}
@@ -551,7 +555,11 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 #endif
 			if (!ClientManager::isBeforeShutdown())
 			{
-				fly_fire1(BufferedSocketListener::Line(), l_line_item); // TODO - отказаться от временной переменной l и скользить по окну inbuf
+				dcassert(m_is_disconnecting == false)
+				if (m_is_disconnecting == false)
+				{
+					fly_fire1(BufferedSocketListener::Line(), l_line_item); // TODO - отказаться от временной переменной l и скользить по окну inbuf
+				}
 			}
 		}
 	}
@@ -592,7 +600,11 @@ void BufferedSocket::parseMyINfo(
 {
 	if (!p_all_myInfo.empty())
 	{
-		fly_fire1(BufferedSocketListener::MyInfoArray(), p_all_myInfo); // todo zmq
+		dcassert(m_is_disconnecting == false)
+		if (m_is_disconnecting == false)
+		{
+			fly_fire1(BufferedSocketListener::MyInfoArray(), p_all_myInfo); // todo zmq
+		}
 	}
 }
 void BufferedSocket::parseSearch(
@@ -601,11 +613,19 @@ void BufferedSocket::parseSearch(
 {
 	if (!p_tth_search.empty())
 	{
-		fly_fire1(BufferedSocketListener::SearchArrayTTH(), p_tth_search);
+		dcassert(m_is_disconnecting == false)
+		if (m_is_disconnecting == false)
+		{
+			fly_fire1(BufferedSocketListener::SearchArrayTTH(), p_tth_search);
+		}
 	}
 	if (!p_file_search.empty())
 	{
-		fly_fire1(BufferedSocketListener::SearchArrayFile(), p_file_search);
+		dcassert(m_is_disconnecting == false)
+		if (m_is_disconnecting == false)
+		{
+			fly_fire1(BufferedSocketListener::SearchArrayFile(), p_file_search);
+		}
 	}
 }
 
@@ -1325,7 +1345,7 @@ void BufferedSocket::addTaskL(Tasks p_task, TaskData* p_data)
 	{
 		if (m_tasks.back().first == DISCONNECT)
 		{
-			dcassert(0);
+			//dcassert(0);
 			return;
 		}
 	}
