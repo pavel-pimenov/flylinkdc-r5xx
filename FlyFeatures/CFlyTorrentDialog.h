@@ -245,10 +245,14 @@ private:
                 {
                     const int l_index = (int)m_ctrlTree.GetItemData(child);
                     const bool l_state = m_ctrlTree.GetCheckState(child);
-                    if(l_state)
-                        m_selected_files[l_index] = 4;
-                    else
-                        m_selected_files[l_index] = 0;
+					dcassert(l_index < m_selected_files.size());
+					if (l_index < m_selected_files.size())
+					{
+						if (l_state)
+							m_selected_files[l_index] = 4;
+						else
+							m_selected_files[l_index] = 0;
+					}
                 }
 			}
 			EndDialog(wID);

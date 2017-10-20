@@ -115,6 +115,11 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		{
 			return hasSocket() ? sock->getIp() : Util::emptyString;
 		}
+		string getRemoteIpPort() const
+		{
+			return hasSocket() ? getIp() + ':' + Util::toString(getPort()) : Util::emptyString;
+		}
+		
 		boost::asio::ip::address_v4 getIp4() const;
 		const uint16_t getPort() const
 		{
@@ -161,11 +166,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		{
 			addTask(UPDATED, nullptr);
 		}
-		void initMyINFOLoader()
-		{
-			m_is_all_my_info_loaded = false;
-			m_myInfoCount = 0;
-		}
+		void initMyINFOLoader();
 		void disconnect(bool graceless = false);
 		
 #ifdef FLYLINKDC_USE_DEAD_CODE

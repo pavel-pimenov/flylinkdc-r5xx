@@ -54,14 +54,14 @@ Transfer::Transfer(UserConnection* p_conn, const string& p_path, const TTHValue&
 */
 string Transfer::getConnectionQueueToken() const
 {
-    if (getUserConnection())
-    {
-        return getUserConnection()->getConnectionQueueToken();
-    }
-    else
-    {
-        return Util::emptyString;
-    }
+	if (getUserConnection())
+	{
+		return getUserConnection()->getConnectionQueueToken();
+	}
+	else
+	{
+		return Util::emptyString;
+	}
 }
 
 void Transfer::tick(uint64_t p_CurrentTick)
@@ -150,7 +150,7 @@ void Transfer::setStart(uint64_t tick)
 }
 const uint64_t Transfer::getLastActivity()
 {
-	return getUserConnection()->getLastActivity();
+	return getUserConnection()->getLastActivity(false);
 }
 //string Transfer::getUserConnectionToken() const
 //{

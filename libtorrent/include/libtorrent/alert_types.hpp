@@ -405,6 +405,7 @@ namespace libtorrent {
 		performance_warning_t const warning_code;
 	};
 
+#ifndef TORRENT_NO_STATE_CHANGES_ALERTS
 	// Generated whenever a torrent changes its state.
 	struct TORRENT_EXPORT state_changed_alert final : torrent_alert
 	{
@@ -425,6 +426,7 @@ namespace libtorrent {
 		// the previous state.
 		torrent_status::state_t const prev_state;
 	};
+#endif
 
 	// This alert is generated on tracker time outs, premature disconnects,
 	// invalid response or a HTTP response other than "200 OK". From the alert
@@ -788,6 +790,7 @@ namespace libtorrent {
 		std::string message() const override;
 	};
 
+#ifndef TORRENT_NO_PIECE_ALERTS
 	// this alert is posted every time a piece completes downloading
 	// and passes the hash check. This alert derives from torrent_alert
 	// which contains the torrent_handle to the torrent the piece belongs to.
@@ -805,6 +808,7 @@ namespace libtorrent {
 		// the index of the piece that finished
 		piece_index_t const piece_index;
 	};
+#endif // TORRENT_NO_BLOCK_ALERTS
 
 	// This alert is generated when a peer rejects or ignores a piece request.
 	struct TORRENT_EXPORT request_dropped_alert final : peer_alert
@@ -824,6 +828,7 @@ namespace libtorrent {
 		piece_index_t const piece_index;
 	};
 
+#ifndef TORRENT_NO_BLOCK_ALERTS
 	// This alert is generated when a block request times out.
 	struct TORRENT_EXPORT block_timeout_alert final : peer_alert
 	{
@@ -896,6 +901,7 @@ namespace libtorrent {
 		int const block_index;
 		piece_index_t const piece_index;
 	};
+#endif // TORRENT_NO_BLOCK_ALERTS
 
 	// The ``storage_moved_alert`` is generated when all the disk IO has
 	// completed and the files have been moved, as an effect of a call to

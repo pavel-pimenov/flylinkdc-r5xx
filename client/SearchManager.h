@@ -57,9 +57,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		void disconnect();
 		void onSearchResult(const string& aLine)
 		{
-			onData((const uint8_t*)aLine.data(), aLine.length(), boost::asio::ip::address_v4());
-			// TODO - лишнее преобразование  aLine в массив батиков где в onData - создается дубликат string x()
-			// а третий параметр всегда пустой - это IP-шник
+			onData(aLine);
 		}
 		
 		void onRES(const AdcCommand& cmd, const UserPtr& from, const boost::asio::ip::address_v4& remoteIp);
@@ -110,6 +108,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		
 		~SearchManager();
 		void onData(const uint8_t* buf, size_t aLen, const boost::asio::ip::address_v4& address);
+		void onData(const std::string& p_line);
 		
 		static string getPartsString(const PartsInfo& partsInfo);
 };

@@ -2595,7 +2595,9 @@ void NmdcHub::search_token(const SearchParamToken& p_search_param)
 	{
 		if (SearchManager::getSearchPortUint() == 0)
 			g_last_search_string += " [InvalidPort=0]";
-		if (p_search_param.m_is_force_passive_searh)
+		if (g_DisableTestPort)
+			g_last_search_string += " [DisableTestPort]";
+		else if (p_search_param.m_is_force_passive_searh)
 			g_last_search_string += " [AutoPassive]";
 		if (BOOLSETTING(SEARCH_PASSIVE))
 			g_last_search_string += " [GlobalPassive]";

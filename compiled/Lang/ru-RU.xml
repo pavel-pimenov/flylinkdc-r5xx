@@ -1444,7 +1444,8 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsDirectories">Папки</String>
 		<String Name="SettingsDisplayCheatsInMainChat">Показывать обманщиков в главном чате</String>
 		<String Name="SettingsDontChange">Не менять</String>
-		<String Name="SettingsDontDlAlreadyShared">Не скачивать файлы, уже находящиеся в шаре</String>
+		<String Name="SettingsDontDlAlreadyShared">Не скачивать файлы находящиеся в вашей шаре</String>
+		<string name="SettingsDontDlPreviouslyBeenInShare">Не скачивать файлы ранее находившиеся в вашей шаре</string>
 		<String Name="SettingsDownconn">Попытки скачать/сек</String>
 		<String Name="SettingsDownloads">Скачивание</String>
 		<String Name="SettingsDownloadsMax">Максимум слотов для скачивания (0 = бесконечно)</String>
@@ -1591,7 +1592,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsShowShellMenu">Показать меню оболочки после окончания передачи</String>
 		<String Name="SettingsSkiplistShare">Не добавлять в шару (групповой символ: *, разделитель: ;)</String>
 		<String Name="SettingsSkipZeroByte">Пропускать файлы нулевого размера</String>
-		<String Name="SettingsSkipAlreadyDownloadedFiles">Пропускать ранее скачанные файлы (Внимательнее!)</String>
+		<String Name="SettingsSkipAlreadyDownloadedFiles">Пропускать ранее скачанные файлы</String>
 		<String Name="SettingsSocketInBuffer">Буфер сокета на чтение</String>
 		<String Name="SettingsSocketOutBuffer">Буфер сокета на запись</String>
 		<String Name="SettingsSocks5">SOCKS5</String>
@@ -1851,6 +1852,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="TrustedCertificatesPath">Разрешённые сертификаты</String>
 		<String Name="TthAlreadyShared">Файл с таким же ТТН уже находится в вашей шаре</String>
 		<String Name="TthAlreadyDownloadeded">Файл с таким же ТТН уже качался ранее</String>
+		<string name="TthPreviouslyBeenInShare">Файл с таким же ТТН уже был в вашей шаре</string>
 		<String Name="TthInconsistency">Несоответствие TTH</String>
 		<String Name="TthRoot">TTH</String>
 		<String Name="TthRootOrTorrentMagnet">TTH или магнет-ссылка</String>

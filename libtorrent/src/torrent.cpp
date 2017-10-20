@@ -1359,12 +1359,14 @@ namespace libtorrent {
 		picker().mark_as_finished(block_finished, nullptr);
 		maybe_done_flushing();
 
+#ifndef TORRENT_NO_BLOCK_ALERTS
 		if (alerts().should_post<block_finished_alert>())
 		{
 			alerts().emplace_alert<block_finished_alert>(get_handle(),
 				tcp::endpoint(), peer_id(), block_finished.block_index
 				, block_finished.piece_index);
 		}
+#endif
 	}
 	catch (...) { handle_exception(); }
 
@@ -3917,18 +3919,19 @@ namespace libtorrent {
 		set_need_save_resume();
 		state_updated();
 
+#ifndef TORRENT_NO_PIECE_ALERTS
 		if (m_ses.alerts().should_post<piece_finished_alert>())
 			m_ses.alerts().emplace_alert<piece_finished_alert>(get_handle(), index);
-
+#endif
 		// update m_file_progress (if we have one)
 		m_file_progress.update(m_torrent_file->files(), index
 			, &m_ses.alerts(), get_handle());
 
 		remove_time_critical_piece(index, true);
 
-		if (is_finished()
-			&& m_state != torrent_status::finished
-			&& m_state != torrent_status::seeding)
+		if (m_state != torrent_status::finished
+			&& m_state != torrent_status::seeding
+			&& is_finished())
 		{
 			// torrent finished
 			// i.e. all the pieces we're interested in have
@@ -5172,11 +5175,11 @@ namespace libtorrent {
 #endif
 
 		// the torrent just became finished
-		if (is_finished() && !was_finished)
+		if (!was_finished && is_finished())
 		{
 			finished();
 		}
-		else if (!is_finished() && was_finished)
+		else if (was_finished && !is_finished())
 		{
 			// if we used to be finished, but we aren't anymore
 			// we may need to connect to peers again
@@ -7482,7 +7485,7 @@ namespace libtorrent {
 				state_updated();
 			}
 
-			if (is_finished() && m_state != torrent_status::finished)
+			if (m_state != torrent_status::finished && is_finished())
 				finished();
 		}
 		else
@@ -8997,11 +9000,13 @@ namespace libtorrent {
 		if (is_paused() && !m_graceful_pause_mode)
 		{
 			// let the stats fade out to 0
-			m_stat.second_tick(tick_interval_ms);
-			// if the rate is 0, there's no update because of network transfers
+			// check the rate before ticking the stats so that the last update is sent
+			// with the rate equal to zero
 			if (m_stat.low_pass_upload_rate() > 0 || m_stat.low_pass_download_rate() > 0)
 				state_updated();
-			else
+			m_stat.second_tick(tick_interval_ms);
+			// if the rate is 0, there's no update because of network transfers
+			if (!(m_stat.low_pass_upload_rate() > 0 || m_stat.low_pass_download_rate() > 0))
 				update_want_tick();
 
 			return;
@@ -10470,11 +10475,14 @@ namespace {
 
 		if (int(m_state) == s) return;
 
+#ifndef	TORRENT_NO_STATE_CHANGES_ALERTS
+
 		if (m_ses.alerts().should_post<state_changed_alert>())
 		{
 			m_ses.alerts().emplace_alert<state_changed_alert>(get_handle()
 				, s, static_cast<torrent_status::state_t>(m_state));
 		}
+#endif
 
 		if (s == torrent_status::finished
 			&& alerts().should_post<torrent_finished_alert>())

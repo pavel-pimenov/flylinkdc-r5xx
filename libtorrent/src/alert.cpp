@@ -290,6 +290,7 @@ namespace libtorrent {
 			+ warning_str[warning_code];
 	}
 
+#ifndef	TORRENT_NO_STATE_CHANGES_ALERTS
 	state_changed_alert::state_changed_alert(aux::stack_allocator& alloc
 		, torrent_handle const& h
 		, torrent_status::state_t st
@@ -309,6 +310,7 @@ namespace libtorrent {
 		return torrent_alert::message() + ": state changed to: "
 			+ state_str[state];
 	}
+#endif
 
 	tracker_error_alert::tracker_error_alert(aux::stack_allocator& alloc
 		, torrent_handle const& h, tcp::endpoint const& ep, int times
@@ -552,6 +554,7 @@ namespace libtorrent {
 		return torrent_alert::message() + " torrent finished downloading";
 	}
 
+#ifndef TORRENT_NO_PIECE_ALERTS
 	piece_finished_alert::piece_finished_alert(aux::stack_allocator& alloc
 		, torrent_handle const& h, piece_index_t piece_num)
 		: torrent_alert(alloc, h)
@@ -565,7 +568,7 @@ namespace libtorrent {
 			, torrent_alert::message().c_str(), static_cast<int>(piece_index));
 		return ret;
 	}
-
+#endif // #ifndef TORRENT_NO_BLOCK_ALERTS
 	request_dropped_alert::request_dropped_alert(aux::stack_allocator& alloc, torrent_handle h
 		, tcp::endpoint const& ep, peer_id const& peer_id, int block_num
 		, piece_index_t piece_num)
@@ -584,6 +587,7 @@ namespace libtorrent {
 		return ret;
 	}
 
+#ifndef TORRENT_NO_BLOCK_ALERTS
 	block_timeout_alert::block_timeout_alert(aux::stack_allocator& alloc, torrent_handle h
 		, tcp::endpoint const& ep, peer_id const& peer_id, int block_num
 		, piece_index_t piece_num)
@@ -658,6 +662,7 @@ namespace libtorrent {
 			, torrent_alert::message().c_str(), static_cast<int>(piece_index), block_index);
 		return ret;
 	}
+#endif // #ifndef TORRENT_NO_BLOCK_ALERTS
 
 	storage_moved_alert::storage_moved_alert(aux::stack_allocator& alloc
 		, torrent_handle const& h, string_view p)
@@ -2507,7 +2512,9 @@ namespace {
 	constexpr alert_category_t file_renamed_alert::static_category;
 	constexpr alert_category_t file_rename_failed_alert::static_category;
 	constexpr alert_category_t performance_alert::static_category;
+#ifndef	TORRENT_NO_STATE_CHANGES_ALERTS
 	constexpr alert_category_t state_changed_alert::static_category;
+#endif
 	constexpr alert_category_t tracker_error_alert::static_category;
 	constexpr alert_category_t tracker_warning_alert::static_category;
 	constexpr alert_category_t scrape_reply_alert::static_category;
@@ -2524,12 +2531,16 @@ namespace {
 	constexpr alert_category_t peer_disconnected_alert::static_category;
 	constexpr alert_category_t invalid_request_alert::static_category;
 	constexpr alert_category_t torrent_finished_alert::static_category;
+#ifndef TORRENT_NO_PIECE_ALERTS
 	constexpr alert_category_t piece_finished_alert::static_category;
+#endif
 	constexpr alert_category_t request_dropped_alert::static_category;
+#ifndef TORRENT_NO_BLOCK_ALERTS
 	constexpr alert_category_t block_timeout_alert::static_category;
 	constexpr alert_category_t block_finished_alert::static_category;
 	constexpr alert_category_t block_downloading_alert::static_category;
 	constexpr alert_category_t unwanted_block_alert::static_category;
+#endif // TORRENT_NO_BLOCK_ALERTS
 	constexpr alert_category_t storage_moved_alert::static_category;
 	constexpr alert_category_t storage_moved_failed_alert::static_category;
 	constexpr alert_category_t torrent_deleted_alert::static_category;

@@ -177,7 +177,7 @@ static const char* g_settingTags[] =
 	"CompressTransfers", "ShowProgressBars", "MaxTabRows",
 	"MaxCompression", "AntiFragMethod", "AntiFragMax", "MDIMaxmimized",
 	// [-] "NoAwayMsgToBots", [-] IRainman fix.
-	"SkipZeroByte","SkipAlreadyDownloadedFiles", "AdlsBreakOnFirst",
+	"SkipZeroByte", "SkipAlreadyDownloadedFiles", "AdlsBreakOnFirst",
 	"HubUserCommands",
 	"SendBloom",
 	"AutoSearchAutoMatch", "DownloadBarColor", "UploadBarColor", "LogSystem",
@@ -237,7 +237,7 @@ static const char* g_settingTags[] =
 	"PopupAway", "PopupMinimized", "ShowShareCheckedUsers", "MaxAutoMatchSource",
 	"ReservedSlotColor", "IgnoredColor", "FavoriteColor",
 	"NormalColour", "FireballColor", "ServerColor", "PasiveColor", "OpColor",
-	"FileListAndClientCheckedColour", "BadClientColour", "BadFilelistColour", "DontDLAlreadyShared",
+	"FileListAndClientCheckedColour", "BadClientColour", "BadFilelistColour", "DontDownloadAlreadyShared", "DontDownloadPreviouslyBeenInShare",
 	"ConfirmHubRemoval", "ConfirmHubgroupRemoval", "ConfirmUserRemoval", "SuppressMainChat", "ProgressBackColor", "ProgressCompressColor", "ProgressSegmentColor",
 	"OpenNewWindow", "FileSlots",  "UDPPort", "EnableMultiChunk",
 	"UserListDoubleClick", "TransferListDoubleClick", "ChatDoubleClick", "AdcDebug", "NmdcDebug",
@@ -623,7 +623,8 @@ void SettingsManager::setDefaults()
 	setDefault(MAGNET_REGISTER, TRUE);
 	setDefault(MAGNET_ASK, TRUE);
 	setDefault(MAGNET_ACTION, MAGNET_AUTO_SEARCH);
-	//setDefault(DONT_DL_ALREADY_SHARED, false);
+	setDefault(DONT_DL_ALREADY_SHARED, false);
+	setDefault(DONT_DL_PREVIOUSLY_BEEN_IN_SHARE, false);
 	setDefault(CONFIRM_HUB_REMOVAL, TRUE);
 	setDefault(CONFIRM_HUBGROUP_REMOVAL, TRUE); // [+] NightOrion
 	setDefault(USE_CTRL_FOR_LINE_HISTORY, TRUE);

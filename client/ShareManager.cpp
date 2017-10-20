@@ -1726,7 +1726,7 @@ void ShareManager::generateXmlList()
 						CFlyReadLock(*g_csDirList);
 						for (auto i = g_list_directories.cbegin(); i != g_list_directories.cend(); ++i)
 						{
-							(*i)->toXml(newXmlFile, indent, tmp2, true); // https://www.box.net/shared/e9d04cfcc59d4a4aaba7
+							(*i)->toXmlL(newXmlFile, indent, tmp2, true); // https://www.box.net/shared/e9d04cfcc59d4a4aaba7
 						}
 					}
 				}
@@ -1823,6 +1823,7 @@ MemoryInputStream* ShareManager::generatePartialList(const string& dir, bool rec
 		return new MemoryInputStream(xml);
 	}
 #endif
+	CFlyReadLock(*g_csShare);
 	
 	string xml = SimpleXML::utf8Header;
 	string tmp;
@@ -1836,7 +1837,7 @@ MemoryInputStream* ShareManager::generatePartialList(const string& dir, bool rec
 		for (auto i = g_list_directories.cbegin(); i != g_list_directories.cend(); ++i)
 		{
 			tmp.clear();
-			(*i)->toXml(sos, indent, tmp, recurse);
+			(*i)->toXmlL(sos, indent, tmp, recurse);
 		}
 	}
 	else
@@ -1859,7 +1860,7 @@ MemoryInputStream* ShareManager::generatePartialList(const string& dir, bool rec
 			if (first)
 			{
 				first = false;
-				const auto& it = getByVirtualL(dir.substr(j, i - j));
+				const auto it = getByVirtualL(dir.substr(j, i - j));
 				
 				if (it == g_list_directories.end())
 					return nullptr;
@@ -1868,7 +1869,7 @@ MemoryInputStream* ShareManager::generatePartialList(const string& dir, bool rec
 			}
 			else
 			{
-				const auto&  it2 = root->m_share_directories.find(dir.substr(j, i - j));
+				const auto  it2 = root->m_share_directories.find(dir.substr(j, i - j));
 				if (it2 == root->m_share_directories.end())
 				{
 					return nullptr;
@@ -1883,9 +1884,9 @@ MemoryInputStream* ShareManager::generatePartialList(const string& dir, bool rec
 			
 		for (auto it2 = root->m_share_directories.cbegin(); it2 != root->m_share_directories.cend(); ++it2)
 		{
-			it2->second->toXml(sos, indent, tmp, recurse);
+			it2->second->toXmlL(sos, indent, tmp, recurse);
 		}
-		root->filesToXml(sos, indent, tmp);
+		root->filesToXmlL(sos, indent, tmp);
 	}
 	
 	xml += "</FileListing>";
@@ -1893,7 +1894,7 @@ MemoryInputStream* ShareManager::generatePartialList(const string& dir, bool rec
 }
 
 #define LITERAL(n) n, sizeof(n)-1
-void ShareManager::Directory::toXml(OutputStream& xmlFile, string& p_indent, string& tmp2, bool fullList) const
+void ShareManager::Directory::toXmlL(OutputStream& xmlFile, string& p_indent, string& tmp2, bool fullList) const
 {
 	if (!p_indent.empty())
 		xmlFile.write(p_indent);
@@ -1907,10 +1908,10 @@ void ShareManager::Directory::toXml(OutputStream& xmlFile, string& p_indent, str
 		p_indent += '\t';
 		for (auto i = m_share_directories.cbegin(); i != m_share_directories.cend(); ++i)
 		{
-			i->second->toXml(xmlFile, p_indent, tmp2, fullList);
+			i->second->toXmlL(xmlFile, p_indent, tmp2, fullList);
 		}
 		
-		filesToXml(xmlFile, p_indent, tmp2); // [?] https://www.box.net/shared/39f69aa184eea69d2087
+		filesToXmlL(xmlFile, p_indent, tmp2); // [?] https://www.box.net/shared/39f69aa184eea69d2087
 		
 		// dcassert(p_indent.length() > 1);
 		if (p_indent.length() > 1)
@@ -1936,7 +1937,7 @@ void ShareManager::Directory::toXml(OutputStream& xmlFile, string& p_indent, str
 	}
 }
 
-void ShareManager::Directory::filesToXml(OutputStream& xmlFile, string& indent, string& tmp2) const
+void ShareManager::Directory::filesToXmlL(OutputStream& xmlFile, string& indent, string& tmp2) const
 {
 	for (auto i = m_share_files.cbegin(); i != m_share_files.cend(); ++i)
 	{

@@ -1761,7 +1761,8 @@ void AdcHub::on(Connected c) noexcept
 
 void AdcHub::on(Line l, const string& aLine) noexcept
 {
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		Client::on(l, aLine);
 		

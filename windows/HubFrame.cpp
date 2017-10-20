@@ -1432,8 +1432,8 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 					}
 					else
 					{
-						// Не нашли элемент
-						dcassert(0);
+						// Не нашли элемент - он спрятан фильтром
+						// dcassert(0);
 					}
 				}
 			}

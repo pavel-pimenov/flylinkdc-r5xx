@@ -23,12 +23,12 @@
 #define DCPLUSPLUS_DCPP_SEARCHRESULT_H
 
 #include "forward.h"
-#include "AdcCommand.h"
 #include "Pointer.h"
 #include "SearchQueue.h"
 #include "HintedUser.h"
 #include <boost/asio/ip/address_v4.hpp>
 
+class AdcCommand;
 class SearchManager;
 class SearchResultBaseTTH
 {

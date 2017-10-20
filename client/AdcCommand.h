@@ -26,8 +26,6 @@
 
 STANDARD_EXCEPTION(ParseException);
 
-
-
 class AdcCommand
 #ifdef _DEBUG
 	: private boost::noncopyable
@@ -278,43 +276,48 @@ class CommandHandler
 			try
 			{
 				//dcassert(!ClientManager::isShutdown());
-				if (ClientManager::isShutdown())
+				if (ClientManager::isBeforeShutdown())
 				{
 					return;
 				}
 				AdcCommand cmd(aLine, nmdc);
 				
-#define C(n) case AdcCommand::CMD_##n: ((T*)this)->handle(AdcCommand::n(), cmd); break;
+#define CALL_CMD(n) case AdcCommand::CMD_##n: ((T*)this)->handle(AdcCommand::n(), cmd); break;
 				switch (cmd.getCommand())
 				{
-						C(SUP);
-						C(STA);
-						C(INF);
-						C(MSG);
-						C(SCH);
-						C(RES);
-						C(CTM);
-						C(RCM);
-						C(GPA);
-						C(PAS);
-						C(QUI);
-						C(GET);
-						C(GFI);
-						C(SND);
-						C(SID);
-						C(CMD);
-						C(NAT);
-						C(RNT);
-						C(PSR);
+						CALL_CMD(SUP);
+						CALL_CMD(STA);
+						CALL_CMD(INF);
+						CALL_CMD(MSG);
+						CALL_CMD(SCH);
+						CALL_CMD(RES);
+						CALL_CMD(CTM);
+						CALL_CMD(RCM);
+						CALL_CMD(GPA);
+						CALL_CMD(PAS);
+						CALL_CMD(QUI);
+						CALL_CMD(GET);
+						CALL_CMD(GFI);
+						CALL_CMD(SND);
+						CALL_CMD(SID);
+						CALL_CMD(CMD);
+						CALL_CMD(NAT);
+						CALL_CMD(RNT);
+						CALL_CMD(PSR);
 						// ZLIF support
-						C(ZON);
-						C(ZOF);
+						CALL_CMD(ZON);
+						CALL_CMD(ZOF);
 					default:
 						dcdebug("Unknown ADC command: %.50s\n", aLine.c_str()); //-V111
+						dcassert(0);
 						break;
-#undef C
-						
+#undef CALL_CMD
 				}
+			}
+			catch (const std::bad_alloc&)
+			{
+				// TODO - ShareManager::tryFixBadAlloc();
+				return;
 			}
 			catch (const ParseException&)
 			{

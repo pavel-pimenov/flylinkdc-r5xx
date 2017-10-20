@@ -74,7 +74,7 @@ class BaseThread
 #ifdef _DEBUG
 # define TRACING_LONG_WAITS
 # ifdef TRACING_LONG_WAITS
-#  define TRACING_LONG_WAITS_TIME_MS 1 * 60 * 1000
+#  define TRACING_LONG_WAITS_TIME_MS (1 * 60 * 1000)
 #  define DEBUG_WAITS_INIT(maxSpinCount) int _debugWaits = 0 - maxSpinCount;
 #  define DEBUG_WAITS(waitTime) {\
 		if (++_debugWaits == waitTime)\

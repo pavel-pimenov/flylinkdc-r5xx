@@ -53,7 +53,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 #endif
 		
 		static const string g_FILE_NOT_AVAILABLE;
-#if defined (PPA_INCLUDE_DOS_GUARD) || defined (IRAINMAN_DISALLOWED_BAN_MSG)
+#if defined (FLYLINKDC_USE_DOS_GUARD) && defined (IRAINMAN_DISALLOWED_BAN_MSG)
 		static const string g_PLEASE_UPDATE_YOUR_CLIENT;
 #endif
 		
@@ -253,11 +253,13 @@ class UserConnection : public Speaker<UserConnectionListener>,
 			dcassert(socket); // [+] IRainman fix.
 			return socket ? socket->getCipherName() : Util::emptyString;
 		}
+		
 		vector<uint8_t> getKeyprint() const
 		{
 			dcassert(socket); // [+] IRainman fix.
 			return socket ? socket->getKeyprint() : Util::emptyByteVector; // [!] IRainman opt.
 		}
+		
 		bool verifyKeyprint(const string& expKeyp, bool allowUntrusted)  noexcept
 		{
 			return socket ? socket->verifyKeyprint(expKeyp, allowUntrusted) : true;
@@ -266,7 +268,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		string getRemoteIpPort() const
 		{
 			dcassert(socket);
-			return socket ? socket->getIp() + ':' + Util::toString(socket->getPort()) : Util::emptyString;
+			return socket ? socket->getRemoteIpPort() : Util::emptyString;
 		}
 		
 		string getRemoteIp() const
@@ -366,9 +368,9 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		{
 			m_count_activite++;
 		}
-		uint64_t getLastActivity()
+		uint64_t getLastActivity(bool p_force_set)
 		{
-			if (m_count_activite)
+			if (m_count_activite || p_force_set)
 			{
 				m_lastActivity = GET_TICK();
 				m_count_activite = 0;
@@ -398,8 +400,6 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		// We only want ConnectionManager to create this...
 		explicit UserConnection(bool p_secure);
 		virtual ~UserConnection();
-		
-		friend struct DeleteFunction;
 		
 		void setUser(const UserPtr& aUser);
 		void onLine(const string& aLine);

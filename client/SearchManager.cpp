@@ -228,7 +228,12 @@ int SearchManager::UdpQueue::run()
 			remoteIp = m_resultList.front().second;
 			m_resultList.pop_front();
 		}
-		
+		dcassert(x.length() > 4);
+		if (x.length() <= 4)
+		{
+			dcassert(0);
+			continue;
+		}
 		if (x.compare(0, 4, "$SR ", 4) == 0)
 		{
 			string::size_type i = 4;
@@ -446,15 +451,27 @@ int SearchManager::UdpQueue::run()
 		}*/ // Needs further DoS investigation
 		
 		
-		sleep(10);
+		sleep(2);
 	}
 	return 0;
 }
 
+void SearchManager::onData(const std::string& p_line)
+{
+	m_queue_thread.addResult(p_line, boost::asio::ip::address_v4());
+}
+
 void SearchManager::onData(const uint8_t* buf, size_t aLen, const boost::asio::ip::address_v4& remoteIp)
 {
-	string x((char*)buf, aLen);
-	m_queue_thread.addResult(x, remoteIp);
+	if (aLen > 4)
+	{
+		string x((char*)buf, aLen);
+		m_queue_thread.addResult(x, remoteIp);
+	}
+	else
+	{
+		dcassert(0);
+	}
 }
 void SearchManager::search_auto(const string& p_tth)
 {

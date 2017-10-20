@@ -74,11 +74,11 @@ void File::init(const tstring& aFileName, int access, int mode, bool isAbsoluteP
 	{
 #ifdef _DEBUG
 #if 1
-        if (outPath.find(_T(".dctmp")) != tstring::npos)
-        {
-            int a;
-            a++;
-        }
+		if (outPath.find(_T(".dctmp")) != tstring::npos)
+		{
+			int a;
+			a++;
+		}
 		std::ofstream l_fs;
 		l_fs.open(_T("flylinkdc-file-error.log"), std::ifstream::out | std::ifstream::app);
 		if (l_fs.good())
@@ -318,11 +318,17 @@ size_t File::flushBuffers(bool aForce)
 }
 bool File::deleteFileT(const tstring& aFileName) noexcept
 {
+#ifndef _CONSOLE
+	//CFlyLog l_log("[Delete]");
+#endif
+#ifndef _CONSOLE
+	//l_log.log("Start delete file: " + Text::fromT(aFileName));
+#endif
 	const auto l_result_delete = ::DeleteFile(formatPath(aFileName).c_str()) != NULL;
 	if (l_result_delete == false)
 	{
 #ifndef _CONSOLE
-		const string l_error = "Error delete file: " + Text::fromT(aFileName) + " Error " + Util::translateError();
+		const string l_error = "Error delete file: " + Text::fromT(aFileName) + " code:" + Util::toString(GetLastError());
 		LogManager::message(l_error);
 #endif
 	}
@@ -340,6 +346,7 @@ bool File::renameFile(const tstring& p_source, const tstring& p_target)
 #ifndef _CONSOLE
 		l_log.log("Start copy file: " + Text::fromT(p_source) + " -> " + Text::fromT(p_target) + " code:" + Util::toString(GetLastError()));
 #endif
+		dcassert(0);
 		try
 		{
 			copyFile(p_source, p_target);

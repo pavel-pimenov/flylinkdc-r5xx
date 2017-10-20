@@ -213,13 +213,15 @@
 #define IDR_VIP_ICO_TITANKALUGA         324
 #define IDR_TORRENT_PNG                 325
 #define IDR_TRANSFER_TREE               326
-#define IDR_VIP_ICO_MYDC            327
+#define IDR_VIP_ICO_MYDC                327
 #define IDR_VIP_ICO_ADRENALIN           328
 #define IDR_VIP_ICO_GODC                329
 #define IDD_FLY_TORRENT_DIALOG          330
 #define IDR_VIP_ZHIGANDC                331
 #define IDR_TRACKER_IMAGES              332
-#define IDR_VIP_HMN_PP					333
+#define IDR_VIP_HMN_PP                  333
+#define IDR_VIP_ICO_MILLENIUM           334
+
 #define IDR_ICON_XXX_BLOCK              999
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001

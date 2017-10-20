@@ -2544,11 +2544,13 @@ namespace libtorrent {
 			m_download_queue.insert(m_download_queue.begin(), b);
 			if (!in_req_queue)
 			{
+#ifndef TORRENT_NO_BLOCK_ALERTS
 				if (t->alerts().should_post<unwanted_block_alert>())
 				{
 					t->alerts().emplace_alert<unwanted_block_alert>(t->get_handle()
 						, m_remote, m_peer_id, b.block_index, b.piece_index);
 				}
+#endif
 #ifndef TORRENT_DISABLE_LOGGING
 				peer_log(peer_log_alert::info, "INVALID_REQUEST"
 					, "The block we just got was not in the request queue");
@@ -2701,12 +2703,14 @@ namespace libtorrent {
 
 		if (b == m_download_queue.end())
 		{
+#ifndef TORRENT_NO_BLOCK_ALERTS
 			if (t->alerts().should_post<unwanted_block_alert>())
 			{
 				t->alerts().emplace_alert<unwanted_block_alert>(t->get_handle()
 					, m_remote, m_peer_id, block_finished.block_index
 					, block_finished.piece_index);
 			}
+#endif
 #ifndef TORRENT_DISABLE_LOGGING
 			peer_log(peer_log_alert::info, "INVALID_REQUEST", "The block we just got was not in the request queue");
 #endif
@@ -3042,12 +3046,14 @@ namespace libtorrent {
 
 		t->maybe_done_flushing();
 
+#ifndef TORRENT_NO_BLOCK_ALERTS
 		if (t->alerts().should_post<block_finished_alert>())
 		{
 			t->alerts().emplace_alert<block_finished_alert>(t->get_handle(),
 				remote(), pid(), block_finished.block_index
 				, block_finished.piece_index);
 		}
+#endif
 
 		disconnect_if_redundant();
 
@@ -3485,11 +3491,13 @@ namespace libtorrent {
 			return false;
 		}
 
+#ifndef TORRENT_NO_BLOCK_ALERTS
 		if (t->alerts().should_post<block_downloading_alert>())
 		{
 			t->alerts().emplace_alert<block_downloading_alert>(t->get_handle()
 				, remote(), pid(), block.block_index, block.piece_index);
 		}
+#endif // #ifndef TORRENT_NO_BLOCK_ALERTS
 
 		pending_block pb(block);
 		pb.busy = (flags & busy) ? true : false;
@@ -5009,13 +5017,14 @@ namespace libtorrent {
 				send_block_requests();
 				return;
 			}
-
+#ifndef TORRENT_NO_BLOCK_ALERTS
 			if (t->alerts().should_post<block_timeout_alert>())
 			{
 				t->alerts().emplace_alert<block_timeout_alert>(t->get_handle()
 					, remote(), pid(), qe.block.block_index
 					, qe.block.piece_index);
 			}
+#endif
 
 			// request a new block before removing the previous
 			// one, in order to prevent it from

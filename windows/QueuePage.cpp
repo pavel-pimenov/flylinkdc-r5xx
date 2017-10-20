@@ -67,8 +67,11 @@ PropPage::ListItem QueuePage::optionItems[] =
 	{ SettingsManager::SKIP_ALREADY_DOWNLOADED_FILES, ResourceManager::SETTINGS_SKIP_ALREADY_DOWNLOADED_FILES },
 	
 //[-]PPA может приводить к неполному скачиванию папки (например DVD - диска)
-// TODO необходим рефакторинг работы функционала! предоставление выбора скопировать файлы из уже имеющихся
-//	{ SettingsManager::DONT_DL_ALREADY_SHARED, ResourceManager::SETTINGS_DONT_DL_ALREADY_SHARED },
+	// https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1680
+	{ SettingsManager::DONT_DL_ALREADY_SHARED, ResourceManager::SETTINGS_DONT_DL_ALREADY_SHARED },
+	{ SettingsManager::DONT_DL_PREVIOUSLY_BEEN_IN_SHARE, ResourceManager::SETTINGS_DONT_DL_PREVIOUSLY_BEEN_IN_SHARE },
+	
+	
 //	{ SettingsManager::ANTI_FRAG, ResourceManager::SETTINGS_ANTI_FRAG },
 	// [-] merge
 	//{ SettingsManager::ADVANCED_RESUME, ResourceManager::SETTINGS_ADVANCED_RESUME },

@@ -1312,6 +1312,7 @@
 	<string name="SettingsDisplayCheatsInMainChat">Display cheats in main chat</string>
 	<string name="SettingsDontChange">Don't change</string>
 	<string name="SettingsDontDlAlreadyShared">Don't download files already in share</string>
+	<string name="SettingsDontDlPreviouslyBeenInShare">Don't download files previously been in share</string>
 	<string name="SettingsDownconn">Download attempts/sec</string>
 	<string name="SettingsDownloads">Downloads</string>
 	<string name="SettingsDownloadsMax">Maximum slots for downloads (0 = infinite)</string>
@@ -1687,7 +1688,9 @@
 	<string name="TrayLimiter">Limit transfer speeds</string>
 	<string name="TrustedCertificatesPath">Trusted certificates path</string>
 	<string name="TthAlreadyShared">A file with the same hash already exists in your share</string>
+	<string name="TthPreviouslyBeenInShare">A file with the same hash already previously been in share</string>
 	<string name="TthAlreadyDownloadeded">A file with the same hash already donloaded</string>
+	<string name="TthAlreadyQueueDownload">A file with the same hash already queue</string>
 	<string name="TthInconsistency">TTH Inconsistency</string>
 	<string name="TthRoot">TTH Root</string>
 	<string name="TthRootOrTorrentMagnet">TTH or torrent magnet</string>

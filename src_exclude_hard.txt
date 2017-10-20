@@ -19,6 +19,7 @@ vc17
 FlylinkDCShellExt*.pdb
 FlylinkDC_Debug*.pdb
 compiled/Settings/common/*.*
+client/dc2/*.*
 CustomCompressExt.txt
 libtorrent.pdb
 CustomLocations.bmp

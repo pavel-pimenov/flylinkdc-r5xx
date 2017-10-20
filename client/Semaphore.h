@@ -75,9 +75,9 @@ class Semaphore
 			{
 				h = INVALID_HANDLE_VALUE;
 				const auto l_error_code = GetLastError();
+				dcassert(l_error_code == 0);
 				if (l_error_code)
 				{
-					dcassert(l_error_code == 0);
 					dcdebug("[Semaphore] CloseHandle = error_code = %d", l_error_code);
 				}
 			}

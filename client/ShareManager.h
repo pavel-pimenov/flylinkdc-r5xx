@@ -339,8 +339,8 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 				void search(SearchResultList& aResults, StringSearch::List& aStrings, const SearchParamBase& p_search_param) const noexcept;
 				void search(SearchResultList& aResults, AdcSearch& aStrings, StringList::size_type maxResults) const noexcept;
 				
-				void toXml(OutputStream& xmlFile, string& indent, string& tmp2, bool fullList) const;
-				void filesToXml(OutputStream& xmlFile, string& indent, string& tmp2) const;
+				void toXmlL(OutputStream& xmlFile, string& indent, string& tmp2, bool fullList) const;
+				void filesToXmlL(OutputStream& xmlFile, string& indent, string& tmp2) const;
 				
 				ShareFile::Set::const_iterator findFileIterL(const string& aFile) const
 				{

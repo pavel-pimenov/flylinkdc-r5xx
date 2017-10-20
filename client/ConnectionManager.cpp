@@ -751,9 +751,9 @@ void ConnectionManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcep
 	{
 		auto& l_connection = *j;
 #ifdef _DEBUG
-		if ((l_connection->getLastActivity() + 180 * 1000) < aTick)
+		if ((l_connection->getLastActivity(false) + 60 * 1000) < aTick)
 #else
-		if ((l_connection->getLastActivity() + 180 * 1000) < aTick) // Зачем так много минут висеть?
+		if ((l_connection->getLastActivity(false) + 60 * 1000) < aTick) // Зачем так много минут висеть?
 #endif
 		{
 			l_connection->disconnect(true);

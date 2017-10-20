@@ -305,8 +305,9 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 	const auto l_ip = aSource->getRemoteIp();
 	const auto l_chiper_name = aSource->getCipherName();
 	const bool l_is_TypeTree = aType == Transfer::g_type_names[Transfer::TYPE_TREE];
+	const bool l_is_TypePartialTree = aType == Transfer::g_type_names[Transfer::TYPE_PARTIAL_LIST];
 #ifdef FLYLINKDC_USE_DOS_GUARD
-	if (l_is_TypeTree) // && aFile == "TTH/HDWK5FVECXJDLTECQ6TY435WWEE7RU25RSQYYWY"
+	if (l_is_TypeTree || l_is_TypePartialTree) // && aFile == "TTH/HDWK5FVECXJDLTECQ6TY435WWEE7RU25RSQYYWY"
 	{
 		const HintedUser& l_User = aSource->getHintedUser();
 		if (l_User.user)
@@ -322,7 +323,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 				CFlyFastLock(csDos); // [!] IRainman opt.
 				l_count_dos = ++m_dos_map[l_hash_key];
 			}
-			static const uint8_t l_count_attempts = 30;
+			const uint8_t l_count_attempts = l_is_TypePartialTree ? 3 : 30;
 			if (l_count_dos > l_count_attempts)
 			{
 				dcdebug("l_hash_key = %s ++m_dos_map[l_hash_key] = %d\n", l_hash_key.c_str(), l_count_dos);
@@ -343,17 +344,23 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 					aSource->error(UserConnection::g_PLEASE_UPDATE_YOUR_CLIENT);
 				}
 #endif
-				
+				if (l_is_TypePartialTree)
+				{
+					/*
+					Fix
+					[2017-10-01 16:20:21] <MikeKMV> оказывается флай умеет флудить
+					[2017-10-01 16:20:25] <MikeKMV> Client: [Incoming][194.186.25.22]       $ADCGET list /music/Vangelis/[1988]\ Vangelis\ -\ Direct/ 0 -1 ZL1
+					Client: [Outgoing][194.186.25.22]       $ADCSND list /music/Vangelis/[1988]\ Vangelis\ -\ Direct/ 0 2029 ZL1|
+					Client: [Incoming][194.186.25.22]       $ADCGET list /music/Vangelis/[1988]\ Vangelis\ -\ Direct/ 0 -1 ZL1
+					Client: [Outgoing][194.186.25.22]       $ADCSND list /music/Vangelis/[1988]\ Vangelis\ -\ Direct/ 0 2029 ZL1|
+					Client: [Incoming][194.186.25.22]       $ADCGET list /music/Vangelis/[1988]\ Vangelis\ -\ Direct/ 0 -1 ZL1
+					Client: [Outgoing][194.186.25.22]       $ADCSND list /music/Vangelis/[1988]\ Vangelis\ -\ Direct/ 0 2029 ZL1|
+					*/
+					CFlyServerJSON::pushError(80, "Disconnect bug client: $ADCGET / $ADCSND User: " + l_User.user->getLastNick() + " Hub:" + aSource->getHubUrl());
+					aSource->disconnect();
+				}
 				return false;
 			}
-			/*
-			if(l_count_dos > 50)
-			     {
-			         LogManager::message("[DoS] disconnect " + aSource->getUser()->getLastNick());
-			         aSource->disconnect();
-			         return false;
-			     }
-			*/
 		}
 	}
 #endif // FLYLINKDC_USE_DOS_GUARD
@@ -362,9 +369,9 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 	int64_t size = 0;
 	int64_t fileSize = 0;
 	
-	const bool userlist = (aFile == Transfer::g_user_list_name_bz || aFile == Transfer::g_user_list_name);
-	bool free = userlist;
-	bool partial = false;
+	const bool l_is_userlist = (aFile == Transfer::g_user_list_name_bz || aFile == Transfer::g_user_list_name);
+	bool l_is_free = l_is_userlist;
+	bool l_is_partial = false;
 	
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	bool ishidingShare;
@@ -424,7 +431,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 					return false;
 				}
 				
-				free = free || (sz <= (int64_t)(SETTING(SET_MINISLOT_SIZE) * 1024));
+				l_is_free = l_is_free || (sz <= (int64_t)(SETTING(SET_MINISLOT_SIZE) * 1024));
 				
 				f->setPos(start);
 				is = f;
@@ -433,7 +440,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 					is = new LimitedInputStream<true>(is, size);
 				}
 			}
-			type = userlist ? Transfer::TYPE_FULL_LIST : Transfer::TYPE_FILE;
+			type = l_is_userlist ? Transfer::TYPE_FULL_LIST : Transfer::TYPE_FILE;
 		}
 		else if (l_is_TypeTree)
 		{
@@ -456,10 +463,10 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 			start = 0;
 			fileSize = size = mis->getSize();
 			is = mis;
-			free = true;
+			l_is_free = true;
 			type = Transfer::TYPE_TREE;
 		}
-		else if (aType == Transfer::g_type_names[Transfer::TYPE_PARTIAL_LIST])
+		else if (l_is_TypePartialTree)
 		{
 			// Partial file list
 			MemoryInputStream* mis = ShareManager::getInstance()->generatePartialList(aFile, listRecursive
@@ -476,7 +483,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 			start = 0;
 			fileSize = size = mis->getSize();
 			is = mis;
-			free = true;
+			l_is_free = true;
 			type = Transfer::TYPE_PARTIAL_LIST;
 		}
 		else
@@ -536,7 +543,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 					}
 					// [~] IRainman fix.
 					
-					partial = true;
+					l_is_partial = true;
 					type = Transfer::TYPE_FILE;
 					goto ok; // don't fix "goto", it is fixed in wx version anyway
 				}
@@ -583,7 +590,7 @@ ok: //[!] TODO убрать goto
 	if (!l_isFavorite && SETTING(ENABLE_AUTO_BAN))
 	{
 		// фавориты под автобан не попадают
-		if (!userlist && !hasReserved && handleBan(aSource))
+		if (!l_is_userlist && !hasReserved && handleBan(aSource))
 		{
 			delete is;
 			addFailedUpload(aSource, sourceFile, aStartPos, size);
@@ -631,13 +638,13 @@ ok: //[!] TODO убрать goto
 			                   || aSource->isSet(UserConnection::FLAG_OP)
 #endif
 			                   || getFreeExtraSlots() > 0;
-			bool partialFree = partial && ((slotType == UserConnection::PARTIALSLOT) || (extraPartial < SETTING(EXTRA_PARTIAL_SLOTS)));
+			bool l_is_partialFree = l_is_partial && ((slotType == UserConnection::PARTIALSLOT) || (extraPartial < SETTING(EXTRA_PARTIAL_SLOTS)));
 			
 			if (free && supportsFree && allowedFree)
 			{
 				slotType = UserConnection::EXTRASLOT;
 			}
-			else if (partialFree)
+			else if (l_is_partialFree)
 			{
 				slotType = UserConnection::PARTIALSLOT;
 			}
@@ -707,7 +714,7 @@ ok: //[!] TODO убрать goto
 	if (resumed)
 		u->setFlag(Upload::FLAG_RESUMED);
 		
-	if (partial)
+	if (l_is_partial)
 		u->setFlag(Upload::FLAG_UPLOAD_PARTIAL);
 		
 	u->setFileSize(fileSize);
@@ -907,7 +914,7 @@ void UploadManager::on(UserConnectionListener::Send, UserConnection* aSource) no
 	
 	auto u = aSource->getUpload();
 	dcassert(u != nullptr);
-	u->setStart(aSource->getLastActivity());
+	u->setStart(aSource->getLastActivity(true));
 	
 	aSource->setState(UserConnection::STATE_RUNNING);
 	aSource->transmitFile(u->getReadStream());
@@ -975,10 +982,7 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 		}
 		aSource->send(cmd);
 		
-		// [!] IRainman refactoring transfer mechanism
-		u->setStart(aSource->getLastActivity());
-		// [-] u->tick(GET_TICK());
-		// [~]
+		u->setStart(aSource->getLastActivity(true));
 		aSource->setState(UserConnection::STATE_RUNNING);
 		aSource->transmitFile(u->getReadStream());
 		fly_fire1(UploadManagerListener::Starting(), u);
@@ -1017,7 +1021,7 @@ void UploadManager::on(UserConnectionListener::TransmitDone, UserConnection* aSo
 	dcassert(aSource->getState() == UserConnection::STATE_RUNNING);
 	auto u = aSource->getUpload();
 	dcassert(u != nullptr);
-	u->tick(aSource->getLastActivity()); // [!] IRainman refactoring transfer mechanism
+	u->tick(aSource->getLastActivity(true)); // [!] IRainman refactoring transfer mechanism
 	
 	aSource->setState(UserConnection::STATE_GET);
 	

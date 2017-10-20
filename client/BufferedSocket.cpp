@@ -71,6 +71,7 @@ BufferedSocket::~BufferedSocket()
 #ifdef FLYLINKDC_USE_SOCKET_COUNTER
 	--g_sockets;
 #endif
+	dcassert(m_tasks.empty());
 }
 
 void BufferedSocket::setMode(Modes aMode, size_t aRollback)
@@ -173,6 +174,13 @@ void BufferedSocket::connect(const string& aAddress, uint16_t aPort, uint16_t lo
 	
 	initMyINFOLoader();
 	addTask(CONNECT, new ConnectInfo(aAddress, aPort, localPort, natRole, proxy && (SETTING(OUTGOING_CONNECTIONS) == SettingsManager::OUTGOING_SOCKS5)));
+}
+
+void BufferedSocket::initMyINFOLoader()
+{
+	m_is_disconnecting = false;
+	m_is_all_my_info_loaded = false;
+	m_myInfoCount = 0;
 }
 
 static const uint16_t LONG_TIMEOUT = 30000;
@@ -288,6 +296,9 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
                                        CFlySearchArrayTTH& p_tth_search,
                                        CFlySearchArrayFile& p_file_search)
 {
+	// dcassert(m_is_disconnecting == false);
+	if (m_is_disconnecting == true)
+		return false;
 	if (p_line.size() < 8)
 		return false;
 	if (p_line.compare(0, 2, "$S", 2) != 0)
@@ -981,7 +992,7 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 		}
 		l_readBuf.swap(l_writeBuf);
 		l_readBuf.resize(g_bufSize);
-		l_writeBuf.resize(readPos);
+		l_writeBuf.resize(readPos); // TODO - l_writeBuf опустить ниже и заказывать сколько нужно.
 		readPos = 0;
 		
 		size_t writePos = 0, writeSize = 0;
@@ -1001,6 +1012,9 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 			{
 				writeSize = std::min(l_sockSize / 2, l_writeBuf.size() - writePos);
 				written = ThrottleManager::getInstance()->write(sock.get(), &l_writeBuf[writePos], writeSize);
+#ifdef _DEBUG
+				COMMAND_DEBUG("BufferedSocket: write bytes = " + Util::toString(written), DebugTask::CLIENT_OUT, getRemoteIpPort());
+#endif
 			}
 			
 			if (written > 0)
@@ -1307,6 +1321,49 @@ void BufferedSocket::addTask(Tasks p_task, TaskData* p_data)
 void BufferedSocket::addTaskL(Tasks p_task, TaskData* p_data)
 {
 	dcassert(p_task == DISCONNECT || p_task == SHUTDOWN || p_task == UPDATED || sock.get());
+	if (p_task == DISCONNECT && !m_tasks.empty())
+	{
+		if (m_tasks.back().first == DISCONNECT)
+		{
+			dcassert(0);
+			return;
+		}
+	}
+#ifdef _DEBUG
+	if (p_task == SHUTDOWN && !m_tasks.empty())
+	{
+		if (m_tasks.back().first == SHUTDOWN)
+		{
+			dcassert(0);
+			return;
+		}
+	}
+	if (p_task == UPDATED && !m_tasks.empty())
+	{
+		if (m_tasks.back().first == UPDATED)
+		{
+			dcassert(0);
+			return;
+		}
+	}
+	if (p_task == SEND_DATA && !m_tasks.empty())
+	{
+		if (m_tasks.back().first == SEND_DATA)
+		{
+			dcassert(0);
+			return;
+		}
+	}
+	if (p_task == ACCEPTED && !m_tasks.empty())
+	{
+		if (m_tasks.back().first == ACCEPTED)
+		{
+			dcassert(0);
+			return;
+		}
+	}
+#endif
+	
 	m_tasks.push_back(std::make_pair(p_task, std::unique_ptr<TaskData>(p_data)));
 	m_socket_semaphore.signal();
 }
