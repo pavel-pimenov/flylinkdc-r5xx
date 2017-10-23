@@ -901,7 +901,7 @@ int zmq::stream_engine_t::write_credential (msg_t *msg_)
     zmq_assert (mechanism != NULL);
     zmq_assert (session != NULL);
 
-    const blob_t credential = mechanism->get_user_id ();
+    const blob_t &credential = mechanism->get_user_id ();
     if (credential.size () > 0) {
         msg_t msg;
         int rc = msg.init_size (credential.size ());
@@ -1010,14 +1010,14 @@ void zmq::stream_engine_t::set_handshake_timer ()
 
 bool zmq::stream_engine_t::init_properties (properties_t & properties) {
     if (peer_address.empty()) return false;
-    properties.insert (
-      std::make_pair (ZMQ_MSG_PROPERTY_PEER_ADDRESS, peer_address));
+    properties.ZMQ_MAP_INSERT_OR_EMPLACE (
+      ZMQ_MSG_PROPERTY_PEER_ADDRESS, peer_address);
 
     //  Private property to support deprecated SRCFD
     std::ostringstream stream;
     stream << (int)s;
     std::string fd_string = stream.str();
-    properties.insert(std::make_pair("__fd", fd_string));
+    properties.ZMQ_MAP_INSERT_OR_EMPLACE ("__fd", ZMQ_MOVE(fd_string));
     return true;
 }
 

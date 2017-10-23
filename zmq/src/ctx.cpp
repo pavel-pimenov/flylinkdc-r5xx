@@ -36,6 +36,7 @@
 #include <limits>
 #include <climits>
 #include <new>
+#include <sstream>
 #include <string.h>
 
 #include "ctx.hpp"
@@ -76,7 +77,8 @@ zmq::ctx_t::ctx_t () :
     blocky (true),
     ipv6 (false),
     thread_priority (ZMQ_THREAD_PRIORITY_DFLT),
-    thread_sched_policy (ZMQ_THREAD_SCHED_POLICY_DFLT)
+    thread_sched_policy (ZMQ_THREAD_SCHED_POLICY_DFLT),
+    thread_affinity (ZMQ_THREAD_AFFINITY_DFLT)
 {
 #ifdef HAVE_FORK
     pid = getpid();
@@ -250,6 +252,18 @@ int zmq::ctx_t::set (int option_, int optval_)
         thread_sched_policy = optval_;
     }
     else
+    if (option_ == ZMQ_THREAD_AFFINITY && optval_ >= 0) {
+        scoped_lock_t locker(opt_sync);
+        thread_affinity = optval_;
+    }
+    else
+    if (option_ == ZMQ_THREAD_NAME_PREFIX && optval_ >= 0) {
+        std::ostringstream s;
+        s << optval_;
+        scoped_lock_t locker(opt_sync);
+        thread_name_prefix = s.str();
+    }
+    else
     if (option_ == ZMQ_BLOCKY && optval_ >= 0) {
         scoped_lock_t locker(opt_sync);
         blocky = (optval_ != 0);
@@ -395,11 +409,16 @@ zmq::object_t *zmq::ctx_t::get_reaper ()
 
 void zmq::ctx_t::start_thread (thread_t &thread_, thread_fn *tfn_, void *arg_) const
 {
+    static unsigned int nthreads_started = 0;
+
+    thread_.setSchedulingParameters(thread_priority, thread_sched_policy, thread_affinity);
     thread_.start(tfn_, arg_);
-    thread_.setSchedulingParameters(thread_priority, thread_sched_policy);
 #ifndef ZMQ_HAVE_ANDROID
-    thread_.setThreadName ("ZMQ background");
+    std::ostringstream s;
+    s << thread_name_prefix << "/ZMQbg/" << nthreads_started;
+    thread_.setThreadName (s.str().c_str());
 #endif
+    nthreads_started++;
 }
 
 void zmq::ctx_t::send_command (uint32_t tid_, const command_t &command_)
@@ -432,7 +451,8 @@ int zmq::ctx_t::register_endpoint (const char *addr_,
 {
     scoped_lock_t locker(endpoints_sync);
 
-    const bool inserted = endpoints.insert (endpoints_t::value_type (std::string (addr_), endpoint_)).second;
+    const bool inserted = endpoints.ZMQ_MAP_INSERT_OR_EMPLACE (addr_, 
+        endpoint_).second;
     if (!inserted) {
         errno = EADDRINUSE;
         return -1;
@@ -505,7 +525,7 @@ void zmq::ctx_t::pend_connection (const std::string &addr_,
     if (it == endpoints.end ()) {
         //  Still no bind.
         endpoint_.socket->inc_seqnum ();
-        pending_connections.insert (pending_connections_t::value_type (addr_, pending_connection));
+        pending_connections.ZMQ_MAP_INSERT_OR_EMPLACE (addr_, pending_connection);
     } else {
         //  Bind has happened in the mean time, connect directly
         connect_inproc_sockets(it->second.socket, it->second.options, pending_connection, connect_side);

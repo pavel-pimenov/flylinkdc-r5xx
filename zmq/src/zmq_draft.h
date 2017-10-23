@@ -91,6 +91,9 @@
 
 /*  DRAFT Context options                                                     */
 #define ZMQ_MSG_T_SIZE 6
+#define ZMQ_THREAD_AFFINITY 7
+#define ZMQ_THREAD_AFFINITY_DFLT -1
+#define ZMQ_THREAD_NAME_PREFIX 8
 
 /*  DRAFT Socket methods.                                                     */
 int zmq_join (void *s, const char *group);
