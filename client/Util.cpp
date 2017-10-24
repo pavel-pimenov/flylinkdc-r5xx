@@ -2809,7 +2809,8 @@ void CFlyHTTPDownloader::nextMirror()
 		g_last_stable_mirror = 0;
 }
 	
-uint64_t CFlyHTTPDownloader::getBinaryDataFromInetSafe(const string& p_url, std::vector<unsigned char>& p_data_out, LONG p_time_out /*=0*/, IDateReceiveReporter* p_reporter /* = NULL */)
+uint64_t CFlyHTTPDownloader::getBinaryDataFromInetSafe(const string& p_url, std::vector<unsigned char>& p_data_out, 
+	LONG p_time_out /*=0*/, IDateReceiveReporter* p_reporter /* = NULL */)
 {
 	size_t l_length = 0;
 	string l_url = p_url;

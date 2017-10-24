@@ -555,7 +555,7 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 #endif
 			if (!ClientManager::isBeforeShutdown())
 			{
-				dcassert(m_is_disconnecting == false)
+				//dcassert(m_is_disconnecting == false)
 				if (m_is_disconnecting == false)
 				{
 					fly_fire1(BufferedSocketListener::Line(), l_line_item); // TODO - отказаться от временной переменной l и скользить по окну inbuf

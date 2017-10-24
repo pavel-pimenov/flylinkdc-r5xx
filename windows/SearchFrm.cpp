@@ -2864,7 +2864,7 @@ bool SearchFrame::is_filter_item(const SearchInfo* si)
 	else
 	{
 		bool l_is_filter = false;
-		if (!si->m_is_torrent == false && si->m_sr.getType() == SearchResult::TYPE_FILE)
+		if (si->m_is_torrent == false && si->m_sr.getType() == SearchResult::TYPE_FILE)
 		{
 			const auto l_file_ext = Text::toLower(Util::getFileExtWithoutDot(si->m_sr.getFileName()));
 			const auto& l_filtered_item = m_filter_map[m_CurrentTreeItem];

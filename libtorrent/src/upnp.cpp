@@ -796,15 +796,13 @@ void upnp::create_port_mapping(http_connection& c, rootdevice& d
 		"<NewInternalPort>%u</NewInternalPort>"
 		"<NewInternalClient>%s</NewInternalClient>"
 		"<NewEnabled>1</NewEnabled>"
-		"<NewPortMappingDescription>%s at %s:%d</NewPortMappingDescription>"
+		"<NewPortMappingDescription>%s</NewPortMappingDescription>"
 		"<NewLeaseDuration>%u</NewLeaseDuration>"
 		, d.mapping[i].external_port
 		, to_string(d.mapping[i].protocol)
 		, d.mapping[i].local_ep.port()
 		, local_endpoint.c_str()
 		, m_user_agent.c_str()
-		, local_endpoint.c_str()
-		, d.mapping[i].local_ep.port()
 		, d.lease_duration);
 
 	auto const soap = create_soap(soap_action, d.service_namespace, soap_body);

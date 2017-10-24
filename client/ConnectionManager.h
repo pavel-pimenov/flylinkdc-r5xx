@@ -284,7 +284,7 @@ class ConnectionManager :
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDownloads;
 		//static std::unique_ptr<webrtc::RWLockWrapper> g_csUploads;
 		static CriticalSection g_csUploads;
-		static std::unique_ptr<webrtc::RWLockWrapper> g_csDdosCheck;
+		static FastCriticalSection g_csDdosCheck;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDdosCTM2HUBCheck;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csTTHFilter;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csFileFilter;

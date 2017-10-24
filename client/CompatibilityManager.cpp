@@ -22,6 +22,8 @@
 #    include <math.h> /* needed for _set_FMA3_enable */
 #  endif
 
+#define FLYLINKDC_USE_DISK_SPACE_INFO
+
 #include <WinError.h>
 #include <winnt.h>
 #include <ImageHlp.h>
@@ -1097,7 +1099,7 @@ string CompatibilityManager::DiskSpaceInfo(bool onlyTotal /* = false */)
 	
 	//check for mounted Network drives
 	ULONG drives = _getdrives();
-	TCHAR drive[3] = { _T('A'), _T(':'), _T('\0') }; // TODO фиксануть copy-paste
+	TCHAR drive[3] = { _T('C'), _T(':'), _T('\0') }; // TODO фиксануть copy-paste
 	while (drives != 0)
 	{
 		const auto l_drive_type = GetDriveType(drive);
@@ -1164,7 +1166,6 @@ tstring CompatibilityManager::diskInfo()
 		const auto l_drive_type = GetDriveType((*i).c_str());
 		if (l_drive_type == DRIVE_CDROM || l_drive_type == DRIVE_REMOVABLE) // Not score USB flash, SD, SDMC, DVD, CD
 			continue;
-			
 		TCHAR   buf[MAX_PATH];
 		buf[0] = 0;
 		if ((GetVolumePathNamesForVolumeName((*i).c_str(), buf, 256, NULL) != 0) &&
@@ -1178,12 +1179,11 @@ tstring CompatibilityManager::diskInfo()
 				results.push_back((_T("\t-=[ Disk ") + mountpath + _T(" space (free/total): ") + Util::formatBytesW(free) + _T("/") + Util::formatBytesW(size) + _T(" ]=-")));
 			}
 		}
-		
 	}
 	
 	// and a check for mounted Network drives, todo fix a better way for network space
 	ULONG drives = _getdrives();
-	TCHAR drive[3] = { _T('A'), _T(':'), _T('\0') };
+	TCHAR drive[3] = { _T('C'), _T(':'), _T('\0') };
 	
 	while (drives != 0)
 	{

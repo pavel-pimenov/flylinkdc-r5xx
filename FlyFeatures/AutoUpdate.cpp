@@ -717,7 +717,7 @@ bool AutoUpdate::prepareFile(const AutoUpdateFile& file, const string& tempFolde
 	// 60 sec
 	CFlyHTTPDownloader l_http_downloader;
 	l_http_downloader.m_is_use_cache = false;
-	int64_t sizeRead = l_http_downloader.getBinaryDataFromInetSafe(file.m_sDownloadURL, l_binary_data, 60000, reporter); // TODO - передать размер буфера сразу
+	int64_t sizeRead = l_http_downloader.getBinaryDataFromInetSafe(file.m_sDownloadURL, l_binary_data, 60000, reporter); 
 	if (sizeRead == file.m_packedSize)
 	{
 		/*

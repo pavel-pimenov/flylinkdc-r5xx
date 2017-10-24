@@ -135,9 +135,9 @@ void Thread::start(unsigned int p_stack_size, const char* p_name /* = nullptr */
 #ifdef USE_FLY_CONSOLE_TEST
 			throw ThreadException("UNABLE_TO_CREATE_THREAD");
 #else                   // TODO - отметить маркером для передачи на флай сервер факта падения. ошибка странная и плохая.
-			const string l_error = "Unable to crate thread! errno = " + Util::toString(errno) +
+			const string l_error = "Error create thread: " + Util::toString(errno) +
 			                       " GetLastError() = " + Util::toString(l_last_error) +
-			                       " Please send a text or a screenshot of the error to developers ppa74@ya.ru";
+			                       " Send screenshot of the error to developers: ppa74@ya.ru";
 			// https://www.crash-server.com/DumpGroup.aspx?ClientID=guest&Login=Guest&DumpGroupID=97752
 #ifdef _DEBUG
 			MessageBox(NULL, Text::toT(l_error).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR | MB_TOPMOST);

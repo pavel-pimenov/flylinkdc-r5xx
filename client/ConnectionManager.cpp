@@ -36,7 +36,7 @@ std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csConnection = std::
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDownloads = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 //std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csUploads = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 CriticalSection ConnectionManager::g_csUploads;
-std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDdosCheck = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
+FastCriticalSection ConnectionManager::g_csDdosCheck;
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDdosCTM2HUBCheck = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csTTHFilter = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csFileFilter = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
@@ -658,7 +658,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 
 void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 {
-	CFlyWriteLock(*g_csDdosCheck);
+	CFlyFastLock(g_csDdosCheck);
 	for (auto j = g_ddos_map.cbegin(); j != g_ddos_map.cend();)
 	{
 		// Если коннектов совершено меньше чем предел в течении минуты - убираем адрес из таблицы - с ним все хорошо!
@@ -1049,7 +1049,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		CFlyDDoSTick l_item;
 		l_item.m_first_tick = l_tick;
 		l_item.m_last_tick = l_tick;
-		CFlyWriteLock(*g_csDdosCheck);
+		CFlyFastLock(g_csDdosCheck);
 		auto l_result = g_ddos_map.insert(std::pair<CFlyDDOSkey, CFlyDDoSTick>(l_key, l_item));
 		auto& l_cur_value = l_result.first->second;
 		++l_cur_value.m_count_connect;
