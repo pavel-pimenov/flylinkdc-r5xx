@@ -2017,9 +2017,11 @@ void NmdcHub::onLine(const string& aLine)
 					unsigned l_nick_rule_min = Util::toInt(it->substr(l_pos + 1));
 					if (l_nick_rule_min > 64)
 					{
-						LogManager::message("Error value NickRule Min = " + it->substr(l_pos + 1) + " replace: 64");
+						CFlyServerJSON::pushError(81, "Error value NickRule Min = " + it->substr(l_pos + 1) +
+							 " replace: 64" + "Hub = " + getHubUrl());
 						l_nick_rule_min = 64;
-						//dcassert(0);
+						disconnect(false);
+						dcassert(0);
 					}
 					m_nick_rule->m_nick_rule_min = l_nick_rule_min;
 				}
@@ -2028,8 +2030,10 @@ void NmdcHub::onLine(const string& aLine)
 					unsigned l_nick_rule_max = Util::toInt(it->substr(l_pos + 1));
 					if (l_nick_rule_max > 200)
 					{
-						LogManager::message("Error value NickRule Max = " + it->substr(l_pos + 1) + " replace: 200");
+						CFlyServerJSON::pushError(81, "Error value NickRule Max = " + it->substr(l_pos + 1) +
+							" replace: 200" + "Hub = " + getHubUrl());
 						l_nick_rule_max = 200;
+						disconnect(false);
 						dcassert(0);
 					}
 					m_nick_rule->m_nick_rule_max = l_nick_rule_max;

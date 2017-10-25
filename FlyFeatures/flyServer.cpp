@@ -1731,7 +1731,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 }
 #endif
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 80 (36,58,44,49 - устарели)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 81 (36,58,44,49 - устарели)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;

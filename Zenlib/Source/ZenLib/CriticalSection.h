@@ -77,14 +77,12 @@ public :
 class CriticalSectionLocker
 {
 public:
-    __forceinline CriticalSectionLocker (const ZenLib::CriticalSection &CS) :CritSec(&CS)
+    __forceinline CriticalSectionLocker (const ZenLib::CriticalSection &)
     {
     }
     __forceinline ~CriticalSectionLocker ()
     {
     }
-private:
-    const ZenLib::CriticalSection *CritSec;
 };
 
 #endif

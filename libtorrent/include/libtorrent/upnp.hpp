@@ -310,7 +310,6 @@ private:
 #if TORRENT_USE_ASSERTS
 		int magic = 1337;
 #endif
-		void close() const;
 
 		bool operator<(rootdevice const& rhs) const
 		{ return url < rhs.url; }
