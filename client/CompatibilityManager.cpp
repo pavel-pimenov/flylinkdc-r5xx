@@ -57,7 +57,6 @@ SYSTEM_INFO CompatibilityManager::g_sysInfo = {0};
 bool CompatibilityManager::g_supports[LAST_SUPPORTS];
 LONG CompatibilityManager::g_comCtlVersion = 0;
 DWORD CompatibilityManager::g_oldPriorityClass = 0;
-string CompatibilityManager::g_upnp_router_model;
 bool CompatibilityManager::g_is_teredo = false;
 bool CompatibilityManager::g_is_ipv6_enabled = false;
 FINDEX_INFO_LEVELS CompatibilityManager::g_find_file_level = FindExInfoStandard;
@@ -588,10 +587,6 @@ void CompatibilityManager::generateSystemInfoForApp()
 	if (runningAnOldOS())
 		g_startupInfo += " - incompatible OS!";
 #endif
-	if (!CompatibilityManager::g_upnp_router_model.empty())
-	{
-		g_startupInfo += "Router model: " + CompatibilityManager::g_upnp_router_model;
-	}
 	g_startupInfo += "\r\n\r\n";
 	
 	// g_startupInfo.shrink_to_fit(); // странно падение https://drdump.com/DumpGroup.aspx?DumpGroupID=464486
@@ -699,13 +694,11 @@ string CompatibilityManager::generateNetworkStats()
 	          "-=[ TCP: Downloaded: %s. Uploaded: %s ]=-\r\n"
 	          "-=[ UDP: Downloaded: %s. Uploaded: %s ]=-\r\n"
 	          // TODO "-=[ Torrent: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          "-=[ SSL: Downloaded: %s. Uploaded: %s ]=-\r\n"
-	          "-=[ Router: %s ]=-",
+	          "-=[ SSL: Downloaded: %s. Uploaded: %s ]=-\r\n",
 	          Util::formatBytes(Socket::g_stats.m_tcp.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_tcp.totalUp).c_str(),
 	          Util::formatBytes(Socket::g_stats.m_udp.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_udp.totalUp).c_str(),
 	          // TODO Util::formatBytes(Socket::g_stats.m_dht.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_dht.totalUp).c_str(),
-	          Util::formatBytes(Socket::g_stats.m_ssl.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_ssl.totalUp).c_str(),
-	          (!g_upnp_router_model.empty() ? g_upnp_router_model.c_str() : "undefined")
+	          Util::formatBytes(Socket::g_stats.m_ssl.totalDown).c_str(), Util::formatBytes(Socket::g_stats.m_ssl.totalUp).c_str()
 	         );
 	return l_buf.data();
 }

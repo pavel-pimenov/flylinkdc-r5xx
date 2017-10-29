@@ -34,7 +34,7 @@ class MappingManager
 	public:
 		MappingManager();
 		
-		static string getPortmapInfo(bool p_add_router_name, bool p_show_public_ip);
+		static string getPortmapInfo(bool p_show_public_ip);
 		static string getExternaIP()
 		{
 			return g_externalIP;

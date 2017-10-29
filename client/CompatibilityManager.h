@@ -152,7 +152,6 @@ class CompatibilityManager
 		
 		static FINDEX_INFO_LEVELS g_find_file_level;
 		static DWORD g_find_file_flags;
-		static string g_upnp_router_model;
 		static bool g_is_teredo;
 		static bool g_is_ipv6_enabled;
 		static bool checkTeredo();

@@ -36,7 +36,7 @@ MappingManager::MappingManager()
 	g_defaultGatewayIP = Socket::getDefaultGateWay(g_is_wifi_router);
 }
 
-string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public_ip)
+string MappingManager::getPortmapInfo(bool p_show_public_ip)
 {
 	string l_description;
 	l_description = "Mode:";
@@ -64,10 +64,6 @@ string MappingManager::getPortmapInfo(bool p_add_router_name, bool p_show_public
 	if (isRouter())
 	{
 		l_description += "+Router";
-		if (p_add_router_name)
-		{
-			l_description += ": " + (CompatibilityManager::g_upnp_router_model.empty() ? "undefined" : CompatibilityManager::g_upnp_router_model);
-		}
 	}
 	if (!getExternaIP().empty())
 	{

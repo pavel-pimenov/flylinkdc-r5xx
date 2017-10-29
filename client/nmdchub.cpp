@@ -2318,7 +2318,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 	string l_ExtJSONSupport;
 	if (m_supportFlags & SUPPORTS_EXTJSON2)
 	{
-		l_ExtJSONSupport = MappingManager::getPortmapInfo(false, false);
+		l_ExtJSONSupport = MappingManager::getPortmapInfo(false);
 		if (isFlySupportHub())
 		{
 			static string g_VID;
