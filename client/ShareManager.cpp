@@ -1815,23 +1815,20 @@ MemoryInputStream* ShareManager::generatePartialList(const string& dir, bool rec
 {
 	if (dir[0] != '/' || dir[dir.size() - 1] != '/')
 		return 0;
+	string xml = SimpleXML::utf8Header;
+	string tmp;
+	xml += "<FileListing Version=\"1\" CID=\"" + ClientManager::getMyCID().toBase32() + "\" Base=\"" + SimpleXML::escape(dir, tmp, false) + "\" Generator=\"DC++ "  DCVERSIONSTRING  "\">\r\n";
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	if (ishidingShare)
 	{
-		string xml = SimpleXML::utf8Header;
-		string tmp;
-		xml += "<FileListing Version=\"1\" CID=\"" + ClientManager::getMyCID().toBase32() + "\" Base=\"" + SimpleXML::escape(dir, tmp, false) + "\" Generator=\"DC++ "  + DCVERSIONSTRING + "\">\r\n";
-		StringOutputStream sos(xml);
 		xml += "</FileListing>";
 		return new MemoryInputStream(xml);
 	}
 #endif
+	StringOutputStream sos(xml);
+
 	CFlyReadLock(*g_csShare);
 	
-	string xml = SimpleXML::utf8Header;
-	string tmp;
-	xml += "<FileListing Version=\"1\" CID=\"" + ClientManager::getMyCID().toBase32() + "\" Base=\"" + SimpleXML::escape(dir, tmp, false) + "\" Generator=\"DC++ " DCVERSIONSTRING "\">\r\n"; // [!] IRainman fix.
-	StringOutputStream sos(xml);
 	string indent = "\t";
 	
 	if (dir == "/")
