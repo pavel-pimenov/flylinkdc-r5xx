@@ -1715,7 +1715,10 @@ void NmdcHub::logPM(const UserPtr& p_user, const string& p_msg, const string& p_
 	params["myCID"] = ClientManager::getMyCID().toBase32();
 	const string l_msg = p_user->getLastNick() + " on hub: " + " Message: " + p_msg;
 	params["message"] = l_msg;
-	LOG(PM, params);
+	if (BOOLSETTING(LOG_PRIVATE_CHAT))
+	{
+		LOG(PM, params);
+	}
 	LogManager::speak_status_message(l_msg);
 }
 //==========================================================================================
