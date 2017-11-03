@@ -471,7 +471,7 @@ namespace libtorrent {
 				&& m_file_priority[file_index] == 0)
 			{
 				TORRENT_ASSERT(m_part_file);
-				need_partfile(); // try fix https://github.com/arvidn/libtorrent/issues/2489
+				//need_partfile(); // try fix https://github.com/arvidn/libtorrent/issues/2489
 
 				error_code e;
 				peer_request map = files().map_file(file_index
@@ -535,7 +535,7 @@ namespace libtorrent {
 				&& m_file_priority[file_index] == 0)
 			{
 				TORRENT_ASSERT(m_part_file);
-				need_partfile(); // try fix https://github.com/arvidn/libtorrent/issues/2489
+				//need_partfile(); // try fix https://github.com/arvidn/libtorrent/issues/2489
 
 				error_code e;
 				peer_request map = files().map_file(file_index
