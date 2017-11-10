@@ -112,7 +112,6 @@ void CAGEmotion::initEmotionBmp()
 					DeleteObject(m_EmotionBmp); // TODO не совсем понятно почему тут удаляется?
 					m_EmotionBmp = nullptr;
 					m_EmotionBmpLoaded = true;
-					m_EmotionBmp = nullptr;
 				}
 				else
 				{
