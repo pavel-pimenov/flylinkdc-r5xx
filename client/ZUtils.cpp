@@ -21,6 +21,9 @@
 #include "Exception.h"
 #include "SettingsManager.h"
 #include "ResourceManager.h"
+#include "ShareManager.h"
+
+static bool g_is_disable_compression = false;
 
 ZFilter::ZFilter() : totalIn(0), totalOut(0), compressing(true)
 {
@@ -28,6 +31,11 @@ ZFilter::ZFilter() : totalIn(0), totalOut(0), compressing(true)
 	const auto l_result = deflateInit(&zs, SETTING(MAX_COMPRESSION));
 	if (l_result != Z_OK)
 	{
+		if (l_result == Z_MEM_ERROR)
+		{
+			g_is_disable_compression = true;
+			ShareManager::tryFixBadAlloc();
+		}
 		throw Exception(STRING(COMPRESSION_ERROR) + " Error code deflateInit = " + Util::toString(l_result));
 	}
 }
