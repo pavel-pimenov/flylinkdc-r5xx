@@ -500,6 +500,8 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 			if (QueueManager::isChunkDownloaded(l_tth, aStartPos, aBytes, sourceFile))
 			{
 				dcassert(!sourceFile.empty());
+			  if(!sourceFile.empty())
+			   {
 				try
 				{
 					auto f = new SharedFileStream(sourceFile, File::READ, File::OPEN | File::SHARED | File::NO_CACHE_HINT, 0);
@@ -552,6 +554,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 					safe_delete(is);
 				}
 			}
+		}
 		}
 		aSource->fileNotAvail(e.getError());
 		return false;
