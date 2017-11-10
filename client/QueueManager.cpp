@@ -1108,6 +1108,7 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 	if (aUser && // [+] https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=18543
 	        ClientManager::isMe(aUser))
 	{
+		dcassert(0);
 		throw QueueException(STRING(NO_DOWNLOADS_FROM_SELF));
 	}
 	
@@ -1123,6 +1124,7 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 			if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE
 			        && !ShareManager::isTTHShared(aRoot))
 			{
+				dcassert(0);
 				throw QueueException(STRING(TTH_PREVIOUSLY_BEEN_IN_SHARE)
 				                     + l_target_name);
 			}
@@ -1130,6 +1132,7 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 		
 		if (BOOLSETTING(DONT_DL_ALREADY_SHARED)) {
 			if (ShareManager::isTTHShared(aRoot)) {
+				dcassert(0);
 				throw QueueException(STRING(TTH_ALREADY_SHARED)
 				                     + l_target_name);
 			}
@@ -1142,16 +1145,21 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 			{
 				if (CFlylinkDBManager::getInstance()->is_download_tth(aRoot))
 				{
+					dcassert(0);
 					throw QueueException(STRING(TTH_ALREADY_DOWNLOADEDED)
 					                     + l_target_name);
 				}
 			}
 		}
+		/*
 		if (QueueManager::is_queue_tth(aRoot))
 		{
+		            dcassert(0);
 			throw QueueException(STRING(TTH_ALREADY_QUEUE_DOWNLOAD)
 			                     + l_target_name);
 		}
+		*/
+		
 	}
 	
 	string l_target;
