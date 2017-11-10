@@ -1135,7 +1135,8 @@ void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, uin
 {
 	if (isShuttingDown())
 		return;
-		
+	if (UserConnection::is_error_user(aIPServer))
+		return;
 	if (checkIpFlood(aIPServer, aPort, boost::asio::ip::address_v4(), "", "[nmdcConnect][Hub: " + hubUrl + "]"))
 		return;
 		

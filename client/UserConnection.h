@@ -388,7 +388,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		}
 		void fireBytesSent(size_t p_Bytes, size_t p_Actual);
 		void fireData(uint8_t* p_data, size_t p_len);
-		
+		static bool is_error_user(const string& p_ip);
 	private:
 		int64_t m_chunkSize;
 		BufferedSocket* socket;
@@ -396,6 +396,9 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		
 		DownloadPtr m_download;
 		UploadPtr m_upload;
+		
+		static FastCriticalSection g_error_cs;
+		static std::unordered_map<string, unsigned> g_error_cmd_map;
 		
 		// We only want ConnectionManager to create this...
 		explicit UserConnection(bool p_secure);

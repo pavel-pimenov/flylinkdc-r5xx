@@ -46,6 +46,9 @@ const string UserConnection::g_FILE_NOT_AVAILABLE = "File Not Available";
 const string UserConnection::g_PLEASE_UPDATE_YOUR_CLIENT = "Please update your DC++ http://flylinkdc.com";
 #endif
 
+FastCriticalSection UserConnection::g_error_cs;
+std::unordered_map<string, unsigned> UserConnection::g_error_cmd_map;
+
 // We only want ConnectionManager to create this...
 UserConnection::UserConnection(bool p_secure) :
 	m_last_encoding(Text::g_systemCharset),
@@ -353,7 +356,29 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		LogManager::message(l_log);
 #endif
 		unsetFlag(FLAG_NMDC);
+		{
+			CFlyFastLock(g_error_cs);
+			if (++g_error_cmd_map[getRemoteIp()] > 3)
+			{
+				CFlyServerJSON::pushError(83, l_log);
+				disconnect(true);
+			}
+		}
 	}
+}
+
+bool UserConnection::is_error_user(const string& p_ip)
+{
+	CFlyFastLock(g_error_cs);
+	auto i = g_error_cmd_map.find(p_ip);
+	if (i != g_error_cmd_map.end())
+	{
+		{
+			CFlyServerJSON::pushError(83,"is_error_user: " + p_ip);
+			return true;
+		}
+	}
+	return false;
 }
 
 void UserConnection::connect(const string& aServer, uint16_t aPort, uint16_t localPort, BufferedSocket::NatRoles natRole)
