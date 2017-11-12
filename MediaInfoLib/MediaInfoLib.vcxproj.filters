@@ -740,14 +740,29 @@
     <ClCompile Include="Source\ThirdParty\hmac-gladman\hmac.c">
       <Filter>ThirdParty\hmac-gladman</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ThirdParty\hmac-gladman\pwd2key.c">
-      <Filter>ThirdParty\hmac-gladman</Filter>
-    </ClCompile>
     <ClCompile Include="Source\ThirdParty\sha1-gladman\sha1.c">
       <Filter>ThirdParty\sha1-gladman</Filter>
     </ClCompile>
     <ClCompile Include="Source\ThirdParty\sha2-gladman\sha2.c">
       <Filter>ThirdParty\sha2-gladman</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MediaInfo\XmlUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MediaInfo\File__Analyze_Element.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MediaInfo\Multiple\File_Vbi.cpp">
+      <Filter>Source Files\Multiple</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MediaInfo\Multiple\File_Wtv.cpp">
+      <Filter>Source Files\Multiple</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MediaInfo\OutputHelpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MediaInfo\Multiple\File_MiXml.cpp">
+      <Filter>Source Files\Multiple</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1261,9 +1276,6 @@
     <ClInclude Include="Source\MediaInfo\Audio\File_SmpteSt0331.h">
       <Filter>Header Files\Audio</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Mediainfo\audio\File_SmpteSt0337.h">
-      <Filter>Header Files\Audio</Filter>
-    </ClInclude>
     <ClInclude Include="Source\MediaInfo\Text\File_AribStdB24B37.h">
       <Filter>Header Files\Text</Filter>
     </ClInclude>
@@ -1386,6 +1398,36 @@
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\Audio\File_Caf.h">
       <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\hmac-gladman\hmac.h">
+      <Filter>ThirdParty\hmac-gladman</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\sha1-gladman\sha1.h">
+      <Filter>ThirdParty\sha1-gladman</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\sha2-gladman\sha2.h">
+      <Filter>ThirdParty\sha2-gladman</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\XmlUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\File__Analyze_Element.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\Multiple\File_Vbi.h">
+      <Filter>Header Files\Multiple</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\Multiple\File_Wtv.h">
+      <Filter>Header Files\Multiple</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Mediainfo\audio\File_SmpteSt0337.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\OutputHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\Multiple\File_MiXml.h">
+      <Filter>Header Files\Multiple</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

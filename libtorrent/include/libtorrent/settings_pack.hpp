@@ -716,6 +716,16 @@ namespace libtorrent {
 			// any.
 			proxy_tracker_connections,
 
+			// Starts and stops the internal IP table route changes notifier.
+			//
+			// The current implementation supports multiple platforms, and it is
+			// recommended to have it enable, but you may want to disable it if
+			// it's supported but unreliable, or if you have a better way to
+			// detect the changes. In the later case, you should manually call
+			// ``session_handle::reopen_network_sockets`` to ensure network
+			// changes are taken in consideration.
+			enable_ip_notifier,
+
 			max_bool_setting_internal
 		};
 
@@ -1432,7 +1442,11 @@ namespace libtorrent {
 
 			// ``alert_queue_size`` is the maximum number of alerts queued up
 			// internally. If alerts are not popped, the queue will eventually
-			// fill up to this level.
+			// fill up to this level. Once the alert queue is full, additional
+			// alerts will be dropped, and not delievered to the client. Once the
+			// client drains the queue, new alerts may be delivered again. In order
+			// to know that alerts have been dropped, see
+			// session_handle::dropped_alerts().
 			alert_queue_size,
 
 			// ``max_metadata_size`` is the maximum allowed size (in bytes) to be

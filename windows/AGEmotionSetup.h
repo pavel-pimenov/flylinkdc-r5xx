@@ -37,7 +37,7 @@ class CAGEmotion
 		CAGEmotion();
 		~CAGEmotion();
 		
-		void registerEmotion(const tstring& strEmotionText, const string& strEmotionBmpPath, const string& strEmotionGifPath);
+		void registerEmotion(const tstring& strEmotionText, const string& strEmotionBmp, const string& strEmotionGif);
 		
 		const tstring& getEmotionText() const
 		{
@@ -46,13 +46,13 @@ class CAGEmotion
 		void initEmotionBmp();
 		HBITMAP getEmotionBmp(const COLORREF &clrBkColor);
 		bool getDimensions(int *pW, int *pH);
-		const string& getEmotionBmpPath() const
+		string getEmotionBmpPath() const
 		{
-			return m_EmotionBmpPath;
+			return Util::getEmoPacksPath() + m_EmotionBmp;
 		}
-		const string& getEmotionGifPath() const
+		string getEmotionGifPath() const
 		{
-			return m_EmotionGifPath;
+			return Util::getEmoPacksPath() + m_EmotionGif;
 		}
 		long  getImagePos() const
 		{
@@ -74,9 +74,9 @@ class CAGEmotion
 		
 	protected:
 		tstring     m_EmotionText;
-		string      m_EmotionBmpPath;
-		string      m_EmotionGifPath;
-		HBITMAP     m_EmotionBmp;
+		string      m_EmotionBmp;
+		string      m_EmotionGif;
+		HBITMAP     m_EmotionBmpHandle;
 		bool        m_EmotionBmpLoaded;
 		bool        m_EmotionBmpLoadedError;
 		long        m_ImagePos;
@@ -87,8 +87,7 @@ class CAGEmotion
 		
 		bool m_bMaySupportAnimation;
 	private:
-		// TODO не пашет в русских каталогах string  UnzipEmotions(const string& p_file_name);
-		
+		string UnzipEmotions(const string& p_file_name);
 };
 
 // CAGEmotionSetup

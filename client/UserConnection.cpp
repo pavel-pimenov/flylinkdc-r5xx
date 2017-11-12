@@ -347,8 +347,8 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			ClientManager::setUnknownCommand(getUser(), aLine);
 			
 		dcdebug("UserConnection Unknown NMDC command: %.50s\n", aLine.c_str());
-#ifdef FLYLINKDC_BETA
 		string l_log = "UserConnection:: Unknown NMDC command: = " + aLine + " hub = " + getHubUrl() + " remote IP = " + getRemoteIpPort();
+#ifdef FLYLINKDC_BETA
 		if (getHintedUser().user)
 		{
 			l_log += " Nick = " + getHintedUser().user->getLastNick();
@@ -361,7 +361,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			if (++g_error_cmd_map[getRemoteIp()] > 3)
 			{
 				CFlyServerJSON::pushError(83, l_log);
-				disconnect(true);
+				disconnect(true); // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1684
 			}
 		}
 	}
@@ -374,7 +374,7 @@ bool UserConnection::is_error_user(const string& p_ip)
 	if (i != g_error_cmd_map.end())
 	{
 		{
-			CFlyServerJSON::pushError(83,"is_error_user: " + p_ip);
+			CFlyServerJSON::pushError(83, "is_error_user: " + p_ip);
 			return true;
 		}
 	}

@@ -370,7 +370,12 @@
     <ClCompile Include="client\webrtc\talk\base\winfirewall.cc" />
     <ClCompile Include="client\WebServerManager.cpp" />
     <ClCompile Include="client\WildcardsReg.cpp" />
-    <ClCompile Include="client\ZipFile.cpp" />
+    <ClCompile Include="client\zip\zip.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="client\ZUtils.cpp" />
     <ClCompile Include="client\CFlylinkDBManager.cpp" />
     <ClCompile Include="client\sqlite\sqlite3.c">
@@ -742,7 +747,8 @@
     <ClInclude Include="client\webrtc\typedefs.h" />
     <ClInclude Include="client\WildcardsReg.h" />
     <ClInclude Include="client\w_flylinkdc.h" />
-    <ClInclude Include="client\ZipFile.h" />
+    <ClInclude Include="client\zip\miniz.h" />
+    <ClInclude Include="client\zip\zip.h" />
     <ClInclude Include="jsoncpp\include\json\json.h" />
     <ClInclude Include="leveldb\db\builder.h" />
     <ClInclude Include="leveldb\db\dbformat.h" />

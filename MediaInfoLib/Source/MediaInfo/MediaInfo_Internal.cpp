@@ -367,10 +367,8 @@ size_t MediaInfo_Internal::Open(const String &File_Name_)
         return 0;
     }
     Config.File_Names_Pos=1;
-    }
-
     Config.IsFinishing=false;
-    CS.Leave();
+    }
 
     //Parsing
 #ifdef FLYLINKDC_USE_ZENLIB_CRITICAL_SECTION

@@ -500,61 +500,55 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 			if (QueueManager::isChunkDownloaded(l_tth, aStartPos, aBytes, sourceFile))
 			{
 				dcassert(!sourceFile.empty());
-			  if(!sourceFile.empty())
-			   {
-				try
+				if (!sourceFile.empty())
 				{
-					auto f = new SharedFileStream(sourceFile, File::READ, File::OPEN | File::SHARED | File::NO_CACHE_HINT, 0);
-					
-					start = aStartPos;
-					fileSize = f->getFastFileSize();
-					size = (aBytes == -1) ? fileSize - start : aBytes;
-					
-					if ((start + size) > fileSize)
+					try
 					{
-						aSource->fileNotAvail();
-						delete f;
-						return false;
-					}
-					
-					f->setPos(start);
-					// [!] IRainman fix.
-					// [-] is = ss;
-					
-					if ((start + size) < fileSize)
-					{
-						// [+]
-						try
+						auto f = new SharedFileStream(sourceFile, File::READ, File::OPEN | File::SHARED | File::NO_CACHE_HINT, 0);
+						
+						start = aStartPos;
+						fileSize = f->getFastFileSize();
+						size = (aBytes == -1) ? fileSize - start : aBytes;
+						
+						if ((start + size) > fileSize)
 						{
-							is = nullptr;
-							is = new LimitedInputStream<true>(f, size); // [!]
-						}
-						catch (...)
-						{
+							aSource->fileNotAvail();
 							delete f;
-							if (is)
-							{
-								is->clean_stream();
-							}
-							throw;
+							return false;
 						}
+						
+						f->setPos(start);
+						if ((start + size) < fileSize)
+						{
+							try
+							{
+								is = nullptr;
+								is = new LimitedInputStream<true>(f, size);
+							}
+							catch (...)
+							{
+								delete f;
+								if (is)
+								{
+									is->clean_stream();
+								}
+								throw;
+							}
+						}
+						else
+						{
+							is = f;
+						}
+						l_is_partial = true;
+						type = Transfer::TYPE_FILE;
+						goto ok; // don't fix "goto", it is fixed in wx version anyway
 					}
-					else
+					catch (const Exception&)
 					{
-						is = f;
+						safe_delete(is);
 					}
-					// [~] IRainman fix.
-					
-					l_is_partial = true;
-					type = Transfer::TYPE_FILE;
-					goto ok; // don't fix "goto", it is fixed in wx version anyway
-				}
-				catch (const Exception&)
-				{
-					safe_delete(is);
 				}
 			}
-		}
 		}
 		aSource->fileNotAvail(e.getError());
 		return false;
@@ -635,15 +629,15 @@ ok: //[!] TODO убрать goto
 		     )
 		        || isHasUpload)
 		{
-			bool supportsFree = aSource->isSet(UserConnection::FLAG_SUPPORTS_MINISLOTS);
-			bool allowedFree = (slotType == UserConnection::EXTRASLOT)
+			const bool l_is_supportsFree = aSource->isSet(UserConnection::FLAG_SUPPORTS_MINISLOTS);
+			const bool l_is_allowedFree = (slotType == UserConnection::EXTRASLOT)
 #ifdef IRAINMAN_ENABLE_OP_VIP_MODE
-			                   || aSource->isSet(UserConnection::FLAG_OP)
+			                              || aSource->isSet(UserConnection::FLAG_OP)
 #endif
-			                   || getFreeExtraSlots() > 0;
+			                              || getFreeExtraSlots() > 0;
 			bool l_is_partialFree = l_is_partial && ((slotType == UserConnection::PARTIALSLOT) || (extraPartial < SETTING(EXTRA_PARTIAL_SLOTS)));
 			
-			if (free && supportsFree && allowedFree)
+			if (l_is_free && l_is_supportsFree && l_is_allowedFree)
 			{
 				slotType = UserConnection::EXTRASLOT;
 			}
@@ -950,10 +944,12 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 		auto u = aSource->getUpload();
 		dcassert(u != nullptr);
 		AdcCommand cmd(AdcCommand::CMD_SND);
-		cmd.addParam(l_type).addParam(l_fname)
-		.addParam(Util::toString(u->getStartPos()))
-		.addParam(Util::toString(u->getSize()));
-		if (SETTING(MAX_COMPRESSION))
+		cmd.addParam(l_type);
+		cmd.addParam(l_fname);
+		cmd.addParam(Util::toString(u->getStartPos()));
+		cmd.addParam(Util::toString(u->getSize()));
+		
+		if (SETTING(MAX_COMPRESSION) && ZFilter::g_is_disable_compression == false)
 		{
 			string l_name = Util::getFileName(u->getPath());
 			string l_ext = Util::getFileExtWithoutDot(l_name);
@@ -974,7 +970,7 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 					}
 					catch (Exception& e)
 					{
-						const string l_message = "Error UploadManager::on(AdcCommand::GET) -" + e.getError();
+						const string l_message = "Error UploadManager::on(AdcCommand::GET) ext = " + l_ext + " error: " + e.getError();
 						CFlyServerJSON::pushError(59, l_message);
 						LogManager::message(l_message);
 						fly_fire2(UploadManagerListener::Failed(), u, l_message);

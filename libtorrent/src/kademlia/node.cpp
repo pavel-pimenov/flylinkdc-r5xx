@@ -96,8 +96,8 @@ void incoming_error(entry& e, char const* msg, int error_code = 203)
 {
 	e["y"] = "e";
 	entry::list_type& l = e["e"].list();
-	l.push_back(entry(error_code));
-	l.push_back(entry(msg));
+	l.emplace_back(error_code);
+	l.emplace_back(msg);
 }
 
 } // anonymous namespace
@@ -452,7 +452,7 @@ void node::announce(sha1_hash const& info_hash, int const listen_port, int const
 	}
 #endif
 
-	get_peers(info_hash, f
+	get_peers(info_hash, std::move(f)
 		, std::bind(&announce_fun, _1, std::ref(*this)
 		, listen_port, info_hash, flags), flags & node::flag_seed);
 }
@@ -463,7 +463,7 @@ void node::direct_request(udp::endpoint const& ep, entry& e
 	// not really a traversal
 	auto algo = std::make_shared<direct_traversal>(*this, node_id(), f);
 
-	auto o = m_rpc.allocate_observer<direct_observer>(algo, ep, node_id());
+	auto o = m_rpc.allocate_observer<direct_observer>(std::move(algo), ep, node_id());
 	if (!o) return;
 #if TORRENT_USE_ASSERTS
 	o->m_in_constructor = false;
@@ -603,9 +603,9 @@ void node::sample_infohashes(udp::endpoint const& ep, sha1_hash const& target
 struct ping_observer : observer
 {
 	ping_observer(
-		std::shared_ptr<traversal_algorithm> const& algorithm
+		std::shared_ptr<traversal_algorithm> algorithm
 		, udp::endpoint const& ep, node_id const& id)
-		: observer(algorithm, ep, id)
+		: observer(std::move(algorithm), ep, id)
 	{}
 
 	// parses out "nodes"
@@ -675,8 +675,8 @@ void node::send_single_refresh(udp::endpoint const& ep, int const bucket
 	target |= m_id & mask;
 
 	// create a dummy traversal_algorithm
-	auto const algo = std::make_shared<traversal_algorithm>(*this, node_id());
-	auto o = m_rpc.allocate_observer<ping_observer>(algo, ep, id);
+	auto algo = std::make_shared<traversal_algorithm>(*this, node_id());
+	auto o = m_rpc.allocate_observer<ping_observer>(std::move(algo), ep, id);
 	if (!o) return;
 #if TORRENT_USE_ASSERTS
 	o->m_in_constructor = false;
@@ -995,7 +995,7 @@ void node::incoming_request(msg const& m, entry& e)
 
 		// pointer and length to the whole entry
 		span<char const> buf = msg_keys[1].data_section();
-		if (buf.size() > 1000 || buf.size() <= 0)
+		if (buf.size() > 1000 || buf.empty())
 		{
 			m_counters.inc_stats_counter(counters::dht_invalid_put);
 			incoming_error(e, "message too big", 205);

@@ -412,7 +412,6 @@ namespace aux {
 #endif
 			)
 		, m_work(new io_service::work(m_io_service))
-		, m_ip_notifier(create_ip_notifier(m_io_service))
 #if TORRENT_USE_I2P
 		, m_i2p_conn(m_io_service)
 #endif
@@ -589,9 +588,6 @@ namespace aux {
 		session_log(" done starting session");
 #endif
 
-		m_ip_notifier->async_wait([this](error_code const& e)
-			{ this->wrap(&session_impl::on_ip_change, e); });
-
 		apply_settings_pack_impl(*pack, true);
 
 		// call update_* after settings set initialized
@@ -606,6 +602,7 @@ namespace aux {
 		update_unchoke_limit();
 		update_disk_threads();
 		update_resolver_cache_timeout();
+		update_ip_notifier();
 		update_upnp();
 		update_natpmp();
 		update_lsd();
@@ -885,11 +882,10 @@ namespace aux {
 		m_abort = true;
 		error_code ec;
 
-		m_ip_notifier->cancel();
-
 #if TORRENT_USE_I2P
 		m_i2p_conn.close(ec);
 #endif
+		stop_ip_notifier();
 		stop_lsd();
 		stop_upnp();
 		stop_natpmp();
@@ -1205,9 +1201,16 @@ namespace {
 	{
 		std::uint32_t peer_class_mask = m_peer_class_filter.access(a);
 
+		using sock_t = peer_class_type_filter::socket_type_t;
 		// assign peer class based on socket type
-		static const int mapping[] = { 0, 0, 0, 0, 1, 4, 2, 2, 2, 3};
-		int socket_type = mapping[st];
+		static const sock_t mapping[] = {
+			sock_t::tcp_socket, sock_t::tcp_socket
+			, sock_t::tcp_socket, sock_t::tcp_socket
+			, sock_t::utp_socket, sock_t::i2p_socket
+			, sock_t::ssl_tcp_socket, sock_t::ssl_tcp_socket
+			, sock_t::ssl_tcp_socket, sock_t::ssl_utp_socket
+		};
+		sock_t const socket_type = mapping[st];
 		// filter peer classes based on type
 		peer_class_mask = m_peer_class_type_filter.apply(socket_type, peer_class_mask);
 
@@ -1737,7 +1740,7 @@ namespace {
 		else
 			session_log("received error on_ip_change: %d, %s", ec.value(), ec.message().c_str());
 #endif
-		if (ec || m_abort) return;
+		if (ec || m_abort || !m_ip_notifier) return;
 		m_ip_notifier->async_wait([this] (error_code const& e)
 			{ this->wrap(&session_impl::on_ip_change, e); });
 		reopen_network_sockets(session_handle::reopen_map_ports);
@@ -3043,7 +3046,7 @@ namespace {
 		return false;
 	}
 
-	bool session_impl::verify_queue_position(torrent const* t, int pos)
+	bool session_impl::verify_queue_position(torrent const* t, queue_position_t const pos)
 	{
 		return m_download_queue.end_index() > pos && m_download_queue[pos] == t;
 	}
@@ -3143,13 +3146,16 @@ namespace {
 
 		// we have to keep ticking the utp socket manager
 		// until they're all closed
+		// we also have to keep updating the aux time while
+		// there are outstanding announces
 		if (m_abort)
 		{
 			if (m_utp_socket_manager.num_sockets() == 0
 #ifdef TORRENT_USE_OPENSSL
 				&& m_ssl_utp_socket_manager.num_sockets() == 0
 #endif
-				&& m_undead_peers.empty())
+				&& m_undead_peers.empty()
+				&& m_tracker_manager.empty())
 			{
 				return;
 			}
@@ -4356,15 +4362,15 @@ namespace {
 #endif
 	}
 
-	void session_impl::set_queue_position(torrent* me, int p)
+	void session_impl::set_queue_position(torrent* me, queue_position_t p)
 	{
-		int const current_pos = me->queue_position();
+		queue_position_t const current_pos = me->queue_position();
 		if (current_pos == p) return;
 
-		if (p >= 0 && current_pos == -1)
+		if (p >= queue_position_t{0} && current_pos == no_pos)
 		{
 			// we're inserting the torrent into the download queue
-			int const last = m_download_queue.end_index();
+			queue_position_t const last = m_download_queue.end_index();
 			if (p >= last)
 			{
 				m_download_queue.push_back(me);
@@ -4372,21 +4378,21 @@ namespace {
 				return;
 			}
 
-			m_download_queue.insert(m_download_queue.begin() + p, me);
-			for (int i = p; i < m_download_queue.end_index(); ++i)
+			m_download_queue.insert(m_download_queue.begin() + static_cast<int>(p), me);
+			for (queue_position_t i = p; i < m_download_queue.end_index(); ++i)
 			{
 				m_download_queue[i]->set_queue_position_impl(i);
 			}
 		}
-		else if (p < 0)
+		else if (p < queue_position_t{})
 		{
 			// we're removing the torrent from the download queue
-			TORRENT_ASSERT(current_pos >= 0);
-			TORRENT_ASSERT(p == -1);
+			TORRENT_ASSERT(current_pos >= queue_position_t{0});
+			TORRENT_ASSERT(p == no_pos);
 			TORRENT_ASSERT(m_download_queue[current_pos] == me);
-			m_download_queue.erase(m_download_queue.begin() + current_pos);
-			me->set_queue_position_impl(-1);
-			for (int i = current_pos; i < m_download_queue.end_index(); ++i)
+			m_download_queue.erase(m_download_queue.begin() + static_cast<int>(current_pos));
+			me->set_queue_position_impl(no_pos);
+			for (queue_position_t i = current_pos; i < m_download_queue.end_index(); ++i)
 			{
 				m_download_queue[i]->set_queue_position_impl(i);
 			}
@@ -4395,7 +4401,7 @@ namespace {
 		{
 			// we're moving the torrent up the queue
 			torrent* tmp = me;
-			for (int i = p; i <= current_pos; ++i)
+			for (queue_position_t i = p; i <= current_pos; ++i)
 			{
 				std::swap(m_download_queue[i], tmp);
 				m_download_queue[i]->set_queue_position_impl(i);
@@ -4405,10 +4411,10 @@ namespace {
 		else if (p > current_pos)
 		{
 			// we're moving the torrent down the queue
-			p = std::min(p, m_download_queue.end_index() - 1);
-			for (int i = current_pos; i < p; ++i)
+			p = std::min(p, prev(m_download_queue.end_index()));
+			for (queue_position_t i = current_pos; i < p; ++i)
 			{
-				m_download_queue[i] = m_download_queue[i + 1];
+				m_download_queue[i] = m_download_queue[next(i)];
 				m_download_queue[i]->set_queue_position_impl(i);
 			}
 			m_download_queue[p] = me;
@@ -5247,6 +5253,14 @@ namespace {
 		for (auto& i : m_listen_sockets)
 			i->udp_sock->sock.set_proxy_settings(proxy());
 		m_outgoing_sockets.update_proxy(proxy());
+	}
+
+	void session_impl::update_ip_notifier()
+	{
+		if (m_settings.get_bool(settings_pack::enable_ip_notifier))
+			start_ip_notifier();
+		else
+			stop_ip_notifier();
 	}
 
 	void session_impl::update_upnp()
@@ -6527,6 +6541,17 @@ namespace {
 	}
 #endif
 
+	void session_impl::start_ip_notifier()
+	{
+		INVARIANT_CHECK;
+
+		if (m_ip_notifier) return;
+
+		m_ip_notifier = create_ip_notifier(m_io_service);
+		m_ip_notifier->async_wait([this](error_code const& e)
+			{ this->wrap(&session_impl::on_ip_change, e); });
+	}
+
 	void session_impl::start_lsd()
 	{
 		INVARIANT_CHECK;
@@ -6597,6 +6622,14 @@ namespace {
 	{
 		if (m_upnp) m_upnp->delete_mapping(handle);
 		if (m_natpmp) m_natpmp->delete_mapping(handle);
+	}
+
+	void session_impl::stop_ip_notifier()
+	{
+		if (!m_ip_notifier) return;
+
+		m_ip_notifier->cancel();
+		m_ip_notifier.reset();
 	}
 
 	void session_impl::stop_lsd()
@@ -6830,7 +6863,7 @@ namespace {
 				TORRENT_ASSERT(i->m_links[l].in_list());
 			}
 
-			int idx = 0;
+			queue_position_t idx{};
 			for (auto t : m_download_queue)
 			{
 				TORRENT_ASSERT(t->queue_position() == idx);
@@ -6843,8 +6876,7 @@ namespace {
 		torrent_state_gauges.fill(0);
 
 #if defined TORRENT_EXPENSIVE_INVARIANT_CHECKS
-
-		std::unordered_set<int> unique;
+		std::unordered_set<queue_position_t> unique;
 #endif
 
 		int num_active_downloading = 0;
@@ -6863,10 +6895,10 @@ namespace {
 				++torrent_state_gauges[state];
 			}
 
-			int const pos = t->queue_position();
-			if (pos < 0)
+			queue_position_t const pos = t->queue_position();
+			if (pos < queue_position_t{})
 			{
-				TORRENT_ASSERT(pos == -1);
+				TORRENT_ASSERT(pos == no_pos);
 				continue;
 			}
 			++total_downloaders;

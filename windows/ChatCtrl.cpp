@@ -410,7 +410,7 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message, bool p_is_lock_redraw)
 					}
 				}
 				l_pos = l_min_pos;
-				if (pFoundEmotion && l_pos != tstring::npos) // /*&& (pFoundEmotion->getEmotionBmp() || pFoundEmotion->getEmotionBmpPath().size())*/
+				if (pFoundEmotion && l_pos != tstring::npos)
 				{
 					if (l_pos)
 					{

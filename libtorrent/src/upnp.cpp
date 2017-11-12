@@ -214,10 +214,10 @@ port_mapping_t upnp::add_mapping(portmap_protocol const p, int const external_po
 #ifndef TORRENT_DISABLE_LOGGING
 	if (should_log())
 	{
-	log("adding port map: [ protocol: %s ext_port: %u "
-		"local_ep: %s ] %s", (p == portmap_protocol::tcp?"tcp":"udp")
-		, external_port
-		, print_endpoint(local_ep).c_str(), m_disabled ? "DISABLED": "");
+		log("adding port map: [ protocol: %s ext_port: %u "
+			"local_ep: %s ] %s", (p == portmap_protocol::tcp?"tcp":"udp")
+			, external_port
+			, print_endpoint(local_ep).c_str(), m_disabled ? "DISABLED": "");
 	}
 #endif
 	if (m_disabled) return port_mapping_t{-1};
@@ -276,9 +276,9 @@ void upnp::delete_mapping(port_mapping_t const mapping)
 #ifndef TORRENT_DISABLE_LOGGING
 	if (should_log())
 	{
-	log("deleting port map: [ protocol: %s ext_port: %u "
-		"local_ep: %s ]", (m.protocol == portmap_protocol::tcp?"tcp":"udp"), m.external_port
-		, print_endpoint(m.local_ep).c_str());
+		log("deleting port map: [ protocol: %s ext_port: %u "
+			"local_ep: %s ]", (m.protocol == portmap_protocol::tcp?"tcp":"udp"), m.external_port
+			, print_endpoint(m.local_ep).c_str());
 	}
 #endif
 
@@ -1223,7 +1223,7 @@ struct upnp_error_category : boost::system::error_category
 		return "UPnP error";
 	}
 
-	std::string message(int ev) const BOOST_SYSTEM_NOEXCEPT override
+	std::string message(int ev) const override
 	{
 		int num_errors = sizeof(error_codes) / sizeof(error_codes[0]);
 		error_code_t* end = error_codes + num_errors;

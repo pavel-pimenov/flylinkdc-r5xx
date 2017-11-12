@@ -114,7 +114,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		MemoryInputStream* getTree(const string& virtualFile) const;
 		
 		void getFileInfo(AdcCommand& p_cmd, const string& aFile);
-		// [!] IRainman opt.
+		
 		static int64_t getShareSize();
 	private:
 		void internalCalcShareSize();
@@ -123,7 +123,6 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 	public:
 		static void tryFixBadAlloc();
 		
-		// [~] IRainman opt.
 		static int64_t getShareSize(const string& realPath);
 		
 		static unsigned getLastSharedFiles()
@@ -270,17 +269,17 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 						{
 							//dcdebug("~ShareFile() %s\n", getName().c_str() );
 						}
-						string getADCPath() const
+						string getADCPathL() const
 						{
-							return m_parent->getADCPath() + getName();
+							return m_parent->getADCPathL() + getName();
 						}
 						string getFullName() const
 						{
 							return m_parent->getFullName() + getName();
 						}
-						string getRealPath() const
+						string getRealPathL() const
 						{
-							return m_parent->getRealPath(getName());
+							return m_parent->getRealPathL(getName());
 						}
 						
 						GETSET(int64_t, size, Size);
@@ -326,9 +325,9 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 				}
 				void addType(Search::TypeModes type) noexcept;
 				
-				string getADCPath() const noexcept;
+				string getADCPathL() const noexcept;
 				string getFullName() const noexcept;
-				string getRealPath(const std::string& path) const;
+				string getRealPathL(const std::string& p_path) const;
 				
 				int64_t getDirSizeL() const noexcept;
 				int64_t getDirSizeFast() const noexcept
@@ -412,9 +411,26 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		uint64_t m_lastFullUpdate;
 		
 		static CriticalSection g_csTTHIndex;
+		
+		static FastCriticalSection g_csPartialCache;
+		static std::unordered_map<string, std::pair<string, unsigned>> g_partial_list_cache;
+		static void clear_partial_cache()
+		{
+			CFlyFastLock(g_csPartialCache);
+			g_partial_list_cache.clear();
+		}
+		
+		static FastCriticalSection g_csTTHPathCache;
+		static std::unordered_map<TTHValue, std::pair<string, unsigned>> g_tth_path_cache;
+		static void clear_tth_path_cache()
+		{
+			CFlyFastLock(g_csTTHPathCache);
+			g_tth_path_cache.clear();
+		}
+		
+		static CriticalSection g_csShare;
+		
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csBloom;
-		static std::unique_ptr<webrtc::RWLockWrapper> g_csShare;
-		static std::unique_ptr<webrtc::RWLockWrapper> g_csDirList;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareNotExists;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareCache;
 		

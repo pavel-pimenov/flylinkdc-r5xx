@@ -71,10 +71,9 @@ extern "C" {
 
 #ifdef __MINGW32__
 //  Require Windows XP or higher with MinGW for getaddrinfo().
-#if(_WIN32_WINNT >= 0x0600)
+#if(_WIN32_WINNT >= 0x0501)
 #else
-#undef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
+#error You need at least Windows XP target
 #endif
 #endif
 #include <winsock2.h>
@@ -616,9 +615,9 @@ ZMQ_EXPORT void zmq_threadclose (void* thread);
 
 /*  DRAFT Context options                                                     */
 #define ZMQ_MSG_T_SIZE 6
-#define ZMQ_THREAD_AFFINITY 7
-#define ZMQ_THREAD_AFFINITY_DFLT -1
-#define ZMQ_THREAD_NAME_PREFIX 8
+#define ZMQ_THREAD_AFFINITY_CPU_ADD 7
+#define ZMQ_THREAD_AFFINITY_CPU_REMOVE 8
+#define ZMQ_THREAD_NAME_PREFIX 9
 
 /*  DRAFT Socket methods.                                                     */
 ZMQ_EXPORT int zmq_join (void *s, const char *group);

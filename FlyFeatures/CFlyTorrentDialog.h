@@ -46,7 +46,7 @@ class CFlyTorrentDialog :
 		std::shared_ptr<const libtorrent::torrent_info> m_ti;
 	public:
 		CFlyTorrentFileArray m_files;
-		std::vector<int> m_selected_files;
+		std::vector<libtorrent::download_priority_t> m_selected_files;
         enum { IDD = IDD_FLY_TORRENT_DIALOG };
         CFlyTorrentDialog(const CFlyTorrentFileArray& p_files, std::shared_ptr<const libtorrent::torrent_info> p_ti):
 			 m_files(p_files),m_ti(p_ti)
@@ -249,9 +249,9 @@ private:
 					if (l_index < m_selected_files.size())
 					{
 						if (l_state)
-							m_selected_files[l_index] = 4;
+							m_selected_files[l_index] = libtorrent::default_priority;
 						else
-							m_selected_files[l_index] = 0;
+							m_selected_files[l_index] = libtorrent::dont_download;
 					}
                 }
 			}

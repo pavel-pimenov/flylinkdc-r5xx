@@ -1857,7 +1857,22 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					m_needsUpdateStats |= updateUser(u.m_ou, 0);
 				}
 				break;
-				
+				case ASYNC_LOAD_PG_AND_GEI_IP:
+				{
+					const OnlineUserTask& u = static_cast<OnlineUserTask&>(*i->second);
+					CFlyReadLock(*m_userMapCS);
+					auto ui = m_userMap.findUser(u.m_ou);
+					if (ui)
+					{
+						ui->m_owner_draw = 2;
+						ui->calcLocation();
+#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+						ui->calcVirusType();
+#endif
+						ui->calcP2PGuard();
+					}
+				}
+				break;
 #ifndef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
 				case UPDATE_USER_JOIN:
 				{
@@ -2981,7 +2996,7 @@ void HubFrame::onTab()
 		while (firstPass || (!firstPass && i < start))
 		{
 			const UserInfo* ui = m_ctrlUsers->getItemData(i);
-			const tstring& nick = ui->getText(COLUMN_NICK);
+			const tstring nick = ui->getText(COLUMN_NICK);
 			bool found = strnicmp(nick, m_complete, m_complete.length()) == 0;
 			tstring::size_type x = 0;
 			if (!found)
@@ -4713,11 +4728,19 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			if (ui)
 			{
 //				PROFILE_THREAD_SCOPED_DESC("CDDS_ITEMPREPAINT");
+				if (ui->m_owner_draw == 0)
+				{
+					ui->m_owner_draw = 1;
+					speak(ASYNC_LOAD_PG_AND_GEI_IP, ui->getOnlineUser());
+				}
+				/*
 				ui->calcLocation();
-#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
-				ui->calcVirusType();
-#endif
-				ui->calcP2PGuard();
+				#ifdef FLYLINKDC_USE_ANTIVIRUS_DB
+				                ui->calcVirusType();
+				#endif
+				                ui->calcP2PGuard();
+				*/
+				
 				Colors::getUserColor(m_client->isOp(), ui->getUser(), cd->clrText, cd->clrTextBk, ui->m_flag_mask, ui->getOnlineUser()); // !SMT!-UI
 			}
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS

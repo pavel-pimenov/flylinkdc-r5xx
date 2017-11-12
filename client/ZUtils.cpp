@@ -23,7 +23,7 @@
 #include "ResourceManager.h"
 #include "ShareManager.h"
 
-static bool g_is_disable_compression = false;
+bool ZFilter::g_is_disable_compression = false;
 
 ZFilter::ZFilter() : totalIn(0), totalOut(0), compressing(true)
 {

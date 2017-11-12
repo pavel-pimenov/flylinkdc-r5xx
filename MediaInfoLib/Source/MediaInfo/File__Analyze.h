@@ -30,6 +30,16 @@ namespace MediaInfoLib
 
 class MediaInfo_Internal;
 
+template <class T> inline Ztring Get_Hex_ID(const T& Value)
+{
+    Ztring ID_String;
+    ID_String.From_Number(Value); 
+    ID_String += __T(" (0x"); 
+    ID_String += Ztring::ToZtring(Value, 16); 
+    ID_String += __T(")");
+    return ID_String;
+}
+
 struct buffer_data
 {
     size_t Size;
@@ -52,15 +62,6 @@ struct buffer_data
         delete[] Data; //Data=NULL;
     }
 };
-template <class T> inline Ztring Get_Hex_ID(const T& Value)
-{
-	Ztring ID_String;
-	ID_String.From_Number(Value); 
-	ID_String += __T(" (0x"); 
-	ID_String += Ztring::ToZtring(Value, 16); 
-	ID_String += __T(")");
-	return ID_String;
-}
 
 #if !MEDIAINFO_TRACE
     #include "MediaInfo/File__Analyze_MinimizeSize.h"
@@ -861,6 +862,12 @@ public :
     void Peek_PA(std::string &Info);
     void Skip_PA(                   const char* Name);
     #define Info_PA(_INFO, _NAME) Ztring _INFO; Get_PA (_INFO, _NAME)
+
+    //***************************************************************************
+    // Others, specialized
+    //***************************************************************************
+
+    void Get_MasteringDisplayColorVolume(Ztring &MasteringDisplay_ColorPrimaries, Ztring &MasteringDisplay_Luminance);
 
     //***************************************************************************
     // Unknown

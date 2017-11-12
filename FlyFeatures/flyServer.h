@@ -33,6 +33,11 @@
 #include "../client/LogManager.h"
 #include "../zlib/zlib.h"
 #include "libtorrent/sha1_hash.hpp"
+//#include "selene.h"
+namespace sel {
+	class State;
+}
+
 
 class SearchResult;
 
@@ -231,8 +236,14 @@ class CFlyServerConfig
 		static bool isSpam(const string& p_line);
 		static void loadTorrentSearchEngine();
 		static string g_lua_source_search_engine;
+		static bool torrentGetTop(HWND p_wnd, int p_message);
 		static bool torrentSearch(HWND p_wnd, int p_message, const tstring p_search);
 	private:
+		static bool torrentSearchParser(HWND p_wnd, int p_message, string p_search_url,
+			int p_index, sel::State& p_lua_parser, string p_local_agent, string p_error_base,
+			string p_root_torrent_url, string p_tracker_name,
+			unsigned p_num_page);
+
 		static std::vector<string> g_spam_urls;
 		static StringSet g_parasitic_files;
 		static StringSet g_mediainfo_ext;

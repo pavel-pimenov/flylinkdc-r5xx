@@ -2356,7 +2356,7 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, const bool down
 		        ui->setPos(0);
 		    }
 		*/
-		ui->setPos(aTransfer->getFileSize());
+		ui->setPos(0);
 		ui->setActual(aTransfer->getFileSize());
 		ui->setSize(aTransfer->getFileSize());
 		ui->setTimeLeft(0);

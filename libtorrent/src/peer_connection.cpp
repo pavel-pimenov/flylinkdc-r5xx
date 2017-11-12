@@ -454,7 +454,7 @@ namespace libtorrent {
 			for (piece_index_t j(0); j != end_piece; ++j)
 			{
 				if (m_have_piece[j]
-					&& t->piece_priority(j) > 0
+					&& t->piece_priority(j) > dont_download
 					&& !p.has_piece_passed(j))
 				{
 					interested = true;
@@ -728,7 +728,7 @@ namespace libtorrent {
 				if (!m_have_piece[i]) continue;
 				// if the peer has a piece and we don't, the peer is interesting
 				if (!t->have_piece(i)
-					&& t->picker().piece_priority(i) != 0)
+					&& t->picker().piece_priority(i) != dont_download)
 					interesting = true;
 			}
 			if (interesting) t->peer_is_interesting(*this);
@@ -1909,7 +1909,7 @@ namespace libtorrent {
 		if (!t->has_piece_passed(index)
 			&& !t->is_upload_only()
 			&& !is_interesting()
-			&& (!t->has_picker() || t->picker().piece_priority(index) != 0))
+			&& (!t->has_picker() || t->picker().piece_priority(index) != dont_download))
 			t->peer_is_interesting(*this);
 
 		disconnect_if_redundant();
@@ -3352,7 +3352,7 @@ namespace libtorrent {
 			&& !t->has_piece_passed(index)
 			&& t->valid_metadata()
 			&& t->has_picker()
-			&& t->picker().piece_priority(index) > 0)
+			&& t->picker().piece_priority(index) > dont_download)
 		{
 			t->peer_is_interesting(*this);
 		}
@@ -4088,7 +4088,7 @@ namespace libtorrent {
 	// 1 means unexpected disconnect/error
 	// 2 protocol error (client sent something invalid)
 	void peer_connection::disconnect(error_code const& ec
-		, operation_t op, int error)
+		, operation_t const op, int const error)
 	{
 		TORRENT_ASSERT(is_single_thread());
 #if TORRENT_USE_ASSERTS
@@ -4337,7 +4337,7 @@ namespace libtorrent {
 #if TORRENT_USE_INVARIANT_CHECKS
 			check_invariant();
 #endif
-			t->remove_peer(this);
+			t->remove_peer(self());
 
 			// we need to do this here to maintain accurate accounting of number of
 			// unchoke slots. Ideally the updating of choked state and the
@@ -5599,8 +5599,9 @@ namespace libtorrent {
 		m_socket_is_writing = true;
 #endif
 
-		m_socket->async_write_some(vec, make_write_handler(std::bind(
-			&peer_connection::on_send_data, self(), _1, _2)));
+		m_socket->async_write_some(vec, make_handler(std::bind(
+			&peer_connection::on_send_data, self(), _1, _2)
+				, m_write_handler_storage, *this));
 
 		m_channel_state[upload_channel] |= peer_info::bw_network;
 		m_last_sent = aux::time_now();
@@ -5684,8 +5685,9 @@ namespace libtorrent {
 		// utp sockets aren't thread safe...
 		ADD_OUTSTANDING_ASYNC("peer_connection::on_receive_data");
 		m_socket->async_read_some(
-			boost::asio::mutable_buffers_1(vec.data(), vec.size()), make_read_handler(
-				std::bind(&peer_connection::on_receive_data, self(), _1, _2)));
+			boost::asio::mutable_buffers_1(vec.data(), vec.size()), make_handler(
+				std::bind(&peer_connection::on_receive_data, self(), _1, _2)
+				, m_read_handler_storage, *this));
 	}
 
 	piece_block_progress peer_connection::downloading_piece_progress() const

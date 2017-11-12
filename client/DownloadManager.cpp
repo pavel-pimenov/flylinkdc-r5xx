@@ -417,21 +417,24 @@ void DownloadManager::on(AdcCommand::SND, UserConnection* aSource, const AdcComm
 	if (aSource->getState() != UserConnection::STATE_SND)
 	{
 		dcdebug("DM::onFileLength Bad state, ignoring\n");
+		dcassert(0);
 		return;
 	}
 	if (!aSource->getDownload())
 	{
+		dcassert(0);
 		aSource->disconnect(true);
 		return;
 	}
 	
-	const string type = cmd.getParam(0);
+	const std::string type = cmd.getParam(0);
 	const int64_t start = Util::toInt64(cmd.getParam(2));
 	const int64_t bytes = Util::toInt64(cmd.getParam(3));
 	
 	if (type != Transfer::g_type_names[aSource->getDownload()->getType()])
 	{
 		// Uhh??? We didn't ask for this...
+		dcassert(0);
 		aSource->disconnect();
 		return;
 	}
@@ -480,7 +483,10 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 		return;
 	}
 	
-	const int64_t l_buf_size = SETTING(BUFFER_SIZE_FOR_DOWNLOADS) * 1024;
+	int64_t l_buf_size = SETTING(BUFFER_SIZE_FOR_DOWNLOADS) * 1024;
+	dcassert(l_buf_size > 0)
+	if (l_buf_size <= 0)
+		l_buf_size = 1024 * 1024;
 	try
 	{
 		if ((d->getType() == Transfer::TYPE_FILE || d->getType() == Transfer::TYPE_FULL_LIST) && l_buf_size > 0)
@@ -555,6 +561,7 @@ void DownloadManager::fireData(UserConnection* aSource, const uint8_t* aData, si
 	try
 	{
 		d->addPos(d->getDownloadFile()->write(aData, aLen), aLen);
+		d->tick(aSource->getLastActivity(true));
 		
 		if (d->getDownloadFile()->eof())
 		{
@@ -636,11 +643,11 @@ void DownloadManager::endData(UserConnection* aSource)
 	if (d->getType() != Transfer::TYPE_FILE)
 	{
 		fly_fire1(DownloadManagerListener::Complete(), d);
-		if (d->getUserConnection())
-		{
-			const auto l_token = d->getConnectionQueueToken();
-			fly_fire1(DownloadManagerListener::RemoveToken(), l_token);
-		}
+		//if (d->getUserConnection())
+		//{
+		//  const auto l_token = d->getConnectionQueueToken();
+		//  fly_fire1(DownloadManagerListener::RemoveToken(), l_token);
+		//}
 	}
 	try
 	{
@@ -955,7 +962,7 @@ void DownloadManager::select_files(const libtorrent::torrent_handle& p_torrent_h
 		const file_storage fileStorage = l_file->files();
 		for (int i = 0; i < fileStorage.num_files(); i++)
 		{
-			p_torrent_handle.file_priority(file_index_t(i), 0);
+			p_torrent_handle.file_priority(file_index_t(i), dont_download);
 			CFlyTorrentFile l_item;
 			l_item.m_file_path = fileStorage.file_path(file_index_t(i));
 			l_item.m_size = fileStorage.file_size(file_index_t(i));
@@ -1356,7 +1363,7 @@ int DownloadManager::listen_torrent_port()
 	return 0;
 }
 bool DownloadManager::set_file_priority(const libtorrent::sha1_hash& p_sha1, const CFlyTorrentFileArray& p_files,
-                                        const std::vector<int>& p_file_priority, const std::string& p_save_path)
+                                        const std::vector<libtorrent::download_priority_t>& p_file_priority, const std::string& p_save_path)
 {
 	if (m_torrent_session)
 	{
@@ -1378,7 +1385,7 @@ bool DownloadManager::set_file_priority(const libtorrent::sha1_hash& p_sha1, con
 				dcassert(p_file_priority.size() == p_files.size());
 				for (int i = 0; i < p_files.size(); i++)
 				{
-					if (p_file_priority.size() == 0 || (i < p_file_priority.size() && p_file_priority[i]))
+					if (p_file_priority.size() == 0 || (i < p_file_priority.size() && p_file_priority[i] != dont_download))
 					{
 						// TODO https://drdump.com/Problem.aspx?ProblemID=334718
 						++m_torrent_rename_count;
@@ -1554,7 +1561,11 @@ void DownloadManager::init_torrent(bool p_is_force)
 		l_sett.set_bool(settings_pack::enable_natpmp, true);
 		l_sett.set_bool(settings_pack::enable_lsd, true);
 		l_sett.set_bool(settings_pack::enable_dht, true);
+#ifdef _DEBUG
+		l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:56657");
+#else
 		l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:8999");
+#endif
 		std::string l_dht_nodes;
 		for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
 		{

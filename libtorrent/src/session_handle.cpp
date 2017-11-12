@@ -302,8 +302,6 @@ namespace {
 		atp.num_complete = resume_data.num_complete;
 		atp.num_incomplete = resume_data.num_incomplete;
 		atp.num_downloaded = resume_data.num_downloaded;
-		atp.total_uploaded = resume_data.total_uploaded;
-		atp.total_downloaded = resume_data.total_downloaded;
 		atp.active_time = resume_data.active_time;
 		atp.finished_time = resume_data.finished_time;
 		atp.seeding_time = resume_data.seeding_time;
@@ -1130,6 +1128,13 @@ namespace {
 		std::shared_ptr<session_impl> s = m_impl.lock();
 		if (!s) aux::throw_ex<system_error>(errors::invalid_session_handle);
 		s->alerts().set_notify_function(fun);
+	}
+
+	dropped_alerts_t session_handle::dropped_alerts()
+	{
+		std::shared_ptr<session_impl> s = m_impl.lock();
+		if (!s) aux::throw_ex<system_error>(errors::invalid_session_handle);
+		return s->alerts().dropped_alerts();
 	}
 
 #ifndef TORRENT_NO_DEPRECATE

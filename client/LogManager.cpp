@@ -240,7 +240,6 @@ void LogManager::log(LogArea area, const StringMap& params, bool p_only_file /* 
 	else
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 	{
-		//CFlyLock(cs); [-] IRainman fix: no needs lock here, see log function.
 		const string path = SETTING(LOG_DIRECTORY) + Util::formatParams(getSetting(area, FILE), params, false);
 		const string msg = Util::formatParams(getSetting(area, FORMAT), params, false);
 		log(path, msg);

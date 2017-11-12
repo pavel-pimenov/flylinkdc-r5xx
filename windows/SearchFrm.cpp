@@ -687,6 +687,8 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 #else
 	TimerManager::getInstance()->addListener(this);
 #endif
+	// TODO m_torrentTopThread.start_torrent_top(m_win_handler); // Top!
+	
 	bHandled = FALSE;
 	return 1;
 }
@@ -864,6 +866,19 @@ void SearchFrame::init_last_search_box()
 	{
 		ctrlSearchBox.AddString(i->c_str());
 	}
+}
+//=========================================================================================================
+int SearchFrame::TorrentTopSender::run()
+{
+	try
+	{
+		CFlyServerConfig::torrentGetTop(m_wnd, PREPARE_RESULT_TORRENT);
+	}
+	catch (const std::bad_alloc&)
+	{
+		ShareManager::tryFixBadAlloc();
+	}
+	return 0;
 }
 //=========================================================================================================
 int SearchFrame::TorrentSearchSender::run()

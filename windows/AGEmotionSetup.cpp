@@ -24,11 +24,17 @@
 #include "../client/LogManager.h"
 #include "../GdiOle/GDIImageOle.h"
 #include "AGEmotionSetup.h"
+
+#ifdef FLYLINKDC_USE_ZIP_EMOTIONS
+#include "../client/zip/zip.h"
+#endif
+#include "boost/algorithm/string/replace.hpp"
+
 //======================================================================================================================
 CImageList* CAGEmotion::g_pImagesList = nullptr;
 //======================================================================================================================
 CAGEmotion::CAGEmotion() :
-	m_EmotionBmp(nullptr),
+	m_EmotionBmpHandle(nullptr),
 	m_ImagePos(-1),
 	m_bMaySupportAnimation(false),
 	m_pGifImage(nullptr),
@@ -42,75 +48,73 @@ CAGEmotion::~CAGEmotion()
 	safe_release(m_pGifImage); // [10] https://www.box.net/shared/9uhvka1sqbu5344cbwm3
 }
 //======================================================================================================================
-#ifdef _DEBUG
-/*
 string CAGEmotion::UnzipEmotions(const string& p_file_name)
 {
-//  CWaitCursor l_cursor_wait;
-        // CFlyLog l_log("[Unzip EmoPacks.zip]" + p_file_name);
-        try
-        {
-            dcpp::ZipFile zip;
-            zip.Open("C:\\vc10\\r5xx\\compiled\\EmoPacks.zip");
-            string srcPath = "C:\\vc10\\r5xx\\compiled\\EmoPacks.zip";
-            string tempPath = Util::getTempPath();
-            AppendPathSeparator(tempPath);
-            tempPath += Util::getFileName(p_file_name);
-            string dstPath = tempPath;
-            string l_convert_name = p_file_name;
-            for_each(begin(l_convert_name), end(l_convert_name), [](char& c)  {  c = c == '\\' ? '/' : c;});
-            if (zip.GoToFirstFile())
-            {
-                do
-                {
-                    const string l_f_name = zip.GetCurrentFileName();
-                    if (stricmp(l_f_name, l_convert_name) == 0)
-                    {
-                        zip.OpenCurrentFile();
-                        zip.ReadCurrentFile(dstPath);
-                        zip.CloseCurrentFile();
-                        return dstPath;
-                    }
-                }
-                while (zip.GoToNextFile());
-                //dcassert(0);
-                LogManager::message("UnzipEmotions, Error = "+ p_file_name);
-            }
-        }
-        catch (dcpp::ZipFileException& e)
-        {
-            LogManager::message("UnzipEmotions, Error = " + e.getError());
-        }
-    return Util::emptyString;
+#ifdef FLYLINKDC_USE_ZIP_EMOTIONS
+	//struct buffer_t {
+	//  char *data;
+	//  size_t size;
+	//};
+	string l_result;
+	CFlyLog l_log("[Unzip EmoPacks.zip]" + p_file_name);
+	//buffer_t buf = {0};
+	const string l_path = Util::getEmoPacksPath() + "EmoPacks.zip";
+	const string l_tmp_path = Util::getTempPath(); // +"FlylinkDC++EmoPacks";
+	//File::ensureDirectory(l_tmp_path); // TODO first
+	auto l_copy_path = m_EmotionBmp;
+	boost::replace_all(l_copy_path, "\\", "-");
+	const string l_path_target = l_tmp_path + l_copy_path;
+	zip_t *zip = zip_open(l_path.c_str(), 0, 'r');
+	if (zip)
+	{
+		auto l_copy = m_EmotionBmp;
+		boost::replace_all(l_copy, "\\", "/");
+		if (!zip_entry_open(zip, l_copy.c_str()))
+		{
+			if (!zip_entry_fread(zip, l_path_target.c_str()))
+			{
+				l_result = l_path_target;
+			}
+			zip_entry_close(zip);
+		}
+		zip_close(zip);
+	}
+	
+	//assert(0 == zip_entry_extract(zip, on_extract, &buf));
+	
+//		free(buf.data);
+//		buf.data = NULL;
+//		buf.size = 0;
+	return l_result;
+#else
+	return p_file_name;
+#endif // FLYLINKDC_USE_ZIP_EMOTIONS
+	
 }
-*/
-#endif // _DEBUG
 //======================================================================================================================
 void CAGEmotion::initEmotionBmp()
 {
 //  dcassert(m_EmotionBmpLoaded == false);
 	if (m_EmotionBmpLoaded == false && m_EmotionBmpLoadedError == false) // Первый раз и нет ошибок загрузки
 	{
-		dcassert(m_EmotionBmpPath.size());
-		if (m_EmotionBmpPath.size())
+		if (m_EmotionBmp.size())
 		{
-			//UnzipEmotions(m_EmotionBmpPath);
-			const std::string l_path = m_EmotionBmpPath;
-			m_EmotionBmp = (HBITMAP)::LoadImage(0, Text::toT(l_path).c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			//dcassert(m_EmotionBmp);
-			if (m_EmotionBmp)
+			const std::string l_path = UnzipEmotions(getEmotionBmpPath());
+			m_EmotionBmpHandle = (HBITMAP)::LoadImage(0, Text::toT(l_path).c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			//dcassert(m_EmotionBmpHandle);
+			if (m_EmotionBmpHandle)
 			{
-				m_BmpImageObject.SetBitmap(m_EmotionBmp);
+				m_BmpImageObject.SetBitmap(m_EmotionBmpHandle);
 				CDC oTestDC;
 				if (oTestDC.CreateCompatibleDC(NULL))
 				{
-					HBITMAP poPrevSourceBmp = (HBITMAP) SelectObject(oTestDC, m_EmotionBmp);
+					HBITMAP poPrevSourceBmp = (HBITMAP) SelectObject(oTestDC, m_EmotionBmpHandle);
 					COLORREF clrTransparent = GetPixel(oTestDC, 0, 0);
 					SelectObject(oTestDC, poPrevSourceBmp);
-					const int nImagePos = g_pImagesList->Add(m_EmotionBmp, clrTransparent); // [1] https://www.box.net/shared/dc4bb2f4d42173f47f62
+					const int nImagePos = g_pImagesList->Add(m_EmotionBmpHandle, clrTransparent); // [1] https://www.box.net/shared/dc4bb2f4d42173f47f62
 					setImagePos(nImagePos);
-					DeleteObject(m_EmotionBmp); // TODO не совсем понятно почему тут удаляется?
-					m_EmotionBmp = nullptr;
+					DeleteObject(m_EmotionBmpHandle); // TODO не совсем понятно почему тут удаляется?
+					m_EmotionBmpHandle = nullptr;
 					m_EmotionBmpLoaded = true;
 				}
 				else
@@ -127,21 +131,13 @@ void CAGEmotion::initEmotionBmp()
 	}
 }
 //======================================================================================================================
-void CAGEmotion::registerEmotion(const tstring& strEmotionText, const string& strEmotionBmpPath, const string& strEmotionGifPath)
+void CAGEmotion::registerEmotion(const tstring& strEmotionText, const string& strEmotionBmp, const string& strEmotionGif)
 {
-	m_EmotionText    = strEmotionText;
-	m_EmotionBmpPath = strEmotionBmpPath;
+	m_EmotionText = strEmotionText;
+	m_EmotionBmp  = strEmotionBmp;
 	if (!CompatibilityManager::isWine())
-		m_EmotionGifPath = strEmotionGifPath;
-	dcassert(m_EmotionBmpPath.size());
-//	if (m_EmotionBmpPath.size())
-//	{
-	//m_EmotionBmp = (HBITMAP)::LoadImage(0, Text::toT(m_EmotionBmpPath).c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-	//if (m_EmotionBmp)
-	//  m_BmpImageObject.SetBitmap(m_EmotionBmp);
-//	}
-	// m_bMaySupportAnimation = true;       //!!!
-	if (!CompatibilityManager::isWine() && strEmotionGifPath.size())
+		m_EmotionGif = strEmotionGif;
+	if (!CompatibilityManager::isWine() && strEmotionGif.size())
 	{
 		m_bMaySupportAnimation = true;
 		
@@ -188,9 +184,9 @@ CGDIImage *CAGEmotion::getAnimatedImage(HWND hCallbackWnd, DWORD dwCallbackMsg)
 		// Create object and load icon only on demand,
 		// to save resources and time for users, who don't
 		// want use animated icons
-		if (!m_EmotionGifPath.empty())
+		if (!m_EmotionGif.empty())
 		{
-			const std::string l_path = m_EmotionGifPath;
+			const std::string l_path = UnzipEmotions(getEmotionGifPath());
 			// N.B. don't delete this object, use Release method!
 			m_pGifImage = CGDIImage::CreateInstance(Text::toT(l_path).c_str(), hCallbackWnd, dwCallbackMsg);
 			if (!m_pGifImage->IsInited())
@@ -267,7 +263,11 @@ HBITMAP CAGEmotion::getEmotionBmp(const COLORREF &clrBkColor)
 	if (getImagePos() == -1) // Индекса еще нет? - первый раз!
 	{
 		initEmotionBmp();
-		dcassert(getImagePos() >= 0);
+		//dcassert(getImagePos() >= 0);
+		if (getImagePos() < 0)
+		{
+			dcdebug("Error getEmotionBmp = %s\n", this->getEmotionBmpPath().c_str());
+		}
 	}
 	if (m_EmotionBmpLoadedError == false)
 	{
@@ -347,8 +347,8 @@ bool CAGEmotionSetup::LoadEmotion(const string& p_file_name)
 		{
 			xml.stepIn();
 			string strEmotionText;
-			string strEmotionBmpPath;
-			string strEmotionGifPath;
+			string strEmotionBmp;
+			string strEmotionGif;
 			while (xml.findChild("Emoticon"))
 			{
 				strEmotionText = xml.getChildAttrib("PasteText");
@@ -377,14 +377,10 @@ bool CAGEmotionSetup::LoadEmotion(const string& p_file_name)
 //						dcassert(0);
 						continue;
 					}
-					strEmotionBmpPath = xml.getChildAttrib("Bitmap");
-					strEmotionBmpPath = Util::getEmoPacksPath() + strEmotionBmpPath;
-					strEmotionGifPath = xml.getChildAttrib("Gif");
-					if (!strEmotionGifPath.empty())
-						strEmotionGifPath = Util::getEmoPacksPath() + strEmotionGifPath;
-						
+					strEmotionBmp = xml.getChildAttrib("Bitmap");
+					strEmotionGif = xml.getChildAttrib("Gif");
 					CAGEmotion* pEmotion = new CAGEmotion();
-					pEmotion->registerEmotion(Text::toT(strEmotionText), strEmotionBmpPath, strEmotionGifPath);
+					pEmotion->registerEmotion(Text::toT(strEmotionText), strEmotionBmp, strEmotionGif);
 					m_CountSelEmotions++;
 					m_EmotionsArray.push_back(pEmotion);
 				}

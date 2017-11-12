@@ -109,7 +109,7 @@
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)../ZenLib/Source;$(ProjectDir)../zlib;$(ProjectDir)Source/ThirdParty/tinyxml2;$(ProjectDir)Source/ThirdParty/sha2-gladman;$(ProjectDir)Source/ThirdParty/hmac-gladman;$(ProjectDir)Source/ThirdParty/aes-gladman;$(ProjectDir)Source/ThirdParty/sha1-gladman;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;MEDIAINFO_TRACE_NO;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DUPLICATE_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_LIBCURL_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;MEDIAINFO_NEXTPACKET_NO;MEDIAINFO_AES_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;MEDIAINFO_TRACE_YES;MEDIAINFO_EVENTS_NO;MEDIAINFO_DEMUX_NO;MEDIAINFO_DUPLICATE_NO;MEDIAINFO_DVDIF_ANALYZE_NO;MEDIAINFO_MPEGTS_DUPLICATE_NO;MEDIAINFO_LIBCURL_NO;MEDIAINFO_SEEK_NO;MEDIAINFO_IBI_NO;MEDIAINFO_NEXTPACKET_NO;MEDIAINFO_AES_NO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -293,6 +293,7 @@
     <ClCompile Include="Source\MediaInfo\Multiple\File_Ism.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File_Ivf.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File_Lxf.cpp" />
+    <ClCompile Include="Source\MediaInfo\Multiple\File_MiXml.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File_P2_Clip.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File_Pmp.cpp" />
     <ClCompile Include="Source\MediaInfo\Multiple\File_Ptx.cpp" />
@@ -528,6 +529,7 @@
     <ClInclude Include="Source\MediaInfo\Multiple\File_Ism.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File_Ivf.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File_Lxf.h" />
+    <ClInclude Include="Source\MediaInfo\Multiple\File_MiXml.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File_P2_Clip.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File_Pmp.h" />
     <ClInclude Include="Source\MediaInfo\Multiple\File_Ptx.h" />

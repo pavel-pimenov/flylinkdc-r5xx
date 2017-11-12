@@ -349,9 +349,6 @@
     <ClCompile Include="client\StringPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\ZipFile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="client\AdcSupports.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -429,6 +426,9 @@
     </ClCompile>
     <ClCompile Include="jsoncpp\jsoncpp.cpp">
       <Filter>Source Files\jsoncpp</Filter>
+    </ClCompile>
+    <ClCompile Include="client\zip\zip.c">
+      <Filter>Source Files\mzip</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -960,9 +960,6 @@
     <ClInclude Include="client\StringPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="client\ZipFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="client\CFlyUserRatioInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1146,6 +1143,12 @@
     <ClInclude Include="selene\include\selene\util.h">
       <Filter>Header Files\selene</Filter>
     </ClInclude>
+    <ClInclude Include="client\zip\miniz.h">
+      <Filter>Header Files\zip</Filter>
+    </ClInclude>
+    <ClInclude Include="client\zip\zip.h">
+      <Filter>Header Files\zip</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -1184,9 +1187,6 @@
     <Filter Include="Header Files\leveldb">
       <UniqueIdentifier>{d23b4909-e5c2-4012-8823-963a17f2b9e8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\minizip">
-      <UniqueIdentifier>{84096e6f-60b6-4f0c-939d-d548ac07cd87}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\webrtc">
       <UniqueIdentifier>{634734c1-c671-4cbd-877a-3a51a43bf950}</UniqueIdentifier>
     </Filter>
@@ -1198,6 +1198,12 @@
     </Filter>
     <Filter Include="Header Files\selene">
       <UniqueIdentifier>{b769fbea-470d-4491-9a00-40028bb8cc41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\mzip">
+      <UniqueIdentifier>{84096e6f-60b6-4f0c-939d-d548ac07cd87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\zip">
+      <UniqueIdentifier>{84323aa5-4f68-4fa2-bdee-e193b3129271}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -63,3 +63,4 @@ src_backup_7z.bat
 src_gen_filename.bat
 UpdateGeoIP.bat
 sign-flylinkdc.bat
+visual-c-version.txt

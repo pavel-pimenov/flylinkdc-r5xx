@@ -72,6 +72,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/units.hpp"
 #include "libtorrent/aux_/vector.hpp"
 #include "libtorrent/aux_/deferred_handler.hpp"
+#include "libtorrent/aux_/allocating_handler.hpp"
 
 #ifdef TORRENT_USE_OPENSSL
 // there is no forward declaration header for asio
@@ -107,8 +108,6 @@ namespace libtorrent {
 	struct storage_interface;
 	class bt_peer_connection;
 	struct listen_socket_t;
-
-	constexpr int default_piece_priority = 4;
 
 	enum class waste_reason
 	{
@@ -324,6 +323,7 @@ namespace libtorrent {
 		, private torrent_hot_members
 		, public request_callback
 		, public peer_class_set
+		, public aux::error_handler_interface
 		, public std::enable_shared_from_this<torrent>
 	{
 	public:
@@ -352,7 +352,7 @@ namespace libtorrent {
 		{
 			TORRENT_ASSERT(m_added == true);
 			m_added = false;
-			set_queue_position(-1);
+			set_queue_position(no_pos);
 			// make sure we decrement the gauge counter for this torrent
 			update_gauge();
 		}
@@ -463,10 +463,10 @@ namespace libtorrent {
 
 		void queue_up();
 		void queue_down();
-		void set_queue_position(int p);
-		int queue_position() const { return m_sequence_number; }
+		void set_queue_position(queue_position_t p);
+		queue_position_t queue_position() const { return m_sequence_number; }
 		// used internally
-		void set_queue_position_impl(int const p)
+		void set_queue_position_impl(queue_position_t const p)
 		{
 			if (m_sequence_number == p) return;
 			m_sequence_number = p;
@@ -565,19 +565,19 @@ namespace libtorrent {
 
 		void piece_availability(aux::vector<int, piece_index_t>& avail) const;
 
-		void set_piece_priority(piece_index_t index, int priority);
-		int piece_priority(piece_index_t index) const;
+		void set_piece_priority(piece_index_t index, download_priority_t priority);
+		download_priority_t piece_priority(piece_index_t index) const;
 
-		void prioritize_pieces(aux::vector<int, piece_index_t> const& pieces);
-		void prioritize_piece_list(std::vector<std::pair<piece_index_t, int>> const& pieces);
-		void piece_priorities(aux::vector<int, piece_index_t>*) const;
+		void prioritize_pieces(aux::vector<download_priority_t, piece_index_t> const& pieces);
+		void prioritize_piece_list(std::vector<std::pair<piece_index_t, download_priority_t>> const& pieces);
+		void piece_priorities(aux::vector<download_priority_t, piece_index_t>*) const;
 
-		void set_file_priority(file_index_t index, int priority);
-		int file_priority(file_index_t index) const;
+		void set_file_priority(file_index_t index, download_priority_t priority);
+		download_priority_t file_priority(file_index_t index) const;
 
 		void on_file_priority(storage_error const&);
-		void prioritize_files(aux::vector<int, file_index_t> const& files);
-		void file_priorities(aux::vector<int, file_index_t>*) const;
+		void prioritize_files(aux::vector<download_priority_t, file_index_t> const& files);
+		void file_priorities(aux::vector<download_priority_t, file_index_t>*) const;
 
 		void cancel_non_critical();
 		void set_piece_deadline(piece_index_t piece, int t, deadline_flags_t flags);
@@ -654,7 +654,7 @@ namespace libtorrent {
 		// this will remove the peer and make sure all
 		// the pieces it had have their reference counter
 		// decreased in the piece_picker
-		void remove_peer(peer_connection* p);
+		void remove_peer(std::shared_ptr<peer_connection> p);
 
 		// cancel requests to this block from any peer we're
 		// connected to on this torrent
@@ -1060,7 +1060,7 @@ namespace libtorrent {
 			, span<char const> data);
 #endif
 
-		int sequence_number() const { return m_sequence_number; }
+		queue_position_t sequence_number() const { return m_sequence_number; }
 
 		bool seed_mode() const { return m_seed_mode; }
 		void leave_seed_mode(bool skip_checking);
@@ -1151,6 +1151,9 @@ namespace libtorrent {
 
 	private:
 
+		void on_exception(std::exception const& e) override;
+		void on_error(error_code const& ec) override;
+
 		// trigger deferred disconnection of peers
 		void on_remove_peers();
 
@@ -1203,7 +1206,7 @@ namespace libtorrent {
 #endif
 
 		void remove_time_critical_piece(piece_index_t piece, bool finished = false);
-		void remove_time_critical_pieces(aux::vector<int, piece_index_t> const& priority);
+		void remove_time_critical_pieces(aux::vector<download_priority_t, piece_index_t> const& priority);
 		void request_time_critical_pieces();
 
 		void need_peer_list();
@@ -1258,7 +1261,7 @@ namespace libtorrent {
 		// ever changed, this remains empty. Any unallocated slot
 		// implicitly means the file has priority 4.
 		// TODO: this wastes 5 bits per file
-		aux::vector<std::uint8_t, file_index_t> m_file_priority;
+		aux::vector<download_priority_t, file_index_t> m_file_priority;
 
 		// this object is used to track download progress of individual files
 		aux::file_progress m_file_progress;
@@ -1417,11 +1420,12 @@ namespace libtorrent {
 
 		// the sequence number for this torrent, this is a
 		// monotonically increasing number for each added torrent
-		int m_sequence_number;
+		queue_position_t m_sequence_number;
 
 		// used to post a message to defer disconnecting peers
-		std::vector<peer_connection*> m_peers_to_disconnect;
+		std::vector<std::shared_ptr<peer_connection>> m_peers_to_disconnect;
 		aux::deferred_handler m_deferred_disconnect;
+		aux::handler_storage<24> m_deferred_handler_storage;
 
 		// for torrents who have a bandwidth limit, this is != 0
 		// and refers to a peer_class in the session.

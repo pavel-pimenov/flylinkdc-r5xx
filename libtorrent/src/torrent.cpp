@@ -341,8 +341,8 @@ namespace libtorrent {
 			// that case. Also, if the resume data says we're missing a piece, we
 			// can't be in seed-mode.
 			m_seed_mode = (p.flags & torrent_flags::seed_mode)
-				&& std::find(p.file_priorities.begin(), p.file_priorities.end(), 0) == p.file_priorities.end()
-				&& std::find(p.piece_priorities.begin(), p.piece_priorities.end(), 0) == p.piece_priorities.end()
+				&& std::find(p.file_priorities.begin(), p.file_priorities.end(), dont_download) == p.file_priorities.end()
+				&& std::find(p.piece_priorities.begin(), p.piece_priorities.end(), dont_download) == p.piece_priorities.end()
 				&& std::find(p.have_pieces.begin(), p.have_pieces.end(), false) == p.have_pieces.end();
 
 			m_connections_initialized = true;
@@ -969,7 +969,7 @@ namespace libtorrent {
 		if (m_share_mode && valid_metadata())
 		{
 			m_file_priority.clear();
-			m_file_priority.resize(m_torrent_file->num_files(), 0);
+			m_file_priority.resize(m_torrent_file->num_files(), dont_download);
 		}
 
 		update_piece_priorities();
@@ -1737,7 +1737,7 @@ namespace libtorrent {
 		{
 			// in share mode, all pieces have their priorities initialized to 0
 			m_file_priority.clear();
-			m_file_priority.resize(m_torrent_file->num_files(), 0);
+			m_file_priority.resize(m_torrent_file->num_files(), dont_download);
 		}
 
 		// it's important to initialize the peers early, because this is what will
@@ -1768,7 +1768,7 @@ namespace libtorrent {
 			piece_index_t idx(0);
 			for (auto prio : m_add_torrent_params->piece_priorities)
 			{
-				if (has_picker() || prio != default_piece_priority)
+				if (has_picker() || prio != default_priority)
 				{
 					need_picker();
 					m_picker->set_piece_priority(idx, prio);
@@ -1781,7 +1781,7 @@ namespace libtorrent {
 		// in case file priorities were passed in via the add_torrent_params
 		// and also in the case of share mode, we need to update the priorities
 		if (!m_file_priority.empty() && std::find(m_file_priority.begin()
-			, m_file_priority.end(), 0) != m_file_priority.end())
+			, m_file_priority.end(), dont_download) != m_file_priority.end())
 		{
 			update_piece_priorities();
 		}
@@ -2225,7 +2225,7 @@ namespace libtorrent {
 		set_state(torrent_status::checking_resume_data);
 
 		if (m_auto_managed && !is_finished())
-			set_queue_position((std::numeric_limits<int>::max)());
+			set_queue_position(last_pos);
 
 		TORRENT_ASSERT(m_outstanding_check_files == false);
 		m_add_torrent_params.reset();
@@ -3585,7 +3585,7 @@ namespace libtorrent {
 		int num_filtered_pieces = m_picker->num_filtered()
 			+ m_picker->num_have_filtered();
 		piece_index_t const last_piece_index = m_torrent_file->last_piece();
-		if (m_picker->piece_priority(last_piece_index) == 0)
+		if (m_picker->piece_priority(last_piece_index) == dont_download)
 		{
 			st.total_wanted -= m_torrent_file->piece_size(last_piece_index);
 			TORRENT_ASSERT(st.total_wanted >= 0);
@@ -3605,7 +3605,7 @@ namespace libtorrent {
 			TORRENT_ASSERT(corr <= 0);
 			TORRENT_ASSERT(corr > -piece_size);
 			st.total_done += corr;
-			if (m_picker->piece_priority(last_piece) != 0)
+			if (m_picker->piece_priority(last_piece) != dont_download)
 			{
 				TORRENT_ASSERT(st.total_wanted_done >= piece_size);
 				st.total_wanted_done += corr;
@@ -3628,7 +3628,7 @@ namespace libtorrent {
 				{
 					int const deduction = std::min(p.length, piece_size - p.start);
 					bool const done = m_picker->has_piece_passed(j);
-					bool const wanted = m_picker->piece_priority(j) > 0;
+					bool const wanted = m_picker->piece_priority(j) > dont_download;
 					if (done) st.total_done -= deduction;
 					if (wanted) st.total_wanted -= deduction;
 					if (wanted && done) st.total_wanted_done -= deduction;
@@ -3682,7 +3682,7 @@ namespace libtorrent {
 			}
 
 			st.total_done += corr;
-			if (m_picker->piece_priority(index) > 0)
+			if (m_picker->piece_priority(index) > dont_download)
 				st.total_wanted_done += corr;
 		}
 
@@ -3724,7 +3724,7 @@ namespace libtorrent {
 		{
 			int const done = std::min(block_bytes_wanted(p.first), p.second);
 			st.total_done += done;
-			if (m_picker->piece_priority(p.first.piece_index) != 0)
+			if (m_picker->piece_priority(p.first.piece_index) != dont_download)
 				st.total_wanted_done += done;
 		}
 
@@ -4698,9 +4698,9 @@ namespace libtorrent {
 				--i;
 			}
 			// just in case this piece had priority 0
-			int prev_prio = m_picker->piece_priority(piece);
-			m_picker->set_piece_priority(piece, 7);
-			if (prev_prio == 0) update_gauge();
+			download_priority_t prev_prio = m_picker->piece_priority(piece);
+			m_picker->set_piece_priority(piece, top_priority);
+			if (prev_prio == dont_download) update_gauge();
 			return;
 		}
 
@@ -4718,9 +4718,9 @@ namespace libtorrent {
 		m_time_critical_pieces.insert(critical_piece_it, p);
 
 		// just in case this piece had priority 0
-		int prev_prio = m_picker->piece_priority(piece);
-		m_picker->set_piece_priority(piece, 7);
-		if (prev_prio == 0) update_gauge();
+		download_priority_t prev_prio = m_picker->piece_priority(piece);
+		m_picker->set_piece_priority(piece, top_priority);
+		if (prev_prio == dont_download) update_gauge();
 
 		piece_picker::downloading_piece pi;
 		m_picker->piece_info(piece, pi);
@@ -4788,7 +4788,7 @@ namespace libtorrent {
 				alerts().emplace_alert<read_piece_alert>(
 					get_handle(), piece, error_code(boost::system::errc::operation_canceled, generic_category()));
 			}
-			if (has_picker()) m_picker->set_piece_priority(piece, 1);
+			if (has_picker()) m_picker->set_piece_priority(piece, low_priority);
 			m_time_critical_pieces.erase(i);
 			return;
 		}
@@ -4804,17 +4804,17 @@ namespace libtorrent {
 				m_ses.alerts().emplace_alert<read_piece_alert>(
 					get_handle(), i->piece, error_code(boost::system::errc::operation_canceled, generic_category()));
 			}
-			if (has_picker()) m_picker->set_piece_priority(i->piece, 1);
+			if (has_picker()) m_picker->set_piece_priority(i->piece, low_priority);
 			i = m_time_critical_pieces.erase(i);
 		}
 	}
 
 	// remove time critical pieces where priority is 0
-	void torrent::remove_time_critical_pieces(aux::vector<int, piece_index_t> const& priority)
+	void torrent::remove_time_critical_pieces(aux::vector<download_priority_t, piece_index_t> const& priority)
 	{
 		for (auto i = m_time_critical_pieces.begin(); i != m_time_critical_pieces.end();)
 		{
-			if (priority[i->piece] == 0)
+			if (priority[i->piece] == dont_download)
 			{
 				if (i->flags & torrent_handle::alert_when_available)
 				{
@@ -4843,7 +4843,8 @@ namespace libtorrent {
 		m_picker->get_availability(avail);
 	}
 
-	void torrent::set_piece_priority(piece_index_t const index, int const priority)
+	void torrent::set_piece_priority(piece_index_t const index
+		, download_priority_t const priority)
 	{
 //		INVARIANT_CHECK;
 
@@ -4851,7 +4852,8 @@ namespace libtorrent {
 		if (!valid_metadata())
 		{
 			debug_log("*** SET_PIECE_PRIORITY [ idx: %d prio: %d ignored. "
-				"no metadata yet ]", static_cast<int>(index), priority);
+				"no metadata yet ]", static_cast<int>(index)
+				, static_cast<std::uint8_t>(priority));
 		}
 #endif
 		if (!valid_metadata() || is_seed()) return;
@@ -4873,29 +4875,30 @@ namespace libtorrent {
 		if (filter_updated)
 		{
 			update_peer_interest(was_finished);
-			if (priority == 0) remove_time_critical_piece(index);
+			if (priority == dont_download) remove_time_critical_piece(index);
 		}
 
 	}
 
-	int torrent::piece_priority(piece_index_t const index) const
+	download_priority_t torrent::piece_priority(piece_index_t const index) const
 	{
 //		INVARIANT_CHECK;
 
-		if (!has_picker()) return default_piece_priority;
+		if (!has_picker()) return default_priority;
 
 		// this call is only valid on torrents with metadata
 		TORRENT_ASSERT(valid_metadata());
 		if (index < piece_index_t(0) || index >= m_torrent_file->end_piece())
 		{
 			TORRENT_ASSERT_FAIL();
-			return 0;
+			return dont_download;
 		}
 
 		return m_picker->piece_priority(index);
 	}
 
-	void torrent::prioritize_piece_list(std::vector<std::pair<piece_index_t, int>> const& pieces)
+	void torrent::prioritize_piece_list(std::vector<std::pair<piece_index_t
+		, download_priority_t>> const& pieces)
 	{
 		INVARIANT_CHECK;
 
@@ -4909,14 +4912,14 @@ namespace libtorrent {
 		bool const was_finished = is_finished();
 		for (auto const& p : pieces)
 		{
-			TORRENT_ASSERT(p.second >= 0);
-			TORRENT_ASSERT(p.second <= 7);
+			TORRENT_ASSERT(p.second >= dont_download);
+			TORRENT_ASSERT(p.second <= top_priority);
 			TORRENT_ASSERT(p.first >= piece_index_t(0));
 			TORRENT_ASSERT(p.first < m_torrent_file->end_piece());
 
 			if (p.first < piece_index_t(0)
 				|| p.first >= m_torrent_file->end_piece()
-				|| p.second < 0 || p.second > 7)
+				|| p.second < dont_download || p.second > top_priority)
 			{
 				continue;
 			}
@@ -4936,7 +4939,7 @@ namespace libtorrent {
 		state_updated();
 	}
 
-	void torrent::prioritize_pieces(aux::vector<int, piece_index_t> const& pieces)
+	void torrent::prioritize_pieces(aux::vector<download_priority_t, piece_index_t> const& pieces)
 	{
 		INVARIANT_CHECK;
 
@@ -4959,7 +4962,7 @@ namespace libtorrent {
 		bool const was_finished = is_finished();
 		for (auto prio : pieces)
 		{
-			TORRENT_ASSERT(prio >= 0 && prio <= 7);
+			TORRENT_ASSERT(prio >= dont_download && prio <= top_priority);
 			filter_updated |= m_picker->set_piece_priority(index, prio);
 			TORRENT_ASSERT(num_have() >= m_picker->num_have_filtered());
 			++index;
@@ -4980,7 +4983,7 @@ namespace libtorrent {
 		update_state_list();
 	}
 
-	void torrent::piece_priorities(aux::vector<int, piece_index_t>* pieces) const
+	void torrent::piece_priorities(aux::vector<download_priority_t, piece_index_t>* pieces) const
 	{
 		INVARIANT_CHECK;
 
@@ -4989,7 +4992,7 @@ namespace libtorrent {
 		if (!has_picker())
 		{
 			pieces->clear();
-			pieces->resize(m_torrent_file->num_pieces(), default_piece_priority);
+			pieces->resize(m_torrent_file->num_pieces(), default_priority);
 			return;
 		}
 
@@ -4999,7 +5002,7 @@ namespace libtorrent {
 
 	void torrent::on_file_priority(storage_error const&) {}
 
-	void torrent::prioritize_files(aux::vector<int, file_index_t> const& files)
+	void torrent::prioritize_files(aux::vector<download_priority_t, file_index_t> const& files)
 	{
 		INVARIANT_CHECK;
 
@@ -5010,13 +5013,15 @@ namespace libtorrent {
 		file_index_t const limit = std::min(files.end_index(), fs.end_file());
 
 		if (m_file_priority.end_index() < limit)
-			m_file_priority.resize(static_cast<int>(limit), default_piece_priority);
+			m_file_priority.resize(static_cast<int>(limit), default_priority);
 
 		auto si = files.begin();
 		for (file_index_t i(0); i < limit; ++i, ++si)
 		{
 			// initialize pad files to priority 0
-			m_file_priority[i] = fs.pad_file_at(i) ? 0 : aux::clamp(*si, 0, 7) & 0xff;
+			m_file_priority[i] = fs.pad_file_at(i)
+				? dont_download
+				: aux::clamp(*si, dont_download, top_priority);
 		}
 
 		// storage may be nullptr during construction and shutdown
@@ -5029,7 +5034,8 @@ namespace libtorrent {
 		update_piece_priorities();
 	}
 
-	void torrent::set_file_priority(file_index_t const index, int prio)
+	void torrent::set_file_priority(file_index_t const index
+		, download_priority_t prio)
 	{
 		INVARIANT_CHECK;
 
@@ -5044,17 +5050,16 @@ namespace libtorrent {
 			return;
 		}
 
-		if (prio < 0) prio = 0;
-		else if (prio > 7) prio = 7;
+		prio = aux::clamp(prio, dont_download, top_priority);
 		if (m_file_priority.end_index() <= index)
 		{
 			// any unallocated slot is assumed to have the default priority
-			if (prio == default_piece_priority) return;
-			m_file_priority.resize(static_cast<int>(index) + 1, default_piece_priority);
+			if (prio == default_priority) return;
+			m_file_priority.resize(static_cast<int>(index) + 1, default_priority);
 		}
 
 		if (m_file_priority[index] == prio) return;
-		m_file_priority[index] = std::uint8_t(prio);
+		m_file_priority[index] = prio;
 
 		if (!valid_metadata()) return;
 
@@ -5067,29 +5072,29 @@ namespace libtorrent {
 		update_piece_priorities();
 	}
 
-	int torrent::file_priority(file_index_t const index) const
+	download_priority_t torrent::file_priority(file_index_t const index) const
 	{
 		TORRENT_ASSERT_PRECOND(index >= file_index_t(0));
-		if (index < file_index_t(0)) return 0;
+		if (index < file_index_t(0)) return dont_download;
 
 		// if we have metadata, perform additional checks
 		if (valid_metadata())
 		{
 			file_storage const& fs = m_torrent_file->files();
 			TORRENT_ASSERT_PRECOND(index < fs.end_file());
-			if (index >= fs.end_file()) return 0;
+			if (index >= fs.end_file()) return dont_download;
 
 			// pad files always have priority 0
-			if (fs.pad_file_at(index)) return 0;
+			if (fs.pad_file_at(index)) return dont_download;
 		}
 
 		// any unallocated slot is assumed to have the default priority
-		if (m_file_priority.end_index() <= index) return default_piece_priority;
+		if (m_file_priority.end_index() <= index) return default_priority;
 
 		return m_file_priority[index];
 	}
 
-	void torrent::file_priorities(aux::vector<int, file_index_t>* files) const
+	void torrent::file_priorities(aux::vector<download_priority_t, file_index_t>* files) const
 	{
 		INVARIANT_CHECK;
 
@@ -5101,7 +5106,7 @@ namespace libtorrent {
 		}
 
 		files->clear();
-		files->resize(m_torrent_file->num_files(), default_piece_priority);
+		files->resize(m_torrent_file->num_files(), default_priority);
 		TORRENT_ASSERT(int(m_file_priority.size()) <= m_torrent_file->num_files());
 		std::copy(m_file_priority.begin(), m_file_priority.end(), files->begin());
 	}
@@ -5116,7 +5121,8 @@ namespace libtorrent {
 		std::int64_t position = 0;
 		// initialize the piece priorities to 0, then only allow
 		// setting higher priorities
-		aux::vector<int, piece_index_t> pieces(aux::numeric_cast<std::size_t>(m_torrent_file->num_pieces()), 0);
+		aux::vector<download_priority_t, piece_index_t> pieces(aux::numeric_cast<std::size_t>(
+			m_torrent_file->num_pieces()), dont_download);
 		file_storage const& fs = m_torrent_file->files();
 		for (file_index_t i(0); i < fs.end_file(); ++i)
 		{
@@ -5125,12 +5131,12 @@ namespace libtorrent {
 			position += size;
 
 			// pad files always have priority 0
-			int const file_prio
-				= fs.pad_file_at(i) ? 0
-				: i >= m_file_priority.end_index() ? default_piece_priority
+			download_priority_t const file_prio
+				= fs.pad_file_at(i) ? dont_download
+				: i >= m_file_priority.end_index() ? default_priority
 				: m_file_priority[i];
 
-			if (file_prio == 0)
+			if (file_prio == dont_download)
 			{
 				// the pieces already start out as priority 0, no need to update
 				// the pieces vector in this case
@@ -5419,6 +5425,16 @@ namespace libtorrent {
 
 #endif
 
+	void torrent::on_exception(std::exception const&)
+	{
+		set_error(errors::no_memory, torrent_status::error_file_none);
+	}
+
+	void torrent::on_error(error_code const& ec)
+	{
+		set_error(ec, torrent_status::error_file_none);
+	}
+
 	void torrent::remove_connection(peer_connection const* p)
 	{
 		TORRENT_ASSERT(m_iterating_connections == 0);
@@ -5427,9 +5443,9 @@ namespace libtorrent {
 			m_connections.erase(i);
 	}
 
-	void torrent::remove_peer(peer_connection* p)
+	void torrent::remove_peer(std::shared_ptr<peer_connection> p)
 	{
-		TORRENT_ASSERT(p != nullptr);
+		TORRENT_ASSERT(p);
 		TORRENT_ASSERT(is_single_thread());
 		TORRENT_ASSERT(std::count(m_peers_to_disconnect.begin()
 			, m_peers_to_disconnect.end(), p) == 0);
@@ -5449,18 +5465,18 @@ namespace libtorrent {
 		{
 			std::weak_ptr<torrent> weak_t = shared_from_this();
 			m_peers_to_disconnect.push_back(p);
-			m_deferred_disconnect.post(m_ses.get_io_service(), [=]()
+			m_deferred_disconnect.post(m_ses.get_io_service(), aux::make_handler([=]()
 			{
 				std::shared_ptr<torrent> t = weak_t.lock();
 				if (t) t->on_remove_peers();
-			});
+			}, m_deferred_handler_storage, *this));
 		}
 		else
 		{
 			// if the peer was inserted in m_connections but instructed to
 			// be removed from this torrent, just remove it from it, see
 			// attach_peer logic.
-			remove_connection(p);
+			remove_connection(p.get());
 		}
 
 		torrent_peer* pp = p->peer_info_struct();
@@ -5527,15 +5543,15 @@ namespace libtorrent {
 		TORRENT_ASSERT(is_single_thread());
 		INVARIANT_CHECK;
 
-		std::vector<peer_connection*> peers;
+		std::vector<std::shared_ptr<peer_connection>> peers;
 		m_peers_to_disconnect.swap(peers);
 		for (auto p : peers)
 		{
-			TORRENT_ASSERT(p != nullptr);
+			TORRENT_ASSERT(p);
 			TORRENT_ASSERT(p->associated_torrent().lock().get() == this);
 
-			remove_connection(p);
-			m_ses.close_connection(p);
+			remove_connection(p.get());
+			m_ses.close_connection(p.get());
 		}
 
 		if (m_graceful_pause_mode && m_connections.empty())
@@ -6306,7 +6322,7 @@ namespace libtorrent {
 			file_storage const& fs = m_torrent_file->files();
 			for (piece_index_t i(0); i < fs.end_piece(); ++i)
 			{
-				if (m_picker->piece_priority(i) == default_piece_priority) continue;
+				if (m_picker->piece_priority(i) == default_priority) continue;
 				default_prio = false;
 				break;
 			}
@@ -6317,7 +6333,7 @@ namespace libtorrent {
 				ret.piece_priorities.reserve(static_cast<std::size_t>(m_torrent_file->num_pieces()));
 
 				for (piece_index_t i(0); i < fs.end_piece(); ++i)
-					ret.piece_priorities.push_back(static_cast<std::uint8_t>(m_picker->piece_priority(i)));
+					ret.piece_priorities.push_back(m_picker->piece_priority(i));
 			}
 		}
 	}
@@ -6974,7 +6990,7 @@ namespace libtorrent {
 				// we have to do this here because from the peer's point of view
 				// it wasn't really attached to the torrent, but we do need
 				// to let peer_list know we're removing it
-				remove_peer(p);
+				remove_peer(p->self());
 				return false;
 			}
 		}
@@ -7254,7 +7270,7 @@ namespace libtorrent {
 		TORRENT_ASSERT(is_finished());
 
 		set_state(torrent_status::finished);
-		set_queue_position(-1);
+		set_queue_position(no_pos);
 
 		m_became_finished = aux::time_now32();
 
@@ -7336,7 +7352,7 @@ namespace libtorrent {
 
 		TORRENT_ASSERT(!is_finished());
 		set_state(torrent_status::downloading);
-		set_queue_position((std::numeric_limits<int>::max)());
+		set_queue_position(last_pos);
 
 		m_completed_time = 0;
 
@@ -7712,7 +7728,7 @@ namespace libtorrent {
 		TORRENT_ASSERT(current_stats_state() == int(m_current_gauge_state + counters::num_checking_torrents)
 			|| m_current_gauge_state == no_gauge_state);
 
-		TORRENT_ASSERT(m_sequence_number == -1
+		TORRENT_ASSERT(m_sequence_number == no_pos
 			|| m_ses.verify_queue_position(this, m_sequence_number));
 
 		for (auto const& i : m_time_critical_pieces)
@@ -7985,30 +8001,30 @@ namespace libtorrent {
 		// -1
 		if (m_abort || is_finished()) return;
 
-		set_queue_position(queue_position() == 0
-			? queue_position() : queue_position() - 1);
+		set_queue_position(queue_position() == queue_position_t{0}
+			? queue_position() : prev(queue_position()));
 	}
 
 	void torrent::queue_down()
 	{
-		set_queue_position(queue_position() + 1);
+		set_queue_position(next(queue_position()));
 	}
 
-	void torrent::set_queue_position(int p)
+	void torrent::set_queue_position(queue_position_t const p)
 	{
 		TORRENT_ASSERT(is_single_thread());
 
 		// finished torrents may not change their queue positions, as it's set to
 		// -1
-		if ((m_abort || is_finished()) && p != -1) return;
+		if ((m_abort || is_finished()) && p != no_pos) return;
 
-		TORRENT_ASSERT((p == -1) == is_finished()
-			|| (!m_auto_managed && p == -1)
-			|| (m_abort && p == -1)
-			|| (!m_added && p == -1));
+		TORRENT_ASSERT((p == no_pos) == is_finished()
+			|| (!m_auto_managed && p == no_pos)
+			|| (m_abort && p == no_pos)
+			|| (!m_added && p == no_pos));
 		if (p == m_sequence_number) return;
 
-		TORRENT_ASSERT(p >= -1);
+		TORRENT_ASSERT(p >= no_pos);
 
 		state_updated();
 
@@ -9294,7 +9310,7 @@ namespace libtorrent {
 			if (ps.peer_count == 0) continue;
 			if (ps.priority == 0 && (ps.have || ps.downloading))
 			{
-				m_picker->set_piece_priority(i, default_piece_priority);
+				m_picker->set_piece_priority(i, default_priority);
 				continue;
 			}
 			// don't count pieces we already have or are trying to download
@@ -9327,7 +9343,7 @@ namespace libtorrent {
 		// now, pick one of the rarest pieces to download
 		int const pick = int(random(aux::numeric_cast<std::uint32_t>(rarest_pieces.end_index() - 1)));
 		bool const was_finished = is_finished();
-		m_picker->set_piece_priority(rarest_pieces[pick], default_piece_priority);
+		m_picker->set_piece_priority(rarest_pieces[pick], default_priority);
 		update_gauge();
 		update_peer_interest(was_finished);
 		update_want_peers();

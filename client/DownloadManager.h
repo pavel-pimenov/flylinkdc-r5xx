@@ -68,7 +68,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		bool remove_torrent_file(const libtorrent::sha1_hash& p_sha1, libtorrent::remove_flags_t p_options);
 		bool pause_torrent_file(const libtorrent::sha1_hash& p_sha1, bool p_is_resume);
 		bool set_file_priority(const libtorrent::sha1_hash& p_sha1, const CFlyTorrentFileArray& p_files,
-		                       const std::vector<int>& p_file_priority, const std::string& p_save_path);
+		                       const std::vector<libtorrent::download_priority_t>& p_file_priority, const std::string& p_save_path);
 		int listen_torrent_port();
 		void fire_added_torrent(const libtorrent::sha1_hash& p_sha1);
 		std::string get_torrent_name(const libtorrent::sha1_hash& p_sha1);

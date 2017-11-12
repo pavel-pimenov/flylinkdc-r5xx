@@ -721,9 +721,11 @@
     <Image Include="res\vip_allavtovo.ico" />
     <Image Include="res\vip_eva.ico" />
     <Image Include="res\vip_godc.ico" />
+    <Image Include="res\vip_hmn_pp.ico" />
     <Image Include="res\vip_keepclear_org.ico" />
     <Image Include="res\vip_korobka.ico" />
     <Image Include="res\vip_milenahub.ico" />
+    <Image Include="res\vip_millennium.ico" />
     <Image Include="res\vip_nsk154hub.ico" />
     <Image Include="res\vip_perseus.ico" />
     <Image Include="res\vip_prime.ico" />

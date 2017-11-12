@@ -36,7 +36,7 @@ class Download : public Transfer, public Flags
 		
 		void getParams(StringMap& params) const;
 		
-		~Download();
+		virtual ~Download();
 		
 		/** @return Target filename without path. */
 		string getTargetFileName() const

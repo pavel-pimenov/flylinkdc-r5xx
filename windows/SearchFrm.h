@@ -925,6 +925,31 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		
 		void speak(Speakers s, const Client* aClient);
 	private:
+		class TorrentTopSender : public Thread
+		{
+			private:
+				HWND m_wnd;
+				bool m_is_run;
+				int run();
+			public:
+				TorrentTopSender(): m_wnd(0), m_is_run(false) { }
+				void start_torrent_top(HWND p_wnd)
+				{
+					m_wnd = p_wnd;
+					if (m_is_run == false)
+					{
+						m_is_run = true;
+						try
+						{
+							start(1024);
+						}
+						catch (const ThreadException& e)
+						{
+							LogManager::message("TorrentTopSender: = " + e.getError());
+						}
+					}
+				}
+		} m_torrentTopThread;
 		class TorrentSearchSender : public Thread
 		{
 			private:
@@ -932,7 +957,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				tstring m_search;
 				int run();
 			public:
-				TorrentSearchSender() { }
+				TorrentSearchSender(): m_wnd(0) { }
 				void start_torrent_search(HWND p_wnd, const tstring& p_search)
 				{
 					m_wnd = p_wnd;

@@ -38,6 +38,8 @@ class ZFilter
 		 * @return True if there's more processing to be done
 		 */
 		bool operator()(const void* in, size_t& insize, void* out, size_t& outsize);
+	public:
+		static bool g_is_disable_compression;
 	private:
 		z_stream zs;
 		int64_t totalIn;

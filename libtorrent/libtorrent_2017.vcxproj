@@ -109,6 +109,7 @@
     <ClInclude Include="include\libtorrent\disk_io_thread_pool.hpp" />
     <ClInclude Include="include\libtorrent\disk_job_pool.hpp" />
     <ClInclude Include="include\libtorrent\disk_observer.hpp" />
+    <ClInclude Include="include\libtorrent\download_priority.hpp" />
     <ClInclude Include="include\libtorrent\ed25519.hpp" />
     <ClInclude Include="include\libtorrent\entry.hpp" />
     <ClInclude Include="include\libtorrent\enum_net.hpp" />

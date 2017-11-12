@@ -52,6 +52,7 @@ enum Tasks
 	UPADTE_COLUMN_DESC,
 	CHEATING_USER,
 	USER_REPORT,
+	ASYNC_LOAD_PG_AND_GEI_IP,
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 	UPADTE_COLUMN_SHARE,
 #endif
@@ -86,11 +87,13 @@ class UserInfo : public UserInfoBase
 		Util::CustomNetworkIndex m_location; // [+] IRainman opt.
 	public:
 		unsigned short m_flag_mask;
+		char m_owner_draw;
+		
 		// char m_is_autoban;
 		// char m_is_favorites;
 		// char m_is_ban; // TODO - сжать в один байт.
 		
-		explicit UserInfo(const OnlineUserPtr& p_ou) : m_ou(p_ou), m_flag_mask(0xFFFF) //,m_is_autoban(-1), m_is_favorites(-1), m_is_ban(-1)
+		explicit UserInfo(const OnlineUserPtr& p_ou) : m_ou(p_ou), m_flag_mask(0xFFFF), m_owner_draw(0) //,m_is_autoban(-1), m_is_favorites(-1), m_is_ban(-1)
 		{
 		}
 		static int compareItems(const UserInfo* a, const UserInfo* b, int col);

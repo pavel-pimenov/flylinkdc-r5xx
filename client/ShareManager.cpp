@@ -54,12 +54,18 @@ bool ShareManager::g_ignoreFileSizeHFS = false; // http://www.flylinkdc.ru/2015/
 size_t ShareManager::g_hits = 0;
 int ShareManager::g_RebuildIndexes = 0;
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csBloom = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
-std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csDirList = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
-std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShare = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+CriticalSection ShareManager::g_csShare;
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShareNotExists = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShareCache = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 
 CriticalSection ShareManager::g_csTTHIndex;
+
+FastCriticalSection ShareManager::g_csPartialCache;
+std::unordered_map<string, std::pair<string, unsigned> > ShareManager::g_partial_list_cache;
+
+FastCriticalSection ShareManager::g_csTTHPathCache;
+std::unordered_map<TTHValue, std::pair<string, unsigned> > ShareManager::g_tth_path_cache;
+
 QueryNotExistsSet ShareManager::g_file_not_exists_set;
 QueryCacheMap ShareManager::g_file_cache_map;
 ShareManager::HashFileMap ShareManager::g_tthIndex;
@@ -161,12 +167,12 @@ ShareManager::Directory::Directory(const string& aName, const ShareManager::Dire
 	initLowerName();
 }
 
-string ShareManager::Directory::getADCPath() const noexcept
+string ShareManager::Directory::getADCPathL() const noexcept
 {
 	Directory* l_Current = getParent();
 	if (!l_Current)
 		return '/' + getName() + '/';
-	return l_Current->getADCPath() + getName() + '/';
+	return l_Current->getADCPathL() + getName() + '/';
 }
 
 string ShareManager::Directory::getFullName() const noexcept
@@ -189,12 +195,12 @@ void ShareManager::Directory::addType(Search::TypeModes p_type) noexcept
 	}
 }
 
-string ShareManager::Directory::getRealPath(const std::string& path) const
+string ShareManager::Directory::getRealPathL(const std::string& path) const
 {
-	Directory* l_Current = getParent();
+	const Directory* l_Current = getParent();
 	if (l_Current)
 	{
-		return l_Current->getRealPath(getName() + PATH_SEPARATOR_STR + path);
+		return l_Current->getRealPathL(getName() + PATH_SEPARATOR_STR + path);
 	}
 	else
 	{
@@ -236,7 +242,8 @@ int64_t ShareManager::Directory::getDirSizeL() const noexcept
 
 bool ShareManager::destinationShared(const string& file_or_dir_name) // [+] IRainman opt.
 {
-	CFlyReadLock(*g_csShare);
+	//CFlyReadLock(*g_csShare);
+	CFlyLock(g_csShare);
 	for (auto i = g_shares.cbegin(); i != g_shares.cend(); ++i)
 	{
 		if (strnicmp(i->first, file_or_dir_name, i->first.size()) == 0 && file_or_dir_name[i->first.size() - 1] == PATH_SEPARATOR)
@@ -278,7 +285,8 @@ bool ShareManager::isTTHShared(const TTHValue& tth)
 }
 string ShareManager::toRealPath(const TTHValue& tth)
 {
-	// CFlyReadLock(*g_csShare);
+	//CFlyReadLock(*g_csShare);
+	CFlyLock(g_csShare);
 	{
 		CFlyLock(g_csTTHIndex);
 		const auto i = g_tthIndex.find(tth);
@@ -286,7 +294,7 @@ string ShareManager::toRealPath(const TTHValue& tth)
 		{
 			try
 			{
-				return i->second->getRealPath();
+				return i->second->getRealPathL();
 			}
 			catch (const ShareException&)
 			{
@@ -308,13 +316,14 @@ string ShareManager::toVirtual(const TTHValue& tth)
 	{
 		return Transfer::g_user_list_name;
 	}
-	//!CFlyReadLock(*g_csShare);
+	//CFlyReadLock(*g_csShare);
+	CFlyLock(g_csShare);
 	{
 		CFlyLock(g_csTTHIndex);
 		const auto& i = g_tthIndex.find(tth);
 		if (i != g_tthIndex.end())
 		{
-			return i->second->getADCPath();
+			return i->second->getADCPathL();
 		}
 	}
 	
@@ -416,18 +425,22 @@ void ShareManager::getFileInfo(AdcCommand& cmd, const string& aFile)
 	if (aFile.compare(0, 4, "TTH/", 4) != 0)
 		throw ShareException(UserConnection::g_FILE_NOT_AVAILABLE, aFile);
 		
-	TTHValue val(aFile.c_str() + 4); //[+]FlylinkDC++
-	CFlyLock(g_csTTHIndex);
-	const auto& i = g_tthIndex.find(val);
-	if (i == g_tthIndex.end())
+	const TTHValue val(aFile.c_str() + 4); //[+]FlylinkDC++
+	//CFlyReadLock(*g_csShare);
+	CFlyLock(g_csShare);
 	{
-		throw ShareException(UserConnection::g_FILE_NOT_AVAILABLE, aFile);
+		CFlyLock(g_csTTHIndex);
+		const auto& i = g_tthIndex.find(val);
+		if (i == g_tthIndex.end())
+		{
+			throw ShareException(UserConnection::g_FILE_NOT_AVAILABLE, aFile);
+		}
+		
+		const auto& f = *i->second;
+		cmd.addParam("FN", f.getADCPathL());
+		cmd.addParam("SI", Util::toString(f.getSize()));
+		cmd.addParam("TR", f.getTTH().toBase32());
 	}
-	
-	const auto& f = *i->second;
-	cmd.addParam("FN", f.getADCPath());
-	cmd.addParam("SI", Util::toString(f.getSize()));
-	cmd.addParam("TR", f.getTTH().toBase32());
 }
 pair<ShareManager::Directory::Ptr, string> ShareManager::splitVirtualL(const string& virtualPath) const
 {
@@ -442,7 +455,6 @@ pair<ShareManager::Directory::Ptr, string> ShareManager::splitVirtualL(const str
 		throw ShareException(UserConnection::g_FILE_NOT_AVAILABLE, virtualPath);
 	}
 	
-	CFlyReadLock(*g_csDirList);
 	auto dmi = getByVirtualL(virtualPath.substr(1, i - 1));
 	if (dmi == g_list_directories.end())
 	{
@@ -475,11 +487,35 @@ void ShareManager::checkShutdown(const string& virtualFile) const
 }
 string ShareManager::findFileAndRealPath(const string& virtualFile, TTHValue& p_tth, bool p_is_fetch_tth) const
 {
-	// CFlyReadLock(*g_csShare);
-	if (virtualFile.compare(0, 4, "TTH/", 4) == 0)
+	const bool l_is_tth = virtualFile.compare(0, 4, "TTH/", 4) == 0;
+	if (l_is_tth)
+	{
+		CFlyFastLock(g_csTTHPathCache);
+		const TTHValue l_tth(virtualFile.substr(4));
+		auto i = g_tth_path_cache.find(l_tth);
+		if (i != g_tth_path_cache.end())
+		{
+			i->second.second++;
+#ifdef FLYLINKDC_BETA
+			//LogManager::message("Use real path cache TTH = " + virtualFile.substr(4)
+			//                    + " path = " + i->second.first + " count = " + Util::toString(i->second.second));
+#endif // FLYLINKDC_BETA
+			checkShutdown(virtualFile);
+			if (p_is_fetch_tth)
+			{
+				p_tth = i->first;
+			}
+			return i->second.first;
+		}
+	}
+	
+	//CFlyReadLock(*g_csShare);
+	CFlyLock(g_csShare);
+	if (l_is_tth)
 	{
 		CFlyLock(g_csTTHIndex);
-		const auto i = g_tthIndex.find(TTHValue(virtualFile.substr(4)));
+		const TTHValue l_tth(virtualFile.substr(4));
+		const auto i = g_tthIndex.find(l_tth);
 		if (i == g_tthIndex.end())
 		{
 			throw ShareException(UserConnection::g_FILE_NOT_AVAILABLE, virtualFile);
@@ -489,9 +525,14 @@ string ShareManager::findFileAndRealPath(const string& virtualFile, TTHValue& p_
 		{
 			p_tth = i->second->getTTH(); // https://drdump.com/DumpGroup.aspx?DumpGroupID=555791&Login=guest
 		}
-		return i->second->getRealPath();
+		const string l_path = i->second->getRealPathL();
+		{
+			CFlyFastLock(g_csTTHPathCache);
+			auto& i = g_tth_path_cache[l_tth];
+			i.first = l_path;
+		}
+		return l_path;
 	}
-	CFlyReadLock(*g_csShare); // ”нес ниже - но опасно....
 	const auto v = splitVirtualL(virtualFile);
 	const auto it = std::find_if(v.first->m_share_files.begin(), v.first->m_share_files.end(),
 	                             [&](const Directory::ShareFile & p_file) -> bool {return stricmp(p_file.getName(), v.second) == 0;}
@@ -506,7 +547,7 @@ string ShareManager::findFileAndRealPath(const string& virtualFile, TTHValue& p_
 	{
 		p_tth = it->getTTH();
 	}
-	return it->getRealPath();
+	return it->getRealPathL();
 }
 
 string ShareManager::validateVirtual(const string& aVirt) noexcept
@@ -524,7 +565,8 @@ string ShareManager::validateVirtual(const string& aVirt) noexcept
 void ShareManager::load(SimpleXML& aXml)
 {
 	CFlyBusy l_busy(g_RebuildIndexes);
-	CFlyWriteLock(*g_csShare);
+	//CFlyWriteLock(*g_csShare);
+	CFlyLock(g_csShare);
 	aXml.resetCurrentChild();
 	if (aXml.findChild("Share"))
 	{
@@ -548,7 +590,6 @@ void ShareManager::load(SimpleXML& aXml)
 			}
 			g_shares.insert(std::make_pair(realPath, CFlyBaseDirItem(vName, 0)));
 			{
-				CFlyWriteLock(*g_csDirList);
 				if (getByVirtualL(vName) == g_list_directories.end())
 				{
 					g_list_directories.push_back(Directory::create(vName));
@@ -617,7 +658,6 @@ struct ShareLoader : public SimpleXMLReader::CallBack
 		ShareLoader() : cur(nullptr), m_depth(0) { }
 		void startTag(const string& p_name, StringPairList& p_attribs, bool p_simple)
 		{
-			// CFlyLock(g_csDirList); не нужно - лочим выше
 			if (p_name == g_SDirectory)
 			{
 				const string& name = getAttrib(p_attribs, g_SName, 0);
@@ -718,7 +758,6 @@ bool ShareManager::loadCache() noexcept
 	{
 		CFlyLog l_cache_loader_log("[Share cache loader]");
 		{
-			CFlyWriteLock(*g_csDirList);
 			ShareLoader loader;
 			SimpleXMLReader xml(&loader);
 			const string& cacheFile = getDefaultBZXmlFile();
@@ -734,9 +773,9 @@ bool ShareManager::loadCache() noexcept
 		{
 			{
 				CFlyBusy l_busy(g_RebuildIndexes);
-				CFlyWriteLock(*g_csShare);
+				//CFlyWriteLock(*g_csShare);
+				CFlyLock(g_csShare);
 				{
-					CFlyReadLock(*g_csDirList);
 					for (auto i = g_list_directories.cbegin(); i != g_list_directories.cend(); ++i)
 					{
 						updateIndicesDirL(**i);
@@ -772,7 +811,8 @@ bool ShareManager::loadCache() noexcept
 
 void ShareManager::save(SimpleXML& aXml)
 {
-	CFlyReadLock(*g_csShare);
+	//CFlyReadLock(*g_csShare);
+	CFlyLock(g_csShare);
 	
 	aXml.addTag("Share");
 	aXml.stepIn();
@@ -873,7 +913,8 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 	{
 		ShareMap a;
 		{
-			CFlyReadLock(*g_csShare);
+			//CFlyReadLock(*g_csShare);
+			CFlyLock(g_csShare);
 			a = g_shares;
 		}
 		
@@ -905,7 +946,8 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 		rebuildSkipList();
 		{
 			CFlyBusy l_busy(g_RebuildIndexes);
-			CFlyWriteLock(*g_csShare);
+			//CFlyWriteLock(*g_csShare);
+			CFlyLock(g_csShare);
 			{
 				__int64 l_path_id = 0;
 				Directory::Ptr dp = buildTreeL(l_path_id, realPath, Directory::Ptr(), p_is_job);
@@ -915,11 +957,8 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 				
 				g_shares.insert(std::make_pair(realPath, CFlyBaseDirItem(vName, l_path_id)));
 				{
-					CFlyWriteLock(*g_csDirList); // Ёта блокировка выше TTHINdex
-					{
-						CFlyLock(g_csTTHIndex);
-						updateIndicesDirL(*get_mergeL(dp));
-					}
+					CFlyLock(g_csTTHIndex);
+					updateIndicesDirL(*get_mergeL(dp));
 				}
 			}
 		}
@@ -1012,7 +1051,8 @@ void ShareManager::removeDirectory(const string& realPath)
 	
 	{
 		CFlyBusy l_busy(g_RebuildIndexes);
-		CFlyWriteLock(*g_csShare);
+		//CFlyWriteLock(*g_csShare);
+		CFlyLock(g_csShare);
 		auto i = g_shares.find(realPath);
 		if (i == g_shares.end())
 		{
@@ -1020,7 +1060,6 @@ void ShareManager::removeDirectory(const string& realPath)
 		}
 		const string l_Name = i->second.m_synonym; // —сылку не делать. fix http://www.flickr.com/photos/96019675@N02/9515345001/
 		{
-			CFlyWriteLock(*g_csDirList);
 			for (auto j = g_list_directories.cbegin(); j != g_list_directories.cend();)
 			{
 				if (stricmp((*j)->getName(), l_Name) == 0)
@@ -1046,7 +1085,6 @@ void ShareManager::removeDirectory(const string& realPath)
 				Directory::Ptr dp = buildTreeL(i->second.m_path_id, i->first, Directory::Ptr(), true);
 				dp->setNameAndLower(i->second.m_synonym);
 				{
-					CFlyWriteLock(*g_csDirList);
 					get_mergeL(dp);
 				}
 			}
@@ -1079,11 +1117,11 @@ int64_t ShareManager::getShareSize(const string& realPath)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	dcassert(!realPath.empty());
-	CFlyReadLock(*g_csShare);
+	//CFlyReadLock(*g_csShare);
+	CFlyLock(g_csShare);
 	const auto i = g_shares.find(realPath);
 	if (i != g_shares.end())
 	{
-		CFlyReadLock(*g_csDirList);
 		const auto j = getByVirtualL(i->second.m_synonym);
 		if (j != g_list_directories.end())
 		{
@@ -1489,15 +1527,14 @@ void ShareManager::rebuildIndicesL()
 			CFlyWriteLock(*g_csBloom);
 			g_bloom.clear();
 		}
+		clear_partial_cache();
+		clear_tth_path_cache();
 		{
-			CFlyReadLock(*g_csDirList); // Ёта блокировка выше TTHIndex
+			CFlyLock(g_csTTHIndex);
+			for (auto i = g_list_directories.cbegin(); i != g_list_directories.cend(); ++i)
 			{
-				CFlyLock(g_csTTHIndex);
-				for (auto i = g_list_directories.cbegin(); i != g_list_directories.cend(); ++i)
-				{
-					if (updateIndicesDirL(**i) == false)
-						break;
-				}
+				if (updateIndicesDirL(**i) == false)
+					break;
 			}
 		}
 		g_isNeedsUpdateShareSize = true;
@@ -1574,7 +1611,8 @@ void ShareManager::getDirectories(CFlyDirItemArray& p_dirs)
 {
 	dcassert(p_dirs.empty());
 	p_dirs.clear();
-	CFlyReadLock(*g_csShare);
+	//CFlyReadLock(*g_csShare);
+	CFlyLock(g_csShare);
 	p_dirs.reserve(g_shares.size());
 	for (auto i = g_shares.cbegin(); i != g_shares.cend(); ++i)
 	{
@@ -1632,7 +1670,8 @@ int ShareManager::run()
 		DirList newDirs;
 		{
 			CFlyBusy l_busy(g_RebuildIndexes);
-			CFlyWriteLock(*g_csShare);
+			//CFlyWriteLock(*g_csShare);
+			CFlyLock(g_csShare);
 			for (auto i = directories.begin(); i != directories.end(); ++i)
 			{
 				if (checkAttributs(i->m_path))
@@ -1655,9 +1694,9 @@ int ShareManager::run()
 		{
 			CFlyBusy l_busy(g_RebuildIndexes);
 			
-			CFlyWriteLock(*g_csShare);
+			//CFlyWriteLock(*g_csShare);
+			CFlyLock(g_csShare);
 			{
-				CFlyWriteLock(*g_csDirList);
 				g_list_directories.clear();
 				for (auto i = newDirs.cbegin(); i != newDirs.cend(); ++i)
 				{
@@ -1724,13 +1763,11 @@ void ShareManager::generateXmlList()
 				newXmlFile.write(SimpleXML::utf8Header);
 				newXmlFile.write("<FileListing Version=\"1\" CID=\"" + ClientManager::getMyCID().toBase32() + "\" Base=\"/\" Generator=\"DC++ " DCVERSIONSTRING "\">\r\n"); // [!] IRainman fix.
 				{
-					CFlyReadLock(*g_csShare);
+					//CFlyReadLock(*g_csShare);
+					CFlyLock(g_csShare);
+					for (auto i = g_list_directories.cbegin(); i != g_list_directories.cend(); ++i)
 					{
-						CFlyReadLock(*g_csDirList);
-						for (auto i = g_list_directories.cbegin(); i != g_list_directories.cend(); ++i)
-						{
-							(*i)->toXmlL(newXmlFile, indent, tmp2, true); // https://www.box.net/shared/e9d04cfcc59d4a4aaba7
-						}
+						(*i)->toXmlL(newXmlFile, indent, tmp2, true); // https://www.box.net/shared/e9d04cfcc59d4a4aaba7
 					}
 				}
 				l_creation_log.step("write dir. done");
@@ -1825,15 +1862,28 @@ MemoryInputStream* ShareManager::generatePartialList(const string& dir, bool rec
 		return new MemoryInputStream(xml);
 	}
 #endif
+	if (recurse == false)
+	{
+		CFlyFastLock(g_csPartialCache);
+		auto i = g_partial_list_cache.find(dir);
+		if (i != g_partial_list_cache.end())
+		{
+			i->second.second++;
+#ifdef FLYLINKDC_BETA
+			// LogManager::message("Use partial file list cache: " + dir + " count = " + Util::toString(i->second.second));
+#endif // FLYLINKDC_BETA
+			return new MemoryInputStream(i->second.first);
+		}
+	}
 	StringOutputStream sos(xml);
-
-	CFlyReadLock(*g_csShare);
+	
+	//CFlyReadLock(*g_csShare);
+	CFlyLock(g_csShare);
 	
 	string indent = "\t";
 	
 	if (dir == "/")
 	{
-		CFlyReadLock(*g_csDirList);
 		for (auto i = g_list_directories.cbegin(); i != g_list_directories.cend(); ++i)
 		{
 			tmp.clear();
@@ -1848,7 +1898,6 @@ MemoryInputStream* ShareManager::generatePartialList(const string& dir, bool rec
 		
 		bool first = true;
 		
-		CFlyReadLock(*g_csDirList);
 		while ((i = dir.find('/', j)) != string::npos)
 		{
 			if (i == j)
@@ -1890,6 +1939,13 @@ MemoryInputStream* ShareManager::generatePartialList(const string& dir, bool rec
 	}
 	
 	xml += "</FileListing>";
+	if (recurse == false)
+	{
+		CFlyFastLock(g_csPartialCache);
+		auto& i = g_partial_list_cache[dir];
+		i.first = xml;
+	}
+	
 	return new MemoryInputStream(xml);
 }
 
@@ -2564,7 +2620,7 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 	}
 	if (!ssl.empty())
 	{
-		CFlyReadLock(*g_csDirList);
+		CFlyLock(g_csShare);
 		for (auto j = g_list_directories.cbegin(); j != g_list_directories.cend() && aResults.size() < p_search_param.m_max_results; ++j)
 		{
 			(*j)->search(aResults, ssl, p_search_param);
@@ -2774,7 +2830,7 @@ void ShareManager::search_max_result(SearchResultList& aResults, const StringLis
 		}
 	}
 	{
-		CFlyReadLock(*g_csDirList);
+		CFlyLock(g_csShare);
 		for (auto j = g_list_directories.cbegin(); j != g_list_directories.cend() && aResults.size() < maxResults && !ClientManager::isBeforeShutdown(); ++j)
 		{
 			(*j)->search(aResults, srch, maxResults);
@@ -2830,7 +2886,8 @@ void ShareManager::on(QueueManagerListener::FileMoved, const string& n) noexcept
 	{
 		// Check if finished download is supposed to be shared
 		/* [-] IRainman opt.
-		CFlyReadLock(*g_csShare);
+		//CFlyReadLock(*g_csShare);
+		CFlyLock(g_csShare);
 		for (auto i = g_shares.cbegin(); i != g_shares.cend(); ++i)
 		{
 		    if (strnicmp(i->first, n, i->first.size()) == 0 && n[i->first.size() - 1] == PATH_SEPARATOR)
@@ -2865,9 +2922,9 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 	dcassert(!ClientManager::isBeforeShutdown());
 	{
 		CFlyBusy l_busy(g_RebuildIndexes);
-		CFlyWriteLock(*g_csShare);
+		//CFlyWriteLock(*g_csShare);
+		CFlyLock(g_csShare);
 		{
-			CFlyReadLock(*g_csDirList);
 			if (Directory::Ptr d = getDirectoryL(fname)) // TODO прокинуть p_path_id и искать по нему?
 			{
 				const string l_file_name = Util::getFileName(fname);
@@ -2914,6 +2971,8 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 		}
 	}
 	// —бросим кэш поиска
+	clear_partial_cache();
+	clear_tth_path_cache();
 	internalClearCache(true);
 }
 
@@ -2949,11 +3008,13 @@ void ShareManager::tryFixBadAlloc()
 		g_cache_limit = 10;
 	}
 	internalClearCache(true);
+	clear_partial_cache();
+	clear_tth_path_cache();
 	static bool g_is_send_report = false;
 	if (!g_is_send_report)
 	{
-		CFlyServerJSON::pushError(74, "std::bad_alloc ShareManager::tryFixBadAlloc");
 		g_is_send_report = true;
+		CFlyServerJSON::pushError(74, "std::bad_alloc ShareManager::tryFixBadAlloc");
 	}
 }
 void ShareManager::internalClearCache(bool p_is_force)
@@ -3112,15 +3173,13 @@ int64_t ShareManager::removeExcludeFolder(const string &path, bool returnSize /*
 
 bool ShareManager::findByRealPathName(const string& realPathname, TTHValue* outTTHPtr, string* outfilenamePtr /*= NULL*/, int64_t* outSizePtr/* = NULL*/) // [+] SSA
 {
-	// [+] IRainman fix.
-	CFlyReadLock(*g_csShare);
+	//CFlyReadLock(*g_csShare);
+	CFlyLock(g_csShare);
 	{
-		CFlyReadLock(*g_csDirList);
 		const Directory::Ptr d = ShareManager::getDirectoryL(realPathname);
 		if (!d)
 			return false;
-		// [~] IRainman fix.
-		
+			
 		const auto iFile = d->findFileIterL(Util::getFileName(realPathname));
 		if (iFile != d->m_share_files.end())
 		{

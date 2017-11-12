@@ -1,3 +1,4 @@
+call build_get_visual_c_version.bat
 del .\compiled\FlylinkDC.exe
 del .\compiled\FlylinkDC.pdb
 call UpdateRevision.bat %1 %2 %3 %4

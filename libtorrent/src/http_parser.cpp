@@ -130,16 +130,18 @@ namespace libtorrent {
 		return url;
 	}
 
-	std::string const& http_parser::header(const string_view key) const
+	std::string const& http_parser::header(string_view const key) const
 	{
-		static std::string empty;
+		static std::string const empty;
+		// TODO: remove to_string() if we're in C++14
 		auto const i = m_header.find(key.to_string());
 		if (i == m_header.end()) return empty;
 		return i->second;
 	}
 
-	std::int64_t http_parser::header_int(const string_view key, std::int64_t def_value) const
+	std::int64_t http_parser::header_int(string_view const key, std::int64_t const def_value) const
 	{
+		// TODO: remove to_string() if we're in C++14
 		auto const i = m_header.find(key.to_string());
 		if (i == m_header.end()) return def_value;
 		auto const val = std::atoll(i->second.c_str());
@@ -275,7 +277,7 @@ restart_response:
 				while (separator < line.size()
 					&& (line[separator] == ' ' || line[separator] == '\t'))
 					++separator;
-				std::string const value = line.substr(separator, std::string::npos);
+				std::string value = line.substr(separator, std::string::npos);
 				m_header.insert(std::make_pair(name, value));
 
 				if (name == "content-length")
