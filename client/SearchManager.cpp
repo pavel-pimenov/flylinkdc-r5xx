@@ -234,6 +234,7 @@ int SearchManager::UdpQueue::run()
 			dcassert(0);
 			continue;
 		}
+		try {
 		if (x.compare(0, 4, "$SR ", 4) == 0)
 		{
 			string::size_type i = 4;
@@ -443,13 +444,31 @@ int SearchManager::UdpQueue::run()
 				CFlyServerJSON::pushError(57, "UDP Error magic value = " + l_magic);
 			}
 		}
-		/*else if(x.compare(1, 4, "SCH ",4) == 0 && x[x.length() - 1] == 0x0a) {
-		    try {
-		        respond(AdcCommand(x.substr(0, x.length()-1)));
-		    } catch(const ParseException& ) {
+			else
+			{
+				// ADC commands must end with \n
+				if (x[x.length() - 1] != 0x0a) {
+					dcassert(0);
+					dcdebug("Invalid UDP data received: %s (no newline)\n", x.c_str());
+					CFlyServerJSON::pushError(88, "[UDP]Invalid UDP data received: %s (no newline): ip = " + remoteIp.to_string() + " x = [" + x + "]");
+					continue;
+				}
+				
+				if (!Text::validateUtf8(x)) {
+					dcassert(0);
+					dcdebug("UTF-8 valition failed for received UDP data: %s\n", x.c_str());
+					CFlyServerJSON::pushError(87, "[UDP]UTF-8 valition failed for received UDP data: ip = " + remoteIp.to_string() + " x = [" + x + "]");
+					continue;
 		    }
-		}*/ // Needs further DoS investigation
+				// TODO  respond(AdcCommand(x.substr(0, x.length()-1)));
 		
+			}
+		}
+		catch (const ParseException& e)
+		{
+			dcassert(0);
+			CFlyServerJSON::pushError(86, "[UDP][ParseException]:" + e.getError() + " ip = " + remoteIp.to_string() + " x = [" + x + "]");
+		}
 		
 		sleep(2);
 	}
