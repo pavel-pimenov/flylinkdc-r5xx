@@ -532,7 +532,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				
 				const UserPtr& getUser() const override
 				{
-					return m_sr.getUser();
+				    return m_sr.getUser();
 				}
 				bool m_is_torrent;
 				bool collapsed;
@@ -606,7 +606,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #endif
 		struct HubInfo
 #ifdef _DEBUG
-			: private boost::noncopyable
+				: private boost::noncopyable
 #endif
 		{
 			HubInfo(const tstring& aUrl, const tstring& aName, bool aOp) : url(aUrl),

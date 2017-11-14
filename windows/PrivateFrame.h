@@ -32,7 +32,7 @@
 
 class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 255), IDR_PRIVATE, IDR_PRIVATE_OFF >,
 	private ClientManagerListener, public UCHandler<PrivateFrame>,
-	public UserInfoBaseHandler < PrivateFrame, UserInfoGuiTraits::NO_SEND_PM | UserInfoGuiTraits::USER_LOG >,
+	public UserInfoBaseHandler < PrivateFrame, UserInfoGuiTraits::NO_SEND_PM | UserInfoGuiTraits::USER_LOG > ,
 	private SettingsManagerListener
 	, private BaseChatFrame // [+] IRainman copy-past fix.
 {

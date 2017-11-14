@@ -235,215 +235,212 @@ int SearchManager::UdpQueue::run()
 			continue;
 		}
 		try {
-		if (x.compare(0, 4, "$SR ", 4) == 0)
-		{
-			string::size_type i = 4;
-			string::size_type j;
-			// Directories: $SR <nick><0x20><directory><0x20><free slots>/<total slots><0x05><Hubname><0x20>(<Hubip:port>)
-			// Files:       $SR <nick><0x20><filename><0x05><filesize><0x20><free slots>/<total slots><0x05><Hubname><0x20>(<Hubip:port>)
-			if ((j = x.find(' ', i)) == string::npos)
+			if (x.compare(0, 4, "$SR ", 4) == 0)
 			{
-				continue;
-			}
-			string nick = x.substr(i, j - i);
-			i = j + 1;
-			
-			// A file has 2 0x05, a directory only one
-			// const size_t cnt = count(x.begin() + j, x.end(), 0x05);
-			// Cчитать можно только до 2-х. значения больше игнорируются
-			const auto l_find_05_first = x.find(0x05, j);
-			dcassert(l_find_05_first != string::npos);
-			if (l_find_05_first == string::npos)
-				continue;
-			const auto l_find_05_second = x.find(0x05, l_find_05_first + 1);
-			SearchResult::Types type = SearchResult::TYPE_FILE;
-			string file;
-			int64_t size = 0;
-			
-			if (l_find_05_first != string::npos && l_find_05_second == string::npos) // cnt == 1
-			{
-				// We have a directory...find the first space beyond the first 0x05 from the back
-				// (dirs might contain spaces as well...clever protocol, eh?)
-				type = SearchResult::TYPE_DIRECTORY;
-				// Get past the hubname that might contain spaces
-				j = l_find_05_first;
-				// Find the end of the directory info
-				if ((j = x.rfind(' ', j - 1)) == string::npos)
-				{
-					continue;
-				}
-				if (j < i + 1)
-				{
-					continue;
-				}
-				file = x.substr(i, j - i) + '\\';
-			}
-			else if (l_find_05_first != string::npos && l_find_05_second != string::npos) // cnt == 2
-			{
-				j = l_find_05_first;
-				file = x.substr(i, j - i);
-				i = j + 1;
+				string::size_type i = 4;
+				string::size_type j;
+				// Directories: $SR <nick><0x20><directory><0x20><free slots>/<total slots><0x05><Hubname><0x20>(<Hubip:port>)
+				// Files:       $SR <nick><0x20><filename><0x05><filesize><0x20><free slots>/<total slots><0x05><Hubname><0x20>(<Hubip:port>)
 				if ((j = x.find(' ', i)) == string::npos)
 				{
 					continue;
 				}
-				size = Util::toInt64(x.substr(i, j - i));
-			}
-			i = j + 1;
-			
-			if ((j = x.find('/', i)) == string::npos)
-			{
-				continue;
-			}
-			uint8_t freeSlots = (uint8_t)Util::toInt(x.substr(i, j - i));
-			i = j + 1;
-			if ((j = x.find((char)5, i)) == string::npos)
-			{
-				continue;
-			}
-			uint8_t slots = (uint8_t)Util::toInt(x.substr(i, j - i));
-			i = j + 1;
-			if ((j = x.rfind(" (")) == string::npos)
-			{
-				continue;
-			}
-			string l_hub_name_or_tth = x.substr(i, j - i);
-			i = j + 2;
-			if ((j = x.rfind(')')) == string::npos)
-			{
-				continue;
-			}
-			
-			const string hubIpPort = x.substr(i, j - i);
-			const string url = ClientManager::findHub(hubIpPort); // TODO - внутри линейный поиск. оптимизнуть
-			// Иногда вместо IP приходит домен "$SR chen video\multfilm\Ну, погоди!\Ну, погоди! 2.avi33492992 5/5TTH:B4O5M74UPKZ7I23CH36NA3SZOUZTJLWNVEIJMTQ (dc.a-galaxy.com:411)|"
-			// Это не обрабатывается в функции - поправить.
-			// для dc.dly-server.ru - возвращается его IP-шник "31.186.103.125:411"
-			// url оказывается пустым https://www.box.net/shared/ayirspvdjk2boix4oetr
-			// падаем на dcassert в следующем вызове findHubEncoding.
-			// [!] IRainman fix: не падаем!!!! Это диагностическое предупреждение!!!
-			// [-] string encoding;
-			// [-] if (!url.empty())
-			const string l_encoding = ClientManager::findHubEncoding(url); // [!]
-			// [~]
-			nick = Text::toUtf8(nick, l_encoding);
-			file = Text::toUtf8(file, l_encoding);
-			const bool l_isTTH = isTTHBase64(l_hub_name_or_tth);
-			if (!l_isTTH) // [+]FlylinkDC++ Team
-				l_hub_name_or_tth = Text::toUtf8(l_hub_name_or_tth, l_encoding);
+				string nick = x.substr(i, j - i);
+				i = j + 1;
 				
-			UserPtr user = ClientManager::findUser(nick, url); // TODO оптимизнуть makeCID
-			// не находим юзера "$SR snooper-06 Фильмы\Прошлой ночью в Нью-Йорке.avi1565253632 15/15TTH:LUWOOXBE2H77TUV4S4HNZQTVDXLPEYC757OUMLY (31.186.103.125:411)"
-			// при пустом url - можно не звать ClientManager::findUser - не найдем.
-			// сразу нужно переходить на ClientManager::findLegacyUser
-			// url не педедается при коннекте к хабу через SOCKS5
-			// TODO - если хаб только один - пытаться подставлять его?
-			if (!user)
-			{
-				// LogManager::message("Error ClientManager::findUser nick = " + nick + " url = " + url);
-				// Could happen if hub has multiple URLs / IPs
-				user = ClientManager::findLegacyUser(nick, url);
-				if (!user)
+				// A file has 2 0x05, a directory only one
+				// const size_t cnt = count(x.begin() + j, x.end(), 0x05);
+				// Cчитать можно только до 2-х. значения больше игнорируются
+				const auto l_find_05_first = x.find(0x05, j);
+				dcassert(l_find_05_first != string::npos);
+				if (l_find_05_first == string::npos)
+					continue;
+				const auto l_find_05_second = x.find(0x05, l_find_05_first + 1);
+				SearchResult::Types type = SearchResult::TYPE_FILE;
+				string file;
+				int64_t size = 0;
+				
+				if (l_find_05_first != string::npos && l_find_05_second == string::npos) // cnt == 1
 				{
-					//LogManager::message("Error ClientManager::findLegacyUser nick = " + nick + " url = " + url);
+					// We have a directory...find the first space beyond the first 0x05 from the back
+					// (dirs might contain spaces as well...clever protocol, eh?)
+					type = SearchResult::TYPE_DIRECTORY;
+					// Get past the hubname that might contain spaces
+					j = l_find_05_first;
+					// Find the end of the directory info
+					if ((j = x.rfind(' ', j - 1)) == string::npos)
+					{
+						continue;
+					}
+					if (j < i + 1)
+					{
+						continue;
+					}
+					file = x.substr(i, j - i) + '\\';
+				}
+				else if (l_find_05_first != string::npos && l_find_05_second != string::npos) // cnt == 2
+				{
+					j = l_find_05_first;
+					file = x.substr(i, j - i);
+					i = j + 1;
+					if ((j = x.find(' ', i)) == string::npos)
+					{
+						continue;
+					}
+					size = Util::toInt64(x.substr(i, j - i));
+				}
+				i = j + 1;
+				
+				if ((j = x.find('/', i)) == string::npos)
+				{
 					continue;
 				}
-			}
-			if (!remoteIp.is_unspecified())
-			{
-				user->setIP(remoteIp, true);
-#ifdef _DEBUG
-				//ClientManager::setIPUser(user, remoteIp); // TODO - может не нужно тут?
-#endif
-				// Тяжелая операция по мапе юзеров - только чтобы показать IP в списке ?
-			}
-			
-			string tth;
-			if (l_isTTH)
-			{
-				tth = l_hub_name_or_tth.substr(4);
-			}
-			
-			if (tth.empty() && type == SearchResult::TYPE_FILE)
-			{
-				dcassert(tth.empty() && type == SearchResult::TYPE_FILE);
-				continue;
-			}
-			
-			const TTHValue l_tth_value(tth);
-			auto sr = std::make_unique<SearchResult>(user, type, slots, freeSlots, size, file, Util::emptyString, url, remoteIp, l_tth_value, -1 /*0 == auto*/);
-			COMMAND_DEBUG("[Search-result] url = " + url + " remoteIp = " + remoteIp.to_string() + " file = " + file + " user = " + user->getLastNick(), DebugTask::CLIENT_IN, remoteIp.to_string());
-			SearchManager::getInstance()->fly_fire1(SearchManagerListener::SR(), sr);
-#ifdef FLYLINKDC_USE_COLLECT_STAT
-			CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "$SR", x, remoteIp, "", url, tth);
-#endif
-		}
-		else if (x.compare(1, 4, "RES ", 4) == 0 && x[x.length() - 1] == 0x0a)
-		{
-			AdcCommand c(x.substr(0, x.length() - 1));
-			if (c.getParameters().empty())
-				continue;
-			const string cid = c.getParam(0);
-			if (cid.size() != 39)
-			{
-				dcassert(0);
-				continue;
-			}
-			
-			UserPtr user = ClientManager::findUser(CID(cid));
-			if (!user)
-				continue;
-				
-			// This should be handled by AdcCommand really...
-			c.getParameters().erase(c.getParameters().begin());
-			
-			SearchManager::getInstance()->onRES(c, user, remoteIp);
-#ifdef FLYLINKDC_USE_COLLECT_STAT
-			CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "RES", x, remoteIp, "", "", "");
-#endif
-		} // Тут нужен else?
-		if (x.compare(1, 4, "PSR ", 4) == 0 && x[x.length() - 1] == 0x0a)
-		{
-			AdcCommand c(x.substr(0, x.length() - 1));
-			if (c.getParameters().empty())
-				continue;
-			const string cid = c.getParam(0);
-			if (cid.size() != 39)
-				continue;
-				
-			const UserPtr user = ClientManager::findUser(CID(cid));
-			// when user == NULL then it is probably NMDC user, check it later
-			
-			if (user)
-			{
-				c.getParameters().erase(c.getParameters().begin());
-				SearchManager::getInstance()->onPSR(c, user, remoteIp);
-#ifdef FLYLINKDC_USE_COLLECT_STAT
-				CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "PSR", x, remoteIp, "", "", "");
-#endif
-			}
-		}
-		else if (x.compare(0, 15, "$FLY-TEST-PORT ", 15) == 0)
-		{
-			//dcassert(SettingsManager::g_TestUDPSearchLevel <= 1);
-			const auto l_magic = x.substr(15, 39);
-			if (ClientManager::getMyCID().toBase32() == l_magic)
-			{
-				LogManager::message("Test UDP port - OK!");
-				SettingsManager::g_TestUDPSearchLevel = CFlyServerJSON::setTestPortOK(SETTING(UDP_PORT), "udp");
-				auto l_ip = x.substr(15 + 39);
-				if (l_ip.size() && l_ip[l_ip.size() - 1] == '|')
+				uint8_t freeSlots = (uint8_t)Util::toInt(x.substr(i, j - i));
+				i = j + 1;
+				if ((j = x.find((char)5, i)) == string::npos)
 				{
-					l_ip = l_ip.substr(0, l_ip.size() - 1);
+					continue;
 				}
-				SettingsManager::g_UDPTestExternalIP = l_ip;
+				uint8_t slots = (uint8_t)Util::toInt(x.substr(i, j - i));
+				i = j + 1;
+				if ((j = x.rfind(" (")) == string::npos)
+				{
+					continue;
+				}
+				string l_hub_name_or_tth = x.substr(i, j - i);
+				i = j + 2;
+				if ((j = x.rfind(')')) == string::npos)
+				{
+					continue;
+				}
+				
+				const string hubIpPort = x.substr(i, j - i);
+				const string url = ClientManager::findHub(hubIpPort); // TODO - внутри линейный поиск. оптимизнуть
+				// Иногда вместо IP приходит домен "$SR chen video\multfilm\Ну, погоди!\Ну, погоди! 2.avi33492992 5/5TTH:B4O5M74UPKZ7I23CH36NA3SZOUZTJLWNVEIJMTQ (dc.a-galaxy.com:411)|"
+				// Это не обрабатывается в функции - поправить.
+				// для dc.dly-server.ru - возвращается его IP-шник "31.186.103.125:411"
+				// url оказывается пустым https://www.box.net/shared/ayirspvdjk2boix4oetr
+				// падаем на dcassert в следующем вызове findHubEncoding.
+				// [!] IRainman fix: не падаем!!!! Это диагностическое предупреждение!!!
+				// [-] string encoding;
+				// [-] if (!url.empty())
+				const string l_encoding = ClientManager::findHubEncoding(url); // [!]
+				// [~]
+				nick = Text::toUtf8(nick, l_encoding);
+				file = Text::toUtf8(file, l_encoding);
+				const bool l_isTTH = isTTHBase64(l_hub_name_or_tth);
+				if (!l_isTTH) // [+]FlylinkDC++ Team
+					l_hub_name_or_tth = Text::toUtf8(l_hub_name_or_tth, l_encoding);
+					
+				UserPtr user = ClientManager::findUser(nick, url); // TODO оптимизнуть makeCID
+				// не находим юзера "$SR snooper-06 Фильмы\Прошлой ночью в Нью-Йорке.avi1565253632 15/15TTH:LUWOOXBE2H77TUV4S4HNZQTVDXLPEYC757OUMLY (31.186.103.125:411)"
+				// при пустом url - можно не звать ClientManager::findUser - не найдем.
+				// сразу нужно переходить на ClientManager::findLegacyUser
+				// url не педедается при коннекте к хабу через SOCKS5
+				// TODO - если хаб только один - пытаться подставлять его?
+				if (!user)
+				{
+					// LogManager::message("Error ClientManager::findUser nick = " + nick + " url = " + url);
+					// Could happen if hub has multiple URLs / IPs
+					user = ClientManager::findLegacyUser(nick, url);
+					if (!user)
+					{
+						//LogManager::message("Error ClientManager::findLegacyUser nick = " + nick + " url = " + url);
+						continue;
+					}
+				}
+				if (!remoteIp.is_unspecified())
+				{
+					user->setIP(remoteIp, true);
+#ifdef _DEBUG
+					//ClientManager::setIPUser(user, remoteIp); // TODO - может не нужно тут?
+#endif
+					// Тяжелая операция по мапе юзеров - только чтобы показать IP в списке ?
+				}
+				string tth;
+				if (l_isTTH)
+				{
+					tth = l_hub_name_or_tth.substr(4);
+				}
+				if (tth.empty() && type == SearchResult::TYPE_FILE)
+				{
+					dcassert(tth.empty() && type == SearchResult::TYPE_FILE);
+					continue;
+				}
+				
+				const TTHValue l_tth_value(tth);
+				auto sr = std::make_unique<SearchResult>(user, type, slots, freeSlots, size, file, Util::emptyString, url, remoteIp, l_tth_value, -1 /*0 == auto*/);
+				COMMAND_DEBUG("[Search-result] url = " + url + " remoteIp = " + remoteIp.to_string() + " file = " + file + " user = " + user->getLastNick(), DebugTask::CLIENT_IN, remoteIp.to_string());
+				SearchManager::getInstance()->fly_fire1(SearchManagerListener::SR(), sr);
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+				CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "$SR", x, remoteIp, "", url, tth);
+#endif
 			}
-			else
+			else if (x.compare(1, 4, "RES ", 4) == 0 && x[x.length() - 1] == 0x0a)
 			{
-				SettingsManager::g_TestUDPSearchLevel = false;
-				CFlyServerJSON::pushError(57, "UDP Error magic value = " + l_magic);
+				AdcCommand c(x.substr(0, x.length() - 1));
+				if (c.getParameters().empty())
+					continue;
+				const string cid = c.getParam(0);
+				if (cid.size() != 39)
+				{
+					dcassert(0);
+					continue;
+				}
+				UserPtr user = ClientManager::findUser(CID(cid));
+				if (!user)
+					continue;
+					
+				// This should be handled by AdcCommand really...
+				c.getParameters().erase(c.getParameters().begin());
+				
+				SearchManager::getInstance()->onRES(c, user, remoteIp);
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+				CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "RES", x, remoteIp, "", "", "");
+#endif
 			}
-		}
+			else if (x.compare(1, 4, "PSR ", 4) == 0 && x[x.length() - 1] == 0x0a)
+			{
+				AdcCommand c(x.substr(0, x.length() - 1));
+				if (c.getParameters().empty())
+					continue;
+				const string cid = c.getParam(0);
+				if (cid.size() != 39)
+					continue;
+					
+				const UserPtr user = ClientManager::findUser(CID(cid));
+				// when user == NULL then it is probably NMDC user, check it later
+				
+				if (user)
+				{
+					c.getParameters().erase(c.getParameters().begin());
+					SearchManager::getInstance()->onPSR(c, user, remoteIp);
+#ifdef FLYLINKDC_USE_COLLECT_STAT
+					CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "PSR", x, remoteIp, "", "", "");
+#endif
+				}
+			}
+			else if (x.compare(0, 15, "$FLY-TEST-PORT ", 15) == 0)
+			{
+				//dcassert(SettingsManager::g_TestUDPSearchLevel <= 1);
+				const auto l_magic = x.substr(15, 39);
+				if (ClientManager::getMyCID().toBase32() == l_magic)
+				{
+					LogManager::message("Test UDP port - OK!");
+					SettingsManager::g_TestUDPSearchLevel = CFlyServerJSON::setTestPortOK(SETTING(UDP_PORT), "udp");
+					auto l_ip = x.substr(15 + 39);
+					if (l_ip.size() && l_ip[l_ip.size() - 1] == '|')
+					{
+						l_ip = l_ip.substr(0, l_ip.size() - 1);
+					}
+					SettingsManager::g_UDPTestExternalIP = l_ip;
+				}
+				else
+				{
+					SettingsManager::g_TestUDPSearchLevel = false;
+					CFlyServerJSON::pushError(57, "UDP Error magic value = " + l_magic);
+				}
+			}
 			else
 			{
 				// ADC commands must end with \n
@@ -459,9 +456,9 @@ int SearchManager::UdpQueue::run()
 					dcdebug("UTF-8 valition failed for received UDP data: %s\n", x.c_str());
 					CFlyServerJSON::pushError(87, "[UDP]UTF-8 valition failed for received UDP data: ip = " + remoteIp.to_string() + " x = [" + x + "]");
 					continue;
-		    }
+				}
 				// TODO  respond(AdcCommand(x.substr(0, x.length()-1)));
-		
+				
 			}
 		}
 		catch (const ParseException& e)

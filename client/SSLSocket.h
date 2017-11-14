@@ -38,14 +38,14 @@ class SSLSocketException : public SocketException
 {
 	public:
 #ifdef _DEBUG
-		SSLSocketException(const string& aError) noexcept :
-			SocketException("SSLSocketException: " + aError) { }
+	SSLSocketException(const string& aError) noexcept :
+		SocketException("SSLSocketException: " + aError) { }
 #else //_DEBUG
-		SSLSocketException(const string& aError) noexcept :
-			SocketException(aError) { }
+	SSLSocketException(const string& aError) noexcept :
+		SocketException(aError) { }
 #endif // _DEBUG
-		SSLSocketException(int aError) noexcept :
-			SocketException(aError) { }
+	SSLSocketException(int aError) noexcept :
+		SocketException(aError) { }
 		virtual ~SSLSocketException() noexcept { }
 };
 
@@ -72,7 +72,7 @@ class SSLSocket : public Socket
 		
 		virtual bool isSecure() const noexcept  override
 		{
-			return true;
+		    return true;
 		}
 		virtual bool isTrusted() override;
 		//virtual bool isKeyprintMatch() const noexcept override;

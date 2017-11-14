@@ -810,23 +810,27 @@ void NmdcHub::connectToMeParse(const string& param)
 	{
 		if (state != STATE_NORMAL)
 		{
+			dcassert(0);
 			break;
 		}
 		string::size_type i = param.find(' ');
 		string::size_type j;
 		if (i == string::npos || (i + 1) >= param.size())
 		{
+			dcassert(0);
 			break;
 		}
 		i++;
 		j = param.find(':', i);
 		if (j == string::npos)
 		{
+			dcassert(0);
 			break;
 		}
 		server = param.substr(i, j - i);
 		if (j + 1 >= param.size())
 		{
+			dcassert(0);
 			break;
 		}
 		
@@ -2021,7 +2025,7 @@ void NmdcHub::onLine(const string& aLine)
 					if (l_nick_rule_min > 64)
 					{
 						CFlyServerJSON::pushError(81, "Error value NickRule Min = " + it->substr(l_pos + 1) +
-							 " replace: 64" + "Hub = " + getHubUrl());
+						                          " replace: 64" + "Hub = " + getHubUrl());
 						l_nick_rule_min = 64;
 						disconnect(false);
 						dcassert(0);
@@ -2034,7 +2038,7 @@ void NmdcHub::onLine(const string& aLine)
 					if (l_nick_rule_max > 200)
 					{
 						CFlyServerJSON::pushError(81, "Error value NickRule Max = " + it->substr(l_pos + 1) +
-							" replace: 200" + "Hub = " + getHubUrl());
+						                          " replace: 200" + "Hub = " + getHubUrl());
 						l_nick_rule_max = 200;
 						disconnect(false);
 						dcassert(0);

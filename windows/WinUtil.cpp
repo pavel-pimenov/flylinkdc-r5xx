@@ -3621,7 +3621,7 @@ void WinUtil::SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID) // [+] SSA
 		//      startTag = _T("[ruwiki]");
 		//      endTag = _T("[/ruwiki]");
 		//      break;
-	
+		
 		default:
 			dcassert(0);
 	}

@@ -2021,39 +2021,39 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				case ID_FILE_CONNECT:
 					PublicHubsFrame::openWindow();
 					break;
-				/*
-				                    if (!m_isOpenHubFrame)
-				                    {
-				                        PublicHubsFrame::openWindow();
-				                        m_isOpenHubFrame = true;
-				#if 0
-				                        UINT checkState = BOOLSETTING(CONFIRM_OPEN_INET_HUBS) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-				                        if (checkState == BST_CHECKED
-				#ifndef _DEBUG
-				//  HUB_LIST_WARNING, // "Opening the window \"Internet Hubs\" you should be aware that their visit will lead to an external (Internet) traffic. If you fare with a limited amount of incoming traffic, visits to these hubs can lead to down speed to external resources because of threshold excess or to a substantial increase in bills for the Internet.\r\n\r\nShow the list of hubs?"
-				
-				                                || ::MessageBox(m_hWnd, CTSTRING(HUB_LIST_WARNING), CTSTRING(WARNING), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES
-				#else
-				                                || true
-				#endif
-				                           )
-				                        {
-				                            PublicHubsFrame::openWindow();
-				                            m_isOpenHubFrame = true;
-				                        }
-				                        else
-				                        {
-				                            WinUtil::setButtonPressed(ID_FILE_CONNECT, false);
-				                        }
-				#endif
-				                    }
-				                    else
-				                    {
-				                        PublicHubsFrame::openWindow();
-				          }
-				
-				                    break;
-				*/
+					/*
+					                    if (!m_isOpenHubFrame)
+					                    {
+					                        PublicHubsFrame::openWindow();
+					                        m_isOpenHubFrame = true;
+					#if 0
+					                        UINT checkState = BOOLSETTING(CONFIRM_OPEN_INET_HUBS) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
+					                        if (checkState == BST_CHECKED
+					#ifndef _DEBUG
+					//  HUB_LIST_WARNING, // "Opening the window \"Internet Hubs\" you should be aware that their visit will lead to an external (Internet) traffic. If you fare with a limited amount of incoming traffic, visits to these hubs can lead to down speed to external resources because of threshold excess or to a substantial increase in bills for the Internet.\r\n\r\nShow the list of hubs?"
+					
+					                                || ::MessageBox(m_hWnd, CTSTRING(HUB_LIST_WARNING), CTSTRING(WARNING), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES
+					#else
+					                                || true
+					#endif
+					                           )
+					                        {
+					                            PublicHubsFrame::openWindow();
+					                            m_isOpenHubFrame = true;
+					                        }
+					                        else
+					                        {
+					                            WinUtil::setButtonPressed(ID_FILE_CONNECT, false);
+					                        }
+					#endif
+					                    }
+					                    else
+					                    {
+					                        PublicHubsFrame::openWindow();
+					          }
+					
+					                    break;
+					*/
 				case IDC_FAVORITES:
 					FavoriteHubsFrame::openWindow();
 					break;
@@ -2842,10 +2842,10 @@ LRESULT MainFrame::onLink(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL
 		case IDC_HELP_HELP:
 			site = WinUtil::GetWikiLink() + _T("flylinkdc");
 			break;
-		// TODO
-		//case IDC_HELP_DONATE:
-		//  site = _T(HOMEPAGE);
-		//  break;
+			// TODO
+			//case IDC_HELP_DONATE:
+			//  site = _T(HOMEPAGE);
+			//  break;
 //[-]PPA        case IDC_GUIDE: site = _T(GUIDE); break;
 		case IDC_SITES_FLYLINK_TRAC:
 			site = _T(SITES_FLYLINK_TRAC);

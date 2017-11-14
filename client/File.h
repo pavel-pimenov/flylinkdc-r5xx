@@ -204,7 +204,7 @@ class FileFindIter
 		static const FileFindIter end; // [+] IRainman opt.
 		
 		struct DirData
-			: public WIN32_FIND_DATA
+				: public WIN32_FIND_DATA
 		{
 			DirData();
 			

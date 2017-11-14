@@ -124,7 +124,7 @@ void DownloadManager::shutdown_torrent()
 		{
 			Sleep(10);
 		}
-		for (auto s : m_torrents)
+for (auto s : m_torrents)
 		{
 			s.save_resume_data();
 			++m_torrent_resume_count;
@@ -988,7 +988,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 			// p_torrent_sesion->post_dht_stats();
 			std::vector<lt::alert*> alerts;
 			p_torrent_sesion->pop_alerts(&alerts);
-			for (lt::alert const * a : alerts)
+for (lt::alert const * a : alerts)
 			{
 				try
 				{
@@ -1265,7 +1265,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 							continue;
 						}
 						int l_pos = 1;
-						for (const auto j : st->status)
+for (const auto j : st->status)
 						{
 							lt::torrent_status const& s = j;
 #ifdef FLYLINKDC_BETA
@@ -1567,7 +1567,7 @@ void DownloadManager::init_torrent(bool p_is_force)
 		l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:8999");
 #endif
 		std::string l_dht_nodes;
-		for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
+for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
 		{
 			if (!l_dht_nodes.empty())
 				l_dht_nodes += ",";

@@ -134,7 +134,7 @@ string TokenManager::toString() noexcept
 	if (!m_tokens.empty())
 	{
 		l_res = "Tokens:\r\n";
-		for (auto i : m_tokens)
+for (auto i : m_tokens)
 		{
 			l_res += i;
 			l_res += ",";
@@ -854,7 +854,7 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 	else
 	{
 		if (false  // TODO - узнать почему тут такой затыкон оставлен в оригинальном dc++
-		        && now + g_FLOOD_TRIGGER < m_floodCounter)
+		&& now + g_FLOOD_TRIGGER < m_floodCounter)
 		{
 			Socket s;
 			try

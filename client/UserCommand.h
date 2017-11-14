@@ -58,8 +58,8 @@ class UserCommand : public Flags
 		
 		UserCommand() : cid(0), type(0), ctx(0) { }
 		UserCommand(int aId, int aType, int aCtx, Flags::MaskType aFlags, const string& aName, const string& aCommand, const string& aTo, const string& aHub) noexcept
-			:
-			Flags(aFlags), cid(aId), type(aType), ctx(aCtx), name(aName), command(aCommand), to(aTo), hub(aHub)
+	:
+		Flags(aFlags), cid(aId), type(aType), ctx(aCtx), name(aName), command(aCommand), to(aTo), hub(aHub)
 		{
 		}
 		bool isRaw() const

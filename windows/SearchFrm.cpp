@@ -1248,8 +1248,8 @@ void SearchFrame::on(SearchManagerListener::SR, const std::unique_ptr<SearchResu
 					CFlyServerJSON::addAntivirusCounter(*aResult, 0, l_virus_level);
 					aResult->m_virus_level = l_virus_level;
 					LogManager::virus_message("Search: ignore virus result  (Level 3): TTH = " + aResult->getTTH().toBase32() +
-					                          " File: " + aResult->getFileName() + +" Size:" + Util::toString(aResult->getSize()) +
-					                          " Hub: " + aResult->getHubUrl() + " Nick: " + aResult->getUser()->getLastNick() + " IP = " + aResult->getIPAsString());
+					" File: " + aResult->getFileName() + +" Size:" + Util::toString(aResult->getSize()) +
+					" Hub: " + aResult->getHubUrl() + " Nick: " + aResult->getUser()->getLastNick() + " IP = " + aResult->getIPAsString());
 					// http://dchublist.ru/forum/viewtopic.php?p=22426#p22426
 					m_droppedResults++;
 					return;
@@ -1801,8 +1801,8 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 				return Text::toT(m_sr.getFile());
 			case COLUMN_HITS:
 				return Text::toT(m_sr.getPeersString());
-			//case COLUMN_EXACT_SIZE:
-			//  return m_sr.getSize() > 0 ? Util::formatExactSize(m_sr.getSize()) : Util::emptyStringT;
+				//case COLUMN_EXACT_SIZE:
+				//  return m_sr.getSize() > 0 ? Util::formatExactSize(m_sr.getSize()) : Util::emptyStringT;
 			case COLUMN_SIZE:
 				return m_sr.getSize() > 0 ? Util::formatBytesW(m_sr.getSize()) : Util::emptyStringT;
 			case COLUMN_TORRENT_COMMENT:
@@ -1849,7 +1849,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 				{
 					return Util::emptyStringT;
 				}
-			// TODO - сохранить ник в columns и показывать его от туда?
+				// TODO - сохранить ник в columns и показывать его от туда?
 			case COLUMN_TYPE:
 				if (m_sr.getType() == SearchResult::TYPE_FILE)
 				{
@@ -1918,8 +1918,8 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			}
 			case COLUMN_SLOTS:
 				return Text::toT(m_sr.getSlotString());
-			// [-] PPA
-			//case COLUMN_CONNECTION: return Text::toT(ClientManager::getInstance()->getConnection(getUser()->getCID()));
+				// [-] PPA
+				//case COLUMN_CONNECTION: return Text::toT(ClientManager::getInstance()->getConnection(getUser()->getCID()));
 			case COLUMN_HUB:
 				return Text::toT(m_sr.getHubName() + " (" + m_sr.getHubUrl() + ')');
 			case COLUMN_IP:
@@ -3100,7 +3100,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 							"DJVU",
 							"FB2"
 						};
-						for (const auto r : l_doc_array)
+for (const auto r : l_doc_array)
 						{
 							add_category(r, "Doc", si, sr, l_file_type, l_torrent_node);
 						}
@@ -3110,7 +3110,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 							"MP3",
 							"FLAC"
 						};
-						for (const auto r : l_audio_rip_array)
+for (const auto r : l_audio_rip_array)
 						{
 							add_category(r, "Audio", si, sr, l_file_type, l_torrent_node);
 						}
@@ -3138,7 +3138,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 							"Amedia",
 							"КПК"
 						};
-						for (const auto r : l_type_rip_array)
+for (const auto r : l_type_rip_array)
 						{
 							add_category(r, "Video", si, sr, l_file_type, l_torrent_node);
 						}
@@ -3161,7 +3161,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 						                                    "HDReactor",
 						                                    "R.G."
 						                                  };
-						for (const auto t : l_type_team_array)
+for (const auto t : l_type_team_array)
 						{
 							add_category(t, "Team", si, sr, l_file_type, l_torrent_node);
 						}
@@ -3172,14 +3172,14 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 							"720p"
 							"x264",
 						};
-						for (const auto r : l_type_resolution_array)
+for (const auto r : l_type_resolution_array)
 						{
 							add_category(r, "Resolution", si, sr, l_file_type, l_torrent_node);
 						}
 					}
 				}
 				const auto l_marker = make_pair(si, ".torrent-magnet");
-				for (auto const &c : m_category_map)
+for (auto const & c : m_category_map)
 				{
 					m_filter_map[c.second].push_back(l_marker);
 				}

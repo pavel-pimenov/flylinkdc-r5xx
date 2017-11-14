@@ -125,7 +125,7 @@ class Transfer
 		{
 			return m_tth;
 		}
-        string getConnectionQueueToken() const;
+		string getConnectionQueueToken() const;
 		const UserConnection* getUserConnection() const
 		{
 			return m_userConnection;

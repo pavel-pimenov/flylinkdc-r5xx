@@ -1140,7 +1140,7 @@ void ClientManager::flushRatio(int p_max_count_flush)
 			//l_log_debug.step("l_users.size() =" + Util::toString(l_users.size()));
 #endif
 		}
-		for (auto i : l_users)
+for (auto i : l_users)
 		{
 			if (i->flushRatio() && !isBeforeShutdown() && !AutoUpdate::getExitOnUpdate())
 			{

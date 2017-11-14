@@ -1278,7 +1278,7 @@ static NextToken GetNextToken(XML *pXML, int *pcbToken, enum XMLTokenTypeTag *pT
 		// check for standard tokens
 		switch (ch)
 		{
-			// Check for quotes
+				// Check for quotes
 			case _CXML('\''):
 			case _CXML('\"'):
 				// Type of token
@@ -1312,17 +1312,17 @@ static NextToken GetNextToken(XML *pXML, int *pcbToken, enum XMLTokenTypeTag *pT
 
 				break;
 				
-			// Equals (used with attribute values)
+				// Equals (used with attribute values)
 			case _CXML('='):
 				*pType = eTokenEquals;
 				break;
 				
-			// Close tag
+				// Close tag
 			case _CXML('>'):
 				*pType = eTokenCloseTag;
 				break;
 				
-			// Check for tag start and tag end
+				// Check for tag start and tag end
 			case _CXML('<'):
 			
 			{
@@ -1386,10 +1386,10 @@ static NextToken GetNextToken(XML *pXML, int *pcbToken, enum XMLTokenTypeTag *pT
 					break;
 				}
 				
-			// If we haven't found a short hand closing tag then drop into the
-			// text process
-			
-			// Other characters
+				// If we haven't found a short hand closing tag then drop into the
+				// text process
+				
+				// Other characters
 			default:
 				nIsText = TRUE;
 		}
@@ -1806,13 +1806,13 @@ int XMLNode::ParseXMLElement(void *pa)
 			switch (status)
 			{
 			
-				// If we are outside of a tag definition
+					// If we are outside of a tag definition
 				case eOutsideTag:
 				
 					// Check what type of token we obtained
 					switch (xtype)
 					{
-						// If we have found text or quoted text
+							// If we have found text or quoted text
 						case eTokenText:
 						case eTokenCloseTag:          /* '>'         */
 						case eTokenShortHandClose:    /* '/>'        */
@@ -1820,7 +1820,7 @@ int XMLNode::ParseXMLElement(void *pa)
 						case eTokenEquals:
 							break;
 							
-						// If we found a start tag '<' and declarations '<?'
+							// If we found a start tag '<' and declarations '<?'
 						case eTokenTagStart:
 						case eTokenDeclaration:
 						
@@ -1928,7 +1928,7 @@ int XMLNode::ParseXMLElement(void *pa)
 							}
 							break;
 							
-						// If we found an end tag
+							// If we found an end tag
 						case eTokenTagEnd:
 						
 							// If we have node text then add this to the element
@@ -1977,7 +1977,7 @@ int XMLNode::ParseXMLElement(void *pa)
 							exactMemory(d);
 							return TRUE;
 							
-						// If we found a clear (unformatted) token
+							// If we found a clear (unformatted) token
 						case eTokenClear:
 							// If we have node text then add this to the element
 							if (maybeAddTxT(pXML, token.pStr)) return FALSE;
@@ -1990,21 +1990,21 @@ int XMLNode::ParseXMLElement(void *pa)
 					}
 					break;
 					
-				// If we are inside a tag definition we need to search for attributes
+					// If we are inside a tag definition we need to search for attributes
 				case eInsideTag:
 				
 					// Check what part of the attribute (name, equals, value) we
 					// are looking for.
 					switch (attrib)
 					{
-						// If we are looking for a new attribute
+							// If we are looking for a new attribute
 						case eAttribName:
 						
 							// Check what the current token type is
 							switch (xtype)
 							{
-								// If the current type is text...
-								// Eg.  'attribute'
+									// If the current type is text...
+									// Eg.  'attribute'
 								case eTokenText:
 									// Cache the token then indicate that we are next to
 									// look for the equals
@@ -2013,22 +2013,22 @@ int XMLNode::ParseXMLElement(void *pa)
 									attrib = eAttribEquals;
 									break;
 									
-								// If we found a closing tag...
-								// Eg.  '>'
+									// If we found a closing tag...
+									// Eg.  '>'
 								case eTokenCloseTag:
 									// We are now outside the tag
 									status = eOutsideTag;
 									pXML->lpszText = pXML->lpXML + pXML->nIndex;
 									break;
 									
-								// If we found a short hand '/>' closing tag then we can
-								// return to the caller
+									// If we found a short hand '/>' closing tag then we can
+									// return to the caller
 								case eTokenShortHandClose:
 									exactMemory(d);
 									pXML->lpszText = pXML->lpXML + pXML->nIndex;
 									return TRUE;
 									
-								// Errors...
+									// Errors...
 								case eTokenQuotedText:    /* '"SomeText"'   */
 								case eTokenTagStart:      /* '<'            */
 								case eTokenTagEnd:        /* '</'           */
@@ -2042,13 +2042,13 @@ int XMLNode::ParseXMLElement(void *pa)
 							}
 							break;
 							
-						// If we are looking for an equals
+							// If we are looking for an equals
 						case eAttribEquals:
 							// Check what the current token type is
 							switch (xtype)
 							{
-								// If the current type is text...
-								// Eg.  'Attribute AnotherAttribute'
+									// If the current type is text...
+									// Eg.  'Attribute AnotherAttribute'
 								case eTokenText:
 									// Add the unvalued attribute to the list
 									addAttribute_priv(MEMORYINCREASE, stringDup(lpszTemp, cbTemp), NULL);
@@ -2058,8 +2058,8 @@ int XMLNode::ParseXMLElement(void *pa)
 									cbTemp = cbToken;
 									break;
 									
-								// If we found a closing tag 'Attribute >' or a short hand
-								// closing tag 'Attribute />'
+									// If we found a closing tag 'Attribute >' or a short hand
+									// closing tag 'Attribute />'
 								case eTokenShortHandClose:
 								case eTokenCloseTag:
 									// If we are a declaration element '<?' then we need
@@ -2090,15 +2090,15 @@ int XMLNode::ParseXMLElement(void *pa)
 									status = eOutsideTag;
 									break;
 									
-								// If we found the equals token...
-								// Eg.  'Attribute ='
+									// If we found the equals token...
+									// Eg.  'Attribute ='
 								case eTokenEquals:
 									// Indicate that we next need to search for the value
 									// for the attribute
 									attrib = eAttribValue;
 									break;
 									
-								// Errors...
+									// Errors...
 								case eTokenQuotedText:    /* 'Attribute "InvalidAttr"'*/
 								case eTokenTagStart:      /* 'Attribute <'            */
 								case eTokenTagEnd:        /* 'Attribute </'           */
@@ -2111,14 +2111,14 @@ int XMLNode::ParseXMLElement(void *pa)
 							}
 							break;
 							
-						// If we are looking for an attribute value
+							// If we are looking for an attribute value
 						case eAttribValue:
 							// Check what the current token type is
 							switch (xtype)
 							{
-								// If the current type is text or quoted text...
-								// Eg.  'Attribute = "Value"' or 'Attribute = Value' or
-								// 'Attribute = 'Value''.
+									// If the current type is text or quoted text...
+									// Eg.  'Attribute = "Value"' or 'Attribute = Value' or
+									// 'Attribute = 'Value''.
 								case eTokenText:
 								case eTokenQuotedText:
 									// If we are a declaration element '<?' then we need
@@ -2150,7 +2150,7 @@ int XMLNode::ParseXMLElement(void *pa)
 									attrib = eAttribName;
 									break;
 									
-								// Errors...
+									// Errors...
 								case eTokenTagStart:        /* 'Attr = <'          */
 								case eTokenTagEnd:          /* 'Attr = </'         */
 								case eTokenCloseTag:        /* 'Attr = >'          */
@@ -2487,7 +2487,7 @@ int XMLNode::CreateXMLStringR(XMLNodeData *pEntry, XMLSTR lpszMarker, int nForma
 		j = pEntry->pOrder[i];
 		switch ((XMLElementType)(j & 3))
 		{
-			// Text nodes
+				// Text nodes
 			case eNodeText:
 			{
 				// "Text"

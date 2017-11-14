@@ -78,19 +78,19 @@ class ConnectionStatus
 					return TSTRING(SUCCESSFULLY);
 				case CONNECTION_FAILURE:
 					return TSTRING(FAILED_TO_CONNECT);
-				// TODO?
-				//case DNS_FAILURE:
-				//  return "Domain name not resolved";
-				//case TIMEOUT:
-				//  return "Timeout";
-				//case REDIRECT:
-				//  return "Your redirect to " /*add link?*/;
-				//case BANNED:
-				//  return "You are banned :(";
-				//case MANY_HUBS:
-				//  return "Too many hubs";
-				//case BAD_NICKNAME:
-				//  return "Bad nickname";
+					// TODO?
+					//case DNS_FAILURE:
+					//  return "Domain name not resolved";
+					//case TIMEOUT:
+					//  return "Timeout";
+					//case REDIRECT:
+					//  return "Your redirect to " /*add link?*/;
+					//case BANNED:
+					//  return "You are banned :(";
+					//case MANY_HUBS:
+					//  return "Too many hubs";
+					//case BAD_NICKNAME:
+					//  return "Bad nickname";
 				default:
 					return TSTRING(UNKNOWN);
 			}
@@ -173,21 +173,21 @@ class FavoriteHubEntry
 	public:
 		typedef vector<FavoriteHubEntry*> List;
 		
-		FavoriteHubEntry() noexcept :
-			connect(false), encoding(Text::g_systemCharset), windowposx(0), windowposy(0), windowsizex(0),
-			windowsizey(0), windowtype(0), chatusersplit(0),
-			userliststate(true),
-			m_ISPDisableFlylinkDCSupportHub(false),
+	FavoriteHubEntry() noexcept :
+		connect(false), encoding(Text::g_systemCharset), windowposx(0), windowposy(0), windowsizex(0),
+		        windowsizey(0), windowtype(0), chatusersplit(0),
+		        userliststate(true),
+		        m_ISPDisableFlylinkDCSupportHub(false),
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
-			chatusersplitstate(true),
+		        chatusersplitstate(true),
 #endif
-			hideShare(false),
-			exclusiveHub(false), showJoins(false), exclChecks(false), mode(0),
-			searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)),
-			searchIntervalPassive(SETTING(MINIMUM_SEARCH_PASSIVE_INTERVAL)),
-			overrideId(0),
-			headerSort(-1), headerSortAsc(true), suppressChatAndPM(false),
-			autobanAntivirusIP(false), autobanAntivirusNick(false)
+		        hideShare(false),
+		        exclusiveHub(false), showJoins(false), exclChecks(false), mode(0),
+		        searchInterval(SETTING(MINIMUM_SEARCH_INTERVAL)),
+		        searchIntervalPassive(SETTING(MINIMUM_SEARCH_PASSIVE_INTERVAL)),
+		        overrideId(0),
+		        headerSort(-1), headerSortAsc(true), suppressChatAndPM(false),
+		        autobanAntivirusIP(false), autobanAntivirusNick(false)
 		{
 		} // !SMT!-S
 		virtual ~FavoriteHubEntry() noexcept { }

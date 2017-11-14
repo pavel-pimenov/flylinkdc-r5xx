@@ -51,8 +51,8 @@ std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csReservedSlots = std::u
 int64_t UploadManager::g_runningAverage;
 
 UploadManager::UploadManager() noexcept :
-	extra(0), lastGrant(0), m_lastFreeSlots(-1),
-	m_fireballStartTick(0), isFireball(false), isFileServer(false), extraPartial(0)
+extra(0), lastGrant(0), m_lastFreeSlots(-1),
+      m_fireballStartTick(0), isFireball(false), isFileServer(false), extraPartial(0)
 {
 	ClientManager::getInstance()->addListener(this);
 	TimerManager::getInstance()->addListener(this);

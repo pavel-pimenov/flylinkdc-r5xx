@@ -1212,7 +1212,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					l_is_fly_hub_exists = true;
 				if (
 				    //l_CurrentServerUrl.find("kurskhub.ru") != string::npos || // http://dchublist.ru/forum/viewtopic.php?p=24102#p24102
-					// TODO l_CurrentServerUrl.find(".dchub.net") != string::npos ||
+				    // TODO l_CurrentServerUrl.find(".dchub.net") != string::npos ||
 #ifdef FLYLINKDC_USE_SUPPORT_HUB_EN
 				    l_CurrentServerUrl.find("tankafett.biz") != string::npos ||
 				    l_CurrentServerUrl.find(".dchub.net") != string::npos ||

@@ -234,7 +234,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		
 		struct TaskData
 #ifdef _DEBUG
-			: boost::noncopyable // [+] IRainman fix.
+				: boost::noncopyable // [+] IRainman fix.
 #endif
 		{
 			virtual ~TaskData() { }

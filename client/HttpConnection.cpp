@@ -264,7 +264,7 @@ void HttpConnection::on(BufferedSocketListener::ModeChange) noexcept
 	socket_cleanup(false);
 	fly_fire1(HttpConnectionListener::Complete(), this, currentUrl
 #ifdef RIP_USE_CORAL
-	          , BOOLSETTING(CORAL) && coralizeState != CST_NOCORALIZE
+	, BOOLSETTING(CORAL) && coralizeState != CST_NOCORALIZE
 #endif
 	         );
 #ifdef RIP_USE_CORAL

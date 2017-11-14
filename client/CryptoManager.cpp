@@ -187,9 +187,11 @@ string CryptoManager::formatError(X509_STORE_CTX *ctx, const string& message)
 		tmp = getNameEntryByNID(subject, NID_commonName);
 		if (!tmp.empty())
 		{
+			if (tmp.length() < 39)
+				tmp.append('x', 39 - tmp.length());
 			CID certCID(tmp);
 			if (tmp.length() == 39 && !certCID.isZero())
-				tmp = Util::toString(ClientManager::getInstance()->getNicks(certCID, Util::emptyString, false));
+				tmp = Util::toString(ClientManager::getNicks(certCID, Util::emptyString, false));
 			line += (!line.empty() ? ", " : "") + tmp;
 		}
 		else
@@ -630,7 +632,7 @@ void CryptoManager::loadCertificates() noexcept
 	auto certs2 = File::findFiles(SETTING(TLS_TRUSTED_CERTIFICATES_PATH), "*.crt");
 	certs.insert(certs.end(), certs2.begin(), certs2.end());
 	
-	for (auto& i : certs)
+for (auto& i : certs)
 	{
 		if (
 		    SSL_CTX_load_verify_locations(clientContext, i.c_str(), NULL) != SSL_SUCCESS ||
@@ -704,7 +706,7 @@ bool CryptoManager::checkCertificate() noexcept
 		return false;
 	}
 	
-	string cn = getNameEntryByNID(name, NID_commonName);
+	const string cn = getNameEntryByNID(name, NID_commonName);
 	if (cn != ClientManager::getInstance()->getMyCID().toBase32())
 	{
 		return false;

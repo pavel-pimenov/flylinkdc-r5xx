@@ -4,7 +4,7 @@
 #pragma once
 
 #ifdef _DEBUG
-   #define FLYLINKDC_USE_PROFILER_CS
+#define FLYLINKDC_USE_PROFILER_CS
 #endif
 
 #ifdef FLYLINKDC_USE_PROFILER_CS

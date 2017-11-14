@@ -93,11 +93,11 @@ void File::init(const tstring& aFileName, int access, int mode, bool isAbsoluteP
 
 int64_t File::getLastWriteTime()const noexcept
 {
-	FILETIME f = {0};
-	::GetFileTime(h, NULL, NULL, &f);
-	const int64_t l_res = (((int64_t)f.dwLowDateTime | ((int64_t)f.dwHighDateTime) << 32) - 116444736000000000LL) / (1000LL * 1000LL * 1000LL / 100LL); //1.1.1970
-	//[+] PVS Studio V592   The expression was enclosed by parentheses twice: ((expression)). One pair of parentheses is unnecessary or misprint is present.
-	return l_res;
+    FILETIME f = {0};
+    ::GetFileTime(h, NULL, NULL, &f);
+    const int64_t l_res = (((int64_t)f.dwLowDateTime | ((int64_t)f.dwHighDateTime) << 32) - 116444736000000000LL) / (1000LL * 1000LL * 1000LL / 100LL); //1.1.1970
+    //[+] PVS Studio V592   The expression was enclosed by parentheses twice: ((expression)). One pair of parentheses is unnecessary or misprint is present.
+    return l_res;
 }
 
 //[+] Greylink
@@ -164,7 +164,7 @@ uint64_t File::convertTime(const FILETIME* f)
 
 bool File::isOpen() const noexcept
 {
-	return h != INVALID_HANDLE_VALUE;
+    return h != INVALID_HANDLE_VALUE;
 }
 
 void File::close() noexcept
@@ -178,36 +178,36 @@ void File::close() noexcept
 
 int64_t File::getSize() const noexcept
 {
-	// [!] IRainman use GetFileSizeEx function!
-	// http://msdn.microsoft.com/en-us/library/aa364957(v=VS.85).aspx
-	LARGE_INTEGER x = {0};
-	BOOL bRet = ::GetFileSizeEx(h, &x);
-	
-	if (bRet == FALSE)
-		return -1;
-		
-	return x.QuadPart;
+    // [!] IRainman use GetFileSizeEx function!
+    // http://msdn.microsoft.com/en-us/library/aa364957(v=VS.85).aspx
+    LARGE_INTEGER x = {0};
+    BOOL bRet = ::GetFileSizeEx(h, &x);
+
+    if (bRet == FALSE)
+    return -1;
+    
+    return x.QuadPart;
 }
 int64_t File::getPos() const noexcept
-{
-	// [!] IRainman use SetFilePointerEx function!
-	// http://msdn.microsoft.com/en-us/library/aa365542(v=VS.85).aspx
-	LARGE_INTEGER x = {0};
-	BOOL bRet = ::SetFilePointerEx(h, x, &x, FILE_CURRENT);
+	{
+	    // [!] IRainman use SetFilePointerEx function!
+	    // http://msdn.microsoft.com/en-us/library/aa365542(v=VS.85).aspx
+	    LARGE_INTEGER x = {0};
+	    BOOL bRet = ::SetFilePointerEx(h, x, &x, FILE_CURRENT);
+	    
+	    if (bRet == FALSE)
+	    return -1;
+	    
+	    return x.QuadPart;
+	}
 	
-	if (bRet == FALSE)
-		return -1;
-		
-	return x.QuadPart;
-}
-
-void File::setSize(int64_t newSize)
-{
-	int64_t pos = getPos();
-	setPos(newSize);
-	setEOF();
-	setPos(pos);
-}
+	void File::setSize(int64_t newSize)
+	{
+		int64_t pos = getPos();
+		setPos(newSize);
+		setEOF();
+		setPos(pos);
+	}
 void File::setPos(int64_t pos)
 {
 	// [!] IRainman use SetFilePointerEx function!
@@ -240,7 +240,7 @@ size_t File::read(void* buf, size_t& len)
 	DWORD x = 0;
 	if (!::ReadFile(h, buf, (DWORD)len, &x, NULL))
 	{
-		throw (FileException(Util::translateError()));
+		throw(FileException(Util::translateError()));
 	}
 	len = x;
 	return x;

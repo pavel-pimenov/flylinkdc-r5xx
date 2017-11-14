@@ -2353,7 +2353,7 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 			if (!l_resume.empty())
 			{
 				libtorrent::error_code ec;
-				libtorrent::add_torrent_params p = libtorrent::read_resume_data({ (const char*)l_resume.data(), l_resume.size()}, ec);
+				libtorrent::add_torrent_params p = libtorrent::read_resume_data( { (const char*)l_resume.data(), l_resume.size()}, ec);
 				//p.save_path = SETTING(DOWNLOAD_DIRECTORY); // TODO - load from DB ?
 				libtorrent::sha1_hash l_sha1;
 				l_q.getblob(1, l_sha1.data(), l_sha1.size());

@@ -898,8 +898,8 @@ QueueManager::~QueueManager() noexcept
 		{
 			std::sort(filelists.begin(), filelists.end());
 			std::for_each(filelists.begin(),
-			              std::set_difference(filelists.begin(), filelists.end(), protectedFileLists.begin(), protectedFileLists.end(), filelists.begin()),
-			              File::deleteFile);
+			std::set_difference(filelists.begin(), filelists.end(), protectedFileLists.begin(), protectedFileLists.end(), filelists.begin()),
+			File::deleteFile);
 		}
 	}
 	SharedFileStream::check_before_destoy();
@@ -1155,8 +1155,8 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 		if (QueueManager::is_queue_tth(aRoot))
 		{
 		            dcassert(0);
-			throw QueueException(STRING(TTH_ALREADY_QUEUE_DOWNLOAD)
-			                     + l_target_name);
+		    throw QueueException(STRING(TTH_ALREADY_QUEUE_DOWNLOAD)
+		                         + l_target_name);
 		}
 		*/
 		
@@ -1251,11 +1251,11 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 					
 					switch (m_curOnDownloadSettings)
 					{
-						/* FLylinkDC Team TODO: IRainman: давайте копировать имеющийся файл в папку назначения? будем трафик экономить! p.s: см. выше. :)
-						case SettingsManager::ON_DOWNLOAD_EXIST_FILE_TO_NEW_DEST:
-						    ...
-						    return;
-						*/
+							/* FLylinkDC Team TODO: IRainman: давайте копировать имеющийся файл в папку назначения? будем трафик экономить! p.s: см. выше. :)
+							case SettingsManager::ON_DOWNLOAD_EXIST_FILE_TO_NEW_DEST:
+							    ...
+							    return;
+							*/
 						case SettingsManager::ON_DOWNLOAD_REPLACE:
 							File::deleteFile(l_target); // Delete old file.  FlylinkDC Team TODO: recheck existing file to save traffic and download time.
 							break;
@@ -2768,9 +2768,9 @@ void QueueManager::saveQueue(bool force /* = false*/) noexcept
 					if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 					{
 						if (qi->getFlyQueueID() &&
-						        qi->isDirtySegment() == true &&
-						        qi->isDirtyBase() == false &&
-						        qi->isDirtySource() == false)
+						qi->isDirtySegment() == true &&
+						qi->isDirtyBase() == false &&
+						qi->isDirtySource() == false)
 						{
 						
 							const CFlySegment l_QueueSegment(qi);

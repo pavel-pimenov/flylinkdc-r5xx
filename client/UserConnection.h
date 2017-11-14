@@ -250,8 +250,8 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		}
 		string getCipherName() const noexcept
 		{
-			dcassert(socket); // [+] IRainman fix.
-			return socket ? socket->getCipherName() : Util::emptyString;
+		    dcassert(socket); // [+] IRainman fix.
+		    return socket ? socket->getCipherName() : Util::emptyString;
 		}
 		
 		vector<uint8_t> getKeyprint() const

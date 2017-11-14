@@ -363,8 +363,8 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	const auto l_is_favorite_active = ClientManager::isActive(fe, bWantAutodetect);
 	LogManager::message("Connect: " + m_client->getHubUrl() + string(" Mode: ") +
 	                    (m_client->isActive() ? ("Active" + ((fe && l_is_favorite_active) ? string("(favorites)") : string())) : "Passive") + string(" Support: ") +
-	                    MappingManager::getPortmapInfo(true));
-	                    
+		                    MappingManager::getPortmapInfo(true));
+		                    
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	ConnectionManager::getInstance()->addListener(this);
 #endif
@@ -1658,18 +1658,18 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		}
 		break;
 #endif // FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
-			/*
-			case WM_SPEAKER_CONNECTED:
-			        {
-			            doConnected();
-			        }
-			        break;
-			        case WM_SPEAKER_DISCONNECTED:
-			        {
-			            doDisconnected();
-			        }
-			        break;
-			*/
+		/*
+		case WM_SPEAKER_CONNECTED:
+		        {
+		            doConnected();
+		        }
+		        break;
+		        case WM_SPEAKER_DISCONNECTED:
+		        {
+		            doDisconnected();
+		        }
+		        break;
+		*/
 #ifdef FLYLINKDC_PRIVATE_MESSAGE_USE_WIN_MESSAGES_Q
 		case WM_SPEAKER_PRIVATE_MESSAGE:
 		{

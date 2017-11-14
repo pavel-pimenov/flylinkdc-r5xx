@@ -28,7 +28,7 @@ class OMenu;
 
 struct OMenuItem
 #ifdef _DEBUG
-	: private boost::noncopyable
+		: private boost::noncopyable
 #endif
 {
 	typedef vector<OMenuItem*> List;

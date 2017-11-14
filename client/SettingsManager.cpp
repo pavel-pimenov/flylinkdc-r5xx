@@ -1597,8 +1597,8 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 		strSettings[key - STR_FIRST] = cleanValue;\
 		l_auto = false;\
 	}
-		// [~] IRainman fix.
-		
+			// [~] IRainman fix.
+			
 		case LOG_FORMAT_POST_DOWNLOAD:
 		case LOG_FORMAT_POST_UPLOAD:
 		case LOG_FORMAT_MAIN_CHAT:
@@ -1664,7 +1664,7 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 		break;
 		case BIND_ADDRESS:
 		case WEBSERVER_BIND_ADDRESS:
-		// [+] IRainman fix.
+			// [+] IRainman fix.
 		case URL_GET_IP:
 		case PORTAL_BROWSER_UPDATE_URL:
 		case URL_IPTRUST:

@@ -308,7 +308,7 @@ struct Buffer
 			return (mBuffer[ index ]);
 		}
 		
-	protected:
+		protected:
 		type *mBuffer;
 		u32 mAlloc, mItems;
 };
@@ -388,102 +388,102 @@ struct Caller
 			struct AddToNewBuckets
 			{
 				AddToNewBuckets(Caller **buckets, u32 bucket_count) : mBuckets(buckets), mBucketCount(bucket_count) {}
-					void operator()(Caller *item)
-					{
-						FindEmptyChildSlot(mBuckets, mBucketCount, item->mName) = item;
-					}
-					Caller **mBuckets;
-					u32 mBucketCount;
-				};
-				
-				
-				// Destructs a Caller
-				struct Deleter
+				void operator()(Caller *item)
 				{
-					void operator()(Caller *item)
-					{
-						delete item;
-					}
-				};
-				
-				// Merges a Caller with the root
-				struct Merger
-				{
-					Merger(Caller *root) : mRoot(root) {}
-					void addFrom(Caller *item)
-					{
-						(*this)(item);
-					}
-					void operator()(Caller *item)
-					{
-						Caller *child = mRoot->FindOrCreate(item->GetName());
-						child->GetTimer() += item->GetTimer();
-						child->SetParent(item->GetParent());
-						item->ForEachNonEmpty(Merger(child));
-					}
-					Caller *mRoot;
-				};
-				
-				// Prints a Caller
-				struct Printer
-				{
-					Printer(u32 indent) : mIndent(indent) { }
-					void operator()(Caller *item, bool islast) const
-					{
-						item->Print(mIndent, islast);
-					}
-					u32 mIndent;
-				};
-				
-				struct PrinterHtml
-				{
-					PrinterHtml(FILE *f, u32 indent) : mFile(f), mIndent(indent) { }
-					void operator()(Caller *item, bool islast) const
-					{
-						item->PrintHtml(mFile, mIndent, islast);
-					}
-					FILE *mFile;
-					u32 mIndent;
-				};
-				
-				struct SoftReset
-				{
-					void operator()(Caller *item)
-					{
-						item->GetTimer().SoftReset();
-						item->ForEach(SoftReset());
-					}
-				};
-				
-				// Sums Caller's ticks
-				struct SumTicks
-				{
-					SumTicks() : sum(0) {}
-					void operator()(Caller *item)
-					{
-						sum += (item->mTimer.ticks);
-					}
-					u64 sum;
-				};
-				
-				struct UpdateTopMaxStats
-				{
-					UpdateTopMaxStats()
-					{
-						maxStats.reset();
-					}
-					void operator()(Caller *item, bool islast)
-					{
-						if (!item->GetParent())
-							return;
-						maxStats.check(Max::Calls, item->mTimer.calls);
-						maxStats.check(Max::Ms, Timer::ms(item->mTimer.ticks));
-						maxStats.check(Max::Avg, item->mTimer.avgms());
-					}
-				};
-			}; // foreach
+					FindEmptyChildSlot(mBuckets, mBucketCount, item->mName) = item;
+				}
+				Caller **mBuckets;
+				u32 mBucketCount;
+			};
 			
 			
+			// Destructs a Caller
+			struct Deleter
+			{
+				void operator()(Caller *item)
+				{
+					delete item;
+				}
+			};
+			
+			// Merges a Caller with the root
+			struct Merger
+			{
+				Merger(Caller *root) : mRoot(root) {}
+				void addFrom(Caller *item)
+				{
+					(*this)(item);
+				}
+				void operator()(Caller *item)
+				{
+					Caller *child = mRoot->FindOrCreate(item->GetName());
+					child->GetTimer() += item->GetTimer();
+					child->SetParent(item->GetParent());
+					item->ForEachNonEmpty(Merger(child));
+				}
+				Caller *mRoot;
+			};
+			
+			// Prints a Caller
+			struct Printer
+			{
+				Printer(u32 indent) : mIndent(indent) { }
+				void operator()(Caller *item, bool islast) const
+				{
+					item->Print(mIndent, islast);
+				}
+				u32 mIndent;
+			};
+			
+			struct PrinterHtml
+			{
+				PrinterHtml(FILE *f, u32 indent) : mFile(f), mIndent(indent) { }
+				void operator()(Caller *item, bool islast) const
+				{
+					item->PrintHtml(mFile, mIndent, islast);
+				}
+				FILE *mFile;
+				u32 mIndent;
+			};
+			
+			struct SoftReset
+			{
+				void operator()(Caller *item)
+				{
+					item->GetTimer().SoftReset();
+					item->ForEach(SoftReset());
+				}
+			};
+			
+			// Sums Caller's ticks
+			struct SumTicks
+			{
+				SumTicks() : sum(0) {}
+				void operator()(Caller *item)
+				{
+					sum += (item->mTimer.ticks);
+				}
+				u64 sum;
+			};
+			
+			struct UpdateTopMaxStats
+			{
+				UpdateTopMaxStats()
+				{
+					maxStats.reset();
+				}
+				void operator()(Caller *item, bool islast)
+				{
+					if (!item->GetParent())
+						return;
+					maxStats.check(Max::Calls, item->mTimer.calls);
+					maxStats.check(Max::Ms, Timer::ms(item->mTimer.ticks));
+					maxStats.check(Max::Avg, item->mTimer.avgms());
+				}
+			};
+		}; // foreach
+		
+		
 		struct compare
 		{
 			struct Ticks
@@ -852,12 +852,12 @@ struct Caller
 			mTimer.Stop();
 		}
 		
-		void *operator new (size_t size)
+		void *operator new(size_t size)
 		{
 			return calloc(size, 1);
 		}
 		
-		void operator delete (void *p)
+		void operator delete(void *p)
 		{
 			free(p);
 		}
@@ -881,7 +881,7 @@ struct Caller
 #endif
 		}
 		
-	protected:
+		protected:
 		static inline Caller *&FindEmptyChildSlot(Caller **buckets, u32 bucket_count, const char *name)
 		{
 			u32 index = (GetBucket(name, bucket_count)), mask = (bucket_count - 1);
@@ -903,7 +903,7 @@ struct Caller
 			Resize(capacity);
 		}
 		
-	protected:
+		protected:
 		const char *mName;
 		Timer mTimer;
 		u32 mBucketCount, mNumChildren;
@@ -912,7 +912,7 @@ struct Caller
 		bool mActive;
 		u64 mChildTicks;
 		
-	public:
+		public:
 		// caller
 		static Buffer<char> mFormatter;
 		static Buffer<const char *> mHTMLFormatter;
@@ -959,7 +959,7 @@ struct Caller
 					return f64fields[e];
 				}
 				
-			protected:
+				protected:
 				u64 u64fields[u64Enums];
 				f64 f64fields[f64Enums];
 		} maxStats;
@@ -1213,7 +1213,7 @@ struct HTMLDumper
 			fclose(f);
 		}
 		
-	protected:
+		protected:
 		FILE *f;
 		char timeFormat[256], fileFormat[256];
 };

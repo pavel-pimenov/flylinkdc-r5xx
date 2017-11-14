@@ -42,8 +42,8 @@ class ExCImage : public CImage
 		ExCImage(): m_hBuffer(nullptr)
 		{
 		}
-		explicit ExCImage(LPCTSTR pszFileName) noexcept :
-			m_hBuffer(nullptr)
+	explicit ExCImage(LPCTSTR pszFileName) noexcept :
+		m_hBuffer(nullptr)
 		{
 			Load(pszFileName);
 		}
@@ -53,8 +53,8 @@ class ExCImage : public CImage
 #else
 		             nullptr
 #endif
-		        ) noexcept :
-			m_hBuffer(nullptr)
+	        ) noexcept :
+		m_hBuffer(nullptr)
 		{
 			LoadFromResource(id, pType, hInst);
 		}
@@ -64,8 +64,8 @@ class ExCImage : public CImage
 #else
 		             nullptr
 #endif
-		        ) noexcept :
-			m_hBuffer(nullptr)
+	        ) noexcept :
+		m_hBuffer(nullptr)
 		{
 			LoadFromResource(id, MAKEINTRESOURCE(type), hInst);
 		}
