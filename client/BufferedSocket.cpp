@@ -987,6 +987,22 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 		{
 			size_t bytesRead = l_readBuf.size() - readPos;
 			size_t actual = p_file->read(&l_readBuf[readPos], bytesRead); // TODO можно узнать что считали последний кусок в файл
+#ifdef _DEBUG
+			if (actual)
+			{
+				std::ofstream l_fs;
+				l_fs.open(_T("flylinkdc-beffered-socket.log"), std::ifstream::out | std::ifstream::app);
+				if (l_fs.good())
+				{
+					const string l_str = std::string((const char*) &l_readBuf[readPos], actual);
+					l_fs << std::endl << std::endl << std::endl << " Body: [" << l_str << "]" << std::endl;
+				}
+				else
+				{
+					//dcassert(0);
+				}
+			}
+#endif
 			
 			if (bytesRead > 0)
 			{
@@ -1219,8 +1235,8 @@ bool BufferedSocket::checkEvents()
 			}
 			else if (p.first == SHUTDOWN)
 			{
-				return false;
-			}
+			return false;
+		}
 			else
 			{
 				dcdebug("%d unexpected in RUNNING state\n", p.first);

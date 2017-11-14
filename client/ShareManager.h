@@ -242,7 +242,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 				
 				struct ShareFile : public CFlyLowerName
 #ifdef _DEBUG
-						//, boost::noncopyable // TODO - сделать чтобы объект был не копируемым - boost::noncopyable
+				//, boost::noncopyable // TODO - сделать чтобы объект был не копируемым - boost::noncopyable
 #endif
 				{
 						struct FileTraits
@@ -321,7 +321,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 				
 				bool hasType(Search::TypeModes p_type) const noexcept
 				{
-				    return (p_type == Search::TYPE_ANY) || (m_fileTypes_bitmap & (1 << p_type));
+					return (p_type == Search::TYPE_ANY) || (m_fileTypes_bitmap & (1 << p_type));
 				}
 				void addType(Search::TypeModes type) noexcept;
 				
@@ -332,7 +332,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 				int64_t getDirSizeL() const noexcept;
 				int64_t getDirSizeFast() const noexcept
 				{
-				    return m_size;
+					return m_size;
 				}
 				
 				void search(SearchResultList& aResults, StringSearch::List& aStrings, const SearchParamBase& p_search_param) const noexcept;
@@ -414,11 +414,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		
 		static FastCriticalSection g_csPartialCache;
 		static std::unordered_map<string, std::pair<string, unsigned>> g_partial_list_cache;
-		static void clear_partial_cache()
-		{
-			CFlyFastLock(g_csPartialCache);
-			g_partial_list_cache.clear();
-		}
+		static void clear_partial_cache(string p_path);
 		
 		static FastCriticalSection g_csTTHPathCache;
 		static std::unordered_map<TTHValue, std::pair<string, unsigned>> g_tth_path_cache;
@@ -482,7 +478,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		bool checkVirtual(const string& aName) const;
 		bool checkAttributs(const string& aName) const;
 		//[~]IRainman
-		void rebuildIndicesL();
+		void rebuildIndicesL(bool p_is_clear_cache);
 		
 		bool updateIndicesDirL(Directory& aDirectory);
 		bool updateIndicesFileL(Directory& dir, const Directory::ShareFile::Set::iterator& i);

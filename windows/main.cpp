@@ -22,14 +22,14 @@
 
 #ifdef _DEBUG
 #ifndef _WIN64
-// #define FLYLINKDC_USE_VLD // 3>LINK : fatal error LNK1104: cannot open file 'vld.lib' VLD качать тут http://vld.codeplex.com/
+//#define FLYLINKDC_USE_VLD // 3>LINK : fatal error LNK1104: cannot open file 'vld.lib' VLD качать тут https://kinddragon.github.io/vld/
 #endif
 #endif
 #ifdef FLYLINKDC_USE_VLD
 //[!] ¬ключать только при наличии VLD и только в _DEBUG
 #define VLD_DEFAULT_MAX_DATA_DUMP 1
 //#define VLD_FORCE_ENABLE // Uncoment this define to enable VLD in release
-#include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h" // VLD качать тут http://vld.codeplex.com/
+#include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h" // VLD качать тут https://kinddragon.github.io/vld/
 #endif
 
 #include "Resource.h"

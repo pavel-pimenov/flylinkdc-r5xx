@@ -1140,7 +1140,7 @@ void ClientManager::flushRatio(int p_max_count_flush)
 			//l_log_debug.step("l_users.size() =" + Util::toString(l_users.size()));
 #endif
 		}
-for (auto i : l_users)
+		for (auto i : l_users)
 		{
 			if (i->flushRatio() && !isBeforeShutdown() && !AutoUpdate::getExitOnUpdate())
 			{
@@ -1268,10 +1268,11 @@ const string ClientManager::findMyNick(const string& hubUrl)
 	return Util::emptyString;
 }
 
-int ClientManager::getMode(const FavoriteHubEntry* p_hub, bool& pbWantAutodetect)
+int ClientManager::getMode(const FavoriteHubEntry* p_hub, bool& p_isWantAutodetect)
 {
-	const bool l_is_tcp_port_firewall = ConnectionManager::g_is_test_tcp_port == true && CFlyServerJSON::isTestPortOK(SETTING(TCP_PORT), "tcp", true) == false;
-	pbWantAutodetect = l_is_tcp_port_firewall;
+	const bool l_is_tcp_port_firewall = ConnectionManager::g_is_test_tcp_port == true &&
+	                                    CFlyServerJSON::isTestPortOK(SETTING(TCP_PORT), "tcp", true) == false;
+	p_isWantAutodetect = l_is_tcp_port_firewall;
 	int l_mode = 0;
 	const auto l_type = SETTING(INCOMING_CONNECTIONS);
 	if (!p_hub)
@@ -1291,7 +1292,7 @@ int ClientManager::getMode(const FavoriteHubEntry* p_hub, bool& pbWantAutodetect
 				break;
 			case 2 :
 				l_mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
-				pbWantAutodetect = false;
+				p_isWantAutodetect = false;
 				break;
 			default:
 			{
@@ -1299,15 +1300,16 @@ int ClientManager::getMode(const FavoriteHubEntry* p_hub, bool& pbWantAutodetect
 				if (l_is_tcp_port_firewall == true)
 				{
 					l_mode = SettingsManager::INCOMING_FIREWALL_PASSIVE;
+					p_isWantAutodetect = false;
 				}
 			}
 		}
 	}
 	return l_mode;
 }
-bool ClientManager::isActive(const FavoriteHubEntry* p_hub, bool& pbWantAutodetect)
+bool ClientManager::isActive(const FavoriteHubEntry* p_hub, bool& p_isWantAutodetect)
 {
-	const auto l_mode = getMode(p_hub, pbWantAutodetect);
+	const auto l_mode = getMode(p_hub, p_isWantAutodetect);
 	if (l_mode != SettingsManager::INCOMING_FIREWALL_PASSIVE)
 		return true;
 	else

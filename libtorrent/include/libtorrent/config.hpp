@@ -124,6 +124,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 // class X needs to have dll-interface to be used by clients of class Y
 #pragma warning(disable:4251)
+#pragma warning(disable:4268)
 
 // deprecation markup is only enabled when libtorrent
 // headers are included by clients, not while building

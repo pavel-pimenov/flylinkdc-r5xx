@@ -51,8 +51,8 @@ std::unique_ptr<webrtc::RWLockWrapper> UploadManager::g_csReservedSlots = std::u
 int64_t UploadManager::g_runningAverage;
 
 UploadManager::UploadManager() noexcept :
-extra(0), lastGrant(0), m_lastFreeSlots(-1),
-      m_fireballStartTick(0), isFireball(false), isFileServer(false), extraPartial(0)
+	extra(0), lastGrant(0), m_lastFreeSlots(-1),
+	m_fireballStartTick(0), isFireball(false), isFileServer(false), extraPartial(0)
 {
 	ClientManager::getInstance()->addListener(this);
 	TimerManager::getInstance()->addListener(this);
@@ -323,7 +323,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 				CFlyFastLock(csDos); // [!] IRainman opt.
 				l_count_dos = ++m_dos_map[l_hash_key];
 			}
-			const uint8_t l_count_attempts = l_is_TypePartialTree ? 3 : 30;
+			const uint8_t l_count_attempts = l_is_TypePartialTree ? 5 : 30;
 			if (l_count_dos > l_count_attempts)
 			{
 				dcdebug("l_hash_key = %s ++m_dos_map[l_hash_key] = %d\n", l_hash_key.c_str(), l_count_dos);
@@ -357,7 +357,9 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 					Client: [Outgoing][194.186.25.22]       $ADCSND list /music/Vangelis/[1988]\ Vangelis\ -\ Direct/ 0 2029 ZL1|
 					*/
 					CFlyServerJSON::pushError(80, "Disconnect bug client: $ADCGET / $ADCSND User: " + l_User.user->getLastNick() + " Hub:" + aSource->getHubUrl());
+					// Небудем пока лочить по IP UserConnection::add_error_user(aSource->getRemoteIp());
 					aSource->disconnect();
+					
 				}
 				return false;
 			}
@@ -920,13 +922,14 @@ void UploadManager::on(UserConnectionListener::Send, UserConnection* aSource) no
 
 void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcCommand& c) noexcept
 {
-	dcassert(!ClientManager::isBeforeShutdown());
 	if (ClientManager::isBeforeShutdown())
 	{
+		dcassert(0);
 		return;
 	}
 	if (aSource->getState() != UserConnection::STATE_GET)
 	{
+		dcassert(0);
 		dcdebug("UM::onGET Bad state, ignoring\n");
 		return;
 	}
@@ -949,6 +952,9 @@ void UploadManager::on(AdcCommand::GET, UserConnection* aSource, const AdcComman
 		cmd.addParam(Util::toString(u->getStartPos()));
 		cmd.addParam(Util::toString(u->getSize()));
 		
+#ifdef _DEBUG
+		ZFilter::g_is_disable_compression = true;
+#endif
 		if (SETTING(MAX_COMPRESSION) && ZFilter::g_is_disable_compression == false)
 		{
 			string l_name = Util::getFileName(u->getPath());
@@ -1309,8 +1315,8 @@ void UploadManager::on(AdcCommand::GFI, UserConnection* aSource, const AdcComman
 		return;
 	}
 	
-	const string& type = c.getParam(0);
-	const string& ident = c.getParam(1);
+	const string type = c.getParam(0);
+	const string ident = c.getParam(1);
 	
 	if (type == Transfer::g_type_names[Transfer::TYPE_FILE])
 	{

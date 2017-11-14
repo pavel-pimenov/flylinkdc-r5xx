@@ -250,8 +250,8 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		}
 		string getCipherName() const noexcept
 		{
-		    dcassert(socket); // [+] IRainman fix.
-		    return socket ? socket->getCipherName() : Util::emptyString;
+			dcassert(socket); // [+] IRainman fix.
+			return socket ? socket->getCipherName() : Util::emptyString;
 		}
 		
 		vector<uint8_t> getKeyprint() const
@@ -389,6 +389,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		void fireBytesSent(size_t p_Bytes, size_t p_Actual);
 		void fireData(uint8_t* p_data, size_t p_len);
 		static bool is_error_user(const string& p_ip);
+		static bool add_error_user(const string& p_ip);
 	private:
 		int64_t m_chunkSize;
 		BufferedSocket* socket;

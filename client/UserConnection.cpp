@@ -356,17 +356,21 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		LogManager::message(l_log);
 #endif
 		unsetFlag(FLAG_NMDC);
+		if (add_error_user(getRemoteIp()))
 		{
-			CFlyFastLock(g_error_cs);
-			if (++g_error_cmd_map[getRemoteIp()] > 3)
-			{
-				CFlyServerJSON::pushError(83, l_log);
-				disconnect(true); // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1684
-			}
+			disconnect(true); // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1684
 		}
 	}
 }
-
+bool UserConnection::add_error_user(const string& p_ip)
+{
+	CFlyFastLock(g_error_cs);
+	if (++g_error_cmd_map[p_ip] > 3)
+	{
+		return true;
+	}
+	return false;
+}
 bool UserConnection::is_error_user(const string& p_ip)
 {
 	CFlyFastLock(g_error_cs);

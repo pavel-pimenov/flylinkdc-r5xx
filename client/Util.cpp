@@ -246,7 +246,7 @@ void Util::initialize()
 	{ \
 		g_sysPaths[path] = Text::fromT(l_buf.data()) + PATH_SEPARATOR; \
 	} \
-	 
+	
 	//LogManager::message("Sysytem Path: " + g_sysPaths[path]);
 	//LogManager::message("Error SHGetFolderPath: GetLastError() = " + Util::toString(GetLastError()));
 	
@@ -349,7 +349,7 @@ void Util::initialize()
 		{
 			g_paths[PATH_USER_CONFIG] = getSysPath(PERSONAL) + "FlylinkDC++" PATH_SEPARATOR_STR;
 		}
-		
+	
 		g_paths[PATH_USER_LOCAL] = !getSysPath(PERSONAL).empty() ? getSysPath(PERSONAL) + "FlylinkDC++" PATH_SEPARATOR_STR : g_paths[PATH_USER_CONFIG];
 	}
 	
@@ -407,7 +407,7 @@ int Util::getFlagIndexByCode(uint16_t p_countryCode) // [!] IRainman: countryCod
 	{
 		const int mid = (begin + end) / 2;
 		const int cmp = memcmp(&p_countryCode, g_countryCodes[mid], 2);
-		
+	
 		if (cmp > 0)
 			begin = mid + 1;
 		else if (cmp < 0)
@@ -427,7 +427,7 @@ void Util::loadIBlockList()
 	                            true
 #endif
 	                        ) + "iblocklist-com.ini";
-	                        
+	
 	try
 	{
 		const uint64_t l_timeStampFile = File::getSafeTimeStamp(fileName);
@@ -494,7 +494,7 @@ void Util::loadIBlockList()
 		LogManager::message("Error open " + fileName);
 	}
 }
-
+	
 void Util::loadP2PGuard()
 {
 	CFlyLog l_log("[P2P Guard]");
@@ -510,7 +510,7 @@ void Util::loadP2PGuard()
 	                            true
 #endif
 	                        ) + "P2PGuard.ini";
-	                        
+	
 	try
 	{
 		const uint64_t l_timeStampFile  = File::getSafeTimeStamp(fileName);
@@ -575,7 +575,7 @@ void Util::loadP2PGuard()
 		LogManager::message("Error open " + fileName);
 	}
 }
-
+	
 //==========================================================================
 #ifdef FLYLINKDC_USE_GEO_IP
 void Util::loadGeoIp()
@@ -589,7 +589,7 @@ void Util::loadGeoIp()
 		                            true
 #endif
 		                        ) + "GeoIPCountryWhois.csv";
-		                        
+	
 		try
 		{
 			const uint64_t l_timeStampFile  = File::getSafeTimeStamp(fileName);
@@ -614,11 +614,11 @@ void Util::loadGeoIp()
 					pos = data.find(',', pos + 6); // тут можно прибавлять не 1 а 6 т.к. минимальная длина IP в виде текста равна 7 символам "1.1.1.1"
 					if (pos == string::npos) break;
 					startIP = toUInt32(start + pos + 2);
-					
+	
 					pos = data.find(',', pos + 7); // тут можно прибавлять не 1 а 7 т.к. минимальная длина IP в виде числа равна 8 символам 1.0.0.0 = 16777216
 					if (pos == string::npos) break;
 					stopIP = toUInt32(start + pos + 2);
-					
+	
 					pos = data.find(',', pos + 7); // тут можно прибавлять не 1 а 7 т.к. минимальная длина IP в виде числа равна 8 символам 1.0.0.0 = 16777216
 					if (pos == string::npos) break;
 					flagIndex = getFlagIndexByCode(*reinterpret_cast<const uint16_t*>(start + pos + 2));
@@ -644,7 +644,7 @@ void Util::loadGeoIp()
 	}
 }
 #endif
-
+	
 void customLocationLog(const string& p_line, const string& p_error) // [+] IRainman
 {
 	if (BOOLSETTING(LOG_CUSTOM_LOCATION))
@@ -655,7 +655,7 @@ void customLocationLog(const string& p_line, const string& p_error) // [+] IRain
 		LOG(CUSTOM_LOCATION, params);
 	}
 }
-
+	
 void Util::loadCustomlocations()// [!] IRainman: this function workings fine. Please don't merge from other project!
 {
 	const tstring l_fileName = Text::toT(getConfigPath(
@@ -674,7 +674,7 @@ void Util::loadCustomlocations()// [!] IRainman: this function workings fine. Pl
 			CFlyLog l_log("[CustomLocations.ini]");
 			CFlyLocationIPArray l_sqliteArray;
 			l_sqliteArray.reserve(6000);
-			
+	
 			auto parseValidLine = [](CFlyLocationIPArray & p_sqliteArray, const string & p_line, uint32_t p_startIp, uint32_t p_endIp) -> void
 			{
 				const string::size_type l_space = p_line.find(' ');
@@ -697,7 +697,7 @@ void Util::loadCustomlocations()// [!] IRainman: this function workings fine. Pl
 					customLocationLog(p_line, STRING(SPACE_NOT_FOUND));
 				}
 			};
-			
+	
 			try
 			{
 				uint32_t a = 0, b = 0, c = 0, d = 0, a2 = 0, b2 = 0, c2 = 0, d2 = 0, n = 0;
@@ -705,7 +705,7 @@ void Util::loadCustomlocations()// [!] IRainman: this function workings fine. Pl
 				do
 				{
 					l_end_file = getline(l_file, l_currentLine).eof();
-					
+	
 					if (!l_currentLine.empty() && isdigit((unsigned char)l_currentLine[0]))
 					{
 						if (l_currentLine.find('-') != string::npos && count(l_currentLine.begin(), l_currentLine.end(), '.') >= 6)
@@ -762,7 +762,7 @@ void Util::loadCustomlocations()// [!] IRainman: this function workings fine. Pl
 		}
 	}
 }
-
+	
 void Util::migrate(const string& p_file)
 {
 	if (g_localMode)
@@ -776,7 +776,7 @@ void Util::migrate(const string& p_file)
 	LogManager::message("Util::migrate old = " + old + " new = " + p_file);
 	File::renameFile(old, p_file);
 }
-
+	
 void Util::loadBootConfig()
 {
 	// Load boot settings
@@ -785,7 +785,7 @@ void Util::loadBootConfig()
 		SimpleXML boot;
 		boot.fromXML(File(getPath(PATH_GLOBAL_CONFIG) + "dcppboot.xml", File::READ, File::OPEN).read());
 		boot.stepIn();
-		
+	
 		if (boot.findChild("LocalMode"))
 		{
 			g_localMode = boot.getChildData() != "0";
@@ -795,7 +795,7 @@ void Util::loadBootConfig()
 		StringMap params;
 #ifdef _WIN32
 		// @todo load environment variables instead? would make it more useful on *nix
-		
+	
 		params["APPDATA"] = RemovePathSeparator(getSysPath(APPDATA));
 		params["LOCAL_APPDATA"] = RemovePathSeparator(getSysPath(LOCAL_APPDATA));
 		params["COMMON_APPDATA"] = RemovePathSeparator(getSysPath(COMMON_APPDATA));
@@ -803,10 +803,10 @@ void Util::loadBootConfig()
 		params["PROGRAM_FILESX86"] = RemovePathSeparator(getSysPath(PROGRAM_FILESX86));
 		params["PROGRAM_FILES"] = RemovePathSeparator(getSysPath(PROGRAM_FILES));
 #endif
-		
+	
 		if (boot.findChild("ConfigPath"))
 		{
-		
+	
 #ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA //[+] NightOrion
 			g_paths[PATH_ALL_USER_CONFIG] = formatParams(boot.getChildData(), params, false);
 			AppendPathSeparator(g_paths[PATH_ALL_USER_CONFIG]);
@@ -817,7 +817,7 @@ void Util::loadBootConfig()
 #ifdef USE_APPDATA //[+] NightOrion
 # ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
 		boot.resetCurrentChild();
-		
+	
 		if (boot.findChild("SharedConfigPath"))
 		{
 			g_paths[PATH_ALL_USER_CONFIG] = formatParams(boot.getChildData(), params, false);
@@ -825,7 +825,7 @@ void Util::loadBootConfig()
 		}
 # endif
 		boot.resetCurrentChild();
-		
+	
 		if (boot.findChild("UserConfigPath"))
 		{
 			g_paths[PATH_USER_CONFIG] = formatParams(boot.getChildData(), params, false);
@@ -840,7 +840,7 @@ void Util::loadBootConfig()
 		// Unable to load boot settings...
 	}
 }
-
+	
 #ifdef _WIN32
 static const char g_badChars[] =
 {
@@ -849,7 +849,7 @@ static const char g_badChars[] =
 	31, '<', '>', '/', '"', '|', '?', '*', 0
 };
 #else
-
+	
 static const char g_badChars[] =
 {
 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
@@ -959,7 +959,7 @@ string Util::validateFileName(string tmp)
 	
 	return tmp;
 }
-
+	
 string Util::cleanPathChars(string aNick)
 {
 	string::size_type i = 0;
@@ -970,15 +970,15 @@ string Util::cleanPathChars(string aNick)
 	}
 	return aNick;
 }
-
+	
 string Util::getShortTimeString(time_t t)
 {
 	/*
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	    static int l_count = 0;
 	    if (t == time(NULL))
 	        dcdebug("\n\n\nUtil::getShortTimeString called with curent time. Count = %d\n\n\n", ++l_count);
-	#endif
+#endif
 	*/
 	tm* _tm = localtime(&t);
 	if (_tm == NULL)
@@ -1000,7 +1000,7 @@ string Util::getShortTimeString(time_t t)
 #endif
 	}
 }
-
+	
 /**
  * Decodes a URL the best it can...
  * Default ports:
@@ -1059,7 +1059,7 @@ void Util::decodeUrl(const string& url, string& protocol, string& host, uint16_t
 	protocol = (protoEnd == string::npos ? Util::emptyString : Text::toLower(url.substr(protoStart, protoEnd - protoStart))); // [!] IRainman rfc fix lower string to proto and servername
 	if (protocol.empty())
 		protocol = "dchub";
-		
+	
 	if (authorityEnd > authorityStart)
 	{
 		dcdebug("x");
@@ -1072,7 +1072,7 @@ void Util::decodeUrl(const string& url, string& protocol, string& host, uint16_t
 			{
 				return;
 			}
-			
+	
 			host = url.substr(authorityStart + 1, hostEnd - authorityStart - 1);
 			if (hostEnd + 1 < url.size() && url[hostEnd + 1] == ':')
 			{
@@ -1087,7 +1087,7 @@ void Util::decodeUrl(const string& url, string& protocol, string& host, uint16_t
 			{
 				portStart = string::npos;
 			}
-			
+	
 			if (portStart == string::npos)
 			{
 				hostEnd = authorityEnd;
@@ -1097,11 +1097,11 @@ void Util::decodeUrl(const string& url, string& protocol, string& host, uint16_t
 				hostEnd = portStart;
 				portStart++;
 			}
-			
+	
 			dcdebug("h");
 			host = Text::toLower(url.substr(authorityStart, hostEnd - authorityStart)); // [!] IRainman rfc fix lower string to proto and servername
 		}
-		
+	
 		if (portStart == string::npos)
 		{
 			if (protocol == "dchub")
@@ -1181,7 +1181,7 @@ bool Util::isValidSearch(const string& p_search)
 	}
 	return true;
 }
-
+	
 void Util::parseIpPort(const string& aIpPort, string& ip, uint16_t& port)
 {
 	string::size_type i = aIpPort.rfind(':');
@@ -1195,7 +1195,7 @@ void Util::parseIpPort(const string& aIpPort, string& ip, uint16_t& port)
 		port = Util::toInt(aIpPort.substr(i + 1));
 	}
 }
-
+	
 std::map<string, string> Util::decodeQuery(const string& query)
 {
 	std::map<string, string> ret;
@@ -1207,27 +1207,27 @@ std::map<string, string> Util::decodeQuery(const string& query)
 		{
 			break;
 		}
-		
+	
 		auto param = eq + 1;
 		auto end = query.find('&', param);
-		
+	
 		if (end == string::npos)
 		{
 			end = query.size();
 		}
-		
+	
 		if (eq > start && end > param)
 		{
 			ret[query.substr(start, eq - start)] = query.substr(param, end - param);
 		}
-		
+	
 		start = end + 1;
 	}
 	
 	return ret;
 }
-
-
+	
+	
 void Util::setAway(bool aAway, bool notUpdateInfo /*= false*/)
 {
 	g_away = aAway;
@@ -1236,7 +1236,7 @@ void Util::setAway(bool aAway, bool notUpdateInfo /*= false*/)
 	
 	if (g_away)
 		g_awayTime = time(NULL);
-		
+	
 	if (!notUpdateInfo)
 	{
 		ClientManager::infoUpdated(); // Не звать если не меняется aAway
@@ -1263,7 +1263,7 @@ string Util::getAwayMessage(StringMap& params)
 		return formatParams((g_awayMsg.empty() ? SETTING(DEFAULT_AWAY_MESSAGE) : g_awayMsg), params, false, g_awayTime);
 	}
 }
-
+	
 wstring Util::formatSecondsW(int64_t aSec, bool supressHours /*= false*/)
 {
 	wchar_t buf[64];
@@ -1273,7 +1273,7 @@ wstring Util::formatSecondsW(int64_t aSec, bool supressHours /*= false*/)
 		_snwprintf(buf, _countof(buf), L"%02u:%02u", unsigned(aSec / 60), unsigned(aSec % 60));
 	return buf;
 }
-
+	
 string Util::formatSeconds(int64_t aSec, bool supressHours /*= false*/) // [+] IRainman opt
 {
 	char buf[64];
@@ -1283,7 +1283,7 @@ string Util::formatSeconds(int64_t aSec, bool supressHours /*= false*/) // [+] I
 		_snprintf(buf, _countof(buf), "%02u:%02u", unsigned(aSec / 60), unsigned(aSec % 60));
 	return buf;
 }
-
+	
 string Util::formatBytes(int64_t aBytes) // TODO fix copy-paste
 {
 	char buf[64];
@@ -1352,7 +1352,7 @@ string Util::formatBytes(double aBytes) // TODO fix copy-paste
 	}
 	return buf;
 }
-
+	
 wstring Util::formatBytesW(int64_t aBytes)
 {
 	wchar_t buf[128];
@@ -1387,7 +1387,7 @@ wstring Util::formatBytesW(int64_t aBytes)
 	
 	return buf; // https://drdump.com/Problem.aspx?ProblemID=240683
 }
-
+	
 wstring Util::formatExactSize(int64_t aBytes)
 {
 #ifdef _WIN32
@@ -1432,10 +1432,10 @@ static string findBindIP(const string& tmp, const string& p_gateway_mask, const 
 		/*
 		 Выявилась проблема с UPnP, при установленной программе Hamachi.
 		У пользователя win7. Хамачи сделал свой сетевой интферфейс с ip адресом 25.41.14.130
-		
+	
 		UPnP пытается сделать перенаправление именно на этот адрес
 		если во флайлинке задать "сетевой интерфейс для всех соединений" 192.168.0.103 (адрес который дает ему роутер), то это не помогает :(
-		
+	
 		К письму прикладываю вывод UPnP правил из роутера, для того что-бы ты понял о чем речь.
 		*/
 	}
@@ -1480,7 +1480,7 @@ string Util::getLocalOrBindIp(const bool p_check_bind_address)
 	}
 	return tmp;
 }
-
+	
 bool Util::isPrivateIp(const string& ip)
 {
 	dcassert(!ip.empty());
@@ -1493,8 +1493,8 @@ bool Util::isPrivateIp(const string& ip)
 	}
 	return false;
 }
-
-
+	
+	
 static wchar_t utf8ToLC(const uint8_t* & str)
 {
 	wchar_t c = 0;
@@ -1578,7 +1578,7 @@ string Util::toString(char p_sep, const StringSet& p_set)
 	}
 	return ret;
 }
-
+	
 string Util::toString(const StringList& lst)
 {
 	if (lst.empty())
@@ -1596,18 +1596,18 @@ string Util::toString(const StringList& lst)
 		tmp[tmp.length() - 1] = ']';
 	return tmp;
 }
-
+	
 string::size_type Util::findSubString(const string& aString, const string& aSubString, string::size_type start) noexcept
 {
 	if (aString.length() < start)
 		return (string::size_type)string::npos;
-		
+	
 	if (aString.length() - start < aSubString.length())
 		return (string::size_type)string::npos;
-		
+	
 	if (aSubString.empty())
 		return 0;
-		
+	
 	// Hm, should start measure in characters or in bytes? bytes for now...
 	const uint8_t* tx = (const uint8_t*)aString.c_str() + start;
 	const uint8_t* px = (const uint8_t*)aSubString.c_str();
@@ -1623,12 +1623,12 @@ string::size_type Util::findSubString(const string& aString, const string& aSubS
 		{
 			const uint8_t* px2 = px;
 			const uint8_t* tx2 = tx;
-			
+	
 			for (;;)
 			{
 				if (*px2 == 0)
 					return otx - (uint8_t*)aString.c_str();
-					
+	
 				if (utf8ToLC(px2) != utf8ToLC(tx2))
 					break;
 			}
@@ -1636,18 +1636,18 @@ string::size_type Util::findSubString(const string& aString, const string& aSubS
 	}
 	return (string::size_type)string::npos;
 }
-
+	
 wstring::size_type Util::findSubString(const wstring& aString, const wstring& aSubString, wstring::size_type pos) noexcept
 {
 	if (aString.length() < pos)
 		return static_cast<wstring::size_type>(wstring::npos);
-		
+	
 	if (aString.length() - pos < aSubString.length())
 		return static_cast<wstring::size_type>(wstring::npos);
-		
+	
 	if (aSubString.empty())
 		return 0;
-		
+	
 	wstring::size_type j = 0;
 	wstring::size_type end = aString.length() - aSubString.length() + 1;
 	
@@ -1666,14 +1666,14 @@ wstring::size_type Util::findSubString(const wstring& aString, const wstring& aS
 					break;
 				}
 			}
-			
+	
 			if (found)
 				return pos;
 		}
 	}
 	return static_cast<wstring::size_type>(wstring::npos);
 }
-
+	
 string Util::encodeURI(const string& aString, bool reverse)
 {
 	// reference: rfc2396
@@ -1720,7 +1720,7 @@ string Util::encodeURI(const string& aString, bool reverse)
 	}
 	return tmp;
 }
-
+	
 /**
  * This function takes a string and a set of parameters and transforms them according to
  * a simple formatting rule, similar to strftime. In the message, every parameter should be
@@ -1764,7 +1764,7 @@ string Util::formatParams(const string& msg, const StringMap& params, bool filte
 			// [!] IRainman fix.
 			if (result.size() < j + 2)
 				break;
-				
+	
 			if ((k = result.find(']', j + 2)) == string::npos)
 			{
 				result.replace(j, 2, ""); // [+] IRainman: invalid shablon fix - auto correction.
@@ -1783,7 +1783,7 @@ string Util::formatParams(const string& msg, const StringMap& params, bool filte
 				if (smi->second.find_first_of("\\./") != string::npos)
 				{
 					string tmp = smi->second;
-					
+	
 					if (filter)
 					{
 						// Filter chars that produce bad effects on file systems
@@ -1798,7 +1798,7 @@ string Util::formatParams(const string& msg, const StringMap& params, bool filte
 							tmp[c] = '_';
 						}
 					}
-					
+	
 					result.replace(j, k - j + 1, tmp);
 					i = j + tmp.size();
 				}
@@ -1812,7 +1812,7 @@ string Util::formatParams(const string& msg, const StringMap& params, bool filte
 	}
 	return result;
 }
-
+	
 string Util::formatRegExp(const string& msg, const StringMap& params)
 {
 	string result = msg;
@@ -1838,7 +1838,7 @@ string Util::formatRegExp(const string& msg, const StringMap& params)
 	}
 	return result;
 }
-
+	
 uint64_t Util::getDirSize(const string &sFullPath)
 {
 	uint64_t total = 0;
@@ -1850,7 +1850,7 @@ uint64_t Util::getDirSize(const string &sFullPath)
 	                               FindExSearchNameMatch,
 	                               NULL,
 	                               CompatibilityManager::g_find_file_flags);
-	                               
+	
 	if (hFind != INVALID_HANDLE_VALUE)
 	{
 		const string l_tmp_path = SETTING(TEMP_DOWNLOAD_DIRECTORY);
@@ -1880,12 +1880,12 @@ uint64_t Util::getDirSize(const string &sFullPath)
 	}
 	return total;
 }
-
+	
 bool Util::validatePath(const string &sPath)
 {
 	if (sPath.empty())
 		return false;
-		
+	
 	if ((sPath.substr(1, 2) == ":\\") || (sPath.substr(0, 2) == "\\\\"))
 	{
 		if (GetFileAttributes(Text::toT(sPath).c_str()) & FILE_ATTRIBUTE_DIRECTORY)
@@ -1917,11 +1917,11 @@ string Util::getFilenameForRenaming(const string& p_filename)
 string Util::formatDigitalClock(const string &p_msg, const time_t& p_t, bool p_is_gmt)
 {
 	/*
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	    static int l_count = 0;
 	    if (p_t == time(NULL))
 	        dcdebug("\n\n\nUtil::formatDigitalClock called with curent time. Count = %d\n\n\n", ++l_count);
-	#endif
+#endif
 	*/
 	tm* l_loc = p_is_gmt ? gmtime(&p_t) : localtime(&p_t);
 	if (!l_loc)
@@ -1944,11 +1944,11 @@ string Util::formatDigitalClock(const string &p_msg, const time_t& p_t, bool p_i
 string Util::formatTime(const string &p_msg, const time_t p_t)
 {
 	/*
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	    static int l_count = 0;
 	    if (t == time(NULL))
 	        dcdebug("\n\n\nUtil::formatTime(1) called with curent time. Count = %d\n\n\n", ++l_count);
-	#endif
+#endif
 	*/
 	if (!p_msg.empty())
 	{
@@ -1976,11 +1976,11 @@ string Util::formatTime(const string &p_msg, const time_t p_t)
 				}
 				return buf;
 			}
-			
+	
 			if (errno == EINVAL
 			        || bufsize > l_msgAnsi.size() + 1024) // [+] IRainman fix.
 				return Util::emptyString;
-				
+	
 			bufsize += 64;
 			buf.resize(bufsize);
 		}
@@ -1988,20 +1988,20 @@ string Util::formatTime(const string &p_msg, const time_t p_t)
 	}
 	return Util::emptyString;
 }
-
+	
 string Util::formatTime(uint64_t rest, const bool withSecond /*= true*/)
 {
 #define formatTimeformatInterval(n) _snprintf(buf, _countof(buf), first ? "%I64u " : " %I64u ", n);\
 	/*[+] PVS Studio V576 Incorrect format. Consider checking the fourth actual argument of the '_snprintf' function. The argument is expected to be not greater than 32-bit.*/\
 	formatedTime += (string)buf;\
 	first = false
-
+	
 	/*
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	    static int l_count = 0;
 	    if (rest == time(NULL))
 	        dcdebug("\n\n\nUtil::formatTime(2) called with curent time. Count = %d\n\n\n", ++l_count);
-	#endif
+#endif
 	*/
 	char buf[32];
 	buf[0] = 0;
@@ -2053,7 +2053,7 @@ string Util::formatTime(uint64_t rest, const bool withSecond /*= true*/)
 	
 #undef formatTimeformatInterval
 }
-
+	
 /* Below is a high-speed random number generator with much
    better granularity than the CRT one in msvc...(no, I didn't
    write it...see copyright) */
@@ -2062,14 +2062,14 @@ string Util::formatTime(uint64_t rest, const bool withSecond /*= true*/)
    see http://www.math.keio.ac.jp/matumoto/emt.html or email
    matumoto@math.keio.ac.jp */
 /* Period parameters */
-
+	
 // TODO убрать магические числа!!!
 #define N 624
 #define M 397
 #define MATRIX_A 0x9908b0df   /* constant vector a */
 #define UPPER_MASK 0x80000000 /* most significant w-r bits */
 #define LOWER_MASK 0x7fffffff /* least significant r bits */
-
+	
 /* Tempering parameters */
 #define TEMPERING_MASK_B 0x9d2c5680
 #define TEMPERING_MASK_C 0xefc60000
@@ -2077,10 +2077,10 @@ string Util::formatTime(uint64_t rest, const bool withSecond /*= true*/)
 #define TEMPERING_SHIFT_S(y)  (y << 7)
 #define TEMPERING_SHIFT_T(y)  (y << 15)
 #define TEMPERING_SHIFT_L(y)  (y >> 18)
-
+	
 static std::vector<unsigned long> g_mt(N + 1); /* the array for the state vector  */
 static int g_mti = N + 1; /* mti==N+1 means mt[N] is not initialized */
-
+	
 /* initializing the array with a NONZERO seed */
 static void sgenrand(unsigned long seed)
 {
@@ -2092,7 +2092,7 @@ static void sgenrand(unsigned long seed)
 	for (g_mti = 1; g_mti < N; g_mti++)
 		g_mt[g_mti] = (69069 * g_mt[g_mti - 1]) & ULONG_MAX;
 }
-
+	
 uint32_t Util::rand()
 {
 	unsigned long y;
@@ -2102,23 +2102,23 @@ uint32_t Util::rand()
 	{
 		static unsigned long mag01[2] = {0x0, MATRIX_A};
 		int kk;
-		
+	
 		if (g_mti == N + 1) /* if sgenrand() has not been called, */
 			sgenrand(4357); /* a default initial seed is used   */
-			
+	
 		for (kk = 0; kk < N - M; kk++)
 		{
 			y = (g_mt[kk] & UPPER_MASK) | (g_mt[kk + 1] & LOWER_MASK);
-			g_mt[kk] = g_mt[kk + M] ^(y >> 1) ^ mag01[y & 0x1];
+			g_mt[kk] = g_mt[kk + M] ^ (y >> 1) ^ mag01[y & 0x1];
 		}
 		for (; kk < N - 1; kk++)
 		{
 			y = (g_mt[kk] & UPPER_MASK) | (g_mt[kk + 1] & LOWER_MASK);
-			g_mt[kk] = g_mt[kk + (M - N)] ^(y >> 1) ^ mag01[y & 0x1];
+			g_mt[kk] = g_mt[kk + (M - N)] ^ (y >> 1) ^ mag01[y & 0x1];
 		}
 		y = (g_mt[N - 1] & UPPER_MASK) | (g_mt[0] & LOWER_MASK);
-		g_mt[N - 1] = g_mt[M - 1] ^(y >> 1) ^ mag01[y & 0x1];
-		
+		g_mt[N - 1] = g_mt[M - 1] ^ (y >> 1) ^ mag01[y & 0x1];
+	
 		g_mti = 0;
 	}
 	
@@ -2130,7 +2130,7 @@ uint32_t Util::rand()
 	
 	return y;
 }
-
+	
 string Util::getRandomNick(size_t iNickLength /*= 20*/)
 {
 	static const char  samples[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -2276,7 +2276,7 @@ string Util::toAdcFile(const string& file)
 {
 	if (file == "files.xml.bz2" || file == "files.xml")
 		return file;
-		
+	
 	string ret;
 	ret.reserve(file.length() + 1);
 	ret += '/';
@@ -2294,7 +2294,7 @@ string Util::toNmdcFile(const string& file)
 {
 	if (file.empty())
 		return Util::emptyString;
-		
+	
 	string ret(file.substr(1));
 	for (string::size_type i = 0; i < ret.length(); ++i)
 	{
@@ -2305,14 +2305,14 @@ string Util::toNmdcFile(const string& file)
 	}
 	return ret;
 }
-
+	
 string Util::getIETFLang()
 {
 	string l_lang = SETTING(LANGUAGE_FILE);
 	boost::replace_last(l_lang, ".xml", "");
 	return l_lang;
 }
-
+	
 string Util::translateError(DWORD aError)
 {
 #ifdef _WIN32
@@ -2351,7 +2351,7 @@ string Util::translateError(DWORD aError)
 			    FORMAT_MESSAGE_ALLOCATE_BUFFER |
 			    FORMAT_MESSAGE_FROM_SYSTEM |
 			    FORMAT_MESSAGE_IGNORE_INSERTS;
-			    
+	
 			LPCVOID lpSource = nullptr;
 			// Обработаем расширенные ошибки по инету
 			// http://stackoverflow.com/questions/20435591/internetgetlastresponseinfo-returns-strange-characters-instead-of-error-message
@@ -2390,7 +2390,7 @@ string Util::translateError(DWORD aError)
 			TODO: Load text for errors from other libraries?
 			}
 			*/
-			
+	
 			LPTSTR lpMsgBuf = 0;
 			DWORD chars = FormatMessage(
 			                  l_formatMessageFlag,
@@ -2412,7 +2412,7 @@ string Util::translateError(DWORD aError)
 				// Free the buffer.
 				LocalFree(lpMsgBuf);
 				string::size_type i = 0;
-				
+	
 				while ((i = tmp.find_first_of("\r\n", i)) != string::npos)
 				{
 					tmp.erase(i, 1);
@@ -2433,7 +2433,7 @@ string Util::translateError(DWORD aError)
 	}
 #endif //NIGHTORION_INTERNAL_TRANSLATE_SOCKET_ERRORS
 }
-
+	
 TCHAR* Util::strstr(const TCHAR *str1, const TCHAR *str2, int *pnIdxFound)
 {
 	TCHAR *s1, *s2;
@@ -2460,9 +2460,9 @@ TCHAR* Util::strstr(const TCHAR *str1, const TCHAR *str2, int *pnIdxFound)
 		*pnIdxFound = -1;
 	return nullptr;
 }
-
+	
 /* natural sorting */
-
+	
 int Util::DefaultSort(const wchar_t *a, const wchar_t *b, bool noCase /*=  true*/)
 {
 	/*
@@ -2555,7 +2555,7 @@ void Util::setLimiter(bool aLimiter)
 	SET_SETTING(THROTTLE_ENABLE, aLimiter);
 	ClientManager::infoUpdated();
 }
-
+	
 std::string Util::getRegistryCommaSubkey(const tstring& p_key)
 {
 	std::string l_result;
@@ -2580,7 +2580,7 @@ std::string Util::getRegistryCommaSubkey(const tstring& p_key)
 	}
 	return l_result;
 }
-
+	
 string Util::getRegistryValueString(const TCHAR* p_key, bool p_is_path)
 {
 	HKEY hk = nullptr;
@@ -2601,7 +2601,7 @@ string Util::getRegistryValueString(const TCHAR* p_key, bool p_is_path)
 	}
 	return emptyString;
 }
-
+	
 bool Util::deleteRegistryValue(const TCHAR* p_key)
 {
 	HKEY hk = nullptr;
@@ -2646,7 +2646,7 @@ DWORD Util::getRegistryValueInt(const TCHAR* p_key)
 	}
 	return 0;
 }
-
+	
 bool Util::setRegistryValueString(const TCHAR* p_key, const tstring& p_value)
 {
 	HKEY hk = nullptr;
@@ -2659,7 +2659,7 @@ bool Util::setRegistryValueString(const TCHAR* p_key, const tstring& p_value)
 	dcassert(status == ERROR_SUCCESS);
 	return status == ERROR_SUCCESS;
 }
-
+	
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 bool Util::isStreamingVideoFile(const string& p_file) // [+] SSA
 {
@@ -2798,7 +2798,7 @@ bool CFlyHTTPDownloader::switchMirrorURL(string& p_url, int p_mirror)
 	}
 	return false;
 }
-
+	
 int CFlyHTTPDownloader::g_last_stable_mirror = 0;
 void CFlyHTTPDownloader::nextMirror()
 {
@@ -2808,7 +2808,7 @@ void CFlyHTTPDownloader::nextMirror()
 	if (g_last_stable_mirror == 4)
 		g_last_stable_mirror = 0;
 }
-
+	
 uint64_t CFlyHTTPDownloader::getBinaryDataFromInetSafe(const string& p_url, std::vector<unsigned char>& p_data_out,
                                                        LONG p_time_out /*=0*/, IDateReceiveReporter* p_reporter /* = NULL */)
 {
@@ -2857,7 +2857,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInetSafe(const string& p_url, std:
 	}
 	return l_length;
 }
-
+	
 static void useDebugProxy(HINTERNET hInternet)
 {
 #ifdef _DEBUG
@@ -2866,7 +2866,7 @@ static void useDebugProxy(HINTERNET hInternet)
 	{
 		//g_is_first = true;
 		const LPWSTR proxyName = _T("http://localhost:1111");
-		
+	
 		INTERNET_PER_CONN_OPTION_LIST OptionList;
 		INTERNET_PER_CONN_OPTION Option[3];
 		const unsigned long listSize = sizeof(INTERNET_PER_CONN_OPTION_LIST);
@@ -2877,12 +2877,12 @@ static void useDebugProxy(HINTERNET hInternet)
 		OptionList.pszConnection = NULL;
 		OptionList.dwOptionCount = 3;
 		OptionList.dwOptionError = 0;
-		
+	
 		Option[0].Value.pszValue = (LPWSTR)proxyName;
 		Option[1].Value.dwValue = PROXY_TYPE_PROXY;
 		Option[2].Value.pszValue = (LPWSTR)L"";
 		OptionList.pOptions = Option;
-		
+	
 		if (!InternetSetOption(hInternet, INTERNET_OPTION_PER_CONNECTION_OPTION, &OptionList, listSize)) {
 			dcassert(0);
 		}
@@ -2919,7 +2919,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInetArray(CFlyUrlItemArray& p_url_
 		InternetSetOption(hInternet, INTERNET_OPTION_SEND_TIMEOUT, &p_time_out, sizeof(p_time_out));
 	}
 	bool isUserCancel = false;
-for (auto & u : p_url_array)
+	for (auto& u : p_url_array)
 	{
 		if (isUserCancel)
 			break;
@@ -3029,7 +3029,7 @@ for (auto & u : p_url_array)
 	return sumBytesRead;
 	
 }
-
+	
 uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vector<unsigned char>& p_data_out, LONG p_time_out /*=0*/, IDateReceiveReporter* p_reporter /* = NULL */)
 {
 	m_last_error_code = 0;
@@ -3157,7 +3157,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 	p_data_out.resize(totalBytesRead);
 	return totalBytesRead;
 }
-
+	
 // [-] IRainman
 //bool Util::IsXPSP3AndHigher()
 //{
@@ -3199,7 +3199,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 //	if (&ver != &osvi) osvi = ver;
 //	return true;
 //}
-
+	
 bool Util::getTTH_MD5(const string& p_filename, size_t p_buffSize, unique_ptr<TigerTree>* p_tth, unique_ptr<MD5Calc>* p_md5 /* = 0 */, bool p_isAbsPath/* = true*/)
 {
 	dcassert(p_tth != nullptr);
@@ -3209,7 +3209,7 @@ bool Util::getTTH_MD5(const string& p_filename, size_t p_buffSize, unique_ptr<Ti
 	try
 	{
 		File f(p_filename, File::READ, File::OPEN, p_isAbsPath);
-		
+	
 		*p_tth = unique_ptr<TigerTree>(new TigerTree(TigerTree::calcBlockSize(f.getSize(), 1)));
 		if (p_md5)
 		{
@@ -3285,7 +3285,7 @@ void Util::BackupSettings()
 		}
 	}
 }
-
+	
 string Util::formatDchubUrl(const string& DchubUrl)
 {
 #ifdef _DEBUG
@@ -3302,12 +3302,12 @@ string Util::formatDchubUrl(const string& DchubUrl)
 	return l_url;
 }
 // [~] NightOrion
-
+	
 string Util::getMagnet(const TTHValue& aHash, const string& aFile, int64_t aSize)
 {
 	return "magnet:?xt=urn:tree:tiger:" + aHash.toBase32() + "&xl=" + toString(aSize) + "&dn=" + encodeURI(aFile);
 }
-
+	
 // [+] necros
 string Util::getWebMagnet(const TTHValue& aHash, const string& aFile, int64_t aSize)
 {
@@ -3318,7 +3318,7 @@ string Util::getWebMagnet(const TTHValue& aHash, const string& aFile, int64_t aS
 	params["name"] = aFile;
 	return formatParams(SETTING(COPY_WMLINK), params, false);
 }
-
+	
 string Util::getMagnetByPath(const string& aFile) // [+] SSA - returns empty string or magnet
 {
 	// [-] IRainman fix. try {
@@ -3327,7 +3327,7 @@ string Util::getMagnetByPath(const string& aFile) // [+] SSA - returns empty str
 	int64_t outSize = 0;
 	if (ShareManager::getInstance()->findByRealPathName(aFile, &outTTH, &outFilename,  &outSize))
 		return getMagnet(outTTH, outFilename, outSize);
-		
+	
 	// [-] IRainman fix. } catch (ShareException& /*shEx*/) {}
 	return emptyString;
 }
@@ -3343,7 +3343,7 @@ string Util::getDownloadPath(const string& def)
 		if (shell32)
 		{
 			_SHGetKnownFolderPath getKnownFolderPath = (_SHGetKnownFolderPath)::GetProcAddress(shell32, "SHGetKnownFolderPath");
-			
+	
 			if (getKnownFolderPath)
 			{
 				PWSTR path = nullptr;
@@ -3362,14 +3362,14 @@ string Util::getDownloadPath(const string& def)
 	
 	return def + "Downloads\\";
 }
-
+	
 // From RSSManager.h
 string Util::ConvertFromHTMLSymbol(const string &htmlString, const string& findString, const string& changeString)
 {
 	string strRet;
 	if (htmlString.empty())
 		return htmlString;
-		
+	
 	string::size_type findFirst = htmlString.find(findString);
 	string::size_type prevPos = 0;
 	while (findFirst != string::npos)
@@ -3402,7 +3402,7 @@ string Util::ConvertFromHTML(const string &htmlString)
 	return strRet;
 }
 // From RSSManager.h
-
+	
 tstring Util::eraseHtmlTags(tstring && p_desc)
 {
 	static const std::wregex g_tagsRegex(L"<[^>]+>|<(.*)>");
@@ -3453,7 +3453,7 @@ tstring Util::eraseHtmlTags(tstring && p_desc)
 	*/
 	return p_desc;
 }
-
+	
 void Util::playSound(const string& p_sound, const bool p_beep /* = false */)
 {
 //#ifdef _DEBUG
@@ -3474,7 +3474,7 @@ StringList Util::splitSettingAndReplaceSpace(string patternList)
 	boost::replace_all(patternList, " ", "");
 	return splitSettingAndLower(patternList);
 }
-
+	
 string Util::toSettingString(const StringList& patternList)
 {
 	string ret;
@@ -3495,13 +3495,13 @@ string Util::getLang()
 	dcassert(l_lang.length() == 9);
 	return l_lang.substr(0, 2);
 }
-
+	
 string Util::getWikiLink()
 {
 	return HELPPAGE + getLang() + ':';
 }
-
-
+	
+	
 DWORD Util::GetTextResource(const int p_res, LPCSTR& p_data)
 {
 	HRSRC hResInfo = FindResource(nullptr, MAKEINTRESOURCE(p_res), RT_RCDATA);
@@ -3520,7 +3520,7 @@ DWORD Util::GetTextResource(const int p_res, LPCSTR& p_data)
 	dcassert(0);
 	return 0;
 }
-
+	
 void Util::WriteTextResourceToFile(const int p_res, const tstring& p_file)
 {
 	LPCSTR l_data;
@@ -3640,9 +3640,10 @@ bool Util::isHttpsLink(const string& p_url)
 {
 	return strnicmp(p_url.c_str(), "https://", 8) == 0;
 }
-
-
+	
+	
 /**
  * @file
  * $Id: Util.cpp 575 2011-08-25 19:38:04Z bigmuscle $
  */
+	

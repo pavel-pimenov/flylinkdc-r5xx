@@ -259,9 +259,11 @@ class QueueManager : public Singleton<QueueManager>,
 		static bool addSourceL(const QueueItemPtr& qi, const UserPtr& aUser, Flags::MaskType addBad, bool p_is_first_load = false);
 	private:
 		static uint64_t g_lastSave;
+#ifdef FLYLINKDC_USE_SHARED_FILE_CACHE // Не включать - глючит
 		static std::unordered_map<string, std::unique_ptr<SharedFileStream>> g_SharedDownloadFileCache;
 		static FastCriticalSection g_SharedDownloadFileCache_cs;
 		static void cleanSharedCache();
+#endif // FLYLINKDC_USE_SHARED_FILE_CACHE
 	public:
 		static string getQueueFile()
 		{

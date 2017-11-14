@@ -134,7 +134,7 @@ string TokenManager::toString() noexcept
 	if (!m_tokens.empty())
 	{
 		l_res = "Tokens:\r\n";
-for (auto i : m_tokens)
+		for (auto i : m_tokens)
 		{
 			l_res += i;
 			l_res += ",";
@@ -492,7 +492,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 		l_idlers.swap(m_checkIdle); // [!] IRainman opt: use swap.
 #endif
-		for (auto i = g_downloads.cbegin(); i != g_downloads.cend(); ++i)
+		for (auto i = g_downloads.cbegin(); i != g_downloads.cend() && !ClientManager::isBeforeShutdown(); ++i)
 		{
 			const auto cqi = *i;
 			if (cqi->getState() != ConnectionQueueItem::ACTIVE) // crash - https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=44111
@@ -510,14 +510,17 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 					continue;
 				}
 #ifdef _DEBUG
-				const unsigned l_count_sec = 10;
-				const unsigned l_count_sec_connecting = 5;
+                const unsigned l_count_sec = 60;
+                const unsigned l_count_sec_connecting = 50;
+                //const unsigned l_count_sec = 10;
+				//const unsigned l_count_sec_connecting = 5;
 #else
 				const unsigned l_count_sec = 60;
 				const unsigned l_count_sec_connecting = 50;
 #endif
+                const auto l_count_error = cqi->getErrors();
 				if (cqi->getLastAttempt() == 0 || ((SETTING(DOWNCONN_PER_SEC) == 0 || l_attempts < SETTING(DOWNCONN_PER_SEC)) &&
-				                                   cqi->getLastAttempt() + l_count_sec * 1000 * max(1, cqi->getErrors()) < aTick))
+				                                   cqi->getLastAttempt() + l_count_sec * 1000 * max(1, l_count_error) < aTick))
 				{
 					cqi->setLastAttempt(aTick);
 					
@@ -853,8 +856,8 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 	}
 	else
 	{
-		if (false  // TODO - узнать почему тут такой затыкон оставлен в оригинальном dc++
-		&& now + g_FLOOD_TRIGGER < m_floodCounter)
+		/*if (false  // TODO - узнать почему тут такой затыкон оставлен в оригинальном dc++
+		        && now + g_FLOOD_TRIGGER < m_floodCounter)
 		{
 			Socket s;
 			try
@@ -870,6 +873,7 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 			return;
 		}
 		else
+        */
 		{
 			if (g_ConnToMeCount <= 0)
 			{
@@ -1134,12 +1138,21 @@ void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, uin
                                     bool secure)
 {
 	if (isShuttingDown())
+	{
+		dcassert(0);
 		return;
+	}
 	if (UserConnection::is_error_user(aIPServer))
+	{
+		dcassert(0);
 		return;
+	}
 	if (checkIpFlood(aIPServer, aPort, boost::asio::ip::address_v4(), "", "[nmdcConnect][Hub: " + hubUrl + "]"))
+	{
+		dcassert(0);
 		return;
-		
+	}
+	
 	UserConnection* uc = getConnection(true, secure); // [!] IRainman fix SSL connection on NMDC(S) hubs.
 	uc->setServerPort(aIPServer + ':' + Util::toString(aPort)); // CTM2HUB
 	uc->setUserConnectionToken(aNick); // Токен = ник?
@@ -1783,6 +1796,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 				l_error_download.m_reason = aError;
 				l_error_download.m_token = cqi->getConnectionQueueToken();
 				//!!! putCQI_L(cqi); не делаем отключение - теряем докачку https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1679
+				l_is_fire_faled = true;
 			}
 		}
 		else if (aSource->isSet(UserConnection::FLAG_UPLOAD))
@@ -1804,11 +1818,12 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 					putCQI_L(cqi);
 				}
 			}
-			if (!ClientManager::isBeforeShutdown())
-			{
-				fly_fire3(ConnectionManagerListener::Removed(), aSource->getHintedUser(), l_is_download, l_token);
-				l_is_fire_faled = false;
-			}
+            l_is_fire_faled = false;
+			// такого удаления нет в ApexDC++
+			//if (!ClientManager::isBeforeShutdown())
+			//{
+			//  fly_fire3(ConnectionManagerListener::Removed(), aSource->getHintedUser(), l_is_download, l_token);
+			//}
 		}
 		if (l_is_fire_faled && !ClientManager::isBeforeShutdown() && l_error_download.m_hinted_user.user)
 		{
@@ -1817,7 +1832,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 	}
 	else
 	{
-		//dcassert(0);
+		dcassert(0);
 	}
 	putConnection(aSource);
 }

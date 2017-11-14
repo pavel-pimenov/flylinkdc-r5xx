@@ -1703,7 +1703,6 @@ bool CFlyServerJSON::isTestPortOK(unsigned short p_port, const std::string& p_ty
 	extern bool g_DisableTestPort;
 	if (g_DisableTestPort == false)
 	{
-
 		dcassert(p_type == "udp" || p_type == "tcp");
 		CFlyFastLock(g_cs_test_port);
 		const auto i = g_test_port_map.find(make_pair(p_port, p_type));
@@ -1856,7 +1855,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 }
 #endif
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 85 (36,58,44,49 - устарели)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 88 (36,58,44,49 - устарели)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;

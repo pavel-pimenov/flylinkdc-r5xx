@@ -60,8 +60,10 @@ Lock std::unique_ptr<webrtc::RWLockWrapper> QueueManager::UserQueue::g_userQueue
 #ifdef FLYLINKDC_USE_RUNNING_QUEUE_CS
 std::unique_ptr<webrtc::RWLockWrapper> QueueManager::UserQueue::g_runningMapCS = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 #endif
+#ifdef FLYLINKDC_USE_SHARED_FILE_CACHE
 std::unordered_map<string, std::unique_ptr<SharedFileStream>> QueueManager::g_SharedDownloadFileCache;
 FastCriticalSection QueueManager::g_SharedDownloadFileCache_cs;
+#endif
 
 using boost::adaptors::map_values;
 using boost::range::for_each;
@@ -872,7 +874,9 @@ QueueManager::QueueManager() :
 
 QueueManager::~QueueManager() noexcept
 {
+#ifdef FLYLINKDC_USE_SHARED_FILE_CACHE
 	cleanSharedCache();
+#endif
 	//dcassert(m_fire_src_array.empty());
 	dcassert(m_remove_target_array.empty());
 	SearchManager::getInstance()->removeListener(this);
@@ -898,22 +902,27 @@ QueueManager::~QueueManager() noexcept
 		{
 			std::sort(filelists.begin(), filelists.end());
 			std::for_each(filelists.begin(),
-			std::set_difference(filelists.begin(), filelists.end(), protectedFileLists.begin(), protectedFileLists.end(), filelists.begin()),
-			File::deleteFile);
+			              std::set_difference(filelists.begin(), filelists.end(), protectedFileLists.begin(), protectedFileLists.end(), filelists.begin()),
+			              File::deleteFile);
 		}
 	}
 	SharedFileStream::check_before_destoy();
 }
+
+#ifdef FLYLINKDC_USE_SHARED_FILE_CACHE
 void QueueManager::cleanSharedCache()
 {
 	CFlyFastLock(g_SharedDownloadFileCache_cs);
 	//dcassert(g_SharedDownloadFileCache.empty());
 	g_SharedDownloadFileCache.clear();
 }
+#endif
 
 void QueueManager::shutdown() // [+] IRainman opt.
 {
+#ifdef FLYLINKDC_USE_SHARED_FILE_CACHE
 	cleanSharedCache();
+#endif
 	m_listMatcher.forceStop();
 #ifdef FLYLINKDC_USE_DETECT_CHEATING
 	m_listQueue.forceStop();
@@ -1153,11 +1162,11 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 		}
 		/*
 		if (QueueManager::is_queue_tth(aRoot))
-		{
+		        {
 		            dcassert(0);
-		    throw QueueException(STRING(TTH_ALREADY_QUEUE_DOWNLOAD)
-		                         + l_target_name);
-		}
+		            throw QueueException(STRING(TTH_ALREADY_QUEUE_DOWNLOAD)
+		                                 + l_target_name);
+		        }
 		*/
 		
 	}
@@ -1251,11 +1260,11 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 					
 					switch (m_curOnDownloadSettings)
 					{
-							/* FLylinkDC Team TODO: IRainman: давайте копировать имеющийся файл в папку назначения? будем трафик экономить! p.s: см. выше. :)
-							case SettingsManager::ON_DOWNLOAD_EXIST_FILE_TO_NEW_DEST:
-							    ...
-							    return;
-							*/
+						/* FLylinkDC Team TODO: IRainman: давайте копировать имеющийся файл в папку назначения? будем трафик экономить! p.s: см. выше. :)
+						case SettingsManager::ON_DOWNLOAD_EXIST_FILE_TO_NEW_DEST:
+						    ...
+						    return;
+						*/
 						case SettingsManager::ON_DOWNLOAD_REPLACE:
 							File::deleteFile(l_target); // Delete old file.  FlylinkDC Team TODO: recheck existing file to save traffic and download time.
 							break;
@@ -1891,6 +1900,8 @@ void QueueManager::setFile(const DownloadPtr& d)
 		
 		// open stream for both writing and reading, because UploadManager can request reading from it
 		const auto l_file_size = d->getTigerTree().getFileSize();
+		
+#ifdef FLYLINKDC_USE_SHARED_FILE_CACHE
 		{
 			CFlyFastLock(g_SharedDownloadFileCache_cs);
 			auto& l_cache = g_SharedDownloadFileCache[l_target];
@@ -1899,7 +1910,9 @@ void QueueManager::setFile(const DownloadPtr& d)
 				l_cache = std::make_unique<SharedFileStream>(l_target, File::RW, File::OPEN | File::CREATE | File::SHARED | File::NO_CACHE_HINT, l_file_size);
 			}
 		}
+#else
 		auto f = new SharedFileStream(l_target, File::RW, File::OPEN | File::CREATE | File::SHARED | File::NO_CACHE_HINT, l_file_size);
+#endif
 		// Only use antifrag if we don't have a previous non-antifrag part
 		// if (BOOLSETTING(ANTI_FRAG))
 		// Всегда юзаем антифрагментатор
@@ -1908,6 +1921,7 @@ void QueueManager::setFile(const DownloadPtr& d)
 			{
 				if (f->getFastFileSize() != qi->getSize())
 				{
+					dcassert(l_file_size == d->getTigerTree().getFileSize());
 					f->setSize(l_file_size);
 					qi->setLastSize(l_file_size);
 				}
@@ -1924,7 +1938,8 @@ void QueueManager::setFile(const DownloadPtr& d)
 	else if (d->getType() == Transfer::TYPE_FULL_LIST)
 	{
 		{
-			QueueItemPtr qi = QueueManager::FileQueue::find_target(d->getPath());
+            const auto l_path = d->getPath();
+			QueueItemPtr qi = QueueManager::FileQueue::find_target(l_path);
 			if (!qi)
 			{
 				throw QueueException(STRING(TARGET_REMOVED));
@@ -1962,11 +1977,13 @@ void QueueManager::setFile(const DownloadPtr& d)
 
 void QueueManager::moveFile(const string& p_source, const string& p_target)
 {
+#ifdef FLYLINKDC_USE_SHARED_FILE_CACHE
 	{
 		CFlyFastLock(g_SharedDownloadFileCache_cs);
 		dcassert(g_SharedDownloadFileCache.find(p_source) != g_SharedDownloadFileCache.end());
 		g_SharedDownloadFileCache.erase(p_source);
 	}
+#endif
 	// TODO - принудительно закрывать файл по имени в пуле
 	File::ensureDirectory(p_target);
 	if (File::getSize(p_source) > MOVER_LIMIT)
@@ -2768,9 +2785,9 @@ void QueueManager::saveQueue(bool force /* = false*/) noexcept
 					if (!qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP))
 					{
 						if (qi->getFlyQueueID() &&
-						qi->isDirtySegment() == true &&
-						qi->isDirtyBase() == false &&
-						qi->isDirtySource() == false)
+						        qi->isDirtySegment() == true &&
+						        qi->isDirtyBase() == false &&
+						        qi->isDirtySource() == false)
 						{
 						
 							const CFlySegment l_QueueSegment(qi);
