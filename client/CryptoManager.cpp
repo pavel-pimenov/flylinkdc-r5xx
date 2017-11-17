@@ -146,6 +146,8 @@ CryptoManager::~CryptoManager()
 	freeTmpKeyMaps();
 	
 	/* global application exit cleanup (after all SSL activity is shutdown) */
+	SSL_COMP_free_compression_methods();
+
 	ERR_free_strings();
 	EVP_cleanup();
 	CRYPTO_cleanup_all_ex_data();
