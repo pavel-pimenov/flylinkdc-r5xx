@@ -811,7 +811,7 @@ void upnp::create_port_mapping(http_connection& c, rootdevice& d
 		"<NewLeaseDuration>%u</NewLeaseDuration>"
 		, d.mapping[i].external_port
 		, to_string(d.mapping[i].protocol)
-		, d.mapping[i].local_ep.port()
+		, unsigned(d.mapping[i].local_ep.port())
 		, local_endpoint.c_str()
 		, m_user_agent.c_str()
 		, d.lease_duration);

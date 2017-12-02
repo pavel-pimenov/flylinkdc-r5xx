@@ -30,21 +30,22 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_DOWNLOAD_PRIORITY_HPP_INCLUDED
-#define TORRENT_DOWNLOAD_PRIORITY_HPP_INCLUDED
 
-#include "libtorrent/units.hpp"
+#ifndef TORRENT_OPTIONAL_HPP_INCLUDED
+#define TORRENT_OPTIONAL_HPP_INCLUDED
+
+#include "libtorrent/aux_/disable_warnings_push.hpp"
+#include <boost/optional.hpp>
+#include "libtorrent/aux_/disable_warnings_pop.hpp"
 
 namespace libtorrent {
 
-struct download_priority_tag;
-using download_priority_t = aux::strong_typedef<std::uint8_t, download_priority_tag>;
-
-constexpr download_priority_t dont_download{0};
-constexpr download_priority_t default_priority{4};
-constexpr download_priority_t low_priority{1};
-constexpr download_priority_t top_priority{7};
-
+	template <typename T, typename U>
+	T value_or(boost::optional<T> opt, U def)
+	{
+		return opt ? *opt : T(def);
+	}
 }
 
 #endif
+

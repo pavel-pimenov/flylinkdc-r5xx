@@ -54,7 +54,11 @@ bool ShareManager::g_ignoreFileSizeHFS = false; // http://www.flylinkdc.ru/2015/
 size_t ShareManager::g_hits = 0;
 int ShareManager::g_RebuildIndexes = 0;
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csBloom = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShare = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+#else
 CriticalSection ShareManager::g_csShare;
+#endif
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShareNotExists = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csShareCache = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 
@@ -242,8 +246,11 @@ int64_t ShareManager::Directory::getDirSizeL() const noexcept
 
 bool ShareManager::destinationShared(const string& file_or_dir_name) // [+] IRainman opt.
 {
-	//CFlyReadLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+	CFlyReadLock(*g_csShare);
+#else
 	CFlyLock(g_csShare);
+#endif
 	for (auto i = g_shares.cbegin(); i != g_shares.cend(); ++i)
 	{
 		if (strnicmp(i->first, file_or_dir_name, i->first.size()) == 0 && file_or_dir_name[i->first.size() - 1] == PATH_SEPARATOR)
@@ -285,8 +292,11 @@ bool ShareManager::isTTHShared(const TTHValue& tth)
 }
 string ShareManager::toRealPath(const TTHValue& tth)
 {
-	//CFlyReadLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+	CFlyReadLock(*g_csShare);
+#else
 	CFlyLock(g_csShare);
+#endif
 	{
 		CFlyLock(g_csTTHIndex);
 		const auto i = g_tthIndex.find(tth);
@@ -316,8 +326,11 @@ string ShareManager::toVirtual(const TTHValue& tth)
 	{
 		return Transfer::g_user_list_name;
 	}
-	//CFlyReadLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+	CFlyReadLock(*g_csShare);
+#else
 	CFlyLock(g_csShare);
+#endif
 	{
 		CFlyLock(g_csTTHIndex);
 		const auto& i = g_tthIndex.find(tth);
@@ -426,8 +439,11 @@ void ShareManager::getFileInfo(AdcCommand& cmd, const string& aFile)
 		throw ShareException(UserConnection::g_FILE_NOT_AVAILABLE, aFile);
 		
 	const TTHValue val(aFile.c_str() + 4); //[+]FlylinkDC++
-	//CFlyReadLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+	CFlyReadLock(*g_csShare);
+#else
 	CFlyLock(g_csShare);
+#endif
 	{
 		CFlyLock(g_csTTHIndex);
 		const auto& i = g_tthIndex.find(val);
@@ -508,9 +524,11 @@ string ShareManager::findFileAndRealPath(const string& virtualFile, TTHValue& p_
 			return i->second.first;
 		}
 	}
-	
-	//CFlyReadLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+	CFlyReadLock(*g_csShare);
+#else
 	CFlyLock(g_csShare);
+#endif
 	if (l_is_tth)
 	{
 		CFlyLock(g_csTTHIndex);
@@ -565,8 +583,12 @@ string ShareManager::validateVirtual(const string& aVirt) noexcept
 void ShareManager::load(SimpleXML& aXml)
 {
 	CFlyBusy l_busy(g_RebuildIndexes);
-	//CFlyWriteLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+	CFlyWriteLock(*g_csShare);
+#else
 	CFlyLock(g_csShare);
+#endif
+	
 	aXml.resetCurrentChild();
 	if (aXml.findChild("Share"))
 	{
@@ -773,8 +795,12 @@ bool ShareManager::loadCache() noexcept
 		{
 			{
 				CFlyBusy l_busy(g_RebuildIndexes);
-				//CFlyWriteLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+				CFlyWriteLock(*g_csShare);
+#else
 				CFlyLock(g_csShare);
+#endif
+				
 				{
 					for (auto i = g_list_directories.cbegin(); i != g_list_directories.cend(); ++i)
 					{
@@ -811,8 +837,11 @@ bool ShareManager::loadCache() noexcept
 
 void ShareManager::save(SimpleXML& aXml)
 {
-	//CFlyReadLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+	CFlyReadLock(*g_csShare);
+#else
 	CFlyLock(g_csShare);
+#endif
 	
 	aXml.addTag("Share");
 	aXml.stepIn();
@@ -913,8 +942,11 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 	{
 		ShareMap a;
 		{
-			//CFlyReadLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+			CFlyReadLock(*g_csShare);
+#else
 			CFlyLock(g_csShare);
+#endif
 			a = g_shares;
 		}
 		
@@ -946,8 +978,12 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 		rebuildSkipList();
 		{
 			CFlyBusy l_busy(g_RebuildIndexes);
-			//CFlyWriteLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+			CFlyWriteLock(*g_csShare);
+#else
 			CFlyLock(g_csShare);
+#endif
+			
 			{
 				__int64 l_path_id = 0;
 				Directory::Ptr dp = buildTreeL(l_path_id, realPath, Directory::Ptr(), p_is_job);
@@ -1051,8 +1087,12 @@ void ShareManager::removeDirectory(const string& realPath)
 	
 	{
 		CFlyBusy l_busy(g_RebuildIndexes);
-		//CFlyWriteLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+		CFlyWriteLock(*g_csShare);
+#else
 		CFlyLock(g_csShare);
+#endif
+		
 		auto i = g_shares.find(realPath);
 		if (i == g_shares.end())
 		{
@@ -1117,8 +1157,12 @@ int64_t ShareManager::getShareSize(const string& realPath)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	dcassert(!realPath.empty());
-	//CFlyReadLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+	CFlyReadLock(*g_csShare);
+#else
 	CFlyLock(g_csShare);
+#endif
+	
 	const auto i = g_shares.find(realPath);
 	if (i != g_shares.end())
 	{
@@ -1614,8 +1658,12 @@ void ShareManager::getDirectories(CFlyDirItemArray& p_dirs)
 {
 	dcassert(p_dirs.empty());
 	p_dirs.clear();
-	//CFlyReadLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+	CFlyReadLock(*g_csShare);
+#else
 	CFlyLock(g_csShare);
+#endif
+	
 	p_dirs.reserve(g_shares.size());
 	for (auto i = g_shares.cbegin(); i != g_shares.cend(); ++i)
 	{
@@ -1673,8 +1721,12 @@ int ShareManager::run()
 		DirList newDirs;
 		{
 			CFlyBusy l_busy(g_RebuildIndexes);
-			//CFlyWriteLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+			CFlyWriteLock(*g_csShare);
+#else
 			CFlyLock(g_csShare);
+#endif
+			
 			for (auto i = directories.begin(); i != directories.end(); ++i)
 			{
 				if (checkAttributs(i->m_path))
@@ -1697,8 +1749,12 @@ int ShareManager::run()
 		{
 			CFlyBusy l_busy(g_RebuildIndexes);
 			
-			//CFlyWriteLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+			CFlyWriteLock(*g_csShare);
+#else
 			CFlyLock(g_csShare);
+#endif
+			
 			{
 				g_list_directories.clear();
 				for (auto i = newDirs.cbegin(); i != newDirs.cend(); ++i)
@@ -1766,8 +1822,12 @@ void ShareManager::generateXmlList()
 				newXmlFile.write(SimpleXML::utf8Header);
 				newXmlFile.write("<FileListing Version=\"1\" CID=\"" + ClientManager::getMyCID().toBase32() + "\" Base=\"/\" Generator=\"DC++ " DCVERSIONSTRING "\">\r\n"); // [!] IRainman fix.
 				{
-					//CFlyReadLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+					CFlyReadLock(*g_csShare);
+#else
 					CFlyLock(g_csShare);
+#endif
+					
 					for (auto i = g_list_directories.cbegin(); i != g_list_directories.cend(); ++i)
 					{
 						(*i)->toXmlL(newXmlFile, indent, tmp2, true); // https://www.box.net/shared/e9d04cfcc59d4a4aaba7
@@ -1880,8 +1940,12 @@ MemoryInputStream* ShareManager::generatePartialList(const string& dir, bool rec
 	}
 	StringOutputStream sos(xml);
 	
-	//CFlyReadLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+	CFlyReadLock(*g_csShare);
+#else
 	CFlyLock(g_csShare);
+#endif
+	
 	
 	string indent = "\t";
 	
@@ -2638,7 +2702,11 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 	}
 	if (!ssl.empty())
 	{
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+		CFlyReadLock(*g_csShare);
+#else
 		CFlyLock(g_csShare);
+#endif
 		for (auto j = g_list_directories.cbegin(); j != g_list_directories.cend() && aResults.size() < p_search_param.m_max_results; ++j)
 		{
 			(*j)->search(aResults, ssl, p_search_param);
@@ -2848,7 +2916,11 @@ void ShareManager::search_max_result(SearchResultList& aResults, const StringLis
 		}
 	}
 	{
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+		CFlyReadLock(*g_csShare);
+#else
 		CFlyLock(g_csShare);
+#endif
 		for (auto j = g_list_directories.cbegin(); j != g_list_directories.cend() && aResults.size() < maxResults && !ClientManager::isBeforeShutdown(); ++j)
 		{
 			(*j)->search(aResults, srch, maxResults);
@@ -2904,8 +2976,12 @@ void ShareManager::on(QueueManagerListener::FileMoved, const string& n) noexcept
 	{
 		// Check if finished download is supposed to be shared
 		/* [-] IRainman opt.
-		//CFlyReadLock(*g_csShare);
+		#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+		CFlyReadLock(*g_csShare);
+		#else
 		CFlyLock(g_csShare);
+		#endif
+		
 		for (auto i = g_shares.cbegin(); i != g_shares.cend(); ++i)
 		{
 		    if (strnicmp(i->first, n, i->first.size()) == 0 && n[i->first.size() - 1] == PATH_SEPARATOR)
@@ -2940,8 +3016,12 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 	dcassert(!ClientManager::isBeforeShutdown());
 	{
 		CFlyBusy l_busy(g_RebuildIndexes);
-		//CFlyWriteLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+		CFlyWriteLock(*g_csShare);
+#else
 		CFlyLock(g_csShare);
+#endif
+		
 		{
 			if (Directory::Ptr d = getDirectoryL(fname)) // TODO прокинуть p_path_id и искать по нему?
 			{
@@ -3216,8 +3296,12 @@ int64_t ShareManager::removeExcludeFolder(const string &path, bool returnSize /*
 
 bool ShareManager::findByRealPathName(const string& realPathname, TTHValue* outTTHPtr, string* outfilenamePtr /*= NULL*/, int64_t* outSizePtr/* = NULL*/) // [+] SSA
 {
-	//CFlyReadLock(*g_csShare);
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+	CFlyReadLock(*g_csShare);
+#else
 	CFlyLock(g_csShare);
+#endif
+	
 	{
 		const Directory::Ptr d = ShareManager::getDirectoryL(realPathname);
 		if (!d)

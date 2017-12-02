@@ -186,8 +186,8 @@ namespace libtorrent { namespace aux {
 		virtual bool is_aborted() const = 0;
 		virtual int num_uploads() const = 0;
 		virtual bool preemptive_unchoke() const = 0;
-		virtual void trigger_optimistic_unchoke() = 0;
-		virtual void trigger_unchoke() = 0;
+		virtual void trigger_optimistic_unchoke() noexcept = 0;
+		virtual void trigger_unchoke() noexcept = 0;
 
 		virtual std::weak_ptr<torrent> find_torrent(sha1_hash const& info_hash) const = 0;
 		virtual std::weak_ptr<torrent> find_disconnect_candidate_torrent() const = 0;
@@ -249,7 +249,7 @@ namespace libtorrent { namespace aux {
 		virtual peer_class_pool& peer_classes() = 0;
 		virtual bool ignore_unchoke_slots_set(peer_class_set const& set) const = 0;
 		virtual int copy_pertinent_channels(peer_class_set const& set
-			, int channel, bandwidth_channel** dst, int max) = 0;
+			, int channel, bandwidth_channel** dst, int m) = 0;
 		virtual int use_quota_overhead(peer_class_set& set, int amount_down, int amount_up) = 0;
 
 		virtual bandwidth_manager* get_bandwidth_manager(int channel) = 0;

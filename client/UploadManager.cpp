@@ -357,7 +357,6 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 					Client: [Outgoing][194.186.25.22]       $ADCSND list /music/Vangelis/[1988]\ Vangelis\ -\ Direct/ 0 2029 ZL1|
 					*/
 					CFlyServerJSON::pushError(80, "Disconnect bug client: $ADCGET / $ADCSND User: " + l_User.user->getLastNick() + " Hub:" + aSource->getHubUrl());
-					// Небудем пока лочить по IP UserConnection::add_error_user(aSource->getRemoteIp());
 					aSource->disconnect();
 					
 				}

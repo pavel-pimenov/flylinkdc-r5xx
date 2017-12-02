@@ -327,7 +327,7 @@ File__Analyze::File__Analyze ()
         BookMark_Element_Level = 0;
         BookMark_GoTo = 0;
         PES_FirstByte_Value = 0;
-		EOF_AlreadyDetected = false;
+        EOF_AlreadyDetected = false;
 }
 
 //---------------------------------------------------------------------------
@@ -345,7 +345,7 @@ File__Analyze::~File__Analyze ()
     #if MEDIAINFO_AES
         delete AES; //AES=NULL;
         delete AES_IV; //AES_IV=NULL;
-        delete AES_Decrypted; //AES_Decrypted=NULL;
+        delete [] AES_Decrypted; //AES_Decrypted=NULL;
     #endif //MEDIAINFO_AES
 
     //Hash
@@ -596,7 +596,7 @@ void File__Analyze::Open_Buffer_Continue (const int8u* ToAdd, size_t ToAdd_Size)
             {
                 if (AES_Decrypted_Size<ToAdd_Size)
                 {
-                    delete AES_Decrypted; AES_Decrypted=new int8u[ToAdd_Size*2];
+                    delete [] AES_Decrypted; AES_Decrypted=new int8u[ToAdd_Size*2];
                     AES_Decrypted_Size=ToAdd_Size*2;
                 }
                 AES->cbc_decrypt(ToAdd, AES_Decrypted, (int)ToAdd_Size, AES_IV);    //TODO: handle the case where ToAdd_Size is more than 2GB

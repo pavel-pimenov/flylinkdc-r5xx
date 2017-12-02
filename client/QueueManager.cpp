@@ -99,6 +99,12 @@ QueueManager::FileQueue::~FileQueue()
 {
 	dcassert(g_remove_id_array.empty());
 	//dcassert(g_queue_tth_map.empty());
+	{
+		WLock(*g_csFQ);
+		dcassert(g_queue_tth_map.empty());
+		dcassert(g_queue.empty());
+	}
+	
 }
 
 QueueItemPtr QueueManager::FileQueue::add(int64_t p_FlyQueueID,
@@ -1803,7 +1809,7 @@ DownloadPtr QueueManager::getDownload(UserConnection* aSource, string& aMessage)
 	}
 	
 	// Нельзя звать new Download под локом QueueItem::g_cs
-	d = DownloadPtr(new Download(aSource, q, l_ip, l_chiper_name));
+	d = std::make_shared<Download>(aSource, q, l_ip, l_chiper_name);
 	aSource->setDownload(d);
 	g_userQueue.addDownload(q, d);
 	
@@ -1938,7 +1944,7 @@ void QueueManager::setFile(const DownloadPtr& d)
 	else if (d->getType() == Transfer::TYPE_FULL_LIST)
 	{
 		{
-            const auto l_path = d->getPath();
+			const auto l_path = d->getPath();
 			QueueItemPtr qi = QueueManager::FileQueue::find_target(l_path);
 			if (!qi)
 			{

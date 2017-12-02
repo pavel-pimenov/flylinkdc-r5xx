@@ -271,7 +271,7 @@ namespace libtorrent {
 
 	std::string performance_alert::message() const
 	{
-		static char const* warning_str[] =
+		static char const* const warning_str[] =
 		{
 			"max outstanding disk writes reached",
 			"max outstanding piece requests reached",
@@ -302,7 +302,7 @@ namespace libtorrent {
 
 	std::string state_changed_alert::message() const
 	{
-		static char const* state_str[] =
+		static char const* const state_str[] =
 			{"checking (q)", "checking", "dl metadata"
 			, "downloading", "finished", "seeding", "allocating"
 			, "checking (r)"};
@@ -461,8 +461,8 @@ namespace libtorrent {
 
 	std::string tracker_announce_alert::message() const
 	{
-		static const char* event_str[] = {"none", "completed", "started", "stopped", "paused"};
-		TORRENT_ASSERT_VAL(event < int(sizeof(event_str)/sizeof(event_str[0])), event);
+		static const char* const event_str[] = {"none", "completed", "started", "stopped", "paused"};
+		TORRENT_ASSERT_VAL(event < int(sizeof(event_str) / sizeof(event_str[0])), event);
 		return tracker_alert::message() + " sending announce (" + event_str[event] + ")";
 	}
 
@@ -811,7 +811,7 @@ namespace {
 
 	char const* sock_type_str(socket_type_t type)
 	{
-		static char const* type_str[] =
+		static char const* const type_str[] =
 			{ "TCP", "TCP/SSL", "UDP", "I2P", "Socks5", "uTP/SSL" };
 
 		return type_str[sock_type_idx(type)];
@@ -1182,7 +1182,7 @@ namespace {
 	std::string peer_blocked_alert::message() const
 	{
 		char ret[600];
-		static char const* reason_str[] =
+		static char const* const reason_str[] =
 		{
 			"ip_filter",
 			"port_filter",
@@ -1301,7 +1301,7 @@ namespace {
 	std::string anonymous_mode_alert::message() const
 	{
 		char msg[200];
-		static char const* msgs[] = {
+		static char const* const msgs[] = {
 			"tracker is not anonymous, set a proxy"
 		};
 		std::snprintf(msg, sizeof(msg), "%s: %s: %s"
@@ -1511,7 +1511,7 @@ namespace {
 
 	char const* operation_name(operation_t const op)
 	{
-		static char const* names[] = {
+		static char const* const names[] = {
 			"unknown",
 			"bittorrent",
 			"iocontrol",
@@ -1554,7 +1554,7 @@ namespace {
 		};
 
 		int const idx = static_cast<int>(op);
-		if (idx < 0 || idx >= int(sizeof(names)/sizeof(names[0])))
+		if (idx < 0 || idx >= int(sizeof(names) / sizeof(names[0])))
 			return "unknown operation";
 
 		return names[idx];
@@ -1850,7 +1850,7 @@ namespace {
 
 	std::string peer_log_alert::message() const
 	{
-		static char const* mode[] =
+		static char const* const mode[] =
 		{ "<==", "==>", "<<<", ">>>", "***" };
 		return torrent_alert::message() + " [" + print_endpoint(endpoint) + "] "
 			+ mode[direction] + " " + event_type + " [ " + log_message() + " ]";
@@ -2035,10 +2035,10 @@ namespace {
 		, span<char const> buf, dht_pkt_alert::direction_t d
 		, udp::endpoint const& ep)
 		: direction(d)
-		, node(std::move(ep))
+		, node(ep)
 		, m_alloc(alloc)
 		, m_msg_idx(alloc.copy_buffer(buf))
-		, m_size(int(buf.size()))
+		, m_size(buf.size())
 #ifndef TORRENT_NO_DEPRECATE
 		, dir(d)
 #endif
@@ -2046,7 +2046,7 @@ namespace {
 
 	span<char const> dht_pkt_alert::pkt_buf() const
 	{
-		return {m_alloc.get().ptr(m_msg_idx), std::size_t(m_size)};
+		return {m_alloc.get().ptr(m_msg_idx), m_size};
 	}
 
 	std::string dht_pkt_alert::message() const
@@ -2061,7 +2061,7 @@ namespace {
 
 		std::string msg = print_entry(print, true);
 
-		char const* prefix[2] = { "<==", "==>"};
+		static char const* const prefix[2] = {"<==", "==>"};
 		char buf[1024];
 		std::snprintf(buf, sizeof(buf), "%s [%s] %s", prefix[direction]
 			, print_endpoint(node).c_str(), msg.c_str());

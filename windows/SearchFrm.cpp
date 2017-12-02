@@ -160,6 +160,9 @@ SearchFrame::FrameMap SearchFrame::g_search_frames;
 SearchFrame::~SearchFrame()
 {
 	//dcassert(m_search_info_leak_detect.empty());
+#ifdef _DEBUG
+	dcassert(m_si_set.empty());
+#endif
 	dcassert(m_closed);
 	images.Destroy();
 	m_searchTypesImageList.Destroy();
@@ -905,12 +908,12 @@ void SearchFrame::onEnter()
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	clearFlyServerQueue();
 #endif
-#ifdef FLYLINKDC_USE_TREE_SEARCH
-	clear_tree_filter_contaners();
-#endif
 	m_search_param.m_clients.clear();
 	
 	ctrlResults.DeleteAndClearAllItems();
+#ifdef FLYLINKDC_USE_TREE_SEARCH
+	clear_tree_filter_contaners();
+#endif
 	
 	tstring s;
 	WinUtil::GetWindowText(s, ctrlSearch);
@@ -1248,8 +1251,8 @@ void SearchFrame::on(SearchManagerListener::SR, const std::unique_ptr<SearchResu
 					CFlyServerJSON::addAntivirusCounter(*aResult, 0, l_virus_level);
 					aResult->m_virus_level = l_virus_level;
 					LogManager::virus_message("Search: ignore virus result  (Level 3): TTH = " + aResult->getTTH().toBase32() +
-					" File: " + aResult->getFileName() + +" Size:" + Util::toString(aResult->getSize()) +
-					" Hub: " + aResult->getHubUrl() + " Nick: " + aResult->getUser()->getLastNick() + " IP = " + aResult->getIPAsString());
+					                          " File: " + aResult->getFileName() + +" Size:" + Util::toString(aResult->getSize()) +
+					                          " Hub: " + aResult->getHubUrl() + " Nick: " + aResult->getUser()->getLastNick() + " IP = " + aResult->getIPAsString());
 					// http://dchublist.ru/forum/viewtopic.php?p=22426#p22426
 					m_droppedResults++;
 					return;
@@ -1338,6 +1341,9 @@ void SearchFrame::on(SearchManagerListener::SR, const std::unique_ptr<SearchResu
 		return;
 	}
 	auto l_ptr = new SearchInfo(*aResult);
+#ifdef _DEBUG
+	m_si_set.insert(l_ptr);
+#endif
 	check_new(l_ptr);
 	if (safe_post_message(*this, ADD_RESULT, l_ptr) == false)
 	{
@@ -1801,8 +1807,8 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 				return Text::toT(m_sr.getFile());
 			case COLUMN_HITS:
 				return Text::toT(m_sr.getPeersString());
-				//case COLUMN_EXACT_SIZE:
-				//  return m_sr.getSize() > 0 ? Util::formatExactSize(m_sr.getSize()) : Util::emptyStringT;
+			//case COLUMN_EXACT_SIZE:
+			//  return m_sr.getSize() > 0 ? Util::formatExactSize(m_sr.getSize()) : Util::emptyStringT;
 			case COLUMN_SIZE:
 				return m_sr.getSize() > 0 ? Util::formatBytesW(m_sr.getSize()) : Util::emptyStringT;
 			case COLUMN_TORRENT_COMMENT:
@@ -1849,7 +1855,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 				{
 					return Util::emptyStringT;
 				}
-				// TODO - сохранить ник в columns и показывать его от туда?
+			// TODO - сохранить ник в columns и показывать его от туда?
 			case COLUMN_TYPE:
 				if (m_sr.getType() == SearchResult::TYPE_FILE)
 				{
@@ -1918,8 +1924,8 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			}
 			case COLUMN_SLOTS:
 				return Text::toT(m_sr.getSlotString());
-				// [-] PPA
-				//case COLUMN_CONNECTION: return Text::toT(ClientManager::getInstance()->getConnection(getUser()->getCID()));
+			// [-] PPA
+			//case COLUMN_CONNECTION: return Text::toT(ClientManager::getInstance()->getConnection(getUser()->getCID()));
 			case COLUMN_HUB:
 				return Text::toT(m_sr.getHubName() + " (" + m_sr.getHubUrl() + ')');
 			case COLUMN_IP:
@@ -2372,6 +2378,7 @@ LRESULT SearchFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		ctrlResults.DeleteAndClearAllItems(); // https://drdump.com/DumpGroup.aspx?DumpGroupID=358387
 		clearPausedResults();
 		ctrlHubs.DeleteAndCleanAllItems(); // [!] IRainman
+		clear_tree_filter_contaners();
 		ctrlResults.saveHeaderOrder(SettingsManager::SEARCHFRAME_ORDER, SettingsManager::SEARCHFRAME_WIDTHS,
 		                            SettingsManager::SEARCHFRAME_VISIBLE);
 		SET_SETTING(SEARCH_COLUMNS_SORT, ctrlResults.getSortColumn());
@@ -2921,6 +2928,9 @@ bool SearchFrame::isSkipSearchResult(SearchInfo*& si)
 	{
 		check_delete(si);
 		delete si;
+#ifdef _DEBUG
+		m_si_set.erase(si);
+#endif
 		si = nullptr;
 		return true;
 	}
@@ -2953,6 +2963,9 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 				{
 					check_delete(si);
 					delete si;
+#ifdef _DEBUG
+					m_si_set.erase(si);
+#endif
 					return;
 				}
 				for (auto k = pp->children.cbegin(); k != pp->children.cend(); ++k)
@@ -2965,6 +2978,9 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 						{
 							check_delete(si);
 							delete si;
+#ifdef _DEBUG
+							m_si_set.erase(si);
+#endif
 							return;
 						}
 					}
@@ -2984,6 +3000,9 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 					if (sr.getFile() == sr2.getFile())
 					{
 						check_delete(si);
+#ifdef _DEBUG
+						m_si_set.erase(si);
+#endif
 						delete si;
 						return;
 					}
@@ -3100,7 +3119,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 							"DJVU",
 							"FB2"
 						};
-for (const auto r : l_doc_array)
+						for (const auto r : l_doc_array)
 						{
 							add_category(r, "Doc", si, sr, l_file_type, l_torrent_node);
 						}
@@ -3110,7 +3129,7 @@ for (const auto r : l_doc_array)
 							"MP3",
 							"FLAC"
 						};
-for (const auto r : l_audio_rip_array)
+						for (const auto r : l_audio_rip_array)
 						{
 							add_category(r, "Audio", si, sr, l_file_type, l_torrent_node);
 						}
@@ -3138,7 +3157,7 @@ for (const auto r : l_audio_rip_array)
 							"Amedia",
 							"КПК"
 						};
-for (const auto r : l_type_rip_array)
+						for (const auto r : l_type_rip_array)
 						{
 							add_category(r, "Video", si, sr, l_file_type, l_torrent_node);
 						}
@@ -3161,7 +3180,7 @@ for (const auto r : l_type_rip_array)
 						                                    "HDReactor",
 						                                    "R.G."
 						                                  };
-for (const auto t : l_type_team_array)
+						for (const auto t : l_type_team_array)
 						{
 							add_category(t, "Team", si, sr, l_file_type, l_torrent_node);
 						}
@@ -3172,14 +3191,14 @@ for (const auto t : l_type_team_array)
 							"720p"
 							"x264",
 						};
-for (const auto r : l_type_resolution_array)
+						for (const auto r : l_type_resolution_array)
 						{
 							add_category(r, "Resolution", si, sr, l_file_type, l_torrent_node);
 						}
 					}
 				}
 				const auto l_marker = make_pair(si, ".torrent-magnet");
-for (auto const & c : m_category_map)
+				for (auto const &c : m_category_map)
 				{
 					m_filter_map[c.second].push_back(l_marker);
 				}
@@ -3319,6 +3338,9 @@ LRESULT SearchFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL
 		{
 			SearchResult* l_sr = (SearchResult*)(lParam);
 			auto l_ptr = new SearchInfo(*l_sr);
+#ifdef _DEBUG
+			m_si_set.insert(l_ptr);
+#endif
 			delete l_sr;
 			//l_ptr->m_torrent_page = z;
 			l_ptr->m_is_torrent = true;
@@ -3988,7 +4010,6 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 						{
 #if _MSC_VER < 1700 // [!] FlylinkDC++
 							DrawThemeBackground(m_Theme, cd->nmcd.hdc, LVP_LISTITEM, 3, &rc, &rc);
-							
 #else
 							DrawThemeBackground(m_Theme, cd->nmcd.hdc, 1, 3, &rc, &rc);
 #endif // _MSC_VER < 1700
@@ -4295,7 +4316,6 @@ bool SearchFrame::matchFilter(const SearchInfo* si, int sel, bool doSizeCompare,
 	bool insert = true;
 	if (m_filter.empty())
 	{
-	
 		return true;
 	}
 	if (doSizeCompare)
@@ -4326,8 +4346,7 @@ bool SearchFrame::matchFilter(const SearchInfo* si, int sel, bool doSizeCompare,
 	try
 	{
 		std::wregex reg(m_filter, std::regex_constants::icase);
-		tstring s = si->getText(static_cast<uint8_t>(sel));
-		
+		const tstring s = si->getText(static_cast<uint8_t>(sel));
 		insert = std::regex_search(s.begin(), s.end(), reg);
 	}
 	catch (...)
@@ -4373,6 +4392,13 @@ void SearchFrame::clear_tree_filter_contaners()
 	m_is_expand_tree = false;
 	m_is_expand_sub_tree = false;
 	m_ctrlSearchFilterTree.DeleteAllItems();
+#ifdef _DEBUG
+	for (auto i = m_si_set.begin(); i != m_si_set.end(); ++i)
+	{
+		// Не пашет - возможно двойное удаление     delete *i;
+	}
+	m_si_set.clear();
+#endif
 }
 
 void SearchFrame::updateSearchList(SearchInfo* p_si)

@@ -532,7 +532,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				
 				const UserPtr& getUser() const override
 				{
-				    return m_sr.getUser();
+					return m_sr.getUser();
 				}
 				bool m_is_torrent;
 				bool collapsed;
@@ -606,7 +606,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #endif
 		struct HubInfo
 #ifdef _DEBUG
-				: private boost::noncopyable
+			: private boost::noncopyable
 #endif
 		{
 			HubInfo(const tstring& aUrl, const tstring& aName, bool aOp) : url(aUrl),
@@ -737,6 +737,9 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		std::unordered_map<string, HTREEITEM> m_category_map;
 		std::unordered_map<string, HTREEITEM> m_tree_ext_map;
 		std::unordered_map<string, HTREEITEM> m_tree_sub_torrent_map;
+#ifdef _DEBUG
+		std::unordered_set<SearchInfo*> m_si_set;
+#endif
 		std::unordered_map<HTREEITEM, std::vector<std::pair<SearchInfo*, string > > > m_filter_map;
 		std::unordered_map<Search::TypeModes, HTREEITEM> m_tree_type;
 		bool m_is_expand_tree;

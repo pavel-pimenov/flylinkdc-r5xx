@@ -32,6 +32,8 @@
 #include "Pointer.h"
 #include "CFlylinkDBManager.h"
 
+#define FLYLINKDC_USE_RW_LOCK_SHARE
+
 STANDARD_EXCEPTION_ADD_INFO(ShareException); // [!] FlylinkDC++
 
 class SimpleXML;
@@ -424,7 +426,11 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 			g_tth_path_cache.clear();
 		}
 		
+#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
+		static std::unique_ptr<webrtc::RWLockWrapper> g_csShare;
+#else
 		static CriticalSection g_csShare;
+#endif
 		
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csBloom;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csShareNotExists;

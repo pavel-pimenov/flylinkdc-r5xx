@@ -124,7 +124,7 @@ void DownloadManager::shutdown_torrent()
 		{
 			Sleep(10);
 		}
-for (auto s : m_torrents)
+		for (auto s : m_torrents)
 		{
 			s.save_resume_data();
 			++m_torrent_resume_count;
@@ -156,6 +156,12 @@ DownloadManager::~DownloadManager()
 		// TODO - возможно мы тут висим и не даем разрушиться менеджеру?
 		// Добавить логирование тиков на флай сервер
 	}
+}
+
+size_t DownloadManager::getDownloadCount()
+{
+	CFlyReadLock(*g_csDownload);
+	return g_download_map.size();
 }
 
 void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
@@ -275,7 +281,10 @@ void DownloadManager::remove_idlers(UserConnection* aSource)
 		dcassert(aSource->getUser());
 		auto i = find(g_idlers.begin(), g_idlers.end(), aSource);
 		if (i == g_idlers.end())
+		{
+			dcassert(i != g_idlers.end());
 			return;
+		}
 		g_idlers.erase(i);
 	}
 	else
@@ -988,7 +997,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 			// p_torrent_sesion->post_dht_stats();
 			std::vector<lt::alert*> alerts;
 			p_torrent_sesion->pop_alerts(&alerts);
-for (lt::alert const * a : alerts)
+			for (lt::alert const * a : alerts)
 			{
 				try
 				{
@@ -1265,7 +1274,7 @@ for (lt::alert const * a : alerts)
 							continue;
 						}
 						int l_pos = 1;
-for (const auto j : st->status)
+						for (const auto j : st->status)
 						{
 							lt::torrent_status const& s = j;
 #ifdef FLYLINKDC_BETA
@@ -1567,7 +1576,7 @@ void DownloadManager::init_torrent(bool p_is_force)
 		l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:8999");
 #endif
 		std::string l_dht_nodes;
-for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
+		for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
 		{
 			if (!l_dht_nodes.empty())
 				l_dht_nodes += ",";

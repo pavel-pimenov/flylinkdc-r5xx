@@ -263,7 +263,9 @@ class CFlyServerConfig
 		static bool SyncAntivirusDB(bool& p_is_need_reload);
 #endif
 	public:
-		static bool SyncXXXBlockDB();
+#ifdef FLYLINKDC_USE_XXX_BLOCK
+		 static bool SyncXXXBlockDB();
+#endif
 		
 		void loadConfig();
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -318,7 +320,9 @@ class CFlyServerConfig
 		static std::unordered_set<std::string> g_block_hubs;
 		static string g_regex_find_ip;
 		static string g_faq_search_does_not_work;
+#ifdef FLYLINKDC_USE_XXX_BLOCK
 		static string   g_xxx_block_db_url;
+#endif
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		static string   g_antivirus_db_url;
 #endif

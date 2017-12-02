@@ -43,7 +43,7 @@ inline void debugTrace(const char* format, ...)
 	l_fs.open(_T("flylinkdc-debug-trace.log"), std::ifstream::out | std::ifstream::app);
 	if (l_fs.good())
 	{
-		l_fs << " Message: [" << buf << "]" << std::endl;
+		l_fs << " Message: [" << buf;
 	}
 	else
 	{

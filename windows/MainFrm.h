@@ -613,6 +613,9 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 	
 		unique_ptr<JAControl> m_jaControl;
 		
+		HICON m_appIcon;
+		HICON m_trayIcon;
+		
 		std::unique_ptr<HIconWrapper> m_normalicon;
 		std::unique_ptr<HIconWrapper> m_pmicon;
 		//std::unique_ptr<HIconWrapper> m_vip_icon;

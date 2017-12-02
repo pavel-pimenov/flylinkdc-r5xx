@@ -1104,11 +1104,11 @@ void File_Mpega::Data_Parse()
 //---------------------------------------------------------------------------
 void File_Mpega::audio_data_Layer3()
 {
-	if (mode >= 4)
-		return;
+    if (mode>=4)
+        return;
     const bool mono=(mode==3);
     const bool mpeg1=(ID==3);
-	int16u main_data_end;
+    int16u main_data_end;
     BS_Begin();
     Get_S2 (mpeg1?9:8, main_data_end,                               "main_data_end");
     if ((int32u)main_data_end>Reservoir_Max)
@@ -1124,8 +1124,8 @@ void File_Mpega::audio_data_Layer3()
     }
     if (mpeg1) //MPEG-1
     {
-		Element_Begin1("scfsi");
-		for(int8u ch=0; ch<Mpega_Channels[mode]; ch++)
+        Element_Begin1("scfsi");
+        for(int8u ch=0; ch<Mpega_Channels[mode]; ch++)
             for(int8u scfsi_band=0; scfsi_band<4; scfsi_band++)
             {
                 bool scfsi;

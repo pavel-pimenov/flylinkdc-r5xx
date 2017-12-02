@@ -182,6 +182,8 @@ MainFrame::MainFrame() :
 	m_elapsedMinutesFromlastIPUpdate(0),
 #endif
 	m_index_new_version_menu_item(0),
+	m_appIcon(nullptr),
+	m_trayIcon(nullptr),
 	m_bTrayIcon(false),
 	m_bIsPM(false),
 	m_count_status_change(0),
@@ -244,7 +246,7 @@ unsigned int WINAPI MainFrame::stopper(void* p)
 			{
 				//dcassert(0);
 				LogManager::message("MainFrame::stopper Sleep(10) wnd = " + Util::toString(wnd) + " count > 1000!");
-				//break;
+				break;
 			}
 		}
 		else
@@ -745,17 +747,17 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		// [+] InfinitySky. From ApexDC++.
 		// Different app icons for different instances
 		const tstring l_ExtIcoPath = Text::toT(Util::getICOPath());//[+]IRainman
-		HICON l_appIcon = (HICON)::LoadImage(NULL, l_ExtIcoPath.c_str(), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR | LR_LOADFROMFILE); //-V112
-		l_trayIcon = (HICON)::LoadImage(NULL, l_ExtIcoPath.c_str(), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_LOADFROMFILE);
+		m_appIcon = (HICON)::LoadImage(NULL, l_ExtIcoPath.c_str(), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_SHARED); //-V112
+		m_trayIcon = (HICON)::LoadImage(NULL, l_ExtIcoPath.c_str(), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_SHARED);
 		
 		m_custom_app_icon_exist = true; // [+] InfinitySky.
 		
-		SetClassLongPtr(m_hWnd, GCLP_HICON, (LONG_PTR)l_appIcon);
+		SetClassLongPtr(m_hWnd, GCLP_HICON, (LONG_PTR)m_appIcon);
 		//DestroyIcon(l_appIcon);
 		SetClassLongPtr(m_hWnd, GCLP_HICONSM, (LONG_PTR)l_trayIcon);
 		
-		SendMessage(m_hWnd, WM_SETICON, ICON_BIG, (LPARAM)l_appIcon);
-		SendMessage(m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)l_appIcon);
+		SendMessage(m_hWnd, WM_SETICON, ICON_BIG, (LPARAM)m_appIcon);
+		SendMessage(m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)m_appIcon);
 	}
 	else
 	{
@@ -2021,39 +2023,39 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				case ID_FILE_CONNECT:
 					PublicHubsFrame::openWindow();
 					break;
-					/*
-					                    if (!m_isOpenHubFrame)
-					                    {
-					                        PublicHubsFrame::openWindow();
-					                        m_isOpenHubFrame = true;
-					#if 0
-					                        UINT checkState = BOOLSETTING(CONFIRM_OPEN_INET_HUBS) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-					                        if (checkState == BST_CHECKED
-					#ifndef _DEBUG
-					//  HUB_LIST_WARNING, // "Opening the window \"Internet Hubs\" you should be aware that their visit will lead to an external (Internet) traffic. If you fare with a limited amount of incoming traffic, visits to these hubs can lead to down speed to external resources because of threshold excess or to a substantial increase in bills for the Internet.\r\n\r\nShow the list of hubs?"
-					
-					                                || ::MessageBox(m_hWnd, CTSTRING(HUB_LIST_WARNING), CTSTRING(WARNING), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES
-					#else
-					                                || true
-					#endif
-					                           )
-					                        {
-					                            PublicHubsFrame::openWindow();
-					                            m_isOpenHubFrame = true;
-					                        }
-					                        else
-					                        {
-					                            WinUtil::setButtonPressed(ID_FILE_CONNECT, false);
-					                        }
-					#endif
-					                    }
-					                    else
-					                    {
-					                        PublicHubsFrame::openWindow();
-					          }
-					
-					                    break;
-					*/
+				/*
+				                    if (!m_isOpenHubFrame)
+				                    {
+				                        PublicHubsFrame::openWindow();
+				                        m_isOpenHubFrame = true;
+				#if 0
+				                        UINT checkState = BOOLSETTING(CONFIRM_OPEN_INET_HUBS) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
+				                        if (checkState == BST_CHECKED
+				#ifndef _DEBUG
+				//  HUB_LIST_WARNING, // "Opening the window \"Internet Hubs\" you should be aware that their visit will lead to an external (Internet) traffic. If you fare with a limited amount of incoming traffic, visits to these hubs can lead to down speed to external resources because of threshold excess or to a substantial increase in bills for the Internet.\r\n\r\nShow the list of hubs?"
+				
+				                                || ::MessageBox(m_hWnd, CTSTRING(HUB_LIST_WARNING), CTSTRING(WARNING), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES
+				#else
+				                                || true
+				#endif
+				                           )
+				                        {
+				                            PublicHubsFrame::openWindow();
+				                            m_isOpenHubFrame = true;
+				                        }
+				                        else
+				                        {
+				                            WinUtil::setButtonPressed(ID_FILE_CONNECT, false);
+				                        }
+				#endif
+				                    }
+				                    else
+				                    {
+				                        PublicHubsFrame::openWindow();
+				          }
+				
+				                    break;
+				*/
 				case IDC_FAVORITES:
 					FavoriteHubsFrame::openWindow();
 					break;
@@ -2761,6 +2763,13 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			{
 				{
 					storeWindowsPos();
+					//BOOL l_res = ::DestroyIcon(m_appIcon);
+					//auto l_error = GetLastError();
+					//dcassert(l_res);
+					//l_res = ::DestroyIcon(m_trayIcon);
+					//dcassert(l_res);
+					//l_error = GetLastError();
+					
 					ClientManager::before_shutdown();
 					CFlyCrashReportMarker l_crash(_T("StopGUI"));
 					LogManager::g_mainWnd = nullptr;
@@ -2842,10 +2851,10 @@ LRESULT MainFrame::onLink(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL
 		case IDC_HELP_HELP:
 			site = WinUtil::GetWikiLink() + _T("flylinkdc");
 			break;
-			// TODO
-			//case IDC_HELP_DONATE:
-			//  site = _T(HOMEPAGE);
-			//  break;
+		// TODO
+		//case IDC_HELP_DONATE:
+		//  site = _T(HOMEPAGE);
+		//  break;
 //[-]PPA        case IDC_GUIDE: site = _T(GUIDE); break;
 		case IDC_SITES_FLYLINK_TRAC:
 			site = _T(SITES_FLYLINK_TRAC);
@@ -3689,7 +3698,7 @@ LRESULT MainFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BO
 		{
 			if (GetMenuItemCount(tabAWAYMenu) != -1) // Is valid menulist
 			{
-				tabAWAYMenu.CheckMenuItem(IDC_STATUS_AWAY_ON_OFF, MF_BYCOMMAND | SETTING(AWAY) ? MF_CHECKED : MF_UNCHECKED);
+				tabAWAYMenu.CheckMenuItem(IDC_STATUS_AWAY_ON_OFF, MF_BYCOMMAND | (SETTING(AWAY) ? MF_CHECKED : MF_UNCHECKED));
 				tabAWAYMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 			}
 		}

@@ -154,7 +154,9 @@ string CFlyServerConfig::g_support_upnp = "http://www.flylinkdc.ru/2015/11/upnp.
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 string CFlyServerConfig::g_antivirus_db_url;
 #endif
+#ifdef FLYLINKDC_USE_XXX_BLOCK
 string CFlyServerConfig::g_xxx_block_db_url;
+#endif
 string CFlyServerConfig::g_faq_search_does_not_work = "http://www.flylinkdc.ru/2014/01/flylinkdc.html";
 StringSet CFlyServerConfig::g_parasitic_files;
 StringSet CFlyServerConfig::g_mediainfo_ext;
@@ -534,7 +536,9 @@ void CFlyServerConfig::loadConfig()
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 					initString("antivirus_db", g_antivirus_db_url);
 #endif
+#ifdef FLYLINKDC_USE_XXX_BLOCK
 					initString("xxx_block_db", g_xxx_block_db_url);
+#endif
 					
 #ifdef USE_SUPPORT_HUB
 					initString("support_hub", g_support_hub);
@@ -733,7 +737,9 @@ void CFlyServerConfig::loadConfig()
 		}
 		if (l_is_etc_config_online)
 		{
-			// TODO   CFlyServerConfig::SyncXXXBlockDB();
+#ifdef FLYLINKDC_USE_XXX_BLOCK			
+			CFlyServerConfig::SyncXXXBlockDB();
+#endif
 		}
 		
 		dcassert(!g_ignore_flood_command.empty());
@@ -801,7 +807,7 @@ void CFlyServerConfig::SyncAntivirusDBSafe()
 }
 #endif
 //======================================================================================================
-
+#ifdef FLYLINKDC_USE_XXX_BLOCK
 bool CFlyServerConfig::SyncXXXBlockDB()
 {
 	if (!g_xxx_block_db_url.empty())
@@ -828,6 +834,9 @@ bool CFlyServerConfig::SyncXXXBlockDB()
 	}
 	return false;
 }
+#endif // FLYLINKDC_USE_XXX_BLOCK
+
+
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 bool CFlyServerConfig::SyncAntivirusDB(bool& p_is_need_reload)
 {
@@ -1001,6 +1010,7 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 				{
 					if (l_count_mirror == 1)
 					{
+						dcassert(0);
 						CFlyServerJSON::pushError(85, "[lua-check_error][mirrot]:" + l_html_result);
 					}
 					const std::string l_url_mirror = p_lua_parser["check_error"](p_index, l_html_result.c_str());
@@ -1022,6 +1032,7 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 					}
 					else
 					{
+						dcassert(0);
 						CFlyServerJSON::pushError(84, "[lua-check_error]:" + l_html_result);
 					}
 				}
@@ -1298,8 +1309,8 @@ void CFlyServerConfig::loadTorrentSearchEngine()
 				if (g_lua_source_search_engine.empty())
 				{
 #ifdef _DEBUG					
-					Util::getDataFromInetSafe(true, "file://Q:/vc15/r5xx/compiled/Settings/lua/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
-//                  Util::getDataFromInetSafe(true, "http://etc.fly-server.ru/etc/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
+//					Util::getDataFromInetSafe(true, "file://Q:/vc15/r5xx/compiled/Settings/lua/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
+                    Util::getDataFromInetSafe(true, "http://etc.fly-server.ru/etc/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
 #else
 					Util::getDataFromInetSafe(true, "http://etc.fly-server.ru/etc/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
 #endif
@@ -1855,7 +1866,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 }
 #endif
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 88 (36,58,44,49 - устарели)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 89 (36,58,44,49б83 - устарели)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;

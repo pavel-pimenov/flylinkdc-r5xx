@@ -88,12 +88,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 			return g_runningAverage;//[+] IRainman refactoring transfer mechanism
 		}
 		
-		/** @return Number of downloads. */
-		static size_t getDownloadCount()
-		{
-			//CFlyReadLock(*g_csDownload);
-			return g_download_map.size();
-		}
+		static size_t getDownloadCount();
 		
 		static bool isStartDownload(QueueItem::Priority prio);
 		static bool checkFileDownload(const UserPtr& aUser);

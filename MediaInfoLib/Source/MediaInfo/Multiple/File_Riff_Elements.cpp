@@ -782,6 +782,9 @@ void File_Riff::AIFF_COMT()
 //---------------------------------------------------------------------------
 void File_Riff::AIFF_SSND()
 {
+    Skip_B4(                                                    "offset"); //TODO: support offset
+    Skip_B4(                                                    "blockSize");
+    Buffer_DataToParse_Begin+=Element_Offset;
     WAVE_data();
 }
 
@@ -1101,8 +1104,9 @@ void File_Riff::AVI__hdlr_strl_indx_StandardIndex(int32u Entry_Count, int32u Chu
         //Stream Position and size
         if (Pos<300 || Config->ParseSpeed>=1.0)
         {
-            Stream_Structure[BaseOffset+Offset-8].Name=ChunkId&0xFFFF0000;
-            Stream_Structure[BaseOffset+Offset-8].Size=Size;
+            stream_structure& Stream_Structure_Item=Stream_Structure[BaseOffset+Offset-8];
+            Stream_Structure_Item.Name=ChunkId&0xFFFF0000;
+            Stream_Structure_Item.Size=Size;
         }
         StreamSize+=(Size&0x7FFFFFFF);
         Stream[ChunkId&0xFFFF0000].PacketCount++;
@@ -2176,9 +2180,9 @@ void File_Riff::AVI__idx1()
         */
 
         //Faster method
-        int32u StreamID=BigEndian2int32u   (Buffer+Buffer_Offset+(size_t)Element_Offset   )&0xFFFF0000;
-        int32u Offset  =LittleEndian2int32u(Buffer+Buffer_Offset+(size_t)Element_Offset+ 8);
-        int32u Size    =LittleEndian2int32u(Buffer+Buffer_Offset+(size_t)Element_Offset+12);
+        const int32u StreamID=BigEndian2int32u   (Buffer+Buffer_Offset+(size_t)Element_Offset   )&0xFFFF0000;
+		const int32u Offset  =LittleEndian2int32u(Buffer+Buffer_Offset+(size_t)Element_Offset+ 8);
+		const int32u Size    =LittleEndian2int32u(Buffer+Buffer_Offset+(size_t)Element_Offset+12);
         stream& Stream_Item=Stream[StreamID];
         Stream_Item.StreamSize+=Size;
         Stream_Item.PacketCount++;

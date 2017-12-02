@@ -121,6 +121,6 @@ FlylinkDC-*.7z
 *.tlog
 *.idb
 *.res
-*.db
-*.ipch
 
+*.ipch
+*.VC.db

@@ -398,9 +398,8 @@ int SearchManager::UdpQueue::run()
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 				CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "RES", x, remoteIp, "", "", "");
 #endif
-			} 
-            else
-			if (x.compare(1, 4, "PSR ", 4) == 0 && x[x.length() - 1] == 0x0a)
+			}
+			else if (x.compare(1, 4, "PSR ", 4) == 0 && x[x.length() - 1] == 0x0a)
 			{
 				AdcCommand c(x.substr(0, x.length() - 1));
 				if (c.getParameters().empty())

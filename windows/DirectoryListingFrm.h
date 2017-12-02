@@ -41,8 +41,8 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST
 	, IDR_FILE_LIST_OFF // [~] InfinitySky. Вторая иконка.
 #endif
-	> , public CSplitterImpl<DirectoryListingFrame>,
-public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
+	>, public CSplitterImpl<DirectoryListingFrame>,
+	public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	, public CFlyServerAdapter
 #endif

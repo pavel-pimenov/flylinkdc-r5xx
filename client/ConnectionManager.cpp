@@ -510,15 +510,15 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 					continue;
 				}
 #ifdef _DEBUG
-                const unsigned l_count_sec = 60;
-                const unsigned l_count_sec_connecting = 50;
-                //const unsigned l_count_sec = 10;
+				const unsigned l_count_sec = 60;
+				const unsigned l_count_sec_connecting = 50;
+				//const unsigned l_count_sec = 10;
 				//const unsigned l_count_sec_connecting = 5;
 #else
 				const unsigned l_count_sec = 60;
 				const unsigned l_count_sec_connecting = 50;
 #endif
-                const auto l_count_error = cqi->getErrors();
+				const auto l_count_error = cqi->getErrors();
 				if (cqi->getLastAttempt() == 0 || ((SETTING(DOWNCONN_PER_SEC) == 0 || l_attempts < SETTING(DOWNCONN_PER_SEC)) &&
 				                                   cqi->getLastAttempt() + l_count_sec * 1000 * max(1, l_count_error) < aTick))
 				{
@@ -859,21 +859,21 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 		/*if (false  // TODO - узнать почему тут такой затыкон оставлен в оригинальном dc++
 		        && now + g_FLOOD_TRIGGER < m_floodCounter)
 		{
-			Socket s;
-			try
-			{
-				s.accept(sock);
-			}
-			catch (const SocketException&)
-			{
-				// ...
-			}
-			LogManager::flood_message("Connection flood detected, port = " + Util::toString(sock.getPort()) + " IP = " + sock.getIp());
-			dcdebug("Connection flood detected!\n");
-			return;
+		    Socket s;
+		    try
+		    {
+		        s.accept(sock);
+		    }
+		    catch (const SocketException&)
+		    {
+		        // ...
+		    }
+		    LogManager::flood_message("Connection flood detected, port = " + Util::toString(sock.getPort()) + " IP = " + sock.getIp());
+		    dcdebug("Connection flood detected!\n");
+		    return;
 		}
 		else
-        */
+		*/
 		{
 			if (g_ConnToMeCount <= 0)
 			{
@@ -1142,11 +1142,14 @@ void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, uin
 		dcassert(0);
 		return;
 	}
+#ifdef FLYLINKDC_USE_BLOCK_ERROR_CMD
 	if (UserConnection::is_error_user(aIPServer))
 	{
 		dcassert(0);
 		return;
 	}
+#endif
+	
 	if (checkIpFlood(aIPServer, aPort, boost::asio::ip::address_v4(), "", "[nmdcConnect][Hub: " + hubUrl + "]"))
 	{
 		dcassert(0);
@@ -1818,7 +1821,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 					putCQI_L(cqi);
 				}
 			}
-            l_is_fire_faled = false;
+			l_is_fire_faled = false;
 			// такого удаления нет в ApexDC++
 			//if (!ClientManager::isBeforeShutdown())
 			//{

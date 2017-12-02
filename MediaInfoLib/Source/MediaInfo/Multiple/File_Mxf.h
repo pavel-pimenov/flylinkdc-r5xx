@@ -892,6 +892,10 @@ protected :
             SoundfieldGroupLinkID.hi=(int64u)-1;
             SoundfieldGroupLinkID.lo=(int64u)-1;
         }
+		bool Is_Interlaced() const
+        {
+            return ScanType==__T("Interlaced");
+        }
     };
     typedef std::map<int128u, descriptor> descriptors; //Key is InstanceUID of Descriptor
     descriptors Descriptors;
@@ -1249,12 +1253,98 @@ protected :
             : Value(Value_)
             , FrameCount(1)
         {}
+        bool Add(const string& Value_)
+        {
+            if (Value == Value_)
+            {
+                FrameCount++;
+                return true;
+            }
+            return false;
+        }
     };
     typedef std::vector<acquisitionmetadata> acquisitionmetadatalist;
     vector<acquisitionmetadatalist*> AcquisitionMetadataLists;
-	void AcquisitionMetadata_Add(size_t Id, const string& Value);
+    void AcquisitionMetadata_Add(size_t Id, const string& Value)
+    {
+        if (!AcquisitionMetadataLists[Id])
+        {
+            AcquisitionMetadataLists[Id]=new acquisitionmetadatalist;
+            AcquisitionMetadataLists[Id]->push_back(acquisitionmetadata(Value));
+            return;
+        }
+        if ((*AcquisitionMetadataLists[Id])[AcquisitionMetadataLists[Id]->size()-1].Value == Value)
+        {
+            (*AcquisitionMetadataLists[Id])[AcquisitionMetadataLists[Id]->size()-1].FrameCount++;
+            return;
+        }
+        AcquisitionMetadataLists[Id]->push_back(acquisitionmetadata(Value));
+    }
     vector<acquisitionmetadatalist*> AcquisitionMetadata_Sony_E201_Lists;
-	void AcquisitionMetadata_Sony_E201_Add(size_t Id, const string& Value);
+    void AcquisitionMetadata_Sony_E201_Add(size_t Id, const string& Value)
+    {
+        if (!AcquisitionMetadata_Sony_E201_Lists[Id])
+        {
+            AcquisitionMetadata_Sony_E201_Lists[Id]=new acquisitionmetadatalist;
+            AcquisitionMetadata_Sony_E201_Lists[Id]->push_back(acquisitionmetadata(Value));
+            return;
+        }
+        if ((*AcquisitionMetadata_Sony_E201_Lists[Id])[AcquisitionMetadata_Sony_E201_Lists[Id]->size()-1].Value == Value)
+        {
+            (*AcquisitionMetadata_Sony_E201_Lists[Id])[AcquisitionMetadata_Sony_E201_Lists[Id]->size()-1].FrameCount++;
+            return;
+        }
+        AcquisitionMetadata_Sony_E201_Lists[Id]->push_back(acquisitionmetadata(Value));
+    }
+
+/* // TODO - FlylinkDC++ https://github.com/MediaArea/MediaInfoLib/pull/697/files
+    class AcquisitionMetadataVector
+	{
+		vector<acquisitionmetadatalist*> AcquisitionMetadataLists;
+	public:
+        acquisitionmetadatalist* & operator[](const size_t Id)
+        {
+            return AcquisitionMetadataLists[Id];
+        }
+        bool empty() const
+        {
+            return AcquisitionMetadataLists.empty();
+        }
+        size_t size() const
+        {
+            return AcquisitionMetadataLists.size();
+        }
+        void resize(const size_t size)
+        {
+            AcquisitionMetadataLists.resize(size);
+        }
+		void Add(const size_t Id, const string& Value)
+		{
+			if (!AcquisitionMetadataLists[Id])
+			{
+				AcquisitionMetadataLists[Id] = new acquisitionmetadatalist;
+				AcquisitionMetadataLists[Id]->push_back(acquisitionmetadata(Value));
+				return;
+			}
+			if ((*AcquisitionMetadataLists[Id])[AcquisitionMetadataLists[Id]->size() - 1].Add(Value))
+			{
+				return;
+			}
+			AcquisitionMetadataLists[Id]->push_back(acquisitionmetadata(Value));
+		}
+    };
+
+    AcquisitionMetadataVector AcquisitionMetadataLists;
+    void AcquisitionMetadata_Add(size_t Id, const string& Value)
+    {
+        AcquisitionMetadataLists.Add(Id, Value);
+    }
+    AcquisitionMetadataVector AcquisitionMetadata_Sony_E201_Lists;
+	void AcquisitionMetadata_Sony_E201_Add(size_t Id, const string& Value)
+	{
+        AcquisitionMetadata_Sony_E201_Lists.Add(Id, Value);
+	}
+*/
     int8u AcquisitionMetadata_Sony_CalibrationType;
 
     //Demux

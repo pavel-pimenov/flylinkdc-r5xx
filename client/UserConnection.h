@@ -388,7 +388,11 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		}
 		void fireBytesSent(size_t p_Bytes, size_t p_Actual);
 		void fireData(uint8_t* p_data, size_t p_len);
+		
+#ifdef FLYLINKDC_USE_BLOCK_ERROR_CMD
 		static bool is_error_user(const string& p_ip);
+#endif
+		
 		static bool add_error_user(const string& p_ip);
 	private:
 		int64_t m_chunkSize;
@@ -398,8 +402,10 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		DownloadPtr m_download;
 		UploadPtr m_upload;
 		
+#ifdef FLYLINKDC_USE_BLOCK_ERROR_CMD
 		static FastCriticalSection g_error_cs;
 		static std::unordered_map<string, unsigned> g_error_cmd_map;
+#endif
 		
 		// We only want ConnectionManager to create this...
 		explicit UserConnection(bool p_secure);

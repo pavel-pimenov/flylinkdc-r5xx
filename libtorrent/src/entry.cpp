@@ -31,11 +31,6 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "libtorrent/config.hpp"
-
-#if TORRENT_USE_IOSTREAM
-#include <iostream>
-#endif
-
 #ifndef TORRENT_NO_DEPRECATE
 #include "libtorrent/lazy_entry.hpp"
 #endif
@@ -101,9 +96,9 @@ namespace {
 
 	entry& entry::operator[](string_view key)
 	{
-		dictionary_type::iterator i = dict().find(key);
+		auto const i = dict().find(key);
 		if (i != dict().end()) return i->second;
-		dictionary_type::iterator ret = dict().emplace(
+		auto const ret = dict().emplace(
 			std::piecewise_construct,
 			std::forward_as_tuple(key),
 			std::forward_as_tuple()).first;
@@ -112,21 +107,21 @@ namespace {
 
 	const entry& entry::operator[](string_view key) const
 	{
-		dictionary_type::const_iterator i = dict().find(key);
+		auto const i = dict().find(key);
 		if (i == dict().end()) throw_error();
 		return i->second;
 	}
 
 	entry* entry::find_key(string_view key)
 	{
-		dictionary_type::iterator i = dict().find(key);
+		auto const i = dict().find(key);
 		if (i == dict().end()) return nullptr;
 		return &i->second;
 	}
 
 	entry const* entry::find_key(string_view key) const
 	{
-		dictionary_type::const_iterator i = dict().find(key);
+		auto const i = dict().find(key);
 		if (i == dict().end()) return nullptr;
 		return &i->second;
 	}
@@ -375,7 +370,7 @@ namespace {
 				list_type& l = this->list();
 				for (int i = 0; i < e.list_size(); ++i)
 				{
-					l.push_back(entry());
+					l.emplace_back();
 					l.back() = e.list_at(i);
 				}
 				break;
@@ -414,7 +409,7 @@ namespace {
 				list_type& l = this->list();
 				for (int i = 0; i < e.list_size(); ++i)
 				{
-					l.push_back(entry());
+					l.emplace_back();
 					l.back() = *e.list_at(i);
 				}
 				break;
@@ -667,7 +662,7 @@ namespace {
 		return ret;
 	}
 
-	void entry::to_string_impl(std::string& out, int indent) const
+	void entry::to_string_impl(std::string& out, int const indent) const
 	{
 		TORRENT_ASSERT(indent >= 0);
 		for (int i = 0; i < indent; ++i) out += ' ';
@@ -680,9 +675,9 @@ namespace {
 		case string_t:
 			{
 				bool binary_string = false;
-				for (std::string::const_iterator i = string().begin(); i != string().end(); ++i)
+				for (auto const i : string())
 				{
-					if (!is_print(*i))
+					if (!is_print(i))
 					{
 						binary_string = true;
 						break;
@@ -702,20 +697,20 @@ namespace {
 		case list_t:
 			{
 				out += "list\n";
-				for (list_type::const_iterator i = list().begin(); i != list().end(); ++i)
+				for (auto const& i : list())
 				{
-					i->to_string_impl(out, indent + 1);
+					i.to_string_impl(out, indent + 1);
 				}
 			} break;
 		case dictionary_t:
 			{
 				out += "dictionary\n";
-				for (dictionary_type::const_iterator i = dict().begin(); i != dict().end(); ++i)
+				for (auto const& i : dict())
 				{
 					bool binary_string = false;
-					for (std::string::const_iterator k = i->first.begin(); k != i->first.end(); ++k)
+					for (auto const k : i.first)
 					{
-						if (!is_print(*k))
+						if (!is_print(k))
 						{
 							binary_string = true;
 							break;
@@ -723,15 +718,15 @@ namespace {
 					}
 					for (int j = 0; j < indent + 1; ++j) out += ' ';
 					out += '[';
-					if (binary_string) out += aux::to_hex(i->first);
-					else out += i->first;
+					if (binary_string) out += aux::to_hex(i.first);
+					else out += i.first;
 					out += ']';
 
-					if (i->second.type() != entry::string_t
-						&& i->second.type() != entry::int_t)
+					if (i.second.type() != entry::string_t
+						&& i.second.type() != entry::int_t)
 						out += '\n';
 					else out += ' ';
-					i->second.to_string_impl(out, indent + 2);
+					i.second.to_string_impl(out, indent + 2);
 				}
 			} break;
 		case preformatted_t:

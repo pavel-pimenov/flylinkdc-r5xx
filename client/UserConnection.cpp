@@ -46,8 +46,10 @@ const string UserConnection::g_FILE_NOT_AVAILABLE = "File Not Available";
 const string UserConnection::g_PLEASE_UPDATE_YOUR_CLIENT = "Please update your DC++ http://flylinkdc.com";
 #endif
 
+#ifdef FLYLINKDC_USE_BLOCK_ERROR_CMD
 FastCriticalSection UserConnection::g_error_cs;
 std::unordered_map<string, unsigned> UserConnection::g_error_cmd_map;
+#endif
 
 // We only want ConnectionManager to create this...
 UserConnection::UserConnection(bool p_secure) :
@@ -348,20 +350,17 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			
 		dcdebug("UserConnection Unknown NMDC command: %.50s\n", aLine.c_str());
 		string l_log = "UserConnection:: Unknown NMDC command: = " + aLine + " hub = " + getHubUrl() + " remote IP = " + getRemoteIpPort();
-#ifdef FLYLINKDC_BETA
 		if (getHintedUser().user)
 		{
 			l_log += " Nick = " + getHintedUser().user->getLastNick();
 		}
-		LogManager::message(l_log);
-#endif
+		CFlyServerJSON::pushError(89, l_log);
 		unsetFlag(FLAG_NMDC);
-		if (add_error_user(getRemoteIp()))
-		{
-			disconnect(true); // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1684
-		}
+		disconnect(true); // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1684
+		CFlyServerConfig::addBlockIP(getRemoteIp());
 	}
 }
+#ifdef FLYLINKDC_USE_BLOCK_ERROR_CMD
 bool UserConnection::add_error_user(const string& p_ip)
 {
 	CFlyFastLock(g_error_cs);
@@ -384,7 +383,7 @@ bool UserConnection::is_error_user(const string& p_ip)
 	}
 	return false;
 }
-
+#endif
 void UserConnection::connect(const string& aServer, uint16_t aPort, uint16_t localPort, BufferedSocket::NatRoles natRole)
 {
 	dcassert(!socket);

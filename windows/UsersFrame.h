@@ -44,7 +44,7 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 {
 	public:
 	
-		UsersFrame() : startup(true) { }
+		UsersFrame() : startup(true), m_ignoreListCnange(false) { }
 		~UsersFrame()
 		{
 			images.Destroy();

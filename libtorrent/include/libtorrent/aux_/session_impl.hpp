@@ -128,6 +128,12 @@ namespace aux {
 		struct tracker_logger;
 #endif
 
+	enum class duplex : std::uint8_t
+	{
+		accept_incoming,
+		only_outgoing
+	};
+
 	struct listen_socket_t
 	{
 		listen_socket_t()
@@ -181,6 +187,8 @@ namespace aux {
 		// indicates whether this is an SSL listen socket or not
 		transport ssl = transport::plaintext;
 
+		duplex incoming = duplex::accept_incoming;
+
 		// the actual sockets (TCP listen socket and UDP socket)
 		// An entry does not necessarily have a UDP or TCP socket. One of these
 		// pointers may be nullptr!
@@ -190,12 +198,17 @@ namespace aux {
 		// which alias the listen_socket_t shared_ptr
 		std::shared_ptr<tcp::acceptor> sock;
 		std::shared_ptr<aux::session_udp_socket> udp_sock;
+
+		// the key is an id that is used to identify the
+		// client with the tracker only.
+		std::uint32_t tracker_key = 0;
 	};
 
 		struct TORRENT_EXTRA_EXPORT listen_endpoint_t
 		{
-			listen_endpoint_t(address adr, int p, std::string dev, transport s)
-				: addr(adr), port(p), device(dev), ssl(s) {}
+			listen_endpoint_t(address adr, int p, std::string dev, transport s
+				, duplex d = duplex::accept_incoming)
+				: addr(adr), port(p), device(dev), ssl(s), incoming(d) {}
 
 			bool operator==(listen_endpoint_t const& o) const
 			{
@@ -206,6 +219,7 @@ namespace aux {
 			int port;
 			std::string device;
 			transport ssl;
+			duplex incoming;
 		};
 
 		// partitions sockets based on whether they match one of the given endpoints
@@ -457,7 +471,7 @@ namespace aux {
 			peer_class_pool& peer_classes() override { return m_classes; }
 			bool ignore_unchoke_slots_set(peer_class_set const& set) const override;
 			int copy_pertinent_channels(peer_class_set const& set
-				, int channel, bandwidth_channel** dst, int max) override;
+				, int channel, bandwidth_channel** dst, int m) override;
 			int use_quota_overhead(peer_class_set& set, int amount_down, int amount_up) override;
 			bool use_quota_overhead(bandwidth_channel* ch, int amount);
 
@@ -549,12 +563,12 @@ namespace aux {
 
 			int peak_up_rate() const { return m_peak_up_rate; }
 
-			void trigger_unchoke() override
+			void trigger_unchoke() noexcept override
 			{
 				TORRENT_ASSERT(is_single_thread());
 				m_unchoke_time_scaler = 0;
 			}
-			void trigger_optimistic_unchoke() override
+			void trigger_optimistic_unchoke() noexcept override
 			{
 				TORRENT_ASSERT(is_single_thread());
 				m_optimistic_unchoke_time_scaler = 0;
@@ -572,6 +586,8 @@ namespace aux {
 			std::uint16_t listen_port(listen_socket_t* sock) const;
 			std::uint16_t ssl_listen_port() const override;
 			std::uint16_t ssl_listen_port(listen_socket_t* sock) const;
+
+			std::uint32_t get_tracker_key(address const& iface) const;
 
 			void for_each_listen_socket(std::function<void(aux::listen_socket_handle const&)> f) override
 			{
@@ -675,6 +691,7 @@ namespace aux {
 			// implements session_interface
 			tcp::endpoint bind_outgoing_socket(socket_type& s, address
 				const& remote_address, error_code& ec) const override;
+			bool verify_incoming_interface(address const& addr);
 			bool verify_bound_address(address const& addr, bool utp
 				, error_code& ec) override;
 
@@ -761,8 +778,8 @@ namespace aux {
 			void set_external_address(std::shared_ptr<listen_socket_t> const& sock, address const& ip
 				, ip_source_t const source_type, address const& source);
 
-			void interface_to_endpoints(std::string const& device, int const port
-				, bool const ssl, std::vector<listen_endpoint_t>& eps);
+			void interface_to_endpoints(std::string const& device, int port
+				, transport ssl, duplex incoming, std::vector<listen_endpoint_t>& eps);
 
 			// the settings for the client
 			aux::session_settings m_settings;
@@ -895,11 +912,6 @@ namespace aux {
 			// the peer id that is generated at the start of the session
 			peer_id m_peer_id;
 
-			// the key is an id that is used to identify the
-			// client with the tracker only. It is randomized
-			// at startup
-			std::uint32_t m_key = 0;
-
 			// posts a notification when the set of local IPs changes
 			std::unique_ptr<ip_change_notifier> m_ip_notifier;
 
@@ -937,8 +949,8 @@ namespace aux {
 			// round-robin index into m_outgoing_interfaces
 			mutable std::uint8_t m_interface_index = 0;
 
-			std::shared_ptr<listen_socket_t> setup_listener(std::string const& device
-				, tcp::endpoint bind_ep, transport ssl, error_code& ec);
+			std::shared_ptr<listen_socket_t> setup_listener(
+				listen_endpoint_t const& lep, error_code& ec);
 
 #ifndef TORRENT_DISABLE_DHT
 			dht::dht_state m_dht_state;

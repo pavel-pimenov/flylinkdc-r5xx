@@ -621,7 +621,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				{
 					high = mid - 1;
 				}
-				else if (comp > 0)
+				else // if (comp > 0) V547 Expression 'comp > 0' is always true. typedlistviewctrl.h 624
 				{
 					low = mid + 1;
 				}
