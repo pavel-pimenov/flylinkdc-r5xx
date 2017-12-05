@@ -306,7 +306,7 @@ string ShareManager::toRealPath(const TTHValue& tth)
 			{
 				return i->second->getRealPathL();
 			}
-			catch (const ShareException&)
+			catch (const ShareException& e)
 			{
 				dcassert(0);
 			}

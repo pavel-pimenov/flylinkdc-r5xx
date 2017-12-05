@@ -2786,6 +2786,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 					preparingCoreToShutdown(); // [!] IRainman fix.
 					
 					m_transferView.prepareClose();
+					dcassert(TransferView::ItemInfo::g_count_transfer_item == 0);
 					
 					WebServerManager::getInstance()->removeListener(this);
 					UserManager::getInstance()->removeListener(this); // [+] IRainman

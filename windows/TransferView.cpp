@@ -42,6 +42,10 @@
 
 #include "libtorrent/hex.hpp"
 
+#ifdef _DEBUG
+std::atomic<long> TransferView::ItemInfo::g_count_transfer_item;
+#endif
+
 tstring TransferView::g_sSelectedIP;
 
 HIconWrapper TransferView::g_user_icon(IDR_TUSER);
@@ -315,6 +319,7 @@ void TransferView::prepareClose()
 {
 	safe_destroy_timer();
 	clear_and_destroy_task();
+	
 	ctrlTransfers.saveHeaderOrder(SettingsManager::TRANSFER_FRAME_ORDER, SettingsManager::TRANSFER_FRAME_WIDTHS,
 	                              SettingsManager::TRANSFER_FRAME_VISIBLE);
 	                              
@@ -730,9 +735,9 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					// Get the color of this bar
 					COLORREF clr = SETTING(PROGRESS_OVERRIDE_COLORS) ?
 					               (l_ii->download ? (!l_ii->parent ? SETTING(DOWNLOAD_BAR_COLOR) : SETTING(PROGRESS_SEGMENT_COLOR)) : SETTING(UPLOAD_BAR_COLOR)) :
-						               GetSysColor(COLOR_HIGHLIGHT);
+					               GetSysColor(COLOR_HIGHLIGHT);
 					if (!l_ii->download && BOOLSETTING(UP_TRANSFER_COLORS)) //[+]PPA
-				{
+					{
 						const auto l_NumSlot = l_ii->getUser()->getSlots();
 						if (l_NumSlot != 0)
 						{
@@ -802,11 +807,11 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					SetBkMode(dc, TRANSPARENT);
 					COLORREF oldcol = ::SetTextColor(dc, SETTING(PROGRESS_OVERRIDE_COLORS2) ?
 					                                 (l_ii->download ? SETTING(PROGRESS_TEXT_COLOR_DOWN) : SETTING(PROGRESS_TEXT_COLOR_UP)) :
-						                                 OperaColors::TextFromBackground(clr));
-						                                 
+					                                 OperaColors::TextFromBackground(clr));
+					                                 
 					// Draw the background and border of the bar
 					if (l_ii->m_size == 0)
-				{
+					{
 						l_ii->m_size = 1;
 					}
 					
@@ -906,7 +911,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							if (!BOOLSETTING(THROTTLE_ENABLE))
 							{
 								const int64_t speedignore = Util::toInt64(SETTING(UPLOAD_SPEED));
-speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (l_ii->download ? SETTING(TOP_SPEED) : SETTING(TOP_UP_SPEED)) / 5 : speedignore * 20;
+								speedmark = BOOLSETTING(STEALTHY_STYLE_ICO_SPEEDIGNORE) ? (l_ii->download ? SETTING(TOP_SPEED) : SETTING(TOP_UP_SPEED)) / 5 : speedignore * 20;
 							}
 							else
 							{
@@ -1907,7 +1912,7 @@ void TransferView::on(ConnectionManagerListener::FailedDownload, const HintedUse
 #ifdef FLYLINKDC_USE_IPFILTER
 		if (ui->m_hintedUser.user->isAnySet(User::PG_IPTRUST_BLOCK | User::PG_IPGUARD_BLOCK | User::PG_P2PGUARD_BLOCK
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
-		| User::PG_AVDB_BLOCK
+		                                    | User::PG_AVDB_BLOCK
 #endif
 		                                   ))
 		{
@@ -2065,8 +2070,8 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 		case COLUMN_IP:
 			return m_transfer_ip;
 #ifdef FLYLINKDC_USE_COLUMN_RATIO
-			// [~] brain-ripper
-			//case COLUMN_RATIO: return (status == STATUS_RUNNING) ? Util::toStringW(ratio()) : Util::emptyStringT;
+		// [~] brain-ripper
+		//case COLUMN_RATIO: return (status == STATUS_RUNNING) ? Util::toStringW(ratio()) : Util::emptyStringT;
 		case COLUMN_RATIO:
 			return m_ratio_as_text;
 #endif
@@ -2707,7 +2712,7 @@ void TransferView::on(DownloadManagerListener::SelectTorrent, const libtorrent::
 		{
 			const tstring l_dir = l_dlg.m_dir;
 			DownloadManager::getInstance()->set_file_priority(p_sha1, l_dlg.m_files,
-			l_dlg.m_selected_files, Text::fromT(l_dir)); // TODO - убрать m_selected_files
+			                                                  l_dlg.m_selected_files, Text::fromT(l_dir)); // TODO - убрать m_selected_files
 			DownloadManager::getInstance()->fire_added_torrent(p_sha1);
 		}
 		else

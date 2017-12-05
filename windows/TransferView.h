@@ -227,9 +227,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		// !SMT!-S
 		LRESULT onSetUserLimit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
-	private:
+    public:
 		class ItemInfo;
-	public:
 #ifdef FLYLINKDC_USE_TREEE_LIST_VIEW_WITHOUT_POINTER
 		typedef TypedTreeListViewCtrlSafe<ItemInfo, IDC_TRANSFERS, tstring> ItemInfoList;
 #else
@@ -305,9 +304,13 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				}
 		};
 		struct UpdateInfo;
+	public:
 		class ItemInfo : public UserInfoBase, public CFlyTargetInfo
 		{
 			public:
+#ifdef _DEBUG
+				static std::atomic<long> g_count_transfer_item;
+#endif
 				enum Status
 				{
 					STATUS_RUNNING,
@@ -320,9 +323,17 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 					collapsed(true), parent(nullptr), m_hits(-1), running(0), m_type(Transfer::TYPE_FILE),
 					m_is_force_passive(false), m_is_seeding(false), m_is_pause(false)
 				{
+#ifdef _DEBUG
+                    ++g_count_transfer_item;
+#endif
 					update_nicks();
 				}
-				
+#ifdef _DEBUG
+                virtual ~ItemInfo()
+				{
+					--g_count_transfer_item;
+				}
+#endif				
 				const bool download;
 				bool m_is_torrent;
 				bool m_is_seeding;
@@ -426,6 +437,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				}
 		};
 		
+	private:
 		struct UpdateInfo : public Task, public CFlyTargetInfo
 		{
 			enum

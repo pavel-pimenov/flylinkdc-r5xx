@@ -159,7 +159,7 @@ public :
           void      Language_Set (const ZtringListList &NewLanguage);
           Ztring    Language_Get ();
           Ztring    Language_Get (const Ztring &Value);
-		  Ztring    Language_Get_Translate(const Ztring &Par, const Ztring &Value);
+          Ztring    Language_Get_Translate(const Ztring &Par, const Ztring &Value);
           Ztring    Language_Get (const Ztring &Count, const Ztring &Value, bool ValueIsAlwaysSame=false);
 
           void      Inform_Set (const ZtringListList &NewInform);
@@ -346,7 +346,7 @@ private :
     float32         Verbosity;
     float32         Trace_Level;
     int64u          Compat;
-    int64u          Https;
+    bool            Https;
     bool            Trace_TimeSection_OnlyFirstOccurrence;
     std::bitset<32> Trace_Layers; //0-7: Container, 8: Stream
     std::map<Ztring, bool> Trace_Modificators; //If we want to add/remove some details

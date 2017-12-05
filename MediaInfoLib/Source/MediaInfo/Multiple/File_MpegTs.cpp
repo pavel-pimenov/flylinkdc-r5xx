@@ -389,7 +389,7 @@ void File_MpegTs::Streams_Update_Programs()
                     }
         }
     }
-    for (std::unordered_set<int16u>::iterator StreamID=Complete_Stream->PES_PIDs.begin(); StreamID!=Complete_Stream->PES_PIDs.end(); ++StreamID)
+    for (auto StreamID=Complete_Stream->PES_PIDs.begin(); StreamID!=Complete_Stream->PES_PIDs.end(); ++StreamID)
         if (PerStream_AlwaysParse || Complete_Stream->Streams[*StreamID]->IsUpdated_IsRegistered || Complete_Stream->Streams[*StreamID]->IsUpdated_Info)
         {
             Streams_Update_Programs_PerStream(*StreamID);

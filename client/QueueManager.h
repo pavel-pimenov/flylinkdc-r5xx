@@ -401,6 +401,8 @@ class QueueManager : public Singleton<QueueManager>,
 				void removeQueueItemL(const QueueItemPtr& qi);
 				void removeQueueItem(const QueueItemPtr& qi);
 				void removeUserL(const QueueItemPtr& qi, const UserPtr& aUser);
+				void setQIPriority(const QueueItemPtr& qi, QueueItem::Priority p);
+				
 				typedef boost::unordered_map<UserPtr, QueueItemList, User::Hash> UserQueueMap; // TODO - set ?
 				typedef boost::unordered_map<UserPtr, QueueItemPtr, User::Hash> RunningMap;
 #ifdef IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED

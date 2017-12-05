@@ -1784,8 +1784,8 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 			//dcassert(i != g_downloads.end());
 			if (i == g_downloads.end())
 			{
-				//dcassert(0);
-				CFlyServerJSON::pushError(5, "ConnectionManager::failed (i == g_downloads.end()) aError = " + aError);
+				dcassert(0);
+				//CFlyServerJSON::pushError(5, "ConnectionManager::failed (i == g_downloads.end()) aError = " + aError);
 			}
 			else
 			{
@@ -1811,7 +1811,8 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 				dcassert(i != g_uploads.end());
 				if (i == g_uploads.end())
 				{
-					CFlyServerJSON::pushError(6, "ConnectionManager::failed (i == g_uploads.end()) aError = " + aError);
+					dcassert(0);
+					// CFlyServerJSON::pushError(6, "ConnectionManager::failed (i == g_uploads.end()) aError = " + aError);
 				}
 				else
 				{

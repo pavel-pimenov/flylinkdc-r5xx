@@ -232,7 +232,9 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	}
 	if (!ou->getUser()->getCID().isZero())
 	{
-		ClientManager::getInstance()->putOnline(ou, is_all_my_info_loaded());
+		ClientManager::getInstance()->putOnline(ou, true); 
+         //  is_all_my_info_loaded() без true не начинает качать при загрузке 
+         //  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1682
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 		UserManager::checkUser(ou);
 #endif
@@ -1207,7 +1209,7 @@ void NmdcHub::lockParse(const string& aLine)
 			setMyNick(l_fly_nick);
 		}
 		
-		OnlineUserPtr ou = getUser(l_nick, false, true);
+		OnlineUserPtr ou = getUser(l_nick, false, false);
 		sendValidateNick(ou->getIdentity().getNick());
 		
 	}

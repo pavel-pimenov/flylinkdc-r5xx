@@ -625,6 +625,14 @@ bool QueueManager::UserQueue::removeDownload(const QueueItemPtr& qi, const UserP
 	return qi->removeDownload(aUser);
 }
 
+void QueueManager::UserQueue::setQIPriority(const QueueItemPtr& qi, QueueItem::Priority p) // [!] IRainman fix.
+{
+	WLock(*QueueItem::g_cs);
+	removeQueueItemL(qi);
+	qi->setPriority(p); // TODO для установки приоритета - нужно удалить и снова добавить запись в контейнер? - это зовется очень часто
+	addL(qi);
+}
+
 QueueItemPtr QueueManager::UserQueue::getRunning(const UserPtr& aUser)
 {
 	CFlyReadLock(*g_runningMapCS);
@@ -656,6 +664,7 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 	const bool l_isSource = qi->isSourceL(aUser); // crash https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=78346
 	if (!l_isSource)
 	{
+		dcassert(0);
 		const string l_error = "Error QueueManager::UserQueue::removeUserL [dcassert(isSource)] aUser = " +
 		                       (aUser ? aUser->getLastNick() : string("null"));
 		CFlyServerJSON::pushError(55, l_error);
@@ -2722,7 +2731,8 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 					// Problem, we have to request connections to all these users...
 					q->getOnlineUsers(l_getConn);
 				}
-				q->setPriority(p);
+				g_userQueue.setQIPriority(q, p); // !!!!!!!!!!!!!!!!!! Удаляет и вставляет в массив каждую секунду
+				
 #ifdef _DEBUG
 				LogManager::message("QueueManager g_userQueue.setQIPriority q->getTarget = " + q->getTarget());
 #endif

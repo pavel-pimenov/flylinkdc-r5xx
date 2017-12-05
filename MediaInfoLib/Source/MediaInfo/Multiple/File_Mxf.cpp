@@ -4566,7 +4566,9 @@ void File_Mxf::Read_Buffer_Unsynched()
                 FrameInfo.DUR=float64_int64s(1000000000/IndexTables[0].IndexEditRate);
             else
                 FrameInfo.DUR=float64_int64s(1000000000/Descriptors.begin()->second.SampleRate);
-            Demux_random_access=true;
+            #if MEDIAINFO_DEMUX
+                Demux_random_access=true;
+            #endif //MEDIAINFO_DEMUX
         }
         else if (!IndexTables.empty() && IndexTables[0].EditUnitByteCount)
         {
@@ -4603,7 +4605,9 @@ void File_Mxf::Read_Buffer_Unsynched()
                     }
                     else
                         FrameInfo.PTS=FrameInfo.DTS=(int64u)-1;
-                    Demux_random_access=true;
+                    #if MEDIAINFO_DEMUX
+                        Demux_random_access=true;
+                    #endif //MEDIAINFO_DEMUX
 
                     break;
                 }
@@ -4649,7 +4653,11 @@ void File_Mxf::Read_Buffer_Unsynched()
                             Frame_Count_NotParsedIncluded=IndexTables[Pos].IndexStartPosition+EntryPos;
                             if (IndexTables[Pos].IndexEditRate)
                                 FrameInfo.DTS=float64_int64s(DTS_Delay*1000000000+((float64)Frame_Count_NotParsedIncluded)/IndexTables[Pos].IndexEditRate*1000000000);
-                            Demux_random_access=IndexTables[Pos].Entries[EntryPos].Type?false:true;
+
+
+                            #if MEDIAINFO_DEMUX
+                                Demux_random_access=IndexTables[Pos].Entries[EntryPos].Type?false:true;
+                            #endif //MEDIAINFO_DEMUX
                             break;
                         }
                     }
@@ -9272,7 +9280,6 @@ void File_Mxf::GenericPictureEssenceDescriptor_StoredWidth()
     FILLING_BEGIN();
         if (Descriptors[InstanceUID].Width==(int32u)-1)
         {
-            if (Descriptors[InstanceUID].Width==(int32u)-1)
                 Descriptors[InstanceUID].Width=Data;
         }
     FILLING_END();
@@ -10297,15 +10304,16 @@ void File_Mxf::MPEG2VideoDescriptor_CodedContentType()
     Get_B1 (Data,                                               "Data"); Element_Info1(Mxf_MPEG2_CodedContentType(Data));
 
     FILLING_BEGIN();
-        if (Descriptors[InstanceUID].ScanType.empty())
+        descriptor& desc_item = Descriptors[InstanceUID];
+        if (desc_item.ScanType.empty())
         {
-            if (Data==2 && Descriptors[InstanceUID].ScanType.empty())
+            if (Data==2)
             {
-                if (Descriptors[InstanceUID].Height!=(int32u)-1) Descriptors[InstanceUID].Height*=2;
-                if (Descriptors[InstanceUID].Height_Display!=(int32u)-1) Descriptors[InstanceUID].Height_Display*=2;
-                if (Descriptors[InstanceUID].Height_Display_Offset!=(int32u)-1) Descriptors[InstanceUID].Height_Display_Offset*=2;
+                if (desc_item.Height!=(int32u)-1) desc_item.Height*=2;
+                if (desc_item.Height_Display!=(int32u)-1) desc_item.Height_Display*=2;
+                if (desc_item.Height_Display_Offset!=(int32u)-1) desc_item.Height_Display_Offset*=2;
             }
-            Descriptors[InstanceUID].ScanType.From_UTF8(Mxf_MPEG2_CodedContentType(Data));
+            desc_item.ScanType.From_UTF8(Mxf_MPEG2_CodedContentType(Data));
         }
     FILLING_END();
 }
@@ -10492,7 +10500,6 @@ void File_Mxf::AVCDescriptor_SequenceParameterSetFlag()
 {
     //Parsing
     BS_Begin();
-    bool constraint_set3_flag;
     Info_SB(   Constancy,                                       "Constancy");
     Info_BS(3, Location,                                        "In-band location"); Element_Info1(Mxf_AVC_SequenceParameterSetFlag_Constancy(Constancy));
     Skip_BS(4,                                                  "reserved"); Element_Info1(Mxf_AVC_SequenceParameterSetFlag_Constancy(Location));
