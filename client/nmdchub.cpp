@@ -1623,7 +1623,19 @@ void NmdcHub::toParse(const string& param)
 	const string rtNick = param.substr(pos_a, pos_b - pos_a);
 	
 	if (rtNick.empty())
+    {
+        dcassert(0);
 		return;
+    }
+    const auto l_user_for_message = findUser(rtNick);
+
+    if (l_user_for_message == nullptr)
+    {
+#ifdef FLYLINKDC_BETA
+        LogManager::speak_status_message("NmdcHub::toParse $To: invalid user: rtNick = " + rtNick + " param = " + param + " Hub = " + getHubUrl());
+#endif
+       // return;
+    }
 		
 	pos_a = pos_b + 3;
 	pos_b = param.find("> ", pos_a);
@@ -1658,16 +1670,6 @@ void NmdcHub::toParse(const string& param)
 		//dcassert(0);
 		return;
 	}
-	const auto l_user_for_message = findUser(rtNick);
-	
-	if (l_user_for_message == nullptr)
-	{
-#ifdef FLYLINKDC_BETA
-		//  LogManager::speak_status_message("NmdcHub::toParse $To: invalid user: rtNick = " + rtNick + " param = " + param + " Hub = " + getHubUrl());
-#endif
-		// return; // todo: here we dont get private message from unknown user
-	}
-	
 	
 	unique_ptr<ChatMessage> message(new ChatMessage(unescape(msgText), findUser(fromNick), nullptr, l_user_for_message));
 	

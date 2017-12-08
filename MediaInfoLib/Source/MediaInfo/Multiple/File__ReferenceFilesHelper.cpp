@@ -355,7 +355,6 @@ void File__ReferenceFilesHelper::ParseReferences()
                         Sequences.erase(Sequences.begin()+Pos);
                         Pos--;
                     }
-                CountOfReferencesToParse=Sequences.size();
             }
         #endif //MEDIAINFO_FILTER
 
@@ -662,13 +661,14 @@ void File__ReferenceFilesHelper::ParseReferences()
             Sequences_Current++;
         }
 
+        CountOfReferencesToParse=Sequences.size();
+
         #if MEDIAINFO_DEMUX && MEDIAINFO_NEXTPACKET
             if (Config->NextPacket_Get())
             {
                 Demux_Interleave=Config->File_Demux_Interleave_Get();
                 if (Demux_Interleave)
                 {
-                    CountOfReferencesToParse=Sequences.size();
                     for (sequences::iterator ReferenceSource=Sequences.begin(); ReferenceSource!=Sequences.end(); ++ReferenceSource)
                         if ((*ReferenceSource)->FileNames.empty())
                             CountOfReferencesToParse--;

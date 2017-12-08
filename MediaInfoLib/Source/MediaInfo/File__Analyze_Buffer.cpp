@@ -1294,9 +1294,9 @@ void File__Analyze::Get_SE(int32s &Info, const char* Name)
     int8u LeadingZeroBits=0;
     while(BS->Remain()>0 && !BS->GetB())
         LeadingZeroBits++;
-    INTEGRITY(LeadingZeroBits<=32, "(Problem)", 0)
+    INTEGRITY_INT(LeadingZeroBits<=32, "(Problem)", 0)
     double InfoD=pow((float)2, (float)LeadingZeroBits)-1+BS->Get4(LeadingZeroBits);
-    INTEGRITY(InfoD<int32u(-1), "(Problem)", 0)
+    INTEGRITY_INT(InfoD<int32u(-1), "(Problem)", 0)
     Info=(int32s)(pow((double)-1, InfoD+1)*(int32u)ceil(InfoD/2));
 
     if (Trace_Activated)
@@ -1328,7 +1328,7 @@ void File__Analyze::Get_UE(int32u &Info, const char* Name)
     int8u LeadingZeroBits=0;
     while(BS->Remain()>0 && !BS->GetB())
         LeadingZeroBits++;
-    INTEGRITY(LeadingZeroBits<=32, "(Problem)", 0)
+    INTEGRITY_INT(LeadingZeroBits<=32, "(Problem)", 0)
     double InfoD=pow(2, (float)LeadingZeroBits);
     Info=(int32u)InfoD-1+BS->Get4(LeadingZeroBits);
 

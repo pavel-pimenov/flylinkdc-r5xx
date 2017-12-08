@@ -1,4 +1,4 @@
-/// Json-cpp amalgated header (http://jsoncpp.sourceforge.net/).
+/// Json-cpp amalgamated header (http://jsoncpp.sourceforge.net/).
 /// It is intended to be used with #include "json/json.h"
 
 // //////////////////////////////////////////////////////////////////////
@@ -72,9 +72,9 @@ license you like.
 
 
 
-#ifndef JSON_AMALGATED_H_INCLUDED
-# define JSON_AMALGATED_H_INCLUDED
-/// If defined, indicates that the source file is amalgated
+#ifndef JSON_AMALGAMATED_H_INCLUDED
+# define JSON_AMALGAMATED_H_INCLUDED
+/// If defined, indicates that the source file is amalgamated
 /// to prevent private header inclusion.
 #define JSON_IS_AMALGAMATION
 
@@ -143,9 +143,9 @@ license you like.
 #define JSON_USE_EXCEPTION 1
 #endif
 
-/// If defined, indicates that the source file is amalgated
+/// If defined, indicates that the source file is amalgamated
 /// to prevent private header inclusion.
-/// Remarks: it is automatically defined in the generated amalgated header.
+/// Remarks: it is automatically defined in the generated amalgamated header.
 // #define JSON_IS_AMALGAMATION
 
 #ifdef JSON_IN_CPPTL
@@ -196,7 +196,7 @@ license you like.
 
 #endif // defined(_MSC_VER)
 
-// In c++11 the override keyword allows you to explicity define that a function
+// In c++11 the override keyword allows you to explicitly define that a function
 // is intended to override the base-class version.  This makes the code more
 // managable and fixes a set of common hard-to-find bugs.
 #if __cplusplus >= 201103L
@@ -561,7 +561,7 @@ enum CommentPlacement {
 
 /** \brief Lightweight wrapper to tag static string.
  *
- * Value constructor and objectValue member assignement takes advantage of the
+ * Value constructor and objectValue member assignment takes advantage of the
  * StaticString and avoid the cost of string duplication when storing the
  * string or the member name.
  *
@@ -845,8 +845,8 @@ Json::Value obj_value(Json::objectValue); // {}
   /// otherwise, false.
   bool empty() const;
 
-  /// Return isNull()
-  bool operator!() const;
+  /// Return !isNull()
+  explicit operator bool() const;
 
   /// Remove all object members and array elements.
   /// \pre type() is arrayValue, objectValue, or nullValue
@@ -966,13 +966,11 @@ Json::Value obj_value(Json::objectValue); // {}
   /// \pre type() is objectValue or nullValue
   /// \post type() is unchanged
   /// \deprecated
-  JSONCPP_DEPRECATED("")
-  Value removeMember(const char* key);
+  void removeMember(const char* key);
   /// Same as removeMember(const char*)
   /// \param key may contain embedded nulls.
   /// \deprecated
-  JSONCPP_DEPRECATED("")
-  Value removeMember(const JSONCPP_STRING& key);
+  void removeMember(const JSONCPP_STRING& key);
   /// Same as removeMember(const char* begin, const char* end, Value* removed),
   /// but 'key' is null-terminated.
   bool removeMember(const char* key, Value* removed);
@@ -1873,7 +1871,7 @@ public:
     - "dropNullPlaceholders": false or true
       - Drop the "null" string from the writer's output for nullValues.
         Strictly speaking, this is not valid JSON. But when the output is being
-        fed to a browser's Javascript, it makes for smaller output and the
+        fed to a browser's JavaScript, it makes for smaller output and the
         browser can handle the output just fine.
     - "useSpecialFloats": false or true
       - If true, outputs non-finite floating point values in the following way:
@@ -1943,7 +1941,7 @@ public:
 
   /** \brief Drop the "null" string from the writer's output for nullValues.
    * Strictly speaking, this is not valid JSON. But when the output is being
-   * fed to a browser's Javascript, it makes for smaller output and the
+   * fed to a browser's JavaScript, it makes for smaller output and the
    * browser can handle the output just fine.
    */
   void dropNullPlaceholders();
@@ -1957,7 +1955,7 @@ private:
   void writeValue(const Value& value);
 
   JSONCPP_STRING document_;
-  bool yamlCompatiblityEnabled_;
+  bool yamlCompatibilityEnabled_;
   bool dropNullPlaceholders_;
   bool omitEndingLineFeed_;
 };
@@ -2008,7 +2006,7 @@ public: // overridden from Writer
 private:
   void writeValue(const Value& value);
   void writeArrayValue(const Value& value);
-  bool isMultineArray(const Value& value);
+  bool isMultilineArray(const Value& value);
   void pushValue(const JSONCPP_STRING& value);
   void writeIndent();
   void writeWithIndent(const JSONCPP_STRING& value);
@@ -2082,7 +2080,7 @@ public:
 private:
   void writeValue(const Value& value);
   void writeArrayValue(const Value& value);
-  bool isMultineArray(const Value& value);
+  bool isMultilineArray(const Value& value);
   void pushValue(const JSONCPP_STRING& value);
   void writeIndent();
   void writeWithIndent(const JSONCPP_STRING& value);
@@ -2207,4 +2205,4 @@ JSON_API JSONCPP_OSTREAM& operator<<(JSONCPP_OSTREAM&, const Value& root);
 
 
 
-#endif //ifndef JSON_AMALGATED_H_INCLUDED
+#endif //ifndef JSON_AMALGAMATED_H_INCLUDED

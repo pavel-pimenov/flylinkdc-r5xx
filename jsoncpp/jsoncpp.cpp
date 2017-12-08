@@ -1,4 +1,4 @@
-/// Json-cpp amalgated source (http://jsoncpp.sourceforge.net/).
+/// Json-cpp amalgamated source (http://jsoncpp.sourceforge.net/).
 /// It is intended to be used with #include "json/json.h"
 
 // //////////////////////////////////////////////////////////////////////
@@ -145,9 +145,6 @@ static inline JSONCPP_STRING codePointToUTF8(unsigned int cp) {
   return result;
 }
 
-/// Returns true if ch is a control character (in range [1,31]).
-static inline bool isControlCharacter(char ch) { return ch > 0 && ch <= 0x1F; }
-
 enum {
   /// Constant that specify the size of the buffer that must be passed to
   /// uintToString.
@@ -158,7 +155,7 @@ enum {
 typedef char UIntToStringBuffer[uintToStringBufferSize];
 
 /** Converts an unsigned integer to string.
- * @param value Unsigned interger to convert to string
+ * @param value Unsigned integer to convert to string
  * @param current Input/Output string buffer.
  *        Must have at least uintToStringBufferSize chars free.
  */
@@ -1452,7 +1449,7 @@ bool OurReader::readToken(Token& token) {
     token.type_ = tokenString;
     ok = readStringSingleQuote();
     break;
-    } // else continue
+    } // else fall through
   case '/':
     token.type_ = tokenComment;
     ok = readComment();
@@ -3432,7 +3429,7 @@ bool Value::empty() const {
     return false;
 }
 
-bool Value::operator!() const { return isNull(); }
+Value::operator bool() const { return ! isNull(); }
 
 void Value::clear() {
   JSON_ASSERT_MESSAGE(type_ == nullValue || type_ == arrayValue ||
@@ -3657,27 +3654,19 @@ bool Value::removeMember(JSONCPP_STRING const& key, Value* removed)
 {
   return removeMember(key.data(), key.data() + key.length(), removed);
 }
-Value Value::removeMember(const char* key)
+void Value::removeMember(const char* key)
 {
   JSON_ASSERT_MESSAGE(type_ == nullValue || type_ == objectValue,
                       "in Json::Value::removeMember(): requires objectValue");
   if (type_ == nullValue)
-    return nullSingleton();
+    return;
 
-  Value removed;  // null
-  removeMember(key, key + strlen(key), &removed);
-  return removed; // still null if removeMember() did nothing
+  CZString actualKey(key, unsigned(strlen(key)), CZString::noDuplication);
+  value_.map_->erase(actualKey);
 }
-Value Value::removeMember(const JSONCPP_STRING& key)
+void Value::removeMember(const JSONCPP_STRING& key)
 {
-  JSON_ASSERT_MESSAGE(type_ == nullValue || type_ == objectValue,
-                      "in Json::Value::removeMember(): requires objectValue");
-  if (type_ == nullValue)
-    return nullSingleton();
-
-  Value removed;  // null
-  removeMember(key.c_str(), key.c_str() + key.size(), &removed);
-  return removed; // still null if removeMember() did nothing
+  removeMember(key.c_str());
 }
 
 bool Value::removeIndex(ArrayIndex index, Value* removed) {
@@ -4273,10 +4262,10 @@ JSONCPP_STRING valueToString(double value, bool useSpecialFloats, unsigned int p
   int len = -1;
 
   char formatString[15];
-  snprintf(formatString, sizeof(formatString), "%%.%dg", precision);
+  snprintf(formatString, sizeof(formatString), "%%.%ug", precision);
 
   // Print into the buffer. We need not request the alternative representation
-  // that always has a decimal point because JSON doesn't distingish the
+  // that always has a decimal point because JSON doesn't distinguish the
   // concepts of reals and integers.
   if (isfinite(value)) {
     len = snprintf(buffer, sizeof(buffer), formatString, value);
@@ -4482,10 +4471,10 @@ Writer::~Writer() {}
 // //////////////////////////////////////////////////////////////////
 
 FastWriter::FastWriter()
-    : yamlCompatiblityEnabled_(false), dropNullPlaceholders_(false),
+    : yamlCompatibilityEnabled_(false), dropNullPlaceholders_(false),
       omitEndingLineFeed_(false) {}
 
-void FastWriter::enableYAMLCompatibility() { yamlCompatiblityEnabled_ = true; }
+void FastWriter::enableYAMLCompatibility() { yamlCompatibilityEnabled_ = true; }
 
 void FastWriter::dropNullPlaceholders() { dropNullPlaceholders_ = true; }
 
@@ -4545,7 +4534,7 @@ void FastWriter::writeValue(const Value& value) {
       if (it != members.begin())
         document_ += ',';
       document_ += valueToQuotedStringN(name.data(), static_cast<unsigned>(name.length()));
-      document_ += yamlCompatiblityEnabled_ ? ": " : ":";
+      document_ += yamlCompatibilityEnabled_ ? ": " : ":";
       writeValue(value[name]);
     }
     document_ += '}';
@@ -4634,7 +4623,7 @@ void StyledWriter::writeArrayValue(const Value& value) {
   if (size == 0)
     pushValue("[]");
   else {
-    bool isArrayMultiLine = isMultineArray(value);
+    bool isArrayMultiLine = isMultilineArray(value);
     if (isArrayMultiLine) {
       writeWithIndent("[");
       indent();
@@ -4672,7 +4661,7 @@ void StyledWriter::writeArrayValue(const Value& value) {
   }
 }
 
-bool StyledWriter::isMultineArray(const Value& value) {
+bool StyledWriter::isMultilineArray(const Value& value) {
   ArrayIndex const size = value.size();
   bool isMultiLine = size * 3 >= rightMargin_;
   childValues_.clear();
@@ -4854,7 +4843,7 @@ void StyledStreamWriter::writeArrayValue(const Value& value) {
   if (size == 0)
     pushValue("[]");
   else {
-    bool isArrayMultiLine = isMultineArray(value);
+    bool isArrayMultiLine = isMultilineArray(value);
     if (isArrayMultiLine) {
       writeWithIndent("[");
       indent();
@@ -4894,7 +4883,7 @@ void StyledStreamWriter::writeArrayValue(const Value& value) {
   }
 }
 
-bool StyledStreamWriter::isMultineArray(const Value& value) {
+bool StyledStreamWriter::isMultilineArray(const Value& value) {
   ArrayIndex const size = value.size();
   bool isMultiLine = size * 3 >= rightMargin_;
   childValues_.clear();
@@ -5011,7 +5000,7 @@ struct BuiltStyledStreamWriter : public StreamWriter
 private:
   void writeValue(Value const& value);
   void writeArrayValue(Value const& value);
-  bool isMultineArray(Value const& value);
+  bool isMultilineArray(Value const& value);
   void pushValue(JSONCPP_STRING const& value);
   void writeIndent();
   void writeWithIndent(JSONCPP_STRING const& value);
@@ -5135,7 +5124,7 @@ void BuiltStyledStreamWriter::writeArrayValue(Value const& value) {
   if (size == 0)
     pushValue("[]");
   else {
-    bool isMultiLine = (cs_ == CommentStyle::All) || isMultineArray(value);
+    bool isMultiLine = (cs_ == CommentStyle::All) || isMultilineArray(value);
     if (isMultiLine) {
       writeWithIndent("[");
       indent();
@@ -5177,7 +5166,7 @@ void BuiltStyledStreamWriter::writeArrayValue(Value const& value) {
   }
 }
 
-bool BuiltStyledStreamWriter::isMultineArray(Value const& value) {
+bool BuiltStyledStreamWriter::isMultilineArray(Value const& value) {
   ArrayIndex const size = value.size();
   bool isMultiLine = size * 3 >= rightMargin_;
   childValues_.clear();
