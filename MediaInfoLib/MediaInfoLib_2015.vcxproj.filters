@@ -764,6 +764,9 @@
     <ClCompile Include="Source\MediaInfo\Multiple\File_MiXml.cpp">
       <Filter>Source Files\Multiple</Filter>
     </ClCompile>
+    <ClCompile Include="Source\MediaInfo\File__HasReferences.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\MediaInfo\File__Analyse_Automatic.h">
@@ -1428,6 +1431,9 @@
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\Multiple\File_MiXml.h">
       <Filter>Header Files\Multiple</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\File__HasReferences.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
