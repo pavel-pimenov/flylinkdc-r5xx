@@ -74,6 +74,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/vector.hpp"
 #include "libtorrent/aux_/deferred_handler.hpp"
 #include "libtorrent/aux_/allocating_handler.hpp"
+#include "libtorrent/extensions.hpp" // for add_peer_flags_t
 
 #ifdef TORRENT_USE_OPENSSL
 // there is no forward declaration header for asio
@@ -330,8 +331,7 @@ namespace libtorrent {
 	public:
 
 		torrent(aux::session_interface& ses, int block_size
-			, bool session_paused, add_torrent_params const& p
-			, sha1_hash const& info_hash);
+			, bool session_paused, add_torrent_params const& p);
 		~torrent() override;
 
 		// This may be called from multiple threads
@@ -370,7 +370,7 @@ namespace libtorrent {
 		void add_extension_fun(std::function<std::shared_ptr<torrent_plugin>(torrent_handle const&, void*)> const& ext
 			, void* userdata);
 		void notify_extension_add_peer(tcp::endpoint const& ip
-			, peer_source_flags_t src, int flags);
+			, peer_source_flags_t src, add_peer_flags_t flags);
 #endif
 
 		peer_connection* find_lowest_ranking_peer() const;
@@ -601,6 +601,11 @@ namespace libtorrent {
 		void connect_to_url_seed(std::list<web_seed_t>::iterator url);
 		bool connect_to_peer(torrent_peer* peerinfo, bool ignore_limit = false);
 
+		int priority() const;
+#ifndef TORRENT_NO_DEPRECATE
+		void set_priority(int const prio);
+#endif // TORRENT_NO_DEPRECATE
+
 // --------------------------------------------
 		// BANDWIDTH MANAGEMENT
 
@@ -675,7 +680,7 @@ namespace libtorrent {
 
 		bool try_connect_peer();
 		torrent_peer* add_peer(tcp::endpoint const& adr
-			, peer_source_flags_t source, int flags = 0);
+			, peer_source_flags_t source, pex_flags_t flags = {});
 		bool ban_peer(torrent_peer* tp);
 		void update_peer_port(int port, torrent_peer* p, peer_source_flags_t src);
 		void set_seed(torrent_peer* p, bool s);
@@ -719,7 +724,7 @@ namespace libtorrent {
 			, std::list<address> const& ip_list
 			, struct tracker_response const& resp) override;
 		void tracker_request_error(tracker_request const& r
-			, int response_code, error_code const& ec, const std::string& msg
+			, error_code const& ec, const std::string& msg
 			, seconds32 retry_interval) override;
 		void tracker_warning(tracker_request const& req
 			, std::string const& msg) override;
@@ -1589,6 +1594,8 @@ namespace libtorrent {
 
 		// the number of bytes of padding files
 		std::uint32_t m_padding:24;
+
+		// TODO: 8 bits available here
 
 // ----
 

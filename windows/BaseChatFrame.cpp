@@ -450,7 +450,7 @@ void BaseChatFrame::onEnter()
 				}
 				if (!local_message.empty())
 				{
-					addLine(local_message, Colors::g_ChatTextSystem);
+					addLine(local_message, 0, Colors::g_ChatTextSystem);
 				}
 			}
 			else if ((stricmp(cmd.c_str(), _T("clear")) == 0) || (stricmp(cmd.c_str(), _T("cls")) == 0) || (stricmp(cmd.c_str(), _T("c")) == 0))
@@ -496,7 +496,7 @@ void BaseChatFrame::onEnter()
 			{
 				tstring l_ignorelist = TSTRING(IGNORED_USERS) + _T(':');
 				l_ignorelist += UserManager::getIgnoreListAsString();
-				addLine(l_ignorelist, Colors::g_ChatTextSystem);
+				addLine(l_ignorelist, 0, Colors::g_ChatTextSystem);
 			}
 			else if (stricmp(cmd.c_str(), _T("me")) == 0)
 			{
@@ -650,7 +650,7 @@ void BaseChatFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*
 	
 	if (bInChat && BOOLSETTING(STATUS_IN_CHAT))
 	{
-		addLine(_T("*** ") + aLine, Colors::g_ChatTextServer);
+		addLine(_T("*** ") + aLine, 1, Colors::g_ChatTextServer);
 	}
 }
 tstring BaseChatFrame::getIpCountry(const string& ip, bool ts, bool p_ipInChat, bool p_countryInChat, bool p_ISPInChat)
@@ -686,7 +686,7 @@ tstring BaseChatFrame::getIpCountry(const string& ip, bool ts, bool p_ipInChat, 
 	return l_result;
 }
 
-void BaseChatFrame::addLine(const tstring& aLine, CHARFORMAT2& cf /*= Colors::g_ChatTextGeneral */)
+void BaseChatFrame::addLine(const tstring& aLine, unsigned p_max_smiles, CHARFORMAT2& cf /*= Colors::g_ChatTextGeneral */)
 {
 	//TODO - RoLex - chat- LogManager::message("addLine Hub:" + getHubHint() + " Message: [" + Text::fromT(aLine) + "]");
 	
@@ -699,16 +699,16 @@ void BaseChatFrame::addLine(const tstring& aLine, CHARFORMAT2& cf /*= Colors::g_
 	if (m_bTimeStamps)
 	{
 		const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, _T('[') + Text::toT(Util::getShortTimeString()) + _T("] "), aLine, cf, false);
-		ctrlClient.AppendText(l_message, true);
+		ctrlClient.AppendText(l_message, p_max_smiles, true);
 	}
 	else
 	{
 		const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, Util::emptyStringT, aLine, cf, false);
-		ctrlClient.AppendText(l_message, true);
+		ctrlClient.AppendText(l_message, p_max_smiles, true);
 	}
 }
 
-void BaseChatFrame::addLine(const Identity& from, const bool bMyMess, const bool bThirdPerson, const tstring& aLine, const CHARFORMAT2& cf, tstring& extra)
+void BaseChatFrame::addLine(const Identity& from, const bool bMyMess, const bool bThirdPerson, const tstring& aLine, unsigned p_max_smiles, const CHARFORMAT2& cf, tstring& extra)
 {
 	if (ctrlClient.IsWindow())
 	{
@@ -728,12 +728,12 @@ void BaseChatFrame::addLine(const Identity& from, const bool bMyMess, const bool
 	if (m_bTimeStamps)
 	{
 		const ChatCtrl::CFlyChatCache l_message(from, bMyMess, bThirdPerson, _T('[') + Text::toT(Util::getShortTimeString()) + extra + _T("] "), aLine, cf, true);
-		ctrlClient.AppendText(l_message, true);
+		ctrlClient.AppendText(l_message, p_max_smiles, true);
 	}
 	else
 	{
 		const ChatCtrl::CFlyChatCache l_message(from, bMyMess, bThirdPerson, !extra.empty() ? _T('[') + extra + _T("] ") : Util::emptyStringT, aLine, cf, true);
-		ctrlClient.AppendText(l_message, true);
+		ctrlClient.AppendText(l_message, p_max_smiles, true);
 	}
 }
 
@@ -894,7 +894,7 @@ void BaseChatFrame::appendLogToChat(const string& path, const size_t linesCount)
 		for (; i < l_lines.getTokens().size(); ++i)
 		{
 			l_message.m_Msg = Text::toT(l_lines.getTokens()[i] + '\n');
-			ctrlClient.AppendText(l_message, false);
+			ctrlClient.AppendText(l_message, 1, false);
 		}
 	}
 }

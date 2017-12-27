@@ -302,7 +302,7 @@ LRESULT PropPageTextStyles::onEditTextStyle(WORD /*wNotifyCode*/, WORD /*wID*/, 
 			TextStyles[i].bCharSet = m_Font.lfCharSet;
 			TextStyles[i].yHeight = m_Font.lfHeight;
 			const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, _T("12:34 "), Text::toT(TextStyles[i].m_sPreviewText), TextStyles[i], true);
-			m_Preview.AppendText(l_message, false);
+			m_Preview.AppendText(l_message, 0, false);
 		}
 	}
 	
@@ -325,7 +325,7 @@ void PropPageTextStyles::RefreshPreview()
 		for (int i = 0; i < TS_LAST; i++)
 		{
 			const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, _T("12:34 "), Text::toT(TextStyles[i].m_sPreviewText).c_str(), TextStyles[i], false);
-			m_Preview.AppendText(l_message, false);
+			m_Preview.AppendText(l_message, 0, false);
 		}
 	}
 	m_Preview.InvalidateRect(NULL);

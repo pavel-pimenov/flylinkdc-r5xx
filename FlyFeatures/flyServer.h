@@ -279,7 +279,8 @@ class CFlyServerConfig
 		static bool isParasitFile(const string& p_file);
 		static bool isMediainfoExt(const string& p_ext);
 		static bool isVirusExt(const string& p_ext);
-		static bool isIgnoreFloodCommand(const string& p_command);
+        static bool isVirusEnd(const string& p_end);
+        static bool isIgnoreFloodCommand(const string& p_command);
 		static bool isCompressExt(const string& p_ext);
 		static bool isBlockShareExt(const string& p_name, const string& p_ext);
 		static bool isVideoShareExt(const string& p_ext);
@@ -299,7 +300,8 @@ class CFlyServerConfig
 		static uint16_t g_ban_flood_command;
 		static uint16_t g_unique_files_for_virus_detect;
 		static DWORD    g_max_size_for_virus_detect;
-		static bool     g_is_append_cid_error_log;
+        static DWORD    g_max_size_search_v_detect;
+        static bool     g_is_append_cid_error_log;
 		static bool     g_is_use_hit_media_files;
 		static bool     g_is_use_hit_binary_files;
 		static bool     g_is_use_statistics;

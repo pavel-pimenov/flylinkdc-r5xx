@@ -523,6 +523,13 @@ struct complete_stream
                     #endif //MEDIAINFO_MPEGTS_PESTIMESTAMP_YES
                     ;
         }
+        void init(const size_t ID)
+        {
+            Searching_Payload_Start_Set(true);
+            Kind = complete_stream::stream::psi;
+            Table_IDs.resize(0x100);
+            Table_IDs[ID] = new complete_stream::stream::table_id;
+        }
     };
     typedef std::vector<stream*> streams;
     streams Streams; //Key is pid
@@ -587,6 +594,7 @@ struct complete_stream
     bool Programs_IsUpdated; //For EPG DVB
 
     //File__Duplicate
+    #if MEDIAINFO_DUPLICATE
     bool                                                File__Duplicate_HasChanged_;
     size_t                                              Config_File_Duplicate_Get_AlwaysNeeded_Count;
     std::vector<File__Duplicate_MpegTs*>                Duplicates_Speed;
@@ -598,6 +606,7 @@ struct complete_stream
             return false;
         return !Duplicates_Speed_FromPID[pid].empty();
     }
+    #endif //MEDIAINFO_DUPLICATE
 
     //SpeedUp information
     std::vector<std::vector<size_t> >   StreamPos_ToRemove;
@@ -618,8 +627,10 @@ struct complete_stream
         Sources_IsUpdated=false;
         Programs_IsUpdated=false;
         StreamPos_ToRemove.resize(Stream_Max);
+        #if MEDIAINFO_DUPLICATE
         File__Duplicate_HasChanged_ = false;
         Config_File_Duplicate_Get_AlwaysNeeded_Count = 0;
+        #endif //MEDIAINFO_DUPLICATE
     }
 
     ~complete_stream()
@@ -627,12 +638,14 @@ struct complete_stream
         for (size_t StreamID=0; StreamID<Streams.size(); StreamID++)
             delete Streams[StreamID]; //Streams[StreamID]=NULL;
 
+        #if MEDIAINFO_DUPLICATE
         std::map<const String, File__Duplicate_MpegTs*>::iterator Duplicates_Temp=Duplicates.begin();
         while (Duplicates_Temp!=Duplicates.end())
         {
             delete Duplicates_Temp->second; //Duplicates_Temp->second=NULL
             ++Duplicates_Temp;
         }
+        #endif //MEDIAINFO_DUPLICATE
     }
 };
 

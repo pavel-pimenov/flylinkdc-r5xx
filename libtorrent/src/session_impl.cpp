@@ -290,7 +290,7 @@ namespace aux {
 			{"0.0.0.0", "255.255.255.255", gfilter},
 			// local networks
 			{"10.0.0.0", "10.255.255.255", lfilter},
-			{"172.16.0.0", "172.16.255.255", lfilter},
+			{"172.16.0.0", "172.31.255.255", lfilter},
 			{"192.168.0.0", "192.168.255.255", lfilter},
 			// link-local
 			{"169.254.0.0", "169.254.255.255", lfilter},
@@ -303,7 +303,9 @@ namespace aux {
 		{
 			// everything
 			{"::0", "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", gfilter},
-			// link-local
+            // local networks
+            {"fc00::", "fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", lfilter},
+            // link-local
 			{"fe80::", "febf::ffff:ffff:ffff:ffff:ffff:ffff:ffff", lfilter},
 			// loop-back
 			{"::1", "::1", lfilter},
@@ -395,7 +397,7 @@ namespace aux {
 		: m_settings(pack)
 		, m_io_service(ios)
 #ifdef TORRENT_USE_OPENSSL
-		, m_ssl_ctx(m_io_service, boost::asio::ssl::context::sslv23)
+		, m_ssl_ctx(boost::asio::ssl::context::sslv23)
 #endif
 		, m_alerts(m_settings.get_int(settings_pack::alert_queue_size)
 			, alert_category_t{static_cast<unsigned int>(m_settings.get_int(settings_pack::alert_mask))})
@@ -4954,7 +4956,7 @@ namespace {
 
 		torrent_ptr = std::make_shared<torrent>(*this
 			, 16 * 1024, m_paused
-			, params, params.info_hash);
+			, params);
 		torrent_ptr->set_queue_position(m_download_queue.end_index());
 
 		return std::make_pair(torrent_ptr, true);
@@ -6373,6 +6375,31 @@ namespace {
 
 	void session_impl::update_force_proxy()
 	{
+		if (!m_settings.get_bool(settings_pack::force_proxy))
+		{
+#ifndef TORRENT_DISABLE_LOGGING
+			session_log("force-proxy disabled");
+#endif
+			// we need to close and remove all listen sockets during a transition
+			// from force-proxy to not-force-proxy. reopen_listen_sockets() won't
+			// do anything with half-opened sockets.
+			error_code ec;
+			for (auto& i : m_listen_sockets)
+			{
+				if (i->udp_sock) i->udp_sock->sock.close();
+				if (i->sock) i->sock->close(ec);
+			}
+			m_listen_sockets.clear();
+			return;
+		}
+
+#ifndef TORRENT_DISABLE_LOGGING
+		session_log("force-proxy enabled");
+#endif
+
+		// when enabling force-proxy, we no longer wand to accept connections via
+		// a regular listen socket, only via a proxy. We also want to enable
+		// force-proxy on all udp sockets
 		for (auto& i : m_listen_sockets)
 		{
 			i->udp_sock->sock.set_force_proxy(m_settings.get_bool(settings_pack::force_proxy));
@@ -6385,18 +6412,6 @@ namespace {
 				i->sock.reset();
 			}
 		}
-
-		if (!m_settings.get_bool(settings_pack::force_proxy))
-		{
-#ifndef TORRENT_DISABLE_LOGGING
-			session_log("force-proxy disabled");
-#endif
-			return;
-		}
-
-#ifndef TORRENT_DISABLE_LOGGING
-		session_log("force-proxy enabled");
-#endif
 
 		// enable force_proxy mode. We don't want to accept any incoming
 		// connections, except through a proxy.
@@ -6523,25 +6538,17 @@ namespace {
 		if (m_settings.get_bool(settings_pack::rate_limit_utp))
 		{
 			// allow the global or local peer class to limit uTP peers
-			m_peer_class_type_filter.add(peer_class_type_filter::utp_socket
-				, m_local_peer_class);
-			m_peer_class_type_filter.add(peer_class_type_filter::utp_socket
+			m_peer_class_type_filter.allow(peer_class_type_filter::utp_socket
 				, m_global_class);
-			m_peer_class_type_filter.add(peer_class_type_filter::ssl_utp_socket
-				, m_local_peer_class);
-			m_peer_class_type_filter.add(peer_class_type_filter::ssl_utp_socket
+			m_peer_class_type_filter.allow(peer_class_type_filter::ssl_utp_socket
 				, m_global_class);
 		}
 		else
 		{
 			// don't add the global or local peer class to limit uTP peers
-			m_peer_class_type_filter.remove(peer_class_type_filter::utp_socket
-				, m_local_peer_class);
-			m_peer_class_type_filter.remove(peer_class_type_filter::utp_socket
+			m_peer_class_type_filter.disallow(peer_class_type_filter::utp_socket
 				, m_global_class);
-			m_peer_class_type_filter.remove(peer_class_type_filter::ssl_utp_socket
-				, m_local_peer_class);
-			m_peer_class_type_filter.remove(peer_class_type_filter::ssl_utp_socket
+			m_peer_class_type_filter.disallow(peer_class_type_filter::ssl_utp_socket
 				, m_global_class);
 		}
 	}
@@ -7102,12 +7109,12 @@ namespace {
 		}
 
 		void tracker_logger::tracker_request_error(tracker_request const&
-			, int response_code, error_code const& ec, const std::string& str
+			, error_code const& ec, const std::string& str
 			, seconds32 const retry_interval)
 		{
 			TORRENT_UNUSED(retry_interval);
-			debug_log("*** tracker error: %d: %s %s"
-				, response_code, ec.message().c_str(), str.c_str());
+			debug_log("*** tracker error: %s %s"
+				, ec.message().c_str(), str.c_str());
 		}
 
 		bool tracker_logger::should_log() const

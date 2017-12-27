@@ -17,6 +17,7 @@
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
+#if defined(MEDIAINFO_FILE_YES)
 #include "MediaInfo/Reader/Reader__Base.h"
 #include "ZenLib/File.h"
 #ifdef FLYLINKDC_ZENLIB_USE_THREAD
@@ -94,4 +95,6 @@ public :
 };
 
 } //NameSpace
+#endif //defined(MEDIAINFO_FILE_YES)
+
 #endif

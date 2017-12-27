@@ -1836,7 +1836,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 	}
 	else
 	{
-		dcassert(0);
+		//dcassert(0);
 	}
 	putConnection(aSource);
 }

@@ -66,9 +66,6 @@ namespace libtorrent {
 		, tracker_request const& req
 		, std::weak_ptr<request_callback> c)
 		: tracker_connection(man, req, ios, c)
-#if TORRENT_USE_I2P
-		, m_i2p_conn(nullptr)
-#endif
 	{}
 
 	void http_tracker_connection::start()
@@ -90,7 +87,7 @@ namespace libtorrent {
 		}
 
 #if TORRENT_USE_I2P
-		bool i2p = is_i2p_url(url);
+		bool const i2p = is_i2p_url(url);
 #else
 		static const bool i2p = false;
 #endif
@@ -160,7 +157,7 @@ namespace libtorrent {
 			{
 				if (tracker_req().i2pconn->local_endpoint().empty())
 				{
-					fail(errors::no_i2p_endpoint, -1, "Waiting for i2p acceptor from SAM bridge", seconds32(5));
+					fail(errors::no_i2p_endpoint, "Waiting for i2p acceptor from SAM bridge", seconds32(5));
 					return;
 				}
 				else
@@ -196,7 +193,7 @@ namespace libtorrent {
 
 		if (!tracker_req().outgoing_socket)
 		{
-			fail(errors::invalid_listen_socket, -1, "outgoing socket was closed");
+			fail(errors::invalid_listen_socket, "outgoing socket was closed");
 			return;
 		}
 
@@ -321,13 +318,13 @@ namespace libtorrent {
 		if (parser.status_code() != 200)
 		{
 			fail(error_code(parser.status_code(), http_category())
-				, parser.status_code(), parser.message().c_str());
+				, parser.message().c_str());
 			return;
 		}
 
 		if (ec && ec != boost::asio::error::eof)
 		{
-			fail(ec, parser.status_code());
+			fail(ec);
 			return;
 		}
 
@@ -351,7 +348,7 @@ namespace libtorrent {
 
 		if (ecode)
 		{
-			fail(ecode, parser.status_code(), resp.failure_reason.c_str()
+			fail(ecode, resp.failure_reason.c_str()
 				, resp.interval, resp.min_interval);
 			close();
 			return;

@@ -135,7 +135,9 @@ bool     CFlyServerConfig::g_is_use_hit_binary_files = false;
 bool     CFlyServerConfig::g_is_use_statistics = false;
 bool     CFlyServerConfig::g_is_use_log_redirect = false;
 
-DWORD CFlyServerConfig::g_max_size_for_virus_detect = 10 * 1024 * 1024; // Максимальный размер (10M)
+DWORD CFlyServerConfig::g_max_size_for_virus_detect = 10 * 1024 * 1024;
+DWORD CFlyServerConfig::g_max_size_search_v_detect = 3 * 1024 * 1024;
+
 
 uint16_t CFlyServerConfig::g_max_unique_tth_search  = 10; // Не принимаем в течении 10 секунд одинаковых поисков по TTH для одного и того-же целевого IP:PORT (UDP)
 uint16_t CFlyServerConfig::g_max_unique_file_search = 10; // Не принимаем в течении 10 секунд одинаковых поисков по File для одного и того-же целевого IP:PORT (UDP)
@@ -501,6 +503,8 @@ void CFlyServerConfig::loadConfig()
 					initUINT16("ban_flood_command", g_ban_flood_command, 10);
 					initUINT16("unique_files_for_virus_detect", g_unique_files_for_virus_detect, 2);
 					initDWORD("max_size_for_virus_detect", g_max_size_for_virus_detect);
+                    initDWORD("max_size_search_v_detect", g_max_size_search_v_detect);
+                    
 					
 					initDWORD("winet_connect_timeout", g_winet_connect_timeout);
 					initDWORD("winet_receive_timeout", g_winet_receive_timeout);
@@ -1336,6 +1340,17 @@ void CFlyServerConfig::loadTorrentSearchEngine()
 bool CFlyServerConfig::isIgnoreFloodCommand(const string& p_command)
 {
 	return isCheckName(g_ignore_flood_command, p_command);
+}
+bool CFlyServerConfig::isVirusEnd(const string& p_end)
+{
+    dcassert(p_end == Text::toLower(p_end));
+    for (const auto i : g_virus_ext)
+    {
+        auto j = p_end.rfind(i);
+        if (j != string::npos && (p_end.length() - j) == i.length())
+            return true;
+    }
+    return false;
 }
 bool CFlyServerConfig::isVirusExt(const string& p_ext)
 {

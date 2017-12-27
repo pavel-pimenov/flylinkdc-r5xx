@@ -152,7 +152,7 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 			}
 		};
 		
-		void AppendText(const CFlyChatCache& p_message, bool p_is_lock_redraw);
+		void AppendText(const CFlyChatCache& p_message, unsigned p_max_smiles, bool p_is_lock_redraw);
 		void AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly& p_message);
 		void AppendTextParseBB(CAtlString& sMsgLower, const CFlyChatCacheTextOnly& p_message, const LONG& lSelBegin);
 		void AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheTextOnly& p_message, const LONG& lSelBegin);
@@ -163,6 +163,7 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		bool m_is_disable_chat_cache;
 		bool m_is_out_of_memory_for_smile;
 		FastCriticalSection m_fcs_chat_cache;
+		unsigned m_count_smiles = 0;
 		void insertAndFormat(const tstring & text, CHARFORMAT2 cf, bool p_is_disable_style, LONG& p_begin, LONG& p_end);
 	public:
 		void disable_chat_cache()

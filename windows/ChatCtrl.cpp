@@ -244,7 +244,7 @@ void ChatCtrl::restore_chat_cache()
 			}
 			if (l_is_disable_chat_cache == false)
 			{
-				AppendText(*i, false);
+				AppendText(*i, 0, false);
 			}
 		}
 	}
@@ -268,9 +268,7 @@ void ChatCtrl::insertAndFormat(const tstring & text, CHARFORMAT2 cf, bool p_is_d
 	}
 }
 //================================================================================================================================
-void ChatCtrl::AppendText(const CFlyChatCache& p_message, bool p_is_lock_redraw)
-//    const Identity& p_id, const bool bMyMess, const bool bThirdPerson, const tstring& sExtra, const tstring& sMsg, const CHARFORMAT2& cf
-//, bool bUseEmo/* = true*/
+void ChatCtrl::AppendText(const CFlyChatCache& p_message, unsigned p_max_smiles, bool p_is_lock_redraw)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	if (ClientManager::isBeforeShutdown())
@@ -351,16 +349,16 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message, bool p_is_lock_redraw)
 			const CHARFORMAT2& currentCF =
 			    p_message.m_bMyMess ? Colors::g_TextStyleMyNick :
 			    p_message.m_isFavorite ? (p_message.m_is_ban ? Colors::g_TextStyleFavUsersBan : Colors::g_TextStyleFavUsers) :
-				    p_message.m_is_op ? Colors::g_TextStyleOPs :
-				    BOOLSETTING(BOLD_AUTHOR_MESS) ? Colors::g_TextStyleBold :
-				    p_message.m_cf;
+			    p_message.m_is_op ? Colors::g_TextStyleOPs :
+			    BOOLSETTING(BOLD_AUTHOR_MESS) ? Colors::g_TextStyleBold :
+			    p_message.m_cf;
 			//dcassert(sizeof(currentCF) == sizeof(p_message.m_cf));
 			//if (memcmp(&currentCF, &p_message.m_cf,sizeof(currentCF)) == 0)
 			//{
 			//  insertAndFormat(g_open + p_message.m_Nick + g_close, p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
 			//}
 			//else
-		{
+			{
 				insertAndFormat(g_open, p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
 				insertAndFormat(p_message.m_Nick, currentCF, p_message.m_is_disable_style, lSelBegin, lSelEnd);
 				insertAndFormat(g_close, p_message.m_cf, p_message.m_is_disable_style, lSelBegin, lSelEnd);
@@ -383,7 +381,8 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message, bool p_is_lock_redraw)
 		uint8_t l_count_smiles = 0;
 		while (m_is_out_of_memory_for_smile == false)
 		{
-			if (l_count_smiles < MAX_EMOTICONS)
+			// fix концмедгестапопсихонкоучр ;-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-);-)
+			if (l_count_smiles < MAX_EMOTICONS && (p_max_smiles == 0 || m_count_smiles < p_max_smiles))
 			{
 				auto l_pos = tstring::npos;
 				auto l_min_pos = tstring::npos;
@@ -436,6 +435,7 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message, bool p_is_lock_redraw)
 							if (m_is_out_of_memory_for_smile == false)
 							{
 								l_count_smiles++;
+								m_count_smiles++;
 							}
 							else
 							{

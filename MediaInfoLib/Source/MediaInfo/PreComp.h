@@ -17,7 +17,6 @@
 
 //---------------------------------------------------------------------------
 #if defined(_MSC_VER) || defined(__BORLANDC__)
- #include <cassert>
  #include "MediaInfo/Setup.h"
  #include "MediaInfo/File__Analyze.h"
 #endif //_MSC_VER

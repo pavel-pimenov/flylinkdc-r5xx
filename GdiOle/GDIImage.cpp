@@ -3,7 +3,7 @@
 #include "GdiImage.h"
 
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-std::unique_ptr<webrtc::RWLockWrapper> CGDIImage::g_GDIcs = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+FastCriticalSection CGDIImage::g_GDIcs;
 std::unordered_set<CGDIImage*> CGDIImage::g_GDIImageSet;
 unsigned CGDIImage::g_AnimationDeathDetectCount = 0;
 unsigned CGDIImage::g_AnimationCount = 0;
@@ -362,9 +362,55 @@ CGDIImage *CGDIImage::CreateInstance(LPCWSTR pszFileName, HWND hCallbackWnd, DWO
 {
 	CGDIImage* l_image = new CGDIImage(pszFileName, hCallbackWnd, dwCallbackMsg);
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-	CFlyWriteLock(*g_GDIcs);
+	CFlyFastLock(g_GDIcs);
 	g_GDIImageSet.insert(l_image);
 #endif
 	return l_image;
 }
+void CGDIImage::calcStatisticsL() const
+{
+    g_AnimationCount = m_Callbacks.size();
+    if (g_AnimationCount > g_AnimationCountMax)
+    {
+        g_AnimationCountMax = g_AnimationCount;
+    }
+}
+
+bool CGDIImage::isGDIImageLive(CGDIImage* p_image)
+{
+    if (isShutdown())
+    {
+        return false;
+    }
+    CFlyFastLock(g_GDIcs);
+    const bool l_res = g_GDIImageSet.find(p_image) != g_GDIImageSet.end();
+    if (!l_res)
+    {
+        dcassert(0);
+        ++g_AnimationDeathDetectCount;
+    }
+    return l_res;
+}
+void CGDIImage::GDIImageDeath(CGDIImage* p_image)
+{
+    CFlyFastLock(g_GDIcs);
+    const auto l_size = g_GDIImageSet.size();
+    g_GDIImageSet.erase(p_image);
+    dcassert(g_GDIImageSet.size() == l_size - 1);
+}
+LONG CGDIImage::Release()
+{
+    const LONG lRef = InterlockedDecrement(&m_lRef);
+
+    if (lRef == 0)
+    {
+#ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
+        GDIImageDeath(this);
+#endif
+        delete this; // [39] https://www.box.net/shared/05cc9b528dc37cc78229
+    }
+
+    return lRef;
+}
+
 #endif // IRAINMAN_INCLUDE_GDI_OLE

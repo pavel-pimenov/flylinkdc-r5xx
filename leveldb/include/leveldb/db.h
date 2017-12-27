@@ -14,9 +14,9 @@ namespace leveldb {
 
 // Update Makefile if you change these
 static const int kMajorVersion = 1;
-static const int kMinorVersion = 19;
+static const int kMinorVersion = 20;
 
-#define LEVELDB_VER "1.19"                 // [+] FlylinkDC++
+#define LEVELDB_VER "1.20"                 // [+] FlylinkDC++
 
 struct Options;
 struct ReadOptions;

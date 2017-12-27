@@ -37,7 +37,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 	, private BaseChatFrame // [+] IRainman copy-past fix.
 {
 	public:
-		static bool gotMessage(const Identity& from, const Identity& to, const Identity& replyTo, const tstring& aMessage, const string& p_HubHint, const bool bMyMess, const bool bThirdPerson, const bool notOpenNewWindow = false); // !SMT!-S
+		static bool gotMessage(const Identity& from, const Identity& to, const Identity& replyTo, const tstring& aMessage, unsigned p_max_smiles, const string& p_HubHint, const bool bMyMess, const bool bThirdPerson, const bool notOpenNewWindow = false); // !SMT!-S
 		static void openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo, string myNick = Util::emptyString, const tstring& aMessage = Util::emptyStringT);
 		static bool isOpen(const UserPtr& u)
 		{
@@ -98,7 +98,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		void onAfterActiveTab(HWND aWnd);
 		void onInvalidateAfterActiveTab(HWND aWnd);
 		
-		void addLine(const Identity& from, const bool bMyMess, const bool bThirdPerson, const tstring& aLine, const CHARFORMAT2& cf = Colors::g_ChatTextGeneral);
+		void addLine(const Identity& from, const bool bMyMess, const bool bThirdPerson, const tstring& aLine, unsigned p_max_smiles, const CHARFORMAT2& cf = Colors::g_ChatTextGeneral);
 		void UpdateLayout(BOOL bResizeBars = TRUE);
 		void runUserCommand(UserCommand& uc);
 		void readFrameLog();

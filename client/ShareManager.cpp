@@ -131,7 +131,6 @@ ShareManager::~ShareManager()
 	if (bzXmlRef.get())
 	{
 		bzXmlRef.reset();
-		// File::deleteFile(getBZXmlFile()); [-] IRainman fix: don't delete this file!
 	}
 	// [+] IRainman fix.
 	const string& l_curFileName = getBZXmlFile();
@@ -1852,8 +1851,6 @@ void ShareManager::generateXmlList()
 			if (bzXmlRef.get())
 			{
 				bzXmlRef.reset();
-				// [!] IRainman fix: don't delete this file
-				// [-] File::deleteFile(getBZXmlFile());
 			}
 			
 			l_creation_log.step("set new file as cache");

@@ -4213,7 +4213,8 @@ bool File_Ac3::FrameSynchPoint_Test()
             Save_Buffer_Offset=Buffer_Offset;
             Save_Buffer_Size=Buffer_Size;
 
-            int8u* Buffer_Little=new int8u[Size];
+            {
+                int8u* Buffer_Little=new int8u[Size];
                 for (size_t Pos=0; Pos+1<Size; Pos+=2)
                 {
                     Buffer_Little[Pos+1]=Save_Buffer[Buffer_Offset+Pos  ];
@@ -4236,7 +4237,8 @@ bool File_Ac3::FrameSynchPoint_Test()
                     return true;
                 }
 
-            delete[] Buffer_Little;
+                delete[] Buffer_Little;
+            }
             Buffer=Save_Buffer; Save_Buffer=NULL;
             Buffer_Offset=Save_Buffer_Offset;
             Buffer_Size=Save_Buffer_Size;

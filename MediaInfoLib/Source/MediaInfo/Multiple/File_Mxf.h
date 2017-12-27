@@ -17,6 +17,7 @@
 
 //---------------------------------------------------------------------------
 #include "MediaInfo/File__Analyze.h"
+#include "MediaInfo/File__HasReferences.h"
 #if defined(MEDIAINFO_ANCILLARY_YES)
     #include <MediaInfo/Multiple/File_Ancillary.h>
 #endif //defined(MEDIAINFO_ANCILLARY_YES)
@@ -30,13 +31,11 @@
 namespace MediaInfoLib
 {
 
-class File__ReferenceFilesHelper;
-
 //***************************************************************************
 // Class File_Mxf
 //***************************************************************************
 
-class File_Mxf : public File__Analyze
+class File_Mxf : public File__Analyze, File__HasReferences
 {
 public :
     //Constructor/Destructor
@@ -90,7 +89,11 @@ protected :
     //Buffer - Global
     void Read_Buffer_Init ();
     void Read_Buffer_Continue ();
+    #if defined(MEDIAINFO_FILE_YES)
     void Read_Buffer_CheckFileModifications();
+    #else //defined(MEDIAINFO_FILE_YES)
+    void Read_Buffer_CheckFileModifications() {}
+    #endif //defined(MEDIAINFO_FILE_YES)
     void Read_Buffer_AfterParsing ();
     void Read_Buffer_Unsynched();
     #if MEDIAINFO_SEEK
@@ -924,7 +927,6 @@ protected :
     };
     typedef std::map<int128u, locator> locators; //Key is InstanceUID of the locator
     locators Locators;
-    File__ReferenceFilesHelper* ReferenceFiles;
     #if MEDIAINFO_NEXTPACKET
         bool                    ReferenceFiles_IsParsing;
     #endif //MEDIAINFO_NEXTPACKET
@@ -1395,7 +1397,11 @@ protected :
         int128u Clip_Code;
         int64u  OverallBitrate_IsCbrForSure;
         bool    Duration_Detected;
+        #if defined(MEDIAINFO_FILE_YES)
         bool    DetectDuration();
+        #else //defined(MEDIAINFO_FILE_YES)
+        bool    DetectDuration() { return false; }
+        #endif //defined(MEDIAINFO_FILE_YES)
         int64u  DemuxedSampleCount_Total;
         int64u  DemuxedSampleCount_Current;
         int64u  DemuxedSampleCount_AddedToFirstFrame;

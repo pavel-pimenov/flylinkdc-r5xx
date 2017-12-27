@@ -363,8 +363,8 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	const auto l_is_favorite_active = ClientManager::isActive(fe, bWantAutodetect);
 	LogManager::message("Connect: " + m_client->getHubUrl() + string(" Mode: ") +
 	                    (m_client->isActive() ? ("Active" + ((fe && l_is_favorite_active) ? string("(favorites)") : string())) : "Passive") + string(" Support: ") +
-		                    MappingManager::getPortmapInfo(true));
-		                    
+	                    MappingManager::getPortmapInfo(true));
+	                    
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	ConnectionManager::getInstance()->addListener(this);
 #endif
@@ -1658,18 +1658,18 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		}
 		break;
 #endif // FLYLINKDC_ADD_CHAT_LINE_USE_WIN_MESSAGES_Q
-		/*
-		case WM_SPEAKER_CONNECTED:
-		        {
-		            doConnected();
-		        }
-		        break;
-		        case WM_SPEAKER_DISCONNECTED:
-		        {
-		            doDisconnected();
-		        }
-		        break;
-		*/
+			/*
+			case WM_SPEAKER_CONNECTED:
+			        {
+			            doConnected();
+			        }
+			        break;
+			        case WM_SPEAKER_DISCONNECTED:
+			        {
+			            doDisconnected();
+			        }
+			        break;
+			*/
 #ifdef FLYLINKDC_PRIVATE_MESSAGE_USE_WIN_MESSAGES_Q
 		case WM_SPEAKER_PRIVATE_MESSAGE:
 		{
@@ -1755,7 +1755,7 @@ void HubFrame::updateUserJoin(const OnlineUserPtr& p_ou)
 				{
 					if (m_showJoins || (m_favShowJoins && isFavorite))
 					{
-						BaseChatFrame::addLine(_T("*** ") + TSTRING(JOINS) + _T(' ') + id.getNickT(), Colors::g_ChatTextSystem);
+						BaseChatFrame::addLine(_T("*** ") + TSTRING(JOINS) + _T(' ') + id.getNickT(), 1, Colors::g_ChatTextSystem);
 					}
 				}
 				m_needsUpdateStats = true;
@@ -1911,7 +1911,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 								
 								if (m_showJoins || (m_favShowJoins && isFavorite))
 								{
-									BaseChatFrame::addLine(_T("*** ") + TSTRING(PARTS) + _T(' ') + l_userNick, Colors::g_ChatTextSystem); // !SMT!-fix
+									BaseChatFrame::addLine(_T("*** ") + TSTRING(PARTS) + _T(' ') + l_userNick, 1, Colors::g_ChatTextSystem); // !SMT!-fix
 								}
 							}
 						}
@@ -1947,7 +1947,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 						{
 							const Identity& from = msg->m_from->getIdentity();
 							const bool myMess = ClientManager::isMe(msg->m_from);
-							addLine(from, myMess, msg->thirdPerson, Text::toT(msg->format()), Colors::g_ChatTextGeneral);
+							addLine(from, myMess, msg->thirdPerson, Text::toT(msg->format()), 0, Colors::g_ChatTextGeneral);
 							auto& l_user = msg->m_from->getUser();
 							l_user->incMessagesCount();
 							m_client->incMessagesCount();
@@ -1956,7 +1956,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 						}
 						else
 						{
-							BaseChatFrame::addLine(Text::toT(msg->m_text), Colors::g_ChatTextPrivate);
+							BaseChatFrame::addLine(Text::toT(msg->m_text), 0, Colors::g_ChatTextPrivate);
 						}
 					}
 				}
@@ -2084,11 +2084,11 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					        BOOLSETTING(POPUP_PMS)
 					    ) || isOpen)
 					{
-						l_is_private_frame_ok = PrivateFrame::gotMessage(from, to, replyTo, text, getHubHint(), myPM, pm->thirdPerson);
+						l_is_private_frame_ok = PrivateFrame::gotMessage(from, to, replyTo, text, 1, getHubHint(), myPM, pm->thirdPerson);
 					}
 					if (l_is_private_frame_ok == false)
 					{
-						BaseChatFrame::addLine(TSTRING(PRIVATE_MESSAGE_FROM) + _T(' ') + id.getNickT() + _T(": ") + text, Colors::g_ChatTextPrivate);
+						BaseChatFrame::addLine(TSTRING(PRIVATE_MESSAGE_FROM) + _T(' ') + id.getNickT() + _T(": ") + text, 1, Colors::g_ChatTextPrivate);
 					}
 					if (!replyTo.isHub() && !replyTo.isBot())
 					{
@@ -2110,13 +2110,13 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					const tstring msg = Text::toT(l_task.m_str);
 					if (msg.length() < 256)
 						SHOW_POPUP(POPUP_CHEATING_USER, msg, TSTRING(CHEATING_USER));
-					BaseChatFrame::addLine(msg, cf);
+					BaseChatFrame::addLine(msg, 0, cf);
 				}
 				break;
 				case USER_REPORT:
 				{
 					const StatusTask& l_task = static_cast<StatusTask&>(*i->second);
-					BaseChatFrame::addLine(Text::toT(l_task.m_str), Colors::g_ChatTextSystem);
+					BaseChatFrame::addLine(Text::toT(l_task.m_str), 1, Colors::g_ChatTextSystem);
 					if (BOOLSETTING(LOG_MAIN_CHAT))
 					{
 						StringMap params;
@@ -2726,14 +2726,14 @@ LRESULT HubFrame::onLButton(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& b
 	return 0;
 }
 
-void HubFrame::addLine(const Identity& p_from, const bool bMyMess, const bool bThirdPerson, const tstring& aLine, const CHARFORMAT2& cf /*= WinUtil::m_ChatTextGeneral*/)
+void HubFrame::addLine(const Identity& p_from, const bool bMyMess, const bool bThirdPerson, const tstring& aLine, unsigned p_max_smiles, const CHARFORMAT2& cf /*= WinUtil::m_ChatTextGeneral*/)
 {
 	tstring extra;
 	if (p_from.isBotOrHub())
 	{
 		m_last_hub_message = aLine;
 	}
-	BaseChatFrame::addLine(p_from, bMyMess, bThirdPerson, aLine, cf, extra);
+	BaseChatFrame::addLine(p_from, bMyMess, bThirdPerson, aLine, p_max_smiles, cf, extra);
 	if (ClientManager::isStartup() == false)
 	{
 		SHOW_POPUP(POPUP_CHAT_LINE, aLine, TSTRING(CHAT_MESSAGE));

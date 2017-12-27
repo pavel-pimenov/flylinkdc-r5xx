@@ -9,7 +9,6 @@
 #include <unordered_set>
 #include <set>
 #include <memory>
-#include "../client/webrtc/system_wrappers/include/rw_lock_wrapper.h"
 
 
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
@@ -60,44 +59,17 @@ class CGDIImage
 		HWND m_hCallbackWnd;
 		DWORD m_dwCallbackMsg;
 #ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-		static std::unique_ptr<webrtc::RWLockWrapper> g_GDIcs;
+		static FastCriticalSection g_GDIcs;
 		static std::unordered_set<CGDIImage*> g_GDIImageSet;
 		friend class CFlyServerJSON;
 		friend class CGDIImageOle;
 		static unsigned g_AnimationDeathDetectCount;
 		static unsigned g_AnimationCount;
 		static unsigned g_AnimationCountMax;
-		void calcStatisticsL() const
-		{
-			g_AnimationCount = m_Callbacks.size();
-			if (g_AnimationCount > g_AnimationCountMax)
-			{
-				g_AnimationCountMax = g_AnimationCount;
-			}
-		}
+        void calcStatisticsL() const;
 		
-		static bool isGDIImageLive(CGDIImage* p_image)
-		{
-			if (isShutdown())
-			{
-				return false;
-			}
-			CFlyReadLock(*g_GDIcs);
-			const bool l_res = g_GDIImageSet.find(p_image) != g_GDIImageSet.end();
-			if (!l_res)
-			{
-				dcassert(0);
-				++g_AnimationDeathDetectCount;
-			}
-			return l_res;
-		}
-		static void GDIImageDeath(CGDIImage* p_image)
-		{
-			CFlyWriteLock(*g_GDIcs);
-			const auto l_size = g_GDIImageSet.size();
-			g_GDIImageSet.erase(p_image);
-			dcassert(g_GDIImageSet.size() == l_size - 1);
-		}
+        static bool isGDIImageLive(CGDIImage* p_image);
+        static void GDIImageDeath(CGDIImage* p_image);
 #endif // FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
 		
 		CGDIImage(LPCWSTR pszFileName, HWND hCallbackWnd, DWORD dwCallbackMsg);
@@ -146,19 +118,6 @@ class CGDIImage
 			return InterlockedIncrement(&m_lRef);
 		}
 		
-		LONG Release()
-		{
-			const LONG lRef = InterlockedDecrement(&m_lRef);
-			
-			if (lRef == 0)
-			{
-#ifdef FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
-				GDIImageDeath(this);
-#endif
-				delete this; // [39] https://www.box.net/shared/05cc9b528dc37cc78229
-			}
-			
-			return lRef;
-		}
+        LONG Release();
 };
 #endif // IRAINMAN_INCLUDE_GDI_OLE

@@ -422,6 +422,8 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	}
 	m_ctrlUseGroupTreeSettings.SetFont(Fonts::g_systemFont, FALSE);
 	m_ctrlUseGroupTreeSettings.SetWindowText(CTSTRING(USE_SEARCH_GROUP_TREE_SETTINGS_TEXT));
+	// m_ctrlUseGroupTreeSettings.EnableWindow(FALSE);
+	
 	
 	ctrlShowUI.Create(ctrlStatus.m_hWnd, rcDefault, _T("+/-"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	ctrlShowUI.SetButtonStyle(BS_AUTOCHECKBOX, false);
@@ -661,6 +663,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	initHubs();
 #ifdef FLYLINKDC_USE_TREE_SEARCH
 	m_RootTreeItem = nullptr;
+	m_RootVirusTreeItem = nullptr;
 	m_CurrentTreeItem = nullptr;
 	m_OldTreeItem = nullptr;
 	clear_tree_filter_contaners();
@@ -690,7 +693,9 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 #else
 	TimerManager::getInstance()->addListener(this);
 #endif
-	// TODO m_torrentTopThread.start_torrent_top(m_win_handler); // Top!
+#ifdef _DEBUG
+	m_torrentTopThread.start_torrent_top(m_win_handler); 
+#endif
 	
 	bHandled = FALSE;
 	return 1;
@@ -1651,6 +1656,13 @@ void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		checkUDPTest();
 		if (!MainFrame::isAppMinimized(m_hWnd)) // [+] IRainman opt.
 		{
+			static int g_index = 0;
+			if (m_RootVirusTreeItem)
+			{
+				if (++g_index >= 3)
+					g_index = 0;
+				m_ctrlSearchFilterTree.SetItemImage(m_RootVirusTreeItem, m_skull_index + g_index, m_skull_index + g_index);
+			}
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 			const bool l_is_force_for_udp_test = boost::logic::indeterminate(SettingsManager::g_TestUDPSearchLevel);
 			if (scan_list_view_from_merge() || l_is_force_for_udp_test)
@@ -2850,7 +2862,6 @@ LRESULT SearchFrame::onSearchByTTH(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 
 LRESULT SearchFrame::onSelChangedTree(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 {
-	dcassert(m_closed == false);
 	if (m_closed == true)
 		return 0;
 	NMTREEVIEW* p = (NMTREEVIEW*)pnmh;
@@ -2865,6 +2876,8 @@ LRESULT SearchFrame::onSelChangedTree(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 #ifdef _DEBUG
 	boost::unordered_set<SearchInfo*> l_dup_filter;
 #endif
+	const auto& l_virus = m_filter_map[m_RootVirusTreeItem];
+	
 	for (auto i = l_filtered_item.cbegin(); i != l_filtered_item.cend(); ++i)
 	{
 		SearchInfo* l_si = i->first;
@@ -2874,6 +2887,20 @@ LRESULT SearchFrame::onSelChangedTree(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 		dcassert(l_dup_res.second == true);
 #endif
 		//ctrlResults.insertGroupedItem(l_si, m_expandSR, false, true);
+		if (m_CurrentTreeItem != m_RootVirusTreeItem)
+		{
+			bool l_is_virus = false;
+			for (auto j : l_virus)
+			{
+				if (j.first == l_si)
+				{
+					l_is_virus = true;
+					break;
+				}
+			}
+			if (l_is_virus == true)
+				continue;
+		}
 		set_tree_item_status(l_si);
 	}
 	return 0;
@@ -3052,30 +3079,60 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 						m_is_expand_tree = true;
 					}
 				}
-				const auto l_file_ext = Text::toLower(Util::getFileExtWithoutDot(l_file));
-				const auto l_ext_item = m_tree_ext_map.find(l_file_ext);
 				HTREEITEM l_item = nullptr;
-				if (l_ext_item == m_tree_ext_map.end())
+				const auto l_file_ext = Text::toLower(Util::getFileExtWithoutDot(l_file));
+				// Virus?
 				{
-					l_item = m_ctrlSearchFilterTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
-					                                           Text::toT(l_file_ext).c_str(),
-					                                           0, // nImage
-					                                           0, // nSelectedImage
-					                                           0, // nState
-					                                           0, // nStateMask
-					                                           e_Ext, // lParam
-					                                           l_type_node, // aParent,
-					                                           0  // hInsertAfter
-					                                          );
-					m_tree_ext_map.insert(make_pair(l_file_ext, l_item));
+					if (l_file_ext.compare(0, 3, "exe", 3) == 0)
+					{
+						if ((si->m_sr.m_size <= CFlyServerConfig::g_max_size_search_v_detect) ||
+						        CFlyServerConfig::isVirusEnd(Text::toLower(l_file)))
+						{
+							if (!m_RootVirusTreeItem)
+							{
+								m_skull_index = 15;
+								m_RootVirusTreeItem = m_ctrlSearchFilterTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+								                                                        _T("Virus ???"),
+								                                                        m_skull_index, // nImage
+								                                                        m_skull_index, // nSelectedImage
+								                                                        0, // nState
+								                                                        0, // nStateMask
+								                                                        l_file_type, // lParam
+								                                                        NULL, // aParent,
+								                                                        0  // hInsertAfter
+								                                                       );
+							}
+							l_item = m_RootVirusTreeItem;
+							const auto l_marker = make_pair(si, l_file_ext);
+							m_filter_map[l_item].push_back(l_marker);
+						}
+					}
 				}
-				else
+				if (l_item == nullptr)
 				{
-					l_item = l_ext_item->second;
+					const auto l_ext_item = m_tree_ext_map.find(l_file_ext);
+					if (l_ext_item == m_tree_ext_map.end())
+					{
+						l_item = m_ctrlSearchFilterTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+						                                           Text::toT(l_file_ext).c_str(),
+						                                           0, // nImage
+						                                           0, // nSelectedImage
+						                                           0, // nState
+						                                           0, // nStateMask
+						                                           e_Ext, // lParam
+						                                           l_type_node, // aParent,
+						                                           0  // hInsertAfter
+						                                          );
+						m_tree_ext_map.insert(make_pair(l_file_ext, l_item));
+					}
+					else
+					{
+						l_item = l_ext_item->second;
+					}
+					const auto l_marker = make_pair(si, l_file_ext);
+					m_filter_map[l_item].push_back(l_marker);
+					m_filter_map[l_type_node].push_back(l_marker);
 				}
-				const auto l_marker = make_pair(si, l_file_ext);
-				m_filter_map[l_item].push_back(l_marker);
-				m_filter_map[l_type_node].push_back(l_marker);
 			}
 			else if (sr.getType() == SearchResult::TYPE_TORRENT_MAGNET)
 			{
@@ -4389,6 +4446,7 @@ void SearchFrame::clear_tree_filter_contaners()
 	m_CurrentTreeItem = nullptr;
 	m_OldTreeItem = nullptr;
 	m_RootTreeItem = nullptr;
+	m_RootVirusTreeItem = nullptr;
 	m_is_expand_tree = false;
 	m_is_expand_sub_tree = false;
 	m_ctrlSearchFilterTree.DeleteAllItems();
@@ -4417,15 +4475,28 @@ void SearchFrame::updateSearchList(SearchInfo* p_si)
 	}
 	else
 	{
+		const auto& l_virus = m_filter_map[m_RootVirusTreeItem];
 		CLockRedraw<> l_lock_draw(ctrlResults);
 		ctrlResults.DeleteAllItems();
 		for (auto i = ctrlResults.getParents().cbegin(); i != ctrlResults.getParents().cend(); ++i)
 		{
+			bool l_is_virus = false;
 			SearchInfo* l_si = (*i).second.parent;
-			l_si->collapsed = true;
-			if (matchFilter(l_si, sel, doSizeCompare, mode, size))
+			for (auto j : l_virus)
 			{
-				set_tree_item_status(l_si);
+				if (j.first == l_si)
+				{
+					l_is_virus = true;
+					break;
+				}
+			}
+			if (l_is_virus == false)
+			{
+				l_si->collapsed = true;
+				if (matchFilter(l_si, sel, doSizeCompare, mode, size))
+				{
+					set_tree_item_status(l_si);
+				}
 			}
 		}
 	}

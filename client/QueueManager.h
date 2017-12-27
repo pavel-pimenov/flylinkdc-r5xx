@@ -233,7 +233,9 @@ class QueueManager : public Singleton<QueueManager>,
 		void loadQueue() noexcept;
 		void saveQueue(bool force = false) noexcept;
 		
+#ifdef FLYLINKDC_USE_KEEP_LISTS
 		void noDeleteFileList(const string& path);
+#endif
 		
 		static bool handlePartialSearch(const TTHValue& tth, PartsInfo& _outPartsInfo);
 		bool handlePartialResult(const UserPtr& aUser, const TTHValue& tth, const QueueItem::PartialSource& partialSource, PartsInfo& outPartialInfo);
@@ -242,9 +244,9 @@ class QueueManager : public Singleton<QueueManager>,
 		bool dropSource(const DownloadPtr& d);
 #endif
 	private:
-		static void calcPriorityAndGetRunningFilesL(QueueItem::PriorityArray& p_proir_array, QueueItemList& p_running_file)
+		static void calcPriorityAndGetRunningFilesL(bool p_is_calc_prior,QueueItem::PriorityArray& p_prior_array, QueueItemList& p_running_file)
 		{
-			QueueManager::FileQueue::calcPriorityAndGetRunningFilesL(p_proir_array, p_running_file);
+			QueueManager::FileQueue::calcPriorityAndGetRunningFilesL(p_is_calc_prior, p_prior_array, p_running_file);
 		}
 		static size_t getRunningFileCount(const size_t p_stop_key)
 		{
@@ -359,7 +361,7 @@ class QueueManager : public Singleton<QueueManager>,
 				{
 					return g_queue;
 				}
-				static void calcPriorityAndGetRunningFilesL(QueueItem::PriorityArray& p_changedPriority, QueueItemList& p_runningFiles);
+				static void calcPriorityAndGetRunningFilesL(bool p_is_calc_prior, QueueItem::PriorityArray& p_changedPriority, QueueItemList& p_runningFiles);
 				static size_t getRunningFileCount(const size_t p_stop_key);
 				void moveTarget(const QueueItemPtr& qi, const string& aTarget); // [!] IRainman fix.
 				void removeDeferredDB(const QueueItemPtr& qi, bool p_is_batch_remove);
@@ -453,9 +455,10 @@ class QueueManager : public Singleton<QueueManager>,
 		static bool g_dirty;
 		/** Next search */
 		uint64_t nextSearch;
+#ifdef FLYLINKDC_USE_KEEP_LISTS
 		/** File lists not to delete */
 		StringList protectedFileLists;
-		
+#endif
 		void processList(const string& name, const HintedUser& hintedUser, int flags);
 		
 		void load(const SimpleXML& aXml);

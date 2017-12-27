@@ -83,7 +83,7 @@ LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 }
 
 bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Identity& replyTo,
-                              const tstring& aMessage, const string& p_HubHint, const bool bMyMess,
+                              const tstring& aMessage, unsigned p_max_smiles, const string& p_HubHint, const bool bMyMess,
                               const bool bThirdPerson, const bool notOpenNewWindow /*= false*/)   // !SMT!-S
 {
 	const auto& id = bMyMess ? to : replyTo;
@@ -124,7 +124,7 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 		// TODO - Add antispam!
 		PrivateFrame* p = new PrivateFrame(HintedUser(id.getUser(), p_HubHint), myId.getNick());
 		g_pm_frames.insert(make_pair(id.getUser(), p));
-		p->addLine(from, bMyMess, bThirdPerson, aMessage);
+		p->addLine(from, bMyMess, bThirdPerson, aMessage, p_max_smiles);
 		// [!] TODO! и видимо в ядро!
 		if (!bMyMess && Util::getAway())
 		{
@@ -167,7 +167,7 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 			}
 		}
 		// Add block spam???
-		i->second->addLine(from, bMyMess, bThirdPerson, aMessage);
+		i->second->addLine(from, bMyMess, bThirdPerson, aMessage, p_max_smiles);
 	}
 	return true;
 }
@@ -355,7 +355,7 @@ void PrivateFrame::readFrameLog()
 		appendLogToChat(path, linesCount);
 	}
 }
-void PrivateFrame::addLine(const Identity& from, const bool bMyMess, const bool bThirdPerson, const tstring& aLine, const CHARFORMAT2& cf /*= WinUtil::m_ChatTextGeneral*/)
+void PrivateFrame::addLine(const Identity& from, const bool bMyMess, const bool bThirdPerson, const tstring& aLine, unsigned p_max_smiles, const CHARFORMAT2& cf /*= WinUtil::m_ChatTextGeneral*/)
 {
 	if (!m_created)
 	{
@@ -366,7 +366,7 @@ void PrivateFrame::addLine(const Identity& from, const bool bMyMess, const bool 
 	}
 	
 	tstring extra;
-	BaseChatFrame::addLine(from, bMyMess, bThirdPerson, aLine, cf, extra);
+	BaseChatFrame::addLine(from, bMyMess, bThirdPerson, aLine, p_max_smiles, cf, extra);
 	
 	if (BOOLSETTING(LOG_PRIVATE_CHAT))
 	{

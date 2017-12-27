@@ -193,6 +193,7 @@
     <ClInclude Include="include\libtorrent\peer_list.hpp" />
     <ClInclude Include="include\libtorrent\peer_request.hpp" />
     <ClInclude Include="include\libtorrent\performance_counters.hpp" />
+    <ClInclude Include="include\libtorrent\pex_flags.hpp" />
     <ClInclude Include="include\libtorrent\pe_crypto.hpp" />
     <ClInclude Include="include\libtorrent\piece_block.hpp" />
     <ClInclude Include="include\libtorrent\piece_block_progress.hpp" />
