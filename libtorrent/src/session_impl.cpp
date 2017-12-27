@@ -303,9 +303,9 @@ namespace aux {
 		{
 			// everything
 			{"::0", "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", gfilter},
-            // local networks
-            {"fc00::", "fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", lfilter},
-            // link-local
+			// local networks
+			{"fc00::", "fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", lfilter},
+			// link-local
 			{"fe80::", "febf::ffff:ffff:ffff:ffff:ffff:ffff:ffff", lfilter},
 			// loop-back
 			{"::1", "::1", lfilter},
@@ -1689,10 +1689,10 @@ namespace {
 		// internally, this method handle the SOCKS5's connection logic
 		ret->udp_sock->sock.set_proxy_settings(proxy());
 
-		// TODO: 2 use a handler allocator here
 		ADD_OUTSTANDING_ASYNC("session_impl::on_udp_packet");
-		ret->udp_sock->sock.async_read(std::bind(&session_impl::on_udp_packet
-			, this, ret->udp_sock, ret, ret->ssl, _1));
+		ret->udp_sock->sock.async_read(aux::make_handler(std::bind(&session_impl::on_udp_packet
+			, this, ret->udp_sock, ret, ret->ssl, _1)
+			, ret->udp_handler_storage, *this));
 
 #ifndef TORRENT_DISABLE_LOGGING
 		if (should_log())
@@ -2094,10 +2094,10 @@ namespace {
 			// internally, this method handle the SOCKS5's connection logic
 			udp_sock->sock.set_proxy_settings(proxy());
 
-			// TODO: 2 use a handler allocator here
 			ADD_OUTSTANDING_ASYNC("session_impl::on_udp_packet");
-			udp_sock->sock.async_read(std::bind(&session_impl::on_udp_packet
-				, this, udp_sock, std::weak_ptr<listen_socket_t>(), ep.ssl, _1));
+			udp_sock->sock.async_read(aux::make_handler(std::bind(&session_impl::on_udp_packet
+				, this, udp_sock, std::weak_ptr<listen_socket_t>(), ep.ssl, _1)
+					, udp_sock->udp_handler_storage, *this));
 
 			if (!ec && udp_sock)
 			{
@@ -2496,8 +2496,9 @@ namespace {
 		mgr.socket_drained();
 
 		ADD_OUTSTANDING_ASYNC("session_impl::on_udp_packet");
-		s->sock.async_read(std::bind(&session_impl::on_udp_packet
-			, this, std::move(socket), std::move(ls), ssl, _1));
+		s->sock.async_read(make_handler(std::bind(&session_impl::on_udp_packet
+			, this, std::move(socket), std::move(ls), ssl, _1), s->udp_handler_storage
+				, *this));
 	}
 
 	void session_impl::async_accept(std::shared_ptr<tcp::acceptor> const& listener
@@ -3202,8 +3203,8 @@ namespace {
 		ADD_OUTSTANDING_ASYNC("session_impl::on_tick");
 		error_code ec;
 		m_timer.expires_at(now + milliseconds(m_settings.get_int(settings_pack::tick_interval)), ec);
-		m_timer.async_wait(make_tick_handler([this](error_code const& err) {
-			this->wrap(&session_impl::on_tick, err); }));
+		m_timer.async_wait(aux::make_handler([this](error_code const& err)
+		{ this->wrap(&session_impl::on_tick, err); }, m_tick_handler_storage, *this));
 
 		m_download_rate.update_quotas(now - m_last_tick);
 		m_upload_rate.update_quotas(now - m_last_tick);
@@ -4566,11 +4567,13 @@ namespace {
 		std::vector<torrent*>& state_updates
 			= m_torrent_lists[aux::session_impl::torrent_state_updates];
 
+		// if (state_updates.empty()) return; // https://github.com/arvidn/libtorrent/pull/2630
+
 #if TORRENT_USE_ASSERTS
 		m_posting_torrent_updates = true;
 #endif
 
-		std::vector<torrent_status> status;
+        std::vector<torrent_status> status;
 		status.reserve(state_updates.size());
 
 		// TODO: it might be a nice feature here to limit the number of torrents
@@ -4630,6 +4633,7 @@ namespace {
 		if (m_dht)
 			m_dht->dht_status(table, requests);
 #endif
+		// if (table.empty() && requests.empty()) return; // https://github.com/arvidn/libtorrent/pull/2630
 
 		m_alerts.emplace_alert<dht_stats_alert>(std::move(table), std::move(requests));
 	}

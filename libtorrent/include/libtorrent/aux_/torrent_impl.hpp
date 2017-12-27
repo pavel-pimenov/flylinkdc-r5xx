@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2017, Arvid Norberg
+Copyright (c) 2003-2017, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,58 +30,51 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_DEFERRED_HANDLER_HPP
-#define TORRENT_DEFERRED_HANDLER_HPP
+#ifndef TORRENT_TORRENT_IMPL_HPP_INCLUDED
+#define TORRENT_TORRENT_IMPL_HPP_INCLUDED
 
-#include "libtorrent/assert.hpp"
-#include "libtorrent/io_service.hpp"
+// this is not a normal header, it's just this template, to be able to call this
+// function from more than one translation unit. But it's still internal
 
-namespace libtorrent { namespace aux {
+namespace libtorrent {
 
-template <typename Handler>
-struct handler_wrapper
-{
-	handler_wrapper(bool& in_flight, Handler&& h)
-		: m_handler(std::move(h))
-		, m_in_flight(in_flight) {}
-	template <typename... Args>
-	void operator()(Args&&... a)
-	{
-		TORRENT_ASSERT(m_in_flight);
-		m_in_flight = false;
-		m_handler(std::forward<Args>(a)...);
-	}
-
-	// forward asio handler allocator to the underlying handler's
-	friend void* asio_handler_allocate(
-		std::size_t size, handler_wrapper<Handler>* h)
-	{
-		return asio_handler_allocate(size, &h->m_handler);
-	}
-
-	friend void asio_handler_deallocate(
-		void* ptr, std::size_t size, handler_wrapper<Handler>* h)
-	{
-		asio_handler_deallocate(ptr, size, &h->m_handler);
-	}
-
-private:
-	Handler m_handler;
-	bool& m_in_flight;
-};
-
-struct deferred_handler
-{
-	template <typename Handler>
-	void post(io_service& ios, Handler&& h)
-	{
-		if (m_in_flight) return;
-		m_in_flight = true;
-		ios.post(handler_wrapper<Handler>(m_in_flight, std::forward<Handler>(h)));
-	}
-private:
-	bool m_in_flight = false;
-};
-
-}}
+	template <typename Fun, typename... Args>
+	void torrent::wrap(Fun f, Args&&... a)
+#ifndef BOOST_NO_EXCEPTIONS
+		try
 #endif
+	{
+		(this->*f)(std::forward<Args>(a)...);
+	}
+#ifndef BOOST_NO_EXCEPTIONS
+	catch (system_error const& e) {
+#ifndef TORRENT_DISABLE_LOGGING
+		debug_log("EXCEPTION: (%d %s) %s"
+			, e.code().value()
+			, e.code().message().c_str()
+			, e.what());
+#endif
+		alerts().emplace_alert<torrent_error_alert>(get_handle()
+			, e.code(), e.what());
+		pause();
+	} catch (std::exception const& e) {
+#ifndef TORRENT_DISABLE_LOGGING
+		debug_log("EXCEPTION: %s", e.what());
+#endif
+		alerts().emplace_alert<torrent_error_alert>(get_handle()
+			, error_code(), e.what());
+		pause();
+	} catch (...) {
+#ifndef TORRENT_DISABLE_LOGGING
+		debug_log("EXCEPTION: unknown");
+#endif
+		alerts().emplace_alert<torrent_error_alert>(get_handle()
+			, error_code(), "unknown error");
+		pause();
+	}
+#endif
+
+}
+
+#endif
+
