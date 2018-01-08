@@ -174,7 +174,7 @@ using namespace std::placeholders;
 #ifdef BOOST_NO_EXCEPTIONS
 namespace boost {
 
-	void throw_exception(std::exception const& e) { ::abort(); }
+	void throw_exception(std::exception const& e) { std::abort(); }
 }
 #endif
 
@@ -318,8 +318,8 @@ namespace aux {
 		for (int i = 0; i < len; ++i)
 		{
 			error_code ec;
-			address_v4 begin = address_v4::from_string(p[i].first, ec);
-			address_v4 end = address_v4::from_string(p[i].last, ec);
+			address_v4 begin = make_address_v4(p[i].first, ec);
+			address_v4 end = make_address_v4(p[i].last, ec);
 			if (ec) continue;
 			m_peer_class_filter.add_rule(begin, end, p[i].filter);
 		}
@@ -330,8 +330,8 @@ namespace aux {
 		for (int i = 0; i < len; ++i)
 		{
 			error_code ec;
-			address_v6 begin = address_v6::from_string(p[i].first, ec);
-			address_v6 end = address_v6::from_string(p[i].last, ec);
+			address_v6 begin = make_address_v6(p[i].first, ec);
+			address_v6 end = make_address_v6(p[i].last, ec);
 			if (ec) continue;
 			m_peer_class_filter.add_rule(begin, end, p[i].filter);
 		}
@@ -807,7 +807,7 @@ namespace aux {
 		}
 	}
 
-	void session_impl::abort()
+	void session_impl::abort() noexcept
 	{
 		TORRENT_ASSERT(is_single_thread());
 
@@ -818,7 +818,7 @@ namespace aux {
 
 		// at this point we cannot call the notify function anymore, since the
 		// session will become invalid.
-		m_alerts.set_notify_function(std::function<void()>());
+		m_alerts.set_notify_function({});
 
 		// this will cancel requests that are not critical for shutting down
 		// cleanly. i.e. essentially tracker hostname lookups that we're not
@@ -869,6 +869,9 @@ namespace aux {
 			te.second->abort();
 		}
 		m_torrents.clear();
+		m_stats_counters.set_value(counters::num_peers_up_unchoked_all, 0);
+		m_stats_counters.set_value(counters::num_peers_up_unchoked, 0);
+		m_stats_counters.set_value(counters::num_peers_up_unchoked_optimistic, 0);
 
 #ifndef TORRENT_DISABLE_LOGGING
 		session_log(" aborting all tracker requests");
@@ -879,12 +882,13 @@ namespace aux {
 		session_log(" aborting all connections (%d)", int(m_connections.size()));
 #endif
 		// abort all connections
-		// keep in mind that connections that are not associated with a torrent
-		// will remove its entry from m_connections immediately, which means we
-		// can't iterate over it here
-		auto conns = m_connections;
-		for (auto const& p : conns)
+		for (connection_map::iterator i = m_connections.begin();
+			i != m_connections.end();)
+		{
+			peer_connection* p = (*i).get();
+			++i;
 			p->disconnect(errors::stopping_torrent, operation_t::bittorrent);
+		}
 
 		// close the listen sockets
 		for (auto const& l : m_listen_sockets)
@@ -914,11 +918,12 @@ namespace aux {
 		// shutdown_stage2 from there.
 		if (m_undead_peers.empty())
 		{
-			m_io_service.post(std::bind(&session_impl::abort_stage2, this));
+			m_io_service.post(make_handler([this] { abort_stage2(); }
+				, m_abort_handler_storage, *this));
 		}
 	}
 
-	void session_impl::abort_stage2()
+	void session_impl::abort_stage2() noexcept
 	{
 		m_download_rate.close();
 		m_upload_rate.close();
@@ -940,7 +945,14 @@ namespace aux {
 	void session_impl::insert_peer(std::shared_ptr<peer_connection> const& c)
 	{
 		TORRENT_ASSERT(!c->m_in_constructor);
+
+		// removing a peer may not throw an exception, so prepare for this
+		// connection to be added to the undead peers now.
+		m_undead_peers.reserve(m_undead_peers.size() + m_connections.size() + 1);
 		m_connections.insert(c);
+
+		TORRENT_ASSERT_VAL(m_undead_peers.capacity() >= m_connections.size()
+			, m_undead_peers.capacity());
 	}
 
 	void session_impl::set_port_filter(port_filter const& f)
@@ -1743,7 +1755,7 @@ namespace {
 	{
 		// First, check to see if it's an IP address
 		error_code err;
-		address const adr = address::from_string(device.c_str(), err);
+		address const adr = make_address(device.c_str(), err);
 		if (!err)
 		{
 #if !TORRENT_USE_IPV6
@@ -2531,9 +2543,9 @@ namespace {
 		TORRENT_ASSERT((ssl == transport::ssl) == is_ssl(*c));
 #endif
 
-		listener->async_accept(*str
-			, std::bind(&session_impl::on_accept_connection, this, c
-			, std::weak_ptr<tcp::acceptor>(listener), _1, ssl));
+		std::weak_ptr<tcp::acceptor> ls(listener);
+		listener->async_accept(*str, [this, c, ls, ssl] (error_code const& ec)
+			{ return this->wrap(&session_impl::on_accept_connection, c, ls, ec, ssl); });
 	}
 
 	void session_impl::on_accept_connection(std::shared_ptr<socket_type> const& s
@@ -2933,9 +2945,6 @@ namespace {
 
 		std::shared_ptr<peer_connection> c
 			= std::make_shared<bt_peer_connection>(pack, get_peer_id());
-#if TORRENT_USE_ASSERTS
-		c->m_in_constructor = false;
-#endif
 
 		if (!c->is_disconnecting())
 		{
@@ -2946,6 +2955,9 @@ namespace {
 				c->peer_exceeds_limit();
 
 			TORRENT_ASSERT(!c->m_in_constructor);
+			// removing a peer may not throw an exception, so prepare for this
+			// connection to be added to the undead peers now.
+			m_undead_peers.reserve(m_undead_peers.size() + m_connections.size() + 1);
 			m_connections.insert(c);
 			c->start();
 		}
@@ -2957,28 +2969,30 @@ namespace {
 		set_socket_buffer_size(s, m_settings, ec);
 	}
 
-	// if cancel_with_cq is set, the peer connection is
-	// currently expected to be scheduled for a connection
-	// with the connection queue, and should be cancelled
-	// TODO: should this function take a shared_ptr instead?
-	void session_impl::close_connection(peer_connection* p)
+	void session_impl::close_connection(peer_connection* p) noexcept
 	{
 		TORRENT_ASSERT(is_single_thread());
 		std::shared_ptr<peer_connection> sp(p->self());
 
-		// someone else is holding a reference, it's important that
-		// it's destructed from the network thread. Make sure the
-		// last reference is held by the network thread.
-		if (!sp.unique())
-			m_undead_peers.push_back(sp);
-
 		TORRENT_ASSERT(p->is_disconnecting());
-
-		TORRENT_ASSERT(sp.use_count() > 0);
 
 		auto const i = m_connections.find(sp);
 		// make sure the next disk peer round-robin cursor stays valid
-		if (i != m_connections.end()) m_connections.erase(i);
+		if (i != m_connections.end())
+		{
+			m_connections.erase(i);
+
+			TORRENT_ASSERT(std::find(m_undead_peers.begin()
+				, m_undead_peers.end(), sp) == m_undead_peers.end());
+
+			// someone else is holding a reference, it's important that
+			// it's destructed from the network thread. Make sure the
+			// last reference is held by the network thread.
+			TORRENT_ASSERT_VAL(m_undead_peers.capacity() > m_undead_peers.size()
+				, m_undead_peers.capacity());
+			if (sp.use_count() > 2)
+				m_undead_peers.push_back(sp);
+		}
 	}
 
 	void session_impl::set_peer_id(peer_id const& id)
@@ -4111,8 +4125,6 @@ namespace {
 		// if we don't have any connection attempt quota, return
 		if (max_connections <= 0) return;
 
-		INVARIANT_CHECK;
-
 		int steps_since_last_connect = 0;
 		int const num_torrents = int(want_peers_finished.size() + want_peers_download.size());
 		for (;;)
@@ -4223,7 +4235,7 @@ namespace {
 					p->reset_choke_counters();
 					continue;
 				}
-				if (pi && pi->optimistically_unchoked)
+				if (pi->optimistically_unchoked)
 				{
 					m_stats_counters.inc_stats_counter(counters::num_peers_up_unchoked_optimistic, -1);
 					pi->optimistically_unchoked = false;
@@ -4522,7 +4534,7 @@ namespace {
 	}
 
 	TORRENT_FORMAT(2,3)
-	void session_impl::session_log(char const* fmt, ...) const
+	void session_impl::session_log(char const* fmt, ...) const noexcept try
 	{
 		if (!m_alerts.should_post<log_alert>()) return;
 
@@ -4531,6 +4543,7 @@ namespace {
 		m_alerts.emplace_alert<log_alert>(fmt, v);
 		va_end(v);
 	}
+	catch (std::exception const&) {}
 #endif
 
 	void session_impl::get_torrent_status(std::vector<torrent_status>* ret
@@ -4567,13 +4580,13 @@ namespace {
 		std::vector<torrent*>& state_updates
 			= m_torrent_lists[aux::session_impl::torrent_state_updates];
 
-		// if (state_updates.empty()) return; // https://github.com/arvidn/libtorrent/pull/2630
+		if (state_updates.empty()) return; // https://github.com/arvidn/libtorrent/pull/2630
 
 #if TORRENT_USE_ASSERTS
 		m_posting_torrent_updates = true;
 #endif
 
-        std::vector<torrent_status> status;
+		std::vector<torrent_status> status;
 		status.reserve(state_updates.size());
 
 		// TODO: it might be a nice feature here to limit the number of torrents
@@ -4633,7 +4646,7 @@ namespace {
 		if (m_dht)
 			m_dht->dht_status(table, requests);
 #endif
-		// if (table.empty() && requests.empty()) return; // https://github.com/arvidn/libtorrent/pull/2630
+		if (table.empty() && requests.empty()) return; // https://github.com/arvidn/libtorrent/pull/2630
 
 		m_alerts.emplace_alert<dht_stats_alert>(std::move(table), std::move(requests));
 	}
@@ -4958,9 +4971,16 @@ namespace {
 			return std::make_pair(ptr_t(), false);
 		}
 
-		torrent_ptr = std::make_shared<torrent>(*this
-			, 16 * 1024, m_paused
-			, params);
+		// make sure we have enough memory in the torrent lists up-front,
+		// since when torrents changes states, we cannot allocate memory that
+		// might fail.
+		size_t const num_torrents = m_torrents.size();
+		for (auto& l : m_torrent_lists)
+		{
+			l.reserve(num_torrents + 1);
+		}
+
+		torrent_ptr = std::make_shared<torrent>(*this, m_paused, params);
 		torrent_ptr->set_queue_position(m_download_queue.end_index());
 
 		return std::make_pair(torrent_ptr, true);
@@ -5075,7 +5095,7 @@ namespace {
 		for (auto const& s : m_outgoing_interfaces)
 		{
 			error_code err;
-			address const ip = address::from_string(s.c_str(), err);
+			address const ip = make_address(s.c_str(), err);
 			if (err) continue;
 			if (ip == addr) return true;
 		}
@@ -6013,7 +6033,13 @@ namespace {
 //		TORRENT_ASSERT(is_not_thread());
 // TODO: asserts that no outstanding async operations are still in flight
 
-		TORRENT_ASSERT(m_torrents.empty());
+		// this can happen if we end the io_service run loop with an exception
+		for (auto& t : m_torrents)
+		{
+			t.second->panic();
+			t.second->abort();
+		}
+		m_torrents.clear();
 
 #if defined TORRENT_ASIO_DEBUGGING
 		FILE* f = fopen("wakeups.log", "w+");
@@ -7126,7 +7152,7 @@ namespace {
 			return m_ses.alerts().should_post<log_alert>();
 		}
 
-		void tracker_logger::debug_log(const char* fmt, ...) const
+		void tracker_logger::debug_log(const char* fmt, ...) const noexcept try
 		{
 			if (!m_ses.alerts().should_post<log_alert>()) return;
 
@@ -7135,5 +7161,6 @@ namespace {
 			m_ses.alerts().emplace_alert<log_alert>(fmt, v);
 			va_end(v);
 		}
+		catch (std::exception const&) {}
 #endif // TORRENT_DISABLE_LOGGING
 }}

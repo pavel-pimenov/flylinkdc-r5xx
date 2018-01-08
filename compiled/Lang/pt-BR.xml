@@ -1254,7 +1254,6 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
     <string name="ScanDir">Escanear diretório...</string>
     <string name="RemainedAttempts">Tentativas restantes</string>
     <string name="RememberSettingsPage">Lembre-se da página na janela de configurações</string>
-    <string name="RememberSettingsWindowPos">Lembre-se da posição janela de configurações</string>
     <string name="Remove">&amp;Remover</string>
     <string name="Remove2">Remover</string>
     <string name="RemoveAll">Remover Tudo</string>

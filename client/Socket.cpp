@@ -42,8 +42,8 @@ uint16_t Socket::g_udpPort;
 #ifdef _DEBUG
 
 SocketException::SocketException(DWORD aError) noexcept
-:
-Exception("SocketException: " + errorToString(aError))
+	:
+	Exception("SocketException: " + errorToString(aError))
 {
 	m_error_code = aError;
 	dcdebug("Thrown: %s\n", what()); //-V111
@@ -52,7 +52,7 @@ Exception("SocketException: " + errorToString(aError))
 #else // _DEBUG
 
 SocketException::SocketException(DWORD aError) noexcept :
-Exception(errorToString(aError))
+	Exception(errorToString(aError))
 {
 	m_error_code = aError;
 }

@@ -1003,7 +1003,6 @@
 		<String Name="ReloadDir">Recargar dir…</String>
 		<String Name="RemainedAttempts">Intentos</String>
 		<String Name="RememberSettingsPage">Recordar configuración de la ventana de ajustes</String>
-		<String Name="RememberSettingsWindowPos">Recordar la posición de la ventana de ajustes</String>
 		<String Name="Remove">&amp;Eliminar</String>
 		<String Name="Remove2">Eliminar</String>
 		<String Name="RemoveAll">Eliminar todos</String>

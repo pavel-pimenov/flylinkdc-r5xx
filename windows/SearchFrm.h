@@ -196,62 +196,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		COMMAND_CODE_HANDLER(CBN_SELCHANGE, onSelChange)
 		END_MSG_MAP()
 		
-		SearchFrame() :
-#ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
-			CFlyTimerAdapter(m_hWnd),
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-			CFlyServerAdapter(7000),
-#endif
-#endif
-			searchBoxContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			searchContainer(WC_EDIT, this, SEARCH_MESSAGE_MAP),
-			sizeContainer(WC_EDIT, this, SEARCH_MESSAGE_MAP),
-			modeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			sizeModeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			fileTypeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			//m_treeContainer(WC_TREEVIEW, this, SEARH_TREE_MESSAGE_MAP),
-			
-			showUIContainer(WC_COMBOBOX, this, SHOWUI_MESSAGE_MAP),
-			//slotsContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			//collapsedContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-			//storeIPContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			m_storeIP(false),
-#endif
-#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-			//m_FlyServerContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			//m_FlyServerGradientContainer(WC_STATIC, this, SEARCH_MESSAGE_MAP),
-#endif
-			//storeSettingsContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			//purgeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			//doSearchContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			//doSearchPassiveContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
-			resultsContainer(WC_LISTVIEW, this, SEARCH_MESSAGE_MAP),
-			hubsContainer(WC_LISTVIEW, this, SEARCH_MESSAGE_MAP),
-			ctrlFilterContainer(WC_EDIT, this, SEARCH_FILTER_MESSAGE_MAP),
-			ctrlFilterSelContainer(WC_COMBOBOX, this, SEARCH_FILTER_MESSAGE_MAP),
-			m_initialSize(0), m_initialMode(Search::SIZE_ATLEAST), m_initialType(Search::TYPE_ANY),
-			m_showUI(true), m_onlyFree(false), m_isHash(false), m_droppedResults(0), m_resultsCount(0),
-			m_expandSR(false),
-			m_storeSettings(false), m_isExactSize(false), m_exactSize2(0), /*searches(0),*/
-			m_lastFindTTH(false),
-			m_running(false),
-			m_searchEndTime(0),
-			m_searchStartTime(0),
-			m_waitingResults(false),
-			m_needsUpdateStats(false), // [+] IRainman opt.
-			m_is_expand_tree(false),
-			m_is_expand_sub_tree(false),
-			m_Theme(nullptr),
-			m_need_resort(false),
-			m_is_use_tree(true),
-			m_is_before_search(false),
-			m_RootTreeItem(nullptr),
-			m_CurrentTreeItem(nullptr),
-			m_OldTreeItem(nullptr)
-		{
-		}
-		
+		SearchFrame();
 		~SearchFrame();
 		
 		LRESULT onFiletypeChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -523,7 +468,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 				
 				SearchInfo(const SearchResult &aSR) : m_sr(aSR), collapsed(true), parent(nullptr),
 					m_hits(0), m_icon_index(-1), m_is_flush_ip_to_sqlite(false),
-					m_is_torrent(false)
+					m_is_torrent(false), m_is_top_torrent(false)
 				{
 				}
 				~SearchInfo()
@@ -535,6 +480,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 					return m_sr.getUser();
 				}
 				bool m_is_torrent;
+				bool m_is_top_torrent;
 				bool collapsed;
 				SearchInfo* parent;
 				size_t m_hits;
@@ -643,7 +589,8 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			HUB_REMOVED,
 			QUEUE_STATS,
 			UPDATE_STATUS,
-			PREPARE_RESULT_TORRENT
+			PREPARE_RESULT_TORRENT,
+			PREPARE_RESULT_TOP_TORRENT
 		};
 		
 		tstring m_initialString;
@@ -733,15 +680,16 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CTreeViewCtrl           m_ctrlSearchFilterTree;
 		HTREEITEM   m_RootTreeItem;
 		HTREEITEM   m_RootVirusTreeItem;
+		HTREEITEM   m_RootTopTorrentTreeItem;
 		int m_skull_index;
 		HTREEITEM   m_CurrentTreeItem;
 		HTREEITEM   m_OldTreeItem;
 		std::unordered_map<string, HTREEITEM> m_category_map;
 		std::unordered_map<string, HTREEITEM> m_tree_ext_map;
 		std::unordered_map<string, HTREEITEM> m_tree_sub_torrent_map;
-#ifdef _DEBUG
+		std::unordered_map<string, HTREEITEM> m_top_subitem_map;
 		std::unordered_set<SearchInfo*> m_si_set;
-#endif
+		FastCriticalSection m_si_set_cs;
 		std::unordered_map<HTREEITEM, std::vector<std::pair<SearchInfo*, string > > > m_filter_map;
 		std::unordered_map<Search::TypeModes, HTREEITEM> m_tree_type;
 		bool m_is_expand_tree;
@@ -749,21 +697,15 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		bool is_filter_item(const SearchInfo* si);
 		void clear_tree_filter_contaners();
 		void set_tree_item_status(const SearchInfo* p_si);
-		void add_category(const std::string p_search, std::string p_group, SearchInfo* p_si,
-		                  const SearchResult& p_sr, int p_type_node,  HTREEITEM p_parent_node, bool p_force_add = false);
+		HTREEITEM add_category(const std::string p_search, std::string p_group, SearchInfo* p_si,
+		                       const SearchResult& p_sr, int p_type_node,  HTREEITEM p_parent_node, bool p_force_add = false, bool p_expand = false);
 #endif
-		//std::unordered_set<SearchInfo*> m_search_info_leak_detect;
-		SearchInfo* check_new(SearchInfo* p_ptr)
+		void check_delete(SearchInfo*& p_ptr)
 		{
-			//const auto l_res = m_search_info_leak_detect.insert(p_ptr);
-			//dcassert(l_res.second == true);
-			return p_ptr;
-		}
-		SearchInfo* check_delete(SearchInfo* p_ptr)
-		{
-			//dcassert(m_search_info_leak_detect.count(p_ptr) == 1)
-			//m_search_info_leak_detect.erase(p_ptr);
-			return p_ptr;
+			delete p_ptr;
+			CFlyFastLock(m_si_set_cs);
+			m_si_set.erase(p_ptr);
+			p_ptr = nullptr;
 		}
 		
 		//OMenu resultsMenu;
@@ -777,7 +719,9 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		StringList m_search;
 		StringList targets;
 		StringList wholeTargets;
+#ifdef FLYLINK_DC_USE_PAUSED_SEARCH
 		SearchInfo::Array m_pausedResults;
+#endif
 		void clearPausedResults();
 		
 		CEdit ctrlFilter;
@@ -788,6 +732,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		bool m_expandSR;
 		bool m_storeSettings;
 		bool m_is_use_tree;
+		bool m_is_disable_torrent_RSS;
 		bool m_running;
 		bool m_isExactSize;
 		bool m_waitingResults;
@@ -954,7 +899,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 						}
 					}
 				}
-		} m_torrentTopThread;
+		} m_torrentRSSThread;
 		class TorrentSearchSender : public Thread
 		{
 			private:

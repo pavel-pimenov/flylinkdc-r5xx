@@ -992,9 +992,6 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 	{
 		p_torrent_sesion->get_io_service().post([p_torrent_sesion, this]
 		{
-			p_torrent_sesion->post_torrent_updates();
-			// Спам. p_torrent_sesion->post_session_stats();
-			// p_torrent_sesion->post_dht_stats();
 			std::vector<lt::alert*> alerts;
 			p_torrent_sesion->pop_alerts(&alerts);
 			for (lt::alert const * a : alerts)
@@ -1329,6 +1326,10 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 					CFlyServerJSON::pushError(75, l_error);
 				}
 			}
+			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+			p_torrent_sesion->post_torrent_updates();
+			// Спам. p_torrent_sesion->post_session_stats();
+			// p_torrent_sesion->post_dht_stats();
 		}
 		                                       );
 	}

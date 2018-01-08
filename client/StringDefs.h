@@ -1118,7 +1118,6 @@ enum Strings   // @DontAdd
 	SCAN_DIR, // "Scan dir..."
 	REMAINED_ATTEMPTS, // "Remained attempts"
 	REMEMBER_SETTINGS_PAGE, // "Remember the page in the settings window"
-	REMEMBER_SETTINGS_WINDOW_POS, // "Remember the settings window position"
 	REMOVE, // "&Remove"
 	REMOVE2, // "Remove"
 	REMOVE_ALL, // "Remove all"

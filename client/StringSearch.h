@@ -42,13 +42,13 @@ class StringSearch
 	public:
 		typedef vector<StringSearch> List;
 		
-	explicit StringSearch(const string& aPattern) noexcept :
-		pattern(Text::toLower(aPattern))
+		explicit StringSearch(const string& aPattern) noexcept :
+			pattern(Text::toLower(aPattern))
 		{
 			initDelta1();
 		}
-	StringSearch(const StringSearch& rhs) noexcept :
-		pattern(rhs.pattern)
+		StringSearch(const StringSearch& rhs) noexcept :
+			pattern(rhs.pattern)
 		{
 			memcpy(delta1, rhs.delta1, sizeof(delta1));
 		}
@@ -72,41 +72,41 @@ class StringSearch
 		/** Match a text against the pattern */
 		bool match(const string& aText) const noexcept
 		{
-		    // Lower-case representation of UTF-8 string, since we no longer have that 1 char = 1 byte...
-		    string lower;
-		    Text::toLower(aText, lower);
-		    return matchLower(lower);
+			// Lower-case representation of UTF-8 string, since we no longer have that 1 char = 1 byte...
+			string lower;
+			Text::toLower(aText, lower);
+			return matchLower(lower);
 		}
 		/** Match a text against the pattern */
 		bool matchLower(const string& aText) const noexcept// [!]IRainman
 		{
-		    dcassert(Text::toLower(aText) == aText);
-		    const string::size_type plen = pattern.length();
-		    const string::size_type tlen = aText.length();
-		    if (tlen < plen)// fix UTF-8 support
-	{
-		//          static int l_cnt = 0;
-		//          dcdebug("aText.length() < plen %d, [name: %s  pattern: %s] [%d %d]\n",
-		//               ++l_cnt,aText.c_str(),pattern.c_str(),aText.length(), pattern.length());
-		return false;
-	}
-	// uint8_t to avoid problems with signed char pointer arithmetic
-	uint8_t *tx = (uint8_t*)aText.c_str();
-	uint8_t *px = (uint8_t*)pattern.c_str();
-	uint8_t *end = tx + tlen - plen + 1;// [!] IRainman fix UTF-8 support and optimization
-	while (tx < end)
-	{
-		size_t i = 0;
-		for (; px[i] && (px[i] == tx[i]); ++i)
-				;       // Empty!
-				
-			if (px[i] == 0)
-				return true;
-				
-			tx += delta1[tx[plen]];
-		}
-		
-		return false;
+			dcassert(Text::toLower(aText) == aText);
+			const string::size_type plen = pattern.length();
+			const string::size_type tlen = aText.length();
+			if (tlen < plen)// fix UTF-8 support
+			{
+				//          static int l_cnt = 0;
+				//          dcdebug("aText.length() < plen %d, [name: %s  pattern: %s] [%d %d]\n",
+				//               ++l_cnt,aText.c_str(),pattern.c_str(),aText.length(), pattern.length());
+				return false;
+			}
+			// uint8_t to avoid problems with signed char pointer arithmetic
+			uint8_t *tx = (uint8_t*)aText.c_str();
+			uint8_t *px = (uint8_t*)pattern.c_str();
+			uint8_t *end = tx + tlen - plen + 1;// [!] IRainman fix UTF-8 support and optimization
+			while (tx < end)
+			{
+				size_t i = 0;
+				for (; px[i] && (px[i] == tx[i]); ++i)
+					;       // Empty!
+					
+				if (px[i] == 0)
+					return true;
+					
+				tx += delta1[tx[plen]];
+			}
+			
+			return false;
 		}
 		// [~] IRainman optimization and fix
 	private:

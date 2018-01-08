@@ -31,7 +31,7 @@ class SimpleXMLReader
 	public:
 		struct CallBack
 #ifdef _DEBUG
-				: private boost::noncopyable
+			: private boost::noncopyable
 #endif
 		{
 				virtual ~CallBack() { }

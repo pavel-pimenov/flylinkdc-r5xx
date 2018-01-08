@@ -25,12 +25,12 @@
 
 // [!] IRainman fix.
 Download::Download(UserConnection* p_conn, const QueueItemPtr& p_item, const string& p_ip, const string& p_chiper_name) noexcept :
-Transfer(p_conn, p_item->getTarget(), p_item->getTTH(), p_ip, p_chiper_name),
-         m_qi(p_item),
-         m_download_file(nullptr),
-         treeValid(false)
+	Transfer(p_conn, p_item->getTarget(), p_item->getTTH(), p_ip, p_chiper_name),
+	m_qi(p_item),
+	m_download_file(nullptr),
+	treeValid(false)
 #ifdef FLYLINKDC_USE_DROP_SLOW
-         , m_lastNormalSpeed(0)
+	, m_lastNormalSpeed(0)
 #endif
 {
 	////////// p_conn->setDownload(this);

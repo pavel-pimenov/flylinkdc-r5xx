@@ -989,7 +989,6 @@
 		<String Name="ReloadDir">Redémarrez base de données …</String>
 		<String Name="RemainedAttempts">Autres tentatives</String>
 		<String Name="RememberSettingsPage">Mémoire page dans la fenêtre des paramètres</String>
-		<String Name="RememberSettingsWindowPos">Mémoriser les paramètres de position de fenêtre</String>
 		<String Name="Remove">&amp;Supprimer</String>
 		<String Name="Remove2">Supprimer</String>
 		<String Name="RemoveAll">Supprimer</String>

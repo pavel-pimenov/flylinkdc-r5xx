@@ -147,7 +147,7 @@ CryptoManager::~CryptoManager()
 	
 	/* global application exit cleanup (after all SSL activity is shutdown) */
 	SSL_COMP_free_compression_methods();
-
+	
 	ERR_free_strings();
 	EVP_cleanup();
 	CRYPTO_cleanup_all_ex_data();
@@ -634,7 +634,7 @@ void CryptoManager::loadCertificates() noexcept
 	auto certs2 = File::findFiles(SETTING(TLS_TRUSTED_CERTIFICATES_PATH), "*.crt");
 	certs.insert(certs.end(), certs2.begin(), certs2.end());
 	
-for (auto& i : certs)
+	for (auto& i : certs)
 	{
 		if (
 		    SSL_CTX_load_verify_locations(clientContext, i.c_str(), NULL) != SSL_SUCCESS ||

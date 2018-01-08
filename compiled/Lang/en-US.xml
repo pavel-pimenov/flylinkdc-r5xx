@@ -1253,7 +1253,6 @@ Empty = Default String -&gt; +me listen in 'QCD/QMP %[version]': '%[title]' (%[b
 		<String Name="ScanDir">Scan dir…</String>
 		<String Name="RemainedAttempts">Remained attempts</String>
 		<String Name="RememberSettingsPage">Remember the page in the settings window</String>
-		<String Name="RememberSettingsWindowPos">Remember the settings window position</String>
 		<String Name="Remove">&amp;Remove</String>
 		<String Name="Remove2">Remove</String>
 		<String Name="RemoveAll">Remove all</String>

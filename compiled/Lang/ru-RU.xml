@@ -1246,7 +1246,6 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ScanDir">Сканирование каталога…</String>
 		<String Name="RemainedAttempts">Осталось попыток</String>
 		<String Name="RememberSettingsPage">Запоминать страницу в окне «Настройки»</String>
-		<String Name="RememberSettingsWindowPos">Запоминать позицию окна «Настройки»</String>
 		<String Name="Remove">&amp;Удалить</String>
 		<String Name="Remove2">Удалить</String>
 		<String Name="RemoveAll">Удалить всё</String>

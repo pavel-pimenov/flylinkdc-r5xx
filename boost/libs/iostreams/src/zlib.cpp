@@ -154,9 +154,7 @@ void zlib_base::reset(bool compress, bool realloc)
 
 void zlib_base::do_init
     ( const zlib_params& p, bool compress, 
-      #if !BOOST_WORKAROUND(BOOST_MSVC, < 1300)
-          zlib::xalloc_func /* alloc */, zlib::xfree_func /* free*/, 
-      #endif
+      zlib::xalloc_func /* alloc */, zlib::xfree_func /* free*/, 
       void* derived )
 {
     calculate_crc_ = p.calculate_crc;
@@ -164,13 +162,10 @@ void zlib_base::do_init
 
     // Current interface for customizing memory management 
     // is non-conforming and has been disabled:
-    //#if !BOOST_WORKAROUND(BOOST_MSVC, < 1300)
     //    s->zalloc = alloc;
     //    s->zfree = free;
-    //#else
         s->zalloc = 0;
         s->zfree = 0;
-    //#endif
     s->opaque = derived;
     int window_bits = p.noheader? -p.window_bits : p.window_bits;
     zlib_error::check BOOST_PREVENT_MACRO_SUBSTITUTION(

@@ -244,7 +244,7 @@ class QueueManager : public Singleton<QueueManager>,
 		bool dropSource(const DownloadPtr& d);
 #endif
 	private:
-		static void calcPriorityAndGetRunningFilesL(bool p_is_calc_prior,QueueItem::PriorityArray& p_prior_array, QueueItemList& p_running_file)
+		static void calcPriorityAndGetRunningFilesL(bool p_is_calc_prior, QueueItem::PriorityArray& p_prior_array, QueueItemList& p_running_file)
 		{
 			QueueManager::FileQueue::calcPriorityAndGetRunningFilesL(p_is_calc_prior, p_prior_array, p_running_file);
 		}

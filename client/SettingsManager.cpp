@@ -262,8 +262,8 @@ static const char* g_settingTags[] =
 	"StripTopic", "TbImageSize", "TbImageSizeHot", "OpenCdmDebug", "ShowWinampControl", "HubThreshold", "PGOn", "GuardUp", "GuardDown", "GuardSearch", "PGLog",
 	"PreviewPm", "FilterEnter", "PopupTime", "PopupW", "PopupH", "PopupTransp", "AwayThrottle", "AwayStart", "AwayEnd", "OdcStyleBumped", "TopSpeed", "StealthyStyle",
 	"StealthyStyleIco", "StealthyStyleIcoSpeedIgnore", "PSRDelay",
-	"IpInChat", "CountryInChat", "ISPInChat", "TopUpSpeed", "Broadcast", "RememberSettingsPage", "Page", "RememberSettingsWindowPos", "SettingsWindowPosX", "SettingsWindowPosY",
-	"SettingsWindowSizeX", "SettingsWindowSizeYY", "SettingsWindowTransp", "SettingsWindowColorize", "SettingsWindowWikihelp", "ChatBufferSize", "EnableHubmodePic",
+	"IpInChat", "CountryInChat", "ISPInChat", "TopUpSpeed", "Broadcast", "RememberSettingsPage", "Page",
+	"SettingsWindowTransp", "SettingsWindowColorize", "SettingsWindowWikihelp", "ChatBufferSize", "EnableHubmodePic",
 	"EnableCountryflag", "PgLastUp",
 	"DiredtorListingFrameSplit",
 	"FlyServerHubListSplit",
@@ -992,11 +992,6 @@ void SettingsManager::setDefaults()
 	//setDefault(BROADCAST, 0);
 	setDefault(REMEMBER_SETTINGS_PAGE, TRUE); // [~] InfinitySky.
 	//setDefault(PAGE, 0);
-	setDefault(REMEMBER_SETTINGS_WINDOW_POS, TRUE);
-	setDefault(SETTINGS_WINDOW_POS_X, 0);
-	setDefault(SETTINGS_WINDOW_POS_Y, 0);
-	setDefault(SETTINGS_WINDOW_SIZE_X, 0);
-	setDefault(SETTINGS_WINDOW_SIZE_YY, 0);
 	//setDefault(SETTINGS_WINDOW_TRANSP, false);
 	//setDefault(SETTINGS_WINDOW_COLORIZE, false);
 	setDefault(SETTINGS_WINDOW_WIKIHELP, TRUE);
@@ -1597,8 +1592,8 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 		strSettings[key - STR_FIRST] = cleanValue;\
 		l_auto = false;\
 	}
-			// [~] IRainman fix.
-			
+		// [~] IRainman fix.
+		
 		case LOG_FORMAT_POST_DOWNLOAD:
 		case LOG_FORMAT_POST_UPLOAD:
 		case LOG_FORMAT_MAIN_CHAT:
@@ -1664,7 +1659,7 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 		break;
 		case BIND_ADDRESS:
 		case WEBSERVER_BIND_ADDRESS:
-			// [+] IRainman fix.
+		// [+] IRainman fix.
 		case URL_GET_IP:
 		case PORTAL_BROWSER_UPDATE_URL:
 		case URL_IPTRUST:

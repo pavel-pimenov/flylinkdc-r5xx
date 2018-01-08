@@ -1404,10 +1404,10 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			const int l_delta_x_space = aActive ? 1 : 0;
 			switch (WinUtil::GetTabsPosition())
 			{
-					// pos + 1 : делает смещение левого края вкладки, чтобы визуально отделить следующую отрисованную вкладку от предыдущей - 2 отдельные линии
-					// m_height : высота вкладки. Рассчитана где-то выше, от размера шрифта
-					// tabAnim : от 0 до x  колво пикселов, на которое изменять высоту вкладок для выбранных
-					// для вкладок TOP
+				// pos + 1 : делает смещение левого края вкладки, чтобы визуально отделить следующую отрисованную вкладку от предыдущей - 2 отдельные линии
+				// m_height : высота вкладки. Рассчитана где-то выше, от размера шрифта
+				// tabAnim : от 0 до x  колво пикселов, на которое изменять высоту вкладок для выбранных
+				// для вкладок TOP
 				case SettingsManager::TABS_TOP:
 				{
 					//Расчёт положения иконки и текста в зависимости от высоты вкладки
@@ -1659,9 +1659,9 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			                          dc.SetTextColor(SETTING(TAB_ACTIVITY_TEXT_COLOR))
 			                          :
 			                          dc.SetTextColor(GetSysColor(COLOR_BTNTEXT))))
-				                        :
-				                        dc.SetTextColor(SETTING(TAB_OFFLINE_TEXT_COLOR));    //[~] SCALOlaz
-				                        
+			                        :
+			                        dc.SetTextColor(SETTING(TAB_OFFLINE_TEXT_COLOR));    //[~] SCALOlaz
+			                        
 			//Цвет шрифта в зависимости от состояния юзера или хаба
 			//DWORD color_text_tab = tab->m_bState ? g_color_shadow : GetSysColor(COLOR_BTNTEXT);
 			
@@ -1675,7 +1675,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			
 			
 			if (!tab->m_mini)
-		{
+			{
 				// TODO - CSelectFont l_half_font(dc, Fonts::g_halfFont); //-V808
 				// Рисовать текст сжатым если открыли хаб из памяти (не фавориты)
 				dc.TextOut(pos, ypos + height_plus, tab->name.data(), tab->m_len); // [~] Sergey Shuhskanov //-V107

@@ -22,7 +22,7 @@
 
 #ifdef _DEBUG
 #ifndef _WIN64
-//#define FLYLINKDC_USE_VLD // 3>LINK : fatal error LNK1104: cannot open file 'vld.lib' VLD качать тут https://kinddragon.github.io/vld/
+#define FLYLINKDC_USE_VLD // 3>LINK : fatal error LNK1104: cannot open file 'vld.lib' VLD качать тут https://kinddragon.github.io/vld/
 #endif
 #endif
 #ifdef FLYLINKDC_USE_VLD

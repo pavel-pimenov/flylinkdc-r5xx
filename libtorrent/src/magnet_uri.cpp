@@ -168,7 +168,7 @@ namespace libtorrent {
 #endif // TORRENT_NO_DEPRECATE
 
 	add_torrent_params parse_magnet_uri(string_view uri, error_code& ec)
-		{
+	{
 		add_torrent_params ret;
 		parse_magnet_uri(uri, ret, ec);
 		return ret;

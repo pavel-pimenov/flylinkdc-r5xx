@@ -66,24 +66,7 @@ LRESULT TreePropertySheet::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 #endif
 	ResourceLoader::LoadImageList(IDR_SETTINGS_ICONS, tree_icons, 16, 16);
 	hideTab();
-	if (BOOLSETTING(REMEMBER_SETTINGS_WINDOW_POS))
-	{
-		CRect rcWindow;
-		GetWindowRect(rcWindow);
-		ScreenToClient(rcWindow);
-		rcWindow.left = SETTING(SETTINGS_WINDOW_POS_X);
-		rcWindow.top = SETTING(SETTINGS_WINDOW_POS_Y);
-		rcWindow.right = /*rcWindow.left +*/ SETTING(SETTINGS_WINDOW_SIZE_X);
-		rcWindow.bottom = /*rcWindow.top +*/ SETTING(SETTINGS_WINDOW_SIZE_YY);
-		if (rcWindow.right > 0 && rcWindow.bottom > 0)
-		{
-			MoveWindow(rcWindow, TRUE);
-		}
-		else
-			CenterWindow(GetParent());
-	}
-	if (!BOOLSETTING(REMEMBER_SETTINGS_WINDOW_POS))
-		CenterWindow(GetParent());
+	CenterWindow(GetParent());
 	addTree();
 	fillTree();
 	m_offset = 0;

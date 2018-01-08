@@ -1235,8 +1235,8 @@ bool BufferedSocket::checkEvents()
 			}
 			else if (p.first == SHUTDOWN)
 			{
-			return false;
-		}
+				return false;
+			}
 			else
 			{
 				dcdebug("%d unexpected in RUNNING state\n", p.first);

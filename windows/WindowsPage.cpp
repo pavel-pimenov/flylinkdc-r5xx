@@ -76,7 +76,6 @@ WindowsPage::ListItem WindowsPage::optionItems[] =
 	{ SettingsManager::TOGGLE_ACTIVE_WINDOW, ResourceManager::SETTINGS_TOGGLE_ACTIVE_WINDOW },
 	{ SettingsManager::PROMPT_PASSWORD, ResourceManager::SETTINGS_PROMPT_PASSWORD },
 	{ SettingsManager::REMEMBER_SETTINGS_PAGE, ResourceManager::REMEMBER_SETTINGS_PAGE }, // [<-] InfinitySky. «апоминать положение окна настроек.
-	{ SettingsManager::REMEMBER_SETTINGS_WINDOW_POS, ResourceManager::REMEMBER_SETTINGS_WINDOW_POS },
 #ifdef SCALOLAZ_PROPPAGE_TRANSPARENCY
 	{ SettingsManager::SETTINGS_WINDOW_TRANSP, ResourceManager::SETTINGS_WINDOW_TRANSP },
 #endif

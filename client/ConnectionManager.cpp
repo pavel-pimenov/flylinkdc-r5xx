@@ -308,7 +308,10 @@ void ConnectionManager::putCQI_L(ConnectionQueueItemPtr& cqi)
 	const string l_token = cqi->getConnectionQueueToken();
 	cqi.reset();
 	g_tokens_manager.removeToken(l_token);
-	fly_fire1(ConnectionManagerListener::RemoveToken(), l_token);
+	if (!ClientManager::isBeforeShutdown())
+	{
+		fly_fire1(ConnectionManagerListener::RemoveToken(), l_token);
+	}
 }
 
 #if 0

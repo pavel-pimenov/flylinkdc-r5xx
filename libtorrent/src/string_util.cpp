@@ -44,8 +44,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	// lexical_cast's result depends on the locale. We need
-	// a well defined result
+	// We need well defined results that don't depend on locale
 	std::array<char, 4 + std::numeric_limits<std::int64_t>::digits10>
 		to_string(std::int64_t const n)
 	{
@@ -180,7 +179,7 @@ namespace libtorrent {
 
 #if TORRENT_USE_IPV6
 			error_code ec;
-			address_v6::from_string(i.device, ec);
+			make_address_v6(i.device, ec);
 			if (!ec)
 			{
 				// IPv6 addresses must be wrapped in square brackets

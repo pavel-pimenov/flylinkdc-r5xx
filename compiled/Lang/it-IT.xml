@@ -1325,7 +1325,6 @@ Campo vuoto = Stringa predefinita:
 		<String Name="ScanDir">Scansione cartelle...</String>
 		<String Name="RemainedAttempts">Tentativi rimanenti</String>
 		<String Name="RememberSettingsPage">Memorizza l'ultima pagina visitata delle impostazioni</String>
-		<String Name="RememberSettingsWindowPos">Memorizza la posizione della finestra Impostazioni</String>
 		<String Name="Remove">Rimuovi</String>
 		<String Name="Remove2">Rimuovi</String>
 		<String Name="RemoveAll">Rimuovi tutto</String>

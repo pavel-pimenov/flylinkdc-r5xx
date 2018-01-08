@@ -135,7 +135,7 @@ class CFlyLog
 	public:
 		CFlyLog(const string& p_message
 		        , bool p_skip_start = true
-		                              , bool p_only_file  = false
+		        , bool p_only_file  = false
 		       );
 		~CFlyLog();
 		uint64_t calcSumTime() const;

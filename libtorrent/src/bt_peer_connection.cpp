@@ -37,13 +37,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <functional>
 
-#include "libtorrent/aux_/disable_warnings_push.hpp"
-
-#include <boost/multiprecision/cpp_int.hpp>
-#include <boost/multiprecision/integer.hpp>
-
-#include "libtorrent/aux_/disable_warnings_pop.hpp"
-
 #ifndef TORRENT_DISABLE_LOGGING
 #include "libtorrent/hex.hpp" // to_hex
 #endif
@@ -421,13 +414,18 @@ namespace {
 
 		if (!m_supports_fast) return;
 
+#if TORRENT_USE_ASSERTS
 		std::shared_ptr<torrent> t = associated_torrent().lock();
 		TORRENT_ASSERT(t);
 		TORRENT_ASSERT(t->valid_metadata());
+#endif
 
 #ifndef TORRENT_DISABLE_LOGGING
 		if (should_log(peer_log_alert::outgoing_message))
 		{
+#if !TORRENT_USE_ASSERTS
+			std::shared_ptr<torrent> t = associated_torrent().lock();
+#endif
 			peer_log(peer_log_alert::outgoing_message, "SUGGEST"
 				, "piece: %d num_peers: %d", static_cast<int>(piece)
 				, t->has_picker() ? t->picker().get_availability(piece) : -1);

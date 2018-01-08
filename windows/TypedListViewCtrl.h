@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+
 #if !defined(TYPED_LIST_VIEW_CTRL_H)
 #define TYPED_LIST_VIEW_CTRL_H
 
@@ -582,7 +583,8 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			for (int i = 0; i < l_cnt; ++i)
 			{
 				T* si = getItemData(i);
-				delete si;
+				if (m_is_managed == false)
+					delete si;
 			}
 			DeleteAllItems();
 		}
@@ -953,9 +955,9 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		{
 			return m_is_destroy_items;
 		}
+		bool m_is_managed = false; // TODO
 	protected:
 		bool m_is_destroy_items;
-		
 	private:
 		int sortColumn;
 #ifndef IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
@@ -1349,7 +1351,8 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				for (auto i = pp->children.cbegin(); i != pp->children.cend(); ++i)
 				{
 					deleteItem(*i);
-					delete *i;
+					if (m_is_managed == false)
+						delete *i;
 				}
 				pp->children.clear();
 				parents.erase(parent->getGroupCond());
@@ -1374,7 +1377,7 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 #ifdef _DEBUG
 				if (l_id < 0)
 				{
-					dcassert(0);
+					//dcassert(0);
 					LogManager::message("Error removeGroupedItem = " + Util::toString(item));
 				}
 #endif
@@ -1397,8 +1400,9 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 							
 							deleteItem(oldParent);
 							parents.erase(oldParent->getGroupCond());
-							delete oldParent;
-							
+							if (m_is_managed == false)
+								delete oldParent;
+								
 							ParentPair newPP = { parent };
 							parents.insert(ParentMapPair(parent->getGroupCond(), newPP));
 							
@@ -1420,7 +1424,8 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			
 			if (removeFromMemory)
 			{
-				delete item;
+				if (m_is_managed == false)
+					delete item;
 			}
 		}
 		
@@ -1437,10 +1442,12 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 				for (auto j = i->second.children.cbegin(); j != i->second.children.cend(); ++j)
 				{
 					//deleteItem(*j);
-					delete *j;
+					if (m_is_managed == false)
+						delete *j;
 				}
 				//deleteItem(ti);
-				delete ti;
+				if (m_is_managed == false)
+					delete ti;
 			}
 			/*
 			            const int l_Count = GetItemCount();
@@ -1448,7 +1455,8 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			            for (int i = 0; i < l_Count; i++)
 			            {
 			                T* si = getItemData(i);
-			                delete si; // https://drdump.com/DumpGroup.aspx?DumpGroupID=358387
+			                if(m_is_managed == false)
+			                    delete si; // https://drdump.com/DumpGroup.aspx?DumpGroupID=358387
 			            }
 			*/
 			

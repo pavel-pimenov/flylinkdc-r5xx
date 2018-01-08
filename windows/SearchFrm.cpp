@@ -157,12 +157,67 @@ static ResourceManager::Strings columnNames[] = {ResourceManager::FILE,
 
 SearchFrame::FrameMap SearchFrame::g_search_frames;
 
+SearchFrame::SearchFrame() :
+#ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
+	CFlyTimerAdapter(m_hWnd),
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+	CFlyServerAdapter(7000),
+#endif
+#endif
+	searchBoxContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+	searchContainer(WC_EDIT, this, SEARCH_MESSAGE_MAP),
+	sizeContainer(WC_EDIT, this, SEARCH_MESSAGE_MAP),
+	modeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+	sizeModeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+	fileTypeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+	//m_treeContainer(WC_TREEVIEW, this, SEARH_TREE_MESSAGE_MAP),
+	
+	showUIContainer(WC_COMBOBOX, this, SHOWUI_MESSAGE_MAP),
+	//slotsContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+	//collapsedContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+#ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
+	//storeIPContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+	m_storeIP(false),
+#endif
+#ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
+	//m_FlyServerContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+	//m_FlyServerGradientContainer(WC_STATIC, this, SEARCH_MESSAGE_MAP),
+#endif
+	//storeSettingsContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+	//purgeContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+	//doSearchContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+	//doSearchPassiveContainer(WC_COMBOBOX, this, SEARCH_MESSAGE_MAP),
+	resultsContainer(WC_LISTVIEW, this, SEARCH_MESSAGE_MAP),
+	hubsContainer(WC_LISTVIEW, this, SEARCH_MESSAGE_MAP),
+	ctrlFilterContainer(WC_EDIT, this, SEARCH_FILTER_MESSAGE_MAP),
+	ctrlFilterSelContainer(WC_COMBOBOX, this, SEARCH_FILTER_MESSAGE_MAP),
+	m_initialSize(0), m_initialMode(Search::SIZE_ATLEAST), m_initialType(Search::TYPE_ANY),
+	m_showUI(true), m_onlyFree(false), m_isHash(false), m_droppedResults(0), m_resultsCount(0),
+	m_expandSR(false),
+	m_storeSettings(false), m_isExactSize(false), m_exactSize2(0), /*searches(0),*/
+	m_lastFindTTH(false),
+	m_running(false),
+	m_searchEndTime(0),
+	m_searchStartTime(0),
+	m_waitingResults(false),
+	m_needsUpdateStats(false), // [+] IRainman opt.
+	m_is_expand_tree(false),
+	m_is_expand_sub_tree(false),
+	m_Theme(nullptr),
+	m_need_resort(false),
+	m_is_use_tree(true),
+	m_is_before_search(false),
+	m_RootTreeItem(nullptr),
+	m_CurrentTreeItem(nullptr),
+	m_OldTreeItem(nullptr),
+	m_is_disable_torrent_RSS(false)
+{
+}
+
 SearchFrame::~SearchFrame()
 {
 	//dcassert(m_search_info_leak_detect.empty());
-#ifdef _DEBUG
 	dcassert(m_si_set.empty());
-#endif
 	dcassert(m_closed);
 	images.Destroy();
 	m_searchTypesImageList.Destroy();
@@ -188,6 +243,7 @@ static bool isTTH(const tstring& p_TTH)
 void SearchFrame::openWindow(const tstring& str /* = Util::emptyString */, LONGLONG size /* = 0 */, Search::SizeModes mode /* = Search::SIZE_ATLEAST */, Search::TypeModes type /* = Search::TYPE_ANY */)
 {
 	SearchFrame* pChild = new SearchFrame();
+	pChild->m_is_disable_torrent_RSS = !str.empty();
 	pChild->setInitial(str, size, mode, type);
 	pChild->CreateEx(WinUtil::g_mdiClient);
 	g_search_frames.insert(FramePair(pChild->m_hWnd, pChild));
@@ -288,6 +344,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		                   WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS // | LVS_EX_INFOTIP
 		                   , WS_EX_CLIENTEDGE, IDC_RESULTS);
 	}
+	ctrlResults.m_is_managed = true;
 #ifdef FLYLINKDC_USE_TREE_SEARCH
 	m_ctrlSearchFilterTree.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_TRANSFER_TREE);
 	m_ctrlSearchFilterTree.SetBkColor(Colors::g_bgColor);
@@ -664,6 +721,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 #ifdef FLYLINKDC_USE_TREE_SEARCH
 	m_RootTreeItem = nullptr;
 	m_RootVirusTreeItem = nullptr;
+	m_RootTopTorrentTreeItem = nullptr;
 	m_CurrentTreeItem = nullptr;
 	m_OldTreeItem = nullptr;
 	clear_tree_filter_contaners();
@@ -693,9 +751,11 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 #else
 	TimerManager::getInstance()->addListener(this);
 #endif
-#ifdef _DEBUG
-	m_torrentTopThread.start_torrent_top(m_win_handler); 
-#endif
+	
+	if (m_is_disable_torrent_RSS == false)
+	{
+		m_torrentRSSThread.start_torrent_top(m_win_handler);
+	}
 	
 	bHandled = FALSE;
 	return 1;
@@ -880,7 +940,7 @@ int SearchFrame::TorrentTopSender::run()
 {
 	try
 	{
-		CFlyServerConfig::torrentGetTop(m_wnd, PREPARE_RESULT_TORRENT);
+		CFlyServerConfig::torrentGetTop(m_wnd, PREPARE_RESULT_TOP_TORRENT);
 	}
 	catch (const std::bad_alloc&)
 	{
@@ -1185,6 +1245,7 @@ void SearchFrame::removeSelected()
 	while ((i = ctrlResults.GetNextItem(-1, LVNI_SELECTED)) != -1)
 	{
 		ctrlResults.removeGroupedItem(ctrlResults.getItemData(i));
+		// TODO - delete from set
 	}
 }
 bool SearchFrame::registerVirusLevel(const string& p_file, const TTHValue& p_tth, int p_level)
@@ -1346,13 +1407,16 @@ void SearchFrame::on(SearchManagerListener::SR, const std::unique_ptr<SearchResu
 		return;
 	}
 	auto l_ptr = new SearchInfo(*aResult);
-#ifdef _DEBUG
-	m_si_set.insert(l_ptr);
-#endif
-	check_new(l_ptr);
+	{
+		CFlyFastLock(m_si_set_cs);
+		m_si_set.insert(l_ptr);
+	}
+	if (isClosedOrShutdown())
+		return;
 	if (safe_post_message(*this, ADD_RESULT, l_ptr) == false)
 	{
 		check_delete(l_ptr);
+		dcassert(0);
 	}
 }
 //===================================================================================================================================
@@ -2954,11 +3018,6 @@ bool SearchFrame::isSkipSearchResult(SearchInfo*& si)
 	if (m_closed == true || m_is_before_search == true)
 	{
 		check_delete(si);
-		delete si;
-#ifdef _DEBUG
-		m_si_set.erase(si);
-#endif
-		si = nullptr;
 		return true;
 	}
 	else
@@ -2989,10 +3048,6 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 				if (l_user->getCID() == pp->parent->getUser()->getCID() && sr.getFile() == pp->parent->m_sr.getFile())
 				{
 					check_delete(si);
-					delete si;
-#ifdef _DEBUG
-					m_si_set.erase(si);
-#endif
 					return;
 				}
 				for (auto k = pp->children.cbegin(); k != pp->children.cend(); ++k)
@@ -3004,10 +3059,6 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 						if (sr.getFile() == (*k)->m_sr.getFile())
 						{
 							check_delete(si);
-							delete si;
-#ifdef _DEBUG
-							m_si_set.erase(si);
-#endif
 							return;
 						}
 					}
@@ -3027,10 +3078,6 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 					if (sr.getFile() == sr2.getFile())
 					{
 						check_delete(si);
-#ifdef _DEBUG
-						m_si_set.erase(si);
-#endif
-						delete si;
 						return;
 					}
 				}
@@ -3041,7 +3088,41 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 	{
 		m_resultsCount++;
 #ifdef FLYLINKDC_USE_TREE_SEARCH
-		// Обработка гуя
+		if (si->m_is_top_torrent)
+		{
+			if (!m_RootTopTorrentTreeItem)
+			{
+				m_RootTopTorrentTreeItem = m_ctrlSearchFilterTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+				                                                             _T("Torrent RSS"),
+				                                                             0, // nImage
+				                                                             0, // nSelectedImage
+				                                                             0, // nState
+				                                                             0, // nStateMask
+				                                                             e_Root, // lParam
+				                                                             0, // aParent,
+				                                                             0  // hInsertAfter
+				                                                            );
+			}
+			if (sr.m_group_name.empty())
+			{
+				HTREEITEM l_top_item = add_category("...in 24 hours", "Hits", si, sr, SearchResult::TYPE_TORRENT_MAGNET, m_RootTopTorrentTreeItem, true, true);
+				if (l_top_item)
+				{
+					// m_ctrlSearchFilterTree.SelectItem(l_top_item);
+				}
+			}
+			else
+			{
+				add_category(sr.m_group_name, "Categories", si, sr, SearchResult::TYPE_TORRENT_MAGNET, m_RootTopTorrentTreeItem, true, true);
+			}
+			const auto l_marker = make_pair(si, ".torrent-magnet-top");
+			for (auto const &c : m_category_map)
+			{
+				m_filter_map[c.second].push_back(l_marker);
+			}
+			m_filter_map[m_RootTopTorrentTreeItem].push_back(l_marker);
+		}
+		else
 		{
 			if (!m_RootTreeItem)
 			{
@@ -3275,7 +3356,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 			}
 			else
 			{
-				if (!si->getText(COLUMN_TTH).empty() || si->m_is_torrent)
+				if (!si->getText(COLUMN_TTH).empty())
 				{
 #ifdef FLYLINKDC_USE_TREE_SEARCH
 					const bool l_is_filter_ok = is_filter_item(si);
@@ -3329,12 +3410,15 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 	}
 	else   // searching is paused, so store the result but don't show it in the GUI (show only information: visible/all results)
 	{
+#ifdef FLYLINK_DC_USE_PAUSED_SEARCH
 		m_pausedResults.push_back(si);
 		//ctrlStatus.SetText(3, (Util::toStringW(resultsCount + pausedResults.size()) + _T('/') + Util::toStringW(resultsCount) + _T(' ') + WSTRING(FILES)).c_str());//[-]IRainman optimize SearchFrame
+#endif
 	}
 }
-void SearchFrame::add_category(const std::string p_search, const std::string p_group, SearchInfo* p_si,
-                               const SearchResult& p_sr, int p_type_node, HTREEITEM p_parent_node, bool p_force_add /* = false */)
+HTREEITEM SearchFrame::add_category(const std::string p_search, const std::string p_group, SearchInfo* p_si,
+                                    const SearchResult& p_sr, int p_type_node, HTREEITEM p_parent_node,
+                                    bool p_force_add /* = false */, bool p_expand /*= false */)
 {
 	HTREEITEM l_item = nullptr;
 	const string l_year = p_search;
@@ -3344,19 +3428,26 @@ void SearchFrame::add_category(const std::string p_search, const std::string p_g
 		const auto l_sub_item = m_tree_sub_torrent_map.find(l_year);
 		if (l_sub_item == m_tree_sub_torrent_map.end())
 		{
-			auto& l_year_node = m_category_map[p_group];
-			if (!l_year_node)
+			auto& l_group_node = m_category_map[p_group];
+			if (!l_group_node)
 			{
-				l_year_node = m_ctrlSearchFilterTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
-				                                                Text::toT(p_group).c_str(),
-				                                                Search::TYPE_TORRENT_MAGNET + 2, // nImage
-				                                                Search::TYPE_TORRENT_MAGNET + 2, // nSelectedImage
-				                                                0, // nState
-				                                                0, // nStateMask
-				                                                p_type_node, // lParam
-				                                                p_parent_node, // aParent,
-				                                                0  // hInsertAfter
-				                                               );
+				l_group_node = m_ctrlSearchFilterTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+				                                                 Text::toT(p_group).c_str(),
+				                                                 Search::TYPE_TORRENT_MAGNET + 2, // nImage
+				                                                 Search::TYPE_TORRENT_MAGNET + 2, // nSelectedImage
+				                                                 0, // nState
+				                                                 0, // nStateMask
+				                                                 p_type_node, // lParam
+				                                                 p_parent_node, // aParent,
+				                                                 0  // hInsertAfter
+				                                                );
+			}
+			else
+			{
+				if (p_expand)
+				{
+					m_ctrlSearchFilterTree.Expand(l_group_node);
+				}
 			}
 			l_item = m_ctrlSearchFilterTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
 			                                           Text::toT(l_year).c_str(),
@@ -3365,14 +3456,14 @@ void SearchFrame::add_category(const std::string p_search, const std::string p_g
 			                                           0, // nState
 			                                           0, // nStateMask
 			                                           e_Ext, // lParam
-			                                           l_year_node, // aParent,
+			                                           l_group_node, // aParent,
 			                                           0  // hInsertAfter
 			                                          );
 			m_tree_sub_torrent_map.insert(std::make_pair(l_year, l_item));
 			if (m_is_expand_sub_tree == false)
 			{
 				m_ctrlSearchFilterTree.Expand(p_parent_node);
-				//m_ctrlSearchFilterTree.Expand(l_year_node);
+				m_ctrlSearchFilterTree.Expand(l_group_node);
 				m_is_expand_sub_tree = true;
 			}
 		}
@@ -3383,21 +3474,44 @@ void SearchFrame::add_category(const std::string p_search, const std::string p_g
 		const auto l_marker = make_pair(p_si, ".torrent-magnet");
 		m_filter_map[l_item].push_back(l_marker);
 	}
+	return l_item;
 }
 LRESULT SearchFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return 0;
 	switch (wParam)
 	{
 		case ADD_RESULT:
 			addSearchResult((SearchInfo*)(lParam));
 			break;
-		case PREPARE_RESULT_TORRENT:
+		case PREPARE_RESULT_TOP_TORRENT:
 		{
+			if (isClosedOrShutdown())
+				return 0;
 			SearchResult* l_sr = (SearchResult*)(lParam);
 			auto l_ptr = new SearchInfo(*l_sr);
-#ifdef _DEBUG
-			m_si_set.insert(l_ptr);
-#endif
+			delete l_sr;
+			{
+				CFlyFastLock(m_si_set_cs);
+				m_si_set.insert(l_ptr);
+			}
+			l_ptr->m_is_torrent = true;
+			l_ptr->m_is_top_torrent = true;
+			addSearchResult(l_ptr);
+		}
+		break;
+		case PREPARE_RESULT_TORRENT:
+		{
+			if (isClosedOrShutdown())
+				return 0;
+			SearchResult* l_sr = (SearchResult*)(lParam);
+			auto l_ptr = new SearchInfo(*l_sr);
+			{
+				CFlyFastLock(m_si_set_cs);
+				m_si_set.insert(l_ptr);
+			}
 			delete l_sr;
 			//l_ptr->m_torrent_page = z;
 			l_ptr->m_is_torrent = true;
@@ -3415,7 +3529,11 @@ LRESULT SearchFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL
 			break;
 		case UPDATE_STATUS:
 		{
-			const size_t l_totalResult = m_resultsCount + m_pausedResults.size();
+			const size_t l_totalResult = m_resultsCount
+#ifdef FLYLINK_DC_USE_PAUSED_SEARCH
+			                             + m_pausedResults.size()
+#endif
+			                             ;
 			ctrlStatus.SetText(3, (Util::toStringW(l_totalResult) + _T('/') + Util::toStringW(m_resultsCount) + _T(' ') + WSTRING(FILES)).c_str());
 			ctrlStatus.SetText(4, (Util::toStringW(m_droppedResults) + _T(' ') + TSTRING(FILTERED)).c_str());
 			m_needsUpdateStats = false;
@@ -3805,8 +3923,14 @@ LRESULT SearchFrame::onBrowseList(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
 void SearchFrame::clearPausedResults()
 {
-	for_each(m_pausedResults.begin(), m_pausedResults.end(), DeleteFunction());
+#ifdef FLYLINK_DC_USE_PAUSED_SEARCH
+	for (auto i : m_pausedResults)
+	{
+		delete *i;
+		check_delete(*i);
+	}
 	m_pausedResults.clear();
+#endif
 }
 
 LRESULT SearchFrame::onPause(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -3815,6 +3939,7 @@ LRESULT SearchFrame::onPause(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 	{
 		m_running = true;
 		
+#ifdef FLYLINK_DC_USE_PAUSED_SEARCH
 		// readd all results which came during pause state
 		while (!m_pausedResults.empty())
 		{
@@ -3822,7 +3947,7 @@ LRESULT SearchFrame::onPause(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 			addSearchResult(m_pausedResults.back());
 			m_pausedResults.pop_back();
 		}
-		
+#endif
 		// update controls texts
 		ctrlStatus.SetText(3, (Util::toStringW(ctrlResults.GetItemCount()) + _T(' ') + TSTRING(FILES)).c_str());
 		ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE_SEARCH));
@@ -4438,6 +4563,7 @@ void SearchFrame::set_tree_item_status(const SearchInfo* p_si)
 }
 void SearchFrame::clear_tree_filter_contaners()
 {
+	m_top_subitem_map.clear();
 	m_category_map.clear();
 	m_tree_ext_map.clear();
 	m_tree_sub_torrent_map.clear();
@@ -4447,16 +4573,18 @@ void SearchFrame::clear_tree_filter_contaners()
 	m_OldTreeItem = nullptr;
 	m_RootTreeItem = nullptr;
 	m_RootVirusTreeItem = nullptr;
+	m_RootTopTorrentTreeItem = nullptr;
 	m_is_expand_tree = false;
 	m_is_expand_sub_tree = false;
 	m_ctrlSearchFilterTree.DeleteAllItems();
-#ifdef _DEBUG
-	for (auto i = m_si_set.begin(); i != m_si_set.end(); ++i)
 	{
-		// Не пашет - возможно двойное удаление     delete *i;
+		CFlyFastLock(m_si_set_cs);
+		for (auto i = m_si_set.begin(); i != m_si_set.end(); ++i)
+		{
+			delete *i;
+		}
+		m_si_set.clear();
 	}
-	m_si_set.clear();
-#endif
 }
 
 void SearchFrame::updateSearchList(SearchInfo* p_si)

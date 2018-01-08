@@ -55,8 +55,8 @@ namespace libtorrent {
 	constexpr save_state_flags_t session_handle::save_settings;
 	constexpr save_state_flags_t session_handle::save_dht_settings;
 	constexpr save_state_flags_t session_handle::save_dht_state;
-	constexpr save_state_flags_t session_handle::save_encryption_settings;
 #ifndef TORRENT_NO_DEPRECATE
+	constexpr save_state_flags_t session_handle::save_encryption_settings;
 	constexpr save_state_flags_t session_handle::save_as_map TORRENT_DEPRECATED_ENUM;
 	constexpr save_state_flags_t session_handle::save_proxy TORRENT_DEPRECATED_ENUM;
 	constexpr save_state_flags_t session_handle::save_i2p_proxy TORRENT_DEPRECATED_ENUM;
@@ -892,7 +892,7 @@ namespace {
 		if (net_interface == nullptr || strlen(net_interface) == 0)
 			net_interface = "0.0.0.0";
 
-		interfaces_str = print_endpoint(tcp::endpoint(address::from_string(net_interface, ec), std::uint16_t(port_range.first)));
+		interfaces_str = print_endpoint(tcp::endpoint(make_address(net_interface, ec), std::uint16_t(port_range.first)));
 		if (ec) return;
 
 		p.set_str(settings_pack::listen_interfaces, interfaces_str);

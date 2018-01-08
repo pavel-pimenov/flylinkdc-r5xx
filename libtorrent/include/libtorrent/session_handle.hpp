@@ -95,10 +95,9 @@ namespace libtorrent {
 		// joining the DHT if provided at next session startup.
 		static constexpr save_state_flags_t save_dht_state = 2_bit;
 
-		// save pe_settings
-		static constexpr save_state_flags_t save_encryption_settings = 3_bit;
-
 #ifndef TORRENT_NO_DEPRECATE
+		// save pe_settings
+		static constexpr save_state_flags_t TORRENT_DEPRECATED_MEMBER save_encryption_settings = 3_bit;
 		static constexpr save_state_flags_t TORRENT_DEPRECATED_MEMBER save_as_map = 4_bit;
 		static constexpr save_state_flags_t TORRENT_DEPRECATED_MEMBER save_proxy = 5_bit;
 		static constexpr save_state_flags_t TORRENT_DEPRECATED_MEMBER save_i2p_proxy = 6_bit;
@@ -671,7 +670,7 @@ namespace libtorrent {
 		// class and returns a unique identifier.
 		//
 		// Identifiers are assigned from low numbers to higher. So if you plan on
-		// using certain peer classes in a call to `set_peer_class_filter()`_,
+		// using certain peer classes in a call to set_peer_class_filter(),
 		// make sure to create those early on, to get low identifiers.
 		//
 		// For more information on peer classes, see peer-classes_.

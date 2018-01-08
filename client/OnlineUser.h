@@ -53,30 +53,30 @@ class Identity
 			CHANGES_APPLICATION = 1 << COLUMN_APPLICATION,
 			CHANGES_CONNECTION =
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
-			1 << COLUMN_CONNECTION, // done
+			    1 << COLUMN_CONNECTION, // done
 #else
-			0, // done
+			    0, // done
 #endif
 			CHANGES_EMAIL = 1 << COLUMN_EMAIL, // done
 			CHANGES_VERSION =
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
-			1 << COLUMN_VERSION,
+			    1 << COLUMN_VERSION,
 #else
-			0,
+			    0,
 #endif
 			CHANGES_MODE =
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
-			1 << COLUMN_MODE,
+			    1 << COLUMN_MODE,
 #else
-			0,
+			    0,
 #endif
 			CHANGES_HUBS = 1 << COLUMN_HUBS, // done
 			CHANGES_SLOTS = 1 << COLUMN_SLOTS, // done
 			CHANGES_UPLOAD_SPEED =
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
-			1 << COLUMN_UPLOAD_SPEED,
+			    1 << COLUMN_UPLOAD_SPEED,
 #else
-			0,
+			    0,
 #endif
 			CHANGES_IP = 1 << COLUMN_IP, // done
 			CHANGES_GEO_LOCATION = 1 << COLUMN_GEO_LOCATION, // done

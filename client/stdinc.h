@@ -92,25 +92,6 @@
 #include <boost/noncopyable.hpp>
 #endif
 
-#include <boost/static_assert.hpp> // [+]IRainman
-/*
-#ifdef _WIN32
-//#define IRAINMAN_BOOST_REGEX_FAIL_FASTER // TODO use it!
-#endif
-//#define BOOST_NO_FUNCTION_TEMPLATE_ORDERING
-// http://www.solarix.ru/for_developers/cpp/boost/regex/ru/configuration.shtml
-#ifdef IRAINMAN_BOOST_REGEX_FAIL_FASTER
-#define BOOST_REGEX_RECURSIVE 1
-#else
-
-#define BOOST_REGEX_NON_RECURSIVE 1
-#ifdef BOOST_REGEX_NON_RECURSIVE
-#define BOOST_REGEX_BLOCKSIZE 8096
-#define BOOST_REGEX_MAX_CACHE_BLOCKS 128
-#endif
-
-#endif
-*/
 #include <regex>
 using std::vector;
 using std::list;

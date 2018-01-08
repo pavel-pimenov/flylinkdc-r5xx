@@ -169,10 +169,6 @@ LRESULT PropertiesDlg::onOK(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/
 	CRect rcWindow;
 	if (GetWindowRect(rcWindow))
 	{
-		SET_SETTING(SETTINGS_WINDOW_POS_X, rcWindow.left);
-		SET_SETTING(SETTINGS_WINDOW_POS_Y, rcWindow.top);
-		SET_SETTING(SETTINGS_WINDOW_SIZE_X, rcWindow.right /*- rcWindow.left*/);
-		SET_SETTING(SETTINGS_WINDOW_SIZE_YY, rcWindow.bottom /*- rcWindow.top*/);
 		write();
 	}
 	bHandled = FALSE;

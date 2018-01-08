@@ -596,24 +596,24 @@ void QueueManager::FileQueue::calcPriorityAndGetRunningFilesL(bool p_is_calc_pri
 		if (q->isRunning())
 		{
 			p_runningFiles.push_back(q);
-#ifdef FLYLINKDC_USE_RECALC_PRIOR	
-            if (p_is_calc_prior)
-            {
-                // TODO calcAverageSpeedAndDownloadedBytes - тяжелая операция зачем зовем так часто?
-                q->calcAverageSpeedAndCalcAndGetDownloadedBytesL();
-                if (q->getAutoPriority())
-                {
-                    const QueueItem::Priority p1 = q->getPriority();
-                    if (p1 != QueueItem::PAUSED)
-                    {
-                        const QueueItem::Priority p2 = q->calculateAutoPriority();
-                        if (p1 != p2)
-                        {
-                            p_changedPriority.push_back(make_pair(q->getTarget(), p2));
-                        }
-                    }
-                }
-            }
+#ifdef FLYLINKDC_USE_RECALC_PRIOR
+			if (p_is_calc_prior)
+			{
+				// TODO calcAverageSpeedAndDownloadedBytes - тяжелая операция зачем зовем так часто?
+				q->calcAverageSpeedAndCalcAndGetDownloadedBytesL();
+				if (q->getAutoPriority())
+				{
+					const QueueItem::Priority p1 = q->getPriority();
+					if (p1 != QueueItem::PAUSED)
+					{
+						const QueueItem::Priority p2 = q->calculateAutoPriority();
+						if (p1 != p2)
+						{
+							p_changedPriority.push_back(make_pair(q->getTarget(), p2));
+						}
+					}
+				}
+			}
 #endif // FLYLINKDC_USE_RECALC_PRIOR
 		}
 	}
@@ -2741,13 +2741,13 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 					// Problem, we have to request connections to all these users...
 					q->getOnlineUsers(l_getConn);
 				}
-                // тут возникает проблема https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1692
+				// тут возникает проблема https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1692
 				//g_userQueue.setQIPriority(q, p); // !!!!!!!!!!!!!!!!!! Удаляет и вставляет в массив каждую секунду
-                // Поменял вызов на 
-                q->setPriority(p);
-                // Ошибка активировалась между билдами 21194 и 21203
-                // в этой ревизии я чинил баг - Убрал прерывание закачки большого кол-во файлов (revert r20612)
-                // В общем путное место.
+				// Поменял вызов на
+				q->setPriority(p);
+				// Ошибка активировалась между билдами 21194 и 21203
+				// в этой ревизии я чинил баг - Убрал прерывание закачки большого кол-во файлов (revert r20612)
+				// В общем путное место.
 				
 #ifdef _DEBUG
 				LogManager::message("QueueManager g_userQueue.setQIPriority q->getTarget = " + q->getTarget());
@@ -3263,7 +3263,7 @@ void QueueManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 			fly_fire1(QueueManagerListener::TargetsUpdated(), l_fire_src_array);
 		}
 	}
-#ifdef FLYLINKDC_USE_RECALC_PRIOR	
+#ifdef FLYLINKDC_USE_RECALC_PRIOR
 	for (auto p = l_priorities.cbegin(); p != l_priorities.cend(); ++p)
 	{
 		setPriority(p->first, p->second);

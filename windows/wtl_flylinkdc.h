@@ -246,8 +246,8 @@ class CLockRedraw
 #endif
 {
 	public:
-	explicit CLockRedraw(const HWND p_hWnd) noexcept :
-		m_hWnd(p_hWnd)
+		explicit CLockRedraw(const HWND p_hWnd) noexcept :
+			m_hWnd(p_hWnd)
 		{
 			if (m_hWnd)
 			{

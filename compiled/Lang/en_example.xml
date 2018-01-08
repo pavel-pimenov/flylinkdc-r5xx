@@ -1113,7 +1113,6 @@
 	<string name="ScanDir">Scan dir...</string>
 	<string name="RemainedAttempts">Remained attempts</string>
 	<string name="RememberSettingsPage">Remember the page in the settings window</string>
-	<string name="RememberSettingsWindowPos">Remember the settings window position</string>
 	<string name="Remove">&amp;Remove</string>
 	<string name="Remove2">Remove</string>
 	<string name="RemoveAll">Remove all</string>

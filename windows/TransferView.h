@@ -227,7 +227,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		// !SMT!-S
 		LRESULT onSetUserLimit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
-    public:
+	public:
 		class ItemInfo;
 #ifdef FLYLINKDC_USE_TREEE_LIST_VIEW_WITHOUT_POINTER
 		typedef TypedTreeListViewCtrlSafe<ItemInfo, IDC_TRANSFERS, tstring> ItemInfoList;
@@ -324,16 +324,16 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 					m_is_force_passive(false), m_is_seeding(false), m_is_pause(false)
 				{
 #ifdef _DEBUG
-                    ++g_count_transfer_item;
+					++g_count_transfer_item;
 #endif
 					update_nicks();
 				}
 #ifdef _DEBUG
-                virtual ~ItemInfo()
+				virtual ~ItemInfo()
 				{
 					--g_count_transfer_item;
 				}
-#endif				
+#endif
 				const bool download;
 				bool m_is_torrent;
 				bool m_is_seeding;

@@ -232,9 +232,9 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	}
 	if (!ou->getUser()->getCID().isZero())
 	{
-		ClientManager::getInstance()->putOnline(ou, true); 
-         //  is_all_my_info_loaded() без true не начинает качать при загрузке 
-         //  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1682
+		ClientManager::getInstance()->putOnline(ou, true);
+		//  is_all_my_info_loaded() без true не начинает качать при загрузке
+		//  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1682
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 		UserManager::checkUser(ou);
 #endif
@@ -1623,20 +1623,20 @@ void NmdcHub::toParse(const string& param)
 	const string rtNick = param.substr(pos_a, pos_b - pos_a);
 	
 	if (rtNick.empty())
-    {
-        dcassert(0);
+	{
+		dcassert(0);
 		return;
-    }
-    const auto l_user_for_message = findUser(rtNick);
-
-    if (l_user_for_message == nullptr)
-    {
+	}
+	const auto l_user_for_message = findUser(rtNick);
+	
+	if (l_user_for_message == nullptr)
+	{
 #ifdef FLYLINKDC_BETA
-        LogManager::speak_status_message("NmdcHub::toParse $To: invalid user: rtNick = " + rtNick + " param = " + param + " Hub = " + getHubUrl());
+		LogManager::speak_status_message("NmdcHub::toParse $To: invalid user: rtNick = " + rtNick + " param = " + param + " Hub = " + getHubUrl());
 #endif
-       // return;
-    }
-		
+		// return;
+	}
+	
 	pos_a = pos_b + 3;
 	pos_b = param.find("> ", pos_a);
 	

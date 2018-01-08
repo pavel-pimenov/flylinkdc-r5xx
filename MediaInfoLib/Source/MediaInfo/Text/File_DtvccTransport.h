@@ -62,9 +62,8 @@ private :
     {
         File__Analyze*  Parser;
 
-        stream()
+        stream():Parser(NULL)
         {
-            Parser=NULL;
         }
 
         ~stream()

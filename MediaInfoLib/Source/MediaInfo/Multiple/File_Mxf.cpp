@@ -40,6 +40,9 @@
 #if defined(MEDIAINFO_MPEGV_YES)
     #include "MediaInfo/Video/File_Mpegv.h"
 #endif
+#if defined(MEDIAINFO_PRORES_YES)
+    #include "MediaInfo/Video/File_ProRes.h"
+#endif
 #if defined(MEDIAINFO_VC3_YES)
     #include "MediaInfo/Video/File_Vc3.h"
 #endif
@@ -666,6 +669,7 @@ static const char* Mxf_EssenceElement(const int128u& EssenceElement)
                         case 0x06 : return "MPEG stream (Clip)";
                         case 0x07 : return "MPEG stream (Custom)";
                         case 0x08 : return "JPEG 2000";
+                        case 0x17 : return "ProRes";
                         default   : return "Unknown stream";
                     }
         case 0x16 : //GC Sound
@@ -739,6 +743,7 @@ static const char* Mxf_EssenceContainer(const int128u& EssenceContainer)
                                                                                         case 0x10 : return "AVC";
                                                                                         case 0x11 : return "VC-3";
                                                                                         case 0x13 : return "Timed Text";
+                                                                                        case 0x1C : return "ProRes";
                                                                                         default   : return "";
                                                                                     }
                                                                         default   : return "";
@@ -882,6 +887,12 @@ static const char* Mxf_EssenceContainer_Mapping(int8u Code6, int8u Code7, int8u 
                     }
         case 0x13 : //Timed Text
                     return "Clip";
+        case 0x1C : //ProRes
+                    switch (Code7)
+                    {
+                        case 0x01 : return "Frame";
+                        default   : return "";
+                    }
         default   : return "";
     }
 }
@@ -954,6 +965,7 @@ static const char* Mxf_EssenceCompression(const int128u& EssenceCompression)
                                                                                     switch (Code6)
                                                                                     {
                                                                                         case 0x01 : return "JPEG 2000";
+                                                                                        case 0x06 : return "ProRes";
                                                                                         default   : return "";
                                                                                     }
                                                                         case 0x71 : return "VC-3";
@@ -5145,10 +5157,6 @@ bool File_Mxf::FileHeader_Begin()
         Reject("Mxf");
         return false;
     }
-
-    //In case of buffer interface without filename
-    if (File_Name.empty())
-        File_Name=Config->File_FileName_Get();
 
     return true;
 }
@@ -15058,6 +15066,11 @@ void File_Mxf::Info_UL_040101_Values()
                                                     Skip_B1(    "Unused");
                                                     Skip_B1(    "Unused");
                                                     break;
+                                                case 0x06 :
+                                                    Param_Info1("ProRes");
+                                                    Skip_B1(    "Profile");
+                                                    Skip_B1(    "Unused");
+                                                    break;
                                                 default   :
                                                     Skip_B2(    "Unknown");
                                             }
@@ -15494,6 +15507,13 @@ void File_Mxf::Info_UL_040101_Values()
                                                     {
                                                     Param_Info1("AVC Picture Element");
                                                     Skip_B1(            "Unknown");
+                                                    Skip_B1(            "Unknown");
+                                                    }
+                                                    break;
+                                                case 0x1C :
+                                                    {
+                                                    Param_Info1("ProRes");
+                                                    Info_B1(Code7,      "Content Kind"); Param_Info1(Mxf_EssenceContainer_Mapping(Code6, Code7, 0xFF));
                                                     Skip_B1(            "Unknown");
                                                     }
                                                     break;
@@ -16051,6 +16071,7 @@ void File_Mxf::ChooseParser(const essences::iterator &Essence, const descriptors
                                                                     switch (Code6)
                                                                     {
                                                                         case 0x01 : return ChooseParser_Jpeg2000(Essence, Descriptor);
+                                                                        case 0x06 : return ChooseParser_ProRes(Essence, Descriptor);
                                                                         default   : return;
                                                                     }
                                                         case 0x71 : return ChooseParser_Vc3(Essence, Descriptor);
@@ -16413,6 +16434,9 @@ void File_Mxf::ChooseParser__Aaf_GC_Picture(const essences::iterator &Essence, c
                     break;
         case 0x0D : //VC-3
                     ChooseParser_Vc3(Essence, Descriptor);
+                    break;
+        case 0x17 : //ProRes
+                    ChooseParser_ProRes(Essence, Descriptor);
                     break;
         default   : //Unknown
                     ;
@@ -17017,6 +17041,24 @@ void File_Mxf::ChooseParser_Jpeg2000(const essences::iterator &Essence, const de
         Open_Buffer_Init(Parser);
         Parser->Stream_Prepare(Stream_Video);
         Parser->Fill(Stream_Video, 0, Video_Format, "JPEG 2000");
+    #endif
+    Essence->second.Parsers.push_back(Parser);
+}
+
+//---------------------------------------------------------------------------
+void File_Mxf::ChooseParser_ProRes(const essences::iterator &Essence, const descriptors::iterator &Descriptor)
+{
+    Essence->second.StreamKind=Stream_Video;
+
+    //Filling
+    #if defined(MEDIAINFO_PRORES_YES)
+        File_ProRes* Parser=new File_ProRes;
+    #else
+        //Filling
+        File__Analyze* Parser=new File_Unknown();
+        Open_Buffer_Init(Parser);
+        Parser->Stream_Prepare(Stream_Video);
+        Parser->Fill(Stream_Video, 0, Video_Format, "ProRes");
     #endif
     Essence->second.Parsers.push_back(Parser);
 }

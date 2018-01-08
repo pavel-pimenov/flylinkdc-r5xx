@@ -285,10 +285,10 @@ namespace aux {
 		, disk_interface
 		, buffer_allocator_interface
 	{
-		disk_io_thread(io_service& ios
-			, counters& cnt
-			, int block_size = 16 * 1024);
+		disk_io_thread(io_service& ios, counters& cnt);
+#if TORRENT_USE_ASSERTS
 		~disk_io_thread();
+#endif
 
 		void set_settings(settings_pack const* sett);
 

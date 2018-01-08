@@ -111,8 +111,11 @@ class SearchResultBaseTTH
 		{
 			return Util::toString(m_peer) + '/' + Util::toString(m_seed);
 		}
+		// TODO унести свойства торрента в отдельный класс
 		uint16_t m_peer = 0;
 		uint16_t m_seed = 0;
+		uint16_t m_group_index = 0;
+		string   m_group_name;
 		uint16_t m_comment = 0;
 		string m_url;
 		string m_tracker;

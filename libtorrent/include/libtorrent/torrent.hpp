@@ -226,7 +226,7 @@ namespace libtorrent {
 	struct TORRENT_EXTRA_EXPORT torrent_hot_members
 	{
 		torrent_hot_members(aux::session_interface& ses
-			, add_torrent_params const& p, int block_size, bool session_paused);
+			, add_torrent_params const& p, bool session_paused);
 
 	protected:
 		// the piece picker. This is allocated lazily. When we don't
@@ -305,12 +305,6 @@ namespace libtorrent {
 		// the maximum number of connections for this torrent
 		std::uint32_t m_max_connections:24;
 
-		// the size of a request block
-		// each piece is divided into these
-		// blocks when requested. The block size is
-		// 1 << m_block_size_shift
-		std::uint32_t m_block_size_shift:5;
-
 		// the state of this torrent (queued, checking, downloading, etc.)
 		std::uint32_t m_state:3;
 
@@ -330,7 +324,7 @@ namespace libtorrent {
 	{
 	public:
 
-		torrent(aux::session_interface& ses, int block_size
+		torrent(aux::session_interface& ses
 			, bool session_paused, add_torrent_params const& p);
 		~torrent() override;
 
@@ -448,6 +442,7 @@ namespace libtorrent {
 		// the necessary actions then.
 		void abort();
 		bool is_aborted() const { return m_abort; }
+		void panic();
 
 		void new_external_ip();
 
@@ -660,7 +655,7 @@ namespace libtorrent {
 		// this will remove the peer and make sure all
 		// the pieces it had have their reference counter
 		// decreased in the piece_picker
-		void remove_peer(std::shared_ptr<peer_connection> p);
+		void remove_peer(std::shared_ptr<peer_connection> p) noexcept;
 
 		// cancel requests to this block from any peer we're
 		// connected to on this torrent
@@ -852,7 +847,12 @@ namespace libtorrent {
 		void peer_lost(typed_bitfield<piece_index_t> const& bits
 			, peer_connection const* peer);
 
-		int block_size() const { TORRENT_ASSERT(m_block_size_shift > 0); return 1 << m_block_size_shift; }
+		int block_size() const
+		{
+			return m_torrent_file
+				? (std::min)(m_torrent_file->piece_length(), default_block_size)
+				: default_block_size;
+		}
 		peer_request to_req(piece_block const& p) const;
 
 		void disconnect_all(error_code const& ec, operation_t op);
@@ -1023,7 +1023,7 @@ namespace libtorrent {
 		// LOGGING
 #ifndef TORRENT_DISABLE_LOGGING
 		bool should_log() const override;
-		void debug_log(const char* fmt, ...) const override TORRENT_FORMAT(2,3);
+		void debug_log(const char* fmt, ...) const noexcept override TORRENT_FORMAT(2,3);
 
 		void log_to_all_peers(char const* message);
 		time_point m_dht_start_time;
@@ -1111,12 +1111,7 @@ namespace libtorrent {
 		void inc_num_connecting(torrent_peer* pp)
 		{
 			++m_num_connecting;
-			TORRENT_ASSERT(m_num_connecting <= int(m_connections.size()));
-			if (pp->seed)
-			{
-				++m_num_connecting_seeds;
-				TORRENT_ASSERT(m_num_connecting_seeds <= int(m_connections.size()));
-			}
+			if (pp->seed) ++m_num_connecting_seeds;
 		}
 		void dec_num_connecting(torrent_peer* pp)
 		{
@@ -1161,7 +1156,7 @@ namespace libtorrent {
 		void on_error(error_code const& ec) override;
 
 		// trigger deferred disconnection of peers
-		void on_remove_peers();
+		void on_remove_peers() noexcept;
 
 		void ip_filter_updated();
 
@@ -1599,7 +1594,7 @@ namespace libtorrent {
 		// the number of bytes of padding files
 		std::uint32_t m_padding:24;
 
-		// TODO: 8 bits available here
+		// TODO: gap of 8 bits available here
 
 // ----
 
