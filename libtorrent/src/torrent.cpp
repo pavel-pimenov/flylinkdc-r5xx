@@ -1274,9 +1274,9 @@ namespace libtorrent {
 		piece_refcount refcount{picker(), piece};
 		for (int i = 0; i < blocks_in_piece; ++i, p.start += block_size())
 		{
-            piece_block const block(piece, i);
-            if (!(flags & torrent_handle::overwrite_existing)
-                && picker().is_finished(block))
+			piece_block const block(piece, i);
+			if (!(flags & torrent_handle::overwrite_existing)
+				&& picker().is_finished(block))
 				continue;
 
 			p.length = std::min(piece_size - p.start, int(block_size()));
@@ -10479,7 +10479,6 @@ namespace {
 		if (int(m_state) == s) return;
 
 #ifndef	TORRENT_NO_STATE_CHANGES_ALERTS
-
 		if (m_ses.alerts().should_post<state_changed_alert>())
 		{
 			m_ses.alerts().emplace_alert<state_changed_alert>(get_handle()

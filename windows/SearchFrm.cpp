@@ -1415,7 +1415,8 @@ void SearchFrame::on(SearchManagerListener::SR, const std::unique_ptr<SearchResu
 		return;
 	if (safe_post_message(*this, ADD_RESULT, l_ptr) == false)
 	{
-		check_delete(l_ptr);
+		CFlyFastLock(m_si_set_cs);
+		m_si_set.erase(l_ptr);
 		dcassert(0);
 	}
 }

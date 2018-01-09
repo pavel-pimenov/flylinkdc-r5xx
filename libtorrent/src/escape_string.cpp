@@ -69,6 +69,7 @@ namespace libtorrent {
 	std::string unescape_string(string_view s, error_code& ec)
 	{
 		std::string ret;
+	//	ret.reserve(s.length());
 		for (auto i = s.begin(); i != s.end(); ++i)
 		{
 			if (*i == '+')
