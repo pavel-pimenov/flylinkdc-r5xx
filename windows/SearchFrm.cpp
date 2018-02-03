@@ -298,6 +298,58 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	fixme:dbghelp:MiniDumpWriteDump NIY MiniDumpWithFullMemory
 	fixme:edit:EDIT_EM_FmtLines soft break enabled, not implemented
 	*/
+/*
+	{
+		CRect rcVert;
+		GetClientRect(&rcVert);
+
+		// create the vertical splitter
+		m_vSplit.Create(m_hWnd, rcVert, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+
+		// set the vertical splitter parametersf
+		m_vSplit.m_cxyMin = 222; // minimum size
+		m_vSplit.SetSplitterPos(222); // from left
+		//m_vSplit.m_bFullDrag = false;  // ghost bar enabled
+
+		CRect rcHorz;
+		GetClientRect(&rcHorz);
+
+		// create the horizontal splitter. Note that vSplit is parent of hzSplit
+		m_hzSplit.Create(m_vSplit, rcHorz, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+
+		// set the horizontal splitter parameters
+		m_hzSplit.m_cxyMin = 35; // minimum size
+		m_hzSplit.SetSplitterPos(100); // from top
+		m_hzSplit.m_bFullDrag = false; // ghost bar enabled
+
+									   // add the horizontal splitter to right pane of vertical splitter
+		m_vSplit.SetSplitterPane(1, m_hzSplit);
+		m_lPane.Create(m_vSplit.m_hWnd);
+		// add container to left pane (0) of vertical splitter
+		m_vSplit.SetSplitterPane(0, m_lPane);
+
+		// set the left pane title
+		//m_lPane.SetTitle(_T("Left Pane"));
+		//m_lPane.SetPaneContainerExtendedStyle(PANECNT_NOCLOSEBUTTON);
+
+		// create the top container.  Note use of hzSplit as parent
+		m_tPane.Create(m_hzSplit.m_hWnd);
+
+		// add container to top pane (0) of horizontal splitter
+		m_hzSplit.SetSplitterPane(0, m_tPane);
+
+		// set the top pane title
+		m_tPane.SetTitle(_T("Top Pane -- no Close button"));
+
+		// remove the close button from the top container
+		m_tPane.SetPaneContainerExtendedStyle(PANECNT_NOCLOSEBUTTON);
+
+	}
+*/
+HWND l_lHwnd = m_hWnd;
+
+//	HWND l_lHwnd = m_lPane;
+//	HWND l_SearchHwnd = m_tPane;
 	m_tooltip.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
 	m_tooltip.SetDelayTime(TTDT_AUTOPOP, 15000);
 	dcassert(m_tooltip.IsWindow());
@@ -305,26 +357,26 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
 	ctrlStatus.Attach(m_hWndStatusBar);
 	
-	ctrlSearchBox.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+	ctrlSearchBox.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                     WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL, 0);
 	CFlylinkDBManager::getInstance()->load_registry(g_lastSearches, e_SearchHistory); //[+]PPA
 	init_last_search_box();
 	searchBoxContainer.SubclassWindow(ctrlSearchBox.m_hWnd);
 	ctrlSearchBox.SetExtendedUI();
 	
-	ctrlMode.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+	ctrlMode.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                WS_HSCROLL | WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE, IDC_SEARCH_MODE);
 	modeContainer.SubclassWindow(ctrlMode.m_hWnd);
 	
-	ctrlSize.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+	ctrlSize.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                ES_AUTOHSCROLL | ES_NUMBER, WS_EX_CLIENTEDGE, IDC_SEARCH_SIZE);
 	sizeContainer.SubclassWindow(ctrlSize.m_hWnd);
 	
-	ctrlSizeMode.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+	ctrlSizeMode.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                    WS_HSCROLL | WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE, IDC_SEARCH_SIZEMODE);
 	sizeModeContainer.SubclassWindow(ctrlSizeMode.m_hWnd);
 	
-	ctrlFiletype.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+	ctrlFiletype.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                    WS_HSCROLL | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_HASSTRINGS | CBS_OWNERDRAWFIXED, WS_EX_CLIENTEDGE, IDC_FILETYPES);
 	                    
 	ResourceLoader::LoadImageList(IDR_SEARCH_TYPES, m_searchTypesImageList, 16, 16);
@@ -334,19 +386,21 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	
 	if (useSystemIcon)
 	{
-		ctrlResults.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+		ctrlResults.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 		                   WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS // | LVS_EX_INFOTIP
 		                   , WS_EX_CLIENTEDGE, IDC_RESULTS);
 	}
 	else
 	{
-		ctrlResults.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+		ctrlResults.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 		                   WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS // | LVS_EX_INFOTIP
 		                   , WS_EX_CLIENTEDGE, IDC_RESULTS);
 	}
 	ctrlResults.m_is_managed = true;
+	// m_tPane.SetClient(ctrlResults);
+
 #ifdef FLYLINKDC_USE_TREE_SEARCH
-	m_ctrlSearchFilterTree.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_TRANSFER_TREE);
+	m_ctrlSearchFilterTree.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_TRANSFER_TREE);
 	m_ctrlSearchFilterTree.SetBkColor(Colors::g_bgColor);
 	m_ctrlSearchFilterTree.SetTextColor(Colors::g_textColor);
 	WinUtil::SetWindowThemeExplorer(m_ctrlSearchFilterTree.m_hWnd);
@@ -369,7 +423,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		ctrlResults.SetImageList(images, LVSIL_SMALL);
 	}
 	
-	ctrlHubs.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+	ctrlHubs.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_NOCOLUMNHEADER, WS_EX_CLIENTEDGE, IDC_HUB);
 	SET_EXTENDENT_LIST_VIEW_STYLE_WITH_CHECK(ctrlHubs);
 	hubsContainer.SubclassWindow(ctrlHubs.m_hWnd);
@@ -389,32 +443,32 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	
 	insertIntofilter(ctrlGridFilters);
 #endif
-	ctrlFilter.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+	ctrlFilter.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                  ES_AUTOHSCROLL, WS_EX_CLIENTEDGE);
 	                  
 	ctrlFilterContainer.SubclassWindow(ctrlFilter.m_hWnd);
 	ctrlFilter.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
 	
-	ctrlFilterSel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL |
+	ctrlFilterSel.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL |
 	                     WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE);
 	                     
 	ctrlFilterSelContainer.SubclassWindow(ctrlFilterSel.m_hWnd);
 	ctrlFilterSel.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
 	
-	searchLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+	searchLabel.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	searchLabel.SetFont(Fonts::g_systemFont, FALSE);
 	searchLabel.SetWindowText(CTSTRING(SEARCH_FOR));
 	
-	sizeLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+	sizeLabel.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	sizeLabel.SetFont(Fonts::g_systemFont, FALSE);
 	sizeLabel.SetWindowText(CTSTRING(SIZE));
 	
-	typeLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+	typeLabel.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	typeLabel.SetFont(Fonts::g_systemFont, FALSE);
 	typeLabel.SetWindowText(CTSTRING(FILE_TYPE));
 	
-	srLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+	srLabel.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	srLabel.SetFont(Fonts::g_systemFont, FALSE);
 	srLabel.SetWindowText(CTSTRING(SEARCH_IN_RESULTS));
 	
@@ -424,28 +478,28 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	srLabelExcl.SetWindowText(CTSTRING(SEARCH_FILTER_LBL_EXCLUDE));
 #endif
 	
-	optionLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+	optionLabel.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	optionLabel.SetFont(Fonts::g_systemFont, FALSE);
 	optionLabel.SetWindowText(CTSTRING(SEARCH_OPTIONS));
 	if (!CompatibilityManager::isWine())
 	{
-		hubsLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+		hubsLabel.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 		hubsLabel.SetFont(Fonts::g_systemFont, FALSE);
 		hubsLabel.SetWindowText(CTSTRING(HUBS));
 	}
-	ctrlSlots.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_FREESLOTS);
+	ctrlSlots.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_FREESLOTS);
 	ctrlSlots.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	ctrlSlots.SetFont(Fonts::g_systemFont, FALSE);
 	ctrlSlots.SetWindowText(CTSTRING(ONLY_FREE_SLOTS));
 	//slotsContainer.SubclassWindow(ctrlSlots.m_hWnd);
 	
-	ctrlCollapsed.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
+	ctrlCollapsed.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
 	ctrlCollapsed.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	ctrlCollapsed.SetFont(Fonts::g_systemFont, FALSE);
 	ctrlCollapsed.SetWindowText(CTSTRING(EXPANDED_RESULTS));
 	//collapsedContainer.SubclassWindow(ctrlCollapsed.m_hWnd);
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-	m_ctrlStoreIP.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
+	m_ctrlStoreIP.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
 	m_ctrlStoreIP.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	m_storeIP = BOOLSETTING(ENABLE_LAST_IP_AND_MESSAGE_COUNTER);
 	m_ctrlStoreIP.SetCheck(m_storeIP);
@@ -453,7 +507,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	m_ctrlStoreIP.SetWindowText(CTSTRING(STORE_SEARCH_IP));
 	//storeIPContainer.SubclassWindow(m_ctrlStoreIP.m_hWnd);
 #endif
-	m_ctrlStoreSettings.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
+	m_ctrlStoreSettings.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
 	m_ctrlStoreSettings.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	if (BOOLSETTING(SAVE_SEARCH_SETTINGS))
 	{
@@ -471,7 +525,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 		m_onlyFree = true;
 	}
 	
-	m_ctrlUseGroupTreeSettings.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
+	m_ctrlUseGroupTreeSettings.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
 	m_ctrlUseGroupTreeSettings.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	if (BOOLSETTING(USE_SEARCH_GROUP_TREE_SETTINGS))
 	{
@@ -490,13 +544,13 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	m_tooltip.AddTool(ctrlShowUI, ResourceManager::SEARCH_SHOWHIDEPANEL);
 	
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-	m_ctrlFlyServer.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
+	m_ctrlFlyServer.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
 	m_ctrlFlyServer.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	m_ctrlFlyServer.SetCheck(BOOLSETTING(ENABLE_FLY_SERVER));
 	
 	//m_FlyServerContainer.SubclassWindow(m_ctrlFlyServer.m_hWnd);
 	
-	m_FlyServerGradientLabel.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
+	m_FlyServerGradientLabel.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
 	m_FlyServerGradientLabel.SetFont(Fonts::g_systemFont, FALSE);
 	m_FlyServerGradientLabel.SetWindowText(CTSTRING(ENABLE_FLY_SERVER));
 	m_FlyServerGradientLabel.SetHorizontalFill(TRUE);
@@ -511,20 +565,20 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 //  нопка очистки истории. [<-] InfinitySky.
-	ctrlPurge.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON |
+	ctrlPurge.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON |
 	                 BS_PUSHBUTTON, 0, IDC_PURGE);
 	ctrlPurge.SetIcon(g_purge_icon); // [+] InfinitySky. »конка на кнопке очистки истории.
 	//purgeContainer.SubclassWindow(ctrlPurge.m_hWnd);
 	m_tooltip.AddTool(ctrlPurge, ResourceManager::CLEAR_SEARCH_HISTORY);
 //  нопка паузы. [<-] InfinitySky.
-	ctrlPauseSearch.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+	ctrlPauseSearch.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                       BS_PUSHBUTTON, 0, IDC_SEARCH_PAUSE);
 	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE_SEARCH));
 	ctrlPauseSearch.SetFont(Fonts::g_systemFont);
 	ctrlPauseSearch.SetIcon(g_pause_icon); // [+] InfinitySky. »конка на кнопке паузы.
 	
 //  нопка поиска. [<-] InfinitySky.
-	ctrlDoSearch.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+	ctrlDoSearch.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                    BS_PUSHBUTTON, 0, IDC_SEARCH);
 	ctrlDoSearch.SetWindowText(CTSTRING(SEARCH));
 	ctrlDoSearch.SetFont(Fonts::g_systemFont);
@@ -721,7 +775,8 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 #ifdef FLYLINKDC_USE_TREE_SEARCH
 	m_RootTreeItem = nullptr;
 	m_RootVirusTreeItem = nullptr;
-	m_RootTopTorrentTreeItem = nullptr;
+	m_RootTorrentRSSTreeItem = nullptr;
+	m_24HTopTorrentTreeItem = nullptr;
 	m_CurrentTreeItem = nullptr;
 	m_OldTreeItem = nullptr;
 	clear_tree_filter_contaners();
@@ -1977,25 +2032,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 				tstring l_result;
 				if (m_sr.getType() == SearchResult::TYPE_FILE)
 				{
-					l_result = Text::toT(ShareManager::toRealPath(m_sr.getTTH()));
-					if (l_result.empty())
-					{
-						const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(m_sr.getTTH());
-						if (l_status_file & CFlylinkDBManager::PREVIOUSLY_DOWNLOADED)
-							l_result += TSTRING(I_DOWNLOADED_THIS_FILE); //[!]NightOrion(translate)
-						if (l_status_file & CFlylinkDBManager::VIRUS_FILE_KNOWN)
-						{
-							if (!l_result.empty())
-								l_result += _T(" + ");
-							l_result += TSTRING(VIRUS_FILE);
-						}
-						if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE)
-						{
-							if (!l_result.empty())
-								l_result += _T(" + ");
-							l_result += TSTRING(THIS_FILE_WAS_IN_MY_SHARE); //[!]NightOrion(translate)
-						}
-					}
+					l_result = ShareManager::calc_status_file(m_sr.getTTH());
 				}
 				return l_result;
 			}
@@ -2420,10 +2457,18 @@ LRESULT SearchFrame::onDoubleClickResults(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*
 		int i = -1;
 		while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 		{
-			if (const SearchInfo* si = ctrlResults.getItemData(i))
+			const SearchInfo* si = ctrlResults.getItemData(i);
+			if (si)
 			{
-				const string t = FavoriteManager::getDownloadDirectory(Util::getFileExt(si->m_sr.getFileName()));
-				(SearchInfo::Download(Text::toT(t), this, QueueItem::DEFAULT))(si);
+				if (si->m_is_torrent == false)
+				{
+					const string t = FavoriteManager::getDownloadDirectory(Util::getFileExt(si->m_sr.getFileName()));
+					(SearchInfo::Download(Text::toT(t), this, QueueItem::DEFAULT))(si);
+				}
+				else
+				{
+					DownloadManager::getInstance()->add_torrent_file(_T(""), Text::toT(si->m_sr.getTorrentMagnet()));
+				}
 			}
 		}
 		//ctrlResults.forEachSelectedT(SearchInfo::Download(Text::toT(SETTING(DOWNLOAD_DIRECTORY)), this, QueueItem::DEFAULT));
@@ -3091,9 +3136,9 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 #ifdef FLYLINKDC_USE_TREE_SEARCH
 		if (si->m_is_top_torrent)
 		{
-			if (!m_RootTopTorrentTreeItem)
+			if (!m_RootTorrentRSSTreeItem)
 			{
-				m_RootTopTorrentTreeItem = m_ctrlSearchFilterTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
+				m_RootTorrentRSSTreeItem = m_ctrlSearchFilterTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
 				                                                             _T("Torrent RSS"),
 				                                                             0, // nImage
 				                                                             0, // nSelectedImage
@@ -3106,22 +3151,18 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 			}
 			if (sr.m_group_name.empty())
 			{
-				HTREEITEM l_top_item = add_category("...in 24 hours", "Hits", si, sr, SearchResult::TYPE_TORRENT_MAGNET, m_RootTopTorrentTreeItem, true, true);
-				if (l_top_item)
-				{
-					// m_ctrlSearchFilterTree.SelectItem(l_top_item);
-				}
+				m_24HTopTorrentTreeItem = add_category("...in 24 hours", "Hits", si, sr, SearchResult::TYPE_TORRENT_MAGNET, m_RootTorrentRSSTreeItem, true, true);
 			}
 			else
 			{
-				add_category(sr.m_group_name, "Categories", si, sr, SearchResult::TYPE_TORRENT_MAGNET, m_RootTopTorrentTreeItem, true, true);
+				add_category(sr.m_group_name, "Categories", si, sr, SearchResult::TYPE_TORRENT_MAGNET, m_RootTorrentRSSTreeItem, true, true);
 			}
 			const auto l_marker = make_pair(si, ".torrent-magnet-top");
 			for (auto const &c : m_category_map)
 			{
 				m_filter_map[c.second].push_back(l_marker);
 			}
-			m_filter_map[m_RootTopTorrentTreeItem].push_back(l_marker);
+			m_filter_map[m_RootTorrentRSSTreeItem].push_back(l_marker);
 		}
 		else
 		{
@@ -4574,7 +4615,8 @@ void SearchFrame::clear_tree_filter_contaners()
 	m_OldTreeItem = nullptr;
 	m_RootTreeItem = nullptr;
 	m_RootVirusTreeItem = nullptr;
-	m_RootTopTorrentTreeItem = nullptr;
+	m_RootTorrentRSSTreeItem = nullptr;
+	m_24HTopTorrentTreeItem = nullptr;
 	m_is_expand_tree = false;
 	m_is_expand_sub_tree = false;
 	m_ctrlSearchFilterTree.DeleteAllItems();

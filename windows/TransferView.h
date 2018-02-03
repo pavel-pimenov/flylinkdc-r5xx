@@ -717,7 +717,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		OMenu segmentedMenu;
 		OMenu usercmdsMenu;
 		OMenu m_copyMenu;
-		//OMenu m_copyTorrentMenu;
+		OMenu m_copyTorrentMenu;
 		
 		StringMap ucLineParams;
 		bool m_is_need_resort;

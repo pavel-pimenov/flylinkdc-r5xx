@@ -454,7 +454,22 @@ CFlylinkDBManager::CFlylinkDBManager()
 				string l_full_path_level_db = Util::getConfigPath() + "tth-history.leveldb";
 				bool l_is_destroy = false;
 				m_TTHLevelDB.open_level_db(l_full_path_level_db, l_is_destroy);
-				g_TTHLevelDBSize = File::calcFilesSize(l_full_path_level_db, "\\*.*");
+//				g_TTHLevelDBSize = File::calcFilesSize(l_full_path_level_db, "\\*.*"); // TODO убрать сканирование второе
+				/*
+				#ifdef _DEBUG
+				                for (int h = 0; h < 100000; ++h)
+				                {
+				                    unsigned char aData[39];
+				                    *(int32_t*)aData = Util::rand();
+				                    for (int j = 0; j < 38; ++j)
+				                    {
+				                        aData[j+3] = j+h;
+				                    }
+				                    TTHValue l_tth(aData);
+				                    m_TTHLevelDB.set_value(l_tth, "x");
+				                }
+				#endif
+				*/
 #ifdef FLYLINKDC_USE_IPCACHE_LEVELDB
 				l_full_path_level_db = Util::getConfigPath() + "ip-history.leveldb";
 				m_IPCacheLevelDB.open_level_db(l_full_path_level_db);

@@ -460,14 +460,12 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		{
 			return g_file_cache_map.size();
 		}
+		static int g_RebuildIndexes;
+		static tstring calc_status_file(const TTHValue& p_tth);
 	private:
-		//[+]IRainman opt.
 		static bool g_isNeedsUpdateShareSize;
 		static int64_t g_CurrentShareSize;
 		static bool g_ignoreFileSizeHFS;
-		static int g_RebuildIndexes;
-		//[~]IRainman
-		
 		static BloomFilter<5> g_bloom;
 		
 		string findFileAndRealPath(const string& virtualFile, TTHValue& p_tth, bool p_is_fetch_tth) const;

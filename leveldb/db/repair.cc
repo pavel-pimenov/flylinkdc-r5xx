@@ -256,11 +256,11 @@ class Repairer {
   }
 
   void ScanTable(uint64_t number) {
-      TableInfo t;
+    TableInfo t;
     t.meta.number = number;
     std::string fname = TableFileName(dbname_, number);
     Status status = env_->GetFileSize(fname, &t.meta.file_size);
-      if (!status.ok()) {
+    if (!status.ok()) {
       // Try alternate file name.
       fname = SSTTableFileName(dbname_, number);
       Status s2 = env_->GetFileSize(fname, &t.meta.file_size);
@@ -275,37 +275,37 @@ class Repairer {
           (unsigned long long) t.meta.number,
           status.ToString().c_str());
       return;
-  }
+    }
 
     // Extract metadata by scanning through table.
     int counter = 0;
     Iterator* iter = NewTableIterator(t.meta);
-      bool empty = true;
-      ParsedInternalKey parsed;
+    bool empty = true;
+    ParsedInternalKey parsed;
     t.max_sequence = 0;
-      for (iter->SeekToFirst(); iter->Valid(); iter->Next()) {
-        Slice key = iter->key();
-        if (!ParseInternalKey(key, &parsed)) {
-          Log(options_.info_log, "Table #%llu: unparsable key %s",
+    for (iter->SeekToFirst(); iter->Valid(); iter->Next()) {
+      Slice key = iter->key();
+      if (!ParseInternalKey(key, &parsed)) {
+        Log(options_.info_log, "Table #%llu: unparsable key %s",
             (unsigned long long) t.meta.number,
-              EscapeString(key).c_str());
-          continue;
-        }
+            EscapeString(key).c_str());
+        continue;
+      }
 
-        counter++;
-        if (empty) {
-          empty = false;
+      counter++;
+      if (empty) {
+        empty = false;
         t.meta.smallest.DecodeFrom(key);
-        }
+      }
       t.meta.largest.DecodeFrom(key);
       if (parsed.sequence > t.max_sequence) {
         t.max_sequence = parsed.sequence;
-        }
       }
-      if (!iter->status().ok()) {
-        status = iter->status();
-      }
-      delete iter;
+    }
+    if (!iter->status().ok()) {
+      status = iter->status();
+    }
+    delete iter;
     Log(options_.info_log, "Table #%llu: %d entries %s",
         (unsigned long long) t.meta.number,
         counter,

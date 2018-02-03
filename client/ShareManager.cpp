@@ -289,6 +289,31 @@ bool ShareManager::isTTHShared(const TTHValue& tth)
 	}
 	return false;
 }
+tstring ShareManager::calc_status_file(const TTHValue& p_tth)
+{
+	tstring l_result;
+	if (!ShareManager::g_RebuildIndexes)
+		l_result = Text::toT(ShareManager::toRealPath(p_tth));
+	if (l_result.empty())
+	{
+		const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(p_tth);
+		if (l_status_file & CFlylinkDBManager::PREVIOUSLY_DOWNLOADED)
+			l_result += TSTRING(I_DOWNLOADED_THIS_FILE);
+		if (l_status_file & CFlylinkDBManager::VIRUS_FILE_KNOWN)
+		{
+			if (!l_result.empty())
+				l_result += _T(" + ");
+			l_result += TSTRING(VIRUS_FILE);
+		}
+		if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE)
+		{
+			if (!l_result.empty())
+				l_result += _T(" + ");
+			l_result += TSTRING(THIS_FILE_WAS_IN_MY_SHARE);
+		}
+	}
+	return l_result;
+}
 string ShareManager::toRealPath(const TTHValue& tth)
 {
 #ifdef FLYLINKDC_USE_RW_LOCK_SHARE

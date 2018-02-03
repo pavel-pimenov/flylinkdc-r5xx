@@ -5,10 +5,12 @@
 // project (http://code.google.com/p/leveldbwin/) lists the 'New BSD License'
 // as the license.
 #if defined(LEVELDB_PLATFORM_WINDOWS)
+
 #include <map>
 
-
 #include "leveldb/env.h"
+
+#include <windows.h>
 
 #include "port/port.h"
 #include "leveldb/slice.h"
@@ -47,7 +49,7 @@ namespace Win32
   TypeName(const TypeName&);               \
   void operator=(const TypeName&)
 
-// [!] IRainman fix.
+// [+]FlylinkDC++
 #ifndef _UNICODE
 std::string GetCurrentDir();
 #else
@@ -829,7 +831,8 @@ Status Win32Env::GetChildren(const std::string& dir, std::vector<std::string>* r
     path += "\\*.*";
 	std::wstring wpath;
 	ToWidePath(path, wpath);
-
+	m_count_files = 0;
+	m_size_files = 0;
 	::HANDLE hFind = ::FindFirstFileW(wpath.c_str() ,&wfd);
     if(hFind && hFind != INVALID_HANDLE_VALUE){
         BOOL hasNext = TRUE;
@@ -838,6 +841,8 @@ Status Win32Env::GetChildren(const std::string& dir, std::vector<std::string>* r
             ToNarrowPath(wfd.cFileName, child); 
             if(child != ".." && child != ".")  {
                 result->push_back(child);
+				//m_count_files++;
+				//m_size_files += (int64_t)wfd.nFileSizeLow | ((int64_t)wfd.nFileSizeHigh) << 32;
             }
             hasNext = ::FindNextFileW(hFind,&wfd);
         }

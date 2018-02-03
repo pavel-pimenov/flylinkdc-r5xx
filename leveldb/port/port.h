@@ -16,7 +16,7 @@
 #  include "port/port_chromium.h"
 #elif defined(LEVELDB_PLATFORM_WINDOWS)
 #  include "port/port_win.h"
-#  include "port/win/leveldb_stdint.h" // [+]FlylinkDC++
+//#  include "port/win/leveldb_stdint.h" // [+]FlylinkDC++
 #endif
 
 #endif  // STORAGE_LEVELDB_PORT_PORT_H_

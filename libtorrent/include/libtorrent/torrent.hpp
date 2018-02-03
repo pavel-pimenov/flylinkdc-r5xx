@@ -111,6 +111,8 @@ namespace libtorrent {
 	class bt_peer_connection;
 	struct listen_socket_t;
 
+	peer_id generate_peer_id(aux::session_settings const& sett);
+
 	enum class waste_reason
 	{
 		piece_timed_out, piece_cancelled, piece_unknown, piece_seed
@@ -297,8 +299,8 @@ namespace libtorrent {
 		// m_paused is also true.
 		bool m_graceful_pause_mode:1;
 
-		// state subscription. If set, a pointer to this torrent
-		// will be added to the m_state_updates set in session_impl
+		// state subscription. If set, a pointer to this torrent will be added
+		// to the session_impl::m_torrent_lists[torrent_state_updates]
 		// whenever this torrent's state changes (any state).
 		bool m_state_subscription:1;
 
@@ -387,7 +389,7 @@ namespace libtorrent {
 		// if we're connected to a peer at ep, return its peer connection
 		// only count BitTorrent peers
 		bt_peer_connection* find_peer(tcp::endpoint const& ep) const;
-		peer_connection* find_peer(sha1_hash const& pid);
+		peer_connection* find_peer(peer_id const& pid);
 
 		void on_resume_data_checked(status_t status, storage_error const& error);
 		void on_force_recheck(status_t status, storage_error const& error);
@@ -1443,6 +1445,12 @@ namespace libtorrent {
 		// connections (if we've reached the connection limit)
 		std::uint16_t m_num_connecting = 0;
 
+		// this is the peer id we generate when we add the torrent. Peers won't
+		// use this (they generate their own peer ids) but this is used in case
+		// the tracker returns peer IDs, to identify ourself in the peer list to
+		// avoid connecting back to it.
+		peer_id m_peer_id;
+
 		// ==============================
 		// The following members are specifically
 		// ordered to make the 24 bit members
@@ -1602,15 +1610,9 @@ namespace libtorrent {
 		// is optional and may be 0xffffff
 		std::uint32_t m_incomplete:24;
 
-
 		// true when the torrent should announce to
 		// the DHT
 		bool m_announce_to_dht:1;
-
-		// in state_updates list. When adding a torrent to the
-		// session_impl's m_state_update list, this bit is set
-		// to never add the same torrent twice
-		bool m_in_state_updates:1;
 
 		// these represent whether or not this torrent is counted
 		// in the total counters of active seeds and downloads

@@ -34,6 +34,7 @@
 #include "../FlyFeatures/CFlyServerDialogNavigator.h"
 #include "../jsoncpp/include/json/json.h"
 #endif
+#include "../client/ShareManager.h"
 
 #define SCALOLAZ_DIRLIST_ADDFAVUSER
 
@@ -1288,22 +1289,23 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			LastDir::appendItem(targetMenu, n);
 			
 			// !SMT!-UI
-			const auto existingFile = !ShareManager::toRealPath(ii->m_file->getTTH()).empty();
-			activatePreviewItems(fileMenu, existingFile);
-			if (existingFile)
+			if (!ShareManager::g_RebuildIndexes)
 			{
-				fileMenu.SetMenuDefaultItem(IDC_OPEN_FILE);
-				fileMenu.EnableMenuItem(IDC_OPEN_FILE, MF_BYCOMMAND | MFS_ENABLED);
-				fileMenu.EnableMenuItem(IDC_OPEN_FOLDER, MF_BYCOMMAND | MFS_ENABLED);
+				const auto existingFile = !ShareManager::toRealPath(ii->m_file->getTTH()).empty();
+				activatePreviewItems(fileMenu, existingFile);
+				if (existingFile)
+				{
+					fileMenu.SetMenuDefaultItem(IDC_OPEN_FILE);
+					fileMenu.EnableMenuItem(IDC_OPEN_FILE, MF_BYCOMMAND | MFS_ENABLED);
+					fileMenu.EnableMenuItem(IDC_OPEN_FOLDER, MF_BYCOMMAND | MFS_ENABLED);
+				}
+				else
+				{
+					fileMenu.SetMenuDefaultItem(IDC_DOWNLOAD);
+					fileMenu.EnableMenuItem(IDC_OPEN_FILE, MF_BYCOMMAND | MFS_DISABLED);
+					fileMenu.EnableMenuItem(IDC_OPEN_FOLDER, MF_BYCOMMAND | MFS_DISABLED);
+				}
 			}
-			else
-			{
-				fileMenu.SetMenuDefaultItem(IDC_DOWNLOAD);
-				fileMenu.EnableMenuItem(IDC_OPEN_FILE, MF_BYCOMMAND | MFS_DISABLED);
-				fileMenu.EnableMenuItem(IDC_OPEN_FOLDER, MF_BYCOMMAND | MFS_DISABLED);
-			}
-			
-			
 			if (ii->m_file->getAdls())
 			{
 				fileMenu.AppendMenu(MF_STRING, IDC_GO_TO_DIRECTORY, CTSTRING(GO_TO_DIRECTORY));
@@ -2143,11 +2145,13 @@ DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::File* f) : type(FILE
 	columns[COLUMN_EXACTSIZE] = Util::formatExactSize(f->getSize());
 	columns[COLUMN_SIZE] =  Util::formatBytesW(f->getSize());
 	columns[COLUMN_TTH] = Text::toT(f->getTTH().toBase32());
-	if (f->isSet(DirectoryListing::FLAG_SHARED_OWN)) // TODO убить FLAG_SHARED_OWN
-		columns[COLUMN_PATH] = Text::toT(Util::getFilePath(ShareManager::toRealPath(f->getTTH())));
-	else if (f->isSet(DirectoryListing::FLAG_SHARED) && f->getSize()) // [+] FlylinkDC++
-		columns[COLUMN_PATH] = Text::toT(ShareManager::toRealPath(f->getTTH())); // !PPA!
-		
+	if (!ShareManager::g_RebuildIndexes)
+	{
+		if (f->isSet(DirectoryListing::FLAG_SHARED_OWN)) // TODO убить FLAG_SHARED_OWN
+			columns[COLUMN_PATH] = Text::toT(Util::getFilePath(ShareManager::toRealPath(f->getTTH())));
+		else if (f->isSet(DirectoryListing::FLAG_SHARED) && f->getSize()) // [+] FlylinkDC++
+			columns[COLUMN_PATH] = Text::toT(ShareManager::toRealPath(f->getTTH())); // !PPA!
+	}
 	UpdatePathColumn(f);
 	
 	if (f->getHit())

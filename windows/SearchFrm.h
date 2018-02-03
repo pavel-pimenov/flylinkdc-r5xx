@@ -36,6 +36,8 @@
 #include "../FlyFeatures/GradientLabel.h"
 #include "../FlyFeatures/flyServer.h"
 
+//#include "wtlbuilder/Panel.h"
+
 //#ifdef _DEBUG
 #define FLYLINKDC_USE_TREE_SEARCH
 //#endif
@@ -352,7 +354,12 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		{
 			return ctrlResults;
 		}
-		
+		//CHorSplitterWindow m_hzSplit;
+		//CSplitterWindow m_vSplit;
+		//CPaneContainer m_lPane;
+		//CPaneContainer m_tPane;
+
+
 	private:
 #ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
 		/** time difference */
@@ -364,7 +371,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		void updatePrevTimeFilter()
 		{
 			_keypressPrevTime = clock();
-		};
+		}
 		
 		/**
 		 * delay after the last key press
@@ -680,7 +687,8 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CTreeViewCtrl           m_ctrlSearchFilterTree;
 		HTREEITEM   m_RootTreeItem;
 		HTREEITEM   m_RootVirusTreeItem;
-		HTREEITEM   m_RootTopTorrentTreeItem;
+		HTREEITEM   m_RootTorrentRSSTreeItem;
+		HTREEITEM   m_24HTopTorrentTreeItem;
 		int m_skull_index;
 		HTREEITEM   m_CurrentTreeItem;
 		HTREEITEM   m_OldTreeItem;

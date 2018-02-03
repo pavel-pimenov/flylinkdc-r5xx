@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2009-2016, Arvid Norberg
+Copyright (c) 2018, Arvid Norberg, Magnus Jonsson
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,54 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_SOCKET_TYPE_FWD_HPP
-#define TORRENT_SOCKET_TYPE_FWD_HPP
+#ifndef TORRENT_SET_SOCKET_BUFFER_HPP
+#define TORRENT_SET_SOCKET_BUFFER_HPP
+
+#include "libtorrent/aux_/session_settings.hpp"
+#include "libtorrent/error_code.hpp"
 
 namespace libtorrent {
+namespace aux {
 
-	struct socket_type;
-}
+	template <class Socket>
+	void set_socket_buffer_size(Socket& s, session_settings const& sett, error_code& ec)
+	{
+		int const snd_size = sett.get_int(settings_pack::send_socket_buffer_size);
+		if (snd_size)
+		{
+			typename Socket::send_buffer_size prev_option;
+			s.get_option(prev_option, ec);
+			if (!ec && prev_option.value() != snd_size)
+			{
+				typename Socket::send_buffer_size option(snd_size);
+				s.set_option(option, ec);
+				if (ec)
+				{
+					// restore previous value
+					s.set_option(prev_option, ec);
+					return;
+				}
+			}
+		}
+		int const recv_size = sett.get_int(settings_pack::recv_socket_buffer_size);
+		if (recv_size)
+		{
+			typename Socket::receive_buffer_size prev_option;
+			s.get_option(prev_option, ec);
+			if (!ec && prev_option.value() != recv_size)
+			{
+				typename Socket::receive_buffer_size option(recv_size);
+				s.set_option(option, ec);
+				if (ec)
+				{
+					// restore previous value
+					s.set_option(prev_option, ec);
+					return;
+				}
+			}
+		}
+	}
+
+}}
 
 #endif
-

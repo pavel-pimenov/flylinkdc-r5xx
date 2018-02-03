@@ -125,3 +125,4 @@ CustomLocations.ini
 XMLdocTemplate.xsl
 merge-vendors.bat
 flylinkdc-search-engine.lua
+*.i-????????

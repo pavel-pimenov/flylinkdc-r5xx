@@ -95,8 +95,8 @@ struct iovec {
 
 // MSVC does not have ssize_t by default; autoconf suggests defining as `int'.
 // Would be in config.h, but Chromium does not use automake/autoconf.
-#include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
+//#include <BaseTsd.h>
+//typedef SSIZE_T ssize_t;
 
 }  // namespace snappy
 

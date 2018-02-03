@@ -67,7 +67,7 @@ void TransferData::init(libtorrent::torrent_status const& s)
 	
 	if (m_is_pause && s.state == libtorrent::torrent_status::downloading_metadata)
 	{
-		m_status_string += TSTRING(PAUSED) + _T(" ");
+		m_status_string += TSTRING(PLEASE_WAIT);
 	}
 	if (s.state == libtorrent::torrent_status::downloading ||
 	        s.state == libtorrent::torrent_status::finished)

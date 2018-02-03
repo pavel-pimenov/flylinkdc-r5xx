@@ -1344,6 +1344,20 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 		CFlyServerJSON::pushError(75, l_error);
 	}
 }
+
+std::string DownloadManager::get_torrent_magnet(const libtorrent::sha1_hash& p_sha1)
+{
+	if (m_torrent_session)
+	{
+		const torrent_handle h = m_torrent_session->find_torrent(p_sha1);
+		if (h.is_valid())
+		{
+			const auto l_magnet = libtorrent::make_magnet_uri(h);
+			return l_magnet;
+		}
+	}
+	return "";
+}
 std::string DownloadManager::get_torrent_name(const libtorrent::sha1_hash& p_sha1)
 {
 	if (m_torrent_session)

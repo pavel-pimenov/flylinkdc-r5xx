@@ -1003,44 +1003,52 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 		int l_count_mirror = 0;
 		while (l_count_mirror < 2)
 		{
-		l_data.clear();
-        std::unordered_map<int, std::string > l_group_names;
-		if (l_http_downloader.getBinaryDataFromInet(p_search_url, l_data, 1000))
-		{
-			const std::string l_html_result((char*)l_data.data(), l_data.size());
-            const std::string l_group_result = p_lua_parser["search_group_id"](p_index, l_html_result.c_str());
-            if (!l_group_result.empty())
-            {
-                /*
-                {
-                "items":
-                [
-                "Зарубежные фильмы", "Наши фильмы", "Научно-популярные фильмы", "Сериалы ", "Телевизор", "Мультипликация ", "Аниме ", "Музыка", "Игры ", "Софт ", "Спорт и Здоровье", "Юмор", "Хозяйство и Быт", "Книги ", "Другое"
-                ]
-                }
-                */
-                Json::Value l_root;
-                Json::Reader l_reader(Json::Features::strictMode());
-                const bool l_parsingSuccessful = l_reader.parse(l_group_result, l_root);
-                if (!l_parsingSuccessful)
-                {
+			l_data.clear();
+			std::unordered_map<int, std::string > l_group_names;
+			const auto l_download_size = l_http_downloader.getBinaryDataFromInet(p_search_url, l_data, 1000);
+			std::string l_html_result;
+			if (l_download_size)
+			{
+				l_html_result = std::string((char*)l_data.data(), l_data.size());
+				const std::string l_group_result = p_lua_parser["search_group_id"](p_index, l_html_result.c_str());
+				if (!l_group_result.empty())
+				{
+				/*
+				{
+				"items":
+				[
+				"Зарубежные фильмы", "Наши фильмы", "Научно-популярные фильмы", "Сериалы ", "Телевизор", "Мультипликация ", "Аниме ", "Музыка", "Игры ", "Софт ", "Спорт и Здоровье", "Юмор", "Хозяйство и Быт", "Книги ", "Другое"
+				]
+				}
+				*/
+				Json::Value l_root;
+				Json::Reader l_reader(Json::Features::strictMode());
+				const bool l_parsingSuccessful = l_reader.parse(l_group_result, l_root);
+				if (!l_parsingSuccessful)
+				{
 #ifdef _DEBUG
-                    LogManager::message("Error - l_group_result = " + l_group_result);
+					LogManager::message("Error - l_group_result = " + l_group_result);
 #endif
-                    dcassert(0);
-                }
-                else
-                {
-                    const Json::Value& l_arrays = l_root["items"];
-                    const Json::Value::ArrayIndex l_count = l_arrays.size();
-                    for (Json::Value::ArrayIndex i = 0; i < l_count; ++i)
-                    {
-                        const auto l_group_name = l_arrays[i].asString();
-                        l_group_names[i+1] = l_group_name;
-                    }
-                }
-            }
-            const std::string l_magnet_result = p_lua_parser["search"](p_index, l_html_result.c_str());
+					dcassert(0);
+				}
+				else
+					{
+					const Json::Value& l_arrays = l_root["items"];
+					const Json::Value::ArrayIndex l_count = l_arrays.size();
+					for (Json::Value::ArrayIndex i = 0; i < l_count; ++i)
+						{
+							const auto l_group_name = l_arrays[i].asString();
+							l_group_names[i + 1] = l_group_name;
+						}
+					}
+				}
+			}
+			std::string l_magnet_result;
+			if (!l_html_result.empty())
+			{
+				std::string l_magnet_result_temp = p_lua_parser["search"](p_index, l_html_result.c_str());
+				l_magnet_result = l_magnet_result_temp;
+			}
 			if (l_magnet_result.empty())
 			{
 				if (p_num_page == 0)
@@ -1048,16 +1056,16 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 					if (l_count_mirror == 1)
 					{
 						dcassert(0);
-						CFlyServerJSON::pushError(85, "[lua-check_error][mirrot]:" + l_html_result);
+						CFlyServerJSON::pushError(85, "[lua-check_error][mirror]:" + l_html_result);
 					}
 					const std::string l_url_mirror = p_lua_parser["check_error"](p_index, l_html_result.c_str());
 					if (!l_url_mirror.empty())
 					{
-						auto i = p_search_url.find("//");
+						const auto i = p_search_url.find("://");
 						dcassert(i != string::npos);
 						if (i != string::npos)
 						{
-							auto j = p_search_url.find("/", i+2);
+							auto j = p_search_url.find("/", i+3);
 							dcassert(j != string::npos);
 							if (j != string::npos)
 							{
@@ -1073,12 +1081,12 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 						CFlyServerJSON::pushError(84, "[lua-check_error]:" + l_html_result);
 					}
 				}
-				return false; // кончились странички
+				return false; // Кончились странички поиска
 			}
 #ifdef _DEBUG
 			LogManager::message("l_magnet_result = " + l_magnet_result);
 #endif
-			l_count_mirror = 2;
+			l_count_mirror = 2; // TODO - забирать число зеркал из lua
 			try
 			{
 				Json::Value l_root;
@@ -1163,14 +1171,6 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 				CFlyServerJSON::pushError(77, l_error);
 				return false;
 			}
-		}
-		else
-		{
-			dcassert(0);
-			const string l_error = p_error_base + "-4 getBinaryDataFromInet error l_search_url = " + p_search_url;
-			CFlyServerJSON::pushError(79, l_error);
-			return false;
-		}
 	}
 	}
 	catch (const Exception &e)
@@ -1197,7 +1197,9 @@ bool CFlyServerConfig::torrentGetTop(HWND p_wnd, int p_message)
 		{
 			return false;
 		}
-		CFlyLog l_log("[Torrent TOP]");
+#ifdef _DEBUG
+		CFlyLog l_log("[Torrent RSS]");
+#endif
 		sel::State l_lua_parser(true);
 		l_lua_parser.Load(g_lua_source_search_engine, false, "flylinkdc-search-engine");
 		std::string l_trackers = l_lua_parser["get_trackers"]();
@@ -1230,7 +1232,9 @@ bool CFlyServerConfig::torrentGetTop(HWND p_wnd, int p_message)
 				const string l_root_torrent_url_top = l_cur_item_in["url_top"].asString();
 				if (l_root_torrent_url_top.empty())
 					continue;
-				l_log.log("Load top-magnets = " + l_root_torrent_url_top);
+#ifdef _DEBUG
+				l_log.log("Load torrent RSS" + l_root_torrent_url_top);
+#endif
 				if (l_page_limit_local == 0)
 					l_page_limit_local = l_page_limit_global;
 				if (l_local_agent.empty())
@@ -1331,12 +1335,11 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring 
 						{
 							break;
 						}
-
 					} // for
 				}
 			}
-			}
-		}	
+		}
+	}	
 	catch (std::runtime_error& e)
 	{
 		dcassert(0);

@@ -78,6 +78,7 @@ void File::init(const tstring& aFileName, int access, int mode, bool isAbsoluteP
 		{
 			int a;
 			a++;
+			dcassert(0);
 		}
 		std::ofstream l_fs;
 		l_fs.open(_T("flylinkdc-file-error.log"), std::ifstream::out | std::ifstream::app);

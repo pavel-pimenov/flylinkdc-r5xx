@@ -2908,48 +2908,9 @@ Value::Value(bool value) {
   value_.bool_ = value;
 }
 
-Value::Value(Value const& other)
-    : type_(other.type_), allocated_(false)
-      ,
-      comments_(0), start_(other.start_), limit_(other.limit_)
-{
-  switch (type_) {
-  case nullValue:
-  case intValue:
-  case uintValue:
-  case realValue:
-  case booleanValue:
-    value_ = other.value_;
-    break;
-  case stringValue:
-    if (other.value_.string_ && other.allocated_) {
-      unsigned len;
-      char const* str;
-      decodePrefixedString(other.allocated_, other.value_.string_,
-          &len, &str);
-      value_.string_ = duplicateAndPrefixStringValue(str, len);
-      allocated_ = true;
-    } else {
-      value_.string_ = other.value_.string_;
-      allocated_ = false;
-    }
-    break;
-  case arrayValue:
-  case objectValue:
-    value_.map_ = new ObjectValues(*other.value_.map_);
-    break;
-  default:
-    JSON_ASSERT_UNREACHABLE;
-  }
-  if (other.comments_) {
-    comments_ = new CommentInfo[numberOfCommentPlacement];
-    for (int comment = 0; comment < numberOfCommentPlacement; ++comment) {
-      const CommentInfo& otherComment = other.comments_[comment];
-      if (otherComment.comment_)
-        comments_[comment].setComment(
-            otherComment.comment_, strlen(otherComment.comment_));
-    }
-  }
+Value::Value(const Value& other) {
+  dupPayload(other);
+  dupMeta(other);
 }
 
 #if JSON_HAS_RVALUE_REFERENCES
@@ -2961,24 +2922,7 @@ Value::Value(Value&& other) {
 #endif
 
 Value::~Value() {
-  switch (type_) {
-  case nullValue:
-  case intValue:
-  case uintValue:
-  case realValue:
-  case booleanValue:
-    break;
-  case stringValue:
-    if (allocated_)
-      releasePrefixedStringValue(value_.string_);
-    break;
-  case arrayValue:
-  case objectValue:
-    delete value_.map_;
-    break;
-  default:
-    JSON_ASSERT_UNREACHABLE;
-  }
+  releasePayload();
 
   delete[] comments_;
 
@@ -3001,9 +2945,8 @@ void Value::swapPayload(Value& other) {
 }
 
 void Value::copyPayload(const Value& other) {
-  type_ = other.type_;
-  value_ = other.value_;
-  allocated_ = other.allocated_;
+  releasePayload();
+  dupPayload(other);
 }
 
 void Value::swap(Value& other) {
@@ -3015,9 +2958,8 @@ void Value::swap(Value& other) {
 
 void Value::copy(const Value& other) {
   copyPayload(other);
-  comments_ = other.comments_;
-  start_ = other.start_;
-  limit_ = other.limit_;
+  delete[] comments_;
+  dupMeta(other);
 }
 
 ValueType Value::type() const { return type_; }
@@ -3516,6 +3458,75 @@ void Value::initBasic(ValueType vtype, bool allocated) {
   limit_ = 0;
 }
 
+void Value::dupPayload(const Value& other) {
+  type_ = other.type_;
+  allocated_ = false;
+  switch (type_) {
+  case nullValue:
+  case intValue:
+  case uintValue:
+  case realValue:
+  case booleanValue:
+    value_ = other.value_;
+    break;
+  case stringValue:
+    if (other.value_.string_ && other.allocated_) {
+      unsigned len;
+      char const* str;
+      decodePrefixedString(other.allocated_, other.value_.string_,
+          &len, &str);
+      value_.string_ = duplicateAndPrefixStringValue(str, len);
+      allocated_ = true;
+    } else {
+      value_.string_ = other.value_.string_;
+    }
+    break;
+  case arrayValue:
+  case objectValue:
+    value_.map_ = new ObjectValues(*other.value_.map_);
+    break;
+  default:
+    JSON_ASSERT_UNREACHABLE;
+  }
+}
+
+void Value::releasePayload() {
+  switch (type_) {
+  case nullValue:
+  case intValue:
+  case uintValue:
+  case realValue:
+  case booleanValue:
+    break;
+  case stringValue:
+    if (allocated_)
+      releasePrefixedStringValue(value_.string_);
+    break;
+  case arrayValue:
+  case objectValue:
+    delete value_.map_;
+    break;
+  default:
+    JSON_ASSERT_UNREACHABLE;
+  }
+}
+
+void Value::dupMeta(const Value& other) {
+  if (other.comments_) {
+    comments_ = new CommentInfo[numberOfCommentPlacement];
+    for (int comment = 0; comment < numberOfCommentPlacement; ++comment) {
+      const CommentInfo& otherComment = other.comments_[comment];
+      if (otherComment.comment_)
+        comments_[comment].setComment(
+            otherComment.comment_, strlen(otherComment.comment_));
+    }
+  } else {
+    comments_ = 0;
+  }
+  start_ = other.start_;
+  limit_ = other.limit_;
+}
+
 // Access an object value by name, create a null member if it does not exist.
 // @pre Type of '*this' is object or null.
 // @param key is null-terminated.
@@ -3918,9 +3929,17 @@ ptrdiff_t Value::getOffsetStart() const { return start_; }
 
 ptrdiff_t Value::getOffsetLimit() const { return limit_; }
 
-JSONCPP_STRING Value::toStyledString(bool p_use_end_line /* = true */) const { // [+]FlylinkDC++
-  StyledWriter writer(p_use_end_line); // [+]FlylinkDC++
-  return writer.write(*this);
+JSONCPP_STRING Value::toStyledString(bool p_use_end_line /* = true */) const {  // [+]FlylinkDC++
+  StreamWriterBuilder builder;
+
+  JSONCPP_STRING out = this->hasComment(commentBefore) ? "\n" : "";
+  out += Json::writeString(builder, *this);
+  if(p_use_end_line)
+    out += '\n';
+  else
+    out += ' ';
+
+  return out;
 }
 
 Value::const_iterator Value::begin() const {
@@ -4303,9 +4322,9 @@ static bool isAnyCharRequiredQuoting(char const* s, size_t n) {
     if (*cur == '\\' || *cur == '\"' || *cur < ' '
       || static_cast<unsigned char>(*cur) < 0x80)
       return true;
-    }
-  return false;
   }
+  return false;
+}
 
 static unsigned int utf8ToCodepoint(const char*& s, const char* e) {
   const unsigned int REPLACEMENT_CHARACTER = 0xFFFD;
@@ -4324,7 +4343,7 @@ static unsigned int utf8ToCodepoint(const char*& s, const char* e) {
     s += 1;
     // oversized encoded characters are invalid
     return calculated < 0x80 ? REPLACEMENT_CHARACTER : calculated;
-}
+  }
 
   if (firstByte < 0xF0) {
     if (e - s < 3)
@@ -4336,11 +4355,11 @@ static unsigned int utf8ToCodepoint(const char*& s, const char* e) {
     s += 2;
     // surrogates aren't valid codepoints itself
     // shouldn't be UTF-8 encoded
-    if (calculated >= 0xD800 && calculated >= 0xDFFF)
+    if (calculated >= 0xD800 && calculated <= 0xDFFF)
       return REPLACEMENT_CHARACTER;
     // oversized encoded characters are invalid
     return calculated < 0x800 ? REPLACEMENT_CHARACTER : calculated;
-      }
+  }
 
   if (firstByte < 0xF8) {
     if (e - s < 4)
@@ -4353,10 +4372,10 @@ static unsigned int utf8ToCodepoint(const char*& s, const char* e) {
     s += 3;
     // oversized encoded characters are invalid
     return calculated < 0x10000 ? REPLACEMENT_CHARACTER : calculated;
-    }
+  }
 
   return REPLACEMENT_CHARACTER;
-  }
+}
 
 static const char hex2[] =
   "000102030405060708090a0b0c0d0e0f"
@@ -4711,14 +4730,11 @@ void StyledWriter::writeWithIndent(const JSONCPP_STRING& value) {
   document_ += value;
 }
 
-void StyledWriter::indent() { if (indentSize_) { indentString_ += JSONCPP_STRING(indentSize_, ' '); }  }
+void StyledWriter::indent() { indentString_ += JSONCPP_STRING(indentSize_, ' '); }
 
 void StyledWriter::unindent() {
-    if (indentSize_)
-    {
-        assert(indentString_.size() >= indentSize_);
-        indentString_.resize(indentString_.size() - indentSize_);
-    }
+  assert(indentString_.size() >= indentSize_);
+  indentString_.resize(indentString_.size() - indentSize_);
 }
 
 void StyledWriter::writeCommentBeforeValue(const Value& root) {

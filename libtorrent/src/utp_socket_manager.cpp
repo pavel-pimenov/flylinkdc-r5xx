@@ -163,7 +163,7 @@ namespace libtorrent {
 
 		if (p.size() < sizeof(utp_header)) return false;
 
-		utp_header const* ph = reinterpret_cast<utp_header const*>(p.data());
+		auto const* ph = reinterpret_cast<utp_header const*>(p.data());
 
 //		UTP_LOGV("incoming packet version:%d\n", int(ph->get_version()));
 
@@ -209,7 +209,7 @@ namespace libtorrent {
 
 //			UTP_LOGV("not found, new connection id:%d\n", m_new_connection);
 
-			std::shared_ptr<socket_type> c(new (std::nothrow) socket_type(m_ios));
+			std::shared_ptr<aux::socket_type> c(new (std::nothrow) aux::socket_type(m_ios));
 			if (!c) return false;
 
 			TORRENT_ASSERT(m_new_connection == -1);
@@ -231,7 +231,7 @@ namespace libtorrent {
 			int link_mtu, utp_mtu;
 			mtu_for_dest(ep.address(), link_mtu, utp_mtu);
 			utp_init_mtu(str->get_impl(), link_mtu, utp_mtu);
-			utp_init_socket(str->get_impl(), socket);
+			utp_init_socket(str->get_impl(), std::move(socket));
 			bool ret = utp_incoming_packet(str->get_impl(), p, ep, receive_time);
 			if (!ret) return false;
 			m_cb(c);

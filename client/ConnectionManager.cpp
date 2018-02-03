@@ -302,7 +302,7 @@ void ConnectionManager::putCQI_L(ConnectionQueueItemPtr& cqi)
 		DETECTION_DEBUG("[ConnectionManager][putCQI][upload] " + cqi->getHintedUser().to_string());
 	}
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-	cqi->getUser()->flushRatio();
+	// Вешаемся при активной закачке cqi->getUser()->flushRatio();
 #endif
 	QueueManager::g_userQueue.removeRunning(cqi->getUser());
 	const string l_token = cqi->getConnectionQueueToken();
@@ -386,10 +386,10 @@ void ConnectionManager::addOnUserUpdated(const UserPtr& aUser)
 			}
 #endif
 		}
-		if (l_size > 20)
-		{
-			flushOnUserUpdated();
-		}
+		//if (l_size > 20)
+		//{
+		//  flushOnUserUpdated();
+		//}
 	}
 	catch (const std::bad_alloc&)
 	{

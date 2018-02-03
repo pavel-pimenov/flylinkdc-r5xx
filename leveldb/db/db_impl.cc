@@ -305,59 +305,59 @@ Status DBImpl::Recover(VersionEdit* edit, bool *save_manifest) {
   if (!s.ok()) {
     return s;
   }
-    SequenceNumber max_sequence(0);
+  SequenceNumber max_sequence(0);
 
-    // Recover from all newer log files than the ones named in the
-    // descriptor (new log files may have been added by the previous
-    // incarnation without registering them in the descriptor).
-    //
-    // Note that PrevLogNumber() is no longer used, but we pay
-    // attention to it in case we are recovering a database
-    // produced by an older version of leveldb.
-    const uint64_t min_log = versions_->LogNumber();
-    const uint64_t prev_log = versions_->PrevLogNumber();
-    std::vector<std::string> filenames;
-    s = env_->GetChildren(dbname_, &filenames);
-    if (!s.ok()) {
-      return s;
+  // Recover from all newer log files than the ones named in the
+  // descriptor (new log files may have been added by the previous
+  // incarnation without registering them in the descriptor).
+  //
+  // Note that PrevLogNumber() is no longer used, but we pay
+  // attention to it in case we are recovering a database
+  // produced by an older version of leveldb.
+  const uint64_t min_log = versions_->LogNumber();
+  const uint64_t prev_log = versions_->PrevLogNumber();
+  std::vector<std::string> filenames;
+  s = env_->GetChildren(dbname_, &filenames);
+  if (!s.ok()) {
+    return s;
+  }
+  std::set<uint64_t> expected;
+  versions_->AddLiveFiles(&expected);
+  uint64_t number;
+  FileType type;
+  std::vector<uint64_t> logs;
+  for (size_t i = 0; i < filenames.size(); i++) {
+    if (ParseFileName(filenames[i], &number, &type)) {
+      expected.erase(number);
+      if (type == kLogFile && ((number >= min_log) || (number == prev_log)))
+        logs.push_back(number);
     }
-    std::set<uint64_t> expected;
-    versions_->AddLiveFiles(&expected);
-    uint64_t number;
-    FileType type;
-    std::vector<uint64_t> logs;
-    for (size_t i = 0; i < filenames.size(); i++) {
-      if (ParseFileName(filenames[i], &number, &type)) {
-        expected.erase(number);
-        if (type == kLogFile && ((number >= min_log) || (number == prev_log)))
-          logs.push_back(number);
-      }
-    }
-    if (!expected.empty()) {
-      char buf[50];
-      _snprintf(buf, sizeof(buf), "%d missing files; e.g.",
-               static_cast<int>(expected.size()));
-      return Status::Corruption(buf, TableFileName(dbname_, *(expected.begin())));
-    }
+  }
+  if (!expected.empty()) {
+    char buf[50];
+    snprintf(buf, sizeof(buf), "%d missing files; e.g.",
+             static_cast<int>(expected.size()));
+    return Status::Corruption(buf, TableFileName(dbname_, *(expected.begin())));
+  }
 
-    // Recover in the order in which the logs were generated
-    std::sort(logs.begin(), logs.end());
-    for (size_t i = 0; i < logs.size(); i++) {
+  // Recover in the order in which the logs were generated
+  std::sort(logs.begin(), logs.end());
+  for (size_t i = 0; i < logs.size(); i++) {
     s = RecoverLogFile(logs[i], (i == logs.size() - 1), save_manifest, edit,
                        &max_sequence);
     if (!s.ok()) {
       return s;
     }
 
-      // The previous incarnation may not have written any MANIFEST
-      // records after allocating this log number.  So we manually
-      // update the file number allocation counter in VersionSet.
-      versions_->MarkFileNumberUsed(logs[i]);
-    }
+    // The previous incarnation may not have written any MANIFEST
+    // records after allocating this log number.  So we manually
+    // update the file number allocation counter in VersionSet.
+    versions_->MarkFileNumberUsed(logs[i]);
+  }
 
-      if (versions_->LastSequence() < max_sequence) {
-        versions_->SetLastSequence(max_sequence);
-      }
+  if (versions_->LastSequence() < max_sequence) {
+    versions_->SetLastSequence(max_sequence);
+  }
 
   return Status::OK();
 }
@@ -464,7 +464,7 @@ Status DBImpl::RecoverLogFile(uint64_t log_number, bool last_log,
       logfile_number_ = log_number;
       if (mem != NULL) {
         mem_ = mem;
-      mem = NULL;
+        mem = NULL;
       } else {
         // mem can be NULL if lognum exists but was empty.
         mem_ = new MemTable(internal_comparator_);
@@ -477,7 +477,7 @@ Status DBImpl::RecoverLogFile(uint64_t log_number, bool last_log,
     // mem did not get reused; compact it.
     if (status.ok()) {
       *save_manifest = true;
-    status = WriteLevel0Table(mem, edit, NULL);
+      status = WriteLevel0Table(mem, edit, NULL);
     }
     mem->Unref();
   }
@@ -606,8 +606,8 @@ void DBImpl::TEST_CompactRange(int level, const Slice* begin,const Slice* end) {
   MutexLock l(&mutex_);
   while (!manual.done && !shutting_down_.Acquire_Load() && bg_error_.ok()) {
     if (manual_compaction_ == NULL) {  // Idle
-    manual_compaction_ = &manual;
-    MaybeScheduleCompaction();
+      manual_compaction_ = &manual;
+      MaybeScheduleCompaction();
     } else {  // Running either my compaction or another compaction.
       bg_cv_.Wait();
     }
@@ -671,7 +671,7 @@ void DBImpl::BackgroundCall() {
     // No more background work when shutting down.
   } else if (!bg_error_.ok()) {
     // No more background work after a background error.
-    } else {
+  } else {
     BackgroundCompaction();
   }
 
@@ -1515,12 +1515,12 @@ Status DB::Open(const Options& options, const std::string& dbname,
   if (s.ok() && save_manifest) {
     edit.SetPrevLogNumber(0);  // No older logs needed after recovery.
     edit.SetLogNumber(impl->logfile_number_);
-      s = impl->versions_->LogAndApply(&edit, &impl->mutex_);
-    }
-    if (s.ok()) {
-      impl->DeleteObsoleteFiles();
-      impl->MaybeScheduleCompaction();
-    }
+    s = impl->versions_->LogAndApply(&edit, &impl->mutex_);
+  }
+  if (s.ok()) {
+    impl->DeleteObsoleteFiles();
+    impl->MaybeScheduleCompaction();
+  }
   impl->mutex_.Unlock();
   if (s.ok()) {
     assert(impl->mem_ != NULL);
@@ -1537,15 +1537,15 @@ Snapshot::~Snapshot() {
 Status DestroyDB(const std::string& dbname, const Options& options) {
   Env* env = options.env;
   std::vector<std::string> filenames;
-  // Ignore error in case directory does not exist
-  env->GetChildren(dbname, &filenames);
-  if (filenames.empty()) {
+  Status result = env->GetChildren(dbname, &filenames);
+  if (!result.ok()) {
+    // Ignore error in case directory does not exist
     return Status::OK();
   }
 
   FileLock* lock;
   const std::string lockname = LockFileName(dbname);
-  Status result = env->LockFile(lockname, &lock);
+  result = env->LockFile(lockname, &lock);
   if (result.ok()) {
     uint64_t number;
     FileType type;

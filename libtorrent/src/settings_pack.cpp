@@ -125,7 +125,7 @@ constexpr int CLOSE_FILE_INTERVAL = 0;
 		SET(proxy_username, "", &session_impl::update_proxy),
 		SET(proxy_password, "", &session_impl::update_proxy),
 		SET(i2p_hostname, "", &session_impl::update_i2p_bridge),
-		SET(peer_fingerprint, "-LT1200-", &session_impl::update_peer_fingerprint),
+		SET(peer_fingerprint, "-LT1200-", nullptr),
 		SET(dht_bootstrap_nodes, "dht.libtorrent.org:25401", &session_impl::update_dht_bootstrap_nodes)
 	}});
 
@@ -200,13 +200,14 @@ constexpr int CLOSE_FILE_INTERVAL = 0;
 		SET(auto_sequential, true, &session_impl::update_auto_sequential),
 		SET(proxy_tracker_connections, true, nullptr),
 		SET(enable_ip_notifier, true, &session_impl::update_ip_notifier),
+		SET(incoming_socks5_connections, false, &session_impl::update_incoming_socks5),
 	}});
 
 	aux::array<int_setting_entry_t, settings_pack::num_int_settings> const int_settings
 	({{
 		SET(tracker_completion_timeout, 30, nullptr),
 		SET(tracker_receive_timeout, 10, nullptr),
-		SET(stop_tracker_timeout, 5, nullptr),
+		SET(stop_tracker_timeout, 3, nullptr),
 		SET(tracker_maximum_response_length, 1024*1024, nullptr),
 		SET(piece_timeout, 20, nullptr),
 		SET(request_timeout, 60, nullptr),

@@ -14,7 +14,13 @@
 #include "util/mutexlock.h"
 #include "util/random.h"
 
+
 namespace leveldb {
+
+#ifdef _WIN32
+#define	ssize_t ptrdiff_t // FlylinkDC++
+#endif
+
 
 #if 0
 static void DumpInternalIter(Iterator* iter) {

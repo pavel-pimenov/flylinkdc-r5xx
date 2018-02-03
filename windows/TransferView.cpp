@@ -263,8 +263,9 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	m_copyMenu.AppendMenu(MF_STRING, IDC_COPY_LINK, CTSTRING(COPY_MAGNET_LINK));
 	m_copyMenu.AppendMenu(MF_STRING, IDC_COPY_WMLINK, CTSTRING(COPY_MLINK_TEMPL));
 	
-	//m_copyTorrentMenu.CreatePopupMenu();
-	
+	m_copyTorrentMenu.CreatePopupMenu();
+	m_copyTorrentMenu.AppendMenu(MF_STRING, IDC_COPY_LINK, CTSTRING(COPY_MAGNET_LINK));
+
 	usercmdsMenu.CreatePopupMenu();
 	
 	segmentedMenu.CreatePopupMenu();
@@ -559,7 +560,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 			else
 			{
 				// Менюшка от торрента
-				transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)m_copyMenu, CTSTRING(COPY)); // TODO m_copyTorrentMenu
+				transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)m_copyTorrentMenu, CTSTRING(COPY));
 				transferMenu.AppendMenu(MF_STRING, IDC_PAUSE_TORRENT, CTSTRING(PAUSE_TORRENT));
 				transferMenu.AppendMenu(MF_STRING, IDC_RESUME_TORRENT, CTSTRING(RESUME));
 				transferMenu.AppendMenu(MF_STRING, IDC_REMOVE_TORRENT, CTSTRING(REMOVE_TORRENT));
@@ -2796,6 +2797,14 @@ LRESULT TransferView::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
 		TTHValue l_tth;
 		if (l_ii)
 		{
+			if (l_ii->m_is_torrent)
+			{
+				if (wID == IDC_COPY_LINK)
+				{
+					l_data = Text::toT(DownloadManager::getInstance()->get_torrent_magnet(l_ii->m_sha1));
+				}
+			}
+			else
 			if (getTTH(l_ii, l_tth))
 			{
 				tstring l_sdata;

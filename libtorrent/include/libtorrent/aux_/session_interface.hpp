@@ -34,7 +34,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_SESSION_INTERFACE_HPP_INCLUDED
 
 #include "libtorrent/config.hpp"
-#include "libtorrent/peer_id.hpp"
 #include "libtorrent/address.hpp"
 #include "libtorrent/io_service.hpp"
 #include "libtorrent/time.hpp"
@@ -79,7 +78,6 @@ namespace libtorrent {
 	struct tracker_request;
 	struct request_callback;
 	struct utp_socket_manager;
-	struct socket_type;
 	struct block_info;
 	struct external_ip;
 	struct torrent_handle;
@@ -105,10 +103,12 @@ namespace dht {
 #endif
 }
 
-namespace libtorrent { namespace aux {
+namespace libtorrent {
+namespace aux {
 
 	struct proxy_settings;
 	struct session_settings;
+	struct socket_type;
 
 	struct ip_source_tag;
 	using ip_source_t = flags::bitfield_flag<std::uint8_t, ip_source_tag>;
@@ -202,8 +202,6 @@ namespace libtorrent { namespace aux {
 		virtual void set_queue_position(torrent* t, queue_position_t p) = 0;
 		virtual int num_torrents() const = 0;
 
-		virtual peer_id const& get_peer_id() const = 0;
-
 		virtual void close_connection(peer_connection* p) noexcept = 0;
 		virtual int num_connections() const = 0;
 
@@ -294,7 +292,6 @@ namespace libtorrent { namespace aux {
 		virtual void announce_lsd(sha1_hash const& ih, int port, bool broadcast = false) = 0;
 		virtual libtorrent::utp_socket_manager* utp_socket_manager() = 0;
 		virtual void inc_boost_connections() = 0;
-		virtual void setup_socket_buffers(socket_type& s) = 0;
 		virtual std::vector<block_info>& block_info_storage() = 0;
 
 #ifdef TORRENT_USE_OPENSSL

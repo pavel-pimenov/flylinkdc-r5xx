@@ -72,6 +72,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		int listen_torrent_port();
 		void fire_added_torrent(const libtorrent::sha1_hash& p_sha1);
 		std::string get_torrent_name(const libtorrent::sha1_hash& p_sha1);
+		std::string get_torrent_magnet(const libtorrent::sha1_hash& p_sha1);
 #endif
 		
 	public:

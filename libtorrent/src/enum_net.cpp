@@ -34,7 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/enum_net.hpp"
 #include "libtorrent/broadcast_socket.hpp"
 #include "libtorrent/assert.hpp"
-#include "libtorrent/socket_type.hpp"
+#include "libtorrent/aux_/socket_type.hpp"
 #ifdef TORRENT_WINDOWS
 #include "libtorrent/aux_/win_util.hpp"
 #endif
@@ -56,8 +56,17 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #if TORRENT_USE_SYSCTL
 #include <sys/sysctl.h>
+#ifdef __APPLE__
+#include "TargetConditionals.h"
+#endif
+
+#if defined TARGET_IPHONE_SIMULATOR || defined TARGET_OS_IPHONE
+// net/route.h is not included in the iphone sdk.
+#include "libtorrent/aux_/route.h"
+#else
 #include <net/route.h>
 #endif
+#endif // TORRENT_USE_SYSCTL
 
 #if TORRENT_USE_GETIPFORWARDTABLE || TORRENT_USE_GETADAPTERSADDRESSES
 #ifndef WIN32_LEAN_AND_MEAN
@@ -385,7 +394,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 	bool parse_route(int, rt_msghdr* rtm, ip_route* rt_info)
 	{
 		sockaddr* rti_info[RTAX_MAX];
-		sockaddr* sa = reinterpret_cast<sockaddr*>(rtm + 1);
+		auto* sa = reinterpret_cast<sockaddr*>(rtm + 1);
 		for (int i = 0; i < RTAX_MAX; ++i)
 		{
 			if ((rtm->rtm_addrs & (1 << i)) == 0)
@@ -957,7 +966,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 	}
 
 	std::unique_ptr<char[]> buf(new (std::nothrow) char[needed]);
-	if (buf.get() == nullptr)
+	if (buf == nullptr)
 	{
 		ec = boost::asio::error::no_memory;
 		return std::vector<ip_route>();

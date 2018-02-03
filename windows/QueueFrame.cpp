@@ -328,25 +328,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 				tstring l_result;
 				if (!m_qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP))
 				{
-					l_result = Text::toT(ShareManager::toRealPath(getTTH()));
-					if (l_result.empty())
-					{
-						const auto l_status_file = CFlylinkDBManager::getInstance()->get_status_file(getTTH());
-						if (l_status_file & CFlylinkDBManager::PREVIOUSLY_DOWNLOADED)
-							l_result += TSTRING(I_DOWNLOADED_THIS_FILE);
-						if (l_status_file & CFlylinkDBManager::VIRUS_FILE_KNOWN)
-						{
-							if (!l_result.empty())
-								l_result += _T(" + ");
-							l_result += TSTRING(VIRUS_FILE);
-						}
-						if (l_status_file & CFlylinkDBManager::PREVIOUSLY_BEEN_IN_SHARE)
-						{
-							if (!l_result.empty())
-								l_result += _T(" + ");
-							l_result += TSTRING(THIS_FILE_WAS_IN_MY_SHARE);
-						}
-					}
+					l_result = ShareManager::calc_status_file(getTTH());
 				}
 				return l_result;
 			}

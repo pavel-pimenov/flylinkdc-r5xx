@@ -211,6 +211,7 @@ void ChatCtrl::restore_chat_cache()
 	//CLockRedraw<true> l_lock_draw(m_hWnd);
 	CWaitCursor l_cursor_wait; //-V808
 	{
+#ifdef _DEBUG
 #if 0
 		for (int i = 0; i < 3000; ++i)
 		{
@@ -218,12 +219,13 @@ void ChatCtrl::restore_chat_cache()
 			                                  false,
 			                                  true,
 			                                  _T('[') + Text::toT(Util::getShortTimeString()) + _T("] "),
-			                                  _T("Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!"),
+			                                  Util::toStringT(i) + _T(" ]Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!Test!"),
 			                                  Colors::g_ChatTextOldHistory,
 			                                  false);
 			l_message.m_Nick = _T("FlylinkDC-Debug-TEST");
 			m_chat_cache.push_back(l_message);
 		}
+#endif
 #endif
 		std::list<CFlyChatCache> l_chat_cache;
 		const bool l_is_disable_chat_cache = m_is_disable_chat_cache;
@@ -234,13 +236,24 @@ void ChatCtrl::restore_chat_cache()
 			m_chat_cache_length = 0;
 		}
 		int l_count = l_chat_cache.size();
+		tstring l_old_text;
 		for (auto i = l_chat_cache.begin(); i != l_chat_cache.end(); ++i)
 		{
-		
+			if (ClientManager::isBeforeShutdown())
+				return;
 			if (l_count-- > 40) // Отрубаем смайлы и стиль на старых записях
 			{
-				i->m_bUseEmo = false;
-				i->m_is_disable_style = true;
+				//i->m_bUseEmo = false;
+				//i->m_is_disable_style = true;
+				l_old_text += _T("* ") + i->m_Extra + _T(' ') + i->m_Nick + _T(' ') + i->m_Msg + _T("\r\n");
+				continue;
+			}
+			if (!l_old_text.empty())
+			{
+				LONG lSelBegin = 0;
+				LONG lSelEnd = 0;
+				insertAndFormat(l_old_text, i->m_cf, true, lSelBegin, lSelEnd);
+				l_old_text.clear();
 			}
 			if (l_is_disable_chat_cache == false)
 			{

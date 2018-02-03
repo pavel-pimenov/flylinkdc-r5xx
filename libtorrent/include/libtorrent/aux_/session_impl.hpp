@@ -37,7 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/session_settings.hpp"
 #include "libtorrent/aux_/session_interface.hpp"
 #include "libtorrent/aux_/session_udp_sockets.hpp"
-#include "libtorrent/linked_list.hpp"
+#include "libtorrent/aux_/socket_type.hpp"
 #include "libtorrent/torrent_peer.hpp"
 #include "libtorrent/torrent_peer_allocator.hpp"
 #include "libtorrent/performance_counters.hpp" // for counters
@@ -62,7 +62,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/stat.hpp"
 #include "libtorrent/file_pool.hpp"
 #include "libtorrent/bandwidth_manager.hpp"
-#include "libtorrent/socket_type.hpp"
 #include "libtorrent/disk_io_thread.hpp"
 #include "libtorrent/udp_socket.hpp"
 #include "libtorrent/assert.hpp"
@@ -342,6 +341,10 @@ namespace aux {
 			void async_accept(std::shared_ptr<tcp::acceptor> const& listener, transport ssl);
 			void on_accept_connection(std::shared_ptr<socket_type> const& s
 				, std::weak_ptr<tcp::acceptor> listener, error_code const& e, transport ssl);
+			void on_socks_listen(std::shared_ptr<socket_type> const& s
+				, error_code const& e);
+			void on_socks_accept(std::shared_ptr<socket_type> const& s
+				, error_code const& e);
 
 			void incoming_connection(std::shared_ptr<socket_type> const& s);
 
@@ -374,8 +377,6 @@ namespace aux {
 			std::shared_ptr<torrent> delay_load_torrent(sha1_hash const& info_hash
 				, peer_connection* pc) override;
 			void set_queue_position(torrent* t, queue_position_t p) override;
-
-			peer_id const& get_peer_id() const override { return m_peer_id; }
 
 			void close_connection(peer_connection* p) noexcept override;
 
@@ -586,11 +587,11 @@ namespace aux {
 
 #ifndef TORRENT_NO_DEPRECATE
 			session_status status() const;
+			peer_id deprecated_get_peer_id() const;
 #endif
 
 			void get_cache_info(torrent_handle h, cache_status* ret, int flags) const;
 
-			void set_peer_id(peer_id const& id);
 			void set_key(std::uint32_t key);
 			std::uint16_t listen_port() const override;
 			std::uint16_t listen_port(listen_socket_t* sock) const;
@@ -744,6 +745,7 @@ namespace aux {
 			void update_listen_interfaces();
 			void update_privileged_ports();
 			void update_auto_sequential();
+			void update_incoming_socks5();
 			void update_max_failcount();
 			void update_resolver_cache_timeout();
 
@@ -753,7 +755,6 @@ namespace aux {
 			void update_lsd();
 			void update_dht();
 			void update_count_slow();
-			void update_peer_fingerprint();
 			void update_dht_bootstrap_nodes();
 
 			void update_socket_buffer_size();
@@ -779,14 +780,12 @@ namespace aux {
 			peer_class_pool m_classes;
 
 			void init();
-//			void init_dht();
 
 			void submit_disk_jobs();
 
 			void on_trigger_auto_manage();
 
 			void on_lsd_peer(tcp::endpoint const& peer, sha1_hash const& ih) override;
-			void setup_socket_buffers(socket_type& s) override;
 
 			void set_external_address(std::shared_ptr<listen_socket_t> const& sock, address const& ip
 				, ip_source_t const source_type, address const& source);
@@ -921,9 +920,6 @@ namespace aux {
 			// filters outgoing connections
 			port_filter m_port_filter;
 
-			// the peer id that is generated at the start of the session
-			peer_id m_peer_id;
-
 			// posts a notification when the set of local IPs changes
 			std::unique_ptr<ip_change_notifier> m_ip_notifier;
 
@@ -958,8 +954,15 @@ namespace aux {
 			void ssl_handshake(error_code const& ec, std::shared_ptr<socket_type> s);
 #endif
 
+			// when as a socks proxy is used for peers, also
+			// listen for incoming connections on a socks connection
+			std::shared_ptr<socket_type> m_socks_listen_socket;
+			std::uint16_t m_socks_listen_port;
+
 			// round-robin index into m_outgoing_interfaces
 			mutable std::uint8_t m_interface_index = 0;
+
+			void open_new_incoming_socks_connection();
 
 			std::shared_ptr<listen_socket_t> setup_listener(
 				listen_endpoint_t const& lep, error_code& ec);

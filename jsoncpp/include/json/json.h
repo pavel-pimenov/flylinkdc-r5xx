@@ -87,10 +87,10 @@ license you like.
 #ifndef JSON_VERSION_H_INCLUDED
 # define JSON_VERSION_H_INCLUDED
 
-# define JSONCPP_VERSION_STRING "1.8.3"
+# define JSONCPP_VERSION_STRING "1.8.4"
 # define JSONCPP_VERSION_MAJOR 1
 # define JSONCPP_VERSION_MINOR 8
-# define JSONCPP_VERSION_PATCH 3
+# define JSONCPP_VERSION_PATCH 4
 # define JSONCPP_VERSION_QUALIFIER
 # define JSONCPP_VERSION_HEXA ((JSONCPP_VERSION_MAJOR << 24) | (JSONCPP_VERSION_MINOR << 16) | (JSONCPP_VERSION_PATCH << 8))
 
@@ -202,15 +202,23 @@ license you like.
 #if __cplusplus >= 201103L
 # define JSONCPP_OVERRIDE override
 # define JSONCPP_NOEXCEPT noexcept
+# define JSONCPP_OP_EXPLICIT explicit
 #elif defined(_MSC_VER) && _MSC_VER > 1600 && _MSC_VER < 1900
 # define JSONCPP_OVERRIDE override
 # define JSONCPP_NOEXCEPT throw()
+# if _MSC_VER >= 1800 // MSVC 2013
+#   define JSONCPP_OP_EXPLICIT explicit
+# else
+#   define JSONCPP_OP_EXPLICIT
+# endif
 #elif defined(_MSC_VER) && _MSC_VER >= 1900
 # define JSONCPP_OVERRIDE override
 # define JSONCPP_NOEXCEPT noexcept
+# define JSONCPP_OP_EXPLICIT explicit
 #else
 # define JSONCPP_OVERRIDE
 # define JSONCPP_NOEXCEPT throw()
+# define JSONCPP_OP_EXPLICIT
 #endif
 
 #ifndef JSON_HAS_RVALUE_REFERENCES
@@ -665,7 +673,14 @@ public:
   static const UInt64 maxUInt64;
 #endif // defined(JSON_HAS_INT64)
 
+// Workaround for bug in the NVIDIAs CUDA 9.1 nvcc compiler
+// when using gcc and clang backend compilers.  CZString
+// cannot be defined as private.  See issue #486
+#ifdef __NVCC__
+public:
+#else
 private:
+#endif
 #ifndef JSONCPP_DOC_EXCLUDE_IMPLEMENTATION
   class CZString {
   public:
@@ -846,7 +861,7 @@ Json::Value obj_value(Json::objectValue); // {}
   bool empty() const;
 
   /// Return !isNull()
-  explicit operator bool() const;
+  JSONCPP_OP_EXPLICIT operator bool() const;
 
   /// Remove all object members and array elements.
   /// \pre type() is arrayValue, objectValue, or nullValue
@@ -1044,6 +1059,9 @@ Json::Value obj_value(Json::objectValue); // {}
 
 private:
   void initBasic(ValueType type, bool allocated = false);
+  void dupPayload(const Value& other);
+  void releasePayload();
+  void dupMeta(const Value& other);
 
   Value& resolveReference(const char* key);
   Value& resolveReference(const char* key, const char* end);
@@ -1379,7 +1397,7 @@ namespace Json {
  *
  * \deprecated Use CharReader and CharReaderBuilder.
  */
-class JSONCPP_DEPRECATED("Use CharReader and CharReaderBuilder instead") JSON_API Reader {
+class JSON_API Reader {
 public:
   typedef char Char;
   typedef const Char* Location;
@@ -1399,11 +1417,13 @@ public:
   /** \brief Constructs a Reader allowing all features
    * for parsing.
    */
+  JSONCPP_DEPRECATED("Use CharReader and CharReaderBuilder instead") 
   Reader();
 
   /** \brief Constructs a Reader allowing the specified feature set
    * for parsing.
    */
+  JSONCPP_DEPRECATED("Use CharReader and CharReaderBuilder instead") 
   Reader(const Features& features);
 
   /** \brief Read a Value from a <a HREF="http://www.json.org">JSON</a>

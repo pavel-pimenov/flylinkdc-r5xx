@@ -34,12 +34,11 @@ Reader::~Reader() {
 }
 
 bool Reader::SkipToInitialBlock() {
-  size_t offset_in_block = initial_offset_ % kBlockSize;
+  const size_t offset_in_block = initial_offset_ % kBlockSize;
   uint64_t block_start_location = initial_offset_ - offset_in_block;
 
   // Don't search a block if we'd be in the trailer
   if (offset_in_block > kBlockSize - 6) {
-    offset_in_block = 0;
     block_start_location += kBlockSize;
   }
 
@@ -99,9 +98,7 @@ bool Reader::ReadRecord(Slice* record, std::string* scratch) {
           // it could emit an empty kFirstType record at the tail end
           // of a block followed by a kFullType or kFirstType record
           // at the beginning of the next block.
-          if (scratch->empty()) {
-            in_fragmented_record = false;
-          } else {
+          if (!scratch->empty()) {
             ReportCorruption(scratch->size(), "partial record without end(1)");
           }
         }
@@ -117,9 +114,7 @@ bool Reader::ReadRecord(Slice* record, std::string* scratch) {
           // it could emit an empty kFirstType record at the tail end
           // of a block followed by a kFullType or kFirstType record
           // at the beginning of the next block.
-          if (scratch->empty()) {
-            in_fragmented_record = false;
-          } else {
+          if (!scratch->empty()) {
             ReportCorruption(scratch->size(), "partial record without end(2)");
           }
         }
@@ -233,9 +228,9 @@ unsigned int Reader::ReadPhysicalRecord(Slice* result) {
       size_t drop_size = buffer_.size();
       buffer_.clear();
       if (!eof_) {
-      ReportCorruption(drop_size, "bad record length");
-      return kBadRecord;
-    }
+        ReportCorruption(drop_size, "bad record length");
+        return kBadRecord;
+      }
       // If the end of the file has been reached without reading |length| bytes
       // of payload, assume the writer died in the middle of writing the record.
       // Don't report a corruption.
