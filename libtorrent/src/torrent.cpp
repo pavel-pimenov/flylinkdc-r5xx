@@ -200,8 +200,6 @@ namespace libtorrent {
 		, m_padding(0)
 		, m_incomplete(0xffffff)
 		, m_announce_to_dht(!(p.flags & torrent_flags::paused))
-		, m_is_active_download(false)
-		, m_is_active_finished(false)
 		, m_ssl_torrent(false)
 		, m_deleted(false)
 		, m_auto_managed(p.flags & torrent_flags::auto_managed)
@@ -1780,6 +1778,8 @@ namespace libtorrent {
 		}
 		else
 		{
+			need_picker();
+
 			int num_pad_files = 0;
 			TORRENT_ASSERT(block_size() > 0);
 
@@ -1789,10 +1789,6 @@ namespace libtorrent {
 
 				if (!fs.pad_file_at(i) || fs.file_size(i) == 0) continue;
 				m_padding += std::uint32_t(fs.file_size(i));
-
-				// TODO: instead of creating the picker up front here,
-				// maybe this whole section should move to need_picker()
-				need_picker();
 
 				peer_request pr = m_torrent_file->map_file(i, 0, int(fs.file_size(i)));
 				int off = pr.start & (block_size() - 1);
@@ -3324,11 +3320,6 @@ namespace libtorrent {
 		}
 
 		if (want_peers()) m_ses.prioritize_connections(shared_from_this());
-	}
-
-	time_point torrent::next_announce() const
-	{
-		return m_waiting_tracker ? m_tracker_timer.expires_at() : min_time();
 	}
 
 	// this is the entry point for the client to force a re-announce. It's
@@ -10723,10 +10714,10 @@ namespace {
 		st->download_payload_rate = m_stat.download_payload_rate();
 		st->upload_payload_rate = m_stat.upload_payload_rate();
 
-		if (m_waiting_tracker && !is_paused())
-			st->next_announce = next_announce() - now;
-		else
+		if (is_paused() || m_tracker_timer.expires_at() < now)
 			st->next_announce = seconds(0);
+		else
+			st->next_announce = m_tracker_timer.expires_at() - now;
 
 		if (st->next_announce.count() < 0)
 			st->next_announce = seconds(0);

@@ -3653,7 +3653,12 @@ bool Value::removeMember(const char* key, const char* cend, Value* removed)
   ObjectValues::iterator it = value_.map_->find(actualKey);
   if (it == value_.map_->end())
     return false;
-  *removed = it->second;
+  if (removed)
+#if JSON_HAS_RVALUE_REFERENCES
+    *removed = std::move(it->second);
+#else
+    *removed = it->second;
+#endif
   value_.map_->erase(it);
   return true;
 }
@@ -4365,7 +4370,7 @@ static unsigned int utf8ToCodepoint(const char*& s, const char* e) {
     if (e - s < 4)
       return REPLACEMENT_CHARACTER;
 
-    unsigned int calculated = ((firstByte & 0x07) << 24)
+    unsigned int calculated = ((firstByte & 0x07) << 18)
       | ((static_cast<unsigned int>(s[1]) & 0x3F) << 12)
       | ((static_cast<unsigned int>(s[2]) & 0x3F) << 6)
       |  (static_cast<unsigned int>(s[3]) & 0x3F);

@@ -265,7 +265,7 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	
 	m_copyTorrentMenu.CreatePopupMenu();
 	m_copyTorrentMenu.AppendMenu(MF_STRING, IDC_COPY_LINK, CTSTRING(COPY_MAGNET_LINK));
-
+	
 	usercmdsMenu.CreatePopupMenu();
 	
 	segmentedMenu.CreatePopupMenu();
@@ -2804,8 +2804,7 @@ LRESULT TransferView::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
 					l_data = Text::toT(DownloadManager::getInstance()->get_torrent_magnet(l_ii->m_sha1));
 				}
 			}
-			else
-			if (getTTH(l_ii, l_tth))
+			else if (getTTH(l_ii, l_tth))
 			{
 				tstring l_sdata;
 				if (wID == IDC_COPY_TTH)

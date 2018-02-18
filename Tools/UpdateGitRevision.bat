@@ -1,4 +1,3 @@
-@echo off
 
 set NOCOMMIT=
 set VERSION_NUM=503

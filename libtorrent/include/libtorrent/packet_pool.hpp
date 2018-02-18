@@ -130,6 +130,7 @@ namespace libtorrent {
 		}
 
 		packet_slab(const packet_slab&) = delete;
+		packet_slab(packet_slab&&) = default;
 
 		void try_push_back(packet_ptr &p)
 		{
@@ -183,7 +184,7 @@ namespace libtorrent {
 		{
 			TORRENT_ASSERT(is_single_thread());
 
-			if (p.get() == nullptr) return;
+			if (!p) return;
 
 			int const allocated = p->allocated;
 

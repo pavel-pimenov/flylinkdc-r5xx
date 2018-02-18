@@ -109,7 +109,6 @@ namespace libtorrent {
 	struct add_torrent_params;
 	struct storage_interface;
 	class bt_peer_connection;
-	struct listen_socket_t;
 
 	peer_id generate_peer_id(aux::session_settings const& sett);
 
@@ -600,7 +599,7 @@ namespace libtorrent {
 
 		int priority() const;
 #ifndef TORRENT_NO_DEPRECATE
-		void set_priority(int const prio);
+		void set_priority(int prio);
 #endif // TORRENT_NO_DEPRECATE
 
 // --------------------------------------------
@@ -746,10 +745,6 @@ namespace libtorrent {
 		// if we need a connect boost, connect some peers
 		// immediately
 		void do_connect_boost();
-
-		// returns the absolute time when the next tracker
-		// announce will take place.
-		time_point next_announce() const;
 
 		// forcefully sets next_announce to the current time
 		void force_tracker_request(time_point, int tracker_idx);
@@ -1177,7 +1172,7 @@ namespace libtorrent {
 		void on_storage_moved(status_t status, std::string const& path
 			, storage_error const& error);
 		void on_file_renamed(std::string const& filename
-			, file_index_t const file_idx
+			, file_index_t file_idx
 			, storage_error const& error);
 		void on_cache_flushed();
 
@@ -1191,8 +1186,6 @@ namespace libtorrent {
 
 		int prioritize_tracker(int tracker_index);
 		int deprioritize_tracker(int tracker_index);
-
-		bool request_bandwidth_from_session(int channel) const;
 
 		void update_peer_interest(bool was_finished);
 		void prioritize_udp_trackers();
@@ -1613,12 +1606,6 @@ namespace libtorrent {
 		// true when the torrent should announce to
 		// the DHT
 		bool m_announce_to_dht:1;
-
-		// these represent whether or not this torrent is counted
-		// in the total counters of active seeds and downloads
-		// in the session.
-		bool m_is_active_download:1;
-		bool m_is_active_finished:1;
 
 		// even if we're not built to support SSL torrents,
 		// remember that this is an SSL torrent, so that we don't

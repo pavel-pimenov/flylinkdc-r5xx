@@ -1,4 +1,3 @@
-@echo off
 set file=%1ver.inc
 set tmpfile=%1ver.inc.tmp
 

@@ -228,12 +228,12 @@ class SearchResult : public SearchResultCore
 		
 		string m_hubName;
 		string m_hubURL;
-		boost::asio::ip::address_v4 m_search_ip4;
 		string m_p2p_guard_text;
-		bool m_is_p2p_guard_calc;
+		boost::asio::ip::address_v4 m_search_ip4;
 		uint32_t m_token;
 		UserPtr m_user;
 		bool m_is_tth_check;
+		bool m_is_p2p_guard_calc;
 };
 
 #endif

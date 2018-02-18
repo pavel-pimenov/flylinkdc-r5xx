@@ -36,7 +36,7 @@
 #include "../FlyFeatures/GradientLabel.h"
 #include "../FlyFeatures/flyServer.h"
 
-//#include "wtlbuilder/Panel.h"
+#include "wtlbuilder/Panel.h"
 
 //#ifdef _DEBUG
 #define FLYLINKDC_USE_TREE_SEARCH
@@ -354,12 +354,17 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		{
 			return ctrlResults;
 		}
-		//CHorSplitterWindow m_hzSplit;
-		//CSplitterWindow m_vSplit;
-		//CPaneContainer m_lPane;
-		//CPaneContainer m_tPane;
-
-
+#ifdef _DEBUG
+		#define FLYLINKDC_USE_TORRENT_PANEL
+#endif
+#ifdef FLYLINKDC_USE_TORRENT_PANEL
+		CHorSplitterWindow m_hzSplit;
+		CSplitterWindow m_vSplit;
+		CPaneContainer m_lPane;
+		CPaneContainer m_tPane;
+#endif
+		
+		
 	private:
 #ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
 		/** time difference */

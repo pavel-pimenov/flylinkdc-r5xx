@@ -361,10 +361,10 @@ int CryptoManager::getKeyLength(TLSTmpKeys key)
 DH* CryptoManager::getTmpDH(int keyLen)
 {
 	if (keyLen < 2048)
-		return NULL;
+		return nullptr;
 		
 	DH* tmpDH = DH_new();
-	if (!tmpDH) return NULL;
+	if (!tmpDH) return nullptr;
 	
 	// From RFC 3526; checked via http://wiki.openssl.org/index.php/Diffie-Hellman_parameters#Validating_Parameters
 	switch (keyLen)
@@ -396,7 +396,7 @@ DH* CryptoManager::getTmpDH(int keyLen)
 				0x15, 0x72, 0x8E, 0x5A, 0x8A, 0xAC, 0xAA, 0x68, 0xFF, 0xFF, 0xFF, 0xFF,
 				0xFF, 0xFF, 0xFF, 0xFF,
 			};
-			tmpDH->p = BN_bin2bn(dh2048_p, sizeof(dh2048_p), 0);
+			tmpDH->p = BN_bin2bn(dh2048_p, sizeof(dh2048_p), nullptr);
 			break;
 		}
 		
@@ -448,7 +448,7 @@ DH* CryptoManager::getTmpDH(int keyLen)
 				0x90, 0xA6, 0xC0, 0x8F, 0x4D, 0xF4, 0x35, 0xC9, 0x34, 0x06, 0x31, 0x99,
 				0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 			};
-			tmpDH->p = BN_bin2bn(dh4096_p, sizeof(dh4096_p), 0);
+			tmpDH->p = BN_bin2bn(dh4096_p, sizeof(dh4096_p), nullptr);
 			break;
 		}
 	}
@@ -458,29 +458,32 @@ DH* CryptoManager::getTmpDH(int keyLen)
 		0x02,
 	};
 	
-	tmpDH->g = BN_bin2bn(dh_g, sizeof(dh_g), 0);
+	tmpDH->g = BN_bin2bn(dh_g, sizeof(dh_g), nullptr);
 	
 	if (!tmpDH->p || !tmpDH->g)
 	{
 		DH_free(tmpDH);
-		return NULL;
+		return nullptr;
 	}
-	else return tmpDH;
+	else
+	{
+		return tmpDH;
+	}
 }
 
 RSA* CryptoManager::getTmpRSA(int keyLen)
 {
 	if (keyLen < 2048)
-		return NULL;
+		return nullptr;
 		
 	RSA* tmpRSA = RSA_new();
 	BIGNUM* bn = BN_new();
 	
-	if (!bn || !BN_set_word(bn, RSA_F4) || !RSA_generate_key_ex(tmpRSA, keyLen, bn, NULL))
+	if (!bn || !BN_set_word(bn, RSA_F4) || !RSA_generate_key_ex(tmpRSA, keyLen, bn, nullptr))
 	{
 		if (bn) BN_free(bn);
 		RSA_free(tmpRSA);
-		return NULL;
+		return nullptr;
 	}
 	
 	BN_free(bn);
