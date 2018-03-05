@@ -42,7 +42,7 @@ zmq::poller_base_t::~poller_base_t ()
     zmq_assert (get_load () == 0);
 }
 
-int zmq::poller_base_t::get_load ()
+int zmq::poller_base_t::get_load () const
 {
     return load.get ();
 }
@@ -51,8 +51,7 @@ void zmq::poller_base_t::adjust_load (int amount_)
 {
     if (amount_ > 0)
         load.add (amount_);
-    else
-    if (amount_ < 0)
+    else if (amount_ < 0)
         load.sub (-amount_);
 }
 
@@ -88,7 +87,6 @@ uint64_t zmq::poller_base_t::execute_timers ()
     //   Execute the timers that are already due.
     timers_t::iterator it = timers.begin ();
     while (it != timers.end ()) {
-
         //  If we have to wait to execute the item, same will be true about
         //  all the following items (multimap is sorted). Thus we can stop
         //  checking the subsequent timers and return the time to wait for
@@ -107,4 +105,32 @@ uint64_t zmq::poller_base_t::execute_timers ()
 
     //  There are no more timers.
     return 0;
+}
+
+zmq::worker_poller_base_t::worker_poller_base_t (const thread_ctx_t &ctx_) :
+    ctx (ctx_)
+{
+}
+
+void zmq::worker_poller_base_t::stop_worker ()
+{
+    worker.stop ();
+}
+
+void zmq::worker_poller_base_t::start ()
+{
+    zmq_assert (get_load () > 0);
+    ctx.start_thread (worker, worker_routine, this);
+}
+
+void zmq::worker_poller_base_t::check_thread ()
+{
+#ifdef _DEBUG
+    zmq_assert (!worker.get_started () || worker.is_current_thread ());
+#endif
+}
+
+void zmq::worker_poller_base_t::worker_routine (void *arg_)
+{
+    ((worker_poller_base_t *) arg_)->loop ();
 }

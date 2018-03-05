@@ -35,10 +35,14 @@
 
 zmq::reaper_t::reaper_t (class ctx_t *ctx_, uint32_t tid_) :
     object_t (ctx_, tid_),
-    mailbox_handle((poller_t::handle_t)NULL),
+    mailbox_handle ((poller_t::handle_t) NULL),
+    poller (NULL),
     sockets (0),
     terminating (false)
 {
+    if (!mailbox.valid ())
+        return;
+
     poller = new (std::nothrow) poller_t (*ctx_);
     alloc_assert (poller);
 
@@ -48,13 +52,13 @@ zmq::reaper_t::reaper_t (class ctx_t *ctx_, uint32_t tid_) :
     }
 
 #ifdef HAVE_FORK
-    pid = getpid();
+    pid = getpid ();
 #endif
 }
 
 zmq::reaper_t::~reaper_t ()
 {
-    LIBZMQ_DELETE(poller);
+    LIBZMQ_DELETE (poller);
 }
 
 zmq::mailbox_t *zmq::reaper_t::get_mailbox ()
@@ -64,21 +68,24 @@ zmq::mailbox_t *zmq::reaper_t::get_mailbox ()
 
 void zmq::reaper_t::start ()
 {
+    zmq_assert (mailbox.valid ());
+
     //  Start the thread.
     poller->start ();
 }
 
 void zmq::reaper_t::stop ()
 {
-    send_stop ();
+    if (get_mailbox ()->valid ()) {
+        send_stop ();
+    }
 }
 
 void zmq::reaper_t::in_event ()
 {
     while (true) {
 #ifdef HAVE_FORK
-        if (unlikely(pid != getpid()))
-        {
+        if (unlikely (pid != getpid ())) {
             //printf("zmq::reaper_t::in_event return in child process %d\n", (int)getpid());
             return;
         }

@@ -111,7 +111,8 @@ class UCHandler
 				}
 				
 				CMenuHandle cur = BOOLSETTING(UC_SUBMENU) ? subMenu.m_hMenu : menu.m_hMenu;
-				
+				CMenuHandle Oldcur = cur;
+
 				for (auto ui = m_userCommands.begin(); ui != m_userCommands.end(); ++ui)
 				{
 					UserCommand& uc = *ui;
@@ -125,7 +126,17 @@ class UCHandler
 							m++;
 						}
 					}
-					
+					if (uc.getType() == UserCommand::TYPE_SEPARATOR_OLD)
+					{
+						// Avoid double separators...
+						if ((Oldcur.GetMenuItemCount() >= 1) &&
+							!(Oldcur.GetMenuState(Oldcur.GetMenuItemCount() - 1, MF_BYPOSITION) & MF_SEPARATOR))
+						{
+							Oldcur.AppendMenu(MF_SEPARATOR);
+							m++;
+						}
+					}
+
 					if (uc.getType() == UserCommand::TYPE_RAW || uc.getType() == UserCommand::TYPE_RAW_ONCE)
 					{
 						tstring name;
@@ -159,6 +170,7 @@ class UCHandler
 								if (!found)
 								{
 									const HMENU l_m = CreatePopupMenu();
+									Oldcur = cur;
 									cur.AppendMenu(MF_POPUP, (UINT_PTR)l_m, name.c_str());
 									cur = l_m;
 								}

@@ -124,3 +124,4 @@ FlylinkDC-*.7z
 
 *.ipch
 *.VC.db
+merge-vendors.bat

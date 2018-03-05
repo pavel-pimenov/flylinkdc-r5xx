@@ -37,18 +37,21 @@
 #include "ctx.hpp"
 
 zmq::io_thread_t::io_thread_t (ctx_t *ctx_, uint32_t tid_) :
-    object_t (ctx_, tid_)
+    object_t (ctx_, tid_),
+    mailbox_handle ((poller_t::handle_t) NULL)
 {
     poller = new (std::nothrow) poller_t (*ctx_);
     alloc_assert (poller);
 
-    mailbox_handle = poller->add_fd (mailbox.get_fd (), this);
-    poller->set_pollin (mailbox_handle);
+    if (mailbox.get_fd () != retired_fd) {
+        mailbox_handle = poller->add_fd (mailbox.get_fd (), this);
+        poller->set_pollin (mailbox_handle);
+    }
 }
 
 zmq::io_thread_t::~io_thread_t ()
 {
-    LIBZMQ_DELETE(poller);
+    LIBZMQ_DELETE (poller);
 }
 
 void zmq::io_thread_t::start ()
@@ -109,6 +112,7 @@ zmq::poller_t *zmq::io_thread_t::get_poller ()
 
 void zmq::io_thread_t::process_stop ()
 {
+    zmq_assert (mailbox_handle);
     poller->rm_fd (mailbox_handle);
     poller->stop ();
 }

@@ -1112,7 +1112,7 @@ void NmdcHub::userCommandParse(const string& param)
 		
 	int type = Util::toInt(param.substr(0, j));
 	i = j + 1;
-	if (type == UserCommand::TYPE_SEPARATOR || type == UserCommand::TYPE_CLEAR)
+	if (type == UserCommand::TYPE_SEPARATOR || type == UserCommand::TYPE_CLEAR || type == UserCommand::TYPE_SEPARATOR_OLD)
 	{
 		int ctx = Util::toInt(param.substr(i));
 		fly_fire5(ClientListener::HubUserCommand(), this, type, ctx, Util::emptyString, Util::emptyString);

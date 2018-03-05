@@ -589,6 +589,7 @@
     <ClInclude Include="windows\ListViewArrows.h" />
     <ClInclude Include="windows\LogPage.h" />
     <ClInclude Include="windows\MagnetDlg.h" />
+    <ClInclude Include="windows\main.h" />
     <ClInclude Include="windows\MainFrm.h" />
     <ClInclude Include="windows\MessagePanel.h" />
     <ClInclude Include="windows\MessagesChatPage.h" />

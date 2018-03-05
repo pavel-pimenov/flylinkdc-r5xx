@@ -115,7 +115,7 @@ void zmq::own_t::process_term_req (own_t *object_)
 
     //  Note that this object is the root of the (partial shutdown) thus, its
     //  value of linger is used, rather than the value stored by the children.
-    send_term (object_, options.linger);
+    send_term (object_, options.linger.load ());
 }
 
 void zmq::own_t::process_own (own_t *object_)
@@ -142,7 +142,7 @@ void zmq::own_t::terminate ()
     //  As for the root of the ownership tree, there's no one to terminate it,
     //  so it has to terminate itself.
     if (!owner) {
-        process_term (options.linger);
+        process_term (options.linger.load ());
         return;
     }
 
@@ -193,9 +193,8 @@ void zmq::own_t::process_term_ack ()
 
 void zmq::own_t::check_term_acks ()
 {
-    if (terminating && processed_seqnum == sent_seqnum.get () &&
-          term_acks == 0) {
-
+    if (terminating && processed_seqnum == sent_seqnum.get ()
+        && term_acks == 0) {
         //  Sanity check. There should be no active children at this point.
         zmq_assert (owned.empty ());
 
@@ -213,4 +212,3 @@ void zmq::own_t::process_destroy ()
 {
     delete this;
 }
-

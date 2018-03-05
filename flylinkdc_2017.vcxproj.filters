@@ -858,6 +858,7 @@
     <ClInclude Include="wtl\atlwinx.h">
       <Filter>wtl</Filter>
     </ClInclude>
+    <ClInclude Include="windows\main.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
