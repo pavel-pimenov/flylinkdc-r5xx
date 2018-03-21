@@ -33,6 +33,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <map>
 
 #include "atomic_ptr.hpp"
 #include "stddef.h"
@@ -44,6 +45,10 @@
 #endif
 #ifdef ZMQ_HAVE_LOCAL_PEERCRED
 #include <sys/ucred.h>
+#endif
+
+#if __cplusplus >= 201103L
+#include <type_traits>
 #endif
 
 //  Normal base 256 key is 32 bytes
@@ -251,7 +256,40 @@ struct options_t
 
     // Use of loopback fastpath.
     bool loopback_fastpath;
+
+    // Use zero copy strategy for storing message content when decoding.
+    bool zero_copy;
+
+    // Application metadata
+    std::map<std::string, std::string> app_metadata;
 };
+
+int do_getsockopt (void *const optval_,
+                   size_t *const optvallen_,
+                   const void *value_,
+                   const size_t value_len_);
+
+template <typename T>
+int do_getsockopt (void *const optval_, size_t *const optvallen_, T value_)
+{
+#if __cplusplus >= 201103L && (!defined(__GNUC__) || __GNUC__ > 5)
+    static_assert (std::is_trivially_copyable<T>::value,
+                   "invalid use of do_getsockopt");
+#endif
+    return do_getsockopt (optval_, optvallen_, &value_, sizeof (T));
+}
+
+int do_getsockopt (void *const optval_,
+                   size_t *const optvallen_,
+                   const std::string &value_);
+
+int do_setsockopt_int_as_bool_strict (const void *const optval_,
+                                      const size_t optvallen_,
+                                      bool *out_value_);
+
+int do_setsockopt_int_as_bool_relaxed (const void *const optval_,
+                                       const size_t optvallen_,
+                                       bool *out_value_);
 }
 
 #endif

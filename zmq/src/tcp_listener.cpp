@@ -51,6 +51,9 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <fcntl.h>
+#ifdef ZMQ_HAVE_VXWORKS
+#include <sockLib.h>
+#endif
 #endif
 
 #ifdef ZMQ_HAVE_OPENVMS
@@ -141,7 +144,7 @@ void zmq::tcp_listener_t::close ()
     int rc = ::close (s);
     errno_assert (rc == 0);
 #endif
-    socket->event_closed (endpoint, (int) s);
+    socket->event_closed (endpoint, s);
     s = retired_fd;
 }
 
@@ -149,7 +152,7 @@ int zmq::tcp_listener_t::get_address (std::string &addr_)
 {
     // Get the details of the TCP socket
     struct sockaddr_storage ss;
-#ifdef ZMQ_HAVE_HPUX
+#if defined ZMQ_HAVE_HPUX || defined ZMQ_HAVE_VXWORKS
     int sl = sizeof (ss);
 #else
     socklen_t sl = sizeof (ss);
@@ -176,7 +179,7 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
 
     if (options.use_fd != -1) {
         s = options.use_fd;
-        socket->event_listening (endpoint, (int) s);
+        socket->event_listening (endpoint, s);
         return 0;
     }
 
@@ -236,13 +239,20 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
     rc = setsockopt (s, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const char *) &flag,
                      sizeof (int));
     wsa_assert (rc != SOCKET_ERROR);
+#elif defined ZMQ_HAVE_VXWORKS
+    rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR, (char *) &flag, sizeof (int));
+    errno_assert (rc == 0);
 #else
     rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
     errno_assert (rc == 0);
 #endif
 
     //  Bind the socket to the network interface and port.
+#if defined ZMQ_HAVE_VXWORKS
+    rc = bind (s, (sockaddr *) address.addr (), address.addrlen ());
+#else
     rc = bind (s, address.addr (), address.addrlen ());
+#endif
 #ifdef ZMQ_HAVE_WINDOWS
     if (rc == SOCKET_ERROR) {
         errno = wsa_error_to_errno (WSAGetLastError ());
@@ -265,7 +275,7 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
         goto error;
 #endif
 
-    socket->event_listening (endpoint, (int) s);
+    socket->event_listening (endpoint, s);
     return 0;
 
 error:
@@ -284,7 +294,7 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
 
     struct sockaddr_storage ss;
     memset (&ss, 0, sizeof (ss));
-#ifdef ZMQ_HAVE_HPUX
+#if defined ZMQ_HAVE_HPUX || defined ZMQ_HAVE_VXWORKS
     int ss_len = sizeof (ss);
 #else
     socklen_t ss_len = sizeof (ss);

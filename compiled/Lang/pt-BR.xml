@@ -626,7 +626,6 @@ Se possível, envie o arquivo para análise para ppa74@ya.ru</string>
     <string name="FlyupdateCheckupdatebase">Checando por atualização do FlylinkDC++...</string>
     <string name="FlyupdateDeletetingfiles">Removendo arquivos temporários da atualização do FlylinkDC++...</string>
     <string name="FlyupdateDeletetingfolders">Removendo pastas temporárias da atualização do FlylinkDC++...</string>
-    <string name="FlyupdateStillrunning">O aplicativo FlylinkDC++ ainda está em execução. Atualização irá ser aplicada após sair do aplicativo FlylinkDC+. Deseja aguardar?</string>
     <string name="FlyupdateSuccess">Atualização automática do FlylinkDC++ foi concluída com sucesso. Aperte o botão OK para iniciar o aplicativo FlylinkDC++</string>
     <string name="FlyupdateUpdating">Atualizando FlylinkDC++...</string>
     <string name="FlyupdateUsercancel">Usuário cancelou atualização automática do FlylinkDC++</string>
@@ -642,12 +641,6 @@ Se possível, envie o arquivo para análise para ppa74@ya.ru</string>
     <string name="FormatBbCodesColors">Aceitar cores códigos BB</string>
     <string name="FormatBotMessage">Formatar mensagem do Bot</string>
     <string name="FreePmAccess">Acesso livre à MP</string>
-    <string name="FtpSendHeader">Despejo de pilha envia</string>
-    <string name="FtpSendLink">Saiba mais sobre 'despejo'</string>
-    <string name="FtpSendQuestion">O início anterior do aplicativo deu erro. Para ajudar os autores a encontrarem a causa, é recomendado que envie o arquivo para análise.
-Ele contém dados importantes sobre o problema e sua descrição somente.
-Não contém nenhuma informação pessoal, tal como senhas, endereços de email ou cartões de créditos.</string>
-    <string name="FtpSendQuestion2">Realmente enviar erros despejo de pilha para os desenvolvedores?</string>
     <string name="FullFilelistNfo">Exibir toda informação para Lista de Arquivo na fila de download</string>
     <string name="GenerateCertificates">Certificado gerados</string>
     <string name="GetFileList">Baixar Lista de Arquivos</string>

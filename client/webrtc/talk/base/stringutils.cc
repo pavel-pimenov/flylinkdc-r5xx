@@ -143,7 +143,7 @@ std::string string_trim(const std::string& s) {
   std::string::size_type last  = s.find_last_not_of(kWhitespace);
 
   if (first == std::string::npos || last == std::string::npos) {
-    return std::string("");
+    return std::string();
   }
 
   return s.substr(first, last - first + 1);

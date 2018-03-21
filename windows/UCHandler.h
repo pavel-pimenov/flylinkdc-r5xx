@@ -112,7 +112,7 @@ class UCHandler
 				
 				CMenuHandle cur = BOOLSETTING(UC_SUBMENU) ? subMenu.m_hMenu : menu.m_hMenu;
 				CMenuHandle Oldcur = cur;
-
+				
 				for (auto ui = m_userCommands.begin(); ui != m_userCommands.end(); ++ui)
 				{
 					UserCommand& uc = *ui;
@@ -130,13 +130,13 @@ class UCHandler
 					{
 						// Avoid double separators...
 						if ((Oldcur.GetMenuItemCount() >= 1) &&
-							!(Oldcur.GetMenuState(Oldcur.GetMenuItemCount() - 1, MF_BYPOSITION) & MF_SEPARATOR))
+						        !(Oldcur.GetMenuState(Oldcur.GetMenuItemCount() - 1, MF_BYPOSITION) & MF_SEPARATOR))
 						{
 							Oldcur.AppendMenu(MF_SEPARATOR);
 							m++;
 						}
 					}
-
+					
 					if (uc.getType() == UserCommand::TYPE_RAW || uc.getType() == UserCommand::TYPE_RAW_ONCE)
 					{
 						tstring name;

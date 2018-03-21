@@ -49,7 +49,7 @@ class HintedUser
 		}
 		string to_string() const
 		{
-			return "(" + hint + ")" + (user ? user->getLastNick() : std::string(""));
+			return "(" + hint + ")" + (user ? user->getLastNick() : std::string());
 		}
 		operator UserPtr() const
 		{

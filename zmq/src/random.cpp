@@ -79,41 +79,90 @@ uint32_t zmq::generate_random ()
 //  The context class cannot be used with static variables as the curve
 //  utility APIs like zmq_curve_keypair also call into the crypto
 //  library.
-//  The safest solution for all use cases therefore is to have a global,
+//  The safest solution for all use cases therefore is to have a
 //  static lock to serialize calls into an initialiser and a finaliser,
 //  using refcounts to make sure that a thread does not close the library
-//  while another is still using it.
+//  while another is still using it. To avoid the static initialization
+//  order fiasco, this is done using function-local statics, if the
+//  compiler implementation supports thread-safe initialization of those.
+//  Otherwise, we fall back to global statics.
+//  HOWEVER, this initialisation code imposes ordering constraints, which
+//  are not obvious to users of libzmq, and may lead to problems if atexit
+//  or similar methods are used for cleanup.
+//  In that case, a strict ordering is imposed whereas the contexts MUST
+//  be initialised BEFORE registering the cleanup with atexit. CZMQ is an
+//  example. Hence we make the choice to restrict this global transition
+//  mechanism ONLY to Tweenacl + *NIX (when using /dev/urandom) as it is
+//  the less risky option.
+
+//  TODO if there is some other user of libsodium besides libzmq, this must
+//    be synchronized by the application. This should probably also be
+//    configurable via config.h
+
+//  TODO this should probably be done via config.h
+#if __cplusplus >= 201103L                                                     \
+  || (defined(__cpp_threadsafe_static_init)                                    \
+      && __cpp_threadsafe_static_init >= 200806)                               \
+  || (defined(_MSC_VER) && _MSC_VER >= 1900)
+#define ZMQ_HAVE_THREADSAFE_STATIC_LOCAL_INIT 1
+//  TODO this might probably also be set if a sufficiently recent gcc is used
+//  without -fno-threadsafe-statics, but this cannot be determined at
+//  compile-time, so it must be set via config.h
+#else
+#define ZMQ_HAVE_THREADSAFE_STATIC_LOCAL_INIT 0
+#endif
+
+#if !ZMQ_HAVE_THREADSAFE_STATIC_LOCAL_INIT                                     \
+  && (defined(ZMQ_USE_TWEETNACL) && !defined(ZMQ_HAVE_WINDOWS)                 \
+      && !defined(ZMQ_HAVE_GETRANDOM))
 static unsigned int random_refcount = 0;
 static zmq::mutex_t random_sync;
+#endif
+
+static void manage_random (bool init)
+{
+#if defined(ZMQ_USE_TWEETNACL) && !defined(ZMQ_HAVE_WINDOWS)                   \
+  && !defined(ZMQ_HAVE_GETRANDOM)
+
+#if ZMQ_HAVE_THREADSAFE_STATIC_LOCAL_INIT
+    static int random_refcount = 0;
+    static zmq::mutex_t random_sync;
+#endif
+
+    if (init) {
+        zmq::scoped_lock_t locker (random_sync);
+
+        if (random_refcount == 0) {
+            int rc = sodium_init ();
+            zmq_assert (rc != -1);
+        }
+
+        ++random_refcount;
+    } else {
+        zmq::scoped_lock_t locker (random_sync);
+        --random_refcount;
+
+        if (random_refcount == 0) {
+            randombytes_close ();
+        }
+    }
+
+#elif defined(ZMQ_USE_LIBSODIUM)
+    if (init) {
+        int rc = sodium_init ();
+        zmq_assert (rc != -1);
+    } else {
+        randombytes_close ();
+    }
+#endif
+}
 
 void zmq::random_open (void)
 {
-#if defined(ZMQ_USE_LIBSODIUM)                                                 \
-  || (defined(ZMQ_USE_TWEETNACL) && !defined(ZMQ_HAVE_WINDOWS)                 \
-      && !defined(ZMQ_HAVE_GETRANDOM))
-    scoped_lock_t locker (random_sync);
-
-    if (random_refcount == 0) {
-        int rc = sodium_init ();
-        zmq_assert (rc != -1);
-    }
-
-    ++random_refcount;
-#else
-    LIBZMQ_UNUSED (random_refcount);
-#endif
+    manage_random (true);
 }
 
 void zmq::random_close (void)
 {
-#if defined(ZMQ_USE_LIBSODIUM)                                                 \
-  || (defined(ZMQ_USE_TWEETNACL) && !defined(ZMQ_HAVE_WINDOWS)                 \
-      && !defined(ZMQ_HAVE_GETRANDOM))
-    scoped_lock_t locker (random_sync);
-    --random_refcount;
-
-    if (random_refcount == 0) {
-        randombytes_close ();
-    }
-#endif
+    manage_random (false);
 }

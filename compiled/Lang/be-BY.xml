@@ -514,7 +514,6 @@
 		<String Name="FlyupdateCheckupdatebase">Запытваемся на абнаўленьні…</String>
 		<String Name="FlyupdateDeletetingfiles">Сьціраюцца часовыя файлы абнаўленьня…</String>
 		<String Name="FlyupdateDeletetingfolders">Сьціраюцца часовыя каталёґі абнаўленьня…</String>
-		<String Name="FlyupdateStillrunning">Праґрама «FlylinkDC++» яшчэ працуе. Працягваць абнаўляць можна будзе толькі калі выйсьці з праґрамы. Ці працягваць чакаць?</String>
 		<String Name="FlyupdateSuccess">Праґрама «FlylinkDC++» абнавілася. Націсьніце «Добра», каб запусьціць яе</String>
 		<String Name="FlyupdateUpdating">Абнаўляецца «FlylinkDC++»…</String>
 		<String Name="FlyupdateUsercancel">Карыстальнік спыніў самарушна абнаўляць «FlylinkDC++»</String>
@@ -529,9 +528,6 @@
 		<String Name="FormatBbCodesColors">Прымаць коды BB</String>
 		<String Name="FormatBotMessage">Аздабляць паведамленьні ад ботаў</String>
 		<String Name="FreePmAccess">Вольны доступ да асабістых паведамленьняў</String>
-		<String Name="FtpSendHeader">Адпраўнік звалу стосу</String>
-		<String Name="FtpSendLink">Падрабязьней пра «звал»</String>
-		<String Name="FtpSendQuestion2">Ці сапраўды даслаць аварыйны звал стосу распрацоўцам?</String>
 		<String Name="FullFilelistNfo">Паказваць поўныя зьвесткі пра сьпісы файлаў у чарзе спампоўванага</String>
 		<String Name="Gb">ҐіБ</String>
 		<String Name="Gbps">ҐіБ/с</String>

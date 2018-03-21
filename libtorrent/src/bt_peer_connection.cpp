@@ -123,7 +123,7 @@ namespace {
 	bool ut_pex_peer_store::was_introduced_by(tcp::endpoint const &ep)
 	{
 #if TORRENT_USE_IPV6
-		if (ep.address().is_v4())
+		if (ep.protocol() == tcp::v4())
 		{
 #endif
 			peers4_t::value_type const v(ep.address().to_v4().to_bytes(), ep.port());
@@ -794,20 +794,6 @@ namespace {
 
 
 	// message handlers
-
-	// -----------------------------
-	// --------- KEEPALIVE ---------
-	// -----------------------------
-
-	void bt_peer_connection::on_keepalive()
-	{
-		INVARIANT_CHECK;
-
-#ifndef TORRENT_DISABLE_LOGGING
-		peer_log(peer_log_alert::incoming_message, "KEEPALIVE");
-#endif
-		incoming_keepalive();
-	}
 
 	// -----------------------------
 	// ----------- CHOKE -----------

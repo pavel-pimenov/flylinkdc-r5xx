@@ -37,9 +37,9 @@ class UserCommand : public Flags
 			TYPE_RAW,
 			TYPE_RAW_ONCE,
 			TYPE_REMOVE,
-			TYPE_CHAT,				// 4, but " 4 — URL команда (используется клиентом GreyLink для открытия ссылок при помощи браузера); http://wiki.mydc.ru/$UserCommand "
-			TYPE_CHAT_ONCE,			// 5
-			TYPE_SEPARATOR_OLD = 16,	// 16 Separator into previous Menu
+			TYPE_CHAT,              // 4, but " 4 — URL команда (используется клиентом GreyLink для открытия ссылок при помощи браузера); http://wiki.mydc.ru/$UserCommand "
+			TYPE_CHAT_ONCE,         // 5
+			TYPE_SEPARATOR_OLD = 16,    // 16 Separator into previous Menu
 			TYPE_CLEAR = 255        // In a momentary lapse of reason, 255 was chosen in the nmdc version of usercommand for clearing them all
 		};
 		

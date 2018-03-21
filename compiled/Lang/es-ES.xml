@@ -509,7 +509,6 @@
 		<String Name="FlyupdateCheckupdatebase">Comprobando actualización de FlylinkDC++…</String>
 		<String Name="FlyupdateDeletetingfiles">Borrando los archivos temporales de la actualización de FlylinkDC++…</String>
 		<String Name="FlyupdateDeletetingfolders">Borrando las carpetas temporales de la actualización de FlylinkDC++…</String>
-		<String Name="FlyupdateStillrunning">FlylinkDC++ se está ejecutando. La actualización continuará después de salir de la aplicación. Continúa esperando?</String>
 		<String Name="FlyupdateSuccess">Actualización automática completada. Pulse OK para iniciar la aplicación FlylinkDC++</String>
 		<String Name="FlyupdateUpdating">Actualizando FlylinkDC++…</String>
 		<String Name="FlyupdateUsercancel">El usuario a cancelado la actualización de FlylinkDC++</String>
@@ -524,9 +523,6 @@
 		<String Name="FormatBbCodesColors">Aceptar colores BB codes</String>
 		<String Name="FormatBotMessage">Formato de los mensajes del bot</String>
 		<String Name="FreePmAccess">Libre acceso a mensajes privados</String>
-		<String Name="FtpSendHeader">Enviando volcado de pila</String>
-		<String Name="FtpSendLink">Más información sobre 'dump'</String>
-		<String Name="FtpSendQuestion2">Desea enviar el volcado de pila a los desarrolladores?</String>
 		<String Name="FullFilelistNfo">Información completa de las listas de archivos en la cola de descarga</String>
 		<String Name="Gb">GiB</String>
 		<String Name="Gbps">GiB/s</String>

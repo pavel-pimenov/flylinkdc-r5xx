@@ -991,7 +991,7 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 			if (actual)
 			{
 				std::ofstream l_fs;
-				l_fs.open(_T("flylinkdc-beffered-socket.log"), std::ifstream::out | std::ifstream::app);
+				l_fs.open(_T("flylinkdc-buffered-socket.log"), std::ifstream::out | std::ifstream::app);
 				if (l_fs.good())
 				{
 					const string l_str = std::string((const char*) &l_readBuf[readPos], actual);

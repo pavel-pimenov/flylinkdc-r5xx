@@ -647,10 +647,6 @@ Scarica l'ultima installazione di FlylinkDC++ ed eseguila manualmente.</String>
 		<String Name="FlyupdateCheckupdatebase">Controllo aggiornamenti...</String>
 		<String Name="FlyupdateDeletetingfiles">Rimozione file temporanei...</String>
 		<String Name="FlyupdateDeletetingfolders">Rimozione cartelle temporanee...</String>
-		<String Name="FlyupdateStillrunning">FlylinkDC++ è ancora in esecuzione!
-L'aggiornamento sarà essere ripreso all'uscita dall'applicazione.
-
-Vuoi attendere ancora?</String>
 		<String Name="FlyupdateSuccess">Aggiornamento completato con successo!
 
 Premi "OK" per avviare FlylinkDC++.</String>
@@ -668,12 +664,6 @@ Premi "OK" per avviare FlylinkDC++.</String>
 		<String Name="FormatBbCodesColors">Formatta i colori dei codici BB</String>
 		<String Name="FormatBotMessage">Formatta i messaggi dai bot</String>
 		<String Name="FreePmAccess">Accesso libero</String>
-		<String Name="FtpSendHeader">Invio dump</String>
-		<String Name="FtpSendLink">Leggi di più sul "dump"</String>
-		<String Name="FtpSendQuestion">L'avvio precedente ha causato un crash del client.
-Per aiutare gli sviluppatori a trovarne la causa, è consigliato autorizzare l'invio del file contenente l'errore.
-Il file non contiene alcuna informazione personale (parole chiave, indirizzi eMail o numeri di carte di credito) ma solo lo stack della memoria e la descrizione dell'errore.</String>
-		<String Name="FtpSendQuestion2"> 
 Inviare lo stack dump agli sviluppatori?</String>
 		<String Name="FullFilelistNfo">Mostra informazioni complete sulle liste nella coda download</String>
 		<String Name="Gb">GB</String>

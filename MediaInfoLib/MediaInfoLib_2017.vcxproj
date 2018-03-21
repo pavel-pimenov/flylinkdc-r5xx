@@ -326,6 +326,7 @@
     <ClCompile Include="Source\MediaInfo\Text\File_Ttml.cpp" />
     <ClCompile Include="Source\MediaInfo\TimeCode.cpp" />
     <ClCompile Include="Source\MediaInfo\Video\File_Aic.cpp" />
+    <ClCompile Include="Source\MediaInfo\Video\File_Av1.cpp" />
     <ClCompile Include="Source\MediaInfo\Video\File_Avc.cpp" />
     <ClCompile Include="Source\MediaInfo\Video\File_Avc_Duplicate.cpp" />
     <ClCompile Include="Source\MediaInfo\Video\File_AvsV.cpp" />
@@ -629,6 +630,7 @@
     <ClInclude Include="Source\MediaInfo\Text\File_Ttml.h" />
     <ClInclude Include="Source\MediaInfo\TimeCode.h" />
     <ClInclude Include="Source\MediaInfo\Video\File_Aic.h" />
+    <ClInclude Include="Source\MediaInfo\Video\File_Av1.h" />
     <ClInclude Include="Source\MediaInfo\Video\File_Avc.h" />
     <ClInclude Include="Source\MediaInfo\Video\File_AvsV.h" />
     <ClInclude Include="Source\MediaInfo\Video\File_AfdBarData.h" />

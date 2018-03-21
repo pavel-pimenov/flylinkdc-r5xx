@@ -1492,7 +1492,11 @@ bool DownloadManager::add_torrent_file(const tstring& p_torrent_path, const tstr
 {
 	if (!m_torrent_session)
 	{
-		DownloadManager::getInstance()->init_torrent(true);
+		if (MessageBox(NULL, CTSTRING(TORRENT_ENABLE_WARNING), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_YESNO | MB_ICONQUESTION | MB_TOPMOST) == IDYES)
+		{
+			SET_SETTING(USE_TORRENT, true);
+			DownloadManager::getInstance()->init_torrent(true);
+		}
 	}
 	if (m_torrent_session)
 	{

@@ -133,6 +133,28 @@ extern int zip_entry_index(struct zip_t *zip);
 extern int zip_entry_isdir(struct zip_t *zip);
 
 /*
+  Returns an uncompressed size of the current zip entry.
+
+  Args:
+    zip: zip archive handler.
+
+  Returns:
+    The uncompressed size in bytes.
+*/
+extern unsigned long long zip_entry_size(struct zip_t *zip);
+
+/*
+  Returns CRC-32 checksum of the current zip entry.
+
+  Args:
+    zip: zip archive handler.
+
+  Returns:
+    The CRC-32 checksum.
+*/
+extern unsigned int zip_entry_crc32(struct zip_t *zip);
+
+/*
   Compresses an input buffer for the current zip entry.
 
   Args:
@@ -174,6 +196,26 @@ extern int zip_entry_fwrite(struct zip_t *zip, const char *filename);
     The return code - 0 on success, negative number (< 0) on error.
 */
 extern int zip_entry_read(struct zip_t *zip, void **buf, size_t *bufsize);
+
+/*
+  Extracts the current zip entry into a memory buffer using no memory allocation.
+
+  Args:
+    zip: zip archive handler.
+    buf: preallocated output buffer.
+    bufsize: output buffer size (in bytes).
+
+  Note:
+    - ensure supplied output buffer is large enough.
+    - zip_entry_size function (returns uncompressed size for the current entry)
+      can be handy to estimate how big buffer is needed.
+    - for large entries, please take a look at zip_entry_extract function.
+
+  Returns:
+    The return code - 0 on success, negative number (< 0) on error (e.g. bufsize
+    is not large enough).
+*/
+extern int zip_entry_noallocread(struct zip_t *zip, void *buf, size_t bufsize);
 
 /*
   Extracts the current zip entry into output file.

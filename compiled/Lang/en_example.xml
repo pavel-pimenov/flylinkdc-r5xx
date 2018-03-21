@@ -555,7 +555,6 @@
 	<string name="FlyupdateCheckupdatebase">Checking FlylinkDC++ update...</string>
 	<string name="FlyupdateDeletetingfiles">Removing temp files of FlylinkDC++ update...</string>
 	<string name="FlyupdateDeletetingfolders">Removing temp folders of FlylinkDC++ update...</string>
-	<string name="FlyupdateStillrunning">FlylinkDC++ application is still running. Update can be continued after exiting FlylinkDC++ application. Continue waiting?</string>
 	<string name="FlyupdateSuccess">FlylinkDC++ automatic update is completed successfully. Press OK button to start FlylinkDC++ application</string>
 	<string name="FlyupdateUpdating">Updating FlylinkDC++...</string>
 	<string name="FlyupdateUsercancel">User canceled FlylinkDC++ automatic update</string>
@@ -571,10 +570,6 @@
 	<string name="FormatBbCodesColors">Accept colors BB codes</string>
 	<string name="FormatBotMessage">Format message from Bot</string>
 	<string name="FreePmAccess">Free PM access</string>
-	<string name="FtpSendHeader">Stack dump sender</string>
-	<string name="FtpSendLink">Learn more about 'dump'</string>
-	<string name="FtpSendQuestion">Previous launch caused client crash. To help authors to find the cause, it is recommended to allow the sending archived file.\nIt contains the stack dump and error description only.\nIt does not contain any confidential information like  passwords, email addresses or credit card numbers.</string>
-	<string name="FtpSendQuestion2">Really send crash stack dump to developers?</string>
 	<string name="FullFilelistNfo">Display full info for File-lists in download queue</string>
 	<string name="GenerateCertificates">Generate certificates</string>
 	<string name="GetFileList">Get File-list</string>
@@ -1071,6 +1066,7 @@
 	<string name="PublicHubs">Internet Hubs</string>
 	<string name="PublicHubsWarning">Attention! Simultaneous connection to a large number of hubs will lead to excessive CPU load and can take a long time, especially on slower machines.\r\nAre you sure you want to continue connecting?</string>
 	<string name="PublicIpDetected">Public IP address detected, selecting active mode with direct connection</string>
+	<string name="TorrentEnableWarning">Enable torrent file downloads in FlylinkDC++?</string>
 	<string name="PurgeTthDatabase">Purge TTH database...</string>
 	<string name="PvsStudioUrl">Quality C++ code protects PVS-Studio</string>
 	<string name="QcdqmpNotRunning">Supported version of QCD/QMP is not running</string>

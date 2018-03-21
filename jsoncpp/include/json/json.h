@@ -562,6 +562,13 @@ enum CommentPlacement {
   numberOfCommentPlacement
 };
 
+/** \brief Type of precision for formatting of real values.
+ */
+enum PrecisionType {
+  significantDigits = 0, ///< we set max number of significant digits in string
+  decimalPlaces          ///< we set max number of digits after "." in string
+};
+
 //# ifdef JSON_USE_CPPTL
 //   typedef CppTL::AnyEnumerator<const char *> EnumMemberNames;
 //   typedef CppTL::AnyEnumerator<const Value &> EnumValues;
@@ -672,6 +679,9 @@ public:
   /// Maximum unsigned 64 bits int value that can be stored in a Json::Value.
   static const UInt64 maxUInt64;
 #endif // defined(JSON_HAS_INT64)
+
+  /// Default precision for real value for string representation.
+  static const UInt defaultRealPrecision;
 
 // Workaround for bug in the NVIDIAs CUDA 9.1 nvcc compiler
 // when using gcc and clang backend compilers.  CZString
@@ -1333,14 +1343,9 @@ public:
   pointer operator->() const { return &deref(); }
 };
 
+inline void swap(Value& a, Value& b) { a.swap(b); }
+
 } // namespace Json
-
-
-namespace std {
-/// Specialize std::swap() for Json::Value.
-template<>
-inline void swap(Json::Value& a, Json::Value& b) { a.swap(b); }
-}
 
 #pragma pack(pop)
 
@@ -1885,7 +1890,8 @@ public:
   /** Configuration of this builder.
     Available settings (case-sensitive):
     - "commentStyle": "None" or "All"
-    - "indentation":  "<anything>"
+    - "indentation":  "<anything>".
+      - Setting this to an empty string also omits newline characters.
     - "enableYAMLCompatibility": false or true
       - slightly change the whitespace around colons
     - "dropNullPlaceholders": false or true
@@ -1897,6 +1903,10 @@ public:
       - If true, outputs non-finite floating point values in the following way:
         NaN values as "NaN", positive infinity as "Infinity", and negative infinity
         as "-Infinity".
+    - "precision": int
+      - Number of precision digits for formatting of real values.
+    - "precisionType": "significant"(default) or "decimal"
+      - Type of precision for formatting of real values.
 
     You can examine 'settings_` yourself
     to see the defaults. You can also write and read them just like any
@@ -2131,7 +2141,8 @@ JSONCPP_STRING JSON_API valueToString(UInt value);
 #endif // if defined(JSON_HAS_INT64)
 JSONCPP_STRING JSON_API valueToString(LargestInt value);
 JSONCPP_STRING JSON_API valueToString(LargestUInt value);
-JSONCPP_STRING JSON_API valueToString(double value);
+JSONCPP_STRING JSON_API valueToString(double value, unsigned int precision = Value::defaultRealPrecision,
+                                      PrecisionType precisionType = PrecisionType::significantDigits);
 JSONCPP_STRING JSON_API valueToString(bool value);
 JSONCPP_STRING JSON_API valueToQuotedString(const char* value);
 

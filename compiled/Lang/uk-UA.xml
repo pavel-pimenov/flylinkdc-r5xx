@@ -538,7 +538,6 @@
 		<String Name="FlyupdateCheckupdatebase">Перевірка оновлення FlylinkDC++…</String>
 		<String Name="FlyupdateDeletetingfiles">Видалення тимчасових файлів оновлення FlylinkDC++…</String>
 		<String Name="FlyupdateDeletetingfolders">Видалення тимчасових каталогів поновлення FlylinkDC++…</String>
-		<String Name="FlyupdateStillrunning">Оновлення не може бути продовжено, оскільки FlylinkDC++ до цих пір в пам'яті. Чекати ще?</String>
 		<String Name="FlyupdateSuccess">Оновлення FlylinkDC++ успішно завершено. Натисніть ОК для запуску FlylinkDC++</String>
 		<String Name="FlyupdateUpdating">Оновлюється FlylinkDC++…</String>
 		<String Name="FlyupdateUsercancel">Користувач перервав автоматичне оновлення FlylinkDC++</String>
@@ -552,9 +551,6 @@
 		<String Name="FormatBbCodesColors">Прийняти кольори BB-кодів</String>
 		<String Name="FormatBotMessage">Форматувати повідомлення від ботів</String>
 		<String Name="FreePmAccess">Доступ без паролю</String>
-		<String Name="FtpSendHeader">Дамп стека відправника</String>
-		<String Name="FtpSendLink">Вказати більше про дамп</String>
-		<String Name="FtpSendQuestion2">Надіслати крах дамп стека для розробників?</String>
 		<String Name="FullFilelistNfo">Відображати повну інформацію о файлі в черзі завантаження</String>
 		<String Name="Gb">ГіБ</String>
 		<String Name="Gbps">Гбит/с</String>

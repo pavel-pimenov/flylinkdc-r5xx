@@ -95,6 +95,8 @@
 // VC++2015
 # pragma warning(disable: 4091) // 'typedef ': ignored on left of 'tagDTI_ADTIWUI' when no variable is declared
 
+#define BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE 1
+
 //[+]PPA
 typedef signed __int8 int8_t;
 typedef signed __int16 int16_t;

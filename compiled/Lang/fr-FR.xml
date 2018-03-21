@@ -502,7 +502,6 @@
 		<String Name="FlyupdateCheckupdatebase">Recherche des mises à jour de FlylinkDC++…</String>
 		<String Name="FlyupdateDeletetingfiles">Suppression des fichiers temporaires de la mise à jour de FlylinkDC++...</String>
 		<String Name="FlyupdateDeletetingfolders">Suppression des dossiers temporaires de la mise à jour de FlylinkDC++...</String>
-		<String Name="FlyupdateStillrunning">Mise à jour ne peut pas continuer parce FlylinkDC++ est toujours en mémoire. Attendez que l'autre?</String>
 		<String Name="FlyupdateSuccess">La mise à jour FlylinkDC++ a réussi. Cliquez sur OK pour demarrer l'application.</String>
 		<String Name="FlyupdateUpdating">Mise à jour FlylinkDC++ …</String>
 		<String Name="FlyupdateUsercancel">Mise à jour de FlylinkDC++ est interrompue par l'utilisateur</String>
@@ -517,9 +516,6 @@
 		<String Name="FormatBbCodesColors">Accepter les couleurs codes BB</String>
 		<String Name="FormatBotMessage">Messages formatés contre les robots collecteurs</String>
 		<String Name="FreePmAccess">Accès sans mot de passe</String>
-		<String Name="FtpSendHeader">Envoi du dump de la chute</String>
-		<String Name="FtpSendLink">A savoir plus sur les "dumps"</String>
-		<String Name="FtpSendQuestion2">Envoyer le dump de la chute aux développeurs?</String>
 		<String Name="FullFilelistNfo">Afficher les infos sur un fichier dans la file d'attente de téléchargement</String>
 		<String Name="Gb">GiB</String>
 		<String Name="Gbps">GiB/s</String>

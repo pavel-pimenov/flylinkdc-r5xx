@@ -636,15 +636,15 @@ bool zmq::stream_engine_t::handshake ()
         encoder = new (std::nothrow) v2_encoder_t (out_batch_size);
         alloc_assert (encoder);
 
-        decoder =
-          new (std::nothrow) v2_decoder_t (in_batch_size, options.maxmsgsize);
+        decoder = new (std::nothrow)
+          v2_decoder_t (in_batch_size, options.maxmsgsize, options.zero_copy);
         alloc_assert (decoder);
     } else {
         encoder = new (std::nothrow) v2_encoder_t (out_batch_size);
         alloc_assert (encoder);
 
-        decoder =
-          new (std::nothrow) v2_decoder_t (in_batch_size, options.maxmsgsize);
+        decoder = new (std::nothrow)
+          v2_decoder_t (in_batch_size, options.maxmsgsize, options.zero_copy);
         alloc_assert (decoder);
 
         if (options.mechanism == ZMQ_NULL
@@ -978,7 +978,7 @@ void zmq::stream_engine_t::error (error_reason_t reason)
         socket->event_handshake_failed_no_detail (endpoint, err);
     }
 #endif
-    socket->event_disconnected (endpoint, (int) s);
+    socket->event_disconnected (endpoint, s);
     session->flush ();
     session->engine_error (reason);
     unplug ();

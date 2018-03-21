@@ -170,9 +170,100 @@ class condition_variable_t
 
 #endif
 
+#elif defined ZMQ_HAVE_VXWORKS
+
+#include <sysLib.h>
+
+namespace zmq
+{
+class condition_variable_t
+{
+  public:
+    inline condition_variable_t () {}
+
+    inline ~condition_variable_t ()
+    {
+        scoped_lock_t l (m_listenersMutex);
+        for (size_t i = 0; i < m_listeners.size (); i++) {
+            semDelete (m_listeners[i]);
+        }
+    }
+
+    inline int wait (mutex_t *mutex_, int timeout_)
+    {
+        //Atomically releases lock, blocks the current executing thread,
+        //and adds it to the list of threads waiting on *this. The thread
+        //will be unblocked when broadcast() is executed.
+        //It may also be unblocked spuriously. When unblocked, regardless
+        //of the reason, lock is reacquired and wait exits.
+
+        SEM_ID sem = semBCreate (SEM_Q_PRIORITY, SEM_EMPTY);
+        {
+            scoped_lock_t l (m_listenersMutex);
+            m_listeners.push_back (sem);
+        }
+        mutex_->unlock ();
+
+        int rc;
+        if (timeout_ < 0)
+            rc = semTake (sem, WAIT_FOREVER);
+        else {
+            int ticksPerSec = sysClkRateGet ();
+            int timeoutTicks = (timeout_ * ticksPerSec) / 1000 + 1;
+            rc = semTake (sem, timeoutTicks);
+        }
+
+        {
+            scoped_lock_t l (m_listenersMutex);
+            // remove sem from listeners
+            for (size_t i = 0; i < m_listeners.size (); i++) {
+                if (m_listeners[i] == sem) {
+                    m_listeners.erase (m_listeners.begin () + i);
+                    break;
+                }
+            }
+            semDelete (sem);
+        }
+        mutex_->lock ();
+
+        if (rc == 0)
+            return 0;
+
+        if (rc == S_objLib_OBJ_TIMEOUT) {
+            errno = EAGAIN;
+            return -1;
+        }
+
+        return -1;
+    }
+
+    inline void broadcast ()
+    {
+        scoped_lock_t l (m_listenersMutex);
+        for (size_t i = 0; i < m_listeners.size (); i++) {
+            semGive (m_listeners[i]);
+        }
+    }
+
+  private:
+    mutex_t m_listenersMutex;
+    std::vector<SEM_ID> m_listeners;
+
+    // Disable copy construction and assignment.
+    condition_variable_t (const condition_variable_t &);
+    const condition_variable_t &operator= (const condition_variable_t &);
+};
+}
 #else
 
 #include <pthread.h>
+
+#if defined(__ANDROID_API__) && __ANDROID_API__ < 21
+#define ANDROID_LEGACY
+extern "C" int pthread_cond_timedwait_monotonic_np (pthread_cond_t *,
+                                                    pthread_mutex_t *,
+                                                    const struct timespec *);
+#endif
 
 namespace zmq
 {
@@ -181,7 +272,12 @@ class condition_variable_t
   public:
     inline condition_variable_t ()
     {
-        int rc = pthread_cond_init (&cond, NULL);
+        pthread_condattr_t attr;
+        pthread_condattr_init (&attr);
+#if !defined(ZMQ_HAVE_OSX) && !defined(ANDROID_LEGACY)
+        pthread_condattr_setclock (&attr, CLOCK_MONOTONIC);
+#endif
+        int rc = pthread_cond_init (&cond, &attr);
         posix_assert (rc);
     }
 
@@ -198,9 +294,9 @@ class condition_variable_t
         if (timeout_ != -1) {
             struct timespec timeout;
 
-#if defined ZMQ_HAVE_OSX                                                       \
-  && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200 // less than macOS 10.12
-            alt_clock_gettime (SYSTEM_CLOCK, &timeout);
+#ifdef ZMQ_HAVE_OSX
+            timeout.tv_sec = 0;
+            timeout.tv_nsec = 0;
 #else
             clock_gettime (CLOCK_MONOTONIC, &timeout);
 #endif
@@ -212,8 +308,15 @@ class condition_variable_t
                 timeout.tv_sec++;
                 timeout.tv_nsec -= 1000000000;
             }
-
+#ifdef ZMQ_HAVE_OSX
+            rc = pthread_cond_timedwait_relative_np (
+              &cond, mutex_->get_mutex (), &timeout);
+#elif defined(ANDROID_LEGACY)
+            rc = pthread_cond_timedwait_monotonic_np (
+              &cond, mutex_->get_mutex (), &timeout);
+#else
             rc = pthread_cond_timedwait (&cond, mutex_->get_mutex (), &timeout);
+#endif
         } else
             rc = pthread_cond_wait (&cond, mutex_->get_mutex ());
 

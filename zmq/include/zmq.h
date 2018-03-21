@@ -590,6 +590,7 @@ ZMQ_EXPORT void zmq_threadclose (void *thread);
 #define ZMQ_BINDTODEVICE 92
 #define ZMQ_ZAP_ENFORCE_DOMAIN 93
 #define ZMQ_LOOPBACK_FASTPATH 94
+#define ZMQ_METADATA 95
 
 /*  DRAFT 0MQ socket events and monitoring                                    */
 /*  Unspecified system errors during handshake. Event value is an errno.      */
@@ -633,6 +634,7 @@ ZMQ_EXPORT void zmq_threadclose (void *thread);
 #define ZMQ_THREAD_AFFINITY_CPU_ADD 7
 #define ZMQ_THREAD_AFFINITY_CPU_REMOVE 8
 #define ZMQ_THREAD_NAME_PREFIX 9
+#define ZMQ_ZERO_COPY_RECV 10
 
 /*  DRAFT Socket methods.                                                     */
 ZMQ_EXPORT int zmq_join (void *s, const char *group);

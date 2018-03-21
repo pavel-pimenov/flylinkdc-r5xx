@@ -298,58 +298,58 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	fixme:dbghelp:MiniDumpWriteDump NIY MiniDumpWithFullMemory
 	fixme:edit:EDIT_EM_FmtLines soft break enabled, not implemented
 	*/
-#ifdef FLYLINKDC_USE_TORRENT_PANEL	
+#ifdef FLYLINKDC_USE_TORRENT_PANEL
 	{
-	        CRect rcVert;
-	        GetClientRect(&rcVert);
-	
-	        // create the vertical splitter
-	        m_vSplit.Create(m_hWnd, rcVert, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-	
-	        // set the vertical splitter parametersf
-	        m_vSplit.m_cxyMin = 222; // minimum size
-	        m_vSplit.SetSplitterPos(222); // from left
-	        //m_vSplit.m_bFullDrag = false;  // ghost bar enabled
-	
-	        CRect rcHorz;
-	        GetClientRect(&rcHorz);
-	
-	        // create the horizontal splitter. Note that vSplit is parent of hzSplit
-	        m_hzSplit.Create(m_vSplit, rcHorz, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-	
-	        // set the horizontal splitter parameters
-	        m_hzSplit.m_cxyMin = 35; // minimum size
-	        m_hzSplit.SetSplitterPos(100); // from top
-	        m_hzSplit.m_bFullDrag = false; // ghost bar enabled
-	
-	                                       // add the horizontal splitter to right pane of vertical splitter
-	        m_vSplit.SetSplitterPane(1, m_hzSplit);
-	        m_lPane.Create(m_vSplit.m_hWnd);
-	        // add container to left pane (0) of vertical splitter
-	        m_vSplit.SetSplitterPane(0, m_lPane);
-	
-	        // set the left pane title
-	        //m_lPane.SetTitle(_T("Left Pane"));
-	        //m_lPane.SetPaneContainerExtendedStyle(PANECNT_NOCLOSEBUTTON);
-	
-	        // create the top container.  Note use of hzSplit as parent
-	        m_tPane.Create(m_hzSplit.m_hWnd);
-	
-	        // add container to top pane (0) of horizontal splitter
-	        m_hzSplit.SetSplitterPane(0, m_tPane);
-	
-	        // set the top pane title
-	        m_tPane.SetTitle(_T("Top Pane -- no Close button"));
-	
-	        // remove the close button from the top container
-	        m_tPane.SetPaneContainerExtendedStyle(PANECNT_NOCLOSEBUTTON);
-	
-	    }
+		CRect rcVert;
+		GetClientRect(&rcVert);
+		
+		// create the vertical splitter
+		m_vSplit.Create(m_hWnd, rcVert, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+		
+		// set the vertical splitter parametersf
+		m_vSplit.m_cxyMin = 222; // minimum size
+		m_vSplit.SetSplitterPos(222); // from left
+		//m_vSplit.m_bFullDrag = false;  // ghost bar enabled
+		
+		CRect rcHorz;
+		GetClientRect(&rcHorz);
+		
+		// create the horizontal splitter. Note that vSplit is parent of hzSplit
+		m_hzSplit.Create(m_vSplit, rcHorz, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+		
+		// set the horizontal splitter parameters
+		m_hzSplit.m_cxyMin = 35; // minimum size
+		m_hzSplit.SetSplitterPos(100); // from top
+		m_hzSplit.m_bFullDrag = false; // ghost bar enabled
+		
+		// add the horizontal splitter to right pane of vertical splitter
+		m_vSplit.SetSplitterPane(1, m_hzSplit);
+		m_lPane.Create(m_vSplit.m_hWnd);
+		// add container to left pane (0) of vertical splitter
+		m_vSplit.SetSplitterPane(0, m_lPane);
+		
+		// set the left pane title
+		//m_lPane.SetTitle(_T("Left Pane"));
+		//m_lPane.SetPaneContainerExtendedStyle(PANECNT_NOCLOSEBUTTON);
+		
+		// create the top container.  Note use of hzSplit as parent
+		m_tPane.Create(m_hzSplit.m_hWnd);
+		
+		// add container to top pane (0) of horizontal splitter
+		m_hzSplit.SetSplitterPane(0, m_tPane);
+		
+		// set the top pane title
+		m_tPane.SetTitle(_T("Top Pane -- no Close button"));
+		
+		// remove the close button from the top container
+		m_tPane.SetPaneContainerExtendedStyle(PANECNT_NOCLOSEBUTTON);
+		
+	}
 	HWND l_lHwnd = m_lPane;
 	HWND l_SearchHwnd = m_tPane;
 #else
 	HWND l_lHwnd = m_hWnd;
-#endif	
+#endif
 	m_tooltip.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
 	m_tooltip.SetDelayTime(TTDT_AUTOPOP, 15000);
 	dcassert(m_tooltip.IsWindow());

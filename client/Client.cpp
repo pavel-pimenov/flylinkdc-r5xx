@@ -815,9 +815,25 @@ bool Client::isFloodCommand(const string& p_command, const string& p_line)
 								                     + " count = " + Util::toString(l_result.m_count);
 								LogManager::flood_message(l_msg);
 								unsigned l_index = 0;
+								std::string l_last_message;
+								unsigned l_count_dup = 0;
 								for (auto i = l_result.m_flood_command.cbegin(); i != l_result.m_flood_command.cend(); ++i)
 								{
-									LogManager::flood_message("[DeltaTime:" + Util::toString(i->second) + "][Index = " + Util::toString(l_index) + "][Message = " + i->first + "]");
+									if (l_last_message == i->first)
+									{
+										l_count_dup++;
+									}
+									else
+									{
+										LogManager::flood_message("[DeltaTime:" + Util::toString(i->second) + "][Index = " +
+										                          Util::toString(l_index++) + "][Message = " + i->first + "][dup=" + Util::toString(l_count_dup) + "]");
+										l_last_message = i->first;
+										l_count_dup = 0;
+									}
+								}
+								if (l_count_dup)
+								{
+									LogManager::flood_message("[Message = " + l_last_message + "][dup=" + Util::toString(l_count_dup) + "]");
 								}
 								l_result.m_flood_command.clear();
 							}

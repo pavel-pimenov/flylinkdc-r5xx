@@ -47,6 +47,9 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#if defined ZMQ_HAVE_VXWORKS
+#include <sockLib.h>
+#endif
 #endif
 
 zmq::socks_connecter_t::socks_connecter_t (class io_thread_t *io_thread_,
@@ -155,7 +158,7 @@ void zmq::socks_connecter_t::in_event ()
                 //  Attach the engine to the corresponding session object.
                 send_attach (session, engine);
 
-                socket->event_connected (endpoint, (int) s);
+                socket->event_connected (endpoint, s);
 
                 rm_fd (handle);
                 s = -1;
@@ -342,16 +345,24 @@ int zmq::socks_connecter_t::connect_to_proxy ()
 
     // Set a source address for conversations
     if (tcp_addr->has_src_addr ()) {
+#if defined ZMQ_HAVE_VXWORKS
+        rc = ::bind (s, (sockaddr *) tcp_addr->src_addr (),
+                     tcp_addr->src_addrlen ());
+#else
         rc = ::bind (s, tcp_addr->src_addr (), tcp_addr->src_addrlen ());
+#endif
         if (rc == -1) {
             close ();
             return -1;
         }
     }
 
-    //  Connect to the remote peer.
+        //  Connect to the remote peer.
+#if defined ZMQ_HAVE_VXWORKS
+    rc = ::connect (s, (sockaddr *) tcp_addr->addr (), tcp_addr->addrlen ());
+#else
     rc = ::connect (s, tcp_addr->addr (), tcp_addr->addrlen ());
-
+#endif
     //  Connect was successful immediately.
     if (rc == 0)
         return 0;
@@ -377,7 +388,7 @@ zmq::fd_t zmq::socks_connecter_t::check_proxy_connection ()
 {
     //  Async connect has finished. Check whether an error occurred
     int err = 0;
-#ifdef ZMQ_HAVE_HPUX
+#if defined ZMQ_HAVE_HPUX || defined ZMQ_HAVE_VXWORKS
     int len = sizeof err;
 #else
     socklen_t len = sizeof err;
@@ -433,7 +444,7 @@ void zmq::socks_connecter_t::close ()
     const int rc = ::close (s);
     errno_assert (rc == 0);
 #endif
-    socket->event_closed (endpoint, (int) s);
+    socket->event_closed (endpoint, s);
     s = retired_fd;
 }
 

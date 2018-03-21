@@ -1584,7 +1584,10 @@ Ztring MediaInfo_Internal::Inform(std::vector<MediaInfo_Internal*>& Info)
         for (size_t FilePos=0; FilePos<Info.size(); FilePos++)
         {
             size_t Modified;
-            Result+=__T("<media ref=\"")+MediaInfo_Internal::Xml_Content_Escape(Info[FilePos]->Get(Stream_General, 0, General_CompleteName), Modified)+__T("\"");
+            Result+=__T("<media");
+            Ztring Options=Info[FilePos]->Get(Stream_General, 0, General_CompleteName, Info_Options);
+            if (InfoOption_ShowInInform<Options.size() && Options[InfoOption_ShowInInform]==__T('Y'))
+                Result+=__T(" ref=\"")+MediaInfo_Internal::Xml_Content_Escape(Info[FilePos]->Get(Stream_General, 0, General_CompleteName), Modified)+__T("\"");
             if (Info[FilePos] && !Info[FilePos]->ParserName.empty())
                 Result+=__T(" parser=\"")+Info[FilePos]->ParserName+=__T("\"");
             Result+= __T('>');
@@ -1616,7 +1619,10 @@ Ztring MediaInfo_Internal::Inform(std::vector<MediaInfo_Internal*>& Info)
         for (size_t FilePos=0; FilePos<Info.size(); FilePos++)
         {
             size_t Modified;
-            Result+=__T("<media ref=\"")+MediaInfo_Internal::Xml_Content_Escape(Info[FilePos]->Get(Stream_General, 0, General_CompleteName), Modified)+__T("\"");
+            Result+=__T("<media");
+            Ztring Options=Info[FilePos]->Get(Stream_General, 0, General_CompleteName, Info_Options);
+            if (InfoOption_ShowInInform<Options.size() && Options[InfoOption_ShowInInform]==__T('Y'))
+                Result+=__T(" ref=\"")+MediaInfo_Internal::Xml_Content_Escape(Info[FilePos]->Get(Stream_General, 0, General_CompleteName), Modified)+__T("\"");
             if (Info[FilePos] && !Info[FilePos]->ParserName.empty())
                 Result+=__T(" parser=\"")+Info[FilePos]->ParserName+=__T("\"");
             Result+= __T('>');

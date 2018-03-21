@@ -692,6 +692,10 @@ void File__Analyze::Open_Buffer_Continue (const int8u* ToAdd, size_t ToAdd_Size)
     if (Buffer_Size>=Buffer_MinimumSize || File_Offset+Buffer_Size==File_Size) //Parsing only if we have enough buffer
         while (Open_Buffer_Continue_Loop());
 
+	extern volatile bool g_isShutdown;
+	if (g_isShutdown)
+		return;
+
     //Hash
     #if MEDIAINFO_HASH
         if (Hash_ParseUpTo>File_Size)
@@ -1076,9 +1080,16 @@ bool File__Analyze::Open_Buffer_Continue_Loop ()
     #endif //MEDIAINFO_DEMUX
 
     //Parsing;
-    while (Buffer_Offset<Buffer_Size)
-        if (!Buffer_Parse())
-            break;
+		while (Buffer_Offset < Buffer_Size)
+		{
+			extern volatile bool g_isShutdown;
+			if (g_isShutdown)
+				return false;
+			if (!Buffer_Parse())
+			{
+				break;
+			}
+		}
     Buffer_TotalBytes+=Buffer_Offset;
 
     //Handling of File_GoTo with already buffered data

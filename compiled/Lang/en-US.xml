@@ -621,7 +621,6 @@ If possible, send the file for analysis to ppa74@ya.ru</String>
 		<String Name="FlyupdateCheckupdatebase">Checking FlylinkDC++ update…</String>
 		<String Name="FlyupdateDeletetingfiles">Removing temp files of FlylinkDC++ update…</String>
 		<String Name="FlyupdateDeletetingfolders">Removing temp folders of FlylinkDC++ update…</String>
-		<String Name="FlyupdateStillrunning">FlylinkDC++ application is still running. Update can be continued after exiting FlylinkDC++ application. Continue waiting?</String>
 		<String Name="FlyupdateSuccess">FlylinkDC++ automatic update is completed successfully. Press OK button to start FlylinkDC++ application</String>
 		<String Name="FlyupdateUpdating">Updating FlylinkDC++…</String>
 		<String Name="FlyupdateUsercancel">User canceled FlylinkDC++ automatic update</String>
@@ -637,12 +636,6 @@ If possible, send the file for analysis to ppa74@ya.ru</String>
 		<String Name="FormatBbCodesColors">Accept colors BB codes</String>
 		<String Name="FormatBotMessage">Format message from Bot</String>
 		<String Name="FreePmAccess">Free PM access</String>
-		<String Name="FtpSendHeader">Stack dump sender</String>
-		<String Name="FtpSendLink">Learn more about 'dump'</String>
-		<String Name="FtpSendQuestion">Previous launch caused client crash. To help authors to find the cause, it is recommended to allow the sending archived file.
-It contains the stack dump and error description only.
-It does not contain any confidential information like  passwords, email addresses or credit card numbers.</String>
-		<String Name="FtpSendQuestion2">Really send crash stack dump to developers?</String>
 		<String Name="FullFilelistNfo">Display full info for File-lists in download queue</String>
 		<String Name="Gb">GiB</String>
 		<String Name="Gbps">GiB/s</String>
