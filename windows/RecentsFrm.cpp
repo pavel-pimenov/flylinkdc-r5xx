@@ -97,8 +97,8 @@ LRESULT RecentHubsFrame::onDoubleClickHublist(int /*idCtrl*/, LPNMHDR pnmh, BOOL
 	
 	if (item->iItem != -1)
 	{
-		RecentHubEntry* entry = (RecentHubEntry*)ctrlHubs.GetItemData(item->iItem);
-		HubFrame::openWindow(false, entry->getServer());
+		const RecentHubEntry* entry = (RecentHubEntry*)ctrlHubs.GetItemData(item->iItem);
+		HubFrame::openHubWindow(false, entry->getServer());
 	}
 	return 0;
 }
@@ -109,8 +109,8 @@ LRESULT RecentHubsFrame::onEnter(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*bHa
 	
 	if (item != -1)
 	{
-		RecentHubEntry* entry = (RecentHubEntry*)ctrlHubs.GetItemData(item);
-		HubFrame::openWindow(false, entry->getServer());
+		const RecentHubEntry* entry = (RecentHubEntry*)ctrlHubs.GetItemData(item);
+		HubFrame::openHubWindow(false, entry->getServer());
 	}
 	
 	return 0;
@@ -122,7 +122,7 @@ LRESULT RecentHubsFrame::onClickedConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 	while ((i = ctrlHubs.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const RecentHubEntry* entry = (RecentHubEntry*)ctrlHubs.GetItemData(i);
-		HubFrame::openWindow(false, entry->getServer());
+		HubFrame::openHubWindow(false, entry->getServer());
 	}
 	return 0;
 }

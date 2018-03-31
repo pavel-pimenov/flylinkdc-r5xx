@@ -1071,7 +1071,6 @@ Empty = Default String -&gt; +me playing: %[title] (Media Player Classic)</Strin
 		<String Name="Open">Open</String>
 		<String Name="OpenFolder">Open folder</String>
 		<String Name="OpenHubLog">Open hub log</String>
-		<String Name="OpenLogsInternal">Open log files internally (performance may decrease when opening huge log files)</String>
 		<String Name="OpenUserLog">Open user log</String>
 		<String Name="Outgoing">outgoing</String>
 		<String Name="OverlappedSlowSegment">Overlapped by faster user</String>

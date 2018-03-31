@@ -1990,7 +1990,7 @@ LRESULT MainFrame::OnConnectToSupportHUB(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
 	r.setDescription(STRING(SUPPORTS_SERVER_DESC));
 	r.setServer(CFlyServerConfig::g_support_hub);
 	FavoriteManager::getInstance()->addRecent(r);
-	HubFrame::openWindow(false, CFlyServerConfig::g_support_hub);
+	HubFrame::openHubWindow(false, CFlyServerConfig::g_support_hub);
 	
 	return 0;
 }
@@ -2408,7 +2408,7 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 					{
 						l_resent_hub->setAutoOpen(true);
 					}
-					frm = HubFrame::openWindow(true,
+					frm = HubFrame::openHubWindow(true,
 					                           entry->getServer(),
 					                           entry->getName(),
 					                           entry->getRawOne(),
@@ -2443,7 +2443,7 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 					if (FavoriteManager::isISPDelete((*j)->getServer()) == false)
 #endif
 					{
-						frm = HubFrame::openWindow(true,
+						frm = HubFrame::openHubWindow(true,
 						                           (*j)->getServer(),
 						                           (*j)->getName()
 						                          );
@@ -2463,7 +2463,7 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 	}
 	if (!FavoriteManager::g_DefaultHubUrl.empty())
 	{
-		HubFrame::openWindow(false, FavoriteManager::g_DefaultHubUrl);
+		HubFrame::openHubWindow(false, FavoriteManager::g_DefaultHubUrl);
 		LogManager::message("Default hub:" + FavoriteManager::g_DefaultHubUrl);
 	}
 	if (!PopupManager::isValidInstance())
@@ -3506,7 +3506,7 @@ LRESULT MainFrame::onQuickConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			const string l_formattedDcHubUrl = Util::formatDchubUrl(Text::fromT(tmp));
 			r.setServer(l_formattedDcHubUrl);
 			FavoriteManager::getInstance()->addRecent(r);
-			HubFrame::openWindow(false, l_formattedDcHubUrl);
+			HubFrame::openHubWindow(false, l_formattedDcHubUrl);
 		}
 	}
 	return 0;
@@ -4047,7 +4047,7 @@ void MainFrame::on(UserManagerListener::OutgoingPrivateMessage, const UserPtr& t
 
 void MainFrame::on(UserManagerListener::OpenHub, const string& p_url) noexcept // [+] IRainman
 {
-	HubFrame::openWindow(false, p_url);
+	HubFrame::openHubWindow(false, p_url);
 }
 
 void MainFrame::on(UserManagerListener::CollectSummaryInfo, const UserPtr& user, const string& hubHint) noexcept // [+] IRainman

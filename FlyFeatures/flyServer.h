@@ -320,6 +320,7 @@ class CFlyServerConfig
 		static std::unique_ptr<webrtc::RWLockWrapper> g_cs_block_ip;
 		
 		static std::unordered_set<std::string> g_block_hubs;
+		static std::vector<std::string> g_block_hubs_mask;
 		static string g_regex_find_ip;
 		static string g_faq_search_does_not_work;
 #ifdef FLYLINKDC_USE_XXX_BLOCK

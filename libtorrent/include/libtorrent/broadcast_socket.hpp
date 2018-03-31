@@ -57,8 +57,8 @@ namespace libtorrent {
 	TORRENT_EXTRA_EXPORT bool supports_ipv6();
 	address ensure_v6(address const& a);
 
-	typedef std::function<void(udp::endpoint const& from
-		, span<char const> buffer)> receive_handler_t;
+	using receive_handler_t = std::function<void(udp::endpoint const& from
+		, span<char const> buffer)>;
 
 	class TORRENT_EXTRA_EXPORT broadcast_socket
 	{
@@ -79,10 +79,10 @@ namespace libtorrent {
 
 		struct socket_entry
 		{
-			explicit socket_entry(std::shared_ptr<udp::socket> const& s)
-				: socket(s), broadcast(false) { std::memset(buffer, 0, sizeof(buffer)); }
-			socket_entry(std::shared_ptr<udp::socket> const& s
-				, address_v4 const& mask): socket(s), netmask(mask), broadcast(false)
+			explicit socket_entry(std::shared_ptr<udp::socket> s)
+				: socket(std::move(s)), broadcast(false) { std::memset(buffer, 0, sizeof(buffer)); }
+			socket_entry(std::shared_ptr<udp::socket> s
+				, address_v4 const& mask): socket(std::move(s)), netmask(mask), broadcast(false)
 			{ std::memset(buffer, 0, sizeof(buffer)); }
 			std::shared_ptr<udp::socket> socket;
 			char buffer[1500];

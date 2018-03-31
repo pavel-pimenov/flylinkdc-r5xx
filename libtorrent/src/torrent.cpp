@@ -109,6 +109,28 @@ POSSIBILITY OF SUCH DAMAGE.
 using namespace std::placeholders;
 
 namespace libtorrent {
+namespace {
+
+bool is_downloading_state(int const st)
+{
+	switch (st)
+	{
+		case torrent_status::checking_files:
+		case torrent_status::allocating:
+		case torrent_status::checking_resume_data:
+			return false;
+		case torrent_status::downloading_metadata:
+		case torrent_status::downloading:
+		case torrent_status::finished:
+		case torrent_status::seeding:
+			return true;
+		default:
+			// unexpected state
+			TORRENT_ASSERT_FAIL_VAL(st);
+			return false;
+	}
+}
+} // anonymous namespace
 
 	web_seed_t::web_seed_t(web_seed_entry const& wse)
 		: web_seed_entry(wse)
@@ -2724,8 +2746,7 @@ namespace libtorrent {
 		// exclude redundant bytes if we should
 		if (!settings().get_bool(settings_pack::report_true_downloaded))
 			req.downloaded -= m_total_redundant_bytes;
-		if (settings().get_bool(settings_pack::report_redundant_bytes))
-			req.redundant = m_total_redundant_bytes;
+		req.redundant = m_total_redundant_bytes;
 		if (req.downloaded < 0) req.downloaded = 0;
 
 		req.event = e;
@@ -3896,23 +3917,26 @@ namespace libtorrent {
 
 		remove_time_critical_piece(index, true);
 
-		if (m_state != torrent_status::finished
-			&& m_state != torrent_status::seeding
-			&& is_finished())
+		if (is_downloading_state(m_state))
 		{
-			// torrent finished
-			// i.e. all the pieces we're interested in have
-			// been downloaded. Release the files (they will open
-			// in read only mode if needed)
-			finished();
-			// if we just became a seed, picker is now invalid, since it
-			// is deallocated by the torrent once it starts seeding
+			if (m_state != torrent_status::finished
+				&& m_state != torrent_status::seeding
+				&& is_finished())
+			{
+				// torrent finished
+				// i.e. all the pieces we're interested in have
+				// been downloaded. Release the files (they will open
+				// in read only mode if needed)
+				finished();
+				// if we just became a seed, picker is now invalid, since it
+				// is deallocated by the torrent once it starts seeding
+			}
+
+			m_last_download = aux::time_now32();
+
+			if (m_share_mode)
+				recalc_share_mode();
 		}
-
-		m_last_download = aux::time_now32();
-
-		if (m_share_mode)
-			recalc_share_mode();
 	}
 
 	// this is called when the piece hash is checked as correct. Note
@@ -4875,15 +4899,18 @@ namespace libtorrent {
 		bool const was_finished = is_finished();
 		for (auto const& p : pieces)
 		{
-			TORRENT_ASSERT(p.second >= dont_download);
+			static_assert(std::is_unsigned<decltype(p.second)>::value
+				, "we need assert p.second >= dont_download");
 			TORRENT_ASSERT(p.second <= top_priority);
 			TORRENT_ASSERT(p.first >= piece_index_t(0));
 			TORRENT_ASSERT(p.first < m_torrent_file->end_piece());
 
 			if (p.first < piece_index_t(0)
 				|| p.first >= m_torrent_file->end_piece()
-				|| p.second < dont_download || p.second > top_priority)
+				|| p.second > top_priority)
 			{
+				static_assert(std::is_unsigned<decltype(p.second)>::value
+					, "we need additional condition: p.second < dont_download");
 				continue;
 			}
 
@@ -4925,7 +4952,9 @@ namespace libtorrent {
 		bool const was_finished = is_finished();
 		for (auto prio : pieces)
 		{
-			TORRENT_ASSERT(prio >= dont_download && prio <= top_priority);
+			static_assert(std::is_unsigned<decltype(prio)>::value
+				, "we need assert prio >= dont_download");
+			TORRENT_ASSERT(prio <= top_priority);
 			filter_updated |= m_picker->set_piece_priority(index, prio);
 			TORRENT_ASSERT(num_have() >= m_picker->num_have_filtered());
 			++index;
@@ -5135,6 +5164,15 @@ namespace libtorrent {
 			// invalidate the iterator
 			++i;
 			p->update_interest();
+		}
+
+		if (!is_downloading_state(m_state))
+		{
+#ifndef TORRENT_DISABLE_LOGGING
+			debug_log("*** UPDATE_PEER_INTEREST [ skipping, state: %d ]"
+				, int(m_state));
+#endif
+			return;
 		}
 
 #ifndef TORRENT_DISABLE_LOGGING
@@ -6819,8 +6857,7 @@ namespace libtorrent {
 			return false;
 		}
 
-		if ((m_state == torrent_status::checking_files
-			|| m_state == torrent_status::checking_resume_data)
+		if (!is_downloading_state(m_state)
 			&& valid_metadata())
 		{
 			p->disconnect(errors::torrent_not_ready, operation_t::bittorrent);
@@ -7340,16 +7377,9 @@ namespace libtorrent {
 		// to be in downloading state (which it will be set to shortly)
 //		INVARIANT_CHECK;
 
-		if (m_state == torrent_status::checking_resume_data
-			|| m_state == torrent_status::checking_files
-			|| m_state == torrent_status::allocating)
-		{
-#ifndef TORRENT_DISABLE_LOGGING
-			debug_log("*** RESUME_DOWNLOAD [ skipping, state: %d ]"
-				, int(m_state));
-#endif
-			return;
-		}
+		TORRENT_ASSERT(m_state != torrent_status::checking_resume_data
+			&& m_state != torrent_status::checking_files
+			&& m_state != torrent_status::allocating);
 
 		// we're downloading now, which means we're no longer in seed mode
 		if (m_seed_mode)
@@ -10433,29 +10463,6 @@ namespace libtorrent {
 	void torrent::new_external_ip()
 	{
 		if (m_peer_list) m_peer_list->clear_peer_prio();
-	}
-
-namespace {
-
-		bool is_downloading_state(int const st)
-		{
-			switch (st)
-			{
-				case torrent_status::checking_files:
-				case torrent_status::allocating:
-				case torrent_status::checking_resume_data:
-					return false;
-				case torrent_status::downloading_metadata:
-				case torrent_status::downloading:
-				case torrent_status::finished:
-				case torrent_status::seeding:
-					return true;
-				default:
-					// unexpected state
-					TORRENT_ASSERT_FAIL_VAL(st);
-					return false;
-			}
-		}
 	}
 
 	void torrent::stop_when_ready(bool const b)

@@ -60,7 +60,7 @@ PropPage::TextItem NetworkPage::texts[] =
 	{ IDC_NATT, ResourceManager::ALLOW_NAT_TRAVERSAL },
 	{ IDC_IPUPDATE, ResourceManager::UPDATE_IP },
 	{ IDC_SETTINGS_UPDATE_IP_INTERVAL, ResourceManager::UPDATE_IP_INTERVAL },
-	{ IDC_SETTINGS_USE_TORRENT,  ResourceManager::USE_TORRENT },
+	{ IDC_SETTINGS_USE_TORRENT,  ResourceManager::USE_TORRENT_SEARCH_TEXT },
 	{ IDC_GETIP, ResourceManager::GET_IP },
 	{ IDC_ADD_FLYLINKDC_WINFIREWALL, ResourceManager::ADD_FLYLINKDC_WINFIREWALL },
 	{ IDC_STATIC_GATEWAY, ResourceManager::SETTINGS_GATEWAY },
@@ -84,7 +84,7 @@ PropPage::Item NetworkPage::items[] =
 	{ IDC_BIND_ADDRESS,     SettingsManager::BIND_ADDRESS, PropPage::T_STR },
 	{ IDC_NATT,             SettingsManager::ALLOW_NAT_TRAVERSAL, PropPage::T_BOOL },
 	{ IDC_PORT_TORRENT,         SettingsManager::DHT_PORT,      PropPage::T_INT },
-	{ IDC_SETTINGS_USE_TORRENT, SettingsManager::USE_TORRENT, PropPage::T_BOOL },
+	{ IDC_SETTINGS_USE_TORRENT, SettingsManager::USE_TORRENT_SEARCH, PropPage::T_BOOL },
 	{ 0, 0, PropPage::T_END }
 };
 

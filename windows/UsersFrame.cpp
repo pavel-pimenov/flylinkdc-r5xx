@@ -347,11 +347,11 @@ LRESULT UsersFrame::onConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 	for (int i = 0; i < l_cnt; ++i)
 	{
 		dcassert(l_cnt == ctrlUsers.GetItemCount());
-		UserInfo *ui = ctrlUsers.getItemData(i);
+		const UserInfo *ui = ctrlUsers.getItemData(i);
 		const string& l_url = FavoriteManager::getUserUrl(ui->getUser());
 		if (!l_url.empty())
 		{
-			HubFrame::openWindow(false, l_url);
+			HubFrame::openHubWindow(false, l_url);
 		}
 	}
 	return 0;

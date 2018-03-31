@@ -650,9 +650,8 @@ void PublicHubsFrame::openHub(int ind) // [+] IRainman fix.
 	r.setShared(m_ctrlHubs.ExGetItemText(ind, COLUMN_SHARED));
 	const string l_server = Util::formatDchubUrl(m_ctrlHubs.ExGetItemText(ind, COLUMN_SERVER));
 	r.setServer(l_server);
-	FavoriteManager::getInstance()->addRecent(r);
-	
-	HubFrame::openWindow(false, l_server);
+	FavoriteManager::getInstance()->addRecent(r);	
+	HubFrame::openHubWindow(false, l_server);
 }
 
 LRESULT PublicHubsFrame::onEnter(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*bHandled*/)

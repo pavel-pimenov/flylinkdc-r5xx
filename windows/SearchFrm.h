@@ -671,6 +671,8 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		
 		CButton m_ctrlStoreSettings;
 		CButton m_ctrlUseGroupTreeSettings;
+		CButton m_ctrlUseTorrentSearch;
+		CButton m_ctrlUseTorrentRSS;
 		bool m_showUI;
 		bool m_lastFindTTH;
 		bool m_need_resort;

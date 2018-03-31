@@ -146,6 +146,8 @@ std::vector<std::string> CFlyServerConfig::g_mapping_hubs;
 //std::unordered_set<unsigned long> CFlyServerConfig::g_block_ip;
 std::unordered_set<std::string> CFlyServerConfig::g_block_ip_str;
 std::unordered_set<std::string> CFlyServerConfig::g_block_hubs;
+std::vector<std::string> CFlyServerConfig::g_block_hubs_mask;
+
 #ifdef USE_SUPPORT_HUB
 string CFlyServerConfig::g_support_hub = "dchub://dc.fly-server.ru";
 #ifdef FLYLINKDC_USE_SUPPORT_HUB_EN
@@ -601,6 +603,13 @@ void CFlyServerConfig::loadConfig()
 						checkStrKey(n);
 						g_block_hubs.insert(n);
 					});
+
+					l_xml.getChildAttribSplit("block_mask", g_block_hubs_mask, [this](const string & n)
+					{
+						checkStrKey(n);
+						g_block_hubs_mask.push_back(n);
+					});
+				
 					
 					l_xml.getChildAttribSplit("exclude_tag", g_exclude_tag, [this](const string & n)
 					{
@@ -1928,7 +1937,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 }
 #endif
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 89 (36,58,44,49б83 - устарели)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 89 (36,58,44,49,83 - устарели)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;

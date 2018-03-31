@@ -1167,6 +1167,8 @@
 	<string name="SavePassword">Save password</string>
 	<string name="SaveSearchSettingsText">Save Search settings</string>
 	<string name="UseSearchGroupTreeSettingsText">Use group tree</string>
+	<string name="UseTorrentSearchText">Use torrent search</string>
+	<string name="UseTorrentRssText">Use torrent RSS</string>
 	<string name="SaveSearchSettingsTooltip">This option involves maintaining search parameters: size, type, method, and so on.</string>
 	<string name="Search">Search</string>
 	<string name="SearchDetectTth">Automatically switch search type to TTH when one is found in search string</string>
@@ -1780,7 +1782,6 @@
 	<string name="UseBitrateFixForSpam">Use Bitrate/Sample fix for QCD/QMP players</string>
 	<string name="UseCustomListBackground">Use custom list background style</string>
 	<string name="UseCustomMenu">Use custom menus</string>
-	<string name="UseTorrent">Enable torrent</string>
 	<string name="UseDhtNotanswer">Do not ask again</string>
 	<string name="UseExplorerTheme">Use Explorer theme in listviews and treeviews</string>
 	<string name="UcSubmenu">Place usercommands to submenu</string>

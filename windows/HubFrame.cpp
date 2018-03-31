@@ -699,7 +699,7 @@ void HubFrame::onInvalidateAfterActiveTab(HWND aWnd)
 	}
 }
 
-HubFrame* HubFrame::openWindow(bool p_is_auto_connect,
+HubFrame* HubFrame::openHubWindow(bool p_is_auto_connect,
                                const string& p_server,
                                const string& p_name,
                                const string& p_rawOne,
@@ -726,6 +726,16 @@ HubFrame* HubFrame::openWindow(bool p_is_auto_connect,
 	const auto i = g_frames.find(p_server);
 	if (i == g_frames.end())
 	{
+
+		for (const auto j : CFlyServerConfig::g_block_hubs_mask)
+		{
+			if (p_server.find(j) != string::npos)
+			{
+				//CFlyServerJSON::pushError(90, "Block hubs url : " + p_server + " pattern: " + j);
+				return nullptr;
+			}
+		}
+
 		frm = new HubFrame(p_is_auto_connect,
 		                   p_server,
 		                   p_name,
@@ -834,7 +844,7 @@ void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring
 			m_redirect = Util::formatDchubUrl(Text::fromT(param));
 			if (BOOLSETTING(JOIN_OPEN_NEW_WINDOW))
 			{
-				openWindow(false, m_redirect);
+				openHubWindow(false, m_redirect);
 			}
 			else
 			{

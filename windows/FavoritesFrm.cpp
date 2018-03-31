@@ -220,7 +220,7 @@ void FavoriteHubsFrame::openSelected()
 		r.setShared("*");
 		r.setServer(entry->getServer());
 		FavoriteManager::getInstance()->addRecent(r);
-		HubFrame::openWindow(true,
+		HubFrame::openHubWindow(true,
 		                     entry->getServer(),
 		                     entry->getName(),
 		                     entry->getRawOne(),

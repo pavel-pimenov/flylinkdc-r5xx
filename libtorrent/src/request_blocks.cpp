@@ -35,7 +35,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/torrent.hpp"
 #include "libtorrent/aux_/socket_type.hpp"
 #include "libtorrent/peer_info.hpp" // for peer_info flags
-#include "libtorrent/performance_counters.hpp" // for counters
 #include "libtorrent/request_blocks.hpp"
 #include "libtorrent/alert_manager.hpp"
 #include "libtorrent/aux_/has_block.hpp"
@@ -202,8 +201,6 @@ namespace libtorrent {
 		// that some other peer is currently downloading
 		piece_block busy_block = piece_block::invalid;
 
-		for (std::vector<piece_block>::iterator i = interesting_pieces.begin();
-			i != interesting_pieces.end(); ++i)
 		for (piece_block const& pb : interesting_pieces)
 		{
 			if (prefer_contiguous_blocks == 0 && num_requests <= 0) break;
@@ -308,4 +305,3 @@ namespace libtorrent {
 	}
 
 }
-

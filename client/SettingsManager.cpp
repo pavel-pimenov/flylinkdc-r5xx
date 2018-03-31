@@ -247,7 +247,9 @@ static const char* g_settingTags[] =
 	"AcceptedDisconnects", "AcceptedTimeouts",
 	"OpenRecentHubs", "OpenPublic", "OpenFavoriteHubs", "OpenFavoriteUsers", "OpenQueue", "OpenFinishedDownloads",
 	"OpenFinishedUploads", "OpenSearchSpy", "OpenNetworkStatistics", "OpenNotepad", "OutgoingConnections",
-	"NoIPOverride", "ForgetSearchRequest", "SaveSearchSettings", "UseSearchGroupTreeSettings", "SavedSearchType", "SavedSearchSizeMode", "SavedSearchMode", "BoldFinishedDownloads",
+	"NoIPOverride", "ForgetSearchRequest", "SaveSearchSettings", "UseSearchGroupTreeSettings", 
+    "UseTorrentSearch","UseTorrentRSS", 
+	"SavedSearchType", "SavedSearchSizeMode", "SavedSearchMode", "BoldFinishedDownloads",
 	"BoldFinishedUploads", "BoldQueue",
 	"BoldHub", "BoldPm", "BoldSearch", "BoldNewrss", "TabsPos",
 	"HubPosition", // [+] InfinitySky.
@@ -354,7 +356,6 @@ static const char* g_settingTags[] =
 	"OverlapChunks",
 	"ExtraPartialSlots",
 	"AutoSlot",
-	"UseTorrentDHT",
 	"DHTPort",
 	"KeepFinishedFilesOption",
 	"AllowNATTraversal", "UseExplorerTheme", "UcSubMenu", "AutoDetectIncomingConnection",
@@ -932,6 +933,8 @@ void SettingsManager::setDefaults()
 //	setDefault(FORGET_SEARCH_REQUEST, false);    // [+] SCALOlaz: do not save s-queue to dropbox list
 	setDefault(SAVE_SEARCH_SETTINGS, FALSE); // [+] SCALOlaz: save selected type in search frame
 	setDefault(USE_SEARCH_GROUP_TREE_SETTINGS, TRUE);
+	setDefault(USE_TORRENT_SEARCH, TRUE);
+	setDefault(USE_TORRENT_RSS, TRUE);
 	setDefault(SAVED_SEARCH_TYPE, 0);
 	setDefault(SAVED_SEARCH_SIZEMODE, 2);
 	setDefault(SAVED_SEARCH_MODE, 1);
@@ -1181,7 +1184,7 @@ void SettingsManager::setDefaults()
 	setDefault(AUTO_SLOTS, 5);
 	setDefault(ALLOW_NAT_TRAVERSAL, TRUE);
 	//setDefault(USE_EXPLORER_THEME, false); // [~] IRainman set to disable default.
-	setDefault(USE_TORRENT, TRUE);
+	setDefault(USE_TORRENT_SEARCH, TRUE);
 	setDefault(LANGUAGE_FILE, g_default_lang_file_name);
 	//setDefault(DEFAULT_CODEPAGE,"");
 	setDefault(MIN_MULTI_CHUNK_SIZE, 2); // [+] IRainman

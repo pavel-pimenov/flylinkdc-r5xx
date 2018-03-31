@@ -533,9 +533,25 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	}
 	m_ctrlUseGroupTreeSettings.SetFont(Fonts::g_systemFont, FALSE);
 	m_ctrlUseGroupTreeSettings.SetWindowText(CTSTRING(USE_SEARCH_GROUP_TREE_SETTINGS_TEXT));
-	// m_ctrlUseGroupTreeSettings.EnableWindow(FALSE);
-	
-	
+
+	m_ctrlUseTorrentSearch.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
+	m_ctrlUseTorrentSearch.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
+	if (BOOLSETTING(USE_TORRENT_SEARCH))
+	{
+		m_ctrlUseTorrentSearch.SetCheck(TRUE);
+	}
+	m_ctrlUseTorrentSearch.SetFont(Fonts::g_systemFont, FALSE);
+	m_ctrlUseTorrentSearch.SetWindowText(CTSTRING(USE_TORRENT_SEARCH_TEXT));
+
+	m_ctrlUseTorrentRSS.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
+	m_ctrlUseTorrentRSS.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
+	if (BOOLSETTING(USE_TORRENT_RSS))
+	{
+		m_ctrlUseTorrentRSS.SetCheck(TRUE);
+	}
+	m_ctrlUseTorrentRSS.SetFont(Fonts::g_systemFont, FALSE);
+	m_ctrlUseTorrentRSS.SetWindowText(CTSTRING(USE_TORRENT_RSS_TEXT));
+
 	ctrlShowUI.Create(ctrlStatus.m_hWnd, rcDefault, _T("+/-"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	ctrlShowUI.SetButtonStyle(BS_AUTOCHECKBOX, false);
 	ctrlShowUI.SetCheck(1);
@@ -807,7 +823,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	TimerManager::getInstance()->addListener(this);
 #endif
 	
-	if (m_is_disable_torrent_RSS == false)
+	if (m_is_disable_torrent_RSS == false && BOOLSETTING(USE_TORRENT_RSS))
 	{
 		m_torrentRSSThread.start_torrent_top(m_win_handler);
 	}
@@ -1010,7 +1026,9 @@ int SearchFrame::TorrentSearchSender::run()
 	{
 		dcassert(!m_search.empty());
 		if (!m_search.empty())
+		{
 			CFlyServerConfig::torrentSearch(m_wnd, PREPARE_RESULT_TORRENT, m_search);
+		}
 	}
 	catch (const std::bad_alloc&)
 	{
@@ -1054,13 +1072,15 @@ void SearchFrame::onEnter()
 		CFlylinkDBManager::getInstance()->save_registry(g_lastSearches, e_SearchHistory); //[+]PPA
 	}
 	MainFrame::updateQuickSearches();
-	if (m_search_param.m_file_type != Search::TYPE_TTH && !isTTH(s) && BOOLSETTING(USE_TORRENT) && !s.empty())
+	if (BOOLSETTING(USE_TORRENT_SEARCH) && m_search_param.m_file_type != Search::TYPE_TTH && !isTTH(s) && !s.empty())
 	{
 		m_torrentSearchThread.start_torrent_search(m_win_handler, s);
 	}
 	// Change Default Settings If Changed
 	if (m_onlyFree != BOOLSETTING(FREE_SLOTS_DEFAULT))
+	{
 		SET_SETTING(FREE_SLOTS_DEFAULT, m_onlyFree);
+	}
 	const int n = ctrlHubs.GetItemCount();
 	if (!CompatibilityManager::isWine())
 	{
@@ -1714,6 +1734,8 @@ LRESULT SearchFrame::onCollapsed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 	SET_SETTING(SAVE_SEARCH_SETTINGS, m_storeSettings);
 	m_is_use_tree = m_ctrlUseGroupTreeSettings.GetCheck() == 1;
 	SET_SETTING(USE_SEARCH_GROUP_TREE_SETTINGS, m_is_use_tree);
+	SET_SETTING(USE_TORRENT_SEARCH, m_ctrlUseTorrentSearch.GetCheck() == 1);
+	SET_SETTING(USE_TORRENT_RSS, m_ctrlUseTorrentRSS.GetCheck() == 1);
 	UpdateLayout();
 	if (!m_is_use_tree)
 	{
@@ -2699,7 +2721,15 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		rc.top += 17;
 		rc.bottom += 17;
 		m_ctrlUseGroupTreeSettings.MoveWindow(rc);
-		
+
+		rc.top += 17;
+		rc.bottom += 17;
+		m_ctrlUseTorrentSearch.MoveWindow(rc);
+
+		rc.top += 17;
+		rc.bottom += 17;
+		m_ctrlUseTorrentRSS.MoveWindow(rc);
+
 		// "Hubs".
 		rc.left = lMargin;
 		rc.right = width - rMargin;
@@ -2736,6 +2766,9 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 #endif
 		m_ctrlStoreSettings.MoveWindow(rc);
 		m_ctrlUseGroupTreeSettings.MoveWindow(rc);
+		m_ctrlUseTorrentSearch.MoveWindow(rc);
+		m_ctrlUseTorrentRSS.MoveWindow(rc);
+
 		ctrlHubs.MoveWindow(rc);
 		//  srLabel.MoveWindow(rc);
 		//  ctrlFilterSel.MoveWindow(rc);
@@ -2859,6 +2892,8 @@ LRESULT SearchFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 #endif
 	        hWnd == m_ctrlStoreSettings.m_hWnd ||
 	        hWnd == m_ctrlUseGroupTreeSettings.m_hWnd ||
+		    hWnd == m_ctrlUseTorrentSearch.m_hWnd ||
+		    hWnd == m_ctrlUseTorrentRSS.m_hWnd ||		
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	        hWnd == m_ctrlFlyServer.m_hWnd ||
 #endif
@@ -2910,7 +2945,7 @@ LRESULT SearchFrame::onChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL & 
 
 void SearchFrame::onTab(bool shift)
 {
-	const HWND wnds[] =
+	static const HWND wnds[] =
 	{
 		ctrlSearch.m_hWnd, ctrlPurge.m_hWnd, ctrlMode.m_hWnd, ctrlSize.m_hWnd, ctrlSizeMode.m_hWnd,
 		ctrlFiletype.m_hWnd, ctrlSlots.m_hWnd, ctrlCollapsed.m_hWnd,
@@ -2922,14 +2957,16 @@ void SearchFrame::onTab(bool shift)
 #endif
 		m_ctrlStoreSettings.m_hWnd, ctrlDoSearch.m_hWnd, ctrlSearch.m_hWnd,
 		ctrlResults.m_hWnd,
-		m_ctrlUseGroupTreeSettings.m_hWnd
+		m_ctrlUseGroupTreeSettings.m_hWnd,
+		m_ctrlUseTorrentSearch.m_hWnd,
+		m_ctrlUseTorrentRSS.m_hWnd
 	};
 	
 	HWND focus = GetFocus();
 	if (focus == ctrlSearchBox.m_hWnd)
 		focus = ctrlSearch.m_hWnd;
 		
-	static const int size = _countof(wnds);
+	const int size = _countof(wnds);
 	int i;
 	for (i = 0; i < size; i++)
 	{
@@ -3532,6 +3569,7 @@ LRESULT SearchFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL
 			break;
 		case PREPARE_RESULT_TOP_TORRENT:
 		{
+			dcassert(BOOLSETTING(USE_TORRENT_RSS));
 			if (isClosedOrShutdown())
 				return 0;
 			SearchResult* l_sr = (SearchResult*)(lParam);
@@ -3548,6 +3586,8 @@ LRESULT SearchFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL
 		break;
 		case PREPARE_RESULT_TORRENT:
 		{
+			dcassert(BOOLSETTING(USE_TORRENT_SEARCH));
+
 			if (isClosedOrShutdown())
 				return 0;
 			SearchResult* l_sr = (SearchResult*)(lParam);

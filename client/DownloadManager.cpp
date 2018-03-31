@@ -1494,7 +1494,8 @@ bool DownloadManager::add_torrent_file(const tstring& p_torrent_path, const tstr
 	{
 		if (MessageBox(NULL, CTSTRING(TORRENT_ENABLE_WARNING), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_YESNO | MB_ICONQUESTION | MB_TOPMOST) == IDYES)
 		{
-			SET_SETTING(USE_TORRENT, true);
+			SET_SETTING(USE_TORRENT_SEARCH, true);
+			SET_SETTING(USE_TORRENT_RSS, true);
 			DownloadManager::getInstance()->init_torrent(true);
 		}
 	}
@@ -1550,7 +1551,7 @@ bool DownloadManager::add_torrent_file(const tstring& p_torrent_path, const tstr
 void DownloadManager::init_torrent(bool p_is_force)
 {
 	/*
-	if (!BOOLSETTING(USE_TORRENT) && p_is_force == false)
+	if (!BOOLSETTING(USE_TORRENT_SEARCH) && p_is_force == false)
 	    {
 	        LogManager::torrent_message("Disable torrent DHT...");
 	        return;

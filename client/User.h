@@ -184,14 +184,13 @@ class User : public Flags
 		const string& getLastNick() const
 		{
 #ifdef _DEBUG
-//			static boost::atomic_int g_call_counts = 0;
-//			if (++g_call_counts % 1000 == 0)
-//				dcdebug("User::getLastNick() called %d\n", int(++g_call_counts));
+			static std::atomic<int> g_call_counts = 0;
+			if (++g_call_counts % 1000 == 0)
+				dcdebug("User::getLastNick() called %d\n", int(g_call_counts));
 #endif
 			return m_nick;
 		}
 		tstring getLastNickHubT() const;
-
 		void setLastNick(const string& p_nick);
 		void setIP(const string& p_ip, bool p_is_set_only_ip);
 		void setIP(const boost::asio::ip::address_v4& p_ip, bool p_is_set_only_ip);
@@ -218,9 +217,9 @@ class User : public Flags
 		tstring getLastNickT() const
 		{
 #ifdef _DEBUG
-			//static boost::atomic_int g_call_counts = 0;
-			//if (++g_call_counts % 1000 == 0)
-			//  dcdebug("User::getLastNickT() called %d\n", g_call_counts); //-V510
+			static std::atomic<int> g_call_counts = 0;
+			if (++g_call_counts % 1000 == 0)
+			  dcdebug("User::getLastNickT() called %d\n", int(g_call_counts));
 #endif
 			return Text::toT(getLastNick());
 		}
@@ -228,7 +227,8 @@ class User : public Flags
 		GETSET(int64_t, m_bytesShared, BytesShared);
 		GETSET(uint32_t, m_limit, Limit);
 		GETSET(uint8_t, m_slots, Slots);
-		string m_nick;
+		std::string m_nick;
+		
 		CFlyDirtyValue<boost::asio::ip::address_v4> m_last_ip_sql;
 		CFlyDirtyValue<uint32_t> m_message_count;
 		

@@ -48,8 +48,7 @@ namespace libtorrent {
 
 	struct socks5;
 
-	struct udp_send_flags_tag;
-	using udp_send_flags_t = flags::bitfield_flag<std::uint8_t, udp_send_flags_tag>;
+	using udp_send_flags_t = flags::bitfield_flag<std::uint8_t, struct udp_send_flags_tag>;
 
 	class TORRENT_EXTRA_EXPORT udp_socket : single_threaded
 	{
@@ -111,8 +110,8 @@ namespace libtorrent {
 			return local_endpoint(ec);
 		}
 
-		typedef udp::socket::receive_buffer_size receive_buffer_size;
-		typedef udp::socket::send_buffer_size send_buffer_size;
+		using receive_buffer_size = udp::socket::receive_buffer_size;
+		using send_buffer_size = udp::socket::send_buffer_size;
 
 		template <class SocketOption>
 		void get_option(SocketOption const& opt, error_code& ec)
