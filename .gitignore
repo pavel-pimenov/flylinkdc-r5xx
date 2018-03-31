@@ -18,8 +18,7 @@
 /*.sdf
 /*.suo
 /*.7z
-
-/GdiOle/GdiOle.vcxproj.user
+*.vcxproj.user
 
 /GdiOle/GdiOle_i.c
 
@@ -27,101 +26,54 @@
 
 /GdiOle/GdiOle_p.c
 
-/MediaInfoLib/MediaInfoLib.vcxproj.user
-
-/XMLParser/XMLParser.vcxproj.user
-
-/Zenlib/ZenLib.vcxproj.user
-
-/boost-regex.vcxproj.user
-
-/bzip2.vcxproj.user
-
-/client.vcxproj.user
-
-/compiled/FlylinkDC_Debug.exe
-
-/compiled/*.ilk
-
-/compiled/*.pdb
-
-/compiled/FlylinkDC_Debug_x64.exe
-
-/dht/dht.vcxproj.user
-
-/flylinkdc.vcxproj.user
-
-/ipch/flylinkdc-15238894/*.ipch
-
-/ipch/mediainfolib-e4c79d96/*.ipch
-
-/miniupnpc/miniupnpc.vcxproj.user
-
-/natpmp/natpmp.vcxproj.user
-
 vc10
 vc11
 vc14
 vc15
 vc17
 
-/zlib.vcxproj.user
-
-/compiled/Settings/*.sqlite
-
-/compiled/Settings/FlylinkDCShutdownMarker.txt
-
-/compiled/Settings/ADLSearch.xml
-
-/compiled/Settings/DCPlusPlus.xml
-
-/compiled/Settings/Favorites.xml
-
-/compiled/Settings/HubLists/*.bz2
-
-/compiled/Settings/Logs
-
-/compiled/Settings/tth-history.leveldb
-
 /ipch
 
-/compiled/FlylinkDC.exe
+/compiled/FlylinkDC*.exe
 
-/compiled/FlylinkDC_x64.exe
-/compiled/Settings/Emptyfiles.xml.bz2
+/compiled/Settings/*.sqlite
+/compiled/Settings/FlylinkDCShutdownMarker.txt
+/compiled/Settings/ADLSearch.xml
+/compiled/Settings/DCPlusPlus.xml
+/compiled/Settings/Favorites.xml
+/compiled/Settings/Logs
+/compiled/Settings/tth-history.leveldb
 /compiled/Settings/*.sqlite-shm
 /compiled/Settings/*.sqlite-wal
 /compiled/Settings/*.sqlite-journal
 /compiled/Settings/IPTrust.ini
 /compiled/Settings/common/P2PGuard.ini
 /compiled/Settings/P2PGuard.ini
+/compiled/Settings/common/CustomLocations.bmp
+/compiled/Settings/common/CustomLocations.ini
+/compiled/Settings/Certificates/client.crt
+/compiled/Settings/Certificates/client.key
+
 /compiled/update
-
-
-/compiled/Settings/files.xml.bz2
 
 /client/mrgtmp*
 
-FlylinkDC-*.7z
 /client/StringDefs.cpp
 /compiled/UpdateTools/FlyUpdate/FlyUpdate.exe
-/compiled/Settings/common/CustomLocations.bmp
-/compiled/Settings/common/CustomLocations.ini
 /compiled/UpdateTools/FlyUpdate/commit_update.bat
 
-/openssl/openssl.vcxproj.user
-/compiled/*.dmp
-/*.opendb
-/*.db
 /compiled/*.exp
-/compiled/Settings/Certificates/client.crt
-/compiled/Settings/Certificates/client.key
-/lua/Release/lua.tlog/*.tlog
 
 *.tlog
 *.idb
 *.res
-
+*.dmp
 *.ipch
 *.VC.db
+*.ilk
+*.opendb
+*.db
+*.7z
+*.bz2
+
 merge-vendors.bat
