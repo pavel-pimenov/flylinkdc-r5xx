@@ -172,7 +172,7 @@ void asn1_item_combine_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int combine)
     }
 }
 
-void ASN1_template_free(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt) // tt==NULL https://drdump.com/DumpGroup.aspx?DumpGroupID=1044673&Login=guest
+void ASN1_template_free(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt)
 {
     int i;
     if (tt->flags & ASN1_TFLG_SK_MASK) {
