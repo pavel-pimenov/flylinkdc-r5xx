@@ -190,6 +190,8 @@ class User : public Flags
 #endif
 			return m_nick;
 		}
+		tstring getLastNickHubT() const;
+
 		void setLastNick(const string& p_nick);
 		void setIP(const string& p_ip, bool p_is_set_only_ip);
 		void setIP(const boost::asio::ip::address_v4& p_ip, bool p_is_set_only_ip);

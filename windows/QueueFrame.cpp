@@ -304,13 +304,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 				{
 					if (!tmp.empty())
 						tmp += _T(", ");
-					string l_hub_name;
-					if (j->first->getHubID())
-					{
-						l_hub_name = CFlylinkDBManager::getInstance()->get_hub_name(j->first->getHubID());
-					}
-					tmp += j->first->getLastNickT() + _T(" (") + Text::toT(l_hub_name) + _T(")");
-					//tmp += WinUtil::getNicks(j->first, Util::emptyString);
+					tmp += j->first->getLastNickHubT();
 				}
 				return tmp.empty() ? TSTRING(NO_USERS) : tmp;
 			}
@@ -361,14 +355,8 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 					{
 						if (!tmp.empty())
 							tmp += _T(", ");
-						string l_hub_name;
-						if (j->first->getHubID())
-						{
-							l_hub_name = CFlylinkDBManager::getInstance()->get_hub_name(j->first->getHubID());
-						}
-						tmp += j->first->getLastNickT() + _T(" (") + Text::toT(l_hub_name) + _T(")");
-						
-						//tmp += WinUtil::getNicks(j->first, Util::emptyString);
+						tmp += j->first->getLastNickHubT();
+
 						tmp += _T(" (");
 						if (j->second.isSet(QueueItem::Source::FLAG_FILE_NOT_AVAILABLE))
 						{

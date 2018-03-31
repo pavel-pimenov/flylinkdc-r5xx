@@ -87,6 +87,18 @@ User::~User()
 #endif
 }
 
+tstring User::getLastNickHubT() const
+{
+	tstring l_tmp;
+	string l_hub_name;
+	if (getHubID())
+	{
+		l_hub_name = CFlylinkDBManager::getInstance()->get_hub_name(getHubID());
+	}
+	l_tmp += getLastNickT() + _T(" (") + Text::toT(l_hub_name) + _T(")");
+	return l_tmp;
+}
+
 void User::setLastNick(const string& p_nick)
 {
 	//dcassert(!p_nick.empty());
