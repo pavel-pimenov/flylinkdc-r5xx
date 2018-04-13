@@ -146,6 +146,8 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 #ifdef _DEBUG
 		if (ClientManager::isStartup())
 			l_msg += "[init]";
+		if (ClientManager::isBeforeShutdown())
+			l_msg += "[before_shutdown]";
 		if (ClientManager::isShutdown())
 			l_msg += "[shutdown]";
 		l_msg += "[" + Util::toString(::GetCurrentThreadId()) + "]";
@@ -315,7 +317,7 @@ void LogManager::torrent_message(const string& p_message, bool p_is_add_sys_mess
 
 void LogManager::speak_status_message(const string& p_msg)
 {
-	if (LogManager::g_isLogSpeakerEnabled == true && ClientManager::isStartup() == false && ClientManager::isShutdown() == false)
+	if (LogManager::g_isLogSpeakerEnabled == true && ClientManager::isStartup() == false && ClientManager::isBeforeShutdown() == false)
 	{
 		if (LogManager::g_mainWnd)
 		{

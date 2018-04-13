@@ -1014,8 +1014,8 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		}
 		void on(SettingsManagerListener::Repaint) override
 		{
-			dcassert(!ClientManager::isShutdown());
-			if (!ClientManager::isShutdown())
+			dcassert(!ClientManager::isBeforeShutdown());
+			if (!ClientManager::isBeforeShutdown())
 			{
 				if (ctrlList.isRedraw())
 				{

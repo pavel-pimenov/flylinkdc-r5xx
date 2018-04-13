@@ -1356,12 +1356,12 @@ void CFlylinkDBManager::flush_lost_json_statistic(bool& p_is_error)
 		try
 		{
 			std::vector<__int64> l_json_array_id;
-			if (m_count_json_stat)
+			if (m_count_json_stat && !ClientManager::isBeforeShutdown())
 			{
 				m_select_statistic_json.init(m_flySQLiteDB, "select id,stat_value_json,type from stat_db.fly_statistic limit 50");
 				// where flush_time is null (пока не используем это поле и не храним локальную статистику - не придумал как подчищать данные)
 				sqlite3_reader l_q = m_select_statistic_json->executereader();
-				while (l_q.read())
+				while (l_q.read() && !ClientManager::isBeforeShutdown())
 				{
 					bool l_is_send = false;
 					const auto l_id = l_q.getint64(0);
@@ -4917,6 +4917,7 @@ void CFlylinkDBManager::shutdown_engine()
 //========================================================================================================
 CFlylinkDBManager::~CFlylinkDBManager()
 {
+	if (!ClientManager::isBeforeShutdown())
 	{
 		CFlyFastLock(g_tth_cache_cs);
 		dcassert(g_tiger_tree_cache.empty());

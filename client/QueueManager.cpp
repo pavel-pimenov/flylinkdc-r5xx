@@ -2093,21 +2093,21 @@ void QueueManager::fire_sources_updated(const QueueItemPtr& qi)
 }
 void QueueManager::fire_removed_array(const StringList& p_target_array)
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		fly_fire1(QueueManagerListener::RemovedArray(), p_target_array);
 	}
 }
 void QueueManager::fire_removed(const QueueItemPtr& qi)
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		fly_fire1(QueueManagerListener::Removed(), qi);
 	}
 }
 void QueueManager::fire_status_updated(const QueueItemPtr& qi)
 {
-	//dcassert(!ClientManager::isShutdown());
+	//dcassert(!ClientManager::isBeforeShutdown());
 	if (!ClientManager::isBeforeShutdown())
 	{
 		fly_fire1(QueueManagerListener::StatusUpdated(), qi);
@@ -2124,9 +2124,9 @@ void QueueManager::rechecked(const QueueItemPtr& qi)
 void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool p_is_finished, bool p_is_report_finish) noexcept
 {
 #if 0
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	// fix https://drdump.com/Problem.aspx?ProblemID=112136
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		// TODO - check and delete aDownload?
 		// return;
@@ -2725,7 +2725,7 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 	UserList l_getConn;
 	bool l_is_running = false;
 	
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	if (!ClientManager::isBeforeShutdown())
 	{
 		QueueItemPtr q = QueueManager::FileQueue::find_target(aTarget);
@@ -2776,8 +2776,8 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 
 void QueueManager::setAutoPriority(const string& aTarget, bool ap)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		vector<pair<string, QueueItem::Priority>> priorities;
 		QueueItemPtr q = QueueManager::FileQueue::find_target(aTarget);

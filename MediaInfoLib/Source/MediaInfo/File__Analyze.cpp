@@ -692,8 +692,8 @@ void File__Analyze::Open_Buffer_Continue (const int8u* ToAdd, size_t ToAdd_Size)
     if (Buffer_Size>=Buffer_MinimumSize || File_Offset+Buffer_Size==File_Size) //Parsing only if we have enough buffer
         while (Open_Buffer_Continue_Loop());
 
-	extern volatile bool g_isShutdown;
-	if (g_isShutdown)
+	extern volatile bool g_isBeforeShutdown;
+	if (g_isBeforeShutdown)
 		return;
 
     //Hash
@@ -1082,8 +1082,8 @@ bool File__Analyze::Open_Buffer_Continue_Loop ()
     //Parsing;
 		while (Buffer_Offset < Buffer_Size)
 		{
-			extern volatile bool g_isShutdown;
-			if (g_isShutdown)
+			extern volatile bool g_isBeforeShutdown;
+			if (g_isBeforeShutdown)
 				return false;
 			if (!Buffer_Parse())
 			{

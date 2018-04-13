@@ -494,7 +494,7 @@ void Client::on(Failed, const string& aLine) noexcept
 		m_client_sock->removeListener(this);
 		}
 	}
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		updateActivity();
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS

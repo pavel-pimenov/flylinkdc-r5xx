@@ -566,8 +566,8 @@ void ADLSearchFrame::UpdateSearch(size_t index, BOOL doDelete)
 
 void ADLSearchFrame::on(SettingsManagerListener::Repaint)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		if (ctrlList.isRedraw())
 		{

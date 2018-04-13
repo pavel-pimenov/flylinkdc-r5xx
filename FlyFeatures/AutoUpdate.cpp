@@ -247,7 +247,7 @@ bool AutoUpdateObject::checkSignXML(const string& p_url_sign) const
 }
 void AutoUpdate::startUpdateThisThread()
 {
-	if (ClientManager::isShutdown())
+	if (ClientManager::isBeforeShutdown())
 		return;
 	bool l_is_invalid_sign_update = false;
 	//for (unsigned l_update_index = 0; l_update_index < 3; ++l_update_index)
@@ -390,7 +390,7 @@ void AutoUpdate::startUpdateThisThread()
 						l_message += STRING(AUTOUPDATE_DOWNLOAD_START3);
 						//
 						UpdateResult idResult = UPDATE_CANCEL;
-						if (m_guiDelegate && !ClientManager::isShutdown())
+						if (m_guiDelegate && !ClientManager::isBeforeShutdown())
 						{
 							// Download RTF file from Server
 							string programRtfData;
@@ -403,7 +403,7 @@ void AutoUpdate::startUpdateThisThread()
 							//dataRTFSize = Util::getDataFromInetSafe(basesUpdateDescription, basesRtfData);
 							//basesRtfData.resize(dataRTFSize);
 #endif
-							if (m_guiDelegate && !ClientManager::isShutdown())
+							if (m_guiDelegate && !ClientManager::isBeforeShutdown())
 							{
 								idResult = UpdateResult(m_guiDelegate->ShowDialogUpdate(l_message, programRtfData, l_files4Description
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
@@ -415,7 +415,7 @@ void AutoUpdate::startUpdateThisThread()
 						else
 						{
 							UINT iResult = UPDATE_IGNORE;
-							if (!ClientManager::isShutdown())
+							if (!ClientManager::isBeforeShutdown())
 							{
 								iResult = ::MessageBox(m_mainFrameHWND, Text::toT(l_message).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_YESNOCANCEL | MB_ICONQUESTION | MB_DEFBUTTON1);
 							}
@@ -545,7 +545,7 @@ void AutoUpdate::startUpdateThisThread()
 									{
 										const tstring l_message = TSTRING(AUTOUPDATE_DOWNLOAD_FAILED) + _T("\r\n") + TSTRING(FAILED_TO_LOAD) + _T("\r\n") + Text::toT(l_errorFileName);
 										CFlyServerJSON::pushError(63, Text::fromT(l_message));
-										if (!ClientManager::isShutdown())
+										if (!ClientManager::isBeforeShutdown())
 										{
 											::MessageBox(m_mainFrameHWND, l_message.c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR);
 										}
@@ -561,7 +561,7 @@ void AutoUpdate::startUpdateThisThread()
 				{
 					m_isUpdate = true;
 					message(STRING(YOU_HAVE_THE_LATEST_VERSION));
-					if (m_manualUpdate && !ClientManager::isShutdown())
+					if (m_manualUpdate && !ClientManager::isBeforeShutdown())
 					{
 						::MessageBox(m_mainFrameHWND, CWSTRING(YOU_HAVE_THE_LATEST_VERSION), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONINFORMATION);
 					}

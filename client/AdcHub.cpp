@@ -206,7 +206,7 @@ void AdcHub::putUser(const uint32_t aSID, bool p_is_disconnect)
 
 void AdcHub::clearUsers()
 {
-	if (ClientManager::isShutdown())
+	if (ClientManager::isBeforeShutdown())
 	{
 		CFlyWriteLock(*m_cs);
 		m_adc_users.clear();

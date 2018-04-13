@@ -3273,7 +3273,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 		g_crashRpt.SetCustomInfo(Text::toT(g_cur_mediainfo_file_tth).c_str());
 #endif
 		const auto l_media_result = g_media_info_lib.Open(Text::toT(File::formatPath(p_name)));
-		if (l_media_result && !ClientManager::isShutdown())
+		if (l_media_result && !ClientManager::isBeforeShutdown())
 		{
 			// const bool l_is_media_info_fly_server = g_fly_server_config.isSupportFile(l_file_ext, p_size);
 			// if (l_is_media_info_fly_server)

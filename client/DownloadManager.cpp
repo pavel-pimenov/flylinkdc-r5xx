@@ -994,12 +994,13 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 		{
 			std::vector<lt::alert*> alerts;
 			p_torrent_sesion->pop_alerts(&alerts);
+			unsigned l_alert_pos = 0;
 			for (lt::alert const * a : alerts)
 			{
+				++l_alert_pos;
 				try
 				{
 #ifdef _DEBUG
-				
 					if (const auto l_port = lt::alert_cast<lt::log_alert>(a))
 					{
 						// LogManager::torrent_message("log_alert: " + a->message() + " info:" + std::string(a->what()));
@@ -1021,7 +1022,7 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 #endif
 						   )
 						{
-							LogManager::torrent_message(l_dbg_message);
+							// LogManager::torrent_message(l_dbg_message);
 						}
 						if (const auto l_port = lt::alert_cast<lt::torrent_log_alert>(a))
 						{
@@ -1274,9 +1275,8 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 						for (const auto j : st->status)
 						{
 							lt::torrent_status const& s = j;
-#ifdef FLYLINKDC_BETA
-							/*
-							std::string l_log = "[" + Util::toString(l_pos) + "] Status: " + st->message() + " [ " + s.save_path + "\\" + s.name
+#ifdef _DEBUG
+							const std::string l_log = "[" + Util::toString(l_alert_pos) + " - "  + Util::toString(l_pos) + "] Status: " + st->message() + " [ " + s.save_path + "\\" + s.name
 							                                                + " ] Download: " + Util::toString(s.download_payload_rate / 1000) + " kB/s "
 							                                                + " ] Upload: " + Util::toString(s.upload_payload_rate / 1000) + " kB/s "
 							                                                + Util::toString(s.total_done / 1000) + " kB ("
@@ -1287,8 +1287,6 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 							                                g_last_log = l_log;
 							                            }
 							                            LogManager::torrent_message(l_log, false);
-							*/
-							
 #endif
 							l_pos++;
 							DownloadArray l_tickList;
@@ -1318,18 +1316,29 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 				catch (const system_error& e)
 				{
 					const std::string l_error = "[system_error-1] DownloadManager::onTorrentAlertNotify " + std::string(e.what());
+					LogManager::torrent_message("Torrent system_error = " + l_error);
 					CFlyServerJSON::pushError(75, l_error);
 				}
 				catch (const std::runtime_error& e)
 				{
 					const std::string l_error = "[runtime_error-1] DownloadManager::onTorrentAlertNotify " + std::string(e.what());
+					LogManager::torrent_message("Torrent runtime_error = " + l_error);
 					CFlyServerJSON::pushError(75, l_error);
 				}
 			}
+#ifdef _DEBUG
+			LogManager::torrent_message("Torrent alerts.size() = " + Util::toString(alerts.size()));
+#endif
 			std::this_thread::sleep_for(std::chrono::milliseconds(200));
-			p_torrent_sesion->post_torrent_updates();
-			// Спам. p_torrent_sesion->post_session_stats();
-			// p_torrent_sesion->post_dht_stats();
+			if (!alerts.empty())
+			{
+				p_torrent_sesion->post_torrent_updates();
+				// Спам. p_torrent_sesion->post_session_stats();
+				// p_torrent_sesion->post_dht_stats();
+			}
+			else
+			{
+			}
 		}
 		                                       );
 	}
@@ -1567,11 +1576,18 @@ void DownloadManager::init_torrent(bool p_is_force)
 		               | lt::alert::storage_notification
 		               | lt::alert::status_notification
 		               | lt::alert::port_mapping_notification
-		               //////                  | lt::alert::all_categories
-		               | lt::alert::progress_notification
+#define FLYLINKDC_USE_OLD_LIBTORRENT_R21298
+#ifdef FLYLINKDC_USE_OLD_LIBTORRENT_R21298
+					  | lt::alert::progress_notification
+#else
+		               | lt::alert::file_progress_notification
+					   | lt::alert::upload_notification
+			           //| lt::alert::piece_progress_notification
+			           | lt::alert::block_progress_notification
+#endif
 #ifdef _DEBUG
 		               //  | lt::alert::peer_notification
-		               | lt::alert::session_log_notification
+//		               | lt::alert::session_log_notification
 		               | lt::alert::torrent_log_notification
 		               // Много спама | lt::alert::peer_log_notification
 #endif

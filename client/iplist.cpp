@@ -302,7 +302,7 @@ void IPList::addData(const std::string& Data, CFlyLog& p_log)
 }
 void IPList::addRangeListAndSort(uint32_t p_ip, uint32_t p_level)
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	CFlyFastLock(m_cs);
 	m_ipRangeList[p_level].add(p_ip);
 	if (std::find(m_usedList.begin(), m_usedList.end(), p_level) == m_usedList.end())
@@ -315,8 +315,8 @@ void IPList::addRangeListAndSort(uint32_t p_ip, uint32_t p_level)
 bool IPList::checkIp(UINT32 ip)
 {
 	bool found = false;
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		size_t i = 0;
 		CFlyFastLock(m_cs);

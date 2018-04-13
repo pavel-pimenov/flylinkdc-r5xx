@@ -1835,7 +1835,7 @@ void FavoriteManager::on(UserDisconnected, const UserPtr& aUser) noexcept
 				auto i = g_fav_users_map.find(aUser->getCID());
 				if (i == g_fav_users_map.end())
 					return;
-				i->second.setLastSeen(GET_TIME()); // TODO: if ClientManager::isShutdown() this data is not update :(
+				i->second.setLastSeen(GET_TIME()); // TODO: if ClientManager::isBeforeShutdown() this data is not update :(
 			}
 			if (!ClientManager::isBeforeShutdown())
 			{

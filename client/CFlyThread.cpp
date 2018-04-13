@@ -122,7 +122,9 @@ void Thread::setThreadPriority(Priority p)
 
 void Thread::start(unsigned int p_stack_size, const char* p_name /* = nullptr */)
 {
+	//dcassert(!ClientManager::isBeforeShutdown());
 	join();
+	dcassert(!ClientManager::isBeforeShutdown());
 	p_stack_size *= 1024;
 	//dcassert(!ClientManager::isBeforeShutdown());
 	HANDLE h = reinterpret_cast<HANDLE>(_beginthreadex(nullptr, p_stack_size, &starter, this, 0, nullptr));

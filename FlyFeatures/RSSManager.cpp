@@ -800,8 +800,8 @@ size_t RSSManager::GetCodeingByString(const string& codeing)
 }
 void RSSManager::updateFeeds()
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		{
 			CFlyLock(g_csFeed);

@@ -427,8 +427,8 @@ void PrivateFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		return;
 	if (ClientManager::isStartup())
 		return;
-	dcassert(!ClientManager::isShutdown());
-	if (ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (ClientManager::isBeforeShutdown())
 		return;
 	if (m_ctrlMessage)
 	{
@@ -658,8 +658,8 @@ void PrivateFrame::closeAllOffline()
 
 void PrivateFrame::on(SettingsManagerListener::Repaint)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		if (ctrlClient.IsWindow())
 		{
@@ -693,7 +693,7 @@ void PrivateFrame::onBeforeActiveTab(HWND aWnd)
 }
 void PrivateFrame::onAfterActiveTab(HWND aWnd)
 {
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		createMessagePanel();
 		if (m_ctrlStatus)
@@ -707,7 +707,7 @@ void PrivateFrame::onInvalidateAfterActiveTab(HWND aWnd)
 }
 void PrivateFrame::createMessagePanel()
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	if (!isClosedOrShutdown())
 	{
 		if (m_ctrlStatus == nullptr && ClientManager::isStartup() == false)
@@ -726,7 +726,7 @@ void PrivateFrame::createMessagePanel()
 }
 void PrivateFrame::destroyMessagePanel(bool p_is_destroy)
 {
-	const bool l_is_shutdown = p_is_destroy || ClientManager::isShutdown();
+	const bool l_is_shutdown = p_is_destroy || ClientManager::isBeforeShutdown();
 	BaseChatFrame::destroyStatusbar(l_is_shutdown);
 	BaseChatFrame::destroyMessagePanel(l_is_shutdown);
 	BaseChatFrame::destroyMessageCtrl(l_is_shutdown);

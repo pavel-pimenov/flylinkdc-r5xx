@@ -599,7 +599,7 @@ int HashManager::Hasher::run()
 	for (;;)
 	{
 		m_hash_semaphore.wait();
-		if (m_stop || ClientManager::isShutdown())
+		if (m_stop || ClientManager::isBeforeShutdown())
 			break;
 		if (m_rebuild)
 		{

@@ -346,7 +346,7 @@ void SharedFileStream::setSize(int64_t p_new_size)
 
 size_t SharedFileStream::flushBuffers(bool aForce)
 {
-	if (!ClientManager::isShutdown()) // fix https://drdump.com/Problem.aspx?ProblemID=130529
+	if (!ClientManager::isBeforeShutdown()) // fix https://drdump.com/Problem.aspx?ProblemID=130529
 		// при закрытии файлов - буфера и так скидываются на винты.
 	{
 		try

@@ -359,8 +359,8 @@ LRESULT UsersFrame::onConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 
 void UsersFrame::addUser(const FavoriteUser& user)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		auto ui = new UserInfo(user); // [+] IRainman fix.
 		int i = ctrlUsers.insertItem(ui, 0);
@@ -372,8 +372,8 @@ void UsersFrame::addUser(const FavoriteUser& user)
 
 void UsersFrame::updateUser(const UserPtr& user)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		const int l_cnt = ctrlUsers.GetItemCount();
 		for (int i = 0; i < l_cnt; ++i)
@@ -394,8 +394,8 @@ void UsersFrame::updateUser(const UserPtr& user)
 
 void UsersFrame::updateUser(const int i, UserInfo* p_ui, const FavoriteUser& favUser) // [+] IRainman fix.
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		p_ui->columns[COLUMN_SEEN] = favUser.getUser()->isOnline() ? TSTRING(ONLINE) : Text::toT(Util::formatDigitalClock(favUser.getLastSeen()));
 		
@@ -418,8 +418,8 @@ void UsersFrame::updateUser(const int i, UserInfo* p_ui, const FavoriteUser& fav
 
 void UsersFrame::removeUser(const FavoriteUser& aUser)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		const int l_cnt = ctrlUsers.GetItemCount();
 		for (int i = 0; i < l_cnt; ++i)
@@ -466,8 +466,8 @@ LRESULT UsersFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 void UsersFrame::UserInfo::update(const FavoriteUser& u)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		columns[COLUMN_NICK] = Text::toT(u.getNick());
 		columns[COLUMN_HUB] = user->isOnline() ? WinUtil::getHubNames(u.getUser(), u.getUrl()).first : Text::toT(u.getUrl());
@@ -522,7 +522,7 @@ LRESULT UsersFrame::onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 }
 void UsersFrame::on(UserAdded, const FavoriteUser& aUser) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	{
 #ifdef IRAINMAN_USE_NON_RECURSIVE_BEHAVIOR
 		PostMessage(WM_CLOSE);
@@ -533,16 +533,16 @@ void UsersFrame::on(UserAdded, const FavoriteUser& aUser) noexcept
 }
 void UsersFrame::on(UserRemoved, const FavoriteUser& aUser) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		removeUser(aUser);
 	}
 }
 void UsersFrame::on(StatusChanged, const UserPtr& aUser) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		safe_post_message(*this, USER_UPDATED, new UserPtr(aUser));
 	}
@@ -550,8 +550,8 @@ void UsersFrame::on(StatusChanged, const UserPtr& aUser) noexcept
 
 void UsersFrame::on(SettingsManagerListener::Repaint)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		if (ctrlUsers.isRedraw())
 		{

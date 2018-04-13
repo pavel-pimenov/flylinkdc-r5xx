@@ -183,8 +183,8 @@ void RSSNewsFrame::UpdateLayout(BOOL bResizeBars /*= TRUE*/)
 
 void RSSNewsFrame::on(SettingsManagerListener::Repaint)
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		if (ctrlList.isRedraw())
 		{

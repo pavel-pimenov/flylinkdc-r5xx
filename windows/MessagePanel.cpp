@@ -142,7 +142,7 @@ LRESULT MessagePanel::InitPanel(HWND& p_hWnd, RECT &p_rcDefault)
 
 LRESULT MessagePanel::UpdatePanel(CRect& rect)
 {
-	dcassert(!ClientManager::isShutdown());
+	dcassert(!ClientManager::isBeforeShutdown());
 	dcassert(!m_isShutdown);
 	m_tooltip.Activate(FALSE);
 	if (m_hWnd == NULL)

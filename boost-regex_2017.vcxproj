@@ -212,6 +212,9 @@
   <ItemGroup>
     <None Include="boost\libs\thread\src\win32\timeconv.inl" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="boost\boost\asio\detail\impl\win_thread.ipp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -293,7 +293,7 @@ size_t File::flushBuffers(bool aForce)
 #ifdef _DEBUG
 	auto start = boost::posix_time::microsec_clock::universal_time();
 #endif
-	if (isOpen() && !ClientManager::isShutdown())
+	if (isOpen() && !ClientManager::isBeforeShutdown())
 	{
 		//static int g_count = 0;
 		//LogManager::message("File::flush() count = " + Util::toString(++g_count));
@@ -304,7 +304,7 @@ size_t File::flushBuffers(bool aForce)
 			string l_error = Util::translateError();
 			l_error = "File::flush() error = " + l_error;
 			LogManager::message(l_error);
-			if (!ClientManager::isShutdown()) // fix https://drdump.com/Bug.aspx?ProblemID=135087
+			if (!ClientManager::isBeforeShutdown()) // fix https://drdump.com/Bug.aspx?ProblemID=135087
 			{
 				CFlyServerJSON::pushError(33, l_error);
 				throw FileException(Util::translateError());

@@ -1804,7 +1804,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	else if (wParam == BROWSE_LISTING)
 	{
 		std::unique_ptr<DirectoryBrowseInfo> i(reinterpret_cast<DirectoryBrowseInfo*>(lParam));
-		if (!ClientManager::isShutdown())
+		if (!ClientManager::isBeforeShutdown())
 		{
 			DirectoryListingFrame::openWindow(i->m_hinted_user, i->text, 0);
 		}
@@ -1812,7 +1812,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	else if (wParam == VIEW_FILE_AND_DELETE)
 	{
 		std::unique_ptr<tstring> file(reinterpret_cast<tstring*>(lParam));
-		if (!ClientManager::isShutdown())
+		if (!ClientManager::isBeforeShutdown())
 		{
 			ShellExecute(NULL, NULL, file->c_str(), NULL, NULL, SW_SHOW); // !SMT!-UI
 		}
@@ -1824,7 +1824,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	else if (wParam == SHOW_POPUP_MESSAGE)
 	{
 		Popup* msg = (Popup*)lParam;
-		if (!ClientManager::isShutdown())
+		if (!ClientManager::isBeforeShutdown())
 		{
 			dcassert(PopupManager::isValidInstance());
 			if (PopupManager::isValidInstance())
@@ -1844,7 +1844,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 	}
 	else if (wParam == SET_PM_TRAY_ICON) // Установка иконки о получении сообщения.
 	{
-		if (!ClientManager::isShutdown())
+		if (!ClientManager::isBeforeShutdown())
 		{
 			if (m_bIsPM == false && (!WinUtil::g_isAppActive || g_bAppMinimized)) // [!] InfinitySky. Будет лучше менять иконку при получении сообщения всегда, если эта иконка не установлена и если окно не активно (как в Skype).
 			{
@@ -3519,8 +3519,8 @@ void MainFrame::on(QueueManagerListener::PartialList, const HintedUser& aUser, c
 
 void MainFrame::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string& dir, const DownloadPtr& p_download) noexcept
 {
-	dcassert(!ClientManager::isShutdown());
-	if (!ClientManager::isShutdown())
+	dcassert(!ClientManager::isBeforeShutdown());
+	if (!ClientManager::isBeforeShutdown())
 	{
 		if (qi->isSet(QueueItem::FLAG_CLIENT_VIEW))
 		{

@@ -27,8 +27,8 @@
 void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bool preview /*= false*/)
 {
 	dcassert(ClientManager::isStartup() == false);
-	dcassert(ClientManager::isShutdown() == false);
-	if (ClientManager::isShutdown())
+	dcassert(ClientManager::isBeforeShutdown() == false);
+	if (ClientManager::isBeforeShutdown())
 		return;
 	if (ClientManager::isStartup())
 		return;
@@ -198,7 +198,7 @@ void PopupManager::Remove(uint32_t pos)
 	//nothing to do
 	if (m_popups.empty())
 		return;
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		CRect rc;
 		//move down all windows

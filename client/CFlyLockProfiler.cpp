@@ -51,7 +51,7 @@ void CFlyLockProfiler::log(const char* p_path, int p_recursion_count, bool p_is_
 	)
 	{
 		string l_path = p_path;
-		if (ClientManager::isShutdown())
+		if (ClientManager::isBeforeShutdown())
 		{
 			l_path += ".shutdown.txt";
 		}

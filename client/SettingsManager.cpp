@@ -2104,7 +2104,7 @@ void SettingsManager::save(const string& aFileName)
 	
 	RSSManager::save(xml);
 	
-	if (!ClientManager::isShutdown())
+	if (!ClientManager::isBeforeShutdown())
 	{
 		fly_fire(SettingsManagerListener::Repaint());
 	}
