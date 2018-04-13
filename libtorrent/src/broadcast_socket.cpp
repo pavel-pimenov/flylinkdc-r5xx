@@ -33,7 +33,17 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/config.hpp"
 
 #include "libtorrent/aux_/disable_warnings_push.hpp"
+
+#if defined TORRENT_OS2
+#include <pthread.h>
+#endif
+
 #include <boost/asio/ip/multicast.hpp>
+
+#ifdef TORRENT_WINDOWS
+#include <iphlpapi.h> // for if_nametoindex
+#endif
+
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 
 #include "libtorrent/socket.hpp"
@@ -119,9 +129,9 @@ namespace libtorrent {
 #if TORRENT_USE_IPV6
 		TORRENT_TRY {
 			if (!addr.is_v6()) return false;
-			static const std::uint8_t teredo_prefix[] = {0x20, 0x01, 0, 0};
+			std::uint8_t teredo_prefix[] = {0x20, 0x01, 0, 0};
 			address_v6::bytes_type b = addr.to_v6().to_bytes();
-			return std::memcmp(b.data(), teredo_prefix, 4) == 0;
+			return std::memcmp(&b[0], teredo_prefix, 4) == 0;
 		} TORRENT_CATCH(std::exception const&) { return false; }
 #else
 		TORRENT_UNUSED(addr);
@@ -171,15 +181,15 @@ namespace libtorrent {
 		TORRENT_ASSERT(m_multicast_endpoint.address().is_multicast());
 	}
 
-	void broadcast_socket::open(receive_handler_t handler
+	void broadcast_socket::open(receive_handler_t const& handler
 		, io_service& ios, error_code& ec, bool loopback)
 	{
-		m_on_receive = std::move(handler);
+		m_on_receive = handler;
 
 		std::vector<ip_interface> interfaces = enum_net_interfaces(ios, ec);
 
 #if TORRENT_USE_IPV6
-		if (m_multicast_endpoint.protocol() == udp::v6())
+		if (m_multicast_endpoint.address().is_v6())
 			open_multicast_socket(ios, address_v6::any(), loopback, ec);
 		else
 #endif
@@ -308,7 +318,7 @@ namespace libtorrent {
 			maybe_abort();
 			return;
 		}
-		m_on_receive(s->remote, {s->buffer, bytes_transferred});
+		m_on_receive(s->remote, s->buffer, int(bytes_transferred));
 
 		if (maybe_abort()) return;
 		if (!s->socket) return;

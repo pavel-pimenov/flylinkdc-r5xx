@@ -37,7 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/session_settings.hpp"
 #include "libtorrent/aux_/session_interface.hpp"
 #include "libtorrent/aux_/session_udp_sockets.hpp"
-#include "libtorrent/aux_/socket_type.hpp"
+#include "libtorrent/linked_list.hpp"
 #include "libtorrent/torrent_peer.hpp"
 #include "libtorrent/torrent_peer_allocator.hpp"
 #include "libtorrent/performance_counters.hpp" // for counters
@@ -62,6 +62,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/stat.hpp"
 #include "libtorrent/file_pool.hpp"
 #include "libtorrent/bandwidth_manager.hpp"
+#include "libtorrent/socket_type.hpp"
 #include "libtorrent/disk_io_thread.hpp"
 #include "libtorrent/udp_socket.hpp"
 #include "libtorrent/assert.hpp"
@@ -209,9 +210,9 @@ namespace aux {
 
 		struct TORRENT_EXTRA_EXPORT listen_endpoint_t
 		{
-			listen_endpoint_t(address const& adr, int p, std::string dev, transport s
+			listen_endpoint_t(address adr, int p, std::string dev, transport s
 				, duplex d = duplex::accept_incoming)
-				: addr(adr), port(p), device(std::move(dev)), ssl(s), incoming(d) {}
+				: addr(adr), port(p), device(dev), ssl(s), incoming(d) {}
 
 			bool operator==(listen_endpoint_t const& o) const
 			{
@@ -289,7 +290,7 @@ namespace aux {
 
 			struct session_plugin_wrapper : plugin
 			{
-				explicit session_plugin_wrapper(ext_function_t f) : m_f(std::move(f)) {}
+				explicit session_plugin_wrapper(ext_function_t const& f) : m_f(f) {}
 
 				std::shared_ptr<torrent_plugin> new_torrent(torrent_handle const& t, void* user) override
 				{ return m_f(t, user); }
@@ -373,6 +374,8 @@ namespace aux {
 			std::shared_ptr<torrent> delay_load_torrent(sha1_hash const& info_hash
 				, peer_connection* pc) override;
 			void set_queue_position(torrent* t, queue_position_t p) override;
+
+			peer_id const& get_peer_id() const override { return m_peer_id; }
 
 			void close_connection(peer_connection* p) noexcept override;
 
@@ -583,11 +586,12 @@ namespace aux {
 
 #ifndef TORRENT_NO_DEPRECATE
 			session_status status() const;
-			peer_id deprecated_get_peer_id() const;
 #endif
 
 			void get_cache_info(torrent_handle h, cache_status* ret, int flags) const;
 
+			void set_peer_id(peer_id const& id);
+			void set_key(std::uint32_t key);
 			std::uint16_t listen_port() const override;
 			std::uint16_t listen_port(listen_socket_t* sock) const;
 			std::uint16_t ssl_listen_port() const override;
@@ -653,6 +657,9 @@ namespace aux {
 			int next_port() const;
 
 			void deferred_submit_jobs() override;
+
+			torrent_peer* allocate_peer_entry(int type);
+			void free_peer_entry(torrent_peer* p);
 
 			// implements dht_observer
 			void set_external_address(aux::listen_socket_handle const& iface
@@ -746,6 +753,7 @@ namespace aux {
 			void update_lsd();
 			void update_dht();
 			void update_count_slow();
+			void update_peer_fingerprint();
 			void update_dht_bootstrap_nodes();
 
 			void update_socket_buffer_size();
@@ -771,15 +779,17 @@ namespace aux {
 			peer_class_pool m_classes;
 
 			void init();
+//			void init_dht();
 
 			void submit_disk_jobs();
 
 			void on_trigger_auto_manage();
 
 			void on_lsd_peer(tcp::endpoint const& peer, sha1_hash const& ih) override;
+			void setup_socket_buffers(socket_type& s) override;
 
 			void set_external_address(std::shared_ptr<listen_socket_t> const& sock, address const& ip
-				, ip_source_t source_type, address const& source);
+				, ip_source_t const source_type, address const& source);
 
 			void interface_to_endpoints(std::string const& device, int port
 				, transport ssl, duplex incoming, std::vector<listen_endpoint_t>& eps);
@@ -910,6 +920,9 @@ namespace aux {
 
 			// filters outgoing connections
 			port_filter m_port_filter;
+
+			// the peer id that is generated at the start of the session
+			peer_id m_peer_id;
 
 			// posts a notification when the set of local IPs changes
 			std::unique_ptr<ip_change_notifier> m_ip_notifier;

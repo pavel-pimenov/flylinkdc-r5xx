@@ -98,7 +98,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/disk_io_thread.hpp" // for cache_status
 #include "libtorrent/aux_/numeric_cast.hpp"
 #include "libtorrent/aux_/path.hpp"
-#include "libtorrent/aux_/set_socket_buffer.hpp"
 
 #ifndef TORRENT_DISABLE_LOGGING
 #include "libtorrent/aux_/session_impl.hpp" // for tracker_logger
@@ -109,28 +108,6 @@ POSSIBILITY OF SUCH DAMAGE.
 using namespace std::placeholders;
 
 namespace libtorrent {
-namespace {
-
-bool is_downloading_state(int const st)
-{
-	switch (st)
-	{
-		case torrent_status::checking_files:
-		case torrent_status::allocating:
-		case torrent_status::checking_resume_data:
-			return false;
-		case torrent_status::downloading_metadata:
-		case torrent_status::downloading:
-		case torrent_status::finished:
-		case torrent_status::seeding:
-			return true;
-		default:
-			// unexpected state
-			TORRENT_ASSERT_FAIL_VAL(st);
-			return false;
-	}
-}
-} // anonymous namespace
 
 	web_seed_t::web_seed_t(web_seed_entry const& wse)
 		: web_seed_entry(wse)
@@ -144,19 +121,6 @@ bool is_downloading_state(int const st)
 		: web_seed_entry(url_, type_, auth_, extra_headers_)
 	{
 		peer_info.web_seed = true;
-	}
-
-	peer_id generate_peer_id(aux::session_settings const& sett)
-	{
-		peer_id ret;
-		std::string print = sett.get_str(settings_pack::peer_fingerprint);
-		if (print.size() > ret.size()) print.resize(ret.size());
-
-		// the client's fingerprint
-		std::copy(print.begin(), print.end(), ret.begin());
-		if (print.length() < ret.size())
-			url_random(span<char>(ret).subspan(print.length()));
-		return ret;
 	}
 
 	torrent_hot_members::torrent_hot_members(aux::session_interface& ses
@@ -197,7 +161,6 @@ bool is_downloading_state(int const st)
 		, m_info_hash(p.info_hash)
 		, m_error_file(torrent_status::error_file_none)
 		, m_sequence_number(-1)
-		, m_peer_id(generate_peer_id(settings()))
 		, m_announce_to_trackers(!(p.flags & torrent_flags::paused))
 		, m_announce_to_lsd(!(p.flags & torrent_flags::paused))
 		, m_has_incoming(false)
@@ -222,6 +185,9 @@ bool is_downloading_state(int const st)
 		, m_padding(0)
 		, m_incomplete(0xffffff)
 		, m_announce_to_dht(!(p.flags & torrent_flags::paused))
+		, m_in_state_updates(false)
+		, m_is_active_download(false)
+		, m_is_active_finished(false)
 		, m_ssl_torrent(false)
 		, m_deleted(false)
 		, m_auto_managed(p.flags & torrent_flags::auto_managed)
@@ -878,7 +844,7 @@ bool is_downloading_state(int const st)
 		{
 			TORRENT_INCREMENT(m_iterating_connections);
 			if (pc->type() != connection_type::bittorrent) continue;
-			auto* p = static_cast<bt_peer_connection*>(pc);
+			bt_peer_connection* p = static_cast<bt_peer_connection*>(pc);
 			p->write_share_mode();
 		}
 #endif
@@ -1467,7 +1433,7 @@ bool is_downloading_state(int const st)
 		X509* cert = X509_STORE_CTX_get_current_cert(ctx.native_handle());
 
 		// Go through the alternate names in the certificate looking for matching DNS entries
-		auto* gens = static_cast<GENERAL_NAMES*>(
+		GENERAL_NAMES* gens = static_cast<GENERAL_NAMES*>(
 			X509_get_ext_d2i(cert, NID_subject_alt_name, nullptr, nullptr));
 
 #ifndef TORRENT_DISABLE_LOGGING
@@ -1480,7 +1446,7 @@ bool is_downloading_state(int const st)
 			if (gen->type != GEN_DNS) continue;
 			ASN1_IA5STRING* domain = gen->d.dNSName;
 			if (domain->type != V_ASN1_IA5STRING || !domain->data || !domain->length) continue;
-			auto const* torrent_name = reinterpret_cast<char const*>(domain->data);
+			const char* torrent_name = reinterpret_cast<const char*>(domain->data);
 			std::size_t const name_length = aux::numeric_cast<std::size_t>(domain->length);
 
 #ifndef TORRENT_DISABLE_LOGGING
@@ -1513,7 +1479,7 @@ bool is_downloading_state(int const st)
 		}
 		if (common_name && common_name->data && common_name->length)
 		{
-			auto const* torrent_name = reinterpret_cast<char const*>(common_name->data);
+			const char* torrent_name = reinterpret_cast<const char*>(common_name->data);
 			std::size_t const name_length = aux::numeric_cast<std::size_t>(common_name->length);
 
 #ifndef TORRENT_DISABLE_LOGGING
@@ -1800,8 +1766,6 @@ bool is_downloading_state(int const st)
 		}
 		else
 		{
-			need_picker();
-
 			int num_pad_files = 0;
 			TORRENT_ASSERT(block_size() > 0);
 
@@ -1811,6 +1775,10 @@ bool is_downloading_state(int const st)
 
 				if (!fs.pad_file_at(i) || fs.file_size(i) == 0) continue;
 				m_padding += std::uint32_t(fs.file_size(i));
+
+				// TODO: instead of creating the picker up front here,
+				// maybe this whole section should move to need_picker()
+				need_picker();
 
 				peer_request pr = m_torrent_file->map_file(i, 0, int(fs.file_size(i)));
 				int off = pr.start & (block_size() - 1);
@@ -1823,7 +1791,7 @@ bool is_downloading_state(int const st)
 				for (; pr.length >= block; pr.length -= block, ++pb.block_index)
 				{
 					if (pb.block_index == blocks_per_piece) { pb.block_index = 0; ++pb.piece_index; }
-					m_picker->mark_as_pad(pb);
+					m_picker->mark_as_finished(pb, nullptr);
 				}
 				// ugly edge case where padfiles are not used they way they're
 				// supposed to be. i.e. added back-to back or at the end
@@ -1939,7 +1907,7 @@ bool is_downloading_state(int const st)
 		{
 			TORRENT_INCREMENT(m_iterating_connections);
 			if (pe->type() != connection_type::bittorrent) continue;
-			auto* p = static_cast<bt_peer_connection*>(pe);
+			bt_peer_connection* p = static_cast<bt_peer_connection*>(pe);
 			if (!p->supports_holepunch()) continue;
 			if (p->was_introduced_by(ep)) return p;
 		}
@@ -1960,7 +1928,7 @@ bool is_downloading_state(int const st)
 		return nullptr;
 	}
 
-	peer_connection* torrent::find_peer(peer_id const& pid)
+	peer_connection* torrent::find_peer(sha1_hash const& pid)
 	{
 		for (auto p : m_connections)
 		{
@@ -2066,7 +2034,7 @@ bool is_downloading_state(int const st)
 		// checking this torrent. pick it up where we left off
 		if (!should_start_full_check
 			&& m_add_torrent_params
-			&& !m_add_torrent_params->have_pieces.empty()
+			&& m_add_torrent_params->have_pieces.size() > 0
 			&& m_add_torrent_params->have_pieces.size() < m_torrent_file->num_pieces())
 		{
 			m_checking_piece = m_num_checked_pieces
@@ -2471,7 +2439,7 @@ bool is_downloading_state(int const st)
 	void torrent::use_interface(std::string net_interfaces)
 	{
 		std::shared_ptr<settings_pack> p = std::make_shared<settings_pack>();
-		p->set_str(settings_pack::outgoing_interfaces, std::move(net_interfaces));
+		p->set_str(settings_pack::outgoing_interfaces, net_interfaces);
 		m_ses.apply_settings_pack(p);
 	}
 #endif
@@ -2732,7 +2700,7 @@ bool is_downloading_state(int const st)
 		req.private_torrent = m_torrent_file->priv();
 
 		req.info_hash = m_torrent_file->info_hash();
-		req.pid = m_peer_id;
+		req.pid = m_ses.get_peer_id();
 		req.downloaded = m_stat.total_payload_download() - m_total_failed_bytes;
 		req.uploaded = m_stat.total_payload_upload();
 		req.corrupt = m_total_failed_bytes;
@@ -2746,7 +2714,6 @@ bool is_downloading_state(int const st)
 		// exclude redundant bytes if we should
 		if (!settings().get_bool(settings_pack::report_true_downloaded))
 			req.downloaded -= m_total_redundant_bytes;
-		req.redundant = m_total_redundant_bytes;
 		if (req.downloaded < 0) req.downloaded = 0;
 
 		req.event = e;
@@ -3183,7 +3150,7 @@ bool is_downloading_state(int const st)
 		for (auto const& i : resp.peers)
 		{
 			// don't make connections to ourself
-			if (i.pid == m_peer_id)
+			if (i.pid == m_ses.get_peer_id())
 				continue;
 
 #if TORRENT_USE_I2P
@@ -3343,6 +3310,11 @@ bool is_downloading_state(int const st)
 		}
 
 		if (want_peers()) m_ses.prioritize_connections(shared_from_this());
+	}
+
+	time_point torrent::next_announce() const
+	{
+		return m_waiting_tracker ? m_tracker_timer.expires_at() : min_time();
 	}
 
 	// this is the entry point for the client to force a re-announce. It's
@@ -3917,26 +3889,23 @@ bool is_downloading_state(int const st)
 
 		remove_time_critical_piece(index, true);
 
-		if (is_downloading_state(m_state))
+		if (m_state != torrent_status::finished
+			&& m_state != torrent_status::seeding
+			&& is_finished())
 		{
-			if (m_state != torrent_status::finished
-				&& m_state != torrent_status::seeding
-				&& is_finished())
-			{
-				// torrent finished
-				// i.e. all the pieces we're interested in have
-				// been downloaded. Release the files (they will open
-				// in read only mode if needed)
-				finished();
-				// if we just became a seed, picker is now invalid, since it
-				// is deallocated by the torrent once it starts seeding
-			}
-
-			m_last_download = aux::time_now32();
-
-			if (m_share_mode)
-				recalc_share_mode();
+			// torrent finished
+			// i.e. all the pieces we're interested in have
+			// been downloaded. Release the files (they will open
+			// in read only mode if needed)
+			finished();
+			// if we just became a seed, picker is now invalid, since it
+			// is deallocated by the torrent once it starts seeding
 		}
+
+		m_last_download = aux::time_now32();
+
+		if (m_share_mode)
+			recalc_share_mode();
 	}
 
 	// this is called when the piece hash is checked as correct. Note
@@ -4002,7 +3971,7 @@ bool is_downloading_state(int const st)
 			p->trust_points = trust_points;
 			if (p->connection)
 			{
-				auto* peer = static_cast<peer_connection*>(p->connection);
+				peer_connection* peer = static_cast<peer_connection*>(p->connection);
 				TORRENT_ASSERT(peer->m_in_use == 1337);
 				peer->received_valid_data(index);
 			}
@@ -4107,7 +4076,7 @@ bool is_downloading_state(int const st)
 		{
 			if (p && p->connection)
 			{
-				auto* peer = static_cast<peer_connection*>(p->connection);
+				peer_connection* peer = static_cast<peer_connection*>(p->connection);
 				peer->piece_failed = true;
 			}
 		}
@@ -4123,7 +4092,7 @@ bool is_downloading_state(int const st)
 			bool allow_disconnect = true;
 			if (p->connection)
 			{
-				auto* peer = static_cast<peer_connection*>(p->connection);
+				peer_connection* peer = static_cast<peer_connection*>(p->connection);
 				TORRENT_ASSERT(peer->m_in_use == 1337);
 
 				// the peer implementation can ask not to be disconnected.
@@ -4171,7 +4140,7 @@ bool is_downloading_state(int const st)
 
 				if (p->connection)
 				{
-					auto* peer = static_cast<peer_connection*>(p->connection);
+					peer_connection* peer = static_cast<peer_connection*>(p->connection);
 #ifndef TORRENT_DISABLE_LOGGING
 					if (should_log())
 					{
@@ -4220,7 +4189,7 @@ bool is_downloading_state(int const st)
 		{
 			if (p && p->connection)
 			{
-				auto* peer = static_cast<peer_connection*>(p->connection);
+				peer_connection* peer = static_cast<peer_connection*>(p->connection);
 				peer->piece_failed = false;
 			}
 		}
@@ -4724,7 +4693,7 @@ bool is_downloading_state(int const st)
 		{
 			torrent_peer* tp = *i;
 			if (tp == nullptr || tp->connection == nullptr) continue;
-			auto* peer = static_cast<peer_connection*>(tp->connection);
+			peer_connection* peer = static_cast<peer_connection*>(tp->connection);
 			peer->make_time_critical(piece_block(piece, block));
 		}
 	}
@@ -4899,18 +4868,15 @@ bool is_downloading_state(int const st)
 		bool const was_finished = is_finished();
 		for (auto const& p : pieces)
 		{
-			static_assert(std::is_unsigned<decltype(p.second)>::value
-				, "we need assert p.second >= dont_download");
+			TORRENT_ASSERT(p.second >= dont_download);
 			TORRENT_ASSERT(p.second <= top_priority);
 			TORRENT_ASSERT(p.first >= piece_index_t(0));
 			TORRENT_ASSERT(p.first < m_torrent_file->end_piece());
 
 			if (p.first < piece_index_t(0)
 				|| p.first >= m_torrent_file->end_piece()
-				|| p.second > top_priority)
+				|| p.second < dont_download || p.second > top_priority)
 			{
-				static_assert(std::is_unsigned<decltype(p.second)>::value
-					, "we need additional condition: p.second < dont_download");
 				continue;
 			}
 
@@ -4952,9 +4918,7 @@ bool is_downloading_state(int const st)
 		bool const was_finished = is_finished();
 		for (auto prio : pieces)
 		{
-			static_assert(std::is_unsigned<decltype(prio)>::value
-				, "we need assert prio >= dont_download");
-			TORRENT_ASSERT(prio <= top_priority);
+			TORRENT_ASSERT(prio >= dont_download && prio <= top_priority);
 			filter_updated |= m_picker->set_piece_priority(index, prio);
 			TORRENT_ASSERT(num_have() >= m_picker->num_have_filtered());
 			++index;
@@ -5164,15 +5128,6 @@ bool is_downloading_state(int const st)
 			// invalidate the iterator
 			++i;
 			p->update_interest();
-		}
-
-		if (!is_downloading_state(m_state))
-		{
-#ifndef TORRENT_DISABLE_LOGGING
-			debug_log("*** UPDATE_PEER_INTEREST [ skipping, state: %d ]"
-				, int(m_state));
-#endif
-			return;
 		}
 
 #ifndef TORRENT_DISABLE_LOGGING
@@ -5588,7 +5543,7 @@ bool is_downloading_state(int const st)
 			debug_log("removing web seed: \"%s\"", web->url.c_str());
 #endif
 
-			auto* peer = static_cast<peer_connection*>(web->peer_info.connection);
+			peer_connection* peer = static_cast<peer_connection*>(web->peer_info.connection);
 			if (peer != nullptr)
 			{
 				// if we have a connection for this web seed, we also need to
@@ -5944,8 +5899,8 @@ bool is_downloading_state(int const st)
 		if (!web->have_files.empty()
 			&& web->have_files.none_set()) return;
 
-		std::shared_ptr<aux::socket_type> s
-			= std::make_shared<aux::socket_type>(m_ses.get_io_service());
+		std::shared_ptr<socket_type> s
+			= std::make_shared<socket_type>(m_ses.get_io_service());
 		if (!s) return;
 
 		void* userdata = nullptr;
@@ -6447,7 +6402,7 @@ bool is_downloading_state(int const st)
 					TORRENT_ASSERT(tp->in_use);
 					if (tp->connection)
 					{
-						auto* peer = static_cast<peer_connection*>(tp->connection);
+						peer_connection* peer = static_cast<peer_connection*>(tp->connection);
 						TORRENT_ASSERT(peer->m_in_use);
 						bi.set_peer(peer->remote());
 						if (bi.state == block_info::requested)
@@ -6522,7 +6477,7 @@ bool is_downloading_state(int const st)
 			|| !m_ip_filter
 			|| (m_ip_filter->access(peerinfo->address()) & ip_filter::blocked) == 0);
 
-		std::shared_ptr<aux::socket_type> s = std::make_shared<aux::socket_type>(m_ses.get_io_service());
+		std::shared_ptr<socket_type> s = std::make_shared<socket_type>(m_ses.get_io_service());
 
 #if TORRENT_USE_I2P
 		bool const i2p = peerinfo->is_i2p_addr;
@@ -6596,7 +6551,7 @@ bool is_downloading_state(int const st)
 				// for ssl sockets, set the hostname
 				std::string host_name = aux::to_hex(m_torrent_file->info_hash());
 
-#define CASE(t) case aux::socket_type_int_impl<ssl_stream<t>>::value: \
+#define CASE(t) case socket_type_int_impl<ssl_stream<t>>::value: \
 	s->get<ssl_stream<t>>()->set_host_name(host_name); break;
 
 				switch (s->type())
@@ -6612,19 +6567,7 @@ bool is_downloading_state(int const st)
 #endif
 		}
 
-		{
-			error_code err;
-			aux::set_socket_buffer_size(*s, settings(), err);
-#ifndef TORRENT_DISABLE_LOGGING
-			if (err && should_log())
-			{
-				error_code ignore;
-				debug_log("socket buffer size [ %s %d]: (%d) %s"
-					, s->local_endpoint().address().to_string(ignore).c_str()
-					, s->local_endpoint().port(), ignore.value(), ignore.message().c_str());
-			}
-#endif
-		}
+		m_ses.setup_socket_buffers(*s);
 
 		peer_connection_args pack;
 		pack.ses = &m_ses;
@@ -6637,7 +6580,8 @@ bool is_downloading_state(int const st)
 		pack.endp = a;
 		pack.peerinfo = peerinfo;
 
-		std::shared_ptr<peer_connection> c = std::make_shared<bt_peer_connection>(pack);
+		std::shared_ptr<peer_connection> c = std::make_shared<bt_peer_connection>(
+			pack, m_ses.get_peer_id());
 
 #if TORRENT_USE_ASSERTS
 		c->m_in_constructor = false;
@@ -6784,10 +6728,10 @@ bool is_downloading_state(int const st)
 		if (is_ssl_torrent())
 		{
 			// if this is an SSL torrent, don't allow non SSL peers on it
-			std::shared_ptr<aux::socket_type> s = p->get_socket();
+			std::shared_ptr<socket_type> s = p->get_socket();
 
 			//
-#define SSL(t) aux::socket_type_int_impl<ssl_stream<t>>::value: \
+#define SSL(t) socket_type_int_impl<ssl_stream<t>>::value: \
 			ssl_conn = s->get<ssl_stream<t>>()->native_handle(); \
 			break;
 
@@ -6857,7 +6801,8 @@ bool is_downloading_state(int const st)
 			return false;
 		}
 
-		if (!is_downloading_state(m_state)
+		if ((m_state == torrent_status::checking_files
+			|| m_state == torrent_status::checking_resume_data)
 			&& valid_metadata())
 		{
 			p->disconnect(errors::torrent_not_ready, operation_t::bittorrent);
@@ -7377,9 +7322,16 @@ bool is_downloading_state(int const st)
 		// to be in downloading state (which it will be set to shortly)
 //		INVARIANT_CHECK;
 
-		TORRENT_ASSERT(m_state != torrent_status::checking_resume_data
-			&& m_state != torrent_status::checking_files
-			&& m_state != torrent_status::allocating);
+		if (m_state == torrent_status::checking_resume_data
+			|| m_state == torrent_status::checking_files
+			|| m_state == torrent_status::allocating)
+		{
+#ifndef TORRENT_DISABLE_LOGGING
+			debug_log("*** RESUME_DOWNLOAD [ skipping, state: %d ]"
+				, int(m_state));
+#endif
+			return;
+		}
 
 		// we're downloading now, which means we're no longer in seed mode
 		if (m_seed_mode)
@@ -8220,13 +8172,12 @@ bool is_downloading_state(int const st)
 	std::string torrent::resolve_filename(file_index_t const file) const
 	{
 		if (file == torrent_status::error_file_none) return "";
+#ifndef TORRENT_NO_DEPRECATE
+		// deprecated in 1.2
+		if (file == torrent_status::error_file_url) return m_url;
+#endif
 		if (file == torrent_status::error_file_ssl_ctx) return "SSL Context";
 		if (file == torrent_status::error_file_exception) return "exception";
-		if (file == torrent_status::error_file_partfile) return "partfile";
-#ifndef TORRENT_NO_DEPRECATE
-		if (file == torrent_status::error_file_url) return m_url;
-		if (file == torrent_status::error_file_metadata) return "metadata (from user load function)";
-#endif
 
 		if (m_storage && file >= file_index_t(0))
 		{
@@ -9626,7 +9577,7 @@ bool is_downloading_state(int const st)
 			// the backup lists
 			picker->add_blocks(i->piece, c.get_bitfield(), interesting_blocks
 				, backup1, backup2, blocks_in_piece, 0, c.peer_info_struct()
-				, ignore, {});
+				, ignore, 0);
 
 			interesting_blocks.insert(interesting_blocks.end()
 				, backup1.begin(), backup1.end());
@@ -9992,7 +9943,7 @@ bool is_downloading_state(int const st)
 		TORRENT_ASSERT(i != m_web_seeds.end());
 		if (i == m_web_seeds.end()) return;
 
-		auto* peer = static_cast<peer_connection*>(i->peer_info.connection);
+		peer_connection* peer = static_cast<peer_connection*>(i->peer_info.connection);
 		if (peer != nullptr)
 		{
 			// if we have a connection for this web seed, we also need to
@@ -10408,7 +10359,7 @@ bool is_downloading_state(int const st)
 					torrent_peer* p = info.peer;
 					if (p != nullptr && p->connection)
 					{
-						auto* peer = static_cast<peer_connection*>(p->connection);
+						peer_connection* peer = static_cast<peer_connection*>(p->connection);
 						auto pbp = peer->downloading_piece_progress();
 						if (pbp.piece_index == dp.index && pbp.block_index == idx)
 							block = pbp.bytes_downloaded;
@@ -10463,6 +10414,29 @@ bool is_downloading_state(int const st)
 	void torrent::new_external_ip()
 	{
 		if (m_peer_list) m_peer_list->clear_peer_prio();
+	}
+
+namespace {
+
+		bool is_downloading_state(int const st)
+		{
+			switch (st)
+			{
+				case torrent_status::checking_files:
+				case torrent_status::allocating:
+				case torrent_status::checking_resume_data:
+					return false;
+				case torrent_status::downloading_metadata:
+				case torrent_status::downloading:
+				case torrent_status::finished:
+				case torrent_status::seeding:
+					return true;
+				default:
+					// unexpected state
+					TORRENT_ASSERT_FAIL_VAL(st);
+					return false;
+			}
+		}
 	}
 
 	void torrent::stop_when_ready(bool const b)
@@ -10724,10 +10698,10 @@ bool is_downloading_state(int const st)
 		st->download_payload_rate = m_stat.download_payload_rate();
 		st->upload_payload_rate = m_stat.upload_payload_rate();
 
-		if (is_paused() || m_tracker_timer.expires_at() < now)
-			st->next_announce = seconds(0);
+		if (m_waiting_tracker && !is_paused())
+			st->next_announce = next_announce() - now;
 		else
-			st->next_announce = m_tracker_timer.expires_at() - now;
+			st->next_announce = seconds(0);
 
 		if (st->next_announce.count() < 0)
 			st->next_announce = seconds(0);

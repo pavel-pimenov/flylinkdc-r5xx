@@ -130,14 +130,12 @@ namespace libtorrent {
 #endif
 	}
 
-#if defined TORRENT_USE_LIBGCRYPT
 	hasher512::~hasher512()
 	{
+#if defined TORRENT_USE_LIBGCRYPT
 		gcry_md_close(m_context);
-	}
-#else
-	hasher512::~hasher512() = default;
 #endif
+	}
 
 #ifdef TORRENT_MACOS_DEPRECATED_LIBCRYPTO
 #pragma clang diagnostic pop

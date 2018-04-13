@@ -34,7 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/enum_net.hpp"
 #include "libtorrent/broadcast_socket.hpp"
 #include "libtorrent/assert.hpp"
-#include "libtorrent/aux_/socket_type.hpp"
+#include "libtorrent/socket_type.hpp"
 #ifdef TORRENT_WINDOWS
 #include "libtorrent/aux_/win_util.hpp"
 #endif
@@ -56,17 +56,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #if TORRENT_USE_SYSCTL
 #include <sys/sysctl.h>
-#ifdef __APPLE__
-#include "TargetConditionals.h"
-#endif
-
-#if defined TARGET_IPHONE_SIMULATOR || defined TARGET_OS_IPHONE
-// net/route.h is not included in the iphone sdk.
-#include "libtorrent/aux_/route.h"
-#else
 #include <net/route.h>
 #endif
-#endif // TORRENT_USE_SYSCTL
 
 #if TORRENT_USE_GETIPFORWARDTABLE || TORRENT_USE_GETADAPTERSADDRESSES
 #ifndef WIN32_LEAN_AND_MEAN
@@ -92,11 +83,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
-
-#if defined TORRENT_ANDROID && !defined IFA_F_DADFAILED
-#define IFA_F_DADFAILED 8
-#endif
-
 #endif
 
 #if TORRENT_USE_IFADDRS
@@ -399,7 +385,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 	bool parse_route(int, rt_msghdr* rtm, ip_route* rt_info)
 	{
 		sockaddr* rti_info[RTAX_MAX];
-		auto* sa = reinterpret_cast<sockaddr*>(rtm + 1);
+		sockaddr* sa = reinterpret_cast<sockaddr*>(rtm + 1);
 		for (int i = 0; i < RTAX_MAX; ++i)
 		{
 			if ((rtm->rtm_addrs & (1 << i)) == 0)
@@ -443,8 +429,6 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 
 		std::strncpy(rv.name, ifa->ifa_name, sizeof(rv.name));
 		rv.name[sizeof(rv.name) - 1] = 0;
-		rv.friendly_name[0] = 0;
-		rv.description[0] = 0;
 
 		// determine address
 		rv.interface_address = sockaddr_to_address(ifa->ifa_addr);
@@ -506,7 +490,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 	{
 		if (family == AF_INET)
 		{
-			using bytes_t = boost::asio::ip::address_v4::bytes_type;
+			typedef boost::asio::ip::address_v4::bytes_type bytes_t;
 			bytes_t b;
 			std::memset(&b[0], 0xff, b.size());
 			for (int i = int(sizeof(bytes_t)) / 8 - 1; i > 0; --i)
@@ -524,7 +508,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 #if TORRENT_USE_IPV6
 		else if (family == AF_INET6)
 		{
-			using bytes_t = boost::asio::ip::address_v6::bytes_type;
+			typedef boost::asio::ip::address_v6::bytes_type bytes_t;
 			bytes_t b;
 			std::memset(&b[0], 0xff, b.size());
 			for (int i = int(sizeof(bytes_t)) / 8 - 1; i > 0; --i)
@@ -562,8 +546,6 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 			wan.interface_address = ip;
 			wan.netmask = address_v4::from_string("255.255.255.255");
 			std::strcpy(wan.name, "eth0");
-			std::strcpy(wan.friendly_name, "Ethernet");
-			std::strcpy(wan.description, "Simulator Ethernet Adapter");
 			ret.push_back(wan);
 		}
 #elif TORRENT_USE_NETLINK
@@ -671,10 +653,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 			{
 				ip_interface iface;
 				iface.interface_address = sockaddr_to_address(&item.ifr_addr);
-				std::strncpy(iface.name, item.ifr_name, sizeof(iface.name));
-				iface.name[sizeof(iface.name) - 1] = 0;
-				iface.friendly_name[0] = 0;
-				iface.description[0] = 0;
+				std::strcpy(iface.name, item.ifr_name);
 
 				ifreq req = {};
 				std::strncpy(req.ifr_name, item.ifr_name, IF_NAMESIZE - 1);
@@ -709,7 +688,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 #elif TORRENT_USE_GETADAPTERSADDRESSES
 
 #if _WIN32_WINNT >= 0x0501
-		using GetAdaptersAddresses_t = ULONG (WINAPI *)(ULONG,ULONG,PVOID,PIP_ADAPTER_ADDRESSES,PULONG);
+		typedef ULONG (WINAPI *GetAdaptersAddresses_t)(ULONG,ULONG,PVOID,PIP_ADAPTER_ADDRESSES,PULONG);
 		// Get GetAdaptersAddresses() pointer
 		auto GetAdaptersAddresses =
 			aux::get_library_procedure<aux::iphlpapi, GetAdaptersAddresses_t>("GetAdaptersAddresses");
@@ -741,11 +720,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 			{
 				ip_interface r;
 				std::strncpy(r.name, adapter->AdapterName, sizeof(r.name));
-				r.name[sizeof(r.name) - 1] = 0;
-				wcstombs(r.friendly_name, adapter->FriendlyName, sizeof(r.friendly_name));
-				r.friendly_name[sizeof(r.friendly_name) - 1] = 0;
-				wcstombs(r.description, adapter->Description, sizeof(r.description));
-				r.description[sizeof(r.description) - 1] = 0;
+				r.name[sizeof(r.name)-1] = 0;
 				for (IP_ADAPTER_UNICAST_ADDRESS* unicast = adapter->FirstUnicastAddress;
 					unicast; unicast = unicast->Next)
 				{
@@ -790,8 +765,6 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 			iface.netmask = sockaddr_to_address(&buffer[i].iiNetmask.Address
 				, iface.interface_address.is_v4() ? AF_INET : AF_INET6);
 			iface.name[0] = 0;
-			iface.friendly_name[0] = 0;
-			iface.description[0] = 0;
 			ret.push_back(iface);
 		}
 
@@ -808,12 +781,10 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 		udp::resolver::iterator i = r.resolve(udp::resolver::query(boost::asio::ip::host_name(ec), "0"), ec);
 		if (ec) return ret;
 		ip_interface iface;
-		for (;i != udp::resolver::iterator(); ++i)
+		for (;i != udp::resolver_iterator(); ++i)
 		{
 			iface.interface_address = i->endpoint().address();
-			iface.name[0] = 0;
-			iface.friendly_name[0] = 0;
-			iface.description[0] = 0;
+			iface.name[0] = '\0';
 			if (iface.interface_address.is_v4())
 				iface.netmask = address_v4::netmask(iface.interface_address.to_v4());
 			ret.push_back(iface);
@@ -835,7 +806,6 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 	{
 		std::vector<ip_route> ret;
 		TORRENT_UNUSED(ios);
-		TORRENT_UNUSED(ec);
 
 #ifdef TORRENT_BUILD_SIMULATOR
 
@@ -987,7 +957,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 	}
 
 	std::unique_ptr<char[]> buf(new (std::nothrow) char[needed]);
-	if (buf == nullptr)
+	if (buf.get() == nullptr)
 	{
 		ec = boost::asio::error::no_memory;
 		return std::vector<ip_route>();
@@ -1031,7 +1001,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 /*
 	move this to enum_net_interfaces
 		// Get GetAdaptersInfo() pointer
-		using GetAdaptersInfo_t = DWORD (WINAPI*)(PIP_ADAPTER_INFO, PULONG);
+		typedef DWORD (WINAPI *GetAdaptersInfo_t)(PIP_ADAPTER_INFO, PULONG);
 		GetAdaptersInfo_t GetAdaptersInfo = get_library_procedure<iphlpapi, GetAdaptersInfo_t>("GetAdaptersInfo");
 		if (GetAdaptersInfo == nullptr)
 		{
@@ -1079,9 +1049,8 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 		free(adapter_info);
 */
 
-		using GetIfEntry_t = DWORD (WINAPI *)(PMIB_IFROW pIfRow);
-		auto GetIfEntry = aux::get_library_procedure<aux::iphlpapi, GetIfEntry_t>(
-			"GetIfEntry");
+		typedef DWORD (WINAPI *GetIfEntry_t)(PMIB_IFROW pIfRow);
+		auto GetIfEntry = aux::get_library_procedure<aux::iphlpapi, GetIfEntry_t>("GetIfEntry");
 
 		if (GetIfEntry == nullptr)
 		{
@@ -1090,9 +1059,9 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 		}
 
 #if _WIN32_WINNT >= 0x0600
-		using GetIpForwardTable2_t = DWORD (WINAPI *)(
+		typedef DWORD (WINAPI *GetIpForwardTable2_t)(
 			ADDRESS_FAMILY, PMIB_IPFORWARD_TABLE2*);
-		using FreeMibTable_t = void (WINAPI *)(PVOID Memory);
+		typedef void (WINAPI *FreeMibTable_t)(PVOID Memory);
 
 		auto GetIpForwardTable2 = aux::get_library_procedure<aux::iphlpapi, GetIpForwardTable2_t>("GetIpForwardTable2");
 		auto FreeMibTable = aux::get_library_procedure<aux::iphlpapi, FreeMibTable_t>("FreeMibTable");
@@ -1115,7 +1084,6 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 					if (GetIfEntry(&ifentry) == NO_ERROR)
 					{
 						wcstombs(r.name, ifentry.wszName, sizeof(r.name));
-						r.name[sizeof(r.name) - 1] = 0;
 						r.mtu = ifentry.dwMtu;
 						ret.push_back(r);
 					}
@@ -1127,7 +1095,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 #endif
 
 		// Get GetIpForwardTable() pointer
-		using GetIpForwardTable_t = DWORD (WINAPI*)(PMIB_IPFORWARDTABLE pIpForwardTable,PULONG pdwSize,BOOL bOrder);
+		typedef DWORD (WINAPI *GetIpForwardTable_t)(PMIB_IPFORWARDTABLE pIpForwardTable,PULONG pdwSize,BOOL bOrder);
 
 		auto GetIpForwardTable = aux::get_library_procedure<aux::iphlpapi, GetIpForwardTable_t>("GetIpForwardTable");
 		if (GetIpForwardTable == nullptr)
@@ -1164,7 +1132,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 				if (GetIfEntry(&ifentry) == NO_ERROR)
 				{
 					wcstombs(r.name, ifentry.wszName, sizeof(r.name));
-					r.name[sizeof(r.name) - 1] = 0;
+					r.name[sizeof(r.name)-1] = 0;
 					r.mtu = ifentry.dwMtu;
 					ret.push_back(r);
 				}

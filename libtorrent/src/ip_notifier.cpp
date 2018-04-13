@@ -123,19 +123,9 @@ template <typename T
 	, void (*Retain)(T) = CFRefRetain<T>, void (*Release)(T) = CFRefRelease<T>>
 struct CFRef
 {
-	CFRef() = default;
+	CFRef() {}
 	explicit CFRef(T h) : m_h(h) {} // take ownership
 	~CFRef() { release(); }
-
-	CFRef(CFRef&& rhs) : m_h(rhs.m_h) { rhs.m_h = nullptr; }
-	CFRef& operator=(CFRef&& rhs)
-	{
-		if (m_h == rhs.m_h) return *this;
-		release();
-		m_h = rhs.m_h;
-		rhs.m_h = nullptr;
-		return *this;
-	}
 
 	CFRef(CFRef const& rhs) : m_h(rhs.m_h) { retain(); }
 	CFRef& operator=(CFRef const& rhs)
@@ -268,16 +258,8 @@ CFRef<SCDynamicStoreRef> create_dynamic_store(SCDynamicStoreCallBack callback, v
 
 	SCDynamicStoreContext context = {0, nullptr, nullptr, nullptr, nullptr};
 	context.info = context_info;
-
-#if defined __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-#endif
 	CFRef<SCDynamicStoreRef> store{SCDynamicStoreCreate(nullptr
 		, CFSTR("libtorrent.IPChangeNotifierStore"), callback, &context)};
-#if defined __clang__
-#pragma clang diagnostic pop
-#endif
 	if (!store)
 		return CFRef<SCDynamicStoreRef>();
 

@@ -109,8 +109,7 @@ namespace libtorrent {
 	struct add_torrent_params;
 	struct storage_interface;
 	class bt_peer_connection;
-
-	peer_id generate_peer_id(aux::session_settings const& sett);
+	struct listen_socket_t;
 
 	enum class waste_reason
 	{
@@ -298,8 +297,8 @@ namespace libtorrent {
 		// m_paused is also true.
 		bool m_graceful_pause_mode:1;
 
-		// state subscription. If set, a pointer to this torrent will be added
-		// to the session_impl::m_torrent_lists[torrent_state_updates]
+		// state subscription. If set, a pointer to this torrent
+		// will be added to the m_state_updates set in session_impl
 		// whenever this torrent's state changes (any state).
 		bool m_state_subscription:1;
 
@@ -388,7 +387,7 @@ namespace libtorrent {
 		// if we're connected to a peer at ep, return its peer connection
 		// only count BitTorrent peers
 		bt_peer_connection* find_peer(tcp::endpoint const& ep) const;
-		peer_connection* find_peer(peer_id const& pid);
+		peer_connection* find_peer(sha1_hash const& pid);
 
 		void on_resume_data_checked(status_t status, storage_error const& error);
 		void on_force_recheck(status_t status, storage_error const& error);
@@ -599,7 +598,7 @@ namespace libtorrent {
 
 		int priority() const;
 #ifndef TORRENT_NO_DEPRECATE
-		void set_priority(int prio);
+		void set_priority(int const prio);
 #endif // TORRENT_NO_DEPRECATE
 
 // --------------------------------------------
@@ -746,6 +745,10 @@ namespace libtorrent {
 		// immediately
 		void do_connect_boost();
 
+		// returns the absolute time when the next tracker
+		// announce will take place.
+		time_point next_announce() const;
+
 		// forcefully sets next_announce to the current time
 		void force_tracker_request(time_point, int tracker_idx);
 		void scrape_tracker(int idx, bool user_triggered);
@@ -846,7 +849,7 @@ namespace libtorrent {
 
 		int block_size() const
 		{
-			return valid_metadata()
+			return m_torrent_file
 				? (std::min)(m_torrent_file->piece_length(), default_block_size)
 				: default_block_size;
 		}
@@ -1172,7 +1175,7 @@ namespace libtorrent {
 		void on_storage_moved(status_t status, std::string const& path
 			, storage_error const& error);
 		void on_file_renamed(std::string const& filename
-			, file_index_t file_idx
+			, file_index_t const file_idx
 			, storage_error const& error);
 		void on_cache_flushed();
 
@@ -1186,6 +1189,8 @@ namespace libtorrent {
 
 		int prioritize_tracker(int tracker_index);
 		int deprioritize_tracker(int tracker_index);
+
+		bool request_bandwidth_from_session(int channel) const;
 
 		void update_peer_interest(bool was_finished);
 		void prioritize_udp_trackers();
@@ -1438,12 +1443,6 @@ namespace libtorrent {
 		// connections (if we've reached the connection limit)
 		std::uint16_t m_num_connecting = 0;
 
-		// this is the peer id we generate when we add the torrent. Peers won't
-		// use this (they generate their own peer ids) but this is used in case
-		// the tracker returns peer IDs, to identify ourself in the peer list to
-		// avoid connecting back to it.
-		peer_id m_peer_id;
-
 		// ==============================
 		// The following members are specifically
 		// ordered to make the 24 bit members
@@ -1603,9 +1602,21 @@ namespace libtorrent {
 		// is optional and may be 0xffffff
 		std::uint32_t m_incomplete:24;
 
+
 		// true when the torrent should announce to
 		// the DHT
 		bool m_announce_to_dht:1;
+
+		// in state_updates list. When adding a torrent to the
+		// session_impl's m_state_update list, this bit is set
+		// to never add the same torrent twice
+		bool m_in_state_updates:1;
+
+		// these represent whether or not this torrent is counted
+		// in the total counters of active seeds and downloads
+		// in the session.
+		bool m_is_active_download:1;
+		bool m_is_active_finished:1;
 
 		// even if we're not built to support SSL torrents,
 		// remember that this is an SSL torrent, so that we don't

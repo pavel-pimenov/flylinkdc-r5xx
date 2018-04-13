@@ -69,23 +69,6 @@ namespace libtorrent {
 
 	constexpr prio_index_t piece_picker::piece_pos::we_have_index;
 
-	constexpr picker_options_t piece_picker::rarest_first;
-	constexpr picker_options_t piece_picker::reverse;
-	constexpr picker_options_t piece_picker::on_parole;
-	constexpr picker_options_t piece_picker::prioritize_partials;
-	constexpr picker_options_t piece_picker::sequential;
-	constexpr picker_options_t piece_picker::time_critical_mode;
-	constexpr picker_options_t piece_picker::align_expanded_pieces;
-
-	constexpr download_queue_t piece_picker::piece_pos::piece_downloading;
-	constexpr download_queue_t piece_picker::piece_pos::piece_full;
-	constexpr download_queue_t piece_picker::piece_pos::piece_finished;
-	constexpr download_queue_t piece_picker::piece_pos::piece_zero_prio;
-	constexpr download_queue_t piece_picker::piece_pos::num_download_categories;
-	constexpr download_queue_t piece_picker::piece_pos::piece_open;
-	constexpr download_queue_t piece_picker::piece_pos::piece_downloading_reverse;
-	constexpr download_queue_t piece_picker::piece_pos::piece_full_reverse;
-
 	piece_picker::piece_picker(int const blocks_per_piece
 		, int const blocks_in_last_piece, int const total_num_pieces)
 		: m_priority_boundaries(1, m_pieces.end_index())
@@ -115,7 +98,8 @@ namespace libtorrent {
 		m_reverse_cursor = m_piece_map.end_index();
 		m_cursor = piece_index_t(0);
 
-		for (auto& c : m_downloads) c.clear();
+		for (int i = 0; i < piece_pos::num_download_categories; ++i)
+			m_downloads[i].clear();
 		m_block_info.clear();
 		m_free_block_infos.clear();
 
@@ -124,13 +108,14 @@ namespace libtorrent {
 		m_num_have = 0;
 		m_num_passed = 0;
 		m_dirty = true;
-		for (auto& m : m_piece_map)
+		for (std::vector<piece_pos>::iterator i = m_piece_map.begin()
+			, end(m_piece_map.end()); i != end; ++i)
 		{
-			m.peer_count = 0;
-			m.state(piece_pos::piece_open);
-			m.index = prio_index_t(0);
+			i->peer_count = 0;
+			i->download_state = piece_pos::piece_open;
+			i->index = prio_index_t(0);
 #ifdef TORRENT_DEBUG_REFCOUNTS
-			m.have_peers.clear();
+			i->have_peers.clear();
 #endif
 		}
 
@@ -155,10 +140,10 @@ namespace libtorrent {
 		INVARIANT_CHECK;
 #endif
 
-		auto const state = m_piece_map[index].download_queue();
+		int state = m_piece_map[index].download_queue();
 		if (state != piece_pos::piece_open)
 		{
-			auto piece = find_dl_piece(state, index);
+			std::vector<downloading_piece>::const_iterator piece = find_dl_piece(state, index);
 			TORRENT_ASSERT(piece != m_downloads[state].end());
 			st = *piece;
 			return;
@@ -215,8 +200,9 @@ namespace libtorrent {
 		// always insert into bucket 0 (piece_downloading)
 		downloading_piece ret;
 		ret.index = piece;
-		auto const download_state = piece_pos::piece_downloading;
-		auto downloading_iter = std::lower_bound(m_downloads[download_state].begin()
+		int download_state = piece_pos::piece_downloading;
+		std::vector<downloading_piece>::iterator downloading_iter
+			= std::lower_bound(m_downloads[download_state].begin()
 			, m_downloads[download_state].end(), ret);
 		TORRENT_ASSERT(downloading_iter == m_downloads[download_state].end()
 			|| downloading_iter->index != piece);
@@ -226,21 +212,10 @@ namespace libtorrent {
 		TORRENT_ASSERT(int(ret.info_idx) * m_blocks_per_piece
 			+ m_blocks_per_piece <= int(m_block_info.size()));
 
-		int block_idx = 0;
 		for (auto& info : mutable_blocks_for_piece(ret))
 		{
 			info.num_peers = 0;
 			info.state = block_info::state_none;
-			if (m_pad_blocks.count(piece_block(piece, block_idx)))
-			{
-				info.state = block_info::state_finished;
-				++ret.finished;
-			}
-			else
-			{
-				info.state = block_info::state_none;
-			}
-			++block_idx;
 			info.peer = nullptr;
 #if TORRENT_USE_ASSERTS
 			info.piece_index = piece;
@@ -248,10 +223,6 @@ namespace libtorrent {
 #endif
 		}
 		downloading_iter = m_downloads[download_state].insert(downloading_iter, ret);
-
-		// in case every block was a pad block, we need to make sure the piece
-		// structure is correctly categorised
-		downloading_iter = update_piece_state(downloading_iter);
 
 #if TORRENT_USE_INVARIANT_CHECKS
 		check_piece_state();
@@ -265,7 +236,7 @@ namespace libtorrent {
 		check_piece_state();
 #endif
 
-		auto const download_state = m_piece_map[i->index].download_queue();
+		int download_state = m_piece_map[i->index].download_queue();
 		TORRENT_ASSERT(download_state != piece_pos::piece_open);
 		TORRENT_ASSERT(find_dl_piece(download_state, i->index) == i);
 #if TORRENT_USE_ASSERTS
@@ -277,7 +248,7 @@ namespace libtorrent {
 		m_free_block_infos.push_back(i->info_idx);
 
 		TORRENT_ASSERT(find_dl_piece(download_state, i->index) == i);
-		m_piece_map[i->index].state(piece_pos::piece_open);
+		m_piece_map[i->index].download_state = piece_pos::piece_open;
 		m_downloads[download_state].erase(i);
 
 		TORRENT_ASSERT(prev_size == int(m_downloads[download_state].size()) + 1);
@@ -294,16 +265,16 @@ namespace libtorrent {
 #endif
 
 		std::vector<downloading_piece> ret;
-		for (auto const& c : m_downloads)
-			ret.insert(ret.end(), c.begin(), c.end());
+		for (int k = 0; k < piece_pos::num_download_categories; ++k)
+			ret.insert(ret.end(), m_downloads[k].begin(), m_downloads[k].end());
 		return ret;
 	}
 
 	int piece_picker::get_download_queue_size() const
 	{
 		int ret = 0;
-		for (auto const& c : m_downloads)
-			ret += int(c.size());
+		for (int k = 0; k < piece_pos::num_download_categories; ++k)
+			ret += int(m_downloads[k].size());
 		return ret;
 	}
 
@@ -334,7 +305,7 @@ namespace libtorrent {
 
 	void piece_picker::check_piece_state() const
 	{
-		for (download_queue_t k{}; k != piece_pos::num_download_categories; ++k)
+		for (int k = 0; k < piece_pos::num_download_categories; ++k)
 		{
 			if (!m_downloads[k].empty())
 			{
@@ -458,7 +429,7 @@ namespace libtorrent {
 			last = b;
 		}
 
-		for (download_queue_t k{}; k != piece_pos::num_download_categories; ++k)
+		for (int k = 0; k < piece_pos::num_download_categories; ++k)
 		{
 			if (!m_downloads[k].empty())
 			{
@@ -488,7 +459,7 @@ namespace libtorrent {
 		if (t != nullptr)
 			TORRENT_ASSERT(int(m_piece_map.size()) == t->torrent_file().num_pieces());
 
-		for (download_queue_t j{}; j != piece_pos::num_download_categories; ++j)
+		for (int j = 0; j < piece_pos::num_download_categories; ++j)
 		{
 			for (auto const& dp : m_downloads[j])
 			{
@@ -526,28 +497,27 @@ namespace libtorrent {
 					}
 				}
 
-				if (j == piece_pos::piece_downloading)
+				switch(j)
 				{
-					TORRENT_ASSERT(!m_piece_map[dp.index].filtered());
-					TORRENT_ASSERT(num_open > 0);
-				}
-				else if (j == piece_pos::piece_full)
-				{
-					TORRENT_ASSERT(!m_piece_map[dp.index].filtered());
-					TORRENT_ASSERT(num_open == 0);
-					// if requested == 0, the piece should be in the finished state
-					TORRENT_ASSERT(num_requested > 0);
-				}
-				else if (j == piece_pos::piece_finished)
-				{
-					TORRENT_ASSERT(!m_piece_map[dp.index].filtered());
-					TORRENT_ASSERT(num_open == 0);
-					TORRENT_ASSERT(num_requested == 0);
-					TORRENT_ASSERT(num_finished + num_writing == num_blocks);
-				}
-				else if (j == piece_pos::piece_zero_prio)
-				{
-					TORRENT_ASSERT(m_piece_map[dp.index].filtered());
+					case piece_pos::piece_downloading:
+						TORRENT_ASSERT(!m_piece_map[dp.index].filtered());
+						TORRENT_ASSERT(num_open > 0);
+					break;
+					case piece_pos::piece_full:
+						TORRENT_ASSERT(!m_piece_map[dp.index].filtered());
+						TORRENT_ASSERT(num_open == 0);
+						// if requested == 0, the piece should be in the finished state
+						TORRENT_ASSERT(num_requested > 0);
+					break;
+					case piece_pos::piece_finished:
+						TORRENT_ASSERT(!m_piece_map[dp.index].filtered());
+						TORRENT_ASSERT(num_open == 0);
+						TORRENT_ASSERT(num_requested == 0);
+						TORRENT_ASSERT(num_finished + num_writing == num_blocks);
+					break;
+					case piece_pos::piece_zero_prio:
+						TORRENT_ASSERT(m_piece_map[dp.index].filtered());
+					break;
 				}
 
 				TORRENT_ASSERT(num_requested == dp.requested);
@@ -694,23 +664,25 @@ namespace libtorrent {
 				|| count_zero + count_downloading + count_full
 					+ count_finished == 1);
 
-			auto const dq = i->download_queue();
-			if (dq == piece_pos::piece_open) {
-				TORRENT_ASSERT(count_downloading
-					+ count_full + count_finished + count_zero == 0);
-			}
-			else if (dq == piece_pos::piece_downloading) {
-				TORRENT_ASSERT(count_downloading == 1);
-			}
-			else if (dq == piece_pos::piece_full) {
-				TORRENT_ASSERT(count_full == 1);
-			}
-			else if (dq == piece_pos::piece_finished) {
-				TORRENT_ASSERT(count_finished == 1);
-			}
-			else if (dq == piece_pos::piece_zero_prio) {
-				TORRENT_ASSERT(count_zero == 1);
-			}
+			switch(i->download_queue())
+			{
+				case piece_pos::piece_open:
+					TORRENT_ASSERT(count_downloading
+						+ count_full + count_finished + count_zero == 0);
+					break;
+				case piece_pos::piece_downloading:
+					TORRENT_ASSERT(count_downloading == 1);
+					break;
+				case piece_pos::piece_full:
+					TORRENT_ASSERT(count_full == 1);
+					break;
+				case piece_pos::piece_finished:
+					TORRENT_ASSERT(count_finished == 1);
+					break;
+				case piece_pos::piece_zero_prio:
+					TORRENT_ASSERT(count_zero == 1);
+					break;
+			};
 		}
 		TORRENT_ASSERT(num_have == m_num_have);
 		TORRENT_ASSERT(num_filtered == m_num_filtered);
@@ -873,7 +845,7 @@ namespace libtorrent {
 			print_pieces();
 #endif
 			TORRENT_ASSERT(elem_index < m_pieces.end_index());
-			prio_index_t temp{};
+			prio_index_t temp;
 			do
 			{
 				temp = --m_priority_boundaries[priority];
@@ -937,7 +909,7 @@ namespace libtorrent {
 #endif
 		if (priority > new_priority)
 		{
-			prio_index_t new_index{};
+			prio_index_t new_index;
 			piece_index_t temp = index;
 			for (;;)
 			{
@@ -974,7 +946,7 @@ namespace libtorrent {
 		}
 		else
 		{
-			prio_index_t new_index{};
+			prio_index_t new_index;
 			piece_index_t temp = index;
 			for (;;)
 			{
@@ -1050,7 +1022,7 @@ namespace libtorrent {
 #ifdef TORRENT_PICKER_LOG
 		std::cerr << "[" << this << "] " << "restore_piece(" << index << ")" << std::endl;
 #endif
-		auto const download_state = m_piece_map[index].download_queue();
+		int const download_state = m_piece_map[index].download_queue();
 		TORRENT_ASSERT(download_state != piece_pos::piece_open);
 		if (download_state == piece_pos::piece_open) return;
 
@@ -1196,8 +1168,11 @@ namespace libtorrent {
 		TORRENT_ASSERT(m_seeds > 0);
 		--m_seeds;
 
-		for (auto& m : m_piece_map)
-			++m.peer_count;
+		for (std::vector<piece_pos>::iterator i = m_piece_map.begin()
+			, end(m_piece_map.end()); i != end; ++i)
+		{
+			++i->peer_count;
+		}
 
 		m_dirty = true;
 	}
@@ -1225,7 +1200,7 @@ namespace libtorrent {
 			break_one_seed();
 		}
 
-		int const prev_priority = p.priority(this);
+		int prev_priority = p.priority(this);
 
 #ifdef TORRENT_DEBUG_REFCOUNTS
 		TORRENT_ASSERT(p.have_peers.count(peer) == 1);
@@ -1536,7 +1511,7 @@ namespace libtorrent {
 	void piece_picker::piece_passed(piece_index_t const index)
 	{
 		piece_pos& p = m_piece_map[index];
-		auto const download_state = p.download_queue();
+		int download_state = p.download_queue();
 
 		// this is kind of odd. Could this happen?
 		TORRENT_ASSERT(download_state != piece_pos::piece_open);
@@ -1571,7 +1546,7 @@ namespace libtorrent {
 		{
 			// even though we don't have the piece, it
 			// might still have passed hash check
-			auto const download_state = p.download_queue();
+			int download_state = p.download_queue();
 			if (download_state == piece_pos::piece_open) return;
 
 			auto const i = find_dl_piece(download_state, index);
@@ -1631,7 +1606,7 @@ namespace libtorrent {
 
 		if (p.have()) return;
 
-		auto const state = p.download_queue();
+		int state = p.download_queue();
 		if (state != piece_pos::piece_open)
 		{
 			auto const i = find_dl_piece(state, index);
@@ -1693,8 +1668,7 @@ namespace libtorrent {
 			<< ", " << new_piece_priority << ")" << std::endl;
 #endif
 
-		static_assert(std::is_unsigned<decltype(new_piece_priority)::underlying_type>::value
-			, "we need assert new_piece_priority >= dont_download");
+		TORRENT_ASSERT(new_piece_priority >= dont_download);
 		TORRENT_ASSERT(new_piece_priority <= top_priority);
 
 		piece_pos& p = m_piece_map[index];
@@ -1779,7 +1753,8 @@ namespace libtorrent {
 
 		if (p.downloading())
 		{
-			auto const i = find_dl_piece(p.download_queue(), index);
+			std::vector<downloading_piece>::iterator i = find_dl_piece(
+				p.download_queue(), index);
 			if (i != m_downloads[p.download_queue()].end())
 				update_piece_state(i);
 		}
@@ -1870,7 +1845,7 @@ namespace {
 	picker_flags_t piece_picker::pick_pieces(typed_bitfield<piece_index_t> const& pieces
 		, std::vector<piece_block>& interesting_blocks, int num_blocks
 		, int prefer_contiguous_blocks, torrent_peer* peer
-		, picker_options_t options, std::vector<piece_index_t> const& suggested_pieces
+		, int options, std::vector<piece_index_t> const& suggested_pieces
 		, int num_peers
 		, counters& pc
 		) const
@@ -1941,21 +1916,23 @@ namespace {
 			// now, copy over the pointers. We also apply a filter here to not
 			// include ineligible pieces in certain modes. For instance, a piece
 			// that the current peer doesn't have is not included.
-			for (auto& dp : m_downloads[piece_pos::piece_downloading])
+			for (std::vector<downloading_piece>::const_iterator i
+				= m_downloads[piece_pos::piece_downloading].begin()
+				, end(m_downloads[piece_pos::piece_downloading].end()); i != end; ++i)
 			{
 				pc.inc_stats_counter(counters::piece_picker_partial_loops);
 
 				// in time critical mode, only pick high priority pieces
 				if ((options & time_critical_mode)
-					&& piece_priority(dp.index) != top_priority)
+					&& piece_priority(i->index) != top_priority)
 					continue;
 
-				if (!is_piece_free(dp.index, pieces)) continue;
+				if (!is_piece_free(i->index, pieces)) continue;
 
-				TORRENT_ASSERT(m_piece_map[dp.index].download_queue()
+				TORRENT_ASSERT(m_piece_map[i->index].download_queue()
 					== piece_pos::piece_downloading);
 
-				ordered_partials[num_ordered_partials++] = &dp;
+				ordered_partials[num_ordered_partials++] = &*i;
 			}
 
 			// now, sort the list.
@@ -2039,7 +2016,7 @@ namespace {
 			}
 
 			// in time critical mode, only pick high priority pieces
-			if (!(options & time_critical_mode))
+			if ((options & time_critical_mode) == 0)
 			{
 				if (options & reverse)
 				{
@@ -2088,7 +2065,7 @@ namespace {
 			// pieces. This is why reverse mode is disabled when we're in
 			// time-critical mode, because all high priority pieces are at the
 			// front of the list
-			if ((options & reverse) && !(options & time_critical_mode))
+			if ((options & reverse) && (options & time_critical_mode) == 0)
 			{
 				for (int i = int(m_priority_boundaries.size()) - 1; i >= 0; --i)
 				{
@@ -2202,7 +2179,7 @@ namespace {
 						{
 							pc.inc_stats_counter(counters::piece_picker_rand_loops);
 							TORRENT_ASSERT(is_piece_free(k, pieces));
-							interesting_blocks.emplace_back(k, j);
+							interesting_blocks.push_back(piece_block(k, j));
 							--num_blocks;
 							--prefer_contiguous_blocks;
 							if (prefer_contiguous_blocks <= 0
@@ -2351,7 +2328,7 @@ get_out:
 				TORRENT_ASSERT(info.piece_index == dp->index);
 				if (info.state != block_info::state_requested || info.peer == peer)
 					continue;
-				temp.emplace_back(dp->index, idx);
+				temp.push_back(piece_block(dp->index, idx));
 			}
 			// are we done?
 			if (!temp.empty())
@@ -2423,7 +2400,7 @@ get_out:
 				if (m_piece_map[i].priority(this) <= 0) continue;
 				if (have_piece(i)) continue;
 
-				auto const download_state = m_piece_map[i].download_queue();
+				int const download_state = m_piece_map[i].download_queue();
 				if (download_state == piece_pos::piece_open) continue;
 				std::vector<downloading_piece>::const_iterator k
 					= find_dl_piece(download_state, i);
@@ -2476,18 +2453,20 @@ get_out:
 #if TORRENT_USE_INVARIANT_CHECKS
 	void piece_picker::check_peers()
 	{
-		for (auto const& b : m_block_info)
+		for (std::vector<block_info>::iterator i = m_block_info.begin()
+			, end(m_block_info.end()); i != end; ++i)
 		{
-			TORRENT_ASSERT(b.peer == nullptr || static_cast<torrent_peer*>(b.peer)->in_use);
+			TORRENT_ASSERT(i->peer == nullptr || static_cast<torrent_peer*>(i->peer)->in_use);
 		}
 	}
 #endif
 
 	void piece_picker::clear_peer(torrent_peer* peer)
 	{
-		for (auto& b : m_block_info)
+		for (std::vector<block_info>::iterator i = m_block_info.begin()
+			, end(m_block_info.end()); i != end; ++i)
 		{
-			if (b.peer == peer) b.peer = nullptr;
+			if (i->peer == peer) i->peer = nullptr;
 		}
 	}
 
@@ -2549,26 +2528,27 @@ get_out:
 		, std::vector<piece_block>& backup_blocks2
 		, int num_blocks, int prefer_contiguous_blocks
 		, torrent_peer* peer, std::vector<piece_index_t> const& ignore
-		, picker_options_t const options) const
+		, int options) const
 	{
 		TORRENT_ASSERT(is_piece_free(piece, pieces));
 
 		// ignore pieces found in the ignore list
 		if (std::find(ignore.begin(), ignore.end(), piece) != ignore.end()) return num_blocks;
 
-		auto const state = m_piece_map[piece].download_queue();
-		if (state != piece_pos::piece_open
-			&& state != piece_pos::piece_downloading)
+		if (m_piece_map[piece].download_queue() != piece_pos::piece_open
+			&& m_piece_map[piece].download_queue() != piece_pos::piece_downloading)
 			return num_blocks;
 
 		TORRENT_ASSERT(m_piece_map[piece].priority(this) >= 0);
+		int state = m_piece_map[piece].download_queue();
 		if (state == piece_pos::piece_downloading)
 		{
 			// if we're prioritizing partials, we've already
 			// looked through the downloading pieces
 			if (options & prioritize_partials) return num_blocks;
 
-			auto i = find_dl_piece(piece_pos::piece_downloading, piece);
+			std::vector<downloading_piece>::const_iterator i = find_dl_piece(
+				piece_pos::piece_downloading, piece);
 			TORRENT_ASSERT(i != m_downloads[state].end());
 
 			return add_blocks_downloading(*i, pieces
@@ -2585,7 +2565,7 @@ get_out:
 				num_blocks_in_piece = num_blocks;
 			TORRENT_ASSERT(is_piece_free(piece, pieces));
 			for (int j = 0; j < num_blocks_in_piece; ++j)
-				interesting_blocks.emplace_back(piece, j);
+				interesting_blocks.push_back(piece_block(piece, j));
 			num_blocks -= num_blocks_in_piece;
 		}
 		else
@@ -2600,7 +2580,7 @@ get_out:
 				TORRENT_ASSERT(is_piece_free(k, pieces));
 				for (int j = 0; j < num_blocks_in_piece; ++j)
 				{
-					interesting_blocks.emplace_back(k, j);
+					interesting_blocks.push_back(piece_block(k, j));
 					--num_blocks;
 					--prefer_contiguous_blocks;
 					if (prefer_contiguous_blocks == 0
@@ -2620,7 +2600,7 @@ get_out:
 		, std::vector<piece_block>& backup_blocks
 		, std::vector<piece_block>& backup_blocks2
 		, int num_blocks, int prefer_contiguous_blocks
-		, torrent_peer* peer, picker_options_t const options) const
+		, torrent_peer* peer, int options) const
 	{
 		if (!pieces[dp.index]) return num_blocks;
 		TORRENT_ASSERT(!m_piece_map[dp.index].filtered());
@@ -2660,7 +2640,7 @@ get_out:
 		// to primarily request from a piece all by ourselves.
 		if (prefer_contiguous_blocks > contiguous_blocks
 			&& !exclusive_active
-			&& !(options & on_parole))
+			&& (options & on_parole) == 0)
 		{
 			if (int(backup_blocks2.size()) >= num_blocks)
 				return num_blocks;
@@ -2672,7 +2652,7 @@ get_out:
 				block_info const& info = binfo[block_idx];
 				TORRENT_ASSERT(info.piece_index == dp.index);
 				if (info.state != block_info::state_none) continue;
-				backup_blocks2.emplace_back(dp.index, block_idx);
+				backup_blocks2.push_back(piece_block(dp.index, block_idx));
 			}
 			return num_blocks;
 		}
@@ -2686,7 +2666,7 @@ get_out:
 			if (info.state != block_info::state_none) continue;
 
 			// this block is interesting (we don't have it yet).
-			interesting_blocks.emplace_back(dp.index, block_idx);
+			interesting_blocks.push_back(piece_block(dp.index, block_idx));
 			// we have found a block that's free to download
 			--num_blocks;
 			// if we prefer contiguous blocks, continue picking from this
@@ -2712,7 +2692,7 @@ get_out:
 
 	std::pair<piece_index_t, piece_index_t>
 	piece_picker::expand_piece(piece_index_t const piece, int const contiguous_blocks
-		, typed_bitfield<piece_index_t> const& have, picker_options_t const options) const
+		, typed_bitfield<piece_index_t> const& have, int const options) const
 	{
 		if (contiguous_blocks == 0) return std::make_pair(piece, next(piece));
 
@@ -2759,10 +2739,10 @@ get_out:
 		piece_pos const& p = m_piece_map[index];
 		if (p.index == piece_pos::we_have_index) return true;
 
-		auto const state = p.download_queue();
+		int state = p.download_queue();
 		if (state == piece_pos::piece_open)
 		{
-			for (download_queue_t i{}; i != piece_pos::num_download_categories; ++i)
+			for (int i = 0; i < piece_pos::num_download_categories; ++i)
 				TORRENT_ASSERT(find_dl_piece(i, index) == m_downloads[i].end());
 			return false;
 		}
@@ -2793,10 +2773,10 @@ get_out:
 		piece_pos const& p = m_piece_map[index];
 		if (p.index == piece_pos::we_have_index) return true;
 
-		auto const state = p.download_queue();
+		int const state = p.download_queue();
 		if (state == piece_pos::piece_open)
 		{
-			for (download_queue_t i{}; i < piece_pos::num_download_categories; ++i)
+			for (int i = 0; i < piece_pos::num_download_categories; ++i)
 				TORRENT_ASSERT(find_dl_piece(i, index) == m_downloads[i].end());
 			return false;
 		}
@@ -2806,13 +2786,9 @@ get_out:
 	}
 
 	std::vector<piece_picker::downloading_piece>::iterator piece_picker::find_dl_piece(
-		download_queue_t const queue, piece_index_t const index)
+		int const queue, piece_index_t const index)
 	{
-		TORRENT_ASSERT(queue == piece_pos::piece_downloading
-			|| queue == piece_pos::piece_full
-			|| queue == piece_pos::piece_finished
-			|| queue == piece_pos::piece_zero_prio);
-
+		TORRENT_ASSERT(queue >= 0 && queue < piece_pos::num_download_categories);
 		downloading_piece cmp;
 		cmp.index = index;
 		auto const i = std::lower_bound(
@@ -2823,7 +2799,7 @@ get_out:
 	}
 
 	std::vector<piece_picker::downloading_piece>::const_iterator piece_picker::find_dl_piece(
-		download_queue_t const queue, piece_index_t const index) const
+		int const queue, piece_index_t const index) const
 	{
 		return const_cast<piece_picker*>(this)->find_dl_piece(queue, index);
 	}
@@ -2838,13 +2814,13 @@ get_out:
 
 		int const num_blocks = blocks_in_piece(dp->index);
 		piece_pos& p = m_piece_map[dp->index];
-		auto const current_state = p.state();
+		int const current_state = p.download_state;
 		TORRENT_ASSERT(current_state != piece_pos::piece_open);
 		if (current_state == piece_pos::piece_open)
 			return dp;
 
 		// this function is not allowed to create new downloading pieces
-		download_queue_t new_state{};
+		int new_state = 0;
 		if (p.filtered())
 		{
 			new_state = piece_pos::piece_zero_prio;
@@ -2888,8 +2864,9 @@ get_out:
 		m_downloads[p.download_queue()].erase(dp);
 
 		int const prio = p.priority(this);
-		TORRENT_ASSERT(prio < int(m_priority_boundaries.size()) || m_dirty);
-		p.state(new_state);
+		TORRENT_ASSERT(prio < int(m_priority_boundaries.size())
+			|| m_dirty);
+		p.download_state = static_cast<std::uint16_t>(new_state);
 #ifdef TORRENT_PICKER_LOG
 		std::cerr << "[" << this << "] " << " " << dp_info.index << " state (" << current_state << " -> " << new_state << ")" << std::endl;
 #endif
@@ -2898,7 +2875,8 @@ get_out:
 		// the new state
 		downloading_piece cmp;
 		cmp.index = dp_info.index;
-		auto i = std::lower_bound(m_downloads[p.download_queue()].begin()
+		std::vector<downloading_piece>::iterator i = std::lower_bound(
+			m_downloads[p.download_queue()].begin()
 			, m_downloads[p.download_queue()].end(), cmp);
 		TORRENT_ASSERT(i == m_downloads[p.download_queue()].end()
 			|| i->index != dp_info.index);
@@ -2919,7 +2897,7 @@ get_out:
 		TORRENT_ASSERT(block.piece_index != piece_block::invalid.piece_index);
 		TORRENT_ASSERT(block.piece_index < m_piece_map.end_index());
 
-		auto const state = m_piece_map[block.piece_index].download_queue();
+		int const state = m_piece_map[block.piece_index].download_queue();
 		if (state == piece_pos::piece_open) return false;
 		auto const i = find_dl_piece(state, block.piece_index);
 
@@ -2938,7 +2916,7 @@ get_out:
 
 		piece_pos const& p = m_piece_map[block.piece_index];
 		if (p.index == piece_pos::we_have_index) return true;
-		auto const state = p.download_queue();
+		int const state = p.download_queue();
 		if (state == piece_pos::piece_open) return false;
 		auto const i = find_dl_piece(state, block.piece_index);
 		TORRENT_ASSERT(i != m_downloads[state].end());
@@ -2957,7 +2935,7 @@ get_out:
 
 		piece_pos const& p = m_piece_map[block.piece_index];
 		if (p.index == piece_pos::we_have_index) return true;
-		auto const state = p.download_queue();
+		int const state = p.download_queue();
 		if (state == piece_pos::piece_open) return false;
 		auto const i = find_dl_piece(state, block.piece_index);
 		TORRENT_ASSERT(i != m_downloads[state].end());
@@ -2970,7 +2948,7 @@ get_out:
 	// options may be 0 or piece_picker::reverse
 	// returns false if the block could not be marked as downloading
 	bool piece_picker::mark_as_downloading(piece_block const block
-		, torrent_peer* peer, picker_options_t const options)
+		, torrent_peer* peer, int const options)
 	{
 #ifdef TORRENT_PICKER_LOG
 		std::cerr << "[" << this << "] " << "mark_as_downloading( {"
@@ -2994,9 +2972,9 @@ get_out:
 			TORRENT_ASSERT(prio < int(m_priority_boundaries.size())
 				|| m_dirty);
 
-			p.state((options & reverse)
+			p.download_state = (options & reverse)
 				? piece_pos::piece_downloading_reverse
-				: piece_pos::piece_downloading);
+				: piece_pos::piece_downloading;
 
 			if (prio >= 0 && !m_dirty) update(prio, p.index);
 
@@ -3004,9 +2982,6 @@ get_out:
 			auto const binfo = mutable_blocks_for_piece(*dp);
 			block_info& info = binfo[block.block_index];
 			TORRENT_ASSERT(info.piece_index == block.piece_index);
-			if (info.state == block_info::state_finished)
-				return false;
-
 			info.state = block_info::state_requested;
 			info.peer = peer;
 			info.num_peers = 1;
@@ -3060,7 +3035,7 @@ get_out:
 
 			// if we make a non-reverse request from a reversed piece,
 			// undo the reverse state
-			if (!(options & reverse) && p.reverse())
+			if ((options & reverse) == 0 && p.reverse())
 			{
 				int prio = p.priority(this);
 				// make it non-reverse
@@ -3141,7 +3116,7 @@ get_out:
 			int const prio = p.priority(this);
 			TORRENT_ASSERT(prio < int(m_priority_boundaries.size())
 				|| m_dirty);
-			p.state(piece_pos::piece_downloading);
+			p.download_state = piece_pos::piece_downloading;
 			// prio being -1 can happen if a block is requested before
 			// the piece priority was set to 0
 			if (prio >= 0 && !m_dirty) update(prio, p.index);
@@ -3152,11 +3127,6 @@ get_out:
 			TORRENT_ASSERT(&info >= &m_block_info[0]);
 			TORRENT_ASSERT(&info < &m_block_info[0] + m_block_info.size());
 			TORRENT_ASSERT(info.piece_index == block.piece_index);
-
-			TORRENT_ASSERT(info.state == block_info::state_none);
-			if (info.state == block_info::state_finished)
-				return false;
-
 			info.state = block_info::state_writing;
 			info.peer = peer;
 			info.num_peers = 0;
@@ -3216,7 +3186,7 @@ get_out:
 		std::cerr << "[" << this << "] " << "lock_piece(" << piece << ")" << std::endl;
 #endif
 
-		auto const state = m_piece_map[piece].download_queue();
+		int state = m_piece_map[piece].download_queue();
 		if (state == piece_pos::piece_open) return;
 		auto const i = find_dl_piece(state, piece);
 		if (i == m_downloads[state].end()) return;
@@ -3253,7 +3223,7 @@ get_out:
 		std::cerr << "[" << this << "] " << "write_failed( {" << block.piece_index << ", " << block.block_index << "} )" << std::endl;
 #endif
 
-		auto const state = m_piece_map[block.piece_index].download_queue();
+		int const state = m_piece_map[block.piece_index].download_queue();
 		if (state == piece_pos::piece_open) return;
 		auto i = find_dl_piece(state, block.piece_index);
 		if (i == m_downloads[state].end()) return;
@@ -3390,7 +3360,7 @@ get_out:
 			int const prio = p.priority(this);
 			TORRENT_ASSERT(prio < int(m_priority_boundaries.size())
 				|| m_dirty);
-			p.state(piece_pos::piece_downloading);
+			p.download_state = piece_pos::piece_downloading;
 			if (prio >= 0 && !m_dirty) update(prio, p.index);
 
 			auto const dp = add_download_piece(block.piece_index);
@@ -3399,8 +3369,6 @@ get_out:
 			TORRENT_ASSERT(&info >= &m_block_info[0]);
 			TORRENT_ASSERT(&info < &m_block_info[0] + m_block_info.size());
 			TORRENT_ASSERT(info.piece_index == block.piece_index);
-			if (info.state == block_info::state_finished)
-				return;
 			info.peer = peer;
 			TORRENT_ASSERT(info.state == block_info::state_none);
 			TORRENT_ASSERT(info.num_peers == 0);
@@ -3459,27 +3427,11 @@ get_out:
 #endif
 	}
 
-	void piece_picker::mark_as_pad(piece_block block)
-	{
-		m_pad_blocks.insert(block);
-		// if we mark and entire piece as a pad file, we need to also
-		// consder that piece as "had" and increment some counters
-		using iter = std::set<piece_block>::const_iterator;
-		iter const begin = m_pad_blocks.lower_bound(piece_block(block.piece_index, 0));
-		int const blocks = blocks_in_piece(block.piece_index);
-		iter const end = m_pad_blocks.upper_bound(piece_block(block.piece_index, blocks));
-		if (std::distance(begin, end) == blocks)
-		{
-			// the entire piece is a pad file
-			we_have(block.piece_index);
-		}
-	}
-
 	void piece_picker::get_downloaders(std::vector<torrent_peer*>& d
 		, piece_index_t const index) const
 	{
 		d.clear();
-		auto const state = m_piece_map[index].download_queue();
+		int const state = m_piece_map[index].download_queue();
 		int const num_blocks = blocks_in_piece(index);
 		d.reserve(aux::numeric_cast<std::size_t>(num_blocks));
 
@@ -3502,7 +3454,7 @@ get_out:
 
 	torrent_peer* piece_picker::get_downloader(piece_block const block) const
 	{
-		auto const state = m_piece_map[block.piece_index].download_queue();
+		int const state = m_piece_map[block.piece_index].download_queue();
 		if (state == piece_pos::piece_open) return nullptr;
 
 		auto const i = find_dl_piece(state, block.piece_index);
@@ -3534,7 +3486,7 @@ get_out:
 		TORRENT_ASSERT(block.block_index != piece_block::invalid.block_index);
 		TORRENT_ASSERT(block.piece_index != piece_block::invalid.piece_index);
 
-		auto const state = m_piece_map[block.piece_index].download_queue();
+		int const state = m_piece_map[block.piece_index].download_queue();
 		if (state == piece_pos::piece_open) return;
 
 		auto i = find_dl_piece(state, block.piece_index);
@@ -3596,9 +3548,9 @@ get_out:
 	int piece_picker::unverified_blocks() const
 	{
 		int counter = 0;
-		for (auto const& c : m_downloads)
+		for (int k = 0; k < piece_pos::num_download_categories; ++k)
 		{
-			for (auto const& dp : c)
+			for (auto const& dp : m_downloads[k])
 			{
 				counter += int(dp.finished);
 			}

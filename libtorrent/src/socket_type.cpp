@@ -31,7 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "libtorrent/config.hpp"
-#include "libtorrent/aux_/socket_type.hpp"
+#include "libtorrent/socket_type.hpp"
 #include "libtorrent/aux_/openssl.hpp"
 
 #ifdef TORRENT_USE_OPENSSL
@@ -43,7 +43,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/debug.hpp"
 
 namespace libtorrent {
-namespace aux {
 
 	bool is_ssl(socket_type const& s)
 	{
@@ -141,8 +140,6 @@ namespace aux {
 #ifdef TORRENT_USE_OPENSSL
 	namespace {
 
-	void nop(std::shared_ptr<void>) {}
-
 	void on_close_socket(socket_type* s, std::shared_ptr<void>)
 	{
 		COMPLETE_ASYNC("on_close_socket");
@@ -167,16 +164,9 @@ namespace aux {
 #define MAYBE_ASIO_DEBUGGING
 #endif
 
-	char const buffer[] = "";
-	// chasing the async_shutdown by a write is a trick to close the socket as
-	// soon as we've sent the close_notify, without having to wait to receive a
-	// response from the other end
-	// https://stackoverflow.com/questions/32046034/what-is-the-proper-way-to-securely-disconnect-an-asio-ssl-socket
-
 #define CASE(t) case socket_type_int_impl<ssl_stream<t>>::value: \
 	MAYBE_ASIO_DEBUGGING \
-	s.get<ssl_stream<t>>()->async_shutdown(std::bind(&nop, holder)); \
-	s.get<ssl_stream<t>>()->async_write_some(boost::asio::buffer(buffer), std::bind(&on_close_socket, &s, holder)); \
+	s.get<ssl_stream<t>>()->async_shutdown(std::bind(&on_close_socket, &s, holder)); \
 	break;
 
 		switch (s.type())
@@ -196,7 +186,7 @@ namespace aux {
 
 	void socket_type::destruct()
 	{
-		using tcp_socket = tcp::socket;
+		typedef tcp::socket tcp_socket;
 		switch (m_type)
 		{
 			case 0: break;
@@ -406,5 +396,3 @@ namespace aux {
 #endif
 
 }
-}
-

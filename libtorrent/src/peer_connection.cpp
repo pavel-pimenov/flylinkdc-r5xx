@@ -44,7 +44,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/extensions.hpp"
 #include "libtorrent/aux_/session_interface.hpp"
 #include "libtorrent/peer_list.hpp"
-#include "libtorrent/aux_/socket_type.hpp"
+#include "libtorrent/socket_type.hpp"
 #include "libtorrent/assert.hpp"
 #include "libtorrent/broadcast_socket.hpp"
 #include "libtorrent/torrent.hpp"
@@ -859,14 +859,14 @@ namespace libtorrent {
 	bool peer_connection::on_parole() const
 	{ return peer_info_struct() && peer_info_struct()->on_parole; }
 
-	picker_options_t peer_connection::picker_options() const
+	int peer_connection::picker_options() const
 	{
 		TORRENT_ASSERT(is_single_thread());
-		picker_options_t ret = m_picker_options;
+		int ret = m_picker_options;
 
 		std::shared_ptr<torrent> t = m_torrent.lock();
 		TORRENT_ASSERT(t);
-		if (!t) return {};
+		if (!t) return 0;
 
 		if (t->num_time_critical_pieces() > 0)
 		{
@@ -1277,7 +1277,7 @@ namespace libtorrent {
 		}
 
 #if TORRENT_USE_I2P
-		auto* i2ps = m_socket->get<i2p_stream>();
+		i2p_stream* i2ps = m_socket->get<i2p_stream>();
 		if (!i2ps && t->torrent_file().is_i2p()
 			&& !m_settings.get_bool(settings_pack::allow_i2p_mixed))
 		{
@@ -4283,7 +4283,7 @@ namespace libtorrent {
 #if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
 			if (type() == connection_type::bittorrent && op != operation_t::connect)
 			{
-				auto* bt = static_cast<bt_peer_connection*>(this);
+				bt_peer_connection* bt = static_cast<bt_peer_connection*>(this);
 				if (bt->supports_encryption()) m_counters.inc_stats_counter(
 					counters::error_encrypted_peers);
 				if (bt->rc4_encrypted() && bt->supports_encryption())
@@ -5546,7 +5546,7 @@ namespace libtorrent {
 			{
 				// this const_cast is a here because chained_buffer need to be
 				// fixed.
-				auto* ptr = const_cast<char*>(i->data());
+				char* ptr = const_cast<char*>(i->data());
 				m_send_buffer.prepend_buffer(span<char>(ptr, i->size())
 					, static_cast<int>(i->size()));
 			}

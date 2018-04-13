@@ -366,7 +366,7 @@ namespace libtorrent {
 		// the file_storage object is owned by the torrent.
 		std::shared_ptr<void> m_torrent;
 
-		storage_index_t m_storage_index{0};
+		storage_index_t m_storage_index;
 
 		// the number of block_cache_reference objects referencing this storage
 		std::atomic<int> m_references{1};
@@ -425,6 +425,8 @@ namespace libtorrent {
 
 	private:
 
+		void delete_one_file(std::string const& p, error_code& ec);
+
 		void need_partfile();
 
 		std::unique_ptr<file_storage> m_mapped_files;
@@ -439,24 +441,9 @@ namespace libtorrent {
 		file_handle open_file(file_index_t file, open_mode_t mode, storage_error& ec) const;
 		file_handle open_file_impl(file_index_t file, open_mode_t mode, error_code& ec) const;
 
-		bool use_partfile(file_index_t index) const;
-		void use_partfile(file_index_t index, bool b);
-
 		aux::vector<download_priority_t, file_index_t> m_file_priority;
 		std::string m_save_path;
 		std::string m_part_file_name;
-
-		// this this is an array indexed by file-index. Each slot represents
-		// whether this file has the part-file enabled for it. This is used for
-		// backwards compatibility with pre-partfile versions of libtorrent. If
-		// this vector is empty, the default is that files *do* use the partfile.
-		// on startup, any 0-priority file that's found in it's original location
-		// is expected to be an old-style (pre-partfile) torrent storage, and
-		// those files have their slot set to false in this vector.
-		// note that the vector is *sparse*, it's only allocated if a file has its
-		// entry set to false, and only indices up to that entry.
-		aux::vector<bool, file_index_t> m_use_partfile;
-
 		// the file pool is a member of the disk_io_thread
 		// to make all storage instances share the pool
 		file_pool& m_pool;

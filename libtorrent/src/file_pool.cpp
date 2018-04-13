@@ -55,7 +55,7 @@ namespace libtorrent {
 	{
 		// file prio is only supported on vista and up
 		// so load the functions dynamically
-		enum FILE_INFO_BY_HANDLE_CLASS_LOCAL {
+		typedef enum {
 			FileBasicInfo,
 			FileStandardInfo,
 			FileNameInfo,
@@ -71,24 +71,22 @@ namespace libtorrent {
 			FileIoPriorityHintInfo,
 			FileRemoteProtocolInfo,
 			MaximumFileInfoByHandleClass
-		};
+		} FILE_INFO_BY_HANDLE_CLASS_LOCAL;
 
-		enum PRIORITY_HINT_LOCAL {
+		typedef enum {
 			IoPriorityHintVeryLow = 0,
 			IoPriorityHintLow,
 			IoPriorityHintNormal,
 			MaximumIoPriorityHintType
-		};
+		} PRIORITY_HINT_LOCAL;
 
-		struct FILE_IO_PRIORITY_HINT_INFO_LOCAL {
+		typedef struct {
 			PRIORITY_HINT_LOCAL PriorityHint;
-		};
+		} FILE_IO_PRIORITY_HINT_INFO_LOCAL;
 
-		using SetFileInformationByHandle_t = BOOL (WINAPI *)(HANDLE
-			, FILE_INFO_BY_HANDLE_CLASS_LOCAL, LPVOID, DWORD);
+		typedef BOOL (WINAPI *SetFileInformationByHandle_t)(HANDLE hFile, FILE_INFO_BY_HANDLE_CLASS_LOCAL FileInformationClass, LPVOID lpFileInformation, DWORD dwBufferSize);
 		auto SetFileInformationByHandle =
-			aux::get_library_procedure<aux::kernel32, SetFileInformationByHandle_t>(
-				"SetFileInformationByHandle");
+			aux::get_library_procedure<aux::kernel32, SetFileInformationByHandle_t>("SetFileInformationByHandle");
 
 		if (SetFileInformationByHandle == nullptr) return;
 

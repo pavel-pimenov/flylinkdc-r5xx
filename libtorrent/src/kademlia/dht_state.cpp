@@ -42,13 +42,13 @@ namespace libtorrent { namespace dht {
 		if (e.type() != bdecode_node::dict_t) return node_ids_t();
 		node_ids_t ret;
 		// first look for an old-style nid
-		auto const old_nid = e.dict_find_string_value(key);
+		auto old_nid = e.dict_find_string_value(key);
 		if (old_nid.size() == 20)
 		{
 			ret.emplace_back(address(), node_id(old_nid));
 			return ret;
 		}
-		auto const nids = e.dict_find_list(key);
+		auto nids = e.dict_find_list(key);
 		if (!nids) return ret;
 		for (int i = 0; i < nids.list_size(); i++)
 		{
@@ -83,7 +83,7 @@ namespace {
 			std::string node;
 			std::back_insert_iterator<std::string> out(node);
 			detail::write_endpoint(ep, out);
-			list.emplace_back(node);
+			list.push_back(entry(node));
 		}
 		return ret;
 	}

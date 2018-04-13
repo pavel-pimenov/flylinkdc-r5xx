@@ -42,19 +42,23 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <utility>
 #include <cstdint>
 #include <tuple>
+
+#ifdef TORRENT_DEBUG_REFCOUNTS
 #include <set>
+#endif
+
+#if TORRENT_USE_ASSERTS
+#include <set>
+#endif
 
 #include "libtorrent/peer_id.hpp"
 #include "libtorrent/assert.hpp"
 #include "libtorrent/time.hpp"
 #include "libtorrent/piece_block.hpp"
 #include "libtorrent/aux_/vector.hpp"
-#include "libtorrent/aux_/array.hpp"
 #include "libtorrent/aux_/typed_span.hpp"
 #include "libtorrent/alert_types.hpp" // for picker_flags_t
 #include "libtorrent/download_priority.hpp"
-#include "libtorrent/flags.hpp"
-#include "libtorrent/units.hpp"
 
 namespace libtorrent {
 
@@ -65,9 +69,8 @@ namespace libtorrent {
 	struct counters;
 	struct torrent_peer;
 
-	using prio_index_t = aux::strong_typedef<int, struct prio_index_tag_t>;
-	using picker_options_t = flags::bitfield_flag<std::uint16_t, struct picker_options_tag>;
-	using download_queue_t = aux::strong_typedef<std::uint8_t, struct dl_queue_tag>;
+	struct prio_index_tag_t {};
+	using prio_index_t = aux::strong_typedef<int, prio_index_tag_t>;
 
 	class TORRENT_EXTRA_EXPORT piece_picker
 	{
@@ -100,30 +103,27 @@ namespace libtorrent {
 #endif
 		};
 
-		// pick rarest first
-		static constexpr picker_options_t rarest_first = 0_bit;
-
-		// pick the most common first, or the last pieces if sequential
-		static constexpr picker_options_t reverse = 1_bit;
-
-		// only pick pieces exclusively requested from this peer
-		static constexpr picker_options_t on_parole = 2_bit;
-
-		// always pick partial pieces before any other piece
-		static constexpr picker_options_t prioritize_partials = 3_bit;
-
-		// pick pieces in sequential order
-		static constexpr picker_options_t sequential = 4_bit;
-
-		// treat pieces with priority 6 and below as filtered
-		// to trigger end-game mode until all prio 7 pieces are
-		// completed
-		static constexpr picker_options_t time_critical_mode = 5_bit;
-
-		// only expands pieces (when prefer contiguous blocks is set)
-		// within properly aligned ranges, not the largest possible
-		// range of pieces.
-		static constexpr picker_options_t align_expanded_pieces = 6_bit;
+		enum options_t
+		{
+			// pick rarest first
+			rarest_first = 1,
+			// pick the most common first, or the last pieces if sequential
+			reverse = 2,
+			// only pick pieces exclusively requested from this peer
+			on_parole = 4,
+			// always pick partial pieces before any other piece
+			prioritize_partials = 8,
+			// pick pieces in sequential order
+			sequential = 16,
+			// treat pieces with priority 6 and below as filtered
+			// to trigger end-game mode until all prio 7 pieces are
+			// completed
+			time_critical_mode = 32,
+			// only expands pieces (when prefer contiguous blocks is set)
+			// within properly aligned ranges, not the largest possible
+			// range of pieces.
+			align_expanded_pieces = 64
+		};
 
 		struct downloading_piece
 		{
@@ -261,7 +261,7 @@ namespace libtorrent {
 		picker_flags_t pick_pieces(typed_bitfield<piece_index_t> const& pieces
 			, std::vector<piece_block>& interesting_blocks, int num_blocks
 			, int prefer_contiguous_blocks, torrent_peer* peer
-			, picker_options_t options, std::vector<piece_index_t> const& suggested_pieces
+			, int options, std::vector<piece_index_t> const& suggested_pieces
 			, int num_peers
 			, counters& pc
 			) const;
@@ -278,7 +278,7 @@ namespace libtorrent {
 			, std::vector<piece_block>& backup_blocks2
 			, int num_blocks, int prefer_contiguous_blocks
 			, torrent_peer* peer, std::vector<piece_index_t> const& ignore
-			, picker_options_t options) const;
+			, int options) const;
 
 		// picks blocks only from downloading pieces
 		int add_blocks_downloading(downloading_piece const& dp
@@ -288,7 +288,7 @@ namespace libtorrent {
 			, std::vector<piece_block>& backup_blocks2
 			, int num_blocks, int prefer_contiguous_blocks
 			, torrent_peer* peer
-			, picker_options_t options) const;
+			, int options) const;
 
 		// clears the peer pointer in all downloading pieces with this
 		// peer pointer
@@ -311,7 +311,7 @@ namespace libtorrent {
 		// marks this piece-block as queued for downloading
 		// options are flags from options_t.
 		bool mark_as_downloading(piece_block block, torrent_peer* peer
-			, picker_options_t options = {});
+			, int options = 0);
 
 		// returns true if the block was marked as writing,
 		// and false if the block is already finished or writing
@@ -319,8 +319,6 @@ namespace libtorrent {
 
 		void mark_as_canceled(piece_block block, torrent_peer* peer);
 		void mark_as_finished(piece_block block, torrent_peer* peer);
-
-		void mark_as_pad(piece_block block);
 
 		// prevent blocks from being picked from this piece.
 		// to unlock the piece, call restore_piece() on it
@@ -448,7 +446,7 @@ namespace libtorrent {
 		std::pair<piece_index_t, piece_index_t>
 		expand_piece(piece_index_t piece, int whole_pieces
 			, typed_bitfield<piece_index_t> const& have
-			, picker_options_t options) const;
+			, int options) const;
 
 		// only defined when TORRENT_PICKER_LOG is defined, used for debugging
 		// unit tests
@@ -459,7 +457,7 @@ namespace libtorrent {
 			piece_pos() {}
 			piece_pos(int const peer_count_, int const index_)
 				: peer_count(static_cast<std::uint16_t>(peer_count_))
-				, download_state(static_cast<uint8_t>(piece_pos::piece_open))
+				, download_state(piece_pos::piece_open)
 				, piece_priority(static_cast<std::uint8_t>(default_priority))
 				, index(index_)
 			{
@@ -468,63 +466,76 @@ namespace libtorrent {
 				TORRENT_ASSERT(index_ >= 0);
 			}
 
-			// the piece is partially downloaded or requested
-			static constexpr download_queue_t piece_downloading{0};
+			// download_state of this piece.
+			enum state_t
+			{
+				// the piece is partially downloaded or requested
+				piece_downloading,
+				// partial pieces where all blocks in the piece have been requested
+				piece_full,
+				// partial pieces where all blocks in the piece have been received
+				// and are either finished or writing
+				piece_finished,
+				// partial pieces whose priority is 0
+				piece_zero_prio,
 
-			// partial pieces where all blocks in the piece have been requested
-			static constexpr download_queue_t piece_full{1};
-			// partial pieces where all blocks in the piece have been received
-			// and are either finished or writing
-			static constexpr download_queue_t piece_finished{2};
-			// partial pieces whose priority is 0
-			static constexpr download_queue_t piece_zero_prio{3};
+				// the states up to this point indicate the piece is being
+				// downloaded (or at least has a partially downloaded piece
+				// in one of the m_downloads buckets).
+				num_download_categories,
 
-			// the states up to this point indicate the piece is being
-			// downloaded (or at least has a partially downloaded piece
-			// in one of the m_downloads buckets).
-			static constexpr download_queue_t num_download_categories{4};
+				// the piece is open to be picked
+				piece_open = num_download_categories,
 
-			// the piece is open to be picked
-			static constexpr download_queue_t piece_open{4};
-
-			// this is not a new download category/download list bucket.
-			// it still goes into the piece_downloading bucket. However,
-			// it indicates that this piece only has outstanding requests
-			// from reverse peers. This is to de-prioritize it somewhat
-			static constexpr download_queue_t piece_downloading_reverse{5};
-			static constexpr download_queue_t piece_full_reverse{6};
+				// this is not a new download category/download list bucket.
+				// it still goes into the piece_downloading bucket. However,
+				// it indicates that this piece only has outstanding requests
+				// from reverse peers. This is to de-prioritize it somewhat
+				piece_downloading_reverse,
+				piece_full_reverse
+			};
 
 			// returns one of the valid download categories of state_t or
 			// piece_open if this piece is not being downloaded
-			download_queue_t download_queue() const
+			int download_queue() const
 			{
-				if (state() == piece_downloading_reverse)
+				if (download_state == piece_downloading_reverse)
 					return piece_downloading;
-				if (state() == piece_full_reverse)
+				if (download_state == piece_full_reverse)
 					return piece_full;
-				return state();
+				return int(download_state);
 			}
 
 			bool reverse() const
 			{
-				return state() == piece_downloading_reverse
-					|| state() == piece_full_reverse;
+				return download_state == piece_downloading_reverse
+					|| download_state == piece_full_reverse;
 			}
 
 			void unreverse()
 			{
-				if (state() == piece_downloading_reverse)
-						state(piece_downloading);
-				else if (state() == piece_full_reverse)
-						state(piece_full);
+				switch (download_state)
+				{
+					case piece_downloading_reverse:
+						download_state = piece_downloading;
+						break;
+					case piece_full_reverse:
+						download_state = piece_full;
+						break;
+				}
 			}
 
 			void make_reverse()
 			{
-				if (state() == piece_downloading)
-						state(piece_downloading_reverse);
-				else if (state() == piece_full)
-						state(piece_full_reverse);
+				switch (download_state)
+				{
+					case piece_downloading:
+						download_state = piece_downloading_reverse;
+						break;
+					case piece_full:
+						download_state = piece_full_reverse;
+						break;
+				}
 			}
 
 			// the number of peers that has this piece
@@ -578,7 +589,7 @@ namespace libtorrent {
 			bool have() const { return index == we_have_index; }
 			void set_have() { index = we_have_index; TORRENT_ASSERT(have()); }
 			void set_not_have() { index = prio_index_t(0); TORRENT_ASSERT(!have()); }
-			bool downloading() const { return state() != piece_open; }
+			bool downloading() const { return download_state != piece_open; }
 
 			bool filtered() const { return piece_priority == filter_priority; }
 
@@ -608,8 +619,8 @@ namespace libtorrent {
 				// availability = 0 should not be present in the piece list
 				// returning -1 indicates that they shouldn't.
 				if (filtered() || have() || peer_count + picker->m_seeds == 0
-					|| state() == piece_full
-					|| state() == piece_finished)
+					|| download_state == piece_full
+					|| download_state == piece_finished)
 					return -1;
 
 				TORRENT_ASSERT(piece_priority > 0);
@@ -619,7 +630,7 @@ namespace libtorrent {
 				// downloading pieces to be lower priority
 				int adjustment = -2;
 				if (reverse()) adjustment = -1;
-				else if (state() != piece_open) adjustment = -3;
+				else if (download_state != piece_open) adjustment = -3;
 
 				// the + 1 here is because peer_count count be 0, it m_seeds
 				// is > 0. We don't actually care about seeds (except for the
@@ -637,9 +648,6 @@ namespace libtorrent {
 
 			bool operator==(piece_pos const& p) const
 			{ return index == p.index && peer_count == p.peer_count; }
-
-			download_queue_t state() const { return download_queue_t(download_state); }
-			void state(download_queue_t q) { download_state = static_cast<std::uint8_t>(q); }
 		};
 
 #ifndef TORRENT_DEBUG_REFCOUNTS
@@ -674,8 +682,8 @@ namespace libtorrent {
 		std::vector<downloading_piece>::iterator add_download_piece(piece_index_t index);
 		void erase_download_piece(std::vector<downloading_piece>::iterator i);
 
-		std::vector<downloading_piece>::const_iterator find_dl_piece(download_queue_t, piece_index_t) const;
-		std::vector<downloading_piece>::iterator find_dl_piece(download_queue_t, piece_index_t);
+		std::vector<downloading_piece>::const_iterator find_dl_piece(int queue, piece_index_t index) const;
+		std::vector<downloading_piece>::iterator find_dl_piece(int queue, piece_index_t index);
 
 		// returns an iterator to the downloading piece, whichever
 		// download list it may live in now
@@ -695,11 +703,6 @@ namespace libtorrent {
 		// the m_piece_info buckets either
 		// TODO: should this be allocated lazily?
 		mutable aux::vector<piece_pos, piece_index_t> m_piece_map;
-
-		// this maps pieces to a range of blocks that are pad files and should not
-		// be picked
-		// TODO: this could be a much more efficient data structure
-		std::set<piece_block> m_pad_blocks;
 
 		// the number of seeds. These are not added to
 		// the availability counters of the pieces
@@ -726,9 +729,7 @@ namespace libtorrent {
 		// corresponding downloading_piece vector is piece_open and
 		// piece_downloading_reverse (the latter uses the same as
 		// piece_downloading).
-		aux::array<aux::vector<downloading_piece>
-			, static_cast<std::uint8_t>(piece_pos::num_download_categories)
-			, download_queue_t> m_downloads;
+		aux::vector<downloading_piece> m_downloads[piece_pos::num_download_categories];
 
 		// this holds the information of the blocks in partially downloaded
 		// pieces. the downloading_piece::info index point into this vector for

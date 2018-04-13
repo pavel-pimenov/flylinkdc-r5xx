@@ -36,7 +36,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/peer_connection.hpp"
 #include "libtorrent/crc32c.hpp"
 #include "libtorrent/ip_voter.hpp"
-#include "libtorrent/io.hpp" // for write_uint16
+
+#include <boost/detail/endian.hpp> // for BIG_ENDIAN and LITTLE_ENDIAN macros
 
 namespace libtorrent {
 
@@ -83,9 +84,15 @@ namespace libtorrent {
 			if (e1.port() > e2.port())
 				swap(e1, e2);
 			std::uint32_t p;
-			auto ptr = reinterpret_cast<char*>(&p);
-			detail::write_uint16(e1.port(), ptr);
-			detail::write_uint16(e2.port(), ptr);
+#if defined BOOST_BIG_ENDIAN
+			p = std::uint32_t(e1.port() << 16);
+			p |= e2.port();
+#elif defined BOOST_LITTLE_ENDIAN
+			p = std::uint32_t(aux::host_to_network(e2.port()) << 16);
+			p |= aux::host_to_network(e1.port());
+#else
+#error unsupported endianness
+#endif
 			ret = crc32c_32(p);
 		}
 #if TORRENT_USE_IPV6

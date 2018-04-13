@@ -81,6 +81,7 @@ namespace libtorrent {
 	file_storage::file_storage(file_storage const&) = default;
 	file_storage& file_storage::operator=(file_storage const&) = default;
 	file_storage::file_storage(file_storage&&) noexcept = default;
+	file_storage& file_storage::operator=(file_storage&&) noexcept = default;
 
 	void file_storage::reserve(int num_files)
 	{
@@ -482,7 +483,7 @@ namespace {
 			TORRENT_ASSERT(file_iter != m_files.end());
 			if (file_offset < std::int64_t(file_iter->size))
 			{
-				file_slice f{};
+				file_slice f;
 				f.file_index = file_index_t(int(file_iter - m_files.begin()));
 				f.offset = file_offset;
 				f.size = std::min(std::int64_t(file_iter->size) - file_offset, std::int64_t(size));
@@ -529,7 +530,7 @@ namespace {
 		TORRENT_ASSERT_PRECOND(file_index < end_file());
 		TORRENT_ASSERT(m_num_pieces >= 0);
 
-		peer_request ret{};
+		peer_request ret;
 		if (file_index >= end_file())
 		{
 			ret.piece = piece_index_t{m_num_pieces};

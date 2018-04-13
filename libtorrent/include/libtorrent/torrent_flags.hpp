@@ -37,7 +37,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-using torrent_flags_t = flags::bitfield_flag<std::uint64_t, struct torrent_flags_tag>;
+struct torrent_flags_tag;
+using torrent_flags_t = flags::bitfield_flag<std::uint64_t, torrent_flags_tag>;
 
 namespace torrent_flags {
 

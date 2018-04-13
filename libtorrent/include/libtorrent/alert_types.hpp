@@ -281,18 +281,8 @@ namespace libtorrent {
 	private:
 		aux::allocation_slot m_name_idx;
 #ifndef TORRENT_NO_DEPRECATE
-
-#if defined __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything"
-#endif
-
 	public:
 		std::string TORRENT_DEPRECATED_MEMBER name;
-
-#if defined __clang__
-#pragma clang diagnostic pop
-#endif
 #endif
 	};
 
@@ -2559,7 +2549,8 @@ namespace libtorrent {
 	};
 
 	// hidden
-	using picker_flags_t = flags::bitfield_flag<std::uint32_t, struct picker_flags_tag>;
+	struct picker_flags_tag;
+	using picker_flags_t = flags::bitfield_flag<std::uint32_t, picker_flags_tag>;
 
 	// this is posted when one or more blocks are picked by the piece picker,
 	// assuming the verbose piece picker logging is enabled (see

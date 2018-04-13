@@ -39,7 +39,7 @@ namespace libtorrent { namespace dht {
 
 struct get_peers : find_data
 {
-	using data_callback = std::function<void(std::vector<tcp::endpoint> const&)>;
+	typedef std::function<void(std::vector<tcp::endpoint> const&)> data_callback;
 
 	void got_peers(std::vector<tcp::endpoint> const& peers);
 
@@ -61,6 +61,8 @@ protected:
 
 struct obfuscated_get_peers : get_peers
 {
+	typedef get_peers::nodes_callback done_callback;
+
 	obfuscated_get_peers(node& dht_node, node_id const& target
 		, data_callback const& dcallback
 		, nodes_callback const& ncallback
@@ -91,7 +93,7 @@ struct get_peers_observer : find_data_observer
 	void reply(msg const&) override;
 #ifndef TORRENT_DISABLE_LOGGING
 private:
-	void log_peers(msg const& m, bdecode_node const& r, int size) const;
+	void log_peers(msg const& m, bdecode_node const& r, int const size) const;
 #endif
 };
 

@@ -188,7 +188,7 @@ namespace aux {
 			return refcount == 0
 				&& piece_refcount == 0
 				&& !hashing
-				&& read_jobs.empty()
+				&& read_jobs.size() == 0
 				&& outstanding_read == 0
 				&& (ignore_hash || !hash || hash->offset == 0);
 		}

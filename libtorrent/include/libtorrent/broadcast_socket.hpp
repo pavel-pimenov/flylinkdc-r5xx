@@ -39,7 +39,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/address.hpp"
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/string_view.hpp"
-#include "libtorrent/span.hpp"
 
 #include <memory>
 #include <list>
@@ -57,8 +56,8 @@ namespace libtorrent {
 	TORRENT_EXTRA_EXPORT bool supports_ipv6();
 	address ensure_v6(address const& a);
 
-	using receive_handler_t = std::function<void(udp::endpoint const& from
-		, span<char const> buffer)>;
+	typedef std::function<void(udp::endpoint const& from
+		, char* buffer, int size)> receive_handler_t;
 
 	class TORRENT_EXTRA_EXPORT broadcast_socket
 	{
@@ -66,7 +65,7 @@ namespace libtorrent {
 		explicit broadcast_socket(udp::endpoint const& multicast_endpoint);
 		~broadcast_socket() { close(); }
 
-		void open(receive_handler_t handler, io_service& ios
+		void open(receive_handler_t const& handler, io_service& ios
 			, error_code& ec, bool loopback = true);
 
 		enum flags_t { flag_broadcast = 1 };
@@ -74,15 +73,16 @@ namespace libtorrent {
 
 		void close();
 		int num_send_sockets() const { return int(m_unicast_sockets.size()); }
+		void enable_ip_broadcast(bool e);
 
 	private:
 
 		struct socket_entry
 		{
-			explicit socket_entry(std::shared_ptr<udp::socket> s)
-				: socket(std::move(s)), broadcast(false) { std::memset(buffer, 0, sizeof(buffer)); }
-			socket_entry(std::shared_ptr<udp::socket> s
-				, address_v4 const& mask): socket(std::move(s)), netmask(mask), broadcast(false)
+			explicit socket_entry(std::shared_ptr<udp::socket> const& s)
+				: socket(s), broadcast(false) { std::memset(buffer, 0, sizeof(buffer)); }
+			socket_entry(std::shared_ptr<udp::socket> const& s
+				, address_v4 const& mask): socket(s), netmask(mask), broadcast(false)
 			{ std::memset(buffer, 0, sizeof(buffer)); }
 			std::shared_ptr<udp::socket> socket;
 			char buffer[1500];

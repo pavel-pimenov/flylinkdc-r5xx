@@ -45,6 +45,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/sha1_hash.hpp"
 #include "libtorrent/string_view.hpp"
 #include "libtorrent/aux_/vector.hpp"
+#include "libtorrent/aux_/noexcept_movable.hpp"
 #include "libtorrent/flags.hpp"
 
 namespace libtorrent {
@@ -193,7 +194,8 @@ namespace libtorrent {
 	};
 
 	// hidden
-	using file_flags_t = flags::bitfield_flag<std::uint8_t, struct file_flags_tag>;
+	struct file_flags_tag;
+	using file_flags_t = flags::bitfield_flag<std::uint8_t, file_flags_tag>;
 
 	// The ``file_storage`` class represents a file list and the piece
 	// size. Everything necessary to interpret a regular bittorrent storage
@@ -209,7 +211,7 @@ namespace libtorrent {
 		file_storage(file_storage const&);
 		file_storage& operator=(file_storage const&);
 		file_storage(file_storage&&) noexcept;
-		file_storage& operator=(file_storage&&) = default;
+		file_storage& operator=(file_storage&&) noexcept;
 
 		// returns true if the piece length has been initialized
 		// on the file_storage. This is typically taken as a proxy
@@ -591,7 +593,7 @@ namespace libtorrent {
 
 		// name of torrent. For multi-file torrents
 		// this is always the root directory
-		std::string m_name;
+		aux::noexcept_movable<std::string> m_name;
 
 		// the sum of all file sizes
 		std::int64_t m_total_size;

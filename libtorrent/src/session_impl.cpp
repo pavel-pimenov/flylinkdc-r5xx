@@ -88,7 +88,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/bind_to_device.hpp"
 #include "libtorrent/hex.hpp" // to_hex, from_hex
 #include "libtorrent/aux_/scope_end.hpp"
-#include "libtorrent/aux_/set_socket_buffer.hpp"
 
 #ifndef TORRENT_DISABLE_LOGGING
 
@@ -353,7 +352,7 @@ namespace aux {
 	{
 		TORRENT_UNUSED(ad);
 
-		auto* ses = reinterpret_cast<session_impl*>(arg);
+		session_impl* ses = reinterpret_cast<session_impl*>(arg);
 		const char* servername = SSL_get_servername(s, TLSEXT_NAMETYPE_host_name);
 
 		if (!servername || strlen(servername) < 40)
@@ -538,6 +537,7 @@ namespace aux {
 		{
 			session_log("   max connections: %d", m_settings.get_int(settings_pack::connections_limit));
 			session_log("   max files: %d", max_files);
+			session_log(" generated peer ID: %s", m_peer_id.to_string().c_str());
 		}
 #endif
 
@@ -1000,6 +1000,50 @@ namespace aux {
 		return m_port_filter;
 	}
 
+namespace {
+
+
+	template <class Socket>
+	void set_socket_buffer_size(Socket& s, session_settings const& sett, error_code& ec)
+	{
+		int const snd_size = sett.get_int(settings_pack::send_socket_buffer_size);
+		if (snd_size)
+		{
+			typename Socket::send_buffer_size prev_option;
+			s.get_option(prev_option, ec);
+			if (!ec && prev_option.value() != snd_size)
+			{
+				typename Socket::send_buffer_size option(snd_size);
+				s.set_option(option, ec);
+				if (ec)
+				{
+					// restore previous value
+					s.set_option(prev_option, ec);
+					return;
+				}
+			}
+		}
+		int const recv_size = sett.get_int(settings_pack::recv_socket_buffer_size);
+		if (recv_size)
+		{
+			typename Socket::receive_buffer_size prev_option;
+			s.get_option(prev_option, ec);
+			if (!ec && prev_option.value() != recv_size)
+			{
+				typename Socket::receive_buffer_size option(recv_size);
+				s.set_option(option, ec);
+				if (ec)
+				{
+					// restore previous value
+					s.set_option(prev_option, ec);
+					return;
+				}
+			}
+		}
+	}
+
+	} // anonymous namespace
+
 	peer_class_t session_impl::create_peer_class(char const* name)
 	{
 		TORRENT_ASSERT(is_single_thread());
@@ -1028,7 +1072,7 @@ namespace aux {
 			ret.upload_limit = 0xf0f0f0f;
 			ret.download_limit = 0xf0f0f0f;
 			ret.label.resize(20);
-			url_random(span<char>(ret.label));
+			url_random(&ret.label[0], &ret.label[0] + 20);
 			ret.ignore_unchoke_slots = false;
 			ret.connection_limit_factor = 0xf0f0f0f;
 			ret.upload_priority = 0xf0f0f0f;
@@ -1312,7 +1356,7 @@ namespace aux {
 
 	std::uint32_t session_impl::get_tracker_key(address const& iface) const
 	{
-		auto const ses = reinterpret_cast<uintptr_t>(this);
+		uintptr_t const ses = reinterpret_cast<uintptr_t>(this);
 		hasher h(reinterpret_cast<char const*>(&ses), sizeof(ses));
 		if (iface.is_v4())
 		{
@@ -2886,19 +2930,7 @@ namespace aux {
 		if (m_alerts.should_post<incoming_connection_alert>())
 			m_alerts.emplace_alert<incoming_connection_alert>(s->type(), endp);
 
-		{
-			error_code err;
-			set_socket_buffer_size(*s, m_settings, err);
-#ifndef TORRENT_DISABLE_LOGGING
-			if (err && should_log())
-			{
-				error_code ignore;
-				session_log("socket buffer size [ %s %d]: (%d) %s"
-					, s->local_endpoint().address().to_string(ignore).c_str()
-					, s->local_endpoint().port(), err.value(), err.message().c_str());
-			}
-#endif
-		}
+		setup_socket_buffers(*s);
 
 		peer_connection_args pack;
 		pack.ses = this;
@@ -2912,7 +2944,7 @@ namespace aux {
 		pack.peerinfo = nullptr;
 
 		std::shared_ptr<peer_connection> c
-			= std::make_shared<bt_peer_connection>(pack);
+			= std::make_shared<bt_peer_connection>(pack, get_peer_id());
 
 		if (!c->is_disconnecting())
 		{
@@ -2929,6 +2961,12 @@ namespace aux {
 			m_connections.insert(c);
 			c->start();
 		}
+	}
+
+	void session_impl::setup_socket_buffers(socket_type& s)
+	{
+		error_code ec;
+		set_socket_buffer_size(s, m_settings, ec);
 	}
 
 	void session_impl::close_connection(peer_connection* p) noexcept
@@ -2957,12 +2995,10 @@ namespace aux {
 		}
 	}
 
-#ifndef TORRENT_NO_DEPRECATE
-	peer_id session_impl::deprecated_get_peer_id() const
+	void session_impl::set_peer_id(peer_id const& id)
 	{
-		return generate_peer_id(m_settings);
+		m_peer_id = id;
 	}
-#endif
 
 	int session_impl::next_port() const
 	{
@@ -3258,7 +3294,7 @@ namespace aux {
 
 						if (p.download_queue().size() + p.request_queue().size() > 0)
 							++num_peers[protocol][peer_connection::download_channel];
-						if (!p.upload_queue().empty())
+						if (p.upload_queue().size() > 0)
 							++num_peers[protocol][peer_connection::upload_channel];
 					}
 
@@ -3303,7 +3339,8 @@ namespace aux {
 		// check for incoming connections that might have timed out
 		// --------------------------------------------------------------
 
-		for (auto i = m_connections.begin(); i != m_connections.end();)
+		for (connection_map::iterator i = m_connections.begin();
+			i != m_connections.end();)
 		{
 			peer_connection* p = (*i).get();
 			++i;
@@ -4015,7 +4052,7 @@ namespace aux {
 		for (torrent_peer* pi : prev_opt_unchoke)
 		{
 			TORRENT_ASSERT(pi->optimistically_unchoked);
-			auto* p = static_cast<peer_connection*>(pi->connection);
+			peer_connection* p = static_cast<peer_connection*>(pi->connection);
 			std::shared_ptr<torrent> t = p->associated_torrent().lock();
 			pi->optimistically_unchoked = false;
 			m_stats_counters.inc_stats_counter(counters::num_peers_up_unchoked_optimistic, -1);
@@ -4115,7 +4152,7 @@ namespace aux {
 			{
 				if ((m_download_connect_attempts >= m_settings.get_int(
 						settings_pack::connect_seed_every_n_download)
-					&& !want_peers_finished.empty())
+					&& want_peers_finished.size())
 						|| want_peers_download.empty())
 				{
 					// pick a finished torrent to give a peer to
@@ -4171,7 +4208,8 @@ namespace aux {
 		// TODO: 3 there should be a pre-calculated list of all peers eligible for
 		// unchoking
 		std::vector<peer_connection*> peers;
-		for (auto i = m_connections.begin(); i != m_connections.end();)
+		for (connection_map::iterator i = m_connections.begin();
+			i != m_connections.end();)
 		{
 			std::shared_ptr<peer_connection> p = *i;
 			TORRENT_ASSERT(p);
@@ -4560,7 +4598,7 @@ namespace aux {
 		for (auto& t : state_updates)
 		{
 			TORRENT_ASSERT(t->m_links[aux::session_impl::torrent_state_updates].in_list());
-			status.emplace_back();
+			status.push_back(torrent_status());
 			// querying accurate download counters may require
 			// the torrent to be loaded. Loading a torrent, and evicting another
 			// one will lead to calling state_updated(), which screws with
@@ -5312,6 +5350,20 @@ namespace aux {
 #endif
 	}
 
+	void session_impl::update_peer_fingerprint()
+	{
+		// ---- generate a peer id ----
+		std::string print = m_settings.get_str(settings_pack::peer_fingerprint);
+		if (print.size() > 20) print.resize(20);
+
+		// the client's fingerprint
+		std::copy(print.begin(), print.begin() + int(print.length()), m_peer_id.begin());
+		if (print.length() < 20)
+		{
+			url_random(m_peer_id.data() + print.length(), m_peer_id.data() + 20);
+		}
+	}
+
 	void session_impl::update_dht_bootstrap_nodes()
 	{
 #ifndef TORRENT_DISABLE_DHT
@@ -5725,7 +5777,7 @@ namespace aux {
 
 	void session_impl::set_dht_storage(dht::dht_storage_constructor_type sc)
 	{
-		m_dht_storage_constructor = std::move(sc);
+		m_dht_storage_constructor = sc;
 	}
 
 #ifndef TORRENT_NO_DEPRECATE
@@ -5847,7 +5899,7 @@ namespace aux {
 	{
 		if (!m_dht) return;
 		m_dht->get_item(dht::public_key(key.data()), std::bind(&session_impl::get_mutable_callback
-			, this, _1, _2), std::move(salt));
+			, this, _1, _2), salt);
 	}
 
 	namespace {
@@ -5865,9 +5917,9 @@ namespace aux {
 				dht::signature const sig = i.sig();
 				dht::public_key const pk = i.pk();
 				dht::sequence_number const seq = i.seq();
-				std::string salt = i.salt();
-				alerts.emplace_alert<dht_put_alert>(pk.bytes, sig.bytes
-					, std::move(salt), seq.value, num);
+				std::string const salt = i.salt();
+				alerts.emplace_alert<dht_put_alert>(pk.bytes, sig.bytes, salt
+					, seq.value, num);
 			}
 		}
 
@@ -5915,7 +5967,7 @@ namespace aux {
 		if (!m_dht) return;
 		m_dht->put_item(dht::public_key(key.data())
 			, std::bind(&on_dht_put_mutable_item, std::ref(m_alerts), _1, _2)
-			, std::bind(&put_mutable_callback, _1, std::move(cb)), salt);
+			, std::bind(&put_mutable_callback, _1, cb), salt);
 	}
 
 	void session_impl::dht_get_peers(sha1_hash const& info_hash)
@@ -6101,7 +6153,7 @@ namespace aux {
 		template <typename Socket>
 		void set_tos(Socket& s, int v, error_code& ec)
 		{
-#if TORRENT_USE_IPV6 && defined IPV6_TCLASS
+#if TORRENT_USE_IPV6
 			if (s.local_endpoint(ec).address().is_v6())
 				s.set_option(traffic_class(char(v)), ec);
 			else if (!ec)
@@ -6348,6 +6400,7 @@ namespace aux {
 		}
 
 		if (m_upnp) m_upnp->set_user_agent("");
+		url_random(m_peer_id.data(), m_peer_id.data() + 20);
 	}
 
 	void session_impl::update_force_proxy()
@@ -6721,7 +6774,7 @@ namespace aux {
 				ips[is_local(local_addr)][local_addr.is_v6()] = local_addr;
 		}
 
-		return {ips[1][0], ips[0][0], ips[1][1], ips[0][1]};
+		return external_ip(ips[1][0], ips[0][0], ips[1][1], ips[0][1]);
 	}
 
 	// this is the DHT observer version. DHT is the implied source

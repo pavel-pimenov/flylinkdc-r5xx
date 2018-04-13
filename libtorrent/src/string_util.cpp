@@ -129,7 +129,7 @@ namespace libtorrent {
 	}
 
 	// generate a url-safe random string
-	void url_random(span<char> dest)
+	void url_random(char* begin, char* end)
 	{
 		// http-accepted characters:
 		// excluding ', since some buggy trackers don't support that
@@ -137,8 +137,8 @@ namespace libtorrent {
 			"abcdefghijklmnopqrstuvwxyz-_.!~*()";
 
 		// the random number
-		for (char& c : dest)
-			c = printable[random(sizeof(printable) - 2)];
+		while (begin != end)
+			*begin++ = printable[random(sizeof(printable) - 2)];
 	}
 
 	bool string_ends_with(string_view s1, string_view s2)
@@ -164,7 +164,7 @@ namespace libtorrent {
 	{
 		if (str == nullptr) return nullptr;
 		std::size_t const len = std::strlen(str);
-		auto* tmp = new char[len + 1];
+		char* tmp = new char[len + 1];
 		std::copy(str, str + len, tmp);
 		tmp[len] = '\0';
 		return tmp;

@@ -90,7 +90,8 @@ namespace libtorrent {
 		// this is the constructor where the we are the active part.
 		// The peer_connection should handshake and verify that the
 		// other end has the correct id
-		explicit bt_peer_connection(peer_connection_args const& pack);
+		bt_peer_connection(peer_connection_args const& pack
+			, peer_id const& pid);
 
 		void start() override;
 
@@ -199,6 +200,7 @@ namespace libtorrent {
 		// be called. i.e. most handlers need
 		// to check how much of the packet they
 		// have received before any processing
+		void on_keepalive();
 		void on_choke(int received);
 		void on_unchoke(int received);
 		void on_interested(int received);
@@ -246,6 +248,9 @@ namespace libtorrent {
 		void write_share_mode();
 		void write_holepunch_msg(int type, tcp::endpoint const& ep, int error);
 #endif
+		void write_metadata(std::pair<int, int> req);
+		void write_metadata_request(std::pair<int, int> req);
+
 		// DHT extension
 		void write_dht_port(int listen_port);
 
@@ -492,6 +497,11 @@ namespace libtorrent {
 
 		std::array<char, 8> m_reserved_bits;
 #endif
+
+#if TORRENT_USE_ASSERTS
+		bool m_in_constructor = true;
+#endif
+
 	};
 }
 

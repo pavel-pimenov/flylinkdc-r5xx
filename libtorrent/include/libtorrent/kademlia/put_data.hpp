@@ -47,7 +47,7 @@ class node;
 
 struct put_data: traversal_algorithm
 {
-	using put_callback = std::function<void(item const&, int)>;
+	typedef std::function<void(item const&, int)> put_callback;
 
 	put_data(node& node, put_callback const& callback);
 
@@ -72,9 +72,9 @@ struct put_data_observer : traversal_observer
 {
 	put_data_observer(
 		std::shared_ptr<traversal_algorithm> algorithm
-		, udp::endpoint const& ep, node_id const& id, std::string token)
+		, udp::endpoint const& ep, node_id const& id, std::string const& token)
 		: traversal_observer(std::move(algorithm), ep, id)
-		, m_token(std::move(token))
+		, m_token(token)
 	{
 	}
 

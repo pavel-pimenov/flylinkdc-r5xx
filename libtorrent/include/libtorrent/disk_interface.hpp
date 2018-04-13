@@ -64,7 +64,8 @@ namespace libtorrent {
 
 	struct storage_holder;
 
-	using file_open_mode_t = flags::bitfield_flag<std::uint8_t, struct file_open_mode_tag>;
+	struct file_open_mode_tag;
+	using file_open_mode_t = flags::bitfield_flag<std::uint8_t, file_open_mode_tag>;
 
 	// this is a bittorrent constant
 	constexpr int default_block_size = 0x4000;
@@ -104,7 +105,7 @@ namespace libtorrent {
 	}
 
 	// this contains information about a file that's currently open by the
-	// libtorrent disk I/O subsystem. It's associated with a single torrent.
+	// libtorrent disk I/O subsystem. It's associated with a single torent.
 	struct TORRENT_EXPORT open_file_state
 	{
 		// the index of the file this entry refers to into the ``file_storage``
@@ -127,7 +128,8 @@ namespace libtorrent {
 	using pool_file_status = open_file_state;
 #endif
 
-	using disk_job_flags_t = flags::bitfield_flag<std::uint8_t, struct disk_job_flags_tag>;
+	struct disk_job_flags_tag;
+	using disk_job_flags_t = flags::bitfield_flag<std::uint8_t, disk_job_flags_tag>;
 
 	struct TORRENT_EXTRA_EXPORT disk_interface
 	{

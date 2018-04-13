@@ -211,8 +211,8 @@ namespace libtorrent {
 			? std::string(pe.data(), file_end)
 			: pe;
 		std::transform(name.begin(), name.end(), name.begin(), &to_lower);
-		char const** str = std::find(reserved_names, reserved_names + num_names, name);
-		if (str != reserved_names + num_names)
+		char const* str = std::find(reserved_names, reserved_names + num_names, name);
+		if (str != reserved + num_names)
 		{
 			pe = "_" + pe;
 			element = string_view();
@@ -1079,13 +1079,6 @@ namespace {
 			if (root_hash.string_length() != 20)
 			{
 				ec = errors::torrent_invalid_hashes;
-				// mark the torrent as invalid
-				m_files.set_piece_length(0);
-				return false;
-			}
-			if (files.num_pieces() <= 0)
-			{
-				ec = errors::no_files_in_torrent;
 				// mark the torrent as invalid
 				m_files.set_piece_length(0);
 				return false;

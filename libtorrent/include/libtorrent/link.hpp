@@ -38,7 +38,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	using torrent_list_index_t = aux::strong_typedef<int, struct torrent_list_tag>;
+	struct torrent_list_tag;
+	using torrent_list_index_t = aux::strong_typedef<int, torrent_list_tag>;
 
 	struct link
 	{

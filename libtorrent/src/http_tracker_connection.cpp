@@ -31,9 +31,9 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "libtorrent/config.hpp"
+#include "libtorrent/gzip.hpp"
 #include "libtorrent/socket_io.hpp"
 
-#include <string>
 #include <functional>
 #include <vector>
 #include <list>
@@ -45,13 +45,18 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/tracker_manager.hpp"
 #include "libtorrent/http_tracker_connection.hpp"
 #include "libtorrent/http_connection.hpp"
-#include "libtorrent/aux_/escape_string.hpp"
+#include "libtorrent/entry.hpp"
+#include "libtorrent/bencode.hpp"
+#include "libtorrent/torrent.hpp"
 #include "libtorrent/io.hpp"
 #include "libtorrent/socket.hpp"
+#include "libtorrent/broadcast_socket.hpp" // for is_local
 #include "libtorrent/string_util.hpp" // for is_i2p_url
 #include "libtorrent/aux_/session_settings.hpp"
 #include "libtorrent/resolver_interface.hpp"
 #include "libtorrent/ip_filter.hpp"
+
+using namespace std::placeholders;
 
 namespace libtorrent {
 
@@ -60,7 +65,7 @@ namespace libtorrent {
 		, tracker_manager& man
 		, tracker_request const& req
 		, std::weak_ptr<request_callback> c)
-		: tracker_connection(man, req, ios, std::move(c))
+		: tracker_connection(man, req, ios, c)
 	{}
 
 	void http_tracker_connection::start()
@@ -192,7 +197,6 @@ namespace libtorrent {
 			return;
 		}
 
-		using namespace std::placeholders;
 		m_tracker_connection = std::make_shared<http_connection>(get_io_service(), m_man.host_resolver()
 			, std::bind(&http_tracker_connection::on_response, shared_from_this(), _1, _2, _3)
 			, true, settings.get_int(settings_pack::max_http_recv_buffer_size)
@@ -390,7 +394,7 @@ namespace libtorrent {
 		else
 		{
 			// if there's no peer_id, just initialize it to a bunch of zeroes
-			ret.pid.clear();
+			std::fill_n(ret.pid.begin(), 20, 0);
 		}
 
 		// extract ip
@@ -431,8 +435,11 @@ namespace libtorrent {
 		}
 
 		// if no interval is specified, default to 30 minutes
-		resp.interval = seconds32{e.dict_find_int_value("interval", 1800)};
-		resp.min_interval = seconds32{e.dict_find_int_value("min interval", 30)};
+		seconds32 interval(e.dict_find_int_value("interval", 1800));
+		seconds32 const min_interval(e.dict_find_int_value("min interval", 30));
+
+		resp.interval = interval;
+		resp.min_interval = min_interval;
 
 		bdecode_node const tracker_id = e.dict_find_string("tracker id");
 		if (tracker_id)

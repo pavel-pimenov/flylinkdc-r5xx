@@ -71,7 +71,9 @@ constexpr std::size_t max_global_mappings = 50;
 namespace upnp_errors
 {
 	boost::system::error_code make_error_code(error_code_enum e)
-	{ return {e, upnp_category()}; }
+	{
+		return error_code(e, upnp_category());
+	}
 
 } // upnp_errors namespace
 
@@ -120,7 +122,7 @@ void upnp::start()
 	TORRENT_ASSERT(is_single_thread());
 
 	error_code ec;
-	m_socket.open(std::bind(&upnp::on_reply, self(), _1, _2)
+	m_socket.open(std::bind(&upnp::on_reply, self(), _1, _2, _3)
 		, m_refresh_timer.get_io_service(), ec);
 
 	m_mappings.reserve(10);
@@ -370,7 +372,8 @@ void upnp::resend_request(error_code const& ec)
 	}
 }
 
-void upnp::on_reply(udp::endpoint const& from, span<char const> buffer)
+void upnp::on_reply(udp::endpoint const& from, char* buffer
+	, std::size_t const bytes_transferred)
 {
 	TORRENT_ASSERT(is_single_thread());
 	std::shared_ptr<upnp> me(self());
@@ -483,7 +486,7 @@ void upnp::on_reply(udp::endpoint const& from, span<char const> buffer)
 
 	http_parser p;
 	bool error = false;
-	p.incoming(buffer, error);
+	p.incoming({buffer, bytes_transferred}, error);
 	if (error)
 	{
 #ifndef TORRENT_DISABLE_LOGGING
@@ -1240,7 +1243,7 @@ struct upnp_error_category : boost::system::error_category
 	boost::system::error_condition default_error_condition(
 		int ev) const BOOST_SYSTEM_NOEXCEPT override
 	{
-		return {ev, *this};
+		return boost::system::error_condition(ev, *this);
 	}
 };
 
@@ -1611,9 +1614,9 @@ void upnp::on_expire(error_code const& ec)
 	time_point const now = aux::time_now();
 	time_point next_expire = max_time();
 
-	for (auto& dev : m_devices)
+	for (auto i = m_devices.begin(), end(m_devices.end()); i != end; ++i)
 	{
-		rootdevice& d = const_cast<rootdevice&>(dev);
+		rootdevice& d = const_cast<rootdevice&>(*i);
 		TORRENT_ASSERT(d.magic == 1337);
 		for (port_mapping_t m{0}; m < m_mappings.end_index(); ++m)
 		{
@@ -1651,21 +1654,21 @@ void upnp::close()
 	m_closing = true;
 	m_socket.close();
 
-	for (auto& dev : m_devices)
+	for (auto i = m_devices.begin(), end(m_devices.end()); i != end; ++i)
 	{
-		rootdevice& d = const_cast<rootdevice&>(dev);
+		rootdevice& d = const_cast<rootdevice&>(*i);
 		TORRENT_ASSERT(d.magic == 1337);
 		if (d.control_url.empty()) continue;
-		for (auto& m : d.mapping)
+		for (auto j = d.mapping.begin(), end2(d.mapping.end()); j != end2; ++j)
 		{
-			if (m.protocol == portmap_protocol::none) continue;
-			if (m.act == portmap_action::add)
+			if (j->protocol == portmap_protocol::none) continue;
+			if (j->act == portmap_action::add)
 			{
-				m.act = portmap_action::none;
+				j->act = portmap_action::none;
 				continue;
 			}
-			m.act = portmap_action::del;
-			m_mappings[port_mapping_t{static_cast<int>(&m - d.mapping.data())}].protocol = portmap_protocol::none;
+			j->act = portmap_action::del;
+			m_mappings[port_mapping_t{static_cast<int>(j - d.mapping.begin())}].protocol = portmap_protocol::none;
 		}
 		if (num_mappings() > 0) update_map(d, port_mapping_t{0});
 	}

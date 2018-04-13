@@ -91,8 +91,8 @@ namespace libtorrent {
 	void announce_endpoint::reset()
 	{
 		start_sent = false;
-		min_announce = time_point32::min();
 		next_announce = time_point32::min();
+		min_announce = time_point32::min();
 	}
 
 	void announce_endpoint::failed(int const backoff_ratio, seconds32 const retry_interval)
@@ -117,8 +117,7 @@ namespace libtorrent {
 		// event, we need to let this announce through
 		bool const need_send_complete = is_seed && !complete_sent;
 
-		// add some slack here for rounding errors
-		return now  + seconds(1) >= next_announce
+		return now >= next_announce
 			&& (now >= min_announce || need_send_complete)
 			&& (fails < fail_limit || fail_limit == 0)
 			&& !updating;

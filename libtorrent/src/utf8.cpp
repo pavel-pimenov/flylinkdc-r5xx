@@ -201,7 +201,9 @@ namespace {
 
 			boost::system::error_condition default_error_condition(
 				int ev) const BOOST_SYSTEM_NOEXCEPT override
-			{ return {ev, *this}; }
+			{
+				return boost::system::error_condition(ev, *this);
+			}
 		};
 	} // anonymous namespace
 
@@ -209,7 +211,7 @@ namespace {
 	{
 		boost::system::error_code make_error_code(utf8_errors::error_code_enum e)
 		{
-			return {e, utf8_category()};
+			return error_code(e, utf8_category());
 		}
 	} // utf_errors namespace
 

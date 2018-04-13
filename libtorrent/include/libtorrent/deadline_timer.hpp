@@ -46,9 +46,9 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace libtorrent {
 
 #if defined TORRENT_BUILD_SIMULATOR
-	using deadline_timer = sim::asio::high_resolution_timer;
+	typedef sim::asio::high_resolution_timer deadline_timer;
 #else
-	using deadline_timer = boost::asio::high_resolution_timer;
+	typedef boost::asio::high_resolution_timer deadline_timer;
 #endif
 }
 

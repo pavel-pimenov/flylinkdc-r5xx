@@ -58,7 +58,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/peer_info.hpp"
 #include "libtorrent/random.hpp"
 #include "libtorrent/aux_/alloca.hpp"
-#include "libtorrent/aux_/socket_type.hpp"
+#include "libtorrent/socket_type.hpp"
 #include "libtorrent/performance_counters.hpp" // for counters
 #include "libtorrent/alert_manager.hpp" // for alert_manager
 #include "libtorrent/string_util.hpp" // for search
@@ -123,7 +123,7 @@ namespace {
 	bool ut_pex_peer_store::was_introduced_by(tcp::endpoint const &ep)
 	{
 #if TORRENT_USE_IPV6
-		if (ep.protocol() == tcp::v4())
+		if (ep.address().is_v4())
 		{
 #endif
 			peers4_t::value_type const v(ep.address().to_v4().to_bytes(), ep.port());
@@ -141,7 +141,8 @@ namespace {
 	}
 #endif // TORRENT_DISABLE_EXTENSIONS
 
-	bt_peer_connection::bt_peer_connection(peer_connection_args const& pack)
+	bt_peer_connection::bt_peer_connection(peer_connection_args const& pack
+		, peer_id const& pid)
 		: peer_connection(pack)
 		, m_supports_extensions(false)
 		, m_supports_dht_port(false)
@@ -154,12 +155,15 @@ namespace {
 		, m_rc4_encrypted(false)
 		, m_recv_buffer(peer_connection::m_recv_buffer)
 #endif
-		, m_our_peer_id(generate_peer_id(*pack.sett))
+		, m_our_peer_id(pid)
 	{
 #ifndef TORRENT_DISABLE_LOGGING
 		peer_log(peer_log_alert::info, "CONSTRUCT", "bt_peer_connection");
 #endif
 
+#if TORRENT_USE_ASSERTS
+		m_in_constructor = false;
+#endif
 #ifndef TORRENT_DISABLE_EXTENSIONS
 		m_reserved_bits.fill(0);
 #endif
@@ -738,7 +742,15 @@ namespace {
 		std::memcpy(ptr, ih.data(), ih.size());
 		ptr += 20;
 
-		std::memcpy(ptr, &m_our_peer_id[0], 20);
+		// peer id
+		if (m_settings.get_bool(settings_pack::anonymous_mode))
+		{
+			// in anonymous mode, every peer connection
+			// has a unique peer-id
+			aux::random_bytes(m_our_peer_id);
+		}
+
+		std::memcpy(ptr, m_our_peer_id.data(), 20);
 		ptr += 20;
 
 #ifndef TORRENT_DISABLE_LOGGING
@@ -793,6 +805,20 @@ namespace {
 	// message handlers
 
 	// -----------------------------
+	// --------- KEEPALIVE ---------
+	// -----------------------------
+
+	void bt_peer_connection::on_keepalive()
+	{
+		INVARIANT_CHECK;
+
+#ifndef TORRENT_DISABLE_LOGGING
+		peer_log(peer_log_alert::incoming_message, "KEEPALIVE");
+#endif
+		incoming_keepalive();
+	}
+
+	// -----------------------------
 	// ----------- CHOKE -----------
 	// -----------------------------
 
@@ -834,7 +860,7 @@ namespace {
 				// m_outstanding_bytes
 				if (r.piece == t->torrent_file().last_piece())
 				{
-					r.length = std::min(t->torrent_file().piece_size(
+					r.length = (std::min)(t->torrent_file().piece_size(
 						r.piece) - r.start, r.length);
 				}
 				incoming_reject_request(r);
@@ -1162,8 +1188,8 @@ namespace {
 					|| e.list_at(1).type() != bdecode_node::string_t
 					|| e.list_at(1).string_length() != 20) continue;
 
-				nodes.emplace(int(e.list_int_value_at(0))
-					, sha1_hash(e.list_at(1).string_ptr()));
+				nodes.insert(std::make_pair(int(e.list_int_value_at(0))
+					, sha1_hash(e.list_at(1).string_ptr())));
 			}
 			if (!nodes.empty() && !t->add_merkle_nodes(nodes, p.piece))
 			{
@@ -1931,7 +1957,7 @@ namespace {
 
 		// Don't require the bitfield to have been sent at this point
 		// the case where m_sent_bitfield may not be true is if the
-		// torrent doesn't have any metadata, and a peer is timing out.
+		// torrent doesn't have any metadata, and a peer is timimg out.
 		// then the keep-alive message will be sent before the bitfield
 		// this is a violation to the original protocol, but necessary
 		// for the metadata extension.
@@ -2304,9 +2330,9 @@ namespace {
 			l.reserve(merkle_node_list.size());
 			for (auto const& i : merkle_node_list)
 			{
-				l.emplace_back(entry::list_t);
-				l.back().list().emplace_back(i.first);
-				l.back().list().emplace_back(i.second.to_string());
+				l.push_back(entry(entry::list_t));
+				l.back().list().push_back(i.first);
+				l.back().list().push_back(i.second.to_string());
 			}
 			bencode(std::back_inserter(piece_list_buf), piece_list);
 			detail::write_int32(int(piece_list_buf.size()), ptr);
@@ -2746,7 +2772,7 @@ namespace {
 				// otherwise keep the least significant one
 				if (m_settings.get_bool(settings_pack::prefer_rc4))
 				{
-					std::uint32_t mask = std::numeric_limits<std::uint32_t>::max();
+					std::uint32_t mask = (std::numeric_limits<std::uint32_t>::max)();
 					while (crypto_select & (mask << 1))
 					{
 						mask <<= 1;
@@ -2755,7 +2781,7 @@ namespace {
 				}
 				else
 				{
-					std::uint32_t mask = std::numeric_limits<std::uint32_t>::max();
+					std::uint32_t mask = (std::numeric_limits<std::uint32_t>::max)();
 					while (crypto_select & (mask >> 1))
 					{
 						mask >>= 1;
@@ -3173,7 +3199,7 @@ namespace {
 					// initiate connections. So, if our peer-id is greater than
 					// the others, we should close the incoming connection,
 					// if not, we should close the outgoing one.
-					if ((pid < m_our_peer_id) == is_outgoing())
+					if (pid < m_our_peer_id && is_outgoing())
 					{
 						p->disconnect(errors::duplicate_peer_id, operation_t::bittorrent);
 					}
@@ -3186,6 +3212,16 @@ namespace {
 			}
 
 			set_pid(pid);
+
+			// disconnect if the peer has the same peer-id as ourself
+			// since it most likely is ourself then
+			if (pid == m_our_peer_id)
+			{
+				if (peer_info_struct()) t->ban_peer(peer_info_struct());
+				disconnect(errors::self_connection, operation_t::bittorrent, 1);
+				return;
+			}
+
 			m_client_version = identify_client(pid);
 			if (pid[0] == '-' && pid[1] == 'B' && pid[2] == 'C' && pid[7] == '-')
 			{

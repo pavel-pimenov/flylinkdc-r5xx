@@ -37,7 +37,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-using download_priority_t = aux::strong_typedef<std::uint8_t, struct download_priority_tag>;
+struct download_priority_tag;
+using download_priority_t = aux::strong_typedef<std::uint8_t, download_priority_tag>;
 
 constexpr download_priority_t dont_download{0};
 constexpr download_priority_t default_priority{4};

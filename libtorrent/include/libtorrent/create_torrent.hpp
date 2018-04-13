@@ -93,7 +93,8 @@ namespace libtorrent {
 	class torrent_info;
 
 	// hidden
-	using create_flags_t = flags::bitfield_flag<std::uint32_t, struct create_flags_tag>;
+	struct create_flags_tag;
+	using create_flags_t = flags::bitfield_flag<std::uint32_t, create_flags_tag>;
 
 	// This class holds state for creating a torrent. After having added
 	// all information to it, call create_torrent::generate() to generate
@@ -319,6 +320,11 @@ namespace libtorrent {
 
 		// dht nodes to add to the routing table/bootstrap from
 		std::vector<std::pair<std::string, int>> m_nodes;
+
+		// the hash that identifies this torrent
+		// is mutable because it's calculated
+		// lazily
+		mutable sha1_hash m_info_hash;
 
 		// if a creation date is found in the torrent file
 		// this will be set to that, otherwise it'll be

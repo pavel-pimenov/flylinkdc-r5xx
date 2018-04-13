@@ -125,7 +125,7 @@ constexpr int CLOSE_FILE_INTERVAL = 0;
 		SET(proxy_username, "", &session_impl::update_proxy),
 		SET(proxy_password, "", &session_impl::update_proxy),
 		SET(i2p_hostname, "", &session_impl::update_i2p_bridge),
-		SET(peer_fingerprint, "-LT1200-", nullptr),
+		SET(peer_fingerprint, "-LT1200-", &session_impl::update_peer_fingerprint),
 		SET(dht_bootstrap_nodes, "dht.libtorrent.org:25401", &session_impl::update_dht_bootstrap_nodes)
 	}});
 
@@ -206,7 +206,7 @@ constexpr int CLOSE_FILE_INTERVAL = 0;
 	({{
 		SET(tracker_completion_timeout, 30, nullptr),
 		SET(tracker_receive_timeout, 10, nullptr),
-		SET(stop_tracker_timeout, 3, nullptr),
+		SET(stop_tracker_timeout, 5, nullptr),
 		SET(tracker_maximum_response_length, 1024*1024, nullptr),
 		SET(piece_timeout, 20, nullptr),
 		SET(request_timeout, 60, nullptr),
@@ -449,7 +449,7 @@ constexpr int CLOSE_FILE_INTERVAL = 0;
 
 	void run_all_updates(aux::session_impl& ses)
 	{
-		using fun_t = void (aux::session_impl::*)();
+		typedef void (aux::session_impl::*fun_t)();
 		for (int i = 0; i < settings_pack::num_string_settings; ++i)
 		{
 			fun_t const& f = str_settings[i].fun;
@@ -516,7 +516,7 @@ constexpr int CLOSE_FILE_INTERVAL = 0;
 	void apply_pack(settings_pack const* pack, aux::session_settings& sett
 		, aux::session_impl* ses)
 	{
-		using fun_t = void (aux::session_impl::*)();
+		typedef void (aux::session_impl::*fun_t)();
 		std::vector<fun_t> callbacks;
 
 		for (auto const& p : pack->m_strings)

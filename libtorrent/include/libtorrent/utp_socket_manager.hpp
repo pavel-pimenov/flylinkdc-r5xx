@@ -36,7 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 #include <functional>
 
-#include "libtorrent/aux_/socket_type.hpp"
+#include "libtorrent/socket_type.hpp"
 #include "libtorrent/session_status.hpp"
 #include "libtorrent/enum_net.hpp"
 #include "libtorrent/aux_/session_settings.hpp"
@@ -64,7 +64,7 @@ namespace libtorrent {
 			, span<char const>
 			, error_code&, udp_send_flags_t)>;
 
-		using incoming_utp_callback_t =  std::function<void(std::shared_ptr<aux::socket_type> const&)>;
+		using incoming_utp_callback_t =  std::function<void(std::shared_ptr<socket_type> const&)>;
 
 		utp_socket_manager(send_fun_t const& send_fun
 			, incoming_utp_callback_t const& cb
@@ -141,7 +141,7 @@ namespace libtorrent {
 		incoming_utp_callback_t m_cb;
 
 		// replace with a hash-map
-		using socket_map_t = std::multimap<std::uint16_t, utp_socket_impl*>;
+		typedef std::multimap<std::uint16_t, utp_socket_impl*> socket_map_t;
 		socket_map_t m_utp_sockets;
 
 		using socket_vector_t = std::vector<utp_socket_impl*>;
@@ -174,6 +174,22 @@ namespace libtorrent {
 		int m_new_connection = -1;
 
 		aux::session_settings const& m_sett;
+
+		// this is a copy of the routing table, used
+		// to initialize MTU sizes of uTP sockets
+		mutable std::vector<ip_route> m_routes;
+
+		// the timestamp for the last time we updated
+		// the routing table
+		mutable time_point m_last_route_update = min_time();
+
+		// cache of interfaces
+		mutable std::vector<ip_interface> m_interfaces;
+		mutable time_point m_last_if_update = min_time();
+
+		// the buffer size of the socket. This is used
+		// to now lower the buffer size
+		int m_sock_buf_size = 0;
 
 		// stats counters
 		counters& m_counters;

@@ -85,6 +85,9 @@ namespace libtorrent {
 #endif
 	namespace aux { struct session_logger; struct session_settings; }
 
+	// returns -1 if gzip header is invalid or the header size in bytes
+	TORRENT_EXTRA_EXPORT int gzip_header(const char* buf, int size);
+
 	struct TORRENT_EXTRA_EXPORT tracker_request
 	{
 		tracker_request()
@@ -100,6 +103,9 @@ namespace libtorrent {
 			, num_want(0)
 			, private_torrent(false)
 			, triggered_manually(false)
+#ifdef TORRENT_USE_OPENSSL
+			, ssl_ctx(0)
+#endif
 		{}
 
 		enum event_t
@@ -161,7 +167,7 @@ namespace libtorrent {
 		bool triggered_manually;
 
 #ifdef TORRENT_USE_OPENSSL
-		boost::asio::ssl::context* ssl_ctx = nullptr;
+		boost::asio::ssl::context* ssl_ctx;
 #endif
 #if TORRENT_USE_I2P
 		i2p_connection* i2pconn = nullptr;
@@ -336,14 +342,14 @@ namespace libtorrent {
 	{
 	public:
 
-		using send_fun_t = std::function<void(aux::listen_socket_handle const&
+		typedef std::function<void(aux::listen_socket_handle const&
 			, udp::endpoint const&
 			, span<char const>
-			, error_code&, udp_send_flags_t)>;
-		using send_fun_hostname_t = std::function<void(aux::listen_socket_handle const&
+			, error_code&, udp_send_flags_t)> send_fun_t;
+		typedef std::function<void(aux::listen_socket_handle const&
 			, char const*, int
 			, span<char const>
-			, error_code&, udp_send_flags_t)>;
+			, error_code&, udp_send_flags_t)> send_fun_hostname_t;
 
 		tracker_manager(send_fun_t const& send_fun
 			, send_fun_hostname_t const& send_fun_hostname

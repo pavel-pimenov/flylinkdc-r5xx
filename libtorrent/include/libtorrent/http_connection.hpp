@@ -53,8 +53,8 @@ namespace ssl {
 #include "libtorrent/http_parser.hpp"
 #include "libtorrent/deadline_timer.hpp"
 #include "libtorrent/assert.hpp"
+#include "libtorrent/socket_type.hpp"
 #include "libtorrent/i2p_stream.hpp"
-#include "libtorrent/aux_/socket_type.hpp"
 #include "libtorrent/aux_/vector.hpp"
 #include "libtorrent/resolver_interface.hpp"
 #include "libtorrent/optional.hpp"
@@ -66,12 +66,12 @@ struct resolver_interface;
 
 constexpr int default_max_bottled_buffer_size = 2 * 1024 * 1024;
 
-using http_handler = std::function<void(error_code const&
-	, http_parser const&, span<char const> data, http_connection&)>;
+typedef std::function<void(error_code const&
+	, http_parser const&, span<char const> data, http_connection&)> http_handler;
 
-using http_connect_handler = std::function<void(http_connection&)>;
+typedef std::function<void(http_connection&)> http_connect_handler;
 
-using http_filter_handler = std::function<void(http_connection&, std::vector<tcp::endpoint>&)>;
+typedef std::function<void(http_connection&, std::vector<tcp::endpoint>&)> http_filter_handler;
 
 // when bottled, the last two arguments to the handler
 // will always be 0
@@ -125,7 +125,7 @@ struct TORRENT_EXTRA_EXPORT http_connection
 
 	void close(bool force = false);
 
-	aux::socket_type const& socket() const { return m_sock; }
+	socket_type const& socket() const { return m_sock; }
 
 	std::vector<tcp::endpoint> const& endpoints() const { return m_endpoints; }
 
@@ -160,7 +160,7 @@ private:
 	// endpoint with this index (in m_endpoints) next
 	int m_next_ep;
 
-	aux::socket_type m_sock;
+	socket_type m_sock;
 
 #ifdef TORRENT_USE_OPENSSL
 	ssl::context* m_ssl_ctx;

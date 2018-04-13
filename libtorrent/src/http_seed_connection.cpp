@@ -98,7 +98,8 @@ namespace libtorrent {
 
 	piece_block_progress http_seed_connection::downloading_piece_progress() const
 	{
-		if (m_requests.empty()) return {};
+		if (m_requests.empty())
+			return piece_block_progress();
 
 		std::shared_ptr<torrent> t = associated_torrent().lock();
 		TORRENT_ASSERT(t);

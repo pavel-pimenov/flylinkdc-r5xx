@@ -84,9 +84,7 @@ class i2p_stream : public proxy_base
 public:
 
 	explicit i2p_stream(io_service& io_service);
-#if TORRENT_USE_ASSERTS
 	~i2p_stream();
-#endif
 
 	enum command_t
 	{
@@ -183,7 +181,7 @@ public:
 	char const* session_id() const { return m_session_id.c_str(); }
 	std::string const& local_endpoint() const { return m_i2p_local_endpoint; }
 
-	using name_lookup_handler = std::function<void(error_code const&, char const*)>;
+	typedef std::function<void(error_code const&, char const*)> name_lookup_handler;
 	void async_name_lookup(char const* name, name_lookup_handler handler);
 
 private:

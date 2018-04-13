@@ -40,13 +40,13 @@ namespace libtorrent { namespace dht {
 
 struct direct_traversal : traversal_algorithm
 {
-	using message_callback = std::function<void(dht::msg const&)>;
+	typedef std::function<void(dht::msg const&)> message_callback;
 
 	direct_traversal(node& node
 		, node_id const& target
 		, message_callback cb)
 		: traversal_algorithm(node, target)
-		, m_cb(std::move(cb))
+		, m_cb(cb)
 	{}
 
 	char const* name() const override { return "direct_traversal"; }

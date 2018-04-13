@@ -515,6 +515,12 @@
     <ClInclude Include="include\libtorrent\socket_io.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\socket_type.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\socket_type_fwd.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
     <ClInclude Include="include\libtorrent\socks5_stream.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
@@ -756,15 +762,6 @@
       <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\aux_\win_util.hpp">
-      <Filter>Header Files\libtorrent\aux_</Filter>
-    </ClInclude>
-    <ClInclude Include="include\libtorrent\aux_\route.h">
-      <Filter>Header Files\libtorrent\aux_</Filter>
-    </ClInclude>
-    <ClInclude Include="include\libtorrent\aux_\set_socket_buffer.hpp">
-      <Filter>Header Files\libtorrent\aux_</Filter>
-    </ClInclude>
-    <ClInclude Include="include\libtorrent\aux_\socket_type.hpp">
       <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
   </ItemGroup>

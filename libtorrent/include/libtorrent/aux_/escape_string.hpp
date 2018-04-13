@@ -42,7 +42,8 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace libtorrent {
 
 	// hidden
-	using encode_string_flags_t = flags::bitfield_flag<std::uint8_t, struct encode_string_flags_tag>;
+	struct encode_string_flags_tag;
+	using encode_string_flags_t = flags::bitfield_flag<std::uint8_t, encode_string_flags_tag>;
 
 	namespace string
 	{

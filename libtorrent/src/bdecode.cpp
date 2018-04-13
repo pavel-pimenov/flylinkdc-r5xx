@@ -185,7 +185,7 @@ namespace {
 		std::string message(int ev) const override;
 		boost::system::error_condition default_error_condition(
 			int ev) const BOOST_SYSTEM_NOEXCEPT override
-		{ return {ev, *this}; }
+		{ return boost::system::error_condition(ev, *this); }
 	};
 
 	const char* bdecode_error_category::name() const BOOST_SYSTEM_NOEXCEPT
@@ -221,9 +221,19 @@ namespace {
 	{
 		boost::system::error_code make_error_code(error_code_enum e)
 		{
-			return {e, bdecode_category()};
+			return boost::system::error_code(e, bdecode_category());
 		}
 	}
+
+	bdecode_node::bdecode_node()
+		: m_root_tokens(nullptr)
+		, m_buffer(nullptr)
+		, m_buffer_size(0)
+		, m_token_idx(-1)
+		, m_last_index(-1)
+		, m_last_token(-1)
+		, m_size(-1)
+	{}
 
 	bdecode_node::bdecode_node(bdecode_node const& n)
 		: m_tokens(n.m_tokens)
@@ -259,6 +269,7 @@ namespace {
 	}
 
 	bdecode_node::bdecode_node(bdecode_node&&) noexcept = default;
+	bdecode_node& bdecode_node::operator=(bdecode_node&&) noexcept = default;
 
 	bdecode_node::bdecode_node(bdecode_token const* tokens, char const* buf
 		, int len, int idx)

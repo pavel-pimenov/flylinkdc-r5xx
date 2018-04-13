@@ -36,7 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/web_peer_connection.hpp"
 #include "libtorrent/peer_list.hpp"
 #include "libtorrent/socket.hpp"
-#include "libtorrent/aux_/socket_type.hpp"
+#include "libtorrent/socket_type.hpp"
 #include "libtorrent/invariant_check.hpp"
 #include "libtorrent/time.hpp"
 #include "libtorrent/aux_/session_interface.hpp"
@@ -65,18 +65,17 @@ namespace {
 
 	struct match_peer_endpoint
 	{
-		match_peer_endpoint(address const& addr, std::uint16_t port)
-			: m_addr(addr), m_port(port)
+		explicit match_peer_endpoint(tcp::endpoint const& ep)
+			: m_ep(ep)
 		{}
 
 		bool operator()(torrent_peer const* p) const
 		{
 			TORRENT_ASSERT(p->in_use);
-			return p->address() == m_addr && p->port == m_port;
+			return p->address() == m_ep.address() && p->port == m_ep.port();
 		}
 
-		address const& m_addr;
-		std::uint16_t m_port;
+		tcp::endpoint const& m_ep;
 	};
 
 #if TORRENT_USE_INVARIANT_CHECKS
@@ -268,9 +267,8 @@ namespace libtorrent {
 		TORRENT_ASSERT(p->in_use);
 		TORRENT_ASSERT(m_locked_peer != p);
 
-		auto const addr = p->address();
-		auto const range = find_peers(addr);
-		auto const iter = std::find_if(range.first, range.second, match_peer_endpoint(addr, p->port));
+		std::pair<iterator, iterator> range = find_peers(p->address());
+		iterator iter = std::find_if(range.first, range.second, match_peer_endpoint(p->ip()));
 		if (iter == range.second) return;
 		erase_peer(iter, state);
 	}
@@ -581,10 +579,9 @@ namespace libtorrent {
 		bool found = false;
 		if (state->allow_multiple_connections_per_ip)
 		{
-			auto const& remote = c.remote();
-			auto const addr = remote.address();
-			auto const range = find_peers(addr);
-			iter = std::find_if(range.first, range.second, match_peer_endpoint(addr, remote.port()));
+			tcp::endpoint remote = c.remote();
+			std::pair<iterator, iterator> range = find_peers(remote.address());
+			iter = std::find_if(range.first, range.second, match_peer_endpoint(remote));
 
 			if (iter != range.second)
 			{
@@ -636,7 +633,7 @@ namespace libtorrent {
 
 			if (i->connection != nullptr)
 			{
-				bool const self_connection =
+				bool self_connection =
 					i->connection->remote() == c.local_endpoint()
 					|| i->connection->local_endpoint() == c.remote();
 
@@ -667,44 +664,63 @@ namespace libtorrent {
 					// disconnect the same one, we need a consistent rule to
 					// select which one.
 
-					bool const outgoing1 = c.is_outgoing();
+					bool outgoing1 = c.is_outgoing();
 
-					// for this, we compare our ports and whoever has the lower port
-					// should be the one keeping its outgoing connection. Since
-					// outgoing ports are selected at random by the OS, we need to
-					// be careful to only look at the target end of a connection for
-					// the endpoint.
+					// for this, we compare our endpoints (IP and port)
+					// and whoever has the lower IP,port should be the
+					// one keeping its outgoing connection. Since outgoing
+					// ports are selected at random by the OS, we need
+					// to be careful to only look at the target end of a
+					// connection for the endpoint.
 
-					int const our_port = outgoing1 ? i->connection->local_endpoint().port() : c.local_endpoint().port();
-					int const other_port = outgoing1 ? c.remote().port() : i->connection->remote().port();
+					int our_port = outgoing1 ? i->connection->local_endpoint().port() : c.local_endpoint().port();
+					int other_port= outgoing1 ? c.remote().port() : i->connection->remote().port();
 
-					// decide which peer connection to disconnect
-					// if the ports are equal, pick on at random
-					bool const disconnect1 = ((our_port < other_port) && !outgoing1)
-						|| ((our_port > other_port) && outgoing1)
-						|| ((our_port == other_port) && random(1));
-
-#ifndef TORRENT_DISABLE_LOGGING
-					if (c.should_log(peer_log_alert::info))
+					if (our_port < other_port)
 					{
-						c.peer_log(peer_log_alert::info, "DUPLICATE_PEER_RESOLUTION"
-							, "our: %d other: %d disconnecting: %s"
-							, our_port, other_port, disconnect1 ? "yes" : "no");
-						i->connection->peer_log(peer_log_alert::info, "DUPLICATE_PEER_RESOLUTION"
-							, "our: %d other: %d disconnecting: %s"
-							, our_port, other_port, disconnect1 ? "no" : "yes");
-					}
+#ifndef TORRENT_DISABLE_LOGGING
+						if (c.should_log(peer_log_alert::info))
+						{
+							c.peer_log(peer_log_alert::info, "DUPLICATE_PEER_RESOLUTION"
+								, "\"%d\" < \"%d\"", our_port, other_port);
+							i->connection->peer_log(peer_log_alert::info, "DUPLICATE_PEER_RESOLUTION"
+								, "\"%d\" < \"%d\"", our_port, other_port);
+						}
 #endif
 
-					if (disconnect1)
-					{
-						c.disconnect(errors::duplicate_peer_id, operation_t::bittorrent);
-						return false;
+						// we should keep our outgoing connection
+						if (!outgoing1)
+						{
+							c.disconnect(errors::duplicate_peer_id, operation_t::bittorrent);
+							return false;
+						}
+						TORRENT_ASSERT(m_locked_peer == nullptr);
+						m_locked_peer = i;
+						i->connection->disconnect(errors::duplicate_peer_id, operation_t::bittorrent);
+						m_locked_peer = nullptr;
 					}
-					TORRENT_ASSERT(m_locked_peer == nullptr);
-					m_locked_peer = i;
-					i->connection->disconnect(errors::duplicate_peer_id, operation_t::bittorrent);
-					m_locked_peer = nullptr;
+					else
+					{
+#ifndef TORRENT_DISABLE_LOGGING
+						if (c.should_log(peer_log_alert::info))
+						{
+							c.peer_log(peer_log_alert::info, "DUPLICATE_PEER_RESOLUTION"
+								, "\"%d\" >= \"%d\"", our_port, other_port);
+							i->connection->peer_log(peer_log_alert::info, "DUPLICATE_PEER_RESOLUTION"
+								, "\"%d\" >= \"%d\"", our_port, other_port);
+						}
+#endif
+						// they should keep their outgoing connection
+						if (outgoing1)
+						{
+							c.disconnect(errors::duplicate_peer_id, operation_t::bittorrent);
+							return false;
+						}
+						TORRENT_ASSERT(m_locked_peer == nullptr);
+						m_locked_peer = i;
+						i->connection->disconnect(errors::duplicate_peer_id, operation_t::bittorrent);
+						m_locked_peer = nullptr;
+					}
 				}
 			}
 
@@ -791,10 +807,10 @@ namespace libtorrent {
 
 		if (state->allow_multiple_connections_per_ip)
 		{
-			auto const addr = p->address();
-			auto const range = find_peers(addr);
-			auto const i = std::find_if(range.first, range.second
-				, match_peer_endpoint(addr, std::uint16_t(port)));
+			tcp::endpoint remote(p->address(), std::uint16_t(port));
+			std::pair<iterator, iterator> range = find_peers(remote.address());
+			iterator i = std::find_if(range.first, range.second
+				, match_peer_endpoint(remote));
 			if (i != range.second)
 			{
 				torrent_peer& pp = **i;
@@ -1036,17 +1052,15 @@ namespace libtorrent {
 		TORRENT_ASSERT(is_single_thread());
 		INVARIANT_CHECK;
 
-		auto const remote_address = remote.address();
-
 		// just ignore the obviously invalid entries
-		if (remote_address == address() || remote.port() == 0)
+		if (remote.address() == address() || remote.port() == 0)
 			return nullptr;
 
 #if TORRENT_USE_IPV6
 		// don't allow link-local IPv6 addresses since they
 		// can't be used like normal addresses, they require an interface
 		// and will just cause connect() to fail with EINVAL
-		if (remote_address.is_v6() && remote_address.to_v6().is_link_local())
+		if (remote.address().is_v6() && remote.address().to_v6().is_link_local())
 			return nullptr;
 #endif
 
@@ -1056,17 +1070,16 @@ namespace libtorrent {
 		bool found = false;
 		if (state->allow_multiple_connections_per_ip)
 		{
-			auto const range = find_peers(remote_address);
-			iter = std::find_if(range.first, range.second
-				, match_peer_endpoint(remote_address, remote.port()));
+			std::pair<iterator, iterator> range = find_peers(remote.address());
+			iter = std::find_if(range.first, range.second, match_peer_endpoint(remote));
 			if (iter != range.second) found = true;
 		}
 		else
 		{
 			iter = std::lower_bound(m_peers.begin(), m_peers.end()
-				, remote_address, peer_address_compare());
+				, remote.address(), peer_address_compare());
 
-			if (iter != m_peers.end() && (*iter)->address() == remote_address) found = true;
+			if (iter != m_peers.end() && (*iter)->address() == remote.address()) found = true;
 		}
 
 		if (!found)
@@ -1075,7 +1088,7 @@ namespace libtorrent {
 			// add a new entry
 
 #if TORRENT_USE_IPV6
-			bool const is_v6 = remote_address.is_v6();
+			bool const is_v6 = remote.address().is_v6();
 #else
 			bool const is_v6 = false;
 #endif

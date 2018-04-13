@@ -579,11 +579,11 @@ namespace libtorrent {
 		// deprecated in 1.1, use settings_pack::peer_fingerprint instead
 		TORRENT_DEPRECATED
 		void set_peer_id(peer_id const& pid);
-
-		// deprecated in 1.1.7. read settings_pack::peer_fingerprint instead
-		TORRENT_DEPRECATED
-		peer_id id() const;
 #endif
+
+		// returns the raw peer ID used by libtorrent. When anonymous mode is set
+		// the peer ID is randomized per peer.
+		peer_id id() const;
 
 #ifndef TORRENT_NO_DEPRECATE
 		// deprecated in 1.2
@@ -884,6 +884,9 @@ namespace libtorrent {
 		TORRENT_DEPRECATED
 		int max_uploads() const;
 
+		TORRENT_DEPRECATED
+		void pop_alerts(std::deque<alert*>* alerts);
+
 #endif
 
 		// Alerts is the main mechanism for libtorrent to report errors and
@@ -1060,7 +1063,7 @@ namespace libtorrent {
 		Ret sync_call_ret(Fun f, Args&&... a) const;
 
 		explicit session_handle(std::weak_ptr<aux::session_impl> impl)
-			: m_impl(std::move(impl))
+			: m_impl(impl)
 		{}
 
 		std::weak_ptr<aux::session_impl> m_impl;

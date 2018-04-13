@@ -317,7 +317,7 @@ namespace libtorrent { namespace aux {
 			if (e)
 			{
 				ec.ec = e;
-				ec.file(torrent_status::error_file_partfile);
+				ec.file(file_index_t(-1));
 				ec.operation = operation_t::partfile_move;
 			}
 		}

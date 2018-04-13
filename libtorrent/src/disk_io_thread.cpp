@@ -1076,7 +1076,7 @@ constexpr disk_job_flags_t disk_interface::cache_hit;
 
 	namespace {
 
-	using disk_io_fun_t = status_t (disk_io_thread::*)(disk_io_job*, jobqueue_t&);
+	typedef status_t (disk_io_thread::*disk_io_fun_t)(disk_io_job* j, jobqueue_t& completed_jobs);
 
 	// this is a jump-table for disk I/O jobs
 	std::array<disk_io_fun_t, 15> const job_functions =
@@ -1698,7 +1698,6 @@ constexpr disk_job_flags_t disk_interface::cache_hit;
 	{
 		TORRENT_ASSERT(r.length <= default_block_size);
 		TORRENT_ASSERT(r.length <= 16 * 1024);
-		TORRENT_ASSERT(buf != nullptr);
 
 		bool exceeded = false;
 		disk_buffer_holder buffer(*this, m_disk_cache.allocate_buffer(exceeded, o, "receive buffer"), 0x4000);

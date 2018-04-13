@@ -242,8 +242,6 @@ struct utp_socket_impl
 		, m_stalled(false)
 		, m_confirmed(false)
 	{
-		TORRENT_ASSERT((m_recv_id == ((m_send_id + 1) & 0xffff))
-			|| (m_send_id == ((m_recv_id + 1) & 0xffff)));
 		m_sm.inc_stats_counter(counters::num_utp_idle);
 		TORRENT_ASSERT(m_userdata);
 		m_delay_sample_hist.fill(std::numeric_limits<std::uint32_t>::max());
@@ -874,7 +872,7 @@ int utp_stream::read_buffer_size() const
 
 void utp_stream::on_close_reason(void* self, close_reason_t reason)
 {
-	auto* s = static_cast<utp_stream*>(self);
+	utp_stream* s = static_cast<utp_stream*>(self);
 
 	// it's possible the socket has been unlinked already, in which case m_impl
 	// will be nullptr
@@ -885,7 +883,7 @@ void utp_stream::on_close_reason(void* self, close_reason_t reason)
 void utp_stream::on_read(void* self, std::size_t const bytes_transferred
 	, error_code const& ec, bool const shutdown)
 {
-	auto* s = static_cast<utp_stream*>(self);
+	utp_stream* s = static_cast<utp_stream*>(self);
 
 	UTP_LOGV("%8p: calling read handler read:%d ec:%s shutdown:%d\n", static_cast<void*>(s->m_impl)
 		, int(bytes_transferred), ec.message().c_str(), shutdown);
@@ -905,7 +903,7 @@ void utp_stream::on_read(void* self, std::size_t const bytes_transferred
 void utp_stream::on_write(void* self, std::size_t const bytes_transferred
 	, error_code const& ec, bool const shutdown)
 {
-	auto* s = static_cast<utp_stream*>(self);
+	utp_stream* s = static_cast<utp_stream*>(self);
 
 	UTP_LOGV("%8p: calling write handler written:%d ec:%s shutdown:%d\n"
 		, static_cast<void*>(s->m_impl)
@@ -925,7 +923,7 @@ void utp_stream::on_write(void* self, std::size_t const bytes_transferred
 
 void utp_stream::on_connect(void* self, error_code const& ec, bool shutdown)
 {
-	auto* s = static_cast<utp_stream*>(self);
+	utp_stream* s = static_cast<utp_stream*>(self);
 	TORRENT_ASSERT(s);
 
 	UTP_LOGV("%8p: calling connect handler ec:%s shutdown:%d\n"
@@ -1312,7 +1310,7 @@ void utp_socket_impl::send_syn()
 	p->num_fast_resend = 0;
 #endif
 	p->need_resend = false;
-	auto* h = reinterpret_cast<utp_header*>(p->buf);
+	utp_header* h = reinterpret_cast<utp_header*>(p->buf);
 	h->type_ver = (ST_SYN << 4) | 1;
 	h->extension = utp_no_extension;
 	// using recv_id here is intentional! This is an odd
@@ -1647,7 +1645,7 @@ void utp_socket_impl::remove_sack_header(packet* p)
 
 	// remove the sack header
 	std::uint8_t* ptr = p->buf + sizeof(utp_header);
-	auto* h = reinterpret_cast<utp_header*>(p->buf);
+	utp_header* h = reinterpret_cast<utp_header*>(p->buf);
 
 	TORRENT_ASSERT(h->extension == utp_sack);
 
@@ -2114,7 +2112,7 @@ bool utp_socket_impl::resend_packet(packet* p, bool fast_resend)
 	// since we can't re-packetize, some packets that are
 	// larger than the congestion window must be allowed through
 	// but only if we don't have any outstanding bytes
-	int const window_size_left = std::min(int(m_cwnd >> 16), int(m_adv_wnd)) - m_bytes_in_flight;
+	int window_size_left = std::min(int(m_cwnd >> 16), int(m_adv_wnd)) - m_bytes_in_flight;
 	if (!fast_resend
 		&& p->size - p->header_size > window_size_left
 		&& m_bytes_in_flight > 0)
@@ -2137,7 +2135,7 @@ bool utp_socket_impl::resend_packet(packet* p, bool fast_resend)
 	if (fast_resend) ++p->num_fast_resend;
 #endif
 	p->need_resend = false;
-	auto* h = reinterpret_cast<utp_header*>(p->buf);
+	utp_header* h = reinterpret_cast<utp_header*>(p->buf);
 	// update packet header
 	h->timestamp_difference_microseconds = m_reply_micro;
 	p->send_time = clock_type::now();
@@ -2606,16 +2604,9 @@ bool utp_socket_impl::incoming_packet(span<std::uint8_t const> buf
 {
 	INVARIANT_CHECK;
 
-	auto const* ph = reinterpret_cast<utp_header const*>(buf.data());
-	m_sm.inc_stats_counter(counters::utp_packets_in);
+	utp_header const* ph = reinterpret_cast<utp_header const*>(buf.data());
 
-	if (buf.size() < sizeof(utp_header))
-	{
-		UTP_LOG("%8p: ERROR: incoming packet size too small:%d (ignored)\n"
-			, static_cast<void*>(this), int(buf.size()));
-		m_sm.inc_stats_counter(counters::utp_invalid_pkts_in);
-		return false;
-	}
+	m_sm.inc_stats_counter(counters::utp_packets_in);
 
 	if (ph->get_version() != 1)
 	{
@@ -3010,14 +3001,7 @@ bool utp_socket_impl::incoming_packet(span<std::uint8_t const> buf
 				UTP_LOGV("%8p: received ST_SYN state:%s seq_nr:%d ack_nr:%d\n"
 					, static_cast<void*>(this), socket_state_names[m_state], m_seq_nr, m_ack_nr);
 #endif
-				if (m_send_id != ph->connection_id)
-				{
-#if TORRENT_UTP_LOG
-					UTP_LOGV("%8p: received invalid connection_id:%d expected: %d\n"
-						, static_cast<void*>(this), int(ph->connection_id), int(m_send_id));
-#endif
-					return false;
-				}
+				TORRENT_ASSERT(m_send_id == ph->connection_id);
 				TORRENT_ASSERT(m_recv_id == ((m_send_id + 1) & 0xffff));
 
 				defer_ack();
@@ -3360,14 +3344,14 @@ void utp_socket_impl::do_ledbat(const int acked_bytes, const int delay
 		m_sm.inc_stats_counter(counters::utp_samples_below_target);
 	}
 
-	std::int64_t const linear_gain = ((window_factor * delay_factor) >> 16)
-		* std::int64_t(m_sm.gain_factor());
+	std::int64_t linear_gain = (window_factor * delay_factor) >> 16;
+	linear_gain *= std::int64_t(m_sm.gain_factor());
 
 	// if the user is not saturating the link (i.e. not filling the
 	// congestion window), don't adjust it at all.
 	if (cwnd_saturated)
 	{
-		std::int64_t const exponential_gain = std::int64_t(acked_bytes) * (1 << 16);
+		std::int64_t exponential_gain = std::int64_t(acked_bytes) * (1 << 16);
 		if (m_slow_start)
 		{
 			// mimic TCP slow-start by adding the number of acked
@@ -3399,8 +3383,8 @@ void utp_socket_impl::do_ledbat(const int acked_bytes, const int delay
 	}
 
 	// make sure we don't wrap the cwnd
-	if (scaled_gain >= std::numeric_limits<std::int64_t>::max() - m_cwnd)
-		scaled_gain = std::numeric_limits<std::int64_t>::max() - m_cwnd - 1;
+	if (scaled_gain >= (std::numeric_limits<std::int64_t>::max)() - m_cwnd)
+		scaled_gain = (std::numeric_limits<std::int64_t>::max)() - m_cwnd - 1;
 
 	UTP_LOGV("%8p: do_ledbat delay:%d off_target: %d window_factor:%f target_factor:%f "
 		"scaled_gain:%f cwnd:%d slow_start:%d\n"
@@ -3422,7 +3406,7 @@ void utp_socket_impl::do_ledbat(const int acked_bytes, const int delay
 
 	TORRENT_ASSERT(m_cwnd >= 0);
 
-	int const window_size_left = std::min(int(m_cwnd >> 16), int(m_adv_wnd)) - in_flight + acked_bytes;
+	int window_size_left = std::min(int(m_cwnd >> 16), int(m_adv_wnd)) - in_flight + acked_bytes;
 	if (window_size_left >= m_mtu)
 	{
 		UTP_LOGV("%8p: mtu:%d in_flight:%d adv_wnd:%d cwnd:%d acked_bytes:%d cwnd_full -> 0\n"

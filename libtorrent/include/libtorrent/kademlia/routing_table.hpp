@@ -59,7 +59,7 @@ namespace libtorrent { namespace dht {
 struct dht_settings;
 struct dht_logger;
 
-using bucket_t = aux::vector<node_entry>;
+typedef aux::vector<node_entry> bucket_t;
 
 struct routing_table_node
 {
@@ -130,6 +130,16 @@ struct ip_set
 // 	bucket has failed, then it is put in the replacement
 // 	cache (just like in the paper).
 
+namespace impl
+{
+	template <typename F>
+	inline void forwarder(void* userdata, node_entry const& node)
+	{
+		F* f = reinterpret_cast<F*>(userdata);
+		(*f)(node);
+	}
+}
+
 TORRENT_EXTRA_EXPORT bool compare_ip_cidr(address const& lhs, address const& rhs);
 
 class TORRENT_EXTRA_EXPORT routing_table
@@ -161,7 +171,7 @@ public:
 	void add_router_node(udp::endpoint const& router);
 
 	// iterates over the router nodes added
-	using router_iterator = std::set<udp::endpoint>::const_iterator;
+	typedef std::set<udp::endpoint>::const_iterator router_iterator;
 	router_iterator begin() const { return m_router_nodes.begin(); }
 	router_iterator end() const { return m_router_nodes.end(); }
 
