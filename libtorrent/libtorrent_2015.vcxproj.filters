@@ -746,6 +746,24 @@
     <ClInclude Include="include\libtorrent\kademlia\dht_settings.hpp">
       <Filter>Header Files\libtorrent\kadmelia</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\download_priority.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\optional.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\pex_flags.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\torrent_impl.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\win_crypto_provider.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\win_util.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ed25519\src\add_scalar.cpp">
