@@ -5175,7 +5175,24 @@ CFlyLevelDB::~CFlyLevelDB()
 bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 {
 	p_is_destroy = false;
-	auto l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db);
+	int64_t l_count_files = 0;
+	int64_t l_size_files = 0;
+	auto l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db, l_count_files, l_size_files);
+	if (l_count_files > 1000)
+	{
+		safe_delete(m_level_db);
+		const string l_new_name = p_db_name + ".old";
+		const bool l_rename_result = File::renameFile(p_db_name, l_new_name);
+		if (l_rename_result)
+		{
+			CFlyServerJSON::pushError(90, "open_level_db rename : " + p_db_name + " - > " + l_new_name);
+		}
+		else
+		{
+			CFlyServerJSON::pushError(91, "open_level_db error rename : " + p_db_name + " - > " + l_new_name);
+		}
+		l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db, l_count_files, l_size_files);
+	}
 	if (!l_status.ok())
 	{
 		const auto l_result_error = l_status.ToString();
@@ -5204,8 +5221,10 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 			}
 			if (l_count_delete_error == 0)
 			{
+				l_count_files = 0;
+				l_size_files = 0;
 				// Create new leveldb-database
-				l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db);
+				l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db, l_count_files, l_size_files);
 				if (l_status.ok())
 				{
 					LogManager::message("[CFlyLevelDB::open_level_db] OK Create new leveldb database: " + p_db_name, true);

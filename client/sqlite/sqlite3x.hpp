@@ -100,11 +100,7 @@ namespace sqlite3x {
 		std::string executestring(const std::string &sql);
 	};
 
-	class sqlite3_transaction 
-#ifdef _DEBUG
-		: boost::noncopyable 
-#endif
-	{
+	class sqlite3_transaction  {
 	private:
 		sqlite3_connection &con;
 		bool intrans;
@@ -117,13 +113,8 @@ namespace sqlite3x {
 		void commit();
 		void rollback();
 	};
-
     class sqlite3_reader;
-	class sqlite3_command
-#ifdef _DEBUG
-		: boost::noncopyable 
-#endif
-	{
+	class sqlite3_command  {
 	private:
 		friend class sqlite3_reader;
 
@@ -222,7 +213,7 @@ namespace sqlite3x {
 		std::wstring getstring16(int index);
 		std::wstring getcolname16(int index);
 #endif
-		void getblob(int index, std::vector<uint8_t>& p_result);
+		void getblob(int index, std::vector<unsigned char>& p_result);
         bool getblob(int index, void* p_result, int p_size);
 		std::string getcolname(int index);
 	};

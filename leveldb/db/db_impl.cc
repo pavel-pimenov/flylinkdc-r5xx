@@ -1488,17 +1488,26 @@ Status DB::Delete(const WriteOptions& opt, const Slice& key) {
 DB::~DB() { }
 
 Status DB::Open(const Options& options, const std::string& dbname,
-                DB** dbptr) {
+                DB** dbptr,
+				int64_t& p_count_files,
+				int64_t& p_size_files
+) {
   *dbptr = NULL;
 
   DBImpl* impl = new DBImpl(options, dbname);
   impl->mutex_.Lock();
   VersionEdit edit;
+  impl->env_->m_count_files = 0;
+  impl->env_->m_size_files = 0;
+  p_count_files = 0;
+  p_size_files = 0;
   // Recover handles create_if_missing, error_if_exists
   bool save_manifest = false;
   Status s = impl->Recover(&edit, &save_manifest);
   if (s.ok() && impl->mem_ == NULL) {
-    // Create new log and a corresponding memtable.
+	  p_count_files = impl->env_->m_count_files;
+	  p_size_files = impl->env_->m_size_files;
+  // Create new log and a corresponding memtable.
     uint64_t new_log_number = impl->versions_->NewFileNumber();
     WritableFile* lfile;
     s = options.env->NewWritableFile(LogFileName(dbname, new_log_number),

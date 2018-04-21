@@ -154,7 +154,9 @@ leveldb_t* leveldb_open(
     const char* name,
     char** errptr) {
   DB* db;
-  if (SaveError(errptr, DB::Open(options->rep, std::string(name), &db))) {
+  int64_t l_count_files = 0;
+  int64_t l_size_files = 0;
+  if (SaveError(errptr, DB::Open(options->rep, std::string(name), &db, l_count_files, l_size_files))) {
     return NULL;
   }
   leveldb_t* result = new leveldb_t;

@@ -841,8 +841,19 @@ Status Win32Env::GetChildren(const std::string& dir, std::vector<std::string>* r
             ToNarrowPath(wfd.cFileName, child); 
             if(child != ".." && child != ".")  {
                 result->push_back(child);
-				//m_count_files++;
-				//m_size_files += (int64_t)wfd.nFileSizeLow | ((int64_t)wfd.nFileSizeHigh) << 32;
+				if (child.size() > 4)
+				{
+					if (wfd.nFileSizeLow < 1024 * 512 && wfd.nFileSizeHigh == 0)
+					{
+						if ((child[child.size() - 1] == 'b' || child[child.size() - 1] == 'B') &&
+							(child[child.size() - 2] == 'd' || child[child.size() - 2] == 'D') &&
+							(child[child.size() - 3] == 'l' || child[child.size() - 3] == 'L'))
+						{
+							m_count_files++;
+							m_size_files += (int64_t)wfd.nFileSizeLow | ((int64_t)wfd.nFileSizeHigh) << 32;
+						}
+					}
+				}
             }
             hasNext = ::FindNextFileW(hFind,&wfd);
         }

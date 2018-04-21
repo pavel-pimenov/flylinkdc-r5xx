@@ -53,8 +53,9 @@ class LEVELDB_EXPORT DB {
   // Caller should delete *dbptr when it is no longer needed.
   static Status Open(const Options& options,
                      const std::string& name,
-                     DB** dbptr);
-
+                     DB** dbptr,
+					 int64_t& p_count_files,
+					 int64_t& p_size_files);
   DB() { }
   virtual ~DB();
 

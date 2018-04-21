@@ -129,7 +129,7 @@ bool sqlite3_reader::getblob(int index, void* p_result, int p_size)
   }
 		return false;
 }
-void sqlite3_reader::getblob(int index, std::vector<uint8_t>& p_result)
+void sqlite3_reader::getblob(int index, std::vector<unsigned char>& p_result)
 {
 	check_reader(index);
 	const int l_size = sqlite3_column_bytes(this->cmd->stmt, index);
