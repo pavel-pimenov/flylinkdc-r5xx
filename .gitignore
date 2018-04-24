@@ -77,3 +77,24 @@ vc17
 *.bz2
 
 merge-vendors.bat
+/.vs/FlylinkDC_2017/v15
+/lua/ARM64/Debug
+/lua/ARM64/Debug
+/ARM64/Debug
+/ARM
+/ARM
+*.pdb
+/lua/ARM
+/lua/Debug
+/lua/x64/Debug
+/ARM64/Release
+/compiled/flylinkdc_Debug.lib
+/compiled/flylinkdc_Debug_x64.lib
+/Debug/lua.lib
+/lua/ARM64/Release
+/lua/Release
+/Release
+/x64
+/compiled/flylinkdc.lib
+/compiled/flylinkdc_x64.lib
+/lua/x64/Release

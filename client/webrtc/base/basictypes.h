@@ -21,7 +21,7 @@
 #endif
 
 // Detect compiler is for arm.
-#if defined(__arm__) || defined(_M_ARM)
+#if defined(__arm__) || defined(_M_ARM) || defined(_M_ARM64)
 #define CPU_ARM 1
 #endif
 

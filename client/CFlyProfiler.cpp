@@ -2,7 +2,7 @@
 
 #include "stdinc.h"
 
-#ifndef _WIN64
+#ifdef _M_IX86
 #define __PROFILER_SMP__
 #define __PROFILER_CONSOLIDATE_THREADS__
 
