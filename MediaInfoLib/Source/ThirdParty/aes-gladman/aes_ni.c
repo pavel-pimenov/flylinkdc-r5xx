@@ -20,7 +20,7 @@ Issue Date: 13/11/2013
 #include <intrin.h>
 #include "aes_ni.h"
 
-#if defined( USE_INTEL_AES_IF_PRESENT )
+#if defined( USE_INTEL_AES_IF_PRESENT ) && !defined( _M_ARM ) && !defined( _M_ARM64 )
 
 #pragma intrinsic(__cpuid)
 

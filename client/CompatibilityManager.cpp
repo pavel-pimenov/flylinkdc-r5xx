@@ -660,6 +660,13 @@ string CompatibilityManager::generateGlobalMemoryStatusMessage()
 	return Util::emptyString;
 }
 
+#if (defined(_M_ARM) || defined(_M_ARM64))
+__int64 __rdtsc()
+{
+	return 0;
+}
+#endif
+
 float CompatibilityManager::ProcSpeedCalc() // moved form WinUtil.
 {
 	__int64 cyclesStart = 0, cyclesStop = 0;
