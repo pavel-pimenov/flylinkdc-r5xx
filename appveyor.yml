@@ -1,4 +1,8 @@
+image: 
+- Visual Studio 2017
+
 version: r504-{build}
+
 build:
-  project: FlylinkDC_2015.sln
+  project: FlylinkDC_2017.sln
   verbosity: minimal
