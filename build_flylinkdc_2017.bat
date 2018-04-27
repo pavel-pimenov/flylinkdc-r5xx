@@ -1,4 +1,4 @@
-call build_get_visual_c_version.bat
+rem call build_get_visual_c_version.bat
 del .\compiled\FlylinkDC.exe
 del .\compiled\FlylinkDC.pdb
 call UpdateRevision.bat %1 %2 %3 %4
@@ -7,16 +7,13 @@ if errorlevel 1 goto :error
 call tools\ExtractVersion.bat %1 %2 %3 %4
 if errorlevel 1 goto :error
 
-rem VS150COMNTOOLS=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build
-rem C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\
-rem C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools - vsdevcmd.bat
-rem %comspec% /k "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat"
 
-rem call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\vsdevcmd.bat"
+call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+chcp 437
+"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe" FlylinkDC_2017.sln /t:Rebuild /p:COnfiguration="Release" /p:Platform="Win32" /m:4
 
-"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe" FlylinkDC_2017.sln /Rebuild "Release|Win32"
-rem chcp 437
-rem msbuild FlylinkDC_2017.sln /t:Rebuild /p:COnfiguration="Release" /p:Platform="Win32" /v:diag
+
+rem "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe" FlylinkDC_2017.sln /Rebuild "Release|Win32" /Log /Runexit
 
 if not exist .\compiled\FlylinkDC.exe goto :builderror
 

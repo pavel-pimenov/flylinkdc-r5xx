@@ -1,3 +1,4 @@
+echo on
 call clean_all_2017.bat
 call update_geo_ip.bat
 call build_flylinkdc_2017.bat

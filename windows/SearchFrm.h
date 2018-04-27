@@ -355,7 +355,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			return ctrlResults;
 		}
 #ifdef _DEBUG
-#define FLYLINKDC_USE_TORRENT_PANEL
+// #define FLYLINKDC_USE_TORRENT_PANEL
 #endif
 #ifdef FLYLINKDC_USE_TORRENT_PANEL
 		CHorSplitterWindow m_hzSplit;

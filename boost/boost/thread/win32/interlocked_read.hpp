@@ -85,7 +85,7 @@ namespace boost
         }
         inline void* interlocked_read_acquire(void* volatile* x) BOOST_NOEXCEPT
         {
-            void* const res=(void* const)
+            void* const res=(void* const) //[+]FlylinkDC++
 #if defined(_M_ARM64)
                 __iso_volatile_load64((const volatile __int64*)x);
 #else

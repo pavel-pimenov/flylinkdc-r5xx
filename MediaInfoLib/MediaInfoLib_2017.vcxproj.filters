@@ -701,21 +701,6 @@
     <ClCompile Include="Source\ThirdParty\md5\md5.c">
       <Filter>ThirdParty\md5</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ThirdParty\aes-gladman\aes_modes.c">
-      <Filter>ThirdParty\aes</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ThirdParty\aes-gladman\aes_ni.c">
-      <Filter>ThirdParty\aes</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ThirdParty\aes-gladman\aescrypt.c">
-      <Filter>ThirdParty\aes</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ThirdParty\aes-gladman\aeskey.c">
-      <Filter>ThirdParty\aes</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ThirdParty\aes-gladman\aestab.c">
-      <Filter>ThirdParty\aes</Filter>
-    </ClCompile>
     <ClCompile Include="Source\MediaInfo\Text\File_Sdp.cpp">
       <Filter>Source Files\Text</Filter>
     </ClCompile>
@@ -736,15 +721,6 @@
     </ClCompile>
     <ClCompile Include="Source\MediaInfo\Audio\File_Caf.cpp">
       <Filter>Source Files\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ThirdParty\hmac-gladman\hmac.c">
-      <Filter>ThirdParty\hmac-gladman</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ThirdParty\sha1-gladman\sha1.c">
-      <Filter>ThirdParty\sha1-gladman</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ThirdParty\sha2-gladman\sha2.c">
-      <Filter>ThirdParty\sha2-gladman</Filter>
     </ClCompile>
     <ClCompile Include="Source\MediaInfo\XmlUtils.cpp">
       <Filter>Source Files</Filter>
@@ -1360,30 +1336,6 @@
     <ClInclude Include="Source\ThirdParty\md5\md5.h">
       <Filter>ThirdParty\md5</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\aes.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\aes_ni.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\aes_via_ace.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\aescpp.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\aesopt.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\aestab.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\brg_endian.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\brg_types.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
     <ClInclude Include="Source\MediaInfo\Text\File_Sdp.h">
       <Filter>Header Files\Text</Filter>
     </ClInclude>
@@ -1404,15 +1356,6 @@
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\Audio\File_Caf.h">
       <Filter>Header Files\Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\hmac-gladman\hmac.h">
-      <Filter>ThirdParty\hmac-gladman</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\sha1-gladman\sha1.h">
-      <Filter>ThirdParty\sha1-gladman</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\sha2-gladman\sha2.h">
-      <Filter>ThirdParty\sha2-gladman</Filter>
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\XmlUtils.h">
       <Filter>Header Files</Filter>

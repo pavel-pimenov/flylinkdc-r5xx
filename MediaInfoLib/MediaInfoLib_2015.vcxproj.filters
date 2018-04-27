@@ -701,21 +701,6 @@
     <ClCompile Include="Source\ThirdParty\md5\md5.c">
       <Filter>ThirdParty\md5</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ThirdParty\aes-gladman\aes_modes.c">
-      <Filter>ThirdParty\aes</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ThirdParty\aes-gladman\aes_ni.c">
-      <Filter>ThirdParty\aes</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ThirdParty\aes-gladman\aescrypt.c">
-      <Filter>ThirdParty\aes</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ThirdParty\aes-gladman\aeskey.c">
-      <Filter>ThirdParty\aes</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ThirdParty\aes-gladman\aestab.c">
-      <Filter>ThirdParty\aes</Filter>
-    </ClCompile>
     <ClCompile Include="Source\MediaInfo\Text\File_Sdp.cpp">
       <Filter>Source Files\Text</Filter>
     </ClCompile>
@@ -1359,30 +1344,6 @@
     </ClInclude>
     <ClInclude Include="Source\ThirdParty\md5\md5.h">
       <Filter>ThirdParty\md5</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\aes.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\aes_ni.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\aes_via_ace.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\aescpp.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\aesopt.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\aestab.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\brg_endian.h">
-      <Filter>ThirdParty\aes</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\aes-gladman\brg_types.h">
-      <Filter>ThirdParty\aes</Filter>
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\Text\File_Sdp.h">
       <Filter>Header Files\Text</Filter>

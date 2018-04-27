@@ -1,14 +1,14 @@
 del .\compiled\FlylinkDC_x64.exe
 del .\compiled\FlylinkDC_x64.pdb
-rem call UpdateRevision.bat %1 %2 %3 %4
 if errorlevel 1 goto :error
 
 call tools\ExtractVersion.bat %1 %2 %3 %4
 if errorlevel 1 goto :error
 
-"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe" FlylinkDC_2017.sln /Rebuild "Release|x64"
-rem chcp 437
-rem msbuild FlylinkDC_2017.sln /t:Rebuild /p:COnfiguration="Release" /p:Platform="x64" /v:diag
+rem "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe" FlylinkDC_2017.sln /Rebuild "Release|x64"
+call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+chcp 437
+"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe" FlylinkDC_2017.sln /t:Rebuild /p:COnfiguration="Release" /p:Platform="x64" /m:4
 
 if not exist .\compiled\FlylinkDC_x64.exe goto :builderror
 
