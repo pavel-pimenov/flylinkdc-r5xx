@@ -4,7 +4,7 @@
 #ifndef __CFLYPROFILER_H__
 #define __CFLYPROFILER_H__
 
-#if !defined(_WIN64)
+#if defined(_M_IX86)
 
 #ifdef _DEBUG
 // #define __PROFILER_ENABLED__

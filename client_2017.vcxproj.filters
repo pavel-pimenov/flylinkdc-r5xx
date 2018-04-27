@@ -1166,9 +1166,6 @@
     <Filter Include="Source Files\idna">
       <UniqueIdentifier>{14c6f065-8e7e-4320-90bb-3c457151c8da}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\idna">
-      <UniqueIdentifier>{21e47374-4f41-47f1-b223-45719142797d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\jsoncpp">
       <UniqueIdentifier>{1939ab80-b10d-48d1-a1ee-ceb30dfe0622}</UniqueIdentifier>
     </Filter>
@@ -1204,6 +1201,9 @@
     </Filter>
     <Filter Include="Header Files\zip">
       <UniqueIdentifier>{84323aa5-4f68-4fa2-bdee-e193b3129271}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\idna">
+      <UniqueIdentifier>{21e47374-4f41-47f1-b223-45719142797d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
