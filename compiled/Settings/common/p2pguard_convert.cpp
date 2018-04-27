@@ -102,9 +102,12 @@ void convert_p2p_guard()
             //if(l_currentLine != l_old_line)
             //   cout << l_old_line << " --> " << l_currentLine << endl;
             linestart = lineend + 1;
-            if(l_currentLine.find("100.64.0.0-100.127.255.255") == string::npos)
+            if(
+               l_currentLine.find("100.64.0.0-100.127.255.255") == string::npos &&
+               l_currentLine.find("Beeline") == string::npos &&
+               l_currentLine.find("VimpelCom") == string::npos
+              )
 	    {
-   
             uint32_t a = 0, b = 0, c = 0, d = 0, a2 = 0, b2 = 0, c2 = 0, d2 = 0;
             const int l_Items = sscanf_s(l_currentLine.c_str(), "%u.%u.%u.%u-%u.%u.%u.%u", &a, &b, &c, &d, &a2, &b2, &c2, &d2);
             if (l_Items == 8)
@@ -125,6 +128,10 @@ void convert_p2p_guard()
                             l_out << l_currentLine << std::endl;
                         }
                     }
+                    else
+                    {
+                      l_out << l_currentLine << std::endl;
+                    }  
                 }
                 else
                 {

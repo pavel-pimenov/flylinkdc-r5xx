@@ -75,5 +75,7 @@ vc17
 *.db
 *.7z
 *.bz2
+*.db-shm
+*.db-wal
 
 merge-vendors.bat
