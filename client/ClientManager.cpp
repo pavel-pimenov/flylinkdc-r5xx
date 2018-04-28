@@ -1654,7 +1654,7 @@ StringList ClientManager::getUserByIp(const string &p_ip) // TODO - boost
 	CFlyReadLock(*g_csOnlineUsers);
 	for (auto i = g_onlineUsers.cbegin(); i != g_onlineUsers.cend(); ++i)
 	{
-		if (i->second->getIdentity().getIpAsString() == p_ip && i->second->getUser()) // TODO - boost
+		if (i->second->getUser() && i->second->getUser()->getLastIPfromRAM().to_string() == p_ip) // TODO - boost
 		{
 			const auto l_nick = i->second->getUser()->getLastNick();
 			const auto l_res = l_fix_dup.insert(l_nick);
