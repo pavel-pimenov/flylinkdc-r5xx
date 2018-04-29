@@ -1251,7 +1251,7 @@ void Identity::setIp(const string& p_ip) // "I4"
 		boost::system::error_code ec;
 		if (p_ip[0] == ' ' || p_ip[p_ip.size() - 1] == ' ')
 		{
-			dcassert(0);
+			///dcassert(0);
 			string l_ip = p_ip;
 			boost::algorithm::trim(l_ip);
 			m_ip = boost::asio::ip::address_v4::from_string(l_ip, ec);

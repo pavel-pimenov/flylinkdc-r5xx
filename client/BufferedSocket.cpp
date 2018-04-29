@@ -410,6 +410,16 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 			const bool l_is_valid_search = l_item.is_parse_nmdc_search(l_line_item.substr(8));
 			if (l_is_valid_search)
 			{
+				if (CFlyServerConfig::g_detect_search_bot.find(l_item.m_filter) != CFlyServerConfig::g_detect_search_bot.end())
+				{
+					ShareManager::addSearchBot(l_item);
+					COMMAND_DEBUG("[File][SearchBot-First]" + l_line_item, DebugTask::HUB_IN, getServerAndPort());
+				}
+				if (ShareManager::getCountSearchBot(l_item) > 3)
+				{
+						COMMAND_DEBUG("[File][SearchBot-BAN]" + l_line_item, DebugTask::HUB_IN, getServerAndPort());
+						return true;
+				}
 				if (ShareManager::isUnknownFile(l_item.getRAWQuery()))
 				{
 #ifdef _DEBUG

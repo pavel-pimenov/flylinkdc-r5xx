@@ -161,17 +161,9 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		static void setIPUser(const UserPtr& p_user, const string& p_ip, const uint16_t p_udpPort = 0);
 		
-		static StringList getUserByIp(const string &p_ip);
+		static StringList getUsersByIp(const string &p_ip);
 #ifndef IRAINMAN_IDENTITY_IS_NON_COPYABLE
-		static Identity getIdentity(const UserPtr& user)
-		{
-			CFlyReadLock(*g_csOnlineUsers);
-			const OnlineUser* ou = getOnlineUserL(user);
-			if (ou)
-				return  ou->getIdentity(); // https://www.box.net/shared/1w3v80olr2oro7s1gqt4
-			else
-				return Identity();
-		}
+		static Identity getIdentity(const UserPtr& user);
 #endif // IRAINMAN_IDENTITY_IS_NON_COPYABLE
 		static OnlineUserPtr getOnlineUserL(const UserPtr& p);
 		static bool isOp(const UserPtr& aUser, const string& aHubUrl);

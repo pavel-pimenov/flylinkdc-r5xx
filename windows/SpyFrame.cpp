@@ -247,7 +247,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 							if (l_twopt != string::npos)
 							{
 								const string l_ip = si->seeker.substr(0, l_twopt);
-								const StringList l_users = ClientManager::getUserByIp(l_ip);
+								const StringList l_users = ClientManager::getUsersByIp(l_ip);
 								if (!l_users.empty())
 								{
 									si->seeker = "[IP:" + l_ip + "] Users:" + Util::toString(l_users);
@@ -257,24 +257,42 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 					}
 					if (m_log && m_LogFile)
 					{
-						m_log_txt += Text::fromT(m_CurrentTime) + "\t" +
-						             si->seeker + "\t" +
+						m_log_txt += Text::fromT(m_CurrentTime) + '\t' +
+						             si->seeker + '\t' +
 						             si->s + "\r\n";
 					}
 					if (m_showNick)// [+] IRainman
 					{
 						size_t k;
 						for (k = 0; k < NUM_SEEKERS; ++k)
+						{
 							if (si->seeker == l_searh_item.m_seekers[k])
+							{
 								break;          //that user's searching for file already noted
-								
+							}
+						}
 						if (k == NUM_SEEKERS)           //loop terminated normally
+						{
 							l_searh_item.AddSeeker(si->seeker);
-							
+						}							
 						for (k = 0; k < NUM_SEEKERS; ++k)
+						{
+							const string::size_type l_twopt = l_searh_item.m_seekers[k].find(':');
+							if (l_twopt != string::npos)
+							{
+								const string l_ip = l_searh_item.m_seekers[k].substr(0, l_twopt);
+								if (!l_ip.empty() && l_ip[0] != 'H')
+								{
+									const Util::CustomNetworkIndex& l_location = Util::getIpCountry(l_ip);
+									l_SeekersNames += Text::toT(l_searh_item.m_seekers[k]) + _T(" [") + l_location.getCountry() + _T("] ");
+								}
+								else
+								{
 							l_SeekersNames += Text::toT(l_searh_item.m_seekers[k]) + _T("  ");
 					}
-					
+							}
+						}
+					}					
 					++m_total;
 					++m_perSecond[m_current];
 				}
@@ -284,7 +302,6 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 					hit = _T('*');
 				else if (si->re == ClientManagerListener::SEARCH_HIT)
 					hit = _T('+');
-					
 				tstring l_search;
 				l_search = Text::toT(si->s, l_search);
 				const int j = ctrlSearches.find(l_search);

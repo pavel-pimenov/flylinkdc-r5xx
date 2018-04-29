@@ -84,6 +84,8 @@ bool ShareManager::g_is_initial = true;
 ShareManager::DirList ShareManager::g_list_directories;
 BloomFilter<5> ShareManager::g_bloom(1 << 20);
 unsigned ShareManager::g_cache_limit = 1000;
+FastCriticalSection ShareManager::g_csBot;
+std::unordered_map<string, unsigned> ShareManager::g_BotDetectMap;
 
 ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
 	m_is_xmlDirty(true), m_is_forceXmlRefresh(false), m_is_refreshDirs(false), m_is_update(false), m_listN(0), m_count_sec(11),
@@ -3138,6 +3140,15 @@ void ShareManager::on(TimerManagerListener::Minute, uint64_t tick) noexcept
 			refresh_share(true, true);
 		}
 	}
+	{
+		static unsigned g_count_bot = 0;
+		if (++g_count_bot > 30)
+		{
+			g_count_bot = 0;
+			CFlyFastLock(g_csBot);
+			g_BotDetectMap.clear();
+		}
+	}
 	internalCalcShareSize(); // [+]IRainman opt.
 	internalClearCache(false);
 #ifdef _DEBUG
@@ -3347,6 +3358,19 @@ bool ShareManager::findByRealPathName(const string& realPathname, TTHValue* outT
 bool ShareManager::isInSkipList(const string& lowerName) const
 {
 	return Wildcard::patternMatchLowerCase(lowerName, m_skipList);
+}
+
+void ShareManager::addSearchBot(const CFlySearchItemFile& p_search)
+{
+	CFlyFastLock(g_csBot);
+	g_BotDetectMap[p_search.m_seeker]++;
+}
+
+unsigned ShareManager::getCountSearchBot(const CFlySearchItemFile& p_search)
+{
+	CFlyFastLock(g_csBot);
+	const auto l_count = g_BotDetectMap[p_search.m_seeker];
+	return l_count;
 }
 
 /**

@@ -10,7 +10,7 @@ if errorlevel 1 goto :error
 
 call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
 chcp 437
-"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe" FlylinkDC_2017.sln /t:Rebuild /p:COnfiguration="Release" /p:Platform="Win32" /m:4
+"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe" FlylinkDC_2017.sln /t:Rebuild /p:COnfiguration="Release" /p:Platform="Win32"
 
 
 rem "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe" FlylinkDC_2017.sln /Rebuild "Release|Win32" /Log /Runexit

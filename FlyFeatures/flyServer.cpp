@@ -147,6 +147,8 @@ std::vector<std::string> CFlyServerConfig::g_mapping_hubs;
 std::unordered_set<std::string> CFlyServerConfig::g_block_ip_str;
 std::unordered_set<std::string> CFlyServerConfig::g_block_hubs;
 std::vector<std::string> CFlyServerConfig::g_block_hubs_mask;
+std::vector<std::string> CFlyServerConfig::g_promo_hubs[2];
+std::unordered_set<std::string> CFlyServerConfig::g_detect_search_bot;
 
 #ifdef USE_SUPPORT_HUB
 string CFlyServerConfig::g_support_hub = "dchub://dc.fly-server.ru";
@@ -603,13 +605,25 @@ void CFlyServerConfig::loadConfig()
 						checkStrKey(n);
 						g_block_hubs.insert(n);
 					});
-
 					l_xml.getChildAttribSplit("block_mask", g_block_hubs_mask, [this](const string & n)
 					{
 						checkStrKey(n);
 						g_block_hubs_mask.push_back(n);
 					});
-				
+					l_xml.getChildAttribSplit("promo_hubs_plus", g_promo_hubs[0], [this](const string & n)
+					{
+						checkStrKey(n);
+						g_promo_hubs[0].push_back(n);
+					});
+					l_xml.getChildAttribSplit("promo_hubs_minus", g_promo_hubs[1], [this](const string & n)
+					{
+						checkStrKey(n);
+						g_promo_hubs[1].push_back(n);
+					});
+					l_xml.getChildAttribSplit("detect_search_bot", g_detect_search_bot, [this](const string & n)
+					{
+						g_detect_search_bot.insert(n);
+					});				
 					
 					l_xml.getChildAttribSplit("exclude_tag", g_exclude_tag, [this](const string & n)
 					{

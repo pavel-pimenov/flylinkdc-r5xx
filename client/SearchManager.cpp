@@ -481,7 +481,7 @@ void SearchManager::onData(const uint8_t* buf, size_t aLen, const boost::asio::i
 {
 	if (aLen > 4)
 	{
-		string x((char*)buf, aLen);
+		const string x((char*)buf, aLen);
 		m_queue_thread.addResult(x, remoteIp);
 	}
 	else

@@ -1646,7 +1646,19 @@ void ClientManager::reportUser(const HintedUser& user)
 	}
 }
 
-StringList ClientManager::getUserByIp(const string &p_ip) // TODO - boost
+#ifndef IRAINMAN_IDENTITY_IS_NON_COPYABLE
+Identity ClientManager::getIdentity(const UserPtr& user)
+{
+	CFlyReadLock(*g_csOnlineUsers);
+	const OnlineUser* ou = getOnlineUserL(user);
+	if (ou)
+		return  ou->getIdentity(); // https://www.box.net/shared/1w3v80olr2oro7s1gqt4
+	else
+		return Identity();
+}
+#endif
+
+StringList ClientManager::getUsersByIp(const string &p_ip) // TODO - boost
 {
 	StringList l_result;
 	l_result.reserve(1);
