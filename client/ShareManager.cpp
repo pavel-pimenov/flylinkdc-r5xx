@@ -332,7 +332,7 @@ string ShareManager::toRealPath(const TTHValue& tth)
 			{
 				return i->second->getRealPathL();
 			}
-			catch (const ShareException& e)
+			catch (const ShareException&)
 			{
 				dcassert(0);
 			}
@@ -3363,7 +3363,7 @@ bool ShareManager::isInSkipList(const string& lowerName) const
 unsigned ShareManager::addSearchBot(const CFlySearchItemFile& p_search)
 {
 	CFlyFastLock(g_csBot);
-	g_BotDetectMap[p_search.m_seeker]++;
+	return g_BotDetectMap[p_search.m_seeker]++;
 }
 
 unsigned ShareManager::getCountSearchBot(const CFlySearchItemFile& p_search)
