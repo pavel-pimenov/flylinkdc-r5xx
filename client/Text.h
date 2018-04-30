@@ -261,6 +261,7 @@ inline bool isEqualsSubstringIgnoreCase(const string& p_sub_string, const string
 }
 
 void normalizeStringEnding(tstring& p_text);
+void removeString_rn(string& p_text);
 // [~] FlylinkDC++
 
 } // namespace Text

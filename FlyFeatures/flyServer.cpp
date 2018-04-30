@@ -3056,9 +3056,7 @@ static bool getEnumChannelKeyAndNames(string& p_inform, const Json::Value& p_ite
 		for (auto i = l_keys.begin(); i != l_keys.end(); ++i)
 		{
 			string l_value = l_attrs_channel[*i].asString();
-			boost::replace_all(l_value, "\r", " ");
-			boost::replace_all(l_value, "\n", " ");
-			boost::replace_all(l_value, "  ", " ");
+			Text::removeString_rn(l_value);
 			if (!l_value.empty())
 			{
 				p_inform += "\r\n";

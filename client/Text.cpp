@@ -488,6 +488,13 @@ bool safe_strftime_translate(string& p_value)
 	return l_input_size != p_value.size();
 }
 
+void removeString_rn(string& p_text)
+{
+	boost::replace_all(p_text, "\r", " ");
+	boost::replace_all(p_text, "\n", " ");
+	boost::replace_all(p_text, "  ", " ");
+}
+
 // [+] IRainman fix.
 void normalizeStringEnding(tstring& p_text)
 {

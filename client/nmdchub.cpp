@@ -2515,10 +2515,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			string l_json_str = l_json_info.toStyledString(false);
 			
 			boost::algorithm::trim(l_json_str); // TODO - убрать в конце пробел в json
-			boost::replace_all(l_json_str, "\r", " "); // TODO убрать внутрь jsoncpp
-			boost::replace_all(l_json_str, "\n", " ");
-			
-			boost::replace_all(l_json_str, "  ", " ");
+			Text::removeString_rn(l_json_str);
 			boost::replace_all(l_json_str, "$", "");
 			boost::replace_all(l_json_str, "|", "");
 			

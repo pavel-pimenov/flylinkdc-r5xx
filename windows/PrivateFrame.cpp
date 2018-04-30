@@ -90,11 +90,12 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 	const auto& myId = bMyMess ? replyTo : to; // [+] IRainman fix.
 	
 	const string l_key = id.getUser()->getLastNick() + " + " + p_HubHint;
-	const string l_message = Text::fromT(aMessage);
+	string l_message = Text::fromT(aMessage);
 	const bool l_is_spam = CFlyServerConfig::isSpam(l_message);
 	const auto i = g_pm_frames.find(id.getUser());
 	if (i == g_pm_frames.end())
 	{
+		Text::removeString_rn(l_message);
 		if (l_is_spam)
 		{
 			CFlyServerJSON::pushError(47, "Ignore first private spam: [ " + l_message + " ] [user+hub = " + l_key + "]");
@@ -105,15 +106,6 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 			LogManager::message("Lock > 100 open private message windows! Hub: " + l_key + " Message: " + l_message);
 			return false; // !SMT!-S
 		}
-		/*
-		15:50:13 <HackFresse> есть возможность получить количество открытых личек с одного хаба?  а потом просто условие "если с хаба пришла личка, и открытых личек с этого хаба уже 20 --направляем личку
-		                      в чат хаба"
-		15:52:13 <FlylinkDC-dev-linux> 20 это может много?
-		15:52:23 <FlylinkDC-dev-linux> ты же сам писал что никто не общается
-		15:52:55 <HackFresse> нужна статистика, которой у меня нет
-		15:54:04 <HackFresse> если список юзеров этого хаба отсортировать по количеству хабов и промотать на середину -- 14 хабов у юзера
-		15:56:49 <HackFresse> все сразу флудить начнут вряд-ли, а штук 5 по 20 личек -- всего 100 окон, + какие-то открытые без флуда, клиент виснуть не должен (если 200 окон отрабатывает нормально)
-		*/
 		auto& l_count_pm = g_count_pm[l_key];
 		if (l_count_pm > 10)
 		{

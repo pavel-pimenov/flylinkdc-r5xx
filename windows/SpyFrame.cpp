@@ -283,8 +283,12 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 								const string l_ip = l_searh_item.m_seekers[k].substr(0, l_twopt);
 								if (!l_ip.empty() && l_ip[0] != 'H')
 								{
-									const Util::CustomNetworkIndex& l_location = Util::getIpCountry(l_ip);
-									l_SeekersNames += Text::toT(l_searh_item.m_seekers[k]) + _T(" [") + l_location.getCountry() + _T("] ");
+									const auto l_country = Util::getIpCountry(l_ip).getCountry();
+									l_SeekersNames += Text::toT(l_searh_item.m_seekers[k]);
+									if (!l_country.empty())
+									{
+										l_SeekersNames += _T(" [") + l_country + _T("] ");
+									}
 								}
 								else
 								{
