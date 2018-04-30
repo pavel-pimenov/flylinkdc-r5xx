@@ -94,7 +94,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		static bool   searchTTHArray(CFlySearchArrayTTH& p_tth_aray, const Client* p_client);
 		static bool   isUnknownTTH(const TTHValue& p_tth);
 		static unsigned  getCountSearchBot(const CFlySearchItemFile& p_search);
-		static void  addSearchBot(const CFlySearchItemFile& p_search);
+		static unsigned  addSearchBot(const CFlySearchItemFile& p_search);
 		static bool   isUnknownFile(const string& p_search);
 		static void   addUnknownFile(const string& p_search);
 		static bool   isCacheFile(const string& p_search, SearchResultList& p_search_result);

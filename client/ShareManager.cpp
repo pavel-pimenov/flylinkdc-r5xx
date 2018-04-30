@@ -3360,7 +3360,7 @@ bool ShareManager::isInSkipList(const string& lowerName) const
 	return Wildcard::patternMatchLowerCase(lowerName, m_skipList);
 }
 
-void ShareManager::addSearchBot(const CFlySearchItemFile& p_search)
+unsigned ShareManager::addSearchBot(const CFlySearchItemFile& p_search)
 {
 	CFlyFastLock(g_csBot);
 	g_BotDetectMap[p_search.m_seeker]++;

@@ -412,8 +412,10 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 			{
 				if (CFlyServerConfig::g_detect_search_bot.find(l_item.m_filter) != CFlyServerConfig::g_detect_search_bot.end())
 				{
-					ShareManager::addSearchBot(l_item);
-					COMMAND_DEBUG("[File][SearchBot-First]" + l_line_item, DebugTask::HUB_IN, getServerAndPort());
+					if (ShareManager::addSearchBot(l_item) == 1)
+					{
+						COMMAND_DEBUG("[File][SearchBot-First]" + l_line_item, DebugTask::HUB_IN, getServerAndPort());
+					}
 				}
 				if (ShareManager::getCountSearchBot(l_item) > 1)
 				{
