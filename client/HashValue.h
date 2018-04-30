@@ -80,7 +80,7 @@ struct HashValue
 	{
 		// RVO should handle this as efficiently as reinterpret_cast version
 		size_t hvHash;
-		memcpy(&hvHash, data, sizeof(size_t)); //-V512
+		memcpy(&hvHash, data, sizeof(hvHash)); //-V512
 		return hvHash;
 	}
 	

@@ -1288,7 +1288,7 @@ bool CFlyServerConfig::torrentGetTop(HWND p_wnd, int p_message)
 	return false;
 }
 
-bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring p_search)
+bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring& p_search)
 {
 #ifndef USE_FLYSERVER_LOCAL_FILE
 	try

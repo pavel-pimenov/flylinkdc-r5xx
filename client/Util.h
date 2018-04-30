@@ -931,7 +931,7 @@ class Util
 		static string toHexString(long val)
 		{
 			char buf[24];
-			_snprintf(buf, _countof(buf), "%X", val);
+			_snprintf(buf, _countof(buf), "%X", (unsigned long)val);
 			return buf;
 		}
 		static string toString(unsigned long val)

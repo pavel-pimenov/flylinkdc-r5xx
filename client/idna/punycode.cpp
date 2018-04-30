@@ -378,7 +378,6 @@ int main (int argc, char **argv)
   enum punycode_status status;
   size_t input_length, output_length, j;
   BYTE   case_flags [UNICODE_MAX_LENGTH];
-  int    r;
 
   if (argc != 2 || argv[1][0] != '-' || argv[1][2] != 0)
      usage (argv);
@@ -387,7 +386,6 @@ int main (int argc, char **argv)
   {
     DWORD input [UNICODE_MAX_LENGTH], codept;
     char  output [ACE_MAX_LENGTH+1], uplus[3];
-    int   c;
 
     /* Read the input code points:
      */
@@ -395,7 +393,7 @@ int main (int argc, char **argv)
 
     for (;;)
     {
-      r = scanf ("%2s%lx", uplus, &codept);
+      int r = scanf ("%2s%lx", uplus, &codept);
       if (ferror (stdin))
          fail (io_error);
       if (r == EOF || r == 0)
@@ -433,7 +431,7 @@ int main (int argc, char **argv)
      */
     for (j = 0; j < output_length; ++j)
     {
-      c = output[j];
+      int c = output[j];
       assert (c >= 0 && c <= 127);
       if (print_ascii[c] == 0)
          fail (invalid_input);

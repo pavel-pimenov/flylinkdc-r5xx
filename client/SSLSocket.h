@@ -38,13 +38,13 @@ class SSLSocketException : public SocketException
 {
 	public:
 #ifdef _DEBUG
-		SSLSocketException(const string& aError) noexcept :
+		explicit SSLSocketException(const string& aError) noexcept :
 			SocketException("SSLSocketException: " + aError) { }
 #else //_DEBUG
-		SSLSocketException(const string& aError) noexcept :
+		explicit SSLSocketException(const string& aError) noexcept :
 			SocketException(aError) { }
 #endif // _DEBUG
-		SSLSocketException(int aError) noexcept :
+		explicit SSLSocketException(int aError) noexcept :
 			SocketException(aError) { }
 		virtual ~SSLSocketException() noexcept { }
 };

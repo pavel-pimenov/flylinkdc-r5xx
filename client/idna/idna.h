@@ -55,7 +55,7 @@ BOOL IDNA_convert_from_ACE (char *name, size_t *size);
   class CIDNA_convert
   {
     public:
-      CIDNA_convert (WORD code_page = 0)
+      explicit CIDNA_convert (WORD code_page = 0)
       {
         IDNA_init (code_page);
         m_buf[0] = '\0';
@@ -100,7 +100,7 @@ BOOL IDNA_convert_from_ACE (char *name, size_t *size);
   class CIDNA_resolver : public CIDNA_convert
   {
     public:
-      CIDNA_resolver (WORD code_page = 0) : CIDNA_convert (code_page)  {}
+      explicit CIDNA_resolver (WORD code_page = 0) : CIDNA_convert (code_page)  {}
       struct hostent *gethostbyname (const char *name);
       struct hostent *gethostbyaddress (const char *addr_name, int size, int af);
   };

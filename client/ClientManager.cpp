@@ -859,7 +859,7 @@ void ClientManager::userCommandL(const HintedUser& hintedUser, const UserCommand
 			return;
 			
 		auto& l_ñlient = ou->getClient();
-		const string& opChat = l_ñlient.getOpChat();
+		const string opChat = l_ñlient.getOpChat();
 		if (opChat.find('*') == string::npos && opChat.find('?') == string::npos)
 		{
 			params["opchat"] = opChat;

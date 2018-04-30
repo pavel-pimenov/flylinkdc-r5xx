@@ -639,6 +639,7 @@ int Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, in
 			static bool g_is_first = false;
 			if (!g_is_first)
 			{
+				// TODO g_is_first = true;
 				Socket::socksUpdated();
 			}
 		}

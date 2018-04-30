@@ -20,7 +20,7 @@ struct torrent_status;
 class TransferData
 {
 	public:
-		TransferData(const string& p_token): m_actual(0),
+		explicit TransferData(const string& p_token): m_actual(0),
 			m_pos(0), m_start_pos(0), m_start(0),
 			m_second_left(0), m_percent(0),
 			m_type(0), m_size(0), m_token(p_token),

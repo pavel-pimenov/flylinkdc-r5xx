@@ -98,7 +98,7 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 		Text::removeString_rn(l_message);
 		if (l_is_spam)
 		{
-			CFlyServerJSON::pushError(47, "Ignore first private spam: [ " + l_message + " ] [user+hub = " + l_key + "]");
+			CFlyServerJSON::pushError(47, "Ignore spam: [ " + l_message + " ] [user+hub = " + l_key + "]");
 			return true; // “ипа все ок
 		}
 		if (notOpenNewWindow || g_pm_frames.size() > MAX_PM_FRAMES)
