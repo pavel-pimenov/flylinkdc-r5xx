@@ -3142,7 +3142,7 @@ void ShareManager::on(TimerManagerListener::Minute, uint64_t tick) noexcept
 	}
 	{
 		static unsigned g_count_bot = 0;
-		if (++g_count_bot > 30)
+		if (++g_count_bot > 60)
 		{
 			g_count_bot = 0;
 			CFlyFastLock(g_csBot);

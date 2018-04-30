@@ -415,7 +415,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 					ShareManager::addSearchBot(l_item);
 					COMMAND_DEBUG("[File][SearchBot-First]" + l_line_item, DebugTask::HUB_IN, getServerAndPort());
 				}
-				if (ShareManager::getCountSearchBot(l_item) > 3)
+				if (ShareManager::getCountSearchBot(l_item) > 1)
 				{
 						COMMAND_DEBUG("[File][SearchBot-BAN]" + l_line_item, DebugTask::HUB_IN, getServerAndPort());
 						return true;
