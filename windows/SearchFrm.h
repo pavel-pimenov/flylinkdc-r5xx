@@ -36,7 +36,7 @@
 #include "../FlyFeatures/GradientLabel.h"
 #include "../FlyFeatures/flyServer.h"
 
-#include "wtlbuilder/Panel.h"
+//#include "wtlbuilder/Panel.h"
 
 //#ifdef _DEBUG
 #define FLYLINKDC_USE_TREE_SEARCH
