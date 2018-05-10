@@ -533,7 +533,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	}
 	m_ctrlUseGroupTreeSettings.SetFont(Fonts::g_systemFont, FALSE);
 	m_ctrlUseGroupTreeSettings.SetWindowText(CTSTRING(USE_SEARCH_GROUP_TREE_SETTINGS_TEXT));
-
+	
 	m_ctrlUseTorrentSearch.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
 	m_ctrlUseTorrentSearch.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	if (BOOLSETTING(USE_TORRENT_SEARCH))
@@ -542,7 +542,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	}
 	m_ctrlUseTorrentSearch.SetFont(Fonts::g_systemFont, FALSE);
 	m_ctrlUseTorrentSearch.SetWindowText(CTSTRING(USE_TORRENT_SEARCH_TEXT));
-
+	
 	m_ctrlUseTorrentRSS.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, NULL, IDC_COLLAPSED);
 	m_ctrlUseTorrentRSS.SetButtonStyle(BS_AUTOCHECKBOX, FALSE);
 	if (BOOLSETTING(USE_TORRENT_RSS))
@@ -551,7 +551,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	}
 	m_ctrlUseTorrentRSS.SetFont(Fonts::g_systemFont, FALSE);
 	m_ctrlUseTorrentRSS.SetWindowText(CTSTRING(USE_TORRENT_RSS_TEXT));
-
+	
 	ctrlShowUI.Create(ctrlStatus.m_hWnd, rcDefault, _T("+/-"), WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	ctrlShowUI.SetButtonStyle(BS_AUTOCHECKBOX, false);
 	ctrlShowUI.SetCheck(1);
@@ -589,7 +589,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 //  нопка паузы. [<-] InfinitySky.
 	ctrlPauseSearch.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                       BS_PUSHBUTTON, 0, IDC_SEARCH_PAUSE);
-	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE_SEARCH));
+	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE));
 	ctrlPauseSearch.SetFont(Fonts::g_systemFont);
 	ctrlPauseSearch.SetIcon(g_pause_icon); // [+] InfinitySky. »конка на кнопке паузы.
 	
@@ -1119,7 +1119,7 @@ void SearchFrame::onEnter()
 	clearPausedResults();
 	
 	::EnableWindow(GetDlgItem(IDC_SEARCH_PAUSE), TRUE);
-	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE_SEARCH));
+	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE));
 	
 	m_search = StringTokenizer<string>(Text::fromT(s), ' ').getTokens(); // [~]IRainman optimize SearchFrame
 	m_search_param.m_file_type  = Search::TypeModes(ctrlFiletype.GetCurSel());
@@ -1226,7 +1226,7 @@ void SearchFrame::onEnter()
 	}
 	
 	::EnableWindow(GetDlgItem(IDC_SEARCH_PAUSE), TRUE);
-	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE_SEARCH));
+	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE));
 }
 
 #if 0
@@ -2721,15 +2721,15 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		rc.top += 17;
 		rc.bottom += 17;
 		m_ctrlUseGroupTreeSettings.MoveWindow(rc);
-
+		
 		rc.top += 17;
 		rc.bottom += 17;
 		m_ctrlUseTorrentSearch.MoveWindow(rc);
-
+		
 		rc.top += 17;
 		rc.bottom += 17;
 		m_ctrlUseTorrentRSS.MoveWindow(rc);
-
+		
 		// "Hubs".
 		rc.left = lMargin;
 		rc.right = width - rMargin;
@@ -2768,7 +2768,7 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		m_ctrlUseGroupTreeSettings.MoveWindow(rc);
 		m_ctrlUseTorrentSearch.MoveWindow(rc);
 		m_ctrlUseTorrentRSS.MoveWindow(rc);
-
+		
 		ctrlHubs.MoveWindow(rc);
 		//  srLabel.MoveWindow(rc);
 		//  ctrlFilterSel.MoveWindow(rc);
@@ -2892,8 +2892,8 @@ LRESULT SearchFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 #endif
 	        hWnd == m_ctrlStoreSettings.m_hWnd ||
 	        hWnd == m_ctrlUseGroupTreeSettings.m_hWnd ||
-		    hWnd == m_ctrlUseTorrentSearch.m_hWnd ||
-		    hWnd == m_ctrlUseTorrentRSS.m_hWnd ||		
+	        hWnd == m_ctrlUseTorrentSearch.m_hWnd ||
+	        hWnd == m_ctrlUseTorrentRSS.m_hWnd ||
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	        hWnd == m_ctrlFlyServer.m_hWnd ||
 #endif
@@ -3587,7 +3587,7 @@ LRESULT SearchFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL
 		case PREPARE_RESULT_TORRENT:
 		{
 			dcassert(BOOLSETTING(USE_TORRENT_SEARCH));
-
+			
 			if (isClosedOrShutdown())
 				return 0;
 			SearchResult* l_sr = (SearchResult*)(lParam);
@@ -4034,7 +4034,7 @@ LRESULT SearchFrame::onPause(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 #endif
 		// update controls texts
 		ctrlStatus.SetText(3, (Util::toStringW(ctrlResults.GetItemCount()) + _T(' ') + TSTRING(FILES)).c_str());
-		ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE_SEARCH));
+		ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE));
 	}
 	else
 	{

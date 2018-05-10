@@ -698,9 +698,6 @@
     <ClCompile Include="Source\MediaInfo\Text\File_Pdf.cpp">
       <Filter>Source Files\Text</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ThirdParty\md5\md5.c">
-      <Filter>ThirdParty\md5</Filter>
-    </ClCompile>
     <ClCompile Include="Source\MediaInfo\Text\File_Sdp.cpp">
       <Filter>Source Files\Text</Filter>
     </ClCompile>
@@ -721,15 +718,6 @@
     </ClCompile>
     <ClCompile Include="Source\MediaInfo\Audio\File_Caf.cpp">
       <Filter>Source Files\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ThirdParty\hmac-gladman\hmac.c">
-      <Filter>ThirdParty\hmac-gladman</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ThirdParty\sha1-gladman\sha1.c">
-      <Filter>ThirdParty\sha1-gladman</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ThirdParty\sha2-gladman\sha2.c">
-      <Filter>ThirdParty\sha2-gladman</Filter>
     </ClCompile>
     <ClCompile Include="Source\MediaInfo\XmlUtils.cpp">
       <Filter>Source Files</Filter>
@@ -754,6 +742,9 @@
     </ClCompile>
     <ClCompile Include="Source\MediaInfo\Video\File_Av1.cpp">
       <Filter>Source Files\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MediaInfo\Export\Export_Niso.cpp">
+      <Filter>Source Files\Export</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1366,15 +1357,6 @@
     <ClInclude Include="Source\MediaInfo\Audio\File_Caf.h">
       <Filter>Header Files\Audio</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ThirdParty\hmac-gladman\hmac.h">
-      <Filter>ThirdParty\hmac-gladman</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\sha1-gladman\sha1.h">
-      <Filter>ThirdParty\sha1-gladman</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ThirdParty\sha2-gladman\sha2.h">
-      <Filter>ThirdParty\sha2-gladman</Filter>
-    </ClInclude>
     <ClInclude Include="Source\MediaInfo\XmlUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1401,6 +1383,9 @@
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\Video\File_Av1.h">
       <Filter>Header Files\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\Export\Export_Niso.h">
+      <Filter>Header Files\Export</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

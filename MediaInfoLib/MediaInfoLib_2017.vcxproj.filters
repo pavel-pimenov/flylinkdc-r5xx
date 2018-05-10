@@ -698,9 +698,6 @@
     <ClCompile Include="Source\MediaInfo\Text\File_Pdf.cpp">
       <Filter>Source Files\Text</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ThirdParty\md5\md5.c">
-      <Filter>ThirdParty\md5</Filter>
-    </ClCompile>
     <ClCompile Include="Source\MediaInfo\Text\File_Sdp.cpp">
       <Filter>Source Files\Text</Filter>
     </ClCompile>
@@ -745,6 +742,9 @@
     </ClCompile>
     <ClCompile Include="Source\MediaInfo\Video\File_Av1.cpp">
       <Filter>Source Files\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MediaInfo\Export\Export_Niso.cpp">
+      <Filter>Source Files\Export</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1383,6 +1383,9 @@
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\Video\File_Av1.h">
       <Filter>Header Files\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\Export\Export_Niso.h">
+      <Filter>Header Files\Export</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

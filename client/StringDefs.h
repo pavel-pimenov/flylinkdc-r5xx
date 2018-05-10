@@ -972,7 +972,7 @@ enum Strings   // @DontAdd
 	PASSWORD_TITLE, // "Password required"
 	PATH, // "Path"
 	PAUSED, // "Paused"
-	PAUSE_SEARCH, // "Pause"
+	PAUSE, // "Pause"
 	PICTURE, // "Picture"
 	PK, // "PK String"
 	PLAY, // "Play"

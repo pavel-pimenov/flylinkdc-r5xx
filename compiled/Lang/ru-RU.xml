@@ -1079,7 +1079,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="PasswordTitle">Требуется пароль</String>
 		<String Name="Path">Путь</String>
 		<String Name="Paused">Пауза</String>
-		<String Name="PauseSearch">Пауза</String>
+		<String Name="Pause">Пауза</String>
 		<String Name="Picture">Картинка</String>
 		<String Name="Pk">PK-строка</String>
 		<String Name="Play">Тест</String>

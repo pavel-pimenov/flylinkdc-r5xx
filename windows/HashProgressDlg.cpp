@@ -20,7 +20,7 @@ LRESULT HashProgressDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	SetDlgItemText(IDC_BTN_EXIT_ON_DONE, CTSTRING(EXIT_ON_HASHING_DONE_TEXT));
 	SetDlgItemText(IDC_CHANGE_HASH_SPEED, CTSTRING(CHANGE_HASH_SPEED_TEXT));
 	SetDlgItemText(IDC_CURRENT_HASH_SPEED, CTSTRING(CURRENT_HASH_SPEED_TEXT));
-	SetDlgItemText(IDC_PAUSE, HashManager::getInstance()->isHashingPaused() ? CTSTRING(RESUME) : CTSTRING(PAUSED));
+	SetDlgItemText(IDC_PAUSE, HashManager::getInstance()->isHashingPaused() ? CTSTRING(RESUME) : CTSTRING(PAUSE));
 	// [+] SCALOlaz: add mediainfo size
 #ifdef SCALOLAZ_HASH_HELPLINK
 	m_HashHelp.init(GetDlgItem(IDC_MEDIAINFO_SIZE_TXT), _T(""));
@@ -61,7 +61,7 @@ LRESULT HashProgressDlg::onPause(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 	if (HashManager::getInstance()->isHashingPaused())
 	{
 		HashManager::getInstance()->resumeHashing();
-		SetDlgItemText(IDC_PAUSE, CTSTRING(PAUSED));
+		SetDlgItemText(IDC_PAUSE, CTSTRING(PAUSE));
 	}
 	else
 	{
@@ -169,7 +169,7 @@ void HashProgressDlg::updateStats()
 	}
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER    
 	progress.SetPos(HashManager::getInstance()->GetProgressValue());
-	SetDlgItemText(IDC_PAUSE, l_paused ? CTSTRING(RESUME) : CTSTRING(PAUSED)); // KUL - hash progress dialog patch
+	SetDlgItemText(IDC_PAUSE, l_paused ? CTSTRING(RESUME) : CTSTRING(PAUSE));
 }
 
 LRESULT HashProgressDlg::onSlideChangeMaxHashSpeed(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)

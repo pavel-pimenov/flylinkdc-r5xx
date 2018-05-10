@@ -1151,7 +1151,7 @@ Se ottieni risultati di ricerca in modalità attiva non usare la ricerca passiva
 		<String Name="PasswordTitle">Password richiesta</String>
 		<String Name="Path">Percorso</String>
 		<String Name="Paused">Pausa</String>
-		<String Name="PauseSearch">Pausa</String>
+		<String Name="Pause">Pausa</String>
 		<String Name="Pb">PB</String>
 		<String Name="Picture">Immagine</String>
 		<String Name="Pk">Stringa PK</String>

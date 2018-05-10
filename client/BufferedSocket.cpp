@@ -612,7 +612,6 @@ void BufferedSocket::parseMyINfo(
 {
 	if (!p_all_myInfo.empty())
 	{
-		dcassert(m_is_disconnecting == false)
 		if (m_is_disconnecting == false)
 		{
 			fly_fire1(BufferedSocketListener::MyInfoArray(), p_all_myInfo); // todo zmq
@@ -625,7 +624,6 @@ void BufferedSocket::parseSearch(
 {
 	if (!p_tth_search.empty())
 	{
-		dcassert(m_is_disconnecting == false)
 		if (m_is_disconnecting == false)
 		{
 			fly_fire1(BufferedSocketListener::SearchArrayTTH(), p_tth_search);

@@ -180,15 +180,13 @@ class SimpleXML
 #ifdef _DEBUG
 			if (p_check_dup)
 			{
-				std::set<string> l_dup_check;
+				std::map<string,int> l_dup_check;
 				for (auto i = tokens.cbegin(); i != tokens.cend(); ++i)
 				{
 					auto l_item = *i;
-					l_dup_check.insert(l_item);
-#ifdef _DEBUG
+					l_dup_check[l_item]++;
 					boost::replace_all(l_item, "\r", "");
 					boost::replace_all(l_item, "\n", "");
-#endif
 					dcassert(l_item == *i);
 				}
 				dcassert(l_dup_check.size() == tokens.size());

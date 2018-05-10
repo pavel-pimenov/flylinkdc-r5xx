@@ -869,7 +869,7 @@
 		<String Name="PasswordTitle">Contraseña requerida</String>
 		<String Name="Path">Ruta</String>
 		<String Name="Paused">Pausa</String>
-		<String Name="PauseSearch">Pausa</String>
+		<String Name="Pause">Pausa</String>
 		<String Name="Pb">PiB</String>
 		<String Name="Picture">Imagen</String>
 		<String Name="Pk">PK String</String>

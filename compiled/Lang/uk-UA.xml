@@ -895,7 +895,7 @@
 		<String Name="PasswordTitle">Потрібний пароль</String>
 		<String Name="Path">Шлях</String>
 		<String Name="Paused">Пауза</String>
-		<String Name="PauseSearch">Зупинити</String>
+		<String Name="Pause">Зупинити</String>
 		<String Name="Pb">ПіБ</String>
 		<String Name="Picture">Картинка</String>
 		<String Name="Pk">PK рядок</String>

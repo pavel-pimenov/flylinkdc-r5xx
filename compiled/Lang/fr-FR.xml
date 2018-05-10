@@ -855,7 +855,7 @@
 		<String Name="PasswordTitle">Mot de passe nécessaire</String>
 		<String Name="Path">Chemin</String>
 		<String Name="Paused">Pause</String>
-		<String Name="PauseSearch">Pause</String>
+		<String Name="Pause">Pause</String>
 		<String Name="Pb">PB</String>
 		<String Name="Picture">Photo</String>
 		<String Name="Pk">Chaîne PK</String>

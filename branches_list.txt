@@ -3,37 +3,37 @@
 
 1. Экспериментальная ветка интеграции mediainfo -  http://www.flylinkdc.ru/2011/01/blog-post_09.html
   * переключится:
-    svn switch https://flylinkdc.googlecode.com/svn/branches-dev/ppa/r5xx-mediainfo-integration
+    svn switch svn://svn.fly-server.ru/branches-dev/ppa/r5xx-mediainfo-integration
   * вернуться в ствол
-    svn switch https://flylinkdc.googlecode.com/svn/trunk
+    svn switch svn://svn.fly-server.ru/trunk
   * забрать изменения из ствола 
-    svn merge https://flylinkdc.googlecode.com/svn/trunk
+    svn merge svn://svn.fly-server.ru/trunk
   * протолкнуть изменения из бранча в ствол
-   svn merge --reintegrate https://flylinkdc.googlecode.com/svn/branches-dev/ppa/r5xx-mediainfo-integration
+   svn merge --reintegrate svn://svn.fly-server.ru/branches-dev/ppa/r5xx-mediainfo-integration
 
 2. Эксперементальная ветка для рефакторинга механизма передач. Задачи:
   * реализация индивидуальных ограничений по пользователям ( http://code.google.com/p/flylinkdc/issues/detail?id=291 )
   * реализация смежных задач (неправильное измерение скорости передач, и прочее)
-	https://flylinkdc.googlecode.com/svn/branches-dev/rainman/r5xx-transfer-refactoring
+	svn://svn.fly-server.ru/branches-dev/rainman/r5xx-transfer-refactoring
   * БОЛЬШАЯ ПРОСЬБА: самостоятельно не вливать изменения из этой ветки в trunk: могут быть не рабочие или совершенно не отттестированные реализации. 
 
 3. Бинарный формат GeoIP
-   https://flylinkdc.googlecode.com/svn/branches-dev/geo-ip 
+   svn://svn.fly-server.ru/branches-dev/geo-ip 
 4. Вывод лога в виде отдельной закладки
-   https://flylinkdc.googlecode.com/svn/branches-dev/ppa/new-log-view
+   svn://svn.fly-server.ru/branches-dev/ppa/new-log-view
 5. Слияние фаворит-листа с шаблоном провайдера
-   https://flylinkdc.googlecode.com/svn/branches-dev/ppa/merge-favorites
+   svn://svn.fly-server.ru/branches-dev/ppa/merge-favorites
 6. VIdeo Preview on download
-   https://flylinkdc.googlecode.com/svn/branches-dev/ssa/ViewOnDownload
+   svn://svn.fly-server.ru/branches-dev/ssa/ViewOnDownload
 
-7. https://flylinkdc.googlecode.com/svn/branches-dev/ppa/issue-618-mediainfo
+7. svn://svn.fly-server.ru/branches-dev/ppa/issue-618-mediainfo
 
-8. https://flylinkdc.googlecode.com/svn/branches-dev/ppa/issue-110-dht -m"# Перенос файла dht.xml в sqlite"
+8. svn://svn.fly-server.ru/branches-dev/ppa/issue-110-dht -m"# Перенос файла dht.xml в sqlite"
 
-9. https://flylinkdc.googlecode.com/svn/branches-dev/ppa/issue-843-fly-server
+9. svn://svn.fly-server.ru/branches-dev/ppa/issue-843-fly-server
 
-10. https://flylinkdc.googlecode.com/svn/branches-dev/ppa/issue-1478
+10. svn://svn.fly-server.ru/branches-dev/ppa/issue-1478
 
 p.s.
 Команда создания ветки из ствола
-svn copy https://flylinkdc.googlecode.com/svn/trunk https://flylinkdc.googlecode.com/svn/branches-dev/ppa/issue-1478 -m"# Fix crash TransferView::UpdateInfo::UpdateInfo"
+svn copy svn://svn.fly-server.ru/flylinkdc/trunk svn://svn.fly-server.ru/flylinkdc/branches-dev/ppa/libtorrent-slow-after-r21445 -m"# Fix libtorrent slow after r21298 (r21445)"
