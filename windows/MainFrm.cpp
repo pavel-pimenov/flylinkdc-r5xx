@@ -177,7 +177,7 @@ MainFrame::MainFrame() :
 #ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 	m_custom_app_icon_exist(false), // [+] InfinitySky.
 #endif
-	missedAutoConnect(false),
+	m_is_missedAutoConnect(false),
 #ifdef IRAINMAN_IP_AUTOUPDATE
 	m_elapsedMinutesFromlastIPUpdate(0),
 #endif
@@ -731,12 +731,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	openDefaultWindows();
 	
 	ConnectivityManager::getInstance()->setup_connections(true);
-	
-	// if (!WinUtil::isShift())
-	// {
-	//PostMessage(WM_SPEAKER_AUTO_CONNECT); ”нес на момент когда все порты открыты
-	// }
-	
 	
 	PostMessage(WM_SPEAKER, PARSE_COMMAND_LINE);
 	
@@ -2131,7 +2125,7 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		{
 			SettingsManager::getInstance()->save();
 			m_transferView.setButtonState();
-			if (missedAutoConnect && !SETTING(NICK).empty())
+			if (m_is_missedAutoConnect && !SETTING(NICK).empty())
 			{
 				PostMessage(WM_SPEAKER_AUTO_CONNECT, 0);
 			}
@@ -2376,9 +2370,10 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 {
 //    PROFILE_THREAD_SCOPED()
 	const bool l_settingsNickExist = !SETTING(NICK).empty();
-	missedAutoConnect = false;
+	m_is_missedAutoConnect = false;
 	CFlyLockWindowUpdate l(WinUtil::g_mdiClient);
-	HubFrame* frm = nullptr;
+	HubFrame* frm_base = nullptr;
+	HubFrame* frm_recent = nullptr;
 	{
 		int l_count_sec = 0;
 		while (ConnectionManager::g_is_test_tcp_port == false ||
@@ -2408,7 +2403,7 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 					{
 						l_resent_hub->setAutoOpen(true);
 					}
-					frm = HubFrame::openHubWindow(true,
+					frm_base = HubFrame::openHubWindow(true,
 					                           entry->getServer(),
 					                           entry->getName(),
 					                           entry->getRawOne(),
@@ -2428,27 +2423,33 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 				}
 				else
 				{
-					missedAutoConnect = true;
+					m_is_missedAutoConnect = true;
 				}
 			}
 		}
-		// ќткроем ранее открытые хабы но не помещенные в избранные
+		// ќткроем ранее открытые хабы, но не помещенные в избранные
 		if (BOOLSETTING(OPEN_RECENT_HUBS))
 		{
 			for (auto j = FavoriteManager::getRecentHubs().cbegin(); j != FavoriteManager::getRecentHubs().cend(); ++ j)
 			{
 				if ((*j)->getAutoOpen() == false && (*j)->getOpenTab() == "+")
 				{
+					const auto l_server = (*j)->getServer();
 #ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
-					if (FavoriteManager::isISPDelete((*j)->getServer()) == false)
+					if (FavoriteManager::isISPDelete(l_server) == false)
 #endif
 					{
-						frm = HubFrame::openHubWindow(true,
-						                           (*j)->getServer(),
+						
+							frm_recent = HubFrame::openHubWindow(true,
+								l_server,
 						                           (*j)->getName()
 						                          );
 					}
 				}
+			}
+			if (frm_recent)
+			{
+				frm_recent->createMessagePanel();
 			}
 		}
 		// —оздаем смайлы в конец
@@ -2457,9 +2458,9 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 #endif
 	}
 	UpdateLayout(true);
-	if (frm)
+	if (frm_base)
 	{
-		frm->createMessagePanel();
+		frm_base->createMessagePanel();
 	}
 	if (!FavoriteManager::g_DefaultHubUrl.empty())
 	{

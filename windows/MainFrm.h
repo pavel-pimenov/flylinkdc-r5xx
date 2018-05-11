@@ -746,11 +746,9 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		typedef std::pair<uint64_t, uint64_t> UpAndDown;
 		typedef std::pair<uint64_t, UpAndDown> Sample;
 		deque<Sample> m_Stats;
-// [~]IRainman Speedmeter
 		tstring lastTTHdir;
 		bool m_oldshutdown;
 		bool m_stopexit;
-		//int tabPos;// [-] IRainman
 		bool m_menuclose; // [+] InfinitySky.
 #ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 		bool m_custom_app_icon_exist; // [+] InfinitySky.
@@ -760,7 +758,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		uint8_t m_statusSizes[STATUS_PART_LAST];
 		tstring m_statusText[STATUS_PART_LAST];
 		HANDLE m_stopperThread;
-		bool missedAutoConnect;
+		bool m_is_missedAutoConnect;
 		HWND createToolbar();
 		HWND createWinampToolbar();
 		HWND createQuickSearchBar();
