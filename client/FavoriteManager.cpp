@@ -1684,8 +1684,7 @@ void FavoriteManager::setUploadLimit(const UserPtr& aUser, int lim, bool createU
 // !SMT!-S
 bool FavoriteManager::getFlag(const UserPtr& aUser, FavoriteUser::Flags f)
 {
-	dcassert(!ClientManager::isBeforeShutdown());
-	if (isNotEmpty())
+	if (!ClientManager::isBeforeShutdown() && isNotEmpty())
 	{
 		CFlyReadLock(*g_csFavUsers);
 		const auto i = g_fav_users_map.find(aUser->getCID());
@@ -1767,7 +1766,19 @@ RecentHubEntry::Iter FavoriteManager::getRecentHub(const string& aServer)
 	}
 	return g_recentHubs.end();
 }
-
+RecentHubEntry* FavoriteManager::getRecentHubEntry(const string& aServer)
+{
+	// TODO Lock
+	for (auto i = g_recentHubs.cbegin(); i != g_recentHubs.cend(); ++i)
+	{
+		RecentHubEntry* r = *i;
+		if (stricmp(r->getServer(), aServer) == 0)
+		{
+			return r;
+		}
+	}
+	return nullptr;
+}
 UserCommand::List FavoriteManager::getUserCommands(int ctx, const StringList& hubs/*[-] IRainman fix, bool& op*/) const
 {
 	std::vector<bool> isOp(hubs.size());
@@ -1922,19 +1933,6 @@ void FavoriteManager::speakUserUpdate(const bool added, const FavoriteUser& p_fa
 			}
 		}
 	}
-}
-RecentHubEntry* FavoriteManager::getRecentHubEntry(const string& aServer)
-{
-	// TODO Lock
-	for (auto i = g_recentHubs.cbegin(); i != g_recentHubs.cend(); ++i)
-	{
-		RecentHubEntry* r = *i;
-		if (stricmp(r->getServer(), aServer) == 0)
-		{
-			return r;
-		}
-	}
-	return nullptr;
 }
 // [!] IRainman fix.
 PreviewApplication* FavoriteManager::addPreviewApp(const string& name, const string& application, const string& arguments, string p_extension) // [!] PVS V813 Decreased performance. The 'name', 'application', 'arguments', 'extension' arguments should probably be rendered as constant references. favoritemanager.h 366

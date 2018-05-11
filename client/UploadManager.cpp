@@ -765,7 +765,6 @@ void UploadManager::shutdown()
 }
 void UploadManager::increaseUserConnectionAmountL(const UserPtr& p_user)
 {
-	dcassert(!ClientManager::isBeforeShutdown());
 	if (!ClientManager::isBeforeShutdown())
 	{
 		const auto i = g_uploadsPerUser.find(p_user);
