@@ -69,7 +69,7 @@
 # define ERR_FUNC(func) ERR_PACK(ERR_LIB_CMS,func,0)
 # define ERR_REASON(reason) ERR_PACK(ERR_LIB_CMS,0,reason)
 
-static ERR_STRING_DATA CMS_str_functs[] = {
+static const ERR_STRING_DATA CMS_str_functs[] = {
     {ERR_FUNC(CMS_F_CHECK_CONTENT), "CHECK_CONTENT"},
     {ERR_FUNC(CMS_F_CMS_ADD0_CERT), "CMS_add0_cert"},
     {ERR_FUNC(CMS_F_CMS_ADD0_RECIPIENT_KEY), "CMS_add0_recipient_key"},
@@ -184,7 +184,7 @@ static ERR_STRING_DATA CMS_str_functs[] = {
     {0, NULL}
 };
 
-static ERR_STRING_DATA CMS_str_reasons[] = {
+static const ERR_STRING_DATA CMS_str_reasons[] = {
     {ERR_REASON(CMS_R_ADD_SIGNER_ERROR), "add signer error"},
     {ERR_REASON(CMS_R_CERTIFICATE_ALREADY_PRESENT),
      "certificate already present"},

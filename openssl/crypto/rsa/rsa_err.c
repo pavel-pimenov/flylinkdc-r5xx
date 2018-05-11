@@ -69,7 +69,7 @@
 # define ERR_FUNC(func) ERR_PACK(ERR_LIB_RSA,func,0)
 # define ERR_REASON(reason) ERR_PACK(ERR_LIB_RSA,0,reason)
 
-static ERR_STRING_DATA RSA_str_functs[] = {
+static const ERR_STRING_DATA RSA_str_functs[] = {
     {ERR_FUNC(RSA_F_CHECK_PADDING_MD), "CHECK_PADDING_MD"},
     {ERR_FUNC(RSA_F_DO_RSA_PRINT), "DO_RSA_PRINT"},
     {ERR_FUNC(RSA_F_INT_RSA_VERIFY), "INT_RSA_VERIFY"},
@@ -147,7 +147,7 @@ static ERR_STRING_DATA RSA_str_functs[] = {
     {0, NULL}
 };
 
-static ERR_STRING_DATA RSA_str_reasons[] = {
+static const ERR_STRING_DATA RSA_str_reasons[] = {
     {ERR_REASON(RSA_R_ALGORITHM_MISMATCH), "algorithm mismatch"},
     {ERR_REASON(RSA_R_BAD_E_VALUE), "bad e value"},
     {ERR_REASON(RSA_R_BAD_FIXED_HEADER_DECRYPT), "bad fixed header decrypt"},

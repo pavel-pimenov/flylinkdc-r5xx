@@ -69,7 +69,7 @@
 # define ERR_FUNC(func) ERR_PACK(ERR_LIB_ASN1,func,0)
 # define ERR_REASON(reason) ERR_PACK(ERR_LIB_ASN1,0,reason)
 
-static ERR_STRING_DATA ASN1_str_functs[] = {
+static const ERR_STRING_DATA ASN1_str_functs[] = {
     {ERR_FUNC(ASN1_F_A2D_ASN1_OBJECT), "a2d_ASN1_OBJECT"},
     {ERR_FUNC(ASN1_F_A2I_ASN1_ENUMERATED), "a2i_ASN1_ENUMERATED"},
     {ERR_FUNC(ASN1_F_A2I_ASN1_INTEGER), "a2i_ASN1_INTEGER"},
@@ -195,7 +195,7 @@ static ERR_STRING_DATA ASN1_str_functs[] = {
     {0, NULL}
 };
 
-static ERR_STRING_DATA ASN1_str_reasons[] = {
+static const ERR_STRING_DATA ASN1_str_reasons[] = {
     {ERR_REASON(ASN1_R_ADDING_OBJECT), "adding object"},
     {ERR_REASON(ASN1_R_ASN1_PARSE_ERROR), "asn1 parse error"},
     {ERR_REASON(ASN1_R_ASN1_SIG_PARSE_ERROR), "asn1 sig parse error"},
