@@ -2372,8 +2372,8 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 	const bool l_settingsNickExist = !SETTING(NICK).empty();
 	m_is_missedAutoConnect = false;
 	CFlyLockWindowUpdate l(WinUtil::g_mdiClient);
-	HubFrame* frm_base = nullptr;
-	HubFrame* frm_recent = nullptr;
+	HubFrame* frm_current = nullptr;
+	HubFrame* frm_last = nullptr;
 	{
 		int l_count_sec = 0;
 		while (ConnectionManager::g_is_test_tcp_port == false ||
@@ -2403,7 +2403,7 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 					{
 						l_resent_hub->setAutoOpen(true);
 					}
-					frm_base = HubFrame::openHubWindow(true,
+					frm_current = HubFrame::openHubWindow(true,
 					                           entry->getServer(),
 					                           entry->getName(),
 					                           entry->getRawOne(),
@@ -2420,6 +2420,10 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 					                           entry->getUserListState(),
 					                           entry->getSuppressChatAndPM()
 					                          );
+					if (frm_current)
+					{
+						frm_last = frm_current;
+					}
 				}
 				else
 				{
@@ -2439,17 +2443,17 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 					if (FavoriteManager::isISPDelete(l_server) == false)
 #endif
 					{
-						
-							frm_recent = HubFrame::openHubWindow(true,
+							frm_current = HubFrame::openHubWindow(true,
 								l_server,
 						                           (*j)->getName()
 						                          );
+							if (frm_current)
+							{
+								frm_last = frm_current;
 					}
+
 				}
 			}
-			if (frm_recent)
-			{
-				frm_recent->createMessagePanel();
 			}
 		}
 		// Создаем смайлы в конец
@@ -2458,9 +2462,9 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 #endif
 	}
 	UpdateLayout(true);
-	if (frm_base)
+	if (frm_last)
 	{
-		frm_base->createMessagePanel();
+		frm_last->createMessagePanel();
 	}
 	if (!FavoriteManager::g_DefaultHubUrl.empty())
 	{
