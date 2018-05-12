@@ -3130,7 +3130,8 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 			pp = ctrlResults.findParentPair(sr.getTTH());
 			if (pp)
 			{
-				if (l_user->getCID() == pp->parent->getUser()->getCID() && sr.getFile() == pp->parent->m_sr.getFile())
+				if (pp->parent && // fix https://drdump.com/DumpGroup.aspx?DumpGroupID=1052556
+					l_user->getCID() == pp->parent->getUser()->getCID() && sr.getFile() == pp->parent->m_sr.getFile())
 				{
 					check_delete(si);
 					return;
