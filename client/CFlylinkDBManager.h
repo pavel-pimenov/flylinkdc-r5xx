@@ -62,6 +62,10 @@ class CFlySQLCommand
 		{
 			return m_sql->get_connection().sqlite3_changes();
 		}
+		void executenonquery()
+		{
+			m_sql->executenonquery();
+		}
 	private:
 		unique_ptr<sqlite3_command> m_sql;
 		FastCriticalSection m_cs;
@@ -397,7 +401,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void flush_hash();
 		
 		void load_transfer_history(bool p_is_torrent, eTypeTransfer p_type, int p_day);
+		static std::string get_purge_transfer_history(std::string p_table_name);
 		void load_transfer_historgam(bool p_is_torrent, eTypeTransfer p_type, CFlyTransferHistogramArray& p_array);
+		void cleanup_transfer_historgam();
 		bool is_download_tth(const TTHValue& p_tth);
 		void save_transfer_history(bool p_is_torrent, eTypeTransfer p_type, const FinishedItemPtr& p_item);
 		void delete_transfer_history(const vector<__int64>& p_id_array);

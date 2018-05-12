@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//(c) 2007-2017 pavel.pimenov@gmail.com
+//(c) 2007-2018 pavel.pimenov@gmail.com
 //-----------------------------------------------------------------------------
 #include "stdinc.h"
 #include <Shellapi.h>
@@ -526,38 +526,38 @@ CFlylinkDBManager::CFlylinkDBManager()
 		// Log_DB
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS log_db.fly_log(id integer PRIMARY KEY AUTOINCREMENT,"
-		    "sdate text not null, type integer not null,body text, hub text, nick text,\n"
+		    "sdate text not null, type integer not null,body text, hub text, nick text,"
 		    "ip text, file text, source text, target text,fsize int64,fchunk int64,extra text,userCID text);");
 #endif // FLYLINKDC_LOG_IN_SQLITE_BASE
 		    
 		// MEDIA_DB
-		m_flySQLiteDB.executenonquery("create table IF NOT EXISTS media_db.fly_server_cache(tth char(24) PRIMARY KEY NOT NULL, fly_audio text,fly_audio_br text,fly_video text,fly_xy text);");
+		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS media_db.fly_server_cache(tth char(24) PRIMARY KEY NOT NULL, fly_audio text,fly_audio_br text,fly_video text,fly_xy text);");
 		m_flySQLiteDB.executenonquery(
-		    "CREATE TABLE IF NOT EXISTS media_db.fly_media(\n" // id integer primary key autoincrement, TODO - id в этой табличке нам не нужна...
-		    "tth_id integer not null,\n"
-		    "stream_type integer not null,\n"
-		    "channel integer not null,\n"
-		    "param text not null,\n"
+		    "CREATE TABLE IF NOT EXISTS media_db.fly_media(" // id integer primary key autoincrement, TODO - id в этой табличке нам не нужна...
+		    "tth_id integer not null,"
+		    "stream_type integer not null,"
+		    "channel integer not null,"
+		    "param text not null,"
 		    "value text not null);");
 		// TODO - потестить как sqlite выбирает план
 		// l_flySQLiteDB_Mediainfo.executenonquery("CREATE INDEX IF NOT EXISTS media_db.i_fly_media_tth_id ON fly_media(tth_id);");
 		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS media_db.iu_fly_media_param ON fly_media(tth_id,stream_type,channel,param);");
 		
-		m_flySQLiteDB.executenonquery("create table IF NOT EXISTS fly_revision(rev integer NOT NULL);");
+		m_flySQLiteDB.executenonquery("CREATE TABLE IF NOT EXISTS fly_revision(rev integer NOT NULL);");
 		m_flySQLiteDB.executenonquery(
-		    "CREATE TABLE IF NOT EXISTS fly_file(dic_path integer not null,\n"
-		    "name text not null,\n"
-		    "size int64 not null,\n"
-		    "stamp int64 not null,\n"
-		    "tth_id int64 not null,\n"
-		    "hit int64 default 0,\n"
-		    "stamp_share int64 default 0,\n"
-		    "bitrate integer,\n"
-		    "ftype integer default -1,\n"
-		    "media_x integer,\n"
-		    "media_y integer,\n"
-		    "media_video text,\n"
-		    "media_audio text\n"
+		    "CREATE TABLE IF NOT EXISTS fly_file(dic_path integer not null,"
+		    "name text not null,"
+		    "size int64 not null,"
+		    "stamp int64 not null,"
+		    "tth_id int64 not null,"
+		    "hit int64 default 0,"
+		    "stamp_share int64 default 0,"
+		    "bitrate integer,"
+		    "ftype integer default -1,"
+		    "media_x integer,"
+		    "media_y integer,"
+		    "media_video text,"
+		    "media_audio text"
 		    ");");
 		    
 		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_file_name ON fly_file(dic_path,name);");
@@ -571,46 +571,46 @@ CFlylinkDBManager::CFlylinkDBManager()
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		convert_fly_hash_blockL();
 		////////////////////////////////////////////////////////////////////////////////////////////////
-		m_flySQLiteDB.executenonquery("create table IF NOT EXISTS fly_path(\n"
+		m_flySQLiteDB.executenonquery("create table IF NOT EXISTS fly_path("
 		                              "id integer PRIMARY KEY AUTOINCREMENT NOT NULL, name text NOT NULL UNIQUE);");
-		m_flySQLiteDB.executenonquery("create table IF NOT EXISTS fly_dic(\n"
+		m_flySQLiteDB.executenonquery("create table IF NOT EXISTS fly_dic("
 		                              "id integer PRIMARY KEY AUTOINCREMENT NOT NULL,dic integer NOT NULL, name text NOT NULL);");
 		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_dic_name ON fly_dic(name,dic);");
 		m_flySQLiteDB.executenonquery(
-		    "CREATE TABLE IF NOT EXISTS fly_ratio(id integer PRIMARY KEY AUTOINCREMENT NOT NULL,\n"
-		    "dic_ip integer not null,dic_nick integer not null, dic_hub integer not null,\n"
+		    "CREATE TABLE IF NOT EXISTS fly_ratio(id integer PRIMARY KEY AUTOINCREMENT NOT NULL,"
+		    "dic_ip integer not null,dic_nick integer not null, dic_hub integer not null,"
 		    "upload int64 default 0,download int64 default 0);");
 		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_ratio ON fly_ratio(dic_nick,dic_hub,dic_ip);");
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-		m_flySQLiteDB.executenonquery("CREATE VIEW IF NOT EXISTS v_fly_ratio AS\n"
-		                              "SELECT fly_ratio.id id, fly_ratio.upload upload,\n"
-		                              "fly_ratio.download download,\n"
-		                              "userip.name userip,\n"
-		                              "nick.name nick,\n"
-		                              "hub.name hub\n"
-		                              "FROM fly_ratio\n"
-		                              "INNER JOIN fly_dic userip ON fly_ratio.dic_ip = userip.id\n"
-		                              "INNER JOIN fly_dic nick ON fly_ratio.dic_nick = nick.id\n"
+		m_flySQLiteDB.executenonquery("CREATE VIEW IF NOT EXISTS v_fly_ratio AS "
+		                              "SELECT fly_ratio.id id, fly_ratio.upload upload,"
+		                              "fly_ratio.download download,"
+		                              "userip.name userip,"
+		                              "nick.name nick,"
+		                              "hub.name hub "
+		                              "FROM fly_ratio "
+		                              "INNER JOIN fly_dic userip ON fly_ratio.dic_ip = userip.id "
+		                              "INNER JOIN fly_dic nick ON fly_ratio.dic_nick = nick.id "
 		                              "INNER JOIN fly_dic hub ON fly_ratio.dic_hub = hub.id");
 		                              
-		m_flySQLiteDB.executenonquery("CREATE VIEW IF NOT EXISTS v_fly_ratio_all AS\n"
-		                              "SELECT fly_ratio.id id, fly_ratio.upload upload,\n"
-		                              "fly_ratio.download download,\n"
-		                              "nick.name nick,\n"
-		                              "hub.name hub,\n"
-		                              "fly_ratio.dic_ip dic_ip,\n"
-		                              "fly_ratio.dic_nick dic_nick,\n"
-		                              "fly_ratio.dic_hub dic_hub\n"
-		                              "FROM fly_ratio\n"
-		                              "INNER JOIN fly_dic nick ON fly_ratio.dic_nick = nick.id\n"
+		m_flySQLiteDB.executenonquery("CREATE VIEW IF NOT EXISTS v_fly_ratio_all AS "
+		                              "SELECT fly_ratio.id id, fly_ratio.upload upload,"
+		                              "fly_ratio.download download,"
+		                              "nick.name nick,"
+		                              "hub.name hub,"
+		                              "fly_ratio.dic_ip dic_ip,"
+		                              "fly_ratio.dic_nick dic_nick,"
+		                              "fly_ratio.dic_hub dic_hub "
+		                              "FROM fly_ratio "
+		                              "INNER JOIN fly_dic nick ON fly_ratio.dic_nick = nick.id "
 		                              "INNER JOIN fly_dic hub ON fly_ratio.dic_hub = hub.id");
 #endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-		m_flySQLiteDB.executenonquery("CREATE VIEW IF NOT EXISTS v_fly_dup_file AS\n"
-		                              "SELECT tth_id,count(*) cnt_dup,\n"
-		                              "max((select name from fly_path where id = dic_path)) path_1,\n"
-		                              "min((select name from fly_path where id = dic_path)) path_2,\n"
-		                              "max(name) name_max,\n"
-		                              "min(name) name_min\n"
+		m_flySQLiteDB.executenonquery("CREATE VIEW IF NOT EXISTS v_fly_dup_file AS "
+		                              "SELECT tth_id,count(*) cnt_dup,"
+		                              "max((select name from fly_path where id = dic_path)) path_1,"
+		                              "min((select name from fly_path where id = dic_path)) path_2,"
+		                              "max(name) name_max,"
+		                              "min(name) name_min "
 		                              "FROM fly_file group by tth_id having count(*) > 1");
 		                              
 		const int l_rev = m_flySQLiteDB.executeint("select max(rev) from fly_revision");
@@ -649,19 +649,18 @@ CFlylinkDBManager::CFlylinkDBManager()
 			m_flySQLiteDB.executenonquery("update fly_file set ftype=6 where name like '%.mp4' or name like '%.fly'");
 		}
 		m_flySQLiteDB.executenonquery(
-		    "CREATE TABLE IF NOT EXISTS fly_queue(id integer PRIMARY KEY NOT NULL,\n"
-		    "Target text not null,\n"  // убрал UNIQUE для исключения перестройки индекса (уникальность поддерживается мапой)
-		    "Size int64 not null,\n"
-		    "Priority integer not null,\n"
-		    "Sections text,\n"
-		    "Added int64 not null,\n"
-		    "TTH char(24) not null,\n"
-		    "TempTarget text,\n"
-		    "AutoPriority integer not null,\n"
-		    "MaxSegments integer\n"
-		    ");");
+		    "CREATE TABLE IF NOT EXISTS fly_queue(id integer PRIMARY KEY NOT NULL,"
+		    "Target text not null,"  // убрал UNIQUE для исключения перестройки индекса (уникальность поддерживается мапой)
+		    "Size int64 not null,"
+		    "Priority integer not null,"
+		    "Sections text,"
+		    "Added int64 not null,"
+		    "TTH char(24) not null,"
+		    "TempTarget text,"
+		    "AutoPriority integer not null,"
+		    "MaxSegments integer);");
 		m_flySQLiteDB.executenonquery(
-		    "CREATE TABLE IF NOT EXISTS fly_queue_source(id integer PRIMARY KEY AUTOINCREMENT NOT NULL,\n"
+		    "CREATE TABLE IF NOT EXISTS fly_queue_source(id integer PRIMARY KEY AUTOINCREMENT NOT NULL,"
 		    "fly_queue_id integer not null,CID char(24) not null,Nick text,dic_hub integer);");
 		safeAlter("ALTER TABLE fly_queue_source add column dic_hub integer");
 		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS i_fly_queue_source_id ON fly_queue_source(fly_queue_id);");
@@ -731,9 +730,9 @@ CFlylinkDBManager::CFlylinkDBManager()
 		                              
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
 		m_flySQLiteDB.executenonquery(
-		    "CREATE TABLE IF NOT EXISTS stat_db.fly_identity(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,hub text not null,key text not null, value text not null,\n"
+		    "CREATE TABLE IF NOT EXISTS stat_db.fly_identity(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,hub text not null,key text not null, value text not null,"
 		    "count_get integer, count_set integer,last_time_get text not null, last_time_set text not null);");
-		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS\n"
+		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS "
 		                              "stat_db.iu_fly_identity ON fly_identity(hub,key,value);");
 		                              
 #endif // FLYLINKDC_USE_GATHER_IDENTITY_STAT
@@ -764,7 +763,7 @@ CFlylinkDBManager::CFlylinkDBManager()
 		    ",hub text not null,command text not null,server text,port text, sender_nick text, counter int64, last_time text not null);");
 		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS stat_db.iu_fly_dc_command_log ON fly_dc_command_log(hub,command);");
 		m_flySQLiteDB.executenonquery(
-		    "CREATE TABLE IF NOT EXISTS stat_db.fly_event(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL\n"
+		    "CREATE TABLE IF NOT EXISTS stat_db.fly_event(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL "
 		    ",type text not null, event_key text not null, event_value text, ip text, port text, hub text, tth char(39), event_time text);");
 #endif
 		safeAlter("ALTER TABLE fly_queue add column Sections text");
@@ -854,7 +853,11 @@ CFlylinkDBManager::CFlylinkDBManager()
 			safeAlter("delete FROM fly_queue_source where CID = X'000000000000000000000000000000000000000000000000'", true);
 			m_flySQLiteDB.executenonquery("PRAGMA user_version=4");
 		}
-		
+		if (l_db_user_version < 5)
+		{
+			cleanup_transfer_historgam();
+			m_flySQLiteDB.executenonquery("PRAGMA user_version=5");
+		}
 		
 		// TODO - грохнуть поля  fly_queue в и перетащить базу в другие файлы.
 		
@@ -931,14 +934,14 @@ void CFlylinkDBManager::merge_mediainfo_ext(const __int64 l_tth_id, const CFlyMe
 {
 	if (p_delete_old_info) // TODO - никогда не работает почему-то
 	{
-		m_delete_mediainfo.init(m_flySQLiteDB, "delete from media_db.fly_media where tth_id=?\n");
+		m_delete_mediainfo.init(m_flySQLiteDB, "delete from media_db.fly_media where tth_id=? ");
 		m_delete_mediainfo->bind(1, l_tth_id);
 		m_delete_mediainfo->executenonquery();
 	}
 	if (p_media.isMediaAttrExists())
 	{
 		m_insert_mediainfo.init(m_flySQLiteDB,
-		                        "insert or replace into media_db.fly_media\n"
+		                        "insert or replace into media_db.fly_media "
 		                        "(tth_id,stream_type,channel,param,value) values (?,?,?,?,?);");
 		sqlite3_command* l_sql = m_insert_mediainfo.get_sql();
 		for (auto i = p_media.m_ext_array.cbegin(); i != p_media.m_ext_array.cend(); ++i)
@@ -984,14 +987,14 @@ bool CFlylinkDBManager::load_media_info(const TTHValue& p_tth, CFlyMediaInfo& p_
 				if (!p_only_inform)
 				{
 					m_load_mediainfo_ext.init(m_flySQLiteDB,
-					                          "select stream_type,channel,param,value from media_db.fly_media\n"
+					                          "select stream_type,channel,param,value from media_db.fly_media "
 					                          "where tth_id = ? order by stream_type,channel");
 					m_load_mediainfo_ext->bind(1, l_tth_id);
 				}
 				else
 				{
 					m_load_mediainfo_ext_only_inform.init(m_flySQLiteDB,
-					                                      "select stream_type,channel,param,value from media_db.fly_media\n"
+					                                      "select stream_type,channel,param,value from media_db.fly_media "
 					                                      "where tth_id = ? and param = 'Infrom' order by stream_type,channel");
 					m_load_mediainfo_ext_only_inform->bind(1, l_tth_id);
 				}
@@ -1175,7 +1178,7 @@ void CFlylinkDBManager::identity_initL(const string& p_hub, const string& p_key,
 	try
 	{
 		m_insert_identity_stat.init(m_flySQLiteDB,
-		                            "insert into stat_db.fly_identity (hub,key,value,count_get,count_set,last_time_get,last_time_set)\n"
+		                            "insert into stat_db.fly_identity (hub,key,value,count_get,count_set,last_time_get,last_time_set) "
 		                            "values(?,?,?,0,0,strftime('%d.%m.%Y %H:%M:%S','now','localtime'),strftime('%d.%m.%Y %H:%M:%S','now','localtime'))");
 		m_insert_identity_stat->bind(1, p_hub, SQLITE_STATIC);
 		m_insert_identity_stat->bind(2, p_key, SQLITE_STATIC);
@@ -1202,7 +1205,7 @@ void CFlylinkDBManager::identity_set(string p_key, string p_value, const string&
 	{
 		sqlite3_transaction l_trans(m_flySQLiteDB);
 		m_update_identity_stat_set.init(m_flySQLiteDB,
-		                                "update stat_db.fly_identity set count_set = count_set+1, last_time_set = strftime('%d.%m.%Y %H:%M:%S','now','localtime')\n"
+		                                "update stat_db.fly_identity set count_set = count_set+1, last_time_set = strftime('%d.%m.%Y %H:%M:%S','now','localtime') "
 		                                "where hub = ? and key=? and value =?");
 		m_update_identity_stat_set->bind(1, p_hub, SQLITE_STATIC);
 		m_update_identity_stat_set->bind(2, p_key, SQLITE_STATIC);
@@ -1234,7 +1237,7 @@ void CFlylinkDBManager::identity_get(string p_key, string p_value, const string&
 	{
 		sqlite3_transaction l_trans(m_flySQLiteDB);
 		m_update_identity_stat_get.init(m_flySQLiteDB,
-		                                "update stat_db.fly_identity set count_get = count_get+1, last_time_get = strftime('%d.%m.%Y %H:%M:%S','now','localtime')\n"
+		                                "update stat_db.fly_identity set count_get = count_get+1, last_time_get = strftime('%d.%m.%Y %H:%M:%S','now','localtime') "
 		                                "where hub = ? and key=? and value =?"));
 		m_update_identity_stat_get->bind(1, p_hub, SQLITE_STATIC);
 		m_update_identity_stat_get->bind(2, p_key, SQLITE_STATIC);
@@ -2205,11 +2208,32 @@ bool CFlylinkDBManager::is_download_tth(const TTHValue& p_tth)
 	return false;
 }
 //========================================================================================================
+void CFlylinkDBManager::cleanup_transfer_historgam()
+{
+	if ((SETTING(DB_LOG_FINISHED_DOWNLOADS) || SETTING(DB_LOG_FINISHED_UPLOADS)))
+	{
+		CFlySQLCommand l_sql_delete_dc;
+		CFlySQLCommand l_sql_delete_torrent;
+		const string l_sql_dc = get_purge_transfer_history("fly_transfer_file");
+		const string l_sql_torrent = get_purge_transfer_history("fly_transfer_file_torrent");
+		l_sql_delete_dc.init(m_flySQLiteDB, l_sql_dc.c_str());
+		l_sql_delete_dc.executenonquery();
+		l_sql_delete_torrent.init(m_flySQLiteDB, l_sql_torrent.c_str());
+		l_sql_delete_torrent.executenonquery();
+	}
+}
+//========================================================================================================
 void CFlylinkDBManager::load_transfer_historgam(bool p_is_torrent, eTypeTransfer p_type, CFlyTransferHistogramArray& p_array)
 {
 	// CFlyLock(m_cs);
 	try
 	{
+		static bool g_is_first = false;
+		if (!g_is_first)
+		{
+			g_is_first = true;
+			cleanup_transfer_historgam();
+		}
 		if (!p_is_torrent)
 		{
 			m_select_transfer_histrogram.init(m_flySQLiteDB,
@@ -2246,6 +2270,14 @@ void CFlylinkDBManager::load_transfer_historgam(bool p_is_torrent, eTypeTransfer
 	{
 		errorDB("SQLite - load_transfer_historgam: " + e.getError());
 	}
+}
+//========================================================================================================
+std::string CFlylinkDBManager::get_purge_transfer_history(std::string p_table_name)
+{
+	const string l_sql = "delete from transfer_db."+ p_table_name +" where (type=1 and day<strftime('%s','now','localtime')/60/60/24-"
+		+ Util::toString(SETTING(DB_LOG_FINISHED_UPLOADS)) + ") or "
+		"(type=0 and day<strftime('%s','now','localtime')/60/60/24-" + Util::toString(SETTING(DB_LOG_FINISHED_DOWNLOADS)) + ")";
+	return l_sql;
 }
 //========================================================================================================
 void CFlylinkDBManager::load_transfer_history(bool p_is_torrent, eTypeTransfer p_type, int p_day)
@@ -2469,9 +2501,9 @@ void CFlylinkDBManager::save_torrent_resume(const libtorrent::sha1_hash& p_sha1,
 			else
 			{
 				m_update_resume_torrent.init(m_flySQLiteDB,
-				                             "update queue_db.fly_queue_torrent set day = strftime('%s','now','localtime')/60/60/24,\n"
-				                             "stamp = strftime('%s','now','localtime'),\n"
-				                             "resume = ?,\n"
+				                             "update queue_db.fly_queue_torrent set day = strftime('%s','now','localtime')/60/60/24,"
+				                             "stamp = strftime('%s','now','localtime'),"
+				                             "resume = ?,"
 				                             "name = ? where id = ?");
 				m_update_resume_torrent->bind(1, &p_resume[0], p_resume.size(), SQLITE_STATIC);
 				m_update_resume_torrent->bind(2, p_name, SQLITE_STATIC);
@@ -3431,7 +3463,7 @@ bool CFlylinkDBManager::load_ratio(uint32_t p_hub_id, const string& p_nick, CFly
 		{
 			CFlyLock(m_cs); // TODO - убирать нельзя падаем https://drdump.com/Problem.aspx?ProblemID=118720
 			m_select_ratio_load.init(m_flySQLiteDB, "select upload,download,(select name from fly_dic where id = dic_ip) " // TODO перевести на хранение IP как числа?
-			                         "from fly_ratio where dic_nick=(select id from fly_dic where name=? and dic=2) and dic_hub=?\n");
+			                         "from fly_ratio where dic_nick=(select id from fly_dic where name=? and dic=2) and dic_hub=? ");
 			m_select_ratio_load->bind(1, p_nick, SQLITE_STATIC);
 			m_select_ratio_load->bind(2, p_hub_id);
 			sqlite3_reader l_q = m_select_ratio_load->executereader();
@@ -4428,7 +4460,7 @@ bool CFlylinkDBManager::check_tth(const string& p_fname, __int64 p_path_id,
 	try
 	{
 		m_check_tth_sql.init(m_flySQLiteDB,
-		                     "select size,stamp,tth from fly_file ff,fly_hash_block fhb where\n"
+		                     "select size,stamp,tth from fly_file ff,fly_hash_block fhb where "
 		                     "fhb.tth_id=ff.tth_id and ff.name=? and ff.dic_path=?");
 		// TODO - тут индекс по tth_id не мешается?
 		// Протестировать и забрать tth из fly_hash_block подзапросом
@@ -4698,8 +4730,8 @@ bool CFlylinkDBManager::merge_mediainfoL(const __int64 p_tth_id, const __int64 p
 	try
 	{
 		m_update_base_mediainfo.init(m_flySQLiteDB,
-		                             "update fly_file set\n"
-		                             "bitrate=?, media_x=?, media_y=?, media_video=?, media_audio=?\n"
+		                             "update fly_file set "
+		                             "bitrate=?, media_x=?, media_y=?, media_video=?, media_audio=? "
 		                             "where dic_path=? and name=?");
 		sqlite3_command* l_sql = m_update_base_mediainfo.get_sql();
 		if (p_media.m_bitrate)
