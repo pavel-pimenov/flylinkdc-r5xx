@@ -212,10 +212,10 @@ LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		logFont.lfHeight = 11;
 		const HFONT hFont = CreateFontIndirect(&logFont);
 		CSelectFont l_font(dc, hFont); //-V808
-		::SetTextColor(dc, RGB(179, 179, 179)); // [~] Sergey Shushkanov
+		::SetTextColor(dc, RGB(255, 255, 255)); // [~] Sergey Shushkanov
 		const tstring l_progress = g_sSplashText;
 		::DrawText(dc, l_progress.c_str(), l_progress.length(), &rc2, DT_CENTER); //-V107
-		::SetTextColor(dc, RGB(50, 50, 50));
+		//::SetTextColor(dc, RGB(50, 50, 50));
 		const tstring l_version = T_VERSIONSTRING;
 		::DrawText(dc, l_version.c_str(), l_version.length(), &rc3, DT_CENTER);
 		DeleteObject(hFont);
