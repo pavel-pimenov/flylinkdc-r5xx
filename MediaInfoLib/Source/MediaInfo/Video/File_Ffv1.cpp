@@ -948,7 +948,7 @@ void File_Ffv1::Parameters()
     //Parsing
     states States;
     memset(States, 128, states_size);
-    int32u coder_type, colorspace_type, bits_per_raw_sample=8, num_h_slices_minus1=0, num_v_slices_minus1=0, intra=0;
+    int32u coder_type, colorspace_type, bits_per_raw_sample=8, intra=0;
 
     KeyFramePassed = true;
     micro_version = 0;

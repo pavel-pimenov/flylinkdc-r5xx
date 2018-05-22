@@ -25,5 +25,3 @@ del /S /F /Q compiled\update\*.rtf
 del /S /F /Q compiled\update\*.sign
 "%VS140COMNTOOLS%..\ide\devenv" FlylinkDC_2015.sln /Clean "Release|Win32"
 "%VS140COMNTOOLS%..\ide\devenv" FlylinkDC_2015.sln /Clean "Release|x64"
-"%VS140COMNTOOLS%..\ide\devenv" FlylinkDC_2015.sln /Clean "Debug|Win32"
-"%VS140COMNTOOLS%..\ide\devenv" FlylinkDC_2015.sln /Clean "Debug|x64"

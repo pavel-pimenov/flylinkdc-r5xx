@@ -5880,8 +5880,8 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_dvcC()
     Element_Name("Dolby Vision Configuration");
 
     //Parsing
-    int8u  dv_version_major, dv_version_minor, dv_profile, dv_level;
-    bool rpu_present_flag, el_present_flag, bl_present_flag;
+    int8u  dv_version_major=0, dv_version_minor=0, dv_profile=0, dv_level=0;
+    bool rpu_present_flag=false, el_present_flag=false, bl_present_flag=false;
     Get_B1 (dv_version_major,                                   "dv_version_major");
     Get_B1 (dv_version_minor,                                   "dv_version_minor");
     if (dv_version_major==1) //Spec says nothing, we hope that a minor version change means that the stream is backward compatible

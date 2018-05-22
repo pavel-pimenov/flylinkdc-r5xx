@@ -160,7 +160,7 @@
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>NO_WINDOWS_BRAINDEATH;OPENSSL_THREADS;DSO_WIN32;OPENSSL_SYSNAME_WIN32;WIN32_LEAN_AND_MEAN;L_ENDIAN;_CRT_SECURE_NO_DEPRECATE;OPENSSL_NO_SSL2;OPENSSL_NO_SSL3;_WIN32_WINNT=0x501;WINVER=0x501;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)openssl;$(SolutionDir)openssl\crypto;$(SolutionDir)openssl\crypto\asn1;$(SolutionDir)openssl\crypto\modes;$(SolutionDir)openssl\crypto\evp;$(SolutionDir)openssl\include</AdditionalIncludeDirectories>

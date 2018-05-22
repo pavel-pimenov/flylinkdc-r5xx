@@ -79,7 +79,7 @@ void File_Speex::Identification()
 
     //Parsing
     Ztring speex_version;
-    int32u Speex_version_id, header_size, rate, nb_channels, bitrate, vbr;
+    int32u Speex_version_id, header_size, rate, nb_channels=0, bitrate=-1, vbr=0;
     Skip_Local(8,                                               "speex_string");
     Get_Local(20, speex_version,                                "speex_version");
     Get_L4 (Speex_version_id,                                   "Speex_version_id");

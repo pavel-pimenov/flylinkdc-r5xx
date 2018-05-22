@@ -222,8 +222,9 @@ void File_Av1::sequence_header()
 {
     //Parsing
     int32u max_frame_width_minus_1, max_frame_height_minus_1;
-    int8u seq_profile, level[4], max_enhancement_layers_cnt, frame_width_bits_minus_1, frame_height_bits_minus_1, seq_force_screen_content_tools, BitDepth, color_primaries, transfer_characteristics, matrix_coefficients;
-    bool seq_choose_screen_content_tools, mono_chrome, color_range, color_description_present_flag, subsampling_x, subsampling_y;
+    int8u seq_profile, level[4], max_enhancement_layers_cnt, frame_width_bits_minus_1, 
+		frame_height_bits_minus_1, seq_force_screen_content_tools, BitDepth, color_primaries, transfer_characteristics, matrix_coefficients;
+    bool seq_choose_screen_content_tools, mono_chrome, color_range=false, color_description_present_flag, subsampling_x, subsampling_y;
     BS_Begin();
     Get_S1 ( 2, seq_profile,                                    "seq_profile"); Param_Info1(Av1_seq_profile(seq_profile));
     Get_S1 ( 4, level[0],                                       "level[0]");

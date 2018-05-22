@@ -81,7 +81,7 @@ void convert_p2p_guard()
         {
             lineend = l_data.find('\n', linestart);
             if (lineend == string::npos)
-                break;
+	        break;
             if (lineend == linestart)
             {
                 linestart++;
@@ -145,6 +145,7 @@ void convert_p2p_guard()
           }
         }
     }
+
     for (auto i= g_new_country.cbegin(); i!=g_new_country.cend(); ++i)
     {
         std::cout << i->first << " = " << i->second << g_country_desc[i->first] << endl;

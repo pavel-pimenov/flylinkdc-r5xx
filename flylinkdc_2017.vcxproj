@@ -244,7 +244,7 @@
       <Command>rem cmd.exe /c del "$(SolutionDir)compiled\$(ProjectName).pdb"</Command>
     </PreLinkEvent>
     <Link>
-      <AdditionalOptions>/ignore:4099 /FIXED:NO /SAFESEH:NO /DELAYLOAD:gdiplus.dll%3bdbghelp.dll%3boleaut32.dll%3bpowrprof.dll%3buxtheme.dll %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/ignore:4099 /FIXED:NO /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>Imagehlp.lib;shfolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;gdiplus.lib;delayimp.lib;msimg32.lib;Wininet.lib;shell32.lib;Comdlg32.lib;uxtheme.lib</AdditionalDependencies>
       <OutputFile>$(SolutionDir)compiled\FlylinkDC_Debug.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -299,7 +299,7 @@
       <Command>rem cmd.exe /c del "$(SolutionDir)compiled\$(ProjectName).pdb"</Command>
     </PreLinkEvent>
     <Link>
-      <AdditionalOptions>/ignore:4099 /FIXED:NO /SAFESEH:NO /DELAYLOAD:gdiplus.dll%3bdbghelp.dll%3boleaut32.dll%3bpowrprof.dll%3buxtheme.dll %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/ignore:4099 /FIXED:NO /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>Imagehlp.lib;shfolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;gdiplus.lib;delayimp.lib;msimg32.lib;Wininet.lib;shell32.lib;Comdlg32.lib;uxtheme.lib</AdditionalDependencies>
       <OutputFile>$(SolutionDir)compiled\FlylinkDC_Debug.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -353,7 +353,7 @@
       <Command>rem cmd.exe /c del "$(SolutionDir)compiled\$(ProjectName).pdb"</Command>
     </PreLinkEvent>
     <Link>
-      <AdditionalOptions>/ignore:4099 /FIXED:NO /SAFESEH:NO /DELAYLOAD:gdiplus.dll%3bdbghelp.dll%3boleaut32.dll%3bpowrprof.dll%3buxtheme.dll %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/ignore:4099 /FIXED:NO /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>Imagehlp.lib;shfolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;gdiplus.lib;delayimp.lib;msimg32.lib;Wininet.lib;shell32.lib;Comdlg32.lib;uxtheme.lib</AdditionalDependencies>
       <OutputFile>$(SolutionDir)compiled\FlylinkDC_Debug.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -410,7 +410,7 @@
       </Command>
     </PreLinkEvent>
     <Link>
-      <AdditionalOptions>/FIXED:NO /SAFESEH:NO /DELAYLOAD:gdiplus.dll%3bdbghelp.dll%3boleaut32.dll%3bpowrprof.dll%3buxtheme.dll %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/FIXED:NO /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>Imagehlp.lib;shfolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;gdiplus.lib;delayimp.lib;msimg32.lib;Wininet.lib;shell32.lib;Comdlg32.lib;uxtheme.lib</AdditionalDependencies>
       <OutputFile>$(SolutionDir)compiled\FlylinkDC_Debug_x64.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -472,7 +472,7 @@
       <Command>cmd.exe /c del "$(SolutionDir)compiled\FlylinkDC.pdb"</Command>
     </PreLinkEvent>
     <Link>
-      <AdditionalOptions>/ignore:4099 /FIXED:NO /SAFESEH:NO /DELAYLOAD:gdiplus.dll%3bdbghelp.dll%3boleaut32.dll%3bpowrprof.dll%3buxtheme.dll %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/ignore:4099 /FIXED:NO /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>Imagehlp.lib;shfolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;gdiplus.lib;delayimp.lib;msimg32.lib;Wininet.lib;shell32.lib;Comdlg32.lib;uxtheme.lib</AdditionalDependencies>
       <OutputFile>$(SolutionDir)compiled\FlylinkDC.exe</OutputFile>
       <Version>
@@ -481,7 +481,7 @@
       <AdditionalLibraryDirectories>C:\Program Files (x86)\Visual Leak Detector\lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>opengl32.lib</IgnoreSpecificDefaultLibraries>
-      <DelayLoadDLLs>dbghelp.dll;oleaut32.dll;powrprof.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(SolutionDir)compiled\FlylinkDC.pdb</ProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
@@ -545,7 +545,7 @@
       <Command>cmd.exe /c del "$(SolutionDir)compiled\FlylinkDC.pdb"</Command>
     </PreLinkEvent>
     <Link>
-      <AdditionalOptions>/ignore:4099 /FIXED:NO /SAFESEH:NO /DELAYLOAD:gdiplus.dll%3bdbghelp.dll%3boleaut32.dll%3bpowrprof.dll%3buxtheme.dll %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/ignore:4099 /FIXED:NO /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>Imagehlp.lib;shfolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;gdiplus.lib;delayimp.lib;msimg32.lib;Wininet.lib;shell32.lib;Comdlg32.lib;uxtheme.lib</AdditionalDependencies>
       <OutputFile>$(SolutionDir)compiled\FlylinkDC.exe</OutputFile>
       <Version>
@@ -554,7 +554,7 @@
       <AdditionalLibraryDirectories>C:\Program Files (x86)\Visual Leak Detector\lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>opengl32.lib</IgnoreSpecificDefaultLibraries>
-      <DelayLoadDLLs>dbghelp.dll;oleaut32.dll;powrprof.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(SolutionDir)compiled\FlylinkDC.pdb</ProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
@@ -617,7 +617,7 @@
       <Command>cmd.exe /c del "$(SolutionDir)compiled\FlylinkDC.pdb"</Command>
     </PreLinkEvent>
     <Link>
-      <AdditionalOptions>/ignore:4099 /FIXED:NO /SAFESEH:NO /DELAYLOAD:gdiplus.dll%3bdbghelp.dll%3boleaut32.dll%3bpowrprof.dll%3buxtheme.dll %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/ignore:4099 /FIXED:NO /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>Imagehlp.lib;shfolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;gdiplus.lib;delayimp.lib;msimg32.lib;Wininet.lib;shell32.lib;Comdlg32.lib;uxtheme.lib</AdditionalDependencies>
       <OutputFile>$(SolutionDir)compiled\FlylinkDC.exe</OutputFile>
       <Version>
@@ -626,7 +626,7 @@
       <AdditionalLibraryDirectories>C:\Program Files (x86)\Visual Leak Detector\lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>opengl32.lib</IgnoreSpecificDefaultLibraries>
-      <DelayLoadDLLs>dbghelp.dll;oleaut32.dll;powrprof.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(SolutionDir)compiled\FlylinkDC.pdb</ProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
@@ -694,7 +694,7 @@
       </Command>
     </PreLinkEvent>
     <Link>
-      <AdditionalOptions>/FIXED:NO /SAFESEH:NO /DELAYLOAD:gdiplus.dll%3bdbghelp.dll%3boleaut32.dll%3bpowrprof.dll%3buxtheme.dll %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/FIXED:NO /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>Imagehlp.lib;shfolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;gdiplus.lib;delayimp.lib;msimg32.lib;Wininet.lib;shell32.lib;Comdlg32.lib;uxtheme.lib</AdditionalDependencies>
       <OutputFile>$(SolutionDir)compiled\FlylinkDC_x64.exe</OutputFile>
       <Version>
@@ -703,7 +703,7 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>opengl32.lib</IgnoreSpecificDefaultLibraries>
-      <DelayLoadDLLs>dbghelp.dll;oleaut32.dll;powrprof.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(SolutionDir)compiled\FlylinkDC_x64.pdb</ProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
