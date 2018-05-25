@@ -3,6 +3,7 @@
 //-----------------------------------------------------------------------------
 
 #include "stdinc.h"
+#include <ctime>
 
 #include "ResourceManager.h"
 #ifdef FLYLINKDC_USE_TORRENT
@@ -69,18 +70,27 @@ void TransferData::init(libtorrent::torrent_status const& s)
 	{
 		m_status_string += TSTRING(PLEASE_WAIT);
 	}
+	if (s.state == libtorrent::torrent_status::seeding)
+	{
+		m_status_string += 	+_T(" (Download: ") + Text::toT(Util::formatSeconds(s.active_duration.count() - s.finished_duration.count())) + _T(")")
+			+ _T("(Seedind: ") + Text::toT(Util::formatSeconds(s.seeding_duration.count())) +_T(")");
+	}
 	if (s.state == libtorrent::torrent_status::downloading ||
 	        s.state == libtorrent::torrent_status::finished)
 	{
 		const tstring l_peer_seed = _T(" Peers:") + Util::toStringT(s.num_peers) + _T(" Seeds:") + Util::toStringT(s.num_seeds) + _T(" ");
 		if (s.state == libtorrent::torrent_status::seeding)
 		{
-			m_status_string = l_peer_seed + _T("  Download: ") + Util::formatBytesW(s.total_download) + _T(" Upload: ") + Util::formatBytesW(s.total_upload);
+			m_status_string = l_peer_seed + _T("  Download: ") + 
+				Util::formatBytesW(s.total_download) + _T(" Upload: ") + 
+				Util::formatBytesW(s.total_upload) + _T(" Time: ") + 
+				Text::toT(Util::formatSeconds(s.seeding_duration.count())).c_str();
 		}
 		else
 		{
 			m_status_string += l_peer_seed + Text::tformat(TSTRING(DOWNLOADED_BYTES), Util::formatBytesW(s.total_done).c_str(),
-			                                               m_percent, get_elapsed(time(nullptr) - s.added_time).c_str());
+				m_percent,
+				Text::toT(Util::formatSeconds(s.active_duration.count())).c_str());
 		}
 	}
 }
