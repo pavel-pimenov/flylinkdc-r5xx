@@ -3,6 +3,12 @@ image:
 
 version: r504-{build}
 
+platform:
+  - x64
+
+configuration:
+  - Release
+
 build:
   project: FlylinkDC_2017.sln
   verbosity: minimal
