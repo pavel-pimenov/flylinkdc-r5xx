@@ -152,7 +152,7 @@ inline char* IncrementalCopy(const char* src, char* op, char* const op_limit,
   assert(op <= op_limit);
   assert(op_limit <= buf_limit);
   // NOTE: The compressor always emits 4 <= len <= 64. It is ok to assume that
-  // to optimize this function but we have to also handle these cases in case
+  // to optimize this function but we have to also handle other cases in case
   // the input does not satisfy these conditions.
 
   size_t pattern_size = op - src;
@@ -182,16 +182,13 @@ inline char* IncrementalCopy(const char* src, char* op, char* const op_limit,
 
   // Handle the uncommon case where pattern is less than 8 bytes.
   if (SNAPPY_PREDICT_FALSE(pattern_size < 8)) {
-    // Expand pattern to at least 8 bytes. The worse case scenario in terms of
-    // buffer usage is when the pattern is size 3. ^ is the original position
-    // of op. x are irrelevant bytes copied by the last UnalignedCopy64.
-    //
-    // abc
-    // abcabcxxxxx
-    // abcabcabcabcxxxxx
-    //    ^
-    // The last x is 14 bytes after ^.
-    if (SNAPPY_PREDICT_TRUE(op <= buf_limit - 14)) {
+    // If plenty of buffer space remains, expand the pattern to at least 8
+    // bytes. The way the following loop is written, we need 8 bytes of buffer
+    // space if pattern_size >= 4, 11 bytes if pattern_size is 1 or 3, and 10
+    // bytes if pattern_size is 2.  Precisely encoding that is probably not
+    // worthwhile; instead, invoke the slow path if we cannot write 11 bytes
+    // (because 11 are required in the worst case).
+    if (SNAPPY_PREDICT_TRUE(op <= buf_limit - 11)) {
       while (pattern_size < 8) {
         UnalignedCopy64(src, op);
         op += pattern_size;
@@ -702,7 +699,26 @@ class SnappyDecompressor {
   // Process the next item found in the input.
   // Returns true if successful, false on error or end of input.
   template <class Writer>
+#if defined(__GNUC__) && defined(__x86_64__)
+  __attribute__((aligned(32)))
+#endif
   void DecompressAllTags(Writer* writer) {
+    // In x86, pad the function body to start 16 bytes later. This function has
+    // a couple of hotspots that are highly sensitive to alignment: we have
+    // observed regressions by more than 20% in some metrics just by moving the
+    // exact same code to a different position in the benchmark binary.
+    //
+    // Putting this code on a 32-byte-aligned boundary + 16 bytes makes us hit
+    // the "lucky" case consistently. Unfortunately, this is a very brittle
+    // workaround, and future differences in code generation may reintroduce
+    // this regression. If you experience a big, difficult to explain, benchmark
+    // performance regression here, first try removing this hack.
+#if defined(__GNUC__) && defined(__x86_64__)
+    // Two 8-byte "NOP DWORD ptr [EAX + EAX*1 + 00000000H]" instructions.
+    asm(".byte 0x0f, 0x1f, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00");
+    asm(".byte 0x0f, 0x1f, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00");
+#endif
+
     const char* ip = ip_;
     // For position-independent executables, accessing global arrays can be
     // slow.  Move wordmask array onto the stack to mitigate this.
