@@ -3992,9 +3992,7 @@ bool WinUtil::CreateShortCut(const tstring& pszTargetfile, const tstring& pszTar
 	IPersistFile* pPersistFile;          /* IPersistFile object pointer */
 	
 	hRes = E_INVALIDARG;
-	if (
-	    (pszTargetfile.length() > 0)
-	    && (pszLinkfile.length() > 0)
+	if (pszTargetfile.length() > 0 && pszLinkfile.length() > 0
 	    
 	    /*
 	            && (pszTargetargs.length() > 0)

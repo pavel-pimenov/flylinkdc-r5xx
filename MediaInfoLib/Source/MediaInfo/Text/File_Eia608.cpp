@@ -168,7 +168,6 @@ void File_Eia608::Read_Buffer_Unsynched()
             for (size_t Pos_Y=0; Pos_Y<Streams[StreamPos]->CC_Displayed.size(); Pos_Y++)
             {
                 for (size_t Pos_X=0; Pos_X<Streams[StreamPos]->CC_Displayed[Pos_Y].size(); Pos_X++)
-                if (Streams[StreamPos])
                     {
                         Streams[StreamPos]->CC_Displayed[Pos_Y][Pos_X].Value=L' ';
                         Streams[StreamPos]->CC_Displayed[Pos_Y][Pos_X].Attribute=0;
