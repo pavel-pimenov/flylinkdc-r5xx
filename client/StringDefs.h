@@ -675,6 +675,7 @@ enum Strings   // @DontAdd
 	INVALID_NUMBER_OF_SLOTS, // "Invalid number of slots"
 	INVALID_RANGE, // "Invalid range"
 	INVALID_SIZE, // "Invalid size"
+	NO_SIZE_SPECIFIED, // "No size specified"
 	INVALID_TARGET_FILE, // "Invalid target file (missing directory, check default download directory setting)"
 	INVALID_TIME_FORMAT, // "Invalid time format"
 	INVALID_TREE, // "Full tree does not match TTH root"

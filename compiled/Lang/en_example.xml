@@ -670,6 +670,7 @@
 	<string name="InvalidNumberOfSlots">Invalid number of slots</string>
 	<string name="InvalidRange">Invalid range</string>
 	<string name="InvalidSize">Invalid size</string>
+	<string name="NoSizeSpecified">No size specified</string>
 	<string name="InvalidTargetFile">Invalid target file (missing directory, check default download directory setting)</string>
 	<string name="InvalidTimeFormat">Invalid time format</string>
 	<string name="InvalidTree">Full tree does not match TTH root</string>
