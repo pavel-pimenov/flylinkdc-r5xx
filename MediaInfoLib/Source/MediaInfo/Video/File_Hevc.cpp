@@ -1864,8 +1864,8 @@ void File_Hevc::sei_message(int32u &seq_parameter_set_id)
     Element_End0();
 
     //Manage buggy files not having final bit stop
-    const int8u* Buffer_Buggy;
-    int64u Buffer_Offset_Buggy, Element_Size_Buggy;
+    const int8u* Buffer_Buggy=NULL;
+    int64u Buffer_Offset_Buggy=0, Element_Size_Buggy=0;
     if (Element_Offset+payloadSize>Element_Size)
     {
         Buffer_Buggy=Buffer;
