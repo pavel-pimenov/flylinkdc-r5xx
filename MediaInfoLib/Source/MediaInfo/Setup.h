@@ -19,6 +19,10 @@
 #ifdef __INTEL_COMPILER
  #pragma warning(disable: 2415) //  [IntelC++ 2012 beta2]
  #pragma warning(disable: 869)  //  [IntelC++ 2012 beta2] warning #869: parameter "cc_data_3" was never referenced
+#else
+ #pragma warning(disable: 4458) // declaration of 'Stream' hides class member
+ #pragma warning(disable: 4456)  // declaration of 'Size' hides previous local declaration
+ #pragma warning(disable: 4244)// C4244: 'argument': conversion from 'ZenLib::int32u' to 'ZenLib::int8u', possible loss of data
 #endif
 
 #define MEDIAINFO_TEXT_YES //[+]FlylinkDC
@@ -734,6 +738,12 @@
 #endif
 #if !defined(MEDIAINFO_AUDIO_NO) && !defined(MEDIAINFO_DOLBYE_NO) && !defined(MEDIAINFO_DOLBYE_YES)
     #define MEDIAINFO_DOLBYE_YES
+#endif
+#if !defined(MEDIAINFO_AUDIO_NO) && !defined(MEDIAINFO_DSF_NO) && !defined(MEDIAINFO_DSF_YES)
+    #define MEDIAINFO_DSF_YES
+#endif
+#if !defined(MEDIAINFO_AUDIO_NO) && !defined(MEDIAINFO_DSDIFF_NO) && !defined(MEDIAINFO_DSDIFF_YES)
+    #define MEDIAINFO_DSDIFF_YES
 #endif
 #if !defined(MEDIAINFO_AUDIO_NO) && !defined(MEDIAINFO_DTS_NO) && !defined(MEDIAINFO_DTS_YES)
     #define MEDIAINFO_DTS_YES

@@ -39,7 +39,6 @@ distribution.
 //[-] FlylinkDC++ Team #include <cstdio>
 //[-] FlylinkDC++ Team #include <cstdlib>
 //[-] FlylinkDC++ Team #include <cstring>
-#   include <cstdarg>
 #endif
 #include <stdint.h>
 
@@ -73,8 +72,8 @@ distribution.
 #   else
 #       define TINYXML2_LIB
 #   endif
-#elif __GNUC__ >= 4
-#   define TINYXML2_LIB __attribute__((visibility("default")))
+//#elif __GNUC__ >= 4
+//#   define TINYXML2_LIB __attribute__((visibility("default")))
 #else
 #   define TINYXML2_LIB
 #endif

@@ -746,6 +746,12 @@
     <ClCompile Include="Source\MediaInfo\Export\Export_Niso.cpp">
       <Filter>Source Files\Export</Filter>
     </ClCompile>
+    <ClCompile Include="Source\MediaInfo\Audio\File_Dsdiff.cpp">
+      <Filter>Source Files\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MediaInfo\Audio\File_Dsf.cpp">
+      <Filter>Source Files\Audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\MediaInfo\File__Analyse_Automatic.h">
@@ -1386,6 +1392,12 @@
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\Export\Export_Niso.h">
       <Filter>Header Files\Export</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\Audio\File_Dsdiff.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\Audio\File_Dsf.h">
+      <Filter>Header Files\Audio</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -175,6 +175,9 @@ public :
           void      ThousandsPoint_Set (const Ztring &NewValue);
           Ztring    ThousandsPoint_Get ();
 
+          void      CarriageReturnReplace_Set (const Ztring &NewValue);
+          Ztring    CarriageReturnReplace_Get ();
+
           void      StreamMax_Set (const ZtringListList &NewValue);
           Ztring    StreamMax_Get ();
 
@@ -284,12 +287,12 @@ public :
           void        AcquisitionDataOutputMode_Set (size_t Value);
           size_t      AcquisitionDataOutputMode_Get ();
     #endif //MEDIAINFO_EBUCORE_YES
-    #if defined(MEDIAINFO_EBUCORE_YES) || defined(MEDIAINFO_NISO_YES)
+    #if defined(MEDIAINFO_EBUCORE_YES) || defined(MEDIAINFO_NISO_YES) || MEDIAINFO_ADVANCED
           void        ExternalMetadata_Set (Ztring Value);
           Ztring      ExternalMetadata_Get ();
           void        ExternalMetaDataConfig_Set (Ztring Value);
           Ztring      ExternalMetaDataConfig_Get ();
-    #endif //MEDIAINFO_EBUCORE_YES || defined(MEDIAINFO_NISO_YES)
+    #endif //MEDIAINFO_EBUCORE_YES || defined(MEDIAINFO_NISO_YES) || MEDIAINFO_ADVANCED
 
     ZtringListList  SubFile_Config_Get ();
 
@@ -373,11 +376,11 @@ private :
     #if MEDIAINFO_ADVANCED
         bool        Format_Profile_Split;
     #endif //MEDIAINFO_ADVANCED
-    #if defined(MEDIAINFO_EBUCORE_YES) || defined(MEDIAINFO_NISO_YES)
+    #if defined(MEDIAINFO_EBUCORE_YES) || defined(MEDIAINFO_NISO_YES) || MEDIAINFO_ADVANCED
         size_t      AcquisitionDataOutputMode;
         Ztring      ExternalMetadata;
         Ztring      ExternalMetaDataConfig;
-    #endif //defined(MEDIAINFO_EBUCORE_YES) || defined(MEDIAINFO_NISO_YES)
+    #endif //defined(MEDIAINFO_EBUCORE_YES) || defined(MEDIAINFO_NISO_YES) || MEDIAINFO_ADVANCED
     size_t          Complete;
     size_t          BlockMethod;
 #ifdef FLY_MEDIAINFO_USE_INTERNET
@@ -411,6 +414,7 @@ private :
     Ztring          Quote;
     Ztring          DecimalPoint;
     Ztring          ThousandsPoint;
+    Ztring          CarriageReturnReplace;
     Translation     Language; //ex. : "KB;Ko"
     ZtringListList  Custom_View; //Definition of "General", "Video", "Audio", "Text", "Other", "Image"
     ZtringListList  Custom_View_Replace; //ToReplace;ReplaceBy

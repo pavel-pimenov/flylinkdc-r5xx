@@ -39,7 +39,13 @@ Ztring XML_Encode (const Ztring& Data)
             case __T('\''): Result+=__T("&apos;"); break;
             case __T('<'): Result+=__T("&lt;"); break;
             case __T('>'): Result+=__T("&gt;"); break;
-            default: Result+=Data[Pos];
+            case __T('\n'): Result+=__T("&#xA;"); break;
+            case __T('\r'):
+                Result+=__T("&#xA;");
+                if (Pos+1<Data.size() && Data[Pos+1]==__T('\n')) // translate the #xD #xA sequence to a single #xA character
+                    Pos++;
+            break;
+            default: if (Data[Pos]>=0x20) Result+=Data[Pos]; // Ignore others control characters
         }
     }
     return Result;
@@ -58,7 +64,13 @@ string XML_Encode (const string& Data)
             case '&': Result+="&amp;"; break;
             case '<': Result+="&lt;"; break;
             case '>': Result+="&gt;"; break;
-            default: Result+=Data[Pos];
+            case '\n': Result+="&#xA;"; break;
+            case '\r':
+                Result+="&#xA;";
+                if (Pos+1<Data.size() && Data[Pos+1]=='\n') // translate the #xD #xA sequence to a single #xA character
+                    Pos++;
+            break;
+            default: if (Data[Pos]>=0x20) Result+=Data[Pos]; // Ignore others control characters
         }
     }
     return Result;
@@ -90,16 +102,26 @@ string To_XML (Node& Cur_Node, const int& Level, bool Print_Header, bool Indent)
         Result+=string("<!-- Generated at "+TimeS.To_UTF8()+" by "+MediaInfoLib::Config.Info_Version_Get().To_UTF8()+" -->\n");
     }
 
-    if (Cur_Node.Name.empty())
+    if (Cur_Node.Name.empty() && Cur_Node.XmlCommentOut.empty())
         return Result;
 
     if (Level)
         Result+="\n";
 
-    if (Cur_Node.XmlCommentOut.size())
-        Result+=(Indent?string(Level, '\t'):string())+"<!-- "+Cur_Node.XmlCommentOut+"\n";
+    if (!Cur_Node.XmlCommentOut.empty())
+    {
+        Result+=(Indent?string(Level, '\t'):string(""))+"<!-- "+Cur_Node.XmlCommentOut;
 
-    Result+=(Indent?string(Level, '\t'):string())+"<"+Cur_Node.Name;
+        // If the node name is empty, just print the comment
+        if (Cur_Node.Name.empty())
+        {
+            Result += " -->";
+            return Result;
+        }
+        Result+="\n";
+    }
+
+    Result+=(Indent?string(Level, '\t'):string(""))+"<"+Cur_Node.Name;
 
     for (size_t Pos=0; Pos<Cur_Node.Attrs.size(); Pos++)
     {
@@ -114,7 +136,7 @@ string To_XML (Node& Cur_Node, const int& Level, bool Print_Header, bool Indent)
     {
         Result+=" />";
         if (Cur_Node.XmlCommentOut.size())
-            Result+="\n"+(Indent?string(Level, '\t'):string())+"-->";
+            Result+="\n"+(Indent?string(Level, '\t'):string(""))+"-->";
         return Result;
     }
 
@@ -123,7 +145,7 @@ string To_XML (Node& Cur_Node, const int& Level, bool Print_Header, bool Indent)
     if (Cur_Node.Value.size())
     {
         if (Cur_Node.Childs.size())
-            Result+="\n"+(Indent?string(Level+1, '\t'):string());
+            Result+="\n"+(Indent?string(Level+1, '\t'):string(""));
         Result+=XML_Encode(Cur_Node.Value);
     }
 
@@ -139,12 +161,12 @@ string To_XML (Node& Cur_Node, const int& Level, bool Print_Header, bool Indent)
             Cur_Node.Childs[Pos]=NULL;
         }
         Cur_Node.Childs.clear(); //Free memory
-        Result+="\n"+(Indent?string(Level, '\t'):string());
+        Result+="\n"+(Indent?string(Level, '\t'):string(""));
     }
 
     Result+="</"+Cur_Node.Name+">";
     if (Cur_Node.XmlCommentOut.size())
-        Result+="\n"+(Indent?string(Level, '\t'):string())+"-->";
+        Result+="\n"+(Indent?string(Level, '\t'):string(""))+"-->";
     if (!Level)
         Result+="\n";
 
@@ -181,7 +203,7 @@ string To_JSON_Attributes(Node& Cur_Node, const int& Level, bool Indent)
         if (Cur_Node.Attrs[Pos].first.empty() || Cur_Node.Attrs[Pos].first.substr(0, 5)=="xmlns" || Cur_Node.Attrs[Pos].first.substr(0, 3)=="xsi")
             continue;
 
-        Result+="\n"+(Indent?string(Level, '\t'):string())+"\"@"+Cur_Node.Attrs[Pos].first+"\": \""
+        Result+="\n"+(Indent?string(Level, '\t'):string(""))+"\"@"+Cur_Node.Attrs[Pos].first+"\": \""
                +JSON_Encode(Cur_Node.Attrs[Pos].second)+"\"";
 
         if (Pos<Cur_Node.Attrs.size()-1 || Cur_Node.Value.size() || Cur_Node.Childs.size())
@@ -213,7 +235,7 @@ string To_JSON_Elements(Node& Cur_Node, const int& Level, bool Indent)
         if (Cur_Node.Name.empty())
             continue;
 
-        Result+="\n"+(Indent?string(Level, '\t'):string())+"\""+Cur_Node.Childs[Pos]->Name+"\": ";
+        Result+="\n"+(Indent?string(Level, '\t'):string(""))+"\""+Cur_Node.Childs[Pos]->Name+"\": ";
 
         bool Multiple=Cur_Node.Childs[Pos]->Multiple;
         if (Multiple)
@@ -225,14 +247,14 @@ string To_JSON_Elements(Node& Cur_Node, const int& Level, bool Indent)
             if (!Cur_Node.Childs[Pos2])
                 continue;
 
-            Result+=(Indent?string(Level+1, '\t'):string())+"{";
+            Result+=(Indent?string(Level+1, '\t'):string(""))+"{";
             Result+=To_JSON_Attributes(*Cur_Node.Childs[Pos2], Level+2, Indent);
             Result+=To_JSON_Elements(*Cur_Node.Childs[Pos2], Level+2, Indent);
             Result+="\n";
 
             if(!Cur_Node.Childs[Pos2]->Value.empty())
-                Result+=(Indent?string(Level+2, '\t'):string())+"\"#value\": \""+JSON_Encode(Cur_Node.Childs[Pos2]->Value)+"\"\n";
-            Result+=(Indent?string(Level+1, '\t'):string())+"}";
+                Result+=(Indent?string(Level+2, '\t'):string(""))+"\"#value\": \""+JSON_Encode(Cur_Node.Childs[Pos2]->Value)+"\"\n";
+            Result+=(Indent?string(Level+1, '\t'):string(""))+"}";
 
             if (Pos2<Cur_Node.Childs.size()-1 && Cur_Node.Childs[Pos2]->Name==Cur_Node.Childs[Pos2+1]->Name)
                 Result+=",";
@@ -245,7 +267,7 @@ string To_JSON_Elements(Node& Cur_Node, const int& Level, bool Indent)
             Pos=Pos2;
         }
         if (Multiple)
-            Result+=(Indent?string(Level, '\t'):string())+"]";
+            Result+=(Indent?string(Level, '\t'):string(""))+"]";
 
         if (Pos<Cur_Node.Childs.size()-1 || !Cur_Node.Value.empty())
             Result+=",";
@@ -274,7 +296,7 @@ string To_JSON (Node& Cur_Node, const int& Level, bool Print_Header, bool Indent
     if (Print_Header)
         Result+="{\n";
 
-    Result+=(Indent?string(Level+1, '\t'):string())+"\""+Cur_Node.Name+"\": ";
+    Result+=(Indent?string(Level+1, '\t'):string(""))+"\""+Cur_Node.Name+"\": ";
 
     if (Cur_Node.Attrs.empty() && Cur_Node.Childs.empty() && !Cur_Node.Multiple)
     {
@@ -291,9 +313,9 @@ string To_JSON (Node& Cur_Node, const int& Level, bool Print_Header, bool Indent
     Result+=To_JSON_Attributes(Cur_Node, Level+2, Indent);
     Result+=To_JSON_Elements(Cur_Node, Level+2, Indent);
     if (!Cur_Node.Value.empty())
-        Result+="\n"+(Indent?string(Level+2, '\t'):string())+"\"#value\": \""+JSON_Encode(Cur_Node.Value)+"\"";
+        Result+="\n"+(Indent?string(Level+2, '\t'):string(""))+"\"#value\": \""+JSON_Encode(Cur_Node.Value)+"\"";
 
-    Result+="\n"+(Indent?string(Level+1, '\t'):string())+"}";
+    Result+="\n"+(Indent?string(Level+1, '\t'):string(""))+"}";
 
     if (Print_Header)
         Result+="\n}\n";
@@ -368,6 +390,8 @@ bool Parse_XML(const ZtringList& Parents, const Ztring& PlaceHolder, const XMLNo
 //---------------------------------------------------------------------------
 bool ExternalMetadata(const Ztring& FileName, const Ztring& ExternalMetadata, const Ztring& ExternalMetaDataConfig, const ZtringList& Parents, const Ztring& PlaceHolder, Node* Main, Node* MI_Info)
 {
+    if (ExternalMetaDataConfig.empty()) // ExternalMetadata is used in export only if there is ExternalMetadata config (= else it is another format)
+        return true;
 
     ZtringListList CSV;
     CSV.Separator_Set(0, EOL);
