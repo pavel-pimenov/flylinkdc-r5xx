@@ -706,6 +706,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		std::unordered_set<SearchInfo*> m_si_set;
 		FastCriticalSection m_si_set_cs;
 		std::unordered_map<HTREEITEM, std::vector<std::pair<SearchInfo*, string > > > m_filter_map;
+		CriticalSection m_filter_map_cs;
 		std::unordered_map<Search::TypeModes, HTREEITEM> m_tree_type;
 		bool m_is_expand_tree;
 		bool m_is_expand_sub_tree;

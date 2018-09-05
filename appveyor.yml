@@ -1,5 +1,5 @@
 image: 
-- Visual Studio 2015
+- Visual Studio 2017
 
 version: r504-{build}
 
@@ -10,5 +10,5 @@ configuration:
   - Release
 
 build:
-  project: FlylinkDC_2015.sln
+  project: FlylinkDC_2017.sln
   verbosity: minimal

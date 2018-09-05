@@ -270,7 +270,8 @@ enum eTypeSegment
 	e_autoAddSupportHub = 19,
 	e_autoAddFirstSupportHub = 20,
 	e_LastShareSize = 21,
-	e_autoAdd1251SupportHub = 22
+	e_autoAdd1251SupportHub = 22,
+	e_promoHubArray = 23
 };
 struct CFlyRegistryValue
 {

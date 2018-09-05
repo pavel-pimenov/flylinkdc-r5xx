@@ -1035,6 +1035,16 @@ void FavoriteManager::load()
 		dcdebug("FavoriteManager::load: %s\n", e.getError().c_str());
 	}
 	
+	if (g_count_hub == 0)
+	{
+		std::unordered_map<string, bool> l_is_promo_hub_exists;
+		for (const auto& p : CFlyServerConfig::g_promo_hubs[0])
+		{
+			l_is_promo_hub_exists[p] = false;
+		}
+		connectToAllVIPPromoHub(l_is_promo_hub_exists);
+		g_count_hub = 0;
+	}
 #ifdef USE_SUPPORT_HUB
 	if (BOOLSETTING(CONNECT_TO_SUPPORT_HUB) || g_count_hub == 0) // [+] SSA
 	{
@@ -1107,6 +1117,51 @@ void FavoriteManager::load()
 	}
 #endif // FLYLINKDC_USE_PROVIDER_RESOURCES
 }
+
+void FavoriteManager::connectToVIPPromoHub(const string& p_hub)
+{
+	if (!getFavoriteHubEntry(p_hub))
+	{
+		FavoriteHubEntry* e = new FavoriteHubEntry();
+		e->setConnect(true);
+		e->setEncoding(Text::g_code1251);
+		e->setDescription("VIP");
+		e->setServer(p_hub);
+		{
+			CFlyWriteLock(*g_csHubs);
+			g_favoriteHubs.push_back(e);
+		}
+	}
+	else
+	{
+		dcassert(0);
+	}
+}
+
+bool FavoriteManager::connectToAllVIPPromoHub(const std::unordered_map<string, bool>& p_is_promo_hub_exists)
+{
+	bool l_is_needSave = false;
+	string l_promo_hubs = CFlylinkDBManager::getInstance()->get_registry_variable_string(e_promoHubArray);
+	int l_count_vip = 0;
+	for (const auto& promo : p_is_promo_hub_exists)
+	{
+		if (promo.second == false && l_promo_hubs.find(promo.first) == string::npos)
+		{
+			if (!l_promo_hubs.empty())
+				l_promo_hubs += ',';
+			l_promo_hubs += promo.first;
+			CFlyServerJSON::pushError(92, "VIP add promo hub:" + promo.first);
+			l_is_needSave = true;
+			l_count_vip++;
+			FavoriteManager::connectToVIPPromoHub(promo.first);
+		}
+	}
+	if (l_count_vip)
+	{
+		CFlylinkDBManager::getInstance()->set_registry_variable_string(e_promoHubArray, l_promo_hubs);
+	}
+	return l_is_needSave;
+}
 void FavoriteManager::connectToFlySupportHub()
 {
 	if (!g_SupportsHubExist)
@@ -1172,6 +1227,11 @@ void FavoriteManager::load(SimpleXML& aXml
 	g_count_hub = 0;
 	static bool g_is_ISPDisableFlylinkDCSupportHub = false;
 	bool l_is_needSave = false;
+	std::unordered_map<string, bool> l_is_promo_hub_exists;
+	for (const auto& p : CFlyServerConfig::g_promo_hubs[0])
+	{
+		l_is_promo_hub_exists[p] = false;
+	}
 	{
 		CFlySafeGuard<uint16_t> l_satrt(g_dontSave);
 		//const int l_configVersion = Util::toInt(aXml.getChildAttrib("ConfigVersion"));// [+] IRainman fav options
@@ -1208,16 +1268,20 @@ void FavoriteManager::load(SimpleXML& aXml
 #ifdef _DEBUG
 				LogManager::message("Load favorites item: " + l_CurrentServerUrl);
 #endif
+				for (const auto& p : CFlyServerConfig::g_promo_hubs[0])
+				{
+					if (p == l_CurrentServerUrl)
+					{
+						l_is_promo_hub_exists[p] = true;
+					}
+				}
 				if (l_is_fly_hub_exists == false && l_CurrentServerUrl == CFlyServerConfig::g_support_hub)
 					l_is_fly_hub_exists = true;
 				if (
-				    //l_CurrentServerUrl.find("kurskhub.ru") != string::npos || // http://dchublist.ru/forum/viewtopic.php?p=24102#p24102
-				    // TODO l_CurrentServerUrl.find(".dchub.net") != string::npos ||
-#ifdef FLYLINKDC_USE_SUPPORT_HUB_EN
-				    l_CurrentServerUrl.find("tankafett.biz") != string::npos ||
+				    l_CurrentServerUrl.find(".kurskhub.ru") != string::npos || // http://dchublist.ru/forum/viewtopic.php?p=24102#p24102
 				    l_CurrentServerUrl.find(".dchub.net") != string::npos ||
 				    l_CurrentServerUrl.find(".dchublist.biz") != string::npos ||
-#endif
+				    l_CurrentServerUrl.find(".dchublists.com") != string::npos ||
 				    CFlyServerConfig::g_block_hubs.count(l_CurrentServerUrl))
 				{
 					CFlyServerJSON::pushError(35, "Block hub: " + l_CurrentServerUrl);
@@ -1482,6 +1546,9 @@ void FavoriteManager::load(SimpleXML& aXml
 			//
 			aXml.stepOut();
 		}
+		//VIP Promo
+		l_is_needSave |= connectToAllVIPPromoHub(l_is_promo_hub_exists);
+		
 		if (g_count_hub == 0 && g_is_ISPDisableFlylinkDCSupportHub == false)
 		{
 			CFlyServerJSON::pushError(45, "Promo hub (First!):" + CFlyServerConfig::g_support_hub);

@@ -700,33 +700,33 @@ void HubFrame::onInvalidateAfterActiveTab(HWND aWnd)
 }
 
 HubFrame* HubFrame::openHubWindow(bool p_is_auto_connect,
-                               const string& p_server,
-                               const string& p_name,
-                               const string& p_rawOne,
-                               const string& p_rawTwo,
-                               const string& p_rawThree,
-                               const string& p_rawFour,
-                               const string& p_rawFive,
-                               int  p_windowposx,
-                               int  p_windowposy,
-                               int  p_windowsizex,
-                               int  p_windowsizey,
-                               int  p_windowtype,
-                               int  p_ChatUserSplit,
-                               bool p_UserListState,
-                               bool p_SuppressChatAndPM
-                               // bool p_ChatUserSplitState,
-                               //const string& p_ColumsOrder,
-                               //const string& p_ColumsWidth,
-                               //const string& p_ColumsVisible
-                              )
+                                  const string& p_server,
+                                  const string& p_name,
+                                  const string& p_rawOne,
+                                  const string& p_rawTwo,
+                                  const string& p_rawThree,
+                                  const string& p_rawFour,
+                                  const string& p_rawFive,
+                                  int  p_windowposx,
+                                  int  p_windowposy,
+                                  int  p_windowsizex,
+                                  int  p_windowsizey,
+                                  int  p_windowtype,
+                                  int  p_ChatUserSplit,
+                                  bool p_UserListState,
+                                  bool p_SuppressChatAndPM
+                                  // bool p_ChatUserSplitState,
+                                  //const string& p_ColumsOrder,
+                                  //const string& p_ColumsWidth,
+                                  //const string& p_ColumsVisible
+                                 )
 {
 	CFlyLock(g_frames_cs);
 	HubFrame* frm;
 	const auto i = g_frames.find(p_server);
 	if (i == g_frames.end())
 	{
-
+	
 		for (const auto j : CFlyServerConfig::g_block_hubs_mask)
 		{
 			if (p_server.find(j) != string::npos)
@@ -735,7 +735,7 @@ HubFrame* HubFrame::openHubWindow(bool p_is_auto_connect,
 				return nullptr;
 			}
 		}
-
+		
 		frm = new HubFrame(p_is_auto_connect,
 		                   p_server,
 		                   p_name,
@@ -1471,6 +1471,9 @@ void HubFrame::removeUser(const OnlineUserPtr& p_ou)
 
 void HubFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, const bool bHistory /*= true*/, const CHARFORMAT2& cf /*= WinUtil::m_ChatTextSystem*/)
 {
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
 	if (!isSupressChatAndPM())
 	{
 		BaseChatFrame::addStatus(aLine, bInChat, bHistory, cf);
@@ -1747,7 +1750,10 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 #endif
 void HubFrame::updateUserJoin(const OnlineUserPtr& p_ou)
 {
-	if (!ClientManager::isBeforeShutdown() && isConnected())
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
+	if (isConnected())
 	{
 		if (updateUser(p_ou, -1))
 		{
@@ -2162,6 +2168,9 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 
 void HubFrame::updateWindowText()
 {
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
 	if (ClientManager::isStartup() == false) // Пока конструируемся не нужно апдейтить текст
 	{
 		if (m_is_window_text_update)
@@ -2179,7 +2188,9 @@ void HubFrame::updateWindowText()
 
 void HubFrame::setWindowTitle(const string& p_text)
 {
-	dcassert(!ClientManager::isBeforeShutdown());
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
 	if (m_window_text != p_text || m_is_window_text_update == 0)
 	{
 		m_window_text = p_text;
@@ -2219,7 +2230,7 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 				szCipherLen = WinUtil::getTextWidth(strCipher, m_ctrlStatus->m_hWnd);
 			}
 			int HubPic = 0;
-			int l_hubIcoSize;   // Ширина иконки режима
+			int l_hubIcoSize = 0;   // Ширина иконки режима
 #ifdef SCALOLAZ_HUB_MODE
 			if (BOOLSETTING(ENABLE_HUBMODE_PIC))
 			{
@@ -2409,6 +2420,9 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 }
 void HubFrame::TuneSplitterPanes()
 {
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
 	if (isSupressChatAndPM())
 	{
 		m_nProportionalPos = 0;
@@ -2476,7 +2490,6 @@ void HubFrame::HubModeChange()
 #endif // SCALOLAZ_HUB_MODE
 void HubFrame::storeColumsInfo()
 {
-
 	string l_order, l_width, l_visible;
 	if (m_isUpdateColumnsInfoProcessed)
 	{
@@ -3371,10 +3384,16 @@ void HubFrame::closeAll(size_t thershold)
 }
 void HubFrame::on(FavoriteManagerListener::UserAdded, const FavoriteUser& /*aUser*/) noexcept
 {
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
 	resortForFavsFirst();
 }
 void HubFrame::on(FavoriteManagerListener::UserRemoved, const FavoriteUser& /*aUser*/) noexcept
 {
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
 	resortForFavsFirst();
 }
 void HubFrame::resortForFavsFirst(bool justDoIt /* = false */)
@@ -3480,16 +3499,18 @@ void HubFrame::timer_process_internal()
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 LRESULT HubFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
-	if (!ClientManager::isBeforeShutdown())
-	{
-		timer_process_internal();
-	}
+	if (isClosedOrShutdown())
+		return 0;
+	timer_process_internal();
 	return 0;
 }
 #endif
 
 void HubFrame::on(Connecting, const Client*) noexcept
 {
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 	bool bWantAutodetect = false;
 	if (!ClientManager::isActive(FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl()), bWantAutodetect))
@@ -3523,7 +3544,10 @@ void HubFrame::on(Connecting, const Client*) noexcept
 }
 void HubFrame::on(ClientListener::Connected, const Client* c) noexcept
 {
-
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
+		
 #if 0
 	if (!m_client->isActive())
 	{
@@ -3545,8 +3569,10 @@ void HubFrame::on(ClientListener::Connected, const Client* c) noexcept
 
 void HubFrame::on(ClientListener::DDoSSearchDetect, const string&) noexcept
 {
-	dcassert(!ClientManager::isBeforeShutdown());
-	if (m_is_ddos_detect == false && !ClientManager::isBeforeShutdown())
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
+	if (m_is_ddos_detect == false)
 	{
 		setCustomIcon(*WinUtil::g_HubDDoSIcon.get());
 		m_is_ddos_detect = true;
@@ -3576,11 +3602,10 @@ void HubFrame::flickerVirusIcon()
 }
 void HubFrame::on(ClientListener::UserDescUpdated, const OnlineUserPtr& user) noexcept
 {
-	dcassert(!ClientManager::isBeforeShutdown());
-	if (!isClosedOrShutdown())
-	{
-		speak(UPADTE_COLUMN_DESC, user);
-	}
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
+	speak(UPADTE_COLUMN_DESC, user);
 }
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 void HubFrame::on(ClientListener::UserShareUpdated, const OnlineUserPtr& user) noexcept
@@ -3594,8 +3619,6 @@ void HubFrame::on(ClientListener::UserShareUpdated, const OnlineUserPtr& user) n
 #endif
 void HubFrame::on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr& user) noexcept   // !SMT!-fix
 {
-	// TODO - добавить команду первого входа юзера
-	// dcassert(!ClientManager::isBeforeShutdown());
 	if (!isClosedOrShutdown())
 	{
 #ifdef FLYLINKDC_UPDATE_USER_JOIN_USE_WIN_MESSAGES_Q
@@ -3616,11 +3639,16 @@ void HubFrame::on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr& user) 
 
 void HubFrame::on(ClientListener::StatusMessage, const Client*, const string& line, int statusFlags) noexcept
 {
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
 	speak(ADD_STATUS_LINE, Text::toDOS(line), !BOOLSETTING(FILTER_MESSAGES) || !(statusFlags & ClientListener::FLAG_IS_SPAM));
 }
 
 void HubFrame::on(ClientListener::UsersUpdated, const Client*, const OnlineUserList& aList) noexcept
 {
+	if (isClosedOrShutdown())
+		return;
 	for (auto i = aList.cbegin(); i != aList.cend(); ++i)
 	{
 		speak(UPDATE_USER, *i);
@@ -3631,6 +3659,9 @@ void HubFrame::on(ClientListener::UsersUpdated, const Client*, const OnlineUserL
 }
 void HubFrame::on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr& user) noexcept
 {
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
 #ifdef FLYLINKDC_REMOVE_USER_WIN_MESSAGES_Q
 	const auto l_ou_ptr = new OnlineUserPtr(user);
 	PostMessage(WM_SPEAKER_REMOVE_USER, WPARAM(l_ou_ptr));
@@ -3705,11 +3736,9 @@ void HubFrame::on(Redirect, const Client*, const string& line) noexcept
 }
 void HubFrame::on(ClientListener::ClientFailed, const Client* c, const string& line) noexcept
 {
-	if (!ClientManager::isBeforeShutdown())
+	if (!isClosedOrShutdown())
 	{
 		speak(ADD_STATUS_LINE, "[Hub = " + c->getHubUrl() + "] " + line);
-		// speak(WM_SPEAKER_DISCONNECTED, nullptr);
-		//PostMessage(WM_SPEAKER_DISCONNECTED);
 	}
 	speak(DISCONNECTED);
 #ifdef FLYLINKDC_USE_CHAT_BOT
@@ -3738,6 +3767,9 @@ void HubFrame::setShortHubName(const tstring& p_name)
 }
 void HubFrame::onTimerHubUpdated()
 {
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
 	if (m_client && m_is_hub_param_update)
 	{
 		ctrlClient.setHubParam(m_client->getHubUrl(), m_client->getMyNick());
@@ -3797,6 +3829,9 @@ void HubFrame::on(ClientListener::HubUpdated, const Client*) noexcept
 
 void HubFrame::on(ClientListener::Message, const Client*,  std::unique_ptr<ChatMessage>& message) noexcept
 {
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
 	const auto l_message_ptr = message.release();
 #ifdef _DEBUG
 	if (l_message_ptr->m_text.find("&#124") != string::npos)
@@ -3824,6 +3859,8 @@ void HubFrame::on(ClientListener::Message, const Client*,  std::unique_ptr<ChatM
 }
 void HubFrame::on(ClientListener::HubFull, const Client*) noexcept
 {
+	if (isClosedOrShutdown())
+		return;
 	speak(ADD_STATUS_LINE, STRING(HUB_FULL), true);
 }
 static string getRandomSuffix()
@@ -3837,6 +3874,8 @@ static string getRandomSuffix()
 }
 void HubFrame::on(ClientListener::NickTaken) noexcept
 {
+	if (isClosedOrShutdown())
+		return;
 	const string l_my_nick = m_client->getMyNick();
 	speak(ADD_STATUS_LINE, STRING(NICK_TAKEN) + " (Nick = " + l_my_nick + ")", true);
 	auto l_fe = FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl());
@@ -3881,12 +3920,17 @@ void HubFrame::on(ClientListener::NickTaken) noexcept
 }
 void HubFrame::on(ClientListener::CheatMessage, const string& line) noexcept
 {
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
 	speak(CHEATING_USER, line, true);
 	//const auto l_message_ptr = new string(line);
 	//PostMessage(WM_SPEAKER_CHEATING_USER, WPARAM(l_message_ptr));
 }
 void HubFrame::on(ClientListener::UserReport, const Client*, const string& report) noexcept // [+] IRainman
 {
+	if (isClosedOrShutdown())
+		return;
 	speak(USER_REPORT, report, true);
 	//const auto l_message_ptr = new string(report);
 	//PostMessage(WM_SPEAKER_USER_REPORT, WPARAM(l_message_ptr));
@@ -3900,6 +3944,8 @@ void HubFrame::on(ClientListener::HubTopic, const Client*, const string& line) n
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 void HubFrame::on(OpenTCPPortDetected, const string& strHubUrl)  noexcept
 {
+	if (isClosedOrShutdown())
+		return;
 	if (m_client && m_client->getHubUrl() == strHubUrl)
 	{
 		speak(OPEN_TCP_PORT_DETECTED, strHubUrl, true);
@@ -4211,7 +4257,6 @@ void HubFrame::handleTab(bool reverse)
 
 bool HubFrame::matchFilter(UserInfo& ui, int sel, bool doSizeCompare, FilterModes mode, int64_t size)
 {
-
 	if (m_filter.empty())
 		return true;
 		
@@ -4310,13 +4355,14 @@ void HubFrame::appendHubAndUsersItems(OMenu& p_menu, const bool isChat)
 	}
 	else
 	{
-		// Muze byt vice nicku
 		if (!isChat)
 		{
-			// Pocet oznacenych
-			int iCount = m_ctrlUsers->GetSelectedCount();
+			const int iCount = m_ctrlUsers->GetSelectedCount();
 			p_menu.InsertSeparatorFirst(Util::toStringW(iCount) + _T(' ') + TSTRING(HUB_USERS));
-			appendAndActivateUserItems(p_menu, false);
+			if (iCount < 50) // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1712
+			{
+				appendAndActivateUserItems(p_menu, false);
+			}
 		}
 	}
 	
@@ -4405,7 +4451,6 @@ LRESULT HubFrame::onAddNickToChat(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 {
 	if (isConnected())
 	{
-	
 		if (getSelectedUser())
 		{
 			m_lastUserName = getSelectedUser()->getIdentity().getNickT();// SSA_SAVE_LAST_NICK_MACROS
@@ -4508,8 +4553,10 @@ LRESULT HubFrame::onStyleChanged(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
 void HubFrame::on(SettingsManagerListener::Repaint)
 {
-	dcassert(!ClientManager::isBeforeShutdown());
-	if (m_ctrlUsers && !ClientManager::isBeforeShutdown())
+	dcassert(!isClosedOrShutdown());
+	if (isClosedOrShutdown())
+		return;
+	if (m_ctrlUsers)
 	{
 		m_ctrlUsers->SetImageList(g_userImage.getIconList(), LVSIL_SMALL);
 		//!!!!m_ctrlUsers->SetImageList(g_userStateImage.getIconList(), LVSIL_STATE);
@@ -4526,6 +4573,8 @@ void HubFrame::on(SettingsManagerListener::Repaint)
 LRESULT HubFrame::onSizeMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	bHandled = FALSE;
+	if (isClosedOrShutdown())
+		return 0;
 	if (ctrlClient.IsWindow())
 	{
 		ctrlClient.GoToEnd(false);
@@ -4539,12 +4588,9 @@ LRESULT HubFrame::onSizeMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
 LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
-	//dcassert(ClientManager::isStartup() != true);
-	if (ClientManager::isStartup() == true)
-	{
+	if (isClosedOrShutdown())
 		return CDRF_DODEFAULT;
-	}
-	if (ClientManager::isBeforeShutdown() == true)
+	if (ClientManager::isStartup() == true)
 	{
 		return CDRF_DODEFAULT;
 	}

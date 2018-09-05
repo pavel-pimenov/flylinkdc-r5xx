@@ -221,6 +221,8 @@
 #define IDR_TRACKER_IMAGES              332
 #define IDR_VIP_HMN_PP                  333
 #define IDR_VIP_ICO_MILLENIUM           334
+#define IDR_VIP_ICO_A_GALAXY            335
+#define IDR_VIP_KCAHDER					336
 
 #define IDR_ICON_XXX_BLOCK              999
 #define IDC_FILETYPES                   1000

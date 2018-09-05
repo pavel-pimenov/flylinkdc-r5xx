@@ -3054,9 +3054,11 @@ IDR_VIP_ICO_PRIME       ICON                    "res\\vip_prime.ico"
 
 IDR_VIP_ICO_MILLENIUM   ICON                    "res\\vip_millennium.ico"
 
+IDR_VIP_ICO_A_GALAXY	ICON                    "res\\vip_a_galaxy.ico"
+
 IDR_VIP_ICO_PERSEUS     ICON                    "res\\vip_perseus.ico"
 
-IDR_VIP_ICO_ALLAVTOVO   ICON                    "res\\vip_allavtovo.ico"
+IDR_VIP_ICO_ALLAVTOVO   ICON                    "res\\vip_piter.ico"
 
 IDR_VIP_ICO_KOROBKA     ICON                    "res\\vip_korobka.ico"
 
@@ -3075,6 +3077,8 @@ IDR_VIP_ICO_ADRENALIN   ICON                    "res\\vip_adrenalin.ico"
 IDR_VIP_ICO_GODC        ICON                    "res\\vip_godc.ico"
 
 IDR_VIP_ZHIGANDC        ICON                    "res\\vip_zhigandc.ico"
+
+IDR_VIP_KCAHDER        ICON                    "res\\vip_kcahdep.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////

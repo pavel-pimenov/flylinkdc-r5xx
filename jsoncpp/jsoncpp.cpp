@@ -346,8 +346,8 @@ bool Reader::parse(const std::string& document,
   return parse(begin, end, root, collectComments);
 }
 
-bool Reader::parse(std::istream& sin, Value& root, bool collectComments) {
-  // std::istream_iterator<char> begin(sin);
+bool Reader::parse(std::istream& is, Value& root, bool collectComments) {
+  // std::istream_iterator<char> begin(is);
   // std::istream_iterator<char> end;
   // Those would allow streamed input from a file, if parse() were a
   // template function.
@@ -355,7 +355,7 @@ bool Reader::parse(std::istream& sin, Value& root, bool collectComments) {
   // Since JSONCPP_STRING is reference-counted, this at least does not
   // create an extra copy.
   JSONCPP_STRING doc;
-  std::getline(sin, doc, (char)EOF);
+  std::getline(is, doc, (char)EOF);
   return parse(doc.data(), doc.data() + doc.size(), root, collectComments);
 }
 
@@ -694,12 +694,12 @@ bool Reader::readString() {
   return c == '"';
 }
 
-bool Reader::readObject(Token& tokenStart) {
+bool Reader::readObject(Token& token) {
   Token tokenName;
   JSONCPP_STRING name;
   Value init(objectValue);
   currentValue().swapPayload(init);
-  currentValue().setOffsetStart(tokenStart.start_ - begin_);
+  currentValue().setOffsetStart(token.start_ - begin_);
   while (readToken(tokenName)) {
     bool initialTokenOk = true;
     while (tokenName.type_ == tokenComment && initialTokenOk)
@@ -750,10 +750,10 @@ bool Reader::readObject(Token& tokenStart) {
                             tokenObjectEnd);
 }
 
-bool Reader::readArray(Token& tokenStart) {
+bool Reader::readArray(Token& token) {
   Value init(arrayValue);
   currentValue().swapPayload(init);
-  currentValue().setOffsetStart(tokenStart.start_ - begin_);
+  currentValue().setOffsetStart(token.start_ - begin_);
   skipSpaces();
   if (current_ != end_ && *current_ == ']') // empty array
   {
@@ -770,19 +770,19 @@ bool Reader::readArray(Token& tokenStart) {
     if (!ok) // error already set
       return recoverFromError(tokenArrayEnd);
 
-    Token token;
+    Token currentToken;
     // Accept Comment after last item in the array.
-    ok = readToken(token);
-    while (token.type_ == tokenComment && ok) {
-      ok = readToken(token);
+    ok = readToken(currentToken);
+    while (currentToken.type_ == tokenComment && ok) {
+      ok = readToken(currentToken);
     }
-    bool badTokenType =
-        (token.type_ != tokenArraySeparator && token.type_ != tokenArrayEnd);
+    bool badTokenType = (currentToken.type_ != tokenArraySeparator &&
+                         currentToken.type_ != tokenArrayEnd);
     if (!ok || badTokenType) {
       return addErrorAndRecover("Missing ',' or ']' in array declaration",
-                                token, tokenArrayEnd);
+                                currentToken, tokenArrayEnd);
     }
-    if (token.type_ == tokenArrayEnd)
+    if (currentToken.type_ == tokenArrayEnd)
       break;
   }
   return true;
@@ -940,8 +940,8 @@ bool Reader::decodeUnicodeCodePoint(Token& token,
       return addError(
           "additional six characters expected to parse unicode surrogate pair.",
           token, current);
-    unsigned int surrogatePair;
     if (*(current++) == '\\' && *(current++) == 'u') {
+      unsigned int surrogatePair;
       if (decodeUnicodeEscapeSequence(token, current, end, surrogatePair)) {
         unicode = 0x10000 + ((unicode & 0x3FF) << 10) + (surrogatePair & 0x3FF);
       } else
@@ -1684,12 +1684,12 @@ bool OurReader::readStringSingleQuote() {
   return c == '\'';
 }
 
-bool OurReader::readObject(Token& tokenStart) {
+bool OurReader::readObject(Token& token) {
   Token tokenName;
   JSONCPP_STRING name;
   Value init(objectValue);
   currentValue().swapPayload(init);
-  currentValue().setOffsetStart(tokenStart.start_ - begin_);
+  currentValue().setOffsetStart(token.start_ - begin_);
   while (readToken(tokenName)) {
     bool initialTokenOk = true;
     while (tokenName.type_ == tokenComment && initialTokenOk)
@@ -1746,10 +1746,10 @@ bool OurReader::readObject(Token& tokenStart) {
                             tokenObjectEnd);
 }
 
-bool OurReader::readArray(Token& tokenStart) {
+bool OurReader::readArray(Token& token) {
   Value init(arrayValue);
   currentValue().swapPayload(init);
-  currentValue().setOffsetStart(tokenStart.start_ - begin_);
+  currentValue().setOffsetStart(token.start_ - begin_);
   skipSpaces();
   if (current_ != end_ && *current_ == ']') // empty array
   {
@@ -1766,19 +1766,19 @@ bool OurReader::readArray(Token& tokenStart) {
     if (!ok) // error already set
       return recoverFromError(tokenArrayEnd);
 
-    Token token;
+    Token currentToken;
     // Accept Comment after last item in the array.
-    ok = readToken(token);
-    while (token.type_ == tokenComment && ok) {
-      ok = readToken(token);
+    ok = readToken(currentToken);
+    while (currentToken.type_ == tokenComment && ok) {
+      ok = readToken(currentToken);
     }
-    bool badTokenType =
-        (token.type_ != tokenArraySeparator && token.type_ != tokenArrayEnd);
+    bool badTokenType = (currentToken.type_ != tokenArraySeparator &&
+                         currentToken.type_ != tokenArrayEnd);
     if (!ok || badTokenType) {
       return addErrorAndRecover("Missing ',' or ']' in array declaration",
-                                token, tokenArrayEnd);
+                                currentToken, tokenArrayEnd);
     }
-    if (token.type_ == tokenArrayEnd)
+    if (currentToken.type_ == tokenArrayEnd)
       break;
   }
   return true;
@@ -1960,8 +1960,8 @@ bool OurReader::decodeUnicodeCodePoint(Token& token,
       return addError(
           "additional six characters expected to parse unicode surrogate pair.",
           token, current);
-    unsigned int surrogatePair;
     if (*(current++) == '\\' && *(current++) == 'u') {
+      unsigned int surrogatePair;
       if (decodeUnicodeEscapeSequence(token, current, end, surrogatePair)) {
         unicode = 0x10000 + ((unicode & 0x3FF) << 10) + (surrogatePair & 0x3FF);
       } else
@@ -2702,15 +2702,15 @@ void Value::CommentInfo::setComment(const char* text, size_t len) {
 // Notes: policy_ indicates if the string was allocated when
 // a string is stored.
 
-Value::CZString::CZString(ArrayIndex aindex) : cstr_(0), index_(aindex) {}
+Value::CZString::CZString(ArrayIndex index) : cstr_(0), index_(index) {}
 
 Value::CZString::CZString(char const* str,
-                          unsigned ulength,
+                          unsigned length,
                           DuplicationPolicy allocate)
     : cstr_(str) {
   // allocate != duplicate
   storage_.policy_ = allocate & 0x3;
-  storage_.length_ = ulength & 0x3FFFFFFF;
+  storage_.length_ = length & 0x3FFFFFFF;
 }
 
 Value::CZString::CZString(const CZString& other) {
@@ -2818,10 +2818,10 @@ bool Value::CZString::isStaticString() const {
  * memset( this, 0, sizeof(Value) )
  * This optimization is used in ValueInternalMap fast allocator.
  */
-Value::Value(ValueType vtype) {
+Value::Value(ValueType type) {
   static char const emptyString[] = "";
-  initBasic(vtype);
-  switch (vtype) {
+  initBasic(type);
+  switch (type) {
   case nullValue:
     break;
   case intValue:
@@ -2879,10 +2879,10 @@ Value::Value(const char* value) {
       value, static_cast<unsigned>(strlen(value)));
 }
 
-Value::Value(const char* beginValue, const char* endValue) {
+Value::Value(const char* begin, const char* end) {
   initBasic(stringValue, true);
-  value_.string_ = duplicateAndPrefixStringValue(
-      beginValue, static_cast<unsigned>(endValue - beginValue));
+  value_.string_ =
+      duplicateAndPrefixStringValue(begin, static_cast<unsigned>(end - begin));
 }
 
 Value::Value(const JSONCPP_STRING& value) {
@@ -3106,14 +3106,14 @@ unsigned Value::getCStringLength() const {
 }
 #endif
 
-bool Value::getString(char const** str, char const** cend) const {
+bool Value::getString(char const** begin, char const** end) const {
   if (type_ != stringValue)
     return false;
   if (value_.string_ == 0)
     return false;
   unsigned length;
-  decodePrefixedString(this->allocated_, this->value_.string_, &length, str);
-  *cend = *str + length;
+  decodePrefixedString(this->allocated_, this->value_.string_, &length, begin);
+  *end = *begin + length;
   return true;
 }
 
@@ -3464,8 +3464,8 @@ const Value& Value::operator[](int index) const {
   return (*this)[ArrayIndex(index)];
 }
 
-void Value::initBasic(ValueType vtype, bool allocated) {
-  type_ = vtype;
+void Value::initBasic(ValueType type, bool allocated) {
+  type_ = type;
   allocated_ = allocated;
   comments_ = 0;
   start_ = 0;
@@ -3562,13 +3562,13 @@ Value& Value::resolveReference(const char* key) {
 }
 
 // @param key is not null-terminated.
-Value& Value::resolveReference(char const* key, char const* cend) {
+Value& Value::resolveReference(char const* key, char const* end) {
   JSON_ASSERT_MESSAGE(
       type_ == nullValue || type_ == objectValue,
       "in Json::Value::resolveReference(key, end): requires objectValue");
   if (type_ == nullValue)
     *this = Value(objectValue);
-  CZString actualKey(key, static_cast<unsigned>(cend - key),
+  CZString actualKey(key, static_cast<unsigned>(end - key),
                      CZString::duplicateOnCopy);
   ObjectValues::iterator it = value_.map_->lower_bound(actualKey);
   if (it != value_.map_->end() && (*it).first == actualKey)
@@ -3587,13 +3587,13 @@ Value Value::get(ArrayIndex index, const Value& defaultValue) const {
 
 bool Value::isValidIndex(ArrayIndex index) const { return index < size(); }
 
-Value const* Value::find(char const* key, char const* cend) const {
+Value const* Value::find(char const* begin, char const* end) const {
   JSON_ASSERT_MESSAGE(type_ == nullValue || type_ == objectValue,
                       "in Json::Value::find(key, end, found): requires "
                       "objectValue or nullValue");
   if (type_ == nullValue)
     return NULL;
-  CZString actualKey(key, static_cast<unsigned>(cend - key),
+  CZString actualKey(begin, static_cast<unsigned>(end - begin),
                      CZString::noDuplication);
   ObjectValues::const_iterator it = value_.map_->find(actualKey);
   if (it == value_.map_->end())
@@ -3645,10 +3645,10 @@ Value& Value::append(Value&& value) {
 }
 #endif
 
-Value Value::get(char const* key,
-                 char const* cend,
+Value Value::get(char const* begin,
+                 char const* end,
                  Value const& defaultValue) const {
-  Value const* found = find(key, cend);
+  Value const* found = find(begin, end);
   return !found ? defaultValue : *found;
 }
 Value Value::get(char const* key, Value const& defaultValue) const {
@@ -3658,11 +3658,11 @@ Value Value::get(JSONCPP_STRING const& key, Value const& defaultValue) const {
   return get(key.data(), key.data() + key.length(), defaultValue);
 }
 
-bool Value::removeMember(const char* key, const char* cend, Value* removed) {
+bool Value::removeMember(const char* begin, const char* end, Value* removed) {
   if (type_ != objectValue) {
     return false;
   }
-  CZString actualKey(key, static_cast<unsigned>(cend - key),
+  CZString actualKey(begin, static_cast<unsigned>(end - begin),
                      CZString::noDuplication);
   ObjectValues::iterator it = value_.map_->find(actualKey);
   if (it == value_.map_->end())
@@ -3704,6 +3704,7 @@ bool Value::removeIndex(ArrayIndex index, Value* removed) {
   if (it == value_.map_->end()) {
     return false;
   }
+  if (removed)
   *removed = it->second;
   ArrayIndex oldSize = size();
   // shift left all items left, into the place of the "removed"
@@ -3725,8 +3726,8 @@ Value Value::get(const CppTL::ConstString& key,
 }
 #endif
 
-bool Value::isMember(char const* key, char const* cend) const {
-  Value const* value = find(key, cend);
+bool Value::isMember(char const* begin, char const* end) const {
+  Value const* value = find(begin, end);
   return NULL != value;
 }
 bool Value::isMember(char const* key) const {
@@ -4540,7 +4541,7 @@ JSONCPP_STRING FastWriter::write(const Value& root) {
   document_.clear();
   writeValue(root);
   if (!omitEndingLineFeed_)
-    document_ += "\n";
+    document_ += '\n';
   return document_;
 }
 
@@ -4612,7 +4613,7 @@ JSONCPP_STRING StyledWriter::write(const Value& root) {
   writeCommentBeforeValue(root);
   writeValue(root);
   writeCommentAfterValueOnSameLine(root);
-  document_ += "\n";
+  document_ += '\n';
   return document_;
 }
 
@@ -4782,7 +4783,7 @@ void StyledWriter::writeCommentBeforeValue(const Value& root) {
   if (!root.hasComment(commentBefore))
     return;
 
-  document_ += "\n";
+  document_ += '\n';
   writeIndent();
   const JSONCPP_STRING& comment = root.getComment(commentBefore);
   JSONCPP_STRING::const_iterator iter = comment.begin();
@@ -4794,7 +4795,7 @@ void StyledWriter::writeCommentBeforeValue(const Value& root) {
   }
 
   // Comments are stripped of trailing newlines, so add one here
-  document_ += "\n";
+  document_ += '\n';
 }
 
 void StyledWriter::writeCommentAfterValueOnSameLine(const Value& root) {
@@ -4802,9 +4803,9 @@ void StyledWriter::writeCommentAfterValueOnSameLine(const Value& root) {
     document_ += " " + root.getComment(commentAfterOnSameLine);
 
   if (root.hasComment(commentAfter)) {
-    document_ += "\n";
+    document_ += '\n';
     document_ += root.getComment(commentAfter);
-    document_ += "\n";
+    document_ += '\n';
   }
 }
 
@@ -4817,7 +4818,7 @@ bool StyledWriter::hasCommentForValue(const Value& value) {
 // Class StyledStreamWriter
 // //////////////////////////////////////////////////////////////////
 
-StyledStreamWriter::StyledStreamWriter(JSONCPP_STRING indentation)
+StyledStreamWriter::StyledStreamWriter(const JSONCPP_STRING& indentation)
     : document_(NULL), rightMargin_(74), indentation_(indentation),
       addChildValues_(), indented_(false) {}
 
@@ -5419,10 +5420,10 @@ void StreamWriterBuilder::setDefaults(Json::Value* settings) {
   //! [StreamWriterBuilderDefaults]
 }
 
-JSONCPP_STRING writeString(StreamWriter::Factory const& builder,
+JSONCPP_STRING writeString(StreamWriter::Factory const& factory,
                            Value const& root) {
   JSONCPP_OSTRINGSTREAM sout;
-  StreamWriterPtr const writer(builder.newStreamWriter());
+  StreamWriterPtr const writer(factory.newStreamWriter());
   writer->write(root, &sout);
   return sout.str();
 }

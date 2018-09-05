@@ -43,8 +43,6 @@
 #include "libtorrent/magnet_uri.hpp"
 #endif
 
-
-
 std::unique_ptr<webrtc::RWLockWrapper> DownloadManager::g_csDownload = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 DownloadList DownloadManager::g_download_map;
 UserConnectionList DownloadManager::g_idlers;
@@ -124,15 +122,47 @@ void DownloadManager::shutdown_torrent()
 		{
 			Sleep(10);
 		}
-		for (auto s : m_torrents)
+#ifdef _DEBUG
+		int l_count = 0;
+#endif
+		for (auto i : m_torrents)
 		{
-			s.save_resume_data();
-			++m_torrent_resume_count;
+			const lt::torrent_status s = i.status();
+			if (lt::is_save_resume(s))
+			{
+				s.handle.save_resume_data();
+				++m_torrent_resume_count;
+#ifdef _DEBUG
+				LogManager::message("[start] save_resume_data. m_torrent_resume_count = " +
+				                    Util::toString(m_torrent_resume_count) + " l_count = " + Util::toString(++l_count));
+#endif
+			}
+			else
+			{
+#ifdef _DEBUG
+				LogManager::message("[skip] save_resume_data. m_torrent_resume_count = " +
+				                    Util::toString(m_torrent_resume_count) + " l_count = " + Util::toString(++l_count));
+#endif
+			}
 		}
-		int l_count = 40; // 4 сек
-		while (m_torrent_resume_count > 0 && l_count-- > 0)
+		while (m_torrent_resume_count > 0)
 		{
 			Sleep(100);
+			int l_count_need_save = 0;
+			for (auto i : m_torrents) // TODO - fix copy-paste
+			{
+				const lt::torrent_status s = i.status();
+				if (lt::is_save_resume(s)) // TODO https://github.com/qbittorrent/qBittorrent/pull/7569/files
+				{
+					l_count_need_save++;
+				}
+			}
+			LogManager::message("[sleep] wait m_torrent_resume_count = "
+			                    + Util::toString(m_torrent_resume_count) + " l_count_need_save = " + Util::toString(l_count_need_save));
+			if (l_count_need_save == 0)
+			{
+				break;
+			}
 		}
 		dcassert(m_torrent_resume_count == 0);
 		m_torrent_session.reset();
@@ -1277,16 +1307,16 @@ void DownloadManager::onTorrentAlertNotify(libtorrent::session* p_torrent_sesion
 							lt::torrent_status const& s = j;
 #ifdef _DEBUG
 							const std::string l_log = "[" + Util::toString(l_alert_pos) + " - "  + Util::toString(l_pos) + "] Status: " + st->message() + " [ " + s.save_path + "\\" + s.name
-							                                                + " ] Download: " + Util::toString(s.download_payload_rate / 1000) + " kB/s "
-							                                                + " ] Upload: " + Util::toString(s.upload_payload_rate / 1000) + " kB/s "
-							                                                + Util::toString(s.total_done / 1000) + " kB ("
-							                                                + Util::toString(s.progress_ppm / 10000) + "%) downloaded sha1: " + aux::to_hex(s.info_hash);
-							                            static std::string g_last_log;
-							                            if (g_last_log != l_log)
-							                            {
-							                                g_last_log = l_log;
-							                            }
-							                            LogManager::torrent_message(l_log, false);
+							                          + " ] Download: " + Util::toString(s.download_payload_rate / 1000) + " kB/s "
+							                          + " ] Upload: " + Util::toString(s.upload_payload_rate / 1000) + " kB/s "
+							                          + Util::toString(s.total_done / 1000) + " kB ("
+							                          + Util::toString(s.progress_ppm / 10000) + "%) downloaded sha1: " + aux::to_hex(s.info_hash);
+							static std::string g_last_log;
+							if (g_last_log != l_log)
+							{
+								g_last_log = l_log;
+							}
+							LogManager::torrent_message(l_log, false);
 #endif
 							l_pos++;
 							DownloadArray l_tickList;
@@ -1578,12 +1608,12 @@ void DownloadManager::init_torrent(bool p_is_force)
 		               | lt::alert::port_mapping_notification
 #define FLYLINKDC_USE_OLD_LIBTORRENT_R21298
 #ifdef FLYLINKDC_USE_OLD_LIBTORRENT_R21298
-					  | lt::alert::progress_notification
+		               | lt::alert::progress_notification
 #else
 		               | lt::alert::file_progress_notification
-					   | lt::alert::upload_notification
-			           //| lt::alert::piece_progress_notification
-			           | lt::alert::block_progress_notification
+		               | lt::alert::upload_notification
+		               //| lt::alert::piece_progress_notification
+		               | lt::alert::block_progress_notification
 #endif
 #ifdef _DEBUG
 		               //  | lt::alert::peer_notification

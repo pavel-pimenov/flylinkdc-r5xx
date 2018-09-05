@@ -2137,7 +2137,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 		bool m_before_close;
 		bool isClosedOrShutdown() const
 		{
-			return m_closed || m_before_close || ClientManager::isBeforeShutdown();
+			return m_before_close || m_closed || ClientManager::isBeforeShutdown();
 		}
 };
 

@@ -110,14 +110,15 @@ private:
 
 		LRESULT onClickedBrowseDir(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			tstring dir = getDir();
-			if (dir.size())
+			tstring l_dir = getDir();
+			if (l_dir.size())
 			{
-				if (WinUtil::browseDirectory(dir, m_hWnd))
+				if (WinUtil::browseDirectory(l_dir, m_hWnd))
 				{
-					AppendPathSeparator(dir);
-					SetDlgItemText(IDC_TORRENT_DOWNLOAD_DIR, dir.c_str());
-					m_dir = dir;
+					AppendPathSeparator(l_dir);
+					SetDlgItemText(IDC_TORRENT_DOWNLOAD_DIR, l_dir.c_str());
+					m_dir = l_dir;
+					SET_SETTING(DOWNLOAD_DIRECTORY, Text::fromT(l_dir));
 				}
 			}
 			return 0;

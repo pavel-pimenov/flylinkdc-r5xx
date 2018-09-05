@@ -3017,6 +3017,7 @@ LRESULT SearchFrame::onSelChangedTree(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 	m_CurrentTreeItem = p->itemNew.hItem;
 	CLockRedraw<> l_lock_draw(ctrlResults);
 	ctrlResults.DeleteAllItems();
+	CFlyLock(m_filter_map_cs);
 	const auto& l_filtered_item = m_filter_map[m_CurrentTreeItem];
 	if (l_filtered_item.empty() || m_CurrentTreeItem == m_RootTreeItem)
 	{
@@ -3065,6 +3066,7 @@ bool SearchFrame::is_filter_item(const SearchInfo* si)
 		if (si->m_is_torrent == false && si->m_sr.getType() == SearchResult::TYPE_FILE)
 		{
 			const auto l_file_ext = Text::toLower(Util::getFileExtWithoutDot(si->m_sr.getFileName()));
+			CFlyLock(m_filter_map_cs);
 			const auto& l_filtered_item = m_filter_map[m_CurrentTreeItem];
 			for (auto j = l_filtered_item.cbegin(); j != l_filtered_item.cend(); ++j)
 			{
@@ -3082,6 +3084,7 @@ bool SearchFrame::is_filter_item(const SearchInfo* si)
 			else
 				l_is_filter = false;
 			/*
+   		    CFlyLock(m_filter_map_cs);
 			const auto& l_filtered_item = m_filter_map[m_CurrentTreeItem];
 			for (auto j = l_filtered_item.cbegin(); j != l_filtered_item.cend(); ++j)
 			{
@@ -3131,7 +3134,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 			if (pp)
 			{
 				if (pp->parent && // fix https://drdump.com/DumpGroup.aspx?DumpGroupID=1052556
-					l_user->getCID() == pp->parent->getUser()->getCID() && sr.getFile() == pp->parent->m_sr.getFile())
+				        l_user->getCID() == pp->parent->getUser()->getCID() && sr.getFile() == pp->parent->m_sr.getFile())
 				{
 					check_delete(si);
 					return;
@@ -3198,11 +3201,14 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 				add_category(sr.m_group_name, "Categories", si, sr, SearchResult::TYPE_TORRENT_MAGNET, m_RootTorrentRSSTreeItem, true, true);
 			}
 			const auto l_marker = make_pair(si, ".torrent-magnet-top");
-			for (auto const &c : m_category_map)
 			{
-				m_filter_map[c.second].push_back(l_marker);
+				CFlyLock(m_filter_map_cs);
+				for (auto const &c : m_category_map)
+				{
+					m_filter_map[c.second].push_back(l_marker);
+				}
+				m_filter_map[m_RootTorrentRSSTreeItem].push_back(l_marker);
 			}
-			m_filter_map[m_RootTorrentRSSTreeItem].push_back(l_marker);
 		}
 		else
 		{
@@ -3267,7 +3273,14 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 							}
 							l_item = m_RootVirusTreeItem;
 							const auto l_marker = make_pair(si, l_file_ext);
+							CFlyLock(m_filter_map_cs);
 							m_filter_map[l_item].push_back(l_marker);
+						}
+						if (l_file_type == Search::TYPE_EXECUTABLE)
+						{
+							//const auto l_marker = make_pair(si, l_file_ext);
+							//CFlyLock(m_filter_map_cs);
+							//m_filter_map[l_type_node].push_back(l_marker);
 						}
 					}
 				}
@@ -3293,6 +3306,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 						l_item = l_ext_item->second;
 					}
 					const auto l_marker = make_pair(si, l_file_ext);
+					CFlyLock(m_filter_map_cs);
 					m_filter_map[l_item].push_back(l_marker);
 					m_filter_map[l_type_node].push_back(l_marker);
 				}
@@ -3418,11 +3432,14 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 					}
 				}
 				const auto l_marker = make_pair(si, ".torrent-magnet");
-				for (auto const &c : m_category_map)
 				{
-					m_filter_map[c.second].push_back(l_marker);
+					CFlyLock(m_filter_map_cs);
+					for (auto const &c : m_category_map)
+					{
+						m_filter_map[c.second].push_back(l_marker);
+					}
+					m_filter_map[l_torrent_node].push_back(l_marker);
 				}
-				m_filter_map[l_torrent_node].push_back(l_marker);
 			}
 		}
 #endif
@@ -3554,7 +3571,10 @@ HTREEITEM SearchFrame::add_category(const std::string p_search, const std::strin
 			l_item = l_sub_item->second;
 		}
 		const auto l_marker = make_pair(p_si, ".torrent-magnet");
-		m_filter_map[l_item].push_back(l_marker);
+		{
+			CFlyLock(m_filter_map_cs);
+			m_filter_map[l_item].push_back(l_marker);
+		}
 	}
 	return l_item;
 }
@@ -4655,7 +4675,10 @@ void SearchFrame::clear_tree_filter_contaners()
 	m_category_map.clear();
 	m_tree_ext_map.clear();
 	m_tree_sub_torrent_map.clear();
-	m_filter_map.clear();
+	{
+		CFlyLock(m_filter_map_cs);
+		m_filter_map.clear();
+	}
 	m_tree_type.clear();
 	m_CurrentTreeItem = nullptr;
 	m_OldTreeItem = nullptr;
@@ -4692,6 +4715,7 @@ void SearchFrame::updateSearchList(SearchInfo* p_si)
 	}
 	else
 	{
+		CFlyLock(m_filter_map_cs);
 		const auto& l_virus = m_filter_map[m_RootVirusTreeItem];
 		CLockRedraw<> l_lock_draw(ctrlResults);
 		ctrlResults.DeleteAllItems();

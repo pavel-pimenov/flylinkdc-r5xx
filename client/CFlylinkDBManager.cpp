@@ -2274,9 +2274,9 @@ void CFlylinkDBManager::load_transfer_historgam(bool p_is_torrent, eTypeTransfer
 //========================================================================================================
 std::string CFlylinkDBManager::get_purge_transfer_history(std::string p_table_name)
 {
-	const string l_sql = "delete from transfer_db."+ p_table_name +" where (type=1 and day<strftime('%s','now','localtime')/60/60/24-"
-		+ Util::toString(SETTING(DB_LOG_FINISHED_UPLOADS)) + ") or "
-		"(type=0 and day<strftime('%s','now','localtime')/60/60/24-" + Util::toString(SETTING(DB_LOG_FINISHED_DOWNLOADS)) + ")";
+	const string l_sql = "delete from transfer_db." + p_table_name + " where (type=1 and day<strftime('%s','now','localtime')/60/60/24-"
+	                     + Util::toString(SETTING(DB_LOG_FINISHED_UPLOADS)) + ") or "
+	                     "(type=0 and day<strftime('%s','now','localtime')/60/60/24-" + Util::toString(SETTING(DB_LOG_FINISHED_DOWNLOADS)) + ")";
 	return l_sql;
 }
 //========================================================================================================
@@ -2410,10 +2410,9 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 					CFlyFastLock(g_resume_torrents_cs);
 					g_resume_torrents.insert(l_sha1);
 				}
-				//p.resume_data.assign(l_resume.data(), l_resume.data() + l_resume.size());
 #ifdef _DEBUG
 				ec.clear();
-				p_session.async_add_torrent(p); // TODO sync for debug
+				p_session.async_add_torrent(std::move(p)); // TODO sync for debug
 				if (ec)
 				{
 					dcdebug("%s\n", ec.message().c_str());
@@ -2421,7 +2420,7 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 					LogManager::message("Error add_torrent_file: " + ec.message());
 				}
 #else
-				p_session.async_add_torrent(p);
+				p_session.async_add_torrent(std::move(p));
 #endif
 			}
 			else

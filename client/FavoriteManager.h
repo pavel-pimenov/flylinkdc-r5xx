@@ -407,6 +407,8 @@ class FavoriteManager : private Speaker<FavoriteManagerListener>,
 		void prepareClose();
 		void shutdown();
 		static void connectToFlySupportHub();
+		static bool connectToAllVIPPromoHub(const std::unordered_map<string, bool>& p_promo);
+		static void connectToVIPPromoHub(const string& p_hub);
 		
 		static void recentload(SimpleXML& aXml);
 		static void previewload(SimpleXML& aXml);

@@ -99,7 +99,7 @@ const Ztring &InfoMap::Get (const Ztring &Value, size_t Pos, const Ztring &WithV
         else
         {
             ++List; //The second one, this is a stupid hack for a 2 value, should be changed later...
-            if (List != end() && Pos<List->second.size())
+            if (List!=end() && Pos<List->second.size())
             {
                 if (List->second[WithValue_Pos]==WithValue)
                     return List->second[Pos];
@@ -131,8 +131,7 @@ void InfoMap::Write(const Ztring &NewInfoMap)
         Pos2_Separator=NewInfoMap.find(__T(';'), Pos1);
         if (Pos2_Separator<Pos2_EOL)
         {
-            ZtringList List; 
-            List.Write(NewInfoMap.substr(Pos1, Pos2_EOL-Pos1));
+            ZtringList List; List.Write(NewInfoMap.substr(Pos1, Pos2_EOL-Pos1));
             insert (pair<Ztring, ZtringList>(NewInfoMap.substr(Pos1, Pos2_Separator-Pos1), List));
         }
         Pos1=Pos2_EOL+1;

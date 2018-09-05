@@ -31,8 +31,8 @@ void UserInfoSimple::addSummaryMenu()
 	if (!getUser())
 		return;
 		
-	CWaitCursor l_cursor_wait; //-V808
-	
+//	CWaitCursor l_cursor_wait; //-V808
+
 	UserInfoGuiTraits::userSummaryMenu.InsertSeparatorLast(getUser()->getLastNickT());
 	
 	ClientManager::UserParams l_params;
@@ -57,23 +57,20 @@ void UserInfoSimple::addSummaryMenu()
 		if (!l_params.m_ip.empty())
 		{
 			UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, l_params.getTagIP().c_str());
-			
 			const Util::CustomNetworkIndex l_location = Util::getIpCountry(l_params.m_ip, true); // Не обращаемся в базу данных
 			const tstring loc = TSTRING(COUNTRY) + _T(": ") + l_location.getCountry() + _T(", ") + l_location.getDescription();
 			UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, loc.c_str());
-			
-			HubFrame::addDupeUsersToSummaryMenu(l_params);
 		}
 		else
 		{
 			UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, l_params.getTagIP().c_str());
-			HubFrame::addDupeUsersToSummaryMenu(l_params);
 		}
+		HubFrame::addDupeUsersToSummaryMenu(l_params);
 	}
 	
 	//UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_SEPARATOR);
 	
-	bool caption = false;
+	bool l_is_caption = false;
 	{
 		UploadManager::LockInstanceQueue lockedInstance;
 		const auto& users = lockedInstance->getUploadQueueL();
@@ -84,10 +81,10 @@ void UserInfoSimple::addSummaryMenu()
 				uint8_t l_count_menu = 0;
 				for (auto i = uit->m_waiting_files.cbegin(); i != uit->m_waiting_files.cend(); ++i)
 				{
-					if (!caption)
+					if (!l_is_caption)
 					{
 						UserInfoGuiTraits::userSummaryMenu.InsertSeparatorLast(TSTRING(USER_WAIT_MENU));
-						caption = true;
+						l_is_caption = true;
 					}
 					const tstring note =
 					    _T('[') +
@@ -106,7 +103,7 @@ void UserInfoSimple::addSummaryMenu()
 			}
 		}
 	}
-	caption = false;
+	l_is_caption = false;
 	{
 		uint8_t l_count_menu = 0;
 		RLock(*QueueItem::g_cs);
@@ -123,10 +120,10 @@ void UserInfoSimple::addSummaryMenu()
 			}
 			if (src || badsrc)
 			{
-				if (!caption)
+				if (!l_is_caption)
 				{
 					UserInfoGuiTraits::userSummaryMenu.InsertSeparatorLast(TSTRING(NEED_USER_FILES_MENU));
-					caption = true;
+					l_is_caption = true;
 				}
 				tstring note = Text::toT(aQI->getTarget());
 				if (aQI->getSize() > 0)
@@ -143,6 +140,7 @@ void UserInfoSimple::addSummaryMenu()
 			}
 		}
 	}
+	
 }
 // !SMT!-S
 tstring UserInfoSimple::getBroadcastPrivateMessage()

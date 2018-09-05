@@ -585,7 +585,13 @@ namespace libtorrent {
 		// reflects several of the torrent's flags. For more
 		// information, see ``torrent_handle::flags()``.
 		torrent_flags_t flags{};
+
 	};
+
+	inline bool is_save_resume(const libtorrent::torrent_status& st)
+	{
+		return st.handle.is_valid() && st.has_metadata && st.need_save_resume;
+	}
 }
 
 namespace std

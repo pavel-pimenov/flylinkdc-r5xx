@@ -720,7 +720,7 @@ namespace aux {
 		//		if (!h.is_valid()) continue;
 		//		torrent_status s = h.status();
 		//		if (!s.has_metadata) continue;
-		//		if (!s.need_save_resume_data()) continue;
+		//		if (!h.need_save_resume_data()) continue;
 		//
 		//		h.save_resume_data();
 		//		++outstanding_resume_data;
