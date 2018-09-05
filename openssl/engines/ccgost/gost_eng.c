@@ -274,4 +274,7 @@ void ENGINE_load_gost(void)
     ENGINE_free(toadd);
     ERR_clear_error();
 }
+#else
+IMPLEMENT_DYNAMIC_BIND_FN(bind_gost)
+IMPLEMENT_DYNAMIC_CHECK_FN()
 #endif
