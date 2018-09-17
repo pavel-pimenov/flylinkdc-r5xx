@@ -950,7 +950,7 @@ void ClientManager::infoUpdated(bool p_is_force /* = false*/)
 #ifdef _DEBUG
 	static int g_count = 0;
 	dcdebug("ClientManager::infoUpdated() count = %d\n", ++g_count);
-	LogManager::message("ClientManager::infoUpdated() count = " + Util::toString(g_count));
+	//LogManager::message("ClientManager::infoUpdated() count = " + Util::toString(g_count));
 #endif
 	dcassert(!ClientManager::isBeforeShutdown());
 	if (ClientManager::isBeforeShutdown())
@@ -1118,7 +1118,7 @@ void ClientManager::flushRatio(int p_max_count_flush)
 	{
 		CFlyBusyBool l_busy(g_isBusy);
 #ifdef FLYLINKDC_BETA
-		CFlyLog l_log("[ClientManager::flushRatio]");
+		//CFlyLog l_log("[ClientManager::flushRatio]");
 #endif
 		std::vector<UserPtr> l_users;
 		{
@@ -1147,7 +1147,7 @@ void ClientManager::flushRatio(int p_max_count_flush)
 				l_count_flush++;
 #ifdef FLYLINKDC_BETA
 #ifdef _DEBUG
-				l_log.log("Flush for user: " + i->getLastNick() + " Hub = " + Util::toString(i->getHubID()));
+				//l_log.log("Flush for user: " + i->getLastNick() + " Hub = " + Util::toString(i->getHubID()));
 				// +   " ip = " + i->getIPAsString() + " CountMessages = " + Util::toString(i->getMessageCount()));
 #endif
 #endif
@@ -1156,11 +1156,11 @@ void ClientManager::flushRatio(int p_max_count_flush)
 #ifdef FLYLINKDC_BETA
 		if (l_count_flush)
 		{
-			l_log.log("Flush for " + Util::toString(l_count_flush) + " users...");
+			// l_log.log("Flush for " + Util::toString(l_count_flush) + " users...");
 		}
 		else
 		{
-			l_log.m_skip_stop = true;
+			//l_log.m_skip_stop = true;
 		}
 #endif
 	}

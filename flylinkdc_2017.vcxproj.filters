@@ -1198,6 +1198,10 @@
     <Image Include="res\Trackers.png" />
     <Image Include="res\vip_hmn_pp.ico" />
     <Image Include="res\vip_millennium.ico" />
+    <Image Include="res\icon1.ico" />
+    <Image Include="res\vip_a_galaxy.ico" />
+    <Image Include="res\vip_piter.ico" />
+    <Image Include="res\vip_kcahdep.ico" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

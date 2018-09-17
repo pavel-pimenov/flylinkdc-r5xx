@@ -1071,6 +1071,7 @@
     <Image Include="res\clock.ico" />
     <Image Include="res\firewall.ico" />
     <Image Include="res\Gender.png" />
+    <Image Include="res\icon1.ico" />
     <Image Include="res\ISPImages.png" />
     <Image Include="res\medical_bag.ico" />
     <Image Include="res\mode_active.ico" />
@@ -1089,15 +1090,18 @@
     <Image Include="res\TransferTree.png" />
     <Image Include="res\vip_adrenalin.ico" />
     <Image Include="res\vip_allavtovo.ico" />
+    <Image Include="res\vip_a_galaxy.ico" />
     <Image Include="res\vip_eva.ico" />
     <Image Include="res\vip_godc.ico" />
     <Image Include="res\vip_hmn_pp.ico" />
+    <Image Include="res\vip_kcahdep.ico" />
     <Image Include="res\vip_keepclear_org.ico" />
     <Image Include="res\vip_korobka.ico" />
     <Image Include="res\vip_milenahub.ico" />
     <Image Include="res\vip_millennium.ico" />
     <Image Include="res\vip_nsk154hub.ico" />
     <Image Include="res\vip_perseus.ico" />
+    <Image Include="res\vip_piter.ico" />
     <Image Include="res\vip_prime.ico" />
     <Image Include="res\vip_prostoigra24.ico" />
     <Image Include="res\vip_scalolaz.ico" />

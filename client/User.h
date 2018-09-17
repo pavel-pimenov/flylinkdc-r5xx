@@ -219,7 +219,7 @@ class User : public Flags
 #ifdef _DEBUG
 			static std::atomic<int> g_call_counts = 0;
 			if (++g_call_counts % 1000 == 0)
-			  dcdebug("User::getLastNickT() called %d\n", int(g_call_counts));
+				dcdebug("User::getLastNickT() called %d\n", int(g_call_counts));
 #endif
 			return Text::toT(getLastNick());
 		}

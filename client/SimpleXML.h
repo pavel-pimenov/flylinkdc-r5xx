@@ -180,7 +180,7 @@ class SimpleXML
 #ifdef _DEBUG
 			if (p_check_dup)
 			{
-				std::map<string,int> l_dup_check;
+				std::map<string, int> l_dup_check;
 				for (auto i = tokens.cbegin(); i != tokens.cend(); ++i)
 				{
 					auto l_item = *i;

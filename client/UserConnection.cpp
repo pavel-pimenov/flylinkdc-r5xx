@@ -222,7 +222,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 			}
 			else
 			{
-				LogManager::message("Test TCP port - OK!");
+				//LogManager::message("Test TCP port - OK!");
 			}
 		}
 		else

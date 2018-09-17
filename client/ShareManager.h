@@ -451,7 +451,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		typedef boost::unordered_map<TTHValue, Directory::ShareFile::Set::const_iterator> HashFileMap;
 		
 		static HashFileMap g_tthIndex;
-		static std::unordered_map<string,unsigned> g_BotDetectMap;
+		static std::unordered_map<string, unsigned> g_BotDetectMap;
 		static unsigned g_lastSharedFiles;
 		static QueryNotExistsSet g_file_not_exists_set;
 		static QueryCacheMap g_file_cache_map;

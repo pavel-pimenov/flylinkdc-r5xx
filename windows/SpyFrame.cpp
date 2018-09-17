@@ -274,7 +274,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 						if (k == NUM_SEEKERS)           //loop terminated normally
 						{
 							l_searh_item.AddSeeker(si->seeker);
-						}							
+						}
 						for (k = 0; k < NUM_SEEKERS; ++k)
 						{
 							const string::size_type l_twopt = l_searh_item.m_seekers[k].find(':');
@@ -292,11 +292,11 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 								}
 								else
 								{
-							l_SeekersNames += Text::toT(l_searh_item.m_seekers[k]) + _T("  ");
-					}
+									l_SeekersNames += Text::toT(l_searh_item.m_seekers[k]) + _T("  ");
+								}
 							}
 						}
-					}					
+					}
 					++m_total;
 					++m_perSecond[m_current];
 				}

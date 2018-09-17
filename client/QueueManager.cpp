@@ -1027,14 +1027,14 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		else
 		{
 #ifdef _DEBUG
-			LogManager::message("[!]g_fileQueue.findAutoSearch - empty()");
+			//LogManager::message("[!]g_fileQueue.findAutoSearch - empty()");
 #endif
 		}
 	}
 	else
 	{
 #ifdef _DEBUG
-		LogManager::message("[!]g_fileQueue.getSize() > 0 && aTick >= nextSearch && BOOLSETTING(AUTO_SEARCH)");
+		//LogManager::message("[!]g_fileQueue.getSize() > 0 && aTick >= nextSearch && BOOLSETTING(AUTO_SEARCH)");
 #endif
 	}
 	// [~] IRainman fix.

@@ -426,7 +426,7 @@ int SearchManager::UdpQueue::run()
 				const auto l_magic = x.substr(15, 39);
 				if (ClientManager::getMyCID().toBase32() == l_magic)
 				{
-					LogManager::message("Test UDP port - OK!");
+					//LogManager::message("Test UDP port - OK!");
 					SettingsManager::g_TestUDPSearchLevel = CFlyServerJSON::setTestPortOK(SETTING(UDP_PORT), "udp");
 					auto l_ip = x.substr(15 + 39);
 					if (l_ip.size() && l_ip[l_ip.size() - 1] == '|')

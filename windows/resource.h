@@ -222,8 +222,8 @@
 #define IDR_VIP_HMN_PP                  333
 #define IDR_VIP_ICO_MILLENIUM           334
 #define IDR_VIP_ICO_A_GALAXY            335
-#define IDR_VIP_KCAHDER					336
-
+#define IDR_VIP_KCAHDER                 336
+#define IDR_VIP_OZERKI                  337
 #define IDR_ICON_XXX_BLOCK              999
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
@@ -1692,11 +1692,11 @@
 #define IDC_TIME                        32811
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        310
+#define _APS_NEXT_RESOURCE_VALUE        326
 #define _APS_NEXT_COMMAND_VALUE         32812
 #define _APS_NEXT_CONTROL_VALUE         2527
 #define _APS_NEXT_SYMED_VALUE           2423

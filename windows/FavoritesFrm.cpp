@@ -221,21 +221,21 @@ void FavoriteHubsFrame::openSelected()
 		r.setServer(entry->getServer());
 		FavoriteManager::getInstance()->addRecent(r);
 		HubFrame::openHubWindow(true,
-		                     entry->getServer(),
-		                     entry->getName(),
-		                     entry->getRawOne(),
-		                     entry->getRawTwo(),
-		                     entry->getRawThree(),
-		                     entry->getRawFour(),
-		                     entry->getRawFive(),
-		                     entry->getWindowPosX(),
-		                     entry->getWindowPosY(),
-		                     entry->getWindowSizeX(),
-		                     entry->getWindowSizeY(),
-		                     entry->getWindowType(),
-		                     entry->getChatUserSplit(),
-		                     entry->getUserListState(),
-		                     entry->getSuppressChatAndPM());
+		                        entry->getServer(),
+		                        entry->getName(),
+		                        entry->getRawOne(),
+		                        entry->getRawTwo(),
+		                        entry->getRawThree(),
+		                        entry->getRawFour(),
+		                        entry->getRawFive(),
+		                        entry->getWindowPosX(),
+		                        entry->getWindowPosY(),
+		                        entry->getWindowSizeX(),
+		                        entry->getWindowSizeY(),
+		                        entry->getWindowType(),
+		                        entry->getChatUserSplit(),
+		                        entry->getUserListState(),
+		                        entry->getSuppressChatAndPM());
 	}
 	return;
 }

@@ -419,8 +419,8 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 				}
 				if (ShareManager::getCountSearchBot(l_item) > 1)
 				{
-						COMMAND_DEBUG("[File][SearchBot-BAN]" + l_line_item, DebugTask::HUB_IN, getServerAndPort());
-						return true;
+					COMMAND_DEBUG("[File][SearchBot-BAN]" + l_line_item, DebugTask::HUB_IN, getServerAndPort());
+					return true;
 				}
 				if (ShareManager::isUnknownFile(l_item.getRAWQuery()))
 				{

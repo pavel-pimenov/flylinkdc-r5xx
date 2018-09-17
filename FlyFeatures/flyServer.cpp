@@ -1107,7 +1107,7 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 				return false; // Кончились странички поиска
 			}
 #ifdef _DEBUG
-			LogManager::message("l_magnet_result = " + l_magnet_result);
+			//LogManager::message("l_magnet_result = " + l_magnet_result);
 #endif
 			l_count_mirror = 2; // TODO - забирать число зеркал из lua
 			try
@@ -1221,7 +1221,7 @@ bool CFlyServerConfig::torrentGetTop(HWND p_wnd, int p_message)
 			return false;
 		}
 #ifdef _DEBUG
-		CFlyLog l_log("[Torrent RSS]");
+		//CFlyLog l_log("[Torrent RSS]");
 #endif
 		sel::State l_lua_parser(true);
 		l_lua_parser.Load(g_lua_source_search_engine, false, "flylinkdc-search-engine");
@@ -1256,7 +1256,7 @@ bool CFlyServerConfig::torrentGetTop(HWND p_wnd, int p_message)
 				if (l_root_torrent_url_top.empty())
 					continue;
 #ifdef _DEBUG
-				l_log.log("Load torrent RSS" + l_root_torrent_url_top);
+				//l_log.log("Load torrent RSS" + l_root_torrent_url_top);
 #endif
 				if (l_page_limit_local == 0)
 					l_page_limit_local = l_page_limit_global;
@@ -1297,7 +1297,7 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring&
 		{
 			return false;
 		}
-		CFlyLog l_log("[Torrent search]");
+		//CFlyLog l_log("[Torrent search]");
 		sel::State l_lua_parser(true);
 		l_lua_parser.Load(g_lua_source_search_engine, false, "flylinkdc-search-engine");
 		std::string l_trackers = l_lua_parser["get_trackers"]();
@@ -1323,7 +1323,7 @@ bool CFlyServerConfig::torrentSearch(HWND p_wnd, int p_message, const ::tstring&
 			{
 				const Json::Value& l_cur_item_in = l_arrays[k];
 				const string l_root_torrent_url = l_cur_item_in["url"].asString();
-				l_log.log("Search = " + l_root_torrent_url);
+				//l_log.log("Search = " + l_root_torrent_url);
 				string l_local_agent = l_cur_item_in["agent"].asString();
 				const string l_tracker_name = l_cur_item_in["name"].asString();
                 unsigned l_page_limit_local = l_cur_item_in["page_limit"].asUInt();
@@ -1838,7 +1838,9 @@ bool CFlyServerJSON::pushTestPort(
     const string& p_name_test)
 {
 	CFlyTestPortResult l_test_port_map;
-	CFlyLog l_log("[TestPort][" + p_name_test + "]", false);
+	//CFlyLog l_log("[TestPort][" + p_name_test + "]", false);
+	CFlyLog l_log("");
+	l_log.m_skip_stop = true;
 	Json::Value  l_info;
 	initCIDPID(l_info);
 	if (p_timer_value)
@@ -1897,8 +1899,8 @@ bool CFlyServerJSON::pushTestPort(
 			auto& l_item = g_test_port_map[i->first];
 			l_item = i->second;
 			l_item.second = l_cur_time;
-			LogManager::message("[pushTestPort] Port " + Util::toString(i->first.first) + " = " + i->first.second +
-			                    " status = " + Util::toString(i->second.first) + " time= " + Util::toString(i->second.second));
+			//LogManager::message("[pushTestPort] Port " + Util::toString(i->first.first) + " = " + i->first.second +
+			//                   " status = " + Util::toString(i->second.first) + " time= " + Util::toString(i->second.second));
 		}
 	}
 	const auto l_result = postQueryTestPort(l_log, l_post_query, l_is_send, l_is_error);
@@ -1926,7 +1928,7 @@ bool CFlyServerJSON::pushTestPort(
 				dcassert(!l_root.isNull());
 				dcassert(l_root.isMember("ip"));
 				p_external_ip = l_root["ip"].asString();
-				l_log.step("Ok! parse JSON: External IP = " + p_external_ip);
+				//l_log.step("Ok! parse JSON: External IP = " + p_external_ip);
 			}
 		}
 	}
@@ -2032,7 +2034,9 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 	if (CFlyServerConfig::g_is_use_statistics)
 	{
 		l_is_flush_error = login();
-		CFlyLog l_log("[fly-stat]");
+		//CFlyLog l_log("[fly-stat]");
+		CFlyLog l_log("");
+		l_log.m_skip_stop = true;
 		Json::Value  l_info;
 		if (p_is_sync_run == false && l_is_flush_error == false) // При останове не делаем этого + если была ошибка логина - тоже скипаем
 		{
@@ -2248,7 +2252,7 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		}
 		else
 		{
-			l_log.step("Skip stat-POST (internet error...)");
+			//l_log.step("Skip stat-POST (internet error...)");
 		}
 		if (!l_is_send || p_is_sync_run)
 			// Если не удалось отправить или отключено/отложено.
@@ -2282,8 +2286,10 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 	{
 		l_Server.setIp(g_debug_fly_server_url); // Перекрываем адрес флай-сервера для всех сервисов на отладочный
 	}
-	const string l_log_marker = "[" + l_Server.getServerAndPort() + "]";
+	//const string l_log_marker = "[" + l_Server.getServerAndPort() + "]";
+	const string l_log_marker;
 	CFlyLog l_fly_server_log(l_log_marker);
+	l_fly_server_log.m_skip_stop = true;
 	string l_reason;
 	if (IpGuard::check_ip_str(Socket::resolve(l_Server.getIp()), l_reason))
 	{
@@ -2374,7 +2380,7 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 						if (l_dwBytesAvailable == 0)
 							break;
 #ifdef _DEBUG
-						l_fly_server_log.step("InternetQueryDataAvailable dwBytesAvailable = " + Util::toString(l_dwBytesAvailable));
+						//l_fly_server_log.step("InternetQueryDataAvailable dwBytesAvailable = " + Util::toString(l_dwBytesAvailable));
 #endif
 						l_MessageBody.resize(l_dwBytesAvailable + 1);
 						DWORD dwBytesRead = 0;
@@ -2427,7 +2433,7 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 							while (true)
 							{
 								const int l_un_compress_result = uncompress(l_decompress.data(), &l_decompress_size, (uint8_t*)l_zlib_blob.data(), l_zlib_blob.size());
-								l_fly_server_log.step(l_log_string + ", Response: " + Util::toString(l_zlib_blob.size()) + " / " +  Util::toString(l_decompress_size));
+								//l_fly_server_log.step(l_log_string + ", Response: " + Util::toString(l_zlib_blob.size()) + " / " +  Util::toString(l_decompress_size));
 								if (l_un_compress_result == Z_BUF_ERROR)
 								{
 									l_decompress_size *= 2;
@@ -2450,7 +2456,7 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 					}
 					p_is_send = true;
 #ifdef _DEBUG
-					l_fly_server_log.step("InternetReadFile Ok! size = " + Util::toString(l_result_query.size()));
+					//l_fly_server_log.step("InternetReadFile Ok! size = " + Util::toString(l_result_query.size()));
 #endif
 				}
 				else

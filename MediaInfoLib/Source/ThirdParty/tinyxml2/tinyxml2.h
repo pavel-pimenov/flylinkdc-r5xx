@@ -334,7 +334,6 @@ public:
     virtual void* Alloc() = 0;
     virtual void Free( void* ) = 0;
     virtual void SetTracked() = 0;
-    virtual void Clear() = 0;
 };
 
 
@@ -347,7 +346,7 @@ class MemPoolT : public MemPool
 public:
     MemPoolT() : _blockPtrs(), _root(0), _currentAllocs(0), _nAllocs(0), _maxAllocs(0), _nUntracked(0)	{}
     ~MemPoolT() {
-        Clear();
+        MemPoolT< ITEM_SIZE >::Clear();
     }
     
     void Clear() {
@@ -525,10 +524,8 @@ enum XMLError {
     XML_ERROR_FILE_NOT_FOUND,
     XML_ERROR_FILE_COULD_NOT_BE_OPENED,
     XML_ERROR_FILE_READ_ERROR,
-    UNUSED_XML_ERROR_ELEMENT_MISMATCH,	// remove at next major version
     XML_ERROR_PARSING_ELEMENT,
     XML_ERROR_PARSING_ATTRIBUTE,
-    UNUSED_XML_ERROR_IDENTIFYING_TAG,	// remove at next major version
     XML_ERROR_PARSING_TEXT,
     XML_ERROR_PARSING_CDATA,
     XML_ERROR_PARSING_COMMENT,
@@ -1402,27 +1399,27 @@ public:
     	QueryAttribute( "foo", &value );		// if "foo" isn't found, value will still be 10
     	@endverbatim
     */
-	int QueryAttribute( const char* name, int* value ) const {
+	XMLError QueryAttribute( const char* name, int* value ) const {
 		return QueryIntAttribute( name, value );
 	}
 
-	int QueryAttribute( const char* name, unsigned int* value ) const {
+	XMLError QueryAttribute( const char* name, unsigned int* value ) const {
 		return QueryUnsignedAttribute( name, value );
 	}
 
-	int QueryAttribute(const char* name, int64_t* value) const {
+	XMLError QueryAttribute(const char* name, int64_t* value) const {
 		return QueryInt64Attribute(name, value);
 	}
 
-	int QueryAttribute( const char* name, bool* value ) const {
+	XMLError QueryAttribute( const char* name, bool* value ) const {
 		return QueryBoolAttribute( name, value );
 	}
 
-	int QueryAttribute( const char* name, double* value ) const {
+	XMLError QueryAttribute( const char* name, double* value ) const {
 		return QueryDoubleAttribute( name, value );
 	}
 
-	int QueryAttribute( const char* name, float* value ) const {
+	XMLError QueryAttribute( const char* name, float* value ) const {
 		return QueryFloatAttribute( name, value );
 	}
 
@@ -1626,11 +1623,7 @@ private:
     XMLElement( const XMLElement& );	// not supported
     void operator=( const XMLElement& );	// not supported
 
-    XMLAttribute* FindAttribute( const char* name ) {
-        return const_cast<XMLAttribute*>(const_cast<const XMLElement*>(this)->FindAttribute( name ));
-    }
     XMLAttribute* FindOrCreateAttribute( const char* name );
-    //void LinkAttribute( XMLAttribute* attrib );
     char* ParseAttributes( char* p, int* curLineNumPtr );
     static void DeleteAttribute( XMLAttribute* attribute );
     XMLAttribute* CreateAttribute();
@@ -1839,7 +1832,7 @@ public:
     /// A (trivial) utility function that prints the ErrorStr() to stdout.
     void PrintError() const;
 
-    /// Return the line where the error occured, or zero if unknown.
+    /// Return the line where the error occurred, or zero if unknown.
     int ErrorLineNum() const
     {
         return _errorLineNum;

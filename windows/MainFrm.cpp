@@ -2404,22 +2404,22 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 						l_resent_hub->setAutoOpen(true);
 					}
 					frm_current = HubFrame::openHubWindow(true,
-					                           entry->getServer(),
-					                           entry->getName(),
-					                           entry->getRawOne(),
-					                           entry->getRawTwo(),
-					                           entry->getRawThree(),
-					                           entry->getRawFour(),
-					                           entry->getRawFive(),
-					                           entry->getWindowPosX(),
-					                           entry->getWindowPosY(),
-					                           entry->getWindowSizeX(),
-					                           entry->getWindowSizeY(),
-					                           entry->getWindowType(),
-					                           entry->getChatUserSplit(),
-					                           entry->getUserListState(),
-					                           entry->getSuppressChatAndPM()
-					                          );
+					                                      entry->getServer(),
+					                                      entry->getName(),
+					                                      entry->getRawOne(),
+					                                      entry->getRawTwo(),
+					                                      entry->getRawThree(),
+					                                      entry->getRawFour(),
+					                                      entry->getRawFive(),
+					                                      entry->getWindowPosX(),
+					                                      entry->getWindowPosY(),
+					                                      entry->getWindowSizeX(),
+					                                      entry->getWindowSizeY(),
+					                                      entry->getWindowType(),
+					                                      entry->getChatUserSplit(),
+					                                      entry->getUserListState(),
+					                                      entry->getSuppressChatAndPM()
+					                                     );
 					if (frm_current)
 					{
 						frm_last = frm_current;
@@ -2443,17 +2443,17 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 					if (FavoriteManager::isISPDelete(l_server) == false)
 #endif
 					{
-							frm_current = HubFrame::openHubWindow(true,
-								l_server,
-						                           (*j)->getName()
-						                          );
-							if (frm_current)
-							{
-								frm_last = frm_current;
+						frm_current = HubFrame::openHubWindow(true,
+						                                      l_server,
+						                                      (*j)->getName()
+						                                     );
+						if (frm_current)
+						{
+							frm_last = frm_current;
+						}
+						
 					}
-
 				}
-			}
 			}
 		}
 		// Создаем смайлы в конец

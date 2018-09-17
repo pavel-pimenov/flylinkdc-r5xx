@@ -356,7 +356,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 						if (!tmp.empty())
 							tmp += _T(", ");
 						tmp += j->first->getLastNickHubT();
-
+						
 						tmp += _T(" (");
 						if (j->second.isSet(QueueItem::Source::FLAG_FILE_NOT_AVAILABLE))
 						{

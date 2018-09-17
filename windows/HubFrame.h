@@ -191,26 +191,26 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void runUserCommand(::UserCommand& uc);
 		
 		static HubFrame* openHubWindow(bool p_is_auto_connect,
-		                            const string& p_server,
-		                            const string& p_name     = Util::emptyString,
-		                            const string& p_rawOne   = Util::emptyString,
-		                            const string& p_rawTwo   = Util::emptyString,
-		                            const string& p_rawThree = Util::emptyString,
-		                            const string& p_rawFour  = Util::emptyString,
-		                            const string& p_rawFive  = Util::emptyString,
-		                            int  p_windowposx = 0,
-		                            int  p_windowposy = 0,
-		                            int  p_windowsizex = 0,
-		                            int  p_windowsizey = 0,
-		                            int  p_windowtype = 3, // SW_MAXIMIZE
-		                            int  p_ChatUserSplit = 5000,
-		                            bool p_UserListState = true,
-		                            bool p_SuppressChatAndPM = false
-		                                                       // bool p_ChatUserSplitState = true,
-		                                                       // const string& p_ColumsOrder = Util::emptyString,
-		                                                       // const string& p_ColumsWidth = Util::emptyString,
-		                                                       // const string& p_ColumsVisible = Util::emptyString
-		                           );
+		                               const string& p_server,
+		                               const string& p_name     = Util::emptyString,
+		                               const string& p_rawOne   = Util::emptyString,
+		                               const string& p_rawTwo   = Util::emptyString,
+		                               const string& p_rawThree = Util::emptyString,
+		                               const string& p_rawFour  = Util::emptyString,
+		                               const string& p_rawFive  = Util::emptyString,
+		                               int  p_windowposx = 0,
+		                               int  p_windowposy = 0,
+		                               int  p_windowsizex = 0,
+		                               int  p_windowsizey = 0,
+		                               int  p_windowtype = 3, // SW_MAXIMIZE
+		                               int  p_ChatUserSplit = 5000,
+		                               bool p_UserListState = true,
+		                               bool p_SuppressChatAndPM = false
+		                                                          // bool p_ChatUserSplitState = true,
+		                                                          // const string& p_ColumsOrder = Util::emptyString,
+		                                                          // const string& p_ColumsWidth = Util::emptyString,
+		                                                          // const string& p_ColumsVisible = Util::emptyString
+		                              );
 		static void resortUsers();
 		static void closeDisconnected();
 		static void reconnectDisconnected();

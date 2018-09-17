@@ -663,9 +663,9 @@ string CompatibilityManager::generateGlobalMemoryStatusMessage()
 float CompatibilityManager::ProcSpeedCalc() // moved form WinUtil.
 {
 #if (defined(_M_ARM) || defined(_M_ARM64))
-    return 0;
+	return 0;
 #else
-    __int64 cyclesStart = 0, cyclesStop = 0;
+	__int64 cyclesStart = 0, cyclesStop = 0;
 	unsigned __int64 nCtr = 0, nFreq = 0, nCtrStop = 0;
 	if (!QueryPerformanceFrequency((LARGE_INTEGER *) &nFreq)) return 0;
 	QueryPerformanceCounter((LARGE_INTEGER *) &nCtrStop);

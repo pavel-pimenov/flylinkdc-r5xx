@@ -306,7 +306,7 @@ class CFlyServerConfig
 		static bool     g_is_use_hit_binary_files;
 		static bool     g_is_use_statistics;
         static bool     g_is_use_log_redirect;
-		
+
 #ifdef USE_SUPPORT_HUB
 		static string   g_support_hub;
 #ifdef FLYLINKDC_USE_SUPPORT_HUB_EN

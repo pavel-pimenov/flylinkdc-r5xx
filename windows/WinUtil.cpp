@@ -125,7 +125,7 @@ HIconWrapper WinUtil::g_hClockIcon(IDR_ICON_CLOCK);
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOnIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubOffIcon;
 std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIcon;
-std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIconVIP[21]; // VIP_ICON
+std::unique_ptr<HIconWrapper> WinUtil::g_HubFlylinkDCIconVIP[22]; // VIP_ICON
 std::unique_ptr<HIconWrapper> WinUtil::g_HubDDoSIcon;
 HIconWrapper WinUtil::g_hThermometerIcon(IDR_ICON_THERMOMETR_BAG);
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -524,8 +524,7 @@ void WinUtil::initThemeIcons()
 	g_HubFlylinkDCIconVIP[18] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_ALLAVTOVO)); // piter
 	g_HubFlylinkDCIconVIP[19] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_A_GALAXY));
 	g_HubFlylinkDCIconVIP[20] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_KCAHDER));
-	
-	
+	g_HubFlylinkDCIconVIP[21] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_OZERKI));
 	
 	
 	g_HubDDoSIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_ICON_MEDICAL_BAG));
