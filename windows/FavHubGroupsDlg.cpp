@@ -92,7 +92,7 @@ void FavHubGroupsDlg::save()
 		groups.insert(make_pair(name, group));
 	}
 	FavoriteManager::setFavHubGroups(groups);
-	FavoriteManager::save();
+	FavoriteManager::save_favorites();
 }
 
 int FavHubGroupsDlg::findGroup(LPCTSTR name)

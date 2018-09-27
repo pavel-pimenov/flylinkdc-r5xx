@@ -323,7 +323,7 @@ LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 		}
 		// [~] IRainman fix.
 		
-		FavoriteManager::getInstance()->save();
+		FavoriteManager::save_favorites();
 	}
 	EndDialog(wID);
 	return 0;

@@ -2676,8 +2676,8 @@ LRESULT MainFrame::onSetDefaultPosition(WORD /*wNotifyCode*/, WORD /*wParam*/, H
 LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	m_is_end_session = true;
-//	QueueManager::getInstance()->saveQueue();
-//	SettingsManager::getInstance()->save();
+	FavoriteManager::save_favorites(); // Fix https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1714
+	//SettingsManager::getInstance()->save();
 	return 0;
 }
 

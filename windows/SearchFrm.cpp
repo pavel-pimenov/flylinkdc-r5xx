@@ -3084,7 +3084,7 @@ bool SearchFrame::is_filter_item(const SearchInfo* si)
 			else
 				l_is_filter = false;
 			/*
-   		    CFlyLock(m_filter_map_cs);
+			CFlyLock(m_filter_map_cs);
 			const auto& l_filtered_item = m_filter_map[m_CurrentTreeItem];
 			for (auto j = l_filtered_item.cbegin(); j != l_filtered_item.cend(); ++j)
 			{

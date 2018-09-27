@@ -340,7 +340,7 @@ class FavoriteManager : private Speaker<FavoriteManagerListener>,
 				return true;
 		}
 #endif
-		static void save();
+		static void save_favorites();
 		static void recentsave();
 		static size_t getCountFavsUsers();
 		static bool isRedirectHub(const string& p_server)

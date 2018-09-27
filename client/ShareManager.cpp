@@ -1242,9 +1242,9 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 	{
 		p_path_id = CFlylinkDBManager::getInstance()->get_path_id(Text::toLower(aName), !p_is_job, false, p_is_no_mediainfo, m_sweep_path);
 	}
-	Directory::Ptr dir = Directory::create(Util::getLastDir(aName), aParent);
+	Directory::Ptr l_dir = Directory::create(Util::getLastDir(aName), aParent);
 	
-	auto l_lastFileIter = dir->m_share_files.begin();
+	auto l_lastFileIter = l_dir->m_share_files.begin();
 	
 	CFlyDirMap l_dir_map;
 	if (p_path_id)
@@ -1276,7 +1276,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 			        && isShareFolder(newName))
 			{
 				__int64 l_path_id = 0;
-				dir->m_share_directories[l_file_name] = buildTreeL(l_path_id, newName, dir, p_is_job);
+				l_dir->m_share_directories[l_file_name] = buildTreeL(l_path_id, newName, l_dir, p_is_job);
 			}
 		}
 		else
@@ -1380,16 +1380,16 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 					else
 					{
 						auto &l_dir_item_second = l_dir_item->second; // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'l_dir_item->second' expression repeatedly. sharemanager.cpp 1054
-						l_lastFileIter = dir->m_share_files.insert(l_lastFileIter,
-						                                           Directory::ShareFile(l_file_name,
-						                                                                l_dir_item_second.m_size,
-						                                                                dir,
-						                                                                l_dir_item_second.m_tth,
-						                                                                l_dir_item_second.m_hit,
-						                                                                uint32_t(l_dir_item_second.m_StampShare),
-						                                                                Search::TypeModes(l_dir_item_second.m_ftype)
-						                                                               )
-						                                          );
+						l_lastFileIter = l_dir->m_share_files.insert(l_lastFileIter,
+						                                             Directory::ShareFile(l_file_name,
+						                                                                  l_dir_item_second.m_size,
+						                                                                  l_dir,
+						                                                                  l_dir_item_second.m_tth,
+						                                                                  l_dir_item_second.m_hit,
+						                                                                  uint32_t(l_dir_item_second.m_StampShare),
+						                                                                  Search::TypeModes(l_dir_item_second.m_ftype)
+						                                                                 )
+						                                            );
 						auto f = const_cast<ShareManager::Directory::ShareFile*>(&(*l_lastFileIter));
 						f->initLowerName();
 						if (l_dir_item_second.m_StampShare > g_lastSharedDate)
@@ -1410,7 +1410,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 	if (l_path_id && !m_sweep_guard)
 		CFlylinkDBManager::getInstance()->sweep_files(l_path_id, l_dir_map);
 #endif
-	return dir;
+	return l_dir;
 }
 
 bool ShareManager::checkHidden(const string& aName) const

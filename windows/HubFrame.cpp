@@ -2544,7 +2544,7 @@ void HubFrame::storeColumsInfo()
 				// или когда не закрываем/запускаем приложение.
 				// или если поменялись размеры колонок
 			{
-				FavoriteManager::save();
+				FavoriteManager::save_favorites();
 				g_is_change = false;
 			}
 		}

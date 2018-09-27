@@ -137,7 +137,7 @@ UserCommand FavoriteManager::addUserCommand(int type, int ctx, Flags::MaskType f
 	}
 	if (!uc.isSet(UserCommand::FLAG_NOSAVE))
 	{
-		save();
+		save_favorites();
 	}
 	
 	return uc;
@@ -188,7 +188,7 @@ void FavoriteManager::updateUserCommand(const UserCommand& uc)
 			}
 		}
 	}
-	save();
+	save_favorites();
 }
 
 int FavoriteManager::findUserCommand(const string& aName, const string& p_Hub)
@@ -226,7 +226,7 @@ void FavoriteManager::removeUserCommandCID(int cid)
 			}
 		}
 	}
-	save();
+	save_favorites();
 }
 void FavoriteManager::shutdown()
 {
@@ -488,7 +488,7 @@ void FavoriteManager::addFavoriteUser(const UserPtr& aUser)
 		}
 		fly_fire1(FavoriteManagerListener::UserAdded(), l_fav_user);
 	}
-	save();
+	save_favorites();
 }
 
 void FavoriteManager::removeFavoriteUser(const UserPtr& aUser)
@@ -506,7 +506,7 @@ void FavoriteManager::removeFavoriteUser(const UserPtr& aUser)
 		}
 		fly_fire1(FavoriteManagerListener::UserRemoved(), l_fav_user);
 	}
-	save();
+	save_favorites();
 }
 
 string FavoriteManager::getUserUrl(const UserPtr& aUser)
@@ -544,7 +544,7 @@ FavoriteHubEntry* FavoriteManager::addFavorite(const FavoriteHubEntry& aEntry, c
 		g_favoriteHubs.push_back(f);
 	}
 	fly_fire1(FavoriteManagerListener::FavoriteAdded(), f);
-	save();
+	save_favorites();
 	return f;
 }
 
@@ -560,7 +560,7 @@ void FavoriteManager::removeFavorite(const FavoriteHubEntry* entry)
 	}
 	fly_fire1(FavoriteManagerListener::FavoriteRemoved(), entry);
 	delete entry;
-	save();
+	save_favorites();
 }
 
 bool FavoriteManager::addFavoriteDir(string aDirectory, const string& aName, const string& aExt)
@@ -587,7 +587,7 @@ bool FavoriteManager::addFavoriteDir(string aDirectory, const string& aName, con
 		FavoriteDirectory favDir = { Util::splitSettingAndReplaceSpace(aExt), aDirectory, aName };
 		g_favoriteDirs.push_back(favDir);
 	}
-	save();
+	save_favorites();
 	return true;
 }
 
@@ -612,7 +612,7 @@ bool FavoriteManager::removeFavoriteDir(const string& aName)
 	}
 	if (upd)
 	{
-		save();
+		save_favorites();
 	}
 	return upd;
 }
@@ -634,7 +634,7 @@ bool FavoriteManager::renameFavoriteDir(const string& aName, const string& anoth
 	}
 	if (upd)
 	{
-		save();
+		save_favorites();
 	}
 	return upd;
 }
@@ -658,7 +658,7 @@ bool FavoriteManager::updateFavoriteDir(const string& aName, const string& dir, 
 	}
 	if (upd)
 	{
-		save();
+		save_favorites();
 	}
 	return upd;
 }
@@ -726,7 +726,7 @@ void FavoriteManager::updateRecent(const RecentHubEntry* entry)
 	}
 }
 
-void FavoriteManager::save()
+void FavoriteManager::save_favorites()
 {
 	if (g_dontSave)
 		return;
@@ -1647,7 +1647,7 @@ void FavoriteManager::load(SimpleXML& aXml
 	}
 	if (l_is_needSave)
 	{
-		save();
+		save_favorites();
 	}
 }
 
@@ -1746,7 +1746,7 @@ void FavoriteManager::setUploadLimit(const UserPtr& aUser, int lim, bool createU
 		}
 		speakUserUpdate(l_is_added, l_fav_user);
 	}
-	save();
+	save_favorites();
 }
 // !SMT!-S
 bool FavoriteManager::getFlag(const UserPtr& aUser, FavoriteUser::Flags f)
@@ -1784,7 +1784,7 @@ void FavoriteManager::setFlag(const UserPtr& aUser, FavoriteUser::Flags f, bool 
 		
 		speakUserUpdate(l_is_added, l_fav_user);
 	}
-	save();
+	save_favorites();
 }
 
 void FavoriteManager::setUserDescription(const UserPtr& aUser, const string& aDescription)
@@ -1798,7 +1798,7 @@ void FavoriteManager::setUserDescription(const UserPtr& aUser, const string& aDe
 				return;
 			i->second.setDescription(aDescription);
 		}
-		save();
+		save_favorites();
 	}
 }
 
