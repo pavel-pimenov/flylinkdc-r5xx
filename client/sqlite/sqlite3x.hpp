@@ -27,6 +27,7 @@
 #define __SQLITE3X_HPP__
 
 #include <string>
+#include <vector>
 #include "sqlite3.h"
 #include "..\client\Exception.h"
 #ifdef _DEBUG
@@ -113,7 +114,7 @@ namespace sqlite3x {
 		void commit();
 		void rollback();
 	};
-    class sqlite3_reader;
+	class sqlite3_reader;
 	class sqlite3_command  {
 	private:
 		friend class sqlite3_reader;
