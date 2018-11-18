@@ -201,7 +201,8 @@ void TreePropertySheet::addCam()
 	{
 		m_Camtooltip->Activate(TRUE);
 	}
-	//g_CamPNG.LoadFromResource(IDR_ICON_CAMSHOOT_PNG, _T("PNG"));
+	//g_CamPNG.LoadFromResourcePNG(IDR_ICON_CAMSHOOT_PNG);
+	
 	//m_Cam.SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)g_CamPNG));
 	static HIconWrapper g_CamIco(IDR_ICON_CAMSHOOT_ICO, 32, 32);
 	m_Cam->SetIcon(g_CamIco);

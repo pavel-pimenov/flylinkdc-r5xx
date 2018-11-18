@@ -54,10 +54,10 @@ LRESULT DCLSTGenDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	GetDlgItem(IDC_DCLSTGEN_COPYMAGNET).EnableWindow(FALSE);
 	
 	// for Custom Themes Bitmap
-	_img_f.LoadFromResource(IDR_FLYLINK_PNG, _T("PNG"));
+	_img_f.LoadFromResourcePNG(IDR_FLYLINK_PNG);
 	GetDlgItem(IDC_STATIC).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)_img_f));
 	// IDC_DCLSTGEN_PICT
-	_img.LoadFromResource(IDR_DCLST, _T("PNG"));
+	_img.LoadFromResourcePNG(IDR_DCLST);
 	GetDlgItem(IDC_DCLSTGEN_PICT).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)_img));
 	
 	// _totalSizeDir = _Dir->getTotalSize();

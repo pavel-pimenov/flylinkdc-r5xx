@@ -177,8 +177,8 @@ struct PORTAL_BROWSER_ITEM_STRUCT
 	std::wstring strName;
 	std::wstring strHubUrl;
 	IPortalList::PORTAL_DATA Data;
-	HBITMAP hLargeBMP;
-	HBITMAP hSmallBMP;
+	HBITMAP m_hLargeBMP;
+	HBITMAP m_hSmallBMP;
 	
 	HICON hIcon;
 	

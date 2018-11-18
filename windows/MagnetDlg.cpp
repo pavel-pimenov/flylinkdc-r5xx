@@ -36,13 +36,13 @@ LRESULT MagnetDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	{
 		SetDlgItemText(IDC_MAGNET_QUEUE, CTSTRING(MAGNET_DLG_QUEUE_DCLST));
 		// for Custom Themes Bitmap
-		mImg.LoadFromResource(IDR_DCLST, _T("PNG"));
+		mImg.LoadFromResourcePNG(IDR_DCLST);
 	}
 	else
 	{
 		SetDlgItemText(IDC_MAGNET_QUEUE, CTSTRING(MAGNET_DLG_QUEUE));
 		// for Custom Themes Bitmap
-		mImg.LoadFromResource(IDR_MAGNET_PNG, _T("PNG"));
+		mImg.LoadFromResourcePNG(IDR_MAGNET_PNG);
 	}
 	GetDlgItem(IDC_MAGNET_PIC).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)mImg));
 #ifdef SSA_VIDEO_PREVIEW_FEATURE

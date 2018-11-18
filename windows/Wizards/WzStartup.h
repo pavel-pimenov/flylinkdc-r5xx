@@ -47,7 +47,7 @@ public:
 		GetPropertySheet().SendMessage ( WM_CENTER_ALL );
 
 		// for Custom Themes Bitmap
-		img_f.LoadFromResource(IDR_FLYLINK_PNG, _T("PNG"));
+		img_f.LoadFromResourcePNG(IDR_FLYLINK_PNG);
 		GetDlgItem(IDC_WIZARD_STARTUP_PICT).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)img_f));	
 
 		//CRect rc;

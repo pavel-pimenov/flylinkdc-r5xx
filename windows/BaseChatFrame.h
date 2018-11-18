@@ -55,6 +55,8 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
 		COMMAND_ID_HANDLER(IDC_COLOR, onTextStyleSelect)
 #endif
+		COMMAND_ID_HANDLER(IDC_OSAGO, onOSAGOSelect)
+		
 		COMMAND_HANDLER(IDC_CHAT_MESSAGE_EDIT, EN_CHANGE, onChange)
 		END_MSG_MAP()
 	public:
@@ -197,14 +199,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		size_t m_curCommandPosition;
 		bool m_bUseTempMultiChat;
 		bool isMultiChat(int& p_h, int& p_chat_columns) const;
-		void clearMessageWindow()
-		{
-			if (m_ctrlMessage)
-			{
-				m_ctrlMessage->SetWindowText(_T(""));
-			}
-			m_MultiChatCountLines = 0;
-		}
+		void clearMessageWindow();
 	protected:
 		unsigned m_MultiChatCountLines;
 	private:

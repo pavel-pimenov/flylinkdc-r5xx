@@ -15,6 +15,11 @@ void ExCImage::Destroy() noexcept
 	}
 }
 
+bool ExCImage::LoadFromResourcePNG(UINT id) noexcept
+{
+	return LoadFromResource(id, _T("PNG"));
+}
+
 bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType, HMODULE hInst
                                 // [-], bool useDefaultHINST [-] IRainman
                                ) noexcept

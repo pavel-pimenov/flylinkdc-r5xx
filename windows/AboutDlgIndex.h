@@ -104,7 +104,7 @@ class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 			m_ctrTab.SetCurSel(m_pTabDialog);
 			
 			// for Custom Themes
-			m_png_logo.LoadFromResource(IDR_FLYLINK_PNG, _T("PNG"));
+			m_png_logo.LoadFromResourcePNG(IDR_FLYLINK_PNG);
 			GetDlgItem(IDC_STATIC).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)m_png_logo));
 			//m_hIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_MAINFRAME));   // [!] SSA - because of theme use
 			//SetIcon((HICON)*m_hIcon, FALSE);

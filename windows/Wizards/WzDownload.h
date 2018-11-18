@@ -47,7 +47,7 @@ public:
     BOOL OnInitDialog ( HWND hwndFocus, LPARAM lParam )
 	{
 		// for Custom Themes Bitmap
-		img_f.LoadFromResource(IDR_FLYLINK_PNG, _T("PNG"));
+		img_f.LoadFromResourcePNG(IDR_FLYLINK_PNG);
 		GetDlgItem(IDC_WIZARD_STARTUP_PICT).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)img_f));
 
 		SetDlgItemText(IDC_WIZARD_DOWNLOAD_STATIC,CTSTRING(SETTINGS_DOWNLOAD_DIRECTORY));

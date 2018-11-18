@@ -75,7 +75,7 @@ LRESULT FlyUpdateDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	SetIcon(m_UpdateIcon, FALSE);
 	SetIcon(m_UpdateIcon, TRUE);
 	// for Custom Themes Bitmap
-	img_f.LoadFromResource(IDR_FLYLINK_PNG, _T("PNG")); // Leak?
+	img_f.LoadFromResourcePNG(IDR_FLYLINK_PNG); // Leak?
 	GetDlgItem(IDC_STATIC).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)img_f));
 	
 	LRESULT lResult = GetDlgItem(IDC_RTFDESCRIPTION).SendMessage(EM_GETEVENTMASK, 0, 0);

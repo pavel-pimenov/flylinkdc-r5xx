@@ -38,13 +38,13 @@ class PopupWnd : public CWindowImpl<PopupWnd, CWindow>
 		MESSAGE_HANDLER(WM_PAINT, onPaint)
 		END_MSG_MAP()
 		
-		PopupWnd(const tstring& aMsg, const tstring& aTitle, CRect rc, uint32_t aId, HBITMAP hBmp): visible(GET_TICK()), id(aId), msg(aMsg), title(aTitle), bmp(hBmp), height(0)
+		PopupWnd(const tstring& aMsg, const tstring& aTitle, CRect rc, uint32_t aId, HBITMAP hBmp): visible(GET_TICK()), id(aId), msg(aMsg), title(aTitle), m_bmp(hBmp), height(0)
 		{
 			memset(&logFont, 0, sizeof(logFont));
 			memset(&myFont, 0, sizeof(myFont));
 			if ((SETTING(POPUP_TYPE) == BALLOON) || (SETTING(POPUP_TYPE) == SPLASH))
 				Create(NULL, rc, NULL, WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_TOOLWINDOW);
-			else if ((SETTING(POPUP_TYPE) == CUSTOM) && (bmp != NULL))
+			else if ((SETTING(POPUP_TYPE) == CUSTOM) && (m_bmp != NULL))
 				Create(NULL, rc, NULL, WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_TOOLWINDOW);
 			else
 				Create(NULL, rc, NULL, WS_CAPTION | WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_TOOLWINDOW);
@@ -71,7 +71,7 @@ class PopupWnd : public CWindowImpl<PopupWnd, CWindow>
 		
 		LRESULT onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 		{
-			if (bmp != NULL && (SETTING(POPUP_TYPE) == CUSTOM))
+			if (m_bmp != NULL && (SETTING(POPUP_TYPE) == CUSTOM))
 			{
 				bHandled = FALSE;
 				return 1;
@@ -127,7 +127,7 @@ class PopupWnd : public CWindowImpl<PopupWnd, CWindow>
 		
 		LRESULT onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 		{
-			if (bmp == NULL || (SETTING(POPUP_TYPE) != CUSTOM))
+			if (m_bmp == NULL || (SETTING(POPUP_TYPE) != CUSTOM))
 			{
 				DestroyAndDetachWindow(label);
 				DestroyAndDetachWindow(label1);
@@ -151,7 +151,7 @@ class PopupWnd : public CWindowImpl<PopupWnd, CWindow>
 		
 		LRESULT onPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 		{
-			if (bmp == NULL || (SETTING(POPUP_TYPE) != CUSTOM))
+			if (m_bmp == NULL || (SETTING(POPUP_TYPE) != CUSTOM))
 			{
 				bHandled = FALSE;
 				return 0;
@@ -161,10 +161,10 @@ class PopupWnd : public CWindowImpl<PopupWnd, CWindow>
 			HDC hdc = ::BeginPaint(m_hWnd, &ps);
 			
 			HDC hdcMem = CreateCompatibleDC(NULL);
-			HBITMAP hbmT = (HBITMAP)::SelectObject(hdcMem, bmp);
+			HBITMAP hbmT = (HBITMAP)::SelectObject(hdcMem, m_bmp);
 			
 			BITMAP bm = {0};
-			GetObject(bmp, sizeof(bm), &bm);
+			GetObject(m_bmp, sizeof(bm), &bm);
 			
 			//Move selected bitmap to the background
 			BitBlt(hdc, 0, 0, bm.bmWidth, bm.bmHeight, hdcMem, 0, 0, SRCCOPY);
@@ -180,7 +180,7 @@ class PopupWnd : public CWindowImpl<PopupWnd, CWindow>
 			CRect rc(xBorder, yBorder, bm.bmWidth - xBorder, bm.bmHeight - yBorder);
 			
 			//Draw the Title and Message with selected font and color
-			tstring pmsg = _T("\r\n\r\n") + msg;
+			const tstring pmsg = _T("\r\n\r\n") + msg;
 			HFONT oldTitleFont = (HFONT)SelectObject(hdc, titlefont);
 			::SetTextColor(hdc, SETTING(POPUP_TITLE_TEXTCOLOR));
 			::DrawText(hdc, title.c_str(), static_cast<int>(title.length()), rc, DT_SINGLELINE | DT_TOP | DT_CENTER);
@@ -209,7 +209,7 @@ class PopupWnd : public CWindowImpl<PopupWnd, CWindow>
 		HFONT   font;
 		LOGFONT myFont;
 		HFONT   titlefont;
-		HBITMAP bmp;
+		HBITMAP m_bmp;
 };
 
 

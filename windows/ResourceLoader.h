@@ -74,14 +74,13 @@ class ExCImage : public CImage
 		{
 			Destroy();
 		}
-		
+		bool LoadFromResourcePNG(UINT id) noexcept;
 		bool LoadFromResource(UINT id, LPCTSTR pType = RT_RCDATA, HMODULE hInst =
 #if defined(USE_THEME_MANAGER)
 		                          ThemeManager::getResourceLibInstance()
 #else
 		                          nullptr
 #endif
-		                          // [-], bool useDefaultHINST = false [-] IRainman
 		                     ) noexcept;
 		void Destroy() noexcept;
 		
