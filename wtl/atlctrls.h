@@ -3624,7 +3624,7 @@ public:
 		return (int)::SendMessage(this->m_hWnd, LVM_SUBITEMHITTEST, 0, (LPARAM)lpInfo);
 	}
 
-	int AddColumn(LPCTSTR strItem, int nItem, int nSubItem = -1,
+	int AddColumn(LPCTSTR strColumn, int nItem, int nSubItem = -1,
 			int nMask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
 			int nFmt = LVCFMT_LEFT)
 	{
@@ -3633,7 +3633,7 @@ public:
 		LVCOLUMN lvc = { 0 };
 		lvc.mask = nMask;
 		lvc.fmt = nFmt;
-		lvc.pszText = (LPTSTR)strItem;
+		lvc.pszText = (LPTSTR)strColumn;
 		lvc.cx = GetStringWidth(lvc.pszText) + cxOffset;
 		if(nMask & LVCF_SUBITEM)
 			lvc.iSubItem = (nSubItem != -1) ? nSubItem : nItem;
@@ -5627,13 +5627,13 @@ public:
 		return (int)::SendMessage(this->m_hWnd, TB_ADDBITMAP, (WPARAM)nNumButtons, (LPARAM)&tbab);
 	}
 
-	BOOL AddButtons(int nNumButtons, LPTBBUTTON lpButtons)
+	BOOL AddButtons(int nNumButtons, LPCTBBUTTON lpButtons)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
 		return (BOOL)::SendMessage(this->m_hWnd, TB_ADDBUTTONS, nNumButtons, (LPARAM)lpButtons);
 	}
 
-	BOOL InsertButton(int nIndex, LPTBBUTTON lpButton)
+	BOOL InsertButton(int nIndex, LPCTBBUTTON lpButton)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
 		return (BOOL)::SendMessage(this->m_hWnd, TB_INSERTBUTTON, nIndex, (LPARAM)lpButton);
@@ -7542,6 +7542,18 @@ public:
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
 		::SendMessage(this->m_hWnd, EM_SETMARGINS, wFlags, MAKELONG(nLeft, nRight));
+	}
+
+	WORD GetTypographyOptions() const
+	{
+		ATLASSERT(::IsWindow(this->m_hWnd));
+		return (WORD)::SendMessage(this->m_hWnd, EM_GETTYPOGRAPHYOPTIONS, 0, 0L);
+	}
+
+	BOOL SetTypographyOptions(WORD wOptions, WORD wMask) const
+	{
+		ATLASSERT(::IsWindow(this->m_hWnd));
+		return (BOOL)::SendMessage(this->m_hWnd, EM_SETTYPOGRAPHYOPTIONS, wOptions, wMask);
 	}
 
 // Operations

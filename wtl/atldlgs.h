@@ -2853,7 +2853,7 @@ public:
 		return hWnd;
 	}
 
-	static const UINT GetFindReplaceMsg()
+	static UINT GetFindReplaceMsg()
 	{
 		static const UINT nMsgFindReplace = ::RegisterWindowMessage(FINDMSGSTRING);
 		return nMsgFindReplace;

@@ -2675,7 +2675,7 @@ public:
 				{
 					TCHAR sText[64] = { 0 };
 					if (GetMenuString(hMenu, uItem, sText, 64, MF_BYPOSITION))
-						UISetText(mii.wID, sText);
+						this->UISetText(mii.wID, sText);
 				}
 			}
 		}
@@ -2740,7 +2740,7 @@ public:
 				   (this->m_arrUIMap[i].m_wType & CDynamicUpdateUI<T>::UPDUI_STATUSBAR) && 
 				   (this->m_arrUIData[i].m_wState & CDynamicUpdateUI<T>::UPDUI_STATUSBAR))
 				{
-					UIUpdateStatusBarElement(this->m_arrUIMap[i].m_nID, &this->m_arrUIData[i], this->m_UIElements[e].m_hWnd);
+					this->UIUpdateStatusBarElement(this->m_arrUIMap[i].m_nID, &this->m_arrUIData[i], this->m_UIElements[e].m_hWnd);
 					this->m_arrUIData[i].m_wState &= ~CDynamicUpdateUI<T>::UPDUI_STATUSBAR;
 					if(this->m_arrUIData[i].m_wState & CDynamicUpdateUI<T>::UPDUI_TEXT)
 						this->m_arrUIData[i].m_wState &= ~CDynamicUpdateUI<T>::UPDUI_TEXT;
