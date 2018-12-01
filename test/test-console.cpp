@@ -22,14 +22,15 @@
 #include "../client/CFlyProfiler.h"
 #include "../client/CFlyThread.h"
 #include "cperformance.h"
-#include "FastAlloc.h"
 #include "cycle.h"
 
 #include<winsock2.h>
 #include<Iphlpapi.h>
 #include<stdio.h>
 
+#ifdef USE_ZMQ
 #include "zmq.h"
+#endif
 
 //#include "libtorrent/entry.hpp"
 //#include "libtorrent/bencode.hpp"
@@ -41,7 +42,7 @@ int getmac();
 void get_adapters();
 
 bool g_UseCSRecursionLog = false;
-FastCriticalSection FastAllocBase::cs;
+//FastCriticalSection FastAllocBase::cs;
 
 using std::string;
 
@@ -141,14 +142,6 @@ static std::wstring translateError(int aError)
 	char        m_char_array[100];\
 	std::vector<int> m_vector
 
-struct MyClassFast : FastAlloc<MyClassFast>
-{
-	MEMBER_LIST();
-};
-struct MyClass
-{
-	MEMBER_LIST();
-};
 
 // [+] IRainman fix
 #define TEST_CODE(code, num)\
@@ -362,7 +355,7 @@ void test_replace_vector()
 	auto l_vec = getSourceVector();
 	TEST_CODE(g_target_vector = l_vec, 3);
 }
-
+/*
 void test_critical_section()
 {
 	CriticalSection l_cs;
@@ -383,35 +376,9 @@ void test_critical_section()
 	
 	std::cout << l_count << std::endl;
 }
+*/
 
-void testFastAlloc()
-{
-	DECLARE_PERFORMANCE_FILE_STREAM(profiler - fastalloc.log, g_flylinkdc_perf_fast_alloc);
-	
-	DECLARE_PERFORMANCE_CHECKER(1, g_flylinkdc_perf_fast_alloc);
-	DECLARE_PERFORMANCE_CHECKER(11, g_flylinkdc_perf_fast_alloc);
-	
-	DECLARE_PERFORMANCE_CHECKER(2, g_flylinkdc_perf_fast_alloc);
-	DECLARE_PERFORMANCE_CHECKER(21, g_flylinkdc_perf_fast_alloc);
-#ifndef _DEBUG
-	const auto cnt = g_cnt;
-	g_cnt = 5 * 1000 * 1000;
-#endif
-	{
-		std::vector<MyClassFast*> l_array_fast;
-		TEST_CODE(l_array_fast.push_back(new MyClassFast()), 1);
-		TEST_CODE(delete l_array_fast[i], 11);
-	}
-	
-	{
-		std::vector<MyClass*> l_array;
-		TEST_CODE(l_array.push_back(new MyClass()), 2);
-		TEST_CODE(delete l_array[i], 21);
-	}
-#ifndef _DEBUG
-	g_cnt = cnt;
-#endif
-}
+
 
 // [+] IRainman fix.
 void processPreparing(DWORD_PTR affinityMask)
@@ -654,6 +621,8 @@ int test_torrent()
 
 // zmq_connect(request, "tcp://51.254.84.24:4040");
 //auto l_result_connect = zmq_connect(request, "tcp://188.209.52.233:4040");
+#ifdef USE_ZMQ
+
 int zmq_test_client()
 {
 	void* context = zmq_ctx_new();
@@ -694,6 +663,8 @@ int zmq_test_client()
 	zmq_ctx_destroy(context);
 	return 0;
 }
+#endif
+
 class A
 {
 		string m_name;
@@ -730,7 +701,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	    //l_set.emplace_back(A("3"));
 	    return 0;
 	    */
-	zmq_test_client();
+#ifdef USE_ZMQ
+    zmq_test_client();
+#endif
 	return 0;
 	
 	std::cout << "Timing boost::unordered_map<int,int>" << std::endl;
@@ -881,8 +854,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	// [~] IRainman fix.
 	
 	
-	test_critical_section();
-	//testFastAlloc();
+	//test_critical_section();
 	//test_replace_vector();
 	//test_swap_vector();
 	//test_swap_member_vector();
