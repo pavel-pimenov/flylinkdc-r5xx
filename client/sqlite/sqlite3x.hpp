@@ -30,15 +30,8 @@
 #include <vector>
 #include "sqlite3.h"
 #include "..\client\Exception.h"
-#ifdef _DEBUG
-#include "..\boost\boost\noncopyable.hpp"
-#endif
-
 namespace sqlite3x {
 	class sqlite3_connection
-#ifdef _DEBUG
-		: boost::noncopyable 
-#endif
 	{
 	private:
 		friend class sqlite3_command;
