@@ -125,8 +125,8 @@ license you like.
 
 #ifndef JSON_CONFIG_H_INCLUDED
 #define JSON_CONFIG_H_INCLUDED
-#include <stddef.h>
-#include <stdint.h> //typedef int64_t, uint64_t
+#include <cstddef>
+#include <cstdint> //typedef int64_t, uint64_t
 #include <string>   //typedef String
 
 /// If defined, indicates that json library is embedded in CppTL library.
@@ -172,6 +172,14 @@ license you like.
 #endif // ifdef JSON_IN_CPPTL
 #if !defined(JSON_API)
 #define JSON_API
+#endif
+
+#if defined(_MSC_VER) && _MSC_VER < 1900
+// As recommended at https://stackoverflow.com/questions/2915672/snprintf-and-visual-studio-2010
+   extern JSON_API int msvc_pre1900_c99_snprintf(char *outBuf, size_t size, const char *format, ...);
+#  define jsoncpp_snprintf msvc_pre1900_c99_snprintf
+#else
+#  define jsoncpp_snprintf std::snprintf
 #endif
 
 // If JSON_NO_INT64 is defined, then Json only support C++ "int" type for
@@ -633,7 +641,7 @@ private:
  * The get() methods can be used to obtain default value in the case the
  * required element does not exist.
  *
- * It is possible to iterate over the list of a #objectValue values using
+ * It is possible to iterate over the list of member keys of an object using
  * the getMemberNames() method.
  *
  * \note #Value string-length fit in size_t, but keys must be < 2^30.
@@ -998,14 +1006,11 @@ Json::Value obj_value(Json::objectValue); // {}
   /// \brief Remove and return the named member.
   ///
   /// Do nothing if it did not exist.
-  /// \return the removed Value, or null.
   /// \pre type() is objectValue or nullValue
   /// \post type() is unchanged
-  /// \deprecated
   void removeMember(const char* key);
   /// Same as removeMember(const char*)
   /// \param key may contain embedded nulls.
-  /// \deprecated
   void removeMember(const JSONCPP_STRING& key);
   /// Same as removeMember(const char* begin, const char* end, Value* removed),
   /// but 'key' is null-terminated.
@@ -1604,7 +1609,7 @@ private:
                                    Location end,
                                    unsigned int& unicode);
   bool
-  addError(const JSONCPP_STRING& message, Token& token, Location extra = 0);
+  addError(const JSONCPP_STRING& message, Token& token, Location extra = nullptr);
   bool recoverFromError(TokenType skipUntilToken);
   bool addErrorAndRecover(const JSONCPP_STRING& message,
                           Token& token,
@@ -1741,7 +1746,7 @@ public:
 
   /** A simple way to update a specific setting.
    */
-  Value& operator[](JSONCPP_STRING key);
+  Value& operator[](const JSONCPP_STRING& key);
 
   /** Called by ctor, but you can use this to reset settings_.
    * \pre 'settings' != NULL (but Json::null is fine)
@@ -1949,7 +1954,7 @@ public:
   bool validate(Json::Value* invalid) const;
   /** A simple way to update a specific setting.
    */
-  Value& operator[](JSONCPP_STRING key);
+  Value& operator[](const JSONCPP_STRING& key);
 
   /** Called by ctor, but you can use this to reset settings_.
    * \pre 'settings' != NULL (but Json::null is fine)
@@ -2207,7 +2212,7 @@ JSON_API JSONCPP_OSTREAM& operator<<(JSONCPP_OSTREAM&, const Value& root);
 #define CPPTL_JSON_ASSERTIONS_H_INCLUDED
 
 #include <sstream>
-#include <stdlib.h>
+#include <cstdlib>
 
 #if !defined(JSON_IS_AMALGAMATION)
 #include "config.h"
