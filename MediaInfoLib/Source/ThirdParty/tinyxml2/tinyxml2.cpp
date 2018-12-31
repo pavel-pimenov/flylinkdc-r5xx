@@ -1037,7 +1037,7 @@ char* XMLNode::ParseDeep( char* p, StrPair* parentEndTag, int* curLineNumPtr )
         if ( decl ) {
             // Declarations are only allowed at document level
             //
-                // Multiple declarations are allowed but all declarations
+            // Multiple declarations are allowed but all declarations
             // must occur before anything else. 
             //
             // Optimized due to a security test case. If the first node is 
@@ -1052,7 +1052,7 @@ char* XMLNode::ParseDeep( char* p, StrPair* parentEndTag, int* curLineNumPtr )
                         FirstChild()->ToDeclaration() &&
                         LastChild() &&
                         LastChild()->ToDeclaration();
-                    }
+                }
                 else {
                     wellLocated = true;
                 }
@@ -2536,14 +2536,14 @@ void XMLPrinter::PrintString( const char* p, bool restricted )
             ++q;
             TIXMLASSERT( p <= q );
         }
-    // Flush the remaining string. This will be the entire
-    // string if an entity wasn't found.
+        // Flush the remaining string. This will be the entire
+        // string if an entity wasn't found.
         if ( p < q ) {
-        const size_t delta = q - p;
-        const int toPrint = ( INT_MAX < delta ) ? INT_MAX : (int)delta;
-        Write( p, toPrint );
+            const size_t delta = q - p;
+            const int toPrint = ( INT_MAX < delta ) ? INT_MAX : (int)delta;
+            Write( p, toPrint );
+        }
     }
-}
     else {
         Write( p );
     }

@@ -478,7 +478,7 @@ Ztring MediaInfo_Config::Option (const String &Option, const String &Value_Raw)
         Buffer[Pos]='\0';
         Ztring FromFile; FromFile.From_UTF8((char*)Buffer);
         if (FromFile.empty())
-             FromFile.From_Local((char*)Buffer);
+             FromFile.From_UTF8((char*)Buffer);
         delete[] Buffer; //Buffer=NULL;
 
         //Merge
@@ -2211,7 +2211,7 @@ void MediaInfo_Config::Inform_Set (const ZtringListList &NewValue)
             size_t F_Offset=F.Read(Buffer, (size_t)Size);
             F.Close();
             Buffer[F_Offset]='\0';
-            Ztring FromFile; FromFile.From_Local((char*)Buffer);
+            Ztring FromFile; FromFile.From_UTF8((char*)Buffer);
             delete[] Buffer; //Buffer=NULL;
 
             //Merge

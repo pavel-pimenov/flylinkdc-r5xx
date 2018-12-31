@@ -1152,6 +1152,22 @@ static const char* Mxf_EssenceCompression_Profile(const int128u& EssenceCompress
                                                                                     }
                                                                         default   : return "";
                                                                     }
+                                                        case 0x03 : //Individual Picure Coding Schemes
+                                                                    switch (Code6)
+                                                                    {
+                                                                        case 0x06 : //ProRes
+                                                                                    switch (Code7)
+                                                                                    {
+                                                                                        case 0x01 : return "422 Proxy";
+                                                                                        case 0x02 : return "422 LT";
+                                                                                        case 0x03 : return "422";
+                                                                                        case 0x04 : return "422 HQ";
+                                                                                        case 0x05 : return "4444";
+                                                                                        case 0x06 : return "4444 XQ";
+                                                                                        default   : return "";
+                                                                                    }
+                                                                        default   : return "";
+                                                                    }
                                                         default   : return "";
                                                     }
                                          default   : return "";
@@ -1313,6 +1329,8 @@ static const char* Mxf_ColorPrimaries(const int128u& ColorPrimaries)
         case 0x04 : return "BT.2020";
         case 0x05 : return "XYZ";
         case 0x06 : return "Display P3";
+        case 0x07 : return "ACES"; //  SMPTE ST 2065-1
+        case 0x08 : return "XYZ"; //  SMPTE ST 2067-40 / ISO 11664-3
         default   : return "";
     }
 }
@@ -1334,6 +1352,8 @@ static const char* Mxf_TransferCharacteristic(const int128u& TransferCharacteris
         case 0x09 : return "BT.2020"; // ISO does a difference of value between 10 and 12 bit
         case 0x0A : return "PQ";
         case 0x0B : return "HLG";
+        case 0x0C : return "Gamma 2.6"; // SMPTE ST 2067-50
+        case 0x0D : return "sRGB/sYCC"; // IEC 61966-2-1
         default   : return "";
     }
 }
@@ -1349,7 +1369,7 @@ static const char* Mxf_CodingEquations(const int128u& CodingEquations)
         case 0x03 : return "SMPTE 240M";
         case 0x04 : return "YCgCo";
         case 0x05 : return "Identity";
-        case 0x06 : return "BT.2020"; // ISO does a difference between constant and non constant, not SMPTE?
+        case 0x06 : return "BT.2020 non-constant";
         default   : return "";
     }
 }
@@ -2153,6 +2173,32 @@ static string Mxf_AcquisitionMetadata_Sony_MonitoringBaseCurve(int128u Value)
                     return ValueS.To_UTF8();
                     }
     }
+}
+
+//***************************************************************************
+// Config
+//***************************************************************************
+
+//---------------------------------------------------------------------------
+const char* ShowSource_List[] =
+{
+    "colour_description",
+    "colour_range",
+    "colour_primaries",
+    "matrix_coefficients",
+    "transfer_characteristics",
+    "MasteringDisplay_ColorPrimaries",
+    "MasteringDisplay_Luminance",
+    "MaxCLL",
+    "MaxFALL",
+    NULL
+};
+bool ShowSource_IsInList(const string &Value)
+{
+    for (size_t i = 0; ShowSource_List[i]; i++)
+        if (ShowSource_List[i] == Value)
+            return true;
+    return false;
 }
 
 //***************************************************************************
@@ -2989,7 +3035,7 @@ void File_Mxf::Streams_Finish_Essence(int32u EssenceUID, const int128u& TrackUID
             }
             for (size_t Pos=0; Pos<StreamMoreSave.size(); Pos++)
             {
-                Fill(StreamKind_Last, StreamPos_Last, StreamMoreSave(Pos, 0).To_Local().c_str(), StreamMoreSave(Pos, 1));
+                Fill(StreamKind_Last, StreamPos_Last, StreamMoreSave(Pos, 0).To_UTF8().c_str(), StreamMoreSave(Pos, 1));
                 if (StreamMoreSave(Pos, Info_Name)==__T("Delay_SDTI"))
                     Fill_SetOptions(StreamKind_Last, StreamPos_Last, "Delay_SDTI", "N NT");
                 if (StreamMoreSave(Pos, Info_Name)==__T("Delay_SystemScheme1"))
@@ -3482,6 +3528,8 @@ void File_Mxf::Streams_Finish_Descriptor(const int128u& DescriptorUID, const int
                 Fill(Stream_Video, StreamPos_Last, Video_FrameRate_Original, SampleRate_RawStream);
             Fill(Stream_Video, StreamPos_Last, Video_FrameRate, SampleRate, 3, true);
         }
+        if (StreamKind_Last==Stream_Video)
+            ColorLevels_Compute(Descriptor, true, Retrieve(Stream_Video, StreamPos_Last, Video_BitDepth).To_int32u());
 
         //MasteringDisplay specific info
         std::map<std::string, Ztring>::iterator Info_MasteringDisplay_Primaries = Descriptor->second.Infos.find("MasteringDisplay_Primaries");
@@ -3504,7 +3552,7 @@ void File_Mxf::Streams_Finish_Descriptor(const int128u& DescriptorUID, const int
             if (MasteringDisplay_ColorPrimaries==__T("R: x=0.708000 y=0.292000, G: x=0.170000 y=0.797000, B: x=0.131000 y=0.046000, White point: x=0.312700 y=0.329000")) MasteringDisplay_ColorPrimaries=__T("BT.2020");
             if (MasteringDisplay_ColorPrimaries==__T("R: x=0.680000 y=0.320000, G: x=0.265000 y=0.690000, B: x=0.150000 y=0.060000, White point: x=0.312700 y=0.329000")) MasteringDisplay_ColorPrimaries=__T("Display P3");
 
-            Fill(StreamKind_Last, StreamPos_Last, "MasteringDisplay_ColorPrimaries", MasteringDisplay_ColorPrimaries, true);
+            Descriptor->second.Infos["MasteringDisplay_ColorPrimaries"]=MasteringDisplay_ColorPrimaries;
         }
         if (MasteringDisplay_Luminance_Max!=Descriptor->second.Infos.end() || MasteringDisplay_Luminance_Min!=Descriptor->second.Infos.end())
         {
@@ -3517,28 +3565,70 @@ void File_Mxf::Streams_Finish_Descriptor(const int128u& DescriptorUID, const int
             }
             else
                     MasteringDisplay_Luminance=__T("max: ")+MasteringDisplay_Luminance_Max->second;
-            Fill(StreamKind_Last, StreamPos_Last, "MasteringDisplay_Luminance", MasteringDisplay_Luminance, true);
+
+            Descriptor->second.Infos["MasteringDisplay_Luminance"]=MasteringDisplay_Luminance;
         }
 
         for (std::map<std::string, Ztring>::iterator Info=Descriptor->second.Infos.begin(); Info!=Descriptor->second.Infos.end(); ++Info)
             if (Info!=Info_MasteringDisplay_Primaries
              && Info!=Info_MasteringDisplay_WhitePointChromaticity
              && Info!=MasteringDisplay_Luminance_Max
-             && Info!=MasteringDisplay_Luminance_Min
-             && Retrieve(StreamKind_Last, StreamPos_Last, Info->first.c_str()).empty())
+             && Info!=MasteringDisplay_Luminance_Min)
             {
                 //Special case
                 if (Info->first=="BitRate" && Retrieve(StreamKind_Last, StreamPos_Last, General_ID).find(__T(" / "))!=string::npos)
                 {
+                    if (!Retrieve(StreamKind_Last, StreamPos_Last, Info->first.c_str()).empty())
+                        continue; // Not always valid e.g. Dolby E or AC-3 in AES3. TODO: check in case of normal check
                     if (Retrieve(StreamKind_Last, StreamPos_Last, Fill_Parameter(StreamKind_Last, Generic_BitRate)).empty() || Retrieve(StreamKind_Last, StreamPos_Last, General_ID).find(__T('-'))!=string::npos)
                         Fill(StreamKind_Last, StreamPos_Last, Fill_Parameter(StreamKind_Last, Generic_BitRate_Encoded), Info->second.To_int64u()*2, 10, true);
                     else
                         Fill(StreamKind_Last, StreamPos_Last, Fill_Parameter(StreamKind_Last, Generic_BitRate), Info->second.To_int64u()*2, 10, true);
                 }
-                else
+                else if (!Info->second.empty())
                 {
+                    const Ztring FromEssence=Retrieve_Const(StreamKind_Last, StreamPos_Last, Info->first.c_str());
                     for (size_t Pos=0; Pos<StreamWithSameID; Pos++)
-                        Fill(StreamKind_Last, StreamPos_Last+Pos, Info->first.c_str(), Info->second, true);
+                    {
+                        if (FromEssence.empty())
+                        {
+                            Fill(StreamKind_Last, StreamPos_Last+Pos, Info->first.c_str(), Info->second);
+                        }
+                        else if (FromEssence!=Info->second)
+                        {
+                            // Special cases
+                            if (Info->first=="ColorSpace" && ((Info->second==__T("RGB") && FromEssence==__T("XYZ")) || (Info->second==__T("RGBA") && FromEssence==__T("XYZA"))))
+                                continue; // "RGB" is used by MXF for "XYZ" too
+                            if (Info->first=="Format")
+                                continue; // Too much important to show the essence format, ignoring for the moment. TODO: display something in such case
+                            if (Info->first=="Duration")
+                                continue; // Found 1 file with descriptor with wrong descriptor SampleRate. TODO: better display in such case (should not take precedence other other durations, how to display the issue between component duration and descriptor duration, both container metadata?). Must also take care about StereoscopicPictureSubDescriptor (SampleRate divided by 2 in that case)
+                            if (Info->first=="DisplayAspectRatio")
+                                continue; // Handled separately
+                            if (Info->first=="Channel(s)")
+                                continue; // Not always valid e.g. Dolby E. TODO: check in case of normal check
+                            if (Info->first=="BitDepth")
+                                continue; // Not always valid e.g. Dolby E. TODO: check in case of normal check
+                            if (Info->first=="BitRate")
+                                continue; // Not always valid e.g. Dolby E. TODO: check in case of normal check
+                            if (Info->first=="StreamOrder")
+                                continue; // Is not useful and has some issues with Dolby E
+
+                            // Filling both values
+                            Fill(StreamKind_Last, StreamPos_Last+Pos, (Info->first+"_Original").c_str(), FromEssence); //TODO: use the generic engine by filling descriptor info before merging essence info
+                            Fill(StreamKind_Last, StreamPos_Last+Pos, Info->first.c_str(), Info->second, true); //TODO: use the generic engine by filling descriptor info before merging essence info
+                            if (ShowSource_IsInList(Info->first))
+                            {
+                                Fill(StreamKind_Last, StreamPos_Last+Pos, (Info->first+"_Source").c_str(), "Container", Unlimited, true, true);
+                                Fill(StreamKind_Last, StreamPos_Last+Pos, (Info->first+"_Original_Source").c_str(), "Stream");
+                            }
+                        }
+                        else
+                        {
+                            if (ShowSource_IsInList(Info->first))
+                                Fill(StreamKind_Last, StreamPos_Last+Pos, (Info->first+"_Source").c_str(), "Container / Stream", Unlimited, true, true);
+                        }
+                    }
                 }
             }
         Ztring Format, CodecID;
@@ -3547,7 +3637,7 @@ void File_Mxf::Streams_Finish_Descriptor(const int128u& DescriptorUID, const int
             CodecID.From_Number(Descriptor->second.EssenceContainer.lo, 16);
             if (CodecID.size()<16)
                 CodecID.insert(0, 16-CodecID.size(), __T('0'));
-            Format.From_Local(Mxf_EssenceContainer(Descriptor->second.EssenceContainer));
+            Format.From_UTF8(Mxf_EssenceContainer(Descriptor->second.EssenceContainer));
         }
         if (Descriptor->second.EssenceCompression.hi!=(int64u)-1)
         {
@@ -3558,7 +3648,7 @@ void File_Mxf::Streams_Finish_Descriptor(const int128u& DescriptorUID, const int
             if (EssenceCompression.size()<16)
                 EssenceCompression.insert(0, 16-EssenceCompression.size(), __T('0'));
             CodecID+=EssenceCompression;
-            Ztring Format_FromCompression; Format_FromCompression.From_Local(Mxf_EssenceCompression(Descriptor->second.EssenceCompression));
+            Ztring Format_FromCompression; Format_FromCompression.From_UTF8(Mxf_EssenceCompression(Descriptor->second.EssenceCompression));
             if (!Format_FromCompression.empty())
                 Format=Format_FromCompression; //EssenceCompression has priority
         }
@@ -4144,7 +4234,7 @@ void File_Mxf::Streams_Finish_Component_ForAS11(const int128u& ComponentUID, flo
                                                             }
                                                     }
                                                     Fill(Stream_Other, StreamPos_Last, "PrimaryAudioLanguage", AS11->second.PrimaryAudioLanguage);
-                                                    //Fill_SetOptions(Stream_Other][StreamPos_Last](Ztring().From_Local("PrimaryAudioLanguage", "N NT");
+                                                    //Fill_SetOptions(Stream_Other][StreamPos_Last](Ztring().From_UTF8("PrimaryAudioLanguage", "N NT");
                                                     //if (MediaInfoLib::Config.Iso639_Find(AS11->second.PrimaryAudioLanguage).empty())
                                                     //    Fill(Stream_Other, StreamPos_Last, "PrimaryAudioLanguage/String", MediaInfoLib::Config.Iso639_Translate(AS11->second.PrimaryAudioLanguage));
                                                     if (AS11->second.ClosedCaptionsPresent<2)
@@ -6090,9 +6180,9 @@ void File_Mxf::Data_Parse()
                         if (i==Descriptor->second.Infos.end())
                         {
                             Ztring Format;
-                            Format.From_Local(Mxf_EssenceCompression(Descriptor->second.EssenceCompression));
+                            Format.From_UTF8(Mxf_EssenceCompression(Descriptor->second.EssenceCompression));
                             if (Format.empty())
-                                Format.From_Local(Mxf_EssenceContainer(Descriptor->second.EssenceContainer));
+                                Format.From_UTF8(Mxf_EssenceContainer(Descriptor->second.EssenceContainer));
                             if (Format.find(__T("PCM"))==0)
                                 Descriptor->second.Infos["Format_Settings_Endianness"]=__T("Little");
                         }
@@ -6103,7 +6193,7 @@ void File_Mxf::Data_Parse()
                         ChooseParser__FromEssence(Essence, Descriptor); //Searching by the track identifier
 
                     #ifdef MEDIAINFO_VC3_YES
-                        if (Ztring().From_Local(Mxf_EssenceContainer(Descriptor->second.EssenceContainer))==__T("VC-3"))
+                        if (Ztring().From_UTF8(Mxf_EssenceContainer(Descriptor->second.EssenceContainer))==__T("VC-3"))
                             ((File_Vc3*)(*(Essence->second.Parsers.begin())))->FrameRate=Descriptor->second.SampleRate;
                     #endif //MEDIAINFO_VC3_YES
                     break;
@@ -7278,6 +7368,8 @@ void File_Mxf::Primer()
 //---------------------------------------------------------------------------
 void File_Mxf::RGBAEssenceDescriptor()
 {
+    Descriptors[InstanceUID].Type=descriptor::Type_RGBA;
+
     if (Code2>=0x8000)
     {
         // Not a short code
@@ -8706,7 +8798,7 @@ void File_Mxf::SDTI_PackageMetadataSet()
                                 Get_BER(Length,                 "Length");
                                 switch ((Tag.lo>>16)&0xFF)
                                 {
-                                    case 0x00 : Skip_Local(Length,"Data"); break;
+                                    case 0x00 : Skip_UTF8(Length,"Data"); break;
                                     case 0x01 : Skip_UTF16L(Length,"Data"); break;
                                     default   : Skip_XX(Length, "Data");
                                 }
@@ -8896,7 +8988,8 @@ void File_Mxf::CDCIEssenceDescriptor_ComponentDepth()
     Get_B4 (Data,                                                "Data"); Element_Info1(Data);
 
     FILLING_BEGIN();
-        Descriptor_Fill("BitDepth", Ztring().From_Number(Data));
+        if (Data)
+            Descriptor_Fill("BitDepth", Ztring().From_Number(Data));
     FILLING_END();
 }
 
@@ -8927,7 +9020,14 @@ void File_Mxf::CDCIEssenceDescriptor_ColorSiting()
 void File_Mxf::CDCIEssenceDescriptor_BlackRefLevel()
 {
     //Parsing
-    Info_B4(Data,                                               "Data"); Element_Info1(Data);
+    int32u Data;
+    Get_B4 (Data,                                                "Data"); Element_Info1(Data);
+
+    FILLING_BEGIN();
+        if (Descriptors[InstanceUID].MinRefLevel==(int32u)-1)
+            Descriptors[InstanceUID].MinRefLevel=Data;
+        ColorLevels_Compute(Descriptors.find(InstanceUID));
+    FILLING_END();
 }
 
 //---------------------------------------------------------------------------
@@ -8935,7 +9035,14 @@ void File_Mxf::CDCIEssenceDescriptor_BlackRefLevel()
 void File_Mxf::CDCIEssenceDescriptor_WhiteReflevel()
 {
     //Parsing
-    Info_B4(Data,                                               "Data"); Element_Info1(Data);
+    int32u Data;
+    Get_B4 (Data,                                                "Data"); Element_Info1(Data);
+
+    FILLING_BEGIN();
+        if (Descriptors[InstanceUID].MaxRefLevel==(int32u)-1)
+            Descriptors[InstanceUID].MaxRefLevel=Data;
+        ColorLevels_Compute(Descriptors.find(InstanceUID));
+    FILLING_END();
 }
 
 //---------------------------------------------------------------------------
@@ -8943,7 +9050,14 @@ void File_Mxf::CDCIEssenceDescriptor_WhiteReflevel()
 void File_Mxf::CDCIEssenceDescriptor_ColorRange()
 {
     //Parsing
-    Info_B4(Data,                                               "Data"); Element_Info1(Data);
+    int32u Data;
+    Get_B4 (Data,                                                "Data"); Element_Info1(Data);
+
+    FILLING_BEGIN();
+        if (Descriptors[InstanceUID].ColorRange==(int32u)-1)
+            Descriptors[InstanceUID].ColorRange=Data;
+        ColorLevels_Compute(Descriptors.find(InstanceUID));
+    FILLING_END();
 }
 
 //---------------------------------------------------------------------------
@@ -10430,7 +10544,7 @@ void File_Mxf::PrimaryExtendedSpokenLanguage()
 {
     //Parsing
     Ztring Data;
-    Get_Local (Length2, Data,                                   "Data"); Element_Info1(Data);
+    Get_UTF8 (Length2, Data,                                    "Data"); Element_Info1(Data);
 
     FILLING_BEGIN();
         DMScheme1s[InstanceUID].PrimaryExtendedSpokenLanguage=Data;
@@ -10442,7 +10556,7 @@ void File_Mxf::PrimaryExtendedSpokenLanguage()
 void File_Mxf::SecondaryExtendedSpokenLanguage()
 {
     //Parsing
-    Info_Local(Length2, Data,                                   "Data"); Element_Info1(Data);
+    Info_UTF8(Length2, Data,                                    "Data"); Element_Info1(Data);
 }
 
 //---------------------------------------------------------------------------
@@ -10450,7 +10564,7 @@ void File_Mxf::SecondaryExtendedSpokenLanguage()
 void File_Mxf::OriginalExtendedSpokenLanguage()
 {
     //Parsing
-    Info_Local(Length2, Data,                                   "Data"); Element_Info1(Data);
+    Info_UTF8(Length2, Data,                                    "Data"); Element_Info1(Data);
 }
 
 //---------------------------------------------------------------------------
@@ -10458,7 +10572,7 @@ void File_Mxf::OriginalExtendedSpokenLanguage()
 void File_Mxf::SecondaryOriginalExtendedSpokenLanguage()
 {
     //Parsing
-    Info_Local(Length2, Data,                                   "Data"); Element_Info1(Data);
+    Info_UTF8(Length2, Data,                                    "Data"); Element_Info1(Data);
 }
 
 //---------------------------------------------------------------------------
@@ -10479,7 +10593,7 @@ void File_Mxf::RFC5646AudioLanguageCode()
 
     //Parsing
     Ztring Value;
-    Get_Local (Length2-(SizeIsPresent?4:0), Value,              "Value"); Element_Info1(Value);
+    Get_UTF8 (Length2-(SizeIsPresent?4:0), Value,               "Value"); Element_Info1(Value);
 
     FILLING_BEGIN();
         Descriptor_Fill("Language", Value);
@@ -11078,7 +11192,14 @@ void File_Mxf::RGBAEssenceDescriptor_ScanningDirection()
 void File_Mxf::RGBAEssenceDescriptor_ComponentMaxRef()
 {
     //Parsing
-    Info_B4(Data,                                                "Data"); Element_Info1(Data);
+    int32u Data;
+    Get_B4 (Data,                                                "Data"); Element_Info1(Data);
+
+    FILLING_BEGIN();
+        if (Descriptors[InstanceUID].MaxRefLevel==(int32u)-1)
+            Descriptors[InstanceUID].MaxRefLevel=Data;
+        ColorLevels_Compute(Descriptors.find(InstanceUID));
+    FILLING_END();
 }
 
 //---------------------------------------------------------------------------
@@ -11086,7 +11207,14 @@ void File_Mxf::RGBAEssenceDescriptor_ComponentMaxRef()
 void File_Mxf::RGBAEssenceDescriptor_ComponentMinRef()
 {
     //Parsing
-    Info_B4(Data,                                                "Data"); Element_Info1(Data);
+    int32u Data;
+    Get_B4 (Data,                                                "Data"); Element_Info1(Data);
+
+    FILLING_BEGIN();
+        if (Descriptors[InstanceUID].MinRefLevel==(int32u)-1)
+            Descriptors[InstanceUID].MinRefLevel=Data;
+        ColorLevels_Compute(Descriptors.find(InstanceUID));
+    FILLING_END();
 }
 
 //---------------------------------------------------------------------------
@@ -13322,7 +13450,7 @@ void File_Mxf::Omneon_010201020100_8005()
 void File_Mxf::Omneon_010201020100_8006()
 {
     //Parsing
-    Skip_Local(Length2,                                         "Content");
+    Skip_UTF8(Length2,                                          "Content");
 }
 
 //***************************************************************************
@@ -17318,6 +17446,54 @@ void File_Mxf::Subsampling_Compute(descriptors::iterator Descriptor)
                         default: Descriptor->second.Infos["ChromaSubsampling"].clear(); return;
                     }
         default:    return;
+    }
+}
+
+
+//---------------------------------------------------------------------------
+void File_Mxf::ColorLevels_Compute(descriptors::iterator Descriptor, bool Force, int32u BitDepth)
+{
+    // BitDepth check
+    std::map<std::string, Ztring>::iterator Info=Descriptor->second.Infos.find("BitDepth");
+    if (Info!=Descriptor->second.Infos.end())
+    {
+        if (BitDepth==0 || BitDepth==(int32u)-1)
+            BitDepth=Info->second.To_int32u();
+        else if (Force && BitDepth!=Info->second.To_int32u())
+            Fill(StreamKind_Last, StreamPos_Last, "BitDepth_Container", Info->second);
+    }
+
+    // Known values
+    if (BitDepth>=8 && BitDepth<=16)
+    {
+        int32u Multiplier=1<<(BitDepth-8);
+        if (Descriptor->second.MinRefLevel==16*Multiplier && Descriptor->second.MaxRefLevel==235*Multiplier && (Descriptor->second.Type==descriptor::Type_RGBA || Descriptor->second.ColorRange==1+224*Multiplier))
+        {
+            Descriptor->second.Infos["colour_range"]=__T("Limited");
+            return;
+        }
+        if (Descriptor->second.MinRefLevel==0*Multiplier && Descriptor->second.MaxRefLevel==256*Multiplier-1 && (Descriptor->second.Type==descriptor::Type_RGBA || Descriptor->second.ColorRange==256*Multiplier))
+        {
+            Descriptor->second.Infos["colour_range"]=__T("Full");
+            return;
+        }
+    }
+
+    if (Descriptor==Descriptors.end() || (!Force && (Descriptor->second.MinRefLevel==(int32u)-1 || Descriptor->second.MaxRefLevel==(int32u)-1) || (Descriptor->second.Type!=descriptor::Type_RGBA && Descriptor->second.ColorRange==(int32u)-1)))
+        return;
+
+    // Listing values
+    ZtringList List;
+    if (Descriptor->second.MinRefLevel!=(int32u)-1)
+        List.push_back(__T("Min: ")+Ztring::ToZtring(Descriptor->second.MinRefLevel));
+    if (Descriptor->second.MaxRefLevel!=(int32u)-1)
+        List.push_back(__T("Max: ")+Ztring::ToZtring(Descriptor->second.MaxRefLevel));
+    if (Descriptor->second.ColorRange!=(int32u)-1)
+        List.push_back(__T("Chroma range: ")+Ztring::ToZtring(Descriptor->second.ColorRange));
+    if (!List.empty())
+    {
+        List.Separator_Set(0, __T(", "));
+        Descriptor->second.Infos["colour_range"]=List.Read();
     }
 }
 

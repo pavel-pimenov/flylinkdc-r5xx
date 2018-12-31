@@ -683,8 +683,7 @@ bool MediaInfo_Internal::SelectFromExtension (const String &Parser)
         else if (Parser==__T("SDP"))         Info=new File_Sdp();
     #endif
     #if defined(MEDIAINFO_SUBRIP_YES)
-        else if (Parser==__T("SubRip"))      Info=new File_SubRip();
-        else if (Parser==__T("WebVTT"))      Info=new File_SubRip();
+        else if (Parser==__T("SubRip") || Parser == __T("WebVTT"))      Info=new File_SubRip();
     #endif
     #if defined(MEDIAINFO_TELETEXT_YES)
         else if (Parser==__T("Teletext"))    Info=new File_Teletext();

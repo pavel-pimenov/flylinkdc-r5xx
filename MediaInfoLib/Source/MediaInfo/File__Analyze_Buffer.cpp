@@ -1542,7 +1542,7 @@ void File__Analyze::Get_C1(int8u &Info, const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST_INT(1);
     Info=CC1(Buffer+Buffer_Offset+(size_t)Element_Offset);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 1);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 1);
     Element_Offset+=1;
 }
 
@@ -1551,7 +1551,7 @@ void File__Analyze::Get_C2(int16u &Info, const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST_INT(2);
     Info=CC2(Buffer+Buffer_Offset+(size_t)Element_Offset);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 2);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 2);
     Element_Offset+=2;
 }
 
@@ -1560,7 +1560,7 @@ void File__Analyze::Get_C3(int32u &Info, const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST_INT(3);
     Info=CC3(Buffer+Buffer_Offset+(size_t)Element_Offset);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 3);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 3);
     Element_Offset+=3;
 }
 
@@ -1569,7 +1569,7 @@ void File__Analyze::Get_C4(int32u &Info, const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST_INT(4);
     Info=CC4(Buffer+Buffer_Offset+(size_t)Element_Offset);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 4, false);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 4);
     Element_Offset+=4;
 }
 
@@ -1578,7 +1578,7 @@ void File__Analyze::Get_C5(int64u &Info, const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST_INT(5);
     Info=CC5(Buffer+Buffer_Offset+(size_t)Element_Offset);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 5);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 5);
     Element_Offset+=5;
 }
 
@@ -1587,7 +1587,7 @@ void File__Analyze::Get_C6(int64u &Info, const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST_INT(6);
     Info=CC6(Buffer+Buffer_Offset+(size_t)Element_Offset);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 6);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 6);
     Element_Offset+=6;
 }
 
@@ -1596,7 +1596,7 @@ void File__Analyze::Get_C7(int64u &Info, const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST_INT(7);
     Info=CC7(Buffer+Buffer_Offset+(size_t)Element_Offset);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 7);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 7);
     Element_Offset+=7;
 }
 
@@ -1605,7 +1605,7 @@ void File__Analyze::Get_C8(int64u &Info, const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST_INT(8);
     Info=CC8(Buffer+Buffer_Offset+(size_t)Element_Offset);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 8);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 8);
     Element_Offset+=8;
 }
 
@@ -1613,7 +1613,7 @@ void File__Analyze::Get_C8(int64u &Info, const char* Name)
 void File__Analyze::Skip_C1(const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST(1);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 1);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 1);
     Element_Offset+=1;
 }
 
@@ -1621,7 +1621,7 @@ void File__Analyze::Skip_C1(const char* Name)
 void File__Analyze::Skip_C2(const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST(2);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 2);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 2);
     Element_Offset+=2;
 }
 
@@ -1629,7 +1629,7 @@ void File__Analyze::Skip_C2(const char* Name)
 void File__Analyze::Skip_C3(const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST(3);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 3);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 3);
     Element_Offset+=3;
 }
 
@@ -1637,7 +1637,7 @@ void File__Analyze::Skip_C3(const char* Name)
 void File__Analyze::Skip_C4(const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST(4);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 4);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 4);
     Element_Offset+=4;
 }
 
@@ -1645,7 +1645,7 @@ void File__Analyze::Skip_C4(const char* Name)
 void File__Analyze::Skip_C5(const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST(5);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 5);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 5);
     Element_Offset+=5;
 }
 
@@ -1653,7 +1653,7 @@ void File__Analyze::Skip_C5(const char* Name)
 void File__Analyze::Skip_C6(const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST(6);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 6);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 6);
     Element_Offset+=6;
 }
 
@@ -1661,7 +1661,7 @@ void File__Analyze::Skip_C6(const char* Name)
 void File__Analyze::Skip_C7(const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST(7);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 7);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 7);
     Element_Offset+=7;
 }
 
@@ -1669,7 +1669,7 @@ void File__Analyze::Skip_C7(const char* Name)
 void File__Analyze::Skip_C8(const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST(8);
-    if (Trace_Activated) Param(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 8);
+    if (Trace_Activated) Param_CC(Name, Buffer+Buffer_Offset+(size_t)Element_Offset, 8);
     Element_Offset+=8;
 }
 
@@ -1681,7 +1681,11 @@ void File__Analyze::Skip_C8(const char* Name)
 void File__Analyze::Get_Local(int64u Bytes, Ztring &Info, const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST_STRING(Bytes);
+    #ifdef WINDOWS
     Info.From_Local((const char*)(Buffer+Buffer_Offset+(size_t)Element_Offset), (size_t)Bytes);
+    #else //WINDOWS
+    Info.From_ISO_8859_1((const char*)(Buffer+Buffer_Offset+(size_t)Element_Offset), (size_t)Bytes); //Trying with the most commonly used charset before UTF8
+    #endif //WINDOWS
     if (Trace_Activated && Bytes) Param(Name, Info);
     Element_Offset+=Bytes;
 }
@@ -1854,7 +1858,11 @@ void File__Analyze::Get_String(int64u Bytes, std::string &Info, const char* Name
 void File__Analyze::Peek_Local(int64u Bytes, Ztring &Info)
 {
     INTEGRITY_SIZE_ATLEAST_STRING(Bytes);
+    #ifdef WINDOWS
     Info.From_Local((const char*)(Buffer+Buffer_Offset+(size_t)Element_Offset), (size_t)Bytes);
+    #else //WINDOWS
+    Info.From_ISO_8859_1((const char*)(Buffer+Buffer_Offset+(size_t)Element_Offset), (size_t)Bytes); //Trying with the most commonly used charset before UTF8
+    #endif //WINDOWS
 }
 
 //---------------------------------------------------------------------------
@@ -1904,7 +1912,11 @@ void File__Analyze::Get_UTF16L(int64u Bytes, Ztring &Info, const char* Name)
 void File__Analyze::Skip_Local(int64u Bytes, const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST(Bytes);
+    #ifdef WINDOWS
     if (Trace_Activated && Bytes) Param(Name, Ztring().From_Local((const char*)(Buffer+Buffer_Offset+(size_t)Element_Offset), (size_t)Bytes));
+    #else //WINDOWS
+    if (Trace_Activated && Bytes) Param(Name, Ztring().From_ISO_8859_1((const char*)(Buffer+Buffer_Offset+(size_t)Element_Offset), (size_t)Bytes)); //Trying with the most commonly used charset before UTF8
+    #endif //WINDOWS
     Element_Offset+=Bytes;
 }
 
@@ -1925,7 +1937,11 @@ void File__Analyze::Skip_ISO_6937_2(int64u Bytes, const char* Name)
 void File__Analyze::Skip_String(int64u Bytes, const char* Name)
 {
     INTEGRITY_SIZE_ATLEAST(Bytes);
+    #ifdef WINDOWS
     if (Trace_Activated && Bytes) Param(Name, Ztring().From_Local((const char*)(Buffer+Buffer_Offset+(size_t)Element_Offset), (size_t)Bytes));
+    #else //WINDOWS
+    if (Trace_Activated && Bytes) Param(Name, Ztring().From_ISO_8859_1((const char*)(Buffer+Buffer_Offset+(size_t)Element_Offset), (size_t)Bytes)); //Trying with the most commonly used charset before UTF8
+    #endif //WINDOWS
     Element_Offset+=Bytes;
 }
 
@@ -1963,7 +1979,11 @@ void File__Analyze::Skip_PA(const char* Name)
     INTEGRITY_SIZE_ATLEAST(1);
     int8u Size=Buffer[Buffer_Offset+(size_t)Element_Offset];
     INTEGRITY_SIZE_ATLEAST(1+Size);
+    #ifdef WINDOWS
     if (Trace_Activated && Size) Param(Name, Ztring().From_Local((const char*)(Buffer+Buffer_Offset+(size_t)Element_Offset+1), (size_t)Size));
+    #else //WINDOWS
+    if (Trace_Activated && Size) Param(Name, Ztring().From_ISO_8859_1((const char*)(Buffer+Buffer_Offset+(size_t)Element_Offset+1), (size_t)Size)); //Trying with the most commonly used charset before UTF8
+    #endif //WINDOWS
     Element_Offset+=1+Size;
 }
 

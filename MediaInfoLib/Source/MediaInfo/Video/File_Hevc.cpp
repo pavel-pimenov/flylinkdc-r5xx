@@ -246,6 +246,8 @@ void File_Hevc::Streams_Fill()
         Fill(Stream_Video, 0, "MasteringDisplay_ColorPrimaries", MasteringDisplay_ColorPrimaries);
         Fill(Stream_Video, 0, "MasteringDisplay_Luminance", MasteringDisplay_Luminance);
     }
+    if (!EtsiTS103433.empty())
+        Fill(Stream_Video, 0, "EtsiTS103433", EtsiTS103433);
     if (maximum_content_light_level)
         Fill(Stream_Video, 0, "MaxCLL", Ztring::ToZtring(maximum_content_light_level) + __T(" cd/m2"));
     if (maximum_frame_average_light_level)
@@ -275,14 +277,14 @@ void File_Hevc::Streams_Fill(std::vector<seq_parameter_set_struct*>::iterator se
     if ((*seq_parameter_set_Item)->profile_space==0)
     {
         if ((*seq_parameter_set_Item)->profile_idc)
-            Profile=Ztring().From_Local(Hevc_profile_idc((*seq_parameter_set_Item)->profile_idc));
+            Profile=Ztring().From_UTF8(Hevc_profile_idc((*seq_parameter_set_Item)->profile_idc));
         if ((*seq_parameter_set_Item)->level_idc)
         {
             if ((*seq_parameter_set_Item)->profile_idc)
                 Profile+=__T('@');
             Profile+=__T('L')+Ztring().From_Number(((float)(*seq_parameter_set_Item)->level_idc)/30, ((*seq_parameter_set_Item)->level_idc%10)?1:0);
             Profile+=__T('@');
-            Profile+=Ztring().From_Local(Hevc_tier_flag((*seq_parameter_set_Item)->tier_flag));
+            Profile+=Ztring().From_UTF8(Hevc_tier_flag((*seq_parameter_set_Item)->tier_flag));
         }
     }
     Fill(Stream_Video, 0, Video_Format_Profile, Profile);
@@ -1894,7 +1896,7 @@ void File_Hevc::sei_message(int32u &seq_parameter_set_id)
     {
         case   0 :   sei_message_buffering_period(seq_parameter_set_id, payloadSize); break;
         case   1 :   sei_message_pic_timing(seq_parameter_set_id, payloadSize); break;
-        //case   4 :   sei_message_user_data_registered_itu_t_t35(); break;
+        case   4 :   sei_message_user_data_registered_itu_t_t35(); break;
         case   5 :   sei_message_user_data_unregistered(payloadSize); break;
         case   6 :   sei_message_recovery_point(); break;
         //case  32 :   sei_message_mainconcept(payloadSize); break;
@@ -2023,6 +2025,101 @@ void File_Hevc::sei_message_pic_timing(int32u &seq_parameter_set_id, int32u payl
 }
 
 //---------------------------------------------------------------------------
+// SEI - 4
+void File_Hevc::sei_message_user_data_registered_itu_t_t35()
+{
+    Element_Info1("user_data_registered_itu_t_t35");
+
+    int8u itu_t_t35_country_code;
+    Get_B1(itu_t_t35_country_code, "itu_t_t35_country_code");
+    int16u terminal_provider_code;
+    Get_B2(terminal_provider_code, "terminal_provider_code");
+    int8u terminal_provider_oriented_code_message_idc;
+    Get_B1(terminal_provider_oriented_code_message_idc, "terminal_provider_oriented_code_message_idc");
+    if (itu_t_t35_country_code == 0xB5 && terminal_provider_code == 0x3A)
+    {
+        if (!terminal_provider_oriented_code_message_idc)
+        {
+            BS_Begin();
+            int8u sl_hdr_mode_value_minus1;
+            Get_S1(4, sl_hdr_mode_value_minus1, "sl_hdr_mode_value_minus1");
+            int8u sl_hdr_spec_major_version_idc;
+            Get_S1(4, sl_hdr_spec_major_version_idc, "sl_hdr_spec_major_version_idc");
+            int8u sl_hdr_spec_minor_version_idc;
+            Get_S1(7, sl_hdr_spec_minor_version_idc, "sl_hdr_spec_minor_version_idc");
+            bool sl_hdr_cancel_flag;
+            Get_SB(sl_hdr_cancel_flag, "sl_hdr_cancel_flag");
+            BS_End();
+            int8u sl_hdr_payload_mode;
+            int8u k_coefficient_value[3];
+            if (!sl_hdr_cancel_flag)
+            {
+                BS_Begin();
+                Skip_SB("sl_hdr_persistence_flag");
+                bool coded_picture_info_present_flag;
+                Get_SB(coded_picture_info_present_flag, "coded_picture_info_present_flag");
+                bool target_picture_info_present_flag;
+                Get_SB(target_picture_info_present_flag, "target_picture_info_present_flag");
+                bool src_mdcv_info_present_flag;
+                Get_SB(src_mdcv_info_present_flag, "src_mdcv_info_present_flag");
+                Skip_SB("sl_hdr_extension_present_flag");
+                Get_S1(3, sl_hdr_payload_mode, "sl_hdr_payload_mode");
+                BS_End();
+                if (coded_picture_info_present_flag)
+                {
+                    Skip_B1("coded_picture_primaries");
+                    Skip_B2("coded_picture_max_luminance");
+                    Skip_B2("coded_picture_min_luminance");
+                }
+                if (target_picture_info_present_flag)
+                {
+                    Skip_B1("target_picture_primaries");
+                    Skip_B2("target_picture_max_luminance");
+                    Skip_B2("target_picture_min_luminance");
+                }
+                if (src_mdcv_info_present_flag)
+                {
+                    for (int8u i = 0; i < 3; i++)
+                    {
+                        Skip_B2("src_mdcv_primaries_x");
+                        Skip_B2("src_mdcv_primaries_y");
+                    }
+                    Skip_B2("src_mdcv_ref_white_x");
+                    Skip_B2("src_mdcv_ref_white_y");
+                    Skip_B2("src_mdcv_max_mastering_luminance");
+                    Skip_B2("src_mdcv_min_mastering_luminance");
+                }
+                for (int8u i = 0; i < 4; i++)
+                    Skip_B2("matrix_coefficient_value");
+                for (int8u i = 0; i < 2; i++)
+                    Skip_B2("chroma_to_luma_injection");
+                for (int8u i = 0; i < 3; i++)
+                    Get_B1(k_coefficient_value[i], "k_coefficient_value");
+            }
+            EtsiTS103433 = __T("SL-HDR") + Ztring().From_Number(sl_hdr_mode_value_minus1 + 1);
+            if (!sl_hdr_mode_value_minus1)
+            {
+                EtsiTS103433 += k_coefficient_value[0] == 0 && k_coefficient_value[1] == 0 && k_coefficient_value[2] == 0 ? __T(" NCL") : __T(" CL");
+            }
+            EtsiTS103433+= __T(" specVersion=") + Ztring().From_Number(sl_hdr_spec_major_version_idc) + __T(".") + Ztring().From_Number(sl_hdr_spec_minor_version_idc);
+            EtsiTS103433+= __T(" payloadMode=") + Ztring().From_Number(sl_hdr_payload_mode);
+        }
+        else if (terminal_provider_oriented_code_message_idc == 0x02)
+        {
+            BS_Begin();
+            int8u ts_103_433_spec_version;
+            Get_S1(4, ts_103_433_spec_version, "ts_103_433_spec_version");
+            int8u ts_103_433_payload_mode;
+            Get_S1(4, ts_103_433_payload_mode, "ts_103_433_payload_mode");
+            BS_End();
+            EtsiTS103433 = __T("SL-HDR1");
+            EtsiTS103433+= __T(" specVersion=") + Ztring().From_Number(ts_103_433_spec_version);
+            EtsiTS103433+= __T(" payloadMode=") + Ztring().From_Number(ts_103_433_payload_mode);
+        }
+    }
+}
+
+//---------------------------------------------------------------------------
 // SEI - 5
 void File_Hevc::sei_message_user_data_unregistered(int32u payloadSize)
 {
@@ -2049,7 +2146,7 @@ void File_Hevc::sei_message_user_data_unregistered(int32u payloadSize)
 void File_Hevc::sei_message_user_data_unregistered_Ateme(int32u payloadSize)
 {
     //Parsing
-    Get_Local(payloadSize, Encoded_Library,                     "Library name");
+    Get_UTF8 (payloadSize, Encoded_Library,                     "Library name");
 
     //Encoded_Library
     if (Encoded_Library.find(__T("ATEME "))==0)
@@ -2068,8 +2165,8 @@ void File_Hevc::sei_message_user_data_unregistered_Ateme(int32u payloadSize)
 void File_Hevc::sei_message_user_data_unregistered_x265(int32u payloadSize)
 {
     //Parsing
-    Ztring Data;
-    Peek_Local(payloadSize, Data);
+    string Data;
+    Peek_String(payloadSize, Data);
     if (Data.size()!=payloadSize && Data.size()+1!=payloadSize)
     {
         Skip_XX(payloadSize,                                    "Unknown");
@@ -2079,10 +2176,10 @@ void File_Hevc::sei_message_user_data_unregistered_x265(int32u payloadSize)
     size_t Loop=0;
     do
     {
-        size_t Data_Pos=Data.find(__T(" - "), Data_Pos_Before);
+        size_t Data_Pos=Data.find(" - ", Data_Pos_Before);
         if (Data_Pos==std::string::npos)
             Data_Pos=Data.size();
-        if (Data.find(__T("options: "), Data_Pos_Before)==Data_Pos_Before)
+        if (Data.find("options: ", Data_Pos_Before)==Data_Pos_Before)
         {
             Element_Begin1("options");
             size_t Options_Pos_Before=Data_Pos_Before;
@@ -2092,16 +2189,16 @@ void File_Hevc::sei_message_user_data_unregistered_x265(int32u payloadSize)
                 size_t Options_Pos=Data.find(__T(' '), Options_Pos_Before);
                 if (Options_Pos==std::string::npos)
                     Options_Pos=Data.size();
-                Ztring option;
-                Get_Local (Options_Pos-Options_Pos_Before, option, "option");
+                string option;
+                Get_String (Options_Pos-Options_Pos_Before, option, "option");
                 Options_Pos_Before=Options_Pos;
                 while (Options_Pos_Before!=Data.size())
                 {
-                    Ztring Separator;
-                    Peek_Local(1, Separator);
-                    if (Separator==__T(" "))
+                    string Separator;
+                    Peek_String(1, Separator);
+                    if (Separator==" ")
                     {
-                        Skip_Local(1,                               "separator");
+                        Skip_UTF8(1,                                "separator");
                         Options_Pos_Before+=1;
                     }
                     else
@@ -2109,19 +2206,19 @@ void File_Hevc::sei_message_user_data_unregistered_x265(int32u payloadSize)
                 }
 
                 //Filling
-                if (option!=__T("options:") && !(!option.empty() && option[0]>=__T('0') && option[0]<=__T('9')) && option.find(__T("fps="))!=0 && option.find(__T("bitdepth="))!=0) //Ignoring redundant information e.g. width, height, frame rate, bit depth
+                if (option!="options:" && !(!option.empty() && option[0]>='0' && option[0]<='9') && option.find("fps=")!=0 && option.find("bitdepth=")!=0) //Ignoring redundant information e.g. width, height, frame rate, bit depth
                 {
                     if (!Encoded_Library_Settings.empty())
                         Encoded_Library_Settings+=__T(" / ");
-                    Encoded_Library_Settings+=option;
+                    Encoded_Library_Settings+=Ztring().From_UTF8(option.c_str());
                 }
             }
             Element_End0();
         }
         else
         {
-            Ztring Value;
-            Get_Local(Data_Pos-Data_Pos_Before, Value,          "data");
+            string Value;
+            Get_String(Data_Pos-Data_Pos_Before, Value,          "data");
 
             //Saving
             if (Loop==0)
@@ -2134,22 +2231,22 @@ void File_Hevc::sei_message_user_data_unregistered_x265(int32u payloadSize)
                 size_t Value_Pos=Value.find(__T(' '));
                 if (Value_Pos!=string::npos)
                     Value.resize(Value_Pos);
-                Encoded_Library=Value;
+                Encoded_Library.From_UTF8(Value.c_str());
             }
             if (Loop==1 && Encoded_Library.find(__T("x265"))==0)
             {
-                size_t Value_Pos=Value.find(__T(" 8bpp"));
+                size_t Value_Pos=Value.find(" 8bpp");
                 if (Value_Pos!=string::npos)
                     Value.resize(Value_Pos);
 
                 Encoded_Library+=__T(" - ");
-                Encoded_Library+=Value;
+                Encoded_Library+=Ztring().From_UTF8(Value.c_str());
             }
         }
         Data_Pos_Before=Data_Pos;
         if (Data_Pos_Before+3<=Data.size())
         {
-            Skip_Local(3,                                       "separator");
+            Skip_UTF8(3,                                        "separator");
             Data_Pos_Before+=3;
         }
 
