@@ -55,7 +55,6 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
 		COMMAND_ID_HANDLER(IDC_COLOR, onTextStyleSelect)
 #endif
-		COMMAND_ID_HANDLER(IDC_OSAGO, onOSAGOSelect)
 		
 		COMMAND_HANDLER(IDC_CHAT_MESSAGE_EDIT, EN_CHANGE, onChange)
 		END_MSG_MAP()
