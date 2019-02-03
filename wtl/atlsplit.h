@@ -58,7 +58,7 @@ template <class T>
 class CSplitterImpl
 {
 public:
-	enum { m_nPanesCount = 2, m_nPropMax = 10000, m_cxyStep = 10 };
+	enum { m_nPanesCount = 2, m_nPropMax = INT_MAX, m_cxyStep = 10 };
 
 	bool m_bVertical;
 	HWND m_hWndPane[m_nPanesCount];
@@ -201,7 +201,7 @@ public:
 	int GetSplitterPosPct() const
 	{
 		int cxyTotal = m_bVertical ? (m_rcSplitter.right - m_rcSplitter.left - m_cxySplitBar - m_cxyBarEdge) : (m_rcSplitter.bottom - m_rcSplitter.top - m_cxySplitBar - m_cxyBarEdge);
-		return ((cxyTotal > 0) && (m_xySplitterPos >= 0)) ? (::MulDiv(m_xySplitterPos, m_nPropMax, cxyTotal) / 100) : -1;
+		return ((cxyTotal > 0) && (m_xySplitterPos >= 0)) ? ::MulDiv(m_xySplitterPos, 100, cxyTotal) : -1;
 	}
 
 	bool SetSinglePaneMode(int nPane = SPLIT_PANE_NONE)
@@ -471,7 +471,7 @@ public:
 // Overrideables
 	void DrawSplitterBar(CDCHandle dc)
 	{
-		RECT rect = { 0 };
+		RECT rect = {};
 		if(GetSplitterBarRect(&rect))
 		{
 			dc.FillRect(&rect, COLOR_3DFACE);
@@ -498,7 +498,7 @@ public:
 	// called only if pane is empty
 	void DrawSplitterPane(CDCHandle dc, int nPane)
 	{
-		RECT rect = { 0 };
+		RECT rect = {};
 		if(GetSplitterPaneRect(nPane, &rect))
 		{
 			T* pT = static_cast<T*>(this);
@@ -701,7 +701,7 @@ public:
 			case VK_RIGHT:
 				if(m_bVertical)
 				{
-					POINT pt = { 0, 0 };
+					POINT pt = {};
 					::GetCursorPos(&pt);
 					int xyPos = m_xySplitterPos + ((wParam == VK_LEFT) ? -pT->m_cxyStep : pT->m_cxyStep);
 					int cxyMax = m_rcSplitter.right - m_rcSplitter.left;
@@ -717,7 +717,7 @@ public:
 			case VK_DOWN:
 				if(!m_bVertical)
 				{
-					POINT pt = { 0, 0 };
+					POINT pt = {};
 					::GetCursorPos(&pt);
 					int xyPos = m_xySplitterPos + ((wParam == VK_UP) ? -pT->m_cxyStep : pT->m_cxyStep);
 					int cxyMax = m_rcSplitter.bottom - m_rcSplitter.top;
@@ -770,7 +770,7 @@ public:
 			DWORD dwPos = ::GetMessagePos();
 			POINT pt = { GET_X_LPARAM(dwPos), GET_Y_LPARAM(dwPos) };
 			pT->ScreenToClient(&pt);
-			RECT rcPane = { 0 };
+			RECT rcPane = {};
 			for(int nPane = 0; nPane < m_nPanesCount; nPane++)
 			{
 				if(GetSplitterPaneRect(nPane, &rcPane) && (::PtInRect(&rcPane, pt) != FALSE))
@@ -807,7 +807,7 @@ public:
 			return;
 
 		T* pT = static_cast<T*>(this);
-		RECT rect = { 0 };
+		RECT rect = {};
 		if(m_nSinglePane == SPLIT_PANE_NONE)
 		{
 			if(GetSplitterBarRect(&rect))
@@ -935,12 +935,12 @@ public:
 
 	void DrawGhostBar()
 	{
-		RECT rect = { 0 };
+		RECT rect = {};
 		if(GetSplitterBarRect(&rect))
 		{
 			// convert client to window coordinates
 			T* pT = static_cast<T*>(this);
-			RECT rcWnd = { 0 };
+			RECT rcWnd = {};
 			pT->GetWindowRect(&rcWnd);
 			::MapWindowPoints(NULL, pT->m_hWnd, (LPPOINT)&rcWnd, 2);
 			::OffsetRect(&rect, -rcWnd.left, -rcWnd.top);
@@ -1099,17 +1099,7 @@ template <bool t_bVertical = true>
 class CSplitterWindowT : public CSplitterWindowImpl<CSplitterWindowT<t_bVertical> >
 {
 public:
-	// This is instead of DECLARE_WND_CLASS_EX(_T("WTL_SplitterWindow"), CS_DBLCLKS, COLOR_WINDOW)
-	static ATL::CWndClassInfo& GetWndClassInfo()
-	{
-		static ATL::CWndClassInfo wc = 
-		{
-			{ sizeof(WNDCLASSEX), CS_DBLCLKS, ATL::CWindowImplBase::StartWindowProc,
-			  0, 0, NULL, NULL, NULL, (HBRUSH)(COLOR_WINDOW + 1), NULL, _T("WTL_SplitterWindow"), NULL },
-			NULL, NULL, IDC_ARROW, TRUE, 0, _T("")
-		};
-		return wc;
-	}
+	DECLARE_WND_CLASS_EX2(_T("WTL_SplitterWindow"), CSplitterWindowT<t_bVertical>, CS_DBLCLKS, COLOR_WINDOW)
 
 	CSplitterWindowT() : CSplitterWindowImpl<CSplitterWindowT<t_bVertical> >(t_bVertical)
 	{ }

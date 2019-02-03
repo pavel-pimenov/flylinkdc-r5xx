@@ -405,7 +405,7 @@ public:
 		::DPtoLP(hDC1, &ptOrg, 1);
 		POINT pt = { 0, 0 };
 		pt.y = abs(lfHeight) + ptOrg.y;
-		::LPtoDP(hDC1, &pt,1);
+		::LPtoDP(hDC1, &pt, 1);
 		LONG nDeciPoint = ::MulDiv(pt.y, 720, ::GetDeviceCaps(hDC1, LOGPIXELSY));   // 72 points/inch, 10 decipoints/point
 		if(hDC == NULL)
 			::ReleaseDC(NULL, hDC1);
@@ -571,7 +571,7 @@ public:
 
 	HFONT CreatePointFont(int nPointSize, LPCTSTR lpszFaceName, HDC hDC = NULL, bool bBold = false, bool bItalic = false)
 	{
-		LOGFONT logFont = { 0 };
+		LOGFONT logFont = {};
 		logFont.lfCharSet = DEFAULT_CHARSET;
 		logFont.lfHeight = nPointSize;
 		ATL::Checked::tcsncpy_s(logFont.lfFaceName, _countof(logFont.lfFaceName), lpszFaceName, _TRUNCATE);
@@ -749,7 +749,7 @@ public:
 	bool GetSize(SIZE& size) const
 	{
 		ATLASSERT(m_hBitmap != NULL);
-		BITMAP bm = { 0 };
+		BITMAP bm = {};
 		if(!GetBitmap(&bm))
 			return false;
 		size.cx = bm.bmWidth;
@@ -1607,10 +1607,10 @@ public:
 
 	BOOL DPtoLP(LPSIZE lpSize) const
 	{
-		SIZE sizeWinExt = { 0, 0 };
+		SIZE sizeWinExt = {};
 		if(!GetWindowExt(&sizeWinExt))
 			return FALSE;
-		SIZE sizeVpExt = { 0, 0 };
+		SIZE sizeVpExt = {};
 		if(!GetViewportExt(&sizeVpExt))
 			return FALSE;
 		lpSize->cx = ::MulDiv(lpSize->cx, abs(sizeWinExt.cx), abs(sizeVpExt.cx));
@@ -1632,10 +1632,10 @@ public:
 
 	BOOL LPtoDP(LPSIZE lpSize) const
 	{
-		SIZE sizeWinExt = { 0, 0 };
+		SIZE sizeWinExt = {};
 		if(!GetWindowExt(&sizeWinExt))
 			return FALSE;
-		SIZE sizeVpExt = { 0, 0 };
+		SIZE sizeVpExt = {};
 		if(!GetViewportExt(&sizeVpExt))
 			return FALSE;
 		lpSize->cx = ::MulDiv(lpSize->cx, abs(sizeVpExt.cx), abs(sizeWinExt.cx));
@@ -2604,7 +2604,7 @@ public:
 	// Escape helpers
 	int StartDoc(LPCTSTR lpszDocName)  // old Win3.0 version
 	{
-		DOCINFO di = { 0 };
+		DOCINFO di = {};
 		di.cbSize = sizeof(DOCINFO);
 		di.lpszDocName = lpszDocName;
 		return StartDoc(&di);
@@ -2843,7 +2843,7 @@ public:
 	static CBrushHandle PASCAL GetHalftoneBrush()
 	{
 		HBRUSH halftoneBrush = NULL;
-		WORD grayPattern[8] = { 0 };
+		WORD grayPattern[8] = {};
 		for(int i = 0; i < 8; i++)
 			grayPattern[i] = (WORD)(0x5555 << (i & 1));
 		HBITMAP grayBitmap = CreateBitmap(8, 8, 1, 1, &grayPattern);

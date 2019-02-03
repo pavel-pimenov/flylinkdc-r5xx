@@ -2362,7 +2362,7 @@ public:
 		ATLASSERT(hWnd != NULL);
 		ATLASSERT(lpToolInfo != NULL);
 
-		TTHITTESTINFO hti = { 0 };
+		TTHITTESTINFO hti = {};
 		hti.ti.cbSize = RunTimeHelper::SizeOf_TOOLINFO();
 		hti.hwnd = hWnd;
 		hti.pt.x = pt.x;
@@ -2737,7 +2737,7 @@ public:
 		int nImage, UINT nState, UINT nStateMask, LPARAM lParam)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		LVITEM lvi = { 0 };
+		LVITEM lvi = {};
 		lvi.mask = nMask;
 		lvi.iItem = nItem;
 		lvi.iSubItem = nSubItem;
@@ -2758,7 +2758,7 @@ public:
 	BOOL SetItemState(int nItem, UINT nState, UINT nStateMask)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		LVITEM lvi = { 0 };
+		LVITEM lvi = {};
 		lvi.state = nState;
 		lvi.stateMask = nStateMask;
 		return (BOOL)::SendMessage(this->m_hWnd, LVM_SETITEMSTATE, nItem, (LPARAM)&lvi);
@@ -2775,7 +2775,7 @@ public:
 		USES_CONVERSION;
 		ATLASSERT(::IsWindow(this->m_hWnd));
 		ATLASSERT(bstrText == NULL);
-		LVITEM lvi = { 0 };
+		LVITEM lvi = {};
 		lvi.iSubItem = nSubItem;
 
 		LPTSTR lpstrText = NULL;
@@ -2809,7 +2809,7 @@ public:
 	int GetItemText(int nItem, int nSubItem, ATL::CString& strText) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		LVITEM lvi = { 0 };
+		LVITEM lvi = {};
 		lvi.iSubItem = nSubItem;
 
 		strText.Empty();
@@ -2835,7 +2835,7 @@ public:
 	int GetItemText(int nItem, int nSubItem, LPTSTR lpszText, int nLen) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		LVITEM lvi = { 0 };
+		LVITEM lvi = {};
 		lvi.iSubItem = nSubItem;
 		lvi.cchTextMax = nLen;
 		lvi.pszText = lpszText;
@@ -2851,7 +2851,7 @@ public:
 	DWORD_PTR GetItemData(int nItem) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		LVITEM lvi = { 0 };
+		LVITEM lvi = {};
 		lvi.iItem = nItem;
 		lvi.mask = LVIF_PARAM;
 		BOOL bRet = (BOOL)::SendMessage(this->m_hWnd, LVM_GETITEM, 0, (LPARAM)&lvi);
@@ -3419,7 +3419,7 @@ public:
 	BOOL SetItemIndexState(PLVITEMINDEX pItemIndex, UINT uState, UINT dwMask)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		LVITEM lvi = { 0 };
+		LVITEM lvi = {};
 		lvi.state = uState;
 		lvi.stateMask = dwMask;
 		return (BOOL)::SendMessage(this->m_hWnd, LVM_SETITEMINDEXSTATE, (WPARAM)pItemIndex, (LPARAM)&lvi);
@@ -3442,8 +3442,8 @@ public:
 	int InsertColumn(int nCol, LPCTSTR lpszColumnHeading, int nFormat = LVCFMT_LEFT, 
 			int nWidth = -1, int nSubItem = -1, int iImage = -1, int iOrder = -1)
 	{
-		LVCOLUMN column = { 0 };
-		column.mask = LVCF_TEXT|LVCF_FMT;
+		LVCOLUMN column = {};
+		column.mask = LVCF_TEXT | LVCF_FMT;
 		column.pszText = (LPTSTR)lpszColumnHeading;
 		column.fmt = nFormat;
 		if (nWidth != -1)
@@ -3478,7 +3478,7 @@ public:
 	int InsertItem(UINT nMask, int nItem, LPCTSTR lpszItem, UINT nState, UINT nStateMask, int nImage, LPARAM lParam)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		LVITEM item = { 0 };
+		LVITEM item = {};
 		item.mask = nMask;
 		item.iItem = nItem;
 		item.iSubItem = 0;
@@ -3535,7 +3535,7 @@ public:
 	int FindItem(LPCTSTR lpstrFind, bool bPartial = true, bool bWrap = false, int nStart = -1) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		LVFINDINFO lvfi = { 0 };
+		LVFINDINFO lvfi = {};
 		lvfi.flags = LVFI_STRING | (bWrap ? LVFI_WRAP : 0) | (bPartial ? LVFI_PARTIAL : 0);
 		lvfi.psz = lpstrFind;
 		return (int)::SendMessage(this->m_hWnd, LVM_FINDITEM, nStart, (LPARAM)&lvfi);
@@ -3550,7 +3550,7 @@ public:
 	int HitTest(POINT pt, UINT* pFlags) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		LVHITTESTINFO hti = { 0 };
+		LVHITTESTINFO hti = {};
 		hti.pt = pt;
 		int nRes = (int)::SendMessage(this->m_hWnd, LVM_HITTEST, 0, (LPARAM)&hti);
 		if (pFlags != NULL)
@@ -3630,7 +3630,7 @@ public:
 	{
 		const int cxOffset = 15;
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		LVCOLUMN lvc = { 0 };
+		LVCOLUMN lvc = {};
 		lvc.mask = nMask;
 		lvc.fmt = nFmt;
 		lvc.pszText = (LPTSTR)strColumn;
@@ -3643,7 +3643,7 @@ public:
 	int AddItem(int nItem, int nSubItem, LPCTSTR strItem, int nImageIndex = -3)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		LVITEM lvItem = { 0 };
+		LVITEM lvItem = {};
 		lvItem.mask = LVIF_TEXT;
 		lvItem.iItem = nItem;
 		lvItem.iSubItem = nSubItem;
@@ -3763,7 +3763,7 @@ public:
 	int HitTestEx(POINT pt, UINT* pFlags) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		LVHITTESTINFO hti = { 0 };
+		LVHITTESTINFO hti = {};
 		hti.pt = pt;
 		int nRes = (int)::SendMessage(this->m_hWnd, LVM_HITTEST, (WPARAM)-1, (LPARAM)&hti);
 		if (pFlags != NULL)
@@ -3874,7 +3874,7 @@ public:
 		int nSelectedImage, UINT nState, UINT nStateMask, LPARAM lParam)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TVITEM item = { 0 };
+		TVITEM item = {};
 		item.hItem = hItem;
 		item.mask = nMask;
 		item.pszText = (LPTSTR) lpszItem;
@@ -3891,7 +3891,7 @@ public:
 		ATLASSERT(::IsWindow(this->m_hWnd));
 		ATLASSERT(lpstrText != NULL);
 
-		TVITEM item = { 0 };
+		TVITEM item = {};
 		item.hItem = hItem;
 		item.mask = TVIF_TEXT;
 		item.pszText = lpstrText;
@@ -3905,7 +3905,7 @@ public:
 		USES_CONVERSION;
 		ATLASSERT(::IsWindow(this->m_hWnd));
 		ATLASSERT(bstrText == NULL);
-		TVITEM item = { 0 };
+		TVITEM item = {};
 		item.hItem = hItem;
 		item.mask = TVIF_TEXT;
 
@@ -3940,7 +3940,7 @@ public:
 	BOOL GetItemText(HTREEITEM hItem, ATL::CString& strText) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TVITEM item = { 0 };
+		TVITEM item = {};
 		item.hItem = hItem;
 		item.mask = TVIF_TEXT;
 
@@ -3973,7 +3973,7 @@ public:
 	BOOL GetItemImage(HTREEITEM hItem, int& nImage, int& nSelectedImage) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TVITEM item = { 0 };
+		TVITEM item = {};
 		item.hItem = hItem;
 		item.mask = TVIF_IMAGE|TVIF_SELECTEDIMAGE;
 		BOOL bRes = (BOOL)::SendMessage(this->m_hWnd, TVM_GETITEM, 0, (LPARAM)&item);
@@ -4006,7 +4006,7 @@ public:
 	DWORD_PTR GetItemData(HTREEITEM hItem) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TVITEM item = { 0 };
+		TVITEM item = {};
 		item.hItem = hItem;
 		item.mask = TVIF_PARAM;
 		BOOL bRet = (BOOL)::SendMessage(this->m_hWnd, TVM_GETITEM, 0, (LPARAM)&item);
@@ -4041,7 +4041,7 @@ public:
 	BOOL ItemHasChildren(HTREEITEM hItem) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TVITEM item = { 0 };
+		TVITEM item = {};
 		item.hItem = hItem;
 		item.mask = TVIF_CHILDREN;
 		::SendMessage(this->m_hWnd, TVM_GETITEM, 0, (LPARAM)&item);
@@ -4235,7 +4235,7 @@ public:
 		HTREEITEM hParent, HTREEITEM hInsertAfter)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TVINSERTSTRUCT tvis = { 0 };
+		TVINSERTSTRUCT tvis = {};
 		tvis.hParent = hParent;
 		tvis.hInsertAfter = hInsertAfter;
 		tvis.item.mask = nMask;
@@ -4389,7 +4389,7 @@ public:
 	HTREEITEM HitTest(POINT pt, UINT* pFlags) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TVHITTESTINFO hti = { 0 };
+		TVHITTESTINFO hti = {};
 		hti.pt = pt;
 		HTREEITEM hTreeItem = (HTREEITEM)::SendMessage(this->m_hWnd, TVM_HITTEST, 0, (LPARAM)&hti);
 		if (pFlags != NULL)
@@ -4708,7 +4708,7 @@ public:
 		HTREEITEM hParent, HTREEITEM hInsertAfter)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TVINSERTSTRUCT tvis = { 0 };
+		TVINSERTSTRUCT tvis = {};
 		tvis.hParent = hParent;
 		tvis.hInsertAfter = hInsertAfter;
 		tvis.item.mask = nMask;
@@ -4725,7 +4725,7 @@ public:
 	CTreeItemT<TBase> HitTest(POINT pt, UINT* pFlags) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TVHITTESTINFO hti = { 0 };
+		TVHITTESTINFO hti = {};
 		hti.pt = pt;
 		HTREEITEM hTreeItem = (HTREEITEM)::SendMessage(this->m_hWnd, TVM_HITTEST, 0, (LPARAM)&hti);
 		if (pFlags != NULL)
@@ -5006,7 +5006,7 @@ template <class TBase>
 inline CTreeItemT<TBase> CTreeItemT<TBase>::_Insert(LPCTSTR lpstrItem, int nImageIndex, HTREEITEM hItemAfter)
 {
 	ATLASSERT(m_pTreeView != NULL);
-	TVINSERTSTRUCT ins = { 0 };
+	TVINSERTSTRUCT ins = {};
 	ins.hParent = m_hTreeItem;
 	ins.hInsertAfter = hItemAfter;
 	ins.item.mask = TVIF_TEXT;
@@ -5024,7 +5024,7 @@ template <class TBase>
 inline int CTreeItemT<TBase>::GetImageIndex() const
 {
 	ATLASSERT(m_pTreeView != NULL);
-	TVITEM item = { 0 };
+	TVITEM item = {};
 	item.mask = TVIF_HANDLE | TVIF_IMAGE;
 	item.hItem = m_hTreeItem;
 	m_pTreeView->GetItem(&item);
@@ -5362,7 +5362,7 @@ public:
 	                   int iImage, WORD cx, int iCommand, DWORD_PTR lParam)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TBBUTTONINFO tbbi = { 0 };
+		TBBUTTONINFO tbbi = {};
 		tbbi.cbSize = sizeof(TBBUTTONINFO);
 		tbbi.dwMask = dwMask;
 		tbbi.idCommand = iCommand;
@@ -5611,7 +5611,7 @@ public:
 	int AddBitmap(int nNumButtons, UINT nBitmapID)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TBADDBITMAP tbab = { 0 };
+		TBADDBITMAP tbab = {};
 		tbab.hInst = ModuleHelper::GetResourceInstance();
 		ATLASSERT(tbab.hInst != NULL);
 		tbab.nID = nBitmapID;
@@ -5621,7 +5621,7 @@ public:
 	int AddBitmap(int nNumButtons, HBITMAP hBitmap)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TBADDBITMAP tbab = { 0 };
+		TBADDBITMAP tbab = {};
 		tbab.hInst = NULL;
 		tbab.nID = (UINT_PTR)hBitmap;
 		return (int)::SendMessage(this->m_hWnd, TB_ADDBITMAP, (WPARAM)nNumButtons, (LPARAM)&tbab);
@@ -5643,7 +5643,7 @@ public:
 	                  INT_PTR iString, DWORD_PTR lParam)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TBBUTTON tbb = { 0 };
+		TBBUTTON tbb = {};
 		tbb.fsStyle = Style;
 		tbb.fsState = State;
 		tbb.idCommand = iCommand;
@@ -5699,7 +5699,7 @@ public:
 	void SaveState(HKEY hKeyRoot, LPCTSTR lpszSubKey, LPCTSTR lpszValueName)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TBSAVEPARAMS tbs = { 0 };
+		TBSAVEPARAMS tbs = {};
 		tbs.hkr = hKeyRoot;
 		tbs.pszSubKey = lpszSubKey;
 		tbs.pszValueName = lpszValueName;
@@ -5709,7 +5709,7 @@ public:
 	void RestoreState(HKEY hKeyRoot, LPCTSTR lpszSubKey, LPCTSTR lpszValueName)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TBSAVEPARAMS tbs = { 0 };
+		TBSAVEPARAMS tbs = {};
 		tbs.hkr = hKeyRoot;
 		tbs.pszSubKey = lpszSubKey;
 		tbs.pszValueName = lpszValueName;
@@ -5934,7 +5934,7 @@ public:
 	BOOL GetBorders(int& nHorz, int& nVert, int& nSpacing) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		int borders[3] = { 0, 0, 0 };
+		int borders[3] = {};
 		BOOL bResult = (BOOL)::SendMessage(this->m_hWnd, SB_GETBORDERS, 0, (LPARAM)&borders);
 		if(bResult)
 		{
@@ -6076,7 +6076,7 @@ public:
 	int SetItem(int nItem, UINT mask, LPCTSTR lpszItem, DWORD dwState, DWORD dwStateMask, int iImage, LPARAM lParam)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TCITEM tci = { 0 };
+		TCITEM tci = {};
 		tci.mask = mask;
 		tci.pszText = (LPTSTR) lpszItem;
 		tci.dwState = dwState;
@@ -6207,7 +6207,7 @@ public:
 	int InsertItem(int nItem, UINT mask, LPCTSTR lpszItem, int iImage, LPARAM lParam)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TCITEM tci = { 0 };
+		TCITEM tci = {};
 		tci.mask = mask;
 		tci.pszText = (LPTSTR) lpszItem;
 		tci.iImage = iImage;
@@ -6218,7 +6218,7 @@ public:
 	int InsertItem(int nItem, LPCTSTR lpszItem)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		TCITEM tci = { 0 };
+		TCITEM tci = {};
 		tci.mask = TCIF_TEXT;
 		tci.pszText = (LPTSTR) lpszItem;
 		return (int)::SendMessage(this->m_hWnd, TCM_INSERTITEM, nItem, (LPARAM)&tci);
@@ -6770,7 +6770,7 @@ public:
 	void GetRange(int& nLower, int& nUpper) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		PBRANGE range = { 0 };
+		PBRANGE range = {};
 		::SendMessage(this->m_hWnd, PBM_GETRANGE, TRUE, (LPARAM)&range);
 		nLower = range.iLow;
 		nUpper = range.iHigh;
@@ -7096,7 +7096,7 @@ public:
 	void GetSel(LONG& nStartChar, LONG& nEndChar) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		CHARRANGE cr = { 0, 0 };
+		CHARRANGE cr = {};
 		::SendMessage(this->m_hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
 		nStartChar = cr.cpMin;
 		nEndChar = cr.cpMax;
@@ -7176,7 +7176,7 @@ public:
 		ATLASSERT(::IsWindow(this->m_hWnd));
 		ATLASSERT(bstrText == NULL);
 
-		CHARRANGE cr = { 0, 0 };
+		CHARRANGE cr = {};
 		::SendMessage(this->m_hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
 
 		ATL::CTempBuffer<TCHAR, _WTL_STACK_ALLOC_THRESHOLD> buff;
@@ -7196,7 +7196,7 @@ public:
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
 
-		CHARRANGE cr = { 0, 0 };
+		CHARRANGE cr = {};
 		::SendMessage(this->m_hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
 
 		LONG lLen = 0;
@@ -7432,7 +7432,7 @@ public:
 	int GetTextEx(LPTSTR lpstrText, int nTextLen, DWORD dwFlags = GT_DEFAULT, UINT uCodePage = CP_ACP, LPCSTR lpDefaultChar = NULL, LPBOOL lpUsedDefChar = NULL) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		GETTEXTEX gte = { 0 };
+		GETTEXTEX gte = {};
 		gte.cb = nTextLen * sizeof(TCHAR);
 		gte.codepage = uCodePage;
 		gte.flags = dwFlags;
@@ -7450,7 +7450,7 @@ public:
 	int GetTextLengthEx(DWORD dwFlags = GTL_DEFAULT, UINT uCodePage = CP_ACP) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		GETTEXTLENGTHEX gtle = { 0 };
+		GETTEXTLENGTHEX gtle = {};
 		gtle.codepage = uCodePage;
 		gtle.flags = dwFlags;
 		return (int)::SendMessage(this->m_hWnd, EM_GETTEXTLENGTHEX, (WPARAM)&gtle, 0L);
@@ -7477,7 +7477,7 @@ public:
 	int SetTextEx(LPCTSTR lpstrText, DWORD dwFlags = ST_DEFAULT, UINT uCodePage = CP_ACP)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		SETTEXTEX ste = { 0 };
+		SETTEXTEX ste = {};
 		ste.flags = dwFlags;
 		ste.codepage = uCodePage;
 		return (int)::SendMessage(this->m_hWnd, EM_SETTEXTEX, (WPARAM)&ste, (LPARAM)lpstrText);
@@ -7572,7 +7572,7 @@ public:
 	POINT PosFromChar(LONG nChar) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		POINT point = { 0, 0 };
+		POINT point = {};
 		::SendMessage(this->m_hWnd, EM_POSFROMCHAR, (WPARAM)&point, nChar);
 		return point;
 	}
@@ -8163,7 +8163,7 @@ public:
 	CImageList GetImageList() const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		REBARINFO rbi = { 0 };
+		REBARINFO rbi = {};
 		rbi.cbSize = sizeof(REBARINFO);
 		rbi.fMask = RBIM_IMAGELIST;
 		BOOL bRet = (BOOL)::SendMessage(this->m_hWnd, RB_GETBARINFO, 0, (LPARAM)&rbi);
@@ -8173,7 +8173,7 @@ public:
 	BOOL SetImageList(HIMAGELIST hImageList)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		REBARINFO rbi = { 0 };
+		REBARINFO rbi = {};
 		rbi.cbSize = sizeof(REBARINFO);
 		rbi.fMask = RBIM_IMAGELIST;
 		rbi.himl = hImageList;
@@ -8546,7 +8546,7 @@ public:
 	               int iIndent, int iOverlay, LPARAM lParam)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		COMBOBOXEXITEM cbex = { 0 };
+		COMBOBOXEXITEM cbex = {};
 		cbex.mask = nMask;
 		cbex.iItem = nIndex;
 		cbex.pszText = (LPTSTR) lpszItem;
@@ -8561,7 +8561,7 @@ public:
 	int InsertItem(int nIndex, LPCTSTR lpszItem, int nImage, int nSelImage, int iIndent, LPARAM lParam = 0)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		COMBOBOXEXITEM cbex = { 0 };
+		COMBOBOXEXITEM cbex = {};
 		cbex.mask = CBEIF_TEXT | CBEIF_IMAGE | CBEIF_SELECTEDIMAGE | CBEIF_INDENT | CBEIF_LPARAM;
 		cbex.iItem = nIndex;
 		cbex.pszText = (LPTSTR) lpszItem;
@@ -8604,7 +8604,7 @@ public:
 	            int iIndent, int iOverlay, LPARAM lParam)
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		COMBOBOXEXITEM cbex = { 0 };
+		COMBOBOXEXITEM cbex = {};
 		cbex.mask = nMask;
 		cbex.iItem = nIndex;
 		cbex.pszText = (LPTSTR) lpszItem;
@@ -8621,7 +8621,7 @@ public:
 		ATLASSERT(::IsWindow(this->m_hWnd));
 		ATLASSERT(lpszItem != NULL);
 
-		COMBOBOXEXITEM cbex = { 0 };
+		COMBOBOXEXITEM cbex = {};
 		cbex.mask = CBEIF_TEXT;
 		cbex.iItem = nIndex;
 		cbex.pszText = lpszItem;
@@ -8636,7 +8636,7 @@ public:
 		ATLASSERT(::IsWindow(this->m_hWnd));
 		ATLASSERT(bstrText == NULL);
 
-		COMBOBOXEXITEM cbex = { 0 };
+		COMBOBOXEXITEM cbex = {};
 		cbex.mask = CBEIF_TEXT;
 		cbex.iItem = nIndex;
 
@@ -8672,7 +8672,7 @@ public:
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
 
-		COMBOBOXEXITEM cbex = { 0 };
+		COMBOBOXEXITEM cbex = {};
 		cbex.mask = CBEIF_TEXT;
 		cbex.iItem = nIndex;
 
