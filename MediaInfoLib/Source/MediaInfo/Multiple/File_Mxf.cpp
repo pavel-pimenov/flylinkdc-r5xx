@@ -576,18 +576,6 @@ static const char* Mxf_AVC_SequenceParameterSetFlag_Constancy(bool Constancy)
 }
 
 //---------------------------------------------------------------------------
-static const char* Mxf_AVC_ParameterSetFlag_Location(int8u Location)
-{
-    switch (Location)
-    {
-        case 0x01 : return "First access unit";
-        case 0x02 : return "Every access unit";
-        case 0x03 : return "Every GOP";
-        default   : return "";
-    }
-}
-
-//---------------------------------------------------------------------------
 static const char* Mxf_OperationalPattern(const int128u& OperationalPattern)
 {
     //Item and Package Complexity
@@ -2321,6 +2309,16 @@ File_Mxf::~File_Mxf()
         if (!Ancillary_IsBinded)
             delete Ancillary;
     #endif //defined(MEDIAINFO_ANCILLARY_YES)
+	
+    for (size_t i = 0; i < AcquisitionMetadataLists.size(); i++)
+        delete AcquisitionMetadataLists[ i ];
+	
+    AcquisitionMetadataLists.clear();
+	
+    for (size_t i = 0; i < AcquisitionMetadata_Sony_E201_Lists.size(); i++)
+        delete AcquisitionMetadata_Sony_E201_Lists[ i ];
+	
+    AcquisitionMetadata_Sony_E201_Lists.clear();
 }
 
 //***************************************************************************
@@ -11040,7 +11038,7 @@ void File_Mxf::PartitionMetadata()
                     Element_Size_WithPadding+=KAGSize_Corrected;
                 }
 
-                if (File_Offset+Buffer_Offset+Element_Size_WithPadding+HeaderByteCount+IndexByteCount > File_Size)
+                if (File_Offset+Buffer_Offset-Header_Size+Element_Size_WithPadding+HeaderByteCount+IndexByteCount > File_Size)
                     IsTruncated=true;
                 else
                     IsTruncated=false;
