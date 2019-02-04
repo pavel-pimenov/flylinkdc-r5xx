@@ -198,7 +198,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		size_t m_curCommandPosition;
 		bool m_bUseTempMultiChat;
 		bool isMultiChat(int& p_h, int& p_chat_columns) const;
-		void clearMessageWindow();
+        void clearMessageWindow() {}
 	protected:
 		unsigned m_MultiChatCountLines;
 	private:
