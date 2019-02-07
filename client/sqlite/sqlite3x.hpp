@@ -30,6 +30,7 @@
 #include <vector>
 #include "sqlite3.h"
 #include "..\client\Exception.h"
+
 namespace sqlite3x {
 	class sqlite3_connection
 	{
