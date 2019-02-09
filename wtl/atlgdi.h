@@ -28,9 +28,7 @@
 #endif // _INC_WINDOWSX
 
 // required libraries
-#if !defined(_ATL_NO_MSIMG)
-  #pragma comment(lib, "msimg32.lib")
-#endif
+#pragma comment(lib, "msimg32.lib")
 #if !defined(_ATL_NO_OPENGL)
   #pragma comment(lib, "opengl32.lib")
 #endif
@@ -2164,7 +2162,6 @@ public:
 		return ::SetPixelV(m_hDC, point.x, point.y, crColor);
 	}
 
-#if !defined(_ATL_NO_MSIMG)
 	BOOL TransparentBlt(int x, int y, int nWidth, int nHeight, HDC hSrcDC, int xSrc, int ySrc, int nSrcWidth, int nSrcHeight, UINT crTransparent)
 	{
 		ATLASSERT(m_hDC != NULL);
@@ -2207,7 +2204,6 @@ public:
 		ATLASSERT(m_hDC != NULL);
 		return ::AlphaBlend(m_hDC, x, y, nWidth, nHeight, hSrcDC, xSrc, ySrc, nSrcWidth, nSrcHeight, bf);
 	}
-#endif //  !defined(_ATL_NO_MSIMG)
 
 // Extra bitmap functions
 	// Helper function for painting a disabled toolbar or menu bitmap

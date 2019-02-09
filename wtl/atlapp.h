@@ -55,6 +55,10 @@
 	#error WTL10 doesn't support _ATL_MIN_CRT
 #endif
 
+#ifdef _ATL_NO_MSIMG
+	#error WTL10 doesn't support _ATL_NO_MSIMG
+#endif
+
 #include <limits.h>
 #ifdef _MT
   #include <process.h>	// for _beginthreadex
