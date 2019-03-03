@@ -3067,9 +3067,6 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // CMemDlgTemplate - in-memory dialog template - DLGTEMPLATE or DLGTEMPLATEEX
 
-// traits suitable for dialog controls
-typedef ATL::CWinTraits<WS_CHILD | WS_VISIBLE, 0>	CDlgControlWinTraits;
-
 template <class TWinTraits>
 class CMemDlgTemplateT
 {
@@ -3337,7 +3334,7 @@ public:
 	}
 };
 
-typedef CMemDlgTemplateT<CDlgControlWinTraits>	CMemDlgTemplate;
+typedef CMemDlgTemplateT<ATL::CControlWinTraits>	CMemDlgTemplate;
 
 
 ///////////////////////////////////////////////////////////////////////////////

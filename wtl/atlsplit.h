@@ -47,19 +47,18 @@ namespace WTL
 #define SPLIT_RIGHTALIGNED		0x00000004
 #define SPLIT_BOTTOMALIGNED		SPLIT_RIGHTALIGNED
 #define SPLIT_GRADIENTBAR		0x00000008
-#define SPLIT_FLATBAR			0x00000020
 #define SPLIT_FIXEDBARSIZE		0x00000010
 
 // Note: SPLIT_PROPORTIONAL and SPLIT_RIGHTALIGNED/SPLIT_BOTTOMALIGNED are 
 // mutually exclusive. If both are set, splitter defaults to SPLIT_PROPORTIONAL.
-// Also, SPLIT_FLATBAR overrides SPLIT_GRADIENTBAR if both are set.
+// SPLIT_GRADIENTBAR doesn't work with _ATL_NO_MSIMG
 
 
 template <class T>
 class CSplitterImpl
 {
 public:
-	enum { m_nPanesCount = 2, m_nPropMax = INT_MAX, m_cxyStep = 10 };
+	enum { m_nPanesCount = 2, m_nPropMax = 10000, m_cxyStep = 10 };
 
 	bool m_bVertical;
 	HWND m_hWndPane[m_nPanesCount];
@@ -202,7 +201,7 @@ public:
 	int GetSplitterPosPct() const
 	{
 		int cxyTotal = m_bVertical ? (m_rcSplitter.right - m_rcSplitter.left - m_cxySplitBar - m_cxyBarEdge) : (m_rcSplitter.bottom - m_rcSplitter.top - m_cxySplitBar - m_cxyBarEdge);
-		return ((cxyTotal > 0) && (m_xySplitterPos >= 0)) ? ::MulDiv(m_xySplitterPos, 100, cxyTotal) : -1;
+		return ((cxyTotal > 0) && (m_xySplitterPos >= 0)) ? (::MulDiv(m_xySplitterPos, m_nPropMax, cxyTotal) / 100) : -1;
 	}
 
 	bool SetSinglePaneMode(int nPane = SPLIT_PANE_NONE)
@@ -477,16 +476,8 @@ public:
 		{
 			dc.FillRect(&rect, COLOR_3DFACE);
 
-			if((m_dwExtendedStyle & SPLIT_FLATBAR) != 0)
-			{
-				RECT rect1 = rect;
-				if(m_bVertical)
-					rect1.left = rect1.right - 1;
-				else
-					rect1.top = rect1.bottom - 1;
-				dc.FillRect(&rect1, COLOR_3DSHADOW);
-			}
-			else if((m_dwExtendedStyle & SPLIT_GRADIENTBAR) != 0)
+#ifndef _ATL_NO_MSIMG
+			if((m_dwExtendedStyle & SPLIT_GRADIENTBAR) != 0)
 			{
 				RECT rect2 = rect;
 				if(m_bVertical)
@@ -496,7 +487,7 @@ public:
 
 				dc.GradientFillRect(rect2, ::GetSysColor(COLOR_3DFACE), ::GetSysColor(COLOR_3DSHADOW), m_bVertical);
 			}
-
+#endif
 			// draw 3D edge if needed
 			T* pT = static_cast<T*>(this);
 			if((pT->GetExStyle() & WS_EX_CLIENTEDGE) != 0)
@@ -710,7 +701,7 @@ public:
 			case VK_RIGHT:
 				if(m_bVertical)
 				{
-					POINT pt = {};
+					POINT pt = { 0, 0 };
 					::GetCursorPos(&pt);
 					int xyPos = m_xySplitterPos + ((wParam == VK_LEFT) ? -pT->m_cxyStep : pT->m_cxyStep);
 					int cxyMax = m_rcSplitter.right - m_rcSplitter.left;
@@ -726,7 +717,7 @@ public:
 			case VK_DOWN:
 				if(!m_bVertical)
 				{
-					POINT pt = {};
+					POINT pt = { 0, 0 };
 					::GetCursorPos(&pt);
 					int xyPos = m_xySplitterPos + ((wParam == VK_UP) ? -pT->m_cxyStep : pT->m_cxyStep);
 					int cxyMax = m_rcSplitter.bottom - m_rcSplitter.top;
@@ -1108,7 +1099,17 @@ template <bool t_bVertical = true>
 class CSplitterWindowT : public CSplitterWindowImpl<CSplitterWindowT<t_bVertical> >
 {
 public:
-	DECLARE_WND_CLASS_EX2(_T("WTL_SplitterWindow"), CSplitterWindowT<t_bVertical>, CS_DBLCLKS, COLOR_WINDOW)
+	// This is instead of DECLARE_WND_CLASS_EX(_T("WTL_SplitterWindow"), CS_DBLCLKS, COLOR_WINDOW)
+	static ATL::CWndClassInfo& GetWndClassInfo()
+	{
+		static ATL::CWndClassInfo wc = 
+		{
+			{ sizeof(WNDCLASSEX), CS_DBLCLKS, ATL::CWindowImplBase::StartWindowProc,
+			  0, 0, NULL, NULL, NULL, (HBRUSH)(COLOR_WINDOW + 1), NULL, _T("WTL_SplitterWindow"), NULL },
+			NULL, NULL, IDC_ARROW, TRUE, 0, _T("")
+		};
+		return wc;
+	}
 
 	CSplitterWindowT() : CSplitterWindowImpl<CSplitterWindowT<t_bVertical> >(t_bVertical)
 	{ }

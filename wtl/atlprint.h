@@ -185,18 +185,25 @@ public:
 	bool OpenDefaultPrinter(const DEVMODE* pDevMode = NULL)
 	{
 		ClosePrinter();
-
-		DWORD cchBuff = 0;
-		::GetDefaultPrinter(NULL, &cchBuff);
-		TCHAR* pszBuff = new TCHAR[cchBuff];
-		BOOL bRet = ::GetDefaultPrinter(pszBuff, &cchBuff);
-		if(bRet != FALSE)
+		const int cchBuff = 512;
+		TCHAR buffer[cchBuff] = {};
+		::GetProfileString(_T("windows"), _T("device"), _T(",,,"), buffer, cchBuff);
+		int nLen = lstrlen(buffer);
+		if (nLen != 0)
 		{
+			LPTSTR lpsz = buffer;
+			while (*lpsz)
+			{
+				if (*lpsz == _T(','))
+				{
+					*lpsz = 0;
+					break;
+				}
+				lpsz = CharNext(lpsz);
+			}
 			PRINTER_DEFAULTS pdefs = { NULL, (DEVMODE*)pDevMode, PRINTER_ACCESS_USE };
-			::OpenPrinter(pszBuff, &m_hPrinter, (pDevMode == NULL) ? NULL : &pdefs);
+			::OpenPrinter(buffer, &m_hPrinter, (pDevMode == NULL) ? NULL : &pdefs);
 		}
-		delete [] pszBuff;
-
 		return m_hPrinter != NULL;
 	}
 
@@ -219,43 +226,31 @@ public:
 
 	HANDLE CopyToHDEVNAMES() const
 	{
-		HANDLE hDevNames = NULL;
+		HANDLE h = NULL;
 		CPrinterInfo<5> pinfon5;
 		CPrinterInfo<2> pinfon2;
 		LPTSTR lpszPrinterName = NULL;
-		LPTSTR lpszPortName = NULL;
 		// Some printers fail for PRINTER_INFO_5 in some situations
-		if(pinfon5.GetPrinterInfo(m_hPrinter))
-		{
+		if (pinfon5.GetPrinterInfo(m_hPrinter))
 			lpszPrinterName = pinfon5.m_pi->pPrinterName;
-			lpszPortName = pinfon5.m_pi->pPortName;
-		}
-		else if(pinfon2.GetPrinterInfo(m_hPrinter))
-		{
+		else if (pinfon2.GetPrinterInfo(m_hPrinter))
 			lpszPrinterName = pinfon2.m_pi->pPrinterName;
-			lpszPortName = pinfon2.m_pi->pPortName;
-		}
-
-		if(lpszPrinterName != NULL)
+		if (lpszPrinterName != NULL)
 		{
-			int nLen = sizeof(DEVNAMES) + (lstrlen(lpszPrinterName) + 1 + lstrlen(lpszPortName) + 1) * sizeof(TCHAR);
-			hDevNames = ::GlobalAlloc(GMEM_MOVEABLE, nLen);
-			BYTE* pv = (BYTE*)::GlobalLock(hDevNames);
+			int nLen = sizeof(DEVNAMES) + (lstrlen(lpszPrinterName) + 1) * sizeof(TCHAR);
+			h = ::GlobalAlloc(GMEM_MOVEABLE, nLen);
+			BYTE* pv = (BYTE*)::GlobalLock(h);
 			DEVNAMES* pdev = (DEVNAMES*)pv;
-			if(pv != NULL)
+			if (pv != NULL)
 			{
 				memset(pv, 0, nLen);
-				pdev->wDeviceOffset = sizeof(DEVNAMES);
+				pdev->wDeviceOffset = sizeof(DEVNAMES) / sizeof(TCHAR);
 				pv = pv + sizeof(DEVNAMES); // now points to end
 				ATL::Checked::tcscpy_s((LPTSTR)pv, lstrlen(lpszPrinterName) + 1, lpszPrinterName);
-				pdev->wOutputOffset = (WORD)(sizeof(DEVNAMES) + (lstrlen(lpszPrinterName) + 1) * sizeof(TCHAR));
-				pv = pv + (lstrlen(lpszPrinterName) + 1) * sizeof(TCHAR);
-				ATL::Checked::tcscpy_s((LPTSTR)pv, lstrlen(lpszPortName) + 1, lpszPortName);
-				::GlobalUnlock(hDevNames);
+				::GlobalUnlock(h);
 			}
 		}
-
-		return hDevNames;
+		return h;
 	}
 
 	HDC CreatePrinterDC(const DEVMODE* pdm = NULL) const

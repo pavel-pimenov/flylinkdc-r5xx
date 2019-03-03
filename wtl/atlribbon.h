@@ -1717,8 +1717,8 @@ public:
 	ColorCtrlImpl() : m_colorType(UI_SWATCHCOLORTYPE_NOCOLOR), m_color(0x800080) /*MAGENTA*/
 	{ }
 
-	UINT32 m_colorType; // value in UI_SWATCHCOLORTYPE
 	COLORREF m_color;
+	UINT32 m_colorType; // value in UI_SWATCHCOLORTYPE
 	Text m_sLabels[6]; // k_MoreColorsLabel to k_ThemeColorsCategoryLabel
 	ATL::CSimpleArray<COLORREF> m_aColors[2];
 	ATL::CSimpleArray<LPCWSTR> m_aTooltips[2];
@@ -2144,8 +2144,8 @@ public:
 	}
 
 	ATL::CComPtr<IUIFramework> m_pIUIFramework;
-	bool m_bRibbonUI;
 	HGLOBAL m_hgRibbonSettings;
+	bool m_bRibbonUI;
 
 	bool IsRibbonUI()
 	{
@@ -3171,7 +3171,7 @@ public:
 // Win7 Aero fix helpers
 	void ResetFrame()
 	{
-		const MARGINS margins = { 0, 0, 0, 0 };
+		const MARGINS margins = {};
 		::DwmExtendFrameIntoClientArea(this->m_hWnd, &margins);
 	}
 

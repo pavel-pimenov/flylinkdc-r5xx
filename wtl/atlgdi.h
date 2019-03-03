@@ -28,7 +28,9 @@
 #endif // _INC_WINDOWSX
 
 // required libraries
-#pragma comment(lib, "msimg32.lib")
+#if !defined(_ATL_NO_MSIMG)
+  #pragma comment(lib, "msimg32.lib")
+#endif
 #if !defined(_ATL_NO_OPENGL)
   #pragma comment(lib, "opengl32.lib")
 #endif
@@ -403,7 +405,7 @@ public:
 		::DPtoLP(hDC1, &ptOrg, 1);
 		POINT pt = { 0, 0 };
 		pt.y = abs(lfHeight) + ptOrg.y;
-		::LPtoDP(hDC1, &pt, 1);
+		::LPtoDP(hDC1, &pt,1);
 		LONG nDeciPoint = ::MulDiv(pt.y, 720, ::GetDeviceCaps(hDC1, LOGPIXELSY));   // 72 points/inch, 10 decipoints/point
 		if(hDC == NULL)
 			::ReleaseDC(NULL, hDC1);
@@ -1605,10 +1607,10 @@ public:
 
 	BOOL DPtoLP(LPSIZE lpSize) const
 	{
-		SIZE sizeWinExt = {};
+		SIZE sizeWinExt = { 0, 0 };
 		if(!GetWindowExt(&sizeWinExt))
 			return FALSE;
-		SIZE sizeVpExt = {};
+		SIZE sizeVpExt = { 0, 0 };
 		if(!GetViewportExt(&sizeVpExt))
 			return FALSE;
 		lpSize->cx = ::MulDiv(lpSize->cx, abs(sizeWinExt.cx), abs(sizeVpExt.cx));
@@ -1630,10 +1632,10 @@ public:
 
 	BOOL LPtoDP(LPSIZE lpSize) const
 	{
-		SIZE sizeWinExt = {};
+		SIZE sizeWinExt = { 0, 0 };
 		if(!GetWindowExt(&sizeWinExt))
 			return FALSE;
-		SIZE sizeVpExt = {};
+		SIZE sizeVpExt = { 0, 0 };
 		if(!GetViewportExt(&sizeVpExt))
 			return FALSE;
 		lpSize->cx = ::MulDiv(lpSize->cx, abs(sizeVpExt.cx), abs(sizeWinExt.cx));
@@ -2162,6 +2164,7 @@ public:
 		return ::SetPixelV(m_hDC, point.x, point.y, crColor);
 	}
 
+#if !defined(_ATL_NO_MSIMG)
 	BOOL TransparentBlt(int x, int y, int nWidth, int nHeight, HDC hSrcDC, int xSrc, int ySrc, int nSrcWidth, int nSrcHeight, UINT crTransparent)
 	{
 		ATLASSERT(m_hDC != NULL);
@@ -2204,6 +2207,7 @@ public:
 		ATLASSERT(m_hDC != NULL);
 		return ::AlphaBlend(m_hDC, x, y, nWidth, nHeight, hSrcDC, xSrc, ySrc, nSrcWidth, nSrcHeight, bf);
 	}
+#endif //  !defined(_ATL_NO_MSIMG)
 
 // Extra bitmap functions
 	// Helper function for painting a disabled toolbar or menu bitmap

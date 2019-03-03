@@ -3443,7 +3443,7 @@ public:
 			int nWidth = -1, int nSubItem = -1, int iImage = -1, int iOrder = -1)
 	{
 		LVCOLUMN column = {};
-		column.mask = LVCF_TEXT | LVCF_FMT;
+		column.mask = LVCF_TEXT|LVCF_FMT;
 		column.pszText = (LPTSTR)lpszColumnHeading;
 		column.fmt = nFormat;
 		if (nWidth != -1)
@@ -5934,7 +5934,7 @@ public:
 	BOOL GetBorders(int& nHorz, int& nVert, int& nSpacing) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		int borders[3] = {};
+		int borders[3] = { 0, 0, 0 };
 		BOOL bResult = (BOOL)::SendMessage(this->m_hWnd, SB_GETBORDERS, 0, (LPARAM)&borders);
 		if(bResult)
 		{
@@ -7096,7 +7096,7 @@ public:
 	void GetSel(LONG& nStartChar, LONG& nEndChar) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		CHARRANGE cr = {};
+		CHARRANGE cr = { 0, 0 };
 		::SendMessage(this->m_hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
 		nStartChar = cr.cpMin;
 		nEndChar = cr.cpMax;
@@ -7176,7 +7176,7 @@ public:
 		ATLASSERT(::IsWindow(this->m_hWnd));
 		ATLASSERT(bstrText == NULL);
 
-		CHARRANGE cr = {};
+		CHARRANGE cr = { 0, 0 };
 		::SendMessage(this->m_hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
 
 		ATL::CTempBuffer<TCHAR, _WTL_STACK_ALLOC_THRESHOLD> buff;
@@ -7196,7 +7196,7 @@ public:
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
 
-		CHARRANGE cr = {};
+		CHARRANGE cr = { 0, 0 };
 		::SendMessage(this->m_hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
 
 		LONG lLen = 0;
@@ -7572,7 +7572,7 @@ public:
 	POINT PosFromChar(LONG nChar) const
 	{
 		ATLASSERT(::IsWindow(this->m_hWnd));
-		POINT point = {};
+		POINT point = { 0, 0 };
 		::SendMessage(this->m_hWnd, EM_POSFROMCHAR, (WPARAM)&point, nChar);
 		return point;
 	}
