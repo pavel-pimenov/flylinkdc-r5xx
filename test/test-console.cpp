@@ -187,6 +187,8 @@ const unsigned int g_size = 1000 * 1000;
 const unsigned int g_ext_cnt = 1000;
 #endif
 
+
+/*
 DECLARE_PERFORMANCE_FILE_STREAM(profiler - swap.log, g_flylinkdc_perf_swap);
 DECLARE_PERFORMANCE_CHECKER(1, g_flylinkdc_perf_swap);
 DECLARE_PERFORMANCE_CHECKER(2, g_flylinkdc_perf_swap);
@@ -329,6 +331,8 @@ static void Process_Files(const boost::filesystem::path &Path, bool recurse)
 	}
 	return;
 }
+*/
+/*
 ///////////////////////////////////////////
 std::vector<std::string> g_target_vector;
 std::vector<std::string> getSourceVector()
@@ -355,6 +359,7 @@ void test_replace_vector()
 	auto l_vec = getSourceVector();
 	TEST_CODE(g_target_vector = l_vec, 3);
 }
+*/
 /*
 void test_critical_section()
 {
@@ -683,6 +688,7 @@ class A
 		{
 			m_name = p_a.m_name;
 			std::cout << "A& operator=(const A &p_a) m_name = " << m_name << std::endl;
+            return *this;
 		}
 		~A()
 		{
@@ -690,17 +696,84 @@ class A
 		}
 };
 
+void ReplaceVarInString(const string&src, const string &varname, string &dest, const string& by)
+{
+    string searchvar("%[");
+    searchvar += varname;
+    searchvar += "]";
+    dest = src;
+    size_t pos = dest.find(searchvar);
+    while (pos != dest.npos)
+    {
+        dest.replace(pos, searchvar.size(), by);
+        pos = dest.find(searchvar, pos);
+    }
+}
+
+
+int verlihub_2()
+{
+    std::string temp = "Lipetsk";
+    static std::string tend = "wdwedewdwedwe %[CITY] fwwwwedwed";
+    boost::replace_all(tend, "%[CITY]", temp);
+    return 1;
+}
+int verlihub_1()
+{
+    std::string temp = "Lipetsk";
+    static std::string tend = "wdwedewdwedwe %[CITY] fwwwwedwed";
+    ReplaceVarInString(tend, "CITY", tend, temp);
+    return 1;
+}
+
+unsigned long Ip2Num_verli(const string &ip)
+{
+    int i;
+    char c;
+    std::istringstream is(ip);
+    unsigned long mask = 0;
+    is >> i >> c; mask += i & 0xFF; mask <<= 8;
+    is >> i >> c; mask += i & 0xFF; mask <<= 8;
+    is >> i >> c; mask += i & 0xFF; mask <<= 8;
+    is >> i; mask += i & 0xFF;
+    return mask;
+}
+
+unsigned long Ip2Num_fly(const string &ip)
+{
+    uint32_t a = 0, b = 0, c = 0, d = 0;
+    const int l_Items = sscanf_s(ip.c_str(), "%u.%u.%u.%u", &a, &b, &c, &d);
+    if (l_Items == 4)
+    {
+        return (a << 24) + (b << 16) + (c << 8) + d;
+    }
+    return 0;
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
-	/*
-	//std::vector<unique_ptr<A>> l_set;
-	    std::vector<A> l_set;
-	    //l_set.push_back(unique_ptr<A>(new A("1")));
-	    l_set.push_back(A("1"));
-	    //l_set.emplace_back(A("2"));
-	    //l_set.emplace_back(A("3"));
-	    return 0;
-	    */
+    string aa = "xxxxxx";
+    aa += 'a';
+    auto l = aa.find("a");
+    unsigned long sum[2] = {0};
+    bool l_bool = false;
+    string l_ip = "192.165.3.234";
+    const __int64 max_count_verli = 1000000L;
+    ticks start = getticks();
+
+    for (__int64 i = 0; i < max_count_verli; ++i)
+    {
+        sum[0] += Ip2Num_verli(l_ip);
+    }
+    printf("verlihub_1 = %f\r\n", elapsed(getticks(), start));
+    start = getticks();
+    for (__int64 i = 0; i < max_count_verli; ++i)
+    {
+        sum[1] += Ip2Num_fly(l_ip);
+    }
+    printf("verlihub_2 = %f\r\n", elapsed(getticks(), start));
+    printf("sum[0] = %u sump[1] = %u\r\n", sum[0], sum[1]);
+
 #ifdef USE_ZMQ
     zmq_test_client();
 #endif
@@ -720,41 +793,11 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 	return 0;
 	
-	Process_Files("Y:\\dc-test-issue-956", true);  // boost::filesystem::current_path()
-	std::cout << std::endl << "g_hash_byte = " << g_hash_byte <<   " g_sum_byte = " << g_sum_byte <<  std::endl;
-	return 0;
-	
 	
 	get_adapters();
 	// getmac();
 	return 0;
 	
-	//      <wasd_remote> 20:58:16 <PPK> TestFunc1(const uint8_t &ui8NickLen, const bool &bFromPM) versus TestFunc2(const uint8_t ui8NickLen, const bool bFromPM)
-	//      <wasd_remote> 20:58:26 <PPK> both called 18446744073709551615 times
-	// const auto max_count = 18446744073709551615L;
-	const __int64 max_count = 10000000000000L;
-	uint8_t sum = 0;
-	bool l_bool = false;
-	START_PERFORMANCE_CHECK(1);
-	for (__int64 i = 0; i < max_count; ++i)
-	{
-		sum += TestFunc1(sum, l_bool);
-		l_bool = !l_bool;
-	}
-	FINISH_PERFORMANCE_CHECK(1);
-	std::cout << sum << std::endl;
-	sum = 0;
-	l_bool = false;
-	START_PERFORMANCE_CHECK(2);
-	for (__int64 j = 0; j < max_count; ++j)
-	{
-		sum += TestFunc2(sum, l_bool);
-		l_bool = !l_bool;
-	}
-	FINISH_PERFORMANCE_CHECK(2);
-	std::cout << sum << std::endl;
-	
-	return 0;
 	convert_p2p_guard();
 	return 0;
 	

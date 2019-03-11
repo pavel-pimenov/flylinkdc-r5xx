@@ -720,12 +720,7 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 			if (!u)
 				return;
 				
-			// [!] IRainman fix
-			if (!u->getUser()->isSet(User::NMDC_SEARCH_PASSIVE))
-			{
-				u->getUser()->setFlag(User::NMDC_SEARCH_PASSIVE);
-			}
-			// [~] IRainman fix.
+			u->getUser()->setFlag(User::NMDC_SEARCH_PASSIVE);
 			
 			// ignore if we or remote client don't support NAT traversal in passive mode although many NMDC hubs won't send us passive if we're in passive too, so just in case...
 			if (!isActive() && (!u->getUser()->isSet(User::NAT0) || !BOOLSETTING(ALLOW_NAT_TRAVERSAL)))
@@ -2954,13 +2949,11 @@ void NmdcHub::myInfoParse(const string& param)
 			{
 				if (param[j + 1] == 'A')
 				{
-					ou->getIdentity().getUser()->unsetFlag(User::NMDC_FILES_PASSIVE);
-					ou->getIdentity().getUser()->unsetFlag(User::NMDC_SEARCH_PASSIVE);
+					ou->getIdentity().getUser()->unsetFlag(User::NMDC_FILES_PASSIVE | User::NMDC_SEARCH_PASSIVE);
 				}
 				else if (param[j + 1] == 'P')
 				{
-					ou->getIdentity().getUser()->setFlag(User::NMDC_FILES_PASSIVE);
-					ou->getIdentity().getUser()->setFlag(User::NMDC_SEARCH_PASSIVE);
+					ou->getIdentity().getUser()->setFlag(User::NMDC_FILES_PASSIVE | User::NMDC_SEARCH_PASSIVE);
 				}
 			}
 		}

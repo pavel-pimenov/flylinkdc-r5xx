@@ -1033,16 +1033,18 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 	}
 	{
 		const auto l_tick = GET_TICK();
-		const string l_server_lower = Text::toLower(aIPServer);
+#ifdef _DEBUG
+		const string l_server_lower = Text::toLowerFast(aIPServer);
 		dcassert(l_server_lower == aIPServer);
+#endif
 		// boost::system::error_code ec;
 		// const auto l_ip = boost::asio::ip::address_v4::from_string(aIPServer, ec);
-		const CFlyDDOSkey l_key(l_server_lower, p_ip_hub);
+		const CFlyDDOSkey l_key(aIPServer, p_ip_hub);
 		// dcassert(!ec); // TODO - тут бывает и Host
 		bool l_is_ctm2hub = false;
 		{
 			CFlyReadLock(*g_csDdosCTM2HUBCheck);
-			l_is_ctm2hub = !g_ddos_ctm2hub.empty() && g_ddos_ctm2hub.find(l_server_lower + ':' + Util::toString(aPort)) != g_ddos_ctm2hub.end();
+			l_is_ctm2hub = !g_ddos_ctm2hub.empty() && g_ddos_ctm2hub.find(aIPServer + ':' + Util::toString(aPort)) != g_ddos_ctm2hub.end();
 		}
 		if (l_is_ctm2hub)
 		{
@@ -1155,7 +1157,7 @@ void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, uin
 	
 	if (checkIpFlood(aIPServer, aPort, boost::asio::ip::address_v4(), "", "[nmdcConnect][Hub: " + hubUrl + "]"))
 	{
-		dcassert(0);
+		//dcassert(0);
 		return;
 	}
 	

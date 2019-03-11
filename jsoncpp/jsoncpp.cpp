@@ -253,21 +253,22 @@ template <typename Iter> Iter fixZerosInTheEnd(Iter begin, Iter end) {
 #include <sstream>
 #include <utility>
 
-#if __cplusplus >= 201103L
 #include <cstdio>
+#if __cplusplus >= 201103L
 
 #if !defined(sscanf)
 #define sscanf std::sscanf
 #endif
-#else
-#include <cstdio>
+
+#endif //__cplusplus
 
 #if defined(_MSC_VER)
+#if !defined(_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES)
 #define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
-#endif
-#endif
+#endif  //_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
+#endif  //_MSC_VER
 
-#if defined(_MSC_VER) && _MSC_VER >= 1400 // VC++ 8.0
+#if defined(_MSC_VER)
 // Disable warning about strdup being deprecated.
 #pragma warning(disable : 4996)
 #endif
@@ -1798,7 +1799,7 @@ bool OurReader::decodeNumber(Token& token, Value& decoded) {
   // TODO: Help the compiler do the div and mod at compile time or get rid of
   // them.
   Value::LargestUInt maxIntegerValue =
-      isNegative ? Value::LargestUInt(-Value::minLargestInt)
+      isNegative ? Value::LargestUInt(Value::minLargestInt)
                  : Value::maxLargestUInt;
   Value::LargestUInt threshold = maxIntegerValue / 10;
   Value::LargestUInt value = 0;
@@ -2140,7 +2141,7 @@ public:
   bool parse(char const* beginDoc,
              char const* endDoc,
              Value* root,
-             JSONCPP_STRING* errs) JSONCPP_OVERRIDE {
+             JSONCPP_STRING* errs) override {
     bool ok = reader_.parse(beginDoc, endDoc, *root, collectComments_);
     if (errs) {
       *errs = reader_.getFormattedErrorMessages();
@@ -2497,7 +2498,7 @@ int JSON_API msvc_pre1900_c99_snprintf(char *outBuf, size_t size, const char *fo
 #endif
 
 // Disable warning C4702 : unreachable code
-#if defined(_MSC_VER) && _MSC_VER >= 1800 // VC++ 12.0 and above
+#if defined(_MSC_VER)
 #pragma warning(disable : 4702)
 #endif
 
@@ -4233,8 +4234,11 @@ Value& Path::make(Value& root) const {
 #define isfinite _finite
 #endif
 
+#if !defined(_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES)
 #define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
-#endif
+#endif  //_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
+
+#endif //_MSC_VER
 
 #if defined(__sun) && defined(__SVR4) // Solaris
 #if !defined(isfinite)
@@ -4264,7 +4268,7 @@ Value& Path::make(Value& root) const {
 #endif
 #endif
 
-#if defined(_MSC_VER) && _MSC_VER >= 1400 // VC++ 8.0
+#if defined(_MSC_VER)
 // Disable warning about strdup being deprecated.
 #pragma warning(disable : 4996)
 #endif
@@ -5068,7 +5072,7 @@ struct BuiltStyledStreamWriter : public StreamWriter {
                           bool useSpecialFloats,
                           unsigned int precision,
                           PrecisionType precisionType);
-  int write(Value const& root, JSONCPP_OSTREAM* sout) JSONCPP_OVERRIDE;
+  int write(Value const& root, JSONCPP_OSTREAM* sout) override;
 
 private:
   void writeValue(Value const& value);

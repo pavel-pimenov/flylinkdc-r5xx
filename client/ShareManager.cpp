@@ -2684,6 +2684,18 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 	{
 		return;
 	}
+#ifdef DEBUG
+	string l_search_line;
+	if (p_search_param.m_filter != Text::toLower(p_search_param.m_filter))
+	{
+		//dcassert(0);
+		l_search_line = Text::toLower(p_search_param.m_filter);
+	}
+	else
+	{
+		l_search_line = p_search_param.m_filter;
+	}
+#endif // DEBUG
 	
 	const StringTokenizer<string> t(Text::toLower(p_search_param.m_filter), '$');
 	const StringList& sl = t.getTokens();

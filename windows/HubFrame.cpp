@@ -2348,10 +2348,13 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		rc.top = rc.bottom - h - Fonts::g_fontHeightPixl * int(bUseMultiChat) - 12;
 		rc.left += 2;
 		rc.right -= iButtonPanelLength + 2;
-		CRect ctrlMessageRect = rc;
+		
+		const CRect ctrlMessageRect = rc;
 		if (m_ctrlMessage)
 		{
-			m_ctrlMessage->MoveWindow(rc);
+			CRect l_rc_message = rc;
+			l_rc_message.right -= 125; // OSAGO
+			m_ctrlMessage->MoveWindow(l_rc_message);
 		}
 		
 		if (bUseMultiChat && m_MultiChatCountLines < 2)

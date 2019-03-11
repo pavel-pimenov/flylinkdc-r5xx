@@ -2045,7 +2045,7 @@ void File_Hevc::sei_message_user_data_registered_itu_t_t35()
             bool sl_hdr_cancel_flag;
             Get_SB(sl_hdr_cancel_flag, "sl_hdr_cancel_flag");
             BS_End();
-            int8u sl_hdr_payload_mode;
+            int8u sl_hdr_payload_mode=0;
             int8u k_coefficient_value[3];
             if (!sl_hdr_cancel_flag)
             {

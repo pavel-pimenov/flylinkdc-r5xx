@@ -3054,8 +3054,6 @@ IDR_VIP_ICO_PRIME       ICON                    "res\\vip_prime.ico"
 
 IDR_VIP_ICO_MILLENIUM   ICON                    "res\\vip_millennium.ico"
 
-IDR_VIP_ICO_A_GALAXY    ICON                    "res\\vip_a_galaxy.ico"
-
 IDR_VIP_ICO_PERSEUS     ICON                    "res\\vip_perseus.ico"
 
 IDR_VIP_ICO_ALLAVTOVO   ICON                    "res\\vip_piter.ico"
@@ -3162,6 +3160,9 @@ IDR_ISP_HUBLIST         PNG                     "res\\ISPImages.png"
 
 IDR_ICON_CAMSHOOT_PNG   PNG                     "res\\Cam.png"
 
+/////////////////////////////////////////////////////////////////////////////
+
+IDR_OSAGO_PNG           PNG                     "res\\osago.png"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -150,6 +150,11 @@ inline wstring toLower(const wstring& str) noexcept
 	wstring tmp;
 	return toLower(str, tmp);
 }
+inline string toLowerFast(string p_str) noexcept
+{
+	std::transform(p_str.begin(), p_str.end(), p_str.begin(), ::tolower);
+	return p_str;
+}
 
 const string& toLower(const string& str, string& tmp) noexcept;
 inline string toLower(const string& str) noexcept

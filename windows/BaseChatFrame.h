@@ -55,6 +55,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
 		COMMAND_ID_HANDLER(IDC_COLOR, onTextStyleSelect)
 #endif
+		COMMAND_ID_HANDLER(IDC_OSAGO, onOSAGOSelect)
 		
 		COMMAND_HANDLER(IDC_CHAT_MESSAGE_EDIT, EN_CHANGE, onChange)
 		END_MSG_MAP()
@@ -114,29 +115,12 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		}
 		void onEnter();
 		LRESULT onWinampSpam(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-		LRESULT onChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-		
-		LRESULT onTextStyleSelect(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-		{
-			if (m_ctrlMessage)
-				WinUtil::SetBBCodeForCEdit(*m_ctrlMessage, wID);
-			return 0;
-		}
-		LRESULT OnTextTranscode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-		{
-			if (m_ctrlMessage)
-				WinUtil::TextTranscode(*m_ctrlMessage);
-			return 0;
-		}
+		LRESULT onChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);		
+		LRESULT onOSAGOSelect(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		LRESULT onTextStyleSelect(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		LRESULT OnTextTranscode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-		LRESULT onSearchFileInInternet(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-		{
-			if (!ChatCtrl::g_sSelectedText.empty())
-			{
-				searchFileInInternet(wID, ChatCtrl::g_sSelectedText);
-			}
-			return 0;
-		}
+		LRESULT onSearchFileInInternet(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onMultilineChatInputButton(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onGetToolTip(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
 		tstring findTextPopup();
@@ -152,20 +136,11 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		virtual void UpdateLayout(BOOL bResizeBars = TRUE) = 0;
 		
 		static tstring getIpCountry(const string& ip, bool ts, bool p_ipInChat, bool p_countryInChat, bool p_ISPInChat);
+		static TCHAR getChatRefferingToNick();
 		
 		void appendChatCtrlItems(OMenu& p_menu, const Client* client = nullptr);
 		
-		static TCHAR getChatRefferingToNick()
-		{
-#ifdef SCALOLAZ_CHAT_REFFERING_TO_NICK
-			return BOOLSETTING(CHAT_REFFERING_TO_NICK) ? _T(',') : _T(':');
-#else
-			return _T(',');
-#endif
-		}
-		
 		void appendNickToChat(const tstring& nick);
-		
 		void appendLogToChat(const string& path, const size_t linesCount);
 		virtual void readFrameLog() = 0;
 		ChatCtrl ctrlClient;
@@ -198,7 +173,7 @@ class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
 		size_t m_curCommandPosition;
 		bool m_bUseTempMultiChat;
 		bool isMultiChat(int& p_h, int& p_chat_columns) const;
-        void clearMessageWindow() {}
+		void clearMessageWindow();
 	protected:
 		unsigned m_MultiChatCountLines;
 	private:

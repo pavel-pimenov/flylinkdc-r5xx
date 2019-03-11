@@ -197,7 +197,6 @@ class PubHubListXmlListLoader : public SimpleXMLReader::CallBack
 				const string maxUsers = getAttrib(p_attribs, "Maxusers", 5);
 				const string reliability = getAttrib(p_attribs, "Reliability", 5);
 				const string rating = getAttrib(p_attribs, "Rating", 5);
-				
 				const string  Software = getAttrib(p_attribs, "Software", 5);
 				const string  Website = getAttrib(p_attribs, "Website", 5);
 				const string  Email = getAttrib(p_attribs, "Email", 5);

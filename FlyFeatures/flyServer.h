@@ -180,13 +180,18 @@ class CFlyServerConfig
 		static std::vector<CServerItem> g_torrent_dht_servers;
         static std::vector<std::string> g_hublist_url;
         static std::vector<std::string> g_promo_hub_url;
+        static std::string g_osago_url;
         static CServerItem g_local_test_server;
 		static CServerItem g_main_server;
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 		static CServerItem g_stat_server;
 #endif
 	public:
-		static const std::vector<CServerItem>& getTorrentDHTServer()
+        static const std::string& getOSAGOUrl()
+        {
+            return g_osago_url;
+        }
+        static const std::vector<CServerItem>& getTorrentDHTServer()
 		{
 			dcassert(!g_torrent_dht_servers.empty());
 			return g_torrent_dht_servers;

@@ -19,6 +19,10 @@
 #include "stdinc.h"
 #include <boost/algorithm/string.hpp>
 
+#ifdef _DEBUG
+#include "LogManager.h"
+#endif
+
 #ifndef _WIN32
 #include <errno.h>
 #include <iconv.h>

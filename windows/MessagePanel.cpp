@@ -17,11 +17,9 @@
  */
 
 #include "stdafx.h"
-
 #include "Resource.h"
-
 #include "atlwin.h"
-
+#include "ResourceLoader.h"
 #include "MessagePanel.h"
 #ifdef IRAINMAN_INCLUDE_SMILE
 #include "AGEmotionSetup.h"
@@ -69,6 +67,7 @@ void MessagePanel::DestroyPanel(bool p_is_shutdown)
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
 	ctrlColorBtn.DestroyWindow();
 #endif
+	ctrlOSAGOBtn.DestroyWindow();
 #ifdef FLYLINKDC_USE_BB_SIZE_CODE
 	ctrlSizeSel.DestroyWindow();
 #endif
@@ -119,6 +118,18 @@ LRESULT MessagePanel::InitPanel(HWND& p_hWnd, RECT &p_rcDefault)
 	ctrlColorBtn.SetIcon(g_hColorIco);
 	m_tooltip.AddTool(ctrlColorBtn, ResourceManager::BBCODE_PANEL_COLOR);
 #endif
+	ctrlOSAGOBtn.Create(m_hWnd, p_rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON | BS_CENTER, 0, IDC_OSAGO);
+	static ExCImage g_OSAGOHandle;
+	if (!(HBITMAP)g_OSAGOHandle)
+	{
+		g_OSAGOHandle.LoadFromResourcePNG(IDR_OSAGO_PNG);
+	}
+	if (ctrlOSAGOBtn.GetBitmap() == NULL)
+	{
+		ctrlOSAGOBtn.SetBitmap(g_OSAGOHandle);
+	}
+	//  m_tooltip.AddTool(ctrlOSAGOBtn, ResourceManager::BBCODE_PANEL_COLOR);
+	
 #ifdef FLYLINKDC_USE_BB_SIZE_CODE
 	ctrlSizeSel.Create(m_hWnd, p_rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL |
 	                   WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE);
@@ -149,11 +160,20 @@ LRESULT MessagePanel::UpdatePanel(CRect& rect)
 		return 0;
 		
 	CRect rc = rect;
+	CRect rc_osago = rc;
 	
 	rc.left += 2; // [+] Sergey Shuhskanov.
 	rc.right += 23; // [~] Sergey Shuhskanov.
 	//rc.bottom += 1;
 	rc.top = rc.bottom - 19;
+	
+	rc_osago.top = rc_osago.bottom - 21;
+	rc_osago.left -= 116;
+	rc_osago.bottom += 2;
+	
+	ctrlOSAGOBtn.ShowWindow(SW_SHOW);
+	
+	ctrlOSAGOBtn.MoveWindow(rc_osago);
 	
 	if (BOOLSETTING(SHOW_SEND_MESSAGE_BUTTON))
 	{
@@ -256,7 +276,9 @@ LRESULT MessagePanel::UpdatePanel(CRect& rect)
 #endif
 	}
 	if (!BOOLSETTING(POPUPS_DISABLED) && BOOLSETTING(POPUPS_MESSAGEPANEL_ENABLED))
+	{
 		m_tooltip.Activate(TRUE);
+	}
 	return 0;
 }
 
@@ -276,6 +298,7 @@ int MessagePanel::GetPanelWidth()
 #endif  //SCALOLAZ_BB_COLOR_BUTTON
 	                      : 0; // [~] Sergey Shuhskanov.
 	iButtonPanelLength += 1; // [+] DONT DELETE! Sergey Shuhskanov.
+	
 	return iButtonPanelLength;
 }
 #ifdef IRAINMAN_INCLUDE_SMILE

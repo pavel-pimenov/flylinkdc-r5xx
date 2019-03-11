@@ -3943,6 +3943,10 @@ __int64 CFlylinkDBManager::find_dic_idL(const string& p_name, const eTypeDIC p_D
 //========================================================================================================
 __int64 CFlylinkDBManager::get_dic_idL(const string& p_name, const eTypeDIC p_DIC, bool p_create)
 {
+#ifdef _DEBUG
+	static int g_count = 0;
+	LogManager::message("[" + Util::toString(++g_count) + "] get_dic_idL " + p_name + " type = " + Util::toString(p_DIC) + " is_create = " + Util::toString(p_create));
+#endif
 	dcassert(!p_name.empty());
 	if (p_name.empty())
 		return 0;

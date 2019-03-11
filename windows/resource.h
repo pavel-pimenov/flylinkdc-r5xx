@@ -221,9 +221,9 @@
 #define IDR_TRACKER_IMAGES              332
 #define IDR_VIP_HMN_PP                  333
 #define IDR_VIP_ICO_MILLENIUM           334
-#define IDR_VIP_ICO_A_GALAXY            335
 #define IDR_VIP_KCAHDER                 336
 #define IDR_VIP_OZERKI                  337
+#define IDR_OSAGO_PNG                   338
 #define IDR_ICON_XXX_BLOCK              999
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001
@@ -1521,6 +1521,7 @@
 #define IDC_STATISTICS_STATIC           2306
 #define IDC_SIDEPRO_STATIC              2307
 #define IDC_PROPPAGE_CAMSHOOT           2308
+#define IDC_OSAGO                       2309
 #define IDC_MAGNET_PIC                  2315
 #define IDC_PM_PASSWORD_HELP            2316
 #define IDC_PM_PASSWORD_GENERATE        2317

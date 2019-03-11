@@ -91,6 +91,7 @@ std::vector<CServerItem> CFlyServerConfig::g_mirror_test_port_servers;
 std::vector<CServerItem> CFlyServerConfig::g_torrent_dht_servers;
 std::vector<std::string> CFlyServerConfig::g_hublist_url;
 std::vector<std::string> CFlyServerConfig::g_promo_hub_url;
+std::string CFlyServerConfig::g_osago_url;
 
 CServerItem CFlyServerConfig::g_local_test_server;
 CServerItem CFlyServerConfig::g_main_server;
@@ -384,7 +385,7 @@ void CFlyServerConfig::loadConfig()
 		LPCSTR l_res_data;
 		std::string l_data;
 #ifdef _DEBUG
-		 //#define USE_FLYSERVER_LOCAL_FILE
+//#define USE_FLYSERVER_LOCAL_FILE
 #endif
 		const auto l_path_local_test_file = Text::toT(Util::getExePath()) + _T("fly-server-getip.config");
 		if (File::isExist(l_path_local_test_file))
@@ -400,7 +401,7 @@ void CFlyServerConfig::loadConfig()
 			}
 		}
 #ifdef USE_FLYSERVER_LOCAL_FILE
-		const string l_url_config_file = "file://C:/vc10/etc/flylinkdc-config-r5xx.xml";
+		const string l_url_config_file = "file://Q:/vc15/flylinkdc-update/etc/flylinkdc-config-r5xx.xml";
 		g_debug_fly_server_url = "localhost";
 		//g_debug_fly_server_url = "192.168.1.234";
 		
@@ -559,10 +560,12 @@ void CFlyServerConfig::loadConfig()
 					
 					initString("regex_find_ip", g_regex_find_ip);
 					initString("faq_search", g_faq_search_does_not_work);
+                    initString("osago_url", g_osago_url);
+
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION
 					m_collect_lost_location = Util::toInt(l_xml.getChildAttrib("collect_lost_location")) == 1;
 #endif
-					m_type = l_xml.getChildAttrib("type") == "http" ? TYPE_FLYSERVER_HTTP : TYPE_FLYSERVER_TCP ;
+					m_type = l_xml.getChildAttrib("type") == "http" ? TYPE_FLYSERVER_HTTP : TYPE_FLYSERVER_TCP;
 					CFlyServerAdapter::CFlyServerQueryThread::setMinimalIntervalInMilliSecond(Util::toInt(l_xml.getChildAttrib("minimal_interval")));
 					l_xml.getChildAttribSplit("scan", m_scan, [this](const string & n)
 					{
@@ -1746,7 +1749,8 @@ string CFlyServerJSON::postQueryTestPort(CFlyLog& p_log, const string& p_body, b
 {
 	string l_result;
 	const auto l_server_array = CFlyServerConfig::getMirrorTestPortServerArray();
-	for (auto i = l_server_array.cbegin(); i != l_server_array.cend() ; ++i)
+    int l_pos = 0;
+	for (auto i = l_server_array.cbegin(); i != l_server_array.cend() ; ++i,++l_pos)
 	{
 		const auto& l_test_server = *i;
 		l_result = postQuery(false, false, true, true, "fly-test-port", p_body, p_is_send, p_is_error, 1000, &l_test_server);
@@ -1761,7 +1765,10 @@ string CFlyServerJSON::postQueryTestPort(CFlyLog& p_log, const string& p_body, b
 		}
 		else
 		{
-			p_log.step("Use next mirror server: " + l_test_server.getServerAndPort());
+            if (l_pos + 1 < l_server_array.size())
+            {
+                p_log.step("Use next mirror server: " + l_server_array[l_pos + 1].getServerAndPort());
+            }
 		}
 	}
 	return l_result;

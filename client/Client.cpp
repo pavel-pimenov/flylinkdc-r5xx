@@ -100,7 +100,6 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure, bool 
 		"hmn.pp.ru",
 		"dc.millennium.pp.ua",
 		"piter.feardc.net",
-		"a-galaxy.ru",
 		"dc.kcahdep.online",
 		"dc.ozerki.pro"
 	};

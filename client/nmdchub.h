@@ -55,12 +55,10 @@ class NmdcHub : public Client, private Flags
 		{
 			myInfo(p_force);
 		}
-		
 		size_t getUserCount() const
 		{
 			return m_users.size();
 		}
-		
 		string escape(const string& str) const override
 		{
 			return validateMessage(str, false);
@@ -69,12 +67,10 @@ class NmdcHub : public Client, private Flags
 		{
 			return validateMessage(str, true);
 		}
-		
 		void send(const AdcCommand&)
 		{
 			dcassert(0);
 		}
-		
 		static string validateMessage(string tmp, bool reverse);
 		void refreshUserList(bool);
 		

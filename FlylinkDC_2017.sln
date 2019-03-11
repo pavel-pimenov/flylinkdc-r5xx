@@ -37,7 +37,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MediaInfoLib", "MediaInfoLi
 		{0DA1DA7D-F393-4E7C-A7CE-CB5C6A67BC94} = {0DA1DA7D-F393-4E7C-A7CE-CB5C6A67BC94}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ZenLib", "Zenlib\ZenLib_2017.vcxproj", "{0DA1DA7D-F393-4E7C-A7CE-CB5C6A67BC94}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ZenLib", "zenlib\ZenLib_2017.vcxproj", "{0DA1DA7D-F393-4E7C-A7CE-CB5C6A67BC94}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "openssl", "openssl\openssl_2017.vcxproj", "{B9F644C2-F9DE-4648-B613-43755D81EA3B}"
 EndProject
@@ -46,6 +46,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lua", "lua\lua_2017.vcxproj", "{8CAB66DE-3F50-4135-9BED-395C253EA7DC}"
 EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
 		Debug|ARM64 = Debug|ARM64

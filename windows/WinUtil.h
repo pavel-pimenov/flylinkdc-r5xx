@@ -1547,7 +1547,7 @@ class WinUtil
 #else
 		static std::unique_ptr<HIconWrapper> g_HubVirusIcon;
 #endif
-		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[22]; // VIP_ICON
+		static std::unique_ptr<HIconWrapper> g_HubFlylinkDCIconVIP[21]; // VIP_ICON
 		
 		static void initThemeIcons();
 		

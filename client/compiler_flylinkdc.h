@@ -305,7 +305,7 @@ typedef unsigned __int64 uint64_t;
 
 //[+]IRainman FlylinkDC working with long paths
 // http://msdn.microsoft.com/en-us/library/ee681827(VS.85).aspx#limits
-#define FULL_MAX_PATH 32760 + 255 + 255 + 8 // Maximum path name length + Maximum file size + Mashine name overhed in UNC path + UNC header
+#define FULL_MAX_PATH (32760 + 255 + 255 + 8) // Maximum path name length + Maximum file size + Mashine name overhed in UNC path + UNC header
 // [+] NightOrion
 #define USE_SUPPORT_HUB
 //#define NIGHTORION_INTERNAL_TRANSLATE_SOCKET_ERRORS // ¬ключить когда будет готов перевод.
@@ -410,7 +410,7 @@ typedef unsigned __int64 uint64_t;
 #define FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 #define FLYLINKDC_USE_SOCKET_COUNTER
 
-#define FLYLINKDC_USE_LOCATION_DIALOG
+//#define FLYLINKDC_USE_LOCATION_DIALOG
 
 // Make sure we're using the templates from algorithm...
 #ifdef min

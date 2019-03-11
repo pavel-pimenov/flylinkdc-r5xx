@@ -73,6 +73,7 @@ class MessagePanel
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
 		CButton ctrlColorBtn;
 #endif
+		CButton ctrlOSAGOBtn;
 #ifdef IRAINMAN_INCLUDE_SMILE
 		static CEmotionMenu g_emoMenu;
 #endif

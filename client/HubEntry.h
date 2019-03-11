@@ -130,7 +130,7 @@ class HubEntry
 		        ) : name(aName),
 			server(Util::formatDchubUrl(aServer)), // [!] IRainman fix.
 			description(aDescription), country(aCountry),
-			rating(aRating), reliability((float)(Util::toFloat(aReliability) / 100.0)), shared(Util::toInt64(aShared)), minShare(Util::toInt64(aMinShare)),
+			rating(aRating), reliability(Util::toFloat(aReliability) / 100.0), shared(Util::toInt64(aShared)), minShare(Util::toInt64(aMinShare)),
 			users(Util::toInt(aUsers)), minSlots(Util::toInt(aMinSlots)), maxHubs(Util::toInt(aMaxHubs)), maxUsers(Util::toInt(aMaxUsers)),
 			software(aSoftware),
 			website(aWebsite),

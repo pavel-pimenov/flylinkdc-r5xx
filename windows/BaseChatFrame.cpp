@@ -19,6 +19,7 @@
 #include "stdafx.h"
 #include "BaseChatFrame.h"
 #include "../client/QueueManager.h"
+#include "../FlyFeatures/flyServer.h"
 
 LRESULT BaseChatFrame::OnCreate(HWND p_hWnd, RECT &rcDefault)
 {
@@ -200,6 +201,55 @@ bool BaseChatFrame::adjustChatInputSize(BOOL& bHandled)
 	checkMultiLine();
 	return needsAdjust;
 }
+
+TCHAR BaseChatFrame::getChatRefferingToNick()
+{
+#ifdef SCALOLAZ_CHAT_REFFERING_TO_NICK
+	return BOOLSETTING(CHAT_REFFERING_TO_NICK) ? _T(',') : _T(':');
+#else
+	return _T(',');
+#endif
+}
+
+void BaseChatFrame::clearMessageWindow()
+{
+	if (m_ctrlMessage)
+	{
+		m_ctrlMessage->SetWindowText(_T(""));
+	}
+	m_MultiChatCountLines = 0;
+}
+
+LRESULT BaseChatFrame::onSearchFileInInternet(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	if (!ChatCtrl::g_sSelectedText.empty())
+	{
+		searchFileInInternet(wID, ChatCtrl::g_sSelectedText);
+	}
+	return 0;
+}
+
+LRESULT BaseChatFrame::onOSAGOSelect(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	if (m_ctrlMessage && !CFlyServerConfig::getOSAGOUrl().empty())
+	{
+		WinUtil::openLink(Text::toT(CFlyServerConfig::getOSAGOUrl()));
+	}
+	return 0;
+}
+LRESULT BaseChatFrame::onTextStyleSelect(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	if (m_ctrlMessage)
+		WinUtil::SetBBCodeForCEdit(*m_ctrlMessage, wID);
+	return 0;
+}
+LRESULT BaseChatFrame::OnTextTranscode(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	if (m_ctrlMessage)
+		WinUtil::TextTranscode(*m_ctrlMessage);
+	return 0;
+}
+
 LRESULT BaseChatFrame::onCtlColor(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	const HWND hWnd = (HWND)lParam;

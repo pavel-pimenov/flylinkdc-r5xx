@@ -552,12 +552,12 @@ void UserConnection::updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64
 		return;
 	}
 	
-	double lastSpeed = (1000. * lastChunk) / ticks;
+	const double lastSpeed = (1000. * lastChunk) / ticks;
 	
 	int64_t targetSize = m_chunkSize;
 	
 	// How long current chunk size would take with the last speed...
-	double msecs = 1000 * double(targetSize) / lastSpeed;
+	const double msecs = 1000 * double(targetSize) / lastSpeed;
 	
 	if (msecs < SEGMENT_TIME / 4)
 	{
