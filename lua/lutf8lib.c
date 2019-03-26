@@ -171,7 +171,7 @@ static int byteoffset (lua_State *L) {
   }
   else {
     if (iscont(s + posi))
-      luaL_error(L, "initial position is a continuation byte");
+      return luaL_error(L, "initial position is a continuation byte");
     if (n < 0) {
        while (n < 0 && posi > 0) {  /* move back */
          do {  /* find beginning of previous character */
