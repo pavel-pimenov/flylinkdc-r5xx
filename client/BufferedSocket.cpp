@@ -166,7 +166,7 @@ void BufferedSocket::connect(const string& aAddress, uint16_t aPort, bool secure
 void BufferedSocket::connect(const string& aAddress, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool secure, bool allowUntrusted, bool proxy, const string& expKP /*= Util::emptyString*/)
 {
 	dcdebug("BufferedSocket::connect() %p\n", (void*)this);
-	unique_ptr<Socket> s(secure ? new SSLSocket(natRole == NAT_SERVER ? CryptoManager::SSL_SERVER : CryptoManager::SSL_CLIENT, allowUntrusted, expKP) : new Socket(/*Socket::TYPE_TCP*/));
+	unique_ptr<Socket> s(secure ? new SSLSocket(natRole == NAT_SERVER ? CryptoManager::SSL_SERVER : CryptoManager::SSL_CLIENT_ALPN, allowUntrusted, expKP) : new Socket(/*Socket::TYPE_TCP*/));
 	s->create(); // в AirDC++ нет такой херни... разобраться
 	
 	setSocket(move(s));

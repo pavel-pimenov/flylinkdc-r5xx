@@ -108,6 +108,7 @@ class CryptoManager : public Singleton<CryptoManager>
 		enum SSLContext
 		{
 			SSL_CLIENT,
+			SSL_CLIENT_ALPN,
 			SSL_SERVER
 		};
 		
@@ -150,6 +151,7 @@ class CryptoManager : public Singleton<CryptoManager>
 		virtual ~CryptoManager();
 		
 		ssl::SSL_CTX clientContext;
+		ssl::SSL_CTX clientALPNContext;
 		ssl::SSL_CTX serverContext;
 		
 		void sslRandCheck();

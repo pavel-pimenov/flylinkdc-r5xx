@@ -79,6 +79,21 @@ bool SSLSocket::waitConnected(uint64_t millis)
 		if (ret == 1)
 		{
 			dcdebug("Connected to SSL server using %s as %s\n", SSL_get_cipher(ssl), ssl->server ? "server" : "client");
+			if (!ssl->server)
+			{
+				const unsigned char* protocol = 0;
+				unsigned int len = 0;
+				SSL_get0_alpn_selected(ssl, &protocol, &len);
+				if (len != 0)
+				{
+					if (len == 3 && !memcmp(protocol, "adc", len))
+						m_proto = PROTO_ADC;
+					else if (len == 4 && !memcmp(protocol, "nmdc", len))
+						m_proto = PROTO_NMDC;
+					dcdebug("ALPN negotiated %.*s (%d)\n", len, protocol, m_proto);
+				}
+			}
+			
 			return true;
 		}
 		if (!waitWant(ret, millis))

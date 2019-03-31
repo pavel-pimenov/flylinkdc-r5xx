@@ -41,6 +41,10 @@ bool CryptoManager::certsLoaded = false;
 ByteVector CryptoManager::keyprint;
 static CriticalSection g_cs;
 
+unsigned char alpn_protos[] = {
+	3, 'a', 'd', 'c',
+	4, 'n', 'm', 'd', 'c',
+};
 
 CryptoManager::CryptoManager()
 	:
@@ -56,11 +60,12 @@ CryptoManager::CryptoManager()
 	SSL_load_error_strings();
 	
 	clientContext.reset(SSL_CTX_new(SSLv23_client_method()));
+	clientALPNContext.reset(SSL_CTX_new(SSLv23_client_method()));
 	serverContext.reset(SSL_CTX_new(SSLv23_server_method()));
 	
 	idxVerifyData = SSL_get_ex_new_index(0, idxVerifyDataName, NULL, NULL, NULL);
 	
-	if (clientContext && serverContext)
+	if (clientContext && clientALPNContext && serverContext)
 	{
 		// Check that openssl rng has been seeded with enough data
 		sslRandCheck();
@@ -72,9 +77,12 @@ CryptoManager::CryptoManager()
 		SSL_CTX_set_options(clientContext, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
 		SSL_CTX_set_cipher_list(clientContext, ciphersuites);
 		SSL_CTX_set1_curves_list(clientContext, "P-256");
+		SSL_CTX_set_options(clientALPNContext, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
+		SSL_CTX_set_cipher_list(clientALPNContext, ciphersuites);
+		SSL_CTX_set1_curves_list(clientALPNContext, "P-256");
 		SSL_CTX_set_options(serverContext, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
-		SSL_CTX_set_cipher_list(clientContext, ciphersuites);
-		SSL_CTX_set1_curves_list(clientContext, "P-256");
+		SSL_CTX_set_cipher_list(serverContext, ciphersuites);
+		SSL_CTX_set1_curves_list(serverContext, "P-256");
 		
 		EC_KEY* tmp_ecdh;
 		if ((tmp_ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1)) != NULL)
@@ -89,7 +97,10 @@ CryptoManager::CryptoManager()
 		SSL_CTX_set_tmp_rsa_callback(serverContext, CryptoManager::tmp_rsa_cb);
 		
 		SSL_CTX_set_verify(clientContext, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback);
+		SSL_CTX_set_verify(clientALPNContext, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback);
 		SSL_CTX_set_verify(serverContext, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback);
+
+		SSL_CTX_set_alpn_protos(clientALPNContext, alpn_protos, sizeof(alpn_protos));
 	}
 }
 void CryptoManager::initTmpKeyMaps()
@@ -141,6 +152,7 @@ CryptoManager::~CryptoManager()
 	ERR_remove_thread_state(NULL);
 	
 	clientContext.reset();
+	clientALPNContext.reset();
 	serverContext.reset();
 	
 	freeTmpKeyMaps();
@@ -585,7 +597,7 @@ void CryptoManager::generateCertificate()
 
 void CryptoManager::loadCertificates() noexcept
 {
-	if (!BOOLSETTING(USE_TLS) || !clientContext || !serverContext)
+	if (!BOOLSETTING(USE_TLS) || !clientContext || !clientALPNContext || !serverContext)
 		return;
 		
 	const string& cert = SETTING(TLS_CERTIFICATE_FILE);
@@ -617,6 +629,7 @@ void CryptoManager::loadCertificates() noexcept
 	
 	if (
 	    SSL_CTX_use_certificate_file(serverContext, cert.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS ||
+		SSL_CTX_use_certificate_file(clientALPNContext, cert.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS ||
 	    SSL_CTX_use_certificate_file(clientContext, cert.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS
 	)
 	{
@@ -626,6 +639,7 @@ void CryptoManager::loadCertificates() noexcept
 	
 	if (
 	    SSL_CTX_use_PrivateKey_file(serverContext, key.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS ||
+		SSL_CTX_use_PrivateKey_file(clientALPNContext, key.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS ||
 	    SSL_CTX_use_PrivateKey_file(clientContext, key.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS
 	)
 	{
@@ -641,6 +655,7 @@ void CryptoManager::loadCertificates() noexcept
 	{
 		if (
 		    SSL_CTX_load_verify_locations(clientContext, i.c_str(), NULL) != SSL_SUCCESS ||
+			SSL_CTX_load_verify_locations(clientALPNContext, i.c_str(), NULL) != SSL_SUCCESS ||
 		    SSL_CTX_load_verify_locations(serverContext, i.c_str(), NULL) != SSL_SUCCESS
 		)
 		{
@@ -762,6 +777,8 @@ SSL_CTX* CryptoManager::getSSLContext(SSLContext wanted)
 	{
 		case SSL_CLIENT:
 			return clientContext;
+		case SSL_CLIENT_ALPN:
+			return clientALPNContext;
 		case SSL_SERVER:
 			return serverContext;
 		default:
