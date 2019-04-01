@@ -86,15 +86,24 @@ class Socket
 			TYPE_TCP = 0, // IPPROTO_TCP
 			TYPE_UDP = 1  // IPPROTO_UDP
 		};
+
+		enum Protocol
+		{
+			PROTO_DEFAULT = 0,
+			PROTO_NMDC = 1,
+			PROTO_ADC = 2
+		};
 		
 		Socket() : m_sock(INVALID_SOCKET), connected(false)
 			, m_maxSpeed(0), m_currentBucket(0) //[+] IRainman SpeedLimiter
 			, m_type(TYPE_TCP), port(0)
+			, m_proto(PROTO_DEFAULT)
 		{
 		}
 		Socket(const string& aIp, uint16_t aPort) : m_sock(INVALID_SOCKET), connected(false)
 			, m_maxSpeed(0), m_currentBucket(0) //[+] IRainman SpeedLimiter
 			, m_type(TYPE_TCP)
+			, m_proto(PROTO_DEFAULT)
 		{
 			connect(aIp, aPort);
 		}
@@ -272,6 +281,7 @@ class Socket
 		GETSET(uint16_t, port, Port);
 		
 		socket_t m_sock;
+		Protocol m_proto;
 		
 		//[+] IRainman SpeedLimiter
 		GETSET(int64_t, m_maxSpeed, MaxSpeed);
