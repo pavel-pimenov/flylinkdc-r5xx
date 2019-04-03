@@ -2113,7 +2113,7 @@ void File_Mpeg4::meta_iinf_infe()
     
     FILLING_BEGIN();
         moov_trak_tkhd_TrackID=item_ID;
-        const char* Format;
+        const char* Format=NULL;
         bool Skip=false;
         switch (item_type)
         {
@@ -2135,7 +2135,6 @@ void File_Mpeg4::meta_iinf_infe()
             case 0x696F766C:    // iovl
                                 Format="Image Overlay";
                                 break;
-            default:            Format=NULL;
         }
         if (!Skip)
         {
@@ -3468,6 +3467,11 @@ void File_Mpeg4::moov_meta_ilst_xxxx_data()
                     int32u keys_Pos=Element_Code_Get(Element_Level-1);
                     if (keys_Pos && keys_Pos<=moov_udta_meta_keys_List.size())
                         Metadata_Get(Parameter, moov_udta_meta_keys_List[keys_Pos-1]);
+                    if (Parameter=="Recorded_Date" && Value.size()>=10 && Value[4]==__T(':') && Value[7]==__T(':'))
+                    {
+                        Value[4]=__T('-');
+                        Value[7]=__T('-');
+                    }
                     if (Parameter=="com.apple.quicktime.version")
                         Vendor_Version=Value.SubString(__T(""), __T(" "));
                     else if (Parameter=="com.apple.quicktime.player.version")
@@ -3499,6 +3503,13 @@ void File_Mpeg4::moov_meta_ilst_xxxx_data()
                             Fill(Stream_General, 0, "UniversalAdID/String", Value+__T(" (")+Retrieve(Stream_General, 0, "UniversalAdID_Registry")+__T(")"), true);
                             Fill_SetOptions(Stream_General, 0, "UniversalAdID/String", "Y NTN");
                         }
+                    }
+                    else if (Parameter=="DisplayAspectRatio")
+                    {
+                        DisplayAspectRatio=Value;
+                        size_t i=DisplayAspectRatio.find(':');
+                        if (i!=string::npos)
+                            DisplayAspectRatio.From_Number(Ztring(DisplayAspectRatio.substr(0, i)).To_float64()/Ztring(DisplayAspectRatio.substr(i+1)).To_float64(), 3);
                     }
                     else if (!Parameter.empty())
                         Fill(Stream_General, 0, Parameter.c_str(), Value, true);
@@ -6674,7 +6685,7 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_dvcC()
 
     FILLING_BEGIN();
         Ztring Summary=Ztring::ToZtring(dv_version_major)+__T('.')+Ztring::ToZtring(dv_version_minor);
-        Fill(Stream_Video, StreamPos_Last, "DolbyVision_Version", Summary);
+        Fill(Stream_Video, StreamPos_Last, "HDR_Format_Version", Summary);
         if (dv_version_major==1)
         {
             string Profile, Level;
@@ -6685,8 +6696,9 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_dvcC()
             Profile+=__T('.');
             Profile+=Ztring().From_CC1(dv_profile).To_UTF8();
             Level+=Ztring().From_CC1(dv_level).To_UTF8();
-            Fill(Stream_Video, StreamPos_Last, "DolbyVision_Profile", Profile);
-            Fill(Stream_Video, StreamPos_Last, "DolbyVision_Level", Level);
+            Fill(Stream_Video, StreamPos_Last, "HDR_Format", "Dolby Vision");
+            Fill(Stream_Video, StreamPos_Last, "HDR_Format_Profile", Profile);
+            Fill(Stream_Video, StreamPos_Last, "HDR_Format_Level", Level);
             Summary+=__T(',');
             Summary+=__T(' ');
             Summary+=Ztring().From_UTF8(Profile);
@@ -6707,8 +6719,7 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_dvcC()
                 Layers.resize(Layers.size()-1);
                 Summary+=Ztring().From_UTF8(Layers);
             }
-            Fill(Stream_Video, StreamPos_Last, "DolbyVision_Layers", Layers);
-            Fill(Stream_Video, StreamPos_Last, "DolbyVision/String", Summary);
+            Fill(Stream_Video, StreamPos_Last, "HDR_Format_Settings", Layers);
         }
     FILLING_END();
 }
@@ -6927,6 +6938,8 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_mdcv()
     Get_MasteringDisplayColorVolume(MasteringDisplay_ColorPrimaries, MasteringDisplay_Luminance);
 
     FILLING_BEGIN();
+        Fill(StreamKind_Last, StreamPos_Last, "HDR_Format", "SMPTE ST 2086");
+        Fill(StreamKind_Last, StreamPos_Last, "HDR_Format_Compatibility", "HDR10");
         Fill(StreamKind_Last, StreamPos_Last, "MasteringDisplay_ColorPrimaries", MasteringDisplay_ColorPrimaries);
         Fill(StreamKind_Last, StreamPos_Last, "MasteringDisplay_Luminance", MasteringDisplay_Luminance);
     FILLING_END();
