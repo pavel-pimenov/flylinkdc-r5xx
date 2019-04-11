@@ -5028,21 +5028,24 @@ void CFlylinkDBManager::push_download_tth(const TTHValue& p_tth)
 CFlylinkDBManager::FileStatus CFlylinkDBManager::get_status_file(const TTHValue& p_tth)
 {
 #ifdef FLYLINKDC_USE_LEVELDB
+	if (m_TTHLevelDB.is_open())
+	{
+	
 	string l_status;
 	m_TTHLevelDB.get_value(p_tth, l_status);
 	int l_result = Util::toInt(l_status);
 	dcassert(l_result >= 0 && l_result <= 7);
 	return static_cast<FileStatus>(l_result); // 1 - скачивал, 2 - был в шаре, 3 - 1+2 и то и то, 4- вирусня
-#else
+	}
+	else
+	{
 	CFlyLock(m_cs);
 	try
 	{
 		m_get_status_file.init(m_flySQLiteDB,
 		                       "select 2 from fly_hash_block where tth=?");
-		sqlite3_command* l_sql = m_get_status_file.get();
-		l_sql->bind(1, p_tth.data, 24, SQLITE_STATIC);
-		l_sql->bind(2, p_tth.data, 24, SQLITE_STATIC);
-		sqlite3_reader l_q = l_sql->executereader();
+			m_get_status_file->bind(1, p_tth.data, 24, SQLITE_STATIC);
+			sqlite3_reader l_q = m_get_status_file->executereader();
 		int l_result = 0;
 		while (l_q.read())
 		{
@@ -5054,6 +5057,7 @@ CFlylinkDBManager::FileStatus CFlylinkDBManager::get_status_file(const TTHValue&
 	catch (const database_error& e)
 	{
 		errorDB("SQLite - get_status_file: " + e.getError());
+	}
 	}
 	return UNKNOWN;
 #endif // FLYLINKDC_USE_LEVELDB
@@ -5203,7 +5207,7 @@ CFlyLevelDB::~CFlyLevelDB()
 	safe_delete(m_level_db);
 	safe_delete(m_options.filter_policy);
 	safe_delete(m_options.block_cache);
-	safe_delete(m_options.env); // http://code.google.com/p/leveldb/issues/detail?id=194 ?
+	// нельзя удалять - падаем. safe_delete(m_options.env);
 	// TODO - leak delete m_options.comparator;
 }
 //========================================================================================================
@@ -5212,6 +5216,7 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 	p_is_destroy = false;
 	int64_t l_count_files = 0;
 	int64_t l_size_files = 0;
+	dcassert(m_level_db == nullptr);
 	auto l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db, l_count_files, l_size_files);
 	if (l_count_files > 1000)
 	{

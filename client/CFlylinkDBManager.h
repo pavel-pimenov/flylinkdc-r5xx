@@ -99,6 +99,10 @@ class CFlyLevelDB
 			else
 				return false;
 		}
+		bool is_open() const
+		{
+			return m_level_db != nullptr;
+		}
 		uint32_t set_bit(const TTHValue& p_tth, uint32_t p_mask);
 };
 #ifdef FLYLINKDC_USE_IPCACHE_LEVELDB
@@ -600,8 +604,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlyLevelDBCacheIP  m_IPCacheLevelDB;
 #endif
 #else
-		CFlySQLCommand m_get_status_file;
 #endif // FLYLINKDC_USE_LEVELDB
+		CFlySQLCommand m_get_status_file;
 		FastCriticalSection m_path_cache_cs;
 		CFlyPathCache m_path_cache;
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
