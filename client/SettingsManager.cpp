@@ -687,7 +687,7 @@ void SettingsManager::setDefaults()
 	//setDefault(AUTO_KICK_NO_FAVS, false);
 	setDefault(PROMPT_PASSWORD, TRUE);
 	setDefault(SPY_FRAME_IGNORE_TTH_SEARCHES, FALSE);
-	//setDefault(USE_TLS, false); //[+]PPA
+	setDefault(USE_TLS, TRUE);
 	setDefault(MAX_COMMAND_LENGTH, 16 * 1024 * 1024);
 	setDefault(ALLOW_UNTRUSTED_CLIENTS, TRUE);
 	setDefault(ALLOW_UNTRUSTED_HUBS, TRUE);
