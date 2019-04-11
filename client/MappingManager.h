@@ -53,7 +53,7 @@ class MappingManager
 		}
 		static bool isRouter()
 		{
-			return g_is_wifi_router == true;
+			return g_is_wifi_router.value == boost::logic::tribool::true_value;
 		}
 		static void close()
 		{

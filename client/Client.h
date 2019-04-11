@@ -136,11 +136,11 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		}
 		bool isLocalHub() const
 		{
-			return m_is_local_hub == true;
+			return m_is_local_hub.value == boost::logic::tribool::true_value;
 		}
 		bool isGlobalHub() const
 		{
-			return m_is_local_hub == false;
+			return m_is_local_hub.value == boost::logic::tribool::false_value;
 		}
 	protected:
 		void setTypeHub(bool p_hub_type)
