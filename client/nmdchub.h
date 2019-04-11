@@ -192,7 +192,7 @@ class NmdcHub : public Client, private Flags
 			}
 		};
 		std::unique_ptr<CFlyNickRule> m_nick_rule;
-		NmdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect);
+		NmdcHub(const string& aHubURL, bool p_is_secure, bool p_is_auto_connect);
 		~NmdcHub();
 		
 		void clearUsers();

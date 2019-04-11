@@ -1108,6 +1108,11 @@ void Util::decodeUrl(const string& url, string& protocol, string& host, uint16_t
 			{
 				port = 411;
 			}
+			else if (protocol == "nmdcs")
+			{
+				isSecure = true;
+				port = 411;
+			}
 			else if (protocol == "http" || protocol == "steam")
 			{
 				port = 80;
