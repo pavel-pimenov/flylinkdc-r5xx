@@ -256,7 +256,7 @@ static const char* g_settingTags[] =
 	"SocketInBuffer2", "SocketOutBuffer2",
 	"ColorRunning", "ColorDownloaded", "ColorVerified", "ColorAvoiding", "AutoRefreshTime", "OpenWaitingUsers",
 	"BoldWaitingUsers", "AutoSearchLimit", "AutoKickNoFavs", "PromptPassword", "SpyFrameIgnoreTthSearches",
-	"TLSPort", "UseTLSFlylinkDC", "MaxCommandLength", "AllowUntrustedHubs", "AllowUntrustedClients",
+	"TLSPort", "UseTLSFlylinkDC", "MaxCommandLength", "AllowUntrustedHubs", "AllowUntrustedClientsFlylinkDC",
 	"FastHash", "DownConnPerSec",
 	"HighestPrioSize", "HighPrioSize", "NormalPrioSize", "LowPrioSize", "LowestPrio",
 	"ShowDescription", "ShowDescriptionSlots", "ShowDescriptionLimit",
@@ -689,7 +689,7 @@ void SettingsManager::setDefaults()
 	setDefault(SPY_FRAME_IGNORE_TTH_SEARCHES, FALSE);
 	setDefault(USE_TLS, TRUE);
 	setDefault(MAX_COMMAND_LENGTH, 16 * 1024 * 1024);
-	setDefault(ALLOW_UNTRUSTED_CLIENTS, TRUE);
+	setDefault(ALLOW_UNTRUSTED_CLIENTS, FALSE);
 	setDefault(ALLOW_UNTRUSTED_HUBS, TRUE);
 	setDefault(FAST_HASH, TRUE);
 	//setDefault(SORT_FAVUSERS_FIRST, false);

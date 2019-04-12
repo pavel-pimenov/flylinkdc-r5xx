@@ -1375,8 +1375,8 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsAdvancedShowShareCheckedUsers">Показывать проверенных пользователей</String>
 		<String Name="SettingsAdvancedSuppressMainChat">Отключить главный чат</String>
 		<String Name="SettingsAdvancedSuppressPms">Отключить приватное сообщение от всех, кроме друзей</String>
-		<String Name="SettingsAllowUntrustedClients">Разрешать TLS-соединения с клиентами без сертификатов</String>
-		<String Name="SettingsAllowUntrustedHubs">Разрешать TLS-соединения с хабами без сертификатов</String>
+		<String Name="SettingsAllowUntrustedClients">Разрешать TLS-соединения с клиентами без доверенного сертификата</String>
+		<String Name="SettingsAllowUntrustedHubs">Разрешать TLS-соединения с хабами без доверенного сертификата</String>
 		<String Name="SettingsAlwaysFileserver">Всегда файл-сервер</String>
 		<String Name="SettingsAlwaysFireball">Всегда скоростной</String>
 		<String Name="Fileserver">Файл сервер</String>
