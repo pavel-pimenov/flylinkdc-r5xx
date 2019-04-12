@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
+#include "stdinc.h"
+
 #include "db/log_reader.h"
 
 #include <stdio.h>
@@ -163,7 +165,7 @@ bool Reader::ReadRecord(Slice* record, std::string* scratch) {
 
       default: {
         char buf[40];
-        _snprintf(buf, sizeof(buf), "unknown record type %u", record_type);
+        snprintf(buf, sizeof(buf), "unknown record type %u", record_type);
         ReportCorruption(
             (fragment.size() + (in_fragmented_record ? scratch->size() : 0)),
             buf);
@@ -185,7 +187,7 @@ void Reader::ReportCorruption(uint64_t bytes, const char* reason) {
 }
 
 void Reader::ReportDrop(uint64_t bytes, const Status& reason) {
-  if (reporter_ != NULL &&
+  if (reporter_ != nullptr &&
       end_of_buffer_offset_ - buffer_.size() - bytes >= initial_offset_) {
     reporter_->Corruption(static_cast<size_t>(bytes), reason);
   }

@@ -31,7 +31,7 @@ class LEVELDB_EXPORT Table {
   // If successful, returns ok and sets "*table" to the newly opened
   // table.  The client should delete "*table" when no longer needed.
   // If there was an error while initializing the table, sets "*table"
-  // to NULL and returns a non-ok status.  Does not take ownership of
+  // to nullptr and returns a non-ok status.  Does not take ownership of
   // "*source", but the client must ensure that "source" remains live
   // for the duration of the returned table's lifetime.
   //
@@ -40,6 +40,9 @@ class LEVELDB_EXPORT Table {
                      RandomAccessFile* file,
                      uint64_t file_size,
                      Table** table);
+
+  Table(const Table&) = delete;
+  void operator=(const Table&) = delete;
 
   ~Table();
 
@@ -75,10 +78,6 @@ class LEVELDB_EXPORT Table {
 
   void ReadMeta(const Footer& footer);
   void ReadFilter(const Slice& filter_handle_value);
-
-  // No copying allowed
-  Table(const Table&);
-  void operator=(const Table&);
 };
 
 }  // namespace leveldb

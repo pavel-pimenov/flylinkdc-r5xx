@@ -45,10 +45,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtorrent", "libtorrent\li
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lua", "lua\lua_2017.vcxproj", "{8CAB66DE-3F50-4135-9BED-395C253EA7DC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LevelDB", "leveldb\LevelDB_2017.vcxproj", "{A7FF59D3-EAFD-43A1-8AA7-5087229C75D1}"
+EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
 		Debug|ARM64 = Debug|ARM64
@@ -268,12 +267,27 @@ Global
 		{8CAB66DE-3F50-4135-9BED-395C253EA7DC}.Release|Win32.Build.0 = Release|Win32
 		{8CAB66DE-3F50-4135-9BED-395C253EA7DC}.Release|x64.ActiveCfg = Release|x64
 		{8CAB66DE-3F50-4135-9BED-395C253EA7DC}.Release|x64.Build.0 = Release|x64
+		{A7FF59D3-EAFD-43A1-8AA7-5087229C75D1}.Debug|ARM.ActiveCfg = Debug|Win32
+		{A7FF59D3-EAFD-43A1-8AA7-5087229C75D1}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{A7FF59D3-EAFD-43A1-8AA7-5087229C75D1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A7FF59D3-EAFD-43A1-8AA7-5087229C75D1}.Debug|Win32.Build.0 = Debug|Win32
+		{A7FF59D3-EAFD-43A1-8AA7-5087229C75D1}.Debug|x64.ActiveCfg = Debug|x64
+		{A7FF59D3-EAFD-43A1-8AA7-5087229C75D1}.Debug|x64.Build.0 = Debug|x64
+		{A7FF59D3-EAFD-43A1-8AA7-5087229C75D1}.Release|ARM.ActiveCfg = Release|Win32
+		{A7FF59D3-EAFD-43A1-8AA7-5087229C75D1}.Release|ARM64.ActiveCfg = Release|Win32
+		{A7FF59D3-EAFD-43A1-8AA7-5087229C75D1}.Release|Win32.ActiveCfg = Release|Win32
+		{A7FF59D3-EAFD-43A1-8AA7-5087229C75D1}.Release|Win32.Build.0 = Release|Win32
+		{A7FF59D3-EAFD-43A1-8AA7-5087229C75D1}.Release|x64.ActiveCfg = Release|x64
+		{A7FF59D3-EAFD-43A1-8AA7-5087229C75D1}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7DC8D743-42A1-4B2C-B975-85B6B4D68FEE}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
+#include "stdinc.h"
+
 #include "db/db_iter.h"
 
 #include "db/filename.h"
@@ -14,13 +16,7 @@
 #include "util/mutexlock.h"
 #include "util/random.h"
 
-
 namespace leveldb {
-
-#ifdef _WIN32
-#define	ssize_t ptrdiff_t // FlylinkDC++
-#endif
-
 
 #if 0
 static void DumpInternalIter(Iterator* iter) {
@@ -63,7 +59,7 @@ class DBIter: public Iterator {
         direction_(kForward),
         valid_(false),
         rnd_(seed),
-        bytes_counter_(RandomPeriod()) {
+        bytes_until_read_sampling_(RandomCompactionPeriod()) {
   }
   virtual ~DBIter() {
     delete iter_;
@@ -109,8 +105,8 @@ class DBIter: public Iterator {
     }
   }
 
-  // Pick next gap with average value of config::kReadBytesPeriod.
-  ssize_t RandomPeriod() {
+  // Picks the number of bytes that can be read until a compaction is scheduled.
+  size_t RandomCompactionPeriod() {
     return rnd_.Uniform(2*config::kReadBytesPeriod);
   }
 
@@ -126,7 +122,7 @@ class DBIter: public Iterator {
   bool valid_;
 
   Random rnd_;
-  ssize_t bytes_counter_;
+  size_t bytes_until_read_sampling_;
 
   // No copying allowed
   DBIter(const DBIter&);
@@ -135,12 +131,15 @@ class DBIter: public Iterator {
 
 inline bool DBIter::ParseKey(ParsedInternalKey* ikey) {
   Slice k = iter_->key();
-  ssize_t n = k.size() + iter_->value().size();
-  bytes_counter_ -= n;
-  while (bytes_counter_ < 0) {
-    bytes_counter_ += RandomPeriod();
+
+  size_t bytes_read = k.size() + iter_->value().size();
+  while (bytes_until_read_sampling_ < bytes_read) {
+    bytes_until_read_sampling_ += RandomCompactionPeriod();
     db_->RecordReadSample(k);
   }
+  assert(bytes_until_read_sampling_ >= bytes_read);
+  bytes_until_read_sampling_ -= bytes_read;
+
   if (!ParseInternalKey(k, ikey)) {
     status_ = Status::Corruption("corrupted internal key in DBIter");
     return false;

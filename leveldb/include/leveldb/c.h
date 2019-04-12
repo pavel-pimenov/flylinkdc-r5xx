@@ -155,9 +155,11 @@ LEVELDB_EXPORT void leveldb_writebatch_put(leveldb_writebatch_t*,
 LEVELDB_EXPORT void leveldb_writebatch_delete(leveldb_writebatch_t*,
                                               const char* key, size_t klen);
 LEVELDB_EXPORT void leveldb_writebatch_iterate(
-    leveldb_writebatch_t*, void* state,
+    const leveldb_writebatch_t*, void* state,
     void (*put)(void*, const char* k, size_t klen, const char* v, size_t vlen),
     void (*deleted)(void*, const char* k, size_t klen));
+LEVELDB_EXPORT void leveldb_writebatch_append(
+    leveldb_writebatch_t* destination, const leveldb_writebatch_t* source);
 
 /* Options */
 
@@ -244,6 +246,9 @@ LEVELDB_EXPORT void leveldb_cache_destroy(leveldb_cache_t* cache);
 
 LEVELDB_EXPORT leveldb_env_t* leveldb_create_default_env();
 LEVELDB_EXPORT void leveldb_env_destroy(leveldb_env_t*);
+
+/* If not NULL, the returned buffer must be released using leveldb_free(). */
+LEVELDB_EXPORT char* leveldb_env_get_test_directory(leveldb_env_t*);
 
 /* Utility */
 

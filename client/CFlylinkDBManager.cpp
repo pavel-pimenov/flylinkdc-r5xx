@@ -451,7 +451,8 @@ CFlylinkDBManager::CFlylinkDBManager()
 				
 #ifdef FLYLINKDC_USE_LEVELDB
 				// Тут обязательно полный путь. иначе при смене рабочего каталога levelDB не сомжет открыть базу.
-				string l_full_path_level_db = Util::getConfigPath() + "tth-history.leveldb";
+                const string l_full_path_level_db = Text::fromUtf8(Util::getConfigPath() + "tth-history.leveldb");
+            
 				bool l_is_destroy = false;
 				m_TTHLevelDB.open_level_db(l_full_path_level_db, l_is_destroy);
 //				g_TTHLevelDBSize = File::calcFilesSize(l_full_path_level_db, "\\*.*"); // TODO убрать сканирование второе

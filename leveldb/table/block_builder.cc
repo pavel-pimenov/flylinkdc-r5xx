@@ -26,6 +26,8 @@
 //     num_restarts: uint32
 // restarts[i] contains the offset within the block of the ith restart point.
 
+#include "stdinc.h"
+
 #include "table/block_builder.h"
 
 #include <algorithm>

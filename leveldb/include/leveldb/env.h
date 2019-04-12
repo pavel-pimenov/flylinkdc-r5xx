@@ -20,6 +20,27 @@
 #include "leveldb/export.h"
 #include "leveldb/status.h"
 
+#if defined(_WIN32)
+// The leveldb::Env class below contains a DeleteFile method.
+// At the same time, <windows.h>, a fairly popular header
+// file for Windows applications, defines a DeleteFile macro.
+//
+// Without any intervention on our part, the result of this
+// unfortunate coincidence is that the name of the
+// leveldb::Env::DeleteFile method seen by the compiler depends on
+// whether <windows.h> was included before or after the LevelDB
+// headers.
+//
+// To avoid headaches, we undefined DeleteFile (if defined) and
+// redefine it at the bottom of this file. This way <windows.h>
+// can be included before this file (or not at all) and the
+// exported method will always be leveldb::Env::DeleteFile.
+#if defined(DeleteFile)
+#undef DeleteFile
+#define LEVELDB_DELETEFILE_UNDEFINED
+#endif  // defined(DeleteFile)
+#endif  // defined(_WIN32)
+
 namespace leveldb {
 
 class FileLock;
@@ -32,6 +53,9 @@ class WritableFile;
 class LEVELDB_EXPORT Env {
  public:
   Env(): m_count_files(0), m_size_files(0) { }
+  Env(const Env&) = delete;
+  Env& operator=(const Env&) = delete;
+
   virtual ~Env();
 
   // Return a default environment suitable for the current operating
@@ -41,9 +65,9 @@ class LEVELDB_EXPORT Env {
   // The result of Default() belongs to leveldb and must never be deleted.
   static Env* Default();
 
-  // Create a brand new sequentially-readable file with the specified name.
+  // Create an object that sequentially reads the file with the specified name.
   // On success, stores a pointer to the new file in *result and returns OK.
-  // On failure stores NULL in *result and returns non-OK.  If the file does
+  // On failure stores nullptr in *result and returns non-OK.  If the file does
   // not exist, returns a non-OK status.  Implementations should return a
   // NotFound status when the file does not exist.
   //
@@ -51,9 +75,9 @@ class LEVELDB_EXPORT Env {
   virtual Status NewSequentialFile(const std::string& fname,
                                    SequentialFile** result) = 0;
 
-  // Create a brand new random access read-only file with the
+  // Create an object supporting random-access reads from the file with the
   // specified name.  On success, stores a pointer to the new file in
-  // *result and returns OK.  On failure stores NULL in *result and
+  // *result and returns OK.  On failure stores nullptr in *result and
   // returns non-OK.  If the file does not exist, returns a non-OK
   // status.  Implementations should return a NotFound status when the file does
   // not exist.
@@ -65,7 +89,7 @@ class LEVELDB_EXPORT Env {
   // Create an object that writes to a new file with the specified
   // name.  Deletes any existing file with the same name and creates a
   // new file.  On success, stores a pointer to the new file in
-  // *result and returns OK.  On failure stores NULL in *result and
+  // *result and returns OK.  On failure stores nullptr in *result and
   // returns non-OK.
   //
   // The returned file will only be accessed by one thread at a time.
@@ -75,7 +99,7 @@ class LEVELDB_EXPORT Env {
   // Create an object that either appends to an existing file, or
   // writes to a new file (if the file does not exist to begin with).
   // On success, stores a pointer to the new file in *result and
-  // returns OK.  On failure stores NULL in *result and returns
+  // returns OK.  On failure stores nullptr in *result and returns
   // non-OK.
   //
   // The returned file will only be accessed by one thread at a time.
@@ -113,7 +137,7 @@ class LEVELDB_EXPORT Env {
                             const std::string& target) = 0;
 
   // Lock the specified file.  Used to prevent concurrent access to
-  // the same db by multiple processes.  On failure, stores NULL in
+  // the same db by multiple processes.  On failure, stores nullptr in
   // *lock and returns non-OK.
   //
   // On success, stores a pointer to the object that represents the
@@ -165,16 +189,16 @@ class LEVELDB_EXPORT Env {
  public:
 	int64_t m_count_files;
 	int64_t m_size_files;
- private:
-  // No copying allowed
-  Env(const Env&);
-  void operator=(const Env&);
 };
 
 // A file abstraction for reading sequentially through a file
 class LEVELDB_EXPORT SequentialFile {
  public:
-  SequentialFile() { }
+  SequentialFile() = default;
+
+  SequentialFile(const SequentialFile&) = delete;
+  SequentialFile& operator=(const SequentialFile&) = delete;
+
   virtual ~SequentialFile();
 
   // Read up to "n" bytes from the file.  "scratch[0..n-1]" may be
@@ -195,17 +219,16 @@ class LEVELDB_EXPORT SequentialFile {
   //
   // REQUIRES: External synchronization
   virtual Status Skip(uint64_t n) = 0;
-
- private:
-  // No copying allowed
-  SequentialFile(const SequentialFile&);
-  void operator=(const SequentialFile&);
 };
 
 // A file abstraction for randomly reading the contents of a file.
 class LEVELDB_EXPORT RandomAccessFile {
  public:
-  RandomAccessFile() { }
+  RandomAccessFile() = default;
+
+  RandomAccessFile(const RandomAccessFile&) = delete;
+  RandomAccessFile& operator=(const RandomAccessFile&) = delete;
+
   virtual ~RandomAccessFile();
 
   // Read up to "n" bytes from the file starting at "offset".
@@ -219,11 +242,6 @@ class LEVELDB_EXPORT RandomAccessFile {
   // Safe for concurrent use by multiple threads.
   virtual Status Read(uint64_t offset, size_t n, Slice* result,
                       char* scratch) const = 0;
-
- private:
-  // No copying allowed
-  RandomAccessFile(const RandomAccessFile&);
-  void operator=(const RandomAccessFile&);
 };
 
 // A file abstraction for sequential writing.  The implementation
@@ -231,49 +249,46 @@ class LEVELDB_EXPORT RandomAccessFile {
 // at a time to the file.
 class LEVELDB_EXPORT WritableFile {
  public:
-  WritableFile() { }
+  WritableFile() = default;
+
+  WritableFile(const WritableFile&) = delete;
+  WritableFile& operator=(const WritableFile&) = delete;
+
   virtual ~WritableFile();
 
   virtual Status Append(const Slice& data) = 0;
   virtual Status Close() = 0;
   virtual Status Flush() = 0;
   virtual Status Sync() = 0;
-
- private:
-  // No copying allowed
-  WritableFile(const WritableFile&);
-  void operator=(const WritableFile&);
 };
 
 // An interface for writing log messages.
 class LEVELDB_EXPORT Logger {
  public:
-  Logger() { }
+  Logger() = default;
+
+  Logger(const Logger&) = delete;
+  Logger& operator=(const Logger&) = delete;
+
   virtual ~Logger();
 
   // Write an entry to the log file with the specified format.
   virtual void Logv(const char* format, va_list ap) = 0;
-
- private:
-  // No copying allowed
-  Logger(const Logger&);
-  void operator=(const Logger&);
 };
-
 
 // Identifies a locked file.
 class LEVELDB_EXPORT FileLock {
  public:
-  FileLock() { }
+  FileLock() = default;
+
+  FileLock(const FileLock&) = delete;
+  FileLock& operator=(const FileLock&) = delete;
+
   virtual ~FileLock();
- private:
-  // No copying allowed
-  FileLock(const FileLock&);
-  void operator=(const FileLock&);
 };
 
-// Log the specified data to *info_log if info_log is non-NULL.
-extern void Log(Logger* info_log, const char* format, ...)
+// Log the specified data to *info_log if info_log is non-null.
+void Log(Logger* info_log, const char* format, ...)
 #   if defined(__GNUC__) || defined(__clang__)
     __attribute__((__format__ (__printf__, 2, 3)))
 #   endif
@@ -292,65 +307,85 @@ LEVELDB_EXPORT Status ReadFileToString(Env* env, const std::string& fname,
 // functionality of another Env.
 class LEVELDB_EXPORT EnvWrapper : public Env {
  public:
-  // Initialize an EnvWrapper that delegates all calls to *t
+  // Initialize an EnvWrapper that delegates all calls to *t.
   explicit EnvWrapper(Env* t) : target_(t) { }
   virtual ~EnvWrapper();
 
-  // Return the target to which this Env forwards all calls
+  // Return the target to which this Env forwards all calls.
   Env* target() const { return target_; }
 
-  // The following text is boilerplate that forwards all methods to target()
-  Status NewSequentialFile(const std::string& f, SequentialFile** r) {
+  // The following text is boilerplate that forwards all methods to target().
+  Status NewSequentialFile(const std::string& f, SequentialFile** r) override {
     return target_->NewSequentialFile(f, r);
   }
-  Status NewRandomAccessFile(const std::string& f, RandomAccessFile** r) {
+  Status NewRandomAccessFile(const std::string& f,
+                             RandomAccessFile** r) override {
     return target_->NewRandomAccessFile(f, r);
   }
-  Status NewWritableFile(const std::string& f, WritableFile** r) {
+  Status NewWritableFile(const std::string& f, WritableFile** r) override {
     return target_->NewWritableFile(f, r);
   }
-  Status NewAppendableFile(const std::string& f, WritableFile** r) {
+  Status NewAppendableFile(const std::string& f, WritableFile** r) override {
     return target_->NewAppendableFile(f, r);
   }
-  bool FileExists(const std::string& f) { return target_->FileExists(f); }
-  Status GetChildren(const std::string& dir, std::vector<std::string>* r) {
+  bool FileExists(const std::string& f) override {
+    return target_->FileExists(f);
+  }
+  Status GetChildren(const std::string& dir,
+                     std::vector<std::string>* r) override {
     return target_->GetChildren(dir, r);
   }
-  Status DeleteFile(const std::string& f) { return target_->DeleteFile(f); }
-  Status CreateDir(const std::string& d) { return target_->CreateDir(d); }
-  Status DeleteDir(const std::string& d) { return target_->DeleteDir(d); }
-  Status GetFileSize(const std::string& f, uint64_t* s) {
+  Status DeleteFile(const std::string& f) override {
+    return target_->DeleteFile(f);
+  }
+  Status CreateDir(const std::string& d) override {
+    return target_->CreateDir(d);
+  }
+  Status DeleteDir(const std::string& d) override {
+    return target_->DeleteDir(d);
+  }
+  Status GetFileSize(const std::string& f, uint64_t* s) override {
     return target_->GetFileSize(f, s);
   }
-  Status RenameFile(const std::string& s, const std::string& t) {
+  Status RenameFile(const std::string& s, const std::string& t) override {
     return target_->RenameFile(s, t);
   }
-  Status LockFile(const std::string& f, FileLock** l) {
+  Status LockFile(const std::string& f, FileLock** l) override {
     return target_->LockFile(f, l);
   }
-  Status UnlockFile(FileLock* l) { return target_->UnlockFile(l); }
-  void Schedule(void (*f)(void*), void* a) {
+  Status UnlockFile(FileLock* l) override { return target_->UnlockFile(l); }
+  void Schedule(void (*f)(void*), void* a) override {
     return target_->Schedule(f, a);
   }
-  void StartThread(void (*f)(void*), void* a) {
+  void StartThread(void (*f)(void*), void* a) override {
     return target_->StartThread(f, a);
   }
-  virtual Status GetTestDirectory(std::string* path) {
+  Status GetTestDirectory(std::string* path) override {
     return target_->GetTestDirectory(path);
   }
-  virtual Status NewLogger(const std::string& fname, Logger** result) {
+  Status NewLogger(const std::string& fname, Logger** result) override {
     return target_->NewLogger(fname, result);
   }
-  uint64_t NowMicros() {
+  uint64_t NowMicros() override {
     return target_->NowMicros();
   }
-  void SleepForMicroseconds(int micros) {
+  void SleepForMicroseconds(int micros) override {
     target_->SleepForMicroseconds(micros);
   }
+
  private:
   Env* target_;
 };
 
 }  // namespace leveldb
+
+// Redefine DeleteFile if necessary.
+#if defined(_WIN32) && defined(LEVELDB_DELETEFILE_UNDEFINED)
+#if defined(UNICODE)
+#define DeleteFile DeleteFileW
+#else
+#define DeleteFile DeleteFileA
+#endif  // defined(UNICODE)
+#endif  // defined(_WIN32) && defined(LEVELDB_DELETEFILE_UNDEFINED)
 
 #endif  // STORAGE_LEVELDB_INCLUDE_ENV_H_

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
+#include "stdinc.h"
+
 #include "db/memtable.h"
 #include "db/dbformat.h"
 #include "leveldb/comparator.h"
@@ -101,7 +103,7 @@ void MemTable::Add(SequenceNumber s, ValueType type,
   p += 8;
   p = EncodeVarint32(p, val_size);
   memcpy(p, value.data(), val_size);
-  assert((p + val_size) - buf == encoded_len);
+  assert(p + val_size == buf + encoded_len);
   table_.Insert(buf);
 }
 

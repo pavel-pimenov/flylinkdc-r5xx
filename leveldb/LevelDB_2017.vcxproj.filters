@@ -60,9 +60,6 @@
     <ClCompile Include="helpers\memenv\memenv.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="port\port_win.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="table\block.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -111,9 +108,6 @@
     <ClCompile Include="util\env.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="util\env_win.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="util\filter_policy.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -123,13 +117,16 @@
     <ClCompile Include="util\histogram.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="util\leveldb_logging.cc">
+    <ClCompile Include="util\logging.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="util\options.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="util\status.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util\env_windows.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -221,9 +218,6 @@
     <ClInclude Include="include\leveldb\write_batch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="old\targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="port\atomic_pointer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -233,13 +227,7 @@
     <ClInclude Include="port\port_example.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="port\port_win.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="port\thread_annotations.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="port\win\stdint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="table\block.h">
@@ -290,13 +278,25 @@
     <ClInclude Include="util\random.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="util\testharness.h">
+    <ClInclude Include="include\leveldb\dumpfile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="util\testutil.h">
+    <ClInclude Include="port\port_config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="port\win\unistd.h">
+    <ClInclude Include="port\port_stdcxx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="port\win\stdint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\no_destructor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\windows_logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\leveldb\export.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

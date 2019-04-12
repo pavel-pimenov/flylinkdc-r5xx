@@ -1245,6 +1245,9 @@
     <ProjectReference Include="GdiOle\GdiOle_2017.vcxproj">
       <Project>{22c938c3-474a-4bf5-9b28-482683f98ea1}</Project>
     </ProjectReference>
+    <ProjectReference Include="leveldb\LevelDB_2017.vcxproj">
+      <Project>{a7ff59d3-eafd-43a1-8aa7-5087229c75d1}</Project>
+    </ProjectReference>
     <ProjectReference Include="libtorrent\libtorrent_2017.vcxproj">
       <Project>{a2c26111-84f5-4ca3-85b8-bd80f1921238}</Project>
     </ProjectReference>

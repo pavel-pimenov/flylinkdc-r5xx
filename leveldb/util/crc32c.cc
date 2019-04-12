@@ -4,6 +4,9 @@
 //
 // A portable implementation of crc32c.
 
+
+#include "stdinc.h"
+
 #include "util/crc32c.h"
 
 #include <stddef.h>

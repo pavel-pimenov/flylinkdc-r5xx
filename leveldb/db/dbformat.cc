@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
+#include "stdinc.h"
+
 #include <stdio.h>
 #include "db/dbformat.h"
 #include "port/port.h"
@@ -22,7 +24,7 @@ void AppendInternalKey(std::string* result, const ParsedInternalKey& key) {
 
 std::string ParsedInternalKey::DebugString() const {
   char buf[50];
-  _snprintf(buf, sizeof(buf), "' @ %llu : %d",
+  snprintf(buf, sizeof(buf), "' @ %llu : %d",
            (unsigned long long) sequence,
            int(type));
   std::string result = "'";

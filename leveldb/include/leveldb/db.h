@@ -13,11 +13,11 @@
 
 namespace leveldb {
 
-// Update Makefile if you change these
+// Update CMakeLists.txt if you change these
 static const int kMajorVersion = 1;
-static const int kMinorVersion = 20;
+static const int kMinorVersion = 21;
 
-#define LEVELDB_VER "1.20"                 // [+] FlylinkDC++
+#define LEVELDB_VER "1.21"                 // [+] FlylinkDC++
 
 struct Options;
 struct ReadOptions;
@@ -49,14 +49,18 @@ class LEVELDB_EXPORT DB {
   // Open the database with the specified "name".
   // Stores a pointer to a heap-allocated database in *dbptr and returns
   // OK on success.
-  // Stores NULL in *dbptr and returns a non-OK status on error.
+  // Stores nullptr in *dbptr and returns a non-OK status on error.
   // Caller should delete *dbptr when it is no longer needed.
   static Status Open(const Options& options,
                      const std::string& name,
                      DB** dbptr,
 					 int64_t& p_count_files,
 					 int64_t& p_size_files);
-  DB() { }
+  DB() = default;
+
+  DB(const DB&) = delete;
+  DB& operator=(const DB&) = delete;
+
   virtual ~DB();
 
   // Set the database entry for "key" to "value".  Returns OK on success,
@@ -140,16 +144,11 @@ class LEVELDB_EXPORT DB {
   // needed to access the data.  This operation should typically only
   // be invoked by users who understand the underlying implementation.
   //
-  // begin==NULL is treated as a key before all keys in the database.
-  // end==NULL is treated as a key after all keys in the database.
+  // begin==nullptr is treated as a key before all keys in the database.
+  // end==nullptr is treated as a key after all keys in the database.
   // Therefore the following call will compact the entire database:
-  //    db->CompactRange(NULL, NULL);
+  //    db->CompactRange(nullptr, nullptr);
   virtual void CompactRange(const Slice* begin, const Slice* end) = 0;
-
- private:
-  // No copying allowed
-  DB(const DB&);
-  void operator=(const DB&);
 };
 
 // Destroy the contents of the specified database.
