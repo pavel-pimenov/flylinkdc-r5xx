@@ -36,7 +36,6 @@
 #include "talk/base/basictypes.h"
 #include "talk/base/byteorder.h"
 #include "talk/base/common.h"
-#include "talk/base/logging.h"
 
 namespace talk_base {
 

@@ -364,7 +364,6 @@
     <ClCompile Include="client\webrtc\system_wrappers\source\sleep.cc" />
     <ClCompile Include="client\webrtc\system_wrappers\source\trace_impl.cc" />
     <ClCompile Include="client\webrtc\system_wrappers\source\trace_win.cc" />
-    <ClCompile Include="client\webrtc\talk\base\logging.cc" />
     <ClCompile Include="client\webrtc\talk\base\stringutils.cc" />
     <ClCompile Include="client\webrtc\talk\base\win32.cc" />
     <ClCompile Include="client\webrtc\talk\base\winfirewall.cc" />
