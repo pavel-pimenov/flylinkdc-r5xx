@@ -193,17 +193,17 @@ void preparingCoreToShutdown() // [+] IRainamn fix.
 	{
 		g_is_first = true;
 		CFlyLog l_log("[Core shutdown]");
+        ClientManager::shutdown();
+        SearchManager::getInstance()->disconnect();
 		TimerManager::getInstance()->shutdown();
-		ClientManager::shutdown();
 		UploadManager::shutdown();
 		WebServerManager::getInstance()->shutdown();
 		HashManager::getInstance()->shutdown();
-		ClientManager::getInstance()->prepareClose();
+		ClientManager::prepareClose();
 		FavoriteManager::getInstance()->prepareClose();
 		ShareManager::getInstance()->shutdown();
 		QueueManager::getInstance()->shutdown();
-		SearchManager::getInstance()->disconnect();
-		ClientManager::getInstance()->clear();
+		ClientManager::clear();
 		CFlylinkDBManager::getInstance()->flush();
 	}
 }

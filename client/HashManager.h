@@ -380,13 +380,13 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				typedef std::map<string, CFlyHashTaskItem> WorkMap;
 				
 				WorkMap w;
-				mutable FastCriticalSection cs; // [!] IRainman opt: use only spinlock here!
+				mutable FastCriticalSection cs;
 				Semaphore m_hash_semaphore;
 				
-				volatile bool m_stop; // [!] IRainman fix: this variable is volatile.
-				volatile bool m_running; // [!] IRainman fix: this variable is volatile.
-				int64_t m_paused; //[!] PPA -> int
-				volatile bool m_rebuild; // [!] IRainman fix: this variable is volatile.
+				volatile bool m_stop;
+				volatile bool m_running;
+				int64_t m_paused;
+				volatile bool m_rebuild;
 				int64_t m_currentSize;
 				__int64 m_path_id;
 				int m_ForceMaxHashSpeed;

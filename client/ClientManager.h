@@ -37,7 +37,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 	public:
 		Client* getClient(const string& aHubURL, bool p_is_auto_connect);
 		void putClient(Client* p_client);
-		void prepareClose();
+		static void prepareClose();
 		static StringList getHubs(const CID& cid, const string& hintUrl);
 		static StringList getHubNames(const CID& cid, const string& hintUrl);
 		static StringList getNicks(const CID& cid, const string& hintUrl);

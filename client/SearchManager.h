@@ -78,10 +78,12 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 				void shutdown()
 				{
 					m_is_stop = true;
+                    m_resultList.clear();
 					m_search_semaphore.signal();
 				}
 				void addResult(const string& buf, const boost::asio::ip::address_v4& p_ip4)
 				{
+                    if(m_is_stop == false)
 					{
 						CFlyFastLock(m_cs);
 						m_resultList.push_back(make_pair(buf, p_ip4));
@@ -90,16 +92,15 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 				}
 				
 			private:
-				FastCriticalSection m_cs; // [!] IRainman opt: use spin lock here.
+				FastCriticalSection m_cs;
 				Semaphore m_search_semaphore;
 				deque<pair<string, boost::asio::ip::address_v4>> m_resultList;
-				volatile bool m_is_stop; // [!] IRainman fix: this variable is volatile.
+				volatile bool m_is_stop;
 		} m_queue_thread;
 		
-		// [-] CriticalSection cs; [-] FlylinkDC++
 		unique_ptr<Socket> socket;
 		static uint16_t g_search_port;
-		volatile bool m_stop; // [!] IRainman fix: this variable is volatile.
+		volatile bool m_stop;
 		friend class Singleton<SearchManager>;
 		
 		SearchManager();

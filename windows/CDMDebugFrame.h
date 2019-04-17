@@ -122,8 +122,8 @@ class CDMDebugFrame : private DebugManagerListener, public Thread,
 	
 		void addLine(const DebugTask& task);
 		
-		volatile bool m_stop; // [!] IRainman fix: this variable is volatile.
-		FastCriticalSection m_cs; // [!] IRainman opt: use spin lock here.
+		volatile bool m_stop;
+		FastCriticalSection m_cs;
 		Semaphore m_semaphore;
 		deque<DebugTask> m_cmdList;
 		
