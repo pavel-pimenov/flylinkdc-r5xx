@@ -256,7 +256,7 @@ static const char* g_settingTags[] =
 	"SocketInBuffer2", "SocketOutBuffer2",
 	"ColorRunning", "ColorDownloaded", "ColorVerified", "ColorAvoiding", "AutoRefreshTime", "OpenWaitingUsers",
 	"BoldWaitingUsers", "AutoSearchLimit", "AutoKickNoFavs", "PromptPassword", "SpyFrameIgnoreTthSearches",
-	"TLSPort", "UseTLSFlylinkDC", "MaxCommandLength", "AllowUntrustedHubs", "AllowUntrustedClientsFlylinkDC",
+	"TLSPort", "UseTLSFlylinkDC", "MaxCommandLength", "AllowUntrustedHubsFlylinkDC", "AllowUntrustedClientsFlylinkDC",
 	"FastHash", "DownConnPerSec",
 	"HighestPrioSize", "HighPrioSize", "NormalPrioSize", "LowPrioSize", "LowestPrio",
 	"ShowDescription", "ShowDescriptionSlots", "ShowDescriptionLimit",
