@@ -468,6 +468,18 @@ static int sk_comp_cmp(const SSL_COMP *const *a, const SSL_COMP *const *b)
     return ((*a)->id - (*b)->id);
 }
 
+
+
+void free_compressions(void) // [+]FlylinkDC++ https://rt.openssl.org/Ticket/Display.html?id=2561&user=guest&pass=guest
+{
+    if (ssl_comp_methods != NULL)
+    {
+        sk_SSL_COMP_free(ssl_comp_methods);
+        ssl_comp_methods = NULL;
+    }
+}
+
+
 static void load_builtin_compressions(void)
 {
     int got_write_lock = 0;

@@ -2277,5 +2277,8 @@
     <ClCompile Include="crypto\evp\evp_pbe.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
+    <ClCompile Include="crypto\getenv.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
