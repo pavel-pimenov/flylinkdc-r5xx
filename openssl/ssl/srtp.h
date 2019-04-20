@@ -1,4 +1,4 @@
-/* crypto/rand/rand_lcl.h */
+/* ssl/srtp.h */
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
  *
@@ -56,7 +56,7 @@
  * [including the GNU Public Licence.]
  */
 /* ====================================================================
- * Copyright (c) 1998-2018 The OpenSSL Project.  All rights reserved.
+ * Copyright (c) 1998-2006 The OpenSSL Project.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -108,51 +108,40 @@
  * Hudson (tjh@cryptsoft.com).
  *
  */
+/*
+ * DTLS code by Eric Rescorla <ekr@rtfm.com>
+ *
+ * Copyright (C) 2006, Network Resonance, Inc. Copyright (C) 2011, RTFM, Inc.
+ */
 
-#ifndef HEADER_RAND_LCL_H
-# define HEADER_RAND_LCL_H
+#ifndef HEADER_D1_SRTP_H
+# define HEADER_D1_SRTP_H
 
-# define ENTROPY_NEEDED 32      /* require 256 bits = 32 bytes of randomness */
+# include <openssl/ssl.h>
 
-# if !defined(USE_MD5_RAND) && !defined(USE_SHA1_RAND) && !defined(USE_MDC2_RAND) && !defined(USE_MD2_RAND)
-#  if !defined(OPENSSL_NO_SHA) && !defined(OPENSSL_NO_SHA1)
-#   define USE_SHA1_RAND
-#  elif !defined(OPENSSL_NO_MD5)
-#   define USE_MD5_RAND
-#  elif !defined(OPENSSL_NO_MDC2) && !defined(OPENSSL_NO_DES)
-#   define USE_MDC2_RAND
-#  elif !defined(OPENSSL_NO_MD2)
-#   define USE_MD2_RAND
-#  else
-#   error No message digest algorithm available
-#  endif
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
+# define SRTP_AES128_CM_SHA1_80 0x0001
+# define SRTP_AES128_CM_SHA1_32 0x0002
+# define SRTP_AES128_F8_SHA1_80 0x0003
+# define SRTP_AES128_F8_SHA1_32 0x0004
+# define SRTP_NULL_SHA1_80      0x0005
+# define SRTP_NULL_SHA1_32      0x0006
+
+# ifndef OPENSSL_NO_SRTP
+
+int SSL_CTX_set_tlsext_use_srtp(SSL_CTX *ctx, const char *profiles);
+int SSL_set_tlsext_use_srtp(SSL *ctx, const char *profiles);
+
+STACK_OF(SRTP_PROTECTION_PROFILE) *SSL_get_srtp_profiles(SSL *ssl);
+SRTP_PROTECTION_PROFILE *SSL_get_selected_srtp_profile(SSL *s);
+
 # endif
 
-# include <openssl/evp.h>
-# define MD_Update(a,b,c)        EVP_DigestUpdate(a,b,c)
-# define MD_Final(a,b)           EVP_DigestFinal_ex(a,b,NULL)
-# if defined(USE_MD5_RAND)
-#  include <openssl/md5.h>
-#  define MD_DIGEST_LENGTH        MD5_DIGEST_LENGTH
-#  define MD_Init(a)              EVP_DigestInit_ex(a,EVP_md5(), NULL)
-#  define MD(a,b,c)               EVP_Digest(a,b,c,NULL,EVP_md5(), NULL)
-# elif defined(USE_SHA1_RAND)
-#  include <openssl/sha.h>
-#  define MD_DIGEST_LENGTH        SHA_DIGEST_LENGTH
-#  define MD_Init(a)              EVP_DigestInit_ex(a,EVP_sha1(), NULL)
-#  define MD(a,b,c)               EVP_Digest(a,b,c,NULL,EVP_sha1(), NULL)
-# elif defined(USE_MDC2_RAND)
-#  include <openssl/mdc2.h>
-#  define MD_DIGEST_LENGTH        MDC2_DIGEST_LENGTH
-#  define MD_Init(a)              EVP_DigestInit_ex(a,EVP_mdc2(), NULL)
-#  define MD(a,b,c)               EVP_Digest(a,b,c,NULL,EVP_mdc2(), NULL)
-# elif defined(USE_MD2_RAND)
-#  include <openssl/md2.h>
-#  define MD_DIGEST_LENGTH        MD2_DIGEST_LENGTH
-#  define MD_Init(a)              EVP_DigestInit_ex(a,EVP_md2(), NULL)
-#  define MD(a,b,c)               EVP_Digest(a,b,c,NULL,EVP_md2(), NULL)
-# endif
+#ifdef  __cplusplus
+}
+#endif
 
-int ssleay_rand_bytes(unsigned char *buf, int num, int pseudo, int lock);
-int ssleay_rand_bytes_from_system(unsigned char *buf, int num);
 #endif
