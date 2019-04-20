@@ -1,6 +1,7 @@
 **LevelDB is a fast key-value storage library written at Google that provides an ordered mapping from string keys to string values.**
 
 [![Build Status](https://travis-ci.org/google/leveldb.svg?branch=master)](https://travis-ci.org/google/leveldb)
+[![Build status](https://ci.appveyor.com/api/projects/status/g2j5j4rfkda6eyw5/branch/master?svg=true)](https://ci.appveyor.com/project/pwnall/leveldb)
 
 Authors: Sanjay Ghemawat (sanjay@google.com) and Jeff Dean (jeff@google.com)
 
@@ -43,20 +44,20 @@ cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build .
 
 First generate the Visual Studio 2017 project/solution files:
 
-```bash
-mkdir -p build
+```cmd
+mkdir build
 cd build
 cmake -G "Visual Studio 15" ..
 ```
 The default default will build for x86. For 64-bit run:
 
-```bash
+```cmd
 cmake -G "Visual Studio 15 Win64" ..
 ```
 
 To compile the Windows solution from the command-line:
 
-```bash
+```cmd
 devenv /build Debug leveldb.sln
 ```
 

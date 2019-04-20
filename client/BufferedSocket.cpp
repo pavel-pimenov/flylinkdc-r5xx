@@ -1207,6 +1207,7 @@ bool BufferedSocket::checkEvents()
 {
 	while (m_state == RUNNING ? m_socket_semaphore.wait(0) : m_socket_semaphore.wait())
 	{
+		//dcassert(!ClientManager::isShutdown());
 		pair<Tasks, std::unique_ptr<TaskData>> p;
 		{
 			CFlyFastLock(cs);
