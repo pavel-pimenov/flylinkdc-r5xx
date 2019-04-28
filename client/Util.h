@@ -1512,7 +1512,7 @@ class BackgroundTaskExecuter : public Thread, protected CFlyStopThread
 			{
 				dcassert(!isShutdown());
 			}
-			if (m_stop)
+			if (m_stop == false)
 			{
 				{
 					CFlyFastLock(m_csTasks);

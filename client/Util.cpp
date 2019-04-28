@@ -3041,9 +3041,9 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 	const DWORD frameBufferSize = 4096;
 	dcassert(frameBufferSize);
 	dcassert(!p_url.empty());
+	p_data_out.clear();
 	if (p_url.empty())
 		return 0;
-	p_data_out.clear();
 	
 	CInternetHandle hInternet(InternetOpen(m_user_agent.empty() ? g_full_user_agent.c_str() : m_user_agent.c_str(), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
 	if (!hInternet)

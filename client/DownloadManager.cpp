@@ -55,6 +55,8 @@ DownloadManager::DownloadManager()
 
 static int g_outstanding_resume_data;
 
+#ifdef FLYLINKDC_USE_TORRENT
+
 void DownloadManager::shutdown_torrent()
 {
 	if (m_torrent_session)
@@ -168,6 +170,8 @@ void DownloadManager::shutdown_torrent()
 		m_torrent_session.reset();
 	}
 }
+
+#endif // FLYLINKDC_USE_TORRENT
 
 DownloadManager::~DownloadManager()
 {
