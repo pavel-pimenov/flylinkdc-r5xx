@@ -144,6 +144,9 @@ void File__Analyze::Get_MasteringDisplayColorVolume(Ztring &MasteringDisplay_Col
             IsNotValid=true;
     if (!IsNotValid)
         MasteringDisplay_ColorPrimaries=MasteringDisplayColorVolume_Values_Compute(Meta.Primaries);
+    printf("Meta.Luminance[0] = %d Meta.Luminance[1] = %d\r\n", Meta.Luminance[0], Meta.Luminance[1]);
+    const Ztring l1213 = Ztring::ToZtring(((float64)Meta.Luminance[1]) / 10000, 0);
+    printf("l1213 = %s\r\n", l1213.c_str());
 
     if (Meta.Luminance[0]!=(int32u)-1 && Meta.Luminance[1]!=(int32u)-1)
         MasteringDisplay_Luminance=        __T("min: ")+Ztring::ToZtring(((float64)Meta.Luminance[0])/10000, 4)
@@ -1114,6 +1117,33 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, const char* Par
         }
     }
     Fill(StreamKind, StreamPos, (size_t)General_Count, Count_Get(StreamKind, StreamPos), 10, true);
+}
+
+//---------------------------------------------------------------------------
+void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, const char* Parameter, ZtringList &Value, ZtringList& Id, bool Replace)
+{
+    //Test if not empty
+    size_t Value_Size=Value.size();
+    size_t i=0;
+    for (; i<Value_Size; i++)
+        if (!Value[i].empty())
+            break;
+    if (i==Value_Size)
+        return;
+
+    if (Value.size()!=Id.size())
+    {
+        Value.Separator_Set(0, __T(" / "));
+        Fill(StreamKind, StreamPos, Parameter, Value.Read());
+        return;
+    }
+
+    ZtringList List;
+    List.Separator_Set(0, __T(" / "));
+    for (size_t i=0; i<Value.size(); i++)
+        if (!Value[i].empty()) // Only if there is a content
+            List.push_back(Value[i]+(Id[i].empty()?Ztring():(__T(" (")+Id[i]+__T(')'))));
+    Fill(StreamKind, StreamPos, Parameter, List.Read());
 }
 
 //---------------------------------------------------------------------------
