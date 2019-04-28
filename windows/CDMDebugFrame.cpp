@@ -92,7 +92,7 @@ LRESULT CDMDebugFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	DebugManager::g_isCMDDebug = false;
 	if (!m_closed)
 	{
-		m_stop = true;
+		stopThread();
 		m_closed = true;
 		{
 			CFlyRegistryMap l_values;
@@ -199,24 +199,24 @@ void CDMDebugFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 
 void CDMDebugFrame::addLine(const DebugTask& task)
 {
-	if (!isClosedOrShutdown() && !m_stop)
+	if (!isShutdown())
 	{
 		if (ctrlCMDPad.GetWindowTextLength() > MAX_TEXT_LEN)
 		{
 			CLockRedraw<> l_lock_draw(ctrlCMDPad);
-			if (m_stop)
+			if (isShutdown())
 				return; // Костыль-1
 			ctrlCMDPad.SetSel(0, ctrlCMDPad.LineIndex(ctrlCMDPad.LineFromChar(2000)));
-			if (m_stop)
+			if (isShutdown())
 				return; // Костыль-1
 			ctrlCMDPad.ReplaceSel(_T(""));
 		}
 		BOOL noscroll = TRUE;
-		if (m_stop)
+		if (isShutdown())
 			return; // Костыль-1
 		POINT p = ctrlCMDPad.PosFromChar(ctrlCMDPad.GetWindowTextLength() - 1);
 		CRect r;
-		if (m_stop)
+		if (isShutdown())
 			return; // Костыль-1
 		ctrlCMDPad.GetClientRect(r);
 		
@@ -226,20 +226,20 @@ void CDMDebugFrame::addLine(const DebugTask& task)
 		}
 		else
 		{
-			if (m_stop)
+			if (isShutdown())
 				return; // Костыль-1
 			ctrlCMDPad.SetRedraw(FALSE); // Strange!! This disables the scrolling...????
 		}
 		
-		if (m_stop)
+		if (isShutdown())
 			return; // Костыль-1
 		auto l_message = DebugTask::format(task);
 		LogManager::cmd_debug_message(l_message);
 		l_message += "\r\n";
-		if (m_stop)
+		if (isShutdown())
 			return; // Костыль-1
 		ctrlCMDPad.AppendText(Text::toT(l_message).c_str()); // [!] IRainman fix.
-		if (noscroll && !m_stop)
+		if (noscroll && !isShutdown())
 		{
 			ctrlCMDPad.SetRedraw(TRUE);
 		}
@@ -295,10 +295,10 @@ LRESULT CDMDebugFrame::onChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/
 int CDMDebugFrame::run()
 {
 	DebugTask l_task;
-	while (!ClientManager::isBeforeShutdown())
+	while (!isShutdown())
 	{
 		m_semaphore.wait();
-		if (ClientManager::isBeforeShutdown() || m_stop)
+		if (isShutdown())
 		{
 			break;
 		}

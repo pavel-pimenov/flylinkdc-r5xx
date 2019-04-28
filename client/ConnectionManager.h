@@ -253,7 +253,7 @@ class ConnectionManager :
 		static uint16_t g_ConnToMeCount;
 		// [-] SSA private:
 		
-		class Server : public Thread
+		class Server : public Thread, private CFlyStopThread
 		{
 			public:
 				Server(bool p_is_secure, uint16_t p_port, const string& p_ip = "0.0.0.0");
@@ -264,7 +264,7 @@ class ConnectionManager :
 				}
 				~Server()
 				{
-					m_die = true;
+					stopThread();
 					join();
 				}
 			private:
@@ -274,7 +274,6 @@ class ConnectionManager :
 				uint16_t m_server_port;
 				string m_server_ip; // TODO - в DC++ этого уже нет.
 				bool m_is_secure;
-				volatile bool m_die; // [!] IRainman fix: this variable is volatile.
 		};
 		
 		friend class Server;

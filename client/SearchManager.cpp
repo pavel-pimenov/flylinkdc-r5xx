@@ -49,8 +49,7 @@ const char* SearchManager::getTypeStr(Search::TypeModes type)
 	return g_types[type];
 }
 
-SearchManager::SearchManager() :
-	m_stop(false)
+SearchManager::SearchManager()
 {
 
 }
@@ -59,7 +58,7 @@ SearchManager::~SearchManager()
 {
 	if (socket.get())
 	{
-		m_stop = true;
+		stopThread();
 		socket->disconnect();
 #ifdef _WIN32
 		join();
@@ -117,11 +116,11 @@ void SearchManager::listen()
 	}
 }
 
-void SearchManager::disconnect()
+void SearchManager::disconnect(bool p_is_stop /*=true */)
 {
 	if (socket.get())
 	{
-		m_stop = true;
+		stopThread();
 		m_queue_thread.shutdown();
 		socket->disconnect();
 		g_search_port = 0;
@@ -130,7 +129,7 @@ void SearchManager::disconnect()
 		
 		socket.reset();
 		
-		m_stop = false;
+		stopThread(p_is_stop);
 	}
 }
 
@@ -141,11 +140,11 @@ int SearchManager::run()
 	int len;
 	sockaddr_in remoteAddr = { 0 };
 	m_queue_thread.start(0);
-	while (!m_stop)
+	while (!isShutdown())
 	{
 		try
 		{
-			while (!m_stop)
+			while (!isShutdown())
 			{
 				// @todo: remove this workaround for http://bugs.winehq.org/show_bug.cgi?id=22291
 				// if that's fixed by reverting to simpler while (read(...) > 0) {...} code.
@@ -153,7 +152,7 @@ int SearchManager::run()
 				{
 					continue; // [merge] https://github.com/eiskaltdcpp/eiskaltdcpp/commit/c8dcf444d17fffacb6797d14a57b102d653896d0
 				}
-				if (m_stop || (len = socket->read(&buf[0], BUFSIZE, remoteAddr)) <= 0)
+				if (isShutdown() || (len = socket->read(&buf[0], BUFSIZE, remoteAddr)) <= 0)
 					break;
 				const boost::asio::ip::address_v4 l_ip4(ntohl(remoteAddr.sin_addr.S_un.S_addr));
 #ifdef _DEBUG
@@ -170,7 +169,7 @@ int SearchManager::run()
 		}
 		
 		bool failed = false;
-		while (!m_stop)
+		while (!isShutdown())
 		{
 			try
 			{
@@ -198,9 +197,10 @@ int SearchManager::run()
 				}
 				
 				// Spin for 60 seconds
-				for (int i = 0; i < 60 && !m_stop; ++i)
+				for (int i = 0; i < 60 && !isShutdown(); ++i)
 				{
 					sleep(1000);
+					LogManager::message("SearchManager::run() - sleep(1000)");
 				}
 			}
 		}

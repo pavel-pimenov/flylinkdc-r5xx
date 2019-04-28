@@ -772,8 +772,7 @@ static const uint64_t g_FLOOD_ADD = 2000;
 
 ConnectionManager::Server::Server(bool p_is_secure
                                   , uint16_t p_port, const string& p_server_ip /* = "0.0.0.0" */) :
-	m_is_secure(p_is_secure),
-	m_die(false)
+	m_is_secure(p_is_secure)
 {
 	m_sock.create();
 	m_sock.setSocketOpt(SO_REUSEADDR, 1);
@@ -787,11 +786,11 @@ static const uint64_t POLL_TIMEOUT = 250;
 
 int ConnectionManager::Server::run() noexcept
 {
-	while (!m_die)
+	while (!isShutdown())
 	{
 		try
 		{
-			while (!m_die)
+			while (!isShutdown())
 			{
 				auto ret = m_sock.wait(POLL_TIMEOUT, Socket::WAIT_READ);
 				if (ret == Socket::WAIT_READ)
@@ -805,7 +804,7 @@ int ConnectionManager::Server::run() noexcept
 			LogManager::message(STRING(LISTENER_FAILED) + ' ' + e.getError());
 		}
 		bool failed = false;
-		while (!m_die)
+		while (!isShutdown())
 		{
 			try
 			{
@@ -832,9 +831,10 @@ int ConnectionManager::Server::run() noexcept
 				}
 				
 				// Spin for 60 seconds
-				for (int i = 0; i < 60 && !m_die; ++i)
+				for (int i = 0; i < 60 && !isShutdown(); ++i)
 				{
 					sleep(1000);
+					LogManager::message("ConnectionManager::Server::run - sleep(1000)");
 				}
 			}
 		}

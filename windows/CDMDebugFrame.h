@@ -23,12 +23,13 @@
 
 class CDMDebugFrame : private DebugManagerListener, public Thread,
 	public MDITabChildWindowImpl < CDMDebugFrame, RGB(0, 0, 0), IDR_CDM >,
-	public StaticFrame<CDMDebugFrame, ResourceManager::MENU_CDMDEBUG_MESSAGES>
+	public StaticFrame<CDMDebugFrame, ResourceManager::MENU_CDMDEBUG_MESSAGES>,
+	private CFlyStopThread
 {
 	public:
 		DECLARE_FRAME_WND_CLASS_EX(_T("CDMDebugFrame"), IDR_CDM, 0, COLOR_3DFACE);
 		
-		CDMDebugFrame() : m_stop(false), m_showCommands(true), m_showHubCommands(false), m_showDetection(false), m_bFilterIp(false),
+		CDMDebugFrame() : m_showCommands(true), m_showHubCommands(false), m_showDetection(false), m_bFilterIp(false),
 			detectionContainer(WC_BUTTON, this, DETECTION_MESSAGE_MAP),
 			HubCommandContainer(WC_BUTTON, this, HUB_COMMAND_MESSAGE_MAP),
 			commandContainer(WC_BUTTON, this, COMMAND_MESSAGE_MAP),
@@ -122,7 +123,6 @@ class CDMDebugFrame : private DebugManagerListener, public Thread,
 	
 		void addLine(const DebugTask& task);
 		
-		volatile bool m_stop;
 		FastCriticalSection m_cs;
 		Semaphore m_semaphore;
 		deque<DebugTask> m_cmdList;

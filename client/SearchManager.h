@@ -28,7 +28,7 @@
 #include "AdcCommand.h"
 #include "ClientManager.h"
 
-class SearchManager : public Speaker<SearchManagerListener>, public Singleton<SearchManager>, public Thread
+class SearchManager : public Speaker<SearchManagerListener>, public Singleton<SearchManager>, public Thread, private CFlyStopThread
 {
 	public:
 		static const char* getTypeStr(Search::TypeModes type);
@@ -54,7 +54,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		void listen();
 		static void runTestUDPPort();
 		
-		void disconnect();
+		void disconnect(bool p_is_stop = false);
 		void onSearchResult(const string& aLine)
 		{
 			onData(aLine);
@@ -100,7 +100,6 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		
 		unique_ptr<Socket> socket;
 		static uint16_t g_search_port;
-		volatile bool m_stop;
 		friend class Singleton<SearchManager>;
 		
 		SearchManager();

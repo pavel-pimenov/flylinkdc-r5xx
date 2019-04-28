@@ -247,10 +247,10 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		
 		
 	private:
-		class Hasher : public Thread
+		class Hasher : public Thread, private CFlyStopThread
 		{
 			public:
-				Hasher() : m_stop(false), m_running(false), m_paused(0), m_rebuild(false), m_currentSize(0), m_path_id(0),
+				Hasher() : m_running(false), m_paused(0), m_rebuild(false), m_currentSize(0), m_path_id(0),
 					m_CurrentBytesLeft(0), //[+]IRainman
 					m_ForceMaxHashSpeed(0), dwMaxFiles(0), iMaxBytes(0), uiStartTime(0), m_last_error(0), m_last_error_overlapped(0) { }
 					
@@ -282,7 +282,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				}
 				void shutdown()
 				{
-					m_stop = true;
+					stopThread();
 					signal();
 				}
 				void scheduleRebuild()
@@ -383,7 +383,6 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				mutable FastCriticalSection cs;
 				Semaphore m_hash_semaphore;
 				
-				volatile bool m_stop;
 				volatile bool m_running;
 				int64_t m_paused;
 				volatile bool m_rebuild;

@@ -508,7 +508,7 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, unsigned p
 	// [+] brain-ripper
 	// exit loop if "running" equals false.
 	// "running" sets to false in stopHashing function
-	while (!m_stop && m_running && l_size >= 0)
+	while (!isShutdown() && m_running && l_size >= 0)
 	{
 		if (l_size > 0)
 		{
@@ -599,7 +599,7 @@ int HashManager::Hasher::run()
 	for (;;)
 	{
 		m_hash_semaphore.wait();
-		if (m_stop || ClientManager::isBeforeShutdown())
+		if (isShutdown())
 			break;
 		if (m_rebuild)
 		{
@@ -756,7 +756,7 @@ int HashManager::Hasher::run()
 									instantPause();
 								}
 							}
-							while (!m_stop && m_running && n > 0);
+							while (!isShutdown() && m_running && n > 0);
 						}
 						else
 							tth = nullptr;
@@ -818,7 +818,7 @@ int HashManager::Hasher::run()
 			}
 		}
 		
-		if (l_buf != NULL && (l_is_last || m_stop))
+		if (l_buf != NULL && (l_is_last || isShutdown()))
 		{
 			if (l_is_virtualBuf)
 				VirtualFree(l_buf, 0, MEM_RELEASE);

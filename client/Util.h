@@ -1488,10 +1488,10 @@ template<int C> class ColumnBase
 
 // [+] IRainman core: execute task with other thread.
 template<typename TASK_TYPE, const unsigned int PAUSE_IN_MILLS_BEFORE_THREAD_DEADS = 1000>
-class BackgroundTaskExecuter : public Thread
+class BackgroundTaskExecuter : public Thread, protected CFlyStopThread
 {
 	public:
-		explicit BackgroundTaskExecuter() : m_stop(false), m_active(false)
+		explicit BackgroundTaskExecuter() :  m_active(false)
 #ifdef _DEBUG
 			, m_runningThreadId(DWORD(-1))
 #endif
@@ -1502,7 +1502,7 @@ class BackgroundTaskExecuter : public Thread
 			dcassert(m_runningThreadId == DWORD(-1));
 			dcassert(!m_active);
 			//dcassert(m_stop);
-			m_stop = true;
+			stopThread();
 			join();
 		}
 		
@@ -1510,10 +1510,9 @@ class BackgroundTaskExecuter : public Thread
 		{
 			if (p_is_check_shutdown == true)
 			{
-				dcassert(!ClientManager::isBeforeShutdown());
-				dcassert(!m_stop);
+				dcassert(!isShutdown());
 			}
-			if (m_stop == false)
+			if (m_stop)
 			{
 				{
 					CFlyFastLock(m_csTasks);
@@ -1527,7 +1526,7 @@ class BackgroundTaskExecuter : public Thread
 		}
 		void forceStop()
 		{
-			m_stop = true;
+			stopThread();
 		}
 		
 		void waitShutdown(const bool exit = true)
@@ -1572,7 +1571,7 @@ class BackgroundTaskExecuter : public Thread
 					{
 						if (m_tasks.empty())
 						{
-							if (lbefore >= PAUSE_IN_MILLS_BEFORE_THREAD_DEADS || m_stop)
+							if (lbefore >= PAUSE_IN_MILLS_BEFORE_THREAD_DEADS || isShutdown())
 							{
 								CFlyFastLock(m_csTasks);
 								if (m_tasks.empty())
@@ -1607,7 +1606,6 @@ class BackgroundTaskExecuter : public Thread
 		}
 		virtual void execute(const TASK_TYPE & toExecute) = 0;
 		typedef list<TASK_TYPE> TaskList;
-		volatile bool m_stop;
 		volatile bool m_active;
 		TaskList m_tasks;
 		FastCriticalSection m_csTasks;

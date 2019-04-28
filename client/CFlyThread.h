@@ -215,6 +215,30 @@ class Thread : public BaseThread
 		void close_handle();
 		static unsigned int  WINAPI starter(void* p);
 };
+class CFlyStopThread
+{
+	public:
+		CFlyStopThread() : m_stop(false)
+		{
+		}
+		~CFlyStopThread()
+		{
+			m_stop = true;
+		}
+	protected:
+		volatile bool m_stop;
+		void stopThread(bool p_is_stop = true)
+		{
+			m_stop = p_is_stop;
+		}
+		bool isShutdown() const
+		{
+			if (m_stop)
+				return true;
+			extern volatile bool g_isBeforeShutdown;
+			return g_isBeforeShutdown;
+		}
+};
 
 #if defined(IRAINMAN_USE_SPIN_LOCK) || defined(IRAINMAN_USE_SHARED_SPIN_LOCK)
 // TODO: must be rewritten to support the diagnosis of a spinlock - ie diagnosis recursive entry.
