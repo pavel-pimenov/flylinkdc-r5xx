@@ -144,10 +144,6 @@ void File__Analyze::Get_MasteringDisplayColorVolume(Ztring &MasteringDisplay_Col
             IsNotValid=true;
     if (!IsNotValid)
         MasteringDisplay_ColorPrimaries=MasteringDisplayColorVolume_Values_Compute(Meta.Primaries);
-    printf("Meta.Luminance[0] = %d Meta.Luminance[1] = %d\r\n", Meta.Luminance[0], Meta.Luminance[1]);
-    const Ztring l1213 = Ztring::ToZtring(((float64)Meta.Luminance[1]) / 10000, 0);
-    printf("l1213 = %s\r\n", l1213.c_str());
-
     if (Meta.Luminance[0]!=(int32u)-1 && Meta.Luminance[1]!=(int32u)-1)
         MasteringDisplay_Luminance=        __T("min: ")+Ztring::ToZtring(((float64)Meta.Luminance[0])/10000, 4)
                                   +__T(" cd/m2, max: ")+Ztring::ToZtring(((float64)Meta.Luminance[1])/10000, (Meta.Luminance[1]-((int)Meta.Luminance[1])==0)?0:4)
