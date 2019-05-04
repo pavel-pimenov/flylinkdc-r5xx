@@ -19,6 +19,7 @@
 #define STORAGE_LEVELDB_INCLUDE_CACHE_H_
 
 #include <stdint.h>
+
 #include "leveldb/export.h"
 #include "leveldb/slice.h"
 
@@ -32,8 +33,8 @@ LEVELDB_EXPORT Cache* NewLRUCache(size_t capacity);
 
 class LEVELDB_EXPORT Cache {
  public:
+  Cache() = default;
 
-  Cache():rep_(nullptr){ }
   Cache(const Cache&) = delete;
   Cache& operator=(const Cache&) = delete;
 

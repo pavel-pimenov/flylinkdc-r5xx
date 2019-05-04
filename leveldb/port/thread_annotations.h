@@ -54,18 +54,15 @@
 #endif
 
 #ifndef LOCK_RETURNED
-#define LOCK_RETURNED(x) \
-  THREAD_ANNOTATION_ATTRIBUTE__(lock_returned(x))
+#define LOCK_RETURNED(x) THREAD_ANNOTATION_ATTRIBUTE__(lock_returned(x))
 #endif
 
 #ifndef LOCKABLE
-#define LOCKABLE \
-  THREAD_ANNOTATION_ATTRIBUTE__(lockable)
+#define LOCKABLE THREAD_ANNOTATION_ATTRIBUTE__(lockable)
 #endif
 
 #ifndef SCOPED_LOCKABLE
-#define SCOPED_LOCKABLE \
-  THREAD_ANNOTATION_ATTRIBUTE__(scoped_lockable)
+#define SCOPED_LOCKABLE THREAD_ANNOTATION_ATTRIBUTE__(scoped_lockable)
 #endif
 
 #ifndef EXCLUSIVE_LOCK_FUNCTION

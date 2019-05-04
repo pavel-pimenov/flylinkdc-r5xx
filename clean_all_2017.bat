@@ -11,6 +11,7 @@ rmdir /S /Q .\compiled\Settings\BackUp
 rmdir /S /Q .\compiled\Settings\FileLists
 rmdir /S /Q .\compiled\Settings\Logs
 rmdir /S /Q .\compiled\Settings\HubLists
+del /S /F /Q mrgtmp0
 del /S /F /Q *.tmp
 del /S /F /Q *.obj
 del /S /F /Q *.lib

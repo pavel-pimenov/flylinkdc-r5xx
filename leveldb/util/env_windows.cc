@@ -7,7 +7,6 @@
 
 #include "stdinc.h"
 
-
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif  // ifndef NOMINMAX
@@ -126,8 +125,7 @@ class Limiter {
     int old_acquires_allowed =
         acquires_allowed_.fetch_sub(1, std::memory_order_relaxed);
 
-    if (old_acquires_allowed > 0)
-      return true;
+    if (old_acquires_allowed > 0) return true;
 
     acquires_allowed_.fetch_add(1, std::memory_order_relaxed);
     return false;
@@ -135,9 +133,7 @@ class Limiter {
 
   // Release a resource acquired by a previous call to Acquire() that returned
   // true.
-  void Release() {
-    acquires_allowed_.fetch_add(1, std::memory_order_relaxed);
-  }
+  void Release() { acquires_allowed_.fetch_add(1, std::memory_order_relaxed); }
 
  private:
   // The number of available resources.
@@ -463,6 +459,8 @@ class WindowsEnv : public Env {
                      std::vector<std::string>* result) override {
     const std::string find_pattern = dir + "\\*";
     WIN32_FIND_DATAA find_data;
+    m_count_files = 0; // FlylinkDC++
+    m_size_files = 0;
     HANDLE dir_handle = ::FindFirstFileA(find_pattern.c_str(), &find_data);
     if (dir_handle == INVALID_HANDLE_VALUE) {
       DWORD last_error = ::GetLastError();
@@ -474,10 +472,28 @@ class WindowsEnv : public Env {
     do {
       char base_name[_MAX_FNAME];
       char ext[_MAX_EXT];
-
-      if (!_splitpath_s(find_data.cFileName, nullptr, 0, nullptr, 0, base_name,
-                        ARRAYSIZE(base_name), ext, ARRAYSIZE(ext))) {
-        result->emplace_back(std::string(base_name) + ext);
+     
+      if(!(find_data.cFileName[0] == '.' && find_data.cFileName[1] == '\0' ||
+           find_data.cFileName[0] == '.' && find_data.cFileName[1] == '.' && find_data.cFileName[2] == '\0'))
+      {
+          if (!_splitpath_s(find_data.cFileName, nullptr, 0, nullptr, 0, base_name,
+              ARRAYSIZE(base_name), ext, ARRAYSIZE(ext))) {
+              const std::string full_name = std::string(base_name) + ext;
+              result->emplace_back(full_name);
+              if (full_name.size() > 4)
+              {
+                  if (find_data.nFileSizeLow < 1024 * 512 && find_data.nFileSizeHigh == 0)
+                  {
+                      if ((full_name[full_name.size() - 1] == 'b' || full_name[full_name.size() - 1] == 'B') &&
+                          (full_name[full_name.size() - 2] == 'd' || full_name[full_name.size() - 2] == 'D') &&
+                          (full_name[full_name.size() - 3] == 'l' || full_name[full_name.size() - 3] == 'L'))
+                      {
+                          m_count_files++;
+                          m_size_files += (int64_t)find_data.nFileSizeLow | ((int64_t)find_data.nFileSizeHigh) << 32;
+                      }
+                  }
+              }
+          }
       }
     } while (::FindNextFileA(dir_handle, &find_data));
     DWORD last_error = ::GetLastError();
@@ -633,21 +649,19 @@ class WindowsEnv : public Env {
   }
 
  private:
+  // Entry per Schedule() call
+  struct BGItem {
+    void* arg;
+    void (*function)(void*);
+  };
+
   // BGThread() is the body of the background thread
   void BGThread();
 
   std::mutex mu_;
   std::condition_variable bgsignal_;
   bool started_bgthread_;
-
-  // Entry per Schedule() call
-  struct BGItem {
-    void* arg;
-    void (*function)(void*);
-  };
-  typedef std::deque<BGItem> BGQueue;
-  BGQueue queue_;
-
+  std::deque<BGItem> queue_;
   Limiter mmap_limiter_;
 };
 

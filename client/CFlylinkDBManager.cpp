@@ -5234,6 +5234,7 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 		}
 		l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db, l_count_files, l_size_files);
 	}
+    dcassert(l_count_files != 0);
 	if (!l_status.ok())
 	{
 		const auto l_result_error = l_status.ToString();

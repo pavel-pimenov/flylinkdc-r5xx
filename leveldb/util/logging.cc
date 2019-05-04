@@ -10,7 +10,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <limits>
+
 #include "leveldb/env.h"
 #include "leveldb/slice.h"
 
@@ -64,8 +66,7 @@ bool ConsumeDecimalNumber(Slice* in, uint64_t* val) {
   const unsigned char* current = start;
   for (; current != end; ++current) {
     const unsigned char ch = *current;
-    if (ch < '0' || ch > '9')
-      break;
+    if (ch < '0' || ch > '9') break;
 
     // Overflow check.
     // kMaxUint64 / 10 is also constant and will be optimized away.

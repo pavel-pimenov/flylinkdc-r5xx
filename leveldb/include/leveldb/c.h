@@ -47,6 +47,7 @@ extern "C" {
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
+
 #include "leveldb/export.h"
 
 /* Exported types */
@@ -189,10 +190,7 @@ LEVELDB_EXPORT void leveldb_options_set_block_restart_interval(
 LEVELDB_EXPORT void leveldb_options_set_max_file_size(leveldb_options_t*,
                                                       size_t);
 
-enum {
-  leveldb_no_compression = 0,
-  leveldb_snappy_compression = 1
-};
+enum { leveldb_no_compression = 0, leveldb_snappy_compression = 1 };
 LEVELDB_EXPORT void leveldb_options_set_compression(leveldb_options_t*, int);
 
 /* Comparator */

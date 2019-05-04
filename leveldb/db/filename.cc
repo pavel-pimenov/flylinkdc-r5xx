@@ -4,9 +4,11 @@
 
 #include "stdinc.h"
 
+#include "db/filename.h"
+
 #include <ctype.h>
 #include <stdio.h>
-#include "db/filename.h"
+
 #include "db/dbformat.h"
 #include "leveldb/env.h"
 #include "util/logging.h"
@@ -15,14 +17,13 @@ namespace leveldb {
 
 // A utility routine: write "data" to the named file and Sync() it.
 Status WriteStringToFileSync(Env* env, const Slice& data,
-                                    const std::string& fname);
+                             const std::string& fname);
 
 static std::string MakeFileName(const std::string& dbname, uint64_t number,
                                 const char* suffix) {
   char buf[100];
   snprintf(buf, sizeof(buf), "/%06llu.%s",
-           static_cast<unsigned long long>(number),
-           suffix);
+           static_cast<unsigned long long>(number), suffix);
   return dbname + buf;
 }
 
@@ -53,9 +54,7 @@ std::string CurrentFileName(const std::string& dbname) {
   return dbname + "/CURRENT";
 }
 
-std::string LockFileName(const std::string& dbname) {
-  return dbname + "/LOCK";
-}
+std::string LockFileName(const std::string& dbname) { return dbname + "/LOCK"; }
 
 std::string TempFileName(const std::string& dbname, uint64_t number) {
   assert(number > 0);
@@ -71,7 +70,6 @@ std::string OldInfoLogFileName(const std::string& dbname) {
   return dbname + "/LOG.old";
 }
 
-
 // Owned filenames have the form:
 //    dbname/CURRENT
 //    dbname/LOCK
@@ -79,8 +77,7 @@ std::string OldInfoLogFileName(const std::string& dbname) {
 //    dbname/LOG.old
 //    dbname/MANIFEST-[0-9]+
 //    dbname/[0-9]+.(log|sst|ldb)
-bool ParseFileName(const std::string& filename,
-                   uint64_t* number,
+bool ParseFileName(const std::string& filename, uint64_t* number,
                    FileType* type) {
   Slice rest(filename);
   if (rest == "CURRENT") {

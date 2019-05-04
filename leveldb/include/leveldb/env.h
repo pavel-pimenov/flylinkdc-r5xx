@@ -15,8 +15,10 @@
 
 #include <stdarg.h>
 #include <stdint.h>
+
 #include <string>
 #include <vector>
+
 #include "leveldb/export.h"
 #include "leveldb/status.h"
 
@@ -52,7 +54,8 @@ class WritableFile;
 
 class LEVELDB_EXPORT Env {
  public:
-  Env(): m_count_files(0), m_size_files(0) { }
+  Env() = default;
+
   Env(const Env&) = delete;
   Env& operator=(const Env&) = delete;
 
@@ -163,9 +166,7 @@ class LEVELDB_EXPORT Env {
   // added to the same Env may run concurrently in different threads.
   // I.e., the caller may not assume that background work items are
   // serialized.
-  virtual void Schedule(
-      void (*function)(void* arg),
-      void* arg) = 0;
+  virtual void Schedule(void (*function)(void* arg), void* arg) = 0;
 
   // Start a new thread, invoking "function(arg)" within the new thread.
   // When "function(arg)" returns, the thread will be destroyed.
@@ -187,8 +188,8 @@ class LEVELDB_EXPORT Env {
   // Sleep/delay the thread for the prescribed number of micro-seconds.
   virtual void SleepForMicroseconds(int micros) = 0;
  public:
-	int64_t m_count_files;
-	int64_t m_size_files;
+	int64_t m_count_files = 0; // FlylinkDC++
+	int64_t m_size_files = 0; // FlylinkDC++
 };
 
 // A file abstraction for reading sequentially through a file
@@ -289,9 +290,9 @@ class LEVELDB_EXPORT FileLock {
 
 // Log the specified data to *info_log if info_log is non-null.
 void Log(Logger* info_log, const char* format, ...)
-#   if defined(__GNUC__) || defined(__clang__)
-    __attribute__((__format__ (__printf__, 2, 3)))
-#   endif
+#if defined(__GNUC__) || defined(__clang__)
+    __attribute__((__format__(__printf__, 2, 3)))
+#endif
     ;
 
 // A utility routine: write "data" to the named file.
@@ -308,7 +309,7 @@ LEVELDB_EXPORT Status ReadFileToString(Env* env, const std::string& fname,
 class LEVELDB_EXPORT EnvWrapper : public Env {
  public:
   // Initialize an EnvWrapper that delegates all calls to *t.
-  explicit EnvWrapper(Env* t) : target_(t) { }
+  explicit EnvWrapper(Env* t) : target_(t) {}
   virtual ~EnvWrapper();
 
   // Return the target to which this Env forwards all calls.
@@ -366,9 +367,7 @@ class LEVELDB_EXPORT EnvWrapper : public Env {
   Status NewLogger(const std::string& fname, Logger** result) override {
     return target_->NewLogger(fname, result);
   }
-  uint64_t NowMicros() override {
-    return target_->NowMicros();
-  }
+  uint64_t NowMicros() override { return target_->NowMicros(); }
   void SleepForMicroseconds(int micros) override {
     target_->SleepForMicroseconds(micros);
   }

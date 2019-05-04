@@ -4,15 +4,19 @@
 
 #include "stdinc.h"
 
-#include <string.h>
-#include "util/coding.h"
 #include "util/hash.h"
+
+#include <string.h>
+
+#include "util/coding.h"
 
 // The FALLTHROUGH_INTENDED macro can be used to annotate implicit fall-through
 // between switch labels. The real definition should be provided externally.
 // This one is a fallback version for unsupported compilers.
 #ifndef FALLTHROUGH_INTENDED
-#define FALLTHROUGH_INTENDED do { } while (0)
+#define FALLTHROUGH_INTENDED \
+  do {                       \
+  } while (0)
 #endif
 
 namespace leveldb {
@@ -49,6 +53,5 @@ uint32_t Hash(const char* data, size_t n, uint32_t seed) {
   }
   return h;
 }
-
 
 }  // namespace leveldb

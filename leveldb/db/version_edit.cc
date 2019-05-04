@@ -69,8 +69,7 @@ void VersionEdit::EncodeTo(std::string* dst) const {
   }
 
   for (DeletedFileSet::const_iterator iter = deleted_files_.begin();
-       iter != deleted_files_.end();
-       ++iter) {
+       iter != deleted_files_.end(); ++iter) {
     PutVarint32(dst, kDeletedFile);
     PutVarint32(dst, iter->first);   // level
     PutVarint64(dst, iter->second);  // file number
@@ -99,8 +98,7 @@ static bool GetInternalKey(Slice* input, InternalKey* dst) {
 
 static bool GetLevel(Slice* input, int* level) {
   uint32_t v;
-  if (GetVarint32(input, &v) &&
-      v < config::kNumLevels) {
+  if (GetVarint32(input, &v) && v < config::kNumLevels) {
     *level = v;
     return true;
   } else {
@@ -165,8 +163,7 @@ Status VersionEdit::DecodeFrom(const Slice& src) {
         break;
 
       case kCompactPointer:
-        if (GetLevel(&input, &level) &&
-            GetInternalKey(&input, &key)) {
+        if (GetLevel(&input, &level) && GetInternalKey(&input, &key)) {
           compact_pointers_.push_back(std::make_pair(level, key));
         } else {
           msg = "compaction pointer";
@@ -174,8 +171,7 @@ Status VersionEdit::DecodeFrom(const Slice& src) {
         break;
 
       case kDeletedFile:
-        if (GetLevel(&input, &level) &&
-            GetVarint64(&input, &number)) {
+        if (GetLevel(&input, &level) && GetVarint64(&input, &number)) {
           deleted_files_.insert(std::make_pair(level, number));
         } else {
           msg = "deleted file";
@@ -183,8 +179,7 @@ Status VersionEdit::DecodeFrom(const Slice& src) {
         break;
 
       case kNewFile:
-        if (GetLevel(&input, &level) &&
-            GetVarint64(&input, &f.number) &&
+        if (GetLevel(&input, &level) && GetVarint64(&input, &f.number) &&
             GetVarint64(&input, &f.file_size) &&
             GetInternalKey(&input, &f.smallest) &&
             GetInternalKey(&input, &f.largest)) {
@@ -241,8 +236,7 @@ std::string VersionEdit::DebugString() const {
     r.append(compact_pointers_[i].second.DebugString());
   }
   for (DeletedFileSet::const_iterator iter = deleted_files_.begin();
-       iter != deleted_files_.end();
-       ++iter) {
+       iter != deleted_files_.end(); ++iter) {
     r.append("\n  DeleteFile: ");
     AppendNumberTo(&r, iter->first);
     r.append(" ");
