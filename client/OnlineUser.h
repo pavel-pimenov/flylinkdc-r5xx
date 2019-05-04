@@ -26,7 +26,6 @@
 #include "User.h"
 #include "UserInfoBase.h"
 #include "UserInfoColumns.h"
-#include "webrtc/system_wrappers/include/rw_lock_wrapper.h"
 
 class ClientBase;
 class NmdcHub;

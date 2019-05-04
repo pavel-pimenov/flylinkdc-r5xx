@@ -199,7 +199,7 @@ void CDMDebugFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 
 void CDMDebugFrame::addLine(const DebugTask& task)
 {
-	if (!isShutdown())
+	if (!isClosedOrShutdown() && !isShutdown())
 	{
 		if (ctrlCMDPad.GetWindowTextLength() > MAX_TEXT_LEN)
 		{

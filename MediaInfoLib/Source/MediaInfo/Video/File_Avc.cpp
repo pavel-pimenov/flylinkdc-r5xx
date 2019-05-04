@@ -1581,7 +1581,7 @@ void File_Avc::Header_Parse()
     }
     else
     {
-        int64u Size;
+        int64u Size=0;
         switch (SizeOfNALU_Minus1)
         {
             case 0: {

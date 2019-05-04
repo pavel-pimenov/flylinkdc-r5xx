@@ -411,8 +411,10 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 }
 void QueueFrame::on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept
 {
-#ifdef _DEBUG
+#ifdef _DEBUG // ????
+#ifdef FLYLINKDC_USE_TORRENT
 	m_tasks.add(REMOVE_ITEM, new StringTask(DownloadManager::getInstance()->get_torrent_name(p_sha1)));
+#endif
 #endif
 }
 

@@ -2385,22 +2385,30 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, const bool down
 
 void TransferView::ItemInfo::pauseTorrentFile()
 {
+#ifdef FLYLINKDC_USE_TORRENT
 	DownloadManager::getInstance()->pause_torrent_file(m_sha1, false);
+#endif
 }
 
 void TransferView::ItemInfo::resumeTorrentFile()
 {
+#ifdef FLYLINKDC_USE_TORRENT
 	DownloadManager::getInstance()->pause_torrent_file(m_sha1, true);
+#endif
 }
 
 void TransferView::ItemInfo::removeTorrentAndFile()
 {
+#ifdef FLYLINKDC_USE_TORRENT
 	DownloadManager::getInstance()->remove_torrent_file(m_sha1, lt::session::delete_files);
+#endif
 }
 
 void TransferView::ItemInfo::removeTorrent()
 {
+#ifdef FLYLINKDC_USE_TORRENT
 	DownloadManager::getInstance()->remove_torrent_file(m_sha1, { });
+#endif
 }
 
 void TransferView::ItemInfo::disconnectAndP2PGuard()
@@ -2707,6 +2715,8 @@ void TransferView::on(DownloadManagerListener::SelectTorrent, const libtorrent::
                       CFlyTorrentFileArray& p_files, std::shared_ptr<const libtorrent::torrent_info> p_torrent_info) noexcept
 {
 	// TODO - PostMessage
+#ifdef FLYLINKDC_USE_TORRENT
+	
 	try {
 		CFlyTorrentDialog l_dlg(p_files, p_torrent_info);
 		if (l_dlg.DoModal(WinUtil::g_mainWnd) == IDOK)
@@ -2725,6 +2735,8 @@ void TransferView::on(DownloadManagerListener::SelectTorrent, const libtorrent::
 	{
 		LogManager::message("DownloadManagerListener::SelectTorrent - error " + e.getError());
 	}
+#endif // FLYLINKDC_USE_TORRENT
+	
 }
 
 void TransferView::on(DownloadManagerListener::RemoveTorrent, const libtorrent::sha1_hash& p_sha1) noexcept
@@ -2801,7 +2813,9 @@ LRESULT TransferView::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
 			{
 				if (wID == IDC_COPY_LINK)
 				{
+#ifdef FLYLINKDC_USE_TORRENT
 					l_data = Text::toT(DownloadManager::getInstance()->get_torrent_magnet(l_ii->m_sha1));
+#endif
 				}
 			}
 			else if (getTTH(l_ii, l_tth))

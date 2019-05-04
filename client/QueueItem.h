@@ -24,7 +24,7 @@
 
 #include "Segment.h"
 #include "HintedUser.h"
-#include "webrtc/system_wrappers/include/rw_lock_wrapper.h"
+#include "webrtc/rtc_base/synchronization/rw_lock_wrapper.h"
 #include "Download.h"
 #include "CFlyThread.h"
 

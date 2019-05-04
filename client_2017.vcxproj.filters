@@ -241,38 +241,8 @@
     <ClCompile Include="client\CFlyUserRatioInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\file_impl.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock_win.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\sleep.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\trace_impl.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\trace_win.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable_event_win.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
     <ClCompile Include="client\TaskQueue.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\talk\base\win32.cc">
-      <Filter>Source Files\webrtc\talk</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\talk\base\winfirewall.cc">
-      <Filter>Source Files\webrtc\talk</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\talk\base\stringutils.cc">
-      <Filter>Source Files\webrtc\talk</Filter>
     </ClCompile>
     <ClCompile Include="client\GPGPUManager.cpp">
       <Filter>Source Files</Filter>
@@ -286,21 +256,6 @@
     <ClCompile Include="client\CFlyLockProfiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\webrtc\base\criticalsection.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\base\checks.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock_winxp_win.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\base\platform_thread.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\base\thread_checker_impl.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
     <ClCompile Include="client\TransferData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -309,6 +264,21 @@
     </ClCompile>
     <ClCompile Include="client\zip\zip.c">
       <Filter>Source Files\mzip</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\rtc_base\synchronization\rw_lock_win.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\rtc_base\synchronization\rw_lock_wrapper.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\talk\base\stringutils.cc">
+      <Filter>Source Files\webrtc\winfirewall</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\talk\base\win32.cc">
+      <Filter>Source Files\webrtc\winfirewall</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\talk\base\winfirewall.cc">
+      <Filter>Source Files\webrtc\winfirewall</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -699,72 +669,6 @@
     <ClInclude Include="client\CFlyUserRatioInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\common_types.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_posix.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_wrapper.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\critical_section_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\critical_section_wrapper.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\event_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\event_wrapper.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\file_impl.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\file_wrapper.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\fix_interlocked_exchange_pointer_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_wrapper.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\set_thread_name_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\sleep.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\static_instance.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\thread_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\thread_wrapper.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\trace.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\trace_impl.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\trace_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\typedefs.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
     <ClInclude Include="client\GPGPUManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -779,27 +683,6 @@
     </ClInclude>
     <ClInclude Include="client\dcformat.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\base\criticalsection.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\source\rw_lock_winxp_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\base\platform_thread.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\base\thread_checker.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\base\thread_checker_impl.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\common_types.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\typedefs.h">
-      <Filter>Source Files\webrtc</Filter>
     </ClInclude>
     <ClInclude Include="client\CFlySearchItemTTH.h">
       <Filter>Header Files</Filter>
@@ -882,6 +765,27 @@
     <ClInclude Include="client\zip\zip.h">
       <Filter>Header Files\zip</Filter>
     </ClInclude>
+    <ClInclude Include="client\webrtc\rtc_base\synchronization\rw_lock_win.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\rtc_base\synchronization\rw_lock_wrapper.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\rtc_base\thread_annotations.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\talk\base\basictypes.h">
+      <Filter>Source Files\webrtc\winfirewall</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\talk\base\stringutils.h">
+      <Filter>Source Files\webrtc\winfirewall</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\talk\base\win32.h">
+      <Filter>Source Files\webrtc\winfirewall</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\talk\base\winfirewall.h">
+      <Filter>Source Files\webrtc\winfirewall</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -914,9 +818,6 @@
     <Filter Include="Source Files\webrtc">
       <UniqueIdentifier>{634734c1-c671-4cbd-877a-3a51a43bf950}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\webrtc\talk">
-      <UniqueIdentifier>{b7f6ee81-2431-4ce9-805e-d9aa59c8a651}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\syslog">
       <UniqueIdentifier>{dffc505f-b950-4afe-b0c9-fc5b67a232a0}</UniqueIdentifier>
     </Filter>
@@ -931,6 +832,9 @@
     </Filter>
     <Filter Include="Header Files\idna">
       <UniqueIdentifier>{21e47374-4f41-47f1-b223-45719142797d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\webrtc\winfirewall">
+      <UniqueIdentifier>{0a9b9c7d-d2b4-46c9-bb4a-e950fda8eeaa}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

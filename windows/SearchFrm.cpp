@@ -1215,7 +1215,7 @@ void SearchFrame::onEnter()
 		m_search_param.m_owner = this;
 		if (!boost::logic::indeterminate(g_isUDPTestOK))
 		{
-			m_search_param.m_is_force_passive_searh = (g_isUDPTestOK == false); // || (SETTING(OUTGOING_CONNECTIONS) == SettingsManager::OUTGOING_SOCKS5);
+			m_search_param.m_is_force_passive_searh = (g_isUDPTestOK.value == boost::logic::tribool::false_value); // || (SETTING(OUTGOING_CONNECTIONS) == SettingsManager::OUTGOING_SOCKS5);
 		}
 		else
 		{
@@ -2390,7 +2390,9 @@ LRESULT SearchFrame::onDownload(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/
 			}
 			else
 			{
+#ifdef FLYLINKDC_USE_TORRENT
 				DownloadManager::getInstance()->add_torrent_file(_T(""), Text::toT(si->m_sr.getTorrentMagnet()));
+#endif
 			}
 		}
 	}
@@ -2489,7 +2491,9 @@ LRESULT SearchFrame::onDoubleClickResults(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*
 				}
 				else
 				{
+#ifdef FLYLINKDC_USE_TORRENT
 					DownloadManager::getInstance()->add_torrent_file(_T(""), Text::toT(si->m_sr.getTorrentMagnet()));
+#endif
 				}
 			}
 		}

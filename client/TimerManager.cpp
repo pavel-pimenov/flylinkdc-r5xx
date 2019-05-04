@@ -42,6 +42,7 @@ TimerManager::TimerManager()
 
 TimerManager::~TimerManager()
 {
+	g_isRun = false;
 	dcassert(ClientManager::isShutdown());
 }
 

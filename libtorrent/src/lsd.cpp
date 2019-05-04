@@ -104,12 +104,12 @@ void lsd::debug_log(char const* fmt, ...) const
 void lsd::start(error_code& ec)
 {
 	m_socket.open(std::bind(&lsd::on_announce, self(), _1, _2, _3)
-		, m_broadcast_timer.get_io_service(), ec);
+		, lt::get_io_service(m_broadcast_timer), ec);
 	if (ec) return;
 
 #if TORRENT_USE_IPV6
 	m_socket6.open(std::bind(&lsd::on_announce, self(), _1, _2, _3)
-		, m_broadcast_timer.get_io_service(), ec);
+		, lt::get_io_service(m_broadcast_timer), ec);
 #endif
 }
 
@@ -274,7 +274,7 @@ void lsd::on_announce(udp::endpoint const& from, char const* buf
 		sha1_hash ih;
 		aux::from_hex(ih_str, ih.data());
 
-		if (!ih.is_all_zeros() && port != 0)
+		if (!ih.is_all_zeros())
 		{
 #ifndef TORRENT_DISABLE_LOGGING
 			if (should_log())

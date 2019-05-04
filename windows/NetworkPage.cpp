@@ -153,7 +153,9 @@ LRESULT NetworkPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 #ifndef IRAINMAN_IP_AUTOUPDATE
 	::EnableWindow(GetDlgItem(IDC_IPUPDATE), FALSE);
 #endif
+#ifdef FLYLINKDC_USE_TORRENT
 	SET_SETTING(DHT_PORT, DownloadManager::getInstance()->listen_torrent_port());
+#endif
 	
 	switch (SETTING(INCOMING_CONNECTIONS))
 	{

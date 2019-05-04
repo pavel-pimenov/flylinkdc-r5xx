@@ -118,7 +118,7 @@ namespace libtorrent { namespace dht {
 	{
 		if (s.is_ssl()) return;
 
-		address local_address = s.get_local_endpoint().address();
+		address const local_address = s.get_local_endpoint().address();
 #if TORRENT_USE_IPV6
 		// don't try to start dht nodes on non-global IPv6 addresses
 		// with IPv4 the interface might be behind NAT so we can't skip them based on the scope of the local address
@@ -132,7 +132,7 @@ namespace libtorrent { namespace dht {
 		// must use piecewise construction because tracker_node::connection_timer
 		// is neither copyable nor movable
 		auto n = m_nodes.emplace(std::piecewise_construct_t(), std::forward_as_tuple(s)
-			, std::forward_as_tuple(m_key_refresh_timer.get_io_service()
+			, std::forward_as_tuple(get_io_service(m_key_refresh_timer)
 			, s, this, m_settings, nid, m_log, m_counters
 			, std::bind(&dht_tracker::get_node, this, _1, _2)
 			, m_storage));

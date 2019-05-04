@@ -110,12 +110,12 @@ namespace libtorrent {
 
 	void disk_io_thread_pool::thread_active()
 	{
-		--m_num_idle_threads;
-		TORRENT_ASSERT(m_num_idle_threads >= 0);
+		int const num_idle_threads = --m_num_idle_threads;
+		TORRENT_ASSERT(num_idle_threads >= 0);
 
 		int current_min = m_min_idle_threads;
-		while (m_num_idle_threads < current_min
-			&& !m_min_idle_threads.compare_exchange_weak(current_min, m_num_idle_threads));
+		while (num_idle_threads < current_min
+			&& !m_min_idle_threads.compare_exchange_weak(current_min, num_idle_threads));
 	}
 
 	bool disk_io_thread_pool::try_thread_exit(std::thread::id id)
@@ -164,9 +164,9 @@ namespace libtorrent {
 		// reduce the number of threads requested to stop if we're going to need
 		// them for these new jobs
 		int to_exit = m_threads_to_exit;
-		while (to_exit > (std::max)(0, m_num_idle_threads - queue_size) &&
+		while (to_exit > std::max(0, m_num_idle_threads - queue_size) &&
 			!m_threads_to_exit.compare_exchange_weak(to_exit
-				, (std::max)(0, m_num_idle_threads - queue_size)));
+				, std::max(0, m_num_idle_threads - queue_size)));
 
 		// now start threads until we either have enough to service
 		// all queued jobs without blocking or hit the max
@@ -191,7 +191,7 @@ namespace libtorrent {
 			// buffer pool won't exist anymore, and crash. This prevents that.
 			m_threads.emplace_back(&pool_thread_interface::thread_fun
 				, &m_thread_iface, std::ref(*this)
-				, io_service::work(m_idle_timer.get_io_service()));
+				, io_service::work(get_io_service(m_idle_timer)));
 		}
 	}
 
@@ -202,7 +202,7 @@ namespace libtorrent {
 		if (ec) return;
 		std::lock_guard<std::mutex> l(m_mutex);
 		if (m_abort) return;
-		if (m_threads.size() == 0) return;
+		if (m_threads.empty()) return;
 		m_idle_timer.expires_from_now(reap_idle_threads_interval);
 		m_idle_timer.async_wait([this](error_code const& e) { reap_idle_threads(e); });
 		int const min_idle = m_min_idle_threads.exchange(m_num_idle_threads);

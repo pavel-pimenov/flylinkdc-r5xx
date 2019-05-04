@@ -669,7 +669,7 @@ void File_Aac::drcCoefficientsUniDrc(bool V1)
         TEST_SB_END();
         if (gainCodingProfile != 3)
         {
-            bool drcBandType;
+            bool drcBandType=false;
             Get_S1 (4, gainSet.bandCount,                       "bandCount");
             if (gainSet.bandCount>1)
                 Get_SB (drcBandType,                            "drcBandType");
@@ -790,7 +790,7 @@ void File_Aac::drcInstructionsUniDrc(bool V1)
         downmixIdPresent=true;
     if (downmixIdPresent)
     {
-        bool drcApplyToDownmix;
+        bool drcApplyToDownmix=false;
         Get_S1(7, downmixId,                                    "downmixId");
         if (V1)
             Get_SB (   drcApplyToDownmix,                       "drcApplyToDownmix");
@@ -1028,7 +1028,7 @@ void File_Aac::loudnessInfo(bool FromAlbum, bool V1)
     Element_Begin1(V1?"loudnessInfoV1":"loudnessInfo");
 
     loudness_info::measurements Measurements;
-    int16u bsSamplePeakLevel, bsTruePeakLevel;
+    int16u bsSamplePeakLevel=0, bsTruePeakLevel=0;
     int8u measurementCount;
     bool samplePeakLevelPresent, truePeakLevelPresent;
     int8u drcSetId, eqSetId, downmixId;

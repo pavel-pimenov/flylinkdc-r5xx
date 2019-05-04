@@ -148,7 +148,7 @@ void http_connection::get(std::string const& url, time_duration timeout, int pri
 
 	if (ec)
 	{
-		m_timer.get_io_service().post(std::bind(&http_connection::callback
+		lt::get_io_service(m_timer).post(std::bind(&http_connection::callback
 			, me, ec, span<char>{}));
 		return;
 	}
@@ -160,15 +160,14 @@ void http_connection::get(std::string const& url, time_duration timeout, int pri
 		)
 	{
 		error_code err(errors::unsupported_url_protocol);
-		m_timer.get_io_service().post(std::bind(&http_connection::callback
+		lt::get_io_service(m_timer).post(std::bind(&http_connection::callback
 			, me, err, span<char>{}));
 		return;
 	}
 
 	TORRENT_ASSERT(prio >= 0 && prio < 3);
 
-	bool ssl = false;
-	if (protocol == "https") ssl = true;
+	bool const ssl = (protocol == "https");
 
 	std::stringstream request;
 
@@ -259,7 +258,7 @@ void http_connection::start(std::string const& hostname, int port
 
 	if (ec)
 	{
-		m_timer.get_io_service().post(std::bind(&http_connection::callback
+		lt::get_io_service(m_timer).post(std::bind(&http_connection::callback
 			, me, ec, span<char>{}));
 		return;
 	}
@@ -296,9 +295,9 @@ void http_connection::start(std::string const& hostname, int port
 			m_read_timeout *= 4;
 
 #if TORRENT_USE_I2P
-			if (is_i2p && i2p_conn->proxy().type != settings_pack::i2p_proxy)
+			if (i2p_conn->proxy().type != settings_pack::i2p_proxy)
 			{
-				m_timer.get_io_service().post(std::bind(&http_connection::callback
+				lt::get_io_service(m_timer).post(std::bind(&http_connection::callback
 					, me, error_code(errors::no_i2p_router), span<char>{}));
 				return;
 			}
@@ -333,7 +332,7 @@ void http_connection::start(std::string const& hostname, int port
 					m_ssl_ctx->set_verify_mode(ssl::context::verify_none, ec);
 					if (ec)
 					{
-						m_timer.get_io_service().post(std::bind(&http_connection::callback
+						lt::get_io_service(m_timer).post(std::bind(&http_connection::callback
 								, me, ec, span<char>{}));
 						return;
 					}
@@ -345,7 +344,7 @@ void http_connection::start(std::string const& hostname, int port
 		// assume this is not a tracker connection. Tracker connections that
 		// shouldn't be subject to the proxy should pass in nullptr as the proxy
 		// pointer.
-		instantiate_connection(m_timer.get_io_service()
+		instantiate_connection(lt::get_io_service(m_timer)
 			, proxy ? *proxy : null_proxy, m_sock, userdata, nullptr, false, false);
 
 		if (m_bind_addr)
@@ -354,7 +353,7 @@ void http_connection::start(std::string const& hostname, int port
 			m_sock.bind(tcp::endpoint(*m_bind_addr, 0), ec);
 			if (ec)
 			{
-				m_timer.get_io_service().post(std::bind(&http_connection::callback
+				lt::get_io_service(m_timer).post(std::bind(&http_connection::callback
 					, me, ec, span<char>{}));
 				return;
 			}
@@ -363,7 +362,7 @@ void http_connection::start(std::string const& hostname, int port
 		setup_ssl_hostname(m_sock, hostname, ec);
 		if (ec)
 		{
-			m_timer.get_io_service().post(std::bind(&http_connection::callback
+			lt::get_io_service(m_timer).post(std::bind(&http_connection::callback
 				, me, ec, span<char>{}));
 			return;
 		}

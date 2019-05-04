@@ -32,7 +32,8 @@
 #include "FavoriteManagerListener.h"
 #include "HubEntry.h"
 #include "FavHubGroup.h"
-#include "webrtc/system_wrappers/include/rw_lock_wrapper.h"
+#include "webrtc/rtc_base/synchronization/rw_lock_wrapper.h"
+
 
 class PreviewApplication
 #ifdef _DEBUG

@@ -753,7 +753,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		}
 	}
 	
-	// For SHBrowseForFolder, UPnP_COM
+	// For SHBrowseForFolder 
 	HRESULT hRes = ::CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 	ATLASSERT(SUCCEEDED(hRes)); // [+] IRainman
 	

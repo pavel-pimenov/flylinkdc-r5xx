@@ -75,7 +75,7 @@ void lzma_error::check BOOST_PREVENT_MACRO_SUBSTITUTION(int error)
 namespace detail {
 
 lzma_base::lzma_base()
-    : stream_(new lzma_stream)
+    : stream_(new lzma_stream), level(lzma::default_compression)
     { }
 
 lzma_base::~lzma_base() { delete static_cast<lzma_stream*>(stream_); }

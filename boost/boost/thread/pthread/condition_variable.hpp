@@ -11,6 +11,7 @@
 #include <boost/thread/pthread/pthread_helpers.hpp>
 
 #if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
+#include <boost/thread/interruption.hpp>
 #include <boost/thread/pthread/thread_data.hpp>
 #endif
 #include <boost/thread/pthread/condition_variable_fwd.hpp>
@@ -26,13 +27,6 @@
 
 namespace boost
 {
-#if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
-    namespace this_thread
-    {
-        void BOOST_THREAD_DECL interruption_point();
-    }
-#endif
-
     namespace thread_cv_detail
     {
         template<typename MutexType>
@@ -249,7 +243,7 @@ namespace boost
 #endif
         }
         template<typename lock_type>
-        bool timed_wait(lock_type& m,xtime const& abs_time)
+        bool timed_wait(lock_type& m,::boost::xtime const& abs_time)
         {
             return timed_wait(m,system_time(abs_time));
         }
@@ -309,7 +303,7 @@ namespace boost
         }
 
         template<typename lock_type,typename predicate_type>
-        bool timed_wait(lock_type& m,xtime const& abs_time, predicate_type pred)
+        bool timed_wait(lock_type& m,::boost::xtime const& abs_time, predicate_type pred)
         {
             return timed_wait(m,system_time(abs_time),pred);
         }

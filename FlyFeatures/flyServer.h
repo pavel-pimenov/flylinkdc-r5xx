@@ -618,8 +618,10 @@ class CFlyServerJSON
 // Кривизна - поправить
 class CFlyServerAdapter
 {
+};
 		class  CFlyServerJSON
 		{
+public:
 				static bool pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info = true)
 				{
 					return false;
@@ -628,7 +630,6 @@ class CFlyServerAdapter
 				{
 				}
 		};
-};
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 
 #endif // _FLY_SERVER_H

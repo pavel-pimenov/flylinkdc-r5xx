@@ -803,7 +803,9 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	{
 		m_threadedUpdateIP.updateIP(BOOLSETTING(IPUPDATE));
 	}
+#ifdef FLYLINKDC_USE_TORRENT
 	DownloadManager::getInstance()->init_torrent();
+#endif
 	return 0;
 }
 bool g_is_auto_open_queue = false; // Флаг выставляется в потоке если он заканичвается раньше построения окна.
@@ -3070,7 +3072,9 @@ LRESULT MainFrame::onOpenFileList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 		if (Util::isTorrentFile(l_file))
 		{
 			g_last_torrent_file = Util::getFilePath(l_file);
+#ifdef FLYLINKDC_USE_TORRENT
 			DownloadManager::getInstance()->add_torrent_file(l_file, _T(""));
+#endif
 		}
 		else
 		{

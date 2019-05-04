@@ -123,7 +123,7 @@ void upnp::start()
 
 	error_code ec;
 	m_socket.open(std::bind(&upnp::on_reply, self(), _1, _2, _3)
-		, m_refresh_timer.get_io_service(), ec);
+		, lt::get_io_service(m_refresh_timer), ec);
 
 	m_mappings.reserve(10);
 }
@@ -214,7 +214,7 @@ port_mapping_t upnp::add_mapping(portmap_protocol const p, int const external_po
 #ifndef TORRENT_DISABLE_LOGGING
 	if (should_log())
 	{
-		log("adding port map: [ protocol: %s ext_port: %u "
+		log("adding port map: [ protocol: %s ext_port: %d "
 			"local_ep: %s ] %s", (p == portmap_protocol::tcp?"tcp":"udp")
 			, external_port
 			, print_endpoint(local_ep).c_str(), m_disabled ? "DISABLED": "");

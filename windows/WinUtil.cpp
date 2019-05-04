@@ -2423,11 +2423,12 @@ void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Ex
 		}
 		x += _T("\\shell\\open\\command");
 	}
-	// [~] IRainman
+#ifdef FLYLINKDC_USE_TORRENT
 	if (url.find(_T("magnet:?xt=urn:btih")) != tstring::npos)
 	{
 		DownloadManager::getInstance()->add_torrent_file(_T(""), url);
 	}
+#endif
 	
 	::ShellExecute(NULL, NULL, url.c_str(), NULL, NULL, SW_SHOWNORMAL);
 }
@@ -2503,12 +2504,13 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 	//  kt = text for search
 	if (Util::isMagnetLink(aUrl))
 	{
+#ifdef FLYLINKDC_USE_TORRENT
 		if (Util::isTorrentLink(aUrl))
 		{
 			DownloadManager::getInstance()->add_torrent_file(_T(""), aUrl);
 		}
 		else
-			// [~] IRainman
+#endif
 		{
 			const string url = Text::fromT(aUrl);
 			LogManager::message(STRING(MAGNET_DLG_TITLE) + ": " + url);

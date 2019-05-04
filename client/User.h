@@ -23,7 +23,7 @@
 #define DCPLUSPLUS_DCPP_USER_H
 
 #include <boost/asio/ip/address_v4.hpp>
-#include "webrtc/system_wrappers/include/rw_lock_wrapper.h"
+#include "webrtc/rtc_base/synchronization/rw_lock_wrapper.h"
 
 #include "Pointer.h"
 #include "Util.h"

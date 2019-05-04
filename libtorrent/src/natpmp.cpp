@@ -81,7 +81,7 @@ void natpmp::start()
 	TORRENT_ASSERT(is_single_thread());
 
 	error_code ec;
-	address const gateway = get_default_gateway(m_socket.get_io_service(), ec);
+	address const gateway = get_default_gateway(get_io_service(m_socket), ec);
 	if (ec)
 	{
 #ifndef TORRENT_DISABLE_LOGGING

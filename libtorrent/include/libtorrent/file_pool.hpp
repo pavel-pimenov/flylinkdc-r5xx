@@ -53,7 +53,7 @@ namespace libtorrent {
 	// not opening more file handles than specified. Given multiple threads,
 	// each with the ability to lock a file handle (via smart pointer), there
 	// may be windows where more file handles are open.
-	struct TORRENT_EXPORT file_pool : boost::noncopyable
+	struct TORRENT_EXPORT file_pool //[-]FlylinkDC++ : boost::noncopyable
 	{
 		// ``size`` specifies the number of allowed files handles
 		// to hold open at any given time.
