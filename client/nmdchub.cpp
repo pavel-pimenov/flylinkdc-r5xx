@@ -2806,9 +2806,11 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 		{
 			if (ou->getIdentity().setExtJSON(param))
 			{
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
 				ou->getIdentity().setStringParam("F1", l_root["Country"].asString());
 				ou->getIdentity().setStringParam("F2", l_root["City"].asString());
 				ou->getIdentity().setStringParam("F3", l_root["ISP"].asString());
+#endif
 				ou->getIdentity().setStringParam("F4", l_root["Gender"].asString());
 				ou->getIdentity().setExtJSONSupportInfo(l_root["Support"].asString());
 				ou->getIdentity().setExtJSONRAMWorkingSet(l_root["RAM"].asInt());

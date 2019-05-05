@@ -612,8 +612,6 @@
     <ClCompile Include="client\webrtc\rtc_base\synchronization\rw_lock_win.cc" />
     <ClCompile Include="client\webrtc\rtc_base\synchronization\rw_lock_winxp_win.cc" />
     <ClCompile Include="client\webrtc\rtc_base\synchronization\rw_lock_wrapper.cc" />
-    <ClCompile Include="client\webrtc\talk\base\stringutils.cc" />
-    <ClCompile Include="client\webrtc\talk\base\win32.cc" />
     <ClCompile Include="client\webrtc\talk\base\winfirewall.cc" />
     <ClCompile Include="client\WebServerManager.cpp" />
     <ClCompile Include="client\WildcardsReg.cpp" />
@@ -746,11 +744,6 @@
     <ClInclude Include="client\webrtc\rtc_base\synchronization\rw_lock_winxp_win.h" />
     <ClInclude Include="client\webrtc\rtc_base\synchronization\rw_lock_wrapper.h" />
     <ClInclude Include="client\webrtc\rtc_base\thread_annotations.h" />
-    <ClInclude Include="client\webrtc\talk\base\basictypes.h" />
-    <ClInclude Include="client\webrtc\talk\base\byteorder.h" />
-    <ClInclude Include="client\webrtc\talk\base\common.h" />
-    <ClInclude Include="client\webrtc\talk\base\constructormagic.h" />
-    <ClInclude Include="client\webrtc\talk\base\stringutils.h" />
     <ClInclude Include="client\webrtc\talk\base\win32.h" />
     <ClInclude Include="client\webrtc\talk\base\winfirewall.h" />
     <ClInclude Include="client\WildcardsReg.h" />

@@ -271,12 +271,6 @@
     <ClCompile Include="client\webrtc\rtc_base\synchronization\rw_lock_wrapper.cc">
       <Filter>Source Files\webrtc</Filter>
     </ClCompile>
-    <ClCompile Include="client\webrtc\talk\base\stringutils.cc">
-      <Filter>Source Files\webrtc\winfirewall</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\talk\base\win32.cc">
-      <Filter>Source Files\webrtc\winfirewall</Filter>
-    </ClCompile>
     <ClCompile Include="client\webrtc\talk\base\winfirewall.cc">
       <Filter>Source Files\webrtc\winfirewall</Filter>
     </ClCompile>
@@ -780,12 +774,6 @@
     <ClInclude Include="client\webrtc\rtc_base\thread_annotations.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="client\webrtc\talk\base\basictypes.h">
-      <Filter>Source Files\webrtc\winfirewall</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\talk\base\stringutils.h">
-      <Filter>Source Files\webrtc\winfirewall</Filter>
-    </ClInclude>
     <ClInclude Include="client\webrtc\talk\base\win32.h">
       <Filter>Source Files\webrtc\winfirewall</Filter>
     </ClInclude>
@@ -797,15 +785,6 @@
     </ClInclude>
     <ClInclude Include="client\webrtc\rtc_base\synchronization\condition_variable_event_win.h">
       <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\talk\base\byteorder.h">
-      <Filter>Source Files\webrtc\winfirewall</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\talk\base\common.h">
-      <Filter>Source Files\webrtc\winfirewall</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\talk\base\constructormagic.h">
-      <Filter>Source Files\webrtc\winfirewall</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

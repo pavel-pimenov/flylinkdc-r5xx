@@ -833,7 +833,10 @@ class Util
 		
 		static int toInt(const string& aString)
 		{
-			return toInt(aString.c_str());
+			if (aString.empty())
+				return 0;
+			else
+				return toInt(aString.c_str());
 		}
 		
 		static int toInt(const char* aString) // [+] IRainman opt
@@ -843,7 +846,10 @@ class Util
 		
 		static int toInt(const wstring& aString) // [+] IRainman opt
 		{
-			return toInt(aString.c_str());
+			if (aString.empty())
+				return 0;
+			else
+				return toInt(aString.c_str());
 		}
 		
 		static int toInt(const wchar_t* aString) // [+] IRainman opt
@@ -851,9 +857,12 @@ class Util
 			return _wtoi(aString);
 		}
 		
-		static uint32_t toUInt32(const string& str)
+		static uint32_t toUInt32(const string& aString)
 		{
-			return toUInt32(str.c_str());
+			if (aString.empty())
+				return 0;
+			else
+				return toUInt32(aString.c_str());
 		}
 		static uint32_t toUInt32(const char* c)
 		{

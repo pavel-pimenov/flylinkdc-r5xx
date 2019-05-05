@@ -652,8 +652,11 @@ class Identity
 #ifdef FLYLINKDC_USE_EXT_JSON
 	private:
 		bool m_is_ext_json;
+#ifdef FLYLINKDC_USE_CHECK_EXT_JSON
 		string m_lastExtJSON;
+#endif
 	public:
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
 		string getFlyHubCountry() const
 		{
 			return getStringParamExtJSON("F1");
@@ -666,6 +669,7 @@ class Identity
 		{
 			return getStringParamExtJSON("F3");
 		}
+#endif
 		int getGenderType() const
 		{
 			return Util::toInt(getStringParamExtJSON("F4"));

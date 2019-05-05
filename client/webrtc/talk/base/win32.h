@@ -30,40 +30,24 @@
 
 #ifdef WIN32
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-
-// Make sure we don't get min/max macros
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-
-#include <winsock2.h>
-#include <windows.h>
-
-#ifndef SECURITY_MANDATORY_LABEL_AUTHORITY
-// Add defines that we use if we are compiling against older sdks
-#define SECURITY_MANDATORY_MEDIUM_RID               (0x00002000L)
-#define TokenIntegrityLevel static_cast<TOKEN_INFORMATION_CLASS>(0x19)
-typedef struct _TOKEN_MANDATORY_LABEL {
-    SID_AND_ATTRIBUTES Label;
-} TOKEN_MANDATORY_LABEL, *PTOKEN_MANDATORY_LABEL;
-#endif  // SECURITY_MANDATORY_LABEL_AUTHORITY
-
-#undef SetPort
-
 #include <string>
 
-#include "talk/base/stringutils.h"
-#include "talk/base/basictypes.h"
+#if 0 // FlylinkDC++
+//#include "talk/base/stringutils.h"
+//#include "talk/base/basictypes.h"
+#endif
 
 namespace talk_base {
 
+#if 0 // FlylinkDC++
+
 const char* win32_inet_ntop(int af, const void *src, char* dst, socklen_t size);
 int win32_inet_pton(int af, const char* src, void *dst);
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
+
+#define STACK_ARRAY(TYPE, LEN) static_cast<TYPE*>(::alloca((LEN)*sizeof(TYPE)))
 
 inline std::wstring ToUtf16(const char* utf8, size_t len) {
   int len16 = ::MultiByteToWideChar(CP_UTF8, 0, utf8, static_cast<int>(len),
@@ -72,10 +56,11 @@ inline std::wstring ToUtf16(const char* utf8, size_t len) {
   ::MultiByteToWideChar(CP_UTF8, 0, utf8, static_cast<int>(len), ws, len16);
   return std::wstring(ws, len16);
 }
-
 inline std::wstring ToUtf16(const std::string& str) {
-  return ToUtf16(str.data(), str.length());
+    return ToUtf16(str.data(), str.length());
 }
+
+#if 0 // FlylinkDC++
 
 inline std::string ToUtf8(const wchar_t* wide, size_t len) {
   int len8 = ::WideCharToMultiByte(CP_UTF8, 0, wide, static_cast<int>(len),
@@ -137,6 +122,8 @@ inline bool IsCurrentProcessLowIntegrity() {
 }
 
 bool AdjustCurrentProcessPrivilege(const TCHAR* privilege, bool to_enable);
+
+#endif // FlylinkDC++
 
 ///////////////////////////////////////////////////////////////////////////////
 

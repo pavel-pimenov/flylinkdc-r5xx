@@ -491,6 +491,7 @@ bool Identity::isUdpActive() const
 bool Identity::setExtJSON(const string& p_ExtJSON)
 {
 	bool l_result = true;
+#ifdef FLYLINKDC_USE_CHECK_EXT_JSON
 	if (m_lastExtJSON == p_ExtJSON)
 	{
 		l_result = false;
@@ -503,6 +504,7 @@ bool Identity::setExtJSON(const string& p_ExtJSON)
 	{
 		m_lastExtJSON = p_ExtJSON;
 	}
+#endif
 	m_is_ext_json = true;
 	return l_result;
 }
@@ -607,9 +609,9 @@ string Identity::getApplication() const
 
 #ifdef _DEBUG
 
-// #define FLYLINKDC_USE_TEST
+#define FLYLINKDC_USE_TEST
 #ifdef FLYLINKDC_USE_TEST
-FastCriticalSection csTest;
+static FastCriticalSection g_csTest;
 #endif
 
 #endif
@@ -665,10 +667,10 @@ string Identity::getStringParam(const char* name) const // [!] IRainman fix.
 #ifdef FLYLINKDC_USE_TEST
 	{
 		static std::map<short, int> g_cnt;
-		CFlyFastLock(ll(csTest);
-		             auto& j = g_cnt[*(short*)name];
-		             j++;
-		             //if (j % 100 == 0)
+		CFlyFastLock(g_csTest);
+		auto& j = g_cnt[*(short*)name];
+		j++;
+		if (j % 100 == 0)
 		{
 			LogManager::message("Identity::getStringParam = " + string(name) + " count = " + Util::toString(j));
 			//dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! get[%s] = %d \n", name, j);
@@ -797,7 +799,7 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 #ifdef FLYLINKDC_USE_TEST
 	{
 		static std::map<short, int> g_cnt;
-		CFlyFastLock(csTest);
+		CFlyFastLock(g_csTest);
 //	auto& i = g_cnt[*(short*)name];
 //	i++;
 //	if (i % 100 == 0)
@@ -811,7 +813,7 @@ void Identity::setStringParam(const char* name, const string& val) // [!] IRainm
 		if (l_key != "AP" && l_key != "EM" &&  l_key != "DE" &&  l_key != "VE")
 		{
 			//dcdebug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! set[%s] '%s' count = %d sizeof(*this) = %d\n", name, val.c_str(), j, sizeof(*this));
-			LogManager::message("Identity::setStringParam = " + string(name) + " val = " + val);
+			LogManager::message("Identity::setStringParam = " + string(name) + " val = " + val + " count = " + Util::toString(j));
 		}
 	}
 #endif
@@ -1193,10 +1195,11 @@ void Identity::getReport(string& p_report) const
 		appendIfValueNotEmpty("Support info", getExtJSONSupportInfo());
 		appendIfValueNotEmpty("Gender", Text::fromT(getGenderTypeAsString()));
 		
+#ifdef FLYLINKDC_USE_LOCATION_DIALOG
 		appendIfValueNotEmpty("Country", getFlyHubCountry());
 		appendIfValueNotEmpty("City", getFlyHubCity());
 		appendIfValueNotEmpty("ISP", getFlyHubISP());
-		
+#endif
 		appendIfValueNotEmpty("Count files", getExtJSONCountFilesAsText());
 		appendIfValueNotEmpty("Last share", getExtJSONLastSharedDateAsText());
 		appendIfValueNotEmpty("SQLite DB size", getExtJSONSQLiteDBSizeAsText());
