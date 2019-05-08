@@ -193,7 +193,7 @@ void preparingCoreToShutdown() // [+] IRainamn fix.
 	{
 		g_is_first = true;
 		CFlyLog l_log("[Core shutdown]");
-        ClientManager::shutdown();
+		ClientManager::shutdown();
 		SearchManager::getInstance()->disconnect(true);
 		HashManager::getInstance()->shutdown();
 		TimerManager::getInstance()->shutdown();

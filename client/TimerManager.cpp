@@ -113,10 +113,10 @@ int TimerManager::run()
 #ifdef TIMER_MANAGER_DEBUG
 				dcdebug("TimerManagerListener::Hour() with tick=%u\n", t);
 #endif
-                if (!ClientManager::isBeforeShutdown())
-                {
-				fly_fire1(TimerManagerListener::Hour(), t);
-			}
+				if (!ClientManager::isBeforeShutdown())
+				{
+					fly_fire1(TimerManagerListener::Hour(), t);
+				}
 			}
 			// ======================================================
 		}

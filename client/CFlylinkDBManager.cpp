@@ -451,8 +451,8 @@ CFlylinkDBManager::CFlylinkDBManager()
 				
 #ifdef FLYLINKDC_USE_LEVELDB
 				// Тут обязательно полный путь. иначе при смене рабочего каталога levelDB не сомжет открыть базу.
-                const string l_full_path_level_db = Text::fromUtf8(Util::getConfigPath() + "tth-history.leveldb");
-            
+				const string l_full_path_level_db = Text::fromUtf8(Util::getConfigPath() + "tth-history.leveldb");
+				
 				bool l_is_destroy = false;
 				m_TTHLevelDB.open_level_db(l_full_path_level_db, l_is_destroy);
 //				g_TTHLevelDBSize = File::calcFilesSize(l_full_path_level_db, "\\*.*"); // TODO убрать сканирование второе
@@ -5032,33 +5032,33 @@ CFlylinkDBManager::FileStatus CFlylinkDBManager::get_status_file(const TTHValue&
 	if (m_TTHLevelDB.is_open())
 	{
 	
-	string l_status;
-	m_TTHLevelDB.get_value(p_tth, l_status);
-	int l_result = Util::toInt(l_status);
-	dcassert(l_result >= 0 && l_result <= 7);
-	return static_cast<FileStatus>(l_result); // 1 - скачивал, 2 - был в шаре, 3 - 1+2 и то и то, 4- вирусня
+		string l_status;
+		m_TTHLevelDB.get_value(p_tth, l_status);
+		int l_result = Util::toInt(l_status);
+		dcassert(l_result >= 0 && l_result <= 7);
+		return static_cast<FileStatus>(l_result); // 1 - скачивал, 2 - был в шаре, 3 - 1+2 и то и то, 4- вирусня
 	}
 	else
 	{
-	CFlyLock(m_cs);
-	try
-	{
-		m_get_status_file.init(m_flySQLiteDB,
-		                       "select 2 from fly_hash_block where tth=?");
+		CFlyLock(m_cs);
+		try
+		{
+			m_get_status_file.init(m_flySQLiteDB,
+			                       "select 2 from fly_hash_block where tth=?");
 			m_get_status_file->bind(1, p_tth.data, 24, SQLITE_STATIC);
 			sqlite3_reader l_q = m_get_status_file->executereader();
-		int l_result = 0;
-		while (l_q.read())
-		{
-			l_result += l_q.getint(0);
+			int l_result = 0;
+			while (l_q.read())
+			{
+				l_result += l_q.getint(0);
+			}
+			dcassert(l_result >= 0 && l_result <= 3); // [+] IRainman fix.
+			return static_cast<FileStatus>(l_result); // 1 - скачивал, 2 - был в шаре, 3 - 1+2 и то и то :)
 		}
-		dcassert(l_result >= 0 && l_result <= 3); // [+] IRainman fix.
-		return static_cast<FileStatus>(l_result); // 1 - скачивал, 2 - был в шаре, 3 - 1+2 и то и то :)
-	}
-	catch (const database_error& e)
-	{
-		errorDB("SQLite - get_status_file: " + e.getError());
-	}
+		catch (const database_error& e)
+		{
+			errorDB("SQLite - get_status_file: " + e.getError());
+		}
 	}
 	return UNKNOWN;
 #endif // FLYLINKDC_USE_LEVELDB
@@ -5234,7 +5234,7 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 		}
 		l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db, l_count_files, l_size_files);
 	}
-    dcassert(l_count_files != 0);
+	dcassert(l_count_files != 0);
 	if (!l_status.ok())
 	{
 		const auto l_result_error = l_status.ToString();

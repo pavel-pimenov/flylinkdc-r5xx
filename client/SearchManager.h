@@ -78,12 +78,12 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 				void shutdown()
 				{
 					m_is_stop = true;
-                    m_resultList.clear();
+					m_resultList.clear();
 					m_search_semaphore.signal();
 				}
 				void addResult(const string& buf, const boost::asio::ip::address_v4& p_ip4)
 				{
-                    if(m_is_stop == false)
+					if (m_is_stop == false)
 					{
 						CFlyFastLock(m_cs);
 						m_resultList.push_back(make_pair(buf, p_ip4));

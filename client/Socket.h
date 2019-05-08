@@ -86,7 +86,7 @@ class Socket
 			TYPE_TCP = 0, // IPPROTO_TCP
 			TYPE_UDP = 1  // IPPROTO_UDP
 		};
-
+		
 		enum Protocol
 		{
 			PROTO_DEFAULT = 0,
