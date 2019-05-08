@@ -1433,6 +1433,14 @@ int DownloadManager::listen_torrent_port()
 	}
 	return 0;
 }
+int DownloadManager::ssl_listen_torrent_port()
+{
+    if (m_torrent_session)
+    {
+        return m_torrent_session->ssl_listen_port();
+    }
+    return 0;
+}
 bool DownloadManager::set_file_priority(const libtorrent::sha1_hash& p_sha1, const CFlyTorrentFileArray& p_files,
                                         const std::vector<libtorrent::download_priority_t>& p_file_priority, const std::string& p_save_path)
 {
@@ -1644,11 +1652,13 @@ void DownloadManager::init_torrent(bool p_is_force)
 		l_sett.set_bool(settings_pack::enable_natpmp, true);
 		l_sett.set_bool(settings_pack::enable_lsd, true);
 		l_sett.set_bool(settings_pack::enable_dht, true);
+        int l_dht_port = SETTING(DHT_PORT);
+        if (l_dht_port < 1024 || l_dht_port >= 65535)
+            l_dht_port = 8999;
 #ifdef _DEBUG
-		l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:56657");
-#else
-		l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:8999");
+            l_dht_port++;
 #endif
+        l_sett.set_str(settings_pack::listen_interfaces, "0.0.0.0:" + Util::toString(l_dht_port));
 		std::string l_dht_nodes;
 		for (const auto & j : CFlyServerConfig::getTorrentDHTServer())
 		{
