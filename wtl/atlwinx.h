@@ -425,7 +425,7 @@ public:
 	{
 		ATLASSERT(::IsWindow(m_hWnd));
 
-		POINT pt = { 0, 0 };
+		POINT pt = {};
 		::GetCursorPos(&pt);
 		return ::DragDetect(m_hWnd, pt);
 	}

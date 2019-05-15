@@ -864,7 +864,7 @@ public:
 			pT->GetSystemSettings();
 
 			RECT rect = {};
-			GetClientRect(&rect);
+			this->GetClientRect(&rect);
 			pT->DoSize(rect.right, rect.bottom);
 		}
 
@@ -1144,7 +1144,7 @@ public:
 			pT->GetSystemSettings();
 
 			RECT rect = {};
-			GetClientRect(&rect);
+			this->GetClientRect(&rect);
 			pT->DoSize(rect.right, rect.bottom);
 		}
 
@@ -1519,7 +1519,7 @@ public:
 			fZoomScale = m_fZoomScaleMax;
 
 		T* pT = static_cast<T*>(this);
-		POINT pt = {};
+		POINT pt = { 0, 0 };
 		if(bCenter)
 		{
 			RECT rcClient = {};
@@ -1916,7 +1916,7 @@ public:
 			pT->GetSystemSettings();
 
 			RECT rect = {};
-			GetClientRect(&rect);
+			this->GetClientRect(&rect);
 			pT->DoSize(rect.right, rect.bottom);
 		}
 
@@ -2002,7 +2002,7 @@ public:
 				RECT rect = {};
 				m_wndClient.GetWindowRect(&rect);
 				if(((rect.right - rect.left) > 0) && ((rect.bottom - rect.top) > 0))
-					SetScrollSize(rect.right - rect.left, rect.bottom - rect.top, FALSE);
+					this->SetScrollSize(rect.right - rect.left, rect.bottom - rect.top, FALSE);
 			}
 
 			T* pT = static_cast<T*>(this);

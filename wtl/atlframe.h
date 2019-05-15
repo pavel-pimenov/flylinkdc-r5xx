@@ -33,6 +33,7 @@
 // CDynamicUpdateUI<T>
 // CAutoUpdateUI<T>
 // CDialogResize<T>
+// CDynamicDialogLayout<T>
 // CDoubleBufferImpl<T>
 // CDoubleBufferWindowImpl<T, TBase, TWinTraits>
 //
@@ -181,14 +182,51 @@ static WTL::CFrameWndClassInfo& GetWndClassInfo() \
 	return wc; \
 }
 
+// These are for templated classes
+#define DECLARE_FRAME_WND_CLASS2(WndClassName, EnclosingClass, uCommonResourceID) \
+static WTL::CFrameWndClassInfo& GetWndClassInfo() \
+{ \
+	static WTL::CFrameWndClassInfo wc = \
+	{ \
+		{ sizeof(WNDCLASSEX), 0, EnclosingClass::StartWindowProc, \
+		  0, 0, NULL, NULL, NULL, (HBRUSH)(COLOR_WINDOW + 1), NULL, WndClassName, NULL }, \
+		NULL, NULL, IDC_ARROW, TRUE, 0, _T(""), uCommonResourceID \
+	}; \
+	return wc; \
+}
+
+#define DECLARE_FRAME_WND_CLASS_EX2(WndClassName, EnclosingClass, uCommonResourceID, style, bkgnd) \
+static WTL::CFrameWndClassInfo& GetWndClassInfo() \
+{ \
+	static WTL::CFrameWndClassInfo wc = \
+	{ \
+		{ sizeof(WNDCLASSEX), style, EnclosingClass::StartWindowProc, \
+		  0, 0, NULL, NULL, NULL, (HBRUSH)(bkgnd + 1), NULL, WndClassName, NULL }, \
+		NULL, NULL, IDC_ARROW, TRUE, 0, _T(""), uCommonResourceID \
+	}; \
+	return wc; \
+}
+
+#define DECLARE_FRAME_WND_SUPERCLASS2(WndClassName, EnclosingClass, OrigWndClassName, uCommonResourceID) \
+static WTL::CFrameWndClassInfo& GetWndClassInfo() \
+{ \
+	static WTL::CFrameWndClassInfo wc = \
+	{ \
+		{ sizeof(WNDCLASSEX), 0, EnclosingClass::StartWindowProc, \
+		  0, 0, NULL, NULL, NULL, NULL, NULL, WndClassName, NULL }, \
+		OrigWndClassName, NULL, NULL, TRUE, 0, _T(""), uCommonResourceID \
+	}; \
+	return wc; \
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // CFrameWindowImpl
 
 // Client window command chaining macro (only for frame windows)
 #define CHAIN_CLIENT_COMMANDS() \
-	if((uMsg == WM_COMMAND) && (m_hWndClient != NULL)) \
-		::SendMessage(m_hWndClient, uMsg, wParam, lParam);
+	if((uMsg == WM_COMMAND) && (this->m_hWndClient != NULL)) \
+		::SendMessage(this->m_hWndClient, uMsg, wParam, lParam);
 
 // standard toolbar styles
 #define ATL_SIMPLE_TOOLBAR_STYLE \
@@ -229,17 +267,8 @@ template <class TBase = ATL::CWindow, class TWinTraits = ATL::CFrameWinTraits>
 class ATL_NO_VTABLE CFrameWindowImplBase : public ATL::CWindowImplBaseT< TBase, TWinTraits >
 {
 public:
-	// This is instead of DECLARE_FRAME_WND_CLASS(NULL, 0)
-	static CFrameWndClassInfo& GetWndClassInfo()
-	{
-		static CFrameWndClassInfo wc =
-		{
-			{ sizeof(WNDCLASSEX), 0, ATL::CWindowImplBaseT<TBase, TWinTraits >::StartWindowProc,
-			  0, 0, NULL, NULL, NULL, (HBRUSH)(COLOR_WINDOW + 1), NULL, NULL, NULL },
-			NULL, NULL, IDC_ARROW, TRUE, 0, _T(""), 0
-		};
-		return wc;
-	}
+	typedef CFrameWindowImplBase<TBase, TWinTraits >	_thisClass;
+	DECLARE_FRAME_WND_CLASS2(NULL, _thisClass, 0)
 
 	struct _ChevronMenuInfo
 	{
@@ -1130,7 +1159,7 @@ public:
 #define CHAIN_MDI_CHILD_COMMANDS() \
 	if(uMsg == WM_COMMAND) \
 	{ \
-		HWND hWndChild = MDIGetActive(); \
+		HWND hWndChild = this->MDIGetActive(); \
 		if(hWndChild != NULL) \
 			::SendMessage(hWndChild, uMsg, wParam, lParam); \
 	}
@@ -1394,7 +1423,7 @@ public:
 		{
 			// Maximize and redraw everything
 			if(hWnd != NULL)
-				MDIMaximize(hWnd);
+				this->MDIMaximize(hWnd);
 			wndParent.SetRedraw(TRUE);
 			wndParent.RedrawWindow(NULL, NULL, RDW_INVALIDATE | RDW_ALLCHILDREN);
 			::SetFocus(this->GetMDIFrame());   // focus will be set back to this window
@@ -3222,6 +3251,254 @@ public:
 		return true;
 	}
 };
+
+
+///////////////////////////////////////////////////////////////////////////////
+// CDynamicDialogLayout - support for dialog dynamic layout resource info
+//                        (AFX_DIALOG_LAYOUT) in VS2015 and higher
+
+#if (_MSC_VER >= 1900)
+
+template<class T>
+class CDynamicDialogLayout
+{
+public:
+// Data declarations
+	struct _AtlDynamicLayoutData
+	{
+		HWND m_hWnd;
+		char m_nMoveRatioX;
+		char m_nMoveRatioY;
+		char m_nSizeRatioX;
+		char m_nSizeRatioY;
+		RECT m_rcInit;
+	};
+
+// Data members
+	ATL::CSimpleArray<_AtlDynamicLayoutData> m_arrLayoutData;
+	SIZE m_szParentInit;
+	POINT m_ptMinTrackSize;
+	bool m_bGripper;
+
+// Constructor
+	CDynamicDialogLayout() : m_bGripper(false)
+	{
+		m_szParentInit.cx = 0;
+		m_szParentInit.cy = 0;
+		m_ptMinTrackSize.x = -1;
+		m_ptMinTrackSize.y = -1;
+	}
+
+// Methods
+	void InitDynamicLayout(bool bAddGripper = true, bool bMinTrackSize = true)
+	{
+		T* pT = static_cast<T*>(this);
+		ATLASSERT(::IsWindow(pT->m_hWnd));
+
+		// Cleanup in case of multiple initialization
+		// block: first check for the gripper control, destroy it if needed
+		{
+			ATL::CWindow wndGripper = pT->GetDlgItem(ATL_IDW_STATUS_BAR);
+			if(wndGripper.IsWindow() != FALSE)
+				wndGripper.DestroyWindow();
+		}
+		// clear out everything else
+		m_arrLayoutData.RemoveAll();
+		m_ptMinTrackSize.x = -1;
+		m_ptMinTrackSize.y = -1;
+		m_szParentInit.cx = 0;
+		m_szParentInit.cy = 0;
+		m_bGripper = false;
+
+		CResource rcLayout;
+		if(rcLayout.Load(_T("AFX_DIALOG_LAYOUT"), pT->IDD))
+		{
+			int nCount = rcLayout.GetSize() / sizeof(WORD);
+			if(nCount > 1)
+			{
+				RECT rcParent = {};
+				pT->GetWindowRect(&rcParent);
+				m_szParentInit.cx = rcParent.right - rcParent.left;
+				m_szParentInit.cy = rcParent.bottom - rcParent.top;
+
+				WORD* pnData = (WORD*)rcLayout.Lock();
+				WORD wVersion = *pnData;   // AFX_DIALOG_LAYOUT version
+				ATLASSERT(wVersion == 0);
+				if(wVersion == 0)
+				{
+					pnData++;   // skip version
+					ATL::CWindow wndChild = pT->GetWindow(GW_CHILD);
+					for(int i = 0; (i < nCount) && (wndChild.m_hWnd != NULL); i += 4)
+					{
+						char nMoveRatioX = _GetDataPct(pnData[i]);
+						char nMoveRatioY = _GetDataPct(pnData[i + 1]);
+						char nSizeRatioX = _GetDataPct(pnData[i + 2]);
+						char nSizeRatioY = _GetDataPct(pnData[i + 3]);
+
+						bool bValid = ((nMoveRatioX != -1) && (nMoveRatioY != -1) && (nSizeRatioX != -1) && (nSizeRatioY != -1));
+						bool bAction = ((nMoveRatioX != 0) || (nMoveRatioY != 0) || (nSizeRatioX != 0) || (nSizeRatioY != 0));
+						if(bValid && bAction)
+						{
+							_AtlDynamicLayoutData LayoutData = { wndChild.m_hWnd, nMoveRatioX, nMoveRatioY, nSizeRatioX, nSizeRatioY };
+							wndChild.GetWindowRect(&LayoutData.m_rcInit);
+							pT->ScreenToClient(&LayoutData.m_rcInit);
+							m_arrLayoutData.Add(LayoutData);
+						}
+
+						wndChild = wndChild.GetWindow(GW_HWNDNEXT);
+					}
+				}
+
+				rcLayout.Release();
+			}
+		}
+
+		if(bAddGripper)
+		{
+			RECT rcDialog = {};
+			pT->GetClientRect(&rcDialog);
+
+			ATL::CWindow wndGripper = pT->GetDlgItem(ATL_IDW_STATUS_BAR);
+			if(wndGripper.m_hWnd != NULL)
+				wndGripper.DestroyWindow();
+
+			wndGripper.Create(_T("SCROLLBAR"), pT->m_hWnd, rcDialog, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | SBS_SIZEBOX | SBS_SIZEGRIP | SBS_SIZEBOXBOTTOMRIGHTALIGN, 0, ATL_IDW_STATUS_BAR);
+			ATLASSERT(wndGripper.m_hWnd != NULL);
+			if(wndGripper.m_hWnd != NULL)
+			{
+				m_bGripper = true;
+				_AtlDynamicLayoutData LayoutData = { wndGripper.m_hWnd, 100, 100, 0, 0 };
+				wndGripper.GetWindowRect(&LayoutData.m_rcInit);
+				pT->ScreenToClient(&LayoutData.m_rcInit);
+				m_arrLayoutData.Add(LayoutData);
+			}
+		}
+
+		if(bMinTrackSize)
+		{
+			RECT rcMinTrack = {};
+			if((pT->GetStyle() & WS_CHILD) != 0)
+				pT->GetClientRect(&rcMinTrack);
+			else
+				pT->GetWindowRect(&rcMinTrack);
+
+			m_ptMinTrackSize.x = rcMinTrack.right - rcMinTrack.left;
+			m_ptMinTrackSize.y = rcMinTrack.bottom - rcMinTrack.top;
+		}
+	}
+
+	void UpdateDynamicLayout()
+	{
+		T* pT = static_cast<T*>(this);
+		ATLASSERT(::IsWindow(pT->m_hWnd));
+
+		int nCount = m_arrLayoutData.GetSize();
+		if(nCount == 0)
+			return;
+
+		RECT rcParent = {};
+		pT->GetWindowRect(&rcParent);
+
+		int nDeltaWidth = rcParent.right - rcParent.left - m_szParentInit.cx;
+		int nDeltaHeight = rcParent.bottom - rcParent.top - m_szParentInit.cy;
+
+		HDWP hDwp = ::BeginDeferWindowPos(nCount);
+
+		for(int i = 0; i < nCount; i++)
+		{
+			_AtlDynamicLayoutData& LayoutData = m_arrLayoutData[i];
+
+			ATLASSERT(::IsWindow(LayoutData.m_hWnd) != FALSE);
+
+			int nID = ::GetDlgCtrlID(LayoutData.m_hWnd);
+			UINT nFlags = (SWP_NOMOVE | SWP_NOSIZE);
+			RECT rcItem = LayoutData.m_rcInit;
+
+			if(((nID == ATL_IDW_STATUS_BAR) || (nDeltaWidth >= 0)) && (LayoutData.m_nMoveRatioX != 0))
+			{
+				rcItem.left += ::MulDiv(nDeltaWidth, LayoutData.m_nMoveRatioX, 100);
+				rcItem.right += ::MulDiv(nDeltaWidth, LayoutData.m_nMoveRatioX, 100);
+				nFlags &= ~SWP_NOMOVE;
+			}
+
+			if(((nID == ATL_IDW_STATUS_BAR) || (nDeltaHeight >= 0)) && (LayoutData.m_nMoveRatioY != 0))
+			{
+				rcItem.top += ::MulDiv(nDeltaHeight, LayoutData.m_nMoveRatioY, 100);
+				rcItem.bottom += ::MulDiv(nDeltaHeight, LayoutData.m_nMoveRatioY, 100);
+				nFlags &= ~SWP_NOMOVE;
+			}
+
+			if((nDeltaWidth >= 0) && (LayoutData.m_nSizeRatioX != 0))
+			{
+				rcItem.right += ::MulDiv(nDeltaWidth, LayoutData.m_nSizeRatioX, 100);
+				nFlags &= ~SWP_NOSIZE;
+			}
+
+			if((nDeltaHeight >= 0) && (LayoutData.m_nSizeRatioY != 0))
+			{
+				rcItem.bottom += ::MulDiv(nDeltaHeight, LayoutData.m_nSizeRatioY, 100);
+				nFlags &= ~SWP_NOSIZE;
+			}
+
+			if(nFlags != (SWP_NOMOVE | SWP_NOSIZE))
+				::DeferWindowPos(hDwp, LayoutData.m_hWnd, NULL, rcItem.left, rcItem.top, rcItem.right - rcItem.left, rcItem.bottom - rcItem.top, nFlags | SWP_NOZORDER | SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOCOPYBITS);
+		}
+
+		::EndDeferWindowPos(hDwp);
+	}
+
+// Message map and handlers
+	BEGIN_MSG_MAP(CDynamicDialogLayout)
+		MESSAGE_HANDLER(WM_SIZE, OnSize)
+		MESSAGE_HANDLER(WM_GETMINMAXINFO, OnGetMinMaxInfo)
+	END_MSG_MAP()
+
+	LRESULT OnSize(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+	{
+		T* pT = static_cast<T*>(this);
+
+		if(m_bGripper)
+		{
+			ATL::CWindow wndGripper = pT->GetDlgItem(ATL_IDW_STATUS_BAR);
+			if(wndGripper.m_hWnd != NULL)
+			{
+				if(wParam == SIZE_MAXIMIZED)
+					wndGripper.ShowWindow(SW_HIDE);
+				else if(wParam == SIZE_RESTORED)
+					wndGripper.ShowWindow(SW_SHOW);
+			}
+		}
+
+		if(wParam != SIZE_MINIMIZED)
+			pT->UpdateDynamicLayout();
+
+		return 0;
+	}
+
+	LRESULT OnGetMinMaxInfo(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+	{
+		if((m_ptMinTrackSize.x != -1) && (m_ptMinTrackSize.y != -1))
+		{
+			LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
+			lpMMI->ptMinTrackSize =  m_ptMinTrackSize;
+		}
+
+		return 0;
+	}
+
+// Implementation
+	char _GetDataPct(WORD wResData)
+	{
+		ATLASSERT((wResData >= 0) && (wResData <= 100));
+		char nPct = (char)LOBYTE(wResData);
+		if((nPct < 0) || (nPct > 100))
+			nPct = -1;
+
+		return nPct;
+	}
+};
+
+#endif // (_MSC_VER >= 1900)
 
 
 ///////////////////////////////////////////////////////////////////////////////

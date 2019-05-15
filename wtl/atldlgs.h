@@ -1202,6 +1202,9 @@ public:
 			this->_Init(lpszFileName, dwOptions, lpszDefExt, arrFilterSpec, uFilterSpecCount);
 	}
 
+	virtual ~CShellFileOpenDialogImpl()
+	{ }
+
 	IFileOpenDialog* GetPtr()
 	{
 		return m_spFileDlg;
@@ -1220,6 +1223,9 @@ public:
 	                     LPCWSTR lpszDefExt = NULL, 
 	                     const COMDLG_FILTERSPEC* arrFilterSpec = NULL, 
 	                     UINT uFilterSpecCount = 0U) : CShellFileOpenDialogImpl<CShellFileOpenDialog>(lpszFileName, dwOptions, lpszDefExt, arrFilterSpec, uFilterSpecCount)
+	{ }
+
+	virtual ~CShellFileOpenDialog()
 	{ }
 
 // Implementation (remove _Advise/_Unadvise code using template magic)
@@ -1252,6 +1258,9 @@ public:
 			this->_Init(lpszFileName, dwOptions, lpszDefExt, arrFilterSpec, uFilterSpecCount);
 	}
 
+	virtual ~CShellFileSaveDialogImpl()
+	{ }
+
 	IFileSaveDialog* GetPtr()
 	{
 		return m_spFileDlg;
@@ -1270,6 +1279,9 @@ public:
 	                     LPCWSTR lpszDefExt = NULL, 
 	                     const COMDLG_FILTERSPEC* arrFilterSpec = NULL, 
 	                     UINT uFilterSpecCount = 0U) : CShellFileSaveDialogImpl<CShellFileSaveDialog>(lpszFileName, dwOptions, lpszDefExt, arrFilterSpec, uFilterSpecCount)
+	{ }
+
+	virtual ~CShellFileSaveDialog()
 	{ }
 
 // Implementation (remove _Advise/_Unadvise code using template magic)
@@ -3067,6 +3079,9 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // CMemDlgTemplate - in-memory dialog template - DLGTEMPLATE or DLGTEMPLATEEX
 
+// traits suitable for dialog controls
+typedef ATL::CWinTraits<WS_CHILD | WS_VISIBLE, 0>	CDlgControlWinTraits;
+
 template <class TWinTraits>
 class CMemDlgTemplateT
 {
@@ -3334,7 +3349,7 @@ public:
 	}
 };
 
-typedef CMemDlgTemplateT<ATL::CControlWinTraits>	CMemDlgTemplate;
+typedef CMemDlgTemplateT<CDlgControlWinTraits>	CMemDlgTemplate;
 
 
 ///////////////////////////////////////////////////////////////////////////////

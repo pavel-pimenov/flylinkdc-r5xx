@@ -193,7 +193,9 @@ public:
 		UINT fState;
 		int iButton;
 
-		_MenuItemData() { dwMagic = 0x1313; }
+		_MenuItemData() : dwMagic(0x1313), lpstrText(NULL), fType(0U), fState(0U), iButton(0)
+		{ }
+
 		bool IsCmdBarMenuItem() { return (dwMagic == 0x1313); }
 	};
 
@@ -676,7 +678,7 @@ public:
 		}
 		// check bitmap size
 		CBitmapHandle bmp = hBitmap;
-		SIZE size = { 0, 0 };
+		SIZE size = {};
 		bmp.GetSize(size);
 		if((size.cx != m_szBitmap.cx) || (size.cy != m_szBitmap.cy))
 		{
@@ -1360,7 +1362,7 @@ public:
 						ATLASSERT(bRet);
 
 						_MenuItemData* pMI = (_MenuItemData*)mii.dwItemData;
-						if((pMI != NULL) && pMI->IsCmdBarMenuItem())
+						if(_IsValidMem(pMI) && pMI->IsCmdBarMenuItem())
 						{
 							mii.fMask = MIIM_DATA | MIIM_TYPE | MIIM_STATE;
 							mii.fType = pMI->fType;
@@ -1461,7 +1463,7 @@ public:
 				if(!bRet || (mii.fType & MFT_SEPARATOR))
 					continue;
 				_MenuItemData* pmd = (_MenuItemData*)mii.dwItemData;
-				if((pmd != NULL) && pmd->IsCmdBarMenuItem())
+				if(_IsValidMem(pmd) && pmd->IsCmdBarMenuItem())
 				{
 					LPTSTR p = pmd->lpstrText;
 
@@ -1559,7 +1561,7 @@ public:
 	{
 		LPDRAWITEMSTRUCT lpDrawItemStruct = (LPDRAWITEMSTRUCT)lParam;
 		_MenuItemData* pmd = (_MenuItemData*)lpDrawItemStruct->itemData;
-		if((lpDrawItemStruct->CtlType == ODT_MENU) && (pmd != NULL) && pmd->IsCmdBarMenuItem())
+		if((lpDrawItemStruct->CtlType == ODT_MENU) && _IsValidMem(pmd) && pmd->IsCmdBarMenuItem())
 		{
 			T* pT = static_cast<T*>(this);
 			pT->DrawItem(lpDrawItemStruct);
@@ -1575,7 +1577,7 @@ public:
 	{
 		LPMEASUREITEMSTRUCT lpMeasureItemStruct = (LPMEASUREITEMSTRUCT)lParam;
 		_MenuItemData* pmd = (_MenuItemData*)lpMeasureItemStruct->itemData;
-		if((lpMeasureItemStruct->CtlType == ODT_MENU) && (pmd != NULL) && pmd->IsCmdBarMenuItem())
+		if((lpMeasureItemStruct->CtlType == ODT_MENU) && _IsValidMem(pmd) && pmd->IsCmdBarMenuItem())
 		{
 			T* pT = static_cast<T*>(this);
 			pT->MeasureItem(lpMeasureItemStruct);
@@ -2380,7 +2382,7 @@ public:
 	BOOL DrawCheckmark(CDCHandle& dc, const RECT& rc, BOOL bSelected, BOOL bDisabled, BOOL bRadio, HBITMAP hBmpCheck)
 	{
 		// get checkmark bitmap, if none, use Windows standard
-		SIZE size = { 0, 0 };
+		SIZE size = {};
 		CBitmapHandle bmp = hBmpCheck;
 		if(hBmpCheck != NULL)
 		{
@@ -2798,7 +2800,7 @@ public:
 					ATLASSERT(bRet);
 
 					_MenuItemData* pMI = (_MenuItemData*)mii.dwItemData;
-					if((pMI != NULL) && pMI->IsCmdBarMenuItem())
+					if(_IsValidMem(pMI) && pMI->IsCmdBarMenuItem())
 					{
 						mii.fMask = MIIM_DATA | MIIM_TYPE | MIIM_STATE;
 						mii.fType = pMI->fType;
@@ -3204,6 +3206,20 @@ public:
 		}
 	}
 #endif // _WTL_CMDBAR_VISTA_MENUS
+
+// Implementation helper
+	static bool _IsValidMem(void* pMem)
+	{
+		bool bRet = false;
+		if(pMem != NULL)
+		{
+			MEMORY_BASIC_INFORMATION mbi = {};
+			::VirtualQuery(pMem, &mbi, sizeof(MEMORY_BASIC_INFORMATION));
+			bRet = (mbi.BaseAddress != NULL) && ((mbi.Protect & (PAGE_READONLY | PAGE_READWRITE)) != 0);
+		}
+
+		return bRet;
+	}
 };
 
 
@@ -3411,7 +3427,7 @@ public:
 		if(m_hTheme != NULL)
 		{
 			// this is to account for the left non-client area
-			POINT ptOrg = { 0, 0 };
+			POINT ptOrg = {};
 			dc.GetViewportOrg(&ptOrg);
 			dc.SetViewportOrg(ptOrg.x + m_cxLeft, ptOrg.y);
 			::OffsetRect(&rect, -m_cxLeft, 0);

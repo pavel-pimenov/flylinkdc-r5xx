@@ -701,7 +701,7 @@ public:
 			case VK_RIGHT:
 				if(m_bVertical)
 				{
-					POINT pt = { 0, 0 };
+					POINT pt = {};
 					::GetCursorPos(&pt);
 					int xyPos = m_xySplitterPos + ((wParam == VK_LEFT) ? -pT->m_cxyStep : pT->m_cxyStep);
 					int cxyMax = m_rcSplitter.right - m_rcSplitter.left;
@@ -717,7 +717,7 @@ public:
 			case VK_DOWN:
 				if(!m_bVertical)
 				{
-					POINT pt = { 0, 0 };
+					POINT pt = {};
 					::GetCursorPos(&pt);
 					int xyPos = m_xySplitterPos + ((wParam == VK_UP) ? -pT->m_cxyStep : pT->m_cxyStep);
 					int cxyMax = m_rcSplitter.bottom - m_rcSplitter.top;

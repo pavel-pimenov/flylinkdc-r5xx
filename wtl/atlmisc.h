@@ -481,7 +481,6 @@ public:
 		ATLASSERT(m_hFind != NULL);
 
 		ULARGE_INTEGER nFileSize = {};
-
 		if(m_bFound)
 		{
 			nFileSize.LowPart = m_fd.nFileSizeLow;
