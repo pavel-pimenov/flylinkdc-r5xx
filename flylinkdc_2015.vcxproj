@@ -152,12 +152,12 @@
     </PreLinkEvent>
     <Link>
       <AdditionalOptions>/ignore:4099 /FIXED:NO /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>Imagehlp.lib;unicows.lib;SHFolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;msimg32.lib;gdiplus.lib;delayimp.lib;Wininet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Imagehlp.lib;shfolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;gdiplus.lib;delayimp.lib;msimg32.lib;Wininet.lib;shell32.lib;Comdlg32.lib;uxtheme.lib</AdditionalDependencies>
       <OutputFile>$(SolutionDir)compiled\FlylinkDC_Debug.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>C:\Program Files (x86)\Visual Leak Detector\lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>opengl32.lib</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(SolutionDir)compiled\FlylinkDC_Debug.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
@@ -210,12 +210,12 @@
     </PreLinkEvent>
     <Link>
       <AdditionalOptions>/FIXED:NO /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>Imagehlp.lib;SHFolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;msimg32.lib;gdiplus.lib;delayimp.lib;Wininet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Imagehlp.lib;shfolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;gdiplus.lib;delayimp.lib;msimg32.lib;Wininet.lib;shell32.lib;Comdlg32.lib;uxtheme.lib</AdditionalDependencies>
       <OutputFile>$(SolutionDir)compiled\FlylinkDC_Debug_x64.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>opengl32.lib</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(SolutionDir)compiled\FlylinkDC_Debug_x64.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
@@ -272,14 +272,14 @@
     </PreLinkEvent>
     <Link>
       <AdditionalOptions>/ignore:4099 /FIXED:NO /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>Imagehlp.lib;shfolder.lib;unicows.lib;ws2_32.lib;winmm.lib;powrprof.lib;gdiplus.lib;delayimp.lib;msimg32.lib;Wininet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Imagehlp.lib;shfolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;gdiplus.lib;delayimp.lib;msimg32.lib;Wininet.lib;shell32.lib;Comdlg32.lib;uxtheme.lib</AdditionalDependencies>
       <OutputFile>$(SolutionDir)compiled\FlylinkDC.exe</OutputFile>
       <Version>
       </Version>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>C:\Program Files (x86)\Visual Leak Detector\lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>opengl32.lib</IgnoreSpecificDefaultLibraries>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(SolutionDir)compiled\FlylinkDC.pdb</ProgramDatabaseFile>
@@ -350,14 +350,14 @@
     </PreLinkEvent>
     <Link>
       <AdditionalOptions>/FIXED:NO /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>Imagehlp.lib;shfolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;gdiplus.lib;delayimp.lib;msimg32.lib;Wininet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Imagehlp.lib;shfolder.lib;ws2_32.lib;winmm.lib;powrprof.lib;gdiplus.lib;delayimp.lib;msimg32.lib;Wininet.lib;shell32.lib;Comdlg32.lib;uxtheme.lib</AdditionalDependencies>
       <OutputFile>$(SolutionDir)compiled\FlylinkDC_x64.exe</OutputFile>
       <Version>
       </Version>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>opengl32.lib</IgnoreSpecificDefaultLibraries>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(SolutionDir)compiled\FlylinkDC_x64.pdb</ProgramDatabaseFile>
@@ -370,7 +370,7 @@
       <SetChecksum>true</SetChecksum>
       <TargetMachine>MachineX64</TargetMachine>
       <ShowProgress>NotSet</ShowProgress>
-      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <Profile>true</Profile>
     </Link>
     <Manifest>
@@ -589,6 +589,7 @@
     <ClInclude Include="windows\ListViewArrows.h" />
     <ClInclude Include="windows\LogPage.h" />
     <ClInclude Include="windows\MagnetDlg.h" />
+    <ClInclude Include="windows\main.h" />
     <ClInclude Include="windows\MainFrm.h" />
     <ClInclude Include="windows\MessagePanel.h" />
     <ClInclude Include="windows\MessagesChatPage.h" />
@@ -701,6 +702,7 @@
     <Image Include="res\clock.ico" />
     <Image Include="res\firewall.ico" />
     <Image Include="res\Gender.png" />
+    <Image Include="res\icon1.ico" />
     <Image Include="res\ISPImages.png" />
     <Image Include="res\medical_bag.ico" />
     <Image Include="res\mode_active.ico" />
@@ -719,15 +721,18 @@
     <Image Include="res\TransferTree.png" />
     <Image Include="res\vip_adrenalin.ico" />
     <Image Include="res\vip_allavtovo.ico" />
+    <Image Include="res\vip_a_galaxy.ico" />
     <Image Include="res\vip_eva.ico" />
     <Image Include="res\vip_godc.ico" />
     <Image Include="res\vip_hmn_pp.ico" />
+    <Image Include="res\vip_kcahdep.ico" />
     <Image Include="res\vip_keepclear_org.ico" />
     <Image Include="res\vip_korobka.ico" />
     <Image Include="res\vip_milenahub.ico" />
     <Image Include="res\vip_millennium.ico" />
     <Image Include="res\vip_nsk154hub.ico" />
     <Image Include="res\vip_perseus.ico" />
+    <Image Include="res\vip_piter.ico" />
     <Image Include="res\vip_prime.ico" />
     <Image Include="res\vip_prostoigra24.ico" />
     <Image Include="res\vip_scalolaz.ico" />

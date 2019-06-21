@@ -80,7 +80,7 @@ vc17
 *.pdb
 *.db-shm
 *.db-wal
-.suo
+*.suo
 merge-vendors.bat
 
 /lua/ARM64/Debug

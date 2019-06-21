@@ -232,120 +232,6 @@
     <ClCompile Include="client\CFlyProfiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="leveldb\db\builder.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\db\c.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\db\db_impl.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\db\db_iter.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\db\dbformat.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\db\filename.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\db\log_reader.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\db\log_writer.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\db\memtable.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\db\repair.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\db\table_cache.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\db\version_edit.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\db\version_set.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\db\write_batch.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\helpers\memenv\memenv.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\port\port_win.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\table\block.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\table\block_builder.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\table\filter_block.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\table\format.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\table\iterator.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\table\merger.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\table\table.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\table\table_builder.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\table\two_level_iterator.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\util\arena.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\util\bloom.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\util\cache.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\util\coding.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\util\comparator.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\util\crc32c.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\util\env.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\util\env_win.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\util\filter_policy.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\util\hash.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\util\histogram.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\util\leveldb_logging.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\util\status.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
     <ClCompile Include="client\StringPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -355,44 +241,8 @@
     <ClCompile Include="client\CFlyUserRatioInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\file_impl.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock_win.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\sleep.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\trace_impl.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\trace_win.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\condition_variable_event_win.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
     <ClCompile Include="client\TaskQueue.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="leveldb\util\leveldb_options.cc">
-      <Filter>Source Files\leveldb</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\talk\base\logging.cc">
-      <Filter>Source Files\webrtc\talk</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\talk\base\win32.cc">
-      <Filter>Source Files\webrtc\talk</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\talk\base\winfirewall.cc">
-      <Filter>Source Files\webrtc\talk</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\talk\base\stringutils.cc">
-      <Filter>Source Files\webrtc\talk</Filter>
     </ClCompile>
     <ClCompile Include="client\GPGPUManager.cpp">
       <Filter>Source Files</Filter>
@@ -406,26 +256,29 @@
     <ClCompile Include="client\CFlyLockProfiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\webrtc\base\criticalsection.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\base\checks.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\system_wrappers\source\rw_lock_winxp_win.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\base\platform_thread.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="client\webrtc\base\thread_checker_impl.cc">
-      <Filter>Source Files\webrtc</Filter>
-    </ClCompile>
     <ClCompile Include="client\TransferData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="jsoncpp\jsoncpp.cpp">
       <Filter>Source Files\jsoncpp</Filter>
+    </ClCompile>
+    <ClCompile Include="client\zip\zip.c">
+      <Filter>Source Files\mzip</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\rtc_base\synchronization\rw_lock_win.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\rtc_base\synchronization\rw_lock_wrapper.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\talk\base\winfirewall.cc">
+      <Filter>Source Files\webrtc\winfirewall</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\rtc_base\synchronization\rw_lock_winxp_win.cc">
+      <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\webrtc\rtc_base\synchronization\condition_variable_event_win.cc">
+      <Filter>Source Files\webrtc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -807,150 +660,6 @@
     <ClInclude Include="client\UserInfoColumns.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="leveldb\util\arena.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\util\coding.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\util\crc32c.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\util\hash.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\util\histogram.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\util\logging.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\util\mutexlock.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\util\posix_logger.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\util\random.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\util\testharness.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\util\testutil.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\table\block.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\table\block_builder.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\table\filter_block.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\table\format.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\table\iterator_wrapper.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\table\merger.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\table\two_level_iterator.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\port\port_win.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\include\leveldb\c.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\include\leveldb\cache.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\include\leveldb\comparator.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\include\leveldb\db.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\include\leveldb\env.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\include\leveldb\filter_policy.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\include\leveldb\iterator.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\include\leveldb\options.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\include\leveldb\slice.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\include\leveldb\status.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\include\leveldb\table.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\include\leveldb\table_builder.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\include\leveldb\write_batch.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\helpers\memenv\memenv.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\builder.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\db_impl.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\db_iter.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\dbformat.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\filename.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\log_format.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\log_reader.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\log_writer.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\memtable.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\skiplist.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\snapshot.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\table_cache.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\version_edit.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\version_set.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\db\write_batch_internal.h">
-      <Filter>Header Files\leveldb</Filter>
-    </ClInclude>
     <ClInclude Include="client\AdcSupports.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -959,75 +668,6 @@
     </ClInclude>
     <ClInclude Include="client\CFlyUserRatioInfo.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\common_types.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_posix.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\condition_variable_wrapper.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\critical_section_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\critical_section_wrapper.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\event_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\event_wrapper.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\file_impl.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\file_wrapper.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\fix_interlocked_exchange_pointer_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\rw_lock_wrapper.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\set_thread_name_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\sleep.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\static_instance.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\thread_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\thread_wrapper.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\trace.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\trace_impl.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\trace_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\include\typedefs.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="leveldb\port\win\leveldb_stdint.h">
-      <Filter>Header Files\leveldb</Filter>
     </ClInclude>
     <ClInclude Include="client\GPGPUManager.h">
       <Filter>Header Files</Filter>
@@ -1043,27 +683,6 @@
     </ClInclude>
     <ClInclude Include="client\dcformat.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\base\criticalsection.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\system_wrappers\source\rw_lock_winxp_win.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\base\platform_thread.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\base\thread_checker.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\base\thread_checker_impl.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\common_types.h">
-      <Filter>Source Files\webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="client\webrtc\typedefs.h">
-      <Filter>Source Files\webrtc</Filter>
     </ClInclude>
     <ClInclude Include="client\CFlySearchItemTTH.h">
       <Filter>Header Files</Filter>
@@ -1146,6 +765,27 @@
     <ClInclude Include="client\zip\zip.h">
       <Filter>Header Files\zip</Filter>
     </ClInclude>
+    <ClInclude Include="client\webrtc\rtc_base\synchronization\rw_lock_win.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\rtc_base\synchronization\rw_lock_wrapper.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\rtc_base\thread_annotations.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\talk\base\win32.h">
+      <Filter>Source Files\webrtc\winfirewall</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\talk\base\winfirewall.h">
+      <Filter>Source Files\webrtc\winfirewall</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\rtc_base\synchronization\rw_lock_winxp_win.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="client\webrtc\rtc_base\synchronization\condition_variable_event_win.h">
+      <Filter>Source Files\webrtc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -1163,9 +803,6 @@
     <Filter Include="Source Files\idna">
       <UniqueIdentifier>{14c6f065-8e7e-4320-90bb-3c457151c8da}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\idna">
-      <UniqueIdentifier>{21e47374-4f41-47f1-b223-45719142797d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\jsoncpp">
       <UniqueIdentifier>{1939ab80-b10d-48d1-a1ee-ceb30dfe0622}</UniqueIdentifier>
     </Filter>
@@ -1178,17 +815,8 @@
     <Filter Include="Header Files\dbmanager">
       <UniqueIdentifier>{106869dc-2d96-4e8e-80d9-80880a08ae18}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\leveldb">
-      <UniqueIdentifier>{5b59962a-56df-480f-b25d-2becdf0e1ce2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\leveldb">
-      <UniqueIdentifier>{d23b4909-e5c2-4012-8823-963a17f2b9e8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\webrtc">
       <UniqueIdentifier>{634734c1-c671-4cbd-877a-3a51a43bf950}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\webrtc\talk">
-      <UniqueIdentifier>{b7f6ee81-2431-4ce9-805e-d9aa59c8a651}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\syslog">
       <UniqueIdentifier>{dffc505f-b950-4afe-b0c9-fc5b67a232a0}</UniqueIdentifier>
@@ -1201,6 +829,12 @@
     </Filter>
     <Filter Include="Header Files\zip">
       <UniqueIdentifier>{84323aa5-4f68-4fa2-bdee-e193b3129271}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\idna">
+      <UniqueIdentifier>{21e47374-4f41-47f1-b223-45719142797d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\webrtc\winfirewall">
+      <UniqueIdentifier>{0a9b9c7d-d2b4-46c9-bb4a-e950fda8eeaa}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
