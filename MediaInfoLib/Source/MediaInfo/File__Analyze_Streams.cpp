@@ -1011,6 +1011,28 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, size_t Paramete
         }
     }
 
+    if (StreamKind==Stream_Other && Parameter==Other_FrameRate)
+    {
+        Clear(StreamKind, StreamPos, Other_FrameRate_Num);
+        Clear(StreamKind, StreamPos, Other_FrameRate_Den);
+
+        if (Value)
+        {
+            if (float32_int32s(Value) - Value*1.001000 > -0.000002
+             && float32_int32s(Value) - Value*1.001000 < +0.000002) // Detection of precise 1.001 (e.g. 24000/1001) taking into account precision of 32-bit float
+            {
+                Fill(StreamKind, StreamPos, Other_FrameRate_Num,  Value*1001, 0, Replace);
+                Fill(StreamKind, StreamPos, Other_FrameRate_Den,   1001, 10, Replace);
+            }
+            if (float32_int32s(Value) - Value*1.001001 > -0.000002
+             && float32_int32s(Value) - Value*1.001001 < +0.000002) // Detection of rounded 1.001 (e.g. 23976/1000) taking into account precision of 32-bit float
+            {
+                Fill(StreamKind, StreamPos, Other_FrameRate_Num,  Value*1000, 0, Replace);
+                Fill(StreamKind, StreamPos, Other_FrameRate_Den,   1000, 10, Replace);
+            }
+        }
+    }
+
     Fill(StreamKind, StreamPos, Parameter, Ztring::ToZtring(Value, AfterComma), Replace);
 }
 
@@ -1674,23 +1696,23 @@ size_t File__Analyze::Merge(File__Analyze &ToAdd, stream_t StreamKind, size_t St
         static audio AudioField[4]={ Audio_Channel_s_, Audio_ChannelLayout, Audio_ChannelPositions, Audio_ChannelPositions_String2 };
         for (size_t i=0; i<4; i++)
             if (!Channels_Temp[i].empty())
-        {
-            //Test with legacy streams information
-                bool IsOk=(Channels_Temp[i]==Retrieve(Stream_Audio, StreamPos_To, AudioField[i]));
-            if (!IsOk)
             {
-                ZtringList Temp; Temp.Separator_Set(0, __T(" / "));
+                //Test with legacy streams information
+                bool IsOk=(Channels_Temp[i]==Retrieve(Stream_Audio, StreamPos_To, AudioField[i]));
+                if (!IsOk)
+                {
+                    ZtringList Temp; Temp.Separator_Set(0, __T(" / "));
                     Temp.Write(Retrieve(Stream_Audio, StreamPos_To, AudioField[i]));
-                for (size_t Pos=0; Pos<Temp.size(); Pos++)
+                    for (size_t Pos=0; Pos<Temp.size(); Pos++)
                         if (Channels_Temp[i]==Temp[Pos])
-                        IsOk=true;
-            }
+                            IsOk=true;
+                }
 
-            //Special case with AES3: wrong container information is accepted
-            if (!IsOk && Retrieve(Stream_Audio, StreamPos_To, Audio_MuxingMode).find(__T("SMPTE ST 337"))!=string::npos)
-                IsOk=true;
+                //Special case with AES3: wrong container information is accepted
+                if (!IsOk && Retrieve(Stream_Audio, StreamPos_To, Audio_MuxingMode).find(__T("SMPTE ST 337"))!=string::npos)
+                    IsOk=true;
 
-            if (!IsOk)
+                if (!IsOk)
                     IsOkGlobal=false;
             }
 
@@ -1706,7 +1728,7 @@ size_t File__Analyze::Merge(File__Analyze &ToAdd, stream_t StreamKind, size_t St
                         Fill(Stream_Audio, StreamPos_To, Original.c_str(), (*Stream)[Stream_Audio][StreamPos_To][AudioField[i]], true);
                         Fill_SetOptions(Stream_Audio, StreamPos_To, Original.c_str(), Retrieve_Const(Stream_Audio, StreamPos_To, AudioField[i], Info_Options).To_UTF8().c_str());
                         Fill(Stream_Audio, StreamPos_To, AudioField[i], Channels_Temp[i], true);
-        }
+                    }
     }
     if (!Delay_Source_Temp.empty() && Delay_Source_Temp!=Retrieve(StreamKind, StreamPos_To, "Delay_Source"))
     {

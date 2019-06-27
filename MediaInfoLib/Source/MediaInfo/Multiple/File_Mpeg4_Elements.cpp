@@ -4819,6 +4819,8 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_tmcd()
             Streams[moov_trak_tkhd_TrackID].StreamKind=Stream_Other;
             Streams[moov_trak_tkhd_TrackID].StreamPos=StreamPos_Last;
         }
+        if (tc->FrameDuration)
+            Fill(Stream_Other, StreamPos_Last, Other_FrameRate, ((float64)tc->TimeScale)/tc->FrameDuration);
 
         //Filling
         Streams[moov_trak_tkhd_TrackID].TimeCode=tc;
@@ -5404,7 +5406,7 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxxSound()
         if (SampleSize!=0 && Element_Code!=0x6D703461 && (Element_Code&0xFFFF0000)!=0x6D730000 && Retrieve(Stream_Audio, StreamPos_Last, Audio_BitDepth).empty()) //if not mp4a, and not ms*
             Fill(Stream_Audio, StreamPos_Last, Audio_BitDepth, SampleSize, 10, true);
         if (SampleRate)
-        Fill(Stream_Audio, StreamPos_Last, Audio_SamplingRate, SampleRate, 10, true);
+            Fill(Stream_Audio, StreamPos_Last, Audio_SamplingRate, SampleRate, 10, true);
 
         //Sometimes, more Atoms in this atoms
         if (Element_Offset+8<Element_Size)

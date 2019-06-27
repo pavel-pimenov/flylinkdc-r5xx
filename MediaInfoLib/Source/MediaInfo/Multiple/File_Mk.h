@@ -230,7 +230,7 @@ private :
     void Segment_Tracks_TrackEntry_Video_Projection_ProjectionPoseYaw(){Float_Info();};
     void Segment_Tracks_TrackEntry_Video_Projection_ProjectionPosePitch(){Float_Info();};
     void Segment_Tracks_TrackEntry_Video_Projection_ProjectionPoseRoll(){Float_Info();};
-    void Segment_Tracks_TrackEntry_Audio(){};
+    void Segment_Tracks_TrackEntry_Audio();
     void Segment_Tracks_TrackEntry_Audio_SamplingFrequency();
     void Segment_Tracks_TrackEntry_Audio_OutputSamplingFrequency();
     void Segment_Tracks_TrackEntry_Audio_Channels();
@@ -423,6 +423,7 @@ private :
     int8u*   CodecPrivate;
     size_t   CodecPrivate_Size;
     void     CodecPrivate_Manage();
+    void     Audio_Manage();
     Ztring   CodecID;
     infocodecid_format_t InfoCodecID_Format_Type;
     void     CodecID_Manage();
@@ -524,13 +525,13 @@ private :
             int8u*      Buffer;
             size_t      Size;
 
-            //mask(); //Init done in rawcookedtrack() in 1 shot
+            mask() :Buffer(nullptr), Size(0) {}
             ~mask()
             {
                 delete[] Buffer;
             }
         };
-        int64u          FramePos;
+        int64u          FramePos=0;
         mask            MaskBaseFileName;
         mask            MaskBaseBeforeData;
 
