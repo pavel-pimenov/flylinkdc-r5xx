@@ -8,8 +8,8 @@
    This file is part of bzip2/libbzip2, a program and library for
    lossless, block-sorting data compression.
 
-   bzip2/libbzip2 version 1.0.6 of 6 September 2010
-   Copyright (C) 1996-2010 Julian Seward <jseward@bzip.org>
+   bzip2/libbzip2 version 1.0.7 of 27 June 2019
+   Copyright (C) 1996-2010 Julian Seward <jseward@acm.org>
 
    Please read the WARNING, DISCLAIMER and PATENTS sections in the 
    README file.
@@ -36,17 +36,15 @@
 
 /*-- General stuff. --*/
 
-#define BZ_VERSION  "1.0.6, 6-Sept-2010"
+#define BZ_VERSION  "1.0.7, 27-Jun-2019"
 
-//[!]IRainman
-typedef signed __int8		Char;
-typedef unsigned __int8		Bool;
-typedef unsigned __int8		UChar;
-typedef signed __int32		Int32;
-typedef unsigned __int32	UInt32;
-typedef signed __int16		Int16;
-typedef unsigned __int16	UInt16;
-//[~]IRainman
+typedef char            Char;
+typedef unsigned char   Bool;
+typedef unsigned char   UChar;
+typedef int             Int32;
+typedef unsigned int    UInt32;
+typedef short           Int16;
+typedef unsigned short  UInt16;
 
 #define True  ((Bool)1)
 #define False ((Bool)0)
