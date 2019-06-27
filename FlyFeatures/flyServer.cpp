@@ -1097,6 +1097,9 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 							{
 								boost::replace_all(p_search_url, p_search_url.substr(0,j+1), l_url_mirror);
 								l_count_mirror++;
+#ifdef _DEBUG
+                                LogManager::message("l_url_mirror = " + l_url_mirror);
+#endif
 								continue;
 							}
 						}
@@ -1259,7 +1262,7 @@ bool CFlyServerConfig::torrentGetTop(HWND p_wnd, int p_message)
 				if (l_root_torrent_url_top.empty())
 					continue;
 #ifdef _DEBUG
-				//l_log.log("Load torrent RSS" + l_root_torrent_url_top);
+                LogManager::message("Load torrent RSS" + l_root_torrent_url_top);
 #endif
 				if (l_page_limit_local == 0)
 					l_page_limit_local = l_page_limit_global;
@@ -1268,7 +1271,7 @@ bool CFlyServerConfig::torrentGetTop(HWND p_wnd, int p_message)
 					int l_num_page = 0;
 					string l_search_url = l_root_torrent_url_top;
 #ifdef _DEBUG
-						//LogManager::message("l_url = [page = " + Util::toString(l_num_page) + "] " + l_search_result + " l_agent = " + l_agent + " l_agent_global = " + l_agent);
+						LogManager::message("l_url = [page = " + Util::toString(l_num_page) + "] " + l_search_url + " l_agent = " + l_agent + " l_agent_global = " + l_agent);
 #endif
 						if (l_search_url.empty())
 							break;

@@ -392,7 +392,7 @@ void UserConnection::connect(const string& aServer, uint16_t aPort, uint16_t loc
 	socket->addListener(this);
 	const bool l_is_AllowUntrusred = BOOLSETTING(ALLOW_UNTRUSTED_CLIENTS);
 	const bool l_is_secure = isSet(FLAG_SECURE);
-	socket->connect(aServer, aPort, localPort, natRole, l_is_secure, l_is_AllowUntrusred, true);
+	socket->connect(aServer, aPort, localPort, natRole, l_is_secure, l_is_AllowUntrusred, true, Socket::PROTO_DEFAULT);
 }
 
 void UserConnection::accept(const Socket& aServer)

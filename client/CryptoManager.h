@@ -25,6 +25,7 @@
 
 #include "Exception.h"
 #include "Singleton.h"
+#include "Socket.h"
 
 #include <openssl/ssl.h>
 
@@ -91,6 +92,8 @@ typedef scoped_handle<X509_NAME, X509_NAME_free> X509_NAME;
 
 STANDARD_EXCEPTION(CryptoException);
 
+class SSLSocket;
+
 class CryptoManager : public Singleton<CryptoManager>
 {
 	public:
@@ -127,6 +130,9 @@ class CryptoManager : public Singleton<CryptoManager>
 		}
 		
 		void decodeBZ2(const uint8_t* is, unsigned int sz, string& os);
+
+        SSLSocket* getClientSocket(bool allowUntrusted, Socket::Protocol proto);
+        SSLSocket* getServerSocket(bool allowUntrusted);
 		
 		SSL_CTX* getSSLContext(SSLContext wanted);
 		
@@ -153,6 +159,8 @@ class CryptoManager : public Singleton<CryptoManager>
 		ssl::SSL_CTX clientContext;
 		ssl::SSL_CTX clientALPNContext;
 		ssl::SSL_CTX serverContext;
+        ssl::SSL_CTX serverALPNContext;
+
 		
 		void sslRandCheck();
 		

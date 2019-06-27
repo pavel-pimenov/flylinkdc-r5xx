@@ -29,8 +29,9 @@
 #include <openssl/bn.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
-
 #include <bzlib.h>
+
+#include "SSLSocket.h"
 
 void* CryptoManager::g_tmpKeysMap[KEY_LAST] = { NULL, NULL, NULL };
 CriticalSection* CryptoManager::cs = NULL;
@@ -40,11 +41,6 @@ CryptoManager::SSLVerifyData CryptoManager::trustedKeyprint = { false, "trusted_
 bool CryptoManager::certsLoaded = false;
 ByteVector CryptoManager::keyprint;
 static CriticalSection g_cs;
-
-unsigned char alpn_protos[] = {
-	3, 'a', 'd', 'c',
-	4, 'n', 'm', 'd', 'c',
-};
 
 CryptoManager::CryptoManager()
 	:
@@ -62,10 +58,11 @@ CryptoManager::CryptoManager()
 	clientContext.reset(SSL_CTX_new(SSLv23_client_method()));
 	clientALPNContext.reset(SSL_CTX_new(SSLv23_client_method()));
 	serverContext.reset(SSL_CTX_new(SSLv23_server_method()));
-	
+    serverALPNContext.reset(SSL_CTX_new(SSLv23_server_method()));
+
 	idxVerifyData = SSL_get_ex_new_index(0, idxVerifyDataName, NULL, NULL, NULL);
 	
-	if (clientContext && clientALPNContext && serverContext)
+	if (clientContext && clientALPNContext && serverContext && serverALPNContext)
 	{
 		// Check that openssl rng has been seeded with enough data
 		sslRandCheck();
@@ -81,27 +78,37 @@ CryptoManager::CryptoManager()
 		SSL_CTX_set_cipher_list(clientALPNContext, ciphersuites);
 		SSL_CTX_set1_curves_list(clientALPNContext, "P-256");
 		SSL_CTX_set_options(serverContext, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
-		SSL_CTX_set_cipher_list(serverContext, ciphersuites);
-		SSL_CTX_set1_curves_list(serverContext, "P-256");
+        SSL_CTX_set_options(serverALPNContext, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
+        SSL_CTX_set_cipher_list(serverALPNContext, ciphersuites);
+        SSL_CTX_set_cipher_list(serverContext, ciphersuites);
+        SSL_CTX_set1_curves_list(serverContext, "P-256");
+
 		
 		EC_KEY* tmp_ecdh;
 		if ((tmp_ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1)) != NULL)
 		{
 			SSL_CTX_set_options(serverContext, SSL_OP_SINGLE_ECDH_USE);
 			SSL_CTX_set_tmp_ecdh(serverContext, tmp_ecdh);
-			
+            SSL_CTX_set_options(serverALPNContext, SSL_OP_SINGLE_ECDH_USE);
+            SSL_CTX_set_tmp_ecdh(serverALPNContext, tmp_ecdh);
+
 			EC_KEY_free(tmp_ecdh);
 		}
 		
 		SSL_CTX_set_tmp_dh_callback(serverContext, CryptoManager::tmp_dh_cb);
 		SSL_CTX_set_tmp_rsa_callback(serverContext, CryptoManager::tmp_rsa_cb);
+
+        SSL_CTX_set_tmp_dh_callback(serverALPNContext, CryptoManager::tmp_dh_cb);
+        SSL_CTX_set_tmp_rsa_callback(serverALPNContext, CryptoManager::tmp_rsa_cb);
+        
 		
 		SSL_CTX_set_verify(clientContext, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback);
 		SSL_CTX_set_verify(clientALPNContext, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback);
-		SSL_CTX_set_verify(serverContext, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback);
-		
-		SSL_CTX_set_alpn_protos(clientALPNContext, alpn_protos, sizeof(alpn_protos));
-	}
+
+        SSL_CTX_set_verify(serverContext, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback);
+        SSL_CTX_set_verify(serverALPNContext, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback);
+
+    }
 }
 void CryptoManager::initTmpKeyMaps()
 {
@@ -154,6 +161,7 @@ CryptoManager::~CryptoManager()
 	clientContext.reset();
 	clientALPNContext.reset();
 	serverContext.reset();
+    serverALPNContext.reset();
 	
 	freeTmpKeyMaps();
 	
@@ -597,8 +605,11 @@ void CryptoManager::generateCertificate()
 
 void CryptoManager::loadCertificates() noexcept
 {
-	if (!BOOLSETTING(USE_TLS) || !clientContext || !clientALPNContext || !serverContext)
-		return;
+    if (!BOOLSETTING(USE_TLS) || !clientContext || !clientALPNContext || !serverContext || !serverALPNContext)
+    {
+        dcassert(0);
+        return;
+    }
 		
 	const string& cert = SETTING(TLS_CERTIFICATE_FILE);
 	const string& key = SETTING(TLS_PRIVATE_KEY_FILE);
@@ -629,7 +640,8 @@ void CryptoManager::loadCertificates() noexcept
 	
 	if (
 	    SSL_CTX_use_certificate_file(serverContext, cert.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS ||
-	    SSL_CTX_use_certificate_file(clientALPNContext, cert.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS ||
+        SSL_CTX_use_certificate_file(serverALPNContext, cert.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS ||
+        SSL_CTX_use_certificate_file(clientALPNContext, cert.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS ||
 	    SSL_CTX_use_certificate_file(clientContext, cert.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS
 	)
 	{
@@ -639,7 +651,8 @@ void CryptoManager::loadCertificates() noexcept
 	
 	if (
 	    SSL_CTX_use_PrivateKey_file(serverContext, key.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS ||
-	    SSL_CTX_use_PrivateKey_file(clientALPNContext, key.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS ||
+        SSL_CTX_use_PrivateKey_file(serverALPNContext, key.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS ||
+        SSL_CTX_use_PrivateKey_file(clientALPNContext, key.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS ||
 	    SSL_CTX_use_PrivateKey_file(clientContext, key.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS
 	)
 	{
@@ -656,8 +669,9 @@ void CryptoManager::loadCertificates() noexcept
 		if (
 		    SSL_CTX_load_verify_locations(clientContext, i.c_str(), NULL) != SSL_SUCCESS ||
 		    SSL_CTX_load_verify_locations(clientALPNContext, i.c_str(), NULL) != SSL_SUCCESS ||
-		    SSL_CTX_load_verify_locations(serverContext, i.c_str(), NULL) != SSL_SUCCESS
-		)
+		    SSL_CTX_load_verify_locations(serverContext, i.c_str(), NULL) != SSL_SUCCESS ||
+            SSL_CTX_load_verify_locations(serverALPNContext, i.c_str(), NULL) != SSL_SUCCESS
+            )
 		{
 			LogManager::message("Failed to load trusted certificate from " + i);
 		}
@@ -784,6 +798,12 @@ SSL_CTX* CryptoManager::getSSLContext(SSLContext wanted)
 		default:
 			return NULL;
 	}
+}
+SSLSocket* CryptoManager::getClientSocket(bool allowUntrusted, Socket::Protocol proto) {
+    return new SSLSocket(allowUntrusted ? clientContext : clientALPNContext, proto);
+}
+SSLSocket* CryptoManager::getServerSocket(bool allowUntrusted) {
+    return new SSLSocket(allowUntrusted ? serverContext : serverALPNContext, Socket::PROTO_DEFAULT);
 }
 
 void CryptoManager::decodeBZ2(const uint8_t* is, unsigned int sz, string& os)

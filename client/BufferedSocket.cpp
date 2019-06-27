@@ -158,15 +158,21 @@ uint16_t BufferedSocket::accept(const Socket& srv, bool secure, bool allowUntrus
 	return ret;
 }
 
-void BufferedSocket::connect(const string& aAddress, uint16_t aPort, bool secure, bool allowUntrusted, bool proxy, const string& expKP /*= Util::emptyString*/)
+void BufferedSocket::connect(const string& aAddress, uint16_t aPort, bool secure, bool allowUntrusted, bool proxy,
+    Socket::Protocol p_proto, const string& expKP /*= Util::emptyString*/)
 {
-	connect(aAddress, aPort, 0, NAT_NONE, secure, allowUntrusted, proxy, expKP);
+	connect(aAddress, aPort, 0, NAT_NONE, secure, allowUntrusted, proxy, p_proto, expKP);
 }
 
-void BufferedSocket::connect(const string& aAddress, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool secure, bool allowUntrusted, bool proxy, const string& expKP /*= Util::emptyString*/)
+void BufferedSocket::connect(const string& aAddress, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool secure, bool allowUntrusted, bool proxy, Socket::Protocol p_proto, const string& expKP /*= Util::emptyString*/)
 {
 	dcdebug("BufferedSocket::connect() %p\n", (void*)this);
-	unique_ptr<Socket> s(secure ? new SSLSocket(natRole == NAT_SERVER ? CryptoManager::SSL_SERVER : CryptoManager::SSL_CLIENT_ALPN, allowUntrusted, expKP) : new Socket(/*Socket::TYPE_TCP*/));
+//	unique_ptr<Socket> s(secure ? new SSLSocket(natRole == NAT_SERVER ? CryptoManager::SSL_SERVER : CryptoManager::SSL_CLIENT_ALPN, allowUntrusted, p_proto, expKP) 
+//             : new Socket(/*Socket::TYPE_TCP*/));
+    std::unique_ptr<Socket> s(secure ? (natRole == NAT_SERVER ? 
+         CryptoManager::getInstance()->getServerSocket(allowUntrusted) : 
+        CryptoManager::getInstance()->getClientSocket(allowUntrusted, p_proto)) : new Socket);
+
 	s->create(); // в AirDC++ нет такой херни... разобраться
 	
 	setSocket(move(s));

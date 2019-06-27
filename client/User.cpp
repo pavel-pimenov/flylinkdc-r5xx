@@ -609,7 +609,7 @@ string Identity::getApplication() const
 
 #ifdef _DEBUG
 
-#define FLYLINKDC_USE_TEST
+//#define FLYLINKDC_USE_TEST
 #ifdef FLYLINKDC_USE_TEST
 static FastCriticalSection g_csTest;
 #endif

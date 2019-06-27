@@ -40,7 +40,7 @@ FastCriticalSection NmdcHub::g_unknown_cs;
 uint8_t NmdcHub::g_version_fly_info = 33;
 
 NmdcHub::NmdcHub(const string& aHubURL, bool p_is_secure, bool p_is_auto_connect) :
-	Client(aHubURL, '|', p_is_secure, p_is_auto_connect),
+	Client(aHubURL, '|', p_is_secure, p_is_auto_connect, Socket::PROTO_NMDC),
 	m_supportFlags(0),
 	m_modeChar(0),
 	m_version_fly_info(0),

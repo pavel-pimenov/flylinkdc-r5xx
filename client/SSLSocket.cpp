@@ -28,6 +28,19 @@
 
 #include "SSLSocket.h"
 
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+static const unsigned char alpn_protos_nmdc[] = {
+	4, 'n', 'm', 'd', 'c',
+};
+static const unsigned char alpn_protos_adc[] = {
+	3, 'a', 'd', 'c',
+};
+#endif
+
+SSLSocket::SSLSocket(SSL_CTX* context, Socket::Protocol proto) : ctx(context), ssl(0), m_nextProto(proto) {
+
+}
+
 SSLSocket::SSLSocket(CryptoManager::SSLContext context, bool allowUntrusted, const string& expKP) : SSLSocket(context)
 {
 	verifyData.reset(new CryptoManager::SSLVerifyData(allowUntrusted, expKP));
@@ -43,6 +56,13 @@ void SSLSocket::connect(const string& aIp, uint16_t aPort)
 	
 	waitConnected(0);
 }
+
+#if OPENSSL_VERSION_NUMBER < 0x10002000L
+static inline int SSL_is_server(SSL *s)
+{
+    return s->server;
+}
+#endif
 
 bool SSLSocket::waitConnected(uint64_t millis)
 {
@@ -66,7 +86,14 @@ bool SSLSocket::waitConnected(uint64_t millis)
 		}
 		
 		checkSSL(SSL_set_fd(ssl, static_cast<int>(getSock())));
-	}
+	#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+    if (m_nextProto == Socket::PROTO_NMDC) {
+        SSL_set_alpn_protos(ssl, alpn_protos_nmdc, sizeof(alpn_protos_nmdc));
+    } else if (m_nextProto == Socket::PROTO_ADC) {
+        SSL_set_alpn_protos(ssl, alpn_protos_adc, sizeof(alpn_protos_adc));
+    }
+    #endif
+}
 	
 	if (SSL_is_init_finished(ssl))
 	{
@@ -75,11 +102,12 @@ bool SSLSocket::waitConnected(uint64_t millis)
 	
 	while (true)
 	{
-		int ret = ssl->server ? SSL_accept(ssl) : SSL_connect(ssl);
+		int ret = SSL_is_server(ssl) ? SSL_accept(ssl) : SSL_connect(ssl);
 		if (ret == 1)
 		{
 			dcdebug("Connected to SSL server using %s as %s\n", SSL_get_cipher(ssl), ssl->server ? "server" : "client");
-			if (!ssl->server)
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+            if (SSL_is_server(ssl)) return true;
 			{
 				const unsigned char* protocol = 0;
 				unsigned int len = 0;
@@ -93,6 +121,7 @@ bool SSLSocket::waitConnected(uint64_t millis)
 					dcdebug("ALPN negotiated %.*s (%d)\n", len, protocol, m_proto);
 				}
 			}
+#endif
 			
 			return true;
 		}

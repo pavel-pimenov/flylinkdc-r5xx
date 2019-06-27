@@ -63,7 +63,7 @@ const string AdcSupports::ZLIF_SUPPORT("ADZLIF");
 
 const vector<StringList> AdcHub::m_searchExts;
 
-AdcHub::AdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect) : Client(aHubURL, '\n', secure, p_is_auto_connect), m_oldPassword(false), m_sid(0)
+AdcHub::AdcHub(const string& aHubURL, bool secure, bool p_is_auto_connect) : Client(aHubURL, '\n', secure, p_is_auto_connect, Socket::PROTO_ADC), m_oldPassword(false), m_sid(0)
 {
 }
 

@@ -68,8 +68,10 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 #endif
 		
 		uint16_t accept(const Socket& srv, bool secure, bool allowUntrusted, const string& expKP = Util::emptyString);
-		void connect(const string& aAddress, uint16_t aPort, bool secure, bool allowUntrusted, bool proxy, const string& expKP = Util::emptyString);
-		void connect(const string& aAddress, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool secure, bool allowUntrusted, bool proxy, const string& expKP = Util::emptyString);
+		void connect(const string& aAddress, uint16_t aPort, bool secure, 
+            bool allowUntrusted, bool proxy, Socket::Protocol p_proto,const string& expKP = Util::emptyString);
+		void connect(const string& aAddress, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool secure, 
+            bool allowUntrusted, bool proxy, Socket::Protocol p_proto, const string& expKP = Util::emptyString);
 		
 		/** Sets data mode for aBytes bytes. Must be called within onLine. */
 		void setDataMode(int64_t aBytes = -1)

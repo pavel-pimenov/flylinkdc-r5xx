@@ -224,6 +224,7 @@
 #define IDR_VIP_KCAHDER                 336
 #define IDR_VIP_OZERKI                  337
 #define IDR_OSAGO_PNG                   338
+#define IDR_VIP_SWALKA                  339
 #define IDR_ICON_XXX_BLOCK              999
 #define IDC_FILETYPES                   1000
 #define IDC_TRAY_SHOW                   1001

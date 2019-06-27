@@ -260,7 +260,7 @@ void node::incoming(aux::listen_socket_handle const& s, msg const& m)
 {
 	// is this a reply?
 	bdecode_node const y_ent = m.message.dict_find_string("y");
-	if (!y_ent || y_ent.string_length() == 0)
+	if (!y_ent || y_ent.string_length() != 1) // https://github.com/arvidn/libtorrent/commit/7d1afa9b41eb36d2e437149dda5dc5b3e6b8ae7c
 	{
 		// don't respond to this obviously broken messages. We don't
 		// want to open up a magnification opportunity

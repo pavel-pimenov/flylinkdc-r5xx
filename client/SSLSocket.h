@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2017 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2012 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,10 +12,8 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 
 #pragma once
 
@@ -27,9 +25,6 @@
 #include "CryptoManager.h"
 #include "Socket.h"
 #include "Singleton.h"
-
-/*
-*/
 
 using std::unique_ptr;
 using std::string;
@@ -51,6 +46,9 @@ class SSLSocketException : public SocketException
 
 class SSLSocket : public Socket
 {
+    friend class CryptoManager;
+
+        SSLSocket(SSL_CTX* context, Socket::Protocol proto);
 	public:
 		SSLSocket(CryptoManager::SSLContext context, bool allowUntrusted, const string& expKP);
 		/** Creates an SSL socket without any verification */
@@ -87,6 +85,7 @@ class SSLSocket : public Socket
 	
 		SSL_CTX* ctx;
 		ssl::SSL ssl;
+        Socket::Protocol m_nextProto;
 		bool m_is_trusted;
 		
 		unique_ptr<CryptoManager::SSLVerifyData> verifyData;    // application data used by CryptoManager::verify_callback(...)
