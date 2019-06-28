@@ -494,7 +494,7 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 		if (((rc.left < -10) || (rc.top < -10) || (rc.right - rc.left < 500) || ((rc.bottom - rc.top) < 300))
 #ifdef SCALOLAZ_MANY_MONITORS
 		        && l_mons < 2
-		        || ((rc.left < -2048) || (rc.right > 5000) || (rc.top < -10) || (rc.bottom > 4000))
+		        || ((rc.left < -4000) || (rc.right > 5000) || (rc.top < -10) || (rc.bottom > 4000))
 #endif
 		   )
 		{
