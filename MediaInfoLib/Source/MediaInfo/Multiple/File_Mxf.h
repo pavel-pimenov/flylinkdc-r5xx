@@ -81,7 +81,7 @@ protected :
     void Streams_Finish_Descriptor (const int128u& DescriptorUID, const int128u& PackageUID);
     void Streams_Finish_Locator (const int128u& DescriptorUID, const int128u& LocatorUID);
     void Streams_Finish_Component (const int128u& ComponentUID, float64 EditRate, int32u TrackID, int64s Origin);
-    void Streams_Finish_Component_ForTimeCode (const int128u& ComponentUID, float64 EditRate, int32u TrackID, int64s Origin, bool IsSourcePackage);
+    void Streams_Finish_Component_ForTimeCode (const int128u& ComponentUID, float64 EditRate, int32u TrackID, int64s Origin, bool IsSourcePackage, const Ztring& TrackName);
     void Streams_Finish_Component_ForAS11 (const int128u& ComponentUID, float64 EditRate, int32u TrackID, int64s Origin);
     void Streams_Finish_Identification (const int128u& IdentificationUID);
     void Streams_Finish_CommercialNames ();
@@ -556,7 +556,7 @@ protected :
 
     void Get_UL (int128u& Value, const char* Name, const char* (*Param) (const int128u& ));
     void Skip_UL(const char* Name);
-    void Get_BER(int64u& Value, const char* Name);
+    void Get_BER(int64u &Value, const char* Name);
     #if MEDIAINFO_TRACE
     void Info_UL_01xx01_Items ();
     void Info_UL_02xx01_Groups ();
@@ -1308,55 +1308,6 @@ protected :
         }
         AcquisitionMetadata_Sony_E201_Lists[Id]->push_back(acquisitionmetadata(Value));
     }
-
-/* // TODO - FlylinkDC++ https://github.com/MediaArea/MediaInfoLib/pull/697/files
-    class AcquisitionMetadataVector
-	{
-		vector<acquisitionmetadatalist*> AcquisitionMetadataLists;
-	public:
-        acquisitionmetadatalist* & operator[](const size_t Id)
-        {
-            return AcquisitionMetadataLists[Id];
-        }
-        bool empty() const
-        {
-            return AcquisitionMetadataLists.empty();
-        }
-        size_t size() const
-        {
-            return AcquisitionMetadataLists.size();
-        }
-        void resize(const size_t size)
-        {
-            AcquisitionMetadataLists.resize(size);
-        }
-		void Add(const size_t Id, const string& Value)
-		{
-			if (!AcquisitionMetadataLists[Id])
-			{
-				AcquisitionMetadataLists[Id] = new acquisitionmetadatalist;
-				AcquisitionMetadataLists[Id]->push_back(acquisitionmetadata(Value));
-				return;
-			}
-			if ((*AcquisitionMetadataLists[Id])[AcquisitionMetadataLists[Id]->size() - 1].Add(Value))
-			{
-				return;
-			}
-			AcquisitionMetadataLists[Id]->push_back(acquisitionmetadata(Value));
-		}
-    };
-
-    AcquisitionMetadataVector AcquisitionMetadataLists;
-    void AcquisitionMetadata_Add(size_t Id, const string& Value)
-    {
-        AcquisitionMetadataLists.Add(Id, Value);
-    }
-    AcquisitionMetadataVector AcquisitionMetadata_Sony_E201_Lists;
-	void AcquisitionMetadata_Sony_E201_Add(size_t Id, const string& Value)
-	{
-        AcquisitionMetadata_Sony_E201_Lists.Add(Id, Value);
-	}
-*/
     int8u AcquisitionMetadata_Sony_CalibrationType;
 
     //Demux
