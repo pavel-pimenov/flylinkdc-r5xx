@@ -29,7 +29,6 @@
 #include "DownloadManager.h"
 #include "Download.h"
 #include "UploadManager.h"
-#include "Wildcards.h"
 #include "MerkleCheckOutputStream.h"
 #include "SearchResult.h"
 #include "SharedFileStream.h"

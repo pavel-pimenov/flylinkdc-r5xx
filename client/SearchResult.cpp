@@ -100,7 +100,8 @@ SearchResult::SearchResult(Types aType, int64_t aSize, const string& aFile, cons
 	m_is_tth_check(false),
 	m_token(aToken),
 	m_is_p2p_guard_calc(false),
-	m_virus_level(0)
+	m_virus_level(0),
+    m_is_tth_queue(false)
 {
 	initSlot();
 	m_is_tth_share = aType == TYPE_FILE; // Constructor for ShareManager
