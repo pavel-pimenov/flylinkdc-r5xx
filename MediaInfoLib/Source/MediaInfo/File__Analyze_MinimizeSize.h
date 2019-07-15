@@ -1052,7 +1052,6 @@ public :
     inline void Fill (stream_t StreamKind, size_t StreamPos, size_t Parameter, int64u         Value, int8u Radix=10, bool Replace=false) {Fill(StreamKind, StreamPos, Parameter, Ztring::ToZtring(Value, Radix).MakeUpperCase(), Replace);}
     inline void Fill (stream_t StreamKind, size_t StreamPos, size_t Parameter, int64s         Value, int8u Radix=10, bool Replace=false) {Fill(StreamKind, StreamPos, Parameter, Ztring::ToZtring(Value, Radix).MakeUpperCase(), Replace);}
            void Fill (stream_t StreamKind, size_t StreamPos, size_t Parameter, float64        Value, int8u AfterComma=3, bool Replace=false);
-    inline void Fill (stream_t StreamKind, size_t StreamPos, size_t Parameter, float80        Value, int8u AfterComma=3, bool Replace=false) {Fill(StreamKind, StreamPos, Parameter, (float64)Value, AfterComma, Replace);}
     #ifdef SIZE_T_IS_LONG
     inline void Fill (stream_t StreamKind, size_t StreamPos, size_t Parameter, size_t         Value, int8u Radix=10, bool Replace=false) {Fill(StreamKind, StreamPos, Parameter, Ztring::ToZtring(Value, Radix).MakeUpperCase(), Replace);}
     #endif //SIZE_T_IS_LONG
@@ -1212,7 +1211,14 @@ protected :
     int8u           Config_Demux;
     Ztring          Config_LineSeparator;
     bool            IsSub;
-    bool            IsRawStream;
+    enum stream_source
+    {
+        IsContainer,
+        IsStream,
+        IsContainerExtra,
+        StreamSource_Max,
+    };
+    stream_source   StreamSource;
 
     //Configuration
     bool DataMustAlwaysBeComplete;  //Data must always be complete, else wait for more data
