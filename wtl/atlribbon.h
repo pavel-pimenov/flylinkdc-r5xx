@@ -3063,7 +3063,7 @@ typedef struct
 } _ribbonCtrl;
 #pragma warning(pop)
 
-}; // namespace RibbonUI
+} // namespace RibbonUI
 
 
 ///////////////////////////////////////////////////////////////////////////////

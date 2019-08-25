@@ -4889,6 +4889,6 @@ public:
 	DECLARE_WND_CLASS_EX(_T("WTL_TabView"), 0, COLOR_APPWORKSPACE)
 };
 
-}; // namespace WTL
+} // namespace WTL
 
 #endif // __ATLCTRLX_H__

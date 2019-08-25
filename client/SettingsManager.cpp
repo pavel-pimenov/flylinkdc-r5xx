@@ -1172,7 +1172,9 @@ void SettingsManager::setDefaults()
 	
 //[+} SSA: Custom menu
 	//setDefault(USE_CUSTOM_MENU, false);
+#ifdef FLYLINKDC_USE_CUSTOM_MENU
 	setDefault(CUSTOM_MENU_PATH, "file://./Settings/custom_menu.xml");
+#endif
 //[+] SSA: RSS Auto update
 	setDefault(RSS_AUTO_REFRESH_TIME, 1);
 	//setDefault(URL_IPTRUST, "");

@@ -1091,7 +1091,7 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 						dcassert(i != string::npos);
 						if (i != string::npos)
 						{
-							auto j = p_search_url.find('/', i+3);
+							auto j = p_search_url.find("/", i+3);
 							dcassert(j != string::npos);
 							if (j != string::npos)
 							{
@@ -1100,7 +1100,7 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 #ifdef _DEBUG
                                 LogManager::message("l_url_mirror = " + l_url_mirror);
 #endif
-								continue;
+                                continue;
 							}
 						}
 					}

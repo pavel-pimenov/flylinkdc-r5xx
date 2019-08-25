@@ -3572,6 +3572,6 @@ public:
   #undef CBRPOPUPMENU
 #endif // !defined(__ATLCTRLW_H__)
 
-}; // namespace WTL
+} // namespace WTL
 
 #endif // __ATLFRAME_H__

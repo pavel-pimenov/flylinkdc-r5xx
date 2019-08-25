@@ -47,13 +47,13 @@ void createFlyFeatures()
 void startupFlyFeatures(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam)
 {
 #ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
-	if (pProgressCallbackProc != NULL)
+#ifdef FLYLINKDC_USE_CUSTOM_MENU
+    if (pProgressCallbackProc != NULL)
 		pProgressCallbackProc(pProgressParam, TSTRING(CUSTOM_MENU));
 		
-#ifdef FLYLINKDC_USE_CUSTOM_MENU
 	CustomMenuManager::getInstance()->load();
-#endif
-#endif
+#endif // FLYLINKDC_USE_CUSTOM_MENU
+#endif // FLYLINKDC_USE_PROVIDER_RESOURCES
 	ThemeManager::getInstance()->load(); //[+] SSA
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 	VideoPreview::getInstance()->initialize();

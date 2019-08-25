@@ -9720,6 +9720,6 @@ public:
 	}
 };
 
-}; // namespace WTL
+} // namespace WTL
 
 #endif // __ATLCTRLS_H__
