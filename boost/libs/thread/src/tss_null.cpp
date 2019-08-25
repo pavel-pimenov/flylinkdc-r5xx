@@ -7,7 +7,7 @@
 #include <boost/thread/detail/config.hpp>
 
 //[+] PPA fix error LNK2001: unresolved external symbol "void __cdecl boost::tss_cleanup_implemented(void)" (?tss_cleanup_implemented@boost@@YAXXZ)
-// #if defined(BOOST_HAS_WINTHREADS) && (defined(BOOST_THREAD_BUILD_LIB) || defined(BOOST_THREAD_TEST) || defined(UNDER_CE)) && (!defined(_MSC_VER) || defined(UNDER_CE))
+// #if defined(BOOST_THREAD_WIN32) && (defined(BOOST_THREAD_BUILD_LIB) || defined(BOOST_THREAD_TEST) || defined(UNDER_CE)) && (!defined(_MSC_VER) || defined(UNDER_CE))
 
 namespace boost
 {
@@ -36,4 +36,4 @@ namespace boost
 
 }
 
-//[+] PPA #endif //defined(BOOST_HAS_WINTHREADS) && defined(BOOST_THREAD_BUILD_LIB) && !defined(_MSC_VER)
+//[+] PPA #endif //defined(BOOST_THREAD_WIN32) && defined(BOOST_THREAD_BUILD_LIB) && !defined(_MSC_VER)
