@@ -4717,7 +4717,7 @@ void File_Mk::Audio_Manage()
     #ifdef MEDIAINFO_PCM_YES
         if (Retrieve(Stream_Audio, StreamPos_Last, Audio_Format)==__T("PCM"))
         {
-            File_Pcm* Parser=(File_Pcm*)streamItem.Parser;
+            File_Pcm* Parser=(File_Pcm*)streamItem.Parser; // Error cast https://github.com/MediaArea/MediaInfo/issues/371
             int8u Channels=Retrieve(Stream_Audio, StreamPos_Last, Audio_Channel_s_).To_int8u();
             if (Channels)
                 Parser->Channels=Channels;

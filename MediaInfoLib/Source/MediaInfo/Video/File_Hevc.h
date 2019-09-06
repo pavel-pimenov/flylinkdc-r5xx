@@ -346,6 +346,7 @@ private :
     //Elements
     void slice_segment_layer();
     void video_parameter_set();
+    void video_parameter_sets_creating_data(int8u vps_video_parameter_set_id, int8u vps_max_sub_layers_minus1);
     void seq_parameter_set();
     void pic_parameter_set();
     void access_unit_delimiter();
@@ -388,12 +389,13 @@ private :
     void VPS_SPS_PPS();
     void VPS_SPS_PPS_FromMatroska();
 
-    vector<stream_payload> Streams;
+    std::vector<stream_payload> Streams;
 
     //Replacement of File__Analyze buffer
     const int8u*                        Buffer_ToSave;
     size_t                              Buffer_Size_ToSave;
-
+    char m_dummy_bug;
+    char m_dummy[10]; // Temporary fix cash https://github.com/MediaArea/MediaInfo/issues/371
     //parameter_sets
     video_parameter_set_structs         video_parameter_sets;
     seq_parameter_set_structs           seq_parameter_sets;

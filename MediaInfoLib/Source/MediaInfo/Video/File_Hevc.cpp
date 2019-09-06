@@ -197,6 +197,8 @@ File_Hevc::File_Hevc()
 
     //File specific
     lengthSizeMinusOne=(int8u)-1;
+    m_dummy_bug = 0;
+    memset(m_dummy, 'X', sizeof(m_dummy));
 }
 
 //---------------------------------------------------------------------------
@@ -1285,6 +1287,27 @@ void File_Hevc::slice_segment_layer()
 }
 
 //---------------------------------------------------------------------------
+void File_Hevc::video_parameter_sets_creating_data(int8u vps_video_parameter_set_id, int8u vps_max_sub_layers_minus1)
+{
+    //Creating Data
+    if (vps_video_parameter_set_id >= video_parameter_sets.size())
+        video_parameter_sets.resize(vps_video_parameter_set_id + 1);
+    std::vector<video_parameter_set_struct*>::iterator Data_Item = video_parameter_sets.begin() + vps_video_parameter_set_id;
+    delete *Data_Item; *Data_Item = new video_parameter_set_struct(
+        vps_max_sub_layers_minus1
+    );
+
+    //NextCode
+    NextCode_Clear();
+    NextCode_Add(33);
+
+    //Autorisation of other streams
+    Streams[33].Searching_Payload = true; //seq_parameter_set
+    Streams[36].Searching_Payload = true; //end_of_seq
+    Streams[37].Searching_Payload = true; //end_of_bitstream
+    Streams[38].Searching_Payload = true; //filler_data
+}
+//---------------------------------------------------------------------------
 // Packet "32"
 void File_Hevc::video_parameter_set()
 {
@@ -1301,23 +1324,7 @@ void File_Hevc::video_parameter_set()
         BS_End();
         Skip_XX(Element_Size-Element_Offset,                     "Data");
 
-        //Creating Data
-        if (vps_video_parameter_set_id>=video_parameter_sets.size())
-            video_parameter_sets.resize(vps_video_parameter_set_id+1);
-        std::vector<video_parameter_set_struct*>::iterator Data_Item=video_parameter_sets.begin()+vps_video_parameter_set_id;
-        delete *Data_Item; *Data_Item=new video_parameter_set_struct(
-                                                                        0 //TODO: check which code is intended here
-                                                                    );
-
-        //NextCode
-        NextCode_Clear();
-        NextCode_Add(33);
-
-        //Autorisation of other streams
-        Streams[33].Searching_Payload=true; //seq_parameter_set
-        Streams[36].Searching_Payload=true; //end_of_seq
-        Streams[37].Searching_Payload=true; //end_of_bitstream
-        Streams[38].Searching_Payload=true; //filler_data
+        video_parameter_sets_creating_data(vps_video_parameter_set_id, 0); //TODO: check which code is intended here
 
         return;
     }
@@ -1410,22 +1417,7 @@ void File_Hevc::video_parameter_set()
 
     FILLING_BEGIN_PRECISE();
         //Creating Data
-        if (vps_video_parameter_set_id>=video_parameter_sets.size())
-            video_parameter_sets.resize(vps_video_parameter_set_id+1);
-        std::vector<video_parameter_set_struct*>::iterator Data_Item=video_parameter_sets.begin()+vps_video_parameter_set_id;
-        delete *Data_Item; *Data_Item=new video_parameter_set_struct(
-                                                                        vps_max_sub_layers_minus1
-                                                                    );
-
-        //NextCode
-        NextCode_Clear();
-        NextCode_Add(33);
-
-        //Autorisation of other streams
-        Streams[33].Searching_Payload=true; //seq_parameter_set
-        Streams[36].Searching_Payload=true; //end_of_seq
-        Streams[37].Searching_Payload=true; //end_of_bitstream
-        Streams[38].Searching_Payload=true; //filler_data
+        video_parameter_sets_creating_data(vps_video_parameter_set_id, vps_max_sub_layers_minus1);
     FILLING_END();
 }
 
