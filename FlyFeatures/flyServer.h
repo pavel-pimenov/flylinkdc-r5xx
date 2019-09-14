@@ -619,17 +619,17 @@ class CFlyServerJSON
 class CFlyServerAdapter
 {
 };
-		class  CFlyServerJSON
-		{
+class CFlyServerJSON
+{
 public:
-				static bool pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info = true)
-				{
-					return false;
-				}
-				static void pushSyslogError(const string& p_error)
-				{
-				}
-		};
+    static bool pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info = true)
+    {
+        return false;
+    }
+    static void pushSyslogError(const string& p_error)
+    {
+    }
+};
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 
 #endif // _FLY_SERVER_H

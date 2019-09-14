@@ -14,6 +14,8 @@ rmdir /S /Q .\compiled\Settings\HubLists
 del /S /F /Q mrgtmp0
 del /S /F /Q *.tmp
 del /S /F /Q *.obj
+del /S /F /Q *.ipch
+del /S /F /Q *.iobj
 del /S /F /Q *.lib
 del /S /F /Q *.tlog
 del /S /F /Q *.cpp.orig
