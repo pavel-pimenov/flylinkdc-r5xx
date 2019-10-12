@@ -100,10 +100,10 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		static bool   isCacheFile(const string& p_search, SearchResultList& p_search_result);
 		static void   addCacheFile(const string& p_search, const SearchResultList& p_search_result);
 	private:
-		bool   search_tth(const TTHValue& p_tth, SearchResultList& aResults, bool p_is_check_parent);
+		static bool   search_tth(const TTHValue& p_tth, SearchResultList& aResults, bool p_is_check_parent);
 	public:
 		void   search(SearchResultList& aResults, const SearchParam& p_search_param) noexcept;
-		void   search_max_result(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept;
+		static void   search_max_result(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept;
 		
 		bool findByRealPathName(const string& realPathname, TTHValue* outTTHPtr, string* outfilenamePtr = NULL, int64_t* outSizePtr = NULL); // [+] SSA
 		

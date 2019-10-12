@@ -690,11 +690,7 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 	}
 	
 	SearchResultList l_search_results;
-	ShareManager::getInstance()->search_max_result(l_search_results, adc.getParameters(), isUdpActive ? 10 : 5, reguest); // [!] IRainman
-	
-	string l_token;
-	
-	adc.getParam("TO", 0, l_token);
+	ShareManager::search_max_result(l_search_results, adc.getParameters(), isUdpActive ? 10 : 5, reguest); // [!] IRainman
 	
 	ClientManagerListener::SearchReply l_sr = ClientManagerListener::SEARCH_MISS; // [+] IRainman
 	
@@ -721,7 +717,9 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 	}
 	else
 	{
-		for (auto i = l_search_results.cbegin(); i != l_search_results.cend(); ++i)
+        string l_token;
+        adc.getParam("TO", 0, l_token);
+        for (auto i = l_search_results.cbegin(); i != l_search_results.cend(); ++i)
 		{
 			AdcCommand cmd(AdcCommand::CMD_RES, AdcCommand::TYPE_UDP);
 			i->toRES(cmd, AdcCommand::TYPE_UDP);

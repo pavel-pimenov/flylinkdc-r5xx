@@ -60,7 +60,7 @@ void SSLSocket::connect(const string& aIp, uint16_t aPort)
 #if OPENSSL_VERSION_NUMBER < 0x10002000L
 static inline int SSL_is_server(SSL *s)
 {
-    return s->server;
+	return s->server;
 }
 #endif
 
@@ -86,14 +86,15 @@ bool SSLSocket::waitConnected(uint64_t millis)
 		}
 		
 		checkSSL(SSL_set_fd(ssl, static_cast<int>(getSock())));
-	#if OPENSSL_VERSION_NUMBER >= 0x10002000L
-    if (m_nextProto == Socket::PROTO_NMDC) {
-        SSL_set_alpn_protos(ssl, alpn_protos_nmdc, sizeof(alpn_protos_nmdc));
-    } else if (m_nextProto == Socket::PROTO_ADC) {
-        SSL_set_alpn_protos(ssl, alpn_protos_adc, sizeof(alpn_protos_adc));
-    }
-    #endif
-}
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+		if (m_nextProto == Socket::PROTO_NMDC) {
+			SSL_set_alpn_protos(ssl, alpn_protos_nmdc, sizeof(alpn_protos_nmdc));
+		}
+		else if (m_nextProto == Socket::PROTO_ADC) {
+			SSL_set_alpn_protos(ssl, alpn_protos_adc, sizeof(alpn_protos_adc));
+		}
+#endif
+	}
 	
 	if (SSL_is_init_finished(ssl))
 	{
@@ -107,7 +108,7 @@ bool SSLSocket::waitConnected(uint64_t millis)
 		{
 			dcdebug("Connected to SSL server using %s as %s\n", SSL_get_cipher(ssl), ssl->server ? "server" : "client");
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L
-            if (SSL_is_server(ssl)) return true;
+			if (SSL_is_server(ssl)) return true;
 			{
 				const unsigned char* protocol = 0;
 				unsigned int len = 0;
