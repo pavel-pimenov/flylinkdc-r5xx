@@ -2939,6 +2939,7 @@ void ShareManager::search_max_result(SearchResultList& aResults, const StringLis
 	if (srch.m_hasRoot)
 	{
 		search_tth(srch.m_root, aResults, false);
+        return; // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1727
 	}
 	
 	{
