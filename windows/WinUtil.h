@@ -84,7 +84,7 @@ struct Tags// [+] IRainman struct for links and BB codes
 #define EXT_URL_LIST() \
 	Tags(_T("http://")), \
 	Tags(_T("https://")), \
-    Tags (_T("tg://")), \
+	Tags (_T("tg://")), \
 	Tags(_T("ftp://")), \
 	Tags(_T("irc://")), \
 	Tags(_T("skype:")), \

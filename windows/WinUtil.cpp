@@ -524,8 +524,8 @@ void WinUtil::initThemeIcons()
 	g_HubFlylinkDCIconVIP[18] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_ICO_ALLAVTOVO)); // piter
 	g_HubFlylinkDCIconVIP[19] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_KCAHDER));
 	g_HubFlylinkDCIconVIP[20] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_OZERKI));
-    g_HubFlylinkDCIconVIP[21] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_SWALKA));
-
+	g_HubFlylinkDCIconVIP[21] = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_VIP_SWALKA));
+	
 	
 	g_HubDDoSIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_ICON_MEDICAL_BAG));
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB

@@ -31,28 +31,28 @@
 
 
 template<typename F> static auto airdc_check(F f, bool blockOk = false) -> decltype(f()) {
-    for (;;) {
-        auto ret = f();
-        if (ret != static_cast<decltype(ret)>(SOCKET_ERROR)) {
-            return ret;
-        }
-
-        auto error = ::WSAGetLastError();
-        if (blockOk && error == WSAEWOULDBLOCK) {
-            return static_cast<decltype(ret)>(-1);
-        }
-
-        if (error != EINTR) {
-            throw SocketException(error);
-        }
-    }
+	for (;;) {
+		auto ret = f();
+		if (ret != static_cast<decltype(ret)>(SOCKET_ERROR)) {
+			return ret;
+		}
+		
+		auto error = ::WSAGetLastError();
+		if (blockOk && error == WSAEWOULDBLOCK) {
+			return static_cast<decltype(ret)>(-1);
+		}
+		
+		if (error != EINTR) {
+			throw SocketException(error);
+		}
+	}
 }
 
 inline int getSocketOptInt2(socket_t sock, int option) {
-    int val;
-    socklen_t len = sizeof(val);
-    airdc_check([&] { return ::getsockopt(sock, SOL_SOCKET, option, (char*)&val, &len); });
-    return val;
+	int val;
+	socklen_t len = sizeof(val);
+	airdc_check([&] { return ::getsockopt(sock, SOL_SOCKET, option, (char*)&val, &len); });
+	return val;
 }
 
 /// @todo remove when MinGW has this
@@ -264,7 +264,7 @@ void Socket::socksConnect(const string& aAddr, uint16_t aPort, uint64_t timeout)
 	
 	connect(SETTING(SOCKS_SERVER), static_cast<uint16_t>(SETTING(SOCKS_PORT)));
 	
-    if (!waitConnected(timeLeft(start, timeout))) 
+	if (!waitConnected(timeLeft(start, timeout)))
 	{
 		throw SocketException(STRING(SOCKS_FAILED));
 	}
@@ -536,7 +536,7 @@ int Socket::readAll(void* aBuffer, int aBufLen, uint64_t timeout)
 		}
 		else if (j == -1)
 		{
-            if (!wait(timeout, true, false).first)
+			if (!wait(timeout, true, false).first)
 			{
 				return i;
 			}
@@ -564,7 +564,7 @@ int Socket::writeAll(const void* aBuffer, int aLen, uint64_t timeout)
 		const int i = write(buf + static_cast<size_t>(pos), (int)min(aLen - pos, sendSize)); // [!] PVS V104 Implicit conversion of 'pos' to memsize type in an arithmetic expression: buf + pos socket.cpp 464
 		if (i == -1)
 		{
-            wait(timeout, false, true);
+			wait(timeout, false, true);
 		}
 		else
 		{
@@ -737,83 +737,83 @@ int Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, in
  * @return WAIT_*** ored together of the current state.
  * @throw SocketException Select or the connection attempt failed.
  */
- /**
-  * Blocks until timeout is reached one of the specified conditions have been fulfilled
-  * @param millis Max milliseconds to block.
-  * @param checkRead Check for reading
-  * @param checkWrite Check for writing
-  * @return pair with read/write state respectively
-  * @throw SocketException Select or the connection attempt failed.
-  */
+/**
+ * Blocks until timeout is reached one of the specified conditions have been fulfilled
+ * @param millis Max milliseconds to block.
+ * @param checkRead Check for reading
+ * @param checkWrite Check for writing
+ * @return pair with read/write state respectively
+ * @throw SocketException Select or the connection attempt failed.
+ */
 std::pair<bool, bool> Socket::wait(uint64_t millis, bool checkRead, bool checkWrite) {
-    timeval tv;
-    tv.tv_sec = static_cast<long>(millis / 1000);
-    tv.tv_usec = (millis % 1000) * 1000;
-    fd_set rfd, wfd;
-    fd_set *rfdp = NULL, *wfdp = NULL;
-
-    int nfds = -1;
-
-    if (checkRead) {
-        rfdp = &rfd;
-        FD_ZERO(rfdp);
-        if (m_sock != INVALID_SOCKET)
-        {
-            FD_SET(m_sock, &rfd);
-            nfds = std::max((int)m_sock, nfds);
-        }
-
+	timeval tv;
+	tv.tv_sec = static_cast<long>(millis / 1000);
+	tv.tv_usec = (millis % 1000) * 1000;
+	fd_set rfd, wfd;
+	fd_set *rfdp = NULL, *wfdp = NULL;
+	
+	int nfds = -1;
+	
+	if (checkRead) {
+		rfdp = &rfd;
+		FD_ZERO(rfdp);
+		if (m_sock != INVALID_SOCKET)
+		{
+			FD_SET(m_sock, &rfd);
+			nfds = std::max((int)m_sock, nfds);
+		}
+		
 //        if (sock6.valid()) {
 //            FD_SET(sock6, &rfd);
 //            nfds = std::max((int)sock6, nfds);
 //        }
-    }
-
-    if (checkWrite) {
-        wfdp = &wfd;
-        FD_ZERO(wfdp);
-        if (m_sock != INVALID_SOCKET) {
-            FD_SET(m_sock, &wfd);
-            nfds = std::max((int)m_sock, nfds);
-        }
-
+	}
+	
+	if (checkWrite) {
+		wfdp = &wfd;
+		FD_ZERO(wfdp);
+		if (m_sock != INVALID_SOCKET) {
+			FD_SET(m_sock, &wfd);
+			nfds = std::max((int)m_sock, nfds);
+		}
+		
 //        if (sock6.valid()) {
 //            FD_SET(sock6, &wfd);
 //            nfds = std::max((int)sock6, nfds);
 //        }
-    }
-
-    airdc_check([&] { return ::select(nfds + 1, rfdp, wfdp, NULL, &tv); });
-
-
-    return std::make_pair(
-        rfdp && ((m_sock != INVALID_SOCKET && FD_ISSET(m_sock, rfdp))),
-        wfdp && ((m_sock != INVALID_SOCKET && FD_ISSET(m_sock, wfdp))));
+	}
+	
+	airdc_check([&] { return ::select(nfds + 1, rfdp, wfdp, NULL, &tv); });
+	
+	
+	return std::make_pair(
+	           rfdp && ((m_sock != INVALID_SOCKET && FD_ISSET(m_sock, rfdp))),
+	           wfdp && ((m_sock != INVALID_SOCKET && FD_ISSET(m_sock, wfdp))));
 //    return std::make_pair(
 //        rfdp && ((sock4.valid() && FD_ISSET(sock4, rfdp)) || (sock6.valid() && FD_ISSET(sock6, rfdp))),
 //        wfdp && ((sock4.valid() && FD_ISSET(sock4, wfdp)) || (sock6.valid() && FD_ISSET(sock6, wfdp))));
 }
 
 bool Socket::waitConnected(uint64_t millis) {
-    timeval tv;
-    tv.tv_sec = static_cast<long>(millis / 1000);
-    tv.tv_usec = (millis % 1000) * 1000;
-    fd_set fd;
-    FD_ZERO(&fd);
-
-    int nfds = -1;
-    if (m_sock != INVALID_SOCKET) {
-        FD_SET(m_sock, &fd);
-        nfds = static_cast<int>(m_sock);
-    }
-
+	timeval tv;
+	tv.tv_sec = static_cast<long>(millis / 1000);
+	tv.tv_usec = (millis % 1000) * 1000;
+	fd_set fd;
+	FD_ZERO(&fd);
+	
+	int nfds = -1;
+	if (m_sock != INVALID_SOCKET) {
+		FD_SET(m_sock, &fd);
+		nfds = static_cast<int>(m_sock);
+	}
+	
 //    if (sock6.valid()) {
 //        FD_SET(sock6, &fd);
 //        nfds = std::max(static_cast<int>(sock6), nfds);
 //    }
 
-    airdc_check([&] { return ::select(nfds + 1, NULL, &fd, NULL, &tv); });
-
+	airdc_check([&] { return ::select(nfds + 1, NULL, &fd, NULL, &tv); });
+	
 //    if (sock6.valid() && FD_ISSET(sock6, &fd)) {
 //        int err6 = getSocketOptInt2(sock6, SO_ERROR);
 //        if (err6 == 0) {
@@ -828,21 +828,21 @@ bool Socket::waitConnected(uint64_t millis) {
 //        sock6.reset();
 //    }
 
-    if (m_sock != INVALID_SOCKET && FD_ISSET(m_sock, &fd)) {
-        int err4 = getSocketOptInt2(m_sock, SO_ERROR);
-        if (err4 == 0) {
+	if (m_sock != INVALID_SOCKET && FD_ISSET(m_sock, &fd)) {
+		int err4 = getSocketOptInt2(m_sock, SO_ERROR);
+		if (err4 == 0) {
 //            sock6.reset(); // We won't be needing this any more...
-            return true;
-        }
-
+			return true;
+		}
+		
 //        if (!sock6.valid()) {
 //            throw SocketException(err4);
 //        }
 
-        m_sock = INVALID_SOCKET; // .reset();
-    }
-
-    return false;
+		m_sock = INVALID_SOCKET; // .reset();
+	}
+	
+	return false;
 }
 
 

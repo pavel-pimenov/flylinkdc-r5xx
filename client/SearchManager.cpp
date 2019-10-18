@@ -150,7 +150,7 @@ int SearchManager::run()
 				// if that's fixed by reverting to simpler while (read(...) > 0) {...} code.
 				//if (socket->wait(400, Socket::WAIT_READ) != Socket::WAIT_READ)
 				//{
-				//	continue; // [merge] https://github.com/eiskaltdcpp/eiskaltdcpp/commit/c8dcf444d17fffacb6797d14a57b102d653896d0
+				//  continue; // [merge] https://github.com/eiskaltdcpp/eiskaltdcpp/commit/c8dcf444d17fffacb6797d14a57b102d653896d0
 				//}
 				if (isShutdown() || (len = socket->read(&buf[0], BUFSIZE, remoteAddr)) <= 0)
 					break;
@@ -717,9 +717,9 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 	}
 	else
 	{
-        string l_token;
-        adc.getParam("TO", 0, l_token);
-        for (auto i = l_search_results.cbegin(); i != l_search_results.cend(); ++i)
+		string l_token;
+		adc.getParam("TO", 0, l_token);
+		for (auto i = l_search_results.cbegin(); i != l_search_results.cend(); ++i)
 		{
 			AdcCommand cmd(AdcCommand::CMD_RES, AdcCommand::TYPE_UDP);
 			i->toRES(cmd, AdcCommand::TYPE_UDP);

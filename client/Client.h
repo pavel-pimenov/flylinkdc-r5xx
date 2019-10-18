@@ -544,7 +544,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		friend class ClientManager;
 		friend class User;
 		Client(const string& p_HubURL, char p_separator_, bool p_is_secure,
-             bool p_is_auto_connect, Socket::Protocol proto_);
+		       bool p_is_auto_connect, Socket::Protocol proto_);
 		virtual ~Client();
 		
 		enum CountType
@@ -643,8 +643,8 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		// [~] IRainman fix.
 		
 		const char m_separator;
-        Socket::Protocol m_proto;
-
+		Socket::Protocol m_proto;
+		
 		bool m_is_secure_connect;
 		CountType m_countType;
 	public:

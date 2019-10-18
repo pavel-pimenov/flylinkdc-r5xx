@@ -31,7 +31,7 @@
 std::atomic<std::uint32_t> Client::g_counts[COUNT_UNCOUNTED];
 string   Client::g_last_search_string;
 Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure,
- bool p_is_auto_connect, Socket::Protocol p_proto) :
+               bool p_is_auto_connect, Socket::Protocol p_proto) :
 	m_cs(std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock())),
 	m_reconnDelay(120),
 	m_lastActivity(GET_TICK()),
@@ -53,7 +53,7 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure,
 	m_is_override_name(false),
 	m_is_fly_support_hub(false),
 	m_vip_icon_index(0),
-    m_proto(p_proto),
+	m_proto(p_proto),
 	m_is_suppress_chat_and_pm(false)
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 	, m_isAutobanAntivirusIP(false),
@@ -104,8 +104,8 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure,
 		"piter.feardc.net",
 		"dc.kcahdep.online",
 		"dc.ozerki.pro",
-        "swalka.pp.ua"
-    };
+		"swalka.pp.ua"
+	};
 // TODO static_assert(_countof(g_vip_icons_array) == _countof(WinUtil::g_HubFlylinkDCIconVIP))
 	if (l_lower_url.find("dc.fly-server.ru") != string::npos ||
 	        l_lower_url.find("adcs.flylinkdc.com") != string::npos)
@@ -400,7 +400,7 @@ void Client::connect()
 		                                    m_is_secure_connect,
 		                                    BOOLSETTING(ALLOW_UNTRUSTED_HUBS),
 		                                    true,
-                                            m_proto);
+		                                    m_proto);
 		             dcdebug("Client::connect() %p\n", (void*)this);
 	}
 	catch (const Exception& e)

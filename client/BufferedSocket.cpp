@@ -1103,14 +1103,14 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 				{
 					while (!socketIsDisconnecting())
 					{
-                        auto w = sock->wait(POLL_TIMEOUT, true, true);
-                        if (w.first) {
-                            threadRead();
-                        }
-                        if (w.second) {
-                            break;
-                        }
-
+						auto w = sock->wait(POLL_TIMEOUT, true, true);
+						if (w.first) {
+							threadRead();
+						}
+						if (w.second) {
+							break;
+						}
+						
 					}
 				}
 			}
@@ -1187,21 +1187,21 @@ void BufferedSocket::threadSendData()
 		{
 			return;
 		}
-
-		const auto w = sock->wait(POLL_TIMEOUT, true,true);
 		
-        if (w.first) {
-            threadRead();
-        }
-
-        if (w.second) {
-            // TODO - find ("||")
-            int n = sock->write(&l_sendBuf[done], left);  // adguard - https://www.box.net/shared/9201edaa1fa1b83a8d3c
-            if (n > 0) {
-                left -= n;
-                done += n;
-            }
-        }
+		const auto w = sock->wait(POLL_TIMEOUT, true, true);
+		
+		if (w.first) {
+			threadRead();
+		}
+		
+		if (w.second) {
+			// TODO - find ("||")
+			int n = sock->write(&l_sendBuf[done], left);  // adguard - https://www.box.net/shared/9201edaa1fa1b83a8d3c
+			if (n > 0) {
+				left -= n;
+				done += n;
+			}
+		}
 	}
 }
 
@@ -1289,11 +1289,11 @@ bool BufferedSocket::checkEvents()
 }
 
 void BufferedSocket::checkSocket() {
-    auto w = sock->wait(POLL_TIMEOUT, true, false);
-
-    if (w.first) {
-        threadRead();
-    }
+	auto w = sock->wait(POLL_TIMEOUT, true, false);
+	
+	if (w.first) {
+		threadRead();
+	}
 }
 
 

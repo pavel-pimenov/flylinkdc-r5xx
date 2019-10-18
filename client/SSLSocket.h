@@ -65,7 +65,7 @@ class SSLSocket : public Socket
 		virtual void connect(const string& aIp, uint16_t aPort) override;
 		virtual int read(void* aBuffer, int aBufLen) override;
 		virtual int write(const void* aBuffer, int aLen) override;
-	    virtual std::pair<bool, bool> wait(uint64_t millis, bool checkRead, bool checkWrite) override;
+		virtual std::pair<bool, bool> wait(uint64_t millis, bool checkRead, bool checkWrite) override;
 		virtual void shutdown() noexcept override;
 		virtual void close() noexcept override;
 		

@@ -185,13 +185,14 @@ bool SSLSocket::waitAccepted(uint64_t millis)
 
 bool SSLSocket::waitWant(int ret, uint64_t millis) {
 	int err = SSL_get_error(ssl, ret);
-	switch(err) {
+	switch (err) {
 		case SSL_ERROR_WANT_READ:
-		return wait(millis, true, false).first;
+			return wait(millis, true, false).first;
 		case SSL_ERROR_WANT_WRITE:
-		return wait(millis, true, false).second;
+			return wait(millis, true, false).second;
 		// Check if this is a fatal error...
-	default: checkSSL(ret);
+		default:
+			checkSSL(ret);
 	}
 	dcdebug("SSL: Unexpected fallthrough");
 	// There was no error?
@@ -301,10 +302,10 @@ int SSLSocket::checkSSL(int ret)
 }
 
 std::pair<bool, bool> SSLSocket::wait(uint64_t millis, bool checkRead, bool checkWrite) {
-	if(ssl && checkRead) {
+	if (ssl && checkRead) {
 		/** @todo Take writing into account as well if reading is possible? */
 		char c;
-		if(SSL_peek(ssl, &c, 1) > 0)
+		if (SSL_peek(ssl, &c, 1) > 0)
 			return std::make_pair(true, false);
 	}
 	return Socket::wait(millis, checkRead, checkWrite);
@@ -373,7 +374,7 @@ bool SSLSocket::verifyKeyprint(const string& expKP, bool allowUntrusted) noexcep
 	if (!ssl)
 		return true;
 		
-	if(expKP.empty() || expKP.find('/') == string::npos)
+	if (expKP.empty() || expKP.find('/') == string::npos)
 		return allowUntrusted;
 		
 	verifyData.reset(new CryptoManager::SSLVerifyData(allowUntrusted, expKP));
