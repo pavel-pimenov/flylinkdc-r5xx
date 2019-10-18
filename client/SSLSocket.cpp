@@ -106,7 +106,7 @@ bool SSLSocket::waitConnected(uint64_t millis)
 		int ret = SSL_is_server(ssl) ? SSL_accept(ssl) : SSL_connect(ssl);
 		if (ret == 1)
 		{
-			dcdebug("Connected to SSL server using %s as %s\n", SSL_get_cipher(ssl), ssl->server ? "server" : "client");
+			dcdebug("Connected to SSL server using %s as %s\n", SSL_get_cipher(ssl), SSL_is_server(ssl) ? "server" : "client");
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L
 			if (SSL_is_server(ssl)) return true;
 			{
@@ -183,21 +183,17 @@ bool SSLSocket::waitAccepted(uint64_t millis)
 	}
 }
 
-bool SSLSocket::waitWant(int ret, uint64_t millis)
-{
+bool SSLSocket::waitWant(int ret, uint64_t millis) {
 	int err = SSL_get_error(ssl, ret);
-	switch (err)
-	{
+	switch(err) {
 		case SSL_ERROR_WANT_READ:
-			return wait(millis, Socket::WAIT_READ) == WAIT_READ;
+		return wait(millis, true, false).first;
 		case SSL_ERROR_WANT_WRITE:
-			return wait(millis, Socket::WAIT_WRITE) == WAIT_WRITE;
+		return wait(millis, true, false).second;
 		// Check if this is a fatal error...
-		default:
-			checkSSL(ret);
+	default: checkSSL(ret);
 	}
 	dcdebug("SSL: Unexpected fallthrough");
-	dcassert(0);
 	// There was no error?
 	return true;
 }
@@ -304,15 +300,14 @@ int SSLSocket::checkSSL(int ret)
 	return ret;
 }
 
-int SSLSocket::wait(uint64_t millis, int waitFor)
-{
-	if (ssl && (waitFor & Socket::WAIT_READ))
-	{
+std::pair<bool, bool> SSLSocket::wait(uint64_t millis, bool checkRead, bool checkWrite) {
+	if(ssl && checkRead) {
 		/** @todo Take writing into account as well if reading is possible? */
-		if (SSL_pending(ssl) > 0)
-			return WAIT_READ;
+		char c;
+		if(SSL_peek(ssl, &c, 1) > 0)
+			return std::make_pair(true, false);
 	}
-	return Socket::wait(millis, waitFor);
+	return Socket::wait(millis, checkRead, checkWrite);
 }
 
 bool SSLSocket::isTrusted()
@@ -362,13 +357,12 @@ ByteVector SSLSocket::getKeyprint() const noexcept
 {
 	if (!ssl)
 		return ByteVector();
-		
 	X509* x509 = SSL_get_peer_certificate(ssl);
 	
 	if (!x509)
 		return ByteVector();
 		
-	ByteVector res = CryptoManager::X509_digest_internal(x509, EVP_sha256());
+	ByteVector res = ssl::X509_digest(x509, EVP_sha256());
 	
 	X509_free(x509);
 	return res;
@@ -379,29 +373,26 @@ bool SSLSocket::verifyKeyprint(const string& expKP, bool allowUntrusted) noexcep
 	if (!ssl)
 		return true;
 		
-	if (expKP.empty() || expKP.find("/") == string::npos)
+	if(expKP.empty() || expKP.find('/') == string::npos)
 		return allowUntrusted;
 		
 	verifyData.reset(new CryptoManager::SSLVerifyData(allowUntrusted, expKP));
 	SSL_set_ex_data(ssl, CryptoManager::idxVerifyData, verifyData.get());
 	
+	SSL_CTX* ssl_ctx = SSL_get_SSL_CTX(ssl);
 	X509_STORE* store = X509_STORE_new();
-	
 	bool result = false;
 	int err = SSL_get_verify_result(ssl);
-	if (store)
-	{
+	if (ssl_ctx && store) {
 		X509_STORE_CTX* vrfy_ctx = X509_STORE_CTX_new();
 		X509* cert = SSL_get_peer_certificate(ssl);
 		
-		if (vrfy_ctx && cert && X509_STORE_CTX_init(vrfy_ctx, store, cert, SSL_get_peer_cert_chain(ssl)))
-		{
+		if (vrfy_ctx && cert && X509_STORE_CTX_init(vrfy_ctx, store, cert, SSL_get_peer_cert_chain(ssl))) {
 			X509_STORE_CTX_set_ex_data(vrfy_ctx, SSL_get_ex_data_X509_STORE_CTX_idx(), ssl);
-			X509_STORE_CTX_set_verify_cb(vrfy_ctx, SSL_get_verify_callback(ssl));
+			X509_STORE_CTX_set_verify_cb(vrfy_ctx, SSL_CTX_get_verify_callback(ssl_ctx));
 			
 			int verify_result = 0;
-			if ((verify_result = X509_verify_cert(vrfy_ctx)) >= 0)
-			{
+			if ((verify_result = X509_verify_cert(vrfy_ctx)) >= 0) {
 				err = X509_STORE_CTX_get_error(vrfy_ctx);
 				
 				// Watch out for weird library errors that might not set the context error code
@@ -418,7 +409,7 @@ bool SSLSocket::verifyKeyprint(const string& expKP, bool allowUntrusted) noexcep
 		if (store) X509_STORE_free(store);
 	}
 	
-	// KeyPrint is a strong indicator of trust
+	// KeyPrint is a strong indicator of trust (TODO: check that this KeyPrint is mediated by a trusted hub)
 	SSL_set_verify_result(ssl, err);
 	
 	return result;

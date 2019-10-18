@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2012 Jacek Sieka, arnetheduck on gmail point com
+ * Copyright (C) 2001-2019 Jacek Sieka, arnetheduck on gmail point com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,7 +12,8 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
 #pragma once
@@ -46,9 +47,9 @@ class SSLSocketException : public SocketException
 
 class SSLSocket : public Socket
 {
-    friend class CryptoManager;
-
-        SSLSocket(SSL_CTX* context, Socket::Protocol proto);
+		friend class CryptoManager;
+		
+		SSLSocket(SSL_CTX* context, Socket::Protocol proto);
 	public:
 		SSLSocket(CryptoManager::SSLContext context, bool allowUntrusted, const string& expKP);
 		/** Creates an SSL socket without any verification */
@@ -64,7 +65,7 @@ class SSLSocket : public Socket
 		virtual void connect(const string& aIp, uint16_t aPort) override;
 		virtual int read(void* aBuffer, int aBufLen) override;
 		virtual int write(const void* aBuffer, int aLen) override;
-		virtual int wait(uint64_t millis, int waitFor) override;
+	    virtual std::pair<bool, bool> wait(uint64_t millis, bool checkRead, bool checkWrite) override;
 		virtual void shutdown() noexcept override;
 		virtual void close() noexcept override;
 		
@@ -85,7 +86,7 @@ class SSLSocket : public Socket
 	
 		SSL_CTX* ctx;
 		ssl::SSL ssl;
-        Socket::Protocol m_nextProto;
+		Socket::Protocol m_nextProto;
 		bool m_is_trusted;
 		
 		unique_ptr<CryptoManager::SSLVerifyData> verifyData;    // application data used by CryptoManager::verify_callback(...)

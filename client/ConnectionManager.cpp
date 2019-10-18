@@ -786,23 +786,25 @@ static const uint64_t POLL_TIMEOUT = 250;
 
 int ConnectionManager::Server::run() noexcept
 {
-	while (!isShutdown())
-	{
-		try
-		{
-			while (!isShutdown())
-			{
-				auto ret = m_sock.wait(POLL_TIMEOUT, Socket::WAIT_READ);
-				if (ret == Socket::WAIT_READ)
-				{
-					ConnectionManager::getInstance()->accept(m_sock, m_is_secure, this);
-				}
-			}
-		}
-		catch (const Exception& e)
-		{
-			LogManager::message(STRING(LISTENER_FAILED) + ' ' + e.getError());
-		}
+    while (!isShutdown())
+    {
+        try {
+            /// TODO while (!this->die)
+           // while (!isShutdown())
+            {
+                auto ret = m_sock.wait(POLL_TIMEOUT, true, false);
+                if (ret.first) {
+                    ConnectionManager::getInstance()->accept(m_sock, m_is_secure, this);
+
+                }
+            }
+        }
+        catch (const Exception& e) {
+            dcdebug("ConnectionManager::Server::run Error: %s\n", e.getError().c_str());
+            LogManager::message(STRING(LISTENER_FAILED) + ' ' + e.getError());
+        }
+
+
 		bool failed = false;
 		while (!isShutdown())
 		{

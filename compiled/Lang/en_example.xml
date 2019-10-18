@@ -701,6 +701,7 @@
 	<string name="JoinShowingOn">Join/part showing on</string>
 	<string name="JustNow">Just now</string>
 	<string name="KbpsDisable">KiB/s (0=disable)</string>
+	<string name="KeyprintMismatch">Keyprint mismatch</string>
 	<string name="KeepDlHistory">Keep downloads history between sessions</string>
 	<string name="KeepFinishedFilesOption">Keep finished files</string>
 	<string name="KeepUlHistory">Keep uploads history between sessions</string>

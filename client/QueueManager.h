@@ -415,8 +415,8 @@ class QueueManager : public Singleton<QueueManager>,
 #else
 				bool userIsDownloadedFiles(const UserPtr& aUser, QueueItemList& p_status_update_array);
 #endif // IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
-				
-				string getLastError() const
+        public:
+				string getLastErrorQuey() const
 				{
 					return m_lastError;
 				}

@@ -1278,10 +1278,10 @@ void FavoriteManager::load(SimpleXML& aXml
 				if (l_is_fly_hub_exists == false && l_CurrentServerUrl == CFlyServerConfig::g_support_hub)
 					l_is_fly_hub_exists = true;
 				if (
-				    l_CurrentServerUrl.find(".kurskhub.ru") != string::npos || // http://dchublist.ru/forum/viewtopic.php?p=24102#p24102
-				    l_CurrentServerUrl.find(".dchub.net") != string::npos ||
-				    l_CurrentServerUrl.find(".dchublist.biz") != string::npos ||
-				    l_CurrentServerUrl.find(".dchublists.com") != string::npos ||
+                    // l_CurrentServerUrl.find(".kurskhub.ru") != string::npos || // http://dchublist.ru/forum/viewtopic.php?p=24102#p24102
+				    // l_CurrentServerUrl.find(".dchub.net") != string::npos ||
+				    // l_CurrentServerUrl.find(".dchublist.biz") != string::npos ||
+				    // l_CurrentServerUrl.find(".dchublists.com") != string::npos ||
 				    CFlyServerConfig::g_block_hubs.count(l_CurrentServerUrl))
 				{
 					CFlyServerJSON::pushError(35, "Block hub: " + l_CurrentServerUrl);

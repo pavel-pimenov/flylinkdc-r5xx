@@ -29,6 +29,32 @@
 
 #pragma comment(lib, "iphlpapi.lib")
 
+
+template<typename F> static auto airdc_check(F f, bool blockOk = false) -> decltype(f()) {
+    for (;;) {
+        auto ret = f();
+        if (ret != static_cast<decltype(ret)>(SOCKET_ERROR)) {
+            return ret;
+        }
+
+        auto error = ::WSAGetLastError();
+        if (blockOk && error == WSAEWOULDBLOCK) {
+            return static_cast<decltype(ret)>(-1);
+        }
+
+        if (error != EINTR) {
+            throw SocketException(error);
+        }
+    }
+}
+
+inline int getSocketOptInt2(socket_t sock, int option) {
+    int val;
+    socklen_t len = sizeof(val);
+    airdc_check([&] { return ::getsockopt(sock, SOL_SOCKET, option, (char*)&val, &len); });
+    return val;
+}
+
 /// @todo remove when MinGW has this
 #ifdef __MINGW32__
 #ifndef EADDRNOTAVAIL
@@ -238,7 +264,7 @@ void Socket::socksConnect(const string& aAddr, uint16_t aPort, uint64_t timeout)
 	
 	connect(SETTING(SOCKS_SERVER), static_cast<uint16_t>(SETTING(SOCKS_PORT)));
 	
-	if (wait(timeLeft(start, timeout), WAIT_CONNECT) != WAIT_CONNECT)
+    if (!waitConnected(timeLeft(start, timeout))) 
 	{
 		throw SocketException(STRING(SOCKS_FAILED));
 	}
@@ -510,7 +536,7 @@ int Socket::readAll(void* aBuffer, int aBufLen, uint64_t timeout)
 		}
 		else if (j == -1)
 		{
-			if (wait(timeout, WAIT_READ) != WAIT_READ)
+            if (!wait(timeout, true, false).first)
 			{
 				return i;
 			}
@@ -538,7 +564,7 @@ int Socket::writeAll(const void* aBuffer, int aLen, uint64_t timeout)
 		const int i = write(buf + static_cast<size_t>(pos), (int)min(aLen - pos, sendSize)); // [!] PVS V104 Implicit conversion of 'pos' to memsize type in an arithmetic expression: buf + pos socket.cpp 464
 		if (i == -1)
 		{
-			wait(timeout, WAIT_WRITE);
+            wait(timeout, false, true);
 		}
 		else
 		{
@@ -711,94 +737,114 @@ int Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, in
  * @return WAIT_*** ored together of the current state.
  * @throw SocketException Select or the connection attempt failed.
  */
-int Socket::wait(uint64_t millis, int waitFor)
-{
-	timeval tv;
-	fd_set rfd, wfd, efd;
-	fd_set *rfdp = nullptr, *wfdp = nullptr;
-	tv.tv_sec = static_cast<long>(millis / 1000);// [!] IRainman fix this fild in timeval is a long type (PVS TODO)
-	tv.tv_usec = static_cast<long>((millis % 1000) * 1000);// [!] IRainman fix this fild in timeval is a long type (PVS TODO)
-	
-	if (waitFor & WAIT_CONNECT)
-	{
-		dcassert(!(waitFor & WAIT_READ) && !(waitFor & WAIT_WRITE));
-		
-		int result = -1;
-		do
-		{
-			FD_ZERO(&wfd);
-			FD_ZERO(&efd);
-			
-			FD_SET(m_sock, &wfd);
-			FD_SET(m_sock, &efd);
-			result = select((int)(m_sock + 1), 0, &wfd, &efd, &tv);
-		}
-		while (result < 0 && getLastError() == EINTR);
-		check(result);
-		
-		if (FD_ISSET(m_sock, &wfd))
-		{
-			return WAIT_CONNECT;
-		}
-		
-		if (FD_ISSET(m_sock, &efd))
-		{
-			int y = 0;
-			socklen_t z = sizeof(y);
-			check(getsockopt(m_sock, SOL_SOCKET, SO_ERROR, (char*)&y, &z));
-			
-			if (y != 0)
-				throw SocketException(y);
-			// No errors! We're connected (?)...
-			return WAIT_CONNECT;
-		}
-		return 0;
-	}
-	
-	int result = -1;
-	do
-	{
-		if (waitFor & WAIT_READ)
-		{
-			dcassert(!(waitFor & WAIT_CONNECT));
-			rfdp = &rfd;
-			FD_ZERO(rfdp);
-			FD_SET(m_sock, rfdp);
-		}
-		if (waitFor & WAIT_WRITE)
-		{
-			dcassert(!(waitFor & WAIT_CONNECT));
-			wfdp = &wfd;
-			FD_ZERO(wfdp);
-			FD_SET(m_sock, wfdp);
-		}
-		
-		result = select((int)(m_sock + 1), rfdp, wfdp, NULL, &tv); //[1] https://www.box.net/shared/03ae4d0b4586cea0a305
-	}
-	while (result < 0 && getLastError() == EINTR);
-	check(result);
-	
-	waitFor = WAIT_NONE;
-	
-	//dcassert(m_sock != INVALID_SOCKET); // https://github.com/eiskaltdcpp/eiskaltdcpp/commit/b031715
-	if (m_sock != INVALID_SOCKET)
-	{
-		if (rfdp && FD_ISSET(m_sock, rfdp)) // https://www.box.net/shared/t3apqdurqxzicy4bg1h0
-		{
-			waitFor |= WAIT_READ;
-		}
-		if (wfdp && FD_ISSET(m_sock, wfdp))
-		{
-			waitFor |= WAIT_WRITE;
-		}
-	}
-	return waitFor;
+ /**
+  * Blocks until timeout is reached one of the specified conditions have been fulfilled
+  * @param millis Max milliseconds to block.
+  * @param checkRead Check for reading
+  * @param checkWrite Check for writing
+  * @return pair with read/write state respectively
+  * @throw SocketException Select or the connection attempt failed.
+  */
+std::pair<bool, bool> Socket::wait(uint64_t millis, bool checkRead, bool checkWrite) {
+    timeval tv;
+    tv.tv_sec = static_cast<long>(millis / 1000);
+    tv.tv_usec = (millis % 1000) * 1000;
+    fd_set rfd, wfd;
+    fd_set *rfdp = NULL, *wfdp = NULL;
+
+    int nfds = -1;
+
+    if (checkRead) {
+        rfdp = &rfd;
+        FD_ZERO(rfdp);
+        if (m_sock != INVALID_SOCKET)
+        {
+            FD_SET(m_sock, &rfd);
+            nfds = std::max((int)m_sock, nfds);
+        }
+
+//        if (sock6.valid()) {
+//            FD_SET(sock6, &rfd);
+//            nfds = std::max((int)sock6, nfds);
+//        }
+    }
+
+    if (checkWrite) {
+        wfdp = &wfd;
+        FD_ZERO(wfdp);
+        if (m_sock != INVALID_SOCKET) {
+            FD_SET(m_sock, &wfd);
+            nfds = std::max((int)m_sock, nfds);
+        }
+
+//        if (sock6.valid()) {
+//            FD_SET(sock6, &wfd);
+//            nfds = std::max((int)sock6, nfds);
+//        }
+    }
+
+    airdc_check([&] { return ::select(nfds + 1, rfdp, wfdp, NULL, &tv); });
+
+
+    return std::make_pair(
+        rfdp && ((m_sock != INVALID_SOCKET && FD_ISSET(m_sock, rfdp))),
+        wfdp && ((m_sock != INVALID_SOCKET && FD_ISSET(m_sock, wfdp))));
+//    return std::make_pair(
+//        rfdp && ((sock4.valid() && FD_ISSET(sock4, rfdp)) || (sock6.valid() && FD_ISSET(sock6, rfdp))),
+//        wfdp && ((sock4.valid() && FD_ISSET(sock4, wfdp)) || (sock6.valid() && FD_ISSET(sock6, wfdp))));
 }
 
-bool Socket::waitConnected(uint64_t millis)
-{
-	return wait(millis, Socket::WAIT_CONNECT) == WAIT_CONNECT;
+bool Socket::waitConnected(uint64_t millis) {
+    timeval tv;
+    tv.tv_sec = static_cast<long>(millis / 1000);
+    tv.tv_usec = (millis % 1000) * 1000;
+    fd_set fd;
+    FD_ZERO(&fd);
+
+    int nfds = -1;
+    if (m_sock != INVALID_SOCKET) {
+        FD_SET(m_sock, &fd);
+        nfds = static_cast<int>(m_sock);
+    }
+
+//    if (sock6.valid()) {
+//        FD_SET(sock6, &fd);
+//        nfds = std::max(static_cast<int>(sock6), nfds);
+//    }
+
+    airdc_check([&] { return ::select(nfds + 1, NULL, &fd, NULL, &tv); });
+
+//    if (sock6.valid() && FD_ISSET(sock6, &fd)) {
+//        int err6 = getSocketOptInt2(sock6, SO_ERROR);
+//        if (err6 == 0) {
+//            sock4.reset(); // We won't be needing this any more...
+//            return true;
+//        }
+//
+//        if (!sock4.valid()) {
+//            throw SocketException(err6);
+//        }
+//
+//        sock6.reset();
+//    }
+
+    if (m_sock != INVALID_SOCKET && FD_ISSET(m_sock, &fd)) {
+        int err4 = getSocketOptInt2(m_sock, SO_ERROR);
+        if (err4 == 0) {
+//            sock6.reset(); // We won't be needing this any more...
+            return true;
+        }
+
+//        if (!sock6.valid()) {
+//            throw SocketException(err4);
+//        }
+
+        m_sock = INVALID_SOCKET; // .reset();
+    }
+
+    return false;
 }
+
 
 bool Socket::waitAccepted(uint64_t /*millis*/)
 {

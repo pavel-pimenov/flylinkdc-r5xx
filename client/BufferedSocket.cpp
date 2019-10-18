@@ -159,7 +159,7 @@ uint16_t BufferedSocket::accept(const Socket& srv, bool secure, bool allowUntrus
 }
 
 void BufferedSocket::connect(const string& aAddress, uint16_t aPort, bool secure, bool allowUntrusted, bool proxy,
-    Socket::Protocol p_proto, const string& expKP /*= Util::emptyString*/)
+                             Socket::Protocol p_proto, const string& expKP /*= Util::emptyString*/)
 {
 	connect(aAddress, aPort, 0, NAT_NONE, secure, allowUntrusted, proxy, p_proto, expKP);
 }
@@ -167,12 +167,12 @@ void BufferedSocket::connect(const string& aAddress, uint16_t aPort, bool secure
 void BufferedSocket::connect(const string& aAddress, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool secure, bool allowUntrusted, bool proxy, Socket::Protocol p_proto, const string& expKP /*= Util::emptyString*/)
 {
 	dcdebug("BufferedSocket::connect() %p\n", (void*)this);
-//	unique_ptr<Socket> s(secure ? new SSLSocket(natRole == NAT_SERVER ? CryptoManager::SSL_SERVER : CryptoManager::SSL_CLIENT_ALPN, allowUntrusted, p_proto, expKP) 
+//	unique_ptr<Socket> s(secure ? new SSLSocket(natRole == NAT_SERVER ? CryptoManager::SSL_SERVER : CryptoManager::SSL_CLIENT_ALPN, allowUntrusted, p_proto, expKP)
 //             : new Socket(/*Socket::TYPE_TCP*/));
-    std::unique_ptr<Socket> s(secure ? (natRole == NAT_SERVER ? 
-         CryptoManager::getInstance()->getServerSocket(allowUntrusted) : 
-        CryptoManager::getInstance()->getClientSocket(allowUntrusted, p_proto)) : new Socket);
-
+	std::unique_ptr<Socket> s(secure ? (natRole == NAT_SERVER ?
+	                                    CryptoManager::getInstance()->getServerSocket(allowUntrusted) :
+	                                    CryptoManager::getInstance()->getClientSocket(allowUntrusted, p_proto)) : new Socket);
+	                                    
 	s->create(); // в AirDC++ нет такой херни... разобраться
 	
 	setSocket(move(s));
@@ -1103,15 +1103,14 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 				{
 					while (!socketIsDisconnecting())
 					{
-						const int w = sock->wait(POLL_TIMEOUT, Socket::WAIT_WRITE | Socket::WAIT_READ);
-						if (w & Socket::WAIT_READ)
-						{
-							threadRead();
-						}
-						if (w & Socket::WAIT_WRITE)
-						{
-							break;
-						}
+                        auto w = sock->wait(POLL_TIMEOUT, true, true);
+                        if (w.first) {
+                            threadRead();
+                        }
+                        if (w.second) {
+                            break;
+                        }
+
 					}
 				}
 			}
@@ -1188,24 +1187,21 @@ void BufferedSocket::threadSendData()
 		{
 			return;
 		}
+
+		const auto w = sock->wait(POLL_TIMEOUT, true,true);
 		
-		const int w = sock->wait(POLL_TIMEOUT, Socket::WAIT_READ | Socket::WAIT_WRITE);
-		
-		if (w & Socket::WAIT_READ)
-		{
-			threadRead();
-		}
-		
-		if (w & Socket::WAIT_WRITE)
-		{
-			// TODO - find ("||")
-			const int n = sock->write(&l_sendBuf[done], left); // adguard - https://www.box.net/shared/9201edaa1fa1b83a8d3c
-			if (n > 0)
-			{
-				left -= n;
-				done += n;
-			}
-		}
+        if (w.first) {
+            threadRead();
+        }
+
+        if (w.second) {
+            // TODO - find ("||")
+            int n = sock->write(&l_sendBuf[done], left);  // adguard - https://www.box.net/shared/9201edaa1fa1b83a8d3c
+            if (n > 0) {
+                left -= n;
+                done += n;
+            }
+        }
 	}
 }
 
@@ -1292,17 +1288,14 @@ bool BufferedSocket::checkEvents()
 	return true;
 }
 
-void BufferedSocket::checkSocket()
-{
-	if (hasSocket())
-	{
-		int waitFor = sock->wait(POLL_TIMEOUT, Socket::WAIT_READ);
-		if (waitFor & Socket::WAIT_READ)
-		{
-			threadRead();
-		}
-	}
+void BufferedSocket::checkSocket() {
+    auto w = sock->wait(POLL_TIMEOUT, true, false);
+
+    if (w.first) {
+        threadRead();
+    }
 }
+
 
 /**
  * Main task dispatcher for the buffered socket abstraction.

@@ -1807,7 +1807,7 @@ DownloadPtr QueueManager::getDownload(UserConnection* aSource, string& aMessage)
 		
 		if (!q)
 		{
-			aMessage = g_userQueue.getLastError();
+			aMessage = g_userQueue.getLastErrorQuey();
 			dcdebug("none\n");
 			return d;
 		}

@@ -45,6 +45,24 @@ const int INVALID_SOCKET = -1;
 
 #include "SettingsManager.h"
 
+/** RAII socket handle */
+class SocketHandle : boost::noncopyable {
+public:
+    SocketHandle() : sock(INVALID_SOCKET) { }
+    SocketHandle(socket_t sock) : sock(sock) { }
+    ~SocketHandle() { reset(); }
+
+    operator socket_t() const { return get(); }
+    SocketHandle& operator=(socket_t s) { reset(s); return *this; }
+
+    socket_t get() const { return sock; }
+    bool valid() const { return sock != INVALID_SOCKET; }
+    void reset(socket_t s = INVALID_SOCKET);
+private:
+    socket_t sock;
+};
+
+
 class SocketException : public Exception
 {
 	public:
@@ -187,7 +205,7 @@ class Socket
 		 */
 		int readAll(void* aBuffer, int aBufLen, uint64_t timeout = 0);
 		
-		virtual int wait(uint64_t millis, int waitFor);
+        virtual std::pair<bool, bool> wait(uint64_t millis, bool checkRead, bool checkWrite);
 		bool isConnected()
 		{
 			return connected;
