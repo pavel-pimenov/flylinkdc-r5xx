@@ -577,6 +577,7 @@
     <ClCompile Include="client\SimpleXML.cpp" />
     <ClCompile Include="client\SimpleXMLReader.cpp" />
     <ClCompile Include="client\Socket.cpp" />
+    <ClCompile Include="client\SSL.cpp" />
     <ClCompile Include="client\SSLSocket.cpp" />
     <ClCompile Include="client\stdinc.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

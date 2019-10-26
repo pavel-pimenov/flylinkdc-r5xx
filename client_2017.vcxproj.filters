@@ -280,6 +280,9 @@
     <ClCompile Include="client\webrtc\rtc_base\synchronization\condition_variable_event_win.cc">
       <Filter>Source Files\webrtc</Filter>
     </ClCompile>
+    <ClCompile Include="client\SSL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\AdcCommand.h">
