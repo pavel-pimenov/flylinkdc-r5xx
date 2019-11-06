@@ -139,18 +139,18 @@ void DefaultClickPage::write()
 	magneturllistaction.Attach(GetDlgItem(IDC_MAGNETURLLIST_CLICK));
 	if (magneturllistaction.GetCurSel() == 0)
 	{
-		g_settings->set(SettingsManager::MAGNET_ASK, True);
+		g_settings->set(SettingsManager::MAGNET_ASK, true);
 	}
 	else
 	{
-		g_settings->set(SettingsManager::MAGNET_ASK, False);
+		g_settings->set(SettingsManager::MAGNET_ASK, false);
 		if (magneturllistaction.GetCurSel() == 1)
 		{
-			g_settings->set(SettingsManager::MAGNET_ACTION, False);
+			g_settings->set(SettingsManager::MAGNET_ACTION, false);
 		}
 		else
 		{
-			g_settings->set(SettingsManager::MAGNET_ACTION, True);
+			g_settings->set(SettingsManager::MAGNET_ACTION, true);
 		}
 	}
 	

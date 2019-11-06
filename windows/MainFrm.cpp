@@ -226,6 +226,61 @@ MainFrame::~MainFrame()
 	WinUtil::uninit();
 }
 
+BOOL MainFrame::PreTranslateMessage(MSG* pMsg)
+{
+    if (pMsg->message >= WM_MOUSEFIRST && pMsg->message <= WM_MOUSELAST)
+    {
+        m_ctrlLastLines.RelayEvent(pMsg);
+    }
+
+    if (!IsWindow())
+        return FALSE;
+
+    if (CMDIFrameWindowImpl<MainFrame>::PreTranslateMessage(pMsg))
+        return TRUE;
+
+    HWND hWnd = MDIGetActive();
+    if (hWnd != NULL && (BOOL)::SendMessage(hWnd, WM_FORWARDMSG, 0, (LPARAM)pMsg))
+    {
+        return TRUE;
+    }
+#ifdef RIP_USE_PORTAL_BROWSER
+    // [!] brain-ripper
+    // PortalBrowser wave own AcceleratorTable and have to process it,
+    // but it must be done after processing in main frame, otherwise
+    // PortalBrowser will steal at least Ctrl+Tab combination.
+    // Registering PreTranslateMessage (with AddMessageFilter) won't help here,
+    // because ATL framework calls PreTranslateMessage first for last registered filter
+    // (PortalBrowser in our case), and we have to process MainFrame first.
+    // So do this job in this function
+    if (PortalBrowserFrame::PreTranslateMessage(pMsg))
+        return TRUE;
+#endif
+
+    return FALSE;
+}
+
+BOOL MainFrame::OnIdle()
+{
+    if (!m_closing)
+    {
+        UIUpdateToolBar();
+#ifndef FLYLKINKDC_USE_TORRENT_AGENTS_CONC_TIMER
+
+        //if (DownloadManager::isValidInstance())
+        //{
+        //    DownloadManager::getInstance()->alert_handler();
+        //}
+        //LogManager::message("[1]MainFrame::OnIdle()");
+#endif
+    }
+    else
+    {
+        //LogManager::message("[2]MainFrame::OnIdle()");
+    }
+    return FALSE;
+}
+
 unsigned int WINAPI MainFrame::stopper(void* p)
 {
 	MainFrame* mf = (MainFrame*)p;

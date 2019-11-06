@@ -17,6 +17,7 @@
  */
 
 #include "stdafx.h"
+
 #include "Resource.h"
 
 #include "../client/ResourceManager.h"

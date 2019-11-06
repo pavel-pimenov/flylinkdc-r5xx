@@ -17,6 +17,7 @@
  */
 
 #include "stdafx.h"
+
 #include "QueueFrame.h"
 #include "SearchFrm.h"
 #include "PrivateFrame.h"

@@ -565,7 +565,7 @@ void FavoriteHubsFrame::handleMove(bool up)
 
 TStringList FavoriteHubsFrame::getSortedGroups() const
 {
-	std::set<tstring, noCaseStringLess> sorted_groups;
+	std::set<tstring> sorted_groups;
 	{
 		FavoriteManager::LockInstanceHubs lockedInstanceHubs;
 		const FavHubGroups& favHubGroups = lockedInstanceHubs.getFavHubGroups();

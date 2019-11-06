@@ -23,12 +23,6 @@
 
 #ifdef FLYLINKDC_USE_STATS_FRAME
 
-// [+]IRainman
-#include "../client/UploadManager.h"
-#include "../client/DownloadManager.h"
-#include "MainFrm.h"
-// [~]IRainman
-
 #include "FlatTabCtrl.h"
 #include "WinUtil.h"
 

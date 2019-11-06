@@ -1389,7 +1389,6 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 				// [!] TODO if (m_client->is_all_my_info_loaded()) // TODO нельзя тут отключать иначе глючит обновления своего ника если хаб PtoX у самого себя шара = 0
 				if (m_ctrlUsers)
 				{
-					PROFILE_THREAD_SCOPED_DESC("HubFrame::updateUser-update")
 					m_needsResort |= ui->is_update(m_ctrlUsers->getSortColumn());
 					const int pos = m_ctrlUsers->findItem(ui);
 					if (pos != -1)
@@ -1993,7 +1992,6 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					dcassert(!ClientManager::isBeforeShutdown());
 					if (!ClientManager::isBeforeShutdown())
 					{
-						//              PROFILE_THREAD_SCOPED_DESC("ADD_STATUS_LINE")
 						const StatusTask& status = static_cast<StatusTask&>(*i->second);
 						addStatus(Text::toT(status.m_str), status.m_isInChat, true, Colors::g_ChatTextServer);
 					}
@@ -2004,7 +2002,6 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 					dcassert(!ClientManager::isBeforeShutdown());
 					if (m_client && m_client->is_all_my_info_loaded() == true)
 					{
-						//              PROFILE_THREAD_SCOPED_DESC("STATS")
 						const int64_t l_availableBytes = m_client->getAvailableBytes();
 						const size_t l_allUsers = m_client->getUserCount();
 						const size_t l_count_item = m_ctrlUsers ? m_ctrlUsers->GetItemCount() : 0;
@@ -4608,7 +4605,6 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			
 		case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		{
-//			PROFILE_THREAD_SCOPED_DESC("CDDS_SUBITEM | CDDS_ITEMPREPAINT");
 			UserInfo* ui = (UserInfo*)cd->nmcd.lItemlParam;
 			if (!ui)
 				return CDRF_DODEFAULT;
@@ -4786,7 +4782,6 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			UserInfo* ui = (UserInfo*)cd->nmcd.lItemlParam;
 			if (ui)
 			{
-//				PROFILE_THREAD_SCOPED_DESC("CDDS_ITEMPREPAINT");
 				if (ui->m_owner_draw == 0)
 				{
 					ui->m_owner_draw = 1;

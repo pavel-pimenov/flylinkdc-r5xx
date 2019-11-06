@@ -17,6 +17,7 @@
  */
 
 #include "stdafx.h"
+
 #include <future>
 
 #include "Resource.h"

@@ -23,6 +23,11 @@
 #include "Resource.h"
 #include "StatsFrame.h"
 
+#include "../client/UploadManager.h"
+#include "../client/DownloadManager.h"
+#include "MainFrm.h"
+
+
 int StatsFrame::g_width = 0;
 int StatsFrame::g_height = 0;
 

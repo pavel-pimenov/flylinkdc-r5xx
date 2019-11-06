@@ -86,6 +86,7 @@ void  RangesPage::loadManualP2PGuard()
 	}
 	
 }
+
 LRESULT RangesPage::onRemoveP2PManual(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	int n = m_list_box.GetSelCount();

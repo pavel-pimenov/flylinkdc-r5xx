@@ -1452,27 +1452,6 @@ inline bool __fastcall EqualD(double A, double B)
 	return fabs(A - B) <= 1e-6;
 }
 
-/** Case insensitive string ordering */
-struct noCaseStringLess
-{
-	//bool operator()(const string* a, const string* b) const
-	//{
-	//  return stricmp(*a, *b) < 0;
-	//}
-	bool operator()(const string& a, const string& b) const
-	{
-		return stricmp(a, b) < 0;
-	}
-	//bool operator()(const wstring* a, const wstring* b) const
-	//{
-	//  return stricmp(*a, *b) < 0;
-	//}
-	bool operator()(const wstring& a, const wstring& b) const
-	{
-		return stricmp(a, b) < 0;
-	}
-};
-
 // parent class for objects with a lot of empty columns in list
 template<int C> class ColumnBase
 #ifdef _DEBUG
