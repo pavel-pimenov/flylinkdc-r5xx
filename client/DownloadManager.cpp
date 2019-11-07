@@ -1336,7 +1336,7 @@ void DownloadManager::post_torrent_info()
     if (m_torrent_session)
     {
         m_torrent_session->post_torrent_updates();
-        m_torrent_session->post_session_stats();
+        //m_torrent_session->post_session_stats();
         //m_torrent_session->post_dht_stats();
 #ifdef _DEBUG
         LogManager::torrent_message("Torrent DownloadManager::post_torrent_info()");
