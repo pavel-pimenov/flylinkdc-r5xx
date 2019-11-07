@@ -66,6 +66,8 @@ vc17
 
 *.tlog
 *.idb
+*.iobj
+*.ipdb
 *.res
 *.dmp
 *.ipch
