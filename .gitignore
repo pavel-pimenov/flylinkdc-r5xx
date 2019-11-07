@@ -100,3 +100,4 @@ merge-vendors.bat
 /Release
 /x64
 /lua/x64/Release
+/compiled/Settings/GeoIPCountryWhois.csv

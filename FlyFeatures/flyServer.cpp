@@ -1494,6 +1494,39 @@ CFlyTTHKeyDownloadArray CFlyServerJSON::g_download_counter;
 CFlyAntivirusTTHArray CFlyServerJSON::g_antivirus_counter;
 CFlyVirusFileListArray CFlyServerJSON::g_antivirus_file_list;
 //===================================================================================================================================
+void CFlyServerAdapter::waitForFlyServerStop()
+{
+    dcdrun(m_debugWaits = true;)
+        if (m_query_thread)
+        {
+            m_query_thread->join(m_dwMilliseconds); // Дождемся завершения но не более 10 сек
+        }
+}
+//===================================================================================================================================
+bool CFlyServerAdapter::is_fly_server_active() const
+{
+    if (m_query_thread)
+        return m_query_thread->is_active();
+    else
+        return false;
+}
+//===================================================================================================================================
+void CFlyServerAdapter::addFlyServerTask(uint64_t p_tick, bool p_is_force)
+{
+    if (p_is_force || BOOLSETTING(ENABLE_FLY_SERVER))
+    {
+        if (!m_query_thread)
+            m_query_thread = std::unique_ptr<CFlyServerQueryThread>(new CFlyServerQueryThread(this));
+        m_query_thread->processTask(p_tick);
+    }
+}
+//===================================================================================================================================
+void CFlyServerAdapter::clearFlyServerQueue()
+{
+    CFlyLock(g_cs_get_array_fly_server);
+    g_GetFlyServerArray.clear();
+}
+//===================================================================================================================================
 void CFlyServerAdapter::clear_tth_media_map()
 {
     CFlyLock(g_cs_tth_media_map);

@@ -23,6 +23,7 @@
 #define DCPLUSPLUS_DCPP_LOG_MANAGER_H
 
 #include "Util.h"
+#include <unordered_map>
 
 //#define FMT_HEADER_ONLY
 //#include "../cppformat/format.h"
@@ -89,12 +90,12 @@ class LogManager
 		
 		static int g_logOptions[LAST][2];
 #ifdef _DEBUG
-		static boost::unordered_map<string, pair<string, size_t> > g_pathCache;
+		static std::unordered_map<std::string, std::pair<string, size_t> > g_pathCache;
 		static size_t g_debugTotal;
 		static size_t g_debugMissed;
 		static int g_debugParallelWritesFiles;
 #else
-		static boost::unordered_map<string, string> g_pathCache;
+		static std::unordered_map<string, string> g_pathCache;
 #endif
 		static FastCriticalSection g_csPathCache; // [!] IRainman opt: use spin lock here.
 		static bool g_isInit;

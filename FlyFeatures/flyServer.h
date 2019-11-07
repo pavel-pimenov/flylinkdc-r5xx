@@ -447,36 +447,11 @@ class CFlyServerAdapter
 			dcassert(g_tth_media_file_map.empty());
 		}
 		virtual void mergeFlyServerInfo() = 0;
-		void waitForFlyServerStop()
-		{
-			dcdrun(m_debugWaits = true;)
-			if (m_query_thread)
-			{
-				m_query_thread->join(m_dwMilliseconds); // ƒождемс€ завершени€ но не более 10 сек
-			}
-		}
+        void waitForFlyServerStop();
+        bool is_fly_server_active() const;
+        void addFlyServerTask(uint64_t p_tick, bool p_is_force);
+        static void clearFlyServerQueue();
 		
-		bool is_fly_server_active() const
-		{
-			if (m_query_thread)
-				return m_query_thread->is_active();
-			else
-				return false;
-		}
-		void addFlyServerTask(uint64_t p_tick, bool p_is_force)
-		{
-			if (p_is_force || BOOLSETTING(ENABLE_FLY_SERVER))
-			{
-				if (!m_query_thread)
-					m_query_thread = std::unique_ptr<CFlyServerQueryThread>(new CFlyServerQueryThread(this));
-				m_query_thread->processTask(p_tick);
-			}
-		}
-		static void clearFlyServerQueue()
-		{
-			CFlyLock(g_cs_get_array_fly_server);
-			g_GetFlyServerArray.clear();
-		}
 	protected:
         static CFlyServerKeyArray  g_GetFlyServerArray;    // «апросы на получени€ медиаинформации. TODO - сократить размер структуры дл€ запроса.
         static ::CriticalSection  g_cs_get_array_fly_server;

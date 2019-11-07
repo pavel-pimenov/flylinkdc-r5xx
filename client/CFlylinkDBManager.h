@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//(c) 2007-2017 pavel.pimenov@gmail.com
+//(c) 2007-2019 pavel.pimenov@gmail.com
 //-----------------------------------------------------------------------------
 
 #pragma once
@@ -8,6 +8,7 @@
 #define CFlylinkDBManager_H
 
 #include <vector>
+#include <memory>
 #include <boost/unordered/unordered_map.hpp>
 #include "QueueItem.h"
 #include "Singleton.h"
@@ -54,7 +55,7 @@ class CFlySQLCommand
 			CFlyFastLock(m_cs);
 			if (!m_sql.get())
 			{
-				m_sql = unique_ptr<sqlite3_command>(new sqlite3_command(p_db, p_sql));
+				m_sql = std::unique_ptr<sqlite3_command>(new sqlite3_command(p_db, p_sql));
 			}
 			return m_sql.get();
 		}
@@ -67,7 +68,7 @@ class CFlySQLCommand
 			m_sql->executenonquery();
 		}
 	private:
-		unique_ptr<sqlite3_command> m_sql;
+		std::unique_ptr<sqlite3_command> m_sql;
 		FastCriticalSection m_cs;
 };
 #ifdef FLYLINKDC_USE_LEVELDB

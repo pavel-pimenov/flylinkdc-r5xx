@@ -25,11 +25,11 @@
 #include "ClientManager.h"
 
 #ifdef _DEBUG
-boost::unordered_map<string, pair<string, size_t> > LogManager::g_pathCache;
+std::unordered_map<string, pair<string, size_t> > LogManager::g_pathCache;
 size_t LogManager::g_debugTotal;
 size_t LogManager::g_debugMissed;
 #else
-boost::unordered_map<string, string> LogManager::g_pathCache;
+std::unordered_map<string, string> LogManager::g_pathCache;
 #endif
 bool LogManager::g_isInit = false;
 int LogManager::g_logOptions[LAST][2];
