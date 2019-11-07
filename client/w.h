@@ -30,6 +30,20 @@
 #define STRICT 1
 #endif
 
+#ifndef _ATL_NO_HOSTING
+// #define _ATL_NO_HOSTING
+#endif
+
+
+#define _ATL_NO_OPENGL
+#define _ATL_NO_COM
+#define _ATL_NO_OLD_NAMES
+#define _ATL_NO_COM_SUPPORT
+#define _ATL_NO_PERF_SUPPORT
+#define _ATL_NO_SERVICE
+#define _ATL_NO_DOCHOSTUIHANDLER
+
+
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
