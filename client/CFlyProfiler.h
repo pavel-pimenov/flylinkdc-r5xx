@@ -13,7 +13,7 @@
 // (c) http://floodyberry.wordpress.com/2009/10/07/high-performance-cplusplus-profiling/
 #define __PROFILER_FULL_TYPE_EXPANSION__
 
-#undef noinline
+//#undef noinline
 #undef fastcall
 
 #if defined(_MSC_VER)
@@ -21,12 +21,12 @@
 #define __PRETTY_FUNCTION__ __FUNCSIG__
 #define PROFILE_CONCAT( a, b ) a "/" b
 
-#define noinline __declspec(noinline)
+//#define noinline __declspec(noinline)
 #define fastcall __fastcall
 #else
 #define PROFILE_CONCAT( a, b ) b
 
-#define noinline __attribute__ ((noinline))
+//#define noinline __attribute__ ((noinline))
 #define fastcall
 #endif
 

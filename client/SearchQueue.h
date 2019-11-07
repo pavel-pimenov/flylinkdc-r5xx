@@ -20,6 +20,9 @@
 
 #include "CFlyThread.h"
 #include "typedefs.h"
+#include <deque>
+
+using std::deque;
 
 struct Search
 {
@@ -169,17 +172,8 @@ class SearchQueue
 		
 		bool add(const Search& s);
 		bool pop(Search& s, uint64_t now, bool p_is_passive);
-		bool empty()
-		{
-			// CFlyFastLock(m_cs);
-			// Тут лок не критичны и зовется не часто
-			return m_searchQueue.empty();
-		}
-		void clear()
-		{
-			CFlyFastLock(m_cs);
-			m_searchQueue.clear();
-		}
+        bool empty();
+        void clear();
 		
 		bool cancelSearch(void* aOwner);
 		

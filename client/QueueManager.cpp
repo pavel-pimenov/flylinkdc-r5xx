@@ -18,10 +18,6 @@
 
 #include "stdinc.h"
 
-#if !defined(_WIN32) && !defined(PATH_MAX) // Extra PATH_MAX check for Mac OS X
-#include <sys/syslimits.h>
-#endif
-
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/for_each.hpp>
 #include "QueueManager.h"

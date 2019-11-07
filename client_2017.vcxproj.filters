@@ -654,9 +654,6 @@
     <ClInclude Include="windows\RebuildMediainfoProgressDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="client\CFlyProfiler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="client\UserInfoColumns.h">
       <Filter>Header Files</Filter>
     </ClInclude>

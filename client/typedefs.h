@@ -24,11 +24,14 @@
 
 #include <boost/unordered/unordered_map.hpp>
 #include <boost/unordered/unordered_set.hpp>
+#include <string>
+
 #include "debug.h"
 #include "forward.h"
 #include "noexcept.h"
 
 using std::wstring;
+using std::string;
 
 typedef std::wstring tstring;
 typedef std::vector<string> StringList;

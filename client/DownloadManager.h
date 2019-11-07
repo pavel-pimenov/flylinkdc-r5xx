@@ -18,9 +18,16 @@
 
 #pragma once
 
-
 #ifndef DCPLUSPLUS_DCPP_DOWNLOAD_MANAGER_H
 #define DCPLUSPLUS_DCPP_DOWNLOAD_MANAGER_H
+
+#ifdef FLYLINKDC_USE_TORRENT
+#include "libtorrent/torrent_handle.hpp"
+#define FLYLKINKDC_USE_TORRENT_AGENTS_CONC_TIMER
+
+#ifdef FLYLKINKDC_USE_TORRENT_AGENTS_CONC_TIMER
+#include <agents.h> // Win64 only
+#endif
 
 #include "forward.h"
 
@@ -33,12 +40,10 @@
 #include "ZUtils.h"
 #include "FilteredFile.h"
 
-#ifdef FLYLINKDC_USE_TORRENT
-#include "libtorrent/torrent_handle.hpp"
-namespace libtorrent
-{
-class session;
-};
+#ifndef FLYLINKDC_USE_TORRENT
+#define FLYLINKDC_USE_TORRENT
+#endif
+
 #endif
 
 
@@ -54,9 +59,8 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 	public Singleton<DownloadManager>
 {
 #ifdef FLYLINKDC_USE_TORRENT
-		std::unique_ptr<libtorrent::session> m_torrent_session;
+        std::unique_ptr<libtorrent::session> m_torrent_session;
 		libtorrent::port_mapping_t m_maping_index[3];
-		void onTorrentAlertNotify(libtorrent::session* p_torrent_sesion);
 		void select_files(const libtorrent::torrent_handle& p_torrent_handle);
 		std::atomic<int> m_torrent_resume_count = { 0 };
 		std::atomic<int> m_torrent_rename_count = { 0 };
@@ -82,12 +86,12 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		static void checkIdle(const UserPtr& user);
 		
 		/** @internal */
-		static void abortDownload(const string& aTarget);
+		static void abortDownload(const std::string& aTarget);
 		
 		/** @return Running average download speed in Bytes/s */
 		static int64_t getRunningAverage()
 		{
-			return g_runningAverage;//[+] IRainman refactoring transfer mechanism
+			return g_runningAverage;
 		}
 		
 		static size_t getDownloadCount();
@@ -96,6 +100,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		static bool checkFileDownload(const UserPtr& aUser);
 		void fireData(UserConnection*, const uint8_t*, size_t) noexcept;
 	private:
+		void onTorrentAlertNotify();
 	
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDownload;
 		static DownloadList g_download_map;
@@ -148,6 +153,20 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		        void on(BanMessage, UserConnection*, const string& aMessage) noexcept override; // !SMT!-B
 		#endif*/
 		void on(CheckUserIP, UserConnection*) noexcept override; // [+] SSA
+	public:
+        bool alert_handler();
+        void post_torrent_info();
+	private:
+#ifdef FLYLKINKDC_USE_TORRENT_AGENTS_CONC_TIMER
+		concurrency::call<void*> alert_caller_;
+		concurrency::timer<void*> alert_timer_;
+		CriticalSection m_cs_alert;
+#endif
+		bool m_is_torrent_alert_active = false;
+		
+		void start_alert_handler();
+		void stop_alert_handler();
+		
 };
 
 #endif // !defined(DOWNLOAD_MANAGER_H)

@@ -1,4 +1,5 @@
 #include "stdinc.h"
+
 #include "DebugManager.h"
 
 bool DebugManager::g_isCMDDebug = false;

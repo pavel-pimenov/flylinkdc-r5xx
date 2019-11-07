@@ -83,6 +83,18 @@ bool SearchQueue::add(const Search& s)
 	return true;
 }
 
+bool SearchQueue::empty()
+{
+    // CFlyFastLock(m_cs);
+    // Тут лок не критичны и зовется не часто
+    return m_searchQueue.empty();
+}
+void SearchQueue::clear()
+{
+    CFlyFastLock(m_cs);
+    m_searchQueue.clear();
+}
+
 bool SearchQueue::pop(Search& s, uint64_t p_now, bool p_is_passive)
 {
 	dcassert(m_interval);

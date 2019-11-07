@@ -41,11 +41,10 @@
 
 #include "CFlyLockProfiler.h"
 
-#define CRITICAL_SECTION_SPIN_COUNT 2000 // [+] IRainman opt. http://msdn.microsoft.com/en-us/library/windows/desktop/ms683476(v=vs.85).aspx You can improve performance significantly by choosing a small spin count for a critical section of short duration. For example, the heap manager uses a spin count of roughly 4,000 for its per-heap critical sections.
+#define CRITICAL_SECTION_SPIN_COUNT 2000 
 
 STANDARD_EXCEPTION(ThreadException);
 
-// [+] IRainman fix: moved from Thread.
 class BaseThread
 {
 	public:
@@ -70,7 +69,6 @@ class BaseThread
 		}
 };
 
-// [+] IRainman fix: detect long waits.
 #ifdef _DEBUG
 # define TRACING_LONG_WAITS
 # ifdef TRACING_LONG_WAITS
@@ -513,12 +511,6 @@ typedef LockBase<FastCriticalSection> FastLock;
 typedef Lock FastLock;
 #endif // IRAINMAN_USE_SPIN_LOCK
 
-#ifdef FLYLINKDC_USE_PROFILER_CS
-#define CFlyFastLock(cs) FastLock l_lock(cs,__FUNCTION__,__LINE__);
-#else
-#define CFlyFastLock(cs) FastLock l_lock(cs);
-#endif
-
 #endif // FLYLINKDC_USE_BOOST_LOCK
 
 #else
@@ -773,6 +765,15 @@ typedef FastLock FastSharedLock;
 typedef FastLock FastUniqueLock;
 
 #endif // IRAINMAN_USE_SHARED_SPIN_LOCK
+
+#ifndef CFlyFastLock
+  #ifdef FLYLINKDC_USE_PROFILER_CS
+    #define CFlyFastLock(cs) FastLock l_lock(cs,__FUNCTION__,__LINE__);
+  #else
+    #define CFlyFastLock(cs) FastLock l_lock(cs);
+  #endif
+#endif
+
 
 #endif // !defined(THREAD_H)
 

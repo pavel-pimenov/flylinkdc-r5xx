@@ -27,6 +27,11 @@
 #include "webrtc/rtc_base/synchronization/rw_lock_wrapper.h"
 #include "Download.h"
 #include "CFlyThread.h"
+#include <map>
+#include <vector>
+
+using std::vector;
+using std::pair;
 
 #ifdef FLYLINKDC_USE_LOG_QUEUE_ITEM_DIRTY
 #include "LogManager.h"
@@ -63,7 +68,7 @@ class QueueItem : public Flags
 #endif
 {
 	public:
-		typedef boost::unordered_map<string, QueueItemPtr> QIStringMap;
+		typedef boost::unordered_map<std::string, QueueItemPtr> QIStringMap;
 		
 		enum Priority
 		{
@@ -76,7 +81,7 @@ class QueueItem : public Flags
 			HIGHEST,
 			LAST
 		};
-		typedef vector<pair<string, QueueItem::Priority> > PriorityArray;
+		typedef std::vector<std::pair<std::string, QueueItem::Priority> > PriorityArray;
 		
 		enum FileFlags
 		{
@@ -175,7 +180,7 @@ class QueueItem : public Flags
 		typedef boost::unordered_map<UserPtr, Source, User::Hash> SourceMap;
 		typedef SourceMap::iterator SourceIter;
 		typedef SourceMap::const_iterator SourceConstIter;
-		typedef std::multimap<time_t, pair<SourceConstIter, const QueueItemPtr> > SourceListBuffer;
+		typedef std::multimap<time_t, std::pair<SourceConstIter, const QueueItemPtr> > SourceListBuffer;
 		
 		static void getPFSSourcesL(const QueueItemPtr& p_qi, SourceListBuffer& p_sourceList, uint64_t p_now);
 		

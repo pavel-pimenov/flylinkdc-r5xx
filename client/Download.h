@@ -7,6 +7,7 @@
 #include "noexcept.h"
 #include "Transfer.h"
 #include "Streams.h"
+#include "util_flylinkdc.h"
 
 /**
  * Comes as an argument in the DownloadManagerListener functions.

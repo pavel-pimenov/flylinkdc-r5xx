@@ -1416,16 +1416,16 @@ struct noCaseStringHash
 	//}
 	bool operator()(const string& a, const string& b) const
 	{
-		return stricmp(a, b) < 0;
+		return stricmp(a.c_str(), b.c_str()) < 0;
 	}
 	//bool operator()(const wstring* a, const wstring* b) const
 	//{
 	//  return stricmp(*a, *b) < 0;
 	//}
-	bool operator()(const wstring& a, const wstring& b) const
-	{
-		return stricmp(a, b) < 0;
-	}
+	//bool operator()(const wstring& a, const wstring& b) const
+	//{
+	//	return stricmp(a, b) < 0;
+	//}
 };
 
 /** Case insensitive string comparison */
@@ -1433,20 +1433,20 @@ struct noCaseStringEq
 {
 	bool operator()(const string* a, const string* b) const
 	{
-		return a == b || stricmp(*a, *b) == 0;
+		return a == b || stricmp(a->c_str(), b->c_str()) == 0;
 	}
 	bool operator()(const string& a, const string& b) const
 	{
-		return stricmp(a, b) == 0;
+		return stricmp(a.c_str(), b.c_str()) == 0;
 	}
-	bool operator()(const wstring* a, const wstring* b) const
-	{
-		return a == b || stricmp(*a, *b) == 0;
-	}
-	bool operator()(const wstring& a, const wstring& b) const
-	{
-		return stricmp(a, b) == 0;
-	}
+	//bool operator()(const wstring* a, const wstring* b) const
+	//{
+	//	return a == b || stricmp(a->c_str(), b->c_str()) == 0;
+	//}
+	//bool operator()(const wstring& a, const wstring& b) const
+	//{
+	//	return stricmp(a.c_str(), b.c_str()) == 0;
+	//}
 };
 
 inline bool __fastcall EqualD(double A, double B)
@@ -1595,7 +1595,7 @@ class BackgroundTaskExecuter : public Thread, protected CFlyStopThread
 			}
 		}
 		virtual void execute(const TASK_TYPE & toExecute) = 0;
-		typedef list<TASK_TYPE> TaskList;
+		typedef std::list<TASK_TYPE> TaskList;
 		volatile bool m_active;
 		TaskList m_tasks;
 		FastCriticalSection m_csTasks;

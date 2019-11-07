@@ -252,13 +252,13 @@ class DirectoryListing : public UserInfoBase
 		
 };
 
-inline bool operator==(const DirectoryListing::Directory::Ptr a, const string& b)
+inline bool operator==(const DirectoryListing::Directory::Ptr a, const std::string& b)
 {
-	return stricmp(a->getName(), b) == 0;
+	return stricmp(a->getName().c_str(), b.c_str()) == 0;
 }
-inline bool operator==(const DirectoryListing::File::Ptr a, const string& b)
+inline bool operator==(const DirectoryListing::File::Ptr a, const std::string& b)
 {
-	return stricmp(a->getName(), b) == 0;
+	return stricmp(a->getName().c_str(), b.c_str()) == 0;
 }
 
 #endif // !defined(DIRECTORY_LISTING_H)

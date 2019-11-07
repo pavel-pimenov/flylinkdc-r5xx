@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//(c) 2007-2017 pavel.pimenov@gmail.com
+//(c) 2007-2019 pavel.pimenov@gmail.com
 //-----------------------------------------------------------------------------
 
 #pragma once
@@ -11,12 +11,8 @@
 #ifdef _DEBUG
 #include "LogManager.h"
 #endif
-#include "libtorrent/sha1_hash.hpp"
+#include "libtorrent/torrent_status.hpp"
 
-namespace libtorrent
-{
-struct torrent_status;
-}
 class TransferData
 {
 	public:

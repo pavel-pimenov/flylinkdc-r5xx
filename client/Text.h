@@ -23,6 +23,8 @@
 #define DCPLUSPLUS_DCPP_TEXT_H
 
 #include "typedefs.h"
+#include <cctype>
+
 
 /**
  * Text handling routines for DC++. DC++ internally uses UTF-8 for
@@ -132,7 +134,7 @@ bool validateUtf8(const string& p_str, size_t p_pos = 0) noexcept;
 inline char asciiToLower(uint8_t p_c)
 {
 	dcassert((p_c & 0x80) == 0);
-	return tolower(p_c);
+	return std::tolower(int(p_c));
 }
 
 inline wchar_t toLower(wchar_t c) noexcept
