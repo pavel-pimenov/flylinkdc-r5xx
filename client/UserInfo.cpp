@@ -24,12 +24,10 @@
 
 int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 {
-	//PROFILE_THREAD_SCOPED()
 	if (a == nullptr || b == nullptr)
 		return 0;
 	if (col == COLUMN_NICK)
 	{
-		PROFILE_THREAD_SCOPED_DESC("COLUMN_NICK")
 		const bool a_isOp = a->isOP(),
 		           b_isOp = b->isOP();
 		if (a_isOp && !b_isOp)
@@ -53,45 +51,37 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 	{
 		case COLUMN_NICK:
 		{
-			PROFILE_THREAD_SCOPED_DESC("COLUMN_NICK")
 			return compare(a->getIdentity().getNickT(), b->getIdentity().getNickT());
 		}
 		case COLUMN_SHARED:
 		case COLUMN_EXACT_SHARED:
 		{
-			PROFILE_THREAD_SCOPED_DESC("COLUMN_SHARED")
 			return compare(a->getIdentity().getBytesShared(), b->getIdentity().getBytesShared());
 		}
 		case COLUMN_SLOTS:
 		{
-			PROFILE_THREAD_SCOPED_DESC("COLUMN_SLOTS")
 			return compare(a->getIdentity().getSlots(), b->getIdentity().getSlots());
 		}
 		case COLUMN_HUBS:
 		{
-			PROFILE_THREAD_SCOPED_DESC("COLUMN_HUBS")
 			return compare(a->getIdentity().getHubNormalRegOper(), b->getIdentity().getHubNormalRegOper());
 		}
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		case COLUMN_UPLOAD:
 		{
-			PROFILE_THREAD_SCOPED_DESC("COLUMN_UPLOAD")
 			return compare(a->getUser()->getBytesUploadRAW(), b->getUser()->getBytesUploadRAW());
 		}
 		case COLUMN_DOWNLOAD:
 		{
-			PROFILE_THREAD_SCOPED_DESC("COLUMN_DOWNLOAD")
 			return compare(a->getUser()->getBytesDownloadRAW(), b->getUser()->getBytesDownloadRAW());
 		}
 		case COLUMN_MESSAGES:
 		{
-			PROFILE_THREAD_SCOPED_DESC("COLUMN_MESSAGES")
 			return compare(a->getUser()->getMessageCount(), b->getUser()->getMessageCount());
 		}
 #endif
 		case COLUMN_P2P_GUARD:
 		{
-			PROFILE_THREAD_SCOPED_DESC("COLUMN_P2P_GUARD")
 			const_cast<UserInfo*>(a)->calcP2PGuard();
 			const_cast<UserInfo*>(b)->calcP2PGuard();
 			return compare(a->getIdentity().getP2PGuard(), b->getIdentity().getP2PGuard());
@@ -99,7 +89,6 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		case COLUMN_ANTIVIRUS:
 		{
-			PROFILE_THREAD_SCOPED_DESC("COLUMN_ANTIVIRUS")
 			const_cast<UserInfo*>(a)->calcVirusType();
 			const_cast<UserInfo*>(b)->calcVirusType();
 			return compare(a->getStateImageIndex(), b->getStateImageIndex());
@@ -107,19 +96,16 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 #endif
 		case COLUMN_IP:
 		{
-			PROFILE_THREAD_SCOPED_DESC("COLUMN_IP")
 			return compare(a->getIdentity().getIp(), b->getIdentity().getIp());
 		}
 		case COLUMN_GEO_LOCATION:
 		{
-			PROFILE_THREAD_SCOPED_DESC("COLUMN_GEO_LOCATION")
 			const_cast<UserInfo*>(a)->calcLocation();
 			const_cast<UserInfo*>(b)->calcLocation();
 			return Util::DefaultSort(a->getText(col).c_str(), b->getText(col).c_str());
 		}
 		case COLUMN_FLY_HUB_GENDER:
 		{
-			PROFILE_THREAD_SCOPED_DESC("COLUMN_FLY_HUB_GENDER")
 			return compare(a->getIdentity().getGenderType(), b->getIdentity().getGenderType());
 		}
 		case COLUMN_FLY_HUB_COUNT_FILES:
@@ -153,7 +139,6 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 		}
 	}
 	{
-		PROFILE_THREAD_SCOPED_DESC("COLUMN_DEFAULT")
 		return Util::DefaultSort(a->getText(col).c_str(), b->getText(col).c_str());
 	}
 }

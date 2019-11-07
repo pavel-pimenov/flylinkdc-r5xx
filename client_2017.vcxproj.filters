@@ -229,9 +229,6 @@
     <ClCompile Include="client\LogManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\CFlyProfiler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="client\StringPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

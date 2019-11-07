@@ -1,4 +1,5 @@
 
+#error "Errro CFlyProfiler.h"
 #pragma once
 
 #ifndef __CFLYPROFILER_H__

@@ -36,8 +36,8 @@ std::unique_ptr<webrtc::RWLockWrapper> Identity::g_rw_cs = std::unique_ptr<webrt
 #endif
 
 #ifdef _DEBUG
-boost::atomic_int User::g_user_counts(0);
-boost::atomic_int OnlineUser::g_online_user_counts(0);
+std::atomic<int> User::g_user_counts(0);
+std::atomic<int> OnlineUser::g_online_user_counts(0);
 #endif
 
 Identity::StringDictionaryReductionPointers Identity::g_infoDic;
@@ -66,7 +66,7 @@ User::User(const CID& p_CID, const string& p_nick, uint32_t p_hub_id) : m_cid(p_
 #ifdef FLYLINKDC_USE_RATIO_CS
 	m_ratio_cs.use_log();
 #endif
-	++g_user_counts;
+	g_user_counts++;
 # ifdef ENABLE_DEBUG_LOG_IN_USER_CLASS
 	dcdebug(" [!!!!!!]   [!!!!!!]  User::User(const CID& aCID) this = %p, g_user_counts = %d\n", this, g_user_counts);
 # endif
@@ -77,7 +77,7 @@ User::~User()
 {
 	// TODO пока нельзя - вешается flushRatio();
 #ifdef _DEBUG
-	--g_user_counts;
+	g_user_counts--;
 # ifdef ENABLE_DEBUG_LOG_IN_USER_CLASS
 	dcdebug(" [!!!!!!]   [!!!!!!]  User::~User() this = %p, g_user_counts = %d\n", this, g_user_counts);
 # endif
@@ -511,7 +511,6 @@ bool Identity::setExtJSON(const string& p_ExtJSON)
 
 void Identity::getParams(StringMap& sm, const string& prefix, bool compatibility) const
 {
-	PROFILE_THREAD_START();
 	{
 #define APPEND(cmd, val) sm[prefix + cmd] = val;
 #define SKIP_EMPTY(cmd, val) { if (!val.empty()) { APPEND(cmd, val); } }

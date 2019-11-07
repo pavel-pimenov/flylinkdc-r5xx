@@ -933,18 +933,18 @@ class OnlineUser :  public UserInfoBase
 			: m_identity(p_user, p_sid), m_client(p_client), m_is_first_find(true)
 		{
 #ifdef _DEBUG
-			++g_online_user_counts;
+			g_online_user_counts++;
 #endif
 		}
 		
 		virtual ~OnlineUser() noexcept
 		{
 #ifdef _DEBUG
-			--g_online_user_counts;
+			g_online_user_counts--;
 #endif
 		}
 #ifdef _DEBUG
-		static boost::atomic_int g_online_user_counts; //
+		static std::atomic<int> g_online_user_counts;
 #endif
 		
 		operator UserPtr&()

@@ -23,6 +23,10 @@
 #define DCPLUSPLUS_DCPP_USER_H
 
 #include <boost/asio/ip/address_v4.hpp>
+#ifdef _DEBUG
+#include <atomic>
+#endif
+
 #include "webrtc/rtc_base/synchronization/rw_lock_wrapper.h"
 
 #include "Pointer.h"
@@ -30,7 +34,6 @@
 #include "CID.h"
 #include "Flags.h"
 #include "forward.h"
-#include "CFlyProfiler.h"
 #include "CFlyUserRatioInfo.h"
 
 class ClientBase;
@@ -168,7 +171,7 @@ class User : public Flags
 		virtual ~User();
 		
 #ifdef _DEBUG
-		static boost::atomic_int g_user_counts;
+		static std::atomic<int> g_user_counts;
 #endif
 		
 		const CID& getCID() const

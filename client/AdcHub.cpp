@@ -289,7 +289,6 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 	
 	auto& id = ou->getIdentity();
 	auto& u = ou->getUser();
-	PROFILE_THREAD_SCOPED_DESC("getParameters")
 	string l_ip4;
 	string l_ip6;
 	for (auto i = c.getParameters().cbegin(); i != c.getParameters().cend(); ++i)
