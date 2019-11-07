@@ -961,7 +961,7 @@ void File_Avc::Streams_Fill(std::vector<seq_parameter_set_struct*>::iterator seq
     {
         for (std::map<video, Ztring>::iterator Item = SmpteSt2086->second.begin(); Item != SmpteSt2086->second.end(); ++Item)
         {
-            bool Ignore;
+            bool Ignore=false;
             switch (Item->first)
             {
             case Video_HDR_Format:
