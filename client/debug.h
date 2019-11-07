@@ -38,7 +38,7 @@ inline void debugTrace(const char* format, ...)
 	char buf[512];
 	buf[0] = 0;
 	_vsnprintf(buf, _countof(buf), format, args);
-	OutputDebugStringA(buf);
+	//OutputDebugStringA(buf);
 	std::ofstream l_fs;
 	l_fs.open(L"flylinkdc-debug-trace.log", std::ifstream::out | std::ifstream::app);
 	if (l_fs.good())
