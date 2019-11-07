@@ -116,7 +116,7 @@ class MemoryInputStream : public InputStream
 		
 		size_t read(void* tgt, size_t& p_len) override
 		{
-			p_len = min(p_len, m_buf_size - m_pos);
+			p_len = std::min(p_len, m_buf_size - m_pos);
 			memcpy(tgt, m_buf + m_pos, p_len);
 			m_pos += p_len;
 			return p_len;

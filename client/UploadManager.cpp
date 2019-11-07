@@ -17,7 +17,6 @@
  */
 
 #include "stdinc.h"
-#include <cmath>
 
 #include "UploadManager.h"
 #include "DownloadManager.h"// !SMT!-S

@@ -27,7 +27,10 @@
 
 //#define IRAINMAN_INTEL_CPP_TEST 1
 
+#ifndef BOOST_NO_RTTI
 # define BOOST_NO_RTTI 1
+#endif
+
 #ifndef BOOST_ALL_NO_LIB
 #define BOOST_ALL_NO_LIB
 #endif

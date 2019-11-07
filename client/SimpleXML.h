@@ -254,7 +254,7 @@ class SimpleXML
 		 */
 		inline static bool needsEscape(const string& aString, bool aAttrib, bool aLoading = false, const string &encoding = Text::g_utf8)
 		{
-			const bool l_is_utf8 = stricmp(encoding, Text::g_utf8) == 0;
+			const bool l_is_utf8 = stricmp(encoding.c_str(), Text::g_utf8.c_str()) == 0;
 			return !l_is_utf8 || ((aLoading ? aString.find('&') : aString.find_first_of(aAttrib ? "<&>'\"" : "<&>")) != string::npos);
 		}
 		inline static bool needsEscapeForce(const string& aString)

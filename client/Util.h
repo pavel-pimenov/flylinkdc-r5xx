@@ -27,6 +27,8 @@
 #include <atlcomtime.h>
 #endif
 
+#include <list>
+
 #include "Text.h"
 #include "CFlyThread.h"
 #include "MerkleTree.h" // [+] SSA - иначе никак, где-то он уже включен

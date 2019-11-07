@@ -145,19 +145,19 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		
 		static int getSlots()
 		{
-			return (max(SETTING(SLOTS), max(SETTING(HUB_SLOTS), 0) * Client::getTotalCounts()));
+			return (std::max(SETTING(SLOTS), std::max(SETTING(HUB_SLOTS), 0) * Client::getTotalCounts()));
 		}
 		
 		/** @return Number of free slots. */
 		static int getFreeSlots()
 		{
-			return max((getSlots() - g_running), 0);
+			return std::max((getSlots() - g_running), 0);
 		}
 		
 		/** @internal */
 		int getFreeExtraSlots() const
 		{
-			return max(SETTING(EXTRA_SLOTS) - getExtra(), 0);
+			return std::max(SETTING(EXTRA_SLOTS) - getExtra(), 0);
 		}
 		
 		/** @param aUser Reserve an upload slot for this user and connect. */

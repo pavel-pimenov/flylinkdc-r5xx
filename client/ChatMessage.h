@@ -54,8 +54,8 @@ class ChatMessage
 		}
 		void translate_me()
 		{
-			if (m_text.size() >= 4 && (strnicmp(m_text, "/me ", 4) == 0 ||
-			                           strnicmp(m_text, "+me ", 4) == 0))
+			if (m_text.size() >= 4 && (strnicmp(m_text.c_str(), "/me ", 4) == 0 ||
+			                           strnicmp(m_text.c_str(), "+me ", 4) == 0))
 			{
 				thirdPerson = true;
 				m_text = m_text.substr(4);

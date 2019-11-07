@@ -25,6 +25,7 @@
 #include "forward.h"
 #include "Segment.h"
 #include "TransferData.h"
+#include <deque>
 
 class UserConnection;
 
@@ -162,7 +163,7 @@ class Transfer
 		uint64_t m_start;
 		
 		typedef std::pair<uint64_t, const int64_t> Sample;
-		typedef deque<Sample> SampleList;
+		typedef std::deque<Sample> SampleList;
 		
 		SampleList m_samples;
 		FastCriticalSection m_cs; // [!]IRainman refactoring transfer mechanism
