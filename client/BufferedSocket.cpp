@@ -39,7 +39,7 @@
 // Polling is used for tasks...should be fixed...
 static const uint64_t POLL_TIMEOUT = 250;
 #ifdef FLYLINKDC_USE_SOCKET_COUNTER
-boost::atomic<long> BufferedSocket::g_sockets(0);
+std::atomic<long> BufferedSocket::g_sockets(0);
 #endif
 
 BufferedSocket::BufferedSocket(char aSeparator, UserConnection* p_connection) :

@@ -22,8 +22,6 @@
 #ifndef DCPLUSPLUS_DCPP_MAPPING_MANAGER_H
 #define DCPLUSPLUS_DCPP_MAPPING_MANAGER_H
 
-#include <boost/atomic.hpp>
-
 #include "forward.h"
 #include "typedefs.h"
 #include "Util.h"

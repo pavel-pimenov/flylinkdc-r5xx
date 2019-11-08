@@ -22,7 +22,7 @@
 #ifndef DCPLUSPLUS_DCPP_BUFFERED_SOCKET_H
 #define DCPLUSPLUS_DCPP_BUFFERED_SOCKET_H
 
-#include <boost/atomic.hpp>
+#include <atomic>
 #include <boost/asio/ip/address_v4.hpp>
 
 #include "BufferedSocketListener.h"
@@ -292,7 +292,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		
 		void fail(const string& aError);
 #ifdef FLYLINKDC_USE_SOCKET_COUNTER
-		static boost::atomic<long> g_sockets;
+		static std::atomic<long> g_sockets;
 #endif
 		bool checkEvents();
 		void checkSocket();

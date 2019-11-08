@@ -40,17 +40,6 @@ template <class T> class CFlyTestStatistic
 		unsigned __int64 m_count_dealloc;
 		unsigned __int64 m_count_alloc_array;
 		unsigned __int64 m_count_dealloc_array;
-		/*
-		        boost::atomic_uint64_t m_max_count = 0;
-		        boost::atomic_uint64_t m_count = 0;
-		        boost::atomic_uint64_t m_count_contruct = 0;
-		        boost::atomic_uint64_t m_size_alloc = 0;
-		        boost::atomic_uint64_t m_size_alloc_array = 0;
-		        boost::atomic_uint64_t m_count_alloc = 0;
-		        boost::atomic_uint64_t m_count_dealloc = 0;
-		        boost::atomic_uint64_t m_count_alloc_array = 0;
-		        boost::atomic_uint64_t m_count_dealloc_array = 0;
-		*/
 	private:
 		void print()
 		{

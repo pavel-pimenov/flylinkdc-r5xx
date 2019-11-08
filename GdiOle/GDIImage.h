@@ -2,7 +2,7 @@
 #ifdef IRAINMAN_INCLUDE_GDI_OLE
 #include <gdiplus.h>
 #include "../client/util_flylinkdc.h"
-#include <boost/atomic.hpp>
+#include <atomic>
 #include <unordered_set>
 #include <set>
 
@@ -24,7 +24,7 @@ class CGDIImage
 		DWORD m_dwCurrentFrame;
 		HANDLE m_hTimer;
 		volatile LONG m_lRef;
-		boost::atomic_bool m_allowCreateTimer; // [+] IRainman fix.
+		std::atomic<bool> m_allowCreateTimer;
 		
 		static VOID CALLBACK OnTimer(PVOID lpParameter, BOOLEAN TimerOrWaitFired);
 		static void destroyTimer(CGDIImage *pGDIImage, HANDLE p_CompletionEvent);
