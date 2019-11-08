@@ -79,7 +79,7 @@ void TransferData::init(libtorrent::torrent_status const& s)
 	        s.state == libtorrent::torrent_status::finished)
 	{
 		const tstring l_peer_seed = _T(" Peers:") + Util::toStringT(s.num_peers) + _T(" Seeds:") + Util::toStringT(s.num_seeds) + _T(" ");
-		if (s.state == libtorrent::torrent_status::seeding)
+		if (s.state == libtorrent::torrent_status::seeding) // TODO - false
 		{
 			m_status_string = l_peer_seed + _T("  Download: ") +
 			                  Util::formatBytesW(s.total_download) + _T(" Upload: ") +

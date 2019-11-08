@@ -50,7 +50,6 @@ bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType, HMODULE hInst)
 			return res == S_OK;
 		}
 	}
-    dcassert(hInst);
 	HRSRC hResource = ::FindResource(hInst, MAKEINTRESOURCE(id), pType);
 	//dcassert(hResource);
 	if (!hResource)
