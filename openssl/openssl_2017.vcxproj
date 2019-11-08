@@ -672,7 +672,6 @@
     <ClCompile Include="crypto\dso\dso_openssl.c" />
     <ClCompile Include="crypto\dso\dso_vms.c" />
     <ClCompile Include="crypto\dso\dso_win32.c" />
-    <ClCompile Include="crypto\ebcdic.c" />
     <ClCompile Include="crypto\ec\curve25519.c" />
     <ClCompile Include="crypto\ec\curve448\arch_32\f_impl.c" />
     <ClCompile Include="crypto\ec\curve448\curve448.c" />
@@ -972,8 +971,6 @@
     <ClCompile Include="crypto\store\store_lib.c" />
     <ClCompile Include="crypto\store\store_register.c" />
     <ClCompile Include="crypto\store\store_strings.c" />
-    <ClCompile Include="crypto\threads_none.c" />
-    <ClCompile Include="crypto\threads_pthread.c" />
     <ClCompile Include="crypto\threads_win.c" />
     <ClCompile Include="crypto\ts\ts_asn1.c" />
     <ClCompile Include="crypto\ts\ts_conf.c" />

@@ -665,9 +665,6 @@
     <ClCompile Include="crypto\cversion.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="crypto\ebcdic.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
     <ClCompile Include="crypto\ex_data.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
@@ -702,12 +699,6 @@
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
     <ClCompile Include="crypto\o_time.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="crypto\threads_none.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="crypto\threads_pthread.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
     <ClCompile Include="crypto\threads_win.c">
