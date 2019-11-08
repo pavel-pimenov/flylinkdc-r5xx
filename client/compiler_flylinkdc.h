@@ -21,14 +21,14 @@
 
 #pragma once
 
-#include "version.h" // [+] FlylinkDC++ HE
+#include "version.h"
 
 //#define FLYLINKDC_TRACE_ENABLE
 
 //#define IRAINMAN_INTEL_CPP_TEST 1
 
 #ifndef BOOST_NO_RTTI
-# define BOOST_NO_RTTI 1
+#define BOOST_NO_RTTI 1
 #endif
 
 #ifndef BOOST_ALL_NO_LIB
@@ -183,13 +183,12 @@ typedef unsigned __int64 uint64_t;
 //# define FLYLINKDC_USE_APEX_EX_MESSAGE_BOX // TODO: глючит - много дампов по переполнению стека, необходимо найти альтернативу.
 #define PPA_USER_COMMANDS_HUBS_SET
 #define FLYLINKDC_USE_IPFILTER
-#ifndef FLYLINKDC_HE
 # define FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 # ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 #  define FLYLINKDC_USE_COLUMN_RATIO
 //#  define FLYLINKDC_USE_SHOW_UD_RATIO
 # endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-#endif // FLYLINKDC_HE
+
 #ifdef _DEBUG
 //# define FLYLINKDC_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG // ќтдаем на поиск больше данных - в релизе никогда не включать
 #endif
@@ -199,14 +198,13 @@ typedef unsigned __int64 uint64_t;
 #define IRAINMAN_ENABLE_WHOIS
 #define IRAINMAN_ENABLE_MORE_CLIENT_COMMAND
 //#define IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
-#ifndef FLYLINKDC_HE
 # ifdef FLYLINKDC_BETA
 #  define AUTOUPDATE_NOT_DISABLE
 #  ifdef NIGHT_BUILD
 #   define HOURLY_CHECK_UPDATE
 #  endif
 # endif
-#endif
+
 //#define IRAINMAN_USE_STRING_POOL
 #define IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 //#define IRAINMAN_SPEED_LIMITER_5S4_10 // ¬ключает ограничение: скорость отдачи = 5 * количество слотов + 4, скорость загрузки = 10 * скорость отдачи
@@ -218,12 +216,12 @@ typedef unsigned __int64 uint64_t;
 # define IRAINMAN_FULL_UPNP_LOG
 #endif
 #define SPEED_APPROXIMATION_INTERVAL_S 30 // [!]IRainman: Interval of speed approximation in seconds.
-#ifndef FLYLINKDC_HE
+
 # define IRAINMAN_ENABLE_AUTO_BAN
 # define IRAINMAN_INCLUDE_SMILE // Disable this to cut all smile support from code.
 # define IRAINMAN_INCLUDE_RSS // Disable this to cut rss-manager from code.
 # define FLYLINKDC_USE_PROVIDER_RESOURCES
-#endif // FLYLINKDC_HE
+
 // #define IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
 #define IRAINMAN_ENABLE_OP_VIP_MODE
 #ifdef IRAINMAN_ENABLE_OP_VIP_MODE
@@ -235,9 +233,8 @@ typedef unsigned __int64 uint64_t;
 //#define IRAINMAN_AUTOUPDATE_ARCH_DIFFERENCE 1 // TODO
 //#define IRAINMAN_THEME_MANAGER_LISTENER_ENABLE
 #define IRAINMAN_FAST_FLAT_TAB
-//#ifndef FLYLINKDC_HE
 #define IRAINMAN_USE_GDI_PLUS_TAB 1 // if disable - used old-school tab.
-//#endif // FLYLINKDC_HE
+
 //#define IRAINMAN_DISALLOWED_BAN_MSG
 #ifndef IRAINMAN_DISALLOWED_BAN_MSG
 // #define SMT_ENABLE_FEATURE_BAN_MSG // please DON'T enable this!
@@ -249,12 +246,15 @@ typedef unsigned __int64 uint64_t;
 //#define IRAINMAN_CONNECTION_MANAGER_TOKENS_DEBUG // TODO: must correct work with tokens in the ConnectionManager. This error runs either with Strong, or even from a very long time. After confirming correct downloads, I'll probably fix the problem.
 //#define IRAINMAN_CORRRECT_CALL_FOR_CLIENT_MANAGER_DEBUG // TODO: correct the error with the transfer of incorrect addresses in ClientManager :: findHub: error or very old or relatively new and due to the large merzh in the making of the branches r5xx.
 #define IRAINMAN_USE_NG_CORE
+
 #ifdef IRAINMAN_USE_NG_CORE
 # define IRAINMAN_ALLOW_ALL_CLIENT_FEATURES_ON_NMDC // TODO: use new ADC features.
 # define IRAINMAN_USE_NG_FAST_USER_INFO 1 // optimizing the use of memory and CPU resources. 
+
 # ifndef IRAINMAN_USE_NG_FAST_USER_INFO
 //#  define IRAINMAN_USE_OLD_CODE_IN_USER_INFO_ONLY_FOR_TEST 1
 # endif // IRAINMAN_USE_NG_FAST_USER_INFO
+
 # define IRAINMAN_IDENTITY_IS_NON_COPYABLE
 
 #define IRAINMAN_USE_SPIN_LOCK
@@ -268,6 +268,7 @@ typedef unsigned __int64 uint64_t;
 #    define IRAINMAN_USE_SEPARATE_CS_IN_FINISHED_MANAGER
 #   endif // IRAINMAN_USE_SHARED_SPIN_LOCK
 # endif // IRAINMAN_USE_READ_WRITE_POLITICS
+
 # ifdef FLYLINKDC_HE
 #  ifdef IRAINMAN_USE_READ_WRITE_POLITICS
 #// [-]   define IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
@@ -278,6 +279,7 @@ typedef unsigned __int64 uint64_t;
 #   endif // IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
 #  endif // IRAINMAN_USE_READ_WRITE_POLITICS
 # endif // FLYLINKDC_HE
+
 #endif // IRAINMAN_USE_NG_CORE
 #if defined(IRAINMAN_USE_SPIN_LOCK) || defined(IRAINMAN_USE_SHARED_SPIN_LOCK)
 # define IRAINMAN_USE_NON_RECURSIVE_BEHAVIOR // TODO: recursive entry into a non-recursive mutex or spin lock.
@@ -312,9 +314,9 @@ typedef unsigned __int64 uint64_t;
 // [+] NightOrion
 #define USE_SUPPORT_HUB
 //#define NIGHTORION_INTERNAL_TRANSLATE_SOCKET_ERRORS // ¬ключить когда будет готов перевод.
-#ifndef FLYLINKDC_HE
-# define USE_APPDATA
-#endif
+
+#define USE_APPDATA
+
 #define FLYLINKDC_LOG_IN_SQLITE_BASE
 
 //#define NIGHTORION_USE_STATISTICS_REQUEST
@@ -331,17 +333,10 @@ typedef unsigned __int64 uint64_t;
 // [+] SSA - отображать пусто в magnet, если не найден файл в шаре
 // #define SSA_DONT_SHOW_MAGNET_ON_NO_FILE_IN_SHARE
 //#define SSA_INCLUDE_FILE_SHARE_PAGE // [!] SSA temporary removed. TODO ?
-#ifndef FLYLINKDC_HE
-# define SSA_IPGRANT_FEATURE // [+] SSA additional slots for special IP's
-// # define SSA_VIDEO_PREVIEW_FEATURE //
-// # define SSA_WIZARD_FEATURE
-#endif
-// TODO
+#define SSA_IPGRANT_FEATURE // [+] SSA additional slots for special IP's
 //#define SSA_SHELL_INTEGRATION
 
-#ifndef FLYLINKDC_HE
-# define SCALOLAZ_PROPPAGE_TRANSPARENCY   //[+] SCALOlaz: Transparency of a Settings window
-#endif
+#define SCALOLAZ_PROPPAGE_TRANSPARENCY   //[+] SCALOlaz: Transparency of a Settings window
 #define SCALOLAZ_PROPPAGE_COLOR          //[+] SCALOlaz: Colorized background in Properties
 #define SCALOLAZ_PROPPAGE_HELPLINK       //[+] SCALOlaz: FlyWiki Help link per pages
 #define SCALOLAZ_HASH_HELPLINK          //[+] SCALOlaz: FlyWiki Help link for HashDialog
@@ -355,11 +350,6 @@ typedef unsigned __int64 uint64_t;
 #endif // SCALOLAZ_MEDIAVIDEO_ICO
 #define SCALOLAZ_CHAT_REFFERING_TO_NICK
 #define SCALOLAZ_BB_COLOR_BUTTON
-
-// TODO: feature not fully implemented, don't turn off this define!
-//#if defined(FLYLINKDC_HE) || !defined(FLYLINKDC_BETA) // before the end of the experiments using the old menu, eliminates the hassle.
-//# define OLD_MENU_HEADER // [+] JhaoDa: if disable use new menu style, like Windows 7 +
-//#endif
 
 #ifdef IRAINMAN_INCLUDE_SMILE
 # define IRAINMAN_INCLUDE_GDI_OLE 1

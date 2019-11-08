@@ -17,7 +17,6 @@
  */
 
 #include "stdinc.h"
-#include "DCPlusPlus.h"
 #include "../windows/resource.h"
 #include "UserInfo.h"
 #include "CFlylinkDBManager.h"

@@ -73,7 +73,7 @@ void File::init(const tstring& aFileName, int access, int mode, bool isAbsoluteP
 	if (h == INVALID_HANDLE_VALUE)
 	{
 #ifdef _DEBUG
-#if 1
+#if 0
 		if (outPath.find(_T(".dctmp")) != tstring::npos)
 		{
 			int a;

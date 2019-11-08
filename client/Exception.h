@@ -26,7 +26,6 @@
 #include <exception>
 
 #include "debug.h"
-#include "noexcept.h"
 
 using std::string;
 

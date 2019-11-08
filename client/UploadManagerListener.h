@@ -4,9 +4,7 @@
 #ifndef DCPLUSPLUS_DCPP_UPLOADMANAGERLISTENER_H_
 #define DCPLUSPLUS_DCPP_UPLOADMANAGERLISTENER_H_
 
-#include "forward.h"
 #include "typedefs.h"
-#include "noexcept.h"
 #include "TransferData.h"
 #include "Upload.h"
 

@@ -336,7 +336,7 @@ void LogManager::speak_status_message(const string& p_msg)
 
 void LogManager::message(const string& p_msg, bool p_only_file /*= false */)
 {
-#if !defined(FLYLINKDC_BETA) || defined(FLYLINKDC_HE)
+#if !defined(FLYLINKDC_BETA)
 	if (BOOLSETTING(LOG_SYSTEM))
 #endif
 	{

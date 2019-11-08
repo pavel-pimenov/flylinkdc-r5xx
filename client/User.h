@@ -29,17 +29,15 @@
 
 #include "webrtc/rtc_base/synchronization/rw_lock_wrapper.h"
 
-#include "Pointer.h"
 #include "Util.h"
 #include "CID.h"
 #include "Flags.h"
-#include "forward.h"
 #include "CFlyUserRatioInfo.h"
 
 class ClientBase;
 class Client;
 
-#define TAG(x,y) (x + (y << 8)) // TODO static_assert
+#define TAG(x,y) ((x) + ((y) << 8)) // TODO static_assert
 
 
 /** A user connected to one or more hubs. */

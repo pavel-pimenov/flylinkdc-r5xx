@@ -115,7 +115,6 @@ void BufferedSocket::setSocket(std::unique_ptr<Socket> && s)
 	dcassert(!sock.get());
 	sock = move(s);
 }
-#ifndef FLYLINKDC_HE
 void BufferedSocket::resizeInBuf()
 {
 	bool l_is_bad_alloc;
@@ -141,7 +140,7 @@ void BufferedSocket::resizeInBuf()
 	}
 	while (l_is_bad_alloc == true);
 }
-#endif // FLYLINKDC_HE
+
 uint16_t BufferedSocket::accept(const Socket& srv, bool secure, bool allowUntrusted, const string& expKP)
 {
 	dcdebug("BufferedSocket::accept() %p\n", (void*)this);
@@ -220,15 +219,12 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 			
 			setOptions();
 			
-			// [+] IRainman fix
 			while (true)
 			{
-#ifndef FLYLINKDC_HE
 				if (ClientManager::isBeforeShutdown())
 				{
 					throw SocketException(STRING(COMMAND_SHUTDOWN_IN_PROGRESS));
 				}
-#endif
 				if (sock->waitConnected(POLL_TIMEOUT))
 				{
 					if (!socketIsDisconnecting())

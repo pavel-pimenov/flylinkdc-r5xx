@@ -23,7 +23,6 @@
 #define DCPLUSPLUS_DCPP_QUEUE_MANAGER_LISTENER_H
 
 #include "forward.h"
-#include "noexcept.h"
 #include "Download.h"
 
 class QueueManagerListener

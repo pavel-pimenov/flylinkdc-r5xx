@@ -26,8 +26,6 @@
 
 #include <cassert>
 #include <stdarg.h>
-//#define WIN32_LEAN_AND_MEAN
-//#include <windows.h>
 #include <fstream>
 
 inline void debugTrace(const char* format, ...)

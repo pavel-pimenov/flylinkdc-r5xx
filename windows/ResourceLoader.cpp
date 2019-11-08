@@ -51,7 +51,6 @@ bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType, HMODULE hInst)
 		}
 	}
 	HRSRC hResource = ::FindResource(hInst, MAKEINTRESOURCE(id), pType);
-	//dcassert(hResource);
 	if (!hResource)
 	{
 #if defined(USE_THEME_MANAGER)

@@ -25,8 +25,6 @@
 #include <boost/intrusive_ptr.hpp>
 #include <boost/smart_ptr/detail/atomic_count.hpp>
 
-#include "noexcept.h"
-
 template<typename T>
 class intrusive_ptr_base
 {
@@ -71,17 +69,6 @@ class intrusive_ptr_base
 		
 		boost::detail::atomic_count m_ref;
 };
-
-
-struct DeleteFunction
-{
-	template<typename T>
-	void operator()(const T& p) const
-	{
-		delete p;
-	}
-};
-
 
 #endif // !defined(POINTER_H)
 

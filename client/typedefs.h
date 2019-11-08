@@ -28,7 +28,6 @@
 
 #include "debug.h"
 #include "forward.h"
-#include "noexcept.h"
 
 using std::wstring;
 using std::string;

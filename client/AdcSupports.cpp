@@ -20,6 +20,7 @@
 #include "stdinc.h"
 #include "AdcSupports.h"
 #include "OnlineUser.h"
+#include "StringTokenizer.h"
 
 string AdcSupports::getSupports(const Identity& id)
 {

@@ -23,17 +23,6 @@
 #include "LogManager.h"
 #endif
 
-#ifndef _WIN32
-#include <errno.h>
-#include <iconv.h>
-#include <langinfo.h>
-
-#ifndef ICONV_CONST
-#define ICONV_CONST
-#endif
-
-#endif
-
 #include "Util.h"
 
 namespace Text

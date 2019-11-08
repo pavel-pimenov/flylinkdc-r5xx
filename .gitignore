@@ -11,6 +11,7 @@
 *.lai
 *.la
 *.a
+*.aps
 
 /FlyFeatures.vcxproj.user
 
@@ -30,6 +31,7 @@ vc10
 vc11
 vc14
 vc15
+vc16
 vc17
 
 /ipch

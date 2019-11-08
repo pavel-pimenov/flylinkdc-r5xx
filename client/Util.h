@@ -33,7 +33,6 @@
 #include "Text.h"
 #include "CFlyThread.h"
 #include "MerkleTree.h" // [+] SSA - иначе никак, где-то он уже включен
-#include "StringTokenizer.h"
 
 # define PATH_SEPARATOR '\\'
 # define PATH_SEPARATOR_STR "\\"
@@ -1345,14 +1344,9 @@ class Util
 	public:
 		static void playSound(const string& p_sound, const bool p_beep = false);// [+] IRainman: copy-past fix.
 		
-		// [+] IRainman: settings split and parse.
 		static StringList splitSettingAndReplaceSpace(string patternList);
-		static StringList splitSettingAndLower(const string& patternList)
-		{
-			return StringTokenizer<string>(Text::toLower(patternList), ';').getTokens();
-		}
 		static string toSettingString(const StringList& patternList);
-		// [~] IRainman: settings split and parse.
+        static StringList splitSettingAndLower(const string& patternList);
 		
 		static string getLang();
 		

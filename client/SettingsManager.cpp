@@ -120,11 +120,11 @@ static const char* g_settingTags[] =
 	"iTunesFormat", "MPCFormat", "RawOneText", "RawTwoText", "RawThreeText", "RawFourText", "RawFiveText", "PopupFont", "PopupTitleFont", "PopupFile",
 	
 	"BanMessage", "SlotAsk", // !SMT!-S
-	"UrlGetIp", //[+]PPA
+	"UrlGetIp",
 	"Password", "PasswordHint", "PasswordOkHint",// !SMT!-PSW
 	"WebMagnet",//[+]necros
 	"RatioTemplate",//[+] WhiteD. Custom ratio message
-	"UrlIPTrust", //[+]PPA
+	"UrlIPTrust",
 	"ToolBarSettings",
 	"WinampToolBar", //[+] Drakon!
 #ifdef RIP_USE_LOG_PROTOCOL
@@ -136,8 +136,8 @@ static const char* g_settingTags[] =
 	"RssNewsWidth",   // [+] SSA
 	"RssNewsVisible", // [+] SSA
 	"Mapper",
-	"PortalBrowserUpdateURL",// [+] PPA
-	"ISPResourceRootURL",// [+] PPA
+	"PortalBrowserUpdateURL",
+	"ISPResourceRootURL",
 	"ThemeDLLName", // [+] SSA - ThemeDLLName, if emty - use standart resource
 	"ThemeManagerSoundsThemeName", // [+] SCALOlaz: Sounds Theme
 	"UpdateServerURL", // [+] SSA
@@ -292,10 +292,10 @@ static const char* g_settingTags[] =
 	"SearchDetectHash", "FullFileListNfo", "UseTabsCloseButton",
 	"ViewGridcontrols", // [+] ZagZag
 	"DupeEx1Color", "DupeEx2Color", "DupeEx3Color", "IgnoreMe",// [+] NSL
-	"EnableLastIP", //[+]PPA
-	"EnableFlyServer", //[+]PPA
-	"EnableHitFileList", //[+]PPA
-	"EnableRatioUserList", //[+]PPA
+	"EnableLastIP", 
+	"EnableFlyServer",
+	"EnableHitFileList",
+	"EnableRatioUserList",
 	"NonHubsFront", "BlendOffline", "MaxResizeLines",
 	"UseCustomListBackground",
 	"EnableP2PGuard",
@@ -364,9 +364,9 @@ static const char* g_settingTags[] =
 	"OpenPortalBrowser", //[+] BRAIN_RIPPER
 #endif
 	"MinMultiChunksSize", // [+] IRainman
-	"MediainfoMinSize", //[+]PPA
+	"MediainfoMinSize",
 #ifdef FLYLINKDC_USE_XXX_ICON
-	"Gender", // [+] PPA
+	"Gender",
 #endif
 	"ShowSeekersInSpyFrame", // [+] IRainman
 	"LogSeekersInSpyFrame",
@@ -492,7 +492,7 @@ void SettingsManager::setDefaults()
 	dcassert(g_connectionSpeeds.size() == g_connectionSpeeds.capacity());
 	setDefault(DOWNLOAD_DIRECTORY, Util::getDownloadsPath());
 	//setDefault(TEMP_DOWNLOAD_DIRECTORY, "");
-	setDefault(SLOTS, 15); // [!] PPA 2->15
+	setDefault(SLOTS, 15);
 	setDefault(WEBSERVER_PORT, 0);
 	setDefault(TCP_PORT, 0);
 	setDefault(TLS_PORT, 0);
@@ -521,7 +521,7 @@ void SettingsManager::setDefaults()
 	//setDefault(IGNORE_HUB_PMS, false);
 	//setDefault(IGNORE_BOT_PMS, false);
 	setDefault(BUFFER_SIZE_FOR_DOWNLOADS, 1024);
-	//setDefault(DOWNLOAD_SLOTS, 0); // [+] PPA
+	//setDefault(DOWNLOAD_SLOTS, 0);
 	//setDefault(MAX_DOWNLOAD_SPEED, 0);
 	setDefault(LOG_DIRECTORY, Util::getLocalPath() + "Logs" PATH_SEPARATOR_STR);
 	//setDefault(LOG_UPLOADS, false);
@@ -531,7 +531,7 @@ void SettingsManager::setDefaults()
 	setDefault(LOG_IF_SUPPRESS_PMS, TRUE); // [+] IRainman
 	setDefault(STATUS_IN_CHAT, TRUE);
 	//setDefault(SHOW_JOINS, false);
-	setDefault(UPLOAD_SPEED, g_connectionSpeeds[12]); // [+] PPA. 50m
+	setDefault(UPLOAD_SPEED, g_connectionSpeeds[12]);
 	//setDefault(PRIVATE_MESSAGE_BEEP, false);
 	//setDefault(PRIVATE_MESSAGE_BEEP_OPEN, false);
 	setDefault(USE_SYSTEM_ICONS, TRUE);
@@ -637,7 +637,7 @@ void SettingsManager::setDefaults()
 	//setDefault(NMDC_DEBUG, false);
 	setDefault(TOGGLE_ACTIVE_WINDOW, TRUE);
 	setDefault(SEARCH_HISTORY, 10);
-	setDefault(SET_MINISLOT_SIZE, 1024); // [+] PPA
+	setDefault(SET_MINISLOT_SIZE, 1024);
 	setDefault(PRIO_HIGHEST_SIZE, 64);
 	setDefault(PRIO_HIGH_SIZE, 512); // [~] InfinitySky.
 	setDefault(PRIO_NORMAL_SIZE, 1024); // [~] InfinitySky.
@@ -694,16 +694,14 @@ void SettingsManager::setDefaults()
 	setDefault(FAST_HASH, TRUE);
 	//setDefault(SORT_FAVUSERS_FIRST, false);
 	//setDefault(SHOW_SHELL_MENU, false);
-	setDefault(NUMBER_OF_SEGMENTS, 50); //[!]PPA
-#ifndef FLYLINKDC_HE
-	setDefault(SEGMENTS_MANUAL, TRUE); //[!]PPA
-#endif
+	setDefault(NUMBER_OF_SEGMENTS, 50);
+	setDefault(SEGMENTS_MANUAL, TRUE);
 	//setDefault(HUB_SLOTS, 0);
 	setDefault(TEXT_FONT, "Arial,-12,400,0"); // !SMT!-F [~] InfinitySky - бережЄм зрение.
 	setDefault(DROP_MULTISOURCE_ONLY, TRUE);
-	setDefault(EXTRA_SLOTS, 10); //[+]PPA
+	setDefault(EXTRA_SLOTS, 10);
 	setDefault(SHUTDOWN_TIMEOUT, 150);
-	setDefault(SEARCH_PASSIVE, FALSE); //[+] PPA
+	setDefault(SEARCH_PASSIVE, FALSE);
 	//setDefault(MAX_UPLOAD_SPEED_LIMIT_NORMAL, 0);
 	//setDefault(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL, 0);
 	//setDefault(MAX_UPLOAD_SPEED_LIMIT, 0);    // [~] brain-ripper, merge
@@ -712,7 +710,6 @@ void SettingsManager::setDefaults()
 	//setDefault(MAX_DOWNLOAD_SPEED_LIMIT_TIME, 0);
 	setDefault(TOOLBAR, "1,27,-1,0,25,5,3,4,-1,6,7,8,9,22,-1,10,-1,14,23,-1,15,17,-1,19,21,29,24,28,20"); // [~] InfinitySky
 	setDefault(WINAMPTOOLBAR, "0,-1,1,2,3,4,5,6,7,8"); // [+] Drakon.
-//[-] PPA   setDefault(SEARCH_ALTERNATE_COLOUR, RGB(255,200,0));
 	//setDefault(WEBSERVER, false);
 	setDefault(LOG_FORMAT_WEBSERVER, "%Y-%m-%d %H:%M:%S %[ip] tried getting %[file]");
 	//setDefault(LOG_WEBSERVER, false);
@@ -828,7 +825,7 @@ void SettingsManager::setDefaults()
 	//setDefault(DISCONNECTING_ENABLE, false);
 	setDefault(DISCONNECT_FILESIZE, 10);
 	setDefault(REMOVE_SPEED, 2);
-	//setDefault(FILE_SLOTS, 0); //[+]PPA
+	//setDefault(FILE_SLOTS, 0);
 	setDefault(MENUBAR_TWO_COLORS, TRUE);
 	setDefault(MENUBAR_LEFT_COLOR, RGB(0, 128, 255)); // [~] InfinitySky.
 	setDefault(MENUBAR_RIGHT_COLOR, RGB(168, 211, 255)); // [~] InfinitySky.
@@ -848,7 +845,7 @@ void SettingsManager::setDefaults()
 	//setDefault(CHECK_NEW_USERS, false);
 	setDefault(UPLOADQUEUEFRAME_SHOW_TREE, TRUE);
 	setDefault(UPLOADQUEUEFRAME_SPLIT, 2500);
-	//setDefault(DONT_BEGIN_SEGMENT, false); // [!] PPA
+	//setDefault(DONT_BEGIN_SEGMENT, false);
 	setDefault(DONT_BEGIN_SEGMENT_SPEED, 1024);
 	
 	//setDefault(DISCONNECT_RAW, 0);
@@ -858,7 +855,7 @@ void SettingsManager::setDefaults()
 	//setDefault(FILELIST_TOO_SMALL, 0);
 	//setDefault(FILELIST_UNAVAILABLE, 0);
 	setDefault(DISPLAY_CHEATS_IN_MAIN_CHAT, TRUE);
-	setDefault(AUTO_SEARCH_TIME, 1); //[.] PPA
+	setDefault(AUTO_SEARCH_TIME, 1);
 	//setDefault(REALTIME_QUEUE_UPDATE, TRUE);
 	//setDefault(SUPPRESS_MAIN_CHAT, false);
 	
@@ -1008,8 +1005,8 @@ void SettingsManager::setDefaults()
 	setDefault(ENABLE_RATIO_USER_LIST, TRUE);
 	
 #ifdef FLYLINKDC_LOG_IN_SQLITE_BASE
-	//setDefault(FLY_SQLITE_LOG, false); // [+] PPA
-	setDefault(FLY_TEXT_LOG, !BOOLSETTING(FLY_SQLITE_LOG)); // [+] PPA
+	//setDefault(FLY_SQLITE_LOG, false);
+	setDefault(FLY_TEXT_LOG, !BOOLSETTING(FLY_SQLITE_LOG));
 #endif //FLYLINKDC_LOG_IN_SQLITE_BASE
 #ifdef IRAINMAN_USE_BB_CODES
 	setDefault(FORMAT_BB_CODES, TRUE);// [+] IRainman
@@ -1024,7 +1021,6 @@ void SettingsManager::setDefaults()
 	setDefault(JETAUDIO_FORMAT, "+me listens '%[artist] - %[title]' * listened to %[percent], JetAudio %[version] %[magnet]"); // [~] SSA
 	setDefault(WINAMP_FORMAT, "+me listen: '%[artist] - %[track] - %[title]' Х listened to %[percent] (%[length], %[bitrate], Winamp %[version]) %[magnet]");
 	setDefault(QCDQMP_FORMAT, "+me listen in 'QCD/QMP %[version]': '%[title]' (%[bitrate],%[sample]) (%[elapsed] %[bar] %[length]) %[magnet]");
-	//setDefault(IPUPDATE, false);//[+] PPA [!]IRainman default disable auto ip update
 	//setDefault(IPUPDATE_INTERVAL, 0);//[!]IRainman default set ip update interval only startup
 	//setDefault(PROT_FAVS, false);
 	setDefault(RAW1_TEXT, "Raw 1");
@@ -1080,12 +1076,8 @@ void SettingsManager::setDefaults()
 	setDefault(SHOW_BBCODE_PANEL, TRUE);
 	setDefault(SHOW_EMOTIONS_BTN, TRUE);
 	setDefault(SHOW_MULTI_CHAT_BTN, TRUE);
-#ifdef SCALOLAZ_CHAT_REFFERING_TO_NICK
-# ifdef FLYLINKDC_HE
-	setDefault(CHAT_REFFERING_TO_NICK, TRUE);  // [+] SCALOlaz
-# endif
-#endif
-	setDefault(USE_MAGNETS_IN_PLAYERS_SPAM, TRUE);
+
+    setDefault(USE_MAGNETS_IN_PLAYERS_SPAM, TRUE);
 	//setDefault(USE_BITRATE_FIX_FOR_SPAM, false);
 	//setDefault(SEND_SLOTGRANT_MSG, false);
 	//setDefault(FAVUSERLIST_DBLCLICK, false);
@@ -1190,7 +1182,7 @@ void SettingsManager::setDefaults()
 	setDefault(LANGUAGE_FILE, g_default_lang_file_name);
 	//setDefault(DEFAULT_CODEPAGE,"");
 	setDefault(MIN_MULTI_CHUNK_SIZE, 2); // [+] IRainman
-	setDefault(MIN_MEDIAINFO_SIZE, 1); // [+] PPA
+	setDefault(MIN_MEDIAINFO_SIZE, 1);
 	setDefault(SHOW_SEEKERS_IN_SPY_FRAME, TRUE); // [+] IRainman
 	setDefault(LOG_SEEKERS_IN_SPY_FRAME, FALSE);
 	setDefault(REDUCE_PRIORITY_IF_MINIMIZED_TO_TRAY, TRUE); // [+] IRainman
@@ -1822,7 +1814,7 @@ bool SettingsManager::set(IntSetting key, int value)
 			VERIFI(0, 1024 * 1024);
 			break;
 		}
-		case SLOTS: //[+]PPA
+		case SLOTS:
 		{
 			VERIFI(0, 500);
 			break;

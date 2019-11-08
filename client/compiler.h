@@ -75,9 +75,6 @@
 
 # define strtoll _strtoi64
 
-// [-] FlylinkDC++ VC++2015 # define snprintf _snprintf
-// [-] FlylinkDC++ VC++2015 # define snwprintf _snwprintf
-
 #else
 # error No supported compiler found
 
@@ -105,6 +102,6 @@
 # define _REENTRANT 1
 #endif
 
-#include "compiler_flylinkdc.h" //[+]PPA
+#include "compiler_flylinkdc.h"
 
 #endif // DCPLUSPLUS_DCPP_COMPILER_H

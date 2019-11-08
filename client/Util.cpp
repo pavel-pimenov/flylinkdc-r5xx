@@ -3477,7 +3477,11 @@ void Util::playSound(const string& p_sound, const bool p_beep /* = false */)
 		MessageBeep(MB_OK);
 	}
 }
-// [+] IRainman: settings split and parse.
+StringList Util::splitSettingAndLower(const string& patternList)
+{
+    return StringTokenizer<string>(Text::toLower(patternList), ';').getTokens();
+}
+
 StringList Util::splitSettingAndReplaceSpace(string patternList)
 {
 	boost::replace_all(patternList, " ", "");

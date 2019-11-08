@@ -202,10 +202,6 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 				{
 				}
 				
-				//CFlyLowerName(const string& p_name, const string& p_low_name):
-				//  m_name(p_name), m_low_name(p_low_name)
-				//{
-				//}
 				virtual ~CFlyLowerName()
 				{
 					if (!m_name.empty())

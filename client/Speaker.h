@@ -27,7 +27,6 @@
 #include <utility>
 #include <vector>
 #include "CFlyThread.h"
-#include "noexcept.h"
 #include "webrtc/rtc_base/synchronization/rw_lock_wrapper.h"
 
 template<typename Listener>

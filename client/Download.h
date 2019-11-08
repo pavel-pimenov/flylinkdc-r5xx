@@ -4,7 +4,6 @@
 #ifndef DCPLUSPLUS_DCPP_DOWNLOAD_H_
 #define DCPLUSPLUS_DCPP_DOWNLOAD_H_
 
-#include "noexcept.h"
 #include "Transfer.h"
 #include "Streams.h"
 #include "util_flylinkdc.h"

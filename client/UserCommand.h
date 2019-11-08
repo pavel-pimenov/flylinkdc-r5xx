@@ -24,7 +24,6 @@
 
 #include "Flags.h"
 #include "Util.h"
-#include "noexcept.h"
 
 class UserCommand : public Flags
 {

@@ -24,8 +24,6 @@
 
 #include "Text.h"
 
-#include "noexcept.h"
-
 /**
  * A class that implements a fast substring search algo suited for matching
  * one pattern against many strings (currently Quick Search, a variant of

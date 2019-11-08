@@ -18,6 +18,7 @@
 
 #include "stdinc.h"
 
+#include "DCPlusPlus.h"
 #include "ConnectionManager.h"
 #include "DownloadManager.h"
 #include "UploadManager.h"
@@ -33,11 +34,10 @@
 #include "WebServerManager.h"
 #include "ThrottleManager.h"
 #include "GPGPUManager.h"
-
 #include "CFlylinkDBManager.h"
 #include "../FlyFeatures/flyServer.h"
-#include "syslog/syslog.h"
 #include "../windows/ToolbarManager.h"
+#include "syslog/syslog.h"
 
 #include "IpGuard.h"
 #include "PGLoader.h"
