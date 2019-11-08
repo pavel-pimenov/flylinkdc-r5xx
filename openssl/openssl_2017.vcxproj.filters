@@ -653,9 +653,6 @@
     <ClCompile Include="ssl\statem\statem_srvr.c">
       <Filter>Source Files\ssl\statem</Filter>
     </ClCompile>
-    <ClCompile Include="crypto\armcap.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
     <ClCompile Include="crypto\cpt_err.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
@@ -666,9 +663,6 @@
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
     <ClCompile Include="crypto\cversion.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="crypto\dllmain.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
     <ClCompile Include="crypto\ebcdic.c">
@@ -744,9 +738,6 @@
       <Filter>Source Files\crypto\aes</Filter>
     </ClCompile>
     <ClCompile Include="crypto\aes\aes_wrap.c">
-      <Filter>Source Files\crypto\aes</Filter>
-    </ClCompile>
-    <ClCompile Include="crypto\aes\aes_x86core.c">
       <Filter>Source Files\crypto\aes</Filter>
     </ClCompile>
     <ClCompile Include="crypto\asn1\a_bitstr.c">

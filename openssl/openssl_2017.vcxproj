@@ -425,9 +425,7 @@
     <ClCompile Include="crypto\aes\aes_misc.c" />
     <ClCompile Include="crypto\aes\aes_ofb.c" />
     <ClCompile Include="crypto\aes\aes_wrap.c" />
-    <ClCompile Include="crypto\aes\aes_x86core.c" />
     <ClCompile Include="crypto\aria\aria.c" />
-    <ClCompile Include="crypto\armcap.c" />
     <ClCompile Include="crypto\asn1\ameth_lib.c" />
     <ClCompile Include="crypto\asn1\asn1_err.c" />
     <ClCompile Include="crypto\asn1\asn1_gen.c" />
@@ -654,7 +652,6 @@
     <ClCompile Include="crypto\dh\dh_prn.c" />
     <ClCompile Include="crypto\dh\dh_rfc5114.c" />
     <ClCompile Include="crypto\dh\dh_rfc7919.c" />
-    <ClCompile Include="crypto\dllmain.c" />
     <ClCompile Include="crypto\dsa\dsa_ameth.c" />
     <ClCompile Include="crypto\dsa\dsa_asn1.c" />
     <ClCompile Include="crypto\dsa\dsa_depr.c" />
