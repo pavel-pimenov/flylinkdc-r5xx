@@ -177,7 +177,7 @@ void QueueItem::calcBlockSize()
 	dcassert(m_block_size);
 	
 #ifdef _DEBUG
-	static boost::atomic_uint g_count(0);
+	static int g_count = 0;
 	dcdebug("QueueItem::getBlockSize() TTH = %s [count = %d]\n", getTTH().toBase32().c_str(), int(++g_count));
 #endif
 }
@@ -234,7 +234,7 @@ bool QueueItem::countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const /
 	return false;
 }
 
-void QueueItem::getOnlineUsers(UserList& list) const
+void QueueItem::getOnlineUsers(UserList& p_users) const
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
@@ -243,7 +243,7 @@ void QueueItem::getOnlineUsers(UserList& list) const
 		{
 			if (i->first->isOnline())
 			{
-				list.push_back(i->first);
+				p_users.push_back(i->first);
 			}
 		}
 	}
@@ -350,7 +350,7 @@ bool QueueItem::isChunkDownloaded(int64_t startPos, int64_t& len) const
 		const int64_t& end   = i->getEnd();
 		if (start <= startPos && startPos < end)
 		{
-			len = min(len, end - startPos);
+			len = std::min(len, end - startPos);
 			return true;
 		}
 	}
@@ -604,7 +604,7 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 		// Convert block index to file position
 		for (auto i = partialSource->getPartialInfo().cbegin(); i != partialSource->getPartialInfo().cend(); ++i)
 		{
-			posArray.push_back(min(getSize(), (int64_t)(*i) * blockSize));
+			posArray.push_back(std::min(getSize(), (int64_t)(*i) * blockSize));
 		}
 	}
 	
@@ -672,8 +672,8 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 						{
 							if ((*j <= start && start < * (j + 1)) || (start <= *j && *j < end))
 							{
-								int64_t b = max(start, *j);
-								int64_t e = min(end, *(j + 1));
+								const int64_t b = std::max(start, *j);
+								const int64_t e = std::min(end, *(j + 1));
 								
 								// segment must be blockSize aligned
 								dcassert(b % blockSize == 0);
@@ -810,14 +810,6 @@ uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const // [!]
 		m_downloadedBytes += d->getPos();
 		l_totalSpeed += d->getRunningAverage();
 	}
-	/*
-	#ifdef _DEBUG
-	static boost::atomic_uint l_count = 0;
-	dcdebug("QueueItem::calcAverageSpeedAndDownloadedBytes() total_download = %I64u, totalSpeed = %I64u [count = %d] [done.size() = %u] [downloads.size() = %u]\n",
-	        l_totalDownloaded, l_totalSpeed,
-	        int(++l_count), done.size(), m_downloads.size());
-	#endif
-	*/
 	m_averageSpeed    = l_totalSpeed;
 	return m_downloadedBytes;
 }
@@ -897,7 +889,7 @@ void QueueItem::getPartialInfo(PartsInfo& p_partialInfo, uint64_t p_blockSize) c
 		return;
 		
 	CFlyFastLock(m_fcs_segment);
-	const size_t maxSize = min(m_done_segment.size() * 2, (size_t)510);
+	const size_t maxSize = std::min(m_done_segment.size() * 2, (size_t)510);
 	p_partialInfo.reserve(maxSize);
 	
 	for (auto i = m_done_segment.cbegin(); i != m_done_segment.cend() && p_partialInfo.size() < maxSize; ++i)
@@ -919,7 +911,7 @@ void QueueItem::getChunksVisualisation(vector<pair<Segment, Segment>>& p_runnigC
 			p_runnigChunksAndDownloadBytes.reserve(m_downloads.size());
 			for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 			{
-				p_runnigChunksAndDownloadBytes.push_back(make_pair((*i)->getSegment(), Segment((*i)->getStartPos(), (*i)->getPos())));
+				p_runnigChunksAndDownloadBytes.push_back(std::make_pair((*i)->getSegment(), Segment((*i)->getStartPos(), (*i)->getPos())));
 			}
 		}
 		p_doneChunks.reserve(m_done_segment.size());

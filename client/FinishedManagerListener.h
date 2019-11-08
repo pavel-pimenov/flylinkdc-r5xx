@@ -24,6 +24,10 @@
 
 #include "forward.h"
 
+class FinishedItem;
+typedef std::shared_ptr<FinishedItem> FinishedItemPtr;
+typedef std::deque<FinishedItemPtr> FinishedItemList;
+
 class FinishedManagerListener
 {
 	public:
@@ -44,7 +48,6 @@ class FinishedManagerListener
 		virtual void on(RemovedUl, const FinishedItemPtr&) noexcept {} // [+] IRainman
 		virtual void on(RemovedDl, const FinishedItemPtr&) noexcept {} // [+] IRainman
 		virtual void on(UpdateStatus) noexcept {}
-		
 		
 };
 

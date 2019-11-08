@@ -16,6 +16,7 @@
 #include "sqlite/sqlite3x.hpp"
 #include "CFlyMediaInfo.h"
 #include "LogManager.h"
+#include "FinishedManagerListener.h"
 
 #define FLYLINKDC_USE_LEVELDB
 #define FLYLINKDC_USE_CACHE_HUB_URLS

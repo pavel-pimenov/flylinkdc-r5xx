@@ -286,7 +286,7 @@ class QueueManager : public Singleton<QueueManager>,
 				
 				void moveFile(const string& source, const string& p_target)
 				{
-					addTask(make_pair(source, p_target));
+					addTask(std::make_pair(source, p_target));
 				}
 			private:
 				void execute(const pair<string, string>& p_next)

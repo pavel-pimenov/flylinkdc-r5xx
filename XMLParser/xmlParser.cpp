@@ -91,19 +91,16 @@
 // to have "MessageBoxA" to display error messages for openFilHelper
 #endif
 
-#include <memory.h>
 #include <assert.h>
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 
 namespace XMLParser
 {
 
-XMLCSTR XMLNode::getVersion()
-{
-	return _CXML("v2.43");
-}
+//XMLCSTR XMLNode::getVersion()
+//{
+//	return _CXML("v2.43");
+//}
 void freeXMLString(XMLSTR t)
 {
 	free(t);

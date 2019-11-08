@@ -46,7 +46,7 @@ uint16_t FavoriteManager::g_dontSave = 0;
 int FavoriteManager::g_lastId = 0;
 unsigned FavoriteManager::g_count_hub = 0;
 #ifdef PPA_USER_COMMANDS_HUBS_SET
-boost::unordered_set<string> FavoriteManager::g_userCommandsHubUrl;
+std::unordered_set<string> FavoriteManager::g_userCommandsHubUrl;
 #endif
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csFavUsers = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> FavoriteManager::g_csHubs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
@@ -377,7 +377,7 @@ bool FavoriteManager::addUserL(const UserPtr& aUser, FavoriteMap::iterator& iUse
 		if (nicks.empty())
 			nicks.push_back(Util::emptyString);
 			
-		iUser = g_fav_users_map.insert(make_pair(aUser->getCID(), FavoriteUser(aUser, nicks[0], hubs[0]))).first;
+		iUser = g_fav_users_map.insert(std::make_pair(aUser->getCID(), FavoriteUser(aUser, nicks[0], hubs[0]))).first;
 		updateEmptyStateL();
 		return true;
 	}
@@ -1597,7 +1597,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					}
 					
 					CFlyWriteLock(*g_csFavUsers);
-					auto i = g_fav_users_map.insert(make_pair(u->getCID(), FavoriteUser(u, nick, hubUrl))).first;
+					auto i = g_fav_users_map.insert(std::make_pair(u->getCID(), FavoriteUser(u, nick, hubUrl))).first;
 					
 					if (aXml.getBoolChildAttrib("IgnorePrivate")) // !SMT!-S
 						i->second.setFlag(FavoriteUser::FLAG_IGNORE_PRIVATE);

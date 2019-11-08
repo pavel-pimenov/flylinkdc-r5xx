@@ -22,7 +22,7 @@
 #ifndef DCPLUSPLUS_DCPP_W_H_
 #define DCPLUSPLUS_DCPP_W_H_
 
-#include "compiler.h"
+//#include "compiler.h"
 
 #include "w_flylinkdc.h"
 
@@ -53,8 +53,8 @@
 #endif
 
 #include <windows.h>
-#include <mmsystem.h>
-#include <tchar.h>
+//#include <mmsystem.h>
+//#include <tchar.h>
 
 // http://msdn.microsoft.com/en-us/library/windows/desktop/ms644930(v=vs.85).aspx
 // WM_USER through 0x7FFF

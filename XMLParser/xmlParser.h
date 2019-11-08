@@ -290,7 +290,7 @@ typedef struct XMLDLLENTRY XMLNode
 		explicit XMLNode(struct XMLNodeDataTag *p);
 		
 	public:
-		static XMLCSTR getVersion();///< Return the XMLParser library version number
+		//static XMLCSTR getVersion();///< Return the XMLParser library version number
 		
 		/** @defgroup conversions Parsing XML files/strings to an XMLNode structure and Rendering XMLNode's to files/string.
 		 * @ingroup XMLParserGeneral

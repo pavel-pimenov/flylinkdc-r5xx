@@ -51,7 +51,7 @@ std::set<ConnectionQueueItemPtr> ConnectionManager::g_downloads; // TODO - сдела
 std::set<ConnectionQueueItemPtr> ConnectionManager::g_uploads; // TODO - сделать поиск по User?
 
 FastCriticalSection ConnectionManager::g_cs_update;
-UserSet ConnectionManager::g_users_for_update;
+std::unordered_set<UserPtr> ConnectionManager::g_users_for_update;
 bool ConnectionManager::g_shuttingDown = false;
 TokenManager ConnectionManager::g_tokens_manager;
 
@@ -360,7 +360,7 @@ void ConnectionManager::putConnection(UserConnection* aConn)
 }
 void ConnectionManager::flushOnUserUpdated()
 {
-	UserSet l_users_for_update;
+	std::unordered_set<UserPtr> l_users_for_update;
 	{
 		CFlyFastLock(g_cs_update);
 		l_users_for_update.swap(g_users_for_update);
@@ -524,7 +524,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 #endif
 				const auto l_count_error = cqi->getErrors();
 				if (cqi->getLastAttempt() == 0 || ((SETTING(DOWNCONN_PER_SEC) == 0 || l_attempts < SETTING(DOWNCONN_PER_SEC)) &&
-				                                   cqi->getLastAttempt() + l_count_sec * 1000 * max(1, l_count_error) < aTick))
+				                                   cqi->getLastAttempt() + l_count_sec * 1000 * std::max(1, l_count_error) < aTick))
 				{
 					cqi->setLastAttempt(aTick);
 					

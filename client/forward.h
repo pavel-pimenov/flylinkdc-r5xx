@@ -25,17 +25,10 @@
  * This file contains forward declarations for the various DC++ classes
  */
 
+ #include <list>
 
 class FavoriteHubEntry;
 typedef std::vector<FavoriteHubEntry*> FavoriteHubEntryList;
-
-class FinishedItem;
-typedef std::shared_ptr<FinishedItem> FinishedItemPtr;
-typedef std::deque<FinishedItemPtr> FinishedItemList;
-
-class HubEntry;
-typedef std::deque<HubEntry> HubEntryList; // [!] IRainman opt: change vector to deque
-
 
 class OnlineUser;
 typedef std::shared_ptr<OnlineUser> OnlineUserPtr;
@@ -51,7 +44,6 @@ typedef std::shared_ptr<UploadQueueItem> UploadQueueItemPtr;
 class User;
 typedef std::shared_ptr<User> UserPtr;
 typedef std::vector<UserPtr> UserList;
-typedef std::unordered_set<UserPtr> UserSet;
 
 class UserCommand;
 class UserConnection;

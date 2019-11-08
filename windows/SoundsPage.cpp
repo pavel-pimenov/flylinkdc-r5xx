@@ -17,6 +17,9 @@
  */
 
 #include "stdafx.h"
+
+#include <Mmsystem.h>
+
 #include "Resource.h"
 #include "SoundsPage.h"
 #include "WinUtil.h"

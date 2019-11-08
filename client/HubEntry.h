@@ -25,6 +25,7 @@
 
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 #include "TimerManager.h"
+#include <deque>
 
 class ConnectionStatus
 {
@@ -107,12 +108,9 @@ class ConnectionStatus
 
 
 class HubEntry
-#ifdef _DEBUG
-//: boost::noncopyable
-#endif
 {
 	public:
-		typedef deque<HubEntry> List; // [!] IRainman opt: change vector to deque
+		typedef std::deque<HubEntry> List;
 		
 		HubEntry() : reliability(0), shared(0), minShare(0), users(0), minSlots(0), maxHubs(0), maxUsers(0), bots(0), infected(0), operators(0)
 		{

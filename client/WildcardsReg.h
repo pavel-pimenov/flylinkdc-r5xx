@@ -12,7 +12,8 @@
 #ifndef WILDCARDS_VERSIONS_ESSENTIAL_ALGORITHM_ESS__H
 #define WILDCARDS_VERSIONS_ESSENTIAL_ALGORITHM_ESS__H
 
-#include "typedefs.h" //or use from sandbox
+#include "typedefs.h"
+#include <tchar.h>
 
 namespace net
 {

@@ -860,7 +860,7 @@ void BufferedSocket::threadRead()
 						}
 						else
 						{
-							const int high = (int)min(m_dataBytes, (int64_t)l_left);
+							const int high = (int)std::min(m_dataBytes, (int64_t)l_left);
 							//dcassert(high != 0);
 							if (high != 0) // [+] IRainman fix.
 							{
@@ -1080,7 +1080,7 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 			{
 				if (!readDone && readPos < l_readBuf.size())
 				{
-					size_t bytesRead = min(l_readBuf.size() - readPos, l_readBuf.size() / 2);
+					size_t bytesRead = std::min(l_readBuf.size() - readPos, l_readBuf.size() / 2);
 					size_t actual = p_file->read(&l_readBuf[readPos], bytesRead);
 					if (bytesRead > 0)
 					{

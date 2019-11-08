@@ -561,7 +561,7 @@ int Socket::writeAll(const void* aBuffer, int aLen, uint64_t timeout)
 	
 	while (pos < aLen)
 	{
-		const int i = write(buf + static_cast<size_t>(pos), (int)min(aLen - pos, sendSize)); // [!] PVS V104 Implicit conversion of 'pos' to memsize type in an arithmetic expression: buf + pos socket.cpp 464
+		const int i = write(buf + static_cast<size_t>(pos), (int)std::min(aLen - pos, sendSize)); // [!] PVS V104 Implicit conversion of 'pos' to memsize type in an arithmetic expression: buf + pos socket.cpp 464
 		if (i == -1)
 		{
 			wait(timeout, false, true);

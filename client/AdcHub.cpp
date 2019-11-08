@@ -17,8 +17,8 @@
  */
 
 #include "stdinc.h"
-#include "AdcHub.h"
 
+#include "AdcHub.h"
 #include "ClientManager.h"
 #include "ShareManager.h"
 #include "StringTokenizer.h"
@@ -535,7 +535,7 @@ void AdcHub::handle(AdcCommand::MSG, const AdcCommand& c) noexcept
 		LogManager::message("Ignore message from SID = " + Util::toString(c.getFrom()) + " Message = " + c.getParam(0));
 		return;
 	}
-	unique_ptr<ChatMessage> message(new ChatMessage(c.getParam(0), l_user));
+	std::unique_ptr<ChatMessage> message(new ChatMessage(c.getParam(0), l_user));
 	
 	string temp;
 	
@@ -874,13 +874,13 @@ void AdcHub::handle(AdcCommand::STA, const AdcCommand& c) noexcept
 		{
 			SET_SETTING(PRIVATE_ID, CID::generate().toBase32()); // —генерируем новые PRIVATE_ID - чтобы не было конфликта
 			ClientManager::generateNewMyCID();
-			unique_ptr<ChatMessage> message(new ChatMessage("Generate new CID = " + ClientManager::getMyCID().toBase32(), ou));
+			std::unique_ptr<ChatMessage> message(new ChatMessage("Generate new CID = " + ClientManager::getMyCID().toBase32(), ou));
 			fly_fire2(ClientListener::Message(), this, message);
 			reconnect();
 			return;
 		}
 	}
-	unique_ptr<ChatMessage> l_message(new ChatMessage(c.getParam(1), ou));
+	std::unique_ptr<ChatMessage> l_message(new ChatMessage(c.getParam(1), ou));
 	fly_fire2(ClientListener::Message(), this, l_message);
 	if (l_code == AdcCommand::ERROR_NICK_INVALID || l_code == AdcCommand::ERROR_NICK_TAKEN || l_code == AdcCommand::ERROR_BAD_PASSWORD)
 	{

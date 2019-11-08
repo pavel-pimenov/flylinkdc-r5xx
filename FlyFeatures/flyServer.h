@@ -22,6 +22,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_set>
 
 #include <boost/asio/ip/address_v4.hpp>
 
@@ -451,7 +452,7 @@ class CFlyServerAdapter
         bool is_fly_server_active() const;
         void addFlyServerTask(uint64_t p_tick, bool p_is_force);
         static void clearFlyServerQueue();
-		
+
 	protected:
         static CFlyServerKeyArray  g_GetFlyServerArray;    // «апросы на получени€ медиаинформации. TODO - сократить размер структуры дл€ запроса.
         static ::CriticalSection  g_cs_get_array_fly_server;

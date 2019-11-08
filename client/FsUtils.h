@@ -4,6 +4,7 @@
 #ifndef FS_UTILS_H
 #define FS_UTILS_H
 
+#include <unordered_map>
 #include "CFlyThread.h"
 
 namespace FsUtils

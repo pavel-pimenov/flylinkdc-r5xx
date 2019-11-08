@@ -27,10 +27,6 @@
 #include "LogManager.h"
 #include "../FlyFeatures/flyServer.h"
 
-#ifdef _DEBUG
-boost::atomic_int g_count(0);
-#endif
-
 IPList IpGuard::g_ipGuardList;
 int IpGuard::g_ipGuardListLoad = 0;
 
@@ -127,9 +123,6 @@ bool IpGuard::check_ip_str(const string& aIP, string& reason)
 	if (aIP.empty())
 		return false;
 		
-#ifdef _DEBUG
-	dcdebug("IPGuard::check  count = %d IP = %s\n", int(++g_count), aIP.c_str());
-#endif
 	uint32_t l_ip4;
 	if (IpGuard::is_block_ip(aIP, l_ip4))
 	{
@@ -155,9 +148,6 @@ void IpGuard::check_ip_str(const string& aIP, Socket* socket /*= nullptr*/)
 	if (aIP.empty())
 		return;
 		
-#ifdef _DEBUG
-	dcdebug("IPGuard::check  count = %d IP = %s\n", int(++g_count), aIP.c_str());
-#endif
 	uint32_t l_ip4;
 	if (IpGuard::is_block_ip(aIP, l_ip4))
 	{

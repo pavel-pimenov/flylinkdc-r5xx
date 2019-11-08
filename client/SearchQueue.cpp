@@ -85,14 +85,14 @@ bool SearchQueue::add(const Search& s)
 
 bool SearchQueue::empty()
 {
-    // CFlyFastLock(m_cs);
-    // Тут лок не критичны и зовется не часто
-    return m_searchQueue.empty();
+	// CFlyFastLock(m_cs);
+	// Тут лок не критичны и зовется не часто
+	return m_searchQueue.empty();
 }
 void SearchQueue::clear()
 {
-    CFlyFastLock(m_cs);
-    m_searchQueue.clear();
+	CFlyFastLock(m_cs);
+	m_searchQueue.clear();
 }
 
 bool SearchQueue::pop(Search& s, uint64_t p_now, bool p_is_passive)
@@ -139,7 +139,7 @@ uint64_t SearchQueue::getSearchTime(void* aOwner, uint64_t p_now)
 	}
 #endif
 	
-	uint64_t x = max(m_lastSearchTime, uint64_t(p_now - m_interval)); // [!] IRainman opt
+	uint64_t x = std::max(m_lastSearchTime, uint64_t(p_now - m_interval)); // [!] IRainman opt
 	
 	for (auto i = m_searchQueue.cbegin(); i != m_searchQueue.cend(); ++i)
 	{

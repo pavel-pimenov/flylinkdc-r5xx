@@ -192,7 +192,7 @@ class QueueItem : public Flags
 		~QueueItem();
 		
 		bool countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const; // [+] FlylinkDC++ opt.
-		void getOnlineUsers(UserList& l) const;
+		void getOnlineUsers(UserList& p_users) const;
 		
 #ifdef FLYLINKDC_USE_RWLOCK
 		static std::unique_ptr<webrtc::RWLockWrapper> g_cs;

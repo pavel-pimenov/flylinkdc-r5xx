@@ -22,6 +22,9 @@
  */
 
 #include "stdinc.h"
+
+#include <regex>
+
 #include "ADLSearch.h"
 #include "QueueManager.h"
 #include "StringTokenizer.h"

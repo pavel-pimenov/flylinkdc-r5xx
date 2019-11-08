@@ -31,9 +31,6 @@
 #include "IPGrant.h"
 #include "../FlyFeatures/flyServer.h"
 
-#ifdef _DEBUG
-boost::atomic_int UploadQueueItem::g_upload_queue_item_count(0);
-#endif
 uint32_t UploadManager::g_count_WaitingUsersFrame = 0;
 UploadManager::SlotMap UploadManager::g_reservedSlots;
 bool UploadManager::g_is_reservedSlotEmpty = true;

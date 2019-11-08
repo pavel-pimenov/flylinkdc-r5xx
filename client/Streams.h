@@ -155,7 +155,7 @@ class LimitedInputStream : public InputStream
 		size_t read(void* buf, size_t& len) override
 		{
 			dcassert(maxBytes >= 0);
-			len = (size_t)min(maxBytes, (int64_t)len);
+			len = (size_t)std::min(maxBytes, (int64_t)len);
 			if (len == 0)
 				return 0;
 			size_t x = s->read(buf, len);
@@ -271,7 +271,7 @@ class BufferedOutputStream : public OutputStream
 				}
 				else
 				{
-					size_t n = min(m_buf_size - m_pos, len);
+					size_t n = std::min(m_buf_size - m_pos, len);
 					memcpy(&m_buf[m_pos], b, n);
 					b += n;
 					m_pos += n; /// [1] ? https://www.box.net/shared/2a9b903842d575efa031

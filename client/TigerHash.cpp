@@ -30,8 +30,10 @@
  */
 
 #include "stdinc.h"
-#include "TigerHash.h"
 
+#include <algorithm>
+
+#include "TigerHash.h"
 #include "debug.h"
 
 #ifdef BOOST_BIG_ENDIAN
@@ -172,7 +174,7 @@ void TigerHash::update(const void* data, size_t length)
 	// First empty tmp buffer if possible
 	if (tmppos > 0)
 	{
-		const size_t n = min(length, BLOCK_SIZE - tmppos);
+		const size_t n = std::min(length, BLOCK_SIZE - tmppos);
 		memcpy(tmp + tmppos, str, n);
 		str += n;
 		pos += n;

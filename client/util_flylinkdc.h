@@ -23,32 +23,6 @@
 #define DCPLUSPLUS_DCPP_UTIL_FLYLINKDC_H
 
 #include "compiler.h"
-#ifdef  _DEBUG
-#include <boost/checked_delete.hpp>
-#include <boost/atomic.hpp>
-#endif
-#include <tchar.h>
-
-#ifndef _DEBUG
-class CFlyCrashReportMarker
-{
-	public:
-		CFlyCrashReportMarker(const TCHAR* p_value);
-		~CFlyCrashReportMarker();
-};
-#else
-class CFlyCrashReportMarker
-{
-	public:
-		explicit CFlyCrashReportMarker(const TCHAR * p_value)
-		{
-		}
-		~CFlyCrashReportMarker()
-		{
-		}
-};
-#endif
-
 
 #ifdef _DEBUG
 
@@ -174,11 +148,7 @@ template <class T> inline void safe_delete(T* & p)
 {
 	if (p != nullptr)
 	{
-#ifdef  _DEBUG
-		boost::checked_delete(p);
-#else
 		delete p;
-#endif
 		p = nullptr;
 	}
 }
@@ -186,11 +156,7 @@ template <class T> inline void safe_delete_array(T* & p)
 {
 	if (p != nullptr)
 	{
-#ifdef  _DEBUG
-		boost::checked_array_delete(p);
-#else
 		delete [] p;
-#endif
 		p = nullptr;
 	}
 }

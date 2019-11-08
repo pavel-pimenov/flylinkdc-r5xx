@@ -18,8 +18,12 @@
 
 #include "stdinc.h"
 
+#include "Mmsystem.h"
+
+#include <regex>
+
 #include "shlobj.h"
-#include "CompatibilityManager.h" // [+] IRainman
+#include "CompatibilityManager.h"
 
 #include "CID.h"
 #include "File.h"
@@ -1152,7 +1156,7 @@ void Util::decodeUrl(const string& url, string& protocol, string& host, uint16_t
 			LocalArray<char, MAX_HOST_LEN> buff;
 			size_t size = MAX_HOST_LEN;
 			memzero(buff.data(), buff.size());
-			memcpy(buff.data(), l_host_acp.c_str(), min(buff.size(), l_host_acp.size()));
+			memcpy(buff.data(), l_host_acp.c_str(), std::min(buff.size(), l_host_acp.size()));
 			if (IDNA_convert_to_ACE(buff.data(), &size))
 			{
 				host = buff.data();

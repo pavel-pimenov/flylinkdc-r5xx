@@ -82,18 +82,9 @@ class JAControl
 		}
 		
 		bool isJARunning();
-		bool isJAPlaying()
-		{
-			return m_currStatus == MCI_MODE_PLAY;
-		}
-		bool isJAPaused()
-		{
-			return m_currStatus == MCI_MODE_PAUSE;
-		}
-		bool isJAStopped()
-		{
-			return m_currStatus == MCI_MODE_STOP;
-		}
+		bool isJAPlaying();
+		bool isJAPaused();
+		bool isJAStopped();
 		
 		// JA controls with Tracks
 		void JANextTrack();

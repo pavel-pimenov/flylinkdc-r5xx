@@ -28,6 +28,7 @@
 #endif
 
 #include <list>
+#include <map>
 
 #include "Text.h"
 #include "CFlyThread.h"
@@ -1424,7 +1425,7 @@ struct noCaseStringHash
 	//}
 	//bool operator()(const wstring& a, const wstring& b) const
 	//{
-	//	return stricmp(a, b) < 0;
+	//  return stricmp(a, b) < 0;
 	//}
 };
 
@@ -1441,11 +1442,11 @@ struct noCaseStringEq
 	}
 	//bool operator()(const wstring* a, const wstring* b) const
 	//{
-	//	return a == b || stricmp(a->c_str(), b->c_str()) == 0;
+	//  return a == b || stricmp(a->c_str(), b->c_str()) == 0;
 	//}
 	//bool operator()(const wstring& a, const wstring& b) const
 	//{
-	//	return stricmp(a.c_str(), b.c_str()) == 0;
+	//  return stricmp(a.c_str(), b.c_str()) == 0;
 	//}
 };
 

@@ -202,7 +202,7 @@ void PrivateFrame::openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo
 		}
 		// [~] IRainman fix.
 		p = new PrivateFrame(replyTo, myNick);
-		g_pm_frames.insert(make_pair(replyTo, p));
+		g_pm_frames.insert(std::make_pair(replyTo, p));
 		g_count_pm[replyTo.user->getLastNick() + "~" + replyTo.hint]++;
 		p->CreateEx(WinUtil::g_mdiClient);
 	}

@@ -106,7 +106,7 @@ class MerkleTree
 		{
 			dcassert(aBlockSize > 0);
 			dcassert(aFileSize >= aBlockSize);
-			return max((size_t)((aFileSize + aBlockSize - 1) / aBlockSize), (size_t)1);
+			return std::max((size_t)((aFileSize + aBlockSize - 1) / aBlockSize), (size_t)1);
 		}
 		static uint16_t calcBlocks(int64_t aFileSize)
 		{
@@ -115,7 +115,7 @@ class MerkleTree
 		//[+]PPA
 		static uint64_t getMaxBlockSize(int64_t p_file_size)
 		{
-			const uint64_t l_result = max(calcBlockSize(p_file_size, 10), MIN_BLOCK_SIZE);
+			const uint64_t l_result = std::max(calcBlockSize(p_file_size, 10), MIN_BLOCK_SIZE);
 			dcassert(l_result >= MIN_BLOCK_SIZE); // [+] IRainman fix: check the negative values.
 			return l_result;
 		}
@@ -142,7 +142,7 @@ class MerkleTree
 				
 			do
 			{
-				size_t n = min(size_t(BASE_BLOCK_SIZE), len - i);
+				size_t n = std::min(size_t(BASE_BLOCK_SIZE), len - i);
 				Hasher h;
 				h.update(&zero, 1);
 				h.update(buf + i, n); // n=1024 [4] https://www.box.net/shared/248a073eee69128a3c7b

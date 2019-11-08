@@ -2402,7 +2402,7 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 			{
 				libtorrent::error_code ec;
 				//libtorrent::add_torrent_params p = libtorrent::read_resume_data((const char*)l_resume.data(), l_resume.size()), ec);
-                libtorrent::add_torrent_params p = libtorrent::read_resume_data({ (const char*)l_resume.data(), l_resume.size() }, ec);
+				libtorrent::add_torrent_params p = libtorrent::read_resume_data({ (const char*)l_resume.data(), l_resume.size() }, ec);
 				if (ec)
 				{
 					LogManager::message("failed to load resume data: " + ec.message());
@@ -2817,7 +2817,7 @@ int32_t CFlylinkDBManager::load_queue()
 						qi = QueueManager::g_fileQueue.add(l_ID, l_target, l_size, Flags::MaskType(l_flags), l_p,
 						                                   l_q.getint(8) != 0,
 						                                   l_tempTarget,
-						                                   l_added, l_tthRoot, max((uint8_t)1, l_maxSegments));
+						                                   l_added, l_tthRoot, std::max((uint8_t)1, l_maxSegments));
 						if (qi) // Возможны дубли
 						{
 							dcassert(qi->isDirtyAll() == false);
@@ -4568,7 +4568,7 @@ bool CFlylinkDBManager::get_tree(const TTHValue& p_root, TigerTree& p_tt, __int6
 			{
 				CFlyFastLock(g_tth_cache_cs);
 				p_tt = TigerTree(l_file_size, p_block_size, p_root);
-				g_tiger_tree_cache.insert(make_pair(p_root, p_tt));
+				g_tiger_tree_cache.insert(std::make_pair(p_root, p_tt));
 				dcassert(p_tt.getRoot() == p_root);
 				const auto l_result = p_tt.getRoot() == p_root;
 				return l_result;
@@ -4587,7 +4587,7 @@ bool CFlylinkDBManager::get_tree(const TTHValue& p_root, TigerTree& p_tt, __int6
 					{
 						clear_and_reset_capacity(g_tiger_tree_cache);
 					}
-					g_tiger_tree_cache.insert(make_pair(p_root, p_tt));
+					g_tiger_tree_cache.insert(std::make_pair(p_root, p_tt));
 				}
 				return l_result;
 			}

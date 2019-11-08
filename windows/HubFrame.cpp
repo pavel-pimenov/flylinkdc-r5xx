@@ -4873,11 +4873,11 @@ void HubFrame::addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param)
 						{
 							l_menu_ip = ",   IP: " + l_cur_ip;
 						}
-						l_menu_strings.push_back(make_pair(Text::toT(l_id.getTag() + l_menu_ip), 0));
+						l_menu_strings.push_back(std::make_pair(Text::toT(l_id.getTag() + l_menu_ip), 0));
 					}
 					else
 					{
-						l_menu_strings.push_back(make_pair(_T(""), 0));
+						l_menu_strings.push_back(std::make_pair(_T(""), 0));
 					}
 				}
 			}

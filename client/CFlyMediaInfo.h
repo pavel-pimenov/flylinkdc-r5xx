@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//(c) 2011-2017 pavel.pimenov@gmail.com
+//(c) 2011-2019 pavel.pimenov@gmail.com
 //-----------------------------------------------------------------------------
 #ifndef CFlyMediaInfo_H
 #define CFlyMediaInfo_H
@@ -8,6 +8,9 @@
 
 #include <string>
 #include <vector>
+#ifdef _DEBUG
+#include <unordered_map>
+#endif
 #include "Text.h"
 #include "SimpleXML.h"
 

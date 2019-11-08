@@ -24,8 +24,8 @@
 #include "../FlyFeatures/flyServer.h"
 
 FastCriticalSection SharedFileStream::g_shares_file_cs;
-std::set<char> SharedFileStream::g_error_map_file;
-std::map<std::string, unsigned > SharedFileStream::g_delete_files;
+std::unordered_set<char> SharedFileStream::g_error_map_file;
+std::unordered_map<std::string, unsigned > SharedFileStream::g_delete_files;
 #ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
 SharedFileStream::SharedFileHandleMap SharedFileStream::g_readpool;
 SharedFileStream::SharedFileHandleMap SharedFileStream::g_writepool;

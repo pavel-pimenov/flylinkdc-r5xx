@@ -22,8 +22,8 @@
 #ifndef DCPLUSPLUS_DCPP_FAVORITE_MANAGER_H
 #define DCPLUSPLUS_DCPP_FAVORITE_MANAGER_H
 
-#include <boost/unordered/unordered_set.hpp>
-#include <boost/unordered/unordered_map.hpp>
+#include <unordered_map>
+#include <unordered_set>
 #include "SettingsManager.h"
 
 #include "UserCommand.h"
@@ -94,7 +94,7 @@ class FavoriteManager : private Speaker<FavoriteManagerListener>,
 		// [~] IRainman mimicry function
 		
 // Favorite Users
-		typedef boost::unordered_map<CID, FavoriteUser> FavoriteMap;
+		typedef std::unordered_map<CID, FavoriteUser> FavoriteMap;
 		class LockInstanceUsers
 		{
 			public:
@@ -377,7 +377,7 @@ class FavoriteManager : private Speaker<FavoriteManagerListener>,
 		static PreviewApplication::List g_previewApplications;
 		static UserCommand::List g_userCommands;
 #ifdef PPA_USER_COMMANDS_HUBS_SET
-		static boost::unordered_set<string> g_userCommandsHubUrl;
+		static std::unordered_set<string> g_userCommandsHubUrl;
 		static bool isHubExistsL(const string& p_Hub)
 		{
 			return g_userCommandsHubUrl.find(p_Hub) != g_userCommandsHubUrl.end();

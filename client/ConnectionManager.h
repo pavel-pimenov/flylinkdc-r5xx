@@ -156,7 +156,7 @@ class ExpectedMap
 		        )
 		{
 			CFlyFastLock(cs);
-			m_expectedConnections.insert(make_pair(aNick, NickHubPair(aMyNick, aHubUrl
+			m_expectedConnections.insert(std::make_pair(aNick, NickHubPair(aMyNick, aHubUrl
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 			                                                          , reason
 #endif
@@ -363,7 +363,7 @@ class ConnectionManager :
 		StringList adcFeatures;
 		
 		static FastCriticalSection g_cs_update;
-		static UserSet g_users_for_update;
+		static std::unordered_set<UserPtr> g_users_for_update;
 		void addOnUserUpdated(const UserPtr& aUser);
 		void flushOnUserUpdated();
 		

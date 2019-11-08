@@ -18,7 +18,6 @@
 
 #pragma once
 
-
 #ifndef DCPLUSPLUS_DCPP_COMPILER_H
 #define DCPLUSPLUS_DCPP_COMPILER_H
 

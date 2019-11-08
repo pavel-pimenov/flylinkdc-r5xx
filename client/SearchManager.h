@@ -23,7 +23,7 @@
 #define DCPLUSPLUS_DCPP_SEARCH_MANAGER_H
 
 #include "CFlyThread.h"
-#include "StringSearch.h" // [+] IRainman
+#include "StringSearch.h"
 #include "SearchManagerListener.h"
 #include "AdcCommand.h"
 #include "ClientManager.h"
@@ -86,7 +86,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 					if (m_is_stop == false)
 					{
 						CFlyFastLock(m_cs);
-						m_resultList.push_back(make_pair(buf, p_ip4));
+						m_resultList.push_back(std::make_pair(buf, p_ip4));
 					}
 					m_search_semaphore.signal();
 				}
@@ -98,7 +98,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 				volatile bool m_is_stop;
 		} m_queue_thread;
 		
-		unique_ptr<Socket> socket;
+		std::unique_ptr<Socket> socket;
 		static uint16_t g_search_port;
 		friend class Singleton<SearchManager>;
 		

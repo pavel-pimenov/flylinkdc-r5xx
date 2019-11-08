@@ -398,7 +398,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		TTHValue xmlRoot;
 		int64_t bzXmlListLen;
 		TTHValue bzXmlRoot;
-		unique_ptr<File> bzXmlRef;
+		std::unique_ptr<File> bzXmlRef;
 		
 		bool m_is_xmlDirty;
 		bool m_is_forceXmlRefresh; /// bypass the 15-minutes guard

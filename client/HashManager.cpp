@@ -540,7 +540,7 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, unsigned p
 		
 		{
 			CFlyFastLock(cs);
-			m_currentSize = max(m_currentSize - hn, _LL(0));
+			m_currentSize = std::max(m_currentSize - hn, _LL(0));
 		}
 		
 		if (l_size == 0)
@@ -749,7 +749,7 @@ int HashManager::Hasher::run()
 									tth->update(l_buf, n);
 									{
 										CFlyFastLock(cs);
-										m_currentSize = max(static_cast<uint64_t>(m_currentSize - n), static_cast<uint64_t>(0)); // TODO - max от 0 для беззнакового?
+										m_currentSize = std::max(static_cast<uint64_t>(m_currentSize - n), static_cast<uint64_t>(0)); // TODO - max от 0 для беззнакового?
 									}
 									l_sizeLeft -= n;
 									

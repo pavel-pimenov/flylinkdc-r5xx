@@ -54,7 +54,7 @@ class StringPool : public Singleton<StringPool>, private TimerManagerListener
 			StringPoolItemPtr ptr;
 			{
 				CFlyFastLock(g_csStringMap);
-				auto i = g_stringMap.insert(make_pair(str, 0));
+				auto i = g_stringMap.insert(std::make_pair(str, 0));
 				ptr = &(*i.first);
 			}
 			Thread::safeInc(ptr->second);

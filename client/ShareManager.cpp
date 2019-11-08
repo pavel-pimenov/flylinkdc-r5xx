@@ -17,6 +17,9 @@
  */
 
 #include "stdinc.h"
+
+#include <list>
+
 #include "ShareManager.h"
 #include "CryptoManager.h"
 #include "ClientManager.h"
@@ -964,7 +967,7 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 	// [~] FlylinkDC.
 #endif
 	
-	list<string> removeList;
+	std::list<string> removeList;
 	{
 		ShareMap a;
 		{
@@ -1624,7 +1627,7 @@ bool ShareManager::updateIndicesFileL(Directory& dir, const Directory::ShareFile
 			if (j == g_tthIndex.end())
 			{
 				dir.m_size += f.getSize();
-				g_tthIndex.insert(make_pair(f.getTTH(), i));
+				g_tthIndex.insert(std::make_pair(f.getTTH(), i));
 				g_isNeedsUpdateShareSize = true;
 			}
 			else
@@ -3074,7 +3077,7 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 					// Get rid of false constness...
 					Directory::ShareFile* f = const_cast<Directory::ShareFile*>(&(*i));
 					f->setTTH(p_root);
-					g_tthIndex.insert(make_pair(f->getTTH(), i));
+					g_tthIndex.insert(std::make_pair(f->getTTH(), i));
 					// TODO g_lastSharedDate =
 					g_isNeedsUpdateShareSize = true;
 				}

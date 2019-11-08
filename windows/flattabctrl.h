@@ -25,7 +25,7 @@
 #include "wtl_flylinkdc.h"
 #include "atlgdiraii.h"
 #ifdef IRAINMAN_INCLUDE_GDI_INIT
-#include <gdiplus.h>
+//#include <gdiplus.h>
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
 
 #include "../client/ResourceManager.h"

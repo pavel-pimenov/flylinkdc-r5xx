@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <list>
 #include "atlstr.h"
 #include "TypedListViewCtrl.h"
 #include "ImageDataObject.h"
@@ -37,9 +38,6 @@
 #include <AtlCrack.h>
 
 class UserInfo;
-typedef pair<int, tstring> TURLPair;
-typedef list<TURLPair> TURLMap;
-
 class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 #ifdef IRAINMAN_INCLUDE_SMILE
 	, public IRichEditOleCallback
@@ -206,7 +204,8 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		static tstring g_sSelectedURL;
 	private:
 		CAtlString m_MyNickLower; // [+] IRainman fix, todo replace to tstring?
-		TURLMap m_URLMap;
+		typedef pair<int, tstring> TURLPair;
+		std::list<TURLPair> m_URLMap;
 		const tstring& get_URL(ENLINK* p_EL) const;
 		const tstring& get_URL(const long lBegin/*, const long lEnd*/) const;
 		tstring get_URL_RichEdit(ENLINK* p_EL) const;

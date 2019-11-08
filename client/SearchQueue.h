@@ -21,6 +21,7 @@
 #include "CFlyThread.h"
 #include "typedefs.h"
 #include <deque>
+#include <unordered_set>
 
 using std::deque;
 
@@ -172,8 +173,8 @@ class SearchQueue
 		
 		bool add(const Search& s);
 		bool pop(Search& s, uint64_t now, bool p_is_passive);
-        bool empty();
-        void clear();
+		bool empty();
+		void clear();
 		
 		bool cancelSearch(void* aOwner);
 		

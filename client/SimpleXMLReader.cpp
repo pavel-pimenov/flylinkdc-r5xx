@@ -103,7 +103,7 @@ bool SimpleXMLReader::error(const char* e)
 
 const string& SimpleXMLReader::CallBack::getAttrib(StringPairList& attribs, const string& name, size_t hint)
 {
-	hint = min(hint, attribs.size());
+	hint = std::min(hint, attribs.size());
 	
 	auto i = find_if(attribs.begin() + hint, attribs.end(), CompareFirst<string, string>(name));
 	if (i == attribs.end())

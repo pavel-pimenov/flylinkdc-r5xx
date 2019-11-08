@@ -59,7 +59,7 @@ int ThrottleManager::read(Socket* sock, void* buffer, size_t len)
 	if (downTokens > 0)
 	{
 		const size_t slice = getDownloadLimitInBytes() / downs;//[!]IRainman SpeedLimiter
-		size_t readSize = min(slice, min(len, downTokens));
+		size_t readSize = std::min(slice, std::min(len, downTokens));
 		
 		// read from socket
 		readSize = sock->read(buffer, readSize);
@@ -98,7 +98,7 @@ int ThrottleManager::write(Socket* p_sock, const void* p_buffer, size_t& p_len)
 	{
 		// Apply individual restriction to the user if it is
 		const int64_t l_currentBucket = p_sock->getCurrentBucket();
-		p_len = min(p_len, static_cast<size_t>(l_currentBucket));
+		p_len = std::min(p_len, static_cast<size_t>(l_currentBucket));
 		p_sock->setCurrentBucket(l_currentBucket - p_len);
 		
 		// write to socket
@@ -119,7 +119,7 @@ int ThrottleManager::write(Socket* p_sock, const void* p_buffer, size_t& p_len)
 		{
 			const size_t ups = UploadManager::getUploadCount();
 			const size_t slice = getUploadLimitInBytes() / (ups ? ups : 1);
-			p_len = min(slice, min(p_len, upTokens));
+			p_len = std::min(slice, std::min(p_len, upTokens));
 			
 			// Pour buckets of the calculated number of bytes,
 			// but as a real restriction on the specified number of bytes

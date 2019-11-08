@@ -623,7 +623,7 @@ void DirectoryListingFrame::back()
 {
 	if (history.size() > 1 && historyIndex > 1)
 	{
-		size_t n = min(historyIndex, history.size()) - 1;
+		size_t n = std::min(historyIndex, history.size()) - 1;
 		deque<string> tmp = history;
 		selectItem(Text::toT(history[n - 1]));
 		historyIndex = n;
@@ -635,7 +635,7 @@ void DirectoryListingFrame::forward()
 {
 	if (history.size() > 1 && historyIndex < history.size())
 	{
-		size_t n = min(historyIndex, history.size() - 1);
+		size_t n = std::min(historyIndex, history.size() - 1);
 		deque<string> tmp = history;
 		selectItem(Text::toT(history[n]));
 		historyIndex = n + 1;
@@ -1636,7 +1636,7 @@ void DirectoryListingFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		w[STATUS_DUMMY - 1] = sr.right - 16;
 		for (int i = STATUS_DUMMY - 2; i >= 0; --i)
 		{
-			w[i] = max(w[i + 1] - statusSizes[i + 1], 0);
+			w[i] = std::max(w[i + 1] - statusSizes[i + 1], 0);
 		}
 		
 		ctrlStatus.SetParts(STATUS_LAST, w);
@@ -2447,7 +2447,7 @@ bool DirectoryListingFrame::scan_list_view_from_merge()
 					if (l_find_ratio == g_fly_server_cache.end()) // Если значение рейтинга есть в кэше то не запрашиваем о нем инфу с сервера
 					{
 						CFlyServerKey l_info(l_tth, l_file_size);
-						m_merge_item_map.insert(make_pair(l_tth, l_item_info));
+						m_merge_item_map.insert(std::make_pair(l_tth, l_item_info));
 						l_info.m_only_counter  = !l_item_info->columns[COLUMN_MEDIA_AUDIO].empty(); // Колонка базовой медиаинфы уже заполенна - запросим с сервера только рейтинги
 						if (l_info.m_only_counter) // TODO - определить точнее есть у нас инфа по файлу или нет?
 						{

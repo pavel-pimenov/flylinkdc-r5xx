@@ -27,9 +27,10 @@
 #include <boost/utility.hpp>
 #include <boost/thread.hpp>
 #endif
+
 #ifdef _DEBUG
-#include <boost/noncopyable.hpp>
 #include <set>
+#include <boost/noncopyable.hpp>
 #endif
 
 #include "Exception.h"
@@ -39,9 +40,10 @@
 #include <ctime>
 #endif
 
+#include <tchar.h>
 #include "CFlyLockProfiler.h"
 
-#define CRITICAL_SECTION_SPIN_COUNT 2000 
+#define CRITICAL_SECTION_SPIN_COUNT 2000
 
 STANDARD_EXCEPTION(ThreadException);
 
@@ -767,11 +769,11 @@ typedef FastLock FastUniqueLock;
 #endif // IRAINMAN_USE_SHARED_SPIN_LOCK
 
 #ifndef CFlyFastLock
-  #ifdef FLYLINKDC_USE_PROFILER_CS
-    #define CFlyFastLock(cs) FastLock l_lock(cs,__FUNCTION__,__LINE__);
-  #else
-    #define CFlyFastLock(cs) FastLock l_lock(cs);
-  #endif
+#ifdef FLYLINKDC_USE_PROFILER_CS
+#define CFlyFastLock(cs) FastLock l_lock(cs,__FUNCTION__,__LINE__);
+#else
+#define CFlyFastLock(cs) FastLock l_lock(cs);
+#endif
 #endif
 
 

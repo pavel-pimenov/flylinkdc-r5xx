@@ -27,61 +27,28 @@
 
 # include "../client/Singleton.h"
 # include "../client/Pointer.h"
-# include "../FlyFeatures/ThemeManager.h"
 
 # define USE_THEME_MANAGER
 
+using std::min;
+using std::max;
 #include <atlimage.h>
 
 class ExCImage : public CImage
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		ExCImage(): m_hBuffer(nullptr)
 		{
 		}
-		explicit ExCImage(LPCTSTR pszFileName) noexcept :
-			m_hBuffer(nullptr)
-		{
-			Load(pszFileName);
-		}
-		ExCImage(UINT id, LPCTSTR pType = RT_RCDATA, HMODULE hInst =
-#if defined(USE_THEME_MANAGER)
-		             ThemeManager::getResourceLibInstance()
-#else
-		             nullptr
-#endif
-		        ) noexcept :
-			m_hBuffer(nullptr)
-		{
-			LoadFromResource(id, pType, hInst);
-		}
-		ExCImage(UINT id, UINT type, HMODULE hInst =
-#if defined(USE_THEME_MANAGER)
-		             ThemeManager::getResourceLibInstance()
-#else
-		             nullptr
-#endif
-		        ) noexcept :
-			m_hBuffer(nullptr)
-		{
-			LoadFromResource(id, MAKEINTRESOURCE(type), hInst);
-		}
-		
+        explicit ExCImage(LPCTSTR pszFileName);
+        ExCImage(UINT id, LPCTSTR pType = RT_RCDATA);
+        ExCImage(UINT id, UINT type);
 		~ExCImage()
 		{
 			Destroy();
 		}
-		bool LoadFromResourcePNG(UINT id) noexcept;
-		bool LoadFromResource(UINT id, LPCTSTR pType = RT_RCDATA, HMODULE hInst =
-#if defined(USE_THEME_MANAGER)
-		                          ThemeManager::getResourceLibInstance()
-#else
-		                          nullptr
-#endif
-		                     ) noexcept;
+		bool LoadFromResourcePNG(UINT id);
+		bool LoadFromResource(UINT id, LPCTSTR pType = RT_RCDATA, HMODULE hInst = nullptr);
 		void Destroy() noexcept;
 		
 	private:

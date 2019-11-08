@@ -31,6 +31,10 @@
 #define HUB_FILTER_MESSAGE_MAP 8
 #define HUB_TREE_MESSAGE_MAP 9
 #define HUB_LIST_MESSAGE_MAP 10
+
+class HubEntry;
+typedef std::deque<HubEntry> HubEntryList;
+
 class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0, 0), IDR_INTERNET_HUBS >,
 	public StaticFrame<PublicHubsFrame, ResourceManager::PUBLIC_HUBS, ID_FILE_CONNECT>,
 	public CSplitterImpl<PublicHubsFrame>,

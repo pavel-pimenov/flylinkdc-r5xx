@@ -209,7 +209,7 @@ class VideoPreview :
 		{
 			{
 				CFlyLock(cs);
-				m_tasks.push_back(make_pair(task, data));
+				m_tasks.push_back(std::make_pair(task, data));
 			}
 			m_video_task_semaphore.signal();
 		}

@@ -1050,7 +1050,7 @@ uint64_t ClientManager::multi_search(const SearchParamTokenMultiClient& p_search
 			if (i->second->isConnected())
 			{
 				const uint64_t ret = i->second->search_internal(p_search_param);
-				estimateSearchSpan = max(estimateSearchSpan, ret);
+				estimateSearchSpan = std::max(estimateSearchSpan, ret);
 			}
 	}
 	else
@@ -1064,7 +1064,7 @@ uint64_t ClientManager::multi_search(const SearchParamTokenMultiClient& p_search
 			if (i != g_clients.end() && i->second->isConnected())
 			{
 				const uint64_t ret = i->second->search_internal(p_search_param);
-				estimateSearchSpan = max(estimateSearchSpan, ret);
+				estimateSearchSpan = std::max(estimateSearchSpan, ret);
 			}
 		}
 	}

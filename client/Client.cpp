@@ -1253,8 +1253,8 @@ void Client::setSearchInterval(uint32_t aInterval,  bool p_is_search_rule /*= fa
 	}
 	else
 	{
-		m_searchQueue.m_interval = max(aInterval, (uint32_t)(2000)); // [!] FlylinkDC
-		m_searchQueue.m_interval = min(m_searchQueue.m_interval, (uint32_t)(120000));
+		m_searchQueue.m_interval = std::max(aInterval, (uint32_t)(2000)); // [!] FlylinkDC
+		m_searchQueue.m_interval = std::min(m_searchQueue.m_interval, (uint32_t)(120000));
 	}
 	dcassert(m_searchQueue.m_interval != 0);
 }
@@ -1267,8 +1267,8 @@ void Client::setSearchIntervalPassive(uint32_t aIntervalPassive, bool p_is_searc
 	}
 	else
 	{
-		m_searchQueue.m_interval_passive = max(aIntervalPassive, (uint32_t)(2000)); // [!] FlylinkDC
-		m_searchQueue.m_interval_passive = min(m_searchQueue.m_interval_passive, (uint32_t)(120000));
+		m_searchQueue.m_interval_passive = std::max(aIntervalPassive, (uint32_t)(2000)); // [!] FlylinkDC
+		m_searchQueue.m_interval_passive = std::min(m_searchQueue.m_interval_passive, (uint32_t)(120000));
 	}
 	dcassert(m_searchQueue.m_interval_passive != 0);
 }

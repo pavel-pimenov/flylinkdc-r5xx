@@ -23,6 +23,9 @@
 #ifndef _SHAREDFILESTREAM_H
 #define _SHAREDFILESTREAM_H
 
+#include <unordered_map>
+#include <unordered_set>
+
 #include "File.h"
 
 struct SharedFileHandle
@@ -64,8 +67,8 @@ class SharedFileStream : public IOStream
 		size_t flushBuffers(bool aForce) override;
 		
 		static FastCriticalSection g_shares_file_cs;
-		static std::set<char> g_error_map_file;
-		static std::map<std::string, unsigned> g_delete_files;
+		static std::unordered_set<char> g_error_map_file;
+		static std::unordered_map<std::string, unsigned> g_delete_files;
 #ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
 		static SharedFileHandleMap g_readpool;
 		static SharedFileHandleMap g_writepool;

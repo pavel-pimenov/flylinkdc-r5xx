@@ -30,6 +30,8 @@
 #include "UploadManager.h"
 #include "ZUtils.h"
 
+using std::unique_ptr;
+
 class ClientManager;
 typedef boost::unordered_map<string, std::pair<std::string, unsigned>>  CFlyUnknownCommand;
 typedef boost::unordered_map<string, std::unordered_map<std::string, unsigned> >  CFlyUnknownCommandArray;

@@ -34,21 +34,15 @@ typedef std::vector<UploadPtr> UploadList;
 
 class UploadQueueItem :
 	public ColumnBase< 13 >,
-	public UserInfoBase //[+] PPA
+	public UserInfoBase
 {
 	public:
 		UploadQueueItem(const HintedUser& user, const string& file, int64_t pos, int64_t size) :
 			m_hintedUser(user), m_file(file), m_pos(pos), m_size(size), m_time(GET_TIME())
 		{
-#ifdef _DEBUG
-			++g_upload_queue_item_count;
-#endif
 		}
 		~UploadQueueItem()
 		{
-#ifdef _DEBUG
-			--g_upload_queue_item_count;
-#endif
 		}
 		void update();
 		const UserPtr& getUser() const
@@ -88,9 +82,6 @@ class UploadQueueItem :
 		GETC(int64_t, m_size, Size);
 		GETC(uint64_t, m_time, Time);
 		Util::CustomNetworkIndex m_location;
-#ifdef _DEBUG
-		static boost::atomic_int g_upload_queue_item_count;
-#endif
 };
 
 class WaitingUser

@@ -194,7 +194,7 @@ void QueueManager::FileQueue::add(const QueueItemPtr& qi) // [!] IRainman fix.
 {
 	WLock(*g_csFQ); // [+] IRainman fix.
 	g_queue.insert(make_pair(qi->getTarget(), qi));
-	auto l_count_tth = g_queue_tth_map.insert(make_pair(qi->getTTH(), 1));
+	auto l_count_tth = g_queue_tth_map.insert(std::make_pair(qi->getTTH(), 1));
 	if (l_count_tth.second == false)
 	{
 		l_count_tth.first->second++;
@@ -800,7 +800,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 	DummyOutputStream dummy;
 	int64_t blockSize = tt.getBlockSize();
 	bool hasBadBlocks = false;
-	vector<uint8_t> buf((size_t)min((int64_t)1024 * 1024, blockSize));
+	vector<uint8_t> buf((size_t)std::min((int64_t)1024 * 1024, blockSize));
 	vector< pair<int64_t, int64_t> > l_sizes;
 	
 	try // [+] IRainman fix.
@@ -813,11 +813,11 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 				MerkleCheckOutputStream<TigerTree, false> l_check(tt, &dummy, startPos);
 				
 				inFile.setPos(startPos);
-				int64_t bytesLeft = min((tempSize - startPos), blockSize); //Take care of the last incomplete block
+				int64_t bytesLeft = std::min((tempSize - startPos), blockSize); //Take care of the last incomplete block
 				int64_t segmentSize = bytesLeft;
 				while (bytesLeft > 0)
 				{
-					size_t n = (size_t)min((int64_t)buf.size(), bytesLeft);
+					size_t n = (size_t)std::min((int64_t)buf.size(), bytesLeft);
 					size_t nr = inFile.read(&buf[0], n);
 					l_check.write(&buf[0], nr);
 					bytesLeft -= nr;
@@ -829,7 +829,7 @@ void QueueManager::Rechecker::execute(const string& p_file) // [!] IRainman core
 				}
 				l_check.flushBuffers(true);
 				
-				l_sizes.push_back(make_pair(startPos, segmentSize));
+				l_sizes.push_back(std::make_pair(startPos, segmentSize));
 			}
 			catch (const Exception&)
 			{
@@ -1556,7 +1556,7 @@ void QueueManager::buildMap(const DirectoryListing::Directory* dir, TTHMap& p_tt
 	for (auto i = dir->m_files.cbegin(); i != dir->m_files.cend(); ++i)
 	{
 		const DirectoryListing::File* df = *i;
-		p_tthMap.insert(make_pair(df->getTTH(), df));
+		p_tthMap.insert(std::make_pair(df->getTTH(), df));
 	}
 }
 
@@ -1772,9 +1772,9 @@ bool QueueManager::getQueueInfo(const UserPtr& aUser, string& aTarget, int64_t& 
 uint8_t QueueManager::FileQueue::getMaxSegments(const uint64_t filesize)
 {
 	if (BOOLSETTING(SEGMENTS_MANUAL))
-		return min((uint8_t)SETTING(NUMBER_OF_SEGMENTS), (uint8_t)200);
+		return std::min((uint8_t)SETTING(NUMBER_OF_SEGMENTS), (uint8_t)200);
 	else
-		return min(filesize / (50 * MIN_BLOCK_SIZE) + 2, 200Ui64);
+		return std::min(filesize / (50 * MIN_BLOCK_SIZE) + 2, 200Ui64);
 }
 
 void QueueManager::getTargets(const TTHValue& tth, StringList& sl)
@@ -1852,7 +1852,7 @@ class TreeOutputStream : public OutputStream
 				}
 				else
 				{
-					size_t bytes = min(TigerTree::BYTES - bufPos, left);
+					size_t bytes = std::min(TigerTree::BYTES - bufPos, left);
 					memcpy(buf + bufPos, b + pos, bytes);
 					bufPos += bytes;
 					pos += bytes;
@@ -2970,7 +2970,7 @@ void QueueLoader::startTag(const string& name, StringPairList& attribs, bool sim
 			
 			if (qi == NULL)
 			{
-				qi = QueueManager::g_fileQueue.add(0, m_target, size, 0, p, true, l_tempTarget, added, TTHValue(tthRoot), max((uint8_t)1, maxSegments));
+				qi = QueueManager::g_fileQueue.add(0, m_target, size, 0, p, true, l_tempTarget, added, TTHValue(tthRoot), std::max((uint8_t)1, maxSegments));
 				if (downloaded > 0)
 				{
 					{

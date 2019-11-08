@@ -40,7 +40,7 @@ namespace dcpp {
 class CryptoManager : public Singleton<CryptoManager>
 {
 	public:
-		typedef pair<bool, string> SSLVerifyData;
+		typedef std::pair<bool, string> SSLVerifyData;
 		
 		enum TLSTmpKeys {
 			KEY_FIRST = 0,

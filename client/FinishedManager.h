@@ -29,6 +29,7 @@
 #include "User.h"
 #include "ClientManager.h"
 
+
 class FinishedItem
 {
 	public:

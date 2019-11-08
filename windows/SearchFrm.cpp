@@ -19,6 +19,7 @@
 #include "stdafx.h"
 
 #include <future>
+#include <regex>
 
 #include "Resource.h"
 #include "SearchFrm.h"

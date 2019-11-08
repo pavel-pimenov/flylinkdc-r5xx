@@ -19,6 +19,7 @@
 
 
 #include "stdafx.h"
+#include <Mmsystem.h>
 #include <Shellapi.h>
 
 #include "JAControl.h"
@@ -35,6 +36,18 @@ JAControl::JAControl(HWND parent)
 	, m_maxTimeMS(-1)
 	, m_currTimeMS(-1), m_isMuted(false)
 {
+}
+bool JAControl::isJAPlaying()
+{
+	return m_currStatus == MCI_MODE_PLAY;
+}
+bool JAControl::isJAPaused()
+{
+	return m_currStatus == MCI_MODE_PAUSE;
+}
+bool JAControl::isJAStopped()
+{
+	return m_currStatus == MCI_MODE_STOP;
 }
 
 bool JAControl::ProcessCopyData(COPYDATASTRUCT* pCopyDataStruct)

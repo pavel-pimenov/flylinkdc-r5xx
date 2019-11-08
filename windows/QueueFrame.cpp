@@ -1707,7 +1707,7 @@ LRESULT QueueFrame::onSegments(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
 		{
 			{
 				const QueueItemPtr& qi = ii->getQueueItem();
-				qi->setMaxSegments(max((uint8_t)1, (uint8_t)(wID - IDC_SEGMENTONE + 1))); // !BUGMASTER!-S
+				qi->setMaxSegments(std::max((uint8_t)1, (uint8_t)(wID - IDC_SEGMENTONE + 1))); // !BUGMASTER!-S
 			}
 			ctrlQueue.updateItem(ctrlQueue.findItem(ii), COLUMN_SEGMENTS);
 		}
@@ -1997,7 +1997,7 @@ void QueueFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 			int w[6];
 			ctrlStatus.GetClientRect(sr);
 			w[5] = sr.right - 16;
-#define setw(x) w[x] = max(w[x+1] - statusSizes[x], 0)
+#define setw(x) w[x] = std::max(w[x+1] - statusSizes[x], 0)
 			setw(4);
 			setw(3);
 			setw(2);

@@ -81,7 +81,7 @@ class MerkleCheckOutputStream : public OutputStream
 			
 			if (bufPos != 0)
 			{
-				size_t bytes = min(TreeType::BASE_BLOCK_SIZE - bufPos, len);
+				size_t bytes = std::min(TreeType::BASE_BLOCK_SIZE - bufPos, len);
 				memcpy(buf + bufPos, xb, bytes);
 				pos = bytes;
 				bufPos += bytes;

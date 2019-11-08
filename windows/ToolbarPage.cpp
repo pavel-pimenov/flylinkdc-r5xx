@@ -223,7 +223,7 @@ LRESULT ToolbarPage::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 		const int sel = m_ctrlToolbar.GetSelectedIndex();
 		const int ind = m_ctrlToolbar.GetItemData(sel);
 		m_ctrlToolbar.DeleteItem(sel);
-		m_ctrlToolbar.SelectItem(max(sel - 1, 0));
+		m_ctrlToolbar.SelectItem(std::max(sel - 1, 0));
 		m_ctrlCommands.SetItemState(ind + 1, 0, LVIS_CUT);
 	}
 	return 0;

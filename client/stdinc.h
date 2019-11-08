@@ -61,47 +61,26 @@
 
 #include "w.h"
 
-#include <wchar.h>
-#include <ctype.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <memory.h>
-#include <sys/types.h>
-#include <time.h>
-#include <locale.h>
-#ifndef _MSC_VER
-#include <stdint.h>
-#endif
-
-#include <algorithm>
-#include <deque>
-#include <functional>
-#include <list>
-#include <map>
+//#include <algorithm>
+//#include <functional>
 #include <memory>
-#include <set>
 #include <string>
-#include <numeric>
-#include <limits>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
+//#include <numeric>
+//#include <limits>
+//#include <utility>
 #include <vector>
 
 #ifdef _DEBUG
 #include <boost/noncopyable.hpp>
 #endif
 
-#include <regex>
 using std::vector;
-using std::list;
-using std::deque;
-using std::pair;
+//using std::pair;
 using std::string;
 using std::wstring;
 using std::unique_ptr;
-using std::min;
-using std::max;
+//using std::min;
+//using std::max;
 
 using std::make_pair;
 
@@ -115,7 +94,7 @@ inline int strnicmp(const string& a, const string& b, size_t n)
 }
 inline int strnicmp(const char* a, const char* b, size_t n)
 {
-	return _strnicmp(a, b, n); // [+] IRainman opt
+	return _strnicmp(a, b, n);
 }
 inline int stricmp(const wstring& a, const wstring& b)
 {
@@ -123,7 +102,7 @@ inline int stricmp(const wstring& a, const wstring& b)
 }
 inline int stricmp(const wchar_t* a, const wchar_t* b)
 {
-	return _wcsicmp(a, b); // [+] IRainman opt
+	return _wcsicmp(a, b);
 }
 inline int strnicmp(const wstring& a, const wstring& b, size_t n)
 {
@@ -131,7 +110,7 @@ inline int strnicmp(const wstring& a, const wstring& b, size_t n)
 }
 inline int strnicmp(const wchar_t* a, const wchar_t* b, size_t n)
 {
-	return _wcsnicmp(a, b, n); // [+] IRainman opt
+	return _wcsnicmp(a, b, n);
 }
 
 #endif // !defined(DCPLUSPLUS_DCPP_STDINC_H)

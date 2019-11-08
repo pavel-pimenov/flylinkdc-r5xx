@@ -247,7 +247,7 @@ void GeneralPage::GetLangList()
 {
 	if (m_languagesList.empty())
 	{
-		m_languagesList.insert(make_pair(L"English", "en-US.xml"));
+		m_languagesList.insert(std::make_pair(L"English", "en-US.xml"));
 		const StringList& l_files = File::findFiles(Util::getLocalisationPath(), "*-*.xml");
 		for (auto i = l_files.cbegin(); i != l_files.cend(); ++i)
 		{
@@ -290,7 +290,7 @@ bool GeneralPage::GetLangByFile(const string& p_FileName, LanguageMap& p_Languag
 	{
 		if (p_FileName == g_DefaultLang[i].FileName)
 		{
-			m_languagesList.insert(make_pair(g_DefaultLang[i].Lang, g_DefaultLang[i].FileName));
+			m_languagesList.insert(std::make_pair(g_DefaultLang[i].Lang, g_DefaultLang[i].FileName));
 			return true;
 		}
 	}
