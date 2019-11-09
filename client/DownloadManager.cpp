@@ -1249,8 +1249,8 @@ void DownloadManager::onTorrentAlertNotify()
 						dcassert(st.info_hash == l_a->handle.info_hash());
 						CFlylinkDBManager::getInstance()->save_torrent_resume(l_a->handle.info_hash(), st.name, l_resume);
 						--m_torrent_resume_count;
-						LogManager::torrent_message("save_resume_data_alert: " + l_a->message(), false);
-						// TODO l_a->handle.set_pinned(false);
+						// [crash]  LogManager::torrent_message("save_resume_data_alert: " + l_a->message(), false);
+                        //  https://drdump.com/Problem.aspx?ProblemID=526789
 					}
 					if (lt::alert_cast<lt::torrent_error_alert>(a))
 					{
