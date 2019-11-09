@@ -15,6 +15,7 @@ vc10
 vc12
 vc13
 vc15
+vc16
 vc17
 FlylinkDCShellExt*.pdb
 FlylinkDC_Debug*.pdb
