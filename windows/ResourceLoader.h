@@ -28,10 +28,6 @@
 # include "../client/Singleton.h"
 # include "../client/Pointer.h"
 
-# define USE_THEME_MANAGER
-
-using std::min;
-using std::max;
 #include <atlimage.h>
 
 class ExCImage : public CImage
@@ -40,15 +36,15 @@ class ExCImage : public CImage
 		ExCImage(): m_hBuffer(nullptr)
 		{
 		}
-        explicit ExCImage(LPCTSTR pszFileName);
-        ExCImage(UINT id, LPCTSTR pType = RT_RCDATA);
-        ExCImage(UINT id, UINT type);
+		explicit ExCImage(LPCTSTR pszFileName);
+		ExCImage(UINT id, LPCTSTR pType = RT_RCDATA);
+		ExCImage(UINT id, UINT type);
 		~ExCImage()
 		{
 			Destroy();
 		}
 		bool LoadFromResourcePNG(UINT id);
-		bool LoadFromResource(UINT id, LPCTSTR pType = RT_RCDATA, HMODULE hInst = nullptr);
+		bool LoadFromResource(UINT id, LPCTSTR pType = RT_RCDATA);
 		void Destroy() noexcept;
 		
 	private:

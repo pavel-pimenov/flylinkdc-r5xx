@@ -300,7 +300,7 @@ void CreateSplash()
 				}
 				auto load_splash = [](int p_res) -> void
 				{
-					g_splash_png->LoadFromResource(p_res, _T("PNG"), _Module.get_m_hInst());
+					g_splash_png->LoadFromResourcePNG(p_res);
 				};
 				
 				bool is_found = false;

@@ -5,21 +5,23 @@
 #include "File.h"
 #include "../FlyFeatures/ThemeManager.h"
 
+#define USE_THEME_MANAGER
+
 
 ExCImage::ExCImage(LPCTSTR pszFileName):
-    m_hBuffer(nullptr)
+	m_hBuffer(nullptr)
 {
-    Load(pszFileName);
+	Load(pszFileName);
 }
 ExCImage::ExCImage(UINT id, LPCTSTR pType /*= RT_RCDATA*/):
-    m_hBuffer(nullptr)
+	m_hBuffer(nullptr)
 {
-    LoadFromResource(id, pType, ThemeManager::getResourceLibInstance());
+	LoadFromResource(id, pType);
 }
 ExCImage::ExCImage(UINT id, UINT type):
-    m_hBuffer(nullptr)
+	m_hBuffer(nullptr)
 {
-    LoadFromResource(id, MAKEINTRESOURCE(type));
+	LoadFromResource(id, MAKEINTRESOURCE(type));
 }
 
 void ExCImage::Destroy() noexcept
@@ -38,7 +40,7 @@ bool ExCImage::LoadFromResourcePNG(UINT id)
 	return LoadFromResource(id, _T("PNG"));
 }
 
-bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType, HMODULE hInst)
+bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType)
 {
 	HRESULT res = E_FAIL;
 	dcassert(m_hBuffer == nullptr);
@@ -50,6 +52,7 @@ bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType, HMODULE hInst)
 			return res == S_OK;
 		}
 	}
+    HMODULE hInst = ThemeManager::getResourceLibInstance();
 	HRSRC hResource = ::FindResource(hInst, MAKEINTRESOURCE(id), pType);
 	if (!hResource)
 	{
@@ -132,7 +135,7 @@ int ResourceLoader::LoadImageList(UINT id, CImageList& aImgLst, int cx, int cy)
 		{
 			// Only for Not original images -- load
 			ExCImage img2;
-			if (img2.LoadFromResource(id, _T("PNG"), nullptr))
+			if (img2.LoadFromResource(id, _T("PNG")))
 			{
 				const int imageOriginalCount = img2.GetWidth() / cx;
 				dcassert(imageOriginalCount == imageCount);
