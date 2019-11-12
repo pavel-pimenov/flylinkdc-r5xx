@@ -40,7 +40,6 @@
 #include <ctime>
 #endif
 
-#include <tchar.h>
 #include "CFlyLockProfiler.h"
 
 #define CRITICAL_SECTION_SPIN_COUNT 2000
@@ -292,7 +291,7 @@ class CriticalSection
 					g_UseCSRecursionLog = true;
 				}
 				std::ofstream l_fs;
-				l_fs.open(_T("flylinkdc-critical-section.log"), std::ifstream::out | std::ifstream::app);
+				l_fs.open(L"flylinkdc-critical-section.log", std::ifstream::out | std::ifstream::app);
 				if (l_fs.good())
 				{
 					l_fs << "[this = " << this << "][" << formatDigitalClock("time =", time(nullptr));

@@ -215,7 +215,7 @@ private :
             vui_parameters_struct(const vui_parameters_struct &);
             vui_parameters_struct();
         };
-        vui_parameters_struct* vui_parameters;
+        vui_parameters_struct* vui_parameters = nullptr;
         int32u  pic_width_in_mbs_minus1;
         int32u  pic_height_in_map_units_minus1;
         int32u  frame_crop_left_offset;
@@ -293,7 +293,7 @@ private :
 
         ~seq_parameter_set_struct()
         {
-            delete vui_parameters; //vui_parameters=NULL;
+            delete vui_parameters; vui_parameters=NULL;
         }
 
     private:

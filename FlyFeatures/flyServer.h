@@ -157,7 +157,7 @@ class CFlyServerConfig
 		static StringSet g_include_tag;
 		static StringSet g_exclude_tag;
 		static std::unordered_set<uint16_t> g_guard_tcp_port;
-		static std::unique_ptr<webrtc::RWLockWrapper> g_cs_guard_tcp_port;
+		static FastCriticalSection g_cs_guard_tcp_port;
 		static FastCriticalSection g_cs_mirror_test_port;
 		static std::unordered_set<unsigned> g_exclude_error_log;
 		static std::unordered_set<unsigned> g_exclude_cid_error_log;
@@ -261,7 +261,7 @@ class CFlyServerConfig
 		static StringSet g_block_share_name;
 		static StringList g_block_share_mask;
 		
-		static bool isCheckName(const StringSet& p_StringList, const string& p_name)
+		static inline bool isCheckName(const StringSet& p_StringList, const string& p_name)
 		{
 			return p_StringList.find(p_name) != p_StringList.end();
 		}
@@ -323,8 +323,8 @@ class CFlyServerConfig
 		static std::vector<std::string> g_mapping_hubs;
 		//static std::unordered_set<unsigned long> g_block_ip;
 		static std::unordered_set<std::string> g_block_ip_str;
-		static std::unique_ptr<webrtc::RWLockWrapper> g_cs_block_ip;
-		
+		static FastCriticalSection g_cs_block_ip;
+
 		static std::unordered_set<std::string> g_block_hubs;
 		static std::vector<std::string> g_block_hubs_mask;
 		static std::vector<std::string> g_promo_hubs[2];

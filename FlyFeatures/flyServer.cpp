@@ -81,7 +81,7 @@ StringSet CFlyServerConfig::g_exclude_tag;
 std::vector<std::string> CFlyServerConfig::g_exclude_tag_inform;
 std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_log;
 std::unordered_set<uint16_t> CFlyServerConfig::g_guard_tcp_port;
-std::unique_ptr<webrtc::RWLockWrapper> CFlyServerConfig::g_cs_guard_tcp_port  = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+FastCriticalSection CFlyServerConfig::g_cs_guard_tcp_port;
 std::unordered_set<unsigned> CFlyServerConfig::g_exclude_cid_error_log;
 #ifdef FLYLINKDC_USE_SYSLOG
 std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_syslog;
@@ -122,7 +122,7 @@ CFlyServerJSON::CFlyTestPortResult CFlyServerJSON::g_test_port_map;
 FastCriticalSection CFlyServerJSON::g_cs_test_port;
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 
-std::unique_ptr<webrtc::RWLockWrapper> CFlyServerConfig::g_cs_block_ip = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
+FastCriticalSection CFlyServerConfig::g_cs_block_ip;
 uint16_t CFlyServerConfig::g_max_ddos_connect_to_me = 10; // Не более 10 коннектов на один IP в течении минуты
 uint16_t CFlyServerConfig::g_ban_ddos_connect_to_me = 10; // Блокируем подключения к этому IP в течении 10 минут
 
@@ -222,7 +222,7 @@ void CFlyServerConfig::addBlockIP(const string& p_ip)
 	dcassert(!p_ip.empty())
 	if (!p_ip.empty())
 	{
-		CFlyWriteLock(*g_cs_block_ip);
+        CFlyFastLock(g_cs_block_ip);
 		CFlyServerConfig::g_block_ip_str.insert(p_ip);
 	}
 }
@@ -232,7 +232,7 @@ bool CFlyServerConfig::isBlockIP(const string& p_ip)
 	dcassert(!p_ip.empty())
 	if (!p_ip.empty())
 	{
-		CFlyReadLock(*g_cs_block_ip);
+        CFlyFastLock(g_cs_block_ip);
 		if (CFlyServerConfig::g_block_ip_str.find(p_ip) != CFlyServerConfig::g_block_ip_str.end())
 			return true;
 		else
@@ -250,7 +250,7 @@ bool CFlyServerConfig::isErrorSysLog(unsigned p_error_code)
 //======================================================================================================
 bool CFlyServerConfig::isGuardTCPPort(uint16_t p_port)
 {
-	CFlyReadLock(*g_cs_guard_tcp_port);
+    CFlyFastLock(g_cs_guard_tcp_port);
 	return g_guard_tcp_port.find(p_port) != g_guard_tcp_port.end();
 }
 //======================================================================================================
@@ -577,8 +577,8 @@ void CFlyServerConfig::loadConfig()
 						//g_block_ip.clear();
 						string l_block_ip_str;
 						{
-							CFlyWriteLock(*g_cs_block_ip);
-							g_block_ip_str.clear(); // https://drdump.com/DumpGroup.aspx?DumpGroupID=683946
+                            CFlyFastLock(g_cs_block_ip);
+							g_block_ip_str.clear();
 							l_block_ip_str = l_xml.getChildAttribSplit("block_ip", g_block_ip_str, [&](const string & n)
 							{
 								checkStrKey(n);
@@ -641,7 +641,7 @@ void CFlyServerConfig::loadConfig()
 						g_exclude_error_log.insert(Util::toInt(n));
 					});
 					{
-						CFlyWriteLock(*g_cs_guard_tcp_port);
+                        CFlyFastLock(g_cs_guard_tcp_port);
 						l_xml.getChildAttribSplit("guard_tcp_port", g_guard_tcp_port, [this](const string & n)
 						{
 							g_guard_tcp_port.insert(uint16_t(Util::toInt(n)));

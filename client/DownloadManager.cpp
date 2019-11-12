@@ -1021,37 +1021,109 @@ void DownloadManager::onTorrentAlertNotify()
 						}
 					}
 #endif
-					if (const auto l_ext_ip = lt::alert_cast<lt::external_ip_alert>(a))
+					if (!ClientManager::isBeforeShutdown())
 					{
-						MappingManager::setExternaIP(l_ext_ip->external_address.to_string());
-					}
-					if (const auto l_port = lt::alert_cast<lt::portmap_alert>(a))
-					{
-						LogManager::torrent_message("portmap_alert: " + a->message() + " info:" +
-						                            std::string(a->what()) + " index = " + Util::toString(int(l_port->mapping)));
-						if (l_port->mapping == m_maping_index[0])
-							SettingsManager::g_upnpTCPLevel = true;
-						if (l_port->mapping == m_maping_index[2])
-							SettingsManager::g_upnpUDPSearchLevel = true;
-						if (l_port->mapping == m_maping_index[1])
-							SettingsManager::g_upnpTLSLevel = true;
-						if (l_port->mapping == port_mapping_t(0)) // TODO (1)
-							SettingsManager::g_upnpTorrentLevel = true;
-					}
-					
-					if (const auto l_port = lt::alert_cast<lt::portmap_error_alert>(a))
-					{
-						dcassert(0);
-						LogManager::torrent_message("portmap_error_alert: " + a->message() + " info:" +
-						                            std::string(a->what()) + " index = " + Util::toString(int(l_port->mapping)));
-						if (l_port->mapping == m_maping_index[0])
-							SettingsManager::g_upnpTCPLevel = false;
-						if (l_port->mapping == m_maping_index[2])
-							SettingsManager::g_upnpUDPSearchLevel = false;
-						if (l_port->mapping == m_maping_index[1])
-							SettingsManager::g_upnpTLSLevel = false;
-						if (l_port->mapping == port_mapping_t(0)) // TODO (1)
-							SettingsManager::g_upnpTorrentLevel = false;
+						if (auto st = lt::alert_cast<lt::state_update_alert>(a))
+						{
+							if (st->status.empty())
+							{
+								continue;
+							}
+							int l_pos = 1;
+							for (const auto j : st->status)
+							{
+								if (ClientManager::isBeforeShutdown())
+									return;
+								lt::torrent_status const& s = j;
+#ifdef _DEBUG
+								const std::string l_log = "[" + Util::toString(l_alert_pos) + " - " + Util::toString(l_pos) + "] Status: " + st->message() + " [ " + s.save_path + "\\" + s.name
+								                          + " ] Download: " + Util::toString(s.download_payload_rate / 1000) + " kB/s "
+								                          + " ] Upload: " + Util::toString(s.upload_payload_rate / 1000) + " kB/s "
+								                          + Util::toString(s.total_done / 1000) + " kB ("
+								                          + Util::toString(s.progress_ppm / 10000) + "%) downloaded sha1: " + aux::to_hex(s.info_hash);
+								static std::string g_last_log;
+								if (g_last_log != l_log)
+								{
+									g_last_log = l_log;
+								}
+								LogManager::torrent_message(l_log, false);
+#endif
+								l_pos++;
+								DownloadArray l_tickList;
+								{
+									TransferData l_td("");
+									l_td.init(s);
+									l_tickList.push_back(l_td);
+								}
+								if (!l_tickList.empty() && !ClientManager::isBeforeShutdown())
+								{
+									fly_fire1(DownloadManagerListener::TorrentEvent(), l_tickList);
+								}
+							}
+							continue;
+						}
+						
+						if (const auto l_ext_ip = lt::alert_cast<lt::external_ip_alert>(a))
+						{
+							MappingManager::setExternaIP(l_ext_ip->external_address.to_string());
+						}
+						if (const auto l_port = lt::alert_cast<lt::portmap_alert>(a))
+						{
+							LogManager::torrent_message("portmap_alert: " + a->message() + " info:" +
+							                            std::string(a->what()) + " index = " + Util::toString(int(l_port->mapping)));
+							if (l_port->mapping == m_maping_index[0])
+								SettingsManager::g_upnpTCPLevel = true;
+							if (l_port->mapping == m_maping_index[2])
+								SettingsManager::g_upnpUDPSearchLevel = true;
+							if (l_port->mapping == m_maping_index[1])
+								SettingsManager::g_upnpTLSLevel = true;
+							if (l_port->mapping == port_mapping_t(0)) // TODO (1)
+								SettingsManager::g_upnpTorrentLevel = true;
+						}
+						
+						if (const auto l_port = lt::alert_cast<lt::portmap_error_alert>(a))
+						{
+							dcassert(0);
+							LogManager::torrent_message("portmap_error_alert: " + a->message() + " info:" +
+							                            std::string(a->what()) + " index = " + Util::toString(int(l_port->mapping)));
+							if (l_port->mapping == m_maping_index[0])
+								SettingsManager::g_upnpTCPLevel = false;
+							if (l_port->mapping == m_maping_index[2])
+								SettingsManager::g_upnpUDPSearchLevel = false;
+							if (l_port->mapping == m_maping_index[1])
+								SettingsManager::g_upnpTLSLevel = false;
+							if (l_port->mapping == port_mapping_t(0)) // TODO (1)
+								SettingsManager::g_upnpTorrentLevel = false;
+						}
+						if (const auto l_delete = lt::alert_cast<lt::torrent_delete_failed_alert>(a))
+						{
+							dcassert(0);
+							LogManager::torrent_message("torrent_delete_failed_alert: " + a->message());
+						}
+						if (const auto l_delete = lt::alert_cast<lt::torrent_deleted_alert>(a))
+						{
+							LogManager::torrent_message("torrent_deleted_alert: " + a->message());
+						}
+						//if (lt::alert_cast<lt::peer_connect_alert>(a))
+						//{
+						//    LogManager::torrent_message("peer_connect_alert: " + a->message());
+						//}
+						//if (lt::alert_cast<lt::peer_disconnected_alert>(a))
+						//{
+						//   LogManager::torrent_message("peer_disconnected_alert: " + a->message());
+						//}
+						if (lt::alert_cast<lt::peer_error_alert>(a))
+						{
+							LogManager::torrent_message("peer_error_alert: " + a->message());
+						}
+						if (lt::alert_cast<lt::torrent_error_alert>(a))
+						{
+							LogManager::torrent_message("torrent_error_alert: " + a->message() + " info:" + std::string(a->what()));
+						}
+						if (lt::alert_cast<lt::file_error_alert>(a))
+						{
+							LogManager::torrent_message("file_error_alert: " + a->message() + " info:" + std::string(a->what()));
+						}
 					}
 					if (const auto l_delete = lt::alert_cast<lt::torrent_removed_alert>(a))
 					{
@@ -1076,16 +1148,6 @@ void DownloadManager::onTorrentAlertNotify()
 						CFlylinkDBManager::getInstance()->delete_torrent_resume(l_sha1);
 						LogManager::torrent_message("CFlylinkDBManager::getInstance()->delete_torrent_resume(l_sha1): " + l_delete->handle.info_hash().to_string());
 						fly_fire1(DownloadManagerListener::RemoveTorrent(), l_sha1);
-					}
-					if (const auto l_delete = lt::alert_cast<lt::torrent_delete_failed_alert>(a))
-					{
-						dcassert(0);
-						LogManager::torrent_message("torrent_delete_failed_alert: " + a->message());
-					}
-					if (const auto l_delete = lt::alert_cast<lt::torrent_deleted_alert>(a))
-					{
-						LogManager::torrent_message("torrent_deleted_alert: " + a->message());
-						//fly_fire1(DownloadManagerListener::RemoveTorrent(), l_delete->info_hash);
 					}
 					if (const auto l_rename = lt::alert_cast<lt::file_renamed_alert>(a))
 					{
@@ -1113,18 +1175,6 @@ void DownloadManager::onTorrentAlertNotify()
 							l_rename->handle.save_resume_data();
 							++m_torrent_resume_count;
 						}
-					}
-					if (lt::alert_cast<lt::peer_connect_alert>(a))
-					{
-						LogManager::torrent_message("peer_connect_alert: " + a->message());
-					}
-					if (lt::alert_cast<lt::peer_disconnected_alert>(a))
-					{
-						LogManager::torrent_message("peer_disconnected_alert: " + a->message());
-					}
-					if (lt::alert_cast<lt::peer_error_alert>(a))
-					{
-						LogManager::torrent_message("peer_error_alert: " + a->message());
 					}
 					if (auto l_metadata = lt::alert_cast<metadata_received_alert>(a))
 					{
@@ -1224,7 +1274,6 @@ void DownloadManager::onTorrentAlertNotify()
 #ifdef _DEBUG
 						CFlyServerJSON::sendDownloadCounter(false);
 #endif
-						
 						//TODO
 						//l_a->handle.set_max_connections(max_connections / 2);
 						// TODO ?
@@ -1250,51 +1299,7 @@ void DownloadManager::onTorrentAlertNotify()
 						CFlylinkDBManager::getInstance()->save_torrent_resume(l_a->handle.info_hash(), st.name, l_resume);
 						--m_torrent_resume_count;
 						// [crash]  LogManager::torrent_message("save_resume_data_alert: " + l_a->message(), false);
-                        //  https://drdump.com/Problem.aspx?ProblemID=526789
-					}
-					if (lt::alert_cast<lt::torrent_error_alert>(a))
-					{
-						LogManager::torrent_message("torrent_error_alert: " + a->message() + " info:" + std::string(a->what()));
-					}
-					if (lt::alert_cast<lt::file_error_alert>(a))
-					{
-						LogManager::torrent_message("file_error_alert: " + a->message() + " info:" + std::string(a->what()));
-					}
-					if (auto st = lt::alert_cast<lt::state_update_alert>(a))
-					{
-						if (st->status.empty())
-						{
-							continue;
-						}
-						int l_pos = 1;
-						for (const auto j : st->status)
-						{
-							lt::torrent_status const& s = j;
-#ifdef _DEBUG
-							const std::string l_log = "[" + Util::toString(l_alert_pos) + " - "  + Util::toString(l_pos) + "] Status: " + st->message() + " [ " + s.save_path + "\\" + s.name
-							                          + " ] Download: " + Util::toString(s.download_payload_rate / 1000) + " kB/s "
-							                          + " ] Upload: " + Util::toString(s.upload_payload_rate / 1000) + " kB/s "
-							                          + Util::toString(s.total_done / 1000) + " kB ("
-							                          + Util::toString(s.progress_ppm / 10000) + "%) downloaded sha1: " + aux::to_hex(s.info_hash);
-							static std::string g_last_log;
-							if (g_last_log != l_log)
-							{
-								g_last_log = l_log;
-							}
-							LogManager::torrent_message(l_log, false);
-#endif
-							l_pos++;
-							DownloadArray l_tickList;
-							{
-								TransferData l_td("");
-								l_td.init(s);
-								l_tickList.push_back(l_td);
-							}
-							if (!l_tickList.empty())
-							{
-								fly_fire1(DownloadManagerListener::TorrentEvent(), l_tickList);
-							}
-						}
+						//  https://drdump.com/Problem.aspx?ProblemID=526789
 					}
 				}
 				catch (const system_error& e)
@@ -1333,12 +1338,13 @@ void DownloadManager::onTorrentAlertNotify()
 		}
 	}
 }
+
 void DownloadManager::post_torrent_info()
 {
 	if (m_torrent_session)
 	{
 		m_torrent_session->post_torrent_updates();
-		//m_torrent_session->post_session_stats();
+		m_torrent_session->post_session_stats();
 		//m_torrent_session->post_dht_stats();
 #ifdef _DEBUG
 		LogManager::torrent_message("Torrent DownloadManager::post_torrent_info()");

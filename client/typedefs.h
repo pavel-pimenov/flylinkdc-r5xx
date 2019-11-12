@@ -36,12 +36,12 @@ typedef std::wstring tstring;
 typedef std::vector<string> StringList;
 typedef std::pair<string, string> StringPair;
 typedef std::vector<StringPair> StringPairList;
-typedef boost::unordered_map<string, string> StringMap;
-typedef boost::unordered_set<string> StringSet;
 typedef std::vector<wstring> TStringList;
 typedef std::pair<wstring, wstring> TStringPair;
 typedef std::vector<TStringPair> TStringPairList;
-typedef boost::unordered_map<wstring, wstring> TStringMap;
 typedef std::vector<uint8_t> ByteVector;
+
+typedef boost::unordered_map<string, string> StringMap;
+typedef boost::unordered_set<string> StringSet;
 
 #endif /* TYPEDEFS_H_ */

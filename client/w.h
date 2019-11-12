@@ -53,8 +53,6 @@
 #endif
 
 #include <windows.h>
-//#include <mmsystem.h>
-//#include <tchar.h>
 
 // http://msdn.microsoft.com/en-us/library/windows/desktop/ms644930(v=vs.85).aspx
 // WM_USER through 0x7FFF

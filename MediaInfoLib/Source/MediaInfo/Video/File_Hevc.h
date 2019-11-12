@@ -195,7 +195,7 @@ private :
             vui_parameters_struct(const vui_parameters_struct &);
             vui_parameters_struct();
         };
-        vui_parameters_struct* vui_parameters;
+        vui_parameters_struct* vui_parameters = nullptr;
         #if MEDIAINFO_DEMUX
         int8u*  AnnexB_Buffer;
         size_t  AnnexB_Buffer_Size;
@@ -260,7 +260,7 @@ private :
 
         ~seq_parameter_set_struct()
         {
-            delete vui_parameters; //vui_parameters=NULL;
+            delete vui_parameters; vui_parameters=NULL;
             #if MEDIAINFO_DEMUX
             delete[] AnnexB_Buffer;
             #endif //MEDIAINFO_DEMUX
