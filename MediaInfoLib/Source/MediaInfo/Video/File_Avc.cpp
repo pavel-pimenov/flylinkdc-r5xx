@@ -3006,12 +3006,15 @@ void File_Avc::sei_message_user_data_registered_itu_t_t35_GA94_03_Delayed(int32u
                         break;
                 if (seq_parameter_set_Item!=seq_parameter_sets.end())
                 {
-                    if ((*seq_parameter_set_Item)->vui_parameters->aspect_ratio_info_present_flag)
+                    if (auto vui_prt = (*seq_parameter_set_Item)->vui_parameters)
                     {
-                        if ((*seq_parameter_set_Item)->vui_parameters->aspect_ratio_idc<Avc_PixelAspectRatio_Size)
-                            PixelAspectRatio=Avc_PixelAspectRatio[(*seq_parameter_set_Item)->vui_parameters->aspect_ratio_idc];
-                        else if ((*seq_parameter_set_Item)->vui_parameters->aspect_ratio_idc==0xFF && (*seq_parameter_set_Item)->vui_parameters->sar_height)
-                            PixelAspectRatio=((float64)(*seq_parameter_set_Item)->vui_parameters->sar_width)/(*seq_parameter_set_Item)->vui_parameters->sar_height;
+                        if (vui_prt->aspect_ratio_info_present_flag)
+                        {
+                            if (vui_prt->aspect_ratio_idc < Avc_PixelAspectRatio_Size)
+                                PixelAspectRatio = Avc_PixelAspectRatio[vui_prt->aspect_ratio_idc];
+                            else if (vui_prt->aspect_ratio_idc == 0xFF && vui_prt->sar_height)
+                                PixelAspectRatio = ((float64)vui_prt->sar_width) / vui_prt->sar_height;
+                        }
                     }
                     const int32u Width =((*seq_parameter_set_Item)->pic_width_in_mbs_minus1       +1)*16;
                     const int32u Height=((*seq_parameter_set_Item)->pic_height_in_map_units_minus1+1)*16*(2-(*seq_parameter_set_Item)->frame_mbs_only_flag);
