@@ -30,7 +30,7 @@
 
 #include "../client/ResourceManager.h"
 #include "WinUtil.h"
-#include "resource.h"
+#include "Resource.h"
 #include "HIconWrapper.h"
 #include "ResourceLoader.h"
 #ifdef IRAINMAN_INCLUDE_GDI_OLE

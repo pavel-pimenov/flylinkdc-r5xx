@@ -19,21 +19,17 @@
 #include "stdafx.h"
 #include <regex>
 
-#include "Resource.h"
 #include "HubFrame.h"
 #include "SearchFrm.h"
 #include "PrivateFrame.h"
 #include "BarShader.h"
 #include "../client/QueueManager.h"
-#include "../client/ShareManager.h"
 #include "MainFrm.h"
-#include "../client/LogManager.h"
 #include "../client/AdcCommand.h"
 #include "../client/SettingsManager.h"
 #include "../client/ConnectionManager.h"
 #include "../client/NmdcHub.h"
 #ifdef SCALOLAZ_HUB_MODE
-#include "HIconWrapper.h"
 #include "../client/ResourceManager.h"
 #endif
 #include "FavHubProperties.h"

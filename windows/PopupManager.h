@@ -21,11 +21,9 @@
 
 #pragma once
 
-#include "../client/DCPlusPlus.h"
 #include "../client/Singleton.h"
 #include "../client/TimerManager.h"
 #include "PopupDlg.h"
-#include "WinUtil.h"
 
 #define DOWNLOAD_COMPLETE 6
 

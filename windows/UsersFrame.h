@@ -28,7 +28,6 @@
 #include "WinUtil.h"
 #include "../client/UserInfoBase.h"
 
-#include "../client/FavoriteManager.h"
 #include "../client/File.h"
 #include "../client/OnlineUser.h"
 

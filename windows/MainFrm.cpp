@@ -97,7 +97,7 @@
 #include "../doctor-dump/CrashRpt.h"
 #endif
 
-#include "resource.h"
+#include "Resource.h"
 
 
 #define FLYLINKDC_CALC_MEMORY_USAGE // TODO: move to CompatibilityManager

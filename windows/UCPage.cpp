@@ -17,8 +17,6 @@
  */
 
 #include "stdafx.h"
-
-#include "Resource.h"
 #include "UCPage.h"
 #include "CommandDlg.h"
 

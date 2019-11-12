@@ -7,7 +7,6 @@
 #include <atlcrack.h>
 #include "PropPage.h"
 #include "WinUtil.h"
-#include "../client/SettingsManager.h"
 
 class SlotPage : public CPropertyPage<IDD_SLOT_PAGE>, public PropPage
 {

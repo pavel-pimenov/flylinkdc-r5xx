@@ -19,7 +19,6 @@
 #include "stdafx.h"
 #include "Resource.h"
 
-#include "../client/ClientManager.h"
 #include "../client/util_flylinkdc.h"
 #include "DirectoryListingFrm.h"
 #include "PrivateFrame.h"
@@ -28,11 +27,9 @@
 #include "MainFrm.h"
 #include "BarShader.h"
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-#include "../FlyFeatures/flyServer.h"
 #include "../FlyFeatures/CFlyServerDialogNavigator.h"
 #include "../jsoncpp/include/json/json.h"
 #endif
-#include "../client/ShareManager.h"
 
 #define SCALOLAZ_DIRLIST_ADDFAVUSER
 

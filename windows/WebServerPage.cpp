@@ -1,9 +1,6 @@
 #include "stdafx.h"
 
-#include "Resource.h"
-
 #include "WebServerPage.h"
-#include "../client/SettingsManager.h"
 
 PropPage::TextItem WebServerPage::texts[] =
 {

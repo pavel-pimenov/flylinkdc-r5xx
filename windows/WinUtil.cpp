@@ -18,12 +18,9 @@
 
 #include "stdafx.h"
 
-#include <Shellapi.h>
-
 #include "../client/File.h"
 #include "Resource.h"
 
-#include "atlwin.h"
 #include <shlobj.h>
 
 #define COMPILE_MULTIMON_STUBS 1
@@ -40,7 +37,6 @@
 #endif
 
 #include "../client/StringTokenizer.h"
-#include "../client/ShareManager.h"
 #include "../client/HashManager.h"
 #include "../client/File.h"
 #include "../client/DownloadManager.h"

@@ -18,8 +18,6 @@
 
 #include "stdafx.h"
 
-#include "Resource.h"
-
 #include "SharePage.h"
 #include "HashProgressDlg.h"
 #include "LineDlg.h"

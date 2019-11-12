@@ -24,7 +24,6 @@
 #ifdef IRAINMAN_INCLUDE_RSS
 
 #include "FlatTabCtrl.h"
-#include "WinUtil.h"
 #include "TypedListViewCtrl.h"
 #include "../FlyFeatures/RSSManager.h"
 

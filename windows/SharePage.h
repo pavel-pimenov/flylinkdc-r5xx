@@ -25,7 +25,6 @@
 #include <atlcrack.h>
 #include "PropPage.h"
 #include "ExListViewCtrl.h"
-#include "WinUtil.h"
 #include "FolderTree.h"
 #include "../client/SettingsManager.h"
 

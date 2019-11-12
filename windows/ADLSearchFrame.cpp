@@ -22,7 +22,6 @@
  */
 
 #include "stdafx.h"
-#include "Resource.h"
 #include "ADLSearchFrame.h"
 #include "AdlsProperties.h"
 

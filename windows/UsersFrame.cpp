@@ -18,10 +18,9 @@
 
 #include "stdafx.h"
 
-#include "resource.h"
+#include "Resource.h"
 #include "UsersFrame.h"
 #include "MainFrm.h"
-#include "LineDlg.h"
 #include "HubFrame.h"
 #include "ResourceLoader.h"
 #include "ExMessageBox.h"

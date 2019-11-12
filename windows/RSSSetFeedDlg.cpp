@@ -20,11 +20,8 @@
 
 #ifdef IRAINMAN_INCLUDE_RSS
 
-
 #include "../FlyFeatures/RSSManager.h"
-#include "Resource.h"
 #include "RSSSetFeedDlg.h"
-#include "wtl_flylinkdc.h"
 
 WinUtil::TextItem RSS_SetFeedDlg::texts[] =
 {

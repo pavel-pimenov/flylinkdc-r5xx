@@ -6,7 +6,6 @@
 
 #include "stdafx.h"
 
-#include "Resource.h"
 #include "ShellContextMenu.h"
 #include "WinUtil.h"
 

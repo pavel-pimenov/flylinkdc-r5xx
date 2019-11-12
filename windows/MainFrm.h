@@ -24,7 +24,6 @@
 #pragma once
 
 #include "HubFrame.h"
-#include "../client/FavoriteManager.h"
 #include "../client/LogManager.h"
 #include "../client/ShareManager.h"
 #include "../client/WebServerManager.h"
@@ -37,7 +36,6 @@
 #include "PortalBrowser.h"
 #include "SingleInstance.h"
 #include "TransferView.h"
-#include "LineDlg.h"
 #include "JAControl.h"
 
 #define QUICK_SEARCH_MAP 20
@@ -83,8 +81,8 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 			SET_PM_TRAY_ICON
 		};
 		
-        BOOL PreTranslateMessage(MSG* pMsg) override;
-        BOOL OnIdle() override;
+		BOOL PreTranslateMessage(MSG* pMsg) override;
+		BOOL OnIdle() override;
 		typedef CSplitterImpl<MainFrame> splitterBase;
 		BEGIN_MSG_MAP(MainFrame)
 		MESSAGE_HANDLER(WM_PARENTNOTIFY, onParentNotify)

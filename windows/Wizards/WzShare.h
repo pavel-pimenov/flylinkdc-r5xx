@@ -23,7 +23,7 @@
 
 #ifdef SSA_WIZARD_FEATURE
 
-#include "resource.h"
+#include "Resource.h"
 #include "../client/SearchManager.h"
 #include "../LineDlg.h"
 

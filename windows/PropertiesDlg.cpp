@@ -18,8 +18,6 @@
 
 #include "stdafx.h"
 
-#include "Resource.h"
-
 #include "PropertiesDlg.h"
 
 #include "GeneralPage.h"

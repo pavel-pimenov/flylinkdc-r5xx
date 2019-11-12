@@ -23,7 +23,6 @@
 #include "PrivateFrame.h"
 #include "LineDlg.h"
 #include "../client/ShareManager.h"
-#include "../client/ClientManager.h"
 #include "../client/DownloadManager.h"
 #include "BarShader.h"
 #include "MainFrm.h"

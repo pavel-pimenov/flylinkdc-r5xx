@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "Resource.h"
 #include "RangesPage.h"
 
 #include "../client/SettingsManager.h"

@@ -1,8 +1,6 @@
 
 #include "stdafx.h"
 
-#include "Resource.h"
-
 #include "SlotPage.h"
 #include "../client/IPGrant.h"
 #include "LineDlg.h"

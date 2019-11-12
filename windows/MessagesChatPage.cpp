@@ -3,7 +3,6 @@
  */
 
 #include "stdafx.h"
-#include "Resource.h"
 #include "MessagesChatPage.h"
 
 PropPage::TextItem MessagesChatPage::g_texts_chat[] =

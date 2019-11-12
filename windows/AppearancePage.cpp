@@ -20,7 +20,6 @@
 
 #include "Resource.h"
 #include "AppearancePage.h"
-#include "../client/File.h"
 
 PropPage::TextItem AppearancePage::texts[] =
 {

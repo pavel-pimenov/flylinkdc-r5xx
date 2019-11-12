@@ -20,7 +20,6 @@
 
 #pragma warning(disable: 4458)
 #ifdef FLYLINKDC_USE_STATS_FRAME
-#include "Resource.h"
 #include "StatsFrame.h"
 
 #include "../client/UploadManager.h"

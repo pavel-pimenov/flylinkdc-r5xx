@@ -22,11 +22,8 @@
 #include "PrivateFrame.h"
 #include "SearchFrm.h"
 #include "MainFrm.h"
-#include "UserInfoSimple.h"
-#include "../client/ClientManager.h"
 #include "../client/LogManager.h"
 #include "../client/UploadManager.h"
-#include "../client/ShareManager.h"
 
 PrivateFrame::FrameMap PrivateFrame::g_pm_frames;
 std::unordered_map<string, unsigned> PrivateFrame::g_count_pm;

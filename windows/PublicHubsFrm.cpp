@@ -17,7 +17,6 @@
  */
 
 #include "stdafx.h"
-#include "Resource.h"
 #include "PublicHubsFrm.h"
 #include "HubFrame.h"
 #include "../client/BZUtils.h"

@@ -17,7 +17,6 @@
  */
 
 #include "stdafx.h"
-#include "Resource.h"
 #include "ProxyPage.h"
 
 PropPage::TextItem ProxyPage::texts[] =

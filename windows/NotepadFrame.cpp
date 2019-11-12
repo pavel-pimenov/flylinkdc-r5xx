@@ -17,9 +17,6 @@
  */
 
 #include "stdafx.h"
-
-#include "Resource.h"
-
 #include "NotepadFrame.h"
 #include "../client/File.h"
 

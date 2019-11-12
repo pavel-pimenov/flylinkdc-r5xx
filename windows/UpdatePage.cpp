@@ -18,13 +18,10 @@
 
 #include "stdafx.h"
 
-#include "Resource.h"
-
 #include "UpdatePage.h"
 #include "CommandDlg.h"
 
 #include "../FlyFeatures/AutoUpdate.h"
-
 
 PropPage::TextItem UpdatePage::texts[] =
 {

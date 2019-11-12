@@ -29,14 +29,12 @@
 #include "../client/QueueManager.h"
 #include "../client/SearchQueue.h"
 #include "../client/ClientManager.h"
-#include "../client/ShareManager.h"
 #include "../client/DownloadManager.h"
 
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 #include "../FlyFeatures/CFlyServerDialogNavigator.h"
 #include "../jsoncpp/include/json/json.h"
 #endif
-#include "../FlyFeatures/flyServer.h"
 
 #ifdef _DEBUG
 // #define FLYLINKDC_USE_ZMQ

@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "../client/DCPlusPlus.h"
 #include "Resource.h"
 #include "WinUtil.h"
 

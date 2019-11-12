@@ -52,7 +52,7 @@ DownloadManager::DownloadManager()
 	: alert_caller_([this](void*) {
 	alert_handler();
 }),
-alert_timer_(100, nullptr, &alert_caller_, true)
+alert_timer_(200, nullptr, &alert_caller_, true)
 #endif
 {
 	TimerManager::getInstance()->addListener(this);
@@ -135,7 +135,7 @@ void DownloadManager::shutdown_torrent()
 		while (m_torrent_resume_count > 0)
 		{
 			alert_handler();
-			Sleep(50);
+			//Sleep(50);
 			LogManager::message("[sleep] m_torrent_resume_count = " + Util::toString(m_torrent_resume_count) + " l_count = " + Util::toString(++l_count));
 		}
 		dcassert(m_torrent_resume_count == 0);
@@ -985,7 +985,7 @@ void DownloadManager::onTorrentAlertNotify()
 			std::vector<lt::alert*> alerts;
 			m_torrent_session->pop_alerts(&alerts);
 			unsigned l_alert_pos = 0;
-			for (lt::alert const * a : alerts)
+			for (auto a : alerts)
 			{
 				++l_alert_pos;
 				try
@@ -993,7 +993,7 @@ void DownloadManager::onTorrentAlertNotify()
 #ifdef _DEBUG
 					if (const auto l_port = lt::alert_cast<lt::log_alert>(a))
 					{
-						//LogManager::torrent_message("log_alert: " + a->message() + " info:" + std::string(a->what()));
+						LogManager::torrent_message("log_alert: " + a->message() + " info:" + std::string(a->what()));
 					}
 					else
 					{
@@ -1012,7 +1012,7 @@ void DownloadManager::onTorrentAlertNotify()
 #endif
 						   )
 						{
-							// LogManager::torrent_message(l_dbg_message);
+							LogManager::torrent_message(l_dbg_message);
 						}
 						if (const auto l_port = lt::alert_cast<lt::torrent_log_alert>(a))
 						{
@@ -1343,7 +1343,7 @@ void DownloadManager::post_torrent_info()
 	if (m_torrent_session)
 	{
 		m_torrent_session->post_torrent_updates();
-		m_torrent_session->post_session_stats();
+		//m_torrent_session->post_session_stats(); // много спама летит
 		//m_torrent_session->post_dht_stats();
 #ifdef _DEBUG
 		LogManager::torrent_message("Torrent DownloadManager::post_torrent_info()");

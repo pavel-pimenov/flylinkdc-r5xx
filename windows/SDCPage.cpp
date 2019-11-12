@@ -18,10 +18,7 @@
 
 #include "stdafx.h"
 
-#include "Resource.h"
-
 #include "SDCPage.h"
-#include "../client/SettingsManager.h"
 
 PropPage::TextItem SDCPage::texts[] =
 {

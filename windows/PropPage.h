@@ -23,15 +23,13 @@
 
 
 #include "DimEdit.h"
-#include "resource.h"
+#include "Resource.h"
 #ifdef SCALOLAZ_PROPPAGE_COLOR
 #include "ResourceLoader.h"
 #include "WinUtil.h"
 #endif
 
 class SettingsManager;
-#include "../client/ResourceManager.h"
-
 extern SettingsManager *g_settings;
 class PropPage
 #ifdef _DEBUG

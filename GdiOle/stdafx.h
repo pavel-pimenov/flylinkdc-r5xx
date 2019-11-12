@@ -19,7 +19,7 @@
 
 #define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS  // some CString constructors will be explicit
 
-#include "resource.h"
+#include "Resource.h"
 #include <atlbase.h>
 #include <atlcom.h>
 #include <atlctl.h>

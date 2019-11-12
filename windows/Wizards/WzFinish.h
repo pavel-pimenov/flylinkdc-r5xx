@@ -23,7 +23,7 @@
 #ifdef SSA_WIZARD_FEATURE
 
 #if 0
-#include "resource.h"
+#include "Resource.h"
 
 class WzFinish : public CPropertyPageImpl<WzFinish>
 {

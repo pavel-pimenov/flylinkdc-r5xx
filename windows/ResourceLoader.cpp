@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #include "ResourceLoader.h"
-#include "resource.h"
+#include "Resource.h"
 #include "File.h"
 #include "../FlyFeatures/ThemeManager.h"
 
@@ -52,7 +52,7 @@ bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType)
 			return res == S_OK;
 		}
 	}
-    HMODULE hInst = ThemeManager::getResourceLibInstance();
+	HMODULE hInst = ThemeManager::getResourceLibInstance();
 	HRSRC hResource = ::FindResource(hInst, MAKEINTRESOURCE(id), pType);
 	if (!hResource)
 	{

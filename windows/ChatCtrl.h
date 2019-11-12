@@ -25,7 +25,7 @@
 #include "atlstr.h"
 #include "TypedListViewCtrl.h"
 #include "ImageDataObject.h"
-#include "UserInfoSimple.h"
+
 #ifdef IRAINMAN_INCLUDE_SMILE
 #define WM_UPDATE_SMILE WM_USER + 1
 #endif

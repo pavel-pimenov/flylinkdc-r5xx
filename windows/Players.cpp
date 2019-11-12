@@ -41,8 +41,6 @@
 #include <fstream>
 #include <cstring>
 
-#include <string>
-
 
 // This is GPLed, and copyright (mostly) my anonymous friend
 // - Todd Pederzani

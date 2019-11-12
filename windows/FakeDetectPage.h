@@ -21,13 +21,10 @@
 
 #pragma once
 
-#include "../client/DCPlusPlus.h"
-
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 
 #include <atlcrack.h>
 #include "PropPage.h"
-#include "Resource.h"
 #include "ExListViewCtrl.h" // [+] IRainman
 
 class FakeDetect : public CPropertyPage<IDD_FAKEDETECT_PAGE>, public PropPage

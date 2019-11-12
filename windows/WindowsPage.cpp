@@ -18,7 +18,6 @@
 
 #include "stdafx.h"
 
-#include "Resource.h"
 #include "WindowsPage.h"
 #ifdef RIP_USE_PORTAL_BROWSER
 #include "PortalBrowser.h"

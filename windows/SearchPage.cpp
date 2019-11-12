@@ -3,9 +3,7 @@
  */
 
 #include "stdafx.h"
-#include "Resource.h"
 #include "SearchPage.h"
-#include "../client/SettingsManager.h"
 
 PropPage::TextItem SearchPage::texts[] =
 {

@@ -20,9 +20,6 @@
 
 #ifdef IRAINMAN_INCLUDE_RSS
 
-
-#include "Resource.h"
-
 #include "RSSPage.h"
 #include "../FlyFeatures/RSSManager.h"
 #include "RSSSetFeedDlg.h"

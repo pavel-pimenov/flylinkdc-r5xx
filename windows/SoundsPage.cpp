@@ -20,7 +20,6 @@
 
 #include <Mmsystem.h>
 
-#include "Resource.h"
 #include "SoundsPage.h"
 
 PropPage::TextItem Sounds::texts[] =

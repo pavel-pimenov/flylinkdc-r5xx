@@ -18,8 +18,6 @@
 
 #include "stdafx.h"
 
-#include "Resource.h"
-
 #include "ToolbarPage.h"
 #include "MainFrm.h"
 

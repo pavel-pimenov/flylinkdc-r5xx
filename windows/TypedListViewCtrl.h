@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include "../client/SettingsManager.h"
 #include "../client/FavoriteManager.h"
 #include "../client/StringTokenizer.h"
 #include "ListViewArrows.h"

@@ -5229,14 +5229,21 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 	{
 		safe_delete(m_level_db);
 		const string l_new_name = p_db_name + ".old";
-		const bool l_rename_result = File::renameFile(p_db_name, l_new_name);
-		if (l_rename_result)
+		try
 		{
-			CFlyServerJSON::pushError(90, "open_level_db rename : " + p_db_name + " - > " + l_new_name);
+			const bool l_rename_result = File::renameFile(p_db_name, l_new_name);
+			if (l_rename_result)
+			{
+				CFlyServerJSON::pushError(90, "open_level_db rename : " + p_db_name + " - > " + l_new_name);
+			}
+			else
+			{
+				CFlyServerJSON::pushError(91, "open_level_db error rename : " + p_db_name + " - > " + l_new_name);
+			}
 		}
-		else
+		catch (FileException& e)
 		{
-			CFlyServerJSON::pushError(91, "open_level_db error rename : " + p_db_name + " - > " + l_new_name);
+			CFlyServerJSON::pushError(91, "open_level_db FileException rename : " + p_db_name + " - > " + l_new_name + " error = " + string(e.what()));
 		}
 		l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db, l_count_files, l_size_files);
 	}

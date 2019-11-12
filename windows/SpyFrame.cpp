@@ -17,7 +17,6 @@
  */
 
 #include "stdafx.h"
-#include "Resource.h"
 #include "SpyFrame.h"
 #include "SearchFrm.h"
 #include "MainFrm.h"

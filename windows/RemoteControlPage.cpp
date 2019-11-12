@@ -1,7 +1,5 @@
 #include "stdafx.h"
 
-#include "Resource.h"
-
 #include "RemoteControlPage.h"
 #include "../client/SettingsManager.h"
 

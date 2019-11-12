@@ -22,7 +22,7 @@
 #pragma once
 
 
-#include "resource.h"
+#include "Resource.h"
 
 #ifdef SCALOLAZ_PROPPAGE_HELPLINK
 #include <atldlgs.h>

@@ -24,7 +24,6 @@
 
 #ifdef IRAINMAN_INCLUDE_SMILE
 
-#include "../client/Util.h"
 #include "ImageDataObject.h"
 #include <boost/unordered/unordered_set.hpp>
 

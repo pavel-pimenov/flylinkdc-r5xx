@@ -18,8 +18,6 @@
 
 
 #include "stdafx.h"
-#include "../client/UploadManager.h"
-
 #include "UserInfoSimple.h"
 #include "PrivateFrame.h"
 #include "LineDlg.h"

@@ -22,7 +22,7 @@
 #pragma once
 
 
-#include "resource.h"
+#include "Resource.h"
 #include "ExListViewCtrl.h" // [+] IRainman
 
 class FavHubGroupsDlg : public CDialogImpl<FavHubGroupsDlg>

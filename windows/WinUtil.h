@@ -26,7 +26,7 @@
 #include <Richedit.h>
 #include <atlctrls.h>
 
-#include "resource.h"
+#include "Resource.h"
 #include "../client/DCPlusPlus.h"
 #include "../client/HintedUser.h"
 #include "../client/CompatibilityManager.h"

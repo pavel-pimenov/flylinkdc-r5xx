@@ -17,7 +17,6 @@
  */
 
 #include "stdafx.h"
-#include "Resource.h"
 #include "TextFrame.h"
 
 #ifdef FLYLINKDC_USE_VIEW_AS_TEXT_OPTION

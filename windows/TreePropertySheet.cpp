@@ -18,12 +18,9 @@
 
 #include "stdafx.h"
 
-#include "Resource.h"
-
 #include "TreePropertySheet.h"
 #include "ResourceLoader.h"
 #include "WinUtil.h"
-#include "../client/ResourceManager.h"
 
 static const TCHAR SEPARATOR = _T('\\');
 

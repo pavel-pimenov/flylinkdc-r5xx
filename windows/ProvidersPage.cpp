@@ -20,9 +20,6 @@
 
 #ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 
-
-#include "../client/SettingsManager.h"
-#include "Resource.h"
 #include "ProvidersPage.h"
 
 PropPage::TextItem ProvidersPage::texts[] =

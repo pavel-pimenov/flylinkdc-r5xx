@@ -20,10 +20,8 @@
 
 #include <strsafe.h>
 
-#include "Resource.h"
 #include "../FlylinkDCExt.h"
 #include "../client/LogManager.h"
-
 #include "IntegrationPage.h"
 #include "CommandDlg.h"
 

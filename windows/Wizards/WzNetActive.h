@@ -23,7 +23,7 @@
 
 #ifdef SSA_WIZARD_FEATURE
 
-#include "resource.h"
+#include "Resource.h"
 #include "../FlyFeatures/WinFirewall.h"
 //#include "UPNPCheckDlg.h"
 #include "WinUtil.h"
