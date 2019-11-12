@@ -26,7 +26,6 @@
 #include "LogManager.h"
 #include "HashManager.h"
 #include "QueueManager.h"
-#include "debug.h"
 #include "AdcHub.h"
 #include "SimpleXML.h"
 #include "File.h"

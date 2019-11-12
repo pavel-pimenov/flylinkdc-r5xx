@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 FlylinkDC++ Team
+ * Copyright (C) 2016-2019 FlylinkDC++ Team
  */
 
 #if !defined(ABOUT_DLG_INDEX_H)
@@ -13,9 +13,7 @@
 #include "AboutCmdsDlg.h"
 #include "AboutLogDlg.h"
 #include "AboutStatDlg.h"
-//#include other 3,4... pages
 #include "HIconWrapper.h"
-#include "wtl_flylinkdc.h"
 
 class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 #ifdef _DEBUG

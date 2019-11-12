@@ -19,10 +19,7 @@
 #include "stdafx.h"
 
 #include "Resource.h"
-
 #include "DefaultClickPage.h"
-#include "WinUtil.h"
-
 
 PropPage::TextItem DefaultClickPage::texts[] =
 {

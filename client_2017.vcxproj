@@ -614,7 +614,6 @@
     <ClCompile Include="client\webrtc\rtc_base\synchronization\rw_lock_wrapper.cc" />
     <ClCompile Include="client\webrtc\talk\base\winfirewall.cc" />
     <ClCompile Include="client\WebServerManager.cpp" />
-    <ClCompile Include="client\WildcardsReg.cpp" />
     <ClCompile Include="client\zip\zip.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>

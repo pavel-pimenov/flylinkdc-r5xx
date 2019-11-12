@@ -22,7 +22,6 @@
 #ifndef DCPLUSPLUS_DCPP_BUFFEREDSOCKETLISTENER_H_
 #define DCPLUSPLUS_DCPP_BUFFEREDSOCKETLISTENER_H_
 
-#include "typedefs.h"
 #include "CFlySearchItemTTH.h"
 
 class BufferedSocketListener

@@ -6,7 +6,6 @@
 #include "Resource.h"
 #include "SearchPage.h"
 #include "../client/SettingsManager.h"
-#include "WinUtil.h"
 
 PropPage::TextItem SearchPage::texts[] =
 {

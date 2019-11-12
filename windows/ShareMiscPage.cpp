@@ -6,7 +6,6 @@
 #include "Resource.h"
 #include "ShareMiscPage.h"
 #include "../client/SettingsManager.h"
-#include "WinUtil.h"
 #include "../client/GPGPUManager.h"
 
 PropPage::TextItem ShareMiscPage::texts[] =

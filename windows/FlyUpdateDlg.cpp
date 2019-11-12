@@ -18,7 +18,6 @@
 
 #include "stdafx.h"
 #include "FlyUpdateDlg.h"
-#include "WinUtil.h"
 
 FlyUpdateDlg::FlyUpdateDlg(const string& data, const string& rtfData, const AutoUpdateFiles& fileList)
 	: m_data(data)

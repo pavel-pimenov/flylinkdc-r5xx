@@ -10,11 +10,9 @@ Copyright (c) 1999 - 2003 by PJ Naughter.  (Web: www.naughter.com, Email: pjna@n
 */
 
 #include "stdafx.h"
-#include "../client/Util.h"
 #include "../client/ShareManager.h"
 #include "Resource.h"
 #include "LineDlg.h"
-#include "WinUtil.h"
 #include "foldertree.h"
 
 //Pull in the WNet Lib automatically

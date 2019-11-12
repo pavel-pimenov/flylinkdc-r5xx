@@ -22,7 +22,6 @@
 
 #include "SDCPage.h"
 #include "../client/SettingsManager.h"
-#include "WinUtil.h"
 
 PropPage::TextItem SDCPage::texts[] =
 {

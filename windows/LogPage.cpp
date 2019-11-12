@@ -22,7 +22,6 @@
 #include "../client/File.h"
 #include "Resource.h"
 #include "LogPage.h"
-#include "WinUtil.h"
 
 
 PropPage::TextItem LogPage::texts[] =

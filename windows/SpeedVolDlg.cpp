@@ -20,7 +20,6 @@
 #include "Resource.h"
 #include "SpeedVolDlg.h"
 #include "WinUtil.h"
-#include "../client/Util.h"
 
 LRESULT SpeedVolDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {

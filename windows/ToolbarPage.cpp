@@ -21,7 +21,6 @@
 #include "Resource.h"
 
 #include "ToolbarPage.h"
-#include "WinUtil.h"
 #include "MainFrm.h"
 
 PropPage::TextItem ToolbarPage::texts[] =

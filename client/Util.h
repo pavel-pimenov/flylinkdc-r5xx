@@ -27,7 +27,6 @@
 #include <atlcomtime.h>
 #endif
 
-#include <list>
 #include <map>
 
 #include "Text.h"
@@ -1346,7 +1345,7 @@ class Util
 		
 		static StringList splitSettingAndReplaceSpace(string patternList);
 		static string toSettingString(const StringList& patternList);
-        static StringList splitSettingAndLower(const string& patternList);
+		static StringList splitSettingAndLower(const string& patternList);
 		
 		static string getLang();
 		

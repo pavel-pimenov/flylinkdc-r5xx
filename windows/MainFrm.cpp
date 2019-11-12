@@ -42,7 +42,6 @@
 #include "HashProgressDlg.h"
 #include "RebuildMediainfoProgressDlg.h"
 #include "PrivateFrame.h"
-#include "WinUtil.h"
 #include "CDMDebugFrame.h"
 #include "InputBox.h"
 #include "PopupManager.h"

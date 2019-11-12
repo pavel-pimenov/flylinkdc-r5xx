@@ -22,7 +22,6 @@
 #include "Resource.h"
 
 #include "NetworkPage.h"
-#include "WinUtil.h"
 #include "../FlyFeatures/flyServer.h"
 #include "../client/CryptoManager.h"
 #include "../client/MappingManager.h"

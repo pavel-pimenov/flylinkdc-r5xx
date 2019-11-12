@@ -21,7 +21,6 @@
 #include "LimitEditDlg.h"
 #include "WinUtil.h"
 #include "../client/FavoriteUser.h"
-#include "../client/Util.h"
 
 LRESULT LimitEditDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {

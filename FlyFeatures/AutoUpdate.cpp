@@ -19,7 +19,6 @@
 #include "stdinc.h"
 #include "AutoUpdate.h"
 #include <Shellapi.h>
-#include "../client/Util.h"
 #include "../client/ResourceManager.h"
 #include "../client/LogManager.h"
 #include "../client/CompatibilityManager.h"

@@ -22,7 +22,6 @@
 
 #include "Resource.h"
 #include "SoundsPage.h"
-#include "WinUtil.h"
 
 PropPage::TextItem Sounds::texts[] =
 {

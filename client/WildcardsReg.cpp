@@ -8,7 +8,6 @@
 
 #include "stdinc.h"
 #include "WildcardsReg.h"
-#include "debug.h"
 
 namespace net
 {

@@ -18,10 +18,10 @@
 
 #include "stdafx.h"
 
-#include "Resource.h"
-#include "WinUtil.h"
-#include "../FlylinkDCExt.h"
 #include <strsafe.h>
+
+#include "Resource.h"
+#include "../FlylinkDCExt.h"
 #include "../client/LogManager.h"
 
 #include "IntegrationPage.h"

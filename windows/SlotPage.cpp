@@ -7,7 +7,6 @@
 #include "../client/IPGrant.h"
 #include "LineDlg.h"
 
-#include "../client/Util.h"
 #include "../client/ShareManager.h"
 
 PropPage::TextItem SlotPage::texts[] =

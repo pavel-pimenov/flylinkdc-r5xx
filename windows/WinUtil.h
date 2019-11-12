@@ -28,9 +28,6 @@
 
 #include "resource.h"
 #include "../client/DCPlusPlus.h"
-#include "../client/Util.h"
-#include "../client/SettingsManager.h"
-#include "../client/MerkleTree.h"
 #include "../client/HintedUser.h"
 #include "../client/CompatibilityManager.h"
 #include "UserInfoSimple.h"

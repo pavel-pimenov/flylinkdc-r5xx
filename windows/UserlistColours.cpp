@@ -2,7 +2,6 @@
 
 #include "Resource.h"
 #include "UserListColours.h"
-#include "WinUtil.h"
 #include "HubFrame.h" // [+] InfinitySky.
 
 PropPage::TextItem UserListColours::texts[] =

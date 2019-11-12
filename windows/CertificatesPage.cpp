@@ -23,7 +23,6 @@
 #include "Resource.h"
 #include "CertificatesPage.h"
 #include "CommandDlg.h"
-#include "WinUtil.h"
 
 PropPage::TextItem CertificatesPage::texts[] =
 {

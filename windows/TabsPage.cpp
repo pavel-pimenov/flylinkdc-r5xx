@@ -21,7 +21,6 @@
 #include "Resource.h"
 
 #include "TabsPage.h"
-#include "WinUtil.h"
 
 // Настройки.
 PropPage::Item TabsPage::items[] =

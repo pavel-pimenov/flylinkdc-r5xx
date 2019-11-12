@@ -25,7 +25,6 @@
 #include "TypedListViewCtrl.h"
 #include "UCHandler.h"
 
-#include "../client/DirectoryListing.h"
 #include "../client/StringSearch.h"
 #include "../client/ADLSearch.h"
 #include "../client/ShareManager.h" // !PPA!

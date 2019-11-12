@@ -8,7 +8,6 @@
 
 #include "Resource.h"
 #include "MessagesPage.h"
-#include "WinUtil.h"
 
 PropPage::TextItem MessagesPage::texts[] =
 {

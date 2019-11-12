@@ -17,7 +17,6 @@
  */
 
 #include "stdinc.h"
-#include "FavoriteManager.h"
 #include "ClientManager.h"
 #include "StringTokenizer.h"
 #include "SimpleXML.h"

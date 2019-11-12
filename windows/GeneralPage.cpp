@@ -20,7 +20,6 @@
 #include "../client/Socket.h"
 #include "Resource.h"
 #include "GeneralPage.h"
-#include "WinUtil.h"
 #include "ResourceLoader.h"
 
 // Переводы элементов интерфейса.

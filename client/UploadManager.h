@@ -23,7 +23,6 @@
 #define DCPLUSPLUS_DCPP_UPLOAD_MANAGER_H
 
 #include <set>
-#include "Singleton.h"
 #include "UploadManagerListener.h"
 #include "ClientManagerListener.h"
 #include "UserConnection.h"

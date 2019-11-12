@@ -19,7 +19,6 @@
 #include "stdafx.h"
 
 #include "FavHubGroupsDlg.h"
-#include "WinUtil.h"
 #include "ExMessageBox.h" // [+] NightOrion. From Apex.
 
 LRESULT FavHubGroupsDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)

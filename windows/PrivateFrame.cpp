@@ -21,7 +21,6 @@
 #include "Resource.h"
 #include "PrivateFrame.h"
 #include "SearchFrm.h"
-#include "WinUtil.h"
 #include "MainFrm.h"
 #include "UserInfoSimple.h"
 #include "../client/ClientManager.h"

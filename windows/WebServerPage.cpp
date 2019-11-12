@@ -4,7 +4,6 @@
 
 #include "WebServerPage.h"
 #include "../client/SettingsManager.h"
-#include "WinUtil.h"
 
 PropPage::TextItem WebServerPage::texts[] =
 {

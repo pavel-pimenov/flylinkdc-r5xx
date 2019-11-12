@@ -32,7 +32,6 @@
 
 #include "UsersFrame.h"
 
-#include "WinUtil.h"
 #include "TransferView.h"
 #include "MainFrm.h"
 #include "QueueFrame.h"

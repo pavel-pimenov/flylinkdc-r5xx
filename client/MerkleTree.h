@@ -23,7 +23,6 @@
 #define DCPLUSPLUS_DCPP_MERKLE_TREE_H
 
 #include "typedefs.h"
-#include "TigerHash.h"
 #include "HashValue.h"
 #include "GPGPUManager.h"
 

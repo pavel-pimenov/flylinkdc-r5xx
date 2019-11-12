@@ -22,13 +22,10 @@
 #ifndef DCPLUSPLUS_DCPP_CLIENT_H
 #define DCPLUSPLUS_DCPP_CLIENT_H
 
-#include <atomic>
 #include "ClientListener.h"
 #include "DebugManager.h"
-#include "SearchQueue.h"
 #include "OnlineUser.h"
 #include "BufferedSocket.h"
-#include "ChatMessage.h"
 
 struct CFlyClientStatistic
 {

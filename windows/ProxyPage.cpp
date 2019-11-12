@@ -17,12 +17,8 @@
  */
 
 #include "stdafx.h"
-
 #include "Resource.h"
-
 #include "ProxyPage.h"
-#include "WinUtil.h"
-
 
 PropPage::TextItem ProxyPage::texts[] =
 {

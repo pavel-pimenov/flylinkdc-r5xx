@@ -22,10 +22,8 @@
 
 #ifdef FLYLINKDC_USE_APEX_EX_MESSAGE_BOX
 
-
-
 #include "ExMessageBox.h"
-#include "WinUtil.h"
+//#include "WinUtil.h"
 
 ExMessageBox::MessageBoxValues ExMessageBox::mbv = {0};
 

@@ -21,7 +21,6 @@
 #include "stdafx.h"
 #include <Mmsystem.h>
 #include <Shellapi.h>
-
 #include "JAControl.h"
 #include "../client/Util.h"
 

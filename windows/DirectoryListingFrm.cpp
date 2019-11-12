@@ -19,11 +19,9 @@
 #include "stdafx.h"
 #include "Resource.h"
 
-#include "../client/QueueManager.h"
 #include "../client/ClientManager.h"
 #include "../client/util_flylinkdc.h"
 #include "DirectoryListingFrm.h"
-#include "LineDlg.h"
 #include "PrivateFrame.h"
 #include "SearchFrm.h"
 #include "dclstGenDlg.h"

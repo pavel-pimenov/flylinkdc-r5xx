@@ -3,7 +3,6 @@
 #ifdef IRAINMAN_INCLUDE_SMILE
 #include "Resource.h"
 #include "EmoticonsDlg.h"
-#include "WinUtil.h"
 #include "MainFrm.h"
 
 #ifndef AGEMOTIONSETUP_H__

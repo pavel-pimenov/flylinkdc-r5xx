@@ -22,8 +22,6 @@
 #include "AppearancePage.h"
 #include "../client/File.h"
 
-#include "WinUtil.h"
-
 PropPage::TextItem AppearancePage::texts[] =
 {
 	{ IDC_SETTINGS_APPEARANCE_OPTIONS, ResourceManager::SETTINGS_OPTIONS },

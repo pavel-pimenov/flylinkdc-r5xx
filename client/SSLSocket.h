@@ -21,11 +21,8 @@
 #ifndef DCPLUSPLUS_DCPP_SSLSOCKET_H
 #define DCPLUSPLUS_DCPP_SSLSOCKET_H
 
-#include <openssl/ssl.h>
-
 #include "CryptoManager.h"
 #include "Socket.h"
-#include "Singleton.h"
 
 using std::unique_ptr;
 using std::string;

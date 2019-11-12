@@ -7,7 +7,6 @@
 
 #include "PortalBrowser.h"
 #include "MainFrm.h"
-#include "WinUtil.h"
 
 std::map<std::wstring, PortalBrowserFrame*> PortalBrowserFrame::g_portal_frames;
 FastCriticalSection PortalBrowserFrame::g_cs;

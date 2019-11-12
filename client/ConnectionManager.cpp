@@ -18,13 +18,11 @@
 
 #include "stdinc.h"
 
-#include "ConnectionManager.h"
-#include "DownloadManager.h"
-#include "UploadManager.h"
 #include "CryptoManager.h"
 #include "QueueManager.h"
 #include "ShareManager.h"
 #include "DebugManager.h"
+#include "DownloadManager.h"
 
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 #include "nmdchub.h"

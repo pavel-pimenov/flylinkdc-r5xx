@@ -26,11 +26,8 @@
 #include "HintedUser.h"
 #include "webrtc/rtc_base/synchronization/rw_lock_wrapper.h"
 #include "Download.h"
-#include "CFlyThread.h"
 #include <map>
-#include <vector>
 
-using std::vector;
 using std::pair;
 
 #ifdef FLYLINKDC_USE_LOG_QUEUE_ITEM_DIRTY

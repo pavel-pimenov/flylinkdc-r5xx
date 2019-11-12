@@ -18,7 +18,6 @@
 
 #include "stdinc.h"
 #include "LogManager.h"
-#include "SettingsManager.h"
 #include "CFlylinkDBManager.h"
 #include "CompatibilityManager.h"
 #include "TimerManager.h"

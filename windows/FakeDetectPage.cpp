@@ -19,7 +19,6 @@
 #include "stdafx.h"
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 #include "FakeDetectPage.h"
-#include "WinUtil.h"
 
 PropPage::TextItem FakeDetect::texts[] =
 {

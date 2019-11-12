@@ -18,7 +18,6 @@
 
 #include "stdinc.h"
 #include "ThemeManager.h"
-#include "../client/Util.h"
 
 HMODULE ThemeManager::g_resourceLibInstance = nullptr;
 #ifdef _DEBUG

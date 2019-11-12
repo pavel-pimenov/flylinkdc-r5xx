@@ -18,11 +18,8 @@
 
 #include "stdafx.h"
 
-
-
 #include "Resource.h"
 #include "MiscPage.h"
-#include "WinUtil.h"
 
 PropPage::TextItem MiscPage::texts[] =
 {

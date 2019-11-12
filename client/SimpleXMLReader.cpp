@@ -17,12 +17,9 @@
  */
 
 #include "stdinc.h"
+
 #include "SimpleXMLReader.h"
-
 #include "SimpleXML.h"
-
-#include "Text.h"
-#include "Streams.h"
 
 inline static bool isSpace(int c)
 {

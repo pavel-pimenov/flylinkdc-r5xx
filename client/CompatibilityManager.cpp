@@ -35,12 +35,10 @@
 #include <atlbase.h>
 #include <atlapp.h>
 #endif
-#include "Util.h"
 #include "Socket.h"
 #include "DownloadManager.h"
 #include "UploadManager.h"
 #include "CompatibilityManager.h"
-#include "CFlylinkDBManager.h"
 #include "ShareManager.h"
 #include "../FlyFeatures/flyServer.h"
 #include <iphlpapi.h>

@@ -20,7 +20,6 @@
 #include "Resource.h"
 #include "PropPage.h"
 #include "../client/SettingsManager.h"
-#include "WinUtil.h"
 
 SettingsManager * g_settings;
 

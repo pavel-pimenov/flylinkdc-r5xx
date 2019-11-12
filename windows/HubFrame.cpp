@@ -26,7 +26,6 @@
 #include "BarShader.h"
 #include "../client/QueueManager.h"
 #include "../client/ShareManager.h"
-#include "../client/Util.h"
 #include "MainFrm.h"
 #include "../client/LogManager.h"
 #include "../client/AdcCommand.h"

@@ -20,7 +20,6 @@
 #define DCPLUSPLUS_DCPP_CRYPTO_MANAGER_H
 
 #include "CFlyThread.h"
-#include "Exception.h"
 #include "Singleton.h"
 #include "SSL.h"
 #include "Socket.h"

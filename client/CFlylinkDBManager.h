@@ -7,7 +7,6 @@
 #ifndef CFlylinkDBManager_H
 #define CFlylinkDBManager_H
 
-#include <vector>
 #include <memory>
 #include <boost/unordered/unordered_map.hpp>
 #include "QueueItem.h"

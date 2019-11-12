@@ -21,7 +21,6 @@
 #include "Resource.h"
 
 #include "OperaColorsPage.h"
-#include "WinUtil.h"
 #include "PropertiesDlg.h"
 
 #include "BarShader.h"

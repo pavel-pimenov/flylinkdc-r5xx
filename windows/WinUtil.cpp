@@ -41,7 +41,6 @@
 
 #include "../client/StringTokenizer.h"
 #include "../client/ShareManager.h"
-#include "../client/UploadManager.h"
 #include "../client/HashManager.h"
 #include "../client/File.h"
 #include "../client/DownloadManager.h"
@@ -296,14 +295,14 @@ static const char* countryNames[] = { "ANDORRA", "UNITED ARAB EMIRATES", "AFGHAN
 
 HLSCOLOR RGB2HLS(COLORREF rgb)
 {
-    const unsigned char minval = std::min(GetRValue(rgb), std::min(GetGValue(rgb), GetBValue(rgb)));
+	const unsigned char minval = std::min(GetRValue(rgb), std::min(GetGValue(rgb), GetBValue(rgb)));
 	const unsigned char maxval = std::max(GetRValue(rgb), std::max(GetGValue(rgb), GetBValue(rgb)));
-    const float mdiff  = float(maxval) - float(minval);
-    const float msum   = float(maxval) + float(minval);
+	const float mdiff  = float(maxval) - float(minval);
+	const float msum   = float(maxval) + float(minval);
 	
-    const float luminance = msum / 510.0f;
-    float saturation = 0.0f;
-    float hue = 0.0f;
+	const float luminance = msum / 510.0f;
+	float saturation = 0.0f;
+	float hue = 0.0f;
 	
 	if (maxval != minval)
 	{

@@ -23,7 +23,6 @@
 
 #include "../client/DCPlusPlus.h"
 #include "Resource.h"
-#include "FlatTabCtrl.h"
 #include "TypedListViewCtrl.h"
 #include "ShellContextMenu.h"
 #include "WinUtil.h"

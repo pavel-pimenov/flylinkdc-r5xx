@@ -23,7 +23,6 @@
 #define DCPLUSPLUS_DCPP_QUEUE_MANAGER_H
 
 #include "ClientManager.h"
-#include "Exception.h"
 #include "QueueManagerListener.h"
 #include "SearchManagerListener.h"
 #include "LogManager.h"

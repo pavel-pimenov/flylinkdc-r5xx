@@ -247,9 +247,6 @@
     <ClCompile Include="client\MerkleTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\WildcardsReg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="client\CFlyLockProfiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

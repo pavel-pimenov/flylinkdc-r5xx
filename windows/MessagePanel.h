@@ -21,7 +21,6 @@
 #pragma once
 
 #include "WinUtil.h"
-#include "wtl_flylinkdc.h"
 #ifdef IRAINMAN_INCLUDE_SMILE
 #include "EmoticonsDlg.h"
 #endif

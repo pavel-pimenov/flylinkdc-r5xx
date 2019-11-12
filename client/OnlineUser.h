@@ -21,9 +21,7 @@
 
 #pragma once
 
-#include <boost/unordered/unordered_map.hpp>
 #include "StringPool.h"
-#include "User.h"
 #include "UserInfoBase.h"
 #include "UserInfoColumns.h"
 

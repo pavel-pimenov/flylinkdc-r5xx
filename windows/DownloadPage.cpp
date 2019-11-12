@@ -19,7 +19,6 @@
 #include "stdafx.h"
 
 #include "DownloadPage.h"
-#include "WinUtil.h"
 
 PropPage::TextItem DownloadPage::texts[] =
 {

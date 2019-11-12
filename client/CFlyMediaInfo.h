@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <string>
 #include <vector>
 #ifdef _DEBUG
 #include <unordered_map>

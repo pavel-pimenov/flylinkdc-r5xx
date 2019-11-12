@@ -22,10 +22,7 @@
 
 #include "Resource.h"
 #include "PreviewLogDlg.h"
-#include "WinUtil.h"
 #include "HIconWrapper.h"
-
-
 
 // Отключение диалога.
 PreviewLogDlg::~PreviewLogDlg()

@@ -20,7 +20,6 @@
 #include "Resource.h"
 #include "PublicHubsFrm.h"
 #include "HubFrame.h"
-#include "WinUtil.h"
 #include "../client/BZUtils.h"
 #include <boost/algorithm/string.hpp>
 #include "../FlyFeatures/flyServer.h"

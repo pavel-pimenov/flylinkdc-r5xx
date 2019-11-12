@@ -4,7 +4,6 @@
 #include "Resource.h"
 #include "../client/SimpleXML.h"
 
-#include "WinUtil.h"
 #include "OperaColorsPage.h"
 #include "PropertiesDlg.h"
 

@@ -26,7 +26,6 @@
 #include "TimerManager.h"
 
 #include "UserConnection.h"
-#include "Singleton.h"
 #include "ConnectionManagerListener.h"
 #include "HintedUser.h"
 
@@ -158,9 +157,9 @@ class ExpectedMap
 			CFlyFastLock(cs);
 			m_expectedConnections.insert(std::make_pair(aNick, NickHubPair(aMyNick, aHubUrl
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-			                                                          , reason
+			                                                               , reason
 #endif
-			                                                         )));
+			                                                              )));
 		}
 		
 		NickHubPair remove(const string& aNick)

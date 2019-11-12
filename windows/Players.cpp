@@ -19,10 +19,7 @@
 
 #include "stdafx.h"
 #include "Players.h"
-#include "WinUtil.h"
-#include "../client/typedefs.h"
 #include "../client/Text.h"
-#include "../client/Util.h"
 #include "../client/SettingsManager.h"
 #include "../client/File.h"
 #include "MainFrm.h"

@@ -1,9 +1,6 @@
 #include "stdafx.h"
 #include "WMPlayerRemoteApi.h"
-#include "../client/util.h"
-
-WMPlayerRemoteApi::WMPlayerRemoteApi() { }
-WMPlayerRemoteApi::~WMPlayerRemoteApi() { }
+#include "../client/Util.h"
 
 HRESULT WMPlayerRemoteApi::GetServiceType(BSTR * bstrType)
 {

@@ -25,7 +25,6 @@
 #include "Client.h"
 #include "AdcSupports.h"
 #include "DirectoryListing.h"
-#include "FavoriteManager.h"
 
 class UserCommand;
 

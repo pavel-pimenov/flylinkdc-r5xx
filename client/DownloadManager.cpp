@@ -22,7 +22,6 @@
 #include "DownloadManager.h"
 #include "ConnectionManager.h"
 #include "QueueManager.h"
-#include "Download.h"
 #include "HashManager.h"
 #include "MerkleCheckOutputStream.h"
 #include "UploadManager.h"

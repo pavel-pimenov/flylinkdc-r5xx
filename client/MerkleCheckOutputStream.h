@@ -23,7 +23,6 @@
 #define DCPLUSPLUS_DCPP_MERKLE_CHECK_OUTPUT_STREAM_H
 
 #include "Streams.h"
-#include "MerkleTree.h"
 
 template<class TreeType, bool managed>
 class MerkleCheckOutputStream : public OutputStream

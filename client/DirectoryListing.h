@@ -22,7 +22,6 @@
 #ifndef DCPLUSPLUS_DCPP_DIRECTORY_LISTING_H
 #define DCPLUSPLUS_DCPP_DIRECTORY_LISTING_H
 
-#include "SimpleXML.h"
 #include "QueueItem.h"
 #include "CFlyMediaInfo.h"
 #include "UserInfoBase.h"

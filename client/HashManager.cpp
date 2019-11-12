@@ -18,7 +18,6 @@
 
 #include "stdinc.h"
 #include "HashManager.h"
-#include "ResourceManager.h"
 #include "SimpleXML.h"
 #include "LogManager.h"
 #include "CFlylinkDBManager.h"

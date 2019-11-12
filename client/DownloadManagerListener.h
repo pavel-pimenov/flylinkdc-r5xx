@@ -24,7 +24,6 @@
 
 #include "typedefs.h"
 #include "User.h"
-#include "TransferData.h"
 #include "Download.h"
 
 #include "libtorrent\torrent_info.hpp"

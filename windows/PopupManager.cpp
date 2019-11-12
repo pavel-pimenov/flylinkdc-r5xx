@@ -18,11 +18,9 @@
 
 #include "stdafx.h"
 
-#include "WinUtil.h"
 #include "BaseChatFrame.h"
 #include "PopupManager.h"
 #include "MainFrm.h"
-
 
 void PopupManager::Show(const tstring &aMsg, const tstring &aTitle, int Icon, bool preview /*= false*/)
 {

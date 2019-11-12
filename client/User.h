@@ -22,7 +22,6 @@
 #ifndef DCPLUSPLUS_DCPP_USER_H
 #define DCPLUSPLUS_DCPP_USER_H
 
-#include <boost/asio/ip/address_v4.hpp>
 #ifdef _DEBUG
 #include <atomic>
 #endif

@@ -25,7 +25,6 @@
 #include <ShlObj.h>
 
 #include "SearchManager.h"
-#include "LogManager.h"
 #include "HashManager.h"
 #include "QueueManagerListener.h"
 #include "BloomFilter.h"
