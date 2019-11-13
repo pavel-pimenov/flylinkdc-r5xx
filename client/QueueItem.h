@@ -24,9 +24,7 @@
 
 #include "Segment.h"
 #include "HintedUser.h"
-#include "webrtc/rtc_base/synchronization/rw_lock_wrapper.h"
 #include "Download.h"
-#include <map>
 
 using std::pair;
 

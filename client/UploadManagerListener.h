@@ -5,7 +5,6 @@
 #define DCPLUSPLUS_DCPP_UPLOADMANAGERLISTENER_H_
 
 #include "typedefs.h"
-#include "TransferData.h"
 #include "Upload.h"
 
 class UploadManagerListener

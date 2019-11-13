@@ -19,7 +19,6 @@
 #include "stdinc.h"
 #include "CompatibilityManager.h"
 #include "BufferedSocket.h"
-#include "SettingsManager.h"
 #include "Streams.h"
 #include "CryptoManager.h"
 #include "ZUtils.h"

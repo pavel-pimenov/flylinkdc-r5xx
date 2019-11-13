@@ -18,9 +18,7 @@
 
 #include "stdinc.h"
 
-#include "ClientManager.h"
 #include "StringTokenizer.h"
-#include "Download.h"
 #include "LogManager.h"
 #include "ConnectionManager.h"
 #include "DownloadManager.h"

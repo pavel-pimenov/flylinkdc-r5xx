@@ -23,7 +23,6 @@
 #define SERVER_SOCKET_H
 
 #include "Socket.h"
-#include "Speaker.h"
 
 class ServerSocketListener
 {

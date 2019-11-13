@@ -24,7 +24,6 @@
 #include "LogManager.h"
 #include "MappingManager.h"
 #include "SearchManager.h"
-#include "SettingsManager.h"
 #include "DownloadManager.h"
 #include "../FlyFeatures/flyServer.h"
 

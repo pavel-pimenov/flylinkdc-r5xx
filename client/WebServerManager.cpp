@@ -29,7 +29,6 @@
 #include "UploadManager.h"
 #include "StringTokenizer.h"
 #include "SearchResult.h"
-#include "Socket.h"
 #include <boost/algorithm/string.hpp>
 
 static const string NotFoundHeader = "HTTP/1.0 404 Not Found\r\n";

@@ -8,10 +8,8 @@
 #define CFlylinkDBManager_H
 
 #include <memory>
-#include <boost/unordered/unordered_map.hpp>
 #include "QueueItem.h"
 #include "Singleton.h"
-#include "CFlyThread.h"
 #include "sqlite/sqlite3x.hpp"
 #include "CFlyMediaInfo.h"
 #include "LogManager.h"

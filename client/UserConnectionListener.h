@@ -22,8 +22,6 @@
 #ifndef USERCONNECTIONLISTENER_H_
 #define USERCONNECTIONLISTENER_H_
 
-#include "forward.h"
-
 #include "AdcCommand.h"
 
 class UserConnectionListener

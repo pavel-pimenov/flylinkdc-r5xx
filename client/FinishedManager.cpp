@@ -19,8 +19,6 @@
 #include "stdinc.h"
 #include "FinishedManager.h"
 #include "FinishedManagerListener.h"
-#include "Download.h"
-#include "Upload.h"
 #include "QueueManager.h"
 #include "UploadManager.h"
 #include "LogManager.h"

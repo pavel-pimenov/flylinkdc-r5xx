@@ -24,7 +24,6 @@
 
 #include "Socket.h"
 #include "TimerManager.h"
-#include "SettingsManager.h"
 #include <boost/thread/condition_variable.hpp>
 
 /**

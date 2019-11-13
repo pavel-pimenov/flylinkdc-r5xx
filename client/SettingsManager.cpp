@@ -292,7 +292,7 @@ static const char* g_settingTags[] =
 	"SearchDetectHash", "FullFileListNfo", "UseTabsCloseButton",
 	"ViewGridcontrols", // [+] ZagZag
 	"DupeEx1Color", "DupeEx2Color", "DupeEx3Color", "IgnoreMe",// [+] NSL
-	"EnableLastIP", 
+	"EnableLastIP",
 	"EnableFlyServer",
 	"EnableHitFileList",
 	"EnableRatioUserList",
@@ -1076,8 +1076,8 @@ void SettingsManager::setDefaults()
 	setDefault(SHOW_BBCODE_PANEL, TRUE);
 	setDefault(SHOW_EMOTIONS_BTN, TRUE);
 	setDefault(SHOW_MULTI_CHAT_BTN, TRUE);
-
-    setDefault(USE_MAGNETS_IN_PLAYERS_SPAM, TRUE);
+	
+	setDefault(USE_MAGNETS_IN_PLAYERS_SPAM, TRUE);
 	//setDefault(USE_BITRATE_FIX_FOR_SPAM, false);
 	//setDefault(SEND_SLOTGRANT_MSG, false);
 	//setDefault(FAVUSERLIST_DBLCLICK, false);

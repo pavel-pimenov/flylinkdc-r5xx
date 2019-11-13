@@ -25,7 +25,7 @@
  * This file contains forward declarations for the various DC++ classes
  */
 
- #include <list>
+#include <list>
 
 class FavoriteHubEntry;
 typedef std::vector<FavoriteHubEntry*> FavoriteHubEntryList;

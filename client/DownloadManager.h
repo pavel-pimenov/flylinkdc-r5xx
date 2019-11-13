@@ -31,7 +31,6 @@
 
 #include "DownloadManagerListener.h"
 #include "TimerManager.h"
-#include "Singleton.h"
 #include "UserConnection.h"
 #include "ZUtils.h"
 #include "FilteredFile.h"

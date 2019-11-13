@@ -52,11 +52,11 @@ bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType)
 			return res == S_OK;
 		}
 	}
-    HMODULE hInst = nullptr;
-    if (m_is_use_theme)
-    {
-        hInst = ThemeManager::getResourceLibInstance();
-    }
+	HMODULE hInst = nullptr;
+	if (m_is_use_theme)
+	{
+		hInst = ThemeManager::getResourceLibInstance();
+	}
 	HRSRC hResource = ::FindResource(hInst, MAKEINTRESOURCE(id), pType);
 	if (!hResource)
 	{
@@ -126,10 +126,10 @@ int ResourceLoader::LoadImageList(UINT id, CImageList& aImgLst, int cx, int cy, 
 {
 	int imageCount = 0;
 	if (cx <= 0 || cy <= 0)
-    {
-        dcassert(0);
+	{
+		dcassert(0);
 		return imageCount;
-    }
+	}
 	ExCImage img(p_use_theme);
 	if (img.LoadFromResourcePNG(id))
 	{

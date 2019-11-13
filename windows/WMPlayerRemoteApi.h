@@ -10,8 +10,8 @@ class WMPlayerRemoteApi : public CComObjectRootEx<CComSingleThreadModel>, public
 	public IWMPRemoteMediaServices
 {
 	public:
-        WMPlayerRemoteApi() {}
-        virtual ~WMPlayerRemoteApi() {}
+		WMPlayerRemoteApi() {}
+		virtual ~WMPlayerRemoteApi() {}
 		
 		BEGIN_COM_MAP(WMPlayerRemoteApi)
 		COM_INTERFACE_ENTRY(IServiceProvider)

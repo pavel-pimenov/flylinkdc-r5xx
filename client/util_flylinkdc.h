@@ -167,11 +167,11 @@ template <class T> inline void DestroyAndDetachWindow(T & p)
 }
 struct DeleteFunction
 {
-    template<typename T>
-    void operator()(const T& p) const
-    {
-        delete p;
-    }
+	template<typename T>
+	void operator()(const T& p) const
+	{
+		delete p;
+	}
 };
 
 #endif // DCPLUSPLUS_DCPP_COMPILER_FLYLINKDC_H

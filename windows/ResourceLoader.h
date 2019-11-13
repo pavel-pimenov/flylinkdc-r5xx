@@ -36,7 +36,7 @@ class ExCImage : public CImage
 		ExCImage()
 		{
 		}
-        explicit ExCImage(bool p_is_use_theme) : m_is_use_theme(p_is_use_theme)
+		explicit ExCImage(bool p_is_use_theme) : m_is_use_theme(p_is_use_theme)
 		{
 		}
 		explicit ExCImage(LPCTSTR pszFileName);
@@ -50,7 +50,7 @@ class ExCImage : public CImage
 		bool LoadFromResource(UINT id, LPCTSTR pType = RT_RCDATA);
 		void Destroy() noexcept;
 		
-        bool m_is_use_theme = true;
+		bool m_is_use_theme = true;
 	private:
 		HGLOBAL m_hBuffer = nullptr;
 };

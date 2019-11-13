@@ -21,35 +21,16 @@
 #include <list>
 
 #include "ShareManager.h"
-#include "CryptoManager.h"
-#include "ClientManager.h"
 #include "LogManager.h"
-#include "HashManager.h"
 #include "QueueManager.h"
 #include "AdcHub.h"
-#include "SimpleXML.h"
-#include "File.h"
 #include "FilteredFile.h"
 #include "BZUtils.h"
 #include "Wildcards.h"
-#include "Transfer.h"
-#include "Download.h"
 #include "HashBloom.h"
-#include "SearchResult.h"
 #include "UploadManager.h"
 #include "../FlyFeatures/flyServer.h"
-#include "../client/CFlylinkDBManager.h"
 #include "../windows/resource.h"
-
-#ifdef _WIN32
-# include <ShlObj.h>
-#else
-#include <dirent.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <fnmatch.h>
-#endif
-
 #include <boost/algorithm/string.hpp>
 
 bool ShareManager::g_ignoreFileSizeHFS = false; // http://www.flylinkdc.ru/2015/01/hfs-mac-windows.html

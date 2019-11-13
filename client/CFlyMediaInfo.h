@@ -6,11 +6,10 @@
 
 #pragma once
 
-#include <vector>
 #ifdef _DEBUG
 #include <unordered_map>
 #endif
-#include "Text.h"
+//#include "Text.h"
 #include "SimpleXML.h"
 
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER

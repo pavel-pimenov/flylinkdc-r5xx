@@ -19,7 +19,6 @@
 #include "stdinc.h"
 #include "HashManager.h"
 #include "SimpleXML.h"
-#include "LogManager.h"
 #include "CFlylinkDBManager.h"
 #include "ClientManager.h"
 #include "CompatibilityManager.h" // [+] IRainman

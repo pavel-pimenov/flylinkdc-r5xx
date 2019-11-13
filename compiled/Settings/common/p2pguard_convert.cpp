@@ -81,7 +81,7 @@ void convert_p2p_guard()
         {
             lineend = l_data.find('\n', linestart);
             if (lineend == string::npos)
-	        break;
+                break;
             if (lineend == linestart)
             {
                 linestart++;

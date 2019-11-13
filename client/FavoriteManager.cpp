@@ -17,9 +17,6 @@
  */
 
 #include "stdinc.h"
-#include "ClientManager.h"
-#include "StringTokenizer.h"
-#include "SimpleXML.h"
 #include "UserCommand.h"
 #include "BZUtils.h"
 #include "FilteredFile.h"

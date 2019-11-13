@@ -27,8 +27,6 @@
 
 #include "CID.h"
 #include "File.h"
-#include "SettingsManager.h"
-#include "SettingsManager.h"
 #include "UploadManager.h"
 #include "ShareManager.h"
 #include "SimpleXML.h"
@@ -3479,9 +3477,9 @@ void Util::playSound(const string& p_sound, const bool p_beep /* = false */)
 }
 StringList Util::splitSettingAndLower(const string& patternList)
 {
-    return StringTokenizer<string>(Text::toLower(patternList), ';').getTokens();
+	return StringTokenizer<string>(Text::toLower(patternList), ';').getTokens();
 }
-
+	
 StringList Util::splitSettingAndReplaceSpace(string patternList)
 {
 	boost::replace_all(patternList, " ", "");

@@ -17,7 +17,6 @@
  */
 
 #include "stdinc.h"
-#include "Download.h"
 
 #include "UserConnection.h"
 #include "QueueItem.h"

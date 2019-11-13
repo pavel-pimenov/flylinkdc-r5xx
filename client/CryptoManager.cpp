@@ -17,7 +17,6 @@
  */
 
 #include "stdinc.h"
-#include "CryptoManager.h"
 
 #include <boost/scoped_array.hpp>
 
@@ -25,7 +24,6 @@
 #include "File.h"
 #include "ClientManager.h"
 #include "LogManager.h"
-#include "version.h"
 #include "SSLSocket.h"
 
 #include <openssl/bn.h>
