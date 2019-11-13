@@ -2919,7 +2919,7 @@ void FileImage::init()
 		ResourceLoader::LoadImageList(IDR_FOLDERS, fileImages, 16, 16);
 	}
 #endif
-	ResourceLoader::LoadImageList(IDR_FOLDERS, m_images, 16, 16);
+	ResourceLoader::LoadImageList(IDR_FOLDERS, m_images, 16, 16, false);
 	m_imageCount = DIR_IMAGE_LAST;
 	dcassert(m_images.GetImageCount() == DIR_IMAGE_LAST);
 }
