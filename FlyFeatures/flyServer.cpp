@@ -2319,6 +2319,7 @@ string CFlyServerJSON::postQuery(bool p_is_set,
                                  DWORD p_time_out /*= 0*/,
                                  const CServerItem* p_server /*= nullptr */)
 {
+	string l_result_query;
 	g_last_error_code = 0;
 	p_is_send = false;
 	p_is_error = false;
@@ -2339,7 +2340,6 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 		l_fly_server_log.step(" (" + l_Server.getIp() + "): IPGuard: " + l_reason);
 		return Util::emptyString;
 	}
-	string l_result_query;
 	std::vector<uint8_t> l_post_compress_query;
 	string l_log_string;
 	if (g_fly_server_config.getZlibCompressLevel() > Z_NO_COMPRESSION) // Выполняем сжатие запроса?
@@ -2530,6 +2530,9 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 		p_is_error = true;
 	}
 	l_Server.setTimeResponse(l_fly_server_log.calcSumTime());
+	if(l_result_query.empty()) // fix AddressSanitizer (ASan) for Windows [bug?]
+		return Util::emptyString;
+	else
 	return l_result_query;
 }
 //======================================================================================================
