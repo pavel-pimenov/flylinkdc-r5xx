@@ -52,7 +52,11 @@ bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType)
 			return res == S_OK;
 		}
 	}
-	HMODULE hInst = ThemeManager::getResourceLibInstance();
+    HMODULE hInst = nullptr;
+    if (m_is_use_theme)
+    {
+        hInst = ThemeManager::getResourceLibInstance();
+    }
 	HRSRC hResource = ::FindResource(hInst, MAKEINTRESOURCE(id), pType);
 	if (!hResource)
 	{
@@ -118,13 +122,16 @@ int ResourceLoader::LoadImageList(LPCTSTR pszFileName, CImageList& aImgLst, int 
 	return aImgLst.GetImageCount();
 }
 
-int ResourceLoader::LoadImageList(UINT id, CImageList& aImgLst, int cx, int cy)
+int ResourceLoader::LoadImageList(UINT id, CImageList& aImgLst, int cx, int cy, bool p_use_theme /* = true */)
 {
 	int imageCount = 0;
 	if (cx <= 0 || cy <= 0)
+    {
+        dcassert(0);
 		return imageCount;
-	ExCImage img;
-	if (img.LoadFromResource(id, _T("PNG")))
+    }
+	ExCImage img(p_use_theme);
+	if (img.LoadFromResourcePNG(id))
 	{
 		imageCount = img.GetWidth() / cx;
 		aImgLst.Create(cx, cy, ILC_COLOR32 | ILC_MASK, imageCount, 1);
@@ -134,8 +141,8 @@ int ResourceLoader::LoadImageList(UINT id, CImageList& aImgLst, int cx, int cy)
 		if (ThemeManager::isResourceLibLoaded() && imageCount > 0)
 		{
 			// Only for Not original images -- load
-			ExCImage img2;
-			if (img2.LoadFromResource(id, _T("PNG")))
+			ExCImage img2(p_use_theme);
+			if (img2.LoadFromResourcePNG(id))
 			{
 				const int imageOriginalCount = img2.GetWidth() / cx;
 				dcassert(imageOriginalCount == imageCount);

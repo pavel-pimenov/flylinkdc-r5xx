@@ -33,7 +33,10 @@
 class ExCImage : public CImage
 {
 	public:
-		ExCImage(): m_hBuffer(nullptr)
+		ExCImage()
+		{
+		}
+        explicit ExCImage(bool p_is_use_theme) : m_is_use_theme(p_is_use_theme)
 		{
 		}
 		explicit ExCImage(LPCTSTR pszFileName);
@@ -47,15 +50,16 @@ class ExCImage : public CImage
 		bool LoadFromResource(UINT id, LPCTSTR pType = RT_RCDATA);
 		void Destroy() noexcept;
 		
+        bool m_is_use_theme = true;
 	private:
-		HGLOBAL m_hBuffer;
+		HGLOBAL m_hBuffer = nullptr;
 };
 
 class ResourceLoader
 {
 	public:
 		static int LoadImageList(LPCTSTR pszFileName, CImageList& aImgLst, int cx, int cy);
-		static int LoadImageList(UINT id, CImageList& aImgLst, int cx, int cy);
+		static int LoadImageList(UINT id, CImageList& aImgLst, int cx, int cy, bool p_use_theme = true);
 };
 
 #endif // RESOURCE_LOADER_H
