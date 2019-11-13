@@ -18,7 +18,6 @@
 
 #include "stdafx.h"
 
-#include "Resource.h"
 #include "UsersFrame.h"
 #include "MainFrm.h"
 #include "HubFrame.h"

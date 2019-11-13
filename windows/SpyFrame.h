@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "../client/DCPlusPlus.h"
 #include "../client/ClientManager.h"
 #include "../client/ShareManager.h"
 

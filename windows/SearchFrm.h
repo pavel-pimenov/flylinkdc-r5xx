@@ -26,7 +26,6 @@
 #include "WinUtil.h"
 #include "UCHandler.h"
 
-#include "../client/DCPlusPlus.h"
 #include "../client/UserInfoBase.h"
 #include "../client/SearchManager.h"
 #include "../client/ClientManagerListener.h"

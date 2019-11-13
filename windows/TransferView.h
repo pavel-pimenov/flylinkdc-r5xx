@@ -30,13 +30,9 @@
 #include "../client/QueueManagerListener.h"
 #include "../client/forward.h"
 #include "../client/Util.h"
-#include "../client/Download.h"
-#include "../client/Upload.h"
 
-#include "OMenu.h"
-#include "UCHandler.h"
 #include "TypedListViewCtrl.h"
-#include "SearchFrm.h"
+#include "UCHandler.h"
 
 class TransferView : public CWindowImpl<TransferView>, private DownloadManagerListener,
 	private UploadManagerListener,

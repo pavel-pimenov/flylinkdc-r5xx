@@ -23,7 +23,6 @@
 
 
 #include "DimEdit.h"
-#include "Resource.h"
 #ifdef SCALOLAZ_PROPPAGE_COLOR
 #include "ResourceLoader.h"
 #include "WinUtil.h"

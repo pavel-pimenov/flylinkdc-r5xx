@@ -55,8 +55,9 @@
 #include "../FlyFeatures/CustomMenuManager.h" //[+] //SSA
 #endif
 #include "DirectoryListingFrm.h"
-
 #include "HTMLColors.h"
+#include "SearchFrm.h"
+
 //[!]IRainman moved from Network Page
 #include <iphlpapi.h>
 #pragma comment(lib, "iphlpapi.lib")

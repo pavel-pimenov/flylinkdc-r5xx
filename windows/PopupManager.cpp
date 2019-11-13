@@ -18,7 +18,6 @@
 
 #include "stdafx.h"
 
-#include "BaseChatFrame.h"
 #include "PopupManager.h"
 #include "MainFrm.h"
 

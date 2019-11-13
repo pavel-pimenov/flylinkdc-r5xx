@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "Resource.h"
 #include "WinUtil.h"
 
 class PopupWnd : public CWindowImpl<PopupWnd, CWindow>

@@ -7,10 +7,7 @@
 
 #include <atlcrack.h>
 #include "PropPage.h"
-#include "../client/ConnectionManager.h"
 #include "ChatCtrl.h"
-#include "../client/SettingsManager.h"
-
 
 class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public PropPage
 {

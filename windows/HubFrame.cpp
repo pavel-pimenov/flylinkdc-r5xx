@@ -19,7 +19,7 @@
 #include "stdafx.h"
 #include <regex>
 
-#include "HubFrame.h"
+//#include "HubFrame.h"
 #include "SearchFrm.h"
 #include "PrivateFrame.h"
 #include "BarShader.h"
