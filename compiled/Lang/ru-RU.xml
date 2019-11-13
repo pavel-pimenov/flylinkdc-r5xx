@@ -309,7 +309,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 %[userNI] – ник пользователя* 
 %[userTAG] – тег пользователя*
 %[userDE] – описание пользователя*
-%[userEM] – e-mail пользователя*
+%[userEM] – эл. почта пользователя*
 %[userSS] – шара пользователя в байтах*
 %[userSSshort] – шара пользователя в ГБ*
 %[useri4] – IP пользователя (если хаб поддерживает)
@@ -488,7 +488,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Duration">Длительность</String>
 		<String Name="Edit">Изменить</String>
 		<String Name="EditAccel">&amp;Правка</String>
-		<String Name="Email">E-Mail</String>
+		<String Name="Email">Эл. почта</String>
 		<String Name="EmptyLineSkiped">Пустая строка пропущена</String>
 		<String Name="EnableHubmodePic">Показывать «Иконку режима» для хабов</String>
 		<String Name="EnableCountryflag">Добавить флаг страны в «Расположение» списка пользователей</String>
@@ -519,7 +519,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="ErrorOnIpAutoUpdate">Внутренняя ошибка при автообновлении IP:</String>
 		<String Name="ErrorParse">Ошибка разбора</String>
 		<String Name="ErrorString">Ошибка</String>
-		<String Name="DhtSkipSpamConnect">Пропуск частых подключений к DHT… Пожалуйста проверьте порт DHT. Минимальный интервал = </String>
+		<String Name="DhtSkipSpamConnect">Пропуск частых подключений к DHT… Пожалуйста, проверьте порт DHT. Минимальный интервал = </String>
 		<String Name="ErrIpfilter">IPTrust.ini не найден…</String>
 		<String Name="ExactShared">Точная шара</String>
 		<String Name="ExactSize">Точный размер</String>
@@ -603,13 +603,13 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="FlyHubCity">Город</String>
 		<String Name="FlyHubIsp">ISP</String>
 		<String Name="FlyHubCountFiles">Файлов</String>
-		<String Name="FlyHubLastShareDate">Посл.шаринг</String>
+		<String Name="FlyHubLastShareDate">Последнее расшаривание</String>
 		<String Name="FlyHubRam">ОЗУ</String>
 		<String Name="FlyHubSqliteDbSize">Размер базы SQLite</String>
 		<String Name="FlyHubQueue">Очередь</String>
-		<String Name="FlyHubTimes">Раз</String>
+		<String Name="FlyHubTimes">Число запусков</String>
 		<String Name="FlyHubGender">Пол</String>
-		<String Name="FlyHubSupportInfo">Доп.Информация</String>
+		<String Name="FlyHubSupportInfo">Сведения о поддержке</String>
 		<String Name="FlyVerifyCertFailed">Верификация сертификата не удалась!</String>
 		<String Name="Flyupdate">Автоматическое обновление FlylinkDC++</String>
 		<String Name="FlyupdateCannotupdate">Автоматическое обновление не смогло обновить FlylinkDC++. Скачайте установщик с http://www.flylinkdc.ru/ и запустите вручную.</String>
@@ -799,7 +799,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="JoinShowingOff">Показ «пришёл/ушёл» выключен</String>
 		<String Name="JoinShowingOn">Показ «пришёл/ушёл» включён</String>
 		<String Name="JustNow">Только что</String>
-		<String Name="KbpsDisable">кБ/с (0 = откл)</String>
+		<String Name="KbpsDisable">КБ/с (0 = откл)</String>
 		<String Name="KeyprintMismatch">Несоответствие отпечатка ключа</String>
 		<String Name="KeepDlHistory">Сохранять историю загрузок между сессиями</String>
 		<String Name="KeepFinishedFilesOption">Оставлять завершённые файлы</String>
@@ -946,7 +946,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="MenuRefreshFileList">Обновить список файлов	F9</String>
 		<String Name="MenuRefreshFileListPurge">Очистить базу данных TTH от лишних записей</String>
 		<String Name="MenuRefreshMediainfo">Обновить медиаинформацию (только для бета-тестирования! Долгий процесс без индикаторов)</String>
-		<String Name="MenuConvertTthHistoryIntoLeveldb">Преобразовать историю TTH из SQLite в LevelDB</String>
+		<String Name="MenuConvertTthHistoryIntoLeveldb">Перестроить историю TTH из SQLite в LevelDB</String>
 		<String Name="MenuRestoreAll">Развернуть всё</String>
 		<String Name="MenuRssNews">Ленты новостей	Ctrl + Shift + N</String>
 		<String Name="MenuSearch">&amp;Поиск	Ctrl + S</String>
@@ -1184,6 +1184,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="PublicHubsWarning">Внимание! Одновременное подключение к большому числу хабов приведёт к чрезмерной загрузке процессора и может занять много времени, особенно на слабых машинах.
 Вы уверены, что хотите продолжить соединение?</String>
 		<String Name="PublicIpDetected">Внешний IP-адрес обнаружен, выбор активного режима с прямым соединением</String>
+		<String Name="TorrentEnableWarning">Включить скачивание торрент-файлов в FlylinkDC++?</String>																														
 		<String Name="PurgeTthDatabase">Очистка базы данных TTH…</String>
 		<String Name="PvsStudioUrl">Качество C++ кода защищает PVS-Studio</String>
 		<String Name="QcdqmpNotRunning">Поддерживаемая версия QCD/QMP не запущена</String>
@@ -1274,7 +1275,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="Resume">Возобновить</String>
 		<String Name="ResumeTorrent">Продолжить торрент</String>
 		<String Name="RestoreLostShare">Восстановить папку, которая ранее была в шаре?</String>
-		<String Name="RestoreWindowPos">Расположить по центру основного монитора</String>
+		<String Name="RestoreWindowPos">В центр основного монитора</String>
 		<String Name="RetrievingData">Получение данных</String>
 		<String Name="RightColor">Цвет справа</String>
 		<String Name="RollbackInconsistency">Откат, существующий файл не совпадает с тем, что был скачан</String>
@@ -1447,7 +1448,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsDownconn">Попытки скачать/сек</String>
 		<String Name="SettingsDownloads">Скачивание</String>
 		<String Name="SettingsDownloadsMax">Максимум слотов для скачивания (0 = бесконечно)</String>
-		<String Name="SettingsDownloadsSpeedPause">Не начинать новые скачивания, если скорость больше… (кБ/с, 0 = откл)</String>
+		<String Name="SettingsDownloadsSpeedPause">Не начинать новые скачивания, если скорость выше… (кБ/с, 0 = откл)</String>
 		<String Name="SettingsDownloadDirectory">Папка для скачивания по умолчанию</String>
 		<String Name="SettingsDownloadLimits">Ограничения скорости</String>
 		<String Name="SettingsDupeColor">Список файлов – уже расшарено</String>
@@ -1941,7 +1942,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="UserHideshare">Скрытая шара</String>
 		<String Name="UserOffline">Пользователь отключился</String>
 		<String Name="UserOnline">Загружается… (пользователь в сети)</String>
-		<String Name="UserSummary">Информация о пользователе</String>
+		<String Name="UserSummary">Отчёт о пользователе</String>
 		<String Name="UserWaitMenu">Пользователь хочет скачать</String>
 		<String Name="UserWentOffline">Пользователь ушёл</String>
 		<String Name="UserWentOnline">Пользователь пришёл</String>
@@ -2054,7 +2055,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="WizardNetIpStatic">Ваш IP-адрес по умолчанию для подключения к хабам</String>
 		<String Name="WizardNetIpTitle">Эта страница поможет вам установить IP-адрес для FlylinkDC++</String>
 		<String Name="WizardNickDescLabel">Укажите ваше описание по умолчанию для DC-хабов (необязательно)</String>
-		<String Name="WizardNickEmailLabel">Укажите ваш e-mail по умолчанию для DC-хабов (необязательно)</String>
+		<String Name="WizardNickEmailLabel">Укажите вашу эл. почту по умолчанию для DC-хабов (необязательно)</String>
 		<String Name="WizardNickErrorLength">Размер указанного ника неверный (3–64 символа)</String>
 		<String Name="WizardNickRnd">Случайный</String>
 		<String Name="WizardNickStatic">Укажите ваш ник по умолчанию для DC-хабов (макс. 64 символа):</String>
