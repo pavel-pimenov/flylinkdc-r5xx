@@ -1,7 +1,13 @@
-image: 
-- Visual Studio 2017
+version: r504-master-{build}
 
-version: r504-{build}
+branches:
+  only:
+    - master
+
+image: Visual Studio 2017
+
+clone_depth: 1
+
 
 platform:
   - x86
