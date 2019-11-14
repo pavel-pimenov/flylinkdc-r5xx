@@ -89,13 +89,13 @@ QueueManager::FileQueue::FileQueue()
 QueueManager::FileQueue::~FileQueue()
 {
 	dcassert(g_remove_id_array.empty());
-	//dcassert(g_queue_tth_map.empty());
 	{
-		WLock(*g_csFQ);
+#ifdef _DEBUG
+		RLock(*g_csFQ);
+#endif
 		dcassert(g_queue_tth_map.empty());
 		dcassert(g_queue.empty());
 	}
-	
 }
 
 QueueItemPtr QueueManager::FileQueue::add(int64_t p_FlyQueueID,
