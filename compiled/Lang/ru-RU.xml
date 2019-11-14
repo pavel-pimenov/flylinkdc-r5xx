@@ -1445,7 +1445,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsDontChange">Не менять</String>
 		<String Name="SettingsDontDlAlreadyShared">Не скачивать файлы, находящиеся в вашей шаре</String>
 		<String Name="SettingsDontDlPreviouslyBeenInShare">Не скачивать файлы, ранее находившиеся в вашей шаре</String>
-		<String Name="SettingsDownconn">Попыток скачать в секунду</String>
+		<String Name="SettingsDownconn">Попытки скачать/с</String>
 		<String Name="SettingsDownloads">Скачивание</String>
 		<String Name="SettingsDownloadsMax">Максимум слотов для скачивания (0 = бесконечно)</String>
 		<String Name="SettingsDownloadsSpeedPause">Не начинать новые скачивания, если скорость выше (КБ/с, 0 = откл)</String>
@@ -1553,7 +1553,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsPrioHigh">Высокий</String>
 		<String Name="SettingsPrioHighest">Высший</String>
 		<String Name="SettingsPrioLow">Низкий</String>
-		<String Name="SettingsPrioLowest">Низший приоритет файлам больше заданного для низкого</String>
+		<String Name="SettingsPrioLowest">Устанавливать низший приоритет для файлов больше заданного</String>
 		<String Name="SettingsPrioNormal">Обычный</String>
 		<String Name="SettingsPromptPassword">Всплывающее окно для ввода пароля</String>
 		<String Name="SettingsProtectOp">Защита операторов</String>
@@ -1599,7 +1599,7 @@ Raw: отослать raw-команду хабу (только для эксп�
 		<String Name="SettingsSocks5Port">Порт</String>
 		<String Name="SettingsSocks5Resolve">Использовать SOCKS5-сервер для обработки имён хостов</String>
 		<String Name="SettingsSocks5Username">Логин</String>
-		<String Name="SettingsSortFavusersFirst">Сортировать друзе первыми</String>
+		<String Name="SettingsSortFavusersFirst">Сортировать друзей первыми</String>
 		<String Name="SettingsSounds">Звуки</String>
 		<String Name="SettingsSpeedsNotAccurate">Примечание: скорость определяется не на 100% точно…</String>
 		<String Name="SettingsStatisticsSend">Разрешить сбор и отправку анонимной статистики разработчикам</String>
