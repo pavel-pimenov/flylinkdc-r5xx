@@ -18,10 +18,8 @@
 
 #include "stdinc.h"
 #include "ShareManager.h"
-#include "SearchManager.h"
 #include "CryptoManager.h"
 #include "SimpleXML.h"
-#include "SearchResult.h"
 #include "AdcHub.h"
 #include "NmdcHub.h"
 #include "QueueManager.h"

@@ -19,7 +19,6 @@
 #include "stdinc.h"
 
 #include "UserConnection.h"
-#include "QueueItem.h"
 #include "HashManager.h"
 
 // [!] IRainman fix.

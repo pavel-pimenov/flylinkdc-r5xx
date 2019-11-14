@@ -25,7 +25,6 @@
 #include "CryptoManager.h"
 #include "ShareManager.h"
 #include "QueueManager.h"
-#include "LogManager.h"
 #include "FinishedManager.h"
 #include "ADLSearch.h"
 #include "MappingManager.h"
@@ -34,7 +33,6 @@
 #include "WebServerManager.h"
 #include "ThrottleManager.h"
 #include "GPGPUManager.h"
-#include "CFlylinkDBManager.h"
 #include "../FlyFeatures/flyServer.h"
 #include "../windows/ToolbarManager.h"
 #include "syslog/syslog.h"
@@ -138,7 +136,6 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	LOAD_STEP("Create empty share", ShareManager::newInstance());
 	LOAD_STEP("Ensure fav path", FavoriteManager::newInstance());
 	LOAD_STEP("Ignore list", UserManager::newInstance()); // [+] IRainman core
-	//HistoryManager::newInstance();//[-] FlylinkDC this functional released in DB Manager
 	if (pGuiInitProc)
 	{
 		LOAD_STEP("Gui and FlyFeatures", pGuiInitProc(pGuiParam));

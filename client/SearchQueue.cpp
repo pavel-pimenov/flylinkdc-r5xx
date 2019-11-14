@@ -17,7 +17,7 @@
  */
 
 #include "stdinc.h"
-#include "SearchQueue.h"
+//#include "SearchQueue.h"
 #include "QueueManager.h"
 #include "SearchManager.h"
 #include "NmdcHub.h"

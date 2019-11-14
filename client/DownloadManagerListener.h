@@ -22,8 +22,6 @@
 #ifndef DCPLUSPLUS_DCPP_DOWNLOADMANAGERLISTENER_H_
 #define DCPLUSPLUS_DCPP_DOWNLOADMANAGERLISTENER_H_
 
-#include "typedefs.h"
-#include "User.h"
 #include "Download.h"
 
 #include "libtorrent\torrent_info.hpp"

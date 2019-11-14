@@ -26,7 +26,7 @@
 #define FLYLKINKDC_USE_TORRENT_AGENTS_CONC_TIMER
 
 #ifdef FLYLKINKDC_USE_TORRENT_AGENTS_CONC_TIMER
-#include <agents.h> // Win64 only
+#include <agents.h>
 #endif
 
 #include "DownloadManagerListener.h"

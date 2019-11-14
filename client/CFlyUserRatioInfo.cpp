@@ -3,7 +3,7 @@
 //-----------------------------------------------------------------------------
 #include "stdinc.h"
 
-#include "CFlyUserRatioInfo.h"
+//#include "CFlyUserRatioInfo.h"
 #include "CFlylinkDBManager.h"
 
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO

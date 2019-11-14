@@ -22,10 +22,8 @@
 #ifndef DCPLUSPLUS_DCPP_SEARCH_MANAGER_H
 #define DCPLUSPLUS_DCPP_SEARCH_MANAGER_H
 
-#include "CFlyThread.h"
 #include "StringSearch.h"
 #include "SearchManagerListener.h"
-#include "AdcCommand.h"
 #include "ClientManager.h"
 
 class SearchManager : public Speaker<SearchManagerListener>, public Singleton<SearchManager>, public Thread, private CFlyStopThread

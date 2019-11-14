@@ -4715,7 +4715,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						SetTextColor(cd->nmcd.hdc, cd->clrText);
 						if (m_Theme)
 						{
-#if _MSC_VER < 1700 // [!] FlylinkDC++
+#if _MSC_VER < 1700
 							const auto l_res = DrawThemeBackground(m_Theme, cd->nmcd.hdc, LVP_LISTITEM, 3, &rc, &rc);
 #else
 							const auto l_res = DrawThemeBackground(m_Theme, cd->nmcd.hdc, 1, 3, &rc, &rc);

@@ -22,7 +22,6 @@
 
 #include "Client.h"
 #include "AdcSupports.h"
-#include "Socket.h"
 
 class ClientManager;
 

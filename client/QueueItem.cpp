@@ -17,10 +17,9 @@
  */
 
 #include "stdinc.h"
-#include "QueueItem.h"
+//#include "QueueItem.h"
 #include "LogManager.h"
 #include "HashManager.h"
-#include "File.h"
 #include "ClientManager.h"
 #include "UserConnection.h"
 #include "../FlyFeatures/flyServer.h"

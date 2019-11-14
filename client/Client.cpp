@@ -18,9 +18,8 @@
 
 #include "stdinc.h"
 #include "UploadManager.h"
-#include "ThrottleManager.h"// [+] IRainman SpeedLimiter
-#include "LogManager.h"
-#include "CompatibilityManager.h" // [+] IRainman
+#include "ThrottleManager.h"
+#include "CompatibilityManager.h"
 #include "ConnectionManager.h"
 #include "MappingManager.h"
 #include "QueueManager.h"

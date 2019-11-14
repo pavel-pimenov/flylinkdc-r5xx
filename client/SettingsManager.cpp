@@ -18,7 +18,7 @@
 
 #include "stdinc.h"
 #include <fstream>
-#include "LogManager.h"
+
 #include "SimpleXML.h"
 #include "AdcHub.h"
 #include "CID.h"
@@ -30,7 +30,6 @@
 #include "../FlyFeatures/AutoUpdate.h"
 #include "../FlyFeatures/flyServer.h"
 #include "../FlyFeatures/RSSManager.h"
-#include "ConnectivityManager.h"
 #include "../windows/ToolbarManager.h"
 
 StringList SettingsManager::g_connectionSpeeds;

@@ -3,12 +3,8 @@
 //-----------------------------------------------------------------------------
 
 #include "stdinc.h"
-#include <ctime>
 
 #include "ResourceManager.h"
-#ifdef FLYLINKDC_USE_TORRENT
-#include "libtorrent/torrent_status.hpp"
-#endif
 #include "TransferData.h"
 
 

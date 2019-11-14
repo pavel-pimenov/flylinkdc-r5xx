@@ -1316,7 +1316,10 @@ void DownloadManager::onTorrentAlertNotify()
 			}
 			
 #ifdef _DEBUG
-			LogManager::torrent_message("Torrent alerts.size() = " + Util::toString(alerts.size()));
+            if (alerts.size())
+            {
+                LogManager::torrent_message("Torrent alerts.size() = " + Util::toString(alerts.size()));
+            }
 #endif
 			//    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 			if (!alerts.empty())

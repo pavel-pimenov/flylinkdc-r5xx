@@ -18,13 +18,11 @@
 
 #include "stdinc.h"
 #include "AdcHub.h"
-#include "Client.h"
 #include "ClientManager.h"
 #include "UserCommand.h"
 #include "CFlylinkDBManager.h"
 #include "Wildcards.h"
 #include "UserConnection.h"
-#include "LogManager.h"
 #include "../FlyFeatures/flyServer.h"
 
 std::unique_ptr<webrtc::RWLockWrapper> Identity::g_rw_cs = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());

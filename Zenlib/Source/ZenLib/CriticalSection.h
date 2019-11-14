@@ -65,7 +65,6 @@ private:
     ZenLib::CriticalSection *CritSec;
 };
 #else
-// [!] FlylinkDC++ Team
 class CriticalSection
 {
 public :

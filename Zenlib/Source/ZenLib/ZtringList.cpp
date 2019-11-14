@@ -156,19 +156,19 @@ Ztring ZtringList::Read () const
         return Ztring();
 
     Ztring Retour;
-    Ztring ToFind=Separator[0]+Quote[0]+__T("\r\n");
+    Ztring ToFind=Separator[0]+Quote+__T("\r\n");
     for (size_type Pos=0; Pos<size(); Pos++)
     {
         if (operator[](Pos).find_first_of(ToFind)==std::string::npos)
             Retour+=operator[](Pos)+Separator[0];
         else if (operator[](Pos).find(Separator[0])==std::string::npos
-              && operator[](Pos).find(Quote)==std::string::npos
+              && (Quote.empty() || operator[](Pos).find(Quote)==std::string::npos)
               && operator[](Pos).find('\r')==std::string::npos
               && operator[](Pos).find('\n')==std::string::npos)
             Retour+=operator[](Pos)+Separator[0];
         else
         {
-            if (operator[](Pos).find(Quote)==std::string::npos)
+            if (Quote.empty() || operator[](Pos).find(Quote)==std::string::npos)
                 Retour+=Quote+operator[](Pos)+Quote+Separator[0];
             else
             {
@@ -214,7 +214,7 @@ void ZtringList::Write(const Ztring &ToWrite)
     do
     {
         //Searching quotes
-        if (ToWrite[PosC]==Quote[0])
+        if (!Quote.empty() && ToWrite[PosC]==Quote[0])
         {
             size_t Pos_End=PosC+1;
             while (Pos_End<ToWrite.size())
@@ -241,7 +241,8 @@ void ZtringList::Write(const Ztring &ToWrite)
             C1=ToWrite.SubString(tstring(), Separator[0], PosC, Ztring_AddLastItem);
             PosC+=C1.size()+Separator[0].size();
         }
-        C1.FindAndReplace(Quote+Quote, Quote, 0, Ztring_Recursive);
+        if (!Quote.empty())
+            C1.FindAndReplace(Quote+Quote, Quote, 0, Ztring_Recursive);
         if (size()<Max[0])
             push_back(C1);
         if (PosC>=ToWrite.size())
@@ -336,7 +337,9 @@ Ztring::size_type ZtringList::MaxStringLength_Get ()
 // Separator
 void ZtringList::Separator_Set (size_type Level, const Ztring &NewSeparator)
 {
-    if (Level>0)
+    if (NewSeparator.empty() || Level>0)
+        return;
+    if (Separator[Level]==NewSeparator)
         return;
     Separator[Level]=NewSeparator;
 }
@@ -345,6 +348,8 @@ void ZtringList::Separator_Set (size_type Level, const Ztring &NewSeparator)
 // Quote
 void ZtringList::Quote_Set (const Ztring &NewQuote)
 {
+    if (Quote==NewQuote)
+        return;
     Quote=NewQuote;
 }
 

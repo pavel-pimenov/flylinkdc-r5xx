@@ -22,8 +22,6 @@
 #ifndef DCPLUSPLUS_DCPP_SHARE_MANAGER_H
 #define DCPLUSPLUS_DCPP_SHARE_MANAGER_H
 
-#include <ShlObj.h>
-
 #include "SearchManager.h"
 #include "HashManager.h"
 #include "QueueManagerListener.h"
@@ -33,7 +31,7 @@
 
 #define FLYLINKDC_USE_RW_LOCK_SHARE
 
-STANDARD_EXCEPTION_ADD_INFO(ShareException); // [!] FlylinkDC++
+STANDARD_EXCEPTION_ADD_INFO(ShareException);
 
 class SimpleXML;
 class Client;
@@ -387,7 +385,6 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 			bool m_isDirectory;
 		};
 		
-		std::atomic_flag m_updateXmlListInProcess; // [+] IRainman opt.
 		
 		int64_t xmlListLen;
 		TTHValue xmlRoot;
@@ -405,7 +402,8 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		unsigned m_listN;
 		
 		std::atomic_flag m_is_refreshing;
-		
+        std::atomic_flag m_updateXmlListInProcess;
+
 		uint64_t m_lastXmlUpdate;
 		uint64_t m_lastFullUpdate;
 		

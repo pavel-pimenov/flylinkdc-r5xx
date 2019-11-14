@@ -5,7 +5,6 @@
 #include <Shellapi.h>
 
 #include "SettingsManager.h"
-#include "LogManager.h"
 #include "ShareManager.h"
 #include "QueueManager.h"
 #include "ConnectionManager.h"

@@ -5,7 +5,6 @@
 #define UPLOAD_H_
 
 #include "Transfer.h"
-#include "Flags.h"
 class InputStream;
 
 class Upload : public Transfer, public Flags

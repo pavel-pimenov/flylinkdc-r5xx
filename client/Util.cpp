@@ -18,12 +18,14 @@
 
 #include "stdinc.h"
 
-#include "Mmsystem.h"
-
 #include <regex>
+#include <fstream>
+#include <locale.h>
+#include <Mmsystem.h>
 
-#include "shlobj.h"
+#include <shlobj.h>
 #include "CompatibilityManager.h"
+#include "LogManager.h"
 
 #include "CID.h"
 #include "File.h"
@@ -32,26 +34,22 @@
 #include "SimpleXML.h"
 #include "OnlineUser.h"
 #include "Socket.h"
-#include <fstream>
-
-#include <locale.h>
 
 #include <boost/algorithm/string.hpp>
-#include "LogManager.h"
 #include "../FlyFeatures/AutoUpdate.h"
 #include "../windows/resource.h" // TODO - плохо что тут инклудится винда? Да вроде не страшно, это же список ресурсов, небойсь флажки парсятся для userlocation :)
 
-#include "idna/idna.h" // [+] SSA
-#include "MD5Calc.h" // [+] SSA
+#include "idna/idna.h"
+#include "MD5Calc.h"
 #include "../FlyFeatures/flyServer.h"
 
-const string g_tth = "TTH:"; // [+] IRainman opt.
+const string g_tth = "TTH:";
 const time_t Util::g_startTime = time(NULL);
 const string Util::emptyString;
 const wstring Util::emptyStringW;
 const tstring Util::emptyStringT;
 
-const vector<uint8_t> Util::emptyByteVector; // [+] IRainman opt.
+const vector<uint8_t> Util::emptyByteVector;
 
 const string Util::m_dot = ".";
 const string Util::m_dot_dot = "..";

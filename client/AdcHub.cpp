@@ -19,13 +19,10 @@
 #include "stdinc.h"
 
 #include "AdcHub.h"
-#include "ClientManager.h"
 #include "ShareManager.h"
-#include "StringTokenizer.h"
 #include "ConnectionManager.h"
 #include "UserCommand.h"
 #include "CryptoManager.h"
-#include "LogManager.h"
 #include "UploadManager.h"
 #include "ThrottleManager.h"
 

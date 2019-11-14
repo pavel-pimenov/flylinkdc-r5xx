@@ -19,7 +19,6 @@
 #include "stdinc.h"
 #include "UploadManager.h"
 #include "ShareManager.h"
-#include "SearchResult.h"
 #include "QueueManager.h"
 #include "StringTokenizer.h"
 #include "FinishedManager.h"

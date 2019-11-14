@@ -22,8 +22,6 @@
 #ifndef DCPLUSPLUS_DCPP_CONNECTION_MANAGER_H
 #define DCPLUSPLUS_DCPP_CONNECTION_MANAGER_H
 
-#include "TimerManager.h"
-
 #include "UserConnection.h"
 #include "ConnectionManagerListener.h"
 

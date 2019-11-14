@@ -20,12 +20,10 @@
 #include <process.h>
 #include <tlhelp32.h>
 
-#include "CFlyThread.h"
 #include "ClientManager.h"
 #ifndef USE_FLY_CONSOLE_TEST
 #include "ResourceManager.h"
 #endif
-#include "Util.h"
 
 //#define FLYLINKDC_USE_WIN_THREAD_NAME
 #ifdef FLYLINKDC_USE_WIN_THREAD_NAME

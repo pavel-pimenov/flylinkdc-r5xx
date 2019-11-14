@@ -24,7 +24,6 @@
 #include "SettingsManager.h"
 #include "ResourceManager.h"
 #include "StringTokenizer.h"
-#include "CryptoManager.h"
 
 #include "SSLSocket.h"
 

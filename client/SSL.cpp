@@ -21,8 +21,6 @@
 
 #include "File.h"
 
-#include <vector>
-
 namespace dcpp {
 
 namespace ssl {

@@ -17,15 +17,11 @@
  */
 
 #include "stdinc.h"
-#include "DirectoryListing.h"
 #include "QueueManager.h"
 #include "SearchManager.h"
-#include "StringTokenizer.h"
-#include "SimpleXML.h"
 #include "FilteredFile.h"
 #include "BZUtils.h"
 #include "CryptoManager.h"
-#include "SimpleXMLReader.h"
 #include "User.h"
 #include "ShareManager.h"
 #include "../FlyFeatures/flyServer.h"

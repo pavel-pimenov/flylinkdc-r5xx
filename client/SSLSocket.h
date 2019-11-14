@@ -22,10 +22,6 @@
 #define DCPLUSPLUS_DCPP_SSLSOCKET_H
 
 #include "CryptoManager.h"
-#include "Socket.h"
-
-using std::unique_ptr;
-using std::string;
 
 class SSLSocketException : public SocketException
 {

@@ -17,8 +17,6 @@
  */
 
 #include "stdinc.h"
-#include "ClientManager.h"
-#include "Upload.h"
 #include "UserConnection.h"
 
 const string Transfer::g_type_names[] =

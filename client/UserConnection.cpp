@@ -19,13 +19,13 @@
 #include "stdinc.h"
 
 #include "StringTokenizer.h"
-#include "LogManager.h"
 #include "ConnectionManager.h"
 #include "DownloadManager.h"
 #include "QueueManager.h"
 #include "PGLoader.h"
 #include "IpGuard.h"
 #include "../FlyFeatures/flyServer.h"
+
 const string UserConnection::FEATURE_MINISLOTS = "MiniSlots";
 const string UserConnection::FEATURE_XML_BZLIST = "XmlBZList";
 const string UserConnection::FEATURE_ADCGET = "ADCGet";

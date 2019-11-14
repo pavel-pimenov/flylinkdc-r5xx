@@ -21,7 +21,6 @@
 #include "BZUtils.h"
 #include "FilteredFile.h"
 #include "ConnectionManager.h"
-#include "LogManager.h"
 #include "../FlyFeatures/flyServer.h"
 #include <boost/algorithm/string.hpp>
 

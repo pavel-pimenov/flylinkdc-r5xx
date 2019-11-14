@@ -23,12 +23,8 @@
 #include "QueueManager.h"
 #include "ConnectionManager.h"
 #include "DownloadManager.h"
-#include "Download.h"
 #include "UploadManager.h"
 #include "MerkleCheckOutputStream.h"
-#include "SearchResult.h"
-#include "SharedFileStream.h"
-#include "ADLSearch.h"
 #include "../FlyFeatures/flyServer.h"
 #include "ShareManager.h"
 

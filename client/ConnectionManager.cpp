@@ -21,7 +21,6 @@
 #include "CryptoManager.h"
 #include "QueueManager.h"
 #include "ShareManager.h"
-#include "DebugManager.h"
 #include "DownloadManager.h"
 
 #ifdef RIP_USE_CONNECTION_AUTODETECT

@@ -22,7 +22,6 @@
 #ifndef DCPLUSPLUS_DCPP_TRANSFER_H_
 #define DCPLUSPLUS_DCPP_TRANSFER_H_
 
-#include "forward.h"
 #include "Segment.h"
 #include "TransferData.h"
 #include <deque>

@@ -23,7 +23,6 @@
 #define DCPLUSPLUS_DCPP_NMDC_HUB_H
 
 #include "SettingsManager.h"
-#include "forward.h"
 #include "User.h"
 #include "Text.h"
 #include "ConnectionManager.h"

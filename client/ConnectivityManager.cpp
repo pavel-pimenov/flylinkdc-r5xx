@@ -19,9 +19,7 @@
 #include "stdinc.h"
 
 #include "ConnectivityManager.h"
-#include "ClientManager.h"
 #include "ConnectionManager.h"
-#include "LogManager.h"
 #include "MappingManager.h"
 #include "SearchManager.h"
 #include "DownloadManager.h"

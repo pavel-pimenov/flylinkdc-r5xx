@@ -17,16 +17,9 @@
  */
 
 #include "stdinc.h"
-#include "CompatibilityManager.h"
-#include "BufferedSocket.h"
-#include "Streams.h"
-#include "CryptoManager.h"
 #include "ZUtils.h"
 #include "ThrottleManager.h"
-#include "LogManager.h"
-#include "ResourceManager.h"
 #include "IpGuard.h"
-#include "ClientManager.h"
 #include "ShareManager.h"
 #include "DebugManager.h"
 #include "SSLSocket.h"
@@ -305,7 +298,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 	if (ShareManager::g_is_initial == true)
 	{
 #ifdef _DEBUG
-		LogManager::message("[ShareManager::g_is_initial] BufferedSocket::all_search_parser p_line = " + p_line);
+		//LogManager::message("[ShareManager::g_is_initial] BufferedSocket::all_search_parser p_line = " + p_line);
 #endif
 		return true;
 	}

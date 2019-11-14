@@ -20,7 +20,6 @@
 #include "MappingManager.h"
 #include "ConnectionManager.h"
 #include "ConnectivityManager.h"
-#include "CompatibilityManager.h"
 #include "CryptoManager.h"
 #include "LogManager.h"
 #include "SearchManager.h"

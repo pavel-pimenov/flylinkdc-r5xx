@@ -23,11 +23,9 @@
 #include "ConnectionManager.h"
 #include "ShareManager.h"
 #include "CryptoManager.h"
-#include "Upload.h"
 #include "QueueManager.h"
 #include "FinishedManager.h"
 #include "PGLoader.h"
-#include "SharedFileStream.h"
 #include "IPGrant.h"
 #include "../FlyFeatures/flyServer.h"
 
