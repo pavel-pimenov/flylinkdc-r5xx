@@ -636,7 +636,12 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 			{
 				linkEnd = _tcslen(sMsgLower); //-V103
 			}
-			ls.resize(linkEnd - linkStart); //-V106
+            dcassert(linkEnd > linkStart);
+            if (linkStart >= linkEnd)
+            {
+                return;
+            }
+            ls.resize(linkEnd - linkStart); //-V106
 			SetSel(lSelBegin + linkStart, lSelBegin + linkEnd);
 			GetTextRange(lSelBegin + linkStart, lSelBegin + linkEnd, &ls[0]); // TODO проверить результат?
 			tstring originalLink = ls;
