@@ -852,8 +852,6 @@ void File_Hevc::Synched_Init()
     //Temp
     chroma_sample_loc_type_top_field=(int32u)-1;
     chroma_sample_loc_type_bottom_field=(int32u)-1;
-    maximum_content_light_level=0;
-    maximum_frame_average_light_level=0;
     preferred_transfer_characteristics=2;
     chroma_format_idc=0;
 

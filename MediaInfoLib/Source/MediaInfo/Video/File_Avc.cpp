@@ -1495,8 +1495,6 @@ void File_Avc::Synched_Init()
     FirstPFrameInGop_IsParsed=false;
     Config_IsRepeated=false;
     tc=0;
-    maximum_content_light_level=0;
-    maximum_frame_average_light_level=0;
 
     //Default values
     Streams.resize(0x100);

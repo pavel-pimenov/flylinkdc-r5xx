@@ -73,6 +73,37 @@ static inline int8u ReverseBits(int8u c)
     return c;
 }
 
+//***************************************************************************
+// Class File__Base_Avc_Hevc
+//***************************************************************************
+
+class File__Base_Avc_Hevc
+{
+protected:
+    enum hdr_format
+    {
+        HdrFormat_EtsiTs103433,
+        HdrFormat_SmpteSt209440,
+        HdrFormat_SmpteSt2086,
+    };
+
+    typedef std::map<hdr_format, std::map<video, Ztring> > hdr;
+
+    hdr     HDR;
+    int16u  maximum_content_light_level;
+    int16u  maximum_frame_average_light_level;
+    Ztring  Encoded_Library;
+    Ztring  Encoded_Library_Name;
+    Ztring  Encoded_Library_Version;
+    Ztring  Encoded_Library_Date;
+    Ztring  Encoded_Library_Settings;
+
+public:
+    File__Base_Avc_Hevc():maximum_content_light_level(0), maximum_frame_average_light_level(0)
+    {
+    }
+};
+
 #if !MEDIAINFO_TRACE
     #include "MediaInfo/File__Analyze_MinimizeSize.h"
 #else

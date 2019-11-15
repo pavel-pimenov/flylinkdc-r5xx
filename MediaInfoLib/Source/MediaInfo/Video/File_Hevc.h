@@ -21,6 +21,8 @@ namespace MediaInfoLib
 //***************************************************************************
 
 class File_Hevc : public File__Analyze
+    ,private File__Base_Avc_Hevc
+
 {
 public :
     //In
@@ -410,27 +412,12 @@ private :
     size_t                              IFrame_Count;
 
     //Temp
-    Ztring                              Encoded_Library;
-    Ztring                              Encoded_Library_Name;
-    Ztring                              Encoded_Library_Version;
-    Ztring                              Encoded_Library_Date;
-    Ztring                              Encoded_Library_Settings;
-    enum hdr_format
-    {
-        HdrFormat_EtsiTs103433,
-        HdrFormat_SmpteSt209440,
-        HdrFormat_SmpteSt2086,
-    };
-    typedef std::map<hdr_format, std::map<video, Ztring> > hdr;
-    hdr                                 HDR;
     Ztring                              EtsiTS103433;
     int32u  chroma_format_idc;
     int32u  slice_pic_parameter_set_id;
     int32u  slice_type;
     int32u  chroma_sample_loc_type_top_field;
     int32u  chroma_sample_loc_type_bottom_field;
-    int16u  maximum_content_light_level;
-    int16u  maximum_frame_average_light_level;
     int8u   nuh_layer_id;
     int8u   profile_space;
     int8u   profile_idc;

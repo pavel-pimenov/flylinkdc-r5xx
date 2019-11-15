@@ -28,6 +28,7 @@ class File_Avc :
 #else //MEDIAINFO_DUPLICATE
     public File__Analyze
 #endif //MEDIAINFO_DUPLICATE
+    ,private File__Base_Avc_Hevc
 {
 public :
     //In
@@ -411,21 +412,6 @@ private :
     void sei_message_mastering_display_colour_volume();
     void sei_message_light_level();
 
-    enum hdr_format
-    {
-        HdrFormat_EtsiTs103433,
-        HdrFormat_SmpteSt209440,
-        HdrFormat_SmpteSt2086,
-    };
-
-    typedef std::map<hdr_format, std::map<video, Ztring> > hdr;
-
-    hdr                                 HDR;
-
-
-    int16u  maximum_content_light_level;
-    int16u  maximum_frame_average_light_level;
-
     void consumer_camera_1();
     void consumer_camera_2();
     void sei_message_recovery_point();
@@ -543,11 +529,6 @@ private :
     size_t                              Structure_Frame;
 
     //Temp
-    Ztring                              Encoded_Library;
-    Ztring                              Encoded_Library_Name;
-    Ztring                              Encoded_Library_Version;
-    Ztring                              Encoded_Library_Date;
-    Ztring                              Encoded_Library_Settings;
     Ztring                              BitRate_Nominal;
     Ztring                              MuxingMode;
     string                              PictureTypes_PreviousFrames;
