@@ -23,6 +23,7 @@ compiled/Settings/common/*.*
 client/dc2/*.*
 CustomCompressExt.txt
 libtorrent.pdb
+lua.pdb
 CustomLocations.bmp
 CustomLocations.ini
 sign-flylinkdc.bat

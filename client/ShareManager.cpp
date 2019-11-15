@@ -77,8 +77,8 @@ ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
 #endif
 	m_sweep_path(false)
 {
-    m_is_refreshing.clear();
-    m_updateXmlListInProcess.clear();
+	m_is_refreshing.clear();
+	m_updateXmlListInProcess.clear();
 	m_lastXmlUpdate = m_lastFullUpdate = GET_TICK();
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	// [!] IRainman TODO: needs refactoring.

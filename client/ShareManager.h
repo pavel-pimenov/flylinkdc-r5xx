@@ -402,8 +402,8 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		unsigned m_listN;
 		
 		std::atomic_flag m_is_refreshing;
-        std::atomic_flag m_updateXmlListInProcess;
-
+		std::atomic_flag m_updateXmlListInProcess;
+		
 		uint64_t m_lastXmlUpdate;
 		uint64_t m_lastFullUpdate;
 		
