@@ -4717,18 +4717,25 @@ void File_Mk::Audio_Manage()
     #ifdef MEDIAINFO_PCM_YES
         if (Retrieve(Stream_Audio, StreamPos_Last, Audio_Format)==__T("PCM"))
         {
-            File_Pcm* Parser=(File_Pcm*)streamItem.Parser; // Error cast https://github.com/MediaArea/MediaInfo/issues/371
-            int8u Channels=Retrieve(Stream_Audio, StreamPos_Last, Audio_Channel_s_).To_int8u();
-            if (Channels)
-                Parser->Channels=Channels;
-            int32u SamplingFrequency=Retrieve(Stream_Audio, StreamPos_Last, Audio_SamplingRate).To_int32u();
-            if (SamplingFrequency)
-                Parser->SamplingRate=SamplingFrequency;
-            int8u BitDepth=Retrieve(Stream_Audio, StreamPos_Last, Audio_BitDepth).To_int8u();
-            if (BitDepth)
+            if (streamItem.Parser->ParserName == "PCM") // fix https://github.com/MediaArea/MediaInfoLib/issues/1181
             {
-                Parser->BitDepth=BitDepth;
-                Parser->Sign=(BitDepth==8?'U':'S');
+                File_Pcm* Parser = (File_Pcm*)streamItem.Parser; // Error cast https://github.com/MediaArea/MediaInfo/issues/371
+                int8u Channels = Retrieve(Stream_Audio, StreamPos_Last, Audio_Channel_s_).To_int8u();
+                if (Channels)
+                    Parser->Channels = Channels;
+                int32u SamplingFrequency = Retrieve(Stream_Audio, StreamPos_Last, Audio_SamplingRate).To_int32u();
+                if (SamplingFrequency)
+                    Parser->SamplingRate = SamplingFrequency;
+                int8u BitDepth = Retrieve(Stream_Audio, StreamPos_Last, Audio_BitDepth).To_int8u();
+                if (BitDepth)
+                {
+                    Parser->BitDepth = BitDepth;
+                    Parser->Sign = (BitDepth == 8 ? 'U' : 'S');
+                }
+            }
+            else
+            {
+                //assert(0);
             }
         }
     #endif //MEDIAINFO_PCM_YES
