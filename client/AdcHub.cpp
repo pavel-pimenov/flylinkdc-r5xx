@@ -25,6 +25,7 @@
 #include "CryptoManager.h"
 #include "UploadManager.h"
 #include "ThrottleManager.h"
+#include "DebugManager.h"
 
 // [+] IRainman fix.
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
@@ -1760,6 +1761,46 @@ void AdcHub::on(Line l, const string& aLine) noexcept
 	dcassert(!ClientManager::isBeforeShutdown())
 	if (!ClientManager::isBeforeShutdown())
 	{
+		// opt - "BSCH AAIG TO0 TRXJ5GMXKBLGP6S3SLT6RWCU5DB5OT5SARUCMYX4Y"
+		if (aLine.size() >= 55 &&
+		        aLine[1] == 'S' && aLine[2] == 'C' && aLine[3] == 'H' && aLine[4] == ' ')
+		{
+			if (aLine[aLine.size() - 42] == ' ' && aLine[aLine.size() - 41] == 'T' && aLine[aLine.size() - 40] == 'R')
+			{
+				const string l_tth_str = aLine.substr(aLine.size() - 39, 39);
+				const TTHValue l_tth(l_tth_str);
+#ifdef _DEBUG
+				static FastCriticalSection g_stat_cs;
+				static std::unordered_map<TTHValue, unsigned> g_tth_count;
+				unsigned l_count_tth = 0;
+				{
+					CFlyFastLock(g_stat_cs);
+					l_count_tth = ++g_tth_count[l_tth];
+				}
+#endif
+				if (ShareManager::isUnknownTTH(l_tth))
+				{
+#ifdef _DEBUG
+				
+					static unsigned g_count_skip = 0;
+					++g_count_skip;
+					if (DebugManager::g_isCMDDebug)
+					{
+						string l_line_item = "[count All = " + Util::toString(g_count_skip) + "] "
+						                     + "[count TTH = " + Util::toString(l_count_tth) + "] "
+						                     + "[size_map = " + Util::toString(g_tth_count.size()) + "]";
+						COMMAND_DEBUG("[TTH][FastSkip][ADC]" + l_line_item, DebugTask::HUB_IN, getIpPort());
+					}
+#else
+					if (DebugManager::g_isCMDDebug)
+					{
+						COMMAND_DEBUG("[TTH][FastSkip][ADC] " + aLine, DebugTask::HUB_IN, getIpPort());
+					}
+#endif
+				}
+				return;
+			}
+		}
 		Client::on(l, aLine);
 		
 		if (!Text::validateUtf8(aLine))
