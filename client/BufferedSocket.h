@@ -281,7 +281,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		
 		volatile bool m_is_disconnecting; // [!] IRainman fix: this variable is volatile.
 		
-		int run();
+		int run() override;
 		
 		void threadConnect(const string& aAddr, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool proxy);
 		void threadAccept();

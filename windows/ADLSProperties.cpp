@@ -102,8 +102,8 @@ LRESULT ADLSProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
 		WinUtil::GetWindowText(buf, ctrlMaxSize);
 		search->maxFileSize = (buf.empty() ? -1 : Util::toInt64(buf));
 		
-		search->isActive = (ctrlActive.GetCheck() == 1);
-		search->isAutoQueue = (ctrlAutoQueue.GetCheck() == 1);
+		search->isActive = (ctrlActive.GetCheck() == BST_CHECKED);
+		search->isAutoQueue = (ctrlAutoQueue.GetCheck() == BST_CHECKED);
 		
 		search->sourceType = (ADLSearch::SourceType)ctrlSearchType.GetCurSel();
 		search->typeFileSize = (ADLSearch::SizeType)ctrlSizeType.GetCurSel();

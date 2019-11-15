@@ -56,7 +56,7 @@ class DCLSTGenDlg : public CDialogImpl< DCLSTGenDlg >, public Thread
 		LRESULT onShareThis(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onSaveAS(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
-		int run();
+		int run() override;
 		string getDCLSTName(const string& folderName);
 		
 	private:

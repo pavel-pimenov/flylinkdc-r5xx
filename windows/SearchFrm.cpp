@@ -1722,20 +1722,20 @@ void SearchFrame::update_column_after_merge(std::vector<int> p_update_index)
 //===================================================================================================================================
 LRESULT SearchFrame::onCollapsed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	m_expandSR = ctrlCollapsed.GetCheck() == 1;
+	m_expandSR = ctrlCollapsed.GetCheck() == BST_CHECKED;
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-	m_storeIP = m_ctrlStoreIP.GetCheck() == 1;
+	m_storeIP = m_ctrlStoreIP.GetCheck() == BST_CHECKED;
 #endif
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-	SET_SETTING(ENABLE_FLY_SERVER, m_ctrlFlyServer.GetCheck() == 1);
+	SET_SETTING(ENABLE_FLY_SERVER, m_ctrlFlyServer.GetCheck() == BST_CHECKED);
 	m_FlyServerGradientLabel.SetActive(BOOLSETTING(ENABLE_FLY_SERVER));
 #endif
-	m_storeSettings = m_ctrlStoreSettings.GetCheck() == 1;
+	m_storeSettings = m_ctrlStoreSettings.GetCheck() == BST_CHECKED;
 	SET_SETTING(SAVE_SEARCH_SETTINGS, m_storeSettings);
-	m_is_use_tree = m_ctrlUseGroupTreeSettings.GetCheck() == 1;
+	m_is_use_tree = m_ctrlUseGroupTreeSettings.GetCheck() == BST_CHECKED;
 	SET_SETTING(USE_SEARCH_GROUP_TREE_SETTINGS, m_is_use_tree);
-	SET_SETTING(USE_TORRENT_SEARCH, m_ctrlUseTorrentSearch.GetCheck() == 1);
-	SET_SETTING(USE_TORRENT_RSS, m_ctrlUseTorrentRSS.GetCheck() == 1);
+	SET_SETTING(USE_TORRENT_SEARCH, m_ctrlUseTorrentSearch.GetCheck() == BST_CHECKED);
+	SET_SETTING(USE_TORRENT_RSS, m_ctrlUseTorrentRSS.GetCheck() == BST_CHECKED);
 	UpdateLayout();
 	if (!m_is_use_tree)
 	{

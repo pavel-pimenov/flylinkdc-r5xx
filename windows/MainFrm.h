@@ -548,7 +548,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		static void ShowBalloonTip(LPCTSTR szMsg, LPCTSTR szTitle, DWORD dwInfoFlags = NIIF_INFO);
 		
 		CImageList largeImages, largeImagesHot, winampImages, winampImagesHot;
-		int run(); // TODO отказаться от наследования
+		int run()  override;
 		
 #ifdef IRAINMAN_IP_AUTOUPDATE
 		static void getIPupdate();

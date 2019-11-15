@@ -268,7 +268,7 @@ void DownloadManager::remove_idlers(UserConnection* aSource)
 		auto i = find(g_idlers.begin(), g_idlers.end(), aSource);
 		if (i == g_idlers.end())
 		{
-			dcassert(i != g_idlers.end());
+			//dcassert(i != g_idlers.end());
 			return;
 		}
 		g_idlers.erase(i);

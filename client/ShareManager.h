@@ -495,7 +495,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		
 		static Directory::Ptr getDirectoryL(const string& fname);
 		
-		int run();
+		int run() override;
 	public:
 #ifdef USE_REBUILD_MEDIAINFO
 		struct MediainfoFile

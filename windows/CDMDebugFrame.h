@@ -127,7 +127,7 @@ class CDMDebugFrame : private DebugManagerListener, public Thread,
 		Semaphore m_semaphore;
 		deque<DebugTask> m_cmdList;
 		
-		int run();
+		int run() override;
 		
 		void addCmd(const DebugTask& task);
 		void clearCmd();

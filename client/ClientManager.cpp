@@ -932,16 +932,20 @@ void ClientManager::send(AdcCommand& cmd, const CID& cid)
 }
 void ClientManager::infoUpdated(Client* p_client)
 {
-	dcassert(!ClientManager::isBeforeShutdown());
-	if (!ClientManager::isBeforeShutdown())
-	{
-		CFlyReadLock(*g_csClients);
-		dcassert(p_client);
-		if (p_client && p_client->isConnected())
-		{
-			p_client->info(false);
-		}
-	}
+    dcassert(p_client);
+    if (p_client)
+    {
+        dcassert(!ClientManager::isBeforeShutdown());
+        if (!ClientManager::isBeforeShutdown())
+        {
+            CFlyReadLock(*g_csClients);
+            dcassert(p_client);
+            if (p_client && p_client->isConnected())
+            {
+                p_client->info(false);
+            }
+        }
+    }
 }
 void ClientManager::infoUpdated(bool p_is_force /* = false*/)
 {

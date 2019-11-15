@@ -261,7 +261,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				bool isPaused() const;
 				
 				void stopHashing(const string& baseDir);
-				int run();
+				int run() override;
 				bool fastHash(const string& fname, uint8_t* buf, unsigned p_buf_size, TigerTree& tth, int64_t& size, bool p_is_link);
 				// [+] brain-ripper
 				void getStats(string& curFile, int64_t& bytesLeft, size_t& filesLeft)

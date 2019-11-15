@@ -134,7 +134,7 @@ bool FavHubGroupsDlg::getItem(tstring& name, bool& priv, bool checkSel)
 	
 	CButton wnd;
 	wnd.Attach(GetDlgItem(IDC_PRIVATE));
-	priv = wnd.GetCheck() == 1;
+	priv = wnd.GetCheck() == BST_CHECKED;
 	wnd.Detach();
 	
 	return true;

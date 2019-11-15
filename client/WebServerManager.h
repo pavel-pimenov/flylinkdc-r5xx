@@ -336,7 +336,7 @@ class WebServerSocket : public Thread
 			ioctlsocket(m_www_sock, FIONBIO, &b);
 		}
 		
-		int run();
+		int run() override;
 		
 	private:
 		sockaddr_in m_from;

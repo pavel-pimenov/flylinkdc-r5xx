@@ -72,7 +72,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 					shutdown();
 				}
 				
-				int run();
+				int run() override;
 				void shutdown()
 				{
 					m_is_stop = true;
@@ -102,7 +102,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		
 		SearchManager();
 		
-		int run();
+		int run() override;
 		
 		~SearchManager();
 		void onData(const uint8_t* buf, size_t aLen, const boost::asio::ip::address_v4& address);

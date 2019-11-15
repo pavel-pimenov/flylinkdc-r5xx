@@ -65,7 +65,7 @@ class TimerManager : public Speaker<TimerManagerListener>, public Singleton<Time
 		TimerManager();
 		~TimerManager();
 		
-		int run();
+		int run() override;
 };
 
 #define GET_TICK() TimerManager::getTick()

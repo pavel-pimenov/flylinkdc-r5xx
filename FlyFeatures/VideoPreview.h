@@ -71,7 +71,7 @@ class VideoPreviewSocketProcessor: public Thread
 			u_long b = 1;
 			ioctlsocket(sock, FIONBIO, &b);
 		}
-		int run();
+		int run() override;
 		
 		bool IsInProcess() const
 		{
@@ -200,7 +200,7 @@ class VideoPreview :
 		Semaphore m_video_task_semaphore;
 		
 		list<pair<Tasks, TaskData*> > m_tasks;
-		int run();
+		int run() override;
 		
 		void fail(const string& aError);
 		bool checkEvents();

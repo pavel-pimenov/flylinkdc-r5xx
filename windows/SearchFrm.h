@@ -282,7 +282,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		
 		LRESULT onFreeSlots(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			m_onlyFree = ctrlSlots.GetCheck() == 1;
+			m_onlyFree = ctrlSlots.GetCheck() == BST_CHECKED;
 			return 0;
 		}
 		
@@ -895,7 +895,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			private:
 				HWND m_wnd;
 				bool m_is_run;
-				int run();
+				int run() override;
 			public:
 				TorrentTopSender(): m_wnd(0), m_is_run(false) { }
 				void start_torrent_top(HWND p_wnd)
@@ -920,7 +920,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			private:
 				HWND m_wnd;
 				tstring m_search;
-				int run();
+				int run() override;
 			public:
 				TorrentSearchSender(): m_wnd(0) { }
 				void start_torrent_search(HWND p_wnd, const tstring& p_search)
