@@ -991,7 +991,7 @@ void DownloadManager::onTorrentAlertNotify()
 				try
 				{
 #ifdef _DEBUG
-					if (const auto l_port = lt::alert_cast<lt::log_alert>(a))
+					if (const auto l_log_alert = lt::alert_cast<lt::log_alert>(a))
 					{
 						LogManager::torrent_message("log_alert: " + a->message() + " info:" + std::string(a->what()));
 					}
@@ -1014,7 +1014,7 @@ void DownloadManager::onTorrentAlertNotify()
 						{
 							LogManager::torrent_message(l_dbg_message);
 						}
-						if (const auto l_port = lt::alert_cast<lt::torrent_log_alert>(a))
+						if (const auto l_torrent_log_allert = lt::alert_cast<lt::torrent_log_alert>(a))
 						{
 							// LogManager::torrent_message("torrent_log_alert: " + a->message() + " info:" + std::string(a->what()));
 						}

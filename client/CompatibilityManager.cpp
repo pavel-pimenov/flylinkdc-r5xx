@@ -110,16 +110,16 @@ void CompatibilityManager::detectOsSupports()
 		memzero(&g_osvi, sizeof(OSVERSIONINFOEX));
 		
 #define FUTURE_VER(future_major_version) \
-	(getOsMajor() >= future_major_version)
+	(getOsMajor() >= (future_major_version))
 		
 #define FUTURE_MINOR_VER(current_major_version, future_minor_version) \
-	(getOsMajor() == current_major_version && getOsMinor() >= future_minor_version)
+	(getOsMajor() == (current_major_version) && getOsMinor() >= (future_minor_version))
 		
 #define CURRENT_VER(current_major_version, current_minor_version) \
-	(getOsMajor() == current_major_version && getOsMinor() == current_minor_version)
+	(getOsMajor() == (current_major_version) && getOsMinor() == (current_minor_version))
 		
 #define CURRENT_VER_SP(current_major_version, current_minor_version, current_sp_version) \
-	(getOsMajor() == current_major_version && getOsMinor() == current_minor_version && getOsSpMajor() == current_sp_version)
+	(getOsMajor() == (current_major_version) && getOsMinor() == (current_minor_version) && getOsSpMajor() == (current_sp_version))
 		
 	if (FUTURE_VER(8) || // future version
 	        FUTURE_MINOR_VER(10, 1) || // Windows 10 and newer
@@ -406,7 +406,7 @@ string CompatibilityManager::getWindowsVersionName()
 					l_OS += "Datacenter Edition (core installation)";
 					break;
 				case PRODUCT_ENTERPRISE_SERVER:
-					l_OS += "Enterprise Edition";
+					l_OS += "Enterprise Edition (server)";
 					break;
 				case PRODUCT_ENTERPRISE_SERVER_CORE:
 					l_OS += "Enterprise Edition (core installation)";

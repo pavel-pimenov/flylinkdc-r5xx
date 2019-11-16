@@ -2952,41 +2952,7 @@ int MainFrame::run()
 			                    "&xl=" + Util::toString(tth.get()->getFileSize()) + "&dn=" + Util::encodeURI(Text::fromT(Util::getFileName(file)));
 			ibox.DoModal(_T("Tiger Tree Hash (TTH) / MD5"), file.c_str(), Text::toT(l_md5_str).c_str(), Text::toT(l_TTH_str).c_str(), Text::toT(magnetlink).c_str());
 		}
-		/*
-		        AutoArray<unsigned char> buf(c_size_buf);
-		        {
-		            File f(Text::fromT(file), File::READ, File::OPEN);
-		            TigerTree tth(TigerTree::calcBlockSize(f.getSize(), 1));
-		            ::MD5Calc l_md5;
-		            l_md5.MD5Init();
-		            if (f.getSize() > 0)
-		            {
-		                size_t n = c_size_buf;
-		                while ((n = f.read(buf.get(), n)) > 0)
-		                {
-		                    tth.update(buf.get(), n);
-		                    l_md5.MD5Update(buf.get(), n);
-		                    n = c_size_buf;
-		                }
-		            }
-		            else
-		            {
-		                tth.update("", 0);
-		            }
-		            tth.finalize();
-		
-		            const string l_TTH_str = tth.getRoot().toBase32();
-		            const string l_md5_str = l_md5.MD5FinalToString();
-		
-		            CInputBox ibox(m_hWnd);
-		
-		            string magnetlink = "magnet:?xt=urn:tree:tiger:" + l_TTH_str +
-		                                "&xl=" + Util::toString(f.getSize()) + "&dn=" + Util::encodeURI(Text::fromT(Util::getFileName(file)));
-		            f.close();
-		            ibox.DoModal(_T("Tiger Tree Hash (TTH) / MD5"), file.c_str(), Text::toT(l_md5_str).c_str(), Text::toT(l_TTH_str).c_str(), Text::toT(magnetlink).c_str());
-		
-		        }
-		*/
+
 		WinUtil::g_mainMenu.EnableMenuItem(ID_GET_TTH, MF_ENABLED);
 	}
 	return 0;
