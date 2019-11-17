@@ -19,29 +19,14 @@
 #include "stdinc.h"
 
 #include <regex>
-#include <fstream>
-#include <locale.h>
 #include <Mmsystem.h>
-
 #include <shlobj.h>
-#include "CompatibilityManager.h"
-#include "LogManager.h"
-
-#include "CID.h"
-#include "File.h"
-#include "UploadManager.h"
-#include "ShareManager.h"
-#include "SimpleXML.h"
-#include "OnlineUser.h"
-#include "Socket.h"
-
 #include <boost/algorithm/string.hpp>
-#include "../FlyFeatures/AutoUpdate.h"
-#include "../windows/resource.h" // TODO - плохо что тут инклудится винда? Да вроде не страшно, это же список ресурсов, небойсь флажки парсятся для userlocation :)
 
+#include "CompatibilityManager.h"
+#include "ShareManager.h"
 #include "idna/idna.h"
 #include "MD5Calc.h"
-#include "../FlyFeatures/flyServer.h"
 
 const string g_tth = "TTH:";
 const time_t Util::g_startTime = time(NULL);
