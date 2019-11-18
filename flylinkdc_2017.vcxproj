@@ -773,7 +773,6 @@
     <ClCompile Include="windows\DownloadPage.cpp" />
     <ClCompile Include="windows\EmoticonsDlg.cpp" />
     <ClCompile Include="windows\ExListViewCtrl.cpp" />
-    <ClCompile Include="windows\ExMessageBox.cpp" />
     <ClCompile Include="windows\FakeDetectPage.cpp" />
     <ClCompile Include="windows\FavHubGroupsDlg.cpp" />
     <ClCompile Include="windows\FavHubProperties.cpp" />
@@ -919,7 +918,6 @@
     <ClInclude Include="windows\DownloadPage.h" />
     <ClInclude Include="windows\EmoticonsDlg.h" />
     <ClInclude Include="windows\ExListViewCtrl.h" />
-    <ClInclude Include="windows\ExMessageBox.h" />
     <ClInclude Include="windows\FakeDetectPage.h" />
     <ClInclude Include="windows\FavDirDlg.h" />
     <ClInclude Include="windows\FavHubGroupsDlg.h" />

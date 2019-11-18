@@ -25,8 +25,7 @@
 # define __ATLTYPES_H__
 #endif
 
-# include "../client/Singleton.h"
-# include "../client/Pointer.h"
+#include "../client/Singleton.h"
 
 #include <atlimage.h>
 

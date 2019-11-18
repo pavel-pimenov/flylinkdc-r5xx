@@ -19,14 +19,11 @@
 #include "stdafx.h"
 
 #include "QueueFrame.h"
-#include "SearchFrm.h"
 #include "PrivateFrame.h"
-#include "LineDlg.h"
 #include "../client/ShareManager.h"
 #include "../client/DownloadManager.h"
 #include "BarShader.h"
 #include "MainFrm.h"
-#include "ExMessageBox.h"
 #include "libtorrent/hex.hpp"
 
 int QueueFrame::columnIndexes[] = { COLUMN_TARGET, COLUMN_TYPE, COLUMN_STATUS, COLUMN_SEGMENTS, COLUMN_SIZE, COLUMN_PROGRESS, COLUMN_DOWNLOADED, COLUMN_PRIORITY,

@@ -11,8 +11,6 @@
 
 #include "stdafx.h"
 #include "ToolbarManager.h"
-#include "../client/StringTokenizer.h"
-#include "../client/Pointer.h"
 #include "../client/ClientManager.h"
 
 ToolbarEntry::List ToolbarManager::g_toolbarEntries;

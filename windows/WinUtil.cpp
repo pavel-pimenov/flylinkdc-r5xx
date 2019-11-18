@@ -18,17 +18,16 @@
 
 #include "stdafx.h"
 
-#include "../client/File.h"
 #include "Resource.h"
-
-#include <shlobj.h>
 
 #define COMPILE_MULTIMON_STUBS 1
 #include <MultiMon.h>
 #include <powrprof.h>
+#include <control.h>
+#include <strmif.h> // error with missing ddraw.h, get it from MS DirectX SDK
+#include <iphlpapi.h>
 
 #include "WinUtil.h"
-#include "PrivateFrame.h"
 #include "MainFrm.h"
 #include "LimitEditDlg.h"
 
@@ -36,9 +35,6 @@
 #include "PortalBrowser.h"
 #endif
 
-#include "../client/StringTokenizer.h"
-#include "../client/HashManager.h"
-#include "../client/File.h"
 #include "../client/DownloadManager.h"
 #include "MagnetDlg.h"
 // AirDC++
@@ -48,8 +44,6 @@
 #include "QCDCtrlMsgs.h"
 #include "Players.h"
 // AirDC++
-#include <control.h>
-#include <strmif.h> // error with missing ddraw.h, get it from MS DirectX SDK
 #include "BarShader.h"
 #ifdef FLYLINKDC_USE_CUSTOM_MENU
 #include "../FlyFeatures/CustomMenuManager.h"
@@ -58,7 +52,6 @@
 #include "HTMLColors.h"
 #include "SearchFrm.h"
 
-#include <iphlpapi.h>
 #pragma comment(lib, "iphlpapi.lib")
 
 string UserInfoGuiTraits::g_hubHint;

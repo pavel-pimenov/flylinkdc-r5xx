@@ -22,7 +22,6 @@
 #include "HubFrame.h"
 #include "FavHubProperties.h"
 #include "FavHubGroupsDlg.h"
-#include "ExMessageBox.h"
 
 HIconWrapper g_hOfflineIco(IDR_OFFLINE_ICO);
 HIconWrapper g_hOnlineIco(IDR_ONLINE_ICO);

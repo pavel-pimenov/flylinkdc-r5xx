@@ -22,7 +22,6 @@
 #include "SimpleXML.h"
 #include "AdcHub.h"
 #include "CID.h"
-#include "StringTokenizer.h"
 #include "UploadManager.h"
 #include "ThrottleManager.h"
 #include "ShareManager.h"

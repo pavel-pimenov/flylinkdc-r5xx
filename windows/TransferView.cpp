@@ -18,13 +18,9 @@
 
 #include "stdafx.h"
 
-#include "Resource.h"
-
 #include "../client/SettingsManager.h"
-#include "../client/ConnectionManager.h"
 #include "../client/DownloadManager.h"
 #include "../client/QueueManager.h"
-#include "../client/QueueItem.h"
 #include "../client/ThrottleManager.h"
 #include "../FlyFeatures/CFlyTorrentDialog.h"
 
@@ -36,7 +32,6 @@
 #include "WaitingUsersFrame.h"
 #include "BarShader.h"
 #include "ResourceLoader.h"
-#include "ExMessageBox.h"
 
 #include "libtorrent/hex.hpp"
 

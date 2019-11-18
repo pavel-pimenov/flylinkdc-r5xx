@@ -30,7 +30,6 @@ class UserCommand;
 
 class ClientManager : public Speaker<ClientManagerListener>,
 	private ClientListener, public Singleton<ClientManager>
-//,private TimerManagerListener
 {
 		friend class SpyFrame;
 	public:
@@ -115,7 +114,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #ifdef FLYLINKDC_USE_DNS
 					dns = Socket::nslookup(ip);
 					if (m_ip == dns)
-						dns = "no DNS"; // TODO translate
+						dns = "no DNS";
 					if (!dns.empty())
 						dns = " / " + dns;
 #endif
@@ -319,10 +318,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		void on(ClientFailed, const Client*, const string&) noexcept override;
 		void on(HubUpdated, const Client* c) noexcept override;
 		void on(HubUserCommand, const Client*, int, int, const string&, const string&) noexcept override;
-		// TODO void on(TTHSearch, Client* aClient, const string& aSeeker, const TTHValue& aTTH, bool isPassive) noexcept override;
 		void on(AdcSearch, const Client* c, const AdcCommand& adc, const CID& from) noexcept override;
 		// TimerManagerListener
-		// void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
 		
 		/** Indication that the application is being closed */
 		static bool g_isSpyFrame;

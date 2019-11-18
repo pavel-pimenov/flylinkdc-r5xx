@@ -18,7 +18,6 @@
 
 #include "stdinc.h"
 #include "ShareManager.h"
-#include "CryptoManager.h"
 #include "AdcHub.h"
 #include "NmdcHub.h"
 #include "QueueManager.h"

@@ -78,7 +78,6 @@ class ConnectionQueueItem
 		GETSET(uint64_t, lastAttempt, LastAttempt);
 		GETSET(int, errors, Errors); // Number of connection errors, or -1 after a protocol error
 		GETSET(State, state, State);
-		//GETSET(string, hubUrl, HubUrl); // TODO - пока не доконца работает и не везде прокидывается
 		bool m_is_active_client;
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 		unsigned short m_count_waiting;
@@ -266,7 +265,7 @@ class ConnectionManager :
 				
 				Socket m_sock;
 				uint16_t m_server_port;
-				string m_server_ip; // TODO - в DC++ этого уже нет.
+				string m_server_ip;
 				bool m_is_secure;
 		};
 		

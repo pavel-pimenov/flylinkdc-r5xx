@@ -90,7 +90,6 @@
 #ifdef FLYLINKDC_USE_LOCATION_DIALOG
 #include "CFlyLocationDlg.h"
 #endif
-#include "ExMessageBox.h"
 
 #ifndef _DEBUG
 #include "../doctor-dump/CrashRpt.h"

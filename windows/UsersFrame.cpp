@@ -22,7 +22,6 @@
 #include "MainFrm.h"
 #include "HubFrame.h"
 #include "ResourceLoader.h"
-#include "ExMessageBox.h"
 
 int UsersFrame::columnIndexes[] = { COLUMN_NICK, COLUMN_HUB, COLUMN_SEEN, COLUMN_DESCRIPTION, COLUMN_SPEED_LIMIT, COLUMN_IGNORE, COLUMN_USER_SLOTS, COLUMN_CID };
 int UsersFrame::columnSizes[] = { 200, 300, 150, 200, 100, 100, 100, 300 };

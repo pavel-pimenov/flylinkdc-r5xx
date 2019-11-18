@@ -23,7 +23,6 @@
 #include "LogManager.h"
 #include "SettingsManager.h"
 #include "ResourceManager.h"
-#include "StringTokenizer.h"
 
 #include "SSLSocket.h"
 

@@ -22,16 +22,11 @@
 #include "NmdcHub.h"
 #include "ShareManager.h"
 #include "CryptoManager.h"
-#include "UserCommand.h"
-#include "DebugManager.h"
-#include "QueueManager.h"
 #include "ThrottleManager.h"
-#include "StringTokenizer.h"
 #include "MappingManager.h"
 #include "CompatibilityManager.h"
 
 #include "../FlyFeatures/flyServer.h"
-#include "ZenLib/Format/Http/Http_Utils.h"
 #include "../jsoncpp/include/json/json.h"
 
 CFlyUnknownCommand NmdcHub::g_unknown_command;

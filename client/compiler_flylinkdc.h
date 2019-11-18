@@ -179,7 +179,6 @@ typedef unsigned __int64 uint64_t;
 //#define FLYLINKDC_USE_VACUUM
 
 #define FLYLINKDC_USE_DOS_GUARD // Включаем защиту от DoS атаки старых версий - http://www.flylinkdc.ru/2011/01/flylinkdc-dos.html
-//# define FLYLINKDC_USE_APEX_EX_MESSAGE_BOX // TODO: глючит - много дампов по переполнению стека, необходимо найти альтернативу.
 #define PPA_USER_COMMANDS_HUBS_SET
 #define FLYLINKDC_USE_IPFILTER
 # define FLYLINKDC_USE_LASTIP_AND_USER_RATIO
@@ -368,7 +367,7 @@ typedef unsigned __int64 uint64_t;
 #ifdef _DEBUG
 // #define FLYLINKDC_USE_GATHER_IDENTITY_STAT
 #endif
-//#define FLYLINKDC_USE_SQL_EXPLORER // TODO
+//#define FLYLINKDC_USE_SQL_EXPLORER
 //#define FLYLINKDC_USE_LIST_VIEW_WATER_MARK // Свистелку отрубить
 //#define FLYLINKDC_USE_LIST_VIEW_MATTRESS   // Отключаем полосатые листвью (бестолковая трата ресурсов)
 

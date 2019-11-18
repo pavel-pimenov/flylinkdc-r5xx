@@ -21,8 +21,6 @@
 #include "SearchManager.h"
 #include "FilteredFile.h"
 #include "BZUtils.h"
-#include "CryptoManager.h"
-#include "User.h"
 #include "ShareManager.h"
 #include "../FlyFeatures/flyServer.h"
 

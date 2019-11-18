@@ -752,7 +752,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 #endif
 #ifdef FLYLINKDC_USE_GEO_IP
 		CFlySQLCommand m_select_country_and_location;
-		// TODO CFlySQLCommand m_select_only_location;
 		CFlySQLCommand m_insert_geoip;
 		CFlySQLCommand m_delete_geoip;
 		vector<CFlyLocationDesc> m_country_cache;

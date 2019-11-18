@@ -55,9 +55,6 @@
     <ClCompile Include="windows\ExListViewCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows\ExMessageBox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="windows\FavHubProperties.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -388,9 +385,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\ExListViewCtrl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\ExMessageBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\FavDirDlg.h">

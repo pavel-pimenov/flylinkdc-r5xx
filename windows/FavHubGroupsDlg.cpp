@@ -19,7 +19,6 @@
 #include "stdafx.h"
 
 #include "FavHubGroupsDlg.h"
-#include "ExMessageBox.h"
 
 LRESULT FavHubGroupsDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {

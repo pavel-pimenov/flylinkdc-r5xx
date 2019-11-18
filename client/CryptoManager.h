@@ -64,7 +64,6 @@ class CryptoManager : public Singleton<CryptoManager>
 			return strncmp(aLock.c_str(), "EXTENDEDPROTOCOL", 16) == 0;
 		}
 		
-		
 		SSLSocket* getClientSocket(bool allowUntrusted, Socket::Protocol proto);
 		SSLSocket* getServerSocket(bool allowUntrusted);
 		
