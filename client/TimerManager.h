@@ -25,11 +25,6 @@
 #include "Singleton.h"
 #include <boost/thread/mutex.hpp>
 
-#ifndef _WIN32
-#include <sys/time.h>
-#endif
-
-
 class TimerManagerListener
 {
 	public:

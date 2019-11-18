@@ -27,6 +27,7 @@
 #include "MerkleCheckOutputStream.h"
 #include "../FlyFeatures/flyServer.h"
 #include "ShareManager.h"
+#include "SharedFileStream.h"
 
 
 std::unique_ptr<webrtc::RWLockWrapper> QueueManager::FileQueue::g_cs_remove = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());

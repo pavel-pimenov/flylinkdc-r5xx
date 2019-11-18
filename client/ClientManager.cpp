@@ -20,7 +20,6 @@
 #include "ShareManager.h"
 #include "AdcHub.h"
 #include "NmdcHub.h"
-#include "QueueManager.h"
 #include "MappingManager.h"
 #include "../FlyFeatures/flyServer.h"
 #include "../FlyFeatures/AutoUpdate.h"

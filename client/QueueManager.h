@@ -22,11 +22,17 @@
 #ifndef DCPLUSPLUS_DCPP_QUEUE_MANAGER_H
 #define DCPLUSPLUS_DCPP_QUEUE_MANAGER_H
 
-#include "ClientManager.h"
+#include "QueueItem.h"
 #include "QueueManagerListener.h"
 #include "SearchManagerListener.h"
-#include "LogManager.h"
+#include "ClientManagerListener.h"
+#include "TimerManager.h"
+#include "DirectoryListing.h"
+
+
+#ifdef FLYLINKDC_USE_SHARED_FILE_CACHE
 #include "SharedFileStream.h"
+#endif
 
 STANDARD_EXCEPTION(QueueException);
 
@@ -38,7 +44,8 @@ typedef DirectoryItem* DirectoryItemPtr;
 class QueueManager : public Singleton<QueueManager>,
 	public Speaker<QueueManagerListener>,
 	private TimerManagerListener,
-	private SearchManagerListener, private ClientManagerListener
+	private SearchManagerListener, 
+    private ClientManagerListener
 {
 	public:
 		/** Add a file to the queue. */
