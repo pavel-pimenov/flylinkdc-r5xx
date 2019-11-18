@@ -126,7 +126,7 @@ class HubEntry
 		         const string& aBots,
 		         const string& aInfected
 		        ) : name(aName),
-			server(Util::formatDchubUrl(aServer)), // [!] IRainman fix.
+			server(Util::formatDchubUrl(aServer)),
 			description(aDescription), country(aCountry),
 			rating(aRating), reliability(Util::toFloat(aReliability) / 100.0), shared(Util::toInt64(aShared)), minShare(Util::toInt64(aMinShare)),
 			users(Util::toInt(aUsers)), minSlots(Util::toInt(aMinSlots)), maxHubs(Util::toInt(aMaxHubs)), maxUsers(Util::toInt(aMaxUsers)),
@@ -187,7 +187,7 @@ class FavoriteHubEntry
 			headerSort(-1), headerSortAsc(true), suppressChatAndPM(false),
 			autobanAntivirusIP(false), autobanAntivirusNick(false)
 		{
-		} // !SMT!-S
+		}
 		virtual ~FavoriteHubEntry() noexcept { }
 		
 		const string getNick(bool useDefault = true) const
@@ -239,11 +239,9 @@ class FavoriteHubEntry
 		GETSET(int, mode, Mode); // 0 = default, 1 = active, 2 = passive
 		GETSET(string, ip, IP);
 		GETSET(string, opChat, OpChat);
-		// [!] IRainman mimicry function
 		GETSET(string, clientName, ClientName);
 		GETSET(string, clientVersion, ClientVersion);
-		GETSET(bool, overrideId, OverrideId); // !SMT!-S
-		// [~] IRainman mimicry function
+		GETSET(bool, overrideId, OverrideId);
 		
 		GETSET(string, antivirusCommandIP, AntivirusCommandIP);
 		

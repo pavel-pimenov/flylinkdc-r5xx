@@ -58,22 +58,22 @@ class ResourceManager
 	
 #include "StringDefs.h"
 	
-		static void startup(bool p_is_create_wide) // [+] IRainman fix.
+		static void startup(bool p_is_create_wide)
 		{
 			if (p_is_create_wide)
 			{
 				createWide();
 			}
-			dcdrun(g_debugStarted = true;) // [+] IRainman fix.
+			dcdrun(g_debugStarted = true;)
 		}
-		static bool loadLanguage(const string& aFile); // [!] IRainman fix: is its static function.
-		static const string& getString(Strings x) // [!] IRainman fix: is its static function.
+		static bool loadLanguage(const string& aFile);
+		static const string& getString(Strings x)
 		{
 			return g_strings[x];
 		}
-		static const wstring& getStringW(Strings x) // [!] IRainman fix: is its static function.
+		static const wstring& getStringW(Strings x)
 		{
-			dcassert(g_debugStarted); // [+] IRainman fix.
+			dcassert(g_debugStarted);
 			return g_wstrings[x];
 		}
 	private:
@@ -88,7 +88,7 @@ class ResourceManager
 		static wstring g_wstrings[LAST];
 		static string g_names[LAST];
 		static void createWide();
-		dcdrun(static bool g_debugStarted;) // [+] IRainman fix.
+		dcdrun(static bool g_debugStarted;)
 };
 
 #endif // !defined(RESOURCE_MANAGER_H)

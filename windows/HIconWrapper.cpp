@@ -32,14 +32,14 @@ HIconWrapper::~HIconWrapper()
 }
 HICON HIconWrapper::load(WORD id, int cx, int cy, UINT p_fuLoad)
 {
-	// [!] IRainman opt.
+
 	dcassert(id);
 	m_fuload |= LR_SHARED;
 	HICON icon = nullptr;
 	const auto l_ThemeHandle = ThemeManager::getResourceLibInstance();
 	if (l_ThemeHandle)
 	{
-		icon = (HICON)::LoadImage(ThemeManager::getResourceLibInstance(), MAKEINTRESOURCE(id), IMAGE_ICON, cx, cy, m_fuload); // [!] IRainman fix done: Crash wine.
+		icon = (HICON)::LoadImage(ThemeManager::getResourceLibInstance(), MAKEINTRESOURCE(id), IMAGE_ICON, cx, cy, m_fuload);
 		if (!icon)
 		{
 			dcdebug("!!!!!!!![Error - 1] (HICON)::LoadImage: ID = %d icon = %p this = %p fuLoad = %x\n", id, icon, this, m_fuload);

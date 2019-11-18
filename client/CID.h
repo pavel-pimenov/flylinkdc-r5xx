@@ -89,7 +89,7 @@ class CID
 		{
 			return cid;
 		}
-		uint8_t* get_data_for_write() //[+]PPA
+		uint8_t* get_data_for_write()
 		{
 			return cid;
 		}
@@ -122,7 +122,7 @@ struct hash<CID>
 {
 	size_t operator()(const CID& rhs) const
 	{
-		return rhs.toHash(); // [!] IRainman fix.
+		return rhs.toHash();
 	}
 };
 }

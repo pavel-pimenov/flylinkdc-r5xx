@@ -67,7 +67,7 @@ class MerkleTree
 			dcassert(p_FileSize >= p_BlockSize);
 			const size_t l_n = calcBlocks(p_FileSize, p_BlockSize);
 			dcassert(l_n >= 1);
-			if (p_DataSize != l_n * Hasher::BYTES) // [!] IRainman fix: strongly check!
+			if (p_DataSize != l_n * Hasher::BYTES)
 			{
 				dcassert(0); // TODO: please refactoring MerkleTree to calculate three for this data.
 				LogManager::message("MerkleTree create error with p_FileSize=" + Util::toString(p_FileSize) + ", p_BlockSize=" + Util::toString(p_BlockSize) + ", p_DataSize=" + Util::toString(p_DataSize));
@@ -111,11 +111,11 @@ class MerkleTree
 		{
 			return (uint16_t)calcBlocks(aFileSize, calcBlockSize(aFileSize, 10));
 		}
-		//[+]PPA
+		
 		static uint64_t getMaxBlockSize(int64_t p_file_size)
 		{
 			const uint64_t l_result = std::max(calcBlockSize(p_file_size, 10), MIN_BLOCK_SIZE);
-			dcassert(l_result >= MIN_BLOCK_SIZE); // [+] IRainman fix: check the negative values.
+			dcassert(l_result >= MIN_BLOCK_SIZE);
 			return l_result;
 		}
 		
@@ -167,7 +167,7 @@ class MerkleTree
 			{
 				update(0, 0);
 			}
-			// [!] IRainman opt.
+			
 #ifdef _DEBUG
 //# define TEST_NEW_FINALIZE_MERKLE_THREE
 #endif
@@ -202,7 +202,7 @@ class MerkleTree
 #ifdef TEST_NEW_FINALIZE_MERKLE_THREE
 			dcassert(blocks.size() == blocks_test.size() && memcmp(blocks.data(), blocks_test.data(), blocks.size()) == 0);
 #endif
-			// [~] IRainman opt.
+			
 			
 			dcassert(blocks.empty() || blocks.size() == 1);
 			if (!blocks.empty())
@@ -299,7 +299,7 @@ class MerkleTree
 			{
 				start /= blockSize;
 				dcassert(start < (int64_t)leaves.size());
-				if (start < static_cast<int64_t>(leaves.size())) //[+]PPA
+				if (start < static_cast<int64_t>(leaves.size()))
 					return leaves[static_cast<size_t>(start)];
 				else
 					return MerkleValue(); // TODO - raise exception
@@ -332,7 +332,7 @@ class MerkleTree
 	protected:
 		void reduceBlocks()
 		{
-			// [!] IRainman opt.
+		
 #ifdef _DEBUG
 //# define TEST_NEW_REDUCE_BLOCKS_MERKLE_THREE
 #endif
@@ -401,7 +401,7 @@ class MerkleTree
 			dcassert(blocks.size() == blocks_test.size() && memcmp(blocks.data(), blocks_test.data(), blocks.size()) == 0);
 			dcassert(leaves.size() == leaves_test.size() && memcmp(leaves.data(), leaves_test.data(), leaves.size()) == 0);
 #endif
-			// [~] IRainman opt.
+			
 		}
 };
 #ifdef FLYLINKDC_USE_GPU_TTH

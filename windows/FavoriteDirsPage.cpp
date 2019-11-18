@@ -222,7 +222,6 @@ LRESULT FavoriteDirsPage::onClickedChange(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 		dlg.extensions = tstring(buf.data());
 		if (dlg.DoModal(m_hWnd) == IDOK)
 		{
-			// [!] SSA Fixed problem with deadlock for folders w/o path separator
 			AppendPathSeparator(dlg.dir);
 			if (l_lastname != dlg.name)
 			{
@@ -233,7 +232,6 @@ LRESULT FavoriteDirsPage::onClickedChange(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 			}
 			if (FavoriteManager::updateFavoriteDir(Text::fromT(dlg.name), Text::fromT(dlg.dir), Text::fromT(dlg.extensions)))
 			{
-				//  ctrlDirectories.SetItemText(i, 0, dlg.name.c_str());
 				ctrlDirectories.SetItemText(i, 1, dlg.dir.c_str());
 				ctrlDirectories.SetItemText(i, 2, dlg.extensions.c_str());
 			}
@@ -246,18 +244,16 @@ LRESULT FavoriteDirsPage::onClickedChange(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 	return 0;
 }
 
-// При добавлении директории.
 void FavoriteDirsPage::addDirectory(const tstring& aPath /*= Util::emptyStringT*/)
 {
 	tstring path = aPath;
-	AppendPathSeparator(path); //[+]PPA
+	AppendPathSeparator(path);
 	
 	FavDirDlg dlg;
 	dlg.name = Util::getLastDir(path);
 	dlg.dir = path;
 	if (dlg.DoModal(m_hWnd) == IDOK)
 	{
-		// [!] SSA Fixed problem with deadlock for folders w/o path separator
 		tstring tdir = dlg.dir;
 		AppendPathSeparator(tdir);
 		

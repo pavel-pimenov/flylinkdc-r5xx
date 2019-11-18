@@ -33,14 +33,13 @@ extern bool setAdcUserFlags(const UserPtr& user, const string& feat);
 
 /** One of possibly many identities of a user, mainly for UI purposes */
 class Identity
-#ifdef _DEBUG // [+] IRainman fix.
+#ifdef _DEBUG
 #ifdef IRAINMAN_IDENTITY_IS_NON_COPYABLE
 	: boost::noncopyable
 #endif
 #endif
 {
 	public:
-// [+] IRAINMAN_USE_NG_FAST_USER_INFO
 		enum
 		{
 			CHANGES_NICK = 1 << COLUMN_NICK, // done
@@ -87,13 +86,11 @@ class Identity
 #endif
 			CHANGES_P2P_GUARD = 1 << COLUMN_P2P_GUARD,
 #ifdef FLYLINKDC_USE_DNS
-			CHANGES_DNS = 1 << COLUMN_DNS, // !SMT!-IP
+			CHANGES_DNS = 1 << COLUMN_DNS,
 #endif
-			//[-]PPA        CHANGES_PK = 1 << COLUMN_PK,
 			CHANGES_CID = 1 << COLUMN_CID,
 			CHANGES_TAG = 1 << COLUMN_TAG
 		};
-// [~] IRAINMAN_USE_NG_FAST_USER_INFO
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		enum VirusType
 		{
@@ -141,10 +138,10 @@ class Identity
 			setSID(aSID);
 		}
 		
-		//enum Status // [!] IRainman: Only for parse the tag on NMDC hubs! moved to NmdcStatus class.
+		
 #ifdef FLYLINKDC_USE_DETECT_CHEATING
 		
-		enum FakeCard // [!] IRainman: The internal feature to the protocols it has nothing to do!
+		enum FakeCard
 		{
 			NOT_CHECKED = 0x01,
 			CHECKED     = 0x02,
@@ -182,15 +179,14 @@ class Identity
 #endif // IRAINMAN_IDENTITY_IS_NON_COPYABLE
 		~Identity();
 		
-// [!] IRAINMAN_USE_NG_FAST_USER_INFO
 #define GSMC(n, x, c)\
 	string get##n() const { return getStringParam(x); }\
-	void set##n(const string& v) { /*dcassert(get##n() == v /* please don't set same value!);*/ setStringParam(x, v); change(c); } // [!] IRainman opt.
-
+	void set##n(const string& v) { /*dcassert(get##n() == v /* please don't set same value!);*/ setStringParam(x, v); change(c); }
+		
 #define GSM(n, x)\
 	string get##n() const { return getStringParam(x); }\
-	void set##n(const string& v) { /*dcassert(get##n() == v /* please don't set same value!);*/ setStringParam(x, v); } // [!] IRainman fix.
-
+	void set##n(const string& v) { /*dcassert(get##n() == v /* please don't set same value!);*/ setStringParam(x, v); }
+		
 		GSMC(Description, "DE", CHANGES_DESCRIPTION) // ok
 		GSMC(Email, "EM", CHANGES_EMAIL) // ok
 		GSMC(IP6, "I6", CHANGES_IP) // ok
@@ -791,18 +787,14 @@ class Identity
 		
 #endif // EXT_JSON
 		
-		// [+] IRainman
 		static string formatShareBytes(uint64_t p_bytes);
 		static string formatIpString(const string& value);
 		static string formatSpeedLimit(const uint32_t limit);
-		// [~] IRainman
 		
-		//bool isTcpActive(const Client* client) const;
 		bool isTcpActive() const;
-		//bool isUdpActive(const Client* client) const;
 		bool isUdpActive() const;
 		
-		// [!] IRainman fix.
+		
 		string getStringParam(const char* name) const;
 		string getStringParamExtJSON(const char* name) const
 		{
@@ -821,7 +813,7 @@ class Identity
 			else
 				return false;
 		}
-		// [~] IRainman fix.
+		
 		
 #ifdef FLYLINKDC_USE_DETECT_CHEATING
 		string setCheat(const ClientBase& c, const string& aCheatDescription, bool aBadClient);
@@ -896,14 +888,13 @@ class OnlineUser :  public UserInfoBase
 			COLUMN_DESCRIPTION,
 			COLUMN_CONNECTION,
 			COLUMN_IP,
-			//[+]PPA
+			
 			COLUMN_LAST_IP,
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 			COLUMN_UPLOAD,
 			COLUMN_DOWNLOAD,
 			COLUMN_MESSAGES,
 #endif
-			//[~]PPA
 			COLUMN_EMAIL,
 #ifdef IRAINMAN_INCLUDE_FULL_USER_INFORMATION_ON_HUB
 			COLUMN_VERSION,

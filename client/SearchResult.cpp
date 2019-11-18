@@ -76,7 +76,7 @@ string SearchResultBaseTTH::toSR(const Client& c) const
 	tmp.append(1, '/');
 	tmp.append(Util::toString(getSlots()));
 	tmp.append(1, '\x05');
-	tmp.append(g_tth + getTTH().toBase32()); // [!] IRainman opt.
+	tmp.append(g_tth + getTTH().toBase32());
 	tmp.append(" (", 2);
 	tmp.append(c.getIpPort());
 	tmp.append(")|", 2);

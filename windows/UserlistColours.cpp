@@ -2,14 +2,13 @@
 
 #include "Resource.h"
 #include "UserListColours.h"
-#include "HubFrame.h" // [+] InfinitySky.
+#include "HubFrame.h"
 
 PropPage::TextItem UserListColours::texts[] =
 {
 	{ IDC_STATIC_ULC, ResourceManager::SETTINGS_USER_LIST },
 	{ IDC_CHANGE_COLOR, ResourceManager::SETTINGS_CHANGE },
 	{ IDC_USERLIST, ResourceManager::USERLIST_ICONS },
-	//{ IDC_IMAGEBROWSE, ResourceManager::BROWSE }, // [~] JhaoDa, not necessary any more
 	{ IDC_HUB_POSITION_TEXT, ResourceManager::HUB_USERS_POSITION_TEXT },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };

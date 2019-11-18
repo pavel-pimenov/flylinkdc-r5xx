@@ -42,14 +42,14 @@ class ClientManagerListener
 		typedef X<5> ClientUpdated;
 		typedef X<6> ClientDisconnected;
 		
-		typedef enum { SEARCH_MISS = 0, SEARCH_PARTIAL_HIT, SEARCH_HIT } SearchReply; // !SMT!-S
+		typedef enum { SEARCH_MISS = 0, SEARCH_PARTIAL_HIT, SEARCH_HIT } SearchReply;
 		
 		/** User online in at least one hub */
 		virtual void on(UserConnected, const UserPtr&) noexcept { }
 		virtual void on(UserUpdated, const OnlineUserPtr&) noexcept { }
 		/** User offline in all hubs */
 		virtual void on(UserDisconnected, const UserPtr&) noexcept { }
-		virtual void on(IncomingSearch, const string&, const string&, SearchReply) noexcept { } // !SMT!-S
+		virtual void on(IncomingSearch, const string&, const string&, SearchReply) noexcept { }
 		virtual void on(ClientConnected, const Client*) noexcept { }
 		virtual void on(ClientUpdated, const Client*) noexcept { }
 		virtual void on(ClientDisconnected, const Client*) noexcept { }

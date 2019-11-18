@@ -99,9 +99,9 @@ class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_
 		MESSAGE_HANDLER(WM_TIMER, onTimer)
 		MESSAGE_HANDLER(WM_SIZE, onSize)
 #ifdef FLYLINKDC_USE_SHOW_UD_RATIO
-		NOTIFY_HANDLER(IDC_UD_RATIO, NM_CUSTOMDRAW, ctrlRatio.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_UD_RATIO, NM_CUSTOMDRAW, ctrlRatio.onCustomDraw)
 #endif
-		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		CHAIN_MSG_MAP(baseClass)
 		END_MSG_MAP()
 		
@@ -111,7 +111,7 @@ class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_
 		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 		LRESULT onSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 		
-		// [+] InfinitySky.
+		
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			PostMessage(WM_CLOSE);
@@ -126,10 +126,8 @@ class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_
 		CBrush m_backgr;
 		CPen m_UploadSocketPen;
 		CPen m_DownloadSocketPen;
-		// [+]IRainman
 		CPen m_UploadsPen;
 		CPen m_DownloadsPen;
-		// [~]IRainman
 		CPen m_foregr;
 		
 		struct Stat
@@ -140,17 +138,11 @@ class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_
 		};
 		typedef deque<Stat> StatList;
 		typedef StatList::const_iterator StatIter;
-		//typedef deque<const int64_t> AvgList;
-//		typedef AvgList::const_iterator AvgIter;
-
+		
 		StatList m_UpSockets;
-		//AvgList m_UpSocketsAvg;
 		StatList m_DownSockets;
-		//AvgList m_DownSocketsAvg;
-		// [+]IRainman
 		StatList m_Uploads;
 		StatList m_Downloads;
-		// [~]IRainman
 		
 		static int g_width;
 		static int g_height;
@@ -159,18 +151,16 @@ class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_
 		
 		uint64_t lastTick;
 		uint64_t scrollTick;
-		//int64_t m_lastSocketsUp;
-		//int64_t m_lastSocketsDown;
 		
 		int64_t m_max;
 		
 		void drawLine(CDC& dc, const StatIter& begin, const StatIter& end, const CRect& rc, const CRect& crc);
 		
-		void drawLine(CDC& dc, StatList& lst, const CRect& rc, const CRect& crc)// [+]IRainman
+		void drawLine(CDC& dc, StatList& lst, const CRect& rc, const CRect& crc)
 		{
 			drawLine(dc, lst.begin(), lst.end(), rc, crc);
 		}
-		static void findMax(const StatList& lst, StatIter& i, int64_t& mspeed)// [+]IRainman
+		static void findMax(const StatList& lst, StatIter& i, int64_t& mspeed)
 		{
 			for (i = lst.cbegin(); i != lst.cend(); ++i)
 			{
@@ -179,7 +169,7 @@ class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_
 			}
 		}
 		
-		static void updateStatList(int64_t bspeed, StatList& lst, int scroll)// [+]IRainman
+		static void updateStatList(int64_t bspeed, StatList& lst, int scroll)
 		{
 			lst.push_front(Stat(scroll, bspeed));
 			
@@ -190,7 +180,7 @@ class StatsFrame : public MDITabChildWindowImpl < StatsFrame, RGB(0, 0, 0), IDR_
 		}
 		
 		//static void addTick(int64_t bdiff, uint64_t tdiff, StatList& lst, AvgList& avg, int scroll);
-		static void addAproximatedSpeedTick(int64_t bspeed, StatList& lst, int scroll)// [+]IRainman
+		static void addAproximatedSpeedTick(int64_t bspeed, StatList& lst, int scroll)
 		{
 			updateStatList(bspeed, lst, scroll);
 		}

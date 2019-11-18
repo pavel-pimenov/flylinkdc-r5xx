@@ -33,7 +33,7 @@ PropPage::TextItem WindowsPage::textItem[] =
 {
 	{ IDC_SETTINGS_AUTO_OPEN, ResourceManager::SETTINGS_AUTO_OPEN },
 	{ IDC_SETTINGS_WINDOWS_OPTIONS, ResourceManager::SETTINGS_WINDOWS_OPTIONS },
-	{ IDC_SETTINGS_CONFIRM_OPTIONS, ResourceManager::SETTINGS_CONFIRM_DIALOG_OPTIONS }, // [+] InfinitySky.
+	{ IDC_SETTINGS_CONFIRM_OPTIONS, ResourceManager::SETTINGS_CONFIRM_DIALOG_OPTIONS },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -53,12 +53,11 @@ WindowsPage::ListItem WindowsPage::listItems[] =
 	{ SettingsManager::OPEN_CDMDEBUG, ResourceManager::MENU_CDMDEBUG_MESSAGES },
 #endif
 #ifdef IRAINMAN_INCLUDE_RSS
-	{ SettingsManager::OPEN_RSS, ResourceManager::RSS_NEWS }, // [+] SSA
+	{ SettingsManager::OPEN_RSS, ResourceManager::RSS_NEWS },
 #endif
 	{ SettingsManager::OPEN_SEARCH_SPY, ResourceManager::SEARCH_SPY },
 #ifdef RIP_USE_PORTAL_BROWSER
-	// NB: MUST be last checkbox in list!!!
-	{ SettingsManager::OPEN_PORTAL_BROWSER, ResourceManager::PORTAL_BROWSER }, // [+] BRAIN_RIPPER
+	{ SettingsManager::OPEN_PORTAL_BROWSER, ResourceManager::PORTAL_BROWSER },
 #endif
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
@@ -74,7 +73,7 @@ WindowsPage::ListItem WindowsPage::optionItems[] =
 	{ SettingsManager::JOIN_OPEN_NEW_WINDOW, ResourceManager::SETTINGS_OPEN_NEW_WINDOW },
 	{ SettingsManager::TOGGLE_ACTIVE_WINDOW, ResourceManager::SETTINGS_TOGGLE_ACTIVE_WINDOW },
 	{ SettingsManager::PROMPT_PASSWORD, ResourceManager::SETTINGS_PROMPT_PASSWORD },
-	{ SettingsManager::REMEMBER_SETTINGS_PAGE, ResourceManager::REMEMBER_SETTINGS_PAGE }, // [<-] InfinitySky. Запоминать положение окна настроек.
+	{ SettingsManager::REMEMBER_SETTINGS_PAGE, ResourceManager::REMEMBER_SETTINGS_PAGE },
 #ifdef SCALOLAZ_PROPPAGE_TRANSPARENCY
 	{ SettingsManager::SETTINGS_WINDOW_TRANSP, ResourceManager::SETTINGS_WINDOW_TRANSP },
 #endif
@@ -87,17 +86,15 @@ WindowsPage::ListItem WindowsPage::optionItems[] =
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
-// [+] InfinitySky. Подтверждения.
 WindowsPage::ListItem WindowsPage::confirmItems[] =
 {
 	{ SettingsManager::CONFIRM_EXIT, ResourceManager::SETTINGS_CONFIRM_EXIT },
 	{ SettingsManager::CONFIRM_HUB_REMOVAL, ResourceManager::SETTINGS_CONFIRM_HUB_REMOVAL },
-	{ SettingsManager::CONFIRM_HUBGROUP_REMOVAL, ResourceManager::SETTINGS_CONFIRM_HUBGROUP_REMOVAL }, // [+] NightOrion
+	{ SettingsManager::CONFIRM_HUBGROUP_REMOVAL, ResourceManager::SETTINGS_CONFIRM_HUBGROUP_REMOVAL },
 	{ SettingsManager::CONFIRM_DELETE, ResourceManager::SETTINGS_CONFIRM_ITEM_REMOVAL },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
-// При инициализации диалога.
 LRESULT WindowsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 #ifdef RIP_USE_PORTAL_BROWSER
@@ -115,11 +112,11 @@ LRESULT WindowsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	PropPage::translate((HWND)(*this), textItem);
 	PropPage::read(*this, items, listItems, GetDlgItem(IDC_WINDOWS_STARTUP));
 	PropPage::read(*this, items, optionItems, GetDlgItem(IDC_WINDOWS_OPTIONS));
-	PropPage::read(*this, items, confirmItems, GetDlgItem(IDC_CONFIRM_OPTIONS)); // [+] InfinitySky.
+	PropPage::read(*this, items, confirmItems, GetDlgItem(IDC_CONFIRM_OPTIONS));
 	
-	ctrlStartup.Attach(GetDlgItem(IDC_WINDOWS_STARTUP)); // [+] IRainman
-	ctrlOptions.Attach(GetDlgItem(IDC_WINDOWS_OPTIONS)); // [+] IRainman
-	ctrlConfirms.Attach(GetDlgItem(IDC_CONFIRM_OPTIONS)); // [+] IRainman
+	ctrlStartup.Attach(GetDlgItem(IDC_WINDOWS_STARTUP));
+	ctrlOptions.Attach(GetDlgItem(IDC_WINDOWS_OPTIONS));
+	ctrlConfirms.Attach(GetDlgItem(IDC_CONFIRM_OPTIONS));
 	
 	return TRUE;
 }
@@ -128,5 +125,5 @@ void WindowsPage::write()
 {
 	PropPage::write(*this, items, listItems, GetDlgItem(IDC_WINDOWS_STARTUP));
 	PropPage::write(*this, items, optionItems, GetDlgItem(IDC_WINDOWS_OPTIONS));
-	PropPage::write(*this, items, confirmItems, GetDlgItem(IDC_CONFIRM_OPTIONS)); // [+] InfinitySky.
+	PropPage::write(*this, items, confirmItems, GetDlgItem(IDC_CONFIRM_OPTIONS));
 }

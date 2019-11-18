@@ -108,7 +108,6 @@ void AutoUpdate::startUpdateManually()
 		
 	m_manualUpdate = true;
 	
-	// [!] SSA - set the ignore update list as empty if manual update started.
 	SET_SETTING(AUTOUPDATE_IGNORE_VERSION, Util::emptyString);
 	
 	addTask(START_UPDATE);
@@ -494,7 +493,7 @@ void AutoUpdate::startUpdateThisThread()
 										wstring flagName = m_updateFolder;
 										AppendPathSeparator(flagName);
 										flagName += UPDATE_FILE_NAME;
-										try // [+] IRainman fix.
+										try 
 										{
 											{
 												File f(flagName, File::WRITE, File::CREATE | File::TRUNCATE); // [1] https://www.box.net/shared/75247d259e1ee4eab670
@@ -888,7 +887,6 @@ const string AutoUpdate::UPDATE_DESCRIPTION()
 
 string AutoUpdate::getAUTOUPDATE_SERVER_URL()
 {
-	// SSA - get custom URL if need
 	const string l_customUpdateServerUrl = SETTING(AUTOUPDATE_SERVER_URL);
 	if (BOOLSETTING(AUTOUPDATE_USE_CUSTOM_URL) && !l_customUpdateServerUrl.empty())
 	{
@@ -951,7 +949,7 @@ void AutoUpdate::runFlyUpdate()
 {
 	if (!m_updateFolder.empty())
 	{
-		CompatibilityManager::restoreProcessPriority(); // [+] IRainman
+		CompatibilityManager::restoreProcessPriority();
 		
 		const wstring flyUpdatepath = Text::toT(Util::getConfigPath());
 		const wstring flylinkDC = Util::getModuleFileName();
@@ -1000,7 +998,7 @@ bool AutoUpdate::startupUpdate()
 		m_updateFolder = Text::toT(l_settingsUpdateFolder);
 		FileUpdateSearch fuSearch(m_updateFolder);
 		fuSearch.Scan();
-		if (fuSearch.GetFilesCount() > 0 || fuSearch.GetFoldersCount() > 0)     // SSA - Can be only folders for example...
+		if (fuSearch.GetFilesCount() > 0 || fuSearch.GetFoldersCount() > 0)
 		{
 			// Find Flag or delete
 			tstring flagName = m_updateFolder;

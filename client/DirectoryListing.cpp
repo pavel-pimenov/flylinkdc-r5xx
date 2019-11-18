@@ -47,7 +47,7 @@ UserPtr DirectoryListing::getUserFromFilename(const string& fileName)
 	string name = Util::getFileName(fileName);
 	string ext = Text::toLower(Util::getFileExt(name));
 	
-	if (ext == ".dcls" || ext == ".dclst")  // [+] IRainman dclst support
+	if (ext == ".dcls" || ext == ".dclst")
 	{
 		auto l_user = std::make_shared<User>(CID(), name, 0);
 		return l_user;
@@ -100,8 +100,8 @@ void DirectoryListing::loadFile(const string& p_file, bool p_own_list)
 	{
 		::File ff(p_file, ::File::READ, ::File::OPEN);
 		if (stricmp(ext, ".bz2") == 0
-		        || stricmp(ext, ".dcls") == 0 // [+] IRainman dclst support
-		        || stricmp(ext, ".dclst") == 0 // [+] SSA dclst support
+		        || stricmp(ext, ".dcls") == 0
+		        || stricmp(ext, ".dclst") == 0
 		   )
 		{
 			FilteredInputStream<UnBZFilter, false> f(&ff);
@@ -199,9 +199,9 @@ string DirectoryListing::loadXML(InputStream& is, bool updating, bool p_is_own_l
 
 static const string sFileListing = "FileListing";
 static const string sBase = "Base";
-static const string sCID = "CID"; // [+] IRainman Delayed loading (dclst support)
+static const string sCID = "CID";
 static const string sGenerator = "Generator";
-static const string sIncludeSelf = "IncludeSelf"; // [+] SSA IncludeSelf attrib (dclst support)
+static const string sIncludeSelf = "IncludeSelf";
 static const string sIncomplete = "Incomplete";
 
 /*
@@ -300,7 +300,6 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 					}
 				}
 			}
-			// [+] FlylinkDC
 			std::shared_ptr<CFlyMediaInfo> l_mediaXY;
 			uint32_t l_i_ts = 0;
 			int l_i_hit     = 0;
@@ -408,9 +407,9 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			m_cur->m_files.push_back(f);
 			if (l_size)
 			{
-				if (m_is_own_list)//[+] FlylinkDC++
+				if (m_is_own_list)
 				{
-					f->setFlag(DirectoryListing::FLAG_SHARED_OWN);  // TODO - убить FLAG_SHARED_OWN
+					f->setFlag(DirectoryListing::FLAG_SHARED_OWN);
 				}
 				else
 				{
@@ -439,7 +438,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 							}
 						}
 					}
-				}//[+] FlylinkDC++
+				}
 			}
 		}
 		else if (name == g_SDirectory)
@@ -513,7 +512,6 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 		}
 		m_cur->setComplete(true);
 		
-		// [+] IRainman Delayed loading (dclst support)
 		const string& l_cidStr = getAttrib(attribs, sCID, 2);
 		if (l_cidStr.size() == 39)
 		{
@@ -529,7 +527,6 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 		}
 		const string& l_getIncludeSelf = getAttrib(attribs, sIncludeSelf, 2);
 		m_list->setIncludeSelf(l_getIncludeSelf == "1");
-		// [~] IRainman Delayed loading (dclst support)
 		
 		m_is_in_listing = true;
 		
@@ -588,7 +585,6 @@ void DirectoryListing::download(Directory* aDir, const string& aTarget, bool hig
 	{
 		// First, recurse over the directories
 		const Directory::List& lst = aDir->directories;
-		//[!] sort(lst.begin(), lst.end(), Directory::DirSort()); //[-] FlylinkDC++ Team - пусть качаются диры в порядке файл-листа.
 		for (auto j = lst.cbegin(); j != lst.cend(); ++j)
 		{
 			download(*j, target, highPrio, prio, p_first_file);
@@ -596,7 +592,6 @@ void DirectoryListing::download(Directory* aDir, const string& aTarget, bool hig
 		}
 		// Then add the files
 		const File::List& l = aDir->m_files;
-		//[!] sort(l.begin(), l.end(), File::FileSort());  //[-] FlylinkDC++ Team - сортировка файлов по алфавиту тормозит при кол-ва файлов > 10 тыс
 		for (auto i = l.cbegin(); i != l.cend(); ++i)
 		{
 			const File* file = *i;
@@ -667,7 +662,7 @@ DirectoryListing::Directory* DirectoryListing::find(const string& aName, Directo
 	}
 	return nullptr;
 }
-void DirectoryListing::logMatchedFiles(const UserPtr& p_user, int p_count) //[+]PPA
+void DirectoryListing::logMatchedFiles(const UserPtr& p_user, int p_count)
 {
 	const size_t l_BUF_SIZE = STRING(MATCHED_FILES).size() + 16;
 	string l_tmp;
@@ -687,7 +682,7 @@ struct HashContained
 			return tl.count((i->getTTH())) && (DeleteFunction()(i), true);
 		}
 	private:
-		void operator=(HashContained&); // [!] IRainman fix.
+		void operator=(HashContained&);
 		const DirectoryListing::Directory::TTHSet& tl;
 };
 
@@ -955,7 +950,6 @@ size_t DirectoryListing::Directory::getTotalFolderCount() const
 	return x;
 }
 
-// !fulDC! !SMT!-UI
 void DirectoryListing::Directory::checkDupes(const DirectoryListing* lst)
 {
 	Flags::MaskType result = 0;
@@ -984,7 +978,7 @@ void DirectoryListing::Directory::checkDupes(const DirectoryListing* lst)
 	setFlags(result);
 }
 
-// !SMT!-UI
+
 void DirectoryListing::checkDupes()
 {
 	root->checkDupes(this);

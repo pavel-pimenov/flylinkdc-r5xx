@@ -31,7 +31,7 @@ void UserInfoBase::getUserResponses()
 	{
 		try
 		{
-			QueueManager::getInstance()->addCheckUserIP(getUser()); // [+] SSA
+			QueueManager::getInstance()->addCheckUserIP(getUser());
 		}
 		catch (const Exception& e)
 		{
@@ -103,7 +103,7 @@ void UserInfoBase::addFav()
 	}
 }
 
-void UserInfoBase::setIgnorePM() // [+] SSA.
+void UserInfoBase::setIgnorePM()
 {
 	if (getUser())
 	{
@@ -111,7 +111,7 @@ void UserInfoBase::setIgnorePM() // [+] SSA.
 	}
 }
 
-void UserInfoBase::setFreePM() // [+] IRainman.
+void UserInfoBase::setFreePM()
 {
 	if (getUser())
 	{
@@ -119,7 +119,7 @@ void UserInfoBase::setFreePM() // [+] IRainman.
 	}
 }
 
-void UserInfoBase::setNormalPM() // [+] IRainman.
+void UserInfoBase::setNormalPM()
 {
 	if (getUser())
 	{
@@ -127,7 +127,7 @@ void UserInfoBase::setNormalPM() // [+] IRainman.
 	}
 }
 
-void UserInfoBase::setUploadLimit(const int limit) // [+] IRainman.
+void UserInfoBase::setUploadLimit(const int limit)
 {
 	if (getUser())
 	{
@@ -143,7 +143,7 @@ void UserInfoBase::delFav()
 	}
 }
 
-void UserInfoBase::ignoreOrUnignoreUserByName() // [!] IRainman moved from gui and clean
+void UserInfoBase::ignoreOrUnignoreUserByName()
 {
 	if (getUser())
 	{
@@ -167,16 +167,16 @@ void UserInfoBase::pm(const string& hubHint)
 	}
 }
 
-// !SMT!-S
+
 void UserInfoBase::pm_msg(const string& hubHint, const tstring& p_message)
 {
-	if (!p_message.empty()) // [~] SCALOlaz: support for abolition and prohibition to send a blank line
+	if (!p_message.empty())
 	{
 		UserManager::getInstance()->outgoingPrivateMessage(getUser(), hubHint, p_message);
 	}
 }
 
-void UserInfoBase::createSummaryInfo(const string& hubHint) // [+] IRainman
+void UserInfoBase::createSummaryInfo(const string& hubHint)
 {
 	if (getUser())
 	{
@@ -200,14 +200,14 @@ void UserInfoBase::connectFav()
 	}
 }
 
-// !SMT!-UI
+
 void UserInfoBase::grantSlotPeriod(const string& hubHint, const uint64_t period)
 {
 	if (period && getUser())
 		UploadManager::getInstance()->reserveSlot(HintedUser(getUser(), hubHint), period);
 }
 
-void UserInfoBase::ungrantSlot(const string& hubHint) // [!] IRainman fix: add hubhint.
+void UserInfoBase::ungrantSlot(const string& hubHint)
 {
 	if (getUser())
 	{
@@ -215,7 +215,6 @@ void UserInfoBase::ungrantSlot(const string& hubHint) // [!] IRainman fix: add h
 	}
 }
 
-// [->] IRainman moved from User.cpp
 uint8_t UserInfoBase::getImage(const OnlineUser& ou)
 {
 #ifdef _DEBUG

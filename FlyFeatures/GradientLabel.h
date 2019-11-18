@@ -187,25 +187,10 @@ class ATL_NO_VTABLE CGradientLabelImpl : public CWindowImpl< T, TBase, TWinTrait
 #endif
 			
 			// Draw the caption background
-			COLORREF clrCptn = m_bActive ?  RGB(106, 181, 255) : 255; //[+]PPA
-			//[-]PPA        ::GetSysColor(COLOR_ACTIVECAPTION) :
-			//[-]PPA        ::GetSysColor(COLOR_INACTIVECAPTION);
-			//[-]PPAHBRUSH brCptn = m_bActive ?
-			//[-]PPA  ::GetSysColorBrush(COLOR_ACTIVECAPTION) :
-			//[-]PPA  ::GetSysColorBrush(COLOR_INACTIVECAPTION);
+			COLORREF clrCptn = m_bActive ?  RGB(106, 181, 255) : 255; 
 			
 			// Gradient from left to right or from bottom to top
 			COLORREF clrCptnRight = ::GetSysColor(COLOR_BTNFACE);
-			/*[-]PPA
-			BOOL bSysGradient = FALSE;
-			::SystemParametersInfo(SPI_GETGRADIENTCAPTIONS, 0, &bSysGradient, 0);
-			if( bSysGradient ) {
-			   // Get second gradient color (the right end)
-			     clrCptnRight = m_bActive ?
-			     ::GetSysColor(COLOR_GRADIENTACTIVECAPTION) :
-			     ::GetSysColor(COLOR_GRADIENTINACTIVECAPTION);
-			}
-			[-]PPA*/
 			
 			// This will make 2^6 = 64 fountain steps
 			int nShift = 6;

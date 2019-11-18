@@ -27,7 +27,6 @@ void FileRoadMap::AddSegment(int64_t pos, int64_t size)
 // LogManager::message("[FileRoadMap::AddSegment] pos = " + Util::toString(pos) + " size = " + Util::toString(size));
 	if (size == 0)
 		return;
-	// SSA calculate new pos and size
 	int64_t newPos = pos;
 	int64_t newSize = size;
 	const auto l_is_insertable = GetInsertableSizeAndPos(newPos, newSize);

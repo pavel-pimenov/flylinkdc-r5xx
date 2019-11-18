@@ -56,7 +56,7 @@ LRESULT FileSharePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 	PropPage::translate((HWND)(*this), texts);
 	
 	PropPage::read(*this, items, listItems, GetDlgItem(IDC_FILESHARE_BOOLEANS));
-	ctrlList.Attach(GetDlgItem(IDC_FILESHARE_BOOLEANS)); // [+] IRainman
+	ctrlList.Attach(GetDlgItem(IDC_FILESHARE_BOOLEANS));
 	
 	return TRUE;
 }

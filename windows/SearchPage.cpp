@@ -12,7 +12,7 @@ PropPage::TextItem SearchPage::texts[] =
 	{ IDC_SETTINGS_AUTO_SEARCH_LIMIT, ResourceManager::SETTINGS_AUTO_SEARCH_LIMIT },
 	{ IDC_INTERVAL_TEXT, ResourceManager::MINIMUM_SEARCH_INTERVAL },
 	{ IDC_MATCH_QUEUE_TEXT, ResourceManager::SETTINGS_SB_MAX_SOURCES },
-	{ IDC_SEARCH_FORGET, ResourceManager::FORGET_SEARCH_REQUEST },  // [+] SCALOlaz: don't remember search string
+	{ IDC_SEARCH_FORGET, ResourceManager::FORGET_SEARCH_REQUEST },
 	
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
@@ -23,7 +23,7 @@ PropPage::Item SearchPage::items[] =
 	{ IDC_INTERVAL, SettingsManager::MINIMUM_SEARCH_INTERVAL, PropPage::T_INT },
 	{ IDC_MATCH, SettingsManager::MAX_AUTO_MATCH_SOURCES, PropPage::T_INT },
 	{ IDC_AUTO_SEARCH_LIMIT, SettingsManager::AUTO_SEARCH_LIMIT, PropPage::T_INT },
-	{ IDC_SEARCH_FORGET, SettingsManager::FORGET_SEARCH_REQUEST, PropPage::T_BOOL },    // [+] SCALOlaz: don't remember search string
+	{ IDC_SEARCH_FORGET, SettingsManager::FORGET_SEARCH_REQUEST, PropPage::T_BOOL },
 	
 	{ 0, 0, PropPage::T_END }
 };
@@ -57,7 +57,7 @@ LRESULT SearchPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	setMinMax(IDC_MATCH_SPIN, 1, 999);
 	setMinMax(IDC_AUTO_SEARCH_LIMIT_SPIN, 1, 999);
 	
-	ctrlList.Attach(GetDlgItem(IDC_ADVANCED_BOOLEANS)); // [+] IRainman
+	ctrlList.Attach(GetDlgItem(IDC_ADVANCED_BOOLEANS));
 	
 	
 	fixControls();
@@ -71,7 +71,7 @@ void SearchPage::write()
 	// Do specialized writing here
 }
 
-LRESULT SearchPage::onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) // [+]NightOrion
+LRESULT SearchPage::onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	fixControls();
 	return 0;

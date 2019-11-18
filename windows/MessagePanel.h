@@ -52,7 +52,7 @@ class MessagePanel
 		BOOL OnContextMenu(POINT& pt, WPARAM& wParam);
 		
 	private:
-		CFlyToolTipCtrl m_tooltip;  // [+] SCALOlaz: add tooltips
+		CFlyToolTipCtrl m_tooltip;
 		CEdit*& m_ctrlMessage;
 		
 		CButton ctrlShowUsers;
@@ -92,7 +92,7 @@ class MessagePanel
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
 		static HIconWrapper g_hColorIco;
 #endif
-		// [~] Sergey Shuhskanov
+		
 };
 
 

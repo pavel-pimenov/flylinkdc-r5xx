@@ -79,7 +79,7 @@ PropPage::Item OperaColorsPage::items[] =
 PropPage::ListItem OperaColorsPage::listItems[] =
 {
 	{ SettingsManager::SHOW_PROGRESS_BARS, ResourceManager::SETTINGS_SHOW_PROGRESS_BARS },
-	{ SettingsManager::UP_TRANSFER_COLORS, ResourceManager::UP_TRANSFER_COLORS }, // [+] Drakon.
+	{ SettingsManager::UP_TRANSFER_COLORS, ResourceManager::UP_TRANSFER_COLORS },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 

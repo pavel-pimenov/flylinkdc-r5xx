@@ -37,7 +37,6 @@ class FavDirDlg : public CDialogImpl<FavDirDlg>
 			SetDlgItemText(IDC_FAV_NAME2, CTSTRING(SETTINGS_NAME2));
 			SetDlgItemText(IDC_GET_FAVORITE_DIR, CTSTRING(SETTINGS_GET_FAVORITE_DIR));
 			SetDlgItemText(IDC_FAVORITE_DIR_EXT, CTSTRING(SETTINGS_FAVORITE_DIR_EXT));
-			//SetDlgItemText(IDC_FAVDIR_BROWSE, CTSTRING(BROWSE));// [~] JhaoDa, not necessary any more
 			SetDlgItemText(IDCANCEL, CTSTRING(CANCEL));
 			SetDlgItemText(IDOK, CTSTRING(OK));
 			

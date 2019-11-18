@@ -151,7 +151,7 @@ ConnectionManager::ConnectionManager() : m_floodCounter(0), server(nullptr),
 	nmdcFeatures.push_back(UserConnection::FEATURE_TTHL);
 	nmdcFeatures.push_back(UserConnection::FEATURE_TTHF);
 #ifdef SMT_ENABLE_FEATURE_BAN_MSG
-	nmdcFeatures.push_back(UserConnection::FEATURE_BANMSG); // !SMT!-B
+	nmdcFeatures.push_back(UserConnection::FEATURE_BANMSG);
 #endif
 	adcFeatures.reserve(4);
 	adcFeatures.push_back("AD" + UserConnection::FEATURE_ADC_BAS0);
@@ -159,7 +159,7 @@ ConnectionManager::ConnectionManager() : m_floodCounter(0), server(nullptr),
 	adcFeatures.push_back("AD" + UserConnection::FEATURE_ADC_TIGR);
 	adcFeatures.push_back("AD" + UserConnection::FEATURE_ADC_BZIP);
 	
-	TimerManager::getInstance()->addListener(this); // [+] IRainman fix.
+	TimerManager::getInstance()->addListener(this);
 	ClientManager::getInstance()->addListener(this);
 }
 ConnectionManager::~ConnectionManager()
@@ -491,7 +491,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 		CFlyReadLock(*g_csDownloads);
 		uint16_t l_attempts = 0;
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
-		l_idlers.swap(m_checkIdle); // [!] IRainman opt: use swap.
+		l_idlers.swap(m_checkIdle);
 #endif
 		for (auto i = g_downloads.cbegin(); i != g_downloads.cend() && !ClientManager::isBeforeShutdown(); ++i)
 		{
@@ -1035,7 +1035,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		const auto l_tick = GET_TICK();
 #ifdef _DEBUG
 		const string l_server_lower = Text::toLowerFast(aIPServer);
-		dcassert(l_server_lower == aIPServer);
+		//dcassert(l_server_lower == aIPServer);
 #endif
 		// boost::system::error_code ec;
 		// const auto l_ip = boost::asio::ip::address_v4::from_string(aIPServer, ec);
@@ -1161,7 +1161,7 @@ void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, uin
 		return;
 	}
 	
-	UserConnection* uc = getConnection(true, secure); // [!] IRainman fix SSL connection on NMDC(S) hubs.
+	UserConnection* uc = getConnection(true, secure);
 	uc->setServerPort(aIPServer + ':' + Util::toString(aPort)); // CTM2HUB
 	uc->setUserConnectionToken(aNick); // “окен = ник?
 	uc->setHubUrl(hubUrl);
@@ -1695,7 +1695,7 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 		if (i != g_downloads.cend())
 		{
 			(*i)->setErrors(0);
-			if ((*i)->getConnectionQueueToken() == l_token) // TODO - мутоное место Ќик с рандомным числом никогда ведь не могут быть равны?
+			if ((*i)->getConnectionQueueToken() == l_token)
 			{
 				down = true;
 			}
@@ -1703,11 +1703,11 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 			{
 				down = false;
 #ifdef IRAINMAN_CONNECTION_MANAGER_TOKENS_DEBUG
-				dcassert(0); // [+] IRainman fix: download token mismatch.
+				dcassert(0);
 #endif
 			}
 		}
-		else // [!] IRainman fix: check tokens for upload connections.
+		else
 #ifndef IRAINMAN_CONNECTION_MANAGER_TOKENS_DEBUG
 		{
 			down = false;
@@ -1727,7 +1727,7 @@ void ConnectionManager::on(AdcCommand::INF, UserConnection* aSource, const AdcCo
 				else
 				{
 					down = false;
-					dcassert(0); // [!] IRainman fix: upload token mismatch.
+					dcassert(0);
 				}
 			}
 			else
@@ -1870,7 +1870,7 @@ void ConnectionManager::disconnect(const UserPtr& aUser)
 	}
 }
 
-void ConnectionManager::disconnect(const UserPtr& aUser, bool isDownload) // [!] IRainman fix.
+void ConnectionManager::disconnect(const UserPtr& aUser, bool isDownload)
 {
 	CFlyReadLock(*g_csConnection);
 	for (auto i = g_userConnections.cbegin(); i != g_userConnections.cend(); ++i)
@@ -1961,7 +1961,7 @@ void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* p_c
 	}
 }
 
-// !SMT!-S
+
 void ConnectionManager::setUploadLimit(const UserPtr& aUser, int lim)
 {
 	CFlyReadLock(*g_csConnection);

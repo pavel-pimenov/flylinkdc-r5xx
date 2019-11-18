@@ -24,8 +24,6 @@
 PropPage::TextItem ToolbarPage::texts[] =
 {
 	{ IDC_MOUSE_OVER, ResourceManager::SETTINGS_MOUSE_OVER },
-	//{ IDC_IMAGEBROWSE, ResourceManager::BROWSE }, // [~] JhaoDa, not necessary any more
-	//{ IDC_HOTBROWSE, ResourceManager::BROWSE }, // [~] JhaoDa, not necessary any more
 	{ IDC_NORMAL, ResourceManager::SETTINGS_NORMAL },
 	{ IDC_TOOLBAR_IMAGE_BOX, ResourceManager::SETTINGS_TOOLBAR_IMAGE },
 	{ IDC_TOOLBAR_ADD, ResourceManager::SETTINGS_TOOLBAR_ADD },
@@ -69,10 +67,6 @@ LRESULT ToolbarPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	
 	for (int i = -1; i < 0 || g_ToolbarButtons[i].id != 0; i++)
 	{
-// [-] brain-ripper
-// follow block commented,
-// it can brake custom toolbar creation.
-// don't do this!
 		makeItem(&lvi, i);
 		lvi.iItem = i + 1;
 		m_ctrlCommands.InsertItem(&lvi);

@@ -175,7 +175,6 @@ void CompatibilityManager::detectOsSupports()
 	g_comCtlVersion = getComCtlVersionFromOS();
 }
 
-// [+] PPA
 bool CompatibilityManager::detectWine()
 {
 	const HMODULE module = GetModuleHandle(_T("ntdll.dll"));
@@ -808,7 +807,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 WORD CompatibilityManager::getDllPlatform(const string& fullpath)
 {
 	WORD bRet = IMAGE_FILE_MACHINE_UNKNOWN;
-	PLOADED_IMAGE imgLoad = ::ImageLoad(Text::fromUtf8(fullpath).c_str(), Util::emptyString.c_str()); // TODO: IRainman: I don't know to use unicode here, Windows sucks.
+	PLOADED_IMAGE imgLoad = ::ImageLoad(Text::fromUtf8(fullpath).c_str(), Util::emptyString.c_str());
 	if (imgLoad && imgLoad->FileHeader)
 	{
 		bRet = imgLoad->FileHeader->FileHeader.Machine;
@@ -825,10 +824,8 @@ void CompatibilityManager::reduceProcessPriority()
 {
 	if (!g_oldPriorityClass || g_oldPriorityClass == GetPriorityClass(GetCurrentProcess()))
 	{
-		// TODO: refactoring this code to use step-up and step-down of the process priority change.
 		g_oldPriorityClass = GetPriorityClass(GetCurrentProcess());
 		SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
-		// [-] SetProcessWorkingSetSize(GetCurrentProcess(), -1, -1); [-] IRainman: this memory "optimization" for lemmings only.
 	}
 }
 

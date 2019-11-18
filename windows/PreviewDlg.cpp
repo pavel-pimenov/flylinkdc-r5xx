@@ -37,7 +37,6 @@ LRESULT PreviewDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	l_def_text += _T("\r\nDefault: ") + Text::toT(l_ext);
 	SetDlgItemText(IDC_PREV_EXT, l_def_text.c_str());
 	
-	//SetDlgItemText(IDC_PREVIEW_BROWSE, CTSTRING(BROWSE)); // [~] JhaoDa, not necessary any more
 	SetDlgItemText(IDCANCEL, CTSTRING(CANCEL));
 	SetDlgItemText(IDOK, CTSTRING(OK));
 	

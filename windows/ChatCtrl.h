@@ -42,14 +42,11 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 #ifdef IRAINMAN_INCLUDE_SMILE
 	, public IRichEditOleCallback
 #endif
-#ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
-#endif
 {
 		typedef ChatCtrl thisClass;
 	protected:
-		string m_HubHint; // !SMT!-S [!] IRainman fix TODO.
-		static bool isOnline(const Client* client, const tstring& aNick); // !SMT!-S [!] IRainman opt: add client!
+		string m_HubHint;
+		static bool isOnline(const Client* client, const tstring& aNick);
 		
 		bool m_boAutoScroll;
 #ifdef IRAINMAN_INCLUDE_SMILE
@@ -180,13 +177,12 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		void SetAutoScroll(bool boAutoScroll);
 		
 		void setHubParam(const string& sUrl, const string& sNick);
-		const string& getHubHint() const// [+] IRainman fix.
+		const string& getHubHint() const
 		{
 			return m_HubHint;
 		}
 	public:
-		// [~] IRainman fix, todo replace to tstring?
-		void Clear() // [+] IRainman fix.
+		void Clear()
 		{
 			SetWindowText(Util::emptyStringT.c_str());
 			m_URLMap.clear();
@@ -203,14 +199,14 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 		static tstring g_sSelectedUserName;
 		static tstring g_sSelectedURL;
 	private:
-		CAtlString m_MyNickLower; // [+] IRainman fix, todo replace to tstring?
+		CAtlString m_MyNickLower;
 		typedef pair<int, tstring> TURLPair;
 		std::list<TURLPair> m_URLMap;
 		const tstring& get_URL(ENLINK* p_EL) const;
 		const tstring& get_URL(const long lBegin/*, const long lEnd*/) const;
 		tstring get_URL_RichEdit(ENLINK* p_EL) const;
 	public:
-		static bool isGoodNickBorderSymbol(TCHAR ch); // [+] SSA
+		static bool isGoodNickBorderSymbol(TCHAR ch);
 	protected:
 #ifdef IRAINMAN_INCLUDE_SMILE
 		volatile LONG m_Ref;

@@ -150,17 +150,17 @@ class SimpleXML
 			}
 			return l_value;
 		}
-		int getInt64ChildAttrib(const string& aName, const string& aDefault) const // [+] IRainman fix.
+		int getInt64ChildAttrib(const string& aName, const string& aDefault) const
 		{
 			checkChildSelected();
 			return Util::toInt64(getChildAttrib(aName, aDefault));
 		}
-		int getInt64ChildAttrib(const string& aName) const // [+] IRainman fix.
+		int getInt64ChildAttrib(const string& aName) const
 		{
 			checkChildSelected();
 			return Util::toInt64(getChildAttrib(aName));
 		}
-		string getChildAttribTrim(const string& aName, const string& aDefault = Util::emptyString) const //[+]PPA
+		string getChildAttribTrim(const string& aName, const string& aDefault = Util::emptyString) const
 		{
 			string l_trim_val = getChildAttrib(aName, aDefault);
 			boost::algorithm::trim(l_trim_val);
@@ -171,7 +171,7 @@ class SimpleXML
 		                           T& aCollection,
 		                           std::function<void(const string&)> inserter,
 		                           bool p_check_dup = true
-		                          ) const // [+] IRainman
+		                          ) const
 		{
 			string l_value = getChildAttrib(aName);
 			const StringTokenizer<string> tokinizer(l_value, ',');
@@ -240,7 +240,7 @@ class SimpleXML
 			}
 			return str;
 		}
-		inline static const string& escapeForce(const string& p_str, string& p_tmp) //[+]PPA
+		inline static const string& escapeForce(const string& p_str, string& p_tmp)
 		{
 			p_tmp = p_str;
 			return escape(p_tmp, true);
@@ -265,7 +265,7 @@ class SimpleXML
 	private:
 		class Tag
 #ifdef _DEBUG
-			: boost::noncopyable // [+] IRainman fix.
+			: boost::noncopyable
 #endif
 		{
 			public:

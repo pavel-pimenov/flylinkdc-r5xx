@@ -44,8 +44,8 @@ class FavHubProperties : public CDialogImpl<FavHubProperties>
 		COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDC_CLIENT_ID, OnChangeId)
-		COMMAND_ID_HANDLER(IDC_WIZARD_NICK_RND, onRandomNick)   // [+] SSA - random Nick
-		COMMAND_ID_HANDLER(IDC_WIZARD_NICK_RND2, onDefaultNick) // [+] SCALOlaz - set Nick from Global Settings
+		COMMAND_ID_HANDLER(IDC_WIZARD_NICK_RND, onRandomNick)
+		COMMAND_ID_HANDLER(IDC_WIZARD_NICK_RND2, onDefaultNick)
 		END_MSG_MAP()
 		
 		LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);

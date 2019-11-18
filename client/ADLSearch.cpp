@@ -65,7 +65,7 @@ ADLSearch::SourceType ADLSearch::StringToSourceType(const string& s)
 
 const string& ADLSearch::SourceTypeToString(SourceType t)
 {
-	// [!] IRainman fix: is its static data;
+
 	switch (t)
 	{
 		default:
@@ -127,7 +127,6 @@ ADLSearch::SizeType ADLSearch::StringToSizeType(const string& s)
 
 const string& ADLSearch::SizeTypeToString(SizeType t)
 {
-	// [!] IRainman fix: is its static data;
 	switch (t)
 	{
 		case SizeKiloBytes:
@@ -492,7 +491,7 @@ void ADLSearchManager::matchesFile(DestDirList& destDirVector, DirectoryListing:
 			{
 				try
 				{
-					QueueManager::getInstance()->add(0,/* [-] IRainman needs for support download to specify extension dir. SETTING(DOWNLOAD_DIRECTORY) + */currentFile->getName(),
+					QueueManager::getInstance()->add(0, currentFile->getName(),
 					                                 currentFile->getSize(), currentFile->getTTH(), getUser()/*, Util::emptyString*/);
 				}
 				catch (const Exception& e)

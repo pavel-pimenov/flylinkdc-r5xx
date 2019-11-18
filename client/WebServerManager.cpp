@@ -558,7 +558,6 @@ string WebServerManager::getDLQueue()
 	                                         "<input class=button type=submit name=dqueue value='" + STRING(REMOVE2) + "' onclick=\"return confirm('" + STRING(REALLY_REMOVE) + "')\" /></form></td>\n" + \
 	                                         "</tr>\n";
 	                                         
-	// [!] IRainman fix. TODO.
 	string ret_select;
 	QueueManager::LockFileQueueShared l_fileQueue;
 	const auto& li = l_fileQueue.getQueueL();
@@ -888,7 +887,6 @@ int WebServerSocket::run()
 						string tmpL = Util::encodeURI(m["link"], true);
 						if ((start = tmpL.find('?')) != string::npos)
 						{
-							// IRainman TODO: please refactoring me after rewrite magnet parsing mechanism.
 							string arg = tmpL.substr(start + 1);
 							tmpL = tmpL.substr(0, start);
 							StringMap Link = getArgs(arg);
@@ -948,13 +946,12 @@ int WebServerSocket::run()
 						ShareManager::getInstance()->setDirty();
 						ShareManager::getInstance()->setPurgeTTH();
 						ShareManager::getInstance()->refresh_share(true);
-						LogManager::message(STRING(PURGE_TTH_DATABASE)); //[!]NightOrion(translate)
+						LogManager::message(STRING(PURGE_TTH_DATABASE));
 					}
 					if (!m["webss"].empty() && !m["websps"].empty() &&
 					        !m["upspeed"].empty() && !m["downspeed"].empty() &&
 					        !m["upspeedt"].empty() && !m["downspeedt"].empty())
 					{
-						// [!] IRainman SpeedLimiter: to work correctly, you must first set the upload speed, and only then download speed!
 						SET_SETTING(MAX_UPLOAD_SPEED_LIMIT_NORMAL, Util::toInt(m["upspeed"]));
 						SET_SETTING(MAX_UPLOAD_SPEED_LIMIT_TIME, Util::toInt(m["upspeedt"]));
 						SET_SETTING(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL, Util::toInt(m["downspeed"]));
@@ -1001,7 +998,7 @@ void WebServerManager::search(string p_search_str, Search::TypeModes p_search_ty
 		}
 		if (p_search_type == Search::TYPE_TTH)
 		{
-			p_search_str = g_tth + p_search_str; // [!] IRainman opt.
+			p_search_str = g_tth + p_search_str;
 		}
 		
 		m_search_token = Util::rand();

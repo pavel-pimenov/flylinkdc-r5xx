@@ -28,13 +28,11 @@
 #endif // IRAINMAN_INCLUDE_SMILE
 
 static const TCHAR g_BadUrlSymbol[] = { _T(' '), _T('\"'), _T('<'), _T('>'),
-                                        _T('['), _T(']') // TODO used in BB codes, needs refactoring
-                                        /* _T('^'),_T('`'),_T('{'),_T('|'),_T('}'),_T('*'),_T('\'')*/
-                                      };// [+]IRainman http://ru.wikipedia.org/wiki/Url
-static const TCHAR g_GoodBorderNickSymbol[] = { _T(' '), _T('\"'), _T('<'), _T('>'),/* _T('['), _T(']'),*/
+                                        _T('['), _T(']')
+                                      };
+static const TCHAR g_GoodBorderNickSymbol[] = { _T(' '), _T('\"'), _T('<'), _T('>'),
                                                 _T(','), _T('.'),  _T('('), _T(')'), _T('!'), _T('?'),
-                                                _T('*'), _T(':'),  _T(';'), _T('%'), _T('+'), _T('-')/*,
-                                                _T('_')*/
+                                                _T('*'), _T(':'),  _T(';'), _T('%'), _T('+'), _T('-')
                                               };
 
 static const Tags g_AllLinks[] =
@@ -124,7 +122,7 @@ void ChatCtrl::Initialize()
 
 void ChatCtrl::AdjustTextSize()
 {
-	// [!] IRainman fix.
+
 	const auto l_cur_size = GetWindowTextLength();
 	const auto l_overhead = l_cur_size - SETTING(CHATBUFFERSIZE);
 	if (l_overhead > 1000)
@@ -145,7 +143,7 @@ void ChatCtrl::AdjustTextSize()
 		LogManager::message("ChatCtrl::AdjustTextSize() l_cur_size = " + Util::toString(l_cur_size) + " delta = " + Util::toString(l_cur_size - l_new_size));
 #endif
 	}
-	// [~] IRainman fix.
+	
 }
 //================================================================================================================================
 ChatCtrl::CFlyChatCache::CFlyChatCache(const Identity& p_id, const bool bMyMess, const bool bThirdPerson,
@@ -520,12 +518,10 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 	CAtlString sMsgLower(WinUtil::toAtlString(sText));
 	sMsgLower.MakeLower();
 	
-	//[!]IRainman optimize
 	lSelEnd = GetTextLengthEx(GTL_NUMCHARS); // Часто встречается GetTextLengthEx(GTL_NUMCHARS)
 	SetSel(lSelBegin, lSelEnd);
 	auto cfTemp = p_message.m_bMyMess ? Colors::g_ChatTextMyOwn : p_message.m_cf;
 	SetSelectionCharFormat(cfTemp);
-	//[~]IRainman optimize
 	
 	if ((p_message.m_isRealUser || BOOLSETTING(FORMAT_BOT_MESSAGE))
 	   )
@@ -536,7 +532,7 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 	
 	AppendTextParseURL(sMsgLower, p_message, lSelBegin);
 	
-	if (p_message.m_Nick.empty()) // [+] IRainman fix.
+	if (p_message.m_Nick.empty())
 	{
 		return;
 	}
@@ -550,13 +546,11 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 		lMyNickStart = sMsgLower.Find(m_MyNickLower, lSearchFrom);
 		if (lMyNickStart < 0)
 			break;
-		// [!] SSA - get Previous symbol.
 		if (lMyNickStart > 0 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickStart - 1)))
 			break;
 			
 		lMyNickEnd = lMyNickStart + m_MyNickLower.GetLength();
 		
-		// [!] SSA - get Last symbol.
 		if (lMyNickEnd < sMsgLower.GetLength() - 1 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickEnd)))
 			break;
 			
@@ -586,13 +580,11 @@ void ChatCtrl::AppendTextOnly(const tstring& sText, const CFlyChatCacheTextOnly&
 				lMyNickStart = sMsgLower.Find(sNick, lSearchFrom);
 				if (lMyNickStart < 0)
 					break; // TODO не понятно зачем грузить список ников из фаворитов чтобы при первом ошибочном поиске выйти из цикла!
-				// [!] SSA - get Previous symbol.
 				if (lMyNickStart > 0 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickStart - 1)))
 					break;
 					
 				lMyNickEnd = lMyNickStart + sNick.GetLength();
 				
-				// [!] SSA - get Last symbol.
 				if (lMyNickEnd < sMsgLower.GetLength() - 1 && !isGoodNickBorderSymbol(sMsgLower.GetAt(lMyNickEnd)))
 					break;
 					
@@ -618,7 +610,6 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 		while (linkStart != -1)
 		{
 			const LONG linkEndLine = sMsgLower.Find(_T('\n'), linkStart);
-			// [+]IRainman
 			LONG linkEndSpaceOrBad = linkEndLine;
 			for (size_t j = 0; j < _countof(g_BadUrlSymbol); j++)
 			{
@@ -626,7 +617,6 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 				if (temp != -1 && temp < linkEndSpaceOrBad)
 					linkEndSpaceOrBad = temp;
 			}
-			// [~]IRainman
 			LONG linkEnd;
 			if (linkEndSpaceOrBad != -1)
 			{
@@ -636,12 +626,12 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 			{
 				linkEnd = _tcslen(sMsgLower); //-V103
 			}
-            dcassert(linkEnd > linkStart);
-            if (linkStart >= linkEnd)
-            {
-                return;
-            }
-            ls.resize(linkEnd - linkStart); //-V106
+			dcassert(linkEnd > linkStart);
+			if (linkStart >= linkEnd)
+			{
+				return;
+			}
+			ls.resize(linkEnd - linkStart); //-V106
 			SetSel(lSelBegin + linkStart, lSelBegin + linkEnd);
 			GetTextRange(lSelBegin + linkStart, lSelBegin + linkEnd, &ls[0]); // TODO проверить результат?
 			tstring originalLink = ls;
@@ -665,8 +655,8 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 						_T("kt="), // (Keyword Topic) - Key words for search
 						_T("mt="), // (Manifest Topic) - link to the metafile that contains a list of magneto (MAGMA - MAGnet MAnifest)
 						_T("tr="), // (address TRacker) - Tracker URL for BitTorrent downloads
-						_T("x.video="), // (Run video on preview) [!] SSA
-						_T("video="), // (Run video on preview) [!] SSA
+						_T("x.video="), // (Run video on preview)
+						_T("video="), // (Run video on preview)
 						_T("x.do"), // (Description Online URL) - Web link to the Description online
 					};
 					tstring temp = originalLink;
@@ -756,7 +746,7 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 					tstring sDispLine = ls;
 					int64_t dlsize = -1;
 					if (getParamether(_T("dl="), sDispLine))
-						dlsize = Util::toInt64(sDispLine); // [+] Scalolaz get DCLST size (Display Length) if isset/required //-V106
+						dlsize = Util::toInt64(sDispLine);
 						
 					ls = sFileName;
 					ls += _T(" (");
@@ -764,7 +754,7 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 					{
 						ls += Util::formatBytesW(filesize);
 						if (dlsize >= 0)
-							ls += _T(", ") + TSTRING(SETTINGS_SHARE_SIZE) + _T(' ') + Util::formatBytesW(dlsize); // [+] Scalolaz (DCLST)
+							ls += _T(", ") + TSTRING(SETTINGS_SHARE_SIZE) + _T(' ') + Util::formatBytesW(dlsize);
 					}
 					else if (filesize == 0)
 					{
@@ -794,7 +784,6 @@ void ChatCtrl::AppendTextParseURL(CAtlString& sMsgLower, const CFlyChatCacheText
 			*/
 			else
 			{
-				// [!] IRainman decode all URI!
 				string sLinkFullName;
 				Text::fromT(ls, sLinkFullName);
 				Text::toT(Util::encodeURI(sLinkFullName, true), ls);
@@ -982,7 +971,7 @@ void ChatCtrl::AppendTextParseBB(CAtlString& sMsgLower, const CFlyChatCacheTextO
 								//SetSel(rtfStart, g_StartBBTag[i].size);
 								//SetSelectionCharFormat(temp);
 							}
-							while (false);  // [!] SSA - need this to exit this block
+							while (false);
 							// TODO break;
 						}
 					}
@@ -1067,7 +1056,7 @@ bool ChatCtrl::HitNick(const POINT& p, tstring& sNick, int& iBegin, int& iEnd, c
 	else
 	{
 		const auto l_client = ClientManager::findClient(getHubHint());
-		if (!l_client) // [+] IRainman opt.
+		if (!l_client)
 			return false;
 			
 		if (isOnline(l_client, sN)) // [12] https://www.box.net/shared/1e2dd39bf1225b30d0f6
@@ -1085,7 +1074,7 @@ bool ChatCtrl::HitNick(const POINT& p, tstring& sNick, int& iBegin, int& iEnd, c
 		if (iCRLF > 1)
 		{
 			sN = sText.substr(iLeft, iCRLF - 1);
-			if (isOnline(l_client, sN))  // !SMT!-S
+			if (isOnline(l_client, sN))
 			{
 				sNick = sN;
 				iBegin = lSelBegin + iLeft; //-V104 //-V103
@@ -1094,7 +1083,7 @@ bool ChatCtrl::HitNick(const POINT& p, tstring& sNick, int& iBegin, int& iEnd, c
 			}
 			
 			sN = sText.substr(iLeft + 1, iCRLF - 1);
-			if (isOnline(l_client, sN))  // !SMT!-S
+			if (isOnline(l_client, sN))
 			{
 				sNick = sN;
 				iBegin = lSelBegin + iLeft + 1; //-V104 //-V103
@@ -1103,7 +1092,7 @@ bool ChatCtrl::HitNick(const POINT& p, tstring& sNick, int& iBegin, int& iEnd, c
 			}
 			
 			sN = sText.substr(iLeft + 1, iCRLF - 2);
-			if (isOnline(l_client, sN))  // !SMT!-S
+			if (isOnline(l_client, sN))
 			{
 				sNick = sN;
 				iBegin = lSelBegin + iLeft + 1; //-V104 //-V103
@@ -1263,9 +1252,6 @@ LRESULT ChatCtrl::OnRButtonDown(POINT pt, const UserPtr& user /*= nullptr*/)
 	return 1;
 }
 
-//[+] sergiy.karasov
-//отключение автоскролла в окне чата при вращении колеса мыши вверх
-//влючать автоскролл либо в меню (по правому клику), либо проскроллировав (колесом мыши) до самого низа
 LRESULT ChatCtrl::onMouseWheel(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	RECT rc;
@@ -1304,8 +1290,6 @@ LRESULT ChatCtrl::onMouseWheel(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL
 	return 1;
 }
 
-//[+] sergiy.karasov
-//фикс управления прокруткой окна чата при изменении размеров окна передач
 LRESULT ChatCtrl::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	if (wParam != SIZE_MINIMIZED && HIWORD(lParam) > 0)
@@ -1313,9 +1297,6 @@ LRESULT ChatCtrl::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHan
 		{
 			CHARRANGE l_cr;
 			GetSel(l_cr);
-			// [!] IRainman fix: 0 is valid value! Details http://msdn.microsoft.com/ru-ru/library/1z3s90k4(v=vs.90).aspx
-			// [-] if (l_cr.cpMax > 0 && l_cr.cpMin > 0) //[+]PPA
-			// [~]
 			{
 				SetSel(GetTextLengthEx(GTL_NUMCHARS), -1);
 				ScrollCaret(); // [1] https://www.box.net/shared/qve5a2y5gcg2sopjbpd5
@@ -1456,13 +1437,13 @@ LRESULT ChatCtrl::onEditSelectAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
 LRESULT ChatCtrl::onEditClearAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	Clear(); // [!] IRainman fix.
+	Clear();
 	return 0;
 }
-// !SMT!-S
+
 bool ChatCtrl::isOnline(const Client* client, const tstring& aNick)
 {
-	return client->findUser(Text::fromT(aNick)) != nullptr;// [!] IRainman opt.
+	return client->findUser(Text::fromT(aNick)) != nullptr;
 }
 
 bool ChatCtrl::isGoodNickBorderSymbol(const TCHAR ch)
@@ -1610,7 +1591,7 @@ void ChatCtrl::setHubParam(const string& sUrl, const string& sNick)
 	{
 		m_MyNickLower = _T("");
 	}
-	m_HubHint = sUrl;    // !SMT!-S
+	m_HubHint = sUrl;
 }
 
 #endif // IRAINMAN_INCLUDE_SMILE

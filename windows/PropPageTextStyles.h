@@ -44,11 +44,11 @@ class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public Pro
 		COMMAND_HANDLER(IDC_RESET_TAB_COLOR, BN_CLICKED, onClickedResetTabColor)
 		COMMAND_HANDLER(IDC_SELECT_TAB_COLOR, BN_CLICKED, onClientSelectTabColor)
 		COMMAND_HANDLER(IDC_THEME_COMBO2, CBN_SELCHANGE, onImport)
-		COMMAND_ID_HANDLER(IDC_BAN_COLOR, onSelectColor) // !necros! [~]NSl
-		COMMAND_ID_HANDLER(IDC_DUPE_COLOR, onSelectColor) // !necros! [~]NSl
-		COMMAND_ID_HANDLER(IDC_DUPE_EX1, onSelectColor)//[+]NSL
-		COMMAND_ID_HANDLER(IDC_DUPE_EX2, onSelectColor) //[+]NSL
-		COMMAND_ID_HANDLER(IDC_DUPE_EX3, onSelectColor) //[+]NSL
+		COMMAND_ID_HANDLER(IDC_BAN_COLOR, onSelectColor)
+		COMMAND_ID_HANDLER(IDC_DUPE_COLOR, onSelectColor)
+		COMMAND_ID_HANDLER(IDC_DUPE_EX1, onSelectColor)
+		COMMAND_ID_HANDLER(IDC_DUPE_EX2, onSelectColor)
+		COMMAND_ID_HANDLER(IDC_DUPE_EX3, onSelectColor)
 		
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		CHAIN_MSG_MAP(PropPage)
@@ -72,7 +72,7 @@ class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public Pro
 		LRESULT onClientSelectTabColor(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 		LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
-		LRESULT onSelectColor(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/); // [+]NSL
+		LRESULT onSelectColor(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 		void onResetColor(int i);
 		
@@ -149,7 +149,7 @@ class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public Pro
 		COLORREF m_ForeColor;
 		COLORREF fg, bg;//, err, alt;
 		
-		CListBox ctrlTabList; //[~] JhaoDa
+		CListBox ctrlTabList;
 		
 		CButton cmdResetTab;
 		CButton cmdSetTabColor;
@@ -159,7 +159,7 @@ class PropPageTextStyles: public CPropertyPage<IDD_TEXT_STYLES_PAGE>, public Pro
 		typedef pair<wstring, string> ThemePair;
 		CComboBox ctrlTheme;
 		ColorThemeMap m_ThemeList;
-		void GetThemeList();    // < [+] SCALOlaz
+		void GetThemeList();
 };
 
 #endif // _PROP_PAGE_TEXT_STYLES_H_

@@ -37,7 +37,7 @@ const string UserConnection::FEATURE_ADC_BASE = "BASE";
 const string UserConnection::FEATURE_ADC_BZIP = "BZIP";
 const string UserConnection::FEATURE_ADC_TIGR = "TIGR";
 #ifdef SMT_ENABLE_FEATURE_BAN_MSG
-const string UserConnection::FEATURE_BANMSG = "BanMsg"; // !SMT!-B
+const string UserConnection::FEATURE_BANMSG = "BanMsg";
 #endif
 
 const string UserConnection::g_FILE_NOT_AVAILABLE = "File Not Available";
@@ -256,7 +256,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		if (param.compare(0, g_FILE_NOT_AVAILABLE.size(), g_FILE_NOT_AVAILABLE) == 0 ||
 		        param.rfind(/*path/file*/" no more exists") != string::npos)
 		{
-			// [+] SSA
+		
 			if (getDownload()) // Не понятно почему падаю тут - https://drdump.com/Problem.aspx?ProblemID=96544
 			{
 				if (getDownload()->isSet(Download::FLAG_USER_GET_IP)) // Crash https://drdump.com/Problem.aspx?ClientID=guest&ProblemID=90376
@@ -589,7 +589,7 @@ void UserConnection::send(const string& aString)
 	socket->write(aString);
 }
 
-// !SMT!-S
+
 void UserConnection::setUser(const UserPtr& aUser)
 {
 	m_hintedUser.user = aUser;

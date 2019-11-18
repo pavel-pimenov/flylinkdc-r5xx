@@ -22,7 +22,7 @@
 
 SettingsManager * g_settings;
 
-PropPage::TextItem EmptyPage::texts[] = // [+] IRainman HE
+PropPage::TextItem EmptyPage::texts[] =
 {
 	{ IDC_FUNCTIONAL_IS_DISABLED, ResourceManager::THIS_FUNCTIONAL_IS_DISABLED },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
@@ -35,7 +35,7 @@ void PropPage::read(HWND page, Item const* items, ListItem* listItems /* = NULL 
 #endif
 	dcassert(page != NULL);
 	
-	if (items != NULL) // [+] SSA
+	if (items != NULL)
 	{
 		bool const useDef = true;
 		for (Item const* i = items; i->type != T_END; i++)
@@ -112,9 +112,9 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 #endif
 	dcassert(page != NULL);
 	
-	bool l_showUserWarning = false;// [+] IRainman
+	bool l_showUserWarning = false;
 	
-	if (items != NULL) // [+] SSA
+	if (items != NULL)
 	{
 		for (Item const* i = items; i->type != T_END; ++i)
 		{
@@ -124,14 +124,14 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 				case T_STR:
 				{
 					WinUtil::GetDlgItemText(page, i->itemID, buf);
-					l_showUserWarning |= g_settings->set(SettingsManager::StrSetting(i->setting), Text::fromT(buf));// [!] IRainman
+					l_showUserWarning |= g_settings->set(SettingsManager::StrSetting(i->setting), Text::fromT(buf));
 					// Crash https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=78416
 					break;
 				}
 				case T_INT:
 				{
 					WinUtil::GetDlgItemText(page, i->itemID, buf);
-					l_showUserWarning |= g_settings->set(SettingsManager::IntSetting(i->setting), Util::toInt(buf));// [!] IRainman
+					l_showUserWarning |= g_settings->set(SettingsManager::IntSetting(i->setting), Util::toInt(buf));
 					break;
 				}
 				case T_BOOL:
@@ -143,9 +143,9 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 						throw;
 					}
 					if (::IsDlgButtonChecked(page, i->itemID) == BST_CHECKED)
-						l_showUserWarning |= g_settings->set(SettingsManager::IntSetting(i->setting), true);// [!] IRainman
+						l_showUserWarning |= g_settings->set(SettingsManager::IntSetting(i->setting), true);
 					else
-						l_showUserWarning |= g_settings->set((SettingsManager::IntSetting)i->setting, false);// [!] IRainman
+						l_showUserWarning |= g_settings->set((SettingsManager::IntSetting)i->setting, false);
 					break;
 				}
 				case T_END:
@@ -162,7 +162,7 @@ void PropPage::write(HWND page, Item const* items, ListItem* listItems /* = NULL
 		
 		for (int i = 0; listItems[i].setting != 0; i++)
 		{
-			l_showUserWarning |= SET_SETTING(IntSetting(listItems[i].setting), ctrl.GetCheckState(i));// [!] IRainman
+			l_showUserWarning |= SET_SETTING(IntSetting(listItems[i].setting), ctrl.GetCheckState(i));
 		}
 		
 		ctrl.Detach();
@@ -199,7 +199,7 @@ LRESULT PropPage::OnCtlColorDlg(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 {
 	if (BOOLSETTING(SETTINGS_WINDOW_COLORIZE))
 	{
-		m_hDialogBrush = CreateSolidBrush(Colors::g_bgColor /*GetSysColor(COLOR_BTNFACE)*/); // [!] IRainman fix.
+		m_hDialogBrush = CreateSolidBrush(Colors::g_bgColor /*GetSysColor(COLOR_BTNFACE)*/);
 		return LRESULT(m_hDialogBrush);
 	}
 	else

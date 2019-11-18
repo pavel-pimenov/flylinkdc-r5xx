@@ -67,8 +67,8 @@ class QueueManagerListener
 		virtual void on(Moved, const QueueItemPtr&, const string&) noexcept { }
 		virtual void on(TargetsUpdated, const StringList&) noexcept { }
 		virtual void on(StatusUpdated, const QueueItemPtr&) noexcept { }
-		virtual void on(Tick, const QueueItemList&) noexcept { } // [+] IRainman opt.
-		virtual void on(StatusUpdatedList, const QueueItemList&) noexcept { } // [+] IRainman opt.
+		virtual void on(Tick, const QueueItemList&) noexcept { };
+		virtual void on(StatusUpdatedList, const QueueItemList&) noexcept { };
 		virtual void on(PartialList, const HintedUser&, const string&) noexcept { }
 		
 		virtual void on(RecheckStarted, const string&) noexcept { }

@@ -87,7 +87,6 @@ class BaseThread
 #  define DEBUG_WAITS(waitTime)
 # endif // TRACING_LONG_WAITS
 #endif
-// [~] IRainman fix.
 
 class Thread : public BaseThread
 #ifdef _DEBUG
@@ -95,7 +94,7 @@ class Thread : public BaseThread
 #endif
 {
 	public:
-		// [+] IRainman fix.
+	
 		static void sleepWithSpin(unsigned int& spin)
 		{
 			if (spin)
@@ -184,7 +183,7 @@ class Thread : public BaseThread
 				volatile long& m_condition;
 		};
 #endif // _DEBUG        
-		// [~] IRainman fix.
+		
 		explicit Thread() : m_threadHandle(INVALID_HANDLE_VALUE) { }
 		virtual ~Thread()
 		{
@@ -343,7 +342,7 @@ class CriticalSection
 		}
 		explicit CriticalSection()
 		{
-			const auto l_result = InitializeCriticalSectionAndSpinCount(&cs, CRITICAL_SECTION_SPIN_COUNT); // [!] IRainman: InitializeCriticalSectionAndSpinCount
+			const auto l_result = InitializeCriticalSectionAndSpinCount(&cs, CRITICAL_SECTION_SPIN_COUNT);
 			if (l_result == 0)
 			{
 				dcassert(l_result);
@@ -359,7 +358,6 @@ class CriticalSection
 		CRITICAL_SECTION cs;
 };
 
-// [+] IRainman fix: detect spin lock recursive entry
 #ifdef _DEBUG
 # define SPIN_LOCK_TRACE_RECURSIVE_ENTRY
 # ifdef SPIN_LOCK_TRACE_RECURSIVE_ENTRY
@@ -382,7 +380,7 @@ class CriticalSection
 #  define DEBUG_SPIN_LOCK_ERASE()
 # endif // SPIN_LOCK_TRACE_RECURSIVE_ENTRY
 #endif // _DEBUG
-// [~] IRainman fix.
+
 
 #ifdef IRAINMAN_USE_SPIN_LOCK
 
@@ -419,14 +417,14 @@ class FastCriticalSection
 		{
 			dcdrun(DEBUG_SPIN_LOCK_INSERT());
 #ifdef _DEBUG
-			Thread::waitLockState(m_state, m_use_log); // [!] IRainman fix.
+			Thread::waitLockState(m_state, m_use_log);
 #else
 			Thread::waitLockState(m_state);
 #endif
 		}
 		void unlock()
 		{
-			Thread::unlockState(m_state); // [!] IRainman fix.
+			Thread::unlockState(m_state);
 			dcdrun(DEBUG_SPIN_LOCK_ERASE());
 		}
 		LONG getLockCount() const
@@ -659,7 +657,7 @@ class CBaseLock
 		friend class Lock;
 		CRITICAL_SECTION m_CS;
 	public:
-		//[!] PPA Не включать. падает...
+		//[!] Не включать. падает...
 		//virtual ~CBaseLock() {} // [cppcheck]
 		void Init()
 		{

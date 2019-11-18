@@ -41,7 +41,6 @@ PropPage::Item RSSPage::items[] =
 	{ 0, 0, PropPage::T_END }
 };
 
-// При инициализации.
 LRESULT RSSPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	if (m_CodeingList.empty())
@@ -91,7 +90,6 @@ void RSSPage::write()
 	PropPage::write(*this, items);
 }
 
-// При добавлении.
 void RSSPage::addRSSEntry(const RSSFeed* rf, int pos)
 {
 	TStringList lst;
@@ -103,7 +101,7 @@ void RSSPage::addRSSEntry(const RSSFeed* rf, int pos)
 	ctrlCommands.insert(pos, lst, 0, (LPARAM)pos);
 }
 
-// При добавлении ленты.
+
 LRESULT RSSPage::onAddFeed(WORD, WORD, HWND, BOOL&)
 {
 	RSS_SetFeedDlg dlg;
@@ -117,7 +115,6 @@ LRESULT RSSPage::onAddFeed(WORD, WORD, HWND, BOOL&)
 	return 0;
 }
 
-// [+] InfinitySky. Активируем неактивные кнопки.
 LRESULT RSSPage::onItemchangedFeeds(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
 	NM_LISTVIEW* lv = (NM_LISTVIEW*) pnmh;
@@ -126,7 +123,6 @@ LRESULT RSSPage::onItemchangedFeeds(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandl
 	return 0;
 }
 
-// [+] InfinitySky. Управление клавишами. При нажатии клавиши.
 LRESULT RSSPage::onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
 	NMLVKEYDOWN* kd = (NMLVKEYDOWN*) pnmh;
@@ -144,7 +140,7 @@ LRESULT RSSPage::onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 	return 0;
 }
 
-// [+] InfinitySky. Управление мышью. При двойном клике.
+
 LRESULT RSSPage::onDoubleClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
 	NMITEMACTIVATE* item = (NMITEMACTIVATE*)pnmh;
@@ -161,13 +157,11 @@ LRESULT RSSPage::onDoubleClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 	return 0;
 }
 
-// При изменении.
 LRESULT RSSPage::onChangeFeed(WORD, WORD, HWND, BOOL&)
 {
 	if (ctrlCommands.GetSelectedCount() == 1)
 	{
 		int sel = ctrlCommands.GetSelectedIndex();
-		// Get RSSFeed
 		RSSFeed* feed = RSSManager::lockFeedList().at(sel);
 		if (feed)
 		{

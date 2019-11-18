@@ -35,11 +35,11 @@ PropPage::TextItem QueuePage::texts[] =
 	{ IDC_KBPS, ResourceManager::KBPS },
 	{ IDC_CHUNKCOUNT, ResourceManager::TEXT_MANUAL },
 	
-	{ IDC_ON_DOWNLOADING_SEGMENT, ResourceManager::ON_DOWNLOADING_SEGMENT },    // [+] SSA
+	{ IDC_ON_DOWNLOADING_SEGMENT, ResourceManager::ON_DOWNLOADING_SEGMENT },
 	/*      // Add Combo
-	    { IDC_ON_DOWNLOAD_ASK, ResourceManager::ON_DOWNLOAD_ASK },                  // [+] SSA
-	    { IDC_ON_DOWNLOAD_REPLACE, ResourceManager::ON_DOWNLOAD_REPLACE },          // [+] SSA
-	    { IDC_ON_DOWNLOAD_AUTORENAME, ResourceManager::ON_DOWNLOAD_AUTORENAME },    // [+] SSA
+	    { IDC_ON_DOWNLOAD_ASK, ResourceManager::ON_DOWNLOAD_ASK },
+	    { IDC_ON_DOWNLOAD_REPLACE, ResourceManager::ON_DOWNLOAD_REPLACE },
+	    { IDC_ON_DOWNLOAD_AUTORENAME, ResourceManager::ON_DOWNLOAD_AUTORENAME },
 	    { IDC_ON_DOWNLOAD_SKIP, ResourceManager::ON_DOWNLOAD_SKIP },
 	*/
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
@@ -64,16 +64,11 @@ PropPage::ListItem QueuePage::optionItems[] =
 	{ SettingsManager::SKIP_ZERO_BYTE, ResourceManager::SETTINGS_SKIP_ZERO_BYTE },
 	{ SettingsManager::SKIP_ALREADY_DOWNLOADED_FILES, ResourceManager::SETTINGS_SKIP_ALREADY_DOWNLOADED_FILES },
 	
-//[-]PPA может приводить к неполному скачиванию папки (например DVD - диска)
 	// https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1680
 	{ SettingsManager::DONT_DL_ALREADY_SHARED, ResourceManager::SETTINGS_DONT_DL_ALREADY_SHARED },
 	{ SettingsManager::DONT_DL_PREVIOUSLY_BEEN_IN_SHARE, ResourceManager::SETTINGS_DONT_DL_PREVIOUSLY_BEEN_IN_SHARE },
 	
 	
-//	{ SettingsManager::ANTI_FRAG, ResourceManager::SETTINGS_ANTI_FRAG },
-	// [-] merge
-	//{ SettingsManager::ADVANCED_RESUME, ResourceManager::SETTINGS_ADVANCED_RESUME },
-	//{ SettingsManager::ONLY_DL_TTH_FILES, ResourceManager::SETTINGS_ONLY_DL_TTH_FILES },
 	{ SettingsManager::OVERLAP_CHUNKS, ResourceManager::OVERLAP_CHUNKS },
 	{ SettingsManager::KEEP_FINISHED_FILES_OPTION, ResourceManager::KEEP_FINISHED_FILES_OPTION },
 	{ SettingsManager::REPORT_ALTERNATES, ResourceManager::REPORT_ALTERNATES },
@@ -88,11 +83,11 @@ LRESULT QueuePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	PropPage::read(*this, items, 0, 0);
 	PropPage::read(*this, items, optionItems, GetDlgItem(IDC_OTHER_QUEUE_OPTIONS));
 	
-	ctrlList.Attach(GetDlgItem(IDC_OTHER_QUEUE_OPTIONS)); // [+] IRainman
+	ctrlList.Attach(GetDlgItem(IDC_OTHER_QUEUE_OPTIONS));
 	
 	CUpDownCtrl spin;
 	spin.Attach(GetDlgItem(IDC_SEG_NUMBER_SPIN));
-	spin.SetRange32(1, 200);  //[!]PPA
+	spin.SetRange32(1, 200);
 	spin.Detach();
 	
 	spin.Attach(GetDlgItem(IDC_AUTO_SEARCH_SPIN));

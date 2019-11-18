@@ -53,10 +53,8 @@ class FileUpdateSearch
 		{
 			return _folderArray[i];
 		}
-		// [!] Needs for FlyUpdate utility!
 		const wstring GetRelativeFoldername(size_t i);
 		const wstring GetRelativeFilename(size_t i);
-		// [~] Needs for FlyUpdate utility!
 		
 	protected:
 		bool ProcessFolder(const wstring& folder);

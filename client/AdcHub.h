@@ -61,7 +61,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		static StringList parseSearchExts(int flag);
 		
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-		bool hubIsNotSupportSlot() const // [+] IRainman this function needed for Autoban working correctly
+		bool hubIsNotSupportSlot() const
 		{
 			return false;
 		}
@@ -135,11 +135,6 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		void unknownProtocol(uint32_t target, const string& protocol, const string& p_token);
 		bool secureAvail(uint32_t target, const string& protocol, const string& p_token);
 		
-		// [-] IRainman see class Client, not rewrite this!
-		//void on(Connecting) noexcept override
-		//{
-		//  fly_fire1(ClientListener::Connecting(), this);
-		//}
 		void on(Connected) noexcept override;
 		void on(Line, const string& aLine) noexcept override;
 		void on(Failed, const string& aLine) noexcept override;

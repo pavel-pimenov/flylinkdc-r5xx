@@ -49,11 +49,11 @@ class File : public IOStream
 		{
 			init(aFileName, access, mode, isAbsolutePath); // [1] https://www.box.net/shared/75247d259e1ee4eab670
 		}
-		File(const string& aFileName, int access, int mode, bool isAbsolutePath = true) // [+] IRainman opt
+		File(const string& aFileName, int access, int mode, bool isAbsolutePath = true)
 		{
 			init(Text::toT(aFileName), access, mode, isAbsolutePath);
 		}
-		void init(const tstring& aFileName, int access, int mode, bool isAbsolutePath); // [+] IRainman fix
+		void init(const tstring& aFileName, int access, int mode, bool isAbsolutePath);
 		bool isOpen() const noexcept;
 		HANDLE getHandle() const
 		{
@@ -78,17 +78,17 @@ class File : public IOStream
 		string File::getRealPath() const;
 #endif
 		
-		int64_t getLastWriteTime()const noexcept; //[+]PPA
-//		uint32_t getLastModified() const noexcept;
-
+		int64_t getLastWriteTime()const noexcept;
+		
+		
 		static uint64_t convertTime(const FILETIME* f);
 		static void copyFile(const tstring& src, const tstring& target);
-		static void copyFile(const string& src, const string& target) // [+] IRainman opt.
+		static void copyFile(const string& src, const string& target)
 		{
 			copyFile(Text::toT(src), Text::toT(target));
 		}
 		static bool renameFile(const tstring& source, const tstring& target);
-		static bool renameFile(const string& source, const string& target) // [+] IRainman opt.
+		static bool renameFile(const string& source, const string& target)
 		{
 			return renameFile(Text::toT(source), Text::toT(target));
 		}
@@ -107,7 +107,6 @@ class File : public IOStream
 		{
 			return getSize(Text::toT(aFileName));
 		}
-		// [+] Greylink
 		static int64_t getTimeStamp(const string& aFileName);
 		static int64_t getSafeTimeStamp(const string& p_FileName) noexcept
 		{
@@ -123,17 +122,13 @@ class File : public IOStream
 			return l_time_stamp;
 		}
 		static void setTimeStamp(const string& aFileName, const uint64_t stamp);
-		// [~] Greylink
 		
-		// [+] IRainman
 		static bool isExist(const tstring& aFileName) noexcept;
 		static bool isExist(const string& aFileName) noexcept
 		{
 			return isExist(Text::toT(aFileName));
 		}
-		// [~] IRainman
 		
-		//[+]FlylinkDC++ Team
 		static bool isExist(const tstring& filename, int64_t& outFileSize, int64_t& outFiletime, bool& p_is_link);
 		static bool isExist(const string& filename, int64_t& outFileSize, int64_t& outFiletime, bool& p_is_link)
 		{
@@ -141,7 +136,7 @@ class File : public IOStream
 		}
 		
 		static void ensureDirectory(const tstring& aFile);
-		static void ensureDirectory(const string& aFile)  // [+] IRainman opt.
+		static void ensureDirectory(const string& aFile)
 		{
 			ensureDirectory(Text::toT(aFile));
 		}
@@ -153,9 +148,7 @@ class File : public IOStream
 			return path.size() > 2 && (path[1] == ':' || path[0] == '/' || path[0] == '\\' || (path[0] == '\\' && path[1] == '\\'));
 		}
 		
-		// [+] IRainman FlylinkDC working with long paths
 		// http://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx#maxpath
-		// TODO сделать через шаблон
 		static string formatPath(const string& path, bool p_is_force_unc = false);
 		static tstring formatPath(const tstring& path, bool p_is_force_unc = false);
 		
@@ -187,11 +180,11 @@ class FileFindIter
 		}
 	public:
 		/** Begin iterator constructor, path in utf-8 */
-		explicit FileFindIter(const tstring& path) /* [-] IRainman: see init(). [-] : handle(INVALID_HANDLE_VALUE)*/
+		explicit FileFindIter(const tstring& path)
 		{
 			init(path);
 		}
-		explicit FileFindIter(const string& path) /* [-] IRainman: see init(). [-] handle(INVALID_HANDLE_VALUE)*/ // [+] IRainman opt
+		explicit FileFindIter(const string& path)
 		{
 			init(Text::toT(path));
 		}
@@ -201,7 +194,7 @@ class FileFindIter
 		FileFindIter& operator++();
 		bool operator!=(const FileFindIter& rhs) const;
 		
-		static const FileFindIter end; // [+] IRainman opt.
+		static const FileFindIter end;
 		
 		struct DirData
 			: public WIN32_FIND_DATA

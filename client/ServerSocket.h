@@ -39,7 +39,7 @@ class ServerSocketListener
 
 class ServerSocket : public Speaker<ServerSocketListener>
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 	public:

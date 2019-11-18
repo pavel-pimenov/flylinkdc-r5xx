@@ -43,7 +43,7 @@ int StatsFrame::columnSizes[] = { 300, 100, 100, 100 };
 static ResourceManager::Strings columnNames[] = { ResourceManager::FILE, ResourceManager::TYPE, ResourceManager::EXACT_SIZE,
                                                   ResourceManager::SIZE, ResourceManager::TTH_ROOT, ResourceManager::PATH, ResourceManager::DOWNLOADED,
                                                   ResourceManager::ADDED, ResourceManager::BITRATE
-                                                }; //TODO // !PPA!
+                                                };
 
 #endif
 StatsFrame::StatsFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), twidth(0), lastTick(MainFrame::getLastUpdateTick()), scrollTick(0),
@@ -62,11 +62,6 @@ StatsFrame::StatsFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), tw
 
 LRESULT StatsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-	// [+]IRainman
-	//DownloadManager::getInstance()->addListener(this);
-	//UploadManager::getInstance()->addListener(this);
-	// [~]IRainman
-	
 	create_timer(1000);
 	
 	SetFont(Fonts::g_font);
@@ -97,11 +92,6 @@ LRESULT StatsFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		m_closed = true;
 		safe_destroy_timer();
 		clear_and_destroy_task();
-		// [+]IRainman
-		//DownloadManager::getInstance()->removeListener(this);
-		//UploadManager::getInstance()->removeListener(this);
-		// [~]IRainman
-		
 		WinUtil::setButtonPressed(IDC_NET_STATS, false);
 		PostMessage(WM_CLOSE);
 		return 0;
@@ -126,14 +116,14 @@ void StatsFrame::drawLine(CDC& dc, const StatIter& begin, const StatIter& end, c
 	}
 	if (i != end)
 	{
-		int y = /* [-] IRainman fix (max == 0) ? 0 :*/ (int)((i->speed * g_height) / m_max);
+		int y = (int)((i->speed * g_height) / m_max);
 		dc.MoveTo(x, g_height - y);
 		x -= i->scroll;
 		++i;
 		
 		for (; i != end && x > twidth; ++i)
 		{
-			y = /* [-] IRainman fix (max == 0) ? 0 :*/ (int)((i->speed * g_height) / m_max);
+			y = (int)((i->speed * g_height) / m_max);
 			dc.LineTo(x, g_height - y);
 			if (x < rc.left)
 				break;
@@ -148,8 +138,6 @@ LRESULT StatsFrame::onPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	{
 		CPaintDC dc(m_hWnd);
 		CRect rc(dc.m_ps.rcPaint);
-//[-]PPA        dcdebug("Update: %d, %d, %d, %d\n", rc.left, rc.top, rc.right, rc.bottom);
-
 		dc.SelectBrush(m_backgr);
 		dc.BitBlt(rc.left, rc.top, rc.Width(), rc.Height(), NULL, 0, 0, PATCOPY);
 		
@@ -209,7 +197,6 @@ LRESULT StatsFrame::onPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 			CSelectPen l_pen(dc, m_DownloadSocketPen); //-V808
 			drawLine(dc, m_DownSockets, rc, clientRC);
 		}
-		// [+]IRainman
 		{
 			CSelectPen l_pen(dc, m_UploadsPen); //-V808
 			drawLine(dc, m_Uploads, rc, clientRC);
@@ -218,7 +205,6 @@ LRESULT StatsFrame::onPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 			CSelectPen l_pen(dc, m_DownloadsPen); //-V808
 			drawLine(dc, m_Downloads, rc, clientRC);
 		}
-		// [~]IRainman
 	}
 	return 0;
 }
@@ -272,18 +258,13 @@ LRESULT StatsFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	ScrollWindow(-((int)scroll), 0, rc, rc);
 	
 	const int64_t d = MainFrame::getLastDownloadSpeed();
-	//const int64_t ddiff = d - m_lastSocketsDown;
 	
 	const int64_t u = MainFrame::getLastUploadSpeed();
-	//const int64_t udiff = u - m_lastSocketsUp;
 	
 	const int64_t dt = DownloadManager::getRunningAverage();
 	
 	const int64_t ut = UploadManager::getRunningAverage();
-	// [~]IRainman
 	
-	//addTick(ddiff, tdiff, m_DownSockets, m_DownSocketsAvg, (int)scroll);
-	//addTick(udiff, tdiff, m_UpSockets, m_UpSocketsAvg, (int)scroll);
 	addAproximatedSpeedTick(d, m_DownSockets, (int)scroll);
 	addAproximatedSpeedTick(u, m_UpSockets, (int)scroll);
 	addAproximatedSpeedTick(dt, m_Downloads, (int)scroll);
@@ -293,20 +274,16 @@ LRESULT StatsFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	int64_t mspeed = 0;
 	findMax(m_DownSockets, i, mspeed);
 	findMax(m_UpSockets, i, mspeed);
-	// [+]IRainman
 	findMax(m_Downloads, i, mspeed);
 	findMax(m_Uploads, i, mspeed);
-	// [~]IRainman
 	
 	if (mspeed > m_max || ((m_max * 3 / 4) > mspeed))
 	{
-		m_max = mspeed + 1;// [!] IRainman fix: +1
+		m_max = mspeed + 1;
 		Invalidate();
 	}
 	
 	lastTick = tick;
-	//m_lastSocketsUp = u;
-	//m_lastSocketsDown = d;
 	doTimerTask();
 	return 0;
 }

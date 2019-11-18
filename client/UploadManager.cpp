@@ -19,7 +19,7 @@
 #include "stdinc.h"
 
 #include "UploadManager.h"
-#include "DownloadManager.h"// !SMT!-S
+#include "DownloadManager.h"
 #include "ConnectionManager.h"
 #include "ShareManager.h"
 #include "CryptoManager.h"
@@ -57,7 +57,7 @@ UploadManager::~UploadManager()
 	TimerManager::getInstance()->removeListener(this);
 	ClientManager::getInstance()->removeListener(this);
 	{
-		CFlyLock(m_csQueue); // [!] IRainman opt.
+		CFlyLock(m_csQueue);
 		m_slotQueue.clear(); // TODO - унести зачистку раньше в метод shutdown
 	}
 	while (true)
@@ -72,7 +72,7 @@ UploadManager::~UploadManager()
 	//SharedFileStream::check_before_destoy();
 	dcassert(g_uploadsPerUser.empty());
 }
-// !SMT!-S
+
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noChecks*/)
 {
@@ -114,22 +114,8 @@ bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noC
 	//3) "автобан" по слотам максимум ограничить размером "сколько слотов у меня"/2 (но не более 15 слотов)
 	//4) "автобан" по лимиттеру максимум ограничить размером "лимиттер у меня"/2 (но не выше 60 кб/сек)
 	*/
-	
 	// BAN for Slots:[1/5] Share:[17/200]Gb Limit:[30/50]kb/s Msg: share more files, please!
 	string banstr;
-	//if (!forceBan)
-	//{
-	/*
-	if (msg.slots < msg.min_slots)
-	    banstr = banstr + " Slots < "  + Util::toString(msg.min_slots);
-	if (msg.slots > msg.max_slots)
-	    banstr = banstr + " Slots > " + Util::toString(msg.max_slots);
-	if (msg.share < msg.min_share)
-	    banstr = banstr + " Share < " + Util::toString(msg.min_share) + " Gb";
-	if (msg.limit && msg.limit < msg.min_limit)
-	    banstr = banstr + " Limit < " + Util::toString(msg.min_limit) + " kb/s";
-	banstr = banstr + " Msg: " + SETTING(BAN_MESSAGE);
-	*/
 	banstr = "BAN for";
 	
 	if (banType & User::BAN_BY_MIN_SLOT)
@@ -142,11 +128,6 @@ bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noC
 		banstr += " Limit < "  + Util::toString(msg.min_limit) + " kB/s";
 		
 	banstr += " Msg: " + SETTING(BAN_MESSAGE);
-	//}
-	//else
-	//{
-	//  banstr = "BAN forever";
-	//}
 #ifdef _DEBUG
 	{
 		auto logline = banstr + " Log autoban:";
@@ -160,7 +141,7 @@ bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noC
 			
 		logline += " Msg: " + SETTING(BAN_MESSAGE);
 		
-		LogManager::message("User:" + user->getLastNick() + ' ' + logline); //[+]PPA
+		LogManager::message("User:" + user->getLastNick() + ' ' + logline);
 	}
 #endif
 	// old const bool sendStatus = aSource->isSet(UserConnection::FLAG_SUPPORTS_BANMSG);
@@ -171,25 +152,25 @@ bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noC
 		
 		if (BOOLSETTING(BAN_FORCE_PM))
 		{
-			// [!] IRainman fix.
+		
 			msg.tick = TimerManager::getTick();
 			const auto pmMsgPeriod = SETTING(BANMSG_PERIOD);
 			const auto key = user->getCID().toBase32();
 			bool sendPm;
 			{
-				CFlyWriteLock(*g_csBans); // [+] IRainman opt.
+				CFlyWriteLock(*g_csBans);
 				auto t = g_lastBans.find(key);
-				if (t == g_lastBans.end()) // new banned user
+				if (t == g_lastBans.end())
 				{
 					g_lastBans[key] = msg;
 					sendPm = pmMsgPeriod != 0;
 				}
-				else if (!t->second.same(msg)) // new ban message
+				else if (!t->second.same(msg))
 				{
 					t->second = msg;
 					sendPm = pmMsgPeriod != 0;
 				}
-				else if (pmMsgPeriod && (uint32_t)(msg.tick - t->second.tick) >= (uint32_t)pmMsgPeriod * 60 * 1000) // [!] IRainman fix: "Repeat PM period (0 - disable PM), min"
+				else if (pmMsgPeriod && (uint32_t)(msg.tick - t->second.tick) >= (uint32_t)pmMsgPeriod * 60 * 1000)
 				{
 					t->second.tick = msg.tick;
 					sendPm = true;
@@ -203,7 +184,7 @@ bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noC
 			{
 				ClientManager::privateMessage(aSource->getHintedUser(), banstr, false);
 			}
-			// [~] IRainman fix.
+			
 		}
 	}
 	
@@ -211,13 +192,13 @@ bool UploadManager::handleBan(UserConnection* aSource/*, bool forceBan, bool noC
 
 	return true;
 }
-// !SMT!-S
+
 bool UploadManager::isBanReply(const UserPtr& user)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	const auto key = user->getCID().toBase32();
 	{
-		CFlyReadLock(*g_csBans); // [+] IRainman opt.
+		CFlyReadLock(*g_csBans);
 		const auto t = g_lastBans.find(key);
 		if (t != g_lastBans.end())
 		{
@@ -227,7 +208,6 @@ bool UploadManager::isBanReply(const UserPtr& user)
 	return false;
 }
 #endif // IRAINMAN_ENABLE_AUTO_BAN
-// [+] FlylinkDC++
 bool UploadManager::hasUpload(const UserConnection* p_newLeacher, const string& p_source_file) const
 {
 	dcassert(!ClientManager::isBeforeShutdown());
@@ -237,21 +217,21 @@ bool UploadManager::hasUpload(const UserConnection* p_newLeacher, const string& 
 		const auto& newLeacherShare = p_newLeacher->getUser()->getBytesShared();
 		const auto& newLeacherNick = p_newLeacher->getUser()->getLastNick();
 		
-		CFlyReadLock(*g_csUploadsDelay); // [!] IRainman opt.
+		CFlyReadLock(*g_csUploadsDelay);
 		
 		for (auto i = g_uploads.cbegin(); i != g_uploads.cend(); ++i)
 		{
 			const auto u = *i;
 			dcassert(u);
 			dcassert(u->getUser());
-			const auto& uploadUserIp = u->getUserConnection()->getSocket()->getIp(); // TODO - boost
-			const auto& uploadUserShare = u->getUser()->getBytesShared(); // [!] IRainamn fix, old code: ClientManager::getInstance()->getBytesShared(u.getUser());
+			const auto& uploadUserIp = u->getUserConnection()->getSocket()->getIp();
+			const auto& uploadUserShare = u->getUser()->getBytesShared();
 			const auto& uploadUserNick = u->getUser()->getLastNick();
 			
 			if (u->getUserConnection()->getSocket() &&
 			        newLeacherIp == uploadUserIp &&
 			        (newLeacherShare == uploadUserShare ||
-			         newLeacherNick == uploadUserNick) // [+] back port from r4xx.
+			         newLeacherNick == uploadUserNick)
 			   )
 			{
 #if defined(NIGHT_BUILD) || defined(_DEBUG) || defined(FLYLINKDC_BETA)
@@ -282,7 +262,7 @@ bool UploadManager::hasUpload(const UserConnection* p_newLeacher, const string& 
 	}
 	return false;
 }
-// [~] FlylinkDC++
+
 bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, const string& aFile, int64_t aStartPos, int64_t& aBytes, bool listRecursive)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
@@ -306,15 +286,10 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 		const HintedUser& l_User = aSource->getHintedUser();
 		if (l_User.user)
 		{
-			// [!] IRainman opt: CID on ADC hub is unique to all hubs,
-			// in NMDC it is obtained from the hash of username and hub address (computed locally).
-			// There is no need to use any additional data, but it is necessary to consider TTH of the file.
-			// This ensures the absence of a random user locks sitting on several ADC hubs,
-			// because the number of connections from a single user much earlier limited in the ConnectionManager.
 			const string l_hash_key = Util::toString(l_User.user->getCID().toHash()) + aFile;
 			uint8_t l_count_dos;
 			{
-				CFlyFastLock(csDos); // [!] IRainman opt.
+				CFlyFastLock(csDos);
 				l_count_dos = ++m_dos_map[l_hash_key];
 			}
 			const uint8_t l_count_attempts = l_is_TypePartialTree ? 5 : 30;
@@ -555,19 +530,18 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 		return false;
 	}
 	
-ok: //[!] TODO убрать goto
+ok:
 
 	auto slotType = aSource->getSlotType();
 	
-	//[!] IRainman autoban fix: please check this code after merge
 	bool hasReserved;
 	{
-		CFlyReadLock(*g_csReservedSlots); // [+] IRainman opt.
+		CFlyReadLock(*g_csReservedSlots);
 		hasReserved = g_reservedSlots.find(aSource->getUser()) != g_reservedSlots.end();
 	}
 	if (!hasReserved)
 	{
-		hasReserved = BOOLSETTING(EXTRASLOT_TO_DL) && DownloadManager::checkFileDownload(aSource->getUser());// !SMT!-S
+		hasReserved = BOOLSETTING(EXTRASLOT_TO_DL) && DownloadManager::checkFileDownload(aSource->getUser());
 	}
 	
 	const bool l_isFavorite = FavoriteManager::hasAutoGrantSlot(aSource->getUser())
@@ -578,7 +552,7 @@ ok: //[!] TODO убрать goto
 #endif
 	                          ;
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-	// !SMT!-S
+	                          
 	if (!l_isFavorite && SETTING(ENABLE_AUTO_BAN))
 	{
 		// фавориты под автобан не попадают
@@ -594,20 +568,17 @@ ok: //[!] TODO убрать goto
 	
 	if (slotType != UserConnection::STDSLOT || hasReserved)
 	{
-		//[-] IRainman autoban fix: please check this code after merge
-		//bool hasReserved = reservedSlots.find(aSource->getUser()) != reservedSlots.end();
-		//bool isFavorite = FavoriteManager::getInstance()->hasSlot(aSource->getUser());
 		bool hasFreeSlot = getFreeSlots() > 0;
 		if (hasFreeSlot)
 		{
-			CFlyLock(m_csQueue);  // [+] IRainman opt.
+			CFlyLock(m_csQueue); ;
 			hasFreeSlot = (m_slotQueue.empty() && m_notifiedUsers.empty() || (m_notifiedUsers.find(aSource->getUser()) != m_notifiedUsers.end()));
 		}
 		
 		bool isAutoSlot = getAutoSlot();
 		bool isHasUpload = hasUpload(aSource, sourceFile);
 		
-#ifdef SSA_IPGRANT_FEATURE // SSA - additional slots for special IP's
+#ifdef SSA_IPGRANT_FEATURE
 		bool hasSlotByIP = false;
 		if (BOOLSETTING(EXTRA_SLOT_BY_IP))
 		{
@@ -661,7 +632,7 @@ ok: //[!] TODO убрать goto
 	}
 	
 	{
-		CFlyLock(m_csQueue);  // [+] IRainman opt.
+		CFlyLock(m_csQueue); ;
 		
 		// remove file from upload queue
 		clearUserFilesL(aSource->getUser());
@@ -715,7 +686,7 @@ ok: //[!] TODO убрать goto
 	{
 		CFlyWriteLock(*g_csUploadsDelay);
 		g_uploads.push_back(u);
-		increaseUserConnectionAmountL(u->getUser());// [+] IRainman SpeedLimiter
+		increaseUserConnectionAmountL(u->getUser());
 	}
 	
 	if (aSource->getSlotType() != slotType)
@@ -810,7 +781,7 @@ void UploadManager::removeUpload(UploadPtr& aUpload, bool delay)
 	{
 		g_uploads.erase(remove(g_uploads.begin(), g_uploads.end(), aUpload), g_uploads.end());
 	}
-	decreaseUserConnectionAmountL(aUpload->getUser());// [+] IRainman SpeedLimiter
+	decreaseUserConnectionAmountL(aUpload->getUser());
 	
 	if (delay)
 	{
@@ -826,14 +797,14 @@ void UploadManager::reserveSlot(const HintedUser& hintedUser, uint64_t aTime)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	{
-		CFlyWriteLock(*g_csReservedSlots); // [!] IRainman opt.
+		CFlyWriteLock(*g_csReservedSlots);
 		g_reservedSlots[hintedUser.user] = GET_TICK() + aTime * 1000;
 		g_is_reservedSlotEmpty = false;
 	}
-	save(); // !SMT!-S
+	save();
 	if (hintedUser.user->isOnline())
 	{
-		CFlyLock(m_csQueue); // [+] IRainman opt.
+		CFlyLock(m_csQueue);
 		// find user in uploadqueue to connect with correct token
 		auto it = std::find_if(m_slotQueue.cbegin(), m_slotQueue.cend(), [&](const UserPtr & u)
 		{
@@ -848,9 +819,9 @@ void UploadManager::reserveSlot(const HintedUser& hintedUser, uint64_t aTime)
         }*/
 	}
 	
-	if (BOOLSETTING(SEND_SLOTGRANT_MSG)) // !SMT!-S
+	if (BOOLSETTING(SEND_SLOTGRANT_MSG))
 	{
-		ClientManager::privateMessage(hintedUser, "+me " + STRING(SLOT_GRANTED_MSG) + ' ' + Util::formatSeconds(aTime), false); // !SMT!-S
+		ClientManager::privateMessage(hintedUser, "+me " + STRING(SLOT_GRANTED_MSG) + ' ' + Util::formatSeconds(aTime), false);
 	}
 }
 
@@ -858,14 +829,14 @@ void UploadManager::unreserveSlot(const HintedUser& hintedUser)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	{
-		CFlyWriteLock(*g_csReservedSlots); // [!] IRainman opt.
+		CFlyWriteLock(*g_csReservedSlots);
 		g_reservedSlots.erase(hintedUser.user);
 		g_is_reservedSlotEmpty = g_reservedSlots.empty();
 	}
-	save(); // !SMT!-S
-	if (BOOLSETTING(SEND_SLOTGRANT_MSG)) // !SMT!-S
+	save();
+	if (BOOLSETTING(SEND_SLOTGRANT_MSG))
 	{
-		ClientManager::privateMessage(hintedUser, "+me " + STRING(SLOT_REMOVED_MSG), false); // !SMT!-S
+		ClientManager::privateMessage(hintedUser, "+me " + STRING(SLOT_REMOVED_MSG), false);
 	}
 }
 
@@ -1018,7 +989,7 @@ void UploadManager::on(UserConnectionListener::TransmitDone, UserConnection* aSo
 	dcassert(aSource->getState() == UserConnection::STATE_RUNNING);
 	auto u = aSource->getUpload();
 	dcassert(u != nullptr);
-	u->tick(aSource->getLastActivity(true)); // [!] IRainman refactoring transfer mechanism
+	u->tick(aSource->getLastActivity(true));
 	
 	aSource->setState(UserConnection::STATE_GET);
 	
@@ -1052,7 +1023,7 @@ size_t UploadManager::addFailedUpload(const UserConnection* aSource, const strin
 	dcassert(!ClientManager::isBeforeShutdown());
 	size_t queue_position = 0;
 	
-	CFlyLock(m_csQueue); // [+] IRainman opt.
+	CFlyLock(m_csQueue);
 	
 	auto it = std::find_if(m_slotQueue.begin(), m_slotQueue.end(), [&](const UserPtr & u) -> bool { ++queue_position; return u == aSource->getUser(); });
 	if (it != m_slotQueue.end())
@@ -1131,10 +1102,10 @@ void UploadManager::testSlotTimeout(uint64_t aTick /*= GET_TICK()*/)
 	dcassert(!ClientManager::isBeforeShutdown());
 	if (!g_is_reservedSlotEmpty)
 	{
-		CFlyWriteLock(*g_csReservedSlots); // [+] IRainman opt.
+		CFlyWriteLock(*g_csReservedSlots);
 		for (auto j = g_reservedSlots.cbegin(); j != g_reservedSlots.cend();)
 		{
-			if (j->second < aTick)  // !SMT!-S
+			if (j->second < aTick)
 			{
 				g_reservedSlots.erase(j++);
 			}
@@ -1181,7 +1152,7 @@ void UploadManager::notifyQueuedUsers(int64_t p_tick)
 		return; //no users to notify
 	vector<WaitingUser> l_notifyList;
 	{
-		CFlyLock(m_csQueue); // [+] IRainman opt.
+		CFlyLock(m_csQueue);
 		int freeslots = getFreeSlots();
 		if (freeslots > 0)
 		{
@@ -1226,10 +1197,10 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 			m_dos_map.clear();
 		}
 #endif
-		testSlotTimeout(aTick);//[!] FlylinkDC
+		testSlotTimeout(aTick);
 		
 		{
-			CFlyLock(m_csQueue); // [+] IRainman opt.
+			CFlyLock(m_csQueue);
 			
 			for (auto i = m_notifiedUsers.cbegin(); i != m_notifiedUsers.cend();)
 			{
@@ -1337,7 +1308,7 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	{
 		UploadArray l_tickList;
 		{
-			int64_t l_currentSpeed = 0;//[+]IRainman refactoring transfer mechanism
+			int64_t l_currentSpeed = 0;
 			{
 				CFlyWriteLock(*g_csUploadsDelay);
 				for (auto i = g_delayUploads.cbegin(); i != g_delayUploads.cend();)
@@ -1413,10 +1384,10 @@ void UploadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 					l_tickList.push_back(l_td);
 					u->tick(aTick);
 				}
-				u->getUserConnection()->getSocket()->updateSocketBucket(getUserConnectionAmountL(u->getUser()));// [+] IRainman SpeedLimiter
-				l_currentSpeed += u->getRunningAverage();//[+] IRainman refactoring transfer mechanism
+				u->getUserConnection()->getSocket()->updateSocketBucket(getUserConnectionAmountL(u->getUser()));
+				l_currentSpeed += u->getRunningAverage();
 			}
-			g_runningAverage = l_currentSpeed; // [+] IRainman refactoring transfer mechanism
+			g_runningAverage = l_currentSpeed;
 		}
 		if (!l_tickList.empty())
 		{
@@ -1467,7 +1438,7 @@ void UploadManager::on(ClientManagerListener::UserDisconnected, const UserPtr& a
 	//dcassert(!ClientManager::isBeforeShutdown());
 	if (!aUser->isOnline())
 	{
-		CFlyLock(m_csQueue);  // [+] IRainman opt.
+		CFlyLock(m_csQueue); ;
 		clearUserFilesL(aUser);
 	}
 }
@@ -1535,23 +1506,23 @@ void UploadManager::abortUpload(const string& aFile, bool waiting)
 	}
 }
 
-// !SMT!-S
+
 time_t UploadManager::getReservedSlotTime(const UserPtr& aUser)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	if (g_is_reservedSlotEmpty)
 		return 0;
-	CFlyReadLock(*g_csReservedSlots); // [!] IRainman opt.
+	CFlyReadLock(*g_csReservedSlots);
 	const auto j = g_reservedSlots.find(aUser);
 	return j != g_reservedSlots.end() ? j->second : 0;
 }
 
-// !SMT!-S
+
 void UploadManager::save()
 {
 	CFlyRegistryMap values;
 	{
-		CFlyReadLock(*g_csReservedSlots); // [!] IRainman opt.
+		CFlyReadLock(*g_csReservedSlots);
 		for (auto i = g_reservedSlots.cbegin(); i != g_reservedSlots.cend(); ++i)
 		{
 			values[i->first->getCID().toBase32()] = CFlyRegistryValue(i->second);
@@ -1560,7 +1531,7 @@ void UploadManager::save()
 	CFlylinkDBManager::getInstance()->save_registry(values, e_ExtraSlot, true);
 }
 
-// !SMT!-S
+
 void UploadManager::load()
 {
 	CFlyRegistryMap l_values;
@@ -1568,7 +1539,7 @@ void UploadManager::load()
 	for (auto k = l_values.cbegin(); k != l_values.cend(); ++k)
 	{
 		auto user = ClientManager::createUser(CID(k->first), "", 0);
-		CFlyWriteLock(*g_csReservedSlots); // [+] IRainman opt.
+		CFlyWriteLock(*g_csReservedSlots);
 		g_reservedSlots[user] = uint32_t(k->second.m_val_int64);
 		g_is_reservedSlotEmpty = g_reservedSlots.empty();
 	}
@@ -1594,9 +1565,9 @@ int UploadQueueItem::compareItems(const UploadQueueItem* a, const UploadQueueIte
 		case COLUMN_WAITING:
 			return compare(a->m_time, b->m_time);
 		case COLUMN_SLOTS:
-			return compare(a->getUser()->getSlots(), b->getUser()->getSlots()); // !SMT!-UI
+			return compare(a->getUser()->getSlots(), b->getUser()->getSlots());
 		case COLUMN_SHARE:
-			return compare(a->getUser()->getBytesShared(), b->getUser()->getBytesShared()); // !SMT!-UI
+			return compare(a->getUser()->getBytesShared(), b->getUser()->getBytesShared());
 		case COLUMN_IP:
 			return compare(Socket::convertIP4(Text::fromT(a->getText(col))), Socket::convertIP4(Text::fromT(b->getText(col))));
 	}
@@ -1616,10 +1587,10 @@ void UploadQueueItem::update()
 	setText(COLUMN_SIZE, Util::formatBytesW(getSize()));
 	setText(COLUMN_ADDED, Text::toT(Util::formatDigitalClock(getTime())));
 	setText(COLUMN_WAITING, Util::formatSecondsW(GET_TIME() - getTime()));
-	setText(COLUMN_SHARE, Util::formatBytesW(getUser()->getBytesShared())); //[+]PPA
-	setText(COLUMN_SLOTS, Util::toStringW(getUser()->getSlots())); //[+]PPA
-	// !SMT!-IP
-	if (m_location.isNew() && !getUser()->getIP().is_unspecified()) // [!] IRainman opt: Prevent multiple repeated requests to the database if the location has not been found!
+	setText(COLUMN_SHARE, Util::formatBytesW(getUser()->getBytesShared()));
+	setText(COLUMN_SLOTS, Util::toStringW(getUser()->getSlots()));
+	
+	if (m_location.isNew() && !getUser()->getIP().is_unspecified())
 	{
 		m_location = Util::getIpCountry(getUser()->getIP().to_ulong());
 		setText(COLUMN_IP, Text::toT(getUser()->getIPAsString()));
@@ -1629,13 +1600,13 @@ void UploadQueueItem::update()
 		setText(COLUMN_LOCATION, m_location.getDescription());
 	}
 #ifdef FLYLINKDC_USE_DNS
-	// [!] IRainman opt.
+	
 	if (m_dns.empty())
 	{
 		m_dns = Socket::nslookup(m_ip);
 		setText(COLUMN_DNS, Text::toT(m_dns)); // todo: paint later if not resolved yet
 	}
-	// [~] IRainman opt.
+	
 #endif
 }
 

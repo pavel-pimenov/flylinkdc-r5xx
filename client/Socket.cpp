@@ -388,16 +388,6 @@ int Socket::getSocketOptInt(int p_option) const
 	int l_val = 0;
 	socklen_t l_len = sizeof(l_val);
 	check(::getsockopt(m_sock, SOL_SOCKET, p_option, (char*)&l_val, &l_len)); // [2] https://www.box.net/shared/3ad49dfa7f44028a7467
-	/* [-] IRainman fix:
-	Please read http://msdn.microsoft.com/en-us/library/windows/desktop/ms740532(v=vs.85).aspx
-	and explain on what basis to audit  has been added to the magic check l_val <= 0,
-	and the error in the log is sent to another condition l_val == 0.
-	Just ask them to explain on what basis we do not trust the system,
-	and why the system could restore us to waste in these places, but the api does not contain the test function of range.
-	Once again I ask, please - if that's where you fell, you have to find real bugs in our code and not to mask them is not clear what the basis of checks.
-	  [-] if (l_val <= 0)
-	  [-]    throw SocketException("[Error] getSocketOptInt() <= 0");
-	  [~] IRainman fix */
 	return l_val;
 }
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
@@ -437,7 +427,7 @@ int Socket::read(void* aBuffer, int aBufLen)
 	{
 		do
 		{
-			if (m_sock == INVALID_SOCKET)// [+]IRainman
+			if (m_sock == INVALID_SOCKET)
 				break;
 				
 			len = ::recv(m_sock, (char*)aBuffer, aBufLen, 0);
@@ -457,7 +447,7 @@ int Socket::read(void* aBuffer, int aBufLen)
 	{
 		do
 		{
-			if (m_sock == INVALID_SOCKET)// [+]IRainman
+			if (m_sock == INVALID_SOCKET)
 				break;
 				
 			len = ::recvfrom(m_sock, (char*)aBuffer, aBufLen, 0, NULL, NULL);
@@ -495,7 +485,7 @@ int Socket::read(void* aBuffer, int aBufLen, sockaddr_in &remote)
 	int len = 0;
 	do
 	{
-		if (m_sock == INVALID_SOCKET)// [+]IRainman
+		if (m_sock == INVALID_SOCKET)
 			break;
 			
 		len = ::recvfrom(m_sock, (char*)aBuffer, aBufLen, 0, (struct sockaddr*) & remote_addr, &addr_length);
@@ -542,7 +532,7 @@ int Socket::readAll(void* aBuffer, int aBufLen, uint64_t timeout)
 			}
 			continue;
 		}
-		dcassert(j > 0); // [+] IRainman fix.
+		dcassert(j > 0);
 		i += j;
 	}
 	return i;
@@ -568,10 +558,8 @@ int Socket::writeAll(const void* aBuffer, int aLen, uint64_t timeout)
 		}
 		else
 		{
-			dcassert(i >= 0); // [+] IRainman fix.
+			dcassert(i >= 0);
 			pos += i;
-			// [-] IRainman fix: please see Socket::write
-			// [-] g_stats.totalUp += i;
 		}
 	}
 	return pos;
@@ -582,7 +570,7 @@ int Socket::write(const void* aBuffer, int aLen)
 	int sent = 0;
 	do
 	{
-		if (m_sock == INVALID_SOCKET)// [+]IRainman
+		if (m_sock == INVALID_SOCKET)
 			break;
 			
 #ifdef RIP_USE_LOG_PROTOCOL
@@ -690,7 +678,7 @@ int Socket::writeTo(const string& aAddr, uint16_t aPort, const void* aBuffer, in
 		if (BOOLSETTING(SOCKS_RESOLVE))
 		{
 			connStr.push_back(3);
-			connStr.push_back((uint8_t)aAddr.size()); //[+] aAddr SMT
+			connStr.push_back((uint8_t)aAddr.size());
 			connStr.insert(connStr.end(), aAddr.begin(), aAddr.end());
 		}
 		else
@@ -1012,7 +1000,7 @@ void Socket::socksUpdated()
 			connStr[1] = 3;         // UDP Associate
 			connStr[2] = 0;         // Reserved
 			connStr[3] = 1;         // Address type: IPv4;
-			*((unsigned long*)(&connStr[4])) = 0;  // No specific outgoing UDP address // [!] IRainman fix. this value unsigned!
+			*((unsigned long*)(&connStr[4])) = 0;  // No specific outgoing UDP address
 			*((uint16_t*)(&connStr[8])) = 0;    // No specific port...
 			
 			s.writeAll(connStr, 10, SOCKS_TIMEOUT);
@@ -1034,7 +1022,7 @@ void Socket::socksUpdated()
 			in_addr serv_addr;
 			
 			memzero(&serv_addr, sizeof(serv_addr));
-			serv_addr.s_addr = *((unsigned long*)(&connStr[4])); // [!] IRainman fix. this value unsigned! (PVS TODO)
+			serv_addr.s_addr = *((unsigned long*)(&connStr[4]));
 			g_udpServer = inet_ntoa(serv_addr);
 		}
 		catch (const SocketException&)

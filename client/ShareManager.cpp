@@ -81,7 +81,6 @@ ShareManager::ShareManager() : xmlListLen(0), bzXmlListLen(0),
 	m_updateXmlListInProcess.clear();
 	m_lastXmlUpdate = m_lastFullUpdate = GET_TICK();
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
-	// [!] IRainman TODO: needs refactoring.
 	const string emptyXmlName = getEmptyBZXmlFile();
 	if (!File::isExist(emptyXmlName))
 	{
@@ -119,7 +118,7 @@ ShareManager::~ShareManager()
 	{
 		bzXmlRef.reset();
 	}
-	// [+] IRainman fix.
+	
 	const string& l_curFileName = getBZXmlFile();
 	const string& l_DefaultFileName = getDefaultBZXmlFile();
 	if (!l_curFileName.empty() && l_curFileName != l_DefaultFileName && File::isExist(l_curFileName))
@@ -128,15 +127,16 @@ ShareManager::~ShareManager()
 		{
 			File::renameFile(l_curFileName, l_DefaultFileName);
 		}
-		catch (const FileException&)
+		catch (const FileException& e)
 		{
-			//[+]PPA log
+			dcassert(0);
+			LogManager::message("Error renameFile: " + l_curFileName + " error = " + e.getError());
 		}
 	}
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	File::deleteFile(getEmptyBZXmlFile()); // needs to update Client version in empty file list.
 #endif
-	// [~] IRainman fix.
+	
 }
 void ShareManager::shutdown()
 {
@@ -230,7 +230,7 @@ int64_t ShareManager::Directory::getDirSizeL() const noexcept
 	return l_tmp;
 }
 
-bool ShareManager::destinationShared(const string& file_or_dir_name) // [+] IRainman opt.
+bool ShareManager::destinationShared(const string& file_or_dir_name)
 {
 #ifdef FLYLINKDC_USE_RW_LOCK_SHARE
 	CFlyReadLock(*g_csShare);
@@ -449,7 +449,7 @@ void ShareManager::getFileInfo(AdcCommand& cmd, const string& aFile)
 	if (aFile.compare(0, 4, "TTH/", 4) != 0)
 		throw ShareException(UserConnection::g_FILE_NOT_AVAILABLE, aFile);
 		
-	const TTHValue val(aFile.c_str() + 4); //[+]FlylinkDC++
+	const TTHValue val(aFile.c_str() + 4);
 #ifdef FLYLINKDC_USE_RW_LOCK_SHARE
 	CFlyReadLock(*g_csShare);
 #else
@@ -612,7 +612,7 @@ void ShareManager::load(SimpleXML& aXml)
 				continue;
 			}
 			// make sure realPath ends with a PATH_SEPARATOR
-			AppendPathSeparator(realPath); //[+]PPA
+			AppendPathSeparator(realPath);
 			
 			const string virtualName = aXml.getChildAttrib("Virtual");
 			const string vName = validateVirtual(virtualName.empty() ? Util::getLastDir(realPath) : virtualName);
@@ -881,7 +881,7 @@ void ShareManager::save(SimpleXML& aXml)
 	}
 	aXml.stepOut();
 }
-// [+] IRainman
+
 struct ForbiddenPath
 {
 	Util::SysPaths m_pathId;
@@ -898,7 +898,6 @@ static const ForbiddenPath g_forbiddenPaths[] =
 	{Util::COMMON_APPDATA, "COMMON_APPDATA"},
 };
 #endif
-// [~] IRainman
 void ShareManager::addDirectory(const string& realPath, const string& virtualName, bool p_is_job)
 {
 	if (realPath.empty() || virtualName.empty())
@@ -908,16 +907,16 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 	
 	if (!File::isExist(realPath)) // [5] https://www.box.net/shared/406c1493be1501a9ea61
 	{
-		throw ShareException(STRING(DIRECTORY_NOT_EXIST), realPath); // [+] IRainman
+		throw ShareException(STRING(DIRECTORY_NOT_EXIST), realPath);
 	}
 	
-	const string l_realPathWoPS = realPath.substr(0, realPath.size() - 1); // [+] IRainman opt.
+	const string l_realPathWoPS = realPath.substr(0, realPath.size() - 1);
 	
 	if (!checkHidden(l_realPathWoPS))
 	{
 		throw ShareException(STRING(DIRECTORY_IS_HIDDEN), l_realPathWoPS);
 	}
-//[+]IRainman
+	
 	if (!checkSystem(l_realPathWoPS))
 	{
 		throw ShareException(STRING(DIRECTORY_IS_SYSTEM), l_realPathWoPS);
@@ -927,7 +926,6 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 	{
 		throw ShareException(STRING(DIRECTORY_IS_VIRTUAL), l_realPathWoPS);
 	}
-//[~]IRainman
 	const string l_temp_download_dir = SETTING(TEMP_DOWNLOAD_DIRECTORY);
 	if (stricmp(l_temp_download_dir, realPath) == 0)
 	{
@@ -935,7 +933,6 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 	}
 	
 #ifdef _WIN32
-	// [!] FlylinkDC.
 	for (size_t i = 0; i < _countof(g_forbiddenPaths); ++i)
 	{
 		if (Util::locatedInSysPath(g_forbiddenPaths[i].m_pathId, realPath))
@@ -946,7 +943,6 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 			throw ShareException(l_error, realPath); // [14] https://www.box.net/shared/a7b3712835bebeea8a46
 		}
 	}
-	// [~] FlylinkDC.
 #endif
 	
 	std::list<string> removeList;
@@ -1131,7 +1127,7 @@ void ShareManager::removeDirectory(const string& realPath)
 		// Readd all directories with the same vName
 		for (i = g_shares.begin(); i != g_shares.end(); ++i)
 		{
-			if (stricmp(i->second.m_synonym, l_Name) == 0 && checkAttributs(i->first))// [!]IRainman checkHidden(i->first)
+			if (stricmp(i->second.m_synonym, l_Name) == 0 && checkAttributs(i->first))
 			{
 				Directory::Ptr dp = buildTreeL(i->second.m_path_id, i->first, Directory::Ptr(), true);
 				dp->setNameAndLower(i->second.m_synonym);
@@ -1198,7 +1194,7 @@ int64_t ShareManager::getShareSize()
 	return g_CurrentShareSize;
 }
 
-void ShareManager::internalCalcShareSize() // [!] IRainman opt.
+void ShareManager::internalCalcShareSize()
 {
 	if (g_isNeedsUpdateShareSize && g_RebuildIndexes == 0)
 	{
@@ -1234,9 +1230,9 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 	CFlyDirMap l_dir_map;
 	if (p_path_id)
 		CFlylinkDBManager::getInstance()->load_dir(p_path_id, l_dir_map, p_is_no_mediainfo);
-	for (FileFindIter i(aName + '*'); !ClientManager::isBeforeShutdown() && i != FileFindIter::end; ++i)// [!]IRainman add m_close [10] https://www.box.net/shared/067924cecdb252c9d26c
+	for (FileFindIter i(aName + '*'); !ClientManager::isBeforeShutdown() && i != FileFindIter::end; ++i)
 	{
-		if (i->isTemporary())// [+]IRainman
+		if (i->isTemporary())
 			continue;
 		const string& l_file_name = i->getFileName();
 		if (l_file_name == Util::m_dot || l_file_name == Util::m_dot_dot || l_file_name.empty())
@@ -1256,8 +1252,8 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 				continue;
 				
 			if (stricmp(newName, SETTING(TEMP_DOWNLOAD_DIRECTORY)) != 0
-			        && stricmp(newName, Util::getConfigPath())  != 0//[+]IRainman
-			        && stricmp(newName, SETTING(LOG_DIRECTORY)) != 0//[+]IRainman
+			        && stricmp(newName, Util::getConfigPath())  != 0
+			        && stricmp(newName, SETTING(LOG_DIRECTORY)) != 0
 			        && isShareFolder(newName))
 			{
 				__int64 l_path_id = 0;
@@ -1412,7 +1408,7 @@ bool ShareManager::checkHidden(const string& aName) const
 	
 	return true;
 }
-//[+]IRainman
+
 bool ShareManager::checkSystem(const string& aName) const
 {
 	if (BOOLSETTING(SHARE_SYSTEM))
@@ -1463,7 +1459,6 @@ bool ShareManager::checkAttributs(const string& aName) const
 	}
 	return true;
 }
-//[~]IRainman
 #ifdef USE_REBUILD_MEDIAINFO
 __int64 ShareManager::rebuildMediainfo(Directory& p_dir, CFlyLog& p_log, ShareManager::MediainfoFileArray& p_result)
 {
@@ -1477,7 +1472,7 @@ __int64 ShareManager::rebuildMediainfo(Directory& p_dir, CFlyLog& p_log, ShareMa
 	for (auto i = p_dir.m_files.cbegin(); i != p_dir.m_files.cend(); ++i)
 	{
 		const auto& l_file = *i;
-		if (CFlyServerConfig::isMediainfoExt(Util::getFileExtWithoutDot(l_file.getLowName()))) // [!] IRainman opt.
+		if (CFlyServerConfig::isMediainfoExt(Util::getFileExtWithoutDot(l_file.getLowName())))
 		{
 			if (l_path_id == 0)
 			{
@@ -1831,7 +1826,7 @@ void ShareManager::generateXmlList()
 				CalcOutputStream<TTFilter, false> newXmlFile(&count);
 				l_creation_log.step("init packer done");
 				newXmlFile.write(SimpleXML::utf8Header);
-				newXmlFile.write("<FileListing Version=\"1\" CID=\"" + ClientManager::getMyCID().toBase32() + "\" Base=\"/\" Generator=\"DC++ " DCVERSIONSTRING "\">\r\n"); // [!] IRainman fix.
+				newXmlFile.write("<FileListing Version=\"1\" CID=\"" + ClientManager::getMyCID().toBase32() + "\" Base=\"/\" Generator=\"DC++ " DCVERSIONSTRING "\">\r\n");
 				{
 #ifdef FLYLINKDC_USE_RW_LOCK_SHARE
 					CFlyReadLock(*g_csShare);
@@ -1891,7 +1886,6 @@ void ShareManager::generateXmlList()
 		m_is_forceXmlRefresh = false;
 		m_lastXmlUpdate = GET_TICK();
 		
-		// [+] IRainman cleaning old file cache
 		l_creation_log.step("Clean old cache");
 		const StringList& l_ToDelete = File::findFiles(Util::getConfigPath(), "files*.xml.bz2", false);
 		const auto l_bz_xml_file = getBZXmlFile();
@@ -1911,7 +1905,6 @@ void ShareManager::generateXmlList()
 				}
 			}
 		}
-		// [~] IRainman cleaning old file cache
 	}
 	m_updateXmlListInProcess.clear();
 }
@@ -2326,7 +2319,6 @@ bool ShareManager::checkType(const string& aString, Search::TypeModes aType)
 			}
 		}
 		break;
-		//[+] FlylinkDC++
 		case Search::TYPE_CD_IMAGE:
 		{
 			for (size_t i = 0; i < _countof(typeCDImage); ++i)
@@ -2408,7 +2400,7 @@ Search::TypeModes ShareManager::getFType(const string& aFileName, bool p_include
 		return Search::TYPE_EXECUTABLE;
 	else if (checkType(aFileName, Search::TYPE_PICTURE))
 		return Search::TYPE_PICTURE;
-	else if (checkType(aFileName, Search::TYPE_CD_IMAGE)) //[+] from FlylinkDC++
+	else if (checkType(aFileName, Search::TYPE_CD_IMAGE))
 		return Search::TYPE_CD_IMAGE;
 	return Search::TYPE_ANY;
 }
@@ -2628,9 +2620,7 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 		return;
 	if (p_search_param.m_file_type == Search::TYPE_TTH)
 	{
-		//dcassert(isTTHBase64(p_search_param.m_filter));
-		// Ветка пока работает!
-		if (isTTHBase64(p_search_param.m_filter)) //[+]FlylinkDC++ opt.
+		if (isTTHBase64(p_search_param.m_filter))
 		{
 			const TTHValue l_tth(p_search_param.m_filter.c_str() + 4);
 			if (search_tth(l_tth, aResults, true) == false)
@@ -2914,13 +2904,13 @@ void ShareManager::Directory::search(SearchResultList& aResults, AdcSearch& aStr
 	aStrings.m_includePtr = old;
 }
 
-void ShareManager::search_max_result(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept // [!] IRainman add StringSearch::List& reguest
+void ShareManager::search_max_result(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept
 {
 	if (ClientManager::isBeforeShutdown())
 		return;
 		
 	AdcSearch srch(params);
-	reguest = srch.m_includeX; // [+] IRainman
+	reguest = srch.m_includeX;
 	if (srch.m_hasRoot)
 	{
 		search_tth(srch.m_root, aResults, false);
@@ -2962,7 +2952,7 @@ ShareManager::Directory::Ptr ShareManager::getDirectoryL(const string& fname)
 				if (stricmp((*i)->getName(), mi->second.m_synonym) == 0) // TODO - getLower
 				{
 					d = *i;
-					break; // [+] IRainman opt.
+					break;
 				}
 			}
 			
@@ -2996,23 +2986,8 @@ void ShareManager::on(QueueManagerListener::FileMoved, const string& n) noexcept
 	if (BOOLSETTING(ADD_FINISHED_INSTANTLY))
 #endif
 	{
-		// Check if finished download is supposed to be shared
-		/* [-] IRainman opt.
-		#ifdef FLYLINKDC_USE_RW_LOCK_SHARE
-		CFlyReadLock(*g_csShare);
-		#else
-		CFlyLock(g_csShare);
-		#endif
-		
-		for (auto i = g_shares.cbegin(); i != g_shares.cend(); ++i)
-		{
-		    if (strnicmp(i->first, n, i->first.size()) == 0 && n[i->first.size() - 1] == PATH_SEPARATOR)
-		    {
-		*/
-		// [+] IRainman opt.
 		if (destinationShared(n))
 		{
-			// [~] IRainman opt.
 			try
 			{
 				// Schedule for hashing, it'll be added automatically later on...
@@ -3027,7 +3002,7 @@ void ShareManager::on(QueueManagerListener::FileMoved, const string& n) noexcept
 			{
 				// Not a vital feature...
 			}
-			return; // [!] IRainman opt: return.
+			return;
 		}
 	}
 #endif ///////////////////////////////////////////
@@ -3147,7 +3122,7 @@ void ShareManager::on(TimerManagerListener::Minute, uint64_t tick) noexcept
 			g_BotDetectMap.clear();
 		}
 	}
-	internalCalcShareSize(); // [+]IRainman opt.
+	internalCalcShareSize();
 	internalClearCache(false);
 #ifdef _DEBUG
 	ClientManager::flushRatio(5000);
@@ -3325,7 +3300,7 @@ int64_t ShareManager::removeExcludeFolder(const string &path, bool returnSize /*
 	return bytesAdded;
 }
 
-bool ShareManager::findByRealPathName(const string& realPathname, TTHValue* outTTHPtr, string* outfilenamePtr /*= NULL*/, int64_t* outSizePtr/* = NULL*/) // [+] SSA
+bool ShareManager::findByRealPathName(const string& realPathname, TTHValue* outTTHPtr, string* outfilenamePtr /*= NULL*/, int64_t* outSizePtr/* = NULL*/)
 {
 #ifdef FLYLINKDC_USE_RW_LOCK_SHARE
 	CFlyReadLock(*g_csShare);

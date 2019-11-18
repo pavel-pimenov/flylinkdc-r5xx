@@ -57,7 +57,7 @@ class CBarShader
 		{
 			return (p_x + 1) / 2;
 		}
-		void CalcPerPixelandPerByte(); //[+] PPA
+		void CalcPerPixelandPerByte();
 };
 
 typedef struct tagHLSTRIPLE

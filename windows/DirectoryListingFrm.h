@@ -27,8 +27,8 @@
 
 #include "../client/StringSearch.h"
 #include "../client/ADLSearch.h"
-#include "../client/ShareManager.h" // !PPA!
-#include "../FlyFeatures/VideoPreview.h" // [!] SSA because of WM_ identificator
+#include "../client/ShareManager.h"
+#include "../FlyFeatures/VideoPreview.h"
 #include "../client/SettingsManager.h"
 #include "../FlyFeatures/flyServer.h"
 
@@ -38,7 +38,7 @@ class ThreadedDirectoryListing;
 #define CONTROL_MESSAGE_MAP 10
 class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFrame, RGB(255, 0, 255), IDR_FILE_LIST
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST
-	, IDR_FILE_LIST_OFF // [~] InfinitySky. Вторая иконка.
+	, IDR_FILE_LIST_OFF  Вторая иконка.
 #endif
 	>, public CSplitterImpl<DirectoryListingFrame>,
 	public UCHandler<DirectoryListingFrame>, private SettingsManagerListener
@@ -47,10 +47,10 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 #endif
 	, private CFlyTimerAdapter
 // BUG-MENU , public UserInfoBaseHandler < DirectoryListingFrame, UserInfoGuiTraits::NO_FILE_LIST | UserInfoGuiTraits::NO_COPY >
-	, public InternetSearchBaseHandler<DirectoryListingFrame> // [+] IRainman fix.
-	, public PreviewBaseHandler<DirectoryListingFrame> // [+] IRainman fix.
+	, public InternetSearchBaseHandler<DirectoryListingFrame>
+	, public PreviewBaseHandler<DirectoryListingFrame>
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 	public:
@@ -60,13 +60,12 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		
 		typedef MDITabChildWindowImpl < DirectoryListingFrame, RGB(255, 0, 255), IDR_FILE_LIST
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST
-		, IDR_FILE_LIST_OFF // [~] InfinitySky. Вторая иконка.
+		, IDR_FILE_LIST_OFF  Вторая иконка.
 #endif
 		> baseClass;
 		typedef UCHandler<DirectoryListingFrame> ucBase;
-		typedef InternetSearchBaseHandler<DirectoryListingFrame> isBase; // [+] IRainman fix.
-		// BUG-MENU  typedef UserInfoBaseHandler < DirectoryListingFrame, UserInfoGuiTraits::NO_FILE_LIST | UserInfoGuiTraits::NO_COPY > uiBase;
-		typedef PreviewBaseHandler<DirectoryListingFrame> prevBase; // [+] IRainamn fix.
+		typedef InternetSearchBaseHandler<DirectoryListingFrame> isBase;
+		typedef PreviewBaseHandler<DirectoryListingFrame> prevBase;
 		
 		enum
 		{
@@ -120,16 +119,16 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		BEGIN_MSG_MAP(DirectoryListingFrame)
 		NOTIFY_HANDLER(IDC_FILES, LVN_GETDISPINFO, ctrlList.onGetDispInfo)
 		NOTIFY_HANDLER(IDC_FILES, LVN_COLUMNCLICK, ctrlList.onColumnClick)
-		NOTIFY_HANDLER(IDC_FILES, NM_CUSTOMDRAW, onCustomDrawList) // !fulDC!
+		NOTIFY_HANDLER(IDC_FILES, NM_CUSTOMDRAW, onCustomDrawList)
 		NOTIFY_HANDLER(IDC_FILES, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(IDC_FILES, NM_DBLCLK, onDoubleClickFiles)
 		NOTIFY_HANDLER(IDC_FILES, LVN_ITEMCHANGED, onItemChanged)
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-		NOTIFY_HANDLER(IDC_FILES, NM_CUSTOMDRAW, ctrlList.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_FILES, NM_CUSTOMDRAW, ctrlList.onCustomDraw)
 #endif
 		NOTIFY_HANDLER(IDC_DIRECTORIES, TVN_KEYDOWN, onKeyDownDirs)
 		NOTIFY_HANDLER(IDC_DIRECTORIES, TVN_SELCHANGED, onSelChangedDirectories)
-		NOTIFY_HANDLER(IDC_DIRECTORIES, NM_CUSTOMDRAW, onCustomDrawTree) // !fulDC!
+		NOTIFY_HANDLER(IDC_DIRECTORIES, NM_CUSTOMDRAW, onCustomDrawTree)
 		MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBackground)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
@@ -138,8 +137,8 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		MESSAGE_HANDLER(WM_SETFOCUS, onSetFocus)
 		MESSAGE_HANDLER(FTM_CONTEXTMENU, onTabContextMenu)
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)
-		COMMAND_ID_HANDLER(IDC_OPEN_FILE, onOpenFile) // !SMT!-UI
-		COMMAND_ID_HANDLER(IDC_OPEN_FOLDER, onOpenFolder) // [+] NightOrion
+		COMMAND_ID_HANDLER(IDC_OPEN_FILE, onOpenFile)
+		COMMAND_ID_HANDLER(IDC_OPEN_FOLDER, onOpenFolder)
 		COMMAND_ID_HANDLER(IDC_DOWNLOAD, onDownload)
 		COMMAND_ID_HANDLER(IDC_DOWNLOADDIR, onDownloadDir)
 		COMMAND_ID_HANDLER(IDC_DOWNLOADDIRTO, onDownloadDirTo)
@@ -160,7 +159,7 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		COMMAND_ID_HANDLER(IDC_SEARCH_ALTERNATES, onSearchByTTH)
 		COMMAND_ID_HANDLER(IDC_COPY_LINK, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_TTH, onCopy)
-		COMMAND_ID_HANDLER(IDC_COPY_WMLINK, onCopy) // !SMT!-UI
+		COMMAND_ID_HANDLER(IDC_COPY_WMLINK, onCopy)
 		COMMAND_ID_HANDLER(IDC_ADD_TO_FAVORITES, onAddToFavorites)
 		COMMAND_ID_HANDLER(IDC_MARK_AS_DOWNLOADED, onMarkAsDownloaded)
 		COMMAND_ID_HANDLER(IDC_PRIVATE_MESSAGE, onPM)
@@ -170,19 +169,18 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		COMMAND_ID_HANDLER(IDC_COPY_FLYSERVER_INFORM, onCopy)
 #endif
 		COMMAND_ID_HANDLER(IDC_COPY_SIZE, onCopy);
-		COMMAND_ID_HANDLER(IDC_CLOSE_ALL_DIR_LIST, onCloseAll) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_CLOSE_ALL_DIR_LIST, onCloseAll)
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
-		COMMAND_ID_HANDLER(IDC_GENERATE_DCLST, onGenerateDCLST) // [+] SSA
-		COMMAND_ID_HANDLER(IDC_GENERATE_DCLST_FILE, onGenerateDCLST) // [+] SSA
+		COMMAND_ID_HANDLER(IDC_GENERATE_DCLST, onGenerateDCLST)
+		COMMAND_ID_HANDLER(IDC_GENERATE_DCLST_FILE, onGenerateDCLST)
 		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_TARGET, IDC_DOWNLOAD_TARGET + targets.size() + LastDir::get().size(), onDownloadTarget)
 		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_TARGET_DIR, IDC_DOWNLOAD_TARGET_DIR + LastDir::get().size(), onDownloadTargetDir)
 		COMMAND_RANGE_HANDLER(IDC_PRIORITY_PAUSED, IDC_PRIORITY_HIGHEST, onDownloadWithPrio)
 		COMMAND_RANGE_HANDLER(IDC_PRIORITY_PAUSED + 90, IDC_PRIORITY_HIGHEST + 90, onDownloadDirWithPrio)
 		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_FAVORITE_DIRS, IDC_DOWNLOAD_FAVORITE_DIRS + FavoriteManager::getFavoriteDirsCount(), onDownloadFavoriteDirs)
 		COMMAND_RANGE_HANDLER(IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS, IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + FavoriteManager::getFavoriteDirsCount(), onDownloadWholeFavoriteDirs)
-		CHAIN_COMMANDS(isBase) // [+] IRainamn fix.
-		CHAIN_COMMANDS(prevBase) // [+] IRainamn fix.
-		// BUG-MENU CHAIN_COMMANDS(uiBase) // [+] IRainamn fix.
+		CHAIN_COMMANDS(isBase)
+		CHAIN_COMMANDS(prevBase)
 		CHAIN_COMMANDS(ucBase)
 		CHAIN_MSG_MAP(baseClass)
 		CHAIN_MSG_MAP(CSplitterImpl<DirectoryListingFrame>)
@@ -195,8 +193,8 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		MESSAGE_HANDLER(WM_XBUTTONUP, onXButtonUp)
 		END_MSG_MAP()
 		
-		LRESULT onOpenFile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/); // !SMT!-UI
-		LRESULT onOpenFolder(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/); // [+] NightOrion
+		LRESULT onOpenFile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		LRESULT onOpenFolder(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 		LRESULT onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -251,8 +249,8 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		LRESULT onDownloadWholeFavoriteDirs(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 		LRESULT onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/);
-		LRESULT onCustomDrawList(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/); // !fulDC!
-		LRESULT onCustomDrawTree(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/); // !fulDC!
+		LRESULT onCustomDrawList(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
+		LRESULT onCustomDrawTree(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
 		LRESULT onGenerateDCLST(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
@@ -276,7 +274,6 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		void loadXML(const string& txt);
 		void refreshTree(const tstring& root);
 		
-		// [+] FlylinkDC DCLST
 		GETSET(string, fileName, FileName);
 		void setDclstFlag(bool p_isDclst)
 		{
@@ -286,7 +283,7 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		{
 			return m_isDclst;
 		}
-		// [~] FlylinkDC DCLST
+		
 		HTREEITEM findItem(HTREEITEM ht, const tstring& name);
 		void selectItem(const tstring& name);
 		
@@ -319,7 +316,7 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 				SetWindowText(m_error.c_str());
 		}
 		
-		void addToUserMap(const UserPtr& aUser)// [+] IRainman dclst support
+		void addToUserMap(const UserPtr& aUser)
 		{
 			if (aUser && !aUser->getCID().isZero())
 			{
@@ -384,7 +381,7 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 			return 0;
 		}
 		
-		// [+] InfinitySky.
+		
 		LRESULT onCloseAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			closeAll();
@@ -394,7 +391,7 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 	private:
 		friend class ThreadedDirectoryListing;
 		uint64_t m_FL_LoadSec;
-		void getItemColor(const Flags::MaskType flags, COLORREF &fg, COLORREF &bg); // !SMT!-UI
+		void getItemColor(const Flags::MaskType flags, COLORREF &fg, COLORREF &bg);
 		void changeDir(DirectoryListing::Directory* p_dir);
 		HTREEITEM findFile(const StringSearch& str, HTREEITEM root, int &foundFile, int &skipHits);
 		void updateStatus();
@@ -403,7 +400,7 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		void up();
 		void back();
 		void forward();
-		void openFileFromList(const tstring& file); // [+] SSA
+		void openFileFromList(const tstring& file);
 		
 		class ItemInfo
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
@@ -566,12 +563,11 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		size_t files;
 		int64_t speed;      /**< Speed at which this file list was downloaded */
 		
-		bool m_isDclst; // [+] FlylinkDC DCLST
+		bool m_isDclst;
 		
 		bool m_updating;
 		bool m_searching;
 		bool m_loading;
-		//GETSET(bool, isMyOwnList, IsMyOwnList); // [+] IRainman TODO
 		
 		int statusSizes[STATUS_LAST];
 		
@@ -580,8 +576,9 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		StringMap ucLineParams;
 		
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST
-		bool isoffline; // [+] InfinitySky.
-		void updateTitle(); // [+] InfinitySky. Изменять заголовок окна.
+		bool isoffline;
+		void updateTitle();
+		Изменять заголовок окна.
 #endif // USE_OFFLINE_ICON_FOR_FILELIST
 		
 		typedef boost::unordered_map<UserPtr, DirectoryListingFrame*, User::Hash> UserMap;
@@ -631,7 +628,7 @@ class ThreadedDirectoryListing : public Thread
 				if (!mFile.empty())
 				{
 					const string l_filename = Util::getFileName(mFile);
-					const bool l_list = (_strnicmp(l_filename.c_str(), "files", 5)  // !SMT!-UI
+					const bool l_list = (_strnicmp(l_filename.c_str(), "files", 5)
 					                     || _strnicmp(l_filename.c_str() + l_filename.length() - 8, ".xml.bz2", 8));
 					                     
 					const bool l_own_list = _stricmp(l_filename.c_str(), Util::getFileName(ShareManager::getInstance()->getOwnListFile()).c_str()) == 0;
@@ -640,11 +637,11 @@ class ThreadedDirectoryListing : public Thread
 					mWindow->setWindowTitle();
 					ADLSearchManager::getInstance()->matchListing(*mWindow->dl);
 					if (l_list)
-						mWindow->dl->checkDupes(); // !fulDC!
+						mWindow->dl->checkDupes();
 					if (l_own_list)
 						mWindow->refreshTree(Text::toT(SETTING(NICK)));
 					else
-						mWindow->refreshTree(mDir); // mWindow->refreshTree(Text::toT(WinUtil::getInitialDir(mWindow->dl->getUser()))); [!] IRainman merge
+						mWindow->refreshTree(mDir);
 				}
 				else
 				{

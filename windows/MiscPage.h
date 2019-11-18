@@ -24,7 +24,6 @@
 #include <atlcrack.h>
 #include "PropPage.h"
 
-#include "../client/SimpleXML.h"
 #include "ExListViewCtrl.h"
 #include "HubFrame.h"
 #include "../client/CFlylinkDBManager.h"
@@ -47,7 +46,7 @@ class MiscPage : public CPropertyPage<IDD_MISC_PAGE>, public PropPage
 		COMMAND_ID_HANDLER(IDC_IGNORE_ADD, onIgnoreAdd)
 		COMMAND_ID_HANDLER(IDC_IGNORE_REMOVE, onIgnoreRemove)
 		COMMAND_ID_HANDLER(IDC_IGNORE_CLEAR, onIgnoreClear)
-		NOTIFY_HANDLER(IDC_IGNORELIST, NM_CUSTOMDRAW, ignoreListCtrl.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_IGNORELIST, NM_CUSTOMDRAW, ignoreListCtrl.onCustomDraw)
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
 		

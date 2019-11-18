@@ -102,7 +102,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		static UserConnectionList g_idlers;
 		static void remove_idlers(UserConnection* aSource);
 		
-		static int64_t g_runningAverage;//[+] IRainman refactoring transfer mechanism
+		static int64_t g_runningAverage;
 		
 		void removeConnection(UserConnection* p_conn, bool p_is_remove_listener = true);
 		static void removeDownload(const DownloadPtr& aDownload);
@@ -144,10 +144,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		
 		// TimerManagerListener
 		void on(TimerManagerListener::Second, uint64_t aTick) noexcept override;
-		/*#ifdef IRAINMAN_ENABLE_AUTO_BAN
-		        void on(BanMessage, UserConnection*, const string& aMessage) noexcept override; // !SMT!-B
-		#endif*/
-		void on(CheckUserIP, UserConnection*) noexcept override; // [+] SSA
+		void on(CheckUserIP, UserConnection*) noexcept override;
 	public:
 		bool alert_handler();
 		void post_torrent_info();

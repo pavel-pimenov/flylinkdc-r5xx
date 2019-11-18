@@ -48,14 +48,14 @@ struct OMenuItem
  */
 class OMenu : public CMenu
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 	public:
 		OMenu()
 		{
 		}
-		virtual ~OMenu(); // [!] IRainman fix.
+		virtual ~OMenu();
 		
 		BOOL CreatePopupMenu();
 		
@@ -117,14 +117,14 @@ class OMenu : public CMenu
 		}
 };
 #ifdef IRAINMAN_INCLUDE_SMILE
-class CEmotionMenu : public OMenu  //[+]PPA
+class CEmotionMenu : public OMenu
 {
 	public:
 		CEmotionMenu() : m_menuItems(0)
 		{
 		}
 		void CreateEmotionMenu(const POINT& p_pt, const HWND& p_hWnd, int p_IDC_EMOMENU);
-		int GetItemsCount() const // [+] IRainman fix.
+		int GetItemsCount() const
 		{
 			return m_menuItems;
 		}

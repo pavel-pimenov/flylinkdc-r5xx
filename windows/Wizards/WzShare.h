@@ -46,7 +46,7 @@ public:
 		COMMAND_ID_HANDLER(IDC_WIZARD_SHARE_REMOVE, OnRemove)
 		COMMAND_ID_HANDLER(IDC_WIZARD_SHARE_EDIT, OnEdit)
 		COMMAND_ID_HANDLER(IDC_WIZARD_SHARE_RENAME, OnRename)
-		NOTIFY_HANDLER(IDC_WIZARD_SHARE_LIST, NM_CUSTOMDRAW, ctrlDirectories.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_WIZARD_SHARE_LIST, NM_CUSTOMDRAW, ctrlDirectories.onCustomDraw)
         CHAIN_MSG_MAP(CPropertyPageImpl<WzShare>)
     END_MSG_MAP()
 
@@ -137,16 +137,6 @@ public:
 				MessageBox(CTSTRING(WIZARD_SHARE_ALREADYIN), CTSTRING(WIZARD_TITLE), MB_OK | MB_ICONERROR);
 				return 0;
 			}
-			// [-] IRainman fix: in DC++ are allowed to merge directory with the same name.
-			//tstring lastName = GetLastNameFormPath(target, ctrlDirectories);
-			//
-			//if (lastName.empty())
-			//{
-			//	ctrlDirectories.Detach();
-			//	MessageBox(CTSTRING(WIZARD_SHARE_ALREADYINDESC), CTSTRING(WIZARD_TITLE), MB_OK | MB_ICONERROR);
-			//	return 0;
-			//}
-			// Get last folder name
 			const int i = ctrlDirectories.insert(ctrlDirectories.GetItemCount(), Util::getLastDir(target));
 			ctrlDirectories.SetItemText(i, 1, target.c_str());
 			ctrlDirectories.SetCheckState(i, TRUE);
@@ -158,39 +148,6 @@ public:
 	}
 
 
-
-	// [-] IRainman fix: in DC++ are allowed to merge directory with the same name.
-	//tstring GetLastNameFormPath(tstring target, const ExListViewCtrl& ctrlDirectories)
-	//{
-	//		tstring lastName = Util::getLastDir(target);
-	//		tstring lastNameSample = lastName; 
-	//		bool bFindD;
-	//		int iCount = 0;
-	//		do
-	//		{
-	//			bFindD = false;			
-	//			for (int i = 0; i<ctrlDirectories.GetItemCount(); i++)
-	//			{
-	//				AutoArray<TCHAR> path(FULL_MAX_PATH);
-	//				if ( ctrlDirectories.GetItemText(i, 0, path, FULL_MAX_PATH-1) )
-	//				{
-	//					if (lastName.compare(path) == 0)
-	//					{
-	//						bFindD = true;
-	//						break;
-	//					}
-	//				}				
-	//			}
-	//			if (bFindD)
-	//			{
-	//				lastName = lastNameSample;
-	//				lastName += L'_';
-	//				lastName += Text::toT( Util::toString( ++iCount ));
-	//			}
-	//		}while (bFindD);
-	//
-	//		return lastName;
-	//}
 
 	LRESULT OnRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 	{
@@ -267,7 +224,6 @@ public:
 		int iSelected = ctrlDirectories.GetSelectedIndex();
 		if (iSelected > -1 && iSelected < ctrlDirectories.GetItemCount())
 		{
-			//[-] PVS-Studio V808 tstring pathSel;
 			tstring pathName;
 			AutoArray<TCHAR> path(FULL_MAX_PATH);
 			if ( ctrlDirectories.GetItemText(iSelected, 0, path, FULL_MAX_PATH-1) )
@@ -280,30 +236,6 @@ public:
 			virt.line = pathName;
 			if (virt.DoModal(m_hWnd) == IDOK)
 			{
-				// [!] IRainman fix: in DC++ are allowed to merge directory with the same name.
-				//bool bFindD = false;
-				//for (int i = 0; i<ctrlDirectories.GetItemCount(); i++)
-				//{
-				//	if ( i != iSelected)
-				//	{
-				//		AutoArray<TCHAR> path(FULL_MAX_PATH);
-				//		if ( ctrlDirectories.GetItemText(i, 0, path, FULL_MAX_PATH-1) )
-				//		{
-				//			if (virt.line.compare(path) == 0)
-				//			{
-				//				bFindD = true;
-				//				break;
-				//			}
-				//		}				
-				//	}
-				//}
-				//
-				//if (bFindD)
-				//{
-				//	ctrlDirectories.Detach();
-				//	MessageBox(CTSTRING(WIZARD_SHARE_ALREADYINDESC), CTSTRING(WIZARD_TITLE), MB_OK | MB_ICONERROR);
-				//	return 0;
-				//}
 				
 				ctrlDirectories.SetItemText(iSelected, 0, virt.line.c_str());
 			}
@@ -424,7 +356,7 @@ public:
 		return FALSE;
 	}
 
-	ExListViewCtrl ctrlDirectories; // [~] IRainman
+	ExListViewCtrl ctrlDirectories;
 	private:
 		ExCImage img_f;	
 };

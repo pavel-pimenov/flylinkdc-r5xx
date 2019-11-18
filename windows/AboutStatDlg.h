@@ -13,7 +13,7 @@
 
 class AboutStatDlg : public CDialogImpl<AboutStatDlg>
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 	public:

@@ -28,7 +28,6 @@ char* MD5Calc::CalcMD5FromFile(const wchar_t *s8_Path)
 	                                 
 	if (h_File == INVALID_HANDLE_VALUE)
 	{
-		// [!] IRainman use GetFileSizeEx function!
 		// http://msdn.microsoft.com/en-us/library/aa364957(v=VS.85).aspx
 		int s32_Size = GetFileSize(h_File, 0);
 		int l_ReadBufSize = std::min(1000000, s32_Size);

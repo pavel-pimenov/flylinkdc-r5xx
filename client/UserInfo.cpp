@@ -142,7 +142,6 @@ int UserInfo::compareItems(const UserInfo* a, const UserInfo* b, int col)
 	}
 }
 
-//[+]IRainman merge, moved from class OnlineUsers
 tstring UserInfo::getText(int p_col) const
 {
 	//PROFILE_THREAD_SCOPED();

@@ -33,7 +33,6 @@ public:
     // Construction
     WzNick() : CPropertyPageImpl<WzNick>(  CTSTRING(WIZARD_TITLE) )	
 	{
-		/*[-] IRainman fix srand( (unsigned)time( NULL ) );*/
 	}
 
     // Maps

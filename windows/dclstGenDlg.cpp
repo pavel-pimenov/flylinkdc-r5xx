@@ -164,7 +164,6 @@ string DCLSTGenDlg::getDCLSTName(const string& folderName)
 int DCLSTGenDlg::run()
 {
 	// Start Generation
-	// [-] _cs.lock(); [-] IRainman fix: no needs!
 	if (_isCanceled)
 	{
 		_isInProcess = false;
@@ -200,8 +199,6 @@ int DCLSTGenDlg::run()
 	}
 	
 	CalculateTTH();
-	
-	// [-] _cs.unlock(); [-] IRainman fix: no needs!
 	
 	PostMessage(WM_FINISHED, 0, 0);
 	_isInProcess = false;
@@ -310,7 +307,7 @@ size_t DCLSTGenDlg::PackAndSave()
 	}
 	catch (const FileException& ex)
 	{
-		LogManager::message("DCLSTGenerator::File error = " + ex.getError() + " File = " + _mNameDCLST); // [!] IRainman fix.
+		LogManager::message("DCLSTGenerator::File error = " + ex.getError() + " File = " + _mNameDCLST);
 		MessageBox(CTSTRING(DCLSTGEN_METAFILECANNOTBECREATED), CTSTRING(DCLSTGEN_TITLE), MB_OK | MB_ICONERROR);
 	}
 	
@@ -319,7 +316,7 @@ size_t DCLSTGenDlg::PackAndSave()
 
 void DCLSTGenDlg::CalculateTTH()
 {
-	const size_t c_size_buf = 1024 * 1024; // [!] IRainman fix.
+	const size_t c_size_buf = 1024 * 1024;
 	if (Util::getTTH_MD5(_mNameDCLST, c_size_buf, &_tth/*, &l_md5*/))
 	{
 		const string l_TTH_str = _tth.get()->getRoot().toBase32();

@@ -35,7 +35,6 @@ PropPage::TextItem LimitPage::texts[] =
 
 PropPage::Item LimitPage::items[] =
 {
-	// [!] IRainman SpeedLimiter: to work correctly, you must first set the upload speed, and only then download speed!
 	{ IDC_MX_UP_SP_LMT_NORMAL, SettingsManager::MAX_UPLOAD_SPEED_LIMIT_NORMAL, PropPage::T_INT },
 	{ IDC_MX_DW_SP_LMT_NORMAL, SettingsManager::MAX_DOWNLOAD_SPEED_LIMIT_NORMAL, PropPage::T_INT },
 	{ IDC_TIME_LIMITING, SettingsManager::TIME_DEPENDENT_THROTTLE, PropPage::T_BOOL },
@@ -88,7 +87,6 @@ LRESULT LimitPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	spin.SetRange32(0, 99999);
 	spin.Detach();
 	
-	// [+] InfinitySky. ¬ыбор времени из выпадающего списка.
 	timeCtrlBegin.Attach(GetDlgItem(IDC_BW_START_TIME));
 	timeCtrlEnd.Attach(GetDlgItem(IDC_BW_END_TIME));
 	
@@ -100,12 +98,8 @@ LRESULT LimitPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	
 	timeCtrlBegin.Detach();
 	timeCtrlEnd.Detach();
-	// [+] InfinitySky. END.
 	
 	fixControls();
-	
-	// Do specialized reading here
-	
 	return TRUE;
 }
 

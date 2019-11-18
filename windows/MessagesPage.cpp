@@ -34,7 +34,6 @@ PropPage::Item MessagesPage::items[] =
 MessagesPage::ListItem MessagesPage::listItems[] =
 {
 	{ SettingsManager::SEND_SLOTGRANT_MSG, ResourceManager::SEND_SLOTGRANT_MSG },
-	// [-] { SettingsManager::NO_AWAYMSG_TO_BOTS, ResourceManager::SETTINGS_NO_AWAYMSG_TO_BOTS }, [-] IRainman fix.
 	{ SettingsManager::USE_CTRL_FOR_LINE_HISTORY, ResourceManager::SETTINGS_USE_CTRL_FOR_LINE_HISTORY },
 	{ SettingsManager::TIME_STAMPS, ResourceManager::SETTINGS_TIME_STAMPS },
 	
@@ -52,7 +51,7 @@ MessagesPage::ListItem MessagesPage::listItems[] =
 	{ SettingsManager::SHOW_JOINS, ResourceManager::SETTINGS_SHOW_JOINS },
 	{ SettingsManager::FAV_SHOW_JOINS, ResourceManager::SETTINGS_FAV_SHOW_JOINS },
 	{ SettingsManager::SUPPRESS_MAIN_CHAT, ResourceManager::SETTINGS_ADVANCED_SUPPRESS_MAIN_CHAT },
-	{ SettingsManager::SUPPRESS_PMS, ResourceManager::SETTINGS_ADVANCED_SUPPRESS_PMS },//[+]IRainman
+	{ SettingsManager::SUPPRESS_PMS, ResourceManager::SETTINGS_ADVANCED_SUPPRESS_PMS },
 	{ SettingsManager::IGNORE_HUB_PMS, ResourceManager::SETTINGS_IGNORE_HUB_PMS },
 	{ SettingsManager::IGNORE_BOT_PMS, ResourceManager::SETTINGS_IGNORE_BOT_PMS },
 	{ SettingsManager::NSL_IGNORE_ME, ResourceManager::NSL_IGNORE_ME },
@@ -64,11 +63,10 @@ LRESULT MessagesPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 {
 	PropPage::read(*this, items, listItems, GetDlgItem(IDC_MESSAGES_BOOLEANS));
 	
-	ctrlList.Attach(GetDlgItem(IDC_MESSAGES_BOOLEANS)); // [+] IRainman
+	ctrlList.Attach(GetDlgItem(IDC_MESSAGES_BOOLEANS));
 	
 	PropPage::translate((HWND)(*this), texts);
 	
-	// [+] InfinitySky. ¬ыбор времени из выпадающего списка.
 	timeCtrlBegin.Attach(GetDlgItem(IDC_AWAY_START_TIME));
 	timeCtrlEnd.Attach(GetDlgItem(IDC_AWAY_END_TIME));
 	
@@ -80,7 +78,6 @@ LRESULT MessagesPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	
 	timeCtrlBegin.Detach();
 	timeCtrlEnd.Detach();
-	// [+] InfinitySky. END.
 	
 	fixControls();
 	
@@ -98,7 +95,6 @@ void MessagesPage::write()
 {
 	PropPage::write(*this, items, listItems, GetDlgItem(IDC_MESSAGES_BOOLEANS));
 	
-	// [+] InfinitySky. ¬ыбор времени из выпадающего списка.
 	timeCtrlBegin.Attach(GetDlgItem(IDC_AWAY_START_TIME));
 	timeCtrlEnd.Attach(GetDlgItem(IDC_AWAY_END_TIME));
 	
@@ -107,7 +103,6 @@ void MessagesPage::write()
 	
 	timeCtrlBegin.Detach();
 	timeCtrlEnd.Detach();
-	// [+] InfinitySky. END.
 	
 	// Do specialized writing here
 }

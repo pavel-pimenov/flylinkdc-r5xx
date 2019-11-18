@@ -71,7 +71,7 @@ void OMenu::InsertSeparator(UINT uItem, BOOL byPosition, const tstring& caption,
 	{
 		boost::replace_all(mi->m_text, _T("&"), Util::emptyStringT);
 	}
-	// !SMT!-UI
+	
 	// if (mi->text.length() > 25)
 	// {
 	//     mi->text = mi->text.substr(0, 25) + _T("...");
@@ -236,7 +236,7 @@ LRESULT OMenu::onDrawItem(HWND /*hWnd*/, UINT /*uMsg*/, WPARAM wParam, LPARAM lP
 	return S_OK;
 }
 #ifdef IRAINMAN_INCLUDE_SMILE
-void CEmotionMenu::CreateEmotionMenu(const POINT& p_pt, const HWND& p_hWnd, int p_IDC_EMOMENU)//[+]PPA
+void CEmotionMenu::CreateEmotionMenu(const POINT& p_pt, const HWND& p_hWnd, int p_IDC_EMOMENU)
 {
 	if ((*this) != NULL)
 	{

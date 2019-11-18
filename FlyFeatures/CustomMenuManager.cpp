@@ -58,7 +58,6 @@ void CustomMenuManager::load(/* SimpleXML&*/ /*aXml*/)
 		}
 	}
 	
-	// [!] SSA use old way for compatibility
 	if (data.empty() && SETTING(USE_CUSTOM_MENU))
 	{
 		const string strPathURL = SETTING(CUSTOM_MENU_PATH);

@@ -58,7 +58,6 @@ RSSFeed::removeCDATA(const string & str, string &tmp)
 {
 	if (str.empty())
 		return;
-	//[-] PVS-Studio V808 string tmpVal;
 	string::size_type findFirst = str.find("<![CDATA[");
 	string::size_type findLast = str.find_last_of("]]>");
 	if (findFirst == 0 && findLast == str.size() - 1)
@@ -69,13 +68,6 @@ RSSFeed::removeCDATA(const string & str, string &tmp)
 	{
 		tmp = str;
 	}
-	/*
-	    tmp.reserve(tmpVal.length());
-	    string::const_iterator end = tmpVal.end();
-	    for(string::const_iterator i = tmpVal.begin(); i != end; ++i) {
-	        tmp += (*i);
-	    }
-	*/
 }
 bool
 RSSFeed::UpdateFeedNewXML()
@@ -263,7 +255,6 @@ RSSFeed::ProcessRSS(void* data, RSSParser parser, bool isUtf8)
 								url = linkNode.getText();
 							else if (linkNode.nClear())
 								url = linkNode.getClear().lpszValue;
-							// [!] SSA Can be problems
 							if (isUtf8) url = Text::utf8ToAcp(Text::fromUtf8(url));
 						}
 						XMLParser::XMLNode descNode = itemNode.getChildNode("description");
@@ -438,7 +429,6 @@ RSSFeed::ProcessAtom(void* data, RSSParser parser, bool isUtf8)
 							if (relation == "alternate")
 							{
 								url = linkNode.getAttribute("href");
-								// [!] SSA Can be problems
 								if (isUtf8) url = Text::utf8ToAcp(Text::fromUtf8(url));
 								break;
 							}
@@ -543,7 +533,6 @@ RSSFeed::ProcessAtom(void* data, RSSParser parser, bool isUtf8)
 	}
 	else if (parser == XML_SIMPLE)
 	{
-		// [!] SSA - todo if needed?
 		SimpleXML* xml = reinterpret_cast<SimpleXML*>(data);
 		if (xml != nullptr)
 		{
@@ -590,7 +579,7 @@ RSSManager::updateAllFeeds()
 	unsigned int iNewNews = 0;
 	NewsList l_fire_added_array;
 	{
-		CFlyLock(g_csFeed); // [+] IRainman fix.
+		CFlyLock(g_csFeed);
 		for (auto i = g_feeds.cbegin(); i != g_feeds.cend(); ++i)
 		{
 			if ((*i)->UpdateFeedNewXML())
@@ -625,10 +614,8 @@ RSSManager::updateAllFeeds()
 	}
 }
 
-bool
-RSSManager::canAdd(const RSSItem* p_item)
+bool RSSManager::canAdd(const RSSItem* p_item)
 {
-	// [!] IRainman: this function call needs to lock externals.
 	if (g_newsList.empty())
 		return true;
 		
@@ -651,8 +638,7 @@ RSSManager::fail(const string& p_error)
 	fly_fire1(RSSListener::Failed(), p_error);
 }
 
-void
-RSSManager::execute(const RSSManagerTasks& p_task)
+void RSSManager::execute(const RSSManagerTasks& p_task)
 {
 	dcassert(p_task == CHECK_NEWS);
 	updateAllFeeds();
@@ -660,7 +646,6 @@ RSSManager::execute(const RSSManagerTasks& p_task)
 
 bool RSSManager::hasRSSFeed(const string & url, const string & name)
 {
-	// [!] IRainman: this function call needs to lock externals.
 	for (auto i = g_feeds.cbegin(); i != g_feeds.cend(); ++i)
 	{
 		if (!stricmp((*i)->getFeedURL(), url) || !stricmp((*i)->getSource(), name))
@@ -706,7 +691,7 @@ void RSSManager::load(SimpleXML& aXml)
 RSSFeed*
 RSSManager::addNewFeed(const string& url, const string& name, const string& codeing, bool bUpdateFeeds/* = false */)
 {
-	CFlyLock(g_csFeed); // [+] IRainman fix.
+	CFlyLock(g_csFeed);
 	if (!hasRSSFeed(url, name))
 	{
 		RSSFeed* rFeed = new RSSFeed(url, name, codeing, bUpdateFeeds);
@@ -724,7 +709,7 @@ bool
 RSSManager::removeFeedAt(size_t pos)
 {
 	bool bRes = false;
-	CFlyLock(g_csFeed); // [+] IRainman fix.
+	CFlyLock(g_csFeed);
 	if (pos < g_feeds.size())
 	{
 		RSSFeed* feed = g_feeds.at(pos);
@@ -770,7 +755,7 @@ void RSSManager::on(TimerManagerListener::Minute, uint64_t tick) noexcept
 	{
 		if (++m_minuteCounter >= (unsigned int) SETTING(RSS_AUTO_REFRESH_TIME))
 		{
-			updateFeeds(); // [!] IRainman fix done [2] https://www.box.net/shared/be613d6f54c533c0e1ff
+			updateFeeds();
 			m_minuteCounter = 0;
 		}
 	}
@@ -805,7 +790,7 @@ void RSSManager::updateFeeds()
 	{
 		{
 			CFlyLock(g_csFeed);
-			if (g_feeds.empty()) // [+] IRainman fix.
+			if (g_feeds.empty())
 				return;
 		}
 		if (RSSManager::isValidInstance())

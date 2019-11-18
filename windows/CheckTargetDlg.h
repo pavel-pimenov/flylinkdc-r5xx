@@ -41,15 +41,15 @@ class CheckTargetDlg : public CDialogImpl< CheckTargetDlg >
 		COMMAND_ID_HANDLER(IDC_REPLACE_REPLACE, onRadioButton)
 		COMMAND_ID_HANDLER(IDC_REPLACE_RENAME, onRadioButton)
 		COMMAND_ID_HANDLER(IDC_REPLACE_SKIP, onRadioButton)
-		COMMAND_ID_HANDLER(IDC_REPLACE_CHANGE_NAME, onChangeName) // !SMT!-UI
-		// COMMAND_ID_HANDLER(IDC_REPLACE_APPLY, onApply) // !SMT!-UI
+		COMMAND_ID_HANDLER(IDC_REPLACE_CHANGE_NAME, onChangeName)
+		// COMMAND_ID_HANDLER(IDC_REPLACE_APPLY, onApply)
 		END_MSG_MAP();
 		
 		LRESULT onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT onCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onRadioButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-		LRESULT onChangeName(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/); // !SMT!-UI
-		// LRESULT onApply(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/); // !SMT!-UI
+		LRESULT onChangeName(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		// LRESULT onApply(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		/*
 		const string& GetNewFilename() const
 		{

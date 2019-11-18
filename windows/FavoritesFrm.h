@@ -61,9 +61,9 @@ class FavoriteHubsFrame : public MDITabChildWindowImpl < FavoriteHubsFrame, RGB(
 		COMMAND_ID_HANDLER(IDC_MOVE_UP, onMoveUp);
 		COMMAND_ID_HANDLER(IDC_MOVE_DOWN, onMoveDown);
 		COMMAND_ID_HANDLER(IDC_OPEN_HUB_LOG, onOpenHubLog)
-		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		COMMAND_ID_HANDLER(IDC_MANAGE_GROUPS, onManageGroups)
-		NOTIFY_HANDLER(IDC_HUBLIST, NM_CUSTOMDRAW, ctrlHubs.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_HUBLIST, NM_CUSTOMDRAW, ctrlHubs.onCustomDraw)
 		NOTIFY_HANDLER(IDC_HUBLIST, NM_DBLCLK, onDoubleClickHublist)
 		NOTIFY_HANDLER(IDC_HUBLIST, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(IDC_HUBLIST, LVN_ITEMCHANGED, onItemChanged)
@@ -112,7 +112,7 @@ class FavoriteHubsFrame : public MDITabChildWindowImpl < FavoriteHubsFrame, RGB(
 			return 0;
 		}
 		
-		// [+] InfinitySky.
+		
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			PostMessage(WM_CLOSE);

@@ -53,7 +53,7 @@ class CDMDebugFrame : private DebugManagerListener, public Thread,
 		MESSAGE_HANDLER(WM_CLOSE, onClose)
 		MESSAGE_HANDLER(WM_CTLCOLOREDIT, onCtlColor)
 		MESSAGE_HANDLER(WM_CTLCOLORSTATIC, onCtlColor)
-		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		CHAIN_MSG_MAP(baseClass)
 		ALT_MSG_MAP(DETECTION_MESSAGE_MAP)
 		MESSAGE_HANDLER(BM_SETCHECK, onSetCheckDetection)
@@ -112,7 +112,7 @@ class CDMDebugFrame : private DebugManagerListener, public Thread,
 		}
 		LRESULT onChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
-		// [+] InfinitySky.
+		
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			PostMessage(WM_CLOSE);

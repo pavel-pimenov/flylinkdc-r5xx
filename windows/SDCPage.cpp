@@ -53,7 +53,7 @@ PropPage::Item SDCPage::items[] =
 	{ IDC_SHUTDOWNTIMEOUT, SettingsManager::SHUTDOWN_TIMEOUT, PropPage::T_INT },
 	{ IDC_MAX_COMPRESSION, SettingsManager::MAX_COMPRESSION, PropPage::T_INT },
 	{ IDC_DOWNCONN, SettingsManager::DOWNCONN_PER_SEC, PropPage::T_INT },
-	{ IDC_SET_MIN_LENGHT_FOR_CHUNKS, SettingsManager::MIN_MULTI_CHUNK_SIZE, PropPage::T_INT}, // [+] IRainman
+	{ IDC_SET_MIN_LENGHT_FOR_CHUNKS, SettingsManager::MIN_MULTI_CHUNK_SIZE, PropPage::T_INT},
 	{ 0, 0, PropPage::T_END }
 };
 
@@ -83,12 +83,12 @@ LRESULT SDCPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	fixControls();
 	return TRUE;
 }
-LRESULT SDCPage::onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) // [+]NightOrion
+LRESULT SDCPage::onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	fixControls();
 	return 0;
 }
-void SDCPage::fixControls() // [+]NightOrion
+void SDCPage::fixControls()
 {
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
 	::EnableWindow(GetDlgItem(IDC_SOCKET_IN_BUFFER), !CompatibilityManager::isOsVistaPlus());

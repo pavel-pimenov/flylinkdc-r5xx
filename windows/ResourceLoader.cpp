@@ -61,7 +61,7 @@ bool ExCImage::LoadFromResource(UINT id, LPCTSTR pType)
 	if (!hResource)
 	{
 #if defined(USE_THEME_MANAGER)
-		hInst = nullptr; // [!] SSA - try to search in original resource
+		hInst = nullptr;
 		hResource = ::FindResource(hInst, MAKEINTRESOURCE(id), pType);
 		dcassert(hResource);
 		if (!hResource)

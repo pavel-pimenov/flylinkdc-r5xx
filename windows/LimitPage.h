@@ -44,7 +44,7 @@ class LimitPage : public CPropertyPage<IDD_LIMIT_PAGE>, public PropPage
 	private:
 		static Item items[];
 		static TextItem texts[];
-		CComboBox timeCtrlBegin, timeCtrlEnd; // [+] InfinitySky. ¬ыбор времени из выпадающего списка.
+		CComboBox timeCtrlBegin, timeCtrlEnd;
 		
 		void fixControls();
 };

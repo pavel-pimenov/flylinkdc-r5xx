@@ -86,7 +86,6 @@ void FinishedManager::rotation_items(const FinishedItemPtr& p_item, eType p_type
 		delete *l_item_array.cbegin(); // Мутное место
 		l_item_array.pop_front();
 	}
-	// [~] IRainman
 #endif // FLYLINKDC_USE_ROTATION_FINISHED_MANAGER
 	l_item_array.push_back(p_item);
 }

@@ -99,7 +99,7 @@ class IPList
 		std::vector<IPArrayList> m_ipRangeList;
 		std::map<uint32_t, uint32_t> m_maskList;
 		std::vector< uint32_t > m_usedList;
-		FastCriticalSection m_cs; // [!] IRainman opt: use spin lock here.
+		FastCriticalSection m_cs;
 		
 		static uint32_t parseIP(const std::string& IPNumber);
 		uint32_t getMaskByLevel(uint32_t maskLevel);

@@ -17,14 +17,13 @@
  */
 
 #include "stdinc.h"
-#include "SimpleXML.h"
 #include "ClientManager.h"
-#include "CompatibilityManager.h" // [+] IRainman
+#include "CompatibilityManager.h"
 #include "ShareManager.h"
 #include "../FlyFeatures/flyServer.h"
 
 #ifdef IRAINMAN_NTFS_STREAM_TTH
-//[+] Greylink
+
 const string HashManager::StreamStore::g_streamName(".gltth");
 
 #ifdef RIP_USE_STREAM_SUPPORT_DETECTION
@@ -71,7 +70,7 @@ bool HashManager::StreamStore::loadTree(const string& p_filePath, TigerTree& p_T
 			return false;
 		dcassert(p_FileSize > 0);
 		const int64_t l_fileSize = p_FileSize == -1 ? File::getSize(p_filePath) : p_FileSize;
-		if (l_fileSize < SETTING(SET_MIN_LENGHT_TTH_IN_NTFS_FILESTREAM) * 1048576) // that's why minStreamedFileSize never be changed![*]NightOrion
+		if (l_fileSize < SETTING(SET_MIN_LENGHT_TTH_IN_NTFS_FILESTREAM) * 1048576)
 			return false;
 		const int64_t l_timeStamp = File::getTimeStamp(p_filePath);
 		{
@@ -95,7 +94,7 @@ bool HashManager::StreamStore::loadTree(const string& p_filePath, TigerTree& p_T
 	catch (const Exception& /*e*/)
 	{
 		// Отключил спам
-		// LogManager::message(STRING(ERROR_GET_TTH_STREAM) + ' ' + p_filePath + " Error = " + e.getError());// [+]IRainman
+		// LogManager::message(STRING(ERROR_GET_TTH_STREAM) + ' ' + p_filePath + " Error = " + e.getError());
 		return false;
 	}
 	/*
@@ -110,7 +109,7 @@ bool HashManager::StreamStore::loadTree(const string& p_filePath, TigerTree& p_T
 
 bool HashManager::StreamStore::saveTree(const string& p_filePath, const TigerTree& p_Tree)
 {
-	if (CompatibilityManager::isWine() || //[+]PPA под wine не пишем в поток
+	if (CompatibilityManager::isWine() ||
 	        !BOOLSETTING(SAVE_TTH_IN_NTFS_FILESTREAM))
 		return false;
 #ifdef RIP_USE_STREAM_SUPPORT_DETECTION
@@ -123,8 +122,8 @@ bool HashManager::StreamStore::saveTree(const string& p_filePath, const TigerTre
 	{
 		TTHStreamHeader h;
 		h.fileSize = File::getSize(p_filePath);
-		if (h.fileSize < (SETTING(SET_MIN_LENGHT_TTH_IN_NTFS_FILESTREAM) * 1048576) || h.fileSize != (uint64_t)p_Tree.getFileSize()) //[*]NightOrion
-			return false; // that's why minStreamedFileSize never be changed!
+		if (h.fileSize < (SETTING(SET_MIN_LENGHT_TTH_IN_NTFS_FILESTREAM) * 1048576) || h.fileSize != (uint64_t)p_Tree.getFileSize())
+			return false;
 		h.timeStamp = File::getTimeStamp(p_filePath);
 		h.root = p_Tree.getRoot();
 		h.blockSize = p_Tree.getBlockSize();
@@ -141,12 +140,11 @@ bool HashManager::StreamStore::saveTree(const string& p_filePath, const TigerTre
 #ifndef RIP_USE_STREAM_SUPPORT_DETECTION
 		addBan(p_filePath);
 #endif
-		LogManager::message(STRING(ERROR_ADD_TTH_STREAM) + ' ' + p_filePath + " : " + e.getError());// [+]IRainman
+		LogManager::message(STRING(ERROR_ADD_TTH_STREAM) + ' ' + p_filePath + " : " + e.getError());
 		return false;
 	}
 	return true;
 }
-//[~] Greylink
 
 void HashManager::StreamStore::deleteStream(const string& p_filePath)
 {
@@ -178,7 +176,6 @@ void HashManager::addFileFromStream(int64_t p_path_id, const string& p_name, con
 #if 0
 bool HashManager::checkTTH(const string& fname, const string& fpath, int64_t p_path_id, int64_t aSize, int64_t aTimeStamp, TTHValue& p_out_tth)
 {
-	// CFlyLock(cs); [-] IRainman fix: no data to lock.
 	const bool l_db = CFlylinkDBManager::getInstance()->check_tth(fname, p_path_id, aSize, aTimeStamp, p_out_tth);
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 	const string name = fpath + fname;
@@ -187,14 +184,14 @@ bool HashManager::checkTTH(const string& fname, const string& fpath, int64_t p_p
 	{
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 		TigerTree l_TT;
-		if (m_streamstore.loadTree(name, l_TT)) // [!] IRainman fix: no needs to lock.
+		if (m_streamstore.loadTree(name, l_TT))
 		{
-			addFileFromStream(p_path_id, name, l_TT, aSize); // [!] IRainman fix: no needs to lock.
+			addFileFromStream(p_path_id, name, l_TT, aSize);
 		}
 		else
 		{
 #endif // IRAINMAN_NTFS_STREAM_TTH      
-			hasher.hashFile(p_path_id, name, aSize); // [!] IRainman fix: no needs to lock.
+			hasher.hashFile(p_path_id, name, aSize);
 			return false;
 			
 #ifdef IRAINMAN_NTFS_STREAM_TTH
@@ -208,9 +205,9 @@ bool HashManager::checkTTH(const string& fname, const string& fpath, int64_t p_p
 		{
 			TigerTree l_TT;
 			__int64 l_block_size;
-			if (CFlylinkDBManager::getInstance()->get_tree(p_out_tth, l_TT, l_block_size)) // [!] IRainman fix: no needs to lock.
+			if (CFlylinkDBManager::getInstance()->get_tree(p_out_tth, l_TT, l_block_size))
 			{
-				m_streamstore.saveTree(name, l_TT); // [!] IRainman fix: no needs to lock.
+				m_streamstore.saveTree(name, l_TT);
 			}
 		}
 	}
@@ -222,7 +219,6 @@ bool HashManager::checkTTH(const string& fname, const string& fpath, int64_t p_p
 void HashManager::hashDone(__int64 p_path_id, const string& aFileName, int64_t aTimeStamp, const TigerTree& tth, int64_t speed,
                            bool p_is_ntfs, int64_t p_size)
 {
-	// CFlyLock(cs); [-] IRainman fix: no data to lock.
 	dcassert(!aFileName.empty());
 	if (aFileName.empty())
 	{
@@ -236,7 +232,7 @@ void HashManager::hashDone(__int64 p_path_id, const string& aFileName, int64_t a
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 		if (BOOLSETTING(SAVE_TTH_IN_NTFS_FILESTREAM))
 		{
-			if (!p_is_ntfs) // [+] PPA TTH received from the NTFS stream, do not write back!
+			if (!p_is_ntfs)
 			{
 				HashManager::getInstance()->m_streamstore.saveTree(aFileName, tth);
 			}
@@ -276,8 +272,7 @@ void HashManager::hashDone(__int64 p_path_id, const string& aFileName, int64_t a
 
 void HashManager::addFile(__int64 p_path_id, const string& p_file_name, int64_t p_time_stamp, const TigerTree& p_tth, int64_t p_size, CFlyMediaInfo& p_out_media)
 {
-	// dcassert(p_path_id);
-	p_out_media.init(); // TODO - делается двойной инит
+	p_out_media.init();
 	getMediaInfo(p_file_name, p_out_media, p_size, p_tth.getRoot());
 	CFlylinkDBManager::getInstance()->add_file(p_path_id, p_file_name, p_time_stamp, p_tth, p_size, p_out_media);
 }
@@ -291,7 +286,7 @@ void HashManager::Hasher::hashFile(__int64 p_path_id, const string& fileName, in
 	
 	if (w.insert(make_pair(fileName, l_task_item)). second)
 	{
-		m_CurrentBytesLeft += size;// [+]IRainman
+		m_CurrentBytesLeft += size;
 		if (m_paused > 0)
 			m_paused++;
 		else
@@ -335,8 +330,6 @@ void HashManager::Hasher::stopHashing(const string& baseDir)
 	CFlyFastLock(cs);
 	if (baseDir.empty())
 	{
-		// [+]IRainman When user closes the program with a chosen operation "abort hashing"
-		// in the hashing dialog then the hesher is cleaning.
 		w.clear();
 		m_CurrentBytesLeft = 0;
 	}
@@ -355,8 +348,6 @@ void HashManager::Hasher::stopHashing(const string& baseDir)
 			}
 		}
 	}
-	// [+] brain-ripper
-	// cleanup state
 	m_running = false;
 	dwMaxFiles = 0;
 	iMaxBytes = 0;
@@ -501,9 +492,6 @@ bool HashManager::Hasher::fastHash(const string& fname, uint8_t* buf, unsigned p
 	over.Offset = hn;
 	l_size -= hn;
 	dcassert(l_size >= 0);
-	// [+] brain-ripper
-	// exit loop if "running" equals false.
-	// "running" sets to false in stopHashing function
 	while (!isShutdown() && m_running && l_size >= 0)
 	{
 		if (l_size > 0)
@@ -611,7 +599,7 @@ int HashManager::Hasher::run()
 				m_fname = w.begin()->first;
 				m_currentSize = w.begin()->second.m_file_size;
 				m_path_id = w.begin()->second.m_path_id;
-				m_CurrentBytesLeft -= m_currentSize;// [+]IRainman
+				m_CurrentBytesLeft -= m_currentSize;
 				w.erase(w.begin());
 				l_is_last = w.empty();
 				if (!m_running)
@@ -628,7 +616,7 @@ int HashManager::Hasher::run()
 				m_running = false;
 				iMaxBytes = 0;
 				dwMaxFiles = 0;
-				m_CurrentBytesLeft = 0;// [+]IRainman
+				m_CurrentBytesLeft = 0;
 			}
 		}
 		string l_fname;
@@ -698,10 +686,10 @@ int HashManager::Hasher::run()
 				TigerTree* tth = &fastTTH;
 				bool l_is_ntfs = false;
 #ifdef IRAINMAN_NTFS_STREAM_TTH
-				if (l_size > 0 && HashManager::getInstance()->m_streamstore.loadTree(l_fname, fastTTH, l_size)) //[+]IRainman
+				if (l_size > 0 && HashManager::getInstance()->m_streamstore.loadTree(l_fname, fastTTH, l_size))
 				{
-					l_is_ntfs = true; //[+]PPA
-					LogManager::message(STRING(LOAD_TTH_FROM_NTFS) + ' ' + l_fname); //[!]NightOrion(translate)
+					l_is_ntfs = true;
+					LogManager::message(STRING(LOAD_TTH_FROM_NTFS) + ' ' + l_fname);
 				}
 #endif
 #ifdef _WIN32
@@ -715,7 +703,6 @@ int HashManager::Hasher::run()
 				if (!BOOLSETTING(FAST_HASH) || !fastHash(fname, 0, fastTTH, l_size))
 				{
 #endif
-						// [+] brain-ripper
 						if (m_running)
 						{
 							tth = &slowTTH;
@@ -725,7 +712,7 @@ int HashManager::Hasher::run()
 							{
 								size_t bufSize = g_HashBufferSize;
 								
-								if (GetMaxHashSpeed() > 0) // [+] brain-ripper
+								if (GetMaxHashSpeed() > 0)
 								{
 									const uint64_t now = GET_TICK();
 									const uint64_t minTime = n * 1000LL / (GetMaxHashSpeed() * 1024LL * 1024LL);
@@ -810,7 +797,7 @@ int HashManager::Hasher::run()
 				m_running = false;
 				iMaxBytes = 0;
 				dwMaxFiles = 0;
-				m_CurrentBytesLeft = 0;//[+]IRainman
+				m_CurrentBytesLeft = 0;
 			}
 		}
 		

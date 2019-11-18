@@ -58,7 +58,7 @@ int ThrottleManager::read(Socket* sock, void* buffer, size_t len)
 	
 	if (downTokens > 0)
 	{
-		const size_t slice = getDownloadLimitInBytes() / downs;//[!]IRainman SpeedLimiter
+		const size_t slice = getDownloadLimitInBytes() / downs;
 		size_t readSize = std::min(slice, std::min(len, downTokens));
 		
 		// read from socket
@@ -86,7 +86,6 @@ int ThrottleManager::read(Socket* sock, void* buffer, size_t len)
  */
 int ThrottleManager::write(Socket* p_sock, const void* p_buffer, size_t& p_len)
 {
-	//[+]IRainman SpeedLimiter
 	const auto currentMaxSpeed = p_sock->getMaxSpeed();
 	if (currentMaxSpeed < 0) // SU
 	{
@@ -107,7 +106,6 @@ int ThrottleManager::write(Socket* p_sock, const void* p_buffer, size_t& p_len)
 	}
 	else // general
 	{
-		//[~]IRainman SpeedLimiter
 		if (upLimit == 0 || UploadManager::getUploadCount() == 0)
 		{
 			const int sent = p_sock->write(p_buffer, p_len);
@@ -139,7 +137,7 @@ int ThrottleManager::write(Socket* p_sock, const void* p_buffer, size_t& p_len)
 		// no tokens, wait for them
 		upCond.timed_wait(lock, boost::posix_time::millisec(CONDWAIT_TIMEOUT));
 		return 0;   // from BufferedSocket: -1 = failed, 0 = retry
-	}//[!]IRainman SpeedLimiter
+	}
 }
 
 // TimerManagerListener
@@ -169,7 +167,6 @@ void ThrottleManager::on(TimerManagerListener::Second, uint64_t /*aTick*/) noexc
 	}
 }
 
-//[+]IRainman SpeedLimiter
 void ThrottleManager::on(TimerManagerListener::Minute, uint64_t /*aTick*/) noexcept
 {
 	if (!BOOLSETTING(THROTTLE_ENABLE))
@@ -207,4 +204,3 @@ void ThrottleManager::updateLimits()
 		setDownloadLimit(SETTING(MAX_DOWNLOAD_SPEED_LIMIT_NORMAL));
 	}
 }
-//[~]IRainman SpeedLimiter

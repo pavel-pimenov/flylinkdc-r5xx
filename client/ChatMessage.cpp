@@ -22,20 +22,13 @@
 
 string ChatMessage::format(/*const bool fullFormat [!] TODO */) const
 {
-	dcassert(m_from); // [!] IRainman fix: You can not generate this event anonymously! Initialize 'from' user - initiated sending a message!
+	dcassert(m_from);
 	string tmp;
 	
 	if (m_timestamp)
 	{
 		tmp += '[' + Util::getShortTimeString(m_timestamp) + "] ";
 	}
-	/* [!] IRainman TODO: please don't delete this! Needs for WebAPI!
-	if (fullFormat)
-	{
-	    tmp += formatNick(from->getIdentity().getNick(), thirdPerson) + text;
-	}
-	else
-	   [!] IRainman TODO */
 	{
 		tmp += m_text;
 	}

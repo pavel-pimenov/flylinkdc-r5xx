@@ -50,7 +50,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 	private CFlyTimerAdapter,
 	private QueueManagerListener,
 	private WebServerListener,
-	private UserManagerListener, // [+] IRainman
+	private UserManagerListener,
 	public AutoUpdateGUIMethod
 {
 	public:
@@ -99,14 +99,14 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		MESSAGE_HANDLER(WM_SIZE, onSize)
 		MESSAGE_HANDLER(WM_ENDSESSION, onEndSession)
 		MESSAGE_HANDLER(m_trayMessage, onTray)
-		MESSAGE_HANDLER(m_tbButtonMessage, onTaskbarButton); // [+] InfinitySky.
+		MESSAGE_HANDLER(m_tbButtonMessage, onTaskbarButton);
 		MESSAGE_HANDLER(WM_COPYDATA, onCopyData)
 		MESSAGE_HANDLER(WMU_WHERE_ARE_YOU, onWhereAreYou)
 		MESSAGE_HANDLER(WM_ACTIVATEAPP, onActivateApp)
 		MESSAGE_HANDLER(WM_APPCOMMAND, onAppCommand)
 		MESSAGE_HANDLER(IDC_REBUILD_TOOLBAR, OnCreateToolbar)
 		MESSAGE_HANDLER(WEBSERVER_SOCKET_MESSAGE, onWebServerSocket)
-		MESSAGE_HANDLER(IDC_UPDATE_WINDOW_TITLE, onUpdateWindowTitle) // [+] InfinitySky.
+		MESSAGE_HANDLER(IDC_UPDATE_WINDOW_TITLE, onUpdateWindowTitle)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		MESSAGE_HANDLER(WM_MENUSELECT, OnMenuSelect)
 #ifdef IRAINMAN_INCLUDE_SMILE
@@ -154,8 +154,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		COMMAND_ID_HANDLER(IDC_LIMITER, onLimiter)
 		COMMAND_ID_HANDLER(IDC_HELP_HOMEPAGE, onLink)
 		COMMAND_ID_HANDLER(IDC_HELP_HELP, onLink)
-		// TODO COMMAND_ID_HANDLER(IDC_HELP_DONATE, onLink)
-//[-]PPA        COMMAND_ID_HANDLER(IDC_HELP_GEOIPFILE, onLink)
 		COMMAND_ID_HANDLER(IDC_HELP_DISCUSS, onLink)
 		COMMAND_ID_HANDLER(IDC_SITES_FLYLINK_TRAC, onLink)
 		COMMAND_ID_HANDLER(IDC_OPEN_FILE_LIST, onOpenFileList)
@@ -175,7 +173,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		COMMAND_ID_HANDLER(IDC_FLYLINKDC_FOUND_NEW_VERSION, onFoundNewVersion)
 		
 		COMMAND_ID_HANDLER(IDC_DISABLE_SOUNDS, onDisableSounds)
-		COMMAND_ID_HANDLER(IDC_DISABLE_POPUPS, onDisablePopups) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_DISABLE_POPUPS, onDisablePopups)
 		COMMAND_ID_HANDLER(IDC_CLOSE_DISCONNECTED, onCloseWindows)
 		COMMAND_ID_HANDLER(IDC_CLOSE_ALL_PM, onCloseWindows)
 		COMMAND_ID_HANDLER(IDC_CLOSE_ALL_OFFLINE_PM, onCloseWindows)
@@ -197,7 +195,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		COMMAND_ID_HANDLER(IDC_CONVERT_TTH_HISTORY, onConvertTTHHistory)
 		COMMAND_ID_HANDLER(ID_FILE_QUICK_CONNECT, onQuickConnect)
 		COMMAND_ID_HANDLER(IDC_HASH_PROGRESS, onHashProgress)
-		COMMAND_ID_HANDLER(IDC_TRAY_LIMITER, onLimiter) //[-] NightOrion - Double of MainFrame::onTrayLimiter
+		COMMAND_ID_HANDLER(IDC_TRAY_LIMITER, onLimiter)
 		COMMAND_ID_HANDLER(ID_TOGGLE_TOOLBAR, OnViewWinampBar)
 		COMMAND_ID_HANDLER(ID_TOGGLE_QSEARCH, OnViewQuickSearchBar)
 		COMMAND_ID_HANDLER(IDC_TOPMOST, OnViewTopmost)
@@ -207,11 +205,11 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		COMMAND_RANGE_HANDLER(IDC_PORTAL_BROWSER, IDC_PORTAL_BROWSER49, onOpenWindows)
 #endif
 #ifdef FLYLINKDC_USE_CUSTOM_MENU
-		COMMAND_RANGE_HANDLER(IDC_CUSTOM_MENU, IDC_CUSTOM_MENU100, onOpenWindows) // [+] SSA: Custom menu support.
+		COMMAND_RANGE_HANDLER(IDC_CUSTOM_MENU, IDC_CUSTOM_MENU100, onOpenWindows)
 #endif
 		COMMAND_RANGE_HANDLER(ID_MEDIA_MENU_WINAMP_START, ID_MEDIA_MENU_WINAMP_END, onMediaMenu)
 #ifdef IRAINMAN_INCLUDE_RSS
-		COMMAND_ID_HANDLER(IDC_RSS, onOpenWindows) // [+] SSA
+		COMMAND_ID_HANDLER(IDC_RSS, onOpenWindows)
 #endif
 		COMMAND_ID_HANDLER(IDC_STATUS_AWAY_ON_OFF, onAway)
 #ifdef USE_SUPPORT_HUB
@@ -290,7 +288,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		LRESULT onQuickConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onActivateApp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT onWebServerSocket(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-		LRESULT onUpdateWindowTitle(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/); // [+] InfinitySky.
+		LRESULT onUpdateWindowTitle(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT onAppCommand(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/);
 		LRESULT onAway(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onLimiter(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -300,10 +298,9 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 #endif
 		LRESULT onFoundNewVersion(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onDisableSounds(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-		LRESULT onDisablePopups(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/); // [+] InfinitySky.
+		LRESULT onDisablePopups(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onMediaMenu(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-		//LRESULT onTrayLimiter(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);//[-] NightOrion - Double of MainFrame::onLimiter
 		LRESULT OnViewWinampBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onWinampButton(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 		LRESULT OnViewTopmost(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -344,7 +341,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		void getTaskbarState(int p_code = 0);
 		static unsigned int WINAPI stopper(void* p);
 		void UpdateLayout(BOOL bResizeBars = TRUE);
-		void onLimiter(const bool l_currentLimiter = BOOLSETTING(THROTTLE_ENABLE)) // [+] IRainman fix
+		void onLimiter(const bool l_currentLimiter = BOOLSETTING(THROTTLE_ENABLE))
 		{
 			Util::setLimiter(!l_currentLimiter);
 			setLimiterButton(!l_currentLimiter);
@@ -363,7 +360,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 			return 0;
 		}
 		
-		void setTrayAndTaskbarIcons(); // [+] IRainman: copy-past fix.
+		void setTrayAndTaskbarIcons();
 		LRESULT onTaskbarButton(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		
 		LRESULT onRowsChanged(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -403,14 +400,12 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		LRESULT OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			m_menuclose = true; // [+] InfinitySky. Закрытие через меню.
+			m_menuclose = true;
 			PostMessage(WM_CLOSE);
 			return 0;
 		}
 		void openDirs(const string& p_dir)
 		{
-			// [+] brain-ripper
-			// ensure that directory exist. if not - Explorer won't open this dir of course.
 			File::ensureDirectory(p_dir);
 			WinUtil::openFile(Text::toT(p_dir));
 		}
@@ -556,13 +551,11 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 #endif
 		static void updateQuickSearches(bool p_clean = false);
 		
-		// SSA
 		JAControl* getJAControl()
 		{
 			return m_jaControl.get();
 		}
 		
-		// SSA AutoUpdateGUIMethod delegate
 		UINT ShowDialogUpdate(const std::string& message, const std::string& rtfMessage, const AutoUpdateFiles& fileList);
 		void NewVerisonEvent(const std::string& p_new_version);
 		
@@ -581,13 +574,12 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		std::unique_ptr<HIconWrapper> m_normalicon;
 		std::unique_ptr<HIconWrapper> m_pmicon;
-		//std::unique_ptr<HIconWrapper> m_vip_icon;
-		std::unique_ptr<HIconWrapper> m_emptyicon;//[+]IRainman
+		std::unique_ptr<HIconWrapper> m_emptyicon;
 		
 		CReBarCtrl m_rebar;
 		unsigned m_index_new_version_menu_item;
 		
-		bool getPassword(); // !SMT!-f
+		bool getPassword();
 		bool getPasswordInternal(INT_PTR& p_do_modal_result);
 		
 		class DirectoryBrowseInfo
@@ -628,7 +620,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		bool m_bHashProgressVisible;
 		FlatTabCtrl m_ctrlTab;
 		// FlylinkDC Team TODO: needs?
-		static int g_CountSTATS; //[+]PPA
+		static int g_CountSTATS;
 		CImageList m_images;
 		CFlyToolBarCtrl ctrlToolbar;
 		CFlyToolBarCtrl ctrlWinampToolbar;
@@ -641,8 +633,8 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		static bool g_bDisableAutoComplete;
 		
 		bool m_is_tbarcreated;
-		bool m_is_wtbarcreated; // [+]Drakon
-		bool m_is_qtbarcreated; // [+]Drakon
+		bool m_is_wtbarcreated;
+		bool m_is_qtbarcreated;
 		bool m_is_end_session;
 		
 		bool m_bTrayIcon;
@@ -670,11 +662,11 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 #endif
 		
 		UINT m_trayMessage;
-		UINT m_tbButtonMessage; // [+] InfinitySky.
+		UINT m_tbButtonMessage;
 		
-		typedef BOOL (CALLBACK* LPFUNC)(UINT message, DWORD dwFlag); // [+] InfinitySky.
+		typedef BOOL (CALLBACK* LPFUNC)(UINT message, DWORD dwFlag);
 		
-		CComPtr<ITaskbarList3> m_taskbarList; // [+] InfinitySky.
+		CComPtr<ITaskbarList3> m_taskbarList;
 		
 		/** Was the window maximized when minimizing it? */
 		bool m_is_maximized;
@@ -685,7 +677,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		}
 		
 		uint64_t m_lastMove;
-// [+]IRainman Speedmeter
 	public:
 		static uint64_t getLastUpdateTick()
 		{
@@ -712,9 +703,9 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		tstring lastTTHdir;
 		bool m_oldshutdown;
 		bool m_stopexit;
-		bool m_menuclose; // [+] InfinitySky.
+		bool m_menuclose;
 #ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
-		bool m_custom_app_icon_exist; // [+] InfinitySky.
+		bool m_custom_app_icon_exist;
 #endif
 		void SetOverlayIcon();
 		bool m_closing;
@@ -742,7 +733,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 #endif
 		void autoConnect(const FavoriteHubEntry::List& fl);
 		
-		void setIcon(HICON newIcon); // !SMT!-UI
+		void setIcon(HICON newIcon);
 		void storeWindowsPos();
 		
 		
@@ -753,26 +744,24 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		// QueueManagerListener
 		void on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string& dir, const DownloadPtr& aDownload) noexcept override;
 		void on(QueueManagerListener::PartialList, const HintedUser& aUser, const string& text) noexcept override;
-		void on(QueueManagerListener::TryAdding, const string& fileName, int64_t newSize, int64_t existingSize, time_t existingTime, int option) noexcept override; // [+] SSA
+		void on(QueueManagerListener::TryAdding, const string& fileName, int64_t newSize, int64_t existingSize, time_t existingTime, int option) noexcept override;
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-		void on(QueueManagerListener::Added, const QueueItemPtr& qi) noexcept override; // [+] SSA
+		void on(QueueManagerListener::Added, const QueueItemPtr& qi) noexcept override;
 #endif
 		
 		// UserManagerListener
-		void on(UserManagerListener::OutgoingPrivateMessage, const UserPtr& to, const string& hubHint, const tstring& message) noexcept override; // [+] IRainman
-		void on(UserManagerListener::OpenHub, const string& url) noexcept override; // [+] IRainman
-		void on(UserManagerListener::CollectSummaryInfo, const UserPtr& user, const string& hubHint) noexcept override; // [+] IRainman
+		void on(UserManagerListener::OutgoingPrivateMessage, const UserPtr& to, const string& hubHint, const tstring& message) noexcept override;
+		void on(UserManagerListener::OpenHub, const string& url) noexcept override;
+		void on(UserManagerListener::CollectSummaryInfo, const UserPtr& user, const string& hubHint) noexcept override;
 #ifdef FLYLINKDC_USE_SQL_EXPLORER
-		void on(UserManagerListener::BrowseSqlExplorer, const UserPtr& user, const string& hubHint) noexcept override; // [+] IRainman
+		void on(UserManagerListener::BrowseSqlExplorer, const UserPtr& user, const string& hubHint) noexcept override;
 #endif
 		
-		// // [+]Drakon. Enlighting functions.
 		void createTrayMenu();
 		void createMainMenu();
 #ifdef SSA_WIZARD_FEATURE
 		UINT ShowSetupWizard();
 #endif
-		// [+] SSA Share folder
 		void AddFolderShareFromShell(const tstring& folder);
 		
 		class StatisticSender : public Thread

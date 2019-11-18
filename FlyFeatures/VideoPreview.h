@@ -91,11 +91,11 @@ class VideoPreviewSocketProcessor: public Thread
 		SOCKET sock;
 		HANDLE thread;
 		HeaderMap headers;
-		volatile bool inProcess; // [!] IRainman fix: this variable is volatile.
-		volatile bool isServerDie; // [!] IRainman fix: this variable is volatile.
+		volatile bool inProcess;
+		volatile bool isServerDie;
 };
 
-typedef std::deque<VideoPreviewSocketProcessor*> SocketProcessorS; // [!] IRainman opt: change list to deque.
+typedef std::deque<VideoPreviewSocketProcessor*> SocketProcessorS;
 typedef SocketProcessorS::iterator SocketProcessorSIter;
 
 typedef std::queue<std::string> LogInfoDataStack;
@@ -246,7 +246,7 @@ class VideoPreview :
 				Socket m_sock;
 				uint16_t port;
 				string ip;
-				volatile bool die; // [!] IRainman fix: this variable is volatile.
+				volatile bool die;
 		};
 		
 		friend class PreviewServer;

@@ -59,7 +59,7 @@ class QueueItemDelegate
 #endif
 class QueueItem : public Flags
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 	public:
@@ -164,7 +164,7 @@ class QueueItem : public Flags
 				
 				Source()  {}
 				
-				bool isCandidate(const bool isBadSourse) const // [+] FlylinkDC++
+				bool isCandidate(const bool isBadSourse) const
 				{
 					return isSet(FLAG_PARTIAL) && (isBadSourse || !isSet(FLAG_TTH_INCONSISTENCY));
 				}
@@ -186,7 +186,7 @@ class QueueItem : public Flags
 		          
 		~QueueItem();
 		
-		bool countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const; // [+] FlylinkDC++ opt.
+		bool countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const;
 		void getOnlineUsers(UserList& p_users) const;
 		
 #ifdef FLYLINKDC_USE_RWLOCK
@@ -194,7 +194,6 @@ class QueueItem : public Flags
 #else
 		static std::unique_ptr<CriticalSection> g_cs;
 #endif
-		// [~]
 		
 		const SourceMap& getSourcesL()
 		{
@@ -232,7 +231,7 @@ class QueueItem : public Flags
 			return m_badSources.find(aUser) != m_badSources.end();
 		}
 		bool isBadSourceExceptL(const UserPtr& aUser, Flags::MaskType exceptions) const;
-		void getChunksVisualisation(vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) const; // [!] IRainman fix.
+		void getChunksVisualisation(vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) const;
 		bool isChunkDownloaded(int64_t startPos, int64_t& len) const;
 		void setOverlapped(const Segment& p_segment, const bool p_isOverlapped);
 		/**
@@ -245,11 +244,11 @@ class QueueItem : public Flags
 		 */
 		void getPartialInfo(PartsInfo& p_partialInfo, uint64_t p_blockSize) const;
 		
-		uint64_t getDownloadedBytes() const // [+] IRainman opt.
+		uint64_t getDownloadedBytes() const
 		{
 			return m_downloadedBytes;
 		}
-		uint64_t calcAverageSpeedAndCalcAndGetDownloadedBytesL() const; // [!] IRainman opt.
+		uint64_t calcAverageSpeedAndCalcAndGetDownloadedBytesL() const;
 		void calcDownloadedBytes() const;
 		bool isDirtyBase() const
 		{
@@ -511,12 +510,12 @@ class QueueItem : public Flags
 		int16_t calcTransferFlag(bool& partial, bool& trusted, bool& untrusted, bool& tthcheck, bool& zdownload, bool& chunked, double& ratio) const;
 		QueueItem::Priority calculateAutoPriority() const;
 		
-		bool isAutoDrop() const // [+] IRainman fix.
+		bool isAutoDrop() const
 		{
 			return isSet(FLAG_AUTODROP);
 		}
 		
-		void changeAutoDrop() // [+] IRainman fix.
+		void changeAutoDrop()
 		{
 			if (isAutoDrop())
 			{
@@ -529,13 +528,13 @@ class QueueItem : public Flags
 		}
 		uint64_t getAverageSpeed() const
 		{
-			return m_averageSpeed; // [+] IRainman opt.
+			return m_averageSpeed;
 		}
 		void setSectionString(const string& p_section, bool p_is_first_load);
 		size_t getLastOnlineCount();
 	private:
-		mutable uint64_t m_averageSpeed; // [+] IRainman opt.
-		mutable uint64_t m_downloadedBytes; // [+] IRainman opt.
+		mutable uint64_t m_averageSpeed;
+		mutable uint64_t m_downloadedBytes;
 		friend class QueueManager;
 		unsigned m_diry_sources;
 		size_t m_last_count_online_sources;

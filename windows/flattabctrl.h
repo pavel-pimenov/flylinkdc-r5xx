@@ -24,9 +24,6 @@
 
 #include "wtl_flylinkdc.h"
 #include "atlgdiraii.h"
-#ifdef IRAINMAN_INCLUDE_GDI_INIT
-//#include <gdiplus.h>
-#endif // IRAINMAN_USE_GDI_PLUS_TAB
 
 #include "../client/ResourceManager.h"
 #include "WinUtil.h"
@@ -37,7 +34,7 @@
 # include "../GdiOle/GDIImageOle.h"
 #endif
 
-// [+] IRainman opt.
+
 extern int g_magic_width;
 extern bool g_TabsCloseButtonEnabled;
 extern CMenu g_mnu;
@@ -52,7 +49,6 @@ extern Gdiplus::Color g_color_light_gdi;
 extern Gdiplus::Color g_color_face_gdi;
 extern Gdiplus::Color g_color_filllight_gdi;
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
-// [~] IRainman opt.
 
 enum
 {
@@ -122,7 +118,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			i->m_mini = p_mini;
 			if ((icon == IDR_HUB || icon == IDR_PRIVATE
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST
-			        || icon == IDR_FILE_LIST || icon == IDR_FILE_LIST_OFF// [+] InfinitySky.
+			        || icon == IDR_FILE_LIST || icon == IDR_FILE_LIST_OFF
 #endif
 			    ) || !BOOLSETTING(NON_HUBS_FRONT))
 			{
@@ -165,7 +161,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 					if ((*i)->hWnd == aWnd)
 						break;
 				}
-				if (i != m_tabs.end()) //[+]PPA fix
+				if (i != m_tabs.end())
 				{
 					TabInfo* ti = *i;
 					m_tabs.erase(i);
@@ -234,7 +230,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			return *m_nextTab;
 		}
 		
-		bool isActive(HWND aWnd) // [+] IRainman opt.
+		bool isActive(HWND aWnd)
 		{
 			return m_active && // fix https://www.crash-server.com/DumpGroup.aspx?ClientID=guest&Login=Guest&DumpGroupID=86322
 			       m_active->hWnd == aWnd;
@@ -332,7 +328,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 #endif
 			}
 		}
-		// !SMT!-UI
+		
 		void setCustomIcon(HWND p_hWnd, HICON p_custom)
 		{
 			if (TabInfo* ti = getTabInfo(p_hWnd))
@@ -554,9 +550,8 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 						// Bingo, the mouse was over this one
 						if (g_TabsCloseButtonEnabled)
 						{
-							//Close Button. Visible on mouse over [+] SCALOlaz
 							CRect rcs;
-							m_closing_hwnd = t->hWnd;  // [+] NightOrion
+							m_closing_hwnd = t->hWnd;
 							switch (WinUtil::GetTabsPosition())
 							{
 								case SettingsManager::TABS_LEFT:
@@ -734,7 +729,6 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			m_chevron.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_PUSHBUTTON, 0, IDC_CHEVRON);
 			m_chevron.SetWindowText(_T("\u00bb"));
 			
-			// [+] SCALOlaz : Create a Close Button
 			CImageList l_closeImages;
 			ResourceLoader::LoadImageList(IDR_CLOSE_PNG, l_closeImages, 16, 16);
 			m_bClose.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE | BS_FLAT, 0, IDC_CLOSE_WINDOW);
@@ -1045,7 +1039,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				uint16_t m_state_icon_index;
 				uint16_t m_count_messages;
 				
-				HICON m_hCustomIcon; // !SMT!-UI custom icon should be set / freed outside this class
+				HICON m_hCustomIcon;
 				bool isVIP() const
 				{
 					return false; // return m_state_icon_index != IDR_HUB_OFF && m_state_icon_index == IDR_HUB;
@@ -1053,7 +1047,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 				bool m_bState;
 				bool m_mini;
 				bool m_dirty;
-				//int m_title_id;
+				
 				bool update(const bool always = false)
 				{
 					LocalArray<TCHAR, MAX_LENGTH> textNew;
@@ -1253,7 +1247,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		TabInfo* m_moving;
 		typename TabInfo::List m_tabs;
 		
-		typedef deque<HWND> WindowList; // [!] IRainman opt: change list to deque.
+		typedef deque<HWND> WindowList;
 		typedef WindowList::const_iterator WindowIter;
 		
 		WindowList m_viewOrder;
@@ -1288,7 +1282,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		             TabInfo* tab, int pos, const int row, const bool aActive)
 		{
 #ifdef IRAINMAN_USE_GDI_PLUS_TAB
-			if (graphics->GetLastStatus() != Gdiplus::Ok) //[+]PPA
+			if (graphics->GetLastStatus() != Gdiplus::Ok)
 				return;
 #endif
 			const int ypos = (getRows() - row - 1) * getTabHeight();
@@ -1649,8 +1643,6 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			if (l_hIcon)
 				pos += 10;
 				
-			// TODO вынести большую часть проверок в updateTabs()
-//			COLORREF oldclr = tab->m_bState ? dc.SetTextColor(g_color_shadow) : dc.SetTextColor(GetSysColor(COLOR_BTNTEXT)); // [+] Sergey Shuhskanov and Dmitriy F
 			const COLORREF oldclr = !tab->m_bState ?
 			                        (aActive ?
 			                         dc.SetTextColor(SETTING(TAB_SELECTED_TEXT_COLOR))
@@ -1660,7 +1652,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			                          :
 			                          dc.SetTextColor(GetSysColor(COLOR_BTNTEXT))))
 			                        :
-			                        dc.SetTextColor(SETTING(TAB_OFFLINE_TEXT_COLOR));    //[~] SCALOlaz
+			                        dc.SetTextColor(SETTING(TAB_OFFLINE_TEXT_COLOR));
 			                        
 			//Цвет шрифта в зависимости от состояния юзера или хаба
 			//DWORD color_text_tab = tab->m_bState ? g_color_shadow : GetSysColor(COLOR_BTNTEXT);
@@ -1678,7 +1670,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			{
 				// TODO - CSelectFont l_half_font(dc, Fonts::g_halfFont); //-V808
 				// Рисовать текст сжатым если открыли хаб из памяти (не фавориты)
-				dc.TextOut(pos, ypos + height_plus, tab->name.data(), tab->m_len); // [~] Sergey Shuhskanov //-V107
+				dc.TextOut(pos, ypos + height_plus, tab->name.data(), tab->m_len);  //-V107
 			}
 			
 			int width_plus_ico = 0; // - X position for COUNTER on LEFT\RIGHT tabs
@@ -1701,7 +1693,7 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 			
 			if (l_hIcon)
 			{
-				const BOOL l_res = DrawIconEx(dc.m_hDC, pos - 18, ypos + height_plus_ico, l_hIcon, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT); // [~] Sergey Shuhskanov
+				const BOOL l_res = DrawIconEx(dc.m_hDC, pos - 18, ypos + height_plus_ico, l_hIcon, 16, 16, NULL, NULL, DI_NORMAL | DI_COMPAT);
 				dcassert(l_res);
 			}
 			
@@ -2124,7 +2116,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 			getTab()->unsetIconState(m_hWnd);
 		}
 		
-		// !SMT!-UI
+		
 		void setCustomIcon(HICON p_custom)
 		{
 			dcassert(getTab());

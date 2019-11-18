@@ -102,7 +102,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		void   search(SearchResultList& aResults, const SearchParam& p_search_param) noexcept;
 		static void   search_max_result(SearchResultList& aResults, const StringList& params, StringList::size_type maxResults, StringSearch::List& reguest) noexcept;
 		
-		bool findByRealPathName(const string& realPathname, TTHValue* outTTHPtr, string* outfilenamePtr = NULL, int64_t* outSizePtr = NULL); // [+] SSA
+		bool findByRealPathName(const string& realPathname, TTHValue* outTTHPtr, string* outfilenamePtr = NULL, int64_t* outSizePtr = NULL);
 		
 		static void getDirectories(CFlyDirItemArray& p_dirs);
 		
@@ -185,7 +185,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 			return Util::getConfigPath() + "Emptyfiles.xml.bz2";
 		}
 #endif
-		static string getDefaultBZXmlFile() // [+] IRainman fix.
+		static string getDefaultBZXmlFile()
 		{
 			return Util::getConfigPath() + "files.xml.bz2";
 		}
@@ -230,7 +230,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		
 		class Directory : public intrusive_ptr_base<Directory>, public CFlyLowerName
 #ifdef _DEBUG
-			, boost::noncopyable // [+] IRainman fix.
+			, boost::noncopyable
 #endif
 		{
 			public:
@@ -474,11 +474,9 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 #endif
 		bool m_sweep_path;
 		bool checkHidden(const string& aName) const;
-		//[+]IRainman
 		bool checkSystem(const string& aName) const;
 		bool checkVirtual(const string& aName) const;
 		bool checkAttributs(const string& aName) const;
-		//[~]IRainman
 		void rebuildIndicesL(bool p_is_clear_cache);
 		
 		bool updateIndicesDirL(Directory& aDirectory);
@@ -539,7 +537,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		StringList m_skipList;
 		int m_count_sec;
 		mutable FastCriticalSection m_csSkipList;
-		// [~] IRainman opt.
+		
 		
 		// TimerManagerListener
 		void on(TimerManagerListener::Minute, uint64_t tick) noexcept override;

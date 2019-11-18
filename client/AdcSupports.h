@@ -22,7 +22,7 @@
 
 #include "AdcCommand.h"
 class Identity;
-class AdcSupports // [+] IRainman fix.
+class AdcSupports
 {
 	public:
 		static const string CLIENT_PROTOCOL;
@@ -56,10 +56,10 @@ class AdcSupports // [+] IRainman fix.
 #endif
 };
 
-class NmdcSupports // [+] IRainman fix.
+class NmdcSupports
 {
 	public:
-		enum Status // [<-] from Identity.
+		enum Status
 		{
 			NORMAL      = 0x01,
 			AWAY        = 0x02,

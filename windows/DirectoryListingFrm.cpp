@@ -38,9 +38,8 @@ int DirectoryListingFrame::columnIndexes[] = { COLUMN_FILENAME, COLUMN_TYPE, COL
                                                COLUMN_PATH, COLUMN_HIT, COLUMN_TS,
                                                COLUMN_FLY_SERVER_RATING,
                                                COLUMN_BITRATE, COLUMN_MEDIA_XY, COLUMN_MEDIA_VIDEO, COLUMN_MEDIA_AUDIO, COLUMN_DURATION
-                                             }; // !PPA!
+                                             };
 int DirectoryListingFrame::columnSizes[] = { 300, 60, 100, 100, 200, 300, 30, 100,
-                                             // COLUMN_FLY_SERVER_RATING
                                              50,
                                              50, 100, 100, 100, 30
                                            };
@@ -48,10 +47,10 @@ int DirectoryListingFrame::columnSizes[] = { 300, 60, 100, 100, 200, 300, 30, 10
 static ResourceManager::Strings columnNames[] = { ResourceManager::FILE, ResourceManager::TYPE, ResourceManager::EXACT_SIZE,
                                                   ResourceManager::SIZE, ResourceManager::TTH_ROOT, ResourceManager::PATH, ResourceManager::DOWNLOADED,
                                                   ResourceManager::ADDED,
-                                                  ResourceManager::FLY_SERVER_RATING, // COLUMN_FLY_SERVER_RATING
+                                                  ResourceManager::FLY_SERVER_RATING,
                                                   ResourceManager::BITRATE, ResourceManager::MEDIA_X_Y,
                                                   ResourceManager::MEDIA_VIDEO, ResourceManager::MEDIA_AUDIO, ResourceManager::DURATION
-                                                }; //TODO // !PPA!
+                                                };
 
 DirectoryListingFrame::UserMap DirectoryListingFrame::g_usersMap;
 CriticalSection DirectoryListingFrame::g_csUsersMap;
@@ -149,13 +148,13 @@ DirectoryListingFrame::DirectoryListingFrame(const HintedUser& aHintedUser, int6
 	listContainer(WC_LISTVIEW, this, CONTROL_MESSAGE_MAP), historyIndex(0), m_loading(true),
 	treeRoot(NULL), m_skipHits(0), files(0), speed(aSpeed), m_updating(false),
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST
-	isoffline(false), /* <[+] InfinitySky */
+	isoffline(false),
 #endif // USE_OFFLINE_ICON_FOR_FILELIST
 	dl(new DirectoryListing(aHintedUser)), m_searching(false), m_isDclst(false),
 	m_count_item_changed(0),
 	m_prev_directory(nullptr)
 {
-	addToUserMap(aHintedUser); // [!] IRainman dclst support
+	addToUserMap(aHintedUser);
 }
 
 void DirectoryListingFrame::loadFile(const tstring& name, const tstring& dir)
@@ -200,7 +199,7 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 {
 	CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
 	ctrlStatus.Attach(m_hWndStatusBar);
-	ctrlStatus.SetFont(Fonts::g_boldFont); // [~] Sergey Shuhskanov
+	ctrlStatus.SetFont(Fonts::g_boldFont);
 	statusContainer.SubclassWindow(ctrlStatus.m_hWnd);
 	
 	ctrlTree.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_DISABLEDRAGDROP, WS_EX_CLIENTEDGE, IDC_DIRECTORIES);
@@ -260,11 +259,11 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
 	SetSplitterPanes(ctrlTree.m_hWnd, ctrlList.m_hWnd);
 	m_nProportionalPos = SETTING(DIRECTORYLISTINGFRAME_SPLIT);
-	const string nick = isDclst() ? Util::getFileName(getFileName()) : (dl->getUser() ? dl->getUser()->getLastNick() : Util::emptyString); // [!] IRainman dclst support
+	const string nick = isDclst() ? Util::getFileName(getFileName()) : (dl->getUser() ? dl->getUser()->getLastNick() : Util::emptyString);
 	treeRoot = ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
 	                               Text::toT(nick).c_str(), isDclst() ? FileImage::DIR_DSLCT : FileImage::DIR_ICON,
 	                               isDclst() ? FileImage::DIR_DSLCT : FileImage::DIR_ICON, 0, 0,
-	                               (LPARAM)dl->getRoot(), NULL, TVI_SORT); // [!] SSA - adds DCLST or Directory icon here.
+	                               (LPARAM)dl->getRoot(), NULL, TVI_SORT);
 	dcassert(treeRoot != NULL);
 	
 	memzero(statusSizes, sizeof(statusSizes));
@@ -293,7 +292,7 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	copyMenu.AppendMenu(MF_STRING, IDC_COPY_SIZE, CTSTRING(SIZE));
 	copyMenu.AppendMenu(MF_STRING, IDC_COPY_TTH, CTSTRING(TTH_ROOT));
 	copyMenu.AppendMenu(MF_STRING, IDC_COPY_LINK, CTSTRING(COPY_MAGNET_LINK));
-	copyMenu.AppendMenu(MF_STRING, IDC_COPY_WMLINK, CTSTRING(COPY_MLINK_TEMPL)); // !SMT!-UI
+	copyMenu.AppendMenu(MF_STRING, IDC_COPY_WMLINK, CTSTRING(COPY_MLINK_TEMPL));
 #ifdef SCALOLAZ_DIRLIST_ADDFAVUSER
 	directoryMenu.AppendMenu(MF_STRING, IDC_ADD_TO_FAVORITES, CTSTRING(ADD_TO_FAVORITES));
 	directoryMenu.AppendMenu(MF_SEPARATOR);
@@ -303,9 +302,7 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	directoryMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)priorityDirMenu, CTSTRING(DOWNLOAD_WITH_PRIORITY));
 	directoryMenu.AppendMenu(MF_SEPARATOR);
 	directoryMenu.AppendMenu(MF_STRING, IDC_GENERATE_DCLST, CTSTRING(DCLS_GENERATE_LIST));
-//	directoryMenu.AppendMenu(MF_SEPARATOR);
-//	directoryMenu.AppendMenu(MF_STRING, IDC_ADD_TO_FAVORITES, CTSTRING(ADD_TO_FAVORITES)); // [-] NightOrion : Добавлять файлы и папки в друзья О_о ?
-
+	
 	priorityMenu.AppendMenu(MF_STRING, IDC_PRIORITY_PAUSED, CTSTRING(PAUSED));
 	priorityMenu.AppendMenu(MF_STRING, IDC_PRIORITY_LOWEST, CTSTRING(LOWEST));
 	priorityMenu.AppendMenu(MF_STRING, IDC_PRIORITY_LOW, CTSTRING(LOW));
@@ -638,14 +635,13 @@ void DirectoryListingFrame::forward()
 	}
 }
 
-// !SMT!-UI
+
 LRESULT DirectoryListingFrame::onOpenFile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	int i = -1;
 	while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const ItemInfo* ii = ctrlList.getItemData(i);
-		// !necros!
 		const string rp = ShareManager::toRealPath(ii->m_file->getTTH());
 		if (!rp.empty())
 		{
@@ -660,7 +656,6 @@ LRESULT DirectoryListingFrame::onOpenFolder(WORD /*wNotifyCode*/, WORD /*wID*/, 
 	int i = -1;
 	if ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
-		//[-] PVS-Studio V808 tstring l_param;
 		if (const ItemInfo *ii = ctrlList.getItemData(i))
 		{
 			WinUtil::openFolder(Text::toT(ShareManager::toRealPath(ii->m_file->getTTH())));
@@ -703,7 +698,6 @@ LRESULT DirectoryListingFrame::onDoubleClickFiles(int /*idCtrl*/, LPNMHDR pnmh, 
 		const ItemInfo* ii = ctrlList.getItemData(item->iItem);
 		if (ii->type == ItemInfo::FILE)
 		{
-			// !necros!
 			const string rp = ShareManager::toRealPath(ii->m_file->getTTH());
 			if (!rp.empty())
 			{
@@ -1148,14 +1142,13 @@ void DirectoryListingFrame::selectItem(const tstring& name)
 }
 
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST
-// [+] InfinitySky. Изменять иконку окна.
 void DirectoryListingFrame::updateTitle()
 {
 	pair<tstring, bool> hubs = WinUtil::getHubNames(dl->getHintedUser());
-	bool banIcon = FavoriteManager::isNoFavUserOrUserBanUpload(dl->getUser()); // !SMT!-UI
+	bool banIcon = FavoriteManager::isNoFavUserOrUserBanUpload(dl->getUser());
 	if (hubs.second)
 	{
-		if (banIcon) // !SMT!-UI
+		if (banIcon)
 		{
 			setCustomIcon(WinUtil::g_banIconOnline);
 		}
@@ -1168,7 +1161,7 @@ void DirectoryListingFrame::updateTitle()
 	}
 	else
 	{
-		if (banIcon) // !SMT!-UI
+		if (banIcon)
 		{
 			setCustomIcon(WinUtil::g_banIconOffline);
 		}
@@ -1181,7 +1174,6 @@ void DirectoryListingFrame::updateTitle()
 	}
 	SetWindowText(dl->getUser()->getLastNickT() + _T(" - ") + hubs.first).c_str());
 }
-// [+] InfinitySky. END.
 #endif // USE_OFFLINE_ICON_FOR_FILELIST
 
 void DirectoryListingFrame::appendTargetMenu(OMenu& p_menu, const int p_id_menu)
@@ -1223,8 +1215,8 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 		clearPreviewMenu();
 		
 		fileMenu.AppendMenu(MF_STRING, IDC_DOWNLOAD, CTSTRING(DOWNLOAD));
-		fileMenu.AppendMenu(MF_STRING, IDC_OPEN_FILE, CTSTRING(OPEN)); // !SMT!-UI
-		fileMenu.AppendMenu(MF_STRING, IDC_OPEN_FOLDER, CTSTRING(OPEN_FOLDER)); // [+] NightOrion
+		fileMenu.AppendMenu(MF_STRING, IDC_OPEN_FILE, CTSTRING(OPEN));
+		fileMenu.AppendMenu(MF_STRING, IDC_OPEN_FOLDER, CTSTRING(OPEN_FOLDER));
 		fileMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)targetMenu, CTSTRING(DOWNLOAD_TO));
 		fileMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)priorityMenu, CTSTRING(DOWNLOAD_WITH_PRIORITY));
 #ifdef FLYLINKDC_USE_VIEW_AS_TEXT_OPTION
@@ -1237,7 +1229,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 		fileMenu.AppendMenu(MF_STRING, IDC_VIEW_FLYSERVER_INFORM, CTSTRING(FLY_SERVER_INFORM_VIEW));
 #endif
 		appendPreviewItems(fileMenu);
-		fileMenu.AppendMenu(MF_STRING, IDC_GENERATE_DCLST_FILE, CTSTRING(DCLS_GENERATE_LIST)); // [+] SSA
+		fileMenu.AppendMenu(MF_STRING, IDC_GENERATE_DCLST_FILE, CTSTRING(DCLS_GENERATE_LIST));
 		fileMenu.AppendMenu(MF_SEPARATOR);
 		fileMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyMenu, CTSTRING(COPY));
 #ifdef SCALOLAZ_DIRLIST_ADDFAVUSER
@@ -1246,14 +1238,13 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 		fileMenu.AppendMenu(MF_SEPARATOR);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 # ifdef _DEBUG
-		fileMenu.AppendMenu(MF_STRING, IDC_SET_TTH_MEDIAINFO_SERVER, _T("Mediainfo server - set-test!")); // TODO Убрать совсем
-		fileMenu.AppendMenu(MF_STRING, IDC_GET_TTH_MEDIAINFO_SERVER, _T("Mediainfo server - get-test!")); // TODO Убрать совсем
+		fileMenu.AppendMenu(MF_STRING, IDC_SET_TTH_MEDIAINFO_SERVER, _T("Mediainfo server - set-test!"));
+		fileMenu.AppendMenu(MF_STRING, IDC_GET_TTH_MEDIAINFO_SERVER, _T("Mediainfo server - get-test!"));
 		fileMenu.AppendMenu(MF_SEPARATOR);
 # endif
 #endif
-		appendInternetSearchItems(fileMenu); // [!] IRainman fix.
+		appendInternetSearchItems(fileMenu);
 		
-		// [+] SCALOlaz: prepare for swap Item text
 		const int l_ipos = WinUtil::GetMenuItemPosition(copyMenu, IDC_COPY_FILENAME);
 		
 		if (ctrlList.GetSelectedCount() == 1 && ii->type == ItemInfo::FILE)
@@ -1261,7 +1252,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			fileMenu.EnableMenuItem(IDC_SEARCH_ALTERNATES, MF_BYCOMMAND | MFS_ENABLED);
 			fileMenu.EnableMenuItem(IDC_SEARCH_FILE_IN_GOOGLE, MF_BYCOMMAND | MFS_ENABLED);
 			fileMenu.EnableMenuItem(IDC_SEARCH_FILE_IN_YANDEX, MF_BYCOMMAND | MFS_ENABLED);
-			fileMenu.EnableMenuItem(IDC_GENERATE_DCLST_FILE, MF_BYCOMMAND | MFS_DISABLED); // [+] SSA
+			fileMenu.EnableMenuItem(IDC_GENERATE_DCLST_FILE, MF_BYCOMMAND | MFS_DISABLED);
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 			fileMenu.EnableMenuItem(IDC_VIEW_FLYSERVER_INFORM, MF_BYCOMMAND | MFS_ENABLED);
 #endif
@@ -1283,7 +1274,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			}
 			LastDir::appendItem(targetMenu, n);
 			
-			// !SMT!-UI
+			
 			if (!ShareManager::g_RebuildIndexes)
 			{
 				const auto existingFile = !ShareManager::toRealPath(ii->m_file->getTTH()).empty();
@@ -1305,21 +1296,13 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			{
 				fileMenu.AppendMenu(MF_STRING, IDC_GO_TO_DIRECTORY, CTSTRING(GO_TO_DIRECTORY));
 			}
-			// [+] SCALOlaz: swap Item text
 			if (l_ipos != -1)
 			{
 				copyMenu.ModifyMenu(l_ipos, MF_BYPOSITION | MF_STRING, IDC_COPY_FILENAME, CTSTRING(FILENAME));
 			}
 			
-			//fileMenu.EnableMenuItem((UINT_PTR)(HMENU)copyMenu, MF_BYCOMMAND | MFS_ENABLED);
 			appendUcMenu(fileMenu, UserCommand::CONTEXT_FILELIST, ClientManager::getHubs(dl->getUser()->getCID(), dl->getHintedUser().hint));
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-			fileMenu.InsertSeparatorFirst(Text::CropStrLength(ii->m_file->getName()));
-#endif
 			fileMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-			fileMenu.RemoveFirstItem();
-#endif
 			cleanUcMenu(fileMenu);
 		}
 		else   // if(ctrlList.GetSelectedCount() == 1 && ii->type == ItemInfo::FILE) {
@@ -1329,8 +1312,8 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			fileMenu.EnableMenuItem(IDC_SEARCH_FILE_IN_GOOGLE, MF_BYCOMMAND | MFS_DISABLED);
 			fileMenu.EnableMenuItem(IDC_SEARCH_FILE_IN_YANDEX, MF_BYCOMMAND | MFS_DISABLED);
 			activatePreviewItems(fileMenu);
-			//fileMenu.EnableMenuItem((UINT_PTR)(HMENU)copyMenu, MF_BYCOMMAND | MFS_DISABLED); // !SMT!-UI
-			fileMenu.EnableMenuItem(IDC_GENERATE_DCLST_FILE, MF_BYCOMMAND | (iCount == 1 ? MFS_ENABLED : MFS_DISABLED));    // [+] SSA
+			//fileMenu.EnableMenuItem((UINT_PTR)(HMENU)copyMenu, MF_BYCOMMAND | MFS_DISABLED);
+			fileMenu.EnableMenuItem(IDC_GENERATE_DCLST_FILE, MF_BYCOMMAND | (iCount == 1 ? MFS_ENABLED : MFS_DISABLED));
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 			fileMenu.EnableMenuItem(IDC_VIEW_FLYSERVER_INFORM, MF_BYCOMMAND | MFS_DISABLED);
 #endif
@@ -1344,20 +1327,13 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			{
 				fileMenu.AppendMenu(MF_STRING, IDC_GO_TO_DIRECTORY, CTSTRING(GO_TO_DIRECTORY));
 			}
-			// [+] SCALOlaz: swap Item text
 			if (l_ipos != -1)
 			{
 				copyMenu.ModifyMenu(l_ipos, MF_BYPOSITION | MF_STRING, IDC_COPY_FILENAME, CTSTRING(FOLDERNAME));
 			}
 			
 			appendUcMenu(fileMenu, UserCommand::CONTEXT_FILELIST, ClientManager::getHubs(dl->getUser()->getCID(), dl->getHintedUser().hint));
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-			fileMenu.InsertSeparatorFirst(ctrlList.GetSelectedCount() == 1 ? (ii->type == ItemInfo::FILE ? Text::CropStrLength(ii->m_file->getName()) : Text::CropStrLength(ii->m_dir->getName())) : CTSTRING(FILES));
-#endif
 			fileMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
-#ifdef OLD_MENU_HEADER //[~]JhaoDa          
-			fileMenu.RemoveFirstItem();
-#endif
 			cleanUcMenu(fileMenu);
 		}
 		WinUtil::unlinkStaticMenus(fileMenu); // TODO - fix copy-paste
@@ -1401,14 +1377,7 @@ LRESULT DirectoryListingFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARA
 			}
 		}
 		
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-		directoryMenu.InsertSeparatorFirst(TSTRING(FOLDER));
-#endif
 		directoryMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-		directoryMenu.RemoveFirstItem();
-#endif
-		
 		return TRUE;
 	}
 	
@@ -1868,7 +1837,6 @@ void DirectoryListingFrame::closeAll()
 LRESULT DirectoryListingFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	string data;
-	// !SMT!-UI: copy several rows
 	int i = -1;
 	while ((i = ctrlList.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
@@ -1880,7 +1848,7 @@ LRESULT DirectoryListingFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 				sCopy = dl->getUser()->getLastNick();
 				break;
 			case IDC_COPY_FILENAME:
-				sCopy = Util::getFileName(ii->type == ItemInfo::FILE ? ii->m_file->getName() : ii->m_dir->getName()); // !SMT!-F
+				sCopy = Util::getFileName(ii->type == ItemInfo::FILE ? ii->m_file->getName() : ii->m_dir->getName());
 				break;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 			case IDC_COPY_FLYSERVER_INFORM:
@@ -1889,7 +1857,7 @@ LRESULT DirectoryListingFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 				break;
 #endif
 			case IDC_COPY_SIZE:
-				sCopy = Util::formatBytes(ii->type == ItemInfo::FILE ? ii->m_file->getSize() : ii->m_dir->getTotalSize()); // !SMT!-F
+				sCopy = Util::formatBytes(ii->type == ItemInfo::FILE ? ii->m_file->getSize() : ii->m_dir->getTotalSize());
 				break;
 			case IDC_COPY_LINK:
 				if (ii->type == ItemInfo::FILE)
@@ -1899,7 +1867,7 @@ LRESULT DirectoryListingFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 				if (ii->type == ItemInfo::FILE)
 					sCopy = ii->m_file->getTTH().toBase32();
 				break;
-			case IDC_COPY_WMLINK://[+]necros
+			case IDC_COPY_WMLINK:
 				if (ii->type == ItemInfo::FILE)
 					sCopy = Util::getWebMagnet(ii->m_file->getTTH(), ii->m_file->getName(), ii->m_file->getSize());
 				break;
@@ -1943,7 +1911,7 @@ LRESULT DirectoryListingFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 		waitForFlyServerStop();
 #endif
 		ctrlList.DeleteAndCleanAllItems();
-		ctrlList.saveHeaderOrder(SettingsManager::DIRECTORYLISTINGFRAME_ORDER, SettingsManager::DIRECTORYLISTINGFRAME_WIDTHS, SettingsManager::DIRECTORYLISTINGFRAME_VISIBLE); // !SMT!-UI
+		ctrlList.saveHeaderOrder(SettingsManager::DIRECTORYLISTINGFRAME_ORDER, SettingsManager::DIRECTORYLISTINGFRAME_WIDTHS, SettingsManager::DIRECTORYLISTINGFRAME_VISIBLE);
 		SET_SETTING(DIRLIST_COLUMNS_SORT, ctrlList.getSortColumn());
 		SET_SETTING(DIRLIST_COLUMNS_SORT_ASC, ctrlList.isAscending());
 		SET_SETTING(DIRECTORYLISTINGFRAME_SPLIT, m_nProportionalPos);
@@ -1968,20 +1936,13 @@ LRESULT DirectoryListingFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/
 	{
 		OMenu tabMenu;
 		tabMenu.CreatePopupMenu();
-		// BUG-MENU clearUserMenu();
-		
-//#ifdef OLD_MENU_HEADER //[~]JhaoDa
 		tabMenu.InsertSeparatorFirst(user->getLastNickT());
-//#endif
-		// BUG-MENU reinitUserMenu(user, Util::emptyString); // [!] TODO: add hub hint.
-		// BUG-MENU appendAndActivateUserItems(tabMenu);
-		// BUG-MENU appendCopyMenuForSingleUser(tabMenu);
 #ifdef SCALOLAZ_DIRLIST_ADDFAVUSER
 		tabMenu.AppendMenu(MF_STRING, IDC_ADD_TO_FAVORITES, CTSTRING(ADD_TO_FAVORITES));
 #endif
 		tabMenu.AppendMenu(MF_SEPARATOR);
 		
-		tabMenu.AppendMenu(MF_STRING, IDC_CLOSE_ALL_DIR_LIST, CTSTRING(MENU_CLOSE_ALL_DIR_LIST)); // [+] InfinitySky.
+		tabMenu.AppendMenu(MF_STRING, IDC_CLOSE_ALL_DIR_LIST, CTSTRING(MENU_CLOSE_ALL_DIR_LIST));
 		tabMenu.AppendMenu(MF_STRING, IDC_CLOSE_WINDOW, CTSTRING(CLOSE_HOT));
 		
 		tabMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_BOTTOMALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
@@ -2006,7 +1967,8 @@ void DirectoryListingFrame::on(SettingsManagerListener::Repaint)
 LRESULT DirectoryListingFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 #ifdef USE_OFFLINE_ICON_FOR_FILELIST
-	updateTitle(); // [+] InfinitySky. Изменять заголовок окна (иконку).
+	updateTitle();
+	Изменять заголовок окна(иконку).
 #endif // USE_OFFLINE_ICON_FOR_FILELIST
 	switch (wParam)
 	{
@@ -2039,11 +2001,9 @@ LRESULT DirectoryListingFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM /*
 	return 0;
 }
 
-// !SMT!-UI
+
 void DirectoryListingFrame::getItemColor(const Flags::MaskType flags, COLORREF &fg, COLORREF &bg)
 {
-	//[~]NSL
-	
 	if (flags & DirectoryListing::FLAG_SHARED)
 		bg = SETTING(DUPE_COLOR);
 	if (flags & DirectoryListing::FLAG_DOWNLOAD)
@@ -2066,7 +2026,6 @@ void DirectoryListingFrame::getItemColor(const Flags::MaskType flags, COLORREF &
 	}
 }
 
-// !fulDC!
 LRESULT DirectoryListingFrame::onCustomDrawList(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
 	LPNMLVCUSTOMDRAW plvcd = reinterpret_cast<LPNMLVCUSTOMDRAW>(pnmh);
@@ -2088,7 +2047,7 @@ LRESULT DirectoryListingFrame::onCustomDrawList(int /*idCtrl*/, LPNMHDR pnmh, BO
 			if (!ii->columns[COLUMN_FLY_SERVER_RATING].empty())
 				plvcd->clrTextBk  = OperaColors::brightenColor(plvcd->clrTextBk, -0.02f);
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-			Colors::alternationBkColor(plvcd); // [+] IRainman
+			Colors::alternationBkColor(plvcd);
 #endif
 #ifdef SCALOLAZ_MEDIAVIDEO_ICO
 			return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
@@ -2107,7 +2066,7 @@ LRESULT DirectoryListingFrame::onCustomDrawList(int /*idCtrl*/, LPNMHDR pnmh, BO
 	}
 	return CDRF_DODEFAULT;
 }
-// !fulDC!
+
 LRESULT DirectoryListingFrame::onCustomDrawTree(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
 	LPNMLVCUSTOMDRAW plvcd = reinterpret_cast<LPNMLVCUSTOMDRAW>(pnmh);
@@ -2125,7 +2084,7 @@ LRESULT DirectoryListingFrame::onCustomDrawTree(int /*idCtrl*/, LPNMHDR pnmh, BO
 			}
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 			else
-				Colors::alternationBkColor(plvcd); // [+] IRainman
+				Colors::alternationBkColor(plvcd);
 #endif
 	}
 	return CDRF_DODEFAULT;
@@ -2142,10 +2101,10 @@ DirectoryListingFrame::ItemInfo::ItemInfo(DirectoryListing::File* f) : type(FILE
 	columns[COLUMN_TTH] = Text::toT(f->getTTH().toBase32());
 	if (!ShareManager::g_RebuildIndexes)
 	{
-		if (f->isSet(DirectoryListing::FLAG_SHARED_OWN)) // TODO убить FLAG_SHARED_OWN
+		if (f->isSet(DirectoryListing::FLAG_SHARED_OWN))
 			columns[COLUMN_PATH] = Text::toT(Util::getFilePath(ShareManager::toRealPath(f->getTTH())));
-		else if (f->isSet(DirectoryListing::FLAG_SHARED) && f->getSize()) // [+] FlylinkDC++
-			columns[COLUMN_PATH] = Text::toT(ShareManager::toRealPath(f->getTTH())); // !PPA!
+		else if (f->isSet(DirectoryListing::FLAG_SHARED) && f->getSize())
+			columns[COLUMN_PATH] = Text::toT(ShareManager::toRealPath(f->getTTH()));
 	}
 	UpdatePathColumn(f);
 	
@@ -2205,9 +2164,8 @@ void DirectoryListingFrame::ItemInfo::UpdatePathColumn(const DirectoryListing::F
 {
 	if (columns[COLUMN_PATH].empty())
 	{
-		// TODO Копипаста
 		if (f->isSet(DirectoryListing::FLAG_DOWNLOAD))
-			columns[COLUMN_PATH] = TSTRING(I_DOWNLOADED_THIS_FILE); //[!]NightOrion(translate)
+			columns[COLUMN_PATH] = TSTRING(I_DOWNLOADED_THIS_FILE);
 		if (f->isSet(DirectoryListing::FLAG_VIRUS_FILE))
 		{
 			if (!columns[COLUMN_PATH].empty())
@@ -2218,7 +2176,7 @@ void DirectoryListingFrame::ItemInfo::UpdatePathColumn(const DirectoryListing::F
 		{
 			if (!columns[COLUMN_PATH].empty())
 				columns[COLUMN_PATH] += _T(" + ");
-			columns[COLUMN_PATH] += TSTRING(THIS_FILE_WAS_IN_MY_SHARE); //[!]NightOrion(translate)
+			columns[COLUMN_PATH] += TSTRING(THIS_FILE_WAS_IN_MY_SHARE);
 		}
 	}
 }
@@ -2268,14 +2226,13 @@ LRESULT DirectoryListingFrame::onGenerateDCLST(WORD /*wNotifyCode*/, WORD wID, H
 	return 0;
 }
 
-// [+] SSA open file with dclst support
 void DirectoryListingFrame::openFileFromList(const tstring& file)
 {
 	if (file.empty())
 		return;
 		
 	if (Util::isDclstFile(file))
-		DirectoryListingFrame::openWindow(file, Util::emptyStringT, HintedUser(), 0, true); // [!] IRainman fix: open all dclst file with empty user.
+		DirectoryListingFrame::openWindow(file, Util::emptyStringT, HintedUser(), 0, true);
 	else
 		WinUtil::openFile(file);
 		
@@ -2350,7 +2307,7 @@ LRESULT DirectoryListingFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wPar
 						if (!l_count_download.empty())
 						{
 							if (l_si_find->second->columns[COLUMN_FLY_SERVER_RATING].empty())
-								l_si_find->second->columns[COLUMN_FLY_SERVER_RATING] = Text::toT("0/" + l_count_download); // TODO fix copy-paste
+								l_si_find->second->columns[COLUMN_FLY_SERVER_RATING] = Text::toT("0/" + l_count_download);
 							else
 								l_si_find->second->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(l_count_query + '/' + l_count_download);
 						}
@@ -2495,7 +2452,7 @@ void DirectoryListingFrame::mergeFlyServerInfo()
 //===================================================================================================================================
 LRESULT DirectoryListingFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
-	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown()) // [+] IRainman opt.
+	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown())
 	{
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		if (scan_list_view_from_merge())

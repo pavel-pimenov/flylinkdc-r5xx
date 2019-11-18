@@ -48,18 +48,18 @@ class RSSPage : public CPropertyPage<IDD_RSS_PAGE>, public PropPage
 		COMMAND_ID_HANDLER(IDC_ADD_RSS, onAddFeed)
 		COMMAND_ID_HANDLER(IDC_REMOVE_RSS, onRemoveFeed)
 		COMMAND_ID_HANDLER(IDC_CHANGE_RSS, onChangeFeed)
-		NOTIFY_HANDLER(IDC_RSS_ITEMS, LVN_ITEMCHANGED, onItemchangedFeeds) // [+] InfinitySky. Активация неактивных кнопок.
-		NOTIFY_HANDLER(IDC_RSS_ITEMS, LVN_KEYDOWN, onKeyDown) // [+] InfinitySky. Управление клавишами. При нажатии клавиши.
-		NOTIFY_HANDLER(IDC_RSS_ITEMS, NM_DBLCLK, onDoubleClick) // [+] InfinitySky. Управление мышью. При двойном клике.
-		NOTIFY_HANDLER(IDC_RSS_ITEMS, NM_CUSTOMDRAW, ctrlCommands.onCustomDraw) // [+] InfinitySky. Чередование фона строк.
+		NOTIFY_HANDLER(IDC_RSS_ITEMS, LVN_ITEMCHANGED, onItemchangedFeeds)
+		NOTIFY_HANDLER(IDC_RSS_ITEMS, LVN_KEYDOWN, onKeyDown)
+		NOTIFY_HANDLER(IDC_RSS_ITEMS, NM_DBLCLK, onDoubleClick)
+		NOTIFY_HANDLER(IDC_RSS_ITEMS, NM_CUSTOMDRAW, ctrlCommands.onCustomDraw)
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
 		
 		LRESULT onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT onAddFeed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-		LRESULT onItemchangedFeeds(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/); // [+] InfinitySky. Активация неактивных кнопок.
-		LRESULT onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled); // [+] InfinitySky. Управление клавишами. При нажатии клавиши
-		LRESULT onDoubleClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/); // [+] InfinitySky. Управление мышью. При двойном клике.
+		LRESULT onItemchangedFeeds(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
+		LRESULT onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled);
+		LRESULT onDoubleClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
 		LRESULT onChangeFeed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onRemoveFeed(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		

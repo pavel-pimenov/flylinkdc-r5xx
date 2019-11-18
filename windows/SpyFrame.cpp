@@ -24,8 +24,8 @@
 #include "../client/ConnectionManager.h"
 
 int SpyFrame::columnSizes[] = { 305, 70, 90, 120, 20 };
-int SpyFrame::columnIndexes[] = { COLUMN_STRING, COLUMN_COUNT, COLUMN_USERS, COLUMN_TIME, COLUMN_SHARE_HIT }; // !SMT!-S
-static ResourceManager::Strings columnNames[] = { ResourceManager::SEARCH_STRING, ResourceManager::COUNT, ResourceManager::USERS, ResourceManager::TIME, ResourceManager::SHARED }; // !SMT!-S
+int SpyFrame::columnIndexes[] = { COLUMN_STRING, COLUMN_COUNT, COLUMN_USERS, COLUMN_TIME, COLUMN_SHARE_HIT };
+static ResourceManager::Strings columnNames[] = { ResourceManager::SEARCH_STRING, ResourceManager::COUNT, ResourceManager::USERS, ResourceManager::TIME, ResourceManager::SHARED };
 
 SpyFrame::SpyFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), m_total(0), m_current(0),
 	m_ignoreTTH(BOOLSETTING(SPY_FRAME_IGNORE_TTH_SEARCHES)),
@@ -34,7 +34,7 @@ SpyFrame::SpyFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), m_tota
 	m_ignoreTTHContainer(WC_BUTTON, this, SPYFRAME_IGNORETTH_MESSAGE_MAP),
 	m_ShowNickContainer(WC_BUTTON, this, SPYFRAME_SHOW_NICK),
 	m_SpyLogFileContainer(WC_BUTTON, this, SPYFRAME_LOG_FILE),
-	m_log(nullptr), m_needsUpdateTime(true), m_needsResort(false) //[+]IRainman refactoring SpyFrame
+	m_log(nullptr), m_needsUpdateTime(true), m_needsResort(false)
 {
 	memzero(m_perSecond, sizeof(m_perSecond));
 	ClientManager::getInstance()->addListener(this);
@@ -85,7 +85,7 @@ LRESULT SpyFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	}
 	
 	//ctrlSearches.setSort(COLUMN_COUNT, ExListViewCtrl::SORT_INT, false);
-	//ctrlSearches.setVisible(SETTING(SPYFRAME_VISIBLE)); // !SMT!-UI
+	//ctrlSearches.setVisible(SETTING(SPYFRAME_VISIBLE));
 	
 	ctrlSearches.setSort(SETTING(SEARCH_SPY_COLUMNS_SORT), ExListViewCtrl::SORT_INT, BOOLSETTING(SEARCH_SPY_COLUMNS_SORT_ASC));
 	ShareManager::setHits(0);
@@ -105,7 +105,6 @@ LRESULT SpyFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			safe_delete(m_log);
 		}
 	}
-	//[~]IRainman refactoring SpyFrame
 	create_timer(1000);
 	ClientManager::g_isSpyFrame = true;
 	bHandled = FALSE;
@@ -133,7 +132,7 @@ LRESULT SpyFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 	else
 	{
 		WinUtil::saveHeaderOrder(ctrlSearches, SettingsManager::SPYFRAME_ORDER, SettingsManager::SPYFRAME_WIDTHS, COLUMN_LAST, columnIndexes, columnSizes);
-		//ctrlSearches.saveHeaderOrder(SettingsManager::SPYFRAME_ORDER, SettingsManager::SPYFRAME_WIDTHS, SettingsManager::SPYFRAME_VISIBLE); // !SMT!-UI
+		//ctrlSearches.saveHeaderOrder(SettingsManager::SPYFRAME_ORDER, SettingsManager::SPYFRAME_WIDTHS, SettingsManager::SPYFRAME_VISIBLE);
 		
 		SET_SETTING(SEARCH_SPY_COLUMNS_SORT, ctrlSearches.getSortColumn());
 		SET_SETTING(SEARCH_SPY_COLUMNS_SORT_ASC, ctrlSearches.isAscending());
@@ -228,17 +227,15 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 			case SEARCH:
 			{
 				SMTSearchInfo* si = (SMTSearchInfo*)i->second;
-				//[+]IRainman refactoring SpyFrame
 				if (m_needsUpdateTime)
 				{
 					m_CurrentTime = Text::toT(Util::formatDigitalClock(GET_TIME()));
 					m_needsUpdateTime = false;
 				}
-				//[~]IRainman refactoring SpyFrame
 				tstring l_SeekersNames;
 				{
 					auto& l_searh_item = m_spy_searches[si->s];
-					if (m_showNick)// [+] IRainman
+					if (m_showNick)
 					{
 						if (::strncmp(si->seeker.c_str(), "Hub:", 4))
 						{
@@ -260,7 +257,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 						             si->seeker + '\t' +
 						             si->s + "\r\n";
 					}
-					if (m_showNick)// [+] IRainman
+					if (m_showNick)
 					{
 						size_t k;
 						for (k = 0; k < NUM_SEEKERS; ++k)
@@ -299,7 +296,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 					++m_total;
 					++m_perSecond[m_current];
 				}
-				// !SMT!-S
+				
 				tstring hit;
 				if (si->re == ClientManagerListener::SEARCH_PARTIAL_HIT)
 					hit = _T('*');
@@ -317,7 +314,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 					a.push_back(l_SeekersNames);
 					a.push_back(m_CurrentTime);
 					a.push_back(hit);
-					ctrlSearches.insert(a, 0, si->re);// !SMT!-S
+					ctrlSearches.insert(a, 0, si->re);
 					int l_Count = ctrlSearches.GetItemCount();
 					if (l_Count > 500)
 					{
@@ -332,8 +329,8 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 					ctrlSearches.SetItemText(j, COLUMN_COUNT, Util::toStringW(Util::toInt(tmp) + 1).c_str());
 					ctrlSearches.SetItemText(j, COLUMN_USERS, l_SeekersNames.c_str());
 					ctrlSearches.SetItemText(j, COLUMN_TIME, m_CurrentTime.c_str());
-					ctrlSearches.SetItemText(j, COLUMN_SHARE_HIT, hit.c_str()); // !SMT!-S
-					ctrlSearches.SetItem(j, COLUMN_SHARE_HIT, LVIF_PARAM, NULL, 0, 0, 0, si->re); // !SMT!-S
+					ctrlSearches.SetItemText(j, COLUMN_SHARE_HIT, hit.c_str());
+					ctrlSearches.SetItem(j, COLUMN_SHARE_HIT, LVIF_PARAM, NULL, 0, 0, 0, si->re);
 					if (ctrlSearches.getSortColumn() == COLUMN_COUNT ||
 					        ctrlSearches.getSortColumn() == COLUMN_TIME
 					   )
@@ -344,7 +341,7 @@ LRESULT SpyFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 					setDirty(0);
 				}
 #ifdef FLYLINKDC_USE_SOUND_AND_POPUP_IN_SEARCH_SPY
-				SHOW_POPUP(POPUP_SEARCH_SPY, m_CurrentTime + _T(" : ") + l_SeekersNames + _T("\r\n") + l_search, TSTRING(SEARCH_SPY)); // [+] SCALOlaz: Spy Popup. Thanks to tret2003 (NightOrion) with tstring
+				SHOW_POPUP(POPUP_SEARCH_SPY, m_CurrentTime + _T(" : ") + l_SeekersNames + _T("\r\n") + l_search, TSTRING(SEARCH_SPY));
 				PLAY_SOUND(SOUND_SEARCHSPY);
 #endif
 			}
@@ -448,8 +445,8 @@ void SpyFrame::on(ClientManagerListener::IncomingSearch, const string& user, con
 
 LRESULT SpyFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-	m_needsUpdateTime = true;//[+]IRainman refactoring SpyFrame
-	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown())// [+] IRainman opt
+	m_needsUpdateTime = true;
+	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown())
 	{
 		auto s = new Stats;
 		for (size_t i = 0; i < AVG_TIME; ++i)
@@ -484,7 +481,7 @@ void SpyFrame::on(SettingsManagerListener::Repaint)
 	}
 }
 
-// !SMT!-S
+
 inline static COLORREF blendColors(COLORREF a, COLORREF b)
 {
 	return ((uint32_t)a & 0xFEFEFE) / 2 + ((uint32_t)b & 0xFEFEFE) / 2;
@@ -509,7 +506,7 @@ LRESULT SpyFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 			plvcd->clrTextBk = blendColors(SETTING(DUPE_COLOR), SETTING(BACKGROUND_COLOR));
 			
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-		Colors::alternationBkColor(plvcd); // [+] IRainman
+		Colors::alternationBkColor(plvcd);
 #endif
 	}
 	return CDRF_DODEFAULT;

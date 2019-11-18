@@ -19,14 +19,28 @@
 #include "stdinc.h"
 
 #include <regex>
+#include <fstream>
+#include <locale.h>
 #include <Mmsystem.h>
-#include <shlobj.h>
-#include <boost/algorithm/string.hpp>
 
+#include <shlobj.h>
 #include "CompatibilityManager.h"
+#include "LogManager.h"
+
+#include "CID.h"
+#include "File.h"
+#include "UploadManager.h"
 #include "ShareManager.h"
+#include "OnlineUser.h"
+#include "Socket.h"
+
+#include <boost/algorithm/string.hpp>
+#include "../FlyFeatures/AutoUpdate.h"
+#include "../windows/resource.h" // TODO - плохо что тут инклудится винда? Да вроде не страшно, это же список ресурсов, небойсь флажки парсятся для userlocation :)
+
 #include "idna/idna.h"
 #include "MD5Calc.h"
+#include "../FlyFeatures/flyServer.h"
 
 const string g_tth = "TTH:";
 const time_t Util::g_startTime = time(NULL);
@@ -47,9 +61,7 @@ time_t Util::g_awayTime;
 
 string Util::g_paths[Util::PATH_LAST];
 string Util::g_sysPaths[Util::SYS_PATH_LAST];
-// [+] IRainman opt.
 NUMBERFMT Util::g_nf = { 0 };
-// [~] IRainman opt.
 bool Util::g_localMode = true;
 
 static string g_caption = "FlylinkDC++";
@@ -133,7 +145,7 @@ bool Util::checkForbidenFolders(const string& p_path)
 	else
 		return false;
 }
-bool Util::locatedInSysPath(Util::SysPaths path, const string& currentPath) // [+] IRainman
+bool Util::locatedInSysPath(Util::SysPaths path, const string& currentPath)
 {
 	const string& l_path = g_sysPaths[path];
 	// dcassert(!l_path.empty());
@@ -213,7 +225,6 @@ void Util::initialize()
 #if (_MSC_VER >= 1400)
 	_set_invalid_parameter_handler(reinterpret_cast<_invalid_parameter_handler>(invalidParameterHandler));
 #endif
-	// [+] IRainman opt.
 	static TCHAR g_sep[2] = _T(",");
 	static wchar_t g_Dummy[16] = { 0 };
 	g_nf.lpDecimalSep = g_sep;
@@ -221,10 +232,8 @@ void Util::initialize()
 	g_nf.Grouping = _wtoi(g_Dummy);
 	GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_STHOUSAND, g_Dummy, 16);
 	g_nf.lpThousandSep = g_Dummy;
-	// [~] IRainman opt.
 	
 	g_paths[PATH_EXE] = Util::getModuleCustomFileName("");
-	// [+] IRainman: FlylinkDC system path init.
 	LocalArray<TCHAR, MAX_PATH> l_buf;
 #define SYS_WIN_PATH_INIT(path) \
 	if(::SHGetFolderPath(NULL, CSIDL_##path, NULL, SHGFP_TYPE_CURRENT, l_buf.data()) == S_OK) \
@@ -253,8 +262,6 @@ void Util::initialize()
 	SYS_WIN_PATH_INIT(PERSONAL);
 	
 #undef SYS_WIN_PATH_INIT
-	// [~] IRainman: FlylinkDC system path init.
-	
 	// Global config path is FlylinkDC++ executable path...
 #ifdef _DEBUG2 // Тестируем запрет доступа
 	//g_paths[PATH_EXE] = "C:\\Program Files (x86)\\f\\";
@@ -262,7 +269,7 @@ void Util::initialize()
 #else
 	g_paths[PATH_GLOBAL_CONFIG] = g_paths[PATH_EXE];
 #endif
-#ifdef USE_APPDATA //[+] NightOrion
+#ifdef USE_APPDATA
 	if (File::isExist(g_paths[PATH_EXE] + "Settings" PATH_SEPARATOR_STR "DCPlusPlus.xml") ||
 	        !(locatedInSysPath(PROGRAM_FILES, g_paths[PATH_EXE]) || locatedInSysPath(PROGRAM_FILESX86, g_paths[PATH_EXE]))
 	   )
@@ -304,7 +311,7 @@ void Util::initialize()
 	g_paths[PATH_LANGUAGES] = g_paths[PATH_GLOBAL_CONFIG] + "Lang" PATH_SEPARATOR_STR;
 	
 #ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
-	g_paths[PATH_EXTERNAL_ICO] = g_paths[PATH_GLOBAL_CONFIG] + "FlylinkDC.ico";//[+] IRainman
+	g_paths[PATH_EXTERNAL_ICO] = g_paths[PATH_GLOBAL_CONFIG] + "FlylinkDC.ico";
 #endif
 	g_paths[PATH_EXTERNAL_LOGO] = g_paths[PATH_GLOBAL_CONFIG] + "FlylinkDC.png";
 	
@@ -313,7 +320,6 @@ void Util::initialize()
 	g_paths[PATH_GPGPU] = g_paths[PATH_GLOBAL_CONFIG] + "GPUProgramms" PATH_SEPARATOR_STR;
 	
 	g_paths[PATH_SOUNDS] = g_paths[PATH_GLOBAL_CONFIG] + "Sounds" PATH_SEPARATOR_STR;
-	// [~] TODO This is crossplatform paths ;)
 	
 	loadBootConfig();
 	
@@ -347,10 +353,10 @@ void Util::initialize()
 	g_paths[PATH_NOTEPAD] = g_paths[PATH_USER_CONFIG] + "Notepad.txt";
 	g_paths[PATH_EMOPACKS] = g_paths[PATH_GLOBAL_CONFIG] + "EmoPacks" PATH_SEPARATOR_STR;
 	
-	// [+] IRainman opt
+	
 	shrink_to_fit(&g_paths[0], &g_paths[PATH_LAST]);
 	shrink_to_fit(&g_sysPaths[0], &g_sysPaths[SYS_PATH_LAST]);
-	// [~] IRainman opt.
+	
 	
 	File::ensureDirectory(g_paths[PATH_USER_CONFIG]);
 	File::ensureDirectory(g_paths[PATH_USER_LOCAL]);
@@ -382,7 +388,7 @@ const char* Util::getCountryShortName(uint16_t p_flag_index)
 		return "";
 }
 //==========================================================================
-int Util::getFlagIndexByCode(uint16_t p_countryCode) // [!] IRainman: countryCode is uint16_t.
+int Util::getFlagIndexByCode(uint16_t p_countryCode)
 {
 	// country codes are sorted, use binary search for better performance
 	int begin = 0;
@@ -588,8 +594,6 @@ void Util::loadGeoIp()
 				size_t lineend = 0;
 				uint32_t startIP = 0, stopIP = 0;
 				uint16_t flagIndex = 0;
-				// [+] IRainman opt: http://en.wikipedia.org/wiki/ISO_3166-1 : 2013.08.12: Currently 249 countries, territories, or areas of geographical interest are assigned official codes in ISO 3166-1,
-				// http://www.assembla.com/spaces/customlocations-greylink 20130812-r1281, providers count - 1422
 				CFlyLocationIPArray l_sqlite_array;
 				l_sqlite_array.reserve(100000);
 				while (true)
@@ -630,7 +634,7 @@ void Util::loadGeoIp()
 }
 #endif
 	
-void customLocationLog(const string& p_line, const string& p_error) // [+] IRainman
+void customLocationLog(const string& p_line, const string& p_error)
 {
 	if (BOOLSETTING(LOG_CUSTOM_LOCATION))
 	{
@@ -641,7 +645,7 @@ void customLocationLog(const string& p_line, const string& p_error) // [+] IRain
 	}
 }
 	
-void Util::loadCustomlocations()// [!] IRainman: this function workings fine. Please don't merge from other project!
+void Util::loadCustomlocations()
 {
 	const tstring l_fileName = Text::toT(getConfigPath(
 #ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
@@ -792,14 +796,14 @@ void Util::loadBootConfig()
 		if (boot.findChild("ConfigPath"))
 		{
 	
-#ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA //[+] NightOrion
+#ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
 			g_paths[PATH_ALL_USER_CONFIG] = formatParams(boot.getChildData(), params, false);
 			AppendPathSeparator(g_paths[PATH_ALL_USER_CONFIG]);
 #endif
 			g_paths[PATH_USER_CONFIG] = formatParams(boot.getChildData(), params, false);
 			AppendPathSeparator(g_paths[PATH_USER_CONFIG]);
 		}
-#ifdef USE_APPDATA //[+] NightOrion
+#ifdef USE_APPDATA
 # ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
 		boot.resetCurrentChild();
 	
@@ -817,7 +821,6 @@ void Util::loadBootConfig()
 			AppendPathSeparator(g_paths[PATH_USER_CONFIG]);
 		}
 #endif
-		// [~] FlylinkDC Dont merge this code from another projects!!!!!
 	}
 	catch (const Exception&)
 	{
@@ -1041,7 +1044,7 @@ void Util::decodeUrl(const string& url, string& protocol, string& host, uint16_t
 		fileStart = authorityEnd;
 	}
 	
-	protocol = (protoEnd == string::npos ? Util::emptyString : Text::toLower(url.substr(protoStart, protoEnd - protoStart))); // [!] IRainman rfc fix lower string to proto and servername
+	protocol = (protoEnd == string::npos ? Util::emptyString : Text::toLower(url.substr(protoStart, protoEnd - protoStart)));
 	if (protocol.empty())
 		protocol = "dchub";
 	
@@ -1084,7 +1087,7 @@ void Util::decodeUrl(const string& url, string& protocol, string& host, uint16_t
 			}
 	
 			dcdebug("h");
-			host = Text::toLower(url.substr(authorityStart, hostEnd - authorityStart)); // [!] IRainman rfc fix lower string to proto and servername
+			host = Text::toLower(url.substr(authorityStart, hostEnd - authorityStart));
 		}
 	
 		if (portStart == string::npos)
@@ -1129,7 +1132,7 @@ void Util::decodeUrl(const string& url, string& protocol, string& host, uint16_t
 	fragment = url.substr(fragmentStart, fragmentEnd - fragmentStart);  //http://bazaar.launchpad.net/~dcplusplus-team/dcplusplus/trunk/revision/2606
 	if (!Text::isAscii(host))
 	{
-		static const BOOL l_is_success = IDNA_init(0);// [!] IRainman opt: no needs to reinit (+static const).
+		static const BOOL l_is_success = IDNA_init(0);
 		if (l_is_success)
 		{
 			const string l_host_acp = Text::utf8ToAcp(host);
@@ -1229,10 +1232,9 @@ void Util::setAway(bool aAway, bool notUpdateInfo /*= false*/)
 	
 	if (!notUpdateInfo)
 	{
-		ClientManager::infoUpdated(); // Не звать если не меняется aAway
+		ClientManager::infoUpdated();
 	}
 }
-// [~] InfinitySky. Работа с автоответчиком.
 string Util::getAwayMessage(StringMap& params)
 {
 	time_t currentTime;
@@ -1264,7 +1266,7 @@ wstring Util::formatSecondsW(int64_t aSec, bool supressHours /*= false*/)
 	return buf;
 }
 	
-string Util::formatSeconds(int64_t aSec, bool supressHours /*= false*/) // [+] IRainman opt
+string Util::formatSeconds(int64_t aSec, bool supressHours /*= false*/)
 {
 	char buf[64];
 	if (!supressHours)
@@ -1274,7 +1276,7 @@ string Util::formatSeconds(int64_t aSec, bool supressHours /*= false*/) // [+] I
 	return buf;
 }
 	
-string Util::formatBytes(int64_t aBytes) // TODO fix copy-paste
+string Util::formatBytes(int64_t aBytes)
 {
 	char buf[64];
 	buf[0] = 0;
@@ -1308,7 +1310,7 @@ string Util::formatBytes(int64_t aBytes) // TODO fix copy-paste
 	}
 	return buf;
 }
-string Util::formatBytes(double aBytes) // TODO fix copy-paste
+string Util::formatBytes(double aBytes)
 {
 	char buf[64];
 	buf[0] = 0;
@@ -1751,16 +1753,16 @@ string Util::formatParams(const string& msg, const StringMap& params, bool filte
 		i = 0;
 		while ((j = result.find("%[", i)) != string::npos)
 		{
-			// [!] IRainman fix.
+	
 			if (result.size() < j + 2)
 				break;
 	
 			if ((k = result.find(']', j + 2)) == string::npos)
 			{
-				result.replace(j, 2, ""); // [+] IRainman: invalid shablon fix - auto correction.
+				result.replace(j, 2, "");
 				break;
 			}
-			// [~] IRainman fix.
+	
 			string name = result.substr(j + 2, k - j - 2);
 			const auto& smi = params.find(name);
 			if (smi == params.end())
@@ -1778,11 +1780,7 @@ string Util::formatParams(const string& msg, const StringMap& params, bool filte
 					{
 						// Filter chars that produce bad effects on file systems
 						c = 0;
-#ifdef _WIN32 // !SMT!-f add windows special chars
 						static const char badchars[] = "\\./:*?|<>";
-#else // unix is more tolerant
-						static const char badchars[] = "\\./";
-#endif
 						while ((c = tmp.find_first_of(badchars, c)) != string::npos)
 						{
 							tmp[c] = '_';
@@ -1884,7 +1882,7 @@ bool Util::validatePath(const string &sPath)
 	
 	return false;
 }
-// [+] SSA
+	
 string Util::getFilenameForRenaming(const string& p_filename)
 {
 	string outFilename;
@@ -1903,7 +1901,7 @@ string Util::getFilenameForRenaming(const string& p_filename)
 	
 	return outFilename;
 }
-//[+]FlylinkDC++ Team
+	
 string Util::formatDigitalClock(const string &p_msg, const time_t& p_t, bool p_is_gmt)
 {
 	/*
@@ -1930,7 +1928,6 @@ string Util::formatDigitalClock(const string &p_msg, const time_t& p_t, bool p_i
 		return l_buf;
 	}
 }
-//[~]FlylinkDC++ Team
 string Util::formatTime(const string &p_msg, const time_t p_t)
 {
 	/*
@@ -1947,7 +1944,7 @@ string Util::formatTime(const string &p_msg, const time_t p_t)
 		{
 			return Util::emptyString;
 		}
-		// [!] IRainman fix.
+	
 		const string l_msgAnsi = Text::fromUtf8(p_msg);
 		size_t bufsize = l_msgAnsi.size() + 256;
 		string buf;
@@ -1968,13 +1965,13 @@ string Util::formatTime(const string &p_msg, const time_t p_t)
 			}
 	
 			if (errno == EINVAL
-			        || bufsize > l_msgAnsi.size() + 1024) // [+] IRainman fix.
+			        || bufsize > l_msgAnsi.size() + 1024)
 				return Util::emptyString;
 	
 			bufsize += 64;
 			buf.resize(bufsize);
 		}
-		// [~] IRainman fix.
+	
 	}
 	return Util::emptyString;
 }
@@ -2455,91 +2452,10 @@ TCHAR* Util::strstr(const TCHAR *str1, const TCHAR *str2, int *pnIdxFound)
 	
 int Util::DefaultSort(const wchar_t *a, const wchar_t *b, bool noCase /*=  true*/)
 {
-	/*
-	if(BOOLSETTING(NAT_SORT))
-	    //[-]PPA TODO
-	{
-	
-	    int v1, v2;
-	    while (*a != 0 && *b != 0)
-	    {
-	        v1 = 0;
-	        v2 = 0;
-	        bool t1 = isNumeric(*a);
-	        bool t2 = isNumeric(*b);
-	        if (t1 != t2) return (t1) ? -1 : 1;
-	
-	        if (!t1 && noCase)
-	        {
-	            if (Text::toLower(*a) != Text::toLower(*b))
-	                return ((int)Text::toLower(*a)) - ((int)Text::toLower(*b));
-	            a++;
-	            b++;
-	        }
-	        else if (!t1)
-	        {
-	            if (*a != *b)
-	                return ((int)*a) - ((int)*b);
-	            a++;
-	            b++;
-	        }
-	        else
-	        {
-	            while (isNumeric(*a))
-	            {
-	                v1 *= 10;
-	                v1 += *a - '0';
-	                a++;
-	            }
-	
-	            while (isNumeric(*b))
-	            {
-	                v2 *= 10;
-	                v2 += *b - '0';
-	                b++;
-	            }
-	
-	            if (v1 != v2)
-	                return (v1 < v2) ? -1 : 1;
-	        }
-	    }
-	
-	    return noCase ? (((int)Text::toLower(*a)) - ((int)Text::toLower(*b))) : (((int)*a) - ((int)*b));
-	
-	
-	    // [+] brain-ripper
-	    // TODO:
-	    // implement dynamic call to StrCmpLogicalW (this function not exist on Win2000.
-	    // Note that this function is case insensitive
-	    // return StrCmpLogicalW(a, b);
-	
-	}
-	else*/
 	{
 		return noCase ? lstrcmpi(a, b) : lstrcmp(a, b);
 	}
 }
-/* [-] IRainman fix
-string Util::formatMessage(const string& message)
-{
-    string tmp = message;
-    // Check all '<' and '[' after newlines as they're probably pasts...
-    size_t i = 0;
-    while ((i = tmp.find('\n', i)) != string::npos)
-    {
-        if (i + 1 < tmp.length())
-        {
-            if (tmp[i + 1] == '[' || tmp[i + 1] == '<')
-            {
-                tmp.insert(i + 1, "- ");
-                i += 2;
-            }
-        }
-        i++;
-    }
-    return Text::toDOS(tmp);
-}
-*/
 void Util::setLimiter(bool aLimiter)
 {
 	SET_SETTING(THROTTLE_ENABLE, aLimiter);
@@ -2585,7 +2501,7 @@ string Util::getRegistryValueString(const TCHAR* p_key, bool p_is_path)
 		{
 			string l_result = Text::fromT(l_buf);
 			if (p_is_path)
-				AppendPathSeparator(l_result); //[+]PPA
+				AppendPathSeparator(l_result);
 			return l_result;
 		}
 	}
@@ -2604,7 +2520,7 @@ bool Util::deleteRegistryValue(const TCHAR* p_key)
 	dcassert(status == ERROR_SUCCESS);
 	return status == ERROR_SUCCESS;
 }
-// [+] SSA
+	
 bool Util::setRegistryValueInt(const TCHAR* p_key, DWORD p_value)
 {
 	HKEY hk = nullptr;
@@ -2651,7 +2567,7 @@ bool Util::setRegistryValueString(const TCHAR* p_key, const tstring& p_value)
 }
 	
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-bool Util::isStreamingVideoFile(const string& p_file) // [+] SSA
+bool Util::isStreamingVideoFile(const string& p_file)
 {
 	const string l_file_ext = Text::toLower(Util::getFileExtWithoutDot(p_file));
 	return CFlyServerConfig::isMediainfoExt(l_file_ext);
@@ -2699,7 +2615,7 @@ string Util::getWANIP(const string& p_url, LONG p_timeOut /* = 500 */)
 		l_log.step("Error download : " + Util::translateError());
 	return Util::emptyString;
 }
-//[+] SSA
+	
 size_t Util::getDataFromInetSafe(bool p_is_use_cache, const string& p_url, string& p_data, LONG p_time_out /* = 0 */, IDateReceiveReporter* p_reporter /*= NULL */)
 {
 	std::vector<byte> l_bin_data;
@@ -2761,7 +2677,6 @@ string Util::getExtInternetError()
 	return translateError(dwErr);
 }
 #endif
-//[+] SSA
 void CFlyHTTPDownloader::create_error_message(const char* p_type, const string& p_url)
 {
 	m_last_error_code = GetLastError();
@@ -3148,48 +3063,6 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 	return totalBytesRead;
 }
 	
-// [-] IRainman
-//bool Util::IsXPSP3AndHigher()
-//{
-//	OSVERSIONINFOEX ver;
-//	if (!getVersionInfo(ver))
-//		return false;
-//
-//	if (ver.dwMajorVersion >= 6)
-//		return true;
-//	if (ver.dwMajorVersion == 5 && ver.dwMinorVersion > 1)
-//		return true;
-//	if (ver.dwMajorVersion == 5 && ver.dwMinorVersion == 1 && ver.wServicePackMajor >= 3)
-//		return true;
-//
-//	return false;
-//}
-// [-] IRainman
-//bool Util::getVersionInfo(OSVERSIONINFOEX& ver)
-//{
-//	// version can't change during process lifetime
-//	if (osvi.dwOSVersionInfoSize != 0)
-//	{
-//		ver = osvi;
-//		return true;
-//	}
-//
-//	memzero(&ver, sizeof(OSVERSIONINFOEX));
-//	ver.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-//
-//	if (!GetVersionEx((OSVERSIONINFO*)&ver))
-//	{
-//		ver.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-//		if (!GetVersionEx((OSVERSIONINFO*)&ver))
-//		{
-//			return false;
-//		}
-//	}
-//
-//	if (&ver != &osvi) osvi = ver;
-//	return true;
-//}
-	
 bool Util::getTTH_MD5(const string& p_filename, size_t p_buffSize, unique_ptr<TigerTree>* p_tth, unique_ptr<MD5Calc>* p_md5 /* = 0 */, bool p_isAbsPath/* = true*/)
 {
 	dcassert(p_tth != nullptr);
@@ -3253,7 +3126,7 @@ bool Util::getTTH_MD5(const string& p_filename, size_t p_buffSize, unique_ptr<Ti
 	}
 	return false;
 }
-// [+] NightOrion
+	
 void Util::BackupSettings()
 {
 	const string bkpath = formatTime(getConfigPath() + "BackUp\\%Y-%m-%d\\", time(NULL));
@@ -3282,23 +3155,21 @@ string Util::formatDchubUrl(const string& DchubUrl)
 	//static unsigned int l_call_count = 0;
 	//dcdebug("Util::formatDchubUrl DchubUrl =\"%s\", call count %d\n", DchubUrl.c_str(), ++l_call_count);
 #endif
-	//[-] PVS-Studio V808 string path;
 	uint16_t port;
 	string proto, host, file, query, fragment;
 	
 	decodeUrl(DchubUrl, proto, host, port, file, query, fragment);
-	const string l_url = proto + "://" + host + ((port == 411 && proto == "dchub") ? "" : ":" + Util::toString(port)); // [!] IRainman opt
+	const string l_url = proto + "://" + host + ((port == 411 && proto == "dchub") ? "" : ":" + Util::toString(port));
 	dcassert(l_url == Text::toLower(l_url));
 	return l_url;
 }
-// [~] NightOrion
+	
 	
 string Util::getMagnet(const TTHValue& aHash, const string& aFile, int64_t aSize)
 {
 	return "magnet:?xt=urn:tree:tiger:" + aHash.toBase32() + "&xl=" + toString(aSize) + "&dn=" + encodeURI(aFile);
 }
 	
-// [+] necros
 string Util::getWebMagnet(const TTHValue& aHash, const string& aFile, int64_t aSize)
 {
 	StringMap params;
@@ -3309,16 +3180,14 @@ string Util::getWebMagnet(const TTHValue& aHash, const string& aFile, int64_t aS
 	return formatParams(SETTING(COPY_WMLINK), params, false);
 }
 	
-string Util::getMagnetByPath(const string& aFile) // [+] SSA - returns empty string or magnet
+string Util::getMagnetByPath(const string& aFile)
 {
-	// [-] IRainman fix. try {
 	string outFilename;
 	TTHValue outTTH;
 	int64_t outSize = 0;
 	if (ShareManager::getInstance()->findByRealPathName(aFile, &outTTH, &outFilename,  &outSize))
 		return getMagnet(outTTH, outFilename, outSize);
 	
-	// [-] IRainman fix. } catch (ShareException& /*shEx*/) {}
 	return emptyString;
 }
 string Util::getDownloadPath(const string& def)
@@ -3346,7 +3215,7 @@ string Util::getDownloadPath(const string& def)
 					return ret;
 				}
 			}
-			::FreeLibrary(shell32); // [+] IRainman fix.
+			::FreeLibrary(shell32);
 		}
 	}
 	
@@ -3482,7 +3351,6 @@ string Util::toSettingString(const StringList& patternList)
 	}
 	return ret;
 }
-// [~] IRainman: settings split and parse.
 string Util::getLang()
 {
 	const string l_lang = SETTING(LANGUAGE_FILE);

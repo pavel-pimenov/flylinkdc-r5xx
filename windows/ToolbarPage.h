@@ -23,7 +23,7 @@
 
 
 #include "PropPage.h"
-#include "ExListViewCtrl.h" // [+] IRainman
+#include "ExListViewCtrl.h"
 
 class ToolbarPage : public CPropertyPage<IDD_TOOLBAR_PAGE>, public PropPage
 {
@@ -45,8 +45,8 @@ class ToolbarPage : public CPropertyPage<IDD_TOOLBAR_PAGE>, public PropPage
 		COMMAND_HANDLER(IDC_HOTBROWSE, BN_CLICKED, onHotBrowse)
 		COMMAND_HANDLER(IDC_TOOLBAR_ADD, BN_CLICKED, onAdd)
 		COMMAND_HANDLER(IDC_TOOLBAR_REMOVE, BN_CLICKED, onRemove)
-		NOTIFY_HANDLER(IDC_TOOLBAR_POSSIBLE, NM_CUSTOMDRAW, m_ctrlCommands.onCustomDraw) // [+] IRainman
-		NOTIFY_HANDLER(IDC_TOOLBAR_ACTUAL, NM_CUSTOMDRAW, m_ctrlToolbar.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_TOOLBAR_POSSIBLE, NM_CUSTOMDRAW, m_ctrlCommands.onCustomDraw)
+		NOTIFY_HANDLER(IDC_TOOLBAR_ACTUAL, NM_CUSTOMDRAW, m_ctrlToolbar.onCustomDraw)
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
 		

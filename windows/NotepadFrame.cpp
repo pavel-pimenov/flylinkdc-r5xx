@@ -88,9 +88,6 @@ void NotepadFrame::UpdateLayout(BOOL /*bResizeBars*/ /* = TRUE */)
 	GetClientRect(rc);
 	
 	rc.bottom -= 1;
-	//rc.top += 1; [~] Sergey Shushkanov
-	//rc.left += 1; [~] Sergey Shushkanov
-	//rc.right -= 1; [~] Sergey Shushkanov
 	ctrlPad.MoveWindow(rc);
 	
 }

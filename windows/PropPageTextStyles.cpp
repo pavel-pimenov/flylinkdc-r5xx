@@ -2,7 +2,6 @@
 #include "stdafx.h"
 
 #include "Resource.h"
-#include "../client/SimpleXML.h"
 
 #include "OperaColorsPage.h"
 #include "PropertiesDlg.h"
@@ -25,13 +24,13 @@ PropPage::TextItem PropPageTextStyles::texts[] =
 	{ IDC_IMPORT, ResourceManager::SETTINGS_THEME_IMPORT },
 	{ IDC_EXPORT, ResourceManager::SETTINGS_THEME_EXPORT },
 	{ IDC_CHATCOLORS, ResourceManager::SETTINGS_COLORS },
-	{ IDC_BAN_COLOR, ResourceManager::BAN_COLOR_DLG }, // !necros!
-	{ IDC_DUPE_COLOR, ResourceManager::DUPE_COLOR_DLG }, // !necros!
-	{ IDC_DUPE_EX1, ResourceManager::DUPE_EX1 }, // [+]NSL
-	{ IDC_DUPE_EX2, ResourceManager::DUPE_EX2 }, // [+]NSL
-	{ IDC_DUPE_EX3, ResourceManager::DUPE_EX3 }, // [+]NSL
+	{ IDC_BAN_COLOR, ResourceManager::BAN_COLOR_DLG },
+	{ IDC_DUPE_COLOR, ResourceManager::DUPE_COLOR_DLG },
+	{ IDC_DUPE_EX1, ResourceManager::DUPE_EX1 },
+	{ IDC_DUPE_EX2, ResourceManager::DUPE_EX2 },
+	{ IDC_DUPE_EX3, ResourceManager::DUPE_EX3 },
 	
-	{ IDC_MODCOLORS, ResourceManager::MOD_COLOR_DLG }, // !SMT!-UI
+	{ IDC_MODCOLORS, ResourceManager::MOD_COLOR_DLG },
 	
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
@@ -46,7 +45,6 @@ PropPage::Item PropPageTextStyles::items[] =
 PropPageTextStyles::clrs PropPageTextStyles::colours[] =
 {
 	{ResourceManager::SETTINGS_SELECT_WINDOW_COLOR, SettingsManager::BACKGROUND_COLOR, 0},
-	//[-] PPA   {ResourceManager::SETTINGS_COLOR_ALTERNATE, SettingsManager::SEARCH_ALTERNATE_COLOUR, 0},
 	{ResourceManager::SETCZDC_ERROR_COLOR,  SettingsManager::ERROR_COLOR, 0},
 	{ResourceManager::TAB_SELECTED_COLOR,   SettingsManager::TAB_SELECTED_COLOR, 0},
 	{ResourceManager::TAB_SELECTED_BORDER_COLOR,   SettingsManager::TAB_SELECTED_BORDER_COLOR, 0},
@@ -62,18 +60,18 @@ PropPageTextStyles::clrs PropPageTextStyles::colours[] =
 	{ResourceManager::PROGRESS_RUNNING, SettingsManager::COLOR_RUNNING, 0},
 	{ResourceManager::PROGRESS_VERIFIED,    SettingsManager::COLOR_VERIFIED, 0},
 	{ResourceManager::PROGRESS_AVOIDING,    SettingsManager::COLOR_AVOIDING, 0},
-	{ResourceManager::SETTINGS_DUPE_COLOR,    SettingsManager::DUPE_COLOR, 0},  //[+] SCALOlaz
-	{ResourceManager::DUPE_EX1,    SettingsManager::DUPE_EX1_COLOR, 0},         //[+]
-	{ResourceManager::DUPE_EX2,    SettingsManager::DUPE_EX2_COLOR, 0},         //[+]
-	{ResourceManager::DUPE_EX3,    SettingsManager::DUPE_EX3_COLOR, 0},        //[+]
-	{ResourceManager::BAN_COLOR_DLG,    SettingsManager::BAN_COLOR, 0},         //[+]
+	{ResourceManager::SETTINGS_DUPE_COLOR,    SettingsManager::DUPE_COLOR, 0},
+	{ResourceManager::DUPE_EX1,    SettingsManager::DUPE_EX1_COLOR, 0},
+	{ResourceManager::DUPE_EX2,    SettingsManager::DUPE_EX2_COLOR, 0},
+	{ResourceManager::DUPE_EX3,    SettingsManager::DUPE_EX3_COLOR, 0},
+	{ResourceManager::BAN_COLOR_DLG,    SettingsManager::BAN_COLOR, 0},
 	
 #ifdef SCALOLAZ_USE_COLOR_HUB_IN_FAV
 	{ResourceManager::HUB_IN_FAV_BK_COLOR,   SettingsManager::HUB_IN_FAV_BK_COLOR, 0},
 	{ResourceManager::HUB_IN_FAV_CONNECT_BK_COLOR,   SettingsManager::HUB_IN_FAV_CONNECT_BK_COLOR, 0},
 #endif
 };
-// [++]NSL
+
 LRESULT PropPageTextStyles::onSelectColor(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	int color;
@@ -513,7 +511,7 @@ void PropPageTextStyles::TextStyleSettings::EditTextStyle()
 	else
 		font.lfItalic = FALSE;
 		
-	CFontDialog d(&font, CF_SCREENFONTS | CF_FORCEFONTEXIST, NULL, *m_pParent);   // !SMT!-F
+	CFontDialog d(&font, CF_SCREENFONTS | CF_FORCEFONTEXIST, NULL, *m_pParent);
 	d.m_cf.rgbColors = crTextColor;
 	if (d.DoModal() == IDOK)
 	{
@@ -571,9 +569,9 @@ LRESULT PropPageTextStyles::onExport(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 {
 	tstring file;
 //  if (WinUtil::browseFile(file, m_hWnd, true, x, CTSTRING(DC_THEMES_DIALOG_FILE_TYPES_STRING), defExt) == IDOK)
-	if (WinUtil::browseFile(file, m_hWnd, true, Text::toT(Util::getThemesPath()), types, defExt) == IDOK)// [!]IRainman  убрать
+	if (WinUtil::browseFile(file, m_hWnd, true, Text::toT(Util::getThemesPath()), types, defExt) == IDOK)
 	{
-		SettingsManager::exportDctheme(file); // [!] IRainman fix.
+		SettingsManager::exportDctheme(file);
 	}
 	return 0;
 }
@@ -600,7 +598,7 @@ LRESULT PropPageTextStyles::onClickedResetTabColor(WORD /*wNotifyCode*/, WORD /*
 
 LRESULT PropPageTextStyles::onClientSelectTabColor(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	CColorDialog d(colours[ctrlTabList.GetCurSel()].value, CC_FULLOPEN, *this); //[~] SCALOlaz 0 before CC_FULLOPEN
+	CColorDialog d(colours[ctrlTabList.GetCurSel()].value, CC_FULLOPEN, *this);
 	if (d.DoModal() == IDOK)
 	{
 		colours[ctrlTabList.GetCurSel()].value = d.GetColor();
@@ -619,7 +617,7 @@ LRESULT PropPageTextStyles::onClientSelectTabColor(WORD /*wNotifyCode*/, WORD /*
 LRESULT PropPageTextStyles::onClickedText(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	LOGFONT tmp = m_Font;
-	CFontDialog d(&tmp, CF_EFFECTS | CF_SCREENFONTS | CF_FORCEFONTEXIST, NULL, *this); // !SMT!-F
+	CFontDialog d(&tmp, CF_EFFECTS | CF_SCREENFONTS | CF_FORCEFONTEXIST, NULL, *this);
 	d.m_cf.rgbColors = fg;
 	if (d.DoModal() == IDOK)
 	{

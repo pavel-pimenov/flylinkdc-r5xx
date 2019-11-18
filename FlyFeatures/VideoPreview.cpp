@@ -96,8 +96,7 @@ bool VideoPreview::checkEvents()
 			{
 				dcdebug("VideoPreview: New command when already failed: %d\n", p.first);
 				fail(STRING(DISCONNECTED));
-				goto check_events_clean_task_data; // [+] IRainman fix.
-				// delete p.second; continue; [-] IRainman fix.
+				goto check_events_clean_task_data;
 			}
 			
 			switch (p.first)
@@ -128,17 +127,15 @@ bool VideoPreview::checkEvents()
 				}
 				return false;
 			}
-			// delete p.second; [-] IRainman fix.
 		}
 		catch (const Exception& e)
 		{
-			// delete p.second; [-] IRainman fix.
 			fail(e.getError());
 		}
-		// [+] IRainman fix.
+		
 check_events_clean_task_data:
 		delete p.second;
-		// [~] IRainman fix.
+		
 	}
 	return true;
 }

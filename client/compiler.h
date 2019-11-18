@@ -84,18 +84,18 @@
 # define _LL(x) x##ll
 # define _ULL(x) x##ull
 # define I64_FMT "%I64d"
-# define U64_FMT "%I64u" // [PVS-Studio] V576. Incorrect format. Consider checking the N actual argument of the 'Foo' function
+# define U64_FMT "%I64u"
 
 #elif defined(SIZEOF_LONG) && SIZEOF_LONG == 8
 # define _LL(x) x##l
 # define _ULL(x) x##ul
 # define I64_FMT "%ld"
-# define U64_FMT "%lu" // [PVS-Studio] V576. Incorrect format. Consider checking the N actual argument of the 'Foo' function
+# define U64_FMT "%lu"
 #else
 # define _LL(x) x##ll
 # define _ULL(x) x##ull
 # define I64_FMT "%lld"
-# define U64_FMT "%llu" // [PVS-Studio] V576. Incorrect format. Consider checking the N actual argument of the 'Foo' function
+# define U64_FMT "%llu"
 #endif
 
 #ifndef _REENTRANT

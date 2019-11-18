@@ -63,7 +63,7 @@
 # pragma warning(disable: 4503) // decorated name length exceeded, name was truncated
 # pragma warning(disable: 4428) // universal-character-name encountered in source
 # pragma warning(disable: 4201) // nonstadard extension used : nameless struct/union
-//[+]PPA
+
 # pragma warning(disable: 4244) // 'argument' : conversion from 'int' to 'unsigned short', possible loss of data
 # pragma warning(disable: 4512) // 'boost::detail::future_object_base::relocker' : assignment operator could not be generated
 # pragma warning(disable: 4100) //  unreferenced formal parameter
@@ -100,7 +100,7 @@
 
 #define BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE 1
 
-//[+]PPA
+
 typedef signed __int8 int8_t;
 typedef signed __int16 int16_t;
 typedef signed __int32 int32_t;
@@ -111,7 +111,6 @@ typedef unsigned __int16 uint16_t;
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 
-//[+] Drakon
 #ifdef _MSC_VER
 # pragma warning (disable : 4512)
 # pragma warning (disable : 4505)
@@ -166,7 +165,7 @@ typedef unsigned __int64 uint64_t;
 
 #define FLYLINKDC_USE_TORRENT
 
-//[+]PPA
+
 // #define FLYLINKDC_USE_DEAD_CODE
 // #define FLYLINKDC_USE_DNS
 #define FLYLINKDC_USE_AUTO_FOLLOW
@@ -211,11 +210,8 @@ typedef unsigned __int64 uint64_t;
 //#define IRAINMAN_INCLUDE_USER_CHECK // - Не понял нахрена оно нужно. если юзеров 100 тыщ то что будет?
 #define IRAINMAN_INCLUDE_PROTO_DEBUG_FUNCTION
 #define IRAINMAN_USE_BB_CODES // BB codes support http://ru.wikipedia.org/wiki/BbCode
-#define IRAINMAN_EXCHANGED_UPNP_ALGORITHM // [!]IRainman UPnP refactoring
-#ifdef IRAINMAN_EXCHANGED_UPNP_ALGORITHM
-# define IRAINMAN_FULL_UPNP_LOG
-#endif
-#define SPEED_APPROXIMATION_INTERVAL_S 30 // [!]IRainman: Interval of speed approximation in seconds.
+
+#define SPEED_APPROXIMATION_INTERVAL_S 30
 
 # define IRAINMAN_ENABLE_AUTO_BAN
 # define IRAINMAN_INCLUDE_SMILE // Disable this to cut all smile support from code.
@@ -261,7 +257,7 @@ typedef unsigned __int64 uint64_t;
 
 # define IRAINMAN_USE_READ_WRITE_POLITICS
 # ifdef IRAINMAN_USE_READ_WRITE_POLITICS
-// [!] IRainman opt: use policies without copying data.
+
 #  define IRAINMAN_USE_SHARED_SPIN_LOCK
 #   ifdef IRAINMAN_USE_SHARED_SPIN_LOCK
 #    define IRAINMAN_USE_SEPARATE_CS_IN_FAVORITE_MANAGER
@@ -272,7 +268,6 @@ typedef unsigned __int64 uint64_t;
 # ifdef FLYLINKDC_HE
 #  ifdef IRAINMAN_USE_READ_WRITE_POLITICS
 #// [-]   define IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
-// [!] IRainman opt: use policies without copying data.
 #   ifdef IRAINMAN_USE_RECURSIVE_SHARED_CRITICAL_SECTION
 #    define IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 #    define IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER
@@ -291,7 +286,6 @@ typedef unsigned __int64 uint64_t;
 #endif
 #define IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
 
-// [+] BRAIN_RIPPER
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 # define RIP_USE_STREAM_SUPPORT_DETECTION
 #endif
@@ -302,16 +296,13 @@ typedef unsigned __int64 uint64_t;
 #ifdef _DEBUG
 // #define RIP_USE_LOG_PROTOCOL // выключил т.к. сильно грузит систему
 #endif
-//[!] #define RIP_USE_CORAL // http://coralcdn.org/ If needed, one have to merge support for CORAL from FlylinkDC
 
-//#define FLYLINKDC_USE_CS_CLIENT_SOCKET [-] IRainman fix.
+//#define FLYLINKDC_USE_CS_CLIENT_SOCKET
 
 //#define FLYLINKDC_USE_VIEW_AS_TEXT_OPTION
 
-//[+]IRainman FlylinkDC working with long paths
 // http://msdn.microsoft.com/en-us/library/ee681827(VS.85).aspx#limits
 #define FULL_MAX_PATH (32760 + 255 + 255 + 8) // Maximum path name length + Maximum file size + Mashine name overhed in UNC path + UNC header
-// [+] NightOrion
 #define USE_SUPPORT_HUB
 //#define NIGHTORION_INTERNAL_TRANSLATE_SOCKET_ERRORS // Включить когда будет готов перевод.
 
@@ -321,28 +312,25 @@ typedef unsigned __int64 uint64_t;
 
 //#define NIGHTORION_USE_STATISTICS_REQUEST
 
-//#define USE_OFFLINE_ICON_FOR_FILELIST // [+] InfinitySky. Нужна доработка. // not yet implemented, don't turn on
-// [+] SSA
+//#define USE_OFFLINE_ICON_FOR_FILELIST  Нужна доработка. // not yet implemented, don't turn on
+
 // SSA_SAVE_LAST_NICK_MACROS нигде не юзается
-// #define SSA_SAVE_LAST_NICK_MACROS // /n Macros for last inserted Nick in chat. L: Always enabled.
-// [+] SSA - uncomment to use mediainfo.dll (not static)
-// [+] SSA - Remove needless words from MediaInfo
+// #define SSA_SAVE_LAST_NICK_MACROS //
+
 #define SSA_REMOVE_NEEDLESS_WORDS_FROM_VIDEO_AUDIO_INFO
-// [+] SSA - новый алгоритм поиска имени файла и title для WinAmp
 #define SSA_NEW_WINAMP_PROC_FOR_TITLE_AND_FILENAME
-// [+] SSA - отображать пусто в magnet, если не найден файл в шаре
 // #define SSA_DONT_SHOW_MAGNET_ON_NO_FILE_IN_SHARE
-//#define SSA_INCLUDE_FILE_SHARE_PAGE // [!] SSA temporary removed. TODO ?
-#define SSA_IPGRANT_FEATURE // [+] SSA additional slots for special IP's
+//#define SSA_INCLUDE_FILE_SHARE_PAGE
+#define SSA_IPGRANT_FEATURE
 //#define SSA_SHELL_INTEGRATION
 
-#define SCALOLAZ_PROPPAGE_TRANSPARENCY   //[+] SCALOlaz: Transparency of a Settings window
-#define SCALOLAZ_PROPPAGE_COLOR          //[+] SCALOlaz: Colorized background in Properties
-#define SCALOLAZ_PROPPAGE_HELPLINK       //[+] SCALOlaz: FlyWiki Help link per pages
-#define SCALOLAZ_HASH_HELPLINK          //[+] SCALOlaz: FlyWiki Help link for HashDialog
-#define SCALOLAZ_HUB_SWITCH_BTN    //[+] SCALOlaz: Switch Panels button, change location Chat - Userlist
-// TODO: SCALOLAZ_HUB_MODE - In some situations, spoils the whole interface and the process hangs. Need verifycation, optimization
-#define SCALOLAZ_HUB_MODE       //[~+] SCALOlaz: Hubs Mode Picture
+#define SCALOLAZ_PROPPAGE_TRANSPARENCY
+#define SCALOLAZ_PROPPAGE_COLOR
+#define SCALOLAZ_PROPPAGE_HELPLINK
+#define SCALOLAZ_HASH_HELPLINK
+#define SCALOLAZ_HUB_SWITCH_BTN
+
+#define SCALOLAZ_HUB_MODE
 #define SCALOLAZ_SPEEDLIMIT_DLG // Speed Limit (Up/Dnl) control for StatusBar
 #define SCALOLAZ_MEDIAVIDEO_ICO // HD, SD icons on files in filelist
 #ifdef SCALOLAZ_MEDIAVIDEO_ICO
@@ -417,7 +405,7 @@ typedef unsigned __int64 uint64_t;
 
 #if 0
 template <class NonDerivableClass>
-class NonDerivable // [+] IRainman fix.
+class NonDerivable
 {
 		friend NonDerivableClass;
 	private:

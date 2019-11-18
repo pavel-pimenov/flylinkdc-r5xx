@@ -47,7 +47,7 @@ LRESULT DefaultClickPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 	transferlistaction.Attach(GetDlgItem(IDC_TRANSFERLIST_DBLCLICK));
 	chataction.Attach(GetDlgItem(IDC_CHAT_DBLCLICK));
 	
-	// !SMT!-UI
+	
 	favuserlistaction.Attach(GetDlgItem(IDC_FAVUSERLIST_DBLCLICK));
 	favuserlistaction.AddString(CTSTRING(GET_FILE_LIST));
 	favuserlistaction.AddString(CTSTRING(SEND_PRIVATE_MESSAGE));
@@ -69,7 +69,7 @@ LRESULT DefaultClickPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 	transferlistaction.AddString(CTSTRING(MATCH_QUEUE));
 	transferlistaction.AddString(CTSTRING(GRANT_EXTRA_SLOT));
 	transferlistaction.AddString(CTSTRING(ADD_TO_FAVORITES));
-	transferlistaction.AddString(CTSTRING(FORCE_ATTEMPT)); // !SMT!-UI
+	transferlistaction.AddString(CTSTRING(FORCE_ATTEMPT));
 	transferlistaction.AddString(CTSTRING(BROWSE_FILE_LIST));
 	chataction.AddString(CTSTRING(SELECT_USER_LIST));
 	chataction.AddString(CTSTRING(ADD_NICK_TO_CHAT));
@@ -127,7 +127,7 @@ void DefaultClickPage::write()
 	transferlistaction.Detach();
 	chataction.Detach();
 	
-	// !SMT!-UI
+	
 	favuserlistaction.Attach(GetDlgItem(IDC_FAVUSERLIST_DBLCLICK));
 	g_settings->set(SettingsManager::FAVUSERLIST_DBLCLICK, favuserlistaction.GetCurSel());
 	favuserlistaction.Detach();

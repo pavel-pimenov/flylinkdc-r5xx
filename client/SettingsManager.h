@@ -25,7 +25,7 @@
 #include "Speaker.h"
 #include "Singleton.h"
 #include "..\boost\boost\logic\tribool.hpp"
-#define MAX_SOCKET_BUFFER_SIZE (64 * 1024) // [+] IRainman fix.
+#define MAX_SOCKET_BUFFER_SIZE (64 * 1024)
 
 #define URL_GET_IP_DEFAULT  "http://checkip.dyndns.com"
 
@@ -109,7 +109,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  
 		                  WINAMP_FORMAT,
 		                  
-		                  WEBSERVER_POWER_USER, WEBSERVER_POWER_PASS, WEBSERVER_BIND_ADDRESS,// [+] IRainman
+		                  WEBSERVER_POWER_USER, WEBSERVER_POWER_PASS, WEBSERVER_BIND_ADDRESS,
 		                  LOG_FORMAT_WEBSERVER,
 		                  LOG_FORMAT_CUSTOM_LOCATION,
 		                  LOG_FORMAT_TRACE_SQLITE,
@@ -140,9 +140,9 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  RECENTFRAME_ORDER, RECENTFRAME_WIDTHS, RECENTFRAME_VISIBLE, HIGH_PRIO_FILES, LOW_PRIO_FILES, SECONDARY_AWAY_MESSAGE, PROT_USERS, WMP_FORMAT,
 		                  ITUNES_FORMAT, MPLAYERC_FORMAT, RAW1_TEXT, RAW2_TEXT, RAW3_TEXT, RAW4_TEXT, RAW5_TEXT, POPUP_FONT, POPUP_TITLE_FONT, POPUPFILE,
 		                  
-		                  BAN_MESSAGE, SLOT_ASK, // !SMT!-S
+		                  BAN_MESSAGE, SLOT_ASK,
 		                  URL_GET_IP,
-		                  PM_PASSWORD, PM_PASSWORD_HINT, PM_PASSWORD_OK_HINT, // !SMT!-PSW
+		                  PM_PASSWORD, PM_PASSWORD_HINT, PM_PASSWORD_OK_HINT,
 		                  COPY_WMLINK,
 		                  RATIO_TEMPLATE,
 		                  URL_IPTRUST,
@@ -151,22 +151,22 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 #ifdef RIP_USE_LOG_PROTOCOL
 		                  LOG_FILE_PROTOCOL, LOG_FORMAT_PROTOCOL,
 #endif
-		                  CUSTOM_MENU_PATH, // [+] SSA
-		                  RSS_COLUMNS_ORDER, // [+] SSA
-		                  RSS_COLUMNS_WIDTHS, // [+] SSA
-		                  RSS_COLUMNS_VISIBLE, // [+] SSA
+		                  CUSTOM_MENU_PATH,
+		                  RSS_COLUMNS_ORDER,
+		                  RSS_COLUMNS_WIDTHS,
+		                  RSS_COLUMNS_VISIBLE,
 		                  MAPPER,
 		                  PORTAL_BROWSER_UPDATE_URL,
 		                  ISP_RESOURCE_ROOT_URL,
-		                  THEME_MANAGER_THEME_DLL_NAME, // [+] SSA
-		                  THEME_MANAGER_SOUNDS_THEME_NAME, // [+] SCALOlaz: Sound Themes
-		                  AUTOUPDATE_SERVER_URL, // [+] SSA
-		                  AUTOUPDATE_IGNORE_VERSION, // [+] SSA
-		                  AUTOUPDATE_PATH_WITH_UPDATE, // [+] SSA
+		                  THEME_MANAGER_THEME_DLL_NAME,
+		                  THEME_MANAGER_SOUNDS_THEME_NAME,
+		                  AUTOUPDATE_SERVER_URL,
+		                  AUTOUPDATE_IGNORE_VERSION,
+		                  AUTOUPDATE_PATH_WITH_UPDATE,
 		                  JETAUDIO_FORMAT,
 		                  QCDQMP_FORMAT,
-		                  DCLST_FOLDER_DIR, // [+] SSA
-		                  INT_PREVIEW_CLIENT_PATH, // [+] SSA
+		                  DCLST_FOLDER_DIR,
+		                  INT_PREVIEW_CLIENT_PATH,
 		                  SAVED_SEARCH_SIZE,
 		                  FLY_LOCATOR_COUNTRY,
 		                  FLY_LOCATOR_CITY,
@@ -178,28 +178,27 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		enum IntSetting { INT_FIRST = STR_LAST + 1,
 		                  INCOMING_CONNECTIONS = INT_FIRST, AVDB_BLOCK_CONNECTIONS, AUTO_PASSIVE_INCOMING_CONNECTIONS, XXX_BLOCK_SHARE, FORCE_PASSIVE_INCOMING_CONNECTIONS, TCP_PORT, SLOTS, AUTO_FOLLOW, CLEAR_SEARCH,
 		                  BACKGROUND_COLOR, TEXT_COLOR, SHARE_HIDDEN,
-		                  SHARE_VIRTUAL, SHARE_SYSTEM, // [+]IRainman
+		                  SHARE_VIRTUAL, SHARE_SYSTEM,
 		                  FILTER_MESSAGES, MINIMIZE_TRAY,
 		                  AUTO_SEARCH, TIME_STAMPS, CONFIRM_EXIT,
-		                  SUPPRESS_PMS, // [+]IRainman
+		                  SUPPRESS_PMS,
 		                  POPUP_HUB_PMS, POPUP_BOT_PMS, IGNORE_HUB_PMS, IGNORE_BOT_PMS,
 		                  BUFFER_SIZE_FOR_DOWNLOADS, DOWNLOAD_SLOTS, MAX_DOWNLOAD_SPEED, LOG_MAIN_CHAT, LOG_PRIVATE_CHAT,
 		                  LOG_DOWNLOADS, LOG_UPLOADS,
-		                  LOG_IF_SUPPRESS_PMS, // [+]IRainman
+		                  LOG_IF_SUPPRESS_PMS,
 		                  STATUS_IN_CHAT, SHOW_JOINS, PRIVATE_MESSAGE_BEEP, PRIVATE_MESSAGE_BEEP_OPEN,
 		                  USE_SYSTEM_ICONS, POPUP_PMS, MIN_UPLOAD_SPEED, URL_HANDLER, MAIN_WINDOW_STATE,
 		                  MAIN_WINDOW_SIZE_X, MAIN_WINDOW_SIZE_Y, MAIN_WINDOW_POS_X, MAIN_WINDOW_POS_Y, AUTO_AWAY,
 		                  SOCKS_PORT, SOCKS_RESOLVE, KEEP_LISTS, AUTO_KICK, QUEUEFRAME_SHOW_TREE, QUEUEFRAME_SPLIT,
 		                  COMPRESS_TRANSFERS, SHOW_PROGRESS_BARS, MAX_TAB_ROWS,
 		                  MAX_COMPRESSION, ANTI_FRAG, ANTI_FRAG_MAX, MDI_MAXIMIZED,
-		                  // [-] NO_AWAYMSG_TO_BOTS, [-] IRainman fix.
 		                  SKIP_ZERO_BYTE,
 		                  SKIP_ALREADY_DOWNLOADED_FILES,
 		                  ADLS_BREAK_ON_FIRST,
 		                  HUB_USER_COMMANDS,
 		                  SEND_BLOOM,
 		                  AUTO_SEARCH_AUTO_MATCH, DOWNLOAD_BAR_COLOR, UPLOAD_BAR_COLOR, LOG_SYSTEM,
-		                  LOG_CUSTOM_LOCATION, // [+] IRainman
+		                  LOG_CUSTOM_LOCATION,
 		                  
 		                  LOG_SQLITE_TRACE,
 		                  LOG_VIRUS_TRACE,
@@ -211,7 +210,6 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  
 		                  LOG_FILELIST_TRANSFERS, SHOW_STATUSBAR, SHOW_TOOLBAR, SHOW_TRANSFERVIEW, SHOW_TRANSFERVIEW_TOOLBAR,
 		                  SEARCH_PASSIVE, SET_MINISLOT_SIZE, SHUTDOWN_TIMEOUT,
-		                  // MAX_UPLOAD_SPEED_LIMIT, MAX_DOWNLOAD_SPEED_LIMIT, // [-]IRainman SpeedLimiter
 		                  EXTRA_SLOTS,
 		                  TEXT_GENERAL_BACK_COLOR, TEXT_GENERAL_FORE_COLOR, TEXT_GENERAL_BOLD, TEXT_GENERAL_ITALIC,
 		                  TEXT_MYOWN_BACK_COLOR, TEXT_MYOWN_FORE_COLOR, TEXT_MYOWN_BOLD, TEXT_MYOWN_ITALIC,
@@ -238,28 +236,28 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  SEND_UNKNOWN_COMMANDS, REMOVE_SPEED,
 		                  IPUPDATE, WAN_IP_MANUAL, IPUPDATE_INTERVAL,
 		                  MAX_HASH_SPEED,
-		                  SAVE_TTH_IN_NTFS_FILESTREAM, // [+] IRainman
-		                  SET_MIN_LENGHT_TTH_IN_NTFS_FILESTREAM, // [+] NightOrion
+		                  SAVE_TTH_IN_NTFS_FILESTREAM,
+		                  SET_MIN_LENGHT_TTH_IN_NTFS_FILESTREAM,
 		                  AUTO_PRIORITY_DEFAULT, USE_OLD_SHARING_UI,
 		                  FAV_SHOW_JOINS, LOG_STATUS_MESSAGES, SHOW_LAST_LINES_LOG, SEARCH_ALTERNATE_COLOUR, SOUNDS_DISABLED,
-		                  POPUPS_DISABLED, // [+] InfinitySky.
-		                  POPUPS_TABS_ENABLED, // [+] SCALOlaz
+		                  POPUPS_DISABLED,
+		                  POPUPS_TABS_ENABLED,
 		                  POPUPS_MESSAGEPANEL_ENABLED,
-		                  USE_12_HOUR_FORMAT, // [+] InfinitySky.
-		                  MINIMIZE_ON_CLOSE, // [+] InfinitySky.
-		                  SHOW_CURRENT_SPEED_IN_TITLE, // [+] InfinitySky.
-		                  SHOW_FULL_HUB_INFO_ON_TAB, // [+] NightOrion.
+		                  USE_12_HOUR_FORMAT,
+		                  MINIMIZE_ON_CLOSE,
+		                  SHOW_CURRENT_SPEED_IN_TITLE,
+		                  SHOW_FULL_HUB_INFO_ON_TAB,
 		                  REPORT_ALTERNATES, CHECK_NEW_USERS, GARBAGE_COMMAND_INCOMING, GARBAGE_COMMAND_OUTGOING,
 		                  AUTO_SEARCH_TIME, DONT_BEGIN_SEGMENT, DONT_BEGIN_SEGMENT_SPEED, POPUNDER_PM, POPUNDER_FILELIST,
 		                  DROP_MULTISOURCE_ONLY, DISPLAY_CHEATS_IN_MAIN_CHAT, MAGNET_ASK, MAGNET_ACTION, MAGNET_REGISTER,
 		                  DISCONNECT_RAW, TIMEOUT_RAW, FAKESHARE_RAW, LISTLEN_MISMATCH, FILELIST_TOO_SMALL, FILELIST_UNAVAILABLE,
 		                  AWAY, USE_CTRL_FOR_LINE_HISTORY,
 		                  POPUP_HUB_CONNECTED, POPUP_HUB_DISCONNECTED, POPUP_FAVORITE_CONNECTED, POPUP_FAVORITE_DISCONNECTED, POPUP_CHEATING_USER,
-		                  POPUP_CHAT_LINE, // [+] ProKK
+		                  POPUP_CHAT_LINE,
 		                  POPUP_DOWNLOAD_START,
 		                  POPUP_DOWNLOAD_FAILED, POPUP_DOWNLOAD_FINISHED, POPUP_UPLOAD_FINISHED, POPUP_PM, POPUP_NEW_PM, POPUP_SEARCH_SPY,
 		                  POPUP_TYPE, WEBSERVER, WEBSERVER_PORT,
-		                  WEBSERVER_SEARCHSIZE, WEBSERVER_SEARCHPAGESIZE, WEBSERVER_ALLOW_CHANGE_DOWNLOAD_DIR, WEBSERVER_ALLOW_UPNP, //[+] IRainman
+		                  WEBSERVER_SEARCHSIZE, WEBSERVER_SEARCHPAGESIZE, WEBSERVER_ALLOW_CHANGE_DOWNLOAD_DIR, WEBSERVER_ALLOW_UPNP,
 		                  LOG_WEBSERVER, SHUTDOWN_ACTION, MINIMUM_SEARCH_INTERVAL, MINIMUM_SEARCH_PASSIVE_INTERVAL,
 		                  POPUP_AWAY, POPUP_MINIMIZED, SHOW_SHARE_CHECKED_USERS, MAX_AUTO_MATCH_SOURCES,
 		                  RESERVED_SLOT_COLOR, IGNORED_COLOR, FAVORITE_COLOR, NORMAL_COLOUR, FIREBALL_COLOR, SERVER_COLOR, PASIVE_COLOR, OP_COLOR,
@@ -275,7 +273,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  OPEN_FINISHED_UPLOADS, OPEN_SEARCH_SPY, OPEN_NETWORK_STATISTICS, OPEN_NOTEPAD, OUTGOING_CONNECTIONS,
 		                  NO_IP_OVERRIDE, FORGET_SEARCH_REQUEST, SAVE_SEARCH_SETTINGS, USE_SEARCH_GROUP_TREE_SETTINGS, USE_TORRENT_SEARCH, USE_TORRENT_RSS, SAVED_SEARCH_TYPE, SAVED_SEARCH_SIZEMODE, SAVED_SEARCH_MODE, BOLD_FINISHED_DOWNLOADS, BOLD_FINISHED_UPLOADS, BOLD_QUEUE,
 		                  BOLD_HUB, BOLD_PM, BOLD_SEARCH, BOLD_NEWRSS, TABS_POS,
-		                  HUB_POSITION, // [+] InfinitySky.
+		                  HUB_POSITION,
 		                  SOCKET_IN_BUFFER, SOCKET_OUT_BUFFER,
 		                  COLOR_RUNNING, COLOR_DOWNLOADED, COLOR_VERIFIED, COLOR_AVOIDING, AUTO_REFRESH_TIME, OPEN_WAITING_USERS,
 		                  BOLD_WAITING_USERS, AUTO_SEARCH_LIMIT, AUTO_KICK_NO_FAVS, PROMPT_PASSWORD, SPY_FRAME_IGNORE_TTH_SEARCHES,
@@ -294,27 +292,26 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  FLYSERVER_HUBLIST_SPLIT,
 		                  MEDIA_PLAYER, PROT_FAVS, MAX_MSG_LENGTH, POPUP_BACKCOLOR, POPUP_TEXTCOLOR, POPUP_TITLE_TEXTCOLOR, POPUP_IMAGE, POPUP_COLORS, SORT_FAVUSERS_FIRST, SHOW_SHELL_MENU,
 		                  
-		                  NSLOOKUP_MODE, NSLOOKUP_DELAY, // !SMT!-IP
-		                  ENABLE_AUTO_BAN, // [+] IRainman
+		                  NSLOOKUP_MODE, NSLOOKUP_DELAY,
+		                  ENABLE_AUTO_BAN,
 #ifdef IRAINMAN_ENABLE_OP_VIP_MODE
 		                  AUTOBAN_PPROTECT_OP,
 #endif
-		                  BAN_SLOTS, BAN_SLOTS_H, /*old BAN_SHARE_MAX,*/ BAN_SHARE, BAN_LIMIT, BANMSG_PERIOD, BAN_STEALTH, BAN_FORCE_PM, /*old BAN_SKIP_OPS,*/ EXTRASLOT_TO_DL, // !SMT!-S
-		                  BAN_COLOR, DUPE_COLOR, VIRUS_COLOR, MULTILINE_CHAT_INPUT, SEND_SLOTGRANT_MSG, FAVUSERLIST_DBLCLICK, // !SMT!-UI
-		                  PROTECT_PRIVATE, PROTECT_PRIVATE_RND, PROTECT_PRIVATE_SAY, // !SMT!-PSW
+		                  BAN_SLOTS, BAN_SLOTS_H, /*old BAN_SHARE_MAX,*/ BAN_SHARE, BAN_LIMIT, BANMSG_PERIOD, BAN_STEALTH, BAN_FORCE_PM, /*old BAN_SKIP_OPS,*/ EXTRASLOT_TO_DL,
+		                  BAN_COLOR, DUPE_COLOR, VIRUS_COLOR, MULTILINE_CHAT_INPUT, SEND_SLOTGRANT_MSG, FAVUSERLIST_DBLCLICK,
+		                  PROTECT_PRIVATE, PROTECT_PRIVATE_RND, PROTECT_PRIVATE_SAY,
 		                  
-		                  UP_TRANSFER_COLORS, // By Drakon
-		                  STARTUP_BACKUP, // By Drakon
+		                  UP_TRANSFER_COLORS,
+		                  STARTUP_BACKUP,
 		                  
 		                  GLOBAL_HUBFRAME_CONF,
 		                  IGNORE_USE_REGEXP_OR_WC,
 		                  STEALTHY_INDICATE_SPEEDS, COLOUR_DUPE, NO_TTH_CHEAT,
 		                  DELETE_CHECKED, TOPMOST, LOCK_TOOLBARS,
-		                  //AUTO_COMPLETE_SEARCH,//[-]IRainman
 		                  KEEP_DL_HISTORY, KEEP_UL_HISTORY,
 		                  SHOW_QUICK_SEARCH, SEARCH_DETECT_TTH, FULL_FILELIST_NFO, TABS_CLOSEBUTTONS,
-		                  VIEW_GRIDCONTROLS, // [+] ZagZag
-		                  DUPE_EX1_COLOR, DUPE_EX2_COLOR, DUPE_EX3_COLOR, NSL_IGNORE_ME,// [+]NSL
+		                  VIEW_GRIDCONTROLS,
+		                  DUPE_EX1_COLOR, DUPE_EX2_COLOR, DUPE_EX3_COLOR, NSL_IGNORE_ME,
 		                  ENABLE_LAST_IP_AND_MESSAGE_COUNTER,
 		                  ENABLE_FLY_SERVER,
 		                  ENABLE_HIT_FILE_LIST,
@@ -337,42 +334,42 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  TAB_SELECTED_BORDER_COLOR,
 		                  TAB_OFFLINE_COLOR,
 		                  TAB_ACTIVITY_COLOR,
-		                  TAB_SELECTED_TEXT_COLOR, TAB_OFFLINE_TEXT_COLOR, TAB_ACTIVITY_TEXT_COLOR, // [+] SCALOlaz
-		                  HUB_IN_FAV_BK_COLOR, HUB_IN_FAV_CONNECT_BK_COLOR, // [+] SCALOlaz
+		                  TAB_SELECTED_TEXT_COLOR, TAB_OFFLINE_TEXT_COLOR, TAB_ACTIVITY_TEXT_COLOR,
+		                  HUB_IN_FAV_BK_COLOR, HUB_IN_FAV_CONNECT_BK_COLOR,
 		                  CHAT_ANIM_SMILES,
 		                  SMILE_SELECT_WND_ANIM_SMILES,
-		                  USE_CUSTOM_MENU, // [+] SSA
-		                  RSS_AUTO_REFRESH_TIME, // [+] SSA
-		                  OPEN_RSS, // [+] SSA
-		                  POPUP_NEW_RSSNEWS, // [+] SSA
-		                  RSS_COLUMNS_SORT, // [+] SCALOlaz
-		                  RSS_COLUMNS_SORT_ASC, // [+] SCALOlaz
-		                  SEARCH_SPY_COLUMNS_SORT, // [+] SCALOlaz
-		                  SEARCH_SPY_COLUMNS_SORT_ASC, // [+] SCALOlaz
-		                  SEARCH_COLUMNS_SORT, // [+] SCALOlaz
-		                  SEARCH_COLUMNS_SORT_ASC, // [+] SCALOlaz
-		                  QUEUE_COLUMNS_SORT, // [+] SCALOlaz
-		                  QUEUE_COLUMNS_SORT_ASC, // [+] SCALOlaz
-		                  FINISHED_DL_COLUMNS_SORT, // [+] SCALOlaz
-		                  FINISHED_DL_COLUMNS_SORT_ASC, // [+] SCALOlaz
-		                  FINISHED_UL_COLUMNS_SORT, // [+] SCALOlaz
-		                  FINISHED_UL_COLUMNS_SORT_ASC, // [+] SCALOlaz
-		                  UPLOAD_QUEUE_COLUMNS_SORT, // [+] SCALOlaz
-		                  UPLOAD_QUEUE_COLUMNS_SORT_ASC, // [+] SCALOlaz
-		                  USERS_COLUMNS_SORT, // [+] SCALOlaz
-		                  USERS_COLUMNS_SORT_ASC, // [+] SCALOlaz
-		                  HUBS_PUBLIC_COLUMNS_SORT, // [+] SCALOlaz
-		                  HUBS_PUBLIC_COLUMNS_SORT_ASC, // [+] SCALOlaz
-		                  HUBS_FAVORITES_COLUMNS_SORT, // [+] SCALOlaz
-		                  HUBS_FAVORITES_COLUMNS_SORT_ASC, // [+] SCALOlaz
-		                  HUBS_RECENTS_COLUMNS_SORT, // [+] SCALOlaz
-		                  HUBS_RECENTS_COLUMNS_SORT_ASC, // [+] SCALOlaz
-		                  DIRLIST_COLUMNS_SORT, // [+] SCALOlaz
-		                  DIRLIST_COLUMNS_SORT_ASC, // [+] SCALOlaz
-		                  HUBFRAME_COLUMNS_SORT, // [+] SCALOlaz
-		                  HUBFRAME_COLUMNS_SORT_ASC, // [+] SCALOlaz
-		                  TRANSFERS_COLUMNS_SORT, // [+] SCALOlaz
-		                  TRANSFERS_COLUMNS_SORT_ASC, // [+] SCALOlaz
+		                  USE_CUSTOM_MENU,
+		                  RSS_AUTO_REFRESH_TIME,
+		                  OPEN_RSS,
+		                  POPUP_NEW_RSSNEWS,
+		                  RSS_COLUMNS_SORT,
+		                  RSS_COLUMNS_SORT_ASC,
+		                  SEARCH_SPY_COLUMNS_SORT,
+		                  SEARCH_SPY_COLUMNS_SORT_ASC,
+		                  SEARCH_COLUMNS_SORT,
+		                  SEARCH_COLUMNS_SORT_ASC,
+		                  QUEUE_COLUMNS_SORT,
+		                  QUEUE_COLUMNS_SORT_ASC,
+		                  FINISHED_DL_COLUMNS_SORT,
+		                  FINISHED_DL_COLUMNS_SORT_ASC,
+		                  FINISHED_UL_COLUMNS_SORT,
+		                  FINISHED_UL_COLUMNS_SORT_ASC,
+		                  UPLOAD_QUEUE_COLUMNS_SORT,
+		                  UPLOAD_QUEUE_COLUMNS_SORT_ASC,
+		                  USERS_COLUMNS_SORT,
+		                  USERS_COLUMNS_SORT_ASC,
+		                  HUBS_PUBLIC_COLUMNS_SORT,
+		                  HUBS_PUBLIC_COLUMNS_SORT_ASC,
+		                  HUBS_FAVORITES_COLUMNS_SORT,
+		                  HUBS_FAVORITES_COLUMNS_SORT_ASC,
+		                  HUBS_RECENTS_COLUMNS_SORT,
+		                  HUBS_RECENTS_COLUMNS_SORT_ASC,
+		                  DIRLIST_COLUMNS_SORT,
+		                  DIRLIST_COLUMNS_SORT_ASC,
+		                  HUBFRAME_COLUMNS_SORT,
+		                  HUBFRAME_COLUMNS_SORT_ASC,
+		                  TRANSFERS_COLUMNS_SORT,
+		                  TRANSFERS_COLUMNS_SORT_ASC,
 		                  QUEUED,
 		                  OVERLAP_CHUNKS,
 		                  EXTRA_PARTIAL_SLOTS,
@@ -380,31 +377,30 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  DHT_PORT,
 		                  KEEP_FINISHED_FILES_OPTION,
 		                  ALLOW_NAT_TRAVERSAL, USE_EXPLORER_THEME, UC_SUBMENU, AUTO_DETECT_CONNECTION,
-		                  // BETA_INFO, // [+] NightOrion [-]
 #ifdef RIP_USE_PORTAL_BROWSER
-		                  OPEN_PORTAL_BROWSER, //[+] BRAIN_RIPPER
+		                  OPEN_PORTAL_BROWSER,
 #endif
-		                  MIN_MULTI_CHUNK_SIZE, // [+] IRainman
-		                  MIN_MEDIAINFO_SIZE, //[+]PPA
+		                  MIN_MULTI_CHUNK_SIZE,
+		                  MIN_MEDIAINFO_SIZE,
 #ifdef FLYLINKDC_USE_XXX_ICON
-		                  FLY_GENDER, //[+] PPA
+		                  FLY_GENDER,
 #endif
-		                  SHOW_SEEKERS_IN_SPY_FRAME,// [+] IRainman
+		                  SHOW_SEEKERS_IN_SPY_FRAME,
 		                  LOG_SEEKERS_IN_SPY_FRAME,
-		                  FORMAT_BOT_MESSAGE,// [+] IRainman
+		                  FORMAT_BOT_MESSAGE,
 #ifdef IRAINMAN_USE_BB_CODES
-		                  FORMAT_BB_CODES, // [+] IRainman
+		                  FORMAT_BB_CODES,
 #endif
-		                  REDUCE_PRIORITY_IF_MINIMIZED_TO_TRAY, // [+] IRainman
-		                  MULTILINE_CHAT_INPUT_BY_CTRL_ENTER, //[+] SSA
-		                  SHOW_SEND_MESSAGE_BUTTON, //[+] SSA
-		                  SHOW_BBCODE_PANEL, //[+] SSA
-		                  SHOW_EMOTIONS_BTN, //[+] SSA
-		                  SHOW_MULTI_CHAT_BTN, // [+] IRainman
-		                  CHAT_REFFERING_TO_NICK, // [+] SCALOlaz
-		                  USE_MAGNETS_IN_PLAYERS_SPAM, // [+] SSA
-		                  USE_BITRATE_FIX_FOR_SPAM, // [+] SSA
-		                  ON_DOWNLOAD_SETTING, //[+] SSA
+		                  REDUCE_PRIORITY_IF_MINIMIZED_TO_TRAY,
+		                  MULTILINE_CHAT_INPUT_BY_CTRL_ENTER,
+		                  SHOW_SEND_MESSAGE_BUTTON,
+		                  SHOW_BBCODE_PANEL,
+		                  SHOW_EMOTIONS_BTN,
+		                  SHOW_MULTI_CHAT_BTN,
+		                  CHAT_REFFERING_TO_NICK,
+		                  USE_MAGNETS_IN_PLAYERS_SPAM,
+		                  USE_BITRATE_FIX_FOR_SPAM,
+		                  ON_DOWNLOAD_SETTING,
 		                  AUTOUPDATE_ENABLE,
 		                  AUTOUPDATE_RUNONSTARTUP,
 		                  AUTOUPDATE_STARTATTIME,
@@ -424,33 +420,33 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  AUTOUPDATE_UPDATE_CHATBOT,
 		                  AUTOUPDATE_FORCE_RESTART,
 		                  EXTRA_SLOT_BY_IP,
-		                  DCLST_REGISTER, // [+] IRainman dclst support
-		                  AUTOUPDATE_TO_BETA, // [+] SSA - update to beta
-		                  AUTOUPDATE_USE_CUSTOM_URL, //[+] SSA
-		                  DCLST_CREATE_IN_SAME_FOLDER, // [+] SSA
-		                  DCLST_ASK, // [+] SSA
-		                  DCLST_ACTION, // [+] SSA
-		                  DCLST_INCLUDESELF, // [+] SSA
-		                  CONNECT_TO_SUPPORT_HUB, // [+] SSA
+		                  DCLST_REGISTER,
+		                  AUTOUPDATE_TO_BETA,
+		                  AUTOUPDATE_USE_CUSTOM_URL,
+		                  DCLST_CREATE_IN_SAME_FOLDER,
+		                  DCLST_ASK,
+		                  DCLST_ACTION,
+		                  DCLST_INCLUDESELF,
+		                  CONNECT_TO_SUPPORT_HUB,
 		                  DISABLE_AUTOREMOVE_VIRUS_HUB,
-		                  FILESHARE_INC_FILELIST, // [+] SSA
-		                  FILESHARE_REINDEX_ON_START, // [+] SSA
-		                  SQLITE_USE_JOURNAL_MEMORY, // [+] IRainman
-		                  SECURITY_ASK_ON_SHARE_FROM_SHELL, // [+] SSA
-		                  POPUP_NEW_FOLDERSHARE, // [+] SSA
-		                  MAX_FINISHED_UPLOADS, MAX_FINISHED_DOWNLOADS, // [+] IRainman
+		                  FILESHARE_INC_FILELIST,
+		                  FILESHARE_REINDEX_ON_START,
+		                  SQLITE_USE_JOURNAL_MEMORY,
+		                  SECURITY_ASK_ON_SHARE_FROM_SHELL,
+		                  POPUP_NEW_FOLDERSHARE,
+		                  MAX_FINISHED_UPLOADS, MAX_FINISHED_DOWNLOADS,
 		                  DB_LOG_FINISHED_UPLOADS, DB_LOG_FINISHED_DOWNLOADS,
-		                  INT_PREVIEW_SERVER_PORT, INT_PREVIEW_SERVER_SPEED, // [+] SSA
-		                  INT_PREVIEW_USE_VIDEO_SCROLL, INT_PREVIEW_START_CLIENT,  // [+] SSA
-		                  PROVIDER_USE_RESOURCES, // [+] SSA
-		                  PROVIDER_USE_MENU, PROVIDER_USE_HUBLIST, PROVIDER_USE_PROVIDER_LOCATIONS, // [+] SSA
-		                  AUTOUPDATE_GEOIP, // [+] IRainman
-		                  AUTOUPDATE_CUSTOMLOCATION, // [+] IRainman
+		                  INT_PREVIEW_SERVER_PORT, INT_PREVIEW_SERVER_SPEED,
+		                  INT_PREVIEW_USE_VIDEO_SCROLL, INT_PREVIEW_START_CLIENT,
+		                  PROVIDER_USE_RESOURCES,
+		                  PROVIDER_USE_MENU, PROVIDER_USE_HUBLIST, PROVIDER_USE_PROVIDER_LOCATIONS,
+		                  AUTOUPDATE_GEOIP,
+		                  AUTOUPDATE_CUSTOMLOCATION,
 #ifdef SSA_SHELL_INTEGRATION
-		                  AUTOUPDATE_SHELL_EXT, // [+] IRainman
+		                  AUTOUPDATE_SHELL_EXT,
 #endif
 #ifdef IRAINMAN_USE_BB_CODES
-		                  FORMAT_BB_CODES_COLORS, // [+] SSA
+		                  FORMAT_BB_CODES_COLORS,
 #endif
 #ifdef NIGHTORION_USE_STATISTICS_REQUEST
 		                  SETTINGS_STATISTICS_ASK,
@@ -465,30 +461,21 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		                  SETTINGS_LAST = INT_LAST
 		                };
 		                
-		// [!] IRainman don't uncoment this code, FlylinkDC++ save all statistics on database!
-		//enum Int64Setting { INT64_FIRST = INT_LAST + 1,   TOTAL_UPLOAD = INT64_FIRST, TOTAL_DOWNLOAD, INT64_LAST, SETTINGS_LAST = INT64_LAST };
-		
 		enum {  INCOMING_DIRECT, INCOMING_FIREWALL_UPNP, INCOMING_FIREWALL_NAT,
 		        INCOMING_FIREWALL_PASSIVE
 		     };
 		enum {  OUTGOING_DIRECT, OUTGOING_SOCKS5 };
 		
-		//enum {    SPEED_64, SPEED_128, SPEED_150, SPEED_192,
-		//      SPEED_256, SPEED_384, SPEED_400, SPEED_512, SPEED_600, SPEED_768, SPEED_1M, SPEED_15M,
-		//      SPEED_2M, SPEED_4M, SPEED_6M, SPEED_8M, SPEED_10M, SP_LAST
-		//   };
-		
 		enum { SIZE_64, SIZE_128, SIZE_256, SIZE_512, SIZE_1024, SIZE_LAST };
 		
 		enum { MAGNET_AUTO_SEARCH, MAGNET_AUTO_DOWNLOAD, MAGNET_AUTO_DOWNLOAD_AND_OPEN };
-//[+] SSA
-		enum { ON_DOWNLOAD_ASK, /*FlylinkDC Team TODO ON_DOWNLOAD_EXIST_FILE_TO_NEW_DEST,*/  ON_DOWNLOAD_REPLACE, ON_DOWNLOAD_RENAME, ON_DOWNLOAD_SKIP };
+		enum { ON_DOWNLOAD_ASK,  ON_DOWNLOAD_REPLACE, ON_DOWNLOAD_RENAME, ON_DOWNLOAD_SKIP };
 		
-		enum { POS_LEFT, POS_RIGHT };// [+] IRainman
+		enum { POS_LEFT, POS_RIGHT };
 		
-		enum { TABS_TOP, TABS_BOTTOM, TABS_LEFT, TABS_RIGHT };// [+] IRainman
+		enum { TABS_TOP, TABS_BOTTOM, TABS_LEFT, TABS_RIGHT };
 		
-		enum PlayerSelected // [!] IRainman move from
+		enum PlayerSelected
 		{
 			WinAmp,
 			WinMediaPlayer,
@@ -502,11 +489,10 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		
 		static const string& get(StrSetting key, const bool useDefault = true);
 		static int get(IntSetting key, const bool useDefault = true);
-		static bool getBool(IntSetting key, const bool useDefault = true) // [!] IRainman opt.
+		static bool getBool(IntSetting key, const bool useDefault = true)
 		{
 			return get(key, useDefault) != 0;
 		}
-		// [!] IRainman all set function return status: true is value automatically corrected, or false if not.
 		static bool set(StrSetting key, const string& value);
 		static bool set(IntSetting key, int value);
 		static bool set(IntSetting key, const std::string& value);
@@ -515,29 +501,29 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 			return set(key, int(value));
 		}
 		
-		static void setDefault(StrSetting key, const string& value) // [!] IRainman opt.
+		static void setDefault(StrSetting key, const string& value)
 		{
 			strDefaults[key - STR_FIRST] = value;
 		}
 		
-		static void setDefault(IntSetting key, int value) // [!] IRainman opt.
+		static void setDefault(IntSetting key, int value)
 		{
 			intDefaults[key - INT_FIRST] = value;
 		}
-		static void setDefault(IntSetting key, const string& value) // [+] IRainman fix.
+		static void setDefault(IntSetting key, const string& value)
 		{
 			intDefaults[key - INT_FIRST] = Util::toInt(value);
 		}
-		static bool isDefault(int aSet) // [!] IRainman opt.
+		static bool isDefault(int aSet)
 		{
 			return !isSet[aSet];
 		}
 		static bool LoadLanguage();
-		// [+] IRainman fix.
+		
 		static void importDctheme(const tstring& file, const bool asDefault = false);
 		static void exportDctheme(const tstring& file);
-		// [~] IRainman fix.
-		static void unset(size_t key) // [!] IRainman opt.
+		
+		static void unset(size_t key)
 		{
 			isSet[key] = false;
 		}
@@ -553,7 +539,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		
 		void load(const string& aFileName);
 		void save(const string& aFileName);
-		void setDefaults(); // !SMT!-S
+		void setDefaults();
 		void loadOtherSettings();
 		static void generateNewTCPPort();
 		static void generateNewUDPPort();
@@ -571,12 +557,12 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		{
 			return g_searchTypes;
 		}
-		static const StringList& getExtensions(const string& name); // [!] IRainman opt.
+		static const StringList& getExtensions(const string& name);
 		
-		static unsigned short getNewPortValue(unsigned short p_OldPortValue); // [+] IRainman
-		static string getSoundFilename(const SettingsManager::StrSetting p_sound); // [+] IRainman fix.
-		static bool getBeepEnabled(const SettingsManager::IntSetting p_sound); // [+] IRainman fix.
-		static bool getPopupEnabled(const SettingsManager::IntSetting p_popup); // [+] IRainman fix.
+		static unsigned short getNewPortValue(unsigned short p_OldPortValue);
+		static string getSoundFilename(const SettingsManager::StrSetting p_sound);
+		static bool getBeepEnabled(const SettingsManager::IntSetting p_sound);
+		static bool getPopupEnabled(const SettingsManager::IntSetting p_popup);
 	private:
 		friend class Singleton<SettingsManager>;
 		SettingsManager();
@@ -585,16 +571,13 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 		
 		static string strSettings[STR_LAST - STR_FIRST];
 		static int    intSettings[INT_LAST - INT_FIRST];
-		//static int64_t int64Settings[INT64_LAST - INT64_FIRST];// [!] IRainman don't uncoment this code, FlylinkDC++ save all statistics on database!
 		static string strDefaults[STR_LAST - STR_FIRST];
 		static int    intDefaults[INT_LAST - INT_FIRST];
-		//static int64_t int64Defaults[INT64_LAST - INT64_FIRST];// [!] IRainman don't uncoment this code, FlylinkDC++ save all statistics on database!
 		static bool isSet[SETTINGS_LAST];
-		// Search types
-		static SearchTypes g_searchTypes; // name, extlist
+		
+		static SearchTypes g_searchTypes;
 		
 		static SearchTypesIter getSearchType(const string& name);
-		// [!] IRainman opt: use this data as static.
 		
 		static string getConfigFile()
 		{
@@ -606,14 +589,11 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 #define SETTING(k) SettingsManager::get(SettingsManager::k, true)
 #define BOOLSETTING(k) SettingsManager::getBool(SettingsManager::k, true)
 
-// [+] IRainman: copy-past fix.
 #define SET_SETTING(k, v) SettingsManager::set(SettingsManager::k, v)
 #define SOUND_SETTING(k) SettingsManager::getSoundFilename(SettingsManager::k)
 #define SOUND_BEEP_BOOLSETTING(k) SettingsManager::getBeepEnabled(SettingsManager::k)
 #define POPUP_ENABLED(k) SettingsManager::getPopupEnabled(SettingsManager::k)
-
 #define SPLIT_SETTING_AND_LOWER(key) Util::splitSettingAndLower(SETTING(key))
-// [~] IRainman: copy-past fix.
 
 #endif // !defined(SETTINGS_MANAGER_H)
 

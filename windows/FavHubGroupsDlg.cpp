@@ -19,7 +19,7 @@
 #include "stdafx.h"
 
 #include "FavHubGroupsDlg.h"
-#include "ExMessageBox.h" // [+] NightOrion. From Apex.
+#include "ExMessageBox.h"
 
 LRESULT FavHubGroupsDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
@@ -36,7 +36,7 @@ LRESULT FavHubGroupsDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	SetWindowText(CTSTRING(MANAGE_GROUPS));
 	SetDlgItemText(IDC_ADD, CTSTRING(ADD));
 	SetDlgItemText(IDC_REMOVE, CTSTRING(REMOVE));
-	SetDlgItemText(IDC_SAVE, CTSTRING(SAVE)); // [~] NightOrion.
+	SetDlgItemText(IDC_SAVE, CTSTRING(SAVE));
 	SetDlgItemText(IDCANCEL, CTSTRING(CLOSE));
 	SetDlgItemText(IDC_NAME_STATIC, CTSTRING(NAME));
 	
@@ -172,7 +172,7 @@ void FavHubGroupsDlg::updateSelectedGroup(bool forceClean /*= false*/)
 		wnd.EnableWindow(enableButtons);
 		wnd.Detach();
 		
-		wnd.Attach(GetDlgItem(IDC_SAVE)); // [~] NightOrion.
+		wnd.Attach(GetDlgItem(IDC_SAVE));
 		wnd.EnableWindow(enableButtons);
 		wnd.Detach();
 	}
@@ -205,8 +205,9 @@ LRESULT FavHubGroupsDlg::onAdd(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 LRESULT FavHubGroupsDlg::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	int pos = ctrlGroups.GetSelectedIndex();
-	UINT checkState = BOOLSETTING(CONFIRM_HUBGROUP_REMOVAL) ? BST_UNCHECKED : BST_CHECKED; // [+] NightOrion.
-	if (pos >= 0 && (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)) // [~] NightOrion.
+	UINT checkState = BOOLSETTING(CONFIRM_HUBGROUP_REMOVAL) ? BST_UNCHECKED : BST_CHECKED;
+	if (pos >= 0 && (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(),
+	                                                           CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES))
 	{
 		tstring name = getText(0, pos);
 		FavoriteHubEntryList l = FavoriteManager::getFavoriteHubs(Text::fromT(name));
@@ -236,7 +237,7 @@ LRESULT FavHubGroupsDlg::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		updateSelectedGroup(true);
 	}
 	// Let's update the setting unchecked box means we bug user again...
-	SET_SETTING(CONFIRM_HUBGROUP_REMOVAL, checkState != BST_CHECKED); // [+] NightOrion.
+	SET_SETTING(CONFIRM_HUBGROUP_REMOVAL, checkState != BST_CHECKED);
 	return 0;
 }
 

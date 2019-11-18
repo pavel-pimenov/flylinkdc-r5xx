@@ -47,7 +47,7 @@ PropPage::ListItem IntegrationPage::listItems[] =
 	{ SettingsManager::URL_HANDLER, ResourceManager::SETTINGS_URL_HANDLER },
 	{ SettingsManager::MAGNET_REGISTER, ResourceManager::SETCZDC_MAGNET_URI_HANDLER },
 #ifdef SSA_SHELL_INTEGRATION
-	{ SettingsManager::POPUP_NEW_FOLDERSHARE, ResourceManager::POPUP_NEW_FOLDERSHARE }, // [+] SSA
+	{ SettingsManager::POPUP_NEW_FOLDERSHARE, ResourceManager::POPUP_NEW_FOLDERSHARE },
 #endif
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };

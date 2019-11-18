@@ -83,8 +83,8 @@ class DCLSTGenDlg : public CDialogImpl< DCLSTGenDlg >, public Thread
 		string      _xml;
 		string _mNameDCLST;
 		string _strMagnet;
-		volatile bool _isCanceled; // [!] IRainman fix: this variable is volatile.
-		volatile bool _isInProcess; // [!] IRainman fix: this variable is volatile.
+		volatile bool _isCanceled;
+		volatile bool _isInProcess;
 		unique_ptr<TigerTree>  _tth;
 		
 };

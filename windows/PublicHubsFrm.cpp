@@ -285,7 +285,7 @@ LRESULT PublicHubsFrame::onSelChangedISPTree(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 				TStringList l;
 				l.resize(COLUMN_LAST);
 				l[COLUMN_SERVER] = *i;
-				m_ctrlHubs.insert(cnt++, l, I_IMAGECALLBACK); // !SMT!-IP
+				m_ctrlHubs.insert(cnt++, l, I_IMAGECALLBACK);
 			}
 		}
 		m_ctrlHubs.resort();
@@ -638,7 +638,7 @@ LRESULT PublicHubsFrame::onDoubleClickHublist(int /*idCtrl*/, LPNMHDR pnmh, BOOL
 	return 0;
 }
 
-void PublicHubsFrame::openHub(int ind) // [+] IRainman fix.
+void PublicHubsFrame::openHub(int ind)
 {
 	RecentHubEntry r;
 	r.setName(m_ctrlHubs.ExGetItemText(ind, COLUMN_NAME));
@@ -772,7 +772,6 @@ void PublicHubsFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 	
 	// listview
 	CRect rc = rect;
-	//rc.top += 2; //[~] Sergey Shuhskanov
 	rc.bottom -= 56;
 	m_ctrlHubs.MoveWindow(rc);
 	
@@ -843,7 +842,7 @@ void PublicHubsFrame::updateList()
 			l[COLUMN_DESCRIPTION] = Text::toT(l_description);
 			l[COLUMN_USERS] = Util::toStringW(i->getUsers());
 			l[COLUMN_SERVER] = Text::toT(i->getServer());
-			l[COLUMN_COUNTRY] = Text::toT(i->getCountry()); // !SMT!-IP
+			l[COLUMN_COUNTRY] = Text::toT(i->getCountry());
 			l[COLUMN_SHARED] = Util::formatBytesW(i->getShared());
 			l[COLUMN_MINSHARE] = Util::formatBytesW(i->getMinShare());
 			l[COLUMN_MINSLOTS] = Util::toStringW(i->getMinSlots());
@@ -864,7 +863,7 @@ void PublicHubsFrame::updateList()
 			dcassert(!l_country.empty());
 			const auto l_index_country = WinUtil::getFlagIndexByName(l_country.c_str());
 			//const auto l_index =
-			m_ctrlHubs.insert(cnt++, l, l_index_country); // !SMT!-IP
+			m_ctrlHubs.insert(cnt++, l, l_index_country);
 			/*
 			LVITEM lvItem = { 0 };
 			        lvItem.mask = LVIF_IMAGE;

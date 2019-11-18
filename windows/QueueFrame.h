@@ -34,12 +34,12 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 	private QueueManagerListener,
 	private DownloadManagerListener,
 	public CSplitterImpl<QueueFrame>,
-	public PreviewBaseHandler<QueueFrame, false>, // [+] IRainman fix.
+	public PreviewBaseHandler<QueueFrame, false>,
 	private SettingsManagerListener,
 	virtual private CFlyTimerAdapter,
 	virtual private CFlyTaskAdapter
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 	public:
@@ -50,7 +50,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		
 		typedef MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_QUEUE > baseClass;
 		typedef CSplitterImpl<QueueFrame> splitBase;
-		typedef PreviewBaseHandler<QueueFrame, false> prevBase; // [+] IRainman fix.
+		typedef PreviewBaseHandler<QueueFrame, false> prevBase;
 		
 		BEGIN_MSG_MAP(QueueFrame)
 		NOTIFY_HANDLER(IDC_QUEUE, LVN_GETDISPINFO, ctrlQueue.onGetDispInfo)
@@ -60,7 +60,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		NOTIFY_HANDLER(IDC_QUEUE, LVN_ITEMCHANGED, onItemChangedQueue)
 		NOTIFY_HANDLER(IDC_DIRECTORIES, TVN_SELCHANGED, onItemChanged)
 		NOTIFY_HANDLER(IDC_DIRECTORIES, TVN_KEYDOWN, onKeyDownDirs)
-		NOTIFY_HANDLER(IDC_QUEUE, NM_DBLCLK, onSearchDblClick) // !SMT!-UI
+		NOTIFY_HANDLER(IDC_QUEUE, NM_DBLCLK, onSearchDblClick)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_CLOSE, onClose)
 		MESSAGE_HANDLER(WM_TIMER, onTimerTask)
@@ -68,8 +68,8 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		MESSAGE_HANDLER(WM_SETFOCUS, onSetFocus)
 		COMMAND_ID_HANDLER(IDC_SEARCH_ALTERNATES, onSearchAlternates)
-		COMMAND_ID_HANDLER(IDC_COPY_LINK, onCopy) // !SMT!-UI
-		COMMAND_ID_HANDLER(IDC_COPY_WMLINK, onCopy) // !SMT!-UI
+		COMMAND_ID_HANDLER(IDC_COPY_LINK, onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_WMLINK, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_LINK, onCopyMagnet)
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
 		COMMAND_ID_HANDLER(IDC_REMOVE_ALL, onRemoveAll)
@@ -77,7 +77,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		COMMAND_ID_HANDLER(IDC_REMOVE_OFFLINE, onRemoveOffline)
 		COMMAND_ID_HANDLER(IDC_MOVE, onMove)
 		COMMAND_ID_HANDLER(IDC_RENAME, onRename)
-		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		COMMAND_RANGE_HANDLER(IDC_COPY, IDC_COPY + COLUMN_LAST - 1, onCopy)
 		COMMAND_RANGE_HANDLER(IDC_PRIORITY_PAUSED, IDC_PRIORITY_HIGHEST, onPriority)
 		COMMAND_RANGE_HANDLER(IDC_SEGMENTONE, IDC_SEGMENTTWO_HUNDRED, onSegments)
@@ -90,7 +90,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		NOTIFY_HANDLER(IDC_QUEUE, NM_CUSTOMDRAW, onCustomDraw)
 		CHAIN_MSG_MAP(splitBase)
 		CHAIN_MSG_MAP(baseClass)
-		CHAIN_COMMANDS(prevBase) // [+] IRainman fix.
+		CHAIN_COMMANDS(prevBase)
 		ALT_MSG_MAP(SHOWTREE_MESSAGE_MAP)
 		MESSAGE_HANDLER(BM_SETCHECK, onShowTree)
 		END_MSG_MAP()
@@ -117,7 +117,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		LRESULT onRemoveOffline(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
-		// [+] InfinitySky.
+		
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			PostMessage(WM_CLOSE);
@@ -126,7 +126,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		
 		LRESULT onSearchDblClick(int idCtrl, LPNMHDR /*pnmh*/, BOOL& bHandled)
 		{
-			return onSearchAlternates(BN_CLICKED, (WORD)idCtrl, m_hWnd, bHandled); // !SMT!-UI
+			return onSearchAlternates(BN_CLICKED, (WORD)idCtrl, m_hWnd, bHandled);
 		}
 		
 		void UpdateLayout(BOOL bResizeBars = TRUE);
@@ -223,7 +223,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 			UPDATE_STATUSBAR,
 			UPDATE_STATUS
 		};
-		StringList m_tmp_target_to_delete; // [+] NightOrion bugfix deleting folder from queue
+		StringList m_tmp_target_to_delete;
 		
 		std::vector<std::pair<std::string, UserPtr> > m_remove_source_array;
 		void removeSources();
@@ -231,7 +231,7 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		
 		class QueueItemInfo
 #ifdef _DEBUG
-			: boost::noncopyable // [+] IRainman fix.
+			: boost::noncopyable
 #endif
 			
 		{
@@ -468,8 +468,8 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		void on(QueueManagerListener::RemovedArray, const std::vector<string>& p_qi_array) noexcept override;
 		void on(QueueManagerListener::TargetsUpdated, const StringList& p_targets) noexcept override;
 		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI) noexcept override;
-		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.
-		void on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.
+		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept override;
+		void on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept override;
 		void on(SettingsManagerListener::Repaint) override;
 		
 		void onRechecked(const string& target, const string& message);

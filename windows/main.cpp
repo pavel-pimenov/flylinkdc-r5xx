@@ -38,10 +38,10 @@
 #include "PopupManager.h"
 #include "ToolbarManager.h"
 #include "../client/MappingManager.h"
-#include "../client/CompatibilityManager.h" // [+] IRainman
+#include "../client/CompatibilityManager.h"
 #include "../client/ThrottleManager.h"
-#include "../FlyFeatures/AutoUpdate.h" // [+] SSA
-#include "../FlyFeatures/flyfeatures.h" // [+] SSA
+#include "../FlyFeatures/AutoUpdate.h"
+#include "../FlyFeatures/flyfeatures.h"
 
 
 #ifndef _DEBUG
@@ -197,10 +197,10 @@ LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		rc3.left = rc3.right - 120;
 		
 		{
-			HDC l_comp = CreateCompatibleDC(dc); // [+]
+			HDC l_comp = CreateCompatibleDC(dc);
 			if (g_splash_png)
 			{
-				SelectObject(l_comp, *g_splash_png); // [+]
+				SelectObject(l_comp, *g_splash_png);
 			}
 			
 			BitBlt(dc, 0, 0, g_splash_size_x, g_splash_size_y, l_comp, 0, 0, SRCCOPY);
@@ -212,8 +212,8 @@ LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		logFont.lfHeight = 11;
 		const HFONT hFont = CreateFontIndirect(&logFont);
 		CSelectFont l_font(dc, hFont); //-V808
-		//::SetTextColor(dc, RGB(179, 179, 179)); // [~] Sergey Shushkanov
-		::SetTextColor(dc, RGB(0, 0, 0)); // [~] Sergey Shushkanov
+		//::SetTextColor(dc, RGB(179, 179, 179));
+		::SetTextColor(dc, RGB(0, 0, 0));
 		const tstring l_progress = g_sSplashText;
 		::DrawText(dc, l_progress.c_str(), l_progress.length(), &rc2, DT_CENTER); //-V107
 		//::SetTextColor(dc, RGB(50, 50, 50));
@@ -229,7 +229,7 @@ LRESULT CALLBACK splashCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 void splash_callBack(void* p_x, const tstring& p_a)
 {
-	g_sSplashText = p_a; // [!]NightOrion(translate)
+	g_sSplashText = p_a;
 	SendMessage((HWND)p_x, WM_PAINT, 0, 0);
 }
 
@@ -364,7 +364,7 @@ void CreateSplash()
 	}
 }
 
-void DestroySplash() // [+] IRainman
+void DestroySplash()
 {
 	safe_delete(g_splash_png);
 	if (!g_DisableSplash && g_splash)
@@ -377,12 +377,12 @@ void DestroySplash() // [+] IRainman
 
 void GuiInit(void*)
 {
-	createFlyFeatures(); // [+] SSA
+	createFlyFeatures();
 }
 
 void GuiUninit(void*)
 {
-	deleteFlyFeatures(); // [+] SSA
+	deleteFlyFeatures();
 	PopupManager::deleteInstance();
 }
 #ifdef SCALOLAZ_MANY_MONITORS
@@ -430,11 +430,10 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	_Module.AddMessageLoop(&theLoop);
 	
 	startup(splash_callBack, g_DisableSplash ? (void*)0 : (void*)g_splash.m_hWnd, GuiInit, NULL);
-	startupFlyFeatures(splash_callBack, g_DisableSplash ? (void*)0 : (void*)g_splash.m_hWnd); // [+] SSA
+	startupFlyFeatures(splash_callBack, g_DisableSplash ? (void*)0 : (void*)g_splash.m_hWnd);
 	WinUtil::initThemeIcons();
 	static int nRet;
 	{
-		// !SMT!-fix this will ensure that GUI (wndMain) destroyed before client library shutdown (gui objects may call lib)
 		MainFrame wndMain;
 #ifdef SSA_WIZARD_FEATURE
 		if (g_ShowWizard)
@@ -505,27 +504,25 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 			if (!nCmdShow)
 				nCmdShow = SW_SHOWDEFAULT;  // SW_SHOWNORMAL
 		}
-		const int rtl = /*ResourceManager::getInstance()->isRTL() ? WS_EX_RTLREADING :*/ 0; // [!] IRainman fix.
+		const int rtl = /*ResourceManager::getInstance()->isRTL() ? WS_EX_RTLREADING :*/ 0;
 		if (wndMain.CreateEx(NULL, rc, 0, rtl | WS_EX_APPWINDOW | WS_EX_WINDOWEDGE) == NULL)
 		{
 			ATLTRACE(_T("Main window creation failed!\n"));
 			DestroySplash();
-			nRet = 0; // [!] IRainman fix: correct unload.
+			nRet = 0;
 		}
-		else // [!] IRainman fix: correct unload.
+		else
 		{
 #ifdef RIP_USE_STREAM_SUPPORT_DETECTION
 			HashManager::getInstance()->SetFsDetectorNotifyWnd(MainFrame::getMainFrame()->m_hWnd);
 #endif
 			
-			// Backup & Archive Settings at Starup!!! Written by NightOrion.
 			if (BOOLSETTING(STARTUP_BACKUP))
 			{
 				Util::BackupSettings();
 			}
-			// End of BackUp...
 			
-			if (/*SETTING(PROTECT_PRIVATE) && */SETTING(PROTECT_PRIVATE_RND))
+			if (SETTING(PROTECT_PRIVATE_RND))
 				SET_SETTING(PM_PASSWORD, Util::getRandomNick()); // Generate a random PM password
 				
 			wndMain.ShowWindow(((nCmdShow == SW_SHOWDEFAULT) || (nCmdShow == SW_SHOWNORMAL)) ? SETTING(MAIN_WINDOW_STATE) : nCmdShow);
@@ -543,8 +540,8 @@ static int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 			nRet = theLoop.Run(); // [2] https://www.box.net/shared/e198e9df5044db2a40f4
 			
 			_Module.RemoveMessageLoop();
-		}  // [!] IRainman fix: correct unload.
-	} // !SMT!-fix
+		}
+	}
 	
 	shutdown(GuiUninit, NULL/*, true*/);
 #if defined(__PROFILER_ENABLED__)
@@ -581,7 +578,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 #ifdef _DEBUG
 // [-] VLD  _CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
-	// [+] IRainman Initialize manager of compatibility for the correction of program options depending on the environment, as well to prevent errors related to conflicts with other software.
 	CompatibilityManager::init();
 #ifdef _DEBUG
 	static uint8_t l_data[24];
@@ -598,14 +594,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	bool l_is_delay = false;
 	bool l_is_openfile = false;
 	bool l_is_sharefolder = false;
-#ifdef _DEBUG
-	// [!] brain-ripper
-	// Dear developer, if you don't want to see Splash screen in debug version,
-	// please specify parameter "/nologo" in project's
-	// "Properties/Configuration Properties/Debugging/Command Arguments"
-	
-	//g_DisableSplash = true;
-#endif
 	extern bool g_DisableSQLJournal;
 	extern bool g_UseWALJournal;
 	extern bool g_EnableSQLtrace;
@@ -698,20 +686,19 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	Util::initialize();
 	ThrottleManager::newInstance();
 	
-	// First, load the settings! Any code running before will not get the value of SettingsManager!
 	SettingsManager::newInstance();
 	SettingsManager::getInstance()->load();
 	const bool l_is_create_wide = SettingsManager::LoadLanguage();
 	ResourceManager::startup(l_is_create_wide);
-	SettingsManager::getInstance()->setDefaults(); // !SMT!-S: allow localized defaults in string settings
+	SettingsManager::getInstance()->setDefaults();
 	LogManager::init();
-	CreateSplash(); //[+]PPA
+	CreateSplash();
 	
 	g_fly_server_config.loadConfig();
 	TimerManager::newInstance();
 	ClientManager::newInstance();
 	CompatibilityManager::detectUncompatibleSoftware();
-	ThrottleManager::getInstance()->startup(); // [+] IRainman fix.
+	ThrottleManager::getInstance()->startup();
 	CompatibilityManager::caclPhysMemoryStat();
 	if (dcapp.IsAnotherInstanceRunning())
 	{
@@ -719,7 +706,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		bool multiple = false;
 		if (l_is_multipleInstances == false && l_is_magnet == false && l_is_openfile == false && l_is_sharefolder == false)
 		{
-			if (MessageBox(NULL, CTSTRING(ALREADY_RUNNING), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)   // [~] Drakon.
+			if (MessageBox(NULL, CTSTRING(ALREADY_RUNNING), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1 | MB_TOPMOST) == IDYES)
 			{
 				multiple = true;
 			}
@@ -744,9 +731,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 				// pop up
 				::SetForegroundWindow(hOther);
 				
-				/*if( IsIconic(hOther)) {
-				    //::ShowWindow(hOther, SW_RESTORE); // !SMT!-f - disable, it unlocks password-protected instance
-				}*/
 				sendCmdLine(hOther, lpstrCmdLine);
 			}
 			return FALSE;
@@ -755,17 +739,10 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	
 	// For SHBrowseForFolder
 	HRESULT hRes = ::CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
-	ATLASSERT(SUCCEEDED(hRes)); // [+] IRainman
+	ATLASSERT(SUCCEEDED(hRes));
 	
 	
 #ifdef _DEBUG
-	// It seamed not to be working for stack-overflow catch'n'process.
-	// I'll research it further
-	
-	// [+] brain-ripper
-	// Try to reserve some space for stack on stack-overflow event,
-	// to successfully make crash-dump.
-	// Note SetThreadStackGuarantee available on Win2003+ (including WinXP x64)
 	HMODULE hKernelLib = LoadLibrary(L"kernel32.dll");
 	
 	if (hKernelLib)

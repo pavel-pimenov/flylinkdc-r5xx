@@ -45,7 +45,6 @@ struct Search
 		TYPE_VIDEO,
 		TYPE_DIRECTORY,
 		TYPE_TTH,
-		//[+] от flylinkdc++
 		TYPE_CD_IMAGE,
 		TYPE_COMICS,
 		TYPE_BOOK,
@@ -62,7 +61,7 @@ struct Search
 	string    m_query;
 	uint32_t  m_token;
 	StringList  m_ext_list;
-	std::unordered_set<void*> m_owners; // boost - падает.
+	std::unordered_set<void*> m_owners;
 	bool isAutoToken() const
 	{
 		return m_token == 0; /*"auto"*/
@@ -179,7 +178,7 @@ class SearchQueue
 		bool cancelSearch(void* aOwner);
 		
 		/** return 0 means not in queue */
-		uint64_t getSearchTime(void* aOwner, uint64_t now); // [!] IRainman opt
+		uint64_t getSearchTime(void* aOwner, uint64_t now);
 		
 		/**
 		    by milli-seconds

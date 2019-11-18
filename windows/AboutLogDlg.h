@@ -14,7 +14,7 @@
 
 class AboutLogDlg : public CDialogImpl<AboutLogDlg>
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 	public:

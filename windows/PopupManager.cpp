@@ -135,13 +135,13 @@ void PopupManager::on(TimerManagerListener::Second /*type*/, uint64_t tick) noex
 		return;
 	if (WinUtil::g_mainWnd)
 	{
-		::PostMessage(WinUtil::g_mainWnd, WM_SPEAKER, MainFrame::REMOVE_POPUP, (LPARAM)tick); // [!] IRainman opt.
+		::PostMessage(WinUtil::g_mainWnd, WM_SPEAKER, MainFrame::REMOVE_POPUP, (LPARAM)tick);
 	}
 }
 
-void PopupManager::AutoRemove(uint64_t tick) // [!] IRainman opt.
+void PopupManager::AutoRemove(uint64_t tick)
 {
-	const uint64_t popupTime = SETTING(POPUP_TIME) * 1000; // [+] IRainman opt.
+	const uint64_t popupTime = SETTING(POPUP_TIME) * 1000;
 	//check all m_popups and see if we need to remove anyone
 	for (auto i = m_popups.cbegin(); i != m_popups.cend(); ++i)
 	{

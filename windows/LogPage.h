@@ -45,7 +45,7 @@ class LogPage : public CPropertyPage<IDD_LOG_PAGE>, public PropPage
 		COMMAND_ID_HANDLER(IDC_FLY_LOG_SQLITE, onCheckTypeLog)
 		COMMAND_ID_HANDLER(IDC_FLY_LOG_TEXT, onCheckTypeLog)
 		NOTIFY_HANDLER(IDC_LOG_OPTIONS, LVN_ITEMCHANGED, onItemChanged)
-		NOTIFY_HANDLER(IDC_LOG_OPTIONS, NM_CUSTOMDRAW, logOptions.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_LOG_OPTIONS, NM_CUSTOMDRAW, logOptions.onCustomDraw)
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
 		

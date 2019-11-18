@@ -34,7 +34,6 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure,
 	m_cs(std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock())),
 	m_reconnDelay(120),
 	m_lastActivity(GET_TICK()),
-//registered(false), [-] IRainman fix.
 	autoReconnect(false),
 	m_encoding(Text::g_systemCharset),
 	state(STATE_DISCONNECTED),
@@ -46,7 +45,7 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure,
 	m_countType(COUNT_UNCOUNTED),
 	m_availableBytes(0),
 	m_isChangeAvailableBytes(false),
-	m_exclChecks(false), // [+] IRainman fix.
+	m_exclChecks(false),
 	m_message_count(0),
 	m_is_hide_share(0),
 	m_is_override_name(false),
@@ -121,8 +120,8 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure,
 		}
 	}
 	
-	m_myOnlineUser = std::make_shared<OnlineUser> (l_my_user, *this, 0); // [+] IRainman fix.
-	m_hubOnlineUser = std::make_shared<OnlineUser>(l_hub_user, *this, AdcCommand::HUB_SID); // [+] IRainman fix.
+	m_myOnlineUser = std::make_shared<OnlineUser> (l_my_user, *this, 0);
+	m_hubOnlineUser = std::make_shared<OnlineUser>(l_hub_user, *this, AdcCommand::HUB_SID);
 	
 	string file, proto, query, fragment;
 	Util::decodeUrl(getHubUrl(), proto, m_address, m_port, file, query, fragment);
@@ -165,7 +164,7 @@ void Client::reset_socket()
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 	if (m_client_sock)
 		m_client_sock->removeListeners();
-	CFlyFastLock(lock(csSock); // [+] brain-ripper
+	CFlyFastLock(lock(csSock);
 	             if (m_client_sock)
 	             BufferedSocket::putSocket(m_client_sock);
 #else
@@ -185,8 +184,8 @@ void Client::reconnect()
 
 void Client::shutdown()
 {
-	state = STATE_DISCONNECTED;//[!] IRainman fix
-	TimerManager::getInstance()->removeListener(this); // [+] IRainman fix.
+	state = STATE_DISCONNECTED;
+	TimerManager::getInstance()->removeListener(this);
 	// [+] brain-ripper
 	// Ugly hack to avoid deadlock:
 	// this function captures csSock section
@@ -200,10 +199,6 @@ void Client::shutdown()
 	// but shutdown called from single thread...
 	// Hope this helps
 	
-	// [-] IRainman fix: please see reset_socket().
-	// [-] if (sock)
-	// [-]  sock->removeListeners();
-	// [~]
 	reset_socket();
 }
 
@@ -250,7 +245,7 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 			m_clientVersion += "-wine";
 		}
 	}
-// [~] FlylinkDC mimicry function
+	
 	if (hub)
 	{
 		if (updateNick)
@@ -294,7 +289,6 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 			setPassword(hub->getPassword());
 		}
 		
-		//[+]FlylinkDC
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 		setHideShare(hub->getHideShare());
 #endif
@@ -319,10 +313,10 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 			setSearchIntervalPassive(hub->getSearchIntervalPassive() * 1000, false);
 		}
 		
-		// [+] IRainman fix.
+		
 		m_opChat = hub->getOpChat();
 		m_exclChecks = hub->getExclChecks();
-		// [~] IRainman fix.
+		
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		m_isAutobanAntivirusIP = hub->getAutobanAntivirusIP();
 		m_isAutobanAntivirusNick = hub->getAutobanAntivirusNick();
@@ -351,26 +345,16 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		setSearchInterval(SETTING(MINIMUM_SEARCH_INTERVAL) * 1000, false);
 		setSearchIntervalPassive(SETTING(MINIMUM_SEARCH_PASSIVE_INTERVAL) * 1000, false);
 		
-		// [+] IRainman fix.
+		
 		m_opChat.clear();
 		m_exclChecks = false;
-		// [~] IRainman fix.
+		
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		m_isAutobanAntivirusIP = false;
 		m_isAutobanAntivirusNick = false;
 		m_AntivirusCommandIP.clear();
 #endif
 	}
-	/* [-] IRainman mimicry function
-	// !SMT!-S
-	for (string::size_type i = 0; i < ClientId.length(); i++)
-	    if (ClientId[i] == '<' || ClientId[i] == '>' || ClientId[i] == ',' || ClientId[i] == '$' || ClientId[i] == '|')
-	    {
-	        ClientId = ClientId.substr(0, i);
-	        break;
-	    }
-	*/
-	// [~] IRainman mimicry function
 	return hub;
 }
 
@@ -390,7 +374,7 @@ void Client::connect()
 	try
 	{
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-		CFlyFastLock(lock(csSock); // [+] brain-ripper
+		CFlyFastLock(lock(csSock);
 #endif
 		             m_client_sock = BufferedSocket::getBufferedSocket(m_separator, nullptr);
 		             m_client_sock->addListener(this);
@@ -436,14 +420,14 @@ void Client::send(const char* aMessage, size_t aLen)
 {
 	if (!isReady())
 	{
-		dcdebug("Send message failed, hub is disconnected!");//[+] IRainman
+		dcdebug("Send message failed, hub is disconnected!");
 		//dcassert(isReady()); // Под отладкой падаем тут. найти причину.
 		return;
 	}
 	updateActivity();
 	{
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-		CFlyFastLock(lock(csSock); // [+] brain-ripper
+		CFlyFastLock(lock(csSock);
 #endif
 		             m_client_sock->write(aMessage, aLen);
 	}
@@ -456,7 +440,7 @@ void Client::on(Connected) noexcept
 	updateActivity();
 	{
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-		CFlyFastLock(lock(csSock); // [+] brain-ripper
+		CFlyFastLock(lock(csSock);
 #endif
 		             boost::system::error_code ec;
 		             m_ip      = boost::asio::ip::address_v4::from_string(m_client_sock->getIp(), ec);
@@ -488,12 +472,12 @@ void Client::on(Connected) noexcept
 void Client::on(Failed, const string& aLine) noexcept
 {
 	// although failed consider initialized
-	state = STATE_DISCONNECTED;//[!] IRainman fix
+	state = STATE_DISCONNECTED;
 	FavoriteManager::removeUserCommand(getHubUrl());
 	
 	{
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-		CFlyFastLock(lock(csSock); // [+] brain-ripper
+		CFlyFastLock(lock(csSock);
 #endif
 		             if (m_client_sock)
 	{
@@ -519,10 +503,10 @@ void Client::disconnect(bool p_graceLess)
 	}
 #endif
 	
-	state = STATE_DISCONNECTED;//[!] IRainman fix
+	state = STATE_DISCONNECTED;
 	FavoriteManager::removeUserCommand(getHubUrl());
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-	CFlyFastLock(lock(csSock); // [+] brain-ripper
+	CFlyFastLock(lock(csSock);
 #endif
 	             if (m_client_sock)
 	             m_client_sock->disconnect(p_graceLess);
@@ -531,45 +515,45 @@ void Client::disconnect(bool p_graceLess)
 bool Client::isSecure() const
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-	if (!isReady())//[+] IRainman fast shutdown!
+	if (!isReady())
 		return false;
 		
-	CFlyFastLock(lock(csSock); // [+] brain-ripper
+	CFlyFastLock(lock(csSock);
 #endif
-	             return m_client_sock && m_client_sock->isSecure();//[!] IRainman fix
+	             return m_client_sock && m_client_sock->isSecure();
 }
 
 bool Client::isTrusted() const
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-	if (!isReady())//[+] IRainman fast shutdown!
+	if (!isReady())
 		return false;
 		
-	CFlyFastLock(lock(csSock); // [+] brain-ripper
+	CFlyFastLock(lock(csSock);
 #endif
-	             return m_client_sock && m_client_sock->isTrusted();//[!] IRainman fix
+	             return m_client_sock && m_client_sock->isTrusted();
 }
 
 string Client::getCipherName() const
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-	if (!isReady())//[+] IRainman fast shutdown!
+	if (!isReady())
 		return Util::emptyString;
 		
-	CFlyFastLock(lock(csSock); // [+] brain-ripper
+	CFlyFastLock(lock(csSock);
 #endif
-	             return m_client_sock ? m_client_sock->getCipherName() : Util::emptyString;//[!] IRainman fix
+	             return m_client_sock ? m_client_sock->getCipherName() : Util::emptyString;
 }
 
 vector<uint8_t> Client::getKeyprint() const
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-	if (!isReady())//[+] IRainman fast shutdown!
+	if (!isReady())
 		return Util::emptyByteVector;
 		
-	CFlyFastLock(lock(csSock); // [+] brain-ripper
+	CFlyFastLock(lock(csSock);
 #endif
-	             return m_client_sock ? m_client_sock->getKeyprint() : Util::emptyByteVector; // [!] IRainman fix
+	             return m_client_sock ? m_client_sock->getKeyprint() : Util::emptyByteVector;
 }
 
 void Client::updateCounts(bool aRemove)
@@ -650,9 +634,6 @@ void Client::updatedMyINFO(const OnlineUserPtr& aUser)
 
 string Client::getLocalIp() const
 {
-	// [!] IRainman fix:
-	// [!] If possible, always return the hub that IP, which he identified with us when you connect.
-	// [!] This saves the user from a variety of configuration problems.
 	if (getMyIdentity().isIPValid())
 	{
 		const string& myUserIp = getMyIdentity().getIpAsString(); // [!] opt, and fix done: [4] https://www.box.net/shared/c497f50da28f3dfcc60a
@@ -667,7 +648,7 @@ string Client::getLocalIp() const
 		return Socket::resolve(getFavIp());
 	}
 	const auto settingIp = SETTING(EXTERNAL_IP);
-	if (!settingIp.empty())  // !SMT!-F
+	if (!settingIp.empty())
 	{
 		return Socket::resolve(settingIp);
 	}
@@ -677,18 +658,7 @@ string Client::getLocalIp() const
 	}
 	const string l_local_ip = Util::getLocalOrBindIp(false);
 	return l_local_ip;
-	// [~] IRainman fix.
-	/*
-	{
-	#ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-	        CFlyFastLock(lock(csSock); // [+] brain-ripper
-	#endif
-	        if (m_client_sock)
-	        {
-	            return m_client_sock->getLocalIp();
-	        }
-	    }
-	*/
+	
 }
 
 uint64_t Client::search_internal(const SearchParamToken& p_search_param)
@@ -699,7 +669,7 @@ uint64_t Client::search_internal(const SearchParamToken& p_search_param)
 	{
 		Search s;
 		s.m_is_force_passive_searh = p_search_param.m_is_force_passive_searh;
-		s.m_fileTypes_bitmap = p_search_param.m_file_type; // TODO - проверить что тут все ок?
+		s.m_fileTypes_bitmap = p_search_param.m_file_type;
 		s.m_size     = p_search_param.m_size;
 		s.m_query    = p_search_param.m_filter;
 		s.m_sizeMode = p_search_param.m_size_mode;
@@ -709,7 +679,7 @@ uint64_t Client::search_internal(const SearchParamToken& p_search_param)
 		
 		m_searchQueue.add(s);
 		
-		const uint64_t now = GET_TICK(); // [+] IRainman opt
+		const uint64_t now = GET_TICK();
 		return m_searchQueue.getSearchTime(p_search_param.m_owner, now) - now;
 	}
 	// TODO - разобраться с этим местом.
@@ -879,14 +849,14 @@ bool Client::isFloodCommand(const string& p_command, const string& p_line)
 	return false;
 }
 
-// !SMT!-S
+
 OnlineUserPtr Client::getUser(const UserPtr& aUser)
 {
 	// for generic client, use ClientManager, but it does not correctly handle ClientManager::me
-	ClientManager::LockInstanceOnlineUsers lockedInstance; // [+] IRainman fix.
+	ClientManager::LockInstanceOnlineUsers lockedInstance;
 	return lockedInstance->getOnlineUserL(aUser);
 }
-// [+] IRainman fix.
+
 bool Client::isMeCheck(const OnlineUserPtr& ou)
 {
 	if (!ou || ou->getUser() == ClientManager::getMe_UseOnlyForNonHubSpecifiedTasks())
@@ -900,7 +870,7 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 	{
 		if (UserManager::expectPasswordFromUser(message.m_to->getUser())
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-		        || UploadManager::isBanReply(message.m_to->getUser()) // !SMT!-S
+		        || UploadManager::isBanReply(message.m_to->getUser())
 #endif
 		   )
 		{
@@ -915,14 +885,14 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 	{
 		return false;
 	}
-	else if (UserManager::isInIgnoreList(message.m_replyTo->getIdentity().getNick())) // !SMT!-S
+	else if (UserManager::isInIgnoreList(message.m_replyTo->getIdentity().getNick()))
 	{
 		return false;
 	}
 	else if (BOOLSETTING(SUPPRESS_PMS))
 	{
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-		if (UploadManager::isBanReply(message.m_replyTo->getUser())) // !SMT!-S
+		if (UploadManager::isBanReply(message.m_replyTo->getUser()))
 		{
 			return false;
 		}
@@ -975,7 +945,7 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 			return true;
 		}
 	}
-	else if (BOOLSETTING(PROTECT_PRIVATE) && !FavoriteManager::hasFreePM(message.m_replyTo->getUser())) // !SMT!-PSW
+	else if (BOOLSETTING(PROTECT_PRIVATE) && !FavoriteManager::hasFreePM(message.m_replyTo->getUser()))
 	{
 		switch (UserManager::checkPrivateMessagePassword(message))
 		{
@@ -1004,7 +974,7 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 				
 				// TODO needs?
 				// const tstring passwordOKMessage = _T('<') + message.m_replyTo->getUser()->getLastNickT() + _T("> ") + TSTRING(PRIVATE_CHAT_PASSWORD_OK_STARTED);
-				// PrivateFrame::gotMessage(from, to, replyTo, passwordOKMessage, getHubHint(), myPM, pm.thirdPerson); // !SMT!-S
+				// PrivateFrame::gotMessage(from, to, replyTo, passwordOKMessage, getHubHint(), myPM, pm.thirdPerson);
 				
 				return true;
 			}
@@ -1019,7 +989,7 @@ bool Client::allowPrivateMessagefromUser(const ChatMessage& message)
 	{
 		if (FavoriteManager::getInstance()->hasIgnorePM(message.m_replyTo->getUser())
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-		        || UploadManager::isBanReply(message.m_replyTo->getUser()) // !SMT!-S
+		        || UploadManager::isBanReply(message.m_replyTo->getUser())
 #endif
 		   )
 		{
@@ -1057,7 +1027,7 @@ bool Client::allowChatMessagefromUser(const ChatMessage& message, const string& 
 	{
 		return false;
 	}
-	else if (UserManager::isInIgnoreList(message.m_from->getIdentity().getNick())) // !SMT!-S
+	else if (UserManager::isInIgnoreList(message.m_from->getIdentity().getNick()))
 	{
 		return false;
 	}
@@ -1081,16 +1051,15 @@ bool  Client::isInOperatorList(const string& userName) const
 		return Wildcard::patternMatch(userName, m_opChat, ';', false);
 }
 
-// [~] IRainman fix.
+
 
 bool Client::NmdcPartialSearch(const SearchParam& p_search_param)
 {
 	bool l_is_partial = false;
-	if (p_search_param.m_file_type == Search::TYPE_TTH && isTTHBase64(p_search_param.m_filter)) //[+]FlylinkDC++ opt.
+	if (p_search_param.m_file_type == Search::TYPE_TTH && isTTHBase64(p_search_param.m_filter))
 	{
-		// TODO - унести код в отдельный метод
 		PartsInfo partialInfo;
-		TTHValue aTTH(p_search_param.m_filter.c_str() + 4);  //[+]FlylinkDC++ opt. //-V112
+		TTHValue aTTH(p_search_param.m_filter.c_str() + 4);
 #ifdef _DEBUG
 //		LogManager::message("[Try] handlePartialSearch TTH = " + aString);
 #endif
@@ -1170,7 +1139,6 @@ string Client::getCounts()
 
 const string& Client::getCountsIndivid() const
 {
-	// [!] IRainman Exclusive hub, send H:1/0/0 or similar
 	if (isOp())
 	{
 		static const string g_001 = "0/0/1";
@@ -1189,7 +1157,6 @@ const string& Client::getCountsIndivid() const
 }
 void Client::getCountsIndivid(uint8_t& p_normal, uint8_t& p_registered, uint8_t& p_op) const
 {
-	// [!] IRainman Exclusive hub, send H:1/0/0 or similar
 	p_normal = p_registered = p_op = 0;
 	if (isOp())
 	{

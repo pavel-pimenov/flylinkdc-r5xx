@@ -46,7 +46,7 @@ class SDCPage : public CPropertyPage<IDD_SDC_PAGE>, public PropPage
 		END_MSG_MAP()
 		
 		LRESULT onInitDialog(UINT, WPARAM, LPARAM, BOOL&);
-		LRESULT onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/); // [+]NightOrion
+		LRESULT onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 		// Common PropPage interface
 		PROPSHEETPAGE *getPSP()
@@ -59,7 +59,7 @@ class SDCPage : public CPropertyPage<IDD_SDC_PAGE>, public PropPage
 			cancel_check();
 		}
 	private:
-		void fixControls(); // [+]NightOrion
+		void fixControls();
 	protected:
 		static Item items[];
 		static TextItem texts[];

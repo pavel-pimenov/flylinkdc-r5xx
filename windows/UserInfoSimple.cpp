@@ -22,7 +22,7 @@
 #include "PrivateFrame.h"
 #include "LineDlg.h"
 
-// !SMT!-UI
+
 void UserInfoSimple::addSummaryMenu()
 {
 	// TODO: move obtain information about the user in the UserManager
@@ -92,7 +92,7 @@ void UserInfoSimple::addSummaryMenu()
 					    _T("]\t") +
 					    Text::toT((*i)->getFile());
 					UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, note.c_str());
-					if (l_count_menu++ == 10) //[+]PPA
+					if (l_count_menu++ == 10)
 					{
 						UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, _T("..."));
 						break;
@@ -130,7 +130,7 @@ void UserInfoSimple::addSummaryMenu()
 				}
 				const UINT flags = MF_STRING | MF_DISABLED | (badsrc ? MF_GRAYED : 0);
 				UserInfoGuiTraits::userSummaryMenu.AppendMenu(flags, IDC_NONE, note.c_str());
-				if (l_count_menu++ == 10) //[+]PPA
+				if (l_count_menu++ == 10)
 				{
 					UserInfoGuiTraits::userSummaryMenu.AppendMenu(MF_STRING | MF_DISABLED, IDC_NONE, _T("..."));
 					break;
@@ -140,7 +140,7 @@ void UserInfoSimple::addSummaryMenu()
 	}
 	
 }
-// !SMT!-S
+
 tstring UserInfoSimple::getBroadcastPrivateMessage()
 {
 	tstring deftext;
@@ -197,8 +197,6 @@ uint64_t UserInfoSimple::inputSlotTime()
 	return 0;
 }
 
-// [+] FlylinkDC++ Team
-
 #if 0
 int UploadQueueItemInfo::getImageIndex() const
 {
@@ -211,15 +209,15 @@ void UploadQueueItemInfo::update()
 	setText(COLUMN_FILE, Text::toT(Util::getFileName(getQi()->getFile())));
 	setText(COLUMN_PATH, Text::toT(Util::getFilePath(getQi()->getFile())));
 	setText(COLUMN_NICK, getQi()->getUser()->getLastNickT()); // [1] https://www.box.net/shared/plriwg50qendcr3kbjp5
-	setText(COLUMN_HUB, WinUtil::getHubNames(getQi()->getHintedUser()).first); // [!] IRainman fix: hintedUser
+	setText(COLUMN_HUB, WinUtil::getHubNames(getQi()->getHintedUser()).first);
 	setText(COLUMN_TRANSFERRED, Util::formatBytesW(getQi()->getPos()) + _T(" (") + Util::toStringW((double)getQi()->getPos() * 100.0 / (double)getQi()->getSize()) + _T("%)"));
 	setText(COLUMN_SIZE, Util::formatBytesW(getQi()->getSize()));
 	setText(COLUMN_ADDED, Text::toT(Util::formatDigitalClock(getQi()->getTime())));
 	setText(COLUMN_WAITING, Util::formatSecondsW(GET_TIME() - getQi()->getTime()));
-	setText(COLUMN_SHARE, Util::formatBytesW(getQi()->getUser()->getBytesShared())); //[+]PPA
-	setText(COLUMN_SLOTS, Util::toStringW(getQi()->getUser()->getSlots())); //[+]PPA
-	// !SMT!-IP
-	if (!m_location.isSet() && !m_ip.empty()) // [!] IRainman opt: Prevent multiple repeated requests to the database if the location has not been found!
+	setText(COLUMN_SHARE, Util::formatBytesW(getQi()->getUser()->getBytesShared()));
+	setText(COLUMN_SLOTS, Util::toStringW(getQi()->getUser()->getSlots()));
+	
+	if (!m_location.isSet() && !m_ip.empty())
 	{
 		m_location = Util::getIpCountry(m_ip);
 		setText(COLUMN_IP, Text::toT(m_ip));
@@ -229,66 +227,15 @@ void UploadQueueItemInfo::update()
 		setText(COLUMN_LOCATION, m_location.getDescription());
 	}
 #ifdef FLYLINKDC_USE_DNS
-	// [!] IRainman opt.
+	
 	if (m_dns.empty())
 	{
 		m_dns = Socket::nslookup(m_ip);
 		setText(COLUMN_DNS, Text::toT(m_dns)); // todo: paint later if not resolved yet
 	}
-	// [~] IRainman opt.
+	
 #endif
 }
 #endif
 
-/* [-] IRainman opt.
-const tstring UploadQueueItemInfo::getText(uint8_t col) const
-{
-    switch (col)
-    {
-        case COLUMN_FILE:
-            return Text::toT(Util::getFileName(getQi()->getFile()));
-        case COLUMN_PATH:
-            return Text::toT(Util::getFilePath(getQi()->getFile()));
-        case COLUMN_NICK:
-            return WinUtil::getNicks(getQi()->getHintedUser());
-        case COLUMN_HUB:
-            return WinUtil::getHubNames(getQi()->getHintedUser()).first;
-        case COLUMN_SIZE:
-            return Util::formatBytesW(getQi()->getSize());
-        case COLUMN_ADDED:
-            return Text::toT(Util::formatDigitalClock(getQi()->getTime()));
-        case COLUMN_TRANSFERRED:
-            return Util::formatBytesW(getQi()->getPos()) + _T(" (") + Util::toStringW((double)getQi()->getPos() * 100.0 / (double)getQi()->getSize()) + _T("%)");
-        case COLUMN_WAITING:
-            return Util::formatSecondsW(GET_TIME() - getQi()->getTime());
-        case COLUMN_SHARE:
-            return Util::formatBytesW(getQi()->getUser()->getBytesShared());
-        case COLUMN_SLOTS:
-            return Util::toStringW(getQi()->getUser()->getSlots());
-        case COLUMN_IP:
-            return Text::toT(m_ip);
-        case COLUMN_LOCATION:
-        {
-            // !SMT!-IP
-            if (!m_location.isSet() && !m_ip.empty()) // [!] IRainman opt: Prevent multiple repeated requests to the database if the location has not been found!
-            {
-                m_location = Util::getIpCountry(m_ip);
-            }
-            return m_location.isKnown() ? m_location.getDescription() : Util::emptyStringT;
-        }
-#ifdef FLYLINKDC_USE_DNS
-        case COLUMN_DNS:
-        {
-            if (m_dns.empty())
-            {
-                m_dns = Socket::nslookup(m_ip);
-            }
-            return Text::toT(m_dns);
-        }
-#endif
-    }
-    return ColumnBase::getText(col);
-}
-[~] IRainman opt. */
 
-// [~] FlylinkDC++ Team

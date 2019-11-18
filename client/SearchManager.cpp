@@ -314,37 +314,20 @@ int SearchManager::UdpQueue::run()
 				}
 				
 				const string hubIpPort = x.substr(i, j - i);
-				const string url = ClientManager::findHub(hubIpPort); // TODO - внутри линейный поиск. оптимизнуть
-				// Иногда вместо IP приходит домен "$SR chen video\multfilm\Ну, погоди!\Ну, погоди! 2.avi33492992 5/5TTH:B4O5M74UPKZ7I23CH36NA3SZOUZTJLWNVEIJMTQ (dc.a-galaxy.com:411)|"
-				// Это не обрабатывается в функции - поправить.
-				// для dc.dly-server.ru - возвращается его IP-шник "31.186.103.125:411"
-				// url оказывается пустым https://www.box.net/shared/ayirspvdjk2boix4oetr
-				// падаем на dcassert в следующем вызове findHubEncoding.
-				// [!] IRainman fix: не падаем!!!! Это диагностическое предупреждение!!!
-				// [-] string encoding;
-				// [-] if (!url.empty())
-				const string l_encoding = ClientManager::findHubEncoding(url); // [!]
-				// [~]
+				const string url = ClientManager::findHub(hubIpPort);
+				const string l_encoding = ClientManager::findHubEncoding(url);
 				nick = Text::toUtf8(nick, l_encoding);
 				file = Text::toUtf8(file, l_encoding);
 				const bool l_isTTH = isTTHBase64(l_hub_name_or_tth);
-				if (!l_isTTH) // [+]FlylinkDC++ Team
+				if (!l_isTTH)
 					l_hub_name_or_tth = Text::toUtf8(l_hub_name_or_tth, l_encoding);
 					
-				UserPtr user = ClientManager::findUser(nick, url); // TODO оптимизнуть makeCID
-				// не находим юзера "$SR snooper-06 Фильмы\Прошлой ночью в Нью-Йорке.avi1565253632 15/15TTH:LUWOOXBE2H77TUV4S4HNZQTVDXLPEYC757OUMLY (31.186.103.125:411)"
-				// при пустом url - можно не звать ClientManager::findUser - не найдем.
-				// сразу нужно переходить на ClientManager::findLegacyUser
-				// url не педедается при коннекте к хабу через SOCKS5
-				// TODO - если хаб только один - пытаться подставлять его?
+				UserPtr user = ClientManager::findUser(nick, url);
 				if (!user)
 				{
-					// LogManager::message("Error ClientManager::findUser nick = " + nick + " url = " + url);
-					// Could happen if hub has multiple URLs / IPs
 					user = ClientManager::findLegacyUser(nick, url);
 					if (!user)
 					{
-						//LogManager::message("Error ClientManager::findLegacyUser nick = " + nick + " url = " + url);
 						continue;
 					}
 				}
@@ -674,31 +657,31 @@ void SearchManager::onPSR(const AdcCommand& p_cmd, UserPtr from, const boost::as
 	
 }
 
-ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc, const CID& from, bool isUdpActive, const string& hubIpPort, StringSearch::List& reguest) // [!] IRainman
+ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc, const CID& from, bool isUdpActive, const string& hubIpPort, StringSearch::List& reguest)
 {
 	// Filter own searches
-	if (from == ClientManager::getMyCID()) // [!] IRainman fix.
+	if (from == ClientManager::getMyCID())
 	{
-		return ClientManagerListener::SEARCH_MISS; // [!] IRainman
+		return ClientManagerListener::SEARCH_MISS;
 	}
 	
 	const UserPtr p = ClientManager::findUser(from);
 	if (!p)
 	{
-		return ClientManagerListener::SEARCH_MISS; // [!] IRainman
+		return ClientManagerListener::SEARCH_MISS;
 	}
 	
 	SearchResultList l_search_results;
-	ShareManager::search_max_result(l_search_results, adc.getParameters(), isUdpActive ? 10 : 5, reguest); // [!] IRainman
+	ShareManager::search_max_result(l_search_results, adc.getParameters(), isUdpActive ? 10 : 5, reguest);
 	
-	ClientManagerListener::SearchReply l_sr = ClientManagerListener::SEARCH_MISS; // [+] IRainman
+	ClientManagerListener::SearchReply l_sr = ClientManagerListener::SEARCH_MISS;
 	
 	// TODO: don't send replies to passive users
 	if (l_search_results.empty())
 	{
 		string tth;
 		if (!adc.getParam("TR", 0, tth))
-			return l_sr; // [!] IRainman
+			return l_sr;
 			
 		PartsInfo partialInfo;
 		if (QueueManager::handlePartialSearch(TTHValue(tth), partialInfo))
@@ -706,7 +689,7 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 			AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
 			toPSR(cmd, true, Util::emptyString, hubIpPort, tth, partialInfo);
 			ClientManager::send(cmd, from);
-			l_sr = ClientManagerListener::SEARCH_PARTIAL_HIT; // [+] IRainman
+			l_sr = ClientManagerListener::SEARCH_PARTIAL_HIT;
 			LogManager::psr_message(
 			    "[SearchManager::respond] hubIpPort = " + hubIpPort +
 			    " tth = " + tth +
@@ -728,9 +711,9 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 			}
 			ClientManager::send(cmd, from);
 		}
-		l_sr = ClientManagerListener::SEARCH_HIT; // [+] IRainman
+		l_sr = ClientManagerListener::SEARCH_HIT;
 	}
-	return l_sr; // [+] IRainman
+	return l_sr;
 }
 
 string SearchManager::getPartsString(const PartsInfo& partsInfo)

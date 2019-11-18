@@ -35,7 +35,6 @@
 #include "HIconWrapper.h"
 #include "wtl_flylinkdc.h"
 
-// [+] IRainman copy-past fix.
 #define SHOW_POPUP(popup_key, msg, title) { if (POPUP_ENABLED(popup_key)) MainFrame::ShowBalloonTip((msg).c_str(), (title).c_str()); }
 #define SHOW_POPUPF(popup_key, msg, title, flags) { if (POPUP_ENABLED(popup_key)) MainFrame::ShowBalloonTip((msg).c_str(), (title).c_str(), flags); }
 #define SHOW_POPUP_EXT(popup_key, msg, popup_ext_key, ext_msg, ext_len, title) { if (POPUP_ENABLED(popup_key)) if (BOOLSETTING(popup_ext_key)) MainFrame::ShowBalloonTip((msg + ext_msg.substr(0, ext_len)).c_str(), (title).c_str()); }
@@ -55,7 +54,6 @@
 	updown.Attach(GetDlgItem(x)); \
 	updown.SetRange32(y, z); \
 	updown.Detach();
-// [~] IRainman copy-past fix.
 
 // Some utilities for handling HLS colors, taken from Jean-Michel LE FOL's codeproject
 // article on WTL OfficeXP Menus
@@ -72,7 +70,7 @@ COLORREF HLS_TRANSFORM(COLORREF rgb, int percent_L, int percent_S);
 
 extern const TCHAR* g_file_list_type;
 
-struct Tags// [+] IRainman struct for links and BB codes
+struct Tags
 {
 	explicit Tags(const TCHAR* _tag) : tag(_tag) { }
 	const tstring tag;
@@ -94,8 +92,6 @@ struct Tags// [+] IRainman struct for links and BB codes
 	Tags(_T("mtasa://")), \
 	Tags(_T("samp://")), \
 	Tags(_T("steam://"))
-/*[!] IRainman: "www." - this record is possible because function WinUtil::translateLinkToextProgramm
-    automatically generates the type of protocol as http before transfer to browser*/
 
 template <class T> inline void safe_unsubclass_window(T* p)
 {
@@ -128,7 +124,7 @@ template <class T> inline void safe_destroy_window(T*& p)
 class FlatTabCtrl;
 class UserCommand;
 
-class Preview // [+] IRainman fix.
+class Preview
 {
 	public:
 		static void init()
@@ -171,7 +167,7 @@ class Preview // [+] IRainman fix.
 };
 
 template<class T, bool OPEN_EXISTING_FILE = false>
-class PreviewBaseHandler : public Preview // [+] IRainman fix.
+class PreviewBaseHandler : public Preview
 {
 		/*
 		1) Create a method onPreviewCommand in your class, which will call startMediaPreview for a necessary data.
@@ -216,7 +212,7 @@ class PreviewBaseHandler : public Preview // [+] IRainman fix.
 };
 
 template<class T>
-class InternetSearchBaseHandler // [+] IRainman fix.
+class InternetSearchBaseHandler
 {
 		/*
 		1) Create a method onSearchFileInInternet in its class, which will call searchFileInInternet for a necessary data.
@@ -261,7 +257,6 @@ class InternetSearchBaseHandler // [+] IRainman fix.
 		}
 };
 
-// [+] IRainman opt: use static object.
 struct UserInfoGuiTraits // technical class, please do not use it directly!
 {
 	public:
@@ -305,12 +300,12 @@ struct UserInfoGuiTraits // technical class, please do not use it directly!
 		}
 		static string g_hubHint;
 		
-		static OMenu copyUserMenu; // [+] IRainman fix.
+		static OMenu copyUserMenu;
 		static OMenu grantMenu;
-		static OMenu speedMenu; // !SMT!-S
-		static OMenu privateMenu; // !SMT!-PSW
+		static OMenu speedMenu;
+		static OMenu privateMenu;
 		
-		static OMenu userSummaryMenu; // !SMT!-UI
+		static OMenu userSummaryMenu;
 		
 		friend class UserInfoSimple;
 };
@@ -321,7 +316,7 @@ struct UserInfoBaseHandlerTraitsUser // technical class, please do not use it di
 	protected:
 		static T g_user;
 };
-// [~] IRainman opt.
+
 
 template<class T, const int options = UserInfoGuiTraits::DEFAULT, class T2 = UserPtr>
 class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGuiTraits
@@ -354,7 +349,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		COMMAND_ID_HANDLER(IDC_OPEN_USER_LOG, onOpenUserLog)
 		COMMAND_ID_HANDLER(IDC_ADD_TO_FAVORITES, onAddToFavorites)
 		COMMAND_ID_HANDLER(IDC_REMOVE_FROM_FAVORITES, onRemoveFromFavorites)
-		COMMAND_ID_HANDLER(IDC_IGNORE_BY_NAME, onIgnoreOrUnignoreUserByName) // [!] IRainman moved from HubFrame and clean.
+		COMMAND_ID_HANDLER(IDC_IGNORE_BY_NAME, onIgnoreOrUnignoreUserByName)
 		COMMAND_RANGE_HANDLER(IDC_GRANTSLOT, IDC_UNGRANTSLOT, onGrantSlot)
 		COMMAND_RANGE_HANDLER(IDC_PM_NORMAL, IDC_PM_FREE, onPrivateAcces)
 		COMMAND_RANGE_HANDLER(IDC_SPEED_NORMAL, IDC_SPEED_MANUAL, onSetUserLimit)
@@ -396,7 +391,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			dcassert(0);
 			LogManager::message("Not implemented [virtual LRESULT onCopyUserInfo] ( ppa74@ya.ru)");
 			/*
-			// !SMT!-S
+			
 			const auto su = getSelectedUser();
 			if (su)
 			{
@@ -651,11 +646,11 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			{
 				__if_exists(T::getUserList)
 				{
-					// !SMT!-S
+				
 					if (((T*)this)->getUserList().getSelectedCount() > 1)
 					{
 						const tstring l_message = UserInfoSimple::getBroadcastPrivateMessage();
-						if (!l_message.empty()) // [+] SCALOlaz: support for abolition and prohibition to send a blank line
+						if (!l_message.empty())
 						{
 							((T*)this)->getUserList().forEachSelectedParam(&UserInfoBase::pm_msg, m_selectedHint, l_message);
 						}
@@ -665,7 +660,6 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 						using std::placeholders::_1;
 						((T*)this)->getUserList().forEachSelectedT(std::bind(&UserInfoBase::pm, _1, m_selectedHint));
 					}
-					// !SMT!-S end
 				}
 			}
 			return 0;
@@ -710,7 +704,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			return 0;
 		}
 		
-		// [+] IRainman fix.
+		
 		const T2& getSelectedUser() const
 		{
 			return m_selectedUser;
@@ -724,14 +718,14 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		{
 			m_selectedHint.clear();
 			m_selectedUser = nullptr;
-			userSummaryMenu.ClearMenu(); // !SMT!-UI
+			userSummaryMenu.ClearMenu();
 			
-			for (int j = 0; j < speedMenu.GetMenuItemCount(); ++j) // !SMT!-S
+			for (int j = 0; j < speedMenu.GetMenuItemCount(); ++j)
 			{
 				speedMenu.CheckMenuItem(j, MF_BYPOSITION | MF_UNCHECKED);
 			}
 			
-			// !SMT!-S
+			
 			privateMenu.CheckMenuItem(IDC_PM_NORMAL, MF_BYCOMMAND | MF_UNCHECKED);
 			privateMenu.CheckMenuItem(IDC_PM_IGNORED, MF_BYCOMMAND | MF_UNCHECKED);
 			privateMenu.CheckMenuItem(IDC_PM_FREE, MF_BYCOMMAND | MF_UNCHECKED);
@@ -746,7 +740,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			m_selectedHint = hint;
 			m_selectedUser = user;
 		}
-		// [~] IRainman fix.
+		
 		void appendAndActivateUserItems(CMenu& p_menu, bool p_is_only_first_user_info = true)
 		{
 			dcassert(_debugIsClean);
@@ -787,7 +781,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		
 	private:
 	
-		void appendAndActivateUserItemsForSingleUser(CMenu& p_menu, const string& p_selectedHint) // [+] IRainman fix.
+		void appendAndActivateUserItemsForSingleUser(CMenu& p_menu, const string& p_selectedHint)
 		{
 			dcassert(m_selectedUser);
 			
@@ -862,7 +856,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			p_menu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)speedMenu, CTSTRING(UPLOAD_SPEED_LIMIT));
 		}
 		
-		void activateSpeedLimitMenuForSingleUser(CMenu& p_menu, const FavUserTraits& traits) // !SMT!-S
+		void activateSpeedLimitMenuForSingleUser(CMenu& p_menu, const FavUserTraits& traits)
 		{
 			dcassert(m_selectedUser);
 			const int id = getCtrlIdBySpeedLimit(traits.uploadLimit);
@@ -924,11 +918,8 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 		{
 			dcassert(m_selectedUser);
 			
-			//[?] if (DISABLE(options, NO_COPY))
-			{
-				p_menu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyUserMenu, CTSTRING(COPY));
-				appendSeparator(p_menu);
-			}
+			p_menu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyUserMenu, CTSTRING(COPY));
+			appendSeparator(p_menu);
 		}
 	private:
 		void appendSendAutoMessageItems(CMenu& p_menu/*, const int count*/)
@@ -986,7 +977,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			}
 		}
 		
-		void doAction(void (UserInfoBase::*func)(const string &hubHint, const tstring& data), const string &hubHint, const tstring& data) // [+] IRainman.
+		void doAction(void (UserInfoBase::*func)(const string &hubHint, const tstring& data), const string &hubHint, const tstring& data)
 		{
 			if (m_selectedUser)
 			{
@@ -1015,7 +1006,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			}
 		}
 		
-		// !SMT!-S
+		
 		void doAction(void (UserInfoBase::*func)(const string &hubHint), const string &hubHint, bool p_is_only_first_user_info = true)
 		{
 			if (m_selectedUser)
@@ -1039,7 +1030,7 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			}
 		}
 		
-		// !SMT!-S
+		
 		void doAction(void (UserInfoBase::*func)())
 		{
 			if (m_selectedUser)
@@ -1111,7 +1102,7 @@ class StaticFrame
 			dcassert(wnd != NULL);
 			return (hWnd == wnd);
 		}
-		// !SMT!-S
+		
 		static void closeWindow()
 		{
 			if (g_frame)
@@ -1137,11 +1128,9 @@ struct menuImage
 	int image;
 };
 
-// [!] brain-ripper
 // In order to correct work of small images for toolbar's menu
 // toolbarButton::image MUST be in order without gaps.
 extern const toolbarButton g_ToolbarButtons[];
-// [+] BRAIN_RIPPER
 // Images ids MUST be synchronized with icons number in Toolbar-mini.png.
 // This is second path, first is described in ToolbarButtons.
 // So in this array images id continues after last image in ToolbarButtons array.
@@ -1246,7 +1235,6 @@ struct FileImage : public BaseImageList
 		typedef boost::unordered_map<string, int> ImageMap;
 		ImageMap m_indexis;
 		int m_imageCount;
-		//FastCriticalSection m_cs;// [!] IRainman opt: use spin lock here. [!] Delete this after move getIconIndex to draw function.
 };
 
 extern FileImage g_fileImage;
@@ -1364,10 +1352,9 @@ struct Colors
 		IS_IGNORED_USER  = 0x0003 << 8,
 		IS_IGNORED_USER_ON  = 0x0001 << 8
 	};
-	static void getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLORREF &bg, unsigned short& m_flag_mask, const OnlineUserPtr& onlineUser); // !SMT!-UI
+	static void getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLORREF &bg, unsigned short& m_flag_mask, const OnlineUserPtr& onlineUser);
 	
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-	// [+] IRainman The alternation of the background color in lists.
 	static void alternationBkColor(LPNMLVCUSTOMDRAW cd)
 	{
 		if (BOOLSETTING(USE_CUSTOM_LIST_BACKGROUND))
@@ -1407,7 +1394,6 @@ struct Colors
 		return ((BOOLSETTING(USE_CUSTOM_LIST_BACKGROUND) &&
 		         cd->nmcd.dwItemSpec % 2 != 0) ? HLS_TRANSFORM(Colors::g_bgColor, -9, 0) : Colors::g_bgColor);
 	}
-	// [~] IRainman
 #else
 	inline static COLORREF getAlternativBkColor(LPNMLVCUSTOMDRAW cd)
 	{
@@ -1416,7 +1402,7 @@ struct Colors
 	
 #endif
 	
-	// [+] SSA
+	
 	static bool getColorFromString(const tstring& colorText, COLORREF& color);
 	
 	static CHARFORMAT2 g_TextStyleTimestamp;
@@ -1508,11 +1494,7 @@ class LastDir
 class WinUtil
 {
 	public:
-		// !SMT!-UI search user by exact share size
-		//typedef std::unordered_multimap<uint64_t, UserPtr> ShareMap;
-//		typedef ShareMap::iterator ShareIter;
-		//static ShareMap UsersShare;
-		
+	
 		struct TextItem
 		{
 			WORD itemID;
@@ -1520,12 +1502,11 @@ class WinUtil
 		};
 		
 		static CMenu g_mainMenu;
-		static OMenu g_copyHubMenu; // [+] IRainman fix.
+		static OMenu g_copyHubMenu;
 		
-		static HIconWrapper g_banIconOnline; // !SMT!-UI
-		static HIconWrapper g_banIconOffline; // !SMT!-UI
+		static HIconWrapper g_banIconOnline;
+		static HIconWrapper g_banIconOffline;
 		static HIconWrapper g_hMedicalIcon;
-		//static HIconWrapper g_hCrutchIcon;
 		static HIconWrapper g_hFirewallIcon;
 		static HIconWrapper g_hXXXBlockIcon;
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
@@ -1558,7 +1539,7 @@ class WinUtil
 		static void init(HWND hWnd);
 		static void uninit();
 		
-		static int GetMenuItemPosition(const CMenu &p_menu, UINT_PTR p_IDItem = 0); // [+] SCALOlaz
+		static int GetMenuItemPosition(const CMenu &p_menu, UINT_PTR p_IDItem = 0);
 		
 		/**
 		 * Check if this is a common /-command.
@@ -1629,7 +1610,7 @@ class WinUtil
 		{
 			return x * percent / 100;
 		}
-		static void unlinkStaticMenus(CMenu &menu); // !SMT!-UI
+		static void unlinkStaticMenus(CMenu &menu);
 		
 	private:
 		dcdrun(static bool g_staticMenuUnlinked;)
@@ -1654,31 +1635,30 @@ class WinUtil
 		static void registerADChubHandler();
 		static void registerADCShubHandler();
 		static void registerMagnetHandler();
-		static void registerDclstHandler();// [+] IRainman dclst support
+		static void registerDclstHandler();
 		static void unRegisterDchubHandler();
 		static void unRegisterNMDCSHandler();
 		static void unRegisterADChubHandler();
 		static void unRegisterADCShubHandler();
 		static void unRegisterMagnetHandler();
-		static void unRegisterDclstHandler();// [+] IRainman dclst support
-		static bool parseDchubUrl(const tstring& aUrl);// [!] IRainman stop copy-past!
-		//static void parseADChubUrl(const tstring& /*aUrl*/, bool secure);[-] IRainman stop copy-past!
+		static void unRegisterDclstHandler();
+		static bool parseDchubUrl(const tstring& aUrl);
 		static bool parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action = MA_DEFAULT
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 		                                                                             , bool viewMediaIfPossible = false
 #endif
-		                          ); // [!] IRainman opt: return status.
-		static void OpenFileList(const tstring& filename, DefinedMagnetAction Action = MA_DEFAULT); // [+] IRainman dclst support
+		                          );
+		static void OpenFileList(const tstring& filename, DefinedMagnetAction Action = MA_DEFAULT);
 		static bool parseDBLClick(const tstring& /*aString*/, string::size_type start, string::size_type end);
 		static bool urlDcADCRegistered;
 		static bool urlMagnetRegistered;
 		static bool DclstRegistered;
 		static int textUnderCursor(POINT p, CEdit& ctrl, tstring& x);
-		static void translateLinkToextProgramm(const tstring& url, const tstring& p_Extension = Util::emptyStringT, const tstring& p_openCmd = Util::emptyStringT);//[+]FlylinkDC
-		static bool openLink(const tstring& url); // [!] IRainman opt: return status.
+		static void translateLinkToextProgramm(const tstring& url, const tstring& p_Extension = Util::emptyStringT, const tstring& p_openCmd = Util::emptyStringT);
+		static bool openLink(const tstring& url);
 		static void openFile(const tstring& file);
 		static void openFile(const TCHAR* file);
-		static void openLog(const string& dir, const StringMap& params, const tstring& nologmessage); // [+] IRainman copy-past fix.
+		static void openLog(const string& dir, const StringMap& params, const tstring& nologmessage);
 		
 		static void openFolder(const tstring& file);
 		
@@ -1699,9 +1679,9 @@ class WinUtil
 		static pair<tstring, bool> getHubNames(const CID& cid, const string& hintUrl, bool priv);
 		static pair<tstring, bool> getHubNames(const HintedUser& user);
 		static void splitTokens(int* p_array, const string& p_tokens, int p_maxItems) noexcept;
-		static void splitTokensWidth(int* p_array, const string& p_tokens, int p_maxItems) noexcept; //[+] FlylinkDC++ Team
+		static void splitTokensWidth(int* p_array, const string& p_tokens, int p_maxItems) noexcept;
 		static void saveHeaderOrder(CListViewCtrl& ctrl, SettingsManager::StrSetting order,
-		                            SettingsManager::StrSetting widths, int n, int* indexes, int* sizes) noexcept; // !SMT!-UI todo: disable - this routine does not save column visibility
+		                            SettingsManager::StrSetting widths, int n, int* indexes, int* sizes) noexcept;
 		static bool isShift()
 		{
 			return (GetKeyState(VK_SHIFT) & 0x8000) > 0;
@@ -1759,7 +1739,7 @@ class WinUtil
 		
 		static bool shutDown(int action);
 		static int setButtonPressed(int nID, bool bPressed = true);
-//TODO      static bool checkIsButtonPressed(int nID);// [+] IRainman
+//TODO      static bool checkIsButtonPressed(int nID);
 
 #ifdef FLYLINKDC_USE_LIST_VIEW_WATER_MARK
 		static bool setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int width = 128, int height = 128);
@@ -1779,7 +1759,6 @@ class WinUtil
 		
 		static int getFlagIndexByName(const char* countryName);
 		
-		// [+] IRainman optimize.
 		static int GetTabsPosition()
 		{
 			return g_tabPos;
@@ -1788,24 +1767,24 @@ class WinUtil
 		{
 			g_tabPos = p_NewTabsPosition;
 		}
-		// [~] IRainman optimize.
+		
 		static bool isUseExplorerTheme();
 		static void SetWindowThemeExplorer(HWND p_hWnd);
 #ifdef IRAINMAN_ENABLE_WHOIS
 		static void CheckOnWhoisIP(WORD wID, const tstring& whoisIP);
 		static void AppendMenuOnWhoisIP(CMenu &p_menuname, const tstring& p_IP, const bool p_inSubmenu);
 #endif
-		static tstring getAddresses(CComboBox& BindCombo); // [<-] IRainman moved from Network Page.
+		static tstring getAddresses(CComboBox& BindCombo);
 		static bool isTeredo();
 		
-		static void GetTimeValues(CComboBox& p_ComboBox); // [+] InfinitySky.
+		static void GetTimeValues(CComboBox& p_ComboBox);
 		
-		static void TextTranscode(CEdit& ctrlMessage); // [+] Drakon
+		static void TextTranscode(CEdit& ctrlMessage);
 		
-		static void SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID); // [+] SSA
+		static void SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID);
 		static tstring getFilenameFromString(const tstring& filename);
 		
-		static BOOL FillRichEditFromString(HWND hwndEditControl, const string& rtfFile);  // [+] SSA
+		static BOOL FillRichEditFromString(HWND hwndEditControl, const string& rtfFile);
 		
 		struct userStreamIterator
 		{
@@ -1870,7 +1849,6 @@ class WinUtil
 			return Text::toT(Util::getWikiLink());
 		}
 		
-		// [+] IRainman fix.
 		template<class xxString>
 		static size_t GetWindowText(xxString& text, const HWND hWndCtl)
 		{
@@ -1915,20 +1893,19 @@ class WinUtil
 		{
 			return toAtlString(Text::toT(str));
 		}
-		// [~] IRainman fix.
 		
 		static tstring getCommandsList();
 	private:
 		static int CALLBACK browseCallbackProc(HWND hwnd, UINT uMsg, LPARAM /*lp*/, LPARAM pData);
 #ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 #ifdef FLYLINKDC_USE_CUSTOM_MENU
-		static bool FillCustomMenu(CMenuHandle &menu, string& menuName); // [+]  SSA: Custom menu support.
+		static bool FillCustomMenu(CMenuHandle &menu, string& menuName);
 #endif
 #endif
-		static inline TCHAR CharTranscode(const TCHAR msg); // [+] Drakon. Transcoding text between Russian & English
+		static inline TCHAR CharTranscode(const TCHAR msg);
 		static bool   CreateShortCut(const tstring& pszTargetfile, const tstring& pszTargetargs, const tstring& pszLinkfile, const tstring& pszDescription, int iShowmode, const tstring& pszCurdir, const tstring& pszIconfile, int iIconindex);
 		
-		static DWORD CALLBACK EditStreamCallback(DWORD_PTR dwCookie, LPBYTE lpBuff, LONG cb, PLONG pcb); // [+] SSA
+		static DWORD CALLBACK EditStreamCallback(DWORD_PTR dwCookie, LPBYTE lpBuff, LONG cb, PLONG pcb);
 		
 		static int g_tabPos;
 };

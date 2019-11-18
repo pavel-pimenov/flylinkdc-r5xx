@@ -78,14 +78,14 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		COMMAND_ID_HANDLER(IDC_REM_AS_FAVORITE, onRemoveFav)
 		COMMAND_ID_HANDLER(IDC_CONNECT, onClickedConnect)
 		COMMAND_ID_HANDLER(IDC_COPY_HUB, onCopyHub);
-		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		NOTIFY_HANDLER(IDC_HUBLIST, LVN_COLUMNCLICK, onColumnClickHublist)
 		NOTIFY_HANDLER(IDC_HUBLIST, NM_RETURN, onEnter)
 		NOTIFY_HANDLER(IDC_HUBLIST, NM_DBLCLK, onDoubleClickHublist)
 		
 		NOTIFY_HANDLER(IDC_ISP_TREE, TVN_SELCHANGED, onSelChangedISPTree);
 		
-		//NOTIFY_HANDLER(IDC_HUBLIST, NM_CUSTOMDRAW, m_ctrlHubs.onCustomDraw) // [+] IRainman
+		//NOTIFY_HANDLER(IDC_HUBLIST, NM_CUSTOMDRAW, m_ctrlHubs.onCustomDraw)
 		NOTIFY_HANDLER(IDC_HUBLIST, NM_CUSTOMDRAW, onCustomDraw)
 		CHAIN_MSG_MAP(baseClass)
 		CHAIN_MSG_MAP(CSplitterImpl<PublicHubsFrame>)
@@ -111,7 +111,7 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		LRESULT onSelChangedISPTree(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 		
 		
-		// [+] InfinitySky.
+		
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			PostMessage(WM_CLOSE);
@@ -256,7 +256,7 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		{
 			return m_ctrlHubs.ExGetItemText(pos, COLUMN_SERVER);
 		}
-		void openHub(int ind); // [+] IRainman fix.
+		void openHub(int ind);
 		
 		bool parseFilter(FilterModes& mode, double& size);
 		bool matchFilter(const HubEntry& entry, const int& sel, bool doSizeCompare, const FilterModes& mode, const double& size);

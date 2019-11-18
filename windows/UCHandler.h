@@ -61,21 +61,18 @@ class UCHandler
 		
 		void appendUcMenu(CMenu& menu, int ctx, const StringList& hubs)
 		{
-			// bool isOp = false; [-] IRainman fix.
 			m_userCommands = FavoriteManager::getInstance()->getUserCommands(ctx, hubs/*, isOp*/);
 			int n = 0;
 			int m = 0;
 			
 			m_menuPos = menu.GetMenuItemCount();
 			
-			//if(!m_userCommands.empty() || isOp) // [-]Drakon. Allow op commands for everybody.
 			{
 				bool l_is_add_responses = ctx != UserCommand::CONTEXT_HUB
 				                          &&  ctx != UserCommand::CONTEXT_SEARCH
 				                          &&  ctx != UserCommand::CONTEXT_FILELIST;
-				if (/*isOp*/l_is_add_responses)
+				if (l_is_add_responses)
 				{
-					//[!]IRainman This cycle blocking reproduction operator menu
 					for (int i = 0; i < menu.GetMenuItemCount(); i++)
 						if (menu.GetMenuItemID(i) == IDC_REPORT)
 						{
@@ -179,7 +176,7 @@ class UCHandler
 					}
 					else
 					{
-						//[-]PPA dcasserta(0);
+						//dcasserta(0);
 					}
 					n++;
 				}

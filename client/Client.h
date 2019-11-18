@@ -43,7 +43,7 @@ struct CFlyClientStatistic
 };
 class ClientBase
 #ifdef _DEBUG
-	: boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 #ifdef RIP_USE_CONNECTION_AUTODETECT
@@ -81,7 +81,7 @@ class ClientBase
 		}
 		
 		virtual const string getHubUrl() const = 0;
-		virtual const string getHubName() const = 0; // [!] IRainman opt.
+		virtual const string getHubName() const = 0;
 		virtual bool isOp() const = 0;
 		virtual void connect(const OnlineUser& user, const string& p_token, bool p_is_force_passive) = 0;
 		virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0;
@@ -150,7 +150,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		virtual void disconnect(bool graceless);
 		virtual void connect(const OnlineUser& p_user, const string& p_token, bool p_is_force_passive) = 0;
 		virtual void hubMessage(const string& aMessage, bool thirdPerson = false) = 0;
-		virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0; // !SMT!-S
+		virtual void privateMessage(const OnlineUserPtr& user, const string& aMessage, bool thirdPerson = false) = 0;
 		virtual void sendUserCmd(const UserCommand& command, const StringMap& params) = 0;
 		
 		uint64_t search_internal(const SearchParamToken& p_search_param);
@@ -202,7 +202,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			return getMyIdentity().isOp();
 		}
 		
-		bool isRegistered() const // [+] IRainman fix.
+		bool isRegistered() const
 		{
 			return getMyIdentity().isRegistered();
 		}
@@ -286,10 +286,10 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			fly_fire2(ClientListener::UserReport(), this, report);
 		}
-		// [~] IRainman fix
+		
 		void reconnect();
 		void shutdown();
-		bool getExcludeCheck() const // [+] IRainman fix.
+		bool getExcludeCheck() const
 		{
 			return m_exclChecks;
 		}
@@ -442,7 +442,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			return getHubOnlineUser()->getIdentity();
 		}
-		// [~] IRainman fix.
+		
 		
 		GETSET(string, defpassword, Password);
 		const string getCurrentDescription() const
@@ -478,29 +478,23 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			m_message_count = 0;
 		}
 		
-//#ifndef IRAINMAN_USE_UNICODE_IN_NMDC
 		GETSET(string, m_encoding, Encoding);
-//#endif
-		// [!] IRainman fix.
-		// [-] GETSET(bool, registered, Registered);
-		void setRegistered() // [+]
+		
+		void setRegistered()
 		{
 			getMyIdentity().setRegistered(true);
 		}
-		void resetRegistered() // [+]
+		void resetRegistered()
 		{
 			getMyIdentity().setRegistered(false);
 		}
-		void resetOp() // [+]
+		void resetOp()
 		{
 			getMyIdentity().setOp(false);
 		}
 		
-		// [~] IRainman fix.
 		GETSET(bool, autoReconnect, AutoReconnect);
-//[+]FlylinkDC
-		// [!] IRainman fix.
-		// [-] GETSET(string, currentEmail, CurrentEmail);
+		
 		string getCurrentEmail() const
 		{
 			return getMyIdentity().getEmail();
@@ -509,7 +503,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		{
 			getMyIdentity().setEmail(email);
 		}
-		// [~] IRainman fix.
+		
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 		
 		bool getHideShare() const
@@ -534,10 +528,9 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		string getTagVersion() const;
 		
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-		virtual bool hubIsNotSupportSlot() const = 0;// [+]IRainman
+		virtual bool hubIsNotSupportSlot() const = 0;
 #endif // IRAINMAN_ENABLE_AUTO_BAN
-//[~]FlylinkDC
-
+		
 		friend class ClientManager;
 		friend class User;
 		Client(const string& p_HubURL, char p_separator_, bool p_is_secure,
@@ -566,14 +559,14 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		
 		SearchQueue m_searchQueue;
 		BufferedSocket* m_client_sock;
-		void reset_socket(); //[+]FlylinkDC++ Team
+		void reset_socket();
 		
 		// [+] brain-ripper
 		// need to protect socket:
 		// shutdown may be called while calling
 		// function that uses a sock && sock->... expression
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
-		mutable FastCriticalSection csSock; // [!] IRainman opt: no needs recursive mutex here.
+		mutable FastCriticalSection csSock;
 #endif
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		mutable FastCriticalSection m_cs_virus;
@@ -606,9 +599,9 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 		virtual void on(Line, const string& aLine) noexcept override;
 		virtual void on(Failed, const string&) noexcept override;
 		
-		void messageYouHaweRightOperatorOnThisHub(); // [+] IRainman.
+		void messageYouHaweRightOperatorOnThisHub();
 		
-		const string& getOpChat() const // [+] IRainman fix.
+		const string& getOpChat() const
 		{
 			return m_opChat;
 		}
@@ -627,17 +620,16 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		uint32_t m_HubID;
 #endif
-		const string m_HubURL; // [!] IRainman fix: this is const member.
+		const string m_HubURL;
 		string m_address;
 		boost::asio::ip::address_v4 m_ip;
 		uint16_t m_port;
 		
 		string m_keyprint;
-		// [+] IRainman fix.
+		
 		string m_opChat;
-		//boost::unordered_set<string> m_auto_open_pm;
 		bool m_exclChecks;
-		// [~] IRainman fix.
+		
 		
 		const char m_separator;
 		Socket::Protocol m_proto;

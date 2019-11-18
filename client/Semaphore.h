@@ -26,7 +26,7 @@
 
 class Semaphore
 #ifdef _DEBUG
-	: boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 	public:

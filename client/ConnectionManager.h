@@ -143,7 +143,7 @@ class ExpectedMap
 			{
 			}
 		};
-		//[~]FlylinkDC
+		
 		void add(const string& aNick, const string& aMyNick, const string& aHubUrl
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		         , ExpectedMap::DefinedExpectedReason reason = ExpectedMap::REASON_DEFAULT
@@ -179,7 +179,7 @@ class ExpectedMap
 		typedef boost::unordered_map<string, NickHubPair> ExpectMap;
 		ExpectMap m_expectedConnections;
 		
-		FastCriticalSection cs; // [!] IRainman opt: use spin lock here.
+		FastCriticalSection cs;
 };
 
 // Comparing with a user...
@@ -224,7 +224,7 @@ class ConnectionManager :
 		static bool g_is_test_tcp_port;
 		
 		static void disconnect(const UserPtr& aUser);
-		static void disconnect(const UserPtr& aUser, bool isDownload); // [!] IRainman fix.
+		static void disconnect(const UserPtr& aUser, bool isDownload);
 		
 		void shutdown();
 		static bool isShuttingDown()
@@ -246,7 +246,6 @@ class ConnectionManager :
 		}
 		
 		static uint16_t g_ConnToMeCount;
-		// [-] SSA private:
 		
 		class Server : public Thread, private CFlyStopThread
 		{
@@ -272,11 +271,9 @@ class ConnectionManager :
 		};
 		
 		friend class Server;
-		// [+] SSA private:
 	private:
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csConnection;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDownloads;
-		//static std::unique_ptr<webrtc::RWLockWrapper> g_csUploads;
 		static CriticalSection g_csUploads;
 		static FastCriticalSection g_csDdosCheck;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csDdosCTM2HUBCheck;
@@ -349,7 +346,7 @@ class ConnectionManager :
 		static boost::unordered_map<string, CFlyTickTTH> g_duplicate_search_tth;
 		static boost::unordered_map<string, CFlyTickFile> g_duplicate_search_file;
 		
-#define USING_IDLERS_IN_CONNECTION_MANAGER // [!] IRainman fix: don't disable this.
+#define USING_IDLERS_IN_CONNECTION_MANAGER
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 		UserList m_checkIdle;
 #endif

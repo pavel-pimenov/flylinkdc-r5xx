@@ -22,7 +22,7 @@
 #include "LogManager.h"
 
 #ifdef _DEBUG
-// [!] IRainman fix.
+
 //#define TIMER_MANAGER_DEBUG // For diagnosis long-running events.
 //#define USE_LONG_SECONDS // Simple, but not very accurate generation of ticks. If disabled uses real seconds.
 #endif
@@ -30,7 +30,7 @@
 #include <boost/date_time/posix_time/ptime.hpp>
 
 using namespace boost::posix_time;
-static auto g_start = microsec_clock::universal_time(); // [!] IRainamn fix.
+static auto g_start = microsec_clock::universal_time();
 
 bool TimerManager::g_isRun = false;
 
@@ -55,7 +55,6 @@ void TimerManager::shutdown()
 
 int TimerManager::run()
 {
-	// [!] IRainman TimerManager fix.
 	// 1) events are generated every second.
 	// 2) if the current event handlers ran more than a second - the next event will be produced immediately.
 	
@@ -122,7 +121,6 @@ int TimerManager::run()
 		}
 		// ======================================================
 	}
-	// [~] IRainman fix
 	
 	m_mtx.unlock();
 	g_isRun = false;

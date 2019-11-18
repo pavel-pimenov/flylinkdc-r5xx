@@ -21,7 +21,7 @@
 #include "../XMLParser/XMLParser.h"
 #include "Text.h"
 
-dcdrun(bool ResourceManager::g_debugStarted = false;) // [+] IRainman fix.
+dcdrun(bool ResourceManager::g_debugStarted = false;)
 
 wstring ResourceManager::g_wstrings[ResourceManager::LAST];
 
@@ -30,7 +30,7 @@ bool ResourceManager::loadLanguage(const string& aFile)
 	bool l_is_create_wide = true;
 	XMLParser::XMLResults xRes;
 	// Try to parse data
-	XMLParser::XMLNode xRootNode = XMLParser::XMLNode::parseFile(Text::toT(aFile).c_str(), 0, &xRes); // [!] IRainman fix.
+	XMLParser::XMLNode xRootNode = XMLParser::XMLNode::parseFile(Text::toT(aFile).c_str(), 0, &xRes);
 	
 	if (xRes.error == XMLParser::eXMLErrorNone)
 	{
@@ -56,8 +56,8 @@ bool ResourceManager::loadLanguage(const string& aFile)
 					
 					if (j != l_handler.end())
 					{
-						g_strings[j->second] = StringNode.getTextOrDefault(); // [!] IRainman fix.
-						g_strings[j->second].shrink_to_fit(); // [+]IRainman opt.
+						g_strings[j->second] = StringNode.getTextOrDefault();
+						g_strings[j->second].shrink_to_fit();
 					}
 					
 					StringNode = StringsNode.getChildNode("String", &i);
@@ -78,7 +78,7 @@ void ResourceManager::createWide()
 		if (!g_strings[i].empty())
 		{
 			Text::toT(g_strings[i], g_wstrings[i]);
-			g_wstrings[i].shrink_to_fit(); // [+]IRainman opt
+			g_wstrings[i].shrink_to_fit();
 		}
 	}
 }

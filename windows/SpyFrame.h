@@ -37,7 +37,7 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 	virtual private CFlyTimerAdapter,
 	virtual private CFlyTaskAdapter
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 	public:
@@ -51,7 +51,7 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 			COLUMN_COUNT,
 			COLUMN_USERS,
 			COLUMN_TIME,
-			COLUMN_SHARE_HIT, // !SMT!-S
+			COLUMN_SHARE_HIT,
 			COLUMN_LAST
 		};
 		
@@ -68,9 +68,9 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		MESSAGE_HANDLER(WM_CLOSE, onClose)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		COMMAND_ID_HANDLER(IDC_SEARCH, onSearch)
-		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		NOTIFY_HANDLER(IDC_RESULTS, LVN_COLUMNCLICK, onColumnClickResults)
-		NOTIFY_HANDLER(IDC_RESULTS, NM_CUSTOMDRAW, onCustomDraw) // !SMT!-S
+		NOTIFY_HANDLER(IDC_RESULTS, NM_CUSTOMDRAW, onCustomDraw)
 		CHAIN_MSG_MAP(baseClass)
 		ALT_MSG_MAP(SPYFRAME_IGNORETTH_MESSAGE_MAP)
 		MESSAGE_HANDLER(BM_SETCHECK, onIgnoreTth)
@@ -86,7 +86,7 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		LRESULT onSearch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 		LRESULT onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
-		// [+] InfinitySky.
+		
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			PostMessage(WM_CLOSE);
@@ -94,7 +94,7 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		}
 		
 		LRESULT onColumnClickResults(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
-		LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/); // !SMT!-S
+		LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
 		
 		void UpdateLayout(BOOL bResizeBars = TRUE);
 		
@@ -143,7 +143,6 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		
 		tstring m_searchString;
 		
-		//[+]IRainman refactoring SpyFrame
 		File* m_log;
 		string m_log_txt;
 		tstring m_CurrentTime;
@@ -157,13 +156,10 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 			{
 			}
 		};
-		//[~]IRainman
 		
 		bool m_ignoreTTH;
 		bool m_showNick;
 		bool m_LogFile;
-		
-		// [-] FastCriticalSection cs; // [-] IRainman fix: all data to needs to be lock usde in one thread.
 		
 		static const size_t NUM_SEEKERS = 8;
 		struct SearchData
@@ -189,14 +185,14 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		struct SMTSearchInfo : public Task
 		{
 			explicit SMTSearchInfo(const string& p_user, const string& p_s, ClientManagerListener::SearchReply p_re) :
-				seeker(p_user), s(p_s),  re(p_re) { } // !SMT!-S
+				seeker(p_user), s(p_s),  re(p_re) { }
 			string seeker;
 			string s;
-			ClientManagerListener::SearchReply re; // !SMT!-S
+			ClientManagerListener::SearchReply re;
 		};
 		
 		// ClientManagerListener
-		void on(ClientManagerListener::IncomingSearch, const string& user, const string& s, ClientManagerListener::SearchReply re) noexcept override; // !SMT!-S
+		void on(ClientManagerListener::IncomingSearch, const string& user, const string& s, ClientManagerListener::SearchReply re) noexcept override;
 		
 		void on(SettingsManagerListener::Repaint) override;
 };

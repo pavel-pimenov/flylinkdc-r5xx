@@ -162,7 +162,7 @@ bool CShellContextMenu::GetContextMenu(LPVOID* ppContextMenu, int& iMenuType)
 	
 	*ppContextMenu = nullptr;
 	LPCONTEXTMENU icm1 = nullptr;
-	if (!m_psfFolder) //[+]PPA
+	if (!m_psfFolder)
 		return false;
 	// first we retrieve the normal IContextMenu interface(every object should have it)
 	m_psfFolder->GetUIObjectOf(NULL, 1, (LPCITEMIDLIST *) m_pidlArray, IID_IContextMenu, NULL, (LPVOID*) &icm1);

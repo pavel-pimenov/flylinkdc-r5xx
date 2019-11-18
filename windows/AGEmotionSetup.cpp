@@ -20,7 +20,7 @@
 #ifdef IRAINMAN_INCLUDE_SMILE
 #include "../client/SimpleXML.h"
 #include "../client/Pointer.h"
-#include "../client/CompatibilityManager.h" // [+] IRainman
+#include "../client/CompatibilityManager.h"
 #include "../client/LogManager.h"
 #include "../GdiOle/GDIImageOle.h"
 #include "AGEmotionSetup.h"
@@ -230,7 +230,7 @@ IOleObject *CAGEmotion::GetImageObject(bool bAnimated, IOleClientSite *pOleClien
 		if (pGifImageObject)
 		{
 			pGifImageObject->QueryInterface(IID_IOleObject, (void**)&pObject);
-			if (pObject) // PVS-Studio V595 The pointer was utilized before it was verified against nullptr.
+			if (pObject)
 				pObject->SetClientSite(pOleClientSite); //-V595
 		}
 		else
@@ -242,7 +242,7 @@ IOleObject *CAGEmotion::GetImageObject(bool bAnimated, IOleClientSite *pOleClien
 	
 	if (!pObject)
 	{
-		HBITMAP hBitmap = getEmotionBmp(BkColor); // leak
+		HBITMAP hBitmap = getEmotionBmp(BkColor);
 		
 		if (hBitmap)
 		{
@@ -358,18 +358,7 @@ bool CAGEmotionSetup::LoadEmotion(const string& p_file_name)
 				dcassert(!strEmotionText.empty());
 				if (!strEmotionText.empty())
 				{
-//              dcdebug("CAGEmotionSetup::Create: emotion:[%s]\n", Text::fromT(strEmotionText).c_str());
-//[!]PPA for lock bmp - только для вычисления висячих смайлов.
-					/*
-					try
-					                    {
-					                    File* l__f = new File (Util::getDataPath() + strEmotionBmpPath, File::READ, File::OPEN);
-					                    }
-					                    catch (const Exception& e)
-					                    {
-					                    }
-					*/
-					if (m_FilterEmotion.insert(strEmotionText).second == false) // [!] IRainman opt.
+					if (m_FilterEmotion.insert(strEmotionText).second == false)
 					{
 						// Такой текст уже найден - но файла может и не быть?
 						// Добавить альтернативный путь к смайлу на случай если не получится грузануть по первому пути?

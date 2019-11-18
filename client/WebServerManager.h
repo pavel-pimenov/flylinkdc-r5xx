@@ -269,7 +269,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		
 		static string getTemplatePath()
 		{
-			const string g = "FlylinkDC" PATH_SEPARATOR_STR "template" PATH_SEPARATOR_STR; // TODO: add settings
+			const string g = "FlylinkDC" PATH_SEPARATOR_STR "template" PATH_SEPARATOR_STR;
 			return g;
 		}
 		
@@ -289,7 +289,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 			return templ;
 		}
 		// Set result to Template tags
-		// [!] IRainman fix.
+		
 #define TplSetParam(str, tag, val) { static const string fullTag = "{" tag "}"; internal_tplSetParam(str, fullTag, val); }
 		
 		void internal_tplSetParam(string& text_in_out, const string& tag, const string& value) const
@@ -305,7 +305,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 				start = start + value.size();
 			}
 		}
-		// [~] IRainman fix.
+		
 		
 		string TplFooterTime()
 		{

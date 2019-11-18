@@ -59,7 +59,7 @@ class ThrottleManager :
 			return downLimit;
 		}
 		
-		void setDownloadLimit(size_t p_NewDownLimit) //[+]IRainman SpeedLimiter
+		void setDownloadLimit(size_t p_NewDownLimit)
 		{
 			downLimit = p_NewDownLimit * 1024;
 		}
@@ -77,12 +77,12 @@ class ThrottleManager :
 			return upLimit;
 		}
 		
-		void setUploadLimit(size_t p_NewUploadLimit) //[+]IRainman SpeedLimiter
+		void setUploadLimit(size_t p_NewUploadLimit)
 		{
 			upLimit = p_NewUploadLimit * 1024;
 		}
 		
-		void updateLimits();// [+] IRainman SpeedLimiter
+		void updateLimits();
 		
 		void startup()
 		{
@@ -109,7 +109,7 @@ class ThrottleManager :
 		~ThrottleManager(void);
 		
 		// TimerManagerListener
-		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;//[+] IRainman SpeedLimiter
+		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept override;
 		void on(TimerManagerListener::Second, uint64_t aTick) noexcept override;
 };
 

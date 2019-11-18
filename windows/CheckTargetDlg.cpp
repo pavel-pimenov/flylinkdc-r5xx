@@ -152,7 +152,7 @@ LRESULT CheckTargetDlg::onRadioButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 	};
 	
 	/*
-	::EnableWindow(GetDlgItem(IDC_REPLACE_CHANGE_NAME), IsDlgButtonChecked(IDC_REPLACE_RENAME) == BST_CHECKED); // !SMT!-UI
+	::EnableWindow(GetDlgItem(IDC_REPLACE_CHANGE_NAME), IsDlgButtonChecked(IDC_REPLACE_RENAME) == BST_CHECKED);
 	::EnableWindow(GetDlgItem(IDC_REPLACE_APPLY), IsDlgButtonChecked(IDC_REPLACE_RENAME) != BST_CHECKED);
 	*/
 	return 0;

@@ -50,7 +50,7 @@ class LogManager
 #ifdef RIP_USE_LOG_PROTOCOL
 		               PROTOCOL,
 #endif
-		               CUSTOM_LOCATION, // [+] IRainman
+		               CUSTOM_LOCATION,
 		               TRACE_SQLITE,
 		               VIRUS_TRACE,
 		               DDOS_TRACE,
@@ -97,7 +97,7 @@ class LogManager
 #else
 		static std::unordered_map<string, string> g_pathCache;
 #endif
-		static FastCriticalSection g_csPathCache; // [!] IRainman opt: use spin lock here.
+		static FastCriticalSection g_csPathCache;
 		static bool g_isInit;
 		
 		static CFlyMessagesBuffer g_LogFilesBuffer;

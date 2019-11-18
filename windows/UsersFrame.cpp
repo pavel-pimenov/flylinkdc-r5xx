@@ -24,20 +24,18 @@
 #include "ResourceLoader.h"
 #include "ExMessageBox.h"
 
-int UsersFrame::columnIndexes[] = { COLUMN_NICK, COLUMN_HUB, COLUMN_SEEN, COLUMN_DESCRIPTION, COLUMN_SPEED_LIMIT, COLUMN_IGNORE, COLUMN_USER_SLOTS, COLUMN_CID }; // !SMT!-S
-int UsersFrame::columnSizes[] = { 200, 300, 150, 200, 100, 100, 100, 300 }; // !SMT!-S
+int UsersFrame::columnIndexes[] = { COLUMN_NICK, COLUMN_HUB, COLUMN_SEEN, COLUMN_DESCRIPTION, COLUMN_SPEED_LIMIT, COLUMN_IGNORE, COLUMN_USER_SLOTS, COLUMN_CID };
+int UsersFrame::columnSizes[] = { 200, 300, 150, 200, 100, 100, 100, 300 };
 static ResourceManager::Strings columnNames[] = { ResourceManager::AUTO_GRANT_NICK, ResourceManager::LAST_HUB, ResourceManager::LAST_SEEN, ResourceManager::DESCRIPTION,
                                                   ResourceManager::UPLOAD_SPEED_LIMIT,
                                                   ResourceManager::IGNORE_PRIVATE,
                                                   ResourceManager::SLOTS,
                                                   ResourceManager::CID
-                                                }; // !SMT!-S
+                                                };
 
 LRESULT UsersFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-	// CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);  //[-] SCALOlaz
-	// ctrlStatus.Attach(m_hWndStatusBar);
-	
+
 	ctrlUsers.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                 WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS, WS_EX_CLIENTEDGE, IDC_USERS);
 	SET_EXTENDENT_LIST_VIEW_STYLE_WITH_CHECK(ctrlUsers);
@@ -59,26 +57,9 @@ LRESULT UsersFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	}
 	
 	ctrlUsers.setColumnOrderArray(COLUMN_LAST, columnIndexes);
-	ctrlUsers.setVisible(SETTING(USERSFRAME_VISIBLE)); // !SMT!-UI
-	//ctrlUsers.setSortColumn(COLUMN_NICK);
+	ctrlUsers.setVisible(SETTING(USERSFRAME_VISIBLE));
 	ctrlUsers.setSortColumn(SETTING(USERS_COLUMNS_SORT));
 	ctrlUsers.setAscending(BOOLSETTING(USERS_COLUMNS_SORT_ASC));
-	
-	// [-] brain-ripper
-	// Make menu dynamic (in context menu handler), since its content depends of which
-	// user selected (for add/remove favorites item)
-	/*
-	usersMenu.CreatePopupMenu();
-	usersMenu.AppendMenu(MF_STRING, IDC_EDIT, CTSTRING(PROPERTIES));
-	usersMenu.AppendMenu(MF_STRING, IDC_SUPER_USER, CTSTRING(SUPER_USER));
-	usersMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)WinUtil::speedMenu, CTSTRING(UPLOAD_SPEED_LIMIT)); // !SMT!-S
-	usersMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)WinUtil::privateMenu, CTSTRING(IGNORE_PRIVATE)); // !SMT!-PSW
-	usersMenu.AppendMenu(MF_STRING, IDC_OPEN_USER_LOG, CTSTRING(OPEN_USER_LOG));
-	usersMenu.AppendMenu(MF_SEPARATOR);
-	appendUserItems(usersMenu, Util::emptyString); // TODO: hubhint
-	usersMenu.AppendMenu(MF_SEPARATOR);
-	usersMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
-	*/
 	
 	FavoriteManager::getInstance()->addListener(this);
 	SettingsManager::getInstance()->addListener(this);
@@ -101,8 +82,8 @@ LRESULT UsersFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	ctrlBadUsers.SetBkColor(Colors::g_bgColor);
 	ctrlBadUsers.SetTextColor(Colors::g_textColor);
 	
-	m_nProportionalPos = 8500;  // SETTING(FAV_USERS_SPLITTER_POS);     // ’у€чим разделитель. ѕо дефолту - вертикальный.
-	SetSplitterPanes(ctrlUsers.m_hWnd, ctrlBadUsers.m_hWnd, false);     // —лева ƒрузь€, справа ¬раги сука.
+	m_nProportionalPos = 8500;
+	SetSplitterPanes(ctrlUsers.m_hWnd, ctrlBadUsers.m_hWnd, false);
 	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
 	
 	
@@ -150,16 +131,13 @@ LRESULT UsersFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 			WinUtil::getContextMenuPos(ctrlUsers, pt);
 		}
 		
-		clearUserMenu(); // [+] IRainman fix.
+		clearUserMenu();
 		
-		// [+] brain-ripper
-		// Make menu dynamic, since its content depends of which
-		// user selected (for add/remove favorites item)
 		OMenu usersMenu;
 		usersMenu.CreatePopupMenu();
 		usersMenu.AppendMenu(MF_STRING, IDC_EDIT, CTSTRING(PROPERTIES));
 		usersMenu.AppendMenu(MF_STRING, IDC_OPEN_USER_LOG, CTSTRING(OPEN_USER_LOG));
-		usersMenu.AppendMenu(MF_STRING, IDC_REMOVE_FROM_FAVORITES, CTSTRING(REMOVE_FROM_FAVORITES)); //[+] NightOrion
+		usersMenu.AppendMenu(MF_STRING, IDC_REMOVE_FROM_FAVORITES, CTSTRING(REMOVE_FROM_FAVORITES));
 		
 		tstring x;
 		if (ctrlUsers.GetSelectedCount() == 1)
@@ -309,7 +287,7 @@ LRESULT UsersFrame::onDoubleClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 	
 	if (item->iItem != -1)
 	{
-		// !SMT!-UI
+	
 		static const int cmd[] = { IDC_GETLIST, IDC_PRIVATE_MESSAGE, IDC_MATCH_QUEUE, IDC_EDIT, IDC_OPEN_USER_LOG };
 		PostMessage(WM_COMMAND, cmd[SETTING(FAVUSERLIST_DBLCLICK)], 0);
 	}
@@ -359,11 +337,11 @@ void UsersFrame::addUser(const FavoriteUser& user)
 	dcassert(!ClientManager::isBeforeShutdown());
 	if (!ClientManager::isBeforeShutdown())
 	{
-		auto ui = new UserInfo(user); // [+] IRainman fix.
+		auto ui = new UserInfo(user);
 		int i = ctrlUsers.insertItem(ui, 0);
 		bool b = user.isSet(FavoriteUser::FLAG_GRANT_SLOT);
 		ctrlUsers.SetCheckState(i, b);
-		updateUser(i, ui, user); // [!] IRainman fix.
+		updateUser(i, ui, user);
 	}
 }
 
@@ -389,14 +367,14 @@ void UsersFrame::updateUser(const UserPtr& user)
 	}
 }
 
-void UsersFrame::updateUser(const int i, UserInfo* p_ui, const FavoriteUser& favUser) // [+] IRainman fix.
+void UsersFrame::updateUser(const int i, UserInfo* p_ui, const FavoriteUser& favUser)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	if (!ClientManager::isBeforeShutdown())
 	{
 		p_ui->columns[COLUMN_SEEN] = favUser.getUser()->isOnline() ? TSTRING(ONLINE) : Text::toT(Util::formatDigitalClock(favUser.getLastSeen()));
 		
-		// !SMT!-UI
+		
 		int imageIndex = favUser.getUser()->isOnline() ? (favUser.getUser()->isAway() ? 1 : 0) : 2;
 		
 		if (favUser.getUploadLimit() == FavoriteUser::UL_BAN || favUser.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE))
@@ -441,14 +419,14 @@ LRESULT UsersFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		m_closed = true;
 		FavoriteManager::getInstance()->removeListener(this);
 		SettingsManager::getInstance()->removeListener(this);
-		//WinUtil::UnlinkStaticMenus(usersMenu); // !SMT!-S
+		//WinUtil::UnlinkStaticMenus(usersMenu);
 		WinUtil::setButtonPressed(IDC_FAVUSERS, false);
 		PostMessage(WM_CLOSE);
 		return 0;
 	}
 	else
 	{
-		ctrlUsers.saveHeaderOrder(SettingsManager::USERSFRAME_ORDER, SettingsManager::USERSFRAME_WIDTHS, SettingsManager::USERSFRAME_VISIBLE); // !SMT!-UI
+		ctrlUsers.saveHeaderOrder(SettingsManager::USERSFRAME_ORDER, SettingsManager::USERSFRAME_WIDTHS, SettingsManager::USERSFRAME_VISIBLE);
 		SET_SETTING(USERS_COLUMNS_SORT, ctrlUsers.getSortColumn());
 		SET_SETTING(USERS_COLUMNS_SORT_ASC, ctrlUsers.isAscending());
 		ctrlUsers.DeleteAndCleanAllItems();
@@ -471,7 +449,7 @@ void UsersFrame::UserInfo::update(const FavoriteUser& u)
 		columns[COLUMN_SEEN] = user->isOnline() ? TSTRING(ONLINE) : Text::toT(Util::formatDigitalClock(u.getLastSeen()));
 		columns[COLUMN_DESCRIPTION] = Text::toT(u.getDescription());
 		
-		// !SMT!-S
+		
 		if (u.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE))
 			columns[COLUMN_IGNORE] = TSTRING(IGNORE_S);
 		else if (u.isSet(FavoriteUser::FLAG_FREE_PM_ACCESS))
@@ -480,7 +458,7 @@ void UsersFrame::UserInfo::update(const FavoriteUser& u)
 			columns[COLUMN_IGNORE].clear();
 			
 		columns[COLUMN_SPEED_LIMIT] = Text::toT(FavoriteUser::getSpeedLimitText(u.getUploadLimit()));
-		//[+]PPA
+		
 		columns[COLUMN_USER_SLOTS] = Util::toStringW(u.getUser()->getSlots());
 		columns[COLUMN_CID] = Text::toT(u.getUser()->getCID().toBase32());
 	}
@@ -557,7 +535,7 @@ void UsersFrame::on(SettingsManagerListener::Repaint)
 	}
 }
 
-// !SMT!-S
+
 LRESULT UsersFrame::onIgnorePrivate(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	int i = -1;
@@ -586,7 +564,7 @@ LRESULT UsersFrame::onIgnorePrivate(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
 	return 0;
 }
 
-// !SMT!-S
+
 LRESULT UsersFrame::onSetUserLimit(WORD /* wNotifyCode */, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	MENUINFO menuInfo = {0};

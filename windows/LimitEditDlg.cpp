@@ -26,7 +26,6 @@ LRESULT LimitEditDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 {
 	SetWindowText(CTSTRING(SPEED_LIMIT));
 	
-	//tstring limitEdit = Text::toT(FavoriteUser::GetLimitText(m_limit));   // [-] SCALOlaz: clear Kb/Mb text
 	tstring limitEdit = Util::toStringW(m_limit);
 	SetDlgItemText(IDC_SPEEDLIMITDLG_EDIT, limitEdit.c_str());
 	
@@ -62,10 +61,7 @@ LRESULT LimitEditDlg::OnChangeSliderScroll(UINT /*uMsg*/, WPARAM /*wParam*/, LPA
 {
 	trackBar.Attach(GetDlgItem(IDC_SPEEDLIMITDLG_SLIDER));
 	
-	int pos = trackBar.GetPos() * -10;
-	
-	
-	//tstring limitEdit = Text::toT(FavoriteUser::GetLimitText(pos));   //[-] SCALOlaz: clear Kb/Mb text
+	const int pos = trackBar.GetPos() * -10;
 	tstring limitEdit = Util::toStringW(pos);
 	SetDlgItemText(IDC_SPEEDLIMITDLG_EDIT, limitEdit.c_str());
 	

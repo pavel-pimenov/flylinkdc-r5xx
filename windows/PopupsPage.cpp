@@ -61,21 +61,18 @@ Popups::ListItem Popups::listItems[] =
 	{ SettingsManager::POPUP_FAVORITE_DISCONNECTED, ResourceManager::POPUP_FAVORITE_DISCONNECTED },
 	{ SettingsManager::POPUP_CHEATING_USER, ResourceManager::POPUP_CHEATING_USER },
 	{ SettingsManager::POPUP_CHAT_LINE, ResourceManager::POPUP_CHAT_LINE },
-//	{ SettingsManager::SHOW_INFOTIPS, ResourceManager::SETTINGS_SHOW_INFO_TIPS }, //[-] SCALOlaz
 	{ SettingsManager::POPUP_DOWNLOAD_START, ResourceManager::POPUP_DOWNLOAD_START },
 	{ SettingsManager::POPUP_DOWNLOAD_FAILED, ResourceManager::POPUP_DOWNLOAD_FAILED },
 	{ SettingsManager::POPUP_DOWNLOAD_FINISHED, ResourceManager::POPUP_DOWNLOAD_FINISHED },
 	{ SettingsManager::POPUP_UPLOAD_FINISHED, ResourceManager::POPUP_UPLOAD_FINISHED },
 	{ SettingsManager::POPUP_PM, ResourceManager::POPUP_PM },
 	{ SettingsManager::POPUP_NEW_PM, ResourceManager::POPUP_NEW_PM },
-//	{ SettingsManager::POPUP_AWAY, ResourceManager::SHOW_POPUP_AWAY },
-//	{ SettingsManager::POPUP_MINIMIZED, ResourceManager::SHOW_POPUP_MINIMIZED },
 	{ SettingsManager::PM_PREVIEW, ResourceManager::PM_PREVIEW },
 #ifdef IRAINMAN_INCLUDE_RSS
-	{ SettingsManager::POPUP_NEW_RSSNEWS, ResourceManager::POPUP_NEW_RSSNEWS }, // [+] SSA
+	{ SettingsManager::POPUP_NEW_RSSNEWS, ResourceManager::POPUP_NEW_RSSNEWS },
 #endif
-	{ SettingsManager::POPUP_SEARCH_SPY, ResourceManager::POPUP_SEARCH_SPY },   // [+] SCALOlaz: Spy Popup
-//	{ SettingsManager::POPUP_NEW_FOLDERSHARE, ResourceManager::POPUP_NEW_FOLDERSHARE }, // [+] SSA
+	{ SettingsManager::POPUP_SEARCH_SPY, ResourceManager::POPUP_SEARCH_SPY },
+//	{ SettingsManager::POPUP_NEW_FOLDERSHARE, ResourceManager::POPUP_NEW_FOLDERSHARE },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -84,7 +81,7 @@ LRESULT Popups::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	PropPage::translate((HWND)(*this), texts);
 	PropPage::read(*this, items, listItems, GetDlgItem(IDC_POPUPLIST));
 	
-	ctrlPopups.Attach(GetDlgItem(IDC_POPUPLIST)); // [+] IRainman
+	ctrlPopups.Attach(GetDlgItem(IDC_POPUPLIST));
 	
 	ctrlPopupType.Attach(GetDlgItem(IDC_POPUP_TYPE));
 	ctrlPopupType.AddString(CTSTRING(POPUP_BALOON));
@@ -144,7 +141,6 @@ LRESULT Popups::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		::EnableWindow(GetDlgItem(IDC_POPUPBROWSE), false);
 	}
 	
-	// [+] SCALOlaz: MDI Popups (Programm)
 	SetDlgItemText(IDC_POPUP_INPROGRAM, CTSTRING(POPUPS_INPROGRAM));
 	SetDlgItemText(IDC_POPUP_ENABLE, CTSTRING(ENABLE_POPUPS));
 	CheckDlgButton(IDC_POPUP_ENABLE, SETTING(POPUPS_DISABLED) ? BST_UNCHECKED : BST_CHECKED);
@@ -175,7 +171,7 @@ LRESULT Popups::onFont(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOO
 {
 	LOGFONT font  = {0};
 	Fonts::decodeFont(Text::toT(SETTING(POPUP_FONT)), font);
-	CFontDialog dlg(&font, CF_EFFECTS | CF_SCREENFONTS | CF_FORCEFONTEXIST);  // !SMT!-F
+	CFontDialog dlg(&font, CF_EFFECTS | CF_SCREENFONTS | CF_FORCEFONTEXIST);
 	dlg.m_cf.rgbColors = SETTING(POPUP_TEXTCOLOR);
 	if (dlg.DoModal() == IDOK)
 	{
@@ -189,7 +185,7 @@ LRESULT Popups::onTitleFont(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/
 {
 	LOGFONT tmp = myFont;
 	Fonts::decodeFont(Text::toT(SETTING(POPUP_TITLE_FONT)), tmp);
-	CFontDialog dlg(&tmp, CF_EFFECTS | CF_SCREENFONTS | CF_FORCEFONTEXIST); // !SMT!-F
+	CFontDialog dlg(&tmp, CF_EFFECTS | CF_SCREENFONTS | CF_FORCEFONTEXIST);
 	dlg.m_cf.rgbColors = SETTING(POPUP_TITLE_TEXTCOLOR);
 	if (dlg.DoModal() == IDOK)
 	{

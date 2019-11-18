@@ -67,8 +67,8 @@ int TransferView::g_columnIndexes[] =
 #ifdef FLYLINKDC_USE_COLUMN_RATIO
 	COLUMN_RATIO,
 #endif
-	COLUMN_SHARE, //[+]PPA
-	COLUMN_SLOTS //[+]PPA
+	COLUMN_SHARE,
+	COLUMN_SLOTS
 };
 int TransferView::g_columnSizes[] =
 {
@@ -111,8 +111,8 @@ static ResourceManager::Strings g_columnNames[] = { ResourceManager::USER,
 #ifdef FLYLINKDC_USE_COLUMN_RATIO
                                                     , ResourceManager::RATIO
 #endif
-                                                    , ResourceManager::SHARED, //[+]PPA
-                                                    ResourceManager::SLOTS, //[+]PPA
+                                                    , ResourceManager::SHARED,
+                                                    ResourceManager::SLOTS,
                                                     ResourceManager::P2P_GUARD       // COLUMN_P2P_GUARD
                                                   };
 
@@ -229,29 +229,11 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	
 #endif
 	
-	//purgeContainer.SubclassWindow(ctrlPurge.m_hWnd);
 	setButtonState();
 	
-	// [-] brain-ripper
-	// Make menu dynamic (in context menu handler), since its content depends of which
-	// user selected (for add/remove favorites item)
-	/*
-	transferMenu.CreatePopupMenu();
-	appendUserItems(transferMenu, Util::emptyString); // TODO: hubhint
-	transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)WinUtil::speedMenu, CTSTRING(UPLOAD_SPEED_LIMIT)); // !SMT!-S
-	transferMenu.AppendMenu(MF_SEPARATOR);
-	transferMenu.AppendMenu(MF_STRING, IDC_FORCE, CTSTRING(FORCE_ATTEMPT));
-	transferMenu.AppendMenu(MF_SEPARATOR); //[+] Drakon
-	transferMenu.AppendMenu(MF_STRING, IDC_PRIORITY_PAUSED, CTSTRING(PAUSED)); //[+] Drakon
-	transferMenu.AppendMenu(MF_SEPARATOR);
-	transferMenu.AppendMenu(MF_STRING, IDC_SEARCH_ALTERNATES, CTSTRING(SEARCH_FOR_ALTERNATES));
-	*/
 	
-	// !SMT!-UI
+	
 	m_copyMenu.CreatePopupMenu();
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-	m_copyMenu.InsertSeparatorFirst(TSTRING(COPY));
-#endif
 	for (size_t i = 0; i < COLUMN_LAST; ++i)
 	{
 		m_copyMenu.AppendMenu(MF_STRING, IDC_COPY + i, CTSTRING_I(g_columnNames[i]));
@@ -272,12 +254,12 @@ LRESULT TransferView::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 #ifdef FLYLINKDC_USE_DROP_SLOW
 	segmentedMenu.AppendMenu(MF_STRING, IDC_MENU_SLOWDISCONNECT, CTSTRING(SETCZDC_DISCONNECTING_ENABLE));
 #endif
-	segmentedMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)m_copyMenu, CTSTRING(COPY_USER_INFO)); // !SMT!-UI
+	segmentedMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)m_copyMenu, CTSTRING(COPY_USER_INFO));
 #ifdef FLYLINKDC_USE_ASK_SLOT
-	segmentedMenu.AppendMenu(MF_STRING, IDC_ASK_SLOT, CTSTRING(ASK_SLOT)); // !SMT!-UI
+	segmentedMenu.AppendMenu(MF_STRING, IDC_ASK_SLOT, CTSTRING(ASK_SLOT));
 #endif
-	segmentedMenu.AppendMenu(MF_SEPARATOR); //[+] Drakon
-	segmentedMenu.AppendMenu(MF_STRING, IDC_PRIORITY_PAUSED, CTSTRING(PAUSED)); //[+] Drakon
+	segmentedMenu.AppendMenu(MF_SEPARATOR);
+	segmentedMenu.AppendMenu(MF_STRING, IDC_PRIORITY_PAUSED, CTSTRING(PAUSED));
 	segmentedMenu.AppendMenu(MF_SEPARATOR);
 	segmentedMenu.AppendMenu(MF_STRING, IDC_CONNECT_ALL, CTSTRING(CONNECT_ALL));
 	segmentedMenu.AppendMenu(MF_STRING, IDC_DISCONNECT_ALL, CTSTRING(DISCONNECT_ALL));
@@ -331,7 +313,7 @@ void TransferView::prepareClose()
 	DownloadManager::getInstance()->removeListener(this);
 	ConnectionManager::getInstance()->removeListener(this);
 	
-	//WinUtil::UnlinkStaticMenus(transferMenu); // !SMT!-UI
+	//WinUtil::UnlinkStaticMenus(transferMenu);
 }
 
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -452,18 +434,13 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 			if (!ii->m_is_torrent)
 			{
 				clearUserMenu();
-				
-				// [+] brain-ripper
-				// Make menu dynamic, since its content depends of which
-				// user selected (for add/remove favorites item)
-				
 				transferMenu.AppendMenu(MF_STRING, IDC_FORCE, CTSTRING(FORCE_ATTEMPT));
-				transferMenu.AppendMenu(MF_STRING, IDC_PRIORITY_PAUSED, CTSTRING(PAUSED)); //[+] Drakon
+				transferMenu.AppendMenu(MF_STRING, IDC_PRIORITY_PAUSED, CTSTRING(PAUSED));
 				transferMenu.AppendMenu(MF_STRING, IDC_SEARCH_ALTERNATES, CTSTRING(SEARCH_FOR_ALTERNATES));
 				transferMenu.AppendMenu(MF_SEPARATOR);
 				appendPreviewItems(transferMenu);
 				transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)usercmdsMenu, CTSTRING(SETTINGS_USER_COMMANDS));
-				transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)m_copyMenu, CTSTRING(COPY)); // !SMT!-UI
+				transferMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)m_copyMenu, CTSTRING(COPY));
 				transferMenu.AppendMenu(MF_SEPARATOR);
 				
 				if (!ii->download)
@@ -486,18 +463,14 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 					const ItemInfo* itemI = ctrlTransfers.getItemData(i);
 					bCustomMenu = true;
 					
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-					usercmdsMenu.InsertSeparatorFirst(TSTRING(SETTINGS_USER_COMMANDS));
-#endif
 					
-					// !SMT!-S
+					
 					reinitUserMenu(itemI->m_hintedUser.user, itemI->m_hintedUser.hint);
 					
 					if (getSelectedUser())
 					{
 						appendUcMenu(usercmdsMenu, UserCommand::CONTEXT_USER, ClientManager::getHubs(getSelectedUser()->getCID(), getSelectedHint()));
 					}
-					// end !SMT!-S
 				}
 				
 				appendAndActivateUserItems(transferMenu);
@@ -512,7 +485,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 #ifdef FLYLINKDC_USE_DROP_SLOW
 					transferMenu.EnableMenuItem(IDC_MENU_SLOWDISCONNECT, MFS_ENABLED);
 #endif
-					transferMenu.EnableMenuItem(IDC_PRIORITY_PAUSED, MFS_ENABLED); //[+] Drakon
+					transferMenu.EnableMenuItem(IDC_PRIORITY_PAUSED, MFS_ENABLED);
 					if (!ii->m_target.empty())
 					{
 						const string l_target = Text::fromT(ii->m_target);
@@ -541,7 +514,7 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 #ifdef FLYLINKDC_USE_DROP_SLOW
 					transferMenu.EnableMenuItem(IDC_MENU_SLOWDISCONNECT, MFS_DISABLED);
 #endif
-					transferMenu.EnableMenuItem(IDC_PRIORITY_PAUSED, MFS_DISABLED); //[+] Drakon
+					transferMenu.EnableMenuItem(IDC_PRIORITY_PAUSED, MFS_DISABLED);
 				}
 				
 #ifdef IRAINMAN_ENABLE_WHOIS
@@ -567,23 +540,11 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 			
 			if (!main)
 			{
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-				transferMenu.InsertSeparatorFirst(TSTRING(MENU_TRANSFERS));
-#endif
 				transferMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-				transferMenu.RemoveFirstItem();
-#endif
 			}
 			else
 			{
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-				segmentedMenu.InsertSeparatorFirst(TSTRING(SETTINGS_SEGMENT));
-#endif
 				segmentedMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-				segmentedMenu.RemoveFirstItem();
-#endif
 			}
 			
 			if (bCustomMenu)
@@ -633,7 +594,7 @@ void TransferView::runUserCommand(UserCommand& uc)
 	while ((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const ItemInfo* itemI = ctrlTransfers.getItemData(i);
-		if (itemI->m_hintedUser.user && itemI->m_hintedUser.user->isOnline())  // [!] IRainman fix.
+		if (itemI->m_hintedUser.user && itemI->m_hintedUser.user->isOnline())
 		{
 			StringMap tmp = ucParams;
 			ucParams["fileFN"] = Text::fromT(itemI->m_target);
@@ -710,7 +671,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 		case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		{
 			ItemInfo* l_ii = reinterpret_cast<ItemInfo*>(cd->nmcd.lItemlParam);
-			if (!l_ii) //[+]PPA падаем под wine
+			if (!l_ii)
 				return CDRF_DODEFAULT;
 			const int colIndex = ctrlTransfers.findColumn(cd->iSubItem);
 			cd->clrTextBk = Colors::g_bgColor;
@@ -735,14 +696,14 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					COLORREF clr = SETTING(PROGRESS_OVERRIDE_COLORS) ?
 					               (l_ii->download ? (!l_ii->parent ? SETTING(DOWNLOAD_BAR_COLOR) : SETTING(PROGRESS_SEGMENT_COLOR)) : SETTING(UPLOAD_BAR_COLOR)) :
 					               GetSysColor(COLOR_HIGHLIGHT);
-					if (!l_ii->download && BOOLSETTING(UP_TRANSFER_COLORS)) //[+]PPA
+					if (!l_ii->download && BOOLSETTING(UP_TRANSFER_COLORS))
 					{
 						const auto l_NumSlot = l_ii->getUser()->getSlots();
 						if (l_NumSlot != 0)
 						{
 							if (l_NumSlot < 5)
 								clr = 0;
-							else if (l_NumSlot < 10) //[+]PPA
+							else if (l_NumSlot < 10)
 								clr = 0x00AEAEAE;
 						}
 						else
@@ -802,7 +763,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					const  HLSCOLOR hls = RGB2HLS(clr);
 					LONG top = rc2.top + (rc2.Height() - 15 /*WinUtil::getTextHeight(cd->nmcd.hdc)*/ - 1) / 2 + 1;
 					
-					const HFONT oldFont = (HFONT)SelectObject(dc, Fonts::g_systemFont); //font -> systemfont [~]Sergey Shushkanov
+					const HFONT oldFont = (HFONT)SelectObject(dc, Fonts::g_systemFont);
 					SetBkMode(dc, TRANSPARENT);
 					COLORREF oldcol = ::SetTextColor(dc, SETTING(PROGRESS_OVERRIDE_COLORS2) ?
 					                                 (l_ii->download ? SETTING(PROGRESS_TEXT_COLOR_DOWN) : SETTING(PROGRESS_TEXT_COLOR_UP)) :
@@ -878,10 +839,10 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					if (l_ii->m_is_torrent && l_ii->parent == nullptr)
 					{
 						RECT rc9 = rc2;
-						rc9.left -= 21 - l_shift; //[~] Sergey Shushkanov
-						rc9.top += 1; //[~] Sergey Shushkanov
+						rc9.left -= 21 - l_shift;
+						rc9.top += 1;
 						rc9.right = rc9.left + 16;
-						rc9.bottom = rc9.top + 16; //[~] Sergey Shushkanov
+						rc9.bottom = rc9.top + 16;
 						const int index = l_ii->m_is_pause ? 2 : (l_ii->m_is_seeding ? 1 : 0);
 						m_torrentImages.DrawEx(index, dc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
 					}
@@ -901,10 +862,10 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 						else if (l_ii->m_status == ItemInfo::STATUS_RUNNING)
 						{
 							RECT rc9 = rc2;
-							rc9.left -= 19 - l_shift; //[~] Sergey Shushkanov
-							rc9.top += 3; //[~] Sergey Shushkanov
+							rc9.left -= 19 - l_shift;
+							rc9.top += 3;
 							rc9.right = rc9.left + 16;
-							rc9.bottom = rc9.top + 16; //[~] Sergey Shushkanov
+							rc9.bottom = rc9.top + 16;
 							
 							int64_t speedmark;
 							if (!BOOLSETTING(THROTTLE_ENABLE))
@@ -993,9 +954,9 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 					if (l_ii->m_is_torrent && l_ii->parent == nullptr)
 					{
 						RECT rc9 = rc3;
-						rc9.top += 1; //[~] Sergey Shushkanov
+						rc9.top += 1;
 						rc9.right = rc9.left + 16;
-						rc9.bottom = rc9.top + 16; //[~] Sergey Shushkanov
+						rc9.bottom = rc9.top + 16;
 						const int index = l_ii->m_is_pause ? 2 : (l_ii->m_is_seeding ? 1 : 0);
 						m_torrentImages.DrawEx(index, cd->nmcd.hdc, rc9, CLR_DEFAULT, CLR_DEFAULT, ILD_IMAGE);
 						l_shift += 16;
@@ -1019,7 +980,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			else if (colIndex == COLUMN_P2P_GUARD) // TODO
 			{
 				ItemInfo* jj = (ItemInfo*)cd->nmcd.lItemlParam;
-				if (!jj) //[+]PPA падаем под wine
+				if (!jj)
 					return CDRF_DODEFAULT;
 				ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 				ctrlTransfers.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
@@ -1039,7 +1000,7 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			else if (colIndex == COLUMN_ANTIVIRUS)
 			{
 				ItemInfo* jj = (ItemInfo*)cd->nmcd.lItemlParam;
-				if (!jj) //[+]PPA падаем под wine
+				if (!jj)
 					return CDRF_DODEFAULT;
 				ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 				ctrlTransfers.SetItemFilled(cd, rc, cd->clrText, cd->clrText);
@@ -1056,10 +1017,10 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				return CDRF_SKIPDEFAULT;
 			}
 #endif
-			else if (colIndex == COLUMN_LOCATION)   // !SMT!-IP
+			else if (colIndex == COLUMN_LOCATION)
 			{
 				ItemInfo* ii = (ItemInfo*)cd->nmcd.lItemlParam;
-				if (!ii) //[+]PPA падаем под wine
+				if (!ii)
 					return CDRF_DODEFAULT;
 				ctrlTransfers.GetSubItemRect((int)cd->nmcd.dwItemSpec, cd->iSubItem, LVIR_BOUNDS, rc);
 				COLORREF color;
@@ -1095,7 +1056,6 @@ LRESULT TransferView::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				LONG top = rc2.top + (rc2.Height() - 15) / 2;
 				if ((top - rc2.top) < 2)
 					top = rc2.top + 1;
-				// TODO fix copy-paste
 				if (ii->m_location.isNew() && !ii->m_transfer_ip.empty())
 				{
 					ii->m_location = Util::getIpCountry(Text::fromT(ii->m_transfer_ip));
@@ -1163,28 +1123,28 @@ LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 				switch (SETTING(TRANSFERLIST_DBLCLICK))
 				{
 					case 0:
-						i->pm(i->m_hintedUser.hint); // [!] IRainman fix.
+						i->pm(i->m_hintedUser.hint);
 						break;
 					case 1:
-						i->getList(); // [!] IRainman fix.
+						i->getList();
 						break;
 					case 2:
-						i->matchQueue(); // [!] IRainman fix.
+						i->matchQueue();
 					case 3:
-						i->grantSlotPeriod(i->m_hintedUser.hint, 600); // [!] IRainman fix.
+						i->grantSlotPeriod(i->m_hintedUser.hint, 600);
 						break;
 					case 4:
 						i->addFav();
 						break;
-					case 5: // !SMT!-UI
+					case 5:
 					
 						i->m_statusString = TSTRING(CONNECTING_FORCED);
 						ctrlTransfers.updateItem(i);
 						bool l_is_active_client;
-						ClientManager::getInstance()->connect(i->m_hintedUser, Util::toString(Util::rand()), false, l_is_active_client); // [!] IRainman fix.
+						ClientManager::getInstance()->connect(i->m_hintedUser, Util::toString(Util::rand()), false, l_is_active_client);
 						break;
 					case 6:
-						i->browseList(); // [!] IRainman fix.
+						i->browseList();
 						break;
 				}
 			}
@@ -1210,9 +1170,9 @@ int TransferView::ItemInfo::compareItems(const ItemInfo* a, const ItemInfo* b, u
 	switch (col)
 	{
 		case COLUMN_USER:
-			return a->m_hits == b->m_hits ? a->getText(COLUMN_USER).compare(b->getText(COLUMN_USER)) : compare(a->m_hits, b->m_hits); // [!] IRainman opt.
+			return a->m_hits == b->m_hits ? a->getText(COLUMN_USER).compare(b->getText(COLUMN_USER)) : compare(a->m_hits, b->m_hits);
 		case COLUMN_HUB:
-			return a->running == b->running ? a->getText(COLUMN_HUB).compare(b->getText(COLUMN_HUB)) : compare(a->running, b->running); // [!] IRainman opt.
+			return a->running == b->running ? a->getText(COLUMN_HUB).compare(b->getText(COLUMN_HUB)) : compare(a->running, b->running);
 		case COLUMN_STATUS:
 			return compare(a->getProgressPosition(), b->getProgressPosition());
 		case COLUMN_TIMELEFT:
@@ -1232,7 +1192,7 @@ int TransferView::ItemInfo::compareItems(const ItemInfo* a, const ItemInfo* b, u
 		case COLUMN_IP:
 			return compare(Socket::convertIP4(Text::fromT(a->getText(COLUMN_IP))), Socket::convertIP4(Text::fromT(b->getText(COLUMN_IP))));
 		default:
-			return a->getText(col).compare(b->getText(col)); // [!] IRainman opt.
+			return a->getText(col).compare(b->getText(col));
 	}
 }
 
@@ -1343,7 +1303,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	TaskQueue::List t;
 	m_tasks.get(t);
 	
-	if (t.empty()) // [+] IRainman opt
+	if (t.empty())
 		return 0;
 		
 	CFlyBusyBool l_busy(m_spoken);
@@ -1701,8 +1661,6 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	if (ui.updateMask & UpdateInfo::MASK_ACTUAL)
 	{
 		m_actual = ui.actual;
-		//[-]PPA        columns[COLUMN_RATIO] = Util::toStringW(getRatio());
-		//[?]       columns[COLUMN_SHARE] = Util::formatBytesW(ui.user->getBytesShared());
 	}
 	if (ui.updateMask & UpdateInfo::MASK_SPEED)
 	{
@@ -1720,7 +1678,7 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 	if (ui.updateMask & UpdateInfo::MASK_IP)
 	{
 		dcassert(!ui.m_ip.empty());
-		if (m_transfer_ip.empty()) // [+] IRainman fix: if IP is set already, not try to set twice. IP can not change during a single connection.
+		if (m_transfer_ip.empty())
 		{
 			m_transfer_ip = ui.m_ip;
 			if (!m_transfer_ip.empty())
@@ -1728,10 +1686,10 @@ void TransferView::ItemInfo::update(const UpdateInfo& ui)
 				m_p2p_guard_text = Text::toT(CFlylinkDBManager::getInstance()->is_p2p_guard(Socket::convertIP4(Text::fromT(m_transfer_ip))));
 			}
 #ifdef FLYLINKDC_USE_COLUMN_RATIO
-			m_ratio_as_text = ui.m_hintedUser.user->getUDratio();// [+] brain-ripper
+			m_ratio_as_text = ui.m_hintedUser.user->getUDratio();
 #endif
 #ifdef FLYLINKDC_USE_DNS
-			columns[COLUMN_DNS] = ui.dns; // !SMT!-IP
+			columns[COLUMN_DNS] = ui.dns;
 #endif
 		}
 	}
@@ -2069,8 +2027,6 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 		case COLUMN_IP:
 			return m_transfer_ip;
 #ifdef FLYLINKDC_USE_COLUMN_RATIO
-		// [~] brain-ripper
-		//case COLUMN_RATIO: return (status == STATUS_RUNNING) ? Util::toStringW(ratio()) : Util::emptyStringT;
 		case COLUMN_RATIO:
 			return m_ratio_as_text;
 #endif
@@ -2127,7 +2083,7 @@ void TransferView::on(DownloadManagerListener::Requesting, const DownloadPtr& aD
 #ifdef _DEBUG
 	//LogManager::message("Requesting " + aDownload->getConnectionToken());
 #endif
-	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true); // [!] IRainman fix.
+	UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true);
 	// TODO - AirDC++
 	// if (hubChanged)
 	//  ui->setUser(d->getHintedUser());
@@ -2150,13 +2106,12 @@ void TransferView::on(DownloadManagerListener::Starting, const DownloadPtr& aDow
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
-		UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true); // [!] IRainman fix.
+		UpdateInfo* ui = new UpdateInfo(aDownload->getHintedUser(), true);
 		
 		ui->setStatus(ItemInfo::STATUS_RUNNING);
 		ui->setStatusString(TSTRING(DOWNLOAD_STARTING));
 		ui->setTarget(aDownload->getPath());
 		ui->setType(aDownload->getType());
-		// [-] ui->setIP(aDownload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
 		const auto l_token = aDownload->getConnectionQueueToken();
 		dcassert(!l_token.empty());
 		ui->setToken(l_token);
@@ -2175,7 +2130,6 @@ void TransferView::on(DownloadManagerListener::Failed, const DownloadPtr& aDownl
 		ui->setSize(aDownload->getSize());
 		ui->setTarget(aDownload->getPath());
 		ui->setType(aDownload->getType());
-		// [-] ui->setIP(aDownload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
 		const auto l_token = aDownload->getConnectionQueueToken();
 		dcassert(!l_token.empty());
 		ui->setToken(l_token); // fix https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1671
@@ -2205,7 +2159,7 @@ void TransferView::on(DownloadManagerListener::Status, const UserConnection* p_c
 	if (!ClientManager::isBeforeShutdown())
 	{
 		// dcassert(const_cast<UserConnection*>(uc)->getDownload()); // TODO при окончании закачки это поле уже пустое https://www.box.net/shared/4cknwlue3njzksmciu63
-		UpdateInfo* ui = new UpdateInfo(p_conn->getHintedUser(), true); // [!] IRainman fix.
+		UpdateInfo* ui = new UpdateInfo(p_conn->getHintedUser(), true);
 		ui->setStatus(ItemInfo::STATUS_WAITING);
 		ui->setStatusString(Text::toT(aReason));
 		const auto l_token = p_conn->getConnectionQueueToken();
@@ -2219,7 +2173,7 @@ void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload)
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
-		UpdateInfo* ui = new UpdateInfo(aUpload->getHintedUser(), false); // [!] IRainman fix.
+		UpdateInfo* ui = new UpdateInfo(aUpload->getHintedUser(), false);
 		
 		starting(ui, aUpload.get());
 		
@@ -2228,7 +2182,6 @@ void TransferView::on(UploadManagerListener::Starting, const UploadPtr& aUpload)
 		ui->setSize(aUpload->getType() == Transfer::TYPE_TREE ? aUpload->getSize() : aUpload->getFileSize());
 		ui->setTarget(aUpload->getPath());
 		ui->setRunning(1);
-		// [-] ui->setIP(aUpload->getUserConnection()->getRemoteIp()); // !SMT!-IP [-] IRainman opt.
 		
 		if (!aUpload->isSet(Upload::FLAG_RESUMED))
 		{
@@ -2281,12 +2234,12 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl) no
 			m_tasks.add(TRANSFER_REMOVE_TOKEN_ITEM, ui);
 		}
 		
-		if (!MainFrame::isAppMinimized())// [+]IRainman opt
+		if (!MainFrame::isAppMinimized())
 		{
 			for (auto j = dl.cbegin(); j != dl.cend(); ++j)
 			{
 				dcassert(j->m_is_torrent == false);
-				UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, true); // [!] IRainman fix.
+				UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, true);
 				ui->setStatus(ItemInfo::STATUS_RUNNING);
 				ui->setActual(j->m_actual);
 				ui->setPos(j->m_pos);
@@ -2305,12 +2258,11 @@ void TransferView::on(DownloadManagerListener::Tick, const DownloadArray& dl) no
 	}
 }
 
-// TODO - убрать тики для массива
 void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul) noexcept
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
-		if (!MainFrame::isAppMinimized())// [+]IRainman opt
+		if (!MainFrame::isAppMinimized())
 		{
 			for (auto j = ul.cbegin(); j != ul.cend(); ++j)
 			{
@@ -2319,7 +2271,7 @@ void TransferView::on(UploadManagerListener::Tick, const UploadArray& ul) noexce
 					dcassert(0);
 					continue;
 				}
-				UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, false); // [!] IRainman fix.
+				UpdateInfo* ui = new UpdateInfo(j->m_hinted_user, false);
 				ui->setStatus(ItemInfo::STATUS_RUNNING);
 				ui->setActual(j->m_actual);
 				ui->setPos(j->m_pos);
@@ -2345,7 +2297,7 @@ void TransferView::onTransferComplete(const Transfer* aTransfer, const bool down
 #ifdef _DEBUG
 		//LogManager::message("Transfer complete " + aTransfer->getConnectionToken());
 #endif
-		UpdateInfo* ui = new UpdateInfo(aTransfer->getHintedUser(), download); // [!] IRainman fix.
+		UpdateInfo* ui = new UpdateInfo(aTransfer->getHintedUser(), download);
 		
 		ui->setTarget(aTransfer->getPath());
 		//ui->setToken(aTransfer->getConnectionToken());
@@ -2433,7 +2385,7 @@ LRESULT TransferView::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
 	while ((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const ItemInfo *ii = ctrlTransfers.getItemData(i);
-		// [!] IRainman fix.
+		
 		const string target = Text::fromT(ii->m_target);
 		if (ii->download)
 		{
@@ -2451,7 +2403,7 @@ LRESULT TransferView::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
 #endif
 			                 );
 		}
-		// [~] IRainman fix.
+		
 	}
 	
 	return 0;
@@ -2520,7 +2472,7 @@ LRESULT TransferView::onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 	while ((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const ItemInfo *ii = ctrlTransfers.getItemData(i);
-		// [!] IRainman fix.
+		
 		if (ii->download) // [+]
 		{
 			const string l_tmp = Text::fromT(ii->m_target);
@@ -2531,7 +2483,7 @@ LRESULT TransferView::onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 			if (qi != queue.cend())
 				qi->second->changeAutoDrop(); // [!]
 		}
-		// [!] IRainman fix.
+		
 	}
 	
 	return 0;
@@ -2550,7 +2502,7 @@ void TransferView::on(SettingsManagerListener::Repaint)
 	}
 }
 
-void TransferView::on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept // [+] IRainman opt.
+void TransferView::on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
@@ -2561,7 +2513,7 @@ void TransferView::on(QueueManagerListener::Tick, const QueueItemList& p_list) n
 	}
 }
 
-void TransferView::on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept // [+] IRainman opt.
+void TransferView::on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept
 {
 	dcassert(!p_list.empty());
 	if (!ClientManager::isBeforeShutdown() && !p_list.empty())
@@ -2683,23 +2635,23 @@ void TransferView::on(QueueManagerListener::Finished, const QueueItemPtr& qi, co
 		// update download item
 		if (0)
 		{
-			UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
+			UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true);
 			ui->setToken(l_token);
 			ui->setTarget(qi->getTarget());
 			ui->setStatus(ItemInfo::STATUS_WAITING);
 			ui->setToken(l_token);
 			ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
-			m_tasks.add(TRANSFER_UPDATE_ITEM, ui); // [!] IRainman opt.
+			m_tasks.add(TRANSFER_UPDATE_ITEM, ui);
 		}
 		{
 			// update file item
-			UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true); // [!] IRainman fix.
+			UpdateInfo* ui = new UpdateInfo(p_download->getHintedUser(), true);
 			ui->setToken(l_token);
 			ui->setTarget(qi->getTarget());
 			ui->setStatusString(TSTRING(DOWNLOAD_FINISHED_IDLE));
 			ui->setStatus(ItemInfo::STATUS_WAITING);
 			SHOW_POPUP(POPUP_DOWNLOAD_FINISHED, TSTRING(FILE) + _T(": ") + Util::getFileName(ui->m_target), TSTRING(DOWNLOAD_FINISHED_IDLE));
-			m_tasks.add(TRANSFER_UPDATE_PARENT, ui);  // [!] IRainman opt.
+			m_tasks.add(TRANSFER_UPDATE_PARENT, ui);
 		}
 	}
 }
@@ -2795,12 +2747,10 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noe
 	}
 }
 
-// [+] Flylink
-// !SMT!-UI. todo: move same code to template CopyBaseHandler
 LRESULT TransferView::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	tstring l_data;
-	int i = -1, columnId = wID - IDC_COPY; // !SMT!-UI: copy several rows
+	int i = -1, columnId = wID - IDC_COPY;
 	while ((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const ItemInfo* l_ii = ctrlTransfers.getItemData(i);
@@ -2843,14 +2793,13 @@ LRESULT TransferView::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
 	return 0;
 }
 
-// [+]Drakon. Pause selected transfer.
+
 void TransferView::PauseSelectedTransfer(void)
 {
 	const ItemInfo* ii = ctrlTransfers.getItemData(ctrlTransfers.GetNextItem(-1, LVNI_SELECTED));
 	if (ii)
 	{
 		const string l_target = Text::fromT(ii->m_target);
-		// TODO - двойное обращение к менеджеру - склеить вместе
 		QueueManager::getInstance()->setAutoPriority(l_target, false);
 		QueueManager::getInstance()->setPriority(l_target, QueueItem::PAUSED);
 	}
@@ -2868,7 +2817,7 @@ bool TransferView::getTTH(const ItemInfo* p_ii, TTHValue& p_tth)
 	}
 }
 
-// !SMT!-S
+
 LRESULT TransferView::onSetUserLimit(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	MENUINFO menuInfo = {0};
@@ -2877,21 +2826,19 @@ LRESULT TransferView::onSetUserLimit(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 	speedMenu.GetMenuInfo(&menuInfo);
 	const int iLimit = menuInfo.dwMenuData;
 	const int lim = getSpeedLimitByCtrlId(wID, iLimit);
-	// TODO - двойное обращение к менеджеру - склеить вместе
 	FavoriteManager::getInstance()->addFavoriteUser(getSelectedUser());
 	FavoriteManager::getInstance()->setUploadLimit(getSelectedUser(), lim);
-	// close favusers window (it contains incorrect info, too lazy to update)
 	UsersFrame::closeWindow();
 	return 0;
 }
 
 LRESULT TransferView::onRemoveAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-	if (checkState == BST_CHECKED || ::MessageBox(NULL, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
+	UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED;
+	if (checkState == BST_CHECKED || ::MessageBox(NULL, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)
 		ctrlTransfers.forEachSelected(&ItemInfo::removeAll); // [6] https://www.box.net/shared/4eed8e2e275210b6b654
 	// Let's update the setting unchecked box means we bug user again...
-	SET_SETTING(CONFIRM_DELETE, checkState != BST_CHECKED); // [+] InfinitySky.
+	SET_SETTING(CONFIRM_DELETE, checkState != BST_CHECKED);
 	return 0;
 }
 

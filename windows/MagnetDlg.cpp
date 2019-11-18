@@ -53,7 +53,7 @@ LRESULT MagnetDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	SetDlgItemText(IDC_MAGNET_NOTHING, CTSTRING(MAGNET_DLG_NOTHING));
 	SetDlgItemText(IDC_MAGNET_REMEMBER, CTSTRING(MAGNET_DLG_REMEMBER));
 	SetDlgItemText(IDC_MAGNET_OPEN, isDCLST() ? CTSTRING(MAGNET_DLG_OPEN_DCLST) : CTSTRING(MAGNET_DLG_OPEN_FILE));
-	SetDlgItemText(IDC_MAGNET_SAVEAS, CTSTRING(MAGNET_DLG_SAVEAS)); // !SMT!-UI
+	SetDlgItemText(IDC_MAGNET_SAVEAS, CTSTRING(MAGNET_DLG_SAVEAS));
 	if (mSize <= 0 || mFileName.length() <= 0)
 	{
 		::ShowWindow(GetDlgItem(IDC_MAGNET_QUEUE), FALSE);
@@ -106,7 +106,7 @@ LRESULT MagnetDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	focusThis.Attach(GetDlgItem(IDC_MAGNET_SEARCH));
 	focusThis.SetFocus();
 	
-	::EnableWindow(GetDlgItem(IDC_MAGNET_SAVEAS), IsDlgButtonChecked(IDC_MAGNET_QUEUE) == BST_CHECKED); // !SMT!-UI
+	::EnableWindow(GetDlgItem(IDC_MAGNET_SAVEAS), IsDlgButtonChecked(IDC_MAGNET_QUEUE) == BST_CHECKED);
 	return 0;
 }
 
@@ -139,7 +139,7 @@ LRESULT MagnetDlg::onCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, 
 			{
 				const string target = Text::fromT(mFileName);
 				QueueManager::getInstance()->add(0, target, mSize, mHash, HintedUser(),
-				                                 isDCLST() ? QueueItem::FLAG_DCLST_LIST : // [!] SSA - add dclst download
+				                                 isDCLST() ? QueueItem::FLAG_DCLST_LIST :
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 				                                 (isViewMedia ? QueueItem::FLAG_MEDIA_VIEW : 0)
 #else
@@ -156,7 +156,6 @@ LRESULT MagnetDlg::onCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, 
 		{
 			try
 			{
-				// [!] SSA
 				QueueManager::getInstance()->add(0, Text::fromT(mFileName), mSize, mHash, HintedUser(), isDCLST() ? (QueueItem::FLAG_CLIENT_VIEW | QueueItem::FLAG_DCLST_LIST) : QueueItem::FLAG_OPEN_FILE);
 			}
 			catch (const Exception& e)
@@ -164,7 +163,6 @@ LRESULT MagnetDlg::onCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, 
 				LogManager::message("QueueManager::getInstance()->add Error = " + e.getError());
 			}
 		}
-		// [~] TODO: PLEASE STOP COPY-PAST!
 	}
 	EndDialog(wID);
 	return 0;
@@ -190,14 +188,14 @@ LRESULT MagnetDlg::onRadioButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 			::EnableWindow(GetDlgItem(IDC_MAGNET_REMEMBER), false);
 			break;
 	};
-	::EnableWindow(GetDlgItem(IDC_MAGNET_SAVEAS), IsDlgButtonChecked(IDC_MAGNET_QUEUE) == BST_CHECKED); // !SMT!-UI
+	::EnableWindow(GetDlgItem(IDC_MAGNET_SAVEAS), IsDlgButtonChecked(IDC_MAGNET_QUEUE) == BST_CHECKED);
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 	GetDlgItem(IDC_MAGNET_START_VIEW).EnableWindow(IsDlgButtonChecked(IDC_MAGNET_QUEUE) == TRUE);
 #endif
 	return 0;
 }
 
-// !SMT!-UI
+
 LRESULT MagnetDlg::onSaveAs(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	tstring dst = mFileName;

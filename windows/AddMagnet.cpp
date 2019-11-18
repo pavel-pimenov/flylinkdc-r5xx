@@ -44,11 +44,9 @@ LRESULT AddMagnet::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	::ShowWindow(GetDlgItem(IDC_MAGNET_START_VIEW), false);
 #endif
 	
-	// Заголовок окна.
 	SetWindowText(CTSTRING(ADDING_MAGNET_LINK));
 	
-	// Иконка.
-	m_MagnetIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_MAGNET));// [!] SSA   (HICON)::LoadImage(_Module.get_m_hInst(), MAKEINTRESOURCE(IDR_MAGNET),IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR); // [~] Sergey Shushkanov
+	m_MagnetIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_MAGNET));
 	SetIcon((HICON)*m_MagnetIcon, FALSE);
 	SetIcon((HICON)*m_MagnetIcon, TRUE);
 	

@@ -39,7 +39,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 	private ConnectionManagerListener,
 	private QueueManagerListener,
 	public UserInfoBaseHandler<TransferView, UserInfoGuiTraits::NO_COPY>,
-	public PreviewBaseHandler<TransferView>, // [+] IRainman fix.
+	public PreviewBaseHandler<TransferView>,
 	public UCHandler<TransferView>,
 	private SettingsManagerListener,
 	virtual private CFlyTimerAdapter,
@@ -52,7 +52,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		~TransferView();
 		
 		typedef UserInfoBaseHandler<TransferView, UserInfoGuiTraits::NO_COPY> uibBase;
-		typedef PreviewBaseHandler<TransferView> prevBase; // [+] IRainman fix.
+		typedef PreviewBaseHandler<TransferView> prevBase;
 		typedef UCHandler<TransferView> ucBase;
 		
 		BEGIN_MSG_MAP(TransferView)
@@ -103,14 +103,14 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		COMMAND_ID_HANDLER(IDC_PRIORITY_PAUSED, onPauseSelectedItem)
 		COMMAND_ID_HANDLER(IDC_UPLOAD_QUEUE, onOpenWindows)
 		COMMAND_ID_HANDLER(IDC_QUEUE, onOpenWindows)
-		COMMAND_ID_HANDLER(IDC_COPY_TTH, onCopy) // !JhaoDa
-		COMMAND_ID_HANDLER(IDC_COPY_LINK, onCopy) // !SMT!-UI
-		COMMAND_ID_HANDLER(IDC_COPY_WMLINK, onCopy) // !SMT!-UI
-		COMMAND_RANGE_HANDLER(IDC_COPY, IDC_COPY + COLUMN_LAST - 1, onCopy) // !SMT!-UI
+		COMMAND_ID_HANDLER(IDC_COPY_TTH, onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_LINK, onCopy)
+		COMMAND_ID_HANDLER(IDC_COPY_WMLINK, onCopy)
+		COMMAND_RANGE_HANDLER(IDC_COPY, IDC_COPY + COLUMN_LAST - 1, onCopy)
 		
 		CHAIN_COMMANDS(ucBase)
 		CHAIN_COMMANDS(uibBase)
-		CHAIN_COMMANDS(prevBase) // [+] IRainman fix.
+		CHAIN_COMMANDS(prevBase)
 		END_MSG_MAP()
 		
 		LRESULT onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
@@ -199,7 +199,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		
 		LRESULT onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
-			ctrlTransfers.DeleteAndClearAllItems(); // [!] IRainman
+			ctrlTransfers.DeleteAndClearAllItems();
 			return 0;
 		}
 		
@@ -212,15 +212,13 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 #endif
 		}
 		
-		// [+] Flylink
 		LRESULT onPauseSelectedItem(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			PauseSelectedTransfer();
 			return 0;
 		}
-		// [+] Flylink
-		LRESULT onCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/); // !SMT!-UI
-		// !SMT!-S
+		LRESULT onCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+		
 		LRESULT onSetUserLimit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 	public:
@@ -268,8 +266,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 #ifdef FLYLINKDC_USE_COLUMN_RATIO
 			COLUMN_RATIO,
 #endif
-			COLUMN_SHARE, //[+]PPA
-			COLUMN_SLOTS, //[+]PPA
+			COLUMN_SHARE,
+			COLUMN_SLOTS,
 			COLUMN_P2P_GUARD,
 			COLUMN_LAST
 		};
@@ -344,7 +342,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				int16_t m_hits;
 				
 				ItemInfo* parent;
-				HintedUser m_hintedUser; // [!] IRainman fix.
+				HintedUser m_hintedUser;
 				tstring m_p2p_guard_text;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 				tstring m_antivirus_text;
@@ -367,10 +365,10 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				tstring m_hubs;
 				string  m_token;
 				
-				mutable Util::CustomNetworkIndex m_location; // [+] IRainman opt.
+				mutable Util::CustomNetworkIndex m_location;
 				
 #ifdef FLYLINKDC_USE_COLUMN_RATIO
-				tstring m_ratio_as_text; // [+] brain-ripper
+				tstring m_ratio_as_text;
 #endif
 				
 				void update(const UpdateInfo& ui);
@@ -397,7 +395,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				
 				uint8_t getImageIndex() const
 				{
-					return static_cast<uint8_t>(download ? (!parent ? IMAGE_DOWNLOAD : IMAGE_SEGMENT) : IMAGE_UPLOAD); // [!] IRainman fix.
+					return static_cast<uint8_t>(download ? (!parent ? IMAGE_DOWNLOAD : IMAGE_SEGMENT) : IMAGE_UPLOAD);
 				}
 				ItemInfo* createParent()
 				{
@@ -499,8 +497,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			
 			uint32_t updateMask;
 			
-			// [!] IRainman fix.
-			HintedUser m_hintedUser; // [!]
+			
+			HintedUser m_hintedUser;
 			void setHintedUser(const HintedUser& aHitedUser)
 			{
 				m_hintedUser = aHitedUser;
@@ -511,8 +509,8 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			bool m_is_seeding;
 			bool m_is_pause;
 			libtorrent::sha1_hash m_sha1;
-			const bool transferFailed; // [!] is const member.
-			// [~]
+			const bool transferFailed;
+			
 #ifdef FLYLINKDC_USE_AUTOMATIC_PASSIVE_CONNECTION
 			void setForcePassive(bool p_is_force_passive)
 			{
@@ -659,7 +657,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 			}
 			Transfer::Type type;
 			
-			// !SMT!-IP
+			
 			void setIP(const string& aIP)
 			{
 				const auto l_new_value = Text::toT(aIP);
@@ -735,7 +733,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(DownloadManagerListener::Requesting, const DownloadPtr& aDownload) noexcept override;
 		void on(DownloadManagerListener::Complete, const DownloadPtr& aDownload) noexcept override
 		{
-			onTransferComplete(aDownload.get(), true, Util::getFileName(aDownload->getPath())); // [!] IRainman fix.
+			onTransferComplete(aDownload.get(), true, Util::getFileName(aDownload->getPath()));
 		}
 		void on(DownloadManagerListener::Failed, const DownloadPtr& aDownload, const string& aReason) noexcept override;
 #ifdef FLYLINKDC_USE_DOWNLOAD_STARTING_FIRE
@@ -748,11 +746,11 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		void on(UploadManagerListener::Tick, const UploadArray& aUpload) noexcept override;
 		void on(UploadManagerListener::Complete, const UploadPtr& aUpload) noexcept override
 		{
-			onTransferComplete(aUpload.get(), false, aUpload->getPath()); // [!] IRainman fix.
+			onTransferComplete(aUpload.get(), false, aUpload->getPath());
 		}
 		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr&) noexcept override;
-		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.
-		void on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept override; // [+] IRainman opt.
+		void on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept override;
+		void on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept override;
 		void on(QueueManagerListener::Removed, const QueueItemPtr&) noexcept override;
 		void on(QueueManagerListener::RemovedTransfer, const QueueItemPtr&) noexcept override;
 		
@@ -762,7 +760,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		
 		void on(SettingsManagerListener::Repaint) override;
 		
-		void onTransferComplete(const Transfer* aTransfer, const bool download, const string& aFileName); // [!] IRainman fix.
+		void onTransferComplete(const Transfer* aTransfer, const bool download, const string& aFileName);
 		static void starting(UpdateInfo* ui, const Transfer* t);
 		
 		void CollapseAll();
@@ -771,9 +769,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 		ItemInfo* findItem(const UpdateInfo& ui, int& pos) const;
 		void updateItem(int ii, uint32_t updateMask);
 		
-		// [+]Drakon
 		void PauseSelectedTransfer(void);
-		// [+] NightOrion
 		bool getTTH(const ItemInfo* p_ii, TTHValue& p_tth);
 };
 

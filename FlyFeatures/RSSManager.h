@@ -63,7 +63,6 @@ class RSSFeed
 		virtual ~RSSFeed();
 		
 		typedef vector<RSSItem*> RSSItemList;
-//		typedef RSSItemList::const_iterator RSSItemIter;
 
 		bool UpdateFeedNewXML();
 		
@@ -73,7 +72,7 @@ class RSSFeed
 		GETSET(string, codeing, Codeing);
 		GETSET_BOOL(bool, enable, Enable);
 		
-		const RSSItemList& getNewsList() const// [+] IRainman fix.
+		const RSSItemList& getNewsList() const
 		{
 			return m_newsList;
 		}

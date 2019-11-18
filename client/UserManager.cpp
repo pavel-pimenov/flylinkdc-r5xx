@@ -43,7 +43,7 @@ void UserManager::saveIgnoreList()
 {
 
 	CFlyReadLock(*g_csIgnoreList);
-	dcassert(g_ignoreListLoaded); // [!] IRainman fix: You can not save the ignore list if it was not pre-loaded - it will erase the data!
+	dcassert(g_ignoreListLoaded);
 	CFlylinkDBManager::getInstance()->save_ignore(g_ignoreList);
 	g_isEmptyIgnoreList = g_ignoreList.empty();
 }
@@ -97,7 +97,7 @@ void UserManager::checkUser(const OnlineUserPtr& user)
 			if (!client.getExcludeCheck() && client.isOp() &&
 			        (client.isActive() || user->getIdentity().isTcpActive()))
 			{
-				if (!BOOLSETTING(PROT_FAVS) || !FavoriteManager::isNoFavUserOrUserBanUpload(user->getUser()))   // !SMT!-opt
+				if (!BOOLSETTING(PROT_FAVS) || !FavoriteManager::isNoFavUserOrUserBanUpload(user->getUser()))
 				{
 					if (!isInProtectedUserList(user->getIdentity().getNick()))
 					{

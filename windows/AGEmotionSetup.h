@@ -93,7 +93,7 @@ class CAGEmotion
 
 class CAGEmotionSetup
 #ifdef _DEBUG
-	:  boost::noncopyable // [+] IRainman fix.
+	:  boost::noncopyable
 #endif
 {
 	public:
@@ -115,7 +115,7 @@ class CAGEmotionSetup
 		{
 			return m_EmotionsArray;
 		}
-		int m_CountSelEmotions; //[+]PPA
+		int m_CountSelEmotions;
 		
 	protected:
 		CImageList       m_EmotionImages;

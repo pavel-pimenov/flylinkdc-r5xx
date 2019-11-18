@@ -396,7 +396,7 @@ void File_Rm::MDPR()
     //else if (mime_type.find("logical-video/")==0)
     //    MDPR_IsStream=false; //What do we with this?
     else
-        MDPR_IsStream=false; // //[!]PVS-Studio V523	The 'then' statement is equivalent to the 'else' statement.	MediaInfoLib	file_rm.cpp	383	False	
+        MDPR_IsStream=false;
 
     //Filling
     FILLING_BEGIN();

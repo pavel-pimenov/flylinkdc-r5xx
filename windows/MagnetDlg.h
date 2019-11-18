@@ -55,13 +55,13 @@ class MagnetDlg : public CDialogImpl<MagnetDlg >
 		COMMAND_ID_HANDLER(IDC_MAGNET_QUEUE, onRadioButton)
 		COMMAND_ID_HANDLER(IDC_MAGNET_NOTHING, onRadioButton)
 		COMMAND_ID_HANDLER(IDC_MAGNET_SEARCH, onRadioButton)
-		COMMAND_ID_HANDLER(IDC_MAGNET_SAVEAS, onSaveAs) // !SMT!-UI
+		COMMAND_ID_HANDLER(IDC_MAGNET_SAVEAS, onSaveAs)
 		END_MSG_MAP();
 		
 		LRESULT onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT onCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onRadioButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-		LRESULT onSaveAs(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/); // !SMT!-UI
+		LRESULT onSaveAs(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 		bool isDCLST() const
 		{

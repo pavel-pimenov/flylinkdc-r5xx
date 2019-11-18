@@ -24,7 +24,7 @@
 
 
 #include <atlcrack.h>
-#include "ExListViewCtrl.h" // [+] IRainman
+#include "ExListViewCtrl.h"
 #include "PropPage.h"
 
 class AdvancedPage : public CPropertyPage<IDD_ADVANCED_PAGE>, public PropPage
@@ -39,7 +39,7 @@ class AdvancedPage : public CPropertyPage<IDD_ADVANCED_PAGE>, public PropPage
 		
 		~AdvancedPage()
 		{
-			ctrlList.Detach(); // [+] IRainman
+			ctrlList.Detach();
 		}
 		
 		BEGIN_MSG_MAP_EX(AdvancedPage)
@@ -47,16 +47,14 @@ class AdvancedPage : public CPropertyPage<IDD_ADVANCED_PAGE>, public PropPage
 		COMMAND_HANDLER(IDC_WINAMP_HELP, BN_CLICKED, onClickedWinampHelp)
 		COMMAND_HANDLER(IDC_PLAYER_COMBO, CBN_SELCHANGE, onSelChange)
 		COMMAND_HANDLER(IDC_RATIOMSG_HELP, BN_CLICKED, onClickedRatioMsgHelp)
-		NOTIFY_HANDLER(IDC_ADVANCED_BOOLEANS, NM_CUSTOMDRAW, ctrlList.onCustomDraw) // [+] IRainman
-		//NOTIFY_HANDLER(IDC_ADVANCED_BOOLEANS, LVN_ITEMCHANGED, onListItemChanged)   // [+] brain-ripper
+		NOTIFY_HANDLER(IDC_ADVANCED_BOOLEANS, NM_CUSTOMDRAW, ctrlList.onCustomDraw)
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
 		
 		LRESULT onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT onClickedWinampHelp(WORD /* wNotifyCode */, WORD wID, HWND /* hWndCtl */, BOOL& /* bHandled */);
-		LRESULT onClickedRatioMsgHelp(WORD /* wNotifyCode */, WORD wID, HWND /* hWndCtl */, BOOL& /* bHandled */);//[+] WhiteD. Custom ratio message
+		LRESULT onClickedRatioMsgHelp(WORD /* wNotifyCode */, WORD wID, HWND /* hWndCtl */, BOOL& /* bHandled */);
 		LRESULT onSelChange(WORD /* wNotifyCode */, WORD wID, HWND /* hWndCtl */, BOOL& /* bHandled */);
-		//LRESULT onListItemChanged(int wParam, LPNMHDR lParam, BOOL& /* bHandled */);    // [+] brain-ripper
 		
 		// Common PropPage interface
 		PROPSHEETPAGE *getPSP()
@@ -85,9 +83,7 @@ class AdvancedPage : public CPropertyPage<IDD_ADVANCED_PAGE>, public PropPage
 		tstring QCDQMPStr;
 		int CurSel;
 		
-		//bool bInited; // [+] brain-ripper
-		
-		ExListViewCtrl ctrlList; // [+] IRainman
+		ExListViewCtrl ctrlList;
 };
 
 #endif // !defined(ADVANCED_PAGE_H)

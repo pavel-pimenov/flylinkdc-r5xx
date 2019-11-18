@@ -29,10 +29,10 @@ class Download : public Transfer, public Flags
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 			FLAG_USER_CHECK     = 0x80,
 #endif
-			FLAG_USER_GET_IP    = 0x200     // [+] SSA
+			FLAG_USER_GET_IP    = 0x200
 		};
 		
-		explicit Download(UserConnection* p_conn, const QueueItemPtr& p_item, const string& p_ip, const string& p_chiper_name) noexcept; // [!] IRainman fix.
+		explicit Download(UserConnection* p_conn, const QueueItemPtr& p_item, const string& p_ip, const string& p_chiper_name) noexcept;
 		
 		void getParams(StringMap& params) const;
 		
@@ -71,7 +71,7 @@ class Download : public Transfer, public Flags
 		void getCommand(AdcCommand& p_cmd, bool zlib) const;
 		
 		string getTempTarget() const;
-		// [~] IRainman fix.
+		
 #ifdef FLYLINKDC_USE_DROP_SLOW
 		GETSET(uint64_t, m_lastNormalSpeed, LastNormalSpeed);
 #endif

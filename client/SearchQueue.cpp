@@ -139,13 +139,13 @@ uint64_t SearchQueue::getSearchTime(void* aOwner, uint64_t p_now)
 	}
 #endif
 	
-	uint64_t x = std::max(m_lastSearchTime, uint64_t(p_now - m_interval)); // [!] IRainman opt
+	uint64_t x = std::max(m_lastSearchTime, uint64_t(p_now - m_interval));
 	
 	for (auto i = m_searchQueue.cbegin(); i != m_searchQueue.cend(); ++i)
 	{
 		x += m_interval;
 		
-		if (i->m_owners.find(aOwner) != i->m_owners.end()) // [!] IRainman opt.
+		if (i->m_owners.find(aOwner) != i->m_owners.end())
 			return x;
 		else if (i->m_owners.empty()) // Проверку на пустоту поднять выше?
 			break;
@@ -159,13 +159,13 @@ bool SearchQueue::cancelSearch(void* aOwner)
 	CFlyFastLock(m_cs);
 	for (auto i = m_searchQueue.begin(); i != m_searchQueue.end(); ++i)
 	{
-		// [!] IRainman opt.
+	
 		auto &l_owners = i->m_owners; // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->owners' expression repeatedly. searchqueue.cpp 135
 		const auto j = l_owners.find(aOwner);
 		if (j != l_owners.end())
 		{
 			l_owners.erase(j);
-			// [~] IRainman opt.
+			
 			if (l_owners.empty())
 			{
 				m_searchQueue.erase(i);

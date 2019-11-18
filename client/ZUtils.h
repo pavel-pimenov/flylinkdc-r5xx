@@ -65,7 +65,7 @@ class UnZFilter
 		z_stream zs;
 };
 
-#ifndef _WIN32 //[+]PPA
+#ifndef _WIN32
 class CRC32Filter
 {
 	public:

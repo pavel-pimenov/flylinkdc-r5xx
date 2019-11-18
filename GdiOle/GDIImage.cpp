@@ -16,10 +16,10 @@ CGDIImage::CGDIImage(LPCWSTR pszFileName, HWND hCallbackWnd, DWORD dwCallbackMsg
 	m_dwWidth(0),
 	m_dwHeight(0),
 	m_dwCurrentFrame(0)
-	, m_allowCreateTimer(true) // [+] IRainman fix.
+	, m_allowCreateTimer(true)
 {
 	dcassert(!isShutdown());
-	InitializeCriticalSectionAndSpinCount(&m_csCallback, CRITICAL_SECTION_SPIN_COUNT); // [!] IRainman opt.
+	InitializeCriticalSectionAndSpinCount(&m_csCallback, CRITICAL_SECTION_SPIN_COUNT);
 	m_pImage = new Gdiplus::Image(pszFileName);
 	if (m_pImage->GetLastStatus() != Gdiplus::Ok)
 		safe_delete(m_pImage);
@@ -243,10 +243,10 @@ VOID CALLBACK CGDIImage::OnTimer(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
 				{
 #endif
 					EnterCriticalSection(&pGDIImage->m_csCallback);
-					// [!] IRainman fix.
+					
 					// [-] pGDIImage->m_hTimer = NULL;
 					pGDIImage->m_allowCreateTimer = true;
-					// [~] IRainman fix.
+					
 					if (!pGDIImage->m_Callbacks.empty())
 					{
 						dcassert(!isShutdown());
@@ -280,7 +280,7 @@ void CGDIImage::RegisterCallback(ONFRAMECHANGED pOnFrameChangedProc, LPARAM lPar
 	{
 		EnterCriticalSection(&m_csCallback);
 		m_Callbacks.insert(CALLBACK_STRUCT(pOnFrameChangedProc, lParam));
-		if (!m_hTimer && m_allowCreateTimer)  // [+] IRainman fix.
+		if (!m_hTimer && m_allowCreateTimer)  
 		{
 			CreateTimerQueueTimer(&m_hTimer, NULL, OnTimer, this, 0, 0, WT_EXECUTEDEFAULT); // TODO - разрушать все таймера при стопе
 		}

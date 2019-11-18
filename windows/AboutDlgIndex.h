@@ -17,7 +17,7 @@
 
 class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 	public:
@@ -104,9 +104,6 @@ class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
 			// for Custom Themes
 			m_png_logo.LoadFromResourcePNG(IDR_FLYLINK_PNG);
 			GetDlgItem(IDC_STATIC).SendMessage(STM_SETIMAGE, IMAGE_BITMAP, LPARAM((HBITMAP)m_png_logo));
-			//m_hIcon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_MAINFRAME));   // [!] SSA - because of theme use
-			//SetIcon((HICON)*m_hIcon, FALSE);
-			//SetIcon((HICON)*m_hIcon, TRUE);
 			
 			CenterWindow(GetParent());
 			

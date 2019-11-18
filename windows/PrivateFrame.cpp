@@ -34,7 +34,7 @@ PrivateFrame::PrivateFrame(const HintedUser& replyTo_, const string& myNick) : m
 	m_ctrlChatContainer(WC_EDIT, this, PM_MESSAGE_MAP) // !Decker!
 {
 	m_ctrlStatusCache.resize(1);
-	ctrlClient.setHubParam(replyTo_.hint, myNick); // [+] IRainman fix.
+	ctrlClient.setHubParam(replyTo_.hint, myNick);
 }
 
 PrivateFrame::~PrivateFrame()
@@ -47,7 +47,6 @@ void PrivateFrame::doDestroyFrame()
 	destroyMessagePanel(true);
 }
 
-// [+] IRainman: copy-past fix.
 StringMap PrivateFrame::getFrameLogParams() const
 {
 	StringMap params;
@@ -65,7 +64,6 @@ void PrivateFrame::addMesageLogParams(StringMap& params, const Identity& from, c
 	if (!extra.empty())
 		params["extra"] = Text::fromT(extra);
 }
-// [~] IRainman: copy-past fix.
 
 LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
@@ -80,10 +78,10 @@ LRESULT PrivateFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
 bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Identity& replyTo,
                               const tstring& aMessage, unsigned p_max_smiles, const string& p_HubHint, const bool bMyMess,
-                              const bool bThirdPerson, const bool notOpenNewWindow /*= false*/)   // !SMT!-S
+                              const bool bThirdPerson, const bool notOpenNewWindow /*= false*/)
 {
 	const auto& id = bMyMess ? to : replyTo;
-	const auto& myId = bMyMess ? replyTo : to; // [+] IRainman fix.
+	const auto& myId = bMyMess ? replyTo : to;
 	
 	const string l_key = id.getUser()->getLastNick() + " + " + p_HubHint;
 	string l_message = Text::fromT(aMessage);
@@ -100,7 +98,7 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 		if (notOpenNewWindow || g_pm_frames.size() > MAX_PM_FRAMES)
 		{
 			LogManager::message("Lock > 100 open private message windows! Hub: " + l_key + " Message: " + l_message);
-			return false; // !SMT!-S
+			return false;
 		}
 		auto& l_count_pm = g_count_pm[l_key];
 		if (l_count_pm > 10)
@@ -116,7 +114,7 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 		// [!] TODO! и видимо в ядро!
 		if (!bMyMess && Util::getAway())
 		{
-			if (/*!(BOOLSETTING(NO_AWAYMSG_TO_BOTS) && */ !replyTo.isBotOrHub()) // [!] IRainman fix.
+			if (/*!(BOOLSETTING(NO_AWAYMSG_TO_BOTS) && */ !replyTo.isBotOrHub())
 			{
 				// Again, is there better way for this?
 				const FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(Util::toString(ClientManager::getHubs(id.getUser()->getCID(), p_HubHint)));
@@ -136,7 +134,7 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 				}
 			}
 		}
-		// [~] TODO! и видимо в ядро!
+		
 		SHOW_POPUP_EXT(POPUP_NEW_PM, Text::toT(id.getNick() + " - " + p_HubHint), PM_PREVIEW, aMessage, 250, TSTRING(PRIVATE_MESSAGE));
 		PLAY_SOUND_BEEP(PRIVATE_MESSAGE_BEEP_OPEN);
 	}
@@ -162,7 +160,7 @@ bool PrivateFrame::gotMessage(const Identity& from, const Identity& to, const Id
 
 void PrivateFrame::openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo, string myNick, const tstring& msg)
 {
-	// [+] IRainman fix.
+
 	if (myNick.empty())
 	{
 		if (ou)
@@ -179,7 +177,7 @@ void PrivateFrame::openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo
 			myNick = SETTING(NICK);
 		}
 	}
-	// [~] IRainman fix.
+	
 	
 	PrivateFrame* p = nullptr;
 	const auto i = g_pm_frames.find(replyTo);
@@ -191,12 +189,12 @@ void PrivateFrame::openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo
 			return;
 		}
 		
-		// [+] IRainman fix.
+		
 		if (ou)
 		{
 			replyTo.user->setLastNick(ou->getIdentity().getNick());
 		}
-		// [~] IRainman fix.
+		
 		p = new PrivateFrame(replyTo, myNick);
 		g_pm_frames.insert(std::make_pair(replyTo, p));
 		g_count_pm[replyTo.user->getLastNick() + "~" + replyTo.hint]++;
@@ -379,24 +377,22 @@ LRESULT PrivateFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 	tabMenu.CreatePopupMenu();
 	clearUserMenu();
 	
-	//#ifdef OLD_MENU_HEADER //[~]JhaoDa
 	tabMenu.InsertSeparatorFirst(m_replyToRealName);
-	//#endif
-	reinitUserMenu(m_replyTo, getHubHint()); // [!] IRainman fix.
+	reinitUserMenu(m_replyTo, getHubHint());
 	appendAndActivateUserItems(tabMenu);
 	appendUcMenu(tabMenu, UserCommand::CONTEXT_USER, ClientManager::getHubs(m_replyTo.user->getCID(), getHubHint()));
 	if (!(tabMenu.GetMenuState(tabMenu.GetMenuItemCount() - 1, MF_BYPOSITION) & MF_SEPARATOR))
 	{
 		tabMenu.AppendMenu(MF_SEPARATOR);
 	}
-	tabMenu.AppendMenu(MF_STRING, IDC_CLOSE_ALL_OFFLINE_PM, CTSTRING(MENU_CLOSE_ALL_OFFLINE_PM)); // [+] InfinitySky. Закрыть все оффлайн лички.
-	tabMenu.AppendMenu(MF_STRING, IDC_CLOSE_ALL_PM, CTSTRING(MENU_CLOSE_ALL_PM)); // [+] InfinitySky. Закрыть все лички.
+	tabMenu.AppendMenu(MF_STRING, IDC_CLOSE_ALL_OFFLINE_PM, CTSTRING(MENU_CLOSE_ALL_OFFLINE_PM));
+	tabMenu.AppendMenu(MF_STRING, IDC_CLOSE_ALL_PM, CTSTRING(MENU_CLOSE_ALL_PM));
 	tabMenu.AppendMenu(MF_STRING, IDC_CLOSE_WINDOW, CTSTRING(CLOSE_HOT));
 	
 	tabMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_BOTTOMALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 	
 	cleanUcMenu(tabMenu);
-	WinUtil::unlinkStaticMenus(tabMenu); // TODO - fix copy-paste
+	WinUtil::unlinkStaticMenus(tabMenu);
 	return TRUE;
 }
 
@@ -494,16 +490,13 @@ void PrivateFrame::updateTitle()
 	
 	if (hubs.second)
 	{
-		if (banIcon) // !SMT!-UI
+		if (banIcon)
 			setCustomIcon(WinUtil::g_banIconOnline);
 		else
 			unsetIconState();
 			
 		setTabColor(RGB(0, 255, 255));
 		
-		// [!] IRainman fix: when the user first came to the network
-		// with the opening of the window private message - update the name,
-		// if when you open the window it was already known the real name - use it.
 		if (m_replyToRealName.empty())
 		{
 			m_replyToRealName = m_replyTo.user->getLastNickT();
@@ -516,11 +509,8 @@ void PrivateFrame::updateTitle()
 	}
 	else
 	{
-		// [+] IRainman fix
 		m_isoffline = true;
-//[-]PPA        ctrlClient.setClient(NULL);
-		// [~] IRainman fix
-		if (banIcon) // !SMT!-UI
+		if (banIcon)
 		{
 			setCustomIcon(WinUtil::g_banIconOffline);
 		}
@@ -532,10 +522,6 @@ void PrivateFrame::updateTitle()
 		setTabColor(RGB(255, 0, 0));
 		
 		addStatus(TSTRING(USER_WENT_OFFLINE) + _T(" [") + m_replyToRealName + _T(" - ") + Text::toT(getHubHint()) + _T("]"));
-		// [-] IRainman fix
-		//m_isoffline = true;
-		//ctrlClient.setClient(NULL);
-		// [~] IRainman fix
 	}
 	SetWindowText((m_replyToRealName + _T(" - ") + (hubs.second ? hubs.first : Text::toT(getHubHint()))).c_str());
 }
@@ -592,9 +578,9 @@ LRESULT PrivateFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 			}
 			OMenu* l_user_menu = createUserMenu();
 			l_user_menu->ClearMenu();
-			clearUserMenu(); // !SMT!-S
+			clearUserMenu();
 			
-			reinitUserMenu(m_replyTo, getHubHint()); // [!] IRainman fix.
+			reinitUserMenu(m_replyTo, getHubHint());
 			
 			appendUcMenu(*l_user_menu, UserCommand::CONTEXT_USER, ClientManager::getHubs(m_replyTo.user->getCID(), getHubHint()));
 			if (!(l_user_menu->GetMenuState(l_user_menu->GetMenuItemCount() - 1, MF_BYPOSITION) & MF_SEPARATOR))
@@ -658,7 +644,7 @@ void PrivateFrame::on(SettingsManagerListener::Repaint)
 	}
 }
 
-// !SMT!-S
+
 bool PrivateFrame::closeUser(const UserPtr& u)
 {
 	const auto i = g_pm_frames.find(u);

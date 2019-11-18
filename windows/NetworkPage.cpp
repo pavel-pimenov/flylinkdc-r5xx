@@ -74,7 +74,7 @@ PropPage::Item NetworkPage::items[] =
 	{ IDC_PORT_UDP,         SettingsManager::UDP_PORT,      PropPage::T_INT },
 	{ IDC_PORT_TLS,         SettingsManager::TLS_PORT,      PropPage::T_INT },
 	{ IDC_NO_IP_OVERRIDE, SettingsManager::NO_IP_OVERRIDE, PropPage::T_BOOL },
-	{ IDC_IP_GET_IP,        SettingsManager::URL_GET_IP,    PropPage::T_STR }, //[+]PPA
+	{ IDC_IP_GET_IP,        SettingsManager::URL_GET_IP,    PropPage::T_STR },
 	{ IDC_IPUPDATE,         SettingsManager::IPUPDATE,      PropPage::T_BOOL },
 	{ IDC_WAN_IP_MANUAL, SettingsManager::WAN_IP_MANUAL, PropPage::T_BOOL },
 	{ IDC_UPDATE_IP_INTERVAL, SettingsManager::IPUPDATE_INTERVAL, PropPage::T_INT },
@@ -257,7 +257,7 @@ void NetworkPage::fixControls()
 	::EnableWindow(GetDlgItem(IDC_SETTINGS_IP), !auto_detect);
 	
 	// Вернул редакцию IP http://flylinkdc.com/forum/viewtopic.php?f=23&t=1294&p=5065#p5065
-	::EnableWindow(GetDlgItem(IDC_IP_GET_IP), !auto_detect && (upnp || nat) && !m_is_manual); //[+]PPA
+	::EnableWindow(GetDlgItem(IDC_IP_GET_IP), !auto_detect && (upnp || nat) && !m_is_manual);
 	::EnableWindow(GetDlgItem(IDC_NO_IP_OVERRIDE), false); // !auto_detect && (direct || upnp || nat || nat_traversal));
 #ifdef IRAINMAN_IP_AUTOUPDATE
 	::EnableWindow(GetDlgItem(IDC_IPUPDATE), (upnp || nat));
@@ -270,9 +270,6 @@ void NetworkPage::fixControls()
 	::EnableWindow(GetDlgItem(IDC_PORT_UDP),  l_port_enabled);
 	::EnableWindow(GetDlgItem(IDC_PORT_TLS),  l_port_enabled && CryptoManager::TLSOk());
 	::EnableWindow(GetDlgItem(IDC_BIND_ADDRESS), !auto_detect);
-	//::EnableWindow(GetDlgItem(IDC_SETTINGS_BIND_ADDRESS_HELP), !auto_detect);
-	//::EnableWindow(GetDlgItem(IDC_NATT), passive); // for passive settings only,  [-] IRainman fix: why??
-	//::EnableWindow(GetDlgItem(IDC_SETTINGS_PORTS_UPNP), upnp);
 	
 	
 #ifdef RIP_USE_CONNECTION_AUTODETECT

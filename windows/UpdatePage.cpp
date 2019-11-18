@@ -51,33 +51,32 @@ PropPage::Item UpdatePage::items[] =
 
 UpdatePage::ListItem UpdatePage::listItems[] =
 {
-	{ SettingsManager::AUTOUPDATE_SHOWUPDATEREADY, ResourceManager::AUTOUPDATE_SHOWUPDATEREADY}, // [+] SSA
-	{ SettingsManager::AUTOUPDATE_FORCE_RESTART, ResourceManager::AUTOUPDATE_FORCE_RESTART}, // [+] SSA
+	{ SettingsManager::AUTOUPDATE_SHOWUPDATEREADY, ResourceManager::AUTOUPDATE_SHOWUPDATEREADY},
+	{ SettingsManager::AUTOUPDATE_FORCE_RESTART, ResourceManager::AUTOUPDATE_FORCE_RESTART},
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
 UpdatePage::ListItem UpdatePage::listComponents[] =
 {
-	{ SettingsManager::AUTOUPDATE_EXE, ResourceManager::AUTOUPDATE_EXE}, // [+] SSA
-	{ SettingsManager::AUTOUPDATE_ANTIVIRUS_DB, ResourceManager::AUTOUPDATE_ANTIVIRUS_DB}, // [+] SSA
-	{ SettingsManager::AUTOUPDATE_UTILITIES, ResourceManager::AUTOUPDATE_UTILITIES}, // [+] SSA
-	{ SettingsManager::AUTOUPDATE_LANG, ResourceManager::AUTOUPDATE_LANG}, // [+] SSA
-	{ SettingsManager::AUTOUPDATE_PORTALBROWSER, ResourceManager::AUTOUPDATE_PORTALBROWSER}, // [+] SSA
+	{ SettingsManager::AUTOUPDATE_EXE, ResourceManager::AUTOUPDATE_EXE},
+	{ SettingsManager::AUTOUPDATE_ANTIVIRUS_DB, ResourceManager::AUTOUPDATE_ANTIVIRUS_DB},
+	{ SettingsManager::AUTOUPDATE_UTILITIES, ResourceManager::AUTOUPDATE_UTILITIES},
+	{ SettingsManager::AUTOUPDATE_LANG, ResourceManager::AUTOUPDATE_LANG},
+	{ SettingsManager::AUTOUPDATE_PORTALBROWSER, ResourceManager::AUTOUPDATE_PORTALBROWSER},
 #ifdef IRAINMAN_INCLUDE_SMILE
-	{ SettingsManager::AUTOUPDATE_EMOPACKS, ResourceManager::AUTOUPDATE_EMOPACKS}, // [+] SSA
+	{ SettingsManager::AUTOUPDATE_EMOPACKS, ResourceManager::AUTOUPDATE_EMOPACKS},
 #endif
-	{ SettingsManager::AUTOUPDATE_WEBSERVER, ResourceManager::WEBSERVER}, // [+] SSA
-	// { SettingsManager::AUTOUPDATE_UPDATE_CHATBOT, ResourceManager::AUTOUPDATE_UPDATE_CHATBOT}, // [+] SSA - we don't update chat bot
-	{ SettingsManager::AUTOUPDATE_SOUNDS, ResourceManager::AUTOUPDATE_SOUNDS}, // [+] SSA
-	{ SettingsManager::AUTOUPDATE_ICONTHEMES, ResourceManager::AUTOUPDATE_ICONTHEMES}, // [+] SSA
-	{ SettingsManager::AUTOUPDATE_COLORTHEMES, ResourceManager::AUTOUPDATE_COLORTHEMES}, // [+] SSA
-	{ SettingsManager::AUTOUPDATE_DOCUMENTATION, ResourceManager::AUTOUPDATE_DOCUMENTATION}, // [+] SSA
+	{ SettingsManager::AUTOUPDATE_WEBSERVER, ResourceManager::WEBSERVER},
+	{ SettingsManager::AUTOUPDATE_SOUNDS, ResourceManager::AUTOUPDATE_SOUNDS},
+	{ SettingsManager::AUTOUPDATE_ICONTHEMES, ResourceManager::AUTOUPDATE_ICONTHEMES},
+	{ SettingsManager::AUTOUPDATE_COLORTHEMES, ResourceManager::AUTOUPDATE_COLORTHEMES},
+	{ SettingsManager::AUTOUPDATE_DOCUMENTATION, ResourceManager::AUTOUPDATE_DOCUMENTATION},
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
-	{ SettingsManager::AUTOUPDATE_GEOIP, ResourceManager::AUTOUPDATE_GEOIP}, // [+] IRainman
-	{ SettingsManager::AUTOUPDATE_CUSTOMLOCATION, ResourceManager::AUTOUPDATE_CUSTOMLOCATION}, // [+] IRainman
+	{ SettingsManager::AUTOUPDATE_GEOIP, ResourceManager::AUTOUPDATE_GEOIP},
+	{ SettingsManager::AUTOUPDATE_CUSTOMLOCATION, ResourceManager::AUTOUPDATE_CUSTOMLOCATION},
 #endif
 #ifdef SSA_SHELL_INTEGRATION
-	{ SettingsManager::AUTOUPDATE_SHELL_EXT, ResourceManager::AUTOUPDATE_SHELL_EXT}, // [+] IRainman
+	{ SettingsManager::AUTOUPDATE_SHELL_EXT, ResourceManager::AUTOUPDATE_SHELL_EXT},
 #endif
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
@@ -96,8 +95,8 @@ LRESULT UpdatePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	PropPage::read(*this, items, listItems, GetDlgItem(IDC_AUTOUPDATE_LIST));
 	PropPage::read(*this, NULL, listComponents, GetDlgItem(IDC_AUTOUPDATE_COMPONENTS));
 	
-	ctrlComponents.Attach(GetDlgItem(IDC_AUTOUPDATE_LIST)); // [+] IRainman
-	ctrlAutoupdates.Attach(GetDlgItem(IDC_AUTOUPDATE_COMPONENTS)); // [+] IRainman
+	ctrlComponents.Attach(GetDlgItem(IDC_AUTOUPDATE_LIST));
+	ctrlAutoupdates.Attach(GetDlgItem(IDC_AUTOUPDATE_COMPONENTS));
 	
 	
 	ctrlTime.Attach(GetDlgItem(IDC_AUTOUPDATE_AT));
@@ -113,7 +112,7 @@ LRESULT UpdatePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 #else
 	EnableAutoUpdate(BOOLSETTING(AUTOUPDATE_ENABLE));
 #endif
-	// [+] SSA
+	
 	CheckUseCustomURL();
 	// Do specialized reading here
 	return TRUE;

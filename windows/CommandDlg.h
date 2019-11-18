@@ -40,7 +40,7 @@ class CommandDlg : public CDialogImpl<CommandDlg>
 		CButton ctrlSearchMenu;
 		CButton ctrlFilelistMenu;
 		CButton ctrlOnce;
-		CEdit ctrlResult;//[+]FlylinkDC
+		CEdit ctrlResult;
 		
 	public:
 		int type;

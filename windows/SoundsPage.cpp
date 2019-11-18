@@ -27,11 +27,10 @@ PropPage::TextItem Sounds::texts[] =
 	{ IDC_PRIVATE_MESSAGE_BEEP, ResourceManager::SETTINGS_PM_BEEP },
 	{ IDC_PRIVATE_MESSAGE_BEEP_OPEN, ResourceManager::SETTINGS_PM_BEEP_OPEN },
 	{ IDC_CZDC_SOUND, ResourceManager::SETTINGS_SOUNDS },
-	//{ IDC_BROWSE, ResourceManager::BROWSE }, // [~] JhaoDa, not necessary any more
 	{ IDC_PLAY, ResourceManager::PLAY },
 	{ IDC_NONE, ResourceManager::NONE },
 	{ IDC_DEFAULT, ResourceManager::DEFAULT },
-	{ IDC_SOUNDS, ResourceManager::SOUND_THEME },   // [+] SCALOlaz: Sounds Combo
+	{ IDC_SOUNDS, ResourceManager::SOUND_THEME },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -210,13 +209,13 @@ LRESULT Sounds::onDefault(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, 
 	{
 		tstring l_themePath = Text::toT(Util::getSoundPath() + SETTING(THEME_MANAGER_SOUNDS_THEME_NAME));
 		AppendPathSeparator(l_themePath);
-		const tstring l_selectedSoundPath = l_themePath + g_SoundsTable[ctrlSounds.GetSelectionMark()];  // [~] SCALOlaz: remaked default setting with massive
+		const tstring l_selectedSoundPath = l_themePath + g_SoundsTable[ctrlSounds.GetSelectionMark()];
 		ctrlSounds.SetItemText(item.iItem, 1, l_selectedSoundPath.c_str());
 	}
 	return 0;
 }
 
-void Sounds::DefaultAllSounds() // [+] SCALOlaz: turn all sounds to default, on Sound Theme or default at choose Theme
+void Sounds::DefaultAllSounds()
 {
 	ctrlSNDTheme.Attach(GetDlgItem(IDC_SOUNDS_COMBO));
 	const tstring l_themeName = Text::toT(WinUtil::getDataFromMap(ctrlSNDTheme.GetCurSel(), m_SNDThemeList));
@@ -236,9 +235,9 @@ void Sounds::fixControls()
 {
 	BOOL l_Enable = IsDlgButtonChecked(IDC_SOUND_ENABLE) == BST_CHECKED;
 	
-	::EnableWindow(GetDlgItem(IDC_CZDC_SOUND), l_Enable);// TODO: make these interface elements in gray when disabled
+	::EnableWindow(GetDlgItem(IDC_CZDC_SOUND), l_Enable);
 	::EnableWindow(GetDlgItem(IDC_SOUNDLIST), l_Enable);
-	::EnableWindow(GetDlgItem(IDC_SOUNDS_COMBO), l_Enable); // [+] SCALOlaz: Sound Themes
+	::EnableWindow(GetDlgItem(IDC_SOUNDS_COMBO), l_Enable);
 	::EnableWindow(GetDlgItem(IDC_PLAY), l_Enable);
 	::EnableWindow(GetDlgItem(IDC_DEFAULT), l_Enable);
 	::EnableWindow(GetDlgItem(IDC_NONE), l_Enable);
@@ -253,7 +252,7 @@ LRESULT Sounds::onClickedActive(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 	return 0;
 }
 
-void Sounds::GetSNDThemeList()  // [+] SCALOlaz: get a list of dir's from SoundPatch.
+void Sounds::GetSNDThemeList()
 {
 	if (m_SNDThemeList.empty())
 	{

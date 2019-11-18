@@ -192,7 +192,6 @@ LRESULT CALLBACK CheckMessageBoxProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 					{
 						GetWindowRect(current, &rt);
 						ScreenToClient(hWnd, &rt);
-						//current = NULL; [-] IRainman.
 						break;
 					}
 				}

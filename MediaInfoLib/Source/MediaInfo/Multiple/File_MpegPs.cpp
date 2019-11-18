@@ -3149,7 +3149,7 @@ void File_MpegPs::private_stream_1_Element_Info1()
         else if (private_stream_1_ID>=0xB0 && private_stream_1_ID<=0xBF)
             Element_Info1("MLP");
         //AC3+
-        else if (private_stream_1_ID>=0xC0 && private_stream_1_ID<=0xCF) ////[!]PVS-Studio V517	The use of 'if (A) {...} else if (A) {...}' pattern was detected. There is a probability of logical error presence.	MediaInfoLib	file_mpegps.cpp	2480	False	
+        else if (private_stream_1_ID>=0xC0 && private_stream_1_ID<=0xCF) //[!]PVS-Studio V517 The use of 'if (A) {...} else if (A) {...}' pattern was detected. There is a probability of logical error presence.	MediaInfoLib	file_mpegps.cpp	2480	False	
             Element_Info1("AC3+");
     }
 }

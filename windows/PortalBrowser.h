@@ -95,7 +95,7 @@ class PortalBrowserFrame : public MDITabChildWindowImpl < PortalBrowserFrame, RG
 		MESSAGE_HANDLER(WM_QUEUE_HANDLE_FULL_SCREEN, HandleFullScreen)
 		MESSAGE_HANDLER(WM_MDIACTIVATE, onMDIActivate)
 		MESSAGE_HANDLER(WM_CLOSE, onClose)
-		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		CHAIN_MSG_MAP(baseClass)
 		END_MSG_MAP()
 		
@@ -106,7 +106,7 @@ class PortalBrowserFrame : public MDITabChildWindowImpl < PortalBrowserFrame, RG
 		LRESULT onMDIActivate(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		LRESULT onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 		
-		// [+] InfinitySky.
+		
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			PostMessage(WM_CLOSE);
@@ -139,7 +139,7 @@ class PortalBrowserFrame : public MDITabChildWindowImpl < PortalBrowserFrame, RG
 		HANDLE m_hBrowser;
 		
 		static std::map<std::wstring, PortalBrowserFrame*> g_portal_frames;
-		static FastCriticalSection g_cs; // [!] IRainman opt: use spin lock here.
+		static FastCriticalSection g_cs;
 		
 		std::wstring m_strName;
 		bool m_bSizing;

@@ -809,7 +809,7 @@ string Players::getWinampSpam(HWND playerWnd, int playerType)
 		tstring title = titleBuffer.data();
 		params["rawtitle"] = Text::fromT(title);
 #if defined (SSA_NEW_WINAMP_PROC_FOR_TITLE_AND_FILENAME)
-		// [+] SSA
+		
 		const int idx = SendMessage(playerWnd, WM_WA_IPC, 0, IPC_GETLISTPOS);
 		if (idx >= 0)
 		{
@@ -903,7 +903,6 @@ string Players::getWinampSpam(HWND playerWnd, int playerType)
 		int waSampleRate = SendMessage(playerWnd, WM_USER, 0, IPC_GETINFO),
 		    waBitRate = SendMessage(playerWnd, WM_USER, 1, IPC_GETINFO),
 		    waChannels = SendMessage(playerWnd, WM_USER, 2, IPC_GETINFO);
-		//[!] SSA fix for QCD
 		if (playerType == 1 || BOOLSETTING(USE_BITRATE_FIX_FOR_SPAM))
 		{
 			if (waSampleRate > 100) // if in Herz
@@ -915,7 +914,6 @@ string Players::getWinampSpam(HWND playerWnd, int playerType)
 				waBitRate = waBitRate / 1000.0;
 			}
 		}
-		//[!] SSA fix for AIMP
 		params["bitrate"] = Util::toString(waBitRate) + "kbps";
 		params["sample"] = Util::toString(waSampleRate) + "kHz";
 		// later it should get some improvement:

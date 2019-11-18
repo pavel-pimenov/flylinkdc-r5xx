@@ -75,7 +75,7 @@ class GeneralPage : public CPropertyPage<IDD_GENERAL_PAGE>, public PropPage
 		static Item items[];
 		static TextItem texts[];
 		
-		CComboBox ctrlLanguage;     // [+] SCALOlaz, Lang Select
+		CComboBox ctrlLanguage;
 		CFlyHyperLink m_LangTranslate;
 		
 		typedef boost::unordered_map<wstring, string> LanguageMap;

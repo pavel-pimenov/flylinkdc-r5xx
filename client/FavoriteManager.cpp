@@ -54,7 +54,6 @@ StringSet FavoriteManager::g_sync_hub_isp_delete;
 #endif
 StringSet FavoriteManager::g_redirect_hubs;
 
-// [+] IRainman mimicry function
 const FavoriteManager::mimicrytag FavoriteManager::g_MimicryTags[] =
 {
 	// Up from http://ru.wikipedia.org/wiki/DC%2B%2B
@@ -278,13 +277,13 @@ void FavoriteManager::removeUserCommand(const string& p_Hub)
 		}
 #endif
 #ifdef PPA_USER_COMMANDS_HUBS_SET
-		bool hubWithoutCommands = true; // [+] IRainman fix: cleanup.
+		bool hubWithoutCommands = true;
 #endif
 		
 		for (auto i = g_userCommands.cbegin(); i != g_userCommands.cend();)
 		{
 			const bool matchHub = i->getHub() == p_Hub;
-			if (i->isSet(UserCommand::FLAG_NOSAVE) && matchHub) // [!] IRainman opt: reordering conditions.
+			if (i->isSet(UserCommand::FLAG_NOSAVE) && matchHub)
 			{
 #ifdef _DEBUG
 				// LogManager::message("FavoriteManager::removeUserCommand srv = " + p_Hub + " g_userCommands.erase()! g_userCommands.size() = " + Util::toString(g_userCommands.size()));
@@ -319,12 +318,12 @@ void FavoriteManager::removeHubUserCommands(int ctx, const string& p_Hub)
 #endif
 	{
 #ifdef PPA_USER_COMMANDS_HUBS_SET
-		bool hubWithoutCommands = true; // [+] IRainman fix: cleanup.
+		bool hubWithoutCommands = true;
 #endif
 		for (auto i = g_userCommands.cbegin(); i != g_userCommands.cend();)
 		{
 			const bool matchHub = i->getHub() == p_Hub;
-			if (i->isSet(UserCommand::FLAG_NOSAVE) && (i->getCtx() & ctx) != 0 && matchHub) // [!] IRainman opt: reordering conditions.
+			if (i->isSet(UserCommand::FLAG_NOSAVE) && (i->getCtx() & ctx) != 0 && matchHub)
 			{
 				i = g_userCommands.erase(i);
 			}
@@ -352,14 +351,11 @@ void FavoriteManager::updateEmptyStateL()
 	g_isNotEmpty = !g_fav_users_map.empty();
 	g_fav_users.clear();
 	getFavoriteUsersNamesL(g_fav_users, false);
-	//getFavoriteUsersNamesL(m_ban_users,true);
 }
 
-// [+] SSA addUser (Unified)
 bool FavoriteManager::addUserL(const UserPtr& aUser, FavoriteMap::iterator& iUser, bool create /*= true*/)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
-	// [!] always use external lock for this function.
 	iUser = g_fav_users_map.find(aUser->getCID());
 	if (iUser == g_fav_users_map.end() && create)
 	{
@@ -379,7 +375,7 @@ bool FavoriteManager::addUserL(const UserPtr& aUser, FavoriteMap::iterator& iUse
 	return false;
 }
 
-bool FavoriteManager::getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskType& p_flags, int& p_uploadLimit) // [+] IRainman opt.
+bool FavoriteManager::getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskType& p_flags, int& p_uploadLimit)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	if (isNotEmpty())
@@ -396,7 +392,7 @@ bool FavoriteManager::getFavUserParam(const UserPtr& aUser, FavoriteUser::MaskTy
 	return false;
 }
 
-bool FavoriteManager::isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser) // [+] IRainman opt.
+bool FavoriteManager::isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	if (isNotEmpty())
@@ -408,14 +404,14 @@ bool FavoriteManager::isNoFavUserOrUserIgnorePrivate(const UserPtr& aUser) // [+
 	return true;
 }
 
-bool FavoriteManager::isNoFavUserOrUserBanUpload(const UserPtr& aUser) // [+] IRainman opt.
+bool FavoriteManager::isNoFavUserOrUserBanUpload(const UserPtr& aUser)
 {
 	bool p_is_ban;
 	const bool l_is_fav = isFavoriteUser(aUser, p_is_ban);
 	return !l_is_fav || p_is_ban;
 }
 
-bool FavoriteManager::getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_favuser) // [+] IRainman opt.
+bool FavoriteManager::getFavoriteUser(const UserPtr& p_user, FavoriteUser& p_favuser)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	if (isNotEmpty())
@@ -471,7 +467,6 @@ void FavoriteManager::getFavoriteUsersNamesL(StringSet& p_users, bool p_is_ban) 
 }
 void FavoriteManager::addFavoriteUser(const UserPtr& aUser)
 {
-	// [!] SSA see _addUserIfnotExist function
 	{
 		FavoriteMap::iterator i;
 		FavoriteUser l_fav_user;
@@ -519,23 +514,21 @@ string FavoriteManager::getUserUrl(const UserPtr& aUser)
 	return Util::emptyString;
 }
 
-FavoriteHubEntry* FavoriteManager::addFavorite(const FavoriteHubEntry& aEntry, const AutoStartType p_autostart/* = NOT_CHANGE*/) // [!] IRainman fav options
+FavoriteHubEntry* FavoriteManager::addFavorite(const FavoriteHubEntry& aEntry, const AutoStartType p_autostart/* = NOT_CHANGE*/)
 {
 	if (FavoriteHubEntry* l_fhe = getFavoriteHubEntry(aEntry.getServer()))
 	{
-		// [+] IRainman fav options
 		if (p_autostart != NOT_CHANGE)
 		{
 			l_fhe->setConnect(p_autostart == ADD);
 			fly_fire1(FavoriteManagerListener::FavoriteAdded(), (FavoriteHubEntry*)NULL); // rebuild fav hubs list
 		}
 		return l_fhe;
-		// [~] IRainman
 	}
 	FavoriteHubEntry* f = new FavoriteHubEntry(aEntry);
-	f->setConnect(p_autostart == ADD);// [+] IRainman fav options
+	f->setConnect(p_autostart == ADD);
 	{
-		CFlyWriteLock(*g_csHubs); // [+] IRainman fix.
+		CFlyWriteLock(*g_csHubs);
 		g_favoriteHubs.push_back(f);
 	}
 	fly_fire1(FavoriteManagerListener::FavoriteAdded(), f);
@@ -546,7 +539,7 @@ FavoriteHubEntry* FavoriteManager::addFavorite(const FavoriteHubEntry& aEntry, c
 void FavoriteManager::removeFavorite(const FavoriteHubEntry* entry)
 {
 	{
-		CFlyWriteLock(*g_csHubs); // [+] IRainman fix.
+		CFlyWriteLock(*g_csHubs);
 		auto i = find(g_favoriteHubs.begin(), g_favoriteHubs.end(), entry);
 		if (i == g_favoriteHubs.end())
 			return;
@@ -560,7 +553,7 @@ void FavoriteManager::removeFavorite(const FavoriteHubEntry* entry)
 
 bool FavoriteManager::addFavoriteDir(string aDirectory, const string& aName, const string& aExt)
 {
-	AppendPathSeparator(aDirectory); //[+]PPA
+	AppendPathSeparator(aDirectory);
 	
 	{
 		CFlyWriteLock(*g_csDirs);
@@ -574,7 +567,7 @@ bool FavoriteManager::addFavoriteDir(string aDirectory, const string& aName, con
 			{
 				return false;
 			}
-			if (!aExt.empty() && stricmp(aExt, Util::toSettingString(i->ext)) == 0) // [!] IRainman opt.
+			if (!aExt.empty() && stricmp(aExt, Util::toSettingString(i->ext)) == 0)
 			{
 				return false;
 			}
@@ -590,7 +583,7 @@ bool FavoriteManager::removeFavoriteDir(const string& aName)
 {
 	string d(aName);
 	
-	AppendPathSeparator(d); //[+]PPA
+	AppendPathSeparator(d);
 	
 	bool upd = false;
 	{
@@ -634,7 +627,7 @@ bool FavoriteManager::renameFavoriteDir(const string& aName, const string& anoth
 	return upd;
 }
 
-bool FavoriteManager::updateFavoriteDir(const string& aName, const string& dir, const string& ext) // [!] IRainman opt.
+bool FavoriteManager::updateFavoriteDir(const string& aName, const string& dir, const string& ext)
 {
 	bool upd = false;
 	{
@@ -665,7 +658,7 @@ string FavoriteManager::getDownloadDirectory(const string& ext)
 		CFlyReadLock(*g_csDirs);
 		for (auto i = g_favoriteDirs.cbegin(); i != g_favoriteDirs.cend(); ++i)
 		{
-			for (auto j = i->ext.cbegin(); j != i->ext.cend(); ++j) // [!] IRainman opt.
+			for (auto j = i->ext.cbegin(); j != i->ext.cend(); ++j)
 			{
 				if (stricmp(ext.substr(1).c_str(), j->c_str()) == 0)
 					return i->dir;
@@ -733,13 +726,11 @@ void FavoriteManager::save_favorites()
 		xml.addTag("Favorites");
 		xml.stepIn();
 		
-		//xml.addChildAttrib("ConfigVersion", string(A_REVISION_NUM_STR));// [+] IRainman fav options
-		
 		xml.addTag("Hubs");
 		xml.stepIn();
 		
 		{
-			CFlyReadLock(*g_csHubs); // [+] IRainman fix.
+			CFlyReadLock(*g_csHubs);
 			for (auto i = g_favHubGroups.cbegin(), iend = g_favHubGroups.cend(); i != iend; ++i)
 			{
 				xml.addTag("Group");
@@ -756,7 +747,7 @@ void FavoriteManager::save_favorites()
 				xml.addChildAttribIfNotEmpty("Password", (*i)->getPassword());
 				xml.addChildAttrib("Server", (*i)->getServer());
 				xml.addChildAttribIfNotEmpty("UserDescription", (*i)->getUserDescription());
-				if (!Util::isAdcHub((*i)->getServer())) // [+] IRainman fix.
+				if (!Util::isAdcHub((*i)->getServer()))
 				{
 					xml.addChildAttrib("Encoding", (*i)->getEncoding());
 				}
@@ -799,12 +790,9 @@ void FavoriteManager::save_favorites()
 				xml.addChildAttribIfNotEmpty("AntivirusCommandIP", (*i)->getAntivirusCommandIP());
 				xml.addChildAttrib("SearchInterval", Util::toString((*i)->getSearchInterval()));
 				xml.addChildAttrib("SearchIntervalPassive", Util::toString((*i)->getSearchIntervalPassive()));
-				// [!] IRainman mimicry function
-				// [-] xml.addChildAttrib("CliendId", (*i)->getClientId()); // !SMT!-S
 				xml.addChildAttribIfNotEmpty("ClientName", (*i)->getClientName());
 				xml.addChildAttribIfNotEmpty("ClientVersion", (*i)->getClientVersion());
-				xml.addChildAttrib("OverrideId", Util::toString((*i)->getOverrideId())); // !SMT!-S
-				// [~] IRainman mimicry function
+				xml.addChildAttrib("OverrideId", Util::toString((*i)->getOverrideId()));
 				xml.addChildAttribIfNotEmpty("Group", (*i)->getGroup());
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 				xml.addChildAttrib("Status", (*i)->getConnectionStatus().getStatus());
@@ -829,16 +817,16 @@ void FavoriteManager::save_favorites()
 				if (u.getUploadLimit() == FavoriteUser::UL_SU)
 					xml.addChildAttrib("SuperUser", true);
 				if (u.getUploadLimit())
-					xml.addChildAttrib("UploadLimit", u.getUploadLimit()); // !SMT!-S
+					xml.addChildAttrib("UploadLimit", u.getUploadLimit());
 				if (u.isSet(FavoriteUser::FLAG_IGNORE_PRIVATE))
-					xml.addChildAttrib("IgnorePrivate", true); // !SMT!-S
+					xml.addChildAttrib("IgnorePrivate", true);
 				if (u.isSet(FavoriteUser::FLAG_FREE_PM_ACCESS))
-					xml.addChildAttrib("FreeAccessPM", true); // !SMT!-PSW
+					xml.addChildAttrib("FreeAccessPM", true);
 				if (!u.getDescription().empty())
 					xml.addChildAttrib("UserDescription", u.getDescription());
 				xml.addChildAttrib("Nick", u.getNick());
 				xml.addChildAttrib("URL", u.getUrl());
-				if (Util::isAdcHub(u.getUrl())) // [+] IRainman fix.
+				if (Util::isAdcHub(u.getUrl()))
 					xml.addChildAttrib("CID", i->first.toBase32());
 			}
 		}
@@ -847,7 +835,7 @@ void FavoriteManager::save_favorites()
 		xml.addTag("UserCommands");
 		xml.stepIn();
 		{
-			CFlyReadLock(*g_csUserCommand); // [+] IRainman opt.
+			CFlyReadLock(*g_csUserCommand);
 			for (auto i = g_userCommands.cbegin(); i != g_userCommands.cend(); ++i)
 			{
 				if (!i->isSet(UserCommand::FLAG_NOSAVE))
@@ -976,7 +964,7 @@ bool FavoriteManager::load_from_url()
 					xml.stepIn();
 					load(xml, true);
 					xml.stepOut();
-					return true; //[ok]
+					return true;
 				}
 			}
 		}
@@ -1041,13 +1029,13 @@ void FavoriteManager::load()
 		g_count_hub = 0;
 	}
 #ifdef USE_SUPPORT_HUB
-	if (BOOLSETTING(CONNECT_TO_SUPPORT_HUB) || g_count_hub == 0) // [+] SSA
+	if (BOOLSETTING(CONNECT_TO_SUPPORT_HUB) || g_count_hub == 0)
 	{
 		connectToFlySupportHub();
 	}
 #endif // USE_SUPPORT_HUB
 	
-	const bool oldConfigExist = !g_recentHubs.empty(); // [+] IRainman fix: FlylinkDC stores recents hubs in the sqlite database, so you need to keep the values in the database after loading the file.
+	const bool oldConfigExist = !g_recentHubs.empty();
 	
 	const std::vector<StringPair> l_dead_hubs = CFlyServerConfig::getDeadHub();
 	
@@ -1086,12 +1074,11 @@ void FavoriteManager::load()
 			}
 		}
 	}
-	// [+] IRainman fix: FlylinkDC stores recents hubs in the sqlite database, so you need to keep the values in the database after loading the file.
 	if (oldConfigExist)
 	{
 		g_recent_dirty = true;
 	}
-	// [~] IRainman fix.
+	
 #ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 	if (load_from_url() && !g_sync_hub_external.empty())
 	{
@@ -1229,7 +1216,6 @@ void FavoriteManager::load(SimpleXML& aXml
 	}
 	{
 		CFlySafeGuard<uint16_t> l_satrt(g_dontSave);
-		//const int l_configVersion = Util::toInt(aXml.getChildAttrib("ConfigVersion"));// [+] IRainman fav options
 		aXml.resetCurrentChild();
 		if (aXml.findChild("Hubs"))
 		{
@@ -1238,7 +1224,7 @@ void FavoriteManager::load(SimpleXML& aXml
 			if (!p_is_url)
 #endif
 			{
-				CFlyWriteLock(*g_csHubs); // [+] IRainman fix.
+				CFlyWriteLock(*g_csHubs);
 				while (aXml.findChild("Group"))
 				{
 					const string& name = aXml.getChildAttrib("Name");
@@ -1341,7 +1327,7 @@ void FavoriteManager::load(SimpleXML& aXml
 				const string l_clientName = aXml.getChildAttrib("ClientName");
 				const string l_clientVersion = aXml.getChildAttrib("ClientVersion");
 				
-				// [!] IRainman fix.
+				
 				if (Util::isAdcHub(l_CurrentServerUrl))
 				{
 					e->setEncoding(Text::g_utf8);
@@ -1350,7 +1336,7 @@ void FavoriteManager::load(SimpleXML& aXml
 				{
 					e->setEncoding(aXml.getChildAttrib("Encoding"));
 				}
-				// [~] IRainman fix.
+				
 #ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 				if (!p_is_url)
 				{
@@ -1409,9 +1395,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					e->setAutobanAntivirusNick(aXml.getBoolChildAttrib("AutobanAntivirusNick"));
 					e->setAntivirusCommandIP(aXml.getChildAttrib("AntivirusCommandIP"));
 					
-					// [+] IRainman mimicry function
-					//if (l_configVersion <= xxxx)
-					const string& l_ClientID = aXml.getChildAttrib("CliendId"); // !SMT!-S
+					const string& l_ClientID = aXml.getChildAttrib("CliendId");
 					if (!l_ClientID.empty())
 					{
 						string l_ClientName, l_ClientVersion;
@@ -1424,8 +1408,7 @@ void FavoriteManager::load(SimpleXML& aXml
 						e->setClientName(l_clientName);
 						e->setClientVersion(l_clientVersion);
 					}
-					e->setOverrideId(l_isOverrideId); // !SMT!-S
-					// [~] IRainman mimicry function
+					e->setOverrideId(l_isOverrideId);
 					e->setGroup(l_Group);
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 					e->setSavedConnectionStatus(Util::toInt(aXml.getChildAttrib("Status")),
@@ -1440,7 +1423,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					{
 						FavHubGroupProperties props = { aXml.getBoolChildAttrib("Public") };
 						
-						CFlyWriteLock(*g_csHubs); // [+] IRainman fix.
+						CFlyWriteLock(*g_csHubs);
 						
 						g_favHubGroups["ISP"] = props;
 						g_favHubGroups["ISP Recycled"] = props;
@@ -1567,10 +1550,9 @@ void FavoriteManager::load(SimpleXML& aXml
 				while (aXml.findChild("User"))
 				{
 					UserPtr u;
-					// [!] FlylinkDC
 					const string nick = aXml.getChildAttrib("Nick");
 					
-					const string hubUrl = Util::formatDchubUrl(aXml.getChildAttrib("URL")); // [!] IRainman fix: toLower already called in formatDchubUrl ( decodeUrl )
+					const string hubUrl = Util::formatDchubUrl(aXml.getChildAttrib("URL"));
 					
 					const string cid = Util::isAdcHub(hubUrl) ? aXml.getChildAttrib("CID") : ClientManager::makeCid(nick, hubUrl).toBase32();
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
@@ -1578,7 +1560,6 @@ void FavoriteManager::load(SimpleXML& aXml
 #else
 					const uint32_t l_hub_id = 0;
 #endif
-					// [~] FlylinkDC
 					
 					if (cid.length() != 39)
 					{
@@ -1594,9 +1575,9 @@ void FavoriteManager::load(SimpleXML& aXml
 					CFlyWriteLock(*g_csFavUsers);
 					auto i = g_fav_users_map.insert(std::make_pair(u->getCID(), FavoriteUser(u, nick, hubUrl))).first;
 					
-					if (aXml.getBoolChildAttrib("IgnorePrivate")) // !SMT!-S
+					if (aXml.getBoolChildAttrib("IgnorePrivate"))
 						i->second.setFlag(FavoriteUser::FLAG_IGNORE_PRIVATE);
-					if (aXml.getBoolChildAttrib("FreeAccessPM")) // !SMT!-PSW
+					if (aXml.getBoolChildAttrib("FreeAccessPM"))
 						i->second.setFlag(FavoriteUser::FLAG_FREE_PM_ACCESS);
 						
 					i->second.setUploadLimit(FavoriteUser::UPLOAD_LIMIT(aXml.getIntChildAttrib("UploadLimit")));
@@ -1606,7 +1587,7 @@ void FavoriteManager::load(SimpleXML& aXml
 					if (aXml.getBoolChildAttrib("GrantSlot"))
 						i->second.setFlag(FavoriteUser::FLAG_GRANT_SLOT);
 						
-					i->second.setLastSeen(aXml.getInt64ChildAttrib("LastSeen")); // [!] IRainman fix.
+					i->second.setLastSeen(aXml.getInt64ChildAttrib("LastSeen"));
 					
 					i->second.setDescription(aXml.getChildAttrib("UserDescription"));
 				}
@@ -1660,7 +1641,7 @@ void FavoriteManager::userUpdated(const OnlineUser& info)
 
 FavoriteHubEntry* FavoriteManager::getFavoriteHubEntry(const string& aServer)
 {
-	CFlyReadLock(*g_csHubs); // [+] IRainman fix.
+	CFlyReadLock(*g_csHubs);
 #ifdef _DEBUG
 	static int g_count;
 	static string g_last_url;
@@ -1711,7 +1692,7 @@ bool FavoriteManager::isPrivate(const string& p_url)
 			const string& name = fav->getGroup();
 			if (!name.empty())
 			{
-				CFlyReadLock(*g_csHubs); // [+] IRainman fix.
+				CFlyReadLock(*g_csHubs);
 				const auto group = g_favHubGroups.find(name);
 				if (group != g_favHubGroups.end())
 				{
@@ -1723,7 +1704,7 @@ bool FavoriteManager::isPrivate(const string& p_url)
 	return false;
 }
 
-// !SMT!-S
+
 void FavoriteManager::setUploadLimit(const UserPtr& aUser, int lim, bool createUser/* = true*/)
 {
 	ConnectionManager::setUploadLimit(aUser, lim);
@@ -1743,7 +1724,7 @@ void FavoriteManager::setUploadLimit(const UserPtr& aUser, int lim, bool createU
 	}
 	save_favorites();
 }
-// !SMT!-S
+
 bool FavoriteManager::getFlag(const UserPtr& aUser, FavoriteUser::Flags f)
 {
 	if (!ClientManager::isBeforeShutdown() && isNotEmpty())
@@ -1757,7 +1738,7 @@ bool FavoriteManager::getFlag(const UserPtr& aUser, FavoriteUser::Flags f)
 	}
 	return false;
 }
-// !SMT!-S
+
 void FavoriteManager::setFlag(const UserPtr& aUser, FavoriteUser::Flags f, bool value, bool createUser /*= true*/)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
@@ -1841,7 +1822,7 @@ RecentHubEntry* FavoriteManager::getRecentHubEntry(const string& aServer)
 	}
 	return nullptr;
 }
-UserCommand::List FavoriteManager::getUserCommands(int ctx, const StringList& hubs/*[-] IRainman fix, bool& op*/) const
+UserCommand::List FavoriteManager::getUserCommands(int ctx, const StringList& hubs) const
 {
 	std::vector<bool> isOp(hubs.size());
 	
@@ -1996,7 +1977,7 @@ void FavoriteManager::speakUserUpdate(const bool added, const FavoriteUser& p_fa
 		}
 	}
 }
-// [!] IRainman fix.
+
 PreviewApplication* FavoriteManager::addPreviewApp(const string& name, const string& application, const string& arguments, string p_extension) // [!] PVS V813 Decreased performance. The 'name', 'application', 'arguments', 'extension' arguments should probably be rendered as constant references. favoritemanager.h 366
 {
 	boost::replace_all(p_extension, " ", "");
@@ -2011,7 +1992,7 @@ void FavoriteManager::removePreviewApp(const size_t index)
 	if (g_previewApplications.size() > index)
 	{
 		auto i = g_previewApplications.begin() + index;
-		delete *i; // [+] IRainman fix memory leak.
+		delete *i;
 		g_previewApplications.erase(i);
 	}
 }
@@ -2024,7 +2005,7 @@ PreviewApplication* FavoriteManager::getPreviewApp(const size_t index)
 	}
 	return nullptr;
 }
-// [~] IRainman fix.
+
 void FavoriteManager::removeallRecent()
 {
 	g_recentHubs.clear();

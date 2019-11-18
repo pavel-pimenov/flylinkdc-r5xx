@@ -21,7 +21,6 @@
 
 HMODULE ThemeManager::g_resourceLibInstance = nullptr;
 #ifdef _DEBUG
-// [+] IRainman fix: not reload lib in runtime, prevent potential crash.
 bool g_debugResourceLibIsLoaded = false;
 bool g_debugResourceLibIsUnloaded = false;
 #endif // _DEBUG

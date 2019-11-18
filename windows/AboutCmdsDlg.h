@@ -11,7 +11,7 @@
 
 class AboutCmdsDlg : public CDialogImpl<AboutCmdsDlg>
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 	public:

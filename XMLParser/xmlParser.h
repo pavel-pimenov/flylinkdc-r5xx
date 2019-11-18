@@ -118,7 +118,6 @@
 
 #include <stdlib.h>
 
-// [+] IRainman opt: FlylinkDC++ only using utf-8 files.
 #ifndef PORTALBROWSER_EXPORTS
 #define _XML_FAST_UTF8_FILES_FOR_WINDOWS
 #endif
@@ -190,7 +189,7 @@
 #define TRUE 1
 #endif /* TRUE */
 
-#ifdef _XML_FAST_UTF8_FILES_FOR_WINDOWS // [!] IRainman opt: in Windows OS - open file in utf-16 mode.
+#ifdef _XML_FAST_UTF8_FILES_FOR_WINDOWS
 #define FILEAPICSTR const wchar_t *
 #define _CFA(c) L ## c
 #else
@@ -366,7 +365,7 @@ typedef struct XMLDLLENTRY XMLNode
 		 * @{ */
 		XMLCSTR getName() const;                                       ///< name of the node
 		XMLCSTR getText(int i = 0) const;                              ///< return ith text field
-		XMLCSTR getTextOrDefault(int i = 0, XMLCSTR defautValue = _CXML("")) const; // [+] FlylinkDc Team
+		XMLCSTR getTextOrDefault(int i = 0, XMLCSTR defautValue = _CXML("")) const;
 		int nText() const;                                             ///< nbr of text field
 		XMLNode getParentNode() const;                                 ///< return the parent node
 		XMLNode getChildNode(int i = 0) const;                         ///< return ith child node
@@ -389,7 +388,7 @@ typedef struct XMLDLLENTRY XMLNode
 		char  isAttributeSet(XMLCSTR name) const;                      ///< test if an attribute with a specific name is given
 		XMLCSTR getAttribute(XMLCSTR name, int i) const;               ///< return ith attribute content with specific name (return a NULL if failing)
 		XMLCSTR getAttribute(XMLCSTR name, int *i = NULL) const;       ///< return next attribute content with specific name (return a NULL if failing)
-		XMLCSTR getAttributeOrDefault(XMLCSTR name, XMLCSTR defautValue = _CXML("")) const; // [+] FlylinkDC++ Team
+		XMLCSTR getAttributeOrDefault(XMLCSTR name, XMLCSTR defautValue = _CXML("")) const;
 		///< return next attribute content with specific name (return a NULL if failing)
 		int nAttribute() const;                                        ///< nbr of attribute
 		XMLClear getClear(int i = 0) const;                            ///< return ith clear field (comments)

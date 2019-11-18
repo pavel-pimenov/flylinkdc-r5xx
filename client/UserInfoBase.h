@@ -27,7 +27,7 @@
 
 class UserInfoBase
 #ifdef _DEBUG
-	: private boost::noncopyable // [+] IRainman fix.
+	: private boost::noncopyable
 #endif
 {
 	public:
@@ -37,7 +37,7 @@ class UserInfoBase
 		void getList();
 		void browseList();
 		
-		void getUserResponses(); // [+] SSA
+		void getUserResponses();
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 		void checkList();
 #endif
@@ -50,24 +50,24 @@ class UserInfoBase
 #endif
 		
 		void pm(const string& hubHint);
-		void pm_msg(const string& hubHint, const tstring& p_message); // !SMT!-S
+		void pm_msg(const string& hubHint, const tstring& p_message);
 		
-		void createSummaryInfo(const string& p_selectedHint);// [+] IRainman
+		void createSummaryInfo(const string& p_selectedHint);
 		
-		void grantSlotPeriod(const string& hubHint, const uint64_t period); // !SMT!-UI
-		void ungrantSlot(const string& hubHint); // [!] IRainman fix: add hubhint.
+		void grantSlotPeriod(const string& hubHint, const uint64_t period);
+		void ungrantSlot(const string& hubHint);
 		void addFav();
 		void delFav();
 		void setUploadLimit(const int limit);
 		void setIgnorePM();
 		void setFreePM();
 		void setNormalPM();
-		void ignoreOrUnignoreUserByName(); // [!] IRainman moved from gui and clean.
+		void ignoreOrUnignoreUserByName();
 		void removeAll();
 		void connectFav();
 		
 		virtual const UserPtr& getUser() const = 0;
-		static uint8_t getImage(const OnlineUser& ou); // [!] IRainman fix: use online user here!
+		static uint8_t getImage(const OnlineUser& ou);
 		static uint8_t getStateImageIndex()
 		{
 			return 0;
@@ -75,7 +75,7 @@ class UserInfoBase
 		
 };
 
-struct FavUserTraits // [!] IRainman moved from WinUtil and review.
+struct FavUserTraits
 {
 	FavUserTraits() :
 		isEmpty(true),

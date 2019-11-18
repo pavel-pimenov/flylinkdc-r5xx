@@ -186,7 +186,7 @@ class FilteredOutputStream : public OutputStream
 				more = filter(wb, m, &buf[0], n);
 				wb += m;
 				len -= m;
-				if (n > 0) // [+]
+				if (n > 0)
 				{
 					written += f->write(&buf[0], n);
 				}

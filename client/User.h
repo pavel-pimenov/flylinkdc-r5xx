@@ -43,25 +43,23 @@ class Client;
 class User : public Flags
 {
 	public:
-		// [!]IRainman This enum is necessary for a comfortable job status flags
 		enum Bits
 		{
 			ONLINE_BIT,
-			// [!] IRainman fix.
-			// [-] PASSIVE_BIT, deprecated.
-			NMDC_FILES_PASSIVE_BIT, // [+]
-			NMDC_SEARCH_PASSIVE_BIT, // [+]
-			TCP4_BIT = NMDC_FILES_PASSIVE_BIT, // [+]
-			UDP4_BIT = NMDC_SEARCH_PASSIVE_BIT, // [+]
-			TCP6_BIT, // [+]
-			UDP6_BIT, // [+]
-			// [~] IRainman fix.
+			
+			NMDC_FILES_PASSIVE_BIT,
+			NMDC_SEARCH_PASSIVE_BIT,
+			TCP4_BIT = NMDC_FILES_PASSIVE_BIT,
+			UDP4_BIT = NMDC_SEARCH_PASSIVE_BIT,
+			TCP6_BIT,
+			UDP6_BIT,
+			
 			NMDC_BIT,
 #ifdef IRAINMAN_ENABLE_TTH_GET_FLAG
-			TTH_GET_BIT, //[+]FlylinkDC
+			TTH_GET_BIT,
 #endif
 			TLS_BIT,
-			AWAY_BIT, //[+]FlylinkDC
+			AWAY_BIT,
 			SERVER_BIT,
 			FIREBALL_BIT,
 			
@@ -88,15 +86,14 @@ class User : public Flags
 		enum UserFlags
 		{
 			ONLINE = 1 << ONLINE_BIT,
-			// [!] IRainman fix.
-			// [-] PASSIVE = 1 << PASSIVE_BIT, deprecated
-			NMDC_FILES_PASSIVE = 1 << NMDC_FILES_PASSIVE_BIT, // [!]
-			NMDC_SEARCH_PASSIVE = 1 << NMDC_SEARCH_PASSIVE_BIT, // [+]
-			TCP4 = 1 << TCP4_BIT, // [+]
-			UDP4 = 1 << UDP4_BIT, // [+]
-			TCP6 = 1 << TCP6_BIT, // [+]
-			UDP6 = 1 << UDP6_BIT, // [+]
-			// [~] IRainman fix.
+			
+			NMDC_FILES_PASSIVE = 1 << NMDC_FILES_PASSIVE_BIT,
+			NMDC_SEARCH_PASSIVE = 1 << NMDC_SEARCH_PASSIVE_BIT,
+			TCP4 = 1 << TCP4_BIT,
+			UDP4 = 1 << UDP4_BIT,
+			TCP6 = 1 << TCP6_BIT,
+			UDP6 = 1 << UDP6_BIT,
+			
 			NMDC = 1 << NMDC_BIT,
 #ifdef IRAINMAN_ENABLE_TTH_GET_FLAG
 			TTH_GET = 1 << TTH_GET_BIT,     //< User supports getting files by tth -> don't have path in queue...
@@ -137,7 +134,7 @@ class User : public Flags
 			BAN_BY_LIMIT      = 0x08
 		};
 		
-		DefinedAutoBanFlags hasAutoBan(Client *p_Client, const bool p_is_favorite);//[+]FlylinkDC
+		DefinedAutoBanFlags hasAutoBan(Client *p_Client, const bool p_is_favorite);
 	private:
 		enum SupportSlotsFlag
 		{
@@ -148,7 +145,6 @@ class User : public Flags
 		SupportSlotsFlag m_support_slots;
 	public:
 #endif // IRAINMAN_ENABLE_AUTO_BAN
-		// TODO
 		struct Hash
 		{
 			size_t operator()(const UserPtr& x) const
@@ -179,7 +175,6 @@ class User : public Flags
 		{
 			return m_cid.regenerate();
 		}
-		//[+]FlylinkDC
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		const string& getLastNick() const
 		{
@@ -240,7 +235,7 @@ class User : public Flags
 		{
 			return isSet(NMDC);
 		}
-		// [+] IRainman fix.
+		
 		bool isServer() const
 		{
 			return isSet(SERVER);
@@ -253,7 +248,7 @@ class User : public Flags
 		{
 			return isSet(AWAY);
 		}
-		// [~] IRainman fix.
+		
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 		//void fixLastIP();
 		void AddRatioUpload(const boost::asio::ip::address_v4& p_ip, uint64_t p_size);

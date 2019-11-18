@@ -83,22 +83,10 @@ ShareEnumerator::ShareEnumerator()
 {
 	//Set out member variables to defaults
 	m_pNTShareEnum = nullptr;
-	// [-] IRainman old code: m_pWin9xShareEnum = nullptr;
 	m_pNTBufferFree = nullptr;
 	m_pNTShareInfo = nullptr;
-	// [-] IRainman old code: m_pWin9xShareInfo = nullptr;
-	// [-] IRainman old code: m_pWin9xShareInfo = nullptr;
-	// [-] IRainman old code: m_hNetApi = nullptr;
 	m_dwShares = 0;
 	
-	// [-] IRainman old code
-	//Determine if we are running Windows NT or Win9x
-	//OSVERSIONINFO osvi = {0};
-	//osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	//m_bWinNT = (GetVersionEx(&osvi) && osvi.dwPlatformId == VER_PLATFORM_WIN32_NT);
-	//if (m_bWinNT)
-	//{
-	//Load up the NETAPI dll
 	m_hNetApi = LoadLibrary(_T("NETAPI32.dll"));
 	if (m_hNetApi)
 	{
@@ -124,18 +112,9 @@ ShareEnumerator::ShareEnumerator()
 
 ShareEnumerator::~ShareEnumerator()
 {
-	// [-] IRainman old code
-	//if (m_bWinNT)
-	//{
-	//Free the buffer if valid
 	if (m_pNTShareInfo)
 		m_pNTBufferFree(m_pNTShareInfo);
-	//}
-	// [-] IRainman old code:
-	//else
-	//  //Free up the heap memory we have used
-	//  delete [] m_pWin9xShareInfo;
-	
+		
 	//Free the dll now that we are finished with it
 	if (m_hNetApi)
 	{
@@ -147,59 +126,14 @@ ShareEnumerator::~ShareEnumerator()
 void ShareEnumerator::Refresh()
 {
 	m_dwShares = 0;
-	// [-] IRainman old code:
-	//if (m_bWinNT)
-	//{
-	//Free the buffer if valid
 	if (m_pNTShareInfo)
 		m_pNTBufferFree(m_pNTShareInfo);
 		
-	//Call the function to enumerate the shares
 	if (m_pNTShareEnum)
 	{
 		DWORD dwEntriesRead = 0;
 		m_pNTShareEnum(NULL, 502, (LPBYTE*) &m_pNTShareInfo, MAX_PREFERRED_LENGTH, &dwEntriesRead, &m_dwShares, NULL);
 	}
-	// [-] IRainman old code:
-	/*}
-	else
-	{
-	    //Free the buffer if valid
-	    if (m_pWin9xShareInfo)
-	        delete [] m_pWin9xShareInfo;
-	
-	    //Call the function to enumerate the shares
-	    if (m_pWin9xShareEnum)
-	    {
-	        //Start with a reasonably sized buffer
-	        unsigned short cbBuffer = 1024;
-	        bool bNeedMoreMemory = true;
-	        bool bSuccess = false;
-	        while (bNeedMoreMemory && !bSuccess)
-	        {
-	            unsigned short nTotalRead = 0;
-	            m_pWin9xShareInfo = (FolderTree_share_info_50*) new BYTE[cbBuffer];
-	            memzero(m_pWin9xShareInfo, cbBuffer);
-	            unsigned short nShares = 0;
-	            NET_API_STATUS nStatus = m_pWin9xShareEnum(NULL, 50, (char FAR *)m_pWin9xShareInfo, cbBuffer, (unsigned short FAR *) & nShares, (unsigned short FAR *) & nTotalRead);
-	            if (nStatus == ERROR_MORE_DATA)
-	            {
-	                //Free up the heap memory we have used
-	                delete [] m_pWin9xShareInfo;
-	
-	                //And double the size, ready for the next loop around
-	                cbBuffer *= 2;
-	            }
-	            else if (nStatus == NERR_Success)
-	            {
-	                m_dwShares = nShares;
-	                bSuccess = true;
-	            }
-	            else
-	                bNeedMoreMemory = false;
-	        }
-	    }
-	}*/
 }
 
 bool ShareEnumerator::IsShared(const tstring& p_Path) const
@@ -483,7 +417,7 @@ HTREEITEM FolderTree::InsertFileItem(HTREEITEM hParent, FolderTreeItemInfo *pIte
 	const HTREEITEM hItem = InsertItem(&tvis);
 	
 	string path = Text::fromT(pItem->m_sFQPath);
-	AppendPathSeparator(path); //[+]PPA
+	AppendPathSeparator(path);
 	if (!path.empty())
 	{
 		const bool bChecked = ShareManager::isShareFolder(path, true);
@@ -1310,7 +1244,6 @@ LRESULT FolderTree::OnDeleteItem(int /*idCtrl*/, LPNMHDR pnmh, BOOL &bHandled)
 	return 0;
 }
 
-// [+] birkoff.anarchist
 LRESULT FolderTree::onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
 	NMLVKEYDOWN* kd = (NMLVKEYDOWN*) pnmh;
@@ -1351,7 +1284,7 @@ BOOL FolderTree::SetChecked(HTREEITEM hItem, bool fCheck)
 	return SetItem(&item);
 }
 
-// !SMT!-P
+
 LRESULT FolderTree::OnClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
 {
 	DWORD dwPos = GetMessagePos();
@@ -1403,21 +1336,10 @@ LRESULT FolderTree::OnRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
 		prioMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, ptMenu.x, ptMenu.y, m_hWnd);
 		bHandled = FALSE;
 		return 1;
-		/*[-]PPA
-		
-		.\windows\FolderTree.cpp(1441): remark #111: statement is unreachable
-		
-		                // retrieve is's soon-to-be former state
-		                if(!GetChecked(htItemClicked))
-		                        return OnChecked(htItemClicked, bHandled);
-		                else
-		                        return OnUnChecked(htItemClicked, bHandled);
-		*/
 	}
 	bHandled = FALSE;
 	return 0;
 }
-// end !SMT!-P
 
 LRESULT FolderTree::OnChecked(HTREEITEM hItem, BOOL &bHandled)
 {
@@ -1446,7 +1368,7 @@ LRESULT FolderTree::OnChecked(HTREEITEM hItem, BOOL &bHandled)
 			virt.description = TSTRING(VIRTUAL_NAME_LONG);
 			
 			tstring path = pItem->m_sFQPath;
-			AppendPathSeparator(path); //[+]PPA
+			AppendPathSeparator(path);
 			virt.line = Text::toT(ShareManager::validateVirtual(
 			                          Util::getLastDir(Text::fromT(path))));
 			                          
@@ -1485,9 +1407,8 @@ LRESULT FolderTree::OnUnChecked(HTREEITEM hItem, BOOL& /*bHandled*/)
 	// if no parent is checked remove this root folder from share
 	if (hSharedParent == NULL)
 	{
-		//[+]PPA TODO fix copy-paste
 		string path = Text::fromT(pItem->m_sFQPath);
-		AppendPathSeparator(path); //[+]PPA
+		AppendPathSeparator(path);
 		
 		int64_t temp = ShareManager::removeExcludeFolder(path);
 		/* fun with math
@@ -1502,9 +1423,8 @@ LRESULT FolderTree::OnUnChecked(HTREEITEM hItem, BOOL& /*bHandled*/)
 	else if (GetChecked(GetParentItem(hItem)))
 	{
 		// if the parent is checked add this folder to excludes
-		//[+]PPA TODO fix copy-paste
 		string path = Text::fromT(pItem->m_sFQPath);
-		AppendPathSeparator(path); //[+]PPA
+		AppendPathSeparator(path);
 		m_nShareSizeDiff -= ShareManager::addExcludeFolder(path);
 	}
 	
@@ -1626,9 +1546,8 @@ void FolderTree::ShareParentButNotSiblings(HTREEITEM hItem)
 	{
 		SetChecked(hParent, true);
 		pItem = (FolderTreeItemInfo*) GetItemData(hParent);
-		//[+]PPA TODO fix copy-paste
 		string path = Text::fromT(pItem->m_sFQPath);
-		AppendPathSeparator(path); //[+]PPA
+		AppendPathSeparator(path);
 		m_nShareSizeDiff += ShareManager::removeExcludeFolder(path);
 		
 		ShareParentButNotSiblings(hParent);
@@ -1642,9 +1561,8 @@ void FolderTree::ShareParentButNotSiblings(HTREEITEM hItem)
 				pItem = (FolderTreeItemInfo*) GetItemData(hChild);
 				if (hChild != hItem)
 				{
-					//[+]PPA TODO fix copy-paste
 					string l_path = Text::fromT(pItem->m_sFQPath);
-					AppendPathSeparator(path); //[+]PPA
+					AppendPathSeparator(path);
 					m_nShareSizeDiff -= ShareManager::addExcludeFolder(l_path);
 				}
 			}
@@ -1654,9 +1572,8 @@ void FolderTree::ShareParentButNotSiblings(HTREEITEM hItem)
 	else
 	{
 		pItem = (FolderTreeItemInfo*) GetItemData(hItem);
-		//[+]PPA TODO fix copy-paste
 		string path = Text::fromT(pItem->m_sFQPath);
-		AppendPathSeparator(path); //[+]PPA
+		AppendPathSeparator(path);
 		m_nShareSizeDiff += ShareManager::removeExcludeFolder(path);
 	}
 }

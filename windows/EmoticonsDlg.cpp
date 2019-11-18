@@ -9,8 +9,6 @@
 #include "AGEmotionSetup.h"
 #endif
 
-//[?] #pragma comment(lib, "GdiOle.lib")
-
 #define EMOTICONS_ICONMARGIN 8
 
 WNDPROC EmoticonsDlg::g_MFCWndProc = nullptr;
@@ -102,7 +100,7 @@ LRESULT EmoticonsDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 		unsigned int nXfor = i;
 		unsigned int nYfor = i;
 		
-		if ((i * i) != l_Emoticons_size) //[+]PPA
+		if ((i * i) != l_Emoticons_size)
 		{
 			nXfor = i + 1;
 			if ((i * nXfor) < l_Emoticons_size) nYfor = i + 1;
@@ -112,16 +110,15 @@ LRESULT EmoticonsDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 		i = (unsigned int)sqrt((double)pocet);
 		unsigned int nX = i;
 		unsigned int nY = i;
-		if ((i * i) != pocet) //[+]PPA
+		if ((i * i) != pocet)
 		{
 			nX = i + 1;
 			if ((i * nX) < pocet) nY = i + 1;
 			else nY = i;
 		}
-		if (Emoticons.empty() || !*Emoticons.begin()) //[+]PPA
+		if (Emoticons.empty() || !*Emoticons.begin())
 			return 0;
 			
-		// [~] brain-ripper
 		// If first icon failed to load, h_bm will be zero, and all icons will be drawn extremely small.
 		// So cycle through Emoticons and find first loaded icon.
 		//HBITMAP h_bm = (*Emoticons.begin())->getEmotionBmp(GetSysColor(COLOR_BTNFACE));
@@ -305,7 +302,7 @@ LRESULT EmoticonsDlg::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 
 LRESULT CALLBACK EmoticonsDlg::NewWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	if (g_pDialog && //[+]PPA
+	if (g_pDialog &&
 	        message == WM_ACTIVATE && wParam == 0)
 	{
 		g_pDialog->PostMessage(WM_CLOSE);

@@ -34,24 +34,23 @@ class DirectoryListing : public UserInfoBase
 {
 	public:
 		class Directory;
-		// !SMT!-UI  dupe/downloads search results in both class File and class Directory
 		enum
 		{
 			FLAG_SHARED             = 1 << 0,
 			FLAG_NOT_SHARED         = 1 << 1,
-			FLAG_DOWNLOAD           = 1 << 2, //[+]PPA
-			FLAG_OLD_TTH            = 1 << 3, //[+]PPA
-			FLAG_DOWNLOAD_FOLDER    = 1 << 4, //[+]PPA
-			FLAG_SHARED_OWN         = 1 << 5, //[+]NightOrion TODO do flag at file-list, not in every file in this list
+			FLAG_DOWNLOAD           = 1 << 2,
+			FLAG_OLD_TTH            = 1 << 3,
+			FLAG_DOWNLOAD_FOLDER    = 1 << 4,
+			FLAG_SHARED_OWN         = 1 << 5,
 			FLAG_VIRUS_FILE         = 1 << 6,
-			FLAG_VIRUS_FILE_FOLDER  = 1 << 7, // TODO
+			FLAG_VIRUS_FILE_FOLDER  = 1 << 7,
 			FLAG_QUEUE = 1 << 8,
 		};
 		
 		class File :
 			public Flags
 #ifdef _DEBUG
-			, boost::noncopyable // [+] IRainman fix.
+			, boost::noncopyable
 #endif
 		{
 			public:
@@ -103,7 +102,7 @@ class DirectoryListing : public UserInfoBase
 				void add(const string& p_file, int64_t p_size);
 		};
 		
-		class Directory : public Flags //!fulDC! !SMT!-UI
+		class Directory : public Flags
 #ifdef _DEBUG
 			, boost::noncopyable
 #endif
@@ -152,7 +151,7 @@ class DirectoryListing : public UserInfoBase
 				void filterList(DirectoryListing& dirList);
 				void filterList(TTHSet& l);
 				void getHashList(TTHSet& l);
-				void checkDupes(const DirectoryListing* lst); // !SMT!-UI
+				void checkDupes(const DirectoryListing* lst);
 				GETSET(string, name, Name);
 				GETSET(Directory*, parent, Parent);
 				GETSET(bool, adls, Adls);
@@ -227,7 +226,7 @@ class DirectoryListing : public UserInfoBase
 			return root;
 		}
 		
-		void checkDupes(); // !fulDC!
+		void checkDupes();
 		static UserPtr getUserFromFilename(const string& fileName);
 		
 		const UserPtr& getUser() const
@@ -238,7 +237,7 @@ class DirectoryListing : public UserInfoBase
 		GETSET(HintedUser, hintedUser, HintedUser);
 		GETSET(bool, abort, Abort);
 		GETSET(bool, includeSelf, IncludeSelf);
-		void logMatchedFiles(const UserPtr& p_user, int p_count); //[+]PPA
+		void logMatchedFiles(const UserPtr& p_user, int p_count);
 	private:
 		friend class ListLoader;
 		friend class DirectoryListingFrame;

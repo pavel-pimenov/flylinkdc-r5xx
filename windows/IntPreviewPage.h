@@ -38,12 +38,12 @@ class IntPreviewPage: public CPropertyPage<IDD_INT_PREVIEW_PAGE>, public PropPag
 		
 		~IntPreviewPage()
 		{
-			ctrlPrevlist.Detach(); // [+] IRainman
+			ctrlPrevlist.Detach();
 		}
 		
 		BEGIN_MSG_MAP_EX(IntPreviewPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
-		NOTIFY_HANDLER(IDC_INT_PREVIEW_LIST, NM_CUSTOMDRAW, ctrlPrevlist.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_INT_PREVIEW_LIST, NM_CUSTOMDRAW, ctrlPrevlist.onCustomDraw)
 		COMMAND_ID_HANDLER(IDC_BTN_SELECT, OnBrowseClick)
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
@@ -64,7 +64,7 @@ class IntPreviewPage: public CPropertyPage<IDD_INT_PREVIEW_PAGE>, public PropPag
 		}
 	protected:
 	
-		ExListViewCtrl ctrlPrevlist; // [+] IRainman
+		ExListViewCtrl ctrlPrevlist;
 		static Item items[];
 		static TextItem texts[];
 		static ListItem listItems[]; // IDC_INT_PREVIEW_LIST

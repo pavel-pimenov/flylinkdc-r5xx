@@ -54,7 +54,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		static void resetAntivirusInfo();
 #endif
-		static unsigned getTotalUsers(); // [+] IRainman.
+		static unsigned getTotalUsers();
 		static std::map<string, CFlyClientStatistic> getClientStat();
 		static StringList getHubs(const CID& cid, const string& hintUrl, bool priv);
 		static StringList getHubNames(const CID& cid, const string& hintUrl, bool priv);
@@ -62,7 +62,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static StringList getAntivirusNicks(const CID& cid);
 #endif
 		static StringList getNicks(const CID& cid, const string& hintUrl, bool priv);
-		static string getStringField(const CID& cid, const string& hintUrl, const char* field); // [!] IRainman fix.
+		static string getStringField(const CID& cid, const string& hintUrl, const char* field);
 		static StringList getNicks(const HintedUser& user);
 		static StringList getHubNames(const HintedUser& user);
 		static bool isConnected(const string& aUrl);
@@ -97,8 +97,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		
 		static const string findMyNick(const string& hubUrl);
 		
-		// [+] brain-ripper
-		// [+] IRainman fix.
 		struct UserParams
 		{
 			int64_t m_bytesShared;
@@ -131,9 +129,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		};
 		
 		static bool getUserParams(const UserPtr& user, UserParams& p_params);
-		// [~] IRainman fix.
 		
-		// !PPA!
+		
 #define CREATE_LOCK_INSTANCE_CM(scope, CS)\
 	class LockInstance##CS \
 	{\
@@ -151,11 +148,11 @@ class ClientManager : public Speaker<ClientManagerListener>,
 				return ClientManager::getInstance();\
 			}\
 	}
-		// [!] IRainman opt.
+		
 		CREATE_LOCK_INSTANCE_CM(g, Clients);
 		CREATE_LOCK_INSTANCE_CM(g, OnlineUsers);
 		//CREATE_LOCK_INSTANCE_CM(g, Users);
-		// [~] IRainman opt.
+		
 #undef CREATE_LOCK_INSTANCE_CM
 		
 		static void setIPUser(const UserPtr& p_user, const string& p_ip, const uint16_t p_udpPort = 0);
@@ -169,8 +166,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		/** Constructs a synthetic, hopefully unique CID */
 		static CID makeCid(const string& nick, const string& hubUrl);
 		
-		void putOnline(const OnlineUserPtr& ou, bool p_is_fire_online) noexcept; // [!] IRainman fix.
-		void putOffline(const OnlineUserPtr& ou, bool p_is_disconnect = false) noexcept; // [!] IRainman fix.
+		void putOnline(const OnlineUserPtr& ou, bool p_is_fire_online) noexcept;
+		void putOffline(const OnlineUserPtr& ou, bool p_is_disconnect = false) noexcept;
 		
 		static bool isMe(const CID& p_cid)
 		{
@@ -186,7 +183,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 			dcassert(p_user);
 			return isMe(p_user->getUser());
 		}
-		static const UserPtr& getMe_UseOnlyForNonHubSpecifiedTasks() // [!] IRainman fix.
+		static const UserPtr& getMe_UseOnlyForNonHubSpecifiedTasks()
 		{
 			dcassert(g_me);
 			return g_me;
@@ -203,8 +200,8 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static void userCommandL(const HintedUser& user, const UserCommand& uc, StringMap& params, bool compatibility);
 		static void sendRawCommandL(const OnlineUser& ou, const int aRawCommand);
 	public:
-		// [~] IRainman fix.
-		
+	
+	
 		static void send(AdcCommand& c, const CID& to);
 		static void upnp_error_force_passive();
 		static void resend_ext_json();
@@ -289,10 +286,10 @@ class ClientManager : public Speaker<ClientManagerListener>,
 #endif
 		//static
 		void addAsyncOnlineUserUpdated(const OnlineUserPtr& p_ou);
-		static UserPtr g_me; // [!] IRainman fix: this is static object.
-		static UserPtr g_uflylinkdc; // [+] IRainman fix.
-		static Identity g_iflylinkdc; // [+] IRainman fix.
-		static CID g_pid; // [!] IRainman fix this is static object.
+		static UserPtr g_me;
+		static UserPtr g_uflylinkdc;
+		static Identity g_iflylinkdc;
+		static CID g_pid;
 		
 		friend class Singleton<ClientManager>;
 		friend class NmdcHub;
@@ -305,7 +302,6 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		/// @return OnlineUserPtr found by CID and hint; discard any user that doesn't match the hint.
 		static OnlineUserPtr findOnlineUserHintL(const CID& cid, const string& hintUrl)
 		{
-			// [!] IRainman: This function need to external lock.
 			OnlinePairC p;
 			return findOnlineUserHintL(cid, hintUrl, p);
 		}

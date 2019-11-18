@@ -402,14 +402,13 @@ size_t Reader_File::Format_Test_PerParser_Continue (MediaInfo_Internal* MI)
 
     if (ShouldContinue)
     {
-	int l_fly_stop_count = 0; //[+]PPA fix endless loop
+	int l_fly_stop_count = 0;
         while (!(Status[File__Analyze::IsFinished] || (StopAfterFilled && Status[File__Analyze::IsFilled])))
         {
-	     //[+]FlylinkDC++ Team
+	     
 		 l_fly_stop_count++; 
 		 if(l_fly_stop_count > 500)
 			 break;
-		 //[~]FlylinkDC++ Team
             //Seek (if needed)
             if (MI->Open_Buffer_Continue_GoTo_Get()!=(int64u)-1)
             {

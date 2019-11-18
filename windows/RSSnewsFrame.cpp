@@ -34,9 +34,6 @@ int RSSNewsFrame::columnSizes[] = { 100, 110, 290, 125, 80, 80, 80 };
 
 LRESULT RSSNewsFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-//	CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);  //[-] SCALOlaz
-//	ctrlStatus.Attach(m_hWndStatusBar);
-
 	ctrlList.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS | LVS_SINGLESEL, WS_EX_CLIENTEDGE, IDC_RSS);
 	SET_EXTENDENT_LIST_VIEW_STYLE(ctrlList);
@@ -130,20 +127,6 @@ void RSSNewsFrame::UpdateLayout(BOOL bResizeBars /*= TRUE*/)
 	
 	// position bars and offset their dimensions
 	UpdateBarsPosition(rect, bResizeBars);
-	/*
-	if (ctrlStatus.IsWindow())  //[-] SCALOlaz
-	{
-	    CRect sr;
-	    int w[4];
-	    ctrlStatus.GetClientRect(sr);
-	    w[3] = sr.right - 16;
-	    w[2] = max(w[3] - 100, 0);
-	    w[1] = max(w[2] - 100, 0);
-	    w[0] = max(w[1] - 100, 0);
-	
-	    ctrlStatus.SetParts(4, w);
-	}
-	*/
 	CRect rc = rect;
 	rc.bottom -= 26;
 	ctrlList.MoveWindow(rc);
@@ -158,28 +141,9 @@ void RSSNewsFrame::UpdateLayout(BOOL bResizeBars /*= TRUE*/)
 	rc.left = 2;
 	rc.right = rc.left + bwidth;
 	ctrlRemoveAll.MoveWindow(rc);
-	ctrlRemoveAll.ShowWindow(FALSE);    //SCALOlaz: Remove the string when the function onRemoveAll() is completed yet
+	ctrlRemoveAll.ShowWindow(FALSE);
 	
-	//rc.OffsetRect(bwidth + bspace, 0);
-	//ctrlSomeButton.MoveWindow(rc);
 }
-
-//LRESULT RSSNewsFrame::onLButton(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled) {
-//  HWND focus = GetFocus();
-//  bHandled = false;
-//  if(focus == ctrlPad.m_hWnd) {
-//      POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-//      tstring x;
-//      tstring::size_type start = (tstring::size_type)WinUtil::textUnderCursor(pt, ctrlPad, x);
-//      tstring::size_type end = x.find(_T(' '), start);
-//
-//      if(end == string::npos)
-//          end = x.length();
-//
-//      bHandled = WinUtil::parseDBLClick(x, start, end);
-//  }
-//  return 0;
-//}
 
 void RSSNewsFrame::on(SettingsManagerListener::Repaint)
 {
@@ -219,7 +183,7 @@ LRESULT RSSNewsFrame::onDoubleClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandl
 	if (item->iItem != -1)
 	{
 		RSSItemInfo *ii = ctrlList.getItemData(item->iItem);
-		WinUtil::openLink(Text::toT(ii->m_entry->getUrl()));  // [~] /*openFile*/ SCALOlaz
+		WinUtil::openLink(Text::toT(ii->m_entry->getUrl()));
 	}
 	return 0;
 }
@@ -238,12 +202,6 @@ LRESULT RSSNewsFrame::onRemoveAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 //	CLockRedraw<true> l_lock_draw(ctrlList);
 //	ctrlList.DeleteAllItems();
 	return 0;
-	//Функция не дописана - не выполняется  clearNewsList();
-	/*
-	scalolaz_scat@mail.ru  10.08.2012 19:05:50
-	    Добавлена кнопка "Очистить" для окна РСС-новости. Очищает только листинг. Требуется допил для чистки RSSFeeds записей.
-	
-	*/
 }
 LRESULT RSSNewsFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL & bHandled)
 {

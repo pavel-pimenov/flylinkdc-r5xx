@@ -160,7 +160,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	
 	DownloadArray l_tickList;
 	{
-		int64_t l_currentSpeed = 0;// [+] IRainman refactoring transfer mechanism
+		int64_t l_currentSpeed = 0;
 		CFlyReadLock(*g_csDownload);
 		// Tick each ongoing download
 		l_tickList.reserve(g_download_map.size());
@@ -215,10 +215,10 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 				l_td.m_status_string += Text::tformat(TSTRING(DOWNLOADED_BYTES), Util::formatBytesW(l_td.m_pos).c_str(), l_td.m_percent, l_td.get_elapsed(aTick).c_str());
 				l_td.log_debug();
 				l_tickList.push_back(l_td);
-				d->tick(aTick); //[!]IRainman refactoring transfer mechanism
+				d->tick(aTick);
 			}
-			const int64_t l_currentSingleSpeed = d->getRunningAverage();//[+]IRainman refactoring transfer mechanism
-			l_currentSpeed += l_currentSingleSpeed;//[+]IRainman refactoring transfer mechanism
+			const int64_t l_currentSingleSpeed = d->getRunningAverage();
+			l_currentSpeed += l_currentSingleSpeed;
 #ifdef FLYLINKDC_USE_DROP_SLOW
 			if (BOOLSETTING(DISCONNECTING_ENABLE))
 			{
@@ -226,7 +226,7 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 				{
 					if (d->getTigerTree().getFileSize() > (SETTING(DISCONNECT_FILESIZE) * 1048576))
 					{
-						if (l_currentSingleSpeed < SETTING(DISCONNECT_SPEED) * 1024 && d->getLastNormalSpeed()) // [!] IRainman refactoring transfer mechanism
+						if (l_currentSingleSpeed < SETTING(DISCONNECT_SPEED) * 1024 && d->getLastNormalSpeed())
 						{
 							if (aTick - d->getLastNormalSpeed() > (uint32_t)SETTING(DISCONNECT_TIME) * 1000)
 							{
@@ -246,11 +246,11 @@ void DownloadManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 			}
 #endif // FLYLINKDC_USE_DROP_SLOW
 		}
-		g_runningAverage = l_currentSpeed; // [+] IRainman refactoring transfer mechanism
+		g_runningAverage = l_currentSpeed;
 	}
 	if (!l_tickList.empty())
 	{
-		fly_fire1(DownloadManagerListener::Tick(), l_tickList);//[!]IRainman refactoring transfer mechanism + uint64_t aTick
+		fly_fire1(DownloadManagerListener::Tick(), l_tickList);
 	}
 	
 	for (auto i = dropTargets.cbegin(); i != dropTargets.cend(); ++i)
@@ -472,7 +472,7 @@ void DownloadManager::startData(UserConnection* aSource, int64_t start, int64_t 
 		failDownload(aSource, STRING(COULD_NOT_OPEN_TARGET_FILE) + ' ' + e.getError());
 		return;
 	}
-	catch (const QueueException& e) // [!] IRainman fix: only QueueException allowed here.
+	catch (const QueueException& e)
 	{
 		failDownload(aSource, e.getError());
 		return;
@@ -600,7 +600,6 @@ void DownloadManager::endData(UserConnection* aSource)
 		
 		if (!(d->getTTH() == l_getTigerTree.getRoot()))
 		{
-			// This tree is for a different file, remove from queue...// [!]PPA TODO подтереть fly_hash_block
 			removeDownload(d);
 			fly_fire2(DownloadManagerListener::Failed(), d, STRING(INVALID_TREE));
 			
@@ -660,19 +659,6 @@ void DownloadManager::endData(UserConnection* aSource)
 	}
 	checkDownloads(aSource);
 }
-
-//[-] IRainman refactoring transfer mechanism
-//int64_t DownloadManager::getRunningAverage()
-//{
-//	CFlyReadLock(*g_csDownload);
-//	int64_t avg = 0;
-//	for (auto i = downloads.cbegin(); i != downloads.cend(); ++i)
-//	{
-//		auto d = *i;
-//		avg += d->getAverageSpeed();
-//	}
-//	return avg;
-//}
 
 void DownloadManager::on(UserConnectionListener::MaxedOut, UserConnection* aSource, const string& param) noexcept
 {
@@ -900,7 +886,7 @@ void DownloadManager::fileNotAvailable(UserConnection* aSource)
 	checkDownloads(aSource);
 }
 
-// !SMT!-S
+
 bool DownloadManager::checkFileDownload(const UserPtr& aUser)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
@@ -926,13 +912,7 @@ bool DownloadManager::checkFileDownload(const UserPtr& aUser)
 	}
 	return false;
 }
-/*#ifdef IRAINMAN_ENABLE_AUTO_BAN
-void DownloadManager::on(UserConnectionListener::BanMessage, UserConnection* aSource, const string& aMessage) noexcept // !SMT!-B
-{
-    failDownload(aSource, aMessage);
-}
-#endif*/
-// [+] SSA
+
 void DownloadManager::on(UserConnectionListener::CheckUserIP, UserConnection* aSource) noexcept
 {
 	dcassert(!ClientManager::isBeforeShutdown());

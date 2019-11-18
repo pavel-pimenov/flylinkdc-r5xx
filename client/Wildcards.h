@@ -31,7 +31,7 @@ class Wildcard
 		// This function implements the UN*X wildcards and returns:
 		// 0 - if *wildcard does not match *test
 		// 1 - if *wildcard matches *test
-		template <typename C> // [!] IRainman fix: copy-past fix.
+		template <typename C>
 		static int wildcardfit(const C *wildcard, const C *test, const bool useSet = true)
 		{
 			int fit = 1;
@@ -70,7 +70,6 @@ class Wildcard
 			return (int)((1 == fit) && ('\0' == *test) && ('\0' == *wildcard));
 		}
 		
-		// [!] IRainman copy-past fix and opt.
 		// Checks whether a text matches a pattern
 		template<class STR>
 		static bool patternMatchLowerCase(const STR& text, const STR& pattern, const bool useSet = true)
@@ -105,14 +104,13 @@ class Wildcard
 			dcassert(!patternlist.empty());
 			return patternMatchLowerCase(Text::toLower(text), Text::toLower(patternlist), delimiter, useSet);
 		}
-		// [~] IRainman copy-past fix and opt.
 		
 	private:
 		// Scans a set of characters and returns 0 if the set mismatches at this
 		// position in the teststring and 1 if it is matching
 		// wildcard is set to the closing ] and test is unmodified if mismatched
 		// and otherwise the char pointer is pointing to the next character
-		template <typename C> // [!] IRainman fix: copy-past fix.
+		template <typename C>
 		static int set(const C **wildcard, const C **test)
 		{
 			int fit = 0;
@@ -124,7 +122,7 @@ class Wildcard
 				negation = 1;
 				(*wildcard)++;
 			}
-			while ((**wildcard) != '\0' &&  // [+] FlylinkDC++ Team
+			while ((**wildcard) != '\0' &&
 			        ((']' != **wildcard) || (1 == at_beginning)))
 			{
 				if (0 == fit)
@@ -159,7 +157,7 @@ class Wildcard
 		}
 		
 		// Scans an asterisk
-		template <typename C> // [!] IRainman fix: copy-past fix.
+		template <typename C>
 		static int asterisk(const C **wildcard, const C **test)
 		{
 			int fit = 1;

@@ -35,12 +35,12 @@ class QueuePage : public CPropertyPage<IDD_QUEUE_PAGE>, public PropPage
 		}
 		~QueuePage()
 		{
-			ctrlList.Detach(); // [+] IRainman
+			ctrlList.Detach();
 		}
 		
 		BEGIN_MSG_MAP(QueuePage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
-		NOTIFY_HANDLER(IDC_OTHER_QUEUE_OPTIONS, NM_CUSTOMDRAW, ctrlList.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_OTHER_QUEUE_OPTIONS, NM_CUSTOMDRAW, ctrlList.onCustomDraw)
 		COMMAND_ID_HANDLER(IDC_MULTISOURCE, onClickedActive)
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
@@ -69,7 +69,7 @@ class QueuePage : public CPropertyPage<IDD_QUEUE_PAGE>, public PropPage
 		static ListItem optionItems[];
 		
 		
-		ExListViewCtrl ctrlList; // [+] IRainman
+		ExListViewCtrl ctrlList;
 		
 		CComboBox m_downlaskClick;
 		void fixControls();

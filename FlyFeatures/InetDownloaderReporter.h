@@ -51,7 +51,6 @@ class InetDownloadReporter : public IDateReceiveReporter, public Singleton<InetD
 	
 		InetDownloadReporter()
 		{
-			// [-] _windows.clear(); [-] IRainman fix.
 		}
 		
 		friend class Singleton<InetDownloadReporter>;

@@ -25,7 +25,7 @@
 #include "../client/TimerManager.h"
 #include "../XMLParser/xmlParser.h"
 
-// [+] SSA
+
 
 class AutoUpdateFile
 {

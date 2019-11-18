@@ -33,12 +33,12 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 	public StaticFrame<WaitingUsersFrame, ResourceManager::WAITING_USERS, IDC_UPLOAD_QUEUE>,
 	private UploadManagerListener,
 	public CSplitterImpl<WaitingUsersFrame>,
-	public UserInfoBaseHandler<WaitingUsersFrame>, // [+] IRainman fix: add user menu.
+	public UserInfoBaseHandler<WaitingUsersFrame>,
 	private SettingsManagerListener,
 	virtual private CFlyTimerAdapter,
 	virtual private CFlyTaskAdapter
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 		typedef UserInfoBaseHandler<WaitingUsersFrame> uiBase;
@@ -68,7 +68,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		MESSAGE_HANDLER(WM_SPEAKER, onSpeaker)
 		COMMAND_HANDLER(IDC_REMOVE, BN_CLICKED, onRemove)
-		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		NOTIFY_HANDLER(IDC_UPLOAD_QUEUE, LVN_GETDISPINFO, m_ctrlList.onGetDispInfo)
 		NOTIFY_HANDLER(IDC_UPLOAD_QUEUE, LVN_COLUMNCLICK, m_ctrlList.onColumnClick)
 		NOTIFY_HANDLER(IDC_UPLOAD_QUEUE, NM_CUSTOMDRAW, onCustomDraw)
@@ -93,7 +93,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled);
 		LRESULT onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled);
 		
-		// [+] InfinitySky.
+		
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			PostMessage(WM_CLOSE);
@@ -113,8 +113,8 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		void UpdateLayout(BOOL bResizeBars = TRUE);
 		
 	private:
-		static int columnSizes[]; // [!] IRainman fix: don't set size here!
-		static int columnIndexes[]; // [!] IRainman fix: don't set size here!
+		static int columnSizes[];
+		static int columnIndexes[];
 		
 		struct UserItem
 		{
@@ -158,10 +158,10 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 			const UserPtr User = getCurrentdUser();
 			if (User)
 			{
-				UploadManager::LockInstanceQueue lockedInstance; // [+] IRainman opt.
+				UploadManager::LockInstanceQueue lockedInstance;
 				lockedInstance->clearUserFilesL(User);
 			}
-			m_needsUpdateStatus = true; // [!] IRainman opt.
+			m_needsUpdateStatus = true;
 		}
 		
 		// Communication with manager
@@ -181,7 +181,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		typedef TypedListViewCtrl<UploadQueueItem, IDC_UPLOAD_QUEUE> CtrlList;
 		CtrlList m_ctrlList;
 	public:
-		CtrlList& getUserList() // [+] IRainman fix: add user menu.
+		CtrlList& getUserList()
 		{
 			return m_ctrlList;
 		}
@@ -189,7 +189,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		CTreeViewCtrl ctrlQueued;
 		
 		CStatusBarCtrl ctrlStatus;
-		int statusSizes[4]; // TODO: fix my size.
+		int statusSizes[4];
 		
 		void AddFile(const UploadQueueItemPtr& aUQI);
 		void RemoveFile(const UploadQueueItemPtr& aUQI);
@@ -197,7 +197,7 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 		
 		void updateStatus();
 		
-		// [+] IRainman opt
+		
 		bool m_needsUpdateStatus;
 		bool m_needsResort;
 		
@@ -227,7 +227,6 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 			}
 			UserPtr m_user;
 		};
-		// [~] IRainman opt
 		
 		// UploadManagerListener
 		void on(UploadManagerListener::QueueAdd, const UploadQueueItemPtr& aUQI) noexcept override

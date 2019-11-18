@@ -461,7 +461,7 @@ tstring User::getUDratio()
 
 bool Identity::isTcpActive() const
 {
-	// [!] IRainman fix.
+
 	if (user->isNMDC())
 	{
 		return !user->isSet(User::NMDC_FILES_PASSIVE);
@@ -470,12 +470,12 @@ bool Identity::isTcpActive() const
 	{
 		return !getIp().is_unspecified() && user->isSet(User::TCP4);
 	}
-	// [~] IRainman fix.
+	
 }
 
 bool Identity::isUdpActive() const
 {
-	// [!] IRainman fix.
+
 	if (getIp().is_unspecified() || !getUdpPort())
 	{
 		return false;
@@ -484,7 +484,7 @@ bool Identity::isUdpActive() const
 	{
 		return user->isSet(User::UDP4);
 	}
-	// [~] IRainman fix.
+	
 }
 bool Identity::setExtJSON(const string& p_ExtJSON)
 {
@@ -657,7 +657,7 @@ static FastCriticalSection g_csTest;
 # define CHECK_GET_SET_COMMAND()
 #endif // ENABLE_CHECK_GET_SET_IN_IDENTITY
 
-string Identity::getStringParam(const char* name) const // [!] IRainman fix.
+string Identity::getStringParam(const char* name) const
 {
 	CHECK_GET_SET_COMMAND();
 	
@@ -789,7 +789,7 @@ string Identity::getDicVal(uint16_t p_index)
 	}
 }
 
-void Identity::setStringParam(const char* name, const string& val) // [!] IRainman fix.
+void Identity::setStringParam(const char* name, const string& val)
 {
 	CHECK_GET_SET_COMMAND();
 	
@@ -894,9 +894,8 @@ Identity::~Identity()
 {
 }
 
-void FavoriteUser::update(const OnlineUser& info) // !SMT!-fix
+void FavoriteUser::update(const OnlineUser& info)
 {
-	// [!] FlylinkDC Team: please let me know if the assertions fail. IRainman.
 	dcassert(!info.getIdentity().getNick().empty() || info.getClient().getHubUrl().empty());
 	
 	setNick(info.getIdentity().getNick());
@@ -1012,12 +1011,12 @@ tstring Identity::getHubs() const
 	}
 }
 
-string Identity::formatShareBytes(uint64_t p_bytes) // [+] IRainman
+string Identity::formatShareBytes(uint64_t p_bytes)
 {
 	return p_bytes ? Util::formatBytes(p_bytes) + " (" + Text::fromT(Util::formatExactSize(p_bytes)) + ")" : Util::emptyString;
 }
 
-string Identity::formatIpString(const string& value) // [+] IRainman IP.
+string Identity::formatIpString(const string& value)
 {
 	if (!value.empty())
 	{
@@ -1037,7 +1036,7 @@ string Identity::formatIpString(const string& value) // [+] IRainman IP.
 	}
 };
 
-string Identity::formatSpeedLimit(const uint32_t limit) // [+] IRainman
+string Identity::formatSpeedLimit(const uint32_t limit)
 {
 	return limit ? Util::formatBytes(limit) + '/' + STRING(S) : Util::emptyString;
 }
@@ -1047,7 +1046,7 @@ void Identity::getReport(string& p_report) const
 	p_report = " *** FlylinkDC user info ***\r\n";
 	const string sid = getSIDString();
 	{
-		// [+] IRainman fix.
+	
 		auto appendBoolValue = [&](const string & name, const bool value, const string & iftrue, const string & iffalse)
 		{
 			p_report += "\t" + name + ": " + (value ? iftrue : iffalse) + "\r\n";
@@ -1179,7 +1178,7 @@ void Identity::getReport(string& p_report) const
 		
 		appendIfValueNotEmpty("IPv4 Address", formatIpString(getIpAsString()));
 		// appendIfValueNotEmpty("IPv6 Address", formatIpString(getIp())); TODO
-		// [~] IRainman fix.
+		
 		
 		// Справочные значения заберем через функцию get т.к. в мапе их нет
 		appendIfValueNotEmpty("DC client", getStringParam("AP"));
@@ -1206,7 +1205,7 @@ void Identity::getReport(string& p_report) const
 	}
 }
 
-string Identity::getSupports() const // [+] IRainman fix.
+string Identity::getSupports() const
 {
 	string tmp = UcSupports::getSupports(*this);
 	/*
@@ -1297,13 +1296,13 @@ User::DefinedAutoBanFlags User::hasAutoBan(Client *p_Client, const bool p_is_fav
 	if (!bForceAllow && !UserManager::protectedUserListEmpty())
 	{
 		const string l_Nick = getLastNick();
-		bForceAllow = !l_Nick.empty() && !UserManager::isInProtectedUserList(l_Nick); // TODO - часто toLower
+		bForceAllow = !l_Nick.empty() && !UserManager::isInProtectedUserList(l_Nick);
 	}
 	int iBan = BAN_NONE;
 	if (!bForceAllow)
 	{
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-		if (getHubID() != 0) // Value HubID is zero for himself, do not check your user.
+		if (getHubID() != 0)
 #endif
 		{
 			const int l_limit = getLimit();
@@ -1314,8 +1313,7 @@ User::DefinedAutoBanFlags User::hasAutoBan(Client *p_Client, const bool p_is_fav
 			const int iSettingLimit = SETTING(BAN_LIMIT);
 			const int iSettingShare = SETTING(BAN_SHARE);
 			
-			// [+] IRainman
-			if (m_support_slots == FLY_SUPPORT_SLOTS_FIRST)//[+]PPA optimize autoban
+			if (m_support_slots == FLY_SUPPORT_SLOTS_FIRST)
 			{
 				bool HubDoenstSupportSlot = isNMDC();
 				if (HubDoenstSupportSlot)
@@ -1327,7 +1325,6 @@ User::DefinedAutoBanFlags User::hasAutoBan(Client *p_Client, const bool p_is_fav
 				}
 				m_support_slots = HubDoenstSupportSlot ? FLY_NSUPPORT_SLOTS : FLY_SUPPORT_SLOTS;
 			}
-			// [~] IRainman
 			
 			if ((m_support_slots == FLY_SUPPORT_SLOTS || l_slots) && iSettingBanSlotMin && l_slots < iSettingBanSlotMin)
 				iBan |= BAN_BY_MIN_SLOT;
@@ -1386,7 +1383,6 @@ bool OnlineUser::isTagUpdate(const string& p_tag, bool& p_is_version_change)
 #endif // FLYLINKDC_USE_CHECK_CHANGE_TAG
 
 
-//[~]FlylinkDC
 /**
  * @file
  * $Id: User.cpp 568 2011-07-24 18:28:43Z bigmuscle $

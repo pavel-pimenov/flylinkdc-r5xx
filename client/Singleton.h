@@ -27,14 +27,14 @@
 template<typename T>
 class Singleton
 #ifdef _DEBUG
-	: boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 	public:
 		explicit Singleton() { }
 		virtual ~Singleton() { }
 		
-		static bool isValidInstance() //[+]PPA
+		static bool isValidInstance()
 		{
 			return instance != nullptr;
 		}

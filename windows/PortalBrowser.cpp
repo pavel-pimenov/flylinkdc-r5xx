@@ -308,7 +308,7 @@ LRESULT PortalBrowserFrame::onCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 					
 					if (pPortal)
 					{
-						LoadExternalPortalBrowserXML(); //[+]PPA
+						LoadExternalPortalBrowserXML();
 						m_hBrowser = CreateBrowser(m_hWnd, WM_PORTAL_BROWSER_EVENT, m_wID - IDC_PORTAL_BROWSER, pPortal->strName.c_str(), pis->pszPortalLogin, pis->pszPortalPassword);
 						setCustomIcon(pPortal->hIcon);
 						setDirty(0);

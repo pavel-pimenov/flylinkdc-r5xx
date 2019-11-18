@@ -37,22 +37,22 @@ PropPage::Item MessagesChatPage::g_items_chat[] =
 MessagesChatPage::ListItem MessagesChatPage::g_listItems_chat[] =
 {
 #ifdef IRAINMAN_INCLUDE_SMILE
-	{ SettingsManager::SHOW_EMOTIONS_BTN, ResourceManager::SHOW_EMOTIONS_BTN }, // [+] SSA
+	{ SettingsManager::SHOW_EMOTIONS_BTN, ResourceManager::SHOW_EMOTIONS_BTN },
 	{ SettingsManager::CHAT_ANIM_SMILES, ResourceManager::CHAT_ANIM_SMILES },
 	{ SettingsManager::SMILE_SELECT_WND_ANIM_SMILES, ResourceManager::SMILE_SELECT_WND_ANIM_SMILES },
 #endif
-	{ SettingsManager::SHOW_SEND_MESSAGE_BUTTON, ResourceManager::SHOW_SEND_MESSAGE_BUTTON}, // [+] SSA
+	{ SettingsManager::SHOW_SEND_MESSAGE_BUTTON, ResourceManager::SHOW_SEND_MESSAGE_BUTTON},
 #ifdef IRAINMAN_USE_BB_CODES
-	{ SettingsManager::FORMAT_BB_CODES, ResourceManager::FORMAT_BB_CODES },//[+]IRainman
-	{ SettingsManager::FORMAT_BB_CODES_COLORS, ResourceManager::FORMAT_BB_CODES_COLORS },//[+]SSA
+	{ SettingsManager::FORMAT_BB_CODES, ResourceManager::FORMAT_BB_CODES },
+	{ SettingsManager::FORMAT_BB_CODES_COLORS, ResourceManager::FORMAT_BB_CODES_COLORS },
 #endif
-	{ SettingsManager::SHOW_BBCODE_PANEL, ResourceManager::SHOW_BBCODE_PANEL}, // [+] SSA
-	{ SettingsManager::FORMAT_BOT_MESSAGE, ResourceManager::FORMAT_BOT_MESSAGE },// [+] IRainman
+	{ SettingsManager::SHOW_BBCODE_PANEL, ResourceManager::SHOW_BBCODE_PANEL},
+	{ SettingsManager::FORMAT_BOT_MESSAGE, ResourceManager::FORMAT_BOT_MESSAGE },
 	{ SettingsManager::MULTILINE_CHAT_INPUT, ResourceManager::MULTILINE_CHAT_INPUT },
-	{ SettingsManager::MULTILINE_CHAT_INPUT_BY_CTRL_ENTER, ResourceManager::MULTILINE_CHAT_INPUT_BY_CTRL_ENTER },//[+] SSA
-	{ SettingsManager::SHOW_MULTI_CHAT_BTN, ResourceManager::SHOW_MULTI_CHAT_BTN }, // [+] IRainman
+	{ SettingsManager::MULTILINE_CHAT_INPUT_BY_CTRL_ENTER, ResourceManager::MULTILINE_CHAT_INPUT_BY_CTRL_ENTER },
+	{ SettingsManager::SHOW_MULTI_CHAT_BTN, ResourceManager::SHOW_MULTI_CHAT_BTN },
 #ifdef SCALOLAZ_CHAT_REFFERING_TO_NICK
-	{ SettingsManager::CHAT_REFFERING_TO_NICK, ResourceManager::CHAT_REFFERING_TO_NICK },   // [+] SCALOlaz
+	{ SettingsManager::CHAT_REFFERING_TO_NICK, ResourceManager::CHAT_REFFERING_TO_NICK },
 #endif
 	
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
@@ -62,7 +62,7 @@ LRESULT MessagesChatPage::onInitDialog_chat(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 {
 	PropPage::read(*this, g_items_chat, g_listItems_chat, GetDlgItem(IDC_MESSAGES_CHAT_BOOLEANS));
 	
-	ctrlList_chat.Attach(GetDlgItem(IDC_MESSAGES_CHAT_BOOLEANS)); // [+] IRainman
+	ctrlList_chat.Attach(GetDlgItem(IDC_MESSAGES_CHAT_BOOLEANS));
 	
 	tooltip_messageschat.Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
 	tooltip_messageschat.SetDelayTime(TTDT_AUTOPOP, 15000);
@@ -73,7 +73,7 @@ LRESULT MessagesChatPage::onInitDialog_chat(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 	tooltip_messageschat.AddTool(ctrlProtect, ResourceManager::PROTECT_PRIVATE_TOOLTIP);
 	ctrlRnd.Attach(GetDlgItem(IDC_PROTECT_PRIVATE_RND));
 	tooltip_messageschat.AddTool(ctrlRnd, ResourceManager::PROTECT_PRIVATE_RND_TOOLTIP);
-	tooltip_messageschat.SetMaxTipWidth(256);   //[+] SCALOlaz: activate tooltips
+	tooltip_messageschat.SetMaxTipWidth(256);
 	if (!BOOLSETTING(POPUPS_DISABLED))
 	{
 		tooltip_messageschat.Activate(TRUE);

@@ -379,7 +379,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		bool is_table_exists(const string& p_table_name);
 		
-		enum FileStatus // [+] IRainman fix
+		enum FileStatus
 		{
 			UNKNOWN = 0,
 			PREVIOUSLY_DOWNLOADED = 0x01,
@@ -690,7 +690,6 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_load_dir_sql;
 		CFlySQLCommand m_load_dir_sql_without_mediainfo;
 		CFlySQLCommand m_set_ftype;
-		//CFlySQLCommand m_load_path_cache;
 		CFlySQLCommand m_load_path_cache_one_dir;
 		CFlySQLCommand m_sweep_dir_sql;
 		CFlySQLCommand m_sweep_path_file;
@@ -698,7 +697,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_get_tth_id;
 		CFlySQLCommand m_upload_file;
 		CFlySQLCommand m_get_tree;
-		CFlySQLCommand m_get_blocksize;  // [+] brain-ripper
+		CFlySQLCommand m_get_blocksize;
 		CFlySQLCommand m_insert_fly_path;
 		CFlySQLCommand m_insert_and_full_update_fly_queue;
 		CFlySQLCommand m_update_and_full_update_fly_queue;

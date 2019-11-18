@@ -32,11 +32,10 @@ STANDARD_EXCEPTION(FileException);
  */
 class OutputStream
 #ifdef _DEBUG
-	: boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 	public:
-		//OutputStream() { } [-] IRainman.
 		virtual ~OutputStream() {}
 		
 		/**
@@ -76,11 +75,10 @@ class OutputStream
 
 class InputStream
 #ifdef _DEBUG
-	: boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 	public:
-		//InputStream() { } [-] IRainman.
 		virtual ~InputStream() {}
 		/**
 		 * Call this function until it returns 0 to get all bytes.

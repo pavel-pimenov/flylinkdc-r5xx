@@ -54,7 +54,7 @@ class PopupManager : public Singleton< PopupManager >, private TimerManagerListe
 		void Remove(uint32_t pos = 0);
 		
 		//remove the popups that are scheduled to be removed
-		void AutoRemove(uint64_t tick); // [!] IRainman opt.
+		void AutoRemove(uint64_t tick);
 		
 		void Mute(bool mute)
 		{
@@ -62,7 +62,7 @@ class PopupManager : public Singleton< PopupManager >, private TimerManagerListe
 		}
 		
 	private:
-		typedef deque< PopupWnd* > PopupList; // [!] IRainman opt: change list to deque.
+		typedef deque< PopupWnd* > PopupList;
 		PopupList m_popups;
 		
 		//size of the popup window

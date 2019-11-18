@@ -204,7 +204,7 @@ class CFlyHyperLink : public CHyperLink
 #endif
 {
 #ifdef _DEBUG
-		void Attach(_In_opt_ HWND hWndNew) noexcept // запретим для класса звать Attach - ломается.
+		void Attach(_In_opt_ HWND hWndNew) noexcept
 		{
 		}
 #endif
@@ -214,7 +214,7 @@ class CFlyHyperLink : public CHyperLink
 			SubclassWindow(p_dlg_window);
 			SetHyperLinkExtendedStyle(HLINK_COMMANDBUTTON | HLINK_UNDERLINEHOVER);
 			if (BOOLSETTING(WINDOWS_STYLE_URL))
-				m_clrLink = GetSysColor(COLOR_HOTLIGHT); // [~] JhaoDa
+				m_clrLink = GetSysColor(COLOR_HOTLIGHT);
 			ATLVERIFY(m_tip.AddTool(m_hWnd, p_tool.c_str(), &m_rcLink, 1));
 		}
 };

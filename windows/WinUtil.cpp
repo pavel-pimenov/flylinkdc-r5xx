@@ -18,16 +18,17 @@
 
 #include "stdafx.h"
 
+#include "../client/File.h"
 #include "Resource.h"
 
-//#define COMPILE_MULTIMON_STUBS 1
-//#include <MultiMon.h>
+#include <shlobj.h>
+
+#define COMPILE_MULTIMON_STUBS 1
+#include <MultiMon.h>
 #include <powrprof.h>
-#include <control.h>
-#include <strmif.h> // error with missing ddraw.h, get it from MS DirectX SDK
-#include <iphlpapi.h>
 
 #include "WinUtil.h"
+#include "PrivateFrame.h"
 #include "MainFrm.h"
 #include "LimitEditDlg.h"
 
@@ -35,6 +36,9 @@
 #include "PortalBrowser.h"
 #endif
 
+#include "../client/StringTokenizer.h"
+#include "../client/HashManager.h"
+#include "../client/File.h"
 #include "../client/DownloadManager.h"
 #include "MagnetDlg.h"
 // AirDC++
@@ -44,6 +48,8 @@
 #include "QCDCtrlMsgs.h"
 #include "Players.h"
 // AirDC++
+#include <control.h>
+#include <strmif.h> // error with missing ddraw.h, get it from MS DirectX SDK
 #include "BarShader.h"
 #ifdef FLYLINKDC_USE_CUSTOM_MENU
 #include "../FlyFeatures/CustomMenuManager.h"
@@ -52,14 +58,13 @@
 #include "HTMLColors.h"
 #include "SearchFrm.h"
 
+#include <iphlpapi.h>
 #pragma comment(lib, "iphlpapi.lib")
-//[~]IRainman moved from Network Page
 
-// [+] IRainman opt: use static object.
 string UserInfoGuiTraits::g_hubHint;
 UserPtr UserInfoBaseHandlerTraitsUser<UserPtr>::g_user = nullptr;
 OnlineUserPtr UserInfoBaseHandlerTraitsUser<OnlineUserPtr>::g_user = nullptr;
-// [~] IRainman opt.
+
 
 const TCHAR* g_file_list_type = L"All Lists\0*.xml.bz2;*.dcls;*.dclst;*.torrent\0Torrent files\0*.torrent\0FileLists\0*.xml.bz2\0DCLST metafiles\0*.dcls;*.dclst\0All Files\0*.*\0\0";
 
@@ -88,20 +93,20 @@ HFONT Fonts::g_halfFont = nullptr;
 
 CMenu WinUtil::g_mainMenu;
 
-OMenu WinUtil::g_copyHubMenu; // [+] IRainman fix.
-OMenu UserInfoGuiTraits::copyUserMenu; // [+] IRainman fix.
+OMenu WinUtil::g_copyHubMenu;
+OMenu UserInfoGuiTraits::copyUserMenu;
 OMenu UserInfoGuiTraits::grantMenu;
-OMenu UserInfoGuiTraits::speedMenu; // !SMT!-S
-OMenu UserInfoGuiTraits::userSummaryMenu; // !SMT!-UI
-OMenu UserInfoGuiTraits::privateMenu; // !SMT!-PSW
-// [+] IRainman fix.
+OMenu UserInfoGuiTraits::speedMenu;
+OMenu UserInfoGuiTraits::userSummaryMenu;
+OMenu UserInfoGuiTraits::privateMenu;
+
 OMenu Preview::g_previewMenu;
 int Preview::g_previewAppsSize = 0;
 dcdrun(bool Preview::_debugIsActivated = false;)
 dcdrun(bool Preview::_debugIsClean = true;)
-// [~] IRainman fix.
-HIconWrapper WinUtil::g_banIconOnline(IDR_BANNED_ONLINE); // !SMT!-UI
-HIconWrapper WinUtil::g_banIconOffline(IDR_BANNED_OFF); // !SMT!-UI
+
+HIconWrapper WinUtil::g_banIconOnline(IDR_BANNED_ONLINE);
+HIconWrapper WinUtil::g_banIconOffline(IDR_BANNED_OFF);
 HIconWrapper WinUtil::g_hMedicalIcon(IDR_ICON_MEDICAL_BAG);
 //HIconWrapper WinUtil::g_hCrutchIcon(IDR_ICON_CRUTCH);
 HIconWrapper WinUtil::g_hFirewallIcon(IDR_ICON_FIREWALL);
@@ -126,20 +131,15 @@ std::unique_ptr<HIconWrapper> WinUtil::g_HubVirusIcon[4];
 std::unique_ptr<HIconWrapper> WinUtil::g_HubVirusIcon;
 #endif
 
-//static WinUtil::ShareMap WinUtil::UsersShare; // !SMT!-UI
 TStringList LastDir::g_dirs;
 HWND WinUtil::g_mainWnd = nullptr;
 HWND WinUtil::g_mdiClient = nullptr;
 FlatTabCtrl* WinUtil::g_tabCtrl = nullptr;
 HHOOK WinUtil::g_hook = nullptr;
-//[-]PPA tstring WinUtil::tth;
-//StringPairList WinUtil::initialDirs; [-] IRainman merge.
-//tstring WinUtil::exceptioninfo;
 bool WinUtil::urlDcADCRegistered = false;
 bool WinUtil::urlMagnetRegistered = false;
 bool WinUtil::DclstRegistered = false;
 bool WinUtil::g_isAppActive = false;
-//DWORD WinUtil::comCtlVersion = 0; [-] IRainman: please use CompatibilityManager::getComCtlVersion()
 CHARFORMAT2 Colors::g_TextStyleTimestamp;
 CHARFORMAT2 Colors::g_ChatTextGeneral;
 CHARFORMAT2 Colors::g_ChatTextOldHistory;
@@ -155,11 +155,8 @@ CHARFORMAT2 Colors::g_TextStyleURL;
 CHARFORMAT2 Colors::g_ChatTextPrivate;
 CHARFORMAT2 Colors::g_ChatTextLog;
 
-int WinUtil::g_tabPos = SettingsManager::TABS_TOP;// [!] IRainman optimize
+int WinUtil::g_tabPos = SettingsManager::TABS_TOP;
 
-// [!] brain-ripper
-// In order to correct work of small images for toolbar's menu
-// toolbarButton::image MUST be in order without gaps.
 const toolbarButton g_ToolbarButtons[] =
 {
 	{ID_FILE_CONNECT, 0, true, ResourceManager::MENU_PUBLIC_HUBS},
@@ -195,7 +192,6 @@ const toolbarButton g_ToolbarButtons[] =
 	{0, 0, false, ResourceManager::MENU_NOTEPAD}
 };
 
-//[+] Drakon
 const toolbarButton g_WinampToolbarButtons[] =
 {
 	{IDC_WINAMP_SPAM, 0, false, ResourceManager::WINAMP_SPAM},
@@ -210,7 +206,6 @@ const toolbarButton g_WinampToolbarButtons[] =
 	{0, 0, false, ResourceManager::WINAMP_PLAY}
 };
 
-// [+] BRAIN_RIPPER
 // Images ids MUST be synchronized with icons number in Toolbar-mini.png.
 // This is second path, first is described in ToolbarButtons.
 // So in this array images id continues after last image in ToolbarButtons array.
@@ -278,7 +273,6 @@ static const char* countryNames[] = { "ANDORRA", "UNITED ARAB EMIRATES", "AFGHAN
                                       "VIET NAM", "VANUATU", "WALLIS AND FUTUNA", "SAMOA", "YEMEN", "MAYOTTE", "YUGOSLAVIA", "SOUTH AFRICA", "ZAMBIA",
                                       "ZIMBABWE"
                                     };
-// [~] InfinitySky. "EUROPEAN UNION" changed to "EUROPE" for compatibility with dchublist.com.
 
 // https://drdump.com/DumpGroup.aspx?DumpGroupID=303960
 
@@ -370,7 +364,7 @@ COLORREF HLS_TRANSFORM(COLORREF rgb, int percent_L, int percent_S)
 }
 // TODO #pragma optimize("", on)
 
-// !SMT!-UI
+
 void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLORREF &bg, unsigned short& p_flag_mask, const OnlineUserPtr& onlineUser)
 {
 	bool l_is_favorites = false;
@@ -420,7 +414,6 @@ void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLOR
 	//LogManager::message("Colors::getUserColor, user = " + user->getLastNick() + " color = " + Util::toString(fg));
 #endif
 	dcassert(user);
-	// [!] IRainman fix todo: https://crash-server.com/SearchResult.aspx?ClientID=guest&Stack=Colors::getUserColor , https://crash-server.com/SearchResult.aspx?ClientID=guest&Stack=WinUtil::getUserColor
 	if ((p_flag_mask & IS_IGNORED_USER) == IS_IGNORED_USER)
 	{
 		if (UserManager::g_isEmptyIgnoreList == false && UserManager::isInIgnoreList(onlineUser ? onlineUser->getIdentity().getNick() : user->getLastNick()))
@@ -475,7 +468,7 @@ void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLOR
 	{
 		fg = SETTING(SERVER_COLOR);
 	}
-	else if (onlineUser && !onlineUser->getIdentity().isTcpActive()) // [!] IRainman opt.
+	else if (onlineUser && !onlineUser->getIdentity().isTcpActive())
 	{
 		fg = SETTING(PASIVE_COLOR);
 	}
@@ -530,7 +523,7 @@ void WinUtil::initThemeIcons()
 #endif
 }
 
-// !SMT!-UI
+
 dcdrun(bool WinUtil::g_staticMenuUnlinked = true;)
 void WinUtil::unlinkStaticMenus(CMenu &menu)
 {
@@ -541,8 +534,8 @@ void WinUtil::unlinkStaticMenus(CMenu &menu)
 	{
 		menu.GetMenuItemInfo(i - 1, true, &mif);
 		if (UserInfoGuiTraits::isUserInfoMenus(mif.hSubMenu) ||
-		        mif.hSubMenu == g_copyHubMenu.m_hMenu || // [+] IRainman fix.
-		        Preview::isPreviewMenu(mif.hSubMenu) // [+] IRainman fix.
+		        mif.hSubMenu == g_copyHubMenu.m_hMenu ||
+		        Preview::isPreviewMenu(mif.hSubMenu)
 		   )
 		{
 			menu.RemoveMenu(i - 1, MF_BYPOSITION);
@@ -564,7 +557,7 @@ static LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 {
 	if (code == HC_ACTION)
 	{
-		if (WinUtil::g_tabCtrl) //[+]PPA
+		if (WinUtil::g_tabCtrl)
 			if (wParam == VK_CONTROL && LOWORD(lParam) == 1)
 			{
 				if (lParam & 0x80000000)
@@ -641,13 +634,11 @@ void ISPImage::init()
 }
 void FlagImage::init()
 {
-	//const int l_count_before = m_images.GetImageCount();
 	m_flagImageCount = ResourceLoader::LoadImageList(IDR_FLAGS, m_images, 25, 16);
 	dcassert(m_flagImageCount);
 	dcassert(m_images.GetImageCount() <= 255); // „тобы не превысить 8 бит
-	// !SMT!-IP
-	//m_imageCount = m_images.GetImageCount();
-	if (!CompatibilityManager::isWine()) //[+]PPA под линуксом пока падаем http://flylinkdc.blogspot.com/2010/08/customlocationsbmp-wine.html
+	
+	if (!CompatibilityManager::isWine()) // под линуксом пока падаем http://flylinkdc.blogspot.com/2010/08/customlocationsbmp-wine.html
 	{
 		CBitmap UserLocations;
 		if (UserLocations.m_hBitmap = (HBITMAP)::LoadImage(NULL, Text::toT(Util::getConfigPath(
@@ -678,7 +669,7 @@ void WinUtil::init(HWND hWnd)
 	file.AppendMenu(MF_STRING, IDC_OPEN_TORRENT_FILE, CTSTRING(MENU_OPEN_TORRENT_FILE));
 #endif
 	file.AppendMenu(MF_STRING, IDC_OPEN_MY_LIST, CTSTRING(MENU_OPEN_OWN_LIST));
-	file.AppendMenu(MF_STRING, IDC_REFRESH_FILE_LIST, CTSTRING(MENU_REFRESH_FILE_LIST));// [~] changed position Sergey Shushkanov
+	file.AppendMenu(MF_STRING, IDC_REFRESH_FILE_LIST, CTSTRING(MENU_REFRESH_FILE_LIST));
 	file.AppendMenu(MF_STRING, IDC_MATCH_ALL, CTSTRING(MENU_OPEN_MATCH_ALL));
 //	file.AppendMenu(MF_STRING, IDC_FLYLINK_DISCOVER, _T("Flylink DiscoverЕ"));
 	file.AppendMenu(MF_STRING, IDC_REFRESH_FILE_LIST_PURGE, CTSTRING(MENU_REFRESH_FILE_LIST_PURGE)); // https://www.box.net/shared/cw9agvj2n3fbypdcls46
@@ -697,7 +688,7 @@ void WinUtil::init(HWND hWnd)
 	file.AppendMenu(MF_STRING, ID_GET_TTH, CTSTRING(MENU_TTH));
 	file.AppendMenu(MF_SEPARATOR);
 	file.AppendMenu(MF_STRING, ID_FILE_RECONNECT, CTSTRING(MENU_RECONNECT));
-	file.AppendMenu(MF_STRING, IDC_RECONNECT_DISCONNECTED, CTSTRING(MENU_RECONNECT_DISCONNECTED)); // [~] InfinitySky. Moved from "window."
+	file.AppendMenu(MF_STRING, IDC_RECONNECT_DISCONNECTED, CTSTRING(MENU_RECONNECT_DISCONNECTED));
 	file.AppendMenu(MF_STRING, IDC_FOLLOW, CTSTRING(MENU_FOLLOW_REDIRECT));
 	file.AppendMenu(MF_STRING, ID_FILE_QUICK_CONNECT, CTSTRING(MENU_QUICK_CONNECT));
 	file.AppendMenu(MF_SEPARATOR);
@@ -718,9 +709,8 @@ void WinUtil::init(HWND hWnd)
 	view.CreatePopupMenu();
 	view.AppendMenu(MF_STRING, ID_FILE_CONNECT, CTSTRING(MENU_PUBLIC_HUBS));
 	view.AppendMenu(MF_STRING, IDC_RECENTS, CTSTRING(MENU_FILE_RECENT_HUBS));
-	//view.AppendMenu(MF_SEPARATOR); [-] Sergey Shushkanov
 	view.AppendMenu(MF_STRING, IDC_FAVORITES, CTSTRING(MENU_FAVORITE_HUBS));
-	view.AppendMenu(MF_SEPARATOR); // [+] Sergey Shushkanov
+	view.AppendMenu(MF_SEPARATOR);
 	view.AppendMenu(MF_STRING, IDC_FAVUSERS, CTSTRING(MENU_FAVORITE_USERS));
 	view.AppendMenu(MF_SEPARATOR);
 	view.AppendMenu(MF_STRING, ID_FILE_SEARCH, CTSTRING(MENU_SEARCH));
@@ -737,7 +727,6 @@ void WinUtil::init(HWND hWnd)
 	view.AppendMenu(MF_STRING, IDC_HASH_PROGRESS, CTSTRING(MENU_HASH_PROGRESS));
 	view.AppendMenu(MF_SEPARATOR);
 	view.AppendMenu(MF_STRING, IDC_TOPMOST, CTSTRING(MENU_TOPMOST));
-	//view.AppendMenu(MF_SEPARATOR); [-] Sergey Shushkanov
 	view.AppendMenu(MF_STRING, ID_VIEW_TOOLBAR, CTSTRING(MENU_TOOLBAR));
 	view.AppendMenu(MF_STRING, ID_VIEW_STATUS_BAR, CTSTRING(MENU_STATUS_BAR));
 	view.AppendMenu(MF_STRING, ID_VIEW_TRANSFER_VIEW, CTSTRING(MENU_TRANSFER_VIEW));
@@ -771,15 +760,13 @@ void WinUtil::init(HWND hWnd)
 #endif
 #ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 #ifdef FLYLINKDC_USE_CUSTOM_MENU
-	// [+] SSA: Custom menu support.
 	CMenuHandle customMenuXML;
 	string customMenuNameXML;
 	if (FillCustomMenu(customMenuXML, customMenuNameXML))
 		g_mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)customMenuXML, Text::toT(customMenuNameXML).c_str());
-	// [~] SSA: Custom menu support.
 #endif
 #endif
-	
+		
 	CMenuHandle window;
 	window.CreatePopupMenu();
 	
@@ -810,8 +797,7 @@ void WinUtil::init(HWND hWnd)
 	CMenuHandle help;
 	help.CreatePopupMenu();
 	
-	help.AppendMenu(MF_STRING, IDC_HELP_HELP, CTSTRING(MENU_HELP)); //[*]PPA, [~] Drakon
-	//TODO help.AppendMenu(MF_STRING, IDC_HELP_DONATE, CTSTRING(MENU_HELP)); //[*]PPA, [~] Drakon
+	help.AppendMenu(MF_STRING, IDC_HELP_HELP, CTSTRING(MENU_HELP));
 	help.AppendMenu(MF_SEPARATOR);
 	help.AppendMenu(MF_STRING, IDC_HELP_HOMEPAGE, CTSTRING(MENU_HOMEPAGE));
 	help.AppendMenu(MF_STRING, IDC_HELP_DISCUSS, CTSTRING(MENU_DISCUSS));
@@ -820,17 +806,16 @@ void WinUtil::init(HWND hWnd)
 	help.AppendMenu(MF_STRING, IDC_HELP_GEOIPFILE, CTSTRING(MENU_HELP_GEOIPFILE));
 #endif
 	
-	//help.AppendMenu(MF_SEPARATOR); [-] Sergey Shushkanov
-	help.AppendMenu(MF_STRING, IDC_SITES_FLYLINK_TRAC, CTSTRING(MENU_JOIN_TEAM)); // [~] Drakon
+	help.AppendMenu(MF_STRING, IDC_SITES_FLYLINK_TRAC, CTSTRING(MENU_JOIN_TEAM));
 #ifdef USE_SUPPORT_HUB
 	help.AppendMenu(MF_STRING, IDC_CONNECT_TO_FLYSUPPORT_HUB, CTSTRING(MENU_CONNECT_TO_HUB));
 #endif //USE_SUPPORT_HUB
 	
 	help.AppendMenu(MF_SEPARATOR);
-	help.AppendMenu(MF_STRING, IDC_UPDATE_FLYLINKDC, CTSTRING(UPDATE_CHECK)); // [~]Drakon. Moved from "file."
+	help.AppendMenu(MF_STRING, IDC_UPDATE_FLYLINKDC, CTSTRING(UPDATE_CHECK));
 	help.AppendMenu(MF_STRING, ID_APP_ABOUT, CTSTRING(MENU_ABOUT));
 	
-	g_mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)help, CTSTRING(MENU_HLP)); // [~] Drakon
+	g_mainMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)help, CTSTRING(MENU_HLP));
 	
 #ifdef FLYLINKDC_USE_EXT_JSON
 #ifdef FLYLINKDC_USE_LOCATION_DIALOG
@@ -860,9 +845,7 @@ void WinUtil::init(HWND hWnd)
 	
 	Fonts::init();
 	
-	// [+] SSA Register application
 	Util::setRegistryValueString(_T("ApplicationPath"), Util::getModuleFileName());
-	// [+] SSA Register application
 	
 	
 	if (BOOLSETTING(URL_HANDLER))
@@ -879,21 +862,11 @@ void WinUtil::init(HWND hWnd)
 		registerMagnetHandler();
 		urlMagnetRegistered = true;
 	}
-	// [+] IRainman dclst support
 	if (BOOLSETTING(DCLST_REGISTER))
 	{
 		registerDclstHandler();
 		DclstRegistered = true;
 	}
-	// [~] IRainman dclst support
-	
-	/* [-] IRainman move to CompatibilityManager
-	DWORD dwMajor = 0, dwMinor = 0;
-	if (SUCCEEDED(ATL::AtlGetCommCtrlVersion(&dwMajor, &dwMinor)))
-	{
-	    comCtlVersion = MAKELONG(dwMinor, dwMajor);
-	}
-	*/
 	
 	g_hook = SetWindowsHookEx(WH_KEYBOARD, &KeyboardProc, NULL, GetCurrentThreadId());
 	
@@ -901,9 +874,9 @@ void WinUtil::init(HWND hWnd)
 	g_copyHubMenu.AppendMenu(MF_STRING, IDC_COPY_HUBNAME, CTSTRING(HUB_NAME));
 	g_copyHubMenu.AppendMenu(MF_STRING, IDC_COPY_HUBADDRESS, CTSTRING(HUB_ADDRESS));
 	g_copyHubMenu.InsertSeparatorFirst(TSTRING(COPY));
-	// [~] IRainman fix.
 	
-	// !SMT!-UI
+	
+	
 	UserInfoGuiTraits::init();
 }
 
@@ -925,9 +898,6 @@ void UserInfoGuiTraits::init()
 	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_NICK_IP, CTSTRING(COPY_NICK_IP));
 	
 	copyUserMenu.AppendMenu(MF_STRING, IDC_COPY_ALL, CTSTRING(COPY_ALL));
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-	copyUserMenu.InsertSeparatorFirst(TSTRING(COPY));
-#endif
 	
 	grantMenu.CreatePopupMenu();
 	grantMenu.AppendMenu(MF_STRING, IDC_GRANTSLOT, CTSTRING(GRANT_EXTRA_SLOT));
@@ -938,10 +908,10 @@ void UserInfoGuiTraits::init()
 	grantMenu.AppendMenu(MF_SEPARATOR);
 	grantMenu.AppendMenu(MF_STRING, IDC_UNGRANTSLOT, CTSTRING(REMOVE_EXTRA_SLOT));
 	
-	// !SMT!-UI
+	
 	userSummaryMenu.CreatePopupMenu();
 	
-	// !SMT!-S
+	
 	speedMenu.CreatePopupMenu();
 	speedMenu.AppendMenu(MF_STRING, IDC_SPEED_NORMAL, CTSTRING(NORMAL));
 	speedMenu.AppendMenu(MF_STRING, IDC_SPEED_SUPER, CTSTRING(SPEED_SUPER_USER));
@@ -957,7 +927,7 @@ void UserInfoGuiTraits::init()
 	
 	speedMenu.AppendMenu(MF_STRING, IDC_SPEED_BAN,  CTSTRING(BAN_USER));
 	
-	// !SMT!-PSW
+	
 	privateMenu.CreatePopupMenu();
 	privateMenu.AppendMenu(MF_STRING, IDC_PM_NORMAL,    CTSTRING(NORMAL));
 	privateMenu.AppendMenu(MF_STRING, IDC_PM_IGNORED, CTSTRING(IGNORE_S));
@@ -968,18 +938,17 @@ void UserInfoGuiTraits::uninit()
 {
 	copyUserMenu.DestroyMenu();
 	grantMenu.DestroyMenu();
-	userSummaryMenu.DestroyMenu();// !SMT!-UI
-	speedMenu.DestroyMenu(); // !SMT!-S
-	privateMenu.DestroyMenu(); // !SMT!-PSW
+	userSummaryMenu.DestroyMenu();
+	speedMenu.DestroyMenu();
+	privateMenu.DestroyMenu();
 }
 
 void Fonts::init()
 {
 	LOGFONT lf[2] = {0};
 	::GetObject((HFONT)GetStockObject(DEFAULT_GUI_FONT), sizeof(lf[0]), &lf[0]);
-	// SettingsManager::setDefault(SettingsManager::TEXT_FONT, Text::fromT(encodeFont(lf))); // !SMT!-F
+	// SettingsManager::setDefault(SettingsManager::TEXT_FONT, Text::fromT(encodeFont(lf)));
 	
-	//--------------------------------- [~] Sergey Shuhskanov
 	lf[0].lfWeight = FW_BOLD;
 	g_boldFont = ::CreateFontIndirect(&lf[0]);
 	//---------------------------------
@@ -1148,9 +1117,9 @@ void WinUtil::uninit()
 	Colors::uninit();
 	
 	g_mainMenu.DestroyMenu();
-	g_copyHubMenu.DestroyMenu();// [+] IRainman fix.
+	g_copyHubMenu.DestroyMenu();
 	
-	// !SMT!-UI
+	
 	UserInfoGuiTraits::uninit();
 }
 
@@ -1265,36 +1234,6 @@ void WinUtil::setClipboard(const tstring& str)
 	
 	EmptyClipboard();
 	
-	/* [-] IRainman old code: copied to the clipboard, Unicode strings, no need to convert to ANSI.
-	#ifdef UNICODE
-	    OSVERSIONINFOEX ver;
-	    if (WinUtil::getVersionInfo(ver))
-	    {
-	        if (ver.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
-	        {
-	            string tmp = Text::wideToAcp(str);
-	
-	            HGLOBAL hglbCopy = GlobalAlloc(GMEM_MOVEABLE, (tmp.size() + 1) * sizeof(char));
-	            if (hglbCopy == NULL)
-	            {
-	                CloseClipboard();
-	                return;
-	            }
-	
-	            // Lock the handle and copy the text to the buffer.
-	            char* lptstrCopy = (char*)GlobalLock(hglbCopy);
-	            strcpy(lptstrCopy, tmp.c_str());
-	            GlobalUnlock(hglbCopy);
-	
-	            SetClipboardData(CF_TEXT, hglbCopy);
-	
-	            CloseClipboard();
-	
-	            return;
-	        }
-	    }
-	#endif
-	*/
 	
 	// Allocate a global memory object for the text.
 	HGLOBAL hglbCopy = GlobalAlloc(GMEM_MOVEABLE, (str.size() + 1) * sizeof(TCHAR));
@@ -1314,7 +1253,7 @@ void WinUtil::setClipboard(const tstring& str)
 	
 	CloseClipboard();
 }
-//[+] FlylinkDC++ Team
+
 void WinUtil::splitTokensWidth(int* p_array, const string& p_tokens, int p_maxItems) noexcept
 {
 	splitTokens(p_array, p_tokens, p_maxItems);
@@ -1322,10 +1261,10 @@ void WinUtil::splitTokensWidth(int* p_array, const string& p_tokens, int p_maxIt
 		if (p_array[k] <= 0 || p_array[k] > 2000)
 			p_array[k] = 10;
 }
-//[~] FlylinkDC++ Team
+
 void WinUtil::splitTokens(int* p_array, const string& p_tokens, int p_maxItems) noexcept
 {
-	dcassert(p_maxItems > 0); //[+] FlylinkDC++ Team
+	dcassert(p_maxItems > 0);
 	const StringTokenizer<string> t(p_tokens, ',');
 	const StringList& l = t.getTokens();
 	int k = 0;
@@ -1480,16 +1419,10 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 	{
 		cmd = cmd.substr(1);
 	}
-// [+] Drakon
 	if (stricmp(cmd.c_str(), _T("help")) == 0  || stricmp(cmd.c_str(), _T("h")) == 0)
 	{
 		local_message = getCommandsList();
-		//[+] SCALOlaz
-		//AboutDlgIndex dlg;    // —делать что-то подобное, модальное окно со списком команд, чтобы не вешало чат
-		//dlg.DoModal();
 	}
-// [~] Drakon
-	// [+] IRainman: fix copy-past.
 	else if (stricmp(cmd.c_str(), _T("stats")) == 0)
 	{
 		if (stricmp(param.c_str(), _T("pub")) == 0)
@@ -1501,7 +1434,6 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			local_message = Text::toT(CompatibilityManager::generateProgramStats());
 		}
 	}
-	// [~] IRainman: fix copy-past.
 	else if (stricmp(cmd.c_str(), _T("log")) == 0)
 	{
 		if (stricmp(param.c_str(), _T("system")) == 0)
@@ -1593,7 +1525,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 	{
 		message = Text::toT("+me Uptime: " + Util::formatTime(Util::getUpTime()) + ". System uptime: " + CompatibilityManager::getSysUptime());
 	}
-	else if (stricmp(cmd.c_str(), _T("systeminfo")) == 0 || stricmp(cmd.c_str(), _T("sysinfo")) == 0) // [+] IRainman support.
+	else if (stricmp(cmd.c_str(), _T("systeminfo")) == 0 || stricmp(cmd.c_str(), _T("sysinfo")) == 0)
 	{
 		tstring tmp = _T("+me systeminfo: ") +
 		              Text::toT(CompatibilityManager::generateFullSystemStatusMessage());
@@ -1660,15 +1592,12 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 	// Lee's /ratio support, why can't he always ask this kind of easy things.
 	else if (stricmp(cmd.c_str(), _T("ratio")) == 0 || stricmp(cmd.c_str(), _T("r")) == 0)
 	{
-		// [+] WhiteD. Custom ratio message.
 		StringMap params;
 		CFlylinkDBManager::getInstance()->load_global_ratio();
 		params["ratio"] = Text::fromT(CFlylinkDBManager::getInstance()->get_ratioW());
 		params["up"] = Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_upload());
 		params["down"] = Util::formatBytes(CFlylinkDBManager::getInstance()->m_global_ratio.get_download());
 		message = Text::toT(Util::formatParams(SETTING(RATIO_TEMPLATE), params, false));
-// End of addition.
-		// limiter toggle
 	}
 #endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 	else if (stricmp(cmd.c_str(), _T("limit")) == 0)
@@ -1816,7 +1745,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			}
 			else if (stricmp(cmd.c_str(), _T("f")) == 0 || stricmp(cmd.c_str(), _T("foobar")) == 0)
 			{
-				status = TSTRING(FOOBAR_ERROR); //[!]NightOrion(translate)
+				status = TSTRING(FOOBAR_ERROR);
 			}
 			else if (stricmp(cmd.c_str(), _T("qcd")) == 0 || stricmp(cmd.c_str(), _T("q")) == 0)
 			{
@@ -2261,8 +2190,6 @@ void WinUtil::unRegisterMagnetHandler()
 
 void WinUtil::registerDclstHandler()
 {
-	// [!] SSA - тут нужно добавить ссылку и открытие dclst файлов с диска
-	
 	// [HKEY_CURRENT_USER\Software\Classes\.dcls]
 	// @="DCLST metafile"
 	// [HKEY_CURRENT_USER\Software\Classes\.dclst]
@@ -2346,7 +2273,7 @@ void WinUtil::registerDclstHandler()
 	}
 }
 
-void WinUtil::unRegisterDclstHandler()// [+] IRainman dclst support
+void WinUtil::unRegisterDclstHandler()
 {
 	internalDeleteRegistryKey(_T("DCLST metafile"));
 }
@@ -2361,9 +2288,9 @@ void WinUtil::openFile(const TCHAR* file)
 	::ShellExecute(NULL, _T("open"), file, NULL, NULL, SW_SHOWNORMAL);
 }
 
-bool WinUtil::openLink(const tstring& uri) // [!] IRainman opt: return status.
+bool WinUtil::openLink(const tstring& uri)
 {
-	// [!] IRainman opt.
+
 	if (parseMagnetUri(uri) || parseDchubUrl(uri))
 	{
 		return true;
@@ -2384,12 +2311,11 @@ bool WinUtil::openLink(const tstring& uri) // [!] IRainman opt: return status.
 		}
 	}
 	return false;
-	// [~] IRainman opt.
+	
 }
 
-void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Extension /*= Util::emptyStringT*/, const tstring& p_openCmd /* = Util::emptyStringT*/)//[+]FlylinkDC
+void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Extension /*= Util::emptyStringT*/, const tstring& p_openCmd /* = Util::emptyStringT*/)
 {
-	// [!] IRainman
 	tstring x;
 	if (p_openCmd.empty())
 	{
@@ -2407,7 +2333,6 @@ void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Ex
 		}
 		else
 		{
-			//[+] IRainman
 			x = p_Extension;
 		}
 		x += _T("\\shell\\open\\command");
@@ -2422,23 +2347,22 @@ void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Ex
 	::ShellExecute(NULL, NULL, url.c_str(), NULL, NULL, SW_SHOWNORMAL);
 }
 
-bool WinUtil::parseDchubUrl(const tstring& aUrl)// [!] IRainman fix: stop copy-past!
+bool WinUtil::parseDchubUrl(const tstring& aUrl)
 {
 	if (Util::isDcppHub(aUrl) || Util::isNmdcHub(aUrl))
 	{
-		//[-] PVS-Studio V808 string path;
 		uint16_t port;
 		string proto, host, file, query, fragment;
-		const string l_Url = Util::formatDchubUrl(Text::fromT(aUrl)); // TODO - внутри лежит вложенный decodeUrl
+		const string l_Url = Util::formatDchubUrl(Text::fromT(aUrl));
 		Util::decodeUrl(l_Url, proto, host, port, file, query, fragment);
 		const string l_url_rebuild = host + ":" + Util::toString(port);
 		if (!host.empty())
 		{
-			// [+] IRainman fix.
+		
 			RecentHubEntry r;
 			r.setServer(l_Url);
 			FavoriteManager::getInstance()->addRecent(r);
-			// [~] IRainman fix.
+			
 			HubFrame::openHubWindow(false, l_Url);
 		}
 		if (!file.empty())
@@ -2454,7 +2378,6 @@ bool WinUtil::parseDchubUrl(const tstring& aUrl)// [!] IRainman fix: stop copy-p
 				path = file.substr(i);
 				nick = file.substr(0, i);
 			}
-			// [~] IRainman
 			if (!nick.empty())
 			{
 				const UserPtr user = ClientManager::findLegacyUser(nick, l_url_rebuild);
@@ -2482,7 +2405,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
                              , bool viewMediaIfPossible /* = false */
 #endif
-                            ) // [!] IRainman opt: return status.
+                            )
 {
 	// official types that are of interest to us
 	//  xt = exact topic
@@ -2636,7 +2559,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 									case SettingsManager::MAGNET_AUTO_SEARCH:
 										Action = MA_SEARCH;
 										break;
-									case SettingsManager::MAGNET_AUTO_DOWNLOAD_AND_OPEN: // [!] FlylinkDC Team TODO: add support auto open file after download to gui.
+									case SettingsManager::MAGNET_AUTO_DOWNLOAD_AND_OPEN:
 										Action = MA_OPEN;
 										break;
 									default:
@@ -2676,7 +2599,6 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 					case MA_DOWNLOAD:
 						try
 						{
-							// [!] SSA - Download Folder
 							QueueManager::getInstance()->add(0, fname, fsize, TTHValue(fhash), HintedUser(),
 							                                 l_isDCLST ? QueueItem::FLAG_DCLST_LIST :
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
@@ -2699,7 +2621,6 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 					{
 						try
 						{
-							// [!] SSA to do open here
 							QueueManager::getInstance()->add(0, fname, fsize, TTHValue(fhash), HintedUser(), QueueItem::FLAG_CLIENT_VIEW | (l_isDCLST ? QueueItem::FLAG_DCLST_LIST : 0));
 						}
 						catch (const Exception& e)
@@ -2730,12 +2651,12 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 				MessageBox(g_mainWnd, CTSTRING(MAGNET_DLG_TEXT_BAD), CTSTRING(MAGNET_DLG_TITLE), MB_OK | MB_ICONEXCLAMATION);
 			}
 		}
-		return true; // [+] IRainman opt: return status.
+		return true;
 	}
-	return false; // [+] IRainman opt: return status.
+	return false;
 }
 
-void WinUtil::OpenFileList(const tstring& filename, DefinedMagnetAction Action /* = MA_DEFAULT */) // [+] IRainman dclst support // [!] SSA
+void WinUtil::OpenFileList(const tstring& filename, DefinedMagnetAction Action /* = MA_DEFAULT */)
 {
 	const UserPtr u = DirectoryListing::getUserFromFilename(Text::fromT(filename));
 	DirectoryListingFrame::openWindow(filename, Util::emptyStringT, HintedUser(u, Util::emptyString), 0, Util::isDclstFile(filename));
@@ -2765,11 +2686,10 @@ int WinUtil::textUnderCursor(POINT p, CEdit& ctrl, tstring& x)
 }
 bool WinUtil::parseDBLClick(const tstring& aString, string::size_type start, string::size_type end)
 {
-	const tstring l_URI = aString.substr(start, end - start); // [+] IRainman opt.
-	return openLink(l_URI); // [!] IRainman opt.
+	const tstring l_URI = aString.substr(start, end - start);
+	return openLink(l_URI);
 }
 
-// !SMT!-UI (todo: disable - this routine does not save column visibility)
 void WinUtil::saveHeaderOrder(CListViewCtrl& ctrl, SettingsManager::StrSetting order,
                               SettingsManager::StrSetting widths, int n,
                               int* indexes, int* sizes) noexcept
@@ -3035,7 +2955,7 @@ void WinUtil::getContextMenuPos(CEdit& aEdit, POINT& aPt)
 void WinUtil::openFolder(const tstring& file)
 {
 	/* TODO: needs test in last wine!
-	if (CompatibilityManager::isWine()) // [+]IRainman
+	if (CompatibilityManager::isWine())
 	    ::ShellExecute(NULL, NULL, Text::toT(Util::getFilePath(ii->entry->getTarget())).c_str(), NULL, NULL, SW_SHOWNORMAL);
 	*/
 	if (File::isExist(file))
@@ -3123,48 +3043,9 @@ int WinUtil::getFlagIndexByName(const char* countryName)
 			return i + 1;
 	return 0;
 }
-/*
-[-]PPA
-int arrayutf[96] = {-61, -127, -60, -116, -60, -114, -61, -119, -60, -102, -61, -115, -60, -67, -59, -121, -61, -109, -59, -104, -59, -96, -59, -92, -61, -102, -59, -82, -61, -99, -59, -67, -61, -95, -60, -115, -60, -113, -61, -87, -60, -101, -61, -83, -60, -66, -59, -120, -61, -77, -59, -103, -59, -95, -59, -91, -61, -70, -59, -81, -61, -67, -59, -66, -61, -124, -61, -117, -61, -106, -61, -100, -61, -92, -61, -85, -61, -74, -61, -68, -61, -76, -61, -108, -60, -71, -60, -70, -60, -67, -60, -66, -59, -108, -59, -107};
-int arraywin[48] = {65, 67, 68, 69, 69, 73, 76, 78, 79, 82, 83, 84, 85, 85, 89, 90, 97, 99, 100, 101, 101, 105, 108, 110, 111, 114, 115, 116, 117, 117, 121, 122, 65, 69, 79, 85, 97, 101, 111, 117, 111, 111, 76, 108, 76, 108, 82, 114};
-
-string WinUtil::disableCzChars(string message) {
-    string s;
-
-    for(unsigned int j = 0; j < message.length(); ++j) {
-        int zn = (int)message[j];
-        int zzz = -1;
-        for(int l = 0; l + 1 < 96; l+=2) {
-            if (zn == arrayutf[l]) {
-                int zn2 = (int)message[j+1];
-                if(zn2 == arrayutf[l+1]) {
-                    zzz = (int)(l/2);
-                    break;
-                }
-            }
-        }
-        if (zzz >= 0) {
-            s += (char)(arraywin[zzz]);
-            j++;
-        } else {
-            s += message[j];
-        }
-    }
-
-    return s;
-}
-*/
 
 bool WinUtil::shutDown(int action)
 {
-	// Prepare for shutdown
-	
-	// [-] IRainman old code:
-	//UINT iForceIfHung = 0;
-	//OSVERSIONINFO osvi = {0};
-	//osvi.dwOSVersionInfoSize = sizeof(osvi);
-	//if (GetVersionEx(&osvi) != 0 && osvi.dwPlatformId == VER_PLATFORM_WIN32_NT)
-	//{
 	UINT iForceIfHung = 0x00000010;
 	HANDLE hToken;
 	OpenProcessToken(GetCurrentProcess(), (TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY), &hToken);
@@ -3178,7 +3059,6 @@ bool WinUtil::shutDown(int action)
 	tp.Privileges[0].Luid = luid;
 	AdjustTokenPrivileges(hToken, FALSE, &tp, 0, (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL);
 	CloseHandle(hToken);
-	//}
 	
 	// Shutdown
 	switch (action)
@@ -3240,7 +3120,6 @@ int WinUtil::setButtonPressed(int nID, bool bPressed /* = true */)
 }
 
 #ifdef FLYLINKDC_USE_LIST_VIEW_WATER_MARK
-// [+] InfinitySky. Alpha Channel. PNG Support from Apex 1.3.8.
 
 bool WinUtil::setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int width /*= 128*/, int height /*= 128*/)
 {
@@ -3321,11 +3200,10 @@ bool WinUtil::setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int w
 	ListView_SetBkImage(hListCtrl, &lv);
 	return true;
 }
-// [+] InfinitySky. END. Alpha Channel. PNG Support from Apex 1.3.8.
 #endif
 
 /*
-bool WinUtil::checkIsButtonPressed(int nID)//[+]IRainman
+bool WinUtil::checkIsButtonPressed(int nID)
 {
     if (nID == -1)
         return false;
@@ -3381,7 +3259,7 @@ tstring WinUtil::getNicks(const HintedUser& user)
 
 #ifdef FLYLINKDC_USE_PROVIDER_RESOURCES
 #ifdef FLYLINKDC_USE_CUSTOM_MENU
-bool WinUtil::FillCustomMenu(CMenuHandle &menu, string& menuName) //[+] SSA: Custom menu support.
+bool WinUtil::FillCustomMenu(CMenuHandle &menu, string& menuName)
 {
 	const CustomMenuManager* l_instance = CustomMenuManager::getInstance();
 	if (!l_instance)
@@ -3440,13 +3318,12 @@ bool WinUtil::FillCustomMenu(CMenuHandle &menu, string& menuName) //[+] SSA: Cus
 	
 	return bRet != FALSE;
 }
-// [~] SSA: Custom menu support.
 #endif
 #endif // FLYLINKDC_USE_PROVIDER_RESOURCES
 
 
 
-tstring WinUtil::getAddresses(CComboBox& BindCombo) // [<-] IRainman moved from Network Page.
+tstring WinUtil::getAddresses(CComboBox& BindCombo)
 {
 	std::unordered_set<string> l_unique_ip;
 	tstring l_result_tool_tip;
@@ -3502,7 +3379,7 @@ tstring WinUtil::getAddresses(CComboBox& BindCombo) // [<-] IRainman moved from 
 	return l_result_tool_tip;
 }
 
-// [+] InfinitySky.
+
 void WinUtil::GetTimeValues(CComboBox& p_ComboBox)
 {
 	const bool use12hrsFormat = BOOLSETTING(USE_12_HOUR_FORMAT);
@@ -3527,9 +3404,9 @@ void WinUtil::GetTimeValues(CComboBox& p_ComboBox)
 			p_ComboBox.AddString((Util::toStringW(i) + _T(":00")).c_str());
 }
 
-TCHAR WinUtil::CharTranscode(const TCHAR msg)// [+]Drakon
+TCHAR WinUtil::CharTranscode(const TCHAR msg)
 {
-	// TODO optimize this.
+
 	static const TCHAR Lat[] = L"`qwertyuiop[]asdfghjkl;'zxcvbnm,./~!@#$%^&*()_+|QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>?";
 	static const TCHAR Rus[] = L"Єйцукенгшщзхъфывапролджэ€чсмитьбю.®!\"є;%:?*()_+/…÷” ≈Ќ√Ўў«’Џ‘џ¬јѕ–ќЋƒ∆Ёя„—ћ»“№Ѕё,";
 	for (size_t i = 0; i < _countof(Lat); i++)
@@ -3542,7 +3419,7 @@ TCHAR WinUtil::CharTranscode(const TCHAR msg)// [+]Drakon
 	return msg;
 }
 
-void WinUtil::TextTranscode(CEdit& ctrlMessage) // [+] Drakon [!] Added Selection change only
+void WinUtil::TextTranscode(CEdit& ctrlMessage)
 {
 	const int len1 = static_cast<int>(ctrlMessage.GetWindowTextLength());
 	if (len1 == 0)
@@ -3567,7 +3444,7 @@ void WinUtil::TextTranscode(CEdit& ctrlMessage) // [+] Drakon [!] Added Selectio
 	ctrlMessage.SetFocus();
 }
 
-void WinUtil::SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID) // [+] SSA
+void WinUtil::SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID)
 {
 #ifdef IRAINMAN_USE_BB_CODES
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
@@ -3824,7 +3701,6 @@ int UserInfoGuiTraits::getSpeedLimitByCtrlId(WORD wID, int lim)
 			break;
 		case IDC_SPEED_MANUAL:
 		{
-			// SSA - Show Dialog with speed
 			if (lim < 0)
 				lim = 0;
 			LimitEditDlg dlg(lim);
@@ -4007,16 +3883,16 @@ bool WinUtil::CreateShortCut(const tstring& pszTargetfile, const tstring& pszTar
 		{
 			/* Set the fields in the IShellLink object */
 			// [!] PVS V519 The 'hRes' variable is assigned values twice successively. Perhaps this is a mistake. Check lines: 4536, 4537.
-			hRes |= pShellLink->SetPath(pszTargetfile.c_str());  // [!] PVS thanks!
-			hRes |= pShellLink->SetArguments(pszTargetargs.c_str()); // [!] PVS thanks!
+			hRes |= pShellLink->SetPath(pszTargetfile.c_str());
+			hRes |= pShellLink->SetArguments(pszTargetargs.c_str());
 			if (pszDescription.length() > 0)
-				hRes |= pShellLink->SetDescription(pszDescription.c_str());// [!] PVS thanks!
+				hRes |= pShellLink->SetDescription(pszDescription.c_str());
 			if (iShowmode > 0)
-				hRes |= pShellLink->SetShowCmd(iShowmode);// [!] PVS thanks!
+				hRes |= pShellLink->SetShowCmd(iShowmode);
 			if (pszCurdir.length() > 0)
-				hRes |= pShellLink->SetWorkingDirectory(pszCurdir.c_str());// [!] PVS thanks!
+				hRes |= pShellLink->SetWorkingDirectory(pszCurdir.c_str());
 			if (pszIconfile.length() > 0 && iIconindex >= 0)
-				hRes |= pShellLink->SetIconLocation(pszIconfile.c_str(), iIconindex);// [!] PVS thanks!
+				hRes |= pShellLink->SetIconLocation(pszIconfile.c_str(), iIconindex);
 				
 			/* Use the IPersistFile object to save the shell link */
 			hRes |= pShellLink->QueryInterface( /* [!] PVS thanks! */
@@ -4031,7 +3907,7 @@ bool WinUtil::CreateShortCut(const tstring& pszTargetfile, const tstring& pszTar
 		}
 		
 	}
-	return SUCCEEDED(hRes);// [!] PVS thanks!
+	return SUCCEEDED(hRes);
 }
 
 bool WinUtil::AutoRunShortCut(bool bCreate)
@@ -4072,7 +3948,7 @@ tstring WinUtil::GetAutoRunShortCutName()
 	// CSIDL_STARTUP
 	TCHAR startupPath[MAX_PATH];
 	if (!SHGetSpecialFolderPath(NULL, startupPath, CSIDL_STARTUP, TRUE))
-		return Util::emptyStringT; // [!] IRainman fix
+		return Util::emptyStringT;
 		
 	tstring autoRunShortCut = startupPath;
 	AppendPathSeparator(autoRunShortCut);

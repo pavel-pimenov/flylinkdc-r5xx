@@ -38,7 +38,7 @@ class ChatMessage
 		time_t m_timestamp; // TODO - разобраться когда оно нужно
 		bool thirdPerson;
 		
-		// [+] IRainman fix.
+		
 		ChatMessage(const string& _text, const OnlineUserPtr& _from, const OnlineUserPtr& _to = nullptr, const OnlineUserPtr& _replyTo = nullptr, bool _thirdPerson = false)
 			: m_text(_text), m_from(_from), m_to(_to), m_replyTo(_replyTo), thirdPerson(_thirdPerson), m_timestamp(0)
 		{
@@ -61,7 +61,7 @@ class ChatMessage
 				m_text = m_text.substr(4);
 			}
 		}
-		// [~] IRainman fix.
+		
 		string format() const;
 };
 

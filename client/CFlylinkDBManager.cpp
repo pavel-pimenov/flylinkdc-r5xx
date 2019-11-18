@@ -562,7 +562,6 @@ CFlylinkDBManager::CFlylinkDBManager()
 		    
 		m_flySQLiteDB.executenonquery("CREATE UNIQUE INDEX IF NOT EXISTS iu_fly_file_name ON fly_file(dic_path,name);");
 		m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS i_fly_file_tth_id ON fly_file(tth_id);");
-		//[-] TODO потестить на большой шаре
 		// m_flySQLiteDB.executenonquery("CREATE INDEX IF NOT EXISTS i_fly_file_dic_path ON fly_file(dic_path);");
 		m_flySQLiteDB.executenonquery(
 		    "CREATE TABLE IF NOT EXISTS fly_hash_block(tth_id integer PRIMARY KEY NOT NULL,"
@@ -767,17 +766,6 @@ CFlylinkDBManager::CFlylinkDBManager()
 		    ",type text not null, event_key text not null, event_value text, ip text, port text, hub text, tth char(39), event_time text);");
 #endif
 		safeAlter("ALTER TABLE fly_queue add column Sections text");
-		if (l_rev <= 500)
-		{
-			// [!] brain-ripper
-			// have to delete follow columns, but SQLite doesn't support DROP command.
-			// TODO some workaround.
-			/*
-			safeAlter("ALTER TABLE fly_queue drop column FreeBlocks");
-			safeAlter("ALTER TABLE fly_queue drop column VerifiedParts");
-			safeAlter("ALTER TABLE fly_queue drop column Downloaded");
-			*/
-		}
 		safeAlter("ALTER TABLE fly_hash_block add column block_size int64");
 		if (l_rev < 403 || l_rev == 500)
 		{
@@ -2729,8 +2717,6 @@ int32_t CFlylinkDBManager::load_queue()
 					const int64_t l_size = l_q.getint64(2);
 					if (l_size < 0)
 						continue;
-					//[-] brain-ripper
-					// int l_flags = QueueItem::FLAG_RESUME;
 					int l_flags = 0;
 					g_count_queue_files++;
 					const string l_target = l_q.getstring(1);
@@ -2739,7 +2725,6 @@ int32_t CFlylinkDBManager::load_queue()
 					string l_target;
 					try
 					{
-						// TODO отложить валидацию на потом
 						l_target = QueueManager::checkTarget(l_tgt, l_size, false); // Валидация не проводить - в базе уже храниться хорошо
 						if (l_target.empty())
 						{
@@ -2832,12 +2817,10 @@ int32_t CFlylinkDBManager::load_queue()
 					}
 					if (qi)
 					{
-						// [+] brain-ripper
 						qi->setSectionString(l_q.getstring(4), true);
 						const auto l_source_items = l_sources_map.find(l_ID);
 						if (l_source_items != l_sources_map.end())
 						{
-							// TODO - возможно появление дублей
 							for (auto i = l_source_items->second.cbegin(); i != l_source_items->second.cend(); ++i)
 							{
 								add_sourceL(qi, i->m_CID, i->m_nick, i->m_hub_id); //
@@ -2898,8 +2881,8 @@ void CFlylinkDBManager::add_sourceL(const QueueItemPtr& p_QueueItem, const CID& 
 		bool wantConnection = false;
 		try
 		{
-			CFlyLock(*QueueItem::g_cs); // [+] IRainman fix.
-			//TODO- LOCK ??      QueueManager::LockFileQueueShared l_fileQueue; //[+]PPA
+			CFlyLock(*QueueItem::g_cs);
+			//TODO- LOCK ??      QueueManager::LockFileQueueShared l_fileQueue;
 			wantConnection = QueueManager::addSourceL(p_QueueItem, l_user, 0, true) && l_user->isOnline(); // Добавить флаг ускоренной загрузки первый раз.
 			g_count_queue_source++;
 		}
@@ -4500,7 +4483,6 @@ bool CFlylinkDBManager::check_tth(const string& p_fname, __int64 p_path_id,
 	return false;
 }
 //========================================================================================================
-// [+] brain-ripper
 unsigned __int64 CFlylinkDBManager::get_block_size_sql(const TTHValue& p_root, __int64 p_size)
 {
 	unsigned __int64 l_blocksize = 0;
@@ -5057,7 +5039,7 @@ CFlylinkDBManager::FileStatus CFlylinkDBManager::get_status_file(const TTHValue&
 			{
 				l_result += l_q.getint(0);
 			}
-			dcassert(l_result >= 0 && l_result <= 3); // [+] IRainman fix.
+			dcassert(l_result >= 0 && l_result <= 3);
 			return static_cast<FileStatus>(l_result); // 1 - скачивал, 2 - был в шаре, 3 - 1+2 и то и то :)
 		}
 		catch (const database_error& e)

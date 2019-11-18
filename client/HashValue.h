@@ -25,11 +25,11 @@
 #include "TigerHash.h"
 #include "Encoder.h"
 
-extern const string g_tth; // [+] IRainman opt.
+extern const string g_tth;
 
-inline bool isTTHBase64(const string& p_str) //[+]FlylinkDC++
+inline bool isTTHBase64(const string& p_str)
 {
-	return p_str.size() == 43 && p_str.compare(0, 4, g_tth) == 0; // [!] PVS fix V512 A call of the 'memcmp' function will lead to underflow of the buffer '"TTH:"'. Old code: memcmp(p_str.c_str(), "TTH:", 4) == 0. //-V112
+	return p_str.size() == 43 && p_str.compare(0, 4, g_tth) == 0;
 }
 
 template<class Hasher>

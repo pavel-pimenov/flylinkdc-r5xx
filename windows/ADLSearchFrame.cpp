@@ -53,12 +53,6 @@ static ResourceManager::Strings columnNames[] =
 // Frame creation
 LRESULT ADLSearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-	// Create status bar   //[-] SCALOlaz
-//	CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
-//	ctrlStatus.Attach(m_hWndStatusBar);
-//	int w[1] = { 0 };
-//	ctrlStatus.SetParts(1, w);
-
 	// Create list control
 	ctrlList.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                WS_HSCROLL | WS_VSCROLL | LVS_REPORT | LVS_SHOWSELALWAYS, WS_EX_CLIENTEDGE, IDC_ADLLIST);
@@ -81,32 +75,32 @@ LRESULT ADLSearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	ctrlAdd.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	               BS_PUSHBUTTON, 0, IDC_ADD);
 	ctrlAdd.SetWindowText(CTSTRING(NEW));
-	ctrlAdd.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlAdd.SetFont(Fonts::g_systemFont);
 	
 	ctrlEdit.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_DISABLED | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                BS_PUSHBUTTON, 0, IDC_EDIT);
 	ctrlEdit.SetWindowText(CTSTRING(PROPERTIES));
-	ctrlEdit.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlEdit.SetFont(Fonts::g_systemFont);
 	
 	ctrlRemove.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_DISABLED | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                  BS_PUSHBUTTON, 0, IDC_REMOVE);
 	ctrlRemove.SetWindowText(CTSTRING(REMOVE));
-	ctrlRemove.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlRemove.SetFont(Fonts::g_systemFont);
 	
 	ctrlMoveUp.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                  BS_PUSHBUTTON, 0, IDC_MOVE_UP);
 	ctrlMoveUp.SetWindowText(CTSTRING(MOVE_UP));
-	ctrlMoveUp.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlMoveUp.SetFont(Fonts::g_systemFont);
 	
 	ctrlMoveDown.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                    BS_PUSHBUTTON, 0, IDC_MOVE_DOWN);
 	ctrlMoveDown.SetWindowText(CTSTRING(MOVE_DOWN));
-	ctrlMoveDown.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlMoveDown.SetFont(Fonts::g_systemFont);
 	
 	ctrlHelp.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                BS_PUSHBUTTON, 0, IDC_HELP_FAQ);
 	ctrlHelp.SetWindowText(CTSTRING(WHATS_THIS));
-	ctrlHelp.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlHelp.SetFont(Fonts::g_systemFont);
 	
 	// Create context menu
 	contextMenu.CreatePopupMenu();
@@ -154,20 +148,9 @@ void ADLSearchFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 	
 	// Position bars and offset their dimensions
 	UpdateBarsPosition(rect, bResizeBars);
-	/*
-	if (ctrlStatus.IsWindow())  //[-] SCALOlaz
-	{
-	    CRect sr;
-	    int w[1];
-	    ctrlStatus.GetClientRect(sr);
-	    w[0] = sr.Width() - 16;
-	    ctrlStatus.SetParts(1, w);
-	}
-	*/
 	
 	// Position list control
 	CRect rc = rect;
-	//rc.top += 2; [~] Sergey Shushkanov
 	rc.bottom -= 28;
 	ctrlList.MoveWindow(rc);
 	
@@ -334,7 +317,6 @@ LRESULT ADLSearchFrame::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 	return 0;
 }
 
-// Help... Remake by Drakon
 LRESULT ADLSearchFrame::onHelp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	MessageBox(CTSTRING(ADL_BRIEF), CTSTRING(ADL_TITLE), MB_OK);

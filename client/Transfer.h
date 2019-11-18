@@ -47,7 +47,7 @@ class Transfer
 		static const string g_user_list_name;
 		static const string g_user_list_name_bz;
 		
-		explicit Transfer(UserConnection* p_conn, const string& p_path, const TTHValue& p_tth, const string& p_ip, const string& p_chiper_name); // [!] IRainman opt.
+		explicit Transfer(UserConnection* p_conn, const string& p_path, const TTHValue& p_tth, const string& p_ip, const string& p_chiper_name);
 		virtual ~Transfer() { }
 		int64_t getPos() const
 		{
@@ -68,7 +68,7 @@ class Transfer
 			m_actual += aActual;
 		}
 		/** Record a sample for average calculation */
-		void tick(uint64_t p_CurrentTick);//[!]IRainman refactoring transfer mechanism
+		void tick(uint64_t p_CurrentTick);
 		int64_t getRunningAverage() const
 		{
 			return m_runningAverage;
@@ -104,7 +104,6 @@ class Transfer
 	protected:
 		void getParams(const UserConnection* aSource, StringMap& params) const;
 	public:
-		//[+]FlylinkDC
 		UserPtr& getUser()
 		{
 			return m_hinted_user.user;
@@ -146,15 +145,12 @@ class Transfer
 		GETSET(Segment, m_segment, Segment);
 		GETSET(int64_t, m_fileSize, FileSize);
 		GETSET(Type, m_type, Type);
-		// [!] IRainman refactoring transfer mechanism
 		uint64_t getStart() const
 		{
 			return m_start;
 		}
 		void setStart(uint64_t tick);
 		const uint64_t getLastActivity();
-		//string getUserConnectionToken() const;
-		//string getConnectionToken() const;
 		GETSET(uint64_t, m_lastTick, LastTick);
 		const bool m_isSecure;
 		const bool m_isTrusted;
@@ -165,7 +161,7 @@ class Transfer
 		typedef std::deque<Sample> SampleList;
 		
 		SampleList m_samples;
-		FastCriticalSection m_cs; // [!]IRainman refactoring transfer mechanism
+		FastCriticalSection m_cs;
 		
 		/** The file being transferred */
 		const string m_path;

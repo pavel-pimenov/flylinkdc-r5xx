@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#define _USE_MATH_DEFINES // [+]IRainman
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include "MainFrm.h"
@@ -58,7 +58,7 @@ void CBarShader::SetWidth(uint32_t width)
 
 void CBarShader::SetFileSize(uint64_t qwFileSize)
 {
-	// !SMT!-F
+
 	if ((int64_t)qwFileSize < 0) qwFileSize = 0;
 	if (m_qwFileSize != qwFileSize)
 	{

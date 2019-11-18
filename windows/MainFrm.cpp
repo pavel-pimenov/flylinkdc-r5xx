@@ -52,9 +52,9 @@
 #include "iTunesCOMInterface.h"
 #include "ToolbarManager.h"
 #include "AboutDlgIndex.h"
-#include "RSSnewsFrame.h" // [+] SSA
-#include "AddMagnet.h" // [+] NightOrion
-#include "CheckTargetDlg.h" // [+] SSA
+#include "RSSnewsFrame.h"
+#include "AddMagnet.h"
+#include "CheckTargetDlg.h"
 #ifdef IRAINMAN_INCLUDE_SMILE
 # include "../GdiOle/GDIImage.h"
 #endif
@@ -62,13 +62,12 @@
 #include "../client/ConnectivityManager.h"
 #include "../client/UploadManager.h"
 #include "../client/DownloadManager.h"
-#include "../client/SimpleXML.h"
 #include "../client/LogManager.h"
 #include "../client/WebServerManager.h"
 #include "../client/ThrottleManager.h"
 #include "../client/MD5Calc.h"
 #ifdef FLYLINKDC_USE_CUSTOM_MENU
-#include "../FlyFeatures/CustomMenuManager.h" //[+] //SSA
+#include "../FlyFeatures/CustomMenuManager.h"
 #endif
 #include "../client/MappingManager.h"
 #include "../client/Text.h"
@@ -87,7 +86,7 @@
 # include "SpeedVolDlg.h"
 #endif
 #include "../FlyFeatures/CProgressDlg.h"
-#include "../FlyFeatures/flyfeatures.h" // [+] SSA
+#include "../FlyFeatures/flyfeatures.h"
 #ifdef FLYLINKDC_USE_LOCATION_DIALOG
 #include "CFlyLocationDlg.h"
 #endif
@@ -132,7 +131,6 @@ Gdiplus::Color g_color_filllight_gdi;
 
 Gdiplus::Pen g_pen_conter_side(Gdiplus::Color(), 1);
 #endif // IRAINMAN_USE_GDI_PLUS_TAB
-// [~] IRainaman opt.
 
 #define FLYLINKDC_USE_TASKBUTTON_PROGRESS
 
@@ -143,14 +141,12 @@ bool MainFrame::g_isShutdownStatus = false;
 CComboBox MainFrame::QuickSearchBox;
 bool MainFrame::g_bDisableAutoComplete = false;
 bool MainFrame::g_bAppMinimized = false;
-int MainFrame::g_CountSTATS = 0; //[+]PPA
+int MainFrame::g_CountSTATS = 0;
 
 
-// [+] IRainman Speedmeter
 uint64_t MainFrame::g_lastUpdate = 0;
 int64_t MainFrame::g_updiff = 0;
 int64_t MainFrame::g_downdiff = 0;
-// [~] IRainman Speedmeter
 
 const char* g_magic_password = "LWPNACQDBZRYXW3VHJVCJ64QBZNGHOHHHZWCLNQ";
 MainFrame::MainFrame() :
@@ -158,11 +154,11 @@ MainFrame::MainFrame() :
 	CFlyTimerAdapter(m_hWnd),
 	m_second_count(60),
 	m_trayMessage(0),
-	m_tbButtonMessage(0), // [+] InfinitySky.
+	m_tbButtonMessage(0),
 	m_is_maximized(false),
 	m_lastUp(0),
 	m_lastMove(0),
-	m_lastDown(0), // [+] IRainman Speedmeter
+	m_lastDown(0),
 	m_is_tbarcreated(false),
 	m_is_wtbarcreated(false),
 	m_is_qtbarcreated(false),
@@ -172,9 +168,9 @@ MainFrame::MainFrame() :
 	m_bHashProgressVisible(false),
 	m_isOpenHubFrame(false),
 	m_closing(false),
-	m_menuclose(false), // [+] InfinitySky.
+	m_menuclose(false),
 #ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
-	m_custom_app_icon_exist(false), // [+] InfinitySky.
+	m_custom_app_icon_exist(false),
 #endif
 	m_is_missedAutoConnect(false),
 #ifdef IRAINMAN_IP_AUTOUPDATE
@@ -196,7 +192,7 @@ MainFrame::MainFrame() :
 	m_numberOfReadBytes(0),
 	m_maxnumberOfReadBytes(100),
 	statusContainer(STATUSCLASSNAME, this, STATUS_MESSAGE_MAP),
-	m_diff(GET_TICK()), // [!] IRainman fix.
+	m_diff(GET_TICK()),
 	m_stopexit(false)
 {
 	m_bUpdateProportionalPos = false; // Исправил залипание сплиттера в верхней части
@@ -329,15 +325,15 @@ unsigned int WINAPI MainFrame::stopper(void* p)
 
 LRESULT MainFrame::onMatchAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	QueueManager::getInstance()->matchAllFileLists(); // [!] IRainman fix.
+	QueueManager::getInstance()->matchAllFileLists();
 	return 0;
 }
 
-void MainFrame::createMainMenu(void) // [+]Drakon. Enlighting functions.
+void MainFrame::createMainMenu(void)
 {
 	// Loads images and creates command bar window
 	m_CmdBar.Create(m_hWnd, rcDefault, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE);
-	m_CmdBar.SetImageSize(16, 16); // [+] IRainman fix picture size.
+	m_CmdBar.SetImageSize(16, 16);
 	m_hMenu = WinUtil::g_mainMenu;
 	
 	m_CmdBar.AttachMenu(m_hMenu);
@@ -502,24 +498,20 @@ void MainFrame::createMainMenu(void) // [+]Drakon. Enlighting functions.
 	SetMenu(NULL);  // remove old menu
 }
 
-void MainFrame::createTrayMenu() // [+]Drakon. Enlighting functions.
+void MainFrame::createTrayMenu()
 {
 	trayMenu.CreatePopupMenu();
 	trayMenu.AppendMenu(MF_STRING, IDC_TRAY_SHOW, CTSTRING(MENU_SHOW));
 	trayMenu.AppendMenu(MF_STRING, IDC_OPEN_DOWNLOADS, CTSTRING(MENU_OPEN_DOWNLOADS_DIR));
 	
-//	trayMenu.AppendMenu(MF_SEPARATOR);
-//	trayMenu.AppendMenu(MF_STRING, IDC_FLYLINK_DISCOVER, _T("Flylink Discover…"));
-
 	trayMenu.AppendMenu(MF_SEPARATOR);
 	trayMenu.AppendMenu(MF_STRING, IDC_REFRESH_FILE_LIST, CTSTRING(MENU_REFRESH_FILE_LIST));
 	trayMenu.AppendMenu(MF_STRING, IDC_TRAY_LIMITER, CTSTRING(TRAY_LIMITER));
-	trayMenu.AppendMenu(MF_SEPARATOR); // [+]Drakon
-	trayMenu.AppendMenu(MF_STRING, ID_FILE_SETTINGS, CTSTRING(MENU_SETTINGS)); // [+]Drakon
+	trayMenu.AppendMenu(MF_SEPARATOR);
+	trayMenu.AppendMenu(MF_STRING, ID_FILE_SETTINGS, CTSTRING(MENU_SETTINGS));
 	
 	trayMenu.AppendMenu(MF_SEPARATOR);
-//	trayMenu.AppendMenu(MF_STRING, IDC_CONNECT_TO_FLYSUPPORT_HUB, CTSTRING(MENU_CONNECT_TO_HUB));
-	trayMenu.AppendMenu(MF_STRING, IDC_UPDATE_FLYLINKDC, CTSTRING(UPDATE_CHECK)); // [~]Drakon. Moved from "file."
+	trayMenu.AppendMenu(MF_STRING, IDC_UPDATE_FLYLINKDC, CTSTRING(UPDATE_CHECK));
 	trayMenu.AppendMenu(MF_STRING, IDC_HELP_HOMEPAGE, CTSTRING(MENU_HOMEPAGE));
 	trayMenu.AppendMenu(MF_STRING, ID_APP_ABOUT, CTSTRING(MENU_ABOUT));
 	trayMenu.AppendMenu(MF_SEPARATOR);
@@ -557,7 +549,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 			WinUtil::openLink(WinUtil::GetWikiLink() + _T("outdatedoperatingsystem"));
 		}
 	}
-	// [~] IRainman
 #endif
 	
 #ifdef NIGHTORION_USE_STATISTICS_REQUEST
@@ -569,16 +560,15 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	}
 #endif // NIGHTORION_USE_STATISTICS_REQUEST
 	
-	if (AutoUpdate::getInstance()->startupUpdate()) // [+] SSA Auto update on startup.
+	if (AutoUpdate::getInstance()->startupUpdate())
 	{
 		return -1;
 	}
 	
 	QueueManager::getInstance()->addListener(this);
 	WebServerManager::getInstance()->addListener(this);
-	UserManager::getInstance()->addListener(this); // [+] IRainman
+	UserManager::getInstance()->addListener(this);
 	
-	// [+] SSA Wizard. Проверяем - есть ли ник
 	if (SETTING(NICK).empty()
 #ifdef SSA_WIZARD_FEATURE
 	        || m_is_wizard
@@ -613,8 +603,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	m_trayMessage = RegisterWindowMessage(_T("TaskbarCreated"));
 	dcassert(m_trayMessage);
 	
-	// [+] InfinitySky. Taskbar buttons on Win7.
-// [+] InfinitySky.
 #ifdef FLYLINKDC_SUPPORT_WIN_XP
 	if (m_trayMessage && CompatibilityManager::isOsVistaPlus())
 #endif
@@ -672,7 +660,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	AddSimpleReBarBand(hWndToolBar, NULL, TRUE);
 #endif
 		
-	AddSimpleReBarBand(hWndQuickSearchBar, NULL, FALSE, 200, TRUE);//  ,780 //[+]PPA
+	AddSimpleReBarBand(hWndQuickSearchBar, NULL, FALSE, 200, TRUE);//  ,780
 	AddSimpleReBarBand(hWndWinampBar, NULL, TRUE);
 	
 	CreateSimpleStatusBar();
@@ -697,7 +685,7 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	ctrlUpdateProgress.SetRange(0, 100);
 	ctrlUpdateProgress.SetStep(1);
 	
-	tabAWAYMenu.CreatePopupMenu();  // [+] add context menu on DHT area in status bar
+	tabAWAYMenu.CreatePopupMenu();
 	tabAWAYMenu.AppendMenu(MF_STRING, IDC_STATUS_AWAY_ON_OFF, CTSTRING(AWAY));
 	
 	m_ctrlLastLines.Create(m_ctrlStatus, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP | TTS_BALLOON, WS_EX_TOPMOST);
@@ -756,7 +744,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	tbMenu.AppendMenu(MF_STRING, IDC_LOCK_TOOLBARS, CTSTRING(LOCK_TOOLBARS));
 	
 	
-	// SSA - create WinAmp toolbar Menu
 	winampMenu.CreatePopupMenu();
 	winampMenu.AppendMenu(MF_STRING, ID_MEDIA_MENU_WINAMP_START + SettingsManager::WinAmp, CTSTRING(MEDIA_MENU_WINAMP));
 	winampMenu.AppendMenu(MF_STRING, ID_MEDIA_MENU_WINAMP_START + SettingsManager::WinMediaPlayer, CTSTRING(MEDIA_MENU_WMP));
@@ -792,13 +779,12 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 #ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 	if (File::isExist(Util::getICOPath()))
 	{
-		// [+] InfinitySky. From ApexDC++.
 		// Different app icons for different instances
-		const tstring l_ExtIcoPath = Text::toT(Util::getICOPath());//[+]IRainman
+		const tstring l_ExtIcoPath = Text::toT(Util::getICOPath());
 		m_appIcon = (HICON)::LoadImage(NULL, l_ExtIcoPath.c_str(), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_SHARED); //-V112
 		m_trayIcon = (HICON)::LoadImage(NULL, l_ExtIcoPath.c_str(), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_SHARED);
 		
-		m_custom_app_icon_exist = true; // [+] InfinitySky.
+		m_custom_app_icon_exist = true;
 		
 		SetClassLongPtr(m_hWnd, GCLP_HICON, (LONG_PTR)m_appIcon);
 		//DestroyIcon(l_appIcon);
@@ -809,21 +795,21 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	}
 	else
 	{
-		m_custom_app_icon_exist = false; // [+] InfinitySky. Страховка на случай отсутствия иконки.
+		m_custom_app_icon_exist = false;
 	}
 #endif
 	m_normalicon = l_trayIcon ? std::unique_ptr<HIconWrapper>(new HIconWrapper(l_trayIcon)) : std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_MAINFRAME)) ;
 	m_pmicon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_TRAY_AND_TASKBAR_PM));
-	m_emptyicon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_TRAY_AND_TASKBAR_NO_PM));//[+]IRainman
+	m_emptyicon = std::unique_ptr<HIconWrapper>(new HIconWrapper(IDR_TRAY_AND_TASKBAR_NO_PM));
 	
-	updateTray(true); // [~] InfinitySky. Обновлять иконку в трее (и на панеле задач Win7). From ApexDC++. // [-] updateTray(BOOLSETTING(MINIMIZE_TRAY));
+	updateTray(true);
 	
 	Util::setAway(BOOLSETTING(AWAY), true);
 	
 	ctrlToolbar.CheckButton(IDC_AWAY, BOOLSETTING(AWAY));
 	ctrlToolbar.CheckButton(IDC_LIMITER, BOOLSETTING(THROTTLE_ENABLE));
 	ctrlToolbar.CheckButton(IDC_DISABLE_SOUNDS, BOOLSETTING(SOUNDS_DISABLED));
-	ctrlToolbar.CheckButton(IDC_DISABLE_POPUPS, BOOLSETTING(POPUPS_DISABLED)); // [+] InfinitySky.
+	ctrlToolbar.CheckButton(IDC_DISABLE_POPUPS, BOOLSETTING(POPUPS_DISABLED));
 	ctrlToolbar.CheckButton(ID_TOGGLE_TOOLBAR, BOOLSETTING(SHOW_WINAMP_CONTROL));
 	
 	if (SETTING(NICK).empty())
@@ -837,7 +823,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	
 	
 #ifdef RIP_USE_PORTAL_BROWSER
-	// [+] BRAIN_RIPPER
 	if (BOOLSETTING(OPEN_PORTAL_BROWSER))
 	{
 		OpenVisiblePortals(m_hWnd);
@@ -889,7 +874,7 @@ void MainFrame::openDefaultWindows()
 	if (!BOOLSETTING(SHOW_WINAMP_CONTROL)) PostMessage(WM_COMMAND, ID_TOGGLE_TOOLBAR);
 	if (!BOOLSETTING(SHOW_QUICK_SEARCH)) PostMessage(WM_COMMAND, ID_TOGGLE_QSEARCH);
 #ifdef IRAINMAN_INCLUDE_RSS
-	if (BOOLSETTING(OPEN_RSS)) PostMessage(WM_COMMAND, IDC_RSS); // [+] SSA
+	if (BOOLSETTING(OPEN_RSS)) PostMessage(WM_COMMAND, IDC_RSS);
 #endif
 }
 
@@ -925,8 +910,7 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	{
 		return 0;
 	}
-// [+]IRainman Speedmeter
-	m_diff = (/*(lastUpdate == 0) ? aTick - 1000 :*/ aTick - g_lastUpdate); // [!] IRainman fix.
+	m_diff = (/*(lastUpdate == 0) ? aTick - 1000 :*/ aTick - g_lastUpdate);
 	const uint64_t l_CurrentUp   = Socket::g_stats.m_tcp.totalUp;
 	const uint64_t l_CurrentDown = Socket::g_stats.m_tcp.totalDown;
 	if (m_Stats.size() > SPEED_APPROXIMATION_INTERVAL_S) // Averaging interval in seconds
@@ -954,11 +938,10 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	g_lastUpdate = aTick;
 	m_lastUp     = l_CurrentUp;
 	m_lastDown   = l_CurrentDown;
-// [~]IRainman Speedmeter
-
+	
 	if (m_bTrayIcon && m_bIsPM)
 	{
-		setIcon(((aTick / 1000) & 1) ? *m_normalicon : *m_pmicon); // !SMT!-UI
+		setIcon(((aTick / 1000) & 1) ? *m_normalicon : *m_pmicon);
 	}
 	PROCESS_MEMORY_COUNTERS l_pmc = { 0 };
 	const auto l_mem = GetProcessMemoryInfo(GetCurrentProcess(), &l_pmc, sizeof(l_pmc));
@@ -968,7 +951,7 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		g_RAM_WorkingSetSize = l_pmc.WorkingSetSize / 1024 / 1024;
 		g_RAM_PeakWorkingSetSize = l_pmc.PeakWorkingSetSize / 1024 / 1024;
 	}
-	if (!g_bAppMinimized || !BOOLSETTING(MINIMIZE_TRAY) /* [-] IRainman opt: not need to update the window title when it is minimized to tray. || BOOLSETTING(SHOW_CURRENT_SPEED_IN_TITLE)*/)
+	if (!g_bAppMinimized || !BOOLSETTING(MINIMIZE_TRAY))
 	{
 		if (m_count_status_change)
 		{
@@ -1013,7 +996,7 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 		const wstring l_dlstr = Util::formatBytesW(g_downdiff);
 		const wstring l_ulstr = Util::formatBytesW(g_updiff);
 		
-		// [+] InfinitySky. Текущая скорость в заголовке.
+		Текущая скорость в заголовке.
 		if (BOOLSETTING(SHOW_CURRENT_SPEED_IN_TITLE)) // TODO похерить. нигде не видел в прогах чтобы скорость была в заголовке. L: нечего херить! Флай в первую очередь программа для файло обмена, торрент так же делать умеет.
 		{
 			const tstring* l_temp = new tstring(TSTRING(DL) + _T(' ') + (l_dlstr) + _T(" / ") + TSTRING(UP) + _T(' ') + (l_ulstr) + _T("  -  "));
@@ -1023,7 +1006,7 @@ LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 				delete l_temp;
 			}
 		}
-		// [~] InfinitySky.
+		
 #endif // FLYLINKDC_CALC_MEMORY_USAGE
 		
 		if (g_CountSTATS == 0) // Генерируем статистику только когда предыдущая порция обработана
@@ -1083,7 +1066,7 @@ void MainFrame::onMinute(uint64_t aTick)
 }
 
 
-HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
+HWND MainFrame::createToolbar()
 {
 #ifdef RIP_USE_PORTAL_BROWSER
 //	const size_t PortalsCount = GetPortalBrowserListCount(); //TODO - переменная перестала использоваться...
@@ -1109,8 +1092,8 @@ HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
 			const int size = SETTING(TB_IMAGE_SIZE_HOT);
 			ResourceLoader::LoadImageList(Text::toT(SETTING(TOOLBARHOTIMAGE)).c_str(), largeImagesHot, size, size);
 		}
-		ctrlToolbar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS | TBSTYLE_LIST, 0, ATL_IDW_TOOLBAR); // [~]Drakon. Fix with toolbar.
-		ctrlToolbar.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS | TBSTYLE_EX_DRAWDDARROWS); // [+] PNG.
+		ctrlToolbar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS | TBSTYLE_LIST, 0, ATL_IDW_TOOLBAR);
+		ctrlToolbar.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS | TBSTYLE_EX_DRAWDDARROWS);
 		ctrlToolbar.SetImageList(largeImages);
 		ctrlToolbar.SetHotImageList(largeImagesHot);
 		
@@ -1185,7 +1168,7 @@ HWND MainFrame::createToolbar()    //[~]Drakon. Enlighting toolbars.
 	return ctrlToolbar.m_hWnd;
 }
 
-HWND MainFrame::createWinampToolbar() // [~]Drakon. Toolbar fix.
+HWND MainFrame::createWinampToolbar()
 {
 	if (!m_is_wtbarcreated)
 	{
@@ -1193,7 +1176,7 @@ HWND MainFrame::createWinampToolbar() // [~]Drakon. Toolbar fix.
 		ResourceLoader::LoadImageList(IDR_PLAYERS_CONTROL_HL, winampImagesHot, 24, 24);
 		
 		ctrlWinampToolbar.Create(m_hWnd, NULL, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS | TBSTYLE_LIST, 0, ATL_IDW_TOOLBAR);
-		ctrlWinampToolbar.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS | TBSTYLE_EX_DRAWDDARROWS);  // [+] Drakon // [+] SSA
+		ctrlWinampToolbar.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS | TBSTYLE_EX_DRAWDDARROWS);
 		ctrlWinampToolbar.SetImageList(winampImages);
 		ctrlWinampToolbar.SetHotImageList(winampImagesHot);
 		
@@ -1219,7 +1202,7 @@ HWND MainFrame::createWinampToolbar() // [~]Drakon. Toolbar fix.
 					wTB.fsStyle = g_WinampToolbarButtons[i].check ? TBSTYLE_CHECK : TBSTYLE_BUTTON;
 					wTB.iString = ctrlWinampToolbar.AddStringsSafe(CTSTRING_I(g_WinampToolbarButtons[i].tooltip));
 					dcassert(wTB.iString != -1);
-					if (wTB.idCommand  == IDC_WINAMP_SPAM)   // SSA First icon
+					if (wTB.idCommand  == IDC_WINAMP_SPAM)
 					{
 						wTB.fsStyle |= TBSTYLE_DROPDOWN;
 					}
@@ -1545,7 +1528,6 @@ LRESULT MainFrame::onParentNotify(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 
 LRESULT MainFrame::onQuickSearchEditChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
-	//if (BOOLSETTING(AUTO_COMPLETE_SEARCH)) //[-] IRainman
 	{
 		uint32_t nTextLen = 0;
 		HWND hWndCombo = QuickSearchBox.m_hWnd;
@@ -1592,16 +1574,14 @@ LRESULT MainFrame::onQuickSearchEditChange(WORD /*wNotifyCode*/, WORD /*wID*/, H
 
 void MainFrame::updateQuickSearches(bool p_clean /*= false*/)
 {
-	//if (BOOLSETTING(AUTO_COMPLETE_SEARCH))//[-]IRainman always is true!
 	{
 		QuickSearchBox.ResetContent();
 		if (!p_clean)
 		{
-			//[+]IRainman
 			if (SearchFrame::g_lastSearches.empty())
 				CFlylinkDBManager::getInstance()->load_registry(SearchFrame::g_lastSearches, e_SearchHistory);
 				
-			for (auto i = SearchFrame::g_lastSearches.cbegin(); i != SearchFrame::g_lastSearches.cend(); ++i)//[~]IRainman
+			for (auto i = SearchFrame::g_lastSearches.cbegin(); i != SearchFrame::g_lastSearches.cend(); ++i)
 			{
 				QuickSearchBox.InsertString(0, i->c_str());
 			}
@@ -1616,7 +1596,7 @@ void MainFrame::updateQuickSearches(bool p_clean /*= false*/)
 void MainFrame::getTaskbarState(int p_code /* = 0*/)    // MainFrm: The event handler TaskBar Button Color in ONE FUNCTION
 {
 #ifdef FLYLINKDC_USE_TASKBUTTON_PROGRESS
-	if (m_taskbarList) // [!] IRainman fix.
+	if (m_taskbarList)
 	{
 		m_taskbarList->SetProgressState(m_hWnd, TBPF_NORMAL);
 		if (p_code == 1000)         //OnUpdateTotalResult
@@ -1681,7 +1661,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 		std::unique_ptr<TStringList> pstr(reinterpret_cast<TStringList*>(lParam));
 		if (--g_CountSTATS)
 		{
-			return 0; // [+] PPA Исключем лишнее обновление статусной строки и таскбара.
+			return 0;
 		}
 		if (ClientManager::isBeforeShutdown() || ClientManager::isStartup())
 		{
@@ -1864,7 +1844,7 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 		std::unique_ptr<tstring> file(reinterpret_cast<tstring*>(lParam));
 		if (!ClientManager::isBeforeShutdown())
 		{
-			ShellExecute(NULL, NULL, file->c_str(), NULL, NULL, SW_SHOW); // !SMT!-UI
+			ShellExecute(NULL, NULL, file->c_str(), NULL, NULL, SW_SHOW);
 		}
 	}
 	else if (wParam == PARSE_COMMAND_LINE)
@@ -1889,18 +1869,18 @@ LRESULT MainFrame::onSpeaker(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& 
 		dcassert(PopupManager::isValidInstance());
 		if (PopupManager::isValidInstance())
 		{
-			PopupManager::getInstance()->AutoRemove((uint64_t)lParam); // [!] IRainman opt.
+			PopupManager::getInstance()->AutoRemove((uint64_t)lParam);
 		}
 	}
 	else if (wParam == SET_PM_TRAY_ICON) // Установка иконки о получении сообщения.
 	{
 		if (!ClientManager::isBeforeShutdown())
 		{
-			if (m_bIsPM == false && (!WinUtil::g_isAppActive || g_bAppMinimized)) // [!] InfinitySky. Будет лучше менять иконку при получении сообщения всегда, если эта иконка не установлена и если окно не активно (как в Skype).
+			if (m_bIsPM == false && (!WinUtil::g_isAppActive || g_bAppMinimized))
 			{
 				m_bIsPM = true; // Иконка о получении лички установлена.
 				
-				if (m_taskbarList) // [+] InfinitySky. Если есть поддержка системой taskbarList.
+				if (m_taskbarList)
 					m_taskbarList->SetOverlayIcon(m_hWnd, *m_pmicon, NULL); // Устанавливается мини-иконка на панели задач о получении сообщения.
 					
 				if (m_bTrayIcon == true)
@@ -1939,8 +1919,6 @@ void MainFrame::parseCommandLine(const tstring& cmdLine)
 			l_cmdLine.erase(l_b, 1);
 		}
 	}
-//[+] FlylinkDC fix
-
 	if ((j = l_cmdLine.find(_T("magnet:?"), i)) != string::npos)
 	{
 		WinUtil::parseMagnetUri(l_cmdLine.substr(j)); // [1] https://www.box.net/shared/6e7a194cff59e3057d5d
@@ -1952,36 +1930,25 @@ void MainFrame::parseCommandLine(const tstring& cmdLine)
 	{
 		WinUtil::parseDchubUrl(l_cmdLine.substr(j));
 	}
-	// H:\Projects\flylinkdc5xx\compiled\flylinkdc_Debug.exe /open "H:\Torrent\boilsoft video splitter 5.21.dcls"
 	static const tstring openKey = _T("/open ");
-	if ((j = l_cmdLine.find(openKey, i)) != string::npos) // [+] SSA dclst support
+	if ((j = l_cmdLine.find(openKey, i)) != string::npos)
 	{
 		// get file, and view it
 		const tstring fileName = cmdLine.substr(j + openKey.length());
 		const tstring openFileName = WinUtil::getFilenameFromString(fileName);
 		if (File::isExist(openFileName))
 		{
-			// [!] IRainman fix: don't use long path here. File and FileFindIter classes is auto correcting path string.
 			WinUtil::OpenFileList(openFileName);
-			/*
-			AutoArray<TCHAR> Buf(FULL_MAX_PATH);
-			tstring longOpenFileName = openFileName;
-			DWORD resSize = ::GetLongPathName(openFileName.c_str(), Buf, FULL_MAX_PATH - 1);
-			if (resSize && resSize <= FULL_MAX_PATH)
-			    longOpenFileName = Buf;
-			WinUtil::OpenFileList(longOpenFileName);
-			*/
 		}
 	}
 	static const tstring sharefolder = _T("/share ");
-	if ((j = l_cmdLine.find(sharefolder, i)) != string::npos) // [+] SSA
+	if ((j = l_cmdLine.find(sharefolder, i)) != string::npos)
 	{
 		// get file, and share it
 		const tstring fileName = l_cmdLine.substr(j + sharefolder.length());
 		const tstring shareFolderName = WinUtil::getFilenameFromString(fileName);
 		if (File::isExist(shareFolderName))
 		{
-			// [!] IRainman fix: don't use long path here. File and FileFindIter classes is auto correcting path string.
 			AddFolderShareFromShell(shareFolderName);
 			/*
 			AutoArray<TCHAR> Buf(FULL_MAX_PATH);
@@ -1997,7 +1964,6 @@ void MainFrame::parseCommandLine(const tstring& cmdLine)
 
 LRESULT MainFrame::onCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {
-	// [~]SSA - JetAudioControl
 	if (m_jaControl.get()->ProcessCopyData((PCOPYDATASTRUCT) lParam))
 	{
 		return true;
@@ -2005,7 +1971,7 @@ LRESULT MainFrame::onCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, B
 	
 	if (!getPassword())
 	{
-		return false; // !SMT!-f
+		return false;
 	}
 	const tstring cmdLine = (LPCTSTR)(((COPYDATASTRUCT *)lParam)->lpData);
 	if (IsIconic())
@@ -2054,7 +2020,6 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 	else
 #endif
 #ifdef FLYLINKDC_USE_CUSTOM_MENU
-		// [+]  SSA: Custom menu support.
 		if (wID >= IDC_CUSTOM_MENU && wID <= IDC_CUSTOM_MENU100)
 		{
 			const string& strURL = CustomMenuManager::getInstance()->GetUrlByID(wID - IDC_CUSTOM_MENU);
@@ -2063,7 +2028,7 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				WinUtil::openLink(Text::toT(strURL));
 			}
 		}
-		else // [~]  SSA: Custom menu support.
+		else
 #endif
 			switch (wID)
 			{
@@ -2073,39 +2038,6 @@ LRESULT MainFrame::onOpenWindows(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				case ID_FILE_CONNECT:
 					PublicHubsFrame::openWindow();
 					break;
-				/*
-				                    if (!m_isOpenHubFrame)
-				                    {
-				                        PublicHubsFrame::openWindow();
-				                        m_isOpenHubFrame = true;
-				#if 0
-				                        UINT checkState = BOOLSETTING(CONFIRM_OPEN_INET_HUBS) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-				                        if (checkState == BST_CHECKED
-				#ifndef _DEBUG
-				//  HUB_LIST_WARNING, // "Opening the window \"Internet Hubs\" you should be aware that their visit will lead to an external (Internet) traffic. If you fare with a limited amount of incoming traffic, visits to these hubs can lead to down speed to external resources because of threshold excess or to a substantial increase in bills for the Internet.\r\n\r\nShow the list of hubs?"
-				
-				                                || ::MessageBox(m_hWnd, CTSTRING(HUB_LIST_WARNING), CTSTRING(WARNING), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES
-				#else
-				                                || true
-				#endif
-				                           )
-				                        {
-				                            PublicHubsFrame::openWindow();
-				                            m_isOpenHubFrame = true;
-				                        }
-				                        else
-				                        {
-				                            WinUtil::setButtonPressed(ID_FILE_CONNECT, false);
-				                        }
-				#endif
-				                    }
-				                    else
-				                    {
-				                        PublicHubsFrame::openWindow();
-				          }
-				
-				                    break;
-				*/
 				case IDC_FAVORITES:
 					FavoriteHubsFrame::openWindow();
 					break;
@@ -2230,7 +2162,6 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 				WinUtil::unRegisterMagnetHandler();
 				WinUtil::urlMagnetRegistered = false;
 			}
-			// [+] IRainman dclst support
 			if (BOOLSETTING(DCLST_REGISTER))
 			{
 				WinUtil::registerDclstHandler();
@@ -2241,15 +2172,13 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 				WinUtil::unRegisterDclstHandler();
 				WinUtil::DclstRegistered = false;
 			}
-			// [~] IRainman dclst support
-			
 			MainFrame::setLimiterButton(BOOLSETTING(THROTTLE_ENABLE));
 			
 			if (BOOLSETTING(SOUNDS_DISABLED)) ctrlToolbar.CheckButton(IDC_DISABLE_SOUNDS, true);
 			else ctrlToolbar.CheckButton(IDC_DISABLE_SOUNDS, false);
 			
 			if (BOOLSETTING(POPUPS_DISABLED)) ctrlToolbar.CheckButton(IDC_DISABLE_POPUPS, true);
-			else ctrlToolbar.CheckButton(IDC_DISABLE_POPUPS, false); // [+] InfinitySky.
+			else ctrlToolbar.CheckButton(IDC_DISABLE_POPUPS, false);
 			
 			if (Util::getAway()) ctrlToolbar.CheckButton(IDC_AWAY, true);
 			else ctrlToolbar.CheckButton(IDC_AWAY, false);
@@ -2270,14 +2199,11 @@ LRESULT MainFrame::OnFileSettings(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 				m_ctrlTab.updateTabs();
 			}
 			
-			// [+] InfinitySky. При отключении показа текущей скорости в заголовке.
 			if (!BOOLSETTING(SHOW_CURRENT_SPEED_IN_TITLE))
 			{
-				SetWindowText(getFlylinkDCAppCaptionWithVersionT().c_str()); // Устанавливаем новый заголовок.
+				SetWindowText(getFlylinkDCAppCaptionWithVersionT().c_str());
 			}
-			
-			// TODO move this call to kernel.
-			ClientManager::infoUpdated(true); // Для fly-server шлем принудительно
+			ClientManager::infoUpdated(true);
 		}
 		else
 		{
@@ -2345,7 +2271,6 @@ LRESULT MainFrame::onWebServerSocket(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	return 0;
 }
 
-// [+] InfinitySky: Текущая скорость в заголовке.
 LRESULT MainFrame::onUpdateWindowTitle(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	tstring* l_temp = (tstring*)wParam;
@@ -2353,7 +2278,7 @@ LRESULT MainFrame::onUpdateWindowTitle(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lP
 	delete l_temp;
 	return 0;
 }
-// [~] InfinitySky.
+
 LRESULT MainFrame::onGetToolTip(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
 	LPNMTTDISPINFO pDispInfo = (LPNMTTDISPINFO)pnmh;
@@ -2531,13 +2456,12 @@ void MainFrame::autoConnect(const FavoriteHubEntry::List& fl)
 	{
 		PopupManager::newInstance();
 	}
-	//[!]PPA TODO  добавит галку для автостарта портала
 //	PortalBrowserFrame::openWindow(IDC_PORTAL_BROWSER);
 }
 
 void MainFrame::updateTray(bool add /* = true */)
 {
-	if (m_normalicon) //[+]PPA
+	if (m_normalicon)
 	{
 		if (add)
 		{
@@ -2552,7 +2476,7 @@ void MainFrame::updateTray(bool add /* = true */)
 				_tcsncpy(nid.szTip, getFlylinkDCAppCaptionT().c_str(), 64);
 				nid.szTip[63] = '\0';
 				m_lastMove = GET_TICK() - 1000;
-				m_bTrayIcon = ::Shell_NotifyIcon(NIM_ADD, &nid) != FALSE;// [~] InfinitySky. Code from Apex 1.3.8.
+				m_bTrayIcon = ::Shell_NotifyIcon(NIM_ADD, &nid) != FALSE;
 			}
 		}
 		else
@@ -2570,25 +2494,25 @@ void MainFrame::updateTray(bool add /* = true */)
 }
 void MainFrame::SetOverlayIcon()
 {
-	if (m_taskbarList) // Если есть поддержка системой taskbarList.
+	if (m_taskbarList)
 	{
 #ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
-		if (m_custom_app_icon_exist) // [+] InfinitySky. Если есть иконка и включена опция.
+		if (m_custom_app_icon_exist)
 		{
-			m_taskbarList->SetOverlayIcon(m_hWnd, *m_normalicon, NULL); // [+] InfinitySky. Мини-иконка.
+			m_taskbarList->SetOverlayIcon(m_hWnd, *m_normalicon, NULL);
 		}
 		else
 #endif
 		{
-			m_taskbarList->SetOverlayIcon(m_hWnd, *m_emptyicon, NULL); // [!] IRainman. Прозрачная пустая иконка.
+			m_taskbarList->SetOverlayIcon(m_hWnd, *m_emptyicon, NULL);
 		}
 	}
 }
-void MainFrame::setTrayAndTaskbarIcons() // [+] IRainman: copy-past fix.
+void MainFrame::setTrayAndTaskbarIcons()
 {
-	if (m_bIsPM/*[-] IRainman && m_normalicon*/) // Если иконка о получении лички была установлена.
+	if (m_bIsPM)
 	{
-		m_bIsPM = false; // Иконка о получении лички не установлена.
+		m_bIsPM = false;
 		SetOverlayIcon();
 		if (m_bTrayIcon == true)
 		{
@@ -2597,7 +2521,7 @@ void MainFrame::setTrayAndTaskbarIcons() // [+] IRainman: copy-past fix.
 	}
 }
 
-void setAwayByMinimized() // [+] IRainman fix.
+void setAwayByMinimized()
 {
 	static bool g_awayByMinimized = false;
 	
@@ -2624,7 +2548,7 @@ void setAwayByMinimized() // [+] IRainman fix.
 
 LRESULT MainFrame::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
-	// [!] IRainman fix.
+
 	if (wParam == SIZE_MINIMIZED)
 	{
 		if (!g_bAppMinimized)
@@ -2658,7 +2582,7 @@ LRESULT MainFrame::onSize(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL&
 			}
 		}
 	}
-	// [~] IRainman fix.
+	
 	bHandled = FALSE;
 	return 0;
 }
@@ -2724,7 +2648,7 @@ LRESULT MainFrame::onSetDefaultPosition(WORD /*wNotifyCode*/, WORD /*wParam*/, H
 	}
 	MoveWindow(rc);
 	CenterWindow(GetParent());
-	storeWindowsPos();       // Хз как лучше - сразу сохранить новые значения, или ждём закрытия программы и там сохраним как обычно.
+	storeWindowsPos();
 	return 0;
 }
 #endif
@@ -2737,20 +2661,18 @@ LRESULT MainFrame::onEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	return 0;
 }
 
-// При закрытии.
 LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-	// [+] InfinitySky. Выбор между сворачиванием и закрытием.
-	if (!AutoUpdate::getExitOnUpdate() && BOOLSETTING(MINIMIZE_ON_CLOSE) && !m_menuclose) // [+] InfinitySky. Сворачивать при закрытии, если выбрана эта опция в настройках и закрытие не через меню.
+	if (!AutoUpdate::getExitOnUpdate() && BOOLSETTING(MINIMIZE_ON_CLOSE) && !m_menuclose)
 	{
 		ShowWindow(SW_MINIMIZE);
 	}
 	else
 	{
-		if (!m_closing)   // [+] SSA
+		if (!m_closing)
 		{
 #ifdef _DEBUG
-			dcdebug("MainFrame::OnClose first - User::g_user_counts = %d\n", int(User::g_user_counts)); // [!] IRainman fix: Issue 1037 иногда теряем объект User?
+			dcdebug("MainFrame::OnClose first - User::g_user_counts = %d\n", int(User::g_user_counts));
 #endif
 			m_stopexit = false;
 			if (SETTING(PROTECT_CLOSE) && !m_oldshutdown && !m_is_end_session && SETTING(PASSWORD) != g_magic_password && !SETTING(PASSWORD).empty())
@@ -2774,11 +2696,6 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			
 			if (!m_stopexit)
 			{
-				// [+] brain-ripper
-				// check if hashing pending,
-				// and display hashing progress
-				// if any
-				
 				if (HashManager::getInstance()->IsHashing())
 				{
 					bool bForceStopExit = false;
@@ -2805,12 +2722,12 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 						// so let program to work
 						
 						m_stopexit = true;
-						m_menuclose = false; // [+] InfinitySky. Отключаем метку закрытия через меню, на случай, если в окне предупреждения о закрытии будет отмена закрытия.
+						m_menuclose = false;
 					}
 				}
 			}
 			
-			UINT checkState = AutoUpdate::getExitOnUpdate() ? BST_UNCHECKED : (BOOLSETTING(CONFIRM_EXIT) ? BST_CHECKED : BST_UNCHECKED); // [+] FlylinkDC.
+			UINT checkState = AutoUpdate::getExitOnUpdate() ? BST_UNCHECKED : (BOOLSETTING(CONFIRM_EXIT) ? BST_CHECKED : BST_UNCHECKED);
 			
 			if ((m_oldshutdown || m_is_end_session ||
 			        SETTING(PROTECT_CLOSE) ||
@@ -2824,12 +2741,6 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			{
 				{
 					storeWindowsPos();
-					//BOOL l_res = ::DestroyIcon(m_appIcon);
-					//auto l_error = GetLastError();
-					//dcassert(l_res);
-					//l_res = ::DestroyIcon(m_trayIcon);
-					//dcassert(l_res);
-					//l_error = GetLastError();
 					
 					ClientManager::before_shutdown();
 					LogManager::g_mainWnd = nullptr;
@@ -2840,22 +2751,22 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
 					CFlyTickDelta l_delta(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_SHUTDOWN_GUI]);
 #endif
-					m_threadedStatisticSender.tryStartThread(true); // Синхронно сохраним в базу слепок перед завершением.
+					m_threadedStatisticSender.tryStartThread(true);
 					
-					shutdownFlyFeatures(); // Разрушаем и запускаем автоапдейт раньше
-					preparingCoreToShutdown(); // [!] IRainman fix.
+					shutdownFlyFeatures();
+					preparingCoreToShutdown();
 					
 					m_transferView.prepareClose();
 					//dcassert(TransferView::ItemInfo::g_count_transfer_item == 0);
 					
 					WebServerManager::getInstance()->removeListener(this);
-					UserManager::getInstance()->removeListener(this); // [+] IRainman
+					UserManager::getInstance()->removeListener(this);
 					QueueManager::getInstance()->removeListener(this);
 					
 					ConnectionManager::getInstance()->disconnect();
 					
 					CReBarCtrl l_rebar = m_hWndToolBar;
-					ToolbarManager::getFrom(l_rebar, "MainToolBar"); // Для сохранения позиций тулбара (SCALOlаz)
+					ToolbarManager::getFrom(l_rebar, "MainToolBar");
 					
 					updateTray(false);
 					if (m_nProportionalPos > 300)
@@ -2870,12 +2781,12 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 			}
 			else
 			{
-				m_menuclose = false; // [+] InfinitySky. Отключаем метку закрытия через меню, на случай, если в окне предупреждения о закрытии будет отмена закрытия.
+				m_menuclose = false;
 			}
 			// Let's update the setting checked box means we bug user again...
 			if (!AutoUpdate::getExitOnUpdate())
 			{
-				SET_SETTING(CONFIRM_EXIT, checkState != BST_UNCHECKED); // [+] InfinitySky.
+				SET_SETTING(CONFIRM_EXIT, checkState != BST_UNCHECKED);
 			}
 			bHandled = TRUE;
 		}
@@ -2908,15 +2819,9 @@ LRESULT MainFrame::onLink(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL
 		case IDC_HELP_DISCUSS:
 			site = _T(DISCUSS);
 			break;
-//[-]PPA    case IDC_HELP_GEOIPFILE: site = _T(GEOIPFILE); break;
 		case IDC_HELP_HELP:
 			site = WinUtil::GetWikiLink() + _T("flylinkdc");
 			break;
-		// TODO
-		//case IDC_HELP_DONATE:
-		//  site = _T(HOMEPAGE);
-		//  break;
-//[-]PPA        case IDC_GUIDE: site = _T(GUIDE); break;
 		case IDC_SITES_FLYLINK_TRAC:
 			site = _T(SITES_FLYLINK_TRAC);
 			break;
@@ -2936,11 +2841,9 @@ int MainFrame::run()
 	{
 		WinUtil::g_mainMenu.EnableMenuItem(ID_GET_TTH, MF_GRAYED);
 		lastTTHdir = Util::getFilePath(file);
-		const size_t c_size_buf = 1024 * 1024; // [!] IRainman fix.
+		const size_t c_size_buf = 1024 * 1024;
 		unique_ptr<TigerTree> tth;
 		unique_ptr<MD5Calc> l_md5;
-		// TigerTree* ptrTth = tth.get();
-		// MD5Calc* ptrMd5 = l_md5.get();
 		if (Util::getTTH_MD5(Text::fromT(file), c_size_buf, &tth, &l_md5))
 		{
 			const string l_TTH_str = tth.get()->getRoot().toBase32();
@@ -2952,7 +2855,7 @@ int MainFrame::run()
 			                    "&xl=" + Util::toString(tth.get()->getFileSize()) + "&dn=" + Util::encodeURI(Text::fromT(Util::getFileName(file)));
 			ibox.DoModal(_T("Tiger Tree Hash (TTH) / MD5"), file.c_str(), Text::toT(l_md5_str).c_str(), Text::toT(l_TTH_str).c_str(), Text::toT(magnetlink).c_str());
 		}
-
+		
 		WinUtil::g_mainMenu.EnableMenuItem(ID_GET_TTH, MF_ENABLED);
 	}
 	return 0;
@@ -3012,7 +2915,7 @@ void MainFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 			}
 			
 			{
-				// [+] SSA
+			
 				RECT updateRect;
 				m_ctrlStatus.GetRect(STATUS_PART_1, &updateRect);
 				updateRect.right = w[STATUS_PART_1] - 1;
@@ -3097,29 +3000,13 @@ LRESULT MainFrame::onOpenFileList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 		}
 		else
 		{
-			WinUtil::OpenFileList(l_file); // [!] SSA dclst support.
-			// UserPtr u = DirectoryListing::getUserFromFilename(Text::fromT(file));
-			//if (u)
-			//{
-			//  DirectoryListingFrame::openWindow(file, HintedUser(u, Util::emptyString), 0, Util::isDclstFile(file));
-			//}
-			//else
-			//{
-			//  // [!] IRainman Support broken file lists and non-standard formats like that dcls
-			//  //if (
-			//  MessageBox(CTSTRING(INVALID_LISTNAME), getFlylinkDCAppCaptionWithVersionT().c_str());
-			//}
+			WinUtil::OpenFileList(l_file);
 		}
 	}
 	return 0;
 }
 
-//LRESULT MainFrame::onFlylinkDiscover(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-//{
-//	ShellExecute(NULL, NULL, _T("FlylinkDiscover.exe"), NULL, NULL, SW_SHOWNORMAL);
-//	return 0;
-//}
-// Эта функция выполняется в отдельном потоке
+
 struct ThreadParams
 {
 };
@@ -3207,7 +3094,6 @@ bool MainFrame::getPasswordInternal(INT_PTR& p_do_modal_result)
 	else
 		return false;
 }
-// !SMT!-f
 bool MainFrame::getPassword()
 {
 	if (m_is_maximized || !SETTING(PROTECT_TRAY) || SETTING(PASSWORD) == g_magic_password || SETTING(PASSWORD).empty())
@@ -3237,8 +3123,7 @@ LRESULT MainFrame::onTrayIcon(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, B
 		}
 		else
 		{
-			//SetForegroundWindow(m_hWnd);// [-] Drakon
-			ShowWindow(SW_MINIMIZE);// [+] Drakon
+			ShowWindow(SW_MINIMIZE);
 		}
 	}
 	else if (lParam == WM_MOUSEMOVE && ((m_lastMove + 1000) < GET_TICK()))
@@ -3268,7 +3153,7 @@ LRESULT MainFrame::onTrayIcon(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, B
 	}
 	return 0;
 }
-LRESULT MainFrame::onTaskbarButton(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)// [+] InfinitySky. Taskbar buttons on Win7. From ApexDC++.
+LRESULT MainFrame::onTaskbarButton(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 #ifdef FLYLINKDC_SUPPORT_WIN_VISTA
 	if (!CompatibilityManager::isWin7Plus())
@@ -3378,7 +3263,7 @@ LRESULT MainFrame::OnViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 	UISetCheck(ID_VIEW_TOOLBAR, bVisible);
 	UpdateLayout();
 	SET_SETTING(SHOW_TOOLBAR, bVisible);
-	ctrlToolbar.CheckButton(ID_VIEW_TOOLBAR, bVisible); // [+] InfinitySky.
+	ctrlToolbar.CheckButton(ID_VIEW_TOOLBAR, bVisible);
 	return 0;
 }
 
@@ -3448,7 +3333,7 @@ void MainFrame::ViewTransferView(BOOL bVisible)
 	
 	UpdateLayout();
 	
-	ctrlToolbar.CheckButton(ID_VIEW_TRANSFER_VIEW, bVisible); // [+] InfinitySky.
+	ctrlToolbar.CheckButton(ID_VIEW_TRANSFER_VIEW, bVisible);
 }
 
 LRESULT MainFrame::OnViewTransferView(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -3505,7 +3390,7 @@ LRESULT MainFrame::onCloseWindows(WORD, WORD wID, HWND, BOOL&)
 
 LRESULT MainFrame::onLimiter(WORD, WORD, HWND, BOOL&)
 {
-	onLimiter(); // [!] IRainman fix
+	onLimiter();
 	return 0;
 }
 
@@ -3563,12 +3448,10 @@ void MainFrame::on(QueueManagerListener::Finished, const QueueItemPtr& qi, const
 				safe_post_message(*this, VIEW_FILE_AND_DELETE, new tstring(Text::toT(qi->getTarget())));
 			}
 		}
-		// [+] IRainman support auto open file after download.
 		else if (qi->isSet(QueueItem::FLAG_OPEN_FILE))
 		{
 			WinUtil::openFile(Text::toT(qi->getTarget()));
 		}
-		// [~] IRainman support auto open file after download.
 	}
 }
 
@@ -3578,7 +3461,7 @@ LRESULT MainFrame::onActivateApp(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/
 	WinUtil::g_isAppActive = (wParam == TRUE); // wParam == TRUE if window is activated, FALSE if deactivated
 	if (WinUtil::g_isAppActive)
 	{
-		setTrayAndTaskbarIcons(); // [!] IRainman fix.
+		setTrayAndTaskbarIcons();
 	}
 	return 0;
 }
@@ -3661,7 +3544,7 @@ LRESULT MainFrame::onDisableSounds(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 	return 0;
 }
 
-// [+] InfinitySky.
+
 LRESULT MainFrame::onDisablePopups(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	SET_SETTING(POPUPS_DISABLED, !BOOLSETTING(POPUPS_DISABLED));
@@ -3688,7 +3571,7 @@ LRESULT MainFrame::onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	return 0;
 }
 
-// !SMT!-UI
+
 void MainFrame::setIcon(HICON newIcon)
 {
 	NOTIFYICONDATA nid = {0};
@@ -3715,7 +3598,7 @@ LRESULT MainFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BO
 		tbMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 		return TRUE;
 	}
-	if (reinterpret_cast<HWND>(wParam) == m_hWndStatusBar)      // SCALOlaz : use menus on status
+	if (reinterpret_cast<HWND>(wParam) == m_hWndStatusBar)
 	{
 		// Get m_hWnd Mode (maximized, normal)
 		// for DHT area
@@ -3756,11 +3639,10 @@ LRESULT MainFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BO
 	bHandled = FALSE;
 	return FALSE;
 }
-// [+] SCALOlaz
+
 LRESULT MainFrame::onContextMenuL(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	const POINT ptClient = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	// AWAY area
 	if (ptClient.x >= m_tabAWAYRect.left && ptClient.x <= m_tabAWAYRect.right)
 	{
 		onAwayPush();
@@ -3768,7 +3650,6 @@ LRESULT MainFrame::onContextMenuL(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 	bHandled = FALSE;
 	return 0;
 }
-// end [+] SCALOlaz
 
 #ifdef SCALOLAZ_SPEEDLIMIT_DLG
 // Draw slider SpeedLimit for Upload & Download
@@ -3855,26 +3736,26 @@ LRESULT MainFrame::OnAnimChangeFrame(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lP
 	return 0;
 }
 #endif // IRAINMAN_INCLUDE_SMILE
-LRESULT MainFrame::onAddMagnet(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) // [+]NightOrion
+LRESULT MainFrame::onAddMagnet(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	AddMagnet dlg;
 	dlg.DoModal(m_hWnd);
 	return 0;
 }
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-void MainFrame::on(QueueManagerListener::Added, const QueueItemPtr& qi) noexcept // [+] SSA
+void MainFrame::on(QueueManagerListener::Added, const QueueItemPtr& qi) noexcept
 {
 	// Check View Media
 	if (qi && qi->isSet(QueueItem::FLAG_MEDIA_VIEW))
 	{
 		// Start temp preview
-		Preview::runInternalPreview(qi); // [!] IRainman fix.
+		Preview::runInternalPreview(qi);
 	}
 }
 #endif // SSA_VIDEO_PREVIEW_FEATURE
-void MainFrame::on(QueueManagerListener::TryAdding, const string& fileName, int64_t newSize, int64_t existingSize, time_t existingTime, int option) noexcept // [+] SSA
+void MainFrame::on(QueueManagerListener::TryAdding, const string& fileName, int64_t newSize, int64_t existingSize, time_t existingTime, int option) noexcept
 {
-	unique_ptr<CheckTargetDlg> dlg(new CheckTargetDlg(fileName, newSize, existingSize, existingTime, option)); // [!] IRainman fix.
+	unique_ptr<CheckTargetDlg> dlg(new CheckTargetDlg(fileName, newSize, existingSize, existingTime, option));
 	int l_option;
 	if (dlg->DoModal(*this) == IDOK)
 	{
@@ -3957,7 +3838,7 @@ LRESULT MainFrame::OnFileSettingsWizard(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 }
 #endif // SSA_WIZARD_FEATURE
 
-// [+] SSA
+
 LRESULT MainFrame::OnToolbarDropDown(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
 	NMTOOLBAR* ptb = reinterpret_cast<NMTOOLBAR*>(pnmh);
@@ -3983,7 +3864,7 @@ LRESULT MainFrame::OnToolbarDropDown(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandled*
 	}
 	return 0;
 }
-// [+] SSA
+
 LRESULT MainFrame::onMediaMenu(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	int selectedMenu = wID - ID_MEDIA_MENU_WINAMP_START;
@@ -4002,7 +3883,6 @@ LRESULT MainFrame::OnUpdateTotalResult(UINT uMsg, WPARAM wParam, LPARAM /*lParam
 	ctrlUpdateProgress.SetPos(m_numberOfReadBytes);
 	UpdateLayout();
 	bHandled = TRUE;
-	// [!] SSA TaskList
 	getTaskbarState(1000);
 	return 0;
 }
@@ -4012,7 +3892,6 @@ LRESULT MainFrame::OnUpdateResultReceive(UINT uMsg, WPARAM wParam, LPARAM /*lPar
 	ctrlUpdateProgress.SetPos(m_numberOfReadBytes);
 	UpdateLayout();
 	bHandled = TRUE;
-	// [!] SSA TaskList
 	getTaskbarState(2000);
 	return 0;
 }
@@ -4037,7 +3916,6 @@ void MainFrame::AddFolderShareFromShell(const tstring& infolder)
 	
 	if (!bFound)
 	{
-		// [!] SSA Need to add Dialog Question
 		bool shareFolder = true;
 		if (BOOLSETTING(SECURITY_ASK_ON_SHARE_FROM_SHELL))
 		{
@@ -4068,32 +3946,31 @@ void MainFrame::AddFolderShareFromShell(const tstring& infolder)
 	}
 }
 
-void MainFrame::on(UserManagerListener::OutgoingPrivateMessage, const UserPtr& to, const string& hint, const tstring& message) noexcept // [+] IRainman
+void MainFrame::on(UserManagerListener::OutgoingPrivateMessage, const UserPtr& to, const string& hint, const tstring& message) noexcept
 {
 	PrivateFrame::openWindow(nullptr, HintedUser(to, hint), Util::emptyString, message);
 }
 
-void MainFrame::on(UserManagerListener::OpenHub, const string& p_url) noexcept // [+] IRainman
+void MainFrame::on(UserManagerListener::OpenHub, const string& p_url) noexcept
 {
 	HubFrame::openHubWindow(false, p_url);
 }
 
-void MainFrame::on(UserManagerListener::CollectSummaryInfo, const UserPtr& user, const string& hubHint) noexcept // [+] IRainman
+void MainFrame::on(UserManagerListener::CollectSummaryInfo, const UserPtr& user, const string& hubHint) noexcept
 {
 	UserInfoSimple(user, hubHint).addSummaryMenu();
 }
 #ifdef FLYLINKDC_USE_SQL_EXPLORER
-void MainFrame::on(UserManagerListener::BrowseSqlExplorer, const UserPtr& user, const string& hubHint) noexcept // [+] IRainman
+void MainFrame::on(UserManagerListener::BrowseSqlExplorer, const UserPtr& user, const string& hubHint) noexcept
 {
 	// TODO мы добрались до MainFrame ;)
 	//onOpenSQLExplorer() ?
 }
 #endif // FLYLINKDC_USE_SQL_EXPLORER
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-void Preview::runInternalPreview(const QueueItemPtr& qi) // [!] IRainman fix.
+void Preview::runInternalPreview(const QueueItemPtr& qi)
 {
-	// if (qi) [-] IRainman fix.
-	VideoPreview::getInstance()->AddTempFileToPreview(qi.get(), *MainFrame::getMainFrame()); // TODO: please fix VideoPreview.
+	VideoPreview::getInstance()->AddTempFileToPreview(qi.get(), *MainFrame::getMainFrame());
 }
 
 void Preview::runInternalPreview(const string& previewFile, const int64_t& previewFileSize)

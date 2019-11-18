@@ -29,7 +29,7 @@
 class RecentHubsFrame : public MDITabChildWindowImpl < RecentHubsFrame, RGB(0, 0, 0), IDR_RECENT_HUBS >, public StaticFrame<RecentHubsFrame, ResourceManager::RECENT_HUBS, IDC_RECENTS>,
 	private FavoriteManagerListener, private SettingsManagerListener
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 	public:
@@ -52,13 +52,13 @@ class RecentHubsFrame : public MDITabChildWindowImpl < RecentHubsFrame, RGB(0, 0
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
 		COMMAND_ID_HANDLER(IDC_REMOVE_ALL, onRemoveAll)
 		COMMAND_ID_HANDLER(IDC_EDIT, onEdit)
-		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		NOTIFY_HANDLER(IDC_RECENTS, LVN_COLUMNCLICK, onColumnClickHublist)
 		NOTIFY_HANDLER(IDC_RECENTS, NM_DBLCLK, onDoubleClickHublist)
 		NOTIFY_HANDLER(IDC_RECENTS, NM_RETURN, onEnter)
 		NOTIFY_HANDLER(IDC_RECENTS, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(IDC_RECENTS, LVN_ITEMCHANGED, onItemchangedDirectories)
-		//NOTIFY_HANDLER(IDC_RECENTS, NM_CUSTOMDRAW, ctrlHubs.onCustomDraw) // [+] IRainman
+		//NOTIFY_HANDLER(IDC_RECENTS, NM_CUSTOMDRAW, ctrlHubs.onCustomDraw)
 		NOTIFY_HANDLER(IDC_RECENTS, NM_CUSTOMDRAW, onCustomDraw)
 		CHAIN_MSG_MAP(baseClass)
 		END_MSG_MAP()
@@ -75,7 +75,7 @@ class RecentHubsFrame : public MDITabChildWindowImpl < RecentHubsFrame, RGB(0, 0
 		LRESULT onEdit(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 		LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled);
 		
-		// [+] InfinitySky.
+		
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			PostMessage(WM_CLOSE);

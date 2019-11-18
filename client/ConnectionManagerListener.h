@@ -44,7 +44,7 @@ class ConnectionManagerListener
 #endif
 		
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-		typedef X<7> OpenTCPPortDetected; // [+] brain-ripper
+		typedef X<7> OpenTCPPortDetected;
 #endif
 		typedef X<8> RemoveToken;
 		

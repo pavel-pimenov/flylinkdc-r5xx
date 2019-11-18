@@ -28,28 +28,17 @@ const string Transfer::g_user_list_name = "files.xml";
 const string Transfer::g_user_list_name_bz = "files.xml.bz2";
 
 Transfer::Transfer(UserConnection* p_conn, const string& p_path, const TTHValue& p_tth, const string& p_ip, const string& p_chiper_name) :
-	m_type(TYPE_FILE), m_runningAverage(0), // [!] IRainman opt.
+	m_type(TYPE_FILE), m_runningAverage(0),
 	m_path(p_path), m_tth(p_tth), m_actual(0), m_pos(0), m_userConnection(p_conn), m_hinted_user(p_conn->getHintedUser()), m_startPos(0),
 	m_isSecure(p_conn->isSecure()), m_isTrusted(p_conn->isTrusted()),
-	m_start(0), m_lastTick(GET_TICK()), // [!] IRainman fix.
+	m_start(0), m_lastTick(GET_TICK()),
 	m_chiper_name(p_chiper_name),
 	m_ip(p_ip), // TODO - перевести на boost? падаем
 	m_fileSize(-1)
 	// https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=62265
 {
-	// p_conn->getRemoteIp()
-	// p_conn->getCipherName()
-	// [!] IRainman refactoring transfer mechanism
 	m_samples.push_back(Sample(m_lastTick, 0));
 }
-/*[-]IRainman refactoring transfer mechanism
- inline void Transfer::updateRunningAverage(uint64_t tick)
- {
-    //[!]IRainman refactoring transfer mechanism
-    runningAverage = getAverageSpeed();
-    lastTick = tick;
- }
-*/
 string Transfer::getConnectionQueueToken() const
 {
 	if (getUserConnection())
@@ -91,7 +80,6 @@ void Transfer::tick(uint64_t p_CurrentTick)
 
 int64_t Transfer::getSecondsLeft(const bool wholeFile) const
 {
-	//[!]IRainman refactoring transfer mechanism
 	const int64_t avg = getRunningAverage();
 	const int64_t bytesLeft = (wholeFile ? getFileSize() : getSize()) - getPos();
 	if (bytesLeft > 0)
@@ -135,7 +123,7 @@ void Transfer::getParams(const UserConnection* aSource, StringMap& params) const
 		params["fileSIactual"] = Util::toString(getActual());
 		params["fileSIactualshort"] = Util::formatBytes(getActual());
 		params["speed"] = Util::formatBytes(getRunningAverage()) + '/' + STRING(S);
-		params["time"] = getStart() == 0 ? "-" : Util::formatSeconds((getLastTick() - getStart()) / 1000); // [!] IRainman refactoring transfer mechanism
+		params["time"] = getStart() == 0 ? "-" : Util::formatSeconds((getLastTick() - getStart()) / 1000);
 		params["fileTR"] = getTTH().toBase32();
 	}
 }

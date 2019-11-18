@@ -64,7 +64,7 @@ class FileRoadMap
 		bool GetInsertableSizeAndPos(int64_t& pos, int64_t& size);
 		
 	private:
-		FastCriticalSection cs; // [!] IRainman opt: use spinlock here.
+		FastCriticalSection cs;
 		int64_t m_totalSize;
 		MapItems m_map;
 };

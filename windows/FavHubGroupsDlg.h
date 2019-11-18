@@ -23,7 +23,7 @@
 
 
 #include "Resource.h"
-#include "ExListViewCtrl.h" // [+] IRainman
+#include "ExListViewCtrl.h"
 
 class FavHubGroupsDlg : public CDialogImpl<FavHubGroupsDlg>
 {
@@ -33,11 +33,11 @@ class FavHubGroupsDlg : public CDialogImpl<FavHubGroupsDlg>
 		BEGIN_MSG_MAP(FavHubGroupsDlg)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
 		NOTIFY_HANDLER(IDC_GROUPS, LVN_ITEMCHANGED, onItemChanged)
-		NOTIFY_HANDLER(IDC_GROUPS, NM_CUSTOMDRAW, ctrlGroups.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_GROUPS, NM_CUSTOMDRAW, ctrlGroups.onCustomDraw)
 		COMMAND_ID_HANDLER(IDCANCEL, onClose)
 		COMMAND_ID_HANDLER(IDC_ADD, onAdd)
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
-		COMMAND_ID_HANDLER(IDC_SAVE, onUpdate) // [~] NightOrion.
+		COMMAND_ID_HANDLER(IDC_SAVE, onUpdate)
 		END_MSG_MAP()
 		
 		LRESULT onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
@@ -60,7 +60,7 @@ class FavHubGroupsDlg : public CDialogImpl<FavHubGroupsDlg>
 		void updateSelectedGroup(bool forceClean = false);
 		void save();
 		
-		ExListViewCtrl ctrlGroups; //  [!]  IRainman CListViewCtrl -> FlyListViewCtrl
+		ExListViewCtrl ctrlGroups;
 };
 
 #endif //STRONGDCPLUSPLUS_FAV_HUB_GROUPS_DLG

@@ -77,7 +77,7 @@ class UserManager : public Singleton<UserManager>, public Speaker<UserManagerLis
 			WAITING = 2,
 		};
 		static bool expectPasswordFromUser(const UserPtr& user);
-		static PasswordStatus checkPrivateMessagePassword(const ChatMessage& pm); // !SMT!-PSW
+		static PasswordStatus checkPrivateMessagePassword(const ChatMessage& pm);
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 		static void checkUser(const OnlineUserPtr& user);
 #endif

@@ -23,7 +23,7 @@ bool CFsTypeDetector::IsStreamSupported(FsUtils_LPCtSTR pwcFileName)
 		FsUtils_CHAR wcRootPath[] = FsUtils_L("\\\\?\\C\0\\");
 		wcRootPath[4] = (FsUtils_CHAR)toupper(*pwcFileName);
 		
-		//CFlyFastLock(m_cs); // [!] IRainman fix.
+		//CFlyFastLock(m_cs);
 		const tCACHE::const_iterator i = m_cache.find(&wcRootPath[4]);
 		if (i != m_cache.end())
 		{
@@ -95,7 +95,7 @@ bool CFsTypeDetector::IsStreamSupported(FsUtils_LPCtSTR pwcFileName)
 		{
 			FsUtils_str strRemotePath(pwcFileName, p - pwcFileName + 1);
 			
-			//CFlyFastLock(m_cs); // [!] IRainman fix.
+			//CFlyFastLock(m_cs);
 			const tCACHE::const_iterator i = m_cache.find(strRemotePath);
 			if (i != m_cache.end())
 			{
@@ -139,7 +139,7 @@ LRESULT CFsTypeDetector::OnDeviceChange(LPARAM lParam, WPARAM wParam)
 				FsUtils_CHAR wcDriveLetter[2] = {0};
 				
 				
-				//CFlyFastLock(m_cs); // [!] IRainman fix.
+				//CFlyFastLock(m_cs);
 				// Cycle thought removing/removed drive letters and erase them from cache
 				while (ulDriveLettersMask)
 				{
@@ -172,7 +172,7 @@ LRESULT CFsTypeDetector::OnDeviceChange(LPARAM lParam, WPARAM wParam)
 				if (IsEqualGUID(pHandle->dbch_eventguid, GUID_IO_VOLUME_DISMOUNT))
 				{
 					// Probably disk formatting process
-					//CFlyFastLock(m_cs); // [!] IRainman fix.
+					//CFlyFastLock(m_cs);
 					for (auto i = m_cache.cbegin(); i != m_cache.cend(); ++i)
 					{
 						if (i->second.hNotify == pHandle->dbch_hdevnotify)

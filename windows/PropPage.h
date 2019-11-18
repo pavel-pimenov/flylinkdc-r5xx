@@ -32,7 +32,7 @@ class SettingsManager;
 extern SettingsManager *g_settings;
 class PropPage
 #ifdef _DEBUG
-	: boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 	public:
@@ -117,7 +117,7 @@ class PropPage
 #endif
 };
 
-class EmptyPage : public CPropertyPage<IDD_EMPTY_PAGE>, public PropPage // [+] IRainman HE
+class EmptyPage : public CPropertyPage<IDD_EMPTY_PAGE>, public PropPage
 {
 	public:
 		EmptyPage(const tstring& p_title) : PropPage(p_title)

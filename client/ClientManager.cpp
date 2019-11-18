@@ -19,7 +19,6 @@
 #include "stdinc.h"
 #include "ShareManager.h"
 #include "CryptoManager.h"
-#include "SimpleXML.h"
 #include "AdcHub.h"
 #include "NmdcHub.h"
 #include "QueueManager.h"
@@ -33,10 +32,10 @@
 #endif
 
 
-UserPtr ClientManager::g_uflylinkdc; // [+] IRainman fix: User for message from client.
-Identity ClientManager::g_iflylinkdc; // [+] IRainman fix: Identity for User for message from client.
-UserPtr ClientManager::g_me; // [+] IRainman fix: this is static object.
-CID ClientManager::g_pid; // [+] IRainman fix: this is static object.
+UserPtr ClientManager::g_uflylinkdc;
+Identity ClientManager::g_iflylinkdc;
+UserPtr ClientManager::g_me;
+CID ClientManager::g_pid;
 volatile bool g_isShutdown = false;
 volatile bool g_isBeforeShutdown = false;
 bool g_isStartupProcess = true;
@@ -61,7 +60,7 @@ ClientManager::ClientManager()
 		SET_SETTING(NICK, "[fly]" + Util::getRandomNick(15));
 	}
 	dcassert(!SETTING(NICK).empty());
-	createMe(SETTING(PRIVATE_ID), SETTING(NICK)); // [+] IRainman fix.
+	createMe(SETTING(PRIVATE_ID), SETTING(NICK));
 }
 
 ClientManager::~ClientManager()
@@ -299,7 +298,7 @@ StringList ClientManager::getHubs(const CID& cid, const string& hintUrl, bool pr
 	StringList lst;
 	if (!priv)
 	{
-		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
+		CFlyReadLock(*g_csOnlineUsers);
 		const auto op = g_onlineUsers.equal_range(cid);
 		for (auto i = op.first; i != op.second; ++i)
 		{
@@ -308,7 +307,7 @@ StringList ClientManager::getHubs(const CID& cid, const string& hintUrl, bool pr
 	}
 	else
 	{
-		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
+		CFlyReadLock(*g_csOnlineUsers);
 		const OnlineUserPtr u = findOnlineUserHintL(cid, hintUrl);
 		if (u)
 		{
@@ -326,7 +325,7 @@ StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, boo
 	StringList lst;
 	if (!priv)
 	{
-		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
+		CFlyReadLock(*g_csOnlineUsers);
 		const auto op = g_onlineUsers.equal_range(cid);
 		for (auto i = op.first; i != op.second; ++i)
 		{
@@ -335,7 +334,7 @@ StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, boo
 	}
 	else
 	{
-		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
+		CFlyReadLock(*g_csOnlineUsers);
 		const OnlineUserPtr u = findOnlineUserHintL(cid, hintUrl);
 		if (u)
 		{
@@ -345,12 +344,11 @@ StringList ClientManager::getHubNames(const CID& cid, const string& hintUrl, boo
 	return lst;
 }
 
-//[+]FlylinkDC
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 StringList ClientManager::getAntivirusNicks(const CID& p_cid)
 {
 	StringSet ret;
-	CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
+	CFlyReadLock(*g_csOnlineUsers);
 	const auto op = g_onlineUsers.equal_range(p_cid);
 	for (auto i = op.first; i != op.second; ++i)
 	{
@@ -373,7 +371,7 @@ StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool
 	StringSet ret;
 	if (!priv)
 	{
-		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
+		CFlyReadLock(*g_csOnlineUsers);
 		const auto op = g_onlineUsers.equal_range(p_cid);
 		for (auto i = op.first; i != op.second; ++i)
 		{
@@ -382,7 +380,7 @@ StringList ClientManager::getNicks(const CID& p_cid, const string& hintUrl, bool
 	}
 	else
 	{
-		CFlyReadLock(*g_csOnlineUsers); // [+] IRainman opt.
+		CFlyReadLock(*g_csOnlineUsers);
 		const OnlineUserPtr u = findOnlineUserHintL(p_cid, hintUrl);
 		if (u)
 		{
@@ -437,7 +435,6 @@ UserPtr ClientManager::findUser(const string& aNick, const string& aHubUrl)
 }
 OnlineUserPtr ClientManager::findOnlineUserL(const CID& cid, const string& hintUrl, bool priv)
 {
-	// [!] IRainman: This function need to external lock.
 	OnlinePairC p;
 	OnlineUserPtr u = findOnlineUserHintL(cid, hintUrl, p);
 	if (u) // found an exact match (CID + hint).
@@ -454,7 +451,7 @@ OnlineUserPtr ClientManager::findOnlineUserL(const CID& cid, const string& hintU
 	return p.first->second;
 }
 
-string ClientManager::getStringField(const CID& cid, const string& hint, const char* field) // [!] IRainman fix.
+string ClientManager::getStringField(const CID& cid, const string& hint, const char* field)
 {
 	CFlyReadLock(*g_csOnlineUsers);
 	
@@ -508,11 +505,9 @@ string ClientManager::findHub(const string& ipPort)
 #ifdef IRAINMAN_CORRRECT_CALL_FOR_CLIENT_MANAGER_DEBUG
 	dcassert(!ipPort.empty());
 #endif
-	if (ipPort.empty()) //[+]FlylinkDC++ Team
+	if (ipPort.empty())
 		return Util::emptyString;
 		
-	// [-] CFlyLock(cs); IRainman opt.
-	
 	string ip_or_host;
 	uint16_t port = 411;
 	Util::parseIpPort(ipPort, ip_or_host, port);
@@ -520,11 +515,11 @@ string ClientManager::findHub(const string& ipPort)
 	boost::system::error_code ec;
 	const auto l_ip = boost::asio::ip::address_v4::from_string(ip_or_host, ec);
 	//dcassert(!ec);
-	CFlyReadLock(*g_csClients); // [+] IRainman opt.
+	CFlyReadLock(*g_csClients);
 	for (auto j = g_clients.cbegin(); j != g_clients.cend(); ++j)
 	{
 		const Client* c = j->second;
-		if (c->getPort() == port) // [!] IRainman opt.
+		if (c->getPort() == port)
 		{
 			// If exact match is found, return it
 			if (ec)
@@ -550,7 +545,7 @@ string ClientManager::findHub(const string& ipPort)
 
 string ClientManager::findHubEncoding(const string& aUrl)
 {
-	if (!aUrl.empty()) //[+]FlylinkDC++ Team
+	if (!aUrl.empty())
 	{
 		CFlyReadLock(*g_csClients);
 		const auto& i = g_clients.find(aUrl);
@@ -700,15 +695,13 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) no
 {
 	if (!isBeforeShutdown())
 	{
-		// [!] IRainman fix: don't put any hub to online or offline! Any hubs as user is always offline!
 		dcassert(ou->getIdentity().getSID() != AdcCommand::HUB_SID);
 		dcassert(!ou->getUser()->getCID().isZero());
-		// [~] IRainman fix.
+		
 		OnlineIter::difference_type diff = 0;
 		{
 			CFlyWriteLock(*g_csOnlineUsers);
-			auto op = g_onlineUsers.equal_range(ou->getUser()->getCID()); // Ищется по одном - научиться убивать сразу массив.
-			// [-] dcassert(op.first != op.second); [!] L: this is normal and means that the user is offline.
+			auto op = g_onlineUsers.equal_range(ou->getUser()->getCID());
 			for (auto i = op.first; i != op.second; ++i)
 			{
 				if (ou == i->second)
@@ -742,13 +735,12 @@ void ClientManager::putOffline(const OnlineUserPtr& ou, bool p_is_disconnect) no
 
 OnlineUserPtr ClientManager::findOnlineUserHintL(const CID& cid, const string& hintUrl, OnlinePairC& p)
 {
-	// [!] IRainman fix: This function need to external lock.
 	p = g_onlineUsers.equal_range(cid);
 	
 	if (p.first == p.second) // no user found with the given CID.
 		return nullptr;
 		
-	if (!hintUrl.empty()) // [+] IRainman fix.
+	if (!hintUrl.empty())
 	{
 		for (auto i = p.first; i != p.second; ++i)
 		{
@@ -932,20 +924,20 @@ void ClientManager::send(AdcCommand& cmd, const CID& cid)
 }
 void ClientManager::infoUpdated(Client* p_client)
 {
-    dcassert(p_client);
-    if (p_client)
-    {
-        dcassert(!ClientManager::isBeforeShutdown());
-        if (!ClientManager::isBeforeShutdown())
-        {
-            CFlyReadLock(*g_csClients);
-            dcassert(p_client);
-            if (p_client && p_client->isConnected())
-            {
-                p_client->info(false);
-            }
-        }
-    }
+	dcassert(p_client);
+	if (p_client)
+	{
+		dcassert(!ClientManager::isBeforeShutdown());
+		if (!ClientManager::isBeforeShutdown())
+		{
+			CFlyReadLock(*g_csClients);
+			dcassert(p_client);
+			if (p_client && p_client->isConnected())
+			{
+				p_client->info(false);
+			}
+		}
+	}
 }
 void ClientManager::infoUpdated(bool p_is_force /* = false*/)
 {
@@ -1009,7 +1001,6 @@ void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const 
 			}
 		}
 	}
-	// [!] IRainman
 	const string l_Seeker = c->getIpPort();
 	StringSearch::List l_reguest;
 	const ClientManagerListener::SearchReply l_re = SearchManager::getInstance()->respond(adc, from, isUdpActive, l_Seeker, l_reguest);
@@ -1017,7 +1008,6 @@ void ClientManager::on(AdcSearch, const Client* c, const AdcCommand& adc, const 
 	{
 		Speaker<ClientManagerListener>::fly_fire3(ClientManagerListener::IncomingSearch(), l_Seeker, i->getPattern(), l_re);
 	}
-	// [~] IRainman
 }
 
 void ClientManager::search(const SearchParamOwner& p_search_param)
@@ -1047,7 +1037,7 @@ uint64_t ClientManager::multi_search(const SearchParamTokenMultiClient& p_search
 	uint64_t estimateSearchSpan = 0;
 	if (p_search_param.m_clients.empty())
 	{
-		CFlyReadLock(*g_csClients); // [+] IRainman opt.
+		CFlyReadLock(*g_csClients);
 		for (auto i = g_clients.cbegin(); i != g_clients.cend(); ++i)
 			if (i->second->isConnected())
 			{
@@ -1057,7 +1047,7 @@ uint64_t ClientManager::multi_search(const SearchParamTokenMultiClient& p_search
 	}
 	else
 	{
-		CFlyReadLock(*g_csClients); // [+] IRainman opt.
+		CFlyReadLock(*g_csClients);
 		for (auto it = p_search_param.m_clients.cbegin(); it != p_search_param.m_clients.cend(); ++it)
 		{
 			const string& client = *it;
@@ -1188,17 +1178,11 @@ void ClientManager::usersCleanup()
 		}
 	}
 }
-/*
-void ClientManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
-{
-    usersCleanup();
-}
-*/
-// [!] IRainman fix.
+
 void ClientManager::createMe(const string& p_cid, const string& p_nick)
 {
-	dcassert(!g_me); // [+] IRainman fix: please not init me twice!
-	dcassert(g_pid.isZero()); // [+] IRainman fix: please not init pid twice!
+	dcassert(!g_me);
+	dcassert(g_pid.isZero());
 	
 	g_pid = CID(p_cid);
 	
@@ -1229,7 +1213,7 @@ void ClientManager::createMe(const string& p_cid, const string& p_nick)
 #endif
 	g_iflylinkdc.setHub();
 	g_iflylinkdc.setUser(g_uflylinkdc);
-	// [~] IRainman fix.
+	
 	{
 		CFlyWriteLock(*g_csUsers);
 		//CFlyLock(g_csUsers);
@@ -1266,7 +1250,7 @@ const string ClientManager::findMyNick(const string& hubUrl)
 	CFlyReadLock(*g_csClients);
 	const auto& i = g_clients.find(hubUrl);
 	if (i != g_clients.end())
-		return i->second->getMyNick(); // [!] IRainman opt.
+		return i->second->getMyNick();
 	return Util::emptyString;
 }
 
@@ -1344,11 +1328,10 @@ void ClientManager::on(UsersUpdated, const Client* client, const OnlineUserList&
 	{
 		for (auto i = l.cbegin(); i != l.cend(); ++i)
 		{
-			updateNick(*i); // TODO проверить что меняется именно ник - иначе не звать. или разбить UsersUpdated на UsersUpdated + UsersUpdatedNick
+			updateNick(*i);
 #ifdef _DEBUG
 			//      LogManager::message("ClientManager::on(UsersUpdated nick = " + (*i)->getUser()->getLastNick());
 #endif
-			// [-] fly_fire1(ClientManagerListener::UserUpdated(), *i); [-] IRainman fix: No needs to update user twice.
 		}
 	}
 }

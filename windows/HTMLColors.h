@@ -21,7 +21,7 @@
 
 #pragma once
 
-struct HTMLColors // [+] SSA struct for BB colors codes
+struct HTMLColors
 {
 	HTMLColors(const TCHAR* p_tag, const COLORREF p_color) : tag(p_tag), color(p_color) { }
 	const TCHAR* tag;

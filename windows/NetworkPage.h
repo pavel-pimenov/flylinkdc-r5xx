@@ -25,7 +25,6 @@
 #include <atlcrack.h>
 #include "PropPage.h"
 #include "wtl_flylinkdc.h"
-#include "../client/SimpleXML.h"
 
 class NetworkPage : public CPropertyPage<IDD_NETWORK_PAGE>, public PropPage
 {

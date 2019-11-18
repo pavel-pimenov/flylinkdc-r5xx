@@ -66,7 +66,6 @@ class StringSearch
 			return pattern;
 		}
 		
-		// [!] IRainman optimization and fix
 		/** Match a text against the pattern */
 		bool match(const string& aText) const noexcept
 		{
@@ -76,7 +75,7 @@ class StringSearch
 			return matchLower(lower);
 		}
 		/** Match a text against the pattern */
-		bool matchLower(const string& aText) const noexcept// [!]IRainman
+		bool matchLower(const string& aText) const noexcept
 		{
 			dcassert(Text::toLower(aText) == aText);
 			const string::size_type plen = pattern.length();
@@ -91,7 +90,7 @@ class StringSearch
 			// uint8_t to avoid problems with signed char pointer arithmetic
 			uint8_t *tx = (uint8_t*)aText.c_str();
 			uint8_t *px = (uint8_t*)pattern.c_str();
-			uint8_t *end = tx + tlen - plen + 1;// [!] IRainman fix UTF-8 support and optimization
+			uint8_t *end = tx + tlen - plen + 1;
 			while (tx < end)
 			{
 				size_t i = 0;
@@ -106,7 +105,6 @@ class StringSearch
 			
 			return false;
 		}
-		// [~] IRainman optimization and fix
 	private:
 		static const uint16_t m_ASIZE = 256;
 		/**

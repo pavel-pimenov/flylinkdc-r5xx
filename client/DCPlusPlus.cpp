@@ -74,7 +74,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	
 	CFlyLog l_StartUpLog("[StartUp]");
 	
-	// [+] IRainman fix.
+	
 #define LOAD_STEP(component_name, load_function)\
 	{\
 		pProgressCallbackProc(pProgressParam, _T(component_name));\
@@ -92,7 +92,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 		load_function;\
 		l_StartUpLog.loadStep(l_componentName, false);\
 	}
-	// [~] IRainman fix.
+	
 	
 	dcassert(pProgressCallbackProc != nullptr);
 	
@@ -135,7 +135,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	LOAD_STEP("Ensure list path", QueueManager::newInstance());
 	LOAD_STEP("Create empty share", ShareManager::newInstance());
 	LOAD_STEP("Ensure fav path", FavoriteManager::newInstance());
-	LOAD_STEP("Ignore list", UserManager::newInstance()); // [+] IRainman core
+	LOAD_STEP("Ignore list", UserManager::newInstance());
 	if (pGuiInitProc)
 	{
 		LOAD_STEP("Gui and FlyFeatures", pGuiInitProc(pGuiParam));
@@ -156,7 +156,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 // FLYLINKDC_CRYPTO_DISABLE
 	LOAD_STEP_L(CERTIFICATES, CryptoManager::getInstance()->loadCertificates());
 	
-	LOAD_STEP_L(WAITING_USERS, UploadManager::getInstance()->load()); // !SMT!-S
+	LOAD_STEP_L(WAITING_USERS, UploadManager::getInstance()->load());
 	
 	WebServerManager::newInstance();
 	
@@ -165,14 +165,14 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	LOAD_STEP_L(SHARED_FILES, ShareManager::getInstance()->refresh_share(true, false));
 	
 #ifdef IRAINMAN_USE_STRING_POOL
-	StringPool::newInstance(); // [+] IRainman opt.
+	StringPool::newInstance();
 #endif
 	
 #undef LOAD_STEP
 #undef LOAD_STEP_L
 }
 
-void preparingCoreToShutdown() // [+] IRainamn fix.
+void preparingCoreToShutdown()
 {
 	static bool g_is_first = false;
 	if (!g_is_first)
@@ -222,12 +222,10 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 #endif
 		
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
-		// [!] IRainman fix: supports cleanup.
 		string l_debugFeatures;
 		string l_debugConnections;
 		{
 			CFlyFastLock(AdcSupports::g_debugCsUnknownAdcFeatures);
-			// dcassert(AdcSupports::g_debugUnknownAdcFeatures.empty());
 			const auto& l_debugUnknownFeatures = AdcSupports::g_debugUnknownAdcFeatures;
 			for (auto i = l_debugUnknownFeatures.begin(); i != l_debugUnknownFeatures.end(); ++i)
 			{
@@ -271,14 +269,14 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		preparingCoreToShutdown(); // Зовем тут второй раз т.к. вероятно при автообновлении оно не зовется.
 		
 #ifdef FLYLINKDC_USE_DNS
-		Socket::dnsCache.waitShutdown(); // !SMT!-IP
+		Socket::dnsCache.waitShutdown();
 #endif
 #ifdef FLYLINKDC_USE_SOCKET_COUNTER
 		BufferedSocket::waitShutdown();
 #endif
 		
 #ifdef IRAINMAN_USE_STRING_POOL
-		StringPool::deleteInstance(); // [+] IRainman opt.
+		StringPool::deleteInstance();
 #endif
 		ConnectivityManager::deleteInstance();
 		WebServerManager::deleteInstance();
@@ -303,7 +301,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		QueueManager::deleteInstance();
 		ConnectionManager::deleteInstance();
 		SearchManager::deleteInstance();
-		UserManager::deleteInstance(); // [+] IRainman core
+		UserManager::deleteInstance();
 		FavoriteManager::deleteInstance();
 		ClientManager::deleteInstance();
 		HashManager::deleteInstance();
@@ -329,7 +327,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		dcassert(OnlineUser::g_online_user_counts == 0);
 #endif
 		
-		// [~] IRainman fix.
+		
 	}
 	
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS

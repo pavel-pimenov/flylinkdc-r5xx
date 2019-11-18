@@ -40,7 +40,7 @@ PropPage::TextItem FakeDetect::texts[] =
 	{ IDC_PROT_USERS, ResourceManager::PROT_USERS },
 	{ IDC_PROT_DESC, ResourceManager::PROT_DESC },
 	{ IDC_PROT_FAVS, ResourceManager::PROT_FAVS },
-	// !SMT!-S
+	
 	{ IDC_BAN_SLOTS, ResourceManager::BAN_SLOTS },
 	{ IDC_BAN_SLOTS_H, ResourceManager::BAN_SLOTS_H },
 	{ IDC_BAN_SHARE, ResourceManager::BAN_SHARE },
@@ -50,22 +50,22 @@ PropPage::TextItem FakeDetect::texts[] =
 	{ IDC_BAN_STEALTH, ResourceManager::BAN_STEALTH },
 	{ IDC_BAN_FORCE_PM, ResourceManager::BAN_FORCE_PM },
 	
-	{ IDC_AUTOBAN_HINT, ResourceManager::AUTOBAN_HINT }, //[+] Drakon
+	{ IDC_AUTOBAN_HINT, ResourceManager::AUTOBAN_HINT },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
 PropPage::Item FakeDetect::items[] =
 {
-	{ IDC_ENABLE_AUTO_BAN, SettingsManager::ENABLE_AUTO_BAN, PropPage::T_BOOL }, // [+]IRainman
+	{ IDC_ENABLE_AUTO_BAN, SettingsManager::ENABLE_AUTO_BAN, PropPage::T_BOOL },
 #ifdef IRAINMAN_ENABLE_OP_VIP_MODE
-	{ IDC_PROTECT_OP, SettingsManager::AUTOBAN_PPROTECT_OP, PropPage::T_BOOL }, // [+]IRainman
+	{ IDC_PROTECT_OP, SettingsManager::AUTOBAN_PPROTECT_OP, PropPage::T_BOOL },
 #endif
 	{ IDC_PERCENT_FAKE_SHARE_TOLERATED, SettingsManager::PERCENT_FAKE_SHARE_TOLERATED, PropPage::T_INT },
 	{ IDC_TIMEOUTS_NO, SettingsManager::ACCEPTED_TIMEOUTS, PropPage::T_INT },
 	{ IDC_DISCONNECTS_NO, SettingsManager::ACCEPTED_DISCONNECTS, PropPage::T_INT },
 	{ IDC_PROT_PATTERNS, SettingsManager::PROT_USERS, PropPage::T_STR },
 	{ IDC_PROT_FAVS, SettingsManager::PROT_FAVS, PropPage::T_BOOL },
-	// !SMT!-S
+	
 	{ IDC_BAN_SLOTS_NO, SettingsManager::BAN_SLOTS, PropPage::T_INT },
 	{ IDC_BAN_SLOTS_NO_H, SettingsManager::BAN_SLOTS_H, PropPage::T_INT },
 	{ IDC_BAN_SHARE_NO, SettingsManager::BAN_SHARE, PropPage::T_INT },
@@ -86,7 +86,7 @@ FakeDetect::ListItem FakeDetect::listItems[] =
 LRESULT FakeDetect::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::read(*this, items, listItems, GetDlgItem(IDC_FAKE_BOOLEANS));
-	ctrlList.Attach(GetDlgItem(IDC_FAKE_BOOLEANS)); // [+] IRainman
+	ctrlList.Attach(GetDlgItem(IDC_FAKE_BOOLEANS));
 	CComboBox cRaw;
 	
 #define ADDSTRINGS \

@@ -1154,7 +1154,7 @@ public:
   /// Include delimiters and embedded newlines.
   String getComment(CommentPlacement placement) const;
 
-  JSONCPP_STRING toStyledString(bool p_use_end_line = true) const; //[+] FlylinkDC++
+  JSONCPP_STRING toStyledString(bool p_use_end_line = true) const;
 
   const_iterator begin() const;
   const_iterator end() const;

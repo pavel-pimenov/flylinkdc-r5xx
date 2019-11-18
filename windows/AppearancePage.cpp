@@ -39,22 +39,20 @@ PropPage::Item AppearancePage::items[] =
 PropPage::ListItem AppearancePage::listItems[] =
 {
 	{ SettingsManager::MINIMIZE_ON_STARTUP, ResourceManager::SETTINGS_MINIMIZE_ON_STARTUP },
-	{ SettingsManager::MINIMIZE_ON_CLOSE, ResourceManager::MINIMIZE_ON_CLOSE }, // [+] InfinitySky.
+	{ SettingsManager::MINIMIZE_ON_CLOSE, ResourceManager::MINIMIZE_ON_CLOSE },
 	{ SettingsManager::MINIMIZE_TRAY, ResourceManager::SETTINGS_MINIMIZE_TRAY },
-	{ SettingsManager::SHOW_CURRENT_SPEED_IN_TITLE, ResourceManager::SHOW_CURRENT_SPEED_IN_TITLE }, // [+] InfinitySky.
+	{ SettingsManager::SHOW_CURRENT_SPEED_IN_TITLE, ResourceManager::SHOW_CURRENT_SPEED_IN_TITLE },
 	{ SettingsManager::SORT_FAVUSERS_FIRST, ResourceManager::SETTINGS_SORT_FAVUSERS_FIRST },
 	{ SettingsManager::USE_SYSTEM_ICONS, ResourceManager::SETTINGS_USE_SYSTEM_ICONS },
 	{ SettingsManager::USE_OLD_SHARING_UI, ResourceManager::SETTINGS_USE_OLD_SHARING_UI },
-//	{ SettingsManager::SHOW_PROGRESS_BARS, ResourceManager::SETTINGS_SHOW_PROGRESS_BARS },
-//	{ SettingsManager::UP_TRANSFER_COLORS, ResourceManager::UP_TRANSFER_COLORS }, // [+] Drakon.
-	{ SettingsManager::VIEW_GRIDCONTROLS, ResourceManager::VIEW_GRIDCONTROLS }, // [+] ZagZag.
+	{ SettingsManager::VIEW_GRIDCONTROLS, ResourceManager::VIEW_GRIDCONTROLS },
 	{ SettingsManager::FILTER_MESSAGES, ResourceManager::SETTINGS_FILTER_MESSAGES },
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
 	{ SettingsManager::USE_CUSTOM_LIST_BACKGROUND, ResourceManager::USE_CUSTOM_LIST_BACKGROUND },
 #endif
 	{ SettingsManager::UC_SUBMENU, ResourceManager::UC_SUBMENU },
 	{ SettingsManager::USE_EXPLORER_THEME, ResourceManager::USE_EXPLORER_THEME },
-	{ SettingsManager::USE_12_HOUR_FORMAT, ResourceManager::USE_12_HOUR_FORMAT }, // [+] InfinitySky.
+	{ SettingsManager::USE_12_HOUR_FORMAT, ResourceManager::USE_12_HOUR_FORMAT },
 	
 #ifdef SCALOLAZ_HUB_MODE
 	{ SettingsManager::ENABLE_HUBMODE_PIC, ResourceManager::ENABLE_HUBMODE_PIC },
@@ -65,7 +63,7 @@ PropPage::ListItem AppearancePage::listItems[] =
 
 AppearancePage::~AppearancePage()
 {
-	ctrlList.Detach(); // [+] IRainman
+	ctrlList.Detach();
 }
 
 void AppearancePage::write()
@@ -90,7 +88,7 @@ LRESULT AppearancePage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 	
 	PropPage::read(*this, items, listItems, GetDlgItem(IDC_APPEARANCE_BOOLEANS));
 	
-	ctrlList.Attach(GetDlgItem(IDC_APPEARANCE_BOOLEANS)); // [+] IRainman
+	ctrlList.Attach(GetDlgItem(IDC_APPEARANCE_BOOLEANS));
 	
 	ctrlTheme.Attach(GetDlgItem(IDC_THEME_COMBO));
 	GetThemeList();

@@ -45,7 +45,7 @@ class NmdcHub : public Client, private Flags
 		virtual void disconnect(bool p_graceless);
 		
 		void hubMessage(const string& aMessage, bool thirdPerson = false);
-		void privateMessage(const OnlineUserPtr& aUser, const string& aMessage, bool thirdPerson = false); // !SMT!-S
+		void privateMessage(const OnlineUserPtr& aUser, const string& aMessage, bool thirdPerson = false);
 		void sendUserCmd(const UserCommand& command, const StringMap& params);
 		virtual void search_token(const SearchParamToken& p_search_param);
 		void password(const string& aPass)
@@ -118,9 +118,9 @@ class NmdcHub : public Client, private Flags
 		uint8_t  m_version_fly_info;
 		CFlySearchArrayTTH m_delay_search;
 		void clear_delay_search();
-		char m_modeChar; // last Mode MyINFO
+		char m_modeChar;
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-		bool m_hubSupportsSlots;//[+] FlylinkDC
+		bool m_hubSupportsSlots;
 #endif
 		
 #ifdef RIP_USE_CONNECTION_AUTODETECT
@@ -144,7 +144,7 @@ class NmdcHub : public Client, private Flags
 		virtual size_t getMaxLenNick() const;
 		void processAutodetect(bool p_is_myinfo);
 		
-		DefinedMeyInfoState m_bLastMyInfoCommand; // [+] FlylinkDC
+		DefinedMeyInfoState m_bLastMyInfoCommand;
 		string m_cache_hub_url_flood;
 		string m_last_antivirus_detect_url;
 		struct CFlyNickRule
@@ -201,7 +201,7 @@ class NmdcHub : public Client, private Flags
 		static void logPM(const UserPtr& p_user, const string& p_msg, const string& p_hub_url);
 		void resetAntivirusInfo();
 		
-		OnlineUserPtr getUser(const string& aNick, bool p_hub, bool p_first_load); // [!] IRainman fix: return OnlineUserPtr and add hub
+		OnlineUserPtr getUser(const string& aNick, bool p_hub, bool p_first_load);
 		OnlineUserPtr findUser(const string& aNick) const;
 		void putUser(const string& aNick);
 		
@@ -274,7 +274,7 @@ class NmdcHub : public Client, private Flags
 		void on(BufferedSocketListener::Failed, const string&) noexcept override;
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 	public:
-		bool hubIsNotSupportSlot() const //[+]FlylinkDC
+		bool hubIsNotSupportSlot() const
 		{
 			return m_hubSupportsSlots;
 		}

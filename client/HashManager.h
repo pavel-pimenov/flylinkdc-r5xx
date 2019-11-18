@@ -122,7 +122,6 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 			// "join" hangs on WaitForSingleObject(threadHandle, INFINITE),
 			// and threadHandle thread hangs on this very critical section
 			// in HashManager::hashDone
-			//CFlyLock(cs); //[!]IRainman
 			hasher.shutdown();
 			hasher.join();
 		}
@@ -142,14 +141,13 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		bool isHashingPaused() const;
 		
 		
-//[+] Greylink
 #ifdef IRAINMAN_NTFS_STREAM_TTH
 		class StreamStore   // greylink dc++: work with ntfs stream
 		{
 			public:
 				bool loadTree(const string& p_filePath, TigerTree& p_Tree, int64_t p_aFileSize = -1);
-				bool saveTree(const string& p_filePath, const TigerTree& p_Tree);// [+] IRainman const string& p_filePath
-				void deleteStream(const string& p_filePath);//[+] IRainman
+				bool saveTree(const string& p_filePath, const TigerTree& p_Tree);
+				void deleteStream(const string& p_filePath);
 				
 #ifdef RIP_USE_STREAM_SUPPORT_DETECTION
 				void SetFsDetectorNotifyWnd(HWND hWnd);
@@ -171,32 +169,30 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				static const uint32_t g_MAGIC = '++lg'; // warning #1899: multicharacter character literal (potential portability problem)
 				static const string g_streamName;
 #ifndef RIP_USE_STREAM_SUPPORT_DETECTION
-				static std::unordered_set<char> g_error_tth_stream; //[+]PPA
+				static std::unordered_set<char> g_error_tth_stream;
 				static void addBan(const string& p_filePath)
 				{
 					if (p_filePath.size())
 					{
-						//CFlyFastLock(m_cs); // [!] IRainman fix.
+						//CFlyFastLock(m_cs);
 						g_error_tth_stream.insert(p_filePath[0]);
 					}
 				}
 				static bool isBan(const string& p_filePath)
 				{
-					//CFlyFastLock(m_cs); // [!] IRainman fix.
-					return p_filePath.size() && g_error_tth_stream.find(p_filePath[0]) != g_error_tth_stream.end(); // [!] IRainman opt.
+					//CFlyFastLock(m_cs);
+					return p_filePath.size() && g_error_tth_stream.find(p_filePath[0]) != g_error_tth_stream.end();
 				}
-				//FastCriticalSection m_cs; // [+] IRainman fix.
+				//FastCriticalSection m_cs;
 #endif
 				
 				void setCheckSum(TTHStreamHeader& p_header);
 				bool validateCheckSum(const TTHStreamHeader& p_header);
 #ifdef RIP_USE_STREAM_SUPPORT_DETECTION
-				// [+] brain-ripper
 				// Detector if volume support streams
 				FsUtils::CFsTypeDetector m_FsDetect;
 #endif
 		};
-//[~] Greylink
 		StreamStore m_streamstore;
 #endif // IRAINMAN_NTFS_STREAM_TTH
 		
@@ -208,8 +204,6 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		}
 #endif
 		
-		// [+] brain-ripper
-		// Temporarily change hash speed functional
 		bool IsHashing()
 		{
 			return hasher.IsHashing();
@@ -242,15 +236,13 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 		{
 			return hasher.GetMaxHashSpeed();
 		}
-		// [~] brain-ripper
-		
 		
 	private:
 		class Hasher : public Thread, private CFlyStopThread
 		{
 			public:
 				Hasher() : m_running(false), m_paused(0), m_rebuild(false), m_currentSize(0), m_path_id(0),
-					m_CurrentBytesLeft(0), //[+]IRainman
+					m_CurrentBytesLeft(0),
 					m_ForceMaxHashSpeed(0), dwMaxFiles(0), iMaxBytes(0), uiStartTime(0), m_last_error(0), m_last_error_overlapped(0) { }
 					
 				void hashFile(__int64 p_path_id, const string& fileName, int64_t size);
@@ -263,7 +255,6 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				void stopHashing(const string& baseDir);
 				int run() override;
 				bool fastHash(const string& fname, uint8_t* buf, unsigned p_buf_size, TigerTree& tth, int64_t& size, bool p_is_link);
-				// [+] brain-ripper
 				void getStats(string& curFile, int64_t& bytesLeft, size_t& filesLeft)
 				{
 					CFlyFastLock(cs);
@@ -275,7 +266,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				{
 					if (m_paused)
 					{
-						m_hash_semaphore.signal(); // TODO тут точно нужен такой двойной сигнал?
+						m_hash_semaphore.signal();
 					}
 					m_hash_semaphore.signal();
 				}
@@ -290,7 +281,6 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 					signal();
 				}
 				
-				// [+] brain-ripper: Temporarily change hash speed functional
 				int GetMaxHashSpeed() const
 				{
 					return m_ForceMaxHashSpeed != 0 ? m_ForceMaxHashSpeed : SETTING(MAX_HASH_SPEED);
@@ -302,7 +292,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 					if (m_running)
 						filesLeft++;
 						
-					bytesLeft = m_currentSize + m_CurrentBytesLeft; // [!]IRainman
+					bytesLeft = m_currentSize + m_CurrentBytesLeft;
 				}
 			public:
 				void EnableForceMinHashSpeed(int iMinHashSpeed)
@@ -313,7 +303,6 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				{
 					m_ForceMaxHashSpeed = 0;
 				}
-				// [~] brain-ripper: Temporarily change hash speed functional
 				
 				bool IsHashing() const
 				{
@@ -364,9 +353,6 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 				{
 					return MAX_HASH_PROGRESS_VALUE;
 				}
-				// [+] brain-ripper
-				// end of Temporarily change hash speed functional
-				
 			private:
 				// Case-sensitive (faster), it is rather unlikely that case changes, and if it does it's harmless.
 				// map because it's sorted (to avoid random hash order that would create quite strange shares while hashing)

@@ -344,7 +344,7 @@ char *myWideCharToMultiByte(const wchar_t *s)
 
 static inline FILE *xfopen(FILEAPICSTR filename, FILEAPICSTR mode)
 {
-#ifdef _XML_FAST_UTF8_FILES_FOR_WINDOWS// [!] IRainman opt: in Windows OS - open file in utf-16 mode.
+#ifdef _XML_FAST_UTF8_FILES_FOR_WINDOWS
 	return _wfopen(filename, mode);
 #else
 	return fopen(filename, mode);
@@ -639,14 +639,14 @@ XMLCHAR xmltoc(XMLCSTR t, const XMLCHAR v)
 /////////////////////////////////////////////////////////////////////////
 //                    the "openFileHelper" function                    //
 /////////////////////////////////////////////////////////////////////////
-
+#ifdef FLYINKDC_DEAD_CODE
 // Since each application has its own way to report and deal with errors, you should modify & rewrite
 // the following "openFileHelper" function to get an "error reporting mechanism" tailored to your needs.
-XMLNode XMLNode::openFileHelper(FILEAPICSTR filename, XMLCSTR tag)// [!] IRainman opt: in Windows OS - open file in utf-16 mode.
+XMLNode XMLNode::openFileHelper(FILEAPICSTR filename, XMLCSTR tag)
 {
 	// guess the value of the global parameter "characterEncoding"
 	// (the guess is based on the first 200 bytes of the file).
-	FILE *f = xfopen(filename, _CFA("rb"));// [!] IRainman opt: in Windows OS - open file in utf-16 mode.
+	FILE *f = xfopen(filename, _CFA("rb"));
 	if (f)
 	{
 		char bb[205];
@@ -688,6 +688,7 @@ XMLNode XMLNode::openFileHelper(FILEAPICSTR filename, XMLCSTR tag)// [!] IRainma
 	}
 	return xnode;
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////
 //      Here start the core implementation of the XMLParser library    //
@@ -850,10 +851,10 @@ typedef enum XMLStatus
 	eOutsideTag
 } XMLStatus;
 
-XMLError XMLNode::writeToFile(FILEAPICSTR filename, const char *encoding, char nFormat) const// [!] IRainman opt: in Windows OS - open file in utf-16 mode.
+XMLError XMLNode::writeToFile(FILEAPICSTR filename, const char *encoding, char nFormat) const
 {
 	if (!d) return eXMLErrorNone;
-	FILE *f = xfopen(filename, _CFA("wb"));// [!] IRainman opt: in Windows OS - open file in utf-16 mode.
+	FILE *f = xfopen(filename, _CFA("wb"));
 	if (!f) return eXMLErrorCannotOpenWriteFile;
 #ifdef _XMLWIDECHAR
 	unsigned char h[2] = { 0xFF, 0xFE };
@@ -2270,14 +2271,14 @@ XMLNode XMLNode::parseString(XMLCSTR lpszXML, XMLCSTR tag, XMLResults *pResults)
 	return xnode;
 }
 
-XMLNode XMLNode::parseFile(FILEAPICSTR filename, XMLCSTR tag, XMLResults *pResults)// [!] IRainman opt: in Windows OS - open file in utf-16 mode.
+XMLNode XMLNode::parseFile(FILEAPICSTR filename, XMLCSTR tag, XMLResults *pResults)
 {
 	if (pResults)
 	{
 		pResults->nLine = 0;
 		pResults->nColumn = 0;
 	}
-	FILE *f = xfopen(filename, _CFA("rb"));// [!] IRainman opt: in Windows OS - open file in utf-16 mode.
+	FILE *f = xfopen(filename, _CFA("rb"));
 	if (f == NULL)
 	{
 		if (pResults) pResults->error = eXMLErrorFileNotFound;
@@ -2378,7 +2379,7 @@ static inline void charmemset(XMLSTR dest, XMLCHAR c, int l)
 // string.
 int XMLNode::CreateXMLStringR(XMLNodeData *pEntry, XMLSTR lpszMarker, int nFormat)
 {
-	assert(pEntry); // PVS-Studio V595 The pointer was utilized before it was verified against nullptr.
+	assert(pEntry);
 	int nResult = 0;
 	int cb = nFormat < 0 ? 0 : nFormat;
 	int cbElement;
@@ -3224,13 +3225,12 @@ XMLNode XMLNode::getChildNodeWithAttribute(XMLCSTR name, XMLCSTR attributeName, 
 	while (!x.isEmpty());
 	return emptyXMLNode;
 }
-//[+]FlylinkDC++ Team
+
 XMLCSTR XMLNode::getAttributeOrDefault(XMLCSTR name, XMLCSTR defautValue /*= _CXML("")*/) const
 {
 	XMLCSTR l_attr = getAttribute(name);
 	return l_attr ? l_attr : defautValue;
 }
-//[~]FlylinkDC++ Team
 
 // Find an attribute on an node.
 XMLCSTR XMLNode::getAttribute(XMLCSTR lpszAttrib, int *j) const
@@ -3364,13 +3364,13 @@ XMLCSTR      XMLNode::getText(int i) const
 	if ((!d) || (i >= d->nText)) return NULL;
 	return d->pText[i];
 }
-//[+]FlylinkDC++ Team
+
 XMLCSTR XMLNode::getTextOrDefault(int i /*= 0*/, XMLCSTR defautValue /*= _CXML("")*/) const
 {
 	XMLCSTR l_text = getText();
 	return l_text ? l_text : defautValue;
 }
-//[~]FlylinkDC++ Team
+
 XMLNode      XMLNode::getChildNode(int i) const
 {
 	if ((!d) || (i >= d->nChild)) return emptyXMLNode;
@@ -3503,6 +3503,8 @@ char XMLNode::setGlobalOptions(XMLCharEncoding _characterEncoding, char _guessWi
 	return 0;
 }
 
+#ifdef FLYINKDC_DEAD_CODE
+
 XMLNode::XMLCharEncoding XMLNode::guessCharEncoding(void *buf, int l, char useXMLEncodingAttribute)
 {
 #ifdef _XMLWIDECHAR
@@ -3582,6 +3584,9 @@ XMLNode::XMLCharEncoding XMLNode::guessCharEncoding(void *buf, int l, char useXM
 	return char_encoding_legacy;
 #endif
 }
+
+#endif
+
 #undef XML_isSPACECHAR
 
 //////////////////////////////////////////////////////////
@@ -3591,11 +3596,11 @@ XMLNode::XMLCharEncoding XMLNode::guessCharEncoding(void *buf, int l, char useXM
 static const char base64Fillchar = _CXML('='); // used to mark partial words at the end
 
 // this lookup table defines the base64 encoding
-XMLCSTR base64EncodeTable = _CXML("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
+static XMLCSTR base64EncodeTable = _CXML("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
 
 // Decode Table gives the index of any valid base64 character in the Base64 table]
 // 96: '='  -   97: space char   -   98: illegal char   -   99: end of string
-const unsigned char base64DecodeTable[] =
+static const unsigned char base64DecodeTable[] =
 {
 	99, 98, 98, 98, 98, 98, 98, 98, 98, 97,  97, 98, 98, 97, 98, 98, 98, 98, 98, 98,  98, 98, 98, 98, 98, 98, 98, 98, 98, 98, //00 -29
 	98, 98, 97, 98, 98, 98, 98, 98, 98, 98,  98, 98, 98, 62, 98, 98, 98, 63, 52, 53,  54, 55, 56, 57, 58, 59, 60, 61, 98, 98, //30 -59

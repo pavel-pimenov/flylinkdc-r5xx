@@ -49,7 +49,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		static const string FEATURE_ADC_BZIP;
 		static const string FEATURE_ADC_TIGR;
 #ifdef SMT_ENABLE_FEATURE_BAN_MSG
-		static const string FEATURE_BANMSG; // !SMT!-B
+		static const string FEATURE_BANMSG;
 #endif
 		
 		static const string g_FILE_NOT_AVAILABLE;
@@ -57,7 +57,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		static const string g_PLEASE_UPDATE_YOUR_CLIENT;
 #endif
 		
-		enum KnownSupports // [!] IRainman fix
+		enum KnownSupports
 		{
 			FLAG_SUPPORTS_MINISLOTS     = 1,
 			FLAG_SUPPORTS_XML_BZLIST    = 1 << 1,
@@ -65,11 +65,11 @@ class UserConnection : public Speaker<UserConnectionListener>,
 			FLAG_SUPPORTS_ZLIB_GET      = 1 << 3,
 			FLAG_SUPPORTS_TTHL          = 1 << 4,
 			FLAG_SUPPORTS_TTHF          = 1 << 5,
-			FLAG_SUPPORTS_BANMSG        = 1 << 6, // !SMT!-S
+			FLAG_SUPPORTS_BANMSG        = 1 << 6,
 			FLAG_SUPPORTS_LAST = FLAG_SUPPORTS_BANMSG
 		};
 		
-		enum Flags // [!] IRainman fix
+		enum Flags
 		{
 			FLAG_INTERNAL_FIRST = FLAG_SUPPORTS_LAST,
 			FLAG_NMDC                   = FLAG_INTERNAL_FIRST << 1,
@@ -195,20 +195,20 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		
 		void updated()
 		{
-			dcassert(socket); // [+] IRainman fix.
+			dcassert(socket);
 			if (socket)
 				socket->updated();
 		}
 		
 		void disconnect(bool graceless = false)
 		{
-			//dcassert(socket); // [+] IRainman fix.
+			//dcassert(socket);
 			if (socket)
 				socket->disconnect(graceless);
 		}
 		void transmitFile(InputStream* f)
 		{
-			dcassert(socket); // [+] IRainman fix.
+			dcassert(socket);
 			if (socket)
 				socket->transmitFile(f);
 		}
@@ -223,41 +223,41 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		
 		const UserPtr& getUser() const
 		{
-			return m_hintedUser.user; // [!] IRainman add HintedUser
+			return m_hintedUser.user;
 		}
 		const UserPtr& getUser()
 		{
-			return m_hintedUser.user; // [!] IRainman add HintedUser
+			return m_hintedUser.user;
 		}
 		const HintedUser& getHintedUser() const
 		{
-			return m_hintedUser; // [!] IRainman add HintedUser
+			return m_hintedUser;
 		}
 		const HintedUser& getHintedUser()
 		{
-			return m_hintedUser; // [!] IRainman add HintedUser
+			return m_hintedUser;
 		}
 		
 		bool isSecure() const
 		{
-			dcassert(socket); // [+] IRainman fix.
+			dcassert(socket);
 			return socket && socket->isSecure();
 		}
 		bool isTrusted()
 		{
-			dcassert(socket); // [+] IRainman fix.
+			dcassert(socket);
 			return socket && socket->isTrusted();
 		}
 		string getCipherName() const noexcept
 		{
-			dcassert(socket); // [+] IRainman fix.
+			dcassert(socket);
 			return socket ? socket->getCipherName() : Util::emptyString;
 		}
 		
 		vector<uint8_t> getKeyprint() const
 		{
-			dcassert(socket); // [+] IRainman fix.
-			return socket ? socket->getKeyprint() : Util::emptyByteVector; // [!] IRainman opt.
+			dcassert(socket);
+			return socket ? socket->getKeyprint() : Util::emptyByteVector;
 		}
 		
 		bool verifyKeyprint(const string& expKeyp, bool allowUntrusted)  noexcept
@@ -273,7 +273,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		
 		string getRemoteIp() const
 		{
-			dcassert(socket); // [+] IRainman fix.
+			dcassert(socket);
 			return socket ? socket->getIp() : Util::emptyString;
 		}
 		DownloadPtr& getDownload()
@@ -283,12 +283,12 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		}
 		uint16_t getPort() const
 		{
-			dcassert(socket); // [+] IRainman fix.
+			dcassert(socket);
 			return socket ? socket->getPort() : 0;
 		}
 		void setPort(uint16_t p_port) const
 		{
-			dcassert(socket); // [+] IRainman fix.
+			dcassert(socket);
 			if (socket)
 				socket->setPort(p_port);
 		}
@@ -343,7 +343,6 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		}
 		void updateChunkSize(int64_t leafSize, int64_t lastChunk, uint64_t ticks);
 		
-		// [!] IRainman add HintedUser
 		void setHubUrl(const string& p_HubUrl)
 		{
 #ifdef _DEBUG
@@ -356,7 +355,6 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		{
 			return m_hintedUser.hint;
 		}
-		// [~] IRainman
 		
 		GETSET(string, m_user_connection_token, UserConnectionToken);
 		GETSET(string, m_connection_queue_token, ConnectionQueueToken);
@@ -397,7 +395,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 	private:
 		int64_t m_chunkSize;
 		BufferedSocket* socket;
-		HintedUser m_hintedUser; //UserPtr user; [!] IRainman add HintedUser
+		HintedUser m_hintedUser;
 		
 		DownloadPtr m_download;
 		UploadPtr m_upload;
@@ -414,7 +412,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		void setUser(const UserPtr& aUser);
 		void onLine(const string& aLine);
 		void send(const string& aString);
-		void setUploadLimit(int lim); // !SMT!-S
+		void setUploadLimit(int lim);
 		
 		void on(Connected) noexcept override;
 		void on(Line, const string&) noexcept override;
@@ -428,7 +426,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		void on(Updated) noexcept override;
 };
 
-class UcSupports // [+] IRainman fix.
+class UcSupports
 {
 	public:
 		static StringList setSupports(UserConnection* p_conn, const StringList& feat, uint8_t& knownUcSupports)
@@ -446,7 +444,7 @@ class UcSupports // [+] IRainman fix.
 							else CHECK_FEAT(TTHL)
 								else CHECK_FEAT(TTHF)
 #ifdef SMT_ENABLE_FEATURE_BAN_MSG
-									else CHECK_FEAT(BANMSG) // !SMT!-S
+									else CHECK_FEAT(BANMSG)
 #endif
 										else
 										{
@@ -473,7 +471,7 @@ class UcSupports // [+] IRainman fix.
 			CHECK_FEAT(TTHL);
 			CHECK_FEAT(TTHF);
 #ifdef SMT_ENABLE_FEATURE_BAN_MSG
-			CHECK_FEAT(BANMSG); // !SMT!-S
+			CHECK_FEAT(BANMSG);
 #endif
 			
 #undef CHECK_FEAT

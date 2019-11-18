@@ -185,7 +185,7 @@ void BaseChatFrame::checkMultiLine()
 bool BaseChatFrame::adjustChatInputSize(BOOL& bHandled)
 {
 	bool needsAdjust = WinUtil::isCtrlOrAlt();
-	if (BOOLSETTING(MULTILINE_CHAT_INPUT) && BOOLSETTING(MULTILINE_CHAT_INPUT_BY_CTRL_ENTER))  // [+] SSA - Added Enter for MulticharInput
+	if (BOOLSETTING(MULTILINE_CHAT_INPUT) && BOOLSETTING(MULTILINE_CHAT_INPUT_BY_CTRL_ENTER))
 	{
 		needsAdjust = !needsAdjust;
 	}
@@ -407,7 +407,7 @@ void BaseChatFrame::processingHotKeys(UINT uMsg, WPARAM wParam, LPARAM /*lParam*
 		{
 			switch (wParam)
 			{
-				case 'A': // [+] birkoff.anarchist
+				case 'A':
 					if (WinUtil::isCtrl() && !WinUtil::isAlt() && !WinUtil::isShift())
 					{
 						m_ctrlMessage->SetSelAll();
@@ -418,7 +418,7 @@ void BaseChatFrame::processingHotKeys(UINT uMsg, WPARAM wParam, LPARAM /*lParam*
 					if (!adjustChatInputSize(bHandled))
 					{
 						onEnter();
-						if (BOOLSETTING(MULTILINE_CHAT_INPUT) && BOOLSETTING(MULTILINE_CHAT_INPUT_BY_CTRL_ENTER))  // [+] SSA - Added Enter for MulticharInput
+						if (BOOLSETTING(MULTILINE_CHAT_INPUT) && BOOLSETTING(MULTILINE_CHAT_INPUT_BY_CTRL_ENTER))
 						{
 							m_bProcessNextChar = true;
 						}
@@ -837,12 +837,6 @@ void BaseChatFrame::appendChatCtrlItems(OMenu& p_menu, const Client* client)
 			}
 		}
 	}
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-	else
-	{
-		p_menu.InsertSeparatorFirst(TSTRING(TEXT_STR));
-	}
-#endif
 	
 	p_menu.AppendMenu(MF_STRING, ID_EDIT_COPY, CTSTRING(COPY));
 	p_menu.AppendMenu(MF_STRING, IDC_COPY_ACTUAL_LINE,  CTSTRING(COPY_LINE));
@@ -861,10 +855,10 @@ void BaseChatFrame::appendChatCtrlItems(OMenu& p_menu, const Client* client)
 	}
 	
 	
-	if (!ChatCtrl::g_sSelectedText.empty())   // [+] SCALOlaz: add Search for Selected Text in Chat
+	if (!ChatCtrl::g_sSelectedText.empty())
 	{
 		p_menu.AppendMenu(MF_SEPARATOR);
-		appendInternetSearchItems(p_menu); // [!] IRainman fix.
+		appendInternetSearchItems(p_menu);
 	}
 	p_menu.AppendMenu(MF_SEPARATOR);
 	

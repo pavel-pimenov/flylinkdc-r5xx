@@ -34,16 +34,16 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 	private ClientManagerListener, public UCHandler<PrivateFrame>,
 	public UserInfoBaseHandler < PrivateFrame, UserInfoGuiTraits::NO_SEND_PM | UserInfoGuiTraits::USER_LOG >,
 	private SettingsManagerListener
-	, private BaseChatFrame // [+] IRainman copy-past fix.
+	, private BaseChatFrame
 {
 	public:
-		static bool gotMessage(const Identity& from, const Identity& to, const Identity& replyTo, const tstring& aMessage, unsigned p_max_smiles, const string& p_HubHint, const bool bMyMess, const bool bThirdPerson, const bool notOpenNewWindow = false); // !SMT!-S
+		static bool gotMessage(const Identity& from, const Identity& to, const Identity& replyTo, const tstring& aMessage, unsigned p_max_smiles, const string& p_HubHint, const bool bMyMess, const bool bThirdPerson, const bool notOpenNewWindow = false);
 		static void openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo, string myNick = Util::emptyString, const tstring& aMessage = Util::emptyStringT);
 		static bool isOpen(const UserPtr& u)
 		{
 			return g_pm_frames.find(u) != g_pm_frames.end();
 		}
-		static bool closeUser(const UserPtr& u); // !SMT!-S
+		static bool closeUser(const UserPtr& u);
 		static void closeAll();
 		static void closeAllOffline();
 		
@@ -69,8 +69,8 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		MESSAGE_HANDLER(FTM_CONTEXTMENU, onTabContextMenu)
 		CHAIN_MSG_MAP(BaseChatFrame)
 		COMMAND_ID_HANDLER(IDC_SEND_MESSAGE, onSendMessage)
-		COMMAND_ID_HANDLER(IDC_CLOSE_ALL_OFFLINE_PM, onCloseAllOffline) // [+] InfinitySky.
-		COMMAND_ID_HANDLER(IDC_CLOSE_ALL_PM, onCloseAll) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_CLOSE_ALL_OFFLINE_PM, onCloseAllOffline)
+		COMMAND_ID_HANDLER(IDC_CLOSE_ALL_PM, onCloseAll)
 		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		COMMAND_ID_HANDLER(IDC_OPEN_USER_LOG, onOpenUserLog)
 		CHAIN_COMMANDS(ucBase)
@@ -115,14 +115,14 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 			return 0;
 		}
 		
-		// [+] InfinitySky.
+		
 		LRESULT onCloseAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			closeAll();
 			return 0;
 		}
 		
-		// [+] InfinitySky.
+		
 		LRESULT onCloseAllOffline(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			closeAllOffline();
@@ -175,8 +175,8 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		
 #define MAX_PM_FRAMES 100
 		
-		const HintedUser m_replyTo; // [+] IRainman fix: this is const ptr.
-		tstring m_replyToRealName; // [+] IRainman fix.
+		const HintedUser m_replyTo;
+		tstring m_replyToRealName;
 		
 		CContainedWindow m_ctrlChatContainer;
 		
@@ -185,9 +185,9 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		void updateTitle();
 		
 		// ClientManagerListener
-		void on(ClientManagerListener::UserUpdated, const OnlineUserPtr& aUser) noexcept override   // !SMT!-fix
+		void on(ClientManagerListener::UserUpdated, const OnlineUserPtr& aUser) noexcept override
 		{
-			on(ClientManagerListener::UserDisconnected(), aUser->getUser()); // !SMT!-fix
+			on(ClientManagerListener::UserDisconnected(), aUser->getUser());
 		}
 		void on(ClientManagerListener::UserConnected, const UserPtr& aUser) noexcept override
 		{
@@ -201,13 +201,10 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 			}
 		}
 		void on(SettingsManagerListener::Repaint) override;
-		// [+] IRainman: copy-past fix.
 		void processFrameCommand(const tstring& fullMessageText, const tstring& cmd, tstring& param, bool& resetInputMessageText);
 		void processFrameMessage(const tstring& fullMessageText, bool& resetInputMessageText);
-		
 		void addMesageLogParams(StringMap& params, const Identity& from, const tstring& aLine, bool bThirdPerson, const tstring& extra);
 		StringMap getFrameLogParams() const;
-		// [~] IRainman: copy-past fix.
 	public:
 		void createMessagePanel();
 		void destroyMessagePanel(bool p_is_destroy);

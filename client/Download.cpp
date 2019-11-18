@@ -21,7 +21,7 @@
 #include "UserConnection.h"
 #include "HashManager.h"
 
-// [!] IRainman fix.
+
 Download::Download(UserConnection* p_conn, const QueueItemPtr& p_item, const string& p_ip, const string& p_chiper_name) noexcept :
 	Transfer(p_conn, p_item->getTarget(), p_item->getTTH(), p_ip, p_chiper_name),
 	m_qi(p_item),
@@ -31,14 +31,9 @@ Download::Download(UserConnection* p_conn, const QueueItemPtr& p_item, const str
 	, m_lastNormalSpeed(0)
 #endif
 {
-	////////// p_conn->setDownload(this);
-	
-	// [-] QueueItem::SourceConstIter source = qi.getSource(getUser()); [-] IRainman fix.
-	
 	if (m_qi->isSet(QueueItem::FLAG_PARTIAL_LIST))
 	{
 		setType(TYPE_PARTIAL_LIST);
-		//pfs = qi->getTarget(); // [+] IRainman fix. TODO: пофикшено, но не до конца :(
 	}
 	else if (m_qi->isSet(QueueItem::FLAG_USER_LIST))
 	{
@@ -49,7 +44,6 @@ Download::Download(UserConnection* p_conn, const QueueItemPtr& p_item, const str
 	if (m_qi->isSet(QueueItem::FLAG_USER_CHECK))
 		setFlag(FLAG_USER_CHECK);
 #endif
-	// [+] SSA
 	if (m_qi->isSet(QueueItem::FLAG_USER_GET_IP))
 		setFlag(FLAG_USER_GET_IP);
 		
@@ -85,7 +79,7 @@ Download::Download(UserConnection* p_conn, const QueueItemPtr& p_item, const str
 					setTreeValid(true);
 					setSegment(m_qi->getNextSegmentL(getTigerTree().getBlockSize(), p_conn->getChunkSize(), p_conn->getSpeed(), l_src.getPartialSource()));
 				}
-				else if (p_conn->isSet(UserConnection::FLAG_SUPPORTS_TTHL) && !l_src.isSet(QueueItem::Source::FLAG_NO_TREE) && m_qi->getSize() > MIN_BLOCK_SIZE) // [!] IRainman opt.
+				else if (p_conn->isSet(UserConnection::FLAG_SUPPORTS_TTHL) && !l_src.isSet(QueueItem::Source::FLAG_NO_TREE) && m_qi->getSize() > MIN_BLOCK_SIZE)
 				{
 					// Get the tree unless the file is small (for small files, we'd probably only get the root anyway)
 					setType(TYPE_TREE);

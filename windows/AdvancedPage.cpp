@@ -26,17 +26,13 @@ PropPage::TextItem AdvancedPage::texts[] =
 {
 	{ IDC_MAGNET_URL_TEMPLATE, ResourceManager::SETCZDC_MAGNET_URL_TEMPLATE },
 	{ IDC_CZDC_WINAMP, ResourceManager::SETCZDC_WINAMP },
-//[+] WhiteD. Custom ratio message
 	{ IDC_CZDC_RATIOMSG, ResourceManager::CZDC_RATIOMSG},
-// [+] SSA
-// End of Addition.
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
 PropPage::Item AdvancedPage::items[] =
 {
 	{ IDC_EWMAGNET_TEMPL, SettingsManager::COPY_WMLINK, PropPage::T_STR},
-//[+] WhiteD. Custom ratio message
 	{ IDC_RATIOMSG, SettingsManager::RATIO_TEMPLATE, PropPage::T_STR},
 	{ 0, 0, PropPage::T_END }
 };
@@ -46,11 +42,7 @@ AdvancedPage::ListItem AdvancedPage::listItems[] =
 #ifdef FLYLINKDC_USE_AUTO_FOLLOW
 	{ SettingsManager::AUTO_FOLLOW, ResourceManager::SETTINGS_AUTO_FOLLOW },
 #endif
-//[+]Drakon
 	{ SettingsManager::STARTUP_BACKUP, ResourceManager::STARTUP_BACKUP },
-//[~]Drakon
-//	{ SettingsManager::URL_HANDLER, ResourceManager::SETTINGS_URL_HANDLER },
-//	{ SettingsManager::MAGNET_REGISTER, ResourceManager::SETCZDC_MAGNET_URI_HANDLER },
 	{ SettingsManager::KEEP_LISTS, ResourceManager::SETTINGS_KEEP_LISTS },
 	{ SettingsManager::AUTO_KICK, ResourceManager::SETTINGS_AUTO_KICK },
 	{ SettingsManager::AUTO_KICK_NO_FAVS, ResourceManager::SETTINGS_AUTO_KICK_NO_FAVS },
@@ -68,10 +60,10 @@ AdvancedPage::ListItem AdvancedPage::listItems[] =
 #endif
 	{ SettingsManager::ENABLE_HIT_FILE_LIST, ResourceManager::ENABLE_HIT_FILE_LIST },
 	{ SettingsManager::ENABLE_RATIO_USER_LIST, ResourceManager::ENABLE_RATIO_USER_LIST },
-	{ SettingsManager::REDUCE_PRIORITY_IF_MINIMIZED_TO_TRAY, ResourceManager::REDUCE_PRIORITY_IF_MINIMIZED },// [+] IRainman
-	{ SettingsManager::SQLITE_USE_JOURNAL_MEMORY, ResourceManager::SQLITE_USE_JOURNAL_MEMORY },// [+] IRainman
-	{ SettingsManager::USE_MAGNETS_IN_PLAYERS_SPAM, ResourceManager::USE_MAGNETS_IN_PLAYERS_SPAM }, // [+] SSA
-	{ SettingsManager::USE_BITRATE_FIX_FOR_SPAM, ResourceManager::USE_BITRATE_FIX_FOR_SPAM}, // [+] SSA
+	{ SettingsManager::REDUCE_PRIORITY_IF_MINIMIZED_TO_TRAY, ResourceManager::REDUCE_PRIORITY_IF_MINIMIZED },
+	{ SettingsManager::SQLITE_USE_JOURNAL_MEMORY, ResourceManager::SQLITE_USE_JOURNAL_MEMORY },
+	{ SettingsManager::USE_MAGNETS_IN_PLAYERS_SPAM, ResourceManager::USE_MAGNETS_IN_PLAYERS_SPAM },
+	{ SettingsManager::USE_BITRATE_FIX_FOR_SPAM, ResourceManager::USE_BITRATE_FIX_FOR_SPAM},
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -88,7 +80,7 @@ LRESULT AdvancedPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 	JAStr = Text::toT(SETTING(JETAUDIO_FORMAT));
 	QCDQMPStr = Text::toT(SETTING(QCDQMP_FORMAT));
 	
-	ctrlList.Attach(GetDlgItem(IDC_ADVANCED_BOOLEANS)); // [+] IRainman
+	ctrlList.Attach(GetDlgItem(IDC_ADVANCED_BOOLEANS));
 	
 	ctrlPlayer.Attach(GetDlgItem(IDC_PLAYER_COMBO));
 	ctrlPlayer.AddString(CTSTRING(MEDIA_MENU_WINAMP));//  _T("Winamp (AIMP)"));
@@ -203,7 +195,6 @@ LRESULT AdvancedPage::onClickedWinampHelp(WORD /* wNotifyCode */, WORD /*wID*/, 
 	return S_OK;
 }
 
-//[+] WhiteD. Custom ratio message
 LRESULT AdvancedPage::onClickedRatioMsgHelp(WORD /* wNotifyCode */, WORD /*wID*/, HWND /* hWndCtl */, BOOL& /* bHandled */)
 {
 	MessageBox(CTSTRING(RATIO_MSG_HELP), CTSTRING(RATIO_MSG_HELP_DESC), MB_OK | MB_ICONINFORMATION);

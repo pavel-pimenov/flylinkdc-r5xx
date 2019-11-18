@@ -83,24 +83,20 @@ struct MessageTask : public Task
 class UserInfo : public UserInfoBase
 {
 	private:
-		const OnlineUserPtr m_ou; // [!] IRainman fix: use online user here!
-		Util::CustomNetworkIndex m_location; // [+] IRainman opt.
+		const OnlineUserPtr m_ou;
+		Util::CustomNetworkIndex m_location;
 	public:
 		unsigned short m_flag_mask;
 		char m_owner_draw;
 		
-		// char m_is_autoban;
-		// char m_is_favorites;
-		// char m_is_ban; // TODO - сжать в один байт.
-		
-		explicit UserInfo(const OnlineUserPtr& p_ou) : m_ou(p_ou), m_flag_mask(0xFFFF), m_owner_draw(0) //,m_is_autoban(-1), m_is_favorites(-1), m_is_ban(-1)
+		explicit UserInfo(const OnlineUserPtr& p_ou) : m_ou(p_ou), m_flag_mask(0xFFFF), m_owner_draw(0)
 		{
 		}
 		static int compareItems(const UserInfo* a, const UserInfo* b, int col);
 		bool is_update(int sortCol)
 		{
 #ifdef IRAINMAN_USE_NG_FAST_USER_INFO
-			return (m_ou->getIdentity().getChanges() & (1 << sortCol)) != 0; // [!] IRAINMAN_USE_NG_FAST_USER_INFO
+			return (m_ou->getIdentity().getChanges() & (1 << sortCol)) != 0;
 #else
 			return true;
 #endif
@@ -176,7 +172,7 @@ class UserInfo : public UserInfoBase
 		typedef boost::unordered_map<OnlineUserPtr, UserInfo*, OnlineUser::Hash> OnlineUserMapBase;
 		class OnlineUserMap : public OnlineUserMapBase
 #ifdef _DEBUG
-			, boost::noncopyable // [+] IRainman fix.
+			, boost::noncopyable
 #endif
 		{
 			public:

@@ -9,7 +9,7 @@
 
 #include <atlcrack.h>
 #include "PropPage.h"
-#include "ExListViewCtrl.h" // [+] IRainman
+#include "ExListViewCtrl.h"
 #include "wtl_flylinkdc.h"
 
 class MessagesChatPage : public CPropertyPage<IDD_MESSAGES_CHAT_PAGE>, public PropPage
@@ -22,7 +22,7 @@ class MessagesChatPage : public CPropertyPage<IDD_MESSAGES_CHAT_PAGE>, public Pr
 		}
 		~MessagesChatPage()
 		{
-			ctrlList_chat.Detach(); // [+] IRainman
+			ctrlList_chat.Detach();
 			ctrlSee.Detach();
 			ctrlProtect.Detach();
 			ctrlRnd.Detach();
@@ -33,7 +33,7 @@ class MessagesChatPage : public CPropertyPage<IDD_MESSAGES_CHAT_PAGE>, public Pr
 		COMMAND_ID_HANDLER(IDC_PROTECT_PRIVATE_RND, onClickedUse)
 		COMMAND_ID_HANDLER(IDC_PM_PASSWORD_GENERATE, onRandomPassword)
 		COMMAND_HANDLER(IDC_PM_PASSWORD_HELP, BN_CLICKED, onClickedHelp)
-		NOTIFY_HANDLER(IDC_MESSAGES_CHAT_BOOLEANS, NM_CUSTOMDRAW, ctrlList_chat.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_MESSAGES_CHAT_BOOLEANS, NM_CUSTOMDRAW, ctrlList_chat.onCustomDraw)
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
 		
@@ -52,7 +52,7 @@ class MessagesChatPage : public CPropertyPage<IDD_MESSAGES_CHAT_PAGE>, public Pr
 			cancel_check();
 		}
 	private:
-		CFlyToolTipCtrl tooltip_messageschat;  // [+] SCALOlaz: add tooltips
+		CFlyToolTipCtrl tooltip_messageschat;
 		CButton ctrlSee;
 		CButton ctrlProtect;
 		CButton ctrlRnd;
@@ -63,7 +63,7 @@ class MessagesChatPage : public CPropertyPage<IDD_MESSAGES_CHAT_PAGE>, public Pr
 		static TextItem g_texts_chat[];
 		static ListItem g_listItems_chat[];
 		void fixControls();
-		ExListViewCtrl ctrlList_chat; // [+] IRainman
+		ExListViewCtrl ctrlList_chat;
 };
 
 #endif //MESSAGES_CHAT_PAGE_H

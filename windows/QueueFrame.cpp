@@ -257,7 +257,6 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 			return getSize() == -1 ? TSTRING(UNKNOWN) : Util::formatBytesW(getSize());
 		case COLUMN_DOWNLOADED:
 		{
-			// [!] IRainman fix done: https://www.box.net/shared/ns5fr8bk0lrdy5f6z2oo
 			return getSize() > 0 ? Util::formatBytesW(getDownloadedBytes()) + _T(" (") + Util::toStringW((double)getDownloadedBytes() * 100.0 / (double)getSize()) + _T("%)") : Util::emptyStringT;
 		}
 		case COLUMN_PRIORITY:
@@ -315,7 +314,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 		{
 			return Text::toT(getPath());
 		}
-		case COLUMN_LOCAL_PATH: // TODO fix copy-paste
+		case COLUMN_LOCAL_PATH:
 		{
 			if (!isTorrent())
 			{
@@ -788,7 +787,7 @@ void QueueFrame::doTimerTask()
 	CFlyTaskAdapter::doTimerTask();
 }
 
-void QueueFrame::on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept // [+] IRainman opt.
+void QueueFrame::on(QueueManagerListener::Tick, const QueueItemList& p_list) noexcept
 {
 	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown() && !p_list.empty())
 	{
@@ -816,7 +815,7 @@ void QueueFrame::on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI
 	}
 }
 
-void  QueueFrame::on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept // [+] IRainman opt.
+void  QueueFrame::on(QueueManagerListener::StatusUpdatedList, const QueueItemList& p_list) noexcept
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	if (!ClientManager::isBeforeShutdown())
@@ -861,7 +860,7 @@ void QueueFrame::removeItem(const string& p_target)
 	}
 	dcassert(j != i.second);
 	m_directories.erase(j);
-	if (m_directories.find(ii->getPath()) == m_directories.end()) // [!] IRainman opt.
+	if (m_directories.find(ii->getPath()) == m_directories.end())
 	{
 		removeDirectory(ii->getPath(), ii->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST));
 		if (isCurDir(ii->getPath()))
@@ -981,8 +980,8 @@ LRESULT QueueFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 void QueueFrame::removeSelected()
 {
-	UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-	if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
+	UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED;
+	if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)
 	{
 		CWaitCursor l_cursor_wait;
 		try
@@ -997,7 +996,7 @@ void QueueFrame::removeSelected()
 		QueueManager::FileQueue::removeArray();
 		QueueManager::getInstance()->fire_remove_batch();
 		// Let's update the setting unchecked box means we bug user again...
-		SET_SETTING(CONFIRM_DELETE, checkState != BST_CHECKED); // [+] InfinitySky.
+		SET_SETTING(CONFIRM_DELETE, checkState != BST_CHECKED);
 		
 	}
 }
@@ -1018,14 +1017,13 @@ void QueueFrame::removeSelectedDir()
 {
 	if (ctrlDirs.GetSelectedItem())
 	{
-		UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-		if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
+		UINT checkState = BOOLSETTING(CONFIRM_DELETE) ? BST_UNCHECKED : BST_CHECKED;
+		if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)
 		{
 			CWaitCursor l_cursor_wait;
 			CLockRedraw<> l_lock_draw(ctrlQueue);
 			m_tmp_target_to_delete.clear();
 			removeDir(ctrlDirs.GetSelectedItem());
-			// [+] NightOrion bugfix deleting folder from queue
 			for (auto i = m_tmp_target_to_delete.cbegin(); i != m_tmp_target_to_delete.cend(); ++i)
 			{
 				QueueManager::getInstance()->removeTarget(*i, true);
@@ -1033,10 +1031,10 @@ void QueueFrame::removeSelectedDir()
 			m_tmp_target_to_delete.clear();
 			QueueManager::FileQueue::removeArray();
 			QueueManager::getInstance()->fire_remove_batch();
-			// [+] NightOrion
+			
 			
 			// Let's update the setting unchecked box means we bug user again...
-			SET_SETTING(CONFIRM_DELETE, checkState != BST_CHECKED); // [+] InfinitySky.
+			SET_SETTING(CONFIRM_DELETE, checkState != BST_CHECKED);
 		}
 	}
 }
@@ -1064,7 +1062,7 @@ void QueueFrame::moveSelected()
 			const auto l_target = ii->getTarget();
 			QueueManager::getInstance()->move(l_target, l_toDir + Util::getFileName(l_target));
 		}
-		// [~] IRainman fix.
+		
 	}
 }
 
@@ -1160,9 +1158,6 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 {
 	OMenu priorityMenu;
 	priorityMenu.CreatePopupMenu();
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-	priorityMenu.InsertSeparatorFirst(TSTRING(PRIORITY));
-#endif
 	priorityMenu.AppendMenu(MF_STRING, IDC_PRIORITY_PAUSED, CTSTRING(PAUSED));
 	priorityMenu.AppendMenu(MF_STRING, IDC_PRIORITY_LOWEST, CTSTRING(LOWEST));
 	priorityMenu.AppendMenu(MF_STRING, IDC_PRIORITY_LOW, CTSTRING(LOW));
@@ -1182,9 +1177,6 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 		
 		OMenu segmentsMenu;
 		segmentsMenu.CreatePopupMenu();
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-		segmentsMenu.InsertSeparatorFirst(TSTRING(MAX_SEGMENTS_NUMBER));
-#endif
 		segmentsMenu.AppendMenu(MF_STRING, IDC_SEGMENTONE, (_T("1 ") + TSTRING(SEGMENT)).c_str());
 		segmentsMenu.AppendMenu(MF_STRING, IDC_SEGMENTTWO, (_T("2 ") + TSTRING(SEGMENTS)).c_str());
 		segmentsMenu.AppendMenu(MF_STRING, IDC_SEGMENTTHREE, (_T("3 ") + TSTRING(SEGMENTS)).c_str());
@@ -1232,18 +1224,12 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 			{
 				OMenu copyMenu;
 				copyMenu.CreatePopupMenu();
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-				copyMenu.InsertSeparatorFirst(TSTRING(COPY));
-#endif
 				copyMenu.AppendMenu(MF_STRING, IDC_COPY_LINK, CTSTRING(COPY_MAGNET_LINK));
 				for (int i = 0; i < COLUMN_LAST; ++i)
 					copyMenu.AppendMenu(MF_STRING, IDC_COPY + i, CTSTRING_I(columnNames[i]));
 					
 				OMenu singleMenu;
 				singleMenu.CreatePopupMenu();
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-				singleMenu.InsertSeparatorFirst(TSTRING(FILE));
-#endif
 				singleMenu.AppendMenu(MF_STRING, IDC_SEARCH_ALTERNATES, CTSTRING(SEARCH_FOR_ALTERNATES));
 				appendPreviewItems(singleMenu);
 				singleMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)segmentsMenu, CTSTRING(MAX_SEGMENTS_NUMBER));
@@ -1262,7 +1248,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 				singleMenu.AppendMenu(MF_SEPARATOR);
 				singleMenu.AppendMenu(MF_STRING, IDC_RECHECK, CTSTRING(RECHECK_FILE));
 				singleMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
-				singleMenu.SetMenuDefaultItem(IDC_SEARCH_ALTERNATES); // !SMT!-UI
+				singleMenu.SetMenuDefaultItem(IDC_SEARCH_ALTERNATES);
 				
 				const QueueItemInfo* ii = getSelectedQueueItem();
 				if (ii && !ii->isTorrent())
@@ -1412,32 +1398,14 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 				if (ii->getAutoPriority())
 					priorityMenu.CheckMenuItem(7, MF_BYPOSITION | MF_CHECKED);
 					
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-				browseMenu.InsertSeparatorFirst(TSTRING(GET_FILE_LIST));
-				removeMenu.InsertSeparatorFirst(TSTRING(REMOVE_SOURCE));
-				removeAllMenu.InsertSeparatorFirst(TSTRING(REMOVE_FROM_ALL));
-				pmMenu.InsertSeparatorFirst(TSTRING(SEND_PRIVATE_MESSAGE));
-				readdMenu.InsertSeparatorFirst(TSTRING(READD_SOURCE));
-#endif
-				
 				singleMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 				
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-				browseMenu.RemoveFirstItem();
-				removeMenu.RemoveFirstItem();
-				removeAllMenu.RemoveFirstItem();
-				pmMenu.RemoveFirstItem();
-				readdMenu.RemoveFirstItem();
-#endif
 			}
 			else
 			{
 				OMenu multiMenu;
 				multiMenu.CreatePopupMenu();
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-				multiMenu.InsertSeparatorFirst(TSTRING(FILES));
-#endif
-				multiMenu.AppendMenu(MF_STRING, IDC_SEARCH_ALTERNATES, CTSTRING(SEARCH_FOR_ALTERNATES)); // !SMT!-UI
+				multiMenu.AppendMenu(MF_STRING, IDC_SEARCH_ALTERNATES, CTSTRING(SEARCH_FOR_ALTERNATES));
 				multiMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)segmentsMenu, CTSTRING(MAX_SEGMENTS_NUMBER));
 				multiMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)priorityMenu, CTSTRING(SET_PRIORITY));
 				multiMenu.AppendMenu(MF_STRING, IDC_MOVE, CTSTRING(MOVE));
@@ -1446,7 +1414,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 				multiMenu.AppendMenu(MF_STRING, IDC_RECHECK, CTSTRING(RECHECK_FILE));
 				multiMenu.AppendMenu(MF_SEPARATOR);
 				multiMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
-				multiMenu.SetMenuDefaultItem(IDC_SEARCH_ALTERNATES); // !SMT!-UI
+				multiMenu.SetMenuDefaultItem(IDC_SEARCH_ALTERNATES);
 				multiMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 			}
 			
@@ -1475,9 +1443,6 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 		
 		OMenu dirMenu;
 		dirMenu.CreatePopupMenu();
-#ifdef OLD_MENU_HEADER //[~]JhaoDa
-		dirMenu.InsertSeparatorFirst(TSTRING(FOLDER));
-#endif
 		dirMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)priorityMenu, CTSTRING(SET_PRIORITY));
 		dirMenu.AppendMenu(MF_STRING, IDC_MOVE, CTSTRING(MOVE));
 		dirMenu.AppendMenu(MF_STRING, IDC_RENAME, CTSTRING(RENAME));
@@ -1515,7 +1480,6 @@ LRESULT QueueFrame::onRecheck(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 
 LRESULT QueueFrame::onSearchAlternates(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	// !SMT!-UI (multiple search)
 	int i = -1;
 	while ((i = ctrlQueue.GetNextItem(i, LVNI_SELECTED)) != -1)
 		WinUtil::searchHash(ctrlQueue.getItemData(i)->getTTH());
@@ -1667,9 +1631,6 @@ LRESULT QueueFrame::onPM(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL&
 		{
 			if (UserPtr* s = (UserPtr*)omi->m_data)
 			{
-				// [!] IRainman: Open the window of PM with an empty address if the user NMDC,
-				// as soon as it appears on the hub of the network, the window immediately PM knows about it, and update the Old.
-				// If the user ADC, as soon as he appears on any of the ADC hubs at once a personal window to know.
 				const auto hubs = ClientManager::getHubs((*s)->getCID(), Util::emptyString);
 				PrivateFrame::openWindow(nullptr, HintedUser(*s, !hubs.empty() ? hubs[0] : Util::emptyString));
 			}
@@ -1776,13 +1737,10 @@ void QueueFrame::removeDir(HTREEITEM ht)
 	}
 	const string& name = getDir(ht);
 	const auto dp = m_directories.equal_range(name);
-//	StringList l_tmp_target; // [-] NightOrion bugfix deleting folder from queue
 	for (auto i = dp.first; i != dp.second; ++i)
 	{
 		m_tmp_target_to_delete.push_back(i->second->getTarget());
 	}
-//	for (auto i = l_tmp_target.cbegin(); i != l_tmp_target.cend(); ++i)
-//		QueueManager::getInstance()->remove(*i); //
 }
 
 /*
@@ -2158,11 +2116,11 @@ void QueueFrame::moveNode(HTREEITEM item, HTREEITEM parent)
 	tvis.itemex.mask = TVIF_CHILDREN | TVIF_HANDLE | TVIF_IMAGE | TVIF_INTEGRAL | TVIF_PARAM |
 	                   TVIF_SELECTEDIMAGE | TVIF_STATE | TVIF_TEXT;
 	tvis.itemex.pszText = g_tmpBuf;
-	tvis.itemex.cchTextMax = _countof(g_tmpBuf);//[!] IRainman use _countof(Array) ;)
+	tvis.itemex.cchTextMax = _countof(g_tmpBuf);
 	ctrlDirs.GetItem((TVITEM*)&tvis.itemex);
 	tvis.hInsertAfter = TVI_SORT;
 	tvis.hParent = parent;
-	tvis.item.mask &= ~TVIF_HANDLE; // !SMT!-F
+	tvis.item.mask &= ~TVIF_HANDLE;
 	HTREEITEM ht = ctrlDirs.InsertItem(&tvis);
 	HTREEITEM next = ctrlDirs.GetChildItem(item);
 	while (next != NULL)
@@ -2192,12 +2150,12 @@ LRESULT QueueFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			{
 				cd->clrText = SETTING(ERROR_COLOR);
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-				Colors::alternationBkColor(cd); // [+] IRainman
+				Colors::alternationBkColor(cd);
 #endif
 				return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 			}
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-			Colors::alternationBkColor(cd); // [+] IRainman
+			Colors::alternationBkColor(cd);
 #endif
 			return CDRF_NOTIFYSUBITEMDRAW;
 #else
@@ -2260,12 +2218,12 @@ LRESULT QueueFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 LRESULT QueueFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	tstring data;
-	int i = -1, columnId = wID - IDC_COPY; // !SMT!-UI: copy several rows
+	int i = -1, columnId = wID - IDC_COPY;
 	while ((i = ctrlQueue.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		QueueItemInfo* ii = ctrlQueue.getItemData(i);
 		tstring sdata;
-		// !SMT!-UI
+		
 		if (wID == IDC_COPY_LINK)
 			sdata = Text::toT(Util::getMagnet(ii->getTTH(), Util::getFileName(ii->getTarget()), ii->getSize()));
 		else if (wID == IDC_COPY_WMLINK)

@@ -68,7 +68,7 @@ PropPage::ListItem LogPage::listItems[] =
 #ifdef RIP_USE_LOG_PROTOCOL
 	{ SettingsManager::LOG_PROTOCOL,            ResourceManager::SETTINGS_LOG_PROTOCOL },
 #endif
-	{ SettingsManager::LOG_CUSTOM_LOCATION,     ResourceManager::SETTINGS_LOG_CUSTOM_LOCATION }, // [+]IRainman
+	{ SettingsManager::LOG_CUSTOM_LOCATION,     ResourceManager::SETTINGS_LOG_CUSTOM_LOCATION },
 	{ SettingsManager::LOG_SQLITE_TRACE,        ResourceManager::SETTINGS_LOG_TRACE_SQLITE },
 	{ SettingsManager::LOG_VIRUS_TRACE, ResourceManager::SETTINGS_LOG_VIRUS_TRACE },
 	{ SettingsManager::LOG_DDOS_TRACE,          ResourceManager::SETTINGS_LOG_DDOS_TRACE },
@@ -79,7 +79,7 @@ PropPage::ListItem LogPage::listItems[] =
 	{ SettingsManager::LOG_PSR_TRACE,           ResourceManager::SETTINGS_LOG_PSR_TRACE },
 	{ SettingsManager::LOG_FLOOD_TRACE,           ResourceManager::SETTINGS_LOG_FLOOD_TRACE },
 	{ SettingsManager::LOG_FILELIST_TRANSFERS,  ResourceManager::SETTINGS_LOG_FILELIST_TRANSFERS },
-	{ SettingsManager::LOG_IF_SUPPRESS_PMS,     ResourceManager::SETTINGS_LOG_IF_SUPPRESS_PMS }, // [+]IRainman
+	{ SettingsManager::LOG_IF_SUPPRESS_PMS,     ResourceManager::SETTINGS_LOG_IF_SUPPRESS_PMS },
 	{ 0,                                        ResourceManager::SETTINGS_AUTO_AWAY }
 };
 

@@ -48,7 +48,7 @@ class Sounds : public CPropertyPage<IDD_SOUNDS_PAGE>, public PropPage
 		COMMAND_ID_HANDLER(IDC_DEFAULT, onDefault)
 		COMMAND_ID_HANDLER(IDC_SOUND_ENABLE, onClickedActive)
 		COMMAND_ID_HANDLER(IDC_SOUNDS_COMBO, onDefaultAll)
-		NOTIFY_HANDLER(IDC_SOUNDLIST, NM_CUSTOMDRAW, ctrlSounds.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_SOUNDLIST, NM_CUSTOMDRAW, ctrlSounds.onCustomDraw)
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
 		

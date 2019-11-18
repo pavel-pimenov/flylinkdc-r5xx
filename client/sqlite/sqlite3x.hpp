@@ -117,7 +117,7 @@ namespace sqlite3x {
 		struct sqlite3_stmt *stmt;
 		unsigned int m_refs;
 		int  m_argc;
-		bool m_no_data_found; //[+]PPA
+		bool m_no_data_found; 
         void check_no_data_found();
 	public:
 		sqlite3_command(sqlite3_connection &p_con, const char *sql);
@@ -147,7 +147,7 @@ namespace sqlite3x {
 			bind(index, (long long)data);
 		}
 		
-		bool is_no_data_found() const//[+]PPA
+		bool is_no_data_found() const
 		{
 			return m_no_data_found;
 		}
@@ -169,7 +169,7 @@ namespace sqlite3x {
 		void executenonquery();
 		int executeint();
 		long long executeint64();
-		long long executeint64_no_throw(); //[+]PPA
+		long long executeint64_no_throw(); 
 #ifndef SQLITE_OMIT_FLOATING_POINT
 		double executedouble();
 #endif

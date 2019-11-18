@@ -27,7 +27,6 @@
 #include "../client/Socket.h"
 #include "../client/ClientManager.h"
 #include "../client/ShareManager.h"
-#include "../client/SimpleXML.h"
 #include "../client/CompatibilityManager.h"
 #include "../client/Wildcards.h"
 #include "../client/MappingManager.h"
@@ -297,13 +296,13 @@ void CFlyServerStatistics::saveShutdownMarkers()
 bool CFlyServerConfig::isSupportFile(const string& p_file_ext, uint64_t p_size) const
 {
 	dcassert(!m_scan.empty()); // TODO: fix CFlyServerConfig::loadConfig() in debug.
-	return p_size > m_min_file_size && m_scan.find(p_file_ext) != m_scan.end(); // [!] IRainman opt.
+	return p_size > m_min_file_size && m_scan.find(p_file_ext) != m_scan.end();
 }
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 //======================================================================================================
 bool CFlyServerConfig::isParasitFile(const string& p_file)
 {
-	return isCheckName(g_parasitic_files, p_file); // [!] IRainman opt.
+	return isCheckName(g_parasitic_files, p_file);
 }
 //======================================================================================================
 bool CFlyServerConfig::isSpam(const string& p_line)

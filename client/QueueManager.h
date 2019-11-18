@@ -48,12 +48,10 @@ class QueueManager : public Singleton<QueueManager>,
 		/** Add a user's filelist to the queue. */
 		void addList(const UserPtr& aUser, Flags::MaskType aFlags, const string& aInitialDir = Util::emptyString) ;
 		
-		//[+] SSA check user IP
 		void addCheckUserIP(const UserPtr& aUser)
 		{
 			add(0, Util::emptyString, -1, TTHValue(), aUser, QueueItem::FLAG_USER_GET_IP);
 		}
-		// [+] IRainman dclst support.
 		void addDclst(const string& p_dclstFile)
 		{
 			dclstLoader.addTask(p_dclstFile);
@@ -67,12 +65,11 @@ class QueueManager : public Singleton<QueueManager>,
 			private:
 				void execute(const string& p_dclstFile);
 		} dclstLoader;
-		// [~] IRainman dclst support.
 	public:
 		class LockFileQueueShared
 		{
 			public:
-				// [!] IRainman fix.
+			
 				LockFileQueueShared()
 				{
 #ifdef FLYLINKDC_USE_RWLOCK
@@ -89,7 +86,7 @@ class QueueManager : public Singleton<QueueManager>,
 					QueueManager::FileQueue::g_csFQ->unlock();
 #endif
 				}
-				// [~] IRainman fix.
+				
 				const QueueItem::QIStringMap& getQueueL()
 				{
 					return QueueManager::FileQueue::getQueueL();
@@ -97,7 +94,7 @@ class QueueManager : public Singleton<QueueManager>,
 		};
 		
 		
-		class DirectoryListInfo // [+] IRainman fix: moved from MainFrame to core.
+		class DirectoryListInfo
 		{
 			public:
 				DirectoryListInfo(const HintedUser& aUser, const string& aFile, const string& aDir, int64_t aSpeed, bool aIsDCLST = false) : m_hintedUser(aUser), file(aFile), dir(aDir), speed(aSpeed), isDCLST(aIsDCLST) { }
@@ -109,25 +106,24 @@ class QueueManager : public Singleton<QueueManager>,
 		};
 		typedef DirectoryListInfo* DirectoryListInfoPtr;
 		
-		void matchAllFileLists() // [+] IRainman fix.
+		void matchAllFileLists()
 		{
 			m_listMatcher.addTask(File::findFiles(Util::getListPath(), "*.xml*"));
 		}
 		
 	private:
 	
-		class ListMatcher : public BackgroundTaskExecuter<StringList, 15000> // [<-] IRainman fix: moved from MainFrame to core.
+		class ListMatcher : public BackgroundTaskExecuter<StringList, 15000>
 		{
 				void execute(const StringList& list);
 		} m_listMatcher;
 		
 #ifdef FLYLINKDC_USE_DETECT_CHEATING
-		class FileListQueue: public BackgroundTaskExecuter<DirectoryListInfoPtr, 15000> // [<-] IRainman fix: moved from MainFrame to core.
+		class FileListQueue: public BackgroundTaskExecuter<DirectoryListInfoPtr, 15000>
 		{
 				void execute(const DirectoryListInfoPtr& list);
 		} m_listQueue;
 #endif
-		// [+] IRainman: auto pausing running downloads before moving.
 		struct WaiterFile
 		{
 			public:
@@ -165,20 +161,17 @@ class QueueManager : public Singleton<QueueManager>,
 			private:
 				void execute(const WaiterFile& p_waiterFile);
 		} waiter;
-		// [~] IRainman: auto pausing running downloads before moving.
 	public:
-		//[+] SSA check if file exist
 		void setOnDownloadSetting(int p_option)
 		{
 			m_curOnDownloadSettings = p_option;
 		}
 		
-		void shutdown(); // [+] IRainman opt.
-		//[~] FlylinkDC
+		void shutdown();
 		
 		/** Readd a source that was removed */
 		void readd(const string& p_target, const UserPtr& aUser);
-		void readdAll(const QueueItemPtr& q); // [+] IRainman opt.
+		void readdAll(const QueueItemPtr& q);
 		/** Add a directory to the queue (downloads filelist and matches the directory). */
 		void addDirectory(const string& aDir, const UserPtr& aUser, const string& aTarget,
 		                  QueueItem::Priority p = QueueItem::DEFAULT) noexcept;
@@ -216,7 +209,7 @@ class QueueManager : public Singleton<QueueManager>,
 			return p_qi->isSourceValid(p_source_ptr);
 		}
 #endif
-		static void getChunksVisualisation(const QueueItemPtr& qi, vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks) // [!] IRainman fix.
+		static void getChunksVisualisation(const QueueItemPtr& qi, vector<pair<Segment, Segment>>& p_runnigChunksAndDownloadBytes, vector<Segment>& p_doneChunks)
 		{
 			qi->getChunksVisualisation(p_runnigChunksAndDownloadBytes, p_doneChunks);
 		}
@@ -270,14 +263,14 @@ class QueueManager : public Singleton<QueueManager>,
 		{
 			return Util::getConfigPath() + "Queue.xml";
 		}
-		// [~] IRainman opt.
+		
 		bool m_is_exists_queueFile;
 		
 		CriticalSection m_cs_target_array;
 		StringList m_remove_target_array;
 		
 		enum { MOVER_LIMIT = 10 * 1024 * 1024 };
-		class FileMover : public BackgroundTaskExecuter<pair<string, string>> // [!] IRainman core.
+		class FileMover : public BackgroundTaskExecuter<pair<string, string>>
 		{
 			public:
 				explicit FileMover() { }
@@ -296,7 +289,7 @@ class QueueManager : public Singleton<QueueManager>,
 		
 		typedef vector<pair<QueueItem::SourceConstIter, const QueueItemPtr> > PFSSourceList;
 		
-		class Rechecker : public BackgroundTaskExecuter<string> // [!] IRainman core.
+		class Rechecker : public BackgroundTaskExecuter<string>
 		{
 				struct DummyOutputStream : OutputStream
 				{
@@ -328,7 +321,7 @@ class QueueManager : public Singleton<QueueManager>,
 			public:
 				FileQueue();
 				~FileQueue();
-				static void add(const QueueItemPtr& qi); // [!] IRainman fix.
+				static void add(const QueueItemPtr& qi);
 				static QueueItemPtr add(int64_t FlyQueueID,
 				                        const string& aTarget,
 				                        int64_t aSize,
@@ -347,12 +340,12 @@ class QueueManager : public Singleton<QueueManager>,
 				// find some PFS sources to exchange parts info
 				static void findPFSSourcesL(PFSSourceList&);
 				
-				QueueItemPtr findAutoSearch(deque<string>& p_recent) const; // [!] IRainman fix.
+				QueueItemPtr findAutoSearch(deque<string>& p_recent) const;
 				static size_t getSize()
 				{
 					return g_queue.size();
 				}
-				static bool empty() // [+] IRainman opt.
+				static bool empty()
 				{
 					return g_queue.empty();
 				}
@@ -362,7 +355,7 @@ class QueueManager : public Singleton<QueueManager>,
 				}
 				static void calcPriorityAndGetRunningFilesL(bool p_is_calc_prior, QueueItem::PriorityArray& p_changedPriority, QueueItemList& p_runningFiles);
 				static size_t getRunningFileCount(const size_t p_stop_key);
-				void moveTarget(const QueueItemPtr& qi, const string& aTarget); // [!] IRainman fix.
+				void moveTarget(const QueueItemPtr& qi, const string& aTarget);
 				void removeDeferredDB(const QueueItemPtr& qi, bool p_is_batch_remove);
 				static void removeArray();
 				static void clearAll();
@@ -392,9 +385,9 @@ class QueueManager : public Singleton<QueueManager>,
 		class UserQueue
 		{
 			public:
-				void addL(const QueueItemPtr& qi); // [!] IRainman fix.
-				void addL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_first_load); // [!] IRainman fix.
-				QueueItemPtr getNextL(const UserPtr& aUser, QueueItem::Priority minPrio = QueueItem::LOWEST, int64_t wantedSize = 0, int64_t lastSpeed = 0, bool allowRemove = false); // [!] IRainman fix.
+				void addL(const QueueItemPtr& qi);
+				void addL(const QueueItemPtr& qi, const UserPtr& aUser, bool p_is_first_load);
+				QueueItemPtr getNextL(const UserPtr& aUser, QueueItem::Priority minPrio = QueueItem::LOWEST, int64_t wantedSize = 0, int64_t lastSpeed = 0, bool allowRemove = false);
 				QueueItemPtr getRunning(const UserPtr& aUser);
 				void addDownload(const QueueItemPtr& qi, const DownloadPtr& d);
 				bool removeDownload(const QueueItemPtr& qi, const UserPtr& d);
@@ -442,7 +435,7 @@ class QueueManager : public Singleton<QueueManager>,
 		QueueManager();
 		~QueueManager();
 		
-		mutable FastCriticalSection csDirectories; // [!] IRainman fix.
+		mutable FastCriticalSection csDirectories;
 		
 		/** QueueItems by user */
 		static UserQueue g_userQueue;
@@ -463,8 +456,8 @@ class QueueManager : public Singleton<QueueManager>,
 		void load(const SimpleXML& aXml);
 		void moveFile(const string& source, const string& p_target);
 		static bool internalMoveFile(const string& source, const string& p_target);
-		void moveStuckFile(const QueueItemPtr& qi); // [!] IRainman fix.
-		void rechecked(const QueueItemPtr& qi); // [!] IRainman fix.
+		void moveStuckFile(const QueueItemPtr& qi);
+		void rechecked(const QueueItemPtr& qi);
 		
 		static void setDirty();
 		
@@ -481,7 +474,6 @@ class QueueManager : public Singleton<QueueManager>,
 		void on(ClientManagerListener::UserConnected, const UserPtr& aUser) noexcept override;
 		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept override;
 		
-		//[+] SSA check if file exist
 		int m_curOnDownloadSettings;
 	private:
 		boost::unordered_set<string> m_fire_src_array;

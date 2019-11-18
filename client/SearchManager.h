@@ -33,7 +33,7 @@ class SearchManager : public Speaker<SearchManagerListener>, public Singleton<Se
 		
 		void search_auto(const string& p_tth);
 		
-		ClientManagerListener::SearchReply respond(const AdcCommand& cmd, const CID& cid, bool isUdpActive, const string& hubIpPort, StringSearch::List& reguest); // [!] IRainman add  StringSearch::List& reguest and return type
+		ClientManagerListener::SearchReply respond(const AdcCommand& cmd, const CID& cid, bool isUdpActive, const string& hubIpPort, StringSearch::List& reguest);
 		
 		static bool isSearchPortValid()
 		{

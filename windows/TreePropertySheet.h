@@ -40,7 +40,7 @@
 class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>,
 	protected CFlyTimerAdapter
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 	public:
@@ -106,7 +106,7 @@ class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>,
 		void addTransparency();
 		void setTransp(int p_Layered);
 		CTrackBarCtrl m_Slider;
-		CFlyToolTipCtrl m_tooltip;  // [+] SCALOlaz: add tooltips
+		CFlyToolTipCtrl m_tooltip;
 		uint8_t m_SliderPos;
 #endif
 #ifdef SCALOLAZ_PROPPAGE_CAMSHOOT
@@ -131,11 +131,11 @@ class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>,
 	
 		enum
 		{
-			SPACE_MID = 1, // [~] JhaoDa
+			SPACE_MID = 1,
 			SPACE_TOP = 10,
-			SPACE_BOTTOM = 1, // [~] JhaoDa
+			SPACE_BOTTOM = 1,
 			SPACE_LEFT = 10,
-			SPACE_RIGHT = 6, // [~] JhaoDa
+			SPACE_RIGHT = 6,
 			TREE_WIDTH = 245
 		};
 		

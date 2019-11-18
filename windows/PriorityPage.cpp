@@ -21,7 +21,6 @@
 #include "PriorityPage.h"
 #include "CommandDlg.h"
 
-// Перевод текстов на странице.
 PropPage::TextItem PriorityPage::texts[] =
 {
 	{ IDC_SETTINGS_AUTOPRIO, ResourceManager::SETTINGS_PRIO_AUTOPRIO },
@@ -36,8 +35,8 @@ PropPage::TextItem PriorityPage::texts[] =
 	{ IDC_HIGHEST_STR, ResourceManager::PRIO_FILE_HIGHEST },
 	{ IDC_LOWEST_STR, ResourceManager::PRIO_FILE_LOWEST },
 	{ IDC_PRIO_FILE, ResourceManager::PRIO_FILE },
-	{ IDC_PRIO_LOWEST, ResourceManager::SETTINGS_PRIO_LOWEST }, // [~] InfinitySky.
-	{ IDC_USE_AUTOPRIORITY, ResourceManager::SETTINGS_AUTO_PRIORITY_DEFAULT }, // [~] InfinitySky.
+	{ IDC_PRIO_LOWEST, ResourceManager::SETTINGS_PRIO_LOWEST },
+	{ IDC_USE_AUTOPRIORITY, ResourceManager::SETTINGS_AUTO_PRIORITY_DEFAULT },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -50,12 +49,12 @@ PropPage::Item PriorityPage::items[] =
 	{ IDC_PRIO_LOW_SIZE, SettingsManager::PRIO_LOW_SIZE, PropPage::T_INT },
 	{ IDC_HIGHEST, SettingsManager::HIGH_PRIO_FILES, PropPage::T_STR },
 	{ IDC_LOWEST, SettingsManager::LOW_PRIO_FILES, PropPage::T_STR },
-	{ IDC_PRIO_LOWEST, SettingsManager::PRIO_LOWEST, PropPage::T_BOOL }, // [~] InfinitySky.
-	{ IDC_USE_AUTOPRIORITY, SettingsManager::AUTO_PRIORITY_DEFAULT, PropPage::T_BOOL }, // [~] InfinitySky.
+	{ IDC_PRIO_LOWEST, SettingsManager::PRIO_LOWEST, PropPage::T_BOOL },
+	{ IDC_USE_AUTOPRIORITY, SettingsManager::AUTO_PRIORITY_DEFAULT, PropPage::T_BOOL },
 	{ 0, 0, PropPage::T_END }
 };
 
-// При инициализации.
+
 LRESULT PriorityPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	PropPage::translate((HWND)(*this), texts);
@@ -72,7 +71,6 @@ void PriorityPage::write()
 	PropPage::write(*this, items, 0, 0);
 }
 
-// [+] InfinitySky. При отключении автоприоритета активируются указанные элементы.
 void PriorityPage::fixControls()
 {
 	const BOOL state = IsDlgButtonChecked(IDC_USE_AUTOPRIORITY) == 0;
@@ -88,7 +86,6 @@ void PriorityPage::fixControls()
 	::EnableWindow(GetDlgItem(IDC_HIGHEST_STR), FALSE);
 }
 
-// [+] InfinitySky. При смене состояния кнопки включения автоприоритета.
 LRESULT PriorityPage::onChangeCont(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	switch (wID)

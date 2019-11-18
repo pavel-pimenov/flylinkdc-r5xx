@@ -139,7 +139,6 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 			return sock->verifyKeyprint(expKP, allowUntrusted);
 		}
 		
-		//[+]IRainman SpeedLimiter
 		void setMaxSpeed(int64_t maxSpeed)
 		{
 			if (hasSocket())
@@ -150,7 +149,6 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 			if (hasSocket())
 				sock->updateSocketBucket(p_numberOfUserConnection);
 		}
-		//[~]IRainman SpeedLimiter
 		void write(const string& aData)
 		{
 			write(aData.data(), aData.length());
@@ -235,7 +233,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		
 		struct TaskData
 #ifdef _DEBUG
-			: boost::noncopyable // [+] IRainman fix.
+			: boost::noncopyable
 #endif
 		{
 			virtual ~TaskData() { }
@@ -259,7 +257,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		
 		~BufferedSocket();
 		
-		FastCriticalSection cs; // [!] IRainman opt: use spinlock here!
+		FastCriticalSection cs;
 		
 		Semaphore m_socket_semaphore;
 		std::deque<std::pair<Tasks, std::unique_ptr<TaskData> > > m_tasks;
@@ -279,7 +277,7 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		std::unique_ptr<UnZFilter> m_ZfilterIn;
 		std::unique_ptr<Socket> sock;
 		
-		volatile bool m_is_disconnecting; // [!] IRainman fix: this variable is volatile.
+		volatile bool m_is_disconnecting;
 		
 		int run() override;
 		

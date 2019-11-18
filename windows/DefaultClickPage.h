@@ -59,7 +59,7 @@ class DefaultClickPage : public CPropertyPage<IDD_DEFAULT_CLICK_PAGE>, public Pr
 		static TextItem texts[];
 		
 		CComboBox userlistaction, transferlistaction, chataction
-		, favuserlistaction // !SMT!-UI
+		, favuserlistaction
 		, magneturllistaction;
 		
 		

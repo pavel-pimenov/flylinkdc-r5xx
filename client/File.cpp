@@ -26,11 +26,11 @@
 #include "ClientManager.h"
 #endif
 
-#include "CompatibilityManager.h" // [+] IRainman
+#include "CompatibilityManager.h"
 
-const FileFindIter FileFindIter::end; // [+] IRainman opt.
+const FileFindIter FileFindIter::end;
 
-void File::init(const tstring& aFileName, int access, int mode, bool isAbsolutePath) // [!] IRainman fix.
+void File::init(const tstring& aFileName, int access, int mode, bool isAbsolutePath)
 {
 	dcassert(access == static_cast<int>(WRITE) || access == static_cast<int>(READ) || access == static_cast<int>((READ | WRITE)));
 	
@@ -97,11 +97,9 @@ int64_t File::getLastWriteTime()const noexcept
 	FILETIME f = {0};
 	::GetFileTime(h, NULL, NULL, &f);
 	const int64_t l_res = (((int64_t)f.dwLowDateTime | ((int64_t)f.dwHighDateTime) << 32) - 116444736000000000LL) / (1000LL * 1000LL * 1000LL / 100LL); //1.1.1970
-	//[+] PVS Studio V592   The expression was enclosed by parentheses twice: ((expression)). One pair of parentheses is unnecessary or misprint is present.
 	return l_res;
 }
 
-//[+] Greylink
 int64_t File::getTimeStamp(const string& aFileName)
 {
 	WIN32_FIND_DATA fd;
@@ -124,12 +122,11 @@ void File::setTimeStamp(const string& aFileName, const uint64_t stamp)
 		throw FileException(Util::translateError() + ": " + aFileName);
 	if (!SetFileTime(hCreate, NULL, NULL, (FILETIME*)&stamp))
 	{
-		CloseHandle(hCreate); //[+]PPA
+		CloseHandle(hCreate);
 		throw FileException(Util::translateError() + ": " + aFileName);
 	}
 	CloseHandle(hCreate);
 }
-//[~]Greylink
 
 uint64_t File::currentTime()
 {
@@ -139,7 +136,6 @@ uint64_t File::currentTime()
 	GetSystemTimeAsFileTime(&f);
 	if (!f2.dwLowDateTime)
 		::SystemTimeToFileTime(&s, &f2);
-	//[merge] http://bazaar.launchpad.net/~dcplusplus-team/dcplusplus/trunk/revision/2195
 	ULARGE_INTEGER a, b;
 	a.LowPart = f.dwLowDateTime;
 	a.HighPart = f.dwHighDateTime;
@@ -152,9 +148,8 @@ uint64_t File::convertTime(const FILETIME* f)
 {
 	static const SYSTEMTIME s = { 1970, 1, 0, 1, 0, 0, 0, 0 };
 	static FILETIME f2 = {0, 0};
-	if (!f2.dwLowDateTime) //[+]PPA
+	if (!f2.dwLowDateTime)
 		::SystemTimeToFileTime(&s, &f2);
-	//[merge] http://bazaar.launchpad.net/~dcplusplus-team/dcplusplus/trunk/revision/2195
 	ULARGE_INTEGER a, b;
 	a.LowPart = f->dwLowDateTime;
 	a.HighPart = f->dwHighDateTime;
@@ -179,7 +174,6 @@ void File::close() noexcept
 
 int64_t File::getSize() const noexcept
 {
-	// [!] IRainman use GetFileSizeEx function!
 	// http://msdn.microsoft.com/en-us/library/aa364957(v=VS.85).aspx
 	LARGE_INTEGER x = {0};
 	BOOL bRet = ::GetFileSizeEx(h, &x);
@@ -191,7 +185,6 @@ int64_t File::getSize() const noexcept
 }
 int64_t File::getPos() const noexcept
 {
-	// [!] IRainman use SetFilePointerEx function!
 	// http://msdn.microsoft.com/en-us/library/aa365542(v=VS.85).aspx
 	LARGE_INTEGER x = {0};
 	BOOL bRet = ::SetFilePointerEx(h, x, &x, FILE_CURRENT);
@@ -211,7 +204,6 @@ void File::setSize(int64_t newSize)
 }
 void File::setPos(int64_t pos)
 {
-	// [!] IRainman use SetFilePointerEx function!
 	LARGE_INTEGER x = {0};
 	x.QuadPart = pos;
 	if (!::SetFilePointerEx(h, x, &x, FILE_BEGIN))
@@ -219,21 +211,19 @@ void File::setPos(int64_t pos)
 }
 int64_t File::setEndPos(int64_t pos)
 {
-	// [!] IRainman use SetFilePointerEx function!
 	LARGE_INTEGER x = {0};
 	x.QuadPart = pos;
 	if (!::SetFilePointerEx(h, x, &x, FILE_END))
-		throw(FileException(Util::translateError())); //[+]PPA
+		throw(FileException(Util::translateError()));
 	return x.QuadPart;
 }
 
 void File::movePos(int64_t pos)
 {
-	// [!] IRainman use SetFilePointerEx function!
 	LARGE_INTEGER x = {0};
 	x.QuadPart = pos;
 	if (!::SetFilePointerEx(h, x, &x, FILE_CURRENT))
-		throw(FileException(Util::translateError())); //[+]PPA
+		throw(FileException(Util::translateError()));
 }
 
 size_t File::read(void* buf, size_t& len)
@@ -256,7 +246,7 @@ size_t File::write(const void* buf, size_t len)
 	}
 	if (x != len)
 	{
-		throw FileException("Error in File::write x != len"); //[+]PPA
+		throw FileException("Error in File::write x != len");
 	}
 	return x;
 }
@@ -409,13 +399,13 @@ int64_t File::getSize(const tstring & aFileName) noexcept
 	return i != FileFindIter::end ? i->getSize() : -1; // -1 не менять!
 }
 
-bool File::isExist(const tstring & aFileName) noexcept // [+] IRainman
+bool File::isExist(const tstring & aFileName) noexcept
 {
 	const DWORD attr = GetFileAttributes(formatPath(aFileName).c_str());
 	return (attr != INVALID_FILE_ATTRIBUTES);
 }
 
-bool File::isExist(const tstring & filename, int64_t & outFileSize, int64_t & outFiletime, bool& p_is_link) // [+] FlylinkDC++ Team
+bool File::isExist(const tstring & filename, int64_t & outFileSize, int64_t & outFiletime, bool& p_is_link)
 {
 	dcassert(!filename.empty());
 	
@@ -596,15 +586,13 @@ StringList File::findFiles(const string& path, const string& pattern, bool p_app
 {
 	StringList ret;
 	
-	// [+] FlylinkDC
 	auto appendToRet = [p_append_path, path](StringList & ret, const string & l_name, const char * extra) -> void
 	{
-		if (p_append_path) //[+]FlylinkDC++ Team TODO - проверить все места, где наружу не нужно отдавать путь
+		if (p_append_path)
 			ret.push_back(path + l_name + extra);
 		else
 			ret.push_back(l_name + extra);
 	};
-	// [~] FlylinkDC
 	WIN32_FIND_DATA data;
 	HANDLE hFind = FindFirstFileEx(formatPath(Text::toT(path + pattern)).c_str(),
 	                               CompatibilityManager::g_find_file_level,
@@ -617,10 +605,8 @@ StringList File::findFiles(const string& path, const string& pattern, bool p_app
 		do
 		{
 			const char* extra = (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? "\\" : "";
-			// [!] FlylinkDC
 			const string l_name = Text::fromT(data.cFileName);
 			appendToRet(ret, l_name, extra);
-			// [~] FlylinkDC
 		}
 		while (FindNextFile(hFind, &data));
 		FindClose(hFind);
@@ -663,7 +649,6 @@ FileFindIter::~FileFindIter()
 
 FileFindIter& FileFindIter::operator++()
 {
-	//[12] https://www.box.net/shared/067924cecdb252c9d26c
 	if (m_handle != INVALID_HANDLE_VALUE)
 	{
 		if (::FindNextFile(m_handle, &m_data) == FALSE)
@@ -699,7 +684,7 @@ bool FileFindIter::DirData::isDirectory() const
 bool FileFindIter::DirData::isHidden() const
 {
 	return ((dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) > 0
-	        || (CompatibilityManager::isWine() && cFileName[0] == L'.')); //[+]IRainman Posix hidden files
+	        || (CompatibilityManager::isWine() && cFileName[0] == L'.'));
 }
 bool FileFindIter::DirData::isLink() const
 {
@@ -715,7 +700,7 @@ int64_t FileFindIter::DirData::getLastWriteTime() const
 	return File::convertTime(&ftLastWriteTime);
 }
 
-// [+]IRainman
+
 bool FileFindIter::DirData::isSystem() const
 {
 	return (dwFileAttributes & FILE_ATTRIBUTE_SYSTEM) > 0;

@@ -21,7 +21,6 @@ LRESULT HashProgressDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	SetDlgItemText(IDC_CHANGE_HASH_SPEED, CTSTRING(CHANGE_HASH_SPEED_TEXT));
 	SetDlgItemText(IDC_CURRENT_HASH_SPEED, CTSTRING(CURRENT_HASH_SPEED_TEXT));
 	SetDlgItemText(IDC_PAUSE, HashManager::getInstance()->isHashingPaused() ? CTSTRING(RESUME) : CTSTRING(PAUSE));
-	// [+] SCALOlaz: add mediainfo size
 #ifdef SCALOLAZ_HASH_HELPLINK
 	m_HashHelp.init(GetDlgItem(IDC_MEDIAINFO_SIZE_TXT), _T(""));
 	const tstring l_url = WinUtil::GetWikiLink() + _T("mediainfo");
@@ -34,7 +33,7 @@ LRESULT HashProgressDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 #endif //SCALOLAZ_HASH_HELPLINK
 	SetDlgItemInt(IDC_MEDIAINFO_SIZE, SETTING(MIN_MEDIAINFO_SIZE), FALSE);
 	SetDlgItemText(IDC_MEDIAINFO_SIZE_MB, CTSTRING(MB));
-	// SCALOlaz
+	
 	ExitOnDoneButton.Attach(GetDlgItem(IDC_BTN_EXIT_ON_DONE));
 	ExitOnDoneButton.SetCheck(bExitOnDone);
 	

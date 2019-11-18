@@ -127,7 +127,7 @@ inline string fromT(const TCHAR* str) noexcept
 	return fromT(tstring(str));
 }
 
-bool isAscii(const string& p_str) noexcept; // [+] IRainman fix
+bool isAscii(const string& p_str) noexcept;
 bool isAscii(const char* str) noexcept;
 bool validateUtf8(const string& p_str, size_t p_pos = 0) noexcept;
 
@@ -177,7 +177,7 @@ inline wstring toLabel(const wstring& str) noexcept
 	wstring tmp;
 	return toLabel(str, tmp);
 }
-//[+]FlylinkDC++ Team
+
 inline bool isUTF8(const string& p_Charset, string& p_LowerCharset)
 {
 	if (g_utf8.size() == p_Charset.size() &&
@@ -212,7 +212,7 @@ inline string fromUtf8(const string& str, const string& toCharset = g_systemChar
 string toDOS(string tmp);
 wstring toDOS(wstring tmp);
 
-inline tstring CropStrLength(tstring p_Text, size_t p_len = 40) // [+] SCALOlaz: crop very long tstring
+inline tstring CropStrLength(tstring p_Text, size_t p_len = 40)
 {
 	if (p_Text.length() > p_len)
 	{
@@ -250,8 +250,6 @@ inline tstring tformat(const tstring& src, T t, T2 t2, T3 t3)
 	return ret;
 }
 
-// [+] FlylinkDC++
-
 bool safe_strftime_translate(string& p_value);
 
 inline bool isEqualsSubstringIgnoreCase(const string& p_sub_string, const string& p_str)
@@ -269,7 +267,6 @@ inline bool isEqualsSubstringIgnoreCase(const string& p_sub_string, const string
 
 void normalizeStringEnding(tstring& p_text);
 void removeString_rn(string& p_text);
-// [~] FlylinkDC++
 
 } // namespace Text
 

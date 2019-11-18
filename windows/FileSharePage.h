@@ -26,7 +26,7 @@
 
 #include <atlcrack.h>
 #include "PropPage.h"
-#include "ExListViewCtrl.h" // [+] IRainman
+#include "ExListViewCtrl.h"
 
 class FileSharePage : public CPropertyPage<IDD_FILE_SHARE_PAGE>, public PropPage
 {
@@ -39,12 +39,12 @@ class FileSharePage : public CPropertyPage<IDD_FILE_SHARE_PAGE>, public PropPage
 		
 		~FileSharePage()
 		{
-			ctrlList.Detach(); // [+] IRainman
+			ctrlList.Detach();
 		}
 		
 		BEGIN_MSG_MAP_EX(FileSharePage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
-		NOTIFY_HANDLER(IDC_FILESHARE_BOOLEANS, NM_CUSTOMDRAW, ctrlList.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_FILESHARE_BOOLEANS, NM_CUSTOMDRAW, ctrlList.onCustomDraw)
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
 		
@@ -64,7 +64,7 @@ class FileSharePage : public CPropertyPage<IDD_FILE_SHARE_PAGE>, public PropPage
 		static Item items[];
 		static TextItem texts[];
 		static ListItem listItems[];
-		ExListViewCtrl ctrlList; // [+] IRainman
+		ExListViewCtrl ctrlList;
 		
 };
 #else

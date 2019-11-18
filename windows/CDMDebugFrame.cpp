@@ -75,7 +75,7 @@ LRESULT CDMDebugFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 	m_hMenu         = WinUtil::g_mainMenu;
 	
 	start(64);
-	DebugManager::newInstance(); // [+] IRainman opt.
+	DebugManager::newInstance();
 	DebugManager::getInstance()->addListener(this);
 	
 	ctrlIPFilter.SetWindowText(l_store_values["m_sFilterIp"].toT().c_str());
@@ -114,7 +114,7 @@ LRESULT CDMDebugFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 		}
 		
 		DebugManager::getInstance()->removeListener(this);
-		DebugManager::deleteInstance(); // [+] IRainman opt.
+		DebugManager::deleteInstance();
 		
 		m_semaphore.signal();
 		
@@ -238,7 +238,7 @@ void CDMDebugFrame::addLine(const DebugTask& task)
 		l_message += "\r\n";
 		if (isShutdown())
 			return; // Костыль-1
-		ctrlCMDPad.AppendText(Text::toT(l_message).c_str()); // [!] IRainman fix.
+		ctrlCMDPad.AppendText(Text::toT(l_message).c_str());
 		if (noscroll && !isShutdown())
 		{
 			ctrlCMDPad.SetRedraw(TRUE);

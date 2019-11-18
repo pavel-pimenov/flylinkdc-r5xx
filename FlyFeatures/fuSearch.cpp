@@ -149,4 +149,3 @@ const wstring FileUpdateSearch::GetRelativeFoldername(size_t i)
 	
 	return retValue;
 }
-// [~] Needs for FlyUpdate utility!

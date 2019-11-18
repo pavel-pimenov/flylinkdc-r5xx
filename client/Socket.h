@@ -98,7 +98,7 @@ class ServerSocket;
 
 class Socket
 #ifdef _DEBUG
-	: boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 	public:
@@ -124,13 +124,13 @@ class Socket
 		};
 		
 		Socket() : m_sock(INVALID_SOCKET), connected(false)
-			, m_maxSpeed(0), m_currentBucket(0) //[+] IRainman SpeedLimiter
+			, m_maxSpeed(0), m_currentBucket(0)
 			, m_type(TYPE_TCP), port(0)
 			, m_proto(PROTO_DEFAULT)
 		{
 		}
 		Socket(const string& aIp, uint16_t aPort) : m_sock(INVALID_SOCKET), connected(false)
-			, m_maxSpeed(0), m_currentBucket(0) //[+] IRainman SpeedLimiter
+			, m_maxSpeed(0), m_currentBucket(0)
 			, m_type(TYPE_TCP)
 			, m_proto(PROTO_DEFAULT)
 		{
@@ -139,7 +139,7 @@ class Socket
 		virtual ~Socket()
 		{
 #ifdef _DEBUG
-			if (m_sock != INVALID_SOCKET) // [+] PPA test
+			if (m_sock != INVALID_SOCKET)
 #endif
 			{
 				disconnect();
@@ -162,8 +162,6 @@ class Socket
 		/**
 		 * Same as connect(), but through the SOCKS5 server
 		 */
-		//[!]IRainman change uint32_t -> uint64_t
-		// was the only time value in 32-bit format, all other values in Socket, BufferedSocket, SSLSocket the 64 bit
 		void socksConnect(const string& aIp, uint16_t aPort, uint64_t timeout = 0);
 		
 		/**
@@ -291,7 +289,7 @@ class Socket
 		}
 		virtual vector<uint8_t> getKeyprint() const noexcept
 		{
-			return Util::emptyByteVector; // [!] IRainman opt.
+			return Util::emptyByteVector;
 		}
 		virtual bool verifyKeyprint(const string&, bool /*allowUntrusted*/) noexcept {
 			return true;
@@ -312,14 +310,12 @@ class Socket
 		socket_t m_sock;
 		Protocol m_proto;
 		
-		//[+] IRainman SpeedLimiter
 		GETSET(int64_t, m_maxSpeed, MaxSpeed);
 		GETSET(int64_t, m_currentBucket, CurrentBucket);
 		void updateSocketBucket(unsigned int p_numberOfUserConnection)
 		{
 			m_currentBucket = getMaxSpeed() / p_numberOfUserConnection;
 		}
-		//[~] IRainman SpeedLimiter
 		
 	protected:
 		socket_t getSock() const;
@@ -378,7 +374,7 @@ class Socket
 			}
 			return ret; // [12] Wizard https://www.box.net/shared/d8203c21d9e943b71cf5
 		}
-		static void check(int ret, bool blockOk = false) // [+] IRainman fix: Implementation of the function Socket::check - versatile, and allows for such use.
+		static void check(int ret, bool blockOk = false)
 		{
 			// [!] PVS V106 (Implicit type conversion first argument 'xxx' of function 'check' to memsize type).
 			check(static_cast<socket_t>(ret), blockOk);

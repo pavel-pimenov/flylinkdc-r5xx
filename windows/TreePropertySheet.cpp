@@ -49,16 +49,11 @@ LRESULT TreePropertySheet::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 }
 LRESULT TreePropertySheet::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /* bHandled */)
 {
-	/* [-] IRainman fix.
-	if (ResourceManager::getInstance()->isRTL())
-	    SetWindowLongPtr(GWL_EXSTYLE, GetWindowLongPtr(GWL_EXSTYLE) | WS_EX_LAYOUTRTL);
-	*/
-	
 #ifdef SCALOLAZ_PROPPAGE_TRANSPARENCY
 	if (BOOLSETTING(SETTINGS_WINDOW_TRANSP))
 	{
 		m_SliderPos = 255;
-		setTransp(/*SETTING(PROPPAGE_TRANSP)*/ m_SliderPos);
+		setTransp(m_SliderPos);
 	}
 #endif
 	ResourceLoader::LoadImageList(IDR_SETTINGS_ICONS, tree_icons, 16, 16);
@@ -191,7 +186,7 @@ void TreePropertySheet::addCam()
 	m_Camtooltip->Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
 	m_Camtooltip->SetDelayTime(TTDT_AUTOPOP, 20000);
 	dcassert(m_Camtooltip->IsWindow());
-	m_Camtooltip->SetMaxTipWidth(355);   //[+] SCALOlaz: activate tooltips
+	m_Camtooltip->SetMaxTipWidth(355);
 	m_Camtooltip->AddTool(*m_Cam, _T("Create ScreenShoot for this page. ScreenShoot will be sending to our MediaServer and link for him will be copying into chat") /*ResourceManager::CAMSHOOT_PROPPAGE*/);
 	
 	if (!BOOLSETTING(POPUPS_DISABLED))

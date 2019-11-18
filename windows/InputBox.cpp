@@ -143,7 +143,6 @@ LRESULT CALLBACK CInputBox::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 			                          
 			// setting font
 			SendMessage(m_hWndOK, WM_SETFONT, (WPARAM)m_hFont, 0);
-//[+]IRainman
 			// button Copy MD5
 			m_hWndCopyMD5 = CreateWindowEx(NULL,
 			                               _T("button"), CTSTRING(COPY_MD5),
@@ -182,7 +181,6 @@ LRESULT CALLBACK CInputBox::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 			                                  
 			// setting font
 			SendMessage(m_hWndCopyMagnet, WM_SETFONT, (WPARAM)m_hFont, 0);
-//[~]IRainman
 			// static Propmpt
 			m_hWndPrompt = CreateWindowEx(WS_EX_STATICEDGE,
 			                              _T("static"), _T(""),
@@ -257,7 +255,7 @@ LRESULT CALLBACK CInputBox::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 					}
 					else
 					{
-						// [+] IRainman
+					
 						tstring buf;
 						
 #define GET_WINDOW_TEXT(p) \
@@ -275,7 +273,6 @@ LRESULT CALLBACK CInputBox::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 									
 						WinUtil::setClipboard(buf);
 					}
-					// [~] IRainman
 					break;
 			}
 			break;

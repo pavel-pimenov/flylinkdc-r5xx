@@ -29,7 +29,6 @@ PropPage::TextItem DCLSTPage::texts[] =
 	{ IDC_DCLS_GENERATORBORDER, ResourceManager::DCLS_GENERATORBORDER },
 	{ IDC_DCLS_CREATE_IN_FOLDER, ResourceManager::DCLS_CREATE_IN_FOLDER },
 	{ IDC_DCLS_ANOTHER_FOLDER, ResourceManager::DCLS_ANOTHER_FOLDER },
-	//{ IDC_PREVIEW_BROWSE, ResourceManager::BROWSE}, // [~] JhaoDa, not necessary any more
 	{ IDC_DCLST_CLICK_STATIC, ResourceManager::DCLS_CLICK_ACTION},
 	{ IDC_DCLST_INCLUDESELF, ResourceManager::DCLST_INCLUDESELF},
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }

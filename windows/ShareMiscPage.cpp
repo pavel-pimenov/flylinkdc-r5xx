@@ -30,9 +30,7 @@ PropPage::Item ShareMiscPage::items[] =
 	{ IDC_SET_MIN_LENGHT_TTH_STREAM, SettingsManager::SET_MIN_LENGHT_TTH_IN_NTFS_FILESTREAM, PropPage::T_INT},
 	{ IDC_AUTO_REFRESH_TIME, SettingsManager::AUTO_REFRESH_TIME, PropPage::T_INT },
 	{ IDC_MAX_HASH_SPEED, SettingsManager::MAX_HASH_SPEED, PropPage::T_INT },
-	
-	{ IDC_SET_MIN_LENGHT_FOR_MEDIAINFO, SettingsManager::MIN_MEDIAINFO_SIZE, PropPage::T_INT}, // [+] PPA
-	
+	{ IDC_SET_MIN_LENGHT_FOR_MEDIAINFO, SettingsManager::MIN_MEDIAINFO_SIZE, PropPage::T_INT},
 	{ IDC_TTH_USE_GPU, SettingsManager::USE_GPU_IN_TTH_COMPUTING, PropPage::T_BOOL },
 	{ IDC_TTH_GPU_DEVICES, SettingsManager::GPU_DEV_NAME_FOR_TTH_COMP, PropPage::T_STR },
 	
@@ -140,13 +138,13 @@ void ShareMiscPage::write()
 #endif  //FLYLINKDC_USE_GPU_TTH
 }
 
-LRESULT ShareMiscPage::onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) // [+]NightOrion
+LRESULT ShareMiscPage::onFixControls(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	fixControls();
 	return 0;
 }
 
-LRESULT ShareMiscPage::onTTHUseGPUToggle(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) // [+]NightOrion
+LRESULT ShareMiscPage::onTTHUseGPUToggle(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	fixGPUTTHControls();
 	return 0;

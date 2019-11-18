@@ -101,7 +101,7 @@ void GeneralPage::write()
 }
 
 #ifdef FLYLINKDC_USE_XXX_ICON
-void GeneralPage::AddGenderItem(LPCWSTR p_Text, int p_image_index, int p_index) // [+] FlylinkDC++
+void GeneralPage::AddGenderItem(LPCWSTR p_Text, int p_image_index, int p_index)
 {
 	COMBOBOXEXITEM cbitem = {CBEIF_TEXT | CBEIF_IMAGE | CBEIF_SELECTEDIMAGE};
 	cbitem.pszText = (LPWSTR)p_Text;
@@ -156,11 +156,11 @@ LRESULT GeneralPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 #endif
 	
 	nick.Attach(GetDlgItem(IDC_NICK));
-	nick.LimitText(49); // [~] InfinitySky. 35->49.
+	nick.LimitText(49);
 	nick.Detach();
 	
 	desc.Attach(GetDlgItem(IDC_DESCRIPTION));
-	desc.LimitText(100); // [~] InfinitySky. 50->100.
+	desc.LimitText(100);
 	desc.Detach();
 	
 	desc.Attach(GetDlgItem(IDC_SETTINGS_EMAIL));

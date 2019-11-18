@@ -26,7 +26,7 @@
 
 class Task
 #ifdef _DEBUG
-	: boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 	public:
@@ -48,7 +48,7 @@ class StringArrayTask : public Task
 
 class TaskQueue
 #ifdef _DEBUG
-	: boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 	public:
@@ -60,7 +60,7 @@ class TaskQueue
 		
 		virtual ~TaskQueue()
 		{
-			deleteTasks(m_tasks);// [!] IRainman fix.
+			deleteTasks(m_tasks);
 		}
 		bool is_destroy_task()
 		{
@@ -122,17 +122,14 @@ class TaskQueue
 		}
 		void get(List& p_list)
 		{
-			// [!] IRainman fix: FlylinkDC != StrongDC: please be more attentive to the code during the merge.
 			CFlyFastLock(m_csTaskQueue);
 			swap(m_tasks, p_list);
 		}
 		void clear()
 		{
-			// [!] IRainman fix: FlylinkDC != StrongDC: please be more attentive to the code during the merge.
 			List l_tmp;
 			get(l_tmp);
 			deleteTasks(l_tmp);
-			// [~] IRainman fix
 		}
 		void lock_task()
 		{
@@ -155,7 +152,7 @@ class TaskQueue
 			clear();
 		}
 	private:
-		void deleteTasks(const List& p_list)// [+] IRainman fix.
+		void deleteTasks(const List& p_list)
 		{
 			for (auto i = p_list.cbegin(); i != p_list.cend(); ++i)
 			{

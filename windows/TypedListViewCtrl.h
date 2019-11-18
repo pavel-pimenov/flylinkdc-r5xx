@@ -121,7 +121,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				}
 				T& operator[](size_t n) //-V302
 				{
-					return *typedList->getItemData(cur + n);//IRainman: MS use memsizetype in WinApi :(
+					return *typedList->getItemData(cur + n);
 				}
 				
 				iterator operator++(int)
@@ -420,9 +420,9 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 	public:
 		int getSelectedCount() const
 		{
-			return GetSelectedCount();    // !SMT!-S
+			return GetSelectedCount();
 		}
-		void forEachSelectedParam(void (T::*func)(void*), void *param)   // !SMT!-S
+		void forEachSelectedParam(void (T::*func)(void*), void *param)
 		{
 			int i = -1;
 			while ((i = GetNextItem(i, LVNI_SELECTED)) != -1)
@@ -471,20 +471,19 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			for (int i = 0; i < l_cnt; ++i)
 			{
 				T* itemData = getItemData(i);
-				if (itemData)// [+] IRainman fix.
+				if (itemData)
 					(itemData->*func)();
 			}
 		}
 #endif
 		void forEachSelected(void (T::*func)())
 		{
-			CLockRedraw<> l_lock_draw(m_hWnd); // [+] IRainman opt.
-			//CFlyLockWindowUpdate l_lockUpdate(m_hWnd);
+			CLockRedraw<> l_lock_draw(m_hWnd);
 			int i = -1;
 			while ((i = GetNextItem(i, LVNI_SELECTED)) != -1)
 			{
 				T* item_data = getItemData(i);
-				if (item_data) // [+] IRainman fix
+				if (item_data)
 				{
 					(item_data->*func)();
 				}
@@ -497,7 +496,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			for (int i = 0; i < l_cnt; ++i)
 			{
 				T* itemData = getItemData(i);
-				if (itemData)// [+] IRainman fix.
+				if (itemData)
 					pred(itemData);
 			}
 			return pred;
@@ -509,7 +508,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			while ((i = GetNextItem(i, LVNI_SELECTED)) != -1)
 			{
 				T* itemData = getItemData(i);
-				if (itemData)// [+] IRainman fix.
+				if (itemData)
 					pred(itemData);
 			}
 			return pred;
@@ -588,7 +587,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			}
 			DeleteAllItems();
 		}
-		void DeleteAndCleanAllItems() // [+] IRainman
+		void DeleteAndCleanAllItems()
 		{
 			CLockRedraw<> l_lock_draw(m_hWnd);
 			DeleteAndCleanAllItemsNoLock();
@@ -690,7 +689,6 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 			m_columnIndexes.shrink_to_fit();
 			return CListViewCtrl::InsertColumn(nCol, columnHeading.c_str(), nFormat, nWidth, nSubItem);
 		}
-		// [+] InfinitySky. Alpha for PNG.
 #ifdef FLYLINKDC_USE_LIST_VIEW_WATER_MARK
 		BOOL SetBkColor(COLORREF cr, UINT nID = 0)
 		{
@@ -817,7 +815,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 					lvcl.mask = LVCF_ORDER;
 					lvcl.iOrder = ci.m_pos;
 					SetColumn(ci.m_pos, &lvcl);
-					updateAllImages(true); //[+]PPA
+					updateAllImages(true);
 				}
 				
 				updateColumnIndexes();
@@ -832,7 +830,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		}
 		
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-		LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled) //[!]PPA TODO Copy-Paste
+		LRESULT onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 		{
 			return Colors::alternationonCustomDraw(pnmh, bHandled);
 		}
@@ -897,7 +895,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		{
 			const StringTokenizer<string> tok(vis, ',');
 			const StringList& l = tok.getTokens();
-			CLockRedraw<> l_lock_draw(m_hWnd); // [+] IRainman opt.
+			CLockRedraw<> l_lock_draw(m_hWnd);
 			auto i = l.cbegin();
 			for (auto j = m_columnList.begin(); j != m_columnList.end() && i != l.cend(); ++i, ++j)
 			{
@@ -938,9 +936,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		uint8_t findColumn(uint8_t p_col) const
 		{
 			dcassert(p_col < m_columnIndexes.size());
-			// [-] if (p_col < m_columnIndexes.size()) [-] IRainman fix.
 			return m_columnIndexes[p_col];
-			// [-] else return 0; [-] IRainman fix.
 		}
 		
 		T* getSelectedItem() const
@@ -961,7 +957,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 	private:
 		int sortColumn;
 #ifndef IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
-		int m_count_update_info; //[+]FlylinkDC++
+		int m_count_update_info;
 #endif
 		bool sortAscending;
 		int leftMargin;
@@ -1018,7 +1014,7 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 						setSortColumn(0);
 						
 					DeleteColumn(k);
-					updateAllImages(); //[+]PPA
+					updateAllImages();
 					break;
 				}
 			}
@@ -1068,15 +1064,15 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 				}
 				else
 				{
-					color = Colors::getAlternativBkColor(p_cd); // [!] IRainman
-					::SetBkColor(p_cd->nmcd.hdc, color); // [!] IRainman
+					color = Colors::getAlternativBkColor(p_cd);
+					::SetBkColor(p_cd->nmcd.hdc, color);
 					::SetTextColor(p_cd->nmcd.hdc, p_textColorUnfocus);
 				}
 			}
 			else
 			{
-				color = Colors::getAlternativBkColor(p_cd); // [!] IRainman
-				::SetBkColor(p_cd->nmcd.hdc, color); // [!] IRainman
+				color = Colors::getAlternativBkColor(p_cd);
+				::SetBkColor(p_cd->nmcd.hdc, color);
 				::SetTextColor(p_cd->nmcd.hdc, p_textColor);
 			}
 			HGDIOBJ oldpen = ::SelectObject(p_cd->nmcd.hdc, CreatePen(PS_SOLID, 0, color));
@@ -1429,11 +1425,11 @@ class TypedTreeListViewCtrl : public TypedListViewCtrl<T, ctrlId>
 			}
 		}
 		
-		void DeleteAndClearAllItems() // [!] IRainman Dear BM: please use actual name!
+		void DeleteAndClearAllItems()
 		{
 			dcassert(m_is_destroy_items == false);
 			CFlyBusyBool l_busy(m_is_destroy_items);
-			CLockRedraw<> l_lock_draw(m_hWnd); // [+] IRainman opt.
+			CLockRedraw<> l_lock_draw(m_hWnd);
 			// HACK: ugly hack but at least it doesn't crash and there's no memory leak
 			DeleteAllItems();
 			for (auto i = parents.cbegin(); i != parents.cend(); ++i)
@@ -1934,9 +1930,9 @@ class TypedTreeListViewCtrlSafe : public TypedListViewCtrl<T, ctrlId>
 				delete item;
 		}
 		
-		void DeleteAndClearAllItems() // [!] IRainman Dear BM: please use actual name!
+		void DeleteAndClearAllItems()
 		{
-			CLockRedraw<> l_lock_draw(m_hWnd); // [+] IRainman opt.
+			CLockRedraw<> l_lock_draw(m_hWnd);
 			// HACK: ugly hack but at least it doesn't crash and there's no memory leak
 			for (auto i = parents.cbegin(); i != parents.cend(); ++i)
 			{
@@ -2110,8 +2106,6 @@ const vector<T*> TypedTreeListViewCtrlSafe<T, ctrlId, KValue>::g_emptyVector;
 #endif //  FLYLINKDC_USE_TREEE_LIST_VIEW_WITHOUT_POINTER
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-// [+] FlylinkDC++: support MediaInfo in Lists.
-
 template <typename T1, int ctrlId, class Base>
 class MediainfoCtrl : public Base
 {
@@ -2164,8 +2158,6 @@ template<class T, int ctrlId, class KValue>
 class MediainfoTypedTreeListViewCtrl : public MediainfoCtrl<T, ctrlId, TypedTreeListViewCtrl<T, ctrlId, KValue>>
 {
 };
-
-// [~] FlylinkDC++: support MediaInfo in Lists.
 
 #endif // !defined(TYPED_LIST_VIEW_CTRL_H)
 

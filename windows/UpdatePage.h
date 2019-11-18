@@ -25,7 +25,7 @@
 
 #include <atlcrack.h>
 #include "PropPage.h"
-#include "ExListViewCtrl.h" // [+] IRainman
+#include "ExListViewCtrl.h"
 
 
 class UpdatePage : public CPropertyPage<IDD_UPDATE_PAGE>, public PropPage
@@ -39,14 +39,14 @@ class UpdatePage : public CPropertyPage<IDD_UPDATE_PAGE>, public PropPage
 		
 		~UpdatePage()
 		{
-			ctrlComponents.Detach(); // [+] IRainman
-			ctrlAutoupdates.Detach(); // [+] IRainman
+			ctrlComponents.Detach();
+			ctrlAutoupdates.Detach();
 		}
 		
 		BEGIN_MSG_MAP_EX(UpdatePage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
-		NOTIFY_HANDLER(IDC_AUTOUPDATE_LIST, NM_CUSTOMDRAW, ctrlComponents.onCustomDraw) // [+] IRainman
-		NOTIFY_HANDLER(IDC_AUTOUPDATE_COMPONENTS, NM_CUSTOMDRAW, ctrlAutoupdates.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_AUTOUPDATE_LIST, NM_CUSTOMDRAW, ctrlComponents.onCustomDraw)
+		NOTIFY_HANDLER(IDC_AUTOUPDATE_COMPONENTS, NM_CUSTOMDRAW, ctrlAutoupdates.onCustomDraw)
 #ifndef AUTOUPDATE_NOT_DISABLE
 		COMMAND_ID_HANDLER(IDC_AUTOUPDATE_USE, onClickedUseAutoUpdate)
 #endif
@@ -84,7 +84,7 @@ class UpdatePage : public CPropertyPage<IDD_UPDATE_PAGE>, public PropPage
 		
 		CComboBox ctrlTime;
 		
-		ExListViewCtrl ctrlComponents, ctrlAutoupdates; // [+] IRainman
+		ExListViewCtrl ctrlComponents, ctrlAutoupdates;
 };
 
 #endif // !defined(UPDATE_PAGE_H)

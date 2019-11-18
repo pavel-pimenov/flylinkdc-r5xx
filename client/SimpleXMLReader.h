@@ -51,7 +51,7 @@ class SimpleXMLReader
 	
 		static const size_t MAX_NAME_SIZE = 260;
 		static const size_t MAX_VALUE_SIZE = 64 * 1024;
-		static const size_t MAX_NESTING = 256; // [!]IRainman change 16 to 256
+		static const size_t MAX_NESTING = 256;
 		
 		enum ParseState
 		{
@@ -119,7 +119,7 @@ class SimpleXMLReader
 			
 			/// In <!-- comment field
 			STATE_COMMENT,
-			/// SSA - CDATA
+			
 			STATE_CDATA,
 			
 			STATE_CONTENT,

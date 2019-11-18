@@ -84,7 +84,7 @@ class IntegrationPage : public CPropertyPage<IDD_INTEGRATION_PAGE>, public PropP
 		static TextItem texts[];
 		static ListItem listItems[];
 		
-		ExListViewCtrl m_ctrlList; // [+] IRainman
+		ExListViewCtrl m_ctrlList;
 		
 };
 

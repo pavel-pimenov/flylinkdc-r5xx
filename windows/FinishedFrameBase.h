@@ -91,7 +91,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		COMMAND_ID_HANDLER(IDC_OPEN_FOLDER, onOpenFolder)
 		COMMAND_ID_HANDLER(IDC_GETLIST, onGetList)
 		COMMAND_ID_HANDLER(IDC_GRANTSLOT, onGrant)
-		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		COMMAND_ID_HANDLER(IDC_COPY_NICK, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_FILENAME, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_TYPE, onCopy)
@@ -107,7 +107,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		NOTIFY_HANDLER(id, LVN_KEYDOWN, onKeyDown)
 		NOTIFY_HANDLER(id, NM_DBLCLK, onDoubleClick)
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-		NOTIFY_HANDLER(id, NM_CUSTOMDRAW, ctrlList.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(id, NM_CUSTOMDRAW, ctrlList.onCustomDraw)
 #endif
 		NOTIFY_HANDLER(IDC_TRANSFER_TREE, TVN_SELCHANGED, onSelChangedTree);
 		CHAIN_MSG_MAP(baseClass)
@@ -425,16 +425,15 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 				ctrlList.saveHeaderOrder(columnOrder, columnWidth, columnVisible);
 				SET_SETTING(FINISHED_DL_COLUMNS_SORT, ctrlList.getSortColumn());
 				SET_SETTING(FINISHED_DL_COLUMNS_SORT_ASC, ctrlList.isAscending());
-				//frame = NULL; [-] IRainman see template StaticFrame in WinUtil.h
 				
-				ctrlList.DeleteAndCleanAllItems(); // [!] IRainman
+				ctrlList.DeleteAndCleanAllItems();
 				
 				bHandled = FALSE;
 				return 0;
 			}
 		}
 		
-		// [+] InfinitySky.
+		
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			PostMessage(WM_CLOSE);
@@ -585,7 +584,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					{
 						FinishedManager::removeAll(m_type);
 					}
-					ctrlList.DeleteAndCleanAllItems(); // [!] IRainman
+					ctrlList.DeleteAndCleanAllItems();
 					m_totalBytes = 0;
 					m_totalActual = 0;
 					m_totalSpeed = 0;
@@ -758,7 +757,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 					const UserPtr u = ClientManager::findUser(ii->m_entry->getCID());
 					if (u && u->isOnline())
 					{
-						try // [+] IRainman fix done: [4] https://www.box.net/shared/0ac062dcc56424091537
+						try
 						{
 							QueueManager::getInstance()->addList(HintedUser(u, ii->m_entry->getHub()), QueueItem::FLAG_CLIENT_VIEW);
 						}
@@ -842,7 +841,7 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 		enum
 		{
 			SPEAK_ADD_LINE,
-			SPEAK_REMOVE_LINE, // [+] IRainman
+			SPEAK_REMOVE_LINE,
 			SPEAK_UPDATE_STATUS
 			/* TODO
 			SPEAK_REMOVE,

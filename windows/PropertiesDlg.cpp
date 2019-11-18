@@ -22,7 +22,7 @@
 
 #include "GeneralPage.h"
 #include "DownloadPage.h"
-#include "PriorityPage.h" // [+] InfinitySky.
+#include "PriorityPage.h"
 #include "SharePage.h"
 #include "SlotPage.h"
 #include "AppearancePage.h"
@@ -39,15 +39,15 @@
 #include "FavoriteDirsPage.h"
 #include "PopupsPage.h"
 #include "SDCPage.h"
-#include "DefaultClickPage.h" // [+] NightOrion.
+#include "DefaultClickPage.h"
 #include "UserListColours.h"
 #include "NetworkPage.h"
 #include "ProxyPage.h"
 #include "WindowsPage.h"
-#include "TabsPage.h" // [+] InfinitySky.
+#include "TabsPage.h"
 #include "QueuePage.h"
 #include "MiscPage.h"
-#include "MessagesPage.h" // !SMT!-PSW
+#include "MessagesPage.h"
 #include "RangesPage.h"
 #include "RemoteControlPage.h"
 #include "WebServerPage.h"
@@ -79,10 +79,10 @@ PropertiesDlg::PropertiesDlg(HWND parent) : TreePropertySheet(CTSTRING(SETTINGS)
 	pages[n++] = new FavoriteDirsPage();
 	pages[n++] = new AVIPreview();
 	pages[n++] = new QueuePage();
-	pages[n++] = new PriorityPage(); // [+] InfinitySky.
+	pages[n++] = new PriorityPage();
 	pages[n++] = new SharePage();
 	pages[n++] = new SlotPage();
-	pages[n++] = new MessagesPage(); // !SMT!-PSW [~] InfinitySky
+	pages[n++] = new MessagesPage();
 	pages[n++] = new AppearancePage();
 	pages[n++] = new PropPageTextStyles();
 	pages[n++] = new OperaColorsPage();
@@ -91,16 +91,16 @@ PropertiesDlg::PropertiesDlg(HWND parent) : TreePropertySheet(CTSTRING(SETTINGS)
 	pages[n++] = new Sounds();
 	pages[n++] = new ToolbarPage();
 	pages[n++] = new WindowsPage();
-	pages[n++] = new TabsPage(); // [+] InfinitySky.
+	pages[n++] = new TabsPage();
 	pages[n++] = new AdvancedPage();
 	pages[n++] = new SDCPage();
-	pages[n++] = new DefaultClickPage(); // [+] NightOrion.
+	pages[n++] = new DefaultClickPage();
 	pages[n++] = new LogPage();
 	pages[n++] = new UCPage();
 	pages[n++] = new LimitPage();
 	pages[n++] = new FakeDetect();
 	pages[n++] = new ClientsPage();
-	pages[n++] = new RSSPage(); // [+] SSA
+	pages[n++] = new RSSPage();
 	pages[n++] = new CertificatesPage();
 	pages[n++] = new MiscPage();
 	pages[n++] = new RangesPage();

@@ -70,7 +70,7 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	SetDlgItemText(IDC_FAV_SEARCH_PASSIVE_INTERVAL, CTSTRING(MINIMUM_SEARCH_PASSIVE_INTERVAL));
 	SetDlgItemText(IDC_S_PASSIVE, CTSTRING(S));
 	
-	SetDlgItemText(IDC_CLIENT_ID, CTSTRING(CLIENT_ID)); // !SMT!-S
+	SetDlgItemText(IDC_CLIENT_ID, CTSTRING(CLIENT_ID));
 	SetDlgItemText(IDC_ENCODING, CTSTRING(FAVORITE_HUB_ENCODING));
 	SetDlgItemText(IDC_ENCODINGTEXT, CTSTRING(FAVORITE_HUB_ENCODINGTEXT));
 	SetDlgItemText(IDCANCEL, CTSTRING(CANCEL));
@@ -108,12 +108,8 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	
 	SetDlgItemText(IDC_WIZARD_NICK_RND, CTSTRING(WIZARD_NICK_RND)); // Rand Nick button
 	SetDlgItemText(IDC_WIZARD_NICK_RND2, CTSTRING(DEFAULT));        // Default Nick button
-//	CString login;
-//	login.SetString(Text::toT( entry->getNick(false) ).c_str());
-//	SetDlgItemText(IDC_HUBNICK, login);
-
-	// [+] IRainman mimicry function. Thanks SMT!
-	CComboBox IdCombo; // !SMT!-S
+	
+	CComboBox IdCombo;
 	IdCombo.Attach(GetDlgItem(IDC_CLIENT_ID_BOX));
 	const bool l_isAdc = Util::isAdcHub(entry->getServer());
 	for (const FavoriteManager::mimicrytag* i = &FavoriteManager::g_MimicryTags[0]; i->tag; ++i)
@@ -128,7 +124,6 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	CheckDlgButton(IDC_CLIENT_ID, entry->getOverrideId() ? BST_CHECKED : BST_UNCHECKED);
 	BOOL x;
 	OnChangeId(BN_CLICKED, IDC_CLIENT, 0, x);
-	// [~] IRainman mimicry function
 	
 	CComboBox combo;
 	combo.Attach(GetDlgItem(IDC_FAVGROUP_BOX));
@@ -150,7 +145,7 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 	
 	combo.Detach();
 	
-	// [!] IRainman fix.
+	
 	combo.Attach(GetDlgItem(IDC_ENCODING));
 	if (Util::isAdcHub(entry->getServer()))
 	{
@@ -176,13 +171,13 @@ LRESULT FavHubProperties::OnInitDialog(UINT, WPARAM, LPARAM, BOOL&)
 		else
 			combo.SetWindowText(Text::toT(entry->getEncoding()).c_str());
 	}
-	// [~] IRainman fix.
+	
 	
 	combo.Detach();
 	
 	CUpDownCtrl updown;
 	updown.Attach(GetDlgItem(IDC_FAV_SEARCH_INTERVAL_SPIN));
-	updown.SetRange(1, 500); //[+]NightOrion
+	updown.SetRange(1, 500);
 	updown.Detach();
 	
 	
@@ -286,14 +281,12 @@ LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 		}
 		combo.Detach();
 		
-		// [+] IRainman mimicry function. Thanks SMT!
 		GET_TEXT(IDC_CLIENT_ID_BOX, buf);
 		string l_clientName, l_clientVersion;
 		FavoriteManager::splitClientId(Text::fromT(buf), l_clientName, l_clientVersion);
 		entry->setClientName(l_clientName);
 		entry->setClientVersion(l_clientVersion);
 		entry->setOverrideId(IsDlgButtonChecked(IDC_CLIENT_ID) == BST_CHECKED);
-		// [~] IRainman mimicry function
 		
 		
 		int ct = -1;
@@ -306,7 +299,7 @@ LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 			
 		entry->setMode(ct);
 		
-		// [!] IRainman fix.
+		
 		if (Util::isAdcHub(entry->getServer()))
 		{
 			entry->setEncoding(Text::g_utf8);
@@ -321,7 +314,7 @@ LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 			}
 			entry->setEncoding(Text::fromT(buf));
 		}
-		// [~] IRainman fix.
+		
 		
 		FavoriteManager::save_favorites();
 	}
@@ -365,7 +358,7 @@ LRESULT FavHubProperties::OnTextChanged(WORD /*wNotifyCode*/, WORD wID, HWND hWn
 	return TRUE;
 }
 
-// !SMT!-S
+
 LRESULT FavHubProperties::OnChangeId(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	::EnableWindow(GetDlgItem(IDC_CLIENT_ID_BOX), (IsDlgButtonChecked(IDC_CLIENT_ID) == BST_CHECKED));

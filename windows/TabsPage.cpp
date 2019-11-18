@@ -43,7 +43,7 @@ PropPage::ListItem TabsPage::optionItems[] =
 	{ SettingsManager::NON_HUBS_FRONT, ResourceManager::NON_HUBS_FRONT },
 	{ SettingsManager::TABS_CLOSEBUTTONS, ResourceManager::TABS_CLOSEBUTTONS },
 	{ SettingsManager::STRIP_TOPIC, ResourceManager::SETTINGS_STRIP_TOPIC },    //AdvancedPage
-	{ SettingsManager::SHOW_FULL_HUB_INFO_ON_TAB, ResourceManager::SETTINGS_SHOW_FULL_HUB_INFO_ON_TAB }, // [+] NightOrion.
+	{ SettingsManager::SHOW_FULL_HUB_INFO_ON_TAB, ResourceManager::SETTINGS_SHOW_FULL_HUB_INFO_ON_TAB },
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -70,8 +70,8 @@ LRESULT TabsPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 	PropPage::read(*this, items, optionItems, GetDlgItem(IDC_TABS_OPTIONS));
 	PropPage::read(*this, items, boldItems, GetDlgItem(IDC_BOLD_BOOLEANS));
 	
-	ctrlOption.Attach(GetDlgItem(IDC_TABS_OPTIONS)); // [+] IRainman
-	ctrlBold.Attach(GetDlgItem(IDC_BOLD_BOOLEANS)); // [+] IRainman
+	ctrlOption.Attach(GetDlgItem(IDC_TABS_OPTIONS));
+	ctrlBold.Attach(GetDlgItem(IDC_BOLD_BOOLEANS));
 	
 	// Расположение вкладок.
 	// Do specialized reading here

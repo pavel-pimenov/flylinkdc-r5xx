@@ -35,7 +35,6 @@ PropPage::TextItem IntPreviewPage::texts[] =
 	{ IDC_KBPS, ResourceManager::KBPS },
 	{ IDC_INT_PREVIEW_HTTP_CL_SETUP_GROUP, ResourceManager::INT_PREVIEW_HTTP_CL_SETUP_GROUP },
 	{ IDC_INT_PREVIEW_HTTP_CL_SETUP_PATH, ResourceManager::INT_PREVIEW_HTTP_CL_SETUP_PATH },
-	//{ IDC_BTN_SELECT, ResourceManager::BROWSE }, // [~] JhaoDa, not necessary any more
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -61,7 +60,7 @@ LRESULT IntPreviewPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 
 	PropPage::translate((HWND)(*this), texts);
 	PropPage::read(*this, items, listItems, GetDlgItem(IDC_INT_PREVIEW_LIST));
-	ctrlPrevlist.Attach(GetDlgItem(IDC_INT_PREVIEW_LIST)); // [+] IRainman
+	ctrlPrevlist.Attach(GetDlgItem(IDC_INT_PREVIEW_LIST));
 	return TRUE;
 }
 

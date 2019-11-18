@@ -27,7 +27,7 @@
 #include "ThrottleManager.h"
 #include "DebugManager.h"
 
-// [+] IRainman fix.
+
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 FastCriticalSection AdcSupports::g_debugCsUnknownAdcFeatures;
 boost::unordered_map<string, string> AdcSupports::g_debugUnknownAdcFeatures;
@@ -41,7 +41,7 @@ FastCriticalSection NmdcSupports::g_debugCsUnknownNmdcTagParam;
 boost::unordered_map<string, unsigned> NmdcSupports::g_debugUnknownNmdcTagParam;
 #endif // FLYLINKDC_COLLECT_UNKNOWN_TAG
 
-// [~] IRainman fix.
+
 
 const string AdcSupports::CLIENT_PROTOCOL("ADC/1.0");
 const string AdcSupports::SECURE_CLIENT_PROTOCOL_TEST("ADCS/0.10");
@@ -100,7 +100,7 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID, const string
 	if (ou)
 		return ou;
 		
-	// [+] IRainman fix.
+		
 	if (aCID.isZero())
 	{
 		CFlyWriteLock(*m_cs);
@@ -118,7 +118,7 @@ OnlineUserPtr AdcHub::getUser(const uint32_t aSID, const CID& aCID, const string
 			messageYouHaweRightOperatorOnThisHub();
 		}
 	}
-	// [~] IRainman fix.
+	
 	else // User
 	{
 		UserPtr u = ClientManager::createUser(aCID, p_nick, getHubID());
@@ -154,7 +154,7 @@ OnlineUserPtr AdcHub::findUser(const string& aNick) const
 	return nullptr;
 }
 
-OnlineUserPtr AdcHub::findUser(const uint32_t aSID) const// [!] IRainman fix return OnlineUserPtr
+OnlineUserPtr AdcHub::findUser(const uint32_t aSID) const
 {
 #ifdef _DEBUG
 	// LogManager::message("AdcHub::findUser aSID = " + Util::toString(aSID));
@@ -164,7 +164,7 @@ OnlineUserPtr AdcHub::findUser(const uint32_t aSID) const// [!] IRainman fix ret
 	return i == m_adc_users.end() ? OnlineUserPtr() : i->second;
 }
 
-OnlineUserPtr AdcHub::findUser(const CID& aCID) const// [!] IRainman fix return OnlineUserPtr
+OnlineUserPtr AdcHub::findUser(const CID& aCID) const
 {
 #ifdef _DEBUG
 	// LogManager::message("AdcHub::findUser [slow] aCID = " + aCID.toBase32());
@@ -236,7 +236,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 		dcassert(0);
 		return;
 	}
-	OnlineUserPtr ou; // [!] IRainman fix: use OnlineUserPtr here!
+	OnlineUserPtr ou;
 	string l_cid;
 	if (c.getParam("ID", 0, l_cid))
 	{
@@ -249,7 +249,6 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 		{
 			if (ou->getIdentity().getSID() != c.getFrom())
 			{
-				// Same CID but different SID not allowed - buggy hub? [!] IRainman: yes - this is a bug in the hub - it must filter the users with the same cid not depending on the sid! This error is typically used to send spam, as it came from himself.
 				const string l_message = ou->getIdentity().getNick() + " (" + ou->getIdentity().getSIDString() +
 				                         ") has same CID {" + l_cid + "} as " + c.getNick() + " (" + AdcCommand::fromSID(c.getFrom()) + "), ignoring.";
 				fly_fire3(ClientListener::StatusMessage(), this, l_message, ClientListener::FLAG_IS_SPAM);
@@ -296,7 +295,6 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 			dcassert(0);
 			continue;
 		}
-		// [+] brain-ripper
 		switch (*(short*)i->c_str())
 		{
 			case TAG('S', 'L'):
@@ -314,7 +312,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 				changeBytesSharedL(id, Util::toInt64(i->c_str() + 2));
 				break;
 			}
-			// [+] IRainman fix.
+			
 			case TAG('S', 'U'):
 			{
 				AdcSupports::setSupports(id, i->substr(2));
@@ -377,7 +375,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 				// ignore, use CT
 				break;
 			}
-			// [~] IRainman fix.
+			
 			case TAG('C', 'T'):
 			{
 				id.setClientType(Util::toInt(i->c_str() + 2));
@@ -408,7 +406,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 				id.setNick(i->substr(2));
 				break;
 			}
-			case TAG('A', 'W'): // [+] IRainman fix: away mode.
+			case TAG('A', 'W'):
 			{
 				u->setFlag(User::AWAY);
 				break;
@@ -443,7 +441,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 		id.setUseIP6();
 	}
 	
-	if (isMe(ou)) // [!] IRainman fix.
+	if (isMe(ou))
 	{
 		state = STATE_NORMAL;
 		setAutoReconnect(true);
@@ -552,14 +550,14 @@ void AdcHub::handle(AdcCommand::MSG, const AdcCommand& c) noexcept
 		if (!message->m_replyTo)
 			return;
 			
-		if (allowPrivateMessagefromUser(*message)) // [+] IRainman.
+		if (allowPrivateMessagefromUser(*message))
 		{
 			fly_fire2(ClientListener::Message(), this, message);
 		}
 	}
 	else
 	{
-		if (allowChatMessagefromUser(*message, Util::emptyString)) // [+] IRainman.
+		if (allowChatMessagefromUser(*message, Util::emptyString))
 		{
 			fly_fire2(ClientListener::Message(), this, message);
 		}
@@ -572,11 +570,8 @@ void AdcHub::handle(AdcCommand::GPA, const AdcCommand& c) noexcept
 		return;
 	m_salt = c.getParam(0);
 	state = STATE_VERIFY;
-	
-	// [!] IRainman fix.
-	setRegistered(); // [+]
-	processingPassword(); // [!]
-	// [~] IRainman fix.
+	setRegistered();
+	processingPassword();
 }
 
 void AdcHub::handle(AdcCommand::QUI, const AdcCommand& c) noexcept
@@ -642,7 +637,7 @@ void AdcHub::handle(AdcCommand::QUI, const AdcCommand& c) noexcept
 
 void AdcHub::handle(AdcCommand::CTM, const AdcCommand& c) noexcept
 {
-	OnlineUserPtr ou = findUser(c.getFrom()); // [!] IRainman fix.
+	OnlineUserPtr ou = findUser(c.getFrom());
 	if (isMeCheck(ou))
 		return;
 	if (c.getParameters().size() < 3)
@@ -778,7 +773,7 @@ void AdcHub::sendUDP(const AdcCommand& cmd) noexcept
 			dcdebug("AdcHub::sendUDP: invalid user\n");
 			return;
 		}
-		const OnlineUserPtr ou = i->second; // [!] IRainman fix: add pointer
+		const OnlineUserPtr ou = i->second;
 		if (!ou->getIdentity().isUdpActive())
 		{
 			return;
@@ -890,7 +885,7 @@ void AdcHub::handle(AdcCommand::STA, const AdcCommand& c) noexcept
 
 void AdcHub::handle(AdcCommand::SCH, const AdcCommand& c) noexcept
 {
-	OnlineUserPtr ou = findUser(c.getFrom()); // [!] IRainman fix.
+	OnlineUserPtr ou = findUser(c.getFrom());
 	if (!ou)
 	{
 		dcdebug("Invalid user in AdcHub::onSCH\n");
@@ -902,7 +897,7 @@ void AdcHub::handle(AdcCommand::SCH, const AdcCommand& c) noexcept
 
 void AdcHub::handle(AdcCommand::RES, const AdcCommand& c) noexcept
 {
-	OnlineUserPtr ou = findUser(c.getFrom()); // [!] IRainman fix.
+	OnlineUserPtr ou = findUser(c.getFrom());
 	if (!ou)
 	{
 		dcdebug("Invalid user in AdcHub::onRES\n");
@@ -913,7 +908,7 @@ void AdcHub::handle(AdcCommand::RES, const AdcCommand& c) noexcept
 
 void AdcHub::handle(AdcCommand::PSR, const AdcCommand& c) noexcept
 {
-	OnlineUserPtr ou = findUser(c.getFrom()); // [!] IRainman fix.
+	OnlineUserPtr ou = findUser(c.getFrom());
 	if (!ou)
 	{
 		dcdebug("Invalid user in AdcHub::onPSR\n");
@@ -979,7 +974,7 @@ void AdcHub::handle(AdcCommand::GET, const AdcCommand& c) noexcept
 			                "Unsupported m", AdcCommand::TYPE_HUB));
 			return;
 		}
-		if (m > 0)  //[+] http://bazaar.launchpad.net/~dcplusplus-team/dcplusplus/trunk/revision/2282
+		if (m > 0)
 		{
 			ShareManager::getBloom(v, k, m, h);
 		}
@@ -990,7 +985,7 @@ void AdcHub::handle(AdcCommand::GET, const AdcCommand& c) noexcept
 		cmd.addParam(c.getParam(3));
 		cmd.addParam(c.getParam(4));
 		send(cmd);
-		if (m > 0 && !v.empty())  //[+] http://bazaar.launchpad.net/~dcplusplus-team/dcplusplus/trunk/revision/2282
+		if (m > 0 && !v.empty())
 		{
 			send((char*)&v[0], v.size());
 		}
@@ -1002,8 +997,8 @@ void AdcHub::handle(AdcCommand::NAT, const AdcCommand& c) noexcept
 	if (!BOOLSETTING(ALLOW_NAT_TRAVERSAL))
 		return;
 		
-	OnlineUserPtr ou = findUser(c.getFrom()); // [!] IRainman fix.
-	if (isMeCheck(ou) || c.getParameters().size() < 3) // [!] IRainman fix.
+	OnlineUserPtr ou = findUser(c.getFrom());
+	if (isMeCheck(ou) || c.getParameters().size() < 3)
 		return;
 		
 	const string& protocol = c.getParam(0);
@@ -1043,8 +1038,8 @@ void AdcHub::handle(AdcCommand::RNT, const AdcCommand& c) noexcept
 	if (!BOOLSETTING(ALLOW_NAT_TRAVERSAL))
 		return;
 		
-	OnlineUserPtr ou = findUser(c.getFrom()); // [!] IRainman fix.
-	if (isMeCheck(ou) || c.getParameters().size() < 3)// [!] IRainman fix.
+	OnlineUserPtr ou = findUser(c.getFrom());
+	if (isMeCheck(ou) || c.getParameters().size() < 3)
 		return;
 		
 	const string& protocol = c.getParam(0);
@@ -1329,14 +1324,13 @@ void AdcHub::search_token(const SearchParamToken& p_search_param)
 {
 	if (state != STATE_NORMAL
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
-	        || getHideShare()//[+]FlylinkDC HideShare mode
+	        || getHideShare()
 #endif
 	   )
 		return;
 		
 	AdcCommand cmd(AdcCommand::CMD_SCH, AdcCommand::TYPE_BROADCAST);
 	
-	//dcassert(aToken);
 	cmd.addParam("TO", Util::toString(p_search_param.m_token));
 	
 	if (p_search_param.m_file_type == Search::TYPE_TTH)
@@ -1547,8 +1541,8 @@ void AdcHub::info(bool p_force)
 		updateCounts(false);
 	}
 	
-	addParam(c, "ID", ClientManager::getMyCID().toBase32()); // [!] IRainman fix.
-	addParam(c, "PD", ClientManager::getMyPID().toBase32()); // [!] IRainman fix.
+	addParam(c, "ID", ClientManager::getMyCID().toBase32());
+	addParam(c, "PD", ClientManager::getMyPID().toBase32());
 	addParam(c, "NI", getMyNick());
 	addParam(c, "DE", getCurrentDescription());
 	addParam(c, "SL", Util::toString(UploadManager::getSlots()));
@@ -1592,21 +1586,18 @@ void AdcHub::info(bool p_force)
 		addParam(c, "HR", Util::toString(g_counts[COUNT_REGISTERED].load()));
 		addParam(c, "HO", Util::toString(g_counts[COUNT_OP].load()));
 	}
-	// [~] Flylink++ Exclusive hub mode
-	// [!] IRainman mimicry function
 	addParam(c, "AP", getClientName());
 	
 	addParam(c, "VE", getTagVersion());
-	// [~] IRainman mimicry function
 	addParam(c, "AW", Util::getAway() ? "1" : Util::emptyString);
 	
-	size_t limit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getDownloadLimitInBytes() : 0;// [!] IRainman SpeedLimiter
+	size_t limit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getDownloadLimitInBytes() : 0;
 	if (limit > 0)
 	{
 		addParam(c, "DS", Util::toString(limit));
 	}
 	
-	limit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getUploadLimitInBytes() : 0;// [!] IRainman SpeedLimiter
+	limit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getUploadLimitInBytes() : 0;
 	if (limit > 0)
 	{
 		addParam(c, "US", Util::toString(limit));
@@ -1680,7 +1671,6 @@ void AdcHub::refreshUserList(bool)
 {
 	OnlineUserList v;
 	{
-		// [!] IRainman fix potential deadlock.
 		CFlyReadLock(*m_cs);
 		for (auto i = m_adc_users.cbegin(); i != m_adc_users.cend(); ++i)
 		{

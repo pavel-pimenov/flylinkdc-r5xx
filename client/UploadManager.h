@@ -65,13 +65,13 @@ class UploadQueueItem :
 			COLUMN_SIZE,
 			COLUMN_ADDED,
 			COLUMN_WAITING,
-			COLUMN_LOCATION, // !SMT!-IP
-			COLUMN_IP, // !SMT!-IP
+			COLUMN_LOCATION,
+			COLUMN_IP,
 #ifdef FLYLINKDC_USE_DNS
-			COLUMN_DNS, // !SMT!-IP
+			COLUMN_DNS,
 #endif
-			COLUMN_SLOTS, // !SMT!-UI
-			COLUMN_SHARE, // !SMT!-UI
+			COLUMN_SLOTS,
+			COLUMN_SHARE,
 			COLUMN_LAST // Не забудь увеличить ColumnBase<13>
 		};
 		
@@ -111,7 +111,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 #ifdef FLYLINKDC_USE_DOS_GUARD
 		typedef boost::unordered_map<string, uint8_t> CFlyDoSCandidatMap;
 		CFlyDoSCandidatMap m_dos_map;
-		mutable FastCriticalSection csDos; // [+] IRainman opt.
+		mutable FastCriticalSection csDos;
 #endif
 	public:
 		static uint32_t g_count_WaitingUsersFrame;
@@ -130,7 +130,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		 */
 		static int64_t getRunningAverage()
 		{
-			return g_runningAverage;//[+] IRainman refactoring transfer mechanism
+			return g_runningAverage;
 		}
 		
 		static int getSlots()
@@ -157,7 +157,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		void clearWaitingFilesL(const WaitingUser& p_wu);
 		
 		
-		class LockInstanceQueue // [+] IRainman opt.
+		class LockInstanceQueue
 		{
 			public:
 				LockInstanceQueue()
@@ -197,10 +197,10 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		GETSET(int, extra, Extra);
 		GETSET(uint64_t, lastGrant, LastGrant);
 		
-		void load(); // !SMT!-S
-		static void save(); // !SMT!-S
+		void load();
+		static void save();
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
-		static bool isBanReply(const UserPtr& user); // !SMT!-S
+		static bool isBanReply(const UserPtr& user);
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 		
 		static time_t getReservedSlotTime(const UserPtr& aUser);
@@ -210,7 +210,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		bool isFireball;
 		bool isFileServer;
 		static int  g_running;
-		static int64_t g_runningAverage;//[+] IRainman refactoring transfer mechanism
+		static int64_t g_runningAverage;
 		uint64_t m_fireballStartTick;
 		
 		static UploadList g_uploads;
@@ -223,9 +223,8 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		static void increaseUserConnectionAmountL(const UserPtr& p_user);
 		static void decreaseUserConnectionAmountL(const UserPtr& p_user);
 		static unsigned int getUserConnectionAmountL(const UserPtr& p_user);
-		// [~] IRainman SpeedLimiter
 		
-		int m_lastFreeSlots; /// amount of free slots at the previous minute
+		int m_lastFreeSlots; // amount of free slots at the previous minute
 		
 		typedef boost::unordered_map<UserPtr, uint64_t, User::Hash> SlotMap;
 		
@@ -235,10 +234,10 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		
 		SlotMap m_notifiedUsers;
 		SlotQueue m_slotQueue;
-		mutable CriticalSection m_csQueue; // [+] IRainman opt.
+		mutable CriticalSection m_csQueue;
 		
 		size_t addFailedUpload(const UserConnection* aSource, const string& file, int64_t pos, int64_t size);
-		void notifyQueuedUsers(int64_t p_tick);//[!]IRainman refactoring transfer mechanism add int64_t tick
+		void notifyQueuedUsers(int64_t p_tick);
 		
 		friend class Singleton<UploadManager>;
 		UploadManager() noexcept;
@@ -249,7 +248,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		static void removeUpload(UploadPtr& aUpload, bool delay = false);
 		void logUpload(const UploadPtr& u);
 		
-		static void testSlotTimeout(uint64_t aTick = GET_TICK()); // !SMT!-S
+		static void testSlotTimeout(uint64_t aTick = GET_TICK());
 		
 		// ClientManagerListener
 		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept override;
@@ -270,8 +269,8 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		void on(AdcCommand::GFI, UserConnection*, const AdcCommand&) noexcept override;
 		
 		bool prepareFile(UserConnection* aSource, const string& aType, const string& aFile, int64_t aResume, int64_t& aBytes, bool listRecursive = false);
-		bool hasUpload(const UserConnection* aSource, const string& p_source_file) const; // [+] FlylinkDC++
-		// !SMT!-S
+		bool hasUpload(const UserConnection* aSource, const string& p_source_file) const;
+		
 #ifdef IRAINMAN_ENABLE_AUTO_BAN
 		struct banmsg_t
 		{

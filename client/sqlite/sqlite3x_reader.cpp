@@ -108,7 +108,7 @@ double sqlite3_reader::getdouble(int index) {
 std::string sqlite3_reader::getstring(int index) {
 	check_reader(index);
     const int l_size = sqlite3_column_bytes(this->cmd->stmt, index);
-    if(l_size) //[+]PPA
+    if(l_size) 
    	   return std::string((const char*)sqlite3_column_text(this->cmd->stmt, index), l_size);
     else
        return "";   

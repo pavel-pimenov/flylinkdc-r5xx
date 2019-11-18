@@ -36,7 +36,7 @@ class Flags
 		}
 		void setFlags(MaskType aFlags)
 		{
-			flags = aFlags;    // !SMT!
+			flags = aFlags;
 		}
 		MaskType getFlags() const
 		{

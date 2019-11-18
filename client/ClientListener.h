@@ -39,7 +39,6 @@ class ClientListener
 		typedef X<20> HubTopic;
 #endif
 		typedef X<21> UserReport;
-		// typedef X<22> TTHSearch; // [+]FlylinkDC++
 		typedef X<22> DDoSSearchDetect;
 		typedef X<23> FirstExtJSON;
 		typedef X<24> UserDescUpdated;
@@ -66,7 +65,7 @@ class ClientListener
 		virtual void on(ClientFailed, const Client*, const string&) noexcept { }
 		virtual void on(GetPassword, const Client*) noexcept { }
 		virtual void on(HubUpdated, const Client*) noexcept { }
-		virtual void on(Message, const Client*, std::unique_ptr<ChatMessage>&) noexcept { }  // !SMT!-S
+		virtual void on(Message, const Client*, std::unique_ptr<ChatMessage>&) noexcept { }
 		virtual void on(StatusMessage, const Client*, const string&, int = FLAG_NORMAL) noexcept { }
 		virtual void on(HubUserCommand, const Client*, int, int, const string&, const string&) noexcept { }
 		virtual void on(HubFull, const Client*) noexcept { }
@@ -76,14 +75,9 @@ class ClientListener
 #ifdef FLYLINKDC_SUPPORT_HUBTOPIC
 		virtual void on(HubTopic, const Client*, const string&) noexcept { }
 #endif
-		virtual void on(UserReport, const Client*, const string&) noexcept { } // [!] IRainman fix
+		virtual void on(UserReport, const Client*, const string&) noexcept { }
 		virtual void on(DDoSSearchDetect, const string&) noexcept { }
 		virtual void on(FirstExtJSON, const Client*) noexcept {}
-		
-		//virtual void on(PrivateMessage, const Client*, const string &strFromUserName, const OnlineUserPtr&, const OnlineUserPtr&, const OnlineUserPtr&, const string&, bool = true) noexcept { } // !SMT!-S  [-] IRainman fix.
-		// TODO
-		// virtual void on(TTHSearch, Client* aClient, const string& aSeeker, const TTHValue& aTTH, bool isPassive) noexcept { }
-		
 };
 
 #endif /*CLIENTLISTENER_H_*/

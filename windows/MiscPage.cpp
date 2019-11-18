@@ -120,10 +120,10 @@ void MiscPage::write()
 	
 	if (m_ignoreListCnange)
 	{
-		// [!] IRainman fix.
+	
 		UserManager::setIgnoreList(m_ignoreList);
 		// [-] HubFrame::saveIgnoreList();
-		// [~] IRainman fix.
+		
 		m_ignoreListCnange = false;
 	}
 	/*if(SETTING(PSR_DELAY) < 5)

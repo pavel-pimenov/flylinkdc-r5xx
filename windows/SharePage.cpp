@@ -29,10 +29,8 @@ PropPage::TextItem SharePage::texts[] =
 	{ IDC_SETTINGS_SHARED_DIRECTORIES, ResourceManager::SETTINGS_SHARED_DIRECTORIES },
 	{ IDC_SETTINGS_SHARE_SIZE, ResourceManager::SETTINGS_SHARE_SIZE },
 	{ IDC_SHAREHIDDEN, ResourceManager::SETTINGS_SHARE_HIDDEN },
-// [+]IRainman
 	{ IDC_SHARESYSTEM, ResourceManager::SETTINGS_SHARE_SYSTEM },
 	{ IDC_SHAREVIRTUAL, ResourceManager::SETTINGS_SHARE_VIRTUAL },
-// ~[+]IRainman
 	{ IDC_REMOVE, ResourceManager::REMOVE },
 	{ IDC_ADD, ResourceManager::SETTINGS_ADD_FOLDER },
 	{ IDC_RENAME, ResourceManager::RENAME },
@@ -46,10 +44,8 @@ PropPage::TextItem SharePage::texts[] =
 PropPage::Item SharePage::items[] =
 {
 	{ IDC_SHAREHIDDEN, SettingsManager::SHARE_HIDDEN, PropPage::T_BOOL },
-// [+]IRainman
 	{ IDC_SHARESYSTEM, SettingsManager::SHARE_SYSTEM, PropPage::T_BOOL },
 	{ IDC_SHAREVIRTUAL, SettingsManager::SHARE_VIRTUAL, PropPage::T_BOOL },
-// ~[+]IRainman
 	{ IDC_SKIPLIST_SHARE, SettingsManager::SKIPLIST_SHARE, PropPage::T_STR },
 	{ 0, 0, PropPage::T_END }
 };
@@ -322,7 +318,7 @@ void SharePage::addDirectory(const tstring& aPath)
 	
 	AppendPathSeparator(path);
 	
-	//if (path.length()) //[+]PPA
+	//if (path.length())
 	//  if (path[ path.length() - 1 ] != _T('\\'))
 	//      path += _T('\\');
 	

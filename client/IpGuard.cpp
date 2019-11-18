@@ -23,7 +23,6 @@
 #include "ResourceManager.h"
 #include "../windows/resource.h"
 #include "../XMLParser/xmlParser.h"
-#include "SimpleXML.h"
 #include "LogManager.h"
 #include "../FlyFeatures/flyServer.h"
 

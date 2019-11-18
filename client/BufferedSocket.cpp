@@ -40,9 +40,6 @@ BufferedSocket::BufferedSocket(char aSeparator, UserConnection* p_connection) :
 	m_rollback(0),
 	m_state(STARTING),
 	m_count_search_ddos(0),
-// [-] brain-ripper
-// should be rewritten using ThrottleManager
-//sleep(0), // !SMT!-S
 	m_is_disconnecting(false),
 	m_myInfoCount(0),
 	m_is_all_my_info_loaded(false),
@@ -190,7 +187,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 	
 	const uint64_t endTime = GET_TICK() + LONG_TIMEOUT;
 	m_state = RUNNING;
-	do // while (GET_TICK() < endTime) // [~] IRainman opt
+	do
 	{
 		if (socketIsDisconnecting())
 			break;
@@ -230,20 +227,6 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 				if (socketIsDisconnecting())
 					return;
 			}
-			/* [-] IRainman fix
-			bool connSucceeded;
-			while (!(connSucceeded = sock->waitConnected(POLL_TIMEOUT)) && endTime >= GET_TICK())
-			{
-			    if (disconnecting) return;
-			}
-			
-			if (connSucceeded)
-			{
-			    resizeInBuf();
-			    fly_fire1(__FUNCTION__,BufferedSocketListener::Connected());
-			    return;
-			}
-			[~] IRainman fix end*/
 		}
 		catch (const SSLSocketException&)
 		{
@@ -256,7 +239,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 			sleep(SHORT_TIMEOUT);
 		}
 	}
-	while (GET_TICK() < endTime); // [~] IRainman opt
+	while (GET_TICK() < endTime);
 	
 	throw SocketException(STRING(CONNECTION_TIMEOUT));
 }
@@ -707,7 +690,7 @@ void BufferedSocket::threadRead()
 									all_myinfo_parser(l_zpos, l, l_all_myInfo, true);
 								}
 							}
-							l.erase(0, l_zpos + 1 /* separator char */); //[3] https://www.box.net/shared/74efa5b96079301f7194
+							l.erase(0, l_zpos + 1 /* separator char */);
 						}
 						parseMyINfo(l_all_myInfo);
 						parseSearch(l_tth_search, l_file_search);
@@ -848,7 +831,7 @@ void BufferedSocket::threadRead()
 						{
 							const int high = (int)std::min(m_dataBytes, (int64_t)l_left);
 							//dcassert(high != 0);
-							if (high != 0) // [+] IRainman fix.
+							if (high != 0)
 							{
 								//fly_fire2(BufferedSocketListener::Data(), &m_inbuf[l_bufpos], high);
 								dcassert(m_connection);

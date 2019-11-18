@@ -25,21 +25,21 @@
 
 #include "BarShader.h"
 
-int WaitingUsersFrame::columnSizes[] = { 250, 20, 100, 75, 75, 75, 75, 100, 100, 100, 100, 150, 75 }; // !SMT!-UI
+int WaitingUsersFrame::columnSizes[] = { 250, 20, 100, 75, 75, 75, 75, 100, 100, 100, 100, 150, 75 };
 int WaitingUsersFrame::columnIndexes[] = { UploadQueueItem::COLUMN_FILE, UploadQueueItem::COLUMN_TYPE, UploadQueueItem::COLUMN_PATH, UploadQueueItem::COLUMN_NICK, UploadQueueItem::COLUMN_HUB, UploadQueueItem::COLUMN_TRANSFERRED, UploadQueueItem::COLUMN_SIZE, UploadQueueItem::COLUMN_ADDED, UploadQueueItem::COLUMN_WAITING,
-                                           UploadQueueItem::COLUMN_LOCATION, UploadQueueItem::COLUMN_IP, // !SMT!-IP
+                                           UploadQueueItem::COLUMN_LOCATION, UploadQueueItem::COLUMN_IP,
 #ifdef FLYLINKDC_USE_DNS
-                                           UploadQueueItem::COLUMN_DNS, // !SMT!-IP
+                                           UploadQueueItem::COLUMN_DNS,
 #endif
-                                           UploadQueueItem::COLUMN_SLOTS, UploadQueueItem::COLUMN_SHARE // !SMT!-UI
+                                           UploadQueueItem::COLUMN_SLOTS, UploadQueueItem::COLUMN_SHARE
                                          };
 static ResourceManager::Strings columnNames[] = { ResourceManager::FILENAME, ResourceManager::TYPE, ResourceManager::PATH, ResourceManager::NICK,
                                                   ResourceManager::HUB, ResourceManager::TRANSFERRED, ResourceManager::SIZE, ResourceManager::ADDED, ResourceManager::WAITING_TIME,
                                                   ResourceManager::LOCATION_BARE, ResourceManager::IP_BARE,
 #ifdef FLYLINKDC_USE_DNS
-                                                  ResourceManager::DNS_BARE, // !SMT!-IP
+                                                  ResourceManager::DNS_BARE,
 #endif
-                                                  ResourceManager::SLOTS, ResourceManager::SHARED // !SMT!-UI
+                                                  ResourceManager::SLOTS, ResourceManager::SHARED
                                                 };
 
 WaitingUsersFrame::WaitingUsersFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), m_showTree(true),
@@ -213,7 +213,7 @@ LRESULT WaitingUsersFrame::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 		const UserPtr User = getCurrentdUser();
 		if (User)
 		{
-			UploadManager::LockInstanceQueue lockedInstance; // [+] IRainman opt.
+			UploadManager::LockInstanceQueue lockedInstance;
 			lockedInstance->clearUserFilesL(User);
 		}
 	}
@@ -228,14 +228,14 @@ LRESULT WaitingUsersFrame::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 				// Ok let's cheat here, if you try to remove more users here is not working :(
 				RemoveUsers.push_back((m_ctrlList.getItemData(j))->getUser());
 			}
-			UploadManager::LockInstanceQueue lockedInstance; // [+] IRainman opt.
+			UploadManager::LockInstanceQueue lockedInstance;
 			for (auto i = RemoveUsers.cbegin(); i != RemoveUsers.cend(); ++i)
 			{
 				lockedInstance->clearUserFilesL(*i);
 			}
 		}
 	}
-	m_needsUpdateStatus = true; // [!] IRainman opt.
+	m_needsUpdateStatus = true;
 	return 0;
 }
 
@@ -251,10 +251,10 @@ LRESULT WaitingUsersFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lP
 	}
 	
 	// Create context menu
-	// !SMT!-UI
+	
 	OMenu contextMenu;
 	contextMenu.CreatePopupMenu();
-	clearUserMenu(); // [+] IRainman fix.
+	clearUserMenu();
 	
 	if (reinterpret_cast<HWND>(wParam) == m_ctrlList && m_ctrlList.GetSelectedCount() > 0)
 	{
@@ -285,8 +285,8 @@ LRESULT WaitingUsersFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lP
 			ctrlQueued.ClientToScreen(&pt);
 		}
 		
-		// !SMT!-UI
-		reinitUserMenu(getCurrentdUser(), Util::emptyString); // [+] IRainman fix.
+		
+		reinitUserMenu(getCurrentdUser(), Util::emptyString);
 		appendAndActivateUserItems(contextMenu);
 		
 		contextMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
@@ -329,8 +329,8 @@ void WaitingUsersFrame::LoadAll()
 			}
 		}
 	}
-	m_needsResort = true; // [!] IRainman opt.
-	m_needsUpdateStatus = true; // [!] IRainman opt.
+	m_needsResort = true;
+	m_needsUpdateStatus = true;
 }
 
 void WaitingUsersFrame::RemoveUser(const UserPtr& aUser)
@@ -357,7 +357,7 @@ void WaitingUsersFrame::RemoveUser(const UserPtr& aUser)
 		}
 		userNode = ctrlQueued.GetNextSiblingItem(userNode);
 	}
-	m_needsUpdateStatus = true; // [!] IRainman opt.
+	m_needsUpdateStatus = true;
 }
 
 LRESULT WaitingUsersFrame::onItemChanged(int /*idCtrl*/, LPNMHDR /* pnmh */, BOOL& /*bHandled*/)
@@ -384,8 +384,8 @@ LRESULT WaitingUsersFrame::onItemChanged(int /*idCtrl*/, LPNMHDR /* pnmh */, BOO
 				{
 					AddFile(*i);
 				}
-				m_needsResort = true; // [!] IRainman opt.
-				m_needsUpdateStatus = true; // [!] IRainman opt.
+				m_needsResort = true;
+				m_needsUpdateStatus = true;
 				return 0;
 			}
 		}
@@ -495,18 +495,18 @@ void WaitingUsersFrame::removeSelected()
 		RemoveUsers.push_back(m_ctrlList.getItemData(j)->getUser());
 	}
 	{
-		UploadManager::LockInstanceQueue lockedInstance; // [+] IRainman opt.
+		UploadManager::LockInstanceQueue lockedInstance;
 		for (auto i = RemoveUsers.cbegin(); i != RemoveUsers.cend(); ++i)
 		{
 			lockedInstance->clearUserFilesL(*i);
 		}
 	}
-	m_needsUpdateStatus = true; // [!] IRainman opt.
+	m_needsUpdateStatus = true;
 }
 
 LRESULT WaitingUsersFrame::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	// [!] IRainman opt.
+
 	TaskQueue::List t;
 	m_tasks.get(t);
 	
@@ -600,7 +600,7 @@ void WaitingUsersFrame::on(SettingsManagerListener::Repaint)
 
 void WaitingUsersFrame::on(UploadManagerListener::QueueUpdate) noexcept
 {
-	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown()) // [+] IRainman opt.
+	if (!MainFrame::isAppMinimized(m_hWnd) && !isClosedOrShutdown())
 	{
 		m_tasks.add(UPDATE_ITEMS, nullptr);
 	}
@@ -608,13 +608,6 @@ void WaitingUsersFrame::on(UploadManagerListener::QueueUpdate) noexcept
 
 LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
-	/*  [-] IRainman
-	if (!BOOLSETTING(SHOW_PROGRESS_BARS))
-	{
-	    bHandled = FALSE;
-	    return 0;
-	}
-	*/
 	CRect rc;
 	LPNMLVCUSTOMDRAW cd = reinterpret_cast<LPNMLVCUSTOMDRAW>(pnmh);
 	UploadQueueItem *ii = (UploadQueueItem*)cd->nmcd.lItemlParam; // ??
@@ -625,14 +618,14 @@ LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHan
 			return CDRF_NOTIFYITEMDRAW;
 		case CDDS_ITEMPREPAINT:
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-			Colors::alternationBkColor(cd); // [+] IRainman
+			Colors::alternationBkColor(cd);
 #endif
 			return CDRF_NOTIFYSUBITEMDRAW;
 			
 		case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
 		{
 			// Let's draw a box if needed...
-			if (BOOLSETTING(SHOW_PROGRESS_BARS) && m_ctrlList.findColumn(cd->iSubItem) == UploadQueueItem::COLUMN_TRANSFERRED) // [+] IRainman
+			if (BOOLSETTING(SHOW_PROGRESS_BARS) && m_ctrlList.findColumn(cd->iSubItem) == UploadQueueItem::COLUMN_TRANSFERRED)
 			{
 				// draw something nice...
 				LocalArray<TCHAR, 256> buf;
@@ -673,8 +666,6 @@ LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHan
 				return CDRF_SKIPDEFAULT;
 			}
 			
-			// [!] Colors::getUserColor(ii->getUser(), cd->clrText, cd->clrTextBk); // [!] IRainman fix todo [1] https://www.box.net/shared/f7c509838c3a1125842b , https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=59082
-			// !SMT!-IP
 			if (m_ctrlList.findColumn(cd->iSubItem) == UploadQueueItem::COLUMN_LOCATION)
 			{
 				const tstring l_text = ii->getText(UploadQueueItem::COLUMN_LOCATION);
@@ -700,7 +691,7 @@ LRESULT WaitingUsersFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHan
 					return CDRF_SKIPDEFAULT;
 				}
 			}
-		} //[+]PPA
+		}
 		// Fall through
 		default:
 			return CDRF_DODEFAULT;

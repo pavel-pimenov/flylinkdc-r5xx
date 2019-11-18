@@ -31,7 +31,7 @@ STANDARD_EXCEPTION(BitStreamException);
  */
 class BitInputStream
 #ifdef _DEBUG
-	: boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 	public:

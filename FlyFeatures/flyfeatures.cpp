@@ -30,17 +30,17 @@
 
 void createFlyFeatures()
 {
-	ThemeManager::newInstance();      // [+] SSA
-	InetDownloadReporter::newInstance(); // [+] SSA
-	AutoUpdate::newInstance();        // [+] SSA
+	ThemeManager::newInstance();      
+	InetDownloadReporter::newInstance(); 
+	AutoUpdate::newInstance();        
 #ifdef FLYLINKDC_USE_CUSTOM_MENU
-	CustomMenuManager::newInstance(); // [+] SSA
+	CustomMenuManager::newInstance(); 
 #endif
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-	VideoPreview::newInstance(); // [+] SSA
+	VideoPreview::newInstance(); 
 #endif
 #ifdef IRAINMAN_INCLUDE_RSS
-	RSSManager::newInstance();        // [+] SSA
+	RSSManager::newInstance();        
 #endif
 }
 
@@ -54,7 +54,7 @@ void startupFlyFeatures(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgr
 	CustomMenuManager::getInstance()->load();
 #endif // FLYLINKDC_USE_CUSTOM_MENU
 #endif // FLYLINKDC_USE_PROVIDER_RESOURCES
-	ThemeManager::getInstance()->load(); //[+] SSA
+	ThemeManager::getInstance()->load();
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 	VideoPreview::getInstance()->initialize();
 #endif
@@ -62,7 +62,7 @@ void startupFlyFeatures(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgr
 
 void loadingAfterGuiFlyFeatures(HWND p_mainFrameHWND, AutoUpdateGUIMethod* p_guiDelegate)
 {
-	AutoUpdate::getInstance()->initialize(p_mainFrameHWND, p_guiDelegate); // [+] SSA
+	AutoUpdate::getInstance()->initialize(p_mainFrameHWND, p_guiDelegate); 
 }
 
 void shutdownFlyFeatures()
@@ -76,15 +76,15 @@ void shutdownFlyFeatures()
 void deleteFlyFeatures()
 {
 #ifdef IRAINMAN_INCLUDE_RSS
-	RSSManager::deleteInstance();        //[+] SSA
+	RSSManager::deleteInstance();
 #endif
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
 	VideoPreview::deleteInstance();
 #endif
 #ifdef FLYLINKDC_USE_CUSTOM_MENU
-	CustomMenuManager::deleteInstance(); //[+] SSA
+	CustomMenuManager::deleteInstance();
 #endif
 	AutoUpdate::deleteInstance();
-	InetDownloadReporter::deleteInstance(); // [+] SSA
-	ThemeManager::deleteInstance();   //[+] SSA
+	InetDownloadReporter::deleteInstance(); 
+	ThemeManager::deleteInstance();
 }

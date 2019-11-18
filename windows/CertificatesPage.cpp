@@ -60,7 +60,7 @@ LRESULT CertificatesPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 	PropPage::translate((HWND)(*this), texts);
 	PropPage::read(*this, items, listItems, GetDlgItem(IDC_TLS_OPTIONS));
 	PropPage::read(*this, NULL, securityItems, GetDlgItem(IDC_SECURITY_LIST));
-	ctrlList.Attach(GetDlgItem(IDC_TLS_OPTIONS)); // [+] IRainman
+	ctrlList.Attach(GetDlgItem(IDC_TLS_OPTIONS));
 	
 	// Do specialized reading here
 	return TRUE;
@@ -116,7 +116,7 @@ LRESULT CertificatesPage::onGenerateCerts(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 	}
 	catch (const CryptoException& e)
 	{
-		MessageBox(Text::toT(e.getError()).c_str(), CTSTRING(ERROR_GENERATING_CERTIFICATE));// [!]NightOrion(translate)
+		MessageBox(Text::toT(e.getError()).c_str(), CTSTRING(ERROR_GENERATING_CERTIFICATE));
 	}
 	return 0;
 }

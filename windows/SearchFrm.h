@@ -64,7 +64,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 	public UCHandler<SearchFrame>, public UserInfoBaseHandler<SearchFrame, UserInfoGuiTraits::NO_COPY>,
 	private SettingsManagerListener
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-	, public PreviewBaseHandler<SearchFrame> // [+] IRainman fix.
+	, public PreviewBaseHandler<SearchFrame>
 #endif
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 	, public CFlyServerAdapter
@@ -75,7 +75,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 	, private TimerManagerListener
 #endif
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 #ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
 	, public ICGridEventKeys
@@ -92,7 +92,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		typedef UCHandler<SearchFrame> ucBase;
 		typedef UserInfoBaseHandler<SearchFrame, UserInfoGuiTraits::NO_COPY> uicBase;
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-		typedef PreviewBaseHandler<SearchFrame> prevBase; // [+] IRainman fix.
+		typedef PreviewBaseHandler<SearchFrame> prevBase;
 #endif
 		BEGIN_MSG_MAP(SearchFrame)
 		NOTIFY_HANDLER(IDC_RESULTS, LVN_GETDISPINFO, ctrlResults.onGetDispInfo)
@@ -100,7 +100,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		NOTIFY_HANDLER(IDC_RESULTS, LVN_GETINFOTIP, ctrlResults.onInfoTip)
 		NOTIFY_HANDLER(IDC_HUB, LVN_GETDISPINFO, ctrlHubs.onGetDispInfo)
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-		NOTIFY_HANDLER(IDC_HUB, NM_CUSTOMDRAW, ctrlHubs.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_HUB, NM_CUSTOMDRAW, ctrlHubs.onCustomDraw)
 #endif
 		NOTIFY_HANDLER(IDC_RESULTS, NM_DBLCLK, onDoubleClickResults)
 		NOTIFY_HANDLER(IDC_RESULTS, LVN_KEYDOWN, onKeyDown)
@@ -123,7 +123,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #endif
 		MESSAGE_HANDLER(WM_DRAWITEM, onDrawItem)
 		MESSAGE_HANDLER(WM_MEASUREITEM, onMeasure)
-		MESSAGE_HANDLER(FTM_CONTEXTMENU, onTabContextMenu) // [+] InfinitySky.
+		MESSAGE_HANDLER(FTM_CONTEXTMENU, onTabContextMenu)
 #ifdef FLYLINKDC_USE_VIEW_AS_TEXT_OPTION
 		COMMAND_ID_HANDLER(IDC_VIEW_AS_TEXT, onViewAsText)
 #endif
@@ -153,17 +153,17 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		COMMAND_ID_HANDLER(IDC_COPY_HUB_URL, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_LINK, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_FULL_MAGNET_LINK, onCopy)
-		COMMAND_ID_HANDLER(IDC_COPY_WMLINK, onCopy) // !SMT!-UI
+		COMMAND_ID_HANDLER(IDC_COPY_WMLINK, onCopy)
 		COMMAND_ID_HANDLER(IDC_COPY_TTH, onCopy)
 #ifdef IRAINMAN_SEARCH_OPTIONS
 		COMMAND_ID_HANDLER(IDC_HUB, onHubChange)
 #endif
 		COMMAND_ID_HANDLER(IDC_PURGE, onPurge)
-		COMMAND_ID_HANDLER(IDC_CLOSE_ALL_SEARCH_FRAME, onCloseAll) // [+] InfinitySky.
-		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_CLOSE_ALL_SEARCH_FRAME, onCloseAll)
+		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		COMMAND_CODE_HANDLER(CBN_EDITCHANGE, onEditChange)
 		COMMAND_ID_HANDLER(IDC_DOWNLOADTO, onDownloadTo)
-		COMMAND_ID_HANDLER(IDC_FILETYPES, onFiletypeChange) // [+] SCALOlaz: save type
+		COMMAND_ID_HANDLER(IDC_FILETYPES, onFiletypeChange)
 		COMMAND_ID_HANDLER(IDC_SEARCH_SIZEMODE, onFiletypeChange)
 		COMMAND_ID_HANDLER(IDC_SEARCH_SIZE, onFiletypeChange)
 		COMMAND_ID_HANDLER(IDC_SEARCH_MODE, onFiletypeChange)
@@ -182,7 +182,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CHAIN_COMMANDS(ucBase)
 		CHAIN_COMMANDS(uicBase)
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-		CHAIN_COMMANDS(prevBase) // [+] IRainman fix.
+		CHAIN_COMMANDS(prevBase)
 #endif
 		CHAIN_MSG_MAP(baseClass)
 		ALT_MSG_MAP(SEARCH_MESSAGE_MAP)
@@ -203,7 +203,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		LRESULT onFiletypeChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled);
 		LRESULT onClose(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-		LRESULT onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/); // [+] InfinitySky.
+		LRESULT onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/);
 		LRESULT onDrawItem(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		LRESULT onMeasure(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		LRESULT onContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled);
@@ -330,13 +330,13 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			m_running = true;
 		}
 		
-		// [+] InfinitySky.
+		
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			PostMessage(WM_CLOSE);
 			return 0;
 		}
-		// [+] InfinitySky.
+		
 		LRESULT onCloseAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			closeAll();
@@ -432,13 +432,12 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			COLUMN_MEDIA_AUDIO,
 			COLUMN_DURATION,
 			COLUMN_SLOTS,
-//[-]PPA        COLUMN_CONNECTION,
 			COLUMN_HUB,
 			COLUMN_EXACT_SIZE,
-			COLUMN_LOCATION, // !SMT!-IP
+			COLUMN_LOCATION,
 			COLUMN_IP,
 #ifdef FLYLINKDC_USE_DNS
-			COLUMN_DNS, // !SMT!-IP
+			COLUMN_DNS,
 #endif
 			COLUMN_TTH,
 			COLUMN_P2P_GUARD,
@@ -631,7 +630,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		CGradientLabelCtrl m_FlyServerGradientLabel;
 		//CContainedWindow m_FlyServerGradientContainer;
 #endif
-		CFlyToolTipCtrl m_tooltip;  // [+] SCALOlaz: add tooltips
+		CFlyToolTipCtrl m_tooltip;
 		BOOL ListMeasure(HWND hwnd, UINT uCtrlId, MEASUREITEMSTRUCT *mis);
 		BOOL ListDraw(HWND hwnd, UINT uCtrlId, DRAWITEMSTRUCT *dis);
 		
@@ -723,13 +722,12 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			p_ptr = nullptr;
 		}
 		
-		//OMenu resultsMenu;
 		OMenu targetMenu;
 		OMenu targetDirMenu;
 		OMenu priorityMenu;
 		OMenu copyMenu;
 		OMenu copyMenuTorrent;
-		OMenu tabMenu; // [+] InfinitySky
+		OMenu tabMenu;
 		
 		StringList m_search;
 		StringList targets;
@@ -751,7 +749,7 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		bool m_running;
 		bool m_isExactSize;
 		bool m_waitingResults;
-		bool m_needsUpdateStats; // [+] IRainman opt.
+		bool m_needsUpdateStats;
 		bool m_is_before_search;
 		
 		SearchParamTokenMultiClient m_search_param;
@@ -760,17 +758,17 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		uint64_t m_searchEndTime;
 		uint64_t m_searchStartTime;
 		tstring m_target;
-		tstring m_statusLine; // [+] IRainman fix.
+		tstring m_statusLine;
 		
-		FastCriticalSection m_fcs; // [!] IRainman opt: use spin lock here.
+		FastCriticalSection m_fcs;
 		
 	public:
 		static std::list<wstring> g_lastSearches;
 		
 	private:
-		static HIconWrapper g_purge_icon; // [~] Sergey Shushkanov
-		static HIconWrapper g_pause_icon; // [~] Sergey Shushkanov
-		static HIconWrapper g_search_icon; // [~] Sergey Shushkanov
+		static HIconWrapper g_purge_icon;
+		static HIconWrapper g_pause_icon;
+		static HIconWrapper g_search_icon;
 		
 		static HIconWrapper g_UDPOkIcon;
 		static HIconWrapper g_UDPWaitIcon;
@@ -829,8 +827,8 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 			tstring strPath;
 			DefinedTypes Type;
 		};
-		typedef std::map<int, TARGET_STRUCT> TargetsMap; // !SMT!-S
-		TargetsMap dlTargets; // !SMT!-S
+		typedef std::map<int, TARGET_STRUCT> TargetsMap;
+		TargetsMap dlTargets;
 		string m_UDPTestExternalIP;
 		void checkUDPTest();
 		

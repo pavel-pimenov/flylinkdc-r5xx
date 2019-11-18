@@ -205,7 +205,7 @@ bool QueueItem::isBadSourceExceptL(const UserPtr& aUser, Flags::MaskType excepti
 	return false;
 }
 
-bool QueueItem::countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const // [+] FlylinkDC++ opt.
+bool QueueItem::countOnlineUsersGreatOrEqualThanL(const size_t maxValue) const
 {
 	if (m_sources.size() < maxValue)
 	{
@@ -314,7 +314,7 @@ void QueueItem::getPFSSourcesL(const QueueItemPtr& p_qi, SourceListBuffer& p_sou
 	addToList(false);
 	addToList(true);
 }
-// [~] fix.
+
 void QueueItem::resetDownloaded()
 {
 	bool l_is_dirty = true;
@@ -714,7 +714,7 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 	{
 		// overlap slow running chunk
 		
-		const uint64_t l_CurrentTick = GET_TICK();//[+]IRainman refactoring transfer mechanism
+		const uint64_t l_CurrentTick = GET_TICK();
 		CFlyFastLock(m_fcs_download);
 		for (auto i = m_downloads.cbegin(); i != m_downloads.cend(); ++i)
 		{
@@ -725,7 +725,7 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 				continue;
 				
 			// current chunk must be running at least for 2 seconds
-			if (d->getStart() == 0 || l_CurrentTick - d->getStart() < 2000)//[!]IRainman refactoring transfer mechanism
+			if (d->getStart() == 0 || l_CurrentTick - d->getStart() < 2000)
 				continue;
 				
 			// current chunk mustn't be finished in next 10 seconds
@@ -795,7 +795,7 @@ void QueueItem::calcDownloadedBytes() const
 	m_downloadedBytes = l_totalDownloaded;
 }
 
-uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const // [!] IRainman opt.
+uint64_t QueueItem::calcAverageSpeedAndCalcAndGetDownloadedBytesL() const
 {
 	uint64_t l_totalSpeed = 0; // Скорость 64 битная нужна?
 	calcDownloadedBytes();

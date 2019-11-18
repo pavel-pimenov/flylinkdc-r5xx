@@ -82,42 +82,42 @@ LRESULT FavoriteHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 		ctrlHubs.InsertColumn(j, CTSTRING_I(columnNames[j]), fmt, columnSizes[j], j);
 	}
 	ctrlHubs.SetColumnOrderArray(COLUMN_LAST, columnIndexes);
-	//ctrlHubs.setVisible(SETTING(FAVORITESFRAME_VISIBLE)); // !SMT!-UI
+	//ctrlHubs.setVisible(SETTING(FAVORITESFRAME_VISIBLE));
 	ctrlHubs.setSort(SETTING(HUBS_FAVORITES_COLUMNS_SORT), ExListViewCtrl::SORT_STRING_NOCASE, BOOLSETTING(HUBS_FAVORITES_COLUMNS_SORT_ASC));
 	
 	ctrlConnect.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                   BS_PUSHBUTTON, 0, IDC_CONNECT);
 	ctrlConnect.SetWindowText(CTSTRING(CONNECT));
-	ctrlConnect.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlConnect.SetFont(Fonts::g_systemFont);
 	ctrlNew.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	               BS_PUSHBUTTON, 0, IDC_NEWFAV);
 	ctrlNew.SetWindowText(CTSTRING(NEW));
-	ctrlNew.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlNew.SetFont(Fonts::g_systemFont);
 	
 	ctrlProps.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                 BS_PUSHBUTTON, 0, IDC_EDIT);
 	ctrlProps.SetWindowText(CTSTRING(PROPERTIES));
-	ctrlProps.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlProps.SetFont(Fonts::g_systemFont);
 	
 	ctrlRemove.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                  BS_PUSHBUTTON, 0, IDC_REMOVE);
 	ctrlRemove.SetWindowText(CTSTRING(REMOVE));
-	ctrlRemove.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlRemove.SetFont(Fonts::g_systemFont);
 	
 	ctrlUp.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	              BS_PUSHBUTTON, 0, IDC_MOVE_UP);
 	ctrlUp.SetWindowText(CTSTRING(MOVE_UP));
-	ctrlUp.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlUp.SetFont(Fonts::g_systemFont);
 	
 	ctrlDown.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                BS_PUSHBUTTON, 0, IDC_MOVE_DOWN);
 	ctrlDown.SetWindowText(CTSTRING(MOVE_DOWN));
-	ctrlDown.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlDown.SetFont(Fonts::g_systemFont);
 	
 	ctrlManageGroups.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                        BS_PUSHBUTTON, 0, IDC_MANAGE_GROUPS);
 	ctrlManageGroups.SetWindowText(CTSTRING(MANAGE_GROUPS));
-	ctrlManageGroups.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlManageGroups.SetFont(Fonts::g_systemFont);
 	
 	m_onlineStatusImg.Create(16, 16, ILC_COLOR32 | ILC_MASK,  0, 2);
 	m_onlineStatusImg.AddIcon(g_hOnlineIco);
@@ -250,13 +250,6 @@ void FavoriteHubsFrame::addEntry(const FavoriteHubEntry* entry, int pos, int gro
 	l.push_back(Text::toT(entry->getServer()));
 	l.push_back(Text::toT(entry->getUserDescription()));
 	l.push_back(Text::toT(entry->getEmail()));
-	/* [-] IRainman fix.
-	    l.push_back(Text::toT(entry->getRawOne()));
-	    l.push_back(Text::toT(entry->getRawTwo()));
-	    l.push_back(Text::toT(entry->getRawThree()));
-	    l.push_back(Text::toT(entry->getRawFour()));
-	    l.push_back(Text::toT(entry->getRawFive()));
-	*/
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 	l.push_back(entry->getHideShare() ? TSTRING(YES) : Util::emptyStringT/*TSTRING(NO)*/);
 #endif
@@ -275,10 +268,9 @@ void FavoriteHubsFrame::addEntry(const FavoriteHubEntry* entry, int pos, int gro
 	LVITEM lvItem = { 0 };
 	lvItem.mask = LVIF_GROUPID | LVIF_IMAGE;
 	lvItem.iItem = i;
-	// lvItem.iImage = isOnline(entry->getServer()) ? 0 : 1;
 	if (isOnline(entry->getServer()))
 		lvItem.iImage = 0;
-#ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS   // The protection, just in case ( SCALOlaz 17/05/2015 )
+#ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 	else if (getLastSucces(l_connectionStatus, l_curTime) == TSTRING(JUST_NOW))
 		lvItem.iImage = 1;
 #endif
@@ -415,8 +407,8 @@ LRESULT FavoriteHubsFrame::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 	if (ctrlHubs.GetSelectedCount())
 	{
 		int i = -1;
-		UINT checkState = BOOLSETTING(CONFIRM_HUB_REMOVAL) ? BST_UNCHECKED : BST_CHECKED; // [+] InfinitySky.
-		if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES) // [~] InfinitySky.
+		UINT checkState = BOOLSETTING(CONFIRM_HUB_REMOVAL) ? BST_UNCHECKED : BST_CHECKED;
+		if (checkState == BST_CHECKED || ::MessageBox(m_hWnd, CTSTRING(REALLY_REMOVE), getFlylinkDCAppCaptionWithVersionT().c_str(), CTSTRING(DONT_ASK_AGAIN), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1, checkState) == IDYES)
 		{
 			while ((i = ctrlHubs.GetNextItem(-1, LVNI_SELECTED)) != -1)
 			{
@@ -424,7 +416,7 @@ LRESULT FavoriteHubsFrame::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 			}
 		}
 		// Let's update the setting unchecked box means we bug user again...
-		SET_SETTING(CONFIRM_HUB_REMOVAL, checkState != BST_CHECKED); // [+] InfinitySky.
+		SET_SETTING(CONFIRM_HUB_REMOVAL, checkState != BST_CHECKED);
 	}
 	return 0;
 }
@@ -502,7 +494,6 @@ void FavoriteHubsFrame::handleMove(bool up)
 {
 	FavoriteHubEntryList fh_copy;
 	{
-		// [!] IRainman fix.
 		FavoriteManager::LockInstanceHubs lockedInstanceHubs;
 		FavoriteHubEntryList& fh = lockedInstanceHubs.getFavoriteHubs();
 		if (fh.size() <= 1)
@@ -554,7 +545,7 @@ void FavoriteHubsFrame::handleMove(bool up)
 		reverse(fh_copy.begin(), fh_copy.end());
 		
 	{
-		// [!] IRainman fix.
+	
 		FavoriteManager::LockInstanceHubs lockedInstanceHubs(true);
 		lockedInstanceHubs.getFavoriteHubs() = fh_copy;
 	}
@@ -611,7 +602,7 @@ void FavoriteHubsFrame::fillList()
 	}
 	
 	{
-		// [!] IRainman fix.
+	
 		FavoriteManager::LockInstanceHubs lockedInstanceHubs;
 		const auto& fl = lockedInstanceHubs.getFavoriteHubs();
 		auto cnt = ctrlHubs.GetItemCount();

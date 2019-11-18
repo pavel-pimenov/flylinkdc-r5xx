@@ -20,13 +20,13 @@
 #include "Upload.h"
 #include "Streams.h"
 
-// [!] IRainman fix.
+
 static const TTHValue g_empty_tth;
 Upload::Upload(UserConnection* p_conn, const TTHValue& p_tth, const string& p_path, const string& p_ip, const string& p_chiper_name):
 	Transfer(p_conn, p_path, p_tth, p_ip, p_chiper_name),
 	m_read_stream(nullptr),
 	m_delayTime(0)
-// [~] IRainman fix.
+	
 {
 	//!!!!!!!!!!!!!!!! p_conn->setUpload(this);
 }

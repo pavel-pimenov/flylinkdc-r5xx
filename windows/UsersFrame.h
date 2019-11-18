@@ -38,7 +38,7 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 	public UserInfoBaseHandler<UsersFrame, UserInfoGuiTraits::INLINE_CONTACT_LIST>,
 	private SettingsManagerListener
 #ifdef _DEBUG
-	, boost::noncopyable // [+] IRainman fix.
+	, boost::noncopyable
 #endif
 {
 	public:
@@ -59,7 +59,7 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 		NOTIFY_HANDLER(IDC_USERS, LVN_GETDISPINFO, ctrlUsers.onGetDispInfo)
 		NOTIFY_HANDLER(IDC_USERS, LVN_COLUMNCLICK, ctrlUsers.onColumnClick)
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-		NOTIFY_HANDLER(IDC_USERS, NM_CUSTOMDRAW, ctrlUsers.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_USERS, NM_CUSTOMDRAW, ctrlUsers.onCustomDraw)
 #endif
 		NOTIFY_HANDLER(IDC_USERS, LVN_ITEMCHANGED, onItemChanged)
 		NOTIFY_HANDLER(IDC_USERS, LVN_KEYDOWN, onKeyDown)
@@ -77,7 +77,7 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 		COMMAND_ID_HANDLER(IDC_REMOVE, onRemove)
 		COMMAND_ID_HANDLER(IDC_EDIT, onEdit)
 		COMMAND_ID_HANDLER(IDC_CONNECT, onConnect)
-		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow) // [+] InfinitySky.
+		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindow)
 		CHAIN_MSG_MAP(splitBase)
 		CHAIN_MSG_MAP(uibBase)
 		CHAIN_MSG_MAP(baseClass)
@@ -94,14 +94,14 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 		LRESULT onDoubleClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/);
 		LRESULT onKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled);
 		
-		// [+] InfinitySky.
+		
 		LRESULT onCloseWindow(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
 			PostMessage(WM_CLOSE);
 			return 0;
 		}
 		
-		// !SMT!-S
+		
 		LRESULT onIgnorePrivate(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onSetUserLimit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
@@ -137,10 +137,9 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 			COLUMN_HUB,
 			COLUMN_SEEN,
 			COLUMN_DESCRIPTION,
-			// [-] COLUMN_SUPERUSER, [!] IRainman deprecated, use speed limit.
-			COLUMN_SPEED_LIMIT, // !SMT!-S
-			COLUMN_IGNORE, // !SMT!-S
-			COLUMN_USER_SLOTS, //[+]ppa
+			COLUMN_SPEED_LIMIT,
+			COLUMN_IGNORE,
+			COLUMN_USER_SLOTS,
 			COLUMN_CID,
 			COLUMN_LAST
 		};
@@ -149,7 +148,7 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 			USER_UPDATED
 		};
 		
-		class UserInfo : public UserInfoBase // class UserInfo уже есть в client - не хорошо дублировать имя
+		class UserInfo : public UserInfoBase
 		{
 			public:
 				UserInfo(const FavoriteUser& u) : user(u.getUser())
@@ -207,7 +206,7 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 		
 		void addUser(const FavoriteUser& aUser);
 		void updateUser(const UserPtr& aUser);
-		void updateUser(const int i, UserInfo* p_ui, const FavoriteUser& favUser); // [+] IRainman fix.
+		void updateUser(const int i, UserInfo* p_ui, const FavoriteUser& favUser);
 		void removeUser(const FavoriteUser& aUser);
 		
 	public:

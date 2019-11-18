@@ -23,7 +23,6 @@
 
 #include "../client/User.h"
 #include "../client/DirectoryListing.h"
-#include "../client/SimpleXML.h"
 #include "../client/ConnectionManager.h"
 
 #include "BaseChatFrame.h"
@@ -47,9 +46,9 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 	public UserInfoBaseHandler < HubFrame, UserInfoGuiTraits::NO_CONNECT_FAV_HUB | UserInfoGuiTraits::NICK_TO_CHAT | UserInfoGuiTraits::USER_LOG | UserInfoGuiTraits::INLINE_CONTACT_LIST, OnlineUserPtr >,
 	private SettingsManagerListener,
 	private FavoriteManagerListener,
-	public BaseChatFrame // [+] IRainman copy-past fix.
+	public BaseChatFrame
 #ifdef RIP_USE_CONNECTION_AUTODETECT
-	, private ConnectionManagerListener // [+] FlylinkDC
+	, private ConnectionManagerListener
 #endif
 {
 	public:
@@ -70,7 +69,6 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		NOTIFY_HANDLER(IDC_USERS, LVN_KEYDOWN, onKeyDownUsers)
 		NOTIFY_HANDLER(IDC_USERS, NM_DBLCLK, onDoubleClickUsers)
 		NOTIFY_HANDLER(IDC_USERS, NM_RETURN, onEnterUsers)
-		//NOTIFY_HANDLER(IDC_USERS, LVN_ITEMCHANGED, onItemChanged) [-] IRainman opt
 		MESSAGE_HANDLER(WM_CLOSE, onClose)
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_FOR_HUBFRAME
 		MESSAGE_HANDLER(WM_TIMER, onTimer)
@@ -94,9 +92,9 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		COMMAND_ID_HANDLER(IDC_REM_AS_FAVORITE, onRemAsFavorite)
 		COMMAND_ID_HANDLER(IDC_AUTO_START_FAVORITE, onAutoStartFavorite)
 		COMMAND_ID_HANDLER(IDC_EDIT_HUB_PROP, onEditHubProp)
-		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindows)            // [~] SCALOlaz
-		COMMAND_ID_HANDLER(IDC_RECONNECT_DISCONNECTED, onCloseWindows)  // [+] SCALOlaz
-		COMMAND_ID_HANDLER(IDC_CLOSE_DISCONNECTED, onCloseWindows)      // [+] SCALOlaz
+		COMMAND_ID_HANDLER(IDC_CLOSE_WINDOW, onCloseWindows)
+		COMMAND_ID_HANDLER(IDC_RECONNECT_DISCONNECTED, onCloseWindows)
+		COMMAND_ID_HANDLER(IDC_CLOSE_DISCONNECTED, onCloseWindows)
 		COMMAND_ID_HANDLER(IDC_SELECT_USER, onSelectUser)
 		COMMAND_ID_HANDLER(IDC_AUTOSCROLL_CHAT, onAutoScrollChat)
 		COMMAND_ID_HANDLER(IDC_BAN_IP, onBanIP)
@@ -408,13 +406,13 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		
 		void InsertUserList(UserInfo* ui);
 		void InsertItemInternal(const UserInfo* ui);
-		void updateUserList(); // [!] IRainman opt.
+		void updateUserList();
 		bool parseFilter(FilterModes& mode, int64_t& size);
 		bool matchFilter(UserInfo& ui, int sel, bool doSizeCompare = false, FilterModes mode = NONE, int64_t size = 0);
-		UserInfo* findUser(const tstring& p_nick);   // !SMT!-S
+		UserInfo* findUser(const tstring& p_nick);
 		UserInfo* findUser(const OnlineUserPtr& p_user);
 		
-		FavoriteHubEntry* addAsFavorite(const FavoriteManager::AutoStartType p_autoconnect = FavoriteManager::NOT_CHANGE);// [!] IRainman fav options
+		FavoriteHubEntry* addAsFavorite(const FavoriteManager::AutoStartType p_autoconnect = FavoriteManager::NOT_CHANGE);
 		void removeFavoriteHub();
 		
 		void createFavHubMenu(const FavoriteHubEntry* p_fhe);
@@ -441,7 +439,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 		void on(ClientListener::UserShareUpdated, const OnlineUserPtr&) noexcept override;
 #endif
-		void on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr&) noexcept override; // !SMT!-fix
+		void on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr&) noexcept override;
 		void on(ClientListener::UsersUpdated, const Client*, const OnlineUserList&) noexcept override;
 		void on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr&) noexcept override;
 		void on(ClientListener::Redirect, const Client*, const string&) noexcept override;
@@ -449,12 +447,11 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void on(ClientListener::GetPassword, const Client*) noexcept override;
 		void on(ClientListener::HubUpdated, const Client*) noexcept override;
 		void on(ClientListener::Message, const Client*, std::unique_ptr<ChatMessage>&) noexcept override;
-		//void on(PrivateMessage, const Client*, const string &strFromUserName, const UserPtr&, const UserPtr&, const UserPtr&, const string&, bool = true) noexcept override; // !SMT!-S [-] IRainman fix.
 		void on(ClientListener::NickTaken) noexcept override;
 		void on(ClientListener::HubFull, const Client*) noexcept override;
 		void on(ClientListener::FirstExtJSON, const Client*) noexcept override;
 		void on(ClientListener::CheatMessage, const string&) noexcept override;
-		void on(ClientListener::UserReport, const Client*, const string&) noexcept override; // [+] IRainman
+		void on(ClientListener::UserReport, const Client*, const string&) noexcept override;
 #ifdef FLYLINKDC_SUPPORT_HUBTOPIC
 		void on(ClientListener::HubTopic, const Client*, const string&) noexcept override;
 #endif
@@ -481,8 +478,6 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 			m_tasks.add(static_cast<uint8_t>(s), new OnlineUserTask(u));
 		}
 #endif
-		// [~] !SMT!-S
-		
 		void speak(Tasks s, const string& msg, bool inChat = true)
 		{
 			m_tasks.add(static_cast<uint8_t>(s), new StatusTask(msg, inChat));
@@ -501,7 +496,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		void doConnected();
 		void clearTaskAndUserList();
 	public:
-		static void addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param); // !SMT!-UI
+		static void addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param);
 		uint8_t getVIPIconIndex() const
 		{
 			dcassert(m_client);
@@ -522,7 +517,6 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 			return m_client && m_client->isFlyAntivirusHub();
 		}
 #endif
-		// [+] IRainman: copy-past fix.
 		void sendMessage(const tstring& msg, bool thirdperson = false)
 		{
 			dcassert(m_client);
@@ -541,7 +535,6 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		{
 			WinUtil::openLog(SETTING(LOG_FILE_MAIN_CHAT), getFrameLogParams(), TSTRING(NO_LOG_FOR_HUB));
 		}
-		// [~] IRainman: copy-past fix.
 	private:
 		// GDI создаются динамически
 		CEdit* m_ctrlFilter;

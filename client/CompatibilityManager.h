@@ -99,7 +99,7 @@ class CompatibilityManager
 		{
 			return g_osvi.wSuiteMask;
 		}
-		static OSVERSIONINFOEX& getVersionInfo() // [+] SSA Get System Info
+		static OSVERSIONINFOEX& getVersionInfo()
 		{
 			return g_osvi;
 		}
@@ -194,7 +194,7 @@ class CompatibilityManager
 		static DWORDLONG g_FreePhysMemory;
 		
 		static void detectOsSupports();
-		static bool detectWine();// [+] PPA
+		static bool detectWine();
 		static LONG getComCtlVersionFromOS();
 		static void getSystemInfoFromOS();
 		static string getProcArchString();

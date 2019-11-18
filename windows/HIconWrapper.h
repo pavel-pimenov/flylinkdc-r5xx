@@ -23,7 +23,7 @@
 
 class HIconWrapper
 #ifdef _DEBUG
-	: boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 	public:

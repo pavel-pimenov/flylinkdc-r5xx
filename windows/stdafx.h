@@ -36,13 +36,9 @@
 extern CAppModule _Module;
 
 #define _WTL_MDIWINDOWMENU_TEXT CTSTRING(MENU_WINDOW)
-#ifdef OLD_MENU_HEADER
-#define _WTL_CMDBAR_VISTA_MENUS 0 // Don't turned on :( http://www.youtube.com/watch?v=2b8GcBkjdb8
-#else
 #define _WTL_CMDBAR_VISTA_MENUS 1
-#endif
-#define _WTL_NEW_PAGE_NOTIFY_HANDLERS // [+] SSA For Wizard
-//#define _WTL_NO_AUTO_THEME 1
+#define _WTL_NEW_PAGE_NOTIFY_HANDLERS
+
 #include <atlwin.h>
 #include <atlframe.h>
 #include <atlctrls.h>

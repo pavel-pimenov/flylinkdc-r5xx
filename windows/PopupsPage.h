@@ -39,7 +39,7 @@ class Popups : public CPropertyPage<IDD_POPUPS_PAGE>, public PropPage
 		~Popups()
 		{
 			ctrlPopupType.Detach();
-			ctrlPopups.Detach(); // [+] IRainman
+			ctrlPopups.Detach();
 		}
 		
 		enum { BALLOON, CUSTOM, SPLASH, WINDOW };
@@ -47,7 +47,7 @@ class Popups : public CPropertyPage<IDD_POPUPS_PAGE>, public PropPage
 		BEGIN_MSG_MAP(Sounds)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
 		COMMAND_HANDLER(IDC_PREVIEW, BN_CLICKED, onPreview)
-		NOTIFY_HANDLER(IDC_POPUPLIST, NM_CUSTOMDRAW, ctrlPopups.onCustomDraw) // [+] IRainman
+		NOTIFY_HANDLER(IDC_POPUPLIST, NM_CUSTOMDRAW, ctrlPopups.onCustomDraw)
 		COMMAND_ID_HANDLER(IDC_POPUP_FONT, onFont)
 		COMMAND_ID_HANDLER(IDC_POPUP_TITLE_FONT, onTitleFont)
 		COMMAND_ID_HANDLER(IDC_POPUP_BACKCOLOR, onBackColor)
@@ -86,7 +86,7 @@ class Popups : public CPropertyPage<IDD_POPUPS_PAGE>, public PropPage
 		static TextItem texts[];
 		
 		
-		ExListViewCtrl ctrlPopups; // [+] IRainman
+		ExListViewCtrl ctrlPopups;
 		CComboBox ctrlPopupType;
 		LOGFONT myFont;
 		CTrackBarCtrl slider;

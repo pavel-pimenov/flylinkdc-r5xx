@@ -52,7 +52,7 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 		
 		LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{
-			SetDlgItemText(IDC_VERSION, T_VERSIONSTRING); // [~] (Sergey Shushkanov)
+			SetDlgItemText(IDC_VERSION, T_VERSIONSTRING);
 			
 			static const TCHAR l_thanks[] =
 			    _T("Programming, patches:\r\n")
@@ -61,15 +61,12 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    _T("\r\nPortal Browser,x64, GDI+ animation:\r\n")
 			    _T("Brain RIPper\r\n")
 			    
-			    _T("\r\nFlylinkDC++ HE, DC++ core NG:\r\n")
-			    _T("IRainman\r\n")
-			    
 			    _T("\r\nGPU + OpenCL:\r\n")
 			    _T("ecl1pse\r\n")
 			    
 			    _T("\r\nPatches:\r\n")
 			    _T("SMT\r\nBugMaster (ApexDC++ mod 2)\r\nKlirik\r\nnecros\r\nDecker\r\nDrakon\r\nmt2006 wine(Linux)\r\n")
-			    _T("WhiteD\r\nZagZag\r\nNSLQQQ\r\n")
+			    _T("WhiteD\r\nZagZag\r\nNSLQQQ\r\nbirkoff.anarchist\r\n")
 			    
 			    _T("\r\nWeb-Interface, PHP:\r\n")
 			    _T("IRainman\r\nPaul\r\nIceberg\r\nM.S.A\r\nSkazochNik\r\n")
@@ -121,10 +118,8 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			ctrlPartySoftware.AppendText(l_Party_Software, FALSE);
 			ctrlPartySoftware.Detach();
 			
-			::SetWindowText(GetDlgItem(IDC_UPDATE_VERSION_CURRENT_LBL), (TSTRING(CURRENT_VERSION) + _T(":")).c_str()); //[+] (Sergey Shushkanov)
+			::SetWindowText(GetDlgItem(IDC_UPDATE_VERSION_CURRENT_LBL), (TSTRING(CURRENT_VERSION) + _T(":")).c_str());
 			
-//[-]PPA    SetDlgItemText(IDC_TTH, WinUtil::tth.c_str());
-
 			char l_full_version[64];
 			_snprintf(l_full_version, _countof(l_full_version), "%d", _MSC_FULL_VER);
 			

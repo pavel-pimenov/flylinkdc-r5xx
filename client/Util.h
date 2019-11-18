@@ -31,7 +31,7 @@
 
 #include "Text.h"
 #include "CFlyThread.h"
-#include "MerkleTree.h" // [+] SSA - иначе никак, где-то он уже включен
+#include "MerkleTree.h"
 
 # define PATH_SEPARATOR '\\'
 # define PATH_SEPARATOR_STR "\\"
@@ -46,10 +46,8 @@
 #define FLYLINKDC_REGISTRY_SQLITE_ERROR  _T("SQLiteError")
 #define FLYLINKDC_REGISTRY_LEVELDB_ERROR  _T("LevelDBError")
 
-// [+] IRainman: copy-past fix.
 #define PLAY_SOUND(sound_key) Util::playSound(SOUND_SETTING(sound_key))
 #define PLAY_SOUND_BEEP(sound_key) { if (SOUND_BEEP_BOOLSETTING(sound_key)) Util::playSound(SOUND_SETTING(SOUND_BEEPFILE), true); }
-// [~] IRainman: copy-past fix.
 
 const string getFlylinkDCAppCaption();
 const tstring getFlylinkDCAppCaptionT();
@@ -67,7 +65,7 @@ class IDateReceiveReporter
 
 class CInternetHandle
 #ifdef _DEBUG
-	: boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 	public:
@@ -139,7 +137,7 @@ class CFlyHTTPDownloader
 };
 
 template <class T>
-void AppendPathSeparator(T& p_path) //[+]PPA
+void AppendPathSeparator(T& p_path)
 {
 	if (!p_path.empty())
 	{
@@ -156,7 +154,7 @@ void AppendPathSeparator(T& p_path) //[+]PPA
 }
 
 template <class T>
-static void AppendUriSeparator(T& p_path) //[+]SSA
+static void AppendUriSeparator(T& p_path)
 {
 	if (!p_path.empty())
 	{
@@ -189,13 +187,13 @@ static void ReplaceAllPathSeparatorToUriSeparator(string& p_InOutData)
 }
 
 template <class STR>
-static STR RemovePathSeparator(const STR& p_path) // [+] IRainman
+static STR RemovePathSeparator(const STR& p_path)
 {
 	return (p_path.length() < 4/* Drive letter, like "C:\" */ || p_path[p_path.length() - 1] != PATH_SEPARATOR) ? p_path : p_path.substr(0, p_path.length() - 1); //-V112
 }
 
 template <class STR>
-static void AppendQuotsToPath(STR& p_path) // [+] IRainman
+static void AppendQuotsToPath(STR& p_path)
 {
 	if (p_path.length() < 1)
 		return;
@@ -208,7 +206,7 @@ static void AppendQuotsToPath(STR& p_path) // [+] IRainman
 }
 
 template <class STR>
-static void RemoveQuotsFromPath(STR& p_path) // [+] IRainman
+static void RemoveQuotsFromPath(STR& p_path)
 {
 	if (p_path.length() < 1)
 		return;
@@ -326,7 +324,7 @@ inline int compare(const T1& v1, const T1& v2)
 template<typename T>
 class AutoArray
 #ifdef _DEBUG
-	: boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 		typedef T* TPtr;
@@ -357,7 +355,7 @@ class AutoArray
 template<class T, size_t N>
 class LocalArray
 #ifdef _DEBUG
-	: boost::noncopyable // [+] IRainman fix.
+	: boost::noncopyable
 #endif
 {
 	public:
@@ -399,22 +397,19 @@ class Util
 		static const string emptyString;
 		static const wstring emptyStringW;
 		
-		static const std::vector<uint8_t> emptyByteVector; // [+] IRainman opt.
+		static const std::vector<uint8_t> emptyByteVector;
 		
 		static const string m_dot;
 		static const string m_dot_dot;
 		static const tstring m_dotT;
 		static const tstring m_dot_dotT;
-		// [+] IRainman opt.
 		static NUMBERFMT g_nf;
-		// [~] IRainman opt.
 		static void initialize();
 		static void loadCustomlocations();
 		static void loadGeoIp();
 		static void loadP2PGuard();
 		static void loadIBlockList();
 		
-		//[+] IRainman identify URI of DC protocols, magnet, or http links.
 		static bool isNmdc(const tstring& p_HubURL);
 		static bool isNmdcS(const tstring& p_HubURL);
 		static bool isAdc(const tstring& p_HubURL);
@@ -457,24 +452,23 @@ class Util
 		static bool isValidIP(const string& p_ip);
 		static bool isHttpsLink(const tstring& p_url);
 		static bool isHttpsLink(const string& p_url);
-		// [~] IRainman identify URI of DC protocols, magnet, or http links.
 		
 		// From RSSManager.h
-		static string ConvertFromHTML(const string &htmlString); // [!] IRainman fix: this is static function.
-		static string ConvertFromHTMLSymbol(const string &htmlString, const string &findString, const string &changeString); // [!] IRainman fix: this is static function.
+		static string ConvertFromHTML(const string &htmlString);
+		static string ConvertFromHTMLSymbol(const string &htmlString, const string &findString, const string &changeString);
 		
 		// Erase all HTML tags from string
 		static tstring eraseHtmlTags(tstring && p_desc);
 		
 		// File Extension comparsing
 		template<typename string_t>
-		static bool isSameFileExt(const string_t& fileName, const string_t& ext) // [+] IRainman opt
+		static bool isSameFileExt(const string_t& fileName, const string_t& ext)
 		{
 			return fileName.length() > ext.length() &&
 			       !strnicmp(fileName.c_str() + fileName.length() - ext.length(), ext.c_str(), ext.length());
 		}
 		template<typename string_t>
-		static bool isSameFileExt(const string_t& fileName, const string_t& ext, const bool lower) // [+] IRainman opt
+		static bool isSameFileExt(const string_t& fileName, const string_t& ext, const bool lower)
 		{
 			if (lower)
 				return isSameFileExt(fileName, ext);
@@ -488,7 +482,7 @@ class Util
 		static bool isDclstFile(const tstring& file);
 		static bool isDclstFile(const string& file);
 #ifdef SSA_VIDEO_PREVIEW_FEATURE
-		static bool isStreamingVideoFile(const string& p_file); // [+] SSA
+		static bool isStreamingVideoFile(const string& p_file);
 #endif // SSA_VIDEO_PREVIEW_FEATURE
 		
 		/** Path of temporary storage */
@@ -517,9 +511,9 @@ class Util
 #ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
 		    bool p_AllUsers = false
 #endif
-		) //[+]PPA
+		)
 		{
-#ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA //[+] NightOrion
+#ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
 			if (p_AllUsers)
 				return getPath(PATH_ALL_USER_CONFIG);
 			else
@@ -527,18 +521,18 @@ class Util
 				return getPath(PATH_USER_CONFIG);
 		}
 		/** Path of program file */
-		static const string& getDataPath() //[+]PPA
+		static const string& getDataPath()
 		{
 			return getPath(PATH_GLOBAL_CONFIG);
 		}
 		/** Path of localisation file */
-		static const string& getLocalisationPath() //[+] NightOrion
+		static const string& getLocalisationPath()
 		{
 			return getPath(PATH_LANGUAGES);
 		}
 #ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 		/** Path of icon */
-		static const string getICOPath() //[+] NightOrion
+		static const string getICOPath()
 		{
 			return getPath(PATH_EXTERNAL_ICO);
 		}
@@ -548,34 +542,34 @@ class Util
 			return getPath(PATH_EXTERNAL_LOGO);
 		}
 		/** Path of local mode */
-		static const string& getLocalPath() //[+] NightOrion
+		static const string& getLocalPath()
 		{
 			return getPath(PATH_USER_LOCAL);
 		}
 		/** Path of WebServer */
-		static const string& getWebServerPath() //[+] NightOrion
+		static const string& getWebServerPath()
 		{
 			return getPath(PATH_WEB_SERVER);
 		}
 		/** Path of downloads dir */
-		static const string& getDownloadsPath() //[+] NightOrion
+		static const string& getDownloadsPath()
 		{
 			return getPath(PATH_DOWNLOADS);
 		}
 		/** Path of EmoPacks */
-		static const string& getEmoPacksPath() //[+] NightOrion
+		static const string& getEmoPacksPath()
 		{
 			return getPath(PATH_EMOPACKS);
 		}
-		static const string& getThemesPath() // [+] SSA
+		static const string& getThemesPath()
 		{
 			return getPath(PATH_THEMES);
 		}
-		static const string& getExePath() // [+] SSA
+		static const string& getExePath()
 		{
 			return getPath(PATH_EXE);
 		}
-		static const string& getSoundPath() // [+] SSA
+		static const string& getSoundPath()
 		{
 			return getPath(PATH_SOUNDS);
 		}
@@ -593,7 +587,7 @@ class Util
 			return translateError(GetLastError());
 		}
 		
-		static TCHAR* strstr(const TCHAR *str1, const TCHAR *str2, int *pnIdxFound); //[+]PPA
+		static TCHAR* strstr(const TCHAR *str1, const TCHAR *str2, int *pnIdxFound);
 		
 		static time_t getStartTime()
 		{
@@ -738,14 +732,13 @@ class Util
 			return formatBytes(toInt64(aString));
 		}
 		
-		static wstring formatBytesW(const wstring& aString) // [+] IRainman opt
+		static wstring formatBytesW(const wstring& aString)
 		{
 			return formatBytesW(toInt64(aString));
 		}
 		
 		static string getShortTimeString(time_t t = time(NULL));
 		
-		// static string getTimeString(); [-] IRainman
 		static string toAdcFile(const string& file);
 		static string toNmdcFile(const string& file);
 		
@@ -775,7 +768,7 @@ class Util
 		static string formatDigitalClockGMT(const time_t& p_t);
 		static string formatDigitalClock(const time_t& p_t);
 		static string formatDigitalDate();
-		static string formatDigitalClock(const string &p_msg, const time_t& p_t, bool p_is_gmt); //[+]FlylinkDC++ Team
+		static string formatDigitalClock(const string &p_msg, const time_t& p_t, bool p_is_gmt);
 		static string formatRegExp(const string& msg, const StringMap& params);
 		
 		static inline int64_t roundDown(int64_t size, int64_t blockSize)
@@ -798,7 +791,7 @@ class Util
 			return ((size + blockSize - 1) / blockSize) * blockSize;
 		}
 		
-		static int64_t toInt64(const string& aString) // [+] IRainman opt
+		static int64_t toInt64(const string& aString)
 		{
 			//if(aString.size() == 1 && aString[0] == '0')
 			//  return 0;
@@ -815,7 +808,7 @@ class Util
 #endif
 		}
 		
-		static int64_t toInt64(const wstring& aString) // [+] IRainman opt
+		static int64_t toInt64(const wstring& aString)
 		{
 			//if(aString.size() == 1 && aString[0] == L'0')
 			//  return 0;
@@ -823,7 +816,7 @@ class Util
 			return toInt64(aString.c_str());
 		}
 		
-		static int64_t toInt64(const wchar_t* aString) // [+] IRainman opt
+		static int64_t toInt64(const wchar_t* aString)
 		{
 #ifdef _WIN32
 			return _wtoi64(aString);
@@ -840,12 +833,12 @@ class Util
 				return toInt(aString.c_str());
 		}
 		
-		static int toInt(const char* aString) // [+] IRainman opt
+		static int toInt(const char* aString)
 		{
 			return atoi(aString);
 		}
 		
-		static int toInt(const wstring& aString) // [+] IRainman opt
+		static int toInt(const wstring& aString)
 		{
 			if (aString.empty())
 				return 0;
@@ -853,7 +846,7 @@ class Util
 				return toInt(aString.c_str());
 		}
 		
-		static int toInt(const wchar_t* aString) // [+] IRainman opt
+		static int toInt(const wchar_t* aString)
 		{
 			return _wtoi(aString);
 		}
@@ -1043,7 +1036,7 @@ class Util
 		static string listToStringT(const T& lst, bool forceBrackets, bool squareBrackets)
 		{
 			string tmp;
-			if (lst.empty()) //[+]FlylinkDC++
+			if (lst.empty())
 				return tmp;
 			if (lst.size() == 1 && !forceBrackets)
 				return NameOperator()(*lst.begin());
@@ -1141,10 +1134,10 @@ class Util
 		
 		static uint64_t getDirSize(const string &sFullPath);
 		static bool validatePath(const string &sPath);
-		static string getFilenameForRenaming(const string& p_filename); // [+] SSA
+		static string getFilenameForRenaming(const string& p_filename);
 		
 		template<typename T>
-		static void shrink_to_fit(T* start, const T* stop) // [+] IRainman opt.
+		static void shrink_to_fit(T* start, const T* stop)
 		{
 			for (; start != stop; ++start)
 				start->shrink_to_fit();
@@ -1176,7 +1169,6 @@ class Util
 		static size_t getDataFromInetSafe(bool p_is_use_cache, const string& url, string& data, LONG timeOut = 0, IDateReceiveReporter* reporter = NULL);
 		
 		
-		// static string formatMessage(const string& message);[-] IRainman fix
 #ifdef _WIN32
 #ifndef _CONSOLE
 		static tstring getCompileDate(const LPCTSTR& p_format = _T("%Y-%m-%d"))
@@ -1196,15 +1188,14 @@ class Util
 #endif // _WIN32
 		static void setLimiter(bool aLimiter);
 		
-		// [+] SSA Get TTH & MD5 of file
 		static bool getTTH_MD5(const string& p_filename, const size_t p_buffSize, std::unique_ptr<TigerTree>* p_tth, std::unique_ptr<MD5Calc>* p_md5 = 0, bool p_isAbsPath = true);
-		static void BackupSettings();// [+] NightOrion
-		static string formatDchubUrl(const string& DchubUrl);// [+] NightOrion
+		static void BackupSettings();
+		static string formatDchubUrl(const string& DchubUrl);
 		
 		static string getMagnet(const TTHValue& aHash, const string& aFile, int64_t aSize);
 		static string getMagnetByPath(const string& aFile);
 		
-		static string getWebMagnet(const TTHValue& aHash, const string& aFile, int64_t aSize); // !SMT!-UI
+		static string getWebMagnet(const TTHValue& aHash, const string& aFile, int64_t aSize);
 		
 	private:
 	
@@ -1214,7 +1205,7 @@ class Util
 			PATH_GLOBAL_CONFIG,
 			/** Per-user configuration (queue, favorites, ...) */
 			PATH_USER_CONFIG,
-#ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA // [+] NightOrion
+#ifndef USE_SETTINGS_PATH_TO_UPDATA_DATA
 			/** All-user local data (GeoIP, custom location, portal browser settings, ...) */
 			PATH_ALL_USER_CONFIG,
 #endif
@@ -1238,21 +1229,21 @@ class Util
 			PATH_LANGUAGES,
 #ifdef FLYLINKDC_USE_EXTERNAL_MAIN_ICON
 			/** External app icon path*/
-			PATH_EXTERNAL_ICO, //[+] IRainman
+			PATH_EXTERNAL_ICO,
 #endif
 			/** Themes and resources */
-			PATH_THEMES, // [+] SSA
+			PATH_THEMES,
 			/** Executable path **/
-			PATH_EXE,    // [+] SSA
+			PATH_EXE,
 			/** Sounds path **/
-			PATH_SOUNDS,    // [+] NightOrion
+			PATH_SOUNDS,
 			/** Files for GPGPU **/
 			PATH_GPGPU,
 			PATH_EXTERNAL_LOGO,
 			PATH_LAST
 		};
 	public:
-		enum SysPaths // [+] IRainman
+		enum SysPaths
 		{
 #ifdef _WIN32
 			WINDOWS,
@@ -1276,7 +1267,7 @@ class Util
 		static time_t g_awayTime;
 		static const time_t g_startTime;
 		
-		// [!] IRainman opt.
+		
 	public:
 		static const tstring getModuleFileName();
 		static const string getModuleCustomFileName(const string& p_file_name);
@@ -1315,7 +1306,7 @@ class Util
 		static CustomNetworkIndex getIpCountry(const string& p_ip, bool p_is_use_only_cache = false);
 		
 	private:
-		// [~] IRainman opt.
+	
 		static void loadBootConfig();
 		/** Path of program configuration files */
 		static const string& getPath(Paths p_path)
@@ -1325,7 +1316,7 @@ class Util
 		}
 	public:
 		/** Path of system folder */
-		static const string& getSysPath(SysPaths p_path) // [+] IRainman
+		static const string& getSysPath(SysPaths p_path)
 		{
 			dcassert(!g_sysPaths[p_path].empty());
 			return g_sysPaths[p_path];
@@ -1341,7 +1332,7 @@ class Util
 		
 #endif
 	public:
-		static void playSound(const string& p_sound, const bool p_beep = false);// [+] IRainman: copy-past fix.
+		static void playSound(const string& p_sound, const bool p_beep = false);
 		
 		static StringList splitSettingAndReplaceSpace(string patternList);
 		static string toSettingString(const StringList& patternList);
@@ -1451,7 +1442,7 @@ inline bool __fastcall EqualD(double A, double B)
 // parent class for objects with a lot of empty columns in list
 template<int C> class ColumnBase
 #ifdef _DEBUG
-	: private boost::noncopyable // [+] IRainman fix.
+	: private boost::noncopyable
 #endif
 {
 	public:
@@ -1470,7 +1461,6 @@ template<int C> class ColumnBase
 		tstring m_info[C];
 };
 
-// [+] IRainman core: execute task with other thread.
 template<typename TASK_TYPE, const unsigned int PAUSE_IN_MILLS_BEFORE_THREAD_DEADS = 1000>
 class BackgroundTaskExecuter : public Thread, protected CFlyStopThread
 {
@@ -1597,7 +1587,6 @@ class BackgroundTaskExecuter : public Thread, protected CFlyStopThread
 		DWORD m_runningThreadId;
 #endif
 };
-// [~] IRainman core: execute task with other thread.
 
 #endif // !defined(UTIL_H)
 

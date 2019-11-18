@@ -82,7 +82,7 @@ int SearchFrame::columnIndexes[] =
 	COLUMN_LOCATION,
 	COLUMN_IP,
 #ifdef FLYLINKDC_USE_DNS
-	COLUMN_DNS, // !SMT!-IP
+	COLUMN_DNS,
 #endif
 	COLUMN_TTH,
 	COLUMN_TORRENT_COMMENT,
@@ -118,7 +118,7 @@ int SearchFrame::columnSizes[] =
 	100,
 	40,
 	20
-}; // !SMT!-IP
+};
 
 static ResourceManager::Strings columnNames[] = {ResourceManager::FILE,
                                                  ResourceManager::LOCAL_PATH,
@@ -130,24 +130,22 @@ static ResourceManager::Strings columnNames[] = {ResourceManager::FILE,
                                                  ResourceManager::TYPE,
                                                  ResourceManager::SIZE,
                                                  ResourceManager::PATH,
-                                                 ResourceManager::FLY_SERVER_RATING, // COLUMN_FLY_SERVER_RATING
+                                                 ResourceManager::FLY_SERVER_RATING,
                                                  ResourceManager::BITRATE,
                                                  ResourceManager::MEDIA_X_Y,
                                                  ResourceManager::MEDIA_VIDEO,
                                                  ResourceManager::MEDIA_AUDIO,
                                                  ResourceManager::DURATION,
                                                  ResourceManager::SLOTS,
-//[-]PPA    , ResourceManager::CONNECTION,
                                                  ResourceManager::HUB,
                                                  ResourceManager::EXACT_SIZE,
-//[-]PPA        ResourceManager::AVERAGE_UPLOAD,
                                                  ResourceManager::LOCATION_BARE,
                                                  ResourceManager::IP_BARE,
 #ifdef FLYLINKDC_USE_DNS
-                                                 ResourceManager::DNS_BARE, // !SMT!-IP
+                                                 ResourceManager::DNS_BARE,
 #endif
                                                  ResourceManager::TTH_ROOT_OR_TORRENT_MAGNET,
-                                                 ResourceManager::P2P_GUARD,       // COLUMN_P2P_GUARD
+                                                 ResourceManager::P2P_GUARD,
                                                  ResourceManager::TORRENT_COMMENT,
                                                  ResourceManager::TORRENT_DATE,
                                                  ResourceManager::TORRENT_URL,
@@ -200,7 +198,7 @@ SearchFrame::SearchFrame() :
 	m_searchEndTime(0),
 	m_searchStartTime(0),
 	m_waitingResults(false),
-	m_needsUpdateStats(false), // [+] IRainman opt.
+	m_needsUpdateStats(false),
 	m_is_expand_tree(false),
 	m_is_expand_sub_tree(false),
 	m_Theme(nullptr),
@@ -359,7 +357,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	
 	ctrlSearchBox.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                     WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL, 0);
-	CFlylinkDBManager::getInstance()->load_registry(g_lastSearches, e_SearchHistory); //[+]PPA
+	CFlylinkDBManager::getInstance()->load_registry(g_lastSearches, e_SearchHistory);
 	init_last_search_box();
 	searchBoxContainer.SubclassWindow(ctrlSearchBox.m_hWnd);
 	ctrlSearchBox.SetExtendedUI();
@@ -419,7 +417,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	}
 	else
 	{
-		ResourceLoader::LoadImageList(IDR_FOLDERS, images, 16, 16); // [~] Sergey Shushkanov
+		ResourceLoader::LoadImageList(IDR_FOLDERS, images, 16, 16);
 		ctrlResults.SetImageList(images, LVSIL_SMALL);
 	}
 	
@@ -447,14 +445,14 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	                  ES_AUTOHSCROLL, WS_EX_CLIENTEDGE);
 	                  
 	ctrlFilterContainer.SubclassWindow(ctrlFilter.m_hWnd);
-	ctrlFilter.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlFilter.SetFont(Fonts::g_systemFont);
 	
 	
 	ctrlFilterSel.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL |
 	                     WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE);
 	                     
 	ctrlFilterSelContainer.SubclassWindow(ctrlFilterSel.m_hWnd);
-	ctrlFilterSel.SetFont(Fonts::g_systemFont); // [~] Sergey Shuhskanov
+	ctrlFilterSel.SetFont(Fonts::g_systemFont);
 	
 	searchLabel.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 	searchLabel.SetFont(Fonts::g_systemFont, FALSE);
@@ -580,25 +578,22 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 //    m_fly_server_button.SetBitmap(IDB_FLY_SERVER_AQUA);
 
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
-// Кнопка очистки истории. [<-] InfinitySky.
 	ctrlPurge.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | BS_ICON |
 	                 BS_PUSHBUTTON, 0, IDC_PURGE);
-	ctrlPurge.SetIcon(g_purge_icon); // [+] InfinitySky. Иконка на кнопке очистки истории.
+	ctrlPurge.SetIcon(g_purge_icon);
 	//purgeContainer.SubclassWindow(ctrlPurge.m_hWnd);
 	m_tooltip.AddTool(ctrlPurge, ResourceManager::CLEAR_SEARCH_HISTORY);
-// Кнопка паузы. [<-] InfinitySky.
 	ctrlPauseSearch.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                       BS_PUSHBUTTON, 0, IDC_SEARCH_PAUSE);
 	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE));
 	ctrlPauseSearch.SetFont(Fonts::g_systemFont);
-	ctrlPauseSearch.SetIcon(g_pause_icon); // [+] InfinitySky. Иконка на кнопке паузы.
+	ctrlPauseSearch.SetIcon(g_pause_icon);
 	
-// Кнопка поиска. [<-] InfinitySky.
 	ctrlDoSearch.Create(l_lHwnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 	                    BS_PUSHBUTTON, 0, IDC_SEARCH);
 	ctrlDoSearch.SetWindowText(CTSTRING(SEARCH));
 	ctrlDoSearch.SetFont(Fonts::g_systemFont);
-	ctrlDoSearch.SetIcon(g_search_icon); // [+] InfinitySky. Иконка на кнопке поиска.
+	ctrlDoSearch.SetIcon(g_search_icon);
 	//doSearchContainer.SubclassWindow(ctrlDoSearch.m_hWnd);
 	
 	
@@ -687,15 +682,10 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	targetDirMenu.CreatePopupMenu();
 	targetMenu.CreatePopupMenu();
 	priorityMenu.CreatePopupMenu();
-	tabMenu.CreatePopupMenu();  // [+] InfinitySky
+	tabMenu.CreatePopupMenu();
 	
 	tabMenu.AppendMenu(MF_STRING, IDC_CLOSE_ALL_SEARCH_FRAME, CTSTRING(MENU_CLOSE_ALL_SEARCHFRAME));
 	tabMenu.AppendMenu(MF_STRING, IDC_CLOSE_WINDOW, CTSTRING(CLOSE_HOT));
-	
-	// [-] brain-ripper
-	// Make menu dynamic (in context menu handler), since its content depends of which
-	// user selected (for add/remove favorites item)
-	//resultsMenu.CreatePopupMenu();
 	
 	copyMenuTorrent.AppendMenu(MF_STRING, IDC_COPY_FILENAME, CTSTRING(FILENAME));
 	copyMenuTorrent.AppendMenu(MF_STRING, IDC_COPY_TTH, CTSTRING(TTH_ROOT_OR_TORRENT_MAGNET));
@@ -705,7 +695,6 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	copyMenuTorrent.AppendMenu(MF_STRING, IDC_COPY_TORRENT_COMMENT, CTSTRING(TORRENT_COMMENT));
 	copyMenuTorrent.AppendMenu(MF_STRING, IDC_COPY_TORRENT_URL, CTSTRING(TORRENT_URL));
 	copyMenuTorrent.AppendMenu(MF_STRING, IDC_COPY_TORRENT_PAGE, CTSTRING(TORRENT_PAGE));
-	// TODO
 	
 	copyMenu.AppendMenu(MF_STRING, IDC_COPY_NICK, CTSTRING(COPY_NICK));
 	copyMenu.AppendMenu(MF_STRING, IDC_COPY_FILENAME, CTSTRING(FILENAME));
@@ -718,7 +707,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	copyMenu.AppendMenu(MF_STRING, IDC_COPY_TTH, CTSTRING(TTH_ROOT_OR_TORRENT_MAGNET));
 	copyMenu.AppendMenu(MF_STRING, IDC_COPY_LINK, CTSTRING(COPY_MAGNET_LINK));
 	copyMenu.AppendMenu(MF_STRING, IDC_COPY_FULL_MAGNET_LINK, CTSTRING(COPY_FULL_MAGNET_LINK));
-	copyMenu.AppendMenu(MF_STRING, IDC_COPY_WMLINK, CTSTRING(COPY_MLINK_TEMPL)); // !SMT!-UI
+	copyMenu.AppendMenu(MF_STRING, IDC_COPY_WMLINK, CTSTRING(COPY_MLINK_TEMPL));
 	priorityMenu.AppendMenu(MF_STRING, IDC_PRIORITY_PAUSED, CTSTRING(PAUSED));
 	priorityMenu.AppendMenu(MF_STRING, IDC_PRIORITY_LOWEST, CTSTRING(LOWEST));
 	priorityMenu.AppendMenu(MF_STRING, IDC_PRIORITY_LOW, CTSTRING(LOW));
@@ -780,7 +769,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	}
 	ctrlFilterSel.SetCurSel(0);
 	ctrlStatus.SetText(1, 0, SBT_OWNERDRAW);
-	m_tooltip.SetMaxTipWidth(200);   //[+] SCALOlaz: activate tooltips
+	m_tooltip.SetMaxTipWidth(200);
 	if (!BOOLSETTING(POPUPS_DISABLED))
 	{
 		m_tooltip.Activate(TRUE);
@@ -1069,7 +1058,7 @@ void SearchFrame::onEnter()
 		g_lastSearches.push_front(s);
 		init_last_search_box();
 		CFlylinkDBManager::getInstance()->clean_registry(e_SearchHistory, 0);
-		CFlylinkDBManager::getInstance()->save_registry(g_lastSearches, e_SearchHistory); //[+]PPA
+		CFlylinkDBManager::getInstance()->save_registry(g_lastSearches, e_SearchHistory);
 	}
 	MainFrame::updateQuickSearches();
 	if (BOOLSETTING(USE_TORRENT_SEARCH) && m_search_param.m_file_type != Search::TYPE_TTH && !isTTH(s) && !s.empty())
@@ -1121,7 +1110,7 @@ void SearchFrame::onEnter()
 	::EnableWindow(GetDlgItem(IDC_SEARCH_PAUSE), TRUE);
 	ctrlPauseSearch.SetWindowText(CTSTRING(PAUSE));
 	
-	m_search = StringTokenizer<string>(Text::fromT(s), ' ').getTokens(); // [~]IRainman optimize SearchFrame
+	m_search = StringTokenizer<string>(Text::fromT(s), ' ').getTokens();
 	m_search_param.m_file_type  = Search::TypeModes(ctrlFiletype.GetCurSel());
 	
 	s.clear();
@@ -1182,7 +1171,6 @@ void SearchFrame::onEnter()
 	
 	SetWindowText((TSTRING(SEARCH) + _T(" - ") + s).c_str());
 	
-	// [+] merge
 	// stop old search
 	ClientManager::cancelSearch((void*)this);
 	m_search_param.m_ext_list.clear();
@@ -1347,7 +1335,7 @@ void SearchFrame::on(SearchManagerListener::SR, const std::unique_ptr<SearchResu
 		if (m_search.empty())
 			return;
 			
-		m_needsUpdateStats = true; // [+] IRainman opt.
+		m_needsUpdateStats = true;
 		if (!aResult->getToken() && m_search_param.m_token != aResult->getToken())
 		{
 			m_droppedResults++;
@@ -1459,7 +1447,6 @@ void SearchFrame::on(SearchManagerListener::SR, const std::unique_ptr<SearchResu
 				{
 					m_droppedResults++;
 					// LogManager::message("Search: droppedResults: " + aResult->getFile());
-					// PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
 					return;
 				}
 			}
@@ -1478,7 +1465,6 @@ void SearchFrame::on(SearchManagerListener::SR, const std::unique_ptr<SearchResu
 	if ((m_onlyFree && aResult->getFreeSlots() < 1) || (m_isExactSize && aResult->getSize() != m_exactSize2))
 	{
 		m_droppedResults++;
-		//PostMessage(WM_SPEAKER, FILTER_RESULT);//[-]IRainman optimize SearchFrame
 		return;
 	}
 	auto l_ptr = new SearchInfo(*aResult);
@@ -1658,7 +1644,7 @@ LRESULT SearchFrame::onMergeFlyServerResult(UINT /*uMsg*/, WPARAM wParam, LPARAM
 						if (!l_count_download.empty())
 						{
 							if (l_si->columns[COLUMN_FLY_SERVER_RATING].empty())
-								l_si->columns[COLUMN_FLY_SERVER_RATING] = Text::toT("0/" + l_count_download); // TODO fix copy-paste
+								l_si->columns[COLUMN_FLY_SERVER_RATING] = Text::toT("0/" + l_count_download);
 							else
 								l_si->columns[COLUMN_FLY_SERVER_RATING] = Text::toT(l_count_query + '/' + l_count_download);
 						}
@@ -1796,7 +1782,7 @@ void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	{
 		const auto l_tick = GET_TICK();
 		checkUDPTest();
-		if (!MainFrame::isAppMinimized(m_hWnd)) // [+] IRainman opt.
+		if (!MainFrame::isAppMinimized(m_hWnd))
 		{
 			static int g_index = 0;
 			if (m_RootVirusTreeItem)
@@ -1825,7 +1811,7 @@ void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 		}
 		if (m_waitingResults)
 		{
-			// [!] IRainman fix.
+		
 			const auto l_delta = m_searchEndTime - m_searchStartTime;
 			const uint64_t percent = l_delta ? (l_tick - m_searchStartTime) * 100 / l_delta : 0;
 			const bool l_searchDone = percent >= 100;
@@ -1841,7 +1827,7 @@ void SearchFrame::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 			}
 			safe_post_message(*this, QUEUE_STATS, new const tstring(l_searchDone ? TSTRING(DONE) : Util::formatSecondsW((m_searchEndTime - l_tick) / 1000)));
 			m_waitingResults = l_tick < m_searchEndTime + 5000;
-			// [~] IRainman fix.
+			
 		}
 	}
 #ifdef FLYLINKDC_USE_WINDOWS_TIMER_SEARCH_FRAME
@@ -2060,8 +2046,6 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			}
 			case COLUMN_SLOTS:
 				return Text::toT(m_sr.getSlotString());
-			// [-] PPA
-			//case COLUMN_CONNECTION: return Text::toT(ClientManager::getInstance()->getConnection(getUser()->getCID()));
 			case COLUMN_HUB:
 				return Text::toT(m_sr.getHubName() + " (" + m_sr.getHubUrl() + ')');
 			case COLUMN_IP:
@@ -2071,7 +2055,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			case COLUMN_TTH:
 				return m_sr.getType() == SearchResult::TYPE_FILE ? Text::toT(m_sr.getTTH().toBase32()) : Util::emptyStringT;
 			case COLUMN_LOCATION:
-				return Util::emptyStringT; // Вертаем пустышку - отрисуют на ownerDraw
+				return Util::emptyStringT;
 			default:
 			{
 				if (col < COLUMN_LAST)
@@ -2259,7 +2243,7 @@ void SearchFrame::SearchInfo::CheckTTH::operator()(const SearchInfo* si)
 tstring SearchFrame::getDownloadDirectory(WORD wID)
 {
 	TargetsMap::const_iterator i = dlTargets.find(wID);
-	tstring dir; // [!] IRainman replace Text::toT(SETTING(DOWNLOAD_DIRECTORY)) to Util::emptyStringT, its needs for support download to specify extension dir.
+	tstring dir;
 	if (wID == IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS) return Text::toT(SETTING(DOWNLOAD_DIRECTORY));
 	if (i == dlTargets.end()) return dir;
 	const auto& l_trarget = i->second; // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->second' expression repeatedly. searchfrm.cpp 1201
@@ -2275,9 +2259,6 @@ tstring SearchFrame::getDownloadDirectory(WORD wID)
 			return Util::emptyStringT;
 		}
 	}
-	// [+] brain-ripper
-	// I'd like to have such feature -
-	// save chosen SRC path in menu.
 	else if (l_trarget.Type == TARGET_STRUCT::PATH_SRC && !l_trarget.strPath.empty())
 	{
 		LastDir::add(i->second.strPath);
@@ -2378,7 +2359,7 @@ LRESULT SearchFrame::onDownload(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/
 		ctrlResults.forEachSelectedT(SearchInfo::Download(dir, this, QueueItem::DEFAULT));
 	else
 	{
-		// [+] InfinitySky.
+	
 		int i = -1;
 		while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 		{
@@ -2477,7 +2458,7 @@ LRESULT SearchFrame::onDoubleClickResults(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*
 		if (item->ptAction.x < rect.left)
 			return 0;
 			
-		// [+] InfinitySky.
+			
 		int i = -1;
 		while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 		{
@@ -2525,7 +2506,7 @@ LRESULT SearchFrame::onClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 #endif
 		ctrlResults.DeleteAndClearAllItems(); // https://drdump.com/DumpGroup.aspx?DumpGroupID=358387
 		clearPausedResults();
-		ctrlHubs.DeleteAndCleanAllItems(); // [!] IRainman
+		ctrlHubs.DeleteAndCleanAllItems();
 		clear_tree_filter_contaners();
 		ctrlResults.saveHeaderOrder(SettingsManager::SEARCHFRAME_ORDER, SettingsManager::SEARCHFRAME_WIDTHS,
 		                            SettingsManager::SEARCHFRAME_VISIBLE);
@@ -2551,10 +2532,9 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 	m_tooltip.Activate(FALSE);
 	RECT rect;
 	GetClientRect(&rect);
-	// position bars and offset their dimensions
 	UpdateBarsPosition(rect, bResizeBars);
 	
-	int const width = 222, spacing = 50, labelH = 16, comboH = 140, lMargin = 4, rMargin = 4, miniwidth = 30; // [+] InfinitySky. Добавлен параметр "miniwidth".
+	int const width = 222, spacing = 50, labelH = 16, comboH = 140, lMargin = 4, rMargin = 4, miniwidth = 30;
 	
 	if (ctrlStatus.IsWindow())
 	{
@@ -2601,10 +2581,10 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		}
 #endif
 		// "Search for".
-		rc.left = lMargin; // Левая граница.
-		rc.right = width - rMargin; // Правая граница.
-		rc.top += 25; // Верхняя граница.
-		rc.bottom = rc.top + comboH; // Нижняя граница.
+		rc.left = lMargin;
+		rc.right = width - rMargin;
+		rc.top += 25;
+		rc.bottom = rc.top + comboH;
 		ctrlSearchBox.MoveWindow(rc);
 		
 		searchLabel.MoveWindow(rc.left + lMargin, rc.top - labelH, 60, labelH - 1);
@@ -2623,24 +2603,24 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		m_FlyServerGradientLabel.MoveWindow(l_fly_rc);
 #endif
 		// "Clear search history".
-		rc.left = lMargin; // Левая граница.
-		rc.right = rc.left + miniwidth; // Правая граница. [~] InfinitySky. " + miniwidth".
-		rc.top += 25; // Верхняя граница.
-		rc.bottom = rc.top + 24; // Нижняя граница. [~] InfinitySky.
+		rc.left = lMargin;
+		rc.right = rc.left + miniwidth;
+		rc.top += 25;
+		rc.bottom = rc.top + 24;
 		ctrlPurge.MoveWindow(rc);
 		
 		
 		CRect l_tmp_rc = rc;
 		
 		// "Pause".
-		rc.left += miniwidth + 4; // Левая граница. [~] InfinitySky. " + miniwidth".
-		rc.right = rc.left + 88; // Правая граница. [~] InfinitySky.
-		ctrlPauseSearch.MoveWindow(rc); // [<-] InfinitySky.
+		rc.left += miniwidth + 4;
+		rc.right = rc.left + 88;
+		ctrlPauseSearch.MoveWindow(rc);
 		
 		// "Search".
-		rc.left += 88 + 4; // Левая граница. [~] InfinitySky.
-		rc.right = rc.left + 88; // Правая граница. [~] InfinitySky.
-		ctrlDoSearch.MoveWindow(rc); // [<-] InfinitySky.
+		rc.left += 88 + 4;
+		rc.right = rc.left + 88;
+		ctrlDoSearch.MoveWindow(rc);
 		
 		// Search firewall
 //		rc.left   -= 50;
@@ -2653,35 +2633,33 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		// "Size".
 		// Выпадающий список условия.
 		int w2 = width - lMargin - rMargin;
-		rc.top += spacing - 7; // Верхняя граница. [~] InfinitySky.
-		rc.bottom = rc.top + comboH; // Нижняя граница.
-		rc.right = w2 / 2; // Правая граница. [~] InfinitySky.
+		rc.top += spacing - 7;
+		rc.bottom = rc.top + comboH;
+		rc.right = w2 / 2;
 		ctrlMode.MoveWindow(rc);
 		
 		// Надпись "Размер": (левая, верхняя, правая, нижняя границы).
 		sizeLabel.MoveWindow(rc.left + lMargin, rc.top - labelH, 40 /* width - rMargin */, labelH - 1);
 		
 		// Поле для ввода.
-		rc.left = rc.right + lMargin; // Левая граница.
-		rc.right += w2 / 4; // Правая граница. [~] InfinitySky.
-		rc.bottom = rc.top + 22; // Нижняя граница. [~] InfinitySky.
+		rc.left = rc.right + lMargin;
+		rc.right += w2 / 4;
+		rc.bottom = rc.top + 22;
 		ctrlSize.MoveWindow(rc);
 		
 		// Выпадающий список величины измерения.
-		rc.left = rc.right + lMargin; // Левая граница.
-		rc.right = width - rMargin; // Правая граница.
-		rc.bottom = rc.top + comboH; // Нижняя граница.
+		rc.left = rc.right + lMargin;
+		rc.right = width - rMargin;
+		rc.bottom = rc.top + comboH;
 		ctrlSizeMode.MoveWindow(rc);
 		
 		// "File type".
-		rc.left = lMargin; // Левая граница.
-		rc.right = width - rMargin; // Правая граница.
-		rc.top += spacing - 9; // Верхняя граница. [~] InfinitySky.
+		rc.left = lMargin;
+		rc.right = width - rMargin;
+		rc.top += spacing - 9;
 		rc.bottom = rc.top + comboH + 21;
 		ctrlFiletype.MoveWindow(rc);
-		//rc.bottom -= comboH;
 		
-		// Надпись "Тип файла": (левая, верхняя, правая, нижняя границы).
 		typeLabel.MoveWindow(rc.left + lMargin, rc.top - labelH, width - rMargin, labelH - 1);
 		
 #ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
@@ -2705,7 +2683,7 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 		rc.left = lMargin + 4;
 		rc.right = width - rMargin;
 		rc.top += spacing - 10;
-		rc.bottom = rc.top + 17; // Нижняя граница. [~] InfinitySky.
+		rc.bottom = rc.top + 17;
 		
 		optionLabel.MoveWindow(rc.left + lMargin, rc.top - labelH, width - rMargin, labelH - 1);
 		ctrlSlots.MoveWindow(rc);
@@ -2748,7 +2726,7 @@ void SearchFrame::UpdateLayout(BOOL bResizeBars)
 			hubsLabel.MoveWindow(rc.left + lMargin, rc.top - labelH, width - rMargin, labelH - 1);
 		}
 	}
-	else   // if(m_showUI)
+	else
 	{
 		CRect rc = rect;
 		rc.bottom -= 26;
@@ -2981,7 +2959,7 @@ void SearchFrame::onTab(bool shift)
 	::SetFocus(wnds[(i + (shift ? -1 : 1)) % size]);
 }
 
-// [+] InfinitySky. Отображение меню на вкладке.
+
 LRESULT SearchFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {
 	const POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };        // location of mouse click
@@ -2998,7 +2976,7 @@ LRESULT SearchFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
 
 LRESULT SearchFrame::onSearchByTTH(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	// !SMT!-UI
+
 	int i = -1;
 	while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
@@ -3448,7 +3426,7 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 		}
 #endif
 		{
-			CLockRedraw<> l_lock_draw(ctrlResults); //[+]IRainman optimize SearchFrame
+			CLockRedraw<> l_lock_draw(ctrlResults);
 			const SearchInfoList::ParentPair l_pp = { si, SearchInfoList::g_emptyVector };
 			if (si->m_is_torrent)
 			{
@@ -3515,7 +3493,6 @@ void SearchFrame::addSearchResult(SearchInfo* si)
 	{
 #ifdef FLYLINK_DC_USE_PAUSED_SEARCH
 		m_pausedResults.push_back(si);
-		//ctrlStatus.SetText(3, (Util::toStringW(resultsCount + pausedResults.size()) + _T('/') + Util::toStringW(resultsCount) + _T(' ') + WSTRING(FILES)).c_str());//[-]IRainman optimize SearchFrame
 #endif
 	}
 }
@@ -3682,7 +3659,7 @@ int SearchFrame::makeTargetMenu(const SearchInfo* p_si)
 	{
 		for (auto i = spl.cbegin(); i != spl.cend(); ++i)
 		{
-			const tstring tar = Text::toT(i->name); // !SMT!-S
+			const tstring tar = Text::toT(i->name);
 			dlTargets[IDC_DOWNLOAD_FAVORITE_DIRS + n] = TARGET_STRUCT(Text::toT(i->dir), TARGET_STRUCT::PATH_FAVORITE);
 			targetMenu.AppendMenu(MF_STRING, IDC_DOWNLOAD_FAVORITE_DIRS + n, tar.c_str());
 			n++;
@@ -3690,7 +3667,6 @@ int SearchFrame::makeTargetMenu(const SearchInfo* p_si)
 		targetMenu.AppendMenu(MF_SEPARATOR);
 	}
 	
-	// !SMT!-S: Append special folder, like in source share
 	if (p_si && p_si->m_is_torrent == false)
 	{
 		tstring srcpath = p_si->getText(COLUMN_PATH);
@@ -3715,7 +3691,7 @@ int SearchFrame::makeTargetMenu(const SearchInfo* p_si)
 		targetMenu.InsertSeparatorLast(TSTRING(PREVIOUS_FOLDERS));
 		for (auto i = LastDir::get().cbegin(); i != LastDir::get().cend(); ++i)
 		{
-			const tstring& tar = *i; // !SMT!-S
+			const tstring& tar = *i;
 			dlTargets[IDC_DOWNLOAD_FAVORITE_DIRS + n] = TARGET_STRUCT(tar, TARGET_STRUCT::PATH_LAST);
 			targetMenu.AppendMenu(MF_STRING, IDC_DOWNLOAD_FAVORITE_DIRS + n, Text::toLabel(tar).c_str());
 			n++;
@@ -3760,9 +3736,6 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 			clearPreviewMenu();
 #endif
 			clearUserMenu();
-			// [+] brain-ripper
-			// Make menu dynamic, since its content depends of which
-			// user selected (for add/remove favorites item)
 			OMenu resultsMenu;
 			
 			resultsMenu.CreatePopupMenu();
@@ -3794,7 +3767,7 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 			resultsMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
 			resultsMenu.SetMenuDefaultItem(IDC_DOWNLOAD_FAVORITE_DIRS);
 			
-			dlTargets.clear(); // !SMT!-S
+			dlTargets.clear();
 			
 			const SearchInfo* l_si = nullptr;
 			SearchResult sr;
@@ -3827,7 +3800,7 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 					targetMenu.InsertSeparatorLast(TSTRING(ADD_AS_SOURCE));
 					for (auto i = targets.cbegin(); i != targets.cend(); ++i)
 					{
-						const tstring tar = Text::toT(*i); // !SMT!-S
+						const tstring tar = Text::toT(*i);
 						dlTargets[IDC_DOWNLOAD_TARGET + n] = TARGET_STRUCT(tar, TARGET_STRUCT::PATH_DEFAULT);
 						targetMenu.AppendMenu(MF_STRING, IDC_DOWNLOAD_TARGET + n,  Text::toLabel(tar).c_str());
 						n++;
@@ -3852,7 +3825,7 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 				{
 					for (auto i = spl.cbegin(); i != spl.cend(); ++i)
 					{
-						const tstring tar = Text::toT(i->name); // !SMT!-S
+						const tstring tar = Text::toT(i->name);
 						dlTargets[IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + n] = TARGET_STRUCT(Text::toT(i->dir), TARGET_STRUCT::PATH_DEFAULT);
 						targetDirMenu.AppendMenu(MF_STRING, IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + n, tar.c_str());
 						n++;
@@ -3870,43 +3843,37 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 				targetDirMenu.AppendMenu(MF_SEPARATOR);
 				for (auto i = LastDir::get().cbegin(); i != LastDir::get().cend(); ++i)
 				{
-					const tstring tar = *i; // !SMT!-S
+					const tstring tar = *i;
 					dlTargets[IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + n] = TARGET_STRUCT(tar, TARGET_STRUCT::PATH_LAST);
 					targetDirMenu.AppendMenu(MF_STRING, IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + n, Text::toLabel(*i).c_str());
 					n++;
 				}
 			}
-			// [+] SCALOlaz: prepare for swap Item text
 			const int l_ipos = WinUtil::GetMenuItemPosition(copyMenu, IDC_COPY_FILENAME);
 			
 			if (ctrlResults.GetSelectedCount() == 1 && sr.getType() == SearchResult::TYPE_FILE)
 			{
-				// [+] SCALOlaz: swap Item text
 				if (l_ipos != -1)
 					copyMenu.ModifyMenu(l_ipos, MF_BYPOSITION | MF_STRING, IDC_COPY_FILENAME, CTSTRING(FILENAME));
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-				// [+] SCALOlaz: View Media Info
-				// No checks - a media information file or not
 				resultsMenu.EnableMenuItem(IDC_VIEW_FLYSERVER_INFORM, MF_BYCOMMAND | MFS_ENABLED);
 #endif
 			}
 			else if (ctrlResults.GetSelectedCount() == 1 && sr.getType() == SearchResult::TYPE_DIRECTORY)
 			{
-				// [+] SCALOlaz: swap Item text
 				if (l_ipos != -1)
 					copyMenu.ModifyMenu(l_ipos, MF_BYPOSITION | MF_STRING, IDC_COPY_FILENAME, CTSTRING(FOLDERNAME));
 			}
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 			if (ctrlResults.GetSelectedCount() != 1 || sr.getType() != SearchResult::TYPE_FILE)
 			{
-				// [+] SCALOlaz: View Media Info
 				resultsMenu.EnableMenuItem(IDC_VIEW_FLYSERVER_INFORM, MF_BYCOMMAND | MFS_DISABLED);
 			}
 #endif
 			appendUcMenu(resultsMenu, UserCommand::CONTEXT_SEARCH, SIcheck.hubs);
 			
 			copyMenu.InsertSeparatorFirst(TSTRING(USERINFO));
-			resultsMenu.InsertSeparatorFirst(!sr.getFileName().empty() ? Text::CropStrLength(sr.getFileName()) : TSTRING(FILES)); // [~] SCALOlaz: CropStrLength - crop long string
+			resultsMenu.InsertSeparatorFirst(!sr.getFileName().empty() ? Text::CropStrLength(sr.getFileName()) : TSTRING(FILES));
 			resultsMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);
 			resultsMenu.RemoveFirstItem();
 			copyMenu.RemoveFirstItem();
@@ -3923,7 +3890,7 @@ void SearchFrame::initHubs()
 {
 	if (!CompatibilityManager::isWine())
 	{
-		CLockRedraw<> l_lock_draw(ctrlHubs); // [+] IRainman opt.
+		CLockRedraw<> l_lock_draw(ctrlHubs);
 		
 		ctrlHubs.insertItem(new HubInfo(Util::emptyStringT, TSTRING(ONLY_WHERE_OP), false), 0);
 		ctrlHubs.SetCheckState(0, false);
@@ -4096,7 +4063,7 @@ LRESULT SearchFrame::onPurge(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 	ctrlSearchBox.ResetContent();
 	g_lastSearches.clear();
 	CFlylinkDBManager::getInstance()->clean_registry(e_SearchHistory, 0);
-	MainFrame::updateQuickSearches(true);//[+]IRainman
+	MainFrame::updateQuickSearches(true);
 	if (!BOOLSETTING(POPUPS_DISABLED))
 	{
 		m_tooltip.Activate(TRUE);
@@ -4107,7 +4074,6 @@ LRESULT SearchFrame::onPurge(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 LRESULT SearchFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	string data;
-	// !SMT!-UI: copy several rows
 	int i = -1;
 	while ((i = ctrlResults.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
@@ -4146,7 +4112,7 @@ LRESULT SearchFrame::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BO
 				if (wID == IDC_COPY_FULL_MAGNET_LINK && !sr.getHubUrl().empty())
 					sCopy += "&xs=" + Util::formatDchubUrl(sr.getHubUrl());
 				break;
-			case IDC_COPY_WMLINK: // !SMT!-UI
+			case IDC_COPY_WMLINK:
 				if (sr.getType() == SearchResult::TYPE_FILE)
 					sCopy = Util::getWebMagnet(sr.getTTH(), sr.getFileName(), sr.getSize());
 				break;
@@ -4244,7 +4210,7 @@ LRESULT SearchFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 				}
 			}
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-			Colors::alternationBkColor(cd); // [+] IRainman
+			Colors::alternationBkColor(cd);
 #endif
 			return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 		}
@@ -4778,7 +4744,7 @@ LRESULT SearchFrame::onEditChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 			if (Util::isMagnetLink(l_searchString))
 			{
 				const tstring::size_type l_xt = l_searchString.find(L"xt=urn:tree:tiger:");
-				if (l_xt != tstring::npos && l_xt + 18 + 39 <= l_searchString.size() //[!]FlylinkDC++ Team. fix crash: "magnet:?xt=urn:tree:tiger:&xl=3451326464&dn=sr-r3ts12.iso"
+				if (l_xt != tstring::npos && l_xt + 18 + 39 <= l_searchString.size()
 				   )
 				{
 					l_searchString = l_searchString.substr(l_xt + 18, 39);

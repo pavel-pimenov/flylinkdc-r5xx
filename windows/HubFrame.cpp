@@ -99,7 +99,7 @@ int HubFrame::g_columnSizes[] = { 100,    // COLUMN_NICK
                                   , 100   // COLUMN_FLY_HUB_TIMES
                                   , 100   // COLUMN_FLY_HUB_SUPPORT_INFO
 #endif
-                                }; // !SMT!-IP
+                                };
 
 int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
                                     COLUMN_SHARED,
@@ -130,9 +130,8 @@ int HubFrame::g_columnIndexes[] = { COLUMN_NICK,
                                     COLUMN_MESSAGES,
 #endif
 #ifdef FLYLINKDC_USE_DNS
-                                    COLUMN_DNS, // !SMT!-IP
+                                    COLUMN_DNS,
 #endif
-//[-]PPA        COLUMN_PK
                                     COLUMN_CID,
                                     COLUMN_TAG,
                                     COLUMN_P2P_GUARD
@@ -182,9 +181,8 @@ static ResourceManager::Strings g_columnNames[] = { ResourceManager::NICK,      
                                                     ResourceManager::MESSAGES_COUNT,    // COLUMN_MESSAGES
 #endif
 #ifdef FLYLINKDC_USE_DNS
-                                                    ResourceManager::DNS_BARE,        // COLUMN_DNS // !SMT!-IP
+                                                    ResourceManager::DNS_BARE,        // COLUMN_DNS
 #endif
-//[-]PPA  ResourceManager::PK
                                                     ResourceManager::CID,             // COLUMN_CID
                                                     ResourceManager::TAG,             // COLUMN_TAG
                                                     ResourceManager::P2P_GUARD,       // COLUMN_P2P_GUARD
@@ -205,7 +203,6 @@ static ResourceManager::Strings g_columnNames[] = { ResourceManager::NICK,      
 #endif
                                                   };
 
-// [+] IRainman: copy-past fix.
 void HubFrame::addFrameLogParams(StringMap& params)
 {
 	// TODO
@@ -215,7 +212,6 @@ void HubFrame::addMesageLogParams(StringMap& params, tstring aLine, bool bThirdP
 {
 	// TODO
 }
-// [~] IRainman: copy-past fix.
 
 HubFrame::HubFrame(bool p_is_auto_connect,
                    const string& aServer,
@@ -338,19 +334,14 @@ void HubFrame::createCtrlUsers()
 }
 LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-	// [!]IRainman please update it
-	// Could you please update all array entries according to a global enum located in UserInfo.h
 	BOOST_STATIC_ASSERT(_countof(HubFrame::g_columnSizes) == COLUMN_LAST);
 	BOOST_STATIC_ASSERT(_countof(HubFrame::g_columnIndexes) == COLUMN_LAST);
 	BOOST_STATIC_ASSERT(_countof(g_columnNames) == COLUMN_LAST);
-	// [~]IRainman
 	
 	BaseChatFrame::OnCreate(m_hWnd, rcDefault);
 	
-	setHubParam(); // !SMT!-S
+	setHubParam();
 	
-	// TODO - отложить создание контрола...
-// TODO - может колонки не создвать пока они не нужны?
 	bHandled = FALSE;
 	m_client->connect();
 	const FavoriteHubEntry* fe = FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl());
@@ -504,7 +495,7 @@ void HubFrame::createMessagePanel()
 			m_ctrlFilter->Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
 			                     ES_AUTOHSCROLL, WS_EX_CLIENTEDGE);
 			m_ctrlFilterContainer->SubclassWindow(m_ctrlFilter->m_hWnd);
-			m_ctrlFilter->SetFont(Fonts::g_systemFont); // [~] Sergey Shushknaov
+			m_ctrlFilter->SetFont(Fonts::g_systemFont);
 			if (!m_filter.empty())
 			{
 				m_ctrlFilter->SetWindowTextW(m_filter.c_str());
@@ -515,7 +506,7 @@ void HubFrame::createMessagePanel()
 			m_ctrlFilterSel->Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_HSCROLL |
 			                        WS_VSCROLL | CBS_DROPDOWNLIST, WS_EX_CLIENTEDGE);
 			m_ctrlFilterSelContainer->SubclassWindow(m_ctrlFilterSel->m_hWnd);
-			m_ctrlFilterSel->SetFont(Fonts::g_systemFont); // [~] Sergey Shuhkanov
+			m_ctrlFilterSel->SetFont(Fonts::g_systemFont);
 			
 			for (size_t j = 0; j < COLUMN_LAST; ++j)
 			{
@@ -528,7 +519,7 @@ void HubFrame::createMessagePanel()
 			m_tooltip_hubframe->Create(m_hWnd, rcDefault, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP /*| TTS_BALLOON*/, WS_EX_TOPMOST);
 			m_tooltip_hubframe->SetDelayTime(TTDT_AUTOPOP, 10000);
 			dcassert(m_tooltip_hubframe->IsWindow());
-			m_tooltip_hubframe->SetMaxTipWidth(255);   //[+] SCALOlaz: activate tooltips
+			m_tooltip_hubframe->SetMaxTipWidth(255);
 			
 			CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
 			BaseChatFrame::createStatusCtrl(m_hWndStatusBar);
@@ -902,7 +893,6 @@ void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring
 	}
 	else if ((stricmp(cmd.c_str(), _T("favorite")) == 0) || (stricmp(cmd.c_str(), _T("fav")) == 0))
 	{
-		// [+] IRainman fav options
 		FavoriteManager::AutoStartType l_autoConnect;
 		if (param == _T("a"))
 		{
@@ -917,7 +907,6 @@ void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring
 			l_autoConnect = FavoriteManager::NOT_CHANGE;
 		}
 		addAsFavorite(l_autoConnect);
-		// [~] IRainman fav options
 	}
 	else if ((stricmp(cmd.c_str(), _T("removefavorite")) == 0) || (stricmp(cmd.c_str(), _T("removefav")) == 0) || (stricmp(cmd.c_str(), _T("remfav")) == 0))
 	{
@@ -971,7 +960,6 @@ void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring
 		}
 	}
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
-	// [~] InfinitySky. Положение в окне.
 	else if (stricmp(cmd.c_str(), _T("switch")) == 0)
 	{
 		if (m_showUsers)
@@ -979,7 +967,7 @@ void HubFrame::processFrameCommand(const tstring& fullMessageText, const tstring
 	}
 #endif
 // SSA_SAVE_LAST_NICK_MACROS
-	else if (stricmp(cmd.c_str(), _T("nick")) == 0 || stricmp(cmd.c_str(), _T("n")) == 0) // [+] SSA
+	else if (stricmp(cmd.c_str(), _T("nick")) == 0 || stricmp(cmd.c_str(), _T("n")) == 0)
 	{
 		tstring sayMessage;
 		if (!m_lastUserName.empty())
@@ -1022,7 +1010,7 @@ const tstring& HubFrame::getNick(const UserPtr& aUser)
     return ui-> columns[COLUMN_NICK];
 }
 */
-FavoriteHubEntry* HubFrame::addAsFavorite(const FavoriteManager::AutoStartType p_autoconnect/* = FavoriteManager::NOT_CHANGE*/)// [!] IRainman fav options
+FavoriteHubEntry* HubFrame::addAsFavorite(const FavoriteManager::AutoStartType p_autoconnect/* = FavoriteManager::NOT_CHANGE*/)
 {
 	auto fm = FavoriteManager::getInstance();
 	FavoriteHubEntry* existingHub = FavoriteManager::getFavoriteHubEntry(m_client->getHubUrl());
@@ -1039,13 +1027,11 @@ FavoriteHubEntry* HubFrame::addAsFavorite(const FavoriteManager::AutoStartType p
 			aEntry.setNick(m_client->getMyNick());
 			aEntry.setPassword(m_client->getPassword());
 		}
-		// [-] IRainman fav options aEntry.setConnect(false);
-		existingHub = fm->addFavorite(aEntry, p_autoconnect);// [!] IRainman fav options
+		existingHub = fm->addFavorite(aEntry, p_autoconnect);
 		addStatus(TSTRING(FAVORITE_HUB_ADDED));
 	}
 	else
 	{
-		// [+] IRainman fav options
 		if (p_autoconnect != FavoriteManager::NOT_CHANGE)
 		{
 			const bool l_autoConnect = p_autoconnect == FavoriteManager::ADD;
@@ -1056,18 +1042,15 @@ FavoriteHubEntry* HubFrame::addAsFavorite(const FavoriteManager::AutoStartType p
 			aEntry.setServer(existingHub->getServer());
 			fm->addFavorite(aEntry, p_autoconnect);
 		}
-		// [~] IRainman fav options
 	}
-	// [+] IRainman fav options
 	if (p_autoconnect != FavoriteManager::NOT_CHANGE)
 	{
 		const bool l_autoConnect = p_autoconnect == FavoriteManager::ADD;
 		addStatus(l_autoConnect ? TSTRING(AUTO_CONNECT_ADDED) : TSTRING(AUTO_CONNECT_REMOVED));
 	}
-	// [~] IRainman
 	createFavHubMenu(existingHub);
 	dcassert(existingHub); // Функция возвращает иногда nullptr https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=39084
-	return existingHub; // [+] IRainman fav options
+	return existingHub;
 }
 
 void HubFrame::removeFavoriteHub()
@@ -1177,7 +1160,7 @@ LRESULT HubFrame::onCopyHubInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/
 
 LRESULT HubFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	// !SMT!-S
+
 	const auto su = getSelectedUser();
 	if (su)
 	{
@@ -1378,7 +1361,7 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 		}
 		else
 		{
-			if (m_showUsers)// [+] IRainman opt.
+			if (m_showUsers)
 			{
 				//dcassert(!client->is_all_my_info_loaded());
 				// [!] TODO if (m_client->is_all_my_info_loaded()) // TODO нельзя тут отключать иначе глючит обновления своего ника если хаб PtoX у самого себя шара = 0
@@ -1597,14 +1580,14 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 						SHOW_POPUP(POPUP_FAVORITE_CONNECTED, id.getNickT() + _T(" - ") + Text::toT(m_client->getHubName()), TSTRING(FAVUSER_ONLINE));
 					}
 					
-					if (!id.isBotOrHub()) // [+] IRainman fix: no show has come/gone for bots, and a hub.
+					if (!id.isBotOrHub())
 					{
 						if (m_showJoins || (m_favShowJoins && isFavorite))
 						{
 							BaseChatFrame::addLine(_T("*** ") + TSTRING(JOINS) + _T(' ') + id.getNickT(), Colors::g_ChatTextSystem);
 						}
 					}
-					m_needsUpdateStats = true; // [+] IRainman fix.
+					m_needsUpdateStats = true;
 				}
 			}
 		}
@@ -1620,10 +1603,9 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 				const UserPtr& user = (*l_ou)->getUser();
 				const Identity& id = (*l_ou)->getIdentity();
 				
-				if (!id.isBotOrHub()) // [+] IRainman fix: no show has come/gone for bots, and a hub.
+				if (!id.isBotOrHub())
 				{
-					// !SMT!-S !SMT!-UI
-					const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
+					const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(user);
 					
 					const tstring& l_userNick = id.getNickT();
 					if (isFavorite)
@@ -1634,12 +1616,12 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 					
 					if (m_showJoins || (m_favShowJoins && isFavorite))
 					{
-						BaseChatFrame::addLine(_T("*** ") + TSTRING(PARTS) + _T(' ') + l_userNick, Colors::g_ChatTextSystem); // !SMT!-fix
+						BaseChatFrame::addLine(_T("*** ") + TSTRING(PARTS) + _T(' ') + l_userNick, Colors::g_ChatTextSystem);
 					}
 				}
 			}
 			removeUser(*l_ou);
-			m_needsUpdateStats = true; // [+] IRainman fix.
+			m_needsUpdateStats = true;
 		}
 		break;
 #endif
@@ -1682,7 +1664,6 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 		{
 			dcassert(!ClientManager::isBeforeShutdown());
 			unique_ptr<ChatMessage> pm(reinterpret_cast<ChatMessage*>(wParam));
-			// [-] if (pm.m_fromId.isOp() && !client->isOp()) !SMT!-S
 			{
 				const Identity& from = pm->from->getIdentity();
 				const bool myPM = ClientManager::isMe(pm->replyTo);
@@ -1695,7 +1676,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 				{
 					if (BOOLSETTING(POPUP_HUB_PMS) || isOpen)
 					{
-						PrivateFrame::gotMessage(from, to, replyTo, text, getHubHint(), myPM, pm->thirdPerson); // !SMT!-S
+						PrivateFrame::gotMessage(from, to, replyTo, text, getHubHint(), myPM, pm->thirdPerson);
 					}
 					else
 					{
@@ -1706,7 +1687,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 				{
 					if (BOOLSETTING(POPUP_BOT_PMS) || isOpen)
 					{
-						PrivateFrame::gotMessage(from, to, replyTo, text, getHubHint(), myPM, pm->thirdPerson); // !SMT!-S
+						PrivateFrame::gotMessage(from, to, replyTo, text, getHubHint(), myPM, pm->thirdPerson);
 					}
 					else
 					{
@@ -1717,13 +1698,13 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 				{
 					if (BOOLSETTING(POPUP_PMS) || isOpen)
 					{
-						PrivateFrame::gotMessage(from, to, replyTo, text, getHubHint(), myPM, pm->thirdPerson); // !SMT!-S
+						PrivateFrame::gotMessage(from, to, replyTo, text, getHubHint(), myPM, pm->thirdPerson);
 					}
 					else
 					{
 						BaseChatFrame::addLine(TSTRING(PRIVATE_MESSAGE_FROM) + _T(' ') + id.getNickT() + _T(": ") + text, Colors::g_ChatTextPrivate);
 					}
-					// !SMT!-S
+					
 					HWND hMainWnd = MainFrame::getMainFrame()->m_hWnd;//GetTopLevelWindow();
 					::PostMessage(hMainWnd, WM_SPEAKER, MainFrame::SET_PM_TRAY_ICON, NULL); //-V106
 				}
@@ -1761,7 +1742,7 @@ void HubFrame::updateUserJoin(const OnlineUserPtr& p_ou)
 					PLAY_SOUND(SOUND_FAVUSER);
 					SHOW_POPUP(POPUP_FAVORITE_CONNECTED, id.getNickT() + _T(" - ") + Text::toT(m_client->getHubName()), TSTRING(FAVUSER_ONLINE));
 				}
-				if (!id.isBotOrHub()) // [+] IRainman fix: no show has come/gone for bots, and a hub.
+				if (!id.isBotOrHub())
 				{
 					if (m_showJoins || (m_favShowJoins && isFavorite))
 					{
@@ -1907,10 +1888,9 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 							const UserPtr& user = u.m_ou->getUser();
 							const Identity& id = u.m_ou->getIdentity();
 							
-							if (!id.isBotOrHub()) // [+] IRainman fix: no show has come/gone for bots, and a hub.
+							if (!id.isBotOrHub())
 							{
-								// !SMT!-S !SMT!-UI
-								const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
+								const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(user);
 								
 								const tstring& l_userNick = id.getNickT();
 								if (isFavorite)
@@ -1921,12 +1901,12 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 								
 								if (m_showJoins || (m_favShowJoins && isFavorite))
 								{
-									BaseChatFrame::addLine(_T("*** ") + TSTRING(PARTS) + _T(' ') + l_userNick, 1, Colors::g_ChatTextSystem); // !SMT!-fix
+									BaseChatFrame::addLine(_T("*** ") + TSTRING(PARTS) + _T(' ') + l_userNick, 1, Colors::g_ChatTextSystem);
 								}
 							}
 						}
 						removeUser(u.m_ou);
-						m_needsUpdateStats = true; // [+] IRainman fix.
+						m_needsUpdateStats = true;
 					}
 				}
 				break;
@@ -2055,7 +2035,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 									m_waitingForPW = false;
 									if (linePwd.checked)
 									{
-										auto fhe = addAsFavorite(); // [+] IRainman fav options
+										auto fhe = addAsFavorite();
 										if (fhe) // https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=39084
 										{
 											fhe->setPassword(l_pwd);
@@ -2240,9 +2220,9 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 			w[0] = sr.right - tmp - 55 - HubPic - szCipherLen;
 			w[1] = w[0] + szCipherLen;
 			w[2] = w[1] + (tmp - 30) / 2;
-			w[3] = w[1] + (tmp - 64); // [~] InfinitySky
+			w[3] = w[1] + (tmp - 64);
 			w[4] = w[3] + 100;
-			w[5] = w[4] + 18 + HubPic; // [~] InfinitySky
+			w[5] = w[4] + 18 + HubPic;
 			m_ctrlStatus->SetParts(6, w);
 			
 			m_ctrlLastLinesToolTip->SetMaxTipWidth(max(w[0], 400));
@@ -2370,13 +2350,13 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 				if (bUseMultiChat)
 				{
 					rc = ctrlMessageRect;
-					rc.bottom = rc.top + 18; // [~] JhaoDa
-					rc.left = rc.right + 2; // [~] Sergey Shushkanov
-					rc.right += 139; // [~] Sergey Shushkanov
+					rc.bottom = rc.top + 18;
+					rc.left = rc.right + 2;
+					rc.right += 139;
 					m_ctrlFilter->MoveWindow(rc);
 					
-					rc.left = rc.right + 2; // [~] Sergey Shushkanov
-					rc.right = rc.left + 101; // [~] Sergey Shushkanov
+					rc.left = rc.right + 2;
+					rc.right = rc.left + 101;
 					rc.top -= 1;
 					m_ctrlFilterSel->MoveWindow(rc);
 				}
@@ -2384,12 +2364,12 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 				{
 					rc.bottom -= 2;
 					rc.top = rc.bottom - 18;
-					rc.left = rc.right + 5; // [~] Sergey Shushkanov
-					rc.right = rc.left + 116; // [~] Sergey Shushkanov
+					rc.left = rc.right + 5;
+					rc.right = rc.left + 116;
 					m_ctrlFilter->MoveWindow(rc);
 					
-					rc.left = rc.right + 2; // [~] Sergey Shushkanov
-					rc.right = rc.left + 99; // [~] Sergey Shushkanov
+					rc.left = rc.right + 2;
+					rc.right = rc.left + 99;
 					rc.top -= 1;
 					m_ctrlFilterSel->MoveWindow(rc);
 				}
@@ -2825,7 +2805,7 @@ LRESULT HubFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 	{
 		OMenu* l_user_menu = createUserMenu();
 		l_user_menu->ClearMenu();
-		clearUserMenu(); // !SMT!-S
+		clearUserMenu();
 		
 		if (m_ctrlUsers->GetSelectedCount() == 1)
 		{
@@ -2837,7 +2817,7 @@ LRESULT HubFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 			i = m_ctrlUsers->GetNextItem(i, LVNI_SELECTED);
 			if (i >= 0)
 			{
-				reinitUserMenu(m_ctrlUsers->getItemData(i)->getOnlineUser(), getHubHint()); // !SMT!-S // [!] IRainman fix.
+				reinitUserMenu(m_ctrlUsers->getItemData(i)->getOnlineUser(), getHubHint());
 			}
 		}
 		
@@ -2866,7 +2846,7 @@ LRESULT HubFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 	{
 		OMenu* l_user_menu = createUserMenu();
 		l_user_menu->ClearMenu();
-		clearUserMenu(); // !SMT!-S
+		clearUserMenu();
 		
 		if (pt.x == -1 && pt.y == -1)
 		{
@@ -2885,7 +2865,7 @@ LRESULT HubFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOO
 		{
 			ui = findUser(ChatCtrl::g_sSelectedUserName);
 		}
-		reinitUserMenu(ui ? ui->getOnlineUser() : nullptr, getHubHint()); // [!] IRainman fix.
+		reinitUserMenu(ui ? ui->getOnlineUser() : nullptr, getHubHint());
 		
 		appendHubAndUsersItems(*l_user_menu, true);
 		
@@ -2935,7 +2915,7 @@ void HubFrame::runUserCommand(UserCommand& uc)
 	{
 		if (getSelectedUser())
 		{
-			// !SMT!-S
+		
 			const UserInfo* u = findUser(getSelectedUser());
 			if (u && u->getUser()->isOnline())
 			{
@@ -3412,7 +3392,6 @@ void HubFrame::timer_process_all()
 	}
 }
 #endif
-// [+] IRainman opt.
 void HubFrame::timer_process_internal()
 {
 	if (!m_spoken)
@@ -3426,7 +3405,7 @@ void HubFrame::timer_process_internal()
 			onTimerHubUpdated();
 			if (m_needsUpdateStats
 #ifndef IRAINMAN_NOT_USE_COUNT_UPDATE_INFO_IN_LIST_VIEW_CTRL
-			        && m_ctrlUsers->getCountUpdateInfo() == 0 //[+]FlylinkDC++
+			        && m_ctrlUsers->getCountUpdateInfo() == 0
 #endif
 			   )
 			{
@@ -3612,7 +3591,7 @@ void HubFrame::on(ClientListener::UserShareUpdated, const OnlineUserPtr& user) n
 	}
 }
 #endif
-void HubFrame::on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr& user) noexcept   // !SMT!-fix
+void HubFrame::on(ClientListener::UserUpdatedMyINFO, const OnlineUserPtr& user) noexcept
 {
 	if (!isClosedOrShutdown())
 	{
@@ -3922,7 +3901,7 @@ void HubFrame::on(ClientListener::CheatMessage, const string& line) noexcept
 	//const auto l_message_ptr = new string(line);
 	//PostMessage(WM_SPEAKER_CHEATING_USER, WPARAM(l_message_ptr));
 }
-void HubFrame::on(ClientListener::UserReport, const Client*, const string& report) noexcept // [+] IRainman
+void HubFrame::on(ClientListener::UserReport, const Client*, const string& report) noexcept
 {
 	if (isClosedOrShutdown())
 		return;
@@ -3962,7 +3941,6 @@ LRESULT HubFrame::onFilterChar(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL
 		{
 			WinUtil::GetWindowText(m_filter, *m_ctrlFilter);
 			
-			// [+] birkoff.anarchist | Escape .^+(){}[] symbols in filter
 			static const std::wregex rx(L"(\\.|\\^|\\+|\\[|\\]|\\{|\\}|\\(|\\))");
 			static const tstring replacement = L"\\$1";
 			m_filter = std::regex_replace(m_filter, rx, replacement);
@@ -4120,7 +4098,7 @@ void HubFrame::InsertItemInternal(const UserInfo* ui)
 	}
 	dcassert(l_res_insert != -1);
 }
-void HubFrame::InsertUserList(UserInfo* ui) // [!] IRainman opt.
+void HubFrame::InsertUserList(UserInfo* ui)
 {
 #ifdef IRAINMAN_USE_HIDDEN_USERS
 	dcassert(ui->isHidden() == false);
@@ -4163,7 +4141,7 @@ void HubFrame::InsertUserList(UserInfo* ui) // [!] IRainman opt.
 	}
 }
 
-void HubFrame::updateUserList() // [!] IRainman opt.
+void HubFrame::updateUserList()
 {
 	CLockRedraw<> l_lock_draw(*m_ctrlUsers);
 	m_ctrlUsers->DeleteAllItems();
@@ -4331,8 +4309,7 @@ void HubFrame::appendHubAndUsersItems(OMenu& p_menu, const bool isChat)
 {
 	if (getSelectedUser())
 	{
-		// UserInfo *ui = findUser(aUser); // !SMT!-S [-] IRainman opt.
-		const bool isMe = ClientManager::isMe(getSelectedUser());  // [!] IRainman fix: if crash here - please report me! Don't add check aUser->getUser() !!!!!
+		const bool isMe = ClientManager::isMe(getSelectedUser());
 		// Jediny nick
 		p_menu.InsertSeparatorFirst(getSelectedUser()->getIdentity().getNickT());
 		// some commands starts in UserInfoBaseHandler, that requires user visible
@@ -4498,7 +4475,7 @@ LRESULT HubFrame::onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 	UserInfo* ui = nullptr;
 	if (getSelectedUser())
 	{
-		ui = findUser(getSelectedUser()); // !SMT!-S
+		ui = findUser(getSelectedUser());
 	}
 	else
 	{
@@ -4723,19 +4700,18 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 							//dcassert(l_res == S_OK);
 							if (l_res != S_OK)
 							{
-								m_ctrlUsers->SetItemFilled(cd, rc,  cd->clrText, cd->clrText);  // TODO fix copy-paste
+								m_ctrlUsers->SetItemFilled(cd, rc,  cd->clrText, cd->clrText);
 							}
 						}
 						else
 						{
-							m_ctrlUsers->SetItemFilled(cd, rc, cd->clrText, cd->clrText);  // TODO fix copy-paste
+							m_ctrlUsers->SetItemFilled(cd, rc, cd->clrText, cd->clrText);
 						}
 					}
 					else
 					{
-						m_ctrlUsers->SetItemFilled(cd, rc, cd->clrText, cd->clrText);  // TODO fix copy-paste
+						m_ctrlUsers->SetItemFilled(cd, rc, cd->clrText, cd->clrText);
 					}
-					// TODO fix copy-paste
 					const auto& l_location = ui->getLocation();
 					if (l_location.isKnown())
 					{
@@ -4790,10 +4766,10 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 				                ui->calcP2PGuard();
 				*/
 				
-				Colors::getUserColor(m_client->isOp(), ui->getUser(), cd->clrText, cd->clrTextBk, ui->m_flag_mask, ui->getOnlineUser()); // !SMT!-UI
+				Colors::getUserColor(m_client->isOp(), ui->getUser(), cd->clrText, cd->clrTextBk, ui->m_flag_mask, ui->getOnlineUser());
 			}
 #ifdef FLYLINKDC_USE_LIST_VIEW_MATTRESS
-			Colors::alternationBkColor(cd); // [+] IRainman
+			Colors::alternationBkColor(cd);
 #endif
 			return CDRF_NEWFONT | CDRF_NOTIFYSUBITEMDRAW;
 		}
@@ -4802,7 +4778,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 			return CDRF_DODEFAULT;
 	}
 }
-// !SMT!-UI
+
 void HubFrame::addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param)
 {
 	// Данная функция ломает меню - http://youtu.be/GaWw-S4ZYJA
@@ -4916,7 +4892,7 @@ UserInfo* HubFrame::findUser(const OnlineUserPtr& p_user)
 	return m_userMap.findUser(p_user);
 }
 
-UserInfo* HubFrame::findUser(const tstring& p_nick)   // !SMT!-S
+UserInfo* HubFrame::findUser(const tstring& p_nick)
 {
 	dcassert(!m_is_process_disconnected);
 	dcassert(!p_nick.empty());

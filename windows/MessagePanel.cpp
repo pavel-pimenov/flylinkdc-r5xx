@@ -142,7 +142,7 @@ LRESULT MessagePanel::InitPanel(HWND& p_hWnd, RECT &p_rcDefault)
 	ctrlSizeSel.SetCurSel(2);
 #endif
 	
-	m_tooltip.SetMaxTipWidth(200);   //[+] SCALOlaz: activate tooltips
+	m_tooltip.SetMaxTipWidth(200);
 	if (!BOOLSETTING(POPUPS_DISABLED) && BOOLSETTING(POPUPS_MESSAGEPANEL_ENABLED))
 	{
 		m_tooltip.Activate(TRUE);
@@ -162,9 +162,8 @@ LRESULT MessagePanel::UpdatePanel(CRect& rect)
 	CRect rc = rect;
 	CRect rc_osago = rc;
 	
-	rc.left += 2; // [+] Sergey Shuhskanov.
-	rc.right += 23; // [~] Sergey Shuhskanov.
-	//rc.bottom += 1;
+	rc.left += 2;
+	rc.right += 23;
 	rc.top = rc.bottom - 19;
 	
 	rc_osago.top = rc_osago.bottom - 21;
@@ -180,7 +179,7 @@ LRESULT MessagePanel::UpdatePanel(CRect& rect)
 		ctrlSendMessageBtn.ShowWindow(SW_SHOW);
 		ctrlSendMessageBtn.MoveWindow(rc);
 		rc.left = rc.right + 1;
-		rc.right += 22; // [~] Sergey Shuhskanov.
+		rc.right += 22;
 	}
 	else
 	{
@@ -204,7 +203,7 @@ LRESULT MessagePanel::UpdatePanel(CRect& rect)
 		ctrlEmoticons.ShowWindow(SW_SHOW);
 		ctrlEmoticons.MoveWindow(rc);
 		rc.left = rc.right + 1;
-		rc.right += 22; // [~] Sergey Shuhskanov.
+		rc.right += 22;
 	}
 	else
 	{
@@ -220,22 +219,22 @@ LRESULT MessagePanel::UpdatePanel(CRect& rect)
 		ctrlTransCodeBtn.MoveWindow(rc);
 		// Bold
 		rc.left = rc.right + 1;
-		rc.right += 22; // [~] Sergey Shuhskanov.
+		rc.right += 22;
 		ctrlBoldBtn.ShowWindow(SW_SHOW);
 		ctrlBoldBtn.MoveWindow(rc);
 		// Italic
 		rc.left = rc.right + 1;
-		rc.right += 22; // [~] Sergey Shuhskanov.
+		rc.right += 22;
 		ctrlItalicBtn.ShowWindow(SW_SHOW);
 		ctrlItalicBtn.MoveWindow(rc);
 		// Underline
 		rc.left = rc.right + 1;
-		rc.right += 22; // [~] Sergey Shuhskanov.
+		rc.right += 22;
 		ctrlUnderlineBtn.ShowWindow(SW_SHOW);
 		ctrlUnderlineBtn.MoveWindow(rc);
 		// Strike
 		rc.left = rc.right + 1;
-		rc.right += 22; // [~] Sergey Shuhskanov.
+		rc.right += 22;
 		ctrlStrikeBtn.ShowWindow(SW_SHOW);
 		ctrlStrikeBtn.MoveWindow(rc);
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
@@ -253,12 +252,7 @@ LRESULT MessagePanel::UpdatePanel(CRect& rect)
 		}
 #endif // SCALOLAZ_BB_COLOR_BUTTON
 #ifdef FLYLINKDC_USE_BB_SIZE_CODE
-		// Size Selection
-		//rc.left = rc.right + 1;
-		//rc.right += 40;
-		//ctrlSizeSel.ShowWindow(SW_SHOW);
-		//ctrlSizeSel.MoveWindow(rc);
-		ctrlSizeSel.ShowWindow(SW_HIDE);// [!] SSA - Will enable on implementation of size-BBCode
+		ctrlSizeSel.ShowWindow(SW_HIDE);
 #endif // FLYLINKDC_USE_BB_SIZE_CODE
 	}
 	else
@@ -285,19 +279,19 @@ LRESULT MessagePanel::UpdatePanel(CRect& rect)
 int MessagePanel::GetPanelWidth()
 {
 	int iButtonPanelLength = 0;
-	iButtonPanelLength += BOOLSETTING(SHOW_EMOTIONS_BTN) ? 22 : 0; // [+] SCALOlaz: MessagePanel Size
+	iButtonPanelLength += BOOLSETTING(SHOW_EMOTIONS_BTN) ? 22 : 0;
 #ifdef IRAINMAN_INCLUDE_SMILE
-	iButtonPanelLength += BOOLSETTING(SHOW_EMOTIONS_BTN) ? 22 : 0; // [~] Sergey Shuhskanov.
+	iButtonPanelLength += BOOLSETTING(SHOW_EMOTIONS_BTN) ? 22 : 0;
 #endif
-	iButtonPanelLength += BOOLSETTING(SHOW_SEND_MESSAGE_BUTTON) ? 22 : 0; // [~] Sergey Shuhskanov.
+	iButtonPanelLength += BOOLSETTING(SHOW_SEND_MESSAGE_BUTTON) ? 22 : 0;
 	iButtonPanelLength += BOOLSETTING(SHOW_BBCODE_PANEL) ? 22 *
 #ifdef SCALOLAZ_BB_COLOR_BUTTON
 	                      6
 #else   //SCALOLAZ_BB_COLOR_BUTTON
 	                      5
 #endif  //SCALOLAZ_BB_COLOR_BUTTON
-	                      : 0; // [~] Sergey Shuhskanov.
-	iButtonPanelLength += 1; // [+] DONT DELETE! Sergey Shuhskanov.
+	                      : 0;
+	iButtonPanelLength += 1;
 	
 	return iButtonPanelLength;
 }
@@ -373,7 +367,7 @@ BOOL MessagePanel::OnContextMenu(POINT& pt, WPARAM& wParam)
 #ifdef IRAINMAN_INCLUDE_SMILE
 	if (reinterpret_cast<HWND>(wParam) == ctrlEmoticons)
 	{
-		g_emoMenu.CreateEmotionMenu(pt, m_hWnd, IDC_EMOMENU); //[+]PPA
+		g_emoMenu.CreateEmotionMenu(pt, m_hWnd, IDC_EMOMENU);
 		return TRUE;
 	}
 #endif

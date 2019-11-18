@@ -44,7 +44,6 @@ public:
     // Construction
     WzNetActive() : CPropertyPageImpl<WzNetActive>( CTSTRING(WIZARD_TITLE)/*IDS_WIZARD_TITLE*/)
 	{
-			/*[-] IRainman fix srand( (unsigned)time( NULL ) );*/
 			_isUPNPChecked = false;
 			_isTCPOk = false;
 			_isUDPOk = false;
@@ -96,13 +95,6 @@ public:
 
 		if (SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_DIRECT)
 		{
-			// [-] IRainman fix
-			//long tcp = SETTING( TCP_PORT );
-			//long udp = SETTING( UDP_PORT );
-			//if (WrongPorts(tcp, udp))
-			//{
-			//	MakeRandomPorts();
-			//}
 			CheckDlgButton(IDC_WIZARD_NETA_USEDC, BST_CHECKED);
 		}
 
@@ -144,13 +136,6 @@ public:
 	{
 		uint16_t tcp, udp;
 		GetPortFromPage(tcp, udp);		
-// [-]PPA блок глючит и ломает включение unpn зеленым цветом
-//		if ( WrongPorts(tcp, udp) && 
-//			IsDlgButtonChecked(IDC_WIZARD_NETA_USEDC) != BST_CHECKED)
-//		{
-//			SetStage(IDC_WIZARD_NETA_UPNP_ICO, StageFail);
-//			return;
-//		}
 		
 		bool useServer = true;
 		if (ConnectionManager::getInstance()->isValidInstance() && !ConnectionManager::isShuttingDown() && ConnectionManager::getInstance()->getPort() == tcp)
@@ -200,7 +185,7 @@ public:
 		if (tcp == udp) // TODO please fix me: script on the website does not understand the combination of ports (they are), although it is permissible.
 			return true;
 
-		if (SET_SETTING(TCP_PORT, tcp) || SET_SETTING(UDP_PORT, udp)) // [!] IRainman fix: check port to no conflicts with other tcp or udp port in app.
+		if (SET_SETTING(TCP_PORT, tcp) || SET_SETTING(UDP_PORT, udp)) 
 			return true;
 	
 		return false;
@@ -314,24 +299,9 @@ public:
 		}
 		return 0;
 	}
-// [-] IRainman fix
-//#define MAX_PORT_VALUE 32767
-//#define MIN_PORT_VALUE 1000
 
 	void MakeRandomPorts()
 	{
-		// [-] IRainman fix
-		//rand();
-		//long tcpval = (int)(       (double)rand() / (RAND_MAX + 1) * ( MAX_PORT_VALUE - 1 - MIN_PORT_VALUE )  + MIN_PORT_VALUE );
-		//rand();
-		//long udpval = (int)(       (double)rand() / (RAND_MAX + 1) * ( MAX_PORT_VALUE - 1 - MIN_PORT_VALUE )  + MIN_PORT_VALUE );
-		//
-		//if (tcpval == udpval )
-		//{
-		//	udpval += 1;
-		//	if (udpval >= MAX_PORT_VALUE)
-		//		udpval -= 3;
-		//}
 
 		uint16_t tcpval = SettingsManager::getNewPortValue();
 		uint16_t udpval = SettingsManager::getNewPortValue();
@@ -393,12 +363,12 @@ public:
 		GET_TEXT(IDC_PORT_UDP, tmp);
 /*		test = */SET_SETTING( UDP_PORT , Text::fromT( tmp ));
 //if ( test) ???
-		SET_SETTING( INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_UPNP ); // [+] PPA всегд ставим Upnp - у многих сейчас wifi и роутеры.
+		SET_SETTING( INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_UPNP );
 		return FALSE;       // allow deactivation
 		}
 		catch(Exception & e)
 		{
-			SET_SETTING( INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_UPNP ); // [+] PPA всегд ставим Upnp - у многих сейчас wifi и роутеры.
+			SET_SETTING( INCOMING_CONNECTIONS, SettingsManager::INCOMING_FIREWALL_UPNP );
 			::MessageBox(NULL,Text::toT(e.getError()).c_str(), _T("Net Wizard Error!"), MB_OK | MB_ICONERROR);
 			return FALSE;       
 		}
