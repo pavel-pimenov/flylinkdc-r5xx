@@ -18,8 +18,6 @@
 
 #include "stdinc.h"
 
-#include <boost/scoped_array.hpp>
-
 #include "Encoder.h"
 #include "File.h"
 #include "ClientManager.h"
@@ -29,7 +27,6 @@
 #include <openssl/bn.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
-#include <bzlib.h>
 
 
 namespace dcpp {
@@ -803,49 +800,8 @@ SSLSocket* CryptoManager::getServerSocket(bool allowUntrusted) {
 }
 
 
-void CryptoManager::decodeBZ2(const uint8_t* is, size_t sz, string& os) {
-	bz_stream bs = { 0 };
-	
-	if (BZ2_bzDecompressInit(&bs, 0, 0) != BZ_OK)
-		throw CryptoException(STRING(DECOMPRESSION_ERROR));
-		
-	// We assume that the files aren't compressed more than 2:1...if they are it'll work anyway,
-	// but we'll have to do multiple passes...
-	size_t bufsize = 2 * sz;
-	boost::scoped_array<char> buf(new char[bufsize]);
-	
-	bs.avail_in = sz;
-	bs.avail_out = bufsize;
-	bs.next_in = reinterpret_cast<char*>(const_cast<uint8_t*>(is));
-	bs.next_out = &buf[0];
-	
-	int err;
-	
-	os.clear();
-	
-	while ((err = BZ2_bzDecompress(&bs)) == BZ_OK) {
-		if (bs.avail_in == 0 && bs.avail_out > 0) { // error: BZ_UNEXPECTED_EOF
-			BZ2_bzDecompressEnd(&bs);
-			throw CryptoException(STRING(DECOMPRESSION_ERROR));
-		}
-		os.append(&buf[0], bufsize - bs.avail_out);
-		bs.avail_out = bufsize;
-		bs.next_out = &buf[0];
-	}
-	
-	if (err == BZ_STREAM_END)
-		os.append(&buf[0], bufsize - bs.avail_out);
-		
-	BZ2_bzDecompressEnd(&bs);
-	
-	if (err < 0) {
-		// This was a real error
-		throw CryptoException(STRING(DECOMPRESSION_ERROR));
-	}
-}
-
 string CryptoManager::keySubst(const uint8_t* aKey, size_t len, size_t n) {
-	boost::scoped_array<uint8_t> temp(new uint8_t[len + n * 10]);
+	std::unique_ptr<uint8_t[]> temp(new uint8_t[len + n * 10]);
 	
 	size_t j = 0;
 	
@@ -902,7 +858,7 @@ string CryptoManager::makeKey(const string& aLock) {
 	if (aLock.size() < 3)
 		return Util::emptyString;
 		
-	boost::scoped_array<uint8_t> temp(new uint8_t[aLock.length()]);
+    std::unique_ptr<uint8_t[]> temp(new uint8_t[aLock.length()]);
 	uint8_t v1;
 	size_t extra = 0;
 	

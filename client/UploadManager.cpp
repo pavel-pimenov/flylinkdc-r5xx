@@ -17,17 +17,19 @@
  */
 
 #include "stdinc.h"
+#include <bzlib.h>
 
 #include "UploadManager.h"
 #include "DownloadManager.h"
 #include "ConnectionManager.h"
 #include "ShareManager.h"
-#include "CryptoManager.h"
 #include "QueueManager.h"
 #include "FinishedManager.h"
 #include "PGLoader.h"
 #include "IPGrant.h"
 #include "../FlyFeatures/flyServer.h"
+
+STANDARD_EXCEPTION(BZ2Exception);
 
 uint32_t UploadManager::g_count_WaitingUsersFrame = 0;
 UploadManager::SlotMap UploadManager::g_reservedSlots;
@@ -263,6 +265,48 @@ bool UploadManager::hasUpload(const UserConnection* p_newLeacher, const string& 
 	return false;
 }
 
+void UploadManager::decodeBZ2(const uint8_t* is, size_t sz, string& os) {
+    bz_stream bs = { 0 };
+
+    if (BZ2_bzDecompressInit(&bs, 0, 0) != BZ_OK)
+        throw BZ2Exception(STRING(DECOMPRESSION_ERROR));
+
+    // We assume that the files aren't compressed more than 2:1...if they are it'll work anyway,
+    // but we'll have to do multiple passes...
+    size_t bufsize = 2 * sz;
+    std::unique_ptr <char[]> buf(new char[bufsize]);
+
+    bs.avail_in = sz;
+    bs.avail_out = bufsize;
+    bs.next_in = reinterpret_cast<char*>(const_cast<uint8_t*>(is));
+    bs.next_out = &buf[0];
+
+    int err;
+
+    os.clear();
+
+    while ((err = BZ2_bzDecompress(&bs)) == BZ_OK) {
+        if (bs.avail_in == 0 && bs.avail_out > 0) { // error: BZ_UNEXPECTED_EOF
+            BZ2_bzDecompressEnd(&bs);
+            throw BZ2Exception(STRING(DECOMPRESSION_ERROR));
+        }
+        os.append(&buf[0], bufsize - bs.avail_out);
+        bs.avail_out = bufsize;
+        bs.next_out = &buf[0];
+    }
+
+    if (err == BZ_STREAM_END)
+        os.append(&buf[0], bufsize - bs.avail_out);
+
+    BZ2_bzDecompressEnd(&bs);
+
+    if (err < 0) {
+        // This was a real error
+        throw BZ2Exception(STRING(DECOMPRESSION_ERROR));
+    }
+}
+
+
 bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, const string& aFile, int64_t aStartPos, int64_t& aBytes, bool listRecursive)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
@@ -378,7 +422,7 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 				// Unpack before sending...
 				string bz2 = File(sourceFile, File::READ, File::OPEN).read();
 				string xml;
-				CryptoManager::getInstance()->decodeBZ2(reinterpret_cast<const uint8_t*>(bz2.data()), bz2.size(), xml);
+				decodeBZ2(reinterpret_cast<const uint8_t*>(bz2.data()), bz2.size(), xml); // TODO - bzutils
 				// Clear to save some memory...
 				string().swap(bz2);
 				is = new MemoryInputStream(xml);

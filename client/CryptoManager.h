@@ -64,7 +64,6 @@ class CryptoManager : public Singleton<CryptoManager>
 			return strncmp(aLock.c_str(), "EXTENDEDPROTOCOL", 16) == 0;
 		}
 		
-		void decodeBZ2(const uint8_t* is, size_t sz, string& os);
 		
 		SSLSocket* getClientSocket(bool allowUntrusted, Socket::Protocol proto);
 		SSLSocket* getServerSocket(bool allowUntrusted);
