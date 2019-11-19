@@ -25,7 +25,7 @@
 #include "UploadManager.h"
 #include "ThrottleManager.h"
 #include "ShareManager.h"
-#include <boost/algorithm/string.hpp>
+
 #include "../FlyFeatures/AutoUpdate.h"
 #include "../FlyFeatures/flyServer.h"
 #include "../FlyFeatures/RSSManager.h"
@@ -1406,7 +1406,7 @@ void SettingsManager::load(const string& aFileName)
 			if (l_bufLen)
 			{
 				string l_result = Text::fromT(l_buf);
-				boost::replace_all(l_result, "_", "-");
+				Text::replace_all(l_result, "_", "-");
 				l_result += ".xml";
 				if (File::isExist(Util::getLocalisationPath() + l_result))
 				{
@@ -1453,7 +1453,7 @@ void SettingsManager::load(const string& aFileName)
 	}
 #endif
 	string l_GET_IP = SETTING(URL_GET_IP);
-	boost::replace_all(l_GET_IP, "flylinkdc.ru/", "flylinkdc.com/");
+	Text::replace_all(l_GET_IP, "flylinkdc.ru/", "flylinkdc.com/");
 	set(URL_GET_IP, l_GET_IP);
 	
 	string l_result = SETTING(PM_PASSWORD_HINT);
@@ -1554,7 +1554,7 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 #define REPLACE_SPACES()\
 	{\
 		auto cleanValue = value;\
-		boost::replace_all(cleanValue, " ", "");\
+		Text::replace_all(cleanValue, " ", "");\
 		strSettings[key - STR_FIRST] = cleanValue;\
 		l_auto = false;\
 	}
@@ -1607,9 +1607,9 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 				   )
 				{
 					l_auto = false;
-					boost::replace_all(l_new_value, " [extra]", " %[extra]");
-					boost::replace_all(l_new_value, "S[extra]", "S %[extra]");
-					boost::replace_all(l_new_value, "%H:%M%:%S", "%H:%M:%S");
+					Text::replace_all(l_new_value, " [extra]", " %[extra]");
+					Text::replace_all(l_new_value, "S[extra]", "S %[extra]");
+					Text::replace_all(l_new_value, "%H:%M%:%S", "%H:%M:%S");
 				}
 			}
 			l_auto |= Text::safe_strftime_translate(l_new_value);
@@ -1618,7 +1618,7 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 			if (key == LOG_FILE_PRIVATE_CHAT && l_new_value.find(l_template_pm_folder) != string::npos)
 			{
 				l_auto = false;
-				boost::replace_all(l_new_value, l_template_pm_folder, "PM\\%Y-%m\\");
+				Text::replace_all(l_new_value, l_template_pm_folder, "PM\\%Y-%m\\");
 				strSettings[key - STR_FIRST] = l_new_value;
 			}
 		}
@@ -1634,7 +1634,7 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 		
 		{
 			string l_trim_val = value;
-			boost::algorithm::trim(l_trim_val);
+			Text::trim(l_trim_val);
 			if (key == AUTOUPDATE_SERVER_URL)
 			{
 				if (l_trim_val.find(".googlecode.com") != string::npos)

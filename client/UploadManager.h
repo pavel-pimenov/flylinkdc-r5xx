@@ -249,7 +249,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		void logUpload(const UploadPtr& u);
 		
 		static void testSlotTimeout(uint64_t aTick = GET_TICK());
-        static void decodeBZ2(const uint8_t* is, size_t sz, string& os);
+		static void decodeBZ2(const uint8_t* is, size_t sz, string& os);
 		// ClientManagerListener
 		void on(ClientManagerListener::UserDisconnected, const UserPtr& aUser) noexcept override;
 		

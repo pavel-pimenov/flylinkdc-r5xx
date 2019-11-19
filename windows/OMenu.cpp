@@ -20,7 +20,7 @@
 #include "atlgdiraii.h"
 #include "WinUtil.h"
 #include "BarShader.h"
-#include <boost/algorithm/string.hpp>
+#include "Text.h"
 
 OMenu::~OMenu()
 {
@@ -69,7 +69,7 @@ void OMenu::InsertSeparator(UINT uItem, BOOL byPosition, const tstring& caption,
 	mi->m_text = caption;
 	if (!accels)
 	{
-		boost::replace_all(mi->m_text, _T("&"), Util::emptyStringT);
+		Text::replace_all(mi->m_text, _T("&"), Util::emptyStringT);
 	}
 	
 	// if (mi->text.length() > 25)

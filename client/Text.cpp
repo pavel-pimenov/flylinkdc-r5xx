@@ -48,6 +48,20 @@ void initialize()
 	}
 }
 
+void replace_all(string& p_str, const string& p_from, const string& p_to)
+{
+	boost::replace_all(p_str, p_from, p_to);
+}
+void replace_all(tstring& p_str, const tstring& p_from, const tstring& p_to)
+{
+	boost::replace_all(p_str, p_from, p_to);
+}
+void trim(string& p_str)
+{
+	boost::algorithm::trim(p_str);
+}
+
+
 #ifdef _WIN32
 int getCodePage(const string& p_charset)
 {
@@ -452,7 +466,7 @@ bool safe_strftime_translate(string& p_value)
 	if (p_value.empty())
 		return false;
 	// Попытка заткунть проблему падения при кривой маске для strftime  http://www.rsdn.ru/forum/cpp.applied/5047749.1
-	boost::algorithm::trim(p_value);
+	Text::trim(p_value);
 	const auto l_input_size = p_value.size();
 	// 1. Убираем повторяющиеся %%
 	size_t l_last_size;

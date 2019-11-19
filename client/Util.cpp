@@ -21,12 +21,11 @@
 #include <regex>
 #include <Mmsystem.h>
 #include <shlobj.h>
-#include <boost/algorithm/string.hpp>
-
 #include "CompatibilityManager.h"
 #include "ShareManager.h"
 #include "idna/idna.h"
 #include "MD5Calc.h"
+#include <boost/algorithm/string.hpp>
 
 const string g_tth = "TTH:";
 const time_t Util::g_startTime = time(NULL);
@@ -64,10 +63,10 @@ const string getFlylinkDCAppCaption()
 			string l_caption = File(l_path_local_test_file, File::READ, File::OPEN).read();
 			if (l_caption.length() < 30 && l_caption.length() > 2)
 			{
-				boost::replace_all(l_caption, "\r", "");
-				boost::replace_all(l_caption, "\n", "");
-				boost::replace_all(l_caption, "\t", "");
-				boost::replace_all(l_caption, " ", "");
+				Text::replace_all(l_caption, "\r", "");
+				Text::replace_all(l_caption, "\n", "");
+				Text::replace_all(l_caption, "\t", "");
+				Text::replace_all(l_caption, " ", "");
 				boost::trim(l_caption);
 				Text::acpToWide(l_caption, g_captionT, Text::g_code1251);
 				g_caption = Text::fromT(g_captionT);

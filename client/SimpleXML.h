@@ -24,8 +24,10 @@
 
 #include "File.h"
 #include "SimpleXMLReader.h"
-#include <boost/algorithm/string/trim.hpp>
 #include "StringTokenizer.h"
+#ifdef _DEBUG
+#include "Text.h"
+#endif
 
 /** Evaluates op(pair<T1, T2>.first, compareTo) */
 template < class T1, class T2, class op = std::equal_to<T1> >
@@ -160,12 +162,8 @@ class SimpleXML
 			checkChildSelected();
 			return Util::toInt64(getChildAttrib(aName));
 		}
-		string getChildAttribTrim(const string& aName, const string& aDefault = Util::emptyString) const
-		{
-			string l_trim_val = getChildAttrib(aName, aDefault);
-			boost::algorithm::trim(l_trim_val);
-			return l_trim_val;
-		}
+		string getChildAttribTrim(const string& aName, const string& aDefault = Util::emptyString) const;
+		
 		template<class T>
 		string getChildAttribSplit(const string& aName,
 		                           T& aCollection,
@@ -185,8 +183,8 @@ class SimpleXML
 				{
 					auto l_item = *i;
 					l_dup_check[l_item]++;
-					boost::replace_all(l_item, "\r", "");
-					boost::replace_all(l_item, "\n", "");
+					Text::replace_all(l_item, "\r", "");
+					Text::replace_all(l_item, "\n", "");
 					dcassert(l_item == *i);
 				}
 				dcassert(l_dup_check.size() == tokens.size());

@@ -29,7 +29,6 @@
 #include "UploadManager.h"
 #include "StringTokenizer.h"
 #include "SearchResult.h"
-#include <boost/algorithm/string.hpp>
 
 static const string NotFoundHeader = "HTTP/1.0 404 Not Found\r\n";
 
@@ -402,7 +401,7 @@ string WebServerManager::getLogs(bool Enable, const string& LogFile, const strin
 			{
 				tmp += "&nbsp;&raquo;&nbsp;" + lines[i] + "<br />";
 			}
-			boost::replace_all(tmp, "\n", "<br />");
+			Text::replace_all(tmp, "\n", "<br />");
 			ret += tmp;
 		}
 		catch (const FileException & e)

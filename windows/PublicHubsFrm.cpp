@@ -20,7 +20,6 @@
 #include "PublicHubsFrm.h"
 #include "HubFrame.h"
 #include "../client/BZUtils.h"
-#include <boost/algorithm/string.hpp>
 #include "../FlyFeatures/flyServer.h"
 
 int PublicHubsFrame::columnIndexes[] =
@@ -838,7 +837,7 @@ void PublicHubsFrame::updateList()
 			l.resize(COLUMN_LAST);
 			l[COLUMN_NAME] = Text::toT(i->getName());
 			string l_description = i->getDescription();
-			boost::replace_all(l_description, ".px.", "");
+			Text::replace_all(l_description, ".px.", "");
 			l[COLUMN_DESCRIPTION] = Text::toT(l_description);
 			l[COLUMN_USERS] = Util::toStringW(i->getUsers());
 			l[COLUMN_SERVER] = Text::toT(i->getServer());

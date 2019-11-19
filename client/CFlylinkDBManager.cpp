@@ -10,7 +10,6 @@
 #include "ConnectionManager.h"
 #include "CompatibilityManager.h"
 #include "../FlyFeatures/flyServer.h"
-#include <boost/algorithm/string.hpp>
 #include "FinishedManager.h"
 
 #include "libtorrent/read_resume_data.hpp"
@@ -321,9 +320,9 @@ void CFlylinkDBManager::errorDB(const string& p_txt)
 		{
 			g_is_first = true;
 			tstring l_body = l_russian_error + Text::toT(l_message);
-			boost::replace_all(l_body, " ", "%20");
-			boost::replace_all(l_body, "\r", "%0D");
-			boost::replace_all(l_body, "\n", "%0A");
+			Text::replace_all(l_body, _T(" "), _T("%20"));
+			Text::replace_all(l_body, _T("\r"), _T("%0D"));
+			Text::replace_all(l_body, _T("\n"), _T("%0A"));
 			tstring l_shell = _T("mailto:pavel.pimenov@gmail.com?subject=FlylinkDC++ bug-report&body=") + l_body;
 			::ShellExecute(0, _T("Open"), l_shell.c_str(), _T(""), _T(""), SW_NORMAL);
 			// exit(1); // exit нелья - падаем  https://drdump.com/Bug.aspx?ProblemID=261050
@@ -2621,7 +2620,7 @@ void CFlylinkDBManager::save_ignore(const StringSet& p_ignores)
 		for (auto k = p_ignores.cbegin(); k != p_ignores.cend(); ++k)
 		{
 			string l_ignore_user = (*k);
-			boost::algorithm::trim(l_ignore_user);
+			Text::trim(l_ignore_user);
 			if (!l_ignore_user.empty())
 			{
 				m_insert_ignores->bind(1, l_ignore_user, SQLITE_TRANSIENT);

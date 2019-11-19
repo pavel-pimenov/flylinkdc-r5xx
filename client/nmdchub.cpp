@@ -17,7 +17,6 @@
 */
 
 #include "stdinc.h"
-#include <boost/algorithm/string.hpp>
 
 #include "NmdcHub.h"
 #include "ShareManager.h"
@@ -999,7 +998,7 @@ void NmdcHub::chatMessageParse(const string& p_line)
 void NmdcHub::hubNameParse(const string& p_param)
 {
 	string l_param = p_param;
-	boost::replace_all(l_param, "\r\n", " ");
+	Text::replace_all(l_param, "\r\n", " ");
 	std::replace(l_param.begin(), l_param.end(), '\n', ' ');
 	{
 		// Workaround replace newlines in topic with spaces, to avoid funny window titles
@@ -2459,10 +2458,10 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			
 			string l_json_str = l_json_info.toStyledString(false);
 			
-			boost::algorithm::trim(l_json_str); // TODO - убрать в конце пробел в json
+			Text::trim(l_json_str); // TODO - убрать в конце пробел в json
 			Text::removeString_rn(l_json_str);
-			boost::replace_all(l_json_str, "$", "");
-			boost::replace_all(l_json_str, "|", "");
+			Text::replace_all(l_json_str, "$", "");
+			Text::replace_all(l_json_str, "|", "");
 			
 			const string l_lastExtJSONInfo = "$ExtJSON " + getMyNickFromUtf8() + " " + escape(l_json_str);
 			if (m_lastExtJSONInfo != l_lastExtJSONInfo)

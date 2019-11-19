@@ -17,6 +17,7 @@
  */
 
 #include "stdafx.h"
+
 #ifdef IRAINMAN_INCLUDE_SMILE
 #include "../client/SimpleXML.h"
 #include "../client/CompatibilityManager.h"
@@ -353,7 +354,7 @@ bool CAGEmotionSetup::LoadEmotion(const string& p_file_name)
 				strEmotionText = xml.getChildAttrib("PasteText");
 				if (strEmotionText.empty())
 					strEmotionText = xml.getChildAttrib("Expression");
-				boost::algorithm::trim(strEmotionText);
+				Text::trim(strEmotionText);
 				dcassert(!strEmotionText.empty());
 				if (!strEmotionText.empty())
 				{

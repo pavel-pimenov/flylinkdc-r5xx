@@ -31,7 +31,6 @@
 #include "UploadManager.h"
 #include "../FlyFeatures/flyServer.h"
 #include "../windows/resource.h"
-#include <boost/algorithm/string.hpp>
 
 bool ShareManager::g_ignoreFileSizeHFS = false; // http://www.flylinkdc.ru/2015/01/hfs-mac-windows.html
 size_t ShareManager::g_hits = 0;
@@ -3077,7 +3076,7 @@ void ShareManager::clear_partial_cache(string p_path)
 	bool l_is_clear = true;
 	if (!p_path.empty())
 	{
-		boost::replace_all(p_path, "\\", "/");
+		Text::replace_all(p_path, "\\", "/");
 		for (auto i = g_partial_list_cache.begin(); i != g_partial_list_cache.end();)
 		{
 			if (p_path.find(i->first) != string::npos)

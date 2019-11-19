@@ -267,6 +267,9 @@ inline bool isEqualsSubstringIgnoreCase(const string& p_sub_string, const string
 
 void normalizeStringEnding(tstring& p_text);
 void removeString_rn(string& p_text);
+void replace_all(string& p_str, const string& p_from, const string& p_to);
+void trim(string& p_str);
+void replace_all(tstring& p_str, const tstring& p_from, const tstring& tp_to);
 
 } // namespace Text
 

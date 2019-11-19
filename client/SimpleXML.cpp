@@ -17,6 +17,7 @@
  */
 
 #include "stdinc.h"
+
 #include "SimpleXML.h"
 #include "ResourceManager.h"
 
@@ -296,6 +297,13 @@ void SimpleXML::resetCurrentChild()
 		return;
 		
 	currentChild = current->children.begin();
+}
+
+string SimpleXML::getChildAttribTrim(const string& aName, const string& aDefault /*= Util::emptyString*/) const
+{
+	string l_trim_val = getChildAttrib(aName, aDefault);
+	Text::trim(l_trim_val);
+	return l_trim_val;
 }
 
 /**

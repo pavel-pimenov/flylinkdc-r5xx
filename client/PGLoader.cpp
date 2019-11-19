@@ -24,8 +24,6 @@
 #include "File.h"
 #include "IpGuard.h"
 #include "../windows/resource.h"
-#include <boost/algorithm/string.hpp>
-//#include <boost/asio/ip/address_v4.hpp>
 
 #ifdef FLYLINKDC_USE_IPFILTER
 
@@ -179,7 +177,7 @@ bool PGLoader::check(uint32_t p_ip4)
 
 void PGLoader::addLine(string& p_Line, CFlyLog& p_log)
 {
-	boost::replace_all(p_Line, " ", "");
+	Text::replace_all(p_Line, " ", "");
 	if (p_Line.empty())
 		return;
 		

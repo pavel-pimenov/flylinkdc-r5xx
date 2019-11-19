@@ -858,7 +858,7 @@ string CryptoManager::makeKey(const string& aLock) {
 	if (aLock.size() < 3)
 		return Util::emptyString;
 		
-    std::unique_ptr<uint8_t[]> temp(new uint8_t[aLock.length()]);
+	std::unique_ptr<uint8_t[]> temp(new uint8_t[aLock.length()]);
 	uint8_t v1;
 	size_t extra = 0;
 	

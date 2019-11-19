@@ -25,7 +25,6 @@
 
 #ifdef FLYLINKDC_USE_IPFILTER
 #include "socket.h"
-#include <boost/algorithm/string.hpp>
 #include "iplist.h"
 #include "ResourceManager.h"
 #include "LogManager.h"
@@ -198,7 +197,7 @@ void IPList::addLine(std::string Line, CFlyLog& p_log)
 {
 	dcassert(!Line.empty() && Line[0] != '#')
 	int32_t l_errorCode = 0;
-	boost::replace_all(Line, " ", "");
+	Text::replace_all(Line, " ", "");
 	if (!Line.empty() && Line[0] != '#')
 	{
 		// Parse with ip/mask or ip-ip or ip

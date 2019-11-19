@@ -44,8 +44,8 @@ typedef DirectoryItem* DirectoryItemPtr;
 class QueueManager : public Singleton<QueueManager>,
 	public Speaker<QueueManagerListener>,
 	private TimerManagerListener,
-	private SearchManagerListener, 
-    private ClientManagerListener
+	private SearchManagerListener,
+	private ClientManagerListener
 {
 	public:
 		/** Add a file to the queue. */

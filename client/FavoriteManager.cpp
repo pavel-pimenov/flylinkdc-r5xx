@@ -22,7 +22,6 @@
 #include "FilteredFile.h"
 #include "ConnectionManager.h"
 #include "../FlyFeatures/flyServer.h"
-#include <boost/algorithm/string.hpp>
 
 bool FavoriteManager::g_SupportsHubExist = false;
 bool FavoriteManager::g_isNotEmpty = false;
@@ -1980,8 +1979,8 @@ void FavoriteManager::speakUserUpdate(const bool added, const FavoriteUser& p_fa
 
 PreviewApplication* FavoriteManager::addPreviewApp(const string& name, const string& application, const string& arguments, string p_extension) // [!] PVS V813 Decreased performance. The 'name', 'application', 'arguments', 'extension' arguments should probably be rendered as constant references. favoritemanager.h 366
 {
-	boost::replace_all(p_extension, " ", "");
-	boost::replace_all(p_extension, ",", ";");
+	Text::replace_all(p_extension, " ", "");
+	Text::replace_all(p_extension, ",", ";");
 	PreviewApplication* pa = new PreviewApplication(name, application, arguments, p_extension);
 	g_previewApplications.push_back(pa);
 	return pa;
