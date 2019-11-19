@@ -19,10 +19,6 @@
 #include "stdinc.h"
 #include <future>
 
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/algorithm/string/trim_all.hpp>
-#include <boost/algorithm/string.hpp>
-
 #include "flyServer.h"
 #include "../client/Socket.h"
 #include "../client/ClientManager.h"
@@ -320,7 +316,7 @@ inline static void checkStrKeyCase(const string& p_str)
 {
 #ifdef _DEBUG
 	string l_str_copy = p_str;
-	boost::algorithm::trim(l_str_copy);
+	Text::trim(l_str_copy);
 	dcassert(l_str_copy == p_str);
 #endif
 }
@@ -363,7 +359,7 @@ void CFlyServerConfig::ConvertInform(string& p_inform) const
 				}
 				if (l_ignore_tag == false)
 				{
-					boost::algorithm::trim_all(l_cur_line);
+					Text::trim(l_cur_line);
 					l_result_line += l_cur_line + "\r\n";
 				}
 				l_start_line = l_end_line + 2;
@@ -1094,7 +1090,7 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 							dcassert(j != string::npos);
 							if (j != string::npos)
 							{
-								boost::replace_all(p_search_url, p_search_url.substr(0,j+1), l_url_mirror);
+								Text::replace_all(p_search_url, p_search_url.substr(0,j+1), l_url_mirror);
 								l_count_mirror++;
 #ifdef _DEBUG
                                 LogManager::message("l_url_mirror = " + l_url_mirror);
@@ -3367,7 +3363,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 					p_media.m_bitrate = bitRate;
 				wstring sFormat = g_media_info_lib.Get(MediaInfoLib::Stream_Audio, i, _T("Format"));
 #if defined (SSA_REMOVE_NEEDLESS_WORDS_FROM_VIDEO_AUDIO_INFO)
-				boost::replace_all(sFormat, _T(" Audio"), Util::emptyStringT);
+				Text::replace_all(sFormat, _T(" Audio"), Util::emptyStringT);
 #endif
 				const wstring sBitRate = g_media_info_lib.Get(MediaInfoLib::Stream_Audio, i, _T("BitRate/String"));
 				const wstring sChannelPos = g_media_info_lib.Get(MediaInfoLib::Stream_Audio, i, _T("ChannelPositions"));
@@ -3470,8 +3466,8 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 				{
 					wstring sVFormat = g_media_info_lib.Get(MediaInfoLib::Stream_Video, i, _T("Format"));
 #if defined (SSA_REMOVE_NEEDLESS_WORDS_FROM_VIDEO_AUDIO_INFO)
-					boost::replace_all(sVFormat, _T(" Video"), Util::emptyStringT);
-					boost::replace_all(sVFormat, _T(" Visual"), Util::emptyStringT);
+					Text::replace_all(sVFormat, _T(" Video"), Util::emptyStringT);
+					Text::replace_all(sVFormat, _T(" Visual"), Util::emptyStringT);
 #endif
 					wstring sVBitrate = g_media_info_lib.Get(MediaInfoLib::Stream_Video, i, _T("BitRate/String"));
 					wstring sVFrameRate = g_media_info_lib.Get(MediaInfoLib::Stream_Video, i, _T("FrameRate/String"));
