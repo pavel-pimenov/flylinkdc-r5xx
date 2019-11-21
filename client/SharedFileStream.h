@@ -26,7 +26,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "Util.h"
 #include "File.h"
+#include "CFlyThread.h"
 
 struct SharedFileHandle
 {
@@ -60,7 +62,6 @@ class SharedFileStream : public IOStream
 		size_t write(const void* buf, size_t len) override;
 		size_t read(void* buf, size_t& len) override;
 		
-		//int64_t getFileSize();
 		int64_t getFastFileSize();
 		void setSize(int64_t newSize);
 		

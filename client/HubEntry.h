@@ -25,6 +25,8 @@
 
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 #include "TimerManager.h"
+#include "SettingsManager.h"
+
 #include <deque>
 
 class ConnectionStatus

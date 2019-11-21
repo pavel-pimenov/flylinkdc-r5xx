@@ -22,8 +22,9 @@
 #ifndef DCPLUSPLUS_DCPP_USER_MANAGER_H
 #define DCPLUSPLUS_DCPP_USER_MANAGER_H
 
-#include "SettingsManager.h"
 #include "User.h"
+#include "Singleton.h"
+#include "Speaker.h"
 
 class ChatMessage;
 

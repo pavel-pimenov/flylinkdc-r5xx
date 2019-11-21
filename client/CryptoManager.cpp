@@ -21,6 +21,8 @@
 #include "Encoder.h"
 #include "File.h"
 #include "ClientManager.h"
+#include "SettingsManager.h"
+
 #include "LogManager.h"
 #include "SSLSocket.h"
 

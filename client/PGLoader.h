@@ -4,11 +4,10 @@
 #ifndef PGLOADER_H
 #define PGLOADER_H
 
-#include "SettingsManager.h"
-
 #ifdef FLYLINKDC_USE_IPFILTER
 
 #include "iplist.h"
+#include "Util.h"
 
 class PGLoader
 {

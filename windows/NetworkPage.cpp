@@ -19,6 +19,7 @@
 #include "stdafx.h"
 
 #include <comdef.h>
+
 #include "NetworkPage.h"
 #include "../FlyFeatures/flyServer.h"
 #include "../client/CryptoManager.h"

@@ -22,28 +22,12 @@
 #ifndef DCPLUSPLUS_DCPP_SOCKET_H
 #define DCPLUSPLUS_DCPP_SOCKET_H
 
-#ifdef _WIN32
-
 #include <ws2tcpip.h>
 typedef int socklen_t;
 typedef SOCKET socket_t;
 
-#else
-
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <fcntl.h>
-#include <errno.h>
-
-typedef int socket_t;
-const int INVALID_SOCKET = -1;
-#define SOCKET_ERROR -1
-#endif
-
-#include "SettingsManager.h"
+#include "Util.h"
+#include "..\boost\boost\logic\tribool.hpp"
 
 /** RAII socket handle */
 class SocketHandle : boost::noncopyable {

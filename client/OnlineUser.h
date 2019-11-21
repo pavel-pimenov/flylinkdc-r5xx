@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "StringPool.h"
 #include "UserInfoBase.h"
 #include "UserInfoColumns.h"
 

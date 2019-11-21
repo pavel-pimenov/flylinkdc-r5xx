@@ -164,10 +164,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	
 	LOAD_STEP_L(SHARED_FILES, ShareManager::getInstance()->refresh_share(true, false));
 	
-#ifdef IRAINMAN_USE_STRING_POOL
-	StringPool::newInstance();
-#endif
-	
+
 #undef LOAD_STEP
 #undef LOAD_STEP_L
 }
@@ -275,9 +272,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		BufferedSocket::waitShutdown();
 #endif
 		
-#ifdef IRAINMAN_USE_STRING_POOL
-		StringPool::deleteInstance();
-#endif
 		ConnectivityManager::deleteInstance();
 		WebServerManager::deleteInstance();
 		if (pGuiInitProc)

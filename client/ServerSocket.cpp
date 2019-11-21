@@ -18,6 +18,7 @@
 
 #include "stdinc.h"
 #include "ServerSocket.h"
+#include "SettingsManager.h"
 
 void ServerSocket::listen(uint16_t aPort, const string& aIp = SETTING(BIND_ADDRESS))
 {

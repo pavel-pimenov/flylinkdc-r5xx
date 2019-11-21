@@ -25,6 +25,7 @@
 #include "UploadManager.h"
 #include "ThrottleManager.h"
 #include "ShareManager.h"
+#include "SettingsManager.h"
 
 #include "../FlyFeatures/AutoUpdate.h"
 #include "../FlyFeatures/flyServer.h"

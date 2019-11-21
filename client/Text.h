@@ -139,11 +139,7 @@ inline char asciiToLower(uint8_t p_c)
 
 inline wchar_t toLower(wchar_t c) noexcept
 {
-#ifdef _WIN32
-	return static_cast<wchar_t>(reinterpret_cast<ptrdiff_t>(CharLowerW((LPWSTR)c)));
-#else
-	return (wchar_t)towlower(c);
-#endif
+    return static_cast<wchar_t>(reinterpret_cast<ptrdiff_t>(CharLowerW((LPWSTR)c)));
 }
 
 const wstring& toLower(const wstring& str, wstring& tmp) noexcept;

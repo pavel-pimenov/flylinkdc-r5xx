@@ -22,7 +22,7 @@
 #ifndef DCPLUSPLUS_DCPP_STREAMS_H
 #define DCPLUSPLUS_DCPP_STREAMS_H
 
-#include "SettingsManager.h"
+#include "Exception.h"
 #include "ResourceManager.h"
 
 STANDARD_EXCEPTION(FileException);

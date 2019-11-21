@@ -23,6 +23,7 @@
 #include "LogManager.h"
 #include "File.h"
 #include "IpGuard.h"
+#include "SettingsManager.h"
 #include "../windows/resource.h"
 
 #ifdef FLYLINKDC_USE_IPFILTER

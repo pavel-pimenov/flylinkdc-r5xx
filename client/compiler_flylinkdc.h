@@ -203,7 +203,6 @@ typedef unsigned __int64 uint64_t;
 #  endif
 # endif
 
-//#define IRAINMAN_USE_STRING_POOL
 #define IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 //#define IRAINMAN_SPEED_LIMITER_5S4_10 // Включает ограничение: скорость отдачи = 5 * количество слотов + 4, скорость загрузки = 10 * скорость отдачи
 //#define IRAINMAN_INCLUDE_USER_CHECK // - Не понял нахрена оно нужно. если юзеров 100 тыщ то что будет?

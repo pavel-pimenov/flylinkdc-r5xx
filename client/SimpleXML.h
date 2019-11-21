@@ -25,6 +25,8 @@
 #include "File.h"
 #include "SimpleXMLReader.h"
 #include "StringTokenizer.h"
+#include "Util.h"
+
 #ifdef _DEBUG
 #include "Text.h"
 #endif

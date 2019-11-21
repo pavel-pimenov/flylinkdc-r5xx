@@ -24,6 +24,7 @@
 
 #include "Semaphore.h"
 #include "TimerManager.h"
+#include "SettingsManager.h"
 #include "CFlyMediaInfo.h"
 
 #ifdef RIP_USE_STREAM_SUPPORT_DETECTION
@@ -32,7 +33,6 @@
 
 #define IRAINMAN_NTFS_STREAM_TTH
 
-#define MAX_HASH_PROGRESS_VALUE 3000 //[+] brain-ripper
 
 STANDARD_EXCEPTION(HashException);
 class File;
@@ -280,7 +280,6 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 					m_rebuild = true;
 					signal();
 				}
-				
 				int GetMaxHashSpeed() const
 				{
 					return m_ForceMaxHashSpeed != 0 ? m_ForceMaxHashSpeed : SETTING(MAX_HASH_SPEED);
@@ -309,6 +308,11 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 					return m_running;
 				}
 				
+				static inline DWORD GetMaxProgressValue()
+				{
+					return 3000; // const
+				}
+				
 				size_t GetProgressValue()
 				{
 					if (!m_running || dwMaxFiles == 0 || iMaxBytes == 0)
@@ -321,7 +325,7 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 						getBytesAndFileLeft(bytesLeft, filesLeft);
 					}
 					
-					return static_cast<size_t>(MAX_HASH_PROGRESS_VALUE * ((static_cast<double>(dwMaxFiles - filesLeft + 1) / static_cast<double>(dwMaxFiles)) * (static_cast<double>(iMaxBytes - bytesLeft) / static_cast<double>(iMaxBytes))));
+					return static_cast<size_t>(GetMaxProgressValue() * ((static_cast<double>(dwMaxFiles - filesLeft + 1) / static_cast<double>(dwMaxFiles)) * (static_cast<double>(iMaxBytes - bytesLeft) / static_cast<double>(iMaxBytes))));
 				}
 				
 				uint64_t GetStartTime() const
@@ -349,10 +353,6 @@ class HashManager : public Singleton<HashManager>, public Speaker<HashManagerLis
 					}
 				}
 				
-				static DWORD GetMaxProgressValue()
-				{
-					return MAX_HASH_PROGRESS_VALUE;
-				}
 			private:
 				// Case-sensitive (faster), it is rather unlikely that case changes, and if it does it's harmless.
 				// map because it's sorted (to avoid random hash order that would create quite strange shares while hashing)

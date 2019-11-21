@@ -21,9 +21,7 @@
 #include <openssl/err.h>
 
 #include "LogManager.h"
-#include "SettingsManager.h"
 #include "ResourceManager.h"
-
 #include "SSLSocket.h"
 
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L

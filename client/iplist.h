@@ -30,6 +30,7 @@
 
 #include <vector>
 #include <map>
+#include <algorithm>
 #include "CFlyThread.h"
 
 class CFlyLog;

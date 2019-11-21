@@ -4,7 +4,6 @@
 #include "stdinc.h"
 #include <Shellapi.h>
 
-#include "SettingsManager.h"
 #include "ShareManager.h"
 #include "QueueManager.h"
 #include "ConnectionManager.h"

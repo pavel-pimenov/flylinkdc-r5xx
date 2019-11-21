@@ -21,6 +21,7 @@
 
 #include "SSL.h"
 #include "Socket.h"
+#include "Singleton.h"
 
 class SSLSocket;
 

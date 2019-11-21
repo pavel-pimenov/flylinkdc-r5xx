@@ -25,7 +25,6 @@
 #if !defined(ADL_SEARCH_H)
 #define ADL_SEARCH_H
 
-#include "SettingsManager.h"
 #include "StringSearch.h"
 #include "DirectoryListing.h"
 

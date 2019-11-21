@@ -180,6 +180,7 @@
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <ResourceCompile>
       <Culture>0x041d</Culture>
@@ -589,8 +590,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="client\StringDefs.cpp" />
-    <ClCompile Include="client\StringPool.cpp" />
-    <ClCompile Include="client\TaskQueue.cpp" />
     <ClCompile Include="client\Text.cpp" />
     <ClCompile Include="client\CFlyThread.cpp" />
     <ClCompile Include="client\ThrottleManager.cpp" />
@@ -731,7 +730,6 @@
     <ClInclude Include="client\QueueManagerListener.h" />
     <ClInclude Include="client\ResourceManager.h" />
     <ClInclude Include="client\ScopedFunctor.h" />
-    <ClInclude Include="client\StringPool.h" />
     <ClInclude Include="client\TransferData.h" />
     <ClInclude Include="client\UserInfo.h" />
     <ClInclude Include="client\UserInfoColumns.h" />

@@ -22,7 +22,9 @@
 #ifndef DCPLUSPLUS_DCPP_FILE_H
 #define DCPLUSPLUS_DCPP_FILE_H
 
+#include "typedefs.h"
 #include "Streams.h"
+#include "Text.h"
 
 class File : public IOStream
 {

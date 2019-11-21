@@ -18,7 +18,6 @@
 
 #include "stdinc.h"
 #include "ZUtils.h"
-#include "SettingsManager.h"
 #include "ResourceManager.h"
 #include "ShareManager.h"
 

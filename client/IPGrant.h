@@ -22,12 +22,11 @@
 #ifndef IPGRANT_H
 #define IPGRANT_H
 
-#include "Singleton.h"
-#include "SettingsManager.h"
 
 #ifdef SSA_IPGRANT_FEATURE
 
 #include "iplist.h"
+#include "Util.h"
 
 class IpGrant
 {

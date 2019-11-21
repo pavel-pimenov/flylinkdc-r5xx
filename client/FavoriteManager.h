@@ -24,7 +24,6 @@
 
 #include <unordered_map>
 #include <unordered_set>
-#include "SettingsManager.h"
 
 #include "UserCommand.h"
 #include "FavoriteUser.h"
