@@ -122,6 +122,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <UseFullPaths>true</UseFullPaths>
     </ClCompile>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>

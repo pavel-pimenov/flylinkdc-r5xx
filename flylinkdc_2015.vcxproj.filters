@@ -55,9 +55,6 @@
     <ClCompile Include="windows\ExListViewCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows\ExMessageBox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="windows\FavHubProperties.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -388,9 +385,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\ExListViewCtrl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\ExMessageBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\FavDirDlg.h">
@@ -858,6 +852,7 @@
     <ClInclude Include="wtl\atlwinx.h">
       <Filter>wtl</Filter>
     </ClInclude>
+    <ClInclude Include="windows\main.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -1197,6 +1192,10 @@
     <Image Include="res\Trackers.png" />
     <Image Include="res\vip_hmn_pp.ico" />
     <Image Include="res\vip_millennium.ico" />
+    <Image Include="res\icon1.ico" />
+    <Image Include="res\vip_a_galaxy.ico" />
+    <Image Include="res\vip_kcahdep.ico" />
+    <Image Include="res\vip_piter.ico" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

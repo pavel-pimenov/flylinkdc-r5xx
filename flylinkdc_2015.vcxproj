@@ -198,6 +198,8 @@
       <PreprocessorDefinitions>_DEBUG;HAVE_NATUPNP_H;_UNICODE;UNICODE;BOOST_USE_WINDOWS_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <ShowIncludes>false</ShowIncludes>
+      <UseFullPaths>true</UseFullPaths>
     </ClCompile>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -416,7 +418,6 @@
     <ClCompile Include="windows\DownloadPage.cpp" />
     <ClCompile Include="windows\EmoticonsDlg.cpp" />
     <ClCompile Include="windows\ExListViewCtrl.cpp" />
-    <ClCompile Include="windows\ExMessageBox.cpp" />
     <ClCompile Include="windows\FakeDetectPage.cpp" />
     <ClCompile Include="windows\FavHubGroupsDlg.cpp" />
     <ClCompile Include="windows\FavHubProperties.cpp" />
@@ -550,7 +551,6 @@
     <ClInclude Include="windows\DownloadPage.h" />
     <ClInclude Include="windows\EmoticonsDlg.h" />
     <ClInclude Include="windows\ExListViewCtrl.h" />
-    <ClInclude Include="windows\ExMessageBox.h" />
     <ClInclude Include="windows\FakeDetectPage.h" />
     <ClInclude Include="windows\FavDirDlg.h" />
     <ClInclude Include="windows\FavHubGroupsDlg.h" />
@@ -871,6 +871,9 @@
     </ProjectReference>
     <ProjectReference Include="GdiOle\GdiOle_2015.vcxproj">
       <Project>{22c938c3-474a-4bf5-9b28-482683f98ea1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="leveldb\LevelDB_2015.vcxproj">
+      <Project>{a7ff59d3-eafd-43a1-8aa7-5087229c75d1}</Project>
     </ProjectReference>
     <ProjectReference Include="libtorrent\libtorrent_2015.vcxproj">
       <Project>{a2c26111-84f5-4ca3-85b8-bd80f1921238}</Project>

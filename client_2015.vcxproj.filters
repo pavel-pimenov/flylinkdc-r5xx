@@ -229,28 +229,16 @@
     <ClCompile Include="client\LogManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\CFlyProfiler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="client\StringPool.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="client\AdcSupports.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="client\CFlyUserRatioInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\TaskQueue.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="client\GPGPUManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="client\MerkleTree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="client\WildcardsReg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="client\CFlyLockProfiler.cpp">
@@ -279,6 +267,9 @@
     </ClCompile>
     <ClCompile Include="client\webrtc\rtc_base\synchronization\condition_variable_event_win.cc">
       <Filter>Source Files\webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="client\SSL.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -654,16 +645,10 @@
     <ClInclude Include="windows\RebuildMediainfoProgressDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="client\CFlyProfiler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="client\UserInfoColumns.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="client\AdcSupports.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="client\StringPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="client\CFlyUserRatioInfo.h">

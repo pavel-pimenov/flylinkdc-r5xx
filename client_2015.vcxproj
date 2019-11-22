@@ -112,6 +112,8 @@
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <ShowIncludes>true</ShowIncludes>
+      <UseFullPaths>true</UseFullPaths>
     </ClCompile>
     <ResourceCompile>
       <Culture>0x041d</Culture>
@@ -149,10 +151,12 @@
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <PreprocessorDefinitions>TORRENT_NO_DEPRECATE;WEBRTC_WIN;ZMQ_STATIC;OS_WIN;LEVELDB_PLATFORM_WINDOWS;OPENSSL_SYSNAME_WIN32;_UNICODE;BOOST_ALL_NO_LIB;BOOST_USE_WINDOWS_H;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <ShowIncludes>true</ShowIncludes>
+      <UseFullPaths>true</UseFullPaths>
     </ClCompile>
     <ResourceCompile>
       <Culture>0x041d</Culture>
@@ -265,7 +269,6 @@
     <ClCompile Include="client\BufferedSocket.cpp" />
     <ClCompile Include="client\BZUtils.cpp" />
     <ClCompile Include="client\CFlyLockProfiler.cpp" />
-    <ClCompile Include="client\CFlyProfiler.cpp" />
     <ClCompile Include="client\CFlyUserRatioInfo.cpp" />
     <ClCompile Include="client\ChatMessage.cpp" />
     <ClCompile Include="client\CID.cpp" />
@@ -325,6 +328,7 @@
     <ClCompile Include="client\SimpleXML.cpp" />
     <ClCompile Include="client\SimpleXMLReader.cpp" />
     <ClCompile Include="client\Socket.cpp" />
+    <ClCompile Include="client\SSL.cpp" />
     <ClCompile Include="client\SSLSocket.cpp" />
     <ClCompile Include="client\stdinc.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -333,8 +337,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="client\StringDefs.cpp" />
-    <ClCompile Include="client\StringPool.cpp" />
-    <ClCompile Include="client\TaskQueue.cpp" />
     <ClCompile Include="client\Text.cpp" />
     <ClCompile Include="client\CFlyThread.cpp" />
     <ClCompile Include="client\ThrottleManager.cpp" />
@@ -358,7 +360,7 @@
     <ClCompile Include="client\webrtc\rtc_base\synchronization\rw_lock_wrapper.cc" />
     <ClCompile Include="client\webrtc\talk\base\winfirewall.cc" />
     <ClCompile Include="client\WebServerManager.cpp" />
-    <ClCompile Include="client\WildcardsReg.cpp" />
+    <ClCompile Include="client\zip\zip.c" />
     <ClCompile Include="client\ZUtils.cpp" />
     <ClCompile Include="client\CFlylinkDBManager.cpp" />
     <ClCompile Include="client\sqlite\sqlite3.c">
@@ -381,7 +383,6 @@
     <ClInclude Include="client\AdcSupports.h" />
     <ClInclude Include="client\CFlyLockProfiler.h" />
     <ClInclude Include="client\CFlyMediaInfo.h" />
-    <ClInclude Include="client\CFlyProfiler.h" />
     <ClInclude Include="client\CFlySearchItemTTH.h" />
     <ClInclude Include="client\CFlyUserRatioInfo.h" />
     <ClInclude Include="client\CompatibilityManager.h" />
@@ -459,7 +460,6 @@
     <ClInclude Include="client\QueueManagerListener.h" />
     <ClInclude Include="client\ResourceManager.h" />
     <ClInclude Include="client\ScopedFunctor.h" />
-    <ClInclude Include="client\StringPool.h" />
     <ClInclude Include="client\TransferData.h" />
     <ClInclude Include="client\UserInfo.h" />
     <ClInclude Include="client\UserInfoColumns.h" />
