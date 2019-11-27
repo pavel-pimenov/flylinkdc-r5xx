@@ -138,7 +138,7 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 		uint64_t m_total;
 		uint8_t m_current;
 		static const uint8_t AVG_TIME = 60;
-		uint16_t m_perSecond[AVG_TIME];
+		std::array<uint16_t,AVG_TIME> m_perSecond;
 		bool m_needsResort;
 		
 		tstring m_searchString;

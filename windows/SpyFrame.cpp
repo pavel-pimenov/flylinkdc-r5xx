@@ -36,7 +36,7 @@ SpyFrame::SpyFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), m_tota
 	m_SpyLogFileContainer(WC_BUTTON, this, SPYFRAME_LOG_FILE),
 	m_log(nullptr), m_needsUpdateTime(true), m_needsResort(false)
 {
-	memzero(m_perSecond, sizeof(m_perSecond));
+    m_perSecond.fill(0);
 	ClientManager::getInstance()->addListener(this);
 	SettingsManager::getInstance()->addListener(this);
 }
@@ -456,7 +456,7 @@ LRESULT SpyFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, B
 		m_tasks.add(TICK_AVG, s);
 	}
 	{
-		if (m_current++ >= AVG_TIME)
+		if (++m_current >= AVG_TIME)
 			m_current = 0;
 			
 		m_perSecond[m_current] = 0;
