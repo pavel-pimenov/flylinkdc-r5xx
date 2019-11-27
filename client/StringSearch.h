@@ -35,7 +35,7 @@ class StringSearch
 #ifdef _DEBUG
 	: boost::noncopyable
 #endif
-	
+
 {
 	public:
 		typedef vector<StringSearch> List;

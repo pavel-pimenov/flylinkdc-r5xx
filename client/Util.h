@@ -32,6 +32,7 @@
 #include "Text.h"
 #include "CFlyThread.h"
 #include "MerkleTree.h"
+#include "LogManager.h"
 
 # define PATH_SEPARATOR '\\'
 # define PATH_SEPARATOR_STR "\\"

@@ -28,6 +28,7 @@
 #include "ADLSearch.h"
 #include "QueueManager.h"
 #include "ClientManager.h"
+#include "LogManager.h"
 
 ADLSearch::ADLSearch() :
 	searchString("<Enter string>"),
