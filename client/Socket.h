@@ -30,11 +30,11 @@ typedef SOCKET socket_t;
 #include "..\boost\boost\logic\tribool.hpp"
 
 /** RAII socket handle */
-class SocketHandle 
+class SocketHandle
 #ifdef _DEBUG
-    : boost::noncopyable
+	: boost::noncopyable
 #endif
-    {
+{
 	public:
 		SocketHandle() : sock(INVALID_SOCKET) { }
 		SocketHandle(socket_t sock) : sock(sock) { }

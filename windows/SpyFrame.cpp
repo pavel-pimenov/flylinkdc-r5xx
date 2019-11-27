@@ -36,7 +36,7 @@ SpyFrame::SpyFrame() : CFlyTimerAdapter(m_hWnd), CFlyTaskAdapter(m_hWnd), m_tota
 	m_SpyLogFileContainer(WC_BUTTON, this, SPYFRAME_LOG_FILE),
 	m_log(nullptr), m_needsUpdateTime(true), m_needsResort(false)
 {
-    m_perSecond.fill(0);
+	m_perSecond.fill(0);
 	ClientManager::getInstance()->addListener(this);
 	SettingsManager::getInstance()->addListener(this);
 }

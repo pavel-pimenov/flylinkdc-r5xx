@@ -164,7 +164,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	
 	LOAD_STEP_L(SHARED_FILES, ShareManager::getInstance()->refresh_share(true, false));
 	
-
+	
 #undef LOAD_STEP
 #undef LOAD_STEP_L
 }

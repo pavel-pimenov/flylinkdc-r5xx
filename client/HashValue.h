@@ -96,10 +96,10 @@ typedef HashValue<TigerHash> TTHValue;
 template<typename T>
 struct hash<HashValue<T>>
 {
-	size_t operator()(const HashValue<T>& rhs) const
-	{
-		return rhs.toHash();
-	}
+    size_t operator()(const HashValue<T>& rhs) const
+    {
+        return rhs.toHash();
+    }
 };
 }
 */

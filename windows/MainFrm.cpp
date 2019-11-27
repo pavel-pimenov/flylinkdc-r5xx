@@ -895,11 +895,11 @@ int MainFrame::tuneTransferSplit()
 
 LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& p_bHandled)
 {
-    if (!checkTimerID(wParam))
-    {
-            p_bHandled = FALSE;
-            return 0;
-    }
+	if (!checkTimerID(wParam))
+	{
+		p_bHandled = FALSE;
+		return 0;
+	}
 	if (m_closing)
 	{
 		return 0;
@@ -2673,7 +2673,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	}
 	else
 	{
-        safe_destroy_timer();
+		safe_destroy_timer();
 		if (!m_closing)
 		{
 #ifdef _DEBUG
@@ -3567,7 +3567,7 @@ void MainFrame::on(WebServerListener::ShutdownPC, int action) noexcept
 }
 LRESULT MainFrame::onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-    safe_destroy_timer();
+	safe_destroy_timer();
 	if (m_bTrayIcon)
 	{
 		updateTray(false);

@@ -189,10 +189,10 @@ class CFlyTimerAdapter : public CFlyHandlerAdapter
 				m_timer_id = 0;
 			}
 		}
-        bool checkTimerID(UINT id) const
-        {
-            return m_timer_id == id;
-        }
+		bool checkTimerID(UINT id) const
+		{
+			return m_timer_id == id;
+		}
 #if 0 // TODO: needs review
 		void safe_destroy_timer_if_exists()
 		{

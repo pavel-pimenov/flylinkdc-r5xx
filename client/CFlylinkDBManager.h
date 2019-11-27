@@ -662,8 +662,8 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 		std::unique_ptr<webrtc::RWLockWrapper> m_virus_cs;
 		std::unordered_set<std::string> m_virus_user;
-        std::unordered_set<int64_t> m_virus_share;
-        std::unordered_set<unsigned long> m_virus_ip4;
+		std::unordered_set<int64_t> m_virus_share;
+		std::unordered_set<unsigned long> m_virus_ip4;
 		void clear_virus_cacheL();
 	public:
 		void load_avdb();

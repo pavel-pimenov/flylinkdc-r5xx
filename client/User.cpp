@@ -60,7 +60,7 @@ User::User(const CID& p_CID, const string& p_nick, uint32_t p_hub_id) : m_cid(p_
 	m_message_count.set(0);
 	m_message_count.reset_dirty();
 	setFlag(User::IS_SQL_NOT_FOUND);
-	static_assert(LAST_BIT < 32,"LAST_BIT < 32");
+	static_assert(LAST_BIT < 32, "LAST_BIT < 32");
 #ifdef _DEBUG
 #ifdef FLYLINKDC_USE_RATIO_CS
 	m_ratio_cs.use_log();
