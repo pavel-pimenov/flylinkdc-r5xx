@@ -61,7 +61,7 @@
 
 #include "w.h"
 
-//#include <algorithm>
+#include <algorithm>
 //#include <functional>
 #include <memory>
 #include <string>

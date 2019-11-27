@@ -265,7 +265,7 @@ class ClientManager : public Speaker<ClientManagerListener>,
 		static ClientList g_clients;
 		static std::unique_ptr<webrtc::RWLockWrapper> g_csClients;
 		
-		typedef boost::unordered_map<CID, UserPtr> UserMap;
+		typedef std::unordered_map<CID, UserPtr> UserMap;
 		
 		static UserMap g_users;
 		

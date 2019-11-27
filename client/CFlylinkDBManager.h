@@ -238,7 +238,7 @@ struct CFlyFileInfo
 	{
 	}
 };
-typedef boost::unordered_map<string, CFlyFileInfo> CFlyDirMap;
+typedef std::unordered_map<string, CFlyFileInfo> CFlyDirMap;
 struct CFlyPathItem
 {
 	__int64 m_path_id;
@@ -317,7 +317,7 @@ struct CFlyDirItem : public CFlyBaseDirItem
 };
 typedef std::vector<CFlyDirItem> CFlyDirItemArray;
 typedef std::unordered_map<string, CFlyRegistryValue> CFlyRegistryMap;
-typedef boost::unordered_map<string, CFlyPathItem> CFlyPathCache;
+typedef std::unordered_map<string, CFlyPathItem> CFlyPathCache;
 class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 {
 	public:
@@ -594,7 +594,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		// If two threads share such an object, they must protect access to it using their own locking protocol.
 		// More details are available in the public header files.
 		sqlite3_connection m_flySQLiteDB;
-		typedef boost::unordered_map<string, CFlyHashCacheItem> CFlyHashCacheMap;
+		typedef std::unordered_map<string, CFlyHashCacheItem> CFlyHashCacheMap;
 		CFlyHashCacheMap m_cache_hash_files;
 		FastCriticalSection  m_cache_hash_files_cs;
 #ifdef FLYLINKDC_USE_LEVELDB
@@ -641,7 +641,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		
 #ifdef FLYLINKDC_USE_LASTIP_CACHE
 		CFlySQLCommand m_select_all_last_ip_and_message_count;
-		boost::unordered_map<uint32_t, boost::unordered_map<std::string, CFlyLastIPCacheItem> > m_last_ip_cache;
+		std::unordered_map<uint32_t, std::unordered_map<string, CFlyLastIPCacheItem> > m_last_ip_cache;
 		FastCriticalSection m_last_ip_cs;
 #else
 		CFlySQLCommand m_select_last_ip_and_message_count;
@@ -661,9 +661,9 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_find_virus_nick_and_share_and_ip4;
 		
 		std::unique_ptr<webrtc::RWLockWrapper> m_virus_cs;
-		boost::unordered_set<std::string> m_virus_user;
-		boost::unordered_set<int64_t> m_virus_share;
-		boost::unordered_set<unsigned long> m_virus_ip4;
+		std::unordered_set<std::string> m_virus_user;
+        std::unordered_set<int64_t> m_virus_share;
+        std::unordered_set<unsigned long> m_virus_ip4;
 		void clear_virus_cacheL();
 	public:
 		void load_avdb();
@@ -733,7 +733,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 			{
 			}
 		};
-		boost::unordered_map<uint32_t, CFlyCacheIPInfo> m_ip_info_cache;
+		std::unordered_map<uint32_t, CFlyCacheIPInfo> m_ip_info_cache;
 		
 		int m_count_fly_location_ip_record;
 		bool is_fly_location_ip_valid() const
@@ -748,7 +748,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		CFlySQLCommand m_select_location_lost;
 		CFlySQLCommand m_update_location_lost;
 		CFlySQLCommand m_insert_location_lost;
-		boost::unordered_set<string> m_lost_location_cache;
+		std::unordered_set<string> m_lost_location_cache;
 #endif
 #ifdef FLYLINKDC_USE_GEO_IP
 		CFlySQLCommand m_select_country_and_location;
@@ -757,7 +757,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		vector<CFlyLocationDesc> m_country_cache;
 #endif
 #ifdef _DEBUG
-		boost::unordered_map<uint32_t, unsigned> m_count_ip_sql_query_guard;
+		std::unordered_map<uint32_t, unsigned> m_count_ip_sql_query_guard;
 #endif
 		CFlySQLCommand m_select_manual_p2p_guard;
 		CFlySQLCommand m_delete_manual_p2p_guard;
@@ -786,11 +786,11 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 			else
 				return Util::emptyString;
 		}
-		typedef boost::unordered_map<string, __int64> CFlyCacheDIC;
+		typedef std::unordered_map<string, __int64> CFlyCacheDIC;
 		std::vector<CFlyCacheDIC> m_DIC;
 		
 #ifdef FLYLINKDC_USE_CACHE_HUB_URLS
-		typedef boost::unordered_map<unsigned, string> CFlyCacheDICName;
+		typedef std::unordered_map<unsigned, string> CFlyCacheDICName;
 		CFlyCacheDICName m_HubNameMap;
 		FastCriticalSection m_hub_dic_fcs;
 #endif
@@ -838,7 +838,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		static int32_t g_count_queue_source;
 		static int32_t g_count_queue_files;
 		
-		static boost::unordered_map<TTHValue, TigerTree> g_tiger_tree_cache;
+		static std::unordered_map<TTHValue, TigerTree> g_tiger_tree_cache;
 		static FastCriticalSection g_tth_cache_cs;
 		static void clearTTHCache();
 		static unsigned g_tth_cache_limit;

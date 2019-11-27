@@ -168,7 +168,7 @@ class CFlyTimerAdapter : public CFlyHandlerAdapter
 		}
 		void safe_destroy_timer()
 		{
-			dcassert(m_timer_id);
+			// dcassert(m_timer_id);
 			if (m_timer_id)
 			{
 				ATLASSERT(::IsWindow(m_win_handler));
@@ -189,6 +189,10 @@ class CFlyTimerAdapter : public CFlyHandlerAdapter
 				m_timer_id = 0;
 			}
 		}
+        bool checkTimerID(UINT id) const
+        {
+            return m_timer_id == id;
+        }
 #if 0 // TODO: needs review
 		void safe_destroy_timer_if_exists()
 		{

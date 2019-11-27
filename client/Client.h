@@ -405,7 +405,7 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 			{
 			}
 		};
-		typedef boost::unordered_map<string, CFlyFloodCommand> CFlyFloodCommandMap;
+		typedef std::unordered_map<string, CFlyFloodCommand> CFlyFloodCommandMap;
 		CFlyFloodCommandMap m_flood_detect;
 	protected:
 		bool isFloodCommand(const string& p_command, const string& p_line);
@@ -609,12 +609,12 @@ class Client : public ClientBase, public Speaker<ClientListener>, public Buffere
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 		bool m_isAutobanAntivirusIP;
 		bool m_isAutobanAntivirusNick;
-		boost::unordered_set<string> m_virus_nick;
+		std::unordered_set<string> m_virus_nick;
 		string m_AntivirusCommandIP;
 #endif
 #ifdef FLYLINKDC_USE_VIRUS_CHECK_DEBUG
-		boost::unordered_set<string> m_virus_nick_checked;
-		boost::unordered_map<string, string> m_check_myinfo_dup;
+		std::unordered_set<string> m_virus_nick_checked;
+		std::unordered_map<string, string> m_check_myinfo_dup;
 #endif
 	private:
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO

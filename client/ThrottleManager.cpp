@@ -20,7 +20,6 @@
 #include "ThrottleManager.h"
 
 #include "DownloadManager.h"
-
 #include "UploadManager.h"
 
 #include <boost/date_time/posix_time/posix_time.hpp>

@@ -68,7 +68,7 @@ struct Search
 	}
 	bool operator==(const Search& rhs) const
 	{
-		BOOST_STATIC_ASSERT(TYPE_LAST_MODE < 16); // Иначе не влезет в m_fileTypes_bitmap
+        static_assert(TYPE_LAST_MODE < 16, "TYPE_LAST_MODE < 16"); // Иначе не влезет в m_fileTypes_bitmap
 		return m_sizeMode == rhs.m_sizeMode &&
 		       m_size == rhs.m_size &&
 		       m_fileTypes_bitmap == rhs.m_fileTypes_bitmap &&

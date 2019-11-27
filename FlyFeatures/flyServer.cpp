@@ -96,7 +96,7 @@ uint16_t CFlyServerConfig::g_winet_min_response_time_for_log = 200;
 DWORD CFlyServerConfig::g_winet_receive_timeout = 1000;
 DWORD CFlyServerConfig::g_winet_send_timeout    = 1000;
 
-boost::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > CFlyServerAdapter::g_fly_server_cache;
+std::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > CFlyServerAdapter::g_fly_server_cache;
 ::CriticalSection CFlyServerAdapter::g_cs_fly_server;
 ::CriticalSection CFlyServerAdapter::g_cs_set_array_fly_server;
 CFlyServerKeyArray CFlyServerAdapter::g_SetFlyServerArray;
@@ -105,7 +105,7 @@ CFlyServerKeyArray CFlyServerAdapter::g_SetFlyServerArray;
 CFlyServerKeyArray CFlyServerAdapter::g_GetFlyServerArray;
 
 ::CriticalSection CFlyServerAdapter::g_cs_tth_media_map;
-boost::unordered_map<TTHValue, uint64_t> CFlyServerAdapter::g_tth_media_file_map;
+std::unordered_map<TTHValue, uint64_t> CFlyServerAdapter::g_tth_media_file_map;
 
 ::CriticalSection CFlyServerJSON::g_cs_error_report;
 ::CriticalSection CFlyServerJSON::g_cs_download_counter;
@@ -1601,7 +1601,7 @@ void CFlyServerAdapter::prepare_mediainfo_to_fly_serverL()
 {
 	// Обойдем кандидатов для предачи на сервер.
 	// Массив - есть у нас в базе, но нет на fly-server
-    boost::unordered_map<TTHValue, uint64_t> l_tth_map;
+    std::unordered_map<TTHValue, uint64_t> l_tth_map;
     {
         CFlyLock(g_cs_tth_media_map);
         l_tth_map.swap(g_tth_media_file_map);

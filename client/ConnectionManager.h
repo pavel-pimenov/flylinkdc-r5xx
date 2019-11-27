@@ -175,7 +175,7 @@ class ExpectedMap
 		
 	private:
 		/** Nick -> myNick, hubUrl for expected NMDC incoming connections */
-		typedef boost::unordered_map<string, NickHubPair> ExpectMap;
+		typedef std::unordered_map<string, NickHubPair> ExpectMap;
 		ExpectMap m_expectedConnections;
 		
 		FastCriticalSection cs;
@@ -284,7 +284,7 @@ class ConnectionManager :
 		static std::set<ConnectionQueueItemPtr> g_uploads;
 		
 		/** All active connections */
-		static boost::unordered_set<UserConnection*> g_userConnections;
+		static std::unordered_set<UserConnection*> g_userConnections;
 		
 		struct CFlyDDOSkey
 		{
@@ -319,8 +319,8 @@ class ConnectionManager :
 		{
 			public:
 				std::string m_type_block;
-				boost::unordered_set<uint16_t> m_ports;
-				boost::unordered_map<std::string, uint32_t> m_original_query_for_debug;
+                std::unordered_set<uint16_t> m_ports;
+				std::unordered_map<string, uint32_t> m_original_query_for_debug;
 				CFlyDDoSTick()
 				{
 				}
@@ -338,12 +338,12 @@ class ConnectionManager :
 				}
 		};
 		static std::map<CFlyDDOSkey, CFlyDDoSTick> g_ddos_map;
-		static boost::unordered_set<string> g_ddos_ctm2hub; // $Error CTM2HUB
+		static std::unordered_set<string> g_ddos_ctm2hub; // $Error CTM2HUB
 	public:
 		static void addCTM2HUB(const string& p_server_port, const HintedUser& p_hinted_user);
 	private:
-		static boost::unordered_map<string, CFlyTickTTH> g_duplicate_search_tth;
-		static boost::unordered_map<string, CFlyTickFile> g_duplicate_search_file;
+		static std::unordered_map<string, CFlyTickTTH> g_duplicate_search_tth;
+		static std::unordered_map<string, CFlyTickFile> g_duplicate_search_file;
 		
 #define USING_IDLERS_IN_CONNECTION_MANAGER
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER

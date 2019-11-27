@@ -34,7 +34,7 @@ bool ResourceManager::loadLanguage(const string& aFile)
 	
 	if (xRes.error == XMLParser::eXMLErrorNone)
 	{
-		boost::unordered_map<string, int> l_handler;
+		std::unordered_map<string, int> l_handler;
 		
 		for (int i = 0; i < LAST; ++i)
 		{

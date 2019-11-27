@@ -419,7 +419,7 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 					std::map<string, int> l_stat_map;
 					{
 						static CriticalSection g_debug_cs;
-						static boost::unordered_map<string, std::pair<int, std::map<string, int> > > g_count_dup_ip_port;
+						static std::unordered_map<string, std::pair<int, std::map<string, int> > > g_count_dup_ip_port;
 						if (!l_item.m_is_passive)
 						{
 							CFlyLock(g_debug_cs);

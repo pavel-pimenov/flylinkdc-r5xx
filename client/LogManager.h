@@ -25,10 +25,6 @@
 #include "Util.h"
 #include <unordered_map>
 
-//#define FMT_HEADER_ONLY
-//#include "../cppformat/format.h"
-//#include "dcformat.h"
-
 typedef std::unordered_map<string, string> CFlyMessagesBuffer;
 class LogMessage
 {

@@ -460,11 +460,11 @@ class CFlyServerAdapter
         static ::CriticalSection  g_cs_set_array_fly_server;
 
         static ::CriticalSection g_cs_tth_media_map;
-        static boost::unordered_map<TTHValue, uint64_t> g_tth_media_file_map;
+        static std::unordered_map<TTHValue, uint64_t> g_tth_media_file_map;
         static void clear_tth_media_map();
 
 
-		static boost::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > g_fly_server_cache;
+		static std::unordered_map<TTHValue, std::pair<CFlyServerInfo*, CFlyServerCache> > g_fly_server_cache;
 		static ::CriticalSection g_cs_fly_server;
 		void prepare_mediainfo_to_fly_serverL();
 		static void push_mediainfo_to_fly_server();

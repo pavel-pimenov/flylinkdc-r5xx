@@ -77,7 +77,7 @@ class File : public IOStream
 		// Generally the operating system should decide when the buffered data is written on disk
 		size_t flushBuffers(bool aForce = true) override;
 #ifdef _DEBUG
-		string File::getRealPath() const;
+		string getRealPath() const;
 #endif
 		
 		int64_t getLastWriteTime()const noexcept;

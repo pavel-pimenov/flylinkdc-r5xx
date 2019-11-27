@@ -91,7 +91,7 @@ class TigerHash;
 template<class Hasher> struct HashValue;
 typedef HashValue<TigerHash> TTHValue;
 
-namespace boost
+/*namespace boost
 {
 template<typename T>
 struct hash<HashValue<T>>
@@ -102,6 +102,7 @@ struct hash<HashValue<T>>
 	}
 };
 }
+*/
 namespace std
 {
 template<typename T>

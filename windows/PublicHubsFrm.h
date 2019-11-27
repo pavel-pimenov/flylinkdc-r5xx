@@ -146,23 +146,23 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		};
 		struct CFlyISPHubItem : public CFlyTreeItemBase
 		{
-			boost::unordered_map<string, CFlyTreeItemBase> m_hubs;
+			std::unordered_map<string, CFlyTreeItemBase> m_hubs;
 		};
 		struct CFlyISPNetworkItem : public CFlyTreeItemBase
 		{
-			boost::unordered_map<string, CFlyISPHubItem> m_network;
+			std::unordered_map<string, CFlyISPHubItem> m_network;
 		};
 		struct CFlyISPProviderItem : public CFlyTreeItemBase
 		{
-			boost::unordered_map<string, CFlyISPNetworkItem> m_isp;
+			std::unordered_map<string, CFlyISPNetworkItem> m_isp;
 		};
 		struct CFlyISPCityItem : public CFlyTreeItemBase
 		{
-			boost::unordered_map<string, CFlyISPProviderItem> m_city;
+			std::unordered_map<string, CFlyISPProviderItem> m_city;
 		};
 		struct CFlyISPCountryItem
 		{
-			boost::unordered_map<string, CFlyISPCityItem> m_country;
+			std::unordered_map<string, CFlyISPCityItem> m_country;
 		};
 		CFlyISPCountryItem m_country_map;
 		string m_isp_raw_data;
@@ -218,14 +218,14 @@ class PublicHubsFrame : public MDITabChildWindowImpl < PublicHubsFrame, RGB(0, 0
 		CComboBox ctrlFilterSel;
 		ExListViewCtrl m_ctrlHubs;
 		
-		typedef boost::unordered_map<string, HubEntryList> PubListMap;
+		typedef std::unordered_map<string, HubEntryList> PubListMap;
 		PubListMap m_publicListMatrix;
 		CContainedWindow        m_treeContainer;
 		CTreeViewCtrl           m_ctrlTree;
 		HTREEITEM               m_ISPRootItem;
 		HTREEITEM               m_PublicListRootItem;
 		
-		typedef boost::unordered_set<tstring> TStringSet;
+		typedef std::unordered_set<tstring> TStringSet;
 		
 		HTREEITEM LoadTreeItems(TStringSet& l_hubs, HTREEITEM hRoot);
 		CContainedWindow        m_listContainer;

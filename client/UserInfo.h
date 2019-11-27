@@ -169,7 +169,7 @@ class UserInfo : public UserInfoBase
 		static tstring formatSpeedLimit(const uint32_t limit);
 		tstring getLimit() const;
 		tstring getDownloadSpeed() const;
-		typedef boost::unordered_map<OnlineUserPtr, UserInfo*, OnlineUser::Hash> OnlineUserMapBase;
+		typedef std::unordered_map<OnlineUserPtr, UserInfo*, OnlineUser::Hash> OnlineUserMapBase;
 		class OnlineUserMap : public OnlineUserMapBase
 #ifdef _DEBUG
 			, boost::noncopyable

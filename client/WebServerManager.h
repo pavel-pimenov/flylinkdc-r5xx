@@ -76,7 +76,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 		
 		WebPageInfo *page404;
 		
-		typedef boost::unordered_map<string, WebPageInfo*> WebPages;
+		typedef std::unordered_map<string, WebPageInfo*> WebPages;
 		
 		WebPages pages;
 		
@@ -118,7 +118,7 @@ class WebServerManager : public Singleton<WebServerManager>, public ServerSocket
 			bool power;
 		};
 		
-		boost::unordered_map<string, user_login> LoggedIn;
+		std::unordered_map<string, user_login> LoggedIn;
 		
 		size_t row;
 		

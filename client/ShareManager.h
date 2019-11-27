@@ -42,8 +42,8 @@ class SearchResultBaseTTH;
 
 struct ShareLoader;
 typedef std::vector<SearchResultCore> SearchResultList;
-typedef boost::unordered_set<std::string> QueryNotExistsSet;
-typedef boost::unordered_map<std::string, SearchResultList> QueryCacheMap;
+typedef std::unordered_set<std::string> QueryNotExistsSet;
+typedef std::unordered_map<string, SearchResultList> QueryCacheMap;
 
 class ShareManager : public Singleton<ShareManager>, private Thread, private TimerManagerListener,
 	private HashManagerListener, private QueueManagerListener
@@ -253,7 +253,7 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 								return a.getName() == b.getName();
 							}
 						};
-						typedef boost::unordered_set<ShareFile, FileTraits, FileTraits> Set;
+						typedef std::unordered_set<ShareFile, FileTraits, FileTraits> Set;
 						
 						ShareFile(const string& aName, int64_t aSize, Directory::Ptr aParent, const TTHValue& aRoot, uint32_t aHit, uint32_t aTs,
 						          Search::TypeModes aftype) :
@@ -437,11 +437,11 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		static DirList g_list_directories;
 		
 		/** Map real name to virtual name - multiple real names may be mapped to a single virtual one */
-		typedef boost::unordered_map<string, CFlyBaseDirItem> ShareMap;
+		typedef std::unordered_map<string, CFlyBaseDirItem> ShareMap;
 		static ShareMap g_shares;
 		static ShareMap g_lost_shares;
 		
-		typedef boost::unordered_map<TTHValue, Directory::ShareFile::Set::const_iterator> HashFileMap;
+		typedef std::unordered_map<TTHValue, Directory::ShareFile::Set::const_iterator> HashFileMap;
 		
 		static HashFileMap g_tthIndex;
 		static std::unordered_map<string, unsigned> g_BotDetectMap;

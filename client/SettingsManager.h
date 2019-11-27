@@ -53,7 +53,7 @@ class SettingsManager : public Singleton<SettingsManager>, public Speaker<Settin
 {
 	public:
 	
-		typedef boost::unordered_map<string, StringList> SearchTypes;
+		typedef std::unordered_map<string, StringList> SearchTypes;
 		typedef SearchTypes::iterator SearchTypesIter;
 		
 		static StringList g_connectionSpeeds;

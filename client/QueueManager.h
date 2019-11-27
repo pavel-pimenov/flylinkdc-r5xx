@@ -185,7 +185,7 @@ class QueueManager : public Singleton<QueueManager>,
 		                  
 		int matchListing(const DirectoryListing& dl) noexcept;
 	private:
-		typedef boost::unordered_map<TTHValue, const DirectoryListing::File*> TTHMap;
+		typedef std::unordered_map<TTHValue, const DirectoryListing::File*> TTHMap;
 		static void buildMap(const DirectoryListing::Directory* dir, TTHMap& tthMap) noexcept;
 		void fire_remove_internal(const QueueItemPtr& p_qi, bool p_is_remove_item, bool p_is_force_remove_item, bool p_is_batch_remove);
 	public:
@@ -376,7 +376,7 @@ class QueueManager : public Singleton<QueueManager>,
 				static bool is_queue_tth(const TTHValue& p_tth);
 			private:
 				static QueueItem::QIStringMap g_queue;
-				static boost::unordered_map<TTHValue, int> g_queue_tth_map;
+				static std::unordered_map<TTHValue, int> g_queue_tth_map;
 				static void remove_internal(const QueueItemPtr& qi);
 				static std::vector<int64_t> g_remove_id_array;
 				
@@ -404,8 +404,8 @@ class QueueManager : public Singleton<QueueManager>,
 				void removeUserL(const QueueItemPtr& qi, const UserPtr& aUser);
 				void setQIPriority(const QueueItemPtr& qi, QueueItem::Priority p);
 				
-				typedef boost::unordered_map<UserPtr, QueueItemList, User::Hash> UserQueueMap; // TODO - set ?
-				typedef boost::unordered_map<UserPtr, QueueItemPtr, User::Hash> RunningMap;
+				typedef std::unordered_map<UserPtr, QueueItemList, User::Hash> UserQueueMap; // TODO - set ?
+				typedef std::unordered_map<UserPtr, QueueItemPtr, User::Hash> RunningMap;
 #ifdef IRAINMAN_NON_COPYABLE_USER_QUEUE_ON_USER_CONNECTED_OR_DISCONECTED
 				const UserQueueMap& getListL(size_t i) const
 				{
@@ -447,7 +447,7 @@ class QueueManager : public Singleton<QueueManager>,
 		/** QueueItems by user */
 		static UserQueue g_userQueue;
 		/** Directories queued for downloading */
-		boost::unordered_multimap<UserPtr, DirectoryItemPtr, User::Hash> m_directories;
+		std::unordered_multimap<UserPtr, DirectoryItemPtr, User::Hash> m_directories;
 		/** Recent searches list, to avoid searching for the same thing too often */
 		deque<string> m_recent;
 		/** The queue needs to be saved */
@@ -483,7 +483,7 @@ class QueueManager : public Singleton<QueueManager>,
 		
 		int m_curOnDownloadSettings;
 	private:
-		boost::unordered_set<string> m_fire_src_array;
+		std::unordered_set<string> m_fire_src_array;
 		CriticalSection m_cs_fire_src;
 		void fire_status_updated(const QueueItemPtr& qi);
 		void fire_sources_updated(const QueueItemPtr& qi);

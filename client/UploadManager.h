@@ -28,7 +28,7 @@
 #include "UserConnection.h"
 
 typedef pair<UserPtr, unsigned int> CurrentConnectionPair;
-typedef boost::unordered_map<UserPtr, unsigned int, User::Hash> CurrentConnectionMap;
+typedef std::unordered_map<UserPtr, unsigned int, User::Hash> CurrentConnectionMap;
 typedef std::vector<UploadPtr> UploadList;
 
 class UploadQueueItem :
@@ -109,7 +109,7 @@ class WaitingUser
 class UploadManager : private ClientManagerListener, private UserConnectionListener, public Speaker<UploadManagerListener>, private TimerManagerListener, public Singleton<UploadManager>
 {
 #ifdef FLYLINKDC_USE_DOS_GUARD
-		typedef boost::unordered_map<string, uint8_t> CFlyDoSCandidatMap;
+		typedef std::unordered_map<string, uint8_t> CFlyDoSCandidatMap;
 		CFlyDoSCandidatMap m_dos_map;
 		mutable FastCriticalSection csDos;
 #endif
@@ -226,7 +226,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 		
 		int m_lastFreeSlots; // amount of free slots at the previous minute
 		
-		typedef boost::unordered_map<UserPtr, uint64_t, User::Hash> SlotMap;
+		typedef std::unordered_map<UserPtr, uint64_t, User::Hash> SlotMap;
 		
 		static SlotMap g_reservedSlots;
 		static bool g_is_reservedSlotEmpty;
@@ -284,7 +284,7 @@ class UploadManager : private ClientManagerListener, private UserConnectionListe
 				        (min_share ^ a.min_share) | (min_limit ^ a.min_limit)) == 0;
 			}
 		};
-		typedef boost::unordered_map<string, banmsg_t> BanMap;
+		typedef std::unordered_map<string, banmsg_t> BanMap;
 		bool handleBan(UserConnection* aSource/*, bool forceBan, bool noChecks*/);
 		static bool hasAutoBan(const UserPtr& aUser);
 		static BanMap g_lastBans;

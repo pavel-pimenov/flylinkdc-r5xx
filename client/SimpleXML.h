@@ -22,6 +22,8 @@
 #ifndef DCPLUSPLUS_DCPP_SIMPLE_XML_H
 #define DCPLUSPLUS_DCPP_SIMPLE_XML_H
 
+#include <functional>
+
 #include "File.h"
 #include "SimpleXMLReader.h"
 #include "StringTokenizer.h"

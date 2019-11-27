@@ -296,7 +296,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		~HubFrame();
 		
 		virtual void doDestroyFrame();
-		typedef boost::unordered_map<string, HubFrame*> FrameMap;
+		typedef std::unordered_map<string, HubFrame*> FrameMap;
 		static CriticalSection g_frames_cs;
 		static FrameMap g_frames;
 		void erase_frame(const string& p_redirect);
@@ -595,7 +595,7 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		
 		OMenu* m_tabMenu;
 		bool   m_isTabMenuShown;
-		boost::unordered_map<string, unsigned> m_count_redirect_map;
+		std::unordered_map<string, unsigned> m_count_redirect_map;
 		
 #ifdef SCALOLAZ_HUB_MODE
 		CStatic* m_ctrlShowMode;

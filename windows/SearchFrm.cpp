@@ -26,7 +26,7 @@
 #include "MainFrm.h"
 #include "BarShader.h"
 
-#include "../client/QueueManager.h"
+//#include "../client/QueueManager.h"
 #include "../client/SearchQueue.h"
 #include "../client/ClientManager.h"
 #include "../client/DownloadManager.h"
@@ -52,8 +52,8 @@ HIconWrapper SearchFrame::g_UDPOkIcon(IDR_ICON_SUCCESS_ICON);
 HIconWrapper SearchFrame::g_UDPWaitIcon(IDR_ICON_WARN_ICON);
 tstring SearchFrame::g_UDPTestText;
 boost::logic::tribool SearchFrame::g_isUDPTestOK = boost::logic::indeterminate;
-boost::unordered_map<TTHValue, uint8_t> SearchFrame::g_virus_level_tth_map;
-boost::unordered_set<string> SearchFrame::g_virus_file_set;
+std::unordered_map<TTHValue, uint8_t> SearchFrame::g_virus_level_tth_map;
+std::unordered_set<string> SearchFrame::g_virus_file_set;
 FastCriticalSection SearchFrame::g_cs_virus_level;
 extern bool g_DisableTestPort;
 
@@ -3006,7 +3006,7 @@ LRESULT SearchFrame::onSelChangedTree(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 		updateSearchList(nullptr);
 	}
 #ifdef _DEBUG
-	boost::unordered_set<SearchInfo*> l_dup_filter;
+	std::unordered_set<SearchInfo*> l_dup_filter;
 #endif
 	const auto& l_virus = m_filter_map[m_RootVirusTreeItem];
 	

@@ -545,7 +545,7 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		
 		CTreeViewCtrl ctrlTree;
 		MediainfoTypedListViewCtrl<ItemInfo, IDC_FILES> ctrlList;
-		boost::unordered_map<DirectoryListing::Directory*, string> m_selected_file_history;
+		std::unordered_map<DirectoryListing::Directory*, string> m_selected_file_history;
 		DirectoryListing::Directory* m_prev_directory;
 		CStatusBarCtrl ctrlStatus;
 		HTREEITEM treeRoot;
@@ -581,7 +581,7 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		Изменять заголовок окна.
 #endif // USE_OFFLINE_ICON_FOR_FILELIST
 		
-		typedef boost::unordered_map<UserPtr, DirectoryListingFrame*, User::Hash> UserMap;
+		typedef std::unordered_map<UserPtr, DirectoryListingFrame*, User::Hash> UserMap;
 		typedef pair<UserPtr, DirectoryListingFrame*> UserPair;
 		
 		static UserMap g_usersMap;
@@ -599,7 +599,7 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		void mergeFlyServerInfo();
 		bool scan_list_view_from_merge();
-		typedef boost::unordered_map<TTHValue, ItemInfo*> CFlyMergeItem;
+		typedef std::unordered_map<TTHValue, ItemInfo*> CFlyMergeItem;
 		CFlyMergeItem m_merge_item_map; // TODO - организовать кэш для медиаинфы, чтобы лишний раз не ходить на флай-сервер c get-запросами
 		void update_column_after_merge(std::vector<int> p_update_index);
 #endif

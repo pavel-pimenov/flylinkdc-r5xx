@@ -23,7 +23,6 @@
 #ifndef DCPLUSPLUS_DCPP_SPEAKER_H
 #define DCPLUSPLUS_DCPP_SPEAKER_H
 
-#include <boost/range/algorithm/find.hpp>
 #include <utility>
 #include <vector>
 #include "CFlyThread.h"
@@ -312,7 +311,8 @@ after_fire_process();
 			extern volatile bool g_isBeforeShutdown;
 			dcassert(!g_isBeforeShutdown);
 			CFlyLock(m_listenerCS);
-			if (boost::range::find(m_listeners, aListener) == m_listeners.end())
+            
+			if (std::find(m_listeners.begin(), m_listeners.end(), aListener) == m_listeners.end())
 			{
 				m_listeners.push_back(aListener);
 				m_listeners.shrink_to_fit();
@@ -333,7 +333,7 @@ after_fire_process();
 			CFlyLock(m_listenerCS);
 			if (!m_listeners.empty())
 			{
-				auto it = boost::range::find(m_listeners, aListener);
+                auto it = std::find(m_listeners.begin(), m_listeners.end(), aListener);
 				if (it != m_listeners.end())
 				{
 					m_listeners.erase(it);

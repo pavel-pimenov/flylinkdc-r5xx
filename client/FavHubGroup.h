@@ -31,7 +31,7 @@ struct FavHubGroupProperties
 	bool priv;
 };
 
-typedef boost::unordered_map<string, FavHubGroupProperties> FavHubGroups;
+typedef std::unordered_map<string, FavHubGroupProperties> FavHubGroups;
 typedef FavHubGroups::value_type FavHubGroup;
 
 #endif

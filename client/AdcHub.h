@@ -76,7 +76,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		~AdcHub();
 		
 		/** Map session id to OnlineUser */
-		typedef boost::unordered_map<uint32_t, OnlineUserPtr> SIDMap;
+		typedef std::unordered_map<uint32_t, OnlineUserPtr> SIDMap;
 		
 		void getUserList(OnlineUserList& p_list) const;
 		bool resendMyINFO(bool p_always_send, bool p_is_force_passive);
@@ -91,7 +91,7 @@ class AdcHub : public Client, public CommandHandler<AdcHub>
 		string m_salt;
 		uint32_t m_sid;
 		
-		boost::unordered_set<uint32_t> forbiddenCommands;
+		std::unordered_set<uint32_t> forbiddenCommands;
 		
 		static const vector<StringList> m_searchExts;
 		

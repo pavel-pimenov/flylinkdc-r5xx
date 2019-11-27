@@ -25,7 +25,7 @@
 #include "../FlyFeatures/flyServer.h"
 
 #ifdef FLYLINKDC_USE_DIRLIST_FILE_EXT_STAT
-boost::unordered_map<string, DirectoryListing::CFlyStatExt> DirectoryListing::g_ext_stat;
+std::unordered_map<string, DirectoryListing::CFlyStatExt> DirectoryListing::g_ext_stat;
 #endif
 DirectoryListing::DirectoryListing(const HintedUser& aUser) :
 	hintedUser(aUser), abort(false), root(new Directory(this, nullptr, Util::emptyString, false, false, true)),

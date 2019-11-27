@@ -78,7 +78,7 @@ class GeneralPage : public CPropertyPage<IDD_GENERAL_PAGE>, public PropPage
 		CComboBox ctrlLanguage;
 		CFlyHyperLink m_LangTranslate;
 		
-		typedef boost::unordered_map<wstring, string> LanguageMap;
+		typedef std::unordered_map<wstring, string> LanguageMap;
 		void fixControls();
 		LanguageMap m_languagesList;
 		

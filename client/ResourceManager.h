@@ -23,7 +23,6 @@
 #define DCPLUSPLUS_CLIENT_RESOURCE_MANAGER_H
 
 #include "debug.h"
-#include "dcformat.h"
 
 #define STRING(x) ResourceManager::getString(ResourceManager::x) //-V:STRING:807 
 #define CSTRING(x) ResourceManager::getString(ResourceManager::x).c_str() //-V:CSTRING:807 

@@ -121,7 +121,7 @@ class CAGEmotionSetup
 		CImageList       m_EmotionImages;
 		CAGEmotion::Array m_EmotionsArray;
 	private:
-		boost::unordered_set<string> m_FilterEmotion;
+		std::unordered_set<string> m_FilterEmotion;
 		void cleanup();
 };
 

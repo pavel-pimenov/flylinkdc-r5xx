@@ -24,6 +24,7 @@
 #include "SearchManager.h"
 #include "DownloadManager.h"
 #include "../FlyFeatures/flyServer.h"
+#include "dcformat.h"
 
 string ConnectivityManager::g_status;
 bool ConnectivityManager::g_is_running = false;

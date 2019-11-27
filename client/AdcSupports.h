@@ -52,7 +52,7 @@ class AdcSupports
 		
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 		static FastCriticalSection g_debugCsUnknownAdcFeatures;
-		static boost::unordered_map<string, string> g_debugUnknownAdcFeatures;
+		static std::unordered_map<string, string> g_debugUnknownAdcFeatures;
 #endif
 };
 
@@ -76,11 +76,11 @@ class NmdcSupports
 		static void setSupports(Identity& id, const StringList & su);
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 		static FastCriticalSection g_debugCsUnknownNmdcConnection;
-		static boost::unordered_set<string> g_debugUnknownNmdcConnection;
+		static std::unordered_set<string> g_debugUnknownNmdcConnection;
 #endif // FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_TAG
 		static FastCriticalSection g_debugCsUnknownNmdcTagParam;
-		static boost::unordered_map<string, unsigned> g_debugUnknownNmdcTagParam;
+		static std::unordered_map<string, unsigned> g_debugUnknownNmdcTagParam;
 #endif // FLYLINKDC_COLLECT_UNKNOWN_TAG
 };
 

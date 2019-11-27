@@ -22,14 +22,13 @@
 #include "File.h"
 #include "ClientManager.h"
 #include "SettingsManager.h"
-
 #include "LogManager.h"
 #include "SSLSocket.h"
+#include "dcformat.h"
 
 #include <openssl/bn.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
-
 
 namespace dcpp {
 

@@ -38,7 +38,7 @@ std::unique_ptr<webrtc::RWLockWrapper> QueueManager::FileQueue::g_csFQ = std::un
 std::unique_ptr<CriticalSection> QueueManager::FileQueue::g_csFQ = std::unique_ptr<CriticalSection>(new CriticalSection);
 #endif
 QueueItem::QIStringMap QueueManager::FileQueue::g_queue;
-boost::unordered_map<TTHValue, int> QueueManager::FileQueue::g_queue_tth_map;
+std::unordered_map<TTHValue, int> QueueManager::FileQueue::g_queue_tth_map;
 
 QueueManager::FileQueue QueueManager::g_fileQueue;
 QueueManager::UserQueue QueueManager::g_userQueue;

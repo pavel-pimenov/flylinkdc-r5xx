@@ -1232,7 +1232,7 @@ struct FileImage : public BaseImageList
 		}
 		void init();
 	private:
-		typedef boost::unordered_map<string, int> ImageMap;
+		typedef std::unordered_map<string, int> ImageMap;
 		ImageMap m_indexis;
 		int m_imageCount;
 };

@@ -280,7 +280,7 @@ unsigned int WINAPI MainFrame::stopper(void* p)
 	MainFrame* mf = (MainFrame*)p;
 	HWND wnd = nullptr;
 	HWND wnd2 = nullptr;
-	boost::unordered_map<HWND, int> l_wm_close_message;
+	std::unordered_map<HWND, int> l_wm_close_message;
 	while (mf->m_hWndMDIClient && (wnd =::GetWindow(mf->m_hWndMDIClient, GW_CHILD)) != NULL)
 	{
 		auto& l_result = l_wm_close_message[wnd];
@@ -893,8 +893,13 @@ int MainFrame::tuneTransferSplit()
 	return m_nProportionalPos;
 }
 
-LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& p_bHandled)
+LRESULT MainFrame::onTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& p_bHandled)
 {
+    if (!checkTimerID(wParam))
+    {
+            p_bHandled = FALSE;
+            return 0;
+    }
 	if (m_closing)
 	{
 		return 0;
@@ -2668,6 +2673,7 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 	}
 	else
 	{
+        safe_destroy_timer();
 		if (!m_closing)
 		{
 #ifdef _DEBUG
@@ -3561,6 +3567,7 @@ void MainFrame::on(WebServerListener::ShutdownPC, int action) noexcept
 }
 LRESULT MainFrame::onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
+    safe_destroy_timer();
 	if (m_bTrayIcon)
 	{
 		updateTray(false);

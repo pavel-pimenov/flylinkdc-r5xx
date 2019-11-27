@@ -63,7 +63,7 @@ class QueueItem : public Flags
 #endif
 {
 	public:
-		typedef boost::unordered_map<std::string, QueueItemPtr> QIStringMap;
+		typedef std::unordered_map<string, QueueItemPtr> QIStringMap;
 		
 		enum Priority
 		{
@@ -172,7 +172,7 @@ class QueueItem : public Flags
 				GETSET(PartialSource::Ptr, partialSource, PartialSource);
 		};
 		
-		typedef boost::unordered_map<UserPtr, Source, User::Hash> SourceMap;
+		typedef std::unordered_map<UserPtr, Source, User::Hash> SourceMap;
 		typedef SourceMap::iterator SourceIter;
 		typedef SourceMap::const_iterator SourceConstIter;
 		typedef std::multimap<time_t, std::pair<SourceConstIter, const QueueItemPtr> > SourceListBuffer;

@@ -33,7 +33,7 @@ int64_t g_SQLiteDBSize = 0;
 int32_t CFlylinkDBManager::g_count_queue_source = 0;
 int32_t CFlylinkDBManager::g_count_queue_files = 0;
 
-boost::unordered_map<TTHValue, TigerTree> CFlylinkDBManager::g_tiger_tree_cache;
+std::unordered_map<TTHValue, TigerTree> CFlylinkDBManager::g_tiger_tree_cache;
 FastCriticalSection CFlylinkDBManager::g_tth_cache_cs;
 unsigned CFlylinkDBManager::g_tth_cache_limit = 500;
 
@@ -1866,7 +1866,7 @@ int CFlylinkDBManager::calc_antivirus_flag(const string& p_nick, const boost::as
 			}
 			sqlite3_reader l_q = l_sql->executereader();
 			p_virus_path.clear();
-			boost::unordered_set<string> l_dup_filter;
+			std::unordered_set<string> l_dup_filter;
 			while (l_q.read())
 			{
 				if (p_ip4 == boost::asio::ip::address_v4((unsigned long)l_q.getint64(0)))
@@ -2659,7 +2659,7 @@ int32_t CFlylinkDBManager::load_queue()
 #endif
 		try
 		{
-			boost::unordered_map<int, std::vector< CFlySourcesItem > > l_sources_map;
+			std::unordered_map<int, std::vector< CFlySourcesItem > > l_sources_map;
 			{
 				CFlyLog l_src_log("[Load queue source]");
 #ifdef FLYLINKDC_USE_DEBUG_10_RECORD

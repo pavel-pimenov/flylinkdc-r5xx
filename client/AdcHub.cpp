@@ -30,15 +30,15 @@
 
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 FastCriticalSection AdcSupports::g_debugCsUnknownAdcFeatures;
-boost::unordered_map<string, string> AdcSupports::g_debugUnknownAdcFeatures;
+std::unordered_map<string, string> AdcSupports::g_debugUnknownAdcFeatures;
 
 FastCriticalSection NmdcSupports::g_debugCsUnknownNmdcConnection;
-boost::unordered_set<string> NmdcSupports::g_debugUnknownNmdcConnection;
+std::unordered_set<string> NmdcSupports::g_debugUnknownNmdcConnection;
 
 #endif // FLYLINKDC_COLLECT_UNKNOWN_FEATURES
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_TAG
 FastCriticalSection NmdcSupports::g_debugCsUnknownNmdcTagParam;
-boost::unordered_map<string, unsigned> NmdcSupports::g_debugUnknownNmdcTagParam;
+std::unordered_map<string, unsigned> NmdcSupports::g_debugUnknownNmdcTagParam;
 #endif // FLYLINKDC_COLLECT_UNKNOWN_TAG
 
 

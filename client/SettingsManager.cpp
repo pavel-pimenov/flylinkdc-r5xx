@@ -438,7 +438,7 @@ static const string g_default_lang_file_name = "ru-RU.xml";
 SettingsManager::SettingsManager()
 {
 
-	BOOST_STATIC_ASSERT(_countof(g_settingTags) == SETTINGS_LAST + 1);// SettingsManager::SETTINGS_LAST and SettingsManager::settingTags[] size do not match ;) Check them out!
+    static_assert(_countof(g_settingTags) == SETTINGS_LAST + 1,"error g_settingTags");// SettingsManager::SETTINGS_LAST and SettingsManager::settingTags[] size do not match ;) Check them out!
 	// Thanks Boost developers for this wonderful functional
 	
 	for (size_t i = 0; i < SETTINGS_LAST; i++) //-V104

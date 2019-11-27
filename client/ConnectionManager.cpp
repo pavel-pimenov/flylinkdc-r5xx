@@ -39,10 +39,10 @@ std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csDdosCTM2HUBCheck =
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csTTHFilter = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 std::unique_ptr<webrtc::RWLockWrapper> ConnectionManager::g_csFileFilter = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
 
-boost::unordered_set<UserConnection*> ConnectionManager::g_userConnections;
-boost::unordered_map<string, ConnectionManager::CFlyTickTTH> ConnectionManager::g_duplicate_search_tth;
-boost::unordered_map<string, ConnectionManager::CFlyTickFile> ConnectionManager::g_duplicate_search_file;
-boost::unordered_set<string> ConnectionManager::g_ddos_ctm2hub;
+std::unordered_set<UserConnection*> ConnectionManager::g_userConnections;
+std::unordered_map<string, ConnectionManager::CFlyTickTTH> ConnectionManager::g_duplicate_search_tth;
+std::unordered_map<string, ConnectionManager::CFlyTickFile> ConnectionManager::g_duplicate_search_file;
+std::unordered_set<string> ConnectionManager::g_ddos_ctm2hub;
 std::map<ConnectionManager::CFlyDDOSkey, ConnectionManager::CFlyDDoSTick> ConnectionManager::g_ddos_map;
 std::set<ConnectionQueueItemPtr> ConnectionManager::g_downloads; // TODO - сделать поиск по User?
 std::set<ConnectionQueueItemPtr> ConnectionManager::g_uploads; // TODO - сделать поиск по User?

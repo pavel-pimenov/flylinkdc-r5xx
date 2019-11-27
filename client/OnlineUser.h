@@ -838,13 +838,13 @@ class Identity
 		}
 		bool setExtJSON(const string& p_ExtJSON);
 		
-		typedef boost::unordered_map<short, string> InfMap;
+		typedef std::unordered_map<short, string> InfMap;
 		
 		mutable FastCriticalSection m_si_fcs;
 		InfMap m_stringInfo;
 		
 		typedef vector<string> StringDictionaryReductionPointers;
-		typedef boost::unordered_map<string, uint16_t> StringDictionaryIndex;
+		typedef std::unordered_map<string, uint16_t> StringDictionaryIndex;
 		
 		static StringDictionaryReductionPointers g_infoDic;
 		static StringDictionaryIndex g_infoDicIndex;

@@ -118,7 +118,7 @@ class DirectoryListing : public UserInfoBase
 				};
 				typedef vector<Ptr> List;
 				
-				typedef boost::unordered_set<TTHValue> TTHSet;
+				typedef std::unordered_set<TTHValue> TTHSet;
 				
 				List directories;
 				
@@ -191,7 +191,7 @@ class DirectoryListing : public UserInfoBase
 			{
 			}
 		};
-		static boost::unordered_map<string, CFlyStatExt> g_ext_stat;
+		static std::unordered_map<string, CFlyStatExt> g_ext_stat;
 #endif
 		
 		void download(const string& aDir, const string& aTarget, bool highPrio, QueueItem::Priority prio = QueueItem::DEFAULT);

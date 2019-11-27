@@ -92,7 +92,7 @@ class Sounds : public CPropertyPage<IDD_SOUNDS_PAGE>, public PropPage
 		
 		static snds g_sounds[];
 		
-		typedef boost::unordered_map<wstring, string> SNDThemeMap;
+		typedef std::unordered_map<wstring, string> SNDThemeMap;
 		typedef pair<wstring, string> SNDThemePair;
 		CComboBox ctrlSNDTheme;
 		SNDThemeMap m_SNDThemeList;

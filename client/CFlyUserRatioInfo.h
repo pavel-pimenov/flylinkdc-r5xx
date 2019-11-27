@@ -110,7 +110,7 @@ template <class T> class CFlyDirtyValue
 		}
 };
 typedef CFlyUploadDownloadPair<double> CFlyGlobalRatioItem;
-typedef boost::unordered_map<unsigned long, CFlyUploadDownloadPair<uint64_t> > CFlyUploadDownloadMap; // TODO кей boost::asio::ip::address_v4
+typedef std::unordered_map<unsigned long, CFlyUploadDownloadPair<uint64_t> > CFlyUploadDownloadMap; // TODO кей boost::asio::ip::address_v4
 class CFlyRatioItem : public CFlyUploadDownloadPair<uint64_t>
 {
 	public:
