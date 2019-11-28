@@ -25,7 +25,6 @@
 #include "ShareManager.h"
 #include "idna/idna.h"
 #include "MD5Calc.h"
-#include <boost/algorithm/string.hpp>
 
 const string g_tth = "TTH:";
 const time_t Util::g_startTime = time(NULL);
@@ -67,7 +66,7 @@ const string getFlylinkDCAppCaption()
 				Text::replace_all(l_caption, "\n", "");
 				Text::replace_all(l_caption, "\t", "");
 				Text::replace_all(l_caption, " ", "");
-				boost::trim(l_caption);
+				Text::trim(l_caption);
 				Text::acpToWide(l_caption, g_captionT, Text::g_code1251);
 				g_caption = Text::fromT(g_captionT);
 			}
@@ -655,7 +654,7 @@ void Util::loadCustomlocations()
 				if (l_space != string::npos)
 				{
 					string l_fullNetStr = p_line.substr(l_space + 1); //TODO Crash
-					boost::trim(l_fullNetStr);
+					Text::trim(l_fullNetStr);
 					const auto l_comma = l_fullNetStr.find(',');
 					if (l_comma != string::npos)
 					{
@@ -2280,7 +2279,7 @@ string Util::toNmdcFile(const string& file)
 string Util::getIETFLang()
 {
 	string l_lang = SETTING(LANGUAGE_FILE);
-	boost::replace_last(l_lang, ".xml", "");
+	Text::replace_all(l_lang, ".xml", "");
 	return l_lang;
 }
 	
@@ -2679,7 +2678,7 @@ bool CFlyHTTPDownloader::switchMirrorURL(string& p_url, int p_mirror)
 		{
 			string l_url = p_url;
 			const char* l_base_url = ".fly-server.ru/";
-			boost::replace_all(l_url, l_base_url, Util::toString(p_mirror) + l_base_url);
+			Text::replace_all(l_url, l_base_url, Util::toString(p_mirror) + l_base_url);
 			LogManager::message("Use mirror: " + l_url);
 			p_url = l_url;
 			return true;
@@ -2711,7 +2710,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInetSafe(const string& p_url, std:
 	for (int i = 2; i < 5; ++i)
 	{
 #ifdef _DEBUG
-		// boost::replace_all(l_url, "etc2.", "etc.");
+		// Text::replace_all(l_url, "etc2.", "etc.");
 #endif
 		l_length = getBinaryDataFromInet(l_url, p_data_out, p_time_out, p_reporter);
 		if (l_length > 0)
@@ -2733,8 +2732,8 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInetSafe(const string& p_url, std:
 				g_last_stable_mirror = 0; // При ошибке на зеркале скидываемся обратно на главный хост
 				i = 2;
 				const char* l_base_url = ".fly-server.ru/";
-				boost::replace_all(l_url, "2.fly-server.ru/", l_base_url);
-				boost::replace_all(l_url, "3.fly-server.ru/", l_base_url);
+				Text::replace_all(l_url, "2.fly-server.ru/", l_base_url);
+				Text::replace_all(l_url, "3.fly-server.ru/", l_base_url);
 				continue;
 			}
 			if (switchMirrorURL(l_url, i))
@@ -3318,7 +3317,7 @@ StringList Util::splitSettingAndLower(const string& patternList)
 	
 StringList Util::splitSettingAndReplaceSpace(string patternList)
 {
-	boost::replace_all(patternList, " ", "");
+	Text::replace_all(patternList, " ", "");
 	return splitSettingAndLower(patternList);
 }
 	

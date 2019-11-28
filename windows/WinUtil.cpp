@@ -4002,7 +4002,7 @@ bool Colors::getColorFromString(const tstring& colorText, COLORREF& color)
 	int b = 0;
 	tstring colorTextLower = Text::toLower(colorText);
 #ifdef USE_CRUTH_FOR_GET_HTML_COLOR
-	boost::trim(colorTextLower); // Crutch.
+	Text::trim(colorTextLower); // Crutch.
 #endif
 	if (colorTextLower.empty())
 	{

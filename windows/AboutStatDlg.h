@@ -48,7 +48,7 @@ class AboutStatDlg : public CDialogImpl<AboutStatDlg>
 			//ctrlUDPStat.SetFont(Fonts::g_halfFont);
 			ctrlUDPStat.AppendText(Text::toT(NmdcHub::get_all_unknown_command()).c_str());
 			auto l_stat = CompatibilityManager::generateProgramStats();
-			boost::replace_all(l_stat, "\t", "");
+            Text::replace_all(l_stat, "\t", "");
 			l_stat += "\r\n" + ConnectionManager::g_tokens_manager.toString();
 			ctrlUDPStat.AppendText(Text::toT(l_stat).c_str());
 			ctrlUDPStat.Detach();
