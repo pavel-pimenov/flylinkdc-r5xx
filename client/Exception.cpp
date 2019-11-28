@@ -19,15 +19,13 @@
 #include "stdinc.h"
 #include "Exception.h"
 
-#ifdef _DEBUG
-#include "LogManager.h"
-#endif
+
 Exception::Exception(const string& aError) : m_error(aError)
 {
 	dcdebug("Thrown: %s\n", m_error.c_str());
 #ifdef _DEBUG
 	std::ofstream l_fs;
-	l_fs.open(_T("flylinkdc-Exception-error.log"), std::ifstream::out | std::ifstream::app);
+	l_fs.open(L"flylinkdc-Exception-error.log", std::ifstream::out | std::ifstream::app);
 	if (l_fs.good())
 	{
 		l_fs << " m_error = " << m_error << std::endl;

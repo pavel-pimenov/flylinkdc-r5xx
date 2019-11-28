@@ -17,8 +17,6 @@
  */
 
 #include "stdinc.h"
-//#include "QueueItem.h"
-#include "LogManager.h"
 #include "HashManager.h"
 #include "ClientManager.h"
 #include "UserConnection.h"

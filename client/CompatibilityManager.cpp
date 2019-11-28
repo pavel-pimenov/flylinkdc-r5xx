@@ -24,9 +24,8 @@
 
 #define FLYLINKDC_USE_DISK_SPACE_INFO
 
-#include <WinError.h>
-#include <winnt.h>
 #include <ImageHlp.h>
+
 #ifdef FLYLINKDC_SUPPORT_WIN_VISTA
 #define PSAPI_VERSION 1
 #endif
@@ -41,6 +40,7 @@
 #include "CompatibilityManager.h"
 #include "ShareManager.h"
 #include "../FlyFeatures/flyServer.h"
+
 #include <iphlpapi.h>
 #include <direct.h>
 

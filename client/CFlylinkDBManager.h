@@ -12,7 +12,7 @@
 #include "Singleton.h"
 #include "sqlite/sqlite3x.hpp"
 #include "CFlyMediaInfo.h"
-#include "LogManager.h"
+//#include "LogManager.h"
 #include "FinishedManagerListener.h"
 
 #define FLYLINKDC_USE_LEVELDB

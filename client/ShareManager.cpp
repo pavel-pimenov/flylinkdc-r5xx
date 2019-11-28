@@ -21,7 +21,6 @@
 #include <list>
 
 #include "ShareManager.h"
-#include "LogManager.h"
 #include "QueueManager.h"
 #include "AdcHub.h"
 #include "FilteredFile.h"

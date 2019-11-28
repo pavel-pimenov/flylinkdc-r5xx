@@ -20,7 +20,6 @@
 
 #include <openssl/err.h>
 
-#include "LogManager.h"
 #include "ResourceManager.h"
 #include "SSLSocket.h"
 

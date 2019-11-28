@@ -20,7 +20,6 @@
 #include "Socket.h"
 #include "TimerManager.h"
 #include "IpGuard.h"
-#include "LogManager.h"
 #include "ResourceManager.h"
 #include "CompatibilityManager.h"
 #include <iphlpapi.h>

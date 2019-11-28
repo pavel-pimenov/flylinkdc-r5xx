@@ -19,7 +19,6 @@
 #include "stdinc.h"
 #include "File.h"
 #ifndef _CONSOLE
-#include "LogManager.h"
 #include "FilteredFile.h"
 #include "BZUtils.h"
 #include "../FlyFeatures/flyServer.h"

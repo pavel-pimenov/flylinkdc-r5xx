@@ -20,7 +20,6 @@
 
 #include "IpGrant.h"
 #include "File.h"
-#include "LogManager.h"
 #include "SettingsManager.h"
 #include "../windows/resource.h"
 

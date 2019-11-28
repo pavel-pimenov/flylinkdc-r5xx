@@ -6,7 +6,6 @@
 
 #include "ShareManager.h"
 #include "QueueManager.h"
-#include "ConnectionManager.h"
 #include "CompatibilityManager.h"
 #include "../FlyFeatures/flyServer.h"
 #include "FinishedManager.h"

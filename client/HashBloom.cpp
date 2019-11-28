@@ -17,10 +17,9 @@
  */
 
 #include "stdinc.h"
-#include "HashBloom.h"
-
 #include <cmath>
 
+#include "HashBloom.h"
 #include "MerkleTree.h"
 
 size_t HashBloom::get_k(size_t n, size_t h)

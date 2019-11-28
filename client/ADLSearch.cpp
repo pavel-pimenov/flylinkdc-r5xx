@@ -22,7 +22,6 @@
  */
 
 #include "stdinc.h"
-
 #include <regex>
 
 #include "ADLSearch.h"

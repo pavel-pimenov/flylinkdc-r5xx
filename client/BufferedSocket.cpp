@@ -21,7 +21,6 @@
 #include "ThrottleManager.h"
 #include "IpGuard.h"
 #include "ShareManager.h"
-#include "DebugManager.h"
 #include "SSLSocket.h"
 #include "UserConnection.h"
 #include "../FlyFeatures/flyServer.h"

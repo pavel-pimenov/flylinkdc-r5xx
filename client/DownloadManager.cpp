@@ -24,7 +24,6 @@
 #include "QueueManager.h"
 #include "HashManager.h"
 #include "MerkleCheckOutputStream.h"
-#include "UploadManager.h"
 #include "FinishedManager.h"
 #include "PGLoader.h"
 #include "MappingManager.h"

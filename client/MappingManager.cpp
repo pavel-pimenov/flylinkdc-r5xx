@@ -21,7 +21,6 @@
 #include "ConnectionManager.h"
 #include "ConnectivityManager.h"
 #include "CryptoManager.h"
-#include "LogManager.h"
 #include "SearchManager.h"
 #include "ScopedFunctor.h"
 #include "../FlyFeatures/flyServer.h"

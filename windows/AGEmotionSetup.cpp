@@ -22,14 +22,12 @@
 #include "../client/SimpleXML.h"
 #include "../client/CompatibilityManager.h"
 #include "../client/SettingsManager.h"
-#include "../client/LogManager.h"
 #include "../GdiOle/GDIImageOle.h"
 #include "AGEmotionSetup.h"
 
 #ifdef FLYLINKDC_USE_ZIP_EMOTIONS
 #include "../client/zip/zip.h"
 #endif
-#include "boost/algorithm/string/replace.hpp"
 
 //======================================================================================================================
 CImageList* CAGEmotion::g_pImagesList = nullptr;

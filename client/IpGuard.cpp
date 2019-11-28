@@ -23,7 +23,6 @@
 #include "ResourceManager.h"
 #include "../windows/resource.h"
 #include "../XMLParser/xmlParser.h"
-#include "LogManager.h"
 #include "../FlyFeatures/flyServer.h"
 
 IPList IpGuard::g_ipGuardList;

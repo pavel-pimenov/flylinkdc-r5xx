@@ -19,7 +19,6 @@
 
 #include "stdinc.h"
 #include "SharedFileStream.h"
-#include "LogManager.h"
 #include "ClientManager.h"
 #include "../FlyFeatures/flyServer.h"
 

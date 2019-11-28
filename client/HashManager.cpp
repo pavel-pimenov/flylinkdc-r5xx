@@ -17,6 +17,7 @@
  */
 
 #include "stdinc.h"
+
 #include "ClientManager.h"
 #include "CompatibilityManager.h"
 #include "ShareManager.h"

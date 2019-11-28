@@ -21,7 +21,6 @@
 #include "UserConnection.h"
 #include "HashManager.h"
 
-
 Download::Download(UserConnection* p_conn, const QueueItemPtr& p_item, const string& p_ip, const string& p_chiper_name) noexcept :
 	Transfer(p_conn, p_item->getTarget(), p_item->getTTH(), p_ip, p_chiper_name),
 	m_qi(p_item),

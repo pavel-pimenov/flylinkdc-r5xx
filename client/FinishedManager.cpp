@@ -18,10 +18,8 @@
 
 #include "stdinc.h"
 #include "FinishedManager.h"
-#include "FinishedManagerListener.h"
 #include "QueueManager.h"
 #include "UploadManager.h"
-#include "LogManager.h"
 #include "CFlylinkDBManager.h"
 
 std::unique_ptr<webrtc::RWLockWrapper> FinishedManager::g_cs[2];

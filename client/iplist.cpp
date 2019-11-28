@@ -27,7 +27,6 @@
 #include "socket.h"
 #include "iplist.h"
 #include "ResourceManager.h"
-#include "LogManager.h"
 #include "ClientManager.h"
 
 IPList::IPList()
