@@ -23,7 +23,6 @@
 #include <wininet.h>
 #include "CustomMenuManager.h"
 #include "SimpleXML.h"
-#include "LogManager.h"
 //#define FRAME_BUFFER_SIZE 4096
 
 
