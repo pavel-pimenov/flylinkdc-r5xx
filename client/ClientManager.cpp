@@ -846,18 +846,18 @@ void ClientManager::userCommandL(const HintedUser& hintedUser, const UserCommand
 		if (!ou)
 			return;
 			
-		auto& l_ñlient = ou->getClient();
-		const string opChat = l_ñlient.getOpChat();
+		auto& l_client = ou->getClient();
+		const string opChat = l_client.getOpChat();
 		if (opChat.find('*') == string::npos && opChat.find('?') == string::npos)
 		{
 			params["opchat"] = opChat;
 		}
 		
 		ou->getIdentity().getParams(params, "user", compatibility);
-		l_ñlient.getHubIdentity().getParams(params, "hub", false);
-		l_ñlient.getMyIdentity().getParams(params, "my", compatibility);
-		l_ñlient.escapeParams(params);
-		l_ñlient.sendUserCmd(uc, params); // TODO - ñåòü çîâåì ïîä Lock-îì
+		l_client.getHubIdentity().getParams(params, "hub", false);
+		l_client.getMyIdentity().getParams(params, "my", compatibility);
+		l_client.escapeParams(params);
+		l_client.sendUserCmd(uc, params); // TODO - ñåòü çîâåì ïîä Lock-îì
 	}
 }
 
