@@ -25,7 +25,6 @@
 #include "TypedListViewCtrl.h"
 #include "../client/QueueManagerListener.h"
 #include "../client/DownloadManagerListener.h"
-//TransferData.h
 
 #define SHOWTREE_MESSAGE_MAP 12
 

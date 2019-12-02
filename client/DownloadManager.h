@@ -32,7 +32,6 @@
 #include "DownloadManagerListener.h"
 #include "TimerManager.h"
 #include "UserConnection.h"
-#include "ZUtils.h"
 #include "FilteredFile.h"
 
 #ifndef FLYLINKDC_USE_TORRENT

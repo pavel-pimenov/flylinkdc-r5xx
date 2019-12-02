@@ -23,8 +23,9 @@
 #define DCPLUSPLUS_DCPP_DOWNLOADMANAGERLISTENER_H_
 
 #include "Download.h"
+#include "TransferData.h"
 
-#include "libtorrent\torrent_info.hpp"
+#include "libtorrent/torrent_info.hpp"
 /**
  * Use this listener interface to get progress information for downloads.
  *

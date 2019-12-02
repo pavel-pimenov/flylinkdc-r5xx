@@ -25,7 +25,7 @@
 #ifdef IRAINMAN_INCLUDE_SMILE
 
 #include "ImageDataObject.h"
-#include <boost/unordered/unordered_set.hpp>
+#include <unordered_set>
 
 class CGDIImage;
 class CAGEmotion

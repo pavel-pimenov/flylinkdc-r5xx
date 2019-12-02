@@ -23,6 +23,7 @@
 #define DCPLUSPLUS_DCPP_FILTERED_FILE_H
 
 #include "Streams.h"
+#include "ZUtils.h"
 
 template<bool managed>
 class CountOutputStream : public OutputStream

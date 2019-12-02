@@ -26,7 +26,6 @@
 #include "Text.h"
 #include "ConnectionManager.h"
 #include "UploadManager.h"
-#include "ZUtils.h"
 
 using std::unique_ptr;
 
