@@ -101,6 +101,7 @@ bool SSLSocket::waitConnected(uint64_t millis)
 		int ret = SSL_is_server(ssl) ? SSL_accept(ssl) : SSL_connect(ssl);
 		if (ret == 1)
 		{
+			m_chiper_name = SSL_get_cipher(ssl);
 			dcdebug("Connected to SSL server using %s as %s\n", SSL_get_cipher(ssl), SSL_is_server(ssl) ? "server" : "client");
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L
 			if (SSL_is_server(ssl)) return true;
@@ -168,7 +169,8 @@ bool SSLSocket::waitAccepted(uint64_t millis)
 		int ret = SSL_accept(ssl);
 		if (ret == 1)
 		{
-			dcdebug("Connected to SSL client using %s\n", SSL_get_cipher(ssl));
+			m_chiper_name = SSL_get_cipher(ssl);
+			dcdebug("Connected to SSL client using %s\n", m_chiper_name.c_str());
 			return true;
 		}
 		if (!waitWant(ret, millis))

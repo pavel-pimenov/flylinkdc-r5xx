@@ -41,7 +41,7 @@ bool CryptoManager::certsLoaded = false;
 ByteVector CryptoManager::keyprint;
 static CriticalSection g_cs;
 
-static const char ciphersuites[] =
+static const char g_ciphersuites[] =
     "ECDHE-ECDSA-AES128-GCM-SHA256:"
     "ECDHE-RSA-AES128-GCM-SHA256:"
     "ECDHE-ECDSA-AES128-SHA256:"
@@ -94,16 +94,18 @@ CryptoManager::CryptoManager()
 			
 		SSL_CTX_set_options(clientContext, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
 		SSL_CTX_set_options(serverContext, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
+#if OPENSSL_VERSION_NUMBER >= 0x1000201fL
 		SSL_CTX_set1_curves_list(clientALPNContext, "P-256");
+#endif
 		
 		setContextOptions(clientContext, false);
 		setContextOptions(serverContext, true);
 		
 		SSL_CTX_set_options(clientALPNContext, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
-		SSL_CTX_set_cipher_list(clientALPNContext, ciphersuites);
+		SSL_CTX_set_cipher_list(clientALPNContext, g_ciphersuites);
 		
 		SSL_CTX_set_options(serverALPNContext, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
-		SSL_CTX_set_cipher_list(serverALPNContext, ciphersuites);
+		SSL_CTX_set_cipher_list(serverALPNContext, g_ciphersuites);
 		
 		EC_KEY* tmp_ecdh;
 		if ((tmp_ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1)) != NULL)
@@ -132,7 +134,17 @@ CryptoManager::CryptoManager()
 
 void CryptoManager::setContextOptions(SSL_CTX* aCtx, bool aServer) {
 
-	SSL_CTX_set_cipher_list(aCtx, ciphersuites);
+	SSL_CTX_set_cipher_list(aCtx, g_ciphersuites);
+	
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fL
+	// TLS 1.3 ciphers
+	// https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1737
+	const char ciphersuitesTls13[] =
+	    "TLS_AES_128_GCM_SHA256:"
+	    "TLS_AES_256_GCM_SHA384";
+	    
+	SSL_CTX_set_ciphersuites(aCtx, ciphersuitesTls13);
+#endif
 	
 #if OPENSSL_VERSION_NUMBER >= 0x1000201fL
 	SSL_CTX_set1_curves_list(aCtx, "P-256");

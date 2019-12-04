@@ -74,6 +74,10 @@ class SSLSocket : public Socket
 		
 		virtual bool waitConnected(uint64_t millis)  override;
 		virtual bool waitAccepted(uint64_t millis)  override;
+		string getCipherName() const noexcept override
+		{
+			return m_chiper_name;
+		}
 		
 	private:
 	
@@ -81,6 +85,7 @@ class SSLSocket : public Socket
 		ssl::SSL ssl;
 		Socket::Protocol m_nextProto;
 		bool m_is_trusted;
+		string m_chiper_name;
 		
 		unique_ptr<CryptoManager::SSLVerifyData> verifyData;    // application data used by CryptoManager::verify_callback(...)
 		
