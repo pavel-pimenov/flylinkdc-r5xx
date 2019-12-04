@@ -17,7 +17,6 @@
  */
 
 #include "stdinc.h"
-#include <cstring>
 
 #include "Encoder.h"
 #include "debug.h"

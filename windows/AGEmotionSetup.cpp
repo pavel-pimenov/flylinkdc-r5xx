@@ -61,7 +61,7 @@ string CAGEmotion::UnzipEmotions(const string& p_file_name)
 	const string l_tmp_path = Util::getTempPath(); // +"FlylinkDC++EmoPacks";
 	//File::ensureDirectory(l_tmp_path); // TODO first
 	auto l_copy_path = m_EmotionBmp;
-    Text::replace_all(l_copy_path, "\\", "-");
+	Text::replace_all(l_copy_path, "\\", "-");
 	const string l_path_target = l_tmp_path + l_copy_path;
 	zip_t *zip = zip_open(l_path.c_str(), 0, 'r');
 	if (zip)

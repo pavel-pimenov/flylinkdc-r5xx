@@ -34,14 +34,6 @@
 #include <control.h>
 #include <strmif.h> // error with missing ddraw.h, get it from MS DirectX SDK
 
-#include "boost/algorithm/string/replace.hpp"
-
-#include <cstdlib>
-#include <iostream>
-#include <fstream>
-#include <cstring>
-
-
 // This is GPLed, and copyright (mostly) my anonymous friend
 // - Todd Pederzani
 string Players::getItunesSpam(HWND playerWnd /*= NULL*/)

@@ -46,6 +46,9 @@
 #ifndef TORRENT_DISABLE_ENCRYPTION
 #define TORRENT_DISABLE_ENCRYPTION
 #endif
+#ifndef BOOST_ASIO_HAS_STD_CHRONO
+#define BOOST_ASIO_HAS_STD_CHRONO
+#endif
 
 // - Используем VLD http://vld.codeplex.com/
 // #define _CRTDBG_MAP_ALLOC
