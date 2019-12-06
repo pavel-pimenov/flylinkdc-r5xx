@@ -293,7 +293,7 @@ void udp_socket::wrap(udp::endpoint const& ep, span<char const> p
 	TORRENT_UNUSED(flags);
 	using namespace libtorrent::detail;
 
-	char header[25];
+	char header[255];
 	char* h = header;
 
 	write_uint16(0, h); // reserved
