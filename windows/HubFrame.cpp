@@ -523,6 +523,7 @@ void HubFrame::createMessagePanel()
 			
 			CreateSimpleStatusBar(ATL_IDS_IDLEMESSAGE, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SBARS_SIZEGRIP);
 			BaseChatFrame::createStatusCtrl(m_hWndStatusBar);
+			setStatusText(1, Text::toT(m_client->getCipherName()));
 			
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 			m_switchPanelsContainer = new CContainedWindow(WC_BUTTON, this, HUBSTATUS_MESSAGE_MAP),
@@ -680,6 +681,7 @@ void HubFrame::onInvalidateAfterActiveTab(HWND aWnd)
 #ifdef SCALOLAZ_HUB_MODE
 				m_ctrlShowMode->Invalidate();
 #endif
+				UpdateLayout(FALSE);
 			}
 		}
 	}

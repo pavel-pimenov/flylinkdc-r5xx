@@ -2035,7 +2035,7 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 			}
 			else
 			{
-				return m_cipher + _T(" [Token: ") + Text::toT(m_token) + _T("]");
+				return m_cipher; // +_T(" [Token: ") + Text::toT(m_token) + _T("]");
 			}
 		case COLUMN_SHARE:
 			return m_hintedUser.user ? Util::formatBytesW(m_hintedUser.user->getBytesShared()) : Util::emptyStringT;
