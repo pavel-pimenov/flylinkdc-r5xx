@@ -19,6 +19,7 @@
 #include "stdinc.h"
 
 #include <regex>
+#include <fstream>
 #include <Mmsystem.h>
 #include <shlobj.h>
 #include "CompatibilityManager.h"
