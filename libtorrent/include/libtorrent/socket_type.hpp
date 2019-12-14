@@ -181,6 +181,9 @@ namespace libtorrent {
 		using protocol_type = tcp::socket::protocol_type;
 
 		using receive_buffer_size = tcp::socket::receive_buffer_size;
+#if BOOST_VERSION >= 106600
+        using executor_type = tcp::socket::executor_type;
+#endif
 		using send_buffer_size = tcp::socket::send_buffer_size;
 
 		explicit socket_type(io_service& ios): m_io_service(ios), m_type(0) {}
