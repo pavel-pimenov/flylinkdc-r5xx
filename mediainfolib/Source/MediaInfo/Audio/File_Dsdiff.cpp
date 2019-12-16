@@ -214,6 +214,7 @@ File_Dsdiff::File_Dsdiff()
         StreamIDs_Width[0]=0;
     #endif //MEDIAINFO_EVENTS
     DataMustAlwaysBeComplete=false;
+    pad=false;
 }
 
 //---------------------------------------------------------------------------

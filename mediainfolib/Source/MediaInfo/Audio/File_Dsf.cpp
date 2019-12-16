@@ -96,6 +96,7 @@ File_Dsf::File_Dsf()
     #endif //MEDIAINFO_EVENTS
     MustSynchronize=true;
     DataMustAlwaysBeComplete=false;
+    Metadata=0;
 }
 
 //---------------------------------------------------------------------------
