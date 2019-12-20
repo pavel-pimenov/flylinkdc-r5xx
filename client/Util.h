@@ -877,7 +877,7 @@ class Util
 #endif
 		}
 		
-        static double toDouble(const string& aString);
+		static double toDouble(const string& aString);
 		
 		static float toFloat(const string& aString)
 		{

@@ -3487,21 +3487,21 @@ bool Util::isHttpsLink(const string& p_url)
 {
 	return strnicmp(p_url.c_str(), "https://", 8) == 0;
 }
-
+	
 double Util::toDouble(const string& aString)
 {
-    // Work-around for atof and locales...
-    lconv* lv = localeconv();
-    string::size_type i = aString.find_last_of(".,");
-    if (i != string::npos && aString[i] != lv->decimal_point[0])
-    {
-        string tmp(aString);
-        tmp[i] = lv->decimal_point[0];
-        return atof(tmp.c_str());
-    }
-    return atof(aString.c_str());
+	// Work-around for atof and locales...
+	lconv* lv = localeconv();
+	string::size_type i = aString.find_last_of(".,");
+	if (i != string::npos && aString[i] != lv->decimal_point[0])
+	{
+		string tmp(aString);
+		tmp[i] = lv->decimal_point[0];
+		return atof(tmp.c_str());
+	}
+	return atof(aString.c_str());
 }
-
+	
 	
 /**
  * @file

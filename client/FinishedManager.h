@@ -87,7 +87,7 @@ class FinishedItem
 			time(aTime),
 			tth(aTTH),
 			ip(aIP),
-			nick(aUser.user ? string() : aUser.user->getLastNick()),
+			nick(aUser.user ? aUser.user->getLastNick() : string()),
 			id(0),
 			actual(aActual)
 		{

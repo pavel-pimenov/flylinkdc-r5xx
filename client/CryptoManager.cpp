@@ -663,7 +663,7 @@ int CryptoManager::verify_callback(int preverify_ok, X509_STORE_CTX *ctx) {
 		// Do a full string comparison to avoid potential false positives caused by invalid inputs
 		if (keyp.compare(expected_keyp) == 0) {
 			// KeyPrint validated, we can get rid of it (to avoid unnecessary passes)
-			SSL_set_ex_data(ssl, CryptoManager::idxVerifyData, NULL);
+			SSL_set_ex_data(ssl, CryptoManager::idxVerifyData, nullptr);
 			
 			if (err != X509_V_OK) {
 				// This is the right way to get the certificate store, although it is rather roundabout

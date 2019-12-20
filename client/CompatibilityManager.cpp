@@ -1095,7 +1095,7 @@ string CompatibilityManager::DiskSpaceInfo(bool onlyTotal /* = false */)
 	while (drives != 0)
 	{
 		const auto l_drive_type = GetDriveType(drive);
-		if (drives & 1 && (l_drive_type != DRIVE_CDROM && l_drive_type != DRIVE_REMOVABLE && l_drive_type == DRIVE_REMOTE)) // only real drives, partitions
+		if (drives & 1 && (l_drive_type != DRIVE_CDROM && l_drive_type != DRIVE_REMOVABLE && l_drive_type == DRIVE_REMOTE)) // TODO
 		{
 			if (GetDiskFreeSpaceEx(drive, NULL, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free))
 			{
@@ -1180,7 +1180,7 @@ tstring CompatibilityManager::diskInfo()
 	while (drives != 0)
 	{
 		const auto l_drive_type = GetDriveType(drive);
-		if (drives & 1 && (l_drive_type != DRIVE_CDROM && l_drive_type != DRIVE_REMOVABLE && l_drive_type == DRIVE_REMOTE)) // TODO фиксануть copy-paste
+		if (drives & 1 && (l_drive_type != DRIVE_CDROM && l_drive_type != DRIVE_REMOVABLE && l_drive_type == DRIVE_REMOTE)) // TODO
 		{
 			if (GetDiskFreeSpaceEx(drive, NULL, (PULARGE_INTEGER)&size, (PULARGE_INTEGER)&free))
 			{
