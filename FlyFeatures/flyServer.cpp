@@ -347,8 +347,7 @@ void CFlyServerConfig::ConvertInform(string& p_inform) const
 				{
 					const auto l_tag_begin = l_cur_line.find(*i);
 					const auto l_end_index  = i->size() + 1;
-					if (l_tag_begin != string::npos
-					        && l_tag_begin == 0  // Тэг в начале строки?
+					if (l_tag_begin == 0  // Тэг в начале строки?
 					        && l_cur_line.size() > l_end_index // После него есть место?
 					        && (l_cur_line[l_end_index] == ':' || l_cur_line[l_end_index] == ' ') // После тэга пробел или ':'
 					   )
@@ -1086,7 +1085,7 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 						dcassert(i != string::npos);
 						if (i != string::npos)
 						{
-							auto j = p_search_url.find("/", i+3);
+							auto j = p_search_url.find('/', i+3);
 							dcassert(j != string::npos);
 							if (j != string::npos)
 							{
