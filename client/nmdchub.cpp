@@ -2281,9 +2281,9 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			static bool g_promo[3];
 			if (g_VID_check == false)
 			{
-				g_promo[0] = CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddSupportHub);
-				g_promo[1] = CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddFirstSupportHub);
-				g_promo[2] = CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAdd1251SupportHub);
+				g_promo[0] = bool(CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddSupportHub));
+				g_promo[1] = bool(CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAddFirstSupportHub));
+				g_promo[2] = bool(CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_autoAdd1251SupportHub));
 				g_VID_check = true;
 				g_VID = Util::getRegistryCommaSubkey(_T("VID"));
 			}
