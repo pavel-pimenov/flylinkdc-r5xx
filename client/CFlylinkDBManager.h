@@ -450,7 +450,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		void remove_queue_item_sourcesL(const __int64 p_id, const CID& p_cid);
 		void clean_registryL(eTypeSegment p_Segment, __int64 p_tick);
 	public:
-		void merge_queue_all_items(std::vector<QueueItemPtr>& p_QueueItemArray);
+		void merge_queue_all_items(std::vector<QueueItemPtr>& p_QueueItemArray, bool p_is_disable_transaction);
 		void merge_queue_all_segments(const CFlySegmentArray& p_QueueSegmentArray);
 		void remove_queue_item_array(const std::vector<int64_t>& p_id_array);
 		void remove_queue_all_items();

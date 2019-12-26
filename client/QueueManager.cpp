@@ -43,6 +43,8 @@ std::unordered_map<TTHValue, int> QueueManager::FileQueue::g_queue_tth_map;
 QueueManager::FileQueue QueueManager::g_fileQueue;
 QueueManager::UserQueue QueueManager::g_userQueue;
 bool QueueManager::g_dirty = false;
+int  QueueManager::g_running_count = 0;
+bool QueueManager::g_is_exists_queueFile = false;
 uint64_t QueueManager::g_lastSave = 0;
 QueueManager::UserQueue::UserQueueMap QueueManager::UserQueue::g_userQueueMap[QueueItem::LAST];
 QueueManager::UserQueue::RunningMap QueueManager::UserQueue::g_runningMap;
@@ -867,8 +869,7 @@ void QueueManager::Rechecker::execute(const string& p_file)
 #pragma warning(disable:4355)
 QueueManager::QueueManager() :
 	rechecker(this),
-	nextSearch(0),
-	m_is_exists_queueFile(true)
+	nextSearch(0)
 {
 	TimerManager::getInstance()->addListener(this);
 	SearchManager::getInstance()->addListener(this);
@@ -880,6 +881,7 @@ QueueManager::QueueManager() :
 
 QueueManager::~QueueManager() noexcept
 {
+    dcassert(g_running_count == 0);
 #ifdef FLYLINKDC_USE_SHARED_FILE_CACHE
 	cleanSharedCache();
 #endif
@@ -2710,11 +2712,12 @@ void QueueManager::setAutoPriority(const string& aTarget, bool ap)
 	}
 }
 
-void QueueManager::saveQueue(bool force /* = false*/) noexcept
+void QueueManager::saveQueue(bool p_force /* = false*/) noexcept
 {
-	if (!g_dirty && !force)
+	if (!g_dirty && !p_force)
 		return;
-		
+    CFlyBusy l_busy(g_running_count);
+
 	CFlySegmentArray l_segment_array;
 	std::vector<QueueItemPtr> l_items;
 	{
@@ -2747,11 +2750,12 @@ void QueueManager::saveQueue(bool force /* = false*/) noexcept
 		}
 		if (!l_items.empty())
 		{
+            const bool l_is_disable_transaction = g_running_count > 1;
 			if (l_items.size() > 50)
 			{
 				CFlyLog l_log("[Save queue to SQLite]");
 				l_log.log("Store: " + Util::toString(l_items.size()) + " items...");
-				CFlylinkDBManager::getInstance()->merge_queue_all_items(l_items);
+				CFlylinkDBManager::getInstance()->merge_queue_all_items(l_items, l_is_disable_transaction);
 			}
 			else
 			{
@@ -2759,7 +2763,7 @@ void QueueManager::saveQueue(bool force /* = false*/) noexcept
 				CFlyLog l_log("[Save small! queue to SQLite]");
 				l_log.log("Store small: " + Util::toString(l_items.size()) + " items...");
 #endif
-				CFlylinkDBManager::getInstance()->merge_queue_all_items(l_items);
+				CFlylinkDBManager::getInstance()->merge_queue_all_items(l_items, l_is_disable_transaction);
 			}
 		}
 	}
@@ -2781,12 +2785,12 @@ void QueueManager::saveQueue(bool force /* = false*/) noexcept
 			CFlylinkDBManager::getInstance()->merge_queue_all_segments(l_segment_array);
 		}
 	}
-	if (m_is_exists_queueFile)
+	if (g_is_exists_queueFile)
 	{
 		const auto l_queueFile = getQueueFile();
 		File::deleteFile(l_queueFile);
 		File::deleteFile(l_queueFile + ".bak");
-		m_is_exists_queueFile = false;
+		g_is_exists_queueFile = false;
 	}
 	// Put this here to avoid very many saves tries when disk is full...
 	g_lastSave = GET_TICK();
@@ -2817,7 +2821,7 @@ void QueueManager::loadQueue() noexcept
 	}
 	catch (const Exception&)
 	{
-		m_is_exists_queueFile = false;
+		g_is_exists_queueFile = false;
 	}
 	CFlylinkDBManager::getInstance()->load_queue();
 	g_dirty = false;

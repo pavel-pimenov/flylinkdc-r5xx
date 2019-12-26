@@ -2995,13 +2995,13 @@ void CFlylinkDBManager::merge_queue_segmentL(const CFlySegment& p_QueueSegment)
 	}
 }
 //========================================================================================================
-void CFlylinkDBManager::merge_queue_all_items(std::vector<QueueItemPtr>& p_QueueItemArray)
+void CFlylinkDBManager::merge_queue_all_items(std::vector<QueueItemPtr>& p_QueueItemArray, bool p_is_disable_transaction)
 {
 	dcassert(!p_QueueItemArray.empty());
 	try
 	{
 		CFlyLock(m_cs);
-		sqlite3_transaction l_trans(m_flySQLiteDB, p_QueueItemArray.size() > 1);
+		sqlite3_transaction l_trans(m_flySQLiteDB, p_QueueItemArray.size() > 1 && p_is_disable_transaction == false);
 		for (auto i = p_QueueItemArray.begin(); i != p_QueueItemArray.end(); ++i)
 		{
 			if (merge_queue_itemL(*i))

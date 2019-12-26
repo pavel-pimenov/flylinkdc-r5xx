@@ -230,7 +230,7 @@ class QueueManager : public Singleton<QueueManager>,
 		static QueueItem::Priority hasDownload(const UserPtr& aUser);
 		
 		void loadQueue() noexcept;
-		void saveQueue(bool force = false) noexcept;
+		static void saveQueue(bool p_force = false) noexcept;
 		
 #ifdef FLYLINKDC_USE_KEEP_LISTS
 		void noDeleteFileList(const string& path);
@@ -271,7 +271,7 @@ class QueueManager : public Singleton<QueueManager>,
 			return Util::getConfigPath() + "Queue.xml";
 		}
 		
-		bool m_is_exists_queueFile;
+		static bool g_is_exists_queueFile;
 		
 		CriticalSection m_cs_target_array;
 		StringList m_remove_target_array;
@@ -452,6 +452,7 @@ class QueueManager : public Singleton<QueueManager>,
 		deque<string> m_recent;
 		/** The queue needs to be saved */
 		static bool g_dirty;
+        static int  g_running_count;
 		/** Next search */
 		uint64_t nextSearch;
 #ifdef FLYLINKDC_USE_KEEP_LISTS

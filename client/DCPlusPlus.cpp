@@ -259,7 +259,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 #ifdef FLYLINKDC_USE_TORRENT
 		DownloadManager::getInstance()->shutdown_torrent();
 #endif
-		QueueManager::getInstance()->saveQueue(true);
+		QueueManager::saveQueue(true);
 		SettingsManager::getInstance()->save();
 		ConnectionManager::getInstance()->shutdown();
 		

@@ -533,7 +533,7 @@ void BaseChatFrame::onEnter()
 			}
 			else if (stricmp(cmd.c_str(), _T("savequeue")) == 0)
 			{
-				QueueManager::getInstance()->saveQueue();
+				QueueManager::saveQueue();
 				addStatus(TSTRING(QUEUE_SAVED));
 #ifdef IRAINMAN_ENABLE_WHOIS
 			}
