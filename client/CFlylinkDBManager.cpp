@@ -621,7 +621,6 @@ CFlylinkDBManager::CFlylinkDBManager()
 		if (l_rev < 358)
 		{
 			safeAlter("ALTER TABLE fly_file add column ftype integer default -1");
-			sqlite3_transaction l_trans(m_flySQLiteDB);
 			m_flySQLiteDB.executenonquery("update fly_file set ftype=1 where ftype=-1 and "
 			                              "(name like '%.mp3' or name like '%.ogg' or name like '%.wav' or name like '%.flac' or name like '%.wma')");
 			m_flySQLiteDB.executenonquery("update fly_file set ftype=2 where ftype=-1 and "
@@ -634,7 +633,6 @@ CFlylinkDBManager::CFlylinkDBManager()
 			                              "(name like '%.jpg' or name like '%.gif' or name like '%.png')");
 			m_flySQLiteDB.executenonquery("update fly_file set ftype=6 where ftype=-1 and "
 			                              "(name like '%.avi' or name like '%.mpg' or name like '%.mov' or name like '%.divx')");
-			l_trans.commit();
 		}
 		if (l_rev < 341)
 		{
@@ -2527,7 +2525,6 @@ void CFlylinkDBManager::save_transfer_history(bool p_is_torrent, eTypeTransfer p
 	{
 		if (!p_is_torrent)
 		{
-			sqlite3_transaction l_trans(m_flySQLiteDB);
 			inc_hitL(l_path, l_name);
 			m_insert_transfer.init(m_flySQLiteDB,
 			                       "insert into transfer_db.fly_transfer_file (type,day,stamp,path,nick,hub,size,speed,ip,tth,actual) "
@@ -2545,7 +2542,6 @@ void CFlylinkDBManager::save_transfer_history(bool p_is_torrent, eTypeTransfer p
 				m_insert_transfer->bind(8);
 			m_insert_transfer->bind(9, p_item->getActual());
 			m_insert_transfer->executenonquery();
-			l_trans.commit();
 		}
 		else
 		{
