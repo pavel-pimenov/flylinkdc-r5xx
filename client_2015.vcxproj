@@ -112,7 +112,7 @@
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
-      <ShowIncludes>true</ShowIncludes>
+      <ShowIncludes>false</ShowIncludes>
       <UseFullPaths>true</UseFullPaths>
     </ClCompile>
     <ResourceCompile>
@@ -155,7 +155,7 @@
       <PreprocessorDefinitions>TORRENT_NO_DEPRECATE;WEBRTC_WIN;ZMQ_STATIC;OS_WIN;LEVELDB_PLATFORM_WINDOWS;OPENSSL_SYSNAME_WIN32;_UNICODE;BOOST_ALL_NO_LIB;BOOST_USE_WINDOWS_H;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <ShowIncludes>true</ShowIncludes>
+      <ShowIncludes>false</ShowIncludes>
       <UseFullPaths>true</UseFullPaths>
     </ClCompile>
     <ResourceCompile>
