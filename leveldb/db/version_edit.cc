@@ -14,15 +14,15 @@ namespace leveldb {
 // Tag numbers for serialized VersionEdit.  These numbers are written to
 // disk and should not be changed.
 enum Tag {
-  kComparator           = 1,
-  kLogNumber            = 2,
-  kNextFileNumber       = 3,
-  kLastSequence         = 4,
-  kCompactPointer       = 5,
-  kDeletedFile          = 6,
-  kNewFile              = 7,
+  kComparator = 1,
+  kLogNumber = 2,
+  kNextFileNumber = 3,
+  kLastSequence = 4,
+  kCompactPointer = 5,
+  kDeletedFile = 6,
+  kNewFile = 7,
   // 8 was used for large value refs
-  kPrevLogNumber        = 9
+  kPrevLogNumber = 9
 };
 
 void VersionEdit::Clear() {
@@ -68,11 +68,10 @@ void VersionEdit::EncodeTo(std::string* dst) const {
     PutLengthPrefixedSlice(dst, compact_pointers_[i].second.Encode());
   }
 
-  for (DeletedFileSet::const_iterator iter = deleted_files_.begin();
-       iter != deleted_files_.end(); ++iter) {
+  for (const auto& deleted_file_kvp : deleted_files_) {
     PutVarint32(dst, kDeletedFile);
-    PutVarint32(dst, iter->first);   // level
-    PutVarint64(dst, iter->second);  // file number
+    PutVarint32(dst, deleted_file_kvp.first);   // level
+    PutVarint64(dst, deleted_file_kvp.second);  // file number
   }
 
   for (size_t i = 0; i < new_files_.size(); i++) {
@@ -89,8 +88,7 @@ void VersionEdit::EncodeTo(std::string* dst) const {
 static bool GetInternalKey(Slice* input, InternalKey* dst) {
   Slice str;
   if (GetLengthPrefixedSlice(input, &str)) {
-    dst->DecodeFrom(str);
-    return true;
+    return dst->DecodeFrom(str);
   } else {
     return false;
   }
@@ -235,12 +233,11 @@ std::string VersionEdit::DebugString() const {
     r.append(" ");
     r.append(compact_pointers_[i].second.DebugString());
   }
-  for (DeletedFileSet::const_iterator iter = deleted_files_.begin();
-       iter != deleted_files_.end(); ++iter) {
+  for (const auto& deleted_files_kvp : deleted_files_) {
     r.append("\n  DeleteFile: ");
-    AppendNumberTo(&r, iter->first);
+    AppendNumberTo(&r, deleted_files_kvp.first);
     r.append(" ");
-    AppendNumberTo(&r, iter->second);
+    AppendNumberTo(&r, deleted_files_kvp.second);
   }
   for (size_t i = 0; i < new_files_.size(); i++) {
     const FileMetaData& f = new_files_[i].second;

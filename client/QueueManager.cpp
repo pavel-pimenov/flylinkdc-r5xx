@@ -881,7 +881,7 @@ QueueManager::QueueManager() :
 
 QueueManager::~QueueManager() noexcept
 {
-    dcassert(g_running_count == 0);
+	dcassert(g_running_count == 0);
 #ifdef FLYLINKDC_USE_SHARED_FILE_CACHE
 	cleanSharedCache();
 #endif
@@ -2716,8 +2716,8 @@ void QueueManager::saveQueue(bool p_force /* = false*/) noexcept
 {
 	if (!g_dirty && !p_force)
 		return;
-    CFlyBusy l_busy(g_running_count);
-
+	CFlyBusy l_busy(g_running_count);
+	
 	CFlySegmentArray l_segment_array;
 	std::vector<QueueItemPtr> l_items;
 	{
@@ -2750,7 +2750,7 @@ void QueueManager::saveQueue(bool p_force /* = false*/) noexcept
 		}
 		if (!l_items.empty())
 		{
-            const bool l_is_disable_transaction = g_running_count > 1;
+			const bool l_is_disable_transaction = g_running_count > 1;
 			if (l_items.size() > 50)
 			{
 				CFlyLog l_log("[Save queue to SQLite]");

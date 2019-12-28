@@ -167,11 +167,11 @@ const double Histogram::kBucketLimit[kNumBuckets] = {
     7000000000.0,
     8000000000.0,
     9000000000.0,
-  1e200,
+    1e200,
 };
 
 void Histogram::Clear() {
-  min_ = kBucketLimit[kNumBuckets-1];
+  min_ = kBucketLimit[kNumBuckets - 1];
   max_ = 0;
   num_ = 0;
   sum_ = 0;
@@ -215,7 +215,7 @@ double Histogram::Percentile(double p) const {
     sum += buckets_[b];
     if (sum >= threshold) {
       // Scale linearly within this bucket
-      double left_point = (b == 0) ? 0 : kBucketLimit[b-1];
+      double left_point = (b == 0) ? 0 : kBucketLimit[b - 1];
       double right_point = kBucketLimit[b];
       double left_sum = sum - buckets_[b];
       double right_sum = sum;
@@ -256,15 +256,15 @@ std::string Histogram::ToString() const {
     if (buckets_[b] <= 0.0) continue;
     sum += buckets_[b];
     snprintf(buf, sizeof(buf), "[ %7.0f, %7.0f ) %7.0f %7.3f%% %7.3f%% ",
-             ((b == 0) ? 0.0 : kBucketLimit[b-1]),      // left
-             kBucketLimit[b],                           // right
-             buckets_[b],                               // count
-             mult * buckets_[b],                        // percentage
-             mult * sum);                               // cumulative percentage
+             ((b == 0) ? 0.0 : kBucketLimit[b - 1]),  // left
+             kBucketLimit[b],                         // right
+             buckets_[b],                             // count
+             mult * buckets_[b],                      // percentage
+             mult * sum);                             // cumulative percentage
     r.append(buf);
 
     // Add hash marks based on percentage; 20 marks for 100%.
-    int marks = static_cast<int>(20*(buckets_[b] / num_) + 0.5);
+    int marks = static_cast<int>(20 * (buckets_[b] / num_) + 0.5);
     r.append(marks, '#');
     r.push_back('\n');
   }

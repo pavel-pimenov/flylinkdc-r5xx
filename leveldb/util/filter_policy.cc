@@ -8,6 +8,6 @@
 
 namespace leveldb {
 
-FilterPolicy::~FilterPolicy() { }
+FilterPolicy::~FilterPolicy() {}
 
 }  // namespace leveldb

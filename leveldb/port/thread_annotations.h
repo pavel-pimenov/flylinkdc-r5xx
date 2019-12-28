@@ -13,9 +13,9 @@
 
 #if defined(__clang__)
 
-#define THREAD_ANNOTATION_ATTRIBUTE__(x)   __attribute__((x))
+#define THREAD_ANNOTATION_ATTRIBUTE__(x) __attribute__((x))
 #else
-#define THREAD_ANNOTATION_ATTRIBUTE__(x)   // no-op
+#define THREAD_ANNOTATION_ATTRIBUTE__(x)  // no-op
 #endif
 
 #endif  // !defined(THREAD_ANNOTATION_ATTRIBUTE__)

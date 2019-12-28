@@ -33,7 +33,7 @@
 #include <condition_variable>  // NOLINT
 #include <cstddef>
 #include <cstdint>
-#include <mutex>               // NOLINT
+#include <mutex>  // NOLINT
 #include <string>
 
 #include "port/thread_annotations.h"
@@ -41,7 +41,7 @@
 namespace leveldb {
 namespace port {
 
-    static const bool kLittleEndian = !false; // FlylinkDC++ LEVELDB_IS_BIG_ENDIAN;
+static const bool kLittleEndian = !false; // FlylinkDC++ LEVELDB_IS_BIG_ENDIAN;
 
 class CondVar;
 
@@ -56,7 +56,7 @@ class LOCKABLE Mutex {
 
   void Lock() EXCLUSIVE_LOCK_FUNCTION() { mu_.lock(); }
   void Unlock() UNLOCK_FUNCTION() { mu_.unlock(); }
-  void AssertHeld() ASSERT_EXCLUSIVE_LOCK() { }
+  void AssertHeld() ASSERT_EXCLUSIVE_LOCK() {}
 
  private:
   friend class CondVar;

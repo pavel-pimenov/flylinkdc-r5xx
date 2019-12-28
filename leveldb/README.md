@@ -27,6 +27,12 @@ Authors: Sanjay Ghemawat (sanjay@google.com) and Jeff Dean (jeff@google.com)
   * Only a single process (possibly multi-threaded) can access a particular database at a time.
   * There is no client-server support builtin to the library.  An application that needs such support will have to wrap their own server around the library.
 
+# Getting the Source
+
+```bash
+git clone --recurse-submodules https://github.com/google/leveldb.git
+```
+
 # Building
 
 This project supports [CMake](https://cmake.org/) out of the box.
@@ -189,37 +195,37 @@ uncompressed blocks in memory, the read performance improves again:
 See [doc/index.md](doc/index.md) for more explanation. See
 [doc/impl.md](doc/impl.md) for a brief overview of the implementation.
 
-The public interface is in include/*.h.  Callers should not include or
+The public interface is in include/leveldb/*.h.  Callers should not include or
 rely on the details of any other header files in this package.  Those
 internal APIs may be changed without warning.
 
 Guide to header files:
 
-* **include/db.h**: Main interface to the DB: Start here
+* **include/leveldb/db.h**: Main interface to the DB: Start here.
 
-* **include/options.h**: Control over the behavior of an entire database,
+* **include/leveldb/options.h**: Control over the behavior of an entire database,
 and also control over the behavior of individual reads and writes.
 
-* **include/comparator.h**: Abstraction for user-specified comparison function.
+* **include/leveldb/comparator.h**: Abstraction for user-specified comparison function.
 If you want just bytewise comparison of keys, you can use the default
 comparator, but clients can write their own comparator implementations if they
-want custom ordering (e.g. to handle different character encodings, etc.)
+want custom ordering (e.g. to handle different character encodings, etc.).
 
-* **include/iterator.h**: Interface for iterating over data. You can get
+* **include/leveldb/iterator.h**: Interface for iterating over data. You can get
 an iterator from a DB object.
 
-* **include/write_batch.h**: Interface for atomically applying multiple
+* **include/leveldb/write_batch.h**: Interface for atomically applying multiple
 updates to a database.
 
-* **include/slice.h**: A simple module for maintaining a pointer and a
+* **include/leveldb/slice.h**: A simple module for maintaining a pointer and a
 length into some other byte array.
 
-* **include/status.h**: Status is returned from many of the public interfaces
+* **include/leveldb/status.h**: Status is returned from many of the public interfaces
 and is used to report success and various kinds of errors.
 
-* **include/env.h**:
+* **include/leveldb/env.h**:
 Abstraction of the OS environment.  A posix implementation of this interface is
-in util/env_posix.cc
+in util/env_posix.cc.
 
-* **include/table.h, include/table_builder.h**: Lower-level modules that most
-clients probably won't use directly
+* **include/leveldb/table.h, include/leveldb/table_builder.h**: Lower-level modules that most
+clients probably won't use directly.

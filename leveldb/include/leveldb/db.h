@@ -35,8 +35,8 @@ class LEVELDB_EXPORT Snapshot {
 
 // A range of keys
 struct LEVELDB_EXPORT Range {
-  Range() { }
-  Range(const Slice& s, const Slice& l) : start(s), limit(l) { }
+  Range() = default;
+  Range(const Slice& s, const Slice& l) : start(s), limit(l) {}
 
   Slice start;  // Included in the range
   Slice limit;  // Not included in the range

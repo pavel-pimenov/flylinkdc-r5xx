@@ -452,7 +452,7 @@ class QueueManager : public Singleton<QueueManager>,
 		deque<string> m_recent;
 		/** The queue needs to be saved */
 		static bool g_dirty;
-        static int  g_running_count;
+		static int  g_running_count;
 		/** Next search */
 		uint64_t nextSearch;
 #ifdef FLYLINKDC_USE_KEEP_LISTS

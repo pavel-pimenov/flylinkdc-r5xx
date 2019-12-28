@@ -47,8 +47,15 @@ int g_open_read_only_file_limit = -1;
 // Up to 1000 mmap regions for 64-bit binaries; none for 32-bit.
 constexpr const int kDefaultMmapLimit = (sizeof(void*) >= 8) ? 1000 : 0;
 
-// Can be set using EnvPosixTestHelper::SetReadOnlyMMapLimit.
+// Can be set using EnvPosixTestHelper::SetReadOnlyMMapLimit().
 int g_mmap_limit = kDefaultMmapLimit;
+
+// Common flags defined for all posix open operations
+#if defined(HAVE_O_CLOEXEC)
+constexpr const int kOpenBaseFlags = O_CLOEXEC;
+#else
+constexpr const int kOpenBaseFlags = 0;
+#endif  // defined(HAVE_O_CLOEXEC)
 
 constexpr const size_t kWritableFileBufferSize = 65536;
 
@@ -167,7 +174,7 @@ class PosixRandomAccessFile final : public RandomAccessFile {
               char* scratch) const override {
     int fd = fd_;
     if (!has_permanent_fd_) {
-      fd = ::open(filename_.c_str(), O_RDONLY);
+      fd = ::open(filename_.c_str(), O_RDONLY | kOpenBaseFlags);
       if (fd < 0) {
         return PosixError(filename_, errno);
       }
@@ -345,7 +352,7 @@ class PosixWritableFile final : public WritableFile {
       return status;
     }
 
-    int fd = ::open(dirname_.c_str(), O_RDONLY);
+    int fd = ::open(dirname_.c_str(), O_RDONLY | kOpenBaseFlags);
     if (fd < 0) {
       status = PosixError(dirname_, errno);
     } else {
@@ -458,7 +465,7 @@ class PosixFileLock : public FileLock {
 
 // Tracks the files locked by PosixEnv::LockFile().
 //
-// We maintain a separate set instead of relying on fcntrl(F_SETLK) because
+// We maintain a separate set instead of relying on fcntl(F_SETLK) because
 // fcntl(F_SETLK) does not provide any protection against multiple uses from the
 // same process.
 //
@@ -486,14 +493,15 @@ class PosixEnv : public Env {
  public:
   PosixEnv();
   ~PosixEnv() override {
-    static char msg[] = "PosixEnv singleton destroyed. Unsupported behavior!\n";
+    static const char msg[] =
+        "PosixEnv singleton destroyed. Unsupported behavior!\n";
     std::fwrite(msg, 1, sizeof(msg), stderr);
     std::abort();
   }
 
   Status NewSequentialFile(const std::string& filename,
                            SequentialFile** result) override {
-    int fd = ::open(filename.c_str(), O_RDONLY);
+    int fd = ::open(filename.c_str(), O_RDONLY | kOpenBaseFlags);
     if (fd < 0) {
       *result = nullptr;
       return PosixError(filename, errno);
@@ -506,7 +514,7 @@ class PosixEnv : public Env {
   Status NewRandomAccessFile(const std::string& filename,
                              RandomAccessFile** result) override {
     *result = nullptr;
-    int fd = ::open(filename.c_str(), O_RDONLY);
+    int fd = ::open(filename.c_str(), O_RDONLY | kOpenBaseFlags);
     if (fd < 0) {
       return PosixError(filename, errno);
     }
@@ -538,7 +546,8 @@ class PosixEnv : public Env {
 
   Status NewWritableFile(const std::string& filename,
                          WritableFile** result) override {
-    int fd = ::open(filename.c_str(), O_TRUNC | O_WRONLY | O_CREAT, 0644);
+    int fd = ::open(filename.c_str(),
+                    O_TRUNC | O_WRONLY | O_CREAT | kOpenBaseFlags, 0644);
     if (fd < 0) {
       *result = nullptr;
       return PosixError(filename, errno);
@@ -550,7 +559,8 @@ class PosixEnv : public Env {
 
   Status NewAppendableFile(const std::string& filename,
                            WritableFile** result) override {
-    int fd = ::open(filename.c_str(), O_APPEND | O_WRONLY | O_CREAT, 0644);
+    int fd = ::open(filename.c_str(),
+                    O_APPEND | O_WRONLY | O_CREAT | kOpenBaseFlags, 0644);
     if (fd < 0) {
       *result = nullptr;
       return PosixError(filename, errno);
@@ -620,7 +630,7 @@ class PosixEnv : public Env {
   Status LockFile(const std::string& filename, FileLock** lock) override {
     *lock = nullptr;
 
-    int fd = ::open(filename.c_str(), O_RDWR | O_CREAT, 0644);
+    int fd = ::open(filename.c_str(), O_RDWR | O_CREAT | kOpenBaseFlags, 0644);
     if (fd < 0) {
       return PosixError(filename, errno);
     }
@@ -656,7 +666,10 @@ class PosixEnv : public Env {
                 void* background_work_arg) override;
 
   void StartThread(void (*thread_main)(void* thread_main_arg),
-                   void* thread_main_arg) override;
+                   void* thread_main_arg) override {
+    std::thread new_thread(thread_main, thread_main_arg);
+    new_thread.detach();
+  }
 
   Status GetTestDirectory(std::string* result) override {
     const char* env = std::getenv("TEST_TMPDIR");
@@ -676,8 +689,16 @@ class PosixEnv : public Env {
   }
 
   Status NewLogger(const std::string& filename, Logger** result) override {
-    std::FILE* fp = std::fopen(filename.c_str(), "w");
+    int fd = ::open(filename.c_str(),
+                    O_APPEND | O_WRONLY | O_CREAT | kOpenBaseFlags, 0644);
+    if (fd < 0) {
+      *result = nullptr;
+      return PosixError(filename, errno);
+    }
+
+    std::FILE* fp = ::fdopen(fd, "w");
     if (fp == nullptr) {
+      ::close(fd);
       *result = nullptr;
       return PosixError(filename, errno);
     } else {
@@ -693,7 +714,9 @@ class PosixEnv : public Env {
     return static_cast<uint64_t>(tv.tv_sec) * kUsecondsPerSecond + tv.tv_usec;
   }
 
-  void SleepForMicroseconds(int micros) override { ::usleep(micros); }
+  void SleepForMicroseconds(int micros) override {
+    std::this_thread::sleep_for(std::chrono::microseconds(micros));
+  }
 
  private:
   void BackgroundThreadMain();
@@ -853,12 +876,6 @@ std::atomic<bool> SingletonEnv<EnvType>::env_initialized_;
 using PosixDefaultEnv = SingletonEnv<PosixEnv>;
 
 }  // namespace
-
-void PosixEnv::StartThread(void (*thread_main)(void* thread_main_arg),
-                           void* thread_main_arg) {
-  std::thread new_thread(thread_main, thread_main_arg);
-  new_thread.detach();
-}
 
 void EnvPosixTestHelper::SetReadOnlyFDLimit(int limit) {
   PosixDefaultEnv::AssertEnvNotInitialized();
