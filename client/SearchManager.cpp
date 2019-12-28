@@ -435,8 +435,8 @@ int SearchManager::UdpQueue::run()
 				
 				if (!Text::validateUtf8(x)) {
 					dcassert(0);
-					dcdebug("UTF-8 valition failed for received UDP data: %s\n", x.c_str());
-					CFlyServerJSON::pushError(87, "[UDP]UTF-8 valition failed for received UDP data: ip = " + remoteIp.to_string() + " x = [" + x + "]");
+					dcdebug("UTF-8 validation failed for received UDP data: %s\n", x.c_str());
+					CFlyServerJSON::pushError(87, "[UDP]UTF-8 validation failed for received UDP data: ip = " + remoteIp.to_string() + " x = [" + x + "]");
 					continue;
 				}
 				// TODO  respond(AdcCommand(x.substr(0, x.length()-1)));

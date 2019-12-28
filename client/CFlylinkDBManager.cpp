@@ -5229,7 +5229,6 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 		if (l_status.IsIOError() || l_status.IsCorruption())
 		{
 			LogManager::message("[CFlyLevelDB::open_level_db] l_status.IsIOError() || l_status.IsCorruption() = " + l_result_error, true);
-			//dcassert(0);
 			const StringList l_delete_file = File::findFiles(p_db_name + '\\', "*.*");
 			unsigned l_count_delete_error = 0;
 			for (auto i = l_delete_file.cbegin(); i != l_delete_file.cend(); ++i)
@@ -5240,6 +5239,7 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 						if (!File::deleteFile(*i))
 						{
 							++l_count_delete_error;
+                            dcassert(0);
 							LogManager::message("[CFlyLevelDB::open_level_db] error delete corrupt leveldb file  = " + *i, true);
 						}
 						else

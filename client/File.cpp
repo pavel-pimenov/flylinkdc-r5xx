@@ -605,7 +605,10 @@ StringList File::findFiles(const string& path, const string& pattern, bool p_app
 		{
 			const char* extra = (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? "\\" : "";
 			const string l_name = Text::fromT(data.cFileName);
-			appendToRet(ret, l_name, extra);
+            if (l_name != "." && l_name != "..")
+            {
+                appendToRet(ret, l_name, extra);
+            }
 		}
 		while (FindNextFile(hFind, &data));
 		FindClose(hFind);
