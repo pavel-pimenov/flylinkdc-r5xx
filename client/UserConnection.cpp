@@ -342,6 +342,15 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 	{
 		fly_fire1(UserConnectionListener::GetListLength(), this);
 	}
+    else if (cmd == "UGetBlock" || cmd == "GetBlock" || cmd == "UGetZBlock") 
+    {
+    // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1684
+    /*
+    DC supported the feature XMLBZList and the commands $GetBlock, $UGetBlock and $UGetZBlock in versions 0.307 to 0.695. 
+    DC dropped support for the commands in version 0.696, whilst not removing the feature announcement. I.e., 
+    DC++ signals in the $Supports XMLBzList while it does not support the actual commands.
+    */
+    }
 	else
 	{
 		if (getUser() && aLine.length() < 255)
