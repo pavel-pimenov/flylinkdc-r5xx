@@ -5221,44 +5221,24 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 		}
 		l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db, l_count_files, l_size_files);
 	}
-	dcassert(l_count_files != 0);
+	//dcassert(l_count_files != 0);
 	if (!l_status.ok())
 	{
+        dcassert(0);
 		const auto l_result_error = l_status.ToString();
 		Util::setRegistryValueString(FLYLINKDC_REGISTRY_LEVELDB_ERROR, Text::toT(l_result_error));
 		if (l_status.IsIOError() || l_status.IsCorruption())
 		{
 			LogManager::message("[CFlyLevelDB::open_level_db] l_status.IsIOError() || l_status.IsCorruption() = " + l_result_error, true);
-			const StringList l_delete_file = File::findFiles(p_db_name + '\\', "*.*");
-			unsigned l_count_delete_error = 0;
-			for (auto i = l_delete_file.cbegin(); i != l_delete_file.cend(); ++i)
+            File::deleteFiles(p_db_name, "\\*.*");
+			l_count_files = 0;
+			l_size_files = 0;
+			// Create new leveldb-database
+			l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db, l_count_files, l_size_files);
+			if (l_status.ok())
 			{
-				if (i->size())
-					if ((*i)[i->size() - 1] != '\\')
-					{
-						if (!File::deleteFile(*i))
-						{
-							++l_count_delete_error;
-                            dcassert(0);
-							LogManager::message("[CFlyLevelDB::open_level_db] error delete corrupt leveldb file  = " + *i, true);
-						}
-						else
-						{
-							LogManager::message("[CFlyLevelDB::open_level_db] OK delete corrupt leveldb file  = " + *i, true);
-						}
-					}
-			}
-			if (l_count_delete_error == 0)
-			{
-				l_count_files = 0;
-				l_size_files = 0;
-				// Create new leveldb-database
-				l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db, l_count_files, l_size_files);
-				if (l_status.ok())
-				{
 					LogManager::message("[CFlyLevelDB::open_level_db] OK Create new leveldb database: " + p_db_name, true);
 					p_is_destroy = true;
-				}
 			}
 			// most likely there's another instance running or the permissions are wrong
 //			messageF(STRING_F(DB_OPEN_FAILED_IO, getNameLower() % Text::toUtf8(ret.ToString()) % APPNAME % dbPath % APPNAME), false, true);

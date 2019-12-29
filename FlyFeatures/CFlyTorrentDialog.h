@@ -142,7 +142,7 @@ private:
                 // TODO http://forums.codeguru.com/showthread.php?170637-How-to-run-a-very-long-SQL-statement
                 if (htItemClicked == m_htiRoot)
                 {
-                    const bool l_state_root = m_ctrlTree.GetCheckState(m_htiRoot);
+                    const BOOL l_state_root = m_ctrlTree.GetCheckState(m_htiRoot);
                     for (HTREEITEM child = m_ctrlTree.GetChildItem(m_htiRoot); child != NULL; child = m_ctrlTree.GetNextSiblingItem(child))
                     {
                         //const bool l_state = m_ctrlTree.GetCheckState(child);
@@ -245,7 +245,7 @@ private:
                 for (HTREEITEM child = m_ctrlTree.GetChildItem(m_htiRoot); child != NULL; child = m_ctrlTree.GetNextSiblingItem(child))
                 {
                     const int l_index = (int)m_ctrlTree.GetItemData(child);
-                    const bool l_state = m_ctrlTree.GetCheckState(child);
+                    const BOOL l_state = m_ctrlTree.GetCheckState(child);
 					dcassert(l_index < m_selected_files.size());
 					if (l_index < m_selected_files.size())
 					{

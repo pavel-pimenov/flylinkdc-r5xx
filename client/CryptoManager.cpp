@@ -508,7 +508,9 @@ void CryptoManager::loadCertificates() noexcept {
 		    SSL_CTX_load_verify_locations(clientALPNContext, i.c_str(), NULL) != SSL_SUCCESS ||
 		    SSL_CTX_load_verify_locations(serverContext, i.c_str(), NULL) != SSL_SUCCESS ||
 		    SSL_CTX_load_verify_locations(serverALPNContext, i.c_str(), NULL) != SSL_SUCCESS
-		) {
+		) 
+        {
+            dcassert(0);
 			LogManager::message("Failed to load trusted certificate from " + Util::addBrackets(i), LogMessage::SEV_WARNING);
 		}
 	}

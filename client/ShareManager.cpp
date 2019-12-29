@@ -1885,7 +1885,7 @@ void ShareManager::generateXmlList()
 		m_lastXmlUpdate = GET_TICK();
 		
 		l_creation_log.step("Clean old cache");
-		const StringList& l_ToDelete = File::findFiles(Util::getConfigPath(), "files*.xml.bz2", false);
+		const StringList l_ToDelete = File::findFiles(Util::getConfigPath(), "files*.xml.bz2", false);
 		const auto l_bz_xml_file = getBZXmlFile();
 		const auto l_def_bz_xml_file = getDefaultBZXmlFile();
 		for (auto i = l_ToDelete.cbegin(); i != l_ToDelete.cend(); ++i)

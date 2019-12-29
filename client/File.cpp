@@ -317,6 +317,7 @@ bool File::deleteFileT(const tstring& aFileName) noexcept
 	const auto l_result_delete = ::DeleteFile(formatPath(aFileName).c_str()) != NULL;
 	if (l_result_delete == false)
 	{
+        dcassert(l_result_delete == true);
 #ifndef _CONSOLE
 		const string l_error = "Error delete file: " + Text::fromT(aFileName) + " code:" + Util::toString(GetLastError());
 		LogManager::message(l_error);
@@ -343,6 +344,7 @@ bool File::renameFile(const tstring& p_source, const tstring& p_target)
 		}
 		catch (FileException & e)
 		{
+            dcassert(0);
 #ifndef _CONSOLE
 			l_log.log("Error copy file: " + e.getError());
 #endif
@@ -581,6 +583,38 @@ uint64_t File::calcFilesSize(const string& path, const string& pattern)
 	}
 	return l_size;
 }
+
+void File::deleteFiles(const string& path, const string& pattern)
+{
+    WIN32_FIND_DATAA find_data;
+    HANDLE hFind = FindFirstFileA(string(path + pattern).c_str(), &find_data);
+    if (hFind != INVALID_HANDLE_VALUE)
+    {
+        do
+        {
+            const string l_name = find_data.cFileName;
+            if (l_name != "." && l_name != "..")
+            {
+                const string l_file_path = formatPath(path + "\\" + l_name);
+                const auto l_result_delete = ::DeleteFileA(l_file_path.c_str()) != NULL;
+                if (l_result_delete == false)
+                {
+                    dcassert(l_result_delete == true);
+#ifndef _CONSOLE
+                    const string l_error = "Error deleteFiles: " + l_file_path + " code:" + Util::toString(GetLastError());
+                    LogManager::message(l_error);
+#endif
+                }
+            }
+        } while (FindNextFileA(hFind, &find_data));
+        FindClose(hFind);
+    }
+    else
+    {
+        const string l_error = Util::translateError();
+        LogManager::message("File::deleteFiles error [" + path + "] code:" + l_error);
+    }
+}
 StringList File::findFiles(const string& path, const string& pattern, bool p_append_path /*= true */)
 {
 	StringList ret;
@@ -613,6 +647,12 @@ StringList File::findFiles(const string& path, const string& pattern, bool p_app
 		while (FindNextFile(hFind, &data));
 		FindClose(hFind);
 	}
+    else
+    {
+        dcassert(0);
+        const string l_error = Util::translateError();
+        LogManager::message("File::findFiles error [" + path + "] code:" + l_error);
+    }
 	return ret;
 }
 
