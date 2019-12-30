@@ -2383,8 +2383,8 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 			if (!l_resume.empty())
 			{
 				libtorrent::error_code ec;
-                libtorrent::add_torrent_params p = libtorrent::read_resume_data({ (const char*)l_resume.data(), int(l_resume.size()) }, ec);
-                if (ec)
+				libtorrent::add_torrent_params p = libtorrent::read_resume_data({ (const char*)l_resume.data(), int(l_resume.size()) }, ec);
+				if (ec)
 				{
 					LogManager::message("failed to load resume data: " + ec.message());
 				}
@@ -5223,21 +5223,21 @@ bool CFlyLevelDB::open_level_db(const string& p_db_name, bool& p_is_destroy)
 	//dcassert(l_count_files != 0);
 	if (!l_status.ok())
 	{
-        dcassert(0);
+		dcassert(0);
 		const auto l_result_error = l_status.ToString();
 		Util::setRegistryValueString(FLYLINKDC_REGISTRY_LEVELDB_ERROR, Text::toT(l_result_error));
 		if (l_status.IsIOError() || l_status.IsCorruption())
 		{
 			LogManager::message("[CFlyLevelDB::open_level_db] l_status.IsIOError() || l_status.IsCorruption() = " + l_result_error, true);
-            File::deleteFiles(p_db_name, "\\*.*");
+			File::deleteFiles(p_db_name, "\\*.*");
 			l_count_files = 0;
 			l_size_files = 0;
 			// Create new leveldb-database
 			l_status = leveldb::DB::Open(m_options, p_db_name, &m_level_db, l_count_files, l_size_files);
 			if (l_status.ok())
 			{
-					LogManager::message("[CFlyLevelDB::open_level_db] OK Create new leveldb database: " + p_db_name, true);
-					p_is_destroy = true;
+				LogManager::message("[CFlyLevelDB::open_level_db] OK Create new leveldb database: " + p_db_name, true);
+				p_is_destroy = true;
 			}
 			// most likely there's another instance running or the permissions are wrong
 //			messageF(STRING_F(DB_OPEN_FAILED_IO, getNameLower() % Text::toUtf8(ret.ToString()) % APPNAME % dbPath % APPNAME), false, true);

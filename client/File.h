@@ -166,7 +166,7 @@ class File : public IOStream
 			write((void*)aString.data(), aString.size());
 		}
 		static StringList findFiles(const string& path, const string& pattern, bool p_append_path = true);
-        static void deleteFiles(const string& path, const string& pattern);
+		static void deleteFiles(const string& path, const string& pattern);
 		static uint64_t calcFilesSize(const string& path, const string& pattern);
 		static uint64_t currentTime();
 		

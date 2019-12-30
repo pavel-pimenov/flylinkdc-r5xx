@@ -1616,10 +1616,10 @@ void DownloadManager::init_torrent(bool p_is_force)
 			m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TCP_PORT), SETTING(TCP_PORT));
 			m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TLS_PORT), SETTING(TLS_PORT));
 			m_torrent_session->add_port_mapping(lt::session::udp, SETTING(UDP_PORT), SETTING(UDP_PORT));
-            m_maping_index[0] = lt::port_mapping_t(1);
-            m_maping_index[1] = lt::port_mapping_t(1);
-            m_maping_index[2] = lt::port_mapping_t(1);
-        }
+			m_maping_index[0] = lt::port_mapping_t(1);
+			m_maping_index[1] = lt::port_mapping_t(1);
+			m_maping_index[2] = lt::port_mapping_t(1);
+		}
 		else
 		{
 			m_maping_index[0] = lt::port_mapping_t(-1);
