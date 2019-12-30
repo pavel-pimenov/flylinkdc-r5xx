@@ -1,6 +1,8 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2013, 2015-2019, Arvid Norberg
+Copyright (c) 2016, Steven Siloti
+Copyright (c) 2016-2018, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,14 +36,16 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_BROADCAST_SOCKET_HPP_INCLUDED
 
 #include "libtorrent/config.hpp"
-#include "libtorrent/io_service_fwd.hpp"
+#include "libtorrent/io_context.hpp"
 #include "libtorrent/socket.hpp"
 #include "libtorrent/address.hpp"
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/string_view.hpp"
+#include "libtorrent/span.hpp"
 
 #include <memory>
 #include <list>
+#include <array>
 
 namespace libtorrent {
 
@@ -52,20 +56,32 @@ namespace libtorrent {
 	TORRENT_EXTRA_EXPORT bool is_teredo(address const& addr);
 	TORRENT_EXTRA_EXPORT bool is_ip_address(std::string const& host);
 
+	// TODO: refactor these out too
+	template <typename Endpoint>
+	bool is_v4(Endpoint const& ep)
+	{
+		return ep.protocol() == Endpoint::protocol_type::v4();
+	}
+	template <typename Endpoint>
+	bool is_v6(Endpoint const& ep)
+	{
+		return ep.protocol() == Endpoint::protocol_type::v6();
+	}
+
 	// determines if the operating system supports IPv6
 	TORRENT_EXTRA_EXPORT bool supports_ipv6();
 	address ensure_v6(address const& a);
 
-	typedef std::function<void(udp::endpoint const& from
-		, char* buffer, int size)> receive_handler_t;
+	using receive_handler_t = std::function<void(udp::endpoint const& from
+		, span<char const> buffer)>;
 
 	class TORRENT_EXTRA_EXPORT broadcast_socket
 	{
 	public:
-		explicit broadcast_socket(udp::endpoint const& multicast_endpoint);
+		explicit broadcast_socket(udp::endpoint multicast_endpoint);
 		~broadcast_socket() { close(); }
 
-		void open(receive_handler_t const& handler, io_service& ios
+		void open(receive_handler_t handler, io_context& ios
 			, error_code& ec, bool loopback = true);
 
 		enum flags_t { flag_broadcast = 1 };
@@ -73,19 +89,18 @@ namespace libtorrent {
 
 		void close();
 		int num_send_sockets() const { return int(m_unicast_sockets.size()); }
-		void enable_ip_broadcast(bool e);
 
 	private:
 
 		struct socket_entry
 		{
-			explicit socket_entry(std::shared_ptr<udp::socket> const& s)
-				: socket(s), broadcast(false) { std::memset(buffer, 0, sizeof(buffer)); }
-			socket_entry(std::shared_ptr<udp::socket> const& s
-				, address_v4 const& mask): socket(s), netmask(mask), broadcast(false)
-			{ std::memset(buffer, 0, sizeof(buffer)); }
+			explicit socket_entry(std::shared_ptr<udp::socket> s)
+				: socket(std::move(s)), broadcast(false) {}
+			socket_entry(std::shared_ptr<udp::socket> s
+				, address_v4 const& mask): socket(std::move(s)), netmask(mask), broadcast(false)
+			{}
 			std::shared_ptr<udp::socket> socket;
-			char buffer[1500];
+			std::array<char, 1500> buffer{};
 			udp::endpoint remote;
 			address_v4 netmask;
 			bool broadcast;
@@ -100,20 +115,20 @@ namespace libtorrent {
 				error_code ec;
 				return broadcast
 					&& netmask != address_v4()
-					&& socket->local_endpoint(ec).address().is_v4();
+					&& is_v4(socket->local_endpoint(ec));
 			}
 			address_v4 broadcast_address() const
 			{
 				error_code ec;
-				return address_v4::broadcast(socket->local_endpoint(ec).address().to_v4(), netmask);
+				return make_network_v4(socket->local_endpoint(ec).address().to_v4(), netmask).broadcast();
 			}
 		};
 
 		void on_receive(socket_entry* s, error_code const& ec
 			, std::size_t bytes_transferred);
-		void open_unicast_socket(io_service& ios, address const& addr
+		void open_unicast_socket(io_context& ios, address const& addr
 			, address_v4 const& mask);
-		void open_multicast_socket(io_service& ios, address const& addr
+		void open_multicast_socket(io_context& ios, address const& addr
 			, bool loopback, error_code& ec);
 
 		// if we're aborting, destruct the handler and return true

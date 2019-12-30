@@ -1,6 +1,7 @@
 /*
 
-Copyright (c) 2013-2016, Arvid Norberg
+Copyright (c) 2010, 2014-2017, 2019, Arvid Norberg
+Copyright (c) 2017, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -41,7 +42,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 
 #include "libtorrent/error_code.hpp"
-#include "libtorrent/io_service.hpp"
+#include "libtorrent/io_context.hpp"
 #include "libtorrent/socket.hpp"
 #include "libtorrent/resolver_interface.hpp"
 #include "libtorrent/address.hpp"
@@ -50,7 +51,7 @@ namespace libtorrent {
 
 struct TORRENT_EXTRA_EXPORT resolver final : resolver_interface
 {
-	explicit resolver(io_service& ios);
+	explicit resolver(io_context& ios);
 
 	void async_resolve(std::string const& host, resolver_flags flags
 		, callback_t const& h) override;
@@ -61,8 +62,11 @@ struct TORRENT_EXTRA_EXPORT resolver final : resolver_interface
 
 private:
 
-	void on_lookup(error_code const& ec, tcp::resolver::iterator i
-		, resolver_interface::callback_t h, std::string hostname);
+	void on_lookup(error_code const& ec, tcp::resolver::results_type ips
+		, resolver_interface::callback_t const& h, std::string const& hostname);
+
+	void callback(resolver_interface::callback_t const& h
+		, error_code const& ec, std::vector<address> const& ips);
 
 	struct dns_cache_entry
 	{
@@ -71,7 +75,7 @@ private:
 	};
 
 	std::unordered_map<std::string, dns_cache_entry> m_cache;
-	io_service& m_ios;
+	io_context& m_ios;
 
 	// all lookups in this resolver are aborted on shutdown.
 	tcp::resolver m_resolver;

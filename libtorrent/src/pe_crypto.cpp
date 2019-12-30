@@ -1,6 +1,10 @@
 /*
 
-Copyright (c) 2007-2016, Un Shyam, Arvid Norberg, Steven Siloti
+Copyright (c) 2007, Un Shyam
+Copyright (c) 2011, 2014-2019, Arvid Norberg
+Copyright (c) 2016, 2018, Steven Siloti
+Copyright (c) 2016, Andrei Kurushin
+Copyright (c) 2016-2018, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,7 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
+#if !defined TORRENT_DISABLE_ENCRYPTION
 
 #include <cstdint>
 #include <algorithm>
@@ -67,7 +71,7 @@ namespace libtorrent {
 	std::array<char, 96> export_key(key_t const& k)
 	{
 		std::array<char, 96> ret;
-		std::uint8_t* begin = reinterpret_cast<std::uint8_t*>(ret.data());
+		auto* begin = reinterpret_cast<std::uint8_t*>(ret.data());
 		std::uint8_t* end = mp::export_bits(k, begin, 8);
 
 		// TODO: it would be nice to be able to export to a fixed width field, so
@@ -87,8 +91,9 @@ namespace libtorrent {
 	// Set the prime P and the generator, generate local public key
 	dh_key_exchange::dh_key_exchange()
 	{
-		std::array<std::uint8_t, 96> random_key;
-		aux::random_bytes({reinterpret_cast<char*>(random_key.data()), random_key.size()});
+		aux::array<std::uint8_t, 96> random_key;
+		aux::random_bytes({reinterpret_cast<char*>(random_key.data())
+			, static_cast<std::ptrdiff_t>(random_key.size())});
 
 		// create local key (random)
 		mp::import_bits(m_dh_local_secret, random_key.begin(), random_key.end());
@@ -135,15 +140,15 @@ namespace libtorrent {
 			TORRENT_ALLOCA(abufs, span<char>, iovec.size());
 			bufs = abufs;
 			need_destruct = true;
-			size_t num_bufs = 0;
-			for (std::size_t i = 0; to_process > 0 && i < iovec.size(); ++i)
+			int num_bufs = 0;
+			for (int i = 0; to_process > 0 && i < iovec.size(); ++i)
 			{
 				++num_bufs;
 				int const size = int(iovec[i].size());
 				if (to_process < size)
 				{
 					new (&bufs[i]) span<char>(
-						iovec[i].data(), aux::numeric_cast<std::size_t>(to_process));
+						iovec[i].data(), to_process);
 					to_process = 0;
 				}
 				else
@@ -161,7 +166,7 @@ namespace libtorrent {
 
 		int next_barrier = 0;
 		span<span<char const>> out_iovec;
-		if (bufs.size() != 0)
+		if (!bufs.empty())
 		{
 			std::tie(next_barrier, out_iovec)
 				= m_send_barriers.front().enc_handler->encrypt(bufs);
@@ -209,14 +214,14 @@ namespace libtorrent {
 		return std::make_tuple(next_barrier, out_iovec);
 	}
 
-	int encryption_handler::decrypt(crypto_receive_buffer& recv_buffer
+	int encryption_handler::decrypt(aux::crypto_receive_buffer& recv_buffer
 		, std::size_t& bytes_transferred)
 	{
 		TORRENT_ASSERT(!is_recv_plaintext());
 		int consume = 0;
 		if (recv_buffer.crypto_packet_finished())
 		{
-			span<char> wr_buf = recv_buffer.mutable_buffer(bytes_transferred);
+			span<char> wr_buf = recv_buffer.mutable_buffer(int(bytes_transferred));
 			int produce = 0;
 			int packet_size = 0;
 			std::tie(consume, produce, packet_size) = m_dec_handler->decrypt(wr_buf);
@@ -238,9 +243,8 @@ namespace libtorrent {
 		bool place_barrier = false;
 		if (!m_send_barriers.empty())
 		{
-			std::list<barrier>::iterator end = m_send_barriers.end(); --end;
-			for (std::list<barrier>::iterator b = m_send_barriers.begin();
-				b != end; ++b)
+			auto const end = std::prev(m_send_barriers.end());
+			for (auto b = m_send_barriers.begin(); b != end; ++b)
 				pending_encryption -= b->next;
 			TORRENT_ASSERT(pending_encryption >= 0);
 			m_send_barriers.back().next = pending_encryption;
@@ -255,7 +259,7 @@ namespace libtorrent {
 	}
 
 	void encryption_handler::switch_recv_crypto(std::shared_ptr<crypto_plugin> crypto
-		, crypto_receive_buffer& recv_buffer)
+		, aux::crypto_receive_buffer& recv_buffer)
 	{
 		m_dec_handler = crypto;
 		int packet_size = 0;
@@ -286,7 +290,7 @@ namespace libtorrent {
 	{
 		m_decrypt = true;
 		rc4_init(reinterpret_cast<unsigned char const*>(key.data())
-			, key.size(), &m_rc4_incoming);
+			, std::size_t(key.size()), &m_rc4_incoming);
 		// Discard first 1024 bytes
 		char buf[1024];
 		span<char> vec(buf, sizeof(buf));
@@ -297,7 +301,7 @@ namespace libtorrent {
 	{
 		m_encrypt = true;
 		rc4_init(reinterpret_cast<unsigned char const*>(key.data())
-			, key.size(), &m_rc4_outgoing);
+			, std::size_t(key.size()), &m_rc4_outgoing);
 		// Discard first 1024 bytes
 		char buf[1024];
 		span<char> vec(buf, sizeof(buf));
@@ -309,12 +313,12 @@ namespace libtorrent {
 	{
 		span<span<char const>> empty;
 		if (!m_encrypt) return std::make_tuple(0, empty);
-		if (bufs.size() == 0) return std::make_tuple(0, empty);
+		if (bufs.empty()) return std::make_tuple(0, empty);
 
 		int bytes_processed = 0;
 		for (auto& buf : bufs)
 		{
-			unsigned char* const pos = reinterpret_cast<unsigned char*>(buf.data());
+			auto* const pos = reinterpret_cast<unsigned char*>(buf.data());
 			int const len = int(buf.size());
 
 			TORRENT_ASSERT(len >= 0);
@@ -333,7 +337,7 @@ namespace libtorrent {
 		int bytes_processed = 0;
 		for (auto& buf : bufs)
 		{
-			unsigned char* const pos = reinterpret_cast<unsigned char*>(buf.data());
+			auto* const pos = reinterpret_cast<unsigned char*>(buf.data());
 			int const len = int(buf.size());
 
 			TORRENT_ASSERT(len >= 0);
@@ -412,4 +416,4 @@ std::size_t rc4_encrypt(unsigned char *out, std::size_t outlen, rc4 *state)
 
 } // namespace libtorrent
 
-#endif // #if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
+#endif // TORRENT_DISABLE_ENCRYPTION

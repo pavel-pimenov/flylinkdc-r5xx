@@ -1,6 +1,8 @@
 /*
 
-Copyright (c) 2009-2016, Arvid Norberg
+Copyright (c) 2009-2019, Arvid Norberg
+Copyright (c) 2016, Steven Siloti
+Copyright (c) 2016, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,8 +33,9 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "libtorrent/config.hpp"
-#include "libtorrent/socket_type.hpp"
+#include "libtorrent/aux_/socket_type.hpp"
 #include "libtorrent/aux_/openssl.hpp"
+#include "libtorrent/aux_/array.hpp"
 
 #ifdef TORRENT_USE_OPENSSL
 #include <boost/asio/ssl/context.hpp>
@@ -44,248 +47,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	bool is_ssl(socket_type const& s)
+	char const* socket_type_name(socket_type_t const s)
 	{
-#ifdef TORRENT_USE_OPENSSL
-#define CASE(t) case socket_type_int_impl<ssl_stream<t>>::value:
-		switch (s.type())
-		{
-			CASE(tcp::socket)
-			CASE(socks5_stream)
-			CASE(http_stream)
-			CASE(utp_stream)
-				return true;
-			default: return false;
-		};
-#undef CASE
-#else
-		TORRENT_UNUSED(s);
-		return false;
-#endif
-	}
-
-	bool is_utp(socket_type const& s)
-	{
-		return s.get<utp_stream>() != nullptr
-#ifdef TORRENT_USE_OPENSSL
-			|| s.get<ssl_stream<utp_stream>>() != nullptr
-#endif
-			;
-	}
-
-#if TORRENT_USE_I2P
-	bool is_i2p(socket_type const& s)
-	{
-		return s.get<i2p_stream>() != nullptr
-#ifdef TORRENT_USE_OPENSSL
-			|| s.get<ssl_stream<i2p_stream>>() != nullptr
-#endif
-			;
-	}
-#endif
-
-	void setup_ssl_hostname(socket_type& s, std::string const& hostname, error_code& ec)
-	{
-#if defined TORRENT_USE_OPENSSL
-#ifdef TORRENT_MACOS_DEPRECATED_LIBCRYPTO
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-#endif
-		// for SSL connections, make sure to authenticate the hostname
-		// of the certificate
-#define CASE(t) case socket_type_int_impl<ssl_stream<t>>::value: \
-		s.get<ssl_stream<t>>()->set_verify_callback( \
-			boost::asio::ssl::rfc2818_verification(hostname), ec); \
-		ssl = s.get<ssl_stream<t>>()->native_handle(); \
-		ctx = SSL_get_SSL_CTX(ssl); \
-		break;
-
-		SSL* ssl = nullptr;
-		SSL_CTX* ctx = nullptr;
-
-		switch(s.type())
-		{
-			CASE(tcp::socket)
-			CASE(socks5_stream)
-			CASE(http_stream)
-			CASE(utp_stream)
-		}
-#undef CASE
-
-#if OPENSSL_VERSION_NUMBER >= 0x90812f
-		if (ctx)
-		{
-			aux::openssl_set_tlsext_servername_callback(ctx, nullptr);
-			aux::openssl_set_tlsext_servername_arg(ctx, nullptr);
-		}
-#endif // OPENSSL_VERSION_NUMBER
-
-#ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
-		if (ssl)
-		{
-			aux::openssl_set_tlsext_hostname(ssl, hostname.c_str());
-		}
-#endif
-
-#else
-		TORRENT_UNUSED(ec);
-		TORRENT_UNUSED(hostname);
-		TORRENT_UNUSED(s);
-#endif
-#ifdef TORRENT_MACOS_DEPRECATED_LIBCRYPTO
-#pragma clang diagnostic pop
-#endif
-	}
-
-#ifdef TORRENT_USE_OPENSSL
-	namespace {
-
-	void on_close_socket(socket_type* s, std::shared_ptr<void>)
-	{
-		COMPLETE_ASYNC("on_close_socket");
-		error_code ec;
-		s->close(ec);
-	}
-
-	} // anonymous namespace
-#endif
-
-	// the second argument is a shared pointer to an object that
-	// will keep the socket (s) alive for the duration of the async operation
-	void async_shutdown(socket_type& s, std::shared_ptr<void> holder)
-	{
-		error_code e;
-
-#ifdef TORRENT_USE_OPENSSL
-		// for SSL connections, first do an async_shutdown, before closing the socket
-#if defined TORRENT_ASIO_DEBUGGING
-#define MAYBE_ASIO_DEBUGGING add_outstanding_async("on_close_socket");
-#else
-#define MAYBE_ASIO_DEBUGGING
-#endif
-
-#define CASE(t) case socket_type_int_impl<ssl_stream<t>>::value: \
-	MAYBE_ASIO_DEBUGGING \
-	s.get<ssl_stream<t>>()->async_shutdown(std::bind(&on_close_socket, &s, holder)); \
-	break;
-
-		switch (s.type())
-		{
-			CASE(tcp::socket)
-			CASE(socks5_stream)
-			CASE(http_stream)
-			CASE(utp_stream)
-			default: s.close(e); break;
-		}
-#undef CASE
-#else
-		TORRENT_UNUSED(holder);
-		s.close(e);
-#endif // TORRENT_USE_OPENSSL
-	}
-
-	void socket_type::destruct()
-	{
-		typedef tcp::socket tcp_socket;
-		switch (m_type)
-		{
-			case 0: break;
-			case socket_type_int_impl<tcp::socket>::value:
-				get<tcp::socket>()->~tcp_socket();
-				break;
-			case socket_type_int_impl<socks5_stream>::value:
-				get<socks5_stream>()->~socks5_stream();
-				break;
-			case socket_type_int_impl<http_stream>::value:
-				get<http_stream>()->~http_stream();
-				break;
-			case socket_type_int_impl<utp_stream>::value:
-				get<utp_stream>()->~utp_stream();
-				break;
-#if TORRENT_USE_I2P
-			case socket_type_int_impl<i2p_stream>::value:
-				get<i2p_stream>()->~i2p_stream();
-				break;
-#endif
-#ifdef TORRENT_USE_OPENSSL
-			case socket_type_int_impl<ssl_stream<tcp::socket>>::value:
-				get<ssl_stream<tcp::socket>>()->~ssl_stream();
-				break;
-			case socket_type_int_impl<ssl_stream<socks5_stream>>::value:
-				get<ssl_stream<socks5_stream>>()->~ssl_stream();
-				break;
-			case socket_type_int_impl<ssl_stream<http_stream>>::value:
-				get<ssl_stream<http_stream>>()->~ssl_stream();
-				break;
-			case socket_type_int_impl<ssl_stream<utp_stream>>::value:
-				get<ssl_stream<utp_stream>>()->~ssl_stream();
-				break;
-#endif
-			default: TORRENT_ASSERT_FAIL();
-		}
-		m_type = 0;
-	}
-
-	void socket_type::construct(int type, void* userdata)
-	{
-#ifndef TORRENT_USE_OPENSSL
-		TORRENT_UNUSED(userdata);
-#endif
-
-		destruct();
-		switch (type)
-		{
-			case 0: break;
-			case socket_type_int_impl<tcp::socket>::value:
-				new (reinterpret_cast<tcp::socket*>(&m_data)) tcp::socket(m_io_service);
-				break;
-			case socket_type_int_impl<socks5_stream>::value:
-				new (reinterpret_cast<socks5_stream*>(&m_data)) socks5_stream(m_io_service);
-				break;
-			case socket_type_int_impl<http_stream>::value:
-				new (reinterpret_cast<http_stream*>(&m_data)) http_stream(m_io_service);
-				break;
-			case socket_type_int_impl<utp_stream>::value:
-				new (reinterpret_cast<utp_stream*>(&m_data)) utp_stream(m_io_service);
-				break;
-#if TORRENT_USE_I2P
-			case socket_type_int_impl<i2p_stream>::value:
-				new (reinterpret_cast<i2p_stream*>(&m_data)) i2p_stream(m_io_service);
-				break;
-#endif
-#ifdef TORRENT_USE_OPENSSL
-			case socket_type_int_impl<ssl_stream<tcp::socket>>::value:
-				TORRENT_ASSERT(userdata);
-				new (reinterpret_cast<ssl_stream<tcp::socket>*>(&m_data)) ssl_stream<tcp::socket>(m_io_service
-					, *static_cast<ssl::context*>(userdata));
-				break;
-			case socket_type_int_impl<ssl_stream<socks5_stream>>::value:
-				TORRENT_ASSERT(userdata);
-				new (reinterpret_cast<ssl_stream<socks5_stream>*>(&m_data)) ssl_stream<socks5_stream>(m_io_service
-					, *static_cast<ssl::context*>(userdata));
-				break;
-			case socket_type_int_impl<ssl_stream<http_stream>>::value:
-				TORRENT_ASSERT(userdata);
-				new (reinterpret_cast<ssl_stream<http_stream>*>(&m_data)) ssl_stream<http_stream>(m_io_service
-					, *static_cast<ssl::context*>(userdata));
-				break;
-			case socket_type_int_impl<ssl_stream<utp_stream>>::value:
-				TORRENT_ASSERT(userdata);
-				new (reinterpret_cast<ssl_stream<utp_stream>*>(&m_data)) ssl_stream<utp_stream>(m_io_service
-					, *static_cast<ssl::context*>(userdata));
-				break;
-#endif
-			default: TORRENT_ASSERT_FAIL();
-		}
-
-		m_type = type;
-	}
-
-	char const* socket_type::type_name() const
-	{
-		static char const* const names[] =
-		{
-			"uninitialized",
+		static aux::array<char const*, 9, socket_type_t> const names{{
 			"TCP",
 			"Socks5",
 			"HTTP",
@@ -303,96 +67,208 @@ namespace libtorrent {
 #else
 			"","","",""
 #endif
-		};
-		return names[m_type];
+		}};
+		return names[s];
 	}
 
-	io_service& socket_type::get_io_service() const
-	{ return m_io_service; }
+namespace aux {
 
-	socket_type::~socket_type()
-	{ destruct(); }
-
-	bool socket_type::is_open() const
-	{
-		if (m_type == 0) return false;
-		TORRENT_SOCKTYPE_FORWARD_RET(is_open(), false)
-	}
-
-	void socket_type::open(protocol_type const& p, error_code& ec)
-	{ TORRENT_SOCKTYPE_FORWARD(open(p, ec)) }
-
-	void socket_type::close(error_code& ec)
-	{
-		if (m_type == 0) return;
-		TORRENT_SOCKTYPE_FORWARD(close(ec))
-	}
-
-	void socket_type::set_close_reason(close_reason_t code)
-	{
-		switch (m_type)
-		{
-			case socket_type_int_impl<utp_stream>::value:
-				get<utp_stream>()->set_close_reason(code);
-				break;
+	struct is_ssl_visitor {
 #ifdef TORRENT_USE_OPENSSL
-			case socket_type_int_impl<ssl_stream<utp_stream>>::value:
-				get<ssl_stream<utp_stream>>()->lowest_layer().set_close_reason(code);
-				break;
+		template <typename T>
+		bool operator()(ssl_stream<T> const&) const { return true; }
 #endif
-			default: break;
-		}
+		template <typename T>
+		bool operator()(T const&) const { return false; }
+	};
+
+	bool is_ssl(socket_type const& s)
+	{
+		return boost::apply_visitor(is_ssl_visitor{}, s);
 	}
 
-	close_reason_t socket_type::get_close_reason()
+	bool is_utp(socket_type const& s)
 	{
-		switch (m_type)
-		{
-			case socket_type_int_impl<utp_stream>::value:
-				return get<utp_stream>()->get_close_reason();
+		return boost::get<utp_stream>(&s)
 #ifdef TORRENT_USE_OPENSSL
-			case socket_type_int_impl<ssl_stream<utp_stream>>::value:
-				return get<ssl_stream<utp_stream>>()->lowest_layer().get_close_reason();
+			|| boost::get<ssl_stream<utp_stream>>(&s)
 #endif
-			default: return close_reason_t::none;
-		}
+			;
 	}
 
-	socket_type::endpoint_type socket_type::local_endpoint(error_code& ec) const
-	{ TORRENT_SOCKTYPE_FORWARD_RET(local_endpoint(ec), socket_type::endpoint_type()) }
-
-	socket_type::endpoint_type socket_type::remote_endpoint(error_code& ec) const
-	{ TORRENT_SOCKTYPE_FORWARD_RET(remote_endpoint(ec), socket_type::endpoint_type()) }
-
-	void socket_type::bind(endpoint_type const& endpoint, error_code& ec)
-	{ TORRENT_SOCKTYPE_FORWARD(bind(endpoint, ec)) }
-
-	std::size_t socket_type::available(error_code& ec) const
-	{ TORRENT_SOCKTYPE_FORWARD_RET(available(ec), 0) }
-
-	int socket_type::type() const { return m_type; }
-
-#ifndef BOOST_NO_EXCEPTIONS
-	void socket_type::open(protocol_type const& p)
-	{ TORRENT_SOCKTYPE_FORWARD(open(p)) }
-
-	void socket_type::close()
+#if TORRENT_USE_I2P
+	bool is_i2p(socket_type const& s)
 	{
-		if (m_type == 0) return;
-		TORRENT_SOCKTYPE_FORWARD(close())
+		return boost::get<i2p_stream>(&s);
 	}
-
-	socket_type::endpoint_type socket_type::local_endpoint() const
-	{ TORRENT_SOCKTYPE_FORWARD_RET(local_endpoint(), socket_type::endpoint_type()) }
-
-	socket_type::endpoint_type socket_type::remote_endpoint() const
-	{ TORRENT_SOCKTYPE_FORWARD_RET(remote_endpoint(), socket_type::endpoint_type()) }
-
-	void socket_type::bind(endpoint_type const& endpoint)
-	{ TORRENT_SOCKTYPE_FORWARD(bind(endpoint)) }
-
-	std::size_t socket_type::available() const
-	{ TORRENT_SOCKTYPE_FORWARD_RET(available(), 0) }
 #endif
 
+	struct idx_visitor {
+		socket_type_t operator()(tcp::socket const&) { return socket_type_t::tcp; }
+		socket_type_t operator()(socks5_stream const&) { return socket_type_t::socks5; }
+		socket_type_t operator()(http_stream const&) { return socket_type_t::http; }
+		socket_type_t operator()(utp_stream const&) { return socket_type_t::utp; }
+#if TORRENT_USE_I2P
+		socket_type_t operator()(i2p_stream const&) { return socket_type_t::i2p; }
+#endif
+#ifdef TORRENT_USE_OPENSSL
+		socket_type_t operator()(ssl_stream<tcp::socket> const&) { return socket_type_t::tcp_ssl; }
+		socket_type_t operator()(ssl_stream<socks5_stream> const&) { return socket_type_t::socks5_ssl; }
+		socket_type_t operator()(ssl_stream<http_stream> const&) { return socket_type_t::http_ssl; }
+		socket_type_t operator()(ssl_stream<utp_stream> const&) { return socket_type_t::utp_ssl; }
+#endif
+	};
+
+	socket_type_t socket_type_idx(socket_type const& s)
+	{
+		return boost::apply_visitor(idx_visitor{}, s);
+	}
+
+	char const* socket_type_name(socket_type const& s)
+	{
+		return socket_type_name(socket_type_idx(s));
+	}
+
+	struct set_close_reason_visitor {
+		close_reason_t code_;
+#ifdef TORRENT_USE_OPENSSL
+		void operator()(ssl_stream<utp_stream>& s) const
+		{ s.next_layer().set_close_reason(code_); }
+#endif
+		void operator()(utp_stream& s) const
+		{ s.set_close_reason(code_); }
+		template <typename T>
+		void operator()(T const&) const {}
+	};
+
+	void set_close_reason(socket_type& s, close_reason_t code)
+	{
+		boost::apply_visitor(set_close_reason_visitor{code}, s);
+	}
+
+	struct get_close_reason_visitor {
+#ifdef TORRENT_USE_OPENSSL
+		close_reason_t operator()(ssl_stream<utp_stream>& s) const
+		{ return s.next_layer().get_close_reason(); }
+#endif
+		close_reason_t operator()(utp_stream& s) const
+		{ return s.get_close_reason(); }
+		template <typename T>
+		close_reason_t operator()(T const&) const { return close_reason_t::none; }
+	};
+
+	close_reason_t get_close_reason(socket_type const& s)
+	{
+		return boost::apply_visitor(get_close_reason_visitor{}, s);
+	}
+
+#ifdef TORRENT_USE_OPENSSL
+	struct set_ssl_hostname_visitor
+	{
+		set_ssl_hostname_visitor(char const* h, error_code& ec) : hostname_(h), ec_(&ec) {}
+		template <typename T>
+		void operator()(ssl_stream<T>& s)
+		{
+			s.set_verify_callback(boost::asio::ssl::rfc2818_verification(hostname_), *ec_);
+			ssl_ = s.native_handle();
+			ctx_ = SSL_get_SSL_CTX(ssl_);
+		}
+		template <typename T>
+		void operator()(T&) {}
+
+		char const* hostname_;
+		error_code* ec_;
+		SSL* ssl_ = nullptr;
+		SSL_CTX* ctx_ = nullptr;
+	};
+#endif
+
+	void setup_ssl_hostname(socket_type& s, std::string const& hostname, error_code& ec)
+	{
+#ifdef TORRENT_USE_OPENSSL
+		// for SSL connections, make sure to authenticate the hostname
+		// of the certificate
+
+		set_ssl_hostname_visitor visitor{hostname.c_str(), ec};
+		boost::apply_visitor(visitor, s);
+
+		if (visitor.ctx_)
+		{
+			aux::openssl_set_tlsext_servername_callback(visitor.ctx_, nullptr);
+			aux::openssl_set_tlsext_servername_arg(visitor.ctx_, nullptr);
+		}
+
+		if (visitor.ssl_)
+		{
+			aux::openssl_set_tlsext_hostname(visitor.ssl_, hostname.c_str());
+		}
+
+#else
+		TORRENT_UNUSED(ec);
+		TORRENT_UNUSED(hostname);
+		TORRENT_UNUSED(s);
+#endif
+	}
+
+#ifdef TORRENT_USE_OPENSSL
+	namespace {
+
+	void nop(std::shared_ptr<void>) {}
+
+	void on_close_socket(socket_type* s, std::shared_ptr<void>)
+	{
+		COMPLETE_ASYNC("on_close_socket");
+		error_code ec;
+		s->close(ec);
+	}
+
+	} // anonymous namespace
+#endif
+
+#ifdef TORRENT_USE_OPENSSL
+	struct issue_async_shutdown_visitor
+	{
+		issue_async_shutdown_visitor(socket_type* s, std::shared_ptr<void>* h, boost::asio::const_buffer b)
+			: holder_(h), sock_type_(s), buffer_(b) {}
+
+		template <typename T>
+		void operator()(ssl_stream<T>& s)
+		{
+			ADD_OUTSTANDING_ASYNC("on_close_socket");
+			s.async_shutdown(std::bind(&nop, *holder_));
+			s.async_write_some(buffer_, std::bind(&on_close_socket, sock_type_, *holder_));
+		}
+		template <typename T>
+		void operator()(T& s)
+		{
+			error_code e;
+			s.close(e);
+		}
+		std::shared_ptr<void>* holder_;
+		socket_type* sock_type_;
+		boost::asio::const_buffer buffer_;
+	};
+#endif
+
+	// the second argument is a shared pointer to an object that
+	// will keep the socket (s) alive for the duration of the async operation
+	void async_shutdown(socket_type& s, std::shared_ptr<void> holder)
+	{
+#ifdef TORRENT_USE_OPENSSL
+		// for SSL connections, first do an async_shutdown, before closing the socket
+
+		static char const buffer[] = "";
+		// chasing the async_shutdown by a write is a trick to close the socket as
+		// soon as we've sent the close_notify, without having to wait to receive a
+		// response from the other end
+		// https://stackoverflow.com/questions/32046034/what-is-the-proper-way-to-securely-disconnect-an-asio-ssl-socket
+
+		boost::apply_visitor(issue_async_shutdown_visitor{&s, &holder, boost::asio::buffer(buffer)}, s);
+#else
+		TORRENT_UNUSED(holder);
+		error_code e;
+		s.close(e);
+#endif // TORRENT_USE_OPENSSL
+	}
+}
 }

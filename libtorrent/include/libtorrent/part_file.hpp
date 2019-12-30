@@ -1,6 +1,8 @@
 /*
 
-Copyright (c) 2012-2016, Arvid Norberg
+Copyright (c) 2014-2019, Arvid Norberg
+Copyright (c) 2017, Steven Siloti
+Copyright (c) 2018, d-komarov
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,26 +40,30 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <mutex>
 #include <unordered_map>
 #include <cstdint>
+#include <memory>
 
 #include "libtorrent/config.hpp"
 #include "libtorrent/file.hpp"
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/units.hpp"
+#include "libtorrent/hasher.hpp"
+#include "libtorrent/aux_/open_mode.hpp"
 
 namespace libtorrent {
 
-	struct slot_index_tag_t {};
-	using slot_index_t = aux::strong_typedef<int, slot_index_tag_t>;
+	using slot_index_t = aux::strong_typedef<int, struct slot_index_tag_t>;
 
 	struct TORRENT_EXTRA_EXPORT part_file
 	{
 		// create a part file at 'path', that can hold 'num_pieces' pieces.
 		// each piece being 'piece_size' number of bytes
-		part_file(std::string const& path, std::string const& name, int num_pieces, int piece_size);
+		part_file(std::string path, std::string name, int num_pieces, int piece_size);
 		~part_file();
 
 		int writev(span<iovec_t const> bufs, piece_index_t piece, int offset, error_code& ec);
 		int readv(span<iovec_t const> bufs, piece_index_t piece, int offset, error_code& ec);
+		int hashv(hasher& ph, std::ptrdiff_t len, piece_index_t piece, int offset, error_code& ec);
+		int hashv2(hasher256& ph, std::ptrdiff_t len, piece_index_t piece, int offset, error_code& ec);
 
 		// free the slot the given piece is stored in. We no longer need to store this
 		// piece in the part file
@@ -76,11 +82,17 @@ namespace libtorrent {
 
 	private:
 
-		void open_file(open_mode_t mode, error_code& ec);
+		void open_file(aux::open_mode_t mode, error_code& ec);
 		void flush_metadata_impl(error_code& ec);
 
+		std::int64_t slot_offset(slot_index_t const slot) const
+		{ return m_header_size + static_cast<int>(slot) * m_piece_size; }
+
+		template <typename Hasher>
+		int do_hashv(Hasher& ph, std::ptrdiff_t len, piece_index_t piece, int offset, error_code& ec);
+
 		std::string m_path;
-		std::string m_name;
+		std::string const m_name;
 
 		// allocate a slot and return the slot index
 		slot_index_t allocate_slot(piece_index_t piece);
@@ -99,15 +111,15 @@ namespace libtorrent {
 
 		// the max number of pieces in the torrent this part file is
 		// backing
-		int m_max_pieces;
+		int const m_max_pieces;
 
 		// number of bytes each piece contains
-		int m_piece_size;
+		int const m_piece_size;
 
 		// this is the size of the part_file header, it is added
 		// to offsets when calculating the offset to read and write
 		// payload data from
-		int m_header_size;
+		int const m_header_size;
 
 		// if this is true, the metadata in memory has changed since
 		// we last saved or read it from disk. It means that we
@@ -118,7 +130,9 @@ namespace libtorrent {
 		std::unordered_map<piece_index_t, slot_index_t> m_piece_map;
 
 		// this is the file handle to the part file
-		file m_file;
+		// it's allocated on the heap and reference counted, to allow it to be
+		// closed and re-opened while other threads are still using it
+		std::shared_ptr<file> m_file;
 	};
 }
 

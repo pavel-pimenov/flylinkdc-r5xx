@@ -1,6 +1,7 @@
 /*
 
-Copyright (c) 2013-2016, Arvid Norberg
+Copyright (c) 2014-2019, Arvid Norberg
+Copyright (c) 2016, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,25 +34,33 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_PEER_CONNECTION_INTERFACE_HPP
 #define TORRENT_PEER_CONNECTION_INTERFACE_HPP
 
+#include "libtorrent/fwd.hpp"
 #include "libtorrent/socket.hpp"
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/alert_types.hpp"
 #include "libtorrent/operations.hpp" // for operation_t enum
+#include "libtorrent/units.hpp"
 
 namespace libtorrent {
 
 	struct torrent_peer;
 	class stat;
-	struct peer_info;
+
+	using disconnect_severity_t = aux::strong_typedef<std::uint8_t, struct disconnect_severity_tag>;
 
 	// TODO: make this interface smaller!
 	struct TORRENT_EXTRA_EXPORT peer_connection_interface
 	{
+		static constexpr disconnect_severity_t normal{0};
+		static constexpr disconnect_severity_t failure{1};
+		static constexpr disconnect_severity_t peer_error{2};
+
 		virtual tcp::endpoint const& remote() const = 0;
 		virtual tcp::endpoint local_endpoint() const = 0;
 		virtual void disconnect(error_code const& ec
-			, operation_t op, int error = 0) = 0;
+			, operation_t op, disconnect_severity_t = peer_connection_interface::normal) = 0;
 		virtual peer_id const& pid() const = 0;
+		virtual peer_id our_pid() const = 0;
 		virtual void set_holepunch_mode() = 0;
 		virtual torrent_peer* peer_info_struct() const = 0;
 		virtual void set_peer_info(torrent_peer* pi) = 0;

@@ -1,6 +1,8 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2004-2019, Arvid Norberg
+Copyright (c) 2016-2018, Alden Torres
+Copyright (c) 2017, Steven Siloti
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -40,17 +42,14 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/performance_counters.hpp"
 #include "libtorrent/socket_io.hpp"
 
-#ifdef TORRENT_USE_OPENSSL
-#include "libtorrent/aux_/disable_warnings_push.hpp"
-#include <boost/asio/ssl/context.hpp>
-#include "libtorrent/aux_/disable_warnings_pop.hpp"
-#endif
-
 using namespace std::placeholders;
 
 namespace libtorrent {
 
-	timeout_handler::timeout_handler(io_service& ios)
+constexpr tracker_request_flags_t tracker_request::scrape_request;
+constexpr tracker_request_flags_t tracker_request::i2p;
+
+	timeout_handler::timeout_handler(io_context& ios)
 		: m_start_time(clock_type::now())
 		, m_read_time(m_start_time)
 		, m_timeout(ios)
@@ -81,8 +80,7 @@ namespace libtorrent {
 		}
 
 		ADD_OUTSTANDING_ASYNC("timeout_handler::timeout_callback");
-		error_code ec;
-		m_timeout.expires_at(m_read_time + seconds(timeout), ec);
+		m_timeout.expires_at(m_read_time + seconds(timeout));
 		m_timeout.async_wait(std::bind(
 			&timeout_handler::timeout_callback, shared_from_this(), _1));
 #if TORRENT_USE_ASSERTS
@@ -99,8 +97,7 @@ namespace libtorrent {
 	{
 		m_abort = true;
 		m_completion_timeout = 0;
-		error_code ec;
-		m_timeout.cancel(ec);
+		m_timeout.cancel();
 	}
 
 	void timeout_handler::timeout_callback(error_code const& error)
@@ -135,8 +132,7 @@ namespace libtorrent {
 				: std::min(int(m_completion_timeout - total_seconds(m_read_time - m_start_time)), timeout);
 		}
 		ADD_OUTSTANDING_ASYNC("timeout_handler::timeout_callback");
-		error_code ec;
-		m_timeout.expires_at(m_read_time + seconds(timeout), ec);
+		m_timeout.expires_at(m_read_time + seconds(timeout));
 		m_timeout.async_wait(
 			std::bind(&timeout_handler::timeout_callback, shared_from_this(), _1));
 #if TORRENT_USE_ASSERTS
@@ -146,11 +142,11 @@ namespace libtorrent {
 
 	tracker_connection::tracker_connection(
 		tracker_manager& man
-		, tracker_request const& req
-		, io_service& ios
+		, tracker_request req
+		, io_context& ios
 		, std::weak_ptr<request_callback> r)
 		: timeout_handler(ios)
-		, m_req(req)
+		, m_req(std::move(req))
 		, m_requester(std::move(r))
 		, m_man(man)
 	{}
@@ -164,7 +160,7 @@ namespace libtorrent {
 		, char const* msg, seconds32 const interval, seconds32 const min_interval)
 	{
 		// we need to post the error to avoid deadlock
-		get_io_service().post(std::bind(&tracker_connection::fail_impl
+		post(get_executor(), std::bind(&tracker_connection::fail_impl
 			, shared_from_this(), ec, std::string(msg), interval, min_interval));
 	}
 
@@ -192,8 +188,8 @@ namespace libtorrent {
 		m_man.received_bytes(bytes);
 	}
 
-	tracker_manager::tracker_manager(send_fun_t const& send_fun
-		, send_fun_hostname_t const& send_fun_hostname
+	tracker_manager::tracker_manager(send_fun_t send_fun
+		, send_fun_hostname_t send_fun_hostname
 		, counters& stats_counters
 		, resolver_interface& resolver
 		, aux::session_settings const& sett
@@ -201,8 +197,8 @@ namespace libtorrent {
 		, aux::session_logger& ses
 #endif
 		)
-		: m_send_fun(send_fun)
-		, m_send_fun_hostname(send_fun_hostname)
+		: m_send_fun(std::move(send_fun))
+		, m_send_fun_hostname(std::move(send_fun_hostname))
 		, m_host_resolver(resolver)
 		, m_settings(sett)
 		, m_stats_counters(stats_counters)
@@ -255,16 +251,14 @@ namespace libtorrent {
 	}
 
 	void tracker_manager::queue_request(
-		io_service& ios
-		, tracker_request req
+		io_context& ios
+		, tracker_request&& req
 		, std::weak_ptr<request_callback> c)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		TORRENT_ASSERT(req.num_want >= 0);
-		TORRENT_ASSERT(!m_abort || req.event == tracker_request::stopped);
-		if (m_abort && req.event != tracker_request::stopped) return;
-		if (req.event == tracker_request::stopped)
-			req.num_want = 0;
+		TORRENT_ASSERT(!m_abort || req.event == event_t::stopped);
+		if (m_abort && req.event != event_t::stopped) return;
 
 #ifndef TORRENT_DISABLE_LOGGING
 		std::shared_ptr<request_callback> cb = c.lock();
@@ -272,11 +266,7 @@ namespace libtorrent {
 			, req.listen_port);
 #endif
 
-		TORRENT_ASSERT(!m_abort || req.event == tracker_request::stopped);
-		if (m_abort && req.event != tracker_request::stopped)
-			return;
-
-		std::string protocol = req.url.substr(0, req.url.find(':'));
+		std::string const protocol = req.url.substr(0, req.url.find(':'));
 
 #ifdef TORRENT_USE_OPENSSL
 		if (protocol == "http" || protocol == "https")
@@ -284,23 +274,23 @@ namespace libtorrent {
 		if (protocol == "http")
 #endif
 		{
-			auto con = std::make_shared<http_tracker_connection>(ios, *this, req, c);
+			auto con = std::make_shared<http_tracker_connection>(ios, *this, std::move(req), c);
 			m_http_conns.push_back(con);
 			con->start();
 			return;
 		}
 		else if (protocol == "udp")
 		{
-			auto con = std::make_shared<udp_tracker_connection>(ios, *this, req, c);
+			auto con = std::make_shared<udp_tracker_connection>(ios, *this, std::move(req), c);
 			m_udp_conns[con->transaction_id()] = con;
 			con->start();
 			return;
 		}
 
 		// we need to post the error to avoid deadlock
-		if (std::shared_ptr<request_callback> r = c.lock())
-			ios.post(std::bind(&request_callback::tracker_request_error, r, req
-				, error_code(errors::unsupported_url_protocol)
+		if (auto r = c.lock())
+			post(ios, std::bind(&request_callback::tracker_request_error, r, std::move(req)
+				, errors::unsupported_url_protocol
 				, "", seconds32(0)));
 	}
 
@@ -418,7 +408,7 @@ namespace libtorrent {
 		for (auto const& c : m_http_conns)
 		{
 			tracker_request const& req = c->tracker_req();
-			if (req.event == tracker_request::stopped && !all)
+			if (req.event == event_t::stopped && !all)
 				continue;
 
 			close_http_connections.push_back(c);
@@ -432,7 +422,7 @@ namespace libtorrent {
 		{
 			auto const& c = p.second;
 			tracker_request const& req = c->tracker_req();
-			if (req.event == tracker_request::stopped && !all)
+			if (req.event == event_t::stopped && !all)
 				continue;
 
 			close_udp_connections.push_back(c);

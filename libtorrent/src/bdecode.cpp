@@ -1,6 +1,10 @@
 /*
 
-Copyright (c) 2015-2016, Arvid Norberg
+Copyright (c) 2015-2019, Arvid Norberg
+Copyright (c) 2016-2017, Steven Siloti
+Copyright (c) 2016-2017, Andrei Kurushin
+Copyright (c) 2016-2017, 2019, Alden Torres
+Copyright (c) 2017, Pavel Pimenov
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,6 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/bdecode.hpp"
 #include "libtorrent/aux_/alloca.hpp"
 #include "libtorrent/aux_/numeric_cast.hpp"
+#include "libtorrent/error_code.hpp"
 #include <limits>
 #include <cstring> // for memset
 #include <cstdio> // for snprintf
@@ -44,7 +49,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	using detail::bdecode_token;
+	using aux::bdecode_token;
 
 namespace {
 
@@ -141,7 +146,27 @@ namespace {
 		return (&t)[1].offset - t.offset;
 	}
 
-	} // anonymous namespace
+} // anonymous namespace
+
+namespace aux {
+	void escape_string(std::string& ret, char const* str, int len)
+	{
+		for (int i = 0; i < len; ++i)
+		{
+			if (str[i] >= 32 && str[i] < 127)
+			{
+				ret += str[i];
+			}
+			else
+			{
+				char tmp[5];
+				std::snprintf(tmp, sizeof(tmp), "\\x%02x", std::uint8_t(str[i]));
+				ret += tmp;
+			}
+		}
+	}
+}
+
 
 
 	// reads the string between start and end, or up to the first occurrance of
@@ -179,18 +204,18 @@ namespace {
 	}
 
 
-	struct bdecode_error_category : boost::system::error_category
+	struct bdecode_error_category final : boost::system::error_category
 	{
 		const char* name() const BOOST_SYSTEM_NOEXCEPT override;
 		std::string message(int ev) const override;
 		boost::system::error_condition default_error_condition(
 			int ev) const BOOST_SYSTEM_NOEXCEPT override
-		{ return boost::system::error_condition(ev, *this); }
+		{ return {ev, *this}; }
 	};
 
 	const char* bdecode_error_category::name() const BOOST_SYSTEM_NOEXCEPT
 	{
-		return "bdecode error";
+		return "bdecode";
 	}
 
 	std::string bdecode_error_category::message(int ev) const
@@ -221,19 +246,9 @@ namespace {
 	{
 		boost::system::error_code make_error_code(error_code_enum e)
 		{
-			return boost::system::error_code(e, bdecode_category());
+			return {e, bdecode_category()};
 		}
 	}
-
-	bdecode_node::bdecode_node()
-		: m_root_tokens(nullptr)
-		, m_buffer(nullptr)
-		, m_buffer_size(0)
-		, m_token_idx(-1)
-		, m_last_index(-1)
-		, m_last_token(-1)
-		, m_size(-1)
-	{}
 
 	bdecode_node::bdecode_node(bdecode_node const& n)
 		: m_tokens(n.m_tokens)
@@ -248,7 +263,7 @@ namespace {
 		(*this) = n;
 	}
 
-	bdecode_node& bdecode_node::operator=(bdecode_node const& n)
+	bdecode_node& bdecode_node::operator=(bdecode_node const& n) &
 	{
 		if (&n == this) return *this;
 		m_tokens = n.m_tokens;
@@ -269,7 +284,6 @@ namespace {
 	}
 
 	bdecode_node::bdecode_node(bdecode_node&&) noexcept = default;
-	bdecode_node& bdecode_node::operator=(bdecode_node&&) noexcept = default;
 
 	bdecode_node::bdecode_node(bdecode_token const* tokens, char const* buf
 		, int len, int idx)
@@ -277,9 +291,6 @@ namespace {
 		, m_buffer(buf)
 		, m_buffer_size(len)
 		, m_token_idx(idx)
-		, m_last_index(-1)
-		, m_last_token(-1)
-		, m_size(-1)
 	{
 		TORRENT_ASSERT(tokens != nullptr);
 		TORRENT_ASSERT(idx >= 0);
@@ -334,7 +345,7 @@ namespace {
 				if (m_buffer[tokens[token].offset + 1] == '0'
 					&& m_buffer[tokens[token].offset + 2] != 'e')
 				{
-					std::snprintf(error.data(), error.size(), "leading zero in integer");
+					std::snprintf(error.data(), std::size_t(error.size()), "leading zero in integer");
 					return true;
 				}
 				break;
@@ -342,7 +353,7 @@ namespace {
 				if (m_buffer[tokens[token].offset] == '0'
 					&& m_buffer[tokens[token].offset + 1] != ':')
 				{
-					std::snprintf(error.data(), error.size(), "leading zero in string length");
+					std::snprintf(error.data(), std::size_t(error.size()), "leading zero in string length");
 					return true;
 				}
 				break;
@@ -382,12 +393,12 @@ namespace {
 						int cmp = std::memcmp(m_buffer + k1_start, m_buffer + k2_start, std::size_t(min_len));
 						if (cmp > 0 || (cmp == 0 && k1_len > k2_len))
 						{
-							std::snprintf(error.data(), error.size(), "unsorted dictionary key");
+							std::snprintf(error.data(), std::size_t(error.size()), "unsorted dictionary key");
 							return true;
 						}
 						else if (cmp == 0 && k1_len == k2_len)
 						{
-							std::snprintf(error.data(), error.size(), "duplicate dictionary key");
+							std::snprintf(error.data(), std::size_t(error.size()), "duplicate dictionary key");
 							return true;
 						}
 
@@ -418,7 +429,15 @@ namespace {
 		TORRENT_ASSERT(m_token_idx != -1);
 		bdecode_token const& t = m_root_tokens[m_token_idx];
 		bdecode_token const& next = m_root_tokens[m_token_idx + t.next_item];
-		return {m_buffer + t.offset, std::size_t(next.offset - t.offset)};
+		return {m_buffer + t.offset, static_cast<std::ptrdiff_t>(next.offset - t.offset)};
+	}
+
+	std::ptrdiff_t bdecode_node::data_offset() const noexcept
+	{
+		TORRENT_ASSERT_PRECOND(m_token_idx != -1);
+		if (m_token_idx == -1) return -1;
+		bdecode_token const& t = m_root_tokens[m_token_idx];
+		return t.offset;
 	}
 
 	bdecode_node bdecode_node::list_at(int i) const
@@ -502,7 +521,7 @@ namespace {
 		return ret;
 	}
 
-	std::pair<string_view, bdecode_node> bdecode_node::dict_at(int i) const
+	std::pair<bdecode_node, bdecode_node> bdecode_node::dict_at_node(int i) const
 	{
 		TORRENT_ASSERT(type() == dict_t);
 		TORRENT_ASSERT(m_token_idx != -1);
@@ -548,8 +567,16 @@ namespace {
 		TORRENT_ASSERT(tokens[token].type != bdecode_token::end);
 
 		return std::make_pair(
-			bdecode_node(tokens, m_buffer, m_buffer_size, token).string_value()
+			bdecode_node(tokens, m_buffer, m_buffer_size, token)
 			, bdecode_node(tokens, m_buffer, m_buffer_size, value_token));
+	}
+
+	std::pair<string_view, bdecode_node> bdecode_node::dict_at(int const i) const
+	{
+		bdecode_node key;
+		bdecode_node value;
+		std::tie(key, value) = dict_at_node(i);
+		return {key.string_value(), value};
 	}
 
 	int bdecode_node::dict_size() const
@@ -699,10 +726,18 @@ namespace {
 	{
 		TORRENT_ASSERT(type() == string_t);
 		bdecode_token const& t = m_root_tokens[m_token_idx];
-		std::size_t const size = aux::numeric_cast<std::size_t>(token_source_span(t) - t.start_offset());
+		auto const size = aux::numeric_cast<std::size_t>(token_source_span(t) - t.start_offset());
 		TORRENT_ASSERT(t.type == bdecode_token::string);
 
 		return string_view(m_buffer + t.offset + t.start_offset(), size);
+	}
+
+	std::ptrdiff_t bdecode_node::string_offset() const
+	{
+		TORRENT_ASSERT(type() == string_t);
+		bdecode_token const& t = m_root_tokens[m_token_idx];
+		TORRENT_ASSERT(t.type == bdecode_token::string);
+		return t.offset + t.start_offset();
 	}
 
 	char const* bdecode_node::string_ptr() const
@@ -765,8 +800,16 @@ namespace {
 	int bdecode(char const* start, char const* end, bdecode_node& ret
 		, error_code& ec, int* error_pos, int const depth_limit, int token_limit)
 	{
-		ret = bdecode({start, static_cast<size_t>(end - start)}, ec, error_pos, depth_limit, token_limit);
+		ret = bdecode({start, end - start}, ec, error_pos, depth_limit, token_limit);
 		return ec ? -1 : 0;
+	}
+
+	bdecode_node bdecode(span<char const> buffer, int depth_limit, int token_limit)
+	{
+		error_code ec;
+		bdecode_node ret = bdecode(buffer, ec, nullptr, depth_limit, token_limit);
+		if (ec) throw system_error(ec);
+		return ret;
 	}
 
 	bdecode_node bdecode(span<char const> buffer
@@ -933,7 +976,7 @@ namespace {
 
 					// the bdecode_token only has 8 bits to keep the header size
 					// in. If it overflows, fail!
-					if (start - str_start - 2 > detail::bdecode_token::max_header)
+					if (start - str_start - 2 > aux::bdecode_token::max_header)
 						TORRENT_FAIL_BDECODE(bdecode_errors::limit_exceeded);
 
 					ret.m_tokens.push_back({str_start - orig_start
@@ -947,7 +990,8 @@ namespace {
 				&& ret.m_tokens[stack[current_frame - 1].token].type == bdecode_token::dict)
 			{
 				// the next item we parse is the opposite
-				stack[current_frame - 1].state = ~stack[current_frame - 1].state;
+				// state is an unsigned 1-bit member. adding 1 will flip the bit
+				stack[current_frame - 1].state = (stack[current_frame - 1].state + 1) & 1;
 			}
 
 			// this terminates the top level node, we're done!
@@ -1041,23 +1085,6 @@ done:
 		return line_len;
 	}
 
-	void escape_string(std::string& ret, char const* str, int len)
-	{
-		for (int i = 0; i < len; ++i)
-		{
-			if (str[i] >= 32 && str[i] < 127)
-			{
-				ret += str[i];
-			}
-			else
-			{
-				char tmp[5];
-				std::snprintf(tmp, sizeof(tmp), "\\x%02x", std::uint8_t(str[i]));
-				ret += tmp;
-			}
-		}
-	}
-
 	void print_string(std::string& ret, string_view str, bool single_line)
 	{
 		int const len = int(str.size());
@@ -1085,13 +1112,13 @@ done:
 		}
 		if (single_line && len > 20)
 		{
-			escape_string(ret, str.data(), 9);
+			aux::escape_string(ret, str.data(), 9);
 			ret += "...";
-			escape_string(ret, str.data() + len - 9, 9);
+			aux::escape_string(ret, str.data() + len - 9, 9);
 		}
 		else
 		{
-			escape_string(ret, str.data(), len);
+			aux::escape_string(ret, str.data(), len);
 		}
 		ret += "'";
 	}

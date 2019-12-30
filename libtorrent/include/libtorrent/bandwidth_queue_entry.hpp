@@ -1,6 +1,7 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007, 2009, 2012, 2014-2015, 2019, Arvid Norberg
+Copyright (c) 2016, 2018, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,12 +38,13 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/bandwidth_limit.hpp"
 #include "libtorrent/bandwidth_socket.hpp"
+#include "libtorrent/aux_/array.hpp"
 
 namespace libtorrent {
 
 struct TORRENT_EXTRA_EXPORT bw_request
 {
-	bw_request(std::shared_ptr<bandwidth_socket> const& pe
+	bw_request(std::shared_ptr<bandwidth_socket> pe
 		, int blk, int prio);
 
 	std::shared_ptr<bandwidth_socket> peer;
@@ -65,7 +67,7 @@ struct TORRENT_EXTRA_EXPORT bw_request
 
 	constexpr static int max_bandwidth_channels = 10;
 	// we don't actually support more than 10 channels per peer
-	bandwidth_channel* channel[max_bandwidth_channels];
+	aux::array<bandwidth_channel*, max_bandwidth_channels> channel{};
 };
 
 }

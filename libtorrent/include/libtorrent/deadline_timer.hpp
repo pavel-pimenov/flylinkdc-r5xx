@@ -1,6 +1,7 @@
 /*
 
-Copyright (c) 2009-2016, Arvid Norberg
+Copyright (c) 2009, 2015, 2017-2019, Arvid Norberg
+Copyright (c) 2016, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -46,9 +47,9 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace libtorrent {
 
 #if defined TORRENT_BUILD_SIMULATOR
-	typedef sim::asio::high_resolution_timer deadline_timer;
+	using deadline_timer = sim::asio::high_resolution_timer;
 #else
-	typedef boost::asio::high_resolution_timer deadline_timer;
+	using deadline_timer = boost::asio::high_resolution_timer;
 #endif
 }
 

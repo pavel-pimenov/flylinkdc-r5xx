@@ -1,6 +1,8 @@
 /*
 
-Copyright (c) 2012-2016, Arvid Norberg
+Copyright (c) 2012, 2015-2019, Arvid Norberg
+Copyright (c) 2016-2017, 2019, Alden Torres
+Copyright (c) 2017, Andrei Kurushin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -178,7 +180,7 @@ namespace {
 			}
 		};
 
-		struct utf8_error_category : boost::system::error_category
+		struct utf8_error_category final : boost::system::error_category
 		{
 			const char* name() const BOOST_SYSTEM_NOEXCEPT override
 			{
@@ -201,9 +203,7 @@ namespace {
 
 			boost::system::error_condition default_error_condition(
 				int ev) const BOOST_SYSTEM_NOEXCEPT override
-			{
-				return boost::system::error_condition(ev, *this);
-			}
+			{ return {ev, *this}; }
 		};
 	} // anonymous namespace
 
@@ -211,7 +211,7 @@ namespace {
 	{
 		boost::system::error_code make_error_code(utf8_errors::error_code_enum e)
 		{
-			return error_code(e, utf8_category());
+			return {e, utf8_category()};
 		}
 	} // utf_errors namespace
 
@@ -234,10 +234,10 @@ namespace {
 		return wide;
 	}
 
-	std::wstring utf8_wchar(string_view wide)
+	std::wstring utf8_wchar(string_view utf8)
 	{
 		error_code ec;
-		std::wstring ret = utf8_wchar(wide, ec);
+		std::wstring ret = utf8_wchar(utf8, ec);
 		if (ec) aux::throw_ex<system_error>(ec);
 		return ret;
 	}

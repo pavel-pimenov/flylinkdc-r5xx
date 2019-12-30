@@ -1,6 +1,7 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2004, 2006, 2010, 2012, 2015, 2017-2019, Arvid Norberg
+Copyright (c) 2016, Jan Berkel
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,18 +34,18 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_VERSION_HPP_INCLUDED
 #define TORRENT_VERSION_HPP_INCLUDED
 
-#include "libtorrent/export.hpp"
+#include "libtorrent/aux_/export.hpp"
 
-#define LIBTORRENT_VERSION_MAJOR 1
-#define LIBTORRENT_VERSION_MINOR 2
+#define LIBTORRENT_VERSION_MAJOR 2
+#define LIBTORRENT_VERSION_MINOR 0
 #define LIBTORRENT_VERSION_TINY 0
 
 // the format of this version is: MMmmtt
 // M = Major version, m = minor version, t = tiny version
 #define LIBTORRENT_VERSION_NUM ((LIBTORRENT_VERSION_MAJOR * 10000) + (LIBTORRENT_VERSION_MINOR * 100) + LIBTORRENT_VERSION_TINY)
 
-#define LIBTORRENT_VERSION "1.2.0.0"
-#define LIBTORRENT_REVISION "62cdec8"
+#define LIBTORRENT_VERSION "2.0.0.0"
+#define LIBTORRENT_REVISION "fe344f4d9"
 
 namespace libtorrent {
 

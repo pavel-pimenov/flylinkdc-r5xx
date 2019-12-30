@@ -1,6 +1,7 @@
 /*
 
-Copyright (c) 2015-2016, Arvid Norberg
+Copyright (c) 2015-2019, Arvid Norberg
+Copyright (c) 2016, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -134,13 +135,15 @@ namespace libtorrent {
 		partfile_read,
 		partfile_write,
 		hostname_lookup,
+		file_seek,
+		symlink,
 	};
 
 	// maps an operation id (from peer_error_alert and peer_disconnected_alert)
 	// to its name. See peer_connection for the constants
 	TORRENT_EXPORT char const* operation_name(operation_t op);
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	enum deprecated_operation_t : std::uint8_t
 	{
 		// the error was unexpected and it is unknown which operation caused it

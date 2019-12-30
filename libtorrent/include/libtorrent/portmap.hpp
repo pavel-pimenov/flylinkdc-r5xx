@@ -1,6 +1,7 @@
 /*
 
-Copyright (c) 2003-2017, Arvid Norberg
+Copyright (c) 2017-2019, Arvid Norberg
+Copyright (c) 2018, Steven Siloti
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,12 +38,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/units.hpp"
 
 namespace libtorrent {
-namespace aux {
-	struct port_mapping_tag;
-}
 
 	enum class portmap_transport : std::uint8_t
 	{
+		// natpmp can be NAT-PMP or PCP
 		natpmp, upnp
 	};
 
@@ -52,7 +51,7 @@ namespace aux {
 	};
 
 	// this type represents an index referring to a port mapping
-	using port_mapping_t = aux::strong_typedef<int, aux::port_mapping_tag>;
+	using port_mapping_t = aux::strong_typedef<int, struct port_mapping_tag>;
 
 }
 

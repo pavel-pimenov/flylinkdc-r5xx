@@ -1,6 +1,10 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2016-2019, Arvid Norberg
+Copyright (c) 2017-2018, Steven Siloti
+Copyright (c) 2017-2018, Alden Torres
+Copyright (c) 2018, Pavel Pimenov
+Copyright (c) 2019, Mike Tzou
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,9 +42,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/session.hpp" // for session::delete_files
 #include "libtorrent/stat_cache.hpp"
 #include "libtorrent/add_torrent_params.hpp"
+#include "libtorrent/torrent_status.hpp"
 
 #include <set>
-#include <string>
 
 namespace libtorrent { namespace aux {
 
@@ -53,7 +57,7 @@ namespace libtorrent { namespace aux {
 		if (bytes == 0) return ret;
 		for (iovec_t const& src : bufs)
 		{
-			std::size_t const to_copy = std::min(src.size(), std::size_t(bytes));
+			auto const to_copy = std::min(src.size(), std::ptrdiff_t(bytes));
 			*dst = src.first(to_copy);
 			bytes -= int(to_copy);
 			++ret;
@@ -63,16 +67,16 @@ namespace libtorrent { namespace aux {
 		return ret;
 	}
 
-	typed_span<iovec_t> advance_bufs(typed_span<iovec_t> bufs, int const bytes)
+	span<iovec_t> advance_bufs(span<iovec_t> bufs, int const bytes)
 	{
 		TORRENT_ASSERT(bytes >= 0);
-		std::size_t size = 0;
+		std::ptrdiff_t size = 0;
 		for (;;)
 		{
 			size += bufs.front().size();
-			if (size >= std::size_t(bytes))
+			if (size >= bytes)
 			{
-				bufs.front() = bufs.front().last(size - std::size_t(bytes));
+				bufs.front() = bufs.front().last(size - bytes);
 				return bufs;
 			}
 			bufs = bufs.subspan(1);
@@ -82,7 +86,7 @@ namespace libtorrent { namespace aux {
 	void clear_bufs(span<iovec_t const> bufs)
 	{
 		for (auto buf : bufs)
-			std::memset(buf.data(), 0, buf.size());
+			std::fill(buf.begin(), buf.end(), char(0));
 	}
 
 #if TORRENT_USE_ASSERTS
@@ -90,14 +94,14 @@ namespace libtorrent { namespace aux {
 
 	int count_bufs(span<iovec_t const> bufs, int bytes)
 	{
-		std::size_t size = 0;
+		std::ptrdiff_t size = 0;
 		int count = 0;
 		if (bytes == 0) return count;
 		for (auto b : bufs)
 		{
 			++count;
 			size += b.size();
-			if (size >= std::size_t(bytes)) return count;
+			if (size >= bytes) return count;
 		}
 		return count;
 	}
@@ -120,6 +124,8 @@ namespace libtorrent { namespace aux {
 
 		const int size = bufs_size(bufs);
 		TORRENT_ASSERT(size > 0);
+		TORRENT_ASSERT(static_cast<int>(piece) * static_cast<std::int64_t>(files.piece_length())
+			+ offset + size <= files.total_size());
 
 		// find the file iterator and file offset
 		std::int64_t const torrent_offset = static_cast<int>(piece) * std::int64_t(files.piece_length()) + offset;
@@ -143,14 +149,12 @@ namespace libtorrent { namespace aux {
 
 		TORRENT_ALLOCA(tmp_buf, iovec_t, bufs.size());
 
-		// the number of bytes left to read in the current file (specified by
-		// file_index). This is the minimum of (file_size - file_offset) and
-		// bytes_left.
-		int file_bytes_left;
-
 		while (bytes_left > 0)
 		{
-			file_bytes_left = bytes_left;
+			// the number of bytes left to read in the current file (specified by
+			// file_index). This is the minimum of (file_size - file_offset) and
+			// bytes_left.
+			int file_bytes_left = bytes_left;
 			if (file_offset + file_bytes_left > files.file_size(file_index))
 				file_bytes_left = std::max(static_cast<int>(files.file_size(file_index) - file_offset), 0);
 
@@ -173,10 +177,11 @@ namespace libtorrent { namespace aux {
 
 			// make a copy of the iovec array that _just_ covers the next
 			// file_bytes_left bytes, i.e. just this one operation
-			int tmp_bufs_used = copy_bufs(current_buf, file_bytes_left, tmp_buf);
+			int const tmp_bufs_used = copy_bufs(current_buf, file_bytes_left, tmp_buf);
 
-			int bytes_transferred = op(file_index, file_offset
+			int const bytes_transferred = op(file_index, file_offset
 				, tmp_buf.first(tmp_bufs_used), ec);
+			TORRENT_ASSERT(bytes_transferred <= file_bytes_left);
 			if (ec) return -1;
 
 			// advance our position in the iovec array and the file offset.
@@ -193,6 +198,8 @@ namespace libtorrent { namespace aux {
 				{
 					// fill in this information in case the caller wants to treat
 					// a short-read as an error
+					ec.operation = operation_t::file_read;
+					ec.ec = boost::asio::error::eof;
 					ec.file(file_index);
 				}
 				return size - bytes_left;
@@ -202,7 +209,7 @@ namespace libtorrent { namespace aux {
 	}
 
 	std::pair<status_t, std::string> move_storage(file_storage const& f
-		, std::string const& save_path
+		, std::string save_path
 		, std::string const& destination_save_path
 		, part_file* pf
 		, move_flags_t const flags, storage_error& ec)
@@ -219,7 +226,7 @@ namespace libtorrent { namespace aux {
 			if (err != boost::system::errc::no_such_file_or_directory)
 			{
 				// the directory exists, check all the files
-				for (file_index_t i(0); i < f.end_file(); ++i)
+				for (auto const i : f.file_range())
 				{
 					// files moved out to absolute paths are ignored
 					if (f.file_absolute_path(i)) continue;
@@ -265,9 +272,10 @@ namespace libtorrent { namespace aux {
 		// later
 		aux::vector<bool, file_index_t> copied_files(std::size_t(f.num_files()), false);
 
-		file_index_t i;
+		// track how far we got in case of an error
+		file_index_t file_index{};
 		error_code e;
-		for (i = file_index_t(0); i < f.end_file(); ++i)
+		for (auto const i : f.file_range())
 		{
 			// files moved out to absolute paths are not moved
 			if (f.file_absolute_path(i)) continue;
@@ -307,6 +315,7 @@ namespace libtorrent { namespace aux {
 				ec.ec = e;
 				ec.file(i);
 				ec.operation = operation_t::file_rename;
+				file_index = i;
 				break;
 			}
 		}
@@ -317,7 +326,7 @@ namespace libtorrent { namespace aux {
 			if (e)
 			{
 				ec.ec = e;
-				ec.file(file_index_t(-1));
+				ec.file(torrent_status::error_file_partfile);
 				ec.operation = operation_t::partfile_move;
 			}
 		}
@@ -325,17 +334,17 @@ namespace libtorrent { namespace aux {
 		if (e)
 		{
 			// rollback
-			while (--i >= file_index_t(0))
+			while (--file_index >= file_index_t(0))
 			{
 				// files moved out to absolute paths are not moved
-				if (f.file_absolute_path(i)) continue;
+				if (f.file_absolute_path(file_index)) continue;
 
 				// if we ended up copying the file, don't do anything during
 				// roll-back
-				if (copied_files[i]) continue;
+				if (copied_files[file_index]) continue;
 
-				std::string const old_path = combine_path(save_path, f.file_path(i));
-				std::string const new_path = combine_path(new_save_path, f.file_path(i));
+				std::string const old_path = combine_path(save_path, f.file_path(file_index));
+				std::string const new_path = combine_path(new_save_path, f.file_path(file_index));
 
 				// ignore errors when rolling back
 				error_code ignore;
@@ -352,7 +361,7 @@ namespace libtorrent { namespace aux {
 		// an in-out parameter
 
 		std::set<std::string> subdirs;
-		for (i = file_index_t(0); i < f.end_file(); ++i)
+		for (auto const i : f.file_range())
 		{
 			// files moved out to absolute paths are not moved
 			if (f.file_absolute_path(i)) continue;
@@ -378,7 +387,7 @@ namespace libtorrent { namespace aux {
 			error_code err;
 			std::string subdir = combine_path(save_path, s);
 
-			while (subdir != save_path && !err)
+			while (!path_equal(subdir, save_path) && !err)
 			{
 				remove(subdir, err);
 				subdir = parent_path(subdir);
@@ -408,7 +417,7 @@ namespace libtorrent { namespace aux {
 			// delete the files from disk
 			std::set<std::string> directories;
 			using iter_t = std::set<std::string>::iterator;
-			for (file_index_t i(0); i < fs.end_file(); ++i)
+			for (auto const i : fs.file_range())
 			{
 				std::string const fp = fs.file_path(i);
 				bool const complete = fs.file_absolute_path(i);
@@ -470,6 +479,7 @@ namespace libtorrent { namespace aux {
 #ifdef TORRENT_DISABLE_MUTABLE_TORRENTS
 		TORRENT_UNUSED(links);
 #else
+		// TODO: this should probably be moved to default_storage::initialize
 		if (!links.empty())
 		{
 			TORRENT_ASSERT(int(links.size()) == fs.num_files());
@@ -480,7 +490,7 @@ namespace libtorrent { namespace aux {
 			// moved. If so, we just fail. The user is responsible to not touch
 			// other torrents until a new mutable torrent has been completely
 			// added.
-			for (file_index_t idx(0); idx < fs.end_file(); ++idx)
+			for (auto const idx : fs.file_range())
 			{
 				std::string const& s = links[idx];
 				if (s.empty()) continue;
@@ -573,7 +583,7 @@ namespace libtorrent { namespace aux {
 		, stat_cache& cache
 		, storage_error& ec)
 	{
-		for (file_index_t i(0); i < fs.end_file(); ++i)
+		for (auto const i : fs.file_range())
 		{
 			std::int64_t const sz = cache.get_filesize(
 				i, fs, save_path, ec.ec);
@@ -594,6 +604,17 @@ namespace libtorrent { namespace aux {
 			if (sz > 0) return true;
 		}
 		return false;
+	}
+
+	int read_zeroes(span<iovec_t const> bufs)
+	{
+		int ret = 0;
+		for (auto buf : bufs)
+		{
+			ret += static_cast<int>(buf.size());
+			std::fill(buf.begin(), buf.end(), 0);
+		}
+		return ret;
 	}
 
 }}

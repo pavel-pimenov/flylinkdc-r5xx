@@ -1,6 +1,8 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg & Daniel Wallin
+Copyright (c) 2006, Daniel Wallin
+Copyright (c) 2006, 2008, 2010, 2013-2014, 2017-2019, Arvid Norberg
+Copyright (c) 2016, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,12 +38,13 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/kademlia/node_id.hpp>
 #include <libtorrent/kademlia/get_peers.hpp>
 
-namespace libtorrent { namespace dht {
+namespace libtorrent {
+namespace dht {
 
 class bootstrap : public get_peers
 {
 public:
-	typedef get_peers::nodes_callback done_callback;
+	using done_callback = get_peers::nodes_callback;
 
 	bootstrap(node& dht_node, node_id const& target
 		, done_callback const& callback);
@@ -58,6 +61,7 @@ protected:
 
 };
 
-} } // namespace libtorrent::dht
+} // namesapce dht
+} // namespace libtorrent
 
 #endif // REFRESH_050324_HPP

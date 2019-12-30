@@ -1,6 +1,8 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2004, 2006-2010, 2012, 2014-2019, Arvid Norberg
+Copyright (c) 2016-2017, Alden Torres
+Copyright (c) 2018, Alexandre Janniaux
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,6 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_SOCKET_HPP_INCLUDED
 
 #include "libtorrent/config.hpp"
+#include "libtorrent/aux_/noexcept_movable.hpp"
 
 #include "libtorrent/aux_/disable_warnings_push.hpp"
 
@@ -68,6 +71,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef SOL_NETLINK
 #define SOL_NETLINK 270
 #endif
+
+// NETLINK_NO_ENOBUFS exists at least since android 2.3, but is not exposed
+#if defined TORRENT_ANDROID && !defined NETLINK_NO_ENOBUFS
+#define NETLINK_NO_ENOBUFS 5
+#endif
 #endif
 
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
@@ -75,18 +83,38 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace libtorrent {
 
 #if defined TORRENT_BUILD_SIMULATOR
-	using udp = sim::asio::ip::udp;
-	using tcp = sim::asio::ip::tcp;
+struct tcp : sim::asio::ip::tcp {
+	tcp(sim::asio::ip::tcp const& p) : sim::asio::ip::tcp(p) {} // NOLINT
+	using socket = aux::noexcept_move_only<sim::asio::ip::tcp::socket>;
+};
+struct udp : sim::asio::ip::udp {
+	udp(sim::asio::ip::udp const& p) : sim::asio::ip::udp(p) {} // NOLINT
+	using socket = aux::noexcept_move_only<sim::asio::ip::udp::socket>;
+};
 	using sim::asio::async_write;
 	using sim::asio::async_read;
-	using null_buffers = sim::asio::null_buffers;
+	using true_tcp_socket = sim::asio::ip::tcp::socket;
 #else
-	using tcp = boost::asio::ip::tcp;
-	using udp = boost::asio::ip::udp;
+struct tcp : boost::asio::ip::tcp {
+	tcp(boost::asio::ip::tcp const& p) : boost::asio::ip::tcp(p) {} // NOLINT
+	using socket = aux::noexcept_move_only<boost::asio::ip::tcp::socket>;
+};
+struct udp : boost::asio::ip::udp {
+	udp(boost::asio::ip::udp const& p) : boost::asio::ip::udp(p) {} // NOLINT
+	using socket = aux::noexcept_move_only<boost::asio::ip::udp::socket>;
+};
 	using boost::asio::async_write;
 	using boost::asio::async_read;
-	using null_buffers = boost::asio::null_buffers;
+	using true_tcp_socket = boost::asio::ip::tcp::socket;
 #endif
+
+	// internal
+	inline udp::endpoint make_udp(tcp::endpoint const ep)
+	{ return {ep.address(), ep.port()}; }
+
+	// internal
+	inline tcp::endpoint make_tcp(udp::endpoint const ep)
+	{ return {ep.address(), ep.port()}; }
 
 #ifdef TORRENT_WINDOWS
 

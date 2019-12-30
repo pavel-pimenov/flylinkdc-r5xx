@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2009, 2011-2013, 2016-2019, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace libtorrent {
 
 	struct torrent_handle;
-	class session;
+	struct session;
 
 	// Generates a magnet URI from the specified torrent. If the torrent
 	// handle is invalid, an empty string is returned.
@@ -52,7 +52,7 @@ namespace libtorrent {
 	TORRENT_EXPORT std::string make_magnet_uri(torrent_handle const& handle);
 	TORRENT_EXPORT std::string make_magnet_uri(torrent_info const& info);
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 #ifndef BOOST_NO_EXCEPTIONS
 	// deprecated in 0.14
 	TORRENT_DEPRECATED_EXPORT
@@ -60,20 +60,19 @@ namespace libtorrent {
 		, std::string const& save_path
 		, storage_mode_t storage_mode = storage_mode_sparse
 		, bool paused = false
-		, storage_constructor_type sc = default_storage_constructor
 		, void* userdata = nullptr);
 
 	// deprecated in 0.16. Instead, pass in the magnet link as add_torrent_params::url
 	TORRENT_DEPRECATED_EXPORT
 	torrent_handle add_magnet_uri(session& ses, std::string const& uri
-		, add_torrent_params p);
+		, add_torrent_params const& p);
 #endif
 
 	// deprecated in 0.16. Instead, pass in the magnet link as add_torrent_params::url
 	TORRENT_DEPRECATED_EXPORT
 	torrent_handle add_magnet_uri(session& ses, std::string const& uri
-		, add_torrent_params p, error_code& ec);
-#endif
+		, add_torrent_params const& p, error_code& ec);
+#endif // TORRENT_ABI_VERSION
 
 
 	// This function parses out information from the magnet link and populates the

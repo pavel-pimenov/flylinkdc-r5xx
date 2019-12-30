@@ -1,6 +1,8 @@
 /*
 
-Copyright (c) 2013-2016, Arvid Norberg
+Copyright (c) 2013-2015, 2017, 2019, Arvid Norberg
+Copyright (c) 2016, Steven Siloti
+Copyright (c) 2016, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -111,9 +113,7 @@ namespace libtorrent {
 	struct TORRENT_EXTRA_EXPORT external_ip
 	{
 		external_ip()
-#if TORRENT_USE_IPV6
 			: m_addresses{{address_v4(), address_v6()}, {address_v4(), address_v6()}}
-#endif
 		{}
 
 		external_ip(address const& local4, address const& global4

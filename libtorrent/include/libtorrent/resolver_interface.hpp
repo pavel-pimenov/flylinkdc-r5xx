@@ -1,6 +1,7 @@
 /*
 
-Copyright (c) 2013-2016, Arvid Norberg
+Copyright (c) 2010, 2014-2019, Arvid Norberg
+Copyright (c) 2017, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -44,8 +45,7 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace libtorrent {
 
 // hidden
-struct resolver_flag_tag;
-using resolver_flags = flags::bitfield_flag<std::uint8_t, resolver_flag_tag>;
+using resolver_flags = flags::bitfield_flag<std::uint8_t, struct resolver_flag_tag>;
 
 struct TORRENT_EXTRA_EXPORT resolver_interface
 {

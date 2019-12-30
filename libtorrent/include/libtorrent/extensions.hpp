@@ -1,6 +1,9 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg
+Copyright (c) 2006-2007, 2011, 2013-2019, Arvid Norberg
+Copyright (c) 2014-2019, Steven Siloti
+Copyright (c) 2016, Alden Torres
+Copyright (c) 2018, Greg Hazel
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -160,12 +163,10 @@ POSSIBILITY OF SUCH DAMAGE.
 //
 // .. _`alert section`: reference-Alerts.html
 
-
-#ifndef TORRENT_DISABLE_EXTENSIONS
-
 #include <vector>
 
 #include "libtorrent/config.hpp"
+#include "libtorrent/fwd.hpp"
 #include "libtorrent/span.hpp"
 #include "libtorrent/sha1_hash.hpp"
 #include "libtorrent/string_view.hpp"
@@ -174,23 +175,13 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	struct peer_plugin;
-	struct peer_request;
-	class entry;
-	struct bdecode_node;
-	struct bitfield;
-	class alert;
-	struct torrent_plugin;
-	struct add_torrent_params;
-	struct torrent_handle;
-	struct session_handle;
-	struct peer_connection_handle;
-
-	struct feature_flags_tag;
+#ifndef TORRENT_DISABLE_EXTENSIONS
 
 	// these are flags that can be returned by implemented_features()
 	// indicating which callbacks this plugin is interested in
-	using feature_flags_t = flags::bitfield_flag<std::uint8_t, feature_flags_tag>;
+	using feature_flags_t = flags::bitfield_flag<std::uint8_t, struct feature_flags_tag>;
+
+TORRENT_VERSION_NAMESPACE_3
 
 	// this is the base class for a session plugin. One primary feature
 	// is that it is notified of all torrents that are added to the session,
@@ -238,6 +229,11 @@ namespace libtorrent {
 		// called when plugin is added to a session
 		virtual void added(session_handle const&) {}
 
+		// called when the session is aborted
+		// the plugin should perform any cleanup necessary to allow the session's
+		// destruction (e.g. cancel outstanding async operations)
+		virtual void abort() {}
+
 		// called when a dht request is received.
 		// If your plugin expects this to be called, make sure to include the flag
 		// ``dht_request_feature`` in the return value from implemented_features().
@@ -252,7 +248,7 @@ namespace libtorrent {
 		virtual void on_alert(alert const*) {}
 
 		// return true if the add_torrent_params should be added
-		virtual bool on_unknown_torrent(sha1_hash const& /* info_hash */
+		virtual bool on_unknown_torrent(info_hash_t const& /* info_hash */
 			, peer_connection_handle const& /* pc */, add_torrent_params& /* p */)
 		{ return false; }
 
@@ -272,15 +268,23 @@ namespace libtorrent {
 		virtual uint64_t get_unchoke_priority(peer_connection_handle const& /* peer */)
 		{ return (std::numeric_limits<uint64_t>::max)(); }
 
+#if TORRENT_ABI_VERSION <= 2
 		// called when saving settings state
 		virtual void save_state(entry&) {}
 
 		// called when loading settings state
 		virtual void load_state(bdecode_node const&) {}
+#endif
+
+		virtual std::map<std::string, std::string> save_state() const { return {}; }
+
+		// called on startup while loading settings state from the session_params
+		virtual void load_state(std::map<std::string, std::string> const&) {}
 	};
 
-	struct add_peer_flags_tag;
-	using add_peer_flags_t = flags::bitfield_flag<std::uint8_t, add_peer_flags_tag>;
+TORRENT_VERSION_NAMESPACE_3_END
+
+	using add_peer_flags_t = flags::bitfield_flag<std::uint8_t, struct add_peer_flags_tag>;
 
 	// Torrent plugins are associated with a single torrent and have a number
 	// of functions called at certain events. Many of its functions have the
@@ -440,8 +444,20 @@ namespace libtorrent {
 		virtual bool on_reject(peer_request const&) { return false; }
 		virtual bool on_suggest(piece_index_t) { return false; }
 
+		virtual void sent_have_all() {}
+		virtual void sent_have_none() {}
+		virtual void sent_reject_request(peer_request const&) {}
+		virtual void sent_allow_fast(piece_index_t) {}
+		virtual void sent_suggest(piece_index_t) {}
+		virtual void sent_cancel(peer_request const&) {}
+		virtual void sent_request(peer_request const&) {}
+		virtual void sent_choke() {}
 		// called after a choke message has been sent to the peer
 		virtual void sent_unchoke() {}
+		virtual void sent_interested() {}
+		virtual void sent_not_interested() {}
+		virtual void sent_have(piece_index_t) {}
+		virtual void sent_piece(peer_request const&) {}
 
 		// called after piece data has been sent to the peer
 		// this can be used for stats book keeping
@@ -483,6 +499,9 @@ namespace libtorrent {
 		// no other plugin will have this function called.
 		virtual bool write_request(peer_request const&) { return false; }
 	};
+#endif // TORRENT_DISABLE_EXTENSIONS
+
+#if !defined TORRENT_DISABLE_ENCRYPTION
 
 	struct TORRENT_EXPORT crypto_plugin
 	{
@@ -518,8 +537,8 @@ namespace libtorrent {
 		// advance the next step of decryption. default is 0
 		virtual std::tuple<int, int, int> decrypt(span<span<char>> /*receive_vec*/) = 0;
 	};
-}
 
-#endif
+#endif // TORRENT_DISABLE_ENCRYPTION
+}
 
 #endif // TORRENT_EXTENSIONS_HPP_INCLUDED

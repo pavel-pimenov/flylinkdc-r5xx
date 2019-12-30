@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2017, Arvid Norberg
+Copyright (c) 2017-2019, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-struct download_priority_tag;
-using download_priority_t = aux::strong_typedef<std::uint8_t, download_priority_tag>;
+using download_priority_t = aux::strong_typedef<std::uint8_t, struct download_priority_tag>;
 
 constexpr download_priority_t dont_download{0};
 constexpr download_priority_t default_priority{4};

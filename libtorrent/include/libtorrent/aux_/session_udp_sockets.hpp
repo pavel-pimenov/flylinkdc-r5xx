@@ -33,10 +33,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_SESSION_UDP_SOCKETS_HPP_INCLUDED
 #define TORRENT_SESSION_UDP_SOCKETS_HPP_INCLUDED
 
-#include "libtorrent/utp_socket_manager.hpp"
+#include "libtorrent/aux_/utp_socket_manager.hpp"
 #include "libtorrent/config.hpp"
 #include "libtorrent/aux_/allocating_handler.hpp"
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <vector>
 
 namespace libtorrent { namespace aux {
@@ -48,7 +48,7 @@ namespace libtorrent { namespace aux {
 
 	struct session_udp_socket : utp_socket_interface
 	{
-		explicit session_udp_socket(io_service& ios)
+		explicit session_udp_socket(io_context& ios)
 			: sock(ios) {}
 
 		udp::endpoint local_endpoint() override { return sock.local_endpoint(); }
@@ -57,7 +57,7 @@ namespace libtorrent { namespace aux {
 
 		// since udp packets are expected to be dispatched frequently, this saves
 		// time on handler allocation every time we read again.
-		aux::handler_storage<TORRENT_READ_HANDLER_MAX_SIZE> udp_handler_storage;
+		aux::handler_storage<aux::utp_handler_max_size, utp_handler> udp_handler_storage;
 
 		// this is true when the udp socket send() has failed with EAGAIN or
 		// EWOULDBLOCK. i.e. we're currently waiting for the socket to become
@@ -68,7 +68,7 @@ namespace libtorrent { namespace aux {
 
 	struct outgoing_udp_socket final : session_udp_socket
 	{
-		outgoing_udp_socket(io_service& ios, std::string const& dev, transport ssl_)
+		outgoing_udp_socket(io_context& ios, std::string const& dev, transport ssl_)
 			: session_udp_socket(ios), device(dev), ssl(ssl_) {}
 
 		// the name of the device the socket is bound to, may be empty
@@ -89,7 +89,8 @@ namespace libtorrent { namespace aux {
 		std::vector<std::shared_ptr<outgoing_udp_socket>>::iterator
 		partition_outgoing_sockets(std::vector<listen_endpoint_t>& eps);
 
-		tcp::endpoint bind(socket_type& s, address const& remote_address) const;
+		tcp::endpoint bind(socket_type& s, address const& remote_address
+			, error_code& ec) const;
 
 		void update_proxy(proxy_settings const& settings);
 

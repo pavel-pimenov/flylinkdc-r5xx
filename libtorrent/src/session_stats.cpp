@@ -1,6 +1,8 @@
 /*
 
-Copyright (c) 2012-2016, Arvid Norberg
+Copyright (c) 2014-2019, Arvid Norberg
+Copyright (c) 2016-2017, Alden Torres
+Copyright (c) 2019, Steven Siloti
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,8 +41,12 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-namespace {
+#if TORRENT_ABI_VERSION == 1
+	constexpr metric_type_t stats_metric::type_counter;
+	constexpr metric_type_t stats_metric::type_gauge;
+#endif
 
+namespace {
 
 	struct stats_metric_impl
 	{
@@ -119,6 +125,9 @@ namespace {
 
 		METRIC(peer, connection_attempts)
 		METRIC(peer, connection_attempt_loops)
+		METRIC(peer, boost_connection_attempts)
+		METRIC(peer, missed_connection_attempts)
+		METRIC(peer, no_peer_connection_attempts)
 		METRIC(peer, incoming_connections)
 
 		// the number of peer connections for each kind of socket.
@@ -235,15 +244,19 @@ namespace {
 		METRIC(ses, num_have_pieces)
 		METRIC(ses, num_total_pieces_added)
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		// this counts the number of times a torrent has been
-		// evicted (only applies when `dynamic loading of torrent files`_
-		// is enabled).
+		// evicted (only applies when dynamic-loading-of-torrent-files
+		// is enabled, which is deprecated).
 		METRIC(ses, torrent_evicted_counter)
 #endif
 
 		// the number of allowed unchoked peers
 		METRIC(ses, num_unchoke_slots)
+
+		// the number of listen sockets that are currently accepting incoming
+		// connections
+		METRIC(ses, num_outstanding_accept)
 
 		// bittorrent message counters. These counters are incremented
 		// every time a message of the corresponding type is received from
@@ -287,6 +300,9 @@ namespace {
 		METRIC(ses, num_outgoing_pex)
 		METRIC(ses, num_outgoing_metadata)
 		METRIC(ses, num_outgoing_extended)
+		METRIC(ses, num_outgoing_hash_request)
+		METRIC(ses, num_outgoing_hashes)
+		METRIC(ses, num_outgoing_hash_reject)
 
 		// the number of wasted downloaded bytes by reason of the bytes being
 		// wasted.
@@ -318,27 +334,14 @@ namespace {
 		METRIC(picker, interesting_piece_picks)
 		METRIC(picker, hash_fail_piece_picks)
 
-		// These gauges indicate how many blocks are currently in use as dirty
-		// disk blocks (``write_cache_blocks``) and read cache blocks,
-		// respectively. deprecates ``cache_status::read_cache_size``.
-		// The sum of these gauges deprecates ``cache_status::cache_size``.
-		METRIC(disk, write_cache_blocks)
-		METRIC(disk, read_cache_blocks)
-
 		// the number of microseconds it takes from receiving a request from a
 		// peer until we're sending the response back on the socket.
 		METRIC(disk, request_latency)
 
-		// ``disk_blocks_in_use`` indicates how many disk blocks are currently in
-		// use, either as dirty blocks waiting to be written or blocks kept around
-		// in the hope that a peer will request it or in a peer send buffer. This
-		// gauge deprecates ``cache_status::total_used_buffers``.
-		METRIC(disk, pinned_blocks)
 		METRIC(disk, disk_blocks_in_use)
 
 		// ``queued_disk_jobs`` is the number of disk jobs currently queued,
-		// waiting to be executed by a disk thread. Deprecates
-		// ``cache_status::job_queue_length``.
+		// waiting to be executed by a disk thread.
 		METRIC(disk, queued_disk_jobs)
 		METRIC(disk, num_running_disk_jobs)
 		METRIC(disk, num_read_jobs)
@@ -356,16 +359,9 @@ namespace {
 		// is actually waiting for to be written (as opposed to
 		// bytes just hanging out in the cache)
 		METRIC(disk, queued_write_bytes)
-		METRIC(disk, arc_mru_size)
-		METRIC(disk, arc_mru_ghost_size)
-		METRIC(disk, arc_mfu_size)
-		METRIC(disk, arc_mfu_ghost_size)
-		METRIC(disk, arc_write_size)
-		METRIC(disk, arc_volatile_size)
 
 		// the number of blocks written and read from disk in total. A block is 16
-		// kiB. ``num_blocks_written`` and ``num_blocks_read`` deprecates
-		// ``cache_status::blocks_written`` and ``cache_status::blocks_read`` respectively.
+		// kiB. ``num_blocks_written`` and ``num_blocks_read``
 		METRIC(disk, num_blocks_written)
 		METRIC(disk, num_blocks_read)
 
@@ -378,8 +374,6 @@ namespace {
 
 		// the number of disk I/O operation for reads and writes. One disk
 		// operation may transfer more then one block.
-		// These counters deprecates ``cache_status::writes`` and
-		// ``cache_status::reads``.
 		METRIC(disk, num_write_ops)
 		METRIC(disk, num_read_ops)
 
@@ -409,7 +403,6 @@ namespace {
 		METRIC(disk, num_fenced_flush_piece)
 		METRIC(disk, num_fenced_flush_hashed)
 		METRIC(disk, num_fenced_flush_storage)
-		METRIC(disk, num_fenced_trim_cache)
 		METRIC(disk, num_fenced_file_priority)
 		METRIC(disk, num_fenced_load_torrent)
 		METRIC(disk, num_fenced_clear_piece)
@@ -566,9 +559,9 @@ namespace {
 			stats[i].name = metrics[i].name;
 			stats[i].value_index = metrics[i].value_index;
 			stats[i].type = metrics[i].value_index >= counters::num_stats_counters
-				? stats_metric::type_gauge : stats_metric::type_counter;
+				? metric_type_t::gauge : metric_type_t::counter;
 		}
-		return stats;
+		return std::move(stats);
 	}
 
 	int find_metric_idx(string_view name)

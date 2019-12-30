@@ -1,6 +1,7 @@
 /*
 
-Copyright (c) 2011-2016, Arvid Norberg
+Copyright (c) 2014-2019, Arvid Norberg
+Copyright (c) 2016, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -46,12 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	namespace aux {
-
-		struct peer_class_tag;
-	}
-
-	using peer_class_t = aux::strong_typedef<std::uint32_t, aux::peer_class_tag>;
+	using peer_class_t = aux::strong_typedef<std::uint32_t, struct peer_class_tag>;
 
 	// holds settings for a peer class. Used in set_peer_class() and
 	// get_peer_class() calls.

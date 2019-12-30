@@ -1,6 +1,7 @@
 /*
 
-Copyright (c) 2009-2016, Arvid Norberg
+Copyright (c) 2009-2010, 2013-2014, 2017, 2019, Arvid Norberg
+Copyright (c) 2016, 2018, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -44,15 +45,14 @@ namespace libtorrent {
 
 	std::string print_address(address const& addr)
 	{
-		error_code ec;
-		return addr.to_string(ec);
+		return addr.to_string();
 	}
 
 	std::string address_to_bytes(address const& a)
 	{
 		std::string ret;
 		std::back_insert_iterator<std::string> out(ret);
-		detail::write_address(a, out);
+		aux::write_address(a, out);
 		return ret;
 	}
 
@@ -60,20 +60,17 @@ namespace libtorrent {
 	{
 		std::string ret;
 		std::back_insert_iterator<std::string> out(ret);
-		detail::write_endpoint(ep, out);
+		aux::write_endpoint(ep, out);
 		return ret;
 	}
 
 	std::string print_endpoint(address const& addr, int port)
 	{
-		error_code ec;
 		char buf[200];
-#if TORRENT_USE_IPV6
 		if (addr.is_v6())
-			std::snprintf(buf, sizeof(buf), "[%s]:%d", addr.to_string(ec).c_str(), port);
+			std::snprintf(buf, sizeof(buf), "[%s]:%d", addr.to_string().c_str(), port);
 		else
-#endif
-			std::snprintf(buf, sizeof(buf), "%s:%d", addr.to_string(ec).c_str(), port);
+			std::snprintf(buf, sizeof(buf), "%s:%d", addr.to_string().c_str(), port);
 		return buf;
 	}
 
@@ -120,11 +117,7 @@ namespace libtorrent {
 			}
 			// shave off the ':'
 			port = port.substr(1);
-#if TORRENT_USE_IPV6
 			ret.address(make_address_v6(addr.to_string(), ec));
-#else
-			ec = boost::asio::error::address_family_not_supported;
-#endif
 			if (ec) return ret;
 		}
 		else
@@ -159,14 +152,12 @@ namespace libtorrent {
 
 	sha1_hash hash_address(address const& ip)
 	{
-#if TORRENT_USE_IPV6
 		if (ip.is_v6())
 		{
 			address_v6::bytes_type b = ip.to_v6().to_bytes();
 			return hasher(reinterpret_cast<char const*>(b.data()), int(b.size())).final();
 		}
 		else
-#endif
 		{
 			address_v4::bytes_type b = ip.to_v4().to_bytes();
 			return hasher(reinterpret_cast<char const*>(b.data()), int(b.size())).final();

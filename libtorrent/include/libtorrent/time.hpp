@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007, 2009, 2014-2017, 2019, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,7 @@ namespace libtorrent {
 	using time_duration = clock_type::duration;
 
 	// 32 bit versions of time_point and duration, with second resolution
+	using milliseconds32 = std::chrono::duration<std::int32_t, std::ratio<1, 1000>>;
 	using seconds32 = std::chrono::duration<std::int32_t>;
 	using minutes32 = std::chrono::duration<std::int32_t, std::ratio<60>>;
 	using time_point32 = std::chrono::time_point<clock_type, seconds32>;

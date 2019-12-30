@@ -34,23 +34,26 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_SESSION_INTERFACE_HPP_INCLUDED
 
 #include "libtorrent/config.hpp"
-#include "libtorrent/peer_id.hpp"
+#include "libtorrent/fwd.hpp"
 #include "libtorrent/address.hpp"
-#include "libtorrent/io_service.hpp"
+#include "libtorrent/io_context.hpp"
 #include "libtorrent/time.hpp"
 #include "libtorrent/disk_buffer_holder.hpp"
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/socket.hpp" // for tcp::endpoint
 #include "libtorrent/aux_/vector.hpp"
 #include "libtorrent/aux_/listen_socket_handle.hpp"
+#include "libtorrent/aux_/session_udp_sockets.hpp" // for transport
 #include "libtorrent/session_types.hpp"
 #include "libtorrent/flags.hpp"
 #include "libtorrent/link.hpp" // for torrent_list_index_t
+#include "libtorrent/info_hash.hpp"
+#include "libtorrent/aux_/socket_type.hpp"
 
 #include <functional>
 #include <memory>
 
-#ifdef TORRENT_USE_OPENSSL
+#ifdef TORRENT_SSL_PEERS
 // there is no forward declaration header for asio
 namespace boost {
 namespace asio {
@@ -63,36 +66,27 @@ namespace ssl {
 
 namespace libtorrent {
 
-	class peer_connection;
-	class torrent;
-#ifndef TORRENT_NO_DEPRECATE
-	struct pe_settings;
-#endif
+	struct peer_connection;
+	struct torrent;
 	struct peer_class_set;
 	struct bandwidth_channel;
 	struct bandwidth_manager;
 	struct peer_class_pool;
 	struct disk_observer;
 	struct torrent_peer;
-	class alert_manager;
+	struct alert_manager;
 	struct disk_interface;
 	struct tracker_request;
 	struct request_callback;
-	struct utp_socket_manager;
-	struct socket_type;
-	struct block_info;
 	struct external_ip;
-	struct torrent_handle;
-	struct ip_filter;
-	class port_filter;
-	struct settings_pack;
 	struct torrent_peer_allocator_interface;
 	struct counters;
 	struct resolver_interface;
 
+namespace aux { struct utp_socket_manager; }
+
 	// hidden
-	struct queue_position_tag;
-	using queue_position_t = aux::strong_typedef<int, queue_position_tag>;
+	using queue_position_t = aux::strong_typedef<int, struct queue_position_tag>;
 
 	constexpr queue_position_t no_pos{-1};
 	constexpr queue_position_t last_pos{(std::numeric_limits<int>::max)()};
@@ -105,13 +99,13 @@ namespace dht {
 #endif
 }
 
-namespace libtorrent { namespace aux {
+namespace libtorrent {
+namespace aux {
 
 	struct proxy_settings;
 	struct session_settings;
 
-	struct ip_source_tag;
-	using ip_source_t = flags::bitfield_flag<std::uint8_t, ip_source_tag>;
+	using ip_source_t = flags::bitfield_flag<std::uint8_t, struct ip_source_tag>;
 
 #if !defined TORRENT_DISABLE_LOGGING || TORRENT_USE_ASSERTS
 	// This is the basic logging and debug interface offered by the session.
@@ -167,7 +161,7 @@ namespace libtorrent { namespace aux {
 		virtual alert_manager& alerts() = 0;
 
 		virtual torrent_peer_allocator_interface& get_peer_allocator() = 0;
-		virtual io_service& get_io_service() = 0;
+		virtual io_context& get_context() = 0;
 		virtual resolver_interface& get_resolver() = 0;
 
 		virtual bool has_connection(peer_connection* p) const = 0;
@@ -189,20 +183,15 @@ namespace libtorrent { namespace aux {
 		virtual void trigger_optimistic_unchoke() noexcept = 0;
 		virtual void trigger_unchoke() noexcept = 0;
 
-		virtual std::weak_ptr<torrent> find_torrent(sha1_hash const& info_hash) const = 0;
+		virtual std::weak_ptr<torrent> find_torrent(info_hash_t const& info_hash) const = 0;
 		virtual std::weak_ptr<torrent> find_disconnect_candidate_torrent() const = 0;
-		virtual std::shared_ptr<torrent> delay_load_torrent(sha1_hash const& info_hash
+		virtual std::shared_ptr<torrent> delay_load_torrent(info_hash_t const& info_hash
 			, peer_connection* pc) = 0;
-		virtual void insert_torrent(sha1_hash const& ih, std::shared_ptr<torrent> const& t
-			, std::string uuid) = 0;
-#ifndef TORRENT_NO_DEPRECATE
-		//deprecated in 1.2
-		virtual void insert_uuid_torrent(std::string uuid, std::shared_ptr<torrent> const& t) = 0;
-#endif
+		virtual void insert_torrent(info_hash_t const& ih, std::shared_ptr<torrent> const& t) = 0;
+		virtual void update_torrent_info_hash(std::shared_ptr<torrent> const& t
+			, info_hash_t const& old_ih) = 0;
 		virtual void set_queue_position(torrent* t, queue_position_t p) = 0;
 		virtual int num_torrents() const = 0;
-
-		virtual peer_id const& get_peer_id() const = 0;
 
 		virtual void close_connection(peer_connection* p) noexcept = 0;
 		virtual int num_connections() const = 0;
@@ -212,9 +201,12 @@ namespace libtorrent { namespace aux {
 		virtual std::uint16_t listen_port() const = 0;
 		virtual std::uint16_t ssl_listen_port() const = 0;
 
+		virtual int listen_port(aux::transport ssl, address const& local_addr) = 0;
+
 		virtual void for_each_listen_socket(std::function<void(aux::listen_socket_handle const&)> f) = 0;
 
 		// ask for which interface and port to bind outgoing peer connections on
+		virtual bool has_udp_outgoing_sockets() const = 0;
 		virtual tcp::endpoint bind_outgoing_socket(socket_type& s, address const&
 			remote_address, error_code& ec) const = 0;
 		virtual bool verify_bound_address(address const& addr, bool utp
@@ -240,11 +232,11 @@ namespace libtorrent { namespace aux {
 		virtual void apply_settings_pack(std::shared_ptr<settings_pack> pack) = 0;
 		virtual session_settings const& settings() const = 0;
 
-		virtual void queue_tracker_request(tracker_request& req
+		virtual void queue_tracker_request(tracker_request req
 			, std::weak_ptr<request_callback> c) = 0;
 
 		// peer-classes
-		virtual void set_peer_classes(peer_class_set* s, address const& a, int st) = 0;
+		virtual void set_peer_classes(peer_class_set* s, address const& a, socket_type_t st) = 0;
 		virtual peer_class_pool const& peer_classes() const = 0;
 		virtual peer_class_pool& peer_classes() = 0;
 		virtual bool ignore_unchoke_slots_set(peer_class_set const& set) const = 0;
@@ -292,21 +284,20 @@ namespace libtorrent { namespace aux {
 
 		virtual bool has_lsd() const = 0;
 		virtual void announce_lsd(sha1_hash const& ih, int port, bool broadcast = false) = 0;
-		virtual libtorrent::utp_socket_manager* utp_socket_manager() = 0;
+		virtual libtorrent::aux::utp_socket_manager* utp_socket_manager() = 0;
 		virtual void inc_boost_connections() = 0;
-		virtual void setup_socket_buffers(socket_type& s) = 0;
 		virtual std::vector<block_info>& block_info_storage() = 0;
 
+#ifdef TORRENT_SSL_PEERS
+		virtual libtorrent::aux::utp_socket_manager* ssl_utp_socket_manager() = 0;
+#endif
 #ifdef TORRENT_USE_OPENSSL
-		virtual libtorrent::utp_socket_manager* ssl_utp_socket_manager() = 0;
 		virtual boost::asio::ssl::context* ssl_ctx() = 0 ;
 #endif
 
-#if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
+#if !defined TORRENT_DISABLE_ENCRYPTION
 		virtual torrent const* find_encrypted_torrent(
 			sha1_hash const& info_hash, sha1_hash const& xor_mask) = 0;
-		virtual void add_obfuscated_hash(sha1_hash const& obfuscated
-			, std::weak_ptr<torrent> const& t) = 0;
 #endif
 
 #ifndef TORRENT_DISABLE_DHT

@@ -1,6 +1,7 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2006-2007, 2009, 2013-2014, 2016-2019, Arvid Norberg
+Copyright (c) 2016, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_STORAGE_DEFS_HPP_INCLUDE
 
 #include "libtorrent/config.hpp"
+#include "libtorrent/fwd.hpp"
 #include "libtorrent/units.hpp"
 #include "libtorrent/aux_/vector.hpp"
 #include "libtorrent/sha1_hash.hpp"
@@ -43,13 +45,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	struct TORRENT_EXPORT storage_interface;
-	class file_storage;
-	struct file_pool;
-	class torrent_info;
-
-	struct storage_index_tag_t {};
-	using storage_index_t = aux::strong_typedef<std::uint32_t, storage_index_tag_t>;
+	using storage_index_t = aux::strong_typedef<std::uint32_t, struct storage_index_tag_t>;
 
 	// types of storage allocation used for add_torrent_params::storage_mode.
 	enum storage_mode_t
@@ -94,7 +90,7 @@ namespace libtorrent {
 		dont_replace
 	};
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	// deprecated in 1.2
 	enum deprecated_move_flags_t
 	{
@@ -104,7 +100,7 @@ namespace libtorrent {
 	};
 #endif
 
-	struct TORRENT_EXPORT storage_params
+	struct TORRENT_EXTRA_EXPORT storage_params
 	{
 		storage_params(file_storage const& f, file_storage const* mf
 			, std::string const& sp, storage_mode_t const sm
@@ -122,22 +118,8 @@ namespace libtorrent {
 		std::string const& path;
 		storage_mode_t mode{storage_mode_sparse};
 		aux::vector<download_priority_t, file_index_t> const& priorities;
-		sha1_hash const& info_hash;
+		sha1_hash info_hash;
 	};
-
-	using storage_constructor_type = std::function<storage_interface*(storage_params const& params, file_pool&)>;
-
-	// the constructor function for the regular file storage. This is the
-	// default value for add_torrent_params::storage.
-	TORRENT_EXPORT storage_interface* default_storage_constructor(storage_params const&
-		, file_pool& p);
-
-	// the constructor function for the disabled storage. This can be used for
-	// testing and benchmarking. It will throw away any data written to
-	// it and return garbage for anything read from it.
-	TORRENT_EXPORT storage_interface* disabled_storage_constructor(storage_params const&, file_pool&);
-
-	TORRENT_EXPORT storage_interface* zero_storage_constructor(storage_params const&, file_pool&);
 }
 
 #endif

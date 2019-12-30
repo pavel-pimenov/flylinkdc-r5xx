@@ -1,6 +1,9 @@
 /*
 
-Copyright (c) 2016, Arvid Norberg
+Copyright (c) 2016, Pavel Pimenov
+Copyright (c) 2016-2019, Arvid Norberg
+Copyright (c) 2016-2017, Alden Torres
+Copyright (c) 2017, Steven Siloti
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -43,33 +46,41 @@ namespace libtorrent {
 #if TORRENT_USE_IOSTREAM
 
 	// print a sha1_hash object to an ostream as 40 hexadecimal digits
-	std::ostream& operator<<(std::ostream& os, sha1_hash const& peer)
+	template <std::ptrdiff_t N>
+	void digest32<N>::stream_out(std::ostream& os) const
 	{
-		return os << aux::to_hex(peer);
+		os << aux::to_hex(*this);
 	}
 
-	// read 40 hexadecimal digits from an istream into a sha1_hash
-	std::istream& operator>>(std::istream& is, sha1_hash& peer)
+	// read hexadecimal digits from an istream into a digest32
+	template <std::ptrdiff_t N>
+	void digest32<N>::stream_in(std::istream& is)
 	{
-		char hex[sha1_hash::size() * 2];
-		is.read(hex, sha1_hash::size() * 2);
-		if (!aux::from_hex(hex, peer.data()))
+		char hex[size() * 2];
+		is.read(hex, size() * 2);
+		if (!aux::from_hex(hex, data()))
 			is.setstate(std::ios_base::failbit);
-		return is;
 	}
+
+	// explicitly instantiate these template functions for sha1 and sha256
+	template TORRENT_EXPORT void digest32<160>::stream_out(std::ostream&) const;
+	template TORRENT_EXPORT void digest32<256>::stream_out(std::ostream&) const;
+
+	template TORRENT_EXPORT void digest32<160>::stream_in(std::istream&);
+	template TORRENT_EXPORT void digest32<256>::stream_in(std::istream&);
 
 #endif // TORRENT_USE_IOSTREAM
 
-namespace aux {
+namespace {
 
-	void bits_shift_left(typed_span<std::uint32_t> number, int n)
+	void bits_shift_left(span<std::uint32_t> const number, int n) noexcept
 	{
 		TORRENT_ASSERT(n >= 0);
 		int const num_words = n / 32;
-		int const number_size = number.end_index();
+		int const number_size = int(number.size());
 		if (num_words >= number_size)
 		{
-			std::memset(number.data(), 0, number.size() * 4);
+			std::memset(number.data(), 0, std::size_t(number.size() * 4));
 			return;
 		}
 
@@ -100,14 +111,14 @@ namespace aux {
 		}
 	}
 
-	void bits_shift_right(typed_span<std::uint32_t> number, int n)
+	void bits_shift_right(span<std::uint32_t> const number, int n) noexcept
 	{
 		TORRENT_ASSERT(n >= 0);
 		int const num_words = n / 32;
-		int const number_size = number.end_index();
+		int const number_size = int(number.size());
 		if (num_words >= number_size)
 		{
-			std::memset(number.data(), 0, number.size() * 4);
+			std::memset(number.data(), 0, std::size_t(number.size() * 4));
 			return;
 		}
 		if (num_words > 0)
@@ -137,6 +148,27 @@ namespace aux {
 		}
 	}
 }
+
+		// shift left ``n`` bits.
+	template <std::ptrdiff_t N>
+	digest32<N>& digest32<N>::operator<<=(int const n) noexcept
+	{
+		bits_shift_left(m_number, n);
+		return *this;
+	}
+
+	// shift right ``n`` bits.
+	template <std::ptrdiff_t N>
+	digest32<N>& digest32<N>::operator>>=(int const n) noexcept
+	{
+		bits_shift_right(m_number, n);
+		return *this;
+	}
+
+	template TORRENT_EXPORT digest32<160>& digest32<160>::operator<<=(int) noexcept;
+	template TORRENT_EXPORT digest32<256>& digest32<256>::operator<<=(int) noexcept;
+	template TORRENT_EXPORT digest32<160>& digest32<160>::operator>>=(int) noexcept;
+	template TORRENT_EXPORT digest32<256>& digest32<256>::operator>>=(int) noexcept;
 
 	static_assert(std::is_nothrow_move_constructible<sha1_hash>::value
 		, "should be nothrow move constructible");

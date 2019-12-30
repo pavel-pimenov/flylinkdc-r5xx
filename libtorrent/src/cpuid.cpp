@@ -1,6 +1,9 @@
 /*
 
-Copyright (c) 2014-2016, Arvid Norberg
+Copyright (c) 2015-2017, 2019, Arvid Norberg
+Copyright (c) 2016, Andrei Kurushin
+Copyright (c) 2016-2018, Alden Torres
+Copyright (c) 2018, Alexandre Janniaux
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -54,18 +57,32 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_HAS_AUXV 0
 #endif
 
-
 #if TORRENT_HAS_ARM && TORRENT_HAS_AUXV
+#if defined TORRENT_ANDROID
+#include <dlfcn.h>
+namespace {
+unsigned long int helper_getauxval(unsigned long int type)
+{
+    using getauxval_t = unsigned long int(*)(unsigned long int);
+    getauxval_t pf_getauxval = reinterpret_cast<getauxval_t>(dlsym(RTLD_DEFAULT, "getauxval"));
+    if (pf_getauxval == nullptr)
+        return 0;
+    return pf_getauxval(type);
+}
+}
+#else // TORRENT_ANDROID
 #include <sys/auxv.h>
+#define helper_getauxval getauxval
 #endif
+#endif // TORRENT_HAS_ARM && TORRENT_HAS_AUXV
 
-namespace libtorrent { namespace aux {
-
-	namespace {
+namespace libtorrent {
+namespace aux {
+namespace {
 
 #if TORRENT_HAS_SSE
 	// internal
-	void cpuid(std::uint32_t* info, int type)
+	void cpuid(std::uint32_t* info, int type) noexcept
 	{
 #if defined _MSC_VER
 		__cpuid((int*)info, type);
@@ -80,7 +97,7 @@ namespace libtorrent { namespace aux {
 	}
 #endif
 
-	bool supports_sse42()
+	bool supports_sse42() noexcept
 	{
 #if TORRENT_HAS_SSE
 		std::uint32_t cpui[4] = {0};
@@ -91,7 +108,7 @@ namespace libtorrent { namespace aux {
 #endif
 	}
 
-	bool supports_mmx()
+	bool supports_mmx() noexcept
 	{
 #if TORRENT_HAS_SSE
 		std::uint32_t cpui[4] = {0};
@@ -102,12 +119,12 @@ namespace libtorrent { namespace aux {
 #endif
 	}
 
-	bool supports_arm_neon()
+	bool supports_arm_neon() noexcept
 	{
 #if TORRENT_HAS_ARM_NEON && TORRENT_HAS_AUXV
 #if defined __arm__
 		//return (getauxval(AT_HWCAP) & HWCAP_NEON);
-		return (getauxval(16) & (1 << 12));
+		return (helper_getauxval(16) & (1 << 12));
 #elif defined __aarch64__
 		//return (getauxval(AT_HWCAP) & HWCAP_ASIMD);
 		//return (getauxval(16) & (1 << 1));
@@ -119,24 +136,24 @@ namespace libtorrent { namespace aux {
 #endif
 	}
 
-	bool supports_arm_crc32c()
+	bool supports_arm_crc32c() noexcept
 	{
 #if TORRENT_HAS_ARM_CRC32 && TORRENT_HAS_AUXV
 #if defined TORRENT_FORCE_ARM_CRC32
 		return true;
 #elif defined __arm__
 		//return (getauxval(AT_HWCAP2) & HWCAP2_CRC32);
-		return (getauxval(26) & (1 << 4));
+		return (helper_getauxval(26) & (1 << 4));
 #elif defined __aarch64__
 		//return (getauxval(AT_HWCAP) & HWCAP_CRC32);
-		return (getauxval(16) & (1 << 7));
+		return (helper_getauxval(16) & (1 << 7));
 #endif
 #else
 		return false;
 #endif
 	}
 
-	} // anonymous namespace
+} // anonymous namespace
 
 	bool const sse42_support = supports_sse42();
 	bool const mmx_support = supports_mmx();

@@ -1,6 +1,8 @@
 /*
 
-Copyright (c) 2005-2016, Arvid Norberg
+Copyright (c) 2005-2007, 2009-2010, 2013, 2015-2017, 2019, Arvid Norberg
+Copyright (c) 2016-2018, Alden Torres
+Copyright (c) 2017, Andrei Kurushin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -68,7 +70,7 @@ struct ip_range
 	}
 };
 
-namespace detail {
+namespace aux {
 
 	template<class Addr>
 	Addr zero()
@@ -125,7 +127,7 @@ namespace detail {
 		Addr tmp;
 		std::fill(tmp.begin(), tmp.end()
 			, (std::numeric_limits<typename Addr::value_type>::max)());
-		return Addr(tmp);
+		return tmp;
 	}
 
 	template<>
@@ -144,6 +146,12 @@ namespace detail {
 		{
 			// make the entire ip-range non-blocked
 			m_access_list.insert(range(zero<Addr>(), 0));
+		}
+
+		bool empty() const
+		{
+			return m_access_list.empty()
+				|| (m_access_list.size() == 1 && *m_access_list.begin() == range(zero<Addr>(), 0));
 		}
 
 		void add_rule(Addr first, Addr last, std::uint32_t const flags)
@@ -249,6 +257,8 @@ namespace detail {
 			// the end of the range is implicit
 			// and given by the next entry in the set
 			std::uint32_t access;
+			friend bool operator==(range const& lhs, range const& rhs)
+			{ return lhs.start == rhs.start && lhs.access == rhs.access; }
 		};
 
 		std::set<range> m_access_list;
@@ -273,6 +283,9 @@ struct TORRENT_EXPORT ip_filter
 		blocked = 1
 	};
 
+	// returns true if the filter does not contain any rules
+	bool empty() const { return m_filter4.empty() && m_filter6.empty(); }
+
 	// Adds a rule to the filter. ``first`` and ``last`` defines a range of
 	// ip addresses that will be marked with the given flags. The ``flags``
 	// can currently be 0, which means allowed, or ``ip_filter::blocked``, which
@@ -286,7 +299,7 @@ struct TORRENT_EXPORT ip_filter
 	//
 	// This means that in a case of overlapping ranges, the last one applied takes
 	// precedence.
-	void add_rule(address first, address last, std::uint32_t flags);
+	void add_rule(address const& first, address const& last, std::uint32_t flags);
 
 	// Returns the access permissions for the given address (``addr``). The permission
 	// can currently be 0 or ``ip_filter::blocked``. The complexity of this operation
@@ -294,12 +307,8 @@ struct TORRENT_EXPORT ip_filter
 	// the current filter.
 	std::uint32_t access(address const& addr) const;
 
-#if TORRENT_USE_IPV6
 	using filter_tuple_t = std::tuple<std::vector<ip_range<address_v4>>
 		, std::vector<ip_range<address_v6>>>;
-#else
-	using filter_tuple_t = std::vector<ip_range<address_v4>>;
-#endif
 
 	// This function will return the current state of the filter in the minimum number of
 	// ranges possible. They are sorted from ranges in low addresses to high addresses. Each
@@ -314,10 +323,8 @@ struct TORRENT_EXPORT ip_filter
 
 private:
 
-	detail::filter_impl<address_v4::bytes_type> m_filter4;
-#if TORRENT_USE_IPV6
-	detail::filter_impl<address_v6::bytes_type> m_filter6;
-#endif
+	aux::filter_impl<address_v4::bytes_type> m_filter4;
+	aux::filter_impl<address_v6::bytes_type> m_filter6;
 };
 
 // the port filter maps non-overlapping port ranges to flags. This
@@ -348,7 +355,7 @@ public:
 
 private:
 
-	detail::filter_impl<std::uint16_t> m_filter;
+	aux::filter_impl<std::uint16_t> m_filter;
 
 };
 

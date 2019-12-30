@@ -1,6 +1,9 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2010, 2015-2019, Arvid Norberg
+Copyright (c) 2016-2017, Alden Torres
+Copyright (c) 2017, Pavel Pimenov
+Copyright (c) 2018, Steven Siloti
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,7 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_NATPMP_HPP
 #define TORRENT_NATPMP_HPP
 
-#include "libtorrent/io_service_fwd.hpp"
+#include "libtorrent/io_context.hpp"
 #include "libtorrent/socket.hpp"
 #include "libtorrent/address.hpp"
 #include "libtorrent/error_code.hpp"
@@ -45,13 +48,48 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-struct TORRENT_EXTRA_EXPORT natpmp
+namespace errors {
+	// See RFC 6887 Section 7.4
+	enum pcp_errors
+	{
+		pcp_success = 0,
+		pcp_unsupp_version,
+		pcp_not_authorized,
+		pcp_malformed_request,
+		pcp_unsupp_opcode,
+		pcp_unsupp_option,
+		pcp_malformed_option,
+		pcp_network_failure,
+		pcp_no_resources,
+		pcp_unsupp_protocol,
+		pcp_user_ex_quota,
+		pcp_cannot_provide_external,
+		pcp_address_mismatch,
+		pcp_excessive_remote_peers,
+	};
+
+	boost::system::error_code make_error_code(pcp_errors e);
+} // namespace errors
+
+	boost::system::error_category& pcp_category();
+} // namespace libtorrent
+
+namespace boost {
+namespace system {
+	template<> struct is_error_code_enum<libtorrent::errors::pcp_errors>
+	{ static const bool value = true; };
+}
+}
+
+namespace libtorrent {
+
+struct TORRENT_EXTRA_EXPORT natpmp final
 	: std::enable_shared_from_this<natpmp>
 	, single_threaded
 {
-	natpmp(io_service& ios, aux::portmap_callback& cb);
+	natpmp(io_context& ios, aux::portmap_callback& cb);
 
-	void start();
+	void start(address local_address, std::string device);
 
 	// maps the ports, if a port is set to 0
 	// it will not be mapped
@@ -63,13 +101,15 @@ struct TORRENT_EXTRA_EXPORT natpmp
 	void close();
 
 private:
+	static error_code from_result_code(int version, int result);
 
 	std::shared_ptr<natpmp> self() { return shared_from_this(); }
 
 	void update_mapping(port_mapping_t i);
 	void send_map_request(port_mapping_t i);
 	void send_get_ip_address_request();
-	void resend_request(port_mapping_t i, error_code const& e);
+	void on_resend_request(port_mapping_t i, error_code const& e);
+	void resend_request(port_mapping_t);
 	void on_reply(error_code const& e
 		, std::size_t bytes_transferred);
 	void try_next_mapping(port_mapping_t i);
@@ -79,8 +119,30 @@ private:
 
 	void disable(error_code const& ec);
 
+	enum protocol_version
+	{
+		version_natpmp = 0,
+		version_pcp = 2,
+	};
+
+	static char const* version_to_string(protocol_version version);
+
+	// See RFC 6887 Section 19.2
+	enum pcp_opcode
+	{
+		opcode_announce = 0,
+		opcode_map,
+		opcode_peer,
+	};
+
 	struct mapping_t : aux::base_mapping
 	{
+		// random identifier, used by PCP
+		std::array<char, 12> nonce;
+
+		// only valid if the router supports PCP
+		address external_address;
+
 		// the local port for this mapping. If this is set
 		// to 0, the mapping is not in use
 		int local_port = 0;
@@ -100,6 +162,8 @@ private:
 
 	aux::portmap_callback& m_callback;
 
+	protocol_version m_version = version_pcp;
+
 	aux::vector<mapping_t, port_mapping_t> m_mappings;
 
 	// the endpoint to the nat router
@@ -114,9 +178,12 @@ private:
 	int m_retry_count = 0;
 
 	// used to receive responses in
-	char m_response_buffer[16];
+	// 1100 octets is the maximum size of a PCP packet
+	char m_response_buffer[1100];
 
 	// router external IP address
+	// this is only used if the router does not support PCP
+	// with PCP the external IP is stored with the mapping
 	address m_external_ip;
 
 	// the endpoint we received the message from
@@ -136,11 +203,13 @@ private:
 	// the mapping index that will expire next
 	port_mapping_t m_next_refresh{-1};
 
+	io_context& m_ioc;
+
 	bool m_disabled = false;
 
 	bool m_abort = false;
 };
 
-}
+} // namespace libtorrent
 
 #endif

@@ -1,6 +1,12 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2010, 2012-2019, Arvid Norberg
+Copyright (c) 2004, spyhole
+Copyright (c) 2016, Pavel Pimenov
+Copyright (c) 2017, Alden Torres
+Copyright (c) 2017, Col-blimp
+Copyright (c) 2017, Andrei Kurushin
+Copyright (c) 2019, gubatron
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,6 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <cctype>
 #include <algorithm>
 #include <cstdio>
+#include <cstring>
 
 #include "libtorrent/aux_/disable_warnings_push.hpp"
 #include <boost/optional.hpp>
@@ -170,6 +177,7 @@ namespace {
 		, {"ES", "electric sheep"}
 		, {"FC", "FileCroc"}
 		, {"FT", "FoxTorrent"}
+		, {"FW", "FrostWire"}
 		, {"FX", "Freebox BitTorrent"}
 		, {"GS", "GSTorrent"}
 		, {"HK", "Hekate"}
@@ -323,13 +331,13 @@ namespace {
 			name = temp;
 		}
 
-		int num_chars = std::snprintf(identity, sizeof(identity), "%s %u.%u.%u", name
+		int num_chars = std::snprintf(identity, sizeof(identity), "%s %d.%d.%d", name
 			, f.major_version, f.minor_version, f.revision_version);
 
 		if (f.tag_version != 0)
 		{
 			std::snprintf(identity + num_chars, sizeof(identity) - aux::numeric_cast<std::size_t>(num_chars)
-				, ".%u", f.tag_version);
+				, ".%d", f.tag_version);
 		}
 
 		return identity;
@@ -344,7 +352,7 @@ namespace {
 
 namespace libtorrent {
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 
 	boost::optional<fingerprint> client_fingerprint(peer_id const& p)
 	{
@@ -358,9 +366,7 @@ namespace libtorrent {
 		if (f) return f;
 
 		// look for mainline style id
-		f = parse_mainline_style(p);
-		if (f) return f;
-		return f;
+		return parse_mainline_style(p);
 	}
 
 #endif
@@ -382,11 +388,8 @@ namespace aux {
 		// non standard encodings
 		// ----------------------
 
-		const int num_generic_mappings = sizeof(generic_mappings) / sizeof(generic_mappings[0]);
-
-		for (int i = 0; i < num_generic_mappings; ++i)
+		for (auto const& e : generic_mappings)
 		{
-			generic_map_entry const& e = generic_mappings[i];
 			if (find_string(PID + e.offset, e.id)) return e.name;
 		}
 
@@ -395,8 +398,8 @@ namespace aux {
 
 		if (find_string(PID, "eX"))
 		{
-			std::string user(PID + 2, PID + 14);
-			return std::string("eXeem ('") + user.c_str() + "')";
+			std::string user(PID + 2, 12);
+			return std::string("eXeem ('") + user + "')";
 		}
 		bool const is_equ_zero = std::equal(PID, PID + 12, "\0\0\0\0\0\0\0\0\0\0\0\0");
 
@@ -423,14 +426,11 @@ namespace aux {
 			return "Generic";
 
 		std::string unknown("Unknown [");
-		for (peer_id::const_iterator i = p.begin(); i != p.end(); ++i)
-		{
-			unknown += is_print(char(*i)) ? char(*i) : '.';
-		}
+		for (unsigned char const c : p)
+			unknown += is_print(char(c)) ? char(c) : '.';
 		unknown += "]";
 		return unknown;
 	}
 
 } // aux
 } // libtorrent
-

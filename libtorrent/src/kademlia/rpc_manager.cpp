@@ -1,6 +1,11 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg
+Copyright (c) 2006-2017, 2019, Arvid Norberg
+Copyright (c) 2015, Thomas
+Copyright (c) 2015, 2017, Steven Siloti
+Copyright (c) 2016-2018, Alden Torres
+Copyright (c) 2016-2017, Andrei Kurushin
+Copyright (c) 2017, Pavel Pimenov
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -44,12 +49,12 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/kademlia/direct_request.hpp>
 #include <libtorrent/kademlia/get_item.hpp>
 #include <libtorrent/kademlia/sample_infohashes.hpp>
-#include <libtorrent/kademlia/dht_settings.hpp>
+#include <libtorrent/aux_/session_settings.hpp>
 
 #include <libtorrent/socket_io.hpp> // for print_endpoint
-#include <libtorrent/hasher.hpp>
 #include <libtorrent/aux_/time.hpp> // for aux::time_now
 #include <libtorrent/aux_/aligned_union.hpp>
+#include <libtorrent/broadcast_socket.hpp> // for is_v6
 
 #include <type_traits>
 #include <functional>
@@ -83,14 +88,12 @@ void observer::set_target(udp::endpoint const& ep)
 	m_sent = clock_type::now();
 
 	m_port = ep.port();
-#if TORRENT_USE_IPV6
-	if (ep.address().is_v6())
+	if (is_v6(ep))
 	{
 		flags |= flag_ipv6_address;
 		m_addr.v6 = ep.address().to_v6().to_bytes();
 	}
 	else
-#endif
 	{
 		flags &= ~flag_ipv6_address;
 		m_addr.v4 = ep.address().to_v4().to_bytes();
@@ -99,17 +102,15 @@ void observer::set_target(udp::endpoint const& ep)
 
 address observer::target_addr() const
 {
-#if TORRENT_USE_IPV6
 	if (flags & flag_ipv6_address)
 		return address_v6(m_addr.v6);
 	else
-#endif
 		return address_v4(m_addr.v4);
 }
 
 udp::endpoint observer::target_ep() const
 {
-	return udp::endpoint(target_addr(), m_port);
+	return {target_addr(), m_port};
 }
 
 void observer::abort()
@@ -159,7 +160,7 @@ using observer_storage = aux::aligned_union<1
 	, traversal_observer>::type;
 
 rpc_manager::rpc_manager(node_id const& our_id
-	, dht_settings const& settings
+	, aux::session_settings const& settings
 	, routing_table& table
 	, aux::listen_socket_handle const& sock
 	, socket_manager* sock_man
@@ -204,7 +205,6 @@ void rpc_manager::free_observer(void* ptr)
 {
 	if (ptr == nullptr) return;
 	--m_allocated_observers;
-	TORRENT_ASSERT(reinterpret_cast<observer*>(ptr)->m_in_use == false);
 	m_pool_allocator.free(ptr);
 }
 
@@ -241,7 +241,7 @@ void rpc_manager::unreachable(udp::endpoint const& ep)
 		observer_ptr o = i->second;
 #ifndef TORRENT_DISABLE_LOGGING
 		m_log->log(dht_logger::rpc_manager, "[%u] found transaction [ tid: %d ]"
-			, o->algorithm()->id(), int(i->first));
+			, o->algorithm()->id(), i->first);
 #endif
 		i = m_transactions.erase(i);
 		o->timeout();
@@ -266,7 +266,7 @@ bool rpc_manager::incoming(msg const& m, node_id* id)
 	if (transaction_id.empty()) return false;
 
 	auto ptr = transaction_id.begin();
-	int tid = transaction_id.size() != 2 ? -1 : detail::read_uint16(ptr);
+	int tid = transaction_id.size() != 2 ? -1 : aux::read_uint16(ptr);
 
 	observer_ptr o;
 	auto range = m_transactions.equal_range(tid);
@@ -361,7 +361,7 @@ bool rpc_manager::incoming(msg const& m, node_id* id)
 	}
 
 	node_id const nid = node_id(node_id_ent.string_ptr());
-	if (m_settings.enforce_node_id && !verify_id(nid, m.addr.address()))
+	if (m_settings.get_bool(settings_pack::dht_enforce_node_id) && !verify_id(nid, m.addr.address()))
 	{
 		o->timeout();
 		return false;
@@ -447,7 +447,7 @@ time_duration rpc_manager::tick()
 	std::for_each(timeouts.begin(), timeouts.end(), std::bind(&observer::timeout, _1));
 	std::for_each(short_timeouts.begin(), short_timeouts.end(), std::bind(&observer::short_timeout, _1));
 
-	return (std::max)(ret, duration_cast<time_duration>(milliseconds(200)));
+	return std::max(ret, duration_cast<time_duration>(milliseconds(200)));
 }
 
 void rpc_manager::add_our_id(entry& e)
@@ -469,13 +469,13 @@ bool rpc_manager::invoke(entry& e, udp::endpoint const& target_addr
 	std::string transaction_id;
 	transaction_id.resize(2);
 	char* out = &transaction_id[0];
-	std::uint16_t const tid = std::uint16_t(random(0x7fff));
-	detail::write_uint16(tid, out);
+	auto const tid = static_cast<std::uint16_t>(random(0x7fff));
+	aux::write_uint16(tid, out);
 	e["t"] = transaction_id;
 
 	// When a DHT node enters the read-only state, in each outgoing query message,
 	// places a 'ro' key in the top-level message dictionary and sets its value to 1.
-	if (m_settings.read_only) e["ro"] = 1;
+	if (m_settings.get_bool(settings_pack::dht_read_only)) e["ro"] = 1;
 
 	node& n = o->algorithm()->get_node();
 	if (!n.native_address(o->target_addr()))

@@ -34,23 +34,23 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_HAS_BLOCK_HPP_INCLUDED
 
 #include "libtorrent/piece_block.hpp"
+#include "libtorrent/peer_connection.hpp" // for pending_block
 
 namespace libtorrent { namespace aux {
 
 	struct has_block
 	{
 		has_block(has_block const&) = default;
+		// explicitly disallow assignment, to silence msvc warning
+		has_block& operator=(has_block const&) = delete;
 
 		explicit has_block(piece_block const& b): block(b) {}
 		bool operator()(pending_block const& pb) const
 		{ return pb.block == block; }
 	private:
 		piece_block const& block;
-		// explicitly disallow assignment, to silence msvc warning
-		has_block& operator=(has_block const&);
 	};
 
 }}
 
 #endif
-

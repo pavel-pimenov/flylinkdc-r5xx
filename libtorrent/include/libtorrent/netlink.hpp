@@ -1,6 +1,9 @@
 /*
 
 Copyright (c) 2016, Steven Siloti
+Copyright (c) 2016-2017, Alden Torres
+Copyright (c) 2017, 2019, Arvid Norberg
+Copyright (c) 2018, Eugene Shalygin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -88,7 +91,7 @@ namespace libtorrent {
 
 		data_type* data()
 		{
-			return &m_sockaddr;
+			return reinterpret_cast<data_type*>(&m_sockaddr);
 		}
 
 		const data_type* data() const

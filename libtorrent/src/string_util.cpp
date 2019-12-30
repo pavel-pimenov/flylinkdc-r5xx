@@ -1,6 +1,9 @@
 /*
 
-Copyright (c) 2012-2016, Arvid Norberg
+Copyright (c) 2012, 2014-2019, Arvid Norberg
+Copyright (c) 2016-2018, Alden Torres
+Copyright (c) 2017, Andrei Kurushin
+Copyright (c) 2017, Pavel Pimenov
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -86,26 +89,6 @@ namespace libtorrent {
 		return (c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : c;
 	}
 
-	int split_string(char const** tags, int buf_size, char* in)
-	{
-		int ret = 0;
-		char* i = in;
-		for (;*i; ++i)
-		{
-			if (!is_print(*i) || is_space(*i))
-			{
-				*i = 0;
-				if (ret == buf_size) return ret;
-				continue;
-			}
-			if (i == in || i[-1] == 0)
-			{
-				tags[ret++] = i;
-			}
-		}
-		return ret;
-	}
-
 	bool string_begins_no_case(char const* s1, char const* s2)
 	{
 		TORRENT_ASSERT(s1 != nullptr);
@@ -129,7 +112,7 @@ namespace libtorrent {
 	}
 
 	// generate a url-safe random string
-	void url_random(char* begin, char* end)
+	void url_random(span<char> dest)
 	{
 		// http-accepted characters:
 		// excluding ', since some buggy trackers don't support that
@@ -137,8 +120,8 @@ namespace libtorrent {
 			"abcdefghijklmnopqrstuvwxyz-_.!~*()";
 
 		// the random number
-		while (begin != end)
-			*begin++ = printable[random(sizeof(printable) - 2)];
+		std::generate(dest.begin(), dest.end()
+			, []{ return printable[random(sizeof(printable) - 2)]; });
 	}
 
 	bool string_ends_with(string_view s1, string_view s2)
@@ -151,7 +134,7 @@ namespace libtorrent {
 		TORRENT_ASSERT(!src.empty());
 		TORRENT_ASSERT(!target.empty());
 		TORRENT_ASSERT(target.size() >= src.size());
-		TORRENT_ASSERT(target.size() < std::size_t(std::numeric_limits<int>::max()));
+		TORRENT_ASSERT(target.size() < std::numeric_limits<int>::max());
 
 		auto const it = std::search(target.begin(), target.end(), src.begin(), src.end());
 
@@ -160,16 +143,17 @@ namespace libtorrent {
 		return static_cast<int>(it - target.begin());
 	}
 
-	char* allocate_string_copy(char const* str)
+	char* allocate_string_copy(string_view str)
 	{
-		if (str == nullptr) return nullptr;
-		std::size_t const len = std::strlen(str);
-		char* tmp = new char[len + 1];
-		std::copy(str, str + len, tmp);
-		tmp[len] = '\0';
+		if (str.empty()) return nullptr;
+		auto* tmp = new char[str.size() + 1];
+		std::copy(str.data(), str.data() + str.size(), tmp);
+		tmp[str.size()] = '\0';
 		return tmp;
 	}
 
+#if TORRENT_ABI_VERSION == 1 \
+	|| !defined TORRENT_DISABLE_LOGGING
 	std::string print_listen_interfaces(std::vector<listen_interface_t> const& in)
 	{
 		std::string ret;
@@ -177,7 +161,6 @@ namespace libtorrent {
 		{
 			if (!ret.empty()) ret += ',';
 
-#if TORRENT_USE_IPV6
 			error_code ec;
 			make_address_v6(i.device, ec);
 			if (!ec)
@@ -188,7 +171,6 @@ namespace libtorrent {
 				ret += ']';
 			}
 			else
-#endif
 			{
 				ret += i.device;
 			}
@@ -199,105 +181,101 @@ namespace libtorrent {
 
 		return ret;
 	}
+#endif
+
+	string_view strip_string(string_view in)
+	{
+		while (!in.empty() && is_space(in.front()))
+			in.remove_prefix(1);
+
+		while (!in.empty() && is_space(in.back()))
+			in.remove_suffix(1);
+		return in;
+	}
 
 	// this parses the string that's used as the listen_interfaces setting.
 	// it is a comma-separated list of IP or device names with ports. For
 	// example: "eth0:6881,eth1:6881" or "127.0.0.1:6881"
-	std::vector<listen_interface_t> parse_listen_interfaces(std::string const& in)
+	std::vector<listen_interface_t> parse_listen_interfaces(std::string const& in
+		, std::vector<std::string>& err)
 	{
 		std::vector<listen_interface_t> out;
 
-		std::string::size_type start = 0;
-
-		while (start < in.size())
+		string_view rest = in;
+		while (!rest.empty())
 		{
-			// skip leading spaces
-			while (start < in.size() && is_space(in[start]))
-				++start;
+			string_view element;
+			std::tie(element, rest) = split_string(rest, ',');
 
-			if (start == in.size()) return out;
+			element = strip_string(element);
+			if (element.size() > 1 && element.front() == '"' && element.back() == '"')
+				element = element.substr(1, element.size() - 2);
+			if (element.empty()) continue;
 
 			listen_interface_t iface;
 			iface.ssl = false;
 
-#if !TORRENT_USE_IPV6
-			bool ipv6 = false;
-#endif
-			if (in[start] == '[')
+			string_view port;
+			if (element.front() == '[')
 			{
-#if !TORRENT_USE_IPV6
-				ipv6 = true;
-#endif
-				++start;
-				// IPv6 address
-				while (start < in.size() && in[start] != ']')
-					iface.device += in[start++];
+				auto const pos = find_first_of(element, ']', 0);
+				if (pos == string_view::npos
+					|| pos+1 >= element.size()
+					|| element[pos+1] != ':')
+				{
+					err.emplace_back(element);
+					continue;
+				}
 
-				// skip to the colon
-				while (start < in.size() && in[start] != ':')
-					++start;
+				iface.device = strip_string(element.substr(1, pos - 1)).to_string();
+
+				port = strip_string(element.substr(pos + 2));
 			}
 			else
 			{
 				// consume device name
-				while (start < in.size() && !is_space(in[start]) && in[start] != ':')
-					iface.device += in[start++];
+				auto const pos = find_first_of(element, ':', 0);
+				iface.device = strip_string(element.substr(0, pos)).to_string();
+				if (pos == string_view::npos)
+				{
+					err.emplace_back(element);
+					continue;
+				}
+				port = strip_string(element.substr(pos + 1));
 			}
-
-			// skip spaces
-			while (start < in.size() && is_space(in[start]))
-				++start;
-
-			if (start == in.size() || in[start] != ':') return out;
-			++start; // skip colon
-
-			// skip spaces
-			while (start < in.size() && is_space(in[start]))
-				++start;
 
 			// consume port
-			std::string port;
-			while (start < in.size() && is_digit(in[start]) && in[start] != ',')
-				port += in[start++];
+			std::string port_str;
+			for (std::size_t i = 0; i < port.size() && is_digit(port[i]); ++i)
+				port_str += port[i];
 
-			if (port.empty() || port.size() > 5)
+			if (port_str.empty() || port_str.size() > 5)
 			{
-				iface.port = -1;
-			}
-			else
-			{
-				iface.port = std::atoi(port.c_str());
-				if (iface.port < 0 || iface.port > 65535) iface.port = -1;
+				err.emplace_back(element);
+				continue;
 			}
 
-			// skip spaces
-			while (start < in.size() && is_space(in[start]))
-				++start;
+			iface.port = std::atoi(port_str.c_str());
+			if (iface.port < 0 || iface.port > 65535)
+			{
+				err.emplace_back(element);
+				continue;
+			}
+
+			port.remove_prefix(port_str.size());
+			port = strip_string(port);
 
 			// consume potential SSL 's'
-			if (start < in.size() && in[start] == 's')
+			for (auto const c : port)
 			{
-				iface.ssl = true;
-				++start;
+				switch (c)
+				{
+					case 's': iface.ssl = true; break;
+				}
 			}
 
-			// skip until end or comma
-			while (start < in.size() && in[start] != ',')
-				++start;
-
-			if (iface.port >= 0
-#if !TORRENT_USE_IPV6
-				&& ipv6 == false
-#endif
-				)
-			{
-				out.push_back(iface);
-			}
-
-			// skip the comma
-			if (start < in.size() && in[start] == ',')
-				++start;
-
+			TORRENT_ASSERT(iface.port >= 0);
+			out.emplace_back(iface);
 		}
 
 		return out;
@@ -415,28 +393,4 @@ namespace libtorrent {
 	}
 
 #endif
-
-	std::size_t string_hash_no_case::operator()(std::string const& s) const
-	{
-		std::size_t ret = 5381;
-		for (auto const c : s)
-			ret = (ret * 33) ^ static_cast<std::size_t>(to_lower(c));
-		return ret;
-	}
-
-	bool string_eq_no_case::operator()(std::string const& lhs, std::string const& rhs) const
-	{
-		if (lhs.size() != rhs.size()) return false;
-
-		auto s1 = lhs.cbegin();
-		auto s2 = rhs.cbegin();
-
-		while (s1 != lhs.end() && s2 != rhs.end())
-		{
-			if (to_lower(*s1) != to_lower(*s2)) return false;
-			++s1;
-			++s2;
-		}
-		return true;
-	}
 }

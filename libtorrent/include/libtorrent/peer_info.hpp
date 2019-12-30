@@ -1,6 +1,9 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2011, 2013-2019, Arvid Norberg
+Copyright (c) 2004, Magnus Jonsson
+Copyright (c) 2016, Alden Torres
+Copyright (c) 2019, Amir Abrams
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -44,24 +47,21 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	// hidden
-	struct peer_flags_tag;
-	struct peer_source_flags_tag;
-	struct bandwidth_state_flags_tag;
-
 	// flags for the peer_info::flags field. Indicates various states
 	// the peer may be in. These flags are not mutually exclusive, but
 	// not every combination of them makes sense either.
-	using peer_flags_t = flags::bitfield_flag<std::uint32_t, peer_flags_tag>;
+	using peer_flags_t = flags::bitfield_flag<std::uint32_t, struct peer_flags_tag>;
 
 	// the flags indicating which sources a peer can
 	// have come from. A peer may have been seen from
 	// multiple sources
-	using peer_source_flags_t = flags::bitfield_flag<std::uint8_t, peer_source_flags_tag>;
+	using peer_source_flags_t = flags::bitfield_flag<std::uint8_t, struct peer_source_flags_tag>;
 
 	// flags indicating what is blocking network transfers in up- and down
 	// direction
-	using bandwidth_state_flags_t = flags::bitfield_flag<std::uint8_t, bandwidth_state_flags_tag>;
+	using bandwidth_state_flags_t = flags::bitfield_flag<std::uint8_t, struct bandwidth_state_flags_tag>;
+
+TORRENT_VERSION_NAMESPACE_2
 
 	// holds information and statistics about one peer
 	// that libtorrent is connected to
@@ -127,7 +127,7 @@ namespace libtorrent {
 		// being connected).
 		static constexpr peer_flags_t connecting = 7_bit;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		// The connection is currently queued for a connection
 		// attempt. This may happen if there is a limit set on
 		// the number of half-open TCP connections.
@@ -235,6 +235,8 @@ namespace libtorrent {
 		// which client the peer is using. See identify_client()_
 		peer_id pid;
 
+		// the number of bytes we have requested from this peer, but not yet
+		// received.
 		int queue_bytes;
 
 		// the number of seconds until the current front piece request will time
@@ -318,12 +320,10 @@ namespace libtorrent {
 		// the kind of connection this peer uses. See connection_type_t.
 		int connection_type;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		// an estimate of the rate this peer is downloading at, in
 		// bytes per second.
 		int remote_dl_rate;
-#else
-		int deprecated_remote_dl_rate;
 #endif
 
 		// the number of bytes this peer has pending in the disk-io thread.
@@ -342,7 +342,7 @@ namespace libtorrent {
 		int receive_quota;
 
 		// an estimated round trip time to this peer, in milliseconds. It is
-		// estimated by timing the the TCP ``connect()``. It may be 0 for
+		// estimated by timing the TCP ``connect()``. It may be 0 for
 		// incoming connections.
 		int rtt;
 
@@ -402,7 +402,7 @@ namespace libtorrent {
 		bandwidth_state_flags_t read_state;
 		bandwidth_state_flags_t write_state;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		static constexpr bandwidth_state_flags_t bw_torrent = bw_limit;
 		static constexpr bandwidth_state_flags_t bw_global = bw_limit;
 
@@ -419,10 +419,11 @@ namespace libtorrent {
 		// have got this amount of free download.
 		std::int64_t load_balancing;
 #endif
-
 	};
 
-#ifndef TORRENT_NO_DEPRECATE
+TORRENT_VERSION_NAMESPACE_2_END
+
+#if TORRENT_ABI_VERSION == 1
 	// internal
 	struct TORRENT_EXTRA_EXPORT peer_list_entry
 	{

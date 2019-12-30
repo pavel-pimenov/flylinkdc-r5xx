@@ -1,6 +1,7 @@
 /*
 
-Copyright (c) 2010-2016, Arvid Norberg
+Copyright (c) 2010, 2013-2017, 2019, Arvid Norberg
+Copyright (c) 2016, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -73,4 +74,3 @@ namespace libtorrent {
 }
 
 #endif // TORRENT_DISK_JOB_POOL
-

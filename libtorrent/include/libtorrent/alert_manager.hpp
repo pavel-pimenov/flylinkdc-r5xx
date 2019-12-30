@@ -1,6 +1,8 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg, Daniel Wallin
+Copyright (c) 2003-2013, Daniel Wallin
+Copyright (c) 2013, 2015-2019, Arvid Norberg
+Copyright (c) 2016, 2018, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,62 +37,62 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/config.hpp"
 #include "libtorrent/alert.hpp"
-#include "libtorrent/heterogeneous_queue.hpp"
+#include "libtorrent/aux_/heterogeneous_queue.hpp"
 #include "libtorrent/stack_allocator.hpp"
 #include "libtorrent/alert_types.hpp" // for num_alert_types
+#include "libtorrent/aux_/array.hpp"
 
 #include <functional>
-#include <list>
 #include <utility> // for std::forward
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
 #include <bitset>
 
-namespace libtorrent {
-
 #ifndef TORRENT_DISABLE_EXTENSIONS
-	struct plugin;
+#include "libtorrent/extensions.hpp"
+#include <memory> // for shared_ptr
+#include <list>
 #endif
 
-	// this bitset is used to indicate which alert types have been dropped since
-	// last queried.
-	using dropped_alerts_t = std::bitset<num_alert_types>;
+namespace libtorrent {
 
-	class TORRENT_EXTRA_EXPORT alert_manager
+	struct TORRENT_EXTRA_EXPORT alert_manager
 	{
-	public:
-		alert_manager(int queue_limit
+		explicit alert_manager(int queue_limit
 			, alert_category_t alert_mask = alert::error_notification);
-		~alert_manager();
 
-		dropped_alerts_t dropped_alerts();
+		alert_manager(alert_manager const&) = delete;
+		alert_manager& operator=(alert_manager const&) = delete;
+
+		~alert_manager();
 
 		template <class T, typename... Args>
 		void emplace_alert(Args&&... args) try
 		{
-			std::unique_lock<std::mutex> lock(m_mutex);
+			std::unique_lock<std::recursive_mutex> lock(m_mutex);
+
+			heterogeneous_queue<alert>& queue = m_alerts[m_generation];
 
 			// don't add more than this number of alerts, unless it's a
 			// high priority alert, in which case we try harder to deliver it
 			// for high priority alerts, double the upper limit
-			if (m_alerts[m_generation].size() >= m_queue_size_limit
-				* (1 + T::priority))
+			if (queue.size() / (1 + static_cast<int>(T::priority)) >= m_queue_size_limit)
 			{
 				// record that we dropped an alert of this type
 				m_dropped.set(T::alert_type);
 				return;
 			}
 
-			T& alert = m_alerts[m_generation].emplace_back<T>(
+			T& alert = queue.emplace_back<T>(
 				m_allocations[m_generation], std::forward<Args>(args)...);
 
-			maybe_notify(&alert, lock);
+			maybe_notify(&alert);
 		}
 		catch (std::bad_alloc const&)
 		{
 			// record that we dropped an alert of this type
-			std::unique_lock<std::mutex> lock(m_mutex);
+			std::unique_lock<std::recursive_mutex> lock(m_mutex);
 			m_dropped.set(T::alert_type);
 		}
 
@@ -100,17 +102,12 @@ namespace libtorrent {
 		template <class T>
 		bool should_post() const
 		{
-			if (!(m_alert_mask.load(std::memory_order_relaxed) & T::static_category))
-			{
-				return false;
-			}
-
-			return should_post_impl(T::priority);
+			return bool(m_alert_mask.load(std::memory_order_relaxed) & T::static_category);
 		}
 
 		alert* wait_for_alert(time_duration max_wait);
 
-		void set_alert_mask(alert_category_t const m)
+		void set_alert_mask(alert_category_t const m) noexcept
 		{
 			m_alert_mask = m;
 		}
@@ -131,15 +128,13 @@ namespace libtorrent {
 
 	private:
 
-		// non-copyable
-		alert_manager(alert_manager const&);
-		alert_manager& operator=(alert_manager const&);
+		void maybe_notify(alert* a);
 
-		bool should_post_impl(int priority) const;
-		void maybe_notify(alert* a, std::unique_lock<std::mutex>& lock);
-
-		mutable std::mutex m_mutex;
-		std::condition_variable m_condition;
+		// this mutex protects everything. Since it's held while executing user
+		// callbacks (the notify function and extension on_alert()) it must be
+		// recursive to support recursively post new alerts.
+		mutable std::recursive_mutex m_mutex;
+		std::condition_variable_any m_condition;
 		std::atomic<alert_category_t> m_alert_mask;
 		int m_queue_size_limit;
 
@@ -147,7 +142,7 @@ namespace libtorrent {
 		// an alert (because the queue is full or of some other error) we set the
 		// corresponding bit in this mask, to communicate to the client that it
 		// may have missed an update.
-		dropped_alerts_t m_dropped;
+		std::bitset<num_alert_types> m_dropped;
 
 		// this function (if set) is called whenever the number of alerts in
 		// the alert queue goes from 0 to 1. The client is expected to wake up
@@ -168,11 +163,11 @@ namespace libtorrent {
 		// manager gives exclusive access to m_alerts[m_generation] and
 		// m_allocations[m_generation] whereas the other copy is exclusively
 		// used by the client thread.
-		heterogeneous_queue<alert> m_alerts[2];
+		aux::array<heterogeneous_queue<alert>, 2> m_alerts;
 
 		// this is a stack where alerts can allocate variable length content,
 		// such as strings, to go with the alerts.
-		aux::stack_allocator m_allocations[2];
+		aux::array<aux::stack_allocator, 2> m_allocations;
 
 #ifndef TORRENT_DISABLE_EXTENSIONS
 		std::list<std::shared_ptr<plugin>> m_ses_extensions;

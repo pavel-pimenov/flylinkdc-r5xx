@@ -1,6 +1,8 @@
 /*
 
-Copyright (c) 2017, Arvid Norberg, Steven Siloti
+Copyright (c) 2017, Steven Siloti
+Copyright (c) 2017-2019, Arvid Norberg
+Copyright (c) 2018, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/aux_/session_udp_sockets.hpp"
 #include "libtorrent/aux_/session_impl.hpp"
+#include "libtorrent/error_code.hpp"
 
 namespace libtorrent { namespace aux {
 
@@ -63,21 +66,26 @@ namespace libtorrent { namespace aux {
 		});
 	}
 
-	tcp::endpoint outgoing_sockets::bind(socket_type& s, address const& remote_address) const
+	tcp::endpoint outgoing_sockets::bind(socket_type& s
+		, address const& remote_address, error_code& ec) const
 	{
-		TORRENT_ASSERT(!sockets.empty());
+		if (sockets.empty())
+		{
+			ec.assign(boost::system::errc::not_supported, generic_category());
+			return {};
+		}
 
 		utp_socket_impl* impl = nullptr;
 		transport ssl = transport::plaintext;
-#ifdef TORRENT_USE_OPENSSL
-		if (s.get<ssl_stream<utp_stream>>() != nullptr)
+#ifdef TORRENT_SSL_PEERS
+		if (boost::get<ssl_stream<utp_stream>>(&s) != nullptr)
 		{
-			impl = s.get<ssl_stream<utp_stream>>()->next_layer().get_impl();
+			impl = boost::get<ssl_stream<utp_stream>>(s).next_layer().get_impl();
 			ssl = transport::ssl;
 		}
 		else
 #endif
-			impl = s.get<utp_stream>()->get_impl();
+			impl = boost::get<utp_stream>(s).get_impl();
 
 		auto& idx = index[remote_address.is_v4() ? 0 : 1][ssl == transport::ssl ? 1 : 0];
 		auto const index_begin = idx;
@@ -87,19 +95,19 @@ namespace libtorrent { namespace aux {
 			if (++idx >= sockets.size())
 				idx = 0;
 
-			if (sockets[idx]->local_endpoint().address().is_v4() != remote_address.is_v4()
+			if (is_v4(sockets[idx]->local_endpoint()) != remote_address.is_v4()
 				|| sockets[idx]->ssl != ssl)
 			{
 				if (idx == index_begin) break;
 				continue;
 			}
 
-			utp_init_socket(impl, sockets[idx]);
-			auto udp_ep = sockets[idx]->local_endpoint();
-			return tcp::endpoint(udp_ep.address(), udp_ep.port());
+			impl->m_sock = sockets[idx];
+			auto const udp_ep = sockets[idx]->local_endpoint();
+			return {udp_ep.address(), udp_ep.port()};
 		}
 
-		return tcp::endpoint();
+		return {};
 	}
 
 	void outgoing_sockets::update_proxy(proxy_settings const& settings)

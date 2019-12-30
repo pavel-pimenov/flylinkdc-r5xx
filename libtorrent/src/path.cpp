@@ -1,6 +1,8 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2017, Steven Siloti
+Copyright (c) 2017-2019, Arvid Norberg
+Copyright (c) 2017-2019, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -71,11 +73,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/path.hpp"
 #include "libtorrent/file.hpp" // for directory
 #include "libtorrent/string_util.hpp"
-#include "libtorrent/aux_/max_path.hpp" // for TORRENT_MAX_PATH
 #include <cstring>
 
-// for convert_to_wstring and convert_to_native
-#include "libtorrent/aux_/escape_string.hpp"
+#include "libtorrent/aux_/escape_string.hpp" // for convert_to_native
 #include "libtorrent/assert.hpp"
 #include "libtorrent/aux_/throw.hpp"
 
@@ -90,10 +90,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/utf8.hpp"
 #include "libtorrent/aux_/win_util.hpp"
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
+#include "libtorrent/aux_/windows.hpp"
 #include <winioctl.h>
 #ifndef TORRENT_MINGW
 #include <direct.h> // for _getcwd, _mkdir
@@ -129,21 +126,31 @@ namespace libtorrent {
 
 	int bufs_size(span<iovec_t const> bufs)
 	{
-		std::size_t size = 0;
+		std::ptrdiff_t size = 0;
 		for (auto buf : bufs) size += buf.size();
 		return int(size);
 	}
 
 #if defined TORRENT_WINDOWS
-	std::string convert_from_native_path(wchar_t const* s) { return convert_from_wstring(s); }
+	std::string convert_from_native_path(wchar_t const* s)
+	{
+		if (s[0] == L'\\' && s[1] == L'\\' && s[2] == L'?' && s[3] == L'\\') s += 4;
+		return convert_from_wstring(s);
+	}
 #else
 	std::string convert_from_native_path(char const* s) { return convert_from_native(s); }
 #endif
 
-	template <typename T>
-	std::unique_ptr<T, decltype(&std::free)> make_free_holder(T* ptr)
+namespace {
+	struct free_function
 	{
-		return std::unique_ptr<T, decltype(&std::free)>(ptr, &std::free);
+		void operator()(void* ptr) const noexcept { std::free(ptr); }
+	};
+
+	template <typename T>
+	std::unique_ptr<T, free_function> make_free_holder(T* ptr)
+	{
+		return std::unique_ptr<T, free_function>(ptr, free_function{});
 	}
 
 #ifdef TORRENT_WINDOWS
@@ -158,26 +165,17 @@ namespace libtorrent {
 		return time_t(ft / 10000000 - posix_time_offset);
 	}
 #endif
+} // anonymous namespace
 
 	native_path_string convert_to_native_path_string(std::string const& path)
 	{
-#ifdef TORRENT_WINDOWS
 #if TORRENT_USE_UNC_PATHS
-		std::string prepared_path;
 		// UNC paths must be absolute
 		// network paths are already UNC paths
-		if (path.substr(0,2) == "\\\\")
-			prepared_path = path;
-		else
-		{
-			std::string sep_path = path;
-			std::replace(sep_path.begin(), sep_path.end(), '/', '\\');
-			prepared_path = "\\\\?\\" + (is_complete(sep_path) ? sep_path : complete(sep_path));
-		}
-#else
-		std::string prepared_path = path;
+		std::string prepared_path = complete(path);
+		if (prepared_path.substr(0,2) != "\\\\")
+			prepared_path = "\\\\?\\" + prepared_path;
 		std::replace(prepared_path.begin(), prepared_path.end(), '/', '\\');
-#endif
 
 		return convert_to_wstring(prepared_path);
 #else // TORRENT_WINDOWS
@@ -227,7 +225,7 @@ namespace libtorrent {
 
 		// posix version
 
-		struct stat ret;
+		struct ::stat ret{};
 		int retval;
 		if (flags & dont_follow_links)
 			retval = ::lstat(f.c_str(), &ret);
@@ -282,7 +280,14 @@ namespace libtorrent {
 		if (ec != boost::system::errc::no_such_file_or_directory)
 			return;
 		ec.clear();
-		if (is_root_path(f)) return;
+		if (is_root_path(f))
+		{
+			// this is just to set ec correctly, in case this root path isn't
+			// mounted
+			file_status s;
+			stat_file(f, &s, ec);
+			return;
+		}
 		if (has_parent_path(f))
 		{
 			create_directories(parent_path(f), ec);
@@ -301,7 +306,7 @@ namespace libtorrent {
 			&& GetLastError() != ERROR_ALREADY_EXISTS)
 			ec.assign(GetLastError(), system_category());
 #else
-		int ret = ::mkdir(n.c_str(), S_IRWXU | S_IRGRP | S_IROTH);
+		int ret = ::mkdir(n.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 		if (ret < 0 && errno != EEXIST)
 			ec.assign(errno, system_category());
 #endif
@@ -347,7 +352,7 @@ namespace libtorrent {
 		// most errors are passed through, except for the ones that indicate that
 		// hard links are not supported and require a copy.
 		// TODO: 2 test this on a FAT volume to see what error we get!
-		if (errno != EMLINK || errno != EXDEV)
+		if (errno != EMLINK && errno != EXDEV)
 		{
 			// some error happened, report up to the caller
 			ec.assign(errno, system_category());
@@ -472,47 +477,11 @@ namespace libtorrent {
 		rename(inf, newf, ec);
 	}
 
-	std::string split_path(std::string const& f, bool only_first_part)
-	{
-		if (f.empty()) return f;
-
-		std::string ret;
-		char const* start = f.c_str();
-		char const* p = start;
-		while (*start != 0)
-		{
-			while (*p != '/'
-				&& *p != '\0'
-#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
-				&& *p != '\\'
-#endif
-				) ++p;
-			if (p - start > 0)
-			{
-				ret.append(start, aux::numeric_cast<std::size_t>(p - start));
-				if (only_first_part) return ret;
-				ret.append(1, '\0');
-			}
-			if (*p != 0) ++p;
-			start = p;
-		}
-		if (only_first_part) return ret;
-		ret.append(1, '\0');
-		return ret;
-	}
-
-	char const* next_path_element(char const* p)
-	{
-		p += strlen(p) + 1;
-		if (*p == 0) return nullptr;
-		return p;
-	}
-
 	std::string extension(std::string const& f)
 	{
 		for (int i = int(f.size()) - 1; i >= 0; --i)
 		{
-			std::size_t const idx = std::size_t(i);
+			auto const idx = static_cast<std::size_t>(i);
 			if (f[idx] == '/') break;
 #ifdef TORRENT_WINDOWS
 			if (f[idx] == '\\') break;
@@ -527,31 +496,12 @@ namespace libtorrent {
 	{
 		char const* slash = std::strrchr(f.c_str(), '/');
 #ifdef TORRENT_WINDOWS
-		slash = (std::max)((char const*)std::strrchr(f.c_str(), '\\'), slash);
+		slash = std::max((char const*)std::strrchr(f.c_str(), '\\'), slash);
 #endif
 		char const* ext = std::strrchr(f.c_str(), '.');
 		// if we don't have an extension, just return f
 		if (ext == nullptr || ext == &f[0] || (slash != nullptr && ext < slash)) return f;
 		return f.substr(0, aux::numeric_cast<std::size_t>(ext - &f[0]));
-	}
-
-	void replace_extension(std::string& f, std::string const& ext)
-	{
-		for (int i = int(f.size()) - 1; i >= 0; --i)
-		{
-			std::size_t const idx = std::size_t(i);
-			if (f[idx] == '/') break;
-#ifdef TORRENT_WINDOWS
-			if (f[idx] == '\\') break;
-#endif
-
-			if (f[idx] != '.') continue;
-
-			f.resize(idx);
-			break;
-		}
-		f += '.';
-		f += ext;
 	}
 
 	bool is_root_path(std::string const& f)
@@ -587,6 +537,47 @@ namespace libtorrent {
 		if (f == "/") return true;
 #endif
 		return false;
+	}
+
+	bool path_equal(std::string const& lhs, std::string const& rhs)
+	{
+		std::string::size_type const lhs_size = !lhs.empty()
+			&& (lhs[lhs.size()-1] == '/'
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+			|| lhs[lhs.size()-1] == '\\'
+#endif
+			) ? lhs.size() - 1 : lhs.size();
+
+		std::string::size_type const rhs_size = !rhs.empty()
+			&& (rhs[rhs.size()-1] == '/'
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+			|| rhs[rhs.size()-1] == '\\'
+#endif
+			) ? rhs.size() - 1 : rhs.size();
+		return lhs.compare(0, lhs_size, rhs, 0, rhs_size) == 0;
+	}
+
+	// <0: lhs < rhs
+	//  0: lhs == rhs
+	// >0: lhs > rhs
+	int path_compare(string_view const lhs, string_view const lfile
+		, string_view const rhs, string_view const rfile)
+	{
+		for (auto lhs_elems = lsplit_path(lhs), rhs_elems = lsplit_path(rhs);
+			!lhs_elems.first.empty() || !rhs_elems.first.empty();
+			lhs_elems = lsplit_path(lhs_elems.second), rhs_elems = lsplit_path(rhs_elems.second))
+		{
+			if (lhs_elems.first.empty() || rhs_elems.first.empty())
+			{
+				if (lhs_elems.first.empty()) lhs_elems.first = lfile;
+				if (rhs_elems.first.empty()) rhs_elems.first = rfile;
+				return lhs_elems.first.compare(rhs_elems.first);
+			}
+
+			int const ret = lhs_elems.first.compare(rhs_elems.first);
+			if (ret != 0) return ret;
+		}
+		return 0;
 	}
 
 	bool has_parent_path(std::string const& f)
@@ -628,19 +619,6 @@ namespace libtorrent {
 
 		if (f[std::size_t(len)] == '/' || f[std::size_t(len)] == '\\') ++len;
 		return std::string(f.c_str(), std::size_t(len));
-	}
-
-	char const* filename_cstr(char const* f)
-	{
-		if (f == nullptr) return f;
-
-		char const* sep = std::strrchr(f, '/');
-#ifdef TORRENT_WINDOWS
-		char const* altsep = std::strrchr(f, '\\');
-		if (sep == 0 || altsep > sep) sep = altsep;
-#endif
-		if (sep == nullptr) return f;
-		return sep+1;
 	}
 
 	std::string filename(std::string const& f)
@@ -720,6 +698,47 @@ namespace libtorrent {
 			, (need_sep ? TORRENT_SEPARATOR : "")
 			, int(rhs.size()), rhs.data()));
 		ret.resize(target_size);
+		return ret;
+	}
+
+	std::string lexically_relative(string_view base, string_view target)
+	{
+		// first, strip trailing directory separators
+		if (!base.empty() && base.back() == TORRENT_SEPARATOR_CHAR)
+			base.remove_suffix(1);
+		if (!target.empty() && target.back() == TORRENT_SEPARATOR_CHAR)
+			target.remove_suffix(1);
+
+		// strip common path elements
+		for (;;)
+		{
+			if (base.empty()) break;
+			string_view prev_base = base;
+			string_view prev_target = target;
+
+			string_view base_element;
+			string_view target_element;
+			std::tie(base_element, base) = split_string(base, TORRENT_SEPARATOR_CHAR);
+			std::tie(target_element, target) = split_string(target, TORRENT_SEPARATOR_CHAR);
+			if (base_element == target_element) continue;
+
+			base = prev_base;
+			target = prev_target;
+			break;
+		}
+
+		// count number of path elements left in base, and prepend that number of
+		// "../" to target
+
+		// base alwaus points to a directory. There's an implied directory
+		// separator at the end of it
+		int const num_steps = static_cast<int>(std::count(
+			base.begin(), base.end(), TORRENT_SEPARATOR_CHAR)) + (base.empty() ? 0 : 1);
+		std::string ret;
+		for (int i = 0; i < num_steps; ++i)
+			ret += ".." TORRENT_SEPARATOR;
+
+		ret += target.to_string();
 		return ret;
 	}
 
@@ -881,6 +900,58 @@ namespace libtorrent {
 			}
 		}
 		remove(f, ec);
+	}
+
+	std::pair<string_view, string_view> rsplit_path(string_view p)
+	{
+		if (p.empty()) return {{}, {}};
+		if (p.back() == TORRENT_SEPARATOR_CHAR) p.remove_suffix(1);
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+		else if (p.back() == '/') p.remove_suffix(1);
+#endif
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+		auto const sep = p.find_last_of("/\\");
+#else
+		auto const sep = p.find_last_of(TORRENT_SEPARATOR_CHAR);
+#endif
+		if (sep == string_view::npos) return {{}, p};
+		return { p.substr(0, sep), p.substr(sep + 1) };
+	}
+
+	std::pair<string_view, string_view> lsplit_path(string_view p)
+	{
+		if (p.empty()) return {{}, {}};
+		// for absolute paths, skip the initial "/"
+		if (p.front() == TORRENT_SEPARATOR_CHAR) p.remove_prefix(1);
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+		else if (p.front() == '/') p.remove_prefix(1);
+#endif
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+		auto const sep = p.find_first_of("/\\");
+#else
+		auto const sep = p.find_first_of(TORRENT_SEPARATOR_CHAR);
+#endif
+		if (sep == string_view::npos) return {p, {}};
+		return { p.substr(0, sep), p.substr(sep + 1) };
+	}
+
+	std::pair<string_view, string_view> lsplit_path(string_view p, std::size_t pos)
+	{
+		if (p.empty()) return {{}, {}};
+		// for absolute paths, skip the initial "/"
+		if (p.front() == TORRENT_SEPARATOR_CHAR
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+			|| p.front() == '/'
+#endif
+		)
+		{ p.remove_prefix(1); if (pos > 0) --pos; }
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+		auto const sep = find_first_of(p, "/\\", std::string::size_type(pos));
+#else
+		auto const sep = find_first_of(p, TORRENT_SEPARATOR_CHAR, std::string::size_type(pos));
+#endif
+		if (sep == string_view::npos) return {p, {}};
+		return { p.substr(0, sep), p.substr(sep + 1) };
 	}
 
 	std::string complete(string_view f)

@@ -1,6 +1,10 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg & Daniel Wallin
+Copyright (c) 2006, Daniel Wallin
+Copyright (c) 2015, Thomas Yuan
+Copyright (c) 2015, Steven Siloti
+Copyright (c) 2016-2019, Arvid Norberg
+Copyright (c) 2016-2018, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,9 +42,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent { namespace dht {
 
-put_data::put_data(node& dht_node, put_callback const& callback)
-	: traversal_algorithm(dht_node, (node_id::min)())
-	, m_put_callback(callback)
+put_data::put_data(node& dht_node, put_callback callback)
+	: traversal_algorithm(dht_node, {})
+	, m_put_callback(std::move(callback))
 {}
 
 char const* put_data::name() const { return "put_data"; }
@@ -87,7 +91,7 @@ bool put_data::invoke(observer_ptr o)
 
 	// TODO: what if o is not an instance of put_data_observer? This need to be
 	// redesigned for better type safety.
-	put_data_observer* po = static_cast<put_data_observer*>(o.get());
+	auto* po = static_cast<put_data_observer*>(o.get());
 
 	entry e;
 	e["y"] = "q";

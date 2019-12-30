@@ -1,6 +1,7 @@
 /*
 
-Copyright (c) 2011-2016, Arvid Norberg
+Copyright (c) 2010, 2014, 2016-2019, Arvid Norberg
+Copyright (c) 2017-2018, Steven Siloti
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,10 +32,11 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "libtorrent/disk_io_job.hpp"
-#include "libtorrent/block_cache.hpp" // for cached_piece_entry
 #include "libtorrent/disk_buffer_holder.hpp"
 
+#include "libtorrent/aux_/disable_warnings_push.hpp"
 #include <boost/variant/get.hpp>
+#include "libtorrent/aux_/disable_warnings_pop.hpp"
 
 namespace libtorrent {
 
@@ -48,7 +50,7 @@ namespace libtorrent {
 			{
 				if (!h) return;
 				h(std::move(boost::get<disk_buffer_holder>(m_job.argument))
-					, m_job.flags, m_job.error);
+					, m_job.error);
 			}
 
 			void operator()(disk_io_job::write_handler& h) const
@@ -60,7 +62,13 @@ namespace libtorrent {
 			void operator()(disk_io_job::hash_handler& h) const
 			{
 				if (!h) return;
-				h(m_job.piece, m_job.d.piece_hash, m_job.error);
+				h(m_job.piece, m_job.d.h.piece_hash, m_job.error);
+			}
+
+			void operator()(disk_io_job::hash2_handler& h) const
+			{
+				if (!h) return;
+				h(m_job.piece, m_job.d.piece_hash2, m_job.error);
 			}
 
 			void operator()(disk_io_job::move_handler& h) const
@@ -95,6 +103,12 @@ namespace libtorrent {
 				h(m_job.piece);
 			}
 
+			void operator()(disk_io_job::set_file_prio_handler& h) const
+			{
+				if (!h) return;
+				h(m_job.error, std::move(boost::get<aux::vector<download_priority_t, file_index_t>>(m_job.argument)));
+			}
+
 		private:
 			disk_io_job& m_job;
 		};
@@ -115,25 +129,5 @@ namespace libtorrent {
 	void disk_io_job::call_callback()
 	{
 		boost::apply_visitor(caller_visitor(*this), callback);
-	}
-
-	bool disk_io_job::completed(cached_piece_entry const* pe)
-	{
-		if (action != job_action_t::write) return false;
-
-		int block_offset = d.io.offset & (default_block_size - 1);
-		int size = d.io.buffer_size;
-		int start = d.io.offset / default_block_size;
-		int end = block_offset > 0 && (size > default_block_size - block_offset) ? start + 2 : start + 1;
-
-		for (int i = start; i < end; ++i)
-		{
-			cached_block_entry const& b = pe->blocks[i];
-			if (b.dirty || b.pending) return false;
-		}
-
-		// if all our blocks are not pending and not dirty, it means they
-		// were successfully written to disk. This job is complete
-		return true;
 	}
 }

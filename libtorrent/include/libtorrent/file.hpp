@@ -1,6 +1,7 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2004, 2008-2010, 2013-2019, Arvid Norberg
+Copyright (c) 2016-2017, Steven Siloti
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -41,6 +42,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/string_view.hpp"
 #include "libtorrent/span.hpp"
 #include "libtorrent/aux_/storage_utils.hpp"
+#include "libtorrent/aux_/open_mode.hpp"
 #include "libtorrent/flags.hpp"
 
 #include "libtorrent/aux_/disable_warnings_push.hpp"
@@ -49,10 +51,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef TORRENT_WINDOWS
 // windows part
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
+#include "libtorrent/aux_/windows.hpp"
 #include <winioctl.h>
 #include <sys/types.h>
 #else
@@ -73,8 +72,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <sys/types.h>
 #include <dirent.h> // for DIR
 
-#include "libtorrent/aux_/max_path.hpp" // for TORRENT_MAX_PATH
-
 #undef _FILE_OFFSET_BITS
 
 #endif
@@ -93,6 +90,10 @@ namespace libtorrent {
 	using handle_type = int;
 #endif
 
+#ifdef TORRENT_WINDOWS
+	bool is_sparse(HANDLE file);
+#endif
+
 	class TORRENT_EXTRA_EXPORT directory : public boost::noncopyable
 	{
 	public:
@@ -100,7 +101,6 @@ namespace libtorrent {
 		~directory();
 		void next(error_code& ec);
 		std::string file() const;
-		std::uint64_t inode() const;
 		bool done() const { return m_done; }
 	private:
 #ifdef TORRENT_WINDOWS
@@ -109,100 +109,30 @@ namespace libtorrent {
 		WIN32_FIND_DATAW m_fd;
 #else
 		DIR* m_handle;
-#ifdef TORRENT_ANDROID
-// this is due to a documented bug in android related to a wrong type
-// of ino_t, for general discussion and internal changes see:
-// https://issuetracker.google.com/issues/37011207 - for general discussion
-// https://android-review.googlesource.com/#/c/platform/system/core/+/123482/
-		std::uint64_t m_inode;
-#else
-		ino_t m_inode;
-#endif // TORRENT_ANDROID
 		std::string m_name;
 #endif
 		bool m_done;
 	};
 
-	struct file;
-
-	using file_handle = std::shared_ptr<file>;
-
-	// hidden
-	struct open_mode_tag;
-	using open_mode_t = flags::bitfield_flag<std::uint32_t, open_mode_tag>;
-
-	// the open mode for files. Used for the file constructor or
-	// file::open().
-	namespace open_mode {
-
-		// open the file for reading only
-		constexpr open_mode_t read_only{};
-
-		// open the file for writing only
-		constexpr open_mode_t write_only = 0_bit;
-
-		// open the file for reading and writing
-		constexpr open_mode_t read_write = 1_bit;
-
-		constexpr open_mode_t rw_mask = read_only | write_only | read_write;
-
-		// open the file in sparse mode (if supported by the
-		// filesystem).
-		constexpr open_mode_t sparse = 2_bit;
-
-		// don't update the access timestamps on the file (if
-		// supported by the operating system and filesystem).
-		// this generally improves disk performance.
-		constexpr open_mode_t no_atime = 3_bit;
-
-		// open the file for random access. This disables read-ahead
-		// logic
-		constexpr open_mode_t random_access = 4_bit;
-
-		// don't put any pressure on the OS disk cache
-		// because of access to this file. We expect our
-		// files to be fairly large, and there is already
-		// a cache at the bittorrent block level. This
-		// may improve overall system performance by
-		// leaving running applications in the page cache
-		constexpr open_mode_t no_cache = 5_bit;
-
-		// this is only used for readv/writev flags
-		constexpr open_mode_t coalesce_buffers = 6_bit;
-
-		// when creating a file, set the hidden attribute (windows only)
-		constexpr open_mode_t attribute_hidden = 7_bit;
-
-		// when creating a file, set the executable attribute
-		constexpr open_mode_t attribute_executable = 8_bit;
-
-		// the mask of all attribute bits
-		constexpr open_mode_t attribute_mask = attribute_hidden | attribute_executable;
-	}
-
 	struct TORRENT_EXTRA_EXPORT file : boost::noncopyable
 	{
 		file();
-		file(std::string const& p, open_mode_t m, error_code& ec);
+		file(std::string const& p, aux::open_mode_t m, error_code& ec);
 		~file();
 
-		bool open(std::string const& p, open_mode_t m, error_code& ec);
+		bool open(std::string const& p, aux::open_mode_t m, error_code& ec);
 		bool is_open() const;
 		void close();
 		bool set_size(std::int64_t size, error_code& ec);
 
-		open_mode_t open_mode() const { return m_open_mode; }
+		aux::open_mode_t open_mode() const { return m_open_mode; }
 
 		std::int64_t writev(std::int64_t file_offset, span<iovec_t const> bufs
-			, error_code& ec, open_mode_t flags = open_mode_t{});
+			, error_code& ec, aux::open_mode_t flags = {});
 		std::int64_t readv(std::int64_t file_offset, span<iovec_t const> bufs
-			, error_code& ec, open_mode_t flags = open_mode_t{});
+			, error_code& ec, aux::open_mode_t flags = {});
 
 		std::int64_t get_size(error_code& ec) const;
-
-		// return the offset of the first byte that
-		// belongs to a data-region
-		std::int64_t sparse_end(std::int64_t start) const;
 
 		handle_type native_handle() const { return m_file_handle; }
 
@@ -210,10 +140,7 @@ namespace libtorrent {
 
 		handle_type m_file_handle;
 
-		open_mode_t m_open_mode{};
-#if defined TORRENT_WINDOWS
-		static bool has_manage_volume_privs;
-#endif
+		aux::open_mode_t m_open_mode{};
 	};
 }
 
