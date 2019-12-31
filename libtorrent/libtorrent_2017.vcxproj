@@ -121,6 +121,7 @@
     <ClInclude Include="include\libtorrent\buffer.hpp" />
     <ClInclude Include="include\libtorrent\chained_buffer.hpp" />
     <ClInclude Include="include\libtorrent\choker.hpp" />
+    <ClInclude Include="include\libtorrent\client_data.hpp" />
     <ClInclude Include="include\libtorrent\close_reason.hpp" />
     <ClInclude Include="include\libtorrent\config.hpp" />
     <ClInclude Include="include\libtorrent\ConvertUTF.h" />

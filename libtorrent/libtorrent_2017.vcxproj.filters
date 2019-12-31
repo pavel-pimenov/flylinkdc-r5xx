@@ -815,6 +815,9 @@
     <ClInclude Include="include\libtorrent\mmap_storage.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\client_data.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\kademlia\dht_storage.cpp">
