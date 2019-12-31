@@ -269,9 +269,6 @@
     <ClInclude Include="include\libtorrent\disk_io_job.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\disk_io_thread.hpp">
-      <Filter>Header Files\libtorrent</Filter>
-    </ClInclude>
     <ClInclude Include="include\libtorrent\disk_io_thread_pool.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
@@ -525,9 +522,6 @@
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\stat_cache.hpp">
-      <Filter>Header Files\libtorrent</Filter>
-    </ClInclude>
-    <ClInclude Include="include\libtorrent\storage.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
     <ClInclude Include="include\libtorrent\storage_defs.hpp">
@@ -809,6 +803,21 @@
     <ClInclude Include="include\libtorrent\aux_\win_cng.hpp">
       <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\deprecated.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\session_params.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\mmap_disk_io.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\mmap_storage.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\client_data.hpp">
+      <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\kademlia\dht_storage.cpp">
@@ -926,9 +935,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\disk_io_job.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\disk_io_thread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\disk_io_thread_pool.cpp">
@@ -1120,9 +1126,6 @@
     <ClCompile Include="src\stat_cache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\storage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\string_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1289,6 +1292,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\hash_picker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\disabled_disk_io.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\session_params.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mmap_disk_io.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mmap_storage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
