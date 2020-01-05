@@ -6367,7 +6367,7 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_colr_nclc(bool LittleEndian,
 {
     //Parsing
     int16u  colour_primaries, transfer_characteristics, matrix_coefficients;
-    bool full_range_flag;
+    bool full_range_flag=false;
     if (LittleEndian)
         Get_L2 (colour_primaries,                               "Primaries index");
     else

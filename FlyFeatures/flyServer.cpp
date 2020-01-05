@@ -1263,7 +1263,7 @@ bool CFlyServerConfig::torrentGetTop(HWND p_wnd, int p_message)
 				if (l_local_agent.empty())
 					l_local_agent = l_agent;
 					int l_num_page = 0;
-					string l_search_url = l_root_torrent_url_top;
+					const string l_search_url = l_root_torrent_url_top;
 #ifdef _DEBUG
 						LogManager::message("l_url = [page = " + Util::toString(l_num_page) + "] " + l_search_url + " l_agent = " + l_agent + " l_agent_global = " + l_agent);
 #endif
@@ -1549,7 +1549,7 @@ void CFlyServerAdapter::post_message_for_update_mediainfo(const HWND p_hMediaWnd
 			Json::Value* l_root = new Json::Value;
 			Json::Reader l_reader(Json::Features::strictMode());
 			const bool l_parsingSuccessful = l_reader.parse(l_json_result, *l_root);
-			if (!ClientManager::isBeforeShutdown() && !l_parsingSuccessful && !l_json_result.empty())
+			if (!ClientManager::isBeforeShutdown() && !l_parsingSuccessful)
 			{
                 clear_tth_media_map();
 				delete l_root;
@@ -3154,7 +3154,7 @@ string CFlyServerInfo::getMediaInfoAsText(const TTHValue& p_tth, int64_t p_file_
 			const Json::Value& l_attrs_audio = l_attrs_media_ext["audio"];
 			getEnumChannelKeyAndNames(l_Infrom, l_attrs_audio, "Common audio property for all channel:", "all");
 			int i = 0;
-			for (; getEnumChannelKeyAndNames(l_Infrom, l_attrs_audio, "Audio property fro channel " + Util::toString(i) , Util::toString(i)); ++i)
+			for (; getEnumChannelKeyAndNames(l_Infrom, l_attrs_audio, "Audio property for channel " + Util::toString(i) , Util::toString(i)); ++i)
 			{
 			}
 			if (i == 0) // Каналов нет?
