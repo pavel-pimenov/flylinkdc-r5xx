@@ -4,6 +4,7 @@ del .\GdiOle\GdiOle_i.c
 del .\GdiOle\GdiOle_i.h
 del .\GdiOle\GdiOle_p.c
 del .\compiled\*.pdb
+del .\compiled\*.exp
 del .\compiled\FlylinkDC.exe
 del .\compiled\FlylinkDC_x64.exe
 del /S /F /Q vc17
