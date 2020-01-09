@@ -77,6 +77,15 @@ DownloadManager::~DownloadManager()
 	}
 }
 
+void DownloadManager::pause_alert_timer_handler()
+{
+	LogManager::message("Pause alert timer");
+#ifdef FLYLKINKDC_USE_TORRENT_AGENTS_CONC_TIMER
+	CFlyLock(m_cs_alert);
+	alert_timer_.pause();
+#endif
+}
+
 void DownloadManager::start_alert_handler()
 {
 	dcassert(!m_is_torrent_alert_active);
@@ -94,8 +103,10 @@ void DownloadManager::stop_alert_handler()
 	if (m_is_torrent_alert_active)
 	{
 		LogManager::message("Stop alert handler...");
-		CFlyLock(m_cs_alert);
-		alert_timer_.stop();
+		{
+			CFlyLock(m_cs_alert);
+			alert_timer_.stop();
+		}
 		alert_handler();
 		// TODO the_torrents_.terminate_all();
 		LogManager::message("Alert handler stopped");
@@ -106,6 +117,7 @@ void DownloadManager::stop_alert_handler()
 
 bool DownloadManager::alert_handler()
 {
+	CFlyLock(m_cs_alert_handler);
 	if (m_is_torrent_alert_active && m_torrent_session)
 	{
 		onTorrentAlertNotify();
@@ -116,6 +128,8 @@ bool DownloadManager::alert_handler()
 
 void DownloadManager::shutdown_torrent()
 {
+	//LogManager::message("[!!!!!!!!!!!!!!!!!!] DownloadManager::shutdown_torrent - start");
+	pause_alert_timer_handler();
 	alert_handler();
 	if (m_torrent_session)
 	{
@@ -138,8 +152,11 @@ void DownloadManager::shutdown_torrent()
 			LogManager::message("[sleep] m_torrent_resume_count = " + Util::toString(m_torrent_resume_count) + " l_count = " + Util::toString(++l_count));
 		}
 		dcassert(m_torrent_resume_count == 0);
-		m_torrent_session.reset();
+		//LogManager::message("[!!!!!!!!!!!!!!!] DownloadManager::shutdown_torrent - before m_torrent_session->abort()");
+		//auto torrent_proxy = m_torrent_session->abort();
+		//LogManager::message("[!!!!!!!!!!!!!!!] DownloadManager::shutdown_torrent - after m_torrent_session->abort()");
 		stop_alert_handler();
+		m_torrent_session.reset();
 	}
 }
 
@@ -976,7 +993,7 @@ void DownloadManager::onTorrentAlertNotify()
 					}
 					else
 					{
-						std::string l_dbg_message = ".:::. TorrentAllert:" + a->message() + " info:" + std::string(a->what() + std::string(" typeid:") + std::string(typeid(*a).name()));
+						//std::string l_dbg_message = ".:::. TorrentAllert:" + a->message() + " info:" + std::string(a->what() + std::string(" typeid:") + std::string(typeid(*a).name()));
 						if (std::string(a->what()) != "torrent_log_alert"
 #ifndef TORRENT_NO_STATE_CHANGES_ALERTS
 						        && std::string(typeid(*a).name()) != "struct libtorrent::state_update_alert"
@@ -991,7 +1008,7 @@ void DownloadManager::onTorrentAlertNotify()
 #endif
 						   )
 						{
-							LogManager::torrent_message(l_dbg_message);
+							//LogManager::torrent_message(l_dbg_message);
 						}
 						if (const auto l_torrent_log_allert = lt::alert_cast<lt::torrent_log_alert>(a))
 						{
@@ -999,7 +1016,9 @@ void DownloadManager::onTorrentAlertNotify()
 						}
 					}
 #endif
+#ifndef _DEBUG
 					if (!ClientManager::isBeforeShutdown())
+#endif
 					{
 						if (auto st = lt::alert_cast<lt::state_update_alert>(a))
 						{
@@ -1010,8 +1029,10 @@ void DownloadManager::onTorrentAlertNotify()
 							int l_pos = 1;
 							for (const auto j : st->status)
 							{
+#ifndef _DEBUG
 								if (ClientManager::isBeforeShutdown())
 									return;
+#endif
 								lt::torrent_status const& s = j;
 #ifdef _DEBUG
 								const std::string l_log = "[" + Util::toString(l_alert_pos) + " - " + Util::toString(l_pos) + "] Status: " + st->message() + " [ " + s.save_path + "\\" + s.name
@@ -1276,7 +1297,11 @@ void DownloadManager::onTorrentAlertNotify()
 						dcassert(st.info_hash == l_a->handle.info_hash());
 						CFlylinkDBManager::getInstance()->save_torrent_resume(l_a->handle.info_hash(), st.name, l_resume);
 						--m_torrent_resume_count;
-						// [crash]  LogManager::torrent_message("save_resume_data_alert: " + l_a->message(), false);
+#ifdef _DEBUG
+						// LogManager::torrent_message("save_resume_data_alert: " + l_a->message(), true);
+#else
+						// LogManager::torrent_message("save_resume_data_alert",false);
+#endif
 						//  https://drdump.com/Problem.aspx?ProblemID=526789
 					}
 				}
@@ -1328,7 +1353,7 @@ void DownloadManager::post_torrent_info()
 		//m_torrent_session->post_session_stats(); // много спама летит
 		//m_torrent_session->post_dht_stats();
 #ifdef _DEBUG
-		LogManager::torrent_message("Torrent DownloadManager::post_torrent_info()");
+		//LogManager::torrent_message("Torrent DownloadManager::post_torrent_info()");
 #endif
 	}
 }

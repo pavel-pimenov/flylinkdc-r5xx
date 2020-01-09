@@ -1876,7 +1876,8 @@ void File__Analyze::Get_MacRoman(int64u Bytes, Ztring& Info, const char* Name)
     // Use From_MacRoman() after new ZenLib release
     const int8u* Input=Buffer+Buffer_Offset+(size_t)Element_Offset;
 
-    wchar_t* Temp=new wchar_t[Bytes+1];
+    wchar_t* Temp=new wchar_t[Bytes+2];
+    Temp[Bytes+1]=__T('\0');
 
     for (size_t Pos=0; Pos<=Bytes; Pos++)
     {

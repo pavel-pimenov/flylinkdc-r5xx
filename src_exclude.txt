@@ -15,7 +15,6 @@
 *.mps
 *.mpt
 Thumbs.db
-build*.log
 *tmp*.*00*
 *.pdb
 *.sfl
@@ -53,7 +52,6 @@ BuildLog.htm
 *.tlh
 *.tli
 .svn
-*.log
 *.tlog
 *.lastbuildstate
 *.sdf
@@ -78,12 +76,7 @@ FlylinkDC_Debug.exe
 test-console.exe
 *.ipch
 *.7z
-vc10
-vc11
-vc12
-vc13
 vc15
-vc16
 vc17
 developer.key
 setup

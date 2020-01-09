@@ -3,6 +3,7 @@
 .hg
 .vs
 developer.key
+*.log
 CustomLocations.7z
 Customlocations-5.rar
 FlyUpdate.exe
@@ -11,11 +12,7 @@ test-console.pdb
 FlyUpdate.pdb
 UpdateMaker.pdb
 vc1?0.pdb
-vc10
-vc12
-vc13
 vc15
-vc16
 vc17
 FlylinkDCShellExt*.pdb
 FlylinkDC_Debug*.pdb

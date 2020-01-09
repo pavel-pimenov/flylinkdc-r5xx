@@ -151,10 +151,12 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		concurrency::call<void*> alert_caller_;
 		concurrency::timer<void*> alert_timer_;
 		CriticalSection m_cs_alert;
+		CriticalSection m_cs_alert_handler;
 #endif
 		bool m_is_torrent_alert_active = false;
 		
 		void start_alert_handler();
+		void pause_alert_timer_handler();
 		void stop_alert_handler();
 		
 };
