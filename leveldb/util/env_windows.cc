@@ -36,10 +36,6 @@
 #include "util/mutexlock.h"
 #include "util/windows_logger.h"
 
-#if defined(DeleteFile)
-#undef DeleteFile
-#endif  // defined(DeleteFile)
-
 namespace leveldb {
 
 namespace {
@@ -528,7 +524,7 @@ class WindowsEnv : public Env {
     return Status::OK();
   }
 
-  Status DeleteFile(const std::string& filename) override {
+  Status RemoveFile(const std::string& filename) override {
     if (!::DeleteFileA(filename.c_str())) {
       return WindowsError(filename, ::GetLastError());
     }
@@ -542,7 +538,7 @@ class WindowsEnv : public Env {
     return Status::OK();
   }
 
-  Status DeleteDir(const std::string& dirname) override {
+  Status RemoveDir(const std::string& dirname) override {
     if (!::RemoveDirectoryA(dirname.c_str())) {
       return WindowsError(dirname, ::GetLastError());
     }

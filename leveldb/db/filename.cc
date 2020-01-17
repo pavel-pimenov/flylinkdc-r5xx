@@ -135,7 +135,7 @@ Status SetCurrentFile(Env* env, const std::string& dbname,
     s = env->RenameFile(tmp, CurrentFileName(dbname));
   }
   if (!s.ok()) {
-    env->DeleteFile(tmp);
+    env->RemoveFile(tmp);
   }
   return s;
 }
