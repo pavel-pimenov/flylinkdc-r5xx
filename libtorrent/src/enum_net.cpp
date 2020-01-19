@@ -428,6 +428,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 	void build_netmask_impl(span<unsigned char> mask, int prefix_bits)
 	{
 		TORRENT_ASSERT(prefix_bits <= mask.size() * 8);
+		TORRENT_ASSERT(prefix_bits >= 0);
 		int i = 0;
 		while (prefix_bits >= 8)
 		{
@@ -670,7 +671,7 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 
 		if (GetAdaptersAddresses != nullptr)
 		{
-			ULONG buf_size = 10000;
+            ULONG buf_size = 10000;
 			std::vector<char> buffer(buf_size);
 			PIP_ADAPTER_ADDRESSES adapter_addresses
 				= reinterpret_cast<IP_ADAPTER_ADDRESSES*>(&buffer[0]);
@@ -690,7 +691,10 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 				return std::vector<ip_interface>();
 			}
 
-			for (PIP_ADAPTER_ADDRESSES adapter = adapter_addresses;
+            OSVERSIONINFO ovi = { sizeof(OSVERSIONINFO) };
+            const bool is_vista = ::GetVersionEx(&ovi) != FALSE && ovi.dwMajorVersion >= 6;
+
+            for (PIP_ADAPTER_ADDRESSES adapter = adapter_addresses;
 				adapter != 0; adapter = adapter->Next)
 			{
 				ip_interface r;
@@ -703,10 +707,50 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
 				for (IP_ADAPTER_UNICAST_ADDRESS* unicast = adapter->FirstUnicastAddress;
 					unicast; unicast = unicast->Next)
 				{
-					if (!valid_addr_family(unicast->Address.lpSockaddr->sa_family))
+					auto const family = unicast->Address.lpSockaddr->sa_family;
+					if (!valid_addr_family(family))
 						continue;
 					r.preferred = unicast->DadState == IpDadStatePreferred;
 					r.interface_address = sockaddr_to_address(unicast->Address.lpSockaddr);
+					int const max_prefix_len = family == AF_INET ? 32 : 128;
+
+					if (!is_vista)
+					{
+						// OnLinkPrefixLength is only present on Vista and newer. If
+						// we're running on XP, we don't have the netmask.
+						r.netmask = (family == AF_INET)
+							? address(address_v4())
+							: address(address_v6());
+						ret.push_back(r);
+						continue;
+					}
+                    auto const onlink_prefix_length = reinterpret_cast<IP_ADAPTER_UNICAST_ADDRESS_LH*>(unicast)->OnLinkPrefixLength;
+					if (family == AF_INET6
+						&& onlink_prefix_length == 128
+						&& (unicast->PrefixOrigin == IpPrefixOriginDhcp
+							|| unicast->SuffixOrigin == IpSuffixOriginRandom))
+					{
+						// DHCPv6 does not specify a subnet mask (it should be taken from the RA)
+						// but apparently MS didn't get the memo and incorrectly reports a
+						// prefix length of 128 for DHCPv6 assigned addresses
+						// 128 is also reported for privacy addresses despite claiming to
+						// have gotten the prefix length from the RA *shrug*
+						// use a 64 bit prefix in these cases since that is likely to be
+						// the correct value, or at least less wrong than 128
+						r.netmask = build_netmask(64, family);
+					}
+					else if (onlink_prefix_length <= max_prefix_len)
+					{
+						r.netmask = build_netmask(onlink_prefix_length, family);
+					}
+					else
+					{
+						// we don't know what the netmask is
+						r.netmask = (family == AF_INET)
+							? address(address_v4())
+							: address(address_v6());
+					}
+
 					ret.push_back(r);
 				}
 			}
