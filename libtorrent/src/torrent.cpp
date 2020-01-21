@@ -6911,8 +6911,7 @@ bool is_downloading_state(int const st)
 			if (settings().get_bool(settings_pack::enable_outgoing_utp)
 				&& (!settings().get_bool(settings_pack::enable_outgoing_tcp)
 					|| peerinfo->supports_utp
-					|| peerinfo->confirmed_supports_utp)
-				&& m_ses.has_udp_outgoing_sockets())
+					|| peerinfo->confirmed_supports_utp))
 			{
 				sm = m_ses.utp_socket_manager();
 			}
@@ -11428,7 +11427,8 @@ bool is_downloading_state(int const st)
 					debug_log("*** increment tracker fail count [%d]", a.fails);
 #endif
 					// don't try to announce from this endpoint again
-					if (ec == boost::system::errc::address_family_not_supported)
+					if (ec == boost::system::errc::address_family_not_supported
+						|| ec == boost::system::errc::host_unreachable)
 					{
 						aep->enabled = false;
 #ifndef TORRENT_DISABLE_LOGGING

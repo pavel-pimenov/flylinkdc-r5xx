@@ -408,7 +408,6 @@
     <ClCompile Include="src\session_params.cpp" />
     <ClCompile Include="src\session_settings.cpp" />
     <ClCompile Include="src\session_stats.cpp" />
-    <ClCompile Include="src\session_udp_sockets.cpp" />
     <ClCompile Include="src\settings_pack.cpp" />
     <ClCompile Include="src\sha1.cpp" />
     <ClCompile Include="src\sha1_hash.cpp" />

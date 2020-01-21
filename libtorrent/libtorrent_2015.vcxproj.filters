@@ -1213,9 +1213,6 @@
     <ClCompile Include="src\path.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\session_udp_sockets.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\add_torrent_params.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
