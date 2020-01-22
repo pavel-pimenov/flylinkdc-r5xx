@@ -347,9 +347,6 @@
     <ClInclude Include="include\libtorrent\instantiate_connection.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
-    <ClInclude Include="include\libtorrent\invariant_check.hpp">
-      <Filter>Header Files\libtorrent</Filter>
-    </ClInclude>
     <ClInclude Include="include\libtorrent\io.hpp">
       <Filter>Header Files\libtorrent</Filter>
     </ClInclude>
@@ -817,6 +814,9 @@
     </ClInclude>
     <ClInclude Include="include\libtorrent\client_data.hpp">
       <Filter>Header Files\libtorrent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libtorrent\aux_\invariant_check.hpp">
+      <Filter>Header Files\libtorrent\aux_</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

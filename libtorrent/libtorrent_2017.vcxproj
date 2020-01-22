@@ -69,6 +69,7 @@
     <ClInclude Include="include\libtorrent\aux_\hasher512.hpp" />
     <ClInclude Include="include\libtorrent\aux_\has_block.hpp" />
     <ClInclude Include="include\libtorrent\aux_\instantiate_connection.hpp" />
+    <ClInclude Include="include\libtorrent\aux_\invariant_check.hpp" />
     <ClInclude Include="include\libtorrent\aux_\io.hpp" />
     <ClInclude Include="include\libtorrent\aux_\ip_notifier.hpp" />
     <ClInclude Include="include\libtorrent\aux_\listen_socket_handle.hpp" />
@@ -167,7 +168,6 @@
     <ClInclude Include="include\libtorrent\identify_client.hpp" />
     <ClInclude Include="include\libtorrent\index_range.hpp" />
     <ClInclude Include="include\libtorrent\instantiate_connection.hpp" />
-    <ClInclude Include="include\libtorrent\invariant_check.hpp" />
     <ClInclude Include="include\libtorrent\io.hpp" />
     <ClInclude Include="include\libtorrent\io_service.hpp" />
     <ClInclude Include="include\libtorrent\io_service_fwd.hpp" />
