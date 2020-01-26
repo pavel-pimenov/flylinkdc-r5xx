@@ -51,7 +51,8 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 	private QueueManagerListener,
 	private WebServerListener,
 	private UserManagerListener,
-	public AutoUpdateGUIMethod
+	public AutoUpdateGUIMethod,
+	private CFlyRichEditLoader
 {
 	public:
 		MainFrame();
