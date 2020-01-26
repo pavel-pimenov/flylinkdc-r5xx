@@ -26,7 +26,7 @@
 #include "../FlyFeatures/AutoUpdate.h"
 #include "ExListViewCtrl.h"
 
-class FlyUpdateDlg : public CDialogImpl<FlyUpdateDlg>
+class FlyUpdateDlg : public CDialogImpl<FlyUpdateDlg>, CFlyRichEditLoader
 {
 	public:
 		enum { IDD = IDD_UPDATE_DLG };
@@ -51,8 +51,6 @@ class FlyUpdateDlg : public CDialogImpl<FlyUpdateDlg>
 		std::string m_data;
 		std::string m_rtfData;
 		AutoUpdateFiles m_fileList;
-		HMODULE m_richEditLibrary;
-		
 		ExListViewCtrl ctrlCommands;
 };
 

@@ -5,36 +5,21 @@
 #if !defined(ABOUT_LOG_DLG_H)
 #define ABOUT_LOG_DLG_H
 
-
 #pragma once
-
 
 #include "wtl_flylinkdc.h"
 #include "ExListViewCtrl.h"
 
-class AboutLogDlg : public CDialogImpl<AboutLogDlg>
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
+class AboutLogDlg : public CDialogImpl<AboutLogDlg>, CFlyRichEditLoader
 {
 	public:
 		enum { IDD = IDD_ABOUTCMDS };
 		
 		AboutLogDlg()
 		{
-			m_richEditLibrary = ::LoadLibrary(L"Msftedit.dll");
-			if (!m_richEditLibrary)
-			{
-				dcassert(0);
-				_RPT1(_CRT_WARN, "[AboutLogDlg] LoadLibrary for Msftedit.dll failed with: %d\n", ::GetLastError());
-			}
 		}
 		~AboutLogDlg()
 		{
-			if (m_richEditLibrary)
-			{
-				::FreeLibrary(m_richEditLibrary);
-			}
 		}
 		
 		BEGIN_MSG_MAP(AboutLogDlg)
@@ -75,7 +60,6 @@ class AboutLogDlg : public CDialogImpl<AboutLogDlg>
 		}
 	private:
 		std::string m_rtfData;
-		HMODULE m_richEditLibrary;
 };
 
 #endif // !defined(ABOUT_LOG_DLG_H)

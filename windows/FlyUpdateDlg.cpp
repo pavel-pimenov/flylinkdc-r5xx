@@ -25,12 +25,6 @@ FlyUpdateDlg::FlyUpdateDlg(const string& data, const string& rtfData, const Auto
 	, m_fileList(fileList)
 	, m_UpdateIcon(NULL)
 {
-	m_richEditLibrary = ::LoadLibrary(L"Msftedit.dll");
-	if (!m_richEditLibrary)
-	{
-		_RPT1(_CRT_WARN, "LoadLibrary for Msftedit.dll failed with: %d\n", ::GetLastError());
-		return;
-	}
 }
 
 FlyUpdateDlg::~FlyUpdateDlg()
@@ -38,8 +32,6 @@ FlyUpdateDlg::~FlyUpdateDlg()
 	ctrlCommands.Detach();
 	if (m_UpdateIcon)
 		::DeleteObject(m_UpdateIcon);
-	if (m_richEditLibrary)
-		::FreeLibrary(m_richEditLibrary);
 }
 
 LRESULT FlyUpdateDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)

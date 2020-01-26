@@ -29,6 +29,29 @@
 #include "../client/ResourceManager.h"
 #include "../client/TaskQueue.h"
 
+
+class CFlyRichEditLoader
+{
+	HMODULE m_richEditLibrary;
+public:
+	CFlyRichEditLoader()
+	{
+		m_richEditLibrary = ::LoadLibrary(L"Msftedit.dll");
+		if (!m_richEditLibrary)
+		{
+			dcassert(0);
+			//_RPT1(_CRT_WARN, "[AboutLogDlg] LoadLibrary for Msftedit.dll failed with: %d\n", ::GetLastError());
+		}
+	}
+	~CFlyRichEditLoader()
+	{
+		if (m_richEditLibrary)
+		{
+			::FreeLibrary(m_richEditLibrary);
+		}
+	}
+};
+
 class CFlyToolBarCtrl : public CToolBarCtrl
 {
 	private:
