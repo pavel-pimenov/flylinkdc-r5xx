@@ -207,7 +207,6 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 #ifdef IRAINMAN_ENABLE_SLOTS_AND_LIMIT_IN_DESCRIPTION
 	string speedDescription;
 #endif
-// [!] FlylinkDC mimicry function
 	const FavoriteHubEntry* hub = FavoriteManager::getFavoriteHubEntry(getHubUrl());
 	extern bool g_UseStrongDCTag;
 	m_is_override_name = (hub && hub->getOverrideId() || g_UseStrongDCTag);
@@ -239,7 +238,7 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		}
 #endif
 		m_clientName = getFlylinkDCAppCaption();
-		m_clientVersion = A_SHORT_VERSIONSTRING;
+		m_clientVersion = A_CLIENT_ID_VERSIONSTRING;
 		if (CompatibilityManager::isWine())
 		{
 			m_clientVersion += "-wine";
