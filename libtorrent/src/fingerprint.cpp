@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2016, Steven Siloti
-Copyright (c) 2016-2019, Arvid Norberg
+Copyright (c) 2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,7 +32,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/fingerprint.hpp"
 #include "libtorrent/assert.hpp"
-#include <cstring> // for strlen
 
 namespace libtorrent {
 
@@ -91,13 +89,13 @@ namespace libtorrent {
 		name[1] = id_string[1];
 	}
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 	std::string fingerprint::to_string() const
 	{
 		return generate_fingerprint(std::string(name, 2), major_version, minor_version
 			, revision_version, tag_version);
 	}
-#endif // TORRENT_ABI_VERSION
+#endif // TORRENT_NO_DEPRECATE
 
 }
 

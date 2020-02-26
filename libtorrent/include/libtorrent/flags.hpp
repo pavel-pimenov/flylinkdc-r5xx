@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2017-2019, Arvid Norberg
+Copyright (c) 2017, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,7 @@ struct bitfield_flag
 	constexpr bitfield_flag() noexcept : m_val(0) {}
 	explicit constexpr bitfield_flag(UnderlyingType const val) noexcept : m_val(val) {}
 	constexpr bitfield_flag(bit_t const bit) noexcept : m_val(static_cast<UnderlyingType>(UnderlyingType{1} << static_cast<int>(bit))) {}
-#if TORRENT_ABI_VERSION >= 2
+#ifdef TORRENT_NO_DEPRECATE
 	explicit constexpr operator UnderlyingType() const noexcept { return m_val; }
 #else
 	constexpr operator UnderlyingType() const noexcept { return m_val; }
@@ -73,7 +73,7 @@ struct bitfield_flag
 
 	static constexpr bitfield_flag all()
 	{
-		return bitfield_flag(static_cast<UnderlyingType>(~UnderlyingType{0}));
+		return bitfield_flag(~UnderlyingType{0});
 	}
 
 	bool constexpr operator==(bitfield_flag const f) const noexcept
@@ -117,25 +117,23 @@ struct bitfield_flag
 
 	constexpr bitfield_flag operator~() const noexcept
 	{
-		// technically, m_val is promoted to int before applying operator~, which
-		// means the result may not fit into the underlying type again. So,
-		// explicitly cast it
-		return bitfield_flag(static_cast<UnderlyingType>(~m_val));
+		return bitfield_flag(~m_val);
 	}
 
 	bitfield_flag& operator=(bitfield_flag const& rhs) noexcept = default;
 	bitfield_flag& operator=(bitfield_flag&& rhs) noexcept = default;
-
-#if TORRENT_USE_IOSTREAM
-	friend std::ostream& operator<<(std::ostream& os, bitfield_flag val)
-	{ return os << static_cast<UnderlyingType>(val); }
-#endif
-
 private:
 	UnderlyingType m_val;
 };
+
+#if TORRENT_USE_IOSTREAM
+	template <typename T, typename Tag>
+	std::ostream& operator<<(std::ostream& os, bitfield_flag<T, Tag> val)
+	{ return os << static_cast<T>(val); }
+#endif
 
 } // flags
 } // libtorrent
 
 #endif
+

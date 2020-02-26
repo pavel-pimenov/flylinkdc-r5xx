@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2009, Georg Rudoy
-Copyright (c) 2009, 2012, 2016-2017, 2019, Arvid Norberg
-Copyright (c) 2018, Alden Torres
+Copyright (c) 2009-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -40,15 +38,16 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	bw_request::bw_request(std::shared_ptr<bandwidth_socket> pe
+	bw_request::bw_request(std::shared_ptr<bandwidth_socket> const& pe
 		, int blk, int prio)
-		: peer(std::move(pe))
+		: peer(pe)
 		, priority(prio)
 		, assigned(0)
 		, request_size(blk)
 		, ttl(20)
 	{
 		TORRENT_ASSERT(priority > 0);
+		std::memset(channel, 0, sizeof(channel));
 	}
 
 	int bw_request::assign_bandwidth()
@@ -63,7 +62,7 @@ namespace libtorrent {
 		{
 			if (channel[j]->throttle() == 0) continue;
 			if (channel[j]->tmp == 0) continue;
-			quota = std::min(int(std::int64_t(channel[j]->distribute_quota)
+			quota = (std::min)(int(std::int64_t(channel[j]->distribute_quota)
 				* priority / channel[j]->tmp), quota);
 		}
 		assigned += quota;
@@ -72,9 +71,5 @@ namespace libtorrent {
 		TORRENT_ASSERT(assigned <= request_size);
 		return quota;
 	}
-
-	static_assert(std::is_nothrow_move_constructible<bw_request>::value
-		, "should be nothrow move constructible");
-	static_assert(std::is_nothrow_move_assignable<bw_request>::value
-		, "should be nothrow move assignable");
 }
+

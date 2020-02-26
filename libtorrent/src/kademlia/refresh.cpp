@@ -1,9 +1,6 @@
 /*
 
-Copyright (c) 2006, Daniel Wallin
-Copyright (c) 2006, 2008-2010, 2013-2017, 2019, Arvid Norberg
-Copyright (c) 2015, Thomas Yuan
-Copyright (c) 2016, Alden Torres
+Copyright (c) 2006-2016, Arvid Norberg & Daniel Wallin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,6 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <libtorrent/kademlia/refresh.hpp>
+#include <libtorrent/kademlia/rpc_manager.hpp>
 #include <libtorrent/kademlia/node.hpp>
 #include <libtorrent/kademlia/dht_observer.hpp>
 #include <libtorrent/performance_counters.hpp>

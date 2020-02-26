@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2014, 2016-2017, 2019, Arvid Norberg
-Copyright (c) 2017, Alden Torres
+Copyright (c) 2012-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,9 +36,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <cstdint>
 #include <array>
 
-#include "aux_/export.hpp"
-#include "peer_class.hpp" // for peer_class_t
-
 namespace libtorrent {
 
 	// ``peer_class_type_filter`` is a simple container for rules for adding and subtracting
@@ -47,7 +43,6 @@ namespace libtorrent {
 	// is based on the peer's IP address).
 	struct TORRENT_EXPORT peer_class_type_filter
 	{
-		// hidden
 		peer_class_type_filter()
 		{
 			m_peer_class_type_mask.fill(0xffffffff);

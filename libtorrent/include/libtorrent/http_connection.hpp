@@ -1,9 +1,6 @@
 /*
 
-Copyright (c) 2007-2019, Arvid Norberg
-Copyright (c) 2015, Mikhail Titov
-Copyright (c) 2016-2017, Alden Torres
-Copyright (c) 2017, Steven Siloti
+Copyright (c) 2007-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -56,8 +53,8 @@ namespace ssl {
 #include "libtorrent/http_parser.hpp"
 #include "libtorrent/deadline_timer.hpp"
 #include "libtorrent/assert.hpp"
+#include "libtorrent/socket_type.hpp"
 #include "libtorrent/i2p_stream.hpp"
-#include "libtorrent/aux_/socket_type.hpp"
 #include "libtorrent/aux_/vector.hpp"
 #include "libtorrent/resolver_interface.hpp"
 #include "libtorrent/optional.hpp"
@@ -67,28 +64,27 @@ namespace libtorrent {
 struct http_connection;
 struct resolver_interface;
 
-// internal
 constexpr int default_max_bottled_buffer_size = 2 * 1024 * 1024;
 
-using http_handler = std::function<void(error_code const&
-	, http_parser const&, span<char const> data, http_connection&)>;
+typedef std::function<void(error_code const&
+	, http_parser const&, span<char const> data, http_connection&)> http_handler;
 
-using http_connect_handler = std::function<void(http_connection&)>;
+typedef std::function<void(http_connection&)> http_connect_handler;
 
-using http_filter_handler = std::function<void(http_connection&, std::vector<tcp::endpoint>&)>;
+typedef std::function<void(http_connection&, std::vector<tcp::endpoint>&)> http_filter_handler;
 
 // when bottled, the last two arguments to the handler
 // will always be 0
 struct TORRENT_EXTRA_EXPORT http_connection
 	: std::enable_shared_from_this<http_connection>
 {
-	http_connection(io_context& ios
+	http_connection(io_service& ios
 		, resolver_interface& resolver
-		, http_handler handler
+		, http_handler const& handler
 		, bool bottled = true
 		, int max_bottled_buffer_size = default_max_bottled_buffer_size
-		, http_connect_handler ch = http_connect_handler()
-		, http_filter_handler fh = http_filter_handler()
+		, http_connect_handler const& ch = http_connect_handler()
+		, http_filter_handler const& fh = http_filter_handler()
 #ifdef TORRENT_USE_OPENSSL
 		, ssl::context* ssl_ctx = nullptr
 #endif
@@ -129,7 +125,7 @@ struct TORRENT_EXTRA_EXPORT http_connection
 
 	void close(bool force = false);
 
-	aux::socket_type const& socket() const { return *m_sock; }
+	socket_type const& socket() const { return m_sock; }
 
 	std::vector<tcp::endpoint> const& endpoints() const { return m_endpoints; }
 
@@ -153,7 +149,6 @@ private:
 	void callback(error_code e, span<char> data = {});
 
 	aux::vector<char> m_recvbuffer;
-	io_context& m_ios;
 
 	std::string m_hostname;
 	std::string m_url;
@@ -165,7 +160,7 @@ private:
 	// endpoint with this index (in m_endpoints) next
 	int m_next_ep;
 
-	boost::optional<aux::socket_type> m_sock;
+	socket_type m_sock;
 
 #ifdef TORRENT_USE_OPENSSL
 	ssl::context* m_ssl_ctx;

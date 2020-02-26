@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003, 2006, 2009, 2013, 2016-2019, Arvid Norberg
+Copyright (c) 2003-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,13 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <cstdio>
 
 #include "libtorrent/config.hpp"
-#include "libtorrent/aux_/export.hpp"
+#include "libtorrent/peer_id.hpp"
+#include "libtorrent/export.hpp"
 
 namespace libtorrent {
 
 	// This is a utility function to produce a client ID fingerprint formatted to
-	// the most common convention. The fingerprint can be set via the
-	// ``peer_fingerprint`` setting, in settings_pack.
+	// the most common convention.
 	//
 	// The name string should contain exactly two characters. These are the
 	// characters unique to your client, used to identify it. Make sure not to
@@ -52,41 +52,37 @@ namespace libtorrent {
 	// +----------+-----------------------+
 	// | id chars | client                |
 	// +==========+=======================+
-	// | LT       | libtorrent (default)  |
+	// | 'AZ'     | Azureus               |
 	// +----------+-----------------------+
-	// | UT       | uTorrent              |
+	// | 'LT'     | libtorrent (default)  |
 	// +----------+-----------------------+
-	// | UM       | uTorrent Mac          |
+	// | 'BX'     | BittorrentX           |
 	// +----------+-----------------------+
-	// | qB       | qBittorrent           |
+	// | 'MT'     | Moonlight Torrent     |
 	// +----------+-----------------------+
-	// | BP       | BitTorrent Pro        |
+	// | 'TS'     | Torrent Storm         |
 	// +----------+-----------------------+
-	// | BT       | BitTorrent            |
+	// | 'SS'     | Swarm Scope           |
 	// +----------+-----------------------+
-	// | DE       | Deluge                |
-	// +----------+-----------------------+
-	// | AZ       | Azureus               |
-	// +----------+-----------------------+
-	// | TL       | Tribler               |
+	// | 'XT'     | Xan Torrent           |
 	// +----------+-----------------------+
 	//
 	// There's an informal directory of client id's here_.
 	//
 	// .. _here: http://wiki.theory.org/BitTorrentSpecification#peer_id
 	//
-	// The ``major``, ``minor``, ``revision`` and ``tag`` parameters are used to
-	// identify the version of your client.
+	// The ``major``, ``minor``, ``revision`` and ``tag`` parameters are used to identify the
+	// version of your client.
 	TORRENT_EXPORT std::string generate_fingerprint(std::string name
 		, int major, int minor = 0, int revision = 0, int tag = 0);
 
 	// The fingerprint class represents information about a client and its version. It is used
 	// to encode this information into the client's peer id.
-	struct TORRENT_DEPRECATED_EXPORT fingerprint
+	struct TORRENT_DEPRECATED TORRENT_DEPRECATED_EXPORT fingerprint
 	{
 		fingerprint(const char* id_string, int major, int minor, int revision, int tag);
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 		// generates the actual string put in the peer-id, and return it.
 		std::string to_string() const;
 #endif

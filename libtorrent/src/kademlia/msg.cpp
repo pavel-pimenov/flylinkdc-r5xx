@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2015-2016, Steven Siloti
-Copyright (c) 2016, 2018-2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
+Copyright (c) 2003-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -43,14 +41,14 @@ bool verify_message_impl(bdecode_node const& message, span<key_desc_t const> des
 {
 	TORRENT_ASSERT(desc.size() == ret.size());
 
-	auto const size = ret.size();
+	std::size_t const size = ret.size();
 
 	// get a non-root bdecode_node that still
 	// points to the root. message should not be copied
 	bdecode_node msg = message.non_owning();
 
 	// clear the return buffer
-	for (int i = 0; i < size; ++i)
+	for (std::size_t i = 0; i < size; ++i)
 		ret[i].clear();
 
 	// when parsing child nodes, this is the stack
@@ -60,12 +58,12 @@ bool verify_message_impl(bdecode_node const& message, span<key_desc_t const> des
 
 	if (msg.type() != bdecode_node::dict_t)
 	{
-		std::snprintf(error.data(), static_cast<std::size_t>(error.size()), "not a dictionary");
+		std::snprintf(error.data(), error.size(), "not a dictionary");
 		return false;
 	}
 	++stack_ptr;
 	stack[stack_ptr] = msg;
-	for (int i = 0; i < size; ++i)
+	for (std::size_t i = 0; i < size; ++i)
 	{
 		key_desc_t const& k = desc[i];
 
@@ -78,7 +76,7 @@ bool verify_message_impl(bdecode_node const& message, span<key_desc_t const> des
 		if (!ret[i] && (k.flags & key_desc_t::optional) == 0)
 		{
 			// the key was not found, and it's not an optional key
-			std::snprintf(error.data(), static_cast<std::size_t>(error.size()), "missing '%s' key", k.name);
+			std::snprintf(error.data(), error.size(), "missing '%s' key", k.name);
 			return false;
 		}
 
@@ -86,7 +84,7 @@ bool verify_message_impl(bdecode_node const& message, span<key_desc_t const> des
 			&& ret[i]
 			&& k.type == bdecode_node::string_t)
 		{
-			bool const invalid = (k.flags & key_desc_t::size_divisible)
+			bool const invalid = k.flags & key_desc_t::size_divisible
 				? (ret[i].string_length() % k.size) != 0
 				: ret[i].string_length() != k.size;
 
@@ -96,8 +94,7 @@ bool verify_message_impl(bdecode_node const& message, span<key_desc_t const> des
 				ret[i].clear();
 				if ((k.flags & key_desc_t::optional) == 0)
 				{
-					std::snprintf(error.data(), static_cast<std::size_t>(error.size())
-						, "invalid value for '%s'", k.name);
+					std::snprintf(error.data(), error.size(), "invalid value for '%s'", k.name);
 					return false;
 				}
 			}

@@ -10,27 +10,21 @@ By Steve Reid <sreid@sea-to-sky.net>
 changelog at the end of the file.
 */
 
-#include "libtorrent/sha1.hpp"
-
-#if !defined TORRENT_USE_LIBGCRYPT \
-	&& !TORRENT_USE_COMMONCRYPTO \
-	&& !TORRENT_USE_CNG \
-	&& !TORRENT_USE_CRYPTOAPI \
-	&& !defined TORRENT_USE_LIBCRYPTO
-
 #include <cstdio>
 #include <cstring>
 
+#include "libtorrent/sha1.hpp"
+
 #include "libtorrent/aux_/disable_warnings_push.hpp"
-#include <boost/predef/other/endian.h>
+#include <boost/detail/endian.hpp> // for BIG_ENDIAN and LITTLE_ENDIAN macros
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
+
+typedef std::uint32_t u32;
+typedef std::uint8_t u8;
 
 namespace libtorrent {
 
 namespace {
-
-using u32 = std::uint32_t;
-using u8 = std::uint8_t;
 
 	union CHAR64LONG16
 	{
@@ -72,11 +66,11 @@ using u8 = std::uint8_t;
 	^block->l[((i)+2)&15]^block->l[(i)&15],1))
 
 // (R0+R1), R2, R3, R4 are the different operations used in SHA1
-#define R0(v,w,x,y,z,i) z+=(((w)&((x)^(y)))^(y))+BlkFun::apply(block, i)+0x5A827999+rol(v,5);(w)=rol(w,30)
-#define R1(v,w,x,y,z,i) z+=(((w)&((x)^(y)))^(y))+blk(i)+0x5A827999+rol(v,5);(w)=rol(w,30)
-#define R2(v,w,x,y,z,i) z+=((w)^(x)^(y))+blk(i)+0x6ED9EBA1+rol(v,5);(w)=rol(w,30)
-#define R3(v,w,x,y,z,i) z+=((((w)|(x))&(y))|((w)&(x)))+blk(i)+0x8F1BBCDC+rol(v,5);(w)=rol(w,30)
-#define R4(v,w,x,y,z,i) z+=((w)^(x)^(y))+blk(i)+0xCA62C1D6+rol(v,5);(w)=rol(w,30)
+#define R0(v,w,x,y,z,i) z+=(((w)&((x)^(y)))^(y))+BlkFun::apply(block, i)+0x5A827999+rol(v,5);(w)=rol(w,30);
+#define R1(v,w,x,y,z,i) z+=(((w)&((x)^(y)))^(y))+blk(i)+0x5A827999+rol(v,5);(w)=rol(w,30);
+#define R2(v,w,x,y,z,i) z+=((w)^(x)^(y))+blk(i)+0x6ED9EBA1+rol(v,5);(w)=rol(w,30);
+#define R3(v,w,x,y,z,i) z+=((((w)|(x))&(y))|((w)&(x)))+blk(i)+0x8F1BBCDC+rol(v,5);(w)=rol(w,30);
+#define R4(v,w,x,y,z,i) z+=((w)^(x)^(y))+blk(i)+0xCA62C1D6+rol(v,5);(w)=rol(w,30);
 
 	// Hash a single 512-bit block. This is the core of the algorithm.
 	template <class BlkFun>
@@ -128,7 +122,7 @@ using u8 = std::uint8_t;
 	void SHAPrintContext(sha1_ctx *context, char *msg)
 	{
 		using namespace std;
-		std::printf("%s (%u,%u) %x %x %x %x %x\n"
+		std::printf("%s (%d,%d) %x %x %x %x %x\n"
 			, msg, (unsigned int)context->count[0]
 			, (unsigned int)context->count[1]
 			, (unsigned int)context->state[0]
@@ -171,7 +165,7 @@ using u8 = std::uint8_t;
 #endif
 	}
 
-#if !BOOST_ENDIAN_BIG_BYTE && !BOOST_ENDIAN_LITTLE_BYTE
+#if !defined BOOST_BIG_ENDIAN && !defined BOOST_LITTLE_ENDIAN
 	bool is_big_endian()
 	{
 		u32 test = 1;
@@ -200,9 +194,9 @@ void SHA1_update(sha1_ctx* context, u8 const* data, size_t len)
 {
 	// GCC standard defines for endianness
 	// test with: cpp -dM /dev/null
-#if BOOST_ENDIAN_BIG_BYTE
+#if defined BOOST_BIG_ENDIAN
 	internal_update<big_endian_blk0>(context, data, len);
-#elif BOOST_ENDIAN_LITTLE_BYTE
+#elif defined BOOST_LITTLE_ENDIAN
 	internal_update<little_endian_blk0>(context, data, len);
 #else
 	// select different functions depending on endianess
@@ -241,9 +235,7 @@ void SHA1_final(u8* digest, sha1_ctx* context)
 	}
 }
 
-} // namespace libtorrent
-
-#endif
+} // libtorrent namespace
 
 /************************************************************
 

@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2016-2018, Arvid Norberg
+Copyright (c) 2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ namespace libtorrent { namespace aux {
 		if ((proc == nullptr) && !failed_proc)
 		{
 			HMODULE const handle = get_library_handle<Library>();
-			if (handle) proc = reinterpret_cast<Signature>(reinterpret_cast<void*>(GetProcAddress(handle, name)));
+			if (handle) proc = (Signature)GetProcAddress(handle, name);
 			failed_proc = (proc == nullptr);
 		}
 		return proc;

@@ -17,7 +17,7 @@
  * All dynamically allocated memory comes from the stack.  The stack required
  * is less than 2K bytes.  This code is compatible with 16-bit int's and
  * assumes that long's are at least 32 bits.  puff.c uses the short data type,
- * assumed to be 16 bits, for arrays in order to conserve memory.  The code
+ * assumed to be 16 bits, for arrays in order to to conserve memory.  The code
  * works whether integers are stored big endian or little endian.
  *
  * In the comments below are "Format notes" that describe the inflate process
@@ -82,8 +82,8 @@
 // this whole file is just preserved and warnings are suppressed
 #include "libtorrent/aux_/disable_warnings_push.hpp"
 
-#include <csetjmp>             /* for setjmp(), longjmp(), and jmp_buf */
-#include <cstring>             /* for nullptr */
+#include <setjmp.h>             /* for setjmp(), longjmp(), and jmp_buf */
+#include <string.h>             /* for NULL */
 #include "libtorrent/puff.hpp"             /* prototype for puff() */
 
 #define local static            /* for local function definitions */
@@ -113,7 +113,7 @@ struct state {
     int bitcnt;                 /* number of bits in bit buffer */
 
     /* input limit error return state for bits() and decode() */
-	 std::jmp_buf env;
+    jmp_buf env;
 };
 
 /*
@@ -135,7 +135,7 @@ local int bits(struct state *s, int need)
     val = s->bitbuf;
     while (s->bitcnt < need) {
         if (s->incnt == s->inlen)
-            std::longjmp(s->env, 1);         /* out of input */
+            longjmp(s->env, 1);         /* out of input */
         val |= long(s->in[s->incnt++]) << s->bitcnt;  /* load eight bits */
         s->bitcnt += 8;
     }
@@ -185,7 +185,7 @@ local int stored(struct state *s)
     /* copy len bytes from in to out */
     if (s->incnt + len > s->inlen)
         return 2;                               /* not enough input */
-    if (s->out != nullptr) {
+    if (s->out != NULL) {
         if (s->outcnt + len > s->outlen)
             return 1;                           /* not enough output space */
         while (len--)
@@ -280,7 +280,7 @@ local int decode(struct state *s, const struct huffman *h)
     code = first = index = 0;
     len = 1;
     next = h->count + 1;
-    for (;;) {
+    while (1) {
         while (left--) {
             code |= bitbuf & 1;
             bitbuf >>= 1;
@@ -300,7 +300,7 @@ local int decode(struct state *s, const struct huffman *h)
         if (left == 0)
             break;
         if (s->incnt == s->inlen)
-            std::longjmp(s->env, 1);         /* out of input */
+            longjmp(s->env, 1);         /* out of input */
         bitbuf = s->in[s->incnt++];
         if (left > 8)
             left = 8;
@@ -466,7 +466,7 @@ local int codes(struct state *s,
             return symbol;              /* invalid symbol */
         if (symbol < 256) {             /* literal: symbol is the byte */
             /* write out the literal */
-            if (s->out != nullptr) {
+            if (s->out != NULL) {
                 if (s->outcnt == s->outlen)
                     return 1;
                 s->out[s->outcnt] = symbol;
@@ -491,7 +491,7 @@ local int codes(struct state *s,
 #endif
 
             /* copy length bytes from distance bytes back */
-            if (s->out != nullptr) {
+            if (s->out != NULL) {
                 if (s->outcnt + len > s->outlen)
                     return 1;
                 while (len--) {

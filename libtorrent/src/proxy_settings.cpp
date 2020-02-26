@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2015, 2017-2019, Arvid Norberg
+Copyright (c) 2003-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,33 +35,41 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/session_settings.hpp"
 
 namespace libtorrent { namespace aux {
+proxy_settings::proxy_settings()
+	: type(0)
+	, port(0)
+	, proxy_hostnames(true)
+	, proxy_peer_connections(true)
+	, proxy_tracker_connections(true)
+{}
 
-namespace {
-
-template <typename Settings>
-void init(proxy_settings& p, Settings const& sett)
+proxy_settings::proxy_settings(settings_pack const& sett)
 {
-	p.hostname = sett.get_str(settings_pack::proxy_hostname);
-	p.username = sett.get_str(settings_pack::proxy_username);
-	p.password = sett.get_str(settings_pack::proxy_password);
-	p.type = settings_pack::proxy_type_t(sett.get_int(settings_pack::proxy_type));
-	p.port = std::uint16_t(sett.get_int(settings_pack::proxy_port));
-	p.proxy_hostnames = sett.get_bool(settings_pack::proxy_hostnames);
-	p.proxy_peer_connections = sett.get_bool(
+	hostname = sett.get_str(settings_pack::proxy_hostname);
+	username = sett.get_str(settings_pack::proxy_username);
+	password = sett.get_str(settings_pack::proxy_password);
+	type = std::uint8_t(sett.get_int(settings_pack::proxy_type));
+	port = std::uint16_t(sett.get_int(settings_pack::proxy_port));
+	proxy_hostnames = sett.get_bool(settings_pack::proxy_hostnames);
+	proxy_peer_connections = sett.get_bool(
 		settings_pack::proxy_peer_connections);
-	p.proxy_tracker_connections = sett.get_bool(
+	proxy_tracker_connections = sett.get_bool(
 		settings_pack::proxy_tracker_connections);
 }
 
-}
-
-proxy_settings::proxy_settings() = default;
-
-proxy_settings::proxy_settings(settings_pack const& sett)
-{ init(*this, sett); }
-
 proxy_settings::proxy_settings(aux::session_settings const& sett)
-{ init(*this, sett); }
+{
+	hostname = sett.get_str(settings_pack::proxy_hostname);
+	username = sett.get_str(settings_pack::proxy_username);
+	password = sett.get_str(settings_pack::proxy_password);
+	type = std::uint8_t(sett.get_int(settings_pack::proxy_type));
+	port = std::uint16_t(sett.get_int(settings_pack::proxy_port));
+	proxy_hostnames = sett.get_bool(settings_pack::proxy_hostnames);
+	proxy_peer_connections = sett.get_bool(
+		settings_pack::proxy_peer_connections);
+	proxy_tracker_connections = sett.get_bool(
+		settings_pack::proxy_tracker_connections);
+}
 
 } // namespace aux
 } // namespace libtorrent

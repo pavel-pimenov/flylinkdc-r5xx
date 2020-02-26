@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2012, 2014-2017, 2019, Arvid Norberg
-Copyright (c) 2014, 2017-2018, Steven Siloti
-Copyright (c) 2016, Alden Torres
+Copyright (c) 2012-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,15 +37,12 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/address.hpp"
 #include "libtorrent/string_view.hpp"
 #include "libtorrent/kademlia/msg.hpp"
-#include "libtorrent/aux_/session_udp_sockets.hpp" // for transport
 
 namespace libtorrent {
 
 class entry;
 
-namespace aux {
-struct listen_socket_handle;
-}
+namespace aux { struct listen_socket_handle; }
 
 namespace dht {
 
@@ -83,7 +78,6 @@ namespace dht {
 	{
 		virtual void set_external_address(aux::listen_socket_handle const& iface
 			, address const& addr, address const& source) = 0;
-		virtual int get_listen_port(aux::transport ssl, aux::listen_socket_handle const& s) = 0;
 		virtual void get_peers(sha1_hash const& ih) = 0;
 		virtual void outgoing_get_peers(sha1_hash const& target
 			, sha1_hash const& sent_target, udp::endpoint const& ep) = 0;
@@ -94,7 +88,6 @@ namespace dht {
 	protected:
 		~dht_observer() = default;
 	};
-}
-}
+}}
 
 #endif

@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2009, 2015, 2017-2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
+Copyright (c) 2009-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,7 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_BANDWIDTH_SOCKET_HPP_INCLUDED
 #define TORRENT_BANDWIDTH_SOCKET_HPP_INCLUDED
 
-#include "libtorrent/aux_/export.hpp"
+#include "libtorrent/export.hpp"
 
 namespace libtorrent {
 

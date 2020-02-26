@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2016, Alden Torres
-Copyright (c) 2019, Arvid Norberg
+Copyright (c) 2016, Arvid Norberg, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -41,8 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <array>
 #include <tuple>
 
-namespace libtorrent {
-namespace dht {
+namespace libtorrent { namespace dht {
 
 	// See documentation of internal random_bytes
 	TORRENT_EXPORT std::array<char, 32> ed25519_create_seed();
@@ -99,7 +97,6 @@ namespace dht {
 	TORRENT_EXPORT std::array<char, 32> ed25519_key_exchange(
 		public_key const& pk, secret_key const& sk);
 
-}
-}
+}}
 
 #endif // LIBTORRENT_ED25519_HPP

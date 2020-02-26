@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2010, 2013, 2015-2019, Arvid Norberg
-Copyright (c) 2015, Steven Siloti
+Copyright (c) 2010-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -43,23 +42,31 @@ namespace libtorrent {
 	{
 		union_address() { *this = address(); }
 		explicit union_address(address const& a) { *this = a; }
-		union_address& operator=(address const& a) &
+		union_address& operator=(address const& a)
 		{
+#if TORRENT_USE_IPV6
 			v4 = a.is_v4();
 			if (v4)
 				addr.v4 = a.to_v4().to_bytes();
 			else
 				addr.v6 = a.to_v6().to_bytes();
+#else
+			addr.v4 = a.to_v4().to_bytes();
+#endif
 			return *this;
 		}
 
 		bool operator==(union_address const& rh) const
 		{
+#if TORRENT_USE_IPV6
 			if (v4 != rh.v4) return false;
 			if (v4)
 				return addr.v4 == rh.addr.v4;
 			else
 				return addr.v6 == rh.addr.v6;
+#else
+			return addr.v4 == rh.addr.v4;
+#endif
 		}
 
 		bool operator!=(union_address const& rh) const
@@ -69,17 +76,24 @@ namespace libtorrent {
 
 		operator address() const
 		{
+#if TORRENT_USE_IPV6
 			if (v4) return address(address_v4(addr.v4));
 			else return address(address_v6(addr.v6));
+#else
+			return address(address_v4(addr.v4));
+#endif
 		}
 
 		union addr_t
 		{
 			address_v4::bytes_type v4;
+#if TORRENT_USE_IPV6
 			address_v6::bytes_type v6;
-		};
-		addr_t addr;
+#endif
+		} addr;
+#if TORRENT_USE_IPV6
 		bool v4:1;
+#endif
 	};
 
 	struct union_endpoint
@@ -88,7 +102,7 @@ namespace libtorrent {
 		explicit union_endpoint(udp::endpoint const& ep) { *this = ep; }
 		union_endpoint() { *this = tcp::endpoint(); }
 
-		union_endpoint& operator=(udp::endpoint const& ep) &
+		union_endpoint& operator=(udp::endpoint const& ep)
 		{
 			addr = ep.address();
 			port = ep.port();
@@ -97,7 +111,7 @@ namespace libtorrent {
 
 		operator udp::endpoint() const { return udp::endpoint(addr, port); }
 
-		union_endpoint& operator=(tcp::endpoint const& ep) &
+		union_endpoint& operator=(tcp::endpoint const& ep)
 		{
 			addr = ep.address();
 			port = ep.port();

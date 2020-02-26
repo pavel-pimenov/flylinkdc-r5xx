@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2016, 2018, Steven Siloti
-Copyright (c) 2016-2018, Alden Torres
-Copyright (c) 2017-2019, Arvid Norberg
+Copyright (c) 2005-2016, Arvid Norberg, Steven Siloti
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -50,7 +48,7 @@ namespace {
 namespace libtorrent {
 
 	disk_io_thread_pool::disk_io_thread_pool(pool_thread_interface& thread_iface
-		, io_context& ios)
+		, io_service& ios)
 		: m_thread_iface(thread_iface)
 		, m_max_threads(0)
 		, m_threads_to_exit(0)
@@ -58,7 +56,6 @@ namespace libtorrent {
 		, m_num_idle_threads(0)
 		, m_min_idle_threads(0)
 		, m_idle_timer(ios)
-		, m_ioc(ios)
 	{}
 
 	disk_io_thread_pool::~disk_io_thread_pool()
@@ -91,6 +88,7 @@ namespace libtorrent {
 	{
 		std::unique_lock<std::mutex> l(m_mutex);
 		if (m_abort) return;
+		m_max_threads = 0;
 		m_abort = true;
 		m_idle_timer.cancel();
 		stop_threads(int(m_threads.size()));
@@ -151,11 +149,11 @@ namespace libtorrent {
 	std::thread::id disk_io_thread_pool::first_thread_id()
 	{
 		std::lock_guard<std::mutex> l(m_mutex);
-		if (m_threads.empty()) return {};
+		if (m_threads.empty()) return std::thread::id();
 		return m_threads.front().get_id();
 	}
 
-	void disk_io_thread_pool::job_queued(int const queue_size)
+	void disk_io_thread_pool::job_queued(int queue_size)
 	{
 		// this check is not strictly necessary
 		// but do it to avoid acquiring the mutex in the trivial case
@@ -179,21 +177,21 @@ namespace libtorrent {
 			// if this is the first thread started, start the reaper timer
 			if (m_threads.empty())
 			{
-				m_idle_timer.expires_after(reap_idle_threads_interval);
+				m_idle_timer.expires_from_now(reap_idle_threads_interval);
 				m_idle_timer.async_wait([this](error_code const& ec) { reap_idle_threads(ec); });
 			}
 
-			// work keeps the io_context::run() call blocked from returning.
+			// work keeps the io_service::run() call blocked from returning.
 			// When shutting down, it's possible that the event queue is drained
 			// before the disk_io_thread has posted its last callback. When this
-			// happens, the io_context will have a pending callback from the
+			// happens, the io_service will have a pending callback from the
 			// disk_io_thread, but the event loop is not running. this means
 			// that the event is destructed after the disk_io_thread. If the
 			// event refers to a disk buffer it will try to free it, but the
 			// buffer pool won't exist anymore, and crash. This prevents that.
 			m_threads.emplace_back(&pool_thread_interface::thread_fun
 				, &m_thread_iface, std::ref(*this)
-				, make_work_guard(m_ioc));
+				, io_service::work(get_io_service(m_idle_timer)));
 		}
 	}
 
@@ -205,13 +203,13 @@ namespace libtorrent {
 		std::lock_guard<std::mutex> l(m_mutex);
 		if (m_abort) return;
 		if (m_threads.empty()) return;
-		m_idle_timer.expires_after(reap_idle_threads_interval);
+		m_idle_timer.expires_from_now(reap_idle_threads_interval);
 		m_idle_timer.async_wait([this](error_code const& e) { reap_idle_threads(e); });
 		int const min_idle = m_min_idle_threads.exchange(m_num_idle_threads);
 		if (min_idle <= 0) return;
 		// stop either the minimum number of idle threads or the number of threads
 		// which must be stopped to get below the max, whichever is larger
-		int const to_stop = std::max(min_idle, int(m_threads.size()) - m_max_threads);
+		int const to_stop = (std::max)(min_idle, int(m_threads.size()) - m_max_threads);
 		stop_threads(to_stop);
 	}
 

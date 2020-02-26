@@ -34,25 +34,29 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_WIN_CRYPTO_PROVIDER_HPP
 
 #include "libtorrent/config.hpp"
-
-#if TORRENT_USE_CRYPTOAPI
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/aux_/throw.hpp"
-#include "libtorrent/aux_/windows.hpp"
 
 #include "libtorrent/aux_/disable_warnings_push.hpp"
+#include <windows.h>
 #include <wincrypt.h>
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 
 namespace libtorrent { namespace aux {
 
+	inline void throw_error_code()
+	{
+		const error_code ec(GetLastError(), system_category());
+		static error_code g_last_error = ec;
+		throw_ex<system_error>(ec);
+	}
 	inline HCRYPTPROV crypt_acquire_provider(DWORD provider_type)
 	{
 		HCRYPTPROV ret;
 		if (CryptAcquireContext(&ret, nullptr, nullptr, provider_type
 			, CRYPT_VERIFYCONTEXT) == false)
 		{
-			throw_ex<system_error>(error_code(GetLastError(), system_category()));
+			throw_error_code();
 		}
 		return ret;
 	}
@@ -63,7 +67,7 @@ namespace libtorrent { namespace aux {
 		if (!CryptGenRandom(provider, int(buffer.size())
 			, reinterpret_cast<BYTE*>(buffer.data())))
 		{
-			throw_ex<system_error>(error_code(GetLastError(), system_category()));
+			throw_error_code();
 		}
 	}
 
@@ -74,7 +78,7 @@ namespace libtorrent { namespace aux {
 		crypt_hash(crypt_hash const& h) { m_hash = duplicate(h); }
 		~crypt_hash() { CryptDestroyHash(m_hash); }
 
-		crypt_hash& operator=(crypt_hash const& h) &
+		crypt_hash& crypt_hash::operator=(crypt_hash const& h)
 		{
 			if (this == &h) return *this;
 			HCRYPTHASH temp = duplicate(h);
@@ -94,7 +98,7 @@ namespace libtorrent { namespace aux {
 		{
 			if (CryptHashData(m_hash, reinterpret_cast<BYTE const*>(data.data()), int(data.size()), 0) == false)
 			{
-				throw_ex<system_error>(error_code(GetLastError(), system_category()));
+				throw_error_code();
 			}
 		}
 
@@ -104,7 +108,7 @@ namespace libtorrent { namespace aux {
 			if (CryptGetHashParam(m_hash, HP_HASHVAL
 				, reinterpret_cast<BYTE*>(digest), &size, 0) == false)
 			{
-				throw_ex<system_error>(error_code(GetLastError(), system_category()));
+				throw_error_code();
 			}
 			TORRENT_ASSERT(size == DWORD(digest_size));
 		}
@@ -114,7 +118,7 @@ namespace libtorrent { namespace aux {
 			HCRYPTHASH ret;
 			if (CryptCreateHash(get_provider(), AlgId, 0, 0, &ret) == false)
 			{
-				throw_ex<system_error>(error_code(GetLastError(), system_category()));
+				throw_error_code();
 			}
 			return ret;
 		}
@@ -124,7 +128,7 @@ namespace libtorrent { namespace aux {
 			HCRYPTHASH ret;
 			if (CryptDuplicateHash(h.m_hash, 0, 0, &ret) == false)
 			{
-				throw_ex<system_error>(error_code(GetLastError(), system_category()));
+				throw_error_code();
 			}
 			return ret;
 		}
@@ -141,6 +145,4 @@ namespace libtorrent { namespace aux {
 } // namespace aux
 } // namespace libtorrent
 
-#endif // TORRENT_USE_CRYPTOAPI
-
-#endif // TORRENT_WIN_CRYPTO_PROVIDER_HPP
+#endif

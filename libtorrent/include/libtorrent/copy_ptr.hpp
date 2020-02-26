@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2010, 2016-2019, Arvid Norberg
-Copyright (c) 2017, Matthew Fioravante
+Copyright (c) 2010-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -47,13 +46,13 @@ namespace libtorrent {
 		copy_ptr(copy_ptr&& p) noexcept = default;
 
 		void reset(T* t = nullptr) { m_ptr.reset(t); }
-		copy_ptr& operator=(copy_ptr const& p) &
+		copy_ptr& operator=(copy_ptr const& p)
 		{
 			if (m_ptr == p.m_ptr) return *this;
 			m_ptr.reset(p.m_ptr ? new T(*p.m_ptr) : nullptr);
 			return *this;
 		}
-		copy_ptr& operator=(copy_ptr&& p) & noexcept = default;
+		copy_ptr& operator=(copy_ptr&& p) noexcept = default;
 		T* operator->() { return m_ptr.get(); }
 		T const* operator->() const { return m_ptr.get(); }
 		T& operator*() { return *m_ptr; }

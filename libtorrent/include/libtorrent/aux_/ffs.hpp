@@ -34,11 +34,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_FFS_HPP_INCLUDE
 
 #include <cstdint>
-#include "libtorrent/aux_/export.hpp"
+#include "libtorrent/export.hpp"
 #include "libtorrent/span.hpp"
 
-namespace libtorrent {
-namespace aux {
+namespace libtorrent { namespace aux {
 
 	// For a general reference of the problems these routines are about
 	// see http://en.wikipedia.org/wiki/Find_first_set
@@ -62,9 +61,6 @@ namespace aux {
 	// this function statically determines if hardware or software is used
 	// and expect the range to be in big-endian byte order
 	TORRENT_EXTRA_EXPORT int count_trailing_ones(span<std::uint32_t const> buf);
-
-	// returns the index of the most significant set bit.
-	TORRENT_EXTRA_EXPORT int log2p1(std::uint32_t v);
 }}
 
 #endif // TORRENT_FFS_HPP_INCLUDE

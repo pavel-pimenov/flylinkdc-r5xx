@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2007, 2010-2011, 2014-2019, Arvid Norberg
-Copyright (c) 2016, 2018, Alden Torres
+Copyright (c) 2007-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,17 +31,16 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "libtorrent/socket.hpp"
-#include "libtorrent/aux_/socket_type.hpp"
-#include "libtorrent/aux_/utp_socket_manager.hpp"
-#include "libtorrent/aux_/instantiate_connection.hpp"
-#include "libtorrent/aux_/utp_stream.hpp"
-#include "libtorrent/ssl_stream.hpp"
+#include "libtorrent/socket_type.hpp"
+#include "libtorrent/utp_socket_manager.hpp"
+#include "libtorrent/instantiate_connection.hpp"
 
-namespace libtorrent { namespace aux {
+namespace libtorrent {
 
 	// TODO: 2 peer_connection and tracker_connection should probably be flags
-	aux::socket_type instantiate_connection(io_context& ios
-		, aux::proxy_settings const& ps
+	// TODO: 2 move this function into libtorrent::aux namespace
+	bool instantiate_connection(io_service& ios
+		, aux::proxy_settings const& ps, socket_type& s
 		, void* ssl_context
 		, utp_socket_manager* sm
 		, bool peer_connection
@@ -54,29 +52,28 @@ namespace libtorrent { namespace aux {
 
 		if (sm)
 		{
+			utp_stream* str;
 #ifdef TORRENT_USE_OPENSSL
 			if (ssl_context)
 			{
-				ssl_stream<utp_stream> s(ios, *static_cast<ssl::context*>(ssl_context));
-				s.next_layer().set_impl(sm->new_utp_socket(&s.next_layer()));
-				return socket_type(std::move(s));
+				s.instantiate<ssl_stream<utp_stream>>(ios, ssl_context);
+				str = &s.get<ssl_stream<utp_stream>>()->next_layer();
 			}
 			else
 #endif
 			{
-				utp_stream s(ios);
-				s.set_impl(sm->new_utp_socket(&s));
-				return socket_type(std::move(s));
+				s.instantiate<utp_stream>(ios);
+				str = s.get<utp_stream>();
 			}
+			str->set_impl(sm->new_utp_socket(str));
 		}
 #if TORRENT_USE_I2P
 		else if (ps.type == settings_pack::i2p_proxy)
 		{
 			// it doesn't make any sense to try ssl over i2p
 			TORRENT_ASSERT(ssl_context == nullptr);
-			i2p_stream s(ios);
-			s.set_proxy(ps.hostname, ps.port);
-			return socket_type(std::move(s));
+			s.instantiate<i2p_stream>(ios);
+			s.get<i2p_stream>()->set_proxy(ps.hostname, ps.port);
 		}
 #endif
 		else if (ps.type == settings_pack::none
@@ -86,68 +83,64 @@ namespace libtorrent { namespace aux {
 #ifdef TORRENT_USE_OPENSSL
 			if (ssl_context)
 			{
-				return socket_type(ssl_stream<tcp::socket>(ios, *static_cast<ssl::context*>(ssl_context)));
+				s.instantiate<ssl_stream<tcp::socket>>(ios, ssl_context);
 			}
 			else
 #endif
 			{
-				return socket_type(tcp::socket(ios));
+				s.instantiate<tcp::socket>(ios);
 			}
 		}
 		else if (ps.type == settings_pack::http
 			|| ps.type == settings_pack::http_pw)
 		{
+			http_stream* str;
 #ifdef TORRENT_USE_OPENSSL
 			if (ssl_context)
 			{
-				ssl_stream<http_stream> s(ios, *static_cast<ssl::context*>(ssl_context));
-				http_stream* str = &s.next_layer();
-				str->set_proxy(ps.hostname, ps.port);
-				if (ps.type == settings_pack::http_pw)
-					str->set_username(ps.username, ps.password);
-				return socket_type(std::move(s));
+				s.instantiate<ssl_stream<http_stream>>(ios, ssl_context);
+				str = &s.get<ssl_stream<http_stream>>()->next_layer();
 			}
 			else
 #endif
 			{
-				http_stream s(ios);
-				s.set_proxy(ps.hostname, ps.port);
-				if (ps.type == settings_pack::http_pw)
-					s.set_username(ps.username, ps.password);
-				return socket_type(std::move(s));
+				s.instantiate<http_stream>(ios);
+				str = s.get<http_stream>();
 			}
 
+			str->set_proxy(ps.hostname, ps.port);
+			if (ps.type == settings_pack::http_pw)
+				str->set_username(ps.username, ps.password);
 		}
 		else if (ps.type == settings_pack::socks5
 			|| ps.type == settings_pack::socks5_pw
 			|| ps.type == settings_pack::socks4)
 		{
+			socks5_stream* str;
 #ifdef TORRENT_USE_OPENSSL
 			if (ssl_context)
 			{
-				ssl_stream<socks5_stream> s(ios, *static_cast<ssl::context*>(ssl_context));
-				socks5_stream* str = &s.next_layer();
-				str->set_proxy(ps.hostname, ps.port);
-				if (ps.type == settings_pack::socks5_pw)
-					str->set_username(ps.username, ps.password);
-				if (ps.type == settings_pack::socks4)
-					str->set_version(4);
-				return socket_type(std::move(s));
+				s.instantiate<ssl_stream<socks5_stream>>(ios, ssl_context);
+				str = &s.get<ssl_stream<socks5_stream>>()->next_layer();
 			}
 			else
 #endif
 			{
-				socks5_stream s(ios);
-				s.set_proxy(ps.hostname, ps.port);
-				if (ps.type == settings_pack::socks5_pw)
-					s.set_username(ps.username, ps.password);
-				if (ps.type == settings_pack::socks4)
-					s.set_version(4);
-				return socket_type(std::move(s));
+				s.instantiate<socks5_stream>(ios);
+				str = s.get<socks5_stream>();
 			}
+			str->set_proxy(ps.hostname, ps.port);
+			if (ps.type == settings_pack::socks5_pw)
+				str->set_username(ps.username, ps.password);
+			if (ps.type == settings_pack::socks4)
+				str->set_version(4);
 		}
-		TORRENT_ASSERT_FAIL();
-		throw std::runtime_error("unknown socket type");
+		else
+		{
+			TORRENT_ASSERT_FAIL_VAL(ps.type);
+			return false;
+		}
+		return true;
 	}
 
-}}
+}

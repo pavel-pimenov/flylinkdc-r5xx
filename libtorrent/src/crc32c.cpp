@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2014-2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
-Copyright (c) 2018, Pavel Pimenov
+Copyright (c) 2014-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -144,7 +142,7 @@ namespace libtorrent {
 #endif
 
 		boost::crc_optimal<32, 0x1EDC6F41, 0xFFFFFFFF, 0xFFFFFFFF, true, true> crc;
-		crc.process_bytes(buf, std::size_t(num_words) * 8);
+		crc.process_bytes(buf, std::size_t(num_words * 8));
 		return crc.checksum();
 	}
 }

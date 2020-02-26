@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2014, 2017-2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
+Copyright (c) 2014-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,19 +30,14 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef TORRENT_CHOKER_HPP_INCLUDED
-#define TORRENT_CHOKER_HPP_INCLUDED
-
 #include "libtorrent/config.hpp"
 #include "libtorrent/time.hpp" // for time_duration
 #include <vector>
 
 namespace libtorrent {
 
-namespace aux {
-	struct session_settings;
-}
-	struct peer_connection;
+	namespace aux { struct session_settings; }
+	class peer_connection;
 
 	// sorts the vector of peers in-place. When returning, the top unchoke slots
 	// elements are the peers we should unchoke. This is similar to a partial
@@ -56,5 +50,3 @@ namespace aux {
 		, aux::session_settings const& sett);
 
 }
-
-#endif // TORRENT_CHOKER_INCLUDED

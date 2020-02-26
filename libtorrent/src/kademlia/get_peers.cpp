@@ -1,11 +1,6 @@
 /*
 
-Copyright (c) 2006, Daniel Wallin
-Copyright (c) 2013-2019, Arvid Norberg
-Copyright (c) 2015, Thomas Yuan
-Copyright (c) 2015, Steven Siloti
-Copyright (c) 2016-2017, Pavel Pimenov
-Copyright (c) 2016-2018, Alden Torres
+Copyright (c) 2006-2016, Arvid Norberg & Daniel Wallin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -40,7 +35,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/kademlia/dht_observer.hpp>
 #include <libtorrent/socket_io.hpp>
 #include <libtorrent/performance_counters.hpp>
-#include <libtorrent/broadcast_socket.hpp> // for is_v4
 
 #ifndef TORRENT_DISABLE_LOGGING
 #include <libtorrent/hex.hpp> // to_hex
@@ -67,7 +61,7 @@ void get_peers_observer::reply(msg const& m)
 	{
 		std::vector<tcp::endpoint> peer_list;
 		if (n.list_size() == 1 && n.list_at(0).type() == bdecode_node::string_t
-			&& is_v4(m.addr))
+			&& m.addr.protocol() == udp::v4())
 		{
 			// assume it's mainline format
 			char const* peers = n.list_at(0).string_ptr();
@@ -77,12 +71,12 @@ void get_peers_observer::reply(msg const& m)
 			log_peers(m, r, int((end - peers) / 6));
 #endif
 			while (end - peers >= 6)
-				peer_list.push_back(aux::read_v4_endpoint<tcp::endpoint>(peers));
+				peer_list.push_back(detail::read_v4_endpoint<tcp::endpoint>(peers));
 		}
 		else
 		{
 			// assume it's uTorrent/libtorrent format
-			peer_list = aux::read_endpoint_list<tcp::endpoint>(n);
+			peer_list = detail::read_endpoint_list<tcp::endpoint>(n);
 #ifndef TORRENT_DISABLE_LOGGING
 			log_peers(m, r, n.list_size());
 #endif
@@ -107,7 +101,7 @@ void get_peers_observer::log_peers(msg const& m, bdecode_node const& r, int cons
 						, algorithm()->invoke_count()
 						, algorithm()->branch_factor()
 						, print_endpoint(m.addr).c_str()
-						, aux::to_hex({id.string_ptr(), id.string_length()}).c_str()
+						, aux::to_hex({id.string_ptr(), size_t(id.string_length())}).c_str()
 						, distance_exp(algorithm()->target(), node_id(id.string_ptr()))
 						, size);
 				}
@@ -122,11 +116,11 @@ void get_peers::got_peers(std::vector<tcp::endpoint> const& peers)
 get_peers::get_peers(
 	node& dht_node
 	, node_id const& target
-	, data_callback dcallback
-	, nodes_callback ncallback
+	, data_callback const& dcallback
+	, nodes_callback const& ncallback
 	, bool noseeds)
-	: find_data(dht_node, target, std::move(ncallback))
-	, m_data_callback(std::move(dcallback))
+	: find_data(dht_node, target, ncallback)
+	, m_data_callback(dcallback)
 	, m_noseeds(noseeds)
 {
 }
@@ -167,11 +161,11 @@ observer_ptr get_peers::new_observer(udp::endpoint const& ep
 
 obfuscated_get_peers::obfuscated_get_peers(
 	node& dht_node
-	, node_id const& target
-	, data_callback dcallback
-	, nodes_callback ncallback
+	, node_id const& info_hash
+	, data_callback const& dcallback
+	, nodes_callback const& ncallback
 	, bool noseeds)
-	: get_peers(dht_node, target, std::move(dcallback), std::move(ncallback), noseeds)
+	: get_peers(dht_node, info_hash, dcallback, ncallback, noseeds)
 	, m_obfuscated(true)
 {
 }

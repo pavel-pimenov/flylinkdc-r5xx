@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2010, 2013-2019, Arvid Norberg
-Copyright (c) 2016, Andrei Kurushin
-Copyright (c) 2016-2017, Alden Torres
+Copyright (c) 2012-2016, Arvid Norberg, Daniel Wallin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -44,27 +42,15 @@ namespace libtorrent {
 
 	void stat_cache::set_cache(file_index_t const i, std::int64_t const size)
 	{
-		std::lock_guard<std::mutex> l(m_mutex);
-		set_cache_impl(i, size);
-	}
-
-	void stat_cache::set_cache_impl(file_index_t const i, std::int64_t const size)
-	{
 		if (i >= m_stat_cache.end_index())
-			m_stat_cache.resize(static_cast<int>(i) + 1, stat_cache_t{not_in_cache});
+			m_stat_cache.resize(static_cast<int>(i) + 1, not_in_cache);
 		m_stat_cache[i].file_size = size;
 	}
 
 	void stat_cache::set_error(file_index_t const i, error_code const& ec)
 	{
-		std::lock_guard<std::mutex> l(m_mutex);
-		set_error_impl(i, ec);
-	}
-
-	void stat_cache::set_error_impl(file_index_t const i, error_code const& ec)
-	{
 		if (i >= m_stat_cache.end_index())
-			m_stat_cache.resize(static_cast<int>(i) + 1, stat_cache_t{not_in_cache});
+			m_stat_cache.resize(static_cast<int>(i) + 1, not_in_cache);
 
 		int const error_index = add_error(ec);
 		m_stat_cache[i].file_size = file_error - error_index;
@@ -72,7 +58,6 @@ namespace libtorrent {
 
 	void stat_cache::set_dirty(file_index_t const i)
 	{
-		std::lock_guard<std::mutex> l(m_mutex);
 		if (i >= m_stat_cache.end_index()) return;
 		m_stat_cache[i].file_size = not_in_cache;
 	}
@@ -80,20 +65,8 @@ namespace libtorrent {
 	std::int64_t stat_cache::get_filesize(file_index_t const i, file_storage const& fs
 		, std::string const& save_path, error_code& ec)
 	{
-		// always pretend symlinks don't exist, to trigger special logic for
-		// creating and possibly validating them. There's a risk we'll and up in a
-		// cycle of references here otherwise.
-		// Should stat_file() be changed to use lstat()?
-		if (fs.file_flags(i) & file_storage::flag_symlink)
-		{
-			ec.assign(boost::system::errc::no_such_file_or_directory, boost::system::system_category());
-			return -1;
-		}
-
-		std::lock_guard<std::mutex> l(m_mutex);
 		TORRENT_ASSERT(i < fs.end_file());
-		if (i >= m_stat_cache.end_index()) m_stat_cache.resize(static_cast<int>(i) + 1
-			, stat_cache_t{not_in_cache});
+		if (i >= m_stat_cache.end_index()) m_stat_cache.resize(static_cast<int>(i) + 1, not_in_cache);
 		std::int64_t sz = m_stat_cache[i].file_size;
 		if (sz < not_in_cache)
 		{
@@ -108,12 +81,12 @@ namespace libtorrent {
 			stat_file(file_path, &s, ec);
 			if (ec)
 			{
-				set_error_impl(i, ec);
+				set_error(i, ec);
 				sz = file_error;
 			}
 			else
 			{
-				set_cache_impl(i, s.file_size);
+				set_cache(i, s.file_size);
 				sz = s.file_size;
 			}
 		}
@@ -122,13 +95,11 @@ namespace libtorrent {
 
 	void stat_cache::reserve(int num_files)
 	{
-		std::lock_guard<std::mutex> l(m_mutex);
-		m_stat_cache.resize(num_files, stat_cache_t{not_in_cache});
+		m_stat_cache.resize(num_files, not_in_cache);
 	}
 
 	void stat_cache::clear()
 	{
-		std::lock_guard<std::mutex> l(m_mutex);
 		m_stat_cache.clear();
 		m_stat_cache.shrink_to_fit();
 		m_errors.clear();

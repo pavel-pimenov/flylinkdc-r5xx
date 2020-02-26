@@ -41,7 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent { namespace aux {
 
-	template <typename T, typename IndexType = std::ptrdiff_t>
+	template <typename T, typename IndexType = int>
 	struct unique_ptr;
 
 	template <typename T, typename IndexType>
@@ -53,7 +53,12 @@ namespace libtorrent { namespace aux {
 		unique_ptr() = default;
 		explicit unique_ptr(T* arr) : base(arr) {}
 
-		decltype(auto) operator[](IndexType idx) const
+		auto operator[](IndexType idx) const ->
+#if TORRENT_AUTO_RETURN_TYPES
+			decltype(auto)
+#else
+			decltype(this->base::operator[](underlying_index()))
+#endif
 		{
 			TORRENT_ASSERT(idx >= IndexType(0));
 			return this->base::operator[](std::size_t(static_cast<underlying_index>(idx)));

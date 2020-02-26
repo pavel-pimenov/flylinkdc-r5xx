@@ -1,10 +1,6 @@
 /*
 
-Copyright (c) 2014-2019, Arvid Norberg
-Copyright (c) 2015, Thomas Yuan
-Copyright (c) 2016-2018, Alden Torres
-Copyright (c) 2017, Steven Siloti
-Copyright (c) 2017, Andrei Kurushin
+Copyright (c) 2012-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,7 +35,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/settings_pack.hpp"
 #include "libtorrent/aux_/session_impl.hpp"
 #include "libtorrent/aux_/array.hpp"
-#include "libtorrent/aux_/session_settings.hpp"
 
 #include <algorithm>
 
@@ -98,12 +93,16 @@ namespace libtorrent {
 
 #define SET(name, default_value, fun) { #name, fun, default_value }
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 #define DEPRECATED_SET(name, default_value, fun) { #name, fun, default_value }
-#define DEPRECATED_SET_STR(name, default_value, fun) { #name, fun, default_value }
 #else
 #define DEPRECATED_SET(name, default_value, fun) { "", nullptr, 0 }
-#define DEPRECATED_SET_STR(name, default_value, fun) { "", nullptr, nullptr }
+#endif
+
+#ifdef TORRENT_WINDOWS
+constexpr int CLOSE_FILE_INTERVAL = 120;
+#else
+constexpr int CLOSE_FILE_INTERVAL = 0;
 #endif
 
 	namespace {
@@ -114,15 +113,19 @@ namespace libtorrent {
 	({{
 		SET(user_agent, "libtorrent/" LIBTORRENT_VERSION, &session_impl::update_user_agent),
 		SET(announce_ip, nullptr, nullptr),
-		DEPRECATED_SET_STR(mmap_cache, nullptr, nullptr),
+		SET(mmap_cache, nullptr, nullptr),
 		SET(handshake_client_version, nullptr, nullptr),
 		SET(outgoing_interfaces, "", &session_impl::update_outgoing_interfaces),
+#if !TORRENT_USE_IPV6
+		SET(listen_interfaces, "0.0.0.0:6881", &session_impl::update_listen_interfaces),
+#else
 		SET(listen_interfaces, "0.0.0.0:6881,[::]:6881", &session_impl::update_listen_interfaces),
+#endif
 		SET(proxy_hostname, "", &session_impl::update_proxy),
 		SET(proxy_username, "", &session_impl::update_proxy),
 		SET(proxy_password, "", &session_impl::update_proxy),
 		SET(i2p_hostname, "", &session_impl::update_i2p_bridge),
-		SET(peer_fingerprint, "-LT2000-", nullptr),
+		SET(peer_fingerprint, "-LT1200-", &session_impl::update_peer_fingerprint),
 		SET(dht_bootstrap_nodes, "dht.libtorrent.org:25401", &session_impl::update_dht_bootstrap_nodes)
 	}});
 
@@ -133,13 +136,13 @@ namespace libtorrent {
 		SET(send_redundant_have, true, nullptr),
 		DEPRECATED_SET(lazy_bitfields, false, nullptr),
 		SET(use_dht_as_fallback, false, nullptr),
-		DEPRECATED_SET(upnp_ignore_nonrouters, false, nullptr),
+		SET(upnp_ignore_nonrouters, false, nullptr),
 		SET(use_parole_mode, true, nullptr),
-		DEPRECATED_SET(use_read_cache, true, nullptr),
+		SET(use_read_cache, true, nullptr),
 		DEPRECATED_SET(use_write_cache, true, nullptr),
 		DEPRECATED_SET(dont_flush_write_cache, false, nullptr),
-		DEPRECATED_SET(coalesce_reads, false, nullptr),
-		DEPRECATED_SET(coalesce_writes, false, nullptr),
+		SET(coalesce_reads, false, nullptr),
+		SET(coalesce_writes, false, nullptr),
 		SET(auto_manage_prefer_seeds, false, nullptr),
 		SET(dont_count_slow_torrents, true, &session_impl::update_count_slow),
 		SET(close_redundant_connections, true, nullptr),
@@ -159,7 +162,7 @@ namespace libtorrent {
 		SET(incoming_starts_queued_torrents, false, nullptr),
 		SET(report_true_downloaded, false, nullptr),
 		SET(strict_end_game_mode, true, nullptr),
-		DEPRECATED_SET(broadcast_lsd, true, nullptr),
+		SET(broadcast_lsd, true, nullptr),
 		SET(enable_outgoing_utp, true, nullptr),
 		SET(enable_incoming_utp, true, nullptr),
 		SET(enable_outgoing_tcp, true, nullptr),
@@ -180,9 +183,9 @@ namespace libtorrent {
 		DEPRECATED_SET(contiguous_recv_buffer, true, nullptr),
 		SET(ban_web_seeds, true, nullptr),
 		SET(allow_partial_disk_writes, true, nullptr),
-		DEPRECATED_SET(force_proxy, false, nullptr),
+		SET(force_proxy, false, &session_impl::update_force_proxy),
 		SET(support_share_mode, true, nullptr),
-		DEPRECATED_SET(support_merkle_torrents, false, nullptr),
+		SET(support_merkle_torrents, true, nullptr),
 		SET(report_redundant_bytes, true, nullptr),
 		SET(listen_system_port_fallback, true, nullptr),
 		DEPRECATED_SET(use_disk_cache_pool, false, nullptr),
@@ -197,16 +200,6 @@ namespace libtorrent {
 		SET(auto_sequential, true, &session_impl::update_auto_sequential),
 		SET(proxy_tracker_connections, true, nullptr),
 		SET(enable_ip_notifier, true, &session_impl::update_ip_notifier),
-		SET(dht_prefer_verified_node_ids, true, nullptr),
-		SET(dht_restrict_routing_ips, true, nullptr),
-		SET(dht_restrict_search_ips, true, nullptr),
-		SET(dht_extended_routing_table, true, nullptr),
-		SET(dht_aggressive_lookups, true, nullptr),
-		SET(dht_privacy_lookups, false, nullptr),
-		SET(dht_enforce_node_id, false, nullptr),
-		SET(dht_ignore_dark_internet, true, nullptr),
-		SET(dht_read_only, false, nullptr),
-		SET(piece_extent_affinity, false, nullptr),
 	}});
 
 	aux::array<int_setting_entry_t, settings_pack::num_int_settings> const int_settings
@@ -229,7 +222,7 @@ namespace libtorrent {
 		SET(max_failcount, 3, &session_impl::update_max_failcount),
 		SET(min_reconnect_time, 60, nullptr),
 		SET(peer_connect_timeout, 15, nullptr),
-		SET(connection_speed, 30, &session_impl::update_connection_speed),
+		SET(connection_speed, 10, &session_impl::update_connection_speed),
 		SET(inactivity_timeout, 600, nullptr),
 		SET(unchoke_interval, 15, nullptr),
 		SET(optimistic_unchoke_interval, 30, nullptr),
@@ -237,16 +230,16 @@ namespace libtorrent {
 		SET(initial_picker_threshold, 4, nullptr),
 		SET(allowed_fast_set_size, 5, nullptr),
 		SET(suggest_mode, settings_pack::no_piece_suggestions, nullptr),
-		SET(max_queued_disk_bytes, 1024 * 1024, nullptr),
+		SET(max_queued_disk_bytes, 1024 * 1024, &session_impl::update_queued_disk_bytes),
 		SET(handshake_timeout, 10, nullptr),
 		SET(send_buffer_low_watermark, 10 * 1024, nullptr),
 		SET(send_buffer_watermark, 500 * 1024, nullptr),
 		SET(send_buffer_watermark_factor, 50, nullptr),
 		SET(choking_algorithm, settings_pack::fixed_slots_choker, nullptr),
 		SET(seed_choking_algorithm, settings_pack::round_robin, nullptr),
-		DEPRECATED_SET(cache_size, 2048, nullptr),
+		SET(cache_size, 1024, nullptr),
 		DEPRECATED_SET(cache_buffer_chunk_size, 0, nullptr),
-		DEPRECATED_SET(cache_expiry, 300, nullptr),
+		SET(cache_expiry, 300, nullptr),
 		SET(disk_io_write_mode, settings_pack::enable_os_cache, nullptr),
 		SET(disk_io_read_mode, settings_pack::enable_os_cache, nullptr),
 		SET(outgoing_port, 0, nullptr),
@@ -258,7 +251,7 @@ namespace libtorrent {
 		SET(active_dht_limit, 88, nullptr),
 		SET(active_tracker_limit, 1600, nullptr),
 		SET(active_lsd_limit, 60, nullptr),
-		SET(active_limit, 500, &session_impl::trigger_auto_manage),
+		SET(active_limit, 15, &session_impl::trigger_auto_manage),
 		DEPRECATED_SET(active_loaded_limit, 0, &session_impl::trigger_auto_manage),
 		SET(auto_manage_interval, 30, nullptr),
 		SET(seed_time_limit, 24 * 60 * 60, nullptr),
@@ -269,7 +262,6 @@ namespace libtorrent {
 		SET(min_announce_interval, 5 * 60, nullptr),
 		SET(auto_manage_startup, 60, nullptr),
 		SET(seeding_piece_quota, 20, nullptr),
-		// TODO: deprecate this
 		SET(max_rejects, 50, nullptr),
 		SET(recv_socket_buffer_size, 0, &session_impl::update_socket_buffer_size),
 		SET(send_socket_buffer_size, 0, &session_impl::update_socket_buffer_size),
@@ -294,7 +286,7 @@ namespace libtorrent {
 		SET(download_rate_limit, 0, &session_impl::update_download_rate),
 		DEPRECATED_SET(local_upload_rate_limit, 0, &session_impl::update_local_upload_rate),
 		DEPRECATED_SET(local_download_rate_limit, 0, &session_impl::update_local_download_rate),
-		SET(dht_upload_rate_limit, 8000, nullptr),
+		DEPRECATED_SET(dht_upload_rate_limit, 4000, &session_impl::update_dht_upload_rate_limit),
 		SET(unchoke_slots_limit, 8, &session_impl::update_unchoke_limit),
 		DEPRECATED_SET(half_open_limit, 0, nullptr),
 		SET(connections_limit, 200, &session_impl::update_connections_limit),
@@ -310,15 +302,15 @@ namespace libtorrent {
 		SET(utp_loss_multiplier, 50, nullptr),
 		SET(mixed_mode_algorithm, settings_pack::peer_proportional, nullptr),
 		SET(listen_queue_size, 5, nullptr),
-		SET(torrent_connect_boost, 30, nullptr),
+		SET(torrent_connect_boost, 10, nullptr),
 		SET(alert_queue_size, 1000, &session_impl::update_alert_queue_size),
 		SET(max_metadata_size, 3 * 1024 * 10240, nullptr),
 		DEPRECATED_SET(hashing_threads, 1, nullptr),
-		SET(checking_mem_usage, 1024, nullptr),
+		SET(checking_mem_usage, 256, nullptr),
 		SET(predictive_piece_announce, 0, nullptr),
 		SET(aio_threads, 4, &session_impl::update_disk_threads),
-		DEPRECATED_SET(aio_max, 300, nullptr),
-		DEPRECATED_SET(network_threads, 0, nullptr),
+		SET(aio_max, 300, nullptr),
+		SET(network_threads, 0, nullptr),
 		DEPRECATED_SET(ssl_listen, 0, &session_impl::update_ssl_listen),
 		SET(tracker_backoff, 250, nullptr),
 		SET(share_ratio_limit, 200, nullptr),
@@ -338,26 +330,12 @@ namespace libtorrent {
 		SET(proxy_type, settings_pack::none, &session_impl::update_proxy),
 		SET(proxy_port, 0, &session_impl::update_proxy),
 		SET(i2p_port, 0, &session_impl::update_i2p_bridge),
-		DEPRECATED_SET(cache_size_volatile, 256, nullptr),
+		SET(cache_size_volatile, 256, nullptr),
 		SET(urlseed_max_request_bytes, 16 * 1024 * 1024, nullptr),
 		SET(web_seed_name_lookup_retry, 1800, nullptr),
-		SET(close_file_interval, 0, nullptr),
-		SET(utp_cwnd_reduce_timer, 100, nullptr),
+		SET(close_file_interval, CLOSE_FILE_INTERVAL, nullptr),
 		SET(max_web_seed_connections, 3, nullptr),
 		SET(resolver_cache_timeout, 1200, &session_impl::update_resolver_cache_timeout),
-		SET(dht_max_peers_reply, 100, nullptr),
-		SET(dht_search_branching, 5, nullptr),
-		SET(dht_max_fail_count, 20, nullptr),
-		SET(dht_max_torrents, 2000, nullptr),
-		SET(dht_max_dht_items, 700, nullptr),
-		SET(dht_max_peers, 500, nullptr),
-		SET(dht_max_torrent_search_reply, 20, nullptr),
-		SET(dht_block_timeout, 5 * 60, nullptr),
-		SET(dht_block_ratelimit, 5, nullptr),
-		SET(dht_item_lifetime, 0, nullptr),
-		SET(dht_sample_infohashes_interval, 21600, nullptr),
-		SET(dht_max_infohashes_sample_count, 20, nullptr),
-
 	}});
 
 #undef SET
@@ -365,7 +343,7 @@ namespace libtorrent {
 
 	} // anonymous namespace
 
-	int setting_by_name(string_view const key)
+	int setting_by_name(std::string const& key)
 	{
 		for (int k = 0; k < str_settings.end_index(); ++k)
 		{
@@ -395,7 +373,7 @@ namespace libtorrent {
 				return int_settings[s - settings_pack::int_type_base].name;
 			case settings_pack::bool_type_base:
 				return bool_settings[s - settings_pack::bool_type_base].name;
-		}
+		};
 		return "";
 	}
 
@@ -419,7 +397,7 @@ namespace libtorrent {
 					for (int k = 0; k < int_settings.end_index(); ++k)
 					{
 						if (key != int_settings[k].name) continue;
-						pack.set_int(settings_pack::int_type_base | k, int(val.int_value()));
+						pack.set_int(settings_pack::int_type_base + k, int(val.int_value()));
 						found = true;
 						break;
 					}
@@ -427,7 +405,7 @@ namespace libtorrent {
 					for (int k = 0; k < bool_settings.end_index(); ++k)
 					{
 						if (key != bool_settings[k].name) continue;
-						pack.set_bool(settings_pack::bool_type_base | k, val.int_value() != 0);
+						pack.set_bool(settings_pack::bool_type_base + k, val.int_value() != 0);
 						break;
 					}
 				}
@@ -447,51 +425,31 @@ namespace libtorrent {
 		return pack;
 	}
 
-	settings_pack non_default_settings(aux::session_settings const& sett)
+	void save_settings_to_dict(aux::session_settings const& s, entry::dictionary_type& sett)
 	{
-		settings_pack ret;
-		sett.bulk_get([&ret](aux::session_settings_single_thread const& s)
-		{
 		// loop over all settings that differ from default
-			for (std::uint16_t i = 0; i < settings_pack::num_string_settings; ++i)
-			{
-				std::uint16_t const n = i | settings_pack::string_type_base;
-				if (ensure_string(str_settings[i].default_value) == s.get_str(n)) continue;
-				ret.set_str(n, s.get_str(n));
-			}
-
-			for (std::uint16_t i = 0; i < settings_pack::num_int_settings; ++i)
-			{
-				std::uint16_t const n = i | settings_pack::int_type_base;
-				if (int_settings[i].default_value == s.get_int(n)) continue;
-				ret.set_int(n, s.get_int(n));
-			}
-
-			for (std::uint16_t i = 0; i < settings_pack::num_bool_settings; ++i)
-			{
-				std::uint16_t const n = i | settings_pack::bool_type_base;
-				if (bool_settings[i].default_value == s.get_bool(n)) continue;
-				ret.set_bool(n, s.get_bool(n));
-			}
-		});
-		return ret;
-	}
-
-	void save_settings_to_dict(settings_pack const& sett, entry::dictionary_type& out)
-	{
-		struct visitor
+		for (int i = 0; i < settings_pack::num_string_settings; ++i)
 		{
-			void operator()(std::uint16_t i, std::string const& str) { out[str_settings[i & settings_pack::index_mask].name] = str; }
-			void operator()(std::uint16_t i, int val) { out[int_settings[i & settings_pack::index_mask].name] = val; }
-			void operator()(std::uint16_t i, bool val) { out[bool_settings[i & settings_pack::index_mask].name] = val; }
-			entry::dictionary_type& out;
-		};
-		sett.for_each(visitor{out});
+			if (ensure_string(str_settings[i].default_value) == s.m_strings[std::size_t(i)]) continue;
+			sett[str_settings[i].name] = s.m_strings[std::size_t(i)];
+		}
+
+		for (int i = 0; i < settings_pack::num_int_settings; ++i)
+		{
+			if (int_settings[i].default_value == s.m_ints[std::size_t(i)]) continue;
+			sett[int_settings[i].name] = s.m_ints[std::size_t(i)];
+		}
+
+		for (int i = 0; i < settings_pack::num_bool_settings; ++i)
+		{
+			if (bool_settings[i].default_value == s.m_bools[std::size_t(i)]) continue;
+			sett[bool_settings[i].name] = s.m_bools[std::size_t(i)];
+		}
 	}
 
 	void run_all_updates(aux::session_impl& ses)
 	{
-		using fun_t = void (aux::session_impl::*)();
+		typedef void (aux::session_impl::*fun_t)();
 		for (int i = 0; i < settings_pack::num_string_settings; ++i)
 		{
 			fun_t const& f = str_settings[i].fun;
@@ -511,24 +469,24 @@ namespace libtorrent {
 		}
 	}
 
-	void initialize_default_settings(aux::session_settings_single_thread& s)
+	void initialize_default_settings(aux::session_settings& s)
 	{
 		for (int i = 0; i < settings_pack::num_string_settings; ++i)
 		{
 			if (str_settings[i].default_value == nullptr) continue;
-			s.set_str(settings_pack::string_type_base | i, str_settings[i].default_value);
+			s.set_str(settings_pack::string_type_base + i, str_settings[i].default_value);
 			TORRENT_ASSERT(s.get_str(settings_pack::string_type_base + i) == str_settings[i].default_value);
 		}
 
 		for (int i = 0; i < settings_pack::num_int_settings; ++i)
 		{
-			s.set_int(settings_pack::int_type_base | i, int_settings[i].default_value);
+			s.set_int(settings_pack::int_type_base + i, int_settings[i].default_value);
 			TORRENT_ASSERT(s.get_int(settings_pack::int_type_base + i) == int_settings[i].default_value);
 		}
 
 		for (int i = 0; i < settings_pack::num_bool_settings; ++i)
 		{
-			s.set_bool(settings_pack::bool_type_base | i, bool_settings[i].default_value);
+			s.set_bool(settings_pack::bool_type_base + i, bool_settings[i].default_value);
 			TORRENT_ASSERT(s.get_bool(settings_pack::bool_type_base + i) == bool_settings[i].default_value);
 		}
 	}
@@ -558,25 +516,9 @@ namespace libtorrent {
 	void apply_pack(settings_pack const* pack, aux::session_settings& sett
 		, aux::session_impl* ses)
 	{
-		using fun_t = void (aux::session_impl::*)();
+		typedef void (aux::session_impl::*fun_t)();
 		std::vector<fun_t> callbacks;
 
-		sett.bulk_set([&](aux::session_settings_single_thread& s)
-		{
-			apply_pack_impl(pack, s, ses ? &callbacks : nullptr);
-		});
-
-		// call the callbacks once all the settings have been applied, and
-		// only once per callback
-		for (auto const& f : callbacks)
-		{
-			(ses->*f)();
-		}
-	}
-
-	void apply_pack_impl(settings_pack const* pack, aux::session_settings_single_thread& sett
-		, std::vector<void(aux::session_impl::*)()>* callbacks)
-	{
 		for (auto const& p : pack->m_strings)
 		{
 			// disregard setting indices that are not string types
@@ -595,9 +537,9 @@ namespace libtorrent {
 			sett.set_str(p.first, p.second);
 			str_setting_entry_t const& sa = str_settings[index];
 
-			if (sa.fun && callbacks
-				&& std::find(callbacks->begin(), callbacks->end(), sa.fun) == callbacks->end())
-				callbacks->push_back(sa.fun);
+			if (sa.fun && ses
+				&& std::find(callbacks.begin(), callbacks.end(), sa.fun) == callbacks.end())
+				callbacks.push_back(sa.fun);
 		}
 
 		for (auto const& p : pack->m_ints)
@@ -617,9 +559,9 @@ namespace libtorrent {
 
 			sett.set_int(p.first, p.second);
 			int_setting_entry_t const& sa = int_settings[index];
-			if (sa.fun && callbacks
-				&& std::find(callbacks->begin(), callbacks->end(), sa.fun) == callbacks->end())
-				callbacks->push_back(sa.fun);
+			if (sa.fun && ses
+				&& std::find(callbacks.begin(), callbacks.end(), sa.fun) == callbacks.end())
+				callbacks.push_back(sa.fun);
 		}
 
 		for (auto const& p : pack->m_bools)
@@ -639,9 +581,16 @@ namespace libtorrent {
 
 			sett.set_bool(p.first, p.second);
 			bool_setting_entry_t const& sa = bool_settings[index];
-			if (sa.fun && callbacks
-				&& std::find(callbacks->begin(), callbacks->end(), sa.fun) == callbacks->end())
-				callbacks->push_back(sa.fun);
+			if (sa.fun && ses
+				&& std::find(callbacks.begin(), callbacks.end(), sa.fun) == callbacks.end())
+				callbacks.push_back(sa.fun);
+		}
+
+		// call the callbacks once all the settings have been applied, and
+		// only once per callback
+		for (auto const& f : callbacks)
+		{
+			(ses->*f)();
 		}
 	}
 

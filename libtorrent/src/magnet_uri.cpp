@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2007-2010, 2012-2019, Arvid Norberg
-Copyright (c) 2016-2017, Alden Torres
-Copyright (c) 2018, Steven Siloti
+Copyright (c) 2007-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -48,22 +46,10 @@ namespace libtorrent {
 	{
 		if (!handle.is_valid()) return "";
 
-		std::string ret = "magnet:?";
-
-		if (handle.info_hash().has_v1())
-		{
-			sha1_hash const& ih = handle.info_hash().v1;
-			ret += "xt=urn:btih:";
-			ret += aux::to_hex(ih);
-		}
-
-		if (handle.info_hash().has_v2())
-		{
-			if (handle.info_hash().has_v1()) ret += '&';
-			sha256_hash const& ih = handle.info_hash().v2;
-			ret += "xt=urn:btmh:1220";
-			ret += aux::to_hex(ih);
-		}
+		std::string ret;
+		sha1_hash const& ih = handle.info_hash();
+		ret += "magnet:?xt=urn:btih:";
+		ret += aux::to_hex(ih);
 
 		torrent_status st = handle.status(torrent_handle::query_name);
 		if (!st.name.empty())
@@ -89,22 +75,10 @@ namespace libtorrent {
 
 	std::string make_magnet_uri(torrent_info const& info)
 	{
-		std::string ret = "magnet:?";
-
-		if (info.info_hash().has_v1())
-		{
-			sha1_hash const& ih = info.info_hash().v1;
-			ret += "xt=urn:btih:";
-			ret += aux::to_hex(ih);
-		}
-
-		if (info.info_hash().has_v2())
-		{
-			if (info.info_hash().has_v1()) ret += '&';
-			sha256_hash const& ih = info.info_hash().v2;
-			ret += "xt=urn:btmh:1220";
-			ret += aux::to_hex(ih);
-		}
+		std::string ret;
+		sha1_hash const& ih = info.info_hash();
+		ret += "magnet:?xt=urn:btih:";
+		ret += aux::to_hex(ih);
 
 		std::string const& name = info.name();
 
@@ -131,23 +105,22 @@ namespace libtorrent {
 		return ret;
 	}
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 
 	namespace {
 		torrent_handle add_magnet_uri_deprecated(session& ses, std::string const& uri
-			, add_torrent_params const& p, error_code& ec)
+			, add_torrent_params p, error_code& ec)
 		{
-			add_torrent_params params(p);
-			parse_magnet_uri(uri, params, ec);
+			parse_magnet_uri(uri, p, ec);
 			if (ec) return torrent_handle();
-			return ses.add_torrent(std::move(params), ec);
+			return ses.add_torrent(std::move(p), ec);
 		}
 	}
 
 	torrent_handle add_magnet_uri(session& ses, std::string const& uri
-		, add_torrent_params const& p, error_code& ec)
+		, add_torrent_params p, error_code& ec)
 	{
-		return add_magnet_uri_deprecated(ses, uri, p, ec);
+		return add_magnet_uri_deprecated(ses, uri, std::move(p), ec);
 	}
 
 #ifndef BOOST_NO_EXCEPTIONS
@@ -155,30 +128,44 @@ namespace libtorrent {
 		, std::string const& save_path
 		, storage_mode_t storage_mode
 		, bool paused
-		, void*)
+		, storage_constructor_type sc
+		, void* userdata)
 	{
-		add_torrent_params params;
-		error_code ec;
-		parse_magnet_uri(uri, params, ec);
+		add_torrent_params params(sc);
 		params.storage_mode = storage_mode;
+		params.userdata = userdata;
 		params.save_path = save_path;
 
 		if (paused) params.flags |= add_torrent_params::flag_paused;
 		else params.flags &= ~add_torrent_params::flag_paused;
 
+		error_code ec;
+		string_view display_name = url_has_argument(uri, "dn");
+		if (!display_name.empty()) params.name = unescape_string(display_name, ec);
+		string_view tracker_string = url_has_argument(uri, "tr");
+		if (!tracker_string.empty()) params.trackers.push_back(unescape_string(tracker_string, ec));
+
+		string_view btih = url_has_argument(uri, "xt");
+		if (btih.empty()) return torrent_handle();
+
+		if (btih.substr(0, 9) != "urn:btih:") return torrent_handle();
+
+		if (btih.size() == 40 + 9) aux::from_hex({&btih[9], 40}, params.info_hash.data());
+		else params.info_hash.assign(base32decode(btih.substr(9)).c_str());
+
 		return ses.add_torrent(std::move(params));
 	}
 
 	torrent_handle add_magnet_uri(session& ses, std::string const& uri
-		, add_torrent_params const& p)
+		, add_torrent_params p)
 	{
 		error_code ec;
-		torrent_handle ret = add_magnet_uri_deprecated(ses, uri, p, ec);
+		torrent_handle ret = add_magnet_uri_deprecated(ses, uri, std::move(p), ec);
 		if (ec) aux::throw_ex<system_error>(ec);
 		return ret;
 	}
 #endif // BOOST_NO_EXCEPTIONS
-#endif // TORRENT_ABI_VERSION
+#endif // TORRENT_NO_DEPRECATE
 
 	add_torrent_params parse_magnet_uri(string_view uri, error_code& ec)
 	{
@@ -190,194 +177,185 @@ namespace libtorrent {
 	void parse_magnet_uri(string_view uri, add_torrent_params& p, error_code& ec)
 	{
 		ec.clear();
-		std::string display_name;
+		std::string name;
 
-		string_view sv(uri);
-		if (sv.substr(0, 8) != "magnet:?"_sv)
 		{
-			ec = errors::unsupported_url_protocol;
-			return;
+			error_code e;
+			string_view display_name = url_has_argument(uri, "dn");
+			if (!display_name.empty()) name = unescape_string(display_name, e);
 		}
-		sv = sv.substr(8);
 
+		// parse trackers out of the magnet link
+		auto pos = std::string::npos;
+		string_view url = url_has_argument(uri, "tr", &pos);
 		int tier = 0;
-		bool has_ih[2] = { false, false };
-		while (!sv.empty())
+		while (pos != std::string::npos)
 		{
-			string_view name;
-			std::tie(name, sv) = split_string(sv, '=');
-			string_view value;
-			std::tie(value, sv) = split_string(sv, '&');
+			// since we're about to assign tiers to the trackers, make sure the two
+			// vectors are aligned
+			if (p.tracker_tiers.size() != p.trackers.size())
+				p.tracker_tiers.resize(p.trackers.size(), 0);
 
-			// parameter names are allowed to have a .<number>-suffix.
-			// the number has no meaning, just strip it
-			// if the characters after the period are not digits, don't strip
-			// anything
-			string_view number;
-			string_view stripped_name;
-			std::tie(stripped_name, number) = split_string(name, '.');
-			if (std::all_of(number.begin(), number.end(), [](char const c) { return is_digit(c); } ))
-				name = stripped_name;
-
-			if (name == "dn"_sv) // display name
+			error_code e;
+			std::string tracker = unescape_string(url, e);
+			if (!e)
 			{
-				error_code e;
-				display_name = unescape_string(value, e);
+				p.trackers.push_back(std::move(tracker));
+				p.tracker_tiers.push_back(tier++);
 			}
-			else if (name == "tr"_sv) // tracker
-			{
-				// since we're about to assign tiers to the trackers, make sure the two
-				// vectors are aligned
-				if (p.tracker_tiers.size() != p.trackers.size())
-					p.tracker_tiers.resize(p.trackers.size(), 0);
-				error_code e;
-				std::string tracker = unescape_string(value, e);
-				if (!e)
-				{
-					p.trackers.push_back(std::move(tracker));
-					p.tracker_tiers.push_back(tier++);
-				}
-			}
-			else if (name == "ws"_sv) // web seed
-			{
-				error_code e;
-				std::string webseed = unescape_string(value, e);
-				if (!e) p.url_seeds.push_back(std::move(webseed));
-			}
-			else if (name == "xt"_sv)
-			{
-				std::string unescaped_btih;
-				if (value.find('%') != string_view::npos)
-				{
-					unescaped_btih = unescape_string(value, ec);
-					if (ec) return;
-					value = unescaped_btih;
-				}
-
-				if (value.substr(0, 9) == "urn:btih:")
-				{
-					value = value.substr(9);
-
-					sha1_hash info_hash;
-					if (value.size() == 40) aux::from_hex(value, info_hash.data());
-					else if (value.size() == 32)
-					{
-						std::string const ih = base32decode(value);
-						if (ih.size() != 20)
-						{
-							ec = errors::invalid_info_hash;
-							return;
-						}
-						info_hash.assign(ih);
-					}
-					else
-					{
-						ec = errors::invalid_info_hash;
-						return;
-					}
-					p.info_hash.v1 = info_hash;
-					has_ih[0] = true;
-				}
-				else if (value.substr(0, 9) == "urn:btmh:")
-				{
-					value = value.substr(9);
-
-					// hash must be sha256
-					if (value.substr(0, 4) != "1220")
-					{
-						ec = errors::invalid_info_hash;
-						return;
-					}
-
-					value = value.substr(4);
-
-					if (value.size() != 64)
-					{
-						ec = errors::invalid_info_hash;
-						return;
-					}
-					aux::from_hex(value, p.info_hash.v2.data());
-					has_ih[1] = true;
-				}
-			}
-			else if (name == "so"_sv) // select-only (files)
-			{
-				// accept only digits, '-' and ','
-				if (std::any_of(value.begin(), value.end(), [](char c)
-					{ return !is_digit(c) && c != '-' && c != ','; }))
-					continue;
-
-				do
-				{
-					string_view token;
-					std::tie(token, value) = split_string(value, ',');
-
-					if (token.empty()) continue;
-
-					int idx1, idx2;
-					// TODO: what's the right number here?
-					constexpr int max_index = 10000; // can't risk out of memory
-
-					auto const divider = token.find_first_of('-');
-					if (divider != std::string::npos) // it's a range
-					{
-						if (divider == 0) // no start index
-							continue;
-						if (divider == token.size() - 1) // no end index
-							continue;
-
-						idx1 = std::atoi(token.substr(0, divider).to_string().c_str());
-						if (idx1 < 0 || idx1 > max_index) // invalid index
-							continue;
-						idx2 = std::atoi(token.substr(divider + 1).to_string().c_str());
-						if (idx2 < 0 || idx2 > max_index) // invalid index
-							continue;
-
-						if (idx1 > idx2) // wrong range limits
-							continue;
-					}
-					else // it's an index
-					{
-						idx1 = std::atoi(token.to_string().c_str());
-						if (idx1 < 0 || idx1 > max_index) // invalid index
-							continue;
-						idx2 = idx1;
-					}
-
-					if (int(p.file_priorities.size()) <= idx2)
-						p.file_priorities.resize(std::size_t(idx2 + 1), dont_download);
-
-					for (int i = idx1; i <= idx2; i++)
-						p.file_priorities[std::size_t(i)] = default_priority;
-
-				} while (!value.empty());
-			}
-			else if (name == "x.pe")
-			{
-				error_code e;
-				tcp::endpoint endp = parse_endpoint(value, e);
-				if (!e) p.peers.push_back(std::move(endp));
-			}
-#ifndef TORRENT_DISABLE_DHT
-			else if (name == "dht"_sv)
-			{
-				auto const divider = value.find_last_of(':');
-				if (divider != std::string::npos)
-				{
-					int const port = std::atoi(value.substr(divider + 1).to_string().c_str());
-					if (port > 0 && port < int(std::numeric_limits<std::uint16_t>::max()))
-						p.dht_nodes.emplace_back(value.substr(0, divider).to_string(), port);
-				}
-			}
-#endif
+			pos = find(uri, "&tr=", pos);
+			if (pos == std::string::npos) break;
+			pos += 4;
+			url = uri.substr(pos, find(uri, "&", pos) - pos);
 		}
 
-		if (!has_ih[0] && !has_ih[1])
+		// parse web seeds out of the magnet link
+		pos = std::string::npos;
+		url = url_has_argument(uri, "ws", &pos);
+		while (pos != std::string::npos)
+		{
+			error_code e;
+			std::string webseed = unescape_string(url, e);
+			if (!e) p.url_seeds.push_back(std::move(webseed));
+			pos = find(uri, "&ws=", pos);
+			if (pos == std::string::npos) break;
+			pos += 4;
+			url = uri.substr(pos, find(uri, "&", pos) - pos);
+		}
+
+		string_view btih = url_has_argument(uri, "xt");
+		std::string unescaped_btih;
+		if (btih.empty())
 		{
 			ec = errors::missing_info_hash_in_uri;
 			return;
 		}
-		if (!display_name.empty()) p.name = display_name;
+		if (btih.find('%') != string_view::npos)
+		{
+			unescaped_btih = unescape_string(btih, ec);
+			if (ec) return;
+			btih = unescaped_btih;
+		}
+		if (btih.substr(0, 9) != "urn:btih:")
+		{
+			ec = errors::missing_info_hash_in_uri;
+			return;
+		}
+
+		auto select_pos = std::string::npos;
+		string_view select = url_has_argument(uri, "so", &select_pos);
+		while (!select.empty())
+		{
+			// parse the ranges or indices
+			do
+			{
+				// accept only digits, '-' and ','
+				if (std::any_of(select.begin(), select.end(), [](char c)
+					{ return !is_digit(c) && c != '-' && c != ','; }))
+					break;
+
+				string_view token;
+				std::tie(token, select) = split_string(select, ',');
+
+				int idx1, idx2;
+				// TODO: what's the right number here?
+				constexpr int max_index = 10000; // can't risk out of memory
+
+				auto const divider = token.find_first_of('-');
+				if (divider != std::string::npos) // it's a range
+				{
+					if (divider == 0) // no start index
+						continue;
+					if (divider == token.size() - 1) // no end index
+						continue;
+
+					idx1 = std::atoi(token.substr(0, divider).to_string().c_str());
+					if (idx1 < 0 || idx1 > max_index) // invalid index
+						continue;
+					idx2 = std::atoi(token.substr(divider + 1).to_string().c_str());
+					if (idx2 < 0 || idx2 > max_index) // invalid index
+						continue;
+
+					if (idx1 > idx2) // wrong range limits
+						continue;
+				}
+				else // it's an index
+				{
+					idx1 = std::atoi(token.to_string().c_str());
+					if (idx1 < 0 || idx1 > max_index) // invalid index
+						continue;
+					idx2 = idx1;
+				}
+
+				if (int(p.file_priorities.size()) <= idx2)
+					p.file_priorities.resize(std::size_t(idx2 + 1), dont_download);
+
+				for (int i = idx1; i <= idx2; i++)
+					p.file_priorities[std::size_t(i)] = default_priority;
+
+			} while (!select.empty());
+
+			select_pos = find(uri, "&so=", select_pos);
+			if (select_pos == std::string::npos) break;
+			select_pos += 4;
+			select = uri.substr(select_pos, find(uri, "&", select_pos) - select_pos);
+		}
+
+		std::string::size_type peer_pos = std::string::npos;
+		string_view peer = url_has_argument(uri, "x.pe", &peer_pos);
+		while (!peer.empty())
+		{
+			error_code e;
+			tcp::endpoint endp = parse_endpoint(peer, e);
+			if (!e)
+				p.peers.push_back(std::move(endp));
+
+			peer_pos = find(uri, "&x.pe=", peer_pos);
+			if (peer_pos == std::string::npos) break;
+			peer_pos += 6;
+			peer = uri.substr(peer_pos, find(uri, "&", peer_pos) - peer_pos);
+		}
+
+#ifndef TORRENT_DISABLE_DHT
+		std::string::size_type node_pos = std::string::npos;
+		string_view node = url_has_argument(uri, "dht", &node_pos);
+		while (!node.empty())
+		{
+			std::string::size_type const divider = node.find_last_of(':');
+			if (divider != std::string::npos)
+			{
+				int const port = std::atoi(node.substr(divider + 1).to_string().c_str());
+				if (port > 0 && port < int(std::numeric_limits<std::uint16_t>::max()))
+					p.dht_nodes.emplace_back(node.substr(0, divider).to_string(), port);
+			}
+
+			node_pos = find(uri, "&dht=", node_pos);
+			if (node_pos == std::string::npos) break;
+			node_pos += 5;
+			node = uri.substr(node_pos, find(uri, "&", node_pos) - node_pos);
+		}
+#endif
+
+		sha1_hash info_hash;
+		if (btih.size() == 40 + 9) aux::from_hex({&btih[9], 40}, info_hash.data());
+		else if (btih.size() == 32 + 9)
+		{
+			std::string const ih = base32decode(btih.substr(9));
+			if (ih.size() != 20)
+			{
+				ec = errors::invalid_info_hash;
+				return;
+			}
+			info_hash.assign(ih);
+		}
+		else
+		{
+			ec = errors::invalid_info_hash;
+			return;
+		}
+
+		p.info_hash = info_hash;
+		if (!name.empty()) p.name = name;
 	}
 
 	add_torrent_params parse_magnet_uri(string_view uri)

@@ -1,10 +1,6 @@
 /*
 
-Copyright (c) 2006, Daniel Wallin
-Copyright (c) 2006, 2008-2010, 2013-2017, 2019, Arvid Norberg
-Copyright (c) 2015, Thomas Yuan
-Copyright (c) 2016-2017, Alden Torres
-Copyright (c) 2017, Pavel Pimenov
+Copyright (c) 2006-2016, Arvid Norberg & Daniel Wallin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -84,9 +80,9 @@ void find_data_observer::reply(msg const& m)
 find_data::find_data(
 	node& dht_node
 	, node_id const& target
-	, nodes_callback ncallback)
+	, nodes_callback const& ncallback)
 	: traversal_algorithm(dht_node, target)
-	, m_nodes_callback(std::move(ncallback))
+	, m_nodes_callback(ncallback)
 	, m_done(false)
 {
 }
@@ -97,8 +93,8 @@ void find_data::start()
 	// nodes from routing table.
 	if (m_results.empty())
 	{
-		std::vector<node_entry> const nodes = m_node.m_table.find_node(
-			target(), routing_table::include_failed);
+		std::vector<node_entry> nodes;
+		m_node.m_table.find_node(target(), nodes, routing_table::include_failed);
 
 		for (auto const& n : nodes)
 		{

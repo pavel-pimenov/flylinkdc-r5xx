@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2015, 2017, Steven Siloti
-Copyright (c) 2016-2019, Arvid Norberg
-Copyright (c) 2016-2018, Alden Torres
+Copyright (c) 2015-2016, Arvid Norberg, Steven Siloti
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,7 +34,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_PEER_CONNECTION_HANDLE_HPP_INCLUDED
 
 #include "libtorrent/config.hpp"
-#include "libtorrent/fwd.hpp"
 #include "libtorrent/peer_id.hpp"
 #include "libtorrent/operations.hpp"
 #include "libtorrent/alert_types.hpp"
@@ -45,15 +42,16 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-struct bt_peer_connection;
+class bt_peer_connection;
+struct torrent_handle;
+struct peer_plugin;
+struct peer_info;
+struct crypto_plugin;
 
-// the peer_connection_handle class provides a handle to the internal peer
-// connection object, to be used by plugins. This is a low level interface that
-// may not be stable across libtorrent versions
 struct TORRENT_EXPORT peer_connection_handle
 {
 	explicit peer_connection_handle(std::weak_ptr<peer_connection> impl)
-		: m_connection(std::move(impl))
+		: m_connection(impl)
 	{}
 
 	connection_type type() const;
@@ -84,8 +82,7 @@ struct TORRENT_EXPORT peer_connection_handle
 	tcp::endpoint const& remote() const;
 	tcp::endpoint local_endpoint() const;
 
-	void disconnect(error_code const& ec, operation_t op
-		, disconnect_severity_t = peer_connection_interface::normal);
+	void disconnect(error_code const& ec, operation_t op, int error = 0);
 	bool is_disconnecting() const;
 	bool is_connecting() const;
 	bool is_outgoing() const;
@@ -105,7 +102,7 @@ struct TORRENT_EXPORT peer_connection_handle
 
 	bool in_handshake() const;
 
-	void send_buffer(char const* begin, int size);
+	void send_buffer(char const* begin, int size, std::uint32_t flags = 0);
 
 	std::time_t last_seen_complete() const;
 	time_point time_of_last_unchoke() const;
@@ -133,13 +130,10 @@ private:
 	}
 };
 
-// The bt_peer_connection_handle provides a handle to the internal bittorrent
-// peer connection object to plugins. It's low level and may not be a stable API
-// across libtorrent versions.
 struct TORRENT_EXPORT bt_peer_connection_handle : peer_connection_handle
 {
 	explicit bt_peer_connection_handle(peer_connection_handle pc)
-		: peer_connection_handle(std::move(pc))
+		: peer_connection_handle(pc)
 	{}
 
 	bool packet_finished() const;

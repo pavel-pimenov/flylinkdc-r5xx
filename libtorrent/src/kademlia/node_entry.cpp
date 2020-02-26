@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2015, Steven Siloti
-Copyright (c) 2015-2017, 2019, Arvid Norberg
-Copyright (c) 2016-2017, Alden Torres
+Copyright (c) 2006-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -45,13 +43,34 @@ namespace libtorrent { namespace dht {
 		, endpoint(ep)
 		, rtt(roundtriptime & 0xffff)
 		, timeout_count(pinged ? 0 : 0xff)
-		, verified(verify_id(id_, ep.address()))
 	{
+#ifndef TORRENT_DISABLE_LOGGING
+		first_seen = aux::time_now();
+#endif
 	}
 
 	node_entry::node_entry(udp::endpoint const& ep)
-		: endpoint(ep)
-	{}
+		: last_queried(min_time())
+		, id(nullptr)
+		, endpoint(ep)
+		, rtt(0xffff)
+		, timeout_count(0xff)
+	{
+#ifndef TORRENT_DISABLE_LOGGING
+		first_seen = aux::time_now();
+#endif
+	}
+
+	node_entry::node_entry()
+		: last_queried(min_time())
+		, id(nullptr)
+		, rtt(0xffff)
+		, timeout_count(0xff)
+	{
+#ifndef TORRENT_DISABLE_LOGGING
+		first_seen = aux::time_now();
+#endif
+	}
 
 	void node_entry::update_rtt(int const new_rtt)
 	{

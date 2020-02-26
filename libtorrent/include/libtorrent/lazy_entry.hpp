@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2008-2010, 2012-2019, Arvid Norberg
-Copyright (c) 2016-2017, Alden Torres
-Copyright (c) 2018, Eugene Shalygin
+Copyright (c) 2003-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_LAZY_ENTRY_HPP_INCLUDED
 #define TORRENT_LAZY_ENTRY_HPP_INCLUDED
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 
 #include <utility>
 #include <vector>
@@ -92,16 +90,6 @@ namespace libtorrent {
 	// deprecated in 0.16
 	TORRENT_DEPRECATED_EXPORT int lazy_bdecode(char const* start, char const* end
 		, lazy_entry& ret, int depth_limit = 1000, int item_limit = 1000000);
-
-#ifdef _MSC_VER
-#pragma warning(push, 1)
-// warning C4996: X: was declared deprecated
-#pragma warning( disable : 4996 )
-#endif
-#if defined __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 
 	// this is a string that is not 0-terminated. Instead it
 	// comes with a length, specified in bytes. This is particularly
@@ -366,9 +354,6 @@ namespace libtorrent {
 			swap(m_len, e.m_len);
 		}
 
-		lazy_entry(lazy_entry&&);
-		lazy_entry& operator=(lazy_entry&&) &;
-
 	private:
 
 		int capacity() const;
@@ -397,13 +382,13 @@ namespace libtorrent {
 		std::uint32_t m_type:3;
 
 		// non-copyable
-		lazy_entry(lazy_entry const&) = delete;
-		lazy_entry const& operator=(lazy_entry const&) = delete;
+		lazy_entry(lazy_entry const&);
+		lazy_entry const& operator=(lazy_entry const&);
 	};
 
 	struct TORRENT_DEPRECATED lazy_dict_entry
 	{
-		char const* name = nullptr;
+		char const* name;
 		lazy_entry val;
 	};
 
@@ -411,13 +396,6 @@ namespace libtorrent {
 	// that's returned.
 	TORRENT_DEPRECATED_EXPORT std::string print_entry(lazy_entry const& e
 		, bool single_line = false, int indent = 0);
-
-#if defined __GNUC__
-#pragma GCC diagnostic pop
-#endif
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 	// defined in bdecode.cpp
 	TORRENT_DEPRECATED
@@ -427,6 +405,6 @@ namespace libtorrent {
 
 }
 
-#endif // TORRENT_ABI_VERSION
+#endif // TORRENT_NO_DEPRECATE
 
 #endif

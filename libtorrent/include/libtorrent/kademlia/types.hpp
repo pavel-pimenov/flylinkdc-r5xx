@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2016-2017, 2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
+Copyright (c) 2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,11 +34,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #define LIBTORRENT_TYPES_HPP
 
 #include <cstdint>
-#include <algorithm>
-#include <array>
 
-namespace libtorrent {
-namespace dht {
+namespace libtorrent { namespace dht {
 /*
 	template <int N>
 	struct base_key
@@ -111,7 +107,7 @@ namespace dht {
 		{ return value < rhs.value; }
 		bool operator>(sequence_number rhs) const
 		{ return value > rhs.value; }
-		sequence_number& operator=(sequence_number rhs) &
+		sequence_number& operator=(sequence_number rhs)
 		{ value = rhs.value; return *this; }
 		bool operator<=(sequence_number rhs) const
 		{ return value <= rhs.value; }
@@ -122,7 +118,6 @@ namespace dht {
 		std::int64_t value;
 	};
 
-} // namespace dht
-} // namespace libtorrent
+}}
 
 #endif // LIBTORRENT_TYPES_HPP

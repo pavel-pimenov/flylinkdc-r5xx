@@ -1,11 +1,6 @@
 /*
 
-Copyright (c) 2015-2018, Alden Torres
-Copyright (c) 2015-2019, Arvid Norberg
-Copyright (c) 2015, Thomas Yuan
-Copyright (c) 2016, Steven Siloti
-Copyright (c) 2017, Andrei Kurushin
-Copyright (c) 2018, Amir Abrams
+Copyright (c) 2012-2016, Arvid Norberg, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,7 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "libtorrent/kademlia/dht_storage.hpp"
-#include "libtorrent/settings_pack.hpp"
+#include "libtorrent/kademlia/dht_settings.hpp"
 
 #include <tuple>
 #include <algorithm>
@@ -52,8 +47,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/random.hpp>
 #include <libtorrent/aux_/vector.hpp>
 #include <libtorrent/aux_/numeric_cast.hpp>
-#include <libtorrent/broadcast_socket.hpp> // for ip_v4
-#include <libtorrent/bdecode.hpp>
 
 namespace libtorrent { namespace dht {
 namespace {
@@ -65,7 +58,7 @@ namespace {
 	{
 		time_point added;
 		tcp::endpoint addr;
-		bool seed = 0;
+		bool seed;
 	};
 
 	// internal
@@ -107,9 +100,9 @@ namespace {
 
 	struct dht_mutable_item : dht_immutable_item
 	{
-		signature sig{};
-		sequence_number seq{};
-		public_key key{};
+		signature sig;
+		sequence_number seq;
+		public_key key;
 		std::string salt;
 	};
 
@@ -118,10 +111,10 @@ namespace {
 		int const size = int(buf.size());
 		if (item.size != size)
 		{
-			item.value.reset(new char[std::size_t(size)]);
+			item.value.reset(new char[size]);
 			item.size = size;
 		}
-		std::copy(buf.begin(), buf.end(), item.value.get());
+		std::memcpy(item.value.get(), buf.data(), buf.size());
 	}
 
 	void touch_item(dht_immutable_item& f, address const& addr)
@@ -163,7 +156,7 @@ namespace {
 	private:
 
 		// explicitly disallow assignment, to silence msvc warning
-		immutable_item_comparator& operator=(immutable_item_comparator const&) = delete;
+		immutable_item_comparator& operator=(immutable_item_comparator const&);
 
 		std::vector<node_id> const& m_node_ids;
 	};
@@ -194,7 +187,7 @@ namespace {
 	{
 	public:
 
-		explicit dht_default_storage(settings_interface const& settings)
+		explicit dht_default_storage(dht_settings const& settings)
 			: m_settings(settings)
 		{
 			m_counters.reset();
@@ -205,7 +198,7 @@ namespace {
 		dht_default_storage(dht_default_storage const&) = delete;
 		dht_default_storage& operator=(dht_default_storage const&) = delete;
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 		size_t num_torrents() const override { return m_map.size(); }
 		size_t num_peers() const override
 		{
@@ -225,7 +218,7 @@ namespace {
 			, entry& peers) const override
 		{
 			auto const i = m_map.find(info_hash);
-			if (i == m_map.end()) return int(m_map.size()) >= m_settings.get_int(settings_pack::dht_max_torrents);
+			if (i == m_map.end()) return int(m_map.size()) >= m_settings.max_torrents;
 
 			torrent_entry const& v = i->second;
 			auto const& peersv = requester.is_v4() ? v.peers4 : v.peers6;
@@ -250,7 +243,7 @@ namespace {
 			else
 			{
 				tcp const protocol = requester.is_v4() ? tcp::v4() : tcp::v6();
-				int to_pick = m_settings.get_int(settings_pack::dht_max_peers_reply);
+				int to_pick = m_settings.max_peers_reply;
 				TORRENT_ASSERT(to_pick >= 0);
 				// if these are IPv6 peers their addresses are 4x the size of IPv4
 				// so reduce the max peers 4 fold to compensate
@@ -277,19 +270,19 @@ namespace {
 					if (random(std::uint32_t(candidates--)) > std::uint32_t(to_pick))
 						continue;
 
-					pe.emplace_back();
+					pe.push_back(entry());
 					std::string& str = pe.back().string();
 
 					str.resize(18);
 					std::string::iterator out = str.begin();
-					aux::write_endpoint(iter->addr, out);
+					detail::write_endpoint(iter->addr, out);
 					str.resize(std::size_t(out - str.begin()));
 
 					--to_pick;
 				}
 			}
 
-			if (int(peersv.size()) < m_settings.get_int(settings_pack::dht_max_peers))
+			if (int(peersv.size()) < m_settings.max_peers)
 				return false;
 
 			// we're at the max peers stored for this torrent
@@ -311,7 +304,7 @@ namespace {
 			torrent_entry* v;
 			if (ti == m_map.end())
 			{
-				if (int(m_map.size()) >= m_settings.get_int(settings_pack::dht_max_torrents))
+				if (int(m_map.size()) >= m_settings.max_torrents)
 				{
 					// we're at capacity, drop the announce
 					return;
@@ -332,7 +325,7 @@ namespace {
 				v->name = name.substr(0, 100).to_string();
 			}
 
-			auto& peersv = is_v4(endp) ? v->peers4 : v->peers6;
+			auto& peersv = endp.protocol() == tcp::v4() ? v->peers4 : v->peers6;
 
 			peer_entry peer;
 			peer.addr = endp;
@@ -343,7 +336,7 @@ namespace {
 			{
 				*i = peer;
 			}
-			else if (int(peersv.size()) >= m_settings.get_int(settings_pack::dht_max_peers))
+			else if (int(peersv.size()) >= m_settings.max_peers)
 			{
 				// we're at capacity, drop the announce
 				return;
@@ -361,8 +354,8 @@ namespace {
 			auto const i = m_immutable_table.find(target);
 			if (i == m_immutable_table.end()) return false;
 
-			error_code ec;
-			item["v"] = bdecode({i->second.value.get(), i->second.size}, ec);
+			item["v"] = bdecode(i->second.value.get()
+				, i->second.value.get() + i->second.size);
 			return true;
 		}
 
@@ -375,7 +368,7 @@ namespace {
 			if (i == m_immutable_table.end())
 			{
 				// make sure we don't add too many items
-				if (int(m_immutable_table.size()) >= m_settings.get_int(settings_pack::dht_max_dht_items))
+				if (int(m_immutable_table.size()) >= m_settings.max_dht_items)
 				{
 					auto const j = pick_least_important_item(m_node_ids
 						, m_immutable_table);
@@ -418,8 +411,7 @@ namespace {
 			item["seq"] = f.seq.value;
 			if (force_fill || (sequence_number(0) <= seq && seq < f.seq))
 			{
-				error_code ec;
-				item["v"] = bdecode({f.value.get(), f.size}, ec);
+				item["v"] = bdecode(f.value.get(), f.value.get() + f.size);
 				item["sig"] = f.sig.bytes;
 				item["k"] = f.key.bytes;
 			}
@@ -440,7 +432,7 @@ namespace {
 			{
 				// this is the case where we don't have an item in this slot
 				// make sure we don't add too many items
-				if (int(m_mutable_table.size()) >= m_settings.get_int(settings_pack::dht_max_dht_items))
+				if (int(m_mutable_table.size()) >= m_settings.max_dht_items)
 				{
 					auto const j = pick_least_important_item(m_node_ids
 						, m_mutable_table);
@@ -462,7 +454,7 @@ namespace {
 			}
 			else
 			{
-				// this is the case where we already have an item in this slot
+				// this is the case where we already
 				dht_mutable_item& item = i->second;
 
 				if (item.seq < seq)
@@ -478,7 +470,7 @@ namespace {
 
 		int get_infohashes_sample(entry& item) override
 		{
-			item["interval"] = aux::clamp(m_settings.get_int(settings_pack::dht_sample_infohashes_interval)
+			item["interval"] = aux::clamp(m_settings.sample_infohashes_interval
 				, 0, sample_infohashes_interval_max);
 			item["num"] = int(m_map.size());
 
@@ -486,7 +478,7 @@ namespace {
 
 			aux::vector<sha1_hash> const& samples = m_infohashes_sample.samples;
 			item["samples"] = span<char const>(
-				reinterpret_cast<char const*>(samples.data()), static_cast<std::ptrdiff_t>(samples.size()) * 20);
+				reinterpret_cast<char const*>(samples.data()), samples.size() * 20);
 
 			return m_infohashes_sample.count();
 		}
@@ -511,10 +503,10 @@ namespace {
 				m_counters.torrents -= 1;// peers is decreased by purge_peers
 			}
 
-			if (0 == m_settings.get_int(settings_pack::dht_item_lifetime)) return;
+			if (0 == m_settings.item_lifetime) return;
 
 			time_point const now = aux::time_now();
-			time_duration lifetime = seconds(m_settings.get_int(settings_pack::dht_item_lifetime));
+			time_duration lifetime = seconds(m_settings.item_lifetime);
 			// item lifetime must >= 120 minutes.
 			if (lifetime < minutes(120)) lifetime = minutes(120);
 
@@ -547,7 +539,7 @@ namespace {
 		}
 
 	private:
-		settings_interface const& m_settings;
+		dht_settings const& m_settings;
 		dht_storage_counters m_counters;
 
 		std::vector<node_id> m_node_ids;
@@ -576,10 +568,10 @@ namespace {
 		void refresh_infohashes_sample()
 		{
 			time_point const now = aux::time_now();
-			int const interval = aux::clamp(m_settings.get_int(settings_pack::dht_sample_infohashes_interval)
+			int const interval = aux::clamp(m_settings.sample_infohashes_interval
 				, 0, sample_infohashes_interval_max);
 
-			int const max_count = aux::clamp(m_settings.get_int(settings_pack::dht_max_infohashes_sample_count)
+			int const max_count = aux::clamp(m_settings.max_infohashes_sample_count
 				, 0, infohashes_sample_count_max);
 			int const count = std::min(max_count, int(m_map.size()));
 
@@ -626,9 +618,9 @@ void dht_storage_counters::reset()
 }
 
 std::unique_ptr<dht_storage_interface> dht_default_storage_constructor(
-	settings_interface const& settings)
+	dht_settings const& settings)
 {
-	return std::make_unique<dht_default_storage>(settings);
+	return std::unique_ptr<dht_default_storage>(new dht_default_storage(settings));
 }
 
 } } // namespace libtorrent::dht

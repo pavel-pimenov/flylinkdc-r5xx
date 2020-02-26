@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2016, Alden Torres
-Copyright (c) 2017, Steven Siloti
-Copyright (c) 2017, 2019, Arvid Norberg
+Copyright (c) 2016, Arvid Norberg, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -49,8 +47,7 @@ namespace libtorrent {
 	struct bdecode_node;
 }
 
-namespace libtorrent {
-namespace dht {
+namespace libtorrent { namespace dht {
 
 	using node_ids_t = std::vector<std::pair<address, node_id>>;
 	// This structure helps to store and load the state
@@ -74,7 +71,6 @@ namespace dht {
 	TORRENT_EXTRA_EXPORT node_ids_t extract_node_ids(bdecode_node const& e, string_view key);
 	TORRENT_EXTRA_EXPORT dht_state read_dht_state(bdecode_node const& e);
 	TORRENT_EXTRA_EXPORT entry save_dht_state(dht_state const& state);
-}
-}
+}}
 
 #endif // LIBTORRENT_DHT_STATE_HPP

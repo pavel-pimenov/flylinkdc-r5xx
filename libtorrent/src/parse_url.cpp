@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2008-2009, 2013-2017, 2019, Arvid Norberg
-Copyright (c) 2016, 2018, Alden Torres
+Copyright (c) 2008-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -52,11 +51,12 @@ namespace libtorrent {
 		std::string::iterator port_pos;
 
 		// PARSE URL
-		auto start = url.begin();
+		std::string::iterator start = url.begin();
 		// remove white spaces in front of the url
 		while (start != url.end() && is_space(*start))
 			++start;
-		auto end = std::find(url.begin(), url.end(), ':');
+		std::string::iterator end
+			= std::find(url.begin(), url.end(), ':');
 		protocol.assign(start, end);
 
 		if (end == url.end())
@@ -116,7 +116,7 @@ namespace libtorrent {
 		if (port_pos < end)
 		{
 			++port_pos;
-			for (auto i = port_pos; i < end; ++i)
+			for (std::string::iterator i = port_pos; i < end; ++i)
 			{
 				if (is_digit(*i)) continue;
 				ec = errors::invalid_port;
@@ -142,13 +142,14 @@ exit:
 		std::string path;
 
 		// PARSE URL
-		auto pos = std::find(url.begin(), url.end(), ':');
+		std::string::iterator pos
+			= std::find(url.begin(), url.end(), ':');
 
 		if (pos == url.end() || url.end() - pos < 3
 			|| *(pos + 1) != '/' || *(pos + 2) != '/')
 		{
 			ec = errors::unsupported_url_protocol;
-			return std::make_tuple(std::move(url), std::move(path));
+			return std::make_tuple(url, path);
 		}
 		pos += 3; // skip "://"
 

@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2004-2008, 2010, 2012, 2014-2017, 2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
+Copyright (c) 2003-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -55,7 +54,7 @@ namespace libtorrent {
 	public:
 
 		udp_tracker_connection(
-			io_context& ios
+			io_service& ios
 			, tracker_manager& man
 			, tracker_request const& req
 			, std::weak_ptr<request_callback> c);
@@ -85,6 +84,7 @@ namespace libtorrent {
 
 		void name_lookup(error_code const& error
 			, std::vector<address> const& addresses, int port);
+		void timeout(error_code const& error);
 		void start_announce();
 
 		bool on_receive(udp::endpoint const& ep, span<char const> buf);
@@ -104,6 +104,8 @@ namespace libtorrent {
 		void send_udp_scrape();
 
 		void on_timeout(error_code const& ec) override;
+
+		udp::endpoint pick_target_endpoint() const;
 
 		std::string m_hostname;
 		std::vector<tcp::endpoint> m_endpoints;

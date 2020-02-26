@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2010, 2014, 2016-2017, 2019, Arvid Norberg
+Copyright (c) 2012-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,20 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	proxy_base::proxy_base(io_context& io_context)
-		: m_sock(io_context)
+	proxy_base::proxy_base(io_service& io_service)
+		: m_sock(io_service)
 		, m_port(0)
-		, m_resolver(io_context)
+		, m_resolver(io_service)
 	{}
 
 	proxy_base::~proxy_base() = default;
 
-	static_assert(std::is_nothrow_move_constructible<proxy_base>::value
-		, "should be nothrow move constructible");
+	bool proxy_base::handle_error(error_code const& e, handler_type const& h)
+	{
+		if (!e) return false;
+		h(e);
+		error_code ec;
+		close(ec);
+		return true;
+	}
 }

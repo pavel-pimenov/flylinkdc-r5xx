@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2015-2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
+Copyright (c) 2014-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -40,7 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <string>
 
-#include "libtorrent/aux_/export.hpp"
+#include "libtorrent/export.hpp"
 #include "libtorrent/units.hpp"
 #include "libtorrent/aux_/vector.hpp"
 

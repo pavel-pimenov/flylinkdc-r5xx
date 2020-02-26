@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2016-2019, Arvid Norberg
-Copyright (c) 2017, Alden Torres
+Copyright (c) 2017, Arvid Norberg, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,12 +34,14 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	add_torrent_params::add_torrent_params() = default;
+	add_torrent_params::add_torrent_params(storage_constructor_type sc)
+		: storage(storage_constructor_type(sc)) {}
 	add_torrent_params::add_torrent_params(add_torrent_params&&) noexcept = default;
+	add_torrent_params& add_torrent_params::operator=(add_torrent_params&&) = default;
 	add_torrent_params::add_torrent_params(add_torrent_params const&) = default;
-	add_torrent_params& add_torrent_params::operator=(add_torrent_params const&) & = default;
+	add_torrent_params& add_torrent_params::operator=(add_torrent_params const&) = default;
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 #define DECL_FLAG(name) \
 	constexpr torrent_flags_t add_torrent_params::flag_##name
 
@@ -65,12 +66,9 @@ namespace libtorrent {
 			DECL_FLAG(merge_resume_http_seeds);
 			DECL_FLAG(default_flags);
 #undef DECL_FLAG
-#endif // TORRENT_ABI_VERSION
+#endif // TORRENT_NO_DEPRECATE
 
 	static_assert(std::is_nothrow_move_constructible<add_torrent_params>::value
-		, "should be nothrow move constructible");
-
-	static_assert(std::is_nothrow_move_constructible<std::string>::value
 		, "should be nothrow move constructible");
 
 	// TODO: pre C++17, GCC and msvc does not make std::string nothrow move

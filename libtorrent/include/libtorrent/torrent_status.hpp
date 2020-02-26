@@ -1,9 +1,6 @@
 /*
 
-Copyright (c) 2015-2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
-Copyright (c) 2017, AllSeeingEyeTolledEweSew
-Copyright (c) 2018, Steven Siloti
+Copyright (c) 2015-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -51,30 +48,18 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-#if TORRENT_ABI_VERSION == 1
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-#endif
-
-TORRENT_VERSION_NAMESPACE_2
-
 	// holds a snapshot of the status of a torrent, as queried by
 	// torrent_handle::status().
 	struct TORRENT_EXPORT torrent_status
 	{
-#if TORRENT_ABI_VERSION == 1
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-#endif
 		// hidden
 		torrent_status() noexcept;
 		~torrent_status();
 		torrent_status(torrent_status const&);
 		torrent_status& operator=(torrent_status const&);
 		torrent_status(torrent_status&&) noexcept;
+		// TODO: 2 msvc and GCC did not make std::string nothrow move-assignable
+		// until C++17
 		torrent_status& operator=(torrent_status&&);
 
 		// compares if the torrent status objects come from the same torrent. i.e.
@@ -88,11 +73,11 @@ TORRENT_VERSION_NAMESPACE_2
 		// the different overall states a torrent can be in
 		enum state_t
 		{
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 			// The torrent is in the queue for being checked. But there
 			// currently is another torrent that are being checked.
 			// This torrent will wait for its turn.
-			queued_for_checking TORRENT_DEPRECATED_ENUM,
+			queued_for_checking,
 #else
 			// internal
 			unused_enum_for_backwards_compatibility,
@@ -126,15 +111,18 @@ TORRENT_VERSION_NAMESPACE_2
 			// allocated.
 			allocating,
 
-			// The torrent is currently checking the fast resume data and
+			// The torrent is currently checking the fastresume data and
 			// comparing it to the files on disk. This is typically
 			// completed in a fraction of a second, but if you add a
 			// large number of torrents at once, they will queue up.
 			checking_resume_data
 		};
 
-#if TORRENT_ABI_VERSION == 1
-		std::string TORRENT_DEPRECATED_MEMBER error;
+#ifndef TORRENT_NO_DEPRECATE
+		std::string error;
+#else
+		// internal
+		std::string _dummy_string_;
 #endif
 
 		// may be set to an error code describing why the torrent was paused, in
@@ -144,12 +132,6 @@ TORRENT_VERSION_NAMESPACE_2
 		// the index of that file in the .torrent file.
 		error_code errc;
 
-		// if the torrent is stopped because of an disk I/O error, this field
-		// contains the index of the file in the torrent that encountered the
-		// error. If the error did not originate in a file in the torrent, there
-		// are a few special values this can be set to: error_file_none,
-		// error_file_ssl_ctx, error_file_exception, error_file_partfile or
-		// error_file_metadata;
 		file_index_t error_file = torrent_status::error_file_none;
 
 		// special values for error_file to describe which file or component
@@ -157,18 +139,19 @@ TORRENT_VERSION_NAMESPACE_2
 		// the error did not occur on a file
 		static constexpr file_index_t error_file_none{-1};
 
+		// the error occurred on m_url
+		static constexpr file_index_t error_file_url{-2};
+
 		// the error occurred setting up the SSL context
 		static constexpr file_index_t error_file_ssl_ctx{-3};
 
-		// the error occurred while loading the metadata for the torrent
+		// the error occurred while loading the .torrent file via the user
+		// supplied load function
 		static constexpr file_index_t error_file_metadata{-4};
 
 		// there was a serious error reported in this torrent. The error code
 		// or a torrent log alert may provide more information.
 		static constexpr file_index_t error_file_exception{-5};
-
-		// the error occurred with the partfile
-		static constexpr file_index_t error_file_partfile{-6};
 
 		// the path to the directory where this torrent's files are stored.
 		// It's typically the path as was given to async_add_torrent() or
@@ -193,10 +176,13 @@ TORRENT_VERSION_NAMESPACE_2
 		// the time until the torrent will announce itself to the tracker.
 		time_duration next_announce = seconds(0);
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 		// the time the tracker want us to wait until we announce ourself
 		// again the next time.
-		time_duration TORRENT_DEPRECATED_MEMBER announce_interval;
+		time_duration announce_interval;
+#else
+		// hidden
+		time_duration deprecated_announce_interval_;
 #endif
 
 		// the URL of the last working tracker. If no tracker request has
@@ -252,12 +238,6 @@ TORRENT_VERSION_NAMESPACE_2
 		// not necessarily has to be downloaded during this session (that's
 		// ``total_payload_download``).
 		std::int64_t total_done = 0;
-
-		// the total number of bytes to download for this torrent. This
-		// may be less than the size of the torrent in case there are
-		// pad files. This number only counts bytes that will actually
-		// be requested from peers.
-		std::int64_t total = 0;
 
 		// the number of bytes we have downloaded, only counting the pieces that
 		// we actually want to download. i.e. excluding any pieces that we have
@@ -390,7 +370,7 @@ TORRENT_VERSION_NAMESPACE_2
 		// number of bytes that each piece request asks for and the number of
 		// bytes that each bit in the ``partial_piece_info``'s bitset represents,
 		// see get_download_queue(). This is typically 16 kB, but it may be
-		// smaller, if the pieces are smaller.
+		// larger if the pieces are larger.
 		int block_size = 0;
 
 		// the number of unchoked peers in this torrent.
@@ -416,7 +396,7 @@ TORRENT_VERSION_NAMESPACE_2
 		int up_bandwidth_queue = 0;
 		int down_bandwidth_queue = 0;
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 		// deprecated in 1.2
 		// use last_upload, last_download or
 		// seeding_duration, finished_duration and active_duration
@@ -441,6 +421,12 @@ TORRENT_VERSION_NAMESPACE_2
 		int TORRENT_DEPRECATED_MEMBER active_time = 0;
 		int TORRENT_DEPRECATED_MEMBER finished_time = 0;
 		int TORRENT_DEPRECATED_MEMBER seeding_time = 0;
+#else
+		int deprecated_time_since_upload = 0;
+		int deprecated_time_since_download = 0;
+		int deprecated_active_time = 0;
+		int deprecated_finished_time = 0;
+		int deprecated_seeding_time = 0;
 #endif
 
 		// A rank of how important it is to seed the torrent, it is used to
@@ -449,15 +435,22 @@ TORRENT_VERSION_NAMESPACE_2
 		// see queuing_. Higher value means more important to seed
 		int seed_rank = 0;
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 		// deprecated in 1.2
 
 		// the number of seconds since this torrent acquired scrape data.
 		// If it has never done that, this value is -1.
 		int TORRENT_DEPRECATED_MEMBER last_scrape = 0;
+#else
+		int deprecated_last_scrape = 0;
+#endif
 
+#ifndef TORRENT_NO_DEPRECATE
 		// the priority of this torrent
 		int TORRENT_DEPRECATED_MEMBER priority = 0;
+#else
+		// hidden
+		int deprecated_priority = 0;
 #endif
 
 		// the main state the torrent is in. See torrent_status::state_t.
@@ -468,7 +461,7 @@ TORRENT_VERSION_NAMESPACE_2
 		// was saved.
 		bool need_save_resume = false;
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 		// true if the session global IP filter applies
 		// to this torrent. This defaults to true.
 		bool TORRENT_DEPRECATED_MEMBER ip_filter_applies = false;
@@ -504,6 +497,15 @@ TORRENT_VERSION_NAMESPACE_2
 		// true when the torrent is in sequential download mode. In this mode
 		// pieces are downloaded in order rather than rarest first.
 		bool TORRENT_DEPRECATED_MEMBER sequential_download = false;
+#else
+		// hidden
+		bool deprecated_ip_filter_applies = false;
+		bool deprecated_upload_mode = false;
+		bool deprecated_share_mode = false;
+		bool deprecated_super_seeding = false;
+		bool deprecated_paused = false;
+		bool deprecated_auto_managed = false;
+		bool deprecated_sequential_download = false;
 #endif
 
 		// true if all pieces have been downloaded.
@@ -525,11 +527,14 @@ TORRENT_VERSION_NAMESPACE_2
 		// torrent.
 		bool has_incoming = false;
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 		// true if the torrent is in seed_mode. If the torrent was started in
 		// seed mode, it will leave seed mode once all pieces have been checked
 		// or as soon as one piece fails the hash check.
 		bool TORRENT_DEPRECATED_MEMBER seed_mode = false;
+#else
+		// hidden
+		bool deprecated_seed_mode = false;
 #endif
 
 		// this is true if this torrent's storage is currently being moved from
@@ -537,11 +542,14 @@ TORRENT_VERSION_NAMESPACE_2
 		// if a large file ends up being copied from one drive to another.
 		bool moving_storage = false;
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 		// true if this torrent is loaded into RAM. A torrent can be started
 		// and still not loaded into RAM, in case it has not had any peers interested in it
 		// yet. Torrents are loaded on demand.
 		bool TORRENT_DEPRECATED_MEMBER is_loaded = false;
+#else
+		// hidden
+		bool deprecated_is_loaded;
 #endif
 
 		// these are set to true if this torrent is allowed to announce to the
@@ -552,29 +560,24 @@ TORRENT_VERSION_NAMESPACE_2
 		bool announcing_to_lsd = false;
 		bool announcing_to_dht = false;
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 		// this reflects whether the ``stop_when_ready`` flag is currently enabled
 		// on this torrent. For more information, see
 		// torrent_handle::stop_when_ready().
 		bool TORRENT_DEPRECATED_MEMBER stop_when_ready = false;
+#else
+		// hidden
+		bool deprecated_stop_when_ready = false;
 #endif
 
 		// the info-hash for this torrent
-		info_hash_t info_hash;
+		sha1_hash info_hash;
 
-		// the timestamps of the last time this torrent uploaded or downloaded
-		// payload to any peer.
+		// This value is not persistent and get set to session start time.
 		time_point last_upload;
+		// This value is not persistent and get set to session start time.
 		time_point last_download;
 
-		// these are cumulative counters of for how long the torrent has been in
-		// different states. active means not paused and added to session. Whether
-		// it has found any peers or not is not relevant.
-		// finished means all selected files/pieces were downloaded and available
-		// to other peers (this is always a subset of active time).
-		// seeding means all files/pieces were downloaded and available to
-		// peers. Being available to peers does not imply there are other peers
-		// asking for the payload.
 		seconds active_duration;
 		seconds finished_duration;
 		seconds seeding_duration;
@@ -582,12 +585,17 @@ TORRENT_VERSION_NAMESPACE_2
 		// reflects several of the torrent's flags. For more
 		// information, see ``torrent_handle::flags()``.
 		torrent_flags_t flags{};
+
 	};
 
-TORRENT_VERSION_NAMESPACE_2_END
-} // namespace libtorrent
+	inline bool is_save_resume(const libtorrent::torrent_status& st)
+	{
+		return st.handle.is_valid() && st.has_metadata && st.need_save_resume;
+	}
+}
 
-namespace std {
+namespace std
+{
 	template <>
 	struct hash<libtorrent::torrent_status>
 	{

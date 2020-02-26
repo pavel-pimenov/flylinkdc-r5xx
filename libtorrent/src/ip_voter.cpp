@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2013-2019, Arvid Norberg
-Copyright (c) 2016, Steven Siloti
-Copyright (c) 2016, 2018, Alden Torres
+Copyright (c) 2013-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -67,6 +65,7 @@ namespace libtorrent {
 		if (m_external_addresses.empty()) return false;
 
 		// if there's just one vote, go with that
+		std::vector<external_ip_t>::iterator i;
 		if (m_external_addresses.size() == 1)
 		{
 			// avoid flapping. We need more votes to change our mind on the
@@ -85,7 +84,7 @@ namespace libtorrent {
 				return false;
 		}
 
-		auto const i = m_external_addresses.begin();
+		i = m_external_addresses.begin();
 
 		bool ret = m_external_address != i->addr;
 		m_external_address = i->addr;
@@ -115,7 +114,7 @@ namespace libtorrent {
 		sha1_hash const k = hash_address(source);
 
 		// do we already have an entry for this external IP?
-		auto i = std::find_if(m_external_addresses.begin()
+		std::vector<external_ip_t>::iterator i = std::find_if(m_external_addresses.begin()
 			, m_external_addresses.end(), [&ip] (external_ip_t const& e) { return e.addr == ip; });
 
 		if (i == m_external_addresses.end())
@@ -138,7 +137,7 @@ namespace libtorrent {
 				// ones with the fewest votes
 				m_external_addresses.erase(m_external_addresses.end() - 1);
 			}
-			m_external_addresses.emplace_back();
+			m_external_addresses.push_back(external_ip_t());
 			i = m_external_addresses.end() - 1;
 			i->addr = ip;
 		}
@@ -179,8 +178,10 @@ namespace libtorrent {
 		, address const& local6, address const& global6)
 		: m_addresses{{global4, ensure_v6(global6)}, {local4, ensure_v6(local6)}}
 	{
+#if TORRENT_USE_IPV6
 		TORRENT_ASSERT(m_addresses[0][1].is_v6());
 		TORRENT_ASSERT(m_addresses[1][1].is_v6());
+#endif
 		TORRENT_ASSERT(m_addresses[0][0].is_v4());
 		TORRENT_ASSERT(m_addresses[1][0].is_v4());
 	}
@@ -188,7 +189,9 @@ namespace libtorrent {
 	address external_ip::external_address(address const& ip) const
 	{
 		address ext = m_addresses[is_local(ip)][ip.is_v6()];
+#if TORRENT_USE_IPV6
 		if (ip.is_v6() && ext == address_v4()) return address_v6();
+#endif
 		return ext;
 	}
 }

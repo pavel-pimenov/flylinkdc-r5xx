@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2006-2008, 2010-2019, Arvid Norberg
-Copyright (c) 2016, Steven Siloti
-Copyright (c) 2016, 2018, Alden Torres
+Copyright (c) 2006-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -66,7 +64,7 @@ int distance_exp(node_id const& n1, node_id const& n2)
 	// TODO: it's a little bit weird to return 159 - leading zeroes. It should
 	// probably be 160 - leading zeroes, but all other code in here is tuned to
 	// this expectation now, and it doesn't really matter (other than complexity)
-	return std::max(159 - distance(n1, n2).count_leading_zeroes(), 0);
+	return (std::max)(159 - distance(n1, n2).count_leading_zeroes(), 0);
 }
 
 int min_distance_exp(node_id const& n1, std::vector<node_id> const& ids)
@@ -86,13 +84,16 @@ node_id generate_id_impl(address const& ip_, std::uint32_t r)
 {
 	std::uint8_t* ip = nullptr;
 
-	static std::uint8_t const v4mask[] = { 0x03, 0x0f, 0x3f, 0xff };
-	static std::uint8_t const v6mask[] = { 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff };
+	static const std::uint8_t v4mask[] = { 0x03, 0x0f, 0x3f, 0xff };
+#if TORRENT_USE_IPV6
+	static const std::uint8_t v6mask[] = { 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff };
+#endif
 	std::uint8_t const* mask = nullptr;
 	int num_octets = 0;
 
-	address_v4::bytes_type b4{};
-	address_v6::bytes_type b6{};
+	address_v4::bytes_type b4;
+#if TORRENT_USE_IPV6
+	address_v6::bytes_type b6;
 	if (ip_.is_v6())
 	{
 		b6 = ip_.to_v6().to_bytes();
@@ -101,6 +102,7 @@ node_id generate_id_impl(address const& ip_, std::uint32_t r)
 		mask = v6mask;
 	}
 	else
+#endif
 	{
 		b4 = ip_.to_v4().to_bytes();
 		ip = b4.data();
@@ -130,7 +132,7 @@ node_id generate_id_impl(address const& ip_, std::uint32_t r)
 	id[1] = (c >> 16) & 0xff;
 	id[2] = (((c >> 8) & 0xf8) | random(0x7)) & 0xff;
 
-	for (int i = 3; i < 19; ++i) id[i] = random(0xff) & 0xff;
+	for (std::size_t i = 3; i < 19; ++i) id[i] = random(0xff) & 0xff;
 	id[19] = r & 0xff;
 
 	return id;

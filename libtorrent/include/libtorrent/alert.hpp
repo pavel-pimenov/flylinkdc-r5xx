@@ -1,9 +1,6 @@
 /*
 
-Copyright (c) 2003, Daniel Wallin
-Copyright (c) 2004, Magnus Jonsson
-Copyright (c) 2004-2005, 2008-2009, 2013-2019, Arvid Norberg
-Copyright (c) 2015-2017, Alden Torres
+Copyright (c) 2003-2016, Arvid Norberg, Daniel Wallin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -71,30 +68,24 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace libtorrent {
 
 	// hidden
-	using alert_category_t = flags::bitfield_flag<std::uint32_t, struct alert_category_tag>;
-
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
+	struct alert_category_tag;
+	using alert_category_t = flags::bitfield_flag<std::uint32_t, alert_category_tag>;
 
 	// The ``alert`` class is the base class that specific messages are derived from.
 	// alert types are not copyable, and cannot be constructed by the client. The
 	// pointers returned by libtorrent are short lived (the details are described
 	// under session_handle::pop_alerts())
-	struct TORRENT_EXPORT alert
+	class TORRENT_EXPORT alert
 	{
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-		// hidden
-		TORRENT_UNEXPORT alert(alert const& rhs) = delete;
+	public:
+
+		alert(alert const& rhs) = delete;
 		alert& operator=(alert const&) = delete;
 		alert(alert&& rhs) noexcept = default;
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 		// only here for backwards compatibility
-		enum TORRENT_DEPRECATED_ENUM severity_t { debug, info, warning, critical, fatal, none };
+		enum TORRENT_DEPRECATED severity_t { debug, info, warning, critical, fatal, none };
 #endif
 
 		// Enables alerts that report an error. This includes:
@@ -125,19 +116,14 @@ namespace libtorrent {
 		static constexpr alert_category_t tracker_notification = 4_bit;
 
 		// Low level alerts for when peers are connected and disconnected.
-		static constexpr alert_category_t connect_notification = 5_bit;
-#if TORRENT_ABI_VERSION == 1
-		static constexpr alert_category_t TORRENT_DEPRECATED_MEMBER debug_notification = connect_notification;
-#endif
+		static constexpr alert_category_t debug_notification = 5_bit;
 
 		// Enables alerts for when a torrent or the session changes state.
 		static constexpr alert_category_t status_notification = 6_bit;
 
-#if TORRENT_ABI_VERSION == 1
 		// Alerts for when blocks are requested and completed. Also when
 		// pieces are completed.
-		static constexpr alert_category_t TORRENT_DEPRECATED_MEMBER progress_notification = 7_bit;
-#endif
+		static constexpr alert_category_t progress_notification = 7_bit;
 
 		// Alerts when a peer is blocked by the ip blocker or port blocker.
 		static constexpr alert_category_t ip_block_notification = 8_bit;
@@ -155,6 +141,13 @@ namespace libtorrent {
 		// These alerts contain all statistics counters for the interval since
 		// the lasts stats alert.
 		static constexpr alert_category_t stats_notification = 11_bit;
+
+#ifndef TORRENT_NO_DEPRECATE
+		// Alerts on RSS related events, like feeds being updated, feed error
+		// conditions and successful RSS feed updates. Enabling this category
+		// will make you receive rss_alert alerts.
+		static constexpr alert_category_t TORRENT_DEPRECATED_MEMBER rss_notification = 12_bit;
+#endif
 
 		// Enables debug logging alerts. These are available unless libtorrent
 		// was built with logging disabled (``TORRENT_DISABLE_LOGGING``). The
@@ -189,20 +182,6 @@ namespace libtorrent {
 		// enables verbose logging from the piece picker.
 		static constexpr alert_category_t picker_log_notification = 20_bit;
 
-		// alerts when files complete downloading
-		static constexpr alert_category_t file_progress_notification = 21_bit;
-
-		// alerts when pieces complete downloading or fail hash check
-		static constexpr alert_category_t piece_progress_notification = 22_bit;
-
-		// alerts when we upload blocks to other peers
-		static constexpr alert_category_t upload_notification = 23_bit;
-
-		// alerts on individual blocks being requested, downloading, finished,
-		// rejected, time-out and cancelled. This is likely to post alerts at a
-		// high rate.
-		static constexpr alert_category_t block_progress_notification = 24_bit;
-
 		// The full bitmask, representing all available categories.
 		//
 		// since the enum is signed, make sure this isn't
@@ -212,7 +191,7 @@ namespace libtorrent {
 		static constexpr alert_category_t all_categories = alert_category_t::all();
 
 		// hidden
-		TORRENT_UNEXPORT alert();
+		alert();
 		// hidden
 		virtual ~alert();
 
@@ -235,7 +214,7 @@ namespace libtorrent {
 		//
 		//			case read_piece_alert::alert_type:
 		//			{
-		//				auto* p = static_cast<read_piece_alert*>(a);
+		//				read_piece_alert* p = (read_piece_alert*)a;
 		//				if (p->ec) {
 		//					// read_piece failed
 		//					break;
@@ -265,7 +244,7 @@ namespace libtorrent {
 		// returns a bitmask specifying which categories this alert belong to.
 		virtual alert_category_t category() const noexcept = 0;
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 
 #include "libtorrent/aux_/disable_warnings_push.hpp"
 
@@ -284,7 +263,7 @@ namespace libtorrent {
 
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 
-#endif // TORRENT_ABI_VERSION
+#endif // TORRENT_NO_DEPRECATE
 
 	private:
 		time_point const m_timestamp;
@@ -296,19 +275,19 @@ namespace libtorrent {
 //
 // .. note::
 //   ``alert_cast<>`` can only cast to an exact alert type, not a base class
-template <typename T> T* alert_cast(alert* a)
+template <class T> T* alert_cast(alert* a)
 {
 	static_assert(std::is_base_of<alert, T>::value
-		, "alert_cast<> can only be used with alert types (deriving from lt::alert)");
+		, "alert_cast<> can only be used with alert types (deriving from libtorrent::alert)");
 
 	if (a == nullptr) return nullptr;
 	if (a->type() == T::alert_type) return static_cast<T*>(a);
 	return nullptr;
 }
-template <typename T> T const* alert_cast(alert const* a)
+template <class T> T const* alert_cast(alert const* a)
 {
 	static_assert(std::is_base_of<alert, T>::value
-		, "alert_cast<> can only be used with alert types (deriving from lt::alert)");
+		, "alert_cast<> can only be used with alert types (deriving from libtorrent::alert)");
 	if (a == nullptr) return nullptr;
 	if (a->type() == T::alert_type) return static_cast<T const*>(a);
 	return nullptr;

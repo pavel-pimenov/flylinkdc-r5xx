@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2015-2019, Arvid Norberg
-Copyright (c) 2016-2017, Alden Torres
+Copyright (c) 2014-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -47,7 +46,7 @@ resolve_links::resolve_links(std::shared_ptr<torrent_info> ti)
 
 	file_storage const& fs = ti->files();
 	m_file_sizes.reserve(aux::numeric_cast<std::size_t>(fs.num_files()));
-	for (auto const i : fs.file_range())
+	for (file_index_t i(0); i < fs.end_file(); ++i)
 	{
 		// don't match pad-files, and don't match files that aren't aligned to
 		// pieces. Files are matched by comparing piece hashes, so pieces must
@@ -73,7 +72,7 @@ void resolve_links::match(std::shared_ptr<const torrent_info> const& ti
 
 	file_storage const& fs = ti->files();
 	m_file_sizes.reserve(aux::numeric_cast<std::size_t>(fs.num_files()));
-	for (auto const i : fs.file_range())
+	for (file_index_t i(0); i < fs.end_file(); ++i)
 	{
 		// for every file in the other torrent, see if we have one that match
 		// it in m_torrent_file
@@ -85,7 +84,7 @@ void resolve_links::match(std::shared_ptr<const torrent_info> const& ti
 
 		std::int64_t const file_size = fs.file_size(i);
 
-		auto const range = m_file_sizes.equal_range(file_size);
+		auto range = m_file_sizes.equal_range(file_size);
 		for (auto iter = range.first; iter != range.second; ++iter)
 		{
 			TORRENT_ASSERT(iter->second >= file_index_t(0));

@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2008-2019, Arvid Norberg
-Copyright (c) 2016-2018, Alden Torres
-Copyright (c) 2017, Pavel Pimenov
+Copyright (c) 2008-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -46,7 +44,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/string_util.hpp" // for ensure_trailing_slash, to_lower
 #include "libtorrent/aux_/escape_string.hpp" // for read_until
 #include "libtorrent/time.hpp" // for seconds32
-#include "libtorrent/aux_/numeric_cast.hpp"
 
 namespace libtorrent {
 
@@ -137,26 +134,16 @@ namespace libtorrent {
 	std::string const& http_parser::header(string_view const key) const
 	{
 		static std::string const empty;
-		// at least GCC-5.4 for ARM (on travis) has a libstdc++ whose debug map$
-		// doesn't seem to support transparent comparators$
-#if ! defined _GLIBCXX_DEBUG
-		auto const i = m_header.find(key);
-#else
-		auto const i = m_header.find(std::string(key));
-#endif
+		// TODO: remove to_string() if we're in C++14
+		auto const i = m_header.find(key.to_string());
 		if (i == m_header.end()) return empty;
 		return i->second;
 	}
 
 	boost::optional<seconds32> http_parser::header_duration(string_view const key) const
 	{
-		// at least GCC-5.4 for ARM (on travis) has a libstdc++ whose debug map$
-		// doesn't seem to support transparent comparators$
-#if ! defined _GLIBCXX_DEBUG
-		auto const i = m_header.find(key);
-#else
-		auto const i = m_header.find(std::string(key));
-#endif
+		// TODO: remove to_string() if we're in C++14
+		auto const i = m_header.find(key.to_string());
 		if (i == m_header.end()) return boost::none;
 		auto const val = std::atol(i->second.c_str());
 		if (val <= 0) return boost::none;
@@ -172,7 +159,7 @@ namespace libtorrent {
 	{
 		TORRENT_ASSERT(recv_buffer.size() >= m_recv_buffer.size());
 		std::tuple<int, int> ret(0, 0);
-		std::ptrdiff_t start_pos = m_recv_buffer.size();
+		std::size_t start_pos = m_recv_buffer.size();
 
 		// early exit if there's nothing new in the receive buffer
 		if (start_pos == recv_buffer.size()) return ret;
@@ -240,7 +227,7 @@ restart_response:
 				m_status_code = 0;
 			}
 			m_state = read_header;
-			start_pos = pos - recv_buffer.data();
+			start_pos = std::size_t(pos - recv_buffer.data());
 		}
 
 		if (m_state == read_header)
@@ -279,7 +266,7 @@ restart_response:
 					// we're done once we reach the end of the headers
 //					if (!m_method.empty()) m_finished = true;
 					// the HTTP header should always be < 2 GB
-					TORRENT_ASSERT(m_recv_pos < std::numeric_limits<int>::max());
+					TORRENT_ASSERT(m_recv_pos < (std::numeric_limits<int>::max)());
 					m_body_start_pos = int(m_recv_pos);
 					break;
 				}
@@ -297,8 +284,7 @@ restart_response:
 				if (name == "content-length")
 				{
 					m_content_length = std::strtoll(value.c_str(), nullptr, 10);
-					if (m_content_length < 0
-						|| m_content_length == std::numeric_limits<std::int64_t>::max())
+					if (m_content_length < 0)
 					{
 						m_state = error_state;
 						error = true;
@@ -321,8 +307,7 @@ restart_response:
 					if (string_begins_no_case("bytes ", ptr)) ptr += 6;
 					char* end;
 					m_range_start = std::strtoll(ptr, &end, 10);
-					if (m_range_start < 0
-						|| m_range_start == std::numeric_limits<std::int64_t>::max())
+					if (m_range_start < 0)
 					{
 						m_state = error_state;
 						error = true;
@@ -334,8 +319,7 @@ restart_response:
 					{
 						ptr = end + 1;
 						m_range_end = std::strtoll(ptr, &end, 10);
-						if (m_range_end < 0
-							|| m_range_end == std::numeric_limits<std::int64_t>::max())
+						if (m_range_end < 0)
 						{
 							m_state = error_state;
 							error = true;
@@ -379,19 +363,18 @@ restart_response:
 					std::int64_t payload = m_cur_chunk_end - m_recv_pos;
 					if (payload > 0)
 					{
-						TORRENT_ASSERT(payload < std::numeric_limits<int>::max());
+						TORRENT_ASSERT(payload < (std::numeric_limits<int>::max)());
 						m_recv_pos += payload;
 						std::get<0>(ret) += int(payload);
 						incoming -= int(payload);
 					}
 					auto const buf = span<char const>(recv_buffer)
-						.subspan(aux::numeric_cast<std::ptrdiff_t>(m_cur_chunk_end));
+						.subspan(std::size_t(m_cur_chunk_end));
 					std::int64_t chunk_size;
 					int header_size;
 					if (parse_chunk_header(buf, &chunk_size, &header_size))
 					{
-						if (chunk_size < 0
-							|| chunk_size > std::numeric_limits<std::int64_t>::max() - m_cur_chunk_end - header_size)
+						if (chunk_size < 0)
 						{
 							m_state = error_state;
 							error = true;
@@ -446,7 +429,7 @@ restart_response:
 					&& m_content_length >= 0)
 				{
 					TORRENT_ASSERT(m_content_length - m_recv_pos + m_body_start_pos
-						< std::numeric_limits<int>::max());
+						< (std::numeric_limits<int>::max)());
 					incoming = int(m_content_length - m_recv_pos + m_body_start_pos);
 				}
 
@@ -585,7 +568,7 @@ restart_response:
 			? std::min(m_chunked_ranges.back().second - m_body_start_pos, received)
 			: m_content_length < 0 ? received : std::min(m_content_length, received);
 
-		return m_recv_buffer.subspan(m_body_start_pos, aux::numeric_cast<std::ptrdiff_t>(body_length));
+		return m_recv_buffer.subspan(std::size_t(m_body_start_pos), std::size_t(body_length));
 	}
 
 	void http_parser::reset()
@@ -619,26 +602,17 @@ restart_response:
 		// the offsets in the array are from the start of the
 		// buffer, not start of the body, so subtract the size
 		// of the HTTP header from them
-		int const offset = body_start();
+		std::size_t const offset = static_cast<std::size_t>(body_start());
 		for (auto const& i : chunks())
 		{
-			auto const chunk_start = i.first;
-			auto const chunk_end = i.second;
+			size_t const chunk_start = static_cast<std::size_t>(i.first);
+			size_t const chunk_end = static_cast<std::size_t>(i.second);
 			TORRENT_ASSERT(i.second - i.first < std::numeric_limits<int>::max());
 			TORRENT_ASSERT(chunk_end - offset <= buffer.size());
-			span<char> chunk = buffer.subspan(
-				aux::numeric_cast<std::ptrdiff_t>(chunk_start - offset)
-				, aux::numeric_cast<std::ptrdiff_t>(chunk_end - chunk_start));
-#if defined __GNUC__ && __GNUC__ >= 7
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstringop-overflow"
-#endif
-			std::memmove(write_ptr, chunk.data(), std::size_t(chunk.size()));
-#if defined __GNUC__ && __GNUC__ >= 7
-#pragma GCC diagnostic pop
-#endif
+			span<char> chunk = buffer.subspan(chunk_start - offset, chunk_end - chunk_start);
+			std::memmove(write_ptr, chunk.data(), chunk.size());
 			write_ptr += chunk.size();
 		}
-		return buffer.first(write_ptr - buffer.data());
+		return buffer.first(static_cast<std::size_t>(write_ptr - buffer.data()));
 	}
 }

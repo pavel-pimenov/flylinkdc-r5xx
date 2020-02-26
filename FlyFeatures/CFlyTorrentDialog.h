@@ -183,7 +183,7 @@ private:
 
 			if (!m_ti->creator().empty()) l_info.push_back({ _T("Creator"), Text::toT(m_ti->creator()) });
 			if (!m_ti->comment().empty()) l_info.push_back({ _T("Comment"), Text::toT(m_ti->comment()) });
-			l_info.push_back({ _T("Info hash"), Text::toT(lt::aux::to_hex(m_ti->info_hash().get_best())) });
+			l_info.push_back({ _T("Info hash"), Text::toT(lt::aux::to_hex(m_ti->info_hash()/*.get_best()*/)) });
 			addArray(_T("Info"), l_info);
 			l_info.clear();
 

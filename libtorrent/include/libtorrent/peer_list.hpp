@@ -1,11 +1,6 @@
 /*
 
-Copyright (c) 2003-2005, 2007-2009, 2011-2019, Arvid Norberg
-Copyright (c) 2004, Magnus Jonsson
-Copyright (c) 2009, Daniel Wallin
-Copyright (c) 2015, Mikhail Titov
-Copyright (c) 2016-2017, Alden Torres
-Copyright (c) 2016, Steven Siloti
+Copyright (c) 2003-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,8 +34,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_POLICY_HPP_INCLUDED
 
 #include <algorithm>
-
-#include "libtorrent/fwd.hpp"
 #include "libtorrent/string_util.hpp" // for allocate_string_copy
 #include "libtorrent/request_blocks.hpp" // for source_rank
 
@@ -48,7 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/piece_picker.hpp"
 #include "libtorrent/socket.hpp"
 #include "libtorrent/address.hpp"
-#include "libtorrent/aux_/invariant_check.hpp"
+#include "libtorrent/invariant_check.hpp"
 #include "libtorrent/ip_voter.hpp"
 #include "libtorrent/config.hpp"
 #include "libtorrent/debug.hpp"
@@ -60,6 +53,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
+	struct ip_filter;
+	class port_filter;
 	struct torrent_peer_allocator_interface;
 
 	// this object is used to communicate torrent state and
@@ -101,8 +96,10 @@ namespace libtorrent {
 	struct erase_peer_flags_tag;
 	using erase_peer_flags_t = flags::bitfield_flag<std::uint8_t, erase_peer_flags_tag>;
 
-	struct TORRENT_EXTRA_EXPORT peer_list : single_threaded
+	class TORRENT_EXTRA_EXPORT peer_list : single_threaded
 	{
+	public:
+
 		explicit peer_list(torrent_peer_allocator_interface& alloc);
 		~peer_list();
 
@@ -121,7 +118,8 @@ namespace libtorrent {
 		// this is called once for every torrent_peer we get from
 		// the tracker, pex, lsd or dht.
 		torrent_peer* add_peer(tcp::endpoint const& remote
-			, peer_source_flags_t, pex_flags_t, torrent_state*);
+			, peer_source_flags_t source, pex_flags_t flags
+			, torrent_state* state);
 
 		// false means duplicate connection
 		bool update_peer_port(int port, torrent_peer* p
@@ -210,7 +208,7 @@ namespace libtorrent {
 
 		bool compare_peer_erase(torrent_peer const& lhs, torrent_peer const& rhs) const;
 		bool compare_peer(torrent_peer const* lhs, torrent_peer const* rhs
-			, external_ip const& external, int external_port) const;
+			, external_ip const& external, int source_port) const;
 
 		void find_connect_candidates(std::vector<torrent_peer*>& peers
 			, int session_time, torrent_state* state);

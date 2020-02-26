@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2017-2018, Steven Siloti
-Copyright (c) 2017-2019, Arvid Norberg
-Copyright (c) 2017-2018, Alden Torres
+Copyright (c) 2017, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,6 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/write_resume_data.hpp"
 #include "libtorrent/add_torrent_params.hpp"
 #include "libtorrent/socket_io.hpp" // for write_*_endpoint()
+#include "libtorrent/hasher.hpp"
 #include "libtorrent/torrent_info.hpp"
 #include "libtorrent/aux_/numeric_cast.hpp"
 #include "libtorrent/torrent.hpp" // for default_piece_priority
@@ -49,7 +48,7 @@ namespace libtorrent {
 	{
 		entry ret;
 
-		using namespace libtorrent::aux; // for write_*_endpoint()
+		using namespace libtorrent::detail; // for write_*_endpoint()
 		ret["file-format"] = "libtorrent resume file";
 		ret["file-version"] = 1;
 		ret["libtorrent-version"] = LIBTORRENT_VERSION;
@@ -64,8 +63,6 @@ namespace libtorrent {
 		ret["finished_time"] = atp.finished_time;
 		ret["seeding_time"] = atp.seeding_time;
 		ret["last_seen_complete"] = atp.last_seen_complete;
-		ret["last_download"] = atp.last_download;
-		ret["last_upload"] = atp.last_upload;
 
 		ret["num_complete"] = atp.num_complete;
 		ret["num_incomplete"] = atp.num_incomplete;
@@ -81,54 +78,29 @@ namespace libtorrent {
 
 		ret["save_path"] = atp.save_path;
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 		// deprecated in 1.2
 		if (!atp.url.empty()) ret["url"] = atp.url;
+		if (!atp.uuid.empty()) ret["uuid"] = atp.uuid;
 #endif
 
-		ret["info-hash"] = atp.info_hash.v1;
-		ret["info-hash2"] = atp.info_hash.v2;
+		ret["info-hash"] = atp.info_hash;
 
 		if (atp.ti)
 		{
 			auto const info = atp.ti->metadata();
 			int const size = atp.ti->metadata_size();
 			ret["info"].preformatted().assign(&info[0], &info[0] + size);
-			if (!atp.ti->comment().empty())
-				ret["comment"] = atp.ti->comment();
-			if (atp.ti->creation_date() != 0)
-				ret["creation date"] = atp.ti->creation_date();
-			if (!atp.ti->creator().empty())
-				ret["created by"] = atp.ti->creator();
 		}
 
-		if (!atp.merkle_trees.empty())
+		if (!atp.merkle_tree.empty())
 		{
-			auto& trees = atp.merkle_trees;
-			auto& ret_trees = ret["trees"].list();
-			ret_trees.reserve(atp.merkle_trees.size());
-			for (file_index_t f(0); f < file_index_t{int(atp.merkle_trees.size())}; ++f)
-			{
-				auto& tree = trees[f];
-				ret_trees.emplace_back(entry::dictionary_t);
-				auto& ret_dict = ret_trees.back().dict();
-				auto& ret_tree = ret_dict["hashes"].string();
-
-				ret_tree.reserve(tree.size() * 32);
-				for (auto const& n : tree)
-					ret_tree.append(n.data(), n.size());
-
-				if (!atp.verified_leaf_hashes.empty())
-				{
-					auto& verified = atp.verified_leaf_hashes[f];
-					if (!verified.empty())
-					{
-						auto& ret_verified = ret_dict["verified"].string();
-						for (auto const bit : verified)
-							ret_verified.push_back(bit ? '1' : '0');
-					}
-				}
-			}
+			// we need to save the whole merkle hash tree
+			// in order to resume
+			std::string& tree_str = ret["merkle tree"].string();
+			auto const& tree = atp.merkle_tree;
+			tree_str.resize(tree.size() * 20);
+			std::memcpy(&tree_str[0], &tree[0], tree.size() * 20);
 		}
 
 		if (!atp.unfinished_pieces.empty())
@@ -143,16 +115,18 @@ namespace libtorrent {
 
 				// the unfinished piece's index
 				piece_struct["piece"] = static_cast<int>(p.first);
-				piece_struct["bitmask"] = std::string(p.second.data(), std::size_t(p.second.size() + 7) / 8);
+				std::string& bitmask = piece_struct["bitmask"].string();
+				for (auto const bit : p.second)
+					bitmask.push_back(bit ? '1' : '0');
 				// push the struct onto the unfinished-piece list
 				up.push_back(std::move(piece_struct));
 			}
 		}
 
 		// save trackers
-		entry::list_type& tr_list = ret["trackers"].list();
 		if (!atp.trackers.empty())
 		{
+			entry::list_type& tr_list = ret["trackers"].list();
 			tr_list.emplace_back(entry::list_type());
 			std::size_t tier = 0;
 			auto tier_it = atp.tracker_tiers.begin();
@@ -169,11 +143,17 @@ namespace libtorrent {
 		}
 
 		// save web seeds
-		entry::list_type& url_list = ret["url-list"].list();
-		std::copy(atp.url_seeds.begin(), atp.url_seeds.end(), std::back_inserter(url_list));
+		if (!atp.url_seeds.empty())
+		{
+			entry::list_type& url_list = ret["url-list"].list();
+			std::copy(atp.url_seeds.begin(), atp.url_seeds.end(), std::back_inserter(url_list));
+		}
 
-		entry::list_type& httpseeds_list = ret["httpseeds"].list();
-		std::copy(atp.http_seeds.begin(), atp.http_seeds.end(), std::back_inserter(httpseeds_list));
+		if (!atp.http_seeds.empty())
+		{
+			entry::list_type& url_list = ret["httpseeds"].list();
+			std::copy(atp.http_seeds.begin(), atp.http_seeds.end(), std::back_inserter(url_list));
+		}
 
 		// write have bitmask
 		entry::string_type& pieces = ret["pieces"].string();
@@ -200,7 +180,7 @@ namespace libtorrent {
 			entry::list_type& fl = ret["mapped_files"].list();
 			for (auto const& ent : atp.renamed_files)
 			{
-				auto const idx = static_cast<std::size_t>(static_cast<int>(ent.first));
+				std::size_t const idx(static_cast<std::size_t>(static_cast<int>(ent.first)));
 				if (idx >= fl.size()) fl.resize(idx + 1);
 				fl[idx] = ent.second;
 			}
@@ -210,12 +190,16 @@ namespace libtorrent {
 		if (!atp.peers.empty())
 		{
 			std::back_insert_iterator<entry::string_type> ptr(ret["peers"].string());
+#if TORRENT_USE_IPV6
 			std::back_insert_iterator<entry::string_type> ptr6(ret["peers6"].string());
+#endif
 			for (auto const& p : atp.peers)
 			{
-				if (is_v6(p))
+#if TORRENT_USE_IPV6
+				if (p.address().is_v6())
 					write_endpoint(p, ptr6);
 				else
+#endif
 					write_endpoint(p, ptr);
 			}
 		}
@@ -223,12 +207,16 @@ namespace libtorrent {
 		if (!atp.banned_peers.empty())
 		{
 			std::back_insert_iterator<entry::string_type> ptr(ret["banned_peers"].string());
+#if TORRENT_USE_IPV6
 			std::back_insert_iterator<entry::string_type> ptr6(ret["banned_peers6"].string());
+#endif
 			for (auto const& p : atp.banned_peers)
 			{
-				if (is_v6(p))
+#if TORRENT_USE_IPV6
+				if (p.address().is_v6())
 					write_endpoint(p, ptr6);
 				else
+#endif
 					write_endpoint(p, ptr);
 			}
 		}

@@ -1,9 +1,6 @@
 /*
 
-Copyright (c) 2014-2015, Steven Siloti
-Copyright (c) 2015, Thomas Yuan
-Copyright (c) 2015-2016, 2018, Alden Torres
-Copyright (c) 2016-2017, 2019, Arvid Norberg
+Copyright (c) 2014, Steven Siloti
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,18 +36,17 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/kademlia/msg.hpp>
 #include <libtorrent/kademlia/traversal_algorithm.hpp>
 
-namespace libtorrent {
-namespace dht {
+namespace libtorrent { namespace dht {
 
 struct direct_traversal : traversal_algorithm
 {
-	using message_callback = std::function<void(dht::msg const&)>;
+	typedef std::function<void(dht::msg const&)> message_callback;
 
 	direct_traversal(node& node
 		, node_id const& target
 		, message_callback cb)
 		: traversal_algorithm(node, target)
-		, m_cb(std::move(cb))
+		, m_cb(cb)
 	{}
 
 	char const* name() const override { return "direct_traversal"; }
@@ -92,7 +88,6 @@ struct direct_observer : observer
 	}
 };
 
-} // namespace dht
-} // namespace libtorrent
+}} // namespace libtorrent::dht
 
 #endif //TORRENT_DIRECT_REQUEST_HPP

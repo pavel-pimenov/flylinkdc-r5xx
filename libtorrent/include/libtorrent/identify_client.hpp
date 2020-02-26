@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2003, 2006, 2013-2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
+Copyright (c) 2003-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,7 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/config.hpp"
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 #include "libtorrent/aux_/disable_warnings_push.hpp"
 #include <boost/optional.hpp>
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
@@ -65,7 +64,7 @@ namespace aux {
 	TORRENT_DEPRECATED_EXPORT
 	std::string identify_client(const peer_id& p);
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -83,7 +82,7 @@ namespace aux {
 	// id. This can be used to automate the identification of clients. It will
 	// not be able to identify peers with non- standard encodings. Only Azureus
 	// style, Shadow's style and Mainline style.
-	TORRENT_DEPRECATED_EXPORT
+	TORRENT_DEPRECATED_EXPORT TORRENT_DEPRECATED
 	boost::optional<fingerprint>
 		client_fingerprint(peer_id const& p);
 
@@ -97,7 +96,7 @@ namespace aux {
 #pragma warning(pop)
 #endif
 
-#endif // TORRENT_ABI_VERSION
+#endif // TORRENT_NO_DEPRECATE
 
 }
 

@@ -21,8 +21,6 @@
   Mark Adler    madler@alumni.caltech.edu
  */
 
-#ifndef PUFF_HPP_INCLUDED
-#define PUFF_HPP_INCLUDED
 
 /*
  * See puff.c for purpose and usage.
@@ -31,5 +29,3 @@ int puff(unsigned char *dest,           /* pointer to destination pointer */
          unsigned long *destlen,        /* amount of output space */
          const unsigned char *source,   /* pointer to source data pointer */
          unsigned long *sourcelen);     /* amount of input available */
-
-#endif // PUFF_HPP_INCLUDED

@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2014-2017, 2019, Arvid Norberg
-Copyright (c) 2016-2018, Alden Torres
-Copyright (c) 2018, Steven Siloti
+Copyright (c) 2012-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,7 +36,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/peer_connection.hpp"
 #include "libtorrent/crc32c.hpp"
 #include "libtorrent/ip_voter.hpp"
-#include "libtorrent/io.hpp" // for write_uint16
+
+#include <boost/detail/endian.hpp> // for BIG_ENDIAN and LITTLE_ENDIAN macros
 
 namespace libtorrent {
 
@@ -75,7 +74,7 @@ namespace libtorrent {
 	// * all IP addresses are in network byte order when hashed
 	std::uint32_t peer_priority(tcp::endpoint e1, tcp::endpoint e2)
 	{
-		TORRENT_ASSERT(is_v4(e1) == is_v4(e2));
+		TORRENT_ASSERT(e1.address().is_v4() == e2.address().is_v4());
 
 		using std::swap;
 
@@ -85,12 +84,19 @@ namespace libtorrent {
 			if (e1.port() > e2.port())
 				swap(e1, e2);
 			std::uint32_t p;
-			auto ptr = reinterpret_cast<char*>(&p);
-			aux::write_uint16(e1.port(), ptr);
-			aux::write_uint16(e2.port(), ptr);
+#if defined BOOST_BIG_ENDIAN
+			p = std::uint32_t(e1.port() << 16);
+			p |= e2.port();
+#elif defined BOOST_LITTLE_ENDIAN
+			p = std::uint32_t(aux::host_to_network(e2.port()) << 16);
+			p |= aux::host_to_network(e1.port());
+#else
+#error unsupported endianness
+#endif
 			ret = crc32c_32(p);
 		}
-		else if (is_v6(e1))
+#if TORRENT_USE_IPV6
+		else if (e1.address().is_v6())
 		{
 			static const std::uint8_t v6mask[][8] = {
 				{ 0xff, 0xff, 0xff, 0xff, 0x55, 0x55, 0x55, 0x55 },
@@ -110,6 +116,7 @@ namespace libtorrent {
 			memcpy(&addrbuf[2], b2.data(), 16);
 			ret = crc32c(addrbuf, 4);
 		}
+#endif
 		else
 		{
 			static const std::uint8_t v4mask[][4] = {
@@ -151,14 +158,16 @@ namespace libtorrent {
 		, fast_reconnects(0)
 		, trust_points(0)
 		, source(static_cast<std::uint8_t>(src))
-#if !defined TORRENT_DISABLE_ENCRYPTION
+#if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
 		// assume no support in order to
 		// prefer opening non-encrypted
 		// connections. If it fails, we'll
 		// retry with encryption
 		, pe_support(false)
 #endif
+#if TORRENT_USE_IPV6
 		, is_v6_addr(false)
+#endif
 #if TORRENT_USE_I2P
 		, is_i2p_addr(false)
 #endif
@@ -168,7 +177,6 @@ namespace libtorrent {
 		, confirmed_supports_utp(false)
 		, supports_holepunch(false)
 		, web_seed(false)
-		, protocol_v2(false)
 	{}
 
 	std::uint32_t torrent_peer::rank(external_ip const& external, int external_port) const
@@ -189,7 +197,8 @@ namespace libtorrent {
 #if TORRENT_USE_I2P
 		if (is_i2p_addr) return dest().to_string();
 #endif // TORRENT_USE_I2P
-		return address().to_string();
+		error_code ec;
+		return address().to_string(ec);
 	}
 #endif
 
@@ -226,26 +235,31 @@ namespace libtorrent {
 		: torrent_peer(ep.port(), c, src)
 		, addr(ep.address().to_v4())
 	{
+#if TORRENT_USE_IPV6
 		is_v6_addr = false;
+#endif
 #if TORRENT_USE_I2P
 		is_i2p_addr = false;
 #endif
 	}
 
 	ipv4_peer::ipv4_peer(ipv4_peer const&) = default;
-	ipv4_peer& ipv4_peer::operator=(ipv4_peer const& p) & = default;
+	ipv4_peer& ipv4_peer::operator=(ipv4_peer const& p) = default;
 
 #if TORRENT_USE_I2P
-	i2p_peer::i2p_peer(string_view dest, bool connectable_
+	i2p_peer::i2p_peer(string_view dest, bool connectable
 		, peer_source_flags_t const src)
-		: torrent_peer(0, connectable_, src)
+		: torrent_peer(0, connectable, src)
 		, destination(dest)
 	{
+#if TORRENT_USE_IPV6
 		is_v6_addr = false;
+#endif
 		is_i2p_addr = true;
 	}
 #endif // TORRENT_USE_I2P
 
+#if TORRENT_USE_IPV6
 	ipv6_peer::ipv6_peer(tcp::endpoint const& ep, bool c
 		, peer_source_flags_t const src)
 		: torrent_peer(ep.port(), c, src)
@@ -259,6 +273,8 @@ namespace libtorrent {
 
 	ipv6_peer::ipv6_peer(ipv6_peer const&) = default;
 
+#endif // TORRENT_USE_IPV6
+
 #if TORRENT_USE_I2P
 	string_view torrent_peer::dest() const
 	{
@@ -270,12 +286,14 @@ namespace libtorrent {
 
 	libtorrent::address torrent_peer::address() const
 	{
+#if TORRENT_USE_IPV6
 		if (is_v6_addr)
 			return libtorrent::address_v6(
 				static_cast<ipv6_peer const*>(this)->addr);
 		else
+#endif
 #if TORRENT_USE_I2P
-		if (is_i2p_addr) return {};
+		if (is_i2p_addr) return libtorrent::address();
 		else
 #endif
 		return static_cast<ipv4_peer const*>(this)->addr;

@@ -35,32 +35,33 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <vector>
 #include <cstdint>
-#include <functional>
 
-#include "libtorrent/aux_/export.hpp"
+#include "libtorrent/export.hpp"
 #include "libtorrent/units.hpp"
 #include "libtorrent/aux_/vector.hpp"
 
 #if TORRENT_USE_INVARIANT_CHECKS
 #include "libtorrent/bitfield.hpp"
-#include "libtorrent/aux_/invariant_check.hpp"
+#include "libtorrent/invariant_check.hpp"
 #endif
 
 #if TORRENT_USE_INVARIANT_CHECKS
-#include "libtorrent/aux_/invariant_check.hpp"
+#include "libtorrent/invariant_check.hpp"
 #include "libtorrent/bitfield.hpp"
 #endif
 
 namespace libtorrent {
 
-struct piece_picker;
+class piece_picker;
 class file_storage;
+class alert_manager;
+struct torrent_handle;
 
 namespace aux {
 
 	struct TORRENT_EXTRA_EXPORT file_progress
 	{
-		file_progress() = default;
+		file_progress();
 
 		void init(piece_picker const& picker
 			, file_storage const& fs);
@@ -71,7 +72,7 @@ namespace aux {
 		void clear();
 
 		void update(file_storage const& fs, piece_index_t index
-			, std::function<void(file_index_t)> const& completed_cb);
+			, alert_manager* alerts, torrent_handle const& h);
 
 	private:
 
@@ -83,7 +84,7 @@ namespace aux {
 		vector<std::int64_t, file_index_t> m_file_progress;
 
 #if TORRENT_USE_INVARIANT_CHECKS
-		friend struct libtorrent::invariant_access;
+		friend class libtorrent::invariant_access;
 		void check_invariant() const;
 
 		// this is used to assert we never add the same piece twice

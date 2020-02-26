@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2007, 2009, 2011-2016, 2019, Arvid Norberg
-Copyright (c) 2016, 2018, Alden Torres
+Copyright (c) 2007-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,7 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <vector>
 
-#include "libtorrent/aux_/invariant_check.hpp"
+#include "libtorrent/invariant_check.hpp"
 #include "libtorrent/assert.hpp"
 #include "libtorrent/bandwidth_limit.hpp"
 #include "libtorrent/bandwidth_queue_entry.hpp"
@@ -64,7 +63,7 @@ struct TORRENT_EXTRA_EXPORT bandwidth_manager
 	// this is used by web seeds
 	// returns the number of bytes to assign to the peer, or 0
 	// if the peer's 'assign_bandwidth' callback will be called later
-	int request_bandwidth(std::shared_ptr<bandwidth_socket> peer
+	int request_bandwidth(std::shared_ptr<bandwidth_socket> const& peer
 		, int blk, int priority, bandwidth_channel** chan, int num_channels);
 
 #if TORRENT_USE_INVARIANT_CHECKS

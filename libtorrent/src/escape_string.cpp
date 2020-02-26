@@ -1,9 +1,6 @@
 /*
 
-Copyright (c) 2004, 2006-2007, 2009-2011, 2013-2019, Arvid Norberg
-Copyright (c) 2015, Mikhail Titov
-Copyright (c) 2016-2017, Andrei Kurushin
-Copyright (c) 2016-2017, Alden Torres
+Copyright (c) 2003-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -42,12 +39,15 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 
 #ifdef TORRENT_WINDOWS
-#include "libtorrent/aux_/windows.hpp"
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
 #endif
 
 #if TORRENT_USE_ICONV
 #include <iconv.h>
-#include <clocale>
+#include <locale.h>
 #endif
 
 #include "libtorrent/assert.hpp"
@@ -69,6 +69,7 @@ namespace libtorrent {
 	std::string unescape_string(string_view s, error_code& ec)
 	{
 		std::string ret;
+	//	ret.reserve(s.length());
 		for (auto i = s.begin(); i != s.end(); ++i)
 		{
 			if (*i == '+')
@@ -189,8 +190,17 @@ namespace libtorrent {
 
 	void convert_path_to_posix(std::string& path)
 	{
-		std::replace(path.begin(), path.end(), '\\', '/');
+		for (char& c : path)
+			if (c == '\\') c = '/';
 	}
+
+#ifdef TORRENT_WINDOWS
+	void convert_path_to_windows(std::string& path)
+	{
+		for (char& c : path)
+			if (c == '/') c = '\\';
+	}
+#endif
 
 	// TODO: 2 this should probably be moved into string_util.cpp
 	std::string read_until(char const*& str, char const delim, char const* end)
@@ -246,6 +256,34 @@ namespace libtorrent {
 
 		return msg;
 	}
+
+#ifndef TORRENT_NO_DEPRECATE
+	std::string resolve_file_url(std::string const& url)
+	{
+		TORRENT_ASSERT(url.substr(0, 7) == "file://");
+		// first, strip the file:// part.
+		// On windows, we have
+		// to strip the first / as well
+		std::size_t num_to_strip = 7;
+#ifdef TORRENT_WINDOWS
+		if (url[7] == '/' || url[7] == '\\') ++num_to_strip;
+#endif
+		std::string ret = url.substr(num_to_strip);
+
+		// we also need to URL-decode it
+		error_code ec;
+		std::string unescaped = unescape_string(ret, ec);
+		if (ec) unescaped = ret;
+
+		// on windows, we need to convert forward slashes
+		// to backslashes
+#ifdef TORRENT_WINDOWS
+		convert_path_to_windows(unescaped);
+#endif
+
+		return unescaped;
+	}
+#endif
 
 	std::string base64encode(const std::string& s)
 	{
@@ -436,6 +474,29 @@ namespace libtorrent {
 		return pos + p;
 	}
 
+	string_view url_has_argument(
+		string_view url, std::string argument, std::string::size_type* out_pos)
+	{
+		auto i = url.find('?');
+		if (i == std::string::npos) return {};
+		++i;
+
+		argument += '=';
+
+		if (url.substr(i, argument.size()) == argument)
+		{
+			auto const pos = i + argument.size();
+			if (out_pos) *out_pos = pos;
+			return url.substr(pos, url.substr(pos).find('&'));
+		}
+		argument.insert(0, "&");
+		i = find(url, argument, i);
+		if (i == std::string::npos) return {};
+		auto const pos = i + argument.size();
+		if (out_pos) *out_pos = pos;
+		return url.substr(pos, find(url, "&", pos) - pos);
+	}
+
 #if defined TORRENT_WINDOWS
 	std::wstring convert_to_wstring(std::string const& s)
 	{
@@ -579,7 +640,7 @@ namespace {
 		if (size == std::size_t(-1)) return s;
 		std::string ret;
 		ret.resize(size);
-		size = std::wcstombs(&ret[0], ws.c_str(), size + 1);
+		size = wcstombs(&ret[0], ws.c_str(), size + 1);
 		if (size == std::size_t(-1)) return s;
 		ret.resize(size);
 		return ret;
@@ -589,8 +650,9 @@ namespace {
 	{
 		std::wstring ws;
 		ws.resize(s.size());
-		std::size_t size = std::mbstowcs(&ws[0], s.c_str(), s.size());
+		std::size_t size = mbstowcs(&ws[0], s.c_str(), s.size());
 		if (size == std::size_t(-1)) return s;
+		std::string ret;
 		return libtorrent::wchar_utf8(ws);
 	}
 

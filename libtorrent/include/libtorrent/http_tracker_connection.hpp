@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2004, 2006-2009, 2012, 2014-2017, 2019, Arvid Norberg
-Copyright (c) 2016-2018, Alden Torres
+Copyright (c) 2003-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,21 +33,26 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_HTTP_TRACKER_CONNECTION_HPP_INCLUDED
 #define TORRENT_HTTP_TRACKER_CONNECTION_HPP_INCLUDED
 
+#include <string>
 #include <vector>
 #include <memory>
 
 #include "libtorrent/config.hpp"
+#include "libtorrent/lazy_entry.hpp"
 #include "libtorrent/peer_id.hpp"
+#include "libtorrent/tracker_manager.hpp"
+#include "libtorrent/i2p_stream.hpp"
 #include "libtorrent/error_code.hpp"
-#include "libtorrent/tracker_manager.hpp" // for tracker_connection
 
 namespace libtorrent {
 
-	class tracker_manager;
 	struct http_connection;
+	class entry;
 	class http_parser;
 	struct bdecode_node;
 	struct peer_entry;
+
+	namespace aux { struct session_settings; }
 
 	class TORRENT_EXTRA_EXPORT http_tracker_connection
 		: public tracker_connection
@@ -57,9 +61,9 @@ namespace libtorrent {
 	public:
 
 		http_tracker_connection(
-			io_context& ios
+			io_service& ios
 			, tracker_manager& man
-			, tracker_request req
+			, tracker_request const& req
 			, std::weak_ptr<request_callback> c);
 
 		void start() override;
@@ -82,12 +86,11 @@ namespace libtorrent {
 
 		std::shared_ptr<http_connection> m_tracker_connection;
 		address m_tracker_ip;
-		io_context& m_ioc;
 	};
 
 	TORRENT_EXTRA_EXPORT tracker_response parse_tracker_response(
 		span<char const> data, error_code& ec
-		, tracker_request_flags_t flags, sha1_hash const& scrape_ih);
+		, int flags, sha1_hash const& scrape_ih);
 
 	TORRENT_EXTRA_EXPORT bool extract_peer_info(bdecode_node const& info
 		, peer_entry& ret, error_code& ec);

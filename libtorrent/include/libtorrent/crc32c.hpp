@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2010, 2014-2019, Arvid Norberg
+Copyright (c) 2014-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,14 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_CRC32C_HPP_INCLUDE
 
 #include <cstdint>
-#include "libtorrent/aux_/export.hpp"
+#include "libtorrent/export.hpp"
 
 namespace libtorrent {
 
 	// this is the crc32c (Castagnoli) polynomial
-	TORRENT_EXTRA_EXPORT std::uint32_t crc32c_32(std::uint32_t);
-	TORRENT_EXTRA_EXPORT std::uint32_t crc32c(std::uint64_t const*, int);
+	TORRENT_EXTRA_EXPORT std::uint32_t crc32c_32(std::uint32_t v);
+	TORRENT_EXTRA_EXPORT std::uint32_t crc32c(std::uint64_t const* v
+		, int num_words);
 }
 
 #endif

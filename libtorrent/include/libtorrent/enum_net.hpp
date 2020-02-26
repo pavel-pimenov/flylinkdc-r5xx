@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2007-2008, 2010, 2014-2019, Arvid Norberg
-Copyright (c) 2016-2018, Alden Torres
-Copyright (c) 2017-2018, Steven Siloti
+Copyright (c) 2007-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -43,29 +41,26 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <sys/socket.h> // for SO_BINDTODEVICE
 #endif
 
-#include <boost/optional.hpp>
-
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 
-#include "libtorrent/io_context.hpp"
+#include "libtorrent/io_service_fwd.hpp"
 #include "libtorrent/address.hpp"
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/socket.hpp"
 #include "libtorrent/aux_/bind_to_device.hpp"
-#include "libtorrent/span.hpp"
 
 #include <vector>
 
 namespace libtorrent {
+
+	struct socket_type;
 
 	// the interface should not have a netmask
 	struct ip_interface
 	{
 		address interface_address;
 		address netmask;
-		char name[64]{};
-		char friendly_name[128]{};
-		char description[128]{};
+		char name[64];
 		// an interface is preferred if its address is
 		// not tentative/duplicate/deprecated
 		bool preferred = true;
@@ -76,31 +71,30 @@ namespace libtorrent {
 		address destination;
 		address netmask;
 		address gateway;
-		char name[64]{};
+		char name[64];
 		int mtu;
 	};
 
 	// returns a list of the configured IP interfaces
 	// on the machine
-	TORRENT_EXTRA_EXPORT std::vector<ip_interface> enum_net_interfaces(io_context& ios
+	TORRENT_EXTRA_EXPORT std::vector<ip_interface> enum_net_interfaces(io_service& ios
 		, error_code& ec);
 
-	TORRENT_EXTRA_EXPORT std::vector<ip_route> enum_routes(io_context& ios
+	TORRENT_EXTRA_EXPORT std::vector<ip_route> enum_routes(io_service& ios
 		, error_code& ec);
 
 	// return (a1 & mask) == (a2 & mask)
 	TORRENT_EXTRA_EXPORT bool match_addr_mask(address const& a1
 		, address const& a2, address const& mask);
 
-	// return a netmask with the specified address family and the specified
-	// number of prefix bit set, of the most significant bits in the resulting
-	// netmask
-	TORRENT_EXTRA_EXPORT address build_netmask(int bits, int family);
+	// returns true if the specified address is on the same
+	// local network as us
+	TORRENT_EXTRA_EXPORT bool in_local_network(io_service& ios, address const& addr
+		, error_code& ec);
+	TORRENT_EXTRA_EXPORT bool in_local_network(std::vector<ip_interface> const& net
+		, address const& addr);
 
-	// return the gateway for the given ip_interface, if there is one. Otherwise
-	// return nullopt.
-	TORRENT_EXTRA_EXPORT boost::optional<address> get_gateway(
-		ip_interface const& iface, span<ip_route const> routes);
+	TORRENT_EXTRA_EXPORT address get_default_gateway(io_service& ios, error_code& ec);
 
 	// attempt to bind socket to the device with the specified name. For systems
 	// that don't support SO_BINDTODEVICE the socket will be bound to one of the
@@ -110,8 +104,8 @@ namespace libtorrent {
 	// in case SO_BINDTODEVICE succeeded and we don't need to verify it).
 	// TODO: 3 use string_view for device_name
 	template <class Socket>
-	address bind_socket_to_device(io_context& ios, Socket& sock
-		, tcp const& protocol
+	address bind_socket_to_device(io_service& ios, Socket& sock
+		, boost::asio::ip::tcp const& protocol
 		, char const* device_name, int port, error_code& ec)
 	{
 		tcp::endpoint bind_ep(address_v4::any(), std::uint16_t(port));
@@ -119,11 +113,13 @@ namespace libtorrent {
 		address ip = make_address(device_name, ec);
 		if (!ec)
 		{
+#if TORRENT_USE_IPV6
 			// this is to cover the case where "0.0.0.0" is considered any IPv4 or
 			// IPv6 address. If we're asking to be bound to an IPv6 address and
 			// providing 0.0.0.0 as the device, turn it into "::"
 			if (ip == address_v4::any() && protocol == boost::asio::ip::tcp::v6())
 				ip = address_v6::any();
+#endif
 			bind_ep.address(ip);
 			// it appears to be an IP. Just bind to that address
 			sock.bind(bind_ep, ec);
@@ -174,7 +170,7 @@ namespace libtorrent {
 	// returns the device name whose local address is ``addr``. If
 	// no such device is found, an empty string is returned.
 	TORRENT_EXTRA_EXPORT std::string device_for_address(address addr
-		, io_context& ios, error_code& ec);
+		, io_service& ios, error_code& ec);
 
 }
 

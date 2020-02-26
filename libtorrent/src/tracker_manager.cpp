@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2004-2019, Arvid Norberg
-Copyright (c) 2016-2018, Alden Torres
-Copyright (c) 2017, Steven Siloti
+Copyright (c) 2003-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -42,14 +40,17 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/performance_counters.hpp"
 #include "libtorrent/socket_io.hpp"
 
+#ifdef TORRENT_USE_OPENSSL
+#include "libtorrent/aux_/disable_warnings_push.hpp"
+#include <boost/asio/ssl/context.hpp>
+#include "libtorrent/aux_/disable_warnings_pop.hpp"
+#endif
+
 using namespace std::placeholders;
 
 namespace libtorrent {
 
-constexpr tracker_request_flags_t tracker_request::scrape_request;
-constexpr tracker_request_flags_t tracker_request::i2p;
-
-	timeout_handler::timeout_handler(io_context& ios)
+	timeout_handler::timeout_handler(io_service& ios)
 		: m_start_time(clock_type::now())
 		, m_read_time(m_start_time)
 		, m_timeout(ios)
@@ -80,7 +81,8 @@ constexpr tracker_request_flags_t tracker_request::i2p;
 		}
 
 		ADD_OUTSTANDING_ASYNC("timeout_handler::timeout_callback");
-		m_timeout.expires_at(m_read_time + seconds(timeout));
+		error_code ec;
+		m_timeout.expires_at(m_read_time + seconds(timeout), ec);
 		m_timeout.async_wait(std::bind(
 			&timeout_handler::timeout_callback, shared_from_this(), _1));
 #if TORRENT_USE_ASSERTS
@@ -97,7 +99,8 @@ constexpr tracker_request_flags_t tracker_request::i2p;
 	{
 		m_abort = true;
 		m_completion_timeout = 0;
-		m_timeout.cancel();
+		error_code ec;
+		m_timeout.cancel(ec);
 	}
 
 	void timeout_handler::timeout_callback(error_code const& error)
@@ -132,7 +135,8 @@ constexpr tracker_request_flags_t tracker_request::i2p;
 				: std::min(int(m_completion_timeout - total_seconds(m_read_time - m_start_time)), timeout);
 		}
 		ADD_OUTSTANDING_ASYNC("timeout_handler::timeout_callback");
-		m_timeout.expires_at(m_read_time + seconds(timeout));
+		error_code ec;
+		m_timeout.expires_at(m_read_time + seconds(timeout), ec);
 		m_timeout.async_wait(
 			std::bind(&timeout_handler::timeout_callback, shared_from_this(), _1));
 #if TORRENT_USE_ASSERTS
@@ -142,11 +146,11 @@ constexpr tracker_request_flags_t tracker_request::i2p;
 
 	tracker_connection::tracker_connection(
 		tracker_manager& man
-		, tracker_request req
-		, io_context& ios
+		, tracker_request const& req
+		, io_service& ios
 		, std::weak_ptr<request_callback> r)
 		: timeout_handler(ios)
-		, m_req(std::move(req))
+		, m_req(req)
 		, m_requester(std::move(r))
 		, m_man(man)
 	{}
@@ -160,7 +164,7 @@ constexpr tracker_request_flags_t tracker_request::i2p;
 		, char const* msg, seconds32 const interval, seconds32 const min_interval)
 	{
 		// we need to post the error to avoid deadlock
-		post(get_executor(), std::bind(&tracker_connection::fail_impl
+		get_io_service().post(std::bind(&tracker_connection::fail_impl
 			, shared_from_this(), ec, std::string(msg), interval, min_interval));
 	}
 
@@ -188,8 +192,8 @@ constexpr tracker_request_flags_t tracker_request::i2p;
 		m_man.received_bytes(bytes);
 	}
 
-	tracker_manager::tracker_manager(send_fun_t send_fun
-		, send_fun_hostname_t send_fun_hostname
+	tracker_manager::tracker_manager(send_fun_t const& send_fun
+		, send_fun_hostname_t const& send_fun_hostname
 		, counters& stats_counters
 		, resolver_interface& resolver
 		, aux::session_settings const& sett
@@ -197,8 +201,8 @@ constexpr tracker_request_flags_t tracker_request::i2p;
 		, aux::session_logger& ses
 #endif
 		)
-		: m_send_fun(std::move(send_fun))
-		, m_send_fun_hostname(std::move(send_fun_hostname))
+		: m_send_fun(send_fun)
+		, m_send_fun_hostname(send_fun_hostname)
 		, m_host_resolver(resolver)
 		, m_settings(sett)
 		, m_stats_counters(stats_counters)
@@ -251,14 +255,16 @@ constexpr tracker_request_flags_t tracker_request::i2p;
 	}
 
 	void tracker_manager::queue_request(
-		io_context& ios
-		, tracker_request&& req
+		io_service& ios
+		, tracker_request req
 		, std::weak_ptr<request_callback> c)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		TORRENT_ASSERT(req.num_want >= 0);
-		TORRENT_ASSERT(!m_abort || req.event == event_t::stopped);
-		if (m_abort && req.event != event_t::stopped) return;
+		TORRENT_ASSERT(!m_abort || req.event == tracker_request::stopped);
+		if (m_abort && req.event != tracker_request::stopped) return;
+		if (req.event == tracker_request::stopped)
+			req.num_want = 0;
 
 #ifndef TORRENT_DISABLE_LOGGING
 		std::shared_ptr<request_callback> cb = c.lock();
@@ -266,7 +272,11 @@ constexpr tracker_request_flags_t tracker_request::i2p;
 			, req.listen_port);
 #endif
 
-		std::string const protocol = req.url.substr(0, req.url.find(':'));
+		TORRENT_ASSERT(!m_abort || req.event == tracker_request::stopped);
+		if (m_abort && req.event != tracker_request::stopped)
+			return;
+
+		std::string protocol = req.url.substr(0, req.url.find(':'));
 
 #ifdef TORRENT_USE_OPENSSL
 		if (protocol == "http" || protocol == "https")
@@ -274,23 +284,23 @@ constexpr tracker_request_flags_t tracker_request::i2p;
 		if (protocol == "http")
 #endif
 		{
-			auto con = std::make_shared<http_tracker_connection>(ios, *this, std::move(req), c);
+			auto con = std::make_shared<http_tracker_connection>(ios, *this, req, c);
 			m_http_conns.push_back(con);
 			con->start();
 			return;
 		}
 		else if (protocol == "udp")
 		{
-			auto con = std::make_shared<udp_tracker_connection>(ios, *this, std::move(req), c);
+			auto con = std::make_shared<udp_tracker_connection>(ios, *this, req, c);
 			m_udp_conns[con->transaction_id()] = con;
 			con->start();
 			return;
 		}
 
 		// we need to post the error to avoid deadlock
-		if (auto r = c.lock())
-			post(ios, std::bind(&request_callback::tracker_request_error, r, std::move(req)
-				, errors::unsupported_url_protocol
+		if (std::shared_ptr<request_callback> r = c.lock())
+			ios.post(std::bind(&request_callback::tracker_request_error, r, req
+				, error_code(errors::unsupported_url_protocol)
 				, "", seconds32(0)));
 	}
 
@@ -408,7 +418,7 @@ constexpr tracker_request_flags_t tracker_request::i2p;
 		for (auto const& c : m_http_conns)
 		{
 			tracker_request const& req = c->tracker_req();
-			if (req.event == event_t::stopped && !all)
+			if (req.event == tracker_request::stopped && !all)
 				continue;
 
 			close_http_connections.push_back(c);
@@ -422,7 +432,7 @@ constexpr tracker_request_flags_t tracker_request::i2p;
 		{
 			auto const& c = p.second;
 			tracker_request const& req = c->tracker_req();
-			if (req.event == event_t::stopped && !all)
+			if (req.event == tracker_request::stopped && !all)
 				continue;
 
 			close_udp_connections.push_back(c);

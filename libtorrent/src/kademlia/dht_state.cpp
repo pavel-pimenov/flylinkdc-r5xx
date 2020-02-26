@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2016-2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
-Copyright (c) 2017, Steven Siloti
+Copyright (c) 2016, Arvid Norberg, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -44,13 +42,13 @@ namespace libtorrent { namespace dht {
 		if (e.type() != bdecode_node::dict_t) return node_ids_t();
 		node_ids_t ret;
 		// first look for an old-style nid
-		auto const old_nid = e.dict_find_string_value(key);
+		auto old_nid = e.dict_find_string_value(key);
 		if (old_nid.size() == 20)
 		{
 			ret.emplace_back(address(), node_id(old_nid));
 			return ret;
 		}
-		auto const nids = e.dict_find_list(key);
+		auto nids = e.dict_find_list(key);
 		if (!nids) return ret;
 		for (int i = 0; i < nids.list_size(); i++)
 		{
@@ -62,9 +60,11 @@ namespace libtorrent { namespace dht {
 			in += id.size();
 			address addr;
 			if (nid.string_length() == 24)
-				addr = aux::read_v4_address(in);
+				addr = detail::read_v4_address(in);
+#if TORRENT_USE_IPV6
 			else if (nid.string_length() == 36)
-				addr = aux::read_v6_address(in);
+				addr = detail::read_v6_address(in);
+#endif
 			else
 				continue;
 			ret.emplace_back(addr, id);
@@ -82,8 +82,8 @@ namespace {
 		{
 			std::string node;
 			std::back_insert_iterator<std::string> out(node);
-			aux::write_endpoint(ep, out);
-			list.emplace_back(node);
+			detail::write_endpoint(ep, out);
+			list.push_back(entry(node));
 		}
 		return ret;
 	}
@@ -109,9 +109,11 @@ namespace {
 		ret.nids = extract_node_ids(e, "node-id");
 
 		if (bdecode_node const nodes = e.dict_find_list("nodes"))
-			ret.nodes = aux::read_endpoint_list<udp::endpoint>(nodes);
+			ret.nodes = detail::read_endpoint_list<udp::endpoint>(nodes);
+#if TORRENT_USE_IPV6
 		if (bdecode_node const nodes = e.dict_find_list("nodes6"))
-			ret.nodes6 = aux::read_endpoint_list<udp::endpoint>(nodes);
+			ret.nodes6 = detail::read_endpoint_list<udp::endpoint>(nodes);
+#endif
 		return ret;
 	}
 
@@ -123,13 +125,15 @@ namespace {
 		{
 			std::string nid;
 			std::copy(n.second.begin(), n.second.end(), std::back_inserter(nid));
-			aux::write_address(n.first, std::back_inserter(nid));
+			detail::write_address(n.first, std::back_inserter(nid));
 			nids.emplace_back(std::move(nid));
 		}
 		entry const nodes = save_nodes(state.nodes);
 		if (!nodes.list().empty()) ret["nodes"] = nodes;
+#if TORRENT_USE_IPV6
 		entry const nodes6 = save_nodes(state.nodes6);
 		if (!nodes6.list().empty()) ret["nodes6"] = nodes6;
+#endif
 		return ret;
 	}
 }}

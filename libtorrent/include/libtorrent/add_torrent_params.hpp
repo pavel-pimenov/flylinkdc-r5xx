@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2009-2019, Arvid Norberg
-Copyright (c) 2015, 2017-2018, Steven Siloti
-Copyright (c) 2016-2017, Alden Torres
+Copyright (c) 2009-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -49,9 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/units.hpp"
 #include "libtorrent/torrent_flags.hpp"
-#include "libtorrent/info_hash.hpp"
 #include "libtorrent/download_priority.hpp"
-#include "libtorrent/client_data.hpp"
 #include "libtorrent/aux_/noexcept_movable.hpp"
 
 namespace libtorrent {
@@ -59,8 +55,6 @@ namespace libtorrent {
 	class torrent_info;
 	struct torrent_plugin;
 	struct torrent_handle;
-
-TORRENT_VERSION_NAMESPACE_2
 
 	// The add_torrent_params is a parameter pack for adding torrents to a
 	// session. The key fields when adding a torrent are:
@@ -84,7 +78,7 @@ TORRENT_VERSION_NAMESPACE_2
 	//
 	// The ``add_torrent_params`` is also used when requesting resume data for a
 	// torrent. It can be saved to and restored from a file and added back to a
-	// new session. For serialization and de-serialization of
+	// new session. For serialization and deserialization of
 	// ``add_torrent_params`` objects, see read_resume_data() and
 	// write_resume_data().
 #include "libtorrent/aux_/disable_warnings_push.hpp"
@@ -93,15 +87,16 @@ TORRENT_VERSION_NAMESPACE_2
 		// The constructor can be used to initialize the storage constructor,
 		// which determines the storage mechanism for the downloaded or seeding
 		// data for the torrent. For more information, see the ``storage`` field.
-		add_torrent_params();
+		explicit add_torrent_params(storage_constructor_type sc = default_storage_constructor);
 		add_torrent_params(add_torrent_params&&) noexcept;
-		add_torrent_params& operator=(add_torrent_params&&) & = default;
+		// TODO: GCC did not make std::string nothrow move-assignable
+		add_torrent_params& operator=(add_torrent_params&&);
 		add_torrent_params(add_torrent_params const&);
-		add_torrent_params& operator=(add_torrent_params const&) &;
+		add_torrent_params& operator=(add_torrent_params const&);
 
 		// These are all deprecated. use torrent_flags_t instead (in
 		// libtorrent/torrent_flags.hpp)
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 
 		using flags_t = torrent_flags_t;
 
@@ -129,7 +124,7 @@ TORRENT_VERSION_NAMESPACE_2
 			DECL_FLAG(merge_resume_http_seeds);
 			DECL_FLAG(default_flags);
 #undef DECL_FLAG
-#endif // TORRENT_ABI_VERSION
+#endif // TORRENT_NO_DEPRECATE
 
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 
@@ -156,8 +151,6 @@ TORRENT_VERSION_NAMESPACE_2
 		// to the session (if DHT is enabled). The hostname may be an IP address.
 		aux::noexcept_movable<std::vector<std::pair<std::string, int>>> dht_nodes;
 
-		// in case there's no other name in this torrent, this name will be used.
-		// The name out of the torrent_info object takes precedence if available.
 		std::string name;
 
 		// the path where the torrent is or will be stored.
@@ -175,11 +168,22 @@ TORRENT_VERSION_NAMESPACE_2
 		// storage-allocation_.
 		storage_mode_t storage_mode = storage_mode_sparse;
 
+		// can be used to customize how the data is stored. The default storage
+		// will simply write the data to the files it belongs to, but it could be
+		// overridden to save everything to a single file at a specific location
+		// or encrypt the content on disk for instance. For more information
+		// about the storage_interface that needs to be implemented for a custom
+		// storage, see storage_interface.
+#ifdef __clang__
+		storage_constructor_type storage;
+#else
+		aux::noexcept_movable<storage_constructor_type> storage;
+#endif
+
 		// The ``userdata`` parameter is optional and will be passed on to the
 		// extension constructor functions, if any
-		// (see torrent_handle::add_extension()). It will also be stored in the
-		// torrent object and can be retrieved by calling userdata().
-		client_data_t userdata;
+		// (see torrent_handle::add_extension()).
+		void* userdata = nullptr;
 
 		// can be set to control the initial file priorities when adding a
 		// torrent. The semantics are the same as for
@@ -194,7 +198,7 @@ TORRENT_VERSION_NAMESPACE_2
 		// to avoid race conditions. For instance it may be important to have the
 		// plugin catch events that happen very early on after the torrent is
 		// created.
-		aux::noexcept_movable<std::vector<std::function<std::shared_ptr<torrent_plugin>(torrent_handle const&, client_data_t)>>>
+		aux::noexcept_movable<std::vector<std::function<std::shared_ptr<torrent_plugin>(torrent_handle const&, void*)>>>
 			extensions;
 
 		// the default tracker id to be used when announcing to trackers. By
@@ -218,7 +222,7 @@ TORRENT_VERSION_NAMESPACE_2
 		// .torrent file nor a magnet link.
 		// To add a magnet link, use parse_magnet_uri() to populate fields in the
 		// add_torrent_params object.
-		info_hash_t info_hash;
+		sha1_hash info_hash;
 
 		// ``max_uploads``, ``max_connections``, ``upload_limit``,
 		// ``download_limit`` correspond to the ``set_max_uploads()``,
@@ -235,8 +239,6 @@ TORRENT_VERSION_NAMESPACE_2
 		int max_uploads = -1;
 		int max_connections = -1;
 
-		// the upload and download rate limits for this torrent, specified in
-		// bytes per second. -1 means unlimited.
 		int upload_limit = -1;
 		int download_limit = -1;
 
@@ -278,6 +280,7 @@ TORRENT_VERSION_NAMESPACE_2
 		// have not received any scrape data.
 		int num_complete = -1;
 		int num_incomplete = -1;
+
 		int num_downloaded = -1;
 
 		// URLs can be added to these two lists to specify additional web
@@ -320,33 +323,16 @@ TORRENT_VERSION_NAMESPACE_2
 		// precedence.
 		aux::noexcept_movable<std::vector<download_priority_t>> piece_priorities;
 
-#if TORRENT_ABI_VERSION <= 2
-		// support for BEP 30 merkle torrents has been removed
-
 		// if this is a merkle tree torrent, and you're seeding, this field must
 		// be set. It is all the hashes in the binary tree, with the root as the
 		// first entry. See torrent_info::set_merkle_tree() for more info.
-		aux::noexcept_movable<std::vector<sha1_hash>> TORRENT_DEPRECATED_MEMBER merkle_tree;
-#endif
-
-		// v2 hashes, if known
-		aux::vector<std::vector<sha256_hash>, file_index_t> merkle_trees;
-
-		// bit-fields indicating which v2 leaf hashes have been verified
-		// against the root hash. If this vector is empty and merkle_trees is
-		// non-empty it implies that all hashes in merkle_trees are verified.
-		aux::vector<std::vector<bool>, file_index_t> verified_leaf_hashes;
+		aux::noexcept_movable<std::vector<sha1_hash>> merkle_tree;
 
 		// this is a map of file indices in the torrent and new filenames to be
 		// applied before the torrent is added.
 		aux::noexcept_movable<std::map<file_index_t, std::string>> renamed_files;
 
-		// the posix time of the last time payload was received or sent for this
-		// torrent, respectively.
-		std::time_t last_download = 0;
-		std::time_t last_upload = 0;
-
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 		// deprecated in 1.2
 
 		// ``url`` can be set to a magnet link, in order to download the .torrent
@@ -362,6 +348,12 @@ TORRENT_VERSION_NAMESPACE_2
 		// state (``torrent_status::error``) will indicate what went wrong.
 		std::string TORRENT_DEPRECATED_MEMBER url;
 
+		// if ``uuid`` is specified, it is used to find duplicates. If another
+		// torrent is already running with the same UUID as the one being added,
+		// it will be considered a duplicate. This is mainly useful for RSS feed
+		// items which has UUIDs specified.
+		std::string TORRENT_DEPRECATED_MEMBER uuid;
+
 		// The optional parameter, ``resume_data`` can be given if up to date
 		// fast-resume data is available. The fast-resume data can be acquired
 		// from a running torrent by calling save_resume_data() on
@@ -375,11 +367,17 @@ TORRENT_VERSION_NAMESPACE_2
 		// communicated forward into libtorrent via this field. If this is set, a
 		// fastresume_rejected_alert will be posted.
 		error_code internal_resume_data_error;
-#endif // TORRENT_ABI_VERSION
+#else
+		// hidden
+		// to maintain ABI compatibility
+		std::string deprecated5;
+		std::string deprecated1;
+		std::string deprecated2;
+		aux::noexcept_movable<std::vector<char>> deprecated3;
+		error_code deprecated4;
+#endif
 
 	};
-
-TORRENT_VERSION_NAMESPACE_2_END
 }
 
 #endif

@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2005-2007, 2009-2010, 2013, 2015-2017, 2019, Arvid Norberg
-Copyright (c) 2016-2018, Alden Torres
-Copyright (c) 2017, Andrei Kurushin
+Copyright (c) 2005-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -56,7 +54,7 @@ inline bool operator<=(address const& lhs
 	return lhs < rhs || lhs == rhs;
 }
 
-template <typename Addr>
+template <class Addr>
 struct ip_range
 {
 	Addr first;
@@ -70,30 +68,66 @@ struct ip_range
 	}
 };
 
-namespace aux {
+namespace detail {
 
-	template <typename Addr>
-	TORRENT_EXTRA_EXPORT Addr zero();
-	template <typename Addr>
-	TORRENT_EXTRA_EXPORT Addr plus_one(Addr const& a);
-	template <typename Addr>
-	TORRENT_EXTRA_EXPORT Addr minus_one(Addr const& a);
-	template <typename Addr>
-	TORRENT_EXTRA_EXPORT Addr max_addr();
+	template<class Addr>
+	Addr zero()
+	{
+		Addr zero;
+		std::fill(zero.begin(), zero.end(), static_cast<typename Addr::value_type>(0));
+		return zero;
+	}
 
-	extern template address_v4::bytes_type minus_one<address_v4::bytes_type>(address_v4::bytes_type const&);
-	extern template address_v6::bytes_type minus_one<address_v6::bytes_type>(address_v6::bytes_type const&);
-	extern template address_v4::bytes_type plus_one<address_v4::bytes_type>(address_v4::bytes_type const&);
-	extern template address_v6::bytes_type plus_one<address_v6::bytes_type>(address_v6::bytes_type const&);
-	extern template address_v4::bytes_type zero<address_v4::bytes_type>();
-	extern template address_v6::bytes_type zero<address_v6::bytes_type>();
-	extern template address_v4::bytes_type max_addr<address_v4::bytes_type>();
-	extern template address_v6::bytes_type max_addr<address_v6::bytes_type>();
-
-	inline std::uint16_t plus_one(std::uint16_t val) { return val + 1; }
-	inline std::uint16_t minus_one(std::uint16_t val) { return val - 1; }
 	template<>
 	inline std::uint16_t zero<std::uint16_t>() { return 0; }
+
+	template<class Addr>
+	Addr plus_one(Addr const& a)
+	{
+		Addr tmp(a);
+		for (int i = int(tmp.size()) - 1; i >= 0; --i)
+		{
+			auto& t = tmp[std::size_t(i)];
+			if (t < (std::numeric_limits<typename Addr::value_type>::max)())
+			{
+				t += 1;
+				break;
+			}
+			t = 0;
+		}
+		return tmp;
+	}
+
+	inline std::uint16_t plus_one(std::uint16_t val) { return val + 1; }
+
+	template<class Addr>
+	Addr minus_one(Addr const& a)
+	{
+		Addr tmp(a);
+		for (int i = int(tmp.size()) - 1; i >= 0; --i)
+		{
+			auto& t = tmp[std::size_t(i)];
+			if (t > 0)
+			{
+				t -= 1;
+				break;
+			}
+			t = (std::numeric_limits<typename Addr::value_type>::max)();
+		}
+		return tmp;
+	}
+
+	inline std::uint16_t minus_one(std::uint16_t val) { return val - 1; }
+
+	template<class Addr>
+	Addr max_addr()
+	{
+		Addr tmp;
+		std::fill(tmp.begin(), tmp.end()
+			, (std::numeric_limits<typename Addr::value_type>::max)());
+		return Addr(tmp);
+	}
+
 	template<>
 	inline std::uint16_t max_addr<std::uint16_t>()
 	{ return (std::numeric_limits<std::uint16_t>::max)(); }
@@ -101,17 +135,108 @@ namespace aux {
 	// this is the generic implementation of
 	// a filter for a specific address type.
 	// it works with IPv4 and IPv6
-	template <typename Addr>
+	template<class Addr>
 	class filter_impl
 	{
 	public:
 
-		filter_impl();
-		bool empty() const;
-		void add_rule(Addr first, Addr last, std::uint32_t const flags);
-		std::uint32_t access(Addr const& addr) const;
-		template <typename ExternalAddressType>
-		std::vector<ip_range<ExternalAddressType>> export_filter() const;
+		filter_impl()
+		{
+			// make the entire ip-range non-blocked
+			m_access_list.insert(range(zero<Addr>(), 0));
+		}
+
+		void add_rule(Addr first, Addr last, std::uint32_t const flags)
+		{
+			TORRENT_ASSERT(!m_access_list.empty());
+			TORRENT_ASSERT(first < last || first == last);
+
+			auto i = m_access_list.upper_bound(first);
+			auto j = m_access_list.upper_bound(last);
+
+			if (i != m_access_list.begin()) --i;
+
+			TORRENT_ASSERT(j != m_access_list.begin());
+			TORRENT_ASSERT(j != i);
+
+			std::uint32_t first_access = i->access;
+			std::uint32_t last_access = std::prev(j)->access;
+
+			if (i->start != first && first_access != flags)
+			{
+				i = m_access_list.insert(i, range(first, flags));
+			}
+			else if (i != m_access_list.begin() && std::prev(i)->access == flags)
+			{
+				--i;
+				first_access = i->access;
+			}
+			TORRENT_ASSERT(!m_access_list.empty());
+			TORRENT_ASSERT(i != m_access_list.end());
+
+			if (i != j) m_access_list.erase(std::next(i), j);
+			if (i->start == first)
+			{
+				// This is an optimization over erasing and inserting a new element
+				// here.
+				// this const-cast is OK because we know that the new
+				// start address will keep the set correctly ordered
+				const_cast<Addr&>(i->start) = first;
+				const_cast<std::uint32_t&>(i->access) = flags;
+			}
+			else if (first_access != flags)
+			{
+				m_access_list.insert(i, range(first, flags));
+			}
+
+			if ((j != m_access_list.end()
+					&& minus_one(j->start) != last)
+				|| (j == m_access_list.end()
+					&& last != max_addr<Addr>()))
+			{
+				TORRENT_ASSERT(j == m_access_list.end() || last < minus_one(j->start));
+				if (last_access != flags)
+					j = m_access_list.insert(j, range(plus_one(last), last_access));
+			}
+
+			if (j != m_access_list.end() && j->access == flags) m_access_list.erase(j);
+			TORRENT_ASSERT(!m_access_list.empty());
+		}
+
+		std::uint32_t access(Addr const& addr) const
+		{
+			TORRENT_ASSERT(!m_access_list.empty());
+			auto i = m_access_list.upper_bound(addr);
+			if (i != m_access_list.begin()) --i;
+			TORRENT_ASSERT(i != m_access_list.end());
+			TORRENT_ASSERT(i->start <= addr && (std::next(i) == m_access_list.end()
+				|| addr < std::next(i)->start));
+			return i->access;
+		}
+
+		template <class ExternalAddressType>
+		std::vector<ip_range<ExternalAddressType>> export_filter() const
+		{
+			std::vector<ip_range<ExternalAddressType>> ret;
+			ret.reserve(m_access_list.size());
+
+			for (auto i = m_access_list.begin()
+				, end(m_access_list.end()); i != end;)
+			{
+				ip_range<ExternalAddressType> r;
+				r.first = ExternalAddressType(i->start);
+				r.flags = i->access;
+
+				++i;
+				if (i == end)
+					r.last = ExternalAddressType(max_addr<Addr>());
+				else
+					r.last = ExternalAddressType(minus_one(i->start));
+
+				ret.push_back(r);
+			}
+			return ret;
+		}
 
 	private:
 
@@ -124,20 +249,11 @@ namespace aux {
 			// the end of the range is implicit
 			// and given by the next entry in the set
 			std::uint32_t access;
-			friend bool operator==(range const& lhs, range const& rhs)
-			{ return lhs.start == rhs.start && lhs.access == rhs.access; }
 		};
 
 		std::set<range> m_access_list;
 	};
 
-	extern template class filter_impl<address_v4::bytes_type>;
-	extern template class filter_impl<address_v6::bytes_type>;
-	extern template class filter_impl<std::uint16_t>;
-
-	extern template std::vector<ip_range<address_v4>> filter_impl<address_v4::bytes_type>::export_filter() const;
-	extern template std::vector<ip_range<address_v6>> filter_impl<address_v6::bytes_type>::export_filter() const;
-	extern template std::vector<ip_range<std::uint16_t>> filter_impl<std::uint16_t>::export_filter() const;
 }
 
 // The ``ip_filter`` class is a set of rules that uniquely categorizes all
@@ -149,13 +265,6 @@ namespace aux {
 // A default constructed ip_filter does not filter any address.
 struct TORRENT_EXPORT ip_filter
 {
-	ip_filter();
-	ip_filter(ip_filter const&);
-	ip_filter(ip_filter&&);
-	ip_filter& operator=(ip_filter const&);
-	ip_filter& operator=(ip_filter&&);
-	~ip_filter();
-
 	// the flags defined for an IP range
 	enum access_flags
 	{
@@ -163,9 +272,6 @@ struct TORRENT_EXPORT ip_filter
 		// to nor accepted as incoming connections
 		blocked = 1
 	};
-
-	// returns true if the filter does not contain any rules
-	bool empty() const;
 
 	// Adds a rule to the filter. ``first`` and ``last`` defines a range of
 	// ip addresses that will be marked with the given flags. The ``flags``
@@ -180,7 +286,7 @@ struct TORRENT_EXPORT ip_filter
 	//
 	// This means that in a case of overlapping ranges, the last one applied takes
 	// precedence.
-	void add_rule(address const& first, address const& last, std::uint32_t flags);
+	void add_rule(address first, address last, std::uint32_t flags);
 
 	// Returns the access permissions for the given address (``addr``). The permission
 	// can currently be 0 or ``ip_filter::blocked``. The complexity of this operation
@@ -188,8 +294,12 @@ struct TORRENT_EXPORT ip_filter
 	// the current filter.
 	std::uint32_t access(address const& addr) const;
 
+#if TORRENT_USE_IPV6
 	using filter_tuple_t = std::tuple<std::vector<ip_range<address_v4>>
 		, std::vector<ip_range<address_v6>>>;
+#else
+	using filter_tuple_t = std::vector<ip_range<address_v4>>;
+#endif
 
 	// This function will return the current state of the filter in the minimum number of
 	// ranges possible. They are sorted from ranges in low addresses to high addresses. Each
@@ -204,8 +314,10 @@ struct TORRENT_EXPORT ip_filter
 
 private:
 
-	aux::filter_impl<address_v4::bytes_type> m_filter4;
-	aux::filter_impl<address_v6::bytes_type> m_filter6;
+	detail::filter_impl<address_v4::bytes_type> m_filter4;
+#if TORRENT_USE_IPV6
+	detail::filter_impl<address_v6::bytes_type> m_filter6;
+#endif
 };
 
 // the port filter maps non-overlapping port ranges to flags. This
@@ -215,13 +327,6 @@ private:
 class TORRENT_EXPORT port_filter
 {
 public:
-
-	port_filter();
-	port_filter(port_filter const&);
-	port_filter(port_filter&&);
-	port_filter& operator=(port_filter const&);
-	port_filter& operator=(port_filter&&);
-	~port_filter();
 
 	// the defined flags for a port range
 	enum access_flags
@@ -243,7 +348,7 @@ public:
 
 private:
 
-	aux::filter_impl<std::uint16_t> m_filter;
+	detail::filter_impl<std::uint16_t> m_filter;
 
 };
 

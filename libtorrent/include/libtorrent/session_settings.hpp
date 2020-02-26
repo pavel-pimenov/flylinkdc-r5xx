@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2006-2007, 2010, 2013-2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
+Copyright (c) 2003-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,7 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_SESSION_SETTINGS_HPP_INCLUDED
 #define TORRENT_SESSION_SETTINGS_HPP_INCLUDED
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 
 #include "libtorrent/config.hpp"
 #include "libtorrent/settings_pack.hpp"
@@ -45,21 +44,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-#ifdef _MSC_VER
-#pragma warning(push, 1)
-#pragma warning( disable : 4996 ) // warning C4996: X: was declared deprecated
-#endif
-#if defined __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 	using dht_settings = dht::dht_settings;
-#if defined __GNUC__
-#pragma GCC diagnostic pop
-#endif
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 	using aux::proxy_settings;
 
@@ -124,5 +109,5 @@ namespace libtorrent {
 	};
 }
 
-#endif // TORRENT_ABI_VERSION
+#endif // TORRENT_NO_DEPRECATE
 #endif

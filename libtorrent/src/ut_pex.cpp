@@ -1,11 +1,6 @@
 /*
 
-Copyright (c) 2006, MassaRoddel
-Copyright (c) 2006-2019, Arvid Norberg
-Copyright (c) 2015-2016, 2018, Steven Siloti
-Copyright (c) 2016-2017, Andrei Kurushin
-Copyright (c) 2016-2018, Alden Torres
-Copyright (c) 2017, Pavel Pimenov
+Copyright (c) 2006-2016, MassaRoddel, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -44,14 +39,14 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/broadcast_socket.hpp"
 #include "libtorrent/socket_io.hpp"
 #include "libtorrent/peer_info.hpp"
-#include "libtorrent/aux_/socket_type.hpp" // for is_utp
+#include "libtorrent/socket_type.hpp" // for is_utp
 #include "libtorrent/performance_counters.hpp" // for counters
 #include "libtorrent/extensions/ut_pex.hpp"
 #include "libtorrent/aux_/time.hpp"
 
 #ifndef TORRENT_DISABLE_EXTENSIONS
 
-namespace libtorrent { namespace {
+namespace libtorrent {namespace {
 
 	const char extension_name[] = "ut_pex";
 
@@ -105,8 +100,6 @@ namespace libtorrent { namespace {
 		// max_peer_entries limits the packet size
 		void tick() override
 		{
-			if (m_torrent.flags() & torrent_flags::disable_pex) return;
-
 			time_point const now = aux::time_now();
 			if (now - seconds(60) < m_last_msg) return;
 			m_last_msg = now;
@@ -120,12 +113,14 @@ namespace libtorrent { namespace {
 			std::back_insert_iterator<std::string> pla_out(pla);
 			std::back_insert_iterator<std::string> pld_out(pld);
 			std::back_insert_iterator<std::string> plf_out(plf);
+#if TORRENT_USE_IPV6
 			std::string& pla6 = pex["added6"].string();
 			std::string& pld6 = pex["dropped6"].string();
 			std::string& plf6 = pex["added6.f"].string();
 			std::back_insert_iterator<std::string> pla6_out(pla6);
 			std::back_insert_iterator<std::string> pld6_out(pld6);
 			std::back_insert_iterator<std::string> plf6_out(plf6);
+#endif
 
 			std::set<tcp::endpoint> dropped;
 			m_old_peers.swap(dropped);
@@ -149,7 +144,7 @@ namespace libtorrent { namespace {
 					if (peer->type() != connection_type::bittorrent)
 						continue;
 
-					auto const* const p = static_cast<bt_peer_connection const*>(peer);
+					bt_peer_connection* p = static_cast<bt_peer_connection*>(peer);
 
 					// if the peer has told us which port its listening on,
 					// use that port. But only if we didn't connect to the peer.
@@ -172,23 +167,25 @@ namespace libtorrent { namespace {
 					//        used as a rendezvous point in case direct
 					//        connections to the peer fail
 					pex_flags_t flags = p->is_seed() ? pex_seed : pex_flags_t{};
-#if !defined TORRENT_DISABLE_ENCRYPTION
+#if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
 					flags |= p->supports_encryption() ? pex_encryption : pex_flags_t{};
 #endif
-					flags |= is_utp(p->get_socket()) ? pex_utp : pex_flags_t{};
+					flags |= is_utp(*p->get_socket()) ? pex_utp : pex_flags_t{};
 					flags |= p->supports_holepunch() ? pex_holepunch : pex_flags_t{};
 
 					// i->first was added since the last time
-					if (is_v4(remote))
+					if (remote.address().is_v4())
 					{
-						aux::write_endpoint(remote, pla_out);
-						aux::write_uint8(static_cast<std::uint8_t>(flags), plf_out);
+						detail::write_endpoint(remote, pla_out);
+						detail::write_uint8(static_cast<std::uint8_t>(flags), plf_out);
 					}
+#if TORRENT_USE_IPV6
 					else
 					{
-						aux::write_endpoint(remote, pla6_out);
-						aux::write_uint8(static_cast<std::uint8_t>(flags), plf6_out);
+						detail::write_endpoint(remote, pla6_out);
+						detail::write_uint8(static_cast<std::uint8_t>(flags), plf6_out);
 					}
+#endif
 					++num_added;
 					++m_peers_in_message;
 				}
@@ -202,10 +199,12 @@ namespace libtorrent { namespace {
 
 			for (auto const& i : dropped)
 			{
-				if (is_v4(i))
-					aux::write_endpoint(i, pld_out);
+				if (i.address().is_v4())
+					detail::write_endpoint(i, pld_out);
+#if TORRENT_USE_IPV6
 				else
-					aux::write_endpoint(i, pld6_out);
+					detail::write_endpoint(i, pld6_out);
+#endif
 				++m_peers_in_message;
 			}
 
@@ -267,11 +266,9 @@ namespace libtorrent { namespace {
 			if (msg != extension_index) return false;
 			if (m_message_index == 0) return false;
 
-			if (m_torrent.flags() & torrent_flags::disable_pex) return true;
-
 			if (length > 500 * 1024)
 			{
-				m_pc.disconnect(errors::pex_message_too_large, operation_t::bittorrent, peer_connection_interface::peer_error);
+				m_pc.disconnect(errors::pex_message_too_large, operation_t::bittorrent, 2);
 				return true;
 			}
 
@@ -296,7 +293,7 @@ namespace libtorrent { namespace {
 			int const ret = bdecode(body.begin(), body.end(), pex_msg, ec);
 			if (ret != 0 || pex_msg.type() != bdecode_node::dict_t)
 			{
-				m_pc.disconnect(errors::invalid_pex_message, operation_t::bittorrent, peer_connection_interface::peer_error);
+				m_pc.disconnect(errors::invalid_pex_message, operation_t::bittorrent, 2);
 				return true;
 			}
 
@@ -314,7 +311,7 @@ namespace libtorrent { namespace {
 
 				for (int i = 0; i < num_peers; ++i)
 				{
-					tcp::endpoint const adr = aux::read_v4_endpoint<tcp::endpoint>(in);
+					tcp::endpoint const adr = detail::read_v4_endpoint<tcp::endpoint>(in);
 					peers4_t::value_type const v(adr.address().to_v4().to_bytes(), adr.port());
 					auto const j = std::lower_bound(m_peers.begin(), m_peers.end(), v);
 					if (j != m_peers.end() && *j == v) m_peers.erase(j);
@@ -324,7 +321,6 @@ namespace libtorrent { namespace {
 			p = pex_msg.dict_find_string("added");
 			bdecode_node const pf = pex_msg.dict_find_string("added.f");
 
-			bool peers_added = false;
 #ifndef TORRENT_DISABLE_LOGGING
 			if (p) num_added += p.string_length() / 6;
 #endif
@@ -336,11 +332,8 @@ namespace libtorrent { namespace {
 
 				for (int i = 0; i < num_peers; ++i)
 				{
-					tcp::endpoint const adr = aux::read_v4_endpoint<tcp::endpoint>(in);
-					pex_flags_t flags(static_cast<std::uint8_t>(*fin++));
-
-					if (m_pc.peer_info_struct()->protocol_v2)
-						flags |= pex_lt_v2;
+					tcp::endpoint const adr = detail::read_v4_endpoint<tcp::endpoint>(in);
+					pex_flags_t const flags(static_cast<std::uint8_t>(*fin++));
 
 					if (int(m_peers.size()) >= m_torrent.settings().get_int(settings_pack::max_pex_peers))
 						break;
@@ -354,34 +347,37 @@ namespace libtorrent { namespace {
 					if (j != m_peers.end() && *j == v) continue;
 					m_peers.insert(j, v);
 					m_torrent.add_peer(adr, peer_info::pex, flags);
-					peers_added = true;
 				}
 			}
 
-			bdecode_node p6 = pex_msg.dict_find_string("dropped6");
-			if (p6)
-			{
+#if TORRENT_USE_IPV6
+
+			bdecode_node p6 = pex_msg.dict_find("dropped6");
 #ifndef TORRENT_DISABLE_LOGGING
-				num_dropped += p6.string_length() / 18;
+			if (p6) num_dropped += p6.string_length() / 18;
 #endif
+			if (p6.type() == bdecode_node::string_t)
+			{
 				int const num_peers = p6.string_length() / 18;
 				char const* in = p6.string_ptr();
 
 				for (int i = 0; i < num_peers; ++i)
 				{
-					tcp::endpoint const adr = aux::read_v6_endpoint<tcp::endpoint>(in);
+					tcp::endpoint const adr = detail::read_v6_endpoint<tcp::endpoint>(in);
 					peers6_t::value_type const v(adr.address().to_v6().to_bytes(), adr.port());
 					auto const j = std::lower_bound(m_peers6.begin(), m_peers6.end(), v);
 					if (j != m_peers6.end() && *j == v) m_peers6.erase(j);
 				}
 			}
 
-			p6 = pex_msg.dict_find_string("added6");
+			p6 = pex_msg.dict_find("added6");
 #ifndef TORRENT_DISABLE_LOGGING
 			if (p6) num_added += p6.string_length() / 18;
 #endif
-			bdecode_node const p6f = pex_msg.dict_find_string("added6.f");
-			if (p6 && p6f && p6f.string_length() == p6.string_length() / 18)
+			bdecode_node const p6f = pex_msg.dict_find("added6.f");
+			if (p6.type() == bdecode_node::string_t
+				&& p6f.type() == bdecode_node::string_t
+				&& p6f.string_length() == p6.string_length() / 18)
 			{
 				int const num_peers = p6f.string_length();
 				char const* in = p6.string_ptr();
@@ -389,12 +385,8 @@ namespace libtorrent { namespace {
 
 				for (int i = 0; i < num_peers; ++i)
 				{
-					tcp::endpoint const adr = aux::read_v6_endpoint<tcp::endpoint>(in);
-					pex_flags_t flags(static_cast<std::uint8_t>(*fin++));
-
-					if (m_pc.peer_info_struct()->protocol_v2)
-						flags |= pex_lt_v2;
-
+					tcp::endpoint const adr = detail::read_v6_endpoint<tcp::endpoint>(in);
+					pex_flags_t const flags(static_cast<std::uint8_t>(*fin++));
 					// ignore local addresses unless the peer is local to us
 					if (is_local(adr.address()) && !is_local(m_pc.remote().address())) continue;
 					if (int(m_peers6.size()) >= m_torrent.settings().get_int(settings_pack::max_pex_peers))
@@ -406,17 +398,15 @@ namespace libtorrent { namespace {
 					if (j != m_peers6.end() && *j == v) continue;
 					m_peers6.insert(j, v);
 					m_torrent.add_peer(adr, peer_info::pex, flags);
-					peers_added = true;
 				}
 			}
+#endif
 #ifndef TORRENT_DISABLE_LOGGING
 			m_pc.peer_log(peer_log_alert::incoming_message, "PEX", "dropped: %d added: %d"
 				, num_dropped, num_added);
 #endif
 
 			m_pc.stats_counters().inc_stats_counter(counters::num_incoming_pex);
-
-			if (peers_added) m_torrent.do_connect_boost();
 			return true;
 		}
 
@@ -477,8 +467,6 @@ namespace libtorrent { namespace {
 
 		void send_ut_peer_diff()
 		{
-			if (m_torrent.flags() & torrent_flags::disable_pex) return;
-
 			// if there's no change in out peer set, don't send anything
 			if (m_tp.peers_in_msg() == 0) return;
 
@@ -487,9 +475,9 @@ namespace libtorrent { namespace {
 			char msg[6];
 			char* ptr = msg;
 
-			aux::write_uint32(1 + 1 + int(pex_msg.size()), ptr);
-			aux::write_uint8(bt_peer_connection::msg_extended, ptr);
-			aux::write_uint8(m_message_index, ptr);
+			detail::write_uint32(1 + 1 + int(pex_msg.size()), ptr);
+			detail::write_uint8(bt_peer_connection::msg_extended, ptr);
+			detail::write_uint8(m_message_index, ptr);
 			m_pc.send_buffer(msg);
 			m_pc.send_buffer(pex_msg);
 
@@ -523,8 +511,6 @@ namespace libtorrent { namespace {
 
 		void send_ut_peer_list()
 		{
-			if (m_torrent.flags() & torrent_flags::disable_pex) return;
-
 			entry pex;
 			// leave the dropped string empty
 			pex["dropped"].string();
@@ -533,11 +519,13 @@ namespace libtorrent { namespace {
 			std::back_insert_iterator<std::string> pla_out(pla);
 			std::back_insert_iterator<std::string> plf_out(plf);
 
+#if TORRENT_USE_IPV6
 			pex["dropped6"].string();
 			std::string& pla6 = pex["added6"].string();
 			std::string& plf6 = pex["added6.f"].string();
 			std::back_insert_iterator<std::string> pla6_out(pla6);
 			std::back_insert_iterator<std::string> plf6_out(plf6);
+#endif
 
 			int num_added = 0;
 			for (auto const peer : m_torrent)
@@ -551,7 +539,7 @@ namespace libtorrent { namespace {
 				if (peer->type() != connection_type::bittorrent)
 					continue;
 
-				auto const* const p = static_cast<bt_peer_connection const*>(peer);
+				bt_peer_connection* p = static_cast<bt_peer_connection*>(peer);
 
 				// no supported flags to set yet
 				// 0x01 - peer supports encryption
@@ -564,10 +552,10 @@ namespace libtorrent { namespace {
 				//        used as a rendezvous point in case direct
 				//        connections to the peer fail
 				int flags = p->is_seed() ? 2 : 0;
-#if !defined TORRENT_DISABLE_ENCRYPTION
+#if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
 				flags |= p->supports_encryption() ? 1 : 0;
 #endif
-				flags |= is_utp(p->get_socket()) ? 4 :  0;
+				flags |= is_utp(*p->get_socket()) ? 4 :  0;
 				flags |= p->supports_holepunch() ? 8 : 0;
 
 				tcp::endpoint remote = peer->remote();
@@ -580,16 +568,18 @@ namespace libtorrent { namespace {
 				}
 
 				// i->first was added since the last time
-				if (is_v4(remote))
+				if (remote.address().is_v4())
 				{
-					aux::write_endpoint(remote, pla_out);
-					aux::write_uint8(flags, plf_out);
+					detail::write_endpoint(remote, pla_out);
+					detail::write_uint8(flags, plf_out);
 				}
+#if TORRENT_USE_IPV6
 				else
 				{
-					aux::write_endpoint(remote, pla6_out);
-					aux::write_uint8(flags, plf6_out);
+					detail::write_endpoint(remote, pla6_out);
+					detail::write_uint8(flags, plf6_out);
 				}
+#endif
 				++num_added;
 			}
 			std::vector<char> pex_msg;
@@ -598,9 +588,9 @@ namespace libtorrent { namespace {
 			char msg[6];
 			char* ptr = msg;
 
-			aux::write_uint32(1 + 1 + int(pex_msg.size()), ptr);
-			aux::write_uint8(bt_peer_connection::msg_extended, ptr);
-			aux::write_uint8(m_message_index, ptr);
+			detail::write_uint32(1 + 1 + int(pex_msg.size()), ptr);
+			detail::write_uint8(bt_peer_connection::msg_extended, ptr);
+			detail::write_uint8(m_message_index, ptr);
 			m_pc.send_buffer(msg);
 			m_pc.send_buffer(pex_msg);
 
@@ -641,7 +631,8 @@ namespace libtorrent { namespace {
 
 	std::shared_ptr<peer_plugin> ut_pex_plugin::new_connection(peer_connection_handle const& pc)
 	{
-		if (pc.type() != connection_type::bittorrent) return {};
+		if (pc.type() != connection_type::bittorrent)
+			return std::shared_ptr<peer_plugin>();
 
 		bt_peer_connection* c = static_cast<bt_peer_connection*>(pc.native_handle().get());
 		auto p = std::make_shared<ut_pex_peer_plugin>(m_torrent, *c, *this);
@@ -652,13 +643,13 @@ namespace libtorrent { namespace {
 
 namespace libtorrent {
 
-	std::shared_ptr<torrent_plugin> create_ut_pex_plugin(torrent_handle const& th, client_data_t)
+	std::shared_ptr<torrent_plugin> create_ut_pex_plugin(torrent_handle const& th, void*)
 	{
 		torrent* t = th.native_handle().get();
 		if (t->torrent_file().priv() || (t->torrent_file().is_i2p()
 			&& !t->settings().get_bool(settings_pack::allow_i2p_mixed)))
 		{
-			return {};
+			return std::shared_ptr<torrent_plugin>();
 		}
 		return std::make_shared<ut_pex_plugin>(*t);
 	}

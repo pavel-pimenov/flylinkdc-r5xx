@@ -1,11 +1,6 @@
 /*
 
 Copyright (c) 2013, Steven Siloti
-Copyright (c) 2015, Thomas
-Copyright (c) 2013-2019, Arvid Norberg
-Copyright (c) 2015, Thomas Yuan
-Copyright (c) 2016-2017, Alden Torres
-Copyright (c) 2017, Pavel Pimenov
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -102,10 +97,10 @@ void get_item::got_data(bdecode_node const& v,
 get_item::get_item(
 	node& dht_node
 	, node_id const& target
-	, data_callback dcallback
-	, nodes_callback ncallback)
-	: find_data(dht_node, target, std::move(ncallback))
-	, m_data_callback(std::move(dcallback))
+	, data_callback const& dcallback
+	, nodes_callback const& ncallback)
+	: find_data(dht_node, target, ncallback)
+	, m_data_callback(dcallback)
 	, m_immutable(true)
 {
 }
@@ -114,10 +109,10 @@ get_item::get_item(
 	node& dht_node
 	, public_key const& pk
 	, span<char const> salt
-	, data_callback dcallback
-	, nodes_callback ncallback)
-	: find_data(dht_node, item_target_id(salt, pk), std::move(ncallback))
-	, m_data_callback(std::move(dcallback))
+	, data_callback const& dcallback
+	, nodes_callback const& ncallback)
+	: find_data(dht_node, item_target_id(salt, pk), ncallback)
+	, m_data_callback(dcallback)
 	, m_data(pk, salt)
 	, m_immutable(false)
 {
@@ -176,8 +171,8 @@ void get_item::done()
 
 void get_item_observer::reply(msg const& m)
 {
-	public_key pk{};
-	signature sig{};
+	public_key pk;
+	signature sig;
 	sequence_number seq{0};
 
 	bdecode_node const r = m.message.dict_find_dict("r");

@@ -1,9 +1,6 @@
 /*
 
-Copyright (c) 2007-2010, 2013-2019, Arvid Norberg
-Copyright (c) 2016, Pavel Pimenov
-Copyright (c) 2016, Andrei Kurushin
-Copyright (c) 2016-2017, Alden Torres
+Copyright (c) 2007-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/socket.hpp"
 #include "libtorrent/error_code.hpp"
+#include "libtorrent/broadcast_socket.hpp"
 #include "libtorrent/deadline_timer.hpp"
 #include "libtorrent/enum_net.hpp"
 #include "libtorrent/resolver.hpp"
@@ -54,49 +52,50 @@ namespace libtorrent {
 	struct http_connection;
 	class http_parser;
 
-namespace upnp_errors {
-	// error codes for the upnp_error_category. They hold error codes
-	// returned by UPnP routers when mapping ports
-	enum error_code_enum
+	namespace upnp_errors
 	{
-		// No error
-		no_error = 0,
-		// One of the arguments in the request is invalid
-		invalid_argument = 402,
-		// The request failed
-		action_failed = 501,
-		// The specified value does not exist in the array
-		value_not_in_array = 714,
-		// The source IP address cannot be wild-carded, but
-		// must be fully specified
-		source_ip_cannot_be_wildcarded = 715,
-		// The external port cannot be a wildcard, but must
-		// be specified
-		external_port_cannot_be_wildcarded = 716,
-		// The port mapping entry specified conflicts with a
-		// mapping assigned previously to another client
-		port_mapping_conflict = 718,
-		// Internal and external port value must be the same
-		internal_port_must_match_external = 724,
-		// The NAT implementation only supports permanent
-		// lease times on port mappings
-		only_permanent_leases_supported = 725,
-		// RemoteHost must be a wildcard and cannot be a
-		// specific IP address or DNS name
-		remote_host_must_be_wildcard = 726,
-		// ExternalPort must be a wildcard and cannot be a
-		// specific port
-		external_port_must_be_wildcard = 727
-	};
+		// error codes for the upnp_error_category. They hold error codes
+		// returned by UPnP routers when mapping ports
+		enum error_code_enum
+		{
+			// No error
+			no_error = 0,
+			// One of the arguments in the request is invalid
+			invalid_argument = 402,
+			// The request failed
+			action_failed = 501,
+			// The specified value does not exist in the array
+			value_not_in_array = 714,
+			// The source IP address cannot be wild-carded, but
+			// must be fully specified
+			source_ip_cannot_be_wildcarded = 715,
+			// The external port cannot be wildcarded, but must
+			// be specified
+			external_port_cannot_be_wildcarded = 716,
+			// The port mapping entry specified conflicts with a
+			// mapping assigned previously to another client
+			port_mapping_conflict = 718,
+			// Internal and external port value must be the same
+			internal_port_must_match_external = 724,
+			// The NAT implementation only supports permanent
+			// lease times on port mappings
+			only_permanent_leases_supported = 725,
+			// RemoteHost must be a wildcard and cannot be a
+			// specific IP address or DNS name
+			remote_host_must_be_wildcard = 726,
+			// ExternalPort must be a wildcard and cannot be a
+			// specific port
+			external_port_must_be_wildcard = 727
+		};
 
-	// hidden
-	TORRENT_EXPORT boost::system::error_code make_error_code(error_code_enum e);
-} // namespace upnp_errors
+		// hidden
+		TORRENT_EXPORT boost::system::error_code make_error_code(error_code_enum e);
+	}
 
 	// the boost.system error category for UPnP errors
 	TORRENT_EXPORT boost::system::error_category& upnp_category();
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATED
 	TORRENT_DEPRECATED
 	inline boost::system::error_category& get_upnp_category()
 	{ return upnp_category(); }
@@ -148,12 +147,10 @@ struct TORRENT_EXTRA_EXPORT upnp final
 	: std::enable_shared_from_this<upnp>
 	, single_threaded
 {
-	upnp(io_context& ios
-		, std::string user_agent
+	upnp(io_service& ios
+		, std::string const& user_agent
 		, aux::portmap_callback& cb
-		, address_v4 const& listen_address
-		, address_v4 const& netmask
-		, std::string listen_device);
+		, bool ignore_nonrouters);
 	~upnp();
 
 	void set_user_agent(std::string const& v) { m_user_agent = v; }
@@ -186,6 +183,7 @@ struct TORRENT_EXTRA_EXPORT upnp final
 	bool get_mapping(port_mapping_t mapping_index, tcp::endpoint& local_ep, int& external_port
 		, portmap_protocol& protocol) const;
 
+	void discover_device();
 	void close();
 
 	// This is only available for UPnP routers. If the model is advertised by
@@ -200,21 +198,17 @@ private:
 
 	std::shared_ptr<upnp> self() { return shared_from_this(); }
 
-	void open_multicast_socket(udp::socket& s, error_code& ec);
-	void open_unicast_socket(udp::socket& s, error_code& ec);
-
 	void map_timer(error_code const& ec);
-	void try_map_upnp();
+	void try_map_upnp(bool timer = false);
 	void discover_device_impl();
 
 	void resend_request(error_code const& e);
-	void on_reply(udp::socket& s, error_code const& ec);
+	void on_reply(udp::endpoint const& from, char* buffer
+		, std::size_t bytes_transferred);
 
 	struct rootdevice;
 	void next(rootdevice& d, port_mapping_t i);
 	void update_map(rootdevice& d, port_mapping_t i);
-
-	void connect(rootdevice& d);
 
 	void on_upnp_xml(error_code const& e
 		, libtorrent::http_parser const& p, rootdevice& d
@@ -234,7 +228,7 @@ private:
 	void return_error(port_mapping_t mapping, int code);
 #ifndef TORRENT_DISABLE_LOGGING
 	bool should_log() const;
-	void log(char const* fmt, ...) const TORRENT_FORMAT(2,3);
+	void log(char const* msg, ...) const TORRENT_FORMAT(2,3);
 #endif
 
 	void get_ip_address(rootdevice& d);
@@ -269,9 +263,9 @@ private:
 		rootdevice();
 		~rootdevice();
 		rootdevice(rootdevice const&);
-		rootdevice& operator=(rootdevice const&) &;
+		rootdevice& operator=(rootdevice const&);
 		rootdevice(rootdevice&&);
-		rootdevice& operator=(rootdevice&&) &;
+		rootdevice& operator=(rootdevice&&);
 
 		// the interface url, through which the list of
 		// supported interfaces are fetched
@@ -304,6 +298,13 @@ private:
 
 		bool disabled = false;
 
+		// this is true if the IP of this device is not
+		// one of our default routes. i.e. it may be someone
+		// else's router, we just happen to have multicast
+		// enabled across networks
+		// this is only relevant if ignore_non_routers is set.
+		bool non_router = false;
+
 		mutable std::shared_ptr<http_connection> upnp_connection;
 
 #if TORRENT_USE_ASSERTS
@@ -330,16 +331,15 @@ private:
 	aux::portmap_callback& m_callback;
 
 	// current retry count
-	int m_retry_count = 0;
+	int m_retry_count;
 
-	io_context& m_io_service;
+	io_service& m_io_service;
 
 	resolver m_resolver;
 
 	// the udp socket used to send and receive
 	// multicast messages on the network
-	udp::socket m_multicast_socket;
-	udp::socket m_unicast_socket;
+	broadcast_socket m_socket;
 
 	// used to resend udp packets in case
 	// they time out
@@ -355,27 +355,24 @@ private:
 	// map them anyway.
 	deadline_timer m_map_timer;
 
-	bool m_disabled = false;
-	bool m_closing = false;
+	bool m_disabled;
+	bool m_closing;
+	bool m_ignore_non_routers;
 
 	std::string m_model;
 
-	// the network this UPnP mapper is associated with. Don't talk to any other
-	// network
-	address_v4 m_listen_address;
-	address_v4 m_netmask;
-	std::string m_device;
+	// cache of interfaces
+	mutable std::vector<ip_interface> m_interfaces;
+	mutable time_point m_last_if_update;
 };
 
-} // namespace libtorrent
+}
 
-namespace boost {
-namespace system {
+namespace boost { namespace system {
 
 	template<> struct is_error_code_enum<libtorrent::upnp_errors::error_code_enum>
 	{ static const bool value = true; };
 
-}
-}
+} }
 
 #endif

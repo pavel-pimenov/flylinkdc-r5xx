@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2010, 2013-2019, Arvid Norberg
-Copyright (c) 2016-2017, Alden Torres
+Copyright (c) 2013-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,9 +36,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	// TODO: move stats_counter_t out of counters
-	// TODO: should bittorrent keep-alive messages have a counter too?
-	// TODO: It would be nice if this could be an internal type. default_disk_constructor depends on it now
 	counters::counters() TORRENT_COUNTER_NOEXCEPT
 	{
 #ifdef ATOMIC_LLONG_LOCK_FREE
@@ -63,7 +59,7 @@ namespace libtorrent {
 #endif
 	}
 
-	counters& counters::operator=(counters const& c) & TORRENT_COUNTER_NOEXCEPT
+	counters& counters::operator=(counters const& c) TORRENT_COUNTER_NOEXCEPT
 	{
 		if (&c == this) return *this;
 #ifdef ATOMIC_LLONG_LOCK_FREE

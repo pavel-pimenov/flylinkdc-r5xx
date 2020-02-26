@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2007-2011, 2013-2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
-Copyright (c) 2017, Jan Berkel
+Copyright (c) 2007-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,41 +34,44 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_PROXY_BASE_HPP_INCLUDED
 
 #include "libtorrent/io.hpp"
-#include "libtorrent/io_context.hpp"
+#include "libtorrent/io_service_fwd.hpp"
 #include "libtorrent/socket.hpp"
 #include "libtorrent/address.hpp"
 #include "libtorrent/error_code.hpp"
-#include "libtorrent/aux_/noexcept_movable.hpp"
 
 namespace libtorrent {
 
-struct proxy_base
+class proxy_base
 {
-	using next_layer_type = tcp::socket;
-	using lowest_layer_type = tcp::socket::lowest_layer_type;
-	using endpoint_type = tcp::socket::endpoint_type;
-	using protocol_type = tcp::socket::protocol_type;
+public:
 
-	explicit proxy_base(io_context& io_context);
+	using handler_type = std::function<void(error_code const&)>;
+
+	typedef tcp::socket next_layer_type;
+	typedef tcp::socket::lowest_layer_type lowest_layer_type;
+	typedef tcp::socket::endpoint_type endpoint_type;
+	typedef tcp::socket::protocol_type protocol_type;
+
+	explicit proxy_base(io_service& io_service);
 	~proxy_base();
-	proxy_base(proxy_base&&) noexcept = default;
-	proxy_base& operator=(proxy_base&&) = default;
 	proxy_base(proxy_base const&) = delete;
 	proxy_base& operator=(proxy_base const&) = delete;
 
 	void set_proxy(std::string hostname, int port)
 	{
-		m_hostname = std::move(hostname);
+		m_hostname = hostname;
 		m_port = port;
 	}
 
-	using executor_type = tcp::socket::executor_type;
+#if BOOST_VERSION >= 106600
+	typedef tcp::socket::executor_type executor_type;
 	executor_type get_executor() { return m_sock.get_executor(); }
+#endif
 
 	template <class Mutable_Buffers, class Handler>
-	void async_read_some(Mutable_Buffers const& buffers, Handler handler)
+	void async_read_some(Mutable_Buffers const& buffers, Handler const& handler)
 	{
-		m_sock.async_read_some(buffers, std::move(handler));
+		m_sock.async_read_some(buffers, handler);
 	}
 
 	template <class Mutable_Buffers>
@@ -118,9 +119,9 @@ struct proxy_base
 	}
 
 	template <class Const_Buffers, class Handler>
-	void async_write_some(Const_Buffers const& buffers, Handler handler)
+	void async_write_some(Const_Buffers const& buffers, Handler const& handler)
 	{
-		m_sock.async_write_some(buffers, std::move(handler));
+		m_sock.async_write_some(buffers, handler);
 	}
 
 #ifndef BOOST_NO_EXCEPTIONS
@@ -130,9 +131,9 @@ struct proxy_base
 	}
 #endif
 
-	void non_blocking(bool b, error_code& ec)
+	error_code non_blocking(bool b, error_code& ec)
 	{
-		m_sock.non_blocking(b, ec);
+		return m_sock.non_blocking(b, ec);
 	}
 
 #ifndef BOOST_NO_EXCEPTIONS
@@ -144,9 +145,9 @@ struct proxy_base
 #endif
 
 	template <class SettableSocketOption>
-	void set_option(SettableSocketOption const& opt, error_code& ec)
+	error_code set_option(SettableSocketOption const& opt, error_code& ec)
 	{
-		m_sock.set_option(opt, ec);
+		return m_sock.set_option(opt, ec);
 	}
 
 #ifndef BOOST_NO_EXCEPTIONS
@@ -158,9 +159,9 @@ struct proxy_base
 #endif
 
 	template <class GettableSocketOption>
-	void get_option(GettableSocketOption& opt, error_code& ec)
+	error_code get_option(GettableSocketOption& opt, error_code& ec)
 	{
-		m_sock.get_option(opt, ec);
+		return m_sock.get_option(opt, ec);
 	}
 
 #ifndef BOOST_NO_EXCEPTIONS
@@ -170,14 +171,9 @@ struct proxy_base
 	}
 #endif
 
-	void cancel()
+	error_code cancel(error_code& ec)
 	{
-		m_sock.cancel();
-	}
-
-	void cancel(error_code& ec)
-	{
-		m_sock.cancel(ec);
+		return m_sock.cancel(ec);
 	}
 
 	void bind(endpoint_type const& /* endpoint */, error_code& /* ec */)
@@ -248,6 +244,11 @@ struct proxy_base
 		return m_sock.local_endpoint(ec);
 	}
 
+	io_service& get_io_service()
+	{
+		return lt::get_io_service(m_sock);
+	}
+
 	lowest_layer_type& lowest_layer()
 	{
 		return m_sock.lowest_layer();
@@ -262,72 +263,17 @@ struct proxy_base
 
 protected:
 
-	// The handler must be taken as lvalue reference here since we may not call
-	// it. But if we do, we want the call operator to own the function object.
-	template <typename Handler>
-	bool handle_error(error_code const& e, Handler&& h)
-	{
-		if (!e) return false;
-		std::forward<Handler>(h)(e);
-		error_code ec;
-		close(ec);
-		return true;
-	}
+	bool handle_error(error_code const& e, handler_type const& h);
 
-	aux::noexcept_movable<tcp::socket> m_sock;
+	tcp::socket m_sock;
 	std::string m_hostname; // proxy host
 	int m_port;             // proxy port
 
-	aux::noexcept_movable<endpoint_type> m_remote_endpoint;
+	endpoint_type m_remote_endpoint;
 
 	// TODO: 2 use the resolver interface that has a built-in cache
-	aux::noexcept_move_only<tcp::resolver> m_resolver;
+	tcp::resolver m_resolver;
 };
-
-template <typename Handler, typename UnderlyingHandler>
-struct wrap_allocator_t
-{
-	wrap_allocator_t(Handler h, UnderlyingHandler uh)
-		: m_handler(std::move(h))
-		, m_underlying_handler(std::move(uh))
-	{}
-
-	wrap_allocator_t(wrap_allocator_t const&) = default;
-	wrap_allocator_t(wrap_allocator_t&&) = default;
-
-	template <class... A>
-	void operator()(A&&... a)
-	{
-		m_handler(std::forward<A>(a)..., std::move(m_underlying_handler));
-	}
-
-	// rebind the underlying allocator to this wrapped type, since we need to use
-	// it to allocate a larger handler context/closure.
-	using allocator_type = typename std::allocator_traits<
-		typename boost::asio::associated_allocator<UnderlyingHandler>::type>::
-			template rebind_alloc<wrap_allocator_t>;
-
-	using executor_type = typename boost::asio::associated_executor<UnderlyingHandler>::type;
-
-	allocator_type get_allocator() const noexcept
-	{ return allocator_type{boost::asio::get_associated_allocator(m_underlying_handler)}; }
-
-	executor_type get_executor() const noexcept
-	{
-		return boost::asio::get_associated_executor(m_underlying_handler);
-	}
-
-private:
-	Handler m_handler;
-	UnderlyingHandler m_underlying_handler;
-};
-
-template <typename Handler, typename UnderlyingHandler>
-wrap_allocator_t<Handler, UnderlyingHandler> wrap_allocator(Handler h, UnderlyingHandler u)
-{
-	return wrap_allocator_t<Handler, UnderlyingHandler>{std::move(h), std::move(u)};
-}
-
 
 }
 

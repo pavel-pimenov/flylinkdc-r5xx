@@ -35,7 +35,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/config.hpp"
 #include "libtorrent/span.hpp"
-#include "libtorrent/error_code.hpp" // for system_error
 #include "libtorrent/aux_/throw.hpp"
 
 #include <fcntl.h>
@@ -57,8 +56,7 @@ namespace libtorrent { namespace aux {
 
 		void read(span<char> buffer)
 		{
-			std::int64_t const ret = ::read(m_fd, buffer.data()
-				, static_cast<std::size_t>(buffer.size()));
+			std::int64_t const ret = ::read(m_fd, buffer.data(), buffer.size());
 			if (ret != int(buffer.size()))
 			{
 				throw_ex<system_error>(errors::no_entropy);

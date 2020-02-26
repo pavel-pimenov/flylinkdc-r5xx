@@ -1,9 +1,6 @@
 /*
 
-Copyright (c) 2015-2019, Arvid Norberg
-Copyright (c) 2016-2018, Alden Torres
-Copyright (c) 2017, Steven Siloti
-Copyright (c) 2017, Pavel Pimenov
+Copyright (c) 2015, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -68,12 +65,6 @@ namespace {
 	add_torrent_params read_resume_data(bdecode_node const& rd, error_code& ec)
 	{
 		add_torrent_params ret;
-		if (rd.type() != bdecode_node::dict_t)
-		{
-			ec = errors::not_a_dictionary;
-			return ret;
-		}
-
 		if (bdecode_node const alloc = rd.dict_find_string("allocation"))
 		{
 			ret.storage_mode = (alloc.string_value() == "allocate"
@@ -89,9 +80,7 @@ namespace {
 		}
 
 		auto info_hash = rd.dict_find_string_value("info-hash");
-		auto info_hash2 = rd.dict_find_string_value("info-hash2");
-		if (info_hash.size() != std::size_t(sha1_hash::size())
-			&& info_hash2.size() != std::size_t(sha256_hash::size()))
+		if (info_hash.size() != 20)
 		{
 			ec = errors::missing_info_hash;
 			return ret;
@@ -99,24 +88,19 @@ namespace {
 
 		ret.name = rd.dict_find_string_value("name").to_string();
 
-		if (info_hash.size() == 20)
-			ret.info_hash.v1.assign(info_hash.data());
-		if (info_hash2.size() == 32)
-			ret.info_hash.v2.assign(info_hash2.data());
+		ret.info_hash.assign(info_hash.data());
 
 		bdecode_node const info = rd.dict_find_dict("info");
 		if (info)
 		{
 			// verify the info-hash of the metadata stored in the resume file matches
 			// the torrent we're loading
-			info_hash_t const resume_ih(hasher(info.data_section()).final()
-				, hasher256(info.data_section()).final());
+			sha1_hash const resume_ih = hasher(info.data_section()).final();
 
 			// if url is set, the info_hash is not actually the info-hash of the
 			// torrent, but the hash of the URL, until we have the full torrent
 			// only require the info-hash to match if we actually passed in one
-			if ((!ret.info_hash.has_v1() || resume_ih.v1 == ret.info_hash.v1)
-				&& (!ret.info_hash.has_v2() || resume_ih.v2 == ret.info_hash.v2))
+			if (resume_ih == ret.info_hash)
 			{
 				ret.ti = std::make_shared<torrent_info>(resume_ih);
 
@@ -124,46 +108,6 @@ namespace {
 				if (!ret.ti->parse_info_section(info, err))
 				{
 					ec = err;
-				}
-				else
-				{
-					// time_t might be 32 bit if we're unlucky, but there isn't
-					// much to do about it
-					ret.ti->internal_set_creation_date(static_cast<std::time_t>(
-						rd.dict_find_int_value("creation date", 0)));
-					ret.ti->internal_set_creator(rd.dict_find_string_value("created by", ""));
-					ret.ti->internal_set_comment(rd.dict_find_string_value("comment", ""));
-				}
-			}
-		}
-
-		bdecode_node const trees = rd.dict_find_list("trees");
-		if (trees)
-		{
-			ret.merkle_trees.reserve(trees.list_size());
-			ret.verified_leaf_hashes.reserve(trees.list_size());
-			for (int i = 0; i < trees.list_size(); ++i)
-			{
-				auto de = trees.list_at(i);
-				if (de.type() != bdecode_node::dict_t)
-					break;
-				auto dh = de.dict_find_string("hashes");
-				if (!dh || dh.string_length() % 32 != 0) break;
-
-				ret.merkle_trees.emplace_back();
-				ret.merkle_trees.back().reserve(dh.string_value().size() / 32);
-				for (auto hashes = dh.string_value();
-					!hashes.empty(); hashes = hashes.substr(32))
-				{
-					ret.merkle_trees.back().emplace_back(hashes);
-				}
-
-				auto verified = de.dict_find_string_value("verified");
-				ret.verified_leaf_hashes.emplace_back();
-				ret.verified_leaf_hashes.back().reserve(verified.size());
-				for (auto const bit : verified)
-				{
-					ret.verified_leaf_hashes.back().emplace_back(bit == '1');
 				}
 			}
 		}
@@ -176,9 +120,6 @@ namespace {
 		ret.seeding_time = int(rd.dict_find_int_value("seeding_time"));
 
 		ret.last_seen_complete = std::time_t(rd.dict_find_int_value("last_seen_complete"));
-
-		ret.last_download = std::time_t(rd.dict_find_int_value("last_download", 0));
-		ret.last_upload = std::time_t(rd.dict_find_int_value("last_upload", 0));
 
 		// scrape data cache
 		ret.num_complete = int(rd.dict_find_int_value("num_complete", -1));
@@ -200,9 +141,10 @@ namespace {
 
 		ret.save_path = rd.dict_find_string_value("save_path").to_string();
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 		// deprecated in 1.2
 		ret.url = rd.dict_find_string_value("url").to_string();
+		ret.uuid = rd.dict_find_string_value("uuid").to_string();
 #endif
 
 		bdecode_node const mapped_files = rd.dict_find_list("mapped_files");
@@ -229,7 +171,7 @@ namespace {
 				, default_priority);
 			for (int i = 0; i < num_files; ++i)
 			{
-				auto const idx = static_cast<std::size_t>(i);
+				std::size_t const idx = std::size_t(i);
 				ret.file_priorities[idx] = aux::clamp(
 					download_priority_t(static_cast<std::uint8_t>(
 						file_priority.list_int_value_at(i
@@ -301,6 +243,14 @@ namespace {
 			}
 		}
 
+		bdecode_node const mt = rd.dict_find_string("merkle tree");
+		if (mt)
+		{
+			ret.merkle_tree.resize(aux::numeric_cast<std::size_t>(mt.string_length() / 20));
+			std::memcpy(ret.merkle_tree.data(), mt.string_ptr()
+				, ret.merkle_tree.size() * 20);
+		}
+
 		// some sanity checking. Maybe we shouldn't be in seed mode anymore
 		if (bdecode_node const pieces = rd.dict_find_string("pieces"))
 		{
@@ -333,36 +283,38 @@ namespace {
 			}
 		}
 
-		int const v6_size = 18;
-		int const v4_size = 6;
-		using namespace libtorrent::aux; // for read_*_endpoint()
+		using namespace libtorrent::detail; // for read_*_endpoint()
 		if (bdecode_node const peers_entry = rd.dict_find_string("peers"))
 		{
 			char const* ptr = peers_entry.string_ptr();
-			for (int i = v4_size - 1; i < peers_entry.string_length(); i += v4_size)
+			for (int i = 0; i < peers_entry.string_length(); i += 6)
 				ret.peers.push_back(read_v4_endpoint<tcp::endpoint>(ptr));
 		}
 
+#if TORRENT_USE_IPV6
 		if (bdecode_node const peers_entry = rd.dict_find_string("peers6"))
 		{
 			char const* ptr = peers_entry.string_ptr();
-			for (int i = v6_size - 1; i < peers_entry.string_length(); i += v6_size)
+			for (int i = 0; i < peers_entry.string_length(); i += 18)
 				ret.peers.push_back(read_v6_endpoint<tcp::endpoint>(ptr));
 		}
+#endif
 
 		if (bdecode_node const peers_entry = rd.dict_find_string("banned_peers"))
 		{
 			char const* ptr = peers_entry.string_ptr();
-			for (int i = v4_size; i < peers_entry.string_length(); i += v4_size)
+			for (int i = 0; i < peers_entry.string_length(); i += 6)
 				ret.banned_peers.push_back(read_v4_endpoint<tcp::endpoint>(ptr));
 		}
 
+#if TORRENT_USE_IPV6
 		if (bdecode_node const peers_entry = rd.dict_find_string("banned_peers6"))
 		{
 			char const* ptr = peers_entry.string_ptr();
-			for (int i = v6_size - 1; i < peers_entry.string_length(); i += v6_size)
+			for (int i = 0; i < peers_entry.string_length(); i += 18)
 				ret.banned_peers.push_back(read_v6_endpoint<tcp::endpoint>(ptr));
 		}
+#endif
 
 		// parse unfinished pieces
 		if (bdecode_node const unfinished_entry = rd.dict_find_list("unfinished"))
@@ -375,14 +327,12 @@ namespace {
 				if (piece < piece_index_t(0)) continue;
 
 				bdecode_node const bitmask = e.dict_find_string("bitmask");
-				if (!bitmask || bitmask.string_length() == 0) continue;
-				ret.unfinished_pieces[piece].assign(
-					bitmask.string_ptr(), bitmask.string_length() * CHAR_BIT);
+				if (bitmask || bitmask.string_length() == 0) continue;
+				bitfield& bf = ret.unfinished_pieces[piece];
+				bf.assign(bitmask.string_ptr(), bitmask.string_length());
 			}
 		}
 
-		// we're loading this torrent from resume data. There's no need to
-		// re-save the resume data immediately.
 		ret.flags &= ~torrent_flags::need_save_resume;
 
 		return ret;
@@ -394,24 +344,5 @@ namespace {
 		if (ec) return add_torrent_params();
 
 		return read_resume_data(rd, ec);
-	}
-
-	add_torrent_params read_resume_data(bdecode_node const& rd)
-	{
-		error_code ec;
-		auto ret = read_resume_data(rd, ec);
-		if (ec) throw system_error(ec);
-		return ret;
-	}
-
-	add_torrent_params read_resume_data(span<char const> buffer)
-	{
-		error_code ec;
-		bdecode_node rd = bdecode(buffer, ec);
-		if (ec) throw system_error(ec);
-
-		auto ret = read_resume_data(rd, ec);
-		if (ec) throw system_error(ec);
-		return ret;
 	}
 }

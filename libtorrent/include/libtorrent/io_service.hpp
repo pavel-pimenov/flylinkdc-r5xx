@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2006-2007, 2009, 2015, 2017, 2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
+Copyright (c) 2009-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,14 +33,24 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_IO_SERVICE_HPP_INCLUDED
 #define TORRENT_IO_SERVICE_HPP_INCLUDED
 
+#if defined TORRENT_BUILD_SIMULATOR
+#include "simulator/simulator.hpp"
+#else
 #include "libtorrent/aux_/disable_warnings_push.hpp"
-#include <boost/asio/ts/io_context.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/version.hpp>
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
+#endif // SIMULATOR
 
-#error warning "this header is deprecated, use io_context.hpp instead"
+#include "libtorrent/io_service_fwd.hpp"
+
 namespace libtorrent {
 
-	using io_service = boost::asio::io_context;
+#if defined TORRENT_BUILD_SIMULATOR
+	using io_service = sim::asio::io_service;
+#else
+	using io_service = boost::asio::io_service;
+#endif
 }
 
 #endif

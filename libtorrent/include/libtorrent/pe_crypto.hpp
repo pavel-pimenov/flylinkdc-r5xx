@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2007, Un Shyam
-Copyright (c) 2007-2009, 2011-2012, 2014-2019, Arvid Norberg
-Copyright (c) 2016-2017, Alden Torres
+Copyright (c) 2007-2016, Un Shyam & Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,10 +30,10 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
+
 #ifndef TORRENT_PE_CRYPTO_HPP_INCLUDED
 #define TORRENT_PE_CRYPTO_HPP_INCLUDED
-
-#if !defined TORRENT_DISABLE_ENCRYPTION
 
 #include "libtorrent/config.hpp"
 
@@ -43,11 +41,12 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <boost/multiprecision/cpp_int.hpp>
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 
-#include "libtorrent/aux_/receive_buffer.hpp"
+#include "libtorrent/receive_buffer.hpp"
 #include "libtorrent/sha1_hash.hpp"
 #include "libtorrent/extensions.hpp"
 #include "libtorrent/assert.hpp"
 #include "libtorrent/span.hpp"
+#include "libtorrent/buffer.hpp"
 #include "libtorrent/aux_/array.hpp"
 
 #include <list>
@@ -101,14 +100,14 @@ namespace libtorrent {
 		std::tuple<int, span<span<char const>>>
 		encrypt(span<span<char>> iovec);
 
-		int decrypt(aux::crypto_receive_buffer& recv_buffer
+		int decrypt(crypto_receive_buffer& recv_buffer
 			, std::size_t& bytes_transferred);
 
 		bool switch_send_crypto(std::shared_ptr<crypto_plugin> crypto
 			, int pending_encryption);
 
 		void switch_recv_crypto(std::shared_ptr<crypto_plugin> crypto
-			, aux::crypto_receive_buffer& recv_buffer);
+			, crypto_receive_buffer& recv_buffer);
 
 		bool is_send_plaintext() const
 		{
@@ -158,6 +157,5 @@ namespace libtorrent {
 
 } // namespace libtorrent
 
-#endif // TORRENT_DISABLE_ENCRYPTION
-
 #endif // TORRENT_PE_CRYPTO_HPP_INCLUDED
+#endif // TORRENT_DISABLE_ENCRYPTION

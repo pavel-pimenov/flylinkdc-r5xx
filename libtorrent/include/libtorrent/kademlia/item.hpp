@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2013-2019, Steven Siloti
-Copyright (c) 2013-2016, 2018-2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
+Copyright (c) 2013, Steven Siloti, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -41,8 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/span.hpp>
 #include <libtorrent/kademlia/types.hpp>
 
-namespace libtorrent {
-namespace dht {
+namespace libtorrent { namespace dht {
 
 // calculate the target hash for an immutable item.
 TORRENT_EXTRA_EXPORT sha1_hash item_target_id(span<char const> v);
@@ -77,7 +74,7 @@ TORRENT_EXPORT signature sign_mutable_item(
 class TORRENT_EXTRA_EXPORT item
 {
 public:
-	item() {}
+	item() : m_seq(0), m_mutable(false)  {}
 	item(public_key const& pk, span<char const> salt);
 	explicit item(entry v);
 	item(entry v
@@ -120,11 +117,10 @@ private:
 	std::string m_salt;
 	public_key m_pk;
 	signature m_sig;
-	sequence_number m_seq{0};
-	bool m_mutable = false;
+	sequence_number m_seq;
+	bool m_mutable;
 };
 
-} // namespace dht
-} // namespace libtorrent
+} } // namespace libtorrent::dht
 
 #endif // LIBTORRENT_ITEM_HPP

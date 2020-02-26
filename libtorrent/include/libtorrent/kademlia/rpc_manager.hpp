@@ -1,9 +1,6 @@
 /*
 
-Copyright (c) 2006-2017, 2019, Arvid Norberg
-Copyright (c) 2015, Thomas Yuan
-Copyright (c) 2016-2017, Steven Siloti
-Copyright (c) 2016, Alden Torres
+Copyright (c) 2006-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -49,17 +46,12 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/kademlia/observer.hpp>
 #include <libtorrent/aux_/listen_socket_handle.hpp>
 
-namespace libtorrent {
-class entry;
-namespace aux {
-	struct session_settings;
-}
-}
+namespace libtorrent { class entry; }
 
 namespace libtorrent {
 namespace dht {
 
-struct settings;
+struct dht_settings;
 struct dht_logger;
 struct socket_manager;
 
@@ -78,7 +70,7 @@ class TORRENT_EXTRA_EXPORT rpc_manager
 public:
 
 	rpc_manager(node_id const& our_id
-		, aux::session_settings const& settings
+		, dht_settings const& settings
 		, routing_table& table
 		, aux::listen_socket_handle const& sock
 		, socket_manager* sock_man
@@ -112,7 +104,6 @@ public:
 
 		auto deleter = [this](observer* o)
 		{
-			TORRENT_ASSERT(o->m_in_use);
 			o->~observer();
 			free_observer(o);
 		};
@@ -137,14 +128,13 @@ private:
 #ifndef TORRENT_DISABLE_LOGGING
 	dht_logger* m_log;
 #endif
-	aux::session_settings const& m_settings;
+	dht_settings const& m_settings;
 	routing_table& m_table;
 	node_id m_our_id;
 	std::uint32_t m_allocated_observers:31;
 	std::uint32_t m_destructing:1;
 };
 
-} // namespace dht
-} // namespace libtorrent
+} } // namespace libtorrent::dht
 
 #endif

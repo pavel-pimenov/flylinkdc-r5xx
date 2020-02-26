@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2017-2018, Arvid Norberg, Alden Torres
+Copyright (c) 2017, Arvid Norberg, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,52 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <array>
 
-#include "libtorrent/aux_/container_wrapper.hpp"
+#include "libtorrent/units.hpp"
+#include "libtorrent/assert.hpp"
 
 namespace libtorrent { namespace aux {
 
-	template <typename T, std::size_t Size, typename IndexType = std::ptrdiff_t>
-	using array = container_wrapper<T, IndexType, std::array<T, Size>>;
+	template <typename T, std::size_t Size, typename IndexType = int>
+	struct array : std::array<T, Size>
+	{
+		using base = std::array<T, Size>;
+		using underlying_index = typename underlying_index_t<IndexType>::type;
+
+		static_assert(Size <= std::size_t((std::numeric_limits<underlying_index>::max)())
+			, "size is to big for index type");
+
+		array() = default;
+		explicit array(std::array<T, Size>&& arr) : base(arr) {}
+
+		auto operator[](IndexType idx) const ->
+#if TORRENT_AUTO_RETURN_TYPES
+			decltype(auto)
+#else
+			decltype(this->base::operator[](underlying_index()))
+#endif
+		{
+			TORRENT_ASSERT(idx >= IndexType(0));
+			TORRENT_ASSERT(idx < end_index());
+			return this->base::operator[](std::size_t(static_cast<underlying_index>(idx)));
+		}
+
+		auto operator[](IndexType idx) ->
+#if TORRENT_AUTO_RETURN_TYPES
+			decltype(auto)
+#else
+			decltype(this->base::operator[](underlying_index()))
+#endif
+		{
+			TORRENT_ASSERT(idx >= IndexType(0));
+			TORRENT_ASSERT(idx < end_index());
+			return this->base::operator[](std::size_t(static_cast<underlying_index>(idx)));
+		}
+
+		constexpr IndexType end_index() const
+		{
+			return IndexType(static_cast<underlying_index>(Size));
+		}
+	};
 
 }}
 

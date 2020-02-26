@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2006, 2008, 2013, 2015-2016, 2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
+Copyright (c) 2006-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -40,8 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/address.hpp>
 
-namespace libtorrent {
-namespace dht {
+namespace libtorrent { namespace dht {
 
 using node_id = libtorrent::sha1_hash;
 
@@ -71,7 +69,6 @@ TORRENT_EXTRA_EXPORT bool verify_id(node_id const& nid, address const& source_ip
 TORRENT_EXTRA_EXPORT bool matching_prefix(node_id const& nid, int mask, int prefix, int offset);
 TORRENT_EXTRA_EXPORT node_id generate_prefix_mask(int bits);
 
-} // namespace dht
-} // namespace libtorrent
+} } // namespace libtorrent::dht
 
 #endif // NODE_ID_HPP

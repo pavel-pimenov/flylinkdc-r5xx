@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2017-2019, Arvid Norberg
+Copyright (c) 2017, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,14 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_WRITE_RESUME_DATA_HPP_INCLUDE
 #define TORRENT_WRITE_RESUME_DATA_HPP_INCLUDE
 
-#include <vector>
-
-#include "libtorrent/fwd.hpp"
-#include "libtorrent/aux_/export.hpp"
+#include "libtorrent/error_code.hpp"
+#include "libtorrent/export.hpp"
 #include "libtorrent/bencode.hpp"
 
 namespace libtorrent {
+
+	struct add_torrent_params;
+	class entry;
 
 	// this function turns the resume data in an ``add_torrent_params`` object
 	// into a bencoded structure

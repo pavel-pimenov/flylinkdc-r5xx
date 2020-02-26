@@ -1,9 +1,6 @@
 /*
 
-Copyright (c) 2006, 2008-2011, 2013-2019, Arvid Norberg
-Copyright (c) 2016, Alden Torres
-Copyright (c) 2017, Falcosc
-Copyright (c) 2017, Falco
+Copyright (c) 2006-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,14 +36,14 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/config.hpp"
 #include <vector>
 
-#if TORRENT_ABI_VERSION == 1
+#ifndef TORRENT_NO_DEPRECATE
 // for dht_lookup and dht_routing_bucket
 #include "libtorrent/alert_types.hpp"
 #endif
 
-#if TORRENT_ABI_VERSION == 1
 namespace libtorrent {
 
+#ifndef TORRENT_NO_DEPRECATE
 	// holds counters and gauges for the uTP sockets
 	// deprecated in 1.1 in favor of session_stats counters, which is a more
 	// flexible, extensible and performant mechanism for stats.
@@ -227,7 +224,9 @@ namespace libtorrent {
 		int num_torrents;
 		int num_paused_torrents;
 	};
+#endif // TORRENT_NO_DEPRECATE
+
 }
-#endif // TORRENT_ABI_VERSION
 
 #endif // TORRENT_SESSION_STATUS_HPP_INCLUDED
+

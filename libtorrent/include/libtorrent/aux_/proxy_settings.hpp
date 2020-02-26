@@ -34,7 +34,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_PROXY_SETTINGS_HPP_INCLUDED
 
 #include "libtorrent/config.hpp"
-#include "libtorrent/settings_pack.hpp"
 
 #include <string>
 
@@ -45,7 +44,9 @@ namespace aux {
 
 	struct session_settings;
 
-	struct TORRENT_EXPORT proxy_settings
+	// The ``proxy_settings`` structs contains the information needed to
+	// direct certain traffic to a proxy.
+	struct TORRENT_DEPRECATED_EXPORT proxy_settings
 	{
 		// defaults constructs proxy settings, initializing it to the default
 		// settings.
@@ -66,26 +67,75 @@ namespace aux {
 		std::string username;
 		std::string password;
 
-		// tells libtorrent what kind of proxy server it is. See proxy_type_t
+#ifndef TORRENT_NO_DEPRECATE
+		// the type of proxy to use. Assign one of these to the
+		// proxy_settings::type field.
+		enum proxy_type
+		{
+			// This is the default, no proxy server is used, all other fields are
+			// ignored.
+			none,
+
+			// The server is assumed to be a `SOCKS4 server`_ that requires a
+			// username.
+			//
+			// .. _`SOCKS4 server`: http://www.ufasoft.com/doc/socks4_protocol.htm
+			socks4,
+
+			// The server is assumed to be a SOCKS5 server (`RFC 1928`_) that does
+			// not require any authentication. The username and password are
+			// ignored.
+			//
+			// .. _`RFC 1928`: http://www.faqs.org/rfcs/rfc1928.html
+			socks5,
+
+			// The server is assumed to be a SOCKS5 server that supports plain
+			// text username and password authentication (`RFC 1929`_). The
+			// username and password specified may be sent to the proxy if it
+			// requires.
+			//
+			// .. _`RFC 1929`: http://www.faqs.org/rfcs/rfc1929.html
+			socks5_pw,
+
+			// The server is assumed to be an HTTP proxy. If the transport used
+			// for the connection is non-HTTP, the server is assumed to support
+			// the CONNECT_ method. i.e. for web seeds and HTTP trackers, a plain
+			// proxy will suffice. The proxy is assumed to not require
+			// authorization. The username and password will not be used.
+			//
+			// .. _CONNECT: http://tools.ietf.org/html/draft-luotonen-web-proxy-tunneling-01
+			http,
+
+			// The server is assumed to be an HTTP proxy that requires user
+			// authorization. The username and password will be sent to the proxy.
+			http_pw,
+
+			// route through an i2p SAM proxy
+			i2p_proxy
+		};
+#endif
+
+		// tells libtorrent what kind of proxy server it is. See proxy_type
 		// enum for options
-		settings_pack::proxy_type_t type = settings_pack::none;
+		std::uint8_t type;
 
 		// the port the proxy server is running on
-		std::uint16_t port = 0;
+		std::uint16_t port;
 
 		// defaults to true. It means that hostnames should be attempted to be
 		// resolved through the proxy instead of using the local DNS service.
 		// This is only supported by SOCKS5 and HTTP.
-		bool proxy_hostnames = true;
+		bool proxy_hostnames;
 
 		// determines whether or not to exempt peer and web seed connections
 		// from using the proxy. This defaults to true, i.e. peer connections are
 		// proxied by default.
-		bool proxy_peer_connections = true;
+		bool proxy_peer_connections;
 
 		// if true, tracker connections are subject to the proxy settings
-		bool proxy_tracker_connections = true;
+		bool proxy_tracker_connections;
 	};
+
 
 }}
 

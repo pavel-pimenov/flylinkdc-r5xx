@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2009, 2011, 2013-2014, 2016-2017, 2019, Arvid Norberg
-Copyright (c) 2015-2016, 2018, Alden Torres
-Copyright (c) 2016, Andrei Kurushin
+Copyright (c) 2009-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -87,8 +85,8 @@ namespace libtorrent {
 	// non prioritized means that, if there's a line for bandwidth,
 	// others will cut in front of the non-prioritized peers.
 	// this is used by web seeds
-	int bandwidth_manager::request_bandwidth(std::shared_ptr<bandwidth_socket> peer
-		, int const blk, int const priority, bandwidth_channel** chan, int const num_channels)
+	int bandwidth_manager::request_bandwidth(std::shared_ptr<bandwidth_socket> const& peer
+		, int blk, int priority, bandwidth_channel** chan, int num_channels)
 	{
 		INVARIANT_CHECK;
 		if (m_abort) return 0;
@@ -110,7 +108,7 @@ namespace libtorrent {
 		}
 
 		int k = 0;
-		bw_request bwr(std::move(peer), blk, priority);
+		bw_request bwr(peer, blk, priority);
 		for (int i = 0; i < num_channels; ++i)
 		{
 			if (chan[i]->need_queueing(blk))
@@ -120,7 +118,7 @@ namespace libtorrent {
 		if (k == 0) return blk;
 
 		m_queued_bytes += blk;
-		m_queue.push_back(std::move(bwr));
+		m_queue.push_back(bwr);
 		return 0;
 	}
 
@@ -167,7 +165,7 @@ namespace libtorrent {
 				}
 
 				i->assigned = 0;
-				queue.push_back(std::move(*i));
+				queue.push_back(*i);
 				i = m_queue.erase(i);
 				continue;
 			}
@@ -203,7 +201,7 @@ namespace libtorrent {
 			{
 				a += i->request_size - i->assigned;
 				TORRENT_ASSERT(i->assigned <= i->request_size);
-				queue.push_back(std::move(*i));
+				queue.push_back(*i);
 				i = m_queue.erase(i);
 			}
 			else

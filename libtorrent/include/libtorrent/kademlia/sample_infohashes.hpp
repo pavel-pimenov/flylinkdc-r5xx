@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2017, 2019, Arvid Norberg
-Copyright (c) 2017, Alden Torres
+Copyright (c) 2017, Arvid Norberg, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,8 +38,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/kademlia/traversal_algorithm.hpp>
 #include <libtorrent/time.hpp>
 
-namespace libtorrent {
-namespace dht {
+namespace libtorrent { namespace dht
+{
 
 class sample_infohashes final : public traversal_algorithm
 {
@@ -52,7 +51,7 @@ public:
 
 	sample_infohashes(node& dht_node
 		, node_id const& target
-		, data_callback dcallback);
+		, data_callback const& dcallback);
 
 	char const* name() const override;
 
@@ -75,7 +74,6 @@ public:
 	void reply(msg const&) override;
 };
 
-} // namespace dht
-} // namespace libtorrent
+}} // namespace libtorrent::dht
 
 #endif // TORRENT_SAMPLE_INFOHASHES_HPP

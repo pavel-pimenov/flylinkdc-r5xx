@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2016-2019, Arvid Norberg
-Copyright (c) 2016-2017, Alden Torres
-Copyright (c) 2017, Steven Siloti
+Copyright (c) 2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +33,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_SPAN_HPP_INCLUDED
 #define TORRENT_SPAN_HPP_INCLUDED
 
-#include <string>
 #include <array>
 #include <type_traits>
 #include "libtorrent/assert.hpp"
@@ -67,9 +64,6 @@ namespace aux {
 	template <typename T>
 	struct span
 	{
-		using difference_type = std::ptrdiff_t;
-		using index_type = std::ptrdiff_t;
-
 		span() noexcept : m_ptr(nullptr), m_len(0) {}
 
 		template <typename U, typename
@@ -78,19 +72,13 @@ namespace aux {
 			: m_ptr(v.data()), m_len(v.size()) {}
 
 		span(T& p) noexcept : m_ptr(&p), m_len(1) {} // NOLINT
-		span(T* p, difference_type const l) noexcept : m_ptr(p), m_len(l) // NOLINT
-		{ TORRENT_ASSERT(l >= 0); }
+		span(T* p, std::size_t const l) noexcept : m_ptr(p), m_len(l) {} // NOLINT
 
 		template <typename U, std::size_t N>
 		span(std::array<U, N>& arr) noexcept // NOLINT
-			: m_ptr(arr.data()), m_len(static_cast<difference_type>(arr.size())) {}
+			: m_ptr(arr.data()), m_len(arr.size()) {}
 
-		// this is necessary until C++17, where data() returns a non-const pointer
-		template <typename U>
-		span(std::basic_string<U>& str) noexcept // NOLINT
-			: m_ptr(&str[0]), m_len(static_cast<difference_type>(str.size())) {}
-
-		template <typename U, difference_type N>
+		template <typename U, std::size_t N>
 		span(U (&arr)[N]) noexcept // NOLINT
 			: m_ptr(&arr[0]), m_len(N) {}
 
@@ -100,7 +88,7 @@ namespace aux {
 			, typename U = typename std::remove_reference<decltype(*std::declval<Cont>().data())>::type
 			, typename = typename std::enable_if<aux::compatible_type<U, T>::value>::type>
 		span(Cont& c) // NOLINT
-			: m_ptr(c.data()), m_len(static_cast<difference_type>(c.size())) {}
+			: m_ptr(c.data()), m_len(c.size()) {}
 
 		// allow construction from const containers if T is const
 		// this allows const spans to be constructed from a temporary container
@@ -109,23 +97,12 @@ namespace aux {
 			, typename = typename std::enable_if<aux::compatible_type<U, T>::value
 				&& std::is_const<T>::value>::type>
 		span(Cont const& c) // NOLINT
-			: m_ptr(c.data()), m_len(static_cast<difference_type>(c.size())) {}
+			: m_ptr(c.data()), m_len(c.size()) {}
 
-		template <typename U, typename
-			= typename std::enable_if<aux::compatible_type<U, T>::value>::type>
-		span& operator=(span<U> const& rhs) noexcept
-		{
-			m_ptr = rhs.data();
-			m_len = rhs.size();
-			return *this;
-		}
-
-		index_type size() const noexcept { return m_len; }
+		std::size_t size() const noexcept { return m_len; }
 		bool empty() const noexcept { return m_len == 0; }
 		T* data() const noexcept { return m_ptr; }
 
-		using const_iterator = T const*;
-		using const_reverse_iterator = std::reverse_iterator<T const*>;
 		using iterator = T*;
 		using reverse_iterator = std::reverse_iterator<T*>;
 
@@ -137,57 +114,49 @@ namespace aux {
 		T& front() const noexcept { TORRENT_ASSERT(m_len > 0); return m_ptr[0]; }
 		T& back() const noexcept { TORRENT_ASSERT(m_len > 0); return m_ptr[m_len - 1]; }
 
-		span<T> first(difference_type const n) const
+		span<T> first(std::size_t const n) const
 		{
 			TORRENT_ASSERT(size() >= n);
 			return { data(), n };
 		}
 
-		span<T> last(difference_type const n) const
+		span<T> last(std::size_t const n) const
 		{
 			TORRENT_ASSERT(size() >= n);
 			return { data() + size() - n, n };
 		}
 
-		span<T> subspan(index_type const offset) const
+		span<T> subspan(std::size_t const offset) const
 		{
 			TORRENT_ASSERT(size() >= offset);
 			return { data() + offset, size() - offset };
 		}
 
-		span<T> subspan(index_type const offset, difference_type const count) const
+		span<T> subspan(std::size_t const offset, std::size_t const count) const
 		{
-			TORRENT_ASSERT(count >= 0);
 			TORRENT_ASSERT(size() >= offset);
 			TORRENT_ASSERT(size() >= offset + count);
 			return { data() + offset, count };
 		}
 
-		T& operator[](index_type const idx) const
+		T& operator[](std::size_t const idx) const
 		{
 			TORRENT_ASSERT(idx < m_len);
-			TORRENT_ASSERT(idx >= 0);
 			return m_ptr[idx];
 		}
 
 	private:
 		T* m_ptr;
-		difference_type m_len;
+		std::size_t m_len;
 	};
 
 	template <class T, class U>
 	inline bool operator==(span<T> const& lhs, span<U> const& rhs)
 	{
-		return  lhs.size() == rhs.size()
-			&& (lhs.data() == rhs.data() || std::equal(lhs.begin(), lhs.end(), rhs.begin()));
+		return  lhs.size()  == rhs.size()
+			&& (lhs.begin() == rhs.begin() || std::equal(lhs.begin(), lhs.end(), rhs.begin()));
 	}
 
-	template <class T, class U>
-	inline bool operator!=(span<T> const& lhs, span<U> const& rhs)
-	{
-		return  lhs.size() != rhs.size()
-			|| (lhs.data() != rhs.data() && !std::equal(lhs.begin(), lhs.end(), rhs.begin()));
-	}
 }
 
 #endif // TORRENT_SPAN_HPP_INCLUDED

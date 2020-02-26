@@ -1,8 +1,6 @@
 /*
 
-Copyright (c) 2015, Thomas Yuan
-Copyright (c) 2016-2019, Arvid Norberg
-Copyright (c) 2016, 2018, Alden Torres
+Copyright (c) 2006-2016, Arvid Norberg, Thomas Yuan
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -42,23 +40,21 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <vector>
 
-namespace libtorrent {
-namespace dht {
+namespace libtorrent { namespace dht {
 
 struct msg;
 class node;
 
 struct put_data: traversal_algorithm
 {
-	using put_callback = std::function<void(item const&, int)>;
+	typedef std::function<void(item const&, int)> put_callback;
 
-	put_data(node& node, put_callback callback);
+	put_data(node& node, put_callback const& callback);
 
 	char const* name() const override;
 	void start() override;
 
-	void set_data(item&& data) { m_data = std::move(data); }
-	void set_data(item const& data) = delete;
+	void set_data(item const& data) { m_data = data; }
 
 	void set_targets(std::vector<std::pair<node_entry, std::string>> const& targets);
 
@@ -76,9 +72,9 @@ struct put_data_observer : traversal_observer
 {
 	put_data_observer(
 		std::shared_ptr<traversal_algorithm> algorithm
-		, udp::endpoint const& ep, node_id const& id, std::string token)
+		, udp::endpoint const& ep, node_id const& id, std::string const& token)
 		: traversal_observer(std::move(algorithm), ep, id)
-		, m_token(std::move(token))
+		, m_token(token)
 	{
 	}
 
@@ -87,7 +83,6 @@ struct put_data_observer : traversal_observer
 	std::string m_token;
 };
 
-} // namespace dht
-} // namespace libtorrent
+} } // namespace libtorrent::dht
 
 #endif // TORRENT_PUT_DATA_HPP

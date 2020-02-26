@@ -34,13 +34,103 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_VECTOR_HPP
 
 #include <vector>
+#include <type_traits>
 
-#include "libtorrent/aux_/container_wrapper.hpp"
+#include "libtorrent/units.hpp"
+#include "libtorrent/assert.hpp"
 
 namespace libtorrent { namespace aux {
 
 	template <typename T, typename IndexType = int>
-	using vector = container_wrapper<T, IndexType, std::vector<T>>;
+	struct vector : std::vector<T>
+	{
+		using base = std::vector<T>;
+		using underlying_index = typename underlying_index_t<IndexType>::type;
+
+		// pull in constructors from base class
+		using base::base;
+
+		vector() noexcept {}
+		vector(vector const&) = default;
+		vector& operator=(vector const&) = default;
+
+		// the move constructor of std::vector isn't noexcept until C++17
+		vector(vector&& rhs) noexcept : base(std::forward<base>(rhs)) {}
+		vector& operator=(vector&& rhs) noexcept
+		{ this->base::operator=(std::forward<base>(rhs)); return *this; }
+
+		auto operator[](IndexType idx) const ->
+#if TORRENT_AUTO_RETURN_TYPES
+			decltype(auto)
+#else
+			decltype(this->base::operator[](underlying_index()))
+#endif
+		{
+			TORRENT_ASSERT(idx >= IndexType(0));
+			TORRENT_ASSERT(idx < end_index());
+			return this->base::operator[](std::size_t(static_cast<underlying_index>(idx)));
+		}
+
+		auto operator[](IndexType idx) ->
+#if TORRENT_AUTO_RETURN_TYPES
+			decltype(auto)
+#else
+			decltype(this->base::operator[](underlying_index()))
+#endif
+		{
+			TORRENT_ASSERT(idx >= IndexType(0));
+			TORRENT_ASSERT(idx < end_index());
+			return this->base::operator[](std::size_t(static_cast<underlying_index>(idx)));
+		}
+
+		IndexType end_index() const
+		{
+			TORRENT_ASSERT(this->size() <= std::size_t((std::numeric_limits<underlying_index>::max)()));
+			return IndexType(static_cast<underlying_index>(this->size()));
+		}
+
+		template <typename U = underlying_index, typename Cond
+			= typename std::enable_if<std::is_signed<U>::value>::type>
+		void resize(underlying_index s)
+		{
+			TORRENT_ASSERT(s >= 0);
+			this->base::resize(std::size_t(s));
+		}
+
+		template <typename U = underlying_index, typename Cond
+			= typename std::enable_if<std::is_signed<U>::value>::type>
+		void resize(underlying_index s, T const& v)
+		{
+			TORRENT_ASSERT(s >= 0);
+			this->base::resize(std::size_t(s), v);
+		}
+
+		void resize(std::size_t s)
+		{
+			TORRENT_ASSERT(s <= std::size_t((std::numeric_limits<underlying_index>::max)()));
+			this->base::resize(s);
+		}
+
+		void resize(std::size_t s, T const& v)
+		{
+			TORRENT_ASSERT(s <= std::size_t((std::numeric_limits<underlying_index>::max)()));
+			this->base::resize(s, v);
+		}
+
+		template <typename U = underlying_index, typename Cond
+			= typename std::enable_if<std::is_signed<U>::value>::type>
+		void reserve(underlying_index s)
+		{
+			TORRENT_ASSERT(s >= 0);
+			this->base::reserve(std::size_t(s));
+		}
+
+		void reserve(std::size_t s)
+		{
+			TORRENT_ASSERT(s <= std::size_t((std::numeric_limits<underlying_index>::max)()));
+			this->base::reserve(s);
+		}
+	};
 
 }}
 

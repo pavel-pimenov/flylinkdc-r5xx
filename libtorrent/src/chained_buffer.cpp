@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2011, 2014, 2016-2019, Arvid Norberg
-Copyright (c) 2016-2018, Alden Torres
+Copyright (c) 2007-2016, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,13 +30,12 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#include "libtorrent/aux_/chained_buffer.hpp"
+#include "libtorrent/chained_buffer.hpp"
 #include "libtorrent/assert.hpp"
 
-#include <algorithm> // for copy
+#include <cstring> // for memcpy
 
 namespace libtorrent {
-namespace aux {
 
 	void chained_buffer::pop_front(int bytes_to_pop)
 	{
@@ -92,7 +90,7 @@ namespace aux {
 		TORRENT_ASSERT(!m_destructed);
 		char* const insert = allocate_appendix(static_cast<int>(buf.size()));
 		if (insert == nullptr) return nullptr;
-		std::copy(buf.begin(), buf.end(), insert);
+		std::memcpy(insert, buf.data(), buf.size());
 		return insert;
 	}
 
@@ -114,7 +112,7 @@ namespace aux {
 		return insert;
 	}
 
-	span<boost::asio::const_buffer const> chained_buffer::build_iovec(int const to_send)
+	std::vector<boost::asio::const_buffer> const& chained_buffer::build_iovec(int const to_send)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		TORRENT_ASSERT(!m_destructed);
@@ -139,11 +137,11 @@ namespace aux {
 			if (i->used_size > bytes)
 			{
 				TORRENT_ASSERT(bytes > 0);
-				vec.emplace_back(i->buf, std::size_t(bytes));
+				vec.push_back(Buffer(i->buf, std::size_t(bytes)));
 				break;
 			}
 			TORRENT_ASSERT(i->used_size > 0);
-			vec.emplace_back(i->buf, std::size_t(i->used_size));
+			vec.push_back(Buffer(i->buf, std::size_t(i->used_size)));
 			bytes -= i->used_size;
 		}
 	}
@@ -170,5 +168,4 @@ namespace aux {
 #endif
 	}
 
-}
 }

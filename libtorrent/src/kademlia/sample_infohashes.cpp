@@ -1,7 +1,6 @@
 /*
 
-Copyright (c) 2017, 2019, Arvid Norberg
-Copyright (c) 2017, Alden Torres
+Copyright (c) 2017, Arvid Norberg, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -44,9 +43,9 @@ namespace libtorrent { namespace dht
 
 sample_infohashes::sample_infohashes(node& dht_node
 	, node_id const& target
-	, data_callback dcallback)
+	, data_callback const& dcallback)
 	: traversal_algorithm(dht_node, target)
-	, m_data_callback(std::move(dcallback)) {}
+	, m_data_callback(dcallback) {}
 
 char const* sample_infohashes::name() const { return "sample_infohashes"; }
 
@@ -83,7 +82,7 @@ void sample_infohashes_observer::reply(msg const& m)
 	// look for nodes
 	std::vector<std::pair<sha1_hash, udp::endpoint>> nodes;
 	udp const protocol = algorithm()->get_node().protocol();
-	int const protocol_size = int(aux::address_size(protocol));
+	int const protocol_size = int(detail::address_size(protocol));
 	char const* nodes_key = algorithm()->get_node().protocol_nodes_key();
 	bdecode_node const n = r.dict_find_string(nodes_key);
 	if (n)
@@ -138,7 +137,6 @@ void sample_infohashes_observer::reply(msg const& m)
 		timeout();
 	}
 
-	// we deliberately do not call
 	traversal_observer::reply(m);
 	// this is necessary to play nice with
 	// observer::abort(), observer::done() and observer::timeout()
