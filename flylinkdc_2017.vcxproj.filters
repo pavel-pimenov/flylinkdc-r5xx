@@ -154,9 +154,6 @@
     <ClCompile Include="windows\RecentsFrm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows\RemoteControlPage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="windows\SDCPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -206,9 +203,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="windows\WindowsPage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="windows\WebServerPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="windows\WaitingUsersFrame.cpp">
@@ -504,9 +498,6 @@
     <ClInclude Include="windows\RecentsFrm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="windows\RemoteControlPage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="windows\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -568,9 +559,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\WaitingUsersFrame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\WebServerPage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\Winamp.h">
@@ -1196,6 +1184,9 @@
     <Image Include="res\vip_a_galaxy.ico" />
     <Image Include="res\vip_piter.ico" />
     <Image Include="res\vip_kcahdep.ico" />
+    <Image Include="res\vip_ozerki.ico" />
+    <Image Include="res\vip_swalka.ico" />
+    <Image Include="res\osago.png" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compiled\Settings\common\IPTrust.ini">

@@ -66,7 +66,6 @@ UpdatePage::ListItem UpdatePage::listComponents[] =
 #ifdef IRAINMAN_INCLUDE_SMILE
 	{ SettingsManager::AUTOUPDATE_EMOPACKS, ResourceManager::AUTOUPDATE_EMOPACKS},
 #endif
-	{ SettingsManager::AUTOUPDATE_WEBSERVER, ResourceManager::WEBSERVER},
 	{ SettingsManager::AUTOUPDATE_SOUNDS, ResourceManager::AUTOUPDATE_SOUNDS},
 	{ SettingsManager::AUTOUPDATE_ICONTHEMES, ResourceManager::AUTOUPDATE_ICONTHEMES},
 	{ SettingsManager::AUTOUPDATE_COLORTHEMES, ResourceManager::AUTOUPDATE_COLORTHEMES},

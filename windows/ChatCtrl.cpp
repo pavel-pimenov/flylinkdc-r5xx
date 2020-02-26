@@ -284,8 +284,8 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message, unsigned p_max_smiles,
 	if (!m_hWnd)
 	{
 		//dcassert(0);
-		LogManager::message("Error ChatCtrl::AppendText " + Text::fromT(p_message.m_Msg));
-		return;
+		//LogManager::message("Error ChatCtrl::AppendText " + Text::fromT(p_message.m_Msg));
+		//return;
 	}
 	dcassert(!ClientManager::isBeforeShutdown());
 	if (ClientManager::isBeforeShutdown())

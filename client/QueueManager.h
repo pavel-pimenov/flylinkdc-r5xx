@@ -49,7 +49,6 @@ class QueueManager : public Singleton<QueueManager>,
 {
 	public:
 		/** Add a file to the queue. */
-		void addFromWebServer(const string& aTarget, int64_t aSize, const TTHValue& aRoot);
 		void add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSize, const TTHValue& aRoot, const UserPtr& aUser,
 		         Flags::MaskType aFlags = 0, bool addBad = true, bool p_first_file = true);
 		/** Add a user's filelist to the queue. */

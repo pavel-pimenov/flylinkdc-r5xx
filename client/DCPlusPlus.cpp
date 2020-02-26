@@ -30,7 +30,6 @@
 #include "MappingManager.h"
 #include "ConnectivityManager.h"
 #include "UserManager.h"
-#include "WebServerManager.h"
 #include "ThrottleManager.h"
 //#include "GPGPUManager.h"
 #include "../FlyFeatures/flyServer.h"
@@ -158,7 +157,6 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	
 	LOAD_STEP_L(WAITING_USERS, UploadManager::getInstance()->load());
 	
-	WebServerManager::newInstance();
 	
 	LOAD_STEP_L(HASH_DATABASE, HashManager::getInstance()->startup());
 	
@@ -181,7 +179,6 @@ void preparingCoreToShutdown()
 		HashManager::getInstance()->shutdown();
 		TimerManager::getInstance()->shutdown();
 		UploadManager::shutdown();
-		WebServerManager::getInstance()->shutdown();
 		ClientManager::prepareClose();
 		FavoriteManager::getInstance()->prepareClose();
 		ShareManager::getInstance()->shutdown();
@@ -273,7 +270,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 #endif
 		
 		ConnectivityManager::deleteInstance();
-		WebServerManager::deleteInstance();
 		if (pGuiInitProc)
 		{
 			pGuiInitProc(pGuiParam);

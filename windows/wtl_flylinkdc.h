@@ -32,24 +32,24 @@
 
 class CFlyRichEditLoader
 {
-	HMODULE m_richEditLibrary;
-public:
-	CFlyRichEditLoader()
-	{
-		m_richEditLibrary = ::LoadLibrary(L"Msftedit.dll");
-		if (!m_richEditLibrary)
+		HMODULE m_richEditLibrary;
+	public:
+		CFlyRichEditLoader()
 		{
-			dcassert(0);
-			//_RPT1(_CRT_WARN, "[AboutLogDlg] LoadLibrary for Msftedit.dll failed with: %d\n", ::GetLastError());
+			m_richEditLibrary = ::LoadLibrary(L"Msftedit.dll");
+			if (!m_richEditLibrary)
+			{
+				dcassert(0);
+				//_RPT1(_CRT_WARN, "[AboutLogDlg] LoadLibrary for Msftedit.dll failed with: %d\n", ::GetLastError());
+			}
 		}
-	}
-	~CFlyRichEditLoader()
-	{
-		if (m_richEditLibrary)
+		~CFlyRichEditLoader()
 		{
-			::FreeLibrary(m_richEditLibrary);
+			if (m_richEditLibrary)
+			{
+				::FreeLibrary(m_richEditLibrary);
+			}
 		}
-	}
 };
 
 class CFlyToolBarCtrl : public CToolBarCtrl

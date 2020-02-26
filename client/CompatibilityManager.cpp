@@ -328,7 +328,7 @@ string CompatibilityManager::getWindowsVersionName()
 				if (getOsType() == VER_NT_WORKSTATION)
 					l_OS += "10 ";
 				else
-					l_OS += "Windows Server 2016 Technical Preview ";
+					l_OS += "Windows Server 2016 ";
 			}
 			// check type for Win10: Desktop, Mobile, etc...
 		}
@@ -395,6 +395,7 @@ string CompatibilityManager::getWindowsVersionName()
 				case PRODUCT_STARTER:
 					l_OS += "Starter Edition";
 					break;
+#if 0
 				case PRODUCT_CLUSTER_SERVER:
 					l_OS += "Cluster Server Edition";
 					break;
@@ -428,6 +429,7 @@ string CompatibilityManager::getWindowsVersionName()
 				case PRODUCT_WEB_SERVER:
 					l_OS += "Web Server Edition";
 					break;
+#endif
 				case PRODUCT_UNLICENSED:
 					l_OS += "Unlicensed";
 					break;
@@ -478,6 +480,7 @@ string CompatibilityManager::getWindowsVersionName()
 			}
 			else
 				l_OS += "Server 2003, ";  // Test for the server type.
+#if 0
 			if (getOsType() != VER_NT_WORKSTATION)
 			{
 				if (getProcArch() == PROCESSOR_ARCHITECTURE_IA64)
@@ -510,6 +513,7 @@ string CompatibilityManager::getWindowsVersionName()
 						l_OS += "Standard Edition";
 				}
 			}
+#endif
 		}
 		if (getOsMinor() == 1)
 		{
@@ -528,12 +532,14 @@ string CompatibilityManager::getWindowsVersionName()
 			}
 			else
 			{
+#if 0
 				if (getOsSuiteMask() & VER_SUITE_DATACENTER)
 					l_OS += "Datacenter Server";
 				else if (getOsSuiteMask() & VER_SUITE_ENTERPRISE)
 					l_OS += "Advanced Server";
 				else
 					l_OS += "Server";
+#endif
 			}
 		}
 	}

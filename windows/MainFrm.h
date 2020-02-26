@@ -26,7 +26,6 @@
 #include "HubFrame.h"
 #include "../client/LogManager.h"
 #include "../client/ShareManager.h"
-#include "../client/WebServerManager.h"
 #include "../client/AdlSearch.h"
 #include "../FlyFeatures/AutoUpdate.h"
 #include "../FlyFeatures/InetDownloaderReporter.h"
@@ -49,10 +48,8 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 	public Thread, // TODO убрать наследование сократив размер класса и перевести на агрегацию (используется редко только для расчета ID_GET_TTH)
 	private CFlyTimerAdapter,
 	private QueueManagerListener,
-	private WebServerListener,
 	private UserManagerListener,
-	public AutoUpdateGUIMethod,
-	private CFlyRichEditLoader
+	public AutoUpdateGUIMethod
 {
 	public:
 		MainFrame();
@@ -106,7 +103,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		MESSAGE_HANDLER(WM_ACTIVATEAPP, onActivateApp)
 		MESSAGE_HANDLER(WM_APPCOMMAND, onAppCommand)
 		MESSAGE_HANDLER(IDC_REBUILD_TOOLBAR, OnCreateToolbar)
-		MESSAGE_HANDLER(WEBSERVER_SOCKET_MESSAGE, onWebServerSocket)
 		MESSAGE_HANDLER(IDC_UPDATE_WINDOW_TITLE, onUpdateWindowTitle)
 		MESSAGE_HANDLER(WM_CONTEXTMENU, onContextMenu)
 		MESSAGE_HANDLER(WM_MENUSELECT, OnMenuSelect)
@@ -288,7 +284,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 //		LRESULT onFlylinkDiscover(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onQuickConnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		LRESULT onActivateApp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-		LRESULT onWebServerSocket(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT onUpdateWindowTitle(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		LRESULT onAppCommand(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/);
 		LRESULT onAway(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
@@ -736,11 +731,6 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		
 		void setIcon(HICON newIcon);
 		void storeWindowsPos();
-		
-		
-		// WebServerListener
-		void on(WebServerListener::Setup) noexcept override;
-		void on(WebServerListener::ShutdownPC, int) noexcept override;
 		
 		// QueueManagerListener
 		void on(QueueManagerListener::Finished, const QueueItemPtr& qi, const string& dir, const DownloadPtr& aDownload) noexcept override;

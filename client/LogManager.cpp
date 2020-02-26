@@ -55,8 +55,6 @@ void LogManager::init()
 	g_logOptions[SYSTEM][FORMAT]      = SettingsManager::LOG_FORMAT_SYSTEM;
 	g_logOptions[STATUS][FILE]        = SettingsManager::LOG_FILE_STATUS;
 	g_logOptions[STATUS][FORMAT]      = SettingsManager::LOG_FORMAT_STATUS;
-	g_logOptions[WEBSERVER][FILE]     = SettingsManager::LOG_FILE_WEBSERVER;
-	g_logOptions[WEBSERVER][FORMAT]   = SettingsManager::LOG_FORMAT_WEBSERVER;
 #ifdef RIP_USE_LOG_PROTOCOL
 	g_logOptions[PROTOCOL][FILE]      = SettingsManager::LOG_FILE_PROTOCOL;
 	g_logOptions[PROTOCOL][FORMAT]    = SettingsManager::LOG_FORMAT_PROTOCOL;

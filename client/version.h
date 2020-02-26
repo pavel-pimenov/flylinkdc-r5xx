@@ -26,8 +26,8 @@
 #define A_POSTFIX64 "-x64"
 #define L_POSTFIX64 L"-x64"
 #else
-#define A_POSTFIX64 ""
-#define L_POSTFIX64 L""
+#define A_POSTFIX64 "-x86"
+#define L_POSTFIX64 L"-x86"
 #endif
 
 //#define NIGHT_BUILD 1 // Enable to use fail-save, and potential unstable features.

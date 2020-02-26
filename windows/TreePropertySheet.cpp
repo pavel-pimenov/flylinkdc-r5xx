@@ -137,8 +137,6 @@ static const TCHAR* g_HelpLinkTable[] =
 	L"security",
 	L"misc",
 	L"ipfilter",
-	L"",
-	L"webserver",
 	L"autoupdate",
 	L"dcls",
 	L"intergration",

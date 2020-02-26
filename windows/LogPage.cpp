@@ -64,7 +64,6 @@ PropPage::ListItem LogPage::listItems[] =
 	{ SettingsManager::LOG_UPLOADS,             ResourceManager::SETTINGS_LOG_UPLOADS },
 	{ SettingsManager::LOG_SYSTEM,              ResourceManager::SETTINGS_LOG_SYSTEM_MESSAGES },
 	{ SettingsManager::LOG_STATUS_MESSAGES,     ResourceManager::SETTINGS_LOG_STATUS_MESSAGES },
-	{ SettingsManager::LOG_WEBSERVER,           ResourceManager::SETTINGS_LOG_WEBSERVER },
 #ifdef RIP_USE_LOG_PROTOCOL
 	{ SettingsManager::LOG_PROTOCOL,            ResourceManager::SETTINGS_LOG_PROTOCOL },
 #endif

@@ -602,8 +602,6 @@ SettingsManager::IntSetting AutoUpdate::getSettingByTitle(const string& wTitle)
 	if (wTitle == "emopacks")
 		return SettingsManager::AUTOUPDATE_EMOPACKS;
 #endif
-	if (wTitle == "webserver")
-		return SettingsManager::AUTOUPDATE_WEBSERVER;
 	if (wTitle == "sounds")
 		return SettingsManager::AUTOUPDATE_SOUNDS;
 	if (wTitle == "iconthemes")

@@ -55,9 +55,9 @@ void BaseChatFrame::createChatCtrl()
 		                                     WS_VSCROLL | ES_AUTOVSCROLL | ES_MULTILINE | ES_NOHIDESEL | ES_READONLY, WS_EX_STATICEDGE, IDC_CLIENT);
 		if (!l_res)
 		{
-			dcdebug("Error create BaseChatFrame::createChatCtrl %s", 
-				Util::translateError().c_str());
-			dcdebug("RICHEDIT_CLASS = %s",RICHEDIT_CLASS);
+			dcdebug("Error create BaseChatFrame::createChatCtrl %s",
+			        Util::translateError().c_str());
+			dcdebug("RICHEDIT_CLASS = %s", RICHEDIT_CLASS);
 			dcassert(0);
 		}
 		else

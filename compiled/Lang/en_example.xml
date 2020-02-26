@@ -735,7 +735,6 @@
 	<string name="Lock">Lock</string>
 	<string name="LockToolbars">Lock Toolbars</string>
 	<string name="LoggingNotEnabledSystem">System logging not enabled.</string>
-	<string name="LoggingNotEnabledWebserver">WebServer logging not enabled.</string>
 	<string name="LogIfSuppressPms">PM is suppress! PM from %s on hub %s (%s) dropped...</string>
 	<string name="LogIn">Log In</string>
 	<string name="LogOff">Log off</string>
@@ -1373,7 +1372,6 @@
 	<string name="SettingsLogStatusMessages">Log status messages</string>
 	<string name="SettingsLogSystemMessages">Log system messages</string>
 	<string name="SettingsLogUploads">Log uploads</string>
-	<string name="SettingsLogWebserver">Log web server</string>
 	<string name="SettingsLogProtocol">Log TCP socket </string>
 	<string name="SettingsMaxCompress">Max compression level</string>
 	<string name="SettingsMaxHashSpeed">Max hash speed</string>
@@ -1507,7 +1505,6 @@
 	<string name="SettingsUseSystemIcons">Use system icons when browsing files (slows browsing down a bit)</string>
 	<string name="SettingsUseTextForLogs">Use text files</string>
 	<string name="SettingsUseTls">Use TLS when remote client supports it</string>
-	<string name="SettingsWebserver">Enable Web server</string>
 	<string name="SettingsWindows">Windows</string>
 	<string name="SettingsWindowsOptions">Window options</string>
 	<string name="SettingsWindowColorize">Use a MDI color for right side of Settings window</string>
@@ -1808,22 +1805,6 @@
 	<string name="WaitingUserOnline">Waiting (User online)</string>
 	<string name="Warning">Warning!</string>
 	<string name="WarningParse">Warning parse</string>
-	<string name="Webserver">Web Server</string>
-	<string name="WebserverAddMagnetLink">Add magnet link</string>
-	<string name="WebserverAllowChangeDownloadDir">Allow changing download directory.\r\nWarning: this option is potentially unsafe!</string>
-	<string name="WebserverAllowUpnp">Allow port mapping with UPnP.\r\nWarning: this option is potentially unsafe!</string>
-	<string name="WebserverBindInterface">Network interface:</string>
-	<string name="WebserverFullUser">Power user.</string>
-	<string name="WebserverGeneratedInMessage">Generated in:</string>
-	<string name="WebserverLoginPageName">Login Page</string>
-	<string name="WebserverMagnetLink">Magnet link:</string>
-	<string name="WebserverOnlyPowerUserMessage">This feature is only available to power user! ;)</string>
-	<string name="WebserverPageNotFound">Page not found</string>
-	<string name="WebserverReguestSentOk">Request sent to remote PC :)</string>
-	<string name="WebserverSearchpagesize">Search page size</string>
-	<string name="WebserverSearchsize">Search result size</string>
-	<string name="WebserverSearchPageName">Add and Search</string>
-	<string name="WebserverUser">Limited user.</string>
 	<string name="WebUrl">WebURL</string>
 	<string name="Welcome">Welcome</string>
 	<string name="WhatsThis">What's &amp;this?</string>

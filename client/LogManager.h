@@ -42,7 +42,6 @@ class LogManager
 {
 	public:
 		enum LogArea { CHAT, PM, DOWNLOAD, UPLOAD, SYSTEM, STATUS,
-		               WEBSERVER,
 #ifdef RIP_USE_LOG_PROTOCOL
 		               PROTOCOL,
 #endif

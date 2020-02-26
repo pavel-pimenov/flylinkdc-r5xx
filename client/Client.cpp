@@ -625,8 +625,6 @@ void Client::updatedMyINFO(const OnlineUserPtr& aUser)
 {
 	if (!ClientManager::isBeforeShutdown())
 	{
-		//CFlyFastLock(m_fs_update_online_user);
-		//m_update_online_user_deque.push_back(aUser);
 		fly_fire1(ClientListener::UserUpdatedMyINFO(), aUser);
 	}
 }
@@ -635,10 +633,10 @@ string Client::getLocalIp() const
 {
 	if (getMyIdentity().isIPValid())
 	{
-		const string& myUserIp = getMyIdentity().getIpAsString(); // [!] opt, and fix done: [4] https://www.box.net/shared/c497f50da28f3dfcc60a
+		const string& myUserIp = getMyIdentity().getIpAsString();
 		if (!myUserIp.empty())
 		{
-			return myUserIp; // [!] Best case - the server detected it.
+			return myUserIp;
 		}
 	}
 	// Favorite hub Ip
@@ -1241,11 +1239,6 @@ void Client::setSearchIntervalPassive(uint32_t aIntervalPassive, bool p_is_searc
 string Client::getTagVersion() const
 {
 	string l_version = getClientVersion();
-	if (!m_is_override_name)
-	{
-		l_version += '-';
-		l_version += A_REVISION_NUM_STR;
-	}
 	return l_version;
 }
 /**

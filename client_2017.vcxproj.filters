@@ -157,9 +157,6 @@
     <ClCompile Include="client\Util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client\WebServerManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="client\ZUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -547,9 +544,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="client\version.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="client\WebServerManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="client\Wildcards.h">

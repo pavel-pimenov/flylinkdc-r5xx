@@ -1039,7 +1039,7 @@ void DownloadManager::onTorrentAlertNotify()
 								                          + " ] Download: " + Util::toString(s.download_payload_rate / 1000) + " kB/s "
 								                          + " ] Upload: " + Util::toString(s.upload_payload_rate / 1000) + " kB/s "
 								                          + Util::toString(s.total_done / 1000) + " kB ("
-								                          + Util::toString(s.progress_ppm / 10000) + "%) downloaded sha1: " + aux::to_hex(s.info_hash.get_best());
+								                          + Util::toString(s.progress_ppm / 10000) + "%) downloaded sha1: " + aux::to_hex(s.info_hash/*.get_best()*/);
 								static std::string g_last_log;
 								if (g_last_log != l_log)
 								{
@@ -1113,14 +1113,17 @@ void DownloadManager::onTorrentAlertNotify()
 						//}
 						if (lt::alert_cast<lt::peer_error_alert>(a))
 						{
+							dcassert(0);
 							LogManager::torrent_message("peer_error_alert: " + a->message());
 						}
 						if (lt::alert_cast<lt::torrent_error_alert>(a))
 						{
+							dcassert(0);
 							LogManager::torrent_message("torrent_error_alert: " + a->message() + " info:" + std::string(a->what()));
 						}
 						if (lt::alert_cast<lt::file_error_alert>(a))
 						{
+							dcassert(0);
 							LogManager::torrent_message("file_error_alert: " + a->message() + " info:" + std::string(a->what()));
 						}
 					}
@@ -1145,7 +1148,7 @@ void DownloadManager::onTorrentAlertNotify()
 						}
 						--m_torrent_resume_count;
 						CFlylinkDBManager::getInstance()->delete_torrent_resume(l_sha1);
-						LogManager::torrent_message("CFlylinkDBManager::getInstance()->delete_torrent_resume(l_sha1): " + lt::aux::to_hex(l_delete->handle.info_hash().get_best()));
+						LogManager::torrent_message("CFlylinkDBManager::getInstance()->delete_torrent_resume(l_sha1): " + lt::aux::to_hex(l_delete->handle.info_hash()/*.get_best()*/));
 						fly_fire1(DownloadManagerListener::RemoveTorrent(), l_sha1);
 					}
 					if (const auto l_rename = lt::alert_cast<lt::file_renamed_alert>(a))
@@ -1261,7 +1264,7 @@ void DownloadManager::onTorrentAlertNotify()
 								else
 								{
 #ifdef _DEBUG
-									LogManager::torrent_message("CFlylinkDBManager::is_resume_torrent: sha1 = " + lt::aux::to_hex(l_a->handle.info_hash().get_best()));
+									LogManager::torrent_message("CFlylinkDBManager::is_resume_torrent: sha1 = " + lt::aux::to_hex(l_a->handle.info_hash()/*.get_best()*/));
 #endif
 								}
 							}
@@ -1279,7 +1282,7 @@ void DownloadManager::onTorrentAlertNotify()
 						CFlylinkDBManager::getInstance()->delete_torrent_resume(l_a->handle.info_hash());
 						m_torrents.erase(l_a->handle);
 #ifdef _DEBUG
-						LogManager::torrent_message("CFlylinkDBManager::delete_torrent_resume: sha1 = " + lt::aux::to_hex(l_a->handle.info_hash().get_best()));
+						LogManager::torrent_message("CFlylinkDBManager::delete_torrent_resume: sha1 = " + lt::aux::to_hex(l_a->handle.info_hash()/*.get_best()*/));
 #endif
 					}
 					
@@ -1587,7 +1590,7 @@ void DownloadManager::init_torrent(bool p_is_force)
 		               | lt::alert::storage_notification
 		               | lt::alert::status_notification
 		               | lt::alert::port_mapping_notification
-//#define FLYLINKDC_USE_OLD_LIBTORRENT_R21298
+#define FLYLINKDC_USE_OLD_LIBTORRENT_R21298
 #ifdef FLYLINKDC_USE_OLD_LIBTORRENT_R21298
 		               | lt::alert::progress_notification
 #else
@@ -1638,12 +1641,18 @@ void DownloadManager::init_torrent(bool p_is_force)
 		m_torrent_session = std::make_unique<lt::session>(l_sett);
 		if (SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_UPNP || BOOLSETTING(AUTO_DETECT_CONNECTION))
 		{
-			m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TCP_PORT), SETTING(TCP_PORT));
-			m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TLS_PORT), SETTING(TLS_PORT));
-			m_torrent_session->add_port_mapping(lt::session::udp, SETTING(UDP_PORT), SETTING(UDP_PORT));
-			m_maping_index[0] = lt::port_mapping_t(1);
-			m_maping_index[1] = lt::port_mapping_t(1);
-			m_maping_index[2] = lt::port_mapping_t(1);
+			m_maping_index[0] = m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TCP_PORT), SETTING(TCP_PORT));
+			m_maping_index[1] = m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TLS_PORT), SETTING(TLS_PORT));
+			m_maping_index[2] = m_torrent_session->add_port_mapping(lt::session::udp, SETTING(UDP_PORT), SETTING(UDP_PORT));
+			/*
+			            m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TCP_PORT), SETTING(TCP_PORT));
+			            m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TLS_PORT), SETTING(TLS_PORT));
+			            auto l_upnp_map = m_torrent_session->add_port_mapping(lt::session::udp, SETTING(UDP_PORT), SETTING(UDP_PORT));
+			           // dcassert(l_upnp_map.size() != 3);
+			            m_maping_index[0] = lt::port_mapping_t(1);
+			            m_maping_index[1] = lt::port_mapping_t(1);
+			            m_maping_index[2] = lt::port_mapping_t(1);
+			*/
 		}
 		else
 		{

@@ -3535,8 +3535,8 @@ public:
 // CTabView - implements tab view window
 
 // TabView Notifications
-#define TBVN_PAGEACTIVATED   (0U-741)
-#define TBVN_CONTEXTMENU     (0U-742)
+#define TBVN_PAGEACTIVATED        (0U-741)
+#define TBVN_CONTEXTMENU          (0U-742)
 #define TBVN_TABCLOSEBTN          (0U-743)   // return 0 to close page, 1 to keep open
 // internal
 #define TBVN_CLOSEBTNMOUSELEAVE   (0U-744)

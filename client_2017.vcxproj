@@ -612,7 +612,6 @@
     <ClCompile Include="client\webrtc\rtc_base\synchronization\rw_lock_winxp_win.cc" />
     <ClCompile Include="client\webrtc\rtc_base\synchronization\rw_lock_wrapper.cc" />
     <ClCompile Include="client\webrtc\talk\base\winfirewall.cc" />
-    <ClCompile Include="client\WebServerManager.cpp" />
     <ClCompile Include="client\zip\zip.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">NotUsing</PrecompiledHeader>
@@ -839,7 +838,6 @@
     <ClInclude Include="client\Util.h" />
     <ClInclude Include="client\version.h" />
     <ClInclude Include="client\w.h" />
-    <ClInclude Include="client\WebServerManager.h" />
     <ClInclude Include="client\Wildcards.h" />
     <ClInclude Include="client\ZUtils.h" />
   </ItemGroup>

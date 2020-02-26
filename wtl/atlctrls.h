@@ -3560,7 +3560,7 @@ public:
 			int nWidth = -1, int nSubItem = -1, int iImage = -1, int iOrder = -1)
 	{
 		LVCOLUMN column = {};
-		column.mask = LVCF_TEXT|LVCF_FMT;
+		column.mask = LVCF_TEXT | LVCF_FMT;
 		column.pszText = (LPTSTR)lpszColumnHeading;
 		column.fmt = nFormat;
 		if (nWidth != -1)

@@ -624,45 +624,6 @@ BEGIN
     CONTROL         "",IDC_MESSAGES_BOOLEANS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,4,103,316,194
 END
 
-IDD_WEBSERVER_PAGE DIALOGEX 0, 0, 325, 300
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
-EXSTYLE WS_EX_STATICEDGE
-CAPTION "Web server"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    GROUPBOX        "",IDC_STATIC,4,2,316,183
-    GROUPBOX        "Bind Address",IDC_SETTINGS_WEB_BIND_ADDRESS,10,8,304,27
-    RTEXT           "Network interface",IDC_SETTINGS_WEB_BIND_ADDRESS_HELP,17,19,83,8
-    COMBOBOX        IDC_WEB_BIND_ADDRESS,104,17,89,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    RTEXT           "Port",IDC_STATIC1,196,19,63,8
-    EDITTEXT        IDC_EDIT1,264,17,44,14,ES_AUTOHSCROLL | ES_NUMBER
-    GROUPBOX        "Users",IDC_STATIC8,10,37,304,44
-    RTEXT           "Username",IDC_STATIC2,21,49,79,8
-    EDITTEXT        IDC_EDIT2,104,46,66,14,ES_AUTOHSCROLL
-    RTEXT           "Password",IDC_STATIC3,193,49,66,8
-    EDITTEXT        IDC_EDIT3,264,46,44,14,ES_PASSWORD | ES_AUTOHSCROLL
-    RTEXT           "Power Username",IDC_STATIC5,18,65,82,8
-    EDITTEXT        IDC_EDIT5,104,63,66,14,ES_AUTOHSCROLL
-    RTEXT           "Password",IDC_STATIC4,193,65,66,8
-    EDITTEXT        IDC_EDIT6,264,63,44,14,ES_PASSWORD | ES_AUTOHSCROLL
-    RTEXT           "Search result size",IDC_STATIC6,35,88,224,8
-    EDITTEXT        IDC_EDIT4,264,86,44,14,ES_AUTOHSCROLL | ES_NUMBER
-    RTEXT           "Search page size",IDC_STATIC7,56,105,203,8
-    EDITTEXT        IDC_EDIT7,264,103,44,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,10,118,304,27
-    CONTROL         "",IDC_ALLOW_UPNP,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,10,153,304,27
-END
-
-IDD_REMOTE_CONTROL_PAGE DIALOGEX 0, 0, 325, 31
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
-EXSTYLE WS_EX_STATICEDGE
-CAPTION "Remote control"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    GROUPBOX        "",IDC_STATIC,4,2,317,24
-    CONTROL         "",IDC_ENABLE_WEBSERVER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,11,304,12
-END
-
 IDD_FAVHUBGROUPS DIALOGEX 0, 0, 286, 131
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
 CAPTION "Manage Groups"
@@ -2173,37 +2134,6 @@ BEGIN
         VERTGUIDE, 314
     END
 
-    IDD_WEBSERVER_PAGE, DIALOG
-    BEGIN
-        LEFTMARGIN, 4
-        RIGHTMARGIN, 320
-        VERTGUIDE, 10
-        VERTGUIDE, 95
-        VERTGUIDE, 100
-        VERTGUIDE, 104
-        VERTGUIDE, 161
-        VERTGUIDE, 193
-        VERTGUIDE, 216
-        VERTGUIDE, 222
-        VERTGUIDE, 259
-        VERTGUIDE, 264
-        VERTGUIDE, 290
-        VERTGUIDE, 299
-        VERTGUIDE, 308
-        VERTGUIDE, 314
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 292
-    END
-
-    IDD_REMOTE_CONTROL_PAGE, DIALOG
-    BEGIN
-        LEFTMARGIN, 4
-        RIGHTMARGIN, 321
-        VERTGUIDE, 315
-        TOPMARGIN, 2
-        BOTTOMMARGIN, 26
-    END
-
     IDD_FAVHUBGROUPS, DIALOG
     BEGIN
         RIGHTMARGIN, 285
@@ -2897,13 +2827,6 @@ BEGIN
     0
 END
 
-IDD_WEBSERVER_PAGE DLGINIT
-BEGIN
-    IDC_WEB_BIND_ADDRESS, 0x403, 3, 0
-0xeeee, "\000" 
-    0
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3082,6 +3005,7 @@ IDR_VIP_OZERKI          ICON                    "res\\vip_ozerki.ico"
 
 IDR_VIP_SWALKA          ICON                    "res\\vip_swalka.ico"
 
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // PNG
@@ -3161,9 +3085,8 @@ IDR_ISP_HUBLIST         PNG                     "res\\ISPImages.png"
 
 IDR_ICON_CAMSHOOT_PNG   PNG                     "res\\Cam.png"
 
-/////////////////////////////////////////////////////////////////////////////
-
 IDR_OSAGO_PNG           PNG                     "res\\osago.png"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

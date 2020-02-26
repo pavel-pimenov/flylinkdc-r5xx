@@ -72,7 +72,6 @@ RSSFeed::removeCDATA(const string & str, string &tmp)
 bool
 RSSFeed::UpdateFeedNewXML()
 {
-	time_t maxLastDate = 0;
 	clearNewsList();
 	string data;
 	try

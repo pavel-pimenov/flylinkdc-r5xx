@@ -63,7 +63,6 @@
 #include "../client/UploadManager.h"
 #include "../client/DownloadManager.h"
 #include "../client/LogManager.h"
-#include "../client/WebServerManager.h"
 #include "../client/ThrottleManager.h"
 #include "../client/MD5Calc.h"
 #ifdef FLYLINKDC_USE_CUSTOM_MENU
@@ -565,7 +564,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	}
 	
 	QueueManager::getInstance()->addListener(this);
-	WebServerManager::getInstance()->addListener(this);
 	UserManager::getInstance()->addListener(this);
 	
 	if (SETTING(NICK).empty()
@@ -581,17 +579,6 @@ LRESULT MainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 		}
 #endif
 		ShowWindow(SW_RESTORE);
-	}
-	if (BOOLSETTING(WEBSERVER))
-	{
-		try
-		{
-			WebServerManager::getInstance()->Start();
-		}
-		catch (const Exception& e)
-		{
-			MessageBox(Text::toT(e.getError()).c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_ICONSTOP | MB_OK);
-		}
 	}
 	
 	LogManager::g_mainWnd = m_hWnd;
@@ -2269,11 +2256,6 @@ void MainFrame::getIPupdate()
 	}
 }
 #endif
-LRESULT MainFrame::onWebServerSocket(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-{
-	WebServerManager::getInstance()->getServerSocket().incoming();
-	return 0;
-}
 
 LRESULT MainFrame::onUpdateWindowTitle(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
@@ -2763,8 +2745,6 @@ LRESULT MainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 					
 					m_transferView.prepareClose();
 					//dcassert(TransferView::ItemInfo::g_count_transfer_item == 0);
-					
-					WebServerManager::getInstance()->removeListener(this);
 					UserManager::getInstance()->removeListener(this);
 					QueueManager::getInstance()->removeListener(this);
 					
@@ -3556,15 +3536,6 @@ LRESULT MainFrame::onDisablePopups(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 	return 0;
 }
 
-void MainFrame::on(WebServerListener::Setup) noexcept
-{
-	WSAAsyncSelect(WebServerManager::getInstance()->getServerSocket().getSock(), m_hWnd, WEBSERVER_SOCKET_MESSAGE, FD_ACCEPT);
-}
-
-void MainFrame::on(WebServerListener::ShutdownPC, int action) noexcept
-{
-	WinUtil::shutDown(action);
-}
 LRESULT MainFrame::onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	safe_destroy_timer();

@@ -84,8 +84,7 @@ static const char* g_settingTags[] =
 	
 	"WinampFormat",
 	
-	"WebServerPowerUser", "WebServerPowerPass", "webServerBindAddress",
-	"WebServerLogFormat", "LogFormatCustomLocation",
+	"LogFormatCustomLocation",
 	
 	"LogFormatTraceSQLite",
 	"LogFormatVirusTrace",
@@ -95,9 +94,9 @@ static const char* g_settingTags[] =
 	"LogFormatPSRTrace",
 	"LogFormatFloodTrace",
 	
-	"WebServerUser", "WebServerPass", "LogFileMainChat",
+	"LogFileMainChat",
 	"LogFilePrivateChat", "LogFileStatus", "LogFileUpload", "LogFileDownload", "LogFileSystem", "LogFormatSystem",
-	"LogFormatStatus", "LogFileWebServer", "LogFileCustomLocation",
+	"LogFormatStatus", "LogFileCustomLocation",
 	
 	"LogTraceSQLite",
 	"LogFileVirusTrace",
@@ -227,9 +226,8 @@ static const char* g_settingTags[] =
 	"PopupDownloadStart",
 	
 	"PopupDownloadFailed", "PopupDownloadFinished", "PopupUploadFinished", "PopupPm", "PopupNewPM", "PopupSearchSpy",
-	"PopupType", "WebServer", "WebServerPort",
-	"WebServerSearchSize", "WebServerSearchPageSize", "WebServerAllowChangeDownloadDIR", "WebServerAllowUPnP",
-	"WebServerLog", "ShutdownAction", "MinimumSearchInterval", "MinimumSearchIntervalPassive",
+	"PopupType",
+	"ShutdownAction", "MinimumSearchInterval", "MinimumSearchIntervalPassive",
 	"PopupAway", "PopupMinimized", "ShowShareCheckedUsers", "MaxAutoMatchSource",
 	"ReservedSlotColor", "IgnoredColor", "FavoriteColor",
 	"NormalColour", "FireballColor", "ServerColor", "PasiveColor", "OpColor",
@@ -387,7 +385,6 @@ static const char* g_settingTags[] =
 	"AutoUpdateLang",
 	"AutoUpdatePortalBrowser",
 	"AutoUpdateEmoPacks",
-	"AutoUpdateWebServer",
 	"AutoUpdateSounds",
 	"AutoUpdateIconThemes",
 	"AutoUpdateColorThemes",
@@ -481,7 +478,6 @@ void SettingsManager::setDefaults()
 	setDefault(DOWNLOAD_DIRECTORY, Util::getDownloadsPath());
 	//setDefault(TEMP_DOWNLOAD_DIRECTORY, "");
 	setDefault(SLOTS, 15);
-	setDefault(WEBSERVER_PORT, 0);
 	setDefault(TCP_PORT, 0);
 	setDefault(TLS_PORT, 0);
 	setDefault(UDP_PORT, 0);
@@ -541,7 +537,6 @@ void SettingsManager::setDefaults()
 	setDefault(LOG_FILE_UPLOAD, "Uploads.log");
 	setDefault(LOG_FILE_DOWNLOAD, "Downloads.log");
 	setDefault(LOG_FILE_SYSTEM, "System.log");
-	setDefault(LOG_FILE_WEBSERVER, "Webserver.log");
 	setDefault(LOG_FILE_CUSTOM_LOCATION, "CustomLocation.log");
 #ifdef RIP_USE_LOG_PROTOCOL
 	setDefault(LOG_FILE_PROTOCOL, "Protocol.log");
@@ -695,18 +690,6 @@ void SettingsManager::setDefaults()
 	//setDefault(MAX_DOWNLOAD_SPEED_LIMIT_TIME, 0);
 	setDefault(TOOLBAR, "1,27,-1,0,25,5,3,4,-1,6,7,8,9,22,-1,10,-1,14,23,-1,15,17,-1,19,21,29,24,28,20");
 	setDefault(WINAMPTOOLBAR, "0,-1,1,2,3,4,5,6,7,8");
-	//setDefault(WEBSERVER, false);
-	setDefault(LOG_FORMAT_WEBSERVER, "%Y-%m-%d %H:%M:%S %[ip] tried getting %[file]");
-	//setDefault(LOG_WEBSERVER, false);
-	setDefault(WEBSERVER_USER, "flylinkdcuser");
-	setDefault(WEBSERVER_PASS, Util::getRandomNick());
-	setDefault(WEBSERVER_POWER_USER, "flylinkdcadmin");
-	setDefault(WEBSERVER_POWER_PASS, Util::getRandomNick());
-	setDefault(WEBSERVER_SEARCHSIZE, 1000);
-	setDefault(WEBSERVER_SEARCHPAGESIZE, 50);
-	//setDefault(WEBSERVER_ALLOW_CHANGE_DOWNLOAD_DIR, false);
-	//setDefault(WEBSERVER_ALLOW_UPNP, false);
-	setDefault(WEBSERVER_BIND_ADDRESS, "0.0.0.0");
 	setDefault(AUTO_PRIORITY_DEFAULT, TRUE);
 	//setDefault(TOOLBARIMAGE, "");
 	//setDefault(TOOLBARHOTIMAGE, "");
@@ -1164,7 +1147,6 @@ void SettingsManager::setDefaults()
 	setDefault(AUTOUPDATE_LANG, TRUE);
 	setDefault(AUTOUPDATE_PORTALBROWSER, TRUE);
 	setDefault(AUTOUPDATE_EMOPACKS, TRUE);
-	setDefault(AUTOUPDATE_WEBSERVER, TRUE);
 	// setDefault(AUTOUPDATE_TIME,false);
 	setDefault(AUTOUPDATE_SHOWUPDATEREADY, TRUE);
 	setDefault(AUTOUPDATE_RUNONSTARTUP, TRUE);
@@ -1324,8 +1306,7 @@ void SettingsManager::load(const string& aFileName)
 	
 	if (SETTING(TCP_PORT) == 0)
 	{
-		set(WEBSERVER_PORT, getNewPortValue(0));
-		set(TCP_PORT, getNewPortValue(get(WEBSERVER_PORT)));
+		set(TCP_PORT, getNewPortValue(getNewPortValue(0)));
 		set(TLS_PORT, getNewPortValue(get(TCP_PORT)));
 		set(UDP_PORT, get(TCP_PORT));
 		set(DHT_PORT, getNewPortValue(get(UDP_PORT)));
@@ -1583,7 +1564,6 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 		case LOG_FILE_UPLOAD:
 		case LOG_FILE_DOWNLOAD:
 		case LOG_FILE_SYSTEM:
-		case LOG_FILE_WEBSERVER:
 		case LOG_FILE_CUSTOM_LOCATION:
 		case LOG_FILE_TRACE_SQLITE:
 		case LOG_FILE_VIRUS_TRACE:
@@ -1625,8 +1605,6 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 		}
 		break;
 		case BIND_ADDRESS:
-		case WEBSERVER_BIND_ADDRESS:
-		
 		case URL_GET_IP:
 		case PORTAL_BROWSER_UPDATE_URL:
 		case URL_IPTRUST:
@@ -1918,16 +1896,6 @@ bool SettingsManager::set(IntSetting key, int value)
 			}
 			break;
 		}
-		case WEBSERVER_SEARCHSIZE:
-		{
-			VERIFI(1, 1000);
-			break;
-		}
-		case WEBSERVER_SEARCHPAGESIZE:
-		{
-			VERIFI(1, 50);
-			break;
-		}
 		case MEDIA_PLAYER:
 		{
 			VERIFI(WinAmp, PlayersCount);
@@ -1937,20 +1905,11 @@ bool SettingsManager::set(IntSetting key, int value)
 		{
 			VERIFI(1024, 65535);
 			GET_NEW_PORT_VALUE_IF_CONFLICTS(TLS_PORT);
-			GET_NEW_PORT_VALUE_IF_CONFLICTS(WEBSERVER_PORT);
 			break;
 		}
 		case TLS_PORT:
 		{
 			VERIFI(1024, 65535);
-			GET_NEW_PORT_VALUE_IF_CONFLICTS(WEBSERVER_PORT);
-			GET_NEW_PORT_VALUE_IF_CONFLICTS(TCP_PORT);
-			break;
-		}
-		case WEBSERVER_PORT:
-		{
-			VERIFI(1024, 65535);
-			GET_NEW_PORT_VALUE_IF_CONFLICTS(TLS_PORT);
 			GET_NEW_PORT_VALUE_IF_CONFLICTS(TCP_PORT);
 			break;
 		}

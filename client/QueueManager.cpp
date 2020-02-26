@@ -1103,21 +1103,7 @@ void QueueManager::get_download_connection(const UserPtr& aUser)
 		ConnectionManager::getInstance()->getDownloadConnection(aUser);
 	}
 }
-void QueueManager::addFromWebServer(const string& aTarget, int64_t aSize, const TTHValue& aRoot)
-{
-	const auto l_old_value = SETTING(ON_DOWNLOAD_SETTING);
-	try
-	{
-		SET_SETTING(ON_DOWNLOAD_SETTING, SettingsManager::ON_DOWNLOAD_RENAME);
-		add(0, aTarget, aSize, aRoot, HintedUser());
-		SET_SETTING(ON_DOWNLOAD_SETTING, l_old_value);
-	}
-	catch (Exception&)
-	{
-		SET_SETTING(ON_DOWNLOAD_SETTING, l_old_value);
-		throw;
-	}
-}
+
 void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSize, const TTHValue& aRoot, const UserPtr& aUser,
                        Flags::MaskType aFlags /* = 0 */, bool addBad /* = true */, bool p_first_file /*= true*/)
 {

@@ -1,11 +1,10 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by Q:\vc15\r5xx\FlylinkDC.rc
+// Used by C:\vc15\r5xx\FlylinkDC.rc
 //
 #define IDD_ABOUTBOX                    100
 #define IDD_DCLS_PAGE                   101
 #define IDD_GENERAL_PAGE                102
-#define IDR_HTML_REMOTECONTROLPAGE      103
 #define IDD_LINE                        104
 #define IDD_ADVANCED_PAGE               105
 #define IDD_DOWNLOAD_PAGE               106
@@ -143,7 +142,6 @@
 #define IDD_EMPTY_PAGE                  250
 #define FAKE_SET                        251
 #define FAKE_SET2                       252
-#define WEBSERVER_SOCKET_MESSAGE        254
 #define IDR_TRAY_AND_TASKBAR_PM         255
 #define IDR_TRAY_AND_TASKBAR_NO_PM      256
 #define IDD_LIMIT_PAGE                  257
@@ -153,8 +151,6 @@
 #define IDD_MESSAGES_PAGE               261
 #define IDD_RANGES_PAGE                 262
 #define IDD_REMOTE_CONTROL              263
-#define IDD_WEBSERVER_PAGE              264
-#define IDD_REMOTE_CONTROL_PAGE         265
 #define IDD_SLOT_PAGE                   266
 #define IDD_ADD_MAGNET                  267
 #define IDD_MESSAGES_CHAT_PAGE          268
@@ -528,14 +524,11 @@
 #define IDC_IDC_MULTISOURCE             1305
 #define IDC_COPY_TTH                    1306
 #define IDC_DONTBEGIN                   1307
-#define IDC_EDIT1                       1308
 #define IDC_CLIENT_NAME                 1309
 #define IDC_CHUNKCOUNT                  1310
 #define IDC_CLIENT_VERSION              1311
-#define IDC_EDIT4                       1312
 #define IDC_PASSWORD_HINT               1313
 #define IDC_CLIENT_TAG                  1314
-#define IDC_EDIT7                       1315
 #define IDC_STATIC2                     1316
 #define IDC_TOOLBAR_ACTUAL              1317
 #define IDC_CLIENT_EXTENDED_TAG         1318
@@ -547,7 +540,6 @@
 #define IDC_TOOLBAR_IMAGE               1324
 #define IDC_CLIENT_SUPPORTS             1325
 #define IDC_TREE                        1326
-#define IDC_STATIC4                     1327
 #define IDC_SET_MIN_LENGHT_TTH_STREAM   1328
 #define IDC_STATICb                     1329
 #define IDC_IMAGEBROWSE                 1330
@@ -558,7 +550,6 @@
 #define IDC_SETTINGS_MBS                1335
 #define IDC_MOUSE_OVER                  1336
 #define IDC_CLIENT_STATUS               1337
-#define IDC_STATIC5                     1338
 #define IDC_SET_MIN_LENGHT_FOR_CHUNKS   1339
 #define IDC_NORMAL                      1340
 #define IDC_TOOLBAR_IMAGE_BOX           1341
@@ -671,31 +662,22 @@
 #define IDC_PLAY                        1447
 #define IDC_POPUPLIST                   1448
 #define IDC_COMBO1                      1449
-#define IDC_EDIT2                       1450
-#define IDC_EDIT3                       1451
 #define IDC_BIND_ADDRESS                1452
 #define IDC_STATIC0                     1453
 #define IDC_STATIC1                     1454
 #define IDC_SETTINGS_BIND_ADDRESS_HELP  1455
 #define IDC_GEOIP_COUNTRY_URL           1456
 #define IDC_REGEXP_TESTER_BUTTON        1457
-#define IDC_EDIT5                       1458
-#define IDC_EDIT6                       1459
 #define IDC_S                           1460
-#define IDC_SETTINGS_WEB_BIND_ADDRESS_HELP 1461
 #define IDC_S_PASSIVE                   1461
 #define IDC_FLAT                        1462
 #define IDC_S2                          1463
-#define IDC_WEB_BIND_ADDRESS            1464
 #define IDC_FLAT_SPIN                   1465
-#define IDC_STATIC6                     1466
 #define IDC_DEFAULT                     1467
-#define IDC_STATIC7                     1468
 #define IDC_CONN_BORDER                 1469
 #define IDC_CLIENT_PROFILE_RAW          1470
 #define IDC_MULTISOURCE                 1471
 #define IDC_SETTINGS_OUTGOING           1472
-#define IDC_STATIC8                     1473
 #define IDC_REGEXP_TESTER_COMBO         1474
 #define IDC_LISTLEN                     1475
 #define IDC_ODC_STYLE                   1478
@@ -834,7 +816,6 @@
 #define IDC_AWAY_TO                     1602
 #define IDC_SECONDARY_AWAY_MESSAGE      1603
 #define IDC_FLINK                       1604
-#define IDC_CHECK1                      1605
 #define IDC_PROFILE_INFO                1606
 #define IDC_PROT_FAVS                   1608
 #define IDC_EXCL_CHECKS                 1609
@@ -843,7 +824,6 @@
 #define IDC_PROTECT_PRIVATE             1613
 #define IDC_SPEED_STR                   1614
 #define IDC_BAN_FORCE_PM                1615
-#define IDC_ALLOW_UPNP                  1616
 #define IDC_GEOIP_USE_FLY               1617
 #define IDC_TOP_SPEED                   1618
 #define IDC_PROT_FAVS2                  1619
@@ -923,7 +903,6 @@
 #define IDC_WIZARD_NETA_BTN_TEST        1692
 #define IDC_INTEGRATION_IFACE_DESKTOP_IMG 1693
 #define IDC_OPCHAT                      1694
-#define IDC_ENABLE_WEBSERVER            1695
 #define IDC_OPCHAT_STR                  1696
 #define IDC_ANTIVIRUS_NICK_STR          1697
 #define IDC_ANTIVIRUS_COMMAND_IP_STR    1698
@@ -1037,7 +1016,6 @@
 #define IDC_PARAMS                      1811
 #define IDC_AUTOUPDATE_USE              1812
 #define IDC_DETECT_ID                   1813
-#define IDC_SETTINGS_WEB_BIND_ADDRESS   1814
 #define IDC_PERCENT_FAKE_SHARE_TOLERATED 1815
 #define IDC_TIMEOUTS_NO                 1816
 #define IDC_DISCONNECTS_NO              1817

@@ -547,11 +547,6 @@ class Util
 		{
 			return getPath(PATH_USER_LOCAL);
 		}
-		/** Path of WebServer */
-		static const string& getWebServerPath()
-		{
-			return getPath(PATH_WEB_SERVER);
-		}
 		/** Path of downloads dir */
 		static const string& getDownloadsPath()
 		{
@@ -1201,7 +1196,6 @@ class Util
 			/** Per-user local data (cache, temp files, ...) */
 			PATH_USER_LOCAL,
 			/** Translations */
-			PATH_WEB_SERVER,
 			/** Various resources (help files etc) */
 //			PATH_RESOURCES,
 			/** Default download location */

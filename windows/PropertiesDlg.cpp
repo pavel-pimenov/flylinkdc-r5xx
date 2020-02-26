@@ -49,8 +49,6 @@
 #include "MiscPage.h"
 #include "MessagesPage.h"
 #include "RangesPage.h"
-#include "RemoteControlPage.h"
-#include "WebServerPage.h"
 #include "RSSPage.h"
 #include "UpdatePage.h"
 #include "DCLSTPage.h"
@@ -104,8 +102,6 @@ PropertiesDlg::PropertiesDlg(HWND parent) : TreePropertySheet(CTSTRING(SETTINGS)
 	pages[n++] = new CertificatesPage();
 	pages[n++] = new MiscPage();
 	pages[n++] = new RangesPage();
-	pages[n++] = new RemoteControlPage();
-	pages[n++] = new WebServerPage();
 	pages[n++] = new UpdatePage();
 	pages[n++] = new DCLSTPage();
 	pages[n++] = new IntegrationPage();
