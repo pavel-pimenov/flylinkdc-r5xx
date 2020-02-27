@@ -281,12 +281,6 @@ void ChatCtrl::insertAndFormat(const tstring & text, CHARFORMAT2 cf, bool p_is_d
 //================================================================================================================================
 void ChatCtrl::AppendText(const CFlyChatCache& p_message, unsigned p_max_smiles, bool p_is_lock_redraw)
 {
-	if (!m_hWnd)
-	{
-		//dcassert(0);
-		//LogManager::message("Error ChatCtrl::AppendText " + Text::fromT(p_message.m_Msg));
-		//return;
-	}
 	dcassert(!ClientManager::isBeforeShutdown());
 	if (ClientManager::isBeforeShutdown())
 		return;
@@ -306,11 +300,13 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message, unsigned p_max_smiles,
 			return;
 		}
 	}
-	//unique_ptr<CLockRedraw<true>> l_ptr_lock_draw;
-	//if (p_is_lock_redraw)
-	//{
-	//  l_ptr_lock_draw = std::make_unique<CLockRedraw<true> >(m_hWnd);
-	//}
+	if (!m_hWnd)
+	{
+		dcassert(0);
+		LogManager::message("Error ChatCtrl::AppendText " + Text::fromT(p_message.m_Msg));
+		return;
+	}
+
 	LONG lSelBeginSaved = 0, lSelEndSaved = 0;
 	GetSel(lSelBeginSaved, lSelEndSaved);
 	POINT l_cr = { 0 };

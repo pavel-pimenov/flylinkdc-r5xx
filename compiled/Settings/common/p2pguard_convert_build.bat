@@ -1,3 +1,3 @@
 del p2pguard_convert.exe
-call "%VS100COMNTOOLS%\..\..\VC\bin\vcvars32.bat"
-cl p2pguard_convert.cpp /EHsc /O2 -I Q:..\..\..\boost
+call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+cl p2pguard_convert.cpp /EHsc /O2 -I C:..\..\..\boost
