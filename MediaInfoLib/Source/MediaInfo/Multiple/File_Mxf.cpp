@@ -9998,7 +9998,7 @@ void File_Mxf::GenericTrack_Sequence()
 {
     //Parsing
     int128u Data;
-    Get_UUID(Data,                                              "Data"); Element_Info1(Ztring::ToZtring(Data, 16));
+    Get_UUID(Data,                                              "Data"); Element_Info1(uint128toString(Data, 16));
 
     FILLING_BEGIN();
         Tracks[InstanceUID].Sequence=Data;

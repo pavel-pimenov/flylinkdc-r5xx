@@ -373,9 +373,6 @@ int SearchManager::UdpQueue::run()
 				if (!user)
 					continue;
 					
-				// This should be handled by AdcCommand really...
-				c.getParameters().erase(c.getParameters().begin());
-				
 				SearchManager::getInstance()->onRES(c, user, remoteIp);
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 				CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "RES", x, remoteIp, "", "", "");
@@ -395,7 +392,6 @@ int SearchManager::UdpQueue::run()
 				
 				if (user)
 				{
-					c.getParameters().erase(c.getParameters().begin());
 					SearchManager::getInstance()->onPSR(c, user, remoteIp);
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 					CFlylinkDBManager::getInstance()->push_event_statistic("SearchManager::UdpQueue::run()", "PSR", x, remoteIp, "", "", "");
@@ -584,7 +580,12 @@ void SearchManager::onPSR(const AdcCommand& p_cmd, UserPtr from, const boost::as
 		}
 	}
 	
-	
+    if (partialInfo.size() != partialCount)
+    {
+        // what to do now ? just ignore partial search result :-/
+        return;
+    }
+
 	const string url = ClientManager::findHub(hubIpPort);
 	if (!from || ClientManager::isMe(from))
 	{
@@ -616,13 +617,7 @@ void SearchManager::onPSR(const AdcCommand& p_cmd, UserPtr from, const boost::as
 #ifdef _DEBUG
 	// ClientManager::setIPUser(from, remoteIp, udpPort);
 #endif
-	// TODO »щем в OnlineUser а чуть выше ищем в UserPtr може тожно схлопнуть в один поиск дл€ апдейта IP
 	
-	if (partialInfo.size() != partialCount)
-	{
-		// what to do now ? just ignore partial search result :-/
-		return;
-	}
 	if (!from)
 	{
 		return;

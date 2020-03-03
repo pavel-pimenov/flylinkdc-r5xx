@@ -13,7 +13,6 @@ move *-debug-info-*.7z "U:\webdav\src-bin-pdb\flylinkdc-r5xx-pdb"
 move *-src-*.7z "U:\webdav\src-bin-pdb\flylinkdc-r5xx\r504"
 move *.7z "U:\webdav\src-bin-pdb\flylinkdc-r5xx\r504"
 
-cd ..
 cd compiled
 call SymRegisterBinaries.bat
 goto:end

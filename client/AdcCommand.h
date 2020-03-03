@@ -195,7 +195,7 @@ class AdcCommand
 		/** Return a named parameter where the name is a two-letter code */
 		bool getParam(const char* name, size_t start, string& ret) const;
 		bool hasFlag(const char* name, size_t start) const;
-		static uint16_t toCode(const char* x)
+		static inline uint16_t toCode(const char* x)
 		{
 			return *((uint16_t*)x);
 		}

@@ -466,7 +466,6 @@ bool UploadManager::prepareFile(UserConnection* aSource, const string& aType, co
 				return false;
 			}
 #endif
-			//sourceFile = ShareManager::getInstance()->toReal(aFile);
 			sourceFile = aFile;
 			MemoryInputStream* mis = ShareManager::getInstance()->getTree(aFile);
 			if (!mis)

@@ -140,7 +140,10 @@ void convert_p2p_guard()
             }
             else
             {
-                cout << "error l_Items != 8 Line = " << l_currentLine << endl;
+                cout << "error l_Items != 8 Line = [" << l_currentLine << "] l_Items = " << l_Items 
+                << " linestart = " << linestart << " lineend = " << lineend << " l_data.size() = " << l_data.size() << endl;
+		linestart++;
+                break;  
             }
           }
         }

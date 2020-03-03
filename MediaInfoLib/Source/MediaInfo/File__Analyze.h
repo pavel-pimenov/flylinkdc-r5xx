@@ -104,6 +104,8 @@ public:
     }
 };
 
+string uint128toString(uint128 Value, int radix);
+
 #if !MEDIAINFO_TRACE
     #include "MediaInfo/File__Analyze_MinimizeSize.h"
 #else

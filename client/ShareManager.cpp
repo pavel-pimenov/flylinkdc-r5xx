@@ -420,7 +420,12 @@ MemoryInputStream* ShareManager::getTree(const string& virtualFile) const
 	
 	ByteVector buf;
 	tree.getLeafData(buf);
-	return new MemoryInputStream(&buf[0], buf.size());
+    if (buf.empty())
+    {
+        dcassert(0);
+        return nullptr; // https://github.com/zipper9/blacklink/commit/250ec97eb7ff201875bec9a6cea37602a9f143e3
+    }
+    return new MemoryInputStream(&buf[0], buf.size());
 }
 
 void ShareManager::getFileInfo(AdcCommand& cmd, const string& aFile)

@@ -1,7 +1,7 @@
-wget -N --tries=999 http://geolite.maxmind.com/download/geoip/database/GeoIPCountryCSV.zip
-7z.exe x GeoIPCountryCSV.zip -y
-del GeoIPCountryCSV.zip
-copy GeoIPCountryWhois.csv ..
+rem wget -N --tries=999 http://geolite.maxmind.com/download/geoip/database/GeoIPCountryCSV.zip
+rem 7z.exe x GeoIPCountryCSV.zip -y
+rem del GeoIPCountryCSV.zip
+rem copy GeoIPCountryWhois.csv ..
 rem del CustomLocations.7z
 rem wget -t1 --tries=999 http://nightorion.dyndns.ws/CustomLocations.7z
 svn up
