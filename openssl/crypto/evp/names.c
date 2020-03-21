@@ -12,7 +12,7 @@
 #include <openssl/evp.h>
 #include "internal/objects.h"
 #include <openssl/x509.h>
-#include "internal/evp_int.h"
+#include "internal/evp_local.h"
 
 int EVP_add_cipher(const EVP_CIPHER *c)
 {

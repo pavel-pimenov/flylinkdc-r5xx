@@ -18,7 +18,7 @@
 #include <openssl/e_os2.h>
 #include "internal/thread_once.h"
 #include "internal/lhash.h"
-#include "obj_lcl.h"
+#include "obj_local.h"
 #include "e_os.h"
 
 /*

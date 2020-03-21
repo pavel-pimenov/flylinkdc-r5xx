@@ -12,9 +12,9 @@
 #include "internal/cryptlib.h"
 #include <openssl/asn1t.h>
 #include <openssl/x509.h>
-#include "internal/x509_int.h"
-#include "internal/asn1_int.h"
-#include "x509_lcl.h"
+#include "internal/x509_local.h"
+#include "internal/asn1_local.h"
+#include "x509_local.h"
 
 /*
  * Maximum length of X509_NAME: much larger than anything we should

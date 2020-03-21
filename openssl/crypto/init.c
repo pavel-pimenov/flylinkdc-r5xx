@@ -8,18 +8,18 @@
  */
 
 #include "e_os.h"
-#include "internal/cryptlib_int.h"
+#include "internal/cryptlib_local.h"
 #include <openssl/err.h>
-#include "internal/rand_int.h"
+#include "internal/rand_local.h"
 #include "internal/bio.h"
 #include <openssl/evp.h>
-#include "internal/evp_int.h"
+#include "internal/evp_local.h"
 #include "internal/conf.h"
 #include "internal/async.h"
 #include "internal/engine.h"
 #include "internal/comp.h"
 #include "internal/err.h"
-#include "internal/err_int.h"
+#include "internal/err_local.h"
 #include "internal/objects.h"
 #include <stdlib.h>
 #include <assert.h>

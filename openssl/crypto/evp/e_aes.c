@@ -14,10 +14,10 @@
 #include <string.h>
 #include <assert.h>
 #include <openssl/aes.h>
-#include "internal/evp_int.h"
-#include "modes_lcl.h"
+#include "internal/evp_local.h"
+#include "modes_local.h"
 #include <openssl/rand.h>
-#include "evp_locl.h"
+#include "evp_local.h"
 
 typedef struct {
     union {

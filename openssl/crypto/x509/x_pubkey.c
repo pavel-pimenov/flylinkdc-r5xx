@@ -11,9 +11,9 @@
 #include "internal/cryptlib.h"
 #include <openssl/asn1t.h>
 #include <openssl/x509.h>
-#include "internal/asn1_int.h"
-#include "internal/evp_int.h"
-#include "internal/x509_int.h"
+#include "internal/asn1_local.h"
+#include "internal/evp_local.h"
+#include "internal/x509_local.h"
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
 

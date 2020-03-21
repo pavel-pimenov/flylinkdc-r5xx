@@ -11,10 +11,10 @@
 #include "internal/cryptlib.h"
 #include <openssl/x509.h>
 #include <openssl/asn1.h>
-#include "dh_locl.h"
+#include "dh_local.h"
 #include <openssl/bn.h>
-#include "internal/asn1_int.h"
-#include "internal/evp_int.h"
+#include "internal/asn1_local.h"
+#include "internal/evp_local.h"
 #include <openssl/cms.h>
 
 /*

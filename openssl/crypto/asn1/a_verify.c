@@ -18,8 +18,8 @@
 #include <openssl/objects.h>
 #include <openssl/buffer.h>
 #include <openssl/evp.h>
-#include "internal/asn1_int.h"
-#include "internal/evp_int.h"
+#include "internal/asn1_local.h"
+#include "internal/evp_local.h"
 
 #ifndef NO_ASN1_OLD
 

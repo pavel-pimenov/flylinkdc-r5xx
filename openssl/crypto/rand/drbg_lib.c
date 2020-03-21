@@ -11,10 +11,10 @@
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
-#include "rand_lcl.h"
+#include "rand_local.h"
 #include "internal/thread_once.h"
-#include "internal/rand_int.h"
-#include "internal/cryptlib_int.h"
+#include "internal/rand_local.h"
+#include "internal/cryptlib_local.h"
 
 /*
  * Support framework for NIST SP 800-90A DRBG

@@ -21,7 +21,7 @@
 #  include "internal/bn_conf.h"
 # endif
 
-# include "internal/bn_int.h"
+# include "internal/bn_local.h"
 
 /*
  * These preprocessor symbols control various aspects of the bignum headers

@@ -15,8 +15,8 @@
 #include <openssl/asn1.h>
 #include "internal/objects.h"
 #include <openssl/bn.h>
-#include "internal/asn1_int.h"
-#include "obj_lcl.h"
+#include "internal/asn1_local.h"
+#include "obj_local.h"
 
 /* obj_dat.h is generated from objects.h by obj_dat.pl */
 #include "obj_dat.h"

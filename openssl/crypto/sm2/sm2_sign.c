@@ -11,7 +11,7 @@
 
 #include "internal/sm2.h"
 #include "internal/sm2err.h"
-#include "internal/ec_int.h" /* ec_group_do_inverse_ord() */
+#include "internal/ec_local.h" /* ec_group_do_inverse_ord() */
 #include "internal/numbers.h"
 #include <openssl/err.h>
 #include <openssl/evp.h>

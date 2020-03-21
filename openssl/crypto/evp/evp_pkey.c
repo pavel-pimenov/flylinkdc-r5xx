@@ -12,9 +12,9 @@
 #include "internal/cryptlib.h"
 #include <openssl/x509.h>
 #include <openssl/rand.h>
-#include "internal/asn1_int.h"
-#include "internal/evp_int.h"
-#include "internal/x509_int.h"
+#include "internal/asn1_local.h"
+#include "internal/evp_local.h"
+#include "internal/x509_local.h"
 
 /* Extract a private key from a PKCS8 structure */
 

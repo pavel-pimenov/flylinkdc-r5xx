@@ -10,8 +10,8 @@
 
 #include <openssl/err.h>
 
-#include "internal/bn_int.h"
-#include "ec_lcl.h"
+#include "internal/bn_local.h"
+#include "ec_local.h"
 
 #ifndef OPENSSL_NO_EC2M
 

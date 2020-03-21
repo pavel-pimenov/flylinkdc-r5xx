@@ -15,7 +15,7 @@
 #include <openssl/err.h>
 #include "internal/siphash.h"
 #include "siphash_local.h"
-#include "internal/evp_int.h"
+#include "internal/evp_local.h"
 
 /* SIPHASH pkey context structure */
 

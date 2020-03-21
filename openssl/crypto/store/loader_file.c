@@ -24,12 +24,12 @@
 #include <openssl/store.h>
 #include <openssl/ui.h>
 #include <openssl/x509.h>        /* For the PKCS8 stuff o.O */
-#include "internal/asn1_int.h"
+#include "internal/asn1_local.h"
 #include "internal/ctype.h"
 #include "internal/o_dir.h"
 #include "internal/cryptlib.h"
-#include "internal/store_int.h"
-#include "store_locl.h"
+#include "internal/store_local.h"
+#include "store_local.h"
 
 #ifdef _WIN32
 # define stat    _stat

@@ -15,8 +15,8 @@
 #include <openssl/asn1.h>
 #include <openssl/objects.h>
 #include <openssl/bn.h>
-#include "internal/asn1_int.h"
-#include "asn1_locl.h"
+#include "internal/asn1_local.h"
+#include "asn1_local.h"
 
 int i2d_ASN1_OBJECT(const ASN1_OBJECT *a, unsigned char **pp)
 {

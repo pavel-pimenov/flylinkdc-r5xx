@@ -13,7 +13,7 @@
 #ifndef OPENSSL_NO_IDEA
 # include <openssl/evp.h>
 # include <openssl/objects.h>
-# include "internal/evp_int.h"
+# include "internal/evp_local.h"
 # include <openssl/idea.h>
 
 /* Can't use IMPLEMENT_BLOCK_CIPHER because IDEA_ecb_encrypt is different */

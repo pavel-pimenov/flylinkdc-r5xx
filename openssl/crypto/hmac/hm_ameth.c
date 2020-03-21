@@ -10,8 +10,8 @@
 #include <stdio.h>
 #include "internal/cryptlib.h"
 #include <openssl/evp.h>
-#include "internal/asn1_int.h"
-#include "internal/evp_int.h"
+#include "internal/asn1_local.h"
+#include "internal/evp_local.h"
 
 /*
  * HMAC "ASN1" method. This is just here to indicate the maximum HMAC output

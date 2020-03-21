@@ -11,7 +11,7 @@
 #include <openssl/asn1t.h>
 #include <openssl/ec.h>
 #include <openssl/evp.h>
-#include "internal/evp_int.h"
+#include "internal/evp_local.h"
 #include "internal/sm2.h"
 #include "internal/sm2err.h"
 

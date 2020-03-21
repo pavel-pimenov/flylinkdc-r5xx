@@ -447,7 +447,7 @@
     <ClInclude Include="e_os2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="crypto\asn1\asn1_int.h">
+    <ClInclude Include="crypto\asn1\asn1_local.h">
       <Filter>Header Files\openssl</Filter>
     </ClInclude>
   </ItemGroup>

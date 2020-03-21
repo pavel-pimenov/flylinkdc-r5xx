@@ -8,8 +8,8 @@
  */
 
 #include "internal/cryptlib.h"
-#include "internal/constant_time_locl.h"
-#include "bn_lcl.h"
+#include "internal/constant_time_local.h"
+#include "bn_local.h"
 
 #include <stdlib.h>
 #ifdef _WIN32

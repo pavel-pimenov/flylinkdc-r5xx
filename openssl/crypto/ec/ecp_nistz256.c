@@ -21,8 +21,8 @@
 #include <string.h>
 
 #include "internal/cryptlib.h"
-#include "internal/bn_int.h"
-#include "ec_lcl.h"
+#include "internal/bn_local.h"
+#include "ec_local.h"
 #include "internal/refcount.h"
 
 #if BN_BITS2 != 64

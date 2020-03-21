@@ -349,7 +349,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="crypto\asn1\asn1_int.h" />
+    <ClInclude Include="crypto\asn1\asn1_local.h" />
     <ClInclude Include="e_os.h" />
     <ClInclude Include="e_os2.h" />
     <ClInclude Include="include\openssl\aes.h" />

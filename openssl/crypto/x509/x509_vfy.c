@@ -22,8 +22,8 @@
 #include <openssl/x509v3.h>
 #include <openssl/objects.h>
 #include "internal/dane.h"
-#include "internal/x509_int.h"
-#include "x509_lcl.h"
+#include "internal/x509_local.h"
+#include "x509_local.h"
 
 /* CRL score values */
 

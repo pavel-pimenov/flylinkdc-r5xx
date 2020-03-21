@@ -14,7 +14,7 @@
 #include "internal/cryptlib.h"
 #include <openssl/conf.h>
 #include <openssl/x509.h>
-#include "internal/x509_int.h"
+#include "internal/x509_local.h"
 #include <openssl/x509v3.h>
 
 static int v3_check_critical(const char **value);

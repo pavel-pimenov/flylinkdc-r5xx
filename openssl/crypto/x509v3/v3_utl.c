@@ -16,7 +16,7 @@
 #include <openssl/conf.h>
 #include <openssl/crypto.h>
 #include <openssl/x509v3.h>
-#include "internal/x509_int.h"
+#include "internal/x509_local.h"
 #include <openssl/bn.h>
 #include "ext_dat.h"
 
