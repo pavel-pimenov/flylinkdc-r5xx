@@ -10,8 +10,8 @@
  * Originally written by Mike Hamburg
  */
 
-#ifndef HEADER_POINT_448_H
-# define HEADER_POINT_448_H
+#ifndef OSSL_CRYPTO_EC_CURVE448_POINT_448_H
+# define OSSL_CRYPTO_EC_CURVE448_POINT_448_H
 
 # include "curve448utils.h"
 # include "field.h"

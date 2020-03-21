@@ -40,7 +40,7 @@
 #include <tchar.h>
 #include "internal/numbers.h"
 #ifndef LPDIR_H
-//# include "LPdir.h"
+//# include "LPdir.h" //FlylinkDC++
 #endif
 
 /*

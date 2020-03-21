@@ -49,7 +49,7 @@ typedef char variant_char;
 #   define ossl_getenv getenv
 #  endif
 
-#  include "internal/ctype.h"
+#  include "crypto/ctype.h"
 
 static int todigit(variant_char c)
 {
