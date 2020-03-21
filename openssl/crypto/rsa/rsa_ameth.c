@@ -13,8 +13,8 @@
 #include <openssl/x509.h>
 #include <openssl/bn.h>
 #include <openssl/cms.h>
-#include "internal/asn1_local.h"
-#include "internal/evp_local.h"
+#include "crypto/asn1_local.h"
+#include "crypto/evp_local.h"
 #include "rsa_local.h"
 
 #ifndef OPENSSL_NO_CMS

@@ -14,7 +14,7 @@
 
 # include <openssl/evp.h>
 # include <openssl/objects.h>
-# include "internal/evp_local.h"
+# include "crypto/evp_local.h"
 # include <openssl/des.h>
 
 static int desx_cbc_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,

@@ -17,7 +17,7 @@ NON_EMPTY_TRANSLATION_UNIT
 # include <string.h>
 # include <assert.h>
 # include <openssl/camellia.h>
-# include "internal/evp_local.h"
+# include "crypto/evp_local.h"
 # include "modes_local.h"
 
 static int camellia_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,

@@ -8,7 +8,7 @@
  */
 
 #include "internal/cryptlib.h"
-#include "internal/bn_local.h"
+#include "crypto/bn_local.h"
 #include "rsa_local.h"
 #include "internal/constant_time_local.h"
 

@@ -8,13 +8,13 @@
  */
 
 #include <stdio.h>
-#include "internal/ctype.h"
+#include "crypto/ctype.h"
 #include <openssl/crypto.h>
 #include "internal/cryptlib.h"
 #include <openssl/conf.h>
 #include <openssl/x509.h>
-#include "internal/asn1_local.h"
-#include "internal/objects.h"
+#include "crypto/asn1_local.h"
+#include "crypto/objects.h"
 
 /* Simple ASN1 OID module: add all objects in a given section */
 

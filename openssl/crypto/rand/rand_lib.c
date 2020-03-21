@@ -11,7 +11,7 @@
 #include <time.h>
 #include "internal/cryptlib.h"
 #include <openssl/opensslconf.h>
-#include "internal/rand_local.h"
+#include "crypto/rand_local.h"
 #include <openssl/engine.h>
 #include "internal/thread_once.h"
 #include "rand_local.h"

@@ -20,7 +20,7 @@
 #include <openssl/asn1t.h>
 #include <openssl/x509v3.h>
 #include <openssl/x509.h>
-#include "internal/x509_local.h"
+#include "crypto/x509_local.h"
 #include <openssl/bn.h>
 #include "ext_dat.h"
 

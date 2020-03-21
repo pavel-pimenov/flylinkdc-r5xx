@@ -11,8 +11,8 @@
 #include "internal/cryptlib.h"
 #include <openssl/objects.h>
 #include <openssl/x509.h>
-#include "internal/asn1_local.h"
-#include "internal/evp_local.h"
+#include "crypto/asn1_local.h"
+#include "crypto/evp_local.h"
 
 long PKCS7_ctrl(PKCS7 *p7, int cmd, long larg, char *parg)
 {

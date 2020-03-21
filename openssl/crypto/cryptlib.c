@@ -9,7 +9,7 @@
  */
 
 #include "e_os.h"
-#include "internal/cryptlib_local.h"
+#include "crypto/cryptlib_local.h"
 #include <openssl/safestack.h>
 
 #if     defined(__i386)   || defined(__i386__)   || defined(_M_IX86) || \

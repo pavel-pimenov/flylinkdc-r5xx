@@ -18,8 +18,8 @@
 #include <openssl/x509.h>
 #include <openssl/objects.h>
 #include <openssl/buffer.h>
-#include "internal/asn1_local.h"
-#include "internal/evp_local.h"
+#include "crypto/asn1_local.h"
+#include "crypto/evp_local.h"
 
 #ifndef NO_ASN1_OLD
 

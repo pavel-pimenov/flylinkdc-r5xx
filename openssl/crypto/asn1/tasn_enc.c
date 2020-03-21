@@ -13,7 +13,7 @@
 #include <openssl/asn1.h>
 #include <openssl/asn1t.h>
 #include <openssl/objects.h>
-#include "internal/asn1_local.h"
+#include "crypto/asn1_local.h"
 #include "asn1_local.h"
 
 static int asn1_i2d_ex_primitive(ASN1_VALUE **pval, unsigned char **out,

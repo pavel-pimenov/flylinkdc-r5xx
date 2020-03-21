@@ -14,8 +14,8 @@
 #include <openssl/bn.h>
 #include <openssl/cms.h>
 #include <openssl/asn1t.h>
-#include "internal/asn1_local.h"
-#include "internal/evp_local.h"
+#include "crypto/asn1_local.h"
+#include "crypto/evp_local.h"
 #include "ec_local.h"
 
 #ifndef OPENSSL_NO_CMS

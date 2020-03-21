@@ -14,7 +14,7 @@
 #include <openssl/asn1.h>
 #include <openssl/asn1t.h>
 #include <openssl/x509.h>
-#include "internal/x509_local.h"
+#include "crypto/x509_local.h"
 #include <openssl/objects.h>
 #include <openssl/buffer.h>
 #include <openssl/pem.h>

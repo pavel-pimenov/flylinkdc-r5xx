@@ -16,7 +16,7 @@
 #include <openssl/rand.h>
 #include <openssl/crypto.h>
 #include "rand_local.h"
-#include "internal/rand_local.h"
+#include "crypto/rand_local.h"
 #include <stdio.h>
 #include "internal/dso.h"
 #ifdef __linux

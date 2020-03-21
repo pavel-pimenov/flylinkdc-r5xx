@@ -13,9 +13,9 @@
 #include <openssl/x509v3.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
-#include "internal/poly1305.h"
+#include "crypto/poly1305.h"
 #include "poly1305_local.h"
-#include "internal/evp_local.h"
+#include "crypto/evp_local.h"
 
 /* POLY1305 pkey context structure */
 

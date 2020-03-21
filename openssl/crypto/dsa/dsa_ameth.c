@@ -14,8 +14,8 @@
 #include "dsa_local.h"
 #include <openssl/bn.h>
 #include <openssl/cms.h>
-#include "internal/asn1_local.h"
-#include "internal/evp_local.h"
+#include "crypto/asn1_local.h"
+#include "crypto/evp_local.h"
 
 static int dsa_pub_decode(EVP_PKEY *pkey, X509_PUBKEY *pubkey)
 {

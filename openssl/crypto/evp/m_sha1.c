@@ -14,8 +14,8 @@
 #include <openssl/objects.h>
 #include <openssl/sha.h>
 #include <openssl/rsa.h>
-#include "internal/evp_local.h"
-#include "internal/sha.h"
+#include "crypto/evp_local.h"
+#include "crypto/sha.h"
 
 static int init(EVP_MD_CTX *ctx)
 {

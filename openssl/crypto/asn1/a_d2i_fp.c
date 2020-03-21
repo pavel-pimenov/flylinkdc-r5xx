@@ -13,7 +13,7 @@
 #include "internal/numbers.h"
 #include <openssl/buffer.h>
 #include <openssl/asn1.h>
-#include "internal/asn1_local.h"
+#include "crypto/asn1_local.h"
 
 #ifndef NO_OLD_ASN1
 # ifndef OPENSSL_NO_STDIO

@@ -13,7 +13,7 @@
 #include <openssl/objects.h>
 #include "internal/comp.h"
 #include <openssl/err.h>
-#include "internal/cryptlib_local.h"
+#include "crypto/cryptlib_local.h"
 #include "internal/bio.h"
 #include "comp_local.h"
 

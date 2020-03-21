@@ -12,8 +12,8 @@
 #include <openssl/x509.h>
 #include <openssl/ec.h>
 #include <openssl/rand.h>
-#include "internal/asn1_local.h"
-#include "internal/evp_local.h"
+#include "crypto/asn1_local.h"
+#include "crypto/evp_local.h"
 #include "ec_local.h"
 #include "curve448/curve448_local.h"
 

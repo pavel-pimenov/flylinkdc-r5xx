@@ -13,7 +13,7 @@
 #include <openssl/x509.h>
 #include <openssl/evp.h>
 #include <openssl/bn.h>
-#include "internal/evp_local.h"
+#include "crypto/evp_local.h"
 #include "dsa_local.h"
 
 /* DSA pkey context structure */

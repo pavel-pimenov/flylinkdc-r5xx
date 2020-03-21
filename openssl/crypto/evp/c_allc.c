@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include "internal/cryptlib.h"
 #include <openssl/evp.h>
-#include "internal/evp_local.h"
+#include "crypto/evp_local.h"
 #include <openssl/pkcs12.h>
 #include <openssl/objects.h>
 

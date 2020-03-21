@@ -15,8 +15,8 @@
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
-#include "internal/asn1_local.h"
-#include "internal/x509_local.h"
+#include "crypto/asn1_local.h"
+#include "crypto/x509_local.h"
 #include "x509_local.h"
 
 int X509_set_version(X509 *x, long version)

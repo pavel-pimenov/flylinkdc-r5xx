@@ -15,8 +15,8 @@
 #include <openssl/cms.h>
 #include <openssl/aes.h>
 #include "cms_local.h"
-#include "internal/asn1_local.h"
-#include "internal/evp_local.h"
+#include "crypto/asn1_local.h"
+#include "crypto/evp_local.h"
 
 /* CMS EnvelopedData Utilities */
 

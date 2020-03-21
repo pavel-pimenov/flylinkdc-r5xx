@@ -12,7 +12,7 @@
 #include "internal/cryptlib.h"
 #include <openssl/buffer.h>
 #include <openssl/evp.h>
-#include "internal/evp_local.h"
+#include "crypto/evp_local.h"
 #include "evp_local.h"
 #include "internal/bio.h"
 

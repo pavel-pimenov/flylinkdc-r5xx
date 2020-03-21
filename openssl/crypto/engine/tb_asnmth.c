@@ -10,7 +10,7 @@
 #include "e_os.h"
 #include "eng_local.h"
 #include <openssl/evp.h>
-#include "internal/asn1_local.h"
+#include "crypto/asn1_local.h"
 
 /*
  * If this symbol is defined then ENGINE_get_pkey_asn1_meth_engine(), the

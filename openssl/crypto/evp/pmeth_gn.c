@@ -12,9 +12,9 @@
 #include "internal/cryptlib.h"
 #include <openssl/objects.h>
 #include <openssl/evp.h>
-#include "internal/bn_local.h"
-#include "internal/asn1_local.h"
-#include "internal/evp_local.h"
+#include "crypto/bn_local.h"
+#include "crypto/asn1_local.h"
+#include "crypto/evp_local.h"
 
 int EVP_PKEY_paramgen_init(EVP_PKEY_CTX *ctx)
 {

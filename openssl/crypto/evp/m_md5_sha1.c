@@ -15,7 +15,7 @@
 # include <openssl/md5.h>
 # include <openssl/sha.h>
 # include "internal/cryptlib.h"
-# include "internal/evp_local.h"
+# include "crypto/evp_local.h"
 # include <openssl/rsa.h>
 
 struct md5_sha1_ctx {

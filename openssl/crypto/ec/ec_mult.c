@@ -12,7 +12,7 @@
 #include <openssl/err.h>
 
 #include "internal/cryptlib.h"
-#include "internal/bn_local.h"
+#include "crypto/bn_local.h"
 #include "ec_local.h"
 #include "internal/refcount.h"
 

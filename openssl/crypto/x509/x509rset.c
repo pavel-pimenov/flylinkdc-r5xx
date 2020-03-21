@@ -13,7 +13,7 @@
 #include <openssl/objects.h>
 #include <openssl/evp.h>
 #include <openssl/x509.h>
-#include "internal/x509_local.h"
+#include "crypto/x509_local.h"
 
 int X509_REQ_set_version(X509_REQ *x, long version)
 {

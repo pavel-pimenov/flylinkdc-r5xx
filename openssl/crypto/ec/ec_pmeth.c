@@ -14,7 +14,7 @@
 #include <openssl/ec.h>
 #include "ec_local.h"
 #include <openssl/evp.h>
-#include "internal/evp_local.h"
+#include "crypto/evp_local.h"
 
 /* EC pkey context structure */
 

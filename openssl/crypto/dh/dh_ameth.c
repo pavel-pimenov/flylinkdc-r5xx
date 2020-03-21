@@ -13,8 +13,8 @@
 #include <openssl/asn1.h>
 #include "dh_local.h"
 #include <openssl/bn.h>
-#include "internal/asn1_local.h"
-#include "internal/evp_local.h"
+#include "crypto/asn1_local.h"
+#include "crypto/evp_local.h"
 #include <openssl/cms.h>
 
 /*

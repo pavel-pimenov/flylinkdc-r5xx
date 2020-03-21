@@ -11,10 +11,10 @@
 #include <openssl/crypto.h>
 #include "internal/cryptlib.h"
 #include "internal/refcount.h"
-#include "internal/bn_local.h"
+#include "crypto/bn_local.h"
 #include <openssl/engine.h>
 #include <openssl/evp.h>
-#include "internal/evp_local.h"
+#include "crypto/evp_local.h"
 #include "rsa_local.h"
 
 RSA *RSA_new(void)

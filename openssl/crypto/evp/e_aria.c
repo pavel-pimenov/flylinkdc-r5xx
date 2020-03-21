@@ -14,8 +14,8 @@
 # include <openssl/modes.h>
 # include <openssl/rand.h>
 # include <openssl/rand_drbg.h>
-# include "internal/aria.h"
-# include "internal/evp_local.h"
+# include "crypto/aria.h"
+# include "crypto/evp_local.h"
 # include "modes_local.h"
 # include "evp_local.h"
 

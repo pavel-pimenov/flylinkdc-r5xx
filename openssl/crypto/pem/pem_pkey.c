@@ -17,8 +17,8 @@
 #include <openssl/pem.h>
 #include <openssl/engine.h>
 #include <openssl/dh.h>
-#include "internal/asn1_local.h"
-#include "internal/evp_local.h"
+#include "crypto/asn1_local.h"
+#include "crypto/evp_local.h"
 
 int pem_check_suffix(const char *pem_str, const char *suffix);
 

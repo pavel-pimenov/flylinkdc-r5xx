@@ -19,7 +19,7 @@
 #include "async_local.h"
 
 #include <openssl/err.h>
-#include "internal/cryptlib_local.h"
+#include "crypto/cryptlib_local.h"
 #include <string.h>
 
 #define ASYNC_JOB_RUNNING   0
