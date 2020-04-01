@@ -209,6 +209,8 @@ void File__Analyze::Streams_Finish_Global()
     Streams_Finish_InterStreams();
     Streams_Finish_StreamOnly();
 
+    Config->File_ExpandSubs_Update((void**)(&Stream_More));
+
     if (!IsSub && !Config->File_IsReferenced_Get() && MediaInfoLib::Config.ReadByHuman_Get())
         Streams_Finish_HumanReadable();
 }
@@ -713,7 +715,7 @@ void File__Analyze::Streams_Finish_StreamOnly_Video(size_t Pos)
         if (Duration==0)
         {
             Duration=Retrieve(Stream_General, 0, General_Duration).To_int64s();
-            DurationFromGeneral=true;
+            DurationFromGeneral=Retrieve(Stream_General, 0, General_Format)!=Retrieve(Stream_Video, Pos, Audio_Format);
         }
         else
             DurationFromGeneral=false;
@@ -721,10 +723,10 @@ void File__Analyze::Streams_Finish_StreamOnly_Video(size_t Pos)
         if (Duration && FrameRate)
         {
             Fill(Stream_Video, Pos, Video_FrameCount, Duration*FrameRate/1000, 0);
-            if (DurationFromGeneral)
+            if (DurationFromGeneral && Retrieve_Const(Stream_Audio, Pos, Audio_Format)!=Retrieve_Const(Stream_General, 0, General_Format))
             {
                 Fill(Stream_Video, Pos, "FrameCount_Source", "General_Duration");
-                //Fill_SetOptions(Stream_Video, Pos, "FrameCount_Source", "N NTN");
+                Fill_SetOptions(Stream_Video, Pos, "FrameCount_Source", "N NTN");
             }
         }
     }
@@ -813,13 +815,6 @@ void File__Analyze::Streams_Finish_StreamOnly_Video(size_t Pos)
     }
     else if (!Retrieve_Const(Stream_Video, Pos, Video_HDR_Format_Compatibility).empty())
     {
-        ZtringList HDR_Format_Compatibility;
-        HDR_Format_Compatibility.Separator_Set(0, __T(" / "));
-        HDR_Format_Compatibility.Write(Retrieve(Stream_Video, Pos, Video_HDR_Format_Compatibility));
-        for (size_t j=0; j<HDR_Format_Compatibility.size(); j++)
-            if (HDR_Format_Compatibility[j].find(__T("HDR10"))==0)
-                HDR_Format_Compatibility[j].clear();
-        Fill(Stream_Video, Pos, Video_HDR_Format_Compatibility, HDR_Format_Compatibility.Read(), true);
     }
     if (Retrieve(Stream_Video, Pos, Video_HDR_Format_String).empty())
     {
@@ -833,9 +828,6 @@ void File__Analyze::Streams_Finish_StreamOnly_Video(size_t Pos)
             HDR_Format_Compatibility.Separator_Set(0, __T(" / "));
             HDR_Format_Compatibility.Write(Retrieve(Stream_Video, Pos, Video_HDR_Format_Compatibility));
             HDR_Format_Compatibility.resize(Summary.size());
-            for (size_t j=0; j<Summary.size(); j++)
-                if (HDR_Format_Compatibility[j].empty())
-                    HDR_Format_Compatibility[j]=Summary[j];
             ZtringList ToAdd;
             ToAdd.Separator_Set(0, __T(" / "));
             for (size_t i=Video_HDR_Format_String+1; i<=Video_HDR_Format_Settings; i++)
@@ -857,7 +849,7 @@ void File__Analyze::Streams_Finish_StreamOnly_Video(size_t Pos)
                 }
             }
             for (size_t j=0; j<Summary.size(); j++)
-                if (HDR_Format_Compatibility[j].find(__T("HDR10"))==0) // We add for info the HDR10/HDR10+ compatibility in the displayable part
+                if (!HDR_Format_Compatibility[j].empty())
                 {
                     Summary[j]+=__T(", ")+HDR_Format_Compatibility[j]+__T(" compatible");
                     Commercial[j]=HDR_Format_Compatibility[j].substr(0, HDR_Format_Compatibility[j].find(__T(' ')));
@@ -1019,7 +1011,7 @@ void File__Analyze::Streams_Finish_StreamOnly_Audio(size_t Pos)
         if (Duration==0)
         {
             Duration=Retrieve(Stream_General, 0, General_Duration).To_int64s();
-            DurationFromGeneral=true;
+            DurationFromGeneral=Retrieve(Stream_General, 0, General_Format)!=Retrieve(Stream_Audio, Pos, Audio_Format);
         }
         else
             DurationFromGeneral=false;
@@ -1027,10 +1019,10 @@ void File__Analyze::Streams_Finish_StreamOnly_Audio(size_t Pos)
         if (Duration && SamplingRate)
         {
             Fill(Stream_Audio, Pos, Audio_SamplingCount, ((float64)Duration)/1000*SamplingRate, 0);
-            if (DurationFromGeneral)
+            if (DurationFromGeneral && Retrieve_Const(Stream_Audio, Pos, Audio_Format)!=Retrieve_Const(Stream_General, 0, General_Format))
             {
                 Fill(Stream_Audio, Pos, "SamplingCount_Source", "General_Duration");
-                //Fill_SetOptions(Stream_Audio, Pos, "SamplingCount_Source", "N NTN");
+                Fill_SetOptions(Stream_Audio, Pos, "SamplingCount_Source", "N NTN");
             }
         }
     }

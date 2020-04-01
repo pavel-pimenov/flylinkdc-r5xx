@@ -4716,7 +4716,7 @@ void File_Mk::Audio_Manage()
     const stream& streamItem=Stream[TrackNumber];
 
     #ifdef MEDIAINFO_PCM_YES
-        if (Retrieve(Stream_Audio, StreamPos_Last, Audio_Format)==__T("PCM"))
+        if (streamItem.StreamKind==Stream_Audio && Retrieve(Stream_Audio, streamItem.StreamPos, Audio_Format)==__T("PCM"))
         {
             if (streamItem.Parser->ParserName == "PCM") // fix https://github.com/MediaArea/MediaInfoLib/issues/1181
             {

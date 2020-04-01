@@ -761,6 +761,9 @@
     <ClCompile Include="Source\MediaInfo\Audio\File_Ac4.cpp">
       <Filter>Source Files\Audio</Filter>
     </ClCompile>
+    <ClCompile Include="Source\MediaInfo\Audio\File_Mpegh3da.cpp">
+      <Filter>Source Files\Audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\MediaInfo\File__Analyse_Automatic.h">
@@ -1412,6 +1415,9 @@
       <Filter>Header Files\Video</Filter>
     </ClInclude>
     <ClInclude Include="Source\MediaInfo\Audio\File_Ac4.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MediaInfo\Audio\File_Mpegh3da.h">
       <Filter>Header Files\Audio</Filter>
     </ClInclude>
   </ItemGroup>

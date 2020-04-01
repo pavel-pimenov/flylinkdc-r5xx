@@ -85,6 +85,9 @@
 #if defined(MEDIAINFO_MPEGA_YES)
     #include "MediaInfo/Audio/File_Mpega.h"
 #endif
+#if defined(MEDIAINFO_MPEGH3DA_YES)
+    #include "MediaInfo/Audio/File_Mpegh3da.h"
+#endif
 #if defined(MEDIAINFO_PCM_YES)
     #include "MediaInfo/Audio/File_Pcm.h"
 #endif
@@ -5410,6 +5413,14 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxxSound()
             Streams[moov_trak_tkhd_TrackID].Parsers.push_back(Parser);
         }
         #endif
+        #if defined(MEDIAINFO_MPEGH3DA_YES)
+        if (MediaInfoLib::Config.CodecID_Get(Stream_Audio, InfoCodecID_Format_Mpeg4, Codec, InfoCodecID_Format)==__T("MPEG-H 3D Audio"))
+        {
+            //Creating the parser
+            File_Mpegh3da* Parser=new File_Mpegh3da;
+            Streams[moov_trak_tkhd_TrackID].Parsers.push_back(Parser);
+        }
+        #endif
         if (Element_Code==0x6F776D61) //"owma"
         {
             //Parsing
@@ -6803,6 +6814,18 @@ extern const char* DolbyVision_Profiles [DolbyVision_Profiles_Size] = // dv[BL_c
     "dvav",
 };
 
+extern const size_t DolbyVision_Compatibility_Size=7;
+extern const char* DolbyVision_Compatibility[DolbyVision_Compatibility_Size]=
+{
+    "",
+    "HDR10",
+    "SDR",
+    NULL,
+    "HLG",
+    NULL,
+    "Blu-ray",
+};
+
 //---------------------------------------------------------------------------
 void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_dvcC()
 {
@@ -6810,28 +6833,41 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_dvcC()
     AddCodecConfigurationBoxInfo();
 
     //Parsing
-    int8u  dv_version_major=0, dv_version_minor=0, dv_profile=0, dv_level=0;
+    int8u  dv_version_major=0, dv_version_minor=0, dv_profile=0, dv_level=0, dv_bl_signal_compatibility_id=0;
     bool rpu_present_flag=false, el_present_flag=false, bl_present_flag=false;
     Get_B1 (dv_version_major,                                   "dv_version_major");
-    Get_B1 (dv_version_minor,                                   "dv_version_minor");
-    if (dv_version_major==1) //Spec says nothing, we hope that a minor version change means that the stream is backward compatible
+    if (dv_version_major && dv_version_major<=2) //Spec says nothing, we hope that a minor version change means that the stream is backward compatible
     {
+        Get_B1 (dv_version_minor,                               "dv_version_minor");
         BS_Begin();
+        size_t End=Data_BS_Remain();
+        if (End>=176)
+            End-=176;
+        else
+            End=0; // Not enough place for reserved bits, but we currently ignore such case, just considered as unknown
         Get_S1 (7, dv_profile,                                  "dv_profile");
         Get_S1 (6, dv_level,                                    "dv_level");
         Get_SB (   rpu_present_flag,                            "rpu_present_flag");
         Get_SB (   el_present_flag,                             "el_present_flag");
         Get_SB (   bl_present_flag,                             "bl_present_flag");
+        if (Data_BS_Remain())
+        {
+            Get_S1 (4, dv_bl_signal_compatibility_id,           "dv_bl_signal_compatibility_id"); // in dv_version_major 2 only if based on specs but it was confirmed to be seen in dv_version_major 1 too and it does not hurt (value 0 means no new display)
+            if (End<Data_BS_Remain())
+                Skip_BS(Data_BS_Remain()-End,                   "reserved");
+        }
+        else
+            dv_bl_signal_compatibility_id=0;
         BS_End();
     }
-    else
-        Skip_XX(Element_Size-Element_Offset,                    "Unknown");
+    Skip_XX(Element_Size-Element_Offset,                        "Unknown");
 
     FILLING_BEGIN();
-        Ztring Summary=Ztring::ToZtring(dv_version_major)+__T('.')+Ztring::ToZtring(dv_version_minor);
-        Fill(Stream_Video, StreamPos_Last, "HDR_Format_Version", Summary);
-        if (dv_version_major==1)
+        Fill(Stream_Video, StreamPos_Last, "HDR_Format", "Dolby Vision");
+        if (dv_version_major && dv_version_major<=2)
         {
+            Ztring Summary=Ztring::ToZtring(dv_version_major)+__T('.')+Ztring::ToZtring(dv_version_minor);
+            Fill(Stream_Video, StreamPos_Last, "HDR_Format_Version", Summary);
             string Profile, Level;
             if (dv_profile<DolbyVision_Profiles_Size)
                 Profile+=DolbyVision_Profiles[dv_profile];
@@ -6840,7 +6876,6 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_dvcC()
             Profile+=__T('.');
             Profile+=Ztring().From_CC1(dv_profile).To_UTF8();
             Level+=Ztring().From_CC1(dv_level).To_UTF8();
-            Fill(Stream_Video, StreamPos_Last, "HDR_Format", "Dolby Vision");
             Fill(Stream_Video, StreamPos_Last, "HDR_Format_Profile", Profile);
             Fill(Stream_Video, StreamPos_Last, "HDR_Format_Level", Level);
             Summary+=__T(',');
@@ -6864,7 +6899,18 @@ void File_Mpeg4::moov_trak_mdia_minf_stbl_stsd_xxxx_dvcC()
                 Summary+=Ztring().From_UTF8(Layers);
             }
             Fill(Stream_Video, StreamPos_Last, "HDR_Format_Settings", Layers);
+            if (dv_bl_signal_compatibility_id)
+            {
+                string Compatibility;
+                if (dv_bl_signal_compatibility_id<DolbyVision_Compatibility_Size && DolbyVision_Compatibility[dv_bl_signal_compatibility_id])
+                    Compatibility=DolbyVision_Compatibility[dv_bl_signal_compatibility_id];
+                else
+                    Compatibility=Ztring().From_Number(dv_bl_signal_compatibility_id).To_UTF8();
+                Fill(Stream_Video, StreamPos_Last, Video_HDR_Format_Compatibility, Compatibility);
+            }
         }
+        else
+            Fill(Stream_Video, StreamPos_Last, "HDR_Format_Version", dv_version_major);
     FILLING_END();
 }
 
