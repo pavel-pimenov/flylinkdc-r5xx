@@ -4307,7 +4307,7 @@ public:
 			CMenuItemInfo mii;
 			mii.fMask = MIIM_TYPE;
 			menu.GetMenuItemInfo(nFirstPos - 1, TRUE, &mii);
-			if((nFirstPos <= 0) || ((mii.fType & MFT_SEPARATOR) == 0))
+			if((mii.fType & MFT_SEPARATOR) == 0)
 			{
 				menu.AppendMenu(MF_SEPARATOR);
 				nFirstPos++;

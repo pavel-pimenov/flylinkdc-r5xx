@@ -159,9 +159,6 @@ inline LRESULT WtlReflectNotificationsFiltered(HWND hWndParent, UINT uMsg, WPARA
 	case WM_CHARTOITEM:
 	case WM_HSCROLL:
 	case WM_VSCROLL:
-		hWndChild = (HWND)lParam;
-		idFrom = (UINT_PTR)::GetDlgCtrlID(hWndChild);
-		break;
 	case WM_CTLCOLORBTN:
 	case WM_CTLCOLORDLG:
 	case WM_CTLCOLOREDIT:

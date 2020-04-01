@@ -1632,6 +1632,28 @@ public: \
 			return TRUE; \
 	}
 
+// void OnNcMouseHover(UINT nHitTest, CPoint ptPos)
+#define MSG_WM_NCMOUSEHOVER(func) \
+	if (uMsg == WM_NCMOUSEHOVER) \
+	{ \
+		this->SetMsgHandled(TRUE); \
+		func((UINT)wParam, ::CPoint(MAKEPOINTS(lParam).x, MAKEPOINTS(lParam).y)); \
+		lResult = 0; \
+		if(this->IsMsgHandled()) \
+			return TRUE; \
+	}
+
+// void OnNcMouseLeave()
+#define MSG_WM_NCMOUSELEAVE(func) \
+	if (uMsg == WM_NCMOUSELEAVE) \
+	{ \
+		this->SetMsgHandled(TRUE); \
+		func(); \
+		lResult = 0; \
+		if(this->IsMsgHandled()) \
+			return TRUE; \
+	}
+
 // void OnMenuRButtonUp(WPARAM wParam, CMenuHandle menu)
 #define MSG_WM_MENURBUTTONUP(func) \
 	if (uMsg == WM_MENURBUTTONUP) \
