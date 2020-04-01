@@ -15,7 +15,7 @@
 #include <openssl/err.h>
 #include "crypto/poly1305.h"
 #include "poly1305_local.h"
-#include "crypto/evp_local.h"
+#include "crypto/evp.h"
 
 /* POLY1305 pkey context structure */
 

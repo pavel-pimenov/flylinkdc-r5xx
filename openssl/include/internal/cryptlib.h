@@ -7,8 +7,8 @@
  * https://www.openssl.org/source/license.html
  */
 
-#ifndef HEADER_CRYPTLIB_H
-# define HEADER_CRYPTLIB_H
+#ifndef OSSL_INTERNAL_CRYPTLIB_H
+# define OSSL_INTERNAL_CRYPTLIB_H
 
 # include <stdlib.h>
 # include <string.h>
@@ -54,6 +54,7 @@ DEFINE_LHASH_OF(MEM);
 # define OPENSSL_CONF             "openssl.cnf"
 
 # define OPENSSLDIR "" // [+]FlylinkDC++
+
 # ifndef OPENSSL_SYS_VMS
 #  define X509_CERT_AREA          OPENSSLDIR
 #  define X509_CERT_DIR           OPENSSLDIR "/certs"

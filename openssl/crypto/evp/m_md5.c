@@ -17,7 +17,7 @@
 # include <openssl/x509.h>
 # include <openssl/md5.h>
 # include <openssl/rsa.h>
-# include "crypto/evp_local.h"
+# include "crypto/evp.h"
 
 static int init(EVP_MD_CTX *ctx)
 {

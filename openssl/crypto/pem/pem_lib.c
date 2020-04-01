@@ -18,7 +18,7 @@
 #include <openssl/x509.h>
 #include <openssl/pem.h>
 #include <openssl/pkcs12.h>
-#include "crypto/asn1_local.h"
+#include "crypto/asn1.h"
 #include <openssl/des.h>
 #include <openssl/engine.h>
 

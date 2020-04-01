@@ -18,8 +18,8 @@
 #include <openssl/sha.h>
 #include <openssl/rand.h>
 #include "modes_local.h"
-#include "crypto/evp_local.h"
-#include "internal/constant_time_local.h"
+#include "crypto/evp.h"
+#include "internal/constant_time.h"
 
 typedef struct {
     AES_KEY ks;

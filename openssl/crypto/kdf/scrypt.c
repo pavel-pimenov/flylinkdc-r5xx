@@ -13,7 +13,7 @@
 #include <openssl/kdf.h>
 #include <openssl/evp.h>
 #include "internal/cryptlib.h"
-#include "crypto/evp_local.h"
+#include "crypto/evp.h"
 
 #ifndef OPENSSL_NO_SCRYPT
 

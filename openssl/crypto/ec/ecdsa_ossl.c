@@ -11,7 +11,7 @@
 #include <openssl/err.h>
 #include <openssl/obj_mac.h>
 #include <openssl/rand.h>
-#include "crypto/bn_local.h"
+#include "crypto/bn.h"
 #include "ec_local.h"
 
 int ossl_ecdsa_sign(int type, const unsigned char *dgst, int dlen,

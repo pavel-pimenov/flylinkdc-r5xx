@@ -14,7 +14,7 @@
 # include <openssl/evp.h>
 # include <openssl/modes.h>
 # include "crypto/sm4.h"
-# include "crypto/evp_local.h"
+# include "crypto/evp.h"
 
 typedef struct {
     SM4_KEY ks;

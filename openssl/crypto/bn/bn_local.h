@@ -21,7 +21,7 @@
 #  include "crypto/bn_conf.h"
 # endif
 
-# include "crypto/bn_local.h"
+# include "crypto/bn.h"
 
 /*
  * These preprocessor symbols control various aspects of the bignum headers

@@ -12,7 +12,7 @@
 #include <openssl/evp.h>
 #include <openssl/objects.h>
 #include <openssl/x509.h>
-#include "crypto/evp_local.h"
+#include "crypto/evp.h"
 
 static int init(EVP_MD_CTX *ctx)
 {

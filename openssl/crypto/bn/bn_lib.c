@@ -12,7 +12,7 @@
 #include "internal/cryptlib.h"
 #include "bn_local.h"
 #include <openssl/opensslconf.h>
-#include "internal/constant_time_local.h"
+#include "internal/constant_time.h"
 
 /* This stuff appears to be completely unused, so is deprecated */
 #if OPENSSL_API_COMPAT < 0x00908000L

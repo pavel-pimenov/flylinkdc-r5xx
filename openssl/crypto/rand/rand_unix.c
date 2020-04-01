@@ -16,7 +16,7 @@
 #include <openssl/rand.h>
 #include <openssl/crypto.h>
 #include "rand_local.h"
-#include "crypto/rand_local.h"
+#include "crypto/rand.h"
 #include <stdio.h>
 #include "internal/dso.h"
 #ifdef __linux
@@ -861,4 +861,5 @@ static uint64_t get_timer_bits(void)
 # endif
     return time(NULL);
 }
-#endif /* defined(OPENSSL_SYS_UNIX) || defined(__DJGPP__) */
+#endif /* (defined(OPENSSL_SYS_UNIX) && !defined(OPENSSL_SYS_VXWORKS))
+          || defined(__DJGPP__) */

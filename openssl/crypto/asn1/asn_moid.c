@@ -13,7 +13,7 @@
 #include "internal/cryptlib.h"
 #include <openssl/conf.h>
 #include <openssl/x509.h>
-#include "crypto/asn1_local.h"
+#include "crypto/asn1.h"
 #include "crypto/objects.h"
 
 /* Simple ASN1 OID module: add all objects in a given section */

@@ -12,7 +12,7 @@
 
 #ifndef OPENSSL_NO_SM3
 # include <openssl/evp.h>
-# include "crypto/evp_local.h"
+# include "crypto/evp.h"
 # include "crypto/sm3.h"
 
 static int init(EVP_MD_CTX *ctx)

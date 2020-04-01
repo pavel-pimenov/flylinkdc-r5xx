@@ -12,7 +12,7 @@
 #include <openssl/objects.h>
 #include <openssl/evp.h>
 #include <openssl/engine.h>
-#include "crypto/evp_local.h"
+#include "crypto/evp.h"
 #include "evp_local.h"
 
 /* This call frees resources associated with the context */

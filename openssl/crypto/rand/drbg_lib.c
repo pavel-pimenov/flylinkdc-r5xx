@@ -13,8 +13,8 @@
 #include <openssl/rand.h>
 #include "rand_local.h"
 #include "internal/thread_once.h"
-#include "crypto/rand_local.h"
-#include "crypto/cryptlib_local.h"
+#include "crypto/rand.h"
+#include "crypto/cryptlib.h"
 
 /*
  * Support framework for NIST SP 800-90A DRBG

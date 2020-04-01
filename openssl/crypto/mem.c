@@ -9,7 +9,7 @@
 
 #include "e_os.h"
 #include "internal/cryptlib.h"
-#include "crypto/cryptlib_local.h"
+#include "crypto/cryptlib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>

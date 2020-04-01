@@ -15,7 +15,7 @@
 #include <openssl/rand.h>
 #include <openssl/rand_drbg.h>
 #include <openssl/engine.h>
-#include "crypto/evp_local.h"
+#include "crypto/evp.h"
 #include "evp_local.h"
 
 int EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX *c)

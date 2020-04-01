@@ -15,7 +15,7 @@
 #include <openssl/cms.h>
 #include <openssl/aes.h>
 #include "cms_local.h"
-#include "crypto/asn1_local.h"
+#include "crypto/asn1.h"
 
 /* Key Agreement Recipient Info (KARI) routines */
 

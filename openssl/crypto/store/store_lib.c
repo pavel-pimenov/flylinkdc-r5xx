@@ -18,7 +18,7 @@
 #include <openssl/err.h>
 #include <openssl/store.h>
 #include "internal/thread_once.h"
-#include "crypto/store_local.h"
+#include "crypto/store.h"
 #include "store_local.h"
 
 struct ossl_store_ctx_st {

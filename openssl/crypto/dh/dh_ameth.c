@@ -13,8 +13,8 @@
 #include <openssl/asn1.h>
 #include "dh_local.h"
 #include <openssl/bn.h>
-#include "crypto/asn1_local.h"
-#include "crypto/evp_local.h"
+#include "crypto/asn1.h"
+#include "crypto/evp.h"
 #include <openssl/cms.h>
 
 /*
@@ -901,6 +901,7 @@ static int dh_cms_encrypt(CMS_RecipientInfo *ri)
  err:
     OPENSSL_free(penc);
     X509_ALGOR_free(wrap_alg);
+    OPENSSL_free(dukm);
     return rv;
 }
 
