@@ -578,13 +578,15 @@ class TypedListViewCtrl : public CWindowImpl<TypedListViewCtrl<T, ctrlId>, CList
 		{
 			dcassert(m_is_destroy_items == false);
 			//CFlyBusyBool l_busy(m_is_destroy_items);
-			const int l_cnt = GetItemCount();
-			for (int i = 0; i < l_cnt; ++i)
-			{
-				T* si = getItemData(i);
-				if (m_is_managed == false)
-					delete si;
-			}
+            if (m_is_managed == false)
+            {
+                const int l_cnt = GetItemCount();
+                for (int i = 0; i < l_cnt; ++i)
+                {
+                    T* si = getItemData(i);
+                    delete si;
+                }
+            }
 			DeleteAllItems();
 		}
 		void DeleteAndCleanAllItems()

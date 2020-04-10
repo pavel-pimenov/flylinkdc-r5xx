@@ -330,7 +330,6 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		{
 			return m_client && m_client->isConnected();
 		}
-		CContainedWindow ctrlClientContainer;
 		
 		CtrlUsers* m_ctrlUsers;
 		void createCtrlUsers();
