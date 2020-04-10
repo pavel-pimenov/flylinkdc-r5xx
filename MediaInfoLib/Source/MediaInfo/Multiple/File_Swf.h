@@ -47,68 +47,68 @@ private :
     //Elements
     void Header();
     void Header_Continue();
-    void End()                          {};
-    void ShowFrame()                    {};
-    void DefineShape()                  {};
-    void PlaceObject()                  {};
-    void RemoveObject()                 {};
-    void DefineBits()                   {};
-    void DefineButton()                 {};
-    void JPEGTables()                   {};
-    void SetBackgroundColor()           {};
-    void DefineFont()                   {};
-    void DefineText()                   {};
-    void DoAction()                     {};
-    void DefineFontInfo()               {};
+    void End()                          {}
+    void ShowFrame()                    {}
+    void DefineShape()                  {}
+    void PlaceObject()                  {}
+    void RemoveObject()                 {}
+    void DefineBits()                   {}
+    void DefineButton()                 {}
+    void JPEGTables()                   {}
+    void SetBackgroundColor()           {}
+    void DefineFont()                   {}
+    void DefineText()                   {}
+    void DoAction()                     {}
+    void DefineFontInfo()               {}
     void DefineSound();
-    void StartSound()                   {};
-    void DefineButtonSound()            {};
+    void StartSound()                   {}
+    void DefineButtonSound()            {}
     void SoundStreamHead();
-    void SoundStreamBlock()             {};
-    void DefineBitsLossless()           {};
-    void DefineBitsJPEG2()              {};
-    void DefineShape2()                 {};
-    void DefineCxform()                 {};
-    void Protect()                      {};
-    void PlaceObject2()                 {};
-    void RemoveObject2()                {};
-    void DefineShape3()                 {};
-    void DefineText2()                  {};
-    void DefineButton2()                {};
-    void DefineBitsJPEG3()              {};
-    void DefineBitsLossless2()          {};
-    void DefineEditText()               {};
+    void SoundStreamBlock()             {}
+    void DefineBitsLossless()           {}
+    void DefineBitsJPEG2()              {}
+    void DefineShape2()                 {}
+    void DefineCxform()                 {}
+    void Protect()                      {}
+    void PlaceObject2()                 {}
+    void RemoveObject2()                {}
+    void DefineShape3()                 {}
+    void DefineText2()                  {}
+    void DefineButton2()                {}
+    void DefineBitsJPEG3()              {}
+    void DefineBitsLossless2()          {}
+    void DefineEditText()               {}
     void DefineSprite();
-    void FrameLabel()                   {};
-    void DefineMorphShape()             {};
-    void SoundStreamHead2()             {SoundStreamHead();};
-    void DefineFont2()                  {};
-    void ExportAssets()                 {};
-    void ImportAssets()                 {};
-    void EnableDebugger()               {};
-    void DoInitAction()                 {};
+    void FrameLabel()                   {}
+    void DefineMorphShape()             {}
+    void SoundStreamHead2()             {SoundStreamHead();}
+    void DefineFont2()                  {}
+    void ExportAssets()                 {}
+    void ImportAssets()                 {}
+    void EnableDebugger()               {}
+    void DoInitAction()                 {}
     void DefineVideoStream();
-    void DefineVideoFrame()             {};
-    void DefineFontInfo2()              {};
-    void EnableDebugger2()              {};
-    void ScriptLimits()                 {};
-    void SetTabIndex()                  {};
-    void FileAttributes()               {};
-    void PlaceObject3()                 {};
-    void ImportAssets2()                {};
-    void DefineFontAlignZones()         {};
-    void CSMTextSettings()              {};
-    void DefineFont3()                  {};
-    void SymbolClass()                  {};
-    void Metadata()                     {};
-    void DefineScalingGrid()            {};
-    void DoABC()                        {};
-    void DefineShape4()                 {};
-    void DefineMorphShape2()            {};
+    void DefineVideoFrame()             {}
+    void DefineFontInfo2()              {}
+    void EnableDebugger2()              {}
+    void ScriptLimits()                 {}
+    void SetTabIndex()                  {}
+    void FileAttributes()               {}
+    void PlaceObject3()                 {}
+    void ImportAssets2()                {}
+    void DefineFontAlignZones()         {}
+    void CSMTextSettings()              {}
+    void DefineFont3()                  {}
+    void SymbolClass()                  {}
+    void Metadata()                     {}
+    void DefineScalingGrid()            {}
+    void DoABC()                        {}
+    void DefineShape4()                 {}
+    void DefineMorphShape2()            {}
     void DefineSceneAndFrameLabelData() {};
-    void DefineBinaryData()             {};
-    void DefineFontName()               {};
-    void StartSound2()                  {};
+    void DefineBinaryData()             {}
+    void DefineFontName()               {}
+    void StartSound2()                  {}
 
     //Helpers
     bool Decompress();

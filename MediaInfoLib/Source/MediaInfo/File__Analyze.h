@@ -289,18 +289,18 @@ protected :
     // Streams management
     //***************************************************************************
 
-    virtual void Streams_Accept()                                               {};
-    virtual void Streams_Fill()                                                 {};
-    virtual void Streams_Update()                                               {};
-    virtual void Streams_Finish()                                               {};
+    virtual void Streams_Accept()                                               {}
+    virtual void Streams_Fill()                                                 {}
+    virtual void Streams_Update()                                               {}
+    virtual void Streams_Finish()                                               {}
 
     //***************************************************************************
     // Synchro
     //***************************************************************************
 
-    virtual bool Synchronize()    {Synched=true; return true;}; //Look for the synchro
-    virtual bool Synched_Test()   {return true;}; //Test is synchro is OK
-    virtual void Synched_Init()   {}; //When synched, we can Init data
+    virtual bool Synchronize()    {Synched=true; return true;} //Look for the synchro
+    virtual bool Synched_Test()   {return true;} //Test is synchro is OK
+    virtual void Synched_Init()   {} //When synched, we can Init data
     bool Synchro_Manage();
     bool Synchro_Manage_Test();
 
@@ -309,21 +309,21 @@ protected :
     //***************************************************************************
 
     //Buffer
-    virtual void Read_Buffer_Init ()          {}; //Temp, should be in File__Base caller
+    virtual void Read_Buffer_Init ()          {} //Temp, should be in File__Base caller
     virtual void Read_Buffer_OutOfBand ()     {Open_Buffer_Continue(Buffer, Buffer_Size);} //Temp, should be in File__Base caller
-    virtual void Read_Buffer_Continue ()      {}; //Temp, should be in File__Base caller
+    virtual void Read_Buffer_Continue ()      {} //Temp, should be in File__Base caller
     virtual void Read_Buffer_CheckFileModifications() {} //Temp, should be in File__Base caller
-    virtual void Read_Buffer_AfterParsing ()  {}; //Temp, should be in File__Base caller
+    virtual void Read_Buffer_AfterParsing ()  {} //Temp, should be in File__Base caller
     #if MEDIAINFO_SEEK
     virtual size_t Read_Buffer_Seek (size_t, int64u, int64u); //Temp, should be in File__Base caller
     size_t Read_Buffer_Seek_OneFramePerFile (size_t, int64u, int64u);
     #endif //MEDIAINFO_SEEK
     #if MEDIAINFO_ADVANCED2
-    virtual void Read_Buffer_SegmentChange () {}; //Temp, should be in File__Base caller
+    virtual void Read_Buffer_SegmentChange () {} //Temp, should be in File__Base caller
     #endif //MEDIAINFO_ADVANCED2
-    virtual void Read_Buffer_Unsynched ()     {}; //Temp, should be in File__Base caller
-    void Read_Buffer_Unsynched_OneFramePerFile ();
-    virtual void Read_Buffer_Finalize ()      {}; //Temp, should be in File__Base caller
+    virtual void Read_Buffer_Unsynched ()     {} //Temp, should be in File__Base caller
+    void Read_Buffer_Unsynched_OneFramePerFile();
+    virtual void Read_Buffer_Finalize ()      {} //Temp, should be in File__Base caller
     bool Buffer_Parse();
 
     //***************************************************************************
@@ -375,7 +375,7 @@ protected :
     bool Data_Manage ();
 
     //Data - Parse
-    virtual void Data_Parse ()                                                  {};
+    virtual void Data_Parse ()                                                  {}
 
     //Data - Info
     void Data_Info (const Ztring &Parameter);
@@ -386,7 +386,7 @@ protected :
     size_t Data_BS_Remain ()                                                    {return (size_t)BS->Remain();};
 
     //Data - Detect EOF
-    virtual void Detect_EOF ()                                                  {};
+    virtual void Detect_EOF ()                                                  {}
     bool EOF_AlreadyDetected;
 
     //Data - Helpers

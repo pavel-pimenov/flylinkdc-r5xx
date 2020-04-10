@@ -116,7 +116,7 @@ public :
     #if MEDIAINFO_TRACE
         void   Details_Add(const char* Parameter);
     #endif //MEDIAINFO_TRACE
-    virtual void Option_Manage() {};
+    virtual void Option_Manage() {}
 
     //File
     Ztring File_Name;

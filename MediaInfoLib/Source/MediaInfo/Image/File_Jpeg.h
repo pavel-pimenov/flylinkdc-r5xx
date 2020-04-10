@@ -70,7 +70,7 @@ private :
     void Data_Parse();
 
     //Elements
-    void TEM () {};
+    void TEM () {}
     void SOC () {}
     void SIZ ();
     void COD ();
@@ -90,9 +90,9 @@ private :
     void EPH () {Skip_XX(Element_Size, "Data");}
     void SOD ();
     void SOF_();
-    void S0F0() {SOF_();};
-    void S0F1() {SOF_();};
-    void S0F2() {SOF_();};
+    void S0F0() {SOF_();}
+    void S0F1() {SOF_();}
+    void S0F2() {SOF_();}
     void S0F3() {SOF_();}
     void DHT () {Skip_XX(Element_Size, "Data");}
     void S0F5() {SOF_();}
@@ -106,16 +106,16 @@ private :
     void S0FD() {SOF_();}
     void S0FE() {SOF_();}
     void S0FF() {SOF_();}
-    void RST0() {};
-    void RST1() {};
-    void RST2() {};
-    void RST3() {};
-    void RST4() {};
-    void RST5() {};
-    void RST6() {};
-    void RST7() {};
-    void SOI () {};
-    void EOI () {};
+    void RST0() {}
+    void RST1() {}
+    void RST2() {}
+    void RST3() {}
+    void RST4() {}
+    void RST5() {}
+    void RST6() {}
+    void RST7() {}
+    void SOI () {}
+    void EOI () {}
     void SOS ();
     void DQT () {Skip_XX(Element_Size, "Data");}
     void DNL () {Skip_XX(Element_Size, "Data");}

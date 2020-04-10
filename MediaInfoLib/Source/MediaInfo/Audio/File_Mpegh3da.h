@@ -45,7 +45,7 @@ private :
             ElevationAngle(0),
             ElevationDirection(false),
             isLFE(false)
-        {};
+        {}
     };
 
     struct speaker_layout
@@ -58,7 +58,7 @@ private :
         speaker_layout() :
             numSpeakers(0),
             ChannelLayout(0)
-        {};
+        {}
     };
 
     speaker_layout referenceLayout;
