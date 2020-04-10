@@ -51,13 +51,13 @@ class uint128 {
 
     public:
         // Constructors
-        inline uint128 () throw () : lo(0), hi(0) {};
-        //inline uint128 (const uint128 & a) throw () : lo (a.lo), hi (a.hi) {};
+        inline uint128 () throw () : lo(0), hi(0) {}
+        //inline uint128 (const uint128 & a) throw () : lo (a.lo), hi (a.hi) {}
         // http://www.viva64.com/en/V690
 
-        inline uint128 (const int & a) throw () : lo (a), hi (0ull) {};
-        inline uint128 (const unsigned int & a) throw () : lo (a), hi (0ull) {};
-        inline uint128 (const int64u & a) throw () : lo (a), hi (0ull) {};
+        inline uint128 (const int & a) throw () : lo (a), hi (0ull) {}
+        inline uint128 (const unsigned int & a) throw () : lo (a), hi (0ull) {}
+        inline uint128 (const int64u & a) throw () : lo (a), hi (0ull) {}
 
         uint128 (const float a) throw ();
         uint128 (const double & a) throw ();
@@ -71,7 +71,7 @@ class uint128 {
     private:
         // Special internal constructors
         uint128 (const int64u & a, const int64u & b) throw ()
-            : lo (a), hi (b) {};
+            : lo (a), hi (b) {}
 
     public:
         // Operators

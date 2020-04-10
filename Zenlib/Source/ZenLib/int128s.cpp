@@ -129,11 +129,11 @@ int128::int128 (const float a) throw ()
     #else
     : lo ((int64u) fmodf (a, 18446744073709551616.0f)),
     #endif
-      hi ((int64s) (a / 18446744073709551616.0f)) {};
+      hi ((int64s) (a / 18446744073709551616.0f)) {}
 
 int128::int128 (const double & a) throw ()
     : lo ((int64u) fmod (a, 18446744073709551616.0)),
-      hi ((int64s) (a / 18446744073709551616.0)) {};
+      hi ((int64s) (a / 18446744073709551616.0)) {}
 
 int128::int128 (const long double & a) throw ()
     #if defined (__mips__)       || defined (__mipsel__)
@@ -141,7 +141,7 @@ int128::int128 (const long double & a) throw ()
     #else
     : lo ((int64u) fmodl (a, 18446744073709551616.0l)),
     #endif
-      hi ((int64s) (a / 18446744073709551616.0l)) {};
+      hi ((int64s) (a / 18446744073709551616.0l)) {}
 
 float int128::toFloat () const throw () {
     return (float) this->hi * 18446744073709551616.0f

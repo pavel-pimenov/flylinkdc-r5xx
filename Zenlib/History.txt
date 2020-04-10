@@ -1,3 +1,11 @@
+Version 0.4.38, 2020-04-03
+--------------
++ UWP support
++ Android support
++ iOS support
+x Ztring: some date conversion methods were not thread safe
+x Miscellaneous fixes
+
 Version 0.4.37, 2017-08-18
 --------------
 x Restore CMake 2.8 compatibility

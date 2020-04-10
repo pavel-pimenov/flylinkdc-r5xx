@@ -45,7 +45,7 @@ public:
                                                                                  BookMark=false;
                                                                                  LastByte = 0; Buffer_BookMark = 0; Buffer_Size_BookMark = 0; LastByte_BookMark = 0; LastByte_Size_BookMark = 0; BufferUnderRun_BookMark = 0;
     }
-    virtual ~BitStream ()                                                       {};
+    virtual ~BitStream ()                                                       {}
 
     virtual void Attach(const int8u* Buffer_, size_t Size_)
     {

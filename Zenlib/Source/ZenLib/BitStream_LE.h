@@ -26,8 +26,8 @@ namespace ZenLib
 class BitStream_LE : public BitStream
 {
 public:
-    BitStream_LE ()                                                             :BitStream() {};
-    BitStream_LE (const int8u* Buffer_, size_t Size_)                           :BitStream(Buffer_, Size_) {};
+    BitStream_LE ()                                                             :BitStream() {}
+    BitStream_LE (const int8u* Buffer_, size_t Size_)                           :BitStream(Buffer_, Size_) {}
 
     void Attach(const int8u* Buffer_, size_t Size_)
     {

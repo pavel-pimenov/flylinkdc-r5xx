@@ -55,7 +55,6 @@ public:
 
         if (!Buffer_Size)
         {
-            Buffer_Size=0;
             BufferUnderRun=true;
             return false;
         }
@@ -240,7 +239,6 @@ public:
 
         if (!Buffer_Size)
         {
-            Buffer_Size=0;
             BufferUnderRun=true;
             return false;
         }
