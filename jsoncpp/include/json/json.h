@@ -303,20 +303,6 @@ extern JSON_API int msvc_pre1900_c99_snprintf(char* outBuf, size_t size,
 // C++11 should be used directly in JSONCPP.
 #define JSONCPP_OVERRIDE override
 
-#if __cplusplus >= 201103L
-#define JSONCPP_NOEXCEPT noexcept
-#define JSONCPP_OP_EXPLICIT explicit
-#elif defined(_MSC_VER) && _MSC_VER < 1900
-#define JSONCPP_NOEXCEPT throw()
-#define JSONCPP_OP_EXPLICIT explicit
-#elif defined(_MSC_VER) && _MSC_VER >= 1900
-#define JSONCPP_NOEXCEPT noexcept
-#define JSONCPP_OP_EXPLICIT explicit
-#else
-#define JSONCPP_NOEXCEPT throw()
-#define JSONCPP_OP_EXPLICIT
-#endif
-
 #ifdef __clang__
 #if __has_extension(attribute_deprecated_with_message)
 #define JSONCPP_DEPRECATED(message) __attribute__((deprecated(message)))
@@ -487,7 +473,6 @@ public:
   /** \brief A configuration that allows all features and assumes all strings
    * are UTF-8.
    * - C & C++ comments are allowed
-   * - Trailing commas in objects and arrays are allowed.
    * - Root object can be any JSON value
    * - Assumes Value strings are encoded in UTF-8
    */
@@ -496,7 +481,6 @@ public:
   /** \brief A configuration that is strictly compatible with the JSON
    * specification.
    * - Comments are forbidden.
-   * - Trailing commas in objects and arrays are forbidden.
    * - Root object must be either an array or an object value.
    * - Assumes Value strings are encoded in UTF-8
    */
@@ -508,10 +492,6 @@ public:
 
   /// \c true if comments are allowed. Default: \c true.
   bool allowComments_{true};
-
-  /// \c true if trailing commas in objects and arrays are allowed. Default \c
-  /// true.
-  bool allowTrailingCommas_{true};
 
   /// \c true if root must be either an array or an object value. Default: \c
   /// false.
@@ -566,6 +546,24 @@ public:
 #endif
 #endif
 
+// Support for '= delete' with template declarations was a late addition
+// to the c++11 standard and is rejected by clang 3.8 and Apple clang 8.2
+// even though these declare themselves to be c++11 compilers.
+#if !defined(JSONCPP_TEMPLATE_DELETE)
+#if defined(__clang__) && defined(__apple_build_version__)
+#if __apple_build_version__ <= 8000042
+#define JSONCPP_TEMPLATE_DELETE
+#endif
+#elif defined(__clang__)
+#if __clang_major__ == 3 && __clang_minor__ <= 8
+#define JSONCPP_TEMPLATE_DELETE
+#endif
+#endif
+#if !defined(JSONCPP_TEMPLATE_DELETE)
+#define JSONCPP_TEMPLATE_DELETE = delete
+#endif
+#endif
+
 #include <array>
 #include <exception>
 #include <map>
@@ -594,8 +592,8 @@ namespace Json {
 class JSON_API Exception : public std::exception {
 public:
   Exception(String msg);
-  ~Exception() JSONCPP_NOEXCEPT override;
-  char const* what() const JSONCPP_NOEXCEPT override;
+  ~Exception() noexcept override;
+  char const* what() const noexcept override;
 
 protected:
   String msg_;
@@ -935,8 +933,8 @@ public:
   bool isObject() const;
 
   /// The `as<T>` and `is<T>` member function templates and specializations.
-  template <typename T> T as() const = delete;
-  template <typename T> bool is() const = delete;
+  template <typename T> T as() const JSONCPP_TEMPLATE_DELETE;
+  template <typename T> bool is() const JSONCPP_TEMPLATE_DELETE;
 
   bool isConvertibleTo(ValueType other) const;
 
@@ -948,7 +946,7 @@ public:
   bool empty() const;
 
   /// Return !isNull()
-  JSONCPP_OP_EXPLICIT operator bool() const;
+  explicit operator bool() const;
 
   /// Remove all object members and array elements.
   /// \pre type() is arrayValue, objectValue, or nullValue
@@ -1102,7 +1100,7 @@ public:
   /// Include delimiters and embedded newlines.
   String getComment(CommentPlacement placement) const;
 
-  String toStyledString(bool p_use_end_line = true) const;
+  String toStyledString(bool p_use_end_line = true) const; // [+]FlylinkDC++
 
   const_iterator begin() const;
   const_iterator end() const;
@@ -2296,19 +2294,19 @@ JSON_API OStream& operator<<(OStream&, const Value& root);
 
 // @todo <= add detail about condition in exception
 #define JSON_ASSERT(condition)                                                 \
-  {                                                                            \
+  do {                                                                         \
     if (!(condition)) {                                                        \
       Json::throwLogicError("assert json failed");                             \
     }                                                                          \
-  }
+  } while (0)
 
 #define JSON_FAIL_MESSAGE(message)                                             \
-  {                                                                            \
+  do {                                                                         \
     OStringStream oss;                                                         \
     oss << message;                                                            \
     Json::throwLogicError(oss.str());                                          \
     abort();                                                                   \
-  }
+  } while (0)
 
 #else // JSON_USE_EXCEPTION
 
@@ -2327,9 +2325,11 @@ JSON_API OStream& operator<<(OStream&, const Value& root);
 #endif
 
 #define JSON_ASSERT_MESSAGE(condition, message)                                \
-  if (!(condition)) {                                                          \
-    JSON_FAIL_MESSAGE(message);                                                \
-  }
+  do {                                                                         \
+    if (!(condition)) {                                                        \
+      JSON_FAIL_MESSAGE(message);                                              \
+    }                                                                          \
+  } while (0)
 
 #endif // JSON_ASSERTIONS_H_INCLUDED
 
