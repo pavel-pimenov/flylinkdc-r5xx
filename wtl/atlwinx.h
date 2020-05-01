@@ -589,6 +589,33 @@ public:
 		}
 	}
 #endif // __ATLSTR_H__
+
+// Dialog window only
+	UINT DlgGetDefID() const
+	{
+		ATLASSERT(::IsWindow(m_hWnd));
+
+		LRESULT lRet = ::SendMessage(m_hWnd, DM_GETDEFID, 0, 0L);
+		UINT uID = 0U;
+		if(HIWORD(lRet) == DC_HASDEFID)
+			uID = LOWORD(lRet);
+
+		return uID;
+	}
+
+	void DlgSetDefID(UINT uID)
+	{
+		ATLASSERT(::IsWindow(m_hWnd));
+
+		::SendMessage(m_hWnd, DM_SETDEFID, uID, 0L);
+	}
+
+	void DlgReposition()
+	{
+		ATLASSERT(::IsWindow(m_hWnd));
+
+		::SendMessage(m_hWnd, DM_REPOSITION, 0, 0L);
+	}
 };
 
 } // namespace WTL

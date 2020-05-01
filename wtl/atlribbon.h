@@ -2065,12 +2065,10 @@ public:
 			hr = OnGetValue(key, ppropvarNewValue);
 			break;
 		case k_FormatString:
-			if (m_FormatString.IsEmpty())
-				return OnGetText(key, m_FormatString, ppropvarNewValue);
+			hr = OnGetText(key, m_FormatString, ppropvarNewValue);
 			break;
 		case k_RepresentativeString:
-			if (m_RepresentativeString.IsEmpty())
-				return OnGetText(key, m_RepresentativeString, ppropvarNewValue);
+			hr = OnGetText(key, m_RepresentativeString, ppropvarNewValue);
 			break;
 		default:
 			hr = CtrlImpl<T, t_ID>::DoUpdateProperty(nCmdID, key, ppropvarCurrentValue, ppropvarNewValue);

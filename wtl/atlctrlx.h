@@ -3940,7 +3940,9 @@ public:
 		this->SetRedraw(TRUE);
 		this->RedrawWindow(NULL, NULL, RDW_FRAME | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
 
-		if(::GetFocus() != m_tab.m_hWnd)
+		HWND hWndFocus = ::GetFocus();
+		ATL::CWindow wndTop = this->GetTopLevelWindow();
+		if((hWndFocus == wndTop.m_hWnd) || ((wndTop.IsChild(hWndFocus) != FALSE) && (hWndFocus != m_tab.m_hWnd)))
 			::SetFocus(GetPageHWND(m_nActivePage));
 
 		pT->UpdateTitleBar();
