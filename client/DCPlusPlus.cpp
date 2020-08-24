@@ -43,7 +43,7 @@
 #endif // SSA_IPGRANT_FEATURE
 
 #ifdef FLYLINKDC_USE_VLD
-#include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h" // VLD качать тут http://vld.codeplex.com/
+#include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h" // VLD ГЄГ Г·Г ГІГј ГІГіГІ http://vld.codeplex.com/
 #endif
 
 #ifndef _DEBUG
@@ -67,7 +67,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	}
 	while (i < 6);
 #ifdef FLYLINKDC_USE_SYSLOG
-	syslog_loghost("syslog.fly-server.ru");
+	syslog_loghost("syslog.dchub.net");
 	openlog("flylinkdc", 0, LOG_USER | LOG_INFO);
 #endif
 	
@@ -95,7 +95,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 	
 	dcassert(pProgressCallbackProc != nullptr);
 	
-	// Загрузку конфига нужно делать раньше
+	// Г‡Г ГЈГ°ГіГ§ГЄГі ГЄГ®Г­ГґГЁГЈГ  Г­ГіГ¦Г­Г® Г¤ГҐГ«Г ГІГј Г°Г Г­ГјГёГҐ
 	// LOAD_STEP("Fly server", g_fly_server_config.loadConfig());
 	
 	LOAD_STEP("SQLite database init... Please wait!!!", CFlylinkDBManager::newInstance());
@@ -109,7 +109,7 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 #ifdef FLYLINKDC_USE_GEO_IP
 	LOAD_STEP("Geo IP", Util::loadGeoIp());
 #endif
-	LOAD_STEP("P2P Guard", Util::loadP2PGuard()); // Этот грузить всегда первым - выполняет зачистку базы
+	LOAD_STEP("P2P Guard", Util::loadP2PGuard()); // ГќГІГ®ГІ ГЈГ°ГіГ§ГЁГІГј ГўГ±ГҐГЈГ¤Г  ГЇГҐГ°ГўГ»Г¬ - ГўГ»ГЇГ®Г«Г­ГїГҐГІ Г§Г Г·ГЁГ±ГІГЄГі ГЎГ Г§Г»
 	LOAD_STEP("iblocklist.com", Util::loadIBlockList());
 	
 	LOAD_STEP("Custom Locations", Util::loadCustomlocations());
@@ -119,12 +119,12 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 #endif
 	HashManager::newInstance();
 #ifdef FLYLINKDC_USE_VLD
-	VLDDisable(); // TODO VLD показывает там лики - не понял пока как победить OpenSSL
+	VLDDisable(); // TODO VLD ГЇГ®ГЄГ Г§Г»ГўГ ГҐГІ ГІГ Г¬ Г«ГЁГЄГЁ - Г­ГҐ ГЇГ®Г­ГїГ« ГЇГ®ГЄГ  ГЄГ ГЄ ГЇГ®ГЎГҐГ¤ГЁГІГј OpenSSL
 #endif
 // FLYLINKDC_CRYPTO_DISABLE
 	LOAD_STEP("SSL", CryptoManager::newInstance());
 #ifdef FLYLINKDC_USE_VLD
-	VLDEnable(); // TODO VLD показывает там лики - не понял пока как победить OpenSSL
+	VLDEnable(); // TODO VLD ГЇГ®ГЄГ Г§Г»ГўГ ГҐГІ ГІГ Г¬ Г«ГЁГЄГЁ - Г­ГҐ ГЇГ®Г­ГїГ« ГЇГ®ГЄГ  ГЄГ ГЄ ГЇГ®ГЎГҐГ¤ГЁГІГј OpenSSL
 #endif
 	SearchManager::newInstance();
 	ConnectionManager::newInstance();
@@ -190,7 +190,7 @@ void preparingCoreToShutdown()
 
 void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 {
-	// Сохраним маркеры времени завершения
+	// Г‘Г®ГµГ°Г Г­ГЁГ¬ Г¬Г Г°ГЄГҐГ°Г» ГўГ°ГҐГ¬ГҐГ­ГЁ Г§Г ГўГҐГ°ГёГҐГ­ГЁГї
 #ifndef _DEBUG
 	extern crash_rpt::CrashRpt g_crashRpt;
 	g_crashRpt.SetCustomInfo(_T("StopCore"));
@@ -260,7 +260,7 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		SettingsManager::getInstance()->save();
 		ConnectionManager::getInstance()->shutdown();
 		
-		preparingCoreToShutdown(); // Зовем тут второй раз т.к. вероятно при автообновлении оно не зовется.
+		preparingCoreToShutdown(); // Г‡Г®ГўГҐГ¬ ГІГіГІ ГўГІГ®Г°Г®Г© Г°Г Г§ ГІ.ГЄ. ГўГҐГ°Г®ГїГІГ­Г® ГЇГ°ГЁ Г ГўГІГ®Г®ГЎГ­Г®ГўГ«ГҐГ­ГЁГЁ Г®Г­Г® Г­ГҐ Г§Г®ГўГҐГІГ±Гї.
 		
 #ifdef FLYLINKDC_USE_DNS
 		Socket::dnsCache.waitShutdown();
@@ -278,12 +278,12 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		FinishedManager::deleteInstance();
 		ShareManager::deleteInstance();
 #ifdef FLYLINKDC_USE_VLD
-		VLDDisable(); // TODO VLD показывает там лики - не понял пока как победить OpenSSL
+		VLDDisable(); // TODO VLD ГЇГ®ГЄГ Г§Г»ГўГ ГҐГІ ГІГ Г¬ Г«ГЁГЄГЁ - Г­ГҐ ГЇГ®Г­ГїГ« ГЇГ®ГЄГ  ГЄГ ГЄ ГЇГ®ГЎГҐГ¤ГЁГІГј OpenSSL
 #endif
 // FLYLINKDC_CRYPTO_DISABLE
 		CryptoManager::deleteInstance();
 #ifdef FLYLINKDC_USE_VLD
-		VLDEnable(); // TODO VLD показывает там лики - не понял пока как победить OpenSSL
+		VLDEnable(); // TODO VLD ГЇГ®ГЄГ Г§Г»ГўГ ГҐГІ ГІГ Г¬ Г«ГЁГЄГЁ - Г­ГҐ ГЇГ®Г­ГїГ« ГЇГ®ГЄГ  ГЄГ ГЄ ГЇГ®ГЎГҐГ¤ГЁГІГј OpenSSL
 #endif
 		ThrottleManager::deleteInstance();
 		DownloadManager::deleteInstance();
