@@ -110,7 +110,7 @@ static void sgenrand(unsigned long seed);
 extern "C" void bz_internal_error(int errcode)
 {
 	dcdebug("bzip2 internal error: %d\n", errcode);
-	// TODO - логирование?
+	// TODO - Г«Г®ГЈГЁГ°Г®ГўГ Г­ГЁГҐ?
 }
 
 #if (_MSC_VER >= 1400 )
@@ -249,7 +249,7 @@ void Util::initialize()
 	
 #undef SYS_WIN_PATH_INIT
 	// Global config path is FlylinkDC++ executable path...
-#ifdef _DEBUG2 // Тестируем запрет доступа
+#ifdef _DEBUG2 // Г’ГҐГ±ГІГЁГ°ГіГҐГ¬ Г§Г ГЇГ°ГҐГІ Г¤Г®Г±ГІГіГЇГ 
 	//g_paths[PATH_EXE] = "C:\\Program Files (x86)\\f\\";
 	//g_paths[PATH_GLOBAL_CONFIG] = g_paths[PATH_EXE];
 #else
@@ -260,7 +260,7 @@ void Util::initialize()
 	        !(locatedInSysPath(PROGRAM_FILES, g_paths[PATH_EXE]) || locatedInSysPath(PROGRAM_FILESX86, g_paths[PATH_EXE]))
 	   )
 	{
-		// Проверим права записи
+		// ГЏГ°Г®ГўГҐГ°ГЁГ¬ ГЇГ°Г ГўГ  Г§Г ГЇГЁГ±ГЁ
 		g_paths[PATH_USER_CONFIG] = g_paths[PATH_GLOBAL_CONFIG] + "Settings" PATH_SEPARATOR_STR;
 		const auto l_marker_file = g_paths[PATH_USER_CONFIG] + ".flylinkdc-test-readonly.tmp";
 		try
@@ -279,7 +279,7 @@ void Util::initialize()
 				//CFlyServerJSON::pushError(11, "Error create/write + " + l_marker_file);
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 				intiProfileConfig();
-				// Если возможно уносим настройки в профиль (если их тамеще нет)
+				// Г…Г±Г«ГЁ ГўГ®Г§Г¬Г®Г¦Г­Г® ГіГ­Г®Г±ГЁГ¬ Г­Г Г±ГІГ°Г®Г©ГЄГЁ Гў ГЇГ°Г®ГґГЁГ«Гј (ГҐГ±Г«ГЁ ГЁГµ ГІГ Г¬ГҐГ№ГҐ Г­ГҐГІ)
 				moveSettings();
 			}
 		}
@@ -584,15 +584,15 @@ void Util::loadGeoIp()
 				{
 					auto pos = data.find(',', linestart);
 					if (pos == string::npos) break;
-					pos = data.find(',', pos + 6); // тут можно прибавлять не 1 а 6 т.к. минимальная длина IP в виде текста равна 7 символам "1.1.1.1"
+					pos = data.find(',', pos + 6); // ГІГіГІ Г¬Г®Г¦Г­Г® ГЇГ°ГЁГЎГ ГўГ«ГїГІГј Г­ГҐ 1 Г  6 ГІ.ГЄ. Г¬ГЁГ­ГЁГ¬Г Г«ГјГ­Г Гї Г¤Г«ГЁГ­Г  IP Гў ГўГЁГ¤ГҐ ГІГҐГЄГ±ГІГ  Г°Г ГўГ­Г  7 Г±ГЁГ¬ГўГ®Г«Г Г¬ "1.1.1.1"
 					if (pos == string::npos) break;
 					startIP = toUInt32(start + pos + 2);
 	
-					pos = data.find(',', pos + 7); // тут можно прибавлять не 1 а 7 т.к. минимальная длина IP в виде числа равна 8 символам 1.0.0.0 = 16777216
+					pos = data.find(',', pos + 7); // ГІГіГІ Г¬Г®Г¦Г­Г® ГЇГ°ГЁГЎГ ГўГ«ГїГІГј Г­ГҐ 1 Г  7 ГІ.ГЄ. Г¬ГЁГ­ГЁГ¬Г Г«ГјГ­Г Гї Г¤Г«ГЁГ­Г  IP Гў ГўГЁГ¤ГҐ Г·ГЁГ±Г«Г  Г°Г ГўГ­Г  8 Г±ГЁГ¬ГўГ®Г«Г Г¬ 1.0.0.0 = 16777216
 					if (pos == string::npos) break;
 					stopIP = toUInt32(start + pos + 2);
 	
-					pos = data.find(',', pos + 7); // тут можно прибавлять не 1 а 7 т.к. минимальная длина IP в виде числа равна 8 символам 1.0.0.0 = 16777216
+					pos = data.find(',', pos + 7); // ГІГіГІ Г¬Г®Г¦Г­Г® ГЇГ°ГЁГЎГ ГўГ«ГїГІГј Г­ГҐ 1 Г  7 ГІ.ГЄ. Г¬ГЁГ­ГЁГ¬Г Г«ГјГ­Г Гї Г¤Г«ГЁГ­Г  IP Гў ГўГЁГ¤ГҐ Г·ГЁГ±Г«Г  Г°Г ГўГ­Г  8 Г±ГЁГ¬ГўГ®Г«Г Г¬ 1.0.0.0 = 16777216
 					if (pos == string::npos) break;
 					flagIndex = getFlagIndexByCode(*reinterpret_cast<const uint16_t*>(start + pos + 2));
 					pos = data.find(',', pos + 1);
@@ -1391,7 +1391,7 @@ static string findBindIP(const string& tmp, const string& p_gateway_mask, const 
 			return tmp2;
 		if (tmp2.find(p_gateway_mask) != string::npos)
 		{
-			if (Util::isPrivateIp(tmp2)) // Проблема с Hamachi
+			if (Util::isPrivateIp(tmp2)) // ГЏГ°Г®ГЎГ«ГҐГ¬Г  Г± Hamachi
 			{
 				return tmp2;
 			}
@@ -1400,19 +1400,19 @@ static string findBindIP(const string& tmp, const string& p_gateway_mask, const 
 		{
 			continue;
 		}
-		// Проблема с Hamachi - часть 2
+		// ГЏГ°Г®ГЎГ«ГҐГ¬Г  Г± Hamachi - Г·Г Г±ГІГј 2
 		//else if (isNotPrivateIpAndNot169(tmp2))
 		//{
 		//  tmp = tmp2;
 		//}
 		/*
-		 Выявилась проблема с UPnP, при установленной программе Hamachi.
-		У пользователя win7. Хамачи сделал свой сетевой интферфейс с ip адресом 25.41.14.130
+		 Г‚Г»ГїГўГЁГ«Г Г±Гј ГЇГ°Г®ГЎГ«ГҐГ¬Г  Г± UPnP, ГЇГ°ГЁ ГіГ±ГІГ Г­Г®ГўГ«ГҐГ­Г­Г®Г© ГЇГ°Г®ГЈГ°Г Г¬Г¬ГҐ Hamachi.
+		Г“ ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«Гї win7. Г•Г Г¬Г Г·ГЁ Г±Г¤ГҐГ«Г Г« Г±ГўГ®Г© Г±ГҐГІГҐГўГ®Г© ГЁГ­ГІГґГҐГ°ГґГҐГ©Г± Г± ip Г Г¤Г°ГҐГ±Г®Г¬ 25.41.14.130
 	
-		UPnP пытается сделать перенаправление именно на этот адрес
-		если во флайлинке задать "сетевой интерфейс для всех соединений" 192.168.0.103 (адрес который дает ему роутер), то это не помогает :(
+		UPnP ГЇГ»ГІГ ГҐГІГ±Гї Г±Г¤ГҐГ«Г ГІГј ГЇГҐГ°ГҐГ­Г ГЇГ°Г ГўГ«ГҐГ­ГЁГҐ ГЁГ¬ГҐГ­Г­Г® Г­Г  ГЅГІГ®ГІ Г Г¤Г°ГҐГ±
+		ГҐГ±Г«ГЁ ГўГ® ГґГ«Г Г©Г«ГЁГ­ГЄГҐ Г§Г Г¤Г ГІГј "Г±ГҐГІГҐГўГ®Г© ГЁГ­ГІГҐГ°ГґГҐГ©Г± Г¤Г«Гї ГўГ±ГҐГµ Г±Г®ГҐГ¤ГЁГ­ГҐГ­ГЁГ©" 192.168.0.103 (Г Г¤Г°ГҐГ± ГЄГ®ГІГ®Г°Г»Г© Г¤Г ГҐГІ ГҐГ¬Гі Г°Г®ГіГІГҐГ°), ГІГ® ГЅГІГ® Г­ГҐ ГЇГ®Г¬Г®ГЈГ ГҐГІ :(
 	
-		К письму прикладываю вывод UPnP правил из роутера, для того что-бы ты понял о чем речь.
+		ГЉ ГЇГЁГ±ГјГ¬Гі ГЇГ°ГЁГЄГ«Г Г¤Г»ГўГ Гѕ ГўГ»ГўГ®Г¤ UPnP ГЇГ°Г ГўГЁГ« ГЁГ§ Г°Г®ГіГІГҐГ°Г , Г¤Г«Гї ГІГ®ГЈГ® Г·ГІГ®-ГЎГ» ГІГ» ГЇГ®Г­ГїГ« Г® Г·ГҐГ¬ Г°ГҐГ·Гј.
 		*/
 	}
 	return tmp;
@@ -1421,7 +1421,7 @@ string Util::getLocalOrBindIp(const bool p_check_bind_address)
 {
 	string tmp;
 	char buf[256];
-	if (!gethostname(buf, 255)) // двойной вызов
+	if (!gethostname(buf, 255)) // Г¤ГўГ®Г©Г­Г®Г© ГўГ»Г§Г®Гў
 	{
 		boost::logic::tribool l_is_wifi_router;
 		string l_gateway_ip = Socket::getDefaultGateWay(l_is_wifi_router);
@@ -1730,7 +1730,7 @@ string Util::formatParams(const string& msg, const StringMap& params, bool filte
 			break;
 		}
 	}
-	if (l_find_alcohol) // Не пытаемся искать %[ т.к. не нашли %
+	if (l_find_alcohol) // ГЌГҐ ГЇГ»ГІГ ГҐГ¬Г±Гї ГЁГ±ГЄГ ГІГј %[ ГІ.ГЄ. Г­ГҐ Г­Г ГёГ«ГЁ %
 	{
 		result = formatTime(result, t);
 		string::size_type i, j, k;
@@ -1836,7 +1836,7 @@ uint64_t Util::getDirSize(const string &sFullPath)
 			if (fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
 				const string newName = sFullPath + PATH_SEPARATOR + name;
-				// TODO TEMP_DOWNLOAD_DIRECTORY может содержать шаблон "[targetdrive]" сравнивать с ним не всегда верно
+				// TODO TEMP_DOWNLOAD_DIRECTORY Г¬Г®Г¦ГҐГІ Г±Г®Г¤ГҐГ°Г¦Г ГІГј ГёГ ГЎГ«Г®Г­ "[targetdrive]" Г±Г°Г ГўГ­ГЁГўГ ГІГј Г± Г­ГЁГ¬ Г­ГҐ ГўГ±ГҐГЈГ¤Г  ГўГҐГ°Г­Г®
 				if (stricmp(newName + PATH_SEPARATOR, l_tmp_path) != 0)
 				{
 					total += getDirSize(newName);
@@ -2033,7 +2033,7 @@ string Util::formatTime(uint64_t rest, const bool withSecond /*= true*/)
    matumoto@math.keio.ac.jp */
 /* Period parameters */
 	
-// TODO убрать магические числа!!!
+// TODO ГіГЎГ°Г ГІГј Г¬Г ГЈГЁГ·ГҐГ±ГЄГЁГҐ Г·ГЁГ±Г«Г !!!
 #define N 624
 #define M 397
 #define MATRIX_A 0x9908b0df   /* constant vector a */
@@ -2323,7 +2323,7 @@ string Util::translateError(DWORD aError)
 			    FORMAT_MESSAGE_IGNORE_INSERTS;
 	
 			LPCVOID lpSource = nullptr;
-			// Обработаем расширенные ошибки по инету
+			// ГЋГЎГ°Г ГЎГ®ГІГ ГҐГ¬ Г°Г Г±ГёГЁГ°ГҐГ­Г­Г»ГҐ Г®ГёГЁГЎГЄГЁ ГЇГ® ГЁГ­ГҐГІГі
 			// http://stackoverflow.com/questions/20435591/internetgetlastresponseinfo-returns-strange-characters-instead-of-error-message
 			{
 				wstring l_error;
@@ -2672,12 +2672,12 @@ bool CFlyHTTPDownloader::switchMirrorURL(string& p_url, int p_mirror)
 {
 	if (p_mirror == 2 || p_mirror == 3)
 	{
-		if (p_url.find("://etc.fly-server.ru/etc/") != string::npos ||
-		        p_url.find("://update.fly-server.ru/update/") != string::npos
+		if (p_url.find("://etc.dchub.net/etc/") != string::npos ||
+		        p_url.find("://update.dchub.net/update/") != string::npos
 		   )
 		{
 			string l_url = p_url;
-			const char* l_base_url = ".fly-server.ru/";
+			const char* l_base_url = ".dchub.net/";
 			Text::replace_all(l_url, l_base_url, Util::toString(p_mirror) + l_base_url);
 			LogManager::message("Use mirror: " + l_url);
 			p_url = l_url;
@@ -2715,9 +2715,9 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInetSafe(const string& p_url, std:
 		l_length = getBinaryDataFromInet(l_url, p_data_out, p_time_out, p_reporter);
 		if (l_length > 0)
 		{
-			if (i >= 4) // Если на зеркале скачали - остаемся на нем
+			if (i >= 4) // Г…Г±Г«ГЁ Г­Г  Г§ГҐГ°ГЄГ Г«ГҐ Г±ГЄГ Г·Г Г«ГЁ - Г®Г±ГІГ ГҐГ¬Г±Гї Г­Г  Г­ГҐГ¬
 			{
-				g_last_stable_mirror = i - 1; // Продолжим пытаться качать с зеркала для этой сессии.
+				g_last_stable_mirror = i - 1; // ГЏГ°Г®Г¤Г®Г«Г¦ГЁГ¬ ГЇГ»ГІГ ГІГјГ±Гї ГЄГ Г·Г ГІГј Г± Г§ГҐГ°ГЄГ Г«Г  Г¤Г«Гї ГЅГІГ®Г© Г±ГҐГ±Г±ГЁГЁ.
 			}
 			break;
 		}
@@ -2729,11 +2729,11 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInetSafe(const string& p_url, std:
 			}
 			if (g_last_stable_mirror != 0)
 			{
-				g_last_stable_mirror = 0; // При ошибке на зеркале скидываемся обратно на главный хост
+				g_last_stable_mirror = 0; // ГЏГ°ГЁ Г®ГёГЁГЎГЄГҐ Г­Г  Г§ГҐГ°ГЄГ Г«ГҐ Г±ГЄГЁГ¤Г»ГўГ ГҐГ¬Г±Гї Г®ГЎГ°Г ГІГ­Г® Г­Г  ГЈГ«Г ГўГ­Г»Г© ГµГ®Г±ГІ
 				i = 2;
-				const char* l_base_url = ".fly-server.ru/";
-				Text::replace_all(l_url, "2.fly-server.ru/", l_base_url);
-				Text::replace_all(l_url, "3.fly-server.ru/", l_base_url);
+				const char* l_base_url = ".dchub.net/";
+				Text::replace_all(l_url, "2.dchub.net/", l_base_url);
+				Text::replace_all(l_url, "3.dchub.net/", l_base_url);
 				continue;
 			}
 			if (switchMirrorURL(l_url, i))
@@ -2813,9 +2813,9 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInetArray(CFlyUrlItemArray& p_url_
 			break;
 		// https://github.com/ak48disk/simulationcraft/blob/392937fde95bdc4f13ccd3681e2fa61813856bb6/engine/interfaces/sc_http.cpp
 		// http://msdn.microsoft.com/en-us/library/ms906346.aspx
-		// Проверить: конфиг файл действительно меняется?
-		// INTERNET_FLAG_NO_CACHE_WRITE - использовать если файл большой
-		// INTERNET_FLAG_RESYNCHRONIZE - использовать для xml  + конфиг
+		// ГЏГ°Г®ГўГҐГ°ГЁГІГј: ГЄГ®Г­ГґГЁГЈ ГґГ Г©Г« Г¤ГҐГ©Г±ГІГўГЁГІГҐГ«ГјГ­Г® Г¬ГҐГ­ГїГҐГІГ±Гї?
+		// INTERNET_FLAG_NO_CACHE_WRITE - ГЁГ±ГЇГ®Г«ГјГ§Г®ГўГ ГІГј ГҐГ±Г«ГЁ ГґГ Г©Г« ГЎГ®Г«ГјГёГ®Г©
+		// INTERNET_FLAG_RESYNCHRONIZE - ГЁГ±ГЇГ®Г«ГјГ§Г®ГўГ ГІГј Г¤Г«Гї xml  + ГЄГ®Г­ГґГЁГЈ
 		DWORD l_cache_flag = INTERNET_FLAG_NO_UI | INTERNET_FLAG_NO_COOKIES; // | INTERNET_FLAG_CACHE_IF_NET_FAIL;
 #define FLYLINKDC_USE_CACHE_WININET
 #ifdef FLYLINKDC_USE_CACHE_WININET
@@ -2826,7 +2826,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInetArray(CFlyUrlItemArray& p_url_
 			{
 				const auto l_ext3 = u.m_url.c_str() + u.m_url.size() - 4;
 				const auto l_ext4 = u.m_url.c_str() + u.m_url.size() - 5;
-				if (strcmp(l_ext3, ".xml") == 0 || // TODO - Унести в конфиг
+				if (strcmp(l_ext3, ".xml") == 0 || // TODO - Г“Г­ГҐГ±ГІГЁ Гў ГЄГ®Г­ГґГЁГЈ
 				        strcmp(l_ext3, ".bz2") == 0 ||
 				        strcmp(l_ext4, ".sign") == 0)
 				{
@@ -2841,7 +2841,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInetArray(CFlyUrlItemArray& p_url_
 			//dcassert(0);
 			create_error_message("InternetOpenUrlA", u.m_url);
 			LogManager::message(m_error_message);
-			// TODO - залогировать коды ошибок для статы
+			// TODO - Г§Г Г«Г®ГЈГЁГ°Г®ГўГ ГІГј ГЄГ®Г¤Г» Г®ГёГЁГЎГ®ГЄ Г¤Г«Гї Г±ГІГ ГІГ»
 			return 0;
 		}
 		uint64_t totalBytesRead = 0;
@@ -2854,7 +2854,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInetArray(CFlyUrlItemArray& p_url_
 				dcassert(0);
 				create_error_message("InternetReadFile", u.m_url);
 				LogManager::message(m_error_message);
-				//// TODO - залогировать коды ошибок для статы
+				//// TODO - Г§Г Г«Г®ГЈГЁГ°Г®ГўГ ГІГј ГЄГ®Г¤Г» Г®ГёГЁГЎГ®ГЄ Г¤Г«Гї Г±ГІГ ГІГ»
 				return 0;
 			}
 			if (l_BytesRead == 0)
@@ -2943,9 +2943,9 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 	}
 	// https://github.com/ak48disk/simulationcraft/blob/392937fde95bdc4f13ccd3681e2fa61813856bb6/engine/interfaces/sc_http.cpp
 	// http://msdn.microsoft.com/en-us/library/ms906346.aspx
-	// Проверить: конфиг файл действительно меняется?
-	// INTERNET_FLAG_NO_CACHE_WRITE - использовать если файл большой
-	// INTERNET_FLAG_RESYNCHRONIZE - использовать для xml  + конфиг
+	// ГЏГ°Г®ГўГҐГ°ГЁГІГј: ГЄГ®Г­ГґГЁГЈ ГґГ Г©Г« Г¤ГҐГ©Г±ГІГўГЁГІГҐГ«ГјГ­Г® Г¬ГҐГ­ГїГҐГІГ±Гї?
+	// INTERNET_FLAG_NO_CACHE_WRITE - ГЁГ±ГЇГ®Г«ГјГ§Г®ГўГ ГІГј ГҐГ±Г«ГЁ ГґГ Г©Г« ГЎГ®Г«ГјГёГ®Г©
+	// INTERNET_FLAG_RESYNCHRONIZE - ГЁГ±ГЇГ®Г«ГјГ§Г®ГўГ ГІГј Г¤Г«Гї xml  + ГЄГ®Г­ГґГЁГЈ
 	DWORD l_cache_flag = INTERNET_FLAG_NO_UI | INTERNET_FLAG_NO_COOKIES; // | INTERNET_FLAG_CACHE_IF_NET_FAIL;
 #define FLYLINKDC_USE_CACHE_WININET
 #ifdef FLYLINKDC_USE_CACHE_WININET
@@ -2956,7 +2956,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 		{
 			const auto l_ext3 = p_url.c_str() + p_url.size() - 4;
 			const auto l_ext4 = p_url.c_str() + p_url.size() - 5;
-			if (strcmp(l_ext3, ".xml") == 0 || // TODO - Унести в конфиг
+			if (strcmp(l_ext3, ".xml") == 0 || // TODO - Г“Г­ГҐГ±ГІГЁ Гў ГЄГ®Г­ГґГЁГЈ
 			        strcmp(l_ext3, ".bz2") == 0 ||
 			        strcmp(l_ext4, ".sign") == 0)
 			{
@@ -2971,7 +2971,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 		//dcassert(0);
 		create_error_message("InternetOpenUrlA", p_url);
 		LogManager::message(m_error_message);
-		// TODO - залогировать коды ошибок для статы
+		// TODO - Г§Г Г«Г®ГЈГЁГ°Г®ГўГ ГІГј ГЄГ®Г¤Г» Г®ГёГЁГЎГ®ГЄ Г¤Г«Гї Г±ГІГ ГІГ»
 		return 0;
 	}
 	bool isUserCancel = false;
@@ -2985,7 +2985,7 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 			dcassert(0);
 			create_error_message("InternetReadFile", p_url);
 			LogManager::message(m_error_message);
-			//// TODO - залогировать коды ошибок для статы
+			//// TODO - Г§Г Г«Г®ГЈГЁГ°Г®ГўГ ГІГј ГЄГ®Г¤Г» Г®ГёГЁГЎГ®ГЄ Г¤Г«Гї Г±ГІГ ГІГ»
 			return 0;
 		}
 		if (l_BytesRead == 0)
@@ -3234,11 +3234,11 @@ string Util::ConvertFromHTML(const string &htmlString)
 	strRet = ConvertFromHTMLSymbol(htmlString, "&nbsp;", " ");
 	strRet = ConvertFromHTMLSymbol(strRet, "<br>", " \r\n");
 	strRet = ConvertFromHTMLSymbol(strRet, "&quot;", "\"");
-	strRet = ConvertFromHTMLSymbol(strRet, "&mdash;", "—");
-	strRet = ConvertFromHTMLSymbol(strRet, "&ndash;", "–");
-	strRet = ConvertFromHTMLSymbol(strRet, "&hellip;", "…");
-	strRet = ConvertFromHTMLSymbol(strRet, "&laquo;", "«");
-	strRet = ConvertFromHTMLSymbol(strRet, "&raquo;", "»");
+	strRet = ConvertFromHTMLSymbol(strRet, "&mdash;", "В—");
+	strRet = ConvertFromHTMLSymbol(strRet, "&ndash;", "В–");
+	strRet = ConvertFromHTMLSymbol(strRet, "&hellip;", "В…");
+	strRet = ConvertFromHTMLSymbol(strRet, "&laquo;", "В«");
+	strRet = ConvertFromHTMLSymbol(strRet, "&raquo;", "В»");
 //	strRet = ConvertFromHTMLSymbol(strRet, "&lt;", "<");
 //	strRet = ConvertFromHTMLSymbol(strRet, "&gt;", ">");
 	return strRet;
