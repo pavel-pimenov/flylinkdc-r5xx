@@ -6,10 +6,10 @@ set BETA_STATE=
 set BETA_NUM=
 
 set RELEASE_UPDATE_FOLDER=".\update\"
-set RELEASE_UPDATE_URL="http://update.fly-server.ru/update/5xx/release/"
+set RELEASE_UPDATE_URL="http://update.dchub.net/update/5xx/release/"
 
 set BETA_UPDATE_FOLDER=".\update\"
-set BETA_UPDATE_URL="http://update.fly-server.ru/update/5xx/beta/"
+set BETA_UPDATE_URL="http://update.dchub.net/update/5xx/beta/"
 
 if "%BETA_STATE%"=="1" (set SYMBOL_SERVER_APP_KEY=9B9D2DBC-80E9-40FF-9801-52E1F52E5EC0) else (set SYMBOL_SERVER_APP_KEY=45A84685-77E6-4F01-BF10-C698B811087F)
 set APP_VERSION_FOR_SYMBOL_SERVER=7.7
