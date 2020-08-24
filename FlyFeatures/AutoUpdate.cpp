@@ -35,8 +35,8 @@
 static const string g_dev_error = "\r\nPlease send a text or a screenshot of the error to developers ppa74@ya.ru";
 static const wstring UPDATE_FILE_NAME = L"flylink.upd";
 
-static const string UPDATE_RELEASE_URL = "http://update.fly-server.ru/update/5xx/release";
-static const string UPDATE_BETA_URL = "http://update.fly-server.ru/update/5xx/beta";
+static const string UPDATE_RELEASE_URL = "http://update.dchub.net/update/5xx/release";
+static const string UPDATE_BETA_URL = "http://update.dchub.net/update/5xx/beta";
 
 static const string UPDATE_FILE_DOWNLOAD_B = "Update5_beta.xml";
 static const string UPDATE_SIGN_FILE_DOWNLOAD_B = "Update5_beta.sign";
@@ -47,7 +47,7 @@ static const string UPDATE_SIGN_FILE_DOWNLOAD_R = "Update5.sign";
 static const string UPDATE_DESCRIPTION_R = "Update5.rtf";
 
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
-static const string UPDATE_AU_URL = "http://update.fly-server.ru/update/alluser";
+static const string UPDATE_AU_URL = "http://update.dchub.net/update/alluser";
 static const string UPDATE_UPDATE_FILE = "UpdateAU.xml";
 static const string UPDATE_SIGN_FILE = "UpdateAU.sign";
 static const string UPDATE_DESCRIPTION_FILE = "UpdateAU.rtf";
@@ -258,7 +258,7 @@ void AutoUpdate::startUpdateThisThread()
 #endif
 		const string l_serverURL = getAUTOUPDATE_SERVER_URL();
 		const string l_serverURL_AU = UPDATE_AU_URL;
-		// TODO - в случае ошибки сделать итерацию и пройтись по зеркалам
+		// TODO - Гў Г±Г«ГіГ·Г ГҐ Г®ГёГЁГЎГЄГЁ Г±Г¤ГҐГ«Г ГІГј ГЁГІГҐГ°Г Г¶ГЁГѕ ГЁ ГЇГ°Г®Г©ГІГЁГ±Гј ГЇГ® Г§ГҐГ°ГЄГ Г«Г Г¬
 		string l_base_update_url;
 		string l_base_updateAU_url;
 		if (Util::isHttpLink(l_serverURL))
@@ -267,7 +267,7 @@ void AutoUpdate::startUpdateThisThread()
 			                                                           UPDATE_FILE_DOWNLOAD(), UPDATE_DESCRIPTION(), l_autoUpdateObject,
 			                                                           l_base_update_url);
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
-			// TODO - результат не юзается const string basesUpdateDescription =
+			// TODO - Г°ГҐГ§ГіГ«ГјГІГ ГІ Г­ГҐ ГѕГ§Г ГҐГІГ±Гї const string basesUpdateDescription =
 			getUpdateFilesList(STRING(PROGRAM_DATA), l_serverURL_AU, "UpdateAU",
 			                   UPDATE_UPDATE_FILE, UPDATE_DESCRIPTION_FILE, l_autoUpdateObjectAU,
 			                   l_base_updateAU_url);
@@ -326,7 +326,7 @@ void AutoUpdate::startUpdateThisThread()
 						}
 					}
 					//
-					if (l_totalSize) // Есть кандидаты для обновления?
+					if (l_totalSize) // Г…Г±ГІГј ГЄГ Г­Г¤ГЁГ¤Г ГІГ» Г¤Г«Гї Г®ГЎГ­Г®ГўГ«ГҐГ­ГЁГї?
 					{
 						string l_check_file_url = l_base_update_url + UPDATE_SIGN_FILE_DOWNLOAD();
 						string l_check_message;
@@ -396,7 +396,7 @@ void AutoUpdate::startUpdateThisThread()
 							//string basesRtfData;
 #endif
 							size_t l_dataRTFSize = Util::getDataFromInetSafe(true, programUpdateDescription, programRtfData);
-							// l_programRtfData.resize(dataRTFSize); // TODO - зачем это?
+							// l_programRtfData.resize(dataRTFSize); // TODO - Г§Г Г·ГҐГ¬ ГЅГІГ®?
 #ifdef IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
 							//dataRTFSize = Util::getDataFromInetSafe(basesUpdateDescription, basesRtfData);
 							//basesRtfData.resize(dataRTFSize);
@@ -522,7 +522,7 @@ void AutoUpdate::startUpdateThisThread()
 										for (size_t i = 0; i < l_files4UpdateInAllUsersSettings.size(); ++i)
 										{
 											const string& l_name = l_files4UpdateInAllUsersSettings[i].m_sName;
-											// TODO - убрать имена зашитые в код!
+											// TODO - ГіГЎГ°Г ГІГј ГЁГ¬ГҐГ­Г  Г§Г ГёГЁГІГ»ГҐ Гў ГЄГ®Г¤!
 											if (!l_reloadGeoIP && (l_name == "CustomLocations.bmp" || l_name == "CustomLocations.ini" || l_name == "GeoIPCountryWhois.csv" || l_name == "P2PGuard.ini" || l_name == "iblocklist-com.ini"))
 											{
 												l_reloadGeoIP = true;
@@ -530,7 +530,7 @@ void AutoUpdate::startUpdateThisThread()
 										}
 										if (l_reloadGeoIP)
 										{
-											message(_T("Reload GeoIP in progress…"));
+											message(_T("Reload GeoIP in progressВ…"));
 											Util::loadGeoIp(true);
 											message(_T("Reload GeoIP done"));
 										}
