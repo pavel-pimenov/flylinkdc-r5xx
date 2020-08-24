@@ -118,14 +118,14 @@ FastCriticalSection CFlyServerJSON::g_cs_test_port;
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER
 
 FastCriticalSection CFlyServerConfig::g_cs_block_ip;
-uint16_t CFlyServerConfig::g_max_ddos_connect_to_me = 10; // Не более 10 коннектов на один IP в течении минуты
-uint16_t CFlyServerConfig::g_ban_ddos_connect_to_me = 10; // Блокируем подключения к этому IP в течении 10 минут
+uint16_t CFlyServerConfig::g_max_ddos_connect_to_me = 10; // ГЌГҐ ГЎГ®Г«ГҐГҐ 10 ГЄГ®Г­Г­ГҐГЄГІГ®Гў Г­Г  Г®Г¤ГЁГ­ IP Гў ГІГҐГ·ГҐГ­ГЁГЁ Г¬ГЁГ­ГіГІГ»
+uint16_t CFlyServerConfig::g_ban_ddos_connect_to_me = 10; // ГЃГ«Г®ГЄГЁГ°ГіГҐГ¬ ГЇГ®Г¤ГЄГ«ГѕГ·ГҐГ­ГЁГї ГЄ ГЅГІГ®Г¬Гі IP Гў ГІГҐГ·ГҐГ­ГЁГЁ 10 Г¬ГЁГ­ГіГІ
 
-uint16_t CFlyServerConfig::g_interval_flood_command = 1;  // Сколько секунд агрегируем одинаковые команды
-uint16_t CFlyServerConfig::g_max_flood_command = 100;       // Не более 100 одинаковых команд в секунду
-uint16_t CFlyServerConfig::g_ban_flood_command = 10;      // Блокируем на 10 секунд команды если попали в бан
+uint16_t CFlyServerConfig::g_interval_flood_command = 1;  // Г‘ГЄГ®Г«ГјГЄГ® Г±ГҐГЄГіГ­Г¤ Г ГЈГ°ГҐГЈГЁГ°ГіГҐГ¬ Г®Г¤ГЁГ­Г ГЄГ®ГўГ»ГҐ ГЄГ®Г¬Г Г­Г¤Г»
+uint16_t CFlyServerConfig::g_max_flood_command = 100;       // ГЌГҐ ГЎГ®Г«ГҐГҐ 100 Г®Г¤ГЁГ­Г ГЄГ®ГўГ»Гµ ГЄГ®Г¬Г Г­Г¤ Гў Г±ГҐГЄГіГ­Г¤Гі
+uint16_t CFlyServerConfig::g_ban_flood_command = 10;      // ГЃГ«Г®ГЄГЁГ°ГіГҐГ¬ Г­Г  10 Г±ГҐГЄГіГ­Г¤ ГЄГ®Г¬Г Г­Г¤Г» ГҐГ±Г«ГЁ ГЇГ®ГЇГ Г«ГЁ Гў ГЎГ Г­
 uint16_t CFlyServerConfig::g_unique_files_for_virus_detect = 2;
-bool     CFlyServerConfig::g_is_append_cid_error_log = true; // Добавлять ID к логу ошибок
+bool     CFlyServerConfig::g_is_append_cid_error_log = true; // Г„Г®ГЎГ ГўГ«ГїГІГј ID ГЄ Г«Г®ГЈГі Г®ГёГЁГЎГ®ГЄ
 bool     CFlyServerConfig::g_is_use_hit_media_files = false;
 bool     CFlyServerConfig::g_is_use_hit_binary_files = false;
 bool     CFlyServerConfig::g_is_use_statistics = false;
@@ -135,8 +135,8 @@ DWORD CFlyServerConfig::g_max_size_for_virus_detect = 10 * 1024 * 1024;
 DWORD CFlyServerConfig::g_max_size_search_v_detect = 3 * 1024 * 1024;
 
 
-uint16_t CFlyServerConfig::g_max_unique_tth_search  = 10; // Не принимаем в течении 10 секунд одинаковых поисков по TTH для одного и того-же целевого IP:PORT (UDP)
-uint16_t CFlyServerConfig::g_max_unique_file_search = 10; // Не принимаем в течении 10 секунд одинаковых поисков по File для одного и того-же целевого IP:PORT (UDP)
+uint16_t CFlyServerConfig::g_max_unique_tth_search  = 10; // ГЌГҐ ГЇГ°ГЁГ­ГЁГ¬Г ГҐГ¬ Гў ГІГҐГ·ГҐГ­ГЁГЁ 10 Г±ГҐГЄГіГ­Г¤ Г®Г¤ГЁГ­Г ГЄГ®ГўГ»Гµ ГЇГ®ГЁГ±ГЄГ®Гў ГЇГ® TTH Г¤Г«Гї Г®Г¤Г­Г®ГЈГ® ГЁ ГІГ®ГЈГ®-Г¦ГҐ Г¶ГҐГ«ГҐГўГ®ГЈГ® IP:PORT (UDP)
+uint16_t CFlyServerConfig::g_max_unique_file_search = 10; // ГЌГҐ ГЇГ°ГЁГ­ГЁГ¬Г ГҐГ¬ Гў ГІГҐГ·ГҐГ­ГЁГЁ 10 Г±ГҐГЄГіГ­Г¤ Г®Г¤ГЁГ­Г ГЄГ®ГўГ»Гµ ГЇГ®ГЁГ±ГЄГ®Гў ГЇГ® File Г¤Г«Гї Г®Г¤Г­Г®ГЈГ® ГЁ ГІГ®ГЈГ®-Г¦ГҐ Г¶ГҐГ«ГҐГўГ®ГЈГ® IP:PORT (UDP)
 string CFlyServerConfig::g_regex_find_ip = "(\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?)";
 std::vector<std::string> CFlyServerConfig::g_mapping_hubs;
 //std::unordered_set<unsigned long> CFlyServerConfig::g_block_ip;
@@ -147,11 +147,11 @@ std::vector<std::string> CFlyServerConfig::g_promo_hubs[2];
 std::unordered_set<std::string> CFlyServerConfig::g_detect_search_bot;
 
 #ifdef USE_SUPPORT_HUB
-string CFlyServerConfig::g_support_hub = "dchub://dc.fly-server.ru";
+string CFlyServerConfig::g_support_hub = "dchub://international.dchub.net";
 #ifdef FLYLINKDC_USE_SUPPORT_HUB_EN
-string CFlyServerConfig::g_support_hub_en = "dchub://dc.fly-server.ru";
+string CFlyServerConfig::g_support_hub_en = "dchub://international.dchub.net";
 #endif
-string CFlyServerConfig::g_support_upnp = "http://www.flylinkdc.ru/2015/11/upnp.html";
+string CFlyServerConfig::g_support_upnp = "";
 #endif // USE_SUPPORT_HUB
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 string CFlyServerConfig::g_antivirus_db_url;
@@ -159,7 +159,7 @@ string CFlyServerConfig::g_antivirus_db_url;
 #ifdef FLYLINKDC_USE_XXX_BLOCK
 string CFlyServerConfig::g_xxx_block_db_url;
 #endif
-string CFlyServerConfig::g_faq_search_does_not_work = "http://www.flylinkdc.ru/2014/01/flylinkdc.html";
+string CFlyServerConfig::g_faq_search_does_not_work = "";
 StringSet CFlyServerConfig::g_parasitic_files;
 StringSet CFlyServerConfig::g_mediainfo_ext;
 StringSet CFlyServerConfig::g_virus_ext;
@@ -186,7 +186,7 @@ const std::vector<CServerItem> CFlyServerConfig::getMirrorTestPortServerArray()
 	dcassert(!g_mirror_test_port_servers.empty() || !g_local_test_server.getIp().empty());
 	if (g_mirror_test_port_servers.empty())
 	{
-		// Если определен локальны тест-сервер - кидаемся на него
+		// Г…Г±Г«ГЁ Г®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ Г«Г®ГЄГ Г«ГјГ­Г» ГІГҐГ±ГІ-Г±ГҐГ°ГўГҐГ° - ГЄГЁГ¤Г ГҐГ¬Г±Гї Г­Г  Г­ГҐГЈГ®
 		if (!g_local_test_server.getIp().empty())
 		{
 			g_mirror_test_port_servers.push_back(g_local_test_server);
@@ -206,7 +206,7 @@ const CServerItem& CFlyServerConfig::getRandomMirrorServer(bool p_is_set)
 		const int l_id = Util::rand(g_mirror_read_only_servers.size());
 		return g_mirror_read_only_servers[l_id];
 	}
-	else // Вернем пишущий сервер
+	else // Г‚ГҐГ°Г­ГҐГ¬ ГЇГЁГёГіГ№ГЁГ© Г±ГҐГ°ГўГҐГ°
 	{
 		return g_main_server;
 	}
@@ -329,7 +329,7 @@ inline static void checkStrKey(const string& p_str) // TODO: move to Util.
 //======================================================================================================
 void CFlyServerConfig::ConvertInform(string& p_inform) const
 {
-	// TODO - убрать лишние строки из результата
+	// TODO - ГіГЎГ°Г ГІГј Г«ГЁГёГ­ГЁГҐ Г±ГІГ°Г®ГЄГЁ ГЁГ§ Г°ГҐГ§ГіГ«ГјГІГ ГІГ 
 	if (!g_exclude_tag_inform.empty())
 	{
 		string l_result_line;
@@ -341,15 +341,15 @@ void CFlyServerConfig::ConvertInform(string& p_inform) const
 			if (l_end_line != string::npos)
 			{
 				string l_cur_line = p_inform.substr(l_start_line, l_end_line - l_start_line);
-				// Фильтруем строчку через маски
+				// Г”ГЁГ«ГјГІГ°ГіГҐГ¬ Г±ГІГ°Г®Г·ГЄГі Г·ГҐГ°ГҐГ§ Г¬Г Г±ГЄГЁ
 				bool l_ignore_tag = false;
 				for (auto i = g_exclude_tag_inform.cbegin(); i != g_exclude_tag_inform.cend(); ++i)
 				{
 					const auto l_tag_begin = l_cur_line.find(*i);
 					const auto l_end_index  = i->size() + 1;
-					if (l_tag_begin == 0  // Тэг в начале строки?
-					        && l_cur_line.size() > l_end_index // После него есть место?
-					        && (l_cur_line[l_end_index] == ':' || l_cur_line[l_end_index] == ' ') // После тэга пробел или ':'
+					if (l_tag_begin == 0  // Г’ГЅГЈ Гў Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ?
+					        && l_cur_line.size() > l_end_index // ГЏГ®Г±Г«ГҐ Г­ГҐГЈГ® ГҐГ±ГІГј Г¬ГҐГ±ГІГ®?
+					        && (l_cur_line[l_end_index] == ':' || l_cur_line[l_end_index] == ' ') // ГЏГ®Г±Г«ГҐ ГІГЅГЈГ  ГЇГ°Г®ГЎГҐГ« ГЁГ«ГЁ ':'
 					   )
 					{
 						l_ignore_tag = true;
@@ -400,7 +400,7 @@ void CFlyServerConfig::loadConfig()
 		//g_debug_fly_server_url = "192.168.1.234";
 		
 #else
-		const string l_url_config_file = "http://etc.fly-server.ru/etc/flylinkdc-config-r5xx.xml";
+		const string l_url_config_file = "http://etc.dchub.net/etc/flylinkdc-config-r5xx.xml";
 #endif
 		l_fly_server_log.step("Download:" + l_url_config_file);
 		bool l_is_etc_config_online = true;
@@ -450,7 +450,7 @@ void CFlyServerConfig::loadConfig()
 					g_main_server.setPort(Util::toInt(l_xml.getChildAttrib("port")));
 					dcassert(g_main_server.getPort());
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
-					// Предусматриваем альтернативный сервер статистики
+					// ГЏГ°ГҐГ¤ГіГ±Г¬Г ГІГ°ГЁГўГ ГҐГ¬ Г Г«ГјГІГҐГ°Г­Г ГІГЁГўГ­Г»Г© Г±ГҐГ°ГўГҐГ° Г±ГІГ ГІГЁГ±ГІГЁГЄГЁ
 					g_stat_server.setIp(l_xml.getChildAttrib("stat_server_ip"));
 					if (!g_stat_server.getIp().empty())
 					{
@@ -525,9 +525,9 @@ void CFlyServerConfig::loadConfig()
                     initUINT16("use_log_redirect", l_int_flag, 0);
                     g_is_use_log_redirect = l_int_flag != 0;
 					
-					m_min_file_size = Util::toInt64(l_xml.getChildAttrib("min_file_size")); // В конфиге min_size - переименовать
+					m_min_file_size = Util::toInt64(l_xml.getChildAttrib("min_file_size")); // Г‚ ГЄГ®Г­ГґГЁГЈГҐ min_size - ГЇГҐГ°ГҐГЁГ¬ГҐГ­Г®ГўГ ГІГј
 					dcassert(m_min_file_size);
-					//m_max_size_value = Util::toInt(l_xml.getChildAttrib("max_size_value")); // Не используется но есть в конфиге - убрать везде
+					//m_max_size_value = Util::toInt(l_xml.getChildAttrib("max_size_value")); // ГЌГҐ ГЁГ±ГЇГ®Г«ГјГ§ГіГҐГІГ±Гї Г­Г® ГҐГ±ГІГј Гў ГЄГ®Г­ГґГЁГЈГҐ - ГіГЎГ°Г ГІГј ГўГҐГ§Г¤ГҐ
 					//dcassert(m_max_size_value);
 					m_zlib_compress_level = Util::toInt(l_xml.getChildAttrib("zlib_compress_level"));
 					dcassert(m_zlib_compress_level >= Z_NO_COMPRESSION && m_zlib_compress_level <= Z_BEST_COMPRESSION);
@@ -594,7 +594,7 @@ void CFlyServerConfig::loadConfig()
 						checkStrKey(n);
 						g_mapping_hubs.push_back(n);
 					}
-					, false); // Дубли тут не проверяем
+					, false); // Г„ГіГЎГ«ГЁ ГІГіГІ Г­ГҐ ГЇГ°Г®ГўГҐГ°ГїГҐГ¬
 					dcassert(g_mapping_hubs.size() % 2 == 0);
 					
 					l_xml.getChildAttribSplit("block_hubs", g_block_hubs, [this](const string & n)
@@ -651,15 +651,15 @@ void CFlyServerConfig::loadConfig()
 						g_exclude_error_syslog.insert(Util::toInt(n));
 					});
 #endif
-					// Достанем RO-зеркала
+					// Г„Г®Г±ГІГ Г­ГҐГ¬ RO-Г§ГҐГ°ГЄГ Г«Г 
 					l_xml.getChildAttribSplit("mirror_read_only_server", g_mirror_read_only_servers, [this](const string & n)
 					{
 						const auto l_port_pos = n.find(':');
 						if (l_port_pos != string::npos)
 							g_mirror_read_only_servers.push_back(CServerItem(n.substr(0, l_port_pos), atoi(n.c_str() + l_port_pos + 1)));
 					});
-					// Достанем зеркала серверов для тестов
-					if (g_local_test_server.getIp().empty()) // (если нет переопределения локального)
+					// Г„Г®Г±ГІГ Г­ГҐГ¬ Г§ГҐГ°ГЄГ Г«Г  Г±ГҐГ°ГўГҐГ°Г®Гў Г¤Г«Гї ГІГҐГ±ГІГ®Гў
+					if (g_local_test_server.getIp().empty()) // (ГҐГ±Г«ГЁ Г­ГҐГІ ГЇГҐГ°ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГї Г«Г®ГЄГ Г«ГјГ­Г®ГЈГ®)
 					{
 						CFlyFastLock(g_cs_mirror_test_port);
 						l_xml.getChildAttribSplit("mirror_test_port_server", g_mirror_test_port_servers, [this](const string & n)
@@ -897,7 +897,7 @@ bool CFlyServerConfig::SyncAntivirusDB(bool& p_is_need_reload)
 				if (l_is_remove_priv_ip)
 					l_http_downloader.m_get_http_header_item.push_back("Avdb-Private-Count");
 					
-				//TODO - пока не пашет
+				//TODO - ГЇГ®ГЄГ  Г­ГҐ ГЇГ ГёГҐГІ
 				// l_http_downloader.m_get_http_header_item.push_back("Content-Length");
 				
 				l_cur_merge_counter = CFlylinkDBManager::getInstance()->get_registry_variable_int64(e_MergeCounterAntivirusDB);
@@ -988,7 +988,7 @@ bool CFlyServerConfig::SyncAntivirusDB(bool& p_is_need_reload)
 			}
 			if (l_cur_merge_counter)
 			{
-				// TODO Добавилось N-записей к базе - перегрузить их в кэш
+				// TODO Г„Г®ГЎГ ГўГЁГ«Г®Г±Гј N-Г§Г ГЇГЁГ±ГҐГ© ГЄ ГЎГ Г§ГҐ - ГЇГҐГ°ГҐГЈГ°ГіГ§ГЁГІГј ГЁГµ Гў ГЄГЅГё
 				l_log.step("Antivirus DB version: " + Util::toString(l_cur_merge_counter) + " Count virus record:" + Util::toString(l_count_record));
 			}
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -1037,7 +1037,7 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 				{
 				"items":
 				[
-				"Зарубежные фильмы", "Наши фильмы", "Научно-популярные фильмы", "Сериалы ", "Телевизор", "Мультипликация ", "Аниме ", "Музыка", "Игры ", "Софт ", "Спорт и Здоровье", "Юмор", "Хозяйство и Быт", "Книги ", "Другое"
+				"Г‡Г Г°ГіГЎГҐГ¦Г­Г»ГҐ ГґГЁГ«ГјГ¬Г»", "ГЌГ ГёГЁ ГґГЁГ«ГјГ¬Г»", "ГЌГ ГіГ·Г­Г®-ГЇГ®ГЇГіГ«ГїГ°Г­Г»ГҐ ГґГЁГ«ГјГ¬Г»", "Г‘ГҐГ°ГЁГ Г«Г» ", "Г’ГҐГ«ГҐГўГЁГ§Г®Г°", "ГЊГіГ«ГјГІГЁГЇГ«ГЁГЄГ Г¶ГЁГї ", "ГЂГ­ГЁГ¬ГҐ ", "ГЊГіГ§Г»ГЄГ ", "Г€ГЈГ°Г» ", "Г‘Г®ГґГІ ", "Г‘ГЇГ®Г°ГІ ГЁ Г‡Г¤Г®Г°Г®ГўГјГҐ", "ГћГ¬Г®Г°", "Г•Г®Г§ГїГ©Г±ГІГўГ® ГЁ ГЃГ»ГІ", "ГЉГ­ГЁГЈГЁ ", "Г„Г°ГіГЈГ®ГҐ"
 				]
 				}
 				*/
@@ -1104,12 +1104,12 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 						CFlyServerJSON::pushError(84, "[lua-check_error]:" + l_html_result);
 					}
 				}
-				return false; // Кончились странички поиска
+				return false; // ГЉГ®Г­Г·ГЁГ«ГЁГ±Гј Г±ГІГ°Г Г­ГЁГ·ГЄГЁ ГЇГ®ГЁГ±ГЄГ 
 			}
 #ifdef _DEBUG
 			//LogManager::message("l_magnet_result = " + l_magnet_result);
 #endif
-			l_count_mirror = 2; // TODO - забирать число зеркал из lua
+			l_count_mirror = 2; // TODO - Г§Г ГЎГЁГ°Г ГІГј Г·ГЁГ±Г«Г® Г§ГҐГ°ГЄГ Г« ГЁГ§ lua
 			try
 			{
 				Json::Value l_root;
@@ -1384,9 +1384,9 @@ void CFlyServerConfig::loadTorrentSearchEngine()
 				{
 #ifdef _DEBUG					
 //					Util::getDataFromInetSafe(true, "file://Q:/vc15/r5xx/compiled/Settings/lua/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
-                    Util::getDataFromInetSafe(true, "http://etc.fly-server.ru/etc/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
+                    Util::getDataFromInetSafe(true, "http://etc.dchub.net/etc/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
 #else
-					Util::getDataFromInetSafe(true, "http://etc.fly-server.ru/etc/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
+					Util::getDataFromInetSafe(true, "http://etc.dchub.net/etc/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
 #endif
 					dcassert(!g_lua_source_search_engine.empty());
 				}
@@ -1447,19 +1447,19 @@ bool CFlyServerConfig::isBlockShareExt(const string& p_name, const string& p_ext
 {
 	dcassert(Text::toLower(p_name) == p_name);
 	
-	if (isCheckName(g_block_share_ext, p_ext)) // Контроль по расширениям
+	if (isCheckName(g_block_share_ext, p_ext)) // ГЉГ®Г­ГІГ°Г®Г«Гј ГЇГ® Г°Г Г±ГёГЁГ°ГҐГ­ГЁГїГ¬
 	{
 		return true;
 	}
-	else if (isCheckName(g_block_share_name, p_name)) // Контроль по файлам на точное соотвествие
+	else if (isCheckName(g_block_share_name, p_name)) // ГЉГ®Г­ГІГ°Г®Г«Гј ГЇГ® ГґГ Г©Г«Г Г¬ Г­Г  ГІГ®Г·Г­Г®ГҐ Г±Г®Г®ГІГўГҐГ±ГІГўГЁГҐ
 	{
 		return true;
 	}
-	else if (Wildcard::patternMatchLowerCase(p_name, g_block_share_mask)) // Попал под маску плохую
+	else if (Wildcard::patternMatchLowerCase(p_name, g_block_share_mask)) // ГЏГ®ГЇГ Г« ГЇГ®Г¤ Г¬Г Г±ГЄГі ГЇГ«Г®ГµГіГѕ
 	{
 		return true;
 	}
-	return false; // Файл хороший
+	return false; // Г”Г Г©Г« ГµГ®Г°Г®ГёГЁГ©
 }
 
 string CFlyServerConfig::DBDelete()
@@ -1493,7 +1493,7 @@ void CFlyServerAdapter::waitForFlyServerStop()
     dcdrun(m_debugWaits = true;)
         if (m_query_thread)
         {
-            m_query_thread->join(m_dwMilliseconds); // Дождемся завершения но не более 10 сек
+            m_query_thread->join(m_dwMilliseconds); // Г„Г®Г¦Г¤ГҐГ¬Г±Гї Г§Г ГўГҐГ°ГёГҐГ­ГЁГї Г­Г® Г­ГҐ ГЎГ®Г«ГҐГҐ 10 Г±ГҐГЄ
         }
 }
 //===================================================================================================================================
@@ -1529,7 +1529,7 @@ void CFlyServerAdapter::clear_tth_media_map()
 void CFlyServerAdapter::post_message_for_update_mediainfo(const HWND p_hMediaWnd)
 {
 #ifdef _DEBUG
-	// TODO - эмулируем тормозной инет ::Sleep(10000);
+	// TODO - ГЅГ¬ГіГ«ГЁГ°ГіГҐГ¬ ГІГ®Г°Г¬Г®Г§Г­Г®Г© ГЁГ­ГҐГІ ::Sleep(10000);
 #endif
 	dcassert(::IsWindow(p_hMediaWnd));
     dcassert(!ClientManager::isBeforeShutdown());
@@ -1541,7 +1541,7 @@ void CFlyServerAdapter::post_message_for_update_mediainfo(const HWND p_hMediaWnd
 			l_copy_array.swap(g_GetFlyServerArray);
 		}
 		const string l_json_result = CFlyServerJSON::connect(l_copy_array, false); 
-		// TODO - сохранить m_GetFlyServerArray в другом месте?
+		// TODO - Г±Г®ГµГ°Г Г­ГЁГІГј m_GetFlyServerArray Гў Г¤Г°ГіГЈГ®Г¬ Г¬ГҐГ±ГІГҐ?
 		dcassert(::IsWindow(p_hMediaWnd));
         dcassert(!ClientManager::isBeforeShutdown());
         if (!ClientManager::isBeforeShutdown() && !l_json_result.empty() && ::IsWindow(p_hMediaWnd))
@@ -1576,7 +1576,7 @@ void CFlyServerAdapter::post_message_for_update_mediainfo(const HWND p_hMediaWnd
             clear_tth_media_map();
 		}
 	}
-    CFlyServerAdapter::push_mediainfo_to_fly_server(); // Сбросим на флай-сервер новую медиаинфу, которую нашли у себя
+    CFlyServerAdapter::push_mediainfo_to_fly_server(); // Г‘ГЎГ°Г®Г±ГЁГ¬ Г­Г  ГґГ«Г Г©-Г±ГҐГ°ГўГҐГ° Г­Г®ГўГіГѕ Г¬ГҐГ¤ГЁГ ГЁГ­ГґГі, ГЄГ®ГІГ®Г°ГіГѕ Г­Г ГёГ«ГЁ Гі Г±ГҐГЎГї
 }
 //===================================================================================================================================
 void CFlyServerAdapter::push_mediainfo_to_fly_server()
@@ -1598,8 +1598,8 @@ void CFlyServerAdapter::push_mediainfo_to_fly_server()
 //======================================================================================================
 void CFlyServerAdapter::prepare_mediainfo_to_fly_serverL()
 {
-	// Обойдем кандидатов для предачи на сервер.
-	// Массив - есть у нас в базе, но нет на fly-server
+	// ГЋГЎГ®Г©Г¤ГҐГ¬ ГЄГ Г­Г¤ГЁГ¤Г ГІГ®Гў Г¤Г«Гї ГЇГ°ГҐГ¤Г Г·ГЁ Г­Г  Г±ГҐГ°ГўГҐГ°.
+	// ГЊГ Г±Г±ГЁГў - ГҐГ±ГІГј Гі Г­Г Г± Гў ГЎГ Г§ГҐ, Г­Г® Г­ГҐГІ Г­Г  fly-server
     std::unordered_map<TTHValue, uint64_t> l_tth_map;
     {
         CFlyLock(g_cs_tth_media_map);
@@ -1610,13 +1610,13 @@ void CFlyServerAdapter::prepare_mediainfo_to_fly_serverL()
 		CFlyMediaInfo l_media_info;
 		if (CFlylinkDBManager::getInstance()->load_media_info(i->first, l_media_info, false))
 		{
-			bool l_is_send_info = l_media_info.isMedia() && g_fly_server_config.isFullMediainfo() == false; // Есть медиаинфа и сервер не ждет полный комплект?
-			if (g_fly_server_config.isFullMediainfo()) // Если сервер ждет от нас только полный комплект - проверим наличие атрибутной составялющей
+			bool l_is_send_info = l_media_info.isMedia() && g_fly_server_config.isFullMediainfo() == false; // Г…Г±ГІГј Г¬ГҐГ¤ГЁГ ГЁГ­ГґГ  ГЁ Г±ГҐГ°ГўГҐГ° Г­ГҐ Г¦Г¤ГҐГІ ГЇГ®Г«Г­Г»Г© ГЄГ®Г¬ГЇГ«ГҐГЄГІ?
+			if (g_fly_server_config.isFullMediainfo()) // Г…Г±Г«ГЁ Г±ГҐГ°ГўГҐГ° Г¦Г¤ГҐГІ Г®ГІ Г­Г Г± ГІГ®Г«ГјГЄГ® ГЇГ®Г«Г­Г»Г© ГЄГ®Г¬ГЇГ«ГҐГЄГІ - ГЇГ°Г®ГўГҐГ°ГЁГ¬ Г­Г Г«ГЁГ·ГЁГҐ Г ГІГ°ГЁГЎГіГІГ­Г®Г© Г±Г®Г±ГІГ ГўГїГ«ГѕГ№ГҐГ©
 				l_is_send_info = l_media_info.isMediaAttrExists();
 			if (l_is_send_info)
 			{
 				CFlyServerKey l_info(i->first, i->second);
-				l_info.m_media = l_media_info; // Получили медиаинформацию с локальной базы
+				l_info.m_media = l_media_info; // ГЏГ®Г«ГіГ·ГЁГ«ГЁ Г¬ГҐГ¤ГЁГ ГЁГ­ГґГ®Г°Г¬Г Г¶ГЁГѕ Г± Г«Г®ГЄГ Г«ГјГ­Г®Г© ГЎГ Г§Г»
                 {
                     CFlyLock(g_cs_set_array_fly_server);
                     g_SetFlyServerArray.push_back(l_info);
@@ -1705,7 +1705,7 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 		l_disk_info["DBTransfer"] = getFileSize(l_path + _T("\\FlylinkDC_transfers.sqlite"));
 		l_disk_info["DBQueue"] = getFileSize(l_path + _T("\\FlylinkDC_queue.sqlite"));
 		
-		// TODO - сделать обоход общего массива
+		// TODO - Г±Г¤ГҐГ«Г ГІГј Г®ГЎГ®ГµГ®Г¤ Г®ГЎГ№ГҐГЈГ® Г¬Г Г±Г±ГЁГўГ 
 		
 		DWORD l_cluster, l_sector_size, l_freeclustor;
 		int64_t l_space;
@@ -1722,7 +1722,7 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 	PROCESS_MEMORY_COUNTERS l_pmc = {0};
 	const auto l_mem_ok = GetProcessMemoryInfo(GetCurrentProcess(), &l_pmc, sizeof(l_pmc));
 	dcassert(l_mem_ok);
-	if (l_mem_ok) // Под Wine может не работать
+	if (l_mem_ok) // ГЏГ®Г¤ Wine Г¬Г®Г¦ГҐГІ Г­ГҐ Г°Г ГЎГ®ГІГ ГІГј
 	{
 		Json::Value& l_mem_info = p_info["Memory"];
 		l_mem_info["WorkingSetSize"]     = int64_t(l_pmc.WorkingSetSize);
@@ -1734,7 +1734,7 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 		DWORD l_handle_count = 0;
 		const auto l_hc_ok = GetProcessHandleCount(GetCurrentProcess(), &l_handle_count);
 		dcassert(l_hc_ok);
-		l_handle_info["Handle"] = int(l_handle_count); // TODO научить jsoncpp понимать DWORD
+		l_handle_info["Handle"] = int(l_handle_count); // TODO Г­Г ГіГ·ГЁГІГј jsoncpp ГЇГ®Г­ГЁГ¬Г ГІГј DWORD
 		auto getResourceCounter = [](int p_type_object) -> unsigned
 		{
 			const unsigned l_res_count = GetGuiResources(GetCurrentProcess(), p_type_object);
@@ -1753,7 +1753,7 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 		l_handle_info["GDIPeak"]      = getResourceCounter(GR_GDIOBJECTS_PEAK);
 		l_handle_info["UserObjPeak"]  = getResourceCounter(GR_USEROBJECTS_PEAK);
 	}
-	// TODO - Свободное место на диске системном и том, где стоит флай-база
+	// TODO - Г‘ГўГ®ГЎГ®Г¤Г­Г®ГҐ Г¬ГҐГ±ГІГ® Г­Г  Г¤ГЁГ±ГЄГҐ Г±ГЁГ±ГІГҐГ¬Г­Г®Г¬ ГЁ ГІГ®Г¬, ГЈГ¤ГҐ Г±ГІГ®ГЁГІ ГґГ«Г Г©-ГЎГ Г§Г 
 	{
 		//Json::Value& l_disk_info = l_info["Disk"];
 		//l_disk_info["SysFree"] =
@@ -1768,7 +1768,7 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 		}
 		l_screen_info["X"] = g_desktop.right;
 		l_screen_info["Y"] = g_desktop.bottom;
-		// TODO - определять тип NAT
+		// TODO - Г®ГЇГ°ГҐГ¤ГҐГ«ГїГІГј ГІГЁГЇ NAT
 		//  http://ilya-314.livejournal.com/109479.html
 		//  http://system-administrators.info/?p=1468
 		//  https://github.com/limlabs/stunclient
@@ -1857,7 +1857,7 @@ bool CFlyServerJSON::isTestPortOK(unsigned short p_port, const std::string& p_ty
 			if (!g_is_first)
 			{
 				g_is_first = true;
-				// TODO - много спама - разобраться почему.
+				// TODO - Г¬Г­Г®ГЈГ® Г±ГЇГ Г¬Г  - Г°Г Г§Г®ГЎГ°Г ГІГјГ±Гї ГЇГ®Г·ГҐГ¬Гі.
 				// CFlyServerJSON::pushError(57, "Call isTestPortOK before test port " + p_type + " = " + Util::toString(p_port));
 			}
 		}
@@ -1927,7 +1927,7 @@ bool CFlyServerJSON::pushTestPort(
 	bool l_is_send = false;
 	bool l_is_error = false;
 	p_external_ip.clear();
-	// Регистрируем факт начала запроса на тест портов
+	// ГђГҐГЈГЁГ±ГІГ°ГЁГ°ГіГҐГ¬ ГґГ ГЄГІ Г­Г Г·Г Г«Г  Г§Г ГЇГ°Г®Г±Г  Г­Г  ГІГҐГ±ГІ ГЇГ®Г°ГІГ®Гў
 	const auto l_cur_time = GET_TICK();
 	{
 		CFlyFastLock(g_cs_test_port);
@@ -1942,11 +1942,11 @@ bool CFlyServerJSON::pushTestPort(
 	}
 	const auto l_result = postQueryTestPort(l_log, l_post_query, l_is_send, l_is_error);
 	//dcassert(!l_result.empty());
-	// TODO - приделать счетчик таймаута и передавать его в статистику или в след пакет?
+	// TODO - ГЇГ°ГЁГ¤ГҐГ«Г ГІГј Г±Г·ГҐГІГ·ГЁГЄ ГІГ Г©Г¬Г ГіГІГ  ГЁ ГЇГҐГ°ГҐГ¤Г ГўГ ГІГј ГҐГЈГ® Гў Г±ГІГ ГІГЁГ±ГІГЁГЄГі ГЁГ«ГЁ Гў Г±Г«ГҐГ¤ ГЇГ ГЄГҐГІ?
 	if (!l_is_send)
 	{
 		l_log.step("Error POST query");
-		// TODO - почистить g_test_port_map ?
+		// TODO - ГЇГ®Г·ГЁГ±ГІГЁГІГј g_test_port_map ?
 	}
 	else
 	{
@@ -1990,7 +1990,7 @@ void CFlyServerJSON::pushSyslogError(const string& p_error)
 }
 #endif
 //======================================================================================================
-bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 92 (36,58,44,49,83 - устарели)
+bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 92 (36,58,44,49,83 - ГіГ±ГІГ Г°ГҐГ«ГЁ)
 {
 	bool l_is_send  = false;
 	bool l_is_error = false;
@@ -2044,7 +2044,7 @@ bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_
 				postQuery(true, true, false, false, "fly-error-sql", l_post_query, l_is_send, l_is_error, 2000);
 				if (!l_is_send)
 				{
-					// TODO Передача не удалась - скинем данные в файлы
+					// TODO ГЏГҐГ°ГҐГ¤Г Г·Г  Г­ГҐ ГіГ¤Г Г«Г Г±Гј - Г±ГЄГЁГ­ГҐГ¬ Г¤Г Г­Г­Г»ГҐ Гў ГґГ Г©Г«Г»
 				}
 				g_count_dup_error_string = 0;
 				g_last_error_string = p_error;
@@ -2075,14 +2075,14 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		CFlyLog l_log("");
 		l_log.m_skip_stop = true;
 		Json::Value  l_info;
-		if (p_is_sync_run == false && l_is_flush_error == false) // При останове не делаем этого + если была ошибка логина - тоже скипаем
+		if (p_is_sync_run == false && l_is_flush_error == false) // ГЏГ°ГЁ Г®Г±ГІГ Г­Г®ГўГҐ Г­ГҐ Г¤ГҐГ«Г ГҐГ¬ ГЅГІГ®ГЈГ® + ГҐГ±Г«ГЁ ГЎГ»Г«Г  Г®ГёГЁГЎГЄГ  Г«Г®ГЈГЁГ­Г  - ГІГ®Г¦ГҐ Г±ГЄГЁГЇГ ГҐГ¬
 		{
-			// Сбросим 50 записей отложенной статистики если накопилась
+			// Г‘ГЎГ°Г®Г±ГЁГ¬ 50 Г§Г ГЇГЁГ±ГҐГ© Г®ГІГ«Г®Г¦ГҐГ­Г­Г®Г© Г±ГІГ ГІГЁГ±ГІГЁГЄГЁ ГҐГ±Г«ГЁ Г­Г ГЄГ®ГЇГЁГ«Г Г±Гј
 			CFlylinkDBManager::getInstance()->flush_lost_json_statistic(l_is_flush_error);
 		}
 		else
 		{
-			l_info["IsShutdown"] = "1"; // Поставим маркер останова флая
+			l_info["IsShutdown"] = "1"; // ГЏГ®Г±ГІГ ГўГЁГ¬ Г¬Г Г°ГЄГҐГ° Г®Г±ГІГ Г­Г®ГўГ  ГґГ«Г Гї
 		}
 		//dcassert(!g_fly_server_id.empty());
 		
@@ -2146,7 +2146,7 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 			l_locator["ISP"] = SETTING(FLY_LOCATOR_ISP);
 		}
 #endif
-		// Агрегационные параметры
+		// ГЂГЈГ°ГҐГЈГ Г¶ГЁГ®Г­Г­Г»ГҐ ГЇГ Г°Г Г¬ГҐГІГ°Г»
 		{
 			Json::Value& l_stat_info = l_info["Stat"];
 			l_stat_info["Files"] = Util::toString(ShareManager::getLastSharedFiles());
@@ -2155,7 +2155,7 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
             l_stat_info["SizeNotExistsCache"] = ShareManager::get_cache_size_file_not_exists_set();
             l_stat_info["SizeSearchFileCache"] = ShareManager::get_cache_file_map();
 			l_stat_info["Size"] = ShareManager::getShareSizeString();
-			// TODO - эти параметры можно посчитать из массива Clients
+			// TODO - ГЅГІГЁ ГЇГ Г°Г Г¬ГҐГІГ°Г» Г¬Г®Г¦Г­Г® ГЇГ®Г±Г·ГЁГІГ ГІГј ГЁГ§ Г¬Г Г±Г±ГЁГўГ  Clients
 			l_stat_info["Users"] = Util::toString(ClientManager::getTotalUsers());
 			l_stat_info["Hubs"] = Util::toString(Client::getTotalCounts());
 			{
@@ -2186,7 +2186,7 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 			l_stat_info["FavUsers"] = FavoriteManager::getCountFavsUsers();
 			l_stat_info["Threads"] = Thread::getThreadsCount();
 		}
-		// Статистика по временым меткам
+		// Г‘ГІГ ГІГЁГ±ГІГЁГЄГ  ГЇГ® ГўГ°ГҐГ¬ГҐГ­Г»Г¬ Г¬ГҐГІГЄГ Г¬
 		{
 			static string g_first_time = Util::formatDigitalClock(time(nullptr));
 			Json::Value& l_time_info = l_info["Time"];
@@ -2200,13 +2200,13 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 				g_is_first = true;
 				Json::Value l_error_info;
 				{
-					// Сохраним ошибки
+					// Г‘Г®ГµГ°Г Г­ГЁГ¬ Г®ГёГЁГЎГЄГЁ
 					auto appendError = [&l_error_info](const wchar_t * p_reg_value, const char * p_json_key)
 					{
 						const string l_reg_value = Util::getRegistryValueString(p_reg_value);
 						if (!l_reg_value.empty())
 						{
-							Util::deleteRegistryValue(p_reg_value); // TODO - удалять сразу после чтения пока открыт ключик
+							Util::deleteRegistryValue(p_reg_value); // TODO - ГіГ¤Г Г«ГїГІГј Г±Г°Г Г§Гі ГЇГ®Г±Г«ГҐ Г·ГІГҐГ­ГЁГї ГЇГ®ГЄГ  Г®ГІГЄГ°Г»ГІ ГЄГ«ГѕГ·ГЁГЄ
 							l_error_info[p_json_key] = l_reg_value;
 						}
 					};
@@ -2220,10 +2220,10 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 					l_info["Error"] = l_error_info;
 					CFlyServerJSON::pushError(76, "Error from registry: " + l_error_info.toStyledString());
 				}
-				// Статистику
+				// Г‘ГІГ ГІГЁГ±ГІГЁГЄГі
 				l_time_info["StartGUI"] = Util::toString(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_GUI]);
 				l_time_info["StartCore"] = Util::toString(g_fly_server_stat.m_time_mark[CFlyServerStatistics::TIME_START_CORE]);
-				// Заберем предыдущие маркеры завершения
+				// Г‡Г ГЎГҐГ°ГҐГ¬ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГЁГҐ Г¬Г Г°ГЄГҐГ°Г» Г§Г ГўГҐГ°ГёГҐГ­ГЁГї
 				try
 				{
 					const string l_marker_file_name = Util::getConfigPath() + FLY_SHUTDOWN_FILE_MARKER_NAME;
@@ -2260,7 +2260,7 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 			}
 		}
 #endif // IRAINMAN_INCLUDE_GDI_OLE
-		// Сетевые настройки
+		// Г‘ГҐГІГҐГўГ»ГҐ Г­Г Г±ГІГ°Г®Г©ГЄГЁ
 		{
 			Json::Value& l_net_info = l_info["Net"];
 			if (BOOLSETTING(AUTO_DETECT_CONNECTION))
@@ -2280,7 +2280,7 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 		const std::string l_post_query = l_info.toStyledString();
 		bool l_is_send = false;
 		bool l_is_error = false;
-		if (l_is_flush_error == false) // Если не удалось сбросить первый раз - нет инета.
+		if (l_is_flush_error == false) // Г…Г±Г«ГЁ Г­ГҐ ГіГ¤Г Г«Г®Г±Гј Г±ГЎГ°Г®Г±ГЁГІГј ГЇГҐГ°ГўГ»Г© Г°Г Г§ - Г­ГҐГІ ГЁГ­ГҐГІГ .
 		{
 			if (BOOLSETTING(USE_FLY_SERVER_STATICTICS_SEND) && p_is_sync_run == false)
 			{
@@ -2292,8 +2292,8 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 			//l_log.step("Skip stat-POST (internet error...)");
 		}
 		if (!l_is_send || p_is_sync_run)
-			// Если не удалось отправить или отключено/отложено.
-			// собираем стату локально (чтобы в будущем построить аналитику на клиенте)
+			// Г…Г±Г«ГЁ Г­ГҐ ГіГ¤Г Г«Г®Г±Гј Г®ГІГЇГ°Г ГўГЁГІГј ГЁГ«ГЁ Г®ГІГЄГ«ГѕГ·ГҐГ­Г®/Г®ГІГ«Г®Г¦ГҐГ­Г®.
+			// Г±Г®ГЎГЁГ°Г ГҐГ¬ Г±ГІГ ГІГі Г«Г®ГЄГ Г«ГјГ­Г® (Г·ГІГ®ГЎГ» Гў ГЎГіГ¤ГіГ№ГҐГ¬ ГЇГ®Г±ГІГ°Г®ГЁГІГј Г Г­Г Г«ГЁГІГЁГЄГі Г­Г  ГЄГ«ГЁГҐГ­ГІГҐ)
 		{
 			CFlylinkDBManager::getInstance()->push_json_statistic(l_post_query, "fly-stat", true);
 		}
@@ -2322,7 +2322,7 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 	dcassert(!l_Server.getIp().empty());
 	if (!g_debug_fly_server_url.empty())
 	{
-		l_Server.setIp(g_debug_fly_server_url); // Перекрываем адрес флай-сервера для всех сервисов на отладочный
+		l_Server.setIp(g_debug_fly_server_url); // ГЏГҐГ°ГҐГЄГ°Г»ГўГ ГҐГ¬ Г Г¤Г°ГҐГ± ГґГ«Г Г©-Г±ГҐГ°ГўГҐГ°Г  Г¤Г«Гї ГўГ±ГҐГµ Г±ГҐГ°ГўГЁГ±Г®Гў Г­Г  Г®ГІГ«Г Г¤Г®Г·Г­Г»Г©
 	}
 	//const string l_log_marker = "[" + l_Server.getServerAndPort() + "]";
 	const string l_log_marker;
@@ -2336,7 +2336,7 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 	}
 	std::vector<uint8_t> l_post_compress_query;
 	string l_log_string;
-	if (g_fly_server_config.getZlibCompressLevel() > Z_NO_COMPRESSION) // Выполняем сжатие запроса?
+	if (g_fly_server_config.getZlibCompressLevel() > Z_NO_COMPRESSION) // Г‚Г»ГЇГ®Г«Г­ГїГҐГ¬ Г±Г¦Г ГІГЁГҐ Г§Г ГЇГ°Г®Г±Г ?
 	{
 		if (p_is_disable_zlib_in == false)
 		{
@@ -2345,13 +2345,13 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 			const int l_zlib_result = compress2(l_post_compress_query.data(), &l_dest_length,
 			                                    (uint8_t*)p_body.data(),
 			                                    p_body.length(), g_fly_server_config.getZlibCompressLevel());
-			// На клиенте пока жмем по максимуму - нагрузка мелкая.
-			// если декомпрессия будет сажать CPU сервера можем отключить через конфиг (но маловероятно)
+			// ГЌГ  ГЄГ«ГЁГҐГ­ГІГҐ ГЇГ®ГЄГ  Г¦Г¬ГҐГ¬ ГЇГ® Г¬Г ГЄГ±ГЁГ¬ГіГ¬Гі - Г­Г ГЈГ°ГіГ§ГЄГ  Г¬ГҐГ«ГЄГ Гї.
+			// ГҐГ±Г«ГЁ Г¤ГҐГЄГ®Г¬ГЇГ°ГҐГ±Г±ГЁГї ГЎГіГ¤ГҐГІ Г±Г Г¦Г ГІГј CPU Г±ГҐГ°ГўГҐГ°Г  Г¬Г®Г¦ГҐГ¬ Г®ГІГЄГ«ГѕГ·ГЁГІГј Г·ГҐГ°ГҐГ§ ГЄГ®Г­ГґГЁГЈ (Г­Г® Г¬Г Г«Г®ГўГҐГ°Г®ГїГІГ­Г®)
 			if (l_zlib_result == Z_OK)
 			{
-				if (l_dest_length < p_body.length()) // мелкие пакеты могут стать больше - отказываемся от сжатия.
+				if (l_dest_length < p_body.length()) // Г¬ГҐГ«ГЄГЁГҐ ГЇГ ГЄГҐГІГ» Г¬Г®ГЈГіГІ Г±ГІГ ГІГј ГЎГ®Г«ГјГёГҐ - Г®ГІГЄГ Г§Г»ГўГ ГҐГ¬Г±Гї Г®ГІ Г±Г¦Г ГІГЁГї.
 				{
-					l_post_compress_query.resize(l_dest_length); // TODO - нужен ли этот релокейт?
+					l_post_compress_query.resize(l_dest_length); // TODO - Г­ГіГ¦ГҐГ­ Г«ГЁ ГЅГІГ®ГІ Г°ГҐГ«Г®ГЄГҐГ©ГІ?
 					l_log_string = "Request:  " + Util::toString(p_body.length()) + " / " + Util::toString(l_dest_length);
 				}
 				else
@@ -2367,7 +2367,7 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 		}
 	}
 	const bool l_is_zlib = !l_post_compress_query.empty();
-// Передача
+// ГЏГҐГ°ГҐГ¤Г Г·Г 
 	CInternetHandle hSession(InternetOpen(g_full_user_agent.c_str(), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0));
 	DWORD l_timeOut = p_time_out ? p_time_out : CFlyServerConfig::g_winet_connect_timeout;
 	if (l_timeOut < 500)
@@ -2449,8 +2449,8 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 					                    l_fly_server_log.step( "l_hex_dump = " + l_hex_dump);
 					*/
 #endif
-					// TODO обобщить в утилитную функцию и подменить в области DHT с другим стартовым коэф-центом. для уменьшения кол-ва релокаций
-					// TODO коэф. можно высчитывать динамические и не делалать 10-кой
+					// TODO Г®ГЎГ®ГЎГ№ГЁГІГј Гў ГіГІГЁГ«ГЁГІГ­ГіГѕ ГґГіГ­ГЄГ¶ГЁГѕ ГЁ ГЇГ®Г¤Г¬ГҐГ­ГЁГІГј Гў Г®ГЎГ«Г Г±ГІГЁ DHT Г± Г¤Г°ГіГЈГЁГ¬ Г±ГІГ Г°ГІГ®ГўГ»Г¬ ГЄГ®ГЅГґ-Г¶ГҐГ­ГІГ®Г¬. Г¤Г«Гї ГіГ¬ГҐГ­ГјГёГҐГ­ГЁГї ГЄГ®Г«-ГўГ  Г°ГҐГ«Г®ГЄГ Г¶ГЁГ©
+					// TODO ГЄГ®ГЅГґ. Г¬Г®Г¦Г­Г® ГўГ»Г±Г·ГЁГІГ»ГўГ ГІГј Г¤ГЁГ­Г Г¬ГЁГ·ГҐГ±ГЄГЁГҐ ГЁ Г­ГҐ Г¤ГҐГ«Г Г«Г ГІГј 10-ГЄГ®Г©
 					if (l_zlib_blob.size())
 					{
 						if (p_is_disable_zlib_out == true)
@@ -2464,7 +2464,7 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 						}
 						else
 						{
-							std::vector<unsigned char> l_decompress; // TODO расширять динамически
+							std::vector<unsigned char> l_decompress; // TODO Г°Г Г±ГёГЁГ°ГїГІГј Г¤ГЁГ­Г Г¬ГЁГ·ГҐГ±ГЄГЁ
 							unsigned long l_decompress_size = l_zlib_blob.size() * 10;
 							l_decompress.resize(l_decompress_size);
 							while (true)
@@ -2600,7 +2600,7 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 					if (!j->m_ip_from_user.empty())
 						l_file_array_item["ip_user"] = j->m_ip_from_user;
 				}
-				if (j->m_hub_url.empty() && !j->m_hub_name.empty()) // Пишем имя если адреса не оказалось.
+				if (j->m_hub_url.empty() && !j->m_hub_name.empty()) // ГЏГЁГёГҐГ¬ ГЁГ¬Гї ГҐГ±Г«ГЁ Г Г¤Г°ГҐГ±Г  Г­ГҐ Г®ГЄГ Г§Г Г«Г®Г±Гј.
 					l_file_array_item["hub"] = j->m_hub_name;
 				if (!j->m_hub_url.empty())
 					l_file_array_item["hub_url"] = j->m_hub_url;
@@ -2609,7 +2609,7 @@ bool CFlyServerJSON::sendAntivirusCounter(bool p_is_only_db_if_network_error)
 					if (!j->m_hub_name.empty())
 						l_file_array_item["hub"] = j->m_hub_name;
 				}
-				// Не нужен l_file_array_item["count_file"] = j->m_count_file;
+				// ГЌГҐ Г­ГіГ¦ГҐГ­ l_file_array_item["count_file"] = j->m_count_file;
 				l_file_array_item["level"] = j->m_virus_level;
 				if (!j->m_virus_path.empty())
 				{
@@ -2803,15 +2803,15 @@ bool CFlyServerJSON::sendDownloadCounter(bool p_is_only_db_if_network_error)
 			}
 		}
 	}
-	// TODO - словить исключение и если нужно сохранить l_copy_array в базе.
-	// чтобы не потерять счетчики.
+	// TODO - Г±Г«Г®ГўГЁГІГј ГЁГ±ГЄГ«ГѕГ·ГҐГ­ГЁГҐ ГЁ ГҐГ±Г«ГЁ Г­ГіГ¦Г­Г® Г±Г®ГµГ°Г Г­ГЁГІГј l_copy_array Гў ГЎГ Г§ГҐ.
+	// Г·ГІГ®ГЎГ» Г­ГҐ ГЇГ®ГІГҐГ°ГїГІГј Г±Г·ГҐГІГ·ГЁГЄГЁ.
 	return l_is_error;
 }
 //======================================================================================================
 string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p_is_fly_set_query, bool p_is_ext_info_for_single_file /* = false*/)
 {
 	dcassert(!p_fileInfoArray.empty());
-	bool l_is_error = login(); // Запросим свой ИД у сервера
+	bool l_is_error = login(); // Г‡Г ГЇГ°Г®Г±ГЁГ¬ Г±ГўГ®Г© Г€Г„ Гі Г±ГҐГ°ГўГҐГ°Г 
 	string l_result_query;
 	if (l_is_error == false)
 	{
@@ -2825,7 +2825,7 @@ string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p
 		int  l_count_cache  = 0;
 		bool is_all_file_only_ext_info = false;
 		bool is_all_file_only_counter  = false;
-		if (!p_is_fly_set_query) // Для get-запроса все записи хотят только расширенную инфу?
+		if (!p_is_fly_set_query) // Г„Г«Гї get-Г§Г ГЇГ°Г®Г±Г  ГўГ±ГҐ Г§Г ГЇГЁГ±ГЁ ГµГ®ГІГїГІ ГІГ®Г«ГјГЄГ® Г°Г Г±ГёГЁГ°ГҐГ­Г­ГіГѕ ГЁГ­ГґГі?
 		{
 			for (auto i = p_fileInfoArray.cbegin(); i != p_fileInfoArray.cend(); ++i)
 			{
@@ -2839,7 +2839,7 @@ string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p
 			if (l_count_only_counter == p_fileInfoArray.size())
 			{
 				is_all_file_only_counter = true;
-				l_root["only_counter"] = 1; // Поместим признак в корень чтобы не размножать запрос всем.
+				l_root["only_counter"] = 1; // ГЏГ®Г¬ГҐГ±ГІГЁГ¬ ГЇГ°ГЁГ§Г­Г ГЄ Гў ГЄГ®Г°ГҐГ­Гј Г·ГІГ®ГЎГ» Г­ГҐ Г°Г Г§Г¬Г­Г®Г¦Г ГІГј Г§Г ГЇГ°Г®Г± ГўГ±ГҐГ¬.
 			}
 			if (l_count_only_counter > 0 && l_count_only_counter != p_fileInfoArray.size())
 			{
@@ -2847,25 +2847,25 @@ string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p
 			}
 			if (l_count_cache)
 			{
-				l_root["cache"] = l_count_cache;  // Для статистики TODO - позже убрать
+				l_root["cache"] = l_count_cache;  // Г„Г«Гї Г±ГІГ ГІГЁГ±ГІГЁГЄГЁ TODO - ГЇГ®Г§Г¦ГҐ ГіГЎГ°Г ГІГј
 			}
-			if (is_all_file_only_counter == false) // Если не просят только счетчики - проставим запросы на расширенную инфу
+			if (is_all_file_only_counter == false) // Г…Г±Г«ГЁ Г­ГҐ ГЇГ°Г®Г±ГїГІ ГІГ®Г«ГјГЄГ® Г±Г·ГҐГІГ·ГЁГЄГЁ - ГЇГ°Г®Г±ГІГ ГўГЁГ¬ Г§Г ГЇГ°Г®Г±Г» Г­Г  Г°Г Г±ГёГЁГ°ГҐГ­Г­ГіГѕ ГЁГ­ГґГі
 			{
-				if (l_count_only_ext_info == p_fileInfoArray.size()) // Полную инфу отдаем только для точечных запросов
+				if (l_count_only_ext_info == p_fileInfoArray.size()) // ГЏГ®Г«Г­ГіГѕ ГЁГ­ГґГі Г®ГІГ¤Г ГҐГ¬ ГІГ®Г«ГјГЄГ® Г¤Г«Гї ГІГ®Г·ГҐГ·Г­Г»Гµ Г§Г ГЇГ°Г®Г±Г®Гў
 				{
 					is_all_file_only_ext_info = true;
-					l_root["only_ext_info"] = 1; // Поместим признак в корень чтобы не размножать запрос всем.
+					l_root["only_ext_info"] = 1; // ГЏГ®Г¬ГҐГ±ГІГЁГ¬ ГЇГ°ГЁГ§Г­Г ГЄ Гў ГЄГ®Г°ГҐГ­Гј Г·ГІГ®ГЎГ» Г­ГҐ Г°Г Г§Г¬Г­Г®Г¦Г ГІГј Г§Г ГЇГ°Г®Г± ГўГ±ГҐГ¬.
 				}
 				if (l_count_only_ext_info > 0 && l_count_only_ext_info != p_fileInfoArray.size())
 				{
-					l_root["different_ext_info"] = 1; // Поместим признак различных способов запроса к медиаинфе
-					// чтобы на стороне сервера не делать лишний поиск параметра для каждого файла.
+					l_root["different_ext_info"] = 1; // ГЏГ®Г¬ГҐГ±ГІГЁГ¬ ГЇГ°ГЁГ§Г­Г ГЄ Г°Г Г§Г«ГЁГ·Г­Г»Гµ Г±ГЇГ®Г±Г®ГЎГ®Гў Г§Г ГЇГ°Г®Г±Г  ГЄ Г¬ГҐГ¤ГЁГ ГЁГ­ГґГҐ
+					// Г·ГІГ®ГЎГ» Г­Г  Г±ГІГ®Г°Г®Г­ГҐ Г±ГҐГ°ГўГҐГ°Г  Г­ГҐ Г¤ГҐГ«Г ГІГј Г«ГЁГёГ­ГЁГ© ГЇГ®ГЁГ±ГЄ ГЇГ Г°Г Г¬ГҐГІГ°Г  Г¤Г«Гї ГЄГ Г¦Г¤Г®ГЈГ® ГґГ Г©Г«Г .
 				}
 			}
 		}
 		for (auto i = p_fileInfoArray.cbegin(); i != p_fileInfoArray.cend(); ++i)
 		{
-			// Начинаем создавать JSON пакет для передачи на сервер.
+			// ГЌГ Г·ГЁГ­Г ГҐГ¬ Г±Г®Г§Г¤Г ГўГ ГІГј JSON ГЇГ ГЄГҐГІ Г¤Г«Гї ГЇГҐГ°ГҐГ¤Г Г·ГЁ Г­Г  Г±ГҐГ°ГўГҐГ°.
 			const string l_tth_base32 = i->m_tth.toBase32();
 			dcassert(i->m_file_size && !l_tth_base32.empty());
 			if (!i->m_file_size || l_tth_base32.empty())
@@ -2878,8 +2878,8 @@ string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p
 			Json::Value& l_array_item = l_arrays[l_count++];
 			l_array_item["tth"]  = l_tth_base32;
 			l_array_item["size"] = Util::toString(i->m_file_size);
-			// TODO - l_array_item["name"] = i->m_file_name;  имя пока не помнить. оно разное всегда
-			/* Проброс хитов и времени хеша/файла так-же исключаем
+			// TODO - l_array_item["name"] = i->m_file_name;  ГЁГ¬Гї ГЇГ®ГЄГ  Г­ГҐ ГЇГ®Г¬Г­ГЁГІГј. Г®Г­Г® Г°Г Г§Г­Г®ГҐ ГўГ±ГҐГЈГ¤Г 
+			/* ГЏГ°Г®ГЎГ°Г®Г± ГµГЁГІГ®Гў ГЁ ГўГ°ГҐГ¬ГҐГ­ГЁ ГµГҐГёГ /ГґГ Г©Г«Г  ГІГ ГЄ-Г¦ГҐ ГЁГ±ГЄГ«ГѕГ·Г ГҐГ¬
 			if(i->m_hit)
 			 l_array_item["hit"] = i->m_hit;
 			if(i->m_time_hash)
@@ -2974,7 +2974,7 @@ string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p
 									}
 									else
 									{
-										// Определяем, в какую секцию канала должна попасть информация.
+										// ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬, Гў ГЄГ ГЄГіГѕ Г±ГҐГЄГ¶ГЁГѕ ГЄГ Г­Г Г«Г  Г¤Г®Г«Г¦Г­Г  ГЇГ®ГЇГ Г±ГІГј ГЁГ­ГґГ®Г°Г¬Г Г¶ГЁГї.
 										uint8_t l_channel_num = j->m_channel;
 										const auto l_ch_item = l_cache_audio_channel.find(l_channel_num);
 										Json::Value* l_channel_info = 0;
@@ -3003,7 +3003,7 @@ string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p
 									}
 									else
 									{
-										// Определяем, в какую секцию канала должна попасть информация.
+										// ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬, Гў ГЄГ ГЄГіГѕ Г±ГҐГЄГ¶ГЁГѕ ГЄГ Г­Г Г«Г  Г¤Г®Г«Г¦Г­Г  ГЇГ®ГЇГ Г±ГІГј ГЁГ­ГґГ®Г°Г¬Г Г¶ГЁГї.
 										uint8_t l_channel_num = j->m_channel;
 										const auto l_ch_item = l_cache_text_channel.find(l_channel_num);
 										Json::Value* l_channel_info = 0;
@@ -3029,7 +3029,7 @@ string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p
 			}
 		}
 // string l_tmp;
-		if (l_count > 0)  // Есть что передавать на сервер?
+		if (l_count > 0)  // Г…Г±ГІГј Г·ГІГ® ГЇГҐГ°ГҐГ¤Г ГўГ ГІГј Г­Г  Г±ГҐГ°ГўГҐГ°?
 		{
 #define FLYLINKDC_USE_HTTP_SERVER
 #ifdef FLYLINKDC_USE_HTTP_SERVER
@@ -3092,7 +3092,7 @@ string CFlyServerJSON::connect(const CFlyServerKeyArray& p_fileInfoArray, bool p
 //======================================================================================================
 static bool getEnumChannelKeyAndNames(string& p_inform, const Json::Value& p_item, const string& p_caption, const string& p_channel_name)
 {
-	// Соберем общий контент для каналов - TODO - фикс копипасты
+	// Г‘Г®ГЎГҐГ°ГҐГ¬ Г®ГЎГ№ГЁГ© ГЄГ®Г­ГІГҐГ­ГІ Г¤Г«Гї ГЄГ Г­Г Г«Г®Гў - TODO - ГґГЁГЄГ± ГЄГ®ГЇГЁГЇГ Г±ГІГ»
 	const Json::Value& l_attrs_channel = p_item["channel-" + p_channel_name];
 	const auto l_keys = l_attrs_channel.getMemberNames();
 	if (!l_keys.empty())
@@ -3117,7 +3117,7 @@ string CFlyServerInfo::getMediaInfoAsText(const TTHValue& p_tth, int64_t p_file_
 {
 	CFlyServerKeyArray l_get_array;
 	CFlyServerKey l_info(p_tth, p_file_size);
-	l_info.m_only_ext_info = true; // Запросим с сервера только расширенную.
+	l_info.m_only_ext_info = true; // Г‡Г ГЇГ°Г®Г±ГЁГ¬ Г± Г±ГҐГ°ГўГҐГ°Г  ГІГ®Г«ГјГЄГ® Г°Г Г±ГёГЁГ°ГҐГ­Г­ГіГѕ.
 	l_get_array.push_back(l_info);
 	const string l_json_result = CFlyServerJSON::connect(l_get_array, false, true);
 #ifdef _DEBUG
@@ -3157,7 +3157,7 @@ string CFlyServerInfo::getMediaInfoAsText(const TTHValue& p_tth, int64_t p_file_
 			for (; getEnumChannelKeyAndNames(l_Infrom, l_attrs_audio, "Audio property for channel " + Util::toString(i) , Util::toString(i)); ++i)
 			{
 			}
-			if (i == 0) // Каналов нет?
+			if (i == 0) // ГЉГ Г­Г Г«Г®Гў Г­ГҐГІ?
 			{
 				const string l_audio = l_attrs_audio["Inform"].asString();
 				if (!l_audio.empty())
@@ -3175,7 +3175,7 @@ string CFlyServerInfo::getMediaInfoAsText(const TTHValue& p_tth, int64_t p_file_
 			for (; getEnumChannelKeyAndNames(l_Infrom, l_attrs_text, "Text property for channel " + Util::toString(i), Util::toString(i)); ++i)
 			{
 			}
-			if (i == 0) // Каналов нет?
+			if (i == 0) // ГЉГ Г­Г Г«Г®Гў Г­ГҐГІ?
 			{
 				const string l_text = l_attrs_text["Inform"].asString();
 				if (!l_text.empty())
@@ -3203,7 +3203,7 @@ static void getExtMediaInfo(const string& p_file_ext_wo_dot,
 	if (const size_t l_count = p_media_info_dll.Count_Get(p_stream_type))
 	{
 		int l_count_audio_channel = 0;
-		if (p_stream_type == MediaInfoLib::Stream_Audio  || p_stream_type ==  MediaInfoLib::Stream_Text) // Число каналов считаем только для Audio и Text
+		if (p_stream_type == MediaInfoLib::Stream_Audio  || p_stream_type ==  MediaInfoLib::Stream_Text) // Г—ГЁГ±Г«Г® ГЄГ Г­Г Г«Г®Гў Г±Г·ГЁГІГ ГҐГ¬ ГІГ®Г«ГјГЄГ® Г¤Г«Гї Audio ГЁ Text
 		{
 			l_count_audio_channel = l_count;
 		}
@@ -3223,7 +3223,7 @@ static void getExtMediaInfo(const string& p_file_ext_wo_dot,
 						l_ext_item.m_channel = uint8_t(j);
 						l_ext_item.m_param = l_str_param_name;
 						l_ext_item.m_value = Text::fromT(l_value);
-						// Inform - Сводный параметр - распарсим его для удаления лишних записей и пробелов.
+						// Inform - Г‘ГўГ®Г¤Г­Г»Г© ГЇГ Г°Г Г¬ГҐГІГ° - Г°Г Г±ГЇГ Г°Г±ГЁГ¬ ГҐГЈГ® Г¤Г«Гї ГіГ¤Г Г«ГҐГ­ГЁГї Г«ГЁГёГ­ГЁГµ Г§Г ГЇГЁГ±ГҐГ© ГЁ ГЇГ°Г®ГЎГҐГ«Г®Гў.
 						if (l_str_param_name.compare(0, 6, "Inform", 6) == 0)
 						{
 							g_fly_server_config.ConvertInform(l_ext_item.m_value);
@@ -3233,24 +3233,24 @@ static void getExtMediaInfo(const string& p_file_ext_wo_dot,
 				}
 			}
 		}
-		if (p_compress_channel_attr && l_count_audio_channel > 1) // Если аудио-каналов несколько. дополнительно обработаем массив
+		if (p_compress_channel_attr && l_count_audio_channel > 1) // Г…Г±Г«ГЁ Г ГіГ¤ГЁГ®-ГЄГ Г­Г Г«Г®Гў Г­ГҐГ±ГЄГ®Г«ГјГЄГ®. Г¤Г®ГЇГ®Г«Г­ГЁГІГҐГ«ГјГ­Г® Г®ГЎГ°Г ГЎГ®ГІГ ГҐГ¬ Г¬Г Г±Г±ГЁГў
 		{
-			// Упакуем массив каналов если их несколько и значения признаков одинаковое для всех.
-			// Пока алгоритм обработки двух-проходный
-			// избыточные атрибуты для каналов пометим флажком чтобы не писать в базу.
-			// TODO - протестировать и физическое удаление лишних записей из вектора
+			// Г“ГЇГ ГЄГіГҐГ¬ Г¬Г Г±Г±ГЁГў ГЄГ Г­Г Г«Г®Гў ГҐГ±Г«ГЁ ГЁГµ Г­ГҐГ±ГЄГ®Г«ГјГЄГ® ГЁ Г§Г­Г Г·ГҐГ­ГЁГї ГЇГ°ГЁГ§Г­Г ГЄГ®Гў Г®Г¤ГЁГ­Г ГЄГ®ГўГ®ГҐ Г¤Г«Гї ГўГ±ГҐГµ.
+			// ГЏГ®ГЄГ  Г Г«ГЈГ®Г°ГЁГІГ¬ Г®ГЎГ°Г ГЎГ®ГІГЄГЁ Г¤ГўГіГµ-ГЇГ°Г®ГµГ®Г¤Г­Г»Г©
+			// ГЁГ§ГЎГ»ГІГ®Г·Г­Г»ГҐ Г ГІГ°ГЁГЎГіГІГ» Г¤Г«Гї ГЄГ Г­Г Г«Г®Гў ГЇГ®Г¬ГҐГІГЁГ¬ ГґГ«Г Г¦ГЄГ®Г¬ Г·ГІГ®ГЎГ» Г­ГҐ ГЇГЁГ±Г ГІГј Гў ГЎГ Г§Гі.
+			// TODO - ГЇГ°Г®ГІГҐГ±ГІГЁГ°Г®ГўГ ГІГј ГЁ ГґГЁГ§ГЁГ·ГҐГ±ГЄГ®ГҐ ГіГ¤Г Г«ГҐГ­ГЁГҐ Г«ГЁГёГ­ГЁГµ Г§Г ГЇГЁГ±ГҐГ© ГЁГ§ ГўГҐГЄГІГ®Г°Г 
 			std::map <std::string, std::pair< std::string, int> > l_channel_dup_filter;
-			// Параметр MI - пара - { значение параметра + счетчик различных вариантов для значений }
+			// ГЏГ Г°Г Г¬ГҐГІГ° MI - ГЇГ Г°Г  - { Г§Г­Г Г·ГҐГ­ГЁГҐ ГЇГ Г°Г Г¬ГҐГІГ°Г  + Г±Г·ГҐГІГ·ГЁГЄ Г°Г Г§Г«ГЁГ·Г­Г»Гµ ГўГ Г°ГЁГ Г­ГІГ®Гў Г¤Г«Гї Г§Г­Г Г·ГҐГ­ГЁГ© }
 			for (auto j = p_media.m_ext_array.cbegin(); j != p_media.m_ext_array.cend(); ++j)
-				// TODO [!] этот проход можно поместить внуть основного алгоритма заполнения.
-				// ведь нам известно заранее что на Audio - несколько каналов будет
+				// TODO [!] ГЅГІГ®ГІ ГЇГ°Г®ГµГ®Г¤ Г¬Г®Г¦Г­Г® ГЇГ®Г¬ГҐГ±ГІГЁГІГј ГўГ­ГіГІГј Г®Г±Г­Г®ГўГ­Г®ГЈГ® Г Г«ГЈГ®Г°ГЁГІГ¬Г  Г§Г ГЇГ®Г«Г­ГҐГ­ГЁГї.
+				// ГўГҐГ¤Гј Г­Г Г¬ ГЁГ§ГўГҐГ±ГІГ­Г® Г§Г Г°Г Г­ГҐГҐ Г·ГІГ® Г­Г  Audio - Г­ГҐГ±ГЄГ®Г«ГјГЄГ® ГЄГ Г­Г Г«Г®Гў ГЎГіГ¤ГҐГІ
 			{
 				if (j->m_stream_type == p_stream_type)
 				{
 					auto& l_value = l_channel_dup_filter[j->m_param];
 					if (l_value.first != j->m_value)
 					{
-						if (l_value.first.empty()) // Первый параметр?
+						if (l_value.first.empty()) // ГЏГҐГ°ГўГ»Г© ГЇГ Г°Г Г¬ГҐГІГ°?
 						{
 							l_value.first  = j->m_value;
 						}
@@ -3258,23 +3258,23 @@ static void getExtMediaInfo(const string& p_file_ext_wo_dot,
 					}
 				}
 			}
-			// Расчитали статистику по атрибутам.
-			// Отметим дубликатные записи флажком для последующего игнора при записи в базу данных.
+			// ГђГ Г±Г·ГЁГІГ Г«ГЁ Г±ГІГ ГІГЁГ±ГІГЁГЄГі ГЇГ® Г ГІГ°ГЁГЎГіГІГ Г¬.
+			// ГЋГІГ¬ГҐГІГЁГ¬ Г¤ГіГЎГ«ГЁГЄГ ГІГ­Г»ГҐ Г§Г ГЇГЁГ±ГЁ ГґГ«Г Г¦ГЄГ®Г¬ Г¤Г«Гї ГЇГ®Г±Г«ГҐГ¤ГіГѕГ№ГҐГЈГ® ГЁГЈГ­Г®Г°Г  ГЇГ°ГЁ Г§Г ГЇГЁГ±ГЁ Гў ГЎГ Г§Гі Г¤Г Г­Г­Г»Гµ.
 			for (auto k = p_media.m_ext_array.begin(); k != p_media.m_ext_array.end(); ++k)
 			{
 				if (k->m_stream_type == p_stream_type)
 				{
 					auto l_channel_filter = l_channel_dup_filter.find(k->m_param);
 					dcassert(l_channel_filter != l_channel_dup_filter.end());
-					if (l_channel_filter->second.second == 1) // Для всех каналов значения параметра одинаковое?
+					if (l_channel_filter->second.second == 1) // Г„Г«Гї ГўГ±ГҐГµ ГЄГ Г­Г Г«Г®Гў Г§Г­Г Г·ГҐГ­ГЁГї ГЇГ Г°Г Г¬ГҐГІГ°Г  Г®Г¤ГЁГ­Г ГЄГ®ГўГ®ГҐ?
 					{
-						k->m_channel  = CFlyMediaInfo::ExtItem::channel_all; // Канал для первого вхождения делаем 255 (channel-All)
-						l_channel_filter->second.second = -1; // Скидываем счетчик в -1 чтобы на следуещем проходе удалить запись
+						k->m_channel  = CFlyMediaInfo::ExtItem::channel_all; // ГЉГ Г­Г Г« Г¤Г«Гї ГЇГҐГ°ГўГ®ГЈГ® ГўГµГ®Г¦Г¤ГҐГ­ГЁГї Г¤ГҐГ«Г ГҐГ¬ 255 (channel-All)
+						l_channel_filter->second.second = -1; // Г‘ГЄГЁГ¤Г»ГўГ ГҐГ¬ Г±Г·ГҐГІГ·ГЁГЄ Гў -1 Г·ГІГ®ГЎГ» Г­Г  Г±Г«ГҐГ¤ГіГҐГ№ГҐГ¬ ГЇГ°Г®ГµГ®Г¤ГҐ ГіГ¤Г Г«ГЁГІГј Г§Г ГЇГЁГ±Гј
 						continue;
 					}
-					if (l_channel_filter->second.second == -1) // Значение параметра уже перенесено в общий канал с кодом 255 на предыдущей итеррации
-						// а текущая запись избыточная и ее писать в базу не нужно.
-						// TODO - удаление из vector-а пока не делаем. позже эта запись всеравно не загрузится
+					if (l_channel_filter->second.second == -1) // Г‡Г­Г Г·ГҐГ­ГЁГҐ ГЇГ Г°Г Г¬ГҐГІГ°Г  ГіГ¦ГҐ ГЇГҐГ°ГҐГ­ГҐГ±ГҐГ­Г® Гў Г®ГЎГ№ГЁГ© ГЄГ Г­Г Г« Г± ГЄГ®Г¤Г®Г¬ 255 Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© ГЁГІГҐГ°Г°Г Г¶ГЁГЁ
+						// Г  ГІГҐГЄГіГ№Г Гї Г§Г ГЇГЁГ±Гј ГЁГ§ГЎГ»ГІГ®Г·Г­Г Гї ГЁ ГҐГҐ ГЇГЁГ±Г ГІГј Гў ГЎГ Г§Гі Г­ГҐ Г­ГіГ¦Г­Г®.
+						// TODO - ГіГ¤Г Г«ГҐГ­ГЁГҐ ГЁГ§ vector-Г  ГЇГ®ГЄГ  Г­ГҐ Г¤ГҐГ«Г ГҐГ¬. ГЇГ®Г§Г¦ГҐ ГЅГІГ  Г§Г ГЇГЁГ±Гј ГўГ±ГҐГ°Г ГўГ­Г® Г­ГҐ Г§Г ГЈГ°ГіГ§ГЁГІГ±Гї
 					{
 						k->m_is_delete = true;
 					}
@@ -3335,15 +3335,15 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 		{
 			// const bool l_is_media_info_fly_server = g_fly_server_config.isSupportFile(l_file_ext, p_size);
 			// if (l_is_media_info_fly_server)
-			// Локально собираем медиаинфу всегда - чтобы проще расширять поддерживаемые расширения на флай сервере в будущем.
+			// Г‹Г®ГЄГ Г«ГјГ­Г® Г±Г®ГЎГЁГ°Г ГҐГ¬ Г¬ГҐГ¤ГЁГ ГЁГ­ГґГі ГўГ±ГҐГЈГ¤Г  - Г·ГІГ®ГЎГ» ГЇГ°Г®Г№ГҐ Г°Г Г±ГёГЁГ°ГїГІГј ГЇГ®Г¤Г¤ГҐГ°Г¦ГЁГўГ ГҐГ¬Г»ГҐ Г°Г Г±ГёГЁГ°ГҐГ­ГЁГї Г­Г  ГґГ«Г Г© Г±ГҐГ°ГўГҐГ°ГҐ Гў ГЎГіГ¤ГіГ№ГҐГ¬.
 			{
-				// TODO - желательно звать со сжатием каналов первым (будет быстрее из-за подсказки p_compress_channel_attr)
-				getExtMediaInfo(l_file_ext, p_size, g_media_info_lib, MediaInfoLib::Stream_Audio, p_media, true); // Сожмем дубликаты в каналах
+				// TODO - Г¦ГҐГ«Г ГІГҐГ«ГјГ­Г® Г§ГўГ ГІГј Г±Г® Г±Г¦Г ГІГЁГҐГ¬ ГЄГ Г­Г Г«Г®Гў ГЇГҐГ°ГўГ»Г¬ (ГЎГіГ¤ГҐГІ ГЎГ»Г±ГІГ°ГҐГҐ ГЁГ§-Г§Г  ГЇГ®Г¤Г±ГЄГ Г§ГЄГЁ p_compress_channel_attr)
+				getExtMediaInfo(l_file_ext, p_size, g_media_info_lib, MediaInfoLib::Stream_Audio, p_media, true); // Г‘Г®Г¦Г¬ГҐГ¬ Г¤ГіГЎГ«ГЁГЄГ ГІГ» Гў ГЄГ Г­Г Г«Г Гµ
 				getExtMediaInfo(l_file_ext, p_size, g_media_info_lib, MediaInfoLib::Stream_General, p_media, false);
 				getExtMediaInfo(l_file_ext, p_size, g_media_info_lib, MediaInfoLib::Stream_Video, p_media, false);
 				getExtMediaInfo(l_file_ext, p_size, g_media_info_lib, MediaInfoLib::Stream_Text, p_media, true);
 				getExtMediaInfo(l_file_ext, p_size, g_media_info_lib, MediaInfoLib::Stream_Menu, p_media, false);
-				// Это пока лишнее
+				// ГќГІГ® ГЇГ®ГЄГ  Г«ГЁГёГ­ГҐГҐ
 				//          getExtMediaInfo(l_file_ext, p_size, g_media_info_lib,MediaInfoLib::Stream_Chapters,p_media);
 //			getExtMediaInfo(l_file_ext, p_size, g_media_info_lib,MediaInfoLib::Stream_Image,p_media);
 			}
@@ -3351,7 +3351,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 			p_media.m_bitrate  = 0;
 			std::unordered_map<string, uint16_t> l_audio_dup_filter;
 			// AC-3, 5.1, 448 Kbps | AC-3, 5.1, 640 Kbps | TrueHD / AC-3, 5.1, 640 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps | AC-3, 5.1, 448 Kbps"
-			// Превращаем в
+			// ГЏГ°ГҐГўГ°Г Г№Г ГҐГ¬ Гў
 			// AC-3, 5.1, 640 Kbps | TrueHD / AC-3, 5.1, 640 Kbps | AC-3, 5.1, 448 Kbps (x7)
 			// dcassert(audioCount);
 			for (size_t i = 0; i < audioCount; i++)
@@ -3521,7 +3521,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 	}
 	catch (...)
 	{
-		// TODO сюда не попадаем если SEH - найти способ и поправить
+		// TODO Г±ГѕГ¤Г  Г­ГҐ ГЇГ®ГЇГ Г¤Г ГҐГ¬ ГҐГ±Г«ГЁ SEH - Г­Г Г©ГІГЁ Г±ГЇГ®Г±Г®ГЎ ГЁ ГЇГ®ГЇГ°Г ГўГЁГІГј
 		Util::deleteRegistryValue(FLYLINKDC_REGISTRY_MEDIAINFO_FREEZE_KEY);
 		Util::setRegistryValueString(FLYLINKDC_REGISTRY_MEDIAINFO_CRASH_KEY, Text::toT(g_cur_mediainfo_file + " catch(...) "));
 		CFlyServerJSON::pushError(15, "error getmediainfo[2] " + g_cur_mediainfo_file + " TTH:" + p_tth.toBase32() + " catch(...)");
