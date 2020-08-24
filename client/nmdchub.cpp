@@ -149,13 +149,13 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 		l_ou_ptr = std::make_shared<OnlineUser>(p, *this, 0);
 	}
 	auto l_find = m_users.insert(make_pair(aNick, l_ou_ptr));
-	if (l_find.second == false) // Не прошла вставка т.к. такой ник уже есть в мапе?
+	if (l_find.second == false) // ГЌГҐ ГЇГ°Г®ГёГ«Г  ГўГ±ГІГ ГўГЄГ  ГІ.ГЄ. ГІГ ГЄГ®Г© Г­ГЁГЄ ГіГ¦ГҐ ГҐГ±ГІГј Гў Г¬Г ГЇГҐ?
 	{
 		return l_find.first->second;
 	}
 	else
 	{
-		// Новый элемент
+		// ГЌГ®ГўГ»Г© ГЅГ«ГҐГ¬ГҐГ­ГІ
 		l_find.first->second->inc();
 		if (p_hub)
 		{
@@ -226,7 +226,7 @@ OnlineUserPtr NmdcHub::getUser(const string& aNick, bool p_hub, bool p_first_loa
 	if (!ou->getUser()->getCID().isZero())
 	{
 		ClientManager::getInstance()->putOnline(ou, true);
-		//  is_all_my_info_loaded() без true не начинает качать при загрузке
+		//  is_all_my_info_loaded() ГЎГҐГ§ true Г­ГҐ Г­Г Г·ГЁГ­Г ГҐГІ ГЄГ Г·Г ГІГј ГЇГ°ГЁ Г§Г ГЈГ°ГіГ§ГЄГҐ
 		//  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1682
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
 		UserManager::checkUser(ou);
@@ -314,17 +314,17 @@ void NmdcHub::clearUsers()
 			{
 				dcassert(0);
 			}
-			// Варианты
-			// - скармливать юзеров массивом
-			// - Держать юзеров в нескольких контейнерах для каждого хаба отдельно
-			// - проработать команду на убивание всей мапы сразу без поиска
+			// Г‚Г Г°ГЁГ Г­ГІГ»
+			// - Г±ГЄГ Г°Г¬Г«ГЁГўГ ГІГј ГѕГ§ГҐГ°Г®Гў Г¬Г Г±Г±ГЁГўГ®Г¬
+			// - Г„ГҐГ°Г¦Г ГІГј ГѕГ§ГҐГ°Г®Гў Гў Г­ГҐГ±ГЄГ®Г«ГјГЄГЁГµ ГЄГ®Г­ГІГҐГ©Г­ГҐГ°Г Гµ Г¤Г«Гї ГЄГ Г¦Г¤Г®ГЈГ® ГµГ ГЎГ  Г®ГІГ¤ГҐГ«ГјГ­Г®
+			// - ГЇГ°Г®Г°Г ГЎГ®ГІГ ГІГј ГЄГ®Г¬Г Г­Г¤Гі Г­Г  ГіГЎГЁГўГ Г­ГЁГҐ ГўГ±ГҐГ© Г¬Г ГЇГ» Г±Г°Г Г§Гі ГЎГҐГ§ ГЇГ®ГЁГ±ГЄГ 
 		}
 	}
 }
 //==========================================================================================
 void NmdcHub::updateFromTag(Identity& id, const string & tag, bool p_is_version_change)
 {
-	const StringTokenizer<string> tok(tag, ',', 4); // TODO - убрать разбор токенов. сделать простое сканирование в цикле в поиске запятых
+	const StringTokenizer<string> tok(tag, ',', 4); // TODO - ГіГЎГ°Г ГІГј Г°Г Г§ГЎГ®Г° ГІГ®ГЄГҐГ­Г®Гў. Г±Г¤ГҐГ«Г ГІГј ГЇГ°Г®Г±ГІГ®ГҐ Г±ГЄГ Г­ГЁГ°Г®ГўГ Г­ГЁГҐ Гў Г¶ГЁГЄГ«ГҐ Гў ГЇГ®ГЁГ±ГЄГҐ Г§Г ГЇГїГІГ»Гµ
 	string::size_type j;
 	id.setLimit(0);
 	for (auto i = tok.getTokens().cbegin(); i != tok.getTokens().cend(); ++i)
@@ -425,7 +425,7 @@ void NmdcHub::updateFromTag(Identity& id, const string & tag, bool p_is_version_
 			CFlyFastLock(NmdcSupports::g_debugCsUnknownNmdcTagParam);
 			NmdcSupports::g_debugUnknownNmdcTagParam[tag]++;
 			// dcassert(0);
-			// TODO - сброс ошибочных тэгов в качестве статы?
+			// TODO - Г±ГЎГ°Г®Г± Г®ГёГЁГЎГ®Г·Г­Г»Гµ ГІГЅГЈГ®Гў Гў ГЄГ Г·ГҐГ±ГІГўГҐ Г±ГІГ ГІГ»?
 		}
 #endif // FLYLINKDC_COLLECT_UNKNOWN_TAG
 		
@@ -600,7 +600,7 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 		const auto m = l_search_param.m_seeker.rfind(':');
 		if (m != string::npos)
 		{
-			const auto k = param.find("?9?TTH:", m); // Если идет запрос по TTH - пропускаем без проверки
+			const auto k = param.find("?9?TTH:", m); // Г…Г±Г«ГЁ ГЁГ¤ГҐГІ Г§Г ГЇГ°Г®Г± ГЇГ® TTH - ГЇГ°Г®ГЇГіГ±ГЄГ ГҐГ¬ ГЎГҐГ§ ГЇГ°Г®ГўГҐГ°ГЄГЁ
 			if (k == string::npos)
 			{
 				if (m_cache_hub_url_flood.empty())
@@ -619,7 +619,7 @@ void NmdcHub::searchParse(const string& param, bool p_is_passive)
 	// Filter own searches
 	if (p_is_passive)
 	{
-		// seeker в начале может не содержать "Hub:" - падаем
+		// seeker Гў Г­Г Г·Г Г«ГҐ Г¬Г®Г¦ГҐГІ Г­ГҐ Г±Г®Г¤ГҐГ°Г¦Г ГІГј "Hub:" - ГЇГ Г¤Г ГҐГ¬
 		// https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=64297
 		// https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=63507
 		const auto& myNick = getMyNick();
@@ -884,7 +884,7 @@ void NmdcHub::connectToMeParse(const string& param)
 		ConnectionManager::getInstance()->nmdcConnect(server, static_cast<uint16_t>(Util::toInt(port)), getMyNick(), getHubUrl(),
 		                                              getEncoding(),
 		                                              secure);
-		break; // Все ОК тут брек хороший
+		break; // Г‚Г±ГҐ ГЋГЉ ГІГіГІ ГЎГ°ГҐГЄ ГµГ®Г°Г®ГёГЁГ©
 	}
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 	const string l_hub = getHubUrl();
@@ -972,7 +972,7 @@ void NmdcHub::chatMessageParse(const string& p_line)
 	if (!l_user)
 	{
 		chatMessage->m_text = l_utf8_line;
-		// если юзер подставной - не создаем его в списке
+		// ГҐГ±Г«ГЁ ГѕГ§ГҐГ° ГЇГ®Г¤Г±ГІГ ГўГ­Г®Г© - Г­ГҐ Г±Г®Г§Г¤Г ГҐГ¬ ГҐГЈГ® Гў Г±ГЇГЁГ±ГЄГҐ
 	}
 	
 	
@@ -980,7 +980,7 @@ void NmdcHub::chatMessageParse(const string& p_line)
 	{
 		if (l_user)
 		{
-			chatMessage->m_from = l_user; ////getUser(nick, false, false); // Тут внутри снова идет поиск findUser(nick)
+			chatMessage->m_from = l_user; ////getUser(nick, false, false); // Г’ГіГІ ГўГ­ГіГІГ°ГЁ Г±Г­Г®ГўГ  ГЁГ¤ГҐГІ ГЇГ®ГЁГ±ГЄ findUser(nick)
 			chatMessage->m_from->getIdentity().setHub();
 		}
 	}
@@ -1034,7 +1034,7 @@ void NmdcHub::hubNameParse(const string& p_param)
 //==========================================================================================
 void NmdcHub::supportsParse(const string& param)
 {
-	const StringTokenizer<string> st(param, ' '); // TODO убрать токены. сделать поиском.
+	const StringTokenizer<string> st(param, ' '); // TODO ГіГЎГ°Г ГІГј ГІГ®ГЄГҐГ­Г». Г±Г¤ГҐГ«Г ГІГј ГЇГ®ГЁГ±ГЄГ®Г¬.
 	const StringList& sl = st.getTokens();
 	for (auto i = sl.cbegin(); i != sl.cend(); ++i)
 	{
@@ -1072,10 +1072,10 @@ void NmdcHub::supportsParse(const string& param)
 	}
 	// if (!(m_supportFlags & SUPPORTS_NICKRULE))
 	/*
-	<Mer> [00:27:44] *** Соединён
-	- [00:27:47] <MegaHub> Время работы: 129 дней 8 часов 23 минут 21 секунд. Пользователей онлайн: 10109
+	<Mer> [00:27:44] *** Г‘Г®ГҐГ¤ГЁГ­ВёГ­
+	- [00:27:47] <MegaHub> Г‚Г°ГҐГ¬Гї Г°Г ГЎГ®ГІГ»: 129 Г¤Г­ГҐГ© 8 Г·Г Г±Г®Гў 23 Г¬ГЁГ­ГіГІ 21 Г±ГҐГЄГіГ­Г¤. ГЏГ®Г«ГјГ§Г®ГўГ ГІГҐГ«ГҐГ© Г®Г­Г«Г Г©Г­: 10109
 	- [00:27:51] <MegaHub> Operation timeout (ValidateNick)
-	- [00:27:52] *** [Hub = dchub://hub.o-go.ru] Соединение закрыто
+	- [00:27:52] *** [Hub = dchub://hub.o-go.ru] Г‘Г®ГҐГ¤ГЁГ­ГҐГ­ГЁГҐ Г§Г ГЄГ°Г»ГІГ®
 	{
 	    const auto l_nick = getMyNick();
 	    OnlineUserPtr ou = getUser(l_nick, false, true);
@@ -1303,7 +1303,7 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 				}
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
 				if (m_isAutobanAntivirusIP || m_isAutobanAntivirusNick
-				        // && getHubUrl().find("dc.fly-server.ru") != string::npos
+				        // && getHubUrl().find("dchub.net") != string::npos
 				   )
 				{
 					const auto l_avdb_result = ou->getIdentity().calcVirusType(true);
@@ -1319,15 +1319,15 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 						const bool l_is_all_field = (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_SHARE) && (l_avdb_result & Identity::VT_IP);
 						bool l_is_avdb_callback = false;
 						if (
-						    // (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_SHARE) &&  (l_avdb_result & Identity::VT_IP) || - это остылать не нужно они и так в базе уже есть
+						    // (l_avdb_result & Identity::VT_NICK) && (l_avdb_result & Identity::VT_SHARE) &&  (l_avdb_result & Identity::VT_IP) || - ГЅГІГ® Г®Г±ГІГ»Г«Г ГІГј Г­ГҐ Г­ГіГ¦Г­Г® Г®Г­ГЁ ГЁ ГІГ ГЄ Гў ГЎГ Г§ГҐ ГіГ¦ГҐ ГҐГ±ГІГј
 						    l_is_nick_share ||
 						    l_is_ip_share ||
 						    l_is_nick_ip
-						    //! нельзя проверять только по IP (l_avdb_result & Identity::VT_IP)
+						    //! Г­ГҐГ«ГјГ§Гї ГЇГ°Г®ГўГҐГ°ГїГІГј ГІГ®Г«ГјГЄГ® ГЇГ® IP (l_avdb_result & Identity::VT_IP)
 						)
 							if (!CFlyServerConfig::g_antivirus_db_url.empty())
 							{
-								// http://te-home.net/avdb.php?do=send&size=<размер шары>&addr=<ип адрес, не обязательно>&nick=<ник юзера>&path=<путь к вирусам, не обязательно>
+								// nd&size=<Г°Г Г§Г¬ГҐГ° ГёГ Г°Г»>&addr=<ГЁГЇ Г Г¤Г°ГҐГ±, Г­ГҐ Г®ГЎГїГ§Г ГІГҐГ«ГјГ­Г®>&nick=<Г­ГЁГЄ ГѕГ§ГҐГ°Г >&path=<ГЇГіГІГј ГЄ ГўГЁГ°ГіГ±Г Г¬, Г­ГҐ Г®ГЎГїГ§Г ГІГҐГ«ГјГ­Г®>
 								const auto l_encode_nick = ZenLib::Format::Http::URL_Encoded_Encode(l_user);
 								const string l_get_avdb_query =
 								    CFlyServerConfig::g_antivirus_db_url +
@@ -1372,7 +1372,7 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 							/*
 							<FlylinkDC-dev> 13:38:03 Hub:   [Outgoing][162.211.230.164:411]     $To: ork5005 From: FlylinkDC-dev $<FlylinkDC-dev> You are being kicked because: virus|<FlylinkDC-dev> is kicking ork5005 because: virus|$Kick ork5005|
 							13:38:03 Hub:   [Incoming][162.211.230.164:411]     <FlylinkDC-dev> is kicking ork5005 because: virus
-							13:38:03 Hub:   [Incoming][162.211.230.164:411]     <PtokaX> *** ork5005 с IP 95.183.29.221 был кикнут FlylinkDC-dev.
+							13:38:03 Hub:   [Incoming][162.211.230.164:411]     <PtokaX> *** ork5005 Г± IP 95.183.29.221 ГЎГ»Г« ГЄГЁГЄГ­ГіГІ FlylinkDC-dev.
 							13:38:03 Hub:   [Incoming][162.211.230.164:411]     $Quit ork5005
 							*/
 							l_ban_command = "$Kick " + l_user + "|";
@@ -1393,13 +1393,13 @@ void NmdcHub::userIPParse(const string& p_ip_list)
 				//v.push_back(ou);
 			}
 		}
-		// TODO - слать сообщения о смене только IP
+		// TODO - Г±Г«Г ГІГј Г±Г®Г®ГЎГ№ГҐГ­ГЁГї Г® Г±Г¬ГҐГ­ГҐ ГІГ®Г«ГјГЄГ® IP
 		// fire_user_updated(v);
 		
 		
 		
 		/*
-		if (getMyNick() == "FlylinkDC-dev" && getHubUrl().find("dc.fly-server.ru") != string::npos)
+		if (getMyNick() == "FlylinkDC-dev" && getHubUrl().find("dchub.net") != string::npos)
 		{
 		for (auto j = v.cbegin(); j != v.cend(); ++j)
 		{
@@ -1520,7 +1520,7 @@ void NmdcHub::opListParse(const string& param)
 				}
 			}
 		}
-		fire_user_updated(v); // не убирать - через эту команду шлют "часы"
+		fire_user_updated(v); // Г­ГҐ ГіГЎГЁГ°Г ГІГј - Г·ГҐГ°ГҐГ§ ГЅГІГі ГЄГ®Г¬Г Г­Г¤Гі ГёГ«ГѕГІ "Г·Г Г±Г»"
 		updateCounts(false);
 		
 		// Special...to avoid op's complaining that their count is not correctly
@@ -1716,7 +1716,7 @@ void NmdcHub::onLine(const string& aLine)
 	{
 		cmd = aLine.substr(1, x - 1);
 		param = toUtf8(aLine.substr(x + 1));
-		l_is_search = cmd == "Search"; // TODO - этого больше не будет - похерить
+		l_is_search = cmd == "Search"; // TODO - ГЅГІГ®ГЈГ® ГЎГ®Г«ГјГёГҐ Г­ГҐ ГЎГіГ¤ГҐГІ - ГЇГ®ГµГҐГ°ГЁГІГј
 		if (l_is_search && ClientManager::isStartup() == false)
 		{
 			if (getHideShare())
@@ -1735,13 +1735,13 @@ void NmdcHub::onLine(const string& aLine)
 			}
 			else
 			{
-				// Отработка наиболее частого запроса вида
+				// ГЋГІГ°Г ГЎГ®ГІГЄГ  Г­Г ГЁГЎГ®Г«ГҐГҐ Г·Г Г±ГІГ®ГЈГ® Г§Г ГЇГ°Г®Г±Г  ГўГЁГ¤Г 
 				// "$Search x.x.x.x:yyyy F?T?0?9?TTH:A3VSWSWKCVC4N6EP2GX47OEMGT5ZL52BOS2LAHA"
 				const auto i = param.find("?9?TTH:");
 				if (i != string::npos)
 				{
 					dcassert(0);
-					// Отрабатывается в другом методе
+					// ГЋГІГ°Г ГЎГ ГІГ»ГўГ ГҐГІГ±Гї Гў Г¤Г°ГіГЈГ®Г¬ Г¬ГҐГІГ®Г¤ГҐ
 					// searchParseTTHActive(param, i);
 				}
 			}
@@ -1765,7 +1765,7 @@ void NmdcHub::onLine(const string& aLine)
 	bool bMyInfoCommand = false;
 	if (l_is_search && ClientManager::isStartup() == false)
 	{
-		dcassert(0);  // Используем void NmdcHub::on(BufferedSocketListener::SearchArrayFile
+		dcassert(0);  // Г€Г±ГЇГ®Г«ГјГ§ГіГҐГ¬ void NmdcHub::on(BufferedSocketListener::SearchArrayFile
 		searchParse(param, l_is_passive);
 	}
 	else if (cmd == "MyINFO")
@@ -1773,7 +1773,7 @@ void NmdcHub::onLine(const string& aLine)
 		bMyInfoCommand = true;
 		myInfoParse(param);
 #ifdef _DEBUG
-		const string l_admin = "Админ";
+		const string l_admin = "ГЂГ¤Г¬ГЁГ­";
 		if (param.find(l_admin) != string::npos)
 		{
 			bMyInfoCommand = true;
@@ -1858,7 +1858,7 @@ void NmdcHub::onLine(const string& aLine)
 	{
 		botListParse(param);
 	}
-	else if (cmd == "NickList") // TODO - убить
+	else if (cmd == "NickList") // TODO - ГіГЎГЁГІГј
 	{
 		nickListParse(param);
 	}
@@ -1885,7 +1885,7 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	else if (cmd == "ZOn")
 	{
-		dcassert(0); // Обработку ZOn перенес в BufferedSocket чтобы не звать лишний Listener
+		dcassert(0); // ГЋГЎГ°Г ГЎГ®ГІГЄГі ZOn ГЇГҐГ°ГҐГ­ГҐГ± Гў BufferedSocket Г·ГІГ®ГЎГ» Г­ГҐ Г§ГўГ ГІГј Г«ГЁГёГ­ГЁГ© Listener
 	}
 	else if (cmd == "HubTopic")
 	{
@@ -1899,7 +1899,7 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	else if (cmd == "UserComman" || cmd == "myinfo")
 	{
-		// Где-то ошибка в плагине - много спама идет на сервер - отрубил нахрен
+		// ГѓГ¤ГҐ-ГІГ® Г®ГёГЁГЎГЄГ  Гў ГЇГ«Г ГЈГЁГ­ГҐ - Г¬Г­Г®ГЈГ® Г±ГЇГ Г¬Г  ГЁГ¤ГҐГІ Г­Г  Г±ГҐГ°ГўГҐГ° - Г®ГІГ°ГіГЎГЁГ« Г­Г ГµГ°ГҐГ­
 		const string l_message = "NmdcHub::onLine first unknown command! hub = [" + getHubUrl() + "], command = [" + cmd + "], param = [" + param + "]";
 		LogManager::message(l_message);
 	}
@@ -1907,11 +1907,11 @@ void NmdcHub::onLine(const string& aLine)
 	{
 	
 		/*
-		$BadNick TooLong 64        -- ник слишком длинный, максимальная допустимая длина ника 64 символа     (флай считает сколько у него в нике символов и убирает лишние, так чтоб осталось максимум 64)
-		$BadNick TooShort 3        -- ник слишком короткий, минимальная допустимая длина ника 3 символа     (флай считает сколько у него в нике символов и добавляет нехватающие, так чтоб было минимум 3)
-		$BadNick BadPrefix        -- у ника лишний префикс, хаб хочет ник без префикса      (флай уберает все префиксы из ника)
-		$BadNick BadPrefix [ISP1] [ISP2]        -- у ника нехватает префикса, хаб хочет ник с префиксом [ISP1] или [ISP2]      (флай добавляет случайный из перечисленых префиксов к нику)
-		$BadNick BadChar 32 36        -- ник содержит запрещенные хабом символы, хаб хочет ник в котором не будет перечисленых символов      (флай убирает из ника все перечисленые байты символов)
+		$BadNick TooLong 64        -- Г­ГЁГЄ Г±Г«ГЁГёГЄГ®Г¬ Г¤Г«ГЁГ­Г­Г»Г©, Г¬Г ГЄГ±ГЁГ¬Г Г«ГјГ­Г Гї Г¤Г®ГЇГіГ±ГІГЁГ¬Г Гї Г¤Г«ГЁГ­Г  Г­ГЁГЄГ  64 Г±ГЁГ¬ГўГ®Г«Г      (ГґГ«Г Г© Г±Г·ГЁГІГ ГҐГІ Г±ГЄГ®Г«ГјГЄГ® Гі Г­ГҐГЈГ® Гў Г­ГЁГЄГҐ Г±ГЁГ¬ГўГ®Г«Г®Гў ГЁ ГіГЎГЁГ°Г ГҐГІ Г«ГЁГёГ­ГЁГҐ, ГІГ ГЄ Г·ГІГ®ГЎ Г®Г±ГІГ Г«Г®Г±Гј Г¬Г ГЄГ±ГЁГ¬ГіГ¬ 64)
+		$BadNick TooShort 3        -- Г­ГЁГЄ Г±Г«ГЁГёГЄГ®Г¬ ГЄГ®Г°Г®ГІГЄГЁГ©, Г¬ГЁГ­ГЁГ¬Г Г«ГјГ­Г Гї Г¤Г®ГЇГіГ±ГІГЁГ¬Г Гї Г¤Г«ГЁГ­Г  Г­ГЁГЄГ  3 Г±ГЁГ¬ГўГ®Г«Г      (ГґГ«Г Г© Г±Г·ГЁГІГ ГҐГІ Г±ГЄГ®Г«ГјГЄГ® Гі Г­ГҐГЈГ® Гў Г­ГЁГЄГҐ Г±ГЁГ¬ГўГ®Г«Г®Гў ГЁ Г¤Г®ГЎГ ГўГ«ГїГҐГІ Г­ГҐГµГўГ ГІГ ГѕГ№ГЁГҐ, ГІГ ГЄ Г·ГІГ®ГЎ ГЎГ»Г«Г® Г¬ГЁГ­ГЁГ¬ГіГ¬ 3)
+		$BadNick BadPrefix        -- Гі Г­ГЁГЄГ  Г«ГЁГёГ­ГЁГ© ГЇГ°ГҐГґГЁГЄГ±, ГµГ ГЎ ГµГ®Г·ГҐГІ Г­ГЁГЄ ГЎГҐГ§ ГЇГ°ГҐГґГЁГЄГ±Г       (ГґГ«Г Г© ГіГЎГҐГ°Г ГҐГІ ГўГ±ГҐ ГЇГ°ГҐГґГЁГЄГ±Г» ГЁГ§ Г­ГЁГЄГ )
+		$BadNick BadPrefix [ISP1] [ISP2]        -- Гі Г­ГЁГЄГ  Г­ГҐГµГўГ ГІГ ГҐГІ ГЇГ°ГҐГґГЁГЄГ±Г , ГµГ ГЎ ГµГ®Г·ГҐГІ Г­ГЁГЄ Г± ГЇГ°ГҐГґГЁГЄГ±Г®Г¬ [ISP1] ГЁГ«ГЁ [ISP2]      (ГґГ«Г Г© Г¤Г®ГЎГ ГўГ«ГїГҐГІ Г±Г«ГіГ·Г Г©Г­Г»Г© ГЁГ§ ГЇГҐГ°ГҐГ·ГЁГ±Г«ГҐГ­Г»Гµ ГЇГ°ГҐГґГЁГЄГ±Г®Гў ГЄ Г­ГЁГЄГі)
+		$BadNick BadChar 32 36        -- Г­ГЁГЄ Г±Г®Г¤ГҐГ°Г¦ГЁГІ Г§Г ГЇГ°ГҐГ№ГҐГ­Г­Г»ГҐ ГµГ ГЎГ®Г¬ Г±ГЁГ¬ГўГ®Г«Г», ГµГ ГЎ ГµГ®Г·ГҐГІ Г­ГЁГЄ Гў ГЄГ®ГІГ®Г°Г®Г¬ Г­ГҐ ГЎГіГ¤ГҐГІ ГЇГҐГ°ГҐГ·ГЁГ±Г«ГҐГ­Г»Гµ Г±ГЁГ¬ГўГ®Г«Г®Гў      (ГґГ«Г Г© ГіГЎГЁГ°Г ГҐГІ ГЁГ§ Г­ГЁГЄГ  ГўГ±ГҐ ГЇГҐГ°ГҐГ·ГЁГ±Г«ГҐГ­Г»ГҐ ГЎГ Г©ГІГ» Г±ГЁГ¬ГўГ®Г«Г®Гў)
 		*/
 		dcassert(m_client_sock);
 		if (m_client_sock)
@@ -2036,7 +2036,7 @@ void NmdcHub::onLine(const string& aLine)
 				m_nick_rule->convert_nick(l_nick);
 				setMyNick(l_nick);
 				
-				// Тут пока не пашет.
+				// Г’ГіГІ ГЇГ®ГЄГ  Г­ГҐ ГЇГ ГёГҐГІ.
 				//OnlineUserPtr ou = getUser(l_nick, false, true);
 				//sendValidateNick(ou->getIdentity().getNick());
 			}
@@ -2202,7 +2202,7 @@ bool NmdcHub::resendMyINFO(bool p_always_send, bool p_is_force_passive)
 	if (p_is_force_passive)
 	{
 		if (m_modeChar == 'P')
-			return false; // Уходим из обновления MyINFO - уже находимся в пассивном режиме
+			return false; // Г“ГµГ®Г¤ГЁГ¬ ГЁГ§ Г®ГЎГ­Г®ГўГ«ГҐГ­ГЁГї MyINFO - ГіГ¦ГҐ Г­Г ГµГ®Г¤ГЁГ¬Г±Гї Гў ГЇГ Г±Г±ГЁГўГ­Г®Г¬ Г°ГҐГ¦ГЁГ¬ГҐ
 	}
 	myInfo(p_always_send, p_is_force_passive);
 	return true;
@@ -2458,7 +2458,7 @@ void NmdcHub::myInfo(bool p_always_send, bool p_is_force_passive)
 			
 			string l_json_str = l_json_info.toStyledString(false);
 			
-			Text::trim(l_json_str); // TODO - убрать в конце пробел в json
+			Text::trim(l_json_str); // TODO - ГіГЎГ°Г ГІГј Гў ГЄГ®Г­Г¶ГҐ ГЇГ°Г®ГЎГҐГ« Гў json
 			Text::removeString_rn(l_json_str);
 			Text::replace_all(l_json_str, "$", "");
 			Text::replace_all(l_json_str, "|", "");
@@ -2768,13 +2768,13 @@ bool NmdcHub::extJSONParse(const string& param, bool p_is_disable_fire /*= false
 				ou->getIdentity().setExtJSONlevelDBHistSize(l_root["LDBHistSize"].asInt());
 				ou->getIdentity().setExtJSONSQLiteDBSizeFree(l_root["SQLFree"].asInt());
 				ou->getIdentity().setExtJSONQueueFiles(l_root["QueueFiles"].asInt());
-				ou->getIdentity().setExtJSONQueueSrc(l_root["QueueSrc"].asInt64()); //TODO - временны баг - тут 32 бита
-				ou->getIdentity().setExtJSONTimesStartCore(l_root["StartCore"].asInt64());  //TODO тут тоже 32 бита
-				ou->getIdentity().setExtJSONTimesStartGUI(l_root["StartGUI"].asInt64()); //TODO тут тоже 32 бита
+				ou->getIdentity().setExtJSONQueueSrc(l_root["QueueSrc"].asInt64()); //TODO - ГўГ°ГҐГ¬ГҐГ­Г­Г» ГЎГ ГЈ - ГІГіГІ 32 ГЎГЁГІГ 
+				ou->getIdentity().setExtJSONTimesStartCore(l_root["StartCore"].asInt64());  //TODO ГІГіГІ ГІГ®Г¦ГҐ 32 ГЎГЁГІГ 
+				ou->getIdentity().setExtJSONTimesStartGUI(l_root["StartGUI"].asInt64()); //TODO ГІГіГІ ГІГ®Г¦ГҐ 32 ГЎГЁГІГ 
 				
 				if (p_is_disable_fire == false)
 				{
-					updatedMyINFO(ou); // TODO обновлять только JSON
+					updatedMyINFO(ou); // TODO Г®ГЎГ­Г®ГўГ«ГїГІГј ГІГ®Г«ГјГЄГ® JSON
 				}
 			}
 		}
@@ -2807,7 +2807,7 @@ void NmdcHub::myInfoParse(const string& param)
 	}
 	i = j + 1;
 	
-	OnlineUserPtr ou = getUser(l_nick, false, m_bLastMyInfoCommand == DIDNT_GET_YET_FIRST_MYINFO); // При первом коннекте исключаем поиск
+	OnlineUserPtr ou = getUser(l_nick, false, m_bLastMyInfoCommand == DIDNT_GET_YET_FIRST_MYINFO); // ГЏГ°ГЁ ГЇГҐГ°ГўГ®Г¬ ГЄГ®Г­Г­ГҐГЄГІГҐ ГЁГ±ГЄГ«ГѕГ·Г ГҐГ¬ ГЇГ®ГЁГ±ГЄ
 	ou->getUser()->setFlag(User::IS_MYINFO);
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 	string l_my_info_before_change;
@@ -2877,7 +2877,7 @@ void NmdcHub::myInfoParse(const string& param)
 				if (ou->isTagUpdate(l_tag, l_is_version_change))
 #endif
 				{
-					updateFromTag(ou->getIdentity(), l_tag, l_is_version_change); // тяжелая операция с токенами. TODO - оптимизнуть
+					updateFromTag(ou->getIdentity(), l_tag, l_is_version_change); // ГІГїГ¦ГҐГ«Г Гї Г®ГЇГҐГ°Г Г¶ГЁГї Г± ГІГ®ГЄГҐГ­Г Г¬ГЁ. TODO - Г®ГЇГІГЁГ¬ГЁГ§Г­ГіГІГј
 					//if (!ou->m_tag_old.empty())
 					//  ou->m_tag_old = l_tag;
 				}
@@ -2950,7 +2950,7 @@ void NmdcHub::myInfoParse(const string& param)
 	if (j == string::npos)
 		return;
 #ifdef FLYLINKDC_USE_CHECK_CHANGE_MYINFO
-	// Проверим что меняетс только шара
+	// ГЏГ°Г®ГўГҐГ°ГЁГ¬ Г·ГІГ® Г¬ГҐГ­ГїГҐГІГ± ГІГ®Г«ГјГЄГ® ГёГ Г°Г 
 	bool l_is_change_only_share = false;
 	if (!l_my_info_before_change.empty())
 	{
@@ -2972,7 +2972,7 @@ void NmdcHub::myInfoParse(const string& param)
 	}
 #endif // FLYLINKDC_USE_CHECK_CHANGE_MYINFO
 	
-	auto l_share_size = Util::toInt64(param.c_str() + i); // Иногда шара бывает == -1 http://www.flickr.com/photos/96019675@N02/9732534452/
+	auto l_share_size = Util::toInt64(param.c_str() + i); // Г€Г­Г®ГЈГ¤Г  ГёГ Г°Г  ГЎГ»ГўГ ГҐГІ == -1 http://www.flickr.com/photos/96019675@N02/9732534452/
 	if (l_share_size < 0)
 	{
 		l_share_size = 0;
@@ -3036,7 +3036,7 @@ void NmdcHub::myInfoParse(const string& param)
 	}
 	if (!l_ext_json_param.empty())
 	{
-		extJSONParse(l_ext_json_param, true); // true - не зовем ClientListener::UserUpdatedMyINFO
+		extJSONParse(l_ext_json_param, true); // true - Г­ГҐ Г§Г®ГўГҐГ¬ ClientListener::UserUpdatedMyINFO
 		{
 			CFlyWriteLock(*m_cs);
 			m_ext_json_deferred.erase(l_nick);
@@ -3099,7 +3099,7 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_s
 					dcassert(i->m_search.size() > 4);
 					if (i->m_search.size() > 4)
 					{
-						// Сформируем ответ на пассивный запрос
+						// Г‘ГґГ®Г°Г¬ГЁГ°ГіГҐГ¬ Г®ГІГўГҐГІ Г­Г  ГЇГ Г±Г±ГЁГўГ­Г»Г© Г§Г ГЇГ°Г®Г±
 						const string l_nick = i->m_search.substr(4); // https://drdump.com/DumpGroup.aspx?DumpGroupID=638194
 						// Good, we have a passive seeker, those are easier...
 						str[str.length() - 1] = 5;
@@ -3110,8 +3110,8 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayTTH, CFlySearchArrayTTH& p_s
 				}
 				else
 				{
-					// Запросы по TTH - покидываем через коротко-живущий фильтр, чтобы исключить лишний дубликатный
-					// поиск и паразитный UDP трафик в обратную сторону
+					// Г‡Г ГЇГ°Г®Г±Г» ГЇГ® TTH - ГЇГ®ГЄГЁГ¤Г»ГўГ ГҐГ¬ Г·ГҐГ°ГҐГ§ ГЄГ®Г°Г®ГІГЄГ®-Г¦ГЁГўГіГ№ГЁГ© ГґГЁГ«ГјГІГ°, Г·ГІГ®ГЎГ» ГЁГ±ГЄГ«ГѕГ·ГЁГІГј Г«ГЁГёГ­ГЁГ© Г¤ГіГЎГ«ГЁГЄГ ГІГ­Г»Г©
+					// ГЇГ®ГЁГ±ГЄ ГЁ ГЇГ Г°Г Г§ГЁГІГ­Г»Г© UDP ГІГ°Г ГґГЁГЄ Гў Г®ГЎГ°Г ГІГ­ГіГѕ Г±ГІГ®Г°Г®Г­Гі
 					if (i->m_search == l_ip || ConnectionManager::checkDuplicateSearchTTH(i->m_search, i->m_tth))
 					{
 #ifdef FLYLINKDC_USE_COLLECT_STAT
@@ -3144,11 +3144,11 @@ void NmdcHub::on(BufferedSocketListener::SearchArrayFile, const CFlySearchArrayF
 		{
 			// dcassert(i->find(" F?T?0?9?TTH:") == string::npos);
 			// dcassert(i->find("?9?TTH:") == string::npos);
-			// TODO - научится обрабатывать - поиск по TTH с ограничениями по размеру
+			// TODO - Г­Г ГіГ·ГЁГІГ±Гї Г®ГЎГ°Г ГЎГ ГІГ»ГўГ ГІГј - ГЇГ®ГЁГ±ГЄ ГЇГ® TTH Г± Г®ГЈГ°Г Г­ГЁГ·ГҐГ­ГЁГїГ¬ГЁ ГЇГ® Г°Г Г§Г¬ГҐГ°Гі
 			// "x.x.x.x:yyy T?F?57671680?9?TTH:A3VSWSWKCVC4N6EP2GX47OEMGT5ZL52BOS2LAHA"
 			if (!ClientManager::isBeforeShutdown())
 			{
-				searchParse(i->m_raw_search, i->m_is_passive); // TODO - у нас уже есть распарсенное
+				searchParse(i->m_raw_search, i->m_is_passive); // TODO - Гі Г­Г Г± ГіГ¦ГҐ ГҐГ±ГІГј Г°Г Г±ГЇГ Г°Г±ГҐГ­Г­Г®ГҐ
 				COMMAND_DEBUG("$Search " + i->m_raw_search, DebugTask::HUB_IN, getIpPort());
 			}
 		}
