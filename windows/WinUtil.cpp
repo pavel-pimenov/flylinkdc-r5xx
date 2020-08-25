@@ -382,7 +382,7 @@ void Colors::getUserColor(bool p_is_op, const UserPtr& user, COLORREF &fg, COLOR
 	}
 #endif // IRAINMAN_ENABLE_AUTO_BAN
 #ifdef FLYLINKDC_USE_DETECT_CHEATING
-	if (p_is_op && onlineUser) // Возможно фикс https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=38000
+	if (p_is_op && onlineUser) // Г‚Г®Г§Г¬Г®Г¦Г­Г® ГґГЁГЄГ± https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=38000
 	{
 	
 		const auto fc = onlineUser->getIdentity().getFakeCard();
@@ -629,9 +629,9 @@ void FlagImage::init()
 {
 	m_flagImageCount = ResourceLoader::LoadImageList(IDR_FLAGS, m_images, 25, 16);
 	dcassert(m_flagImageCount);
-	dcassert(m_images.GetImageCount() <= 255); // Чтобы не превысить 8 бит
+	dcassert(m_images.GetImageCount() <= 255); // Г—ГІГ®ГЎГ» Г­ГҐ ГЇГ°ГҐГўГ»Г±ГЁГІГј 8 ГЎГЁГІ
 	
-	if (!CompatibilityManager::isWine()) // под линуксом пока падаем http://flylinkdc.blogspot.com/2010/08/customlocationsbmp-wine.html
+	if (!CompatibilityManager::isWine()) // ГЇГ®Г¤ Г«ГЁГ­ГіГЄГ±Г®Г¬ ГЇГ®ГЄГ  ГЇГ Г¤Г ГҐГ¬ http://flylinkdc.blogspot.com/2010/08/customlocationsbmp-wine.html
 	{
 		CBitmap UserLocations;
 		if (UserLocations.m_hBitmap = (HBITMAP)::LoadImage(NULL, Text::toT(Util::getConfigPath(
@@ -664,7 +664,7 @@ void WinUtil::init(HWND hWnd)
 	file.AppendMenu(MF_STRING, IDC_OPEN_MY_LIST, CTSTRING(MENU_OPEN_OWN_LIST));
 	file.AppendMenu(MF_STRING, IDC_REFRESH_FILE_LIST, CTSTRING(MENU_REFRESH_FILE_LIST));
 	file.AppendMenu(MF_STRING, IDC_MATCH_ALL, CTSTRING(MENU_OPEN_MATCH_ALL));
-//	file.AppendMenu(MF_STRING, IDC_FLYLINK_DISCOVER, _T("Flylink Discover…"));
+//	file.AppendMenu(MF_STRING, IDC_FLYLINK_DISCOVER, _T("Flylink DiscoverВ…"));
 	file.AppendMenu(MF_STRING, IDC_REFRESH_FILE_LIST_PURGE, CTSTRING(MENU_REFRESH_FILE_LIST_PURGE)); // https://www.box.net/shared/cw9agvj2n3fbypdcls46
 #ifdef USE_REBUILD_MEDIAINFO
 	file.AppendMenu(MF_STRING, IDC_REFRESH_MEDIAINFO, CTSTRING(MENU_REFRESH_MEDIAINFO));
@@ -1100,7 +1100,7 @@ void WinUtil::uninit()
 	g_trackerImage.uninit();
 	g_userStateImage.uninit();
 	g_genderImage.uninit();
-	g_ISPImage.uninit(); // TODO - позже
+	g_ISPImage.uninit(); // TODO - ГЇГ®Г§Г¦ГҐ
 	g_TransferTreeImage.uninit();
 	g_flagImage.uninit();
 #ifdef SCALOLAZ_MEDIAVIDEO_ICO
@@ -1267,7 +1267,7 @@ void WinUtil::splitTokens(int* p_array, const string& p_tokens, int p_maxItems) 
 	}
 }
 
-bool WinUtil::getUCParams(HWND parent, const UserCommand& uc, StringMap& sm) // TODO убрать parent
+bool WinUtil::getUCParams(HWND parent, const UserCommand& uc, StringMap& sm) // TODO ГіГЎГ°Г ГІГј parent
 {
 	string::size_type i = 0;
 	StringMap done;
@@ -1465,7 +1465,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		{
 			SET_SETTING(SLOTS, j);
 			status = TSTRING(SLOTS_SET);
-			ClientManager::infoUpdated(); // Не звать если не меняется SLOTS_SET
+			ClientManager::infoUpdated(); // ГЌГҐ Г§ГўГ ГІГј ГҐГ±Г«ГЁ Г­ГҐ Г¬ГҐГ­ГїГҐГІГ±Гї SLOTS_SET
 		}
 		else
 		{
@@ -1824,7 +1824,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			WinUtil::openLink(_T("http://www.imdb.com/find?q=") + Text::toT(Util::encodeURI(Text::fromT(param))));
 		}
 	}
-	// КиноПоиск.Ru.
+	// ГЉГЁГ­Г®ГЏГ®ГЁГ±ГЄ.Ru.
 	else if (stricmp(cmd.c_str(), _T("kinopoisk")) == 0 || stricmp(cmd.c_str(), _T("kp")) == 0 || stricmp(cmd.c_str(), _T("k")) == 0)
 	{
 		if (param.empty())
@@ -1860,7 +1860,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			WinUtil::openLink(_T("http://rutracker.org/forum/tracker.php?nm=") + Text::toT(Util::encodeURI(Text::fromT(param))));
 		}
 	}
-	// В Контакте.
+	// Г‚ ГЉГ®Г­ГІГ ГЄГІГҐ.
 	else if (stricmp(cmd.c_str(), _T("vkontakte")) == 0 || stricmp(cmd.c_str(), _T("vk")) == 0 || stricmp(cmd.c_str(), _T("v")) == 0)
 	{
 		if (param.empty())
@@ -1872,7 +1872,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			WinUtil::openLink(_T("http://vk.com/gsearch.php?q=") + Text::toT(Util::encodeURI(Text::fromT(param))));
 		}
 	}
-	// В Контакте. Открываем страницу по id.
+	// Г‚ ГЉГ®Г­ГІГ ГЄГІГҐ. ГЋГІГЄГ°Г»ГўГ ГҐГ¬ Г±ГІГ°Г Г­ГЁГ¶Гі ГЇГ® id.
 	else if (stricmp(cmd.c_str(), _T("vkid")) == 0 || stricmp(cmd.c_str(), _T("vid")) == 0)
 	{
 		if (param.empty())
@@ -1896,7 +1896,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			WinUtil::openLink(_T("http://www.discogs.com/search?type=all&q=") + Text::toT(Util::encodeURI(Text::fromT(param))) + _T("&btn=Search"));
 		}
 	}
-	// FILExt. To find a description of the file extension / Для поиска описания расширения файла.
+	// FILExt. To find a description of the file extension / Г„Г«Гї ГЇГ®ГЁГ±ГЄГ  Г®ГЇГЁГ±Г Г­ГЁГї Г°Г Г±ГёГЁГ°ГҐГ­ГЁГї ГґГ Г©Г«Г .
 	else if (stricmp(cmd.c_str(), _T("filext")) == 0 || stricmp(cmd.c_str(), _T("ext")) == 0)
 	{
 		if (param.empty())
@@ -1908,7 +1908,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 			WinUtil::openLink(_T("http://filext.com/file-extension/") + Text::toT(Util::encodeURI(Text::fromT(param))));
 		}
 	}
-	// Поиск по блогу FlylinkDC++.
+	// ГЏГ®ГЁГ±ГЄ ГЇГ® ГЎГ«Г®ГЈГі FlylinkDC++.
 	else if (stricmp(cmd.c_str(), _T("blog")) == 0 || stricmp(cmd.c_str(), _T("b")) == 0)
 	{
 		if (param.empty())
@@ -1917,7 +1917,7 @@ bool WinUtil::checkCommand(tstring& cmd, tstring& param, tstring& message, tstri
 		}
 		else
 		{
-			WinUtil::openLink(_T("http://www.flylinkdc.ru/search?q=") + Text::toT(Util::encodeURI(Text::fromT(param))));
+			WinUtil::openLink(_T("http://dchub.net/search?q=") + Text::toT(Util::encodeURI(Text::fromT(param))));
 		}
 	}
 #endif // IRAINMAN_ENABLE_MORE_CLIENT_COMMAND
@@ -2715,10 +2715,10 @@ void WinUtil::saveHeaderOrder(CListViewCtrl& ctrl, SettingsManager::StrSetting o
 string FileImage::getVirusIconIndex(const string& aFileName, int& p_icon_index)
 {
 	p_icon_index = 0;
-	auto x = Text::toLower(Util::getFileExtWithoutDot(aFileName)); //TODO часто зовем
+	auto x = Text::toLower(Util::getFileExtWithoutDot(aFileName)); //TODO Г·Г Г±ГІГ® Г§Г®ГўГҐГ¬
 	if (x.compare(0, 3, "exe", 3) == 0)
 	{
-		// Проверка на двойные расширения
+		// ГЏГ°Г®ГўГҐГ°ГЄГ  Г­Г  Г¤ГўГ®Г©Г­Г»ГҐ Г°Г Г±ГёГЁГ°ГҐГ­ГЁГї
 		string xx = Util::getFileName(aFileName);
 		xx = Text::toLower(Util::getFileDoubleExtWithoutDot(xx));
 		bool is_virus = (aFileName.size() > 13 && stricmp(aFileName.c_str() + aFileName.size() - 11, " dvdrip.exe") == 0);
@@ -2736,7 +2736,7 @@ string FileImage::getVirusIconIndex(const string& aFileName, int& p_icon_index)
 				p_icon_index = g_virus_exe_icon_index;
 				return x;
 			}
-			// Проверим медиа-расширение.exe
+			// ГЏГ°Г®ГўГҐГ°ГЁГ¬ Г¬ГҐГ¤ГЁГ -Г°Г Г±ГёГЁГ°ГҐГ­ГЁГҐ.exe
 			const auto i = xx.rfind('.');
 			dcassert(i != string::npos);
 			if (i != string::npos)
@@ -2768,7 +2768,7 @@ int FileImage::getIconIndex(const string& aFileName)
 		return p_icon_index;
 	if (BOOLSETTING(USE_SYSTEM_ICONS))
 	{
-#ifndef _DEBUG // В отладке тупит
+#ifndef _DEBUG // Г‚ Г®ГІГ«Г Г¤ГЄГҐ ГІГіГЇГЁГІ
 		if (!x.empty())
 		{
 			//CFlyFastLock(m_cs);
@@ -3160,7 +3160,7 @@ bool WinUtil::setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int w
 				{
 					::SetBkColor(dst_hdc, clr);
 					RECT rc = { 0, 0, width, height };
-					::ExtTextOut(dst_hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL); // TODO - тут выводится пустота?
+					::ExtTextOut(dst_hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL); // TODO - ГІГіГІ ГўГ»ГўГ®Г¤ГЁГІГ±Гї ГЇГіГ±ГІГ®ГІГ ?
 				}
 #endif // FLYLINKDC_SUPPORT_WIN_XP
 				// Draw the icon into the compatible DC
@@ -3401,7 +3401,7 @@ TCHAR WinUtil::CharTranscode(const TCHAR msg)
 {
 
 	static const TCHAR Lat[] = L"`qwertyuiop[]asdfghjkl;'zxcvbnm,./~!@#$%^&*()_+|QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>?";
-	static const TCHAR Rus[] = L"ёйцукенгшщзхъфывапролджэячсмитьбю.Ё!\"№;%:?*()_+/ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,";
+	static const TCHAR Rus[] = L"ВёГ©Г¶ГіГЄГҐГ­ГЈГёГ№Г§ГµГєГґГ»ГўГ ГЇГ°Г®Г«Г¤Г¦ГЅГїГ·Г±Г¬ГЁГІГјГЎГѕ.ВЁ!\"В№;%:?*()_+/Г‰Г–Г“ГЉГ…ГЌГѓГГ™Г‡Г•ГљГ”Г›Г‚ГЂГЏГђГЋГ‹Г„Г†ГќГџГ—Г‘ГЊГ€Г’ГњГЃГћ,";
 	for (size_t i = 0; i < _countof(Lat); i++)
 	{
 		if (msg == Lat[i])
@@ -3500,7 +3500,7 @@ void WinUtil::SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID)
 	tstring endString = s.substr(nEndSel, s.length() - nEndSel);
 	setString = startString;
 	
-	if ((nEndSel - nStartSel) > 0) //Что-то выделено, обрамляем тэгом, курсор ставим в конце
+	if ((nEndSel - nStartSel) > 0) //Г—ГІГ®-ГІГ® ГўГ»Г¤ГҐГ«ГҐГ­Г®, Г®ГЎГ°Г Г¬Г«ГїГҐГ¬ ГІГЅГЈГ®Г¬, ГЄГіГ°Г±Г®Г° Г±ГІГ ГўГЁГ¬ Гў ГЄГ®Г­Г¶ГҐ
 	{
 		setString += startTag;
 		setString += middleString;
@@ -3513,7 +3513,7 @@ void WinUtil::SetBBCodeForCEdit(CEdit& ctrlMessage, WORD wID)
 			ctrlMessage.SetSel(newPosition, newPosition);
 		}
 	}
-	else    // Ничего не выбрано, ставим тэги, курсор между ними
+	else    // ГЌГЁГ·ГҐГЈГ® Г­ГҐ ГўГ»ГЎГ°Г Г­Г®, Г±ГІГ ГўГЁГ¬ ГІГЅГЈГЁ, ГЄГіГ°Г±Г®Г° Г¬ГҐГ¦Г¤Гі Г­ГЁГ¬ГЁ
 	{
 		setString += startTag;
 		const int newPosition = setString.length();
@@ -3534,7 +3534,7 @@ BOOL
 WinUtil::FillRichEditFromString(HWND hwndEditControl, const string& rtfFile)
 {
 	// https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=88785
-	// Посомтреть дампы и починить
+	// ГЏГ®Г±Г®Г¬ГІГ°ГҐГІГј Г¤Г Г¬ГЇГ» ГЁ ГЇГ®Г·ГЁГ­ГЁГІГј
 	// TODO please refactoring this function to use unicode!
 	if (hwndEditControl == NULL)
 		return FALSE;
