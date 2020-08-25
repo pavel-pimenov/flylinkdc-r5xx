@@ -520,7 +520,7 @@ void SettingsManager::setDefaults()
 	setDefault(USE_SYSTEM_ICONS, TRUE);
 	setDefault(POPUP_PMS, TRUE);
 	//setDefault(MIN_UPLOAD_SPEED, 0);
-// Параметры подверженные падению - провести дополнительную валиадцию
+// ГЏГ Г°Г Г¬ГҐГІГ°Г» ГЇГ®Г¤ГўГҐГ°Г¦ГҐГ­Г­Г»ГҐ ГЇГ Г¤ГҐГ­ГЁГѕ - ГЇГ°Г®ГўГҐГ±ГІГЁ Г¤Г®ГЇГ®Г«Г­ГЁГІГҐГ«ГјГ­ГіГѕ ГўГ Г«ГЁГ Г¤Г¶ГЁГѕ
 	setDefault(LOG_FORMAT_POST_DOWNLOAD, "%Y-%m-%d %H:%M:%S: %[target] " + STRING(DOWNLOADED_FROM) + " %[userNI] (%[userCID]), %[fileSI] (%[fileSIchunk]), %[speed], %[time]");
 	setDefault(LOG_FORMAT_POST_UPLOAD, "%Y-%m-%d %H:%M:%S %[source] " + STRING(UPLOADED_TO) + " %[userNI] (%[userCID]), %[fileSI] (%[fileSIchunk]), %[speed], %[time]");
 	setDefault(LOG_FORMAT_MAIN_CHAT, "[%Y-%m-%d %H:%M:%S %[extra]] %[message]");
@@ -980,10 +980,10 @@ void SettingsManager::setDefaults()
 	//setDefault(PROT_USERS, Util::emptyString);
 	//setDefault(MEDIA_PLAYER, 0);
 	setDefault(WMP_FORMAT, "+me playing: '%[title]' at %[bitrate] (Windows Media Player %[version]) %[magnet]");
-	setDefault(ITUNES_FORMAT, "+me listens '%[artist] - %[title]' • listened to %[percent] (%[length], %[bitrate], iTunes %[version]) %[magnet]");
+	setDefault(ITUNES_FORMAT, "+me listens '%[artist] - %[title]' В• listened to %[percent] (%[length], %[bitrate], iTunes %[version]) %[magnet]");
 	setDefault(MPLAYERC_FORMAT, "+me playing: '%[title]' (Media Player Classic) %[magnet]");
 	setDefault(JETAUDIO_FORMAT, "+me listens '%[artist] - %[title]' * listened to %[percent], JetAudio %[version] %[magnet]");
-	setDefault(WINAMP_FORMAT, "+me listen: '%[artist] - %[track] - %[title]' • listened to %[percent] (%[length], %[bitrate], Winamp %[version]) %[magnet]");
+	setDefault(WINAMP_FORMAT, "+me listen: '%[artist] - %[track] - %[title]' В• listened to %[percent] (%[length], %[bitrate], Winamp %[version]) %[magnet]");
 	setDefault(QCDQMP_FORMAT, "+me listen in 'QCD/QMP %[version]': '%[title]' (%[bitrate],%[sample]) (%[elapsed] %[bar] %[length]) %[magnet]");
 	//setDefault(PROT_FAVS, false);
 	setDefault(RAW1_TEXT, "Raw 1");
@@ -1212,7 +1212,7 @@ void SettingsManager::setDefaults()
 #endif
 	setDefault(TTH_GPU_DEV_NUM, -1);
 	setSearchTypeDefaults();
-	// TODO - грузить это из сети и отложенно когда понадобится.
+	// TODO - ГЈГ°ГіГ§ГЁГІГј ГЅГІГ® ГЁГ§ Г±ГҐГІГЁ ГЁ Г®ГІГ«Г®Г¦ГҐГ­Г­Г® ГЄГ®ГЈГ¤Г  ГЇГ®Г­Г Г¤Г®ГЎГЁГІГ±Гї.
 	Util::shrink_to_fit(&strDefaults[STR_FIRST], &strDefaults[STR_LAST]);
 }
 
@@ -1299,7 +1299,7 @@ void SettingsManager::load(const string& aFileName)
 	{
 		//dcassert(0);
 	}
-	catch (const SimpleXMLException&) // TODO Битый конфиг XML https://crash-server.com/Problem.aspx?ProblemID=15638
+	catch (const SimpleXMLException&) // TODO ГЃГЁГІГ»Г© ГЄГ®Г­ГґГЁГЈ XML https://crash-server.com/Problem.aspx?ProblemID=15638
 	{
 		dcassert(0);
 	}
@@ -1369,7 +1369,7 @@ void SettingsManager::load(const string& aFileName)
 		};
 		HKEY hk = nullptr;
 		wstring l_key_path = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\");
-		l_key_path += _T("FlylinkDC++");// _T(APPNAME); // Тут не меняем имя на вип
+		l_key_path += _T("FlylinkDC++");// _T(APPNAME); // Г’ГіГІ Г­ГҐ Г¬ГҐГ­ГїГҐГ¬ ГЁГ¬Гї Г­Г  ГўГЁГЇ
 #ifdef _WIN64
 		l_key_path += _T(" x64_is1");
 #else
@@ -1412,7 +1412,7 @@ void SettingsManager::load(const string& aFileName)
 			if (Text::g_systemCharset == Text::g_code1251)
 			{
 				set(USE_CUSTOM_MENU, true);
-				set(CUSTOM_MENU_PATH, "http://etc.fly-server.ru/etc/custom_menu_RU.xml");
+				set(CUSTOM_MENU_PATH, "http://etc.dchub.net/etc/custom_menu_RU.xml");
 			}
 		}
 		const string l_file = Util::getConfigPath() + "ISP-root.url";
@@ -1435,7 +1435,7 @@ void SettingsManager::load(const string& aFileName)
 	}
 #endif
 	string l_GET_IP = SETTING(URL_GET_IP);
-	Text::replace_all(l_GET_IP, "flylinkdc.ru/", "flylinkdc.com/");
+	Text::replace_all(l_GET_IP, "dchub.net/", "dchub.net/");
 	set(URL_GET_IP, l_GET_IP);
 	
 	string l_result = SETTING(PM_PASSWORD_HINT);
@@ -1457,12 +1457,12 @@ void SettingsManager::load(const string& aFileName)
 		l_result.replace(i, 7, "%[pm_pass]");
 		set(PM_PASSWORD_HINT, l_result);
 	}
-	//  set(PM_PASSWORD_HINT, STRING(DEF_PASSWORD_HINT));    //Жёстко заменить всю строку.
+	//  set(PM_PASSWORD_HINT, STRING(DEF_PASSWORD_HINT));    //Г†ВёГ±ГІГЄГ® Г§Г Г¬ГҐГ­ГЁГІГј ГўГ±Гѕ Г±ГІГ°Г®ГЄГі.
 #ifdef HOURLY_CHECK_UPDATE
 	set(AUTOUPDATE_TIME, 24);
 #endif // HOURLY_CHECK_UPDATE
 	
-	//удалить через несколько релизов
+	//ГіГ¤Г Г«ГЁГІГј Г·ГҐГ°ГҐГ§ Г­ГҐГ±ГЄГ®Г«ГјГЄГ® Г°ГҐГ«ГЁГ§Г®Гў
 	if (strstr(get(TEMP_DOWNLOAD_DIRECTORY).c_str(), "%[targetdir]\\") != 0)
 		set(TEMP_DOWNLOAD_DIRECTORY, "");
 		
@@ -1510,7 +1510,7 @@ void SettingsManager::loadOtherSettings()
 	{
 		//dcassert(0);
 	}
-	catch (const SimpleXMLException&) // TODO Битый конфиг XML https://crash-server.com/Problem.aspx?ProblemID=15638
+	catch (const SimpleXMLException&) // TODO ГЃГЁГІГ»Г© ГЄГ®Г­ГґГЁГЈ XML https://crash-server.com/Problem.aspx?ProblemID=15638
 	{
 		dcassert(0);
 	}
@@ -1670,7 +1670,7 @@ bool SettingsManager::set(StrSetting key, const std::string& value)
 #undef REDUCE_LENGHT
 	}
 	
-	if (l_auto) // Если параметр изменили в момент загрузки - ставим маркер что нужно записаться обратно в файл.
+	if (l_auto) // Г…Г±Г«ГЁ ГЇГ Г°Г Г¬ГҐГІГ° ГЁГ§Г¬ГҐГ­ГЁГ«ГЁ Гў Г¬Г®Г¬ГҐГ­ГІ Г§Г ГЈГ°ГіГ§ГЄГЁ - Г±ГІГ ГўГЁГ¬ Г¬Г Г°ГЄГҐГ° Г·ГІГ® Г­ГіГ¦Г­Г® Г§Г ГЇГЁГ±Г ГІГјГ±Гї Г®ГЎГ°Г ГІГ­Г® Гў ГґГ Г©Г«.
 	{
 		isSet[key] = true;
 	}
