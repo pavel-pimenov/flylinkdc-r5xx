@@ -315,7 +315,7 @@ HubFrame::~HubFrame()
 	safe_delete(m_ctrlChatContainer);
 	ClientManager::getInstance()->putClient(m_client);
 	m_client = nullptr;
-	// На форварде падает
+	// ГЌГ  ГґГ®Г°ГўГ Г°Г¤ГҐ ГЇГ Г¤Г ГҐГІ
 	// dcassert(g_frames.find(server) != g_frames.end());
 	// dcassert(g_frames[server] == this);
 	dcassert(m_userMap.empty());
@@ -361,7 +361,7 @@ LRESULT HubFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 }
 void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 {
-	if (!m_isUpdateColumnsInfoProcessed) // Апдейт колонок делаем только один раз при первой активации т.к. ListItem не разрушается
+	if (!m_isUpdateColumnsInfoProcessed) // ГЂГЇГ¤ГҐГ©ГІ ГЄГ®Г«Г®Г­Г®ГЄ Г¤ГҐГ«Г ГҐГ¬ ГІГ®Г«ГјГЄГ® Г®Г¤ГЁГ­ Г°Г Г§ ГЇГ°ГЁ ГЇГҐГ°ГўГ®Г© Г ГЄГІГЁГўГ Г¶ГЁГЁ ГІ.ГЄ. ListItem Г­ГҐ Г°Г Г§Г°ГіГёГ ГҐГІГ±Гї
 	{
 		FavoriteManager::getInstance()->addListener(this);
 		SettingsManager::getInstance()->addListener(this);
@@ -422,7 +422,7 @@ void HubFrame::updateColumnsInfo(const FavoriteHubEntry *p_fhe)
 		
 		SET_LIST_COLOR_PTR(m_ctrlUsers);
 		m_ctrlUsers->setFlickerFree(Colors::g_bgBrush);
-		// m_ctrlUsers->setSortColumn(-1); // TODO - научится сортировать после активации фрейма а не в начале
+		// m_ctrlUsers->setSortColumn(-1); // TODO - Г­Г ГіГ·ГЁГІГ±Гї Г±Г®Г°ГІГЁГ°Г®ГўГ ГІГј ГЇГ®Г±Г«ГҐ Г ГЄГІГЁГўГ Г¶ГЁГЁ ГґГ°ГҐГ©Г¬Г  Г  Г­ГҐ Гў Г­Г Г·Г Г«ГҐ
 		if (p_fhe && p_fhe->getHeaderSort() >= 0)
 		{
 			m_ctrlUsers->setSortColumn(p_fhe->getHeaderSort());
@@ -551,7 +551,7 @@ void HubFrame::createMessagePanel()
 			dcassert(m_client->getHubUrl() == m_server);
 			const FavoriteHubEntry *fhe = FavoriteManager::getFavoriteHubEntry(m_server);
 			createFavHubMenu(fhe);
-			updateColumnsInfo(fhe); // Настроим колонки списка юзеров
+			updateColumnsInfo(fhe); // ГЌГ Г±ГІГ°Г®ГЁГ¬ ГЄГ®Г«Г®Г­ГЄГЁ Г±ГЇГЁГ±ГЄГ  ГѕГ§ГҐГ°Г®Гў
 			m_ctrlMessage->SetFocus();
 			if (m_ActivateCounter == 1)
 			{
@@ -560,7 +560,7 @@ void HubFrame::createMessagePanel()
 				{
 					firstLoadAllUsers();
 				}
-				updateSplitterPosition(fhe); // Обновим сплитер
+				updateSplitterPosition(fhe); // ГЋГЎГ­Г®ГўГЁГ¬ Г±ГЇГ«ГЁГІГҐГ°
 			}
 			l_is_need_update = true;
 		}
@@ -576,8 +576,8 @@ void HubFrame::createMessagePanel()
 #ifdef SCALOLAZ_HUB_MODE
 			HubModeChange();
 #endif
-			UpdateLayout(TRUE); // TODO - сконструировать статус отдельным методом
-			restoreStatusFromCache(); // Восстанавливать статус нужно после UpdateLayout
+			UpdateLayout(TRUE); // TODO - Г±ГЄГ®Г­Г±ГІГ°ГіГЁГ°Г®ГўГ ГІГј Г±ГІГ ГІГіГ± Г®ГІГ¤ГҐГ«ГјГ­Г»Г¬ Г¬ГҐГІГ®Г¤Г®Г¬
+			restoreStatusFromCache(); // Г‚Г®Г±Г±ГІГ Г­Г ГўГ«ГЁГўГ ГІГј Г±ГІГ ГІГіГ± Г­ГіГ¦Г­Г® ГЇГ®Г±Г«ГҐ UpdateLayout
 		}
 	}
 }
@@ -598,7 +598,7 @@ void HubFrame::destroyMessagePanel(bool p_is_destroy)
 		            }
 		        }
 		        */
-		safe_destroy_window(m_tooltip_hubframe); // использует m_ctrlSwitchPanels и m_ctrlShowUsers и m_ctrlShowMode
+		safe_destroy_window(m_tooltip_hubframe); // ГЁГ±ГЇГ®Г«ГјГ§ГіГҐГІ m_ctrlSwitchPanels ГЁ m_ctrlShowUsers ГЁ m_ctrlShowMode
 		
 #ifdef SCALOLAZ_HUB_MODE
 		safe_destroy_window(m_ctrlShowMode);
@@ -641,7 +641,7 @@ void HubFrame::onBeforeActiveTab(HWND aWnd)
 	if (ClientManager::isStartup() == false)
 	{
 		CFlyLock(g_frames_cs);
-		for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i) // TODO помнить последний и не перебирать все для разрушения.
+		for (auto i = g_frames.cbegin(); i != g_frames.cend(); ++i) // TODO ГЇГ®Г¬Г­ГЁГІГј ГЇГ®Г±Г«ГҐГ¤Г­ГЁГ© ГЁ Г­ГҐ ГЇГҐГ°ГҐГЎГЁГ°Г ГІГј ГўГ±ГҐ Г¤Г«Гї Г°Г Г§Г°ГіГёГҐГ­ГЁГї.
 		{
 			auto& l_frame = i->second;
 			if (!l_frame->isClosedOrShutdown())
@@ -673,7 +673,7 @@ void HubFrame::onInvalidateAfterActiveTab(HWND aWnd)
 			if (m_ctrlStatus)
 			{
 				//m_ctrlStatus->RedrawWindow(NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
-				// TODO подобрать более легкую команду. без этой пропадаю иконки в статусе.
+				// TODO ГЇГ®Г¤Г®ГЎГ°Г ГІГј ГЎГ®Г«ГҐГҐ Г«ГҐГЈГЄГіГѕ ГЄГ®Г¬Г Г­Г¤Гі. ГЎГҐГ§ ГЅГІГ®Г© ГЇГ°Г®ГЇГ Г¤Г Гѕ ГЁГЄГ®Г­ГЄГЁ Гў Г±ГІГ ГІГіГ±ГҐ.
 				m_ctrlShowUsers->Invalidate();
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 				m_ctrlSwitchPanels->Invalidate();
@@ -1051,7 +1051,7 @@ FavoriteHubEntry* HubFrame::addAsFavorite(const FavoriteManager::AutoStartType p
 		addStatus(l_autoConnect ? TSTRING(AUTO_CONNECT_ADDED) : TSTRING(AUTO_CONNECT_REMOVED));
 	}
 	createFavHubMenu(existingHub);
-	dcassert(existingHub); // Функция возвращает иногда nullptr https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=39084
+	dcassert(existingHub); // Г”ГіГ­ГЄГ¶ГЁГї ГўГ®Г§ГўГ°Г Г№Г ГҐГІ ГЁГ­Г®ГЈГ¤Г  nullptr https://crash-server.com/DumpGroup.aspx?ClientID=guest&DumpGroupID=39084
 	return existingHub;
 }
 
@@ -1330,7 +1330,7 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 			ui = l_item.first->second;
 		}
 	}
-	if (l_is_insert) // Новая запись
+	if (l_is_insert) // ГЌГ®ГўГ Гї Г§Г ГЇГЁГ±Гј
 	{
 		if (m_showUsers)
 		{
@@ -1342,11 +1342,11 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 			return true;
 		}
 	}
-	if (ui == nullptr) // Юзер скрыт или хаб
+	if (ui == nullptr) // ГћГ§ГҐГ° Г±ГЄГ°Г»ГІ ГЁГ«ГЁ ГµГ ГЎ
 	{
 		return false;
 	}
-	else // Юзера нашли и нужно обновить
+	else // ГћГ§ГҐГ°Г  Г­Г ГёГ«ГЁ ГЁ Г­ГіГ¦Г­Г® Г®ГЎГ­Г®ГўГЁГІГј
 	{
 		if (ui->isHidden())
 		{
@@ -1366,24 +1366,24 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 			if (m_showUsers)
 			{
 				//dcassert(!client->is_all_my_info_loaded());
-				// [!] TODO if (m_client->is_all_my_info_loaded()) // TODO нельзя тут отключать иначе глючит обновления своего ника если хаб PtoX у самого себя шара = 0
+				// [!] TODO if (m_client->is_all_my_info_loaded()) // TODO Г­ГҐГ«ГјГ§Гї ГІГіГІ Г®ГІГЄГ«ГѕГ·Г ГІГј ГЁГ­Г Г·ГҐ ГЈГ«ГѕГ·ГЁГІ Г®ГЎГ­Г®ГўГ«ГҐГ­ГЁГї Г±ГўГ®ГҐГЈГ® Г­ГЁГЄГ  ГҐГ±Г«ГЁ ГµГ ГЎ PtoX Гі Г±Г Г¬Г®ГЈГ® Г±ГҐГЎГї ГёГ Г°Г  = 0
 				if (m_ctrlUsers)
 				{
 					m_needsResort |= ui->is_update(m_ctrlUsers->getSortColumn());
 					const int pos = m_ctrlUsers->findItem(ui);
 					if (pos != -1)
 					{
-						// Для невидимых юзеров тоже нужно апдейтить колонки (Шара/сообщения и т.д.
-						// if (pos >= l_top_index && pos <= l_top_index + m_ctrlUsers->GetCountPerPage()) // TODO m_ctrlUsers->GetCountPerPage() закешировать?
+						// Г„Г«Гї Г­ГҐГўГЁГ¤ГЁГ¬Г»Гµ ГѕГ§ГҐГ°Г®Гў ГІГ®Г¦ГҐ Г­ГіГ¦Г­Г® Г ГЇГ¤ГҐГ©ГІГЁГІГј ГЄГ®Г«Г®Г­ГЄГЁ (ГГ Г°Г /Г±Г®Г®ГЎГ№ГҐГ­ГЁГї ГЁ ГІ.Г¤.
+						// if (pos >= l_top_index && pos <= l_top_index + m_ctrlUsers->GetCountPerPage()) // TODO m_ctrlUsers->GetCountPerPage() Г§Г ГЄГҐГёГЁГ°Г®ГўГ ГІГј?
 						{
 #if 0
 #ifdef _DEBUG
 							const int l_top_index = m_ctrlUsers->GetTopIndex();
 							const int l_item_count = m_ctrlUsers->GetItemCount();
 							
-							//if (Text::toT(ui->getUser()->getLastNick()) == _T("Талисман"))
+							//if (Text::toT(ui->getUser()->getLastNick()) == _T("Г’Г Г«ГЁГ±Г¬Г Г­"))
 							//{
-							//  LogManager::message("Талисман");
+							//  LogManager::message("Г’Г Г«ГЁГ±Г¬Г Г­");
 							//}
 							LogManager::message("[!!!!!!!!!!!] bool HubFrame::updateUser! ui->getUser()->getLastNick() = " + ui->getUser()->getLastNick()
 							                    + " top/count_per_page/all_count = " +
@@ -1421,7 +1421,7 @@ bool HubFrame::updateUser(const OnlineUserPtr& p_ou, const int p_index_column)
 					}
 					else
 					{
-						// Не нашли элемент - он спрятан фильтром
+						// ГЌГҐ Г­Г ГёГ«ГЁ ГЅГ«ГҐГ¬ГҐГ­ГІ - Г®Г­ Г±ГЇГ°ГїГІГ Г­ ГґГЁГ«ГјГІГ°Г®Г¬
 						// dcassert(0);
 					}
 				}
@@ -1464,12 +1464,12 @@ void HubFrame::addStatus(const tstring& aLine, const bool bInChat /*= true*/, co
 			const auto l_marker_current_ip = m_last_hub_message.find(l_ipT);
 			if (l_marker_current_ip != tstring::npos)
 			{
-				// 1. Сохраняем последнее сообщение которое приходит от бота или хаба
-				// 2. Если после этого получаем дисконнект - переходим к парсингу последней мессаги хаба.
-				// 3. Ищем упоминание текущего IP в строке
-				// 4. Если нашли - ищем следующий IP и используем его значение при следующем подключении к этому хабу
+				// 1. Г‘Г®ГµГ°Г Г­ГїГҐГ¬ ГЇГ®Г±Г«ГҐГ¤Г­ГҐГҐ Г±Г®Г®ГЎГ№ГҐГ­ГЁГҐ ГЄГ®ГІГ®Г°Г®ГҐ ГЇГ°ГЁГµГ®Г¤ГЁГІ Г®ГІ ГЎГ®ГІГ  ГЁГ«ГЁ ГµГ ГЎГ 
+				// 2. Г…Г±Г«ГЁ ГЇГ®Г±Г«ГҐ ГЅГІГ®ГЈГ® ГЇГ®Г«ГіГ·Г ГҐГ¬ Г¤ГЁГ±ГЄГ®Г­Г­ГҐГЄГІ - ГЇГҐГ°ГҐГµГ®Г¤ГЁГ¬ ГЄ ГЇГ Г°Г±ГЁГ­ГЈГі ГЇГ®Г±Г«ГҐГ¤Г­ГҐГ© Г¬ГҐГ±Г±Г ГЈГЁ ГµГ ГЎГ .
+				// 3. Г€Г№ГҐГ¬ ГіГЇГ®Г¬ГЁГ­Г Г­ГЁГҐ ГІГҐГЄГіГ№ГҐГЈГ® IP Гў Г±ГІГ°Г®ГЄГҐ
+				// 4. Г…Г±Г«ГЁ Г­Г ГёГ«ГЁ - ГЁГ№ГҐГ¬ Г±Г«ГҐГ¤ГіГѕГ№ГЁГ© IP ГЁ ГЁГ±ГЇГ®Г«ГјГ§ГіГҐГ¬ ГҐГЈГ® Г§Г­Г Г·ГҐГ­ГЁГҐ ГЇГ°ГЁ Г±Г«ГҐГ¤ГіГѕГ№ГҐГ¬ ГЇГ®Г¤ГЄГ«ГѕГ·ГҐГ­ГЁГЁ ГЄ ГЅГІГ®Г¬Гі ГµГ ГЎГі
 				
-				// RusHub "В поисковом запросе вы отсылаете неверный IP адрес: 127.0.0.1, ваш реальный IP: 172.23.17.18."
+				// RusHub "Г‚ ГЇГ®ГЁГ±ГЄГ®ГўГ®Г¬ Г§Г ГЇГ°Г®Г±ГҐ ГўГ» Г®ГІГ±Г»Г«Г ГҐГІГҐ Г­ГҐГўГҐГ°Г­Г»Г© IP Г Г¤Г°ГҐГ±: 127.0.0.1, ГўГ Гё Г°ГҐГ Г«ГјГ­Г»Г© IP: 172.23.17.18."
 				// <[BOT]VerliHub> Active Search: your IP is not 10.255.252.2 but 10.64.0.135. Disconnecting
 				// <VerliHub> Active Search: Your ip is not 192.168.###.### it is 192.168.###.### bye bye.
 				// <VerliHub> Your reported IP: 192.168.###.### does not match your real IP: 192.168.###.###
@@ -1558,7 +1558,7 @@ void HubFrame::doDisconnected()
 		m_needsUpdateStats = true;
 	}
 }
-#if 0 // Нельзя включит - мигают часы
+#if 0 // ГЌГҐГ«ГјГ§Гї ГўГЄГ«ГѕГ·ГЁГІ - Г¬ГЁГЈГ ГѕГІ Г·Г Г±Г»
 LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled */)
 {
 	if (ClientManager::isBeforeShutdown())
@@ -1575,7 +1575,7 @@ LRESULT HubFrame::OnSpeakerRange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 				{
 					const Identity& id    = (*l_ou)->getIdentity();
 					const UserPtr& user   = (*l_ou)->getUser();
-					const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(user); // [!] TODO: в ядро!
+					const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(user); // [!] TODO: Гў ГїГ¤Г°Г®!
 					if (isFavorite)
 					{
 						PLAY_SOUND(SOUND_FAVUSER);
@@ -1738,7 +1738,7 @@ void HubFrame::updateUserJoin(const OnlineUserPtr& p_ou)
 			if (m_client->is_all_my_info_loaded())
 			{
 				dcassert(!id.getNickT().empty());
-				const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(p_ou->getUser()); // [!] TODO: в ядро!
+				const bool isFavorite = !FavoriteManager::isNoFavUserOrUserBanUpload(p_ou->getUser()); // [!] TODO: Гў ГїГ¤Г°Г®!
 				if (isFavorite)
 				{
 					PLAY_SOUND(SOUND_FAVUSER);
@@ -1834,7 +1834,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 				{
 					const OnlineUserTask& u = static_cast<OnlineUserTask&>(*i->second);
 					m_needsUpdateStats |= updateUser(u.m_ou, COLUMN_EXACT_SHARED);
-					m_needsUpdateStats |= updateUser(u.m_ou, COLUMN_SHARED); // TODO  передать второй параметр
+					m_needsUpdateStats |= updateUser(u.m_ou, COLUMN_SHARED); // TODO  ГЇГҐГ°ГҐГ¤Г ГІГј ГўГІГ®Г°Г®Г© ГЇГ Г°Г Г¬ГҐГІГ°
 				}
 				break;
 #endif
@@ -1997,7 +1997,7 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 						{
 							m_last_count_resort = l_count_item;
 							m_needsResort = false;
-							m_ctrlUsers->resort(); // убран ресорт если окно не активное!
+							m_ctrlUsers->resort(); // ГіГЎГ°Г Г­ Г°ГҐГ±Г®Г°ГІ ГҐГ±Г«ГЁ Г®ГЄГ­Г® Г­ГҐ Г ГЄГІГЁГўГ­Г®ГҐ!
 #ifdef _DEBUG
 							//LogManager::message("Resort! Hub = " + m_client->getHubUrl() + " count = " + Util::toString(m_ctrlUsers ? l_count_item : 0));
 #endif
@@ -2145,11 +2145,11 @@ void HubFrame::updateWindowText()
 	dcassert(!isClosedOrShutdown());
 	if (isClosedOrShutdown())
 		return;
-	if (ClientManager::isStartup() == false) // Пока конструируемся не нужно апдейтить текст
+	if (ClientManager::isStartup() == false) // ГЏГ®ГЄГ  ГЄГ®Г­Г±ГІГ°ГіГЁГ°ГіГҐГ¬Г±Гї Г­ГҐ Г­ГіГ¦Г­Г® Г ГЇГ¤ГҐГ©ГІГЁГІГј ГІГҐГЄГ±ГІ
 	{
 		if (m_is_window_text_update)
 		{
-			// TODO - ограничить размер текста
+			// TODO - Г®ГЈГ°Г Г­ГЁГ·ГЁГІГј Г°Г Г§Г¬ГҐГ° ГІГҐГЄГ±ГІГ 
 			SetWindowText(Text::toT(m_window_text).c_str());
 			m_is_window_text_update = 0;
 			if (m_client->is_all_my_info_loaded())
@@ -2204,11 +2204,11 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 				szCipherLen = WinUtil::getTextWidth(strCipher, m_ctrlStatus->m_hWnd);
 			}
 			int HubPic = 0;
-			int l_hubIcoSize = 0;   // Ширина иконки режима
+			int l_hubIcoSize = 0;   // ГГЁГ°ГЁГ­Г  ГЁГЄГ®Г­ГЄГЁ Г°ГҐГ¦ГЁГ¬Г 
 #ifdef SCALOLAZ_HUB_MODE
 			if (BOOLSETTING(ENABLE_HUBMODE_PIC))
 			{
-				l_hubIcoSize = 22;  // Ширина иконки режима ( 16 px )
+				l_hubIcoSize = 22;  // ГГЁГ°ГЁГ­Г  ГЁГЄГ®Г­ГЄГЁ Г°ГҐГ¦ГЁГ¬Г  ( 16 px )
 				HubPic += l_hubIcoSize;
 			}
 #endif
@@ -2282,9 +2282,9 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 		if (m_ctrlStatus)
 		{
 			TuneSplitterPanes();
-			if (!m_showUsers) // Если список пользователей не отображается.
+			if (!m_showUsers) // Г…Г±Г«ГЁ Г±ГЇГЁГ±Г®ГЄ ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«ГҐГ© Г­ГҐ Г®ГІГ®ГЎГ°Г Г¦Г ГҐГІГ±Гї.
 			{
-				if (GetSinglePaneMode() == SPLIT_PANE_NONE) // Если никакая сторона не скрыта.
+				if (GetSinglePaneMode() == SPLIT_PANE_NONE) // Г…Г±Г«ГЁ Г­ГЁГЄГ ГЄГ Гї Г±ГІГ®Г°Г®Г­Г  Г­ГҐ Г±ГЄГ°Г»ГІГ .
 				{
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 					SetSinglePaneMode((m_isClientUsersSwitch == true) ? SPLIT_PANE_LEFT : SPLIT_PANE_RIGHT);
@@ -2293,10 +2293,10 @@ void HubFrame::UpdateLayout(BOOL bResizeBars /* = TRUE */)
 #endif
 				}
 			}
-			else // Если список пользователей отображается.
+			else // Г…Г±Г«ГЁ Г±ГЇГЁГ±Г®ГЄ ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«ГҐГ© Г®ГІГ®ГЎГ°Г Г¦Г ГҐГІГ±Гї.
 			{
-				if (GetSinglePaneMode() != SPLIT_PANE_NONE) // Если какая-то сторона скрыта.
-					SetSinglePaneMode(SPLIT_PANE_NONE); // Никакая сторона не скрыта.
+				if (GetSinglePaneMode() != SPLIT_PANE_NONE) // Г…Г±Г«ГЁ ГЄГ ГЄГ Гї-ГІГ® Г±ГІГ®Г°Г®Г­Г  Г±ГЄГ°Г»ГІГ .
+					SetSinglePaneMode(SPLIT_PANE_NONE); // ГЌГЁГЄГ ГЄГ Гї Г±ГІГ®Г°Г®Г­Г  Г­ГҐ Г±ГЄГ°Г»ГІГ .
 			}
 			SetSplitterRect(rc);
 		}
@@ -2410,11 +2410,11 @@ void HubFrame::TuneSplitterPanes()
 #ifdef SCALOLAZ_HUB_SWITCH_BTN
 		if (m_isClientUsersSwitch == true)
 		{
-			SetSplitterPanes(ctrlClient.m_hWnd, m_ctrlUsers->m_hWnd, false); // Чат, список пользователей.
+			SetSplitterPanes(ctrlClient.m_hWnd, m_ctrlUsers->m_hWnd, false); // Г—Г ГІ, Г±ГЇГЁГ±Г®ГЄ ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«ГҐГ©.
 		}
-		else // Если список пользователей слева.
+		else // Г…Г±Г«ГЁ Г±ГЇГЁГ±Г®ГЄ ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«ГҐГ© Г±Г«ГҐГўГ .
 		{
-			SetSplitterPanes(m_ctrlUsers->m_hWnd, ctrlClient.m_hWnd, false); // Список пользователей, чат.
+			SetSplitterPanes(m_ctrlUsers->m_hWnd, ctrlClient.m_hWnd, false); // Г‘ГЇГЁГ±Г®ГЄ ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«ГҐГ©, Г·Г ГІ.
 		}
 #else
 		SetSplitterPanes(ctrlClient.m_hWnd, m_ctrlUsers->m_hWnd, false);
@@ -2517,9 +2517,9 @@ void HubFrame::storeColumsInfo()
 			        (ClientManager::isStartup() == false && ClientManager::isBeforeShutdown() == false) ||
 			        g_frames.size() == 0 && g_is_change == true
 			   )
-				// Сохраняем только на последней итерации,
-				// или когда не закрываем/запускаем приложение.
-				// или если поменялись размеры колонок
+				// Г‘Г®ГµГ°Г Г­ГїГҐГ¬ ГІГ®Г«ГјГЄГ® Г­Г  ГЇГ®Г±Г«ГҐГ¤Г­ГҐГ© ГЁГІГҐГ°Г Г¶ГЁГЁ,
+				// ГЁГ«ГЁ ГЄГ®ГЈГ¤Г  Г­ГҐ Г§Г ГЄГ°Г»ГўГ ГҐГ¬/Г§Г ГЇГіГ±ГЄГ ГҐГ¬ ГЇГ°ГЁГ«Г®Г¦ГҐГ­ГЁГҐ.
+				// ГЁГ«ГЁ ГҐГ±Г«ГЁ ГЇГ®Г¬ГҐГ­ГїГ«ГЁГ±Гј Г°Г Г§Г¬ГҐГ°Г» ГЄГ®Г«Г®Г­Г®ГЄ
 			{
 				FavoriteManager::save_favorites();
 				g_is_change = false;
@@ -2603,7 +2603,7 @@ void HubFrame::clearUserList()
 	//CFlyBusyBool l_busy(m_is_delete_all_items);
 	if (m_ctrlUsers)
 	{
-		CLockRedraw<> l_lock_draw(*m_ctrlUsers); // TODO это нужно или опустить ниже?
+		CLockRedraw<> l_lock_draw(*m_ctrlUsers); // TODO ГЅГІГ® Г­ГіГ¦Г­Г® ГЁГ«ГЁ Г®ГЇГіГ±ГІГЁГІГј Г­ГЁГ¦ГҐ?
 		m_ctrlUsers->DeleteAllItems();
 	}
 	{
@@ -2743,7 +2743,7 @@ void HubFrame::addLine(const Identity& p_from, const bool bMyMess, const bool bT
 		StringMap params;
 		
 		params["message"] = ChatMessage::formatNick(p_from.getNick(), bThirdPerson) + Text::fromT(aLine);
-		// TODO crash "<-FTTBkhv-> Running Verlihub 1.0.0 build Fri Mar 30 2012 ][ Runtime: 5 дн. 15 час. ][ User count: 533"
+		// TODO crash "<-FTTBkhv-> Running Verlihub 1.0.0 build Fri Mar 30 2012 ][ Runtime: 5 Г¤Г­. 15 Г·Г Г±. ][ User count: 533"
 		if (!extra.empty())
 			params["extra"] = Text::fromT(extra);
 			
@@ -2768,7 +2768,7 @@ LRESULT HubFrame::onTabContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 	m_isTabMenuShown = true;
 	OMenu* l_tabMenu = createTabMenu();
 	const string& l_name = m_client->getHubName();
-	l_tabMenu->InsertSeparatorFirst(Text::toT(!l_name.empty() ? (l_name.size() > 50 ? l_name.substr(0, 50) + "…" : l_name) : m_client->getHubUrl()));
+	l_tabMenu->InsertSeparatorFirst(Text::toT(!l_name.empty() ? (l_name.size() > 50 ? l_name.substr(0, 50) + "В…" : l_name) : m_client->getHubUrl()));
 	appendUcMenu(*m_tabMenu, ::UserCommand::CONTEXT_HUB, m_client->getHubUrl());
 	hSysMenu.Attach((wParam == NULL) ? (HMENU)*m_tabMenu : (HMENU)wParam);
 	if (wParam != NULL)
@@ -3069,7 +3069,7 @@ LRESULT HubFrame::onFileReconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 	initShowJoins(fhe);
 	if ((!fhe || fhe->getNick().empty()) && SETTING(NICK).empty())
 	{
-		MessageBox(CTSTRING(ENTER_NICK), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_ICONSTOP | MB_OK);// TODO Добавить адрес хаба в сообщение
+		MessageBox(CTSTRING(ENTER_NICK), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_ICONSTOP | MB_OK);// TODO Г„Г®ГЎГ ГўГЁГІГј Г Г¤Г°ГҐГ± ГµГ ГЎГ  Гў Г±Г®Г®ГЎГ№ГҐГ­ГЁГҐ
 		return 0;
 	}
 	m_client->reconnect();
@@ -3336,11 +3336,11 @@ void HubFrame::closeAll(size_t thershold)
 {
 	if (thershold == 0)
 	{
-		// Ускорим закрытие всех хабов
+		// Г“Г±ГЄГ®Г°ГЁГ¬ Г§Г ГЄГ°Г»ГІГЁГҐ ГўГ±ГҐГµ ГµГ ГЎГ®Гў
 		FavoriteManager::getInstance()->prepareClose();
 		ClientManager::getInstance()->prepareClose();
-		// ClientManager::getInstance()->prepareClose(); // Отпишемся от подписок клиента
-		// SearchManager::getInstance()->prepareClose(); // Отпишемся от подписок поиска
+		// ClientManager::getInstance()->prepareClose(); // ГЋГІГЇГЁГёГҐГ¬Г±Гї Г®ГІ ГЇГ®Г¤ГЇГЁГ±Г®ГЄ ГЄГ«ГЁГҐГ­ГІГ 
+		// SearchManager::getInstance()->prepareClose(); // ГЋГІГЇГЁГёГҐГ¬Г±Гї Г®ГІ ГЇГ®Г¤ГЇГЁГ±Г®ГЄ ГЇГ®ГЁГ±ГЄГ 
 	}
 	{
 		CFlyLock(g_frames_cs);
@@ -3389,7 +3389,7 @@ void HubFrame::timer_process_all()
 	{
 		if (!i->second->isClosedOrShutdown())
 		{
-			i->second->timer_process_internal(); // TODO прокинуть флаг видимости чтобы не обнвлять статус
+			i->second->timer_process_internal(); // TODO ГЇГ°Г®ГЄГЁГ­ГіГІГј ГґГ«Г ГЈ ГўГЁГ¤ГЁГ¬Г®Г±ГІГЁ Г·ГІГ®ГЎГ» Г­ГҐ Г®ГЎГ­ГўГ«ГїГІГј Г±ГІГ ГІГіГ±
 		}
 	}
 }
@@ -3447,7 +3447,7 @@ void HubFrame::timer_process_internal()
 				if (!m_is_first_goto_end)
 				{
 					m_is_first_goto_end = true;
-					ctrlClient.GoToEnd(true); // Пока не пашет и не появляется скроллер
+					ctrlClient.GoToEnd(true); // ГЏГ®ГЄГ  Г­ГҐ ГЇГ ГёГҐГІ ГЁ Г­ГҐ ГЇГ®ГїГўГ«ГїГҐГІГ±Гї Г±ГЄГ°Г®Г«Г«ГҐГ°
 				}
 #endif
 			}
@@ -3515,7 +3515,7 @@ void HubFrame::on(Connecting, const Client*) noexcept
 	// speak(ADD_STATUS_LINE, STRING(CONNECTING_TO) + ' ' + l_url_hub + " ...");
 	// force_speak();
 	addStatus(Text::toT(STRING(CONNECTING_TO) + ' ' + l_url_hub + " ..."));
-	// Явно звать addStatus нельзя - вешаемся почему-то
+	// ГџГўГ­Г® Г§ГўГ ГІГј addStatus Г­ГҐГ«ГјГ§Гї - ГўГҐГёГ ГҐГ¬Г±Гї ГЇГ®Г·ГҐГ¬Гі-ГІГ®
 	++m_hub_name_update_count;
 }
 void HubFrame::on(ClientListener::Connected, const Client* c) noexcept
@@ -3780,7 +3780,7 @@ void HubFrame::onTimerHubUpdated()
 		
 		setShortHubName(Text::toT(fullHubName));
 		
-		if (!BOOLSETTING(SHOW_FULL_HUB_INFO_ON_TAB)) // Не показываем инфу с хаба
+		if (!BOOLSETTING(SHOW_FULL_HUB_INFO_ON_TAB)) // ГЌГҐ ГЇГ®ГЄГ Г§Г»ГўГ ГҐГ¬ ГЁГ­ГґГі Г± ГµГ ГЎГ 
 		{
 			if (!m_client->getName().empty())
 			{
@@ -4569,7 +4569,7 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 		return CDRF_DODEFAULT;
 	}
 	// http://forums.codeguru.com/showthread.php?512490-NM_CUSTOMDRAW-on-Listview
-	// Последовательность событий при отрисовке
+	// ГЏГ®Г±Г«ГҐГ¤Г®ГўГ ГІГҐГ«ГјГ­Г®Г±ГІГј Г±Г®ГЎГ»ГІГЁГ© ГЇГ°ГЁ Г®ГІГ°ГЁГ±Г®ГўГЄГҐ
 	CRect rc;
 	LPNMLVCUSTOMDRAW cd = reinterpret_cast<LPNMLVCUSTOMDRAW>(pnmh);
 	switch (cd->nmcd.dwDrawStage)
@@ -4783,13 +4783,13 @@ LRESULT HubFrame::onCustomDraw(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 
 void HubFrame::addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param)
 {
-	// Данная функция ломает меню - http://youtu.be/GaWw-S4ZYJA
-	// Причину пока не знаю - есть краши https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=27075
-	// L: ретурн убрал, ведь не помогло же! return; // http://www.flylinkdc.ru/2013/07/flylinkdc-r502-beta92-build-14457.html
+	// Г„Г Г­Г­Г Гї ГґГіГ­ГЄГ¶ГЁГї Г«Г®Г¬Г ГҐГІ Г¬ГҐГ­Гѕ - http://youtu.be/GaWw-S4ZYJA
+	// ГЏГ°ГЁГ·ГЁГ­Гі ГЇГ®ГЄГ  Г­ГҐ Г§Г­Г Гѕ - ГҐГ±ГІГј ГЄГ°Г ГёГЁ https://crash-server.com/Problem.aspx?ClientID=guest&ProblemID=27075
+	// L: Г°ГҐГІГіГ°Г­ ГіГЎГ°Г Г«, ГўГҐГ¤Гј Г­ГҐ ГЇГ®Г¬Г®ГЈГ«Г® Г¦ГҐ! return; // http
 	/*
 	r502-beta94-x64 build 14474
-	косяк с пкм после alt+d ни куда не делся
-	L: есть значительная вероятность того, что после моего рефакторинга проблемы исчезнут, прошу отписаться.
+	ГЄГ®Г±ГїГЄ Г± ГЇГЄГ¬ ГЇГ®Г±Г«ГҐ alt+d Г­ГЁ ГЄГіГ¤Г  Г­ГҐ Г¤ГҐГ«Г±Гї
+	L: ГҐГ±ГІГј Г§Г­Г Г·ГЁГІГҐГ«ГјГ­Г Гї ГўГҐГ°Г®ГїГІГ­Г®Г±ГІГј ГІГ®ГЈГ®, Г·ГІГ® ГЇГ®Г±Г«ГҐ Г¬Г®ГҐГЈГ® Г°ГҐГґГ ГЄГІГ®Г°ГЁГ­ГЈГ  ГЇГ°Г®ГЎГ«ГҐГ¬Г» ГЁГ±Г·ГҐГ§Г­ГіГІ, ГЇГ°Г®ГёГі Г®ГІГЇГЁГ±Г ГІГјГ±Гї.
 	*/
 	vector<std::pair<tstring, UINT> > l_menu_strings;
 	{
@@ -4809,7 +4809,7 @@ void HubFrame::addDupeUsersToSummaryMenu(ClientManager::UserParams& p_param)
 				const auto l_cur_ip = l_id.getUser()->getLastIPfromRAM().to_string();
 				if ((p_param.m_bytesShared && l_id.getBytesShared() == p_param.m_bytesShared) ||
 				        (p_param.m_nick == l_id.getNick()) ||
-				        (!p_param.m_ip.empty() && p_param.m_ip == l_cur_ip)) // .getIpAsString() - нельзя она забирает адрес из базы и тормозит
+				        (!p_param.m_ip.empty() && p_param.m_ip == l_cur_ip)) // .getIpAsString() - Г­ГҐГ«ГјГ§Гї Г®Г­Г  Г§Г ГЎГЁГ°Г ГҐГІ Г Г¤Г°ГҐГ± ГЁГ§ ГЎГ Г§Г» ГЁ ГІГ®Г°Г¬Г®Г§ГЁГІ
 				{
 					tstring info = Text::toT(frame->m_client->getHubName() + " ( " + frame->m_client->getHubUrl() + " ) ") + _T(" - ") + i->second->getText(COLUMN_NICK);
 					const UINT flags = (!p_param.m_ip.empty() && p_param.m_ip == l_cur_ip) ? MF_CHECKED : 0;
