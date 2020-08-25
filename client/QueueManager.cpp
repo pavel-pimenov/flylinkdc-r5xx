@@ -405,7 +405,7 @@ bool QueueManager::UserQueue::userIsDownloadedFiles(const UserPtr& aUser, QueueI
 		const auto j = g_userQueueMap[i].find(aUser);
 		if (j != g_userQueueMap[i].end())
 		{
-			p_status_update_array.insert(p_status_update_array.end(), j->second.cbegin(), j->second.cend()); // Без лока?
+			p_status_update_array.insert(p_status_update_array.end(), j->second.cbegin(), j->second.cend()); // ГЃГҐГ§ Г«Г®ГЄГ ?
 			if (i != QueueItem::PAUSED)
 			{
 				hasDown = true;
@@ -431,7 +431,7 @@ void QueueManager::UserQueue::addL(const QueueItemPtr& qi, const UserPtr& aUser,
 #endif
 	auto& uq = g_userQueueMap[qi->getPriority()][aUser];
 	
-// При первой загрузки очереди из базы не зовем calcAverageSpeedAndCalcAndGetDownloadedBytesL
+// ГЏГ°ГЁ ГЇГҐГ°ГўГ®Г© Г§Г ГЈГ°ГіГ§ГЄГЁ Г®Г·ГҐГ°ГҐГ¤ГЁ ГЁГ§ ГЎГ Г§Г» Г­ГҐ Г§Г®ГўГҐГ¬ calcAverageSpeedAndCalcAndGetDownloadedBytesL
 	if (p_is_first_load == false
 	        && (
 #ifdef IRAINMAN_INCLUDE_USER_CHECK
@@ -512,7 +512,7 @@ QueueItemPtr QueueManager::UserQueue::getNextL(const UserPtr& aUser, QueueItem::
 					const auto l_file_slot = (size_t)SETTING(FILE_SLOTS);
 					if (l_file_slot == 0 ||
 					        qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_USER_GET_IP) ||
-					        QueueManager::getRunningFileCount(l_file_slot) < l_file_slot) // TODO - двойной лок
+					        QueueManager::getRunningFileCount(l_file_slot) < l_file_slot) // TODO - Г¤ГўГ®Г©Г­Г®Г© Г«Г®ГЄ
 					{
 						return qi;
 					}
@@ -568,14 +568,14 @@ size_t QueueManager::FileQueue::getRunningFileCount(const size_t p_stop_key)
 		{
 			++l_cnt;
 			if (l_cnt > p_stop_key && p_stop_key != 0)
-				break; // Выходим раньше и не бегаем по всей очереди.
+				break; // Г‚Г»ГµГ®Г¤ГЁГ¬ Г°Г Г­ГјГёГҐ ГЁ Г­ГҐ ГЎГҐГЈГ ГҐГ¬ ГЇГ® ГўГ±ГҐГ© Г®Г·ГҐГ°ГҐГ¤ГЁ.
 		}
-		// TODO - можно не бегать по очереди а считать в онлайне.
-		// Алгоритм:
-		// 1. при удалении из g_queue -1 (если m_queue.download заполнена)
-		// 2  при добавлении к g_queue +1 (если m_queue.download заполнена)
-		// 2. при добавлении в g_queue.download +1
-		// 3. при опустошении g_queue.download -1
+		// TODO - Г¬Г®Г¦Г­Г® Г­ГҐ ГЎГҐГЈГ ГІГј ГЇГ® Г®Г·ГҐГ°ГҐГ¤ГЁ Г  Г±Г·ГЁГІГ ГІГј Гў Г®Г­Г«Г Г©Г­ГҐ.
+		// ГЂГ«ГЈГ®Г°ГЁГІГ¬:
+		// 1. ГЇГ°ГЁ ГіГ¤Г Г«ГҐГ­ГЁГЁ ГЁГ§ g_queue -1 (ГҐГ±Г«ГЁ m_queue.download Г§Г ГЇГ®Г«Г­ГҐГ­Г )
+		// 2  ГЇГ°ГЁ Г¤Г®ГЎГ ГўГ«ГҐГ­ГЁГЁ ГЄ g_queue +1 (ГҐГ±Г«ГЁ m_queue.download Г§Г ГЇГ®Г«Г­ГҐГ­Г )
+		// 2. ГЇГ°ГЁ Г¤Г®ГЎГ ГўГ«ГҐГ­ГЁГЁ Гў g_queue.download +1
+		// 3. ГЇГ°ГЁ Г®ГЇГіГ±ГІГ®ГёГҐГ­ГЁГЁ g_queue.download -1
 	}
 	return l_cnt;
 }
@@ -593,7 +593,7 @@ void QueueManager::FileQueue::calcPriorityAndGetRunningFilesL(bool p_is_calc_pri
 #ifdef FLYLINKDC_USE_RECALC_PRIOR
 			if (p_is_calc_prior)
 			{
-				// TODO calcAverageSpeedAndDownloadedBytes - тяжелая операция зачем зовем так часто?
+				// TODO calcAverageSpeedAndDownloadedBytes - ГІГїГ¦ГҐГ«Г Гї Г®ГЇГҐГ°Г Г¶ГЁГї Г§Г Г·ГҐГ¬ Г§Г®ГўГҐГ¬ ГІГ ГЄ Г·Г Г±ГІГ®?
 				q->calcAverageSpeedAndCalcAndGetDownloadedBytesL();
 				if (q->getAutoPriority())
 				{
@@ -628,7 +628,7 @@ void QueueManager::UserQueue::setQIPriority(const QueueItemPtr& qi, QueueItem::P
 {
 	WLock(*QueueItem::g_cs);
 	removeQueueItemL(qi);
-	qi->setPriority(p); // TODO для установки приоритета - нужно удалить и снова добавить запись в контейнер? - это зовется очень часто
+	qi->setPriority(p); // TODO Г¤Г«Гї ГіГ±ГІГ Г­Г®ГўГЄГЁ ГЇГ°ГЁГ®Г°ГЁГІГҐГІГ  - Г­ГіГ¦Г­Г® ГіГ¤Г Г«ГЁГІГј ГЁ Г±Г­Г®ГўГ  Г¤Г®ГЎГ ГўГЁГІГј Г§Г ГЇГЁГ±Гј Гў ГЄГ®Г­ГІГҐГ©Г­ГҐГ°? - ГЅГІГ® Г§Г®ГўГҐГІГ±Гї Г®Г·ГҐГ­Гј Г·Г Г±ГІГ®
 	addL(qi);
 }
 
@@ -690,7 +690,7 @@ void QueueManager::UserQueue::removeUserL(const QueueItemPtr& qi, const UserPtr&
 		
 		auto& uq = j->second;
 		const auto i = find(uq.begin(), uq.end(), qi);
-		// TODO - перевести на set const auto& i = uq.find(qi);
+		// TODO - ГЇГҐГ°ГҐГўГҐГ±ГІГЁ Г­Г  set const auto& i = uq.find(qi);
 		if (i == uq.cend())
 		{
 			//const string l_error = "Error QueueManager::UserQueue::removeUserL [dcassert(i != uq.cend());] aUser = " +
@@ -995,7 +995,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 		}
 		
 		QueueItemPtr qi;
-		while ((qi = g_fileQueue.findAutoSearch(m_recent)) == nullptr && !m_recent.empty()) // Местами не переставлять findAutoSearch меняет recent
+		while ((qi = g_fileQueue.findAutoSearch(m_recent)) == nullptr && !m_recent.empty()) // ГЊГҐГ±ГІГ Г¬ГЁ Г­ГҐ ГЇГҐГ°ГҐГ±ГІГ ГўГ«ГїГІГј findAutoSearch Г¬ГҐГ­ГїГҐГІ recent
 		{
 			m_recent.pop_front();
 		}
@@ -1205,8 +1205,8 @@ void QueueManager::add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSiz
 	{
 	
 		QueueItemPtr q = QueueManager::FileQueue::find_target(l_target);
-		// По TTH искать нельзя
-		// Проблема описана тут http://www.flylinkdc.ru/2014/04/flylinkdc-strongdc-tth.html
+		// ГЏГ® TTH ГЁГ±ГЄГ ГІГј Г­ГҐГ«ГјГ§Гї
+		// ГЏГ°Г®ГЎГ«ГҐГ¬Г  Г®ГЇГЁГ±Г Г­Г  ГІГіГІ htt
 		if (!q)
 		{
 			if (l_newItem)
@@ -1645,7 +1645,7 @@ void QueueManager::move(const string& aSource, const string& aTarget) noexcept
 		{
 			// Don't move to target of different size
 			if (qs->getSize() != qt->getSize() || qs->getTTH() != qt->getTTH())
-				return; // TODO спросить юзера!
+				return; // TODO Г±ГЇГ°Г®Г±ГЁГІГј ГѕГ§ГҐГ°Г !
 				
 			{
 				WLock(*QueueItem::g_cs);
@@ -1728,7 +1728,7 @@ DownloadPtr QueueManager::getDownload(UserConnection* aSource, string& aMessage)
 		}
 	}
 	
-	// Нельзя звать new Download под локом QueueItem::g_cs
+	// ГЌГҐГ«ГјГ§Гї Г§ГўГ ГІГј new Download ГЇГ®Г¤ Г«Г®ГЄГ®Г¬ QueueItem::g_cs
 	d = std::make_shared<Download>(aSource, q, l_ip, l_chiper_name);
 	aSource->setDownload(d);
 	g_userQueue.addDownload(q, d);
@@ -1841,7 +1841,7 @@ void QueueManager::setFile(const DownloadPtr& d)
 #endif
 		// Only use antifrag if we don't have a previous non-antifrag part
 		// if (BOOLSETTING(ANTI_FRAG))
-		// Всегда юзаем антифрагментатор
+		// Г‚Г±ГҐГЈГ¤Г  ГѕГ§Г ГҐГ¬ Г Г­ГІГЁГґГ°Г ГЈГ¬ГҐГ­ГІГ ГІГ®Г°
 		{
 			if (qi->getSize() != qi->getLastSize())
 			{
@@ -1908,7 +1908,7 @@ void QueueManager::moveFile(const string& p_source, const string& p_target)
 		g_SharedDownloadFileCache.erase(p_source);
 	}
 #endif
-	// TODO - принудительно закрывать файл по имени в пуле
+	// TODO - ГЇГ°ГЁГ­ГіГ¤ГЁГІГҐГ«ГјГ­Г® Г§Г ГЄГ°Г»ГўГ ГІГј ГґГ Г©Г« ГЇГ® ГЁГ¬ГҐГ­ГЁ Гў ГЇГіГ«ГҐ
 	File::ensureDirectory(p_target);
 	if (File::getSize(p_source) > MOVER_LIMIT)
 	{
@@ -1990,7 +1990,7 @@ void QueueManager::fire_sources_updated(const QueueItemPtr& qi)
 	{
 		CFlyLock(m_cs_fire_src);
 		m_fire_src_array.insert(qi->getTarget());
-		// TODO - посчитать сколько позиций экономим
+		// TODO - ГЇГ®Г±Г·ГЁГІГ ГІГј Г±ГЄГ®Г«ГјГЄГ® ГЇГ®Г§ГЁГ¶ГЁГ© ГЅГЄГ®Г­Г®Г¬ГЁГ¬
 	}
 }
 void QueueManager::fire_removed_array(const StringList& p_target_array)
@@ -2253,11 +2253,11 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 					{
 						bool isEmpty;
 						{
-							// TODO - убрать лок тут
+							// TODO - ГіГЎГ°Г ГІГј Г«Г®ГЄ ГІГіГІ
 							RLock(*QueueItem::g_cs);
 							isEmpty = q->calcAverageSpeedAndCalcAndGetDownloadedBytesL() == 0;
 						}
-						// Не затираем путь к временному файлу
+						// ГЌГҐ Г§Г ГІГЁГ°Г ГҐГ¬ ГЇГіГІГј ГЄ ГўГ°ГҐГ¬ГҐГ­Г­Г®Г¬Гі ГґГ Г©Г«Гі
 						//if (isEmpty)
 						//{
 						//  q->setTempTarget(Util::emptyString);
@@ -2460,7 +2460,7 @@ bool QueueManager::removeTarget(const string& aTarget, bool p_is_batch_remove)
 			dcassert(q->getSourcesL().size() == 1);
 			{
 				CFlyFastLock(csDirectories);
-				for_each(m_directories.equal_range(q->getSourcesL().begin()->first) | map_values, DeleteFunction()); // Мутное место
+				for_each(m_directories.equal_range(q->getSourcesL().begin()->first) | map_values, DeleteFunction()); // ГЊГіГІГ­Г®ГҐ Г¬ГҐГ±ГІГ®
 				m_directories.erase(q->getSourcesL().begin()->first);
 			}
 		}
@@ -2573,10 +2573,10 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 				{
 					break;
 					/*
-					Читаем например с с юзера список файлов. В трансфере (внизу, окно передач) висит -1Б ( у меня гавноинторенты, но можно повторить на БОЛЬШОМ файллисте наверное),
-					Идём в Очередь Скачивания. Слева в дереве - в ПКМ на File Lists выбираем Удалить всё / Удалить... бла-бла-бла
-					Внизу в трансфере на строке с -1Б давим ПКМ, выбираем Удалить пользователя из очереди
-					Флай виснет намертво.
+					Г—ГЁГІГ ГҐГ¬ Г­Г ГЇГ°ГЁГ¬ГҐГ° Г± Г± ГѕГ§ГҐГ°Г  Г±ГЇГЁГ±Г®ГЄ ГґГ Г©Г«Г®Гў. Г‚ ГІГ°Г Г­Г±ГґГҐГ°ГҐ (ГўГ­ГЁГ§Гі, Г®ГЄГ­Г® ГЇГҐГ°ГҐГ¤Г Г·) ГўГЁГ±ГЁГІ -1ГЃ ( Гі Г¬ГҐГ­Гї ГЈГ ГўГ­Г®ГЁГ­ГІГ®Г°ГҐГ­ГІГ», Г­Г® Г¬Г®Г¦Г­Г® ГЇГ®ГўГІГ®Г°ГЁГІГј Г­Г  ГЃГЋГ‹ГњГГЋГЊ ГґГ Г©Г«Г«ГЁГ±ГІГҐ Г­Г ГўГҐГ°Г­Г®ГҐ),
+					Г€Г¤ВёГ¬ Гў ГЋГ·ГҐГ°ГҐГ¤Гј Г‘ГЄГ Г·ГЁГўГ Г­ГЁГї. Г‘Г«ГҐГўГ  Гў Г¤ГҐГ°ГҐГўГҐ - Гў ГЏГЉГЊ Г­Г  File Lists ГўГ»ГЎГЁГ°Г ГҐГ¬ Г“Г¤Г Г«ГЁГІГј ГўГ±Вё / Г“Г¤Г Г«ГЁГІГј... ГЎГ«Г -ГЎГ«Г -ГЎГ«Г 
+					Г‚Г­ГЁГ§Гі Гў ГІГ°Г Г­Г±ГґГҐГ°ГҐ Г­Г  Г±ГІГ°Г®ГЄГҐ Г± -1ГЃ Г¤Г ГўГЁГ¬ ГЏГЉГЊ, ГўГ»ГЎГЁГ°Г ГҐГ¬ Г“Г¤Г Г«ГЁГІГј ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«Гї ГЁГ§ Г®Г·ГҐГ°ГҐГ¤ГЁ
+					Г”Г«Г Г© ГўГЁГ±Г­ГҐГІ Г­Г Г¬ГҐГ°ГІГўГ®.
 					*/
 				}
 			}
@@ -2602,8 +2602,8 @@ void QueueManager::removeSource(const UserPtr& aUser, Flags::MaskType reason) no
 				g_userQueue.removeUserL(qi, aUser);
 				isRunning = true;
 				qi->removeSourceL(aUser, reason);
-				fire_status_updated(qi); // TODO возможно залипание тут
-				fire_sources_updated(qi); // TODO возможно залипание тут
+				fire_status_updated(qi); // TODO ГўГ®Г§Г¬Г®Г¦Г­Г® Г§Г Г«ГЁГЇГ Г­ГЁГҐ ГІГіГІ
+				fire_sources_updated(qi); // TODO ГўГ®Г§Г¬Г®Г¦Г­Г® Г§Г Г«ГЁГЇГ Г­ГЁГҐ ГІГіГІ
 				setDirty();
 			}
 		}
@@ -2640,13 +2640,13 @@ void QueueManager::setPriority(const string& aTarget, QueueItem::Priority p) noe
 					// Problem, we have to request connections to all these users...
 					q->getOnlineUsers(l_getConn);
 				}
-				// тут возникает проблема https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1692
-				//g_userQueue.setQIPriority(q, p); // !!!!!!!!!!!!!!!!!! Удаляет и вставляет в массив каждую секунду
-				// Поменял вызов на
+				// ГІГіГІ ГўГ®Г§Г­ГЁГЄГ ГҐГІ ГЇГ°Г®ГЎГ«ГҐГ¬Г  https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1692
+				//g_userQueue.setQIPriority(q, p); // !!!!!!!!!!!!!!!!!! Г“Г¤Г Г«ГїГҐГІ ГЁ ГўГ±ГІГ ГўГ«ГїГҐГІ Гў Г¬Г Г±Г±ГЁГў ГЄГ Г¦Г¤ГіГѕ Г±ГҐГЄГіГ­Г¤Гі
+				// ГЏГ®Г¬ГҐГ­ГїГ« ГўГ»Г§Г®Гў Г­Г 
 				q->setPriority(p);
-				// Ошибка активировалась между билдами 21194 и 21203
-				// в этой ревизии я чинил баг - Убрал прерывание закачки большого кол-во файлов (revert r20612)
-				// В общем путное место.
+				// ГЋГёГЁГЎГЄГ  Г ГЄГІГЁГўГЁГ°Г®ГўГ Г«Г Г±Гј Г¬ГҐГ¦Г¤Гі ГЎГЁГ«Г¤Г Г¬ГЁ 21194 ГЁ 21203
+				// Гў ГЅГІГ®Г© Г°ГҐГўГЁГ§ГЁГЁ Гї Г·ГЁГ­ГЁГ« ГЎГ ГЈ - Г“ГЎГ°Г Г« ГЇГ°ГҐГ°Г»ГўГ Г­ГЁГҐ Г§Г ГЄГ Г·ГЄГЁ ГЎГ®Г«ГјГёГ®ГЈГ® ГЄГ®Г«-ГўГ® ГґГ Г©Г«Г®Гў (revert r20612)
+				// Г‚ Г®ГЎГ№ГҐГ¬ ГЇГіГІГ­Г®ГҐ Г¬ГҐГ±ГІГ®.
 				
 #ifdef _DEBUG
 				LogManager::message("QueueManager g_userQueue.setQIPriority q->getTarget = " + q->getTarget());
@@ -2724,7 +2724,7 @@ void QueueManager::saveQueue(bool p_force /* = false*/) noexcept
 						
 							const CFlySegment l_QueueSegment(qi);
 							l_segment_array.push_back(l_QueueSegment);
-							qi->setDirtySegment(false); // Считаем что обновление сегментов пройдет без ошибок.
+							qi->setDirtySegment(false); // Г‘Г·ГЁГІГ ГҐГ¬ Г·ГІГ® Г®ГЎГ­Г®ГўГ«ГҐГ­ГЁГҐ Г±ГҐГЈГ¬ГҐГ­ГІГ®Гў ГЇГ°Г®Г©Г¤ГҐГІ ГЎГҐГ§ Г®ГёГЁГЎГ®ГЄ.
 						}
 						else if (qi->isDirtyAll())
 						{
@@ -2753,7 +2753,7 @@ void QueueManager::saveQueue(bool p_force /* = false*/) noexcept
 			}
 		}
 	}
-	// Если изменились только сегменты + приоритеты - можно обновить базу без блокировки менеджера очередей
+	// Г…Г±Г«ГЁ ГЁГ§Г¬ГҐГ­ГЁГ«ГЁГ±Гј ГІГ®Г«ГјГЄГ® Г±ГҐГЈГ¬ГҐГ­ГІГ» + ГЇГ°ГЁГ®Г°ГЁГІГҐГІГ» - Г¬Г®Г¦Г­Г® Г®ГЎГ­Г®ГўГЁГІГј ГЎГ Г§Гі ГЎГҐГ§ ГЎГ«Г®ГЄГЁГ°Г®ГўГЄГЁ Г¬ГҐГ­ГҐГ¤Г¦ГҐГ°Г  Г®Г·ГҐГ°ГҐГ¤ГҐГ©
 	if (!l_segment_array.empty())
 	{
 		if (l_segment_array.size() > 10)
@@ -3004,7 +3004,7 @@ void QueueManager::on(SearchManagerListener::SR, const std::unique_ptr<SearchRes
 					}
 					else
 					{
-						// Нашли источник но он не активный еще
+						// ГЌГ ГёГ«ГЁ ГЁГ±ГІГ®Г·Г­ГЁГЄ Г­Г® Г®Г­ Г­ГҐ Г ГЄГІГЁГўГ­Г»Г© ГҐГ№ГҐ
 						if (qi->getPriority() != QueueItem::PAUSED && !g_userQueue.getRunning(p_sr->getUser()))
 						{
 							wantConnection = true;
@@ -3123,7 +3123,7 @@ void QueueManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	QueueItemList l_runningItems;
 	{
 		static int g_filter = 101;
-		if ((g_filter++ % 10) == 0) // Делаем расчет приоритетов реже
+		if ((g_filter++ % 10) == 0) // Г„ГҐГ«Г ГҐГ¬ Г°Г Г±Г·ГҐГІ ГЇГ°ГЁГ®Г°ГЁГІГҐГІГ®Гў Г°ГҐГ¦ГҐ
 		{
 			RLock(*FileQueue::g_csFQ);
 			calcPriorityAndGetRunningFilesL(false, l_priorities, l_runningItems);
@@ -3131,7 +3131,7 @@ void QueueManager::on(TimerManagerListener::Second, uint64_t aTick) noexcept
 	}
 	if (!l_runningItems.empty())
 	{
-		fly_fire1(QueueManagerListener::Tick(), l_runningItems); // Нельзя звать под локом
+		fly_fire1(QueueManagerListener::Tick(), l_runningItems); // ГЌГҐГ«ГјГ§Гї Г§ГўГ ГІГј ГЇГ®Г¤ Г«Г®ГЄГ®Г¬
 	}
 	{
 		StringList l_fire_src_array;
@@ -3243,7 +3243,7 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 		// Any parts for me?
 		wantConnection = qi->isNeededPart(partialSource.getPartialInfo(), blockSize);
 		
-		WLock(*QueueItem::g_cs); // TODO - опустить ниже?
+		WLock(*QueueItem::g_cs); // TODO - Г®ГЇГіГ±ГІГЁГІГј Г­ГЁГ¦ГҐ?
 		
 		// If this user isn't a source and has no parts needed, ignore it
 		auto si = qi->findSourceL(aUser);
@@ -3263,7 +3263,7 @@ bool QueueManager::handlePartialResult(const UserPtr& aUser, const TTHValue& tth
 			{
 				// add this user as partial file sharing source
 				qi->addSourceL(aUser, false);
-				si = qi->findSourceL(aUser); // TODO - повторный поиск?
+				si = qi->findSourceL(aUser); // TODO - ГЇГ®ГўГІГ®Г°Г­Г»Г© ГЇГ®ГЁГ±ГЄ?
 				si->second.setFlag(QueueItem::Source::FLAG_PARTIAL);
 				
 				const auto ps = std::make_shared<QueueItem::PartialSource>(partialSource.getMyNick(),
@@ -3325,7 +3325,7 @@ void QueueManager::FileQueue::findPFSSourcesL(PFSSourceList& sl)
 	QueueItem::SourceListBuffer debug_buffer;
 #endif
 	const uint64_t now = GET_TICK();
-	// TODO - утащить в отдельный метод
+	// TODO - ГіГІГ Г№ГЁГІГј Гў Г®ГІГ¤ГҐГ«ГјГ­Г»Г© Г¬ГҐГІГ®Г¤
 	RLock(*g_csFQ);
 	for (auto i = g_queue.cbegin(); i != g_queue.cend(); ++i)
 	{
@@ -3340,7 +3340,7 @@ void QueueManager::FileQueue::findPFSSourcesL(PFSSourceList& sl)
 		{
 			continue;
 		}
-		if (q->m_is_file_not_exist == false && !File::isExist(q->isFinished() ? q->getTarget() : q->getTempTargetConst())) // Обязательно Const
+		if (q->m_is_file_not_exist == false && !File::isExist(q->isFinished() ? q->getTarget() : q->getTempTargetConst())) // ГЋГЎГїГ§Г ГІГҐГ«ГјГ­Г® Const
 		{
 			q->m_is_file_not_exist = true;
 			continue;
@@ -3349,7 +3349,7 @@ void QueueManager::FileQueue::findPFSSourcesL(PFSSourceList& sl)
 		QueueItem::getPFSSourcesL(q, buffer, now);
 //////////////////
 #ifdef _DEBUG
-		// После отладки убрать сарый вариант наполнения
+		// ГЏГ®Г±Г«ГҐ Г®ГІГ«Г Г¤ГЄГЁ ГіГЎГ°Г ГІГј Г±Г Г°Г»Г© ГўГ Г°ГЁГ Г­ГІ Г­Г ГЇГ®Г«Г­ГҐГ­ГЁГї
 		const auto& sources = q->getSourcesL();
 		const auto& badSources = q->getBadSourcesL();
 		for (auto j = sources.cbegin(); j != sources.cend(); ++j)
