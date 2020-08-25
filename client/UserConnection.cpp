@@ -42,7 +42,7 @@ const string UserConnection::FEATURE_BANMSG = "BanMsg";
 
 const string UserConnection::g_FILE_NOT_AVAILABLE = "File Not Available";
 #if defined (FLYLINKDC_USE_DOS_GUARD) && defined (IRAINMAN_DISALLOWED_BAN_MSG)
-const string UserConnection::g_PLEASE_UPDATE_YOUR_CLIENT = "Please update your DC++ http://flylinkdc.com";
+const string UserConnection::g_PLEASE_UPDATE_YOUR_CLIENT = "Please update your DC++ http://dchub.net";
 #endif
 
 #ifdef FLYLINKDC_USE_BLOCK_ERROR_CMD
@@ -257,7 +257,7 @@ void UserConnection::on(BufferedSocketListener::Line, const string& aLine) noexc
 		        param.rfind(/*path/file*/" no more exists") != string::npos)
 		{
 		
-			if (getDownload()) // Íå ïîíÿòíî ïî÷åìó ïàäàþ òóò - https://drdump.com/Problem.aspx?ProblemID=96544
+			if (getDownload()) // ÃÃ¥ Ã¯Ã®Ã­Ã¿Ã²Ã­Ã® Ã¯Ã®Ã·Ã¥Ã¬Ã³ Ã¯Ã Ã¤Ã Ã¾ Ã²Ã³Ã² - https://drdump.com/Problem.aspx?ProblemID=96544
 			{
 				if (getDownload()->isSet(Download::FLAG_USER_GET_IP)) // Crash https://drdump.com/Problem.aspx?ClientID=guest&ProblemID=90376
 				{
@@ -499,7 +499,7 @@ void UserConnection::fireBytesSent(size_t p_Bytes, size_t p_Actual)
 #endif
 	dcassert(getState() == UserConnection::STATE_RUNNING);
 	getUpload()->addPos(p_Bytes, p_Actual);
-	// getUpload()->tick(l_tick); // - äàííûå êîä åñòü â îðèãèíàëå
+	// getUpload()->tick(l_tick); // - Ã¤Ã Ã­Ã­Ã»Ã¥ ÃªÃ®Ã¤ Ã¥Ã±Ã²Ã¼ Ã¢ Ã®Ã°Ã¨Ã£Ã¨Ã­Ã Ã«Ã¥
 	//fly_fire3(UserConnectionListener::UserBytesSent(), this, p_Bytes, p_Actual);
 }
 
