@@ -123,7 +123,7 @@ LRESULT PublicHubsFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	m_treeContainer.SubclassWindow(m_ctrlTree);
 	
 	
-	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL); // При изменении размеров окна-контейнера размеры разделяемых областей меняются пропорционально.
+	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL); // ГЏГ°ГЁ ГЁГ§Г¬ГҐГ­ГҐГ­ГЁГЁ Г°Г Г§Г¬ГҐГ°Г®Гў Г®ГЄГ­Г -ГЄГ®Г­ГІГҐГ©Г­ГҐГ°Г  Г°Г Г§Г¬ГҐГ°Г» Г°Г Г§Г¤ГҐГ«ГїГҐГ¬Г»Гµ Г®ГЎГ«Г Г±ГІГҐГ© Г¬ГҐГ­ГїГѕГІГ±Гї ГЇГ°Г®ГЇГ®Г°Г¶ГЁГ®Г­Г Г«ГјГ­Г®.
 	SetSplitterPanes(m_ctrlTree.m_hWnd, m_ctrlHubs.m_hWnd);
 	m_nProportionalPos = SETTING(FLYSERVER_HUBLIST_SPLIT);
 	
@@ -339,7 +339,7 @@ void PublicHubsFrame::loadISPHubs()
 	CFlyLog l_log("[ISP Hub Loader]");
 	if (m_isp_raw_data.empty())
 	{
-		const string l_url_config_file = "http://etc.fly-server.ru/etc/isp-hub-list.txt";
+		const string l_url_config_file = "http://etc.dchub.net/etc/isp-hub-list.txt";
 		l_log.step("Download:" + l_url_config_file);
 		if (Util::getDataFromInetSafe(true, l_url_config_file, m_isp_raw_data, 0) == 0)
 		{
@@ -399,15 +399,15 @@ int PublicHubsFrame::calcISPCountryIconIndex(tstring& p_country)
 	// http://www.artlebedev.ru/tools/country-list/
 	static const TCHAR* g_country_map[] =
 	{
-		_T("Россия"), _T("RU"),
-		_T("Украина"), _T("UA"),
-		_T("Беларусь"), _T("BY"),
+		_T("ГђГ®Г±Г±ГЁГї"), _T("RU"),
+		_T("Г“ГЄГ°Г ГЁГ­Г "), _T("UA"),
+		_T("ГЃГҐГ«Г Г°ГіГ±Гј"), _T("BY"),
 		_T("USA"), _T("US"),
-		_T("Казахстан"), _T("KZ"),
-		_T("Узбекистан"), _T("UZ"),
-		_T("Азербайджан"), _T("AZ"),
-		_T("Молдова"), _T("MD"),
-		_T("Эстония"), _T("EE"),
+		_T("ГЉГ Г§Г ГµГ±ГІГ Г­"), _T("KZ"),
+		_T("Г“Г§ГЎГҐГЄГЁГ±ГІГ Г­"), _T("UZ"),
+		_T("ГЂГ§ГҐГ°ГЎГ Г©Г¤Г¦Г Г­"), _T("AZ"),
+		_T("ГЊГ®Г«Г¤Г®ГўГ "), _T("MD"),
+		_T("ГќГ±ГІГ®Г­ГЁГї"), _T("EE"),
 		_T("Bulgaria"), _T("BG"),
 		_T("Brazil"), _T("BR"),
 		_T("Australia"), _T("AS"),
@@ -464,7 +464,7 @@ void PublicHubsFrame::parseISPHubsLine(const string& p_line, CFlyLog& p_log)
 			                                                   0  // hInsertAfter
 			                                                  );
 		}
-		// Город
+		// ГѓГ®Г°Г®Г¤
 		const auto l_city_name = l_isp.getTokens()[2];
 		auto& l_city_item =  l_country_item.m_city[l_city_name];
 		if (!l_city_item.m_tree_item)
@@ -480,7 +480,7 @@ void PublicHubsFrame::parseISPHubsLine(const string& p_line, CFlyLog& p_log)
 			                                                0  // hInsertAfter
 			                                               );
 		}
-		// Провайдер
+		// ГЏГ°Г®ГўГ Г©Г¤ГҐГ°
 		const auto l_isp_name = l_isp.getTokens()[3];
 		auto& l_isp_item =  l_city_item.m_isp[l_isp_name];
 		if (!l_isp_item.m_tree_item)
@@ -496,7 +496,7 @@ void PublicHubsFrame::parseISPHubsLine(const string& p_line, CFlyLog& p_log)
 			                                               0  // hInsertAfter
 			                                              );
 		}
-		// Сеть
+		// Г‘ГҐГІГј
 		const auto l_network_name = l_isp.getTokens()[4];
 		auto& l_network_item      =  l_isp_item.m_network[l_network_name];
 		if (!l_network_name.empty())
@@ -515,7 +515,7 @@ void PublicHubsFrame::parseISPHubsLine(const string& p_line, CFlyLog& p_log)
 				                                                  );
 			}
 		}
-		// Хабы
+		// Г•Г ГЎГ»
 		const StringTokenizer<string> l_hubs(l_isp.getTokens()[5], ',');
 		for (auto j = l_hubs.getTokens().cbegin(); j != l_hubs.getTokens().cend() ; ++j)
 		{
