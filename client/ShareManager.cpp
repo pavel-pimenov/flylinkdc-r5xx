@@ -31,7 +31,7 @@
 #include "../FlyFeatures/flyServer.h"
 #include "../windows/resource.h"
 
-bool ShareManager::g_ignoreFileSizeHFS = false; // http://www.flylinkdc.ru/2015/01/hfs-mac-windows.html
+bool ShareManager::g_ignoreFileSizeHFS = false; // http
 size_t ShareManager::g_hits = 0;
 int ShareManager::g_RebuildIndexes = 0;
 std::unique_ptr<webrtc::RWLockWrapper> ShareManager::g_csBloom = std::unique_ptr<webrtc::RWLockWrapper>(webrtc::RWLockWrapper::CreateRWLock());
@@ -660,7 +660,7 @@ void ShareManager::load(SimpleXML& aXml)
 				const string virtualName = aXml.getChildAttrib("Virtual");
 				const string vName = validateVirtual(virtualName.empty() ? Util::getLastDir(realPath) : virtualName);
 				g_lost_shares.insert(std::make_pair(realPath, CFlyBaseDirItem(vName, 0)));
-				if (File::isExist(realPath)) // Если каталог появился - добавим его в запрос на возврат в шару...
+				if (File::isExist(realPath)) // Г…Г±Г«ГЁ ГЄГ ГІГ Г«Г®ГЈ ГЇГ®ГїГўГЁГ«Г±Гї - Г¤Г®ГЎГ ГўГЁГ¬ ГҐГЈГ® Гў Г§Г ГЇГ°Г®Г± Г­Г  ГўГ®Г§ГўГ°Г ГІ Гў ГёГ Г°Гі...
 				{
 					string l_message_lost_share = "\r\n< " + virtualName + " >  " + realPath + "\r\n";
 					tstring l_message = TSTRING(RESTORE_LOST_SHARE);
@@ -734,7 +734,7 @@ struct ShareLoader : public SimpleXMLReader::CallBack
 				const string& fname = getAttrib(p_attribs, g_SName, 0);
 				const string& size = getAttrib(p_attribs, g_SSize, 1);
 				const string& root = getAttrib(p_attribs, g_STTH, 2);
-				// Это атрибуты флая
+				// ГќГІГ® Г ГІГ°ГЁГЎГіГІГ» ГґГ«Г Гї
 				const auto l_time_stamp = atoi(getAttrib(p_attribs, g_STS, 3).c_str());
 				const auto l_hit_count = getAttrib(p_attribs, g_SHit, 3);
 				if (fname.empty() || size.empty() || root.size() != 39)
@@ -751,7 +751,7 @@ struct ShareLoader : public SimpleXMLReader::CallBack
 				dcassert(it.second);
 				auto f = const_cast<ShareManager::Directory::ShareFile*>(&(*it.first));
 				f->initLowerName();
-				if (it.second && p_attribs.size() > 4) // Это уже наша шара. тут медиаинфа если больше 4-х.
+				if (it.second && p_attribs.size() > 4) // ГќГІГ® ГіГ¦ГҐ Г­Г ГёГ  ГёГ Г°Г . ГІГіГІ Г¬ГҐГ¤ГЁГ ГЁГ­ГґГ  ГҐГ±Г«ГЁ ГЎГ®Г«ГјГёГҐ 4-Гµ.
 				{
 					const string& l_audio = getAttrib(p_attribs, g_SMAudio, 3);
 					const string& l_video = getAttrib(p_attribs, g_SMVideo, 3);
@@ -766,7 +766,7 @@ struct ShareLoader : public SimpleXMLReader::CallBack
 					}
 					else
 					{
-						dcassert(!(!l_audio.empty() || !l_video.empty())); // Этого не должно быть?
+						dcassert(!(!l_audio.empty() || !l_video.empty())); // ГќГІГ®ГЈГ® Г­ГҐ Г¤Г®Г«Г¦Г­Г® ГЎГ»ГІГј?
 					}
 				}
 			}
@@ -828,7 +828,7 @@ bool ShareManager::loadCache() noexcept
 			//l_cache_loader_log.step("internalClearCache");
 			if (getShareSize() >= 0)
 			{
-				// Получили размер шары из кэша - не выполняем повторный обход в internalCalcShareSize();
+				// ГЏГ®Г«ГіГ·ГЁГ«ГЁ Г°Г Г§Г¬ГҐГ° ГёГ Г°Г» ГЁГ§ ГЄГЅГёГ  - Г­ГҐ ГўГ»ГЇГ®Г«Г­ГїГҐГ¬ ГЇГ®ГўГІГ®Г°Г­Г»Г© Г®ГЎГµГ®Г¤ Гў internalCalcShareSize();
 				g_isNeedsUpdateShareSize = false;
 				g_CurrentShareSize = getShareSize();
 			}
@@ -925,7 +925,7 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 		throw ShareException(STRING(DIRECTORY_IS_SYSTEM), l_realPathWoPS);
 	}
 	
-	if (!checkVirtual(l_realPathWoPS))  // [5] https://www.box.net/shared/a877c0d7ef9f93b93c55  TODO - Запретить выброс исключений из мастера или гасить их в нем.
+	if (!checkVirtual(l_realPathWoPS))  // [5] https://www.box.net/shared/a877c0d7ef9f93b93c55  TODO - Г‡Г ГЇГ°ГҐГІГЁГІГј ГўГ»ГЎГ°Г®Г± ГЁГ±ГЄГ«ГѕГ·ГҐГ­ГЁГ© ГЁГ§ Г¬Г Г±ГІГҐГ°Г  ГЁГ«ГЁ ГЈГ Г±ГЁГІГј ГЁГµ Гў Г­ГҐГ¬.
 	{
 		throw ShareException(STRING(DIRECTORY_IS_VIRTUAL), l_realPathWoPS);
 	}
@@ -1108,7 +1108,7 @@ void ShareManager::removeDirectory(const string& realPath)
 		{
 			return;
 		}
-		const string l_Name = i->second.m_synonym; // Ссылку не делать. fix http://www.flickr.com/photos/96019675@N02/9515345001/
+		const string l_Name = i->second.m_synonym; // Г‘Г±Г»Г«ГЄГі Г­ГҐ Г¤ГҐГ«Г ГІГј. fix http://www.flickr.com/photos/96019675@N02/9515345001/
 		{
 			for (auto j = g_list_directories.cbegin(); j != g_list_directories.cend();)
 			{
@@ -1306,7 +1306,7 @@ ShareManager::Directory::Ptr ShareManager::buildTreeL(__int64& p_path_id, const 
 					}
 				}
 				const string l_PathAndFileName = aName + l_file_name;
-				if (stricmp(l_PathAndFileName, SETTING(TLS_PRIVATE_KEY_FILE)) == 0) // TODO - унести проверку в другое место.
+				if (stricmp(l_PathAndFileName, SETTING(TLS_PRIVATE_KEY_FILE)) == 0) // TODO - ГіГ­ГҐГ±ГІГЁ ГЇГ°Г®ГўГҐГ°ГЄГі Гў Г¤Г°ГіГЈГ®ГҐ Г¬ГҐГ±ГІГ®.
 					continue;
 				int64_t l_size = i->getSize();
 				if (i->isLink() && l_size == 0) // https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/14
@@ -1650,7 +1650,7 @@ void ShareManager::refresh_share(bool p_dirs /* = false */, bool aUpdate /* = tr
 		start(0);
 		if (!l_is_cached)
 		{
-			// - вешаемся join();
+			// - ГўГҐГёГ ГҐГ¬Г±Гї join();
 		}
 		else
 		{
@@ -1702,7 +1702,7 @@ int ShareManager::run()
 				g_is_auto_open_queue = true;
 			}
 		}
-		for (int i = 0; i < 50 * 10; i++) // Ждем 5 сек
+		for (int i = 0; i < 50 * 10; i++) // Г†Г¤ГҐГ¬ 5 Г±ГҐГЄ
 		{
 			::Sleep(10);
 			if (ClientManager::isBeforeShutdown())
@@ -2039,7 +2039,7 @@ void ShareManager::Directory::toXmlL(OutputStream& xmlFile, string& p_indent, st
 	if (!p_indent.empty())
 		xmlFile.write(p_indent);
 	xmlFile.write(LITERAL("<Directory Name=\""));
-	xmlFile.write(SimpleXML::escapeAtrib(getName(), tmp2)); // TODO  упростил операцию escape без анализа кодировки utf-8 stricmp(encoding, Text::g_utf8)
+	xmlFile.write(SimpleXML::escapeAtrib(getName(), tmp2)); // TODO  ГіГЇГ°Г®Г±ГІГЁГ« Г®ГЇГҐГ°Г Г¶ГЁГѕ escape ГЎГҐГ§ Г Г­Г Г«ГЁГ§Г  ГЄГ®Г¤ГЁГ°Г®ГўГЄГЁ utf-8 stricmp(encoding, Text::g_utf8)
 	
 	if (fullList)
 	{
@@ -2088,7 +2088,7 @@ void ShareManager::Directory::filesToXmlL(OutputStream& xmlFile, string& indent,
 		dcdebug("filesToXmlL = %s\r\n", f.getName().c_str());
 #endif
 		xmlFile.write(LITERAL("<File Name=\""));
-		xmlFile.write(SimpleXML::escapeAtrib(f.getName(), tmp2)); // TODO - упростил операцию escape без анализа кодировки utf-8 stricmp(encoding, Text::g_utf8)
+		xmlFile.write(SimpleXML::escapeAtrib(f.getName(), tmp2)); // TODO - ГіГЇГ°Г®Г±ГІГЁГ« Г®ГЇГҐГ°Г Г¶ГЁГѕ escape ГЎГҐГ§ Г Г­Г Г«ГЁГ§Г  ГЄГ®Г¤ГЁГ°Г®ГўГЄГЁ utf-8 stricmp(encoding, Text::g_utf8)
 		xmlFile.write(LITERAL("\" Size=\""));
 		xmlFile.write(Util::toString(f.getSize()));
 		xmlFile.write(LITERAL("\" TTH=\""));
@@ -2211,14 +2211,14 @@ bool ShareManager::checkType(const string& aString, Search::TypeModes aType)
 	const uint32_t type = '.' | (Text::asciiToLower(c[0]) << 8) | (Text::asciiToLower(c[1]) << 16) | (((uint32_t)Text::asciiToLower(c[2])) << 24);
 	
 #ifdef _DEBUG
-// Все расширения 1-го типа должны быть с точкой и длиной 4
+// Г‚Г±ГҐ Г°Г Г±ГёГЁГ°ГҐГ­ГЁГї 1-ГЈГ® ГІГЁГЇГ  Г¤Г®Г«Г¦Г­Г» ГЎГ»ГІГј Г± ГІГ®Г·ГЄГ®Г© ГЁ Г¤Г«ГЁГ­Г®Г© 4
 	DEBUG_CHECK_TYPE(typeAudio)
 	DEBUG_CHECK_TYPE(typeCompressed)
 	DEBUG_CHECK_TYPE(typeDocument)
 	DEBUG_CHECK_TYPE(typeExecutable)
 	DEBUG_CHECK_TYPE(typePicture)
 	DEBUG_CHECK_TYPE(typeCDImage)
-// Все расширения 2-го типа должны быть тоже с точкой но с длиной отличной от 4
+// Г‚Г±ГҐ Г°Г Г±ГёГЁГ°ГҐГ­ГЁГї 2-ГЈГ® ГІГЁГЇГ  Г¤Г®Г«Г¦Г­Г» ГЎГ»ГІГј ГІГ®Г¦ГҐ Г± ГІГ®Г·ГЄГ®Г© Г­Г® Г± Г¤Г«ГЁГ­Г®Г© Г®ГІГ«ГЁГ·Г­Г®Г© Г®ГІ 4
 	DEBUG_CHECK_TYPE2(type2Audio)
 	DEBUG_CHECK_TYPE2(type2Document)
 	DEBUG_CHECK_TYPE2(type2Compressed)
@@ -2490,14 +2490,14 @@ void ShareManager::Directory::search(SearchResultList& aResults, StringSearch::L
 			if (p_search_param.m_size_mode == Search::SIZE_ATLEAST && p_search_param.m_size > i->getSize())
 			{
 #ifdef _DEBUG
-//			LogManager::message("[минимум] aSizeMode == Search::SIZE_ATLEAST && aSize > i->getSize()");
+//			LogManager::message("[Г¬ГЁГ­ГЁГ¬ГіГ¬] aSizeMode == Search::SIZE_ATLEAST && aSize > i->getSize()");
 #endif
 				continue;
 			}
 			else if (p_search_param.m_size_mode == Search::SIZE_ATMOST && p_search_param.m_size < i->getSize())
 			{
 #ifdef _DEBUG
-//			LogManager::message("[максимум] aSizeMode == Search::SIZE_ATMOST && aSize < i->getSize()");
+//			LogManager::message("[Г¬Г ГЄГ±ГЁГ¬ГіГ¬] aSizeMode == Search::SIZE_ATMOST && aSize < i->getSize()");
 #endif
 				continue;
 			}
@@ -2541,7 +2541,7 @@ bool ShareManager::search_tth(const TTHValue& p_tth, SearchResultList& aResults,
 	if (!g_RebuildIndexes) // https://drdump.com/DumpGroup.aspx?DumpGroupID=382746&Login=guest
 	{
 		const auto &l_fileMap = i->second;
-		// TODO - для TTH сильно толстый объект  SearchResult
+		// TODO - Г¤Г«Гї TTH Г±ГЁГ«ГјГ­Г® ГІГ®Г«Г±ГІГ»Г© Г®ГЎГєГҐГЄГІ  SearchResult
 		const SearchResultCore sr(SearchResult::TYPE_FILE, l_fileMap->getSize(), l_fileMap->getParent()->getFullName() + l_fileMap->getName(), l_fileMap->getTTH(), -1/*token*/);
 		incHits();
 		aResults.push_back(sr);
@@ -2656,7 +2656,7 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 	const auto l_raw_query = p_search_param.getRAWQuery();
 	if (isUnknownFile(l_raw_query))
 	{
-		return; // Уходим сразу - у нас в шаре этого не появилось.
+		return; // Г“ГµГ®Г¤ГЁГ¬ Г±Г°Г Г§Гі - Гі Г­Г Г± Гў ГёГ Г°ГҐ ГЅГІГ®ГЈГ® Г­ГҐ ГЇГ®ГїГўГЁГ«Г®Г±Гј.
 	}
 	if (isCacheFile(l_raw_query, aResults))
 	{
@@ -2685,12 +2685,12 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 		}
 		if (!l_is_bloom)
 		{
-			addUnknownFile(l_raw_query); // TODO - может вынести bloom в глобальную часть.
+			addUnknownFile(l_raw_query); // TODO - Г¬Г®Г¦ГҐГІ ГўГ»Г­ГҐГ±ГІГЁ bloom Гў ГЈГ«Г®ГЎГ Г«ГјГ­ГіГѕ Г·Г Г±ГІГј.
 			return;
 		}
 	}
 	
-	StringSearch::List ssl; // TODO - кандидат засунуть в структуру
+	StringSearch::List ssl; // TODO - ГЄГ Г­Г¤ГЁГ¤Г ГІ Г§Г Г±ГіГ­ГіГІГј Гў Г±ГІГ°ГіГЄГІГіГ°Гі
 	ssl.reserve(sl.size());
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 	int l_count_find = 0;
@@ -2726,7 +2726,7 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 			(*j)->search(aResults, ssl, p_search_param);
 		}
 	}
-	// Ничего не нашли - сохраним условие поиска чтобы не искать второй раз по этому-же запросу.
+	// ГЌГЁГ·ГҐГЈГ® Г­ГҐ Г­Г ГёГ«ГЁ - Г±Г®ГµГ°Г Г­ГЁГ¬ ГіГ±Г«Г®ГўГЁГҐ ГЇГ®ГЁГ±ГЄГ  Г·ГІГ®ГЎГ» Г­ГҐ ГЁГ±ГЄГ ГІГј ГўГІГ®Г°Г®Г© Г°Г Г§ ГЇГ® ГЅГІГ®Г¬Гі-Г¦ГҐ Г§Г ГЇГ°Г®Г±Гі.
 	if (aResults.empty())
 	{
 		addUnknownFile(l_raw_query);
@@ -3023,7 +3023,7 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 #endif
 		
 		{
-			if (Directory::Ptr d = getDirectoryL(fname)) // TODO прокинуть p_path_id и искать по нему?
+			if (Directory::Ptr d = getDirectoryL(fname)) // TODO ГЇГ°Г®ГЄГЁГ­ГіГІГј p_path_id ГЁ ГЁГ±ГЄГ ГІГј ГЇГ® Г­ГҐГ¬Гі?
 			{
 				const string l_file_name = Util::getFileName(fname);
 				const auto i = d->findFileIterL(l_file_name);
@@ -3068,7 +3068,7 @@ void ShareManager::on(HashManagerListener::TTHDone, const string& fname, const T
 			}
 		}
 	}
-	// Сбросим кэш поиска
+	// Г‘ГЎГ°Г®Г±ГЁГ¬ ГЄГЅГё ГЇГ®ГЁГ±ГЄГ 
 	clear_partial_cache(fname);
 	clear_tth_path_cache();
 	internalClearCache(true);
@@ -3182,7 +3182,7 @@ bool ShareManager::isShareFolder(const string& path, bool thoroughCheck /* = fal
 	if (thoroughCheck)  // check if it's part of the share before checking if it's in the exclusions
 	{
 		bool result = false;
-		// TODO - нет лока!
+		// TODO - Г­ГҐГІ Г«Г®ГЄГ !
 		for (auto i = g_shares.cbegin(); i != g_shares.cend(); ++i)
 		{
 			const auto &l_shares = i->first; // [!] PVS V807 Decreased performance. Consider creating a reference to avoid using the 'i->first' expression repeatedly. sharemanager.cpp 2391
