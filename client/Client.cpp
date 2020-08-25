@@ -105,8 +105,8 @@ Client::Client(const string& p_HubURL, char p_separator, bool p_is_secure,
 		"swalka.pp.ua"
 	};
 // TODO static_assert(_countof(g_vip_icons_array) == _countof(WinUtil::g_HubFlylinkDCIconVIP))
-	if (l_lower_url.find("dc.fly-server.ru") != string::npos ||
-	        l_lower_url.find("adcs.flylinkdc.com") != string::npos)
+	if (l_lower_url.find("dchub.net") != string::npos ||
+	        l_lower_url.find("dchub.net") != string::npos)
 	{
 		m_is_fly_support_hub = true;
 	}
@@ -250,7 +250,7 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 		if (updateNick)
 		{
 			string l_nick = hub->getNick(true);
-			if (!getRandomTempNick().empty()) // сгенерили _Rxxx?
+			if (!getRandomTempNick().empty()) // Г±ГЈГҐГ­ГҐГ°ГЁГ«ГЁ _Rxxx?
 				l_nick = getRandomTempNick();
 			checkNick(l_nick);
 			setMyNick(l_nick);
@@ -420,7 +420,7 @@ void Client::send(const char* aMessage, size_t aLen)
 	if (!isReady())
 	{
 		dcdebug("Send message failed, hub is disconnected!");
-		//dcassert(isReady()); // Под отладкой падаем тут. найти причину.
+		//dcassert(isReady()); // ГЏГ®Г¤ Г®ГІГ«Г Г¤ГЄГ®Г© ГЇГ Г¤Г ГҐГ¬ ГІГіГІ. Г­Г Г©ГІГЁ ГЇГ°ГЁГ·ГЁГ­Гі.
 		return;
 	}
 	updateActivity();
@@ -679,8 +679,8 @@ uint64_t Client::search_internal(const SearchParamToken& p_search_param)
 		const uint64_t now = GET_TICK();
 		return m_searchQueue.getSearchTime(p_search_param.m_owner, now) - now;
 	}
-	// TODO - разобраться с этим местом.
-	// мертвый код
+	// TODO - Г°Г Г§Г®ГЎГ°Г ГІГјГ±Гї Г± ГЅГІГЁГ¬ Г¬ГҐГ±ГІГ®Г¬.
+	// Г¬ГҐГ°ГІГўГ»Г© ГЄГ®Г¤
 	SearchParamToken l_search_param_token;
 	l_search_param_token.m_token = p_search_param.m_token;
 	l_search_param_token.m_size_mode = p_search_param.m_size_mode;
@@ -689,7 +689,7 @@ uint64_t Client::search_internal(const SearchParamToken& p_search_param)
 	l_search_param_token.m_filter = p_search_param.m_filter;
 	l_search_param_token.m_is_force_passive_searh = p_search_param.m_is_force_passive_searh;
 	l_search_param_token.m_ext_list = p_search_param.m_ext_list;
-	l_search_param_token.m_owner = p_search_param.m_owner; // Раньше тут его не было.
+	l_search_param_token.m_owner = p_search_param.m_owner; // ГђГ Г­ГјГёГҐ ГІГіГІ ГҐГЈГ® Г­ГҐ ГЎГ»Г«Г®.
 	search_token(l_search_param_token);
 	return 0;
 	
@@ -739,8 +739,8 @@ void Client::on(Second, uint64_t aTick) noexcept
 		const bool l_is_active = isActive();
 		if (m_searchQueue.pop(s, aTick, l_is_active))
 		{
-			// TODO - пробежаться по битовой маске?
-			// Если она там есть
+			// TODO - ГЇГ°Г®ГЎГҐГ¦Г ГІГјГ±Гї ГЇГ® ГЎГЁГІГ®ГўГ®Г© Г¬Г Г±ГЄГҐ?
+			// Г…Г±Г«ГЁ Г®Г­Г  ГІГ Г¬ ГҐГ±ГІГј
 			SearchParamToken l_search_param_token;
 			l_search_param_token.m_token = s.m_token;
 			l_search_param_token.m_size_mode = s.m_sizeMode;
@@ -776,11 +776,11 @@ bool Client::isFloodCommand(const string& p_command, const string& p_line)
 				const auto l_delta = l_result.m_tick - l_result.m_start_tick;
 				if (l_delta > CFlyServerConfig::g_interval_flood_command * 1000)
 				{
-					// Прошла секунда и команд пришло больше 100 (CFlyServerConfig::g_max_flood_command)
-					// логируем счетчик и баним на 20 секунд данные команды (CFlyServerConfig::g_ban_flood_command)
-					if (l_result.m_count > CFlyServerConfig::g_max_flood_command)  // в секунду больше чем 20
+					// ГЏГ°Г®ГёГ«Г  Г±ГҐГЄГіГ­Г¤Г  ГЁ ГЄГ®Г¬Г Г­Г¤ ГЇГ°ГЁГёГ«Г® ГЎГ®Г«ГјГёГҐ 100 (CFlyServerConfig::g_max_flood_command)
+					// Г«Г®ГЈГЁГ°ГіГҐГ¬ Г±Г·ГҐГІГ·ГЁГЄ ГЁ ГЎГ Г­ГЁГ¬ Г­Г  20 Г±ГҐГЄГіГ­Г¤ Г¤Г Г­Г­Г»ГҐ ГЄГ®Г¬Г Г­Г¤Г» (CFlyServerConfig::g_ban_flood_command)
+					if (l_result.m_count > CFlyServerConfig::g_max_flood_command)  // Гў Г±ГҐГЄГіГ­Г¤Гі ГЎГ®Г«ГјГёГҐ Г·ГҐГ¬ 20
 					{
-						if (l_result.m_is_ban == false) // В лог кидаем первую мессагу
+						if (l_result.m_is_ban == false) // Г‚ Г«Г®ГЈ ГЄГЁГ¤Г ГҐГ¬ ГЇГҐГ°ГўГіГѕ Г¬ГҐГ±Г±Г ГЈГі
 						{
 							if (BOOLSETTING(LOG_FLOOD_TRACE))
 							{
@@ -812,7 +812,7 @@ bool Client::isFloodCommand(const string& p_command, const string& p_line)
 							}
 							l_result.m_is_ban = true;
 						}
-						if (l_delta > CFlyServerConfig::g_ban_flood_command * 1000) // 20 секунд данные команды в бане!
+						if (l_delta > CFlyServerConfig::g_ban_flood_command * 1000) // 20 Г±ГҐГЄГіГ­Г¤ Г¤Г Г­Г­Г»ГҐ ГЄГ®Г¬Г Г­Г¤Г» Гў ГЎГ Г­ГҐ!
 						{
 							if (BOOLSETTING(LOG_FLOOD_TRACE))
 							{
@@ -830,7 +830,7 @@ bool Client::isFloodCommand(const string& p_command, const string& p_line)
 					}
 					else
 					{
-						// Команд прибежало мало - зачищаемся
+						// ГЉГ®Г¬Г Г­Г¤ ГЇГ°ГЁГЎГҐГ¦Г Г«Г® Г¬Г Г«Г® - Г§Г Г·ГЁГ№Г ГҐГ¬Г±Гї
 						l_result.m_is_ban = false;
 						l_result.m_count = 0;
 						l_result.m_start_tick = l_result.m_tick = GET_TICK();
@@ -1060,7 +1060,7 @@ bool Client::NmdcPartialSearch(const SearchParam& p_search_param)
 #ifdef _DEBUG
 //		LogManager::message("[Try] handlePartialSearch TTH = " + aString);
 #endif
-		if (QueueManager::handlePartialSearch(aTTH, partialInfo)) // TODO - часто ищется по ТТХ
+		if (QueueManager::handlePartialSearch(aTTH, partialInfo)) // TODO - Г·Г Г±ГІГ® ГЁГ№ГҐГІГ±Гї ГЇГ® Г’Г’Г•
 		{
 #ifdef _DEBUG
 			LogManager::message("[OK] handlePartialSearch TTH = " + p_search_param.m_filter);
@@ -1080,7 +1080,7 @@ bool Client::NmdcPartialSearch(const SearchParam& p_search_param)
 				AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
 				SearchManager::toPSR(cmd, true, getMyNick(), getIpPort(), aTTH.toBase32(), partialInfo);
 				Socket l_udp;
-				l_udp.writeTo(Socket::resolve(l_ip), l_port, cmd.toString(ClientManager::getMyCID())); // TODO - зачем тут resolve кроме IP может быть что-то другое?
+				l_udp.writeTo(Socket::resolve(l_ip), l_port, cmd.toString(ClientManager::getMyCID())); // TODO - Г§Г Г·ГҐГ¬ ГІГіГІ resolve ГЄГ°Г®Г¬ГҐ IP Г¬Г®Г¦ГҐГІ ГЎГ»ГІГј Г·ГІГ®-ГІГ® Г¤Г°ГіГЈГ®ГҐ?
 				
 				COMMAND_DEBUG("[NmdcPartialSearch]" + cmd.toString(ClientManager::getMyCID()), DebugTask::CLIENT_OUT,  l_ip + ':' + Util::toString(l_port));
 				
