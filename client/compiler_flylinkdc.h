@@ -173,12 +173,12 @@ typedef unsigned __int64 uint64_t;
 #define FLYLINKDC_USE_STATS_FRAME
 #define FLYLINKDC_USE_SQLITE
 //#define FLYLINKDC_USE_NETLIMITER
-//#define FLYLINKDC_USE_ASK_SLOT // отключаем автопопрошайку
+//#define FLYLINKDC_USE_ASK_SLOT // Г®ГІГЄГ«ГѕГ·Г ГҐГ¬ Г ГўГІГ®ГЇГ®ГЇГ°Г®ГёГ Г©ГЄГі
 #define FLYLINKDC_USE_USE_UNORDERED_SET_SHAREMANAGER
-//#define FLYLINKDC_USE_ONLINE_SWEEP_DB // Удалять файлы из базы данных если они пропали из каталога.
+//#define FLYLINKDC_USE_ONLINE_SWEEP_DB // Г“Г¤Г Г«ГїГІГј ГґГ Г©Г«Г» ГЁГ§ ГЎГ Г§Г» Г¤Г Г­Г­Г»Гµ ГҐГ±Г«ГЁ Г®Г­ГЁ ГЇГ°Г®ГЇГ Г«ГЁ ГЁГ§ ГЄГ ГІГ Г«Г®ГЈГ .
 //#define FLYLINKDC_USE_VACUUM
 
-#define FLYLINKDC_USE_DOS_GUARD // Включаем защиту от DoS атаки старых версий - http://www.flylinkdc.ru/2011/01/flylinkdc-dos.html
+#define FLYLINKDC_USE_DOS_GUARD // Г‚ГЄГ«ГѕГ·Г ГҐГ¬ Г§Г Г№ГЁГІГі Г®ГІ DoS Г ГІГ ГЄГЁ Г±ГІГ Г°Г»Гµ ГўГҐГ°Г±ГЁГ©
 #define PPA_USER_COMMANDS_HUBS_SET
 #define FLYLINKDC_USE_IPFILTER
 # define FLYLINKDC_USE_LASTIP_AND_USER_RATIO
@@ -188,7 +188,7 @@ typedef unsigned __int64 uint64_t;
 # endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 
 #ifdef _DEBUG
-//# define FLYLINKDC_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG // Отдаем на поиск больше данных - в релизе никогда не включать
+//# define FLYLINKDC_USE_HIGH_LOAD_FOR_SEARCH_ENGINE_IN_DEBUG // ГЋГІГ¤Г ГҐГ¬ Г­Г  ГЇГ®ГЁГ±ГЄ ГЎГ®Г«ГјГёГҐ Г¤Г Г­Г­Г»Гµ - Гў Г°ГҐГ«ГЁГ§ГҐ Г­ГЁГЄГ®ГЈГ¤Г  Г­ГҐ ГўГЄГ«ГѕГ·Г ГІГј
 #endif
 
 #define IRAINMAN_NTFS_STREAM_TTH
@@ -204,8 +204,8 @@ typedef unsigned __int64 uint64_t;
 # endif
 
 #define IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
-//#define IRAINMAN_SPEED_LIMITER_5S4_10 // Включает ограничение: скорость отдачи = 5 * количество слотов + 4, скорость загрузки = 10 * скорость отдачи
-//#define IRAINMAN_INCLUDE_USER_CHECK // - Не понял нахрена оно нужно. если юзеров 100 тыщ то что будет?
+//#define IRAINMAN_SPEED_LIMITER_5S4_10 // Г‚ГЄГ«ГѕГ·Г ГҐГІ Г®ГЈГ°Г Г­ГЁГ·ГҐГ­ГЁГҐ: Г±ГЄГ®Г°Г®Г±ГІГј Г®ГІГ¤Г Г·ГЁ = 5 * ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® Г±Г«Г®ГІГ®Гў + 4, Г±ГЄГ®Г°Г®Г±ГІГј Г§Г ГЈГ°ГіГ§ГЄГЁ = 10 * Г±ГЄГ®Г°Г®Г±ГІГј Г®ГІГ¤Г Г·ГЁ
+//#define IRAINMAN_INCLUDE_USER_CHECK // - ГЌГҐ ГЇГ®Г­ГїГ« Г­Г ГµГ°ГҐГ­Г  Г®Г­Г® Г­ГіГ¦Г­Г®. ГҐГ±Г«ГЁ ГѕГ§ГҐГ°Г®Гў 100 ГІГ»Г№ ГІГ® Г·ГІГ® ГЎГіГ¤ГҐГІ?
 #define IRAINMAN_INCLUDE_PROTO_DEBUG_FUNCTION
 #define IRAINMAN_USE_BB_CODES // BB codes support http://ru.wikipedia.org/wiki/BbCode
 
@@ -292,7 +292,7 @@ typedef unsigned __int64 uint64_t;
 
 //#define RIP_USE_PORTAL_BROWSER
 #ifdef _DEBUG
-// #define RIP_USE_LOG_PROTOCOL // выключил т.к. сильно грузит систему
+// #define RIP_USE_LOG_PROTOCOL // ГўГ»ГЄГ«ГѕГ·ГЁГ« ГІ.ГЄ. Г±ГЁГ«ГјГ­Г® ГЈГ°ГіГ§ГЁГІ Г±ГЁГ±ГІГҐГ¬Гі
 #endif
 
 //#define FLYLINKDC_USE_CS_CLIENT_SOCKET
@@ -302,7 +302,7 @@ typedef unsigned __int64 uint64_t;
 // http://msdn.microsoft.com/en-us/library/ee681827(VS.85).aspx#limits
 #define FULL_MAX_PATH (32760 + 255 + 255 + 8) // Maximum path name length + Maximum file size + Mashine name overhed in UNC path + UNC header
 #define USE_SUPPORT_HUB
-//#define NIGHTORION_INTERNAL_TRANSLATE_SOCKET_ERRORS // Включить когда будет готов перевод.
+//#define NIGHTORION_INTERNAL_TRANSLATE_SOCKET_ERRORS // Г‚ГЄГ«ГѕГ·ГЁГІГј ГЄГ®ГЈГ¤Г  ГЎГіГ¤ГҐГІ ГЈГ®ГІГ®Гў ГЇГҐГ°ГҐГўГ®Г¤.
 
 #define USE_APPDATA
 
@@ -310,9 +310,9 @@ typedef unsigned __int64 uint64_t;
 
 //#define NIGHTORION_USE_STATISTICS_REQUEST
 
-//#define USE_OFFLINE_ICON_FOR_FILELIST  Нужна доработка. // not yet implemented, don't turn on
+//#define USE_OFFLINE_ICON_FOR_FILELIST  ГЌГіГ¦Г­Г  Г¤Г®Г°Г ГЎГ®ГІГЄГ . // not yet implemented, don't turn on
 
-// SSA_SAVE_LAST_NICK_MACROS нигде не юзается
+// SSA_SAVE_LAST_NICK_MACROS Г­ГЁГЈГ¤ГҐ Г­ГҐ ГѕГ§Г ГҐГІГ±Гї
 // #define SSA_SAVE_LAST_NICK_MACROS //
 
 #define SSA_REMOVE_NEEDLESS_WORDS_FROM_VIDEO_AUDIO_INFO
@@ -354,7 +354,7 @@ typedef unsigned __int64 uint64_t;
 //#define USE_REBUILD_MEDIAINFO
 #define FLYLINKDC_USE_MEDIAINFO_SERVER
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
-// #define FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION // Не собирается стата (некому обрабатывать)
+// #define FLYLINKDC_USE_MEDIAINFO_SERVER_COLLECT_LOST_LOCATION // ГЌГҐ Г±Г®ГЎГЁГ°Г ГҐГІГ±Гї Г±ГІГ ГІГ  (Г­ГҐГЄГ®Г¬Гі Г®ГЎГ°Г ГЎГ ГІГ»ГўГ ГІГј)
 #define FLYLINKDC_USE_GATHER_STATISTICS
 #endif
 #ifdef FLYLINKDC_BETA
@@ -367,13 +367,13 @@ typedef unsigned __int64 uint64_t;
 // #define FLYLINKDC_USE_GATHER_IDENTITY_STAT
 #endif
 //#define FLYLINKDC_USE_SQL_EXPLORER
-//#define FLYLINKDC_USE_LIST_VIEW_WATER_MARK // Свистелку отрубить
-//#define FLYLINKDC_USE_LIST_VIEW_MATTRESS   // Отключаем полосатые листвью (бестолковая трата ресурсов)
+//#define FLYLINKDC_USE_LIST_VIEW_WATER_MARK // Г‘ГўГЁГ±ГІГҐГ«ГЄГі Г®ГІГ°ГіГЎГЁГІГј
+//#define FLYLINKDC_USE_LIST_VIEW_MATTRESS   // ГЋГІГЄГ«ГѕГ·Г ГҐГ¬ ГЇГ®Г«Г®Г±Г ГІГ»ГҐ Г«ГЁГ±ГІГўГјГѕ (ГЎГҐГ±ГІГ®Г«ГЄГ®ГўГ Гї ГІГ°Г ГІГ  Г°ГҐГ±ГіГ°Г±Г®Гў)
 
 
 #define FLYLINKDC_USE_CHECK_GDIIMAGE_LIVE
 #ifdef _DEBUG
-// #define FLYLINKDC_USE_COLLECT_STAT  // Собираем статистику команд коннектов и поиска для блокировки DDoS атак http://dchublist.ru/forum/viewtopic.php?f=6&t=1028&hilit=Ddos
+// #define FLYLINKDC_USE_COLLECT_STAT  // Г‘Г®ГЎГЁГ°Г ГҐГ¬ Г±ГІГ ГІГЁГ±ГІГЁГЄГі ГЄГ®Г¬Г Г­Г¤ ГЄГ®Г­Г­ГҐГЄГІГ®Гў ГЁ ГЇГ®ГЁГ±ГЄГ  Г¤Г«Гї ГЎГ«Г®ГЄГЁГ°Г®ГўГЄГЁ DDoS Г ГІГ ГЄ http://dchublist.ru/forum/viewtopic.php?f=6&t=1028&hilit=Ddos
 // #define FLYLINKDC_USE_LOG_FOR_DUPLICATE_TTH_SEARCH
 // #define FLYLINKDC_USE_LOG_FOR_DUPLICATE_FILE_SEARCH
 #endif
