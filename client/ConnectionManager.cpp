@@ -44,8 +44,8 @@ std::unordered_map<string, ConnectionManager::CFlyTickTTH> ConnectionManager::g_
 std::unordered_map<string, ConnectionManager::CFlyTickFile> ConnectionManager::g_duplicate_search_file;
 std::unordered_set<string> ConnectionManager::g_ddos_ctm2hub;
 std::map<ConnectionManager::CFlyDDOSkey, ConnectionManager::CFlyDDoSTick> ConnectionManager::g_ddos_map;
-std::set<ConnectionQueueItemPtr> ConnectionManager::g_downloads; // TODO - сделать поиск по User?
-std::set<ConnectionQueueItemPtr> ConnectionManager::g_uploads; // TODO - сделать поиск по User?
+std::set<ConnectionQueueItemPtr> ConnectionManager::g_downloads; // TODO - Г±Г¤ГҐГ«Г ГІГј ГЇГ®ГЁГ±ГЄ ГЇГ® User?
+std::set<ConnectionQueueItemPtr> ConnectionManager::g_uploads; // TODO - Г±Г¤ГҐГ«Г ГІГј ГЇГ®ГЁГ±ГЄ ГЇГ® User?
 
 FastCriticalSection ConnectionManager::g_cs_update;
 std::unordered_set<UserPtr> ConnectionManager::g_users_for_update;
@@ -252,7 +252,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 			{
 				if (find(m_checkIdle.begin(), m_checkIdle.end(), aUser) == m_checkIdle.end())
 				{
-					m_checkIdle.push_back(aUser); // TODO - Лок?
+					m_checkIdle.push_back(aUser); // TODO - Г‹Г®ГЄ?
 				}
 			}
 #endif
@@ -300,7 +300,7 @@ void ConnectionManager::putCQI_L(ConnectionQueueItemPtr& cqi)
 		DETECTION_DEBUG("[ConnectionManager][putCQI][upload] " + cqi->getHintedUser().to_string());
 	}
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-	// Вешаемся при активной закачке cqi->getUser()->flushRatio();
+	// Г‚ГҐГёГ ГҐГ¬Г±Гї ГЇГ°ГЁ Г ГЄГІГЁГўГ­Г®Г© Г§Г ГЄГ Г·ГЄГҐ cqi->getUser()->flushRatio();
 #endif
 	QueueManager::g_userQueue.removeRunning(cqi->getUser());
 	const string l_token = cqi->getConnectionQueueToken();
@@ -321,7 +321,7 @@ bool ConnectionManager::getCipherNameAndIP(UserConnection* p_conn, string& p_chi
 	if (l_conn != g_userConnections.end())
 	{
 		p_chiper_name = p_conn->getCipherName();
-		p_ip = p_conn->getRemoteIp(); // TODO - перевести на boost?
+		p_ip = p_conn->getRemoteIp(); // TODO - ГЇГҐГ°ГҐГўГҐГ±ГІГЁ Г­Г  boost?
 		return true;
 	}
 	return false;
@@ -545,7 +545,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 							if (BOOLSETTING(AUTO_PASSIVE_INCOMING_CONNECTIONS))
 							{
 								cqi->m_count_waiting++;
-								cqi->m_is_force_passive = cqi->m_is_active_client ? (cqi->m_count_waiting > 1) : false; // Делаем вторую попытку подключения в пассивке ?
+								cqi->m_is_force_passive = cqi->m_is_active_client ? (cqi->m_count_waiting > 1) : false; // Г„ГҐГ«Г ГҐГ¬ ГўГІГ®Г°ГіГѕ ГЇГ®ГЇГ»ГІГЄГі ГЇГ®Г¤ГЄГ«ГѕГ·ГҐГ­ГЁГї Гў ГЇГ Г±Г±ГЁГўГЄГҐ ?
 							}
 							else
 							{
@@ -594,7 +594,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 					{
 						l_error_download.push_back(make_pair(cqi->getUser(), STRING(CONNECTION_TIMEOUT)));
 						cqi->setState(ConnectionQueueItem::WAITING);
-						// TODO - удаление пока не делаем - нужно потестировать лучше
+						// TODO - ГіГ¤Г Г«ГҐГ­ГЁГҐ ГЇГ®ГЄГ  Г­ГҐ Г¤ГҐГ«Г ГҐГ¬ - Г­ГіГ¦Г­Г® ГЇГ®ГІГҐГ±ГІГЁГ°Г®ГўГ ГІГј Г«ГіГ·ГёГҐ
 						// l_removed.push_back(cqi);
 					}
 					else
@@ -642,7 +642,7 @@ void ConnectionManager::on(TimerManagerListener::Second, uint64_t aTick) noexcep
 		}
 	}
 	l_status_changed.clear();
-	// TODO - не звать для тех у кого ошибка загрузки
+	// TODO - Г­ГҐ Г§ГўГ ГІГј Г¤Г«Гї ГІГҐГµ Гі ГЄГ®ГЈГ® Г®ГёГЁГЎГЄГ  Г§Г ГЈГ°ГіГ§ГЄГЁ
 	for (auto k = l_error_download.cbegin(); k != l_error_download.cend(); ++k)
 	{
 		if (!ClientManager::isBeforeShutdown())
@@ -665,7 +665,7 @@ void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 	CFlyFastLock(g_csDdosCheck);
 	for (auto j = g_ddos_map.cbegin(); j != g_ddos_map.cend();)
 	{
-		// Если коннектов совершено меньше чем предел в течении минуты - убираем адрес из таблицы - с ним все хорошо!
+		// Г…Г±Г«ГЁ ГЄГ®Г­Г­ГҐГЄГІГ®Гў Г±Г®ГўГҐГ°ГёГҐГ­Г® Г¬ГҐГ­ГјГёГҐ Г·ГҐГ¬ ГЇГ°ГҐГ¤ГҐГ« Гў ГІГҐГ·ГҐГ­ГЁГЁ Г¬ГЁГ­ГіГІГ» - ГіГЎГЁГ°Г ГҐГ¬ Г Г¤Г°ГҐГ± ГЁГ§ ГІГ ГЎГ«ГЁГ¶Г» - Г± Г­ГЁГ¬ ГўГ±ГҐ ГµГ®Г°Г®ГёГ®!
 		const auto l_tick_delta = p_tick - j->second.m_first_tick;
 		const bool l_is_min_ban_close = j->second.m_count_connect < CFlyServerConfig::g_max_ddos_connect_to_me && l_tick_delta > 1000 * 60;
 		if (l_is_min_ban_close)
@@ -676,14 +676,14 @@ void ConnectionManager::cleanupIpFlood(const uint64_t p_tick)
 			//                         " m_ddos_map.size() = " + Util::toString(m_ddos_map.size()));
 #endif
 		}
-		// Если коннектов совершено много и IP находится в бане, но уже прошло время больше чем 5 Минут(по умолчанию)
-		// Также убираем запись из таблицы блокировки
+		// Г…Г±Г«ГЁ ГЄГ®Г­Г­ГҐГЄГІГ®Гў Г±Г®ГўГҐГ°ГёГҐГ­Г® Г¬Г­Г®ГЈГ® ГЁ IP Г­Г ГµГ®Г¤ГЁГІГ±Гї Гў ГЎГ Г­ГҐ, Г­Г® ГіГ¦ГҐ ГЇГ°Г®ГёГ«Г® ГўГ°ГҐГ¬Гї ГЎГ®Г«ГјГёГҐ Г·ГҐГ¬ 5 ГЊГЁГ­ГіГІ(ГЇГ® ГіГ¬Г®Г«Г·Г Г­ГЁГѕ)
+		// Г’Г ГЄГ¦ГҐ ГіГЎГЁГ°Г ГҐГ¬ Г§Г ГЇГЁГ±Гј ГЁГ§ ГІГ ГЎГ«ГЁГ¶Г» ГЎГ«Г®ГЄГЁГ°Г®ГўГЄГЁ
 		const bool l_is_ddos_ban_close = j->second.m_count_connect > CFlyServerConfig::g_max_ddos_connect_to_me
 		                                 && l_tick_delta > CFlyServerConfig::g_ban_ddos_connect_to_me * 1000 * 60;
 		if (l_is_ddos_ban_close && BOOLSETTING(LOG_DDOS_TRACE))
 		{
 			string l_type;
-			if (j->first.m_ip.is_unspecified()) // Если нет второго IP то это команада  ConnectToMe
+			if (j->first.m_ip.is_unspecified()) // Г…Г±Г«ГЁ Г­ГҐГІ ГўГІГ®Г°Г®ГЈГ® IP ГІГ® ГЅГІГ® ГЄГ®Г¬Г Г­Г Г¤Г   ConnectToMe
 			{
 				l_type =  "IP-1:" + j->first.m_server + j->second.getPorts();
 			}
@@ -709,7 +709,7 @@ void ConnectionManager::cleanupDuplicateSearchFile(const uint64_t p_tick)
 		if ((p_tick - j->second.m_first_tick) > 1000 * CFlyServerConfig::g_max_unique_file_search)
 		{
 #ifdef FLYLINKDC_USE_LOG_FOR_DUPLICATE_FILE_SEARCH
-			if (j->second.m_count_connect > 1) // Событие возникало больше одного раза - логируем?
+			if (j->second.m_count_connect > 1) // Г‘Г®ГЎГ»ГІГЁГҐ ГўГ®Г§Г­ГЁГЄГ Г«Г® ГЎГ®Г«ГјГёГҐ Г®Г¤Г­Г®ГЈГ® Г°Г Г§Г  - Г«Г®ГЈГЁГ°ГіГҐГ¬?
 			{
 				LogManager::ddos_message(string(j->second.m_count_connect, '*') + " BlockID = " + Util::toString(j->second.m_block_id) +
 				                         ", Unlock duplicate File search: " + j->first +
@@ -731,7 +731,7 @@ void ConnectionManager::cleanupDuplicateSearchTTH(const uint64_t p_tick)
 		if ((p_tick - j->second.m_first_tick) > 1000 * CFlyServerConfig::g_max_unique_tth_search)
 		{
 #ifdef FLYLINKDC_USE_LOG_FOR_DUPLICATE_TTH_SEARCH
-			if (j->second.m_count_connect > 1) // Событие возникало больше одного раза - логируем?
+			if (j->second.m_count_connect > 1) // Г‘Г®ГЎГ»ГІГЁГҐ ГўГ®Г§Г­ГЁГЄГ Г«Г® ГЎГ®Г«ГјГёГҐ Г®Г¤Г­Г®ГЈГ® Г°Г Г§Г  - Г«Г®ГЈГЁГ°ГіГҐГ¬?
 			{
 				LogManager::ddos_message(string(j->second.m_count_connect, '*') + " BlockID = " + Util::toString(j->second.m_block_id) +
 				                         ", Unlock duplicate TTH search: " + j->first +
@@ -757,7 +757,7 @@ void ConnectionManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcep
 #ifdef _DEBUG
 		if ((l_connection->getLastActivity(false) + 60 * 1000) < aTick)
 #else
-		if ((l_connection->getLastActivity(false) + 60 * 1000) < aTick) // Зачем так много минут висеть?
+		if ((l_connection->getLastActivity(false) + 60 * 1000) < aTick) // Г‡Г Г·ГҐГ¬ ГІГ ГЄ Г¬Г­Г®ГЈГ® Г¬ГЁГ­ГіГІ ГўГЁГ±ГҐГІГј?
 #endif
 		{
 			l_connection->disconnect(true);
@@ -774,7 +774,7 @@ ConnectionManager::Server::Server(bool p_is_secure
 {
 	m_sock.create();
 	m_sock.setSocketOpt(SO_REUSEADDR, 1);
-	m_server_ip   = p_server_ip; // в AirDC++ и дургих этого уже нет
+	m_server_ip   = p_server_ip; // Гў AirDC++ ГЁ Г¤ГіГ°ГЈГЁГµ ГЅГІГ®ГЈГ® ГіГ¦ГҐ Г­ГҐГІ
 	m_server_port = m_sock.bind(p_port, p_server_ip); // [7] Wizard https://www.box.net/shared/45acc9cef68ecb499cb5
 	m_sock.listen();
 	start(64);
@@ -859,7 +859,7 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 	}
 	else
 	{
-		/*if (false  // TODO - узнать почему тут такой затыкон оставлен в оригинальном dc++
+		/*if (false  // TODO - ГіГ§Г­Г ГІГј ГЇГ®Г·ГҐГ¬Гі ГІГіГІ ГІГ ГЄГ®Г© Г§Г ГІГ»ГЄГ®Г­ Г®Г±ГІГ ГўГ«ГҐГ­ Гў Г®Г°ГЁГЈГЁГ­Г Г«ГјГ­Г®Г¬ dc++
 		        && now + g_FLOOD_TRIGGER < m_floodCounter)
 		{
 		    Socket s;
@@ -898,13 +898,13 @@ void ConnectionManager::accept(const Socket& sock, bool secure, Server* p_server
 		LogManager::message("uc->accept(sock) Error = " + e.getError());
 #endif
 		dcdebug("uc->accept(sock); error\n");
-		// Обработка теста порта TLS
+		// ГЋГЎГ°Г ГЎГ®ГІГЄГ  ГІГҐГ±ГІГ  ГЇГ®Г°ГІГ  TLS
 		if (secure && p_server)
 		{
 			const auto l_remote_port = p_server->getServerPort();
-			if (l_remote_port == SETTING(TLS_PORT)) // TODO проверить тут IP внешнего сервера - он должен совпадать с test.fly-server.ru
+			if (l_remote_port == SETTING(TLS_PORT)) // TODO ГЇГ°Г®ГўГҐГ°ГЁГІГј ГІГіГІ IP ГўГ­ГҐГёГ­ГҐГЈГ® Г±ГҐГ°ГўГҐГ°Г  - Г®Г­ Г¤Г®Г«Г¦ГҐГ­ Г±Г®ГўГЇГ Г¤Г ГІГј Г± test.dchub.net
 			{
-				SettingsManager::g_TestTLSLevel = true; // Проверьть магическое число тут не знаю как - считаем если пришел accept на этот порт, то он открыт
+				SettingsManager::g_TestTLSLevel = true; // ГЏГ°Г®ГўГҐГ°ГјГІГј Г¬Г ГЈГЁГ·ГҐГ±ГЄГ®ГҐ Г·ГЁГ±Г«Г® ГІГіГІ Г­ГҐ Г§Г­Г Гѕ ГЄГ ГЄ - Г±Г·ГЁГІГ ГҐГ¬ ГҐГ±Г«ГЁ ГЇГ°ГЁГёГҐГ« accept Г­Г  ГЅГІГ®ГІ ГЇГ®Г°ГІ, ГІГ® Г®Г­ Г®ГІГЄГ°Г»ГІ
 				// ClientManager::getMyCID().toBase32() == l_magic;
 			}
 		}
@@ -925,12 +925,12 @@ bool ConnectionManager::checkDuplicateSearchFile(const string& p_search_command)
 		auto l_result = g_duplicate_search_file.insert(std::pair<string, CFlyTickFile>(l_key, l_item));
 		auto& l_cur_value = l_result.first->second;
 		++l_cur_value.m_count_connect;
-		if (l_result.second == false) // Элемент уже существует - проверим его счетчик и старость.
+		if (l_result.second == false) // ГќГ«ГҐГ¬ГҐГ­ГІ ГіГ¦ГҐ Г±ГіГ№ГҐГ±ГІГўГіГҐГІ - ГЇГ°Г®ГўГҐГ°ГЁГ¬ ГҐГЈГ® Г±Г·ГҐГІГ·ГЁГЄ ГЁ Г±ГІГ Г°Г®Г±ГІГј.
 		{
 			l_cur_value.m_last_tick = l_tick;
 			if (l_tick - l_cur_value.m_first_tick > 1000 * CFlyServerConfig::g_max_unique_file_search)
 			{
-				// Тут можно сразу стереть элемент устаревший
+				// Г’ГіГІ Г¬Г®Г¦Г­Г® Г±Г°Г Г§Гі Г±ГІГҐГ°ГҐГІГј ГЅГ«ГҐГ¬ГҐГ­ГІ ГіГ±ГІГ Г°ГҐГўГёГЁГ©
 				return false;
 			}
 			if (l_cur_value.m_count_connect > 1)
@@ -966,12 +966,12 @@ bool ConnectionManager::checkDuplicateSearchTTH(const string& p_search_command, 
 	auto l_result = g_duplicate_search_tth.insert(std::pair<string, CFlyTickTTH>(p_search_command + ' ' + p_tth.toBase32(), l_item));
 	auto& l_cur_value = l_result.first->second;
 	++l_cur_value.m_count_connect;
-	if (l_result.second == false) // Элемент уже существует - проверим его счетчик и старость.
+	if (l_result.second == false) // ГќГ«ГҐГ¬ГҐГ­ГІ ГіГ¦ГҐ Г±ГіГ№ГҐГ±ГІГўГіГҐГІ - ГЇГ°Г®ГўГҐГ°ГЁГ¬ ГҐГЈГ® Г±Г·ГҐГІГ·ГЁГЄ ГЁ Г±ГІГ Г°Г®Г±ГІГј.
 	{
 		l_cur_value.m_last_tick  = l_tick;
 		if (l_tick - l_cur_value.m_first_tick > 1000 * CFlyServerConfig::g_max_unique_tth_search)
 		{
-			// Тут можно сразу стереть элемент устаревший
+			// Г’ГіГІ Г¬Г®Г¦Г­Г® Г±Г°Г Г§Гі Г±ГІГҐГ°ГҐГІГј ГЅГ«ГҐГ¬ГҐГ­ГІ ГіГ±ГІГ Г°ГҐГўГёГЁГ©
 			return false;
 		}
 		if (l_cur_value.m_count_connect > 1)
@@ -1040,7 +1040,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		// boost::system::error_code ec;
 		// const auto l_ip = boost::asio::ip::address_v4::from_string(aIPServer, ec);
 		const CFlyDDOSkey l_key(aIPServer, p_ip_hub);
-		// dcassert(!ec); // TODO - тут бывает и Host
+		// dcassert(!ec); // TODO - ГІГіГІ ГЎГ»ГўГ ГҐГІ ГЁ Host
 		bool l_is_ctm2hub = false;
 		{
 			CFlyReadLock(*g_csDdosCTM2HUBCheck);
@@ -1074,10 +1074,10 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		}
 		if (l_result.second == false)
 		{
-			// Элемент уже существует
-			l_cur_value.m_last_tick = l_tick;   // Корректируем время последней активности.
-			l_cur_value.m_ports.insert(aPort);  // Сохраним последний порт
-			if (l_cur_value.m_count_connect == CFlyServerConfig::g_max_ddos_connect_to_me) // Превысили кол-во коннектов по одному IP
+			// ГќГ«ГҐГ¬ГҐГ­ГІ ГіГ¦ГҐ Г±ГіГ№ГҐГ±ГІГўГіГҐГІ
+			l_cur_value.m_last_tick = l_tick;   // ГЉГ®Г°Г°ГҐГЄГІГЁГ°ГіГҐГ¬ ГўГ°ГҐГ¬Гї ГЇГ®Г±Г«ГҐГ¤Г­ГҐГ© Г ГЄГІГЁГўГ­Г®Г±ГІГЁ.
+			l_cur_value.m_ports.insert(aPort);  // Г‘Г®ГµГ°Г Г­ГЁГ¬ ГЇГ®Г±Г«ГҐГ¤Г­ГЁГ© ГЇГ®Г°ГІ
+			if (l_cur_value.m_count_connect == CFlyServerConfig::g_max_ddos_connect_to_me) // ГЏГ°ГҐГўГ»Г±ГЁГ«ГЁ ГЄГ®Г«-ГўГ® ГЄГ®Г­Г­ГҐГЄГІГ®Гў ГЇГ® Г®Г¤Г­Г®Г¬Гі IP
 			{
 				static uint16_t g_block_id = 0;
 				l_cur_value.m_block_id = ++g_block_id;
@@ -1090,7 +1090,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 					LogManager::ddos_message("BlockID=" + Util::toString(l_cur_value.m_block_id) + ", " + l_cur_value.m_type_block + p_HubInfo + l_info + l_target + l_user_info);
 					for (auto k = l_cur_value.m_original_query_for_debug.cbegin() ; k != l_cur_value.m_original_query_for_debug.cend(); ++k)
 					{
-						LogManager::ddos_message("  Detail BlockID=" + Util::toString(l_cur_value.m_block_id) + " " + k->first + " Count:" + Util::toString(k->second)); // TODO - сдать дубликаты + показать кол-во
+						LogManager::ddos_message("  Detail BlockID=" + Util::toString(l_cur_value.m_block_id) + " " + k->first + " Count:" + Util::toString(k->second)); // TODO - Г±Г¤Г ГІГј Г¤ГіГЎГ«ГЁГЄГ ГІГ» + ГЇГ®ГЄГ Г§Г ГІГј ГЄГ®Г«-ГўГ®
 					}
 				}
 				l_cur_value.m_original_query_for_debug.clear();
@@ -1099,8 +1099,8 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 			{
 				if ((l_cur_value.m_last_tick - l_cur_value.m_first_tick) < CFlyServerConfig::g_ban_ddos_connect_to_me * 1000 * 60)
 				{
-					return true; // Лочим этот коннект до наступления амнистии. TODO - проверить эту часть внимательей
-					// в след части фикса - проводить анализ протокола и коннекты на порты лочить на вечно.
+					return true; // Г‹Г®Г·ГЁГ¬ ГЅГІГ®ГІ ГЄГ®Г­Г­ГҐГЄГІ Г¤Г® Г­Г Г±ГІГіГЇГ«ГҐГ­ГЁГї Г Г¬Г­ГЁГ±ГІГЁГЁ. TODO - ГЇГ°Г®ГўГҐГ°ГЁГІГј ГЅГІГі Г·Г Г±ГІГј ГўГ­ГЁГ¬Г ГІГҐГ«ГјГҐГ©
+					// Гў Г±Г«ГҐГ¤ Г·Г Г±ГІГЁ ГґГЁГЄГ±Г  - ГЇГ°Г®ГўГ®Г¤ГЁГІГј Г Г­Г Г«ГЁГ§ ГЇГ°Г®ГІГ®ГЄГ®Г«Г  ГЁ ГЄГ®Г­Г­ГҐГЄГІГ» Г­Г  ГЇГ®Г°ГІГ» Г«Г®Г·ГЁГІГј Г­Г  ГўГҐГ·Г­Г®.
 				}
 			}
 		}
@@ -1114,7 +1114,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 			const UserConnection& uc = **j;
 			if (uc.socket == nullptr || !uc.socket->hasSocket())
 				continue;
-			if (uc.getPort() == aPort && uc.getRemoteIp() == aIPServer) // TODO - не поддерживается DNS
+			if (uc.getPort() == aPort && uc.getRemoteIp() == aIPServer) // TODO - Г­ГҐ ГЇГ®Г¤Г¤ГҐГ°Г¦ГЁГўГ ГҐГІГ±Гї DNS
 			{
 				if (++count >= 5)
 				{
@@ -1163,7 +1163,7 @@ void ConnectionManager::nmdcConnect(const string& aIPServer, uint16_t aPort, uin
 	
 	UserConnection* uc = getConnection(true, secure);
 	uc->setServerPort(aIPServer + ':' + Util::toString(aPort)); // CTM2HUB
-	uc->setUserConnectionToken(aNick); // Токен = ник?
+	uc->setUserConnectionToken(aNick); // Г’Г®ГЄГҐГ­ = Г­ГЁГЄ?
 	uc->setHubUrl(hubUrl);
 	uc->setEncoding(encoding);
 	uc->setState(UserConnection::STATE_CONNECT);
@@ -1214,7 +1214,7 @@ void ConnectionManager::adcConnect(const OnlineUser& aUser, uint16_t aPort, uint
 
 void ConnectionManager::disconnect()
 {
-	safe_delete(server); // TODO Зовется чаще чем нужно.
+	safe_delete(server); // TODO Г‡Г®ГўГҐГІГ±Гї Г·Г Г№ГҐ Г·ГҐГ¬ Г­ГіГ¦Г­Г®.
 	safe_delete(secureServer);
 }
 
@@ -1393,7 +1393,7 @@ void ConnectionManager::on(UserConnectionListener::MyNick, UserConnection* aSour
 		}
 #endif // RIP_USE_CONNECTION_AUTODETECT
 		aSource->setUserConnectionToken(i.m_Nick);
-		aSource->setHubUrl(i.m_HubUrl); // TODO - тут юзера почему-то еще нет
+		aSource->setHubUrl(i.m_HubUrl); // TODO - ГІГіГІ ГѕГ§ГҐГ°Г  ГЇГ®Г·ГҐГ¬Гі-ГІГ® ГҐГ№ГҐ Г­ГҐГІ
 		const auto l_encoding = ClientManager::findHubEncoding(i.m_HubUrl);
 		aSource->setEncoding(l_encoding);
 	}
@@ -1758,7 +1758,7 @@ void ConnectionManager::force(const UserPtr& aUser)
 	if (i != g_downloads.end())
 	{
 #ifdef FLYLINKDC_USE_FORCE_CONNECTION
-		// TODO унести из лока
+		// TODO ГіГ­ГҐГ±ГІГЁ ГЁГ§ Г«Г®ГЄГ 
 		fly_fire1(ConnectionManagerListener::Forced(), *i);
 #endif
 		(*i)->setLastAttempt(0);
@@ -1803,7 +1803,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 				l_error_download.m_hinted_user = cqi->getHintedUser();
 				l_error_download.m_reason = aError;
 				l_error_download.m_token = cqi->getConnectionQueueToken();
-				//!!! putCQI_L(cqi); не делаем отключение - теряем докачку https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1679
+				//!!! putCQI_L(cqi); Г­ГҐ Г¤ГҐГ«Г ГҐГ¬ Г®ГІГЄГ«ГѕГ·ГҐГ­ГЁГҐ - ГІГҐГ°ГїГҐГ¬ Г¤Г®ГЄГ Г·ГЄГі https://github.com/pavel-pimenov/flylinkdc-r5xx/issues/1679
 				l_is_fire_faled = true;
 			}
 		}
@@ -1828,7 +1828,7 @@ void ConnectionManager::failed(UserConnection* aSource, const string& aError, bo
 				}
 			}
 			l_is_fire_faled = false;
-			// такого удаления нет в ApexDC++
+			// ГІГ ГЄГ®ГЈГ® ГіГ¤Г Г«ГҐГ­ГЁГї Г­ГҐГІ Гў ApexDC++
 			//if (!ClientManager::isBeforeShutdown())
 			//{
 			//  fly_fire3(ConnectionManagerListener::Removed(), aSource->getHintedUser(), l_is_download, l_token);
@@ -1920,7 +1920,7 @@ void ConnectionManager::shutdown()
 		Thread::sleep(10);
 	}
 #ifdef FLYLINKDC_USE_LASTIP_AND_USER_RATIO
-	// Сбрасываем рейтинг в базу пока не нашли причину почему тут остаются записи.
+	// Г‘ГЎГ°Г Г±Г»ГўГ ГҐГ¬ Г°ГҐГ©ГІГЁГ­ГЈ Гў ГЎГ Г§Гі ГЇГ®ГЄГ  Г­ГҐ Г­Г ГёГ«ГЁ ГЇГ°ГЁГ·ГЁГ­Гі ГЇГ®Г·ГҐГ¬Гі ГІГіГІ Г®Г±ГІГ ГѕГІГ±Гї Г§Г ГЇГЁГ±ГЁ.
 	{
 		{
 			CFlyReadLock(*g_csDownloads);
@@ -1949,7 +1949,7 @@ void ConnectionManager::shutdown()
 void ConnectionManager::on(UserConnectionListener::Supports, UserConnection* p_conn, StringList& feat) noexcept
 {
 	dcassert(p_conn->getUser());
-	if (p_conn->getUser()) // 44 падения https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=48388
+	if (p_conn->getUser()) // 44 ГЇГ Г¤ГҐГ­ГЁГї https://www.crash-server.com/Problem.aspx?ClientID=guest&ProblemID=48388
 	{
 		uint8_t knownUcSupports = 0;
 		auto unknownUcSupports = UcSupports::setSupports(p_conn, feat, knownUcSupports);
