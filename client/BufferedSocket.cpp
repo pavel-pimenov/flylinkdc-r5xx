@@ -116,7 +116,7 @@ void BufferedSocket::resizeInBuf()
 		catch (std::bad_alloc&)
 		{
 			ShareManager::tryFixBadAlloc();
-			l_size /= 2; // Заказываем в 2 раза меньше
+			l_size /= 2; // Г‡Г ГЄГ Г§Г»ГўГ ГҐГ¬ Гў 2 Г°Г Г§Г  Г¬ГҐГ­ГјГёГҐ
 			l_is_bad_alloc = l_size > 128;
 			if (l_is_bad_alloc == false)
 			{
@@ -158,7 +158,7 @@ void BufferedSocket::connect(const string& aAddress, uint16_t aPort, uint16_t lo
 	                                    CryptoManager::getInstance()->getServerSocket(allowUntrusted) :
 	                                    CryptoManager::getInstance()->getClientSocket(allowUntrusted, p_proto)) : new Socket);
 	                                    
-	s->create(); // в AirDC++ нет такой херни... разобраться
+	s->create(); // Гў AirDC++ Г­ГҐГІ ГІГ ГЄГ®Г© ГµГҐГ°Г­ГЁ... Г°Г Г§Г®ГЎГ°Г ГІГјГ±Гї
 	
 	setSocket(move(s));
 	sock->bind(localPort, SETTING(BIND_ADDRESS));
@@ -200,7 +200,7 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 			}
 			else
 			{
-				sock->connect(aAddr, aPort); // https://www.box.net/shared/l08o2vdekthrrp319m8n + http://www.flylinkdc.ru/2012/10/ashampoo-firewall.html
+				sock->connect(aAddr, aPort); // https://www.box.net/shared/l08o2vdekthrrp319m8n
 			}
 			
 			setOptions();
@@ -295,13 +295,13 @@ bool BufferedSocket::all_search_parser(const string::size_type p_pos_next_separa
 #endif
 		string l_line_item = p_line.substr(0, p_pos_next_separator);
 		auto l_marker_tth = l_line_item.find("?0?9?TTH:");
-		// TODO научиться обрабатывать лимит по размеру вида
+		// TODO Г­Г ГіГ·ГЁГІГјГ±Гї Г®ГЎГ°Г ГЎГ ГІГ»ГўГ ГІГј Г«ГЁГ¬ГЁГІ ГЇГ® Г°Г Г§Г¬ГҐГ°Гі ГўГЁГ¤Г 
 		// "x.x.x.x:yyy T?F?57671680?9?TTH:A3VSWSWKCVC4N6EP2GX47OEMGT5ZL52BOS2LAHA"
 		if (l_marker_tth != string::npos &&
 		        l_marker_tth > 5 &&
 		        l_line_item[l_marker_tth - 4] == ' ' &&
 		        l_line_item.size() >= l_marker_tth + 9 + 39
-		   ) // Поправка на полную команду  F?T?0?9?TTH: или F?F?0?9?TTH: или T?T?0?9?TTH:
+		   ) // ГЏГ®ГЇГ°Г ГўГЄГ  Г­Г  ГЇГ®Г«Г­ГіГѕ ГЄГ®Г¬Г Г­Г¤Гі  F?T?0?9?TTH: ГЁГ«ГЁ F?F?0?9?TTH: ГЁГ«ГЁ T?T?0?9?TTH:
 		{
 			dcassert(l_line_item.size() == l_marker_tth + 9 + 39 ||
 			         l_line_item.size() == l_marker_tth + 9 + 40
@@ -513,7 +513,7 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 					fly_fire1(BufferedSocketListener::MyInfoArray(), p_all_myInfo); // todo zmq
 				}
 			}
-			set_all_my_info_loaded(); // закончился стартовый поток $MyINFO
+			set_all_my_info_loaded(); // Г§Г ГЄГ®Г­Г·ГЁГ«Г±Гї Г±ГІГ Г°ГІГ®ГўГ»Г© ГЇГ®ГІГ®ГЄ $MyINFO
 		}
 	}
 	if (p_all_myInfo.empty())
@@ -543,7 +543,7 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
 				//dcassert(m_is_disconnecting == false)
 				if (m_is_disconnecting == false)
 				{
-					fly_fire1(BufferedSocketListener::Line(), l_line_item); // TODO - отказаться от временной переменной l и скользить по окну inbuf
+					fly_fire1(BufferedSocketListener::Line(), l_line_item); // TODO - Г®ГІГЄГ Г§Г ГІГјГ±Гї Г®ГІ ГўГ°ГҐГ¬ГҐГ­Г­Г®Г© ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© l ГЁ Г±ГЄГ®Г«ГјГ§ГЁГІГј ГЇГ® Г®ГЄГ­Гі inbuf
 				}
 			}
 		}
@@ -560,13 +560,13 @@ void BufferedSocket::all_myinfo_parser(const string::size_type p_pos_next_separa
                                         for (int i = 0; i < l_count_guest; ++i)
                                         {
                                             char bbb[200];
-                                            snprintf(bbb, sizeof(bbb), "$ALL Guest%d <<Peers V:(r622),M:P,H:1/0/0,S:15,C:Кемерово>$ $%c$$3171624055$", i, 5);
+                                            snprintf(bbb, sizeof(bbb), "$ALL Guest%d <<Peers V:(r622),M:P,H:1/0/0,S:15,C:ГЉГҐГ¬ГҐГ°Г®ГўГ®>$ $%c$$3171624055$", i, 5);
                                             l_all_myInfo.push_back(bbb);
                                         }
                                     }
 #endif // FLYLINKDC_EMULATOR_4000_USERS
 #ifdef FLYLINKDC_EMULATOR_4000_USERS
-// Генерируем случайные IP-адреса
+// ГѓГҐГ­ГҐГ°ГЁГ°ГіГҐГ¬ Г±Г«ГіГ·Г Г©Г­Г»ГҐ IP-Г Г¤Г°ГҐГ±Г 
                                     for (int i = 0; i < l_count_guest; ++i)
                                     {
                                         char bbb[200];
@@ -699,7 +699,7 @@ void BufferedSocket::threadRead()
 					{
 						if (pos > 0) // check empty (only pipe) command and don't waste cpu with it ;o)
 							fly_fire1(__FUNCTION__, BufferedSocketListener::Line(), l.substr(0, pos));
-						l.erase(0, pos + 1 /* separator char */); // TODO не эффективно
+						l.erase(0, pos + 1 /* separator char */); // TODO Г­ГҐ ГЅГґГґГҐГЄГІГЁГўГ­Г®
 					}
 #endif
 					}
@@ -730,9 +730,9 @@ void BufferedSocket::threadRead()
 						}
 					}
 					//======================================================================
-					// TODO - вставить быструю обработку поиска по TTH без вызова листенеров
-					// Если пасив - отвечаем в буфер сразу
-					// Если актив - кидаем отсылку UDP (тоже через очередь?)
+					// TODO - ГўГ±ГІГ ГўГЁГІГј ГЎГ»Г±ГІГ°ГіГѕ Г®ГЎГ°Г ГЎГ®ГІГЄГі ГЇГ®ГЁГ±ГЄГ  ГЇГ® TTH ГЎГҐГ§ ГўГ»Г§Г®ГўГ  Г«ГЁГ±ГІГҐГ­ГҐГ°Г®Гў
+					// Г…Г±Г«ГЁ ГЇГ Г±ГЁГў - Г®ГІГўГҐГ·Г ГҐГ¬ Гў ГЎГіГґГҐГ° Г±Г°Г Г§Гі
+					// Г…Г±Г«ГЁ Г ГЄГІГЁГў - ГЄГЁГ¤Г ГҐГ¬ Г®ГІГ±Г»Г«ГЄГі UDP (ГІГ®Г¦ГҐ Г·ГҐГ°ГҐГ§ Г®Г·ГҐГ°ГҐГ¤Гј?)
 					//======================================================================
 					l = m_line + string((char*)& m_inbuf[l_bufpos], l_left);
 					//dcassert(isalnum(l[0]) || isalpha(l[0]) || isascii(l[0]));
@@ -771,7 +771,7 @@ void BufferedSocket::threadRead()
 								}
 							}
 							l.erase(0, l_pos + 1 /* separator char */);
-							// TODO - erase не эффективно.
+							// TODO - erase Г­ГҐ ГЅГґГґГҐГЄГІГЁГўГ­Г®.
 							if (l.length() < (size_t)l_left)
 							{
 								l_left = l.length();
@@ -886,7 +886,7 @@ boost::asio::ip::address_v4 BufferedSocket::getIp4() const
 	if (hasSocket())
 	{
 		boost::system::error_code ec;
-		const auto l_ip = boost::asio::ip::address_v4::from_string(sock->getIp(), ec); // TODO - конвертнуть IP и в сокетах
+		const auto l_ip = boost::asio::ip::address_v4::from_string(sock->getIp(), ec); // TODO - ГЄГ®Г­ГўГҐГ°ГІГ­ГіГІГј IP ГЁ Гў Г±Г®ГЄГҐГІГ Гµ
 		dcassert(!ec);
 		return l_ip;
 	}
@@ -929,14 +929,14 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 		return;
 	dcassert(p_file != NULL);
 	
-	const size_t l_sockSize = MAX_SOCKET_BUFFER_SIZE; // тормозит отдача size_t(sock->getSocketOptInt(SO_SNDBUF));
+	const size_t l_sockSize = MAX_SOCKET_BUFFER_SIZE; // ГІГ®Г°Г¬Г®Г§ГЁГІ Г®ГІГ¤Г Г·Г  size_t(sock->getSocketOptInt(SO_SNDBUF));
 	static size_t g_bufSize = 0;
 	if (g_bufSize == 0)
 	{
 		g_bufSize = std::max(l_sockSize, size_t(MAX_SOCKET_BUFFER_SIZE));
 	}
 	
-	ByteVector l_readBuf; // TODO заменить на - не пишет буфера 0-ями std::unique_ptr<uint8_t[]> buf(new uint8_t[BUFSIZE]);
+	ByteVector l_readBuf; // TODO Г§Г Г¬ГҐГ­ГЁГІГј Г­Г  - Г­ГҐ ГЇГЁГёГҐГІ ГЎГіГґГҐГ°Г  0-ГїГ¬ГЁ std::unique_ptr<uint8_t[]> buf(new uint8_t[BUFSIZE]);
 	ByteVector l_writeBuf;
 	bool l_is_bad_alloc = false;
 	do
@@ -968,7 +968,7 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 		if (!readDone && l_readBuf.size() > readPos)
 		{
 			size_t bytesRead = l_readBuf.size() - readPos;
-			size_t actual = p_file->read(&l_readBuf[readPos], bytesRead); // TODO можно узнать что считали последний кусок в файл
+			size_t actual = p_file->read(&l_readBuf[readPos], bytesRead); // TODO Г¬Г®Г¦Г­Г® ГіГ§Г­Г ГІГј Г·ГІГ® Г±Г·ГЁГІГ Г«ГЁ ГЇГ®Г±Г«ГҐГ¤Г­ГЁГ© ГЄГіГ±Г®ГЄ Гў ГґГ Г©Г«
 #ifdef _DEBUG
 			if (actual)
 			{
@@ -1010,7 +1010,7 @@ void BufferedSocket::threadSendFile(InputStream* p_file)
 		}
 		l_readBuf.swap(l_writeBuf);
 		l_readBuf.resize(g_bufSize);
-		l_writeBuf.resize(readPos); // TODO - l_writeBuf опустить ниже и заказывать сколько нужно.
+		l_writeBuf.resize(readPos); // TODO - l_writeBuf Г®ГЇГіГ±ГІГЁГІГј Г­ГЁГ¦ГҐ ГЁ Г§Г ГЄГ Г§Г»ГўГ ГІГј Г±ГЄГ®Г«ГјГЄГ® Г­ГіГ¦Г­Г®.
 		readPos = 0;
 		
 		size_t writePos = 0, writeSize = 0;
@@ -1312,7 +1312,7 @@ void BufferedSocket::fail(const string& aError)
 		// fix https://drdump.com/Problem.aspx?ProblemID=112938
 		// fix https://drdump.com/Problem.aspx?ProblemID=112262
 		// fix https://drdump.com/Problem.aspx?ProblemID=112195
-		// Нельзя - вешаемся if (!ClientManager::isBeforeShutdown())
+		// ГЌГҐГ«ГјГ§Гї - ГўГҐГёГ ГҐГ¬Г±Гї if (!ClientManager::isBeforeShutdown())
 		{
 			fly_fire1(BufferedSocketListener::Failed(), aError);
 		}
