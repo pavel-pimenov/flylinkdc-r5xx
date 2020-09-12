@@ -676,9 +676,6 @@ void PrivateFrame::onAfterActiveTab(HWND aWnd)
 		}
 	}
 }
-void PrivateFrame::onInvalidateAfterActiveTab(HWND aWnd)
-{
-}
 void PrivateFrame::createMessagePanel()
 {
 	dcassert(!ClientManager::isBeforeShutdown());

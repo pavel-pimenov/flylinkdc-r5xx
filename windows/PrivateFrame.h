@@ -96,7 +96,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 		
 		void onBeforeActiveTab(HWND aWnd);
 		void onAfterActiveTab(HWND aWnd);
-		void onInvalidateAfterActiveTab(HWND aWnd);
+		//void onInvalidateAfterActiveTab(HWND aWnd) {}
 		
 		void addLine(const Identity& from, const bool bMyMess, const bool bThirdPerson, const tstring& aLine, unsigned p_max_smiles, const CHARFORMAT2& cf = Colors::g_ChatTextGeneral);
 		void UpdateLayout(BOOL bResizeBars = TRUE);

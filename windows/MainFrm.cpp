@@ -3536,6 +3536,54 @@ LRESULT MainFrame::onDisablePopups(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 	return 0;
 }
 
+LRESULT MainFrame::onWindowRestoreAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	HWND tmpWnd = GetWindow(GW_CHILD); //getting client window
+	HWND ClientWnd = tmpWnd; //saving client window handle
+	tmpWnd = ::GetWindow(tmpWnd, GW_CHILD); //getting first child window
+	BOOL bmax;
+	while (tmpWnd != NULL)
+	{
+		::ShowWindow(tmpWnd, SW_RESTORE);
+		::SendMessage(ClientWnd, WM_MDIGETACTIVE, NULL, (LPARAM)&bmax);
+		if (bmax)
+		{
+			break; //bmax will be true if active child
+		}
+		//window is maximized, so if bmax then break
+		tmpWnd = ::GetWindow(tmpWnd, GW_HWNDNEXT);
+	}
+	return 0;
+}
+
+
+LRESULT MainFrame::onRowsChanged(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+	if (ClientManager::isStartup() == false)
+	{
+		UpdateLayout();
+		Invalidate();
+	}
+	return 0;
+}
+
+LRESULT MainFrame::onSelected(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+	HWND hWnd = (HWND)wParam;
+	if (MDIGetActive() != hWnd)
+	{
+		WinUtil::activateMDIChild(hWnd);
+	}
+	else if (BOOLSETTING(TOGGLE_ACTIVE_WINDOW) && !::IsIconic(hWnd))
+	{
+		::SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+		MDINext(hWnd);
+		hWnd = MDIGetActive();
+	}
+	if (::IsIconic(hWnd))
+		::ShowWindow(hWnd, SW_RESTORE);
+	return 0;
+}
 LRESULT MainFrame::onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	safe_destroy_timer();

@@ -1739,7 +1739,7 @@ class WinUtil
 		
 		static bool shutDown(int action);
 		static int setButtonPressed(int nID, bool bPressed = true);
-//TODO      static bool checkIsButtonPressed(int nID);
+		static void activateMDIChild(HWND hWnd);
 
 #ifdef FLYLINKDC_USE_LIST_VIEW_WATER_MARK
 		static bool setListCtrlWatermark(HWND hListCtrl, UINT nID, COLORREF clr, int width = 128, int height = 128);

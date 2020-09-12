@@ -359,33 +359,9 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 		void setTrayAndTaskbarIcons();
 		LRESULT onTaskbarButton(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		
-		LRESULT onRowsChanged(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-		{
-			if (ClientManager::isStartup() == false)
-			{
-				UpdateLayout();
-				Invalidate();
-			}
-			return 0;
-		}
+		LRESULT onRowsChanged(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		
-		LRESULT onSelected(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-		{
-			HWND hWnd = (HWND)wParam;
-			if (MDIGetActive() != hWnd)
-			{
-				MDIActivate(hWnd);
-			}
-			else if (BOOLSETTING(TOGGLE_ACTIVE_WINDOW) && !::IsIconic(hWnd))
-			{
-				::SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-				MDINext(hWnd);
-				hWnd = MDIGetActive();
-			}
-			if (::IsIconic(hWnd))
-				::ShowWindow(hWnd, SW_RESTORE);
-			return 0;
-		}
+		LRESULT onSelected(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 		
 		LRESULT onDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 		
@@ -456,25 +432,7 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 			}
 			return 0;
 		}
-		LRESULT onWindowRestoreAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-		{
-			HWND tmpWnd = GetWindow(GW_CHILD); //getting client window
-			HWND ClientWnd = tmpWnd; //saving client window handle
-			tmpWnd = ::GetWindow(tmpWnd, GW_CHILD); //getting first child window
-			BOOL bmax;
-			while (tmpWnd != NULL)
-			{
-				::ShowWindow(tmpWnd, SW_RESTORE);
-				::SendMessage(ClientWnd, WM_MDIGETACTIVE, NULL, (LPARAM)&bmax);
-				if (bmax)
-				{
-					break; //bmax will be true if active child
-				}
-				//window is maximized, so if bmax then break
-				tmpWnd = ::GetWindow(tmpWnd, GW_HWNDNEXT);
-			}
-			return 0;
-		}
+		LRESULT onWindowRestoreAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 		LRESULT onShutDown(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{

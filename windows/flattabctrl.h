@@ -1929,7 +1929,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 				HWND next = getTab()->getNext();
 				if (next != NULL)
 				{
-					MDIActivate(next);
+					WinUtil::activateMDIChild(next);
 					return 0;
 				}
 			}
@@ -1938,7 +1938,7 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 				HWND next = getTab()->getPrev();
 				if (next != NULL)
 				{
-					MDIActivate(next);
+					WinUtil::activateMDIChild(next);
 					return 0;
 				}
 			}
