@@ -793,6 +793,7 @@ void File_Mk::Streams_Finish()
                     {
                         Ztring Hutc = Retrieve(Stream_General, 0, "Encoded_Date");
                         Hutc.FindAndReplace(__T("UTC "), Ztring());
+                        Hutc = Hutc.substr(0, Hutc.find(__T(" / "), 0)); // leave only the first date in a "UTC date1 / UTC date2" field
                         Ztring App, Utc;
                         Item2=Item->second.find(__T("_STATISTICS_WRITING_APP"));
                         if (Item2!=Item->second.end())
@@ -2849,13 +2850,11 @@ void File_Mk::Segment_Cluster_BlockGroup_Block_Lace()
                 if (Segment_Seeks[Pos].SeekPosition>File_Offset+Buffer_Offset+Element_Size)
                 {
                     JumpTo(Segment_Seeks[Pos].SeekPosition);
-                    Open_Buffer_Unsynch();
                     break;
                 }
             if (File_GoTo==(int64u)-1)
             {
                 JumpTo(Segment_Offset_End);
-                Open_Buffer_Unsynch();
             }
         }
 
@@ -4803,6 +4802,7 @@ void File_Mk::JumpTo (int64u GoToValue)
     CRC32Compute.clear();
 
     //GoTo
+    Open_Buffer_Unsynch();
     GoTo(GoToValue);
 }
 

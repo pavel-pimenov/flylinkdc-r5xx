@@ -247,10 +247,10 @@ public:
 			if(pv != NULL)
 			{
 				memset(pv, 0, nLen);
-				pdev->wDeviceOffset = sizeof(DEVNAMES);
+				pdev->wDeviceOffset = sizeof(DEVNAMES) / sizeof(TCHAR);
 				pv = pv + sizeof(DEVNAMES); // now points to end
 				ATL::Checked::tcscpy_s((LPTSTR)pv, lstrlen(lpszPrinterName) + 1, lpszPrinterName);
-				pdev->wOutputOffset = (WORD)(sizeof(DEVNAMES) + (lstrlen(lpszPrinterName) + 1) * sizeof(TCHAR));
+				pdev->wOutputOffset = (WORD)(sizeof(DEVNAMES) / sizeof(TCHAR) + lstrlen(lpszPrinterName) + 1);
 				pv = pv + (lstrlen(lpszPrinterName) + 1) * sizeof(TCHAR);
 				ATL::Checked::tcscpy_s((LPTSTR)pv, lstrlen(lpszPortName) + 1, lpszPortName);
 				::GlobalUnlock(hDevNames);

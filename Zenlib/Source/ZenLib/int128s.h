@@ -133,7 +133,7 @@ class int128 {
         bool    bit (unsigned int n) const throw ();
         void    bit (unsigned int n, bool val) throw ();
 }
-#ifdef __GNUC__
+#if defined(__GNUC__)  && !defined(__ANDROID_API__)
     __attribute__ ((__aligned__ (16), __packed__))
 #endif
 ;
@@ -149,36 +149,36 @@ bool operator && (const int128 & a, const int128 & b) throw ();
 // GLOBAL OPERATOR INLINES
 
 inline int128 operator + (const int128 & a, const int128 & b) throw () {
-    return int128 (a) += b; };
+    return int128 (a) += b; }
 inline int128 operator - (const int128 & a, const int128 & b) throw () {
-    return int128 (a) -= b; };
+    return int128 (a) -= b; }
 inline int128 operator * (const int128 & a, const int128 & b) throw () {
-    return int128 (a) *= b; };
+    return int128 (a) *= b; }
 inline int128 operator / (const int128 & a, const int128 & b) throw () {
-    return int128 (a) /= b; };
+    return int128 (a) /= b; }
 inline int128 operator % (const int128 & a, const int128 & b) throw () {
-    return int128 (a) %= b; };
+    return int128 (a) %= b; }
 
 inline int128 operator >> (const int128 & a, unsigned int n) throw () {
-    return int128 (a) >>= n; };
+    return int128 (a) >>= n; }
 inline int128 operator << (const int128 & a, unsigned int n) throw () {
-    return int128 (a) <<= n; };
+    return int128 (a) <<= n; }
 
 inline int128 operator & (const int128 & a, const int128 & b) throw () {
-    return int128 (a) &= b; };
+    return int128 (a) &= b; }
 inline int128 operator | (const int128 & a, const int128 & b) throw () {
-    return int128 (a) |= b; };
+    return int128 (a) |= b; }
 inline int128 operator ^ (const int128 & a, const int128 & b) throw () {
-    return int128 (a) ^= b; };
+    return int128 (a) ^= b; }
 
 inline bool operator >  (const int128 & a, const int128 & b) throw () {
-    return   b < a; };
+    return   b < a; }
 inline bool operator <= (const int128 & a, const int128 & b) throw () {
-    return !(b < a); };
+    return !(b < a); }
 inline bool operator >= (const int128 & a, const int128 & b) throw () {
-    return !(a < b); };
+    return !(a < b); }
 inline bool operator != (const int128 & a, const int128 & b) throw () {
-    return !(a == b); };
+    return !(a == b); }
 
 
 // MISC

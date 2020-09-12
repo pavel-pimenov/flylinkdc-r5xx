@@ -71,7 +71,7 @@ static const Tags g_EndBBTag[] =
 
 //struct Interval
 //{
-//	Interval (long s = 0, long e = 0) : start(s), end(e) {};
+//	Interval (long s = 0, long e = 0) : start(s), end(e) {}
 //	long start, end;
 //};
 //typedef vector<Interval> Intervals;
@@ -306,7 +306,7 @@ void ChatCtrl::AppendText(const CFlyChatCache& p_message, unsigned p_max_smiles,
 		LogManager::message("Error ChatCtrl::AppendText " + Text::fromT(p_message.m_Msg));
 		return;
 	}
-
+	
 	LONG lSelBeginSaved = 0, lSelEndSaved = 0;
 	GetSel(lSelBeginSaved, lSelEndSaved);
 	POINT l_cr = { 0 };

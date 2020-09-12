@@ -1,6 +1,7 @@
 
 #include "stdafx.h"
 #include "stdinc.h"
+
 #include <memory>
 #include <iostream>
 #include <string>
@@ -19,7 +20,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
 #include <limits>
-#include "../client/CFlyProfiler.h"
 #include "../client/CFlyThread.h"
 #include "cperformance.h"
 #include "cycle.h"

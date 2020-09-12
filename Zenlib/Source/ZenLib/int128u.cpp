@@ -73,7 +73,7 @@ const char * uint128::toString (unsigned int radix) const throw () {
     };
 
     return &sz [i];
-};
+}
 
 uint128::uint128 (const char * sz) throw ()
     : lo (0u), hi (0u) {
@@ -118,7 +118,7 @@ uint128::uint128 (const char * sz) throw ()
         *this = 0u - *this;
 
     return;
-};
+}
 
 uint128::uint128 (const float a) throw ()
     #if defined (__mips__)       || defined (__mipsel__)
@@ -289,7 +289,7 @@ void uint128::bit (unsigned int n, bool val) throw () {
     } else {
         if (n < 64) this->lo &= ~(1ull << n);
                else this->hi &= ~(1ull << (n - 64));
-    }
+    };
 }
 
 
@@ -315,7 +315,7 @@ uint128 & uint128::operator >>= (unsigned int n) throw () {
 
         // and finally shift also high qword
         this->hi >>= n;
-    }
+    };
 
     return *this;
 }
@@ -342,7 +342,7 @@ uint128 & uint128::operator <<= (unsigned int n) throw () {
 
         // and finally shift also low qword
         this->lo <<= n;
-    }
+    };
 
     return *this;
 }
@@ -370,7 +370,7 @@ uint128 & uint128::operator ^= (const uint128 & b) throw () {
     this->lo ^= b.lo;
 
     return *this;
-};
+}
 
 bool operator <  (const uint128 & a, const uint128 & b) throw () {
     return (a.hi == b.hi) ? (a.lo < b.lo) : (a.hi < b.hi);

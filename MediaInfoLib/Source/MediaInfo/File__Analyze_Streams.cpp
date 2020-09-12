@@ -273,8 +273,12 @@ size_t File__Analyze::Stream_Prepare (stream_t KindOfStream, size_t StreamPos)
                 if (!Retrieve(KindOfStream, StreamPos_Last, "Demux_InitBytes").empty())
                     Fill_SetOptions(KindOfStream, StreamPos_Last, "Demux_InitBytes", "N NT");
             #endif //MEDIAINFO_DEMUX
+            map<string, string>::iterator Fill_Temp_Option=Fill_Temp_Options[Fill_Temp_StreamKind].find(Fill_Temp[Fill_Temp_StreamKind][Pos].Parameter.To_UTF8());
+            if (Fill_Temp_Option!=Fill_Temp_Options[Fill_Temp_StreamKind].end())
+                Fill_SetOptions(KindOfStream, StreamPos_Last, Fill_Temp_Option->first.c_str(), Fill_Temp_Option->second.c_str());
         }
     Fill_Temp[Fill_Temp_StreamKind].clear();
+    Fill_Temp_Options[Fill_Temp_StreamKind].clear();
 
     return StreamPos_Last; //The position in the stream count
 }
@@ -359,6 +363,47 @@ bool ShowSource_IsInList(video Value)
 //---------------------------------------------------------------------------
 void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, size_t Parameter, const Ztring &Value, bool Replace)
 {
+    // Sanitize
+    if (!Value.empty())
+    {
+        size_t Value_NotBOM_Pos;
+        if (sizeof(Char)==1)
+        {
+            Value_NotBOM_Pos=0;
+            while (Value.size()-Value_NotBOM_Pos>=3 // Avoid deep recursivity
+             && Value[Value_NotBOM_Pos  ]==0xEF 
+             && Value[Value_NotBOM_Pos+1]==0xBB
+             && Value[Value_NotBOM_Pos+2]==0xBF
+                )
+                Value_NotBOM_Pos+=3;
+        }
+        else
+        {
+            //Check inverted bytes from UTF BOM
+            Value_NotBOM_Pos=Value.find_first_not_of(__T('\xFFFE')); // Avoid deep recursivity
+            if (Value_NotBOM_Pos)
+            {
+                Ztring Value2;
+                Value2.reserve(Value.size()-1);
+                for (size_t i=0; i<Value.size(); i++)
+                {
+                    //Swap
+                    Char ValueChar=Value[i];
+                    ValueChar=((ValueChar<<8 & 0xFFFF) | ((ValueChar>>8) & 0xFF)); // Swap
+                    Value2.append(1, ValueChar);
+                }
+                Value_NotBOM_Pos=Value2.find_first_not_of(__T('\xFEFF')); // Avoid deep recursivity
+                if (Value_NotBOM_Pos)
+                    Value2=Value2.substr(Value_NotBOM_Pos);
+                return Fill(StreamKind, StreamPos, Parameter, Value2, Replace);
+            }
+
+            Value_NotBOM_Pos=Value.find_first_not_of(__T('\xFEFF')); // Avoid deep recursivity
+        }
+        if (Value_NotBOM_Pos)
+            return Fill(StreamKind, StreamPos, Parameter, Value.substr(Value_NotBOM_Pos), Replace);
+    }
+
     //MergedStreams
     if (FillAllMergedStreams)
     {
@@ -1057,10 +1102,10 @@ void File__Analyze::Fill_Measure(stream_t StreamKind, size_t StreamPos, const ch
 {
     string Parameter_String(Parameter);
     Parameter_String+="/String";
-    Fill(Stream_Audio, 0, Parameter, Value, Replace);
-    Fill_SetOptions(Stream_Audio, 0, Parameter, "N NFY");
-    Fill(Stream_Audio, 0, Parameter_String.c_str(), MediaInfoLib::Config.Language_Get(Value, Measure), Replace);
-    Fill_SetOptions(Stream_Audio, 0, Parameter_String.c_str(), "Y NFN");
+    Fill(StreamKind, StreamPos, Parameter, Value, Replace);
+    Fill_SetOptions(StreamKind, StreamPos, Parameter, "N NFY");
+    Fill(StreamKind, StreamPos, Parameter_String.c_str(), MediaInfoLib::Config.Language_Get(Value, Measure), Replace);
+    Fill_SetOptions(StreamKind, StreamPos, Parameter_String.c_str(), "Y NFN");
 }
 
 //---------------------------------------------------------------------------
@@ -1214,13 +1259,13 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, const char* Par
 void File__Analyze::Fill_SetOptions(stream_t StreamKind, size_t StreamPos, const char* Parameter, const char* Options)
 {
     //Integrity
-    if (!Status[IsAccepted] || StreamKind>Stream_Max || Parameter==NULL || Parameter[0]=='\0')
+    if (StreamKind>Stream_Max || Parameter==NULL || Parameter[0]=='\0')
         return;
 
     //Handle Value before StreamKind
-    if (StreamKind==Stream_Max || StreamPos>=(*Stream)[StreamKind].size())
+    if (!Status[IsAccepted] || StreamKind==Stream_Max || StreamPos>=(*Stream)[StreamKind].size())
     {
-        //TODO: implement support of options when the stream is not yet prepared
+        Fill_Temp_Options[StreamKind][Parameter]=Options;
         return; //No streams
     }
 
@@ -1485,7 +1530,10 @@ void File__Analyze::Fill_Flush()
 {
     Stream_Prepare(Stream_Max); //clear filling
     for (size_t StreamKind=(size_t)Stream_General; StreamKind<(size_t)Stream_Max+1; StreamKind++) // +1 because Fill_Temp[Stream_Max] is used when StreamKind is unknown
+    {
         Fill_Temp[StreamKind].clear();
+        Fill_Temp_Options[StreamKind].clear();
+    }
 }
 
 //---------------------------------------------------------------------------

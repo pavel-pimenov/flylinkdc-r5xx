@@ -1180,10 +1180,10 @@ public:
 	}
 
 // Overrideable handlers
-	void OnRead(LPCTSTR /*lpstrRegValue*/)
+	void OnRead(LPCTSTR /*lpstrRegKey*/)
 	{ }
 
-	void OnWrite(LPCTSTR /*lpstrRegValue*/)
+	void OnWrite(LPCTSTR /*lpstrRegKey*/)
 	{ }
 
 	void OnReadError(LPCTSTR /*lpstrRegValue*/, LSTATUS /*lError*/)

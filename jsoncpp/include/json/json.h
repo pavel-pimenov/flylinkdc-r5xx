@@ -867,6 +867,7 @@ public:
   Value(const StaticString& value);
   Value(const String& value);
   Value(bool value);
+  Value(std::nullptr_t ptr) = delete;
   Value(const Value& other);
   Value(Value&& other);
   ~Value();
