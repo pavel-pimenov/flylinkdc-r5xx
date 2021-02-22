@@ -34,7 +34,6 @@ FlyUpdate.rc
 *.vcxproj
 *.vcxproj.filters
 revision.h
-FlylinkDCExt.h
 version.h
 changelog*
 compiled\Settings\custom_menu.xml
@@ -62,5 +61,9 @@ GdiOle\GdiOle_p.c
 src_backup_7z.bat
 src_gen_filename.bat
 UpdateGeoIP.bat
-sign-flylinkdc.bat
-visual-c-version.txt
+build_all_2017.bat
+build_flylinkdc_x64_2017.bat
+build_get_visual_c_version.bat
+clean_all_2017.bat
+update_geo_ip.bat
+update_headers.bat

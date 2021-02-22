@@ -41,6 +41,8 @@
 #include "libtorrent/magnet_uri.hpp"
 #endif
 
+#pragma comment (lib, "crypt32")
+
 std::unique_ptr<webrtc::RWLockWrapper> DownloadManager::g_csDownload = std::unique_ptr<webrtc::RWLockWrapper> (webrtc::RWLockWrapper::CreateRWLock());
 DownloadList DownloadManager::g_download_map;
 UserConnectionList DownloadManager::g_idlers;
@@ -676,13 +678,13 @@ void DownloadManager::endData(UserConnection* aSource)
 	checkDownloads(aSource);
 }
 
-void DownloadManager::on(UserConnectionListener::MaxedOut, UserConnection* aSource, const string& param) noexcept
+void DownloadManager::on(UserConnectionListener::MaxedOut, UserConnection* aSource, const std::string& param) noexcept
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	noSlots(aSource, param);
 }
 
-void DownloadManager::noSlots(UserConnection* aSource, const string& param)
+void DownloadManager::noSlots(UserConnection* aSource, const std::string& param)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	if (aSource->getState() != UserConnection::STATE_SND)
@@ -692,18 +694,18 @@ void DownloadManager::noSlots(UserConnection* aSource, const string& param)
 		return;
 	}
 	
-	string extra = param.empty() ? Util::emptyString : " - " + STRING(QUEUED) + ' ' + param;
+	const std::string extra = param.empty() ? BaseUtil::emptyString : " - " + STRING(QUEUED) + ' ' + param;
 	failDownload(aSource, STRING(NO_SLOTS_AVAILABLE) + extra);
 }
 
-void DownloadManager::onFailed(UserConnection* aSource, const string& aError)
+void DownloadManager::onFailed(UserConnection* aSource, const std::string& aError)
 {
 	// TODO dcassert(!ClientManager::isBeforeShutdown());
 	remove_idlers(aSource);
 	failDownload(aSource, aError);
 }
 
-void DownloadManager::failDownload(UserConnection* aSource, const string& p_reason)
+void DownloadManager::failDownload(UserConnection* aSource, const std::string& p_reason)
 {
 	// TODO dcassert(!ClientManager::isBeforeShutdown());
 	auto d = aSource->getDownload();
@@ -777,7 +779,7 @@ void DownloadManager::removeDownload(const DownloadPtr& d)
 			{
 #ifdef _DEBUG
 				dcassert(0);
-				LogManager::message("DownloadManager::removeDownload error =" + string(e.what()));
+				LogManager::message("DownloadManager::removeDownload error =" + std::string(e.what()));
 #endif // _DEBUG
 			}
 		}
@@ -797,7 +799,7 @@ void DownloadManager::removeDownload(const DownloadPtr& d)
 	}
 }
 
-void DownloadManager::abortDownload(const string& aTarget)
+void DownloadManager::abortDownload(const std::string& aTarget)
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	CFlyReadLock(*g_csDownload);
@@ -812,7 +814,7 @@ void DownloadManager::abortDownload(const string& aTarget)
 	}
 }
 
-void DownloadManager::on(UserConnectionListener::ListLength, UserConnection* aSource, const string& aListLength) noexcept
+void DownloadManager::on(UserConnectionListener::ListLength, UserConnection* aSource, const std::string& aListLength) noexcept
 {
 	dcassert(!ClientManager::isBeforeShutdown());
 	ClientManager::setListLength(aSource->getUser(), aListLength);
@@ -833,7 +835,7 @@ void DownloadManager::on(AdcCommand::STA, UserConnection* aSource, const AdcComm
 		return;
 	}
 	
-	const string& err = cmd.getParameters()[0];
+	const std::string err = cmd.getParameters()[0];
 	if (err.length() != 3)
 	{
 		aSource->disconnect();
@@ -852,8 +854,8 @@ void DownloadManager::on(AdcCommand::STA, UserConnection* aSource, const AdcComm
 					fileNotAvailable(aSource);
 					return;
 				case AdcCommand::ERROR_SLOTS_FULL:
-					string param;
-					noSlots(aSource, cmd.getParam("QP", 0, param) ? param : Util::emptyString);
+					std::string param;
+					noSlots(aSource, cmd.getParam("QP", 0, param) ? param : BaseUtil::emptyString);
 					return;
 			}
 		case AdcCommand::SEV_SUCCESS:
@@ -1045,7 +1047,7 @@ void DownloadManager::onTorrentAlertNotify()
 								{
 									g_last_log = l_log;
 								}
-								LogManager::torrent_message(l_log, false);
+								//LogManager::torrent_message(l_log, false);
 #endif
 								l_pos++;
 								DownloadArray l_tickList;
@@ -1325,7 +1327,7 @@ void DownloadManager::onTorrentAlertNotify()
 #ifdef _DEBUG
 			if (alerts.size())
 			{
-				LogManager::torrent_message("Torrent alerts.size() = " + Util::toString(alerts.size()));
+				//LogManager::torrent_message("Torrent alerts.size() = " + Util::toString(alerts.size()));
 			}
 #endif
 			//    std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -1590,7 +1592,7 @@ void DownloadManager::init_torrent(bool p_is_force)
 		               | lt::alert::storage_notification
 		               | lt::alert::status_notification
 		               | lt::alert::port_mapping_notification
-#define FLYLINKDC_USE_OLD_LIBTORRENT_R21298
+//#define FLYLINKDC_USE_OLD_LIBTORRENT_R21298
 #ifdef FLYLINKDC_USE_OLD_LIBTORRENT_R21298
 		               | lt::alert::progress_notification
 #else
@@ -1641,18 +1643,13 @@ void DownloadManager::init_torrent(bool p_is_force)
 		m_torrent_session = std::make_unique<lt::session>(l_sett);
 		if (SETTING(INCOMING_CONNECTIONS) == SettingsManager::INCOMING_FIREWALL_UPNP || BOOLSETTING(AUTO_DETECT_CONNECTION))
 		{
-			m_maping_index[0] = m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TCP_PORT), SETTING(TCP_PORT));
-			m_maping_index[1] = m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TLS_PORT), SETTING(TLS_PORT));
-			m_maping_index[2] = m_torrent_session->add_port_mapping(lt::session::udp, SETTING(UDP_PORT), SETTING(UDP_PORT));
-			/*
-			            m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TCP_PORT), SETTING(TCP_PORT));
-			            m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TLS_PORT), SETTING(TLS_PORT));
-			            auto l_upnp_map = m_torrent_session->add_port_mapping(lt::session::udp, SETTING(UDP_PORT), SETTING(UDP_PORT));
-			           // dcassert(l_upnp_map.size() != 3);
-			            m_maping_index[0] = lt::port_mapping_t(1);
-			            m_maping_index[1] = lt::port_mapping_t(1);
-			            m_maping_index[2] = lt::port_mapping_t(1);
-			*/
+			m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TCP_PORT), SETTING(TCP_PORT));
+			m_torrent_session->add_port_mapping(lt::session::tcp, SETTING(TLS_PORT), SETTING(TLS_PORT));
+			auto l_upnp_map = m_torrent_session->add_port_mapping(lt::session::udp, SETTING(UDP_PORT), SETTING(UDP_PORT));
+			dcassert(l_upnp_map.size() != 3);
+			m_maping_index[0] = lt::port_mapping_t(1);
+			m_maping_index[1] = lt::port_mapping_t(1);
+			m_maping_index[2] = lt::port_mapping_t(1);
 		}
 		else
 		{

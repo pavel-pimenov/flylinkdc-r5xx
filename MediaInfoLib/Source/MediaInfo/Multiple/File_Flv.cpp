@@ -832,12 +832,15 @@ void File_Flv::Header_Parse()
         {
             Time=(((int32u)Timestamp_Extended)<<24)|Timestamp_Base;
             stream_t StreamKind=(Type==0x08)?Stream_Audio:Stream_Video;
-            if (Stream[StreamKind].Delay==(int32u)-1)
-                Stream[StreamKind].Delay=Time;
-            else if (Stream[StreamKind].TimeStamp!=(int32u)-1 && Time>Stream[StreamKind].TimeStamp)
-                Stream[StreamKind].Durations.push_back(Time-Stream[StreamKind].TimeStamp);
-            if (!Searching_Duration || Stream[StreamKind].TimeStamp==(int32u)-1)
-                Stream[StreamKind].TimeStamp=Time;
+            if (StreamKind < Stream.size()) // * Fix https://github.com/MediaArea/MediaInfo/issues/518 
+            { 
+                if (Stream[StreamKind].Delay==(int32u)-1)
+                    Stream[StreamKind].Delay=Time;
+                else if (Stream[StreamKind].TimeStamp!=(int32u)-1 && Time>Stream[StreamKind].TimeStamp)
+                    Stream[StreamKind].Durations.push_back(Time-Stream[StreamKind].TimeStamp);
+                if (!Searching_Duration || Stream[StreamKind].TimeStamp==(int32u)-1)
+                    Stream[StreamKind].TimeStamp=Time;
+             }
         }
 
         if (Type==0)
@@ -1280,6 +1283,8 @@ void File_Flv::video_HEVC()
 void File_Flv::audio()
 {
     Element_Name("Audio");
+    if (Stream_Audio>=Stream.size()) // * Fix https://github.com/MediaArea/MediaInfo/issues/518
+        return;
     Stream[Stream_Audio].PacketCount++;
     Element_Info1(Stream[Stream_Audio].PacketCount);
 

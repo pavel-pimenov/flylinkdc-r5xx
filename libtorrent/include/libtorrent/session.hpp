@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg
+Copyright (c) 2006-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <thread>
 
 #include "libtorrent/config.hpp"
-#include "libtorrent/build_config.hpp"
 #include "libtorrent/io_service.hpp"
 #include "libtorrent/settings_pack.hpp"
 #include "libtorrent/session_handle.hpp"
@@ -44,7 +43,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/kademlia/dht_state.hpp"
 #include "libtorrent/kademlia/dht_storage.hpp"
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 #include "libtorrent/fingerprint.hpp"
 #include <cstdio> // for snprintf
 #endif
@@ -78,7 +77,7 @@ namespace libtorrent {
 	// upload rates by allowing large send buffers.
 	TORRENT_EXPORT settings_pack min_memory_usage();
 	TORRENT_EXPORT settings_pack high_performance_seed();
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	TORRENT_DEPRECATED
 	inline void min_memory_usage(settings_pack& set)
 	{ set = min_memory_usage(); }
@@ -87,16 +86,10 @@ namespace libtorrent {
 	{ set = high_performance_seed(); }
 #endif
 
-#ifndef TORRENT_CFG
-#error TORRENT_CFG is not defined!
-#endif
-
-	void TORRENT_EXPORT TORRENT_CFG();
-
 namespace aux {
 
-		struct session_impl;
-	}
+	struct session_impl;
+}
 
 	struct disk_interface;
 	struct counters;
@@ -138,12 +131,18 @@ namespace aux {
 		// (ut_metadata, ut_pex and smart_ban). The default values in the
 		// settings is to start the default features like upnp, NAT-PMP,
 		// and dht for example.
-		explicit session_params(settings_pack sp = settings_pack());
+		explicit session_params(settings_pack&& sp);
+		explicit session_params(settings_pack const& sp);
+		session_params();
+
 		// This constructor helps to configure the set of initial plugins
 		// to be added to the session before it's started.
-		session_params(settings_pack sp
+		session_params(settings_pack&& sp
+			, std::vector<std::shared_ptr<plugin>> exts);
+		session_params(settings_pack const& sp
 			, std::vector<std::shared_ptr<plugin>> exts);
 
+		// hidden
 		session_params(session_params const&) = default;
 		session_params(session_params&&) = default;
 		session_params& operator=(session_params const&) = default;
@@ -185,9 +184,13 @@ namespace aux {
 		// In order to avoid a race condition between starting the session and
 		// configuring it, you can pass in a session_params object. Its settings
 		// will take effect before the session starts up.
-		explicit session(session_params params = session_params())
+		explicit session(session_params const& params)
+		{ start(session_params(params), nullptr); }
+		explicit session(session_params&& params)
+		{ start(std::move(params), nullptr); }
+		session()
 		{
-			TORRENT_CFG();
+			session_params params;
 			start(std::move(params), nullptr);
 		}
 
@@ -204,11 +207,10 @@ namespace aux {
 		// 	call session::abort() and save the session_proxy first, then
 		// 	destruct the session object, then sync with the io_service, then
 		// 	destruct the session_proxy object.
-		session(session_params params, io_service& ios)
-		{
-			TORRENT_CFG();
-			start(std::move(params), &ios);
-		}
+		session(session_params&& params, io_service& ios)
+		{ start(std::move(params), &ios); }
+		session(session_params const& params, io_service& ios)
+		{ start(session_params(params), &ios); }
 
 		// Constructs the session objects which acts as the container of torrents.
 		// It provides configuration options across torrents (such as rate limits,
@@ -221,12 +223,12 @@ namespace aux {
 		// NAT-PMP) and default plugins (ut_metadata, ut_pex and smart_ban). The
 		// default is to start those features. If you do not want them to start,
 		// pass 0 as the flags parameter.
-		session(settings_pack pack
-			, session_flags_t const flags = start_default_features | add_default_plugins)
-		{
-			TORRENT_CFG();
-			start(flags, std::move(pack), nullptr);
-		}
+		session(settings_pack&& pack
+			, session_flags_t const flags = add_default_plugins)
+		{ start(flags, std::move(pack), nullptr); }
+		session(settings_pack const& pack
+			, session_flags_t const flags = add_default_plugins)
+		{ start(flags, settings_pack(pack), nullptr); }
 
 		// movable
 		session(session&&) = default;
@@ -249,15 +251,16 @@ namespace aux {
 		// 	call session::abort() and save the session_proxy first, then
 		// 	destruct the session object, then sync with the io_service, then
 		// 	destruct the session_proxy object.
-		session(settings_pack pack
+		session(settings_pack&& pack
 			, io_service& ios
-			, session_flags_t const flags = start_default_features | add_default_plugins)
-		{
-			TORRENT_CFG();
-			start(flags, std::move(pack), &ios);
-		}
+			, session_flags_t const flags = add_default_plugins)
+		{ start(flags, std::move(pack), &ios); }
+		session(settings_pack const& pack
+			, io_service& ios
+			, session_flags_t const flags = add_default_plugins)
+		{ start(flags, settings_pack(pack), &ios); }
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -275,7 +278,6 @@ namespace aux {
 			, session_flags_t const flags = start_default_features | add_default_plugins
 			, alert_category_t const alert_mask = alert::error_notification)
 		{
-			TORRENT_CFG();
 			settings_pack pack;
 			pack.set_int(settings_pack::alert_mask, int(alert_mask));
 			pack.set_str(settings_pack::peer_fingerprint, print.to_string());
@@ -297,7 +299,6 @@ namespace aux {
 			, session_flags_t const flags = start_default_features | add_default_plugins
 			, alert_category_t const alert_mask = alert::error_notification)
 		{
-			TORRENT_CFG();
 			TORRENT_ASSERT(listen_port_range.first > 0);
 			TORRENT_ASSERT(listen_port_range.first <= listen_port_range.second);
 
@@ -329,7 +330,7 @@ namespace aux {
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
-#endif // TORRENT_NO_DEPRECATE
+#endif // TORRENT_ABI_VERSION
 
 		// The destructor of session will notify all trackers that our torrents
 		// have been shut down. If some trackers are down, they will time out.
@@ -361,8 +362,11 @@ namespace aux {
 
 	private:
 
-		void start(session_params params, io_service* ios);
-		void start(session_flags_t flags, settings_pack sp, io_service* ios);
+		void start(session_params&& params, io_service* ios);
+		void start(session_flags_t flags, settings_pack&& sp, io_service* ios);
+
+		void start(session_params const& params, io_service* ios) = delete;
+		void start(session_flags_t flags, settings_pack const& sp, io_service* ios) = delete;
 
 		// data shared between the main thread
 		// and the working thread

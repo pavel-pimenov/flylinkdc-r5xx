@@ -18,9 +18,6 @@ typedef boost::detail::spinlock BoostFastCriticalSection;
 typedef boost::lock_guard<boost::detail::spinlock> BoostFastLock;
 
 class CFlyLockProfiler
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		explicit CFlyLockProfiler(const char* p_function, int p_line) : m_function(p_function), m_line(p_line)

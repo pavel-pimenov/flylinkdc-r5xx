@@ -26,9 +26,6 @@
 STANDARD_EXCEPTION(ParseException);
 
 class AdcCommand
-#ifdef _DEBUG
-	: private boost::noncopyable
-#endif
 {
 	public:
 		template<uint32_t T>
@@ -190,7 +187,7 @@ class AdcCommand
 		const string getParam(size_t n) const // Убрал ссылку - опасное место.
 		{
 			dcassert(getParameters().size() > n);
-			return getParameters().size() > n ? getParameters()[n] : Util::emptyString;
+			return getParameters().size() > n ? getParameters()[n] : BaseUtil::emptyString;
 		}
 		/** Return a named parameter where the name is a two-letter code */
 		bool getParam(const char* name, size_t start, string& ret) const;

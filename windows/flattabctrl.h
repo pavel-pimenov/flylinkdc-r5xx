@@ -997,9 +997,6 @@ class ATL_NO_VTABLE FlatTabCtrlImpl : public CWindowImpl< T, TBase, TWinTraits>
 		
 	private:
 		class TabInfo
-#ifdef _DEBUG
-			: public boost::noncopyable
-#endif
 		{
 			public:
 				typedef vector<TabInfo*> List;
@@ -2023,48 +2020,13 @@ class ATL_NO_VTABLE MDITabChildWindowImpl : public CMDIChildWindowImpl<T, TBase,
 		// For buggy Aero MDI, since it doesn't look like MS is gonna fix it... idea taken from MSDN
 		LRESULT onGetMinMaxInfo(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 		{
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
-//			if (CompatibilityManager::isOsVistaPlus())
-#endif
 			{
 				PMINMAXINFO pmmi = (PMINMAXINFO)lParam;
 				if ((pmmi->ptMaxTrackSize.x < pmmi->ptMaxSize.x) || (pmmi->ptMaxTrackSize.y < pmmi->ptMaxSize.y))
 				{
 					pmmi->ptMaxTrackSize.x = max(pmmi->ptMaxTrackSize.x, pmmi->ptMaxSize.x);
 					pmmi->ptMaxTrackSize.y = max(pmmi->ptMaxTrackSize.y, pmmi->ptMaxSize.y);
-#ifdef FLYLINKDC_SUPPORT_WIN_VISTA
-					/*
-					                    if (!CompatibilityManager::isWin7Plus())
-					                    {
-					                        if(IsZoomed())
-					                        {
-					                            SetWindowLongPtr(GWL_STYLE, GetWindowLongPtr(GWL_STYLE) & ~WS_CAPTION);
-					                        }
-					                        else
-					                        {
-					                            SetWindowLongPtr(GWL_STYLE, GetWindowLongPtr(GWL_STYLE) | WS_CAPTION);
-					                        }
-					                        if(IsZoomed())
-					                        {
-					                            SetWindowLongPtr(GWL_STYLE, GetWindowLongPtr(GWL_STYLE) & ~WS_CAPTION);
-					                        }
-					                        else
-					                        {
-					                            SetWindowLongPtr(GWL_STYLE, GetWindowLongPtr(GWL_STYLE) | WS_CAPTION);
-					                        }
-					                    }
-					*/
-#endif
 				}
-				
-#ifdef FLYLINKDC_SUPPORT_WIN_VISTA
-				/*
-				                // Vista sucks so we took over
-				                // but Seven don't sucks )
-				                if (!CompatibilityManager::isWin7Plus())
-				                    return 0;
-				*/
-#endif
 			}
 			
 			bHandled = FALSE;

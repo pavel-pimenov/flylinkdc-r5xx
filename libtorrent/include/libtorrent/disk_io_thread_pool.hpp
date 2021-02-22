@@ -34,7 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_DISK_IO_THREAD_POOL
 
 #include "libtorrent/config.hpp"
-#include "libtorrent/export.hpp"
+#include "libtorrent/aux_/export.hpp"
 #include "libtorrent/deadline_timer.hpp"
 #include "libtorrent/io_service_fwd.hpp"
 #include "libtorrent/error_code.hpp"
@@ -69,7 +69,7 @@ namespace libtorrent {
 
 		// set the maximum number of I/O threads which may be running
 		// the actual number of threads will be <= this number
-		void set_max_threads(int const i);
+		void set_max_threads(int i);
 		void abort(bool wait);
 		int max_threads() const { return m_max_threads; }
 
@@ -138,8 +138,6 @@ namespace libtorrent {
 
 		// timer to check for and reap idle threads
 		deadline_timer m_idle_timer;
-
-		std::string m_error_code;
 	};
 } // namespace libtorrent
 

@@ -45,17 +45,11 @@ class IntegrationPage : public CPropertyPage<IDD_INTEGRATION_PAGE>, public PropP
 		BEGIN_MSG_MAP_EX(IntegrationPage)
 		MESSAGE_HANDLER(WM_INITDIALOG, onInitDialog)
 		NOTIFY_HANDLER(IDC_INTEGRATION_BOOLEANS, NM_CUSTOMDRAW, m_ctrlList.onCustomDraw)
-#ifdef SSA_SHELL_INTEGRATION
-		COMMAND_ID_HANDLER(IDC_INTEGRATION_SHELL_BTN, OnClickedShellIntegrate)
-#endif
 		COMMAND_ID_HANDLER(IDC_INTEGRATION_IFACE_BTN_AUTOSTART, OnClickedMakeStartup)
 		CHAIN_MSG_MAP(PropPage)
 		END_MSG_MAP()
 		
 		LRESULT onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-#ifdef SSA_SHELL_INTEGRATION
-		LRESULT OnClickedShellIntegrate(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-#endif
 		LRESULT OnClickedMakeStartup(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 		
 		// Common PropPage interface
@@ -69,9 +63,6 @@ class IntegrationPage : public CPropertyPage<IDD_INTEGRATION_PAGE>, public PropP
 			cancel_check();
 		}
 	protected:
-#ifdef SSA_SHELL_INTEGRATION
-		void CheckShellIntegration();
-#endif
 		void CheckStartupIntegration();
 		
 	private:

@@ -146,7 +146,7 @@ LRESULT UsersFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 			{
 				usersMenu.AppendMenu(MF_SEPARATOR);
 				x = user->getLastNickT();
-				reinitUserMenu(user, Util::emptyString); // TODO: add hub hint.
+				reinitUserMenu(user, BaseUtil::emptyString); // TODO: add hub hint.
 				if (!x.empty())
 					usersMenu.InsertSeparatorFirst(x);
 					
@@ -484,8 +484,8 @@ LRESULT UsersFrame::onOpenUserLog(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		
 		const auto& l_user = ui->getUser(); // [!] PVS V807 Decreased performance. Consider creating a pointer to avoid using the 'ui->getUser()' expression repeatedly. usersframe.cpp 445
 		StringMap params;
-		params["hubNI"] = Util::toString(ClientManager::getHubNames(l_user->getCID(), Util::emptyString));
-		params["hubURL"] = Util::toString(ClientManager::getHubs(l_user->getCID(), Util::emptyString));
+		params["hubNI"] = Util::toString(ClientManager::getHubNames(l_user->getCID(), BaseUtil::emptyString));
+		params["hubURL"] = Util::toString(ClientManager::getHubs(l_user->getCID(), BaseUtil::emptyString));
 		params["userCID"] = l_user->getCID().toBase32();
 		params["userNI"] = l_user->getLastNick();
 		params["myCID"] = ClientManager::getMyCID().toBase32();

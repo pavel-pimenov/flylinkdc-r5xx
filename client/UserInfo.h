@@ -171,9 +171,6 @@ class UserInfo : public UserInfoBase
 		tstring getDownloadSpeed() const;
 		typedef std::unordered_map<OnlineUserPtr, UserInfo*, OnlineUser::Hash> OnlineUserMapBase;
 		class OnlineUserMap : public OnlineUserMapBase
-#ifdef _DEBUG
-			, boost::noncopyable
-#endif
 		{
 			public:
 				UserInfo* findUser(const OnlineUserPtr& p_user) const

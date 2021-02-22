@@ -45,22 +45,14 @@ class CompatibilityManager
 		{
 			return isSet(RUNNING_IS_WOW64);
 		}
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
-		static bool IsXPSP3AndHigher()
-		{
-			return isSet(OS_XP_SP3_PLUS);
-		}
 		static bool isOsVistaPlus()
 		{
 			return isSet(OS_VISTA_PLUS);
 		}
-#endif
-#ifdef FLYLINKDC_SUPPORT_WIN_VISTA
 		static bool isWin7Plus()
 		{
 			return isSet(OS_WINDOWS7_PLUS);
 		}
-#endif
 		static bool isWin8Plus()
 		{
 			return isSet(OS_WINDOWS8_PLUS);
@@ -165,13 +157,8 @@ class CompatibilityManager
 		enum Supports
 		{
 			IS_WINE = 0,
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
-			OS_XP_SP3_PLUS,
 			OS_VISTA_PLUS,
-#endif
-#ifdef FLYLINKDC_SUPPORT_WIN_VISTA
 			OS_WINDOWS7_PLUS,
-#endif
 			OS_WINDOWS8_PLUS,
 			OS_WINDOWS10_PLUS,
 			RUNNING_IS_WOW64,

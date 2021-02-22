@@ -89,9 +89,6 @@ class BaseThread
 #endif
 
 class Thread : public BaseThread
-#ifdef _DEBUG
-	, private boost::noncopyable
-#endif
 {
 	public:
 	
@@ -165,9 +162,6 @@ class Thread : public BaseThread
 		
 #ifdef _DEBUG
 		class ConditionLocker
-#ifdef _DEBUG
-			: private boost::noncopyable
-#endif
 		{
 			public:
 				explicit ConditionLocker(volatile long& condition) : m_condition(condition)
@@ -253,9 +247,6 @@ typedef CriticalSection FastCriticalSection;
 typedef Lock FastLock;
 #else
 class CriticalSection
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 #ifdef FLYLINKDC_BETA
 		string formatDigitalClock(const string &p_msg, const time_t& p_t)
@@ -394,11 +385,7 @@ class CriticalSection
  */
 
 class FastCriticalSection
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
-
 	public:
 		explicit FastCriticalSection() : m_state(0)
 #ifdef _DEBUG

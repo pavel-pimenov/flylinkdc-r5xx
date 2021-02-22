@@ -31,7 +31,7 @@ FastCriticalSection PGLoader::g_cs;
 IPList  PGLoader::g_ipTrustListAllow;
 IPList  PGLoader::g_ipTrustListBlock;
 
-void PGLoader::load(const string& p_data /*= Util::emptyString*/)
+void PGLoader::load(const string& p_data /*= BaseUtil::emptyString*/)
 {
 	string l_data;
 	const string l_url = SETTING(URL_IPTRUST);

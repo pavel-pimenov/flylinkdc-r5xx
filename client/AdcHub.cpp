@@ -452,7 +452,7 @@ void AdcHub::handle(AdcCommand::INF, const AdcCommand& c) noexcept
 	{
 		if (BOOLSETTING(STRIP_TOPIC))
 		{
-			ou->getIdentity().setDescription(Util::emptyString);
+			ou->getIdentity().setDescription(BaseUtil::emptyString);
 		}
 		fly_fire1(ClientListener::HubUpdated(), this);
 	}
@@ -557,7 +557,7 @@ void AdcHub::handle(AdcCommand::MSG, const AdcCommand& c) noexcept
 	}
 	else
 	{
-		if (allowChatMessagefromUser(*message, Util::emptyString))
+		if (allowChatMessagefromUser(*message, BaseUtil::emptyString))
 		{
 			fly_fire2(ClientListener::Message(), this, message);
 		}
@@ -738,7 +738,7 @@ void AdcHub::handle(AdcCommand::CMD, const AdcCommand& c) noexcept
 	bool rem = c.hasFlag("RM", 1);
 	if (rem)
 	{
-		fly_fire5(ClientListener::HubUserCommand(), this, (int)UserCommand::TYPE_REMOVE, 0, l_name, Util::emptyString);
+		fly_fire5(ClientListener::HubUserCommand(), this, (int)UserCommand::TYPE_REMOVE, 0, l_name, BaseUtil::emptyString);
 		return;
 	}
 	bool sep = c.hasFlag("SP", 1);
@@ -750,7 +750,7 @@ void AdcHub::handle(AdcCommand::CMD, const AdcCommand& c) noexcept
 		return;
 	if (sep)
 	{
-		fly_fire5(ClientListener::HubUserCommand(), this, (int)UserCommand::TYPE_SEPARATOR, ctx, l_name, Util::emptyString);
+		fly_fire5(ClientListener::HubUserCommand(), this, (int)UserCommand::TYPE_SEPARATOR, ctx, l_name, BaseUtil::emptyString);
 		return;
 	}
 	const bool once = c.hasFlag("CO", 1);
@@ -831,7 +831,7 @@ void AdcHub::handle(AdcCommand::STA, const AdcCommand& c) noexcept
 	
 		case AdcCommand::ERROR_BAD_PASSWORD:
 		{
-			setPassword(Util::emptyString);
+			setPassword(BaseUtil::emptyString);
 			break;
 		}
 		
@@ -1589,7 +1589,7 @@ void AdcHub::info(bool p_force)
 	addParam(c, "AP", getClientName());
 	
 	addParam(c, "VE", getTagVersion());
-	addParam(c, "AW", Util::getAway() ? "1" : Util::emptyString);
+	addParam(c, "AW", Util::getAway() ? "1" : BaseUtil::emptyString);
 	
 	size_t limit = BOOLSETTING(THROTTLE_ENABLE) ? ThrottleManager::getInstance()->getDownloadLimitInBytes() : 0;
 	if (limit > 0)

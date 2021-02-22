@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -60,17 +60,14 @@ private:
 		, bool broadcast, int retry_count);
 	void resend_announce(error_code const& e, sha1_hash const& ih
 		, int listen_port, int retry_count);
-	void on_announce(udp::endpoint const& from, char const* buffer
-		, std::size_t bytes_transferred);
+	void on_announce(udp::endpoint const& from, span<char const> buffer);
 
 	aux::lsd_callback& m_callback;
 
 	// the udp socket used to send and receive
 	// multicast messages on
 	broadcast_socket m_socket;
-#if TORRENT_USE_IPV6
 	broadcast_socket m_socket6;
-#endif
 #ifndef TORRENT_DISABLE_LOGGING
 	bool should_log() const;
 	void debug_log(char const* fmt, ...) const TORRENT_FORMAT(2, 3);
@@ -88,9 +85,7 @@ private:
 	int m_cookie;
 
 	bool m_disabled;
-#if TORRENT_USE_IPV6
 	bool m_disabled6;
-#endif
 };
 
 }

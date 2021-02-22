@@ -33,11 +33,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/disk_io_thread_pool.hpp"
 #include "libtorrent/assert.hpp"
 
-#ifndef _DEBUG
-#include "libtorrent/aux_/escape_string.hpp" // for convert_to_wstring
-#include "../doctor-dump/CrashRpt.h"
-#endif
-
 #include <algorithm>
 
 namespace {
@@ -60,19 +55,7 @@ namespace libtorrent {
 
 	disk_io_thread_pool::~disk_io_thread_pool()
 	{
-        try // https://github.com/arvidn/libtorrent/issues/1176
-        {
-            abort(true);
-        }
-        catch (const std::exception& e) // TODO  catch (const concurrency::scheduler_resource_allocation_error& e)
-        {
-			m_error_code = e.what();
-#ifndef _DEBUG
-			extern crash_rpt::CrashRpt g_crashRpt;
-			g_crashRpt.AddUserInfoToReport(L"T1", libtorrent::convert_to_wstring(m_error_code).c_str());
-#endif
-			throw;
-        }
+		abort(true);
 	}
 
 	void disk_io_thread_pool::set_max_threads(int const i)
@@ -88,7 +71,6 @@ namespace libtorrent {
 	{
 		std::unique_lock<std::mutex> l(m_mutex);
 		if (m_abort) return;
-		m_max_threads = 0;
 		m_abort = true;
 		m_idle_timer.cancel();
 		stop_threads(int(m_threads.size()));
@@ -149,11 +131,11 @@ namespace libtorrent {
 	std::thread::id disk_io_thread_pool::first_thread_id()
 	{
 		std::lock_guard<std::mutex> l(m_mutex);
-		if (m_threads.empty()) return std::thread::id();
+		if (m_threads.empty()) return {};
 		return m_threads.front().get_id();
 	}
 
-	void disk_io_thread_pool::job_queued(int queue_size)
+	void disk_io_thread_pool::job_queued(int const queue_size)
 	{
 		// this check is not strictly necessary
 		// but do it to avoid acquiring the mutex in the trivial case
@@ -209,7 +191,7 @@ namespace libtorrent {
 		if (min_idle <= 0) return;
 		// stop either the minimum number of idle threads or the number of threads
 		// which must be stopped to get below the max, whichever is larger
-		int const to_stop = (std::max)(min_idle, int(m_threads.size()) - m_max_threads);
+		int const to_stop = std::max(min_idle, int(m_threads.size()) - m_max_threads);
 		stop_threads(to_stop);
 	}
 

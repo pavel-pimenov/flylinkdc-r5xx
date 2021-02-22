@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -41,13 +41,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/peer_request.hpp"
 #include "libtorrent/piece_block_progress.hpp"
 #include "libtorrent/bandwidth_limit.hpp"
-#include "libtorrent/socket_type_fwd.hpp"
 #include "libtorrent/assert.hpp"
 #include "libtorrent/chained_buffer.hpp"
 #include "libtorrent/disk_buffer_holder.hpp"
 #include "libtorrent/bitfield.hpp"
 #include "libtorrent/bandwidth_socket.hpp"
-#include "libtorrent/socket_type_fwd.hpp"
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/sliding_average.hpp"
 #include "libtorrent/peer_class.hpp"
@@ -66,6 +64,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/peer_info.hpp"
 #include "libtorrent/aux_/vector.hpp"
 #include "libtorrent/disk_interface.hpp"
+#include "libtorrent/piece_picker.hpp" // for picker_options_t
+#include "libtorrent/units.hpp"
 
 #include <ctime>
 #include <algorithm>
@@ -88,8 +88,10 @@ namespace libtorrent {
 
 namespace aux {
 
-		struct session_interface;
-	}
+	struct socket_type;
+	struct session_interface;
+
+}
 
 	struct pending_block
 	{
@@ -142,9 +144,10 @@ namespace aux {
 		disk_interface* disk_thread;
 		io_service* ios;
 		std::weak_ptr<torrent> tor;
-		std::shared_ptr<socket_type> s;
+		std::shared_ptr<aux::socket_type> s;
 		tcp::endpoint endp;
 		torrent_peer* peerinfo;
+		peer_id our_peer_id;
 	};
 
 	struct TORRENT_EXTRA_EXPORT peer_connection_hot_members
@@ -154,17 +157,20 @@ namespace aux {
 			std::weak_ptr<torrent> t
 			, aux::session_interface& ses
 			, aux::session_settings const& sett)
-			: m_torrent(t)
+			: m_torrent(std::move(t))
 			, m_ses(ses)
 			, m_settings(sett)
 			, m_disconnecting(false)
-			, m_connecting(!t.expired())
+			, m_connecting(!m_torrent.expired())
 			, m_endgame_mode(false)
 			, m_snubbed(false)
 			, m_interesting(false)
 			, m_choked(true)
 			, m_ignore_stats(false)
 		{}
+
+		// explicitly disallow assignment, to silence msvc warning
+		peer_connection_hot_members& operator=(peer_connection_hot_members const&) = delete;
 
 	protected:
 
@@ -229,9 +235,6 @@ namespace aux {
 		// when this is set, the transfer stats for this connection
 		// is not included in the torrent or session stats
 		bool m_ignore_stats:1;
-	private:
-		// explicitly disallow assignment, to silence msvc warning
-		peer_connection_hot_members& operator=(peer_connection_hot_members const&);
 	};
 
 	enum class connection_type : std::uint8_t
@@ -241,8 +244,7 @@ namespace aux {
 		http_seed
 	};
 
-	struct request_flags_tag;
-	using request_flags_t = flags::bitfield_flag<std::uint8_t, request_flags_tag>;
+	using request_flags_t = flags::bitfield_flag<std::uint8_t, struct request_flags_tag>;
 
 	class TORRENT_EXTRA_EXPORT peer_connection
 		: public peer_connection_hot_members
@@ -322,8 +324,7 @@ namespace aux {
 
 		void on_metadata_impl();
 
-		void picker_options(int o)
-		{ m_picker_options = o; }
+		void picker_options(picker_options_t o) { m_picker_options = o; }
 
 		int prefer_contiguous_blocks() const
 		{
@@ -333,7 +334,7 @@ namespace aux {
 
 		bool on_parole() const;
 
-		int picker_options() const;
+		picker_options_t picker_options() const;
 
 		void prefer_contiguous_blocks(int num)
 		{ m_prefer_contiguous_blocks = num; }
@@ -442,9 +443,7 @@ namespace aux {
 		// is called once every second by the main loop
 		void second_tick(int tick_interval_ms);
 
-		void timeout_requests();
-
-		std::shared_ptr<socket_type> get_socket() const { return m_socket; }
+		std::shared_ptr<aux::socket_type> get_socket() const { return m_socket; }
 		tcp::endpoint const& remote() const override { return m_remote; }
 		tcp::endpoint local_endpoint() const override { return m_local; }
 
@@ -457,7 +456,7 @@ namespace aux {
 
 		// this will cause this peer_connection to be disconnected.
 		void disconnect(error_code const& ec
-			, operation_t op, int error = 0) override;
+			, operation_t op, disconnect_severity_t = peer_connection_interface::normal) override;
 
 		// called when a connect attempt fails (not when an
 		// established connection fails)
@@ -473,11 +472,6 @@ namespace aux {
 		// finish the connection attempt
 		bool is_connecting() const { return m_connecting; }
 
-		// This is called for every peer right after the upload
-		// bandwidth has been distributed among them
-		// It will reset the used bandwidth to 0.
-		void reset_upload_quota();
-
 		// trust management.
 		virtual void received_valid_data(piece_index_t index);
 		// returns false if the peer should not be
@@ -486,7 +480,7 @@ namespace aux {
 
 		// a connection is local if it was initiated by us.
 		// if it was an incoming connection, it is remote
-		bool is_outgoing() const override { return m_outgoing; }
+		bool is_outgoing() const final { return m_outgoing; }
 
 		bool received_listen_port() const { return m_received_listen_port; }
 		void received_listen_port()
@@ -524,15 +518,11 @@ namespace aux {
 		int est_reciprocation_rate() const { return m_est_reciprocation_rate; }
 
 #ifndef TORRENT_DISABLE_LOGGING
-		bool should_log(peer_log_alert::direction_t direction) const override;
+		bool should_log(peer_log_alert::direction_t direction) const final;
 		void peer_log(peer_log_alert::direction_t direction
-			, char const* event, char const* fmt, ...) const noexcept override TORRENT_FORMAT(4,5);
+			, char const* event, char const* fmt, ...) const noexcept final TORRENT_FORMAT(4,5);
 		void peer_log(peer_log_alert::direction_t direction
 			, char const* event) const noexcept;
-
-		time_point m_connect_time;
-		time_point m_bitfield_time;
-		time_point m_unchoke_time;
 #endif
 
 		// the message handlers are called
@@ -627,8 +617,7 @@ namespace aux {
 		// value invalid (the default constructor).
 		virtual piece_block_progress downloading_piece_progress() const;
 
-		enum message_type_flags { message_type_request = 1 };
-		void send_buffer(span<char const> buf, std::uint32_t flags = 0);
+		void send_buffer(span<char const> buf);
 		void setup_send();
 
 		template <typename Holder>
@@ -653,7 +642,7 @@ namespace aux {
 		bool piece_failed;
 #endif
 
-		time_t last_seen_complete() const { return m_last_seen_complete; }
+		std::time_t last_seen_complete() const { return m_last_seen_complete; }
 		void set_last_seen_complete(int ago) { m_last_seen_complete = ::time(nullptr) - ago; }
 
 		std::int64_t uploaded_in_last_round() const
@@ -675,7 +664,6 @@ namespace aux {
 
 		int num_reading_bytes() const { return m_reading_bytes; }
 
-		enum sync_t { read_async, read_sync };
 		void setup_receive();
 
 		std::shared_ptr<peer_connection> self()
@@ -775,7 +763,7 @@ namespace aux {
 		int wanted_transfer(int channel);
 		int request_bandwidth(int channel, int bytes = 0);
 
-		std::shared_ptr<socket_type> m_socket;
+		std::shared_ptr<aux::socket_type> m_socket;
 
 		// the queue of blocks we have requested
 		// from this peer
@@ -845,15 +833,11 @@ namespace aux {
 #endif
 	private:
 
-		// the average rate of receiving complete piece messages
-		sliding_average<20> m_piece_rate;
-		sliding_average<20> m_send_rate;
-
 		// the average time between incoming pieces. Or, if there is no
 		// outstanding request, the time since the piece was requested. It
 		// is essentially an estimate of the time it will take to completely
 		// receive a payload message after it has been requested.
-		sliding_average<20> m_request_time;
+		sliding_average<int, 20> m_request_time;
 
 		// keep the io_service running as long as we
 		// have peer connections
@@ -984,10 +968,6 @@ namespace aux {
 		// remote peer's id
 		peer_id m_peer_id;
 
-		// the bandwidth channels, upload and download
-		// keeps track of the current quotas
-		bandwidth_channel m_bandwidth_channel[num_channels];
-
 	protected:
 
 		template <typename Fun, typename... Args>
@@ -1023,7 +1003,7 @@ namespace aux {
 		// be augmented with flags controlled by other settings
 		// like sequential download etc. These are here to
 		// let plugins control flags that should always be set
-		int m_picker_options = 0;
+		picker_options_t m_picker_options{};
 
 		// the number of invalid piece-requests
 		// we have got from this peer. If the request
@@ -1198,7 +1178,7 @@ namespace aux {
 
 			// pretend that there's an outstanding send operation already, to
 			// prevent future calls to setup_send() from actually causing an
-			// asyc_send() to be issued.
+			// async_send() to be issued.
 			m_pc.m_channel_state[peer_connection::upload_channel] |= peer_info::bw_network;
 			m_need_uncork = true;
 		}

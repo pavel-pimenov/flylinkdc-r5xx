@@ -33,16 +33,18 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_TORRENT_FLAGS_HPP
 #define TORRENT_TORRENT_FLAGS_HPP
 
+#include <cstdint>
+
+#include "libtorrent/config.hpp"
 #include "libtorrent/flags.hpp"
 
 namespace libtorrent {
 
-struct torrent_flags_tag;
-using torrent_flags_t = flags::bitfield_flag<std::uint64_t, torrent_flags_tag>;
+using torrent_flags_t = flags::bitfield_flag<std::uint64_t, struct torrent_flags_tag>;
 
 namespace torrent_flags {
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 #include "libtorrent/aux_/disable_warnings_push.hpp"
 #endif
 
@@ -59,8 +61,8 @@ namespace torrent_flags {
 	// Setting ``seed_mode`` on a torrent without metadata (a
 	// .torrent file) is a no-op and will be ignored.
 	//
-	// If resume data is passed in with this torrent, the seed mode saved
-	// in there will override the seed mode you set here.
+	// It is not possible to *set* the ``seed_mode`` flag on a torrent after it has
+	// been added to a session. It is possible to *clear* it though.
 	constexpr torrent_flags_t seed_mode = 0_bit;
 
 	// If ``upload_mode`` is set, the torrent will be initialized in
@@ -123,12 +125,11 @@ namespace torrent_flags {
 	// the torrent should also be started as paused. The default queue
 	// order is the order the torrents were added. They are all downloaded
 	// in that order. For more details, see queuing_.
-	//
-	// If you pass in resume data, the auto_managed state of the torrent
-	// when the resume data was saved will override the auto_managed state
-	// you pass in here. You can override this by setting
-	// ``override_resume_data``.
 	constexpr torrent_flags_t auto_managed = 5_bit;
+
+	// used in add_torrent_params to indicate that it's an error to attempt
+	// to add a torrent that's already in the session. If it's not considered an
+	// error, a handle to the existing torrent is returned.
 	constexpr torrent_flags_t duplicate_is_error = 6_bit;
 
 	// on by default and means that this torrent will be part of state
@@ -175,18 +176,33 @@ namespace torrent_flags {
 	// for the state_changed_alert and then call pause(). The download/seeding
 	// will most likely start in between posting the alert and receiving the
 	// call to pause.
+	//
+	// A downloading state is one where peers are being connected. Which means
+	// just downloading the metadata via the ``ut_metadata`` extension counts
+	// as a downloading state. In order to stop a torrent once the metadata
+	// has been downloaded, instead set all file priorities to dont_download
 	constexpr torrent_flags_t stop_when_ready = 10_bit;
 
 	// when this flag is set, the tracker list in the add_torrent_params
 	// object override any trackers from the torrent file. If the flag is
 	// not set, the trackers from the add_torrent_params object will be
 	// added to the list of trackers used by the torrent.
+	// This flag is set by read_resume_data() if there are trackers present in
+	// the resume data file. This effectively makes the trackers saved in the
+	// resume data take precedence over the original trackers. This includes if
+	// there's an empty list of trackers, to support the case where they were
+	// explicitly removed in the previous session.
 	constexpr torrent_flags_t override_trackers = 11_bit;
 
 	// If this flag is set, the web seeds from the add_torrent_params
 	// object will override any web seeds in the torrent file. If it's not
 	// set, web seeds in the add_torrent_params object will be added to the
 	// list of web seeds used by the torrent.
+	// This flag is set by read_resume_data() if there are web seeds present in
+	// the resume data file. This effectively makes the web seeds saved in the
+	// resume data take precedence over the original ones. This includes if
+	// there's an empty list of web seeds, to support the case where they were
+	// explicitly removed in the previous session.
 	constexpr torrent_flags_t override_web_seeds = 12_bit;
 
 	// if this flag is set (which it is by default) the torrent will be
@@ -195,7 +211,7 @@ namespace torrent_flags {
 	// This flag is cleared by a successful call to save_resume_data()
 	constexpr torrent_flags_t need_save_resume = 13_bit;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	// indicates that this torrent should never be unloaded from RAM, even
 	// if unloading torrents are allowed in general. Setting this makes
 	// the torrent exempt from loading/unloading management.
@@ -239,6 +255,20 @@ namespace torrent_flags {
 	constexpr torrent_flags_t TORRENT_DEPRECATED_MEMBER merge_resume_http_seeds = 18_bit;
 #endif
 
+	// set this flag to disable DHT for this torrent. This lets you have the DHT
+	// enabled for the whole client, and still have specific torrents not
+	// participating in it. i.e. not announcing to the DHT nor picking up peers
+	// from it.
+	constexpr torrent_flags_t disable_dht = 19_bit;
+
+	// set this flag to disable local service discovery for this torrent.
+	constexpr torrent_flags_t disable_lsd = 20_bit;
+
+	// set this flag to disable peer exchange for this torrent.
+	constexpr torrent_flags_t disable_pex = 21_bit;
+
+	// all torrent flags combined. Can conveniently be used when creating masks
+	// for flags
 	constexpr torrent_flags_t all = torrent_flags_t::all();
 
 	// internal
@@ -248,14 +278,14 @@ namespace torrent_flags {
 		| torrent_flags::paused
 		| torrent_flags::apply_ip_filter
 		| torrent_flags::need_save_resume
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		| torrent_flags::pinned
 		| torrent_flags::merge_resume_http_seeds
 		| torrent_flags::merge_resume_trackers
 #endif
 		;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 #endif
 

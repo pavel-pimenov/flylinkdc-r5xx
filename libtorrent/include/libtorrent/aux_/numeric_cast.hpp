@@ -54,12 +54,13 @@ namespace libtorrent { namespace aux {
 	}
 
 	// in C++ 17 you can use std::clamp
-	template <class T, typename Cond = typename std::enable_if<
-		std::is_integral<T>::value>::type>
+	template <class T>
 	T clamp(T v, T lo, T hi)
 	{
 		TORRENT_ASSERT(lo <= hi);
-		return (v < lo) ? lo : (hi < v) ? hi : v;
+		if (v < lo) return lo;
+		if (hi < v) return hi;
+		return v;
 	}
 
 }}

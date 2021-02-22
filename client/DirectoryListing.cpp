@@ -28,7 +28,7 @@
 std::unordered_map<string, DirectoryListing::CFlyStatExt> DirectoryListing::g_ext_stat;
 #endif
 DirectoryListing::DirectoryListing(const HintedUser& aUser) :
-	hintedUser(aUser), abort(false), root(new Directory(this, nullptr, Util::emptyString, false, false, true)),
+	hintedUser(aUser), abort(false), root(new Directory(this, nullptr, BaseUtil::emptyString, false, false, true)),
 	includeSelf(false), m_is_mediainfo(false), m_is_own_list(false)
 {
 }
@@ -475,7 +475,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 			if (simple)
 			{
 				// To handle <Directory Name="..." />
-				endTag(name, Util::emptyString);
+				endTag(name, BaseUtil::emptyString);
 			}
 		}
 	}
@@ -519,7 +519,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 				if (!m_user)
 				{
 					m_user = ClientManager::createUser(l_CID, "", 0);
-					m_list->setHintedUser(HintedUser(m_user, Util::emptyString));
+					m_list->setHintedUser(HintedUser(m_user, BaseUtil::emptyString));
 				}
 			}
 		}
@@ -531,7 +531,7 @@ void ListLoader::startTag(const string& name, StringPairList& attribs, bool simp
 		if (simple)
 		{
 			// To handle <Directory Name="..." />
-			endTag(name, Util::emptyString);
+			endTag(name, BaseUtil::emptyString);
 		}
 	}
 }
@@ -555,7 +555,7 @@ void ListLoader::endTag(const string& name, const string&)
 string DirectoryListing::getPath(const Directory* d) const
 {
 	if (d == root)
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 		
 	string dir;
 	dir.reserve(128);
@@ -577,7 +577,7 @@ void DirectoryListing::download(Directory* aDir, const string& aTarget, bool hig
 	if (!aDir->getComplete())
 	{
 		// folder is not completed (partial list?), so we need to download it first
-		QueueManager::getInstance()->addDirectory(Util::emptyString, hintedUser, target, prio);
+		QueueManager::getInstance()->addDirectory(BaseUtil::emptyString, hintedUser, target, prio);
 	}
 	else
 	{
@@ -666,7 +666,7 @@ void DirectoryListing::logMatchedFiles(const UserPtr& p_user, int p_count)
 	string l_tmp;
 	l_tmp.resize(l_BUF_SIZE);
 	_snprintf(&l_tmp[0], l_tmp.size(), CSTRING(MATCHED_FILES), p_count);
-	// Util::toString(ClientManager::getNicks(p_user->getCID(), Util::emptyString)) падает https://www.crash-server.com/Problem.aspx?ClientID=guest&Login=Guest&ProblemID=58736
+	// Util::toString(ClientManager::getNicks(p_user->getCID(), BaseUtil::emptyString)) падает https://www.crash-server.com/Problem.aspx?ClientID=guest&Login=Guest&ProblemID=58736
 	// падаем со слов пользователей при клике на магнит в чате и выборе "Добавить в очередь для скачивания"
 	const string l_last_nick = p_user->getLastNick();
 	LogManager::message(l_last_nick + string(": ") + l_tmp.c_str());

@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -222,7 +222,7 @@ namespace libtorrent {
 	};
 #define TORRENT_INCREMENT(x) increment_guard inc_(x)
 #else
-#define TORRENT_INCREMENT(x) do {} while (false)
+#define TORRENT_INCREMENT(x) do {} TORRENT_WHILE_0
 #endif
 }
 

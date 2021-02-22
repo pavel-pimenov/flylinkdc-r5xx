@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -74,6 +74,8 @@ namespace libtorrent {
 		virtual std::string const& url() const = 0;
 
 		bool in_handshake() const override;
+
+		peer_id our_pid() const override { return peer_id(); }
 
 		// the following functions appends messages
 		// to the send buffer

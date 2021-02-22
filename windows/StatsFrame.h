@@ -35,7 +35,7 @@ struct RatioInfo
 		
 	const tstring& getText(int col) const
 	{
-		return col == 0 ? m_hub : Util::emptyStringT;
+		return col == 0 ? m_hub : BaseUtil::emptyStringT;
 	}
 	static int compareItems(const RatioInfo* a, const RatioInfo* b, int col)
 	{

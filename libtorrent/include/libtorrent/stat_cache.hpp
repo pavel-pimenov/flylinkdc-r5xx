@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2012-2016, Arvid Norberg, Daniel Wallin
+Copyright (c) 2012-2018, Arvid Norberg, Daniel Wallin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <string>
 #include <cstdint>
+#include <mutex>
 
 #include "libtorrent/config.hpp"
 #include "libtorrent/error_code.hpp"
@@ -74,13 +75,16 @@ namespace libtorrent {
 
 	private:
 
+		void set_cache_impl(file_index_t i, std::int64_t size);
+		void set_error_impl(file_index_t i, error_code const& ec);
+
 		// returns the index to the specified error. Either an existing one or a
 		// newly added entry
 		int add_error(error_code const& ec);
 
 		struct stat_cache_t
 		{
-			stat_cache_t(std::int64_t s): file_size(s) {} // NOLINT
+			explicit stat_cache_t(std::int64_t s): file_size(s) {}
 
 			// the size of the file. Negative values have special meaning. -1 means
 			// not-in-cache (i.e. there's no data for this file in the cache).
@@ -89,6 +93,8 @@ namespace libtorrent {
 			// into m_errors, that recorded the actual error.
 			std::int64_t file_size;
 		};
+
+		mutable std::mutex m_mutex;
 
 		// one entry per file
 		aux::vector<stat_cache_t, file_index_t> m_stat_cache;

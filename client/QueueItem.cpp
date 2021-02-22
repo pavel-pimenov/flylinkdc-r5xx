@@ -674,7 +674,7 @@ Segment QueueItem::getNextSegmentL(const int64_t  blockSize, const int64_t wante
 								dcassert(b % blockSize == 0);
 								dcassert(e % blockSize == 0 || e == getSize());
 								
-								neededParts.push_back(Segment(b, e - b));
+								neededParts.emplace_back(Segment(b, e - b));
 							}
 						}
 					}

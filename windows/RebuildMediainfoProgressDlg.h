@@ -150,7 +150,7 @@ class RebuildMediainfoProgressDlg : public CDialogImpl<RebuildMediainfoProgressD
 		
 		LRESULT OnBnClickedBtnAbort(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 		{
-			// HashManager::getInstance()->stopHashing(Util::emptyString);
+			// HashManager::getInstance()->stopHashing(BaseUtil::emptyString);
 			return 0;
 		}
 		

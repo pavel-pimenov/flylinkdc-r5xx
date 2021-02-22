@@ -95,7 +95,7 @@ class RSSPage : public CPropertyPage<IDD_RSS_PAGE>, public PropPage
 			for (auto l_lang = m_CodeingList.cbegin(); l_lang != m_CodeingList.cend(); ++l_lang, ++i)
 				if (p_LangNum == i)
 					return l_lang->first;
-			return Util::emptyStringT;
+			return BaseUtil::emptyStringT;
 		}
 		
 };

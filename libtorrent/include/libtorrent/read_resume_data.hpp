@@ -33,14 +33,12 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_READ_RESUME_DATA_HPP_INCLUDE
 #define TORRENT_READ_RESUME_DATA_HPP_INCLUDE
 
+#include "libtorrent/fwd.hpp"
 #include "libtorrent/error_code.hpp"
-#include "libtorrent/export.hpp"
+#include "libtorrent/aux_/export.hpp"
 #include "libtorrent/span.hpp"
 
 namespace libtorrent {
-
-	struct add_torrent_params;
-	struct bdecode_node;
 
 	// these functions are used to parse resume data and populate the appropriate
 	// fields in an add_torrent_params object. This object can then be used to add
@@ -54,6 +52,8 @@ namespace libtorrent {
 		, error_code& ec);
 	TORRENT_EXPORT add_torrent_params read_resume_data(span<char const> buffer
 		, error_code& ec);
+	TORRENT_EXPORT add_torrent_params read_resume_data(bdecode_node const& rd);
+	TORRENT_EXPORT add_torrent_params read_resume_data(span<char const> buffer);
 }
 
 #endif

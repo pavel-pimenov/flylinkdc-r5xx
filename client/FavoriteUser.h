@@ -64,7 +64,7 @@ class FavoriteUser : public Flags
 			if (lim > 0)
 				return Util::formatBytes(int64_t(lim * 1024)) + '/' + STRING(S);
 				
-			return Util::emptyString;
+			return BaseUtil::emptyString;
 		}
 		UserPtr& getUser()
 		{

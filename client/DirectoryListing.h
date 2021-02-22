@@ -47,11 +47,7 @@ class DirectoryListing : public UserInfoBase
 			FLAG_QUEUE = 1 << 8,
 		};
 		
-		class File :
-			public Flags
-#ifdef _DEBUG
-			, boost::noncopyable
-#endif
+		class File : public Flags
 		{
 			public:
 				typedef File* Ptr;
@@ -103,9 +99,6 @@ class DirectoryListing : public UserInfoBase
 		};
 		
 		class Directory : public Flags
-#ifdef _DEBUG
-			, boost::noncopyable
-#endif
 		{
 			public:
 				typedef Directory* Ptr;

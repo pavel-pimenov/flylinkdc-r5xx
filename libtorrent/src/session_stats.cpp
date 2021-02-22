@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2012-2016, Arvid Norberg
+Copyright (c) 2012-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,12 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-namespace {
+#if TORRENT_ABI_VERSION == 1
+	constexpr metric_type_t stats_metric::type_counter;
+	constexpr metric_type_t stats_metric::type_gauge;
+#endif
 
+namespace {
 
 	struct stats_metric_impl
 	{
@@ -119,6 +123,9 @@ namespace {
 
 		METRIC(peer, connection_attempts)
 		METRIC(peer, connection_attempt_loops)
+		METRIC(peer, boost_connection_attempts)
+		METRIC(peer, missed_connection_attempts)
+		METRIC(peer, no_peer_connection_attempts)
 		METRIC(peer, incoming_connections)
 
 		// the number of peer connections for each kind of socket.
@@ -235,15 +242,19 @@ namespace {
 		METRIC(ses, num_have_pieces)
 		METRIC(ses, num_total_pieces_added)
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		// this counts the number of times a torrent has been
-		// evicted (only applies when `dynamic loading of torrent files`_
-		// is enabled).
+		// evicted (only applies when dynamic-loading-of-torrent-files
+		// is enabled, which is deprecated).
 		METRIC(ses, torrent_evicted_counter)
 #endif
 
 		// the number of allowed unchoked peers
 		METRIC(ses, num_unchoke_slots)
+
+		// the number of listen sockets that are currently accepting incoming
+		// connections
+		METRIC(ses, num_outstanding_accept)
 
 		// bittorrent message counters. These counters are incremented
 		// every time a message of the corresponding type is received from
@@ -566,9 +577,9 @@ namespace {
 			stats[i].name = metrics[i].name;
 			stats[i].value_index = metrics[i].value_index;
 			stats[i].type = metrics[i].value_index >= counters::num_stats_counters
-				? stats_metric::type_gauge : stats_metric::type_counter;
+				? metric_type_t::gauge : metric_type_t::counter;
 		}
-		return stats;
+		return std::move(stats);
 	}
 
 	int find_metric_idx(string_view name)

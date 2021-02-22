@@ -10,9 +10,6 @@
 #include "wtl_flylinkdc.h"
 
 class AboutCmdsDlg : public CDialogImpl<AboutCmdsDlg>
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		enum { IDD = IDD_ABOUTCMDS };

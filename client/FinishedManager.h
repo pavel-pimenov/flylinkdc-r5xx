@@ -77,11 +77,11 @@ class FinishedItem
 		{
 		}
 		FinishedItem(const string& aTarget, const HintedUser& aUser, int64_t aSize, int64_t aSpeed,
-		             const time_t aTime, const TTHValue& aTTH, int64_t aActual, const string& aIP = Util::emptyString) :
+		             const time_t aTime, const TTHValue& aTTH, int64_t aActual, const string& aIP = BaseUtil::emptyString) :
 			target(aTarget),
 			cid(aUser.user->getCID()),
 			hub(aUser.hint),
-			hubs(aUser.user ? Util::toString(ClientManager::getHubNames(aUser.user->getCID(), Util::emptyString)) : Util::emptyString),
+			hubs(aUser.user ? Util::toString(ClientManager::getHubNames(aUser.user->getCID(), BaseUtil::emptyString)) : BaseUtil::emptyString),
 			size(aSize),
 			avgSpeed(aSpeed),
 			time(aTime),
@@ -116,12 +116,12 @@ class FinishedItem
 					if (getActual())
 						return Util::formatBytesW(getActual());
 					else
-						return Util::emptyStringT;
+						return BaseUtil::emptyStringT;
 				case COLUMN_SPEED:
 					if (getAvgSpeed())
 						return Util::formatBytesW(getAvgSpeed()) + _T('/') + WSTRING(S);
 					else
-						return Util::emptyStringT;
+						return BaseUtil::emptyStringT;
 				case COLUMN_IP:
 					return Text::toT(getIP());
 				case COLUMN_TTH:
@@ -129,10 +129,10 @@ class FinishedItem
 					if (getTTH() != TTHValue())
 						return Text::toT(getTTH().toBase32());
 					else
-						return Util::emptyStringT;
+						return BaseUtil::emptyStringT;
 				}
 				default:
-					return Util::emptyStringT;
+					return BaseUtil::emptyStringT;
 			}
 		}
 		

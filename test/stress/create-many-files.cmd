@@ -29,7 +29,7 @@ goto :eof
 
 :create_file
 	echo file %1
-	echo %rndstr% > %random%%random%%random%%random%.txt
+	echo %rndstr% > %random%%random%%random%%random%.dat
 goto :eof
 
 :concat

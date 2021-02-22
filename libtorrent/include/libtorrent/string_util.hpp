@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2012-2016, Arvid Norberg
+Copyright (c) 2012-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/config.hpp"
 #include "libtorrent/string_view.hpp"
 #include "libtorrent/span.hpp"
+#include "libtorrent/error_code.hpp"
 
 #include <vector>
 #include <string>
@@ -60,15 +61,17 @@ namespace libtorrent {
 			url += '/';
 	}
 
+	// internal
+	TORRENT_EXTRA_EXPORT string_view strip_string(string_view in);
+
 	TORRENT_EXTRA_EXPORT bool is_print(char c);
 	TORRENT_EXTRA_EXPORT bool is_space(char c);
 	TORRENT_EXTRA_EXPORT char to_lower(char c);
 
-	TORRENT_EXTRA_EXPORT int split_string(char const** tags, int buf_size, char* in);
 	TORRENT_EXTRA_EXPORT bool string_begins_no_case(char const* s1, char const* s2);
 	TORRENT_EXTRA_EXPORT bool string_equal_no_case(string_view s1, string_view s2);
 
-	TORRENT_EXTRA_EXPORT void url_random(char* begin, char* end);
+	TORRENT_EXTRA_EXPORT void url_random(span<char> dest);
 
 	TORRENT_EXTRA_EXPORT bool string_ends_with(string_view s1, string_view s2);
 
@@ -81,16 +84,25 @@ namespace libtorrent {
 		std::string device;
 		int port;
 		bool ssl;
+		friend bool operator==(listen_interface_t const& lhs, listen_interface_t const& rhs)
+		{
+			return lhs.device == rhs.device
+				&& lhs.port == rhs.port
+				&& lhs.ssl == rhs.ssl;
+		}
 	};
 
 	// this parses the string that's used as the listen_interfaces setting.
 	// it is a comma-separated list of IP or device names with ports. For
 	// example: "eth0:6881,eth1:6881" or "127.0.0.1:6881"
 	TORRENT_EXTRA_EXPORT std::vector<listen_interface_t> parse_listen_interfaces(
-		std::string const& in);
+		std::string const& in, std::vector<std::string>& errors);
 
+#if TORRENT_ABI_VERSION == 1 \
+	|| !defined TORRENT_DISABLE_LOGGING
 	TORRENT_EXTRA_EXPORT std::string print_listen_interfaces(
 		std::vector<listen_interface_t> const& in);
+#endif
 
 	// this parses the string that's used as the listen_interfaces setting.
 	// it is a comma-separated list of IP or device names with ports. For
@@ -106,8 +118,8 @@ namespace libtorrent {
 
 	// strdup is not part of the C standard. Some systems
 	// don't have it and it won't be available when building
-	// in strict ansi mode
-	char* allocate_string_copy(char const* str);
+	// in strict ANSI mode
+	TORRENT_EXTRA_EXPORT char* allocate_string_copy(string_view str);
 
 	// searches for separator ('sep') in the string 'last'.
 	// if found, returns the string_view representing the range from the start of
@@ -122,15 +134,6 @@ namespace libtorrent {
 	TORRENT_EXTRA_EXPORT bool is_i2p_url(std::string const& url);
 
 #endif
-
-	// this can be used as the hash function in std::unordered_*
-	struct TORRENT_EXTRA_EXPORT string_hash_no_case
-	{ size_t operator()(std::string const& s) const; };
-
-	// these can be used as the comparison functions in std::map and std::set
-	struct TORRENT_EXTRA_EXPORT string_eq_no_case
-	{ bool operator()(std::string const& lhs, std::string const& rhs) const; };
-
 }
 
 #endif

@@ -1,10 +1,10 @@
-version: r504-master-{build}
+version: r504-master-x64{build}
 
 branches:
   only:
     - master
 
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 clone_depth: 1
 

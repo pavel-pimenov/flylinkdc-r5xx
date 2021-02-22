@@ -18,7 +18,8 @@
 
 #include "stdinc.h"
 #include <boost/algorithm/string.hpp>
-#include "Util.h"
+#include "BaseUtil.h"
+#include "Text.h"
 
 namespace Text
 {
@@ -204,7 +205,7 @@ const wstring& acpToWide(const string& str, wstring& tgt, const string& fromChar
 {
 	if (str.empty())
 	{
-		return Util::emptyStringW;
+		return BaseUtil::emptyStringW;
 	}
 	const int l_code_page = getCodePage(fromCharset);
 	string::size_type size = 0;
@@ -229,7 +230,7 @@ const wstring& acpToWide(const string& str, wstring& tgt, const string& fromChar
 const string& wideToUtf8(const wstring& str, string& tgt) noexcept
 {
 	if (str.empty())
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	wstring::size_type size = 0;
 	tgt.resize(str.length() * 2 + 1);
 	while ((size = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.length(), &tgt[0], tgt.length(), NULL, NULL)) == 0)
@@ -251,7 +252,7 @@ const string& wideToUtf8(const wstring& str, string& tgt) noexcept
 const string& wideToAcp(const wstring& str, string& tgt, const string& toCharset) noexcept
 {
 	if (str.empty())
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	const int l_code_page = getCodePage(toCharset);
 	tgt.resize(str.length() * 2 + 1);
 	int size = 0;
@@ -294,7 +295,7 @@ const string& utf8ToAcp(const string& str, string& tmp, const string& toCharset)
 const wstring& utf8ToWide(const string& str, wstring& tgt) noexcept
 {
 	if (str.empty())
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 	wstring::size_type size = 0;
 	tgt.resize(str.length() + 1);
 	while ((size = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &tgt[0], (int)tgt.length())) == 0)
@@ -318,7 +319,7 @@ const wstring& utf8ToWide(const string& str, wstring& tgt) noexcept
 const wstring& toLower(const wstring& str, wstring& tmp) noexcept
 {
 	if (str.empty())
-		return Util::emptyStringW;
+		return BaseUtil::emptyStringW;
 	tmp.clear();
 	tmp.reserve(str.length() + 2);
 	for (auto i = str.cbegin(); i != str.cend(); ++i)
@@ -331,7 +332,7 @@ const wstring& toLower(const wstring& str, wstring& tmp) noexcept
 const string& toLower(const string& str, string& tmp) noexcept
 {
 	if (str.empty())
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 		
 	tmp.clear();
 	tmp.reserve(str.length() + 1);
@@ -405,7 +406,7 @@ const string& convert(const string& str, string& tmp, const string& fromCharset,
 string toDOS(string tmp)
 {
 	if (tmp.empty())
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 		
 	if (tmp[0] == '\r' && (tmp.size() == 1 || tmp[1] != '\n'))
 	{
@@ -432,7 +433,7 @@ string toDOS(string tmp)
 wstring toDOS(wstring tmp)
 {
 	if (tmp.empty())
-		return Util::emptyStringW;
+		return BaseUtil::emptyStringW;
 		
 	if (tmp[0] == L'\r' && (tmp.size() == 1 || tmp[1] != L'\n'))
 	{

@@ -389,26 +389,6 @@ int Socket::getSocketOptInt(int p_option) const
 	check(::getsockopt(m_sock, SOL_SOCKET, p_option, (char*)&l_val, &l_len)); // [2] https://www.box.net/shared/3ad49dfa7f44028a7467
 	return l_val;
 }
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
-void Socket::setInBufSize()
-{
-	if (!CompatibilityManager::isOsVistaPlus()) // http://blogs.msdn.com/wndp/archive/2006/05/05/Winhec-blog-tcpip-2.aspx
-	{
-		const int l_sockInBuf = SETTING(SOCKET_IN_BUFFER);
-		if (l_sockInBuf > 0)
-			setSocketOpt(SO_RCVBUF, l_sockInBuf);
-	}
-}
-void Socket::setOutBufSize()
-{
-	if (!CompatibilityManager::isOsVistaPlus()) // http://blogs.msdn.com/wndp/archive/2006/05/05/Winhec-blog-tcpip-2.aspx
-	{
-		const int l_sockOutBuf = SETTING(SOCKET_OUT_BUFFER);
-		if (l_sockOutBuf > 0)
-			setSocketOpt(SO_SNDBUF, l_sockOutBuf);
-	}
-}
-#endif // FLYLINKDC_SUPPORT_WIN_XP
 void Socket::setSocketOpt(int option, int val)
 {
 	dcassert(val > 0);
@@ -862,7 +842,7 @@ string Socket::resolve(const string& aDns)
 		host = gethostbyname(aDns.c_str());
 		if (host == NULL)
 		{
-			return Util::emptyString;
+			return BaseUtil::emptyString;
 		}
 		sock_addr.sin_addr.s_addr = *((uint32_t*)host->h_addr);
 		return inet_ntoa(sock_addr.sin_addr);
@@ -1061,7 +1041,7 @@ string Socket::getRemoteHost(const string& aIp)
 {
 	dcassert(!aIp.empty());
 	if (aIp.empty())
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 		
 	const unsigned long addr = inet_addr(aIp.c_str());
 	
@@ -1069,7 +1049,7 @@ string Socket::getRemoteHost(const string& aIp)
 	dcassert(h);
 	if (h == nullptr)
 	{
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	}
 	else
 	{

@@ -30,11 +30,6 @@
 
 const string g_tth = "TTH:";
 const time_t Util::g_startTime = time(NULL);
-const string Util::emptyString;
-const wstring Util::emptyStringW;
-const tstring Util::emptyStringT;
-
-const vector<uint8_t> Util::emptyByteVector;
 
 const string Util::m_dot = ".";
 const string Util::m_dot_dot = "..";
@@ -1028,7 +1023,7 @@ void Util::decodeUrl(const string& url, string& protocol, string& host, uint16_t
 		fileStart = authorityEnd;
 	}
 	
-	protocol = (protoEnd == string::npos ? Util::emptyString : Text::toLower(url.substr(protoStart, protoEnd - protoStart)));
+	protocol = (protoEnd == string::npos ? BaseUtil::emptyString : Text::toLower(url.substr(protoStart, protoEnd - protoStart)));
 	if (protocol.empty())
 		protocol = "dchub";
 	
@@ -1436,7 +1431,7 @@ string Util::getLocalOrBindIp(const bool p_check_bind_address)
 		}
 		const hostent* he = gethostbyname(buf);
 		if (he == nullptr || he->h_addr_list[0] == 0)
-			return Util::emptyString;
+			return BaseUtil::emptyString;
 		sockaddr_in dest  = { { 0 } };
 		// We take the first ip as default, but if we can find a better one, use it instead...
 		memcpy(&dest.sin_addr, he->h_addr_list[0], he->h_length);
@@ -1898,7 +1893,7 @@ string Util::formatDigitalClock(const string &p_msg, const time_t& p_t, bool p_i
 	tm* l_loc = p_is_gmt ? gmtime(&p_t) : localtime(&p_t);
 	if (!l_loc)
 	{
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	}
 	const size_t l_bufsize = p_msg.size() + 15;
 	string l_buf;
@@ -1926,7 +1921,7 @@ string Util::formatTime(const string &p_msg, const time_t p_t)
 		tm* l_loc = localtime(&p_t);
 		if (!l_loc)
 		{
-			return Util::emptyString;
+			return BaseUtil::emptyString;
 		}
 	
 		const string l_msgAnsi = Text::fromUtf8(p_msg);
@@ -1950,14 +1945,14 @@ string Util::formatTime(const string &p_msg, const time_t p_t)
 	
 			if (errno == EINVAL
 			        || bufsize > l_msgAnsi.size() + 1024)
-				return Util::emptyString;
+				return BaseUtil::emptyString;
 	
 			bufsize += 64;
 			buf.resize(bufsize);
 		}
 	
 	}
-	return Util::emptyString;
+	return BaseUtil::emptyString;
 }
 	
 string Util::formatTime(uint64_t rest, const bool withSecond /*= true*/)
@@ -2150,7 +2145,7 @@ tstring Util::CustomNetworkIndex::getCountry() const
 	else
 #endif
 	{
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 	}
 }
 //======================================================================================================================================
@@ -2170,7 +2165,7 @@ tstring Util::CustomNetworkIndex::getDescription() const
 	else
 #endif
 	{
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 	}
 }
 //======================================================================================================================================
@@ -2263,7 +2258,7 @@ string Util::toAdcFile(const string& file)
 string Util::toNmdcFile(const string& file)
 {
 	if (file.empty())
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	
 	string ret(file.substr(1));
 	for (string::size_type i = 0; i < ret.length(); ++i)
@@ -2283,126 +2278,6 @@ string Util::getIETFLang()
 	return l_lang;
 }
 	
-string Util::translateError(DWORD aError)
-{
-#ifdef _WIN32
-#ifdef NIGHTORION_INTERNAL_TRANSLATE_SOCKET_ERRORS
-	switch (aError)
-	{
-		case WSAEADDRNOTAVAIL   :
-			return STRING(SOCKET_ERROR_WSAEADDRNOTAVAIL);
-		case WSAENETDOWN        :
-			return STRING(SOCKET_ERROR_WSAENETDOWN);
-		case WSAENETUNREACH     :
-			return STRING(SOCKET_ERROR_WSAENETUNREACH);
-		case WSAENETRESET       :
-			return STRING(SOCKET_ERROR_WSAENETRESET);
-		case WSAECONNABORTED    :
-			return STRING(SOCKET_ERROR_WSAECONNABORTED);
-		case WSAECONNRESET      :
-			return STRING(SOCKET_ERROR_WSAECONNRESET);
-		case WSAENOBUFS         :
-			return STRING(SOCKET_ERROR_WSAENOBUFS);
-		case WSAEISCONN         :
-			return STRING(SOCKET_ERROR_WSAEISCONN);
-		case WSAETIMEDOUT       :
-			return STRING(SOCKET_ERROR_WSAETIMEDOUT);
-		case WSAECONNREFUSED    :
-			return STRING(SOCKET_ERROR_WSAECONNREFUSED);
-		case WSAELOOP           :
-			return STRING(SOCKET_ERROR_WSAELOOP);
-		case WSAENAMETOOLONG    :
-			return STRING(SOCKET_ERROR_WSAENAMETOOLONG);
-		case WSAEHOSTDOWN       :
-			return STRING(SOCKET_ERROR_WSAEHOSTDOWN);
-		default:
-#endif //NIGHTORION_INTERNAL_TRANSLATE_SOCKET_ERRORS
-			DWORD l_formatMessageFlag =
-			    FORMAT_MESSAGE_ALLOCATE_BUFFER |
-			    FORMAT_MESSAGE_FROM_SYSTEM |
-			    FORMAT_MESSAGE_IGNORE_INSERTS;
-	
-			LPCVOID lpSource = nullptr;
-			// Обработаем расширенные ошибки по инету
-			// http://stackoverflow.com/questions/20435591/internetgetlastresponseinfo-returns-strange-characters-instead-of-error-message
-			{
-				wstring l_error;
-				DWORD dwLen = 0;
-				DWORD dwErr = aError;
-				if (dwErr == ERROR_INTERNET_EXTENDED_ERROR)
-				{
-					InternetGetLastResponseInfo(&dwErr, NULL, &dwLen); //
-					if (::GetLastError() == ERROR_INSUFFICIENT_BUFFER && dwLen)
-					{
-						dwLen++;
-						dcassert(dwLen);
-						if (dwLen)
-						{
-							l_error.resize(dwLen);
-							InternetGetLastResponseInfo(&dwErr, &l_error[0], &dwLen);
-						}
-					}
-					if (dwLen)
-					{
-						return "Internet Error = " + Text::fromT(l_error) + " [Code = " + Util::toString(dwErr) + "]";
-					}
-				}
-			}
-			// http://stackoverflow.com/questions/2159458/why-is-formatmessage-failing-to-find-a-message-for-wininet-errors/2159488#2159488
-			if (aError >= INTERNET_ERROR_BASE && aError < INTERNET_ERROR_LAST)
-			{
-				l_formatMessageFlag |= FORMAT_MESSAGE_FROM_HMODULE;
-				lpSource = GetModuleHandle(_T("wininet.dll"));
-			}
-			/*
-			else if (aError >= XXX && aError < YYY)
-			{
-			TODO: Load text for errors from other libraries?
-			}
-			*/
-	
-			LPTSTR lpMsgBuf = 0;
-			DWORD chars = FormatMessage(
-			                  l_formatMessageFlag,
-			                  lpSource,
-			                  aError,
-#if defined (_CONSOLE) || defined (_DEBUG)
-			                  MAKELANGID(LANG_NEUTRAL, SUBLANG_ENGLISH_US), // US
-#else
-			                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-#endif
-			                  (LPTSTR) &lpMsgBuf,
-			                  0,
-			                  NULL
-			              );
-			string tmp;
-			if (chars != 0)
-			{
-				tmp = Text::fromT(lpMsgBuf);
-				// Free the buffer.
-				LocalFree(lpMsgBuf);
-				string::size_type i = 0;
-	
-				while ((i = tmp.find_first_of("\r\n", i)) != string::npos)
-				{
-					tmp.erase(i, 1);
-				}
-			}
-			tmp += "[error: " + toString(aError) + "]";
-#if 0 // TODO
-			if (aError >= WSAEADDRNOTAVAIL && aError <= WSAEHOSTDOWN)
-			{
-				tmp += "\r\n\t" + STRING(SOCKET_ERROR_NOTE) + " " + Util::getWikiLink() + "socketerror#error_" + toString(aError);  // as  LANG:socketerror#error_10060
-			}
-#endif
-			return tmp;
-#else // _WIN32
-	return Text::toUtf8(strerror(aError));
-#endif // _WIN32
-#ifdef NIGHTORION_INTERNAL_TRANSLATE_SOCKET_ERRORS
-	}
-#endif //NIGHTORION_INTERNAL_TRANSLATE_SOCKET_ERRORS
-}
 	
 TCHAR* Util::strstr(const TCHAR *str1, const TCHAR *str2, int *pnIdxFound)
 {
@@ -2596,7 +2471,7 @@ string Util::getWANIP(const string& p_url, LONG p_timeOut /* = 500 */)
 	}
 	else
 		l_log.step("Error download : " + Util::translateError());
-	return Util::emptyString;
+	return BaseUtil::emptyString;
 }
 	
 size_t Util::getDataFromInetSafe(bool p_is_use_cache, const string& p_url, string& p_data, LONG p_time_out /* = 0 */, IDateReceiveReporter* p_reporter /*= NULL */)
@@ -2939,7 +2814,13 @@ uint64_t CFlyHTTPDownloader::getBinaryDataFromInet(const string& p_url, std::vec
 	//useDebugProxy(hInternet);
 	if (p_time_out)
 	{
-		InternetSetOption(hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &p_time_out, sizeof(p_time_out));
+		auto l_res = InternetSetOption(hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &p_time_out, sizeof(p_time_out));
+		if (l_res == FALSE)
+		{
+			dcassert(0);
+			create_error_message("InternetSetOption + INTERNET_OPTION_CONNECT_TIMEOUT", p_url);
+			LogManager::message(m_error_message);
+		}
 	}
 	// https://github.com/ak48disk/simulationcraft/blob/392937fde95bdc4f13ccd3681e2fa61813856bb6/engine/interfaces/sc_http.cpp
 	// http://msdn.microsoft.com/en-us/library/ms906346.aspx

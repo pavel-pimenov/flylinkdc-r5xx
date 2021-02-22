@@ -42,9 +42,6 @@ struct CFlyClientStatistic
 	}
 };
 class ClientBase
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 		bool m_is_detect_active_connection;

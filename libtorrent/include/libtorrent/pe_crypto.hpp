@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Un Shyam & Arvid Norberg
+Copyright (c) 2007-2018, Un Shyam & Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,10 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
-
 #ifndef TORRENT_PE_CRYPTO_HPP_INCLUDED
 #define TORRENT_PE_CRYPTO_HPP_INCLUDED
+
+#if !defined TORRENT_DISABLE_ENCRYPTION
 
 #include "libtorrent/config.hpp"
 
@@ -157,5 +157,6 @@ namespace libtorrent {
 
 } // namespace libtorrent
 
-#endif // TORRENT_PE_CRYPTO_HPP_INCLUDED
 #endif // TORRENT_DISABLE_ENCRYPTION
+
+#endif // TORRENT_PE_CRYPTO_HPP_INCLUDED

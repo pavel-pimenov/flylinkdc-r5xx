@@ -62,9 +62,6 @@ struct CFlyMediainfoRAWHasher
 #endif
 
 class CFlyMediaInfo
-#ifdef _DEBUG
-//: public boost::noncopyable
-#endif
 {
 	public:
 		struct ExtItem

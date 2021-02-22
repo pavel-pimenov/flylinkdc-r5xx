@@ -56,6 +56,13 @@
     #include "ZenLib/FileName.h"
     #include <cstring>
 #endif //MEDIAINFO_DEBUG_BUFFER
+#if MEDIAINFO_ADVANCED
+    #include <iostream>
+    #ifdef WINDOWS
+        #include <fcntl.h>
+        #include <io.h>
+    #endif
+#endif //MEDIAINFO_ADVANCED
 using namespace ZenLib;
 using namespace std;
 //---------------------------------------------------------------------------
@@ -414,6 +421,54 @@ Ztring ChannelLayout_2018_Rename(stream_t StreamKind, const Ztring& Parameter, c
     ShouldReturn=true;
     if (StreamKind==Stream_Audio && (Parameter==__T("BedChannelConfiguration") || (Parameter.size()>=14 && Parameter.find(__T(" ChannelLayout"), Parameter.size()-14)!=string::npos)))
         return ChannelLayout_2018_Rename(Value, StreamFormat);
+    if (StreamKind==Stream_Audio)
+    {
+        size_t ObjectPos=Parameter.find(__T("Object"));
+        if (ObjectPos!=string::npos)
+        {
+            bool NoRename=false;
+            if (ObjectPos && !(Parameter[ObjectPos-1]==__T(' ')))
+                NoRename=true;
+            if (ObjectPos+6>=Parameter.size() || !(Parameter[ObjectPos+6]>=__T('0') && Parameter[ObjectPos+6]<=__T('9')))
+                NoRename=true;
+            if (!NoRename)
+            {
+                size_t SpacePos=Parameter.find(__T(' '), ObjectPos);
+                if (SpacePos==string::npos)
+                    return ChannelLayout_2018_Rename(Value, StreamFormat);
+            }
+        }
+        size_t AltPos=Parameter.find(__T("Alt"));
+        if (AltPos!=string::npos)
+        {
+            bool NoRename=false;
+            if (AltPos && !(Parameter[AltPos-1]==__T(' ')))
+                NoRename=true;
+            if (AltPos+3>=Parameter.size() || !(Parameter[AltPos+3]>=__T('0') && Parameter[AltPos+3]<=__T('9')))
+                NoRename=true;
+            if (!NoRename)
+            {
+                size_t SpacePos=Parameter.find(__T(' '), AltPos);
+                if (SpacePos==string::npos)
+                    return ChannelLayout_2018_Rename(Value, StreamFormat);
+            }
+        }
+        size_t BedPos=Parameter.find(__T("Bed"));
+        if (BedPos!=string::npos)
+        {
+            bool NoRename=false;
+            if (BedPos && !(Parameter[BedPos-1]==__T(' ')))
+                NoRename=true;
+            if (BedPos+3>=Parameter.size() || !(Parameter[BedPos+3]>=__T('0') && Parameter[BedPos+3]<=__T('9')))
+                NoRename=true;
+            if (!NoRename)
+            {
+                size_t SpacePos=Parameter.find(__T(' '), BedPos);
+                if (SpacePos==string::npos)
+                    return ChannelLayout_2018_Rename(Value, StreamFormat);
+            }
+        }
+    }
     ShouldReturn=ShouldReturn_Save;
     return Value;
 }
@@ -1152,6 +1207,29 @@ void MediaInfo_Internal::Entry()
             #endif //MEDIAINFO_NEXTPACKET
         }
     #endif //MEDIAINFO_FILE_YES
+    #if MEDIAINFO_ADVANCED
+        else if (Config.File_Names[0]==__T("-")
+            #ifdef WINDOWS
+                //&& WaitForSingleObject(GetStdHandle(STD_INPUT_HANDLE), 0) == WAIT_OBJECT_0 //Check if there is something is stdin
+                && _setmode(_fileno(stdin), _O_BINARY) != -1 //Force binary mode
+            #endif
+            )
+        {
+            static const size_t Read_Size=24000; //TODO: tweak this value
+            unsigned char Buffer[Read_Size];
+            Open_Buffer_Init();
+            for (;;)
+            {
+                size_t Buffer_Size = fread(Buffer, 1, Read_Size, stdin);
+                if (!Buffer_Size)
+                    break;
+                Open_Buffer_Continue((int8u*)Buffer, Buffer_Size);
+                if (feof(stdin))
+                    break;
+            }
+            Open_Buffer_Finalize();
+        }
+    #endif //MEDIAINFO_ADVANCED
 
     Config.State_Set(1);
 }
@@ -1271,9 +1349,7 @@ size_t MediaInfo_Internal::Open_Buffer_Init (int64u File_Size_, int64u File_Offs
         if (Info && Info->Status[File__Analyze::IsAccepted])
         {
             struct MediaInfo_Event_General_Move_Done_0 Event;
-            memset(&Event, 0xFF, sizeof(struct MediaInfo_Event_Generic));
-            Event.EventCode=MediaInfo_EventCode_Create(MediaInfo_Parser_None, MediaInfo_Event_General_Move_Done, 0);
-            Event.EventSize=sizeof(struct MediaInfo_Event_General_Move_Done_0);
+            Info->Event_Prepare((struct MediaInfo_Event_Generic*)&Event, MediaInfo_EventCode_Create(MediaInfo_Parser_None, MediaInfo_Event_General_Move_Done, 0), sizeof(struct MediaInfo_Event_General_Move_Done_0));
             Event.StreamIDs_Size=0;
             Event.StreamOffset=File_Offset_;
             Config.Event_Send(NULL, (const int8u*)&Event, sizeof(MediaInfo_Event_General_Move_Done_0));
@@ -1281,9 +1357,7 @@ size_t MediaInfo_Internal::Open_Buffer_Init (int64u File_Size_, int64u File_Offs
         else
         {
             struct MediaInfo_Event_General_Start_0 Event;
-            memset(&Event, 0xFF, sizeof(struct MediaInfo_Event_Generic));
-            Event.EventCode=MediaInfo_EventCode_Create(MediaInfo_Parser_None, MediaInfo_Event_General_Start, 0);
-            Event.EventSize=sizeof(struct MediaInfo_Event_General_Start_0);
+            Info->Event_Prepare((struct MediaInfo_Event_Generic*)&Event, MediaInfo_EventCode_Create(MediaInfo_Parser_None, MediaInfo_Event_General_Start, 0), sizeof(struct MediaInfo_Event_General_Start_0));
             Event.StreamIDs_Size=0;
             Event.Stream_Size=File_Size_;
             Event.FileName=NULL;
@@ -2194,11 +2268,11 @@ void MediaInfo_Internal::TestContinuousFileNames ()
 
 //---------------------------------------------------------------------------
 #if MEDIAINFO_EVENTS
-void MediaInfo_Internal::Event_Prepare (struct MediaInfo_Event_Generic* Event)
+void MediaInfo_Internal::Event_Prepare (struct MediaInfo_Event_Generic* Event, int32u Event_Code, size_t Event_Size)
 {
     CriticalSectionLocker CSL(CS);
     if (Info)
-        Info->Event_Prepare(Event);
+        Info->Event_Prepare(Event, Event_Code, Event_Size);
 }
 #endif // MEDIAINFO_EVENTS
 

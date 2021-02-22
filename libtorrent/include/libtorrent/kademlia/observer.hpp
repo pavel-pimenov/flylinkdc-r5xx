@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/time.hpp>
 #include <libtorrent/address.hpp>
 #include <libtorrent/flags.hpp>
+#include <libtorrent/socket.hpp> // for udp
+#include <libtorrent/kademlia/node_id.hpp>
 
 namespace libtorrent {
 namespace dht {
@@ -48,8 +50,7 @@ struct observer;
 struct msg;
 struct traversal_algorithm;
 
-struct observer_flags_tag;
-using observer_flags_t = libtorrent::flags::bitfield_flag<std::uint8_t, observer_flags_tag>;
+using observer_flags_t = libtorrent::flags::bitfield_flag<std::uint8_t, struct observer_flags_tag>;
 
 struct TORRENT_EXTRA_EXPORT observer
 	: std::enable_shared_from_this<observer>
@@ -127,9 +128,7 @@ private:
 
 	union addr_t
 	{
-#if TORRENT_USE_IPV6
 		address_v6::bytes_type v6;
-#endif
 		address_v4::bytes_type v4;
 	} m_addr;
 

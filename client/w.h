@@ -18,20 +18,13 @@
 
 #pragma once
 
-
 #ifndef DCPLUSPLUS_DCPP_W_H_
 #define DCPLUSPLUS_DCPP_W_H_
-
-//#include "compiler.h"
 
 #include "w_flylinkdc.h"
 
 #ifndef STRICT
 #define STRICT 1
-#endif
-
-#ifndef _ATL_NO_HOSTING
-// #define _ATL_NO_HOSTING
 #endif
 
 
@@ -42,7 +35,6 @@
 #define _ATL_NO_PERF_SUPPORT
 #define _ATL_NO_SERVICE
 #define _ATL_NO_DOCHOSTUIHANDLER
-
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN

@@ -30,9 +30,6 @@ STANDARD_EXCEPTION(BitStreamException);
  * No, doesn't operate on streams...=)
  */
 class BitInputStream
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		explicit BitInputStream(const uint8_t* aStream, size_t aStart, size_t aEnd) : bitPos(aStart * 8), endPos(aEnd * 8), is(aStream) { }

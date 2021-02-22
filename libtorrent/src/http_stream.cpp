@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -94,7 +94,7 @@ namespace libtorrent {
 		// look for \n\n and \r\n\r\n
 		// both of which means end of http response header
 		bool found_end = false;
-		if (read_pos > 2 && m_buffer[read_pos - 1] == '\n')
+		if (m_buffer[read_pos - 1] == '\n' && read_pos > 2)
 		{
 			if (m_buffer[read_pos - 2] == '\n')
 			{

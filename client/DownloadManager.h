@@ -105,7 +105,7 @@ class DownloadManager : public Speaker<DownloadManagerListener>,
 		void removeConnection(UserConnection* p_conn, bool p_is_remove_listener = true);
 		static void removeDownload(const DownloadPtr& aDownload);
 		void fileNotAvailable(UserConnection* aSource);
-		void noSlots(UserConnection* aSource, const string& param = Util::emptyString);
+		void noSlots(UserConnection* aSource, const string& param = BaseUtil::emptyString);
 		
 		int64_t getResumePos(const string& file, const TigerTree& tt, int64_t startPos);
 		

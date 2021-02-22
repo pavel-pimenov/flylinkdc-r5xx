@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2014-2016, Arvid Norberg
+Copyright (c) 2014-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#ifndef TORRENT_CHOKER_HPP_INCLUDED
+#define TORRENT_CHOKER_HPP_INCLUDED
+
 #include "libtorrent/config.hpp"
 #include "libtorrent/time.hpp" // for time_duration
 #include <vector>
@@ -50,3 +53,5 @@ namespace libtorrent {
 		, aux::session_settings const& sett);
 
 }
+
+#endif // TORRENT_CHOKER_INCLUDED

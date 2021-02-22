@@ -24,9 +24,6 @@
 #include "MessagePanel.h"
 
 class BaseChatFrame : public InternetSearchBaseHandler<BaseChatFrame>
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 		typedef InternetSearchBaseHandler<BaseChatFrame> isBase;
 		

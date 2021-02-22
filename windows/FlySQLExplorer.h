@@ -20,8 +20,8 @@ namespace FlyWindow
 
 class ItemInfo;
 
-class FlySQLExplorer : boost::noncopyable
-	, public MDITabChildWindowImpl < FlySQLExplorer, RGB(255, 0, 255), IDR_FILE_LIST>
+class FlySQLExplorer :
+	public MDITabChildWindowImpl < FlySQLExplorer, RGB(255, 0, 255), IDR_FILE_LIST>
 	, public CSplitterImpl<FlySQLExplorer>
 	, public UCHandler<FlySQLExplorer>
 	, private SettingsManagerListener

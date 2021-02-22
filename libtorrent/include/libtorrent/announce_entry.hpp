@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2015-2016, Arvid Norberg
+Copyright (c) 2015-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_ANNOUNCE_ENTRY_HPP_INCLUDED
 
 #include "libtorrent/config.hpp"
+#include "libtorrent/fwd.hpp"
 #include "libtorrent/time.hpp"
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/string_view.hpp"
@@ -51,10 +52,14 @@ namespace libtorrent {
 	struct TORRENT_EXPORT announce_endpoint
 	{
 		friend class torrent;
+#if TORRENT_ABI_VERSION == 1
 		friend struct announce_entry;
+#else
+		friend struct v1_2::announce_entry;
+#endif
 
 		// internal
-		explicit announce_endpoint(aux::listen_socket_handle const& s);
+		announce_endpoint(aux::listen_socket_handle const& s, bool completed);
 
 		// if this tracker has returned an error or warning message
 		// that message is stored here
@@ -89,11 +94,12 @@ namespace libtorrent {
 		// view).
 
 		// if this tracker has returned scrape data, these fields are filled in
-		// with valid numbers. Otherwise they are set to -1. the number of
-		// current downloaders
+		// with valid numbers. Otherwise they are set to -1. ``incomplete`` counts
+		// the number of current downloaders. ``complete`` counts the number of
+		// current peers completed the download, or "seeds". ``downloaded`` is the
+		// cumulative number of completed downloads.
 		int scrape_incomplete = -1;
 		int scrape_complete = -1;
-
 		int scrape_downloaded = -1;
 
 		// the number of times in a row we have failed to announce to this
@@ -135,6 +141,8 @@ namespace libtorrent {
 		bool is_working() const { return fails == 0; }
 	};
 
+TORRENT_VERSION_NAMESPACE_2
+
 	// this class holds information about one bittorrent tracker, as it
 	// relates to a specific torrent.
 	struct TORRENT_EXPORT announce_entry
@@ -154,6 +162,8 @@ namespace libtorrent {
 		// trackerid is sent).
 		std::string trackerid;
 
+		// each local listen socket (endpoint) will announce to the tracker. This
+		// list contains state per endpoint.
 		std::vector<announce_endpoint> endpoints;
 
 		// the tier this tracker belongs to
@@ -169,7 +179,7 @@ namespace libtorrent {
 		{
 			// the tracker was part of the .torrent file
 			source_torrent = 1,
-			// the tracker was added programatically via the add_tracker() function
+			// the tracker was added programmatically via the add_tracker() function
 			source_client = 2,
 			// the tracker was part of a magnet link
 			source_magnet_link = 4,
@@ -184,7 +194,7 @@ namespace libtorrent {
 		// from this tracker.
 		bool verified:1;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		// deprecated in 1.2
 		// all of these will be set to false or 0
 		// use the corresponding members in announce_endpoint
@@ -195,14 +205,6 @@ namespace libtorrent {
 		// internal
 		bool TORRENT_DEPRECATED_MEMBER triggered_manually:1;
 		bool TORRENT_DEPRECATED_MEMBER updating:1;
-#else
-		// hidden
-		std::uint8_t deprecated_fails:7;
-		bool deprecated_send_stats:1;
-		bool deprecated_start_sent:1;
-		bool deprecated_complete_sent:1;
-		bool deprecated_triggered_manually:1;
-		bool deprecated_updating:1;
 #endif
 
 		// reset announce counters and clears the started sent flag.
@@ -210,7 +212,7 @@ namespace libtorrent {
 		// the tracker.
 		void reset();
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		// deprecated in 1.2, use announce_endpoint::can_announce
 		// returns true if we can announce to this tracker now.
 		// The current time is passed in as ``now``. The ``is_seed``
@@ -231,6 +233,8 @@ namespace libtorrent {
 		// trims whitespace characters from the beginning of the URL.
 		void trim();
 	};
+
+TORRENT_VERSION_NAMESPACE_2_END
 
 }
 

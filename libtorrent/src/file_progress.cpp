@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2015-2016, Arvid Norberg
+Copyright (c) 2015-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,10 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/piece_picker.hpp"
 #include "libtorrent/file_storage.hpp"
-#include "libtorrent/alert_manager.hpp"
 #include "libtorrent/aux_/file_progress.hpp"
-#include "libtorrent/alert_types.hpp"
 #include "libtorrent/invariant_check.hpp"
 
 namespace libtorrent { namespace aux {
-
-	file_progress::file_progress()
-	{
-	}
 
 	void file_progress::init(piece_picker const& picker, file_storage const& fs)
 	{
@@ -135,7 +129,7 @@ namespace libtorrent { namespace aux {
 	// update the file progress now that we just completed downloading piece
 	// 'index'
 	void file_progress::update(file_storage const& fs, piece_index_t const index
-		, alert_manager* alerts, torrent_handle const& h)
+		, std::function<void(file_index_t)> const& completed_cb)
 	{
 		INVARIANT_CHECK;
 		if (m_file_progress.empty()) return;
@@ -162,19 +156,12 @@ namespace libtorrent { namespace aux {
 			m_file_progress[file_index] += add;
 
 			TORRENT_ASSERT(m_file_progress[file_index]
-					<= fs.file_size(file_index));
+				<= fs.file_size(file_index));
 
-			// TODO: it would be nice to not depend on alert_manager here
-			if (m_file_progress[file_index] >= fs.file_size(file_index) && alerts)
+			if (m_file_progress[file_index] >= fs.file_size(file_index) && completed_cb)
 			{
 				if (!fs.pad_file_at(file_index))
-				{
-					if (alerts->should_post<file_completed_alert>())
-					{
-						// this file just completed, post alert
-						alerts->emplace_alert<file_completed_alert>(h, file_index);
-					}
-				}
+					completed_cb(file_index);
 			}
 			size -= add;
 			off += add;

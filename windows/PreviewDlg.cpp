@@ -59,7 +59,7 @@ LRESULT PreviewDlg::OnBrowse(UINT /*uMsg*/, WPARAM /*wParam*/, HWND /*lParam*/, 
 	
 	GET_TEXT(IDC_PREVIEW_APPLICATION, x);
 	
-	if (WinUtil::browseFile(x, m_hWnd, false,  Util::emptyStringT, _T("Application\0*.exe\0\0")) == IDOK)  // TODO translate
+	if (WinUtil::browseFile(x, m_hWnd, false,  BaseUtil::emptyStringT, _T("Application\0*.exe\0\0")) == IDOK)  // TODO translate
 	{
 		SetDlgItemText(IDC_PREVIEW_APPLICATION, x.c_str());
 	}

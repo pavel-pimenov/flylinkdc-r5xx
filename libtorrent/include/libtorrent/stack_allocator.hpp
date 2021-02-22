@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2015-2016, Arvid Norberg
+Copyright (c) 2015-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/vector.hpp"
 #include "libtorrent/aux_/numeric_cast.hpp"
 
+#include <cstdarg> // for va_list
 #include <cstdio> // for vsnprintf
 #include <cstring>
 
@@ -67,6 +68,8 @@ namespace libtorrent { namespace aux {
 		// non-copyable
 		stack_allocator(stack_allocator const&) = delete;
 		stack_allocator& operator=(stack_allocator const&) = delete;
+		stack_allocator(stack_allocator&&) = default;
+		stack_allocator& operator=(stack_allocator&&) = default;
 
 		allocation_slot copy_string(string_view str);
 		allocation_slot copy_string(char const* str);

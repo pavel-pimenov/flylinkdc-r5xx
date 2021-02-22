@@ -38,7 +38,7 @@ goto :eof
 	IF NOT EXIST %rdir% ( 
 		echo Dir:%1 %rdir%
 		mkdir %rdir%
-		echo %rndstr% > %rdir%\%rdir%.txt
+		echo %rndstr% > %rdir%\%rdir%.dat
 	)
 goto :eof
 

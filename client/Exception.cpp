@@ -17,6 +17,9 @@
  */
 
 #include "stdinc.h"
+#ifdef _DEBUG
+#include <fstream>
+#endif
 #include "Exception.h"
 
 

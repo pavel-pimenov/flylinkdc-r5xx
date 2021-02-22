@@ -199,7 +199,7 @@ LRESULT MagnetDlg::onRadioButton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 LRESULT MagnetDlg::onSaveAs(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
 	tstring dst = mFileName;
-	if (!WinUtil::browseFile(dst, m_hWnd, true, Util::emptyStringT, NULL, Util::getFileExtWithoutDot(mFileName).c_str())) return 0;
+	if (!WinUtil::browseFile(dst, m_hWnd, true, BaseUtil::emptyStringT, NULL, Util::getFileExtWithoutDot(mFileName).c_str())) return 0;
 	mFileName = dst;
 	SetDlgItemText(IDC_MAGNET_DISP_NAME, dst.c_str());
 	return 0;

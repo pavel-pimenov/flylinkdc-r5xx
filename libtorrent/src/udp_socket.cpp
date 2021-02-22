@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/debug.hpp"
 #include "libtorrent/deadline_timer.hpp"
 #include "libtorrent/aux_/numeric_cast.hpp"
+#include "libtorrent/broadcast_socket.hpp" // for is_v4
 
 #include <cstdlib>
 #include <functional>
@@ -50,6 +51,12 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace libtorrent {
 
 using namespace std::placeholders;
+
+// used to build SOCKS messages in
+std::size_t const tmp_buffer_size = 270;
+
+// used for SOCKS5 UDP wrapper header
+std::size_t const max_header_size = 255;
 
 // this class hold the state of the SOCKS5 connection to maintain the UDP
 // ASSOCIATE tunnel. It's instantiated on the heap for two reasons:
@@ -67,9 +74,7 @@ struct socks5 : std::enable_shared_from_this<socks5>
 		, m_retry_timer(ios)
 		, m_abort(false)
 		, m_active(false)
-	{
-		std::memset(m_tmp_buf, 0, sizeof(m_tmp_buf));
-	}
+	{}
 
 	void start(aux::proxy_settings const& ps);
 	void close();
@@ -82,8 +87,8 @@ private:
 	std::shared_ptr<socks5> self() { return shared_from_this(); }
 
 	void on_name_lookup(error_code const& e, tcp::resolver::iterator i);
-	void on_connect_timeout(error_code const& ec);
-	void on_connected(error_code const& ec);
+	void on_connect_timeout(error_code const& e);
+	void on_connected(error_code const& e);
 	void handshake1(error_code const& e);
 	void handshake2(error_code const& e);
 	void handshake3(error_code const& e);
@@ -98,7 +103,7 @@ private:
 	tcp::resolver m_resolver;
 	deadline_timer m_timer;
 	deadline_timer m_retry_timer;
-	char m_tmp_buf[270];
+	std::array<char, tmp_buffer_size> m_tmp_buf;
 
 	aux::proxy_settings m_proxy_settings;
 
@@ -154,13 +159,12 @@ udp_socket::udp_socket(io_service& ios)
 	: m_socket(ios)
 	, m_buf(new receive_buffer())
 	, m_bind_port(0)
-	, m_force_proxy(false)
 	, m_abort(true)
 {}
 
 int udp_socket::read(span<packet> pkts, error_code& ec)
 {
-	int const num = int(pkts.size());
+	auto const num = int(pkts.size());
 	int ret = 0;
 	packet p;
 
@@ -187,30 +191,39 @@ int udp_socket::read(span<packet> pkts, error_code& ec)
 			// SOCKS5 cannot wrap ICMP errors. And even if it could, they certainly
 			// would not arrive as unwrapped (regular) ICMP errors. If we're using
 			// a proxy we must ignore these
-			if (m_force_proxy
-				|| (m_socks5_connection
-				&&  m_socks5_connection->active())) continue;
+			if (m_proxy_settings.type != settings_pack::none) continue;
 
 			p.error = ec;
 			p.data = span<char>();
 		}
 		else
 		{
-			p.data = {m_buf->data(), aux::numeric_cast<std::size_t>(len)};
+			p.data = {m_buf->data(), len};
 
 			// support packets coming from the SOCKS5 proxy
 			if (m_socks5_connection && m_socks5_connection->active())
 			{
 				// if the source IP doesn't match the proxy's, ignore the packet
 				if (p.from != m_socks5_connection->target()) continue;
+				// if we failed to unwrap, silently ignore the packet
 				if (!unwrap(p.from, p.data)) continue;
 			}
-			// block incoming packets that aren't coming via the proxy
-			// if force proxy mode is enabled
-			else if (m_force_proxy) continue;
+			else
+			{
+				// if we don't proxy trackers or peers, we may be receiving unwrapped
+				// packets and we must let them through.
+				bool const proxy_only
+					= m_proxy_settings.proxy_peer_connections
+					&& m_proxy_settings.proxy_tracker_connections
+					;
+
+				// if we proxy everything, block all packets that aren't coming from
+				// the proxy
+				if (m_proxy_settings.type != settings_pack::none && proxy_only) continue;
+			}
 		}
 
-		pkts[aux::numeric_cast<std::size_t>(ret)] = p;
+		pkts[ret] = p;
 		++ret;
 
 		// we only have a single buffer for now, so we can only return a
@@ -234,22 +247,29 @@ void udp_socket::send_hostname(char const* hostname, int const port
 		return;
 	}
 
-	if (m_socks5_connection && m_socks5_connection->active())
-	{
-		// send udp packets through SOCKS5 server
-		wrap(hostname, port, p, ec, flags);
-		return;
-	}
+	bool const use_proxy
+		= ((flags & peer_connection) && m_proxy_settings.proxy_peer_connections)
+		|| ((flags & tracker_connection) && m_proxy_settings.proxy_tracker_connections)
+		|| !(flags & (tracker_connection | peer_connection))
+		;
 
-	if (m_force_proxy)
+	if (use_proxy && m_proxy_settings.type != settings_pack::none)
 	{
-		ec = error_code(boost::system::errc::permission_denied, generic_category());
+		if (m_socks5_connection && m_socks5_connection->active())
+		{
+			// send udp packets through SOCKS5 server
+			wrap(hostname, port, p, ec, flags);
+		}
+		else
+		{
+			ec = error_code(boost::system::errc::permission_denied, generic_category());
+		}
 		return;
 	}
 
 	// the overload that takes a hostname is really only supported when we're
 	// using a proxy
-	address target = make_address(hostname, ec);
+	address const target = make_address(hostname, ec);
 	if (!ec) send(udp::endpoint(target, std::uint16_t(port)), p, ec, flags);
 }
 
@@ -265,26 +285,31 @@ void udp_socket::send(udp::endpoint const& ep, span<char const> p
 		return;
 	}
 
-	const bool allow_proxy
+	bool const use_proxy
 		= ((flags & peer_connection) && m_proxy_settings.proxy_peer_connections)
 		|| ((flags & tracker_connection) && m_proxy_settings.proxy_tracker_connections)
 		|| !(flags & (tracker_connection | peer_connection))
 		;
 
-	if (allow_proxy && m_socks5_connection && m_socks5_connection->active())
+	if (use_proxy && m_proxy_settings.type != settings_pack::none)
 	{
-		// send udp packets through SOCKS5 server
-		wrap(ep, p, ec, flags);
+		if (m_socks5_connection && m_socks5_connection->active())
+		{
+			// send udp packets through SOCKS5 server
+			wrap(ep, p, ec, flags);
+		}
+		else
+		{
+			ec = error_code(boost::system::errc::permission_denied, generic_category());
+		}
 		return;
 	}
 
-	if (m_force_proxy) return;
-
 	// set the DF flag for the socket and clear it again in the destructor
 	set_dont_frag df(m_socket, (flags & dont_fragment)
-		&& ep.protocol() == udp::v4());
+		&& is_v4(ep));
 
-	m_socket.send_to(boost::asio::buffer(p.data(), p.size()), ep, 0, ec);
+	m_socket.send_to(boost::asio::buffer(p.data(), static_cast<std::size_t>(p.size())), ep, 0, ec);
 }
 
 void udp_socket::wrap(udp::endpoint const& ep, span<char const> p
@@ -293,21 +318,20 @@ void udp_socket::wrap(udp::endpoint const& ep, span<char const> p
 	TORRENT_UNUSED(flags);
 	using namespace libtorrent::detail;
 
-	char header[255];
-	char* h = header;
+	std::array<char, max_header_size> header;
+	char* h = header.data();
 
 	write_uint16(0, h); // reserved
 	write_uint8(0, h); // fragment
-	write_uint8(ep.address().is_v4()?1:4, h); // atyp
+	write_uint8(is_v4(ep) ? 1 : 4, h); // atyp
 	write_endpoint(ep, h);
 
 	std::array<boost::asio::const_buffer, 2> iovec;
-	iovec[0] = boost::asio::const_buffer(header, aux::numeric_cast<std::size_t>(h - header));
-	iovec[1] = boost::asio::const_buffer(p.data(), p.size());
+	iovec[0] = boost::asio::const_buffer(header.data(), aux::numeric_cast<std::size_t>(h - header.data()));
+	iovec[1] = boost::asio::const_buffer(p.data(), static_cast<std::size_t>(p.size()));
 
 	// set the DF flag for the socket and clear it again in the destructor
-	set_dont_frag df(m_socket, (flags & dont_fragment)
-		&& ep.protocol() == udp::v4());
+	set_dont_frag df(m_socket, (flags & dont_fragment) && is_v4(ep));
 
 	m_socket.send_to(iovec, m_socks5_connection->target(), 0, ec);
 }
@@ -315,28 +339,27 @@ void udp_socket::wrap(udp::endpoint const& ep, span<char const> p
 void udp_socket::wrap(char const* hostname, int const port, span<char const> p
 	, error_code& ec, udp_send_flags_t const flags)
 {
-	TORRENT_UNUSED(flags);
 	using namespace libtorrent::detail;
 
-	char header[270];
-	char* h = header;
+	std::array<char, max_header_size> header;
+	char* h = header.data();
 
 	write_uint16(0, h); // reserved
 	write_uint8(0, h); // fragment
 	write_uint8(3, h); // atyp
-	std::size_t const hostlen = std::min(std::strlen(hostname), std::size_t(255));
+	std::size_t const hostlen = std::min(std::strlen(hostname), max_header_size - 7);
 	write_uint8(hostlen, h); // hostname len
 	std::memcpy(h, hostname, hostlen);
 	h += hostlen;
 	write_uint16(port, h);
 
 	std::array<boost::asio::const_buffer, 2> iovec;
-	iovec[0] = boost::asio::const_buffer(header, aux::numeric_cast<std::size_t>(h - header));
-	iovec[1] = boost::asio::const_buffer(p.data(), p.size());
+	iovec[0] = boost::asio::const_buffer(header.data(), aux::numeric_cast<std::size_t>(h - header.data()));
+	iovec[1] = boost::asio::const_buffer(p.data(), static_cast<std::size_t>(p.size()));
 
 	// set the DF flag for the socket and clear it again in the destructor
 	set_dont_frag df(m_socket, (flags & dont_fragment)
-		&& m_socket.local_endpoint(ec).protocol() == udp::v4());
+		&& is_v4(m_socket.local_endpoint(ec)));
 
 	m_socket.send_to(iovec, m_socks5_connection->target(), 0, ec);
 }
@@ -350,7 +373,7 @@ bool udp_socket::unwrap(udp::endpoint& from, span<char>& buf)
 	using namespace libtorrent::detail;
 
 	// the minimum socks5 header size
-	int const size = aux::numeric_cast<int>(buf.size());
+	auto const size = aux::numeric_cast<int>(buf.size());
 	if (size <= 10) return false;
 
 	char* p = buf.data();
@@ -365,13 +388,11 @@ bool udp_socket::unwrap(udp::endpoint& from, span<char>& buf)
 		// IPv4
 		from = read_v4_endpoint<udp::endpoint>(p);
 	}
-#if TORRENT_USE_IPV6
 	else if (atyp == 4)
 	{
 		// IPv6
 		from = read_v6_endpoint<udp::endpoint>(p);
 	}
-#endif
 	else
 	{
 		int const len = read_uint8(p);
@@ -385,7 +406,7 @@ bool udp_socket::unwrap(udp::endpoint& from, span<char>& buf)
 		from = udp::endpoint(addr, read_uint16(p));
 	}
 
-	buf = {p, aux::numeric_cast<std::size_t>(size - (p - buf.data()))};
+	buf = {p, size - (p - buf.data())};
 	return true;
 }
 
@@ -419,7 +440,6 @@ void udp_socket::open(udp const& protocol, error_code& ec)
 
 	m_socket.open(protocol, ec);
 	if (ec) return;
-#if TORRENT_USE_IPV6
 	if (protocol == udp::v6())
 	{
 		error_code err;
@@ -430,14 +450,11 @@ void udp_socket::open(udp const& protocol, error_code& ec)
 		m_socket.set_option(v6_protection_level(PROTECTION_LEVEL_UNRESTRICTED), err);
 #endif // TORRENT_WINDOWS
 	}
-#endif
 
 	// this is best-effort. ignore errors
-	error_code err;
 #ifdef TORRENT_WINDOWS
+	error_code err;
 	m_socket.set_option(exclusive_address_use(true), err);
-#else
-	m_socket.set_option(boost::asio::socket_base::reuse_address(true), err);
 #endif
 }
 
@@ -506,7 +523,7 @@ void socks5::on_name_lookup(error_code const& e, tcp::resolver::iterator i)
 	m_proxy_addr.port(i->endpoint().port());
 
 	error_code ec;
-	m_socks5_sock.open(m_proxy_addr.address().is_v4()?tcp::v4():tcp::v6(), ec);
+	m_socks5_sock.open(is_v4(m_proxy_addr) ? tcp::v4() : tcp::v6(), ec);
 
 	// enable keepalives
 	m_socks5_sock.set_option(boost::asio::socket_base::keep_alive(true), ec);
@@ -521,11 +538,11 @@ void socks5::on_name_lookup(error_code const& e, tcp::resolver::iterator i)
 		, self(), _1));
 }
 
-void socks5::on_connect_timeout(error_code const& ec)
+void socks5::on_connect_timeout(error_code const& e)
 {
 	COMPLETE_ASYNC("socks5::on_connect_timeout");
 
-	if (ec == boost::asio::error::operation_aborted) return;
+	if (e == boost::asio::error::operation_aborted) return;
 
 	if (m_abort) return;
 
@@ -549,7 +566,7 @@ void socks5::on_connected(error_code const& e)
 	using namespace libtorrent::detail;
 
 	// send SOCKS5 authentication methods
-	char* p = &m_tmp_buf[0];
+	char* p = m_tmp_buf.data();
 	write_uint8(5, p); // SOCKS VERSION 5
 	if (m_proxy_settings.username.empty()
 		|| m_proxy_settings.type == settings_pack::socks5)
@@ -563,10 +580,10 @@ void socks5::on_connected(error_code const& e)
 		write_uint8(0, p); // no authentication
 		write_uint8(2, p); // username/password
 	}
-	TORRENT_ASSERT_VAL(p - m_tmp_buf < int(sizeof(m_tmp_buf)), (p - m_tmp_buf));
+	TORRENT_ASSERT_VAL(p - m_tmp_buf.data() < int(m_tmp_buf.size()), (p - m_tmp_buf.data()));
 	ADD_OUTSTANDING_ASYNC("socks5::on_handshake1");
-	boost::asio::async_write(m_socks5_sock, boost::asio::buffer(m_tmp_buf
-		, aux::numeric_cast<std::size_t>(p - m_tmp_buf))
+	boost::asio::async_write(m_socks5_sock, boost::asio::buffer(m_tmp_buf.data()
+		, aux::numeric_cast<std::size_t>(p - m_tmp_buf.data()))
 		, std::bind(&socks5::handshake1, self(), _1));
 }
 
@@ -577,7 +594,7 @@ void socks5::handshake1(error_code const& e)
 	if (e) return;
 
 	ADD_OUTSTANDING_ASYNC("socks5::on_handshake2");
-	boost::asio::async_read(m_socks5_sock, boost::asio::buffer(m_tmp_buf, 2)
+	boost::asio::async_read(m_socks5_sock, boost::asio::buffer(m_tmp_buf.data(), 2)
 		, std::bind(&socks5::handshake2, self(), _1));
 }
 
@@ -590,9 +607,9 @@ void socks5::handshake2(error_code const& e)
 
 	using namespace libtorrent::detail;
 
-	char* p = &m_tmp_buf[0];
-	int version = read_uint8(p);
-	int method = read_uint8(p);
+	char* p = m_tmp_buf.data();
+	int const version = read_uint8(p);
+	int const method = read_uint8(p);
 
 	if (version < 5)
 	{
@@ -615,7 +632,7 @@ void socks5::handshake2(error_code const& e)
 		}
 
 		// start sub-negotiation
-		p = &m_tmp_buf[0];
+		p = m_tmp_buf.data();
 		write_uint8(1, p);
 		TORRENT_ASSERT(m_proxy_settings.username.size() < 0x100);
 		write_uint8(uint8_t(m_proxy_settings.username.size()), p);
@@ -623,10 +640,10 @@ void socks5::handshake2(error_code const& e)
 		TORRENT_ASSERT(m_proxy_settings.password.size() < 0x100);
 		write_uint8(uint8_t(m_proxy_settings.password.size()), p);
 		write_string(m_proxy_settings.password, p);
-		TORRENT_ASSERT_VAL(p - m_tmp_buf < int(sizeof(m_tmp_buf)), (p - m_tmp_buf));
+		TORRENT_ASSERT_VAL(p - m_tmp_buf.data() < int(m_tmp_buf.size()), (p - m_tmp_buf.data()));
 		ADD_OUTSTANDING_ASYNC("socks5::on_handshake3");
 		boost::asio::async_write(m_socks5_sock
-			, boost::asio::buffer(m_tmp_buf, aux::numeric_cast<std::size_t>(p - m_tmp_buf))
+			, boost::asio::buffer(m_tmp_buf.data(), aux::numeric_cast<std::size_t>(p - m_tmp_buf.data()))
 			, std::bind(&socks5::handshake3, self(), _1));
 	}
 	else
@@ -644,7 +661,7 @@ void socks5::handshake3(error_code const& e)
 	if (e) return;
 
 	ADD_OUTSTANDING_ASYNC("socks5::on_handshake4");
-	boost::asio::async_read(m_socks5_sock, boost::asio::buffer(m_tmp_buf, 2)
+	boost::asio::async_read(m_socks5_sock, boost::asio::buffer(m_tmp_buf.data(), 2)
 		, std::bind(&socks5::handshake4, self(), _1));
 }
 
@@ -656,9 +673,9 @@ void socks5::handshake4(error_code const& e)
 
 	using namespace libtorrent::detail;
 
-	char* p = &m_tmp_buf[0];
-	int version = read_uint8(p);
-	int status = read_uint8(p);
+	char* p = m_tmp_buf.data();
+	int const version = read_uint8(p);
+	int const status = read_uint8(p);
 
 	if (version != 1 || status != 0) return;
 
@@ -670,17 +687,17 @@ void socks5::socks_forward_udp()
 	using namespace libtorrent::detail;
 
 	// send SOCKS5 UDP command
-	char* p = &m_tmp_buf[0];
+	char* p = m_tmp_buf.data();
 	write_uint8(5, p); // SOCKS VERSION 5
 	write_uint8(3, p); // UDP ASSOCIATE command
 	write_uint8(0, p); // reserved
 	write_uint8(1, p); // ATYP = IPv4
 	write_uint32(0, p); // 0.0.0.0
 	write_uint16(0, p); // :0
-	TORRENT_ASSERT_VAL(p - m_tmp_buf < int(sizeof(m_tmp_buf)), (p - m_tmp_buf));
+	TORRENT_ASSERT_VAL(p - m_tmp_buf.data() < int(m_tmp_buf.size()), (p - m_tmp_buf.data()));
 	ADD_OUTSTANDING_ASYNC("socks5::connect1");
 	boost::asio::async_write(m_socks5_sock
-		, boost::asio::buffer(m_tmp_buf, aux::numeric_cast<std::size_t>(p - m_tmp_buf))
+		, boost::asio::buffer(m_tmp_buf.data(), aux::numeric_cast<std::size_t>(p - m_tmp_buf.data()))
 		, std::bind(&socks5::connect1, self(), _1));
 }
 
@@ -691,7 +708,7 @@ void socks5::connect1(error_code const& e)
 	if (e) return;
 
 	ADD_OUTSTANDING_ASYNC("socks5::connect2");
-	boost::asio::async_read(m_socks5_sock, boost::asio::buffer(m_tmp_buf, 10)
+	boost::asio::async_read(m_socks5_sock, boost::asio::buffer(m_tmp_buf.data(), 10)
 		, std::bind(&socks5::connect2, self(), _1));
 }
 
@@ -704,11 +721,11 @@ void socks5::connect2(error_code const& e)
 
 	using namespace libtorrent::detail;
 
-	char* p = &m_tmp_buf[0];
-	int version = read_uint8(p); // VERSION
-	int status = read_uint8(p); // STATUS
+	char* p = m_tmp_buf.data();
+	int const version = read_uint8(p); // VERSION
+	int const status = read_uint8(p); // STATUS
 	++p; // RESERVED
-	int atyp = read_uint8(p); // address type
+	int const atyp = read_uint8(p); // address type
 
 	if (version != 5 || status != 0) return;
 
@@ -729,7 +746,7 @@ void socks5::connect2(error_code const& e)
 	m_active = true;
 
 	ADD_OUTSTANDING_ASYNC("socks5::hung_up");
-	boost::asio::async_read(m_socks5_sock, boost::asio::buffer(m_tmp_buf, 10)
+	boost::asio::async_read(m_socks5_sock, boost::asio::buffer(m_tmp_buf.data(), 10)
 		, std::bind(&socks5::hung_up, self(), _1));
 }
 

@@ -37,7 +37,7 @@ IPList::IPList()
 	{
 		l_mask = (l_mask >> 1) | 0x80000000;
 		m_maskList[ l_mask ] =  level ;
-		m_ipRangeList.push_back(IPList::IPArrayList(l_mask));
+		m_ipRangeList.emplace_back(IPList::IPArrayList(l_mask));
 	}
 }
 

@@ -22,9 +22,6 @@
 #include "../FlyFeatures/ThemeManager.h"
 
 class HIconWrapper
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		explicit HIconWrapper(WORD id, int cx = 16, int cy = 16, UINT p_fuLoad = LR_DEFAULTCOLOR) :

@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2012-2016, Arvid Norberg
+Copyright (c) 2012-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef TORRENT_LINKED_LIST_HPP
 #define TORRENT_LINKED_LIST_HPP
+
+#include <type_traits>
 
 #include "libtorrent/assert.hpp"
 

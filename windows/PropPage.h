@@ -31,9 +31,6 @@
 class SettingsManager;
 extern SettingsManager *g_settings;
 class PropPage
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		PropPage(const wstring& p_title) : m_title(p_title)

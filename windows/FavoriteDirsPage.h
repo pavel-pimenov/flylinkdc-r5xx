@@ -77,7 +77,7 @@ class FavoriteDirsPage : public CPropertyPage<IDD_FAVORITE_DIRS_PAGE>, public Pr
 		ExListViewCtrl ctrlDirectories;
 		
 		
-		void addDirectory(const tstring& aPath = Util::emptyStringT);
+		void addDirectory(const tstring& aPath = BaseUtil::emptyStringT);
 };
 
 #endif // !defined(FAVORITE_DIR_SPAGE_H)

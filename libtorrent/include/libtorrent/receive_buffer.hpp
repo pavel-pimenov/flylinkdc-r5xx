@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2014-2016, Arvid Norberg, Steven Siloti
+Copyright (c) 2014-2018, Arvid Norberg, Steven Siloti
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/buffer.hpp"
 #include "libtorrent/disk_buffer_holder.hpp"
 #include "libtorrent/sliding_average.hpp"
+#include "libtorrent/aux_/numeric_cast.hpp"
 
 #include <climits>
 
@@ -57,8 +58,8 @@ struct TORRENT_EXTRA_EXPORT receive_buffer
 
 	bool packet_finished() const { return m_packet_size <= m_recv_pos; }
 	int pos() const { return m_recv_pos; }
-	int capacity() const { return int(m_recv_buffer.size()); }
-	int watermark() const { return m_watermark.mean(); }
+	int capacity() const { return aux::numeric_cast<int>(m_recv_buffer.size()); }
+	int watermark() const { return aux::numeric_cast<int>(m_watermark.mean()); }
 
 	span<char> reserve(int size);
 	void grow(int limit);
@@ -88,7 +89,7 @@ struct TORRENT_EXTRA_EXPORT receive_buffer
 	// This is the "current" packet.
 	span<char const> get() const;
 
-#if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
+#if !defined TORRENT_DISABLE_ENCRYPTION
 	// returns the buffer from the current packet start position to the last
 	// received byte (possibly part of another packet)
 	span<char> mutable_buffer();
@@ -154,12 +155,12 @@ private:
 
 	// keep track of how much of the receive buffer we use, if we're not using
 	// enough of it we shrink it
-	sliding_average<20> m_watermark;
+	sliding_average<std::ptrdiff_t, 20> m_watermark;
 
 	buffer m_recv_buffer;
 };
 
-#if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
+#if !defined TORRENT_DISABLE_ENCRYPTION
 // Wraps a receive_buffer to provide the ability to inject
 // possibly authenticated crypto beneath the bittorrent protocol.
 // When authenticated crypto is in use the wrapped receive_buffer
@@ -206,7 +207,7 @@ struct crypto_receive_buffer
 
 	span<char const> get() const;
 
-	span<char> mutable_buffer(std::size_t bytes);
+	span<char> mutable_buffer(int bytes);
 
 private:
 	// explicitly disallow assignment, to silence msvc warning

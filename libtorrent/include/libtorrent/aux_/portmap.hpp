@@ -35,6 +35,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/config.hpp"
 #include "libtorrent/portmap.hpp"
+#include "libtorrent/address.hpp"
+#include "libtorrent/time.hpp"
+#include "libtorrent/error_code.hpp"
 
 namespace libtorrent {
 namespace aux {
@@ -84,7 +87,13 @@ namespace aux {
 	}
 	inline char const* to_string(portmap_action const act)
 	{
-		return act == portmap_action::none ? "none" : act == portmap_action::add ? "add" : "delete";
+		switch (act)
+		{
+			case portmap_action::none: return "none";
+			case portmap_action::add: return "add";
+			case portmap_action::del: return "delete";
+		}
+		return "";
 	}
 }}
 

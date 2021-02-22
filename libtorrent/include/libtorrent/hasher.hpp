@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -90,7 +90,7 @@ namespace libtorrent {
 		hasher(char const* data, int len);
 		explicit hasher(span<char const> data);
 		hasher(hasher const&);
-		hasher& operator=(hasher const&);
+		hasher& operator=(hasher const&) &;
 
 		// append the following bytes to what is being hashed
 		hasher& update(span<char const> data);
@@ -104,6 +104,7 @@ namespace libtorrent {
 		// default constructed.
 		void reset();
 
+		// hidden
 		~hasher();
 
 	private:

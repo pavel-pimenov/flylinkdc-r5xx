@@ -1172,7 +1172,7 @@ bool WinUtil::browseDirectory(tstring& target, HWND owner /* = NULL */)
 	return false;
 }
 
-bool WinUtil::browseFile(tstring& target, HWND owner /* = NULL */, bool save /* = true */, const tstring& initialDir /* = Util::emptyString */, const TCHAR* types /* = NULL */, const TCHAR* defExt /* = NULL */)
+bool WinUtil::browseFile(tstring& target, HWND owner /* = NULL */, bool save /* = true */, const tstring& initialDir /* = BaseUtil::emptyString */, const TCHAR* types /* = NULL */, const TCHAR* defExt /* = NULL */)
 {
 	OPENFILENAME ofn = { 0 };       // common dialog box structure
 	target = Text::toT(Util::validateFileName(Text::fromT(target)));
@@ -2307,7 +2307,7 @@ bool WinUtil::openLink(const tstring& uri)
 	
 }
 
-void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Extension /*= Util::emptyStringT*/, const tstring& p_openCmd /* = Util::emptyStringT*/)
+void WinUtil::translateLinkToextProgramm(const tstring& url, const tstring& p_Extension /*= BaseUtil::emptyStringT*/, const tstring& p_openCmd /* = BaseUtil::emptyStringT*/)
 {
 	tstring x;
 	if (p_openCmd.empty())
@@ -2652,7 +2652,7 @@ bool WinUtil::parseMagnetUri(const tstring& aUrl, DefinedMagnetAction Action /* 
 void WinUtil::OpenFileList(const tstring& filename, DefinedMagnetAction Action /* = MA_DEFAULT */)
 {
 	const UserPtr u = DirectoryListing::getUserFromFilename(Text::fromT(filename));
-	DirectoryListingFrame::openWindow(filename, Util::emptyStringT, HintedUser(u, Util::emptyString), 0, Util::isDclstFile(filename));
+	DirectoryListingFrame::openWindow(filename, BaseUtil::emptyStringT, HintedUser(u, BaseUtil::emptyString), 0, Util::isDclstFile(filename));
 }
 
 int WinUtil::textUnderCursor(POINT p, CEdit& ctrl, tstring& x)
@@ -3229,7 +3229,7 @@ tstring WinUtil::getNicks(const CID& cid, const string& hintUrl)
 {
 	const auto l_nicks = ClientManager::getNicks(cid, hintUrl);
 	if (l_nicks.empty())
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 	else
 		return Text::toT(Util::toString(l_nicks));
 }
@@ -3242,14 +3242,14 @@ tstring WinUtil::getNicks(const UserPtr& u, const string& hintUrl)
 		return getNicks(u->getCID(), hintUrl);
 	}
 	else
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 }
 
 tstring WinUtil::getNicks(const CID& cid, const string& hintUrl, bool priv)
 {
 	const auto l_nicks = ClientManager::getNicks(cid, hintUrl, priv);
 	if (l_nicks.empty())
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 	else
 		return Text::toT(Util::toString(l_nicks));
 }
@@ -3748,53 +3748,6 @@ int VideoImage::getMediaVideoIcon(const tstring& p_col)
 }
 #endif
 
-#ifdef SSA_SHELL_INTEGRATION
-wstring WinUtil::getShellExtDllPath()
-{
-	// [!] TODO: To fully integrate on Windows x64 need both libraries.
-	static const auto filePath = Text::toT(Util::getExePath()) + _T("FlylinkShellExt")
-#if defined(_WIN64)
-	                             _T("_x64")
-#endif
-	                             _T(".dll");
-	                             
-	return filePath;
-}
-
-bool WinUtil::makeShellIntegration(bool isNeedUnregistred)
-{
-	typedef  HRESULT(WINAPIV Registration)(void);
-	
-	bool bResult = false;
-	HINSTANCE hModule = nullptr;
-	try
-	{
-		const auto filePath = WinUtil::getShellExtDllPath();
-		hModule =::LoadLibrary(filePath.c_str());
-		if (hModule != nullptr)
-		{
-			bResult = false;
-			Registration* reg = nullptr;
-			reg = (Registration*)::GetProcAddress((HMODULE)hModule, isNeedUnregistred ? "DllUnregisterServer" : "DllRegisterServer");
-			if (reg != nullptr)
-			{
-				bResult = SUCCEEDED(reg());
-			}
-			::FreeLibrary(hModule);
-		}
-	}
-	catch (...)
-	{
-		if (hModule)
-			::FreeLibrary(hModule);
-			
-		bResult = false;
-	}
-	
-	
-	return bResult;
-}
-#endif // SSA_SHELL_INTEGRATION
 bool WinUtil::runElevated(
     HWND    hwnd,
     LPCTSTR pszPath,
@@ -3950,7 +3903,7 @@ tstring WinUtil::GetAutoRunShortCutName()
 	// CSIDL_STARTUP
 	TCHAR startupPath[MAX_PATH];
 	if (!SHGetSpecialFolderPath(NULL, startupPath, CSIDL_STARTUP, TRUE))
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 		
 	tstring autoRunShortCut = startupPath;
 	AppendPathSeparator(autoRunShortCut);
@@ -4092,7 +4045,6 @@ void WinUtil::CheckOnWhoisIP(WORD wID, const tstring& whoisIP)
 }
 void WinUtil::AppendMenuOnWhoisIP(CMenu& p_menuname, const tstring& p_IP, bool p_inSubmenu)
 {
-	// ToDo::  if p_inSubmenu == true : create and append into SubMenu
 	p_menuname.AppendMenu(MF_STRING, IDC_WHOIS_IP, (TSTRING(WHO_IS) + _T(" Ripe.net  ") + p_IP).c_str());
 	p_menuname.AppendMenu(MF_STRING, IDC_WHOIS_IP2, (TSTRING(WHO_IS) + _T(" Bgp.He  ") + p_IP).c_str());
 	p_menuname.AppendMenu(MF_STRING, IDC_WHOIS_IP4_INFO, tstring(_T(" IP v4 Info ") + p_IP).c_str());

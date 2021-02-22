@@ -34,7 +34,6 @@
 //#include "GPGPUManager.h"
 #include "../FlyFeatures/flyServer.h"
 #include "../windows/ToolbarManager.h"
-//#include "syslog/syslog.h"
 
 #include "IpGuard.h"
 #include "PGLoader.h"
@@ -66,10 +65,6 @@ void startup(PROGRESSCALLBACKPROC pProgressCallbackProc, void* pProgressParam, G
 			break;
 	}
 	while (i < 6);
-#ifdef FLYLINKDC_USE_SYSLOG
-	syslog_loghost("syslog.fly-server.ru");
-	openlog("flylinkdc", 0, LOG_USER | LOG_INFO);
-#endif
 	
 	CFlyLog l_StartUpLog("[StartUp]");
 	
@@ -307,9 +302,6 @@ void shutdown(GUIINITPROC pGuiInitProc, void *pGuiParam)
 		extern SettingsManager* g_settings;
 		g_settings = nullptr;
 		
-#ifdef FLYLINKDC_USE_SYSLOG
-		closelog();
-#endif
 		
 		::WSACleanup();
 #ifdef _DEBUG

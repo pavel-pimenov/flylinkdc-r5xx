@@ -39,9 +39,6 @@
 
 class TreePropertySheet : public CPropertySheetImpl<TreePropertySheet>,
 	protected CFlyTimerAdapter
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		virtual ~TreePropertySheet()

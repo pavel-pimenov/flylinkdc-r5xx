@@ -40,9 +40,6 @@ class FinishedFrameBase : public MDITabChildWindowImpl < T, RGB(0, 0, 0), icon >
 	protected FinishedManagerListener,
 	private SettingsManagerListener,
 	public CSplitterImpl<FinishedFrameBase<T, title, id, icon> >
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 		enum CFlyTreeNodeType
 		{

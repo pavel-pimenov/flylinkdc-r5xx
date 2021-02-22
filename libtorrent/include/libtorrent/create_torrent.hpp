@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2008-2016, Arvid Norberg
+Copyright (c) 2008-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -93,8 +93,7 @@ namespace libtorrent {
 	class torrent_info;
 
 	// hidden
-	struct create_flags_tag;
-	using create_flags_t = flags::bitfield_flag<std::uint32_t, create_flags_tag>;
+	using create_flags_t = flags::bitfield_flag<std::uint32_t, struct create_flags_tag>;
 
 	// This class holds state for creating a torrent. After having added
 	// all information to it, call create_torrent::generate() to generate
@@ -107,7 +106,7 @@ namespace libtorrent {
 		// files, to keep the impact down for clients that don't support
 		// them.
 		static constexpr create_flags_t optimize_alignment = 0_bit;
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		// same as optimize_alignment, for backwards compatibility
 		static constexpr create_flags_t TORRENT_DEPRECATED_MEMBER optimize = 0_bit;
 #endif
@@ -321,11 +320,6 @@ namespace libtorrent {
 		// dht nodes to add to the routing table/bootstrap from
 		std::vector<std::pair<std::string, int>> m_nodes;
 
-		// the hash that identifies this torrent
-		// is mutable because it's calculated
-		// lazily
-		mutable sha1_hash m_info_hash;
-
 		// if a creation date is found in the torrent file
 		// this will be set to that, otherwise it'll be
 		// 1970, Jan 1
@@ -375,7 +369,9 @@ namespace detail {
 	//
 	// If specified, the predicate ``p`` is called once for every file and directory that
 	// is encountered. Files for which ``p`` returns true are added, and directories for
-	// which ``p`` returns true are traversed. ``p`` must have the following signature::
+	// which ``p`` returns true are traversed. ``p`` must have the following signature:
+	//
+	// .. code:: c++
 	//
 	// 	bool Pred(std::string const& p);
 	//
@@ -395,9 +391,11 @@ namespace detail {
 	// This function will assume that the files added to the torrent file exists at path
 	// ``p``, read those files and hash the content and set the hashes in the ``create_torrent``
 	// object. The optional function ``f`` is called in between every hash that is set. ``f``
-	// must have the following signature::
+	// must have the following signature:
 	//
-	// 	void Fun(int);
+	// .. code:: c++
+	//
+	// 	void Fun(piece_index_t);
 	//
 	// The overloads that don't take an ``error_code&`` may throw an exception in case of a
 	// file error, the other overloads sets the error code to reflect the error, if any.
@@ -414,8 +412,8 @@ namespace detail {
 		set_piece_hashes(t, p, detail::nop, ec);
 		if (ec) throw system_error(ec);
 	}
-	template <class Fun>
-	void set_piece_hashes(create_torrent& t, std::string const& p, Fun f)
+	inline void set_piece_hashes(create_torrent& t, std::string const& p
+		, std::function<void(piece_index_t)> const& f)
 	{
 		error_code ec;
 		set_piece_hashes(t, p, f, ec);
@@ -423,11 +421,11 @@ namespace detail {
 	}
 #endif
 
+#if TORRENT_ABI_VERSION == 1
+
 	// all wstring APIs are deprecated since 0.16.11
 	// instead, use the wchar -> utf8 conversion functions
 	// and pass in utf8 strings
-#ifndef TORRENT_NO_DEPRECATE
-
 	TORRENT_DEPRECATED_EXPORT
 	void add_files(file_storage& fs, std::wstring const& wfile
 		, std::function<bool(std::string)> p, create_flags_t flags = {});
@@ -445,9 +443,9 @@ namespace detail {
 		, std::function<void(int)> f, error_code& ec);
 
 #ifndef BOOST_NO_EXCEPTIONS
-	template <class Fun>
 	TORRENT_DEPRECATED
-	void set_piece_hashes(create_torrent& t, std::wstring const& p, Fun f)
+	inline void set_piece_hashes(create_torrent& t, std::wstring const& p
+		, std::function<void(int)> f)
 	{
 		error_code ec;
 		set_piece_hashes_deprecated(t, p, f, ec);
@@ -469,7 +467,12 @@ namespace detail {
 	{
 		set_piece_hashes_deprecated(t, p, detail::nop, ec);
 	}
-#endif // TORRENT_NO_DEPRECATE
+#endif // TORRENT_ABI_VERSION
+
+namespace aux {
+	TORRENT_EXTRA_EXPORT file_flags_t get_file_attributes(std::string const& p);
+	TORRENT_EXTRA_EXPORT std::string get_symlink_path(std::string const& p);
+}
 
 }
 

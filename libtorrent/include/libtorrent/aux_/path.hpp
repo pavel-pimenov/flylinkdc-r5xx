@@ -48,10 +48,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef TORRENT_WINDOWS
 // windows part
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
+#include "libtorrent/aux_/windows.hpp"
 #include <winioctl.h>
 #include <sys/types.h>
 #else
@@ -71,8 +68,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <fcntl.h>
 #include <sys/types.h>
 #include <dirent.h> // for DIR
-
-#include "libtorrent/aux_/max_path.hpp" // for TORRENT_MAX_PATH
 
 #undef _FILE_OFFSET_BITS
 
@@ -141,19 +136,19 @@ namespace libtorrent {
 	TORRENT_EXTRA_EXPORT void hard_link(std::string const& file
 		, std::string const& link, error_code& ec);
 
-	TORRENT_EXTRA_EXPORT std::string split_path(std::string const& f
-		, bool only_first_part = false);
-	TORRENT_EXTRA_EXPORT char const* next_path_element(char const* p);
+	// split out a path segment from the left side or right side
+	TORRENT_EXTRA_EXPORT std::pair<string_view, string_view> rsplit_path(string_view p);
+	TORRENT_EXTRA_EXPORT std::pair<string_view, string_view> lsplit_path(string_view p);
+	TORRENT_EXTRA_EXPORT std::pair<string_view, string_view> lsplit_path(string_view p, std::size_t pos);
+
 	TORRENT_EXTRA_EXPORT std::string extension(std::string const& f);
 	TORRENT_EXTRA_EXPORT std::string remove_extension(std::string const& f);
-	TORRENT_EXTRA_EXPORT void replace_extension(std::string& f, std::string const& ext);
 	TORRENT_EXTRA_EXPORT bool is_root_path(std::string const& f);
-
+	TORRENT_EXTRA_EXPORT bool compare_path(std::string const& lhs, std::string const& rhs);
 
 	// internal used by create_torrent.hpp
 	TORRENT_EXTRA_EXPORT std::string parent_path(std::string const& f);
 	TORRENT_EXTRA_EXPORT bool has_parent_path(std::string const& f);
-	TORRENT_EXTRA_EXPORT char const* filename_cstr(char const* f);
 
 	// internal used by create_torrent.hpp
 	TORRENT_EXTRA_EXPORT std::string filename(std::string const& f);
@@ -161,6 +156,8 @@ namespace libtorrent {
 		, string_view rhs);
 	TORRENT_EXTRA_EXPORT void append_path(std::string& branch
 		, string_view leaf);
+	TORRENT_EXTRA_EXPORT std::string lexically_relative(string_view base
+		, string_view target);
 
 	// internal used by create_torrent.hpp
 	TORRENT_EXTRA_EXPORT std::string complete(string_view f);

@@ -27,9 +27,6 @@
 class OMenu;
 
 struct OMenuItem
-#ifdef _DEBUG
-	: private boost::noncopyable
-#endif
 {
 	typedef vector<OMenuItem*> List;
 	
@@ -47,9 +44,6 @@ struct OMenuItem
  * Wouldn't it be Wonderful if WTL made their functions virtual? Yes it would...
  */
 class OMenu : public CMenu
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		OMenu()

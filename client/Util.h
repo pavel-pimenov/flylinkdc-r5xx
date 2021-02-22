@@ -33,6 +33,7 @@
 #include "CFlyThread.h"
 #include "MerkleTree.h"
 #include "LogManager.h"
+#include "BaseUtil.h"
 
 # define PATH_SEPARATOR '\\'
 # define PATH_SEPARATOR_STR "\\"
@@ -65,9 +66,6 @@ class IDateReceiveReporter
 
 
 class CInternetHandle
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		explicit CInternetHandle(HINTERNET p_hInternet): m_hInternet(p_hInternet)
@@ -206,199 +204,12 @@ static void AppendQuotsToPath(STR& p_path)
 		p_path += '\"';
 }
 
-template <class STR>
-static void RemoveQuotsFromPath(STR& p_path)
-{
-	if (p_path.length() < 1)
-		return;
-		
-	if (p_path[0] == '"' && p_path[p_path.length() - 1] == '"')
-		p_path = p_path.substr(1, p_path.length() - 2);
-}
-
-template <class T> class FlyLinkVector : public std::vector<T>
-{
-		typedef std::vector<T> inherited;
-	public:
-		void erase_and_check(const T& p_Value)
-		{
-			/*
-			#ifdef _DEBUG
-			      dcassert(find(begin(), end(), p_Value) != end());
-			#else
-			      if(find(begin(), end(), p_Value) != end())
-			#endif
-			*/
-			inherited::erase(std::remove(inherited::begin(), inherited::end(), p_Value), inherited::end());
-		}
-};
-
-
-template<typename T, bool flag> struct ReferenceSelector
-{
-	typedef T ResultType;
-};
-template<typename T> struct ReferenceSelector<T, true>
-{
-	typedef const T& ResultType;
-};
-
-template<typename T> class IsOfClassType
-{
-	public:
-		template<typename U> static char check(int U::*);
-		template<typename U> static float check(...);
-	public:
-		enum { Result = sizeof(check<T>(0)) };
-};
-
-template<typename T> struct TypeTraits
-{
-	typedef IsOfClassType<T> ClassType;
-	typedef ReferenceSelector < T, ((ClassType::Result == 1) || (sizeof(T) > sizeof(char*))) > Selector;
-	typedef typename Selector::ResultType ParameterType;
-};
-
-#define GETSET(type, name, name2) \
-	private: type name; \
-	public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
-	void set##name2(TypeTraits<type>::ParameterType a##name2) { name = a##name2; }
-#define GETSET_BOOL(type, name, name2) \
-	private: type name; \
-	public: TypeTraits<type>::ParameterType get##name2() const { return name; } \
-	bool set##name2(TypeTraits<type>::ParameterType a##name2) { if(name == a##name2) return false; name = a##name2; return true; }
-
-#define GETM(type, name, name2) \
-	private: type name; \
-	public: TypeTraits<type>::ParameterType get##name2() const { return name; }
-
-#define GETC(type, name, name2) \
-	private: const type name; \
-	public: TypeTraits<type>::ParameterType get##name2() const { return name; }
-
-/** Evaluates op(pair<T1, T2>.second, compareTo) */
-#if 0
-template < class T1, class T2, class op = equal_to<T2> >
-class CompareSecond
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
-{
-	public:
-		CompareSecond(const T2& compareTo) : a(compareTo) { }
-		bool operator()(const pair<T1, T2>& p)
-		{
-			return op()(p.second, a);
-		}
-	private:
-		const T2& a;
-};
-
-/** Evaluates op(pair<T1, T2>.second, compareTo) */
-template < class T1, class T2, class T3, class op = equal_to<T2> >
-class CompareSecondFirst
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
-{
-	public:
-		CompareSecondFirst(const T2& compareTo) : a(compareTo) { }
-		bool operator()(const pair<T1, pair<T2, T3>>& p)
-		{
-			return op()(p.second.first, a);
-		}
-	private:
-		const T2& a;
-};
-
-#endif
-/**
- * Compares two values
- * @return -1 if v1 < v2, 0 if v1 == v2 and 1 if v1 > v2
- */
-template<typename T1>
-inline int compare(const T1& v1, const T1& v2)
-{
-	return (v1 < v2) ? -1 : ((v1 == v2) ? 0 : 1);
-}
-
-template<typename T>
-class AutoArray
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
-{
-		typedef T* TPtr;
-	public:
-#ifdef _DEBUG
-		explicit AutoArray(size_t size, char p_fill) : p(new T[size])
-		{
-			memset(p, p_fill, size);
-		}
-#endif
-		explicit AutoArray(size_t size) : p(new T[size]) { }
-		~AutoArray()
-		{
-			delete[] p;
-		}
-		operator TPtr()
-		{
-			return p;
-		}
-		TPtr data()
-		{
-			return p;
-		}
-	private:
-		TPtr p;
-};
-
-template<class T, size_t N>
-class LocalArray
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
-{
-	public:
-		T m_data[N];
-		LocalArray()
-		{
-			m_data[0]   = 0;
-		}
-		static size_t size()
-		{
-			return N;
-		}
-		T& operator[](size_t p_pos)
-		{
-			dcassert(p_pos < N);
-			return m_data[p_pos];
-		}
-		const T* data() const
-		{
-			return m_data;
-		}
-		T* data()
-		{
-			return m_data;
-		}
-		void init()
-		{
-			memzero(m_data, sizeof(m_data));
-		}
-};
-
 class MD5Calc;
-class Util
+class Util : public BaseUtil
 {
 	public:
 		static const char* getCountryShortName(uint16_t p_flag_index);
 		static int getFlagIndexByCode(uint16_t p_countryCode);
-		static const tstring emptyStringT;
-		static const string emptyString;
-		static const wstring emptyStringW;
-		
-		static const std::vector<uint8_t> emptyByteVector;
 		
 		static const string m_dot;
 		static const string m_dot_dot;
@@ -577,12 +388,6 @@ class Util
 		
 		static string getIETFLang();
 		
-		static string translateError(DWORD aError);
-		static string translateError()
-		{
-			return translateError(GetLastError());
-		}
-		
 		static TCHAR* strstr(const TCHAR *str1, const TCHAR *str2, int *pnIdxFound);
 		
 		static time_t getStartTime()
@@ -609,7 +414,7 @@ class Util
 		static string getFileExtWithoutDot(const string& path)
 		{
 			const auto i = path.rfind('.');
-			return i != string::npos ? path.substr(i + 1) : Util::emptyString;
+			return i != string::npos ? path.substr(i + 1) : BaseUtil::emptyString;
 		}
 		static string getFileDoubleExtWithoutDot(const string& path)
 		{
@@ -623,7 +428,7 @@ class Util
 					return l_res_2exe;
 				}
 			}
-			return Util::emptyString;
+			return BaseUtil::emptyString;
 		}
 		/*
 		template <class T> static inline void check_path(const T& path)
@@ -644,7 +449,7 @@ class Util
 				if (l_res.rfind(PATH_SEPARATOR) == string::npos)
 					return l_res;
 			}
-			return Util::emptyStringW;
+			return BaseUtil::emptyStringW;
 		}
 		static string getFileExt(const string& path)
 		{
@@ -656,7 +461,7 @@ class Util
 				if (l_res.rfind(PATH_SEPARATOR) == string::npos)
 					return l_res;
 			}
-			return Util::emptyString;
+			return BaseUtil::emptyString;
 		}
 		static wstring getFileExt(const wstring& path)
 		{
@@ -668,13 +473,13 @@ class Util
 				if (l_res.rfind(PATH_SEPARATOR) == string::npos)
 					return l_res;
 			}
-			return Util::emptyStringW;
+			return BaseUtil::emptyStringW;
 		}
 		static string getLastDir(const string& path)
 		{
 			const auto i = path.rfind(PATH_SEPARATOR);
 			if (i == string::npos)
-				return Util::emptyString;
+				return BaseUtil::emptyString;
 				
 			const auto j = path.rfind(PATH_SEPARATOR, i - 1);
 			return j != string::npos ? path.substr(j + 1, i - j - 1) : path;
@@ -683,7 +488,7 @@ class Util
 		{
 			const auto i = path.rfind(PATH_SEPARATOR);
 			if (i == wstring::npos)
-				return Util::emptyStringW;
+				return BaseUtil::emptyStringW;
 				
 			const auto j = path.rfind(PATH_SEPARATOR, i - 1);
 			return j != wstring::npos ? path.substr(j + 1, i - j - 1) : path;
@@ -1404,9 +1209,6 @@ inline bool __fastcall EqualD(double A, double B)
 
 // parent class for objects with a lot of empty columns in list
 template<int C> class ColumnBase
-#ifdef _DEBUG
-	: private boost::noncopyable
-#endif
 {
 	public:
 		virtual ~ColumnBase() {}

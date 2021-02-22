@@ -30,9 +30,6 @@
 using std::string;
 
 class Exception : public std::exception
-#ifdef _DEBUG
-//, boost::noncopyable
-#endif
 {
 	public:
 		Exception() { }

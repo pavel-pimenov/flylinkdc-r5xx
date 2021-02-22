@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2010-2016, Arvid Norberg, Daniel Wallin.
+Copyright (c) 2010-2018, Arvid Norberg, Daniel Wallin.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -78,8 +78,9 @@ namespace libtorrent {
 
 		packet_ptr insert(index_type idx, packet_ptr value);
 
-		int size() const
-		{ return m_size; }
+		int size() const { return m_size; }
+
+		bool empty() const { return m_size == 0; }
 
 		std::uint32_t capacity() const
 		{ return m_capacity; }

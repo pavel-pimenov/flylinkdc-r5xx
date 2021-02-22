@@ -18,7 +18,6 @@
 
 #pragma once
 
-
 #ifndef DCPLUSPLUS_DCPP_STDINC_H
 #define DCPLUSPLUS_DCPP_STDINC_H
 
@@ -65,12 +64,8 @@
 #include "w.h"
 
 #include <algorithm>
-//#include <functional>
 #include <memory>
 #include <string>
-//#include <numeric>
-//#include <limits>
-//#include <utility>
 #include <vector>
 
 #ifdef _DEBUG
@@ -78,13 +73,9 @@
 #endif
 
 using std::vector;
-//using std::pair;
 using std::string;
 using std::wstring;
 using std::unique_ptr;
-//using std::min;
-//using std::max;
-
 using std::make_pair;
 
 inline int stricmp(const string& a, const string& b)

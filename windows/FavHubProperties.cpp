@@ -271,7 +271,7 @@ LRESULT FavHubProperties::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 		
 		if (combo.GetCurSel() == 0)
 		{
-			entry->setGroup(Util::emptyString);
+			entry->setGroup(BaseUtil::emptyString);
 		}
 		else
 		{

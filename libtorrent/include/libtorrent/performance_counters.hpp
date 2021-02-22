@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2013-2016, Arvid Norberg
+Copyright (c) 2013-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -116,6 +116,18 @@ namespace libtorrent {
 			// the number of iterations over the peer list when finding
 			// a connect candidate
 			connection_attempt_loops,
+
+			// the number of peer connection attempts made as high
+			// priority connections for new torrents
+			boost_connection_attempts,
+
+			// calls to torrent::connect_to_peer() that failed
+			missed_connection_attempts,
+
+			// calls to peer_list::connect_one_peer() resulting in
+			// no peer candidate being found
+			no_peer_connection_attempts,
+
 			// successful incoming connections (not rejected for any reason)
 			incoming_connections,
 
@@ -131,7 +143,7 @@ namespace libtorrent {
 			on_disk_queue_counter,
 			on_disk_counter,
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			torrent_evicted_counter,
 #endif
 
@@ -452,6 +464,8 @@ namespace libtorrent {
 			num_utp_fin_sent,
 			num_utp_close_wait,
 			num_utp_deleted,
+
+			num_outstanding_accept,
 
 			num_counters,
 			num_gauges_counters = num_counters - num_stats_counters

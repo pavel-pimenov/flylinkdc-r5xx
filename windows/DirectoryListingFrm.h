@@ -49,9 +49,6 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 // BUG-MENU , public UserInfoBaseHandler < DirectoryListingFrame, UserInfoGuiTraits::NO_FILE_LIST | UserInfoGuiTraits::NO_COPY >
 	, public InternetSearchBaseHandler<DirectoryListingFrame>
 	, public PreviewBaseHandler<DirectoryListingFrame>
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		static void openWindow(const tstring& aFile, const tstring& aDir, const HintedUser& aUser, int64_t aSpeed, bool p_isDCLST = false);
@@ -258,7 +255,7 @@ class DirectoryListingFrame : public MDITabChildWindowImpl < DirectoryListingFra
 		void downloadList(const tstring& aTarget, bool view = false,  QueueItem::Priority prio = QueueItem::DEFAULT);
 		void downloadList(bool view = false,  QueueItem::Priority prio = QueueItem::DEFAULT)
 		{
-			downloadList(Util::emptyStringT, view, prio);
+			downloadList(BaseUtil::emptyStringT, view, prio);
 		}
 		void downloadList(const FavoriteManager::FavDirList& spl, int newId)
 		{
@@ -610,7 +607,7 @@ class ThreadedDirectoryListing : public Thread
 {
 	public:
 		ThreadedDirectoryListing(DirectoryListingFrame* pWindow,
-		                         const string& pFile, const string& pTxt, const tstring& aDir = Util::emptyStringT) : mWindow(pWindow),
+		                         const string& pFile, const string& pTxt, const tstring& aDir = BaseUtil::emptyStringT) : mWindow(pWindow),
 			mFile(pFile), mTxt(pTxt), mDir(aDir)
 		{ }
 		

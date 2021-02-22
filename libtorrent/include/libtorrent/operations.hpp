@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2015-2016, Arvid Norberg
+Copyright (c) 2015-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ namespace libtorrent {
 		// a call to iocontrol failed
 		iocontrol,
 
-		// a call to getpeername failed (querying the remote IP of a
+		// a call to ``getpeername()`` failed (querying the remote IP of a
 		// connection)
 		getpeername,
 
@@ -107,7 +107,7 @@ namespace libtorrent {
 		sock_listen,
 
 		// a call to the ioctl to bind a socket to a specific network device or
-		// adaptor
+		// adapter
 		sock_bind_to_device,
 
 		// a call to accept() on a socket
@@ -119,28 +119,60 @@ namespace libtorrent {
 		// enumeration network devices or adapters
 		enum_if,
 
+		// invoking stat() on a file
 		file_stat,
+
+		// copying a file
 		file_copy,
+
+		// allocating storage for a file
 		file_fallocate,
+
+		// creating a hard link
 		file_hard_link,
+
+		// removing a file
 		file_remove,
+
+		// renaming a file
 		file_rename,
+
+		// opening a file
 		file_open,
+
+		// creating a directory
 		mkdir,
+
+		// check fast resume data against files on disk
 		check_resume,
+
+		// an unknown exception
 		exception,
+
+		// allocate space for a piece in the cache
 		alloc_cache_piece,
+
+		// move a part-file
 		partfile_move,
+
+		// read from a part file
 		partfile_read,
+
+		// write to a part-file
 		partfile_write,
+
+		// a hostname lookup
 		hostname_lookup,
+
+		// create or read a symlink
+		symlink,
 	};
 
 	// maps an operation id (from peer_error_alert and peer_disconnected_alert)
 	// to its name. See peer_connection for the constants
 	TORRENT_EXPORT char const* operation_name(operation_t op);
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	enum deprecated_operation_t : std::uint8_t
 	{
 		// the error was unexpected and it is unknown which operation caused it
@@ -150,14 +182,14 @@ namespace libtorrent {
 		// determines to disconnect
 		op_bittorrent TORRENT_DEPRECATED_ENUM ,
 
-		// a call to iocontrol failed
+		// a call to ``iocontrol()`` failed
 		op_iocontrol TORRENT_DEPRECATED_ENUM,
 
-		// a call to getpeername failed (querying the remote IP of a
+		// a call to ``getpeername()`` failed (querying the remote IP of a
 		// connection)
 		op_getpeername TORRENT_DEPRECATED_ENUM,
 
-		// a call to getname failed (querying the local IP of a
+		// a call to ``getsockname()`` failed (querying the local IP of a
 		// connection)
 		op_getname TORRENT_DEPRECATED_ENUM,
 

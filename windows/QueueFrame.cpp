@@ -254,7 +254,7 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 			return getSize() == -1 ? TSTRING(UNKNOWN) : Util::formatBytesW(getSize());
 		case COLUMN_DOWNLOADED:
 		{
-			return getSize() > 0 ? Util::formatBytesW(getDownloadedBytes()) + _T(" (") + Util::toStringW((double)getDownloadedBytes() * 100.0 / (double)getSize()) + _T("%)") : Util::emptyStringT;
+			return getSize() > 0 ? Util::formatBytesW(getDownloadedBytes()) + _T(" (") + Util::toStringW((double)getDownloadedBytes() * 100.0 / (double)getSize()) + _T("%)") : BaseUtil::emptyStringT;
 		}
 		case COLUMN_PRIORITY:
 		{
@@ -395,13 +395,13 @@ const tstring QueueFrame::QueueItemInfo::getText(int col) const
 		case COLUMN_TTH:
 		{
 			if (!isTorrent())
-				return m_qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP) ? Util::emptyStringT : Text::toT(getTTH().toBase32());
+				return m_qi->isAnySet(QueueItem::FLAG_USER_LIST | QueueItem::FLAG_PARTIAL_LIST | QueueItem::FLAG_USER_GET_IP) ? BaseUtil::emptyStringT : Text::toT(getTTH().toBase32());
 			else
 				return Text::toT(libtorrent::aux::to_hex(m_sha1));
 		}
 		default:
 		{
-			return Util::emptyStringT;
+			return BaseUtil::emptyStringT;
 		}
 	}
 }
@@ -1285,9 +1285,9 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 								}
 								tstring nick = WinUtil::escapeMenu(user->getLastNickT() + _T(" (") + Text::toT(l_hub_name) + _T(")"));
 								
-								// tstring nick = WinUtil::escapeMenu(WinUtil::getNicks(user, Util::emptyString));
+								// tstring nick = WinUtil::escapeMenu(WinUtil::getNicks(user, BaseUtil::emptyString));
 								// add hub hint to menu
-								//const auto& hubs = ClientManager::getHubNames(user->getCID(), Util::emptyString);
+								//const auto& hubs = ClientManager::getHubNames(user->getCID(), BaseUtil::emptyString);
 								//if (!hubs.empty())
 								//  nick += _T(" (") + Text::toT(hubs[0]) + _T(")");
 								
@@ -1315,7 +1315,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 							for (auto i = badSources.cbegin(); i != badSources.cend(); ++i)
 							{
 								const auto& user = i->first;
-								tstring nick = WinUtil::getNicks(user, Util::emptyString);
+								tstring nick = WinUtil::getNicks(user, BaseUtil::emptyString);
 								if (i->second.isSet(QueueItem::Source::FLAG_FILE_NOT_AVAILABLE))
 								{
 									nick += _T(" (") + TSTRING(FILE_NOT_AVAILABLE) + _T(")");
@@ -1345,7 +1345,7 @@ LRESULT QueueFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, B
 									nick += _T(" (") + TSTRING(CERTIFICATE_NOT_TRUSTED) + _T(")");
 								}
 								// add hub hint to menu
-								const auto& hubs = ClientManager::getHubNames(user->getCID(), Util::emptyString);
+								const auto& hubs = ClientManager::getHubNames(user->getCID(), BaseUtil::emptyString);
 								if (!hubs.empty())
 									nick += _T(" (") + Text::toT(hubs[0]) + _T(")");
 									
@@ -1507,8 +1507,8 @@ LRESULT QueueFrame::onBrowseList(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 			const UserPtr* s   = (UserPtr*)omi->m_data;
 			try
 			{
-				const auto& hubs = ClientManager::getHubNames((*s)->getCID(), Util::emptyString);
-				QueueManager::getInstance()->addList(HintedUser(*s, !hubs.empty() ? hubs[0] : Util::emptyString), QueueItem::FLAG_CLIENT_VIEW);
+				const auto& hubs = ClientManager::getHubNames((*s)->getCID(), BaseUtil::emptyString);
+				QueueManager::getInstance()->addList(HintedUser(*s, !hubs.empty() ? hubs[0] : BaseUtil::emptyString), QueueItem::FLAG_CLIENT_VIEW);
 			}
 			catch (const Exception&)
 			{
@@ -1628,8 +1628,8 @@ LRESULT QueueFrame::onPM(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL&
 		{
 			if (UserPtr* s = (UserPtr*)omi->m_data)
 			{
-				const auto hubs = ClientManager::getHubs((*s)->getCID(), Util::emptyString);
-				PrivateFrame::openWindow(nullptr, HintedUser(*s, !hubs.empty() ? hubs[0] : Util::emptyString));
+				const auto hubs = ClientManager::getHubs((*s)->getCID(), BaseUtil::emptyString);
+				PrivateFrame::openWindow(nullptr, HintedUser(*s, !hubs.empty() ? hubs[0] : BaseUtil::emptyString));
 			}
 		}
 	}
@@ -2385,7 +2385,7 @@ LRESULT QueueFrame::onKeyDownDirs(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 string QueueFrame::getSelectedDir() const
 {
 	HTREEITEM ht = ctrlDirs.GetSelectedItem();
-	return ht == NULL ? Util::emptyString : getDir(ctrlDirs.GetSelectedItem());
+	return ht == NULL ? BaseUtil::emptyString : getDir(ctrlDirs.GetSelectedItem());
 }
 
 string QueueFrame::getDir(HTREEITEM ht) const
@@ -2399,11 +2399,11 @@ string QueueFrame::getDir(HTREEITEM ht) const
 		else
 		{
 			dcassert(0);
-			return Util::emptyString;
+			return BaseUtil::emptyString;
 		}
 	}
 	else
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 }
 
 /**

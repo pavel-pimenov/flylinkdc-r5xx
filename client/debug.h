@@ -26,26 +26,21 @@
 
 #include <cassert>
 #include <stdarg.h>
-#include <fstream>
+#include <tchar.h>
 
-inline void debugTrace(const char* format, ...)
+void DumpDebugMessage(const TCHAR *filename, const char *msg, size_t msgSize, bool appendNL);
+
+static inline void debugTrace(const char* format, ...)
 {
 	va_list args;
-	va_start(args, format); //-V111
-#if defined _WIN32 && defined _MSC_VER
+	va_start(args, format);
+#ifdef _WIN32
 	char buf[512];
-	buf[0] = 0;
-	_vsnprintf(buf, _countof(buf), format, args);
-	//OutputDebugStringA(buf);
-	std::ofstream l_fs;
-	l_fs.open(L"flylinkdc-debug-trace.log", std::ifstream::out | std::ifstream::app);
-	if (l_fs.good())
+	int result = vsnprintf(buf, sizeof(buf), format, args);
+	if (result > 0 && (size_t) result < sizeof(buf))
 	{
-		l_fs << " Message: [" << buf;
-	}
-	else
-	{
-		//dcassert(0);
+		OutputDebugStringA(buf);
+		DumpDebugMessage(_T("debug-trace.log"), buf, result, false);
 	}
 #else // _WIN32
 	vprintf(format, args);

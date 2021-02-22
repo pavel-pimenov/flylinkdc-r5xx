@@ -157,7 +157,7 @@ void LogManager::log(const string& p_area, const string& p_msg) noexcept
 		}
 	}
 	dcassert(!l_area.empty());
-	if (l_is_new_path)
+	if (l_is_new_path && !l_area.empty())
 	{
 		File::ensureDirectory(l_area);
 	}
@@ -181,7 +181,7 @@ void LogManager::flush_all_log()
 		{
 			flush_file(i->first, i->second);
 		}
-		catch (const FileException& e)
+		catch (const FileException& )
 		{
 			const auto l_code = GetLastError();
 			if (l_code == 3) // ERROR_PATH_NOT_FOUND
@@ -191,7 +191,7 @@ void LogManager::flush_all_log()
 					File::ensureDirectory(i->first);
 					flush_file(i->first, i->second);
 				}
-				catch (const FileException& e)
+				catch (const FileException& )
 				{
 					dcassert(0);
 				}

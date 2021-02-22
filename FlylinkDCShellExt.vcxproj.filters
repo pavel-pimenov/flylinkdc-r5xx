@@ -70,9 +70,6 @@
     <ClInclude Include="FlylinkExt/TextTool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FlylinkDCExt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FlylinkExt/FlylinkDCShellExt.rc">

@@ -146,7 +146,7 @@ tstring FavHubGroupsDlg::getText(const int column, const int item /*= -1*/)
 	{
 		return ctrlGroups.ExGetItemTextT(selection, column);
 	}
-	return Util::emptyStringT;
+	return BaseUtil::emptyStringT;
 }
 
 void FavHubGroupsDlg::updateSelectedGroup(bool forceClean /*= false*/)
@@ -228,7 +228,7 @@ LRESULT FavHubGroupsDlg::onRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 					for (auto i = l.cbegin(); i != l.cend(); ++i) FavoriteManager::getInstance()->removeFavorite(*i);
 					break;
 				case IDNO:
-					for (auto i = l.cbegin(); i != l.cend(); ++i)(*i)->setGroup(Util::emptyString);
+					for (auto i = l.cbegin(); i != l.cend(); ++i)(*i)->setGroup(BaseUtil::emptyString);
 					break;
 			}
 		}

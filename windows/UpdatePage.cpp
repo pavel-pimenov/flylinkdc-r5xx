@@ -74,9 +74,6 @@ UpdatePage::ListItem UpdatePage::listComponents[] =
 	{ SettingsManager::AUTOUPDATE_GEOIP, ResourceManager::AUTOUPDATE_GEOIP},
 	{ SettingsManager::AUTOUPDATE_CUSTOMLOCATION, ResourceManager::AUTOUPDATE_CUSTOMLOCATION},
 #endif
-#ifdef SSA_SHELL_INTEGRATION
-	{ SettingsManager::AUTOUPDATE_SHELL_EXT, ResourceManager::AUTOUPDATE_SHELL_EXT},
-#endif
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 

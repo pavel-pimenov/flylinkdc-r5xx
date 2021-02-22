@@ -45,9 +45,7 @@ class ListViewArrows
 			
 			CHeaderCtrl headerCtrl = pThis->GetHeader();
 			const int itemCount = headerCtrl.GetItemCount();
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
 			if (CompatibilityManager::getComCtlVersion() >= MAKELONG(0, 6))
-#endif
 			{
 				for (int i = 0; i < itemCount; ++i)
 				{

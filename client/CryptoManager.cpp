@@ -641,7 +641,7 @@ int CryptoManager::verify_callback(int preverify_ok, X509_STORE_CTX *ctx) {
 		
 	bool allowUntrusted = verifyData->first;
 	string keyp = verifyData->second;
-	string error = Util::emptyString;
+	string error = BaseUtil::emptyString;
 	
 	if (!keyp.empty()) {
 		X509* cert = X509_STORE_CTX_get_current_cert(ctx);
@@ -764,7 +764,7 @@ string CryptoManager::formatError(X509_STORE_CTX *ctx, const string& message)
 				tmp.append('x', 39 - tmp.length());
 			CID certCID(tmp);
 			if (tmp.length() == 39 && !certCID.isZero())
-				tmp = Util::toString(ClientManager::getNicks(certCID, Util::emptyString, false));
+				tmp = Util::toString(ClientManager::getNicks(certCID, BaseUtil::emptyString, false));
 			line += (!line.empty() ? ", " : "") + tmp;
 		}
 		else
@@ -779,26 +779,26 @@ string CryptoManager::formatError(X509_STORE_CTX *ctx, const string& message)
 		return str(F_("Certificate verification for %1% failed with error: %2%") % line % message);
 	}
 	
-	return Util::emptyString;
+	return BaseUtil::emptyString;
 }
 
 
 string CryptoManager::getNameEntryByNID(X509_NAME* name, int nid) noexcept {
 	int i = X509_NAME_get_index_by_NID(name, nid, -1);
 	if (i == -1) {
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	}
 	
 	X509_NAME_ENTRY* entry = X509_NAME_get_entry(name, i);
 	ASN1_STRING* str = X509_NAME_ENTRY_get_data(entry);
 	if (!str) {
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	}
 	
 	unsigned char* buf = 0;
 	i = ASN1_STRING_to_UTF8(&buf, str);
 	if (i < 0) {
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	}
 	
 	std::string out((char*)buf, i);
@@ -871,7 +871,7 @@ string CryptoManager::keySubst(const uint8_t* aKey, size_t len, size_t n) {
 
 string CryptoManager::makeKey(const string& aLock) {
 	if (aLock.size() < 3)
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 		
 	std::unique_ptr<uint8_t[]> temp(new uint8_t[aLock.length()]);
 	uint8_t v1;

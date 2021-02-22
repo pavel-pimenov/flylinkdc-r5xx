@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2008-2016, Arvid Norberg
+Copyright (c) 2008-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -111,7 +111,7 @@ namespace libtorrent {
 			unsupported_url_protocol,
 			// The URL did not conform to URL syntax and failed to be parsed
 			url_parse_error,
-			// The peer sent a 'piece' message of length 0
+			// The peer sent a piece message of length 0
 			peer_sent_empty_piece,
 			// A bencoded structure was corrupt and failed to be parsed
 			parse_failed,
@@ -129,7 +129,7 @@ namespace libtorrent {
 			// The port is blocked by the port-filter, and prevented the
 			// connection
 			port_blocked,
-			// The IPv6 address was expected to end with ']'
+			// The IPv6 address was expected to end with "]"
 			expected_close_bracket_in_address,
 			// The torrent is being destructed, preventing the operation to
 			// succeed
@@ -215,9 +215,9 @@ namespace libtorrent {
 			sync_hash_not_found,
 			// The encryption constant in the handshake is invalid
 			invalid_encryption_constant,
-			// The peer does not support plaintext, which is the selected mode
+			// The peer does not support plain text, which is the selected mode
 			no_plaintext_mode,
-			// The peer does not support rc4, which is the selected mode
+			// The peer does not support RC4, which is the selected mode
 			no_rc4_mode,
 			// The peer does not support any of the encryption modes that the
 			// client supports
@@ -326,25 +326,34 @@ namespace libtorrent {
 			// the listen socket associated with this request was closed
 			invalid_listen_socket,
 
+#if TORRENT_ABI_VERSION == 1
+			// these error codes are deprecated, NAT-PMP/PCP error codes have
+			// been moved to their own category
 
 			// The NAT-PMP router responded with an unsupported protocol version
-			unsupported_protocol_version = 120,
+			unsupported_protocol_version TORRENT_DEPRECATED_ENUM = 120,
 			// You are not authorized to map ports on this NAT-PMP router
-			natpmp_not_authorized,
+			natpmp_not_authorized TORRENT_DEPRECATED_ENUM,
 			// The NAT-PMP router failed because of a network failure
-			network_failure,
+			network_failure TORRENT_DEPRECATED_ENUM,
 			// The NAT-PMP router failed because of lack of resources
-			no_resources,
+			no_resources TORRENT_DEPRECATED_ENUM,
 			// The NAT-PMP router failed because an unsupported opcode was sent
-			unsupported_opcode,
+			unsupported_opcode TORRENT_DEPRECATED_ENUM,
+#else
+			deprecated_120 = 120,
+			deprecated_121,
+			deprecated_122,
+			deprecated_123,
+			deprecated_124,
+#endif
 
 
-
-			// The resume data file is missing the 'file sizes' entry
+			// The resume data file is missing the ``file sizes`` entry
 			missing_file_sizes = 130,
-			// The resume data file 'file sizes' entry is empty
+			// The resume data file ``file sizes`` entry is empty
 			no_files_in_resume_data,
-			// The resume data file is missing the 'pieces' and 'slots' entry
+			// The resume data file is missing the ``pieces`` and ``slots`` entry
 			missing_pieces,
 			// The number of files in the resume data does not match the number
 			// of files in the torrent
@@ -357,16 +366,16 @@ namespace libtorrent {
 			mismatching_file_timestamp,
 			// The resume data file is not a dictionary
 			not_a_dictionary,
-			// The 'blocks per piece' entry is invalid in the resume data file
+			// The ``blocks per piece`` entry is invalid in the resume data file
 			invalid_blocks_per_piece,
-			// The resume file is missing the 'slots' entry, which is required
+			// The resume file is missing the ``slots`` entry, which is required
 			// for torrents with compact allocation. *DEPRECATED*
 			missing_slots,
 			// The resume file contains more slots than the torrent
 			too_many_slots,
-			// The 'slot' entry is invalid in the resume data
+			// The ``slot`` entry is invalid in the resume data
 			invalid_slot_list,
-			// One index in the 'slot' list is invalid
+			// One index in the ``slot`` list is invalid
 			invalid_piece_index,
 			// The pieces on disk needs to be re-ordered for the specified
 			// allocation mode. This happens if you specify sparse allocation
@@ -407,20 +416,20 @@ namespace libtorrent {
 			invalid_peer_dict,
 			// tracker sent a failure message
 			tracker_failure,
-			// missing or invalid 'files' entry
+			// missing or invalid ``files`` entry
 			invalid_files_entry,
-			// missing or invalid 'hash' entry
+			// missing or invalid ``hash`` entry
 			invalid_hash_entry,
-			// missing or invalid 'peers' and 'peers6' entry
+			// missing or invalid ``peers`` and ``peers6`` entry
 			invalid_peers_entry,
-			// udp tracker response packet has invalid size
+			// UDP tracker response packet has invalid size
 			invalid_tracker_response_length,
-			// invalid transaction id in udp tracker response
+			// invalid transaction id in UDP tracker response
 			invalid_tracker_transaction_id,
-			// invalid action field in udp tracker response
+			// invalid action field in UDP tracker response
 			invalid_tracker_action,
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			// expected string in bencoded string
 			expected_string = 190,
 			// expected colon in bencoded string
@@ -489,7 +498,7 @@ namespace libtorrent {
 	using system_error = boost::system::system_error;
 
 #ifndef BOOST_NO_EXCEPTIONS
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	TORRENT_DEPRECATED
 	inline boost::system::error_category& get_libtorrent_category()
 	{ return libtorrent_category(); }
@@ -505,25 +514,31 @@ namespace libtorrent {
 	// error happened on
 	struct TORRENT_EXPORT storage_error
 	{
+		// hidden
 		storage_error(): file_idx(-1), operation(operation_t::unknown) {}
 		explicit storage_error(error_code e): ec(e), file_idx(-1), operation(operation_t::unknown) {}
 
+		// explicitly converts to true if this object represents an error, and
+		// false if it does not.
 		explicit operator bool() const { return ec.value() != 0; }
 
 		// the error that occurred
 		error_code ec;
 
+		// set and query the index (in the torrent) of the file this error
+		// occurred on. This may also have special values defined in
+		// torrent_status.
 		file_index_t file() const { return file_index_t(file_idx); }
 		void file(file_index_t f) { file_idx = static_cast<int>(f); }
 
-		// the file the error occurred on
+		// internal
 		std::int32_t file_idx:24;
 
-		// A code from file_operation_t enum, indicating what
+		// A code from operation_t enum, indicating what
 		// kind of operation failed.
 		operation_t operation;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		// Returns a string literal representing the file operation
 		// that failed. If there were no failure, it returns
 		// an empty string.
@@ -532,6 +547,8 @@ namespace libtorrent {
 #endif
 	};
 
+	// internal
+	std::string print_error(error_code const&);
 }
 
 namespace boost { namespace system {

@@ -62,14 +62,14 @@ namespace libtorrent {
 
 namespace aux {
 
-	void bits_shift_left(typed_span<std::uint32_t> number, int n)
+	void bits_shift_left(span<std::uint32_t> const number, int n)
 	{
 		TORRENT_ASSERT(n >= 0);
 		int const num_words = n / 32;
-		int const number_size = number.end_index();
+		int const number_size = int(number.size());
 		if (num_words >= number_size)
 		{
-			std::memset(number.data(), 0, number.size() * 4);
+			std::memset(number.data(), 0, std::size_t(number.size() * 4));
 			return;
 		}
 
@@ -100,14 +100,14 @@ namespace aux {
 		}
 	}
 
-	void bits_shift_right(typed_span<std::uint32_t> number, int n)
+	void bits_shift_right(span<std::uint32_t> const number, int n)
 	{
 		TORRENT_ASSERT(n >= 0);
 		int const num_words = n / 32;
-		int const number_size = number.end_index();
+		int const number_size = int(number.size());
 		if (num_words >= number_size)
 		{
-			std::memset(number.data(), 0, number.size() * 4);
+			std::memset(number.data(), 0, std::size_t(number.size() * 4));
 			return;
 		}
 		if (num_words > 0)

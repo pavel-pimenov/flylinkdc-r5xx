@@ -78,7 +78,7 @@ UnBZFilter::UnBZFilter()
 
 UnBZFilter::~UnBZFilter()
 {
-	dcdebug("UnBZFilter end, %u/%u = %.04f\n", zs.total_out_lo32, zs.total_in_lo32, (float)zs.total_out_lo32 / std::max((float)zs.total_in_lo32, (float)1));
+	dcdebug("UnBZFilter end, %u/%u = %.04f\n", zs.total_out_lo32, zs.total_in_lo32, (float)zs.total_out_lo32 / (std::max)((float)zs.total_in_lo32, (float)1));
 	BZ2_bzDecompressEnd(&zs);
 }
 

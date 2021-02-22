@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -59,13 +59,11 @@ namespace libtorrent {
 		std::uint16_t port;
 	};
 
-#if TORRENT_USE_IPV6
 	struct ipv6_peer_entry
 	{
 		address_v6::bytes_type ip;
 		std::uint16_t port;
 	};
-#endif
 
 }
 

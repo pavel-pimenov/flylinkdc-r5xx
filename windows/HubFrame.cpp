@@ -1007,7 +1007,7 @@ const tstring& HubFrame::getNick(const UserPtr& aUser)
 {
     UserInfo* ui = findUser(aUser);
     if(!ui)
-        return Util::emptyStringT;
+        return BaseUtil::emptyStringT;
 
     return ui-> columns[COLUMN_NICK];
 }
@@ -1219,10 +1219,10 @@ LRESULT HubFrame::onCopyUserInfo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 				sCopy += "User info:\r\n"
 				         "\t" + STRING(NICK) + ": " + id.getNick() + "\r\n" +
 				         "\tLocation: " + Text::fromT(Util::getIpCountry(id.getIp().to_ulong()).getDescription()) + "\r\n" +
-				         "\tNicks: " + Util::toString(ClientManager::getNicks(u->getCID(), Util::emptyString)) + "\r\n" +
+				         "\tNicks: " + Util::toString(ClientManager::getNicks(u->getCID(), BaseUtil::emptyString)) + "\r\n" +
 				         "\tTag: " + id.getTag() + "\r\n" +
-				         "\t" + STRING(HUBS) + ": " + Util::toString(ClientManager::getHubs(u->getCID(), Util::emptyString)) + "\r\n" +
-				         "\t" + STRING(SHARED) + ": " + Identity::formatShareBytes(u->getBytesShared()) + (u->isNMDC() ? Util::emptyString : "(" + STRING(SHARED_FILES) +
+				         "\t" + STRING(HUBS) + ": " + Util::toString(ClientManager::getHubs(u->getCID(), BaseUtil::emptyString)) + "\r\n" +
+				         "\t" + STRING(SHARED) + ": " + Identity::formatShareBytes(u->getBytesShared()) + (u->isNMDC() ? BaseUtil::emptyString : "(" + STRING(SHARED_FILES) +
 				                 ": " + Util::toString(id.getSharedFiles()) + ")") + "\r\n" +
 				         "\t" + STRING(DESCRIPTION) + ": " + id.getDescription() + "\r\n" +
 				         "\t" + STRING(APPLICATION) + ": " + id.getApplication() + "\r\n";
@@ -1984,9 +1984,9 @@ LRESULT HubFrame::onSpeaker(UINT /*uMsg*/, WPARAM /* wParam */, LPARAM /* lParam
 						const size_t l_count_item = m_ctrlUsers ? m_ctrlUsers->GetItemCount() : 0;
 						const size_t l_shownUsers = m_ctrlUsers ? l_count_item : l_allUsers;
 						const size_t l_diff = l_allUsers - l_shownUsers;
-						setStatusText(2, (Util::toStringW(l_shownUsers) + (l_diff ? (_T('/') + Util::toStringW(l_allUsers)) : Util::emptyStringT) + _T(' ') + TSTRING(HUB_USERS)));
+						setStatusText(2, (Util::toStringW(l_shownUsers) + (l_diff ? (_T('/') + Util::toStringW(l_allUsers)) : BaseUtil::emptyStringT) + _T(' ') + TSTRING(HUB_USERS)));
 						setStatusText(3, Util::formatBytesW(l_availableBytes));
-						setStatusText(4, l_allUsers ? (Util::formatBytesW(l_availableBytes / l_allUsers) + _T('/') + TSTRING(USER)) : Util::emptyStringT);
+						setStatusText(4, l_allUsers ? (Util::formatBytesW(l_availableBytes / l_allUsers) + _T('/') + TSTRING(USER)) : BaseUtil::emptyStringT);
 #ifdef _DEBUG
 						if (l_count_item <= m_last_count_resort)
 						{

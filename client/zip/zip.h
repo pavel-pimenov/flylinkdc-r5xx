@@ -19,10 +19,7 @@
 extern "C" {
 #endif
 
-#if !defined(_SSIZE_T_DEFINED) && !defined(_SSIZE_T_DEFINED_) &&               \
-    !defined(__DEFINED_ssize_t) && !defined(__ssize_t_defined) &&              \
-    !defined(_SSIZE_T) && !defined(_SSIZE_T_) && !defined(_SSIZE_T_DECLARED)
-
+#if !defined(_POSIX_C_SOURCE) && defined(_MSC_VER)
 // 64-bit Windows is the only mainstream platform
 // where sizeof(long) != sizeof(void*)
 #ifdef _WIN64
@@ -30,15 +27,6 @@ typedef long long ssize_t; /* byte count or error */
 #else
 typedef long ssize_t; /* byte count or error */
 #endif
-
-#define _SSIZE_T_DEFINED
-#define _SSIZE_T_DEFINED_
-#define __DEFINED_ssize_t
-#define __ssize_t_defined
-#define _SSIZE_T
-#define _SSIZE_T_
-#define _SSIZE_T_DECLARED
-
 #endif
 
 #ifndef MAX_PATH
@@ -334,8 +322,28 @@ extern int zip_extract_stream(const char *stream, size_t size, const char *dir,
                               int (*on_extract)(const char *filename,
                                                 void *arg),
                               void *arg);
-/** @} */
 
+/**
+ * Opens zip archive stream into memory.
+ *
+ * @param stream zip archive stream.
+ * @param size stream size.
+ *
+ * @return the zip archive handler or NULL on error
+ */
+extern struct zip_t *zip_open_stream(const char *stream, size_t size);
+
+/**
+ * Deletes zip archive entries.
+ *
+ * @param zip zip archive handler.
+ * @param entries array of zip archive entries to be deleted.
+ * @param len the number of entries to be deleted.
+ * @return the number of deleted entries, or negative number (< 0) on error.
+ */
+extern int zip_entries_delete(struct zip_t *zip, char *const entries[],
+                              size_t len);
+/** @} */
 #ifdef __cplusplus
 }
 #endif

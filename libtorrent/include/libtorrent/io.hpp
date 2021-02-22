@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "assert.hpp"
 
 namespace libtorrent {
-
 namespace detail {
+
 		template <class T> struct type {};
 
 		// reads an integer from a byte stream
@@ -183,7 +183,7 @@ namespace detail {
 			for (auto const c : val) *out++ = c;
 			return int(val.length());
 		}
-	}
+} // namespace detail
 }
 
 #endif // TORRENT_IO_HPP_INCLUDED

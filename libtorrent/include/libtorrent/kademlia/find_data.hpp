@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg & Daniel Wallin
+Copyright (c) 2006-2018, Arvid Norberg & Daniel Wallin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <libtorrent/kademlia/traversal_algorithm.hpp>
 #include <libtorrent/kademlia/node_id.hpp>
-#include <libtorrent/kademlia/routing_table.hpp>
-#include <libtorrent/kademlia/rpc_manager.hpp>
 #include <libtorrent/kademlia/observer.hpp>
 #include <libtorrent/kademlia/msg.hpp>
 
@@ -51,7 +49,7 @@ class node;
 
 struct find_data : traversal_algorithm
 {
-	typedef std::function<void(std::vector<std::pair<node_entry, std::string>> const&)> nodes_callback;
+	using nodes_callback = std::function<void(std::vector<std::pair<node_entry, std::string>> const&)>;
 
 	find_data(node& dht_node, node_id const& target
 		, nodes_callback const& ncallback);

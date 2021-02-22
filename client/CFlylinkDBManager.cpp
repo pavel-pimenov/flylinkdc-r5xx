@@ -2069,7 +2069,7 @@ string CFlylinkDBManager::get_registry_variable_string(eTypeSegment p_TypeSegmen
 	if (!l_values.empty())
 		return l_values.begin()->second.m_val_str;
 	else
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 }
 //========================================================================================================
 void CFlylinkDBManager::set_registry_variable_int64(eTypeSegment p_TypeSegment, __int64 p_value)
@@ -2383,8 +2383,7 @@ void CFlylinkDBManager::load_torrent_resume(libtorrent::session& p_session)
 			if (!l_resume.empty())
 			{
 				libtorrent::error_code ec;
-				//libtorrent::add_torrent_params p = libtorrent::read_resume_data((const char*)l_resume.data(), l_resume.size()), ec);
-				libtorrent::add_torrent_params p = libtorrent::read_resume_data({ (const char*)l_resume.data(), l_resume.size() }, ec);
+				libtorrent::add_torrent_params p = libtorrent::read_resume_data({ (const char*)l_resume.data(), int(l_resume.size()) }, ec);
 				if (ec)
 				{
 					LogManager::message("failed to load resume data: " + ec.message());
@@ -3152,7 +3151,7 @@ bool CFlylinkDBManager::merge_queue_itemL(QueueItemPtr& p_QueueItem)
 							l_item += "[ maxSegments old = " + Util::toString(l_maxSegments) + " new = " + Util::toString(p_QueueItem->getMaxSegments()) + "]";
 						if (l_sections != p_QueueItem->getSectionString())
 							l_item += "[ sections old = " + l_sections + " new = " + p_QueueItem->getSectionString() + "]";
-						const string l_new_tempTarget = p_QueueItem->getDownloadedBytes() > 0 ? p_QueueItem->getTempTargetConst() : Util::emptyString;
+						const string l_new_tempTarget = p_QueueItem->getDownloadedBytes() > 0 ? p_QueueItem->getTempTargetConst() : BaseUtil::emptyString;
 						if (l_tempTarget != l_new_tempTarget)
 							l_item += "[ tempTarget old = " + l_tempTarget + " new = " + l_new_tempTarget + "]";
 						const string l_new_tth = p_QueueItem->getTTH().toBase32();
@@ -3186,7 +3185,7 @@ bool CFlylinkDBManager::merge_queue_itemL(QueueItemPtr& p_QueueItem)
 					p_sql->bind(4, p_qitem->getSectionString(), SQLITE_TRANSIENT);
 					p_sql->bind(5, p_qitem->getAdded());
 					p_sql->bind(6, p_qitem->getTTH().data, 24, SQLITE_TRANSIENT);
-					p_sql->bind(7, p_qitem->getDownloadedBytes() > 0 ? p_qitem->getTempTargetConst() : Util::emptyString, SQLITE_TRANSIENT);
+					p_sql->bind(7, p_qitem->getDownloadedBytes() > 0 ? p_qitem->getTempTargetConst() : BaseUtil::emptyString, SQLITE_TRANSIENT);
 					p_sql->bind(8, p_qitem->getAutoPriority());
 					p_sql->bind(9, p_qitem->getMaxSegments());
 					p_sql->bind(10, p_id);
@@ -4980,7 +4979,7 @@ tstring CFlylinkDBManager::get_ratioW() const
 		_snwprintf(buf.data(), buf.size(), _T("%.2f"), get_ratio());
 		return buf.data();
 	}
-	return Util::emptyStringT;
+	return BaseUtil::emptyStringT;
 }
 #endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 

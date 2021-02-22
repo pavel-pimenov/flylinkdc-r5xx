@@ -74,16 +74,13 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 #else
 	, private TimerManagerListener
 #endif
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 #ifdef FLYLINKDC_USE_ADVANCED_GRID_SEARCH
 	, public ICGridEventKeys
 #endif
 {
 		friend class DirectoryListingFrame;
 	public:
-		static void openWindow(const tstring& str = Util::emptyStringT, LONGLONG size = 0, Search::SizeModes mode = Search::SIZE_ATLEAST, Search::TypeModes type = Search::TYPE_ANY);
+		static void openWindow(const tstring& str = BaseUtil::emptyStringT, LONGLONG size = 0, Search::SizeModes mode = Search::SIZE_ATLEAST, Search::TypeModes type = Search::TYPE_ANY);
 		static void closeAll();
 		
 		DECLARE_FRAME_WND_CLASS_EX(_T("SearchFrame"), IDR_SEARCH, 0, COLOR_3DFACE)
@@ -561,16 +558,13 @@ class SearchFrame : public MDITabChildWindowImpl < SearchFrame, RGB(127, 127, 25
 		bool showFlyServerProperty(const SearchInfo* p_item_info);
 #endif
 		struct HubInfo
-#ifdef _DEBUG
-			: private boost::noncopyable
-#endif
 		{
 			HubInfo(const tstring& aUrl, const tstring& aName, bool aOp) : url(aUrl),
 				name(aName), m_is_op(aOp) { }
 				
 			const tstring& getText(int col) const
 			{
-				return col == 0 ? name : Util::emptyStringT;
+				return col == 0 ? name : BaseUtil::emptyStringT;
 			}
 			static int compareItems(const HubInfo* a, const HubInfo* b, int col)
 			{

@@ -25,9 +25,6 @@
 #include "CFlyThread.h"
 
 class Task
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		virtual ~Task() { }
@@ -47,9 +44,6 @@ class StringArrayTask : public Task
 };
 
 class TaskQueue
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		typedef std::vector<std::pair<uint8_t, Task*> > List;

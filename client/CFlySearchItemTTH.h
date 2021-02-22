@@ -11,9 +11,6 @@
 
 
 class CFlySearchItemTTH
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		TTHValue m_tth;

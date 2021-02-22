@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -68,6 +68,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef SOL_NETLINK
 #define SOL_NETLINK 270
 #endif
+
+// NETLINK_NO_ENOBUFS exists at least since android 2.3, but is not exposed
+#if defined TORRENT_ANDROID && !defined NETLINK_NO_ENOBUFS
+#define NETLINK_NO_ENOBUFS 5
+#endif
 #endif
 
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
@@ -87,6 +92,14 @@ namespace libtorrent {
 	using boost::asio::async_read;
 	using null_buffers = boost::asio::null_buffers;
 #endif
+
+	// internal
+	inline udp::endpoint make_udp(tcp::endpoint const ep)
+	{ return {ep.address(), ep.port()}; }
+
+	// internal
+	inline tcp::endpoint make_tcp(udp::endpoint const ep)
+	{ return {ep.address(), ep.port()}; }
 
 #ifdef TORRENT_WINDOWS
 

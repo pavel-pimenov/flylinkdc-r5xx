@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -49,10 +49,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef TORRENT_WINDOWS
 // windows part
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
+#include "libtorrent/aux_/windows.hpp"
 #include <winioctl.h>
 #include <sys/types.h>
 #else
@@ -72,8 +69,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <fcntl.h>
 #include <sys/types.h>
 #include <dirent.h> // for DIR
-
-#include "libtorrent/aux_/max_path.hpp" // for TORRENT_MAX_PATH
 
 #undef _FILE_OFFSET_BITS
 
@@ -100,7 +95,6 @@ namespace libtorrent {
 		~directory();
 		void next(error_code& ec);
 		std::string file() const;
-		std::uint64_t inode() const;
 		bool done() const { return m_done; }
 	private:
 #ifdef TORRENT_WINDOWS
@@ -109,15 +103,6 @@ namespace libtorrent {
 		WIN32_FIND_DATAW m_fd;
 #else
 		DIR* m_handle;
-#ifdef TORRENT_ANDROID
-// this is due to a documented bug in android related to a wrong type
-// of ino_t, for general discussion and internal changes see:
-// https://issuetracker.google.com/issues/37011207 - for general discussion
-// https://android-review.googlesource.com/#/c/platform/system/core/+/123482/
-		std::uint64_t m_inode;
-#else
-		ino_t m_inode;
-#endif // TORRENT_ANDROID
 		std::string m_name;
 #endif
 		bool m_done;
@@ -128,8 +113,7 @@ namespace libtorrent {
 	using file_handle = std::shared_ptr<file>;
 
 	// hidden
-	struct open_mode_tag;
-	using open_mode_t = flags::bitfield_flag<std::uint32_t, open_mode_tag>;
+	using open_mode_t = flags::bitfield_flag<std::uint32_t, struct open_mode_tag>;
 
 	// the open mode for files. Used for the file constructor or
 	// file::open().
@@ -144,6 +128,7 @@ namespace libtorrent {
 		// open the file for reading and writing
 		constexpr open_mode_t read_write = 1_bit;
 
+		// the mask for the bits making up the read-write mode.
 		constexpr open_mode_t rw_mask = read_only | write_only | read_write;
 
 		// open the file in sparse mode (if supported by the
@@ -200,10 +185,6 @@ namespace libtorrent {
 
 		std::int64_t get_size(error_code& ec) const;
 
-		// return the offset of the first byte that
-		// belongs to a data-region
-		std::int64_t sparse_end(std::int64_t start) const;
-
 		handle_type native_handle() const { return m_file_handle; }
 
 	private:
@@ -211,9 +192,6 @@ namespace libtorrent {
 		handle_type m_file_handle;
 
 		open_mode_t m_open_mode{};
-#if defined TORRENT_WINDOWS
-		static bool has_manage_volume_privs;
-#endif
 	};
 }
 

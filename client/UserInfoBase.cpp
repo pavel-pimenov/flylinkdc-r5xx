@@ -163,7 +163,7 @@ void UserInfoBase::pm(const string& hubHint)
 {
 	if (getUser() && !ClientManager::isMe(getUser())) // [!] FlylinkDC do not send messages to themselves.
 	{
-		UserManager::getInstance()->outgoingPrivateMessage(getUser(), hubHint, Util::emptyStringT);
+		UserManager::getInstance()->outgoingPrivateMessage(getUser(), hubHint, BaseUtil::emptyStringT);
 	}
 }
 

@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2012-2016, Arvid Norberg
+Copyright (c) 2012-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <memory>
 
+#include "libtorrent/fwd.hpp"
 #include "libtorrent/units.hpp"
 #include "libtorrent/disk_buffer_holder.hpp"
 #include "libtorrent/aux_/vector.hpp"
-#include "libtorrent/export.hpp"
+#include "libtorrent/aux_/export.hpp"
 #include "libtorrent/storage_defs.hpp"
 #include "libtorrent/time.hpp"
 #include "libtorrent/sha1_hash.hpp"
@@ -50,23 +51,14 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	struct storage_interface;
-	struct peer_request;
 	struct disk_observer;
-	struct add_torrent_params;
-	struct cache_status;
-	struct disk_buffer_holder;
 	struct counters;
-	struct settings_pack;
-	struct storage_params;
-	struct storage_error;
-	class file_storage;
 
 	struct storage_holder;
 
-	struct file_open_mode_tag;
-	using file_open_mode_t = flags::bitfield_flag<std::uint8_t, file_open_mode_tag>;
+	using file_open_mode_t = flags::bitfield_flag<std::uint8_t, struct file_open_mode_tag>;
 
+	// internal
 	// this is a bittorrent constant
 	constexpr int default_block_size = 0x4000;
 
@@ -97,7 +89,7 @@ namespace libtorrent {
 		// logic
 		constexpr file_open_mode_t random_access = 5_bit;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		// prevent the file from being opened by another process
 		// while it's still being held open by this handle
 		constexpr file_open_mode_t TORRENT_DEPRECATED locked = 6_bit;
@@ -105,7 +97,7 @@ namespace libtorrent {
 	}
 
 	// this contains information about a file that's currently open by the
-	// libtorrent disk I/O subsystem. It's associated with a single torent.
+	// libtorrent disk I/O subsystem. It's associated with a single torrent.
 	struct TORRENT_EXPORT open_file_state
 	{
 		// the index of the file this entry refers to into the ``file_storage``
@@ -114,7 +106,7 @@ namespace libtorrent {
 
 		// ``open_mode`` is a bitmask of the file flags this file is currently
 		// opened with. These are the flags used in the ``file::open()`` function.
-		// The flags used in this bitfield are defined by the file_open_mode enum.
+		// For possible flags, see file_open_mode_t.
 		//
 		// Note that the read/write mode is not a bitmask. The two least significant bits are used
 		// to represent the read/write mode. Those bits can be masked out using the ``rw_mask`` constant.
@@ -124,12 +116,11 @@ namespace libtorrent {
 		time_point last_use;
 	};
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	using pool_file_status = open_file_state;
 #endif
 
-	struct disk_job_flags_tag;
-	using disk_job_flags_t = flags::bitfield_flag<std::uint8_t, disk_job_flags_tag>;
+	using disk_job_flags_t = flags::bitfield_flag<std::uint8_t, struct disk_job_flags_tag>;
 
 	struct TORRENT_EXTRA_EXPORT disk_interface
 	{
@@ -182,7 +173,7 @@ namespace libtorrent {
 			, std::function<void(storage_error const&)> handler) = 0;
 		virtual void async_set_file_priority(storage_index_t storage
 			, aux::vector<download_priority_t, file_index_t> prio
-			, std::function<void(storage_error const&)> handler) = 0;
+			, std::function<void(storage_error const&, aux::vector<download_priority_t, file_index_t>)> handler) = 0;
 
 		virtual void async_clear_piece(storage_index_t storage, piece_index_t index
 			, std::function<void(piece_index_t)> handler) = 0;

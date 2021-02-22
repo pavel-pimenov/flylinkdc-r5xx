@@ -472,7 +472,7 @@ string ClientManager::getStringField(const CID& cid, const string& hint, const c
 			return value;
 		}
 	}
-	return Util::emptyString;
+	return BaseUtil::emptyString;
 }
 
 uint8_t ClientManager::getSlots(const CID& cid)
@@ -504,7 +504,7 @@ string ClientManager::findHub(const string& ipPort)
 	dcassert(!ipPort.empty());
 #endif
 	if (ipPort.empty())
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 		
 	string ip_or_host;
 	uint16_t port = 411;
@@ -1249,7 +1249,7 @@ const string ClientManager::findMyNick(const string& hubUrl)
 	const auto& i = g_clients.find(hubUrl);
 	if (i != g_clients.end())
 		return i->second->getMyNick();
-	return Util::emptyString;
+	return BaseUtil::emptyString;
 }
 
 int ClientManager::getMode(const FavoriteHubEntry* p_hub, bool& p_isWantAutodetect)

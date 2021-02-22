@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg
+Copyright (c) 2006-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -46,15 +46,15 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/kademlia/node_id.hpp>
 #include <libtorrent/kademlia/find_data.hpp>
 #include <libtorrent/kademlia/item.hpp>
+#include <libtorrent/kademlia/announce_flags.hpp>
 
+#include <libtorrent/fwd.hpp>
 #include <libtorrent/socket.hpp> // for udp::endpoint
 #include <libtorrent/string_view.hpp>
 #include <libtorrent/aux_/listen_socket_handle.hpp>
 
 namespace libtorrent {
-
 	struct counters;
-	struct dht_routing_bucket;
 }
 
 namespace libtorrent { namespace dht {
@@ -91,7 +91,7 @@ class TORRENT_EXTRA_EXPORT node
 {
 public:
 	node(aux::listen_socket_handle const& sock, socket_manager* sock_man
-		, dht_settings const& settings
+		, dht::settings const& settings
 		, node_id const& nid
 		, dht_observer* observer, counters& cnt
 		, get_foreign_node_t get_foreign_node
@@ -101,6 +101,8 @@ public:
 
 	node(node const&) = delete;
 	node& operator=(node const&) = delete;
+	node(node&&) = delete;
+	node& operator=(node&&) = delete;
 
 	void update_node_id();
 
@@ -112,7 +114,7 @@ public:
 	void unreachable(udp::endpoint const& ep);
 	void incoming(aux::listen_socket_handle const& s, msg const& m);
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	int num_torrents() const { return int(m_storage.num_torrents()); }
 	int num_peers() const { return int(m_storage.num_peers()); }
 #endif
@@ -129,16 +131,15 @@ public:
 	std::int64_t num_global_nodes() const
 	{ return m_table.num_global_nodes(); }
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	int data_size() const { return int(m_storage.num_torrents()); }
 #endif
 
-	enum flags_t { flag_seed = 1, flag_implied_port = 2 };
 	void get_peers(sha1_hash const& info_hash
 		, std::function<void(std::vector<tcp::endpoint> const&)> dcallback
 		, std::function<void(std::vector<std::pair<node_entry, std::string>> const&)> ncallback
-		, bool noseeds);
-	void announce(sha1_hash const& info_hash, int listen_port, int flags
+		, announce_flags_t flags);
+	void announce(sha1_hash const& info_hash, int listen_port, announce_flags_t flags
 		, std::function<void(std::vector<tcp::endpoint> const&)> f);
 
 	void direct_request(udp::endpoint const& ep, entry& e
@@ -193,11 +194,11 @@ public:
 
 	std::tuple<int, int, int> get_stats_counters() const;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	void status(libtorrent::session_status& s);
 #endif
 
-	dht_settings const& settings() const { return m_settings; }
+	dht::settings const& settings() const { return m_settings; }
 	counters& stats_counters() const { return m_counters; }
 
 	dht_observer* observer() const { return m_observer; }
@@ -212,8 +213,8 @@ public:
 	{ return ep.protocol().family() == m_protocol.protocol.family(); }
 	bool native_address(address const& addr) const
 	{
-		return (addr.is_v4() && m_protocol.protocol == m_protocol.protocol.v4())
-			|| (addr.is_v6() && m_protocol.protocol == m_protocol.protocol.v6());
+		return (addr.is_v4() && m_protocol.protocol == udp::v4())
+			|| (addr.is_v6() && m_protocol.protocol == udp::v6());
 	}
 
 private:
@@ -223,7 +224,7 @@ private:
 	bool lookup_peers(sha1_hash const& info_hash, entry& reply
 		, bool noseed, bool scrape, address const& requester) const;
 
-	dht_settings const& m_settings;
+	dht::settings const& m_settings;
 
 	std::mutex m_mutex;
 

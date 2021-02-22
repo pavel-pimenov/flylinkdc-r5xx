@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/file_storage.hpp"
 #include "libtorrent/string_util.hpp" // for allocate_string_copy
 #include "libtorrent/utf8.hpp"
+#include "libtorrent/index_range.hpp"
 #include "libtorrent/aux_/path.hpp"
 #include "libtorrent/aux_/numeric_cast.hpp"
 
@@ -43,6 +44,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <cstdio>
 #include <algorithm>
 #include <functional>
+#include <set>
+#include <atomic>
 
 #if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
 #define TORRENT_SEPARATOR '\\'
@@ -59,7 +62,7 @@ namespace libtorrent {
 	constexpr file_flags_t file_storage::flag_executable;
 	constexpr file_flags_t file_storage::flag_symlink;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	constexpr file_flags_t file_storage::pad_file;
 	constexpr file_flags_t file_storage::attribute_hidden;
 	constexpr file_flags_t file_storage::attribute_executable;
@@ -81,7 +84,6 @@ namespace libtorrent {
 	file_storage::file_storage(file_storage const&) = default;
 	file_storage& file_storage::operator=(file_storage const&) = default;
 	file_storage::file_storage(file_storage&&) noexcept = default;
-	file_storage& file_storage::operator=(file_storage&&) noexcept = default;
 
 	void file_storage::reserve(int num_files)
 	{
@@ -114,38 +116,27 @@ namespace {
 
 }
 
-	// path is not supposed to include the name of the torrent itself.
+	// path is supposed to include the name of the torrent itself.
+	// or an absolute path, to move a file outside of the download directory
 	void file_storage::update_path_index(internal_file_entry& e
 		, std::string const& path, bool const set_name)
 	{
 		if (is_complete(path))
 		{
 			TORRENT_ASSERT(set_name);
-			e.set_name(path.c_str());
+			e.set_name(path);
 			e.path_index = -2;
 			return;
 		}
 
 		TORRENT_ASSERT(path[0] != '/');
 
-		// sorry about this messy string handling, but I did
-		// profile it, and it was expensive
-		char const* leaf = filename_cstr(path.c_str());
+		// split the string into the leaf filename
+		// and the branch path
+		string_view leaf;
 		string_view branch_path;
-		if (leaf > path.c_str())
-		{
-			// split the string into the leaf filename
-			// and the branch path
-			branch_path = path;
-			branch_path = branch_path.substr(0
-				, static_cast<std::size_t>(leaf - path.c_str()));
+		std::tie(branch_path, leaf) = rsplit_path(path);
 
-			// trim trailing slashes
-			while (!branch_path.empty() && branch_path.back() == TORRENT_SEPARATOR)
-			{
-				branch_path.remove_suffix(1);
-			}
-		}
 		if (branch_path.empty())
 		{
 			if (set_name) e.set_name(leaf);
@@ -153,15 +144,18 @@ namespace {
 			return;
 		}
 
-		if (branch_path.size() >= m_name.size()
-			&& branch_path.substr(0, m_name.size()) == m_name
-			&& branch_path[m_name.size()] == TORRENT_SEPARATOR)
+		// if the path *does* contain the name of the torrent (as we expect)
+		// strip it before adding it to m_paths
+		if (lsplit_path(branch_path).first == m_name)
 		{
-			branch_path.remove_prefix(m_name.size());
-			while (!branch_path.empty() && branch_path.front() == TORRENT_SEPARATOR)
-			{
+			branch_path = lsplit_path(branch_path).second;
+			// strip duplicate separators
+			while (!branch_path.empty() && (branch_path.front() == TORRENT_SEPARATOR
+#if defined(TORRENT_WINDOWS) || defined(TORRENT_OS2)
+				|| branch_path.front() == '/'
+#endif
+				))
 				branch_path.remove_prefix(1);
-			}
 			e.no_root_dir = false;
 		}
 		else
@@ -193,7 +187,7 @@ namespace {
 		}
 	}
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	file_entry::file_entry(): offset(0), size(0)
 		, mtime(0), pad_file(false), hidden_attribute(false)
 		, executable_attribute(false)
@@ -201,7 +195,7 @@ namespace {
 	{}
 
 	file_entry::~file_entry() = default;
-#endif // TORRENT_NO_DEPRECATE
+#endif // TORRENT_ABI_VERSION
 
 	internal_file_entry::internal_file_entry()
 		: offset(0)
@@ -235,13 +229,11 @@ namespace {
 		, name(nullptr)
 		, path_index(fe.path_index)
 	{
-		if (fe.name_len == name_is_owned)
-			name = allocate_string_copy(fe.name);
-		else
-			name = fe.name;
+		bool const borrow = fe.name_len != name_is_owned;
+		set_name(fe.filename(), borrow);
 	}
 
-	internal_file_entry& internal_file_entry::operator=(internal_file_entry const& fe)
+	internal_file_entry& internal_file_entry::operator=(internal_file_entry const& fe) &
 	{
 		if (&fe == this) return *this;
 		offset = fe.offset;
@@ -253,7 +245,10 @@ namespace {
 		executable_attribute = fe.executable_attribute;
 		symlink_attribute = fe.symlink_attribute;
 		no_root_dir = fe.no_root_dir;
-		set_name(fe.filename().to_string().c_str());
+		// if the name is not owned, don't allocate memory, we can point into the
+		// same metadata buffer
+		bool const borrow = fe.name_len != name_is_owned;
+		set_name(fe.filename(), borrow);
 		return *this;
 	}
 
@@ -270,11 +265,11 @@ namespace {
 		, name(fe.name)
 		, path_index(fe.path_index)
 	{
-		fe.name_len = name_is_owned;
+		fe.name_len = 0;
 		fe.name = nullptr;
 	}
 
-	internal_file_entry& internal_file_entry::operator=(internal_file_entry&& fe) noexcept
+	internal_file_entry& internal_file_entry::operator=(internal_file_entry&& fe) & noexcept
 	{
 		if (&fe == this) return *this;
 		offset = fe.offset;
@@ -289,35 +284,32 @@ namespace {
 		name = fe.name;
 		name_len = fe.name_len;
 
-		fe.name_len = name_is_owned;
+		fe.name_len = 0;
 		fe.name = nullptr;
 		return *this;
 	}
 
-	// if borrow_chars >= 0, don't take ownership over n, just
-	// point to it. It points to borrow_chars number of characters.
-	// if borrow_chars == -1, n is a 0-terminated string that
-	// should be copied.
-	void internal_file_entry::set_name(char const* n, bool const borrow_string
-		, int string_len)
+	// if borrow_string is true, don't take ownership over n, just
+	// point to it.
+	// if borrow_string is false, n will be copied and owned by the
+	// internal_file_entry.
+	void internal_file_entry::set_name(string_view n, bool const borrow_string)
 	{
-		TORRENT_ASSERT(string_len >= 0);
-
-		// we have limited space in the length field. truncate string
-		// if it's too long
-		if (string_len >= name_is_owned) string_len = name_is_owned - 1;
-
 		// free the current string, before assigning the new one
 		if (name_len == name_is_owned) delete[] name;
-		if (n == nullptr)
+		if (n.empty())
 		{
 			TORRENT_ASSERT(borrow_string == false);
 			name = nullptr;
 		}
 		else if (borrow_string)
 		{
-			name = n;
-			name_len = aux::numeric_cast<std::uint64_t>(string_len);
+			// we have limited space in the length field. truncate string
+			// if it's too long
+			if (n.size() >= name_is_owned) n = n.substr(name_is_owned - 1);
+
+			name = n.data();
+			name_len = aux::numeric_cast<std::uint64_t>(n.size());
 		}
 		else
 		{
@@ -347,7 +339,7 @@ namespace {
 		}
 	}
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 
 	void file_storage::add_file_borrow(char const* filename, int filename_len
 		, std::string const& path, std::int64_t file_size, file_flags_t file_flags
@@ -391,7 +383,7 @@ namespace {
 	{
 		rename_file_deprecated(index, new_filename);
 	}
-#endif // TORRENT_NO_DEPRECATE
+#endif // TORRENT_ABI_VERSION
 
 	void file_storage::rename_file(file_index_t const index
 		, std::string const& new_filename)
@@ -400,7 +392,7 @@ namespace {
 		update_path_index(m_files[index], new_filename);
 	}
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	file_storage::iterator file_storage::file_at_offset_deprecated(std::int64_t offset) const
 	{
 		// find the file iterator and file offset
@@ -483,7 +475,7 @@ namespace {
 			TORRENT_ASSERT(file_iter != m_files.end());
 			if (file_offset < std::int64_t(file_iter->size))
 			{
-				file_slice f;
+				file_slice f{};
 				f.file_index = file_index_t(int(file_iter - m_files.begin()));
 				f.offset = file_offset;
 				f.size = std::min(std::int64_t(file_iter->size) - file_offset, std::int64_t(size));
@@ -498,10 +490,17 @@ namespace {
 		return ret;
 	}
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	file_entry file_storage::at(int index) const
 	{
 		return at_deprecated(index);
+	}
+
+	internal_file_entry const& file_storage::internal_at(int const index) const
+	{
+		TORRENT_ASSERT(index >= 0);
+		TORRENT_ASSERT(index < int(m_files.size()));
+		return m_files[file_index_t(index)];
 	}
 
 	file_entry file_storage::at_deprecated(int index) const
@@ -522,7 +521,23 @@ namespace {
 		ret.filehash = hash(index);
 		return ret;
 	}
-#endif // TORRENT_NO_DEPRECATE
+#endif // TORRENT_ABI_VERSION
+
+	int file_storage::num_files() const noexcept
+	{ return int(m_files.size()); }
+
+	// returns the index of the one-past-end file in the file storage
+	file_index_t file_storage::end_file() const noexcept
+	{ return m_files.end_index(); }
+
+	file_index_t file_storage::last_file() const noexcept
+	{ return --m_files.end_index(); }
+
+	index_range<file_index_t> file_storage::file_range() const noexcept
+	{ return m_files.range(); }
+
+	index_range<piece_index_t> file_storage::piece_range() const noexcept
+	{ return {piece_index_t{0}, end_piece()}; }
 
 	peer_request file_storage::map_file(file_index_t const file_index
 		, std::int64_t const file_offset, int const size) const
@@ -530,10 +545,10 @@ namespace {
 		TORRENT_ASSERT_PRECOND(file_index < end_file());
 		TORRENT_ASSERT(m_num_pieces >= 0);
 
-		peer_request ret;
+		peer_request ret{};
 		if (file_index >= end_file())
 		{
-			ret.piece = piece_index_t{m_num_pieces};
+			ret.piece = end_piece();
 			ret.start = 0;
 			ret.length = 0;
 			return ret;
@@ -543,7 +558,7 @@ namespace {
 
 		if (offset >= total_size())
 		{
-			ret.piece = piece_index_t{m_num_pieces};
+			ret.piece = end_piece();
 			ret.start = 0;
 			ret.length = 0;
 		}
@@ -584,7 +599,7 @@ namespace {
 		else
 		{
 			if (m_files.empty())
-				m_name = split_path(path, true);
+				m_name = lsplit_path(path).first.to_string();
 		}
 
 		// this is poor-man's emplace_back()
@@ -593,14 +608,14 @@ namespace {
 
 		// the last argument specified whether the function should also set
 		// the filename. If it does, it will copy the leaf filename from path.
-		// if filename is nullptr, we should copy it. If it isn't, we're borrowing
+		// if filename is empty, we should copy it. If it isn't, we're borrowing
 		// it and we can save the copy by setting it after this call to
 		// update_path_index().
 		update_path_index(e, path, filename.empty());
 
-		// filename is allowed to be nullptr, in which case we just use path
+		// filename is allowed to be empty, in which case we just use path
 		if (!filename.empty())
-			e.set_name(filename.data(), true, int(filename.size()));
+			e.set_name(filename, true);
 
 		e.size = aux::numeric_cast<std::uint64_t>(file_size);
 		e.offset = aux::numeric_cast<std::uint64_t>(m_total_size);
@@ -644,7 +659,18 @@ namespace {
 		TORRENT_ASSERT_PRECOND(index >= file_index_t(0) && index < end_file());
 		internal_file_entry const& fe = m_files[index];
 		TORRENT_ASSERT(fe.symlink_index < int(m_symlinks.size()));
-		return m_symlinks[file_index_t(fe.symlink_index)];
+
+		auto const& link = m_symlinks[fe.symlink_index];
+
+		// TODO: 3 this is a hack to retain ABI compatibility with 1.2.1
+		// in next major release, make this return by value
+		static std::string storage[4];
+		static std::atomic<size_t> counter{0};
+		std::string& ret = storage[(counter++) % 4];
+		ret.reserve(m_name.size() + link.size() + 1);
+		ret.assign(m_name);
+		append_path(ret, link);
+		return ret;
 	}
 
 	std::time_t file_storage::mtime(file_index_t const index) const
@@ -665,15 +691,14 @@ namespace {
 		template <class CRC>
 		void process_path_lowercase(
 			std::unordered_set<std::uint32_t>& table
-			, CRC crc
-			, char const* str, int len)
+			, CRC crc, string_view str)
 		{
-			if (len == 0) return;
-			for (int i = 0; i < len; ++i, ++str)
+			if (str.empty()) return;
+			for (char const c : str)
 			{
-				if (*str == TORRENT_SEPARATOR)
+				if (c == TORRENT_SEPARATOR)
 					table.insert(crc.checksum());
-				crc.process_byte(to_lower(*str) & 0xff);
+				crc.process_byte(to_lower(c) & 0xff);
 			}
 			table.insert(crc.checksum());
 		}
@@ -692,9 +717,7 @@ namespace {
 		}
 
 		for (auto const& p : m_paths)
-		{
-			process_path_lowercase(table, crc, p.c_str(), int(p.size()));
-		}
+			process_path_lowercase(table, crc, p);
 	}
 
 	std::uint32_t file_storage::file_path_hash(file_index_t const index
@@ -808,6 +831,26 @@ namespace {
 		return ret;
 	}
 
+	std::string file_storage::internal_file_path(file_index_t const index) const
+	{
+		TORRENT_ASSERT_PRECOND(index >= file_index_t(0) && index < end_file());
+		internal_file_entry const& fe = m_files[index];
+
+		if (fe.path_index >= 0)
+		{
+			std::string ret;
+			std::string const& p = m_paths[fe.path_index];
+			ret.reserve(p.size() + fe.filename().size() + 2);
+			append_path(ret, p);
+			append_path(ret, fe.filename());
+			return ret;
+		}
+		else
+		{
+			return fe.filename().to_string();
+		}
+	}
+
 	string_view file_storage::file_name(file_index_t const index) const
 	{
 		TORRENT_ASSERT_PRECOND(index >= file_index_t(0) && index < end_file());
@@ -850,7 +893,7 @@ namespace {
 		return fe.path_index == -2;
 	}
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	sha1_hash file_storage::hash(internal_file_entry const& fe) const
 	{
 		int index = int(&fe - &m_files[0]);
@@ -861,7 +904,7 @@ namespace {
 	std::string const& file_storage::symlink(internal_file_entry const& fe) const
 	{
 		TORRENT_ASSERT_PRECOND(fe.symlink_index < int(m_symlinks.size()));
-		return m_symlinks[file_index_t(fe.symlink_index)];
+		return m_symlinks[fe.symlink_index];
 	}
 
 	std::time_t file_storage::mtime(internal_file_entry const& fe) const
@@ -907,7 +950,7 @@ namespace {
 
 	file_entry file_storage::at(file_storage::iterator i) const
 	{ return at_deprecated(int(i - m_files.begin())); }
-#endif // TORRENT_NO_DEPRECATE
+#endif // TORRENT_ABI_VERSION
 
 	void file_storage::reorder_file(int const index, int const dst)
 	{
@@ -928,6 +971,20 @@ namespace {
 			if (int(m_file_hashes.size()) < index) m_file_hashes.resize(index + 1, nullptr);
 			std::iter_swap(m_file_hashes.begin() + dst, m_file_hashes.begin() + index);
 		}
+	}
+
+	void file_storage::swap(file_storage& ti) noexcept
+	{
+		using std::swap;
+		swap(ti.m_files, m_files);
+		swap(ti.m_file_hashes, m_file_hashes);
+		swap(ti.m_symlinks, m_symlinks);
+		swap(ti.m_mtime, m_mtime);
+		swap(ti.m_paths, m_paths);
+		swap(ti.m_name, m_name);
+		swap(ti.m_total_size, m_total_size);
+		swap(ti.m_num_pieces, m_num_pieces);
+		swap(ti.m_piece_length, m_piece_length);
 	}
 
 	void file_storage::optimize(int const pad_file_limit, int alignment
@@ -1078,6 +1135,187 @@ namespace {
 
 		if (index != cur_index) reorder_file(index, cur_index);
 	}
+
+	void file_storage::sanitize_symlinks()
+	{
+		// symlinks are unusual, this function is optimized assuming there are no
+		// symbolic links in the torrent. If we find one symbolic link, we'll
+		// build the hash table of files it's allowed to refer to, but don't pay
+		// that price up-front.
+		std::unordered_map<std::string, file_index_t> file_map;
+		bool file_map_initialized = false;
+
+		// lazily instantiated set of all valid directories a symlink may point to
+		// TODO: in C++17 this could be string_view
+		std::unordered_set<std::string> dir_map;
+		bool dir_map_initialized = false;
+
+		// symbolic links that points to directories
+		std::unordered_map<std::string, std::string> dir_links;
+
+		// we validate symlinks in (potentially) 2 passes over the files.
+		// remaining symlinks to validate after the first pass
+		std::vector<file_index_t> symlinks_to_validate;
+
+		for (auto const i : file_range())
+		{
+			if (!(file_flags(i) & file_storage::flag_symlink)) continue;
+
+			if (!file_map_initialized)
+			{
+				for (auto const j : file_range())
+					file_map.insert({internal_file_path(j), j});
+				file_map_initialized = true;
+			}
+
+			internal_file_entry const& fe = m_files[i];
+			TORRENT_ASSERT(fe.symlink_index < int(m_symlinks.size()));
+
+			// symlink targets are only allowed to point to files or directories in
+			// this torrent.
+			{
+				std::string target = m_symlinks[fe.symlink_index];
+
+				if (is_complete(target))
+				{
+					// a symlink target is not allowed to be an absolute path, ever
+					// this symlink is invalid, make it point to itself
+					m_symlinks[fe.symlink_index] = internal_file_path(i);
+					continue;
+				}
+
+				auto const iter = file_map.find(target);
+				if (iter != file_map.end())
+				{
+					m_symlinks[fe.symlink_index] = target;
+					if (file_flags(iter->second) & file_storage::flag_symlink)
+					{
+						// we don't know whether this symlink is a file or a
+						// directory, so make the conservative assumption that it's a
+						// directory
+						dir_links[internal_file_path(i)] = target;
+					}
+					continue;
+				}
+
+				// it may point to a directory that doesn't have any files (but only
+				// other directories), in which case it won't show up in m_paths
+				if (!dir_map_initialized)
+				{
+					for (auto const& p : m_paths)
+						for (string_view pv = p; !pv.empty(); pv = rsplit_path(pv).first)
+							dir_map.insert(pv.to_string());
+					dir_map_initialized = true;
+				}
+
+				if (dir_map.count(target))
+				{
+					// it points to a sub directory within the torrent, that's OK
+					m_symlinks[fe.symlink_index] = target;
+					dir_links[internal_file_path(i)] = target;
+					continue;
+				}
+
+			}
+
+			// for backwards compatibility, allow paths relative to the link as
+			// well
+			if (fe.path_index >= 0)
+			{
+				std::string target = m_paths[fe.path_index];
+				append_path(target, m_symlinks[fe.symlink_index]);
+				// if it points to a directory, that's OK
+				auto const it = std::find(m_paths.begin(), m_paths.end(), target);
+				if (it != m_paths.end())
+				{
+					m_symlinks[fe.symlink_index] = *it;
+					dir_links[internal_file_path(i)] = *it;
+					continue;
+				}
+
+				if (dir_map.count(target))
+				{
+					// it points to a sub directory within the torrent, that's OK
+					m_symlinks[fe.symlink_index] = target;
+					dir_links[internal_file_path(i)] = target;
+					continue;
+				}
+
+				auto const iter = file_map.find(target);
+				if (iter != file_map.end())
+				{
+					m_symlinks[fe.symlink_index] = target;
+					if (file_flags(iter->second) & file_storage::flag_symlink)
+					{
+						// we don't know whether this symlink is a file or a
+						// directory, so make the conservative assumption that it's a
+						// directory
+						dir_links[internal_file_path(i)] = target;
+					}
+					continue;
+				}
+			}
+
+			// we don't know whether this symlink is a file or a
+			// directory, so make the conservative assumption that it's a
+			// directory
+			dir_links[internal_file_path(i)] = m_symlinks[fe.symlink_index];
+			symlinks_to_validate.push_back(i);
+		}
+
+		// in case there were some "complex" symlinks, we nee a second pass to
+		// validate those. For example, symlinks whose target rely on other
+		// symlinks
+		for (auto const i : symlinks_to_validate)
+		{
+			internal_file_entry const& fe = m_files[i];
+			TORRENT_ASSERT(fe.symlink_index < int(m_symlinks.size()));
+
+			std::string target = m_symlinks[fe.symlink_index];
+
+			// to avoid getting stuck in an infinite loop, we only allow traversing
+			// a symlink once
+			std::set<std::string> traversed;
+
+			// this is where we check every path element for existence. If it's not
+			// among the concrete paths, it may be a symlink, which is also OK
+			// note that we won't iterate through this for the last step, where the
+			// filename is included. The filename is validated after the loop
+			for (string_view branch = lsplit_path(target).first;
+				branch.size() < target.size();
+				branch = lsplit_path(target, branch.size() + 1).first)
+			{
+				// this is a concrete directory
+				if (dir_map.count(branch.to_string())) continue;
+
+				auto const iter = dir_links.find(branch.to_string());
+				if (iter == dir_links.end()) goto failed;
+				if (traversed.count(branch.to_string())) goto failed;
+				traversed.insert(branch.to_string());
+
+				// this path element is a symlink. substitute the branch so far by
+				// the link target
+				target = combine_path(iter->second, target.substr(branch.size() + 1));
+
+				// start over with the new (concrete) path
+				branch = {};
+			}
+
+			// the final (resolved) target must be a valid file
+			// or directory
+			if (file_map.count(target) == 0
+				&& dir_map.count(target) == 0) goto failed;
+
+			// this is OK
+			continue;
+
+failed:
+
+			// this symlink is invalid, make it point to itself
+			m_symlinks[fe.symlink_index] = internal_file_path(i);
+		}
+	}
+
 
 namespace aux {
 

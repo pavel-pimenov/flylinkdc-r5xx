@@ -553,10 +553,10 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 		                               const string& p_server, const string& p_port, const string& p_sender_nick);
 		void push_event_statistic(const std::string& p_event_type, const std::string& p_event_key,
 		                          const string& p_event_value,
-		                          const string& p_ip = Util::emptyString,
-		                          const string& p_port = Util::emptyString,
-		                          const string& p_hub = Util::emptyString,
-		                          const string& p_tth = Util::emptyString
+		                          const string& p_ip = BaseUtil::emptyString,
+		                          const string& p_port = BaseUtil::emptyString,
+		                          const string& p_hub = BaseUtil::emptyString,
+		                          const string& p_tth = BaseUtil::emptyString
 		                         );
 #endif // FLYLINKDC_USE_COLLECT_STAT
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
@@ -784,7 +784,7 @@ class CFlylinkDBManager : public Singleton<CFlylinkDBManager>
 			if (i != p_params.end())
 				return i->second;
 			else
-				return Util::emptyString;
+				return BaseUtil::emptyString;
 		}
 		typedef std::unordered_map<string, __int64> CFlyCacheDIC;
 		std::vector<CFlyCacheDIC> m_DIC;

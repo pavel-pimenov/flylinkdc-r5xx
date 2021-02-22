@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2009-2016, Arvid Norberg
+Copyright (c) 2009-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 #include <functional>
 
-#include "libtorrent/socket_type.hpp"
+#include "libtorrent/aux_/socket_type.hpp"
 #include "libtorrent/session_status.hpp"
 #include "libtorrent/enum_net.hpp"
 #include "libtorrent/aux_/session_settings.hpp"
@@ -64,7 +64,7 @@ namespace libtorrent {
 			, span<char const>
 			, error_code&, udp_send_flags_t)>;
 
-		using incoming_utp_callback_t =  std::function<void(std::shared_ptr<socket_type> const&)>;
+		using incoming_utp_callback_t =  std::function<void(std::shared_ptr<aux::socket_type> const&)>;
 
 		utp_socket_manager(send_fun_t const& send_fun
 			, incoming_utp_callback_t const& cb
@@ -107,8 +107,9 @@ namespace libtorrent {
 		int connect_timeout() const { return m_sett.get_int(settings_pack::utp_connect_timeout); }
 		int min_timeout() const { return m_sett.get_int(settings_pack::utp_min_timeout); }
 		int loss_multiplier() const { return m_sett.get_int(settings_pack::utp_loss_multiplier); }
+		int cwnd_reduce_timer() const { return m_sett.get_int(settings_pack::utp_cwnd_reduce_timer); }
 
-		void mtu_for_dest(address const& addr, int& link_mtu, int& utp_mtu);
+		std::pair<int, int> mtu_for_dest(address const& addr);
 		int num_sockets() const { return int(m_utp_sockets.size()); }
 
 		void defer_ack(utp_socket_impl* s);
@@ -133,24 +134,24 @@ namespace libtorrent {
 		void release_packet(packet_ptr p) { m_packet_pool.release(std::move(p)); }
 		void decay() { m_packet_pool.decay(); }
 
-	private:
 		// explicitly disallow assignment, to silence msvc warning
-		utp_socket_manager& operator=(utp_socket_manager const&);
+		utp_socket_manager& operator=(utp_socket_manager const&) = delete;
+
+	private:
 
 		send_fun_t m_send_fun;
 		incoming_utp_callback_t m_cb;
 
 		// replace with a hash-map
-		typedef std::multimap<std::uint16_t, utp_socket_impl*> socket_map_t;
+		using socket_map_t = std::multimap<std::uint16_t, utp_socket_impl*>;
 		socket_map_t m_utp_sockets;
 
 		using socket_vector_t = std::vector<utp_socket_impl*>;
 
-		// this is a list of sockets that needs to send an ack.
-		// once the UDP socket is drained, all of these will
-		// have a chance to do that. This is to avoid sending
-		// an ack for every single packet
-		socket_vector_t m_deferred_acks;
+		// if this is set, it means this socket still needs to send an ACK. Once
+		// we exit the loop processing packets, or switch to processing packets
+		// for a different socket, issue the ACK packet and clear this.
+		utp_socket_impl* m_deferred_ack = nullptr;
 
 		// storage used for saving cpu time on "push_back"
 		// by using already pre-allocated vector
@@ -174,22 +175,6 @@ namespace libtorrent {
 		int m_new_connection = -1;
 
 		aux::session_settings const& m_sett;
-
-		// this is a copy of the routing table, used
-		// to initialize MTU sizes of uTP sockets
-		mutable std::vector<ip_route> m_routes;
-
-		// the timestamp for the last time we updated
-		// the routing table
-		mutable time_point m_last_route_update = min_time();
-
-		// cache of interfaces
-		mutable std::vector<ip_interface> m_interfaces;
-		mutable time_point m_last_if_update = min_time();
-
-		// the buffer size of the socket. This is used
-		// to now lower the buffer size
-		int m_sock_buf_size = 0;
 
 		// stats counters
 		counters& m_counters;

@@ -17,8 +17,9 @@
  */
 
 #include "stdinc.h"
-#include <future>
 
+
+#include <future>
 #include "flyServer.h"
 #include "../client/Socket.h"
 #include "../client/ClientManager.h"
@@ -36,10 +37,10 @@
 
 #include "../windows/resource.h"
 #include "../client/FavoriteManager.h"
-#include "../client/syslog/syslog.h"
+
 
 #ifdef IRAINMAN_INCLUDE_GDI_OLE
-#include "../GdiOle/GDIImage.h"
+//#include "../GdiOle/GDIImage.h"
 #endif
 
 #include "ZenLib/ZtringListList.h"
@@ -52,9 +53,7 @@
 #include "libtorrent/hex.hpp"
 
 #ifdef FLYLINKDC_USE_GATHER_STATISTICS
-#ifdef FLYLINKDC_SUPPORT_WIN_VISTA
 #define PSAPI_VERSION 1
-#endif // FLYLINKDC_SUPPORT_WIN_VISTA
 #include <psapi.h>
 #pragma comment(lib, "psapi.lib")
 #endif // FLYLINKDC_USE_GATHER_STATISTICS
@@ -78,9 +77,6 @@ std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_log;
 std::unordered_set<uint16_t> CFlyServerConfig::g_guard_tcp_port;
 FastCriticalSection CFlyServerConfig::g_cs_guard_tcp_port;
 std::unordered_set<unsigned> CFlyServerConfig::g_exclude_cid_error_log;
-#ifdef FLYLINKDC_USE_SYSLOG
-std::unordered_set<unsigned> CFlyServerConfig::g_exclude_error_syslog;
-#endif
 std::vector<CServerItem> CFlyServerConfig::g_mirror_read_only_servers;
 std::vector<CServerItem> CFlyServerConfig::g_mirror_test_port_servers;
 std::vector<CServerItem> CFlyServerConfig::g_torrent_dht_servers;
@@ -236,13 +232,6 @@ bool CFlyServerConfig::isBlockIP(const string& p_ip)
 	return false;
 }
 //======================================================================================================
-#ifdef FLYLINKDC_USE_SYSLOG
-bool CFlyServerConfig::isErrorSysLog(unsigned p_error_code)
-{
-	return g_exclude_error_syslog.find(p_error_code) == g_exclude_error_syslog.end();
-}
-#endif
-//======================================================================================================
 bool CFlyServerConfig::isGuardTCPPort(uint16_t p_port)
 {
     CFlyFastLock(g_cs_guard_tcp_port);
@@ -395,7 +384,7 @@ void CFlyServerConfig::loadConfig()
 			}
 		}
 #ifdef USE_FLYSERVER_LOCAL_FILE
-		const string l_url_config_file = "file://Q:/vc15/flylinkdc-update/etc/flylinkdc-config-r5xx.xml";
+		const string l_url_config_file = "file://С:/vc17/flylinkdc-update/etc/flylinkdc-config-r5xx.xml";
 		g_debug_fly_server_url = "localhost";
 		//g_debug_fly_server_url = "192.168.1.234";
 		
@@ -420,7 +409,6 @@ void CFlyServerConfig::loadConfig()
 			}
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		}
-		
 		
 #endif //FLYLINKDC_USE_MEDIAINFO_SERVER
 		try
@@ -645,12 +633,6 @@ void CFlyServerConfig::loadConfig()
 					{
 						g_exclude_cid_error_log.insert(Util::toInt(n));
 					});
-#ifdef FLYLINKDC_USE_SYSLOG
-					l_xml.getChildAttribSplit("exclude_error_syslog", g_exclude_error_syslog, [this](const string & n)
-					{
-						g_exclude_error_syslog.insert(Util::toInt(n));
-					});
-#endif
 					// Достанем RO-зеркала
 					l_xml.getChildAttribSplit("mirror_read_only_server", g_mirror_read_only_servers, [this](const string & n)
 					{
@@ -1013,7 +995,7 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 {
 	try
 	{
-		std::vector<byte> l_data;
+		std::vector<unsigned char> l_data;
 		CFlyHTTPDownloader l_http_downloader;
 		l_http_downloader.m_is_use_cache = true;
 		if (!p_local_agent.empty())
@@ -1033,14 +1015,6 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 				const std::string l_group_result = p_lua_parser["search_group_id"](p_index, l_html_result.c_str());
 				if (!l_group_result.empty())
 				{
-				/*
-				{
-				"items":
-				[
-				"Зарубежные фильмы", "Наши фильмы", "Научно-популярные фильмы", "Сериалы ", "Телевизор", "Мультипликация ", "Аниме ", "Музыка", "Игры ", "Софт ", "Спорт и Здоровье", "Юмор", "Хозяйство и Быт", "Книги ", "Другое"
-				]
-				}
-				*/
 				Json::Value l_root;
 				Json::Reader l_reader(Json::Features::strictMode());
 				const bool l_parsingSuccessful = l_reader.parse(l_group_result, l_root);
@@ -1085,7 +1059,7 @@ bool CFlyServerConfig::torrentSearchParser(HWND p_wnd, int p_message, string p_s
 						dcassert(i != string::npos);
 						if (i != string::npos)
 						{
-							auto j = p_search_url.find('/', i+3);
+							const auto j = p_search_url.find('/', i+3);
 							dcassert(j != string::npos);
 							if (j != string::npos)
 							{
@@ -1238,10 +1212,10 @@ bool CFlyServerConfig::torrentGetTop(HWND p_wnd, int p_message)
 		}
 		else
 		{
-			string l_agent = l_root["agent"].asString();
+			const string l_agent = l_root["agent"].asString();
 			const string l_version = l_root["version"].asString();
 			const string l_error_base = "Version:" + l_version + " onTorrentSearch";
-			unsigned l_page_limit_global = l_root["page_limit"].asUInt();
+			const unsigned l_page_limit_global = l_root["page_limit"].asUInt();
 			const Json::Value& l_arrays = l_root["items"];
 			const Json::Value::ArrayIndex l_count = l_arrays.size();
 			for (Json::Value::ArrayIndex k = 0; k < l_count; ++k)
@@ -1383,7 +1357,7 @@ void CFlyServerConfig::loadTorrentSearchEngine()
 				if (g_lua_source_search_engine.empty())
 				{
 #ifdef _DEBUG					
-//					Util::getDataFromInetSafe(true, "file://Q:/vc15/r5xx/compiled/Settings/lua/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
+//					Util::getDataFromInetSafe(true, "file://C:/vc17/r5xx/compiled/Settings/lua/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
                     Util::getDataFromInetSafe(true, "http://etc.fly-server.ru/etc/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
 #else
 					Util::getDataFromInetSafe(true, "http://etc.fly-server.ru/etc/flylinkdc-search-engine.lua", g_lua_source_search_engine, 1000);
@@ -1744,10 +1718,9 @@ static void getDiskAndMemoryStat(Json::Value& p_info)
 		l_handle_info["GDI"]     = getResourceCounter(GR_GDIOBJECTS);
 		l_handle_info["UserObj"] = getResourceCounter(GR_USEROBJECTS);
 		
-#ifdef FLYLINKDC_SUPPORT_WIN_VISTA
 # define GR_GDIOBJECTS_PEAK  2       /* Peak count of GDI objects */
 # define GR_USEROBJECTS_PEAK 4       /* Peak count of USER objects */
-#endif
+
 		// http://msdn.microsoft.com/en-us/library/windows/desktop/ms683192%28v=vs.85%29.aspx
 		// This value is not supported until Windows 7 and Windows Server 2008 R2.
 		l_handle_info["GDIPeak"]      = getResourceCounter(GR_GDIOBJECTS_PEAK);
@@ -1972,24 +1945,6 @@ bool CFlyServerJSON::pushTestPort(
 	return l_is_send;
 }
 //======================================================================================================
-#ifdef FLYLINKDC_USE_SYSLOG
-void CFlyServerJSON::pushSyslogError(const string& p_error)
-{
-	string l_cid;
-	string l_pid;
-	if (ClientManager::isValidInstance())
-	{
-		l_cid = ClientManager::getMyCID().toBase32();
-		l_pid = ClientManager::getMyPID().toBase32();
-	}
-	else
-	{
-		l_cid = "[CID==null]";
-	}
-	syslog(LOG_USER | LOG_INFO, "%s %s %s [%s]", l_cid.c_str(), l_pid.c_str(), p_error.c_str(), Text::fromT(g_full_user_agent).c_str());
-}
-#endif
-//======================================================================================================
 bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info /* = false*/) // Last Code = 92 (36,58,44,49,83 - устарели)
 {
 	bool l_is_send  = false;
@@ -2002,12 +1957,6 @@ bool CFlyServerJSON::pushError(unsigned p_error_code, string p_error, bool p_is_
 			l_cid = '[' + ClientManager::getMyCID().toBase32() + ']';
 		}
 		p_error = l_cid + "[" + A_REVISION_NUM_STR + "][BUG][" + Util::toString(p_error_code) + "] " + p_error;
-#ifdef FLYLINKDC_USE_SYSLOG
-		if (CFlyServerConfig::isErrorSysLog(p_error_code))
-		{
-			pushSyslogError(p_error);
-		}
-#endif
 		CFlyLock(g_cs_error_report);
 		if (CFlyServerConfig::isErrorLog(p_error_code))
 		{
@@ -2245,7 +2194,7 @@ bool CFlyServerJSON::pushStatistic(const bool p_is_sync_run)
 				}
 			}
 		}
-#ifdef IRAINMAN_INCLUDE_GDI_OLE
+#if 0// IRAINMAN_INCLUDE_GDI_OLE
 		if (CGDIImage::g_AnimationDeathDetectCount || CGDIImage::g_AnimationCount || CGDIImage::g_AnimationCountMax)
 		{
 			Json::Value& l_debug_info = l_info["Debug"];
@@ -2332,7 +2281,7 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 	if (IpGuard::check_ip_str(Socket::resolve(l_Server.getIp()), l_reason))
 	{
 		l_fly_server_log.step(" (" + l_Server.getIp() + "): IPGuard: " + l_reason);
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	}
 	std::vector<uint8_t> l_post_compress_query;
 	string l_log_string;
@@ -2525,7 +2474,7 @@ string CFlyServerJSON::postQuery(bool p_is_set,
 	}
 	l_Server.setTimeResponse(l_fly_server_log.calcSumTime());
 	if(l_result_query.empty()) // fix AddressSanitizer (ASan) for Windows [bug?]
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	else
 	return l_result_query;
 }
@@ -3362,7 +3311,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 					p_media.m_bitrate = bitRate;
 				wstring sFormat = g_media_info_lib.Get(MediaInfoLib::Stream_Audio, i, _T("Format"));
 #if defined (SSA_REMOVE_NEEDLESS_WORDS_FROM_VIDEO_AUDIO_INFO)
-				Text::replace_all(sFormat, _T(" Audio"), Util::emptyStringT);
+				Text::replace_all(sFormat, _T(" Audio"), BaseUtil::emptyStringT);
 #endif
 				const wstring sBitRate = g_media_info_lib.Get(MediaInfoLib::Stream_Audio, i, _T("BitRate/String"));
 				const wstring sChannelPos = g_media_info_lib.Get(MediaInfoLib::Stream_Audio, i, _T("ChannelPositions"));
@@ -3465,8 +3414,8 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 				{
 					wstring sVFormat = g_media_info_lib.Get(MediaInfoLib::Stream_Video, i, _T("Format"));
 #if defined (SSA_REMOVE_NEEDLESS_WORDS_FROM_VIDEO_AUDIO_INFO)
-					Text::replace_all(sVFormat, _T(" Video"), Util::emptyStringT);
-					Text::replace_all(sVFormat, _T(" Visual"), Util::emptyStringT);
+					Text::replace_all(sVFormat, _T(" Video"), BaseUtil::emptyStringT);
+					Text::replace_all(sVFormat, _T(" Visual"), BaseUtil::emptyStringT);
 #endif
 					wstring sVBitrate = g_media_info_lib.Get(MediaInfoLib::Stream_Video, i, _T("BitRate/String"));
 					wstring sVFrameRate = g_media_info_lib.Get(MediaInfoLib::Stream_Video, i, _T("FrameRate/String"));

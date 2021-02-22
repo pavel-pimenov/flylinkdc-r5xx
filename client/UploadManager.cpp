@@ -823,7 +823,11 @@ void UploadManager::removeUpload(UploadPtr& aUpload, bool delay)
 	//dcassert(find(g_uploads.begin(), g_uploads.end(), aUpload) != g_uploads.end());
 	if (!g_uploads.empty())
 	{
-		g_uploads.erase(remove(g_uploads.begin(), g_uploads.end(), aUpload), g_uploads.end());
+		auto i = find(g_uploads.begin(), g_uploads.end(), aUpload);
+		if (i != g_uploads.end())
+		{
+			g_uploads.erase(i);
+		}
 	}
 	decreaseUserConnectionAmountL(aUpload->getUser());
 	
@@ -1087,7 +1091,7 @@ size_t UploadManager::addFailedUpload(const UserConnection* aSource, const strin
 	if (it == m_slotQueue.end())
 	{
 		++queue_position;
-		m_slotQueue.push_back(WaitingUser(aSource->getHintedUser(), aSource->getUserConnectionToken(), uqi));
+		m_slotQueue.emplace_back(WaitingUser(aSource->getHintedUser(), aSource->getUserConnectionToken(), uqi));
 	}
 	else
 	{
@@ -1290,7 +1294,7 @@ void UploadManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	
 	for (auto i = l_disconnects.cbegin(); i != l_disconnects.cend(); ++i)
 	{
-		LogManager::message(STRING(DISCONNECTED_USER) + ' ' + Util::toString(ClientManager::getNicks((*i)->getCID(), Util::emptyString)));
+		LogManager::message(STRING(DISCONNECTED_USER) + ' ' + Util::toString(ClientManager::getNicks((*i)->getCID(), BaseUtil::emptyString)));
 		ConnectionManager::disconnect(*i, false);
 	}
 	
@@ -1626,7 +1630,7 @@ void UploadQueueItem::update()
 	setText(COLUMN_TYPE, Text::toT(Util::getFileExtWithoutDot(getFile())));
 	setText(COLUMN_PATH, Text::toT(Util::getFilePath(getFile())));
 	setText(COLUMN_NICK, getUser()->getLastNickT()); // [1] https://www.box.net/shared/plriwg50qendcr3kbjp5
-	setText(COLUMN_HUB, getHintedUser().user ? Text::toT(Util::toString(ClientManager::getHubNames(getHintedUser().user->getCID(), Util::emptyString))) : Util::emptyStringT);
+	setText(COLUMN_HUB, getHintedUser().user ? Text::toT(Util::toString(ClientManager::getHubNames(getHintedUser().user->getCID(), BaseUtil::emptyString))) : BaseUtil::emptyStringT);
 	setText(COLUMN_TRANSFERRED, Util::formatBytesW(getPos()) + _T(" (") + Util::toStringW((double)getPos() * 100.0 / (double)getSize()) + _T("%)"));
 	setText(COLUMN_SIZE, Util::formatBytesW(getSize()));
 	setText(COLUMN_ADDED, Text::toT(Util::formatDigitalClock(getTime())));

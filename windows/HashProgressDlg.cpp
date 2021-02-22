@@ -198,7 +198,7 @@ LRESULT HashProgressDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
 
 LRESULT HashProgressDlg::OnBnClickedBtnAbort(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-	HashManager::getInstance()->stopHashing(Util::emptyString);
+	HashManager::getInstance()->stopHashing(BaseUtil::emptyString);
 	
 	return 0;
 }

@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/config.hpp"
 #include "libtorrent/disk_buffer_pool.hpp"
 #include "libtorrent/assert.hpp"
-#include "libtorrent/allocator.hpp"
 #include "libtorrent/aux_/session_settings.hpp"
 #include "libtorrent/io_service.hpp"
 #include "libtorrent/disk_observer.hpp"
@@ -72,7 +71,7 @@ namespace libtorrent {
 		, std::function<void()> const& trigger_trim)
 		: m_in_use(0)
 		, m_max_use(64)
-		, m_low_watermark((std::max)(m_max_use - 32, 0))
+		, m_low_watermark(std::max(m_max_use - 32, 0))
 		, m_trigger_cache_trim(trigger_trim)
 		, m_exceeded_max_size(false)
 		, m_ios(ios)
@@ -137,8 +136,6 @@ namespace libtorrent {
 
 #if TORRENT_USE_INVARIANT_CHECKS
 		return m_buffers_in_use.count(buffer) == 1;
-#elif defined TORRENT_DEBUG_BUFFERS
-		return page_aligned_allocator::in_use(buffer);
 #else
 		TORRENT_UNUSED(buffer);
 		return true;
@@ -196,8 +193,8 @@ namespace libtorrent {
 					if (j.data() == nullptr) break;
 					char* buf = j.data();
 					TORRENT_ASSERT(is_disk_buffer(buf, l));
-					free_buffer_impl(buf, l);
 					remove_buffer_in_use(buf);
+					free_buffer_impl(buf, l);
 				}
 				return -1;
 			}
@@ -213,8 +210,8 @@ namespace libtorrent {
 		{
 			char* buf = i.data();
 			TORRENT_ASSERT(is_disk_buffer(buf, l));
-			free_buffer_impl(buf, l);
 			remove_buffer_in_use(buf);
+			free_buffer_impl(buf, l);
 		}
 		check_buffer_level(l);
 	}
@@ -227,7 +224,7 @@ namespace libtorrent {
 		TORRENT_ASSERT(l.owns_lock());
 		TORRENT_UNUSED(l);
 
-		char* ret = page_aligned_allocator::malloc(default_block_size);
+		char* ret = static_cast<char*>(std::malloc(default_block_size));
 
 		if (ret == nullptr)
 		{
@@ -271,8 +268,8 @@ namespace libtorrent {
 		for (char* buf : bufvec)
 		{
 			TORRENT_ASSERT(is_disk_buffer(buf, l));
-			free_buffer_impl(buf, l);
 			remove_buffer_in_use(buf);
+			free_buffer_impl(buf, l);
 		}
 
 		check_buffer_level(l);
@@ -282,8 +279,8 @@ namespace libtorrent {
 	{
 		std::unique_lock<std::mutex> l(m_pool_mutex);
 		TORRENT_ASSERT(is_disk_buffer(buf, l));
-		free_buffer_impl(buf, l);
 		remove_buffer_in_use(buf);
+		free_buffer_impl(buf, l);
 		check_buffer_level(l);
 	}
 
@@ -303,8 +300,8 @@ namespace libtorrent {
 				// The more physical RAM, the smaller portion of it is allocated
 				// for the cache.
 
-				// we take a 30th of everything exceeding 4 GiB
-				// a 20th of everything exceeding 1 GiB
+				// we take a 40th of everything exceeding 4 GiB
+				// a 30th of everything exceeding 1 GiB
 				// and a 10th of everything below a GiB
 
 				constexpr std::int64_t gb = 1024 * 1024 * 1024;
@@ -312,15 +309,15 @@ namespace libtorrent {
 				std::int64_t result = 0;
 				if (phys_ram > 4 * gb)
 				{
-					result += (phys_ram - 4 * gb) / 30;
+					result += (phys_ram - 4 * gb) / 40;
 					phys_ram = 4 * gb;
 				}
 				if (phys_ram > 1 * gb)
 				{
-					result += (phys_ram - 1 * gb) / 20;
+					result += (phys_ram - 1 * gb) / 30;
 					phys_ram = 1 * gb;
 				}
-				result += phys_ram / 10;
+				result += phys_ram / 20;
 				m_max_use = int(result / default_block_size);
 			}
 
@@ -375,7 +372,7 @@ namespace libtorrent {
 		TORRENT_ASSERT(l.owns_lock());
 		TORRENT_UNUSED(l);
 
-		page_aligned_allocator::free(buf);
+		std::free(buf);
 
 		--m_in_use;
 	}

@@ -400,7 +400,7 @@ class TransferView : public CWindowImpl<TransferView>, private DownloadManagerLi
 				ItemInfo* createParent()
 				{
 					dcassert(download);
-					ItemInfo* ii = new ItemInfo(HintedUser(nullptr, Util::emptyString), true, false);
+					ItemInfo* ii = new ItemInfo(HintedUser(nullptr, BaseUtil::emptyString), true, false);
 					ii->running = 0;
 					//ii->m_hits = 0;
 					ii->m_is_torrent = m_is_torrent;

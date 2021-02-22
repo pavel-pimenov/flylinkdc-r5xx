@@ -134,7 +134,7 @@ const string& CustomMenuManager::GetUrlByID(int id)
 	{
 		return m_urlList[id];
 	}
-	return Util::emptyString;
+	return BaseUtil::emptyString;
 }
 
 #endif // FLYLINKDC_USE_CUSTOM_MENU

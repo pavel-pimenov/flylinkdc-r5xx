@@ -162,7 +162,7 @@ void DirectoryListingFrame::loadFile(const tstring& name, const tstring& dir)
 	m_FL_LoadSec = GET_TICK();
 	ctrlStatus.SetText(0, CTSTRING(PROCESSING_FILE_LIST));
 	//don't worry about cleanup, the object will delete itself once the thread has finished it's job
-	ThreadedDirectoryListing* tdl = new ThreadedDirectoryListing(this, Text::fromT(name), Util::emptyString, dir);
+	ThreadedDirectoryListing* tdl = new ThreadedDirectoryListing(this, Text::fromT(name), BaseUtil::emptyString, dir);
 	m_loading = true;
 	try
 	{
@@ -181,7 +181,7 @@ void DirectoryListingFrame::loadXML(const string& txt)
 	m_FL_LoadSec = GET_TICK();
 	ctrlStatus.SetText(0, CTSTRING(PROCESSING_FILE_LIST));
 	//don't worry about cleanup, the object will delete itself once the thread has finished it's job
-	ThreadedDirectoryListing* tdl = new ThreadedDirectoryListing(this, Util::emptyString, txt);
+	ThreadedDirectoryListing* tdl = new ThreadedDirectoryListing(this, BaseUtil::emptyString, txt);
 	m_loading = true;
 	try
 	{
@@ -259,7 +259,7 @@ LRESULT DirectoryListingFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	SetSplitterExtendedStyle(SPLIT_PROPORTIONAL);
 	SetSplitterPanes(ctrlTree.m_hWnd, ctrlList.m_hWnd);
 	m_nProportionalPos = SETTING(DIRECTORYLISTINGFRAME_SPLIT);
-	const string nick = isDclst() ? Util::getFileName(getFileName()) : (dl->getUser() ? dl->getUser()->getLastNick() : Util::emptyString);
+	const string nick = isDclst() ? Util::getFileName(getFileName()) : (dl->getUser() ? dl->getUser()->getLastNick() : BaseUtil::emptyString);
 	treeRoot = ctrlTree.InsertItem(TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM,
 	                               Text::toT(nick).c_str(), isDclst() ? FileImage::DIR_DSLCT : FileImage::DIR_ICON,
 	                               isDclst() ? FileImage::DIR_DSLCT : FileImage::DIR_ICON, 0, 0,
@@ -1071,7 +1071,7 @@ LRESULT DirectoryListingFrame::onListDiff(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 			dirList.loadFile(Text::fromT(file));
 			dl->getRoot()->filterList(dirList);
 			m_loading = true;
-			refreshTree(Util::emptyStringT);
+			refreshTree(BaseUtil::emptyStringT);
 			m_loading = false;
 			initStatus();
 			updateStatus();
@@ -2232,7 +2232,7 @@ void DirectoryListingFrame::openFileFromList(const tstring& file)
 		return;
 		
 	if (Util::isDclstFile(file))
-		DirectoryListingFrame::openWindow(file, Util::emptyStringT, HintedUser(), 0, true);
+		DirectoryListingFrame::openWindow(file, BaseUtil::emptyStringT, HintedUser(), 0, true);
 	else
 		WinUtil::openFile(file);
 		

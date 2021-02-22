@@ -30,16 +30,13 @@ class SimpleXMLReader
 {
 	public:
 		struct CallBack
-#ifdef _DEBUG
-			: private boost::noncopyable
-#endif
 		{
 				virtual ~CallBack() { }
 				virtual void startTag(const std::string& name, StringPairList& attribs, bool simple) = 0;
 				virtual void endTag(const std::string& name, const std::string& data) = 0;
 				
 			protected:
-				static const std::string& getAttrib(StringPairList& attribs, const std::string& name, size_t hint);
+				static std::string getAttrib(StringPairList& attribs, const std::string& name, size_t hint);
 		};
 		
 		explicit SimpleXMLReader(CallBack* callback);

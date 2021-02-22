@@ -39,9 +39,6 @@ class ServerSocketListener
 };
 
 class ServerSocket : public Speaker<ServerSocketListener>
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		ServerSocket() noexcept { }

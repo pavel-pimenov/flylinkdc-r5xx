@@ -11,9 +11,6 @@
 #include "../client/NmdcHub.h"
 
 class AboutStatDlg : public CDialogImpl<AboutStatDlg>
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		enum { IDD = IDD_ABOUTSTAT };

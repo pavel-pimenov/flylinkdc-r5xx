@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2009-2016, Arvid Norberg
+Copyright (c) 2009-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -73,7 +73,7 @@ namespace libtorrent {
 	// returns the error category for I2P errors
 	TORRENT_EXPORT boost::system::error_category& i2p_category();
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	TORRENT_DEPRECATED
 	inline boost::system::error_category& get_i2p_category()
 	{ return i2p_category(); }
@@ -84,7 +84,9 @@ class i2p_stream : public proxy_base
 public:
 
 	explicit i2p_stream(io_service& io_service);
+#if TORRENT_USE_ASSERTS
 	~i2p_stream();
+#endif
 
 	enum command_t
 	{
@@ -181,7 +183,7 @@ public:
 	char const* session_id() const { return m_session_id.c_str(); }
 	std::string const& local_endpoint() const { return m_i2p_local_endpoint; }
 
-	typedef std::function<void(error_code const&, char const*)> name_lookup_handler;
+	using name_lookup_handler = std::function<void(error_code const&, char const*)>;
 	void async_name_lookup(char const* name, name_lookup_handler handler);
 
 private:

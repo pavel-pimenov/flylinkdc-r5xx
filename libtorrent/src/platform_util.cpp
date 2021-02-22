@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2012-2016, Arvid Norberg
+Copyright (c) 2012-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ const rlim_t rlim_infinity = RLIM_INFINITY;
 #endif
 
 #if defined TORRENT_WINDOWS
-#include <windows.h>
+#include "libtorrent/aux_/windows.hpp"
 #endif
 
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
@@ -68,11 +68,11 @@ namespace libtorrent {
 		return 256;
 #elif TORRENT_USE_RLIMIT
 
-		struct rlimit rl;
+		struct rlimit rl{};
 		if (getrlimit(RLIMIT_NOFILE, &rl) == 0)
 		{
 			if (rl.rlim_cur == rlim_infinity)
-				return (std::numeric_limits<int>::max)();
+				return std::numeric_limits<int>::max();
 
 			return rl.rlim_cur <= std::numeric_limits<int>::max()
 				? int(rl.rlim_cur) : std::numeric_limits<int>::max();
@@ -125,7 +125,7 @@ namespace libtorrent {
 #if TORRENT_USE_RLIMIT
 		if (ret > 0)
 		{
-			struct rlimit r;
+			struct rlimit r{};
 			if (getrlimit(rlimit_as, &r) == 0 && r.rlim_cur != rlim_infinity)
 			{
 				if (ret > std::int64_t(r.rlim_cur))

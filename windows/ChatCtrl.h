@@ -184,7 +184,7 @@ class ChatCtrl: public CWindowImpl<ChatCtrl, CRichEditCtrl>
 	public:
 		void Clear()
 		{
-			SetWindowText(Util::emptyStringT.c_str());
+			SetWindowText(BaseUtil::emptyStringT.c_str());
 			m_URLMap.clear();
 		}
 		void SetTextStyleMyNick(const CHARFORMAT2& ts)

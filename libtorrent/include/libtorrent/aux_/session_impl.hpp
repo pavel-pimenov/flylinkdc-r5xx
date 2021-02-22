@@ -37,7 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/session_settings.hpp"
 #include "libtorrent/aux_/session_interface.hpp"
 #include "libtorrent/aux_/session_udp_sockets.hpp"
-#include "libtorrent/linked_list.hpp"
+#include "libtorrent/aux_/socket_type.hpp"
 #include "libtorrent/torrent_peer.hpp"
 #include "libtorrent/torrent_peer_allocator.hpp"
 #include "libtorrent/performance_counters.hpp" // for counters
@@ -62,7 +62,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/stat.hpp"
 #include "libtorrent/file_pool.hpp"
 #include "libtorrent/bandwidth_manager.hpp"
-#include "libtorrent/socket_type.hpp"
 #include "libtorrent/disk_io_thread.hpp"
 #include "libtorrent/udp_socket.hpp"
 #include "libtorrent/assert.hpp"
@@ -77,13 +76,14 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/peer_class_type_filter.hpp"
 #include "libtorrent/kademlia/dht_observer.hpp"
 #include "libtorrent/kademlia/dht_state.hpp"
+#include "libtorrent/kademlia/announce_flags.hpp"
 #include "libtorrent/resolver.hpp"
 #include "libtorrent/invariant_check.hpp"
 #include "libtorrent/extensions.hpp"
 #include "libtorrent/aux_/portmap.hpp"
 #include "libtorrent/aux_/lsd.hpp"
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 #include "libtorrent/session_settings.hpp"
 #endif
 
@@ -109,7 +109,6 @@ namespace libtorrent {
 	class lsd;
 	class torrent;
 	class alert;
-	struct cache_info;
 	struct torrent_handle;
 
 namespace dht {
@@ -134,15 +133,15 @@ namespace aux {
 		only_outgoing
 	};
 
+	struct listen_port_mapping
+	{
+		port_mapping_t mapping = port_mapping_t{-1};
+		int port = 0;
+	};
+
 	struct listen_socket_t
 	{
-		listen_socket_t()
-		{
-			tcp_port_mapping[0] = port_mapping_t{-1};
-			tcp_port_mapping[1] = port_mapping_t{-1};
-			udp_port_mapping[0] = port_mapping_t{-1};
-			udp_port_mapping[1] = port_mapping_t{-1};
-		}
+		listen_socket_t() = default;
 
 		// listen_socket_t should not be copied or moved because
 		// references to it are held by the DHT and tracker announce
@@ -170,19 +169,35 @@ namespace aux {
 		// had to retry binding with a higher port
 		int original_port = 0;
 
-		// this is typically set to the same as the local
-		// listen port. In case a NAT port forward was
-		// successfully opened, this will be set to the
-		// port that is open on the external (NAT) interface
-		// on the NAT box itself. This is the port that has
-		// to be published to peers, since this is the port
-		// the client is reachable through.
-		int tcp_external_port = 0;
-		int udp_external_port = 0;
+		// tcp_external_port and udp_external_port return the port which
+		// should be published to peers/trackers for this socket
+		// If there are active NAT mappings the return value will be
+		// the external port returned by the NAT router, otherwise the
+		// local listen port is returned
+		int tcp_external_port()
+		{
+			for (auto const& m : tcp_port_mapping)
+			{
+				if (m.port != 0) return m.port;
+			}
+			return local_endpoint.port();
+		}
+
+		int udp_external_port()
+		{
+			for (auto const& m : udp_port_mapping)
+			{
+				if (m.port != 0) return m.port;
+			}
+			if (udp_sock) return udp_sock->sock.local_port();
+			return 0;
+		}
 
 		// 0 is natpmp 1 is upnp
-		port_mapping_t tcp_port_mapping[2];
-		port_mapping_t udp_port_mapping[2];
+		// the order of these arrays determines the priorty in
+		// which their ports will be announced to peers
+		aux::array<listen_port_mapping, 2, portmap_transport> tcp_port_mapping;
+		aux::array<listen_port_mapping, 2, portmap_transport> udp_port_mapping;
 
 		// indicates whether this is an SSL listen socket or not
 		transport ssl = transport::plaintext;
@@ -203,16 +218,22 @@ namespace aux {
 		// time on handler allocation every time we read again.
 		aux::handler_storage<TORRENT_READ_HANDLER_MAX_SIZE> udp_handler_storage;
 
+		std::shared_ptr<natpmp> natpmp_mapper;
+
 		// the key is an id that is used to identify the
 		// client with the tracker only.
 		std::uint32_t tracker_key = 0;
+
+		// set to true when we receive an incoming connection from this listen
+		// socket
+		bool incoming_connection = false;
 	};
 
 		struct TORRENT_EXTRA_EXPORT listen_endpoint_t
 		{
-			listen_endpoint_t(address adr, int p, std::string dev, transport s
+			listen_endpoint_t(address const& adr, int p, std::string dev, transport s
 				, duplex d = duplex::accept_incoming)
-				: addr(adr), port(p), device(dev), ssl(s), incoming(d) {}
+				: addr(adr), port(p), device(std::move(dev)), ssl(s), incoming(d) {}
 
 			bool operator==(listen_endpoint_t const& o) const
 			{
@@ -279,8 +300,8 @@ namespace aux {
 
 			void call_abort()
 			{
-				auto ptr = shared_from_this();
-				m_io_service.dispatch(make_handler([ptr] { ptr->abort(); }
+				auto self = shared_from_this();
+				m_io_service.dispatch(make_handler([self] { self->abort(); }
 					, m_abort_handler_storage, *this));
 			}
 
@@ -290,7 +311,7 @@ namespace aux {
 
 			struct session_plugin_wrapper : plugin
 			{
-				explicit session_plugin_wrapper(ext_function_t const& f) : m_f(f) {}
+				explicit session_plugin_wrapper(ext_function_t f) : m_f(std::move(f)) {}
 
 				std::shared_ptr<torrent_plugin> new_torrent(torrent_handle const& t, void* user) override
 				{ return m_f(t, user); }
@@ -346,7 +367,7 @@ namespace aux {
 			void incoming_connection(std::shared_ptr<socket_type> const& s);
 
 			std::weak_ptr<torrent> find_torrent(sha1_hash const& info_hash) const override;
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			//deprecated in 1.2
 
 			TORRENT_DEPRECATED
@@ -355,6 +376,10 @@ namespace aux {
 
 			TORRENT_DEPRECATED
 			std::weak_ptr<torrent> find_torrent(std::string const& uuid) const;
+
+			TORRENT_DEPRECATED
+			void insert_uuid_torrent(std::string uuid, std::shared_ptr<torrent> const& t) override
+			{ m_uuids.insert(std::make_pair(uuid, t)); }
 #endif
 #ifndef TORRENT_DISABLE_MUTABLE_TORRENTS
 			std::vector<std::shared_ptr<torrent>> find_collection(
@@ -364,18 +389,14 @@ namespace aux {
 			int num_torrents() const override { return int(m_torrents.size()); }
 
 			void insert_torrent(sha1_hash const& ih, std::shared_ptr<torrent> const& t
-				, std::string uuid) override;
-#ifndef TORRENT_NO_DEPRECATE
-			//deprecated in 1.2
-			TORRENT_DEPRECATED
-			void insert_uuid_torrent(std::string uuid, std::shared_ptr<torrent> const& t) override
-			{ m_uuids.insert(std::make_pair(uuid, t)); }
+#if TORRENT_ABI_VERSION == 1
+				, std::string uuid
 #endif
+			) override;
+
 			std::shared_ptr<torrent> delay_load_torrent(sha1_hash const& info_hash
 				, peer_connection* pc) override;
 			void set_queue_position(torrent* t, queue_position_t p) override;
-
-			peer_id const& get_peer_id() const override { return m_peer_id; }
 
 			void close_connection(peer_connection* p) noexcept override;
 
@@ -393,7 +414,11 @@ namespace aux {
 			void add_dht_router(std::pair<std::string, int> const& node);
 			void set_dht_settings(dht::dht_settings const& s);
 			dht::dht_settings const& get_dht_settings() const { return m_dht_settings; }
-			void set_dht_state(dht::dht_state state);
+
+			// you must give up ownership of the dht state
+			void set_dht_state(dht::dht_state&& state);
+			void set_dht_state(dht::dht_state const& state) = delete;
+
 			void set_dht_storage(dht::dht_storage_constructor_type sc);
 			void start_dht();
 			void stop_dht();
@@ -421,7 +446,7 @@ namespace aux {
 				, std::string salt = std::string());
 
 			void dht_get_peers(sha1_hash const& info_hash);
-			void dht_announce(sha1_hash const& info_hash, int port = 0, int flags = 0);
+			void dht_announce(sha1_hash const& info_hash, int port = 0, dht::announce_flags_t flags = {});
 
 			void dht_live_nodes(sha1_hash const& nid);
 			void dht_sample_infohashes(udp::endpoint const& ep, sha1_hash const& target);
@@ -429,7 +454,7 @@ namespace aux {
 			void dht_direct_request(udp::endpoint const& ep, entry& e
 				, void* userdata = nullptr);
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			TORRENT_DEPRECATED
 			entry dht_state() const;
 			TORRENT_DEPRECATED
@@ -442,7 +467,7 @@ namespace aux {
 				, std::vector<address> const& addresses, int port);
 #endif
 
-#if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
+#if !defined TORRENT_DISABLE_ENCRYPTION
 			torrent const* find_encrypted_torrent(
 				sha1_hash const& info_hash, sha1_hash const& xor_mask) override;
 
@@ -470,7 +495,7 @@ namespace aux {
 			port_filter const& get_port_filter() const override;
 			void ban_ip(address addr) override;
 
-			void queue_tracker_request(tracker_request& req
+			void queue_tracker_request(tracker_request&& req
 				, std::weak_ptr<request_callback> c) override;
 
 			// ==== peer class operations ====
@@ -503,14 +528,16 @@ namespace aux {
 				std::shared_ptr<torrent> const& torrent_ptr, void* userdata);
 #endif
 
-			torrent_handle add_torrent(add_torrent_params, error_code& ec);
+			// the add_torrent_params object must be moved in
+			torrent_handle add_torrent(add_torrent_params&&, error_code& ec);
+
 			// second return value is true if the torrent was added and false if an
 			// existing one was found.
 			std::pair<std::shared_ptr<torrent>, bool>
 			add_torrent_impl(add_torrent_params& p, error_code& ec);
 			void async_add_torrent(add_torrent_params* params);
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			void on_async_load_torrent(add_torrent_params* params, error_code ec);
 #endif
 
@@ -531,7 +558,7 @@ namespace aux {
 			void pop_alerts(std::vector<alert*>* alerts);
 			alert* wait_for_alert(time_duration max_wait);
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			TORRENT_DEPRECATED void pop_alerts();
 			TORRENT_DEPRECATED alert const* pop_alert();
 			TORRENT_DEPRECATED std::size_t set_alert_queue_size_limit(std::size_t queue_size_limit_);
@@ -584,18 +611,23 @@ namespace aux {
 				m_optimistic_unchoke_time_scaler = 0;
 			}
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			session_status status() const;
+			peer_id deprecated_get_peer_id() const;
 #endif
 
 			void get_cache_info(torrent_handle h, cache_status* ret, int flags) const;
 
-			void set_peer_id(peer_id const& id);
-			void set_key(std::uint32_t key);
 			std::uint16_t listen_port() const override;
 			std::uint16_t listen_port(listen_socket_t* sock) const;
 			std::uint16_t ssl_listen_port() const override;
 			std::uint16_t ssl_listen_port(listen_socket_t* sock) const;
+
+			// used by the DHT tracker, returns a UDP listen port
+			int get_listen_port(transport ssl, aux::listen_socket_handle const& s) override;
+			// used by peer connections, returns a TCP listen port
+			// or zero if no matching listen socket is found
+			int listen_port(transport ssl, address const& local_addr) override;
 
 			std::uint32_t get_tracker_key(address const& iface) const;
 
@@ -642,7 +674,7 @@ namespace aux {
 
 			void start_ip_notifier();
 			void start_lsd();
-			natpmp* start_natpmp();
+			void start_natpmp();
 			upnp* start_upnp();
 
 			void stop_ip_notifier();
@@ -650,16 +682,13 @@ namespace aux {
 			void stop_natpmp();
 			void stop_upnp();
 
-			port_mapping_t add_port_mapping(portmap_protocol t, int external_port
+			std::vector<port_mapping_t> add_port_mapping(portmap_protocol t, int external_port
 				, int local_port);
 			void delete_port_mapping(port_mapping_t handle);
 
 			int next_port() const;
 
 			void deferred_submit_jobs() override;
-
-			torrent_peer* allocate_peer_entry(int type);
-			void free_peer_entry(torrent_peer* p);
 
 			// implements dht_observer
 			void set_external_address(aux::listen_socket_handle const& iface
@@ -699,6 +728,7 @@ namespace aux {
 			mutable std::condition_variable cond;
 
 			// implements session_interface
+			bool has_udp_outgoing_sockets() const override;
 			tcp::endpoint bind_outgoing_socket(socket_type& s, address
 				const& remote_address, error_code& ec) const override;
 			bool verify_incoming_interface(address const& addr);
@@ -716,12 +746,16 @@ namespace aux {
 			{ return &m_ssl_utp_socket_manager; }
 #endif
 
-			void inc_boost_connections() override { ++m_boost_connections; }
+			void inc_boost_connections() override
+			{
+				++m_boost_connections;
+				m_stats_counters.inc_stats_counter(counters::boost_connection_attempts);
+			}
 
 			// the settings for the client
 			aux::session_settings m_settings;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			void update_ssl_listen();
 			void update_dht_upload_rate_limit();
 			void update_local_download_rate();
@@ -753,13 +787,12 @@ namespace aux {
 			void update_lsd();
 			void update_dht();
 			void update_count_slow();
-			void update_peer_fingerprint();
 			void update_dht_bootstrap_nodes();
+			void update_dht_settings();
 
 			void update_socket_buffer_size();
 			void update_dht_announce_interval();
 			void update_anonymous_mode();
-			void update_force_proxy();
 			void update_download_rate();
 			void update_upload_rate();
 			void update_connections_limit();
@@ -779,17 +812,17 @@ namespace aux {
 			peer_class_pool m_classes;
 
 			void init();
-//			void init_dht();
 
 			void submit_disk_jobs();
 
 			void on_trigger_auto_manage();
 
 			void on_lsd_peer(tcp::endpoint const& peer, sha1_hash const& ih) override;
-			void setup_socket_buffers(socket_type& s) override;
+
+			void start_natpmp(aux::listen_socket_t& s);
 
 			void set_external_address(std::shared_ptr<listen_socket_t> const& sock, address const& ip
-				, ip_source_t const source_type, address const& source);
+				, ip_source_t source_type, address const& source);
 
 			void interface_to_endpoints(std::string const& device, int port
 				, transport ssl, duplex incoming, std::vector<listen_endpoint_t>& eps);
@@ -817,7 +850,7 @@ namespace aux {
 			// handles delayed alerts
 			mutable alert_manager m_alerts;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			// the alert pointers stored in m_alerts
 			mutable aux::vector<alert*> m_alert_pointers;
 
@@ -873,13 +906,13 @@ namespace aux {
 			// ordered by their queue position
 			aux::vector<torrent*, queue_position_t> m_download_queue;
 
-#if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
+#if !defined TORRENT_DISABLE_ENCRYPTION
 			// this maps obfuscated hashes to torrents. It's only
 			// used when encryption is enabled
 			torrent_map m_obfuscated_torrents;
 #endif
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			//deprecated in 1.2
 			std::map<std::string, std::shared_ptr<torrent>> m_uuids;
 #endif
@@ -920,9 +953,6 @@ namespace aux {
 
 			// filters outgoing connections
 			port_filter m_port_filter;
-
-			// the peer id that is generated at the start of the session
-			peer_id m_peer_id;
 
 			// posts a notification when the set of local IPs changes
 			std::unique_ptr<ip_change_notifier> m_ip_notifier;
@@ -1059,7 +1089,7 @@ namespace aux {
 #ifndef TORRENT_DISABLE_DHT
 			std::unique_ptr<dht::dht_storage_interface> m_dht_storage;
 			std::shared_ptr<dht::dht_tracker> m_dht;
-			dht::dht_settings m_dht_settings;
+			dht::settings m_dht_settings;
 			dht::dht_storage_constructor_type m_dht_storage_constructor
 				= dht::dht_default_storage_constructor;
 
@@ -1150,11 +1180,10 @@ namespace aux {
 			// this is deducted from the connect speed
 			int m_boost_connections = 0;
 
-			std::shared_ptr<natpmp> m_natpmp;
 			std::shared_ptr<upnp> m_upnp;
 			std::shared_ptr<lsd> m_lsd;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			struct work_thread_t
 			{
 				work_thread_t()
@@ -1190,7 +1219,9 @@ namespace aux {
 			aux::handler_storage<TORRENT_READ_HANDLER_MAX_SIZE> m_tick_handler_storage;
 
 			// abort may not fail and cannot allocate memory
-#ifdef _M_AMD64
+#if defined BOOST_ASIO_ENABLE_HANDLER_TRACKING
+			aux::handler_storage<100> m_abort_handler_storage;
+#elif defined _M_AMD64
 			aux::handler_storage<88> m_abort_handler_storage;
 #else
 			aux::handler_storage<56> m_abort_handler_storage;
@@ -1269,7 +1300,7 @@ namespace aux {
 			std::array<std::vector<std::shared_ptr<plugin>>, 4> m_ses_extensions;
 #endif
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			user_load_function_t m_user_load_torrent;
 #endif
 
@@ -1298,6 +1329,10 @@ namespace aux {
 
 			// is true if the session is paused
 			bool m_paused = false;
+
+			// set to true the first time post_session_stats() is
+			// called and we post the headers alert
+			bool m_posted_stats_header = false;
 		};
 
 #ifndef TORRENT_DISABLE_LOGGING

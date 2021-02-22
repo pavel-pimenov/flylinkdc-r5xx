@@ -26,9 +26,8 @@
 
 #include <ImageHlp.h>
 
-#ifdef FLYLINKDC_SUPPORT_WIN_VISTA
 #define PSAPI_VERSION 1
-#endif
+
 #include <psapi.h>
 #if _MSC_VER >= 1700
 #include <atlbase.h>
@@ -137,26 +136,14 @@ void CompatibilityManager::detectOsSupports()
 	        CURRENT_VER(6, 1)) // Windows 7
 		set(OS_WINDOWS7_PLUS);
 #endif
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
+		
 	if (FUTURE_VER(7) || // future version
 	        FUTURE_MINOR_VER(6, 1) || // Windows 7 and newer
 	        CURRENT_VER(6, 0)) // Windows Vista
 		set(OS_VISTA_PLUS);
 		
-	if (FUTURE_VER(6) || // Windows Vista and newer
-	        CURRENT_VER_SP(5, 2, 2) || // Windows Server 2003 SP2
-	        CURRENT_VER_SP(5, 1, 3)) // Windows XP SP3
-		set(OS_XP_SP3_PLUS);
-#endif
-		
 	if (
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
-	    !CURRENT_VER_SP(5, 1, 3) && // Windows XP SP3 http://ru.wikipedia.org/wiki/Windows_XP
-	    !CURRENT_VER_SP(5, 2, 2) && // Windows Server 2003 SP2  http://ru.wikipedia.org/wiki/Windows_Server_2003
-#endif
-#ifdef FLYLINKDC_SUPPORT_WIN_VISTA
 	    !CURRENT_VER_SP(6, 0, 2) && // Windows Vista SP2 & Windows Server 2008 SP2 // http://ru.wikipedia.org/wiki/Windows_Vista http://en.wikipedia.org/wiki/Windows_Server_2008
-#endif
 	    !CURRENT_VER_SP(6, 1, 1) && // Windows 7 SP1 & Windows Server 2008 R2 SP1  http://en.wikipedia.org/wiki/Windows_7 http://en.wikipedia.org/wiki/Windows_Server_2008_R2
 	    !CURRENT_VER_SP(6, 2, 0) &&   // Windows 8 & Windows Server 2012 http://en.wikipedia.org/wiki/Windows_8 http://ru.wikipedia.org/wiki/Windows_Server_2012
 	    !CURRENT_VER_SP(6, 3, 0) &&  // Windows 8.1 & Windows Server 2012 R2 http://en.wikipedia.org/wiki/Windows_8.1 http://ru.wikipedia.org/wiki/Windows_Server_2012
@@ -260,7 +247,7 @@ string CompatibilityManager::getIncompatibleSoftwareMessage()
 		temp += ' ' + Util::getWikiLink() + "incompatiblesoftware";
 		return temp;
 	}
-	return Util::emptyString;
+	return BaseUtil::emptyString;
 }
 
 string CompatibilityManager::getFormatedOsVersion()
@@ -660,7 +647,7 @@ string CompatibilityManager::generateGlobalMemoryStatusMessage()
 		memoryInfo += "\t\tThere are\t" + Util::formatBytes(curMemoryInfo.ullAvailPhys) + " free of physical memory.\r\n";
 		return memoryInfo;
 	}
-	return Util::emptyString;
+	return BaseUtil::emptyString;
 }
 
 float CompatibilityManager::ProcSpeedCalc() // moved form WinUtil.
@@ -774,13 +761,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 				          l_procs.c_str(),
 				          Util::formatBytes(g_TotalPhysMemory).c_str(),
 				          Util::formatBytes(g_FreePhysMemory).c_str(),
-				          Util::formatTime(
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
-				              GetTickCount()
-#else
-				              GetTickCount64()
-#endif
-				              / 1000).c_str(),
+				          Util::formatTime(GetTickCount64() / 1000).c_str(),
 				          Util::formatTime(Util::getUpTime()).c_str(),
 				          Util::formatBytes(l_pmc.WorkingSetSize).c_str(),
 				          Util::formatBytes(l_pmc.PeakWorkingSetSize).c_str(),
@@ -813,7 +794,7 @@ string CompatibilityManager::generateProgramStats() // moved form WinUtil.
 WORD CompatibilityManager::getDllPlatform(const string& fullpath)
 {
 	WORD bRet = IMAGE_FILE_MACHINE_UNKNOWN;
-	PLOADED_IMAGE imgLoad = ::ImageLoad(Text::fromUtf8(fullpath).c_str(), Util::emptyString.c_str());
+	PLOADED_IMAGE imgLoad = ::ImageLoad(Text::fromUtf8(fullpath).c_str(), BaseUtil::emptyString.c_str());
 	if (imgLoad && imgLoad->FileHeader)
 	{
 		bRet = imgLoad->FileHeader->FileHeader.Machine;

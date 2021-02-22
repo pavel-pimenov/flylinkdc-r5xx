@@ -339,7 +339,7 @@ const FavoriteHubEntry* Client::reloadSettings(bool updateNick)
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
 		setHideShare(false);
 #endif
-		setFavIp(Util::emptyString);
+		setFavIp(BaseUtil::emptyString);
 		
 		setSearchInterval(SETTING(MINIMUM_SEARCH_INTERVAL) * 1000, false);
 		setSearchIntervalPassive(SETTING(MINIMUM_SEARCH_PASSIVE_INTERVAL) * 1000, false);
@@ -537,11 +537,11 @@ string Client::getCipherName() const
 {
 #ifdef FLYLINKDC_USE_CS_CLIENT_SOCKET
 	if (!isReady())
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 		
 	CFlyFastLock(lock(csSock);
 #endif
-	             return m_client_sock ? m_client_sock->getCipherName() : Util::emptyString;
+	             return m_client_sock ? m_client_sock->getCipherName() : BaseUtil::emptyString;
 }
 
 vector<uint8_t> Client::getKeyprint() const
@@ -1183,7 +1183,7 @@ const string& Client::getRawCommand(const int aRawCommand) const
 		case 5:
 			return rawFive;
 	}
-	return Util::emptyString;
+	return BaseUtil::emptyString;
 }
 
 void Client::processingPassword()

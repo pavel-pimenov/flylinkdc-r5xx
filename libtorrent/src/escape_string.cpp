@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 
 #ifdef TORRENT_WINDOWS
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
+#include "libtorrent/aux_/windows.hpp"
 #endif
 
 #if TORRENT_USE_ICONV
@@ -69,7 +66,6 @@ namespace libtorrent {
 	std::string unescape_string(string_view s, error_code& ec)
 	{
 		std::string ret;
-	//	ret.reserve(s.length());
 		for (auto i = s.begin(); i != s.end(); ++i)
 		{
 			if (*i == '+')
@@ -190,15 +186,13 @@ namespace libtorrent {
 
 	void convert_path_to_posix(std::string& path)
 	{
-		for (char& c : path)
-			if (c == '\\') c = '/';
+		std::replace(path.begin(), path.end(), '\\', '/');
 	}
 
 #ifdef TORRENT_WINDOWS
 	void convert_path_to_windows(std::string& path)
 	{
-		for (char& c : path)
-			if (c == '/') c = '\\';
+		std::replace(path.begin(), path.end(), '/', '\\');
 	}
 #endif
 
@@ -257,7 +251,7 @@ namespace libtorrent {
 		return msg;
 	}
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	std::string resolve_file_url(std::string const& url)
 	{
 		TORRENT_ASSERT(url.substr(0, 7) == "file://");
@@ -474,29 +468,6 @@ namespace libtorrent {
 		return pos + p;
 	}
 
-	string_view url_has_argument(
-		string_view url, std::string argument, std::string::size_type* out_pos)
-	{
-		auto i = url.find('?');
-		if (i == std::string::npos) return {};
-		++i;
-
-		argument += '=';
-
-		if (url.substr(i, argument.size()) == argument)
-		{
-			auto const pos = i + argument.size();
-			if (out_pos) *out_pos = pos;
-			return url.substr(pos, url.substr(pos).find('&'));
-		}
-		argument.insert(0, "&");
-		i = find(url, argument, i);
-		if (i == std::string::npos) return {};
-		auto const pos = i + argument.size();
-		if (out_pos) *out_pos = pos;
-		return url.substr(pos, find(url, "&", pos) - pos);
-	}
-
 #if defined TORRENT_WINDOWS
 	std::wstring convert_to_wstring(std::string const& s)
 	{
@@ -652,7 +623,6 @@ namespace {
 		ws.resize(s.size());
 		std::size_t size = mbstowcs(&ws[0], s.c_str(), s.size());
 		if (size == std::size_t(-1)) return s;
-		std::string ret;
 		return libtorrent::wchar_utf8(ws);
 	}
 

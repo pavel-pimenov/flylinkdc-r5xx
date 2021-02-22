@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2009-2016, Arvid Norberg
+Copyright (c) 2009-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "libtorrent/config.hpp"
-#include "libtorrent/socket_type.hpp"
+#include "libtorrent/aux_/socket_type.hpp"
 #include "libtorrent/aux_/openssl.hpp"
 
 #ifdef TORRENT_USE_OPENSSL
@@ -43,6 +43,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/debug.hpp"
 
 namespace libtorrent {
+namespace aux {
 
 	bool is_ssl(socket_type const& s)
 	{
@@ -56,7 +57,7 @@ namespace libtorrent {
 			CASE(utp_stream)
 				return true;
 			default: return false;
-		};
+		}
 #undef CASE
 #else
 		TORRENT_UNUSED(s);
@@ -140,6 +141,8 @@ namespace libtorrent {
 #ifdef TORRENT_USE_OPENSSL
 	namespace {
 
+	void nop(std::shared_ptr<void>) {}
+
 	void on_close_socket(socket_type* s, std::shared_ptr<void>)
 	{
 		COMPLETE_ASYNC("on_close_socket");
@@ -164,9 +167,16 @@ namespace libtorrent {
 #define MAYBE_ASIO_DEBUGGING
 #endif
 
+	static char const buffer[] = "";
+	// chasing the async_shutdown by a write is a trick to close the socket as
+	// soon as we've sent the close_notify, without having to wait to receive a
+	// response from the other end
+	// https://stackoverflow.com/questions/32046034/what-is-the-proper-way-to-securely-disconnect-an-asio-ssl-socket
+
 #define CASE(t) case socket_type_int_impl<ssl_stream<t>>::value: \
 	MAYBE_ASIO_DEBUGGING \
-	s.get<ssl_stream<t>>()->async_shutdown(std::bind(&on_close_socket, &s, holder)); \
+	s.get<ssl_stream<t>>()->async_shutdown(std::bind(&nop, holder)); \
+	s.get<ssl_stream<t>>()->async_write_some(boost::asio::buffer(buffer), std::bind(&on_close_socket, &s, holder)); \
 	break;
 
 		switch (s.type())
@@ -186,7 +196,7 @@ namespace libtorrent {
 
 	void socket_type::destruct()
 	{
-		typedef tcp::socket tcp_socket;
+		using tcp_socket = tcp::socket;
 		switch (m_type)
 		{
 			case 0: break;
@@ -395,4 +405,5 @@ namespace libtorrent {
 	{ TORRENT_SOCKTYPE_FORWARD_RET(available(), 0) }
 #endif
 
+}
 }

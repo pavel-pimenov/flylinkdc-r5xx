@@ -16,9 +16,6 @@
 #include "HIconWrapper.h"
 
 class AboutDlgIndex : public CDialogImpl<AboutDlgIndex>
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		static const int m_log_page = 0;        // Temp : deactivate Log Page (VERSION_HISTORY), because code not present

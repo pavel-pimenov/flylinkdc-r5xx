@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2008-2016, Arvid Norberg
+Copyright (c) 2008-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,20 +38,14 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/aux_/block_cache_reference.hpp"
 #include "libtorrent/span.hpp"
 
-#include <memory>
-
 namespace libtorrent {
-
-	struct disk_io_thread;
-	struct disk_observer;
-	struct disk_buffer_holder;
 
 	struct TORRENT_EXTRA_EXPORT buffer_allocator_interface
 	{
 		virtual void free_disk_buffer(char* b) = 0;
 		virtual void reclaim_blocks(span<aux::block_cache_reference> refs) = 0;
 	protected:
-		~buffer_allocator_interface() {}
+		~buffer_allocator_interface() = default;
 	};
 
 	// The disk buffer holder acts like a ``unique_ptr`` that frees a disk buffer
@@ -66,7 +60,7 @@ namespace libtorrent {
 		disk_buffer_holder(buffer_allocator_interface& alloc
 			, char* buf, std::size_t sz) noexcept;
 
-		disk_buffer_holder& operator=(disk_buffer_holder&&) noexcept;
+		disk_buffer_holder& operator=(disk_buffer_holder&&) & noexcept;
 		disk_buffer_holder(disk_buffer_holder&&) noexcept;
 
 		disk_buffer_holder& operator=(disk_buffer_holder const&) = delete;

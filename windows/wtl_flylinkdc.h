@@ -226,9 +226,6 @@ class CFlyTimerAdapter : public CFlyHandlerAdapter
 };
 
 class CFlyHyperLink : public CHyperLink
-#ifdef _DEBUG
-	, private boost::noncopyable
-#endif
 {
 #ifdef _DEBUG
 		void Attach(_In_opt_ HWND hWndNew) noexcept
@@ -247,9 +244,6 @@ class CFlyHyperLink : public CHyperLink
 };
 
 class CFlyToolTipCtrl : public CToolTipCtrl
-#ifdef _DEBUG
-	, private boost::noncopyable
-#endif
 {
 	public:
 		CFlyToolTipCtrl()
@@ -268,9 +262,6 @@ class CFlyToolTipCtrl : public CToolTipCtrl
 
 template<bool needsInvalidate = false>
 class CLockRedraw
-#ifdef _DEBUG
-	: private boost::noncopyable
-#endif
 {
 	public:
 		explicit CLockRedraw(const HWND p_hWnd) noexcept :
@@ -298,9 +289,6 @@ class CLockRedraw
 };
 #if 0
 class CFlyTimer // TODO пока не используется
-#ifdef _DEBUG
-	: private boost::noncopyable
-#endif
 {
 		TIMERPROC m_f;
 		UINT_PTR m_Timer;
@@ -332,9 +320,6 @@ class CFlyTimer // TODO пока не используется
 // copy-paste from wtl\atlwinmisc.h
 // (Иначе много предупреждений валится warning C4245: 'argument' : conversion from 'int' to 'UINT_PTR', signed/unsigned mismatch )
 class CFlyLockWindowUpdate
-#ifdef _DEBUG
-	: private boost::noncopyable
-#endif
 {
 	public:
 		explicit CFlyLockWindowUpdate(HWND hWnd)

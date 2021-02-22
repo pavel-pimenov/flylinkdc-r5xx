@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <boost/intrusive/list.hpp>
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 
-#include "libtorrent/export.hpp"
+#include "libtorrent/aux_/export.hpp"
 #include "libtorrent/block_cache.hpp" // for cached_piece_entry
 
 namespace libtorrent {

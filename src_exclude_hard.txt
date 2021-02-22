@@ -12,7 +12,6 @@ test-console.pdb
 FlyUpdate.pdb
 UpdateMaker.pdb
 vc1?0.pdb
-vc15
 vc17
 FlylinkDCShellExt*.pdb
 FlylinkDC_Debug*.pdb

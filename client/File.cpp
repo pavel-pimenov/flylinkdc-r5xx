@@ -23,9 +23,11 @@
 #include "BZUtils.h"
 #include "../FlyFeatures/flyServer.h"
 #include "ClientManager.h"
+#include "CompatibilityManager.h"
+#else
+#include "BaseUtil.h"
 #endif
 
-#include "CompatibilityManager.h"
 
 const FileFindIter FileFindIter::end;
 
@@ -87,7 +89,7 @@ void File::init(const tstring& aFileName, int access, int mode, bool isAbsoluteP
 		}
 #endif
 #endif
-		throw FileException(Util::translateError());
+		throw FileException(BaseUtil::translateError());
 	}
 }
 
@@ -103,13 +105,13 @@ int64_t File::getTimeStamp(const string& aFileName)
 {
 	WIN32_FIND_DATA fd;
 	HANDLE hFind = FindFirstFileEx(Text::toT(formatPath(aFileName)).c_str(),
-	                               CompatibilityManager::g_find_file_level,
+	                               FindExInfoBasic,
 	                               &fd,
 	                               FindExSearchNameMatch,
 	                               NULL,
 	                               0);
 	if (hFind == INVALID_HANDLE_VALUE)
-		throw FileException(Util::translateError() + ": " + aFileName);
+		throw FileException(BaseUtil::translateError() + ": " + aFileName);
 	FindClose(hFind);
 	return *(int64_t*)&fd.ftLastWriteTime;
 }
@@ -118,11 +120,11 @@ void File::setTimeStamp(const string& aFileName, const uint64_t stamp)
 {
 	HANDLE hCreate = CreateFile(formatPath(Text::toT(aFileName)).c_str(), FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
 	if (hCreate == INVALID_HANDLE_VALUE)
-		throw FileException(Util::translateError() + ": " + aFileName);
+		throw FileException(BaseUtil::translateError() + ": " + aFileName);
 	if (!SetFileTime(hCreate, NULL, NULL, (FILETIME*)&stamp))
 	{
 		CloseHandle(hCreate);
-		throw FileException(Util::translateError() + ": " + aFileName);
+		throw FileException(BaseUtil::translateError() + ": " + aFileName);
 	}
 	CloseHandle(hCreate);
 }
@@ -206,14 +208,14 @@ void File::setPos(int64_t pos)
 	LARGE_INTEGER x = {0};
 	x.QuadPart = pos;
 	if (!::SetFilePointerEx(h, x, &x, FILE_BEGIN))
-		throw(FileException(Util::translateError()));
+		throw(FileException(BaseUtil::translateError()));
 }
 int64_t File::setEndPos(int64_t pos)
 {
 	LARGE_INTEGER x = {0};
 	x.QuadPart = pos;
 	if (!::SetFilePointerEx(h, x, &x, FILE_END))
-		throw(FileException(Util::translateError()));
+		throw(FileException(BaseUtil::translateError()));
 	return x.QuadPart;
 }
 
@@ -222,7 +224,7 @@ void File::movePos(int64_t pos)
 	LARGE_INTEGER x = {0};
 	x.QuadPart = pos;
 	if (!::SetFilePointerEx(h, x, &x, FILE_CURRENT))
-		throw(FileException(Util::translateError()));
+		throw(FileException(BaseUtil::translateError()));
 }
 
 size_t File::read(void* buf, size_t& len)
@@ -230,7 +232,7 @@ size_t File::read(void* buf, size_t& len)
 	DWORD x = 0;
 	if (!::ReadFile(h, buf, (DWORD)len, &x, NULL))
 	{
-		throw (FileException(Util::translateError()));
+		throw (FileException(BaseUtil::translateError()));
 	}
 	len = x;
 	return x;
@@ -241,7 +243,7 @@ size_t File::write(const void* buf, size_t len)
 	DWORD x = 0;
 	if (!::WriteFile(h, buf, (DWORD)len, &x, NULL))
 	{
-		throw FileException(Util::translateError());
+		throw FileException(BaseUtil::translateError());
 	}
 	if (x != len)
 	{
@@ -254,7 +256,7 @@ void File::setEOF()
 	dcassert(isOpen());
 	if (!SetEndOfFile(h))
 	{
-		throw FileException(Util::translateError());
+		throw FileException(BaseUtil::translateError());
 	}
 }
 #ifdef _DEBUG
@@ -296,7 +298,7 @@ size_t File::flushBuffers(bool aForce)
 			if (!ClientManager::isBeforeShutdown()) // fix https://drdump.com/Bug.aspx?ProblemID=135087
 			{
 				CFlyServerJSON::pushError(33, l_error);
-				throw FileException(Util::translateError());
+				throw FileException(BaseUtil::translateError());
 			}
 		}
 	}
@@ -368,7 +370,7 @@ void File::copyFile(const tstring & source, const tstring & target)
 {
 	if (!::CopyFile(formatPath(source).c_str(), formatPath(target).c_str(), FALSE))
 	{
-		throw FileException(Util::translateError());
+		throw FileException(BaseUtil::translateError());
 	}
 }
 #ifndef _CONSOLE
@@ -556,7 +558,7 @@ string File::read()
 	setPos(0);
 	int64_t sz = getSize();
 	if (sz <= 0)
-		return Util::emptyString;
+		return string();
 	return read((uint32_t)sz);
 }
 uint64_t File::calcFilesSize(const string& path, const string& pattern)
@@ -564,7 +566,7 @@ uint64_t File::calcFilesSize(const string& path, const string& pattern)
 	uint64_t l_size = 0;
 	WIN32_FIND_DATA data;
 	HANDLE hFind = FindFirstFileEx(formatPath(Text::toT(path + pattern)).c_str(),
-	                               CompatibilityManager::g_find_file_level,
+	                               FindExInfoBasic,
 	                               &data,
 	                               FindExSearchNameMatch,
 	                               NULL,
@@ -612,8 +614,10 @@ void File::deleteFiles(const string& path, const string& pattern)
 	}
 	else
 	{
+#ifndef _CONSOLE
 		const string l_error = Util::translateError();
 		LogManager::message("File::deleteFiles error [" + path + "] code:" + l_error);
+#endif
 	}
 }
 StringList File::findFiles(const string& path, const string& pattern, bool p_append_path /*= true */)
@@ -629,7 +633,7 @@ StringList File::findFiles(const string& path, const string& pattern, bool p_app
 	};
 	WIN32_FIND_DATA data;
 	HANDLE hFind = FindFirstFileEx(formatPath(Text::toT(path + pattern)).c_str(),
-	                               CompatibilityManager::g_find_file_level,
+	                               FindExInfoBasic,
 	                               &data,
 	                               FindExSearchNameMatch,
 	                               NULL,
@@ -651,8 +655,10 @@ StringList File::findFiles(const string& path, const string& pattern, bool p_app
 	else
 	{
 		dcassert(0);
+#ifndef _CONSOLE
 		const string l_error = Util::translateError();
 		LogManager::message("File::findFiles error [" + path + "] code:" + l_error);
+#endif
 	}
 	return ret;
 }
@@ -662,11 +668,11 @@ void FileFindIter::init(const tstring & path)
 	//WIN32_FIND_DATA l_init = {0};
 	//m_data = l_init;
 	m_handle = FindFirstFileEx(File::formatPath(path).c_str(),
-	                           CompatibilityManager::g_find_file_level,
+	                           FindExInfoBasic,
 	                           &m_data,
 	                           FindExSearchNameMatch,
 	                           NULL,
-	                           CompatibilityManager::g_find_file_flags);
+	                           FIND_FIRST_EX_LARGE_FETCH);
 	if (m_handle == INVALID_HANDLE_VALUE)
 	{
 		// dcassert(0);
@@ -724,11 +730,13 @@ bool FileFindIter::DirData::isDirectory() const
 	return (dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) > 0;
 }
 
+#ifndef _CONSOLE
 bool FileFindIter::DirData::isHidden() const
 {
 	return ((dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) > 0
 	        || (CompatibilityManager::isWine() && cFileName[0] == L'.'));
 }
+#endif
 bool FileFindIter::DirData::isLink() const
 {
 	return (dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) > 0;

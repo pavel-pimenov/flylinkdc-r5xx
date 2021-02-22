@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/chained_buffer.hpp"
 #include "libtorrent/assert.hpp"
 
-#include <cstring> // for memcpy
+#include <algorithm> // for copy
 
 namespace libtorrent {
 
@@ -90,7 +90,7 @@ namespace libtorrent {
 		TORRENT_ASSERT(!m_destructed);
 		char* const insert = allocate_appendix(static_cast<int>(buf.size()));
 		if (insert == nullptr) return nullptr;
-		std::memcpy(insert, buf.data(), buf.size());
+		std::copy(buf.begin(), buf.end(), insert);
 		return insert;
 	}
 
@@ -112,7 +112,7 @@ namespace libtorrent {
 		return insert;
 	}
 
-	std::vector<boost::asio::const_buffer> const& chained_buffer::build_iovec(int const to_send)
+	span<boost::asio::const_buffer const> chained_buffer::build_iovec(int const to_send)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		TORRENT_ASSERT(!m_destructed);
@@ -137,11 +137,11 @@ namespace libtorrent {
 			if (i->used_size > bytes)
 			{
 				TORRENT_ASSERT(bytes > 0);
-				vec.push_back(Buffer(i->buf, std::size_t(bytes)));
+				vec.emplace_back(i->buf, std::size_t(bytes));
 				break;
 			}
 			TORRENT_ASSERT(i->used_size > 0);
-			vec.push_back(Buffer(i->buf, std::size_t(i->used_size)));
+			vec.emplace_back(i->buf, std::size_t(i->used_size));
 			bytes -= i->used_size;
 		}
 	}

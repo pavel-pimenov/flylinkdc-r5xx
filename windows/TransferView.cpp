@@ -455,17 +455,18 @@ LRESULT TransferView::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam,
 				transferMenu.AppendMenu(MF_SEPARATOR);
 				if (!main && (i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1)
 				{
-					const ItemInfo* itemI = ctrlTransfers.getItemData(i);
+					const ItemInfo* ii = ctrlTransfers.getItemData(i);
+					if (ii)
+					{
 					bCustomMenu = true;
 					
-					
-					
-					reinitUserMenu(itemI->m_hintedUser.user, itemI->m_hintedUser.hint);
+						reinitUserMenu(ii->m_hintedUser.user, ii->m_hintedUser.hint);
 					
 					if (getSelectedUser())
 					{
 						appendUcMenu(usercmdsMenu, UserCommand::CONTEXT_USER, ClientManager::getHubs(getSelectedUser()->getCID(), getSelectedHint()));
 					}
+				}
 				}
 				
 				appendAndActivateUserItems(transferMenu);
@@ -589,7 +590,7 @@ void TransferView::runUserCommand(UserCommand& uc)
 	while ((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const ItemInfo* itemI = ctrlTransfers.getItemData(i);
-		if (itemI->m_hintedUser.user && itemI->m_hintedUser.user->isOnline())
+		if (itemI && itemI->m_hintedUser.user && itemI->m_hintedUser.user->isOnline())
 		{
 			StringMap tmp = ucParams;
 			ucParams["fileFN"] = Text::fromT(itemI->m_target);
@@ -610,7 +611,7 @@ LRESULT TransferView::onForce(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 		ItemInfo* ii = ctrlTransfers.getItemData(i);
 		ctrlTransfers.SetItemText(i, COLUMN_STATUS, CTSTRING(CONNECTING_FORCED));
 		
-		if (ii->parent == NULL && ii->m_hits != -1)
+		if (ii && ii->parent == NULL && ii->m_hits != -1)
 		{
 			const vector<ItemInfo*>& children = ctrlTransfers.findChildren(ii->getGroupCond());
 			for (auto j = children.cbegin(); j != children.cend(); ++j)
@@ -1110,6 +1111,8 @@ LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 			return 0;
 			
 		ItemInfo* i = ctrlTransfers.getItemData(item->iItem);
+		if (i)
+		{
 		const vector<ItemInfo*>& children = ctrlTransfers.findChildren(i->getGroupCond());
 		if (!i->m_is_torrent)
 		{
@@ -1144,6 +1147,7 @@ LRESULT TransferView::onDoubleClickTransfers(int /*idCtrl*/, LPNMHDR pnmh, BOOL&
 				}
 			}
 		}
+	}
 	}
 	return 0;
 }
@@ -1323,7 +1327,8 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 				for (int j = 0; j < ctrlTransfers.GetItemCount(); ++j)
 				{
 					ItemInfo* ii = ctrlTransfers.getItemData(j);
-					
+					if (!ii)
+						continue;
 					bool l_is_find = false;
 					if (ui.m_is_torrent == true && ii->m_is_torrent == true)
 						l_is_find |= ii->m_sha1 == ui.m_sha1;
@@ -1378,7 +1383,7 @@ LRESULT TransferView::onSpeaker(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 					for (int j = 0; j < ctrlTransfers.GetItemCount(); ++j)
 					{
 						ItemInfo* ii = ctrlTransfers.getItemData(j);
-						if (ui.download &&
+						if (ii && ui.download &&
 						        ii->m_target == ui.m_target
 						   )
 						{
@@ -1936,13 +1941,13 @@ void TransferView::ItemInfo::update_nicks()
 const tstring TransferView::ItemInfo::getText(uint8_t col) const
 {
 	if (ClientManager::isBeforeShutdown())
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 	switch (col)
 	{
 		case COLUMN_USER:
 			if (m_is_torrent)
 			{
-				return m_hits == -1 ? Util::emptyStringT : (Util::toStringW(m_hits) + _T(' ') + TSTRING(FILES));
+				return m_hits == -1 ? BaseUtil::emptyStringT : (Util::toStringW(m_hits) + _T(' ') + TSTRING(FILES));
 			}
 			else
 			{
@@ -1984,7 +1989,7 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 		}
 		case COLUMN_TIMELEFT:
 			//dcassert(m_timeLeft >= 0);
-			return (m_status == STATUS_RUNNING && m_timeLeft > 0) ? Util::formatSecondsW(m_timeLeft) : Util::emptyStringT;
+			return (m_status == STATUS_RUNNING && m_timeLeft > 0) ? Util::formatSecondsW(m_timeLeft) : BaseUtil::emptyStringT;
 		case COLUMN_SPEED:
 			if (m_is_torrent)
 			{
@@ -1994,12 +1999,12 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 				}
 				else
 				{
-					return Util::emptyStringT;
+					return BaseUtil::emptyStringT;
 				}
 			}
 			else
 			{
-				return m_status == STATUS_RUNNING ? (Util::formatBytesW(m_speed) + _T('/') + WSTRING(S)) : Util::emptyStringT;
+				return m_status == STATUS_RUNNING ? (Util::formatBytesW(m_speed) + _T('/') + WSTRING(S)) : BaseUtil::emptyStringT;
 			}
 		case COLUMN_FILE:
 			if (m_is_torrent)
@@ -2011,7 +2016,7 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 				return getFile(m_type, Util::getFileName(m_target));
 			}
 		case COLUMN_SIZE:
-			return m_size >= 0 ? Util::formatBytesW(m_size) : Util::emptyStringT;
+			return m_size >= 0 ? Util::formatBytesW(m_size) : BaseUtil::emptyStringT;
 		case COLUMN_PATH:
 		{
 			if (m_is_torrent)
@@ -2038,9 +2043,9 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 				return m_cipher; // +_T(" [Token: ") + Text::toT(m_token) + _T("]");
 			}
 		case COLUMN_SHARE:
-			return m_hintedUser.user ? Util::formatBytesW(m_hintedUser.user->getBytesShared()) : Util::emptyStringT;
+			return m_hintedUser.user ? Util::formatBytesW(m_hintedUser.user->getBytesShared()) : BaseUtil::emptyStringT;
 		case COLUMN_SLOTS:
-			return m_hintedUser.user ? Util::toStringW(m_hintedUser.user->getSlots()) : Util::emptyStringT;
+			return m_hintedUser.user ? Util::toStringW(m_hintedUser.user->getSlots()) : BaseUtil::emptyStringT;
 		case COLUMN_P2P_GUARD:
 			return m_p2p_guard_text;
 #ifdef FLYLINKDC_USE_ANTIVIRUS_DB
@@ -2052,10 +2057,10 @@ const tstring TransferView::ItemInfo::getText(uint8_t col) const
 			if (m_location.isKnown())
 				return m_location.getDescription();
 			else
-				return Util::emptyStringT;
+				return BaseUtil::emptyStringT;
 		}
 		default:
-			return Util::emptyStringT;
+			return BaseUtil::emptyStringT;
 	}
 }
 
@@ -2380,6 +2385,8 @@ LRESULT TransferView::onPreviewCommand(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
 	while ((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const ItemInfo *ii = ctrlTransfers.getItemData(i);
+		if (!ii)
+			continue;
 		
 		const string target = Text::fromT(ii->m_target);
 		if (ii->download)
@@ -2409,7 +2416,7 @@ void TransferView::CollapseAll()
 	for (int q = ctrlTransfers.GetItemCount() - 1; q != -1; --q)
 	{
 		ItemInfo* m = ctrlTransfers.getItemData(q);
-		if (m->download)
+		if (m && m->download)
 		{
 			if (m->parent)
 			{
@@ -2442,6 +2449,8 @@ LRESULT TransferView::onDisconnectAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
 	while ((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const ItemInfo* ii = ctrlTransfers.getItemData(i);
+		if (!ii)
+			continue;
 		
 		const vector<ItemInfo*>& children = ctrlTransfers.findChildren(ii->getGroupCond());
 		for (auto j = children.cbegin(); j != children.cend(); ++j)
@@ -2468,7 +2477,7 @@ LRESULT TransferView::onSlowDisconnect(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 	{
 		const ItemInfo *ii = ctrlTransfers.getItemData(i);
 		
-		if (ii->download) // [+]
+		if (ii && ii->download)
 		{
 			const string l_tmp = Text::fromT(ii->m_target);
 			
@@ -2601,7 +2610,7 @@ void TransferView::parseQueueItemUpdateInfo(UpdateInfo* ui, const QueueItemPtr& 
 						flag += _T(' ');
 					}
 					ui->setStatusString(flag + Text::tformat(TSTRING(DOWNLOADED_BYTES), pos.c_str(), percent, elapsed.c_str()));
-					ui->setErrorStatusString(Util::emptyStringT);
+					ui->setErrorStatusString(BaseUtil::emptyStringT);
 				}
 			}
 		}
@@ -2717,7 +2726,7 @@ void TransferView::on(QueueManagerListener::RemovedTransfer, const QueueItemPtr&
 		dcassert(!qi->getTarget().empty());
 		if (!qi->getTarget().empty())
 		{
-			UpdateInfo* ui = new UpdateInfo(HintedUser(qi->getFirstUser(), Util::emptyString), true);
+			UpdateInfo* ui = new UpdateInfo(HintedUser(qi->getFirstUser(), BaseUtil::emptyString), true);
 			ui->setTarget(qi->getTarget());
 			m_tasks.add(TRANSFER_REMOVE_DOWNLOAD_ITEM, ui);
 		}
@@ -2734,7 +2743,7 @@ void TransferView::on(QueueManagerListener::Removed, const QueueItemPtr& qi) noe
 			dcassert(!qi->getTarget().empty());
 			if (!qi->getTarget().empty())
 			{
-				UpdateInfo* ui = new UpdateInfo(HintedUser(*i, Util::emptyString), true);
+				UpdateInfo* ui = new UpdateInfo(HintedUser(*i, BaseUtil::emptyString), true);
 				ui->setTarget(qi->getTarget());
 				m_tasks.add(TRANSFER_REMOVE_DOWNLOAD_ITEM, ui);
 			}
@@ -2749,9 +2758,9 @@ LRESULT TransferView::onCopy(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
 	while ((i = ctrlTransfers.GetNextItem(i, LVNI_SELECTED)) != -1)
 	{
 		const ItemInfo* l_ii = ctrlTransfers.getItemData(i);
-		TTHValue l_tth;
 		if (l_ii)
 		{
+			TTHValue l_tth;
 			if (l_ii->m_is_torrent)
 			{
 				if (wID == IDC_COPY_LINK)

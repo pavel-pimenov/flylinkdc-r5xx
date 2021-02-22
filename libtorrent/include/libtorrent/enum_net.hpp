@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <sys/socket.h> // for SO_BINDTODEVICE
 #endif
 
+#include <boost/optional.hpp>
+
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 
 #include "libtorrent/io_service_fwd.hpp"
@@ -53,14 +55,14 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	struct socket_type;
-
 	// the interface should not have a netmask
 	struct ip_interface
 	{
 		address interface_address;
 		address netmask;
 		char name[64];
+		char friendly_name[128];
+		char description[128];
 		// an interface is preferred if its address is
 		// not tentative/duplicate/deprecated
 		bool preferred = true;
@@ -94,7 +96,12 @@ namespace libtorrent {
 	TORRENT_EXTRA_EXPORT bool in_local_network(std::vector<ip_interface> const& net
 		, address const& addr);
 
-	TORRENT_EXTRA_EXPORT address get_default_gateway(io_service& ios, error_code& ec);
+	TORRENT_EXTRA_EXPORT boost::optional<ip_route> get_default_route(io_service& ios
+		, string_view device, bool v6, error_code& ec);
+
+	// returns the first default gateway found if device is empty
+	TORRENT_EXTRA_EXPORT address get_default_gateway(io_service& ios
+		, string_view device, bool v6, error_code& ec);
 
 	// attempt to bind socket to the device with the specified name. For systems
 	// that don't support SO_BINDTODEVICE the socket will be bound to one of the
@@ -105,7 +112,7 @@ namespace libtorrent {
 	// TODO: 3 use string_view for device_name
 	template <class Socket>
 	address bind_socket_to_device(io_service& ios, Socket& sock
-		, boost::asio::ip::tcp const& protocol
+		, tcp const& protocol
 		, char const* device_name, int port, error_code& ec)
 	{
 		tcp::endpoint bind_ep(address_v4::any(), std::uint16_t(port));
@@ -113,13 +120,11 @@ namespace libtorrent {
 		address ip = make_address(device_name, ec);
 		if (!ec)
 		{
-#if TORRENT_USE_IPV6
 			// this is to cover the case where "0.0.0.0" is considered any IPv4 or
 			// IPv6 address. If we're asking to be bound to an IPv6 address and
 			// providing 0.0.0.0 as the device, turn it into "::"
 			if (ip == address_v4::any() && protocol == boost::asio::ip::tcp::v6())
 				ip = address_v6::any();
-#endif
 			bind_ep.address(ip);
 			// it appears to be an IP. Just bind to that address
 			sock.bind(bind_ep, ec);

@@ -229,18 +229,12 @@ class ShareManager : public Singleton<ShareManager>, private Thread, private Tim
 		};
 		
 		class Directory : public intrusive_ptr_base<Directory>, public CFlyLowerName
-#ifdef _DEBUG
-			, boost::noncopyable
-#endif
 		{
 			public:
 				typedef boost::intrusive_ptr<Directory> Ptr;
 				typedef std::map<string, Ptr> DirectoryMap;
 				
 				struct ShareFile : public CFlyLowerName
-#ifdef _DEBUG
-				//, boost::noncopyable // TODO - сделать чтобы объект был не копируемым - boost::noncopyable
-#endif
 				{
 						struct FileTraits
 						{

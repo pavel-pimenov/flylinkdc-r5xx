@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2012-2016, Arvid Norberg, Alden Torres
+Copyright (c) 2012-2018, Arvid Norberg, Alden Torres
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/random.hpp>
 #include <libtorrent/aux_/vector.hpp>
 #include <libtorrent/aux_/numeric_cast.hpp>
+#include <libtorrent/broadcast_socket.hpp> // for ip_v4
+#include <libtorrent/bdecode.hpp>
 
 namespace libtorrent { namespace dht {
 namespace {
@@ -58,7 +60,7 @@ namespace {
 	{
 		time_point added;
 		tcp::endpoint addr;
-		bool seed;
+		bool seed = 0;
 	};
 
 	// internal
@@ -100,9 +102,9 @@ namespace {
 
 	struct dht_mutable_item : dht_immutable_item
 	{
-		signature sig;
-		sequence_number seq;
-		public_key key;
+		signature sig{};
+		sequence_number seq{};
+		public_key key{};
 		std::string salt;
 	};
 
@@ -111,10 +113,10 @@ namespace {
 		int const size = int(buf.size());
 		if (item.size != size)
 		{
-			item.value.reset(new char[size]);
+			item.value.reset(new char[std::size_t(size)]);
 			item.size = size;
 		}
-		std::memcpy(item.value.get(), buf.data(), buf.size());
+		std::copy(buf.begin(), buf.end(), item.value.get());
 	}
 
 	void touch_item(dht_immutable_item& f, address const& addr)
@@ -156,7 +158,7 @@ namespace {
 	private:
 
 		// explicitly disallow assignment, to silence msvc warning
-		immutable_item_comparator& operator=(immutable_item_comparator const&);
+		immutable_item_comparator& operator=(immutable_item_comparator const&) = delete;
 
 		std::vector<node_id> const& m_node_ids;
 	};
@@ -198,7 +200,7 @@ namespace {
 		dht_default_storage(dht_default_storage const&) = delete;
 		dht_default_storage& operator=(dht_default_storage const&) = delete;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		size_t num_torrents() const override { return m_map.size(); }
 		size_t num_peers() const override
 		{
@@ -270,7 +272,7 @@ namespace {
 					if (random(std::uint32_t(candidates--)) > std::uint32_t(to_pick))
 						continue;
 
-					pe.push_back(entry());
+					pe.emplace_back();
 					std::string& str = pe.back().string();
 
 					str.resize(18);
@@ -325,7 +327,7 @@ namespace {
 				v->name = name.substr(0, 100).to_string();
 			}
 
-			auto& peersv = endp.protocol() == tcp::v4() ? v->peers4 : v->peers6;
+			auto& peersv = is_v4(endp) ? v->peers4 : v->peers6;
 
 			peer_entry peer;
 			peer.addr = endp;
@@ -354,8 +356,8 @@ namespace {
 			auto const i = m_immutable_table.find(target);
 			if (i == m_immutable_table.end()) return false;
 
-			item["v"] = bdecode(i->second.value.get()
-				, i->second.value.get() + i->second.size);
+			error_code ec;
+			item["v"] = bdecode({i->second.value.get(), i->second.size}, ec);
 			return true;
 		}
 
@@ -411,7 +413,8 @@ namespace {
 			item["seq"] = f.seq.value;
 			if (force_fill || (sequence_number(0) <= seq && seq < f.seq))
 			{
-				item["v"] = bdecode(f.value.get(), f.value.get() + f.size);
+				error_code ec;
+				item["v"] = bdecode({f.value.get(), f.size}, ec);
 				item["sig"] = f.sig.bytes;
 				item["k"] = f.key.bytes;
 			}
@@ -454,7 +457,7 @@ namespace {
 			}
 			else
 			{
-				// this is the case where we already
+				// this is the case where we already have an item in this slot
 				dht_mutable_item& item = i->second;
 
 				if (item.seq < seq)
@@ -478,7 +481,7 @@ namespace {
 
 			aux::vector<sha1_hash> const& samples = m_infohashes_sample.samples;
 			item["samples"] = span<char const>(
-				reinterpret_cast<char const*>(samples.data()), samples.size() * 20);
+				reinterpret_cast<char const*>(samples.data()), static_cast<std::ptrdiff_t>(samples.size()) * 20);
 
 			return m_infohashes_sample.count();
 		}

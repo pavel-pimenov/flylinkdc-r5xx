@@ -178,7 +178,7 @@ void ConnectionManager::start_tcp_tls_listener()
 	
 	if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 	{
-		server = new Server(false, 0, Util::emptyString);
+		server = new Server(false, 0, BaseUtil::emptyString);
 	}
 	else
 	{
@@ -197,7 +197,7 @@ void ConnectionManager::start_tcp_tls_listener()
 	
 		if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 		{
-			secureServer = new Server(true, 0, Util::emptyString);
+			secureServer = new Server(true, 0, BaseUtil::emptyString);
 			SET_SETTING(TLS_PORT, secureServer->getServerPort());
 		}
 		else
@@ -245,7 +245,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 			const auto i = find(g_downloads.begin(), g_downloads.end(), aUser);
 			if (i == g_downloads.end())
 			{
-				l_cqi = getCQI_L(HintedUser(aUser, Util::emptyString), true);
+				l_cqi = getCQI_L(HintedUser(aUser, BaseUtil::emptyString), true);
 			}
 #ifdef USING_IDLERS_IN_CONNECTION_MANAGER
 			else
@@ -259,7 +259,7 @@ void ConnectionManager::getDownloadConnection(const UserPtr& aUser)
 		}
 		if (l_cqi && !ClientManager::isBeforeShutdown())
 		{
-			fly_fire3(ConnectionManagerListener::Added(), HintedUser(aUser, Util::emptyString), true, l_cqi->getConnectionQueueToken());
+			fly_fire3(ConnectionManagerListener::Added(), HintedUser(aUser, BaseUtil::emptyString), true, l_cqi->getConnectionQueueToken());
 			return;
 		}
 #ifndef USING_IDLERS_IN_CONNECTION_MANAGER
@@ -442,7 +442,7 @@ void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 			{
 				if ((*i)->getUser() == aUser) // todo - map
 				{
-					l_download_users.push_back(CFlyTokenItem(*i));
+					l_download_users.emplace_back(CFlyTokenItem(*i));
 				}
 			}
 		}
@@ -453,7 +453,7 @@ void ConnectionManager::onUserUpdated(const UserPtr& aUser)
 			{
 				if ((*i)->getUser() == aUser)  // todo - map
 				{
-					l_upload_users.push_back(CFlyTokenItem(*i));
+					l_upload_users.emplace_back(CFlyTokenItem(*i));
 				}
 			}
 		}
@@ -1059,7 +1059,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 		l_item.m_first_tick = l_tick;
 		l_item.m_last_tick = l_tick;
 		CFlyFastLock(g_csDdosCheck);
-		auto l_result = g_ddos_map.insert(std::pair<CFlyDDOSkey, CFlyDDoSTick>(l_key, l_item));
+		auto l_result = g_ddos_map.emplace(std::pair<CFlyDDOSkey, CFlyDDoSTick>(l_key, l_item));
 		auto& l_cur_value = l_result.first->second;
 		++l_cur_value.m_count_connect;
 		string l_debug_key;
@@ -1068,7 +1068,7 @@ bool ConnectionManager::checkIpFlood(const string& aIPServer, uint16_t aPort, co
 			l_debug_key = " Time: " + Util::getShortTimeString() + " Hub info = " + p_HubInfo; // https://drdump.com/Problem.aspx?ClientID=guest&ProblemID=92733
 			if (!p_userInfo.empty())
 			{
-				l_debug_key + " UserInfo = [" + p_userInfo + "]";
+				l_debug_key + " UserInfo = [" + p_userInfo + ']';
 			}
 			l_cur_value.m_original_query_for_debug[l_debug_key]++;
 		}
@@ -1317,7 +1317,7 @@ void ConnectionManager::on(UserConnectionListener::Connected, UserConnection* aS
 			defFeatures.push_back("AD" + UserConnection::FEATURE_ZLIB_GET);
 		}
 		aSource->sup(defFeatures);
-		aSource->send(AdcCommand(AdcCommand::SEV_SUCCESS, AdcCommand::SUCCESS, Util::emptyString).addParam("RF", aSource->getHubUrl()));
+		aSource->send(AdcCommand(AdcCommand::SEV_SUCCESS, AdcCommand::SUCCESS, BaseUtil::emptyString).addParam("RF", aSource->getHubUrl()));
 	}
 	aSource->setState(UserConnection::STATE_SUPNICK);
 }

@@ -256,7 +256,7 @@ void Sounds::GetSNDThemeList()
 {
 	if (m_SNDThemeList.empty())
 	{
-		m_SNDThemeList.insert(SNDThemePair(TSTRING(SOUND_THEME_DEFAULT_NAME), Util::emptyString));
+		m_SNDThemeList.insert(SNDThemePair(TSTRING(SOUND_THEME_DEFAULT_NAME), BaseUtil::emptyString));
 		const string fileFindPath = Util::getSoundPath() + '*';   // find only DIR
 		for (FileFindIter i(fileFindPath); i != FileFindIter::end; ++i)
 		{

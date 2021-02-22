@@ -29,9 +29,6 @@
 
 class RSSNewsFrame : public MDITabChildWindowImpl < RSSNewsFrame, RGB(0, 0, 0), IDR_RSS >, public StaticFrame<RSSNewsFrame, ResourceManager::RSS_NEWS, IDC_RSS>,
 	private SettingsManagerListener, private RSSListener
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		DECLARE_FRAME_WND_CLASS_EX(_T("RSSNewsFrame"), IDR_RSS, 0, COLOR_3DFACE);
@@ -99,10 +96,6 @@ class RSSNewsFrame : public MDITabChildWindowImpl < RSSNewsFrame, RGB(0, 0, 0), 
 		};
 		
 		class RSSItemInfo
-#ifdef _DEBUG
-			: boost::noncopyable
-#endif
-			
 		{
 				tstring m_columns[COLUMN_LAST];
 			public:

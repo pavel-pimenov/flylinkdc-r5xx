@@ -63,9 +63,6 @@ using boost::adaptors::map_values;
 using boost::range::for_each;
 
 class DirectoryItem
-#ifdef _DEBUG
-	: private boost::noncopyable
-#endif
 {
 	public:
 		DirectoryItem() : m_priority(QueueItem::DEFAULT)
@@ -1062,7 +1059,7 @@ void QueueManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept
 	}
 }
 // TODO HintedUser
-void QueueManager::addList(const UserPtr& aUser, Flags::MaskType aFlags, const string& aInitialDir /* = Util::emptyString */)
+void QueueManager::addList(const UserPtr& aUser, Flags::MaskType aFlags, const string& aInitialDir /* = BaseUtil::emptyString */)
 {
 	add(0, aInitialDir, -1, TTHValue(), aUser, (Flags::MaskType)(QueueItem::FLAG_USER_LIST | aFlags));
 }
@@ -1086,8 +1083,8 @@ string QueueManager::getListPath(const UserPtr& user) const
 	dcassert(user);
 	if (user)
 	{
-		const StringList nicks = ClientManager::getNicks(user->getCID(), Util::emptyString);
-		const string nick = nicks.empty() ? Util::emptyString : Util::cleanPathChars(nicks[0]) + ".";
+		const StringList nicks = ClientManager::getNicks(user->getCID(), BaseUtil::emptyString);
+		const string nick = nicks.empty() ? BaseUtil::emptyString : Util::cleanPathChars(nicks[0]) + ".";
 		return checkTarget(Util::getListPath() + nick + user->getCID().toBase32(), -1);
 	}
 	else
@@ -1573,7 +1570,7 @@ void QueueManager::ListMatcher::execute(const StringList& list)
 		if (!u)
 			continue;
 			
-		DirectoryListing dl(HintedUser(u, Util::emptyString));
+		DirectoryListing dl(HintedUser(u, BaseUtil::emptyString));
 		try
 		{
 			dl.loadFile(*i);
@@ -1756,7 +1753,7 @@ class TreeOutputStream : public OutputStream
 				size_t left = len - pos;
 				if (bufPos == 0 && left >= TigerTree::BYTES)
 				{
-					tree.getLeaves().push_back(TTHValue(b + pos));
+					tree.getLeaves().emplace_back(TTHValue(b + pos));
 					pos += TigerTree::BYTES;
 				}
 				else
@@ -1767,7 +1764,7 @@ class TreeOutputStream : public OutputStream
 					pos += bytes;
 					if (bufPos == TigerTree::BYTES)
 					{
-						tree.getLeaves().push_back(TTHValue(buf));
+						tree.getLeaves().emplace_back(TTHValue(buf));
 						bufPos = 0;
 					}
 				}
@@ -1816,6 +1813,7 @@ void QueueManager::setFile(const DownloadPtr& d)
 			if (!File::isExist(qi->getTempTarget()))
 			{
 				// When trying the download the next time, the resume pos will be reset
+                qi->setLastSize(0); // https://github.com/zipper9/blacklink/commit/b27085b74a555cce3804066b9f8e25684800c2a1
 				throw QueueException(STRING(TARGET_REMOVED));
 			}
 		}
@@ -2216,7 +2214,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 									const auto l_user = q->getFirstUser();
 									if (l_user)
 									{
-										m_listQueue.addTask(new DirectoryListInfo(HintedUser(l_user, Util::emptyString), q->getListName(), dir, aDownload->getRunningAverage()));
+										m_listQueue.addTask(new DirectoryListInfo(HintedUser(l_user, BaseUtil::emptyString), q->getListName(), dir, aDownload->getRunningAverage()));
 									}
 								}
 #endif
@@ -2260,7 +2258,7 @@ void QueueManager::putDownload(const string& p_path, DownloadPtr aDownload, bool
 						// Не затираем путь к временному файлу
 						//if (isEmpty)
 						//{
-						//  q->setTempTarget(Util::emptyString);
+						//  q->setTempTarget(BaseUtil::emptyString);
 						//}
 						if (q->isSet(QueueItem::FLAG_USER_LIST))
 						{

@@ -413,9 +413,10 @@ void File__Analyze::Open_Buffer_Init (int64u File_Size_)
     if (Config->File_IsSub_Get())
         IsSub=true;
     #if MEDIAINFO_DEMUX
-        if (Demux_Level==1 && !IsSub && Config->Demux_Unpacketize_Get()) //If Demux_Level is Frame
+        if (Demux_Level&1 && !IsSub && Config->Demux_Unpacketize_Get()) //If Demux_Level is Frame
         {
-            Demux_Level=2; //Container
+            if (!(Demux_Level&2)) // Special case when a stream is both container and stream: keep it
+                Demux_Level=2; //Container
             Demux_UnpacketizeContainer=true;
         }
     #endif //MEDIAINFO_DEMUX
@@ -1094,16 +1095,25 @@ bool File__Analyze::Open_Buffer_Continue_Loop ()
     Element[Element_Level].WaitForMoreData=false;
     Read_Buffer_Continue();
     if (Element_IsWaitingForMoreData())
+    {
+        Buffer_TotalBytes+=Buffer_Offset;
         return false; //Wait for more data
+    }
     if (sizeof(size_t)<sizeof(int64u) && Buffer_Offset+Element_Offset>=(int64u)(size_t)-1)
         GoTo(File_Offset+Buffer_Offset+Element_Offset);
     else
         Buffer_Offset+=(size_t)Element_Offset;
     if ((Status[IsFinished] && !ShouldContinueParsing) || Buffer_Offset>Buffer_Size || File_GoTo!=(int64u)-1)
+    {
+        Buffer_TotalBytes+=Buffer_Offset;
         return false; //Finish
+    }
     #if MEDIAINFO_DEMUX
         if (Config->Demux_EventWasSent)
+        {
+            Buffer_TotalBytes+=Buffer_Offset;
             return false;
+        }
     #endif //MEDIAINFO_DEMUX
 
     //Parsing;
@@ -1635,9 +1645,13 @@ bool File__Analyze::Synchronize_0x000001()
 //---------------------------------------------------------------------------
 bool File__Analyze::FileHeader_Begin_0x000001()
 {
+    // No need to check if inside a container
+    if (IsSub)
+        return true;
+
     //Element_Size
     if (Buffer_Size<192*4)
-        return true; //Not enough buffer for a test
+        return false; //Not enough buffer for a test
 
     //Detecting OldDirac/WAV/SWF/FLV/ELF/DPG/WM files
     int64u Magic8=CC8(Buffer);
@@ -2146,6 +2160,8 @@ bool File__Analyze::FileHeader_Manage()
     else
     {
         Buffer_Offset+=(size_t)Element_Offset;
+        if (Buffer_Offset>Buffer_Size)
+            Buffer_Size=Buffer_Offset;
         Element_Offset=0;
     }
 
@@ -3667,9 +3683,11 @@ void File__Analyze::Details_Clear()
 #endif //MEDIAINFO_TRACE
 
 #if MEDIAINFO_EVENTS
-void File__Analyze::Event_Prepare(struct MediaInfo_Event_Generic* Event)
+void File__Analyze::Event_Prepare(struct MediaInfo_Event_Generic* Event, int32u Event_Code, size_t Event_Size)
 {
-    memset(Event, 0xFF, sizeof(struct MediaInfo_Event_Generic));
+    memset(Event, 0x00, Event_Size);
+    Event->EventCode=Event_Code;
+    Event->EventSize=Event_Size;
     Event->StreamIDs_Size=StreamIDs_Size;
     memcpy_Unaligned_Unaligned_Once1024(Event->StreamIDs, StreamIDs, 128);
     memcpy(Event->StreamIDs_Width, StreamIDs_Width, sizeof(StreamIDs_Width));

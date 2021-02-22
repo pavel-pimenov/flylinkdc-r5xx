@@ -36,7 +36,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/write_resume_data.hpp"
 #include "libtorrent/add_torrent_params.hpp"
 #include "libtorrent/socket_io.hpp" // for write_*_endpoint()
-#include "libtorrent/hasher.hpp"
 #include "libtorrent/torrent_info.hpp"
 #include "libtorrent/aux_/numeric_cast.hpp"
 #include "libtorrent/torrent.hpp" // for default_piece_priority
@@ -63,6 +62,8 @@ namespace libtorrent {
 		ret["finished_time"] = atp.finished_time;
 		ret["seeding_time"] = atp.seeding_time;
 		ret["last_seen_complete"] = atp.last_seen_complete;
+		ret["last_download"] = atp.last_download;
+		ret["last_upload"] = atp.last_upload;
 
 		ret["num_complete"] = atp.num_complete;
 		ret["num_incomplete"] = atp.num_incomplete;
@@ -78,7 +79,7 @@ namespace libtorrent {
 
 		ret["save_path"] = atp.save_path;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		// deprecated in 1.2
 		if (!atp.url.empty()) ret["url"] = atp.url;
 		if (!atp.uuid.empty()) ret["uuid"] = atp.uuid;
@@ -91,6 +92,12 @@ namespace libtorrent {
 			auto const info = atp.ti->metadata();
 			int const size = atp.ti->metadata_size();
 			ret["info"].preformatted().assign(&info[0], &info[0] + size);
+			if (!atp.ti->comment().empty())
+				ret["comment"] = atp.ti->comment();
+			if (atp.ti->creation_date() != 0)
+				ret["creation date"] = atp.ti->creation_date();
+			if (!atp.ti->creator().empty())
+				ret["created by"] = atp.ti->creator();
 		}
 
 		if (!atp.merkle_tree.empty())
@@ -115,18 +122,16 @@ namespace libtorrent {
 
 				// the unfinished piece's index
 				piece_struct["piece"] = static_cast<int>(p.first);
-				std::string& bitmask = piece_struct["bitmask"].string();
-				for (auto const bit : p.second)
-					bitmask.push_back(bit ? '1' : '0');
+				piece_struct["bitmask"] = std::string(p.second.data(), std::size_t(p.second.size() + 7) / 8);
 				// push the struct onto the unfinished-piece list
 				up.push_back(std::move(piece_struct));
 			}
 		}
 
 		// save trackers
+		entry::list_type& tr_list = ret["trackers"].list();
 		if (!atp.trackers.empty())
 		{
-			entry::list_type& tr_list = ret["trackers"].list();
 			tr_list.emplace_back(entry::list_type());
 			std::size_t tier = 0;
 			auto tier_it = atp.tracker_tiers.begin();
@@ -143,17 +148,11 @@ namespace libtorrent {
 		}
 
 		// save web seeds
-		if (!atp.url_seeds.empty())
-		{
-			entry::list_type& url_list = ret["url-list"].list();
-			std::copy(atp.url_seeds.begin(), atp.url_seeds.end(), std::back_inserter(url_list));
-		}
+		entry::list_type& url_list = ret["url-list"].list();
+		std::copy(atp.url_seeds.begin(), atp.url_seeds.end(), std::back_inserter(url_list));
 
-		if (!atp.http_seeds.empty())
-		{
-			entry::list_type& url_list = ret["httpseeds"].list();
-			std::copy(atp.http_seeds.begin(), atp.http_seeds.end(), std::back_inserter(url_list));
-		}
+		entry::list_type& httpseeds_list = ret["httpseeds"].list();
+		std::copy(atp.http_seeds.begin(), atp.http_seeds.end(), std::back_inserter(httpseeds_list));
 
 		// write have bitmask
 		entry::string_type& pieces = ret["pieces"].string();
@@ -190,16 +189,12 @@ namespace libtorrent {
 		if (!atp.peers.empty())
 		{
 			std::back_insert_iterator<entry::string_type> ptr(ret["peers"].string());
-#if TORRENT_USE_IPV6
 			std::back_insert_iterator<entry::string_type> ptr6(ret["peers6"].string());
-#endif
 			for (auto const& p : atp.peers)
 			{
-#if TORRENT_USE_IPV6
-				if (p.address().is_v6())
+				if (is_v6(p))
 					write_endpoint(p, ptr6);
 				else
-#endif
 					write_endpoint(p, ptr);
 			}
 		}
@@ -207,16 +202,12 @@ namespace libtorrent {
 		if (!atp.banned_peers.empty())
 		{
 			std::back_insert_iterator<entry::string_type> ptr(ret["banned_peers"].string());
-#if TORRENT_USE_IPV6
 			std::back_insert_iterator<entry::string_type> ptr6(ret["banned_peers6"].string());
-#endif
 			for (auto const& p : atp.banned_peers)
 			{
-#if TORRENT_USE_IPV6
-				if (p.address().is_v6())
+				if (is_v6(p))
 					write_endpoint(p, ptr6);
 				else
-#endif
 					write_endpoint(p, ptr);
 			}
 		}

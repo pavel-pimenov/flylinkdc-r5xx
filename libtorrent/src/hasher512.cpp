@@ -68,31 +68,33 @@ namespace libtorrent {
 		gcry_md_copy(&m_context, h.m_context);
 	}
 
-	hasher512& hasher512::operator=(hasher512 const& h)
+	hasher512& hasher512::operator=(hasher512 const& h) &
 	{
-		if (this == &h) return;
+		if (this == &h) return *this;
 		gcry_md_close(m_context);
 		gcry_md_copy(&m_context, h.m_context);
 		return *this;
 	}
 #else
 	hasher512::hasher512(hasher512 const&) = default;
-	hasher512& hasher512::operator=(hasher512 const&) = default;
+	hasher512& hasher512::operator=(hasher512 const&) & = default;
 #endif
 
 	hasher512& hasher512::update(span<char const> data)
 	{
-		TORRENT_ASSERT(!data.empty());
+		TORRENT_ASSERT(data.size() > 0);
 #ifdef TORRENT_USE_LIBGCRYPT
-		gcry_md_write(m_context, data.data(), data.size());
+		gcry_md_write(m_context, data.data(), static_cast<std::size_t>(data.size()));
 #elif TORRENT_USE_COMMONCRYPTO
 		CC_SHA512_Update(&m_context, reinterpret_cast<unsigned char const*>(data.data()), CC_LONG(data.size()));
 #elif TORRENT_USE_CRYPTOAPI_SHA_512
 		m_context.update(data);
 #elif defined TORRENT_USE_LIBCRYPTO
-		SHA512_Update(&m_context, reinterpret_cast<unsigned char const*>(data.data()), data.size());
+		SHA512_Update(&m_context, reinterpret_cast<unsigned char const*>(data.data())
+			, static_cast<std::size_t>(data.size()));
 #else
-		SHA512_update(&m_context, reinterpret_cast<unsigned char const*>(data.data()), data.size());
+		SHA512_update(&m_context, reinterpret_cast<unsigned char const*>(data.data())
+			, static_cast<std::size_t>(data.size()));
 #endif
 		return *this;
 	}
@@ -102,7 +104,7 @@ namespace libtorrent {
 		sha512_hash digest;
 #ifdef TORRENT_USE_LIBGCRYPT
 		gcry_md_final(m_context);
-		digest.assign((char const*)gcry_md_read(m_context, 0));
+		digest.assign(reinterpret_cast<char const*>(gcry_md_read(m_context, 0)));
 #elif TORRENT_USE_COMMONCRYPTO
 		CC_SHA512_Final(reinterpret_cast<unsigned char*>(digest.data()), &m_context);
 #elif TORRENT_USE_CRYPTOAPI_SHA_512
@@ -130,12 +132,14 @@ namespace libtorrent {
 #endif
 	}
 
+#if defined TORRENT_USE_LIBGCRYPT
 	hasher512::~hasher512()
 	{
-#if defined TORRENT_USE_LIBGCRYPT
 		gcry_md_close(m_context);
-#endif
 	}
+#else
+	hasher512::~hasher512() = default;
+#endif
 
 #ifdef TORRENT_MACOS_DEPRECATED_LIBCRYPTO
 #pragma clang diagnostic pop

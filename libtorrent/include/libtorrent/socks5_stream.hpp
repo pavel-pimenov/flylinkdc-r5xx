@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,7 @@ namespace socks_error {
 // returns the error_category for SOCKS5 errors
 TORRENT_EXPORT boost::system::error_category& socks_category();
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 TORRENT_DEPRECATED
 inline boost::system::error_category& get_socks_category()
 { return socks_category(); }
@@ -114,7 +114,7 @@ public:
 		// if this assert trips, set_dst_name() is called wth an IP address rather
 		// than a hostname. Instead, resolve the IP into an address and pass it to
 		// async_connect instead
-		TORRENT_ASSERT(!is_ip_address(host.c_str()));
+		TORRENT_ASSERT(!is_ip_address(host));
 		m_dst_name = host;
 		if (m_dst_name.size() > 255)
 			m_dst_name.resize(255);
@@ -165,16 +165,16 @@ public:
 private:
 
 	void name_lookup(error_code const& e, tcp::resolver::iterator i
-		, handler_type& h);
-	void connected(error_code const& e, handler_type& h);
-	void handshake1(error_code const& e, handler_type& h);
-	void handshake2(error_code const& e, handler_type& h);
-	void handshake3(error_code const& e, handler_type& h);
-	void handshake4(error_code const& e, handler_type& h);
+		, handler_type h);
+	void connected(error_code const& e, handler_type h);
+	void handshake1(error_code const& e, handler_type h);
+	void handshake2(error_code const& e, handler_type h);
+	void handshake3(error_code const& e, handler_type h);
+	void handshake4(error_code const& e, handler_type h);
 	void socks_connect(handler_type h);
-	void connect1(error_code const& e, handler_type& h);
-	void connect2(error_code const& e, handler_type& h);
-	void connect3(error_code const& e, handler_type& h);
+	void connect1(error_code const& e, handler_type h);
+	void connect2(error_code const& e, handler_type h);
+	void connect3(error_code const& e, handler_type h);
 
 	// send and receive buffer
 	std::vector<char> m_buffer;

@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2015-2016, Arvid Norberg, Steven Siloti
+Copyright (c) 2015-2018, Arvid Norberg, Steven Siloti
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ void peer_connection_handle::add_extension(std::shared_ptr<peer_plugin> ext)
 #ifndef TORRENT_DISABLE_EXTENSIONS
 	std::shared_ptr<peer_connection> pc = native_handle();
 	TORRENT_ASSERT(pc);
-	pc->add_extension(ext);
+	pc->add_extension(std::move(ext));
 #else
 	TORRENT_UNUSED(ext);
 #endif
@@ -169,7 +169,8 @@ tcp::endpoint peer_connection_handle::local_endpoint() const
 	return pc->local_endpoint();
 }
 
-void peer_connection_handle::disconnect(error_code const& ec, operation_t op, int error)
+void peer_connection_handle::disconnect(error_code const& ec, operation_t const op
+	, disconnect_severity_t const error)
 {
 	std::shared_ptr<peer_connection> pc = native_handle();
 	TORRENT_ASSERT(pc);
@@ -277,12 +278,11 @@ bool peer_connection_handle::in_handshake() const
 	return pc->in_handshake();
 }
 
-void peer_connection_handle::send_buffer(char const* begin, int size
-	, std::uint32_t const flags)
+void peer_connection_handle::send_buffer(char const* begin, int size)
 {
 	std::shared_ptr<peer_connection> pc = native_handle();
 	TORRENT_ASSERT(pc);
-	pc->send_buffer({begin, std::size_t(size)}, flags);
+	pc->send_buffer({begin, size});
 }
 
 std::time_t peer_connection_handle::last_seen_complete() const
@@ -315,7 +315,7 @@ bool bt_peer_connection_handle::support_extensions() const
 
 bool bt_peer_connection_handle::supports_encryption() const
 {
-#if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
+#if !defined TORRENT_DISABLE_ENCRYPTION
 	std::shared_ptr<bt_peer_connection> pc = native_handle();
 	TORRENT_ASSERT(pc);
 	return pc->supports_encryption();
@@ -326,10 +326,10 @@ bool bt_peer_connection_handle::supports_encryption() const
 
 void bt_peer_connection_handle::switch_send_crypto(std::shared_ptr<crypto_plugin> crypto)
 {
-#if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
+#if !defined TORRENT_DISABLE_ENCRYPTION
 	std::shared_ptr<bt_peer_connection> pc = native_handle();
 	TORRENT_ASSERT(pc);
-	pc->switch_send_crypto(crypto);
+	pc->switch_send_crypto(std::move(crypto));
 #else
 	TORRENT_UNUSED(crypto);
 #endif
@@ -337,10 +337,10 @@ void bt_peer_connection_handle::switch_send_crypto(std::shared_ptr<crypto_plugin
 
 void bt_peer_connection_handle::switch_recv_crypto(std::shared_ptr<crypto_plugin> crypto)
 {
-#if !defined(TORRENT_DISABLE_ENCRYPTION) && !defined(TORRENT_DISABLE_EXTENSIONS)
+#if !defined TORRENT_DISABLE_ENCRYPTION
 	std::shared_ptr<bt_peer_connection> pc = native_handle();
 	TORRENT_ASSERT(pc);
-	pc->switch_recv_crypto(crypto);
+	pc->switch_recv_crypto(std::move(crypto));
 #else
 	TORRENT_UNUSED(crypto);
 #endif

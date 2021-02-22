@@ -27,9 +27,6 @@
 #ifdef FLYLINKDC_USE_VIEW_AS_TEXT_OPTION
 
 class TextFrame : public MDITabChildWindowImpl<TextFrame>, private SettingsManagerListener
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		static void openWindow(const tstring& aFileName);

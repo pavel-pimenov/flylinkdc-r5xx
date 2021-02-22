@@ -27,9 +27,6 @@
 #include <boost/functional/hash.hpp>
 
 class CID
-#ifdef _DEBUG
-// TODO : private boost::noncopyable
-#endif
 {
 	public:
 		enum { SIZE = 192 / 8 };

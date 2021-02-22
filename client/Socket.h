@@ -31,9 +31,6 @@ typedef SOCKET socket_t;
 
 /** RAII socket handle */
 class SocketHandle
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		SocketHandle() : sock(INVALID_SOCKET) { }
@@ -85,9 +82,6 @@ class SocketException : public Exception
 class ServerSocket;
 
 class Socket
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		enum
@@ -261,8 +255,6 @@ class Socket
 		
 		int getSocketOptInt(int option) const;
 		void setSocketOpt(int option, int value);
-		void setInBufSize();
-		void setOutBufSize();
 		virtual bool isSecure() const noexcept
 		{
 			return false;
@@ -273,7 +265,7 @@ class Socket
 		}
 		virtual string getCipherName() const noexcept
 		{
-			return Util::emptyString;
+			return BaseUtil::emptyString;
 		}
 		virtual vector<uint8_t> getKeyprint() const noexcept
 		{
@@ -285,7 +277,7 @@ class Socket
 		
 		virtual std::string getEncryptionInfo() const noexcept
 		{
-			return Util::emptyString;
+			return BaseUtil::emptyString;
 		}
 		
 		/** When socks settings are updated, this has to be called... */

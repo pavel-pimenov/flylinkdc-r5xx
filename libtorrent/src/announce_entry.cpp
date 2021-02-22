@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2015-2016, Arvid Norberg
+Copyright (c) 2015-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -47,13 +47,13 @@ namespace libtorrent {
 		minutes32 constexpr tracker_retry_delay_max{60};
 	}
 
-	announce_endpoint::announce_endpoint(aux::listen_socket_handle const& s)
+	announce_endpoint::announce_endpoint(aux::listen_socket_handle const& s, bool const completed)
 		: local_endpoint(s ? s.get_local_endpoint() : tcp::endpoint())
 		, socket(s)
 		, fails(0)
 		, updating(false)
 		, start_sent(false)
-		, complete_sent(false)
+		, complete_sent(completed)
 		, triggered_manually(false)
 	{}
 
@@ -61,7 +61,7 @@ namespace libtorrent {
 		: url(u.to_string())
 		, source(0)
 		, verified(false)
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		, fails(0)
 		, send_stats(false)
 		, start_sent(false)
@@ -74,7 +74,7 @@ namespace libtorrent {
 	announce_entry::announce_entry()
 		: source(0)
 		, verified(false)
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		, fails(0)
 		, send_stats(false)
 		, start_sent(false)
@@ -117,7 +117,8 @@ namespace libtorrent {
 		// event, we need to let this announce through
 		bool const need_send_complete = is_seed && !complete_sent;
 
-		return now >= next_announce
+		// add some slack here for rounding errors
+		return now  + seconds(1) >= next_announce
 			&& (now >= min_announce || need_send_complete)
 			&& (fails < fail_limit || fail_limit == 0)
 			&& !updating;
@@ -129,7 +130,7 @@ namespace libtorrent {
 			aep.reset();
 	}
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	bool announce_entry::can_announce(time_point now, bool is_seed) const
 	{
 		return std::any_of(endpoints.begin(), endpoints.end()

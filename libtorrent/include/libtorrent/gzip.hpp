@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ namespace libtorrent {
 	// get the ``error_category`` for zip errors
 	TORRENT_EXPORT boost::system::error_category& gzip_category();
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	TORRENT_DEPRECATED
 	inline boost::system::error_category& get_gzip_category()
 	{ return gzip_category(); }

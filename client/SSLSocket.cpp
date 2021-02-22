@@ -343,7 +343,7 @@ bool SSLSocket::isKeyprintMatch() const noexcept
 std::string SSLSocket::getEncryptionInfo() const noexcept
 {
 	if (!ssl)
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 		
 	const string cipher = SSL_get_cipher_name(ssl);
 	//string protocol = SSL_get_version(ssl);

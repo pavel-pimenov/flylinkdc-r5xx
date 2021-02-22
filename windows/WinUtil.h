@@ -467,12 +467,12 @@ class UserInfoBaseHandler : UserInfoBaseHandlerTraitsUser<T2>, public UserInfoGu
 			            {
 			                sCopy += "\t" + STRING(NICK) + ": " + su->getLastNick() + "\r\n";
 			            }
-			            sCopy += "\tNicks: " + Util::toString(ClientManager::getNicks(u->getCID(), Util::emptyString)) + "\r\n" +
-			                     "\t" + STRING(HUBS) + ": " + Util::toString(ClientManager::getHubs(u->getCID(), Util::emptyString)) + "\r\n" +
+			            sCopy += "\tNicks: " + Util::toString(ClientManager::getNicks(u->getCID(), BaseUtil::emptyString)) + "\r\n" +
+			                     "\t" + STRING(HUBS) + ": " + Util::toString(ClientManager::getHubs(u->getCID(), BaseUtil::emptyString)) + "\r\n" +
 			                     "\t" + STRING(SHARED) + ": " + Identity::formatShareBytes(u->getBytesShared());
 			            __if_exists(T2::getIdentity)
 			            {
-			                sCopy += (u->isNMDC() ? Util::emptyString : "(" + STRING(SHARED_FILES) + ": " + Util::toString(id.getSharedFiles()) + ")");
+			                sCopy += (u->isNMDC() ? BaseUtil::emptyString : "(" + STRING(SHARED_FILES) + ": " + Util::toString(id.getSharedFiles()) + ")");
 			            }
 			            sCopy += "\r\n";
 			            __if_exists(T2::getIdentity)
@@ -1618,7 +1618,7 @@ class WinUtil
 	
 		static tstring encodeFont(const LOGFONT& font);
 		
-		static bool browseFile(tstring& target, HWND owner = NULL, bool save = true, const tstring& initialDir = Util::emptyStringT, const TCHAR* types = NULL, const TCHAR* defExt = NULL);
+		static bool browseFile(tstring& target, HWND owner = NULL, bool save = true, const tstring& initialDir = BaseUtil::emptyStringT, const TCHAR* types = NULL, const TCHAR* defExt = NULL);
 		static bool browseDirectory(tstring& target, HWND owner = NULL);
 		
 		// Hash related
@@ -1654,7 +1654,7 @@ class WinUtil
 		static bool urlMagnetRegistered;
 		static bool DclstRegistered;
 		static int textUnderCursor(POINT p, CEdit& ctrl, tstring& x);
-		static void translateLinkToextProgramm(const tstring& url, const tstring& p_Extension = Util::emptyStringT, const tstring& p_openCmd = Util::emptyStringT);
+		static void translateLinkToextProgramm(const tstring& url, const tstring& p_Extension = BaseUtil::emptyStringT, const tstring& p_openCmd = BaseUtil::emptyStringT);
 		static bool openLink(const tstring& url);
 		static void openFile(const tstring& file);
 		static void openFile(const TCHAR* file);
@@ -1795,10 +1795,6 @@ class WinUtil
 			int length;
 		};
 		
-#ifdef SSA_SHELL_INTEGRATION
-		static wstring getShellExtDllPath();
-		static bool makeShellIntegration(bool isNeedUnregistred);
-#endif
 		static bool runElevated(HWND    hwnd, LPCTSTR pszPath, LPCTSTR pszParameters = NULL, LPCTSTR pszDirectory = NULL);
 		
 		template<class M>
@@ -1811,7 +1807,7 @@ class WinUtil
 					if (p_ComboIndex == j)
 						return i->second;
 			}
-			return Util::emptyString;
+			return BaseUtil::emptyString;
 		}
 		
 		template<class M, typename T>

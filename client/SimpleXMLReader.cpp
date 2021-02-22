@@ -98,7 +98,7 @@ bool SimpleXMLReader::error(const char* e)
 	throw SimpleXMLException(Util::toString(pos) + ": " + e);
 }
 
-const string& SimpleXMLReader::CallBack::getAttrib(StringPairList& attribs, const string& name, size_t hint)
+string SimpleXMLReader::CallBack::getAttrib(StringPairList& attribs, const string& name, size_t hint)
 {
 	hint = std::min(hint, attribs.size());
 	
@@ -106,7 +106,7 @@ const string& SimpleXMLReader::CallBack::getAttrib(StringPairList& attribs, cons
 	if (i == attribs.end())
 	{
 		i = find_if(attribs.begin(), attribs.begin() + hint, CompareFirst<string, string>(name));
-		return i == (attribs.begin() + hint) ? Util::emptyString : i->second;
+		return i == (attribs.begin() + hint) ? string() : i->second;
 	}
 	else
 	{
@@ -162,7 +162,7 @@ bool SimpleXMLReader::element()
 		}
 		
 		state = STATE_ELEMENT_NAME;
-		elements.push_back(Util::emptyString);
+		elements.push_back(string());
 		append(elements.back(), MAX_NAME_SIZE, c);
 		
 		advancePos(2);
@@ -229,7 +229,7 @@ bool SimpleXMLReader::elementAttr()
 	int c = charAt(0);
 	if (isNameStartChar(c))
 	{
-		attribs.push_back(StringPair()); // Hot point - 10%
+		attribs.emplace_back(StringPair()); // Hot point - 10%
 		append(attribs.back().first, MAX_NAME_SIZE, c); // MAX_NAME_SIZE - 260
 		
 		state = STATE_ELEMENT_ATTR_NAME;

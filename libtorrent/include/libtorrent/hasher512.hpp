@@ -65,6 +65,9 @@ namespace libtorrent {
 
 	using sha512_hash = digest32<512>;
 
+	// internal
+	class TORRENT_EXPORT hasher512
+	{
 	// this is a SHA-512 hash class.
 	//
 	// You use it by first instantiating it, then call ``update()`` to feed it
@@ -80,9 +83,6 @@ namespace libtorrent {
 	// call ``reset()`` to reinitialize it.
 	//
 	// The built-in software version of the sha512-algorithm is from LibTomCrypt
-	// For more info, see ``src/sha512.cpp``.
-	class TORRENT_EXPORT hasher512
-	{
 	public:
 
 		hasher512();
@@ -91,7 +91,7 @@ namespace libtorrent {
 		// ``update(data)``.
 		explicit hasher512(span<char const> data);
 		hasher512(hasher512 const&);
-		hasher512& operator=(hasher512 const&);
+		hasher512& operator=(hasher512 const&) &;
 
 		// append the following bytes to what is being hashed
 		hasher512& update(span<char const> data);
@@ -104,6 +104,7 @@ namespace libtorrent {
 		// default constructed.
 		void reset();
 
+		// hidden
 		~hasher512();
 
 	private:

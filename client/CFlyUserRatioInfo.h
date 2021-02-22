@@ -75,9 +75,6 @@ template <class T> class CFlyUploadDownloadPair
 		
 };
 template <class T> class CFlyDirtyValue
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	private:
 		bool m_is_dirty;
@@ -123,9 +120,6 @@ class CFlyRatioItem : public CFlyUploadDownloadPair<uint64_t>
 };
 class User;
 struct CFlyUserRatioInfo : public CFlyRatioItem
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		CFlyUploadDownloadPair<uint64_t>& find_ip_map(const boost::asio::ip::address_v4& p_ip)

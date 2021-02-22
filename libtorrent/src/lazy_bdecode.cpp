@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2008-2016, Arvid Norberg
+Copyright (c) 2008-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,13 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "libtorrent/config.hpp"
-#ifndef TORRENT_NO_DEPRECATE
+
+#if TORRENT_ABI_VERSION == 1
+
 #include "libtorrent/lazy_entry.hpp"
-#include "libtorrent/bdecode.hpp" // for error codes
+#include "libtorrent/bdecode.hpp" // for error codes and escape_string
 #include "libtorrent/string_util.hpp" // for is_digit
+#include <algorithm>
 #include <cstring> // for memset
 #include <limits> // for numeric_limits
 #include <cstdio> // for snprintf
@@ -77,9 +80,39 @@ namespace {
 		return start;
 	}
 
+	char const* parse_string(char const* start, char const* end
+		, bdecode_errors::error_code_enum& e, std::int64_t& len)
+	{
+		start = parse_int(start, end, ':', len, e);
+		if (e) return start;
+		if (start == end)
+		{
+			e = bdecode_errors::expected_colon;
+		}
+		else
+		{
+			// remaining buffer size excluding ':'
+			const ptrdiff_t buff_size = end - start - 1;
+			if (len > buff_size)
+			{
+				e = bdecode_errors::unexpected_eof;
+			}
+			else if (len < 0)
+			{
+				e = bdecode_errors::overflow;
+			}
+			else
+			{
+				++start;
+				if (start >= end) e = bdecode_errors::unexpected_eof;
+			}
+		}
+		return start;
+	}
+
 	} // anonymous namespace
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	int lazy_bdecode(char const* start, char const* end
 		, lazy_entry& ret, int depth_limit, int item_limit)
 	{
@@ -127,22 +160,9 @@ namespace {
 					if (!is_digit(t)) TORRENT_FAIL_BDECODE(bdecode_errors::expected_digit);
 					std::int64_t len = t - '0';
 					bdecode_errors::error_code_enum e = bdecode_errors::no_error;
-					start = parse_int(start, end, ':', len, e);
-					if (e)
-						TORRENT_FAIL_BDECODE(e);
-					if (start == end)
-						TORRENT_FAIL_BDECODE(bdecode_errors::expected_colon);
+					start = parse_string(start, end, e, len);
+					if (e) TORRENT_FAIL_BDECODE(e);
 
-					// remaining buffer size excluding ':'
-					const ptrdiff_t buff_size = end - start - 1;
-					if (len > buff_size)
-						TORRENT_FAIL_BDECODE(bdecode_errors::unexpected_eof);
-
-					if (len < 0)
-						TORRENT_FAIL_BDECODE(bdecode_errors::overflow);
-
-					++start;
-					if (start == end) TORRENT_FAIL_BDECODE(bdecode_errors::unexpected_eof);
 					lazy_entry* ent = top->dict_append(start);
 					if (ent == nullptr) TORRENT_FAIL_BDECODE(boost::system::errc::not_enough_memory);
 					start += len;
@@ -196,26 +216,13 @@ namespace {
 				}
 				default:
 				{
-					if (!is_digit(t))
-						TORRENT_FAIL_BDECODE(bdecode_errors::expected_value);
 
+					if (!is_digit(t)) TORRENT_FAIL_BDECODE(bdecode_errors::expected_value);
 					std::int64_t len = t - '0';
 					bdecode_errors::error_code_enum e = bdecode_errors::no_error;
-					start = parse_int(start, end, ':', len, e);
-					if (e)
-						TORRENT_FAIL_BDECODE(e);
-					if (start == end)
-						TORRENT_FAIL_BDECODE(bdecode_errors::expected_colon);
+					start = parse_string(start, end, e, len);
+					if (e) TORRENT_FAIL_BDECODE(e);
 
-					// remaining buffer size excluding ':'
-					const ptrdiff_t buff_size = end - start - 1;
-					if (len > buff_size)
-						TORRENT_FAIL_BDECODE(bdecode_errors::unexpected_eof);
-					if (len < 0)
-						TORRENT_FAIL_BDECODE(bdecode_errors::overflow);
-
-					++start;
-					if (start == end) TORRENT_FAIL_BDECODE(bdecode_errors::unexpected_eof);
 					top->construct_string(start, int(len));
 					start += len;
 					stack.pop_back();
@@ -262,11 +269,10 @@ namespace {
 		}
 		else if (int(m_size) == this->capacity())
 		{
-			int const capacity = this->capacity() * lazy_entry_grow_factor / 100;
-			lazy_dict_entry* tmp = new (std::nothrow) lazy_dict_entry[capacity + 1];
+			std::size_t const capacity = std::size_t(this->capacity()) * lazy_entry_grow_factor / 100;
+			auto* tmp = new (std::nothrow) lazy_dict_entry[capacity + 1];
 			if (tmp == nullptr) return nullptr;
-			std::memcpy(tmp, m_data.dict, sizeof(lazy_dict_entry) * (m_size + 1));
-			for (int i = 0; i < int(m_size); ++i) m_data.dict[i + 1].val.release();
+			std::move(m_data.dict, m_data.dict + m_size + 1, tmp);
 
 			delete[] m_data.dict;
 			m_data.dict = tmp;
@@ -348,7 +354,7 @@ namespace {
 	pascal_string lazy_entry::dict_find_pstr(char const* name) const
 	{
 		lazy_entry const* e = dict_find(name);
-		if (e == nullptr || e->type() != lazy_entry::string_t) return pascal_string(nullptr, 0);
+		if (e == nullptr || e->type() != lazy_entry::string_t) return {nullptr, 0};
 		return e->string_pstr();
 	}
 
@@ -433,11 +439,10 @@ namespace {
 		}
 		else if (int(m_size) == this->capacity())
 		{
-			int const capacity = this->capacity() * lazy_entry_grow_factor / 100;
+			std::size_t const capacity = std::size_t(this->capacity()) * lazy_entry_grow_factor / 100;
 			lazy_entry* tmp = new (std::nothrow) lazy_entry[capacity + 1];
 			if (tmp == nullptr) return nullptr;
-			std::memcpy(tmp, m_data.list, sizeof(lazy_entry) * (m_size + 1));
-			for (int i = 0; i < int(m_size); ++i) m_data.list[i + 1].release();
+			std::move(m_data.list, m_data.list + m_size + 1, tmp);
 
 			delete[] m_data.list;
 			m_data.list = tmp;
@@ -458,7 +463,7 @@ namespace {
 	pascal_string lazy_entry::list_pstr_at(int i) const
 	{
 		lazy_entry const* e = list_at(i);
-		if (e == nullptr || e->type() != lazy_entry::string_t) return pascal_string(nullptr, 0);
+		if (e == nullptr || e->type() != lazy_entry::string_t) return {nullptr, 0};
 		return e->string_pstr();
 	}
 
@@ -488,8 +493,19 @@ namespace {
 
 	std::pair<char const*, int> lazy_entry::data_section() const
 	{
-		typedef std::pair<char const*, int> return_t;
-		return return_t(m_begin, m_len);
+		return {m_begin, m_len};
+	}
+
+	lazy_entry::lazy_entry(lazy_entry&& other)
+		: lazy_entry()
+	{
+		this->swap(other);
+	}
+
+	lazy_entry& lazy_entry::operator=(lazy_entry&& other)
+	{
+		this->swap(other);
+		return *this;
 	}
 
 	namespace {
@@ -544,23 +560,6 @@ namespace {
 		return line_len;
 	}
 
-	void escape_string(std::string& ret, char const* str, int len)
-	{
-		for (int i = 0; i < len; ++i)
-		{
-			if (str[i] >= 32 && str[i] < 127)
-			{
-				ret += str[i];
-			}
-			else
-			{
-				char tmp[5];
-				std::snprintf(tmp, sizeof(tmp), "\\x%02x", std::uint8_t(str[i]));
-				ret += tmp;
-			}
-		}
-	}
-
 	void print_string(std::string& ret, char const* str, int const len, bool single_line)
 	{
 		TORRENT_ASSERT(len >= 0);
@@ -588,13 +587,13 @@ namespace {
 		}
 		if (single_line && len > 20)
 		{
-			escape_string(ret, str, 9);
+			detail::escape_string(ret, str, 9);
 			ret += "...";
-			escape_string(ret, str + len - 9, 9);
+			detail::escape_string(ret, str + len - 9, 9);
 		}
 		else
 		{
-			escape_string(ret, str, len);
+			detail::escape_string(ret, str, len);
 		}
 		ret += "'";
 	}
@@ -663,4 +662,4 @@ namespace {
 	}
 }
 
-#endif // TORRENT_NO_DEPRECATE
+#endif // TORRENT_ABI_VERSION

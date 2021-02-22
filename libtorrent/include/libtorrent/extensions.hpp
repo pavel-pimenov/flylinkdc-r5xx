@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg
+Copyright (c) 2006-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -96,7 +96,9 @@ POSSIBILITY OF SUCH DAMAGE.
 // torrent has already been started and you want to hook in the extension at
 // run-time).
 //
-// The signature of the function is::
+// The signature of the function is:
+//
+// .. code:: c++
 //
 // 	std::shared_ptr<torrent_plugin> (*)(torrent_handle const&, void*);
 //
@@ -160,12 +162,10 @@ POSSIBILITY OF SUCH DAMAGE.
 //
 // .. _`alert section`: reference-Alerts.html
 
-
-#ifndef TORRENT_DISABLE_EXTENSIONS
-
 #include <vector>
 
 #include "libtorrent/config.hpp"
+#include "libtorrent/fwd.hpp"
 #include "libtorrent/span.hpp"
 #include "libtorrent/sha1_hash.hpp"
 #include "libtorrent/string_view.hpp"
@@ -174,23 +174,11 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	struct peer_plugin;
-	struct peer_request;
-	class entry;
-	struct bdecode_node;
-	struct bitfield;
-	class alert;
-	struct torrent_plugin;
-	struct add_torrent_params;
-	struct torrent_handle;
-	struct session_handle;
-	struct peer_connection_handle;
-
-	struct feature_flags_tag;
+#ifndef TORRENT_DISABLE_EXTENSIONS
 
 	// these are flags that can be returned by implemented_features()
 	// indicating which callbacks this plugin is interested in
-	using feature_flags_t = flags::bitfield_flag<std::uint8_t, feature_flags_tag>;
+	using feature_flags_t = flags::bitfield_flag<std::uint8_t, struct feature_flags_tag>;
 
 	// this is the base class for a session plugin. One primary feature
 	// is that it is notified of all torrents that are added to the session,
@@ -279,8 +267,7 @@ namespace libtorrent {
 		virtual void load_state(bdecode_node const&) {}
 	};
 
-	struct add_peer_flags_tag;
-	using add_peer_flags_t = flags::bitfield_flag<std::uint8_t, add_peer_flags_tag>;
+	using add_peer_flags_t = flags::bitfield_flag<std::uint8_t, struct add_peer_flags_tag>;
 
 	// Torrent plugins are associated with a single torrent and have a number
 	// of functions called at certain events. Many of its functions have the
@@ -483,6 +470,9 @@ namespace libtorrent {
 		// no other plugin will have this function called.
 		virtual bool write_request(peer_request const&) { return false; }
 	};
+#endif // TORRENT_DISABLE_EXTENSIONS
+
+#if !defined TORRENT_DISABLE_ENCRYPTION
 
 	struct TORRENT_EXPORT crypto_plugin
 	{
@@ -518,8 +508,8 @@ namespace libtorrent {
 		// advance the next step of decryption. default is 0
 		virtual std::tuple<int, int, int> decrypt(span<span<char>> /*receive_vec*/) = 0;
 	};
-}
 
-#endif
+#endif // TORRENT_DISABLE_ENCRYPTION
+}
 
 #endif // TORRENT_EXTENSIONS_HPP_INCLUDED

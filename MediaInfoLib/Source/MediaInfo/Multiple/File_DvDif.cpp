@@ -230,7 +230,7 @@ File_DvDif::File_DvDif()
         StreamIDs_Width[0]=4;
     #endif //MEDIAINFO_EVENTS
     #if MEDIAINFO_DEMUX
-        Demux_Level=2; //Container
+        Demux_Level=3; //Container and Stream
     #endif //MEDIAINFO_DEMUX
     MustSynchronize=true;
     Buffer_TotalBytes_FirstSynched_Max=64*1024;
@@ -283,6 +283,7 @@ File_DvDif::File_DvDif()
     Stats_Total=0;
     Stats_Total_WithoutArb=0;
     Stats_Total_AlreadyDetected=false;
+    memset(BlockStatus, 0, BlockStatus_MaxSize);
     #endif //MEDIAINFO_DVDIF_ANALYZE_YES
 }
 
@@ -633,7 +634,14 @@ bool File_DvDif::Synchronize()
         return false;
 
     if (!Status[IsAccepted])
+    {
         Accept();
+
+        #if MEDIAINFO_DEMUX
+            if (Config->Demux_Unpacketize_Get())
+                Demux_UnpacketizeContainer=true;
+        #endif //MEDIAINFO_DEMUX
+    }
 
     return true;
 }
@@ -821,6 +829,7 @@ bool File_DvDif::Demux_UnpacketizeContainer_Test()
         if (Demux_Offset+8*80>Buffer_Size && File_Offset+Buffer_Size==File_Size)
             Demux_Offset=(size_t)(File_Size-File_Offset); //Using the complete buffer (no next sync)
 
+        Element_Code=-1;
         Demux_UnpacketizeContainer_Demux();
     }
 

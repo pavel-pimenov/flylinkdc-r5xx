@@ -52,11 +52,11 @@ class QueueManager : public Singleton<QueueManager>,
 		void add(int64_t p_FlyQueueID, const string& aTarget, int64_t aSize, const TTHValue& aRoot, const UserPtr& aUser,
 		         Flags::MaskType aFlags = 0, bool addBad = true, bool p_first_file = true);
 		/** Add a user's filelist to the queue. */
-		void addList(const UserPtr& aUser, Flags::MaskType aFlags, const string& aInitialDir = Util::emptyString) ;
+		void addList(const UserPtr& aUser, Flags::MaskType aFlags, const string& aInitialDir = BaseUtil::emptyString) ;
 		
 		void addCheckUserIP(const UserPtr& aUser)
 		{
-			add(0, Util::emptyString, -1, TTHValue(), aUser, QueueItem::FLAG_USER_GET_IP);
+			add(0, BaseUtil::emptyString, -1, TTHValue(), aUser, QueueItem::FLAG_USER_GET_IP);
 		}
 		void addDclst(const string& p_dclstFile)
 		{

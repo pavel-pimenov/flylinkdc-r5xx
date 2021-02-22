@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2008-2016, Arvid Norberg
+Copyright (c) 2008-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,8 @@ namespace libtorrent {
 		std::string const& url() const override { return m_url; }
 
 		void get_specific_peer_info(peer_info& p) const override;
-		void disconnect(error_code const& ec, operation_t op, int error = 0) override;
+		void disconnect(error_code const& ec, operation_t op
+			, disconnect_severity_t error = peer_connection_interface::normal) override;
 
 		void write_request(peer_request const& r) override;
 

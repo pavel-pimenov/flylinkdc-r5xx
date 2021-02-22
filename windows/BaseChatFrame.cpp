@@ -633,7 +633,7 @@ tstring BaseChatFrame::findTextPopup()
 	{
 		return finddlg.line;
 	}
-	return Util::emptyStringT;
+	return BaseUtil::emptyStringT;
 }
 
 void BaseChatFrame::findText(const tstring& needle) noexcept
@@ -755,7 +755,7 @@ void BaseChatFrame::addLine(const tstring& aLine, unsigned p_max_smiles, CHARFOR
 	}
 	else
 	{
-		const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, Util::emptyStringT, aLine, cf, false);
+		const ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, BaseUtil::emptyStringT, aLine, cf, false);
 		ctrlClient.AppendText(l_message, p_max_smiles, true);
 	}
 }
@@ -784,7 +784,7 @@ void BaseChatFrame::addLine(const Identity& from, const bool bMyMess, const bool
 	}
 	else
 	{
-		const ChatCtrl::CFlyChatCache l_message(from, bMyMess, bThirdPerson, !extra.empty() ? _T('[') + extra + _T("] ") : Util::emptyStringT, aLine, cf, true);
+		const ChatCtrl::CFlyChatCache l_message(from, bMyMess, bThirdPerson, !extra.empty() ? _T('[') + extra + _T("] ") : BaseUtil::emptyStringT, aLine, cf, true);
 		ctrlClient.AppendText(l_message, p_max_smiles, true);
 	}
 }
@@ -935,7 +935,7 @@ void BaseChatFrame::appendLogToChat(const string& path, const size_t linesCount)
 	const bool l_is_utf = buf.compare(0, 3, "\xef\xbb\xbf", 3) == 0;
 	const StringTokenizer<string> l_lines(l_is_utf ? buf.substr(3) : buf, "\r\n");
 	size_t i = l_lines.getTokens().size() > (linesCount + 1) ? l_lines.getTokens().size() - linesCount : 0;
-	ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, Util::emptyStringT, Util::emptyStringT, Colors::g_ChatTextLog, true, false);
+	ChatCtrl::CFlyChatCache l_message(ClientManager::getFlylinkDCIdentity(), false, true, BaseUtil::emptyStringT, BaseUtil::emptyStringT, Colors::g_ChatTextLog, true, false);
 	{
 		for (; i < l_lines.getTokens().size(); ++i)
 		{

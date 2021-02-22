@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -256,15 +256,13 @@ namespace libtorrent {
 
 	void tracker_manager::queue_request(
 		io_service& ios
-		, tracker_request req
+		, tracker_request&& req
 		, std::weak_ptr<request_callback> c)
 	{
 		TORRENT_ASSERT(is_single_thread());
 		TORRENT_ASSERT(req.num_want >= 0);
 		TORRENT_ASSERT(!m_abort || req.event == tracker_request::stopped);
 		if (m_abort && req.event != tracker_request::stopped) return;
-		if (req.event == tracker_request::stopped)
-			req.num_want = 0;
 
 #ifndef TORRENT_DISABLE_LOGGING
 		std::shared_ptr<request_callback> cb = c.lock();
@@ -272,11 +270,7 @@ namespace libtorrent {
 			, req.listen_port);
 #endif
 
-		TORRENT_ASSERT(!m_abort || req.event == tracker_request::stopped);
-		if (m_abort && req.event != tracker_request::stopped)
-			return;
-
-		std::string protocol = req.url.substr(0, req.url.find(':'));
+		std::string const protocol = req.url.substr(0, req.url.find(':'));
 
 #ifdef TORRENT_USE_OPENSSL
 		if (protocol == "http" || protocol == "https")
@@ -284,23 +278,23 @@ namespace libtorrent {
 		if (protocol == "http")
 #endif
 		{
-			auto con = std::make_shared<http_tracker_connection>(ios, *this, req, c);
+			auto con = std::make_shared<http_tracker_connection>(ios, *this, std::move(req), c);
 			m_http_conns.push_back(con);
 			con->start();
 			return;
 		}
 		else if (protocol == "udp")
 		{
-			auto con = std::make_shared<udp_tracker_connection>(ios, *this, req, c);
+			auto con = std::make_shared<udp_tracker_connection>(ios, *this, std::move(req), c);
 			m_udp_conns[con->transaction_id()] = con;
 			con->start();
 			return;
 		}
 
 		// we need to post the error to avoid deadlock
-		if (std::shared_ptr<request_callback> r = c.lock())
-			ios.post(std::bind(&request_callback::tracker_request_error, r, req
-				, error_code(errors::unsupported_url_protocol)
+		if (auto r = c.lock())
+			ios.post(std::bind(&request_callback::tracker_request_error, r, std::move(req)
+				, errors::unsupported_url_protocol
 				, "", seconds32(0)));
 	}
 

@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ namespace libtorrent {
 
 	// constructor function for the ut_metadata extension. The ut_metadata
 	// extension allows peers to request the .torrent file (or more
-	// specifically the 'info'-dictionary of the .torrent file) from each
+	// specifically the info-dictionary of the .torrent file) from each
 	// other. This is the main building block in making magnet links work.
 	// This extension is enabled by default unless explicitly disabled in
 	// the session constructor.

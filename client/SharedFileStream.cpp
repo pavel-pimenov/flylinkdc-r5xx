@@ -146,7 +146,7 @@ SharedFileStream::SharedFileStream(const string& aFileName, int aAccess, int aMo
 		catch (FileException& e)
 		{
 			m_sfh.reset();
-			const auto l_error = "error r5xx SharedFileStream::SharedFileStream aFileName = "
+			const auto l_error = "error SharedFileStream::SharedFileStream aFileName = "
 			                     + aFileName + " Error = " + e.getError() + " Access = " + Util::toString(aAccess) + " Mode = " + Util::toString(aMode);
 			const auto l_dup_filter = g_shared_stream_errors.insert(l_error);
 			if (l_dup_filter.second == true)
@@ -360,7 +360,7 @@ size_t SharedFileStream::flushBuffers(bool aForce)
 				return m_sfh->m_file.flushBuffers(aForce);
 			}
 		}
-		catch (const Exception& e)
+		catch (const Exception& )
 		{
 			dcassert(0);
 			//LogManager::message("SharedFileStream::flush() = " + e.getError());

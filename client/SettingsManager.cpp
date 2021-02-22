@@ -237,7 +237,7 @@ static const char* g_settingTags[] =
 	"UserListDoubleClick", "TransferListDoubleClick", "ChatDoubleClick", "AdcDebug", "NmdcDebug",
 	"ToggleActiveWindow", "ProgressbaroDCStyle", "SearchHistory",
 	"AcceptedDisconnects", "AcceptedTimeouts",
-	"OpenRecentHubs", "OpenPublic", "OpenFavoriteHubs", "OpenFavoriteUsers", "OpenQueue", "OpenFinishedDownloads",
+	"OpenPublic", "OpenFavoriteHubs", "OpenFavoriteUsers", "OpenQueue", "OpenFinishedDownloads",
 	"OpenFinishedUploads", "OpenSearchSpy", "OpenNetworkStatistics", "OpenNotepad", "OutgoingConnections",
 	"NoIPOverride", "ForgetSearchRequest", "SaveSearchSettings", "UseSearchGroupTreeSettings",
 	"UseTorrentSearch", "UseTorrentRSS",
@@ -245,7 +245,6 @@ static const char* g_settingTags[] =
 	"BoldFinishedUploads", "BoldQueue",
 	"BoldHub", "BoldPm", "BoldSearch", "BoldNewrss", "TabsPos",
 	"HubPosition",
-	"SocketInBuffer2", "SocketOutBuffer2",
 	"ColorRunning", "ColorDownloaded", "ColorVerified", "ColorAvoiding", "AutoRefreshTime", "OpenWaitingUsers",
 	"BoldWaitingUsers", "AutoSearchLimit", "AutoKickNoFavs", "PromptPassword", "SpyFrameIgnoreTthSearches",
 	"TLSPort", "UseTLSFlylinkDC", "MaxCommandLength", "AllowUntrustedHubsFlylinkDC", "AllowUntrustedClientsFlylinkDC",
@@ -413,9 +412,6 @@ static const char* g_settingTags[] =
 	"ProviderUseResources",
 	"ProviderUseMenu", "ProviderUseHublist", "ProviderUseLocations",
 	"AutoUpdateGeoIP", "AutoUpdateCustomLocation",
-#ifdef SSA_SHELL_INTEGRATION
-	"AutoUpdateShellExt",
-#endif
 #ifdef IRAINMAN_USE_BB_CODES
 	"FormatBBCodeColors",
 #endif
@@ -623,7 +619,6 @@ void SettingsManager::setDefaults()
 	setDefault(PRIO_NORMAL_SIZE, 1024);
 	setDefault(PRIO_LOW_SIZE, 2048);
 	//setDefault(PRIO_LOWEST, false);
-	setDefault(OPEN_RECENT_HUBS, TRUE);
 	//setDefault(OPEN_PUBLIC, false);
 	//setDefault(OPEN_FAVORITE_HUBS, false);
 	//setDefault(OPEN_FAVORITE_USERS, false);
@@ -634,9 +629,6 @@ void SettingsManager::setDefaults()
 	//setDefault(OPEN_NETWORK_STATISTICS, false);
 	//setDefault(OPEN_NOTEPAD, false);
 	//setDefault(OPEN_WAITING_USERS, false);
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
-	setDefault(SOCKET_IN_BUFFER, MAX_SOCKET_BUFFER_SIZE);
-	setDefault(SOCKET_OUT_BUFFER, MAX_SOCKET_BUFFER_SIZE);
 	/*
 	  // Increase the socket buffer sizes from the default sizes for WinXP.  In
 	  // performance testing, there is substantial benefit by increasing from 8KB
@@ -649,7 +641,7 @@ void SettingsManager::setDefaults()
 	  // Since Vista's auto-tune is better than any static value we can could set,
 	  // only change these on pre-vista machines.
 	*/
-#endif // FLYLINKDC_SUPPORT_WIN_XP
+	
 	const string l_tls_path = Util::getConfigPath() + "Certificates" PATH_SEPARATOR_STR;
 	setDefault(TLS_TRUSTED_CERTIFICATES_PATH, l_tls_path);
 	setDefault(TLS_PRIVATE_KEY_FILE, l_tls_path + "client.key");
@@ -928,7 +920,7 @@ void SettingsManager::setDefaults()
 	//setDefault(PROTECT_START, false);
 	//setDefault(PROTECT_CLOSE, false);
 	//setDefault(STRIP_TOPIC, false);
-	//setDefault(SKIPLIST_SHARE, Util::emptyString);
+	//setDefault(SKIPLIST_SHARE, BaseUtil::emptyString);
 	setDefault(TB_IMAGE_SIZE, 24);
 	setDefault(TB_IMAGE_SIZE_HOT, 24);
 	//setDefault(SHOW_WINAMP_CONTROL, false);
@@ -936,7 +928,7 @@ void SettingsManager::setDefaults()
 	setDefault(PM_PREVIEW, TRUE);
 	//setDefault(FILTER_ENTER, false);
 	setDefault(HIGH_PRIO_FILES, "*.sfv;*.nfo;*sample*;*cover*;*.pls;*.m3u");
-	//setDefault(LOW_PRIO_FILES, Util::emptyString);
+	//setDefault(LOW_PRIO_FILES, BaseUtil::emptyString);
 	setDefault(POPUP_TIME, 5);
 	setDefault(POPUP_W, 200);
 	setDefault(POPUP_H, 90);
@@ -944,7 +936,7 @@ void SettingsManager::setDefaults()
 	//setDefault(AWAY_START, 0);
 	//setDefault(AWAY_END, 0);
 	//setDefault(AWAY_TIME_THROTTLE, false);
-	//setDefault(SECONDARY_AWAY_MESSAGE, Util::emptyString);
+	//setDefault(SECONDARY_AWAY_MESSAGE, BaseUtil::emptyString);
 	setDefault(PROGRESSBAR_ODC_BUMPED, TRUE);
 	setDefault(TOP_SPEED, 100);
 	setDefault(TOP_UP_SPEED, 50);
@@ -977,7 +969,7 @@ void SettingsManager::setDefaults()
 	setDefault(FORMAT_BB_CODES_COLORS, TRUE);
 #endif
 	setDefault(FORMAT_BOT_MESSAGE, TRUE);
-	//setDefault(PROT_USERS, Util::emptyString);
+	//setDefault(PROT_USERS, BaseUtil::emptyString);
 	//setDefault(MEDIA_PLAYER, 0);
 	setDefault(WMP_FORMAT, "+me playing: '%[title]' at %[bitrate] (Windows Media Player %[version]) %[magnet]");
 	setDefault(ITUNES_FORMAT, "+me listens '%[artist] - %[title]' • listened to %[percent] (%[length], %[bitrate], iTunes %[version]) %[magnet]");
@@ -1157,9 +1149,6 @@ void SettingsManager::setDefaults()
 	setDefault(AUTOUPDATE_UPDATE_CHATBOT, TRUE);
 	setDefault(AUTOUPDATE_GEOIP, TRUE);
 	setDefault(AUTOUPDATE_CUSTOMLOCATION, TRUE);
-#ifdef SSA_SHELL_INTEGRATION
-	setDefault(AUTOUPDATE_SHELL_EXT, TRUE);
-#endif
 	setDefault(AUTOUPDATE_FORCE_RESTART, TRUE);
 	setDefault(AUTOUPDATE_ENABLE, TRUE);
 	//setDefault(AUTOUPDATE_USE_CUSTOM_URL, false);
@@ -1324,23 +1313,23 @@ void SettingsManager::load(const string& aFileName)
 	{
 	
 		// Formats changed, might as well remove these...
-		set(LOG_FORMAT_POST_DOWNLOAD, Util::emptyString);
-		set(LOG_FORMAT_POST_UPLOAD, Util::emptyString);
-		set(LOG_FORMAT_MAIN_CHAT, Util::emptyString);
-		set(LOG_FORMAT_PRIVATE_CHAT, Util::emptyString);
-		set(LOG_FORMAT_STATUS, Util::emptyString);
-		set(LOG_FORMAT_SYSTEM, Util::emptyString);
+		set(LOG_FORMAT_POST_DOWNLOAD, BaseUtil::emptyString);
+		set(LOG_FORMAT_POST_UPLOAD, BaseUtil::emptyString);
+		set(LOG_FORMAT_MAIN_CHAT, BaseUtil::emptyString);
+		set(LOG_FORMAT_PRIVATE_CHAT, BaseUtil::emptyString);
+		set(LOG_FORMAT_STATUS, BaseUtil::emptyString);
+		set(LOG_FORMAT_SYSTEM, BaseUtil::emptyString);
 #ifdef RIP_USE_LOG_PROTOCOL
-		set(LOG_FORMAT_PROTOCOL, Util::emptyString);
+		set(LOG_FORMAT_PROTOCOL, BaseUtil::emptyString);
 #endif
-		set(LOG_FILE_MAIN_CHAT, Util::emptyString);
-		set(LOG_FILE_STATUS, Util::emptyString);
-		set(LOG_FILE_PRIVATE_CHAT, Util::emptyString);
-		set(LOG_FILE_UPLOAD, Util::emptyString);
-		set(LOG_FILE_DOWNLOAD, Util::emptyString);
-		set(LOG_FILE_SYSTEM, Util::emptyString);
+		set(LOG_FILE_MAIN_CHAT, BaseUtil::emptyString);
+		set(LOG_FILE_STATUS, BaseUtil::emptyString);
+		set(LOG_FILE_PRIVATE_CHAT, BaseUtil::emptyString);
+		set(LOG_FILE_UPLOAD, BaseUtil::emptyString);
+		set(LOG_FILE_DOWNLOAD, BaseUtil::emptyString);
+		set(LOG_FILE_SYSTEM, BaseUtil::emptyString);
 #ifdef RIP_USE_LOG_PROTOCOL
-		set(LOG_FILE_PROTOCOL, Util::emptyString);
+		set(LOG_FILE_PROTOCOL, BaseUtil::emptyString);
 #endif
 	}
 	
@@ -1774,14 +1763,6 @@ bool SettingsManager::set(IntSetting key, int value)
 			VER_MIN(16);
 			break;
 		}
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
-		case SOCKET_IN_BUFFER:
-		case SOCKET_OUT_BUFFER:
-		{
-			VERIFI(0, MAX_SOCKET_BUFFER_SIZE);
-			break;
-		}
-#endif
 		case NUMBER_OF_SEGMENTS:
 		{
 			VERIFI(1, 200);
@@ -2111,7 +2092,7 @@ unsigned short SettingsManager::getNewPortValue(unsigned short p_OldPortValue)
 string SettingsManager::getSoundFilename(const SettingsManager::StrSetting p_sound)
 {
 	if (getBool(SOUNDS_DISABLED, true))
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 		
 	return get(p_sound, true);
 }

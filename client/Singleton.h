@@ -26,9 +26,6 @@
 
 template<typename T>
 class Singleton
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		explicit Singleton() { }

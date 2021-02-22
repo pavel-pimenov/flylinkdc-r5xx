@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2014-2016, Arvid Norberg
+Copyright (c) 2014-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_CRC32C_HPP_INCLUDE
 
 #include <cstdint>
-#include "libtorrent/export.hpp"
+#include "libtorrent/aux_/export.hpp"
 
 namespace libtorrent {
 

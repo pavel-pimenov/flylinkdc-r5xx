@@ -70,7 +70,7 @@ class WildcardsEss
 		{
 			MetaOperation curr;
 			MetaOperation prev;
-			Mask(): curr(BOL), prev(BOL) {};
+			Mask(): curr(BOL), prev(BOL) {}
 		};
 		
 		/**
@@ -95,7 +95,7 @@ class WildcardsEss
 				curr.clear();
 				prev.clear();
 			};
-			Item(): pos(0), left(0), delta(0), overlay(0) {};
+			Item(): pos(0), left(0), delta(0), overlay(0) {}
 		} item;
 		
 		/**
@@ -111,7 +111,7 @@ class WildcardsEss
 				found   = tstring::npos;
 				left    = 0;
 			};
-			Words(): left(0), found(0) {};
+			Words(): left(0), found(0) {}
 		} words;
 		
 		/**

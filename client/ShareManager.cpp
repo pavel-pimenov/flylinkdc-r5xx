@@ -321,7 +321,7 @@ string ShareManager::toRealPath(const TTHValue& tth)
 			}
 		}
 	}
-	return Util::emptyString;
+	return BaseUtil::emptyString;
 }
 
 #ifdef _DEBUG
@@ -980,7 +980,7 @@ void ShareManager::addDirectory(const string& realPath, const string& virtualNam
 	HashManager::HashPauser pauser;
 	{
 		CFlyDirItemArray directories;
-		directories.push_back(CFlyDirItem(virtualName, realPath, 0));
+		directories.emplace_back(CFlyDirItem(virtualName, realPath, 0));
 		if (!p_is_job)
 		{
 			CFlylinkDBManager::getInstance()->scan_path(directories);
@@ -1676,7 +1676,7 @@ void ShareManager::getDirectories(CFlyDirItemArray& p_dirs)
 	p_dirs.reserve(g_shares.size());
 	for (auto i = g_shares.cbegin(); i != g_shares.cend(); ++i)
 	{
-		p_dirs.push_back(CFlyDirItem(i->second.m_synonym, i->first, 0));
+		p_dirs.emplace_back(CFlyDirItem(i->second.m_synonym, i->first, 0));
 	}
 }
 
@@ -1727,7 +1727,7 @@ int ShareManager::run()
 		m_lastFullUpdate = GET_TICK();
 		CFlylinkDBManager::getInstance()->scan_path(directories);
 		rebuildSkipList();
-		DirList newDirs;
+		std::vector<Directory::Ptr> newDirs;
 		{
 			CFlyBusy l_busy(g_RebuildIndexes);
 #ifdef FLYLINKDC_USE_RW_LOCK_SHARE
@@ -2699,7 +2699,7 @@ void ShareManager::search(SearchResultList& aResults, const SearchParam& p_searc
 	{
 		if (!i->empty())
 		{
-			ssl.push_back(StringSearch(*i));
+			ssl.emplace_back(StringSearch(*i));
 #ifdef FLYLINKDC_USE_COLLECT_STAT
 			{
 				CFlylinkDBManager::getInstance()->push_event_statistic("ShareManager::search",
@@ -2760,15 +2760,15 @@ ShareManager::AdcSearch::AdcSearch(const StringList& params) : m_includePtr(&m_i
 		}
 		else if (toCode('A', 'N') == cmd)
 		{
-			m_includeX.push_back(StringSearch(p.substr(2)));
+			m_includeX.emplace_back(StringSearch(p.substr(2)));
 		}
 		else if (toCode('N', 'O') == cmd)
 		{
-			m_exclude.push_back(StringSearch(p.substr(2)));
+			m_exclude.emplace_back(StringSearch(p.substr(2)));
 		}
 		else if (toCode('E', 'X') == cmd)
 		{
-			m_exts.push_back(p.substr(2));
+			m_exts.emplace_back(p.substr(2));
 		}
 		else if (toCode('G', 'R') == cmd)
 		{

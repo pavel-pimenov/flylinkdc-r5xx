@@ -22,8 +22,11 @@
 
 //---------------------------------------------------------------------------
 #include "MediaInfo/Setup.h"
+#include "tinyxml2.h"
 #include <ZenLib/Ztring.h>
 #include <string>
+#include <algorithm>
+using namespace tinyxml2;
 using namespace std;
 using namespace ZenLib;
 //---------------------------------------------------------------------------
@@ -167,6 +170,9 @@ std::string ExtensibleWave_ChannelMask_ChannelLayout(int32u ChannelMask)
     #include "MediaInfo/Multiple/File_Ogg.h"
     #include "MediaInfo/Multiple/File_Ogg_SubElement.h"
 #endif
+#if defined(MEDIAINFO_CINEFORM_YES)
+    #include "MediaInfo/Video/File_CineForm.h"
+#endif
 #if defined(MEDIAINFO_FFV1_YES)
     #include "MediaInfo/Video/File_Ffv1.h"
 #endif
@@ -223,6 +229,7 @@ std::string ExtensibleWave_ChannelMask_ChannelLayout(int32u ChannelMask)
 #endif
 #if defined(MEDIAINFO_SMPTEST0337_YES)
     #include "MediaInfo/Audio/File_SmpteSt0337.h"
+    #include "MediaInfo/Audio/File_ChannelSplitting.h"
 #endif
 #if defined(MEDIAINFO_ID3_YES)
     #include "MediaInfo/Tag/File_Id3.h"
@@ -419,10 +426,11 @@ namespace Elements
     const int32u WAVE_adtl_labl=0x6C61626C;
     const int32u WAVE_adtl_ltxt=0x6C747874;
     const int32u WAVE_adtl_note=0x6E6F7465;
-    const int32u WAVE_aXML=0x61584D4C;
+    const int32u WAVE_axml=0x61786D6C;
     const int32u WAVE_bext=0x62657874;
     const int32u WAVE_cue_=0x63756520;
     const int32u WAVE_data=0x64617461;
+    const int32u WAVE_dbmd=0x64626D64;
     const int32u WAVE_ds64=0x64733634;
     const int32u WAVE_fact=0x66616374;
     const int32u WAVE_fmt_=0x666D7420;
@@ -607,17 +615,19 @@ void File_Riff::Data_Parse()
     LIST(WAVE)
         ATOM_BEGIN
         ATOM(WAVE__pmx)
-        ATOM(WAVE_aXML)
         LIST(WAVE_adtl)
             ATOM_BEGIN
             ATOM(WAVE_adtl_labl)
             ATOM(WAVE_adtl_ltxt)
             ATOM(WAVE_adtl_note)
             ATOM_END
+        LIST(WAVE_axml)
+            break;
         ATOM(WAVE_bext)
         LIST(WAVE_data)
             break;
         ATOM(WAVE_cue_)
+        ATOM(WAVE_dbmd)
         ATOM(WAVE_ds64)
         ATOM(WAVE_fact)
         ATOM(WAVE_fmt_)
@@ -747,7 +757,7 @@ void File_Riff::AIFF_COMM()
     Fill(Stream_Audio, StreamPos_Last, Audio_Channel_s_, numChannels);
     Fill(Stream_Audio, StreamPos_Last, Audio_BitDepth, sampleSize);
     if (sampleRate)
-        Fill(Stream_Audio, StreamPos_Last, Audio_Duration, numSampleFrames/sampleRate*1000);
+        Fill(Stream_Audio, StreamPos_Last, Audio_Duration, numSampleFrames/sampleRate*1000, 0);
     Fill(Stream_Audio, StreamPos_Last, Audio_SamplingRate, sampleRate, 0);
 
     //Compute the current codec ID
@@ -756,48 +766,12 @@ void File_Riff::AIFF_COMM()
     stream_Count=1;
 
     //Specific cases
-    #if defined(MEDIAINFO_SMPTEST0337_YES)
-    if (Retrieve(Stream_Audio, 0, Audio_CodecID).empty() && numChannels==2 && sampleSize<=32 && sampleRate==48000) //Some SMPTE ST 337 streams are hidden in PCM stream
-    {
-        File_SmpteSt0337* Parser=new File_SmpteSt0337;
-        Parser->Endianness='B';
-        Parser->Container_Bits=(int8u)sampleSize;
-        Parser->ShouldContinueParsing=true;
-        #if MEDIAINFO_DEMUX
-            if (Config->Demux_Unpacketize_Get())
-            {
-                Parser->Demux_Level=2; //Container
-                Parser->Demux_UnpacketizeContainer=true;
-                Demux_Level=4; //Intermediate
-            }
-        #endif //MEDIAINFO_DEMUX
-        Stream[Stream_ID].Parsers.push_back(Parser);
-    }
+    #if defined(MEDIAINFO_PCM_YES) || defined(MEDIAINFO_DTS_YES) || defined(MEDIAINFO_SMPTEST0337_YES)
+        stream& StreamItem=Stream[Stream_ID];
+        Ztring Codec=Retrieve(Stream_Audio, StreamPos_Last, Audio_CodecID);
+        Parser_Pcm(StreamItem, numChannels, sampleSize, sampleSize, sampleRate, (Codec.empty() || Codec==__T("NONE"))?'B':'\0');
     #endif
 
-    stream& StreamItem = Stream[Stream_ID];
-    #if defined(MEDIAINFO_PCM_YES)
-        File_Pcm* Parser=new File_Pcm;
-        Parser->Codec=Retrieve(Stream_Audio, StreamPos_Last, Audio_CodecID);
-        if (Parser->Codec.empty() || Parser->Codec==__T("NONE"))
-            Parser->Endianness='B';
-        Parser->BitDepth=(int8u)sampleSize;
-        #if MEDIAINFO_DEMUX
-            if (Demux_Rate)
-                Parser->Frame_Count_Valid = float64_int64s(Demux_Rate);
-            if (Config->Demux_Unpacketize_Get())
-            {
-                Parser->Demux_Level=2; //Container
-                Parser->Demux_UnpacketizeContainer=true;
-                Demux_Level=4; //Intermediate
-            }
-        #else //MEDIAINFO_DEMUX
-            Parser->Frame_Count_Valid=(int64u)-1; //Disabling it, waiting for SMPTE ST 337 parser reject
-        #endif //MEDIAINFO_DEMUX
-        StreamItem.Parsers.push_back(Parser);
-        StreamItem.IsPcm=true;
-        StreamItem.StreamKind=Stream_Audio;
-    #endif
     #if MEDIAINFO_DEMUX
         unsigned int ComputedBlockAlign=numChannels*sampleSize/8;
         if (ComputedBlockAlign<0x10000)
@@ -1321,47 +1295,6 @@ void File_Riff::AVI__hdlr_strl_strf_auds()
         Fill(Stream_Audio, 0, Audio_Delay_Source, "Container (bext)");
     }
 
-    //Specific cases
-    #if defined(MEDIAINFO_DTS_YES) || defined(MEDIAINFO_SMPTEST0337_YES)
-    if (FormatTag==0x1 && Retrieve(Stream_General, 0, General_Format)==__T("Wave")) //Some DTS or SMPTE ST 337 streams are coded "1"
-    {
-        #if defined(MEDIAINFO_DTS_YES)
-        {
-            File_Dts* Parser=new File_Dts;
-            Parser->Frame_Count_Valid=2;
-            Parser->ShouldContinueParsing=true;
-            #if MEDIAINFO_DEMUX
-                if (Config->Demux_Unpacketize_Get() && Retrieve(Stream_General, 0, General_Format)==__T("Wave"))
-                {
-                    Parser->Demux_Level=2; //Container
-                    Parser->Demux_UnpacketizeContainer=true;
-                    Demux_Level=4; //Intermediate
-                }
-            #endif //MEDIAINFO_DEMUX
-            StreamItem.Parsers.push_back(Parser);
-        }
-        #endif
-
-        #if defined(MEDIAINFO_SMPTEST0337_YES)
-        {
-            File_SmpteSt0337* Parser=new File_SmpteSt0337;
-            Parser->Container_Bits=(int8u)BitsPerSample;
-            Parser->Aligned=true;
-            Parser->ShouldContinueParsing=true;
-            #if MEDIAINFO_DEMUX
-                if (Config->Demux_Unpacketize_Get() && Retrieve(Stream_General, 0, General_Format)==__T("Wave"))
-                {
-                    Parser->Demux_Level=2; //Container
-                    Parser->Demux_UnpacketizeContainer=true;
-                    Demux_Level=4; //Intermediate
-                }
-            #endif //MEDIAINFO_DEMUX
-            StreamItem.Parsers.push_back(Parser);
-        }
-        #endif
-    }
-    #endif
-
     //Creating the parser
          if (0);
     #if defined(MEDIAINFO_MPEGA_YES)
@@ -1402,27 +1335,10 @@ void File_Riff::AVI__hdlr_strl_strf_auds()
         StreamItem.Parsers.push_back(Parser);
     }
     #endif
-    #if defined(MEDIAINFO_PCM_YES)
-    else if (MediaInfoLib::Config.CodecID_Get(Stream_Audio, InfoCodecID_Format_Riff, Codec)==__T("PCM"))
+    #if defined(MEDIAINFO_PCM_YES) || defined(MEDIAINFO_DTS_YES) || defined(MEDIAINFO_SMPTEST0337_YES)
+    if (MediaInfoLib::Config.CodecID_Get(Stream_Audio, InfoCodecID_Format_Riff, Codec) == __T("PCM"))
     {
-        File_Pcm* Parser=new File_Pcm;
-        Parser->Codec=Codec;
-        Parser->BitDepth=(int8u)BitsPerSample;
-        #if MEDIAINFO_DEMUX
-            if (Demux_Rate)
-                Parser->Frame_Count_Valid = float64_int64s(Demux_Rate);
-            if (Config->Demux_Unpacketize_Get() && Retrieve(Stream_General, 0, General_Format)==__T("Wave"))
-            {
-                Parser->Demux_Level=2; //Container
-                Parser->Demux_UnpacketizeContainer=true;
-                Demux_Level=4; //Intermediate
-            }
-        #else //MEDIAINFO_DEMUX
-            Parser->Frame_Count_Valid=(int64u)-1; //Disabling it, waiting for SMPTE ST 337 parser reject
-        #endif //MEDIAINFO_DEMUX
-        stream& StreamItem = Stream[Stream_ID];
-        StreamItem.Parsers.push_back(Parser);
-        StreamItem.IsPcm=true;
+        Parser_Pcm(StreamItem, Channels, BitsPerSample, BitsPerSample, SamplesPerSec);
     }
     #endif
     #if defined(MEDIAINFO_ADPCM_YES)
@@ -1616,27 +1532,13 @@ void File_Riff::AVI__hdlr_strl_strf_auds_ExtensibleWave(int16u BitsPerSample)
             Fill(Stream_Audio, StreamPos_Last, Audio_Codec, MediaInfoLib::Config.Codec_Get(Ztring().From_Number(LegacyCodecID, 16)), true);
 
             //Creating the parser
+            stream& StreamItem=Stream[Stream_ID];
                  if (0);
-            #if defined(MEDIAINFO_PCM_YES)
+            #if defined(MEDIAINFO_PCM_YES) || defined(MEDIAINFO_DTS_YES) || defined(MEDIAINFO_SMPTEST0337_YES)
             else if (MediaInfoLib::Config.CodecID_Get(Stream_Audio, InfoCodecID_Format_Riff, Ztring().From_Number(LegacyCodecID, 16))==__T("PCM"))
             {
-                //Creating the parser
-                File_Pcm* Parser=new File_Pcm;
-                Parser->Codec=Ztring().From_GUID(SubFormat);
-                Parser->BitDepth=(int8u)BitsPerSample;
-                if (ValidBitsPerSample!=BitsPerSample)
-                    Parser->BitDepth_Significant=(int8u)ValidBitsPerSample;
-                #if MEDIAINFO_DEMUX
-                    if (Config->Demux_Unpacketize_Get() && Retrieve(Stream_General, 0, General_Format)==__T("Wave"))
-                    {
-                        Parser->Demux_Level=2; //Container
-                        Parser->Demux_UnpacketizeContainer=true;
-                        Demux_Level=4; //Intermediate
-                    }
-                #endif //MEDIAINFO_DEMUX
-                stream& StreamItem = Stream[Stream_ID];
-                StreamItem.Parsers.push_back(Parser);
-                StreamItem.IsPcm=true;
+                int16u Channels=Retrieve(Stream_Audio, StreamPos_Last, "Channel(s)").To_int16u();
+                Parser_Pcm(StreamItem, Channels, BitsPerSample, ValidBitsPerSample, SamplesPerSec);
             }
             #endif
             Open_Buffer_Init_All();
@@ -1795,9 +1697,9 @@ void File_Riff::AVI__hdlr_strl_strf_vids()
     Element_Info1("Video");
 
     //Parsing
-    int32u Compression, Width, Height;
+    int32u Size, Compression, Width, Height;
     int16u Resolution;
-    Skip_L4(                                                    "Size");
+    Get_L4 (Size,                                               "Size");
     Get_L4 (Width,                                              "Width");
     Get_L4 (Height,                                             "Height");
     Skip_L2(                                                    "Planes");
@@ -1843,10 +1745,17 @@ void File_Riff::AVI__hdlr_strl_strf_vids()
         if (Resolution==32)
         {
             Fill(StreamKind_Last, StreamPos_Last, Fill_Parameter(StreamKind_Last, Generic_Format), "RGBA", Unlimited, true, true);
+            if (StreamKind_Last==Stream_Video)
+                Fill(Stream_Video, StreamPos_Last, Video_ColorSpace, "RGBA", Unlimited, true, true);
             Fill(StreamKind_Last, StreamPos_Last, "BitDepth", Resolution/4); //With Alpha
         }
         else
+        {
+            Fill(StreamKind_Last, StreamPos_Last, Fill_Parameter(StreamKind_Last, Generic_Format), "RGB", Unlimited, true, true);
+            if (StreamKind_Last==Stream_Video)
+                Fill(Stream_Video, StreamPos_Last, Video_ColorSpace, "RGB", Unlimited, true, true);
             Fill(StreamKind_Last, StreamPos_Last, "BitDepth", Resolution<=16?8:(Resolution/3)); //indexed or normal
+        }
     }
     else if (Compression==0x56503632 //VP62
             || MediaInfoLib::Config.CodecID_Get(StreamKind_Last, InfoCodecID_Format_Riff, Ztring().From_CC4(Compression), InfoCodecID_Format)==__T("H.263") //H.263
@@ -1862,6 +1771,13 @@ void File_Riff::AVI__hdlr_strl_strf_vids()
         File_Ffv1* Parser=new File_Ffv1;
         Parser->Width=Width;
         Parser->Height=Height;
+        Stream[Stream_ID].Parsers.push_back(Parser);
+    }
+    #endif
+    #if defined(MEDIAINFO_CINEFORM_YES)
+    else if (MediaInfoLib::Config.CodecID_Get(Stream_Video, InfoCodecID_Format_Riff, Ztring().From_CC4(Compression), InfoCodecID_Format)==__T("CineForm"))
+    {
+        File_CineForm* Parser=new File_CineForm;
         Stream[Stream_ID].Parsers.push_back(Parser);
     }
     #endif
@@ -1961,6 +1877,12 @@ void File_Riff::AVI__hdlr_strl_strf_vids()
         return; //No options
 
     //Filling
+    int32u Element_Size_Save=0;
+    if (Size<Element_Size)
+    {
+        Element_Size_Save=Element_Size;
+        Element_Size=Size;
+    }
          if (0);
     else if (MediaInfoLib::Config.CodecID_Get(Stream_Video, InfoCodecID_Format_Riff, Ztring().From_CC4(Compression))==__T("AVC"))
         AVI__hdlr_strl_strf_vids_Avc();
@@ -1969,6 +1891,9 @@ void File_Riff::AVI__hdlr_strl_strf_vids()
     else if (MediaInfoLib::Config.CodecID_Get(Stream_Video, InfoCodecID_Format_Riff, Ztring().From_CC4(Compression))==__T("HuffYUV"))
         AVI__hdlr_strl_strf_vids_HuffYUV(Resolution, Height);
     else Skip_XX(Element_Size-Element_Offset,                   "Unknown");
+    if (Element_Size_Save)
+        Element_Size=Element_Size_Save;
+    Skip_XX(Element_Size-Element_Offset,                        "Unknown");
 }
 
 //---------------------------------------------------------------------------
@@ -3615,12 +3540,199 @@ void File_Riff::WAVE__pmx()
 }
 
 //---------------------------------------------------------------------------
-void File_Riff::WAVE_aXML()
+static const char* profile_names[]=
 {
-    Element_Name("aXML");
+    "profileName",
+    "profileVersion",
+    "profileID",
+    "levelID",
+};
+static const int profile_names_size=(int)sizeof(profile_names)/sizeof(const char*);
+static const char* profile_names_InternalID[profile_names_size]=
+{
+    "Format",
+    "Version",
+    "Profile",
+    "Level",
+};
+struct profile_info
+{
+    string Strings[4];
+    string profile_info_build(size_t Max=profile_names_size)
+    {
+        bool HasParenthsis=false;
+        string ToReturn;
+        for (size_t i=0; i<Max; i++)
+        {
+            if (!Strings[i].empty())
+            {
+                if (!ToReturn.empty())
+                {
+                    if (i==1)
+                        ToReturn+=", Version";
+                    if (!HasParenthsis)
+                        ToReturn+=' ';
+                }
+                if (i>=2)
+                {
+                    if (!HasParenthsis)
+                    {
+                        ToReturn+='(';
+                        HasParenthsis=true;
+                    }
+                    else
+                    {
+                        ToReturn+=',';
+                        ToReturn+=' ';
+                    }
+                }
+                if (i>=2)
+                {
+                    ToReturn+=profile_names[i];
+                    ToReturn+='=';
+                }
+                ToReturn+=Strings[i];
+            }
+        }
+        if (HasParenthsis)
+            ToReturn+=')';
+        return ToReturn;
+    }
+};
+
+void File_Riff::WAVE_axml()
+{
+    if (Element_Size!=Element_TotalSize_Get()-Alignement_ExtraByte)
+    {
+        Buffer_MaximumSize=64*1024*1024;
+        Element_WaitForMoreData();
+        return; //Must wait for more data
+    }
+
+    Element_Name("AXML");
 
     //Parsing
     Skip_UTF8(Element_Size,                                     "XML data");
+
+    bool IsBS2076_2=false;
+    bool IsEbuCore_not_2014_or_2016 = false;
+
+    XMLDocument Document;
+    if (Document.Parse((const char*)Buffer+Buffer_Offset, (size_t)Element_Size))
+        return;
+
+    XMLElement* format=NULL;
+    XMLElement* ebuCoreMain=Document.FirstChildElement("ebuCoreMain");
+    if (ebuCoreMain)
+    {
+        const char* xmlns=ebuCoreMain->Attribute("xmlns");
+        if (!xmlns)
+            xmlns=ebuCoreMain->Attribute("xsi:schemaLocation");
+        if (xmlns)
+        {
+            if (!strstr(xmlns, "ebuCore_2014") && !strstr(xmlns, "ebuCore_2016"))
+                IsEbuCore_not_2014_or_2016 = true;
+        }
+
+        XMLElement* coreMetadata=ebuCoreMain->FirstChildElement("coreMetadata");
+        if (coreMetadata)
+        {
+            format=coreMetadata->FirstChildElement("format");
+        }
+    }
+    if (!format)
+    {
+        format=Document.FirstChildElement("format");
+    }
+
+    if (format)
+    {
+        XMLElement* audioFormatExtended=format->FirstChildElement("audioFormatExtended");
+        if (audioFormatExtended)
+        {
+            const char* version=audioFormatExtended->Attribute("version");
+            if (version && !strcmp(version, "ITU-R_BS.2076-2"))
+                IsBS2076_2=true;
+
+            XMLElement* audioProgramme=audioFormatExtended->FirstChildElement("audioProgramme");
+            if (audioProgramme)
+            {
+                const char* audioProgrammeName=audioProgramme->Attribute("audioProgrammeName");
+                if (audioProgrammeName)
+                {
+                    if (!strcmp(audioProgrammeName, "Atmos_Master"))
+                    {
+                        AdmProfile_Dolby|=1; // Need dbmd 9 for flagging Dolby Atmos Master ADM profile
+                        if (!IsEbuCore_not_2014_or_2016 && !IsBS2076_2)
+                            AdmProfile_Dolby|=4; // Version 1 flagged if xmlns is not found or is ebuCore 2014/2016, and not BS 2076-2
+                    }
+                }
+            }
+        }
+
+        XMLElement* audioFormatCustom=format->FirstChildElement("audioFormatCustom");
+        if (audioFormatCustom)
+        {
+            XMLElement* audioFormatCustomSet=audioFormatCustom->FirstChildElement("audioFormatCustomSet");
+            if (audioFormatCustomSet)
+            {
+                XMLElement* admInformation=audioFormatCustomSet->FirstChildElement("admInformation");
+                if (admInformation)
+                {
+                    XMLElement* profile=admInformation->FirstChildElement("profile");
+                    vector<profile_info> profileInfos;
+                    while (profile)
+                    {
+                        profileInfos.resize(profileInfos.size()+1);
+                        profile_info& profileInfo=profileInfos[profileInfos.size()-1];
+
+                        for (size_t i=0; i<profile_names_size; i++)
+                        {
+                            const char* attribute=profile->Attribute(profile_names[i]);
+                            if (attribute)
+                            {
+                                profileInfo.Strings[i]=attribute;
+                                if (!i && profileInfo.Strings[0].size()>=12 && !profileInfo.Strings[0].compare(profileInfo.Strings[0].size()-12, 12, " ADM Profile"))
+                                    profileInfo.Strings[0].resize(profileInfo.Strings[0].size()-12);
+                            }
+                        }
+
+                        profile=profile->NextSiblingElement("profile");
+                    }
+
+                    // Fill
+                    if (!profileInfos.empty())
+                    {
+                        // Find what is in common
+                        int PosCommon=profile_names_size;
+                        for (int i=0; i<PosCommon; i++)
+                            for (size_t j=1; j<profileInfos.size(); j++)
+                                if (profileInfos[j].Strings[i]!=profileInfos[0].Strings[i])
+                                    PosCommon=i;
+
+                        Fill(Stream_Audio, 0, "AdmProfile", PosCommon?profileInfos[0].profile_info_build(PosCommon):string("Multiple"));
+                        if (profileInfos.size()>1)
+                        {
+                            for (size_t i=0; i<profileInfos.size(); i++)
+                            {
+                                Fill(Stream_Audio, 0, ("AdmProfile AdmProfile"+Ztring::ToZtring(i).To_UTF8()).c_str(), profileInfos[i].profile_info_build());
+                                for (size_t j=0; j<profile_names_size; j++)
+                                {
+                                    Fill(Stream_Audio, 0, ("AdmProfile AdmProfile"+Ztring::ToZtring(i).To_UTF8()+' '+profile_names_InternalID[j]).c_str(), profileInfos[i].Strings[j]);
+                                    Fill_SetOptions(Stream_Audio, 0, ("AdmProfile AdmProfile"+Ztring::ToZtring(i).To_UTF8()+' '+profile_names_InternalID[j]).c_str(), "N NTY");
+                                }
+                            }
+                        }
+                        for (size_t j=0; j<(PosCommon==0?1:PosCommon); j++)
+                        {
+                            Fill(Stream_Audio, 0, (string("AdmProfile_")+profile_names_InternalID[j]).c_str(), j<PosCommon?profileInfos[0].Strings[j]:"Multiple");
+                            Fill_SetOptions(Stream_Audio, 0, (string("AdmProfile_")+profile_names_InternalID[j]).c_str(), "N NTY");
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -3749,6 +3861,8 @@ void File_Riff::WAVE_bext()
 
         Fill(Stream_General, 0, "bext_Present", "Yes");
         Fill_SetOptions(Stream_General, 0, "bext_Present", "N NT");
+        Fill(Stream_General, 0, "bext_Version", Version);
+        Fill_SetOptions(Stream_General, 0, "bext_Version", "N NIY");
         Fill(Stream_General, 0, General_Description, Description);
         Fill(Stream_General, 0, General_Producer, Originator);
         Fill(Stream_General, 0, "Producer_Reference", OriginatorReference);
@@ -3861,6 +3975,43 @@ void File_Riff::WAVE_data_Continue()
 
     Element_Code=(int64u)-1;
     AVI__movi_xxxx();
+}
+
+//---------------------------------------------------------------------------
+void File_Riff::WAVE_dbmd()
+{
+    Element_Name("Dolby Audio Metadata");
+
+    //Parsing
+    int32u version;
+    Get_L4 (version,                                            "version");
+    if ((version>>24)>1)
+    {
+        Skip_XX(Element_Size-Element_Offset,                    "Data");
+        return;
+    }
+    while(Element_Offset<Element_Size)
+    {
+        Element_Begin1("metadata_segment");
+        int8u metadata_segment_id;
+        Get_L1 (metadata_segment_id,                            "metadata_segment_id"); Element_Info1(Ztring::ToZtring(metadata_segment_id));
+        if (!metadata_segment_id)
+        {
+            Element_End0();
+            break;
+        }
+        int16u metadata_segment_size;
+        Get_L2 (metadata_segment_size,                          "metadata_segment_size");
+        switch (metadata_segment_id)
+        {
+            case 9:
+                AdmProfile_Dolby|=2; // Needed for flagging Dolby Atmos Master ADM profile
+                // Fallthrough
+            default: Skip_XX(metadata_segment_size,             "metadata_segment_payload");
+        }
+        Skip_L1(                                                "metadata_segment_checksum");
+        Element_End0();
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -4068,6 +4219,88 @@ void File_Riff::Open_Buffer_Init_All()
     for (size_t Pos = 0; Pos<StreamItem.Parsers.size(); Pos++)
         Open_Buffer_Init(StreamItem.Parsers[Pos]);
 }
+
+//---------------------------------------------------------------------------
+void File_Riff::Parser_Pcm(stream& StreamItem, int16u Channels, int16u BitsPerSample, int16u ValidBitsPerSample, int32u SamplesPerSec, char Endianness)
+{
+    #if defined(MEDIAINFO_DTS_YES)
+    {
+        File_Dts* Parser=new File_Dts;
+        Parser->Frame_Count_Valid=2;
+        Parser->ShouldContinueParsing=true;
+        #if MEDIAINFO_DEMUX
+            if (Config->Demux_Unpacketize_Get() && Retrieve(Stream_General, 0, General_Format)==__T("Wave"))
+            {
+                Parser->Demux_Level=2; //Container
+                Parser->Demux_UnpacketizeContainer=true;
+                Demux_Level=4; //Intermediate
+            }
+        #endif //MEDIAINFO_DEMUX
+        StreamItem.Parsers.push_back(Parser);
+    }
+    #endif
+
+    #if defined(MEDIAINFO_SMPTEST0337_YES)
+    if (Channels==2 && BitsPerSample<=32 && SamplesPerSec==48000) //Some SMPTE ST 337 streams are hidden in PCM stream
+    {
+        File_SmpteSt0337* Parser=new File_SmpteSt0337;
+        Parser->Container_Bits=(int8u)BitsPerSample;
+        Parser->Aligned=true;
+        Parser->ShouldContinueParsing=true;
+        #if MEDIAINFO_DEMUX
+            if (Config->Demux_Unpacketize_Get() && Retrieve(Stream_General, 0, General_Format)==__T("Wave"))
+            {
+                Parser->Demux_Level=2; //Container
+                Parser->Demux_UnpacketizeContainer=true;
+                Demux_Level=4; //Intermediate
+            }
+        #endif //MEDIAINFO_DEMUX
+        StreamItem.Parsers.push_back(Parser);
+    }
+    if (Channels>2 && BitsPerSample<=32 && SamplesPerSec==48000) //Some SMPTE ST 337 streams are hidden in PCM stream
+    {
+        File_ChannelSplitting* Parser=new File_ChannelSplitting;
+        Parser->BitDepth=(int8u)BitsPerSample;
+        Parser->Endianness='B';
+        Parser->Channel_Total=(int8u)Channels;
+        Parser->ShouldContinueParsing=true;
+        Parser->SamplingRate=48000;
+        #if MEDIAINFO_DEMUX
+            if (Config->Demux_Unpacketize_Get())
+            {
+                Parser->Demux_Level=2; //Container
+                Parser->Demux_UnpacketizeContainer=true;
+                Demux_Level=4; //Intermediate
+            }
+        #endif //MEDIAINFO_DEMUX
+        Stream[Stream_ID].Parsers.push_back(Parser);
+    }
+    #endif
+
+    #if defined(MEDIAINFO_PCM_YES)
+        File_Pcm* Parser=new File_Pcm;
+        Parser->Codec=Retrieve(Stream_Audio, StreamPos_Last, Audio_CodecID);
+        if (Endianness)
+            Parser->Endianness=Endianness;
+        Parser->BitDepth=(int8u)BitsPerSample;
+        if (ValidBitsPerSample!=BitsPerSample)
+            Parser->BitDepth_Significant=(int8u)ValidBitsPerSample;
+        #if MEDIAINFO_DEMUX
+            if (Config->Demux_Unpacketize_Get())
+            {
+                Parser->Demux_Level=2; //Container
+                Parser->Demux_UnpacketizeContainer=true;
+                Demux_Level=4; //Intermediate
+            }
+        #else //MEDIAINFO_DEMUX
+            Parser->Frame_Count_Valid=(int64u)-1; //Disabling it, waiting for SMPTE ST 337 parser reject
+        #endif //MEDIAINFO_DEMUX
+        StreamItem.Parsers.push_back(Parser);
+        StreamItem.IsPcm=true;
+        StreamItem.StreamKind=Stream_Audio;
+    #endif
+}
+
 //***************************************************************************
 // C++
 //***************************************************************************

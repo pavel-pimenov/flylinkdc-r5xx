@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2010-2016, Arvid Norberg
+Copyright (c) 2010-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/io_service_fwd.hpp"
 #include "libtorrent/hasher.hpp"
-#include "libtorrent/sliding_average.hpp"
 #include "libtorrent/tailqueue.hpp"
 #include "libtorrent/linked_list.hpp"
 #include "libtorrent/disk_buffer_pool.hpp"
@@ -75,6 +74,7 @@ namespace aux {
 
 #if TORRENT_USE_ASSERTS || !defined TORRENT_DISABLE_LOGGING
 
+	// internal
 	struct piece_log_t
 	{
 		explicit piece_log_t(job_action_t j, int b = -1): job(j), block(b) {}
@@ -83,6 +83,7 @@ namespace aux {
 
 		// these are "jobs" thar cause piece_refcount
 		// to be incremented
+		// internal
 		enum artificial_jobs
 		{
 			flushing = static_cast<int>(job_action_t::num_job_ids), // 20
@@ -188,7 +189,7 @@ namespace aux {
 			return refcount == 0
 				&& piece_refcount == 0
 				&& !hashing
-				&& read_jobs.size() == 0
+				&& read_jobs.empty()
 				&& outstanding_read == 0
 				&& (ignore_hash || !hash || hash->offset == 0);
 		}
@@ -344,6 +345,7 @@ namespace aux {
 	struct TORRENT_EXTRA_EXPORT block_cache : disk_buffer_pool
 	{
 		block_cache(io_service& ios, std::function<void()> const& trigger_trim);
+		~block_cache();
 
 	private:
 
@@ -442,12 +444,13 @@ namespace aux {
 		// used to convert dirty blocks into non-dirty ones
 		// i.e. from being part of the write cache to being part
 		// of the read cache. it's used when flushing blocks to disk
-		void blocks_flushed(cached_piece_entry* pe, int const* flushed, int num_flushed);
+		// returns true if the piece entry was freed
+		bool blocks_flushed(cached_piece_entry* pe, int const* flushed, int num_flushed);
 
 		// adds a block to the cache, marks it as dirty and
 		// associates the job with it. When the block is
 		// flushed, the callback is posted
-		cached_piece_entry* add_dirty_block(disk_io_job* j);
+		cached_piece_entry* add_dirty_block(disk_io_job* j, bool add_hasher);
 
 		enum { blocks_inc_refcount = 1 };
 		void insert_blocks(cached_piece_entry* pe, int block, span<iovec_t const> iov
@@ -470,7 +473,7 @@ namespace aux {
 		void clear(tailqueue<disk_io_job>& jobs);
 
 		void update_stats_counters(counters& c) const;
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		void get_stats(cache_status* ret) const;
 #endif
 		void set_settings(aux::session_settings const& sett);

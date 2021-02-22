@@ -69,7 +69,7 @@ void OMenu::InsertSeparator(UINT uItem, BOOL byPosition, const tstring& caption,
 	mi->m_text = caption;
 	if (!accels)
 	{
-		Text::replace_all(mi->m_text, _T("&"), Util::emptyStringT);
+		Text::replace_all(mi->m_text, _T("&"), BaseUtil::emptyStringT);
 	}
 	
 	// if (mi->text.length() > 25)

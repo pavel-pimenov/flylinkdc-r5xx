@@ -29,9 +29,6 @@
 
 class NotepadFrame : public MDITabChildWindowImpl < NotepadFrame, RGB(0, 0, 0), IDR_NOTEPAD >, public StaticFrame<NotepadFrame, ResourceManager::NOTEPAD, IDC_NOTEPAD>,
 	private SettingsManagerListener
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		DECLARE_FRAME_WND_CLASS_EX(_T("NotepadFrame"), IDR_NOTEPAD, 0, COLOR_3DFACE);

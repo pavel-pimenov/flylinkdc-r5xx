@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,9 +33,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/bitfield.hpp"
 #include "libtorrent/peer_connection.hpp"
 #include "libtorrent/torrent.hpp"
-#include "libtorrent/socket_type.hpp"
+#include "libtorrent/aux_/socket_type.hpp"
 #include "libtorrent/peer_info.hpp" // for peer_info flags
-#include "libtorrent/performance_counters.hpp" // for counters
 #include "libtorrent/request_blocks.hpp"
 #include "libtorrent/alert_manager.hpp"
 #include "libtorrent/aux_/has_block.hpp"
@@ -117,12 +116,24 @@ namespace libtorrent {
 			&& !time_critical_mode
 			&& t.settings().get_int(settings_pack::whole_pieces_threshold) > 0)
 		{
+			// if our download rate lets us download a whole piece in
+			// "whole_pieces_threshold" seconds, we prefer to pick an entire piece.
+			// If we can download multiple whole pieces, we prefer to download that
+			// many contiguous pieces.
+
+			// download_rate times the whole piece threshold (seconds) gives the
+			// number of bytes downloaded in one window of that threshold, divided
+			// by the piece size give us the number of (whole) pieces downloaded
+			// in the window.
+			int const contiguous_pieces =
+				std::min(c.statistics().download_payload_rate()
+				* t.settings().get_int(settings_pack::whole_pieces_threshold)
+				, 8 * 1024 * 1024)
+				/ t.torrent_file().piece_length();
+
 			int const blocks_per_piece = t.torrent_file().piece_length() / t.block_size();
-			prefer_contiguous_blocks
-				= (c.statistics().download_payload_rate()
-				> t.torrent_file().piece_length()
-				/ t.settings().get_int(settings_pack::whole_pieces_threshold))
-				? blocks_per_piece : 0;
+
+			prefer_contiguous_blocks = contiguous_pieces * blocks_per_piece;
 		}
 
 		// if we prefer whole pieces, the piece picker will pick at least
@@ -176,7 +187,7 @@ namespace libtorrent {
 			&& !interesting_pieces.empty())
 		{
 			t.alerts().emplace_alert<picker_log_alert>(t.get_handle(), c.remote()
-				, c.pid(), flags, &interesting_pieces[0], int(interesting_pieces.size()));
+				, c.pid(), flags, interesting_pieces);
 		}
 		c.peer_log(peer_log_alert::info, "PIECE_PICKER"
 			, "prefer_contiguous: %d picked: %d"
@@ -202,19 +213,18 @@ namespace libtorrent {
 		// that some other peer is currently downloading
 		piece_block busy_block = piece_block::invalid;
 
-		for (std::vector<piece_block>::iterator i = interesting_pieces.begin();
-			i != interesting_pieces.end(); ++i)
+		for (piece_block const& pb : interesting_pieces)
 		{
 			if (prefer_contiguous_blocks == 0 && num_requests <= 0) break;
 
-			if (time_critical_mode && p.piece_priority(i->piece_index) != top_priority)
+			if (time_critical_mode && p.piece_priority(pb.piece_index) != top_priority)
 			{
 				// assume the subsequent pieces are not prio 7 and
 				// be done
 				break;
 			}
 
-			int num_block_requests = p.num_peers(*i);
+			int num_block_requests = p.num_peers(pb);
 			if (num_block_requests > 0)
 			{
 				// have we picked enough pieces?
@@ -225,30 +235,30 @@ namespace libtorrent {
 				// as well just exit the loop
 				if (dont_pick_busy_blocks) break;
 
-				TORRENT_ASSERT(p.num_peers(*i) > 0);
-				busy_block = *i;
+				TORRENT_ASSERT(p.num_peers(pb) > 0);
+				busy_block = pb;
 				continue;
 			}
 
-			TORRENT_ASSERT(p.num_peers(*i) == 0);
+			TORRENT_ASSERT(p.num_peers(pb) == 0);
 
 			// don't request pieces we already have in our request queue
 			// This happens when pieces time out or the peer sends us
 			// pieces we didn't request. Those aren't marked in the
 			// piece picker, but we still keep track of them in the
 			// download queue
-			if (std::find_if(dq.begin(), dq.end(), aux::has_block(*i)) != dq.end()
-				|| std::find_if(rq.begin(), rq.end(), aux::has_block(*i)) != rq.end())
+			if (std::find_if(dq.begin(), dq.end(), aux::has_block(pb)) != dq.end()
+				|| std::find_if(rq.begin(), rq.end(), aux::has_block(pb)) != rq.end())
 			{
 #if TORRENT_USE_ASSERTS
 				std::vector<pending_block>::const_iterator j
-					= std::find_if(dq.begin(), dq.end(), aux::has_block(*i));
+					= std::find_if(dq.begin(), dq.end(), aux::has_block(pb));
 				if (j != dq.end()) TORRENT_ASSERT(j->timed_out || j->not_wanted);
 #endif
 #ifndef TORRENT_DISABLE_LOGGING
 				c.peer_log(peer_log_alert::info, "PIECE_PICKER"
 					, "not_picking: %d,%d already in queue"
-					, static_cast<int>(i->piece_index), i->block_index);
+					, static_cast<int>(pb.piece_index), pb.block_index);
 #endif
 				continue;
 			}
@@ -256,9 +266,9 @@ namespace libtorrent {
 			// ok, we found a piece that's not being downloaded
 			// by somebody else. request it from this peer
 			// and return
-			if (!c.add_request(*i, {})) continue;
-			TORRENT_ASSERT(p.num_peers(*i) == 1);
-			TORRENT_ASSERT(p.is_requested(*i));
+			if (!c.add_request(pb, {})) continue;
+			TORRENT_ASSERT(p.num_peers(pb) == 1);
+			TORRENT_ASSERT(p.is_requested(pb));
 			num_requests--;
 		}
 
@@ -307,4 +317,3 @@ namespace libtorrent {
 	}
 
 }
-

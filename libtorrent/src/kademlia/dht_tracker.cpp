@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg
+Copyright (c) 2006-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ namespace libtorrent { namespace dht {
 	namespace {
 
 	// generate a new write token key every 5 minutes
-	time_duration const key_refresh
+	auto const key_refresh
 		= duration_cast<time_duration>(minutes(5));
 
 	void add_dht_counters(node const& dht, counters& c)
@@ -85,10 +85,10 @@ namespace libtorrent { namespace dht {
 	dht_tracker::dht_tracker(dht_observer* observer
 		, io_service& ios
 		, send_fun_t const& send_fun
-		, dht_settings const& settings
+		, dht::settings const& settings
 		, counters& cnt
 		, dht_storage_interface& storage
-		, dht_state state)
+		, dht_state&& state)
 		: m_counters(cnt)
 		, m_storage(storage)
 		, m_state(std::move(state))
@@ -119,13 +119,11 @@ namespace libtorrent { namespace dht {
 		if (s.is_ssl()) return;
 
 		address const local_address = s.get_local_endpoint().address();
-#if TORRENT_USE_IPV6
 		// don't try to start dht nodes on non-global IPv6 addresses
 		// with IPv4 the interface might be behind NAT so we can't skip them based on the scope of the local address
 		// and we might not have the external address yet
 		if (local_address.is_v6() && is_local(local_address))
 			return;
-#endif
 		auto stored_nid = std::find_if(m_state.nids.begin(), m_state.nids.end()
 			, [&](node_ids_t::value_type const& nid) { return nid.first == local_address; });
 		node_id const nid = stored_nid != m_state.nids.end() ? stored_nid->second : node_id();
@@ -148,6 +146,7 @@ namespace libtorrent { namespace dht {
 
 		if (m_running && n.second)
 		{
+			ADD_OUTSTANDING_ASYNC("dht_tracker::connection_timeout");
 			error_code ec;
 			n.first->second.connection_timer.expires_from_now(seconds(1), ec);
 			n.first->second.connection_timer.async_wait(
@@ -160,12 +159,10 @@ namespace libtorrent { namespace dht {
 	{
 		if (s.is_ssl()) return;
 
-#if TORRENT_USE_IPV6
 		address local_address = s.get_local_endpoint().address();
 		// since we don't start nodes on local IPv6 interfaces we don't need to remove them either
 		if (local_address.is_v6() && is_local(local_address))
 			return;
-#endif
 		TORRENT_ASSERT(m_nodes.count(s) == 1);
 		m_nodes.erase(s);
 	}
@@ -174,21 +171,23 @@ namespace libtorrent { namespace dht {
 	{
 		m_running = true;
 		error_code ec;
+
+		ADD_OUTSTANDING_ASYNC("dht_tracker::refresh_key");
 		refresh_key(ec);
 
 		for (auto& n : m_nodes)
 		{
+			ADD_OUTSTANDING_ASYNC("dht_tracker::connection_timeout");
 			n.second.connection_timer.expires_from_now(seconds(1), ec);
 			n.second.connection_timer.async_wait(
 				std::bind(&dht_tracker::connection_timeout, self(), n.first, _1));
-#if TORRENT_USE_IPV6
-			if (n.first.get_local_endpoint().protocol() == tcp::v6())
+			if (is_v6(n.first.get_local_endpoint()))
 				n.second.dht.bootstrap(concat(m_state.nodes6, m_state.nodes), f);
 			else
-#endif
 				n.second.dht.bootstrap(concat(m_state.nodes, m_state.nodes6), f);
 		}
 
+		ADD_OUTSTANDING_ASYNC("dht_tracker::refresh_timeout");
 		m_refresh_timer.expires_from_now(seconds(5), ec);
 		m_refresh_timer.async_wait(std::bind(&dht_tracker::refresh_timeout, self(), _1));
 
@@ -206,7 +205,7 @@ namespace libtorrent { namespace dht {
 		m_host_resolver.cancel();
 	}
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	void dht_tracker::dht_status(session_status& s)
 	{
 		s.dht_torrents += int(m_storage.num_torrents());
@@ -248,6 +247,7 @@ namespace libtorrent { namespace dht {
 
 	void dht_tracker::connection_timeout(aux::listen_socket_handle const& s, error_code const& e)
 	{
+		COMPLETE_ASYNC("dht_tracker::connection_timeout");
 		if (e || !m_running) return;
 
 		auto const it = m_nodes.find(s);
@@ -260,11 +260,13 @@ namespace libtorrent { namespace dht {
 		error_code ec;
 		deadline_timer& timer = n.connection_timer;
 		timer.expires_from_now(d, ec);
+		ADD_OUTSTANDING_ASYNC("dht_tracker::connection_timeout");
 		timer.async_wait(std::bind(&dht_tracker::connection_timeout, self(), s, _1));
 	}
 
 	void dht_tracker::refresh_timeout(error_code const& e)
 	{
+		COMPLETE_ASYNC("dht_tracker::refresh_timeout");
 		if (e || !m_running) return;
 
 		for (auto& n : m_nodes)
@@ -276,14 +278,17 @@ namespace libtorrent { namespace dht {
 
 		error_code ec;
 		m_refresh_timer.expires_from_now(seconds(5), ec);
+		ADD_OUTSTANDING_ASYNC("dht_tracker::refresh_timeout");
 		m_refresh_timer.async_wait(
 			std::bind(&dht_tracker::refresh_timeout, self(), _1));
 	}
 
 	void dht_tracker::refresh_key(error_code const& e)
 	{
+		COMPLETE_ASYNC("dht_tracker::refresh_key");
 		if (e || !m_running) return;
 
+		ADD_OUTSTANDING_ASYNC("dht_tracker::refresh_key");
 		error_code ec;
 		m_key_refresh_timer.expires_from_now(key_refresh, ec);
 		m_key_refresh_timer.async_wait(std::bind(&dht_tracker::refresh_key, self(), _1));
@@ -320,12 +325,12 @@ namespace libtorrent { namespace dht {
 	void dht_tracker::get_peers(sha1_hash const& ih
 		, std::function<void(std::vector<tcp::endpoint> const&)> f)
 	{
-		std::function<void(std::vector<std::pair<node_entry, std::string>> const&)> empty;
 		for (auto& n : m_nodes)
-			n.second.dht.get_peers(ih, f, empty, false);
+			n.second.dht.get_peers(ih, f, {}, {});
 	}
 
-	void dht_tracker::announce(sha1_hash const& ih, int listen_port, int flags
+	void dht_tracker::announce(sha1_hash const& ih, int listen_port
+		, announce_flags_t const flags
 		, std::function<void(std::vector<tcp::endpoint> const&)> f)
 	{
 		for (auto& n : m_nodes)
@@ -360,7 +365,8 @@ namespace libtorrent { namespace dht {
 
 	// these functions provide a slightly higher level
 	// interface to the get/put functionality in the DHT
-	void get_immutable_item_callback(item const& it, std::shared_ptr<get_immutable_item_ctx> ctx
+	void get_immutable_item_callback(item const& it
+		, std::shared_ptr<get_immutable_item_ctx> ctx
 		, std::function<void(item const&)> f)
 	{
 		// the reason to wrap here is to control the return value
@@ -509,17 +515,17 @@ namespace libtorrent { namespace dht {
 		m_counters.inc_stats_counter(counters::dht_bytes_in, buf_size);
 		// account for IP and UDP overhead
 		m_counters.inc_stats_counter(counters::recv_ip_overhead_bytes
-			, ep.address().is_v6() ? 48 : 28);
+			, is_v6(ep) ? 48 : 28);
 		m_counters.inc_stats_counter(counters::dht_messages_in);
 
-		if (m_settings.ignore_dark_internet && ep.address().is_v4())
+		if (m_settings.ignore_dark_internet && is_v4(ep))
 		{
 			address_v4::bytes_type b = ep.address().to_v4().to_bytes();
 
 			// these are class A networks not available to the public
 			// if we receive messages from here, that seems suspicious
 			static std::uint8_t const class_a[] = { 3, 6, 7, 9, 11, 19, 21, 22, 25
-				, 26, 28, 29, 30, 33, 34, 48, 51, 56 };
+				, 26, 28, 29, 30, 33, 34, 48, 56 };
 
 			if (std::find(std::begin(class_a), std::end(class_a), b[0]) != std::end(class_a))
 			{
@@ -570,7 +576,7 @@ namespace libtorrent { namespace dht {
 
 	dht_tracker::tracker_node::tracker_node(io_service& ios
 		, aux::listen_socket_handle const& s, socket_manager* sock
-		, dht_settings const& settings
+		, dht::settings const& settings
 		, node_id const& nid
 		, dht_observer* observer, counters& cnt
 		, get_foreign_node_t get_foreign_node
@@ -595,7 +601,7 @@ namespace libtorrent { namespace dht {
 		return ret;
 	}
 
-	namespace {
+namespace {
 
 	std::vector<udp::endpoint> save_nodes(node const& dht)
 	{
@@ -607,7 +613,7 @@ namespace libtorrent { namespace dht {
 		return ret;
 	}
 
-	} // anonymous namespace
+} // anonymous namespace
 
 	dht_state dht_tracker::state() const
 	{
@@ -700,7 +706,7 @@ namespace libtorrent { namespace dht {
 		m_counters.inc_stats_counter(counters::dht_bytes_out, int(m_send_buf.size()));
 		// account for IP and UDP overhead
 		m_counters.inc_stats_counter(counters::sent_ip_overhead_bytes
-			, addr.address().is_v6() ? 48 : 28);
+			, is_v6(addr) ? 48 : 28);
 		m_counters.inc_stats_counter(counters::dht_messages_out);
 #ifndef TORRENT_DISABLE_LOGGING
 		m_log->log_packet(dht_logger::outgoing_message, m_send_buf, addr);

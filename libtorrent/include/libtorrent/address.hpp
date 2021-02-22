@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2009-2016, Arvid Norberg
+Copyright (c) 2009-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -49,17 +49,13 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace libtorrent {
 
 #if defined TORRENT_BUILD_SIMULATOR
-	using address = sim::asio::ip::address;
-	using address_v4 = sim::asio::ip::address_v4;
-#if TORRENT_USE_IPV6
-	using address_v6 = sim::asio::ip::address_v6;
-#endif
+	using sim::asio::ip::address;
+	using sim::asio::ip::address_v4;
+	using sim::asio::ip::address_v6;
 #else
-	using address = boost::asio::ip::address;
-	using address_v4 = boost::asio::ip::address_v4;
-#if TORRENT_USE_IPV6
-	using address_v6 = boost::asio::ip::address_v6;
-#endif
+	using boost::asio::ip::address;
+	using boost::asio::ip::address_v4;
+	using boost::asio::ip::address_v6;
 #endif // SIMULATOR
 
 // the from_string member functions are deprecated starting
@@ -67,18 +63,17 @@ namespace libtorrent {
 #if BOOST_VERSION >= 106600 && !defined TORRENT_BUILD_SIMULATOR
 	using boost::asio::ip::make_address;
 	using boost::asio::ip::make_address_v4;
-#if TORRENT_USE_IPV6
 	using boost::asio::ip::make_address_v6;
-#endif
 #else
+	// internal
 	inline address make_address(string_view str, boost::system::error_code& ec)
 	{ return address::from_string(str.data(), ec); }
+	// internal
 	inline address_v4 make_address_v4(string_view str, boost::system::error_code& ec)
 	{ return address_v4::from_string(str.data(), ec); }
-#if TORRENT_USE_IPV6
+	// internal
 	inline address_v6 make_address_v6(string_view str, boost::system::error_code& ec)
 	{ return address_v6::from_string(str.data(), ec); }
-#endif
 #endif
 }
 

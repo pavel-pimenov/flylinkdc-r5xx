@@ -243,7 +243,23 @@ protected :
     std::vector<size_t> Video_STA_Errors_Total; //Per STA type
     static const size_t ChannelGroup_Count=2;
     static const size_t Dseq_Count=16;
-    bitset<64> Captions_Flags;
+    enum caption
+    {
+        Caption_Present,
+        Caption_ParityIssueAny,
+    };
+    bitset<32> Captions_Flags;
+    enum coherency
+    {
+        Coherency_PackInSub,
+        Coherency_PackInVid,
+        Coherency_PackInAud,
+        Coherency_video_source,
+        Coherency_video_control,
+        Coherency_audio_source,
+        Coherency_audio_control,
+    };
+    bitset<32> Coherency_Flags;
     std::vector<std::vector<int8u> > audio_source_mode; //Per ChannelGroup and Dseq, -1 means not present
     bitset<ChannelGroup_Count*2> ChannelInfo;
     std::vector<std::vector<size_t> > Audio_Errors; //Per ChannelGroup and Dseq
@@ -300,7 +316,14 @@ protected :
     };
     std::vector<timeStampsZ> Speed_TimeStampsZ;
 
-
+    enum status
+    {
+        BlockStatus_Unk,
+        BlockStatus_OK,
+        BlockStatus_NOK,
+    };
+    static const size_t BlockStatus_MaxSize=1800*4; // Max 1800 if PAL * 4 if DV100
+    MediaInfo_int8u BlockStatus[BlockStatus_MaxSize];
 
     struct arb
     {

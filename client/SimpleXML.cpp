@@ -299,7 +299,7 @@ void SimpleXML::resetCurrentChild()
 	currentChild = current->children.begin();
 }
 
-string SimpleXML::getChildAttribTrim(const string& aName, const string& aDefault /*= Util::emptyString*/) const
+string SimpleXML::getChildAttribTrim(const string& aName, const string& aDefault /*= string()*/) const
 {
 	string l_trim_val = getChildAttrib(aName, aDefault);
 	Text::trim(l_trim_val);

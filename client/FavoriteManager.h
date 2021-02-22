@@ -33,9 +33,6 @@
 #include "FavHubGroup.h"
 
 class PreviewApplication
-#ifdef _DEBUG
-	: public boost::noncopyable
-#endif
 {
 	public:
 		typedef vector<PreviewApplication*> List;

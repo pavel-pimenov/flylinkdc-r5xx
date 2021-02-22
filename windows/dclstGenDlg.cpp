@@ -356,7 +356,7 @@ DCLSTGenDlg::onSaveAS(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL
 	tstring targetOld = Text::toT(_mNameDCLST);
 	tstring target = targetOld;
 	static const TCHAR defaultExt[] = L"dcls";
-	if (WinUtil::browseFile(target, *this, true, Util::emptyStringT, g_file_list_type, defaultExt)) // TODO translate
+	if (WinUtil::browseFile(target, *this, true, BaseUtil::emptyStringT, g_file_list_type, defaultExt)) // TODO translate
 	{
 		try
 		{

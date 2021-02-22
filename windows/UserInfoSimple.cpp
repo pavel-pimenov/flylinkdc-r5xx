@@ -157,7 +157,7 @@ tstring UserInfoSimple::getBroadcastPrivateMessage()
 	}
 	else
 	{
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 	}
 }
 

@@ -52,7 +52,7 @@ class RSS_SetFeedDlg : public CDialogImpl<RSS_SetFeedDlg>
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
 		END_MSG_MAP()
 		
-		RSS_SetFeedDlg() : m_strURL(Util::emptyStringT), m_strName(Util::emptyStringT), m_strCodeing(Util::emptyStringT), m_enabled(FALSE) { }
+		RSS_SetFeedDlg() : m_strURL(BaseUtil::emptyStringT), m_strName(BaseUtil::emptyStringT), m_strCodeing(BaseUtil::emptyStringT), m_enabled(FALSE) { }
 		
 		LRESULT onFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 		{

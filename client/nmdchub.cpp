@@ -1011,7 +1011,7 @@ void NmdcHub::hubNameParse(const string& p_param)
 			if (i == string::npos)
 			{
 				getHubIdentity().setNick(unescape(l_param));
-				getHubIdentity().setDescription(Util::emptyString);
+				getHubIdentity().setDescription(BaseUtil::emptyString);
 			}
 			else
 			{
@@ -1027,7 +1027,7 @@ void NmdcHub::hubNameParse(const string& p_param)
 	}
 	if (BOOLSETTING(STRIP_TOPIC))
 	{
-		getHubIdentity().setDescription(Util::emptyString);
+		getHubIdentity().setDescription(BaseUtil::emptyString);
 	}
 	fly_fire1(ClientListener::HubUpdated(), this);
 }
@@ -1096,7 +1096,7 @@ void NmdcHub::userCommandParse(const string& param)
 	if (type == UserCommand::TYPE_SEPARATOR || type == UserCommand::TYPE_CLEAR || type == UserCommand::TYPE_SEPARATOR_OLD)
 	{
 		int ctx = Util::toInt(param.substr(i));
-		fly_fire5(ClientListener::HubUserCommand(), this, type, ctx, Util::emptyString, Util::emptyString);
+		fly_fire5(ClientListener::HubUserCommand(), this, type, ctx, BaseUtil::emptyString, BaseUtil::emptyString);
 	}
 	else if (type == UserCommand::TYPE_RAW || type == UserCommand::TYPE_RAW_ONCE)
 	{
@@ -1881,7 +1881,7 @@ void NmdcHub::onLine(const string& aLine)
 	}
 	else if (cmd == "BadPass")
 	{
-		setPassword(Util::emptyString);
+		setPassword(BaseUtil::emptyString);
 	}
 	else if (cmd == "ZOn")
 	{
@@ -2942,7 +2942,7 @@ void NmdcHub::myInfoParse(const string& param)
 	}
 	else
 	{
-		ou->getIdentity().setEmail(Util::emptyString);
+		ou->getIdentity().setEmail(BaseUtil::emptyString);
 	}
 	
 	i = j + 1;

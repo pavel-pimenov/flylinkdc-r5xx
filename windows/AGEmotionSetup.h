@@ -92,9 +92,6 @@ class CAGEmotion
 // CAGEmotionSetup
 
 class CAGEmotionSetup
-#ifdef _DEBUG
-	:  boost::noncopyable
-#endif
 {
 	public:
 		CAGEmotionSetup() : useEmoticons(false), m_CountSelEmotions(0) { }

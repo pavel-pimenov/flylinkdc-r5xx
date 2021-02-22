@@ -37,6 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <type_traits>
 #include "libtorrent/span.hpp"
+#include "libtorrent/aux_/numeric_cast.hpp"
 
 namespace libtorrent { namespace aux {
 
@@ -50,30 +51,30 @@ namespace libtorrent { namespace aux {
 	read_impl(span<Byte>& view, type<T>)
 	{
 		T ret = 0;
-		for (std::size_t i = 0; i < sizeof(T); ++i)
+		for (Byte const b : view.first(sizeof(T)))
 		{
 			ret <<= 8;
-			ret |= static_cast<std::uint8_t>(view[i]);
+			ret |= static_cast<std::uint8_t>(b);
 		}
-		view = view.subspan(sizeof(T));
+		view = view.subspan(int(sizeof(T)));
 		return ret;
 	}
 
-	template <class T, class In, class Byte, typename Cond
-		= typename std::enable_if<std::is_integral<T>::value &&
-		(std::is_integral<In>::value || std::is_enum<In>::value)>::type>
-	inline typename std::enable_if<sizeof(Byte)==1, void>::type
+	template <class T, class In, class Byte>
+	inline typename std::enable_if<std::is_integral<T>::value
+		&& (std::is_integral<In>::value || std::is_enum<In>::value)
+		&& sizeof(Byte)==1>::type
 	write_impl(In data, span<Byte>& view)
 	{
 		T val = static_cast<T>(data);
 		TORRENT_ASSERT(data == static_cast<In>(val));
 		int shift = int(sizeof(T)) * 8;
-		for (std::size_t i = 0; i < sizeof(T); ++i)
+		for (Byte& b : view.first(sizeof(T)))
 		{
 			shift -= 8;
-			view[i] = static_cast<Byte>((val >> shift) & 0xff);
+			b = static_cast<Byte>((val >> shift) & 0xff);
 		}
-		view = view.subspan(sizeof(T));
+		view = view.subspan(int(sizeof(T)));
 	}
 
 	// the single-byte case is separate to avoid a warning on the shift-left by
@@ -167,12 +168,10 @@ namespace libtorrent { namespace aux {
 	template<typename Byte>
 	inline int write_string(std::string const& str, span<Byte>& view)
 	{
-		std::size_t const len = str.size();
-		for (std::size_t i = 0; i < len; ++i)
-			view[i] = str[i];
-
-		view = view.subspan(len);
-		return int(len);
+		TORRENT_ASSERT(view.size() >= numeric_cast<int>(str.size()));
+		std::copy(str.begin(), str.end(), view.begin());
+		view = view.subspan(int(str.size()));
+		return int(str.size());
 	}
 
 }}

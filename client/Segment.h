@@ -28,9 +28,6 @@
 #include "Util.h"
 
 class Segment
-#ifdef _DEBUG
-// : boost::noncopyable
-#endif
 {
 	public:
 		Segment() : start(0), size(-1), overlapped(false) { }

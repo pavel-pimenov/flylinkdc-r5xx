@@ -136,7 +136,6 @@ uint16_t BufferedSocket::accept(const Socket& srv, bool secure, bool allowUntrus
 	auto ret = s->accept(srv);
 	
 	setSocket(move(s));
-	setOptions();
 	
 	addTask(ACCEPTED, nullptr);
 	
@@ -144,12 +143,12 @@ uint16_t BufferedSocket::accept(const Socket& srv, bool secure, bool allowUntrus
 }
 
 void BufferedSocket::connect(const string& aAddress, uint16_t aPort, bool secure, bool allowUntrusted, bool proxy,
-                             Socket::Protocol p_proto, const string& expKP /*= Util::emptyString*/)
+                             Socket::Protocol p_proto, const string& expKP /*= BaseUtil::emptyString*/)
 {
 	connect(aAddress, aPort, 0, NAT_NONE, secure, allowUntrusted, proxy, p_proto, expKP);
 }
 
-void BufferedSocket::connect(const string& aAddress, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool secure, bool allowUntrusted, bool proxy, Socket::Protocol p_proto, const string& expKP /*= Util::emptyString*/)
+void BufferedSocket::connect(const string& aAddress, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool secure, bool allowUntrusted, bool proxy, Socket::Protocol p_proto, const string& expKP /*= BaseUtil::emptyString*/)
 {
 	dcdebug("BufferedSocket::connect() %p\n", (void*)this);
 //	unique_ptr<Socket> s(secure ? new SSLSocket(natRole == NAT_SERVER ? CryptoManager::SSL_SERVER : CryptoManager::SSL_CLIENT_ALPN, allowUntrusted, p_proto, expKP)
@@ -202,8 +201,6 @@ void BufferedSocket::threadConnect(const string& aAddr, uint16_t aPort, uint16_t
 			{
 				sock->connect(aAddr, aPort); // https://www.box.net/shared/l08o2vdekthrrp319m8n + http://www.flylinkdc.ru/2012/10/ashampoo-firewall.html
 			}
-			
-			setOptions();
 			
 			while (true)
 			{

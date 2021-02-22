@@ -142,7 +142,7 @@ void SearchResult::calcHubName()
 {
 	if (m_hubName.empty() && getUser())
 	{
-		const StringList names = ClientManager::getHubNames(getUser()->getCID(), Util::emptyString);
+		const StringList names = ClientManager::getHubNames(getUser()->getCID(), BaseUtil::emptyString);
 		m_hubName = names.empty() ? STRING(OFFLINE) : Util::toString(names);
 	}
 }
@@ -177,7 +177,7 @@ string SearchResult::getFilePath() const
 	if (getType() == TYPE_FILE)
 		return Util::getFilePath(getFile());
 	else
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 }
 
 string SearchResult::getFileName() const

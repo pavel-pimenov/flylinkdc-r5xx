@@ -39,7 +39,7 @@ class FlyUpdateDlg : public CDialogImpl<FlyUpdateDlg>, CFlyRichEditLoader
 		COMMAND_ID_HANDLER(IDC_IGNOREUPDATE, OnCloseCmd)
 		END_MSG_MAP()
 		
-		FlyUpdateDlg(const string& data/* = Util::emptyString*/, const string& rtfData/* = Util::emptyString*/, const AutoUpdateFiles& fileList);
+		FlyUpdateDlg(const string& data/* = BaseUtil::emptyString*/, const string& rtfData/* = BaseUtil::emptyString*/, const AutoUpdateFiles& fileList);
 		~FlyUpdateDlg();
 		
 		LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);

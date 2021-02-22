@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,7 @@ namespace libtorrent {
 		: hasher()
 	{
 		TORRENT_ASSERT(len > 0);
-		update({data, size_t(len)});
+		update({data, len});
 	}
 
 #ifdef TORRENT_USE_LIBGCRYPT
@@ -75,36 +75,38 @@ namespace libtorrent {
 		gcry_md_copy(&m_context, h.m_context);
 	}
 
-	hasher& hasher::operator=(hasher const& h)
+	hasher& hasher::operator=(hasher const& h) &
 	{
-		if (this == &h) return;
+		if (this == &h) return *this;
 		gcry_md_close(m_context);
 		gcry_md_copy(&m_context, h.m_context);
 		return *this;
 	}
 #else
 	hasher::hasher(hasher const&) = default;
-	hasher& hasher::operator=(hasher const&) = default;
+	hasher& hasher::operator=(hasher const&) & = default;
 #endif
 
 	hasher& hasher::update(char const* data, int len)
 	{
-		return update({data, size_t(len)});
+		return update({data, len});
 	}
 
 	hasher& hasher::update(span<char const> data)
 	{
-		TORRENT_ASSERT(!data.empty());
+		TORRENT_ASSERT(data.size() > 0);
 #ifdef TORRENT_USE_LIBGCRYPT
-		gcry_md_write(m_context, data.data(), data.size());
+		gcry_md_write(m_context, data.data(), static_cast<std::size_t>(data.size()));
 #elif TORRENT_USE_COMMONCRYPTO
 		CC_SHA1_Update(&m_context, reinterpret_cast<unsigned char const*>(data.data()), CC_LONG(data.size()));
 #elif TORRENT_USE_CRYPTOAPI
 		m_context.update(data);
 #elif defined TORRENT_USE_LIBCRYPTO
-		SHA1_Update(&m_context, reinterpret_cast<unsigned char const*>(data.data()), data.size());
+		SHA1_Update(&m_context, reinterpret_cast<unsigned char const*>(data.data())
+			, static_cast<std::size_t>(data.size()));
 #else
-		SHA1_update(&m_context, reinterpret_cast<unsigned char const*>(data.data()), data.size());
+		SHA1_update(&m_context, reinterpret_cast<unsigned char const*>(data.data())
+			, static_cast<std::size_t>(data.size()));
 #endif
 		return *this;
 	}
@@ -114,7 +116,7 @@ namespace libtorrent {
 		sha1_hash digest;
 #ifdef TORRENT_USE_LIBGCRYPT
 		gcry_md_final(m_context);
-		digest.assign((char const*)gcry_md_read(m_context, 0));
+		digest.assign(reinterpret_cast<char const*>(gcry_md_read(m_context, 0)));
 #elif TORRENT_USE_COMMONCRYPTO
 		CC_SHA1_Final(reinterpret_cast<unsigned char*>(digest.data()), &m_context);
 #elif TORRENT_USE_CRYPTOAPI

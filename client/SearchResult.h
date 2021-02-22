@@ -131,10 +131,6 @@ class SearchResultBaseTTH
 };
 
 class SearchResultCore : public SearchResultBaseTTH
-#ifdef _DEBUG
-//    , boost::noncopyable
-#endif
-
 {
 	public:
 		SearchResultCore()
@@ -148,9 +144,6 @@ class SearchResultCore : public SearchResultBaseTTH
 };
 
 class SearchResult : public SearchResultCore
-#ifdef _DEBUG
-//, boost::noncopyable
-#endif
 {
 	public:
 		SearchResult() :
@@ -197,7 +190,7 @@ class SearchResult : public SearchResultCore
 			if (!m_search_ip4.is_unspecified())
 				return m_search_ip4.to_string();
 			else
-				return Util::emptyString;
+				return BaseUtil::emptyString;
 		}
 		const boost::asio::ip::address_v4& getIP() const
 		{

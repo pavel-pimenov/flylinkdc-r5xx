@@ -42,9 +42,6 @@
 class ADLSearchFrame : public MDITabChildWindowImpl < ADLSearchFrame, RGB(0, 0, 0), IDR_ADLSEARCH >
 	, public StaticFrame<ADLSearchFrame, ResourceManager::ADL_SEARCH, IDC_FILE_ADL_SEARCH>
 	, private SettingsManagerListener
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 	

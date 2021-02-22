@@ -1166,7 +1166,7 @@ tstring ChatCtrl::LineFromPos(const POINT& p) const
 	
 	if (len < 3)
 	{
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 	}
 	
 	tstring tmp;
@@ -1325,7 +1325,7 @@ const tstring& ChatCtrl::get_URL(const long lBegin/*, const long lEnd*/) const
 			return i->second;
 	}
 	//dcassert(0);
-	return Util::emptyStringT;
+	return BaseUtil::emptyStringT;
 }
 tstring ChatCtrl::get_URL_RichEdit(ENLINK* p_EL) const
 {

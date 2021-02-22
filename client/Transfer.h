@@ -29,9 +29,6 @@
 class UserConnection;
 
 class Transfer
-#ifdef _DEBUG
-	: private boost::noncopyable
-#endif
 {
 	public:
 		enum Type

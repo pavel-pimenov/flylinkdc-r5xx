@@ -52,11 +52,9 @@ namespace libtorrent {
 	constexpr int TORRENT_UDP_HEADER = 8;
 	constexpr int TORRENT_UTP_HEADER = 20;
 	constexpr int TORRENT_SOCKS5_HEADER = 6; // plus the size of the destination address
-
 	constexpr int TORRENT_ETHERNET_MTU = 1500;
 	constexpr int TORRENT_TEREDO_MTU = 1280;
 	constexpr int TORRENT_INET_MIN_MTU = 576;
-	constexpr int TORRENT_INET_MAX_MTU = 0xffff;
 
 	// used for out-of-order incoming packets
 	// as well as sent packets that are waiting to be ACKed
@@ -109,11 +107,12 @@ namespace libtorrent {
 
 	using packet_ptr = std::unique_ptr<packet, packet_deleter>;
 
+	// internal
 	inline packet_ptr create_packet(int const size)
 	{
 		packet* p = static_cast<packet*>(std::malloc(sizeof(packet) + aux::numeric_cast<std::uint16_t>(size)));
 		if (p == nullptr) aux::throw_ex<std::bad_alloc>();
-		new (p) packet();
+		p = new (p) packet();
 		p->allocated = aux::numeric_cast<std::uint16_t>(size);
 		return packet_ptr(p);
 	}
@@ -130,6 +129,7 @@ namespace libtorrent {
 		}
 
 		packet_slab(const packet_slab&) = delete;
+		packet_slab(packet_slab&&) = default;
 
 		void try_push_back(packet_ptr &p)
 		{
@@ -183,7 +183,7 @@ namespace libtorrent {
 		{
 			TORRENT_ASSERT(is_single_thread());
 
-			if (p.get() == nullptr) return;
+			if (!p) return;
 
 			int const allocated = p->allocated;
 
@@ -210,8 +210,8 @@ namespace libtorrent {
 			else if (allocate <= m_mtu_ceiling_slab.allocate_size) { return m_mtu_ceiling_slab.alloc(); }
 			return create_packet(allocate);
 		}
-		static int const mtu_floor_size = TORRENT_INET_MIN_MTU - TORRENT_IPV4_HEADER - TORRENT_UDP_HEADER;
-		static int const mtu_ceiling_size = TORRENT_ETHERNET_MTU - TORRENT_IPV4_HEADER - TORRENT_UDP_HEADER;
+		constexpr static int mtu_floor_size = TORRENT_INET_MIN_MTU - TORRENT_IPV4_HEADER - TORRENT_UDP_HEADER;
+		constexpr static int mtu_ceiling_size = TORRENT_ETHERNET_MTU - TORRENT_IPV4_HEADER - TORRENT_UDP_HEADER;
 		packet_slab m_syn_slab;
 		packet_slab m_mtu_floor_slab;
 		packet_slab m_mtu_ceiling_slab;

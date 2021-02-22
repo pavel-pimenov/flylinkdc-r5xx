@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg
+Copyright (c) 2006-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_UTF8_HPP_INCLUDED
 #define TORRENT_UTF8_HPP_INCLUDED
 
-#include "libtorrent/export.hpp"
+#include "libtorrent/aux_/export.hpp"
 
 #include <cstdint>
 #include <string>
@@ -46,6 +46,7 @@ namespace libtorrent {
 
 	namespace utf8_errors
 	{
+		// internal
 		enum error_code_enum
 		{
 			// conversion successful
@@ -54,7 +55,7 @@ namespace libtorrent {
 			// partial character in source, but hit end
 			source_exhausted,
 
-			// insuff. room in target for conversion
+			// insufficient room in target for conversion
 			target_exhausted,
 
 			// source sequence is illegal/malformed

@@ -268,6 +268,12 @@
     <ClCompile Include="client\SSL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="client\BaseUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client\debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\AdcCommand.h">
@@ -765,6 +771,9 @@
     <ClInclude Include="client\webrtc\rtc_base\synchronization\condition_variable_event_win.h">
       <Filter>Source Files\webrtc</Filter>
     </ClInclude>
+    <ClInclude Include="client\BaseUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -796,9 +805,6 @@
     </Filter>
     <Filter Include="Source Files\webrtc">
       <UniqueIdentifier>{634734c1-c671-4cbd-877a-3a51a43bf950}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\syslog">
-      <UniqueIdentifier>{dffc505f-b950-4afe-b0c9-fc5b67a232a0}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\selene">
       <UniqueIdentifier>{b769fbea-470d-4491-9a00-40028bb8cc41}</UniqueIdentifier>

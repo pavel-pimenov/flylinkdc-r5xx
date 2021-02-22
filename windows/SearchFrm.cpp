@@ -238,7 +238,7 @@ static bool isTTH(const tstring& p_TTH)
 	}
 	return true;
 }
-void SearchFrame::openWindow(const tstring& str /* = Util::emptyString */, LONGLONG size /* = 0 */, Search::SizeModes mode /* = Search::SIZE_ATLEAST */, Search::TypeModes type /* = Search::TYPE_ANY */)
+void SearchFrame::openWindow(const tstring& str /* = BaseUtil::emptyString */, LONGLONG size /* = 0 */, Search::SizeModes mode /* = Search::SIZE_ATLEAST */, Search::TypeModes type /* = Search::TYPE_ANY */)
 {
 	SearchFrame* pChild = new SearchFrame();
 	pChild->m_is_disable_torrent_RSS = !str.empty();
@@ -729,7 +729,7 @@ LRESULT SearchFrame::onCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 	
 	resultsMenu.AppendMenu(MF_POPUP, (UINT_PTR)(HMENU)copyMenu, CTSTRING(COPY));
 	resultsMenu.AppendMenu(MF_SEPARATOR);
-	appendUserItems(resultsMenu, Util::emptyString); // TODO: hubhint
+	appendUserItems(resultsMenu, BaseUtil::emptyString); // TODO: hubhint
 	resultsMenu.AppendMenu(MF_SEPARATOR);
 	resultsMenu.AppendMenu(MF_STRING, IDC_REMOVE, CTSTRING(REMOVE));
 	resultsMenu.SetMenuDefaultItem(IDC_DOWNLOAD_FAVORITE_DIRS);
@@ -1948,9 +1948,9 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			case COLUMN_HITS:
 				return Text::toT(m_sr.getPeersString());
 			//case COLUMN_EXACT_SIZE:
-			//  return m_sr.getSize() > 0 ? Util::formatExactSize(m_sr.getSize()) : Util::emptyStringT;
+			//  return m_sr.getSize() > 0 ? Util::formatExactSize(m_sr.getSize()) : BaseUtil::emptyStringT;
 			case COLUMN_SIZE:
-				return m_sr.getSize() > 0 ? Util::formatBytesW(m_sr.getSize()) : Util::emptyStringT;
+				return m_sr.getSize() > 0 ? Util::formatBytesW(m_sr.getSize()) : BaseUtil::emptyStringT;
 			case COLUMN_TORRENT_COMMENT:
 				return Text::toT(Util::toString(m_sr.m_comment));
 			case COLUMN_TORRENT_DATE:
@@ -1962,7 +1962,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			case COLUMN_TORRENT_PAGE:
 				return Text::toT(Util::toString(m_sr.m_torrent_page));
 		}
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 	}
 	else
 	{
@@ -1985,7 +1985,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 					return Text::toT(m_sr.getFileName());
 				}
 			case COLUMN_HITS:
-				return m_hits == 0 ? Util::emptyStringT : Util::toStringW(m_hits + 1) + _T(' ') + TSTRING(USERS);
+				return m_hits == 0 ? BaseUtil::emptyStringT : Util::toStringW(m_hits + 1) + _T(' ') + TSTRING(USERS);
 			case COLUMN_NICK:
 				if (getUser())
 				{
@@ -1993,7 +1993,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 				}
 				else
 				{
-					return Util::emptyStringT;
+					return BaseUtil::emptyStringT;
 				}
 			// TODO - сохранить ник в columns и показывать его от туда?
 			case COLUMN_TYPE:
@@ -2007,7 +2007,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 					return TSTRING(DIRECTORY);
 				}
 			case COLUMN_EXACT_SIZE:
-				return m_sr.getSize() > 0 ? Util::formatExactSize(m_sr.getSize()) : Util::emptyStringT;
+				return m_sr.getSize() > 0 ? Util::formatExactSize(m_sr.getSize()) : BaseUtil::emptyStringT;
 			case COLUMN_SIZE:
 				if (m_sr.getType() == SearchResult::TYPE_FILE)
 				{
@@ -2015,7 +2015,7 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 				}
 				else
 				{
-					return Util::emptyStringT;
+					return BaseUtil::emptyStringT;
 				}
 			case COLUMN_PATH:
 				if (m_sr.getType() == SearchResult::TYPE_FILE)
@@ -2053,9 +2053,9 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 			case COLUMN_P2P_GUARD:
 				return Text::toT(m_sr.getP2PGuard());
 			case COLUMN_TTH:
-				return m_sr.getType() == SearchResult::TYPE_FILE ? Text::toT(m_sr.getTTH().toBase32()) : Util::emptyStringT;
+				return m_sr.getType() == SearchResult::TYPE_FILE ? Text::toT(m_sr.getTTH().toBase32()) : BaseUtil::emptyStringT;
 			case COLUMN_LOCATION:
-				return Util::emptyStringT;
+				return BaseUtil::emptyStringT;
 			default:
 			{
 				if (col < COLUMN_LAST)
@@ -2064,12 +2064,12 @@ const tstring SearchFrame::SearchInfo::getText(uint8_t col) const
 				}
 				else
 				{
-					return Util::emptyStringT;
+					return BaseUtil::emptyStringT;
 				}
 			}
 		}
 	}
-	return Util::emptyStringT;
+	return BaseUtil::emptyStringT;
 }
 void SearchFrame::SearchInfo::view()
 {
@@ -2232,7 +2232,7 @@ void SearchFrame::SearchInfo::CheckTTH::operator()(const SearchInfo* si)
 	else if (!hubs.empty())
 	{
 		// we will merge hubs of all users to ensure we can use OP commands in all hubs
-		const StringList sl = ClientManager::getHubs(l_cid, Util::emptyString);
+		const StringList sl = ClientManager::getHubs(l_cid, BaseUtil::emptyString);
 		hubs.insert(hubs.end(), sl.begin(), sl.end());
 #if 0
 		Util::intersect(hubs, ClientManager::getHubs(l_cid));
@@ -2256,7 +2256,7 @@ tstring SearchFrame::getDownloadDirectory(WORD wID)
 		}
 		else
 		{
-			return Util::emptyStringT;
+			return BaseUtil::emptyStringT;
 		}
 	}
 	else if (l_trarget.Type == TARGET_STRUCT::PATH_SRC && !l_trarget.strPath.empty())
@@ -2324,7 +2324,7 @@ LRESULT SearchFrame::onDownloadTo(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 		if (sr.getType() == SearchResult::TYPE_FILE)
 		{
 			tstring target = Text::toT(SETTING(DOWNLOAD_DIRECTORY)) + si->getText(COLUMN_FILENAME);
-			if (WinUtil::browseFile(target, m_hWnd, true, Util::emptyStringT, NULL, Util::getFileExtWithoutDot(target).c_str()))
+			if (WinUtil::browseFile(target, m_hWnd, true, BaseUtil::emptyStringT, NULL, Util::getFileExtWithoutDot(target).c_str()))
 			{
 				LastDir::add(Util::getFilePath(target));
 				ctrlResults.forEachSelectedT(SearchInfo::DownloadTarget(target));
@@ -3648,7 +3648,7 @@ int SearchFrame::makeTargetMenu(const SearchInfo* p_si)
 		targetMenu.DeleteMenu(0, MF_BYPOSITION);
 	}
 	
-	dlTargets[IDC_DOWNLOAD_FAVORITE_DIRS + 0] = TARGET_STRUCT(Util::emptyStringT, TARGET_STRUCT::PATH_DEFAULT); // for 'Download' without options
+	dlTargets[IDC_DOWNLOAD_FAVORITE_DIRS + 0] = TARGET_STRUCT(BaseUtil::emptyStringT, TARGET_STRUCT::PATH_DEFAULT); // for 'Download' without options
 	
 	targetMenu.InsertSeparatorFirst(TSTRING(DOWNLOAD_TO));
 	
@@ -3814,7 +3814,7 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 				targetDirMenu.DeleteMenu(0, MF_BYPOSITION);
 			}
 			
-			dlTargets[IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + 0] = TARGET_STRUCT(Util::emptyStringT, TARGET_STRUCT::PATH_DEFAULT); // for 'Download whole dir' without options
+			dlTargets[IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + 0] = TARGET_STRUCT(BaseUtil::emptyStringT, TARGET_STRUCT::PATH_DEFAULT); // for 'Download whole dir' without options
 			targetDirMenu.InsertSeparatorFirst(TSTRING(DOWNLOAD_WHOLE_DIR_TO));
 			//Append favorite download dirs
 			n = 1;
@@ -3834,7 +3834,7 @@ LRESULT SearchFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 				}
 			}
 			
-			dlTargets[IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + n] = TARGET_STRUCT(Util::emptyStringT, TARGET_STRUCT::PATH_BROWSE);
+			dlTargets[IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + n] = TARGET_STRUCT(BaseUtil::emptyStringT, TARGET_STRUCT::PATH_BROWSE);
 			targetDirMenu.AppendMenu(MF_STRING, IDC_DOWNLOAD_WHOLE_FAVORITE_DIRS + n, CTSTRING(BROWSE));
 			n++;
 			
@@ -3892,7 +3892,7 @@ void SearchFrame::initHubs()
 	{
 		CLockRedraw<> l_lock_draw(ctrlHubs);
 		
-		ctrlHubs.insertItem(new HubInfo(Util::emptyStringT, TSTRING(ONLY_WHERE_OP), false), 0);
+		ctrlHubs.insertItem(new HubInfo(BaseUtil::emptyStringT, TSTRING(ONLY_WHERE_OP), false), 0);
 		ctrlHubs.SetCheckState(0, false);
 		ClientManager::getInstance()->addListener(this);
 #ifdef IRAINMAN_NON_COPYABLE_CLIENTS_IN_CLIENT_MANAGER

@@ -56,18 +56,15 @@ STANDARD_EXCEPTION(SimpleXMLException);
  * and allows easy access to each element through a "current location".
  */
 class SimpleXML
-#ifdef _DEBUG
-	: private boost::noncopyable
-#endif
 {
 	public:
-		SimpleXML() : root("BOGUSROOT", Util::emptyString, NULL), current(&root), found(false)
+		SimpleXML() : root("BOGUSROOT", string(), NULL), current(&root), found(false)
 		{
 			resetCurrentChild();
 		}
 		~SimpleXML() { }
 		
-		void addTag(const string& aName, const string& aData = Util::emptyString);
+		void addTag(const string& aName, const string& aData = string());
 		void addTag(const string& aName, int aData)
 		{
 			addTag(aName, Util::toString(aData));
@@ -126,7 +123,7 @@ class SimpleXML
 			return (*currentChild)->data;
 		}
 		
-		const string& getChildAttrib(const string& aName, const string& aDefault = Util::emptyString) const
+		const string& getChildAttrib(const string& aName, const string& aDefault = string()) const
 		{
 			checkChildSelected();
 			return (*currentChild)->getAttrib(aName, aDefault);
@@ -166,7 +163,7 @@ class SimpleXML
 			checkChildSelected();
 			return Util::toInt64(getChildAttrib(aName));
 		}
-		string getChildAttribTrim(const string& aName, const string& aDefault = Util::emptyString) const;
+		string getChildAttribTrim(const string& aName, const string& aDefault = string()) const;
 		
 		template<class T>
 		string getChildAttribSplit(const string& aName,
@@ -266,9 +263,6 @@ class SimpleXML
 		static const string utf8Header;
 	private:
 		class Tag
-#ifdef _DEBUG
-			: boost::noncopyable
-#endif
 		{
 			public:
 				typedef Tag* Ptr;
@@ -304,7 +298,7 @@ class SimpleXML
 				{
 				}
 				
-				const string& getAttrib(const string& aName, const string& aDefault = Util::emptyString) const
+				const string& getAttrib(const string& aName, const string& aDefault = string()) const
 				{
 					StringPairList::const_iterator i = find_if(attribs.begin(), attribs.end(), CompareFirst<string, string>(aName));
 					return i == attribs.end() ? aDefault : i->second;

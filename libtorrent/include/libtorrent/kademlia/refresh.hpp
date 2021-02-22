@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg & Daniel Wallin
+Copyright (c) 2006-2018, Arvid Norberg & Daniel Wallin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ namespace libtorrent { namespace dht {
 class bootstrap : public get_peers
 {
 public:
-	typedef get_peers::nodes_callback done_callback;
+	using done_callback = get_peers::nodes_callback;
 
 	bootstrap(node& dht_node, node_id const& target
 		, done_callback const& callback);

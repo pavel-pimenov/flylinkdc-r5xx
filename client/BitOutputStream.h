@@ -21,9 +21,6 @@
 #define BIT_OUTPUT_STREAM_H
 
 class BitOutputStream
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		explicit BitOutputStream(string& aStream) : is(aStream), bitPos(0), next(0) { }

@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,11 +32,11 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "libtorrent/http_connection.hpp"
 #include "libtorrent/aux_/escape_string.hpp"
-#include "libtorrent/instantiate_connection.hpp"
+#include "libtorrent/aux_/instantiate_connection.hpp"
 #include "libtorrent/gzip.hpp"
 #include "libtorrent/parse_url.hpp"
 #include "libtorrent/socket.hpp"
-#include "libtorrent/socket_type.hpp" // for async_shutdown
+#include "libtorrent/aux_/socket_type.hpp" // for async_shutdown
 #include "libtorrent/resolver_interface.hpp"
 #include "libtorrent/settings_pack.hpp"
 #include "libtorrent/aux_/time.hpp"
@@ -184,12 +184,12 @@ void http_connection::get(std::string const& url, time_duration timeout, int pri
 			request << "Proxy-Authorization: Basic " << base64encode(
 				ps->username + ":" + ps->password) << "\r\n";
 
-		hostname = ps->hostname;
-		port = ps->port;
-
 		request << "Host: " << hostname;
 		if (port != default_port) request << ":" << port << "\r\n";
 		else request << "\r\n";
+
+		hostname = ps->hostname;
+		port = ps->port;
 	}
 	else
 	{
@@ -333,7 +333,7 @@ void http_connection::start(std::string const& hostname, int port
 					if (ec)
 					{
 						lt::get_io_service(m_timer).post(std::bind(&http_connection::callback
-								, me, ec, span<char>{}));
+							, me, ec, span<char>{}));
 						return;
 					}
 				}
@@ -384,11 +384,11 @@ void http_connection::start(std::string const& hostname, int port
 		}
 		else
 #endif
+		m_hostname = hostname;
 		if (ps && ps->proxy_hostnames
 			&& (ps->type == settings_pack::socks5
 				|| ps->type == settings_pack::socks5_pw))
 		{
-			m_hostname = hostname;
 			m_port = std::uint16_t(port);
 			m_endpoints.emplace_back(address(), m_port);
 			connect();
@@ -400,7 +400,6 @@ void http_connection::start(std::string const& hostname, int port
 				, std::bind(&http_connection::on_resolve
 				, me, _1, _2));
 		}
-		m_hostname = hostname;
 		m_port = std::uint16_t(port);
 	}
 }
@@ -434,6 +433,10 @@ void http_connection::on_timeout(std::weak_ptr<http_connection> p
 		}
 		else
 		{
+			// the socket may have an outstanding operation, that keeps the
+			// http_connection object alive. We want to cancel all that.
+			error_code ec;
+			c->m_sock.close(ec);
 			c->callback(boost::asio::error::timed_out);
 			return;
 		}
@@ -520,7 +523,7 @@ void http_connection::on_resolve(error_code const& e
 		return;
 	}
 
-	aux::random_shuffle(m_endpoints.begin(), m_endpoints.end());
+	aux::random_shuffle(m_endpoints);
 
 	// if we have been told to bind to a particular address
 	// only connect to addresses of the same family
@@ -529,11 +532,11 @@ void http_connection::on_resolve(error_code const& e
 		auto new_end = std::partition(m_endpoints.begin(), m_endpoints.end()
 			, [this] (tcp::endpoint const& ep)
 		{
-			if (ep.address().is_v4() != m_bind_addr->is_v4())
+			if (is_v4(ep) != m_bind_addr->is_v4())
 				return false;
-			if (ep.address().is_v4() && m_bind_addr->is_v4())
+			if (is_v4(ep) && m_bind_addr->is_v4())
 				return true;
-			TORRENT_ASSERT(ep.address().is_v6() && m_bind_addr->is_v6());
+			TORRENT_ASSERT(is_v6(ep) && m_bind_addr->is_v6());
 			// don't try to connect to a global address with a local source address
 			// this is mainly needed to prevent attempting to connect to a global
 			// address using a ULA as the source
@@ -602,7 +605,7 @@ void http_connection::connect()
 	TORRENT_ASSERT(!m_connecting);
 	m_connecting = true;
 	m_sock.async_connect(target_address, std::bind(&http_connection::on_connect
-		, shared_from_this(), _1));
+		, me, _1));
 }
 
 void http_connection::on_connect(error_code const& e)
@@ -629,6 +632,8 @@ void http_connection::on_connect(error_code const& e)
 	}
 	else
 	{
+		error_code ec;
+		m_sock.close(ec);
 		callback(e);
 	}
 }
@@ -754,7 +759,7 @@ void http_connection::on_read(error_code const& e
 	{
 		span<char const> rcv_buf(m_recvbuffer);
 		bool error = false;
-		m_parser.incoming(rcv_buf.first(std::size_t(m_read_pos)), error);
+		m_parser.incoming(rcv_buf.first(m_read_pos), error);
 		if (error)
 		{
 			// HTTP parse error
@@ -783,7 +788,7 @@ void http_connection::on_read(error_code const& e
 				// it would be nice to gracefully shut down SSL here
 				// but then we'd have to do all the reconnect logic
 				// in its handler. For now, just kill the connection.
-//				async_shutdown(m_sock, shared_from_this());
+//				async_shutdown(m_sock, me);
 				m_sock.close(ec);
 
 				std::string url = resolve_redirect_location(m_url, location);
@@ -804,8 +809,8 @@ void http_connection::on_read(error_code const& e
 			if (m_read_pos > m_parser.body_start())
 			{
 				callback(e, span<char>(m_recvbuffer)
-					.first(static_cast<std::size_t>(m_read_pos))
-					.subspan(static_cast<std::size_t>(m_parser.body_start())));
+					.first(m_read_pos)
+					.subspan(m_parser.body_start()));
 			}
 			m_read_pos = 0;
 			m_last_receive = clock_type::now();
@@ -815,14 +820,14 @@ void http_connection::on_read(error_code const& e
 			error_code ec;
 			m_timer.cancel(ec);
 			callback(e, span<char>(m_recvbuffer)
-				.first(static_cast<std::size_t>(m_read_pos))
-				.subspan(static_cast<std::size_t>(m_parser.body_start())));
+				.first(m_read_pos)
+				.subspan(m_parser.body_start()));
 		}
 	}
 	else
 	{
 		TORRENT_ASSERT(!m_bottled);
-		callback(e, span<char>(m_recvbuffer).first(static_cast<std::size_t>(m_read_pos)));
+		callback(e, span<char>(m_recvbuffer).first(m_read_pos));
 		m_read_pos = 0;
 		m_last_receive = clock_type::now();
 	}

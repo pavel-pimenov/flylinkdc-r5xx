@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ namespace libtorrent {
 	TORRENT_EXPORT std::string make_magnet_uri(torrent_handle const& handle);
 	TORRENT_EXPORT std::string make_magnet_uri(torrent_info const& info);
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 #ifndef BOOST_NO_EXCEPTIONS
 	// deprecated in 0.14
 	TORRENT_DEPRECATED_EXPORT
@@ -66,14 +66,14 @@ namespace libtorrent {
 	// deprecated in 0.16. Instead, pass in the magnet link as add_torrent_params::url
 	TORRENT_DEPRECATED_EXPORT
 	torrent_handle add_magnet_uri(session& ses, std::string const& uri
-		, add_torrent_params p);
+		, add_torrent_params const& p);
 #endif
 
 	// deprecated in 0.16. Instead, pass in the magnet link as add_torrent_params::url
 	TORRENT_DEPRECATED_EXPORT
 	torrent_handle add_magnet_uri(session& ses, std::string const& uri
-		, add_torrent_params p, error_code& ec);
-#endif
+		, add_torrent_params const& p, error_code& ec);
+#endif // TORRENT_ABI_VERSION
 
 
 	// This function parses out information from the magnet link and populates the

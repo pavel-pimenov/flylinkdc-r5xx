@@ -244,7 +244,7 @@ LRESULT FavoriteDirsPage::onClickedChange(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 	return 0;
 }
 
-void FavoriteDirsPage::addDirectory(const tstring& aPath /*= Util::emptyStringT*/)
+void FavoriteDirsPage::addDirectory(const tstring& aPath /*= BaseUtil::emptyStringT*/)
 {
 	tstring path = aPath;
 	AppendPathSeparator(path);

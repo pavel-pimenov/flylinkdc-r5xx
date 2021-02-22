@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2009-2016, Arvid Norberg
+Copyright (c) 2009-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,8 @@ namespace libtorrent {
 	struct torrent_plugin;
 	struct torrent_handle;
 
+TORRENT_VERSION_NAMESPACE_2
+
 	// The add_torrent_params is a parameter pack for adding torrents to a
 	// session. The key fields when adding a torrent are:
 	//
@@ -78,7 +80,7 @@ namespace libtorrent {
 	//
 	// The ``add_torrent_params`` is also used when requesting resume data for a
 	// torrent. It can be saved to and restored from a file and added back to a
-	// new session. For serialization and deserialization of
+	// new session. For serialization and de-serialization of
 	// ``add_torrent_params`` objects, see read_resume_data() and
 	// write_resume_data().
 #include "libtorrent/aux_/disable_warnings_push.hpp"
@@ -89,14 +91,13 @@ namespace libtorrent {
 		// data for the torrent. For more information, see the ``storage`` field.
 		explicit add_torrent_params(storage_constructor_type sc = default_storage_constructor);
 		add_torrent_params(add_torrent_params&&) noexcept;
-		// TODO: GCC did not make std::string nothrow move-assignable
-		add_torrent_params& operator=(add_torrent_params&&);
+		add_torrent_params& operator=(add_torrent_params&&) = default;
 		add_torrent_params(add_torrent_params const&);
 		add_torrent_params& operator=(add_torrent_params const&);
 
 		// These are all deprecated. use torrent_flags_t instead (in
 		// libtorrent/torrent_flags.hpp)
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 
 		using flags_t = torrent_flags_t;
 
@@ -124,7 +125,7 @@ namespace libtorrent {
 			DECL_FLAG(merge_resume_http_seeds);
 			DECL_FLAG(default_flags);
 #undef DECL_FLAG
-#endif // TORRENT_NO_DEPRECATE
+#endif // TORRENT_ABI_VERSION
 
 #include "libtorrent/aux_/disable_warnings_pop.hpp"
 
@@ -151,6 +152,8 @@ namespace libtorrent {
 		// to the session (if DHT is enabled). The hostname may be an IP address.
 		aux::noexcept_movable<std::vector<std::pair<std::string, int>>> dht_nodes;
 
+		// in case there's no other name in this torrent, this name will be used.
+		// The name out of the torrent_info object takes precedence if available.
 		std::string name;
 
 		// the path where the torrent is or will be stored.
@@ -174,11 +177,7 @@ namespace libtorrent {
 		// or encrypt the content on disk for instance. For more information
 		// about the storage_interface that needs to be implemented for a custom
 		// storage, see storage_interface.
-#ifdef __clang__
-		storage_constructor_type storage;
-#else
 		aux::noexcept_movable<storage_constructor_type> storage;
-#endif
 
 		// The ``userdata`` parameter is optional and will be passed on to the
 		// extension constructor functions, if any
@@ -239,6 +238,8 @@ namespace libtorrent {
 		int max_uploads = -1;
 		int max_connections = -1;
 
+		// the upload and download rate limits for this torrent, specified in
+		// bytes per second. -1 means unlimited.
 		int upload_limit = -1;
 		int download_limit = -1;
 
@@ -280,7 +281,6 @@ namespace libtorrent {
 		// have not received any scrape data.
 		int num_complete = -1;
 		int num_incomplete = -1;
-
 		int num_downloaded = -1;
 
 		// URLs can be added to these two lists to specify additional web
@@ -332,7 +332,12 @@ namespace libtorrent {
 		// applied before the torrent is added.
 		aux::noexcept_movable<std::map<file_index_t, std::string>> renamed_files;
 
-#ifndef TORRENT_NO_DEPRECATE
+		// the posix time of the last time payload was received or sent for this
+		// torrent, respectively.
+		std::time_t last_download = 0;
+		std::time_t last_upload = 0;
+
+#if TORRENT_ABI_VERSION == 1
 		// deprecated in 1.2
 
 		// ``url`` can be set to a magnet link, in order to download the .torrent
@@ -367,17 +372,11 @@ namespace libtorrent {
 		// communicated forward into libtorrent via this field. If this is set, a
 		// fastresume_rejected_alert will be posted.
 		error_code internal_resume_data_error;
-#else
-		// hidden
-		// to maintain ABI compatibility
-		std::string deprecated5;
-		std::string deprecated1;
-		std::string deprecated2;
-		aux::noexcept_movable<std::vector<char>> deprecated3;
-		error_code deprecated4;
-#endif
+#endif // TORRENT_ABI_VERSION
 
 	};
+
+TORRENT_VERSION_NAMESPACE_2_END
 }
 
 #endif

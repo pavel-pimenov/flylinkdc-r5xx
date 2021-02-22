@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -48,8 +48,7 @@ namespace libtorrent {
 
 	struct socks5;
 
-	struct udp_send_flags_tag;
-	using udp_send_flags_t = flags::bitfield_flag<std::uint8_t, udp_send_flags_tag>;
+	using udp_send_flags_t = flags::bitfield_flag<std::uint8_t, struct udp_send_flags_tag>;
 
 	class TORRENT_EXTRA_EXPORT udp_socket : single_threaded
 	{
@@ -65,15 +64,15 @@ namespace libtorrent {
 		io_service& get_io_service() { return lt::get_io_service(m_socket); }
 
 		template <typename Handler>
-		void async_read(Handler h)
+		void async_read(Handler&& h)
 		{
-			m_socket.async_receive(null_buffers(), h);
+			m_socket.async_receive(null_buffers(), std::forward<Handler>(h));
 		}
 
 		template <typename Handler>
-		void async_write(Handler h)
+		void async_write(Handler&& h)
 		{
-			m_socket.async_send(null_buffers(), h);
+			m_socket.async_send(null_buffers(), std::forward<Handler>(h));
 		}
 
 		struct packet
@@ -98,7 +97,6 @@ namespace libtorrent {
 
 		void set_proxy_settings(aux::proxy_settings const& ps);
 		aux::proxy_settings const& get_proxy_settings() { return m_proxy_settings; }
-		void set_force_proxy(bool f) { m_force_proxy = f; }
 
 		bool is_closed() const { return m_abort; }
 		udp::endpoint local_endpoint(error_code& ec) const
@@ -111,8 +109,8 @@ namespace libtorrent {
 			return local_endpoint(ec);
 		}
 
-		typedef udp::socket::receive_buffer_size receive_buffer_size;
-		typedef udp::socket::send_buffer_size send_buffer_size;
+		using receive_buffer_size = udp::socket::receive_buffer_size;
+		using send_buffer_size = udp::socket::send_buffer_size;
 
 		template <class SocketOption>
 		void get_option(SocketOption const& opt, error_code& ec)
@@ -153,8 +151,6 @@ namespace libtorrent {
 
 		std::shared_ptr<socks5> m_socks5_connection;
 
-		// TODO: 3 add a unit test for force-proxy
-		bool m_force_proxy:1;
 		bool m_abort:1;
 
 #if TORRENT_USE_ASSERTS

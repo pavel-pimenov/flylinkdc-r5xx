@@ -97,9 +97,6 @@ const DWORD DRIVE_ATTRIBUTE_CDROM       = 0x00000010;
 const DWORD DRIVE_ATTRIBUTE_RAMDISK     = 0x00000020;
 
 class FolderTree : public CWindowImpl<FolderTree, CTreeViewCtrl>
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		FolderTree();

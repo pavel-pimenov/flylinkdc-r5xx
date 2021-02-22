@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -86,7 +86,7 @@ namespace libtorrent {
 				used_size = rhs.used_size;
 				move_holder(&holder, &rhs.holder);
 			}
-			buffer_t& operator=(buffer_t&& rhs) noexcept
+			buffer_t& operator=(buffer_t&& rhs) & noexcept
 			{
 				destruct_holder(&holder);
 				destruct_holder = rhs.destruct_holder;
@@ -99,7 +99,7 @@ namespace libtorrent {
 			}
 			buffer_t(buffer_t const& rhs) noexcept
 				: buffer_t(std::move(const_cast<buffer_t&>(rhs))) {}
-			buffer_t& operator=(buffer_t const& rhs) noexcept
+			buffer_t& operator=(buffer_t const& rhs) & noexcept
 			{ return this->operator=(std::move(const_cast<buffer_t&>(rhs))); }
 #else
 			buffer_t(buffer_t&&) = delete;
@@ -160,7 +160,7 @@ namespace libtorrent {
 		// enough room, returns 0
 		char* allocate_appendix(int s);
 
-		std::vector<boost::asio::const_buffer> const& build_iovec(int to_send);
+		span<boost::asio::const_buffer const> build_iovec(int to_send);
 
 		void clear();
 

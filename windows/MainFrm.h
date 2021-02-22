@@ -49,7 +49,8 @@ class MainFrame : public CMDIFrameWindowImpl<MainFrame>, public CUpdateUI<MainFr
 	private CFlyTimerAdapter,
 	private QueueManagerListener,
 	private UserManagerListener,
-	public AutoUpdateGUIMethod
+	public AutoUpdateGUIMethod,
+	private CFlyRichEditLoader
 {
 	public:
 		MainFrame();

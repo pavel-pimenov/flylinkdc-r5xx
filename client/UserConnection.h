@@ -31,9 +31,6 @@
 
 class UserConnection : public Speaker<UserConnectionListener>,
 	private BufferedSocketListener, public Flags, private CommandHandler<UserConnection>
-#ifdef _DEBUG
-	, private boost::noncopyable
-#endif
 {
 	public:
 		friend class ConnectionManager;
@@ -251,7 +248,7 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		string getCipherName() const noexcept
 		{
 			dcassert(socket);
-			return socket ? socket->getCipherName() : Util::emptyString;
+			return socket ? socket->getCipherName() : BaseUtil::emptyString;
 		}
 		
 		vector<uint8_t> getKeyprint() const
@@ -268,13 +265,13 @@ class UserConnection : public Speaker<UserConnectionListener>,
 		string getRemoteIpPort() const
 		{
 			dcassert(socket);
-			return socket ? socket->getRemoteIpPort() : Util::emptyString;
+			return socket ? socket->getRemoteIpPort() : BaseUtil::emptyString;
 		}
 		
 		string getRemoteIp() const
 		{
 			dcassert(socket);
-			return socket ? socket->getIp() : Util::emptyString;
+			return socket ? socket->getIp() : BaseUtil::emptyString;
 		}
 		DownloadPtr& getDownload()
 		{

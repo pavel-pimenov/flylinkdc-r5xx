@@ -38,7 +38,7 @@ class PrivateFrame : public MDITabChildWindowImpl < PrivateFrame, RGB(0, 255, 25
 {
 	public:
 		static bool gotMessage(const Identity& from, const Identity& to, const Identity& replyTo, const tstring& aMessage, unsigned p_max_smiles, const string& p_HubHint, const bool bMyMess, const bool bThirdPerson, const bool notOpenNewWindow = false);
-		static void openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo, string myNick = Util::emptyString, const tstring& aMessage = Util::emptyStringT);
+		static void openWindow(const OnlineUserPtr& ou, const HintedUser& replyTo, string myNick = BaseUtil::emptyString, const tstring& aMessage = BaseUtil::emptyStringT);
 		static bool isOpen(const UserPtr& u)
 		{
 			return g_pm_frames.find(u) != g_pm_frames.end();

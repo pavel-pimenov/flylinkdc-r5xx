@@ -124,7 +124,7 @@ string NmdcSupports::getStatus(const Identity& id) // [<-] moved from Util and r
 	return status + '(' + Util::toString(code) + ')';
 }
 
-void NmdcSupports::setStatus(Identity& id, const char status, const string& connection /* = Util::emptyString */)
+void NmdcSupports::setStatus(Identity& id, const char status, const string& connection /* = BaseUtil::emptyString */)
 {
 	if (!connection.empty())
 	{

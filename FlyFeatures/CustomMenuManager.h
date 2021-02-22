@@ -30,7 +30,7 @@ class CustomMenuItem
 {
 	public:
 		CustomMenuItem(
-		    int p_type, int p_id, const string& p_title = Util::emptyString
+		    int p_type, int p_id, const string& p_title = BaseUtil::emptyString
 		): m_type(p_type), m_id(p_id), m_title(p_title) {}
 	public:
 		GETSET(int, m_id, ID);

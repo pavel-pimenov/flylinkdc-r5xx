@@ -32,9 +32,6 @@
 #include "../lua/lua.h"
 
 class AboutDlg : public CDialogImpl<AboutDlg>
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		enum { IDD = IDD_ABOUTBOX };
@@ -108,7 +105,7 @@ class AboutDlg : public CDialogImpl<AboutDlg>
 			    _T("jsoncpp 1.8.3\r\n")
 			    _T("ZenLib 0.4.37\r\n")
 			    _T(OPENSSL_VERSION_TEXT) _T("\r\n")
-			    _T("MediaInfoLib 19.07\r\n")//MediaInfoLib::MediaInfo_Version _T("\r\n")
+			    _T("MediaInfoLib 20.09\r\n")//MediaInfoLib::MediaInfo_Version _T("\r\n")
 			    _T("WTL 10.0\r\n")
 			    _T("XMLParser 2.43\r\n") //XMLParser::XMLNode::getVersion()
 			    _T(LUA_VERSION) _T("\r\n")

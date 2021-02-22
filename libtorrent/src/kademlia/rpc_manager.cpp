@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg
+Copyright (c) 2006-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -47,9 +47,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/kademlia/dht_settings.hpp>
 
 #include <libtorrent/socket_io.hpp> // for print_endpoint
-#include <libtorrent/hasher.hpp>
 #include <libtorrent/aux_/time.hpp> // for aux::time_now
 #include <libtorrent/aux_/aligned_union.hpp>
+#include <libtorrent/broadcast_socket.hpp> // for is_v6
 
 #include <type_traits>
 #include <functional>
@@ -83,14 +83,12 @@ void observer::set_target(udp::endpoint const& ep)
 	m_sent = clock_type::now();
 
 	m_port = ep.port();
-#if TORRENT_USE_IPV6
-	if (ep.address().is_v6())
+	if (is_v6(ep))
 	{
 		flags |= flag_ipv6_address;
 		m_addr.v6 = ep.address().to_v6().to_bytes();
 	}
 	else
-#endif
 	{
 		flags &= ~flag_ipv6_address;
 		m_addr.v4 = ep.address().to_v4().to_bytes();
@@ -99,11 +97,9 @@ void observer::set_target(udp::endpoint const& ep)
 
 address observer::target_addr() const
 {
-#if TORRENT_USE_IPV6
 	if (flags & flag_ipv6_address)
 		return address_v6(m_addr.v6);
 	else
-#endif
 		return address_v4(m_addr.v4);
 }
 
@@ -204,7 +200,6 @@ void rpc_manager::free_observer(void* ptr)
 {
 	if (ptr == nullptr) return;
 	--m_allocated_observers;
-	TORRENT_ASSERT(reinterpret_cast<observer*>(ptr)->m_in_use == false);
 	m_pool_allocator.free(ptr);
 }
 
@@ -241,7 +236,7 @@ void rpc_manager::unreachable(udp::endpoint const& ep)
 		observer_ptr o = i->second;
 #ifndef TORRENT_DISABLE_LOGGING
 		m_log->log(dht_logger::rpc_manager, "[%u] found transaction [ tid: %d ]"
-			, o->algorithm()->id(), int(i->first));
+			, o->algorithm()->id(), i->first);
 #endif
 		i = m_transactions.erase(i);
 		o->timeout();
@@ -447,7 +442,7 @@ time_duration rpc_manager::tick()
 	std::for_each(timeouts.begin(), timeouts.end(), std::bind(&observer::timeout, _1));
 	std::for_each(short_timeouts.begin(), short_timeouts.end(), std::bind(&observer::short_timeout, _1));
 
-	return (std::max)(ret, duration_cast<time_duration>(milliseconds(200)));
+	return std::max(ret, duration_cast<time_duration>(milliseconds(200)));
 }
 
 void rpc_manager::add_our_id(entry& e)

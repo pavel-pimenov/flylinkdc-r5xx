@@ -146,9 +146,6 @@ class OperaColors
 		
 	private:
 		struct FloodCacheItem
-#ifdef _DEBUG
-			: boost::noncopyable
-#endif
 		{
 			FloodCacheItem() : w(0), h(0), hDC(nullptr), m_bitmap(nullptr)
 			{
@@ -200,24 +197,21 @@ class OperaColors
 			HBITMAP m_bitmap;
 		};
 		
-		struct fci_hash
-		{
-			size_t operator()(const FloodCacheItem::FCIMapper& __x) const
-			{
-				return ((__x.c1 ^ __x.c2) + (__x.bLight << 24)); //-V109
+		struct fci_hash {
+			size_t operator()(const FloodCacheItem::FCIMapper& __x) const {
+				return (__x.c1 ^ __x.c2);
 			}
 			//bool operator()(const FloodCacheItem::FCIMapper& a, const FloodCacheItem::FCIMapper& b) {
 			//  return a.c1 < b.c1 && a.c2 < b.c2;
 			//};
 		};
 		
-		struct fci_equal_to : public std::binary_function<FloodCacheItem::FCIMapper, FloodCacheItem::FCIMapper, bool>
-		{
-			bool operator()(const FloodCacheItem::FCIMapper& __x, const FloodCacheItem::FCIMapper& __y) const
-			{
-				return (__x.c1 == __y.c1) && (__x.c2 == __y.c2) && (__x.bLight == __y.bLight);
+		struct fci_equal_to {
+			bool operator()(const FloodCacheItem::FCIMapper& __x, const FloodCacheItem::FCIMapper& __y) const {
+				return (__x.c1 == __y.c1) && (__x.c2 == __y.c2);
 			}
 		};
+		
 		
 		typedef std::unordered_map<FloodCacheItem::FCIMapper, FloodCacheItem*, fci_hash, fci_equal_to> FCIMap;
 		

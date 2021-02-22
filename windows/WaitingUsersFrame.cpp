@@ -286,7 +286,7 @@ LRESULT WaitingUsersFrame::onContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lP
 		}
 		
 		
-		reinitUserMenu(getCurrentdUser(), Util::emptyString);
+		reinitUserMenu(getCurrentdUser(), BaseUtil::emptyString);
 		appendAndActivateUserItems(contextMenu);
 		
 		contextMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, m_hWnd);

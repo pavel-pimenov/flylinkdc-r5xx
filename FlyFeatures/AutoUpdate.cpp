@@ -108,7 +108,7 @@ void AutoUpdate::startUpdateManually()
 		
 	m_manualUpdate = true;
 	
-	SET_SETTING(AUTOUPDATE_IGNORE_VERSION, Util::emptyString);
+	SET_SETTING(AUTOUPDATE_IGNORE_VERSION, BaseUtil::emptyString);
 	
 	addTask(START_UPDATE);
 }
@@ -616,14 +616,6 @@ SettingsManager::IntSetting AutoUpdate::getSettingByTitle(const string& wTitle)
 	if (wTitle == "customlocation")
 		return SettingsManager::AUTOUPDATE_CUSTOMLOCATION;
 #endif // IRAINMAN_AUTOUPDATE_ALL_USERS_DATA
-#ifdef SSA_SHELL_INTEGRATION
-	if (wTitle == "shellext")
-		return SettingsManager::AUTOUPDATE_SHELL_EXT;
-#endif
-	/*
-	if (wTitle == "chatbot")
-	    return SettingsManager::AUTOUPDATE_UPDATE_CHATBOT;
-	*/
 	return SettingsManager::INT_LAST;
 }
 
@@ -1015,7 +1007,7 @@ bool AutoUpdate::startupUpdate()
 			fuSearch.DeleteAll();
 		}
 		::RemoveDirectory(m_updateFolder.c_str());
-		SET_SETTING(AUTOUPDATE_PATH_WITH_UPDATE, Util::emptyString);
+		SET_SETTING(AUTOUPDATE_PATH_WITH_UPDATE, BaseUtil::emptyString);
 		m_updateFolder.clear();
 	}
 	return false;

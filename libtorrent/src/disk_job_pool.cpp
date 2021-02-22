@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2012-2016, Arvid Norberg
+Copyright (c) 2012-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -85,7 +85,7 @@ namespace libtorrent {
 		m_job_pool.free(j);
 	}
 
-	void disk_job_pool::free_jobs(disk_io_job** j, int num)
+	void disk_job_pool::free_jobs(disk_io_job** j, int const num)
 	{
 		if (num == 0) return;
 

@@ -204,7 +204,7 @@ tstring UserInfo::getText(int p_col) const
 			}
 			else
 			{
-				return Util::emptyStringT;
+				return BaseUtil::emptyStringT;
 			}
 		}
 #endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
@@ -245,7 +245,7 @@ tstring UserInfo::getText(int p_col) const
 			if (l_slot)
 				return Util::toStringW(l_slot);
 			else
-				return Util::emptyStringT;
+				return BaseUtil::emptyStringT;
 		}
 		case COLUMN_CID:
 		{
@@ -307,7 +307,7 @@ tstring UserInfo::getText(int p_col) const
 		default:
 		{
 			dcassert(0);
-			return Util::emptyStringT;
+			return BaseUtil::emptyStringT;
 		}
 	}
 }
@@ -315,7 +315,7 @@ tstring UserInfo::getText(int p_col) const
 
 tstring UserInfo::formatSpeedLimit(const uint32_t limit)
 {
-	return limit ? Util::formatBytesW(limit) + _T('/') + TSTRING(S) : Util::emptyStringT;
+	return limit ? Util::formatBytesW(limit) + _T('/') + TSTRING(S) : BaseUtil::emptyStringT;
 }
 
 tstring UserInfo::getLimit() const

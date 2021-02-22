@@ -60,6 +60,7 @@ crash_rpt::ApplicationInfo* GetApplicationInfo()
 	static crash_rpt::ApplicationInfo appInfo;
 	appInfo.ApplicationInfoSize = sizeof(appInfo);
 	appInfo.ApplicationGUID =
+	
 #ifdef FLYLINKDC_BETA
 	    "9B9D2DBC-80E9-40FF-9801-52E1F52E5EC0";
 #else
@@ -575,9 +576,6 @@ namespace leveldb
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
-#ifdef _DEBUG
-// [-] VLD  _CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-#endif
 	CompatibilityManager::init();
 #ifdef _DEBUG
 	static uint8_t l_data[24];
@@ -660,18 +658,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		l_is_openfile = true;
 	if (_tcsstr(lpstrCmdLine, _T("/share")) != NULL)
 		l_is_sharefolder = true;
-#ifdef SSA_SHELL_INTEGRATION
-	if (_tcsstr(lpstrCmdLine, _T("/installShellExt")) != NULL)
-	{
-		WinUtil::makeShellIntegration(false);
-		return 0;
-	}
-	if (_tcsstr(lpstrCmdLine, _T("/uninstallShellExt")) != NULL)
-	{
-		WinUtil::makeShellIntegration(true);
-		return 0;
-	}
-#endif
 	if (_tcsstr(lpstrCmdLine, _T("/installStartup")) != NULL)
 	{
 		WinUtil::AutoRunShortCut(true);
@@ -688,10 +674,13 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	
 	SettingsManager::newInstance();
 	SettingsManager::getInstance()->load();
+	
+	LogManager::init();
+	
 	const bool l_is_create_wide = SettingsManager::LoadLanguage();
 	ResourceManager::startup(l_is_create_wide);
 	SettingsManager::getInstance()->setDefaults();
-	LogManager::init();
+	
 	CreateSplash();
 	
 	g_fly_server_config.loadConfig();
@@ -733,6 +722,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 				
 				sendCmdLine(hOther, lpstrCmdLine);
 			}
+			DestroySplash();
 			return FALSE;
 		}
 	}

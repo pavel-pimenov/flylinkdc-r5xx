@@ -39,7 +39,7 @@
     <RootNamespace>MediaInfoLib</RootNamespace>
     <ProjectName>MediaInfoLib</ProjectName>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
     <WindowsSDKDesktopARM64Support>true</WindowsSDKDesktopARM64Support>
   </PropertyGroup>
@@ -48,45 +48,45 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -162,6 +162,7 @@
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
@@ -236,6 +237,7 @@
       <PrecompiledHeaderFile>MediaInfo/PreComp.h</PrecompiledHeaderFile>
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
@@ -266,6 +268,7 @@
       <OptimizeForWindowsApplication>true</OptimizeForWindowsApplication>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
@@ -359,6 +362,7 @@
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
@@ -377,6 +381,7 @@
     <ClCompile Include="Source\MediaInfo\Audio\File_Caf.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_Celt.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_ChannelGrouping.cpp" />
+    <ClCompile Include="Source\MediaInfo\Audio\File_ChannelSplitting.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_DolbyE.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_Dsdiff.cpp" />
     <ClCompile Include="Source\MediaInfo\Audio\File_Dsf.cpp" />
@@ -518,6 +523,7 @@
     <ClCompile Include="Source\MediaInfo\Video\File_AvsV.cpp" />
     <ClCompile Include="Source\MediaInfo\Video\File_AfdBarData.cpp" />
     <ClCompile Include="Source\MediaInfo\Video\File_Canopus.cpp" />
+    <ClCompile Include="Source\MediaInfo\Video\File_CineForm.cpp" />
     <ClCompile Include="Source\MediaInfo\Video\File_Dirac.cpp" />
     <ClCompile Include="Source\MediaInfo\Video\File_DolbyVisionMetadata.cpp" />
     <ClCompile Include="Source\MediaInfo\Video\File_Ffv1.cpp" />
@@ -609,6 +615,7 @@
     <ClInclude Include="Source\MediaInfo\Audio\File_Caf.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_Celt.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_ChannelGrouping.h" />
+    <ClInclude Include="Source\MediaInfo\Audio\File_ChannelSplitting.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_DolbyE.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_Dsdiff.h" />
     <ClInclude Include="Source\MediaInfo\Audio\File_Dsf.h" />
@@ -774,6 +781,7 @@
     <ClInclude Include="Source\MediaInfo\Video\File_AvsV.h" />
     <ClInclude Include="Source\MediaInfo\Video\File_AfdBarData.h" />
     <ClInclude Include="Source\MediaInfo\Video\File_Canopus.h" />
+    <ClInclude Include="Source\MediaInfo\Video\File_CineForm.h" />
     <ClInclude Include="Source\MediaInfo\Video\File_Dirac.h" />
     <ClInclude Include="Source\MediaInfo\Video\File_DolbyVisionMetadata.h" />
     <ClInclude Include="Source\MediaInfo\Video\File_Ffv1.h" />

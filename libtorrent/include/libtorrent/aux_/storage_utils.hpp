@@ -34,21 +34,20 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_STORAGE_UTILS_HPP_INCLUDE
 
 #include <cstdint>
+#include <string>
 
 #include "libtorrent/config.hpp"
+#include "libtorrent/fwd.hpp"
 #include "libtorrent/span.hpp"
-#include "libtorrent/aux_/typed_span.hpp"
+#include "libtorrent/span.hpp"
 #include "libtorrent/units.hpp"
 #include "libtorrent/storage_defs.hpp" // for status_t
 #include "libtorrent/session_types.hpp"
 
 namespace libtorrent {
 
-	class file_storage;
 	struct part_file;
-	struct storage_error;
 	struct stat_cache;
-	struct add_torrent_params;
 
 	// TODO: 3 remove this typedef, and use span<char const> for disk write
 	// operations
@@ -58,7 +57,7 @@ namespace aux {
 
 	TORRENT_EXTRA_EXPORT int copy_bufs(span<iovec_t const> bufs
 		, int bytes, span<iovec_t> target);
-	TORRENT_EXTRA_EXPORT typed_span<iovec_t> advance_bufs(typed_span<iovec_t> bufs, int bytes);
+	TORRENT_EXTRA_EXPORT span<iovec_t> advance_bufs(span<iovec_t> bufs, int bytes);
 	TORRENT_EXTRA_EXPORT void clear_bufs(span<iovec_t const> bufs);
 
 	// this is a read or write operation so that readwritev() knows
@@ -86,7 +85,7 @@ namespace aux {
 	// opt to only delete the partfile
 	TORRENT_EXTRA_EXPORT void
 	delete_files(file_storage const& fs, std::string const& save_path
-		, std::string const& part_file_name, remove_flags_t const options, storage_error& ec);
+		, std::string const& part_file_name, remove_flags_t options, storage_error& ec);
 
 	TORRENT_EXTRA_EXPORT bool
 	verify_resume_data(add_torrent_params const& rd

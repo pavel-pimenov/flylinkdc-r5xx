@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -78,7 +78,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 	struct lazy_entry;
 	// backwards compatibility
 	using type_error = system_error;
@@ -90,6 +90,7 @@ namespace aux {
 #if (__cplusplus > 201103) || (defined _MSC_VER && _MSC_VER >= 1900)
 		// this enables us to compare a string_view against the std::string that's
 		// held by the std::map
+		// is_transparent was introduced in C++14
 		struct strview_less
 		{
 			using is_transparent = std::true_type;
@@ -178,30 +179,29 @@ namespace aux {
 		entry(entry const& e);
 		entry(entry&& e) noexcept;
 
+		// construct from bdecode_node parsed form (see bdecode())
+		entry(bdecode_node const& n); // NOLINT
+
 		// hidden
 		entry();
 
 		// hidden
 		~entry();
 
-		// hidden
-		bool operator==(entry const& e) const;
-		bool operator!=(entry const& e) const { return !(*this == e); }
-
 		// copies the structure of the right hand side into this
 		// entry.
-#ifndef TORRENT_NO_DEPRECATE
-		entry& operator=(lazy_entry const&);
+#if TORRENT_ABI_VERSION == 1
+		entry& operator=(lazy_entry const&) &;
 #endif
-		entry& operator=(bdecode_node const&);
-		entry& operator=(entry const&);
-		entry& operator=(entry&&) noexcept;
-		entry& operator=(dictionary_type);
-		entry& operator=(span<char const>);
+		entry& operator=(bdecode_node const&) &;
+		entry& operator=(entry const&) &;
+		entry& operator=(entry&&) & noexcept;
+		entry& operator=(dictionary_type) &;
+		entry& operator=(span<char const>) &;
 		template <typename U, typename Cond = typename std::enable_if<
 			std::is_same<U, entry::string_type>::value
 			|| std::is_same<U, char const*>::value>::type>
-		entry& operator=(U v)
+		entry& operator=(U v) &
 		{
 			destruct();
 			new(&data) string_type(std::move(v));
@@ -211,9 +211,9 @@ namespace aux {
 #endif
 			return *this;
 		}
-		entry& operator=(list_type);
-		entry& operator=(integer_type);
-		entry& operator=(preformatted_type);
+		entry& operator=(list_type) &;
+		entry& operator=(integer_type) &;
+		entry& operator=(preformatted_type) &;
 
 		// The ``integer()``, ``string()``, ``list()`` and ``dict()`` functions
 		// are accessors that return the respective type. If the ``entry`` object
@@ -301,7 +301,7 @@ namespace aux {
 
 		// returns a pretty-printed string representation
 		// of the bencoded structure, with JSON-style syntax
-		std::string to_string() const;
+		std::string to_string(bool single_line = false) const;
 
 	protected:
 
@@ -310,8 +310,6 @@ namespace aux {
 		void destruct();
 
 	private:
-
-		void to_string_impl(std::string& out, int indent) const;
 
 		aux::aligned_union<1
 #if TORRENT_COMPLETE_TYPES_REQUIRED
@@ -342,11 +340,16 @@ namespace aux {
 		mutable std::uint8_t m_type_queried:1;
 	};
 
+	// hidden
+	TORRENT_EXPORT bool operator==(entry const& lhs, entry const& rhs);
+	inline bool operator!=(entry const& lhs, entry const& rhs) { return !(lhs == rhs); }
+
 namespace detail {
 
-		TORRENT_EXPORT char const* integer_to_str(char* buf, int size
-			, entry::integer_type val);
-	}
+	// internal
+	TORRENT_EXPORT string_view integer_to_str(span<char> buf
+		, entry::integer_type val);
+}
 
 #if TORRENT_USE_IOSTREAM
 	// prints the bencoded structure to the ostream as a JSON-style structure.

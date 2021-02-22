@@ -5,8 +5,8 @@ del .\GdiOle\GdiOle_i.h
 del .\GdiOle\GdiOle_p.c
 del .\compiled\*.pdb
 del .\compiled\*.exp
-del .\compiled\FlylinkDC.exe
 del .\compiled\FlylinkDC_x64.exe
+del .\MakeDefs\MakeDefs.exe
 del /S /F /Q vc17
 rmdir /S /Q .\compiled\Settings\BackUp
 rmdir /S /Q .\compiled\Settings\FileLists
@@ -29,5 +29,5 @@ del /S /F /Q compiled\update\*.bz2
 del /S /F /Q compiled\update\*.xml
 del /S /F /Q compiled\update\*.rtf
 del /S /F /Q compiled\update\*.sign
-"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe" FlylinkDC_2017.sln /Clean "Release|Win32"
-"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe" FlylinkDC_2017.sln /Clean "Release|x64"
+
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.exe" FlylinkDC_2017.sln /Clean "Release|x64"

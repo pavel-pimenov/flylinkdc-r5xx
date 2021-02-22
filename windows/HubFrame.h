@@ -188,12 +188,12 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		
 		static HubFrame* openHubWindow(bool p_is_auto_connect,
 		                               const string& p_server,
-		                               const string& p_name     = Util::emptyString,
-		                               const string& p_rawOne   = Util::emptyString,
-		                               const string& p_rawTwo   = Util::emptyString,
-		                               const string& p_rawThree = Util::emptyString,
-		                               const string& p_rawFour  = Util::emptyString,
-		                               const string& p_rawFive  = Util::emptyString,
+		                               const string& p_name     = BaseUtil::emptyString,
+		                               const string& p_rawOne   = BaseUtil::emptyString,
+		                               const string& p_rawTwo   = BaseUtil::emptyString,
+		                               const string& p_rawThree = BaseUtil::emptyString,
+		                               const string& p_rawFour  = BaseUtil::emptyString,
+		                               const string& p_rawFive  = BaseUtil::emptyString,
 		                               int  p_windowposx = 0,
 		                               int  p_windowposy = 0,
 		                               int  p_windowsizex = 0,
@@ -203,9 +203,9 @@ class HubFrame : public MDITabChildWindowImpl < HubFrame, RGB(255, 0, 0), IDR_HU
 		                               bool p_UserListState = true,
 		                               bool p_SuppressChatAndPM = false
 		                                                          // bool p_ChatUserSplitState = true,
-		                                                          // const string& p_ColumsOrder = Util::emptyString,
-		                                                          // const string& p_ColumsWidth = Util::emptyString,
-		                                                          // const string& p_ColumsVisible = Util::emptyString
+		                                                          // const string& p_ColumsOrder = BaseUtil::emptyString,
+		                                                          // const string& p_ColumsWidth = BaseUtil::emptyString,
+		                                                          // const string& p_ColumsVisible = BaseUtil::emptyString
 		                              );
 		static void resortUsers();
 		static void closeDisconnected();

@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2003-2016, Arvid Norberg
+Copyright (c) 2003-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ namespace libtorrent {
 	// by ``out`` is large enough, i.e. has at least len * 2 bytes of space.
 	TORRENT_DEPRECATED_EXPORT std::string to_hex(span<char const> s);
 	TORRENT_DEPRECATED_EXPORT void to_hex(span<char const> in, char* out);
-	TORRENT_DEPRECATED_EXPORT void to_hex(char const* in, size_t const len, char* out);
+	TORRENT_DEPRECATED_EXPORT void to_hex(char const* in, int const len, char* out);
 
 	// converts the buffer [``in``, ``in`` + len) from hexadecimal to
 	// binary. The binary output is written to the buffer pointed to
@@ -65,17 +65,36 @@ namespace libtorrent {
 
 	}
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
+
+#ifdef _MSC_VER
+#pragma warning(push, 1)
+// warning C4996: X: was declared deprecated
+#pragma warning( disable : 4996 )
+#endif
+#if defined __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 	// deprecated in 1.2
 	TORRENT_DEPRECATED
 	inline void to_hex(char const* in, int len, char* out)
-	{ aux::to_hex({in, static_cast<size_t>(len)}, out); }
+	{ aux::to_hex({in, len}, out); }
 	TORRENT_DEPRECATED
 	inline std::string to_hex(std::string const& s)
 	{ return aux::to_hex(s); }
 	TORRENT_DEPRECATED
 	inline bool from_hex(char const *in, int len, char* out)
-	{ return aux::from_hex({in, static_cast<size_t>(len)}, out); }
+	{ return aux::from_hex({in, len}, out); }
+
+#if defined __GNUC__
+#pragma GCC diagnostic pop
+#endif
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #endif
 }
 

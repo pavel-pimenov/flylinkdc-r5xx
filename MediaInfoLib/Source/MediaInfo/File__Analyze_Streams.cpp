@@ -147,8 +147,151 @@ void File__Analyze::Get_MasteringDisplayColorVolume(Ztring &MasteringDisplay_Col
         MasteringDisplay_ColorPrimaries=MasteringDisplayColorVolume_Values_Compute(Meta.Primaries);
     if (Meta.Luminance[0]!=(int32u)-1 && Meta.Luminance[1]!=(int32u)-1)
         MasteringDisplay_Luminance=        __T("min: ")+Ztring::ToZtring(((float64)Meta.Luminance[0])/10000, 4)
-                                  +__T(" cd/m2, max: ")+Ztring::ToZtring(((float64)Meta.Luminance[1])/10000, (Meta.Luminance[1]-((int)Meta.Luminance[1])==0)?0:4)
+                                  +__T(" cd/m2, max: ")+Ztring::ToZtring(((float64)Meta.Luminance[1])/10000, ((float64)Meta.Luminance[1]/10000-Meta.Luminance[1]/10000==0)?0:4)
                                   +__T(" cd/m2");
+}
+#endif
+
+//---------------------------------------------------------------------------
+#if defined(MEDIAINFO_HEVC_YES) || defined(MEDIAINFO_MPEG4_YES) || defined(MEDIAINFO_MATROSKA_YES)
+static const size_t DolbyVision_Profiles_Size=10;
+static const char* DolbyVision_Profiles[DolbyVision_Profiles_Size] = // dv[BL_codec_type].[number_of_layers][bit_depth][cross-compatibility]
+{
+    "dvav",
+    "dvav",
+    "dvhe",
+    "dvhe",
+    "dvhe",
+    "dvhe",
+    "dvhe",
+    "dvhe",
+    "dvhe",
+    "dvav",
+};
+
+extern const size_t DolbyVision_Compatibility_Size = 7;
+extern const char* DolbyVision_Compatibility[DolbyVision_Compatibility_Size] =
+{
+    "",
+    "HDR10",
+    "SDR",
+    NULL,
+    "HLG",
+    NULL,
+    "Blu-ray",
+};
+void File__Analyze::dvcC(bool has_dependency_pid, std::map<std::string, Ztring>* Infos)
+{
+    Element_Name("Dolby Vision Configuration");
+
+    //Parsing
+    int8u  dv_version_major, dv_version_minor, dv_profile, dv_level, dv_bl_signal_compatibility_id;
+    bool rpu_present_flag, el_present_flag, bl_present_flag;
+    Get_B1 (dv_version_major,                                   "dv_version_major");
+    if (dv_version_major && dv_version_major<=2) //Spec says nothing, we hope that a minor version change means that the stream is backward compatible
+    {
+        Get_B1 (dv_version_minor,                               "dv_version_minor");
+        BS_Begin();
+        size_t End=Data_BS_Remain();
+        if (End>=176)
+            End-=176;
+        else
+            End=0; // Not enough place for reserved bits, but we currently ignore such case, just considered as unknown
+        Get_S1 (7, dv_profile,                                  "dv_profile");
+        Get_S1 (6, dv_level,                                    "dv_level");
+        Get_SB (   rpu_present_flag,                            "rpu_present_flag");
+        Get_SB (   el_present_flag,                             "el_present_flag");
+        Get_SB (   bl_present_flag,                             "bl_present_flag");
+        if (has_dependency_pid && !bl_present_flag)
+        {
+            Skip_S2(13,                                         "dependency_pid");
+            Skip_S1( 3,                                         "reserved");
+        }
+        if (Data_BS_Remain())
+        {
+            Get_S1 (4, dv_bl_signal_compatibility_id,           "dv_bl_signal_compatibility_id"); // in dv_version_major 2 only if based on specs but it was confirmed to be seen in dv_version_major 1 too and it does not hurt (value 0 means no new display)
+            if (End<Data_BS_Remain())
+                Skip_BS(Data_BS_Remain()-End,                   "reserved");
+        }
+        else
+            dv_bl_signal_compatibility_id=0;
+        BS_End();
+    }
+    Skip_XX(Element_Size-Element_Offset,                        "Unknown");
+
+    FILLING_BEGIN();
+        if (Infos)
+            (*Infos)["HDR_Format"].From_UTF8("Dolby Vision");
+        else
+            Fill(Stream_Video, StreamPos_Last, Video_HDR_Format, "Dolby Vision");
+        if (dv_version_major && dv_version_major<=2)
+        {
+            Ztring Summary=Ztring::ToZtring(dv_version_major)+__T('.')+Ztring::ToZtring(dv_version_minor);
+            if (Infos)
+                (*Infos)["HDR_Format_Version"]=Summary;
+            else
+                Fill(Stream_Video, StreamPos_Last, Video_HDR_Format_Version, Summary);
+            string Profile, Level;
+            if (dv_profile<DolbyVision_Profiles_Size)
+                Profile+=DolbyVision_Profiles[dv_profile];
+            else
+                Profile+=Ztring().From_CC1(dv_profile).To_UTF8();
+            Profile+=__T('.');
+            Profile+=Ztring().From_CC1(dv_profile).To_UTF8();
+            Level+=Ztring().From_CC1(dv_level).To_UTF8();
+            if (Infos)
+            {
+                (*Infos)["HDR_Format_Profile"].From_UTF8(Profile);
+                (*Infos)["HDR_Format_Level"].From_UTF8(Level);
+            }
+            else
+            {
+                Fill(Stream_Video, StreamPos_Last, Video_HDR_Format_Profile, Profile);
+                Fill(Stream_Video, StreamPos_Last, Video_HDR_Format_Level, Level);
+            }
+            Summary += __T(',');
+            Summary+=__T(' ');
+            Summary+=Ztring().From_UTF8(Profile);
+            Summary+=__T('.');
+            Summary+=Ztring().From_UTF8(Level);
+
+            string Layers;
+            if (rpu_present_flag|el_present_flag|bl_present_flag)
+            {
+                Summary+=',';
+                Summary+=' ';
+                if (bl_present_flag)
+                    Layers +="BL+";
+                if (el_present_flag)
+                    Layers +="EL+";
+                if (rpu_present_flag)
+                    Layers +="RPU+";
+                Layers.resize(Layers.size()-1);
+                Summary+=Ztring().From_UTF8(Layers);
+            }
+            if (Infos)
+                (*Infos)["HDR_Format_Settings"].From_UTF8(Layers);
+            else
+                Fill(Stream_Video, StreamPos_Last, Video_HDR_Format_Settings, Layers);
+            if (dv_bl_signal_compatibility_id)
+            {
+                string Compatibility;
+                if (dv_bl_signal_compatibility_id<DolbyVision_Compatibility_Size && DolbyVision_Compatibility[dv_bl_signal_compatibility_id])
+                    Compatibility=DolbyVision_Compatibility[dv_bl_signal_compatibility_id];
+                else
+                    Compatibility=Ztring().From_Number(dv_bl_signal_compatibility_id).To_UTF8();
+                if (Infos)
+                    (*Infos)["HDR_Format_Compatibility"].From_UTF8(Compatibility);
+                else
+                    Fill(Stream_Video, StreamPos_Last, Video_HDR_Format_Compatibility, Compatibility);
+            }
+        }
+        else
+            if (Infos)
+                (*Infos)["HDR_Format_Version"]=Ztring::ToZtring(dv_version_major);
+            else
+                Fill(Stream_Video, StreamPos_Last, Video_HDR_Format_Version, dv_version_major);
+    FILLING_END();
 }
 #endif
 
@@ -367,18 +510,7 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, size_t Paramete
     if (!Value.empty())
     {
         size_t Value_NotBOM_Pos;
-        if (sizeof(Char)==1)
-        {
-            Value_NotBOM_Pos=0;
-            while (Value.size()-Value_NotBOM_Pos>=3 // Avoid deep recursivity
-             && Value[Value_NotBOM_Pos  ]==0xEF 
-             && Value[Value_NotBOM_Pos+1]==0xBB
-             && Value[Value_NotBOM_Pos+2]==0xBF
-                )
-                Value_NotBOM_Pos+=3;
-        }
-        else
-        {
+        #if defined(UNICODE) || defined (_UNICODE)
             //Check inverted bytes from UTF BOM
             Value_NotBOM_Pos=Value.find_first_not_of(__T('\xFFFE')); // Avoid deep recursivity
             if (Value_NotBOM_Pos)
@@ -399,7 +531,16 @@ void File__Analyze::Fill (stream_t StreamKind, size_t StreamPos, size_t Paramete
             }
 
             Value_NotBOM_Pos=Value.find_first_not_of(__T('\xFEFF')); // Avoid deep recursivity
-        }
+        #else
+            Value_NotBOM_Pos=0;
+            while (Value.size()-Value_NotBOM_Pos>=3 // Avoid deep recursivity
+             && Value[Value_NotBOM_Pos  ]==0xEF
+             && Value[Value_NotBOM_Pos+1]==0xBB
+             && Value[Value_NotBOM_Pos+2]==0xBF
+                )
+                Value_NotBOM_Pos+=3;
+        #endif //defined(UNICODE) || defined (_UNICODE)
+
         if (Value_NotBOM_Pos)
             return Fill(StreamKind, StreamPos, Parameter, Value.substr(Value_NotBOM_Pos), Replace);
     }

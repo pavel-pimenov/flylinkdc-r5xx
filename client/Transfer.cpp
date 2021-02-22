@@ -47,7 +47,7 @@ string Transfer::getConnectionQueueToken() const
 	}
 	else
 	{
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	}
 }
 
@@ -64,7 +64,7 @@ void Transfer::tick(uint64_t p_CurrentTick)
 			if (m_actual && m_samples.back().second == m_actual)
 				m_samples.back().first = m_lastTick; // Position hasn't changed, just update the time
 			else
-				m_samples.push_back(Sample(m_lastTick, m_actual));
+				m_samples.emplace_back(Sample(m_lastTick, m_actual));
 				
 			const uint64_t ticks = m_lastTick - m_samples.front().first;
 			const int64_t bytes = m_actual - m_samples.front().second;
@@ -99,7 +99,7 @@ void Transfer::getParams(const UserConnection* aSource, StringMap& params) const
 	if (user)
 	{
 		params["userCID"] = user->getCID().toBase32();
-		params["userNI"] = !user->getLastNick().empty() ? user->getLastNick() : Util::toString(ClientManager::getNicks(user->getCID(), Util::emptyString, false));
+		params["userNI"] = !user->getLastNick().empty() ? user->getLastNick() : Util::toString(ClientManager::getNicks(user->getCID(), BaseUtil::emptyString, false));
 		params["userI4"] = aSource->getRemoteIp();
 		
 		StringList hubNames = ClientManager::getHubNames(user->getCID(), hint);
@@ -132,7 +132,7 @@ void Transfer::setStart(uint64_t tick)
 	m_start = tick;
 	CFlyFastLock(m_cs);
 	setLastTick(tick);
-	m_samples.push_back(Sample(m_start, 0));
+	m_samples.emplace_back(Sample(m_start, 0));
 }
 const uint64_t Transfer::getLastActivity()
 {

@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg, Magnus Jonsson
+Copyright (c) 2006-2018, Arvid Norberg, Magnus Jonsson
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -90,7 +90,7 @@ namespace {
 	settings_pack min_memory_usage()
 	{
 		settings_pack set;
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		// receive data directly into disk buffers
 		// this yields more system calls to read() and
 		// kqueue(), but saves RAM.
@@ -106,7 +106,6 @@ namespace {
 		set.set_int(settings_pack::checking_mem_usage, 2);
 
 		// don't use any extra threads to do SHA-1 hashing
-		set.set_int(settings_pack::network_threads, 0);
 		set.set_int(settings_pack::aio_threads, 1);
 
 		set.set_int(settings_pack::alert_queue_size, 100);
@@ -206,8 +205,8 @@ namespace {
 		// allow lots of peers to try to connect simultaneously
 		set.set_int(settings_pack::listen_queue_size, 3000);
 
-		// unchoke many peers
-		set.set_int(settings_pack::unchoke_slots_limit, 2000);
+		// unchoke all peers
+		set.set_int(settings_pack::unchoke_slots_limit, -1);
 
 		// use 1 GB of cache
 		set.set_int(settings_pack::cache_size, 32768 * 2);
@@ -249,7 +248,7 @@ namespace {
 		set.set_int(settings_pack::peer_timeout, 20);
 		set.set_int(settings_pack::inactivity_timeout, 20);
 
-		set.set_int(settings_pack::active_limit, 2000);
+		set.set_int(settings_pack::active_limit, 20000);
 		set.set_int(settings_pack::active_tracker_limit, 2000);
 		set.set_int(settings_pack::active_dht_limit, 600);
 		set.set_int(settings_pack::active_seeds, 2000);
@@ -273,30 +272,13 @@ namespace {
 		// connect to us if they want to
 		set.set_int(settings_pack::max_failcount, 1);
 
-		// the number of threads to use to call async_write_some
-		// and read_some on peer sockets
-		// this doesn't work. See comment in settings_pack.cpp
-		set.set_int(settings_pack::network_threads, 0);
-
 		// number of disk threads for low level file operations
 		set.set_int(settings_pack::aio_threads, 8);
 
-		// keep 5 MiB outstanding when checking hashes
-		// of a resumed file
-		set.set_int(settings_pack::checking_mem_usage, 320);
+		set.set_int(settings_pack::checking_mem_usage, 2048);
 
 		return set;
 	}
-
-#ifndef TORRENT_CFG
-#error TORRENT_CFG is not defined!
-#endif
-
-	// this is a dummy function that's exported and named based
-	// on the configuration. The session.hpp file will reference
-	// it and if the library and the client are built with different
-	// configurations this will give a link error
-	void TORRENT_CFG() {}
 
 	session_params read_session_params(bdecode_node const& e, save_state_flags_t const flags)
 	{
@@ -337,14 +319,14 @@ namespace {
 		return params;
 	}
 
-	void session::start(session_params params, io_service* ios)
+	void session::start(session_params&& params, io_service* ios)
 	{
 		bool const internal_executor = ios == nullptr;
 
 		if (internal_executor)
 		{
 			// the user did not provide an executor, we have to use our own
-			m_io_service = std::make_shared<io_service>();
+			m_io_service = std::make_shared<io_service>(1);
 			ios = m_io_service.get();
 		}
 
@@ -352,16 +334,18 @@ namespace {
 		*static_cast<session_handle*>(this) = session_handle(m_impl);
 
 #ifndef TORRENT_DISABLE_EXTENSIONS
-		for (auto const& ext : params.extensions)
+		for (auto& ext : params.extensions)
 		{
-			m_impl->add_ses_extension(ext);
+			m_impl->add_ses_extension(std::move(ext));
 		}
 #endif
 
 #ifndef TORRENT_DISABLE_DHT
-		m_impl->set_dht_settings(params.dht_settings);
+		m_impl->set_dht_settings(std::move(params.dht_settings));
 		m_impl->set_dht_state(std::move(params.dht_state));
-		m_impl->set_dht_storage(params.dht_storage_constructor);
+
+		TORRENT_ASSERT(params.dht_storage_constructor);
+		m_impl->set_dht_storage(std::move(params.dht_storage_constructor));
 #endif
 
 		m_impl->start_session();
@@ -394,7 +378,7 @@ namespace {
 		}
 	}
 
-	void session::start(session_flags_t const flags, settings_pack sp, io_service* ios)
+	void session::start(session_flags_t const flags, settings_pack&& sp, io_service* ios)
 	{
 		start({std::move(sp),
 			default_plugins(!(flags & add_default_plugins))}, ios);
@@ -409,7 +393,7 @@ namespace {
 		// to keep the session_impl alive
 		m_impl->call_abort();
 
-		if (m_thread && m_thread.unique())
+		if (m_thread && m_thread.use_count() == 1)
 		{
 #if defined TORRENT_ASIO_DEBUGGING
 			wait_for_asio_handlers();
@@ -432,7 +416,7 @@ namespace {
 		, std::shared_ptr<aux::session_impl> impl)
 		: m_io_service(std::move(ios))
 		, m_thread(std::move(t))
-		, m_impl(impl)
+		, m_impl(std::move(impl))
 	{}
 	session_proxy::session_proxy(session_proxy const&) = default;
 	session_proxy& session_proxy::operator=(session_proxy const&) = default;
@@ -440,7 +424,7 @@ namespace {
 	session_proxy& session_proxy::operator=(session_proxy&&) noexcept = default;
 	session_proxy::~session_proxy()
 	{
-		if (m_thread && m_thread.unique())
+		if (m_thread && m_thread.use_count() == 1)
 		{
 #if defined TORRENT_ASIO_DEBUGGING
 			wait_for_asio_handlers();
@@ -449,13 +433,33 @@ namespace {
 		}
 	}
 
-	session_params::session_params(settings_pack sp)
+	session_params::session_params(settings_pack&& sp)
+		: session_params(std::move(sp), default_plugins())
+	{}
+
+	session_params::session_params(settings_pack const& sp)
 		: session_params(sp, default_plugins())
 	{}
 
-	session_params::session_params(settings_pack sp
+	session_params::session_params()
+		: extensions(default_plugins())
+#ifndef TORRENT_DISABLE_DHT
+		, dht_storage_constructor(dht::dht_default_storage_constructor)
+#endif
+	{}
+
+	session_params::session_params(settings_pack&& sp
 		, std::vector<std::shared_ptr<plugin>> exts)
 		: settings(std::move(sp))
+		, extensions(std::move(exts))
+#ifndef TORRENT_DISABLE_DHT
+		, dht_storage_constructor(dht::dht_default_storage_constructor)
+#endif
+	{}
+
+	session_params::session_params(settings_pack const& sp
+		, std::vector<std::shared_ptr<plugin>> exts)
+		: settings(sp)
 		, extensions(std::move(exts))
 #ifndef TORRENT_DISABLE_DHT
 		, dht_storage_constructor(dht::dht_default_storage_constructor)

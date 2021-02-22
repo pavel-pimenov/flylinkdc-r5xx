@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg & Daniel Wallin
+Copyright (c) 2006-2018, Arvid Norberg & Daniel Wallin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <set>
 #include <memory>
 
+#include <libtorrent/fwd.hpp>
 #include <libtorrent/kademlia/node_id.hpp>
 #include <libtorrent/kademlia/routing_table.hpp>
 #include <libtorrent/kademlia/observer.hpp>
@@ -46,15 +47,12 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-struct dht_lookup;
-
 namespace dht {
 
 class node;
 struct node_endpoint;
 
-struct traversal_flags_tag;
-using traversal_flags_t = libtorrent::flags::bitfield_flag<std::uint8_t, traversal_flags_tag>;
+using traversal_flags_t = libtorrent::flags::bitfield_flag<std::uint8_t, struct traversal_flags_tag>;
 
 // this class may not be instantiated as a stack object
 struct TORRENT_EXTRA_EXPORT traversal_algorithm
@@ -134,6 +132,11 @@ private:
 	std::int16_t m_responses = 0;
 	std::int16_t m_timeouts = 0;
 
+	// set to true when done() is called, and will prevent adding new results, as
+	// they would never be serviced and the whole traversal algorithm would stall
+	// and leak
+	bool m_done = false;
+
 #ifndef TORRENT_DISABLE_LOGGING
 	// this is a unique ID for this specific traversal_algorithm instance,
 	// just used for logging
@@ -142,9 +145,7 @@ private:
 
 	// the IP addresses of the nodes in m_results
 	std::set<std::uint32_t> m_peer4_prefixes;
-#if TORRENT_USE_IPV6
 	std::set<std::uint64_t> m_peer6_prefixes;
-#endif
 #ifndef TORRENT_DISABLE_LOGGING
 	void log_timeout(observer_ptr const& o, char const* prefix) const;
 #endif

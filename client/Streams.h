@@ -31,9 +31,6 @@ STANDARD_EXCEPTION(FileException);
  * A simple output stream. Intended to be used for nesting streams one inside the other.
  */
 class OutputStream
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		virtual ~OutputStream() {}
@@ -74,9 +71,6 @@ class OutputStream
 };
 
 class InputStream
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		virtual ~InputStream() {}

@@ -37,9 +37,6 @@ class WaitingUsersFrame : public MDITabChildWindowImpl < WaitingUsersFrame, RGB(
 	private SettingsManagerListener,
 	virtual private CFlyTimerAdapter,
 	virtual private CFlyTaskAdapter
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 		typedef UserInfoBaseHandler<WaitingUsersFrame> uiBase;
 	public:

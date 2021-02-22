@@ -136,10 +136,10 @@
 
 #define tiger_compress_macro(str, state) \
 	{ \
-		register uint64_t a, b, c, tmpa; \
-		register uint64_t aa, bb, cc; \
-		register uint64_t x0, x1, x2, x3, x4, x5, x6, x7; \
-		register int pass_no; \
+		uint64_t a, b, c, tmpa; \
+		uint64_t aa, bb, cc; \
+		uint64_t x0, x1, x2, x3, x4, x5, x6, x7; \
+		int pass_no; \
 		\
 		a = state[0]; \
 		b = state[1]; \

@@ -113,7 +113,7 @@ void AppearancePage::GetThemeList()
 	if (m_ThemeList.empty())
 	{
 		typedef  void (WINAPIV ResourceName)(wchar_t*, size_t);
-		m_ThemeList.insert(ThemePair(TSTRING(THEME_DEFAULT_NAME), Util::emptyString));
+		m_ThemeList.insert(ThemePair(TSTRING(THEME_DEFAULT_NAME), BaseUtil::emptyString));
 		// Find in Theme folder .DLL's check'em
 		string fileFindPath = Util::getThemesPath() + "*.dll";
 		for (FileFindIter i(fileFindPath); i != FileFindIter::end; ++i)

@@ -25,10 +25,6 @@
 #include "forward.h"
 
 class ChatMessage
-#ifdef _DEBUG
-	: public boost::noncopyable
-#endif
-	
 {
 	public:
 		string m_text;

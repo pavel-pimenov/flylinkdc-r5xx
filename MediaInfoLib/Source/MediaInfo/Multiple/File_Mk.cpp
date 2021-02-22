@@ -37,6 +37,9 @@
 #if defined(MEDIAINFO_AVC_YES)
     #include "MediaInfo/Video/File_Avc.h"
 #endif
+#if defined(MEDIAINFO_DVDIF_YES)
+    #include "MediaInfo/Multiple/File_DvDif.h"
+#endif
 #if defined(MEDIAINFO_HEVC_YES)
     #include "MediaInfo/Video/File_Hevc.h"
 #endif
@@ -311,6 +314,11 @@ namespace Elements
     const int64u Segment_Tracks_TrackEntry_TrickTrackFlag=0x46;
     const int64u Segment_Tracks_TrackEntry_TrickMasterTrackUID=0x47;
     const int64u Segment_Tracks_TrackEntry_TrickMasterTrackSegmentUID=0x44;
+    const int64u Segment_Tracks_TrackEntry_BlockAdditionMapping=0x1E4;
+    const int64u Segment_Tracks_TrackEntry_BlockAdditionMapping_BlockAddIDName=0x1A4;
+    const int64u Segment_Tracks_TrackEntry_BlockAdditionMapping_BlockAddIDType=0x1E7;
+    const int64u Segment_Tracks_TrackEntry_BlockAdditionMapping_BlockAddIDExtraData=0x1ED;
+    const int64u Segment_Tracks_TrackEntry_BlockAdditionMapping_BlockAddIDValue=0x1F0;
     const int64u Segment_Tracks_TrackEntry_ContentEncodings=0x2D80;
     const int64u Segment_Tracks_TrackEntry_ContentEncodings_ContentEncoding=0x2240;
     const int64u Segment_Tracks_TrackEntry_ContentEncodings_ContentEncoding_ContentEncodingOrder=0x1031;
@@ -716,6 +724,7 @@ File_Mk::File_Mk()
     Segment_Cluster_Count=0;
     CurrentAttachmentIsCover=false;
     CoverIsSetFromAttachment=false;
+    BlockAddIDType=0;
     Laces_Pos=0;
     IsParsingSegmentTrack_SeekBackTo=0;
     SegmentTrack_Offset_End=0;
@@ -1207,6 +1216,35 @@ void File_Mk::Streams_Finish()
             //if (!Duration_Temp.empty()) Fill(StreamKind_Last, StreamPos_Last, Fill_Parameter(StreamKind_Last, Generic_Duration), Duration_Temp, true);
             if (Temp->second.StreamKind==Stream_Video && !Codec_Temp.empty())
                 Fill(StreamKind_Last, StreamPos_Last, Fill_Parameter(StreamKind_Last, Generic_Codec), Codec_Temp, true);
+
+
+            //Format specific
+            #if defined(MEDIAINFO_DVDIF_YES)
+                if (StreamKind_Last==Stream_Video && Retrieve(Stream_Video, StreamPos_Last, Video_Format)==__T("DV"))
+                {
+                    if (Retrieve(Stream_General, 0, General_Recorded_Date).empty())
+                        Fill(Stream_General, 0, General_Recorded_Date, Temp->second.Parser->Retrieve(Stream_General, 0, General_Recorded_Date));
+
+                    //Video and Audio are together
+                    size_t Audio_Count=Temp->second.Parser->Count_Get(Stream_Audio);
+                    for (size_t Audio_Pos=0; Audio_Pos<Audio_Count; Audio_Pos++)
+                    {
+                        Fill_Flush();
+                        Stream_Prepare(Stream_Audio); // TODO: merge code with the one from RIFF/AVI parser and put this audio streams in the ID order instead of after pure Matroska audio streams
+                        size_t Pos=Count_Get(Stream_Audio)-1;
+                        Merge(*Temp->second.Parser, Stream_Audio, Audio_Pos, StreamPos_Last);
+                        Fill(Stream_Audio, Pos, Audio_MuxingMode, "DV");
+                        Fill(Stream_Audio, Pos, Audio_Duration, Retrieve(Stream_Video, Temp->second.StreamPos, Video_Duration));
+                        Fill(Stream_Audio, Pos, "MuxingMode_MoreInfo", __T("Muxed in Video #")+Ztring().From_Number(Temp->second.StreamPos+1));
+                        Fill(Stream_Audio, Pos, Audio_StreamSize_Encoded, 0); //Included in the DV stream size
+                        Ztring ID=Retrieve(Stream_Audio, Pos, Audio_ID);
+                        Fill(Stream_Audio, Pos, Audio_ID, Retrieve(Stream_Video, Temp->second.StreamPos, Video_ID)+__T("-")+ID, true);
+                    }
+
+                    StreamKind_Last=Stream_Video;
+                    StreamPos_Last=Temp->second.StreamPos;
+                }
+            #endif
 
             //Special case: AAC
             if (StreamKind_Last==Stream_Audio
@@ -1837,6 +1875,13 @@ void File_Mk::Data_Parse()
                 ATO2(Segment_Tracks_TrackEntry_TrickTrackFlag, "TrickTrackFlag")
                 ATO2(Segment_Tracks_TrackEntry_TrickMasterTrackUID, "TrickMasterTrackUID")
                 ATO2(Segment_Tracks_TrackEntry_TrickMasterTrackSegmentUID, "TrickMasterTrackSegmentUID")
+                LIS2(Segment_Tracks_TrackEntry_BlockAdditionMapping, "BlockAdditionMapping")
+                    ATOM_BEGIN
+                    ATO2(Segment_Tracks_TrackEntry_BlockAdditionMapping_BlockAddIDName, "BlockAddIDName")
+                    ATO2(Segment_Tracks_TrackEntry_BlockAdditionMapping_BlockAddIDType, "BlockAddIDType")
+                    ATO2(Segment_Tracks_TrackEntry_BlockAdditionMapping_BlockAddIDExtraData, "BlockAddIDExtraData")
+                    ATO2(Segment_Tracks_TrackEntry_BlockAdditionMapping_BlockAddIDValue, "BlockAddIDValue")
+                    ATOM_END_MK
                 LIS2(Segment_Tracks_TrackEntry_ContentEncodings, "ContentEncodings")
                     ATOM_BEGIN
                     LIS2(Segment_Tracks_TrackEntry_ContentEncodings_ContentEncoding, "ContentEncoding")
@@ -3349,6 +3394,69 @@ void File_Mk::Segment_Tracks_TrackEntry_CodecID()
 }
 
 //---------------------------------------------------------------------------
+void File_Mk::Segment_Tracks_TrackEntry_BlockAdditionMapping_BlockAddIDType()
+{
+    //Parsing
+    int32u Value;
+    Get_C4(Value,                                               "Value");
+
+    FILLING_BEGIN();
+        BlockAddIDType=Value;
+    FILLING_END();
+}
+
+//---------------------------------------------------------------------------
+void File_Mk::Segment_Tracks_TrackEntry_BlockAdditionMapping_BlockAddIDExtraData()
+{
+    //Parsing
+    switch (BlockAddIDType)
+    {
+        case 0x64766343: // dvcC
+        case 0x64767643: // dvvC
+                Element_Name("Dolby Vision Configuration");
+                dvcC();
+                break;
+        case 0x68766345:
+                Element_Name("Dolby Vision EL HEVC");
+                #if MEDIAINFO_TRACE
+                    if (Trace_Activated)
+                    {
+                        File_Hevc* Parser=new File_Hevc();
+                        Parser->FrameIsAlwaysComplete=true;
+                        Parser->MustSynchronize=false;
+                        Parser->MustParse_VPS_SPS_PPS=true;
+                        Parser->SizedBlocks=true;
+                        Open_Buffer_Init(Parser);
+                        Open_Buffer_Continue(Parser);
+                        delete Parser;
+                    }
+                #else
+                    Skip_XX(Element_Size,                       "HEVCDecoderConfigurationRecord"); //enhancement-layer configuration information required to initialize the Dolby Vision decoder for the enhancement - layer substream
+                #endif
+                break;
+        case 0x6D766343:
+                Element_Name("MVC configuration");
+                #if MEDIAINFO_TRACE
+                    if (Trace_Activated)
+                    {
+                        File_Avc* Parser=new File_Avc();
+                        Parser->FrameIsAlwaysComplete=true;
+                        Parser->MustSynchronize=false;
+                        Parser->MustParse_SPS_PPS=true;
+                        Parser->SizedBlocks=true;
+                        Open_Buffer_Init(Parser);
+                        Open_Buffer_Continue(Parser);
+                        delete Parser;
+                    }
+                #else
+                    Skip_XX(Element_Size,                       "MVCDecoderConfigurationRecord");
+                #endif
+                break;
+        default:;
+    }
+}
+
+//---------------------------------------------------------------------------
 void File_Mk::Segment_Tracks_TrackEntry_ContentEncodings_ContentEncoding_ContentCompression()
 {
     FILLING_BEGIN();
@@ -4471,6 +4579,12 @@ void File_Mk::CodecID_Manage()
                 }
             #endif //MEDIAINFO_DEMUX
         }
+    }
+    #endif
+    #if defined(MEDIAINFO_HUFFYUV_YES)
+    else if (Format==__T("DV"))
+    {
+        streamItem.Parser=new File_DvDif;
     }
     #endif
     #if defined(MEDIAINFO_HEVC_YES)

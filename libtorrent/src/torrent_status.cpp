@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2015-2016, Arvid Norberg
+Copyright (c) 2015-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,10 +35,14 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace libtorrent {
 
 	file_index_t constexpr torrent_status::error_file_none;
-	file_index_t constexpr torrent_status::error_file_url;
 	file_index_t constexpr torrent_status::error_file_ssl_ctx;
-	file_index_t constexpr torrent_status::error_file_metadata;
 	file_index_t constexpr torrent_status::error_file_exception;
+	file_index_t constexpr torrent_status::error_file_partfile;
+	file_index_t constexpr torrent_status::error_file_metadata;
+
+#if TORRENT_ABI_VERSION == 1
+	file_index_t constexpr torrent_status::error_file_url;
+#endif
 
 	torrent_status::torrent_status() noexcept {}
 	torrent_status::~torrent_status() = default;
@@ -49,8 +53,6 @@ namespace libtorrent {
 
 	static_assert(std::is_nothrow_move_constructible<torrent_status>::value
 		, "should be nothrow move constructible");
-//	static_assert(std::is_nothrow_move_assignable<torrent_status>::value
-//		, "should be nothrow move assignable");
 	static_assert(std::is_nothrow_default_constructible<torrent_status>::value
 		, "should be nothrow default constructible");
 }

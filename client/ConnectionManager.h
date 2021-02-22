@@ -48,9 +48,6 @@ class TokenManager
 };
 
 class ConnectionQueueItem
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 	
@@ -162,7 +159,7 @@ class ExpectedMap
 			CFlyFastLock(cs);
 			const auto& i = m_expectedConnections.find(aNick);
 			if (i == m_expectedConnections.end())
-				return NickHubPair(Util::emptyString, Util::emptyString
+				return NickHubPair(BaseUtil::emptyString, BaseUtil::emptyString
 #ifdef RIP_USE_CONNECTION_AUTODETECT
 				                   , REASON_DEFAULT
 #endif

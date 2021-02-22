@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg
+Copyright (c) 2006-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ namespace libtorrent {
 	{
 		// file prio is only supported on vista and up
 		// so load the functions dynamically
-		typedef enum {
+		enum FILE_INFO_BY_HANDLE_CLASS_LOCAL {
 			FileBasicInfo,
 			FileStandardInfo,
 			FileNameInfo,
@@ -71,22 +71,24 @@ namespace libtorrent {
 			FileIoPriorityHintInfo,
 			FileRemoteProtocolInfo,
 			MaximumFileInfoByHandleClass
-		} FILE_INFO_BY_HANDLE_CLASS_LOCAL;
+		};
 
-		typedef enum {
+		enum PRIORITY_HINT_LOCAL {
 			IoPriorityHintVeryLow = 0,
 			IoPriorityHintLow,
 			IoPriorityHintNormal,
 			MaximumIoPriorityHintType
-		} PRIORITY_HINT_LOCAL;
+		};
 
-		typedef struct {
+		struct FILE_IO_PRIORITY_HINT_INFO_LOCAL {
 			PRIORITY_HINT_LOCAL PriorityHint;
-		} FILE_IO_PRIORITY_HINT_INFO_LOCAL;
+		};
 
-		typedef BOOL (WINAPI *SetFileInformationByHandle_t)(HANDLE hFile, FILE_INFO_BY_HANDLE_CLASS_LOCAL FileInformationClass, LPVOID lpFileInformation, DWORD dwBufferSize);
+		using SetFileInformationByHandle_t = BOOL (WINAPI *)(HANDLE
+			, FILE_INFO_BY_HANDLE_CLASS_LOCAL, LPVOID, DWORD);
 		auto SetFileInformationByHandle =
-			aux::get_library_procedure<aux::kernel32, SetFileInformationByHandle_t>("SetFileInformationByHandle");
+			aux::get_library_procedure<aux::kernel32, SetFileInformationByHandle_t>(
+				"SetFileInformationByHandle");
 
 		if (SetFileInformationByHandle == nullptr) return;
 
@@ -109,14 +111,6 @@ namespace libtorrent {
 		file_handle defer_destruction;
 
 		std::unique_lock<std::mutex> l(m_mutex);
-
-#if TORRENT_USE_ASSERTS
-		// we're not allowed to open a file
-		// from a deleted storage!
-		TORRENT_ASSERT(std::find(m_deleted_storages.begin(), m_deleted_storages.end()
-			, std::make_pair(fs.name(), static_cast<void const*>(&fs)))
-			== m_deleted_storages.end());
-#endif
 
 		TORRENT_ASSERT(is_complete(p));
 		TORRENT_ASSERT((m & open_mode::rw_mask) == open_mode::read_only
@@ -278,29 +272,6 @@ namespace libtorrent {
 		l.unlock();
 		// the files are closed here while the lock is not held
 	}
-
-#if TORRENT_USE_ASSERTS
-	void file_pool::mark_deleted(file_storage const& fs)
-	{
-		std::unique_lock<std::mutex> l(m_mutex);
-		m_deleted_storages.push_back(std::make_pair(fs.name()
-			, static_cast<void const*>(&fs)));
-		if(m_deleted_storages.size() > 100)
-			m_deleted_storages.erase(m_deleted_storages.begin());
-	}
-
-	bool file_pool::assert_idle_files(storage_index_t const st) const
-	{
-		std::unique_lock<std::mutex> l(m_mutex);
-
-		for (auto const& i : m_files)
-		{
-			if (i.first.first == st && !i.second.file_ptr.unique())
-				return false;
-		}
-		return true;
-	}
-#endif
 
 	void file_pool::resize(int size)
 	{

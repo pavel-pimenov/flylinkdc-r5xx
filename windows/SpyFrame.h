@@ -36,9 +36,6 @@ class SpyFrame : public MDITabChildWindowImpl < SpyFrame, RGB(0, 0, 0), IDR_SPY 
 	private SettingsManagerListener,
 	virtual private CFlyTimerAdapter,
 	virtual private CFlyTaskAdapter
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		SpyFrame();

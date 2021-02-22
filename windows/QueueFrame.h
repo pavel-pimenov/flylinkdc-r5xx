@@ -37,9 +37,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 	private SettingsManagerListener,
 	virtual private CFlyTimerAdapter,
 	virtual private CFlyTaskAdapter
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		DECLARE_FRAME_WND_CLASS_EX(_T("QueueFrame"), IDR_QUEUE, 0, COLOR_3DFACE);
@@ -229,10 +226,6 @@ class QueueFrame : public MDITabChildWindowImpl < QueueFrame, RGB(0, 0, 0), IDR_
 		void doTimerTask();
 		
 		class QueueItemInfo
-#ifdef _DEBUG
-			: boost::noncopyable
-#endif
-			
 		{
 			public:
 				explicit QueueItemInfo(const QueueItemPtr& p_qi) : m_qi(p_qi)

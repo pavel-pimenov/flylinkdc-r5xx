@@ -55,7 +55,7 @@ namespace libtorrent { namespace aux {
 		constexpr strong_typedef(strong_typedef const& rhs) noexcept = default;
 		constexpr strong_typedef(strong_typedef&& rhs) noexcept = default;
 		strong_typedef() noexcept = default;
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		constexpr strong_typedef(UnderlyingType val) : m_val(val) {}
 		constexpr operator UnderlyingType() const { return m_val; }
 #else
@@ -71,8 +71,8 @@ namespace libtorrent { namespace aux {
 		strong_typedef& operator++() { ++m_val; return *this; }
 		strong_typedef& operator--() { --m_val; return *this; }
 
-		strong_typedef operator++(int) { return strong_typedef{m_val++}; }
-		strong_typedef operator--(int) { return strong_typedef{m_val--}; }
+		strong_typedef operator++(int) & { return strong_typedef{m_val++}; }
+		strong_typedef operator--(int) & { return strong_typedef{m_val--}; }
 
 		friend diff_type operator-(strong_typedef lhs, strong_typedef rhs)
 		{ return diff_type{lhs.m_val - rhs.m_val}; }
@@ -83,21 +83,25 @@ namespace libtorrent { namespace aux {
 		friend strong_typedef operator-(strong_typedef lhs, diff_type rhs)
 		{ return strong_typedef{lhs.m_val - static_cast<UnderlyingType>(rhs)}; }
 
-		strong_typedef& operator+=(diff_type rhs)
+		strong_typedef& operator+=(diff_type rhs) &
 		{ m_val += static_cast<UnderlyingType>(rhs); return *this; }
-		strong_typedef& operator-=(diff_type rhs)
+		strong_typedef& operator-=(diff_type rhs) &
 		{ m_val -= static_cast<UnderlyingType>(rhs); return *this; }
 
-		strong_typedef& operator=(strong_typedef const& rhs) noexcept = default;
-		strong_typedef& operator=(strong_typedef&& rhs) noexcept = default;
+		strong_typedef& operator=(strong_typedef const& rhs) & noexcept = default;
+		strong_typedef& operator=(strong_typedef&& rhs) & noexcept = default;
 	private:
 		UnderlyingType m_val;
 	};
 
-	// meta function to return the underlying type of a strong_typedef, or the
-	// type itself if it isn't a strong_typedef
-	template <typename T>
+	// meta function to return the underlying type of a strong_typedef or enumeration
+	// , or the type itself if it isn't a strong_typedef
+	template <typename T, typename = void>
 	struct underlying_index_t { using type = T; };
+
+	template <typename T>
+	struct underlying_index_t<T, typename std::enable_if<std::is_enum<T>::value>::type>
+	{ using type = typename std::underlying_type<T>::type; };
 
 	template <typename U, typename Tag>
 	struct underlying_index_t<aux::strong_typedef<U, Tag>> { using type = U; };
@@ -134,10 +138,6 @@ namespace libtorrent { namespace aux {
 } // namespace libtorrent
 
 namespace std {
-
-	template<typename UnderlyingType, typename Tag>
-	struct is_integral<libtorrent::aux::strong_typedef<UnderlyingType, Tag>>
-		: std::is_integral<UnderlyingType> {};
 
 	template<typename UnderlyingType, typename Tag>
 	class numeric_limits<libtorrent::aux::strong_typedef<UnderlyingType, Tag>> : public std::numeric_limits<UnderlyingType>

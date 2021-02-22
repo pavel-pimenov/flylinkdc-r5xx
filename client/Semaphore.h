@@ -25,9 +25,6 @@
 #include "Util.h"
 
 class Semaphore
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		Semaphore() noexcept

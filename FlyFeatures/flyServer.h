@@ -48,7 +48,7 @@ bool getMediaInfo(const string& p_name, CFlyMediaInfo& p_media, int64_t p_size, 
 //=======================================================================
 struct CServerItem
 {
-	CServerItem(const string& p_ip = Util::emptyString, const uint16_t p_port = 0) : m_ip(p_ip), m_port(p_port), m_time_response(0)
+	CServerItem(const string& p_ip = BaseUtil::emptyString, const uint16_t p_port = 0) : m_ip(p_ip), m_port(p_port), m_time_response(0)
 	{
 	}
 	string getServerAndPort() const
@@ -147,9 +147,6 @@ class CFlyServerConfig
 		static bool isErrorLog(unsigned p_error_code);
 		static bool isGuardTCPPort(uint16_t p_port);
 		static bool isExcludeCIDfromErrorLog(unsigned p_error_code);
-#ifdef FLYLINKDC_USE_SYSLOG
-		static bool isErrorSysLog(unsigned p_error_code);
-#endif
 		static bool isBlockIP(const string& p_ip);
 		static void addBlockIP(const string& p_ip);
 		void ConvertInform(string& p_inform) const;
@@ -161,9 +158,6 @@ class CFlyServerConfig
 		static FastCriticalSection g_cs_mirror_test_port;
 		static std::unordered_set<unsigned> g_exclude_error_log;
 		static std::unordered_set<unsigned> g_exclude_cid_error_log;
-#ifdef FLYLINKDC_USE_SYSLOG
-		static std::unordered_set<unsigned> g_exclude_error_syslog;
-#endif
 		static std::vector<std::string> g_exclude_tag_inform;
 #ifdef FLYLINKDC_USE_MEDIAINFO_SERVER
 		bool     m_send_full_mediainfo; // Если = true на сервер шлем данные если есть полная информация о медиа-файле
@@ -531,9 +525,6 @@ class CFlyServerAdapter
 };
 
 class CFlyServerJSON
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		static bool login();
@@ -541,9 +532,6 @@ class CFlyServerJSON
 		static bool pushStatistic(const bool p_is_sync_run);
 #endif
 		static bool pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info = false);
-#ifdef FLYLINKDC_USE_SYSLOG
-		static void pushSyslogError(const string& p_error);
-#endif
 		static bool setTestPortOK(unsigned short p_port, const std::string& p_type);
 		static bool isTestPortOK(unsigned short p_port, const std::string& p_type, bool p_is_assert = false);
 		static bool pushTestPort(const std::vector<unsigned short>& p_udp_port,
@@ -601,9 +589,6 @@ public:
     static bool pushError(unsigned p_error_code, string p_error, bool p_is_include_disk_info = true)
     {
         return false;
-    }
-    static void pushSyslogError(const string& p_error)
-    {
     }
 };
 #endif // FLYLINKDC_USE_MEDIAINFO_SERVER

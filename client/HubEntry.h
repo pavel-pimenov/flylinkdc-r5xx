@@ -166,9 +166,6 @@ class HubEntry
 };
 
 class FavoriteHubEntry
-#ifdef _DEBUG
-// TODO : boost::noncopyable
-#endif
 {
 	public:
 		typedef vector<FavoriteHubEntry*> List;

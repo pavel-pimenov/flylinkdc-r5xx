@@ -40,7 +40,6 @@ PropPage::TextItem WindowsPage::textItem[] =
 // Открывать при запуске.
 WindowsPage::ListItem WindowsPage::listItems[] =
 {
-	{ SettingsManager::OPEN_RECENT_HUBS, ResourceManager::LAST_RECENT_HUBS },
 	{ SettingsManager::OPEN_FAVORITE_HUBS, ResourceManager::FAVORITE_HUBS },
 	{ SettingsManager::OPEN_FAVORITE_USERS, ResourceManager::FAVORITE_USERS },
 	{ SettingsManager::OPEN_QUEUE, ResourceManager::DOWNLOAD_QUEUE },

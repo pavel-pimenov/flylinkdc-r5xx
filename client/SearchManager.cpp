@@ -90,10 +90,9 @@ void SearchManager::listen()
 		socket.reset(new Socket);
 		socket->create(Socket::TYPE_UDP);
 		socket->setBlocking(true);
-		socket->setInBufSize();
 		if (BOOLSETTING(AUTO_DETECT_CONNECTION))
 		{
-			g_search_port = socket->bind(0, Util::emptyString);
+			g_search_port = socket->bind(0, BaseUtil::emptyString);
 		}
 		else
 		{
@@ -175,7 +174,6 @@ int SearchManager::run()
 				socket->disconnect();
 				socket->create(Socket::TYPE_UDP);
 				socket->setBlocking(true);
-				socket->setInBufSize();
 				dcassert(g_search_port);
 				socket->bind(g_search_port, SETTING(BIND_ADDRESS));
 				if (failed)
@@ -351,7 +349,7 @@ int SearchManager::UdpQueue::run()
 				}
 				
 				const TTHValue l_tth_value(tth);
-				auto sr = std::make_unique<SearchResult>(user, type, slots, freeSlots, size, file, Util::emptyString, url, remoteIp, l_tth_value, -1 /*0 == auto*/);
+				auto sr = std::make_unique<SearchResult>(user, type, slots, freeSlots, size, file, BaseUtil::emptyString, url, remoteIp, l_tth_value, -1 /*0 == auto*/);
 				COMMAND_DEBUG("[Search-result] url = " + url + " remoteIp = " + remoteIp.to_string() + " file = " + file + " user = " + user->getLastNick(), DebugTask::CLIENT_IN, remoteIp.to_string());
 				SearchManager::getInstance()->fly_fire1(SearchManagerListener::SR(), sr);
 #ifdef FLYLINKDC_USE_COLLECT_STAT
@@ -425,18 +423,17 @@ int SearchManager::UdpQueue::run()
 				if (x[x.length() - 1] != 0x0a) {
 					dcassert(0);
 					dcdebug("Invalid UDP data received: %s (no newline)\n", x.c_str());
-					CFlyServerJSON::pushError(88, "[UDP]Invalid UDP data received: %s (no newline): ip = " + remoteIp.to_string() + " x = [" + x + "]");
+					//CFlyServerJSON::pushError(88, "[UDP]Invalid UDP data received: %s (no newline): ip = " + remoteIp.to_string() + " x = [" + x + "]");
 					continue;
 				}
 				
 				if (!Text::validateUtf8(x)) {
 					dcassert(0);
 					dcdebug("UTF-8 validation failed for received UDP data: %s\n", x.c_str());
-					CFlyServerJSON::pushError(87, "[UDP]UTF-8 validation failed for received UDP data: ip = " + remoteIp.to_string() + " x = [" + x + "]");
+					//CFlyServerJSON::pushError(87, "[UDP]UTF-8 validation failed for received UDP data: ip = " + remoteIp.to_string() + " x = [" + x + "]");
 					continue;
 				}
 				// TODO  respond(AdcCommand(x.substr(0, x.length()-1)));
-				
 			}
 		}
 		catch (const ParseException& e)
@@ -523,9 +520,9 @@ void SearchManager::onRES(const AdcCommand& cmd, const UserPtr& from, const boos
 	{
 	
 		/// @todo get the hub this was sent from, to be passed as a hint? (eg by using the token?)
-		const StringList names = ClientManager::getHubNames(from->getCID(), Util::emptyString);
+		const StringList names = ClientManager::getHubNames(from->getCID(), BaseUtil::emptyString);
 		const string hubName = names.empty() ? STRING(OFFLINE) : Util::toString(names);
-		const StringList hubs = ClientManager::getHubs(from->getCID(), Util::emptyString);
+		const StringList hubs = ClientManager::getHubs(from->getCID(), BaseUtil::emptyString);
 		const string hub = hubs.empty() ? STRING(OFFLINE) : Util::toString(hubs);
 		
 		const SearchResult::Types type = (file[file.length() - 1] == '\\' ? SearchResult::TYPE_DIRECTORY : SearchResult::TYPE_FILE);
@@ -623,7 +620,7 @@ void SearchManager::onPSR(const AdcCommand& p_cmd, UserPtr from, const boost::as
 		return;
 	}
 	PartsInfo outPartialInfo;
-	QueueItem::PartialSource ps(from->isNMDC() ? ClientManager::findMyNick(url) : Util::emptyString, hubIpPort, remoteIp, udpPort);
+	QueueItem::PartialSource ps(from->isNMDC() ? ClientManager::findMyNick(url) : BaseUtil::emptyString, hubIpPort, remoteIp, udpPort);
 	ps.setPartialInfo(partialInfo);
 	
 	QueueManager::getInstance()->handlePartialResult(from, TTHValue(tth), ps, outPartialInfo);
@@ -682,7 +679,7 @@ ClientManagerListener::SearchReply SearchManager::respond(const AdcCommand& adc,
 		if (QueueManager::handlePartialSearch(TTHValue(tth), partialInfo))
 		{
 			AdcCommand cmd(AdcCommand::CMD_PSR, AdcCommand::TYPE_UDP);
-			toPSR(cmd, true, Util::emptyString, hubIpPort, tth, partialInfo);
+			toPSR(cmd, true, BaseUtil::emptyString, hubIpPort, tth, partialInfo);
 			ClientManager::send(cmd, from);
 			l_sr = ClientManagerListener::SEARCH_PARTIAL_HIT;
 			LogManager::psr_message(

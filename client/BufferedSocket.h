@@ -66,11 +66,11 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		static void waitShutdown();
 #endif
 		
-		uint16_t accept(const Socket& srv, bool secure, bool allowUntrusted, const string& expKP = Util::emptyString);
+		uint16_t accept(const Socket& srv, bool secure, bool allowUntrusted, const string& expKP = BaseUtil::emptyString);
 		void connect(const string& aAddress, uint16_t aPort, bool secure,
-		             bool allowUntrusted, bool proxy, Socket::Protocol p_proto, const string& expKP = Util::emptyString);
+		             bool allowUntrusted, bool proxy, Socket::Protocol p_proto, const string& expKP = BaseUtil::emptyString);
 		void connect(const string& aAddress, uint16_t aPort, uint16_t localPort, NatRoles natRole, bool secure,
-		             bool allowUntrusted, bool proxy, Socket::Protocol p_proto, const string& expKP = Util::emptyString);
+		             bool allowUntrusted, bool proxy, Socket::Protocol p_proto, const string& expKP = BaseUtil::emptyString);
 		             
 		/** Sets data mode for aBytes bytes. Must be called within onLine. */
 		void setDataMode(int64_t aBytes = -1)
@@ -110,15 +110,15 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		}
 		string getCipherName() const
 		{
-			return hasSocket() ? sock->getCipherName() : Util::emptyString;
+			return hasSocket() ? sock->getCipherName() : BaseUtil::emptyString;
 		}
 		string getIp() const
 		{
-			return hasSocket() ? sock->getIp() : Util::emptyString;
+			return hasSocket() ? sock->getIp() : BaseUtil::emptyString;
 		}
 		string getRemoteIpPort() const
 		{
-			return hasSocket() ? getIp() + ':' + Util::toString(getPort()) : Util::emptyString;
+			return hasSocket() ? getIp() + ':' + Util::toString(getPort()) : BaseUtil::emptyString;
 		}
 		
 		boost::asio::ip::address_v4 getIp4() const;
@@ -232,9 +232,6 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		};
 		
 		struct TaskData
-#ifdef _DEBUG
-			: boost::noncopyable
-#endif
 		{
 			virtual ~TaskData() { }
 		};
@@ -295,11 +292,6 @@ class BufferedSocket : public Speaker<BufferedSocketListener>, private Thread
 		void checkSocket();
 		
 		void setSocket(std::unique_ptr<Socket> && s);
-		void setOptions()
-		{
-			sock->setInBufSize();
-			sock->setOutBufSize();
-		}
 		void shutdown();
 		void addTask(Tasks task, TaskData* data);
 		void addTaskL(Tasks task, TaskData* data);

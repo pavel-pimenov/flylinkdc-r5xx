@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2006-2016, Arvid Norberg
+Copyright (c) 2006-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -104,6 +104,7 @@ public:
 
 		auto deleter = [this](observer* o)
 		{
+			TORRENT_ASSERT(o->m_in_use);
 			o->~observer();
 			free_observer(o);
 		};

@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2012-2016, Arvid Norberg
+Copyright (c) 2012-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -48,8 +48,8 @@ namespace libtorrent {
 		return i;
 	}
 
-	template<class T>
-	void sorted_insert(std::vector<T>& container, T v)
+	template <typename T, typename U>
+	void sorted_insert(std::vector<T>& container, U v)
 	{
 		auto i = std::lower_bound(container.begin(), container.end(), v);
 		container.insert(i, v);

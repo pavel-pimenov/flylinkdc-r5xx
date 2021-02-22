@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2008-2016, Arvid Norberg
+Copyright (c) 2008-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/string_util.hpp" // for to_string()
 
+#include <sstream>
+
 namespace libtorrent {
 
-	struct libtorrent_error_category : boost::system::error_category
+	struct libtorrent_error_category final : boost::system::error_category
 	{
 		const char* name() const BOOST_SYSTEM_NOEXCEPT override;
 		std::string message(int ev) const override;
@@ -243,7 +245,7 @@ namespace libtorrent {
 			"udp tracker response packet has invalid size",
 			"invalid transaction id in udp tracker response",
 			"invalid action field in udp tracker response",
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			"",
 			"",
 			"",
@@ -266,6 +268,8 @@ namespace libtorrent {
 			"",
 			"",
 			"",
+#else
+			"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
 #endif
 			"random number generator failed",
 		};
@@ -280,10 +284,10 @@ namespace libtorrent {
 		return libtorrent_category;
 	}
 
-	struct TORRENT_EXPORT http_error_category : boost::system::error_category
+	struct http_error_category final : boost::system::error_category
 	{
 		const char* name() const BOOST_SYSTEM_NOEXCEPT override
-		{ return "http error"; }
+		{ return "http"; }
 		std::string message(int ev) const override
 		{
 			std::string ret;
@@ -330,6 +334,15 @@ namespace libtorrent {
 		{
 			return boost::system::error_code(e, libtorrent_category());
 		}
+	}
+
+	std::string print_error(error_code const& ec)
+	{
+		if (!ec) return {};
+		std::stringstream ret;
+		ret << "ERROR: (" << ec.category().name() << ":" << ec.value() << ") "
+			<< ec.message();
+		return ret.str();
 	}
 
 }

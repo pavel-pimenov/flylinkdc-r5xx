@@ -26,9 +26,6 @@
 #include "FavoriteManager.h"
 
 class UserInfoBase
-#ifdef _DEBUG
-	: private boost::noncopyable
-#endif
 {
 	public:
 		UserInfoBase() { }

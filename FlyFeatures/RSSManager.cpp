@@ -546,7 +546,7 @@ StringList RSSManager::g_codeingList;
 RSSManager::RSSManager(void)
 	: m_minuteCounter(0)
 {
-	g_codeingList.push_back(Util::emptyString);
+	g_codeingList.push_back(BaseUtil::emptyString);
 	g_codeingList.push_back("utf-8");
 	g_codeingList.push_back("windows-1251");
 	TimerManager::getInstance()->addListener(this);
@@ -768,7 +768,7 @@ const string RSSManager::getCodeing(const size_t i)
 	if (!g_codeingList.empty())
 		return g_codeingList[0];
 	else
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 }
 
 size_t RSSManager::GetCodeingByString(const string& codeing)

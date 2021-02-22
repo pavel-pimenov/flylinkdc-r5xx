@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2011-2016, Arvid Norberg
+Copyright (c) 2011-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	struct torrent_list_tag;
-	using torrent_list_index_t = aux::strong_typedef<int, torrent_list_tag>;
+	using torrent_list_index_t = aux::strong_typedef<int, struct torrent_list_tag>;
 
 	struct link
 	{

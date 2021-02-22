@@ -71,7 +71,7 @@ class NmdcSupports
 			//X2        = 0x80, // TODO
 		};
 		static string getStatus(const Identity& id); // [<-] moved from Util and review.
-		static void setStatus(Identity& id, const char status, const string& connection = Util::emptyString);
+		static void setStatus(Identity& id, const char status, const string& connection = BaseUtil::emptyString);
 		static string getSupports(const Identity& id);
 		static void setSupports(Identity& id, const StringList & su);
 #ifdef FLYLINKDC_COLLECT_UNKNOWN_FEATURES

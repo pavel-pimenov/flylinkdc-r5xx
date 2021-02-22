@@ -58,9 +58,6 @@ class QueueItemDelegate
 };
 #endif
 class QueueItem : public Flags
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 		typedef std::unordered_map<string, QueueItemPtr> QIStringMap;

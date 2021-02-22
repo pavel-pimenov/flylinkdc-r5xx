@@ -20,7 +20,6 @@
 
 #include <strsafe.h>
 
-#include "../FlylinkDCExt.h"
 #include "../client/LogManager.h"
 #include "IntegrationPage.h"
 #include "CommandDlg.h"
@@ -46,9 +45,6 @@ PropPage::ListItem IntegrationPage::listItems[] =
 {
 	{ SettingsManager::URL_HANDLER, ResourceManager::SETTINGS_URL_HANDLER },
 	{ SettingsManager::MAGNET_REGISTER, ResourceManager::SETCZDC_MAGNET_URI_HANDLER },
-#ifdef SSA_SHELL_INTEGRATION
-	{ SettingsManager::POPUP_NEW_FOLDERSHARE, ResourceManager::POPUP_NEW_FOLDERSHARE },
-#endif
 	{ 0, ResourceManager::SETTINGS_AUTO_AWAY }
 };
 
@@ -60,23 +56,14 @@ LRESULT IntegrationPage::onInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 	PropPage::read(*this, items, listItems, GetDlgItem(IDC_INTEGRATION_BOOLEANS));
 	
 	m_ctrlList.Attach(GetDlgItem(IDC_INTEGRATION_BOOLEANS));
-#ifdef SSA_SHELL_INTEGRATION
-	CheckShellIntegration();
-	GetDlgItem(IDC_INTEGRATION_SHELL_BTN).EnableWindow(_canShellIntegration);
-	if (_isShellIntegration)
-		SetDlgItemText(IDC_INTEGRATION_SHELL_BTN, CTSTRING(INTEGRATION_SHELL_BTN_REMOVE));
-#else
 	::EnableWindow(GetDlgItem(IDC_INTEGRATION_SHELL_BTN), FALSE);
 	GetDlgItem(IDC_INTEGRATION_SHELL_BTN).ShowWindow(FALSE);
 	GetDlgItem(IDC_INTEGRATION_SHELL_TEXT).ShowWindow(FALSE);
-#endif
 	CheckStartupIntegration();
 	if (_isStartupIntegration)
 		SetDlgItemText(IDC_INTEGRATION_IFACE_BTN_AUTOSTART, CTSTRING(INTEGRATION_IFACE_BTN_AUTOSTART_REMOVE));
 		
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
 	if (CompatibilityManager::isOsVistaPlus())
-#endif
 	{
 		GetDlgItem(IDC_INTEGRATION_SHELL_BTN).SendMessage(BCM_FIRST + 0x000C, 0, 0xFFFFFFFF);
 		GetDlgItem(IDC_INTEGRATION_IFACE_BTN_AUTOSTART).SendMessage(BCM_FIRST + 0x000C, 0, 0xFFFFFFFF);
@@ -90,41 +77,6 @@ void IntegrationPage::write()
 	PropPage::write(*this, items, listItems, GetDlgItem(IDC_INTEGRATION_BOOLEANS));
 	PropPage::write(*this, items);
 }
-#ifdef SSA_SHELL_INTEGRATION
-LRESULT IntegrationPage::OnClickedShellIntegrate(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) // TODO: please fix copy-past.
-{
-	// Make Smth
-	bool oldState = _isShellIntegration;
-	bool bResult = WinUtil::makeShellIntegration(_isShellIntegration);
-	if (!bResult)
-	{
-		CheckShellIntegration();
-		if (oldState == _isShellIntegration
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
-		        && CompatibilityManager::isOsVistaPlus()
-#endif
-		   )
-		{
-			WinUtil::runElevated(NULL, Util::getModuleFileName().c_str(), _isShellIntegration ? _T("/uninstallShellExt") : _T("/installShellExt"));
-		}
-	}
-	CheckShellIntegration();
-	if (oldState == _isShellIntegration)
-	{
-		LogManager::message(STRING(INTEGRATION_SHELL_CANT_INTEGRATE));
-	}
-	
-	
-	GetDlgItem(IDC_INTEGRATION_SHELL_BTN).EnableWindow(_canShellIntegration);
-	
-	if (_isShellIntegration)
-		SetDlgItemText(IDC_INTEGRATION_SHELL_BTN, CTSTRING(INTEGRATION_SHELL_BTN_REMOVE));
-	else
-		SetDlgItemText(IDC_INTEGRATION_SHELL_BTN, CTSTRING(INTEGRATION_SHELL_BTN_ADD));
-		
-	return FALSE;
-}
-#endif // SSA_SHELL_INTEGRATION
 LRESULT IntegrationPage::OnClickedMakeStartup(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) // TODO: please fix copy-past.
 {
 	// Make Smth
@@ -134,9 +86,7 @@ LRESULT IntegrationPage::OnClickedMakeStartup(WORD /*wNotifyCode*/, WORD /*wID*/
 	{
 		CheckStartupIntegration();
 		if (oldState == _isStartupIntegration
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
 		        && CompatibilityManager::isOsVistaPlus()
-#endif
 		   )
 		{
 			//  runas uac
@@ -155,46 +105,6 @@ LRESULT IntegrationPage::OnClickedMakeStartup(WORD /*wNotifyCode*/, WORD /*wID*/
 		
 	return FALSE;
 }
-#ifdef SSA_SHELL_INTEGRATION
-void IntegrationPage::CheckShellIntegration()
-{
-// Check The function creates the HKCR\CLSID\{<CLSID>} key in the registry.
-	_canShellIntegration = false;
-	_isShellIntegration = false;
-	// Search dll
-	const auto filePath = WinUtil::getShellExtDllPath();
-	if (!File::isExist(filePath))
-	{
-		return;
-	}
-	_canShellIntegration = true;
-	// Check CLSID
-	wchar_t szCLSID[40] = {0};
-	::StringFromGUID2(CLSID_FlylinkShellExt, szCLSID, ARRAYSIZE(szCLSID));
-	
-	wchar_t szSubkey[MAX_PATH];
-	
-	// Create the HKCR\CLSID\{<CLSID>} key.
-	HRESULT hr = StringCchPrintf(szSubkey, ARRAYSIZE(szSubkey), L"CLSID\\%s", szCLSID);
-	if (SUCCEEDED(hr))
-	{
-	
-		HKEY hKey = NULL;
-		
-		// Try to open the specified registry key.
-		hr = HRESULT_FROM_WIN32(RegOpenKeyEx(HKEY_CLASSES_ROOT, szSubkey, 0,
-		                                     KEY_READ, &hKey));
-		                                     
-		if (SUCCEEDED(hr))
-		{
-			_isShellIntegration = true;
-			RegCloseKey(hKey);
-		}
-		
-	}
-	
-}
-#endif // SSA_SHELL_INTEGRATION
 void IntegrationPage::CheckStartupIntegration()
 {
 	_isStartupIntegration = WinUtil::IsAutoRunShortCutExists();

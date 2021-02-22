@@ -9,9 +9,6 @@
 #include "Util.h"
 
 class MD5Calc
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
 {
 	public:
 		char* CalcMD5FromString(const char *s8_Input);

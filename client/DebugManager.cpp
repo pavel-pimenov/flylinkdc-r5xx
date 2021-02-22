@@ -12,7 +12,7 @@ void DebugManager::SendDetectionMessage(const string& mess) noexcept
 {
 	fly_fire1(DebugManagerListener::DebugEvent(), DebugTask(mess, DebugTask::DETECTION));
 }
-DebugTask::DebugTask(const string& message, Type type, const string& p_ip_and_port /*= Util::emptyString */) :
+DebugTask::DebugTask(const string& message, Type type, const string& p_ip_and_port /*= BaseUtil::emptyString */) :
 	m_message(message), m_ip_and_port(p_ip_and_port), m_time(GET_TIME()), m_type(type)
 {
 }

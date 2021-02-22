@@ -37,6 +37,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/aux_/aligned_storage.hpp"
 
+#include "libtorrent/debug.hpp" // for TORRENT_ASSERT
+
 #include <type_traits>
 
 namespace libtorrent { namespace aux {
@@ -50,15 +52,18 @@ namespace libtorrent { namespace aux {
 	struct handler_storage
 	{
 #if TORRENT_USE_ASSERTS
-        bool used = false;
+		handler_storage()
+			: used(false)
+		{}
+
+		bool used;
 #else
 		handler_storage() = default;
 #endif
 		typename aux::aligned_storage<Size>::type bytes;
 	private:
 		handler_storage(handler_storage const&);
-        handler_storage& operator=(handler_storage const&);
-    };
+	};
 
 	struct TORRENT_EXTRA_EXPORT error_handler_interface
 	{

@@ -21,7 +21,7 @@ class PGLoader
 		}
 		static bool check(uint32_t p_ip4);
 		static void addLine(string& p_Line, CFlyLog& p_log);
-		static void load(const string& p_data = Util::emptyString);
+		static void load(const string& p_data = BaseUtil::emptyString);
 		static string getConfigFileName()
 		{
 			return Util::getConfigPath() + "IPTrust.ini";

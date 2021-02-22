@@ -8,7 +8,7 @@ del /S /F /Q tmp32dll\*
 del /S /F /Q out32dll\*
 
 rem call "%VS140COMNTOOLS%\..\..\VC\bin\vcvars32.bat"
-call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
 
 perl Configure VC-WIN32 no-asm no-shared --prefix=c:\openssl-build-x86
 call ms\do_ms

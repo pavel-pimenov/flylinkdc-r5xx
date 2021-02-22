@@ -250,7 +250,7 @@ void FavoriteHubsFrame::addEntry(const FavoriteHubEntry* entry, int pos, int gro
 	l.push_back(Text::toT(entry->getUserDescription()));
 	l.push_back(Text::toT(entry->getEmail()));
 #ifdef IRAINMAN_INCLUDE_HIDE_SHARE_MOD
-	l.push_back(entry->getHideShare() ? TSTRING(YES) : Util::emptyStringT/*TSTRING(NO)*/);
+	l.push_back(entry->getHideShare() ? TSTRING(YES) : BaseUtil::emptyStringT/*TSTRING(NO)*/);
 #endif
 #ifdef IRAINMAN_ENABLE_CON_STATUS_ON_FAV_HUBS
 	const ConnectionStatus& l_connectionStatus = entry->getConnectionStatus();
@@ -564,7 +564,7 @@ TStringList FavoriteHubsFrame::getSortedGroups() const
 	}
 	
 	TStringList groups(sorted_groups.begin(), sorted_groups.end());
-	groups.insert(groups.begin(), Util::emptyStringT); // default group (otherwise, hubs without group don't show up)
+	groups.insert(groups.begin(), BaseUtil::emptyStringT); // default group (otherwise, hubs without group don't show up)
 	return groups;
 }
 
@@ -584,13 +584,7 @@ void FavoriteHubsFrame::fillList()
 		LVGROUP lg = {0};
 		lg.cbSize = sizeof(lg);
 		lg.iGroupId = static_cast<int>(i);
-		lg.state = LVGS_NORMAL |
-#ifdef FLYLINKDC_SUPPORT_WIN_XP
-		           (CompatibilityManager::isOsVistaPlus() ? LVGS_COLLAPSIBLE : 0)
-#else
-		           LVGS_COLLAPSIBLE
-#endif
-		           ;
+		lg.state = LVGS_NORMAL | LVGS_COLLAPSIBLE;
 		lg.mask = LVGF_GROUPID | LVGF_HEADER | LVGF_STATE | LVGF_ALIGN;
 		lg.uAlign = LVGA_HEADER_LEFT;
 		
@@ -806,7 +800,7 @@ tstring FavoriteHubsFrame::getLastSucces(const ConnectionStatus& connectionStatu
 			return TSTRING(JUST_NOW);
 	}
 	else
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 }
 LRESULT FavoriteHubsFrame::onTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {

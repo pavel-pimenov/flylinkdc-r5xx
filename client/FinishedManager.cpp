@@ -149,7 +149,7 @@ string FinishedManager::log(const CID& p_CID, const string& p_path, const string
 		std::unique_ptr<char[]> buf(new char[BUF_SIZE]);
 		buf[0] = 0;
 		_snprintf(&buf[0], BUF_SIZE, p_message.c_str(), l_file_name.c_str(),
-		          Util::toString(ClientManager::getNicks(p_CID, Util::emptyString)).c_str());
+		          Util::toString(ClientManager::getNicks(p_CID, BaseUtil::emptyString)).c_str());
 		          
 		LogManager::message(&buf[0]);
 	}

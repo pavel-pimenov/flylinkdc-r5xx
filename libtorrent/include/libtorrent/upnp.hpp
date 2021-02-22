@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg
+Copyright (c) 2007-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,7 @@ namespace libtorrent {
 			// The source IP address cannot be wild-carded, but
 			// must be fully specified
 			source_ip_cannot_be_wildcarded = 715,
-			// The external port cannot be wildcarded, but must
+			// The external port cannot be a wildcard, but must
 			// be specified
 			external_port_cannot_be_wildcarded = 716,
 			// The port mapping entry specified conflicts with a
@@ -95,7 +95,7 @@ namespace libtorrent {
 	// the boost.system error category for UPnP errors
 	TORRENT_EXPORT boost::system::error_category& upnp_category();
 
-#ifndef TORRENT_NO_DEPRECATED
+#if TORRENT_ABI_VERSION == 1
 	TORRENT_DEPRECATED
 	inline boost::system::error_category& get_upnp_category()
 	{ return upnp_category(); }
@@ -203,12 +203,13 @@ private:
 	void discover_device_impl();
 
 	void resend_request(error_code const& e);
-	void on_reply(udp::endpoint const& from, char* buffer
-		, std::size_t bytes_transferred);
+	void on_reply(udp::endpoint const& from, span<char const> buffer);
 
 	struct rootdevice;
 	void next(rootdevice& d, port_mapping_t i);
 	void update_map(rootdevice& d, port_mapping_t i);
+
+	void connect(rootdevice& d);
 
 	void on_upnp_xml(error_code const& e
 		, libtorrent::http_parser const& p, rootdevice& d
@@ -234,10 +235,8 @@ private:
 	void get_ip_address(rootdevice& d);
 	void delete_port_mapping(rootdevice& d, port_mapping_t i);
 	void create_port_mapping(http_connection& c, rootdevice& d, port_mapping_t i);
-	void post(upnp::rootdevice const& d, string_view const soap
-		, string_view const soap_action);
-	std::string create_soap(string_view const soap_action
-		, string_view const service_namespace, string_view const part);
+	void post(upnp::rootdevice const& d, char const* soap
+		, char const* soap_action);
 
 	int num_mappings() const { return int(m_mappings.size()); }
 

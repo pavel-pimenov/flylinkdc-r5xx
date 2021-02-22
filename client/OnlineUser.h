@@ -32,11 +32,6 @@ extern bool setAdcUserFlags(const UserPtr& user, const string& feat);
 
 /** One of possibly many identities of a user, mainly for UI purposes */
 class Identity
-#ifdef _DEBUG
-#ifdef IRAINMAN_IDENTITY_IS_NON_COPYABLE
-	: boost::noncopyable
-#endif
-#endif
 {
 	public:
 		enum
@@ -684,7 +679,7 @@ class Identity
 				case 4:
 					return WSTRING(FLY_GENDER_ASEXUAL);
 			}
-			return Util::emptyStringT;
+			return BaseUtil::emptyStringT;
 		}
 		string getExtJSONSupportInfo() const
 		{
@@ -720,14 +715,14 @@ class Identity
 			if (m_is_ext_json && getExtJSONCountFiles())
 				return Util::toString(getExtJSONCountFiles());
 			else
-				return Util::emptyString;
+				return BaseUtil::emptyString;
 		}
 		string getExtJSONLastSharedDateAsText() const
 		{
 			if (m_is_ext_json && getExtJSONLastSharedDate())
 				return Util::formatDigitalClock(getExtJSONLastSharedDate());
 			else
-				return Util::emptyString;
+				return BaseUtil::emptyString;
 		}
 		
 		string getExtJSONSQLiteDBSizeAsText() const
@@ -800,7 +795,7 @@ class Identity
 			if (m_is_ext_json)
 				return getStringParam(name);
 			else
-				return Util::emptyString;
+				return BaseUtil::emptyString;
 		}
 		void setStringParam(const char* p_name, const string& p_val);
 		bool isAppNameExists() const
@@ -820,7 +815,7 @@ class Identity
 		void getReport(string& p_report) const;
 		void updateClientType(const OnlineUser& ou)
 		{
-			setStringParam("CS", Util::emptyString);
+			setStringParam("CS", BaseUtil::emptyString);
 #ifdef FLYLINKDC_USE_DETECT_CHEATING
 			setFakeCardBit(BAD_CLIENT, false);
 #endif
@@ -976,7 +971,7 @@ class OnlineUser :  public UserInfoBase
 			return m_client;
 		}
 		
-		bool update(int sortCol, const tstring& oldText = Util::emptyStringT);
+		bool update(int sortCol, const tstring& oldText = BaseUtil::emptyStringT);
 		uint8_t getImageIndex() const
 		{
 			return UserInfoBase::getImage(*this);

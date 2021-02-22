@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2008-2016, Arvid Norberg
+Copyright (c) 2008-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "libtorrent/disk_buffer_holder.hpp"
-#include "libtorrent/storage.hpp" // for storage_interface
-#include "libtorrent/aux_/block_cache_reference.hpp"
 
 namespace libtorrent {
 
@@ -41,7 +39,7 @@ namespace libtorrent {
 		: m_allocator(&alloc), m_buf(buf), m_size(sz), m_ref()
 	{}
 
-	disk_buffer_holder& disk_buffer_holder::operator=(disk_buffer_holder&& h) noexcept
+	disk_buffer_holder& disk_buffer_holder::operator=(disk_buffer_holder&& h) & noexcept
 	{
 		if (&h == this) return *this;
 		disk_buffer_holder(std::move(h)).swap(*this);
@@ -92,4 +90,3 @@ namespace libtorrent {
 
 	disk_buffer_holder::~disk_buffer_holder() { reset(); }
 }
-

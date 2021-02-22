@@ -32,10 +32,6 @@
  * @todo Perhaps find an algo suitable for matching multiple substrings.
  */
 class StringSearch
-#ifdef _DEBUG
-	: boost::noncopyable
-#endif
-	
 {
 	public:
 		typedef vector<StringSearch> List;
@@ -116,14 +112,14 @@ class StringSearch
 		
 		void initDelta1()
 		{
-			register uint16_t x = (uint16_t)(pattern.length() + 1);
-			register uint16_t i;
+			uint16_t x = (uint16_t)(pattern.length() + 1);
+			uint16_t i;
 			for (i = 0; i < m_ASIZE; ++i)
 			{
 				delta1[i] = x;
 			}
 			x--;// x = pattern.length();// [!] Flylink
-			register uint8_t* p = (uint8_t*)pattern.data();
+			uint8_t* p = (uint8_t*)pattern.data();
 			for (i = 0; i < x; ++i)
 			{
 				delta1[p[i]] = (uint16_t)(x - i);

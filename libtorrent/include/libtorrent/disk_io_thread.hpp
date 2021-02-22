@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2007-2016, Arvid Norberg, Steven Siloti
+Copyright (c) 2007-2018, Arvid Norberg, Steven Siloti
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #define TORRENT_DISK_IO_THREAD
 
 #include "libtorrent/config.hpp"
+#include "libtorrent/fwd.hpp"
 #include "libtorrent/debug.hpp"
 #include "libtorrent/storage.hpp"
-#include "libtorrent/allocator.hpp"
 #include "libtorrent/io_service.hpp"
-#include "libtorrent/sliding_average.hpp"
 #include "libtorrent/disk_io_thread_pool.hpp"
 #include "libtorrent/disk_io_job.hpp"
 #include "libtorrent/disk_job_pool.hpp"
@@ -56,15 +55,10 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	class alert;
-	struct add_torrent_params;
 	struct counters;
 	class alert_manager;
 
-namespace aux {
-
-		struct block_cache_reference;
-	}
+namespace aux { struct block_cache_reference; }
 
 	struct cached_piece_info
 	{
@@ -95,7 +89,7 @@ namespace aux {
 		bool need_readback;
 	};
 
-	typedef tailqueue<disk_io_job> jobqueue_t;
+	using jobqueue_t = tailqueue<disk_io_job>;
 
 	// this struct holds a number of statistics counters
 	// relevant for the disk io thread and disk cache.
@@ -104,7 +98,7 @@ namespace aux {
 		// initializes all counters to 0
 		cache_status()
 			: pieces()
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			, blocks_written(0)
 			, writes(0)
 			, blocks_read(0)
@@ -142,14 +136,14 @@ namespace aux {
 			, num_writing_threads(0)
 #endif
 		{
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 			std::memset(num_fence_jobs, 0, sizeof(num_fence_jobs));
 #endif
 		}
 
 		std::vector<cached_piece_info> pieces;
 
-#ifndef TORRENT_NO_DEPRECATE
+#if TORRENT_ABI_VERSION == 1
 		// the total number of 16 KiB blocks written to disk
 		// since this session was started.
 		int blocks_written;
@@ -285,12 +279,18 @@ namespace aux {
 		, disk_interface
 		, buffer_allocator_interface
 	{
-		disk_io_thread(io_service& ios, counters& cnt);
+		disk_io_thread(io_service& ios, aux::session_settings const&, counters&);
 #if TORRENT_USE_ASSERTS
 		~disk_io_thread();
 #endif
 
-		void set_settings(settings_pack const* sett);
+		enum
+		{
+			// every 4:th thread is a hash thread
+			hasher_thread_divisor = 4
+		};
+
+		void settings_updated();
 
 		void abort(bool wait);
 
@@ -325,7 +325,7 @@ namespace aux {
 			, std::function<void()> handler = std::function<void()>()) override;
 		void async_set_file_priority(storage_index_t storage
 			, aux::vector<download_priority_t, file_index_t> prio
-			, std::function<void(storage_error const&)> handler) override;
+			, std::function<void(storage_error const&, aux::vector<download_priority_t, file_index_t>)> handler) override;
 
 		void async_clear_piece(storage_index_t storage, piece_index_t index
 			, std::function<void(piece_index_t)> handler) override;
@@ -376,7 +376,6 @@ namespace aux {
 		status_t do_check_fastresume(disk_io_job* j, jobqueue_t& completed_jobs);
 		status_t do_rename_file(disk_io_job* j, jobqueue_t& completed_jobs);
 		status_t do_stop_torrent(disk_io_job* j, jobqueue_t& completed_jobs);
-		status_t do_read_and_hash(disk_io_job* j, jobqueue_t& completed_jobs);
 		status_t do_flush_piece(disk_io_job* j, jobqueue_t& completed_jobs);
 		status_t do_flush_hashed(disk_io_job* j, jobqueue_t& completed_jobs);
 		status_t do_flush_storage(disk_io_job* j, jobqueue_t& completed_jobs);
@@ -451,7 +450,8 @@ namespace aux {
 			, span<iovec_t> iov, span<int> flushing, int block_base_index = 0);
 		void flush_iovec(cached_piece_entry* pe, span<iovec_t const> iov, span<int const> flushing
 			, int num_blocks, storage_error& error);
-		void iovec_flushed(cached_piece_entry* pe
+		// returns true if the piece entry was freed
+		bool iovec_flushed(cached_piece_entry* pe
 			, int* flushing, int num_blocks, int block_offset
 			, storage_error const& error
 			, jobqueue_t& completed_jobs);
@@ -489,6 +489,7 @@ namespace aux {
 		void execute_job(disk_io_job* j);
 		void immediate_execute();
 		void abort_jobs();
+		void abort_hash_jobs(storage_index_t storage);
 
 		// returns the maximum number of threads
 		// the actual number of threads may be less
@@ -516,7 +517,7 @@ namespace aux {
 		job_queue m_hash_io_jobs;
 		disk_io_thread_pool m_hash_threads;
 
-		aux::session_settings m_settings;
+		aux::session_settings const& m_settings;
 
 		// the last time we expired write blocks from the cache
 		time_point m_last_cache_expiry = min_time();
@@ -574,11 +575,11 @@ namespace aux {
 		// indices into m_torrents to empty slots
 		std::vector<storage_index_t> m_free_slots;
 
+		std::atomic_flag m_jobs_aborted = ATOMIC_FLAG_INIT;
+
 #if TORRENT_USE_ASSERTS
 		int m_magic = 0x1337;
-		std::atomic<bool> m_jobs_aborted{false};
 #endif
-		std::string m_error_code;
 	};
 }
 

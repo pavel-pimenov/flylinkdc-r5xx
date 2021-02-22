@@ -37,9 +37,6 @@ class UsersFrame : public MDITabChildWindowImpl < UsersFrame, RGB(0, 0, 0), IDR_
 	private FavoriteManagerListener,
 	public UserInfoBaseHandler<UsersFrame, UserInfoGuiTraits::INLINE_CONTACT_LIST>,
 	private SettingsManagerListener
-#ifdef _DEBUG
-	, boost::noncopyable
-#endif
 {
 	public:
 	

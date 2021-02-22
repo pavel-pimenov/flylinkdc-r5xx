@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2010-2016, Arvid Norberg
+Copyright (c) 2010-2018, Arvid Norberg
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TORRENT_DISK_IO_JOB_HPP
 #define TORRENT_DISK_IO_JOB_HPP
 
+#include "libtorrent/fwd.hpp"
 #include "libtorrent/error_code.hpp"
 #include "libtorrent/tailqueue.hpp"
-#include "libtorrent/peer_request.hpp"
-#include "libtorrent/aux_/block_cache_reference.hpp"
 #include "libtorrent/sha1_hash.hpp"
 #include "libtorrent/disk_interface.hpp"
 #include "libtorrent/aux_/vector.hpp"
@@ -55,10 +54,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace libtorrent {
 
-	struct storage_interface;
 	struct cached_piece_entry;
-	class torrent_info;
-	struct add_torrent_params;
 
 	enum class job_action_t : std::uint8_t
 	{
@@ -137,11 +133,12 @@ namespace libtorrent {
 		using read_handler = std::function<void(disk_buffer_holder block, disk_job_flags_t flags, storage_error const& se)>;
 		using write_handler = std::function<void(storage_error const&)>;
 		using hash_handler = std::function<void(piece_index_t, sha1_hash const&, storage_error const&)>;
-		using move_handler = std::function<void(status_t, std::string const&, storage_error const&)>;
+		using move_handler = std::function<void(status_t, std::string, storage_error const&)>;
 		using release_handler = std::function<void()>;
 		using check_handler = std::function<void(status_t, storage_error const&)>;
-		using rename_handler = std::function<void(std::string const&, file_index_t, storage_error const&)>;
+		using rename_handler = std::function<void(std::string, file_index_t, storage_error const&)>;
 		using clear_piece_handler = std::function<void(piece_index_t)>;
+		using set_file_prio_handler = std::function<void(storage_error const&, aux::vector<download_priority_t, file_index_t>)>;
 
 		boost::variant<read_handler
 			, write_handler
@@ -150,7 +147,8 @@ namespace libtorrent {
 			, release_handler
 			, check_handler
 			, rename_handler
-			, clear_piece_handler> callback;
+			, clear_piece_handler
+			, set_file_prio_handler> callback;
 
 		// the error code from the file operation
 		// on error, this also contains the path of the
@@ -198,7 +196,7 @@ namespace libtorrent {
 		status_t ret = status_t::no_error;
 
 		// flags controlling this job
-		disk_job_flags_t flags{};
+		disk_job_flags_t flags = disk_job_flags_t{};
 
 		move_flags_t move_flags = move_flags_t::always_replace_files;
 

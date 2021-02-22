@@ -227,7 +227,7 @@ string User::getIPAsString()
 	{
 		return l_ip.to_string();
 	}
-	return Util::emptyString;
+	return BaseUtil::emptyString;
 }
 uint64_t User::getBytesUpload()
 {
@@ -435,7 +435,7 @@ tstring User::getDownload()
 	if (l_value)
 		return Util::formatBytesW(l_value);
 	else
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 }
 
 tstring User::getUpload()
@@ -444,7 +444,7 @@ tstring User::getUpload()
 	if (l_value)
 		return Util::formatBytesW(l_value);
 	else
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 }
 
 tstring User::getUDratio()
@@ -456,7 +456,7 @@ tstring User::getUDratio()
 		return Util::toStringW(m_ratio_ptr->get_download() ? ((double)m_ratio_ptr->get_upload() / (double)m_ratio_ptr->get_download()) : 0) +
 		       L" (" + Util::formatBytesW(m_ratio_ptr->get_upload()) + _T('/') + Util::formatBytesW(m_ratio_ptr->get_download()) + L")";
 	else
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 }
 #endif // FLYLINKDC_USE_LASTIP_AND_USER_RATIO
 
@@ -586,7 +586,7 @@ string Identity::getTag() const
 	}
 	else
 	{
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	}
 }
 string Identity::getApplication() const
@@ -691,7 +691,7 @@ string Identity::getStringParam(const char* name) const
 			}
 			else
 			{
-				return Util::emptyString;
+				return BaseUtil::emptyString;
 			}
 		}
 		case TAG('V', 'E'):
@@ -707,7 +707,7 @@ string Identity::getStringParam(const char* name) const
 			}
 			else
 			{
-				return Util::emptyString;
+				return BaseUtil::emptyString;
 			}
 		}
 		case TAG('E', 'M'):
@@ -717,7 +717,7 @@ string Identity::getStringParam(const char* name) const
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
 				CFlylinkDBManager::getInstance()->identity_get(name, "");
 #endif
-				return Util::emptyString;
+				return BaseUtil::emptyString;
 			}
 			break;
 		}
@@ -728,7 +728,7 @@ string Identity::getStringParam(const char* name) const
 #ifdef FLYLINKDC_USE_GATHER_IDENTITY_STAT
 				CFlylinkDBManager::getInstance()->identity_get(name, "");
 #endif
-				return Util::emptyString;
+				return BaseUtil::emptyString;
 			}
 			break;
 		}
@@ -749,7 +749,7 @@ string Identity::getStringParam(const char* name) const
 			return i->second;
 		}
 	}
-	return Util::emptyString;
+	return BaseUtil::emptyString;
 }
 uint32_t Identity::mergeDicId(const string& p_val)
 {
@@ -786,7 +786,7 @@ string Identity::getDicVal(uint16_t p_index)
 	}
 	else
 	{
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	}
 }
 
@@ -964,7 +964,7 @@ string Identity::getVirusDesc() const
 }
 string Identity::getVirusDesc() const
 {
-	return Util::emptyString;
+	return BaseUtil::emptyString;
 }
 #endif
 
@@ -973,7 +973,7 @@ string Identity::setCheat(const ClientBase& c, const string& aCheatDescription, 
 {
 	if (!c.isOp() || isOp())
 	{
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	}
 	
 	PLAY_SOUND(SOUND_FAKERFILE);
@@ -1008,13 +1008,13 @@ tstring Identity::getHubs() const
 	}
 	else
 	{
-		return Util::emptyStringT;
+		return BaseUtil::emptyStringT;
 	}
 }
 
 string Identity::formatShareBytes(uint64_t p_bytes)
 {
-	return p_bytes ? Util::formatBytes(p_bytes) + " (" + Text::fromT(Util::formatExactSize(p_bytes)) + ")" : Util::emptyString;
+	return p_bytes ? Util::formatBytes(p_bytes) + " (" + Text::fromT(Util::formatExactSize(p_bytes)) + ")" : BaseUtil::emptyString;
 }
 
 string Identity::formatIpString(const string& value)
@@ -1033,13 +1033,13 @@ string Identity::formatIpString(const string& value)
 	}
 	else
 	{
-		return Util::emptyString;
+		return BaseUtil::emptyString;
 	}
 };
 
 string Identity::formatSpeedLimit(const uint32_t limit)
 {
-	return limit ? Util::formatBytes(limit) + '/' + STRING(S) : Util::emptyString;
+	return limit ? Util::formatBytes(limit) + '/' + STRING(S) : BaseUtil::emptyString;
 }
 
 void Identity::getReport(string& p_report) const
@@ -1091,7 +1091,7 @@ void Identity::getReport(string& p_report) const
 		appendIfValueNotEmpty(STRING(NICK), getNick());
 		if (!isNmdc)
 		{
-			appendIfValueNotEmpty("Nicks", Util::toString(ClientManager::getNicks(user->getCID(), Util::emptyString)));
+			appendIfValueNotEmpty("Nicks", Util::toString(ClientManager::getNicks(user->getCID(), BaseUtil::emptyString)));
 		}
 		
 		{
@@ -1134,8 +1134,8 @@ void Identity::getReport(string& p_report) const
 		appendIfValueNotEmpty(STRING(HUBS), Text::fromT(getHubs()));
 		if (!isNmdc)
 		{
-			appendIfValueNotEmpty("Hub names", Util::toString(ClientManager::getHubNames(user->getCID(), Util::emptyString)));
-			appendIfValueNotEmpty("Hub addresses", Util::toString(ClientManager::getHubs(user->getCID(), Util::emptyString)));
+			appendIfValueNotEmpty("Hub names", Util::toString(ClientManager::getHubNames(user->getCID(), BaseUtil::emptyString)));
+			appendIfValueNotEmpty("Hub addresses", Util::toString(ClientManager::getHubs(user->getCID(), BaseUtil::emptyString)));
 		}
 		
 		p_report += "\t" "Client type" ": ";

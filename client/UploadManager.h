@@ -84,9 +84,6 @@ class UploadQueueItem :
 };
 
 class WaitingUser
-#ifdef _DEBUG
-//    : public boost::noncopyable
-#endif
 {
 	public:
 		WaitingUser(const HintedUser& p_hintedUser, const std::string& p_token, const UploadQueueItemPtr& p_uqi) : m_hintedUser(p_hintedUser), m_token(p_token)

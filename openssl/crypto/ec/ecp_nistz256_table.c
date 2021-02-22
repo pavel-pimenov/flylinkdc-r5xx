@@ -21,8 +21,6 @@
  * appears to lead to invalid ELF files being produced.
  */
 
-#include <openssl/bn.h> // FLYLINKDC
-
 #if defined(__GNUC__)
 __attribute((aligned(4096)))
 #elif defined(_MSC_VER)
