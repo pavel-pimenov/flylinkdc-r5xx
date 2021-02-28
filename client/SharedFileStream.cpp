@@ -25,13 +25,7 @@
 FastCriticalSection SharedFileStream::g_shares_file_cs;
 std::unordered_set<char> SharedFileStream::g_error_map_file;
 std::unordered_map<std::string, unsigned > SharedFileStream::g_delete_files;
-#ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
-SharedFileStream::SharedFileHandleMap SharedFileStream::g_readpool;
-SharedFileStream::SharedFileHandleMap SharedFileStream::g_writepool;
-#else
 SharedFileStream::SharedFileHandleMap SharedFileStream::g_rwpool;
-std::unordered_set<std::string> SharedFileStream::g_shared_stream_errors;
-#endif
 
 SharedFileHandle::SharedFileHandle(const string& aPath, int aAccess, int aMode) :
 	m_ref_cnt(1), m_path(aPath), m_mode(aMode), m_access(aAccess), m_last_file_size(0),
@@ -117,11 +111,7 @@ SharedFileStream::SharedFileStream(const string& aFileName, int aAccess, int aMo
 	dcassert(!aFileName.empty());
 	CFlyFastLock(g_shares_file_cs);
 	m_pos = 0;
-#ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
-	auto& pool = aAccess == File::READ ? g_readpool : g_writepool;
-#else
 	auto& l_pool = g_rwpool;
-#endif
 	auto p = l_pool.find(aFileName);
 	if (p != l_pool.end())
 	{
@@ -148,18 +138,7 @@ SharedFileStream::SharedFileStream(const string& aFileName, int aAccess, int aMo
 			m_sfh.reset();
 			const auto l_error = "error SharedFileStream::SharedFileStream aFileName = "
 			                     + aFileName + " Error = " + e.getError() + " Access = " + Util::toString(aAccess) + " Mode = " + Util::toString(aMode);
-			const auto l_dup_filter = g_shared_stream_errors.insert(l_error);
-			if (l_dup_filter.second == true)
-			{
-				CFlyServerJSON::pushError(9, l_error);
-				const tstring l_email_message = Text::toT(string("\r\nError in SharedFileStream::SharedFileStream. aFileName = [") + aFileName + "]\r\n" +
-				                                          "Error = " + e.getError() + "\r\nSend screenshot (or text - press ctrl+c for copy to clipboard) e-mail ppa74@ya.ru for diagnostic error!");
-				::MessageBox(NULL, l_email_message.c_str(), getFlylinkDCAppCaptionWithVersionT().c_str(), MB_OK | MB_ICONERROR);
-			}
-			else
-			{
 				LogManager::message(l_error);
-			}
 			throw;
 		}
 		l_pool[aFileName] = m_sfh;
@@ -170,11 +149,7 @@ void SharedFileStream::check_before_destoy()
 {
 	{
 		CFlyFastLock(g_shares_file_cs);
-#ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
-		auto& l_pool = m_sfh->m_mode == File::READ ? g_readpool : g_writepool;
-#else
 		auto& l_pool = g_rwpool;
-#endif
 		dcassert(l_pool.empty());
 	}
 	cleanup();
@@ -188,11 +163,7 @@ void SharedFileStream::delete_file(const std::string& p_file)
 void SharedFileStream::cleanup()
 {
 	CFlyFastLock(g_shares_file_cs);
-#ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
-	auto& l_pool = m_sfh->m_mode == File::READ ? g_readpool : g_writepool;
-#else
 	auto& l_pool = g_rwpool;
-#endif
 	for (auto i = l_pool.begin(); i != l_pool.end();)
 	{
 		if (i->second && i->second->m_ref_cnt == 0)
@@ -252,11 +223,7 @@ SharedFileStream::~SharedFileStream()
 #ifdef _DEBUG
 		LogManager::message("m_ref_cnt = 0 ~SharedFileHandle aFileName = " + m_sfh->m_path);
 #endif
-#ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
-		auto& l_pool = m_sfh->m_mode == File::READ ? g_readpool : g_writepool;
-#else
 		auto& l_pool = g_rwpool;
-#endif
 		dcassert(l_pool.find(m_sfh->m_path) != l_pool.end());
 		l_pool.erase(m_sfh->m_path);
 	}

@@ -70,13 +70,7 @@ class SharedFileStream : public IOStream
 		static FastCriticalSection g_shares_file_cs;
 		static std::unordered_set<char> g_error_map_file;
 		static std::unordered_map<std::string, unsigned> g_delete_files;
-#ifdef FLYLINKDC_USE_SHARED_FILE_STREAM_RW_POOL
-		static SharedFileHandleMap g_readpool;
-		static SharedFileHandleMap g_writepool;
-#else
 		static SharedFileHandleMap g_rwpool;
-#endif
-		static std::unordered_set<std::string> g_shared_stream_errors;
 		static void cleanup();
 		static void delete_file(const std::string& p_file);
 		static void check_before_destoy();
