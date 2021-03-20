@@ -132,11 +132,11 @@ class UserInfo : public UserInfoBase
 		{
 			m_location = p_location;
 		}
-		const string& getNick() const
+		const string getNick() const
 		{
 			return m_ou->getIdentity().getNick();
 		}
-		const tstring& getNickT() const
+		const tstring getNickT() const
 		{
 			return m_ou->getIdentity().getNickT();
 		}

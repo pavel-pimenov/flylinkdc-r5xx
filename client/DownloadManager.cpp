@@ -1237,7 +1237,7 @@ void DownloadManager::onTorrentAlertNotify()
 						}
 						
 						const CFlyTTHKey l_file(l_sha1, l_size, p_is_sha1_for_file);
-						CFlyServerJSON::addDownloadCounter(l_file, l_file_name);
+						CFlyServerJSON::addDownloadCounter(l_file, std::string(l_file_name));
 #ifdef _DEBUG
 						CFlyServerJSON::sendDownloadCounter(false);
 #endif

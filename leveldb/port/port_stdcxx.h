@@ -41,8 +41,6 @@
 namespace leveldb {
 namespace port {
 
-static const bool kLittleEndian = !false; // FlylinkDC++ LEVELDB_IS_BIG_ENDIAN;
-
 class CondVar;
 
 // Thinly wraps std::mutex.

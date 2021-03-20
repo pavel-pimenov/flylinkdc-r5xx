@@ -6,9 +6,8 @@
 
 #include "db/version_set.h"
 
-#include <stdio.h>
-
 #include <algorithm>
+#include <cstdio>
 
 #include "db/filename.h"
 #include "db/log_reader.h"
@@ -706,10 +705,10 @@ class VersionSet::Builder {
           const InternalKey& prev_end = v->files_[level][i - 1]->largest;
           const InternalKey& this_begin = v->files_[level][i]->smallest;
           if (vset_->icmp_.Compare(prev_end, this_begin) >= 0) {
-            fprintf(stderr, "overlapping ranges in same level %s vs. %s\n",
+            std::fprintf(stderr, "overlapping ranges in same level %s vs. %s\n",
                     prev_end.DebugString().c_str(),
                     this_begin.DebugString().c_str());
-            abort();
+            std::abort();
           }
         }
       }
@@ -901,6 +900,7 @@ Status VersionSet::Recover(bool* save_manifest) {
   uint64_t log_number = 0;
   uint64_t prev_log_number = 0;
   Builder builder(this, current_);
+  int read_records = 0;
 
   {
     LogReporter reporter;
@@ -910,6 +910,7 @@ Status VersionSet::Recover(bool* save_manifest) {
     Slice record;
     std::string scratch;
     while (reader.ReadRecord(&record, &scratch) && s.ok()) {
+      ++read_records;
       VersionEdit edit;
       s = edit.DecodeFrom(record);
       if (s.ok()) {
@@ -984,6 +985,10 @@ Status VersionSet::Recover(bool* save_manifest) {
     } else {
       *save_manifest = true;
     }
+  } else {
+    std::string error = s.ToString();
+    Log(options_->info_log, "Error recovering version set with %d records: %s",
+        read_records, error.c_str());
   }
 
   return s;
@@ -1103,11 +1108,12 @@ int VersionSet::NumLevelFiles(int level) const {
 const char* VersionSet::LevelSummary(LevelSummaryStorage* scratch) const {
   // Update code if kNumLevels changes
   static_assert(config::kNumLevels == 7, "");
-  snprintf(scratch->buffer, sizeof(scratch->buffer),
-           "files[ %d %d %d %d %d %d %d ]", int(current_->files_[0].size()),
-           int(current_->files_[1].size()), int(current_->files_[2].size()),
-           int(current_->files_[3].size()), int(current_->files_[4].size()),
-           int(current_->files_[5].size()), int(current_->files_[6].size()));
+  std::snprintf(
+      scratch->buffer, sizeof(scratch->buffer), "files[ %d %d %d %d %d %d %d ]",
+      int(current_->files_[0].size()), int(current_->files_[1].size()),
+      int(current_->files_[2].size()), int(current_->files_[3].size()),
+      int(current_->files_[4].size()), int(current_->files_[5].size()),
+      int(current_->files_[6].size()));
   return scratch->buffer;
 }
 

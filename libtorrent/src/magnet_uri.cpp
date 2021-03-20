@@ -208,7 +208,7 @@ namespace libtorrent {
 					p.tracker_tiers.resize(p.trackers.size(), 0);
 				error_code e;
 				std::string tracker = unescape_string(value, e);
-				if (!e)
+				if (!e && !tracker.empty())
 				{
 					p.trackers.push_back(std::move(tracker));
 					p.tracker_tiers.push_back(tier++);
@@ -298,7 +298,7 @@ namespace libtorrent {
 					}
 
 					if (int(p.file_priorities.size()) <= idx2)
-						p.file_priorities.resize(std::size_t(idx2 + 1), dont_download);
+						p.file_priorities.resize(static_cast<std::size_t>(idx2) + 1, dont_download);
 
 					for (int i = idx1; i <= idx2; i++)
 						p.file_priorities[std::size_t(i)] = default_priority;

@@ -1312,7 +1312,7 @@ Ztring& Ztring::Date_From_Seconds_1970 (const int32s Value)
 Ztring& Ztring::Date_From_Seconds_1970 (const int64s Value)
 {
     time_t Time=(time_t)Value;
-    #if _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _BSD_SOURCE || _SVID_SOURCE || _POSIX_SOURCE
+    #if defined(HAVE_GMTIME_R)
     struct tm Gmt_Temp;
     struct tm *Gmt=gmtime_r(&Time, &Gmt_Temp);
     #elif defined(_MSC_VER)
@@ -1320,6 +1320,9 @@ Ztring& Ztring::Date_From_Seconds_1970 (const int64s Value)
     errno_t gmtime_s_Result=gmtime_s(&Gmt_Temp , &Time);
     struct tm* Gmt=gmtime_s_Result?NULL:&Gmt_Temp;
     #else
+    #ifdef __GNUC__
+    #warning "This version of ZenLib is not thread safe"
+    #endif
     struct tm *Gmt=gmtime(&Time);
     #endif
     if (!Gmt)
@@ -1352,7 +1355,7 @@ Ztring& Ztring::Date_From_Seconds_1970 (const int64s Value)
 Ztring& Ztring::Date_From_Seconds_1970_Local (const int32u Value)
 {
     time_t Time=(time_t)Value;
-    #if _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _BSD_SOURCE || _SVID_SOURCE || _POSIX_SOURCE
+    #if defined(HAVE_LOCALTIME_R)
     struct tm Gmt_Temp;
     struct tm *Gmt=localtime_r(&Time, &Gmt_Temp);
     #elif defined(_MSC_VER)
@@ -1360,29 +1363,32 @@ Ztring& Ztring::Date_From_Seconds_1970_Local (const int32u Value)
     errno_t localtime_s_Result=localtime_s(&Gmt_Temp , &Time);
     struct tm* Gmt=localtime_s_Result?NULL:&Gmt_Temp;
     #else
+    #ifdef __GNUC__
+    #warning "This version of ZenLib is not thread safe"
+    #endif
     struct tm *Gmt=localtime(&Time);
     #endif
     Ztring DateT;
     Ztring Date;
     if (Gmt)
     {
-        Date += Ztring::ToZtring((Gmt->tm_year + 1900));
-        Date += __T("-");
-        DateT.From_Number(Gmt->tm_mon + 1); if (DateT.size() < 2) { DateT = Ztring(__T("0")) + Ztring::ToZtring(Gmt->tm_mon + 1); }
-        Date += DateT;
-        Date += __T("-");
-        DateT.From_Number(Gmt->tm_mday); if (DateT.size() < 2) { DateT = Ztring(__T("0")) + Ztring::ToZtring(Gmt->tm_mday); }
-        Date += DateT;
-        Date += __T(" ");
-        DateT.From_Number(Gmt->tm_hour); if (DateT.size() < 2) { DateT = Ztring(__T("0")) + Ztring::ToZtring(Gmt->tm_hour); }
-        Date += DateT;
-        Date += __T(":");
-        DateT = Ztring::ToZtring(Gmt->tm_min); if (DateT.size() < 2) { DateT = Ztring(__T("0")) + Ztring::ToZtring(Gmt->tm_min); }
-        Date += DateT;
-        Date += __T(":");
-        DateT.From_Number(Gmt->tm_sec); if (DateT.size() < 2) { DateT = Ztring(__T("0")) + Ztring::ToZtring(Gmt->tm_sec); }
-        Date += DateT;
-        assign(Date.c_str());
+    Date+=Ztring::ToZtring((Gmt->tm_year+1900));
+    Date+=__T("-");
+    DateT.From_Number(Gmt->tm_mon+1); if (DateT.size()<2){DateT=Ztring(__T("0"))+Ztring::ToZtring(Gmt->tm_mon+1);}
+    Date+=DateT;
+    Date+=__T("-");
+    DateT.From_Number(Gmt->tm_mday); if (DateT.size()<2){DateT=Ztring(__T("0"))+Ztring::ToZtring(Gmt->tm_mday);}
+    Date+=DateT;
+    Date+=__T(" ");
+    DateT.From_Number(Gmt->tm_hour); if (DateT.size()<2){DateT=Ztring(__T("0"))+Ztring::ToZtring(Gmt->tm_hour);}
+    Date+=DateT;
+    Date+=__T(":");
+    DateT=Ztring::ToZtring(Gmt->tm_min); if (DateT.size()<2){DateT=Ztring(__T("0"))+Ztring::ToZtring(Gmt->tm_min);}
+    Date+=DateT;
+    Date+=__T(":");
+    DateT.From_Number(Gmt->tm_sec); if (DateT.size()<2){DateT=Ztring(__T("0"))+Ztring::ToZtring(Gmt->tm_sec);}
+    Date+=DateT;
+    assign (Date.c_str());
     }
     return *this;
 }

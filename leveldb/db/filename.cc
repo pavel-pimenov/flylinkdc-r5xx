@@ -6,8 +6,8 @@
 
 #include "db/filename.h"
 
-#include <ctype.h>
-#include <stdio.h>
+#include <cassert>
+#include <cstdio>
 
 #include "db/dbformat.h"
 #include "leveldb/env.h"
@@ -22,7 +22,7 @@ Status WriteStringToFileSync(Env* env, const Slice& data,
 static std::string MakeFileName(const std::string& dbname, uint64_t number,
                                 const char* suffix) {
   char buf[100];
-  snprintf(buf, sizeof(buf), "/%06llu.%s",
+  std::snprintf(buf, sizeof(buf), "/%06llu.%s",
            static_cast<unsigned long long>(number), suffix);
   return dbname + buf;
 }
@@ -45,7 +45,7 @@ std::string SSTTableFileName(const std::string& dbname, uint64_t number) {
 std::string DescriptorFileName(const std::string& dbname, uint64_t number) {
   assert(number > 0);
   char buf[100];
-  snprintf(buf, sizeof(buf), "/MANIFEST-%06llu",
+  std::snprintf(buf, sizeof(buf), "/MANIFEST-%06llu",
            static_cast<unsigned long long>(number));
   return dbname + buf;
 }

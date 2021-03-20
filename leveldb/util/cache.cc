@@ -5,11 +5,11 @@
 #include "stdinc.h"
 
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
 
-#include "leveldb/cache.h"
+#include "leveldb/cache.h" // FlylinkDC++
 #include "port/port.h"
 #include "port/thread_annotations.h"
 #include "util/hash.h"
@@ -281,7 +281,7 @@ Cache::Handle* LRUCache::Insert(const Slice& key, uint32_t hash, void* value,
   e->hash = hash;
   e->in_cache = false;
   e->refs = 1;  // for the returned handle.
-  memcpy(e->key_data, key.data(), key.size());
+  std::memcpy(e->key_data, key.data(), key.size());
 
   if (capacity_ > 0) {
     e->refs++;  // for the cache's reference.

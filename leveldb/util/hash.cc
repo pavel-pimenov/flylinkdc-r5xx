@@ -6,7 +6,7 @@
 
 #include "util/hash.h"
 
-#include <string.h>
+#include <cstring>
 
 #include "util/coding.h"
 

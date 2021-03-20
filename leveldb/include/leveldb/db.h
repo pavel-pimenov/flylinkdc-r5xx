@@ -5,8 +5,8 @@
 #ifndef STORAGE_LEVELDB_INCLUDE_DB_H_
 #define STORAGE_LEVELDB_INCLUDE_DB_H_
 
-#include <stdint.h>
-#include <stdio.h>
+#include <cstdint>
+#include <cstdio>
 
 #include "leveldb/export.h"
 #include "leveldb/iterator.h"
@@ -16,9 +16,9 @@ namespace leveldb {
 
 // Update CMakeLists.txt if you change these
 static const int kMajorVersion = 1;
-static const int kMinorVersion = 22;
+static const int kMinorVersion = 23;
 
-#define LEVELDB_VER "1.22"                 // [+] FlylinkDC++
+#define LEVELDB_VER "1.23"                 // [+] FlylinkDC++
 
 struct Options;
 struct ReadOptions;

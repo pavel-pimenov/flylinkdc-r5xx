@@ -71,7 +71,7 @@ miniupnpc.lib
 zlib.lib
 PortalBrowser_x64.lib
 dht.lib
-FlylinkDC_Debug.exe
+FlylinkDC*_Debug.exe
 test-console.exe
 *.ipch
 *.7z

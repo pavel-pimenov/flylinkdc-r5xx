@@ -826,7 +826,7 @@ void natpmp::on_reply(error_code const& e
 	}
 	else
 	{
-		m->expires = aux::time_now() + seconds(int(lifetime * 0.7f));
+		m->expires = aux::time_now() + seconds(lifetime * 3 / 4);
 		m->external_port = public_port;
 		if (!external_addr.is_unspecified())
 			m->external_address = external_addr;
@@ -906,7 +906,7 @@ void natpmp::mapping_expired(error_code const& e, port_mapping_t const i)
 {
 	TORRENT_ASSERT(is_single_thread());
 	COMPLETE_ASYNC("natpmp::mapping_expired");
-	if (e) return;
+	if (e || m_abort) return;
 #ifndef TORRENT_DISABLE_LOGGING
 	log("mapping %u expired", static_cast<int>(i));
 #endif
